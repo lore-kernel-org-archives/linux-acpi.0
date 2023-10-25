@@ -1,113 +1,122 @@
 Received: from lindbergh.monkeyblade.net (lindbergh.monkeyblade.net [23.128.96.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 179C131A63
-	for <linux-acpi@vger.kernel.org>; Wed, 25 Oct 2023 18:33:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dkim=none
-Received: from mail-oa1-f50.google.com (mail-oa1-f50.google.com [209.85.160.50])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A80CFDC;
-	Wed, 25 Oct 2023 11:33:49 -0700 (PDT)
-Received: by mail-oa1-f50.google.com with SMTP id 586e51a60fabf-1ea1742c1a5so3742fac.0;
-        Wed, 25 Oct 2023 11:33:49 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1698258829; x=1698863629;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=lS7dc6OeEagjVnOXqO7ndPxuPeYtv6s3DDu32hsvyZo=;
-        b=EyMebHsnQSqqipkJMvdOvcWP9rZAOsfQvUnIbcDE3MSkeBNDpQ2OO9gnKGFiSfPTD4
-         /nb7TeZIWdPNfUBEgQ3SCnv9ajvwapDzuIlIXjdbDSsVhiNzZlFxUbs5dXQ/ZJ3Qr3ex
-         IJkH2TILovmO/fM5i1wzsL8pPYE8u+DX/YvntrSDwpRK3NxfrSN+zhmXAAr7gQW1c9+z
-         4BHPhcXMg4J1qjVTazfiEN7soAwcSHUa+TJUFW3lbj5Z+0/pj/fALRTIAANHGaRMedJE
-         JhB6MjbiTKePw2VVmHKjY0QaUwU4Js3rTfZt49r7M1aAi24EEniqCHT8PeG8ocYhDpxz
-         nxww==
-X-Gm-Message-State: AOJu0YzwBTgHD/bKyrGjLWRAx2aTaEW8dOJc1OqK1yFGWlOL8xRihvKS
-	ifw6F4P5jkvXjOsnWxhcUqqJYtuIuYEzK4OQkJGliugno9E=
-X-Google-Smtp-Source: AGHT+IGvOnfAlquQB4nxlxu/kS+7sHxNr5PLcWMwUNaRIF5Ci5hC2ktLAwVk9WM2JlIAH6NyRq60sK6OxQvi/Pz7ei0=
-X-Received: by 2002:a05:6870:f60b:b0:1d0:e372:6cf8 with SMTP id
- ek11-20020a056870f60b00b001d0e3726cf8mr16666905oab.2.1698258828862; Wed, 25
- Oct 2023 11:33:48 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EADDD1D69B
+	for <linux-acpi@vger.kernel.org>; Wed, 25 Oct 2023 18:43:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="hpnolXxb"
+Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.24])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B898DC;
+	Wed, 25 Oct 2023 11:43:07 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1698259387; x=1729795387;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=T1sOH8MzD7ijqC2IX92sIk4YyeSEBbdujMf4a6IQTo0=;
+  b=hpnolXxbUnhqliba/zRd5Kq7TqHBo9QG2rVe0DUEYI9NYknDTF8L9NhT
+   w9UgrPaKeBzpIeKOFxNz/DyyN/UF+gG9VIjZXlXLOuVFLRz153x02Weuv
+   ueBBRv5zvsEqrizUG+Izc8nk+cma87X5C8rXsNdXdnDWea1mWa9Ah1aVF
+   SqPnwXn+wgQaIZuQnAHh5j5xcsj8qClexLf1NWbBDnjNXOrd8cwn8z10j
+   vK2zIYYWHB6x/nbDM66W6qImUr9n8pb9+hKByZBtvonzIxv5wXBdyKJyC
+   X+sPW0h/m6Y4y3MYXgGI3clFaM2yuNgHa5nS9G/vSYx7wI0rpzU6/dOd5
+   A==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10874"; a="390233006"
+X-IronPort-AV: E=Sophos;i="6.03,250,1694761200"; 
+   d="scan'208";a="390233006"
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Oct 2023 11:43:06 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10874"; a="932458246"
+X-IronPort-AV: E=Sophos;i="6.03,250,1694761200"; 
+   d="scan'208";a="932458246"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by orsmga005.jf.intel.com with ESMTP; 25 Oct 2023 11:43:03 -0700
+Received: by black.fi.intel.com (Postfix, from userid 1003)
+	id D2142FF; Wed, 25 Oct 2023 21:43:01 +0300 (EEST)
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-gpio@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-acpi@vger.kernel.org
+Cc: Linus Walleij <linus.walleij@linaro.org>,
+	Bartosz Golaszewski <brgl@bgdev.pl>,
+	Andy Shevchenko <andy@kernel.org>,
+	Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Rob Herring <robh+dt@kernel.org>
+Subject: [PATCH v1 1/3] device property: Implement device_is_big_endian()
+Date: Wed, 25 Oct 2023 21:42:57 +0300
+Message-Id: <20231025184259.250588-2-andriy.shevchenko@linux.intel.com>
+X-Mailer: git-send-email 2.40.0.1.gaa8946217a0b
+In-Reply-To: <20231025184259.250588-1-andriy.shevchenko@linux.intel.com>
+References: <20231025184259.250588-1-andriy.shevchenko@linux.intel.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20231025053833.16014-1-raag.jadav@intel.com> <20231025055345.GI3208943@black.fi.intel.com>
- <CAJZ5v0iYA3Qh=KQm_+XGm=jvLO=ZN-AyYx7DW=-EiqkE5LS19Q@mail.gmail.com> <ZTlcmA0VpE2jsbUQ@black.fi.intel.com>
-In-Reply-To: <ZTlcmA0VpE2jsbUQ@black.fi.intel.com>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Wed, 25 Oct 2023 20:33:37 +0200
-Message-ID: <CAJZ5v0j0qfzjikB1Pi-9mKX0rG3Hpw_cQuF421_ahFW9jjgJtA@mail.gmail.com>
-Subject: Re: [PATCH v1] ACPI: LPSS: use acpi_dev_uid_match() for matching _UID
-To: Raag Jadav <raag.jadav@intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, 
-	len.brown@intel.com, andriy.shevchenko@linux.intel.com, 
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	mallikarjunappa.sangannavar@intel.com, bala.senthil@intel.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Wed, Oct 25, 2023 at 8:21=E2=80=AFPM Raag Jadav <raag.jadav@intel.com> w=
-rote:
->
-> On Wed, Oct 25, 2023 at 08:04:44PM +0200, Rafael J. Wysocki wrote:
-> > On Wed, Oct 25, 2023 at 7:53=E2=80=AFAM Mika Westerberg
-> > <mika.westerberg@linux.intel.com> wrote:
-> > >
-> > > On Wed, Oct 25, 2023 at 11:08:33AM +0530, Raag Jadav wrote:
-> > > > Use acpi_dev_uid_match() for matching _UID instead of treating it
-> > > > as an integer.
-> > > >
-> > > > Signed-off-by: Raag Jadav <raag.jadav@intel.com>
-> > >
-> > > Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> >
-> > I was about to apply this, but then I realized that it might change
-> > the behavior in a subtle way, because what if the _UID string is
-> > something like "01"?
->
-> I checked the git history and found below.
->
-> commit 2a036e489eb1571810126d6fa47bd8af1e237c08
-> Author: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Date:   Tue Sep 13 19:31:41 2022 +0300
->
->     ACPI: LPSS: Refactor _UID handling to use acpi_dev_uid_to_integer()
->
->     ACPI utils provide acpi_dev_uid_to_integer() helper to extract _UID a=
-s
->     an integer. Use it instead of custom approach.
->
->     Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
->     Reviewed-by: Hans de Goede <hdegoede@redhat.com>
->     Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->
-> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-> index c4d4d21391d7..4d415e210c32 100644
-> --- a/drivers/acpi/acpi_lpss.c
-> +++ b/drivers/acpi/acpi_lpss.c
-> @@ -167,10 +167,10 @@ static struct pwm_lookup byt_pwm_lookup[] =3D {
->
->  static void byt_pwm_setup(struct lpss_private_data *pdata)
->  {
-> -       struct acpi_device *adev =3D pdata->adev;
-> +       u64 uid;
->
->         /* Only call pwm_add_table for the first PWM controller */
-> -       if (!adev->pnp.unique_id || strcmp(adev->pnp.unique_id, "1"))
-> +       if (acpi_dev_uid_to_integer(pdata->adev, &uid) || uid !=3D 1)
->                 return;
->
->         pwm_add_table(byt_pwm_lookup, ARRAY_SIZE(byt_pwm_lookup));
->
-> So if we consider the original logic with strcmp, which is more inline
-> with acpi_dev_uid_match(), "01" should not be the case here in my opinion=
-.
->
-> Thanks for sharing your concern though.
+Some users want to use the struct device pointer to see if the
+device is big endian in terms of Open Firmware specifications,
+i.e. if it has a "big-endian" property, or if the kernel was
+compiled for BE *and* the device has a "native-endian" property.
 
-Well, this means that what the patch really does is to effectively
-revert commit 2a036e489eb1571810126d6fa47bd8af1e237c08 and use the new
-helper instead of the open-coded check that was there before, so all
-of this information should be present in the changelog.
+Provide inline helper for the users.
+
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ include/linux/property.h | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
+
+diff --git a/include/linux/property.h b/include/linux/property.h
+index 2b8f07fc68a9..d1400a477b0a 100644
+--- a/include/linux/property.h
++++ b/include/linux/property.h
+@@ -80,12 +80,38 @@ int fwnode_property_match_string(const struct fwnode_handle *fwnode,
+ 
+ bool fwnode_device_is_available(const struct fwnode_handle *fwnode);
+ 
++static inline bool fwnode_device_is_big_endian(const struct fwnode_handle *fwnode)
++{
++	if (fwnode_property_present(fwnode, "big-endian"))
++		return true;
++	if (IS_ENABLED(CONFIG_CPU_BIG_ENDIAN) &&
++	    fwnode_property_present(fwnode, "native-endian"))
++		return true;
++	return false;
++}
++
+ static inline
+ bool fwnode_device_is_compatible(const struct fwnode_handle *fwnode, const char *compat)
+ {
+ 	return fwnode_property_match_string(fwnode, "compatible", compat) >= 0;
+ }
+ 
++/**
++ * device_is_big_endian - check if a device has BE registers
++ * @dev: Pointer to the struct device
++ *
++ * Returns: true if the device has a "big-endian" property, or if the kernel
++ * was compiled for BE *and* the device has a "native-endian" property.
++ * Returns false otherwise.
++ *
++ * Callers would nominally use ioread32be/iowrite32be if
++ * device_is_big_endian() == true, or readl/writel otherwise.
++ */
++static inline bool device_is_big_endian(const struct device *dev)
++{
++	return fwnode_device_is_big_endian(dev_fwnode(dev));
++}
++
+ /**
+  * device_is_compatible - match 'compatible' property of the device with a given string
+  * @dev: Pointer to the struct device
+-- 
+2.40.0.1.gaa8946217a0b
+
