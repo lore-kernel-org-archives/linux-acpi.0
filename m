@@ -1,39 +1,40 @@
 Received: from lindbergh.monkeyblade.net (lindbergh.monkeyblade.net [23.128.96.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA172250EA
-	for <linux-acpi@vger.kernel.org>; Wed, 25 Oct 2023 18:43:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52A5D14F8D
+	for <linux-acpi@vger.kernel.org>; Wed, 25 Oct 2023 18:51:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Fq/B05hj"
-Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.24])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 56946111;
-	Wed, 25 Oct 2023 11:43:09 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="DyWMReTT"
+X-Greylist: delayed 63 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Wed, 25 Oct 2023 11:51:34 PDT
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.10])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 71A46111
+	for <linux-acpi@vger.kernel.org>; Wed, 25 Oct 2023 11:51:34 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1698259389; x=1729795389;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=dpLiufvLW4ReyqiDHIArSLkX2JA+hA4CEIqKp4YRTIA=;
-  b=Fq/B05hjLOj7NVxInMmTm3MMZNDfOue2B2WXBujoPldP6kxsC3MLuRbW
-   lrBOJDpien2tSkFgptlLCtg64kaixV/P7gK4zP3yZ+JBjaGRipkRogCDY
-   2fi7oaEAh5YqqyBZesK/o9Li/ojC4QNoe+YPfBnv1GQdu303IIxjXN7bG
-   Xp9ehJDQIS7uCKEIBLcH5jA75vEF951p3GlKcSHOvv6pd68PLQS5FZHrD
-   REqzD9A+6WXA1EpB7uSV2p1C1fT2wFBtw1mkpEhWS5gtcls0AnU3DpzgN
-   pd7IWKNU3dhB+X4z7P6gU27tvHTLfiIMxXTDKqY5mXy/T3jaU1PGB+UsX
-   w==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10874"; a="390233013"
+  t=1698259895; x=1729795895;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=Tyuad4CLXZh+vdA2dSWx/kiizQs1zXdiTr0LZZF2EVE=;
+  b=DyWMReTTKvqI8P1WW2NiLhdMYB6LNcGnCn0Fqmnv75d/4RuVIsmbzUzQ
+   /a1QD27EX7sBkvOaqSUcUR8qeJljxCiuVfe5Z/P+wikB4zi6J1+9zBIdI
+   JQUNbvTEFELxJMFBSq9XXle6rC6yw6saRnzY4NzHd9TpUVEBAYLUvKC5N
+   6xqCVdPSGVjNKD/NZCP5d8nfRy89T2bxq+XxU1hYQzLBOWa9bma6ddyNl
+   HkoNKY7GxnX6hpRmxzjKI8C2PLiBUpO/Imtt6eRnP8Yx0fmbNKXJ0UZb5
+   Owwkmb5qMzm4lGNYGzmvZUt87qeSpAD0bQ8CYMuh4asAYrX94pbnLfSkT
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10874"; a="176167"
 X-IronPort-AV: E=Sophos;i="6.03,250,1694761200"; 
-   d="scan'208";a="390233013"
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Oct 2023 11:43:06 -0700
+   d="scan'208";a="176167"
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by orvoesa102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Oct 2023 11:50:31 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10874"; a="932458248"
+X-IronPort-AV: E=McAfee;i="6600,9927,10874"; a="902642575"
 X-IronPort-AV: E=Sophos;i="6.03,250,1694761200"; 
-   d="scan'208";a="932458248"
+   d="scan'208";a="902642575"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by orsmga005.jf.intel.com with ESMTP; 25 Oct 2023 11:43:03 -0700
+  by fmsmga001.fm.intel.com with ESMTP; 25 Oct 2023 11:48:03 -0700
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-	id E0D64430; Wed, 25 Oct 2023 21:43:01 +0300 (EEST)
+	id C8283125; Wed, 25 Oct 2023 21:43:01 +0300 (EEST)
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
 	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
@@ -48,12 +49,10 @@ Cc: Linus Walleij <linus.walleij@linaro.org>,
 	Sakari Ailus <sakari.ailus@linux.intel.com>,
 	"Rafael J. Wysocki" <rafael@kernel.org>,
 	Rob Herring <robh+dt@kernel.org>
-Subject: [PATCH v1 2/3] gpio: mmio: Make use of device properties
-Date: Wed, 25 Oct 2023 21:42:58 +0300
-Message-Id: <20231025184259.250588-3-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 0/3] gpio: mmio: Make driver agnostic
+Date: Wed, 25 Oct 2023 21:42:56 +0300
+Message-Id: <20231025184259.250588-1-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.40.0.1.gaa8946217a0b
-In-Reply-To: <20231025184259.250588-1-andriy.shevchenko@linux.intel.com>
-References: <20231025184259.250588-1-andriy.shevchenko@linux.intel.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -62,94 +61,19 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Convert the module to be property provider agnostic and allow
-it to be used on non-OF platforms.
+Driver uses so far some OF APIs when generic fwnode ones can be used.
+Replace these APIs accordingly. Note, this will help to clean up OF
+headers even more.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/gpio/gpio-mmio.c | 25 +++++++------------------
- 1 file changed, 7 insertions(+), 18 deletions(-)
+Andy Shevchenko (3):
+  device property: Implement device_is_big_endian()
+  gpio: mmio: Make use of device properties
+  gpio: mmio: Clean up headers
 
-diff --git a/drivers/gpio/gpio-mmio.c b/drivers/gpio/gpio-mmio.c
-index 3ff0ea1e351c..66308b165a0d 100644
---- a/drivers/gpio/gpio-mmio.c
-+++ b/drivers/gpio/gpio-mmio.c
-@@ -58,7 +58,6 @@ o        `                     ~~~~\___/~~~~    ` controller in FPGA is ,.`
- #include <linux/platform_device.h>
- #include <linux/property.h>
- #include <linux/mod_devicetable.h>
--#include <linux/of.h>
- 
- #include "gpiolib.h"
- 
-@@ -688,7 +687,6 @@ static void __iomem *bgpio_map(struct platform_device *pdev,
- 	return devm_ioremap_resource(&pdev->dev, r);
- }
- 
--#ifdef CONFIG_OF
- static const struct of_device_id bgpio_of_match[] = {
- 	{ .compatible = "brcm,bcm6345-gpio" },
- 	{ .compatible = "wd,mbl-gpio" },
-@@ -697,36 +695,27 @@ static const struct of_device_id bgpio_of_match[] = {
- };
- MODULE_DEVICE_TABLE(of, bgpio_of_match);
- 
--static struct bgpio_pdata *bgpio_parse_dt(struct platform_device *pdev,
--					  unsigned long *flags)
-+static struct bgpio_pdata *bgpio_parse_fw(struct device *dev, unsigned long *flags)
- {
- 	struct bgpio_pdata *pdata;
- 
--	if (!pdev->dev.of_node)
-+	if (!dev_fwnode(dev))
- 		return NULL;
- 
--	pdata = devm_kzalloc(&pdev->dev, sizeof(struct bgpio_pdata),
--			     GFP_KERNEL);
-+	pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
- 	if (!pdata)
- 		return ERR_PTR(-ENOMEM);
- 
- 	pdata->base = -1;
- 
--	if (of_device_is_big_endian(pdev->dev.of_node))
-+	if (device_is_big_endian(dev))
- 		*flags |= BGPIOF_BIG_ENDIAN_BYTE_ORDER;
- 
--	if (of_property_read_bool(pdev->dev.of_node, "no-output"))
-+	if (device_property_read_bool(dev, "no-output"))
- 		*flags |= BGPIOF_NO_OUTPUT;
- 
- 	return pdata;
- }
--#else
--static struct bgpio_pdata *bgpio_parse_dt(struct platform_device *pdev,
--					  unsigned long *flags)
--{
--	return NULL;
--}
--#endif /* CONFIG_OF */
- 
- static int bgpio_pdev_probe(struct platform_device *pdev)
- {
-@@ -743,7 +732,7 @@ static int bgpio_pdev_probe(struct platform_device *pdev)
- 	struct gpio_chip *gc;
- 	struct bgpio_pdata *pdata;
- 
--	pdata = bgpio_parse_dt(pdev, &flags);
-+	pdata = bgpio_parse_fw(dev, &flags);
- 	if (IS_ERR(pdata))
- 		return PTR_ERR(pdata);
- 
-@@ -814,7 +803,7 @@ MODULE_DEVICE_TABLE(platform, bgpio_id_table);
- static struct platform_driver bgpio_driver = {
- 	.driver = {
- 		.name = "basic-mmio-gpio",
--		.of_match_table = of_match_ptr(bgpio_of_match),
-+		.of_match_table = bgpio_of_match,
- 	},
- 	.id_table = bgpio_id_table,
- 	.probe = bgpio_pdev_probe,
+ drivers/gpio/gpio-mmio.c | 53 +++++++++++++++-------------------------
+ include/linux/property.h | 26 ++++++++++++++++++++
+ 2 files changed, 46 insertions(+), 33 deletions(-)
+
 -- 
 2.40.0.1.gaa8946217a0b
 
