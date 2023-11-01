@@ -1,59 +1,51 @@
 Received: from lindbergh.monkeyblade.net (lindbergh.monkeyblade.net [23.128.96.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33A00DDA4;
-	Wed,  1 Nov 2023 10:09:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6510629AB
+	for <linux-acpi@vger.kernel.org>; Wed,  1 Nov 2023 10:11:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="KlUp3GNS"
-Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.31])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 30377D79;
-	Wed,  1 Nov 2023 03:07:37 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Hj1rc27W"
+Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.136])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 149EDE4
+	for <linux-acpi@vger.kernel.org>; Wed,  1 Nov 2023 03:11:12 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1698833258; x=1730369258;
+  t=1698833472; x=1730369472;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=/G6YHPcZjKp/CrBMDSSrt2epiYSXFZcrqUWw6QsDyWY=;
-  b=KlUp3GNSt7hjbcSsGg8e016t9dyBOk6rqhBFosZgXyTliaXQjhJMOSD6
-   I4UftPMPKo/yuCTWvreQlUBq0fl1ZYKYIbnMacGpd56kOT1qFnW02eNXx
-   ZyhuFos+ub2Gjhn49hGcB3i7avBEI06sBrdLaVnYbnWW7sIOD/RkvGwlw
-   1gZKiG41MTzvLahKw4skJcwPnaFWQvcPGveDG2rbwTRv0dvdmYTxhr4dj
-   1jyGEji8nV+oBGwhqlPuECPokwMrdvrR0asSxFJNDzw9V3KoiGJYj6+PJ
-   9vDrb3giAAVl43oz53LF979tM1DrEgbHGnAq2Pp00uBzVNSry2XDMX849
-   w==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10880"; a="452756082"
+  bh=1HikYpY5bDw6J9sTp/tKibCTtaIii/z95pWn/L9EKtk=;
+  b=Hj1rc27W9rg+RyprpjnqvxsEJW5iOnoksMy8pKo10UXbaxiUsSoj9yh+
+   HtHiil9VyXpQESsaMfVVN+ogz/s9z7QDsgWsOPzZmiye3zFQWVu+u035N
+   ms0iEUy9mB+bNKTJoF+ZW5h2WW1MCFfSho8u0xdGfZVd4eFcJjCctgaLJ
+   RK//q+HqgWLTXjoNQkF1rNHr0QjMunUMshxbFaGP+JmkHtahK9TtU5CLB
+   N8pIUFPTBz2X7vLk6N3lpECE6ADNoiEv8nve9p2YMasLDOgQyMcYg2OZv
+   XARs8BbOs1InQUTYkdlB0RmoHFSE1Jxqs2rF1RJJVnLzelRFIXbiTQV77
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10880"; a="367815905"
 X-IronPort-AV: E=Sophos;i="6.03,267,1694761200"; 
-   d="scan'208";a="452756082"
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Nov 2023 03:07:37 -0700
+   d="scan'208";a="367815905"
+Received: from orsmga004.jf.intel.com ([10.7.209.38])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Nov 2023 03:11:11 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10880"; a="851533391"
+X-IronPort-AV: E=McAfee;i="6600,9927,10880"; a="884517540"
 X-IronPort-AV: E=Sophos;i="6.03,267,1694761200"; 
-   d="scan'208";a="851533391"
+   d="scan'208";a="884517540"
 Received: from turnipsi.fi.intel.com (HELO kekkonen.fi.intel.com) ([10.237.72.44])
-  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Nov 2023 03:07:33 -0700
+  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Nov 2023 03:11:09 -0700
 Received: from kekkonen.localdomain (localhost [127.0.0.1])
-	by kekkonen.fi.intel.com (Postfix) with SMTP id F006C1207A3;
-	Wed,  1 Nov 2023 12:00:15 +0200 (EET)
-Date: Wed, 1 Nov 2023 10:00:15 +0000
+	by kekkonen.fi.intel.com (Postfix) with SMTP id F0A6C1207A3;
+	Wed,  1 Nov 2023 12:11:06 +0200 (EET)
+Date: Wed, 1 Nov 2023 10:11:06 +0000
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org,
-	Paul Elder <paul.elder@ideasonboard.com>,
-	Hans Verkuil <hverkuil-cisco@xs4all.nl>,
-	Rob Herring <robh+dt@kernel.org>,
-	Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
-	Julien Stephan <jstephan@baylibre.com>, devicetree@vger.kernel.org,
-	linux-mediatek@lists.infradead.org, rafael@kernel.org
-Subject: Re: [PATCH v2 1/1] device property: Add fwnode_name_eq()
-Message-ID: <ZUIhr1Wiy96PMEKx@kekkonen.localdomain>
-References: <20231101072729.1142578-1-sakari.ailus@linux.intel.com>
- <ZUIfSIWze4llNJfd@smile.fi.intel.com>
+Cc: linux-acpi@vger.kernel.org, Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	"Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH 0/3] Make fwnode_property_get_reference_args accept NULL
+ args
+Message-ID: <ZUIkOov2eykf0n1v@kekkonen.localdomain>
+References: <20231101090737.1148303-1-sakari.ailus@linux.intel.com>
+ <ZUIfp43KYDvpdife@smile.fi.intel.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -62,33 +54,20 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <ZUIfSIWze4llNJfd@smile.fi.intel.com>
+In-Reply-To: <ZUIfp43KYDvpdife@smile.fi.intel.com>
 
-On Wed, Nov 01, 2023 at 11:50:00AM +0200, Andy Shevchenko wrote:
-> On Wed, Nov 01, 2023 at 09:27:29AM +0200, Sakari Ailus wrote:
-> > Add fwnode_name_eq() to implement the functionality of of_node_name_eq()
-> > on fwnode property API. The same convention of ending the comparison at
-> > '@' (besides '\0') is applied on also both ACPI and swnode. The function
-> > is intended for comparing unit address-less node names on DT and firmware
-> > or swnodes compliant with DT bindings.
+On Wed, Nov 01, 2023 at 11:51:35AM +0200, Andy Shevchenko wrote:
+> On Wed, Nov 01, 2023 at 11:07:34AM +0200, Sakari Ailus wrote:
+> > Hi all,
+> > 
+> > The of_parse_phandle_with_args() accepts NULL args but
+> > fwnode_property_get_reference_args() does not currently, in its ACPI or
+> > software node implementations. Fix this.
 > 
-> ...
-> 
-> > - Use size_t type for len.
-> 
-> Strictly speaking it should be ptrdiff_t according to the code.
+> The last sentence assumes Fixes tag(s) which I can't see.
 
-It'll be compared to size_t right after. ptrdiff_t is signed and we know we
-have a positive number here so size_t seems like a better choice.
-
-> 
-> ...
-> 
-> > + * the comparison to either '\0' or '@' character
-> 
-> NUL is a human-readable substitution to less parsable '\0'.
-
-I can send v3 with that but I'll wait a bit if there are more comments.
+Oops. I realised this is actually changing code added in DisCo for Imaging
+patches. It'd be better to address this before those.
 
 -- 
 Sakari Ailus
