@@ -1,52 +1,52 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB6ED1374
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2761A1390
 	for <linux-acpi@vger.kernel.org>; Wed,  1 Nov 2023 01:44:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="oNh7CO1x"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 72DA1C433C7;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lljfK6Et"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 8C6A8C433C8;
 	Wed,  1 Nov 2023 01:44:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=k20201202; t=1698803060;
-	bh=xLqwMmOgZhXjxEfYmxFCdxKR3P7QuMdU4k8J9gjGGa0=;
+	bh=ykrvRfuuuojPTwHZrO0/0npa0Uw8hmBeyHA5txm1BJs=;
 	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-	b=oNh7CO1xhaeNLanEBhKByu9+ghRTsF3BLyvbmTewQ4zyyQSDzGpFntybiIkAAYET4
-	 iD15LsKoHRmwqhYo1ReTUNaIlZrrgFetGyCBo1WItkFRwiW9qDGu7rjxFdZ8Yb3IVc
-	 jsYdjOWXKYwzF9niQI79KB0GBTHutWVS9NG0CKO7F+9jpdSn/HqXRv0sfYb0C0ABg7
-	 uDgPkf0fyl6ZXCjx/rBBn10xFEQOGFlNc+tNWwz1j5gSiRtaM/eN/B9Dc9NeqPyivT
-	 EdHkEkvOsh0kY/uRUmNSgqYfCA9XGIfBkQcfpz0KQnr9CvtYOz/ufvavd9YaYoDOUA
-	 jrkAy8wnmFVPQ==
+	b=lljfK6EteIHJpDK3eH2LEz2PaJJtZ7oYQWez9z7rCTklyJ5wOgcsCuV2Q4keUnqwo
+	 +izY0WdjVtUfEODnz1wcrdwU2w2CvJvrO3iyToiDYd34DhKb2wjNmj3SFn2gDPbfzY
+	 BhNeNAw2ngZVaNg6tLso0EijH6IFwyvNC2JSXlq4MDRqbV1IomlVbjvLR6f+Rb/TuZ
+	 IpmWPL5xFqeOukTZ09t8cU3sYNm2N6uQAnS4oH54fZ/GQe5ZltO7oCNk2Vr0nxGP0v
+	 0W7ZeOVgPFy2kOP/fWP9m8nAZ2cr3mHSctmeZMiXfKMnXCZNKOoRNCj2ZiC0oBZvxo
+	 qxlzx3l0Yy0tw==
 Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 57CDFEAB08A;
+	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 726F7C3959F;
 	Wed,  1 Nov 2023 01:44:20 +0000 (UTC)
-Subject: Re: [GIT PULL] Thermal control updates for v6.7-rc1
+Subject: Re: [GIT PULL] ACPI updates for v6.7-rc1
 From: pr-tracker-bot@kernel.org
-In-Reply-To: <CAJZ5v0gxSDM_0DTzyKHtNXyf06hGJK4fU-ByRqoUh89M=OM-Yg@mail.gmail.com>
-References: <CAJZ5v0gxSDM_0DTzyKHtNXyf06hGJK4fU-ByRqoUh89M=OM-Yg@mail.gmail.com>
+In-Reply-To: <CAJZ5v0jT7CKsUtTY3FN=GKBZkCm5naHVEH43vS+jonTrvy4gCg@mail.gmail.com>
+References: <CAJZ5v0jT7CKsUtTY3FN=GKBZkCm5naHVEH43vS+jonTrvy4gCg@mail.gmail.com>
 X-PR-Tracked-List-Id: <linux-acpi.vger.kernel.org>
-X-PR-Tracked-Message-Id: <CAJZ5v0gxSDM_0DTzyKHtNXyf06hGJK4fU-ByRqoUh89M=OM-Yg@mail.gmail.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git thermal-6.7-rc1
-X-PR-Tracked-Commit-Id: 607218deac6e29c52f4ce521ed467a0d75090a0d
+X-PR-Tracked-Message-Id: <CAJZ5v0jT7CKsUtTY3FN=GKBZkCm5naHVEH43vS+jonTrvy4gCg@mail.gmail.com>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-6.7-rc1
+X-PR-Tracked-Commit-Id: f4cb34a75e4a4aee09ff832ea2147cf8322a6a7f
 X-PR-Merge-Tree: torvalds/linux.git
 X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 4ac4677fdb76f644e09a6331bab65919b85f617d
-Message-Id: <169880306035.15034.1145407508156698137.pr-tracker-bot@kernel.org>
+X-PR-Merge-Commit-Id: d4b671d4c66cd57ccebeae659d9b18e28a4fc9e8
+Message-Id: <169880306046.15034.15335431795917861803.pr-tracker-bot@kernel.org>
 Date: Wed, 01 Nov 2023 01:44:20 +0000
 To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Linux PM <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 
-The pull request you sent on Fri, 27 Oct 2023 15:48:29 +0200:
+The pull request you sent on Fri, 27 Oct 2023 15:50:36 +0200:
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git thermal-6.7-rc1
+> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-6.7-rc1
 
 has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/4ac4677fdb76f644e09a6331bab65919b85f617d
+https://git.kernel.org/torvalds/c/d4b671d4c66cd57ccebeae659d9b18e28a4fc9e8
 
 Thank you!
 
