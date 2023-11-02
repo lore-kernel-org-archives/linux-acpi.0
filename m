@@ -1,50 +1,52 @@
 Received: from lindbergh.monkeyblade.net (lindbergh.monkeyblade.net [23.128.96.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81BF2CA4D
-	for <linux-acpi@vger.kernel.org>; Thu,  2 Nov 2023 10:13:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EB8B12B8C
+	for <linux-acpi@vger.kernel.org>; Thu,  2 Nov 2023 10:13:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Wk+3lPMh"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="PzwFOI2l"
 Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CDFBB112
-	for <linux-acpi@vger.kernel.org>; Thu,  2 Nov 2023 03:13:22 -0700 (PDT)
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 15D5B131
+	for <linux-acpi@vger.kernel.org>; Thu,  2 Nov 2023 03:13:27 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1698920003; x=1730456003;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=wokVdbxVQ+OQerFoCr9ANOErJ7IXkunMQzvGnXwIyBA=;
-  b=Wk+3lPMhSHPIXpIy0dFsMTT/igYb/g+mHcpVzu7G0d20bK/yZs2yAJHK
-   b4bmwkz6lgcQfbXkWeN1n7bMfUjKBVkCvYpt2nawYK+alVeITqj8unmIK
-   oAtu1Tqt1NHLm4XpTLytfh/qX1IFkUTY5wOByKMAP3YythHmHSVkoROLc
-   qBOzoatV4wg/S5sE5r0RKqg5LYmoPklmpq3eekNhSHLJWdZlzyqnCwja2
-   TH00KSXMIZJE3t7j8i99cf4yK2ETmALqa38j8yy7cGahlL+8pCR+B5EsM
-   efISvoZYLWXOGUPXj8QruGoMWvrI/Ah/+tFzm7DYcBKqqYpji8oMFc3KG
+  t=1698920008; x=1730456008;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=+Z/QjL4c11dFL7cYIx9QB1bsJdnkklZS2hx2d7+OSs4=;
+  b=PzwFOI2l1n3dVMArQxH+IsH0LgiTCGl/TpJ2R84L/gTPiuxk7Iz05p01
+   3LA2tKzbFuiadY0yN1oGG6zfuVSZM1UVKi9vBL0ghRzMWFhtxKvlMAZSd
+   sQj8h2iB8ROZJzUuCKz/10gpvcsHFhLFY7vimmVtX1vVx5y5EAl47l7YJ
+   WtU6CwqB8j4OPb8m+25sA/Qu4+2ixfjtzWlTq2n0/T9QbOkWehmyr7v8W
+   tMe8W8uczPMX5ssbILPhEykWV3RuI5hGmsZpNGFOuv0zrvVobNk9Jb+PT
+   CEIGrGdr54I75llOtLtZktAhEGn5XcIsVEoEbQJDkMAsTsD5CpbsgHQmz
    Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10881"; a="7318632"
+X-IronPort-AV: E=McAfee;i="6600,9927,10881"; a="7318643"
 X-IronPort-AV: E=Sophos;i="6.03,271,1694761200"; 
-   d="scan'208";a="7318632"
+   d="scan'208";a="7318643"
 Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Nov 2023 03:13:23 -0700
+  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Nov 2023 03:13:24 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10881"; a="904969778"
+X-IronPort-AV: E=McAfee;i="6600,9927,10881"; a="904969781"
 X-IronPort-AV: E=Sophos;i="6.03,271,1694761200"; 
-   d="scan'208";a="904969778"
+   d="scan'208";a="904969781"
 Received: from turnipsi.fi.intel.com (HELO kekkonen.fi.intel.com) ([10.237.72.44])
-  by fmsmga001-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Nov 2023 03:13:20 -0700
+  by fmsmga001-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Nov 2023 03:13:22 -0700
 Received: from svinhufvud.ger.corp.intel.com (localhost [IPv6:::1])
-	by kekkonen.fi.intel.com (Postfix) with ESMTP id 3F66012035D;
-	Thu,  2 Nov 2023 12:13:17 +0200 (EET)
+	by kekkonen.fi.intel.com (Postfix) with ESMTP id 466DE120819;
+	Thu,  2 Nov 2023 12:13:19 +0200 (EET)
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-acpi@vger.kernel.org
 Cc: andriy.shevchenko@linux.intel.com,
 	Daniel Scally <djrscally@gmail.com>,
 	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
 	"Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [PATCH v3 0/3] Make fwnode_property_get_reference_args accept NULL args
-Date: Thu,  2 Nov 2023 12:13:13 +0200
-Message-Id: <20231102101316.1186215-1-sakari.ailus@linux.intel.com>
+Subject: [PATCH v3 2/3] software node: Let args be NULL in software_node_get_reference_args
+Date: Thu,  2 Nov 2023 12:13:15 +0200
+Message-Id: <20231102101316.1186215-3-sakari.ailus@linux.intel.com>
 X-Mailer: git-send-email 2.39.2
+In-Reply-To: <20231102101316.1186215-1-sakari.ailus@linux.intel.com>
+References: <20231102101316.1186215-1-sakari.ailus@linux.intel.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -53,37 +55,31 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi all,
+fwnode_get_property_reference_args() may not be called with args argument
+NULL and while OF already supports this. Add the missing NULL check.
 
-The of_parse_phandle_with_args() accepts NULL args but
-fwnode_property_get_reference_args() does not currently, in its ACPI or
-software node implementations. Fix this.
+The purpose is to be able to count the references.
 
-since v2:
+Fixes: b06184acf751 ("software node: Add software_node_get_reference_args()")
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/base/swnode.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-- Correct fwnode_property_get_reference_args() name (was
-  fwnode_property_get_reference()) in commit messages.
-
-since v1:
-
-- Applies to Rafael's devprop branch now (i.e. not on top of DisCo for
-  Imaging set).
-
-- Add Fixes: tags.
-
-- Small documentation line wrap change in the first patch.
-
-Sakari Ailus (3):
-  acpi: property: Let args be NULL in __acpi_node_get_property_reference
-  software node: Let args be NULL in software_node_get_reference_args
-  device property: fwnode_property_get_reference_args allows NULL args
-    now
-
- drivers/acpi/property.c | 7 +++++--
- drivers/base/property.c | 1 +
- drivers/base/swnode.c   | 3 +++
- 3 files changed, 9 insertions(+), 2 deletions(-)
-
+diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
+index 1886995a0b3a..079bd14bdedc 100644
+--- a/drivers/base/swnode.c
++++ b/drivers/base/swnode.c
+@@ -541,6 +541,9 @@ software_node_get_reference_args(const struct fwnode_handle *fwnode,
+ 	if (nargs > NR_FWNODE_REFERENCE_ARGS)
+ 		return -EINVAL;
+ 
++	if (!args)
++		return 0;
++
+ 	args->fwnode = software_node_get(refnode);
+ 	args->nargs = nargs;
+ 
 -- 
 2.39.2
 
