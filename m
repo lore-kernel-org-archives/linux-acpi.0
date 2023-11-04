@@ -1,47 +1,48 @@
 Received: from lindbergh.monkeyblade.net (lindbergh.monkeyblade.net [23.128.96.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 792BFBA25
-	for <linux-acpi@vger.kernel.org>; Sat,  4 Nov 2023 10:59:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3F43C150
+	for <linux-acpi@vger.kernel.org>; Sat,  4 Nov 2023 10:59:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="x0D4Gomi"
-Received: from mail-wm1-x32b.google.com (mail-wm1-x32b.google.com [IPv6:2a00:1450:4864:20::32b])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C0B76D47
-	for <linux-acpi@vger.kernel.org>; Sat,  4 Nov 2023 03:59:13 -0700 (PDT)
-Received: by mail-wm1-x32b.google.com with SMTP id 5b1f17b1804b1-409299277bbso20811525e9.2
-        for <linux-acpi@vger.kernel.org>; Sat, 04 Nov 2023 03:59:13 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="OLJZ/NAf"
+Received: from mail-lj1-x236.google.com (mail-lj1-x236.google.com [IPv6:2a00:1450:4864:20::236])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 00F80D4C
+	for <linux-acpi@vger.kernel.org>; Sat,  4 Nov 2023 03:59:16 -0700 (PDT)
+Received: by mail-lj1-x236.google.com with SMTP id 38308e7fff4ca-2c5087d19a6so38943631fa.0
+        for <linux-acpi@vger.kernel.org>; Sat, 04 Nov 2023 03:59:16 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1699095552; x=1699700352; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=NNExFK3YGciyQ9GJGSArLtOwz5E+OA3aCyO23C6vxdQ=;
-        b=x0D4Gomiwj75uXfAEQGEze26zaPXwl+UFCzW5PMgCfRR8Y3imYU42IbgBZFDeSVhI5
-         rXZwlt1J3NGUmZVAdMXyRZi5Ul43P94hIYeFklGmfey47+SGYvhfD9TO0c68e9JblaCv
-         mRfyRPrLlGU7DsDF7An5Ze86VW1buB2nWvEK2w1ppZrH5hjScLFWD2ln6wq/T8ImAPOd
-         xh6avVIOpUKxH97209JCzlNm/vn5ISxSixcHymvD1idHNeyVReIXgmHfBB2eiS9LrWSi
-         q9VYkJW/u/4sR+o/iPvEnS3JMQrJarmu8ApZRAG5PLBbD9A3UUzG4ZqU10tYwDMlQiU5
-         Seeg==
+        d=linaro.org; s=google; t=1699095555; x=1699700355; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=TkZaHixUrwPrJIZcMAT2UI1CVMoJazwhG5L/qYNHDpM=;
+        b=OLJZ/NAf4ZEf45K0m9be9tlxklipxKiEah3Lfiw9MRb55oJkvQevIb88wp9EAb2egV
+         ZlzaMnhwvzTIl/PpPCD9eNcJAv6QEb0PimPNwsV7wGNPZ+zGz6HqUj5ZaIJdcRDe4U2n
+         n33vMenx3zLynMJvznF38JJXbmc90bRyw4vYBufEza0/Wafj5aMcmYn83AVXJ3QsaUgL
+         D4AUVBUS39tmQZd8mHslkvW5yZNqbsEx2svupRPqvgeMbkJsMI84dp5rAtyr8FkxZDWd
+         mNwb63WHrjHrSpKHSPEWQ4fm07zIGKGIn2XJvmucFkIO7AKhLIyLbYwY24f8af0Bh8RO
+         wQKQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1699095552; x=1699700352;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=NNExFK3YGciyQ9GJGSArLtOwz5E+OA3aCyO23C6vxdQ=;
-        b=S8KAFRlkVGOmeUsWLN4tU9ksGAUBaYkl3GaxMVAp6Cgvk7x9POp4ZWE0iBBuV9Ka2Q
-         oY3R9XrVkqrb59zBUY1Y6gKSl0Q2tkzXBA49dOzjr/HHHA1VUF0Xn2iq0KtbgcFIvlMb
-         HR07WH8rI1auZuKAPV19vJX+ze1j31V8WQuAWdQceealR80RakDZ5TWGpZhvPRKF6qiX
-         3CnHRlHRgcaagM33J4ABZgx9CEd0IWWMcIAz34Qw/8X9Gh3pu6+LaJS8xXBwQiKhmHLf
-         Srpiuj7IDWpta4ZizzXoEqjQlbl7SoD8KDKCf6u/lbtenoXz1brUySkuykoy88p1Wkhx
-         xF/w==
-X-Gm-Message-State: AOJu0YxzwoLVwJo5uPYR4tveCLPd3DiuEMeoHcLO+R/Pk59PHNsuKVfa
-	GNRYLonm8x8cSgZBos2THHMOCA==
-X-Google-Smtp-Source: AGHT+IGp4uWcYlP4kHjc0lmFKbWKIFKggNnAnfbnbMYGOblrMi2XBzxq72tIY/+NQsPArSEgCst3GQ==
-X-Received: by 2002:a05:600c:1c90:b0:405:37bb:d942 with SMTP id k16-20020a05600c1c9000b0040537bbd942mr20094215wms.4.1699095551951;
-        Sat, 04 Nov 2023 03:59:11 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1699095555; x=1699700355;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=TkZaHixUrwPrJIZcMAT2UI1CVMoJazwhG5L/qYNHDpM=;
+        b=DC7VcOOvr6sMqXEFevm71J6MtG3YNaDD8uPeDg1L43vQisQpy4PyxzYdX9Z6M9N2sK
+         C8ROr3am/rZOH0xxlHJhIbozQIxciGIhZHTmQv/niPM+huXl/rOPqhfx/igqU5IEHDpp
+         gYEhy61512lkf4rfLY9Ugsf9+Qi8LhWLRhi8tgCEjHmPKCpcemQuUFvH17Uhe3Eozs8j
+         oO4Ske6/3+DxO3KeqTdLzF8F9s0AZhNMQFLca8QKGBq090YIi+qPd8ullYURpu8SxWcH
+         /SpVb0JBMli3V8gXGr2o23Z2F7TzxgDaIZvobcJ5VvGAzHqoPjdkgFNNLkHENiAKNyiI
+         ljMg==
+X-Gm-Message-State: AOJu0YwD41YlxlyC0ByarpRD0SzRgNqklBqhVWk3I5QWw4+i9jqUw/yp
+	sA0xxnEp+9g/abXRB+Gd6keacQ==
+X-Google-Smtp-Source: AGHT+IGatMiVkHBmtEgXSS+pWzzTWU/5QphnZgu+ruqZQUWWzvRdCWO28Yzol+5QNvFneAB53ahKPA==
+X-Received: by 2002:a2e:7a17:0:b0:2c2:a337:5ea with SMTP id v23-20020a2e7a17000000b002c2a33705eamr19234202ljc.27.1699095555017;
+        Sat, 04 Nov 2023 03:59:15 -0700 (PDT)
 Received: from vingu-book.. ([2a01:e0a:f:6020:3172:eb13:5bac:126a])
-        by smtp.gmail.com with ESMTPSA id p6-20020a05600c358600b004053a6b8c41sm5315809wmq.12.2023.11.04.03.59.10
+        by smtp.gmail.com with ESMTPSA id p6-20020a05600c358600b004053a6b8c41sm5315809wmq.12.2023.11.04.03.59.13
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 04 Nov 2023 03:59:11 -0700 (PDT)
+        Sat, 04 Nov 2023 03:59:14 -0700 (PDT)
 From: Vincent Guittot <vincent.guittot@linaro.org>
 To: linux@armlinux.org.uk,
 	catalin.marinas@arm.com,
@@ -78,10 +79,12 @@ Cc: conor.dooley@microchip.com,
 	ajones@ventanamicro.com,
 	lftan@kernel.org,
 	Vincent Guittot <vincent.guittot@linaro.org>
-Subject: [PATCH v5 0/7] consolidate and cleanup CPU capacity
-Date: Sat,  4 Nov 2023 11:59:00 +0100
-Message-Id: <20231104105907.1365392-1-vincent.guittot@linaro.org>
+Subject: [PATCH v5 2/7] cpufreq: Use the fixed and coherent frequency for scaling capacity
+Date: Sat,  4 Nov 2023 11:59:02 +0100
+Message-Id: <20231104105907.1365392-3-vincent.guittot@linaro.org>
 X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20231104105907.1365392-1-vincent.guittot@linaro.org>
+References: <20231104105907.1365392-1-vincent.guittot@linaro.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -90,85 +93,57 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This is the 1st part of consolidating how the max compute capacity is
-used in the scheduler and how we calculate the frequency for a level of
-utilization.
+cpuinfo.max_freq can change at runtime because of boost as an example. This
+implies that the value could be different from the frequency that has been
+used to compute the capacity of a CPU.
 
-Fix some unconsistancy when computing frequency for an utilization. There
-can be a mismatch between energy model and schedutil.
+The new arch_scale_freq_ref() returns a fixed and coherent frequency
+that can be used to compute the capacity for a given frequency.
 
-Next step will be to make a difference between the original
-max compute capacity of a CPU and what is currently available when
-there is a capping applying forever (i.e. seconds or more).
+Signed-off-by: Vincent Guittot <vincent.guittot@linaro.org>
+Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
+Reviewed-by: Lukasz Luba <lukasz.luba@arm.com>
+Tested-by: Lukasz Luba <lukasz.luba@arm.com>
+Acked-by: Rafael J. Wysocki <rafael@kernel.org>
+---
+ drivers/cpufreq/cpufreq.c | 4 ++--
+ include/linux/cpufreq.h   | 1 +
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-Changes since v4:
-- Capitalize the verb in subject
-- Remove usless parentheses in cppc_get_dmi_max_khz()
-- Use freq_ref pattern everywhere
-- Fix MHz / kHz units conversion for cppc_cpufreq
-- Move default definition of arch_scale_freq_ref() in
-  include/linux/sched/topology.h beside arch_scale_cpu_capacity
-  which faces similar default declaration behavior. This location covers
-  all cases with arch and CONFIG_* which was not the case with previous
-  attempts.
-
-Changes since v3:
-- Split patch 5 cpufreq/cppc
-- Fix topology_init_cpu_capacity_cppc() 
-- Fix init if AMU ratio
-- Added some tags
-
-Changes since v2:
-- Remove the 1st patch which has been queued in tip
-- Rework how to initialize the reference frequency for cppc_cpufreq and
-  change topology_init_cpu_capacity_cppc() to also set capacity_ref_freq
-- Add a RFC to convert AMU to use arch_scale_freq_ref and move the config
-  of the AMU ratio to be done when intializing cpu capacity and
-  capacity_ref_freq
-- Added some tags
-
-Changes since v1:
-- Fix typos
-- Added changes in cpufreq to use arch_scale_freq_ref() when calling
-  arch_set_freq_scale (patch 3).
-- arch_scale_freq_ref() is always defined and returns 0 (as proposed
-  by Ionela) when not defined by the arch. This simplifies the code with
-  the addition of patch 3.
-- Simplify Energy Model which always uses arch_scale_freq_ref(). The
-  latter returns 0 when not defined by arch instead of last item of the 
-  perf domain. This is not a problem because the function is only defined
-  for compilation purpose in this case and we don't care about the
-  returned value. (patch 5)
-- Added changes in cppc cpufreq to set capacity_ref_freq (patch 6)
-- Added reviewed tag for patch 1 which got a minor change but not for
-  others as I did some changes which could make previous reviewed tag
-  no more relevant.
-
-Vincent Guittot (7):
-  topology: Add a new arch_scale_freq_reference
-  cpufreq: Use the fixed and coherent frequency for scaling capacity
-  cpufreq/schedutil: Use a fixed reference frequency
-  energy_model: Use a fixed reference frequency
-  cpufreq/cppc: Move and rename cppc_cpufreq_{perf_to_khz|khz_to_perf}
-  cpufreq/cppc: Set the frequency used for computing the capacity
-  arm64/amu: Use capacity_ref_freq to set AMU ratio
-
- arch/arm/include/asm/topology.h   |   1 +
- arch/arm64/include/asm/topology.h |   1 +
- arch/arm64/kernel/topology.c      |  26 +++---
- arch/riscv/include/asm/topology.h |   1 +
- drivers/acpi/cppc_acpi.c          | 104 ++++++++++++++++++++++
- drivers/base/arch_topology.c      |  56 ++++++++----
- drivers/cpufreq/cppc_cpufreq.c    | 139 ++++--------------------------
- drivers/cpufreq/cpufreq.c         |   4 +-
- include/acpi/cppc_acpi.h          |   2 +
- include/linux/arch_topology.h     |   8 ++
- include/linux/cpufreq.h           |   1 +
- include/linux/energy_model.h      |   6 +-
- include/linux/sched/topology.h    |   8 ++
- kernel/sched/cpufreq_schedutil.c  |  26 +++++-
- 14 files changed, 225 insertions(+), 158 deletions(-)
-
+diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
+index 60ed89000e82..8c4f9c2f9c44 100644
+--- a/drivers/cpufreq/cpufreq.c
++++ b/drivers/cpufreq/cpufreq.c
+@@ -454,7 +454,7 @@ void cpufreq_freq_transition_end(struct cpufreq_policy *policy,
+ 
+ 	arch_set_freq_scale(policy->related_cpus,
+ 			    policy->cur,
+-			    policy->cpuinfo.max_freq);
++			    arch_scale_freq_ref(policy->cpu));
+ 
+ 	spin_lock(&policy->transition_lock);
+ 	policy->transition_ongoing = false;
+@@ -2174,7 +2174,7 @@ unsigned int cpufreq_driver_fast_switch(struct cpufreq_policy *policy,
+ 
+ 	policy->cur = freq;
+ 	arch_set_freq_scale(policy->related_cpus, freq,
+-			    policy->cpuinfo.max_freq);
++			    arch_scale_freq_ref(policy->cpu));
+ 	cpufreq_stats_record_transition(policy, freq);
+ 
+ 	if (trace_cpu_frequency_enabled()) {
+diff --git a/include/linux/cpufreq.h b/include/linux/cpufreq.h
+index 71d186d6933a..738dcddf3cfe 100644
+--- a/include/linux/cpufreq.h
++++ b/include/linux/cpufreq.h
+@@ -1211,6 +1211,7 @@ void arch_set_freq_scale(const struct cpumask *cpus,
+ {
+ }
+ #endif
++
+ /* the following are really really optional */
+ extern struct freq_attr cpufreq_freq_attr_scaling_available_freqs;
+ extern struct freq_attr cpufreq_freq_attr_scaling_boost_freqs;
 -- 
 2.34.1
 
