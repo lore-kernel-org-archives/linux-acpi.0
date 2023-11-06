@@ -1,27 +1,27 @@
 Received: from lindbergh.monkeyblade.net (lindbergh.monkeyblade.net [23.128.96.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74B9229421
-	for <linux-acpi@vger.kernel.org>; Mon,  6 Nov 2023 16:31:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DC6429413
+	for <linux-acpi@vger.kernel.org>; Mon,  6 Nov 2023 16:31:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; dkim=none
 Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DD5111BF;
-	Mon,  6 Nov 2023 08:31:34 -0800 (PST)
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 37E54D45;
+	Mon,  6 Nov 2023 08:31:35 -0800 (PST)
 Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
  by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 5.2.0)
- id 8c88228d28cf286d; Mon, 6 Nov 2023 17:31:33 +0100
+ id 3fc6a541e7f5ba27; Mon, 6 Nov 2023 17:31:33 +0100
 Received: from kreacher.localnet (unknown [195.136.19.94])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by cloudserver094114.home.pl (Postfix) with ESMTPSA id 8A0496678F9;
-	Mon,  6 Nov 2023 17:31:32 +0100 (CET)
+	by cloudserver094114.home.pl (Postfix) with ESMTPSA id 3C248667790;
+	Mon,  6 Nov 2023 17:31:33 +0100 (CET)
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To: Linux ACPI <linux-acpi@vger.kernel.org>, Sakari Ailus <sakari.ailus@linux.intel.com>
 Cc: LKML <linux-kernel@vger.kernel.org>
-Subject: [PATCH v3 7/7] ACPI: property: Replicate DT-aligned u32 properties from DisCo for Imaging
-Date: Mon, 06 Nov 2023 17:31:18 +0100
-Message-ID: <4325211.ejJDZkT8p0@kreacher>
+Subject: [PATCH v3 6/7] ACPI: property: Dig "rotation" property for devices with CSI2 _CRS
+Date: Mon, 06 Nov 2023 17:28:40 +0100
+Message-ID: <1892619.CQOukoFCf9@kreacher>
 In-Reply-To: <4542595.LvFx2qVVIh@kreacher>
 References: <4542595.LvFx2qVVIh@kreacher>
 Precedence: bulk
@@ -35,64 +35,64 @@ Content-Type: text/plain; charset="UTF-8"
 X-CLIENT-IP: 195.136.19.94
 X-CLIENT-HOSTNAME: 195.136.19.94
 X-VADE-SPAMSTATE: clean
-X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvkedruddugedgkeekucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvfevufffkfgjfhgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepvdffueeitdfgvddtudegueejtdffteetgeefkeffvdeftddttdeuhfegfedvjefhnecukfhppeduleehrddufeeirdduledrleegnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehinhgvthepudelhedrudefiedrudelrdelgedphhgvlhhopehkrhgvrggthhgvrhdrlhhotggrlhhnvghtpdhmrghilhhfrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqedpnhgspghrtghpthhtohepfedprhgtphhtthhopehlihhnuhigqdgrtghpihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehsrghkrghrihdrrghilhhusheslhhinhhugidrihhnthgvlhdrtghomhdprhgtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrgh
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvkedruddugedgkeekucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvfevufffkfgjfhgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepvdffueeitdfgvddtudegueejtdffteetgeefkeffvdeftddttdeuhfegfedvjefhnecukfhppeduleehrddufeeirdduledrleegnecuvehluhhsthgvrhfuihiivgepudenucfrrghrrghmpehinhgvthepudelhedrudefiedrudelrdelgedphhgvlhhopehkrhgvrggthhgvrhdrlhhotggrlhhnvghtpdhmrghilhhfrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqedpnhgspghrtghpthhtohepfedprhgtphhtthhopehlihhnuhigqdgrtghpihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehsrghkrghrihdrrghilhhusheslhhinhhugidrihhnthgvlhdrtghomhdprhgtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrgh
 X-DCC--Metrics: v370.home.net.pl 1024; Body=3 Fuz1=3 Fuz2=3
 
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-MIPI DisCo for Imaging defines properties for camera sensors that
-functionally align with DT equivalents.
+Find the "rotation" property value for devices with _CRS CSI-2 resource
+descriptors and use it to add the "rotation" property to the software
+nodes representing the CSI-2 connection graph.  That value typically
+comes from the _PLD (Physical Location of Device) object if it is
+present for the given device.
 
-Replicate these properties in the ACPI device swnodes so the code
-using the corresponding DT properties already does not need to be
-updated to deal with their MIPI counterparts directly.
-
-The replicated properties are:
-
-	"mipi-img-clock-frequency" -> "clock-frequency"
-	"mipi-img-led-max-current" -> "led-max-microamp"
-	"mipi-img-flash-max-current" -> "flash-max-microamp"
-	"mipi-img-flash-max-timeout" -> "flash-max-timeout-us"
+This way, camera sensor drivers that know the "rotation" property do not
+need to care about _PLD on systems using ACPI.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-[ rjw: Changelog edits, removal of redundant braces ]
+[ rjw: Changelog edits, file rename ]
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
+
+v2 -> v3:
+   * Change the name of the new file to mipi-disco-img.c
+
+---
  drivers/acpi/mipi-disco-img.c |   17 +++++++++++++++++
- include/acpi/acpi_bus.h       |    4 ++++
- 2 files changed, 21 insertions(+)
+ include/acpi/acpi_bus.h       |    1 +
+ 2 files changed, 18 insertions(+)
 
 Index: linux-pm/drivers/acpi/mipi-disco-img.c
 ===================================================================
 --- linux-pm.orig/drivers/acpi/mipi-disco-img.c
 +++ linux-pm/drivers/acpi/mipi-disco-img.c
-@@ -597,6 +597,7 @@ static void init_crs_csi2_swnodes(struct
+@@ -592,6 +592,7 @@ static void init_crs_csi2_swnodes(struct
+ 	struct acpi_buffer buffer = { .length = ACPI_ALLOCATE_BUFFER };
+ 	struct acpi_device_software_nodes *swnodes = csi2->swnodes;
+ 	acpi_handle handle = csi2->handle;
++	unsigned int prop_index = 0;
+ 	struct fwnode_handle *adev_fwnode;
  	struct acpi_device *adev;
  	acpi_status status;
- 	unsigned int i;
-+	u32 val;
- 	int ret;
+@@ -611,6 +612,22 @@ static void init_crs_csi2_swnodes(struct
  
- 	/*
-@@ -628,6 +629,22 @@ static void init_crs_csi2_swnodes(struct
- 		}
- 	}
+ 	adev_fwnode = acpi_fwnode_handle(adev);
  
-+	if (!fwnode_property_read_u32(adev_fwnode, "mipi-img-clock-frequency", &val))
-+		swnodes->dev_props[NEXT_PROPERTY(prop_index, DEV_CLOCK_FREQUENCY)] =
-+			PROPERTY_ENTRY_U32("clock-frequency", val);
++	/*
++	 * If the "rotation" property is not present, but _PLD is there,
++	 * evaluate it to get the "rotation" value.
++	 */
++	if (!fwnode_property_present(adev_fwnode, "rotation")) {
++		struct acpi_pld_info *pld;
 +
-+	if (!fwnode_property_read_u32(adev_fwnode, "mipi-img-led-max-current", &val))
-+		swnodes->dev_props[NEXT_PROPERTY(prop_index, DEV_LED_MAX_MICROAMP)] =
-+			PROPERTY_ENTRY_U32("led-max-microamp", val);
-+
-+	if (!fwnode_property_read_u32(adev_fwnode, "mipi-img-flash-max-current", &val))
-+		swnodes->dev_props[NEXT_PROPERTY(prop_index, DEV_FLASH_MAX_MICROAMP)] =
-+			PROPERTY_ENTRY_U32("flash-max-microamp", val);
-+
-+	if (!fwnode_property_read_u32(adev_fwnode, "mipi-img-flash-max-timeout-us", &val))
-+		swnodes->dev_props[NEXT_PROPERTY(prop_index, DEV_FLASH_MAX_TIMEOUT_US)] =
-+			PROPERTY_ENTRY_U32("flash-max-timeout-us", val);
++		status = acpi_get_physical_device_location(handle, &pld);
++		if (ACPI_SUCCESS(status)) {
++			swnodes->dev_props[NEXT_PROPERTY(prop_index, DEV_ROTATION)] =
++					PROPERTY_ENTRY_U32("rotation",
++							   pld->rotation * 45U);
++			kfree(pld);
++		}
++	}
 +
  	status = acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
  	if (ACPI_FAILURE(status)) {
@@ -101,14 +101,11 @@ Index: linux-pm/include/acpi/acpi_bus.h
 ===================================================================
 --- linux-pm.orig/include/acpi/acpi_bus.h
 +++ linux-pm/include/acpi/acpi_bus.h
-@@ -381,6 +381,10 @@ struct acpi_gpio_mapping;
+@@ -380,6 +380,7 @@ struct acpi_gpio_mapping;
+ #define ACPI_DEVICE_SWNODE_PORT_NAME_LENGTH	8
  
  enum acpi_device_swnode_dev_props {
- 	ACPI_DEVICE_SWNODE_DEV_ROTATION,
-+	ACPI_DEVICE_SWNODE_DEV_CLOCK_FREQUENCY,
-+	ACPI_DEVICE_SWNODE_DEV_LED_MAX_MICROAMP,
-+	ACPI_DEVICE_SWNODE_DEV_FLASH_MAX_MICROAMP,
-+	ACPI_DEVICE_SWNODE_DEV_FLASH_MAX_TIMEOUT_US,
++	ACPI_DEVICE_SWNODE_DEV_ROTATION,
  	ACPI_DEVICE_SWNODE_DEV_NUM_OF,
  	ACPI_DEVICE_SWNODE_DEV_NUM_ENTRIES
  };
