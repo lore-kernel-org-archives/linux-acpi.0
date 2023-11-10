@@ -1,322 +1,237 @@
 Received: from lindbergh.monkeyblade.net (lindbergh.monkeyblade.net [23.128.96.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC078C2D2;
-	Fri, 10 Nov 2023 18:22:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2D21208C6
+	for <linux-acpi@vger.kernel.org>; Fri, 10 Nov 2023 18:55:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="KOAC5EX5"
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BF1EDFC799;
-	Fri, 10 Nov 2023 10:22:05 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1699640527; x=1731176527;
-  h=from:to:cc:subject:date:message-id:references:
-   in-reply-to:content-transfer-encoding:mime-version;
-  bh=qbQcOvG6du6rbdGEsMBcqhw/2eRXDmjj8fePltbf4gA=;
-  b=KOAC5EX5z53EPKtVawKS3FrLjTPbFcLMwdETz9M8l9KOwkmCOTb1oYZV
-   WFKA+MKrtnOZlkoJ/o1iuYEGAk2Q7qDcsP8nBvOC+L73DOxhr4NDMJ4w1
-   xifnp8kua2fM3IG2DQHBqM+JATH9RuAPT6qPYmipyUJtE27KLrf+MaBlw
-   8K/4rCh+R5zTEWxWRF6GytWY0+MEhPUjAOE3Ktl2JauJH/sPpcOrCRhMj
-   yv5/fEZ4pE9IoiK7xOYa2dn0bJiKEwYfgdcZi05RlPK8h8/JyrQA+U9H1
-   f8WNGInhF9b59xlvYXz7J50XLysVW456fdZfPCCIBLio0wbXJHQeKz5dK
-   A==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10890"; a="8868027"
-X-IronPort-AV: E=Sophos;i="6.03,291,1694761200"; 
-   d="scan'208";a="8868027"
-Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Nov 2023 10:20:41 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10890"; a="1095242974"
-X-IronPort-AV: E=Sophos;i="6.03,291,1694761200"; 
-   d="scan'208";a="1095242974"
-Received: from fmsmsx601.amr.corp.intel.com ([10.18.126.81])
-  by fmsmga005.fm.intel.com with ESMTP/TLS/AES256-GCM-SHA384; 10 Nov 2023 10:20:39 -0800
-Received: from fmsmsx610.amr.corp.intel.com (10.18.126.90) by
- fmsmsx601.amr.corp.intel.com (10.18.126.81) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.34; Fri, 10 Nov 2023 10:20:38 -0800
-Received: from fmsedg601.ED.cps.intel.com (10.1.192.135) by
- fmsmsx610.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.34 via Frontend Transport; Fri, 10 Nov 2023 10:20:38 -0800
-Received: from NAM02-BN1-obe.outbound.protection.outlook.com (104.47.51.41) by
- edgegateway.intel.com (192.55.55.70) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.34; Fri, 10 Nov 2023 10:20:38 -0800
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="RFI9087F"
+Received: from NAM12-BN8-obe.outbound.protection.outlook.com (mail-bn8nam12on2041.outbound.protection.outlook.com [40.107.237.41])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6BB2D5FD0;
+	Fri, 10 Nov 2023 10:55:31 -0800 (PST)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=ZbfsivO1pIoXBMP4837SXdryIWdWbnlHagd1K5UFgDrNbWqt6yoeYNdksf+StJS0/ZF/tMABhdTyxV0P5Rw6VXQgZHNtWOgfmJMlDAynKkszTD0FGhH4s5/uUn4x4MvbLFCifkzrPWM5L6AFcjxlH2Rvmo9TM636Aok22Dpkqdw7PIyg2Y1H+aKj3usbSCEFP2vreF6WZcEuwLFy4O/BFxRNaqtc787JYs1qpfJSv+/Y9X6FC0dWTsT8U6igfiOmlBQJQPKulscG4wqXywJXJQa7Vxbi8UYg2miHMxGpZ+3GOEPeocT/8H45JdeDmkPfhHyYB3I8ZsTCGGRsCMUw+w==
+ b=cGPtBp7ZMM9iB3jQApmOp0EVGqf5ejzWunQPgZ7M2xHXNmzVdBnehrX2JhUgpEK7xw+kgTqXuDiAZoFZ+JtJYbdHbfrxWXKYHAwCfY10e/LeF+qJwYZLukL38PAv0+2MDQ+ZbdWlrZTs74h0NIW8E2ITmfDfcFaGDodCn3K8+caiB12iQwgaxY46jBcto5u0nXpw5DnImAu+kDktGFHkCf2sFPwpwDV+EIhOtS3zjZrQgYPnqc5cY2vZ0HFbuhj6FIF9TlRPlGgIuU53hmBHoN6VXbfYsWMOwsrGTpduQOmYIFkATiwx8xnZT+IzUQUVhnCuk3iwo+bNED4F+GoE7g==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=MBf4+jhg5MiwE5dfgQbxja+JLMyW1PBMvsr2S97FG2o=;
- b=bY100qVjrW7Wa+qlWPopfP3XtQDu0SqHAy37V6pj8nFv/yl273fqfAUU3pK393UjECaIYes9qfiTaFQt/r5nXoNzhY7Q6Z23/9dzLhC/wRW1iFj1MxuY3s9F4HDU8p+5ReV7FhzoQgTEixOjYadxnpe4d2rd3jcUiaS3SRcYclIkC/6RRuAow+B7eA/xhx0k/DV3q4Od0/HDt0EL+2577/yDeSnrQan8sGEz1wH5NflCrH3kteGcK1GXn7vmWRlUyUnV9JP+OWGKJt1XZIWVt3Z3Rupme2Es6HHi78EM9eW2l4AA6cf079wiQES7tZ9WqjA4RRxEIjOmJaYvnwVngg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Received: from BN9PR11MB5483.namprd11.prod.outlook.com (2603:10b6:408:104::10)
- by MN0PR11MB6135.namprd11.prod.outlook.com (2603:10b6:208:3c9::9) with
+ bh=Evpbeo1dZAqXLwCv66bXfYPNXxJZjiCaBhoTDXXLTik=;
+ b=lr+fk9ZfayBsrDfo7LTZv0PGT9J0tT/COxwjuDkk5frhzmIyNzCicWCArdvMR0wrSeYtoAoV6ytGMS5USZx/9VZo30meYuX2VJJxhMEruZS+V2NGYnokf5ExupTUeXaa0XLWGMvceiF9rHNHYyou+am2Qs7lwrsJ2rCV6WX6LcwkhG1dwQS9oNMfTPqYRNCKEV4DkfIshThGXKWvGyq3AAINTCMHBjnW2E5Jl9Qd+/YBDZv/XS4RVqoUZBsGBxzqOHZ0z7rtyYTNiyhpU17+EWd35QhoqYNcjne6E8dQiHfAmU8iM6dWVMKsl/gcDYM+aA48HbWKXFh30D9KJDa+0A==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 165.204.84.17) smtp.rcpttodomain=google.com smtp.mailfrom=amd.com; dmarc=pass
+ (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=Evpbeo1dZAqXLwCv66bXfYPNXxJZjiCaBhoTDXXLTik=;
+ b=RFI9087FQs0vTBF/7k+RkxqdXxAn1syGtpccyjW6Iip+RdG569IbWYpRuQwLp6zTcsqKTLoiFbgJ1mCSn9MeR5cfTB03jj5/6lMI71i0g1pheBAXYolVjZMLv9P4tpMOX+N7QJF+COwTghjI+Z3D7NqK8iXxvOkAHtYWzWSg0WU=
+Received: from MN2PR01CA0030.prod.exchangelabs.com (2603:10b6:208:10c::43) by
+ IA0PR12MB7627.namprd12.prod.outlook.com (2603:10b6:208:437::12) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6954.25; Fri, 10 Nov
- 2023 18:20:35 +0000
-Received: from BN9PR11MB5483.namprd11.prod.outlook.com
- ([fe80::6da1:a4b7:4771:14e1]) by BN9PR11MB5483.namprd11.prod.outlook.com
- ([fe80::6da1:a4b7:4771:14e1%4]) with mapi id 15.20.6977.019; Fri, 10 Nov 2023
- 18:20:35 +0000
-From: "Chiu, Chasel" <chasel.chiu@intel.com>
-To: Simon Glass <sjg@chromium.org>, "devicetree@vger.kernel.org"
-	<devicetree@vger.kernel.org>
-CC: Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh@kernel.org>, "Tan,
- Lean Sheng" <sheng.tan@9elements.com>, lkml <linux-kernel@vger.kernel.org>,
-	Dhaval Sharma <dhaval@rivosinc.com>, "Brune, Maximilian"
-	<maximilian.brune@9elements.com>, Yunhui Cui <cuiyunhui@bytedance.com>,
-	"Dong, Guo" <guo.dong@intel.com>, Tom Rini <trini@konsulko.com>, ron minnich
-	<rminnich@gmail.com>, "Guo, Gua" <gua.guo@intel.com>,
-	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "U-Boot Mailing
- List" <u-boot@lists.denx.de>, Ard Biesheuvel <ardb@kernel.org>, "Chiu,
- Chasel" <chasel.chiu@intel.com>
-Subject: RE: [PATCH v7 2/2] schemas: Add some common reserved-memory usages
-Thread-Topic: [PATCH v7 2/2] schemas: Add some common reserved-memory usages
-Thread-Index: AQHZ8LGvpttG6mvEz0WlU57NBrVnTbB0GT1w
-Date: Fri, 10 Nov 2023 18:20:34 +0000
-Message-ID: <BN9PR11MB5483FF3039913334C7EA83E1E6AEA@BN9PR11MB5483.namprd11.prod.outlook.com>
-References: <20230926194242.2732127-1-sjg@chromium.org>
- <20230926194242.2732127-2-sjg@chromium.org>
-In-Reply-To: <20230926194242.2732127-2-sjg@chromium.org>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-authentication-results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-x-ms-publictraffictype: Email
-x-ms-traffictypediagnostic: BN9PR11MB5483:EE_|MN0PR11MB6135:EE_
-x-ms-office365-filtering-correlation-id: aa3f4fee-8ef4-4ab8-7db0-08dbe219bb1c
-x-ld-processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: 99WWrKQlkV+LGcBF+clpRsSpTf79OtvxNVlzC+Uxjt9wktGaLZT3154BgDrcjnTYjo7imoQbv6z6RqZXcqaCgqMWRn/wQVtBjqTLTi5oN5xDUv5Om7HsM5q8fNG2KmvL0THV4z2+3LehYVknZHA9i7++l8oWi5hnnA8+d4C2DC7agW6DNzlgixrea3nmdqd58WeuUkygF7qB08LDWLeQW1tOOKQ3lsHY/uQzREU6t1kUjgUCsWkqUwo1f5anYvDl4sYOjWx1AT4oni8cjZAT1V5xwELGF9r/y1GhB8OglHCoO7AZ+CjdVweqrIsIPsKwtbHQO0CRn4UwPVjbYs6dlDH9jKVGqHkWTTXdiP9tvAytS+hvbchkfTueHkjfMfaRscK/sJkZDv/tkSiDv2yx6Xc4KY/IdIZi4mfokyST50sWaQZK7/cHcF2jSsUxsxBKoVeyP6qHHJktX/goA5658JDhL7N4HXF9NL6/izJ3nwSAp8RUDhLaVJMK/45g09miOoRTFlP186zgMNFsa1NpyHaotWmK83Ndf4FCangiqptGRpWJdMBLFMTtc66SQfkS+kQ+PuWkhq2ygw1iobABm+tsigiEirjgTqchhnzbDC0=
-x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BN9PR11MB5483.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(39860400002)(346002)(376002)(366004)(396003)(136003)(230922051799003)(451199024)(1800799009)(64100799003)(186009)(8676002)(2906002)(7416002)(4326008)(5660300002)(55016003)(966005)(9686003)(122000001)(76116006)(86362001)(66446008)(316002)(71200400001)(54906003)(66476007)(66556008)(26005)(64756008)(33656002)(66946007)(110136005)(82960400001)(478600001)(6506007)(38100700002)(107886003)(7696005)(53546011)(52536014)(41300700001)(38070700009)(83380400001)(8936002);DIR:OUT;SFP:1102;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0: =?us-ascii?Q?b8Q641gmCJlMn7VweMmTWI0lTSjNOvb8MyY+PrGQ0ZUVVt6Mo+gGNFseubhA?=
- =?us-ascii?Q?Yp0d0C7f6SlyXWxA5rTQfpiytjKFIiEppUY6HwILJRJ3l3a/0OxQRXqLCguT?=
- =?us-ascii?Q?PP/cLrf1mQV7WAKKG92hZ6LKmoF44K9EIR56N1ZRjrgR9dCWfNBJnR9gCBGI?=
- =?us-ascii?Q?afzY1EttrD/jZCYRT/yatSzWYkxc6nesKCxPyHCcIFJBazkGztdhkEi8xJRN?=
- =?us-ascii?Q?+lUkAa2kh9TAU6eYwcmz5CPtJvGd/ZPZ4TvIm0eYcprWenIkUealPL9MOjxL?=
- =?us-ascii?Q?rdliaU7diuTq4sqSu+7dzYIYnMESYHxpkqyOILJgfTu+Urblc+F1/ym8LV3y?=
- =?us-ascii?Q?zHwJLN28undaONPLXEsrBwWFpEShSkygq410a4WQweJZeYsyevpm+q0iKDAm?=
- =?us-ascii?Q?ks06KYhMqLZQXqlq4dWoCGrw8XmbV+s9+a5os2/UshEWKwOXhr6+hbP4H+YD?=
- =?us-ascii?Q?Zx/+qochTVghl6B6qkZ9NZn4nfFiaQITDVx0NtgMz/6RXTAVOsF25xzK5tYc?=
- =?us-ascii?Q?LJVAcEjWPvdYhWmkraqOHQWMEb/i6I/DS/BRtHerTxCJJYUKQnkvq2bEwFlZ?=
- =?us-ascii?Q?9pzMrV5YCJOdz4jxMi2CPefzULueltBRsUMpxFsEzX1wyOuz0MjJDcKeF7i5?=
- =?us-ascii?Q?h2+WUIWq5AULaVN5yWCJX7dxDrvEtHf6qghaSPzenHBeGZ81g9MweNTXO0L1?=
- =?us-ascii?Q?WtyhSFgz0XIt10cV5LCnVbuvEnKuQsFAP/wRkiKUlYLdZMHD0DnFmpKrKicT?=
- =?us-ascii?Q?TlArc1o4nUzTfvOKDolFieVfZQdd3CWrsBA/TFFuPkxOj8ABaavzHIjHtx0E?=
- =?us-ascii?Q?n8HJjDZxjDlP4M3h2nvthIfM8yqwclqtv38TsyCWe6yinUYp3PPSm7dIQAaC?=
- =?us-ascii?Q?eqX7rZ51PMFYpDVFi4biLnEFlrFe8rmKcmKLGxmx83wCwxrxg/qsTTVvGumO?=
- =?us-ascii?Q?Xr88x/1XXihS2v18zArjCobnF/vxxS154ViUlN+PJdMFzkTLz7Ir83W03jMc?=
- =?us-ascii?Q?jOTpoX1YSCJqBg9IesBo4rmnUB/qPUfTaBfBaVWdjfQXtcAzS+tBx0c3fgfX?=
- =?us-ascii?Q?KdAZdLnxk5Je0kMjrJKzYv+t6E8JCav5gAeP3AL1iJpeOq69yww7bnfL7BOg?=
- =?us-ascii?Q?MD+bTdRCKxbg6gHZ9aReXVakhXRzWLxBB1weZiD81O0SiL1UrNjIj+bvZXVB?=
- =?us-ascii?Q?l0cMnwC/b1EIffJHsSunB5iPoUgZFmSshqp9L8Mp/K/muEfztj5+0NO9Ukib?=
- =?us-ascii?Q?m/ZKUN19KY2qf8oRI0GuRRRY4XV3M3D6RtAkGkRDPeje9WdrtU6NfVsvaJOo?=
- =?us-ascii?Q?11h21ZqZg42TTY1HRIU1Wbecv3dnJ0fc0ROHdO3j+dTiUyHsjVTTXAwBh3oW?=
- =?us-ascii?Q?YeoPNpaa7z7cyuPc420YwwOV0d8j0oQngd4yjkD408royOR1vFcei3O2jJ7l?=
- =?us-ascii?Q?ew0K0LcTiJDWvosOL4YxQ/+jjkQ+dgk+TVLQ4qNngoZxzHKrMKlMr6Kt8KYG?=
- =?us-ascii?Q?lorwBkB6wsCQnIuzbb56jtm5lyKtQl/myd+roqg4az25bgtUE/me8pTCA6Zk?=
- =?us-ascii?Q?FUna2Pextr8s8c4HIA6+I/aQLMv+1yWV29UlStCV?=
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6954.28; Fri, 10 Nov
+ 2023 18:55:29 +0000
+Received: from BL6PEPF0001AB4F.namprd04.prod.outlook.com
+ (2603:10b6:208:10c:cafe::b0) by MN2PR01CA0030.outlook.office365.com
+ (2603:10b6:208:10c::43) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6977.19 via Frontend
+ Transport; Fri, 10 Nov 2023 18:55:29 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
+ smtp.mailfrom=amd.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=amd.com;
+Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
+ 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
+ client-ip=165.204.84.17; helo=SATLEXMB04.amd.com; pr=C
+Received: from SATLEXMB04.amd.com (165.204.84.17) by
+ BL6PEPF0001AB4F.mail.protection.outlook.com (10.167.242.73) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.20.6977.16 via Frontend Transport; Fri, 10 Nov 2023 18:55:28 +0000
+Received: from AUS-P9-MLIMONCI.amd.com (10.180.168.240) by SATLEXMB04.amd.com
+ (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.32; Fri, 10 Nov
+ 2023 12:55:26 -0600
+From: Mario Limonciello <mario.limonciello@amd.com>
+To: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki"
+	<rjw@rjwysocki.net>
+CC: "open list:PCI SUBSYSTEM" <linux-pci@vger.kernel.org>,
+	<linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>, "Mario
+ Limonciello" <mario.limonciello@amd.com>
+Subject: [PATCH 1/3] PCI: Call PCI ACPI _DSM with consistent revision argument
+Date: Fri, 10 Nov 2023 12:55:01 -0600
+Message-ID: <20231110185503.46117-2-mario.limonciello@amd.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20231110185503.46117-1-mario.limonciello@amd.com>
+References: <20231110185503.46117-1-mario.limonciello@amd.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: BN9PR11MB5483.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: aa3f4fee-8ef4-4ab8-7db0-08dbe219bb1c
-X-MS-Exchange-CrossTenant-originalarrivaltime: 10 Nov 2023 18:20:34.4034
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Originating-IP: [10.180.168.240]
+X-ClientProxiedBy: SATLEXMB03.amd.com (10.181.40.144) To SATLEXMB04.amd.com
+ (10.181.40.145)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BL6PEPF0001AB4F:EE_|IA0PR12MB7627:EE_
+X-MS-Office365-Filtering-Correlation-Id: c64b0b10-ea75-4634-c2db-08dbe21e9b99
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info:
+	Sq/wCSpVqcJc7ZNxqUL0ZLuHIT1SW+tnItcTtGSIIAjud9cT4hYQ1ruPtN7goTwthqjl2hJU3tscJOm3Ko5mRL7NwqRme5EDZLLL/ogRYC4Wk/ehnecrlj7xXknKp1DJeuuK9Gbv+og5bIsW1lacowBk6N2y4fMyPOKEgR5vEVPMzETAUVyDeDPtcnyn5TmxlcUIA6bOw5vOOVRC6c4kRv+G0zqTYo7NsyCcSN1dV+6Dy4hJaDwGld1VvyoMw3UCnTMOH+ZgqrCMi1I/7FNQQOiKOWvwmdzaGMfcvj4debYJ5XHVyNyZHXW6xHL6oxzpmrQ19OlsSwiE9CsmYVCC/hQR9uKfuEeRz9ptHV/rb8D/sYxxoMwgHo1L81xTNl+j9j167WC6PjwGdzLGXBwLItNQVkK9jxTpxH3heWlroha3ssSy/5LRvb3CnvepzGDoqUhapm0ZJEdvd1DFOG2krVih0tpMdeaSmshQpUESybhgIbOkKAP6FogdUWkITExkXHipv+EUEKbl3MMgnEJC3yw4TEYlIwyFVQ7KfuaAfcsD0gfRriZHuy0m5o/1skugaK/JuiQvnpvr8n+tmXxANiHIEEKz13Zs6xLtGaQbQk9f95qHhT1NnWM1ATQk1/IlaXytb+InAxwazel3A6G+hwvBKiFxFvGC4JFpHf0pZpeXKm2sRpq7xUk7rnxQw74gLuZ8KMl7prRyEmbrlCAlHznLZX/NgBY09QS/uaSI9jS3EPNDzVLb6nLGlF8nSPCKf2Hbifak2yAaJJrqskGQHA==
+X-Forefront-Antispam-Report:
+	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230031)(4636009)(346002)(396003)(39860400002)(136003)(376002)(230922051799003)(82310400011)(64100799003)(186009)(1800799009)(451199024)(36840700001)(40470700004)(46966006)(40460700003)(478600001)(336012)(83380400001)(81166007)(426003)(6666004)(7696005)(2616005)(1076003)(16526019)(26005)(82740400003)(40480700001)(966005)(356005)(47076005)(36860700001)(70586007)(70206006)(54906003)(316002)(44832011)(110136005)(4326008)(86362001)(2906002)(5660300002)(8936002)(41300700001)(8676002)(36756003)(36900700001);DIR:OUT;SFP:1101;
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 Nov 2023 18:55:28.8623
  (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: dBKSPdh+ZadnY7Q341XcCYMg7xm9bNgUospFem9C1i85KfcVHfK0ffhKHlCRCY1mplBzp0MAG+ecc98LzLUiEA==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN0PR11MB6135
-X-OriginatorOrg: intel.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: c64b0b10-ea75-4634-c2db-08dbe21e9b99
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	BL6PEPF0001AB4F.namprd04.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA0PR12MB7627
 
+The PCI ACPI _DSM is called across multiple places in the PCI core
+with different arguments for the revision.
 
-Just sharing some usage examples from UEFI/EDK2 scenario.
-To support ACPI S4/Hibernation, memory map must be consistent before enteri=
-ng and after resuming from S4, in this case payload may need to know previo=
-us memory map from bootloader (currently generic payload cannot access plat=
-form/bootloader specific non-volatile data, thus could not save/restore mem=
-ory map information)
-Another usage is to support binary model which generic payload is a prebuil=
-t binary compatible for all platforms/configurations, however the payload d=
-efault memory map might not always work for all the configurations and we w=
-ant to allow bootloader to override payload default memory map without reco=
-mpiling.
+The PCI firmware specification specifies that this is an incorrect
+behavior.
+"OSPM must invoke all Functions other than Function 0 with the
+ same Revision ID value"
 
-Under below assumption:
-	FDT OS impact has been evaluated and taken care by relevant experts/stakeh=
-olders.
-Reviewed-by: Chasel Chiu <chasel.chiu@intel.com>
+Link: https://members.pcisig.com/wg/PCI-SIG/document/15350
+      PCI Firmware specification 3.3, section 4.6
+Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
+---
+ drivers/acpi/pci_root.c  |  3 ++-
+ drivers/pci/pci-acpi.c   |  6 ++++--
+ drivers/pci/pci-label.c  |  4 ++--
+ drivers/pci/pcie/edr.c   | 13 +++++++------
+ include/linux/pci-acpi.h |  1 +
+ 5 files changed, 16 insertions(+), 11 deletions(-)
 
-Thanks,
-Chasel
-
-
-> -----Original Message-----
-> From: Simon Glass <sjg@chromium.org>
-> Sent: Tuesday, September 26, 2023 12:43 PM
-> To: devicetree@vger.kernel.org
-> Cc: Mark Rutland <mark.rutland@arm.com>; Rob Herring <robh@kernel.org>;
-> Tan, Lean Sheng <sheng.tan@9elements.com>; lkml <linux-
-> kernel@vger.kernel.org>; Dhaval Sharma <dhaval@rivosinc.com>; Brune,
-> Maximilian <maximilian.brune@9elements.com>; Yunhui Cui
-> <cuiyunhui@bytedance.com>; Dong, Guo <guo.dong@intel.com>; Tom Rini
-> <trini@konsulko.com>; ron minnich <rminnich@gmail.com>; Guo, Gua
-> <gua.guo@intel.com>; Chiu, Chasel <chasel.chiu@intel.com>; linux-
-> acpi@vger.kernel.org; U-Boot Mailing List <u-boot@lists.denx.de>; Ard
-> Biesheuvel <ardb@kernel.org>; Simon Glass <sjg@chromium.org>
-> Subject: [PATCH v7 2/2] schemas: Add some common reserved-memory usages
->=20
-> It is common to split firmware into 'Platform Init', which does the initi=
-al hardware
-> setup and a "Payload" which selects the OS to be booted.
-> Thus an handover interface is required between these two pieces.
->=20
-> Where UEFI boot-time services are not available, but UEFI firmware is pre=
-sent on
-> either side of this interface, information about memory usage and attribu=
-tes must
-> be presented to the "Payload" in some form.
->=20
-> This aims to provide an small schema addition for the memory mapping need=
-ed
-> to keep these two pieces working together well.
->=20
-> Signed-off-by: Simon Glass <sjg@chromium.org>
-> ---
->=20
-> Changes in v7:
-> - Rename acpi-reclaim to acpi
-> - Drop individual mention of when memory can be reclaimed
-> - Rewrite the item descriptions
-> - Add back the UEFI text (with trepidation)
->=20
-> Changes in v6:
-> - Drop mention of UEFI
-> - Use compatible strings instead of node names
->=20
-> Changes in v5:
-> - Drop the memory-map node (should have done that in v4)
-> - Tidy up schema a bit
->=20
-> Changes in v4:
-> - Make use of the reserved-memory node instead of creating a new one
->=20
-> Changes in v3:
-> - Reword commit message again
-> - cc a lot more people, from the FFI patch
-> - Split out the attributes into the /memory nodes
->=20
-> Changes in v2:
-> - Reword commit message
->=20
->  .../reserved-memory/common-reserved.yaml      | 71 +++++++++++++++++++
->  1 file changed, 71 insertions(+)
->  create mode 100644 dtschema/schemas/reserved-memory/common-
-> reserved.yaml
->=20
-> diff --git a/dtschema/schemas/reserved-memory/common-reserved.yaml
-> b/dtschema/schemas/reserved-memory/common-reserved.yaml
-> new file mode 100644
-> index 0000000..f7fbdfd
-> --- /dev/null
-> +++ b/dtschema/schemas/reserved-memory/common-reserved.yaml
-> @@ -0,0 +1,71 @@
-> +# SPDX-License-Identifier: GPL-2.0-only OR BSD-2-Clause %YAML 1.2
-> +---
-> +$id:
-> +http://devicetree.org/schemas/reserved-memory/common-reserved.yaml#
-> +$schema: http://devicetree.org/meta-schemas/core.yaml#
-> +
-> +title: Common memory reservations
-> +
-> +description: |
-> +  Specifies that the reserved memory region can be used for the purpose
-> +  indicated by its compatible string.
-> +
-> +  Clients may reuse this reserved memory if they understand what it is
-> + for,  subject to the notes below.
-> +
-> +maintainers:
-> +  - Simon Glass <sjg@chromium.org>
-> +
-> +allOf:
-> +  - $ref: reserved-memory.yaml
-> +
-> +properties:
-> +  compatible:
-> +    description: |
-> +      This describes some common memory reservations, with the compatibl=
-e
-> +      string indicating what it is used for:
-> +
-> +         acpi: Advanced Configuration and Power Interface (ACPI) tables
-> +         acpi-nvs: ACPI Non-Volatile-Sleeping Memory (NVS). This is rese=
-rved by
-> +           the firmware for its use and is required to be saved and rest=
-ored
-> +           across an NVS sleep
-> +         boot-code: Contains code used for booting which is not needed b=
-y the OS
-> +         boot-code: Contains data used for booting which is not needed b=
-y the OS
-> +         runtime-code: Contains code used for interacting with the syste=
-m when
-> +           running the OS
-> +         runtime-data: Contains data used for interacting with the syste=
-m when
-> +           running the OS
-> +
-> +    enum:
-> +      - acpi
-> +      - acpi-nvs
-> +      - boot-code
-> +      - boot-data
-> +      - runtime-code
-> +      - runtime-data
-> +
-> +  reg:
-> +    description: region of memory that is reserved for the purpose indic=
-ated
-> +      by the compatible string.
-> +
-> +required:
-> +  - reg
-> +
-> +unevaluatedProperties: false
-> +
-> +examples:
-> +  - |
-> +    reserved-memory {
-> +        #address-cells =3D <1>;
-> +        #size-cells =3D <1>;
-> +
-> +        reserved@12340000 {
-> +            compatible =3D "boot-code";
-> +            reg =3D <0x12340000 0x00800000>;
-> +        };
-> +
-> +        reserved@43210000 {
-> +            compatible =3D "boot-data";
-> +            reg =3D <0x43210000 0x00800000>;
-> +        };
-> +    };
-> --
-> 2.42.0.515.g380fc7ccd1-goog
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index 58b89b8d950e..bca2270a93d4 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -1055,7 +1055,8 @@ struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
+ 	 * exists and returns 0, we must preserve any PCI resource
+ 	 * assignments made by firmware for this host bridge.
+ 	 */
+-	obj = acpi_evaluate_dsm_typed(ACPI_HANDLE(bus->bridge), &pci_acpi_dsm_guid, 1,
++	obj = acpi_evaluate_dsm_typed(ACPI_HANDLE(bus->bridge),
++				      &pci_acpi_dsm_guid, pci_acpi_dsm_rev,
+ 				      DSM_PCI_PRESERVE_BOOT_CONFIG, NULL, ACPI_TYPE_INTEGER);
+ 	if (obj && obj->integer.value == 0)
+ 		host_bridge->preserve_config = 1;
+diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+index 004575091596..bea72e807817 100644
+--- a/drivers/pci/pci-acpi.c
++++ b/drivers/pci/pci-acpi.c
+@@ -28,6 +28,7 @@
+ const guid_t pci_acpi_dsm_guid =
+ 	GUID_INIT(0xe5c937d0, 0x3553, 0x4d7a,
+ 		  0x91, 0x17, 0xea, 0x4d, 0x19, 0xc3, 0x43, 0x4d);
++const int pci_acpi_dsm_rev = 5;
+ 
+ #if defined(CONFIG_PCI_QUIRKS) && defined(CONFIG_ARM64)
+ static int acpi_get_rc_addr(struct acpi_device *adev, struct resource *res)
+@@ -1215,7 +1216,8 @@ void acpi_pci_add_bus(struct pci_bus *bus)
+ 	if (!pci_is_root_bus(bus))
+ 		return;
+ 
+-	obj = acpi_evaluate_dsm_typed(ACPI_HANDLE(bus->bridge), &pci_acpi_dsm_guid, 3,
++	obj = acpi_evaluate_dsm_typed(ACPI_HANDLE(bus->bridge),
++				      &pci_acpi_dsm_guid, pci_acpi_dsm_rev,
+ 				      DSM_PCI_POWER_ON_RESET_DELAY, NULL, ACPI_TYPE_INTEGER);
+ 	if (!obj)
+ 		return;
+@@ -1376,7 +1378,7 @@ static void pci_acpi_optimize_delay(struct pci_dev *pdev,
+ 	if (bridge->ignore_reset_delay)
+ 		pdev->d3cold_delay = 0;
+ 
+-	obj = acpi_evaluate_dsm_typed(handle, &pci_acpi_dsm_guid, 3,
++	obj = acpi_evaluate_dsm_typed(handle, &pci_acpi_dsm_guid, pci_acpi_dsm_rev,
+ 				      DSM_PCI_DEVICE_READINESS_DURATIONS, NULL,
+ 				      ACPI_TYPE_PACKAGE);
+ 	if (!obj)
+diff --git a/drivers/pci/pci-label.c b/drivers/pci/pci-label.c
+index 0c6446519640..91bdd04029f0 100644
+--- a/drivers/pci/pci-label.c
++++ b/drivers/pci/pci-label.c
+@@ -41,7 +41,7 @@ static bool device_has_acpi_name(struct device *dev)
+ 	if (!handle)
+ 		return false;
+ 
+-	return acpi_check_dsm(handle, &pci_acpi_dsm_guid, 0x2,
++	return acpi_check_dsm(handle, &pci_acpi_dsm_guid, pci_acpi_dsm_rev,
+ 			      1 << DSM_PCI_DEVICE_NAME);
+ #else
+ 	return false;
+@@ -162,7 +162,7 @@ static int dsm_get_label(struct device *dev, char *buf,
+ 	if (!handle)
+ 		return -1;
+ 
+-	obj = acpi_evaluate_dsm(handle, &pci_acpi_dsm_guid, 0x2,
++	obj = acpi_evaluate_dsm(handle, &pci_acpi_dsm_guid, pci_acpi_dsm_rev,
+ 				DSM_PCI_DEVICE_NAME, NULL);
+ 	if (!obj)
+ 		return -1;
+diff --git a/drivers/pci/pcie/edr.c b/drivers/pci/pcie/edr.c
+index 5f4914d313a1..ab6a50201124 100644
+--- a/drivers/pci/pcie/edr.c
++++ b/drivers/pci/pcie/edr.c
+@@ -35,7 +35,7 @@ static int acpi_enable_dpc(struct pci_dev *pdev)
+ 	 * Behavior when calling unsupported _DSM functions is undefined,
+ 	 * so check whether EDR_PORT_DPC_ENABLE_DSM is supported.
+ 	 */
+-	if (!acpi_check_dsm(adev->handle, &pci_acpi_dsm_guid, 5,
++	if (!acpi_check_dsm(adev->handle, &pci_acpi_dsm_guid, pci_acpi_dsm_rev,
+ 			    1ULL << EDR_PORT_DPC_ENABLE_DSM))
+ 		return 0;
+ 
+@@ -51,8 +51,9 @@ static int acpi_enable_dpc(struct pci_dev *pdev)
+ 	 * Firmware Specification r3.2, sec 4.6.12, EDR_PORT_DPC_ENABLE_DSM is
+ 	 * optional.  Return success if it's not implemented.
+ 	 */
+-	obj = acpi_evaluate_dsm(adev->handle, &pci_acpi_dsm_guid, 5,
+-				EDR_PORT_DPC_ENABLE_DSM, &argv4);
++	obj = acpi_evaluate_dsm(adev->handle, &pci_acpi_dsm_guid,
++				pci_acpi_dsm_rev, EDR_PORT_DPC_ENABLE_DSM,
++				&argv4);
+ 	if (!obj)
+ 		return 0;
+ 
+@@ -88,12 +89,12 @@ static struct pci_dev *acpi_dpc_port_get(struct pci_dev *pdev)
+ 	 * Behavior when calling unsupported _DSM functions is undefined,
+ 	 * so check whether EDR_PORT_DPC_ENABLE_DSM is supported.
+ 	 */
+-	if (!acpi_check_dsm(adev->handle, &pci_acpi_dsm_guid, 5,
++	if (!acpi_check_dsm(adev->handle, &pci_acpi_dsm_guid, pci_acpi_dsm_rev,
+ 			    1ULL << EDR_PORT_LOCATE_DSM))
+ 		return pci_dev_get(pdev);
+ 
+-	obj = acpi_evaluate_dsm(adev->handle, &pci_acpi_dsm_guid, 5,
+-				EDR_PORT_LOCATE_DSM, NULL);
++	obj = acpi_evaluate_dsm(adev->handle, &pci_acpi_dsm_guid,
++				pci_acpi_dsm_rev, EDR_PORT_LOCATE_DSM, NULL);
+ 	if (!obj)
+ 		return pci_dev_get(pdev);
+ 
+diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
+index 078225b514d4..7966ef8f14b3 100644
+--- a/include/linux/pci-acpi.h
++++ b/include/linux/pci-acpi.h
+@@ -115,6 +115,7 @@ static inline void acpiphp_check_host_bridge(struct acpi_device *adev) { }
+ #endif
+ 
+ extern const guid_t pci_acpi_dsm_guid;
++extern const int pci_acpi_dsm_rev;
+ 
+ /* _DSM Definitions for PCI */
+ #define DSM_PCI_PRESERVE_BOOT_CONFIG		0x05
+-- 
+2.34.1
 
