@@ -1,91 +1,133 @@
 Received: from lindbergh.monkeyblade.net (lindbergh.monkeyblade.net [23.128.96.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFDD85693
-	for <linux-acpi@vger.kernel.org>; Fri, 10 Nov 2023 06:22:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=owenh.net header.i=@owenh.net header.b="qoHS2aXx"
-Received: from mout-p-103.mailbox.org (mout-p-103.mailbox.org [80.241.56.161])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B72E6E9D;
-	Thu,  9 Nov 2023 22:22:29 -0800 (PST)
-Received: from smtp202.mailbox.org (smtp202.mailbox.org [IPv6:2001:67c:2050:b231:465::202])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mout-p-103.mailbox.org (Postfix) with ESMTPS id 4SRQ2S0zBvz9scN;
-	Fri, 10 Nov 2023 04:55:12 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=owenh.net; s=MBO0001;
-	t=1699588512;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=+mYWcVAli9GCc4vPf2eDB3X2wHHEc2PFC+6KilCNEcA=;
-	b=qoHS2aXxsUcpqJPKJdC4SI2fQWD6CvHKZd8rgtalJQ45BHmCBDsStfHNnHSu8PLqXeZKPX
-	3Wj+RmMzerw3iIO1vcSWmri07ckQ8LlA2IsEPbkkFSS4j4yyREWIxIyNfM5owqOUvmw8wJ
-	ycE8DKReVnsEcY/xBRqXHcDXOhshiUQJ3TGfWyzO8ihjGhcDpqLspeX5r53oHdDnjuzj7T
-	/kxYjemXrPEERerMX25HLj/Ck8uBBcRsq6f6cHz0vCCWsqVaHEcw/ZImjw+VKs1ENVMoAq
-	ykVk2v699lp4qBjo/vfan+boUAgxQO/dtXDSjnYlq2jYjZ3UxYlckAVe2HMM9Q==
-Message-ID: <9f36fb06-64c4-4264-aaeb-4e1289e764c4@owenh.net>
-Date: Thu, 9 Nov 2023 21:55:01 -0600
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C82810A1B
+	for <linux-acpi@vger.kernel.org>; Fri, 10 Nov 2023 08:31:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dkim=none
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTP id B0E0A9EE0;
+	Fri, 10 Nov 2023 00:30:59 -0800 (PST)
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 73B9B106F;
+	Fri, 10 Nov 2023 00:31:43 -0800 (PST)
+Received: from [192.168.1.25] (unknown [172.31.20.19])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 221603F6C4;
+	Fri, 10 Nov 2023 00:30:51 -0800 (PST)
+Message-ID: <00ce01bf-1612-46cd-926d-ac283cfddff9@arm.com>
+Date: Fri, 10 Nov 2023 09:30:47 +0100
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v6 0/7] consolidate and cleanup CPU capacity
+To: Vincent Guittot <vincent.guittot@linaro.org>, linux@armlinux.org.uk,
+ catalin.marinas@arm.com, will@kernel.org, paul.walmsley@sifive.com,
+ palmer@dabbelt.com, aou@eecs.berkeley.edu, sudeep.holla@arm.com,
+ gregkh@linuxfoundation.org, rafael@kernel.org, mingo@redhat.com,
+ peterz@infradead.org, juri.lelli@redhat.com, dietmar.eggemann@arm.com,
+ rostedt@goodmis.org, bsegall@google.com, mgorman@suse.de,
+ bristot@redhat.com, vschneid@redhat.com, viresh.kumar@linaro.org,
+ lenb@kernel.org, robert.moore@intel.com, lukasz.luba@arm.com,
+ ionela.voinescu@arm.com, beata.michalska@arm.com,
+ linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+ linux-riscv@lists.infradead.org, linux-pm@vger.kernel.org,
+ linux-acpi@vger.kernel.org
+Cc: conor.dooley@microchip.com, suagrfillet@gmail.com,
+ ajones@ventanamicro.com, lftan@kernel.org
+References: <20231109101438.1139696-1-vincent.guittot@linaro.org>
 Content-Language: en-US
-To: stable@vger.kernel.org
-Cc: regressions@lists.linux.dev, Kai-Heng Feng <kai.heng.feng@canonical.com>,
- "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown
- <lenb@kernel.org>, linux-acpi@vger.kernel.org,
- Karol Herbst <kherbst@redhat.com>, Lyude Paul <lyude@redhat.com>,
- Danilo Krummrich <dakr@redhat.com>, dri-devel@lists.freedesktop.org,
- nouveau@lists.freedesktop.org
-From: "Owen T. Heisler" <writer@owenh.net>
-Subject: [REGRESSION]: acpi/nouveau: Hardware unavailable upon resume or
- suspend fails
+From: Pierre Gondois <pierre.gondois@arm.com>
+In-Reply-To: <20231109101438.1139696-1-vincent.guittot@linaro.org>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-X-Rspamd-Queue-Id: 4SRQ2S0zBvz9scN
 
-#regzbot introduced: 89c290ea758911e660878e26270e084d862c03b0
-#regzbot link: https://gitlab.freedesktop.org/drm/nouveau/-/issues/273
-#regzbot link: https://bugzilla.kernel.org/show_bug.cgi?id=218124
+For a CPPC platform + EM/EAS (but without AMU):
+Tested-by: Pierre Gondois <pierre.gondois@arm.com>
 
-## Reproducing
-
-1. Boot system to framebuffer console.
-2. Run `systemctl suspend`. If undocked without secondary display, 
-suspend fails. If docked with secondary display, suspend succeeds.
-3. Resume from suspend if applicable.
-4. System is now in a broken state.
-
-## Testing
-
-- culprit commit is 89c290ea758911e660878e26270e084d862c03b0
-- v6.6 fails
-- v6.6 with culprit commit reverted does not fail
-- Compiled with 
-<https://gitlab.freedesktop.org/drm/nouveau/uploads/788d7faf22ba2884dcc09d7be931e813/v6.6-config1>
-
-## Hardware
-
-- ThinkPad W530 2438-52U
-- Dock with Nvidia-connected DVI ports
-- Secondary display connected via DVI
-- Nvidia Optimus GPU switching system
-
-```console
-$ lspci | grep -i vga
-00:02.0 VGA compatible controller: Intel Corporation 3rd Gen Core 
-processor Graphics Controller (rev 09)
-01:00.0 VGA compatible controller: NVIDIA Corporation GK107GLM [Quadro 
-K2000M] (rev a1)
-```
-
-## Decoded logs from v6.6
-
-- System is not docked and fails to suspend: 
-<https://gitlab.freedesktop.org/drm/nouveau/uploads/fb8fdf5a6bed1b1491d2544ab67fa257/undocked.log>
-- System is docked and fails after resume: 
-<https://gitlab.freedesktop.org/drm/nouveau/uploads/cb3d5ac55c01f663cd80fa000cd6a3b5/docked.log>
+On 11/9/23 11:14, Vincent Guittot wrote:
+> This is the 1st part of consolidating how the max compute capacity is
+> used in the scheduler and how we calculate the frequency for a level of
+> utilization.
+> 
+> Fix some unconsistancy when computing frequency for an utilization. There
+> can be a mismatch between energy model and schedutil.
+> 
+> Next step will be to make a difference between the original
+> max compute capacity of a CPU and what is currently available when
+> there is a capping applying forever (i.e. seconds or more).
+> 
+> Changes since v5:
+> - remove useless return in freq_inv_set_max_ratio()
+> - Add tags
+> 
+> Changes since v4:
+> - Capitalize the verb in subject
+> - Remove usless parentheses in cppc_get_dmi_max_khz()
+> - Use freq_ref pattern everywhere
+> - Fix MHz / kHz units conversion for cppc_cpufreq
+> - Move default definition of arch_scale_freq_ref() in
+>    include/linux/sched/topology.h beside arch_scale_cpu_capacity
+>    which faces similar default declaration behavior. This location covers
+>    all cases with arch and CONFIG_* which was not the case with previous
+>    attempts.
+> 
+> Changes since v3:
+> - Split patch 5 cpufreq/cppc
+> - Fix topology_init_cpu_capacity_cppc()
+> - Fix init if AMU ratio
+> - Added some tags
+> 
+> Changes since v2:
+> - Remove the 1st patch which has been queued in tip
+> - Rework how to initialize the reference frequency for cppc_cpufreq and
+>    change topology_init_cpu_capacity_cppc() to also set capacity_ref_freq
+> - Add a RFC to convert AMU to use arch_scale_freq_ref and move the config
+>    of the AMU ratio to be done when intializing cpu capacity and
+>    capacity_ref_freq
+> - Added some tags
+> 
+> Changes since v1:
+> - Fix typos
+> - Added changes in cpufreq to use arch_scale_freq_ref() when calling
+>    arch_set_freq_scale (patch 3).
+> - arch_scale_freq_ref() is always defined and returns 0 (as proposed
+>    by Ionela) when not defined by the arch. This simplifies the code with
+>    the addition of patch 3.
+> - Simplify Energy Model which always uses arch_scale_freq_ref(). The
+>    latter returns 0 when not defined by arch instead of last item of the
+>    perf domain. This is not a problem because the function is only defined
+>    for compilation purpose in this case and we don't care about the
+>    returned value. (patch 5)
+> - Added changes in cppc cpufreq to set capacity_ref_freq (patch 6)
+> - Added reviewed tag for patch 1 which got a minor change but not for
+>    others as I did some changes which could make previous reviewed tag
+>    no more relevant.
+> 
+> Vincent Guittot (7):
+>    topology: Add a new arch_scale_freq_reference
+>    cpufreq: Use the fixed and coherent frequency for scaling capacity
+>    cpufreq/schedutil: Use a fixed reference frequency
+>    energy_model: Use a fixed reference frequency
+>    cpufreq/cppc: Move and rename cppc_cpufreq_{perf_to_khz|khz_to_perf}
+>    cpufreq/cppc: Set the frequency used for computing the capacity
+>    arm64/amu: Use capacity_ref_freq to set AMU ratio
+> 
+>   arch/arm/include/asm/topology.h   |   1 +
+>   arch/arm64/include/asm/topology.h |   1 +
+>   arch/arm64/kernel/topology.c      |  26 +++---
+>   arch/riscv/include/asm/topology.h |   1 +
+>   drivers/acpi/cppc_acpi.c          | 104 ++++++++++++++++++++++
+>   drivers/base/arch_topology.c      |  56 ++++++++----
+>   drivers/cpufreq/cppc_cpufreq.c    | 139 ++++--------------------------
+>   drivers/cpufreq/cpufreq.c         |   4 +-
+>   include/acpi/cppc_acpi.h          |   2 +
+>   include/linux/arch_topology.h     |   8 ++
+>   include/linux/cpufreq.h           |   1 +
+>   include/linux/energy_model.h      |   6 +-
+>   include/linux/sched/topology.h    |   8 ++
+>   kernel/sched/cpufreq_schedutil.c  |  26 +++++-
+>   14 files changed, 224 insertions(+), 159 deletions(-)
+> 
