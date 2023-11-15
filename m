@@ -1,44 +1,44 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="LGh9doLm"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="N4eGbtHr"
 Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.20])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0CF621A4;
-	Wed, 15 Nov 2023 10:18:55 -0800 (PST)
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6F43A18B;
+	Wed, 15 Nov 2023 10:18:56 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1700072335; x=1731608335;
+  t=1700072336; x=1731608336;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=RaEMyiauU/9JpJO6Nmz7wbzZ0ghxj71bUy55K9W8zM8=;
-  b=LGh9doLmDrGQoqpU1Tjy3amxBVYGW7rNucEJwkB7wJcwlCL4cCLVYtD2
-   ceEMydN3i7ZWKoy0ek06FkYd9wfG9SyNAliNv372ZuPg5C9rj9FykI99K
-   cNyAQKMmkgG40us8QQK93NWay9vjeITQz9CM/8IFcohk8rq67g4mIx+q3
-   EzxffiBDyjDZS1rfNJPiMFNiU21Y9lonrLtfrZxQHlfMkugAo7ArFikm/
-   KkDsFlszNrcpogtNaQBoIfxdVGdUERXuNRX801+M2e0K6cpuiUHcsak5O
-   olJAd+TpwDcf816JSxeNpDmboI9Mms6HJgzpZO9QocviMXP/CMICdvMAB
-   Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10895"; a="381321134"
+  bh=BHZ3rQCBwZttLGzPJ5NDl4vbRktavRob3om7tj6BWeQ=;
+  b=N4eGbtHr8hDfMhAOoIc+ggUi/gfPxjgEsS0ZeOBIAucceYFmi+PaGX5f
+   qYsvT3cIMMJZRITz4MUtwRTNrXtxltoIaEfir2pVRhfNqoYfL8xoX3y/l
+   Ue2cyCeqSqb80rlS81m5X0BeFYPjXqwRHSVOKKIS2UOoNNBkC6X6Fhply
+   hRt7a+B9G6RzbFUWhQtOweUBxvYSGq7iHhxg/ZOAGyvWJeOTVQoXrlUuI
+   OTSGAKe0f2Bvhv2fveq/52qyeqH15RQYmldFleSDSXUSNUoRc/rdo/YEk
+   B8ikFnHj6m2Id++Yvq3XTHg5ciuj4PI7N3kWvUpoRUEaDxD1MYFNjNVoW
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10895"; a="381321150"
 X-IronPort-AV: E=Sophos;i="6.03,305,1694761200"; 
-   d="scan'208";a="381321134"
+   d="scan'208";a="381321150"
 Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Nov 2023 10:18:47 -0800
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Nov 2023 10:18:49 -0800
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10895"; a="831014660"
+X-IronPort-AV: E=McAfee;i="6600,9927,10895"; a="831014664"
 X-IronPort-AV: E=Sophos;i="6.03,305,1694761200"; 
-   d="scan'208";a="831014660"
+   d="scan'208";a="831014664"
 Received: from turnipsi.fi.intel.com (HELO kekkonen.fi.intel.com) ([10.237.72.44])
-  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Nov 2023 10:18:45 -0800
+  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Nov 2023 10:18:48 -0800
 Received: from svinhufvud.ger.corp.intel.com (localhost [IPv6:::1])
-	by kekkonen.fi.intel.com (Postfix) with ESMTP id 2B22A12022F;
-	Wed, 15 Nov 2023 20:18:43 +0200 (EET)
+	by kekkonen.fi.intel.com (Postfix) with ESMTP id 079D0120AB3;
+	Wed, 15 Nov 2023 20:18:44 +0200 (EET)
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-acpi@vger.kernel.org
 Cc: linux-media@vger.kernel.org,
 	rafael@kernel.org,
 	jacopo.mondi@ideasonboard.com,
 	laurent.pinchart@ideasonboard.com
-Subject: [PATCH 3/6] media: Documentation: Improve camera sensor runtime PM documentation
-Date: Wed, 15 Nov 2023 20:18:37 +0200
-Message-Id: <20231115181840.1509046-4-sakari.ailus@linux.intel.com>
+Subject: [PATCH 5/6] media: imx319: Use pm_runtime_get_if_active(), put usage_count correctly
+Date: Wed, 15 Nov 2023 20:18:39 +0200
+Message-Id: <20231115181840.1509046-6-sakari.ailus@linux.intel.com>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <20231115181840.1509046-1-sakari.ailus@linux.intel.com>
 References: <20231115181840.1509046-1-sakari.ailus@linux.intel.com>
@@ -50,64 +50,49 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Endorse the use of pm_runtime_get_sync() in order to resume the device and
-pm_runtime_get_if_active() to increment its usage_count if the device is
-in RPM_ACTIVE state.
+Use pm_runtime_get_if_active() to get the device's runtime PM usage_count
+and set controls, then use runtime PM autosuspend once the controls have
+been set (instead of likely transitioning to suspended state immediately).
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- .../driver-api/media/camera-sensor.rst        | 28 ++++++++++++++-----
- 1 file changed, 21 insertions(+), 7 deletions(-)
+ drivers/media/i2c/imx319.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/driver-api/media/camera-sensor.rst b/Documentation/driver-api/media/camera-sensor.rst
-index 6456145f96ed..a15c09f8347e 100644
---- a/Documentation/driver-api/media/camera-sensor.rst
-+++ b/Documentation/driver-api/media/camera-sensor.rst
-@@ -67,11 +67,23 @@ system resources required to power the sensor up and down. For drivers that
- don't use any of those resources (such as drivers that support ACPI systems
- only), the runtime PM handlers may be left unimplemented.
+diff --git a/drivers/media/i2c/imx319.c b/drivers/media/i2c/imx319.c
+index 5378f607f340..b1031bba71b7 100644
+--- a/drivers/media/i2c/imx319.c
++++ b/drivers/media/i2c/imx319.c
+@@ -1880,8 +1880,8 @@ static int imx319_set_ctrl(struct v4l2_ctrl *ctrl)
+ 	struct imx319 *imx319 = container_of(ctrl->handler,
+ 					     struct imx319, ctrl_handler);
+ 	struct i2c_client *client = v4l2_get_subdevdata(&imx319->sd);
++	int ret, pm_status;
+ 	s64 max;
+-	int ret;
  
--In general, the device shall be powered on at least when its registers are
--being accessed and when it is streaming. Drivers should use
--``pm_runtime_resume_and_get()`` when starting streaming and
--``pm_runtime_put()`` or ``pm_runtime_put_autosuspend()`` when stopping
--streaming. They may power the device up at probe time (for example to read
-+In general, the device shall be powered on at least when its registers are being
-+accessed and when it is streaming. Drivers not using autosuspend should use
-+:c:func:`pm_runtime_resume_and_get()` to ensure the device is powered on. The
-+function increments Runtime PM usage_count which the driver is responsible for
-+decrementing using e.g. :c:func:`pm_runtime_put()` in order to power off the
-+device. Drivers using autosuspend in order to avoid needless powering the sensor
-+off and on again, should use :c:func:`pm_runtime_get_sync()` and
-+:c:func:`pm_runtime_put_mark_busy_autosusp()` respectively. Note that runtime PM
-+usage_count of the device must be put even if :c:func:`pm_runtime_get_sync()`
-+fails. :c:func:`pm_runtime_get_sync()` returns 1 if the device was already
-+powered on.
-+
-+Drivers that support Devicetree shall also power on the device explicitly in
-+driver's probe() function and power the device off in driver's remove() function
-+without relying on Runtime PM.
-+
-+Drivers may power the device up at probe time (for example to read
- identification registers), but should not keep it powered unconditionally after
- probe.
+ 	/* Propagate change of current control to all related controls */
+ 	switch (ctrl->id) {
+@@ -1898,7 +1898,8 @@ static int imx319_set_ctrl(struct v4l2_ctrl *ctrl)
+ 	 * Applying V4L2 control value only happens
+ 	 * when power is up for streaming
+ 	 */
+-	if (!pm_runtime_get_if_in_use(&client->dev))
++	pm_status = pm_runtime_get_if_active(&client->dev);
++	if (!pm_status)
+ 		return 0;
  
-@@ -103,11 +115,13 @@ of the device. This is because the power state of the device is only changed
- after the power state transition has taken place. The ``s_ctrl`` callback can be
- used to obtain device's power state after the power state transition:
+ 	switch (ctrl->id) {
+@@ -1937,7 +1938,8 @@ static int imx319_set_ctrl(struct v4l2_ctrl *ctrl)
+ 		break;
+ 	}
  
--.. c:function:: int pm_runtime_get_if_in_use(struct device *dev);
-+.. c:function:: int pm_runtime_get_if_active(struct device *dev);
+-	pm_runtime_put(&client->dev);
++	if (pm_status > 0)
++		pm_runtime_put(&client->dev);
  
- The function returns a non-zero value if it succeeded getting the power count or
- runtime PM was disabled, in either of which cases the driver may proceed to
--access the device.
-+access the device. Note that the device's usage_count is not incremented if the
-+function returns an error, in which case the usage_count also must not be put
-+using pm_runtime_put() or its variants.
- 
- Rotation, orientation and flipping
- ----------------------------------
+ 	return ret;
+ }
 -- 
 2.39.2
 
