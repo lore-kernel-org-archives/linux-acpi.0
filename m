@@ -1,45 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="iNH8SuVC"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="NXfXKfkN"
 Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.20])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 049A5196;
-	Wed, 15 Nov 2023 10:18:53 -0800 (PST)
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3AF961A8;
+	Wed, 15 Nov 2023 10:18:55 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1700072334; x=1731608334;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=vDsmhnXIvSS4wPk4vVk8AND6/EQE7fhPsvRfxD4Vfxc=;
-  b=iNH8SuVCArpS9W3hhVTX7pmJ6Ub3LqlXQfzBy7DrpJFYgRpwEr5rqL7r
-   X3ypbZ3nvx7KwVZc8nOa+7wErmoBnN2uTCvWSw/MneS6tCrb0fcWwuqPG
-   8PqYstcdASp/MA2dI1AsbBa1e9ybfzFktCEXR1FSE7Z9YxHfUGCBCW/qT
-   xTwc3enKq3VjVZpFneK/LaQjEvMKd2CuQpocVxrSGTYY5iGKJqcqNWBrr
-   St6ZvQvbekMcv4fIjlDtX7eMJ+w5Aj7SBBDy11FynmDiIBlOXlB65gCIZ
-   FBtLrxvuYbm/WucD02zSjxXrjHNmll1nDHahjaJoeWvn4W6DF2YAxx8Hm
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10895"; a="381321117"
+  t=1700072335; x=1731608335;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=A9/YvkwCnHZnNCqK8j9jReosCqqZSDqKlSJZVgPOZyA=;
+  b=NXfXKfkNO/YtySFtz44GhxGNhNfXno/ZGT/2i6GEw/5K+Br/XsE0yPlp
+   wKS476bZRGQV+UmXmz5zynQfhnfGcsWz/wRoSFfxsTQIiOBsMtYebEtLv
+   Ioa3POwJijSgLAN+9++DgSIoTCcVGJQVU2LYSBrtHcLC80AXEaufBiaAd
+   5Q7rQOOZiKdnuBebBKo3gO1vez3s/eQ4p/ixAAJVYgDwyhVfdMfmTfTMn
+   wPw0IG0ENms4nnSTdMwh3QDJQfBEilIsW37PGk21nUzHPFY0qIyxj21Oh
+   0dW24qgcGWlgHIUOoTRx/6fKRGmlQ5QJNR7U+6oQqepeFZgXV6AH2ReMr
+   w==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10895"; a="381321142"
 X-IronPort-AV: E=Sophos;i="6.03,305,1694761200"; 
-   d="scan'208";a="381321117"
+   d="scan'208";a="381321142"
 Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Nov 2023 10:18:46 -0800
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Nov 2023 10:18:48 -0800
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10895"; a="831014654"
+X-IronPort-AV: E=McAfee;i="6600,9927,10895"; a="831014661"
 X-IronPort-AV: E=Sophos;i="6.03,305,1694761200"; 
-   d="scan'208";a="831014654"
+   d="scan'208";a="831014661"
 Received: from turnipsi.fi.intel.com (HELO kekkonen.fi.intel.com) ([10.237.72.44])
-  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Nov 2023 10:18:44 -0800
+  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Nov 2023 10:18:46 -0800
 Received: from svinhufvud.ger.corp.intel.com (localhost [IPv6:::1])
-	by kekkonen.fi.intel.com (Postfix) with ESMTP id 9516B11F830;
-	Wed, 15 Nov 2023 20:18:40 +0200 (EET)
+	by kekkonen.fi.intel.com (Postfix) with ESMTP id 285D01202AB;
+	Wed, 15 Nov 2023 20:18:44 +0200 (EET)
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-acpi@vger.kernel.org
 Cc: linux-media@vger.kernel.org,
 	rafael@kernel.org,
 	jacopo.mondi@ideasonboard.com,
 	laurent.pinchart@ideasonboard.com
-Subject: [PATCH 0/6] Small Runtime PM API changes
-Date: Wed, 15 Nov 2023 20:18:34 +0200
-Message-Id: <20231115181840.1509046-1-sakari.ailus@linux.intel.com>
+Subject: [PATCH 4/6] media: ov8858: Use pm_runtime_get_if_active(), put usage_count correctly
+Date: Wed, 15 Nov 2023 20:18:38 +0200
+Message-Id: <20231115181840.1509046-5-sakari.ailus@linux.intel.com>
 X-Mailer: git-send-email 2.39.2
+In-Reply-To: <20231115181840.1509046-1-sakari.ailus@linux.intel.com>
+References: <20231115181840.1509046-1-sakari.ailus@linux.intel.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -48,57 +50,48 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi folks,
+Use pm_runtime_get_if_active() to get the device's runtime PM usage_count
+and set controls, then use runtime PM autosuspend once the controls have
+been set (instead of likely transitioning to suspended state immediately).
 
-This small set happily mixes Runtime PM and media patches.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/ov8858.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-The set does two main things Runtime PM API-wise. Firstly,
-pm_runtime_get_if_active() is made more user-friendly by removing the
-ign_use_count argument so the users no longer need to call it with that
-set to true. Secondly, pm_runtime_put_mark_busy_autosusp() helper is added
-to avoid drivers having to call pm_runtime_mark_last_busy() only to be
-followed by pm_runtime_autosuspend().
-
-The vast majority of the users of pm_runtime_autosuspend() would probably
-have been fine with making pm_runtime_autosuspend() do the last busy
-stamping, too, but given the sheer number of users it's hard to tell if
-there could be problems here and there. On the other hand, there are
-probably a sizable proportion of call sites where the missing
-pm_runtime_mark_last_busy() call is simply a bug.
-
-The three last patches are addressing Runtime PM issues in a few sensor
-drivers.
-
-Comments would be welcome.
-
-
-Sakari Ailus (6):
-  pm: runtime: Simplify pm_runtime_get_if_active() usage
-  pm: runtime: Add pm_runtime_put_mark_busy_autosusp() helper
-  media: Documentation: Improve camera sensor runtime PM documentation
-  media: ov8858: Use pm_runtime_get_if_active(), put usage_count
-    correctly
-  media: imx319: Use pm_runtime_get_if_active(), put usage_count
-    correctly
-  media: imx219: Use pm_runtime_get_if_active(), put usage_count
-    correctly
-
- .../driver-api/media/camera-sensor.rst        | 28 ++++++++---
- Documentation/power/runtime_pm.rst            |  5 +-
- drivers/base/power/runtime.c                  |  9 ++--
- drivers/gpu/drm/i915/intel_runtime_pm.c       |  2 +-
- drivers/media/i2c/ccs/ccs-core.c              |  2 +-
- drivers/media/i2c/imx219.c                    |  8 ++--
- drivers/media/i2c/imx319.c                    |  8 ++--
- drivers/media/i2c/ov8858.c                    |  8 ++--
- drivers/net/ipa/ipa_smp2p.c                   |  2 +-
- drivers/pci/pci.c                             |  2 +-
- include/linux/pm_runtime.h                    | 48 +++++++++++++++++--
- sound/hda/hdac_device.c                       |  2 +-
- 12 files changed, 92 insertions(+), 32 deletions(-)
-
-
-base-commit: 3e238417254bfdcc23fe207780b59cbb08656762
+diff --git a/drivers/media/i2c/ov8858.c b/drivers/media/i2c/ov8858.c
+index 3af6125a2eee..a99b91700a8d 100644
+--- a/drivers/media/i2c/ov8858.c
++++ b/drivers/media/i2c/ov8858.c
+@@ -1538,7 +1538,7 @@ static int ov8858_set_ctrl(struct v4l2_ctrl *ctrl)
+ 	struct v4l2_subdev_state *state;
+ 	u16 digi_gain;
+ 	s64 max_exp;
+-	int ret;
++	int ret, pm_status;
+ 
+ 	/*
+ 	 * The control handler and the subdev state use the same mutex and the
+@@ -1561,7 +1561,8 @@ static int ov8858_set_ctrl(struct v4l2_ctrl *ctrl)
+ 		break;
+ 	}
+ 
+-	if (!pm_runtime_get_if_in_use(&client->dev))
++	pm_status = pm_runtime_get_if_active(&client->dev);
++	if (!pm_status)
+ 		return 0;
+ 
+ 	switch (ctrl->id) {
+@@ -1601,7 +1602,8 @@ static int ov8858_set_ctrl(struct v4l2_ctrl *ctrl)
+ 		break;
+ 	}
+ 
+-	pm_runtime_put(&client->dev);
++	if (pm_status > 0)
++		pm_runtime_mark_busy_autosusp(&client->dev);
+ 
+ 	return ret;
+ }
 -- 
 2.39.2
 
