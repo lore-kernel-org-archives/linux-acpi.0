@@ -1,47 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="cVoilLmq"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="iNH8SuVC"
 Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.20])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F01B18B;
-	Wed, 15 Nov 2023 10:18:52 -0800 (PST)
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 049A5196;
+	Wed, 15 Nov 2023 10:18:53 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1700072332; x=1731608332;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=xqZXn0Yxfn3Sk9v5JbBgGwiaA3KD1uEzo/vK6o/D7T4=;
-  b=cVoilLmq9JtRoNN65FWqBi03qlDXixKbmsFd4kNT4BjXEGLscPtWCZ2a
-   E6HwFGiJUA6XraBHp6n5HgoeYkToJqXAwNJSBeR2bQNTM4N1mJwbHWLup
-   AVZJK2K7sOM2t/2WKLu2BRWsgjLOK9BAy+Sm8zvX1hsr37jZd5n3v2vjg
-   iHi7FozsekIQBbFz6kCzzOdW5RDlNFucGfDyVv+LFK4tnQM+4TpWwgdNR
-   5iQx/Ht/CNSxwAB9JZljTGkv4CFpqtSh/e6XmOLj00y6WNoZfeQYG2p3C
-   W7TxekjwZx8lW9Yxj1Lx1TBcLbWC4XfkLfSpd4XX0FB01ulzhg+oOuadh
-   w==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10895"; a="381321128"
+  t=1700072334; x=1731608334;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=vDsmhnXIvSS4wPk4vVk8AND6/EQE7fhPsvRfxD4Vfxc=;
+  b=iNH8SuVCArpS9W3hhVTX7pmJ6Ub3LqlXQfzBy7DrpJFYgRpwEr5rqL7r
+   X3ypbZ3nvx7KwVZc8nOa+7wErmoBnN2uTCvWSw/MneS6tCrb0fcWwuqPG
+   8PqYstcdASp/MA2dI1AsbBa1e9ybfzFktCEXR1FSE7Z9YxHfUGCBCW/qT
+   xTwc3enKq3VjVZpFneK/LaQjEvMKd2CuQpocVxrSGTYY5iGKJqcqNWBrr
+   St6ZvQvbekMcv4fIjlDtX7eMJ+w5Aj7SBBDy11FynmDiIBlOXlB65gCIZ
+   FBtLrxvuYbm/WucD02zSjxXrjHNmll1nDHahjaJoeWvn4W6DF2YAxx8Hm
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10895"; a="381321117"
 X-IronPort-AV: E=Sophos;i="6.03,305,1694761200"; 
-   d="scan'208";a="381321128"
+   d="scan'208";a="381321117"
 Received: from fmsmga008.fm.intel.com ([10.253.24.58])
   by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Nov 2023 10:18:46 -0800
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10895"; a="831014657"
+X-IronPort-AV: E=McAfee;i="6600,9927,10895"; a="831014654"
 X-IronPort-AV: E=Sophos;i="6.03,305,1694761200"; 
-   d="scan'208";a="831014657"
+   d="scan'208";a="831014654"
 Received: from turnipsi.fi.intel.com (HELO kekkonen.fi.intel.com) ([10.237.72.44])
-  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Nov 2023 10:18:45 -0800
+  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Nov 2023 10:18:44 -0800
 Received: from svinhufvud.ger.corp.intel.com (localhost [IPv6:::1])
-	by kekkonen.fi.intel.com (Postfix) with ESMTP id 5DA5411FC11;
-	Wed, 15 Nov 2023 20:18:42 +0200 (EET)
+	by kekkonen.fi.intel.com (Postfix) with ESMTP id 9516B11F830;
+	Wed, 15 Nov 2023 20:18:40 +0200 (EET)
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-acpi@vger.kernel.org
 Cc: linux-media@vger.kernel.org,
 	rafael@kernel.org,
 	jacopo.mondi@ideasonboard.com,
 	laurent.pinchart@ideasonboard.com
-Subject: [PATCH 2/6] pm: runtime: Add pm_runtime_put_mark_busy_autosusp() helper
-Date: Wed, 15 Nov 2023 20:18:36 +0200
-Message-Id: <20231115181840.1509046-3-sakari.ailus@linux.intel.com>
+Subject: [PATCH 0/6] Small Runtime PM API changes
+Date: Wed, 15 Nov 2023 20:18:34 +0200
+Message-Id: <20231115181840.1509046-1-sakari.ailus@linux.intel.com>
 X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20231115181840.1509046-1-sakari.ailus@linux.intel.com>
-References: <20231115181840.1509046-1-sakari.ailus@linux.intel.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -50,47 +48,57 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add pm_runtime_put_mark_busy_autosusp() helper function for users that
-wish to set the last_busy timestamp to current time and put the
-usage_count of the device and set the autosuspend timer.
+Hi folks,
 
-Essentially calling pm_runtime_suspend_mark_busy_autosusp() equal to
-calling first pm_runtime_mark_last_busy() and then
-pm_runtime_put_autosuspend().
+This small set happily mixes Runtime PM and media patches.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- include/linux/pm_runtime.h | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+The set does two main things Runtime PM API-wise. Firstly,
+pm_runtime_get_if_active() is made more user-friendly by removing the
+ign_use_count argument so the users no longer need to call it with that
+set to true. Secondly, pm_runtime_put_mark_busy_autosusp() helper is added
+to avoid drivers having to call pm_runtime_mark_last_busy() only to be
+followed by pm_runtime_autosuspend().
 
-diff --git a/include/linux/pm_runtime.h b/include/linux/pm_runtime.h
-index 810330bb802b..59871ab1532a 100644
---- a/include/linux/pm_runtime.h
-+++ b/include/linux/pm_runtime.h
-@@ -494,6 +494,23 @@ static inline int pm_runtime_put_autosuspend(struct device *dev)
- 	    RPM_GET_PUT | RPM_ASYNC | RPM_AUTO);
- }
- 
-+/**
-+ * pm_runtime_put_mark_busy_autosusp - Update the last access time of a device
-+ *				       and drop device usage counter and queue
-+ *				       autosuspend if 0.
-+ * @dev: Target device.
-+ *
-+ * Update the last access time of @dev using pm_runtime_mark_last_busy(), then
-+ * decrement the runtime PM usage counter of @dev and if it turns out to be
-+ * equal to 0, queue up a work item for @dev like in pm_request_autosuspend().
-+ */
-+static inline int pm_runtime_put_mark_busy_autosusp(struct device *dev)
-+{
-+	pm_runtime_mark_last_busy(dev);
-+
-+	return pm_runtime_autosuspend(dev);
-+}
-+
- /**
-  * pm_runtime_put_sync - Drop device usage counter and run "idle check" if 0.
-  * @dev: Target device.
+The vast majority of the users of pm_runtime_autosuspend() would probably
+have been fine with making pm_runtime_autosuspend() do the last busy
+stamping, too, but given the sheer number of users it's hard to tell if
+there could be problems here and there. On the other hand, there are
+probably a sizable proportion of call sites where the missing
+pm_runtime_mark_last_busy() call is simply a bug.
+
+The three last patches are addressing Runtime PM issues in a few sensor
+drivers.
+
+Comments would be welcome.
+
+
+Sakari Ailus (6):
+  pm: runtime: Simplify pm_runtime_get_if_active() usage
+  pm: runtime: Add pm_runtime_put_mark_busy_autosusp() helper
+  media: Documentation: Improve camera sensor runtime PM documentation
+  media: ov8858: Use pm_runtime_get_if_active(), put usage_count
+    correctly
+  media: imx319: Use pm_runtime_get_if_active(), put usage_count
+    correctly
+  media: imx219: Use pm_runtime_get_if_active(), put usage_count
+    correctly
+
+ .../driver-api/media/camera-sensor.rst        | 28 ++++++++---
+ Documentation/power/runtime_pm.rst            |  5 +-
+ drivers/base/power/runtime.c                  |  9 ++--
+ drivers/gpu/drm/i915/intel_runtime_pm.c       |  2 +-
+ drivers/media/i2c/ccs/ccs-core.c              |  2 +-
+ drivers/media/i2c/imx219.c                    |  8 ++--
+ drivers/media/i2c/imx319.c                    |  8 ++--
+ drivers/media/i2c/ov8858.c                    |  8 ++--
+ drivers/net/ipa/ipa_smp2p.c                   |  2 +-
+ drivers/pci/pci.c                             |  2 +-
+ include/linux/pm_runtime.h                    | 48 +++++++++++++++++--
+ sound/hda/hdac_device.c                       |  2 +-
+ 12 files changed, 92 insertions(+), 32 deletions(-)
+
+
+base-commit: 3e238417254bfdcc23fe207780b59cbb08656762
 -- 
 2.39.2
 
