@@ -1,44 +1,44 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Sg2bd+Wu"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="WJWRQZ8d"
 Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93170194;
-	Fri, 17 Nov 2023 03:14:41 -0800 (PST)
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F241CD51;
+	Fri, 17 Nov 2023 03:14:43 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1700219682; x=1731755682;
+  t=1700219684; x=1731755684;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=E51JwvVc+WS4nt6BjqwLo96XXpb3Un3sSEB2K+/Lpqo=;
-  b=Sg2bd+WujtCjJCKaK94Bo/1IyjJkWb1tnDwQAeAGeTHluVIszsgzt/dN
-   SRkpxB+9do/5m3Jc4mnIlGi04/RQPf3c2YJY1J8vNCYve1+48VEJI2omP
-   fkNZpbGQJDx9wc/PZ8cT26hFi1/CuyvOYc1TLityYFIsw3dBQuJZynNVP
-   g8L4OtzeeomPhkxf9ocdpwNHM5OKbZTJlqkQoFlwhkyxVFaFtMBDVjaO+
-   zXQP85wFcvBReeJZugcHkhcsEM8iE4i0DKTo3kH0LVxSRhAMGUlK2PRup
-   64A3BuwTBo2Q0ruRDfDRxLmSsuyL1EO6dXbytTN4mBV54ZbMjJlRzQ4fY
-   w==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10896"; a="9941633"
+  bh=OPmQAk0OpQh83zt36TXMHBtJTrjTJma9nZ7JEe6oktc=;
+  b=WJWRQZ8d/nRo3w9jtmwj4gUPKQshr38AXInt1VeCKRX7cOCsvnaxsEOA
+   EF1FBX1qehpMv/ezPsbrv7b8q8Gzt7sb+/1Sg5+uKe+Ks5GJua/tO4IHE
+   oIfPb+UpVSp/u45ner4oWGJrAJmcPrYnoIzF7BvaiVq82WFBgpKvXCdvn
+   7B4DBiWxD/6vJng9inB6bKw8fQ3u9RpfWwBdYs/21dl3JBxd5aWh7LZj4
+   EFOGeFSRBVvW3XEyO6AeVp3lcNiqVhnyGeezpFKs1Xk3i9qdJjkAG+9eO
+   PIg01hkD9yMhE6rmn4wdeyj+PIfFg5RkJdxQTFlu6L993nNrxwBd0A5o1
+   A==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10896"; a="9941646"
 X-IronPort-AV: E=Sophos;i="6.04,206,1695711600"; 
-   d="scan'208";a="9941633"
+   d="scan'208";a="9941646"
 Received: from fmsmga007.fm.intel.com ([10.253.24.52])
-  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Nov 2023 03:14:41 -0800
+  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Nov 2023 03:14:44 -0800
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10896"; a="769201196"
+X-IronPort-AV: E=McAfee;i="6600,9927,10896"; a="769201204"
 X-IronPort-AV: E=Sophos;i="6.04,206,1695711600"; 
-   d="scan'208";a="769201196"
+   d="scan'208";a="769201204"
 Received: from turnipsi.fi.intel.com (HELO kekkonen.fi.intel.com) ([10.237.72.44])
-  by fmsmga007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Nov 2023 03:14:38 -0800
+  by fmsmga007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Nov 2023 03:14:41 -0800
 Received: from svinhufvud.ger.corp.intel.com (localhost [IPv6:::1])
-	by kekkonen.fi.intel.com (Postfix) with ESMTP id 2D916120ED2;
-	Fri, 17 Nov 2023 13:14:35 +0200 (EET)
+	by kekkonen.fi.intel.com (Postfix) with ESMTP id 89CC8120F3E;
+	Fri, 17 Nov 2023 13:14:38 +0200 (EET)
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-acpi@vger.kernel.org
 Cc: linux-media@vger.kernel.org,
 	rafael@kernel.org,
 	jacopo.mondi@ideasonboard.com,
 	laurent.pinchart@ideasonboard.com
-Subject: [PATCH v2 2/7] pm: runtime: Add pm_runtime_put_mark_busy_autosusp() helper
-Date: Fri, 17 Nov 2023 13:14:28 +0200
-Message-Id: <20231117111433.1561669-3-sakari.ailus@linux.intel.com>
+Subject: [PATCH v2 6/7] media: imx319: Put usage_count correctly in s_ctrl callback
+Date: Fri, 17 Nov 2023 13:14:32 +0200
+Message-Id: <20231117111433.1561669-7-sakari.ailus@linux.intel.com>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <20231117111433.1561669-1-sakari.ailus@linux.intel.com>
 References: <20231117111433.1561669-1-sakari.ailus@linux.intel.com>
@@ -50,47 +50,51 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add pm_runtime_put_mark_busy_autosusp() helper function for users that
-wish to set the last_busy timestamp to current time and put the
-usage_count of the device and set the autosuspend timer.
-
-Essentially calling pm_runtime_suspend_mark_busy_autosusp() equal to
-calling first pm_runtime_mark_last_busy() and then
-pm_runtime_put_autosuspend().
+pm_runtime_get_if_in_use() returns an error if Runtime PM is disabled for
+the device, in which case it won't increment the use count.
+pm_runtime_put() does that unconditionally however. Only call
+pm_runtime_put() in case pm_runtime_get_if_in_use() has returned a value >
+0.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- include/linux/pm_runtime.h | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ drivers/media/i2c/imx319.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/include/linux/pm_runtime.h b/include/linux/pm_runtime.h
-index 13cd526634c1..4afe7b0b9d7e 100644
---- a/include/linux/pm_runtime.h
-+++ b/include/linux/pm_runtime.h
-@@ -495,6 +495,23 @@ static inline int pm_runtime_put_autosuspend(struct device *dev)
- 	    RPM_GET_PUT | RPM_ASYNC | RPM_AUTO);
- }
+diff --git a/drivers/media/i2c/imx319.c b/drivers/media/i2c/imx319.c
+index 5378f607f340..e7b2d0c20d29 100644
+--- a/drivers/media/i2c/imx319.c
++++ b/drivers/media/i2c/imx319.c
+@@ -1880,8 +1880,8 @@ static int imx319_set_ctrl(struct v4l2_ctrl *ctrl)
+ 	struct imx319 *imx319 = container_of(ctrl->handler,
+ 					     struct imx319, ctrl_handler);
+ 	struct i2c_client *client = v4l2_get_subdevdata(&imx319->sd);
++	int ret, pm_status;
+ 	s64 max;
+-	int ret;
  
-+/**
-+ * pm_runtime_put_mark_busy_autosusp - Update the last access time of a device
-+ *				       and drop device usage counter and queue
-+ *				       autosuspend if 0.
-+ * @dev: Target device.
-+ *
-+ * Update the last access time of @dev using pm_runtime_mark_last_busy(), then
-+ * decrement the runtime PM usage counter of @dev and if it turns out to be
-+ * equal to 0, queue up a work item for @dev like in pm_request_autosuspend().
-+ */
-+static inline int pm_runtime_put_mark_busy_autosusp(struct device *dev)
-+{
-+	pm_runtime_mark_last_busy(dev);
-+
-+	return pm_runtime_autosuspend(dev);
-+}
-+
- /**
-  * pm_runtime_put_sync - Drop device usage counter and run "idle check" if 0.
-  * @dev: Target device.
+ 	/* Propagate change of current control to all related controls */
+ 	switch (ctrl->id) {
+@@ -1898,7 +1898,8 @@ static int imx319_set_ctrl(struct v4l2_ctrl *ctrl)
+ 	 * Applying V4L2 control value only happens
+ 	 * when power is up for streaming
+ 	 */
+-	if (!pm_runtime_get_if_in_use(&client->dev))
++	pm_status = pm_runtime_get_if_in_use(&client->dev);
++	if (!pm_status)
+ 		return 0;
+ 
+ 	switch (ctrl->id) {
+@@ -1937,7 +1938,8 @@ static int imx319_set_ctrl(struct v4l2_ctrl *ctrl)
+ 		break;
+ 	}
+ 
+-	pm_runtime_put(&client->dev);
++	if (pm_status > 0)
++		pm_runtime_put(&client->dev);
+ 
+ 	return ret;
+ }
 -- 
 2.39.2
 
