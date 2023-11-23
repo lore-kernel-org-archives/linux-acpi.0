@@ -1,96 +1,70 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="TaQG2Lew"
-Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.31])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9969010E0;
-	Thu, 23 Nov 2023 02:07:28 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1700734048; x=1732270048;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references;
-  bh=ibYMWWRd/P2AQAHicSo9ziPs651CklYQuIen4L+deis=;
-  b=TaQG2LewxNxeUWqKuhpYuwb3nBje1pKnwXSRrxiXt4JtjzvoEjvHkmTb
-   sIp8GVsY/jwKyW0gzIplwMOSEvwKqa0gRQIFTyWBWtzJPwodg7GNPmmSi
-   gSKDOPsLUOinHAj830KcdSW3960ljlHw6noYPybpoUS9h/eqyNRoKJzVR
-   pddlpu6tmhYYmlAnGcXZI+FkE4FqEp3f7kPfF8BVMheksBUe/gHzOCcbA
-   e1Yb3YpUDJn2g9LAl9eSGpfWFiMZesMoNTqog4NdD0B2utdAKkpDfKrS0
-   8i+fnI02nqJlZxHf5+rmzSxWqLnLporMO1OAwd/TfcVtLUcZyHWRmJXOI
-   Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10902"; a="456576426"
-X-IronPort-AV: E=Sophos;i="6.04,221,1695711600"; 
-   d="scan'208";a="456576426"
-Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Nov 2023 02:07:26 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10902"; a="767160521"
-X-IronPort-AV: E=Sophos;i="6.04,221,1695711600"; 
-   d="scan'208";a="767160521"
-Received: from inlubt0316.iind.intel.com ([10.191.20.213])
-  by orsmga002.jf.intel.com with ESMTP; 23 Nov 2023 02:07:21 -0800
-From: Raag Jadav <raag.jadav@intel.com>
-To: mika.westerberg@linux.intel.com,
-	andriy.shevchenko@linux.intel.com,
-	rafael@kernel.org,
+	dkim=pass (2048-bit key) header.d=collabora.com header.i=@collabora.com header.b="PoaVghDc"
+Received: from madras.collabora.co.uk (madras.collabora.co.uk [IPv6:2a00:1098:0:82:1000:25:2eeb:e5ab])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3F706B2;
+	Thu, 23 Nov 2023 04:09:34 -0800 (PST)
+Received: from localhost.localdomain (cola.collaboradmins.com [195.201.22.229])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	(Authenticated sender: laura.nao)
+	by madras.collabora.co.uk (Postfix) with ESMTPSA id 1AB2866073A6;
+	Thu, 23 Nov 2023 12:09:32 +0000 (GMT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=collabora.com;
+	s=mail; t=1700741373;
+	bh=YgxjoufhsvGqDqaZ2rAtBAbV9cjW8P3dw29HVw8u0y0=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=PoaVghDckL+d+hpKi62Z+OmLgjKqyQ7uJoVeV20xyXVmZ227HQCKD/v1hZLefB+Ph
+	 wlPy5eIiPjgkYXd/W2YZZzFTHf+c3ihGYQN3QYCmDqxqfwS69khvdVi0DdvAQMxnMi
+	 6/PDtfY5K6zdHmwbi0BFbZctgpstIBjiue9CS5K7nPW+BQaw6NKcF48qiH/PHGsW1g
+	 mIZWlqwllvH7+CEUoYAcCFzoHeW+qhEgQ4dGcsifaswB3hMx1NeUVkylgwCg1yqnxX
+	 tdI1H6dqdJ4MiT6+fHY6HKkRbeSdlaAr6PMQ4RKAgkySaMTCZ4JnMZK61yTRt5F/nq
+	 5YbJOssjrklhw==
+From: Laura Nao <laura.nao@collabora.com>
+To: dan.carpenter@linaro.org
+Cc: broonie@kernel.org,
+	groeck@chromium.org,
+	kernel@collabora.com,
+	kernelci@lists.linux.dev,
+	laura.nao@collabora.com,
 	lenb@kernel.org,
-	robert.moore@intel.com,
-	ardb@kernel.org,
-	will@kernel.org,
-	mark.rutland@arm.com
-Cc: linux-acpi@vger.kernel.org,
+	linux-acpi@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
-	acpica-devel@lists.linuxfoundation.org,
-	linux-efi@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	mallikarjunappa.sangannavar@intel.com,
-	bala.senthil@intel.com,
-	Raag Jadav <raag.jadav@intel.com>
-Subject: [PATCH v3 4/5] efi: dev-path-parser: use acpi_dev_uid_match() for matching _UID
-Date: Thu, 23 Nov 2023 15:36:16 +0530
-Message-Id: <20231123100617.28020-5-raag.jadav@intel.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20231123100617.28020-1-raag.jadav@intel.com>
-References: <20231123100617.28020-1-raag.jadav@intel.com>
+	linux-kselftest@vger.kernel.org,
+	rafael@kernel.org,
+	robh+dt@kernel.org,
+	shuah@kernel.org
+Subject: Re: [RFC PATCH 0/2] Add a test to verify device probing on ACPI platforms
+Date: Thu, 23 Nov 2023 13:09:42 +0100
+Message-Id: <20231123120942.33222-1-laura.nao@collabora.com>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <4f1283d4-1c50-4aba-ba54-b9ea975bf61d@moroto.mountain>
+References: <4f1283d4-1c50-4aba-ba54-b9ea975bf61d@moroto.mountain>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-Now that we have _UID matching support for integer types, we can use
-acpi_dev_uid_match() for it.
+> Your talk was interesting at Linux Plumbers.
+> 
+> https://www.youtube.com/watch?v=oE73eVSyFXQ [time +2:35]
+> 
+> This is probably a stupid question, but why not just add something to
+> call_driver_probe() which creates a sysfs directory tree with all the
+> driver information?
+> 
 
-Signed-off-by: Raag Jadav <raag.jadav@intel.com>
-Reviewed-by: Ard Biesheuvel <ardb@kernel.org>
----
- drivers/firmware/efi/dev-path-parser.c | 7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+Thanks for the feedback! 
 
-diff --git a/drivers/firmware/efi/dev-path-parser.c b/drivers/firmware/efi/dev-path-parser.c
-index f80d87c199c3..937be269fee8 100644
---- a/drivers/firmware/efi/dev-path-parser.c
-+++ b/drivers/firmware/efi/dev-path-parser.c
-@@ -18,8 +18,6 @@ static long __init parse_acpi_path(const struct efi_dev_path *node,
- 	struct acpi_device *adev;
- 	struct device *phys_dev;
- 	char hid[ACPI_ID_LEN];
--	u64 uid;
--	int ret;
- 
- 	if (node->header.length != 12)
- 		return -EINVAL;
-@@ -31,10 +29,9 @@ static long __init parse_acpi_path(const struct efi_dev_path *node,
- 			node->acpi.hid >> 16);
- 
- 	for_each_acpi_dev_match(adev, hid, NULL, -1) {
--		ret = acpi_dev_uid_to_integer(adev, &uid);
--		if (ret == 0 && node->acpi.uid == uid)
-+		if (acpi_dev_uid_match(adev, node->acpi.uid))
- 			break;
--		if (ret == -ENODATA && node->acpi.uid == 0)
-+		if (!acpi_device_uid(adev) && node->acpi.uid == 0)
- 			break;
- 	}
- 	if (!adev)
--- 
-2.17.1
+Improving the device driver model to publish driver and devices info was indeed another option we considered. We could have a debugfs entry storing this kind of information, similar to what devices_deferred does and in a standardized format. This would provide an interface that is easier to query at runtime for getting a list of devices that were probed correctly.
+This would cover devices with a driver that's built into the kernel or as a module; in view of catching also those cases where a device is not probed because the relevant config is not enabled, I think we'd still need another way of building a list of devices present on the platform to be used as reference.
 
+The solution proposed in this RFC follows the same approach used for dt
+based platforms for simplicity. But if adding a new sysfs entry storing devices and driver info proves to be a viable option for upstream, we can surely explore it and improve the probe test to leverage that.
+
+Best,
+
+Laura
