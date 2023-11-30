@@ -1,267 +1,273 @@
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="s3wngbFb"
-Received: from NAM11-BN8-obe.outbound.protection.outlook.com (mail-bn8nam11on2040.outbound.protection.outlook.com [40.107.236.40])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3151ED71;
-	Wed, 29 Nov 2023 17:11:29 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=fzoFXtmWBXzsPfBCwYx586ekbkp1+qHKZh6BimWR46HgE3gyyfriSfRSmbG0D7Y81af21i14Fb8iL7C844qkYPBInD1a0QbktcINRNQyzahGpaBP7t9ePgh5Vz4Dl2hdl0nWnWWRo42I/cmzD/v9srOCDfYtbW5rFzeCP8jJZ7sELg3zO/rVs5oY+sF9lZvm6A9gFxjcUMqxZL4cpfO8teEG/8GOtoHkHAuJ/506qsGY50R2g/IZFM8dp+9zvewetUIDZTK/RDRDXNODbQzIzBzyJx52xqVdeUZDfPOKGkTAeNJVFGgrDuzdAiK1Jj1g8kWswR8q7YlNohc5GoPfyA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=fXP8tNimHbY+P2znJMc85H2A6muYmbWuFS7YeFp+CTM=;
- b=gB3u+y5bfwmO+JiD8taKxphua9V4E4F1xCTnY1IfV/EdVNzQ002T3/7jzz32vSZaflO+Rl3fp6OJLw/M70fLqrMj6L98QBOb/tVT6eG5QdfmHPz+pRXaOfBGUO1lGFEh8LjMToDAGgauwSR22fRCBq92PbrOlzatG9X5a6SlMPe4xe0e6Rnq+xllgRMF3a41u2sRhB31r9cSAKqSo3iUzIAjCN2qYTcmQm/C2FvLRqFuGhbjcQ8CXRMHEShicrKFI1rC4/+YrnCCEU04Rym/KeHXrvZHuOpn1M7lyN0JdUjCCfJ56hlMkkIPPbAvq0jdtYJaekgXE+5LYY0S1P7+lg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=fXP8tNimHbY+P2znJMc85H2A6muYmbWuFS7YeFp+CTM=;
- b=s3wngbFbOoI2792SiKY/cUYh0g3S/j/PfpsXAVbdXLwe7wtU2iYmslRfI0pPSyDaYwjw+XNbPImOs0OJtaDhhr1Y+fX0bdqksGx6Tm72ntPFEMxVcMeXGh8Skb83zpt+tzNAULuPvtyeGRhGOYFthRIx1v3q+SJzi2ysXLrRLopngcbtLxlhqtabzYWoxKORAqW/xxK4lA2S0X0Zp3z9ymmJcne/TOuKM6leMWkT5AmS74ktBgH97DvW6mIzZs4Fq8uHIklV2+RBmkjXeCyD4OEaMlAI/8LuVkbBBELasb2mwNpdqFQh/u8+VE/KD3fsy194xsE6HPj5dW+amIbUtQ==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from LV2PR12MB5869.namprd12.prod.outlook.com (2603:10b6:408:176::16)
- by DM6PR12MB4484.namprd12.prod.outlook.com (2603:10b6:5:28f::24) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7046.23; Thu, 30 Nov
- 2023 01:11:26 +0000
-Received: from LV2PR12MB5869.namprd12.prod.outlook.com
- ([fe80::60d4:c1e3:e1aa:8f93]) by LV2PR12MB5869.namprd12.prod.outlook.com
- ([fe80::60d4:c1e3:e1aa:8f93%4]) with mapi id 15.20.7046.015; Thu, 30 Nov 2023
- 01:11:26 +0000
-From: Jason Gunthorpe <jgg@nvidia.com>
-To: acpica-devel@lists.linux.dev,
-	Andy Gross <agross@kernel.org>,
-	Alim Akhtar <alim.akhtar@samsung.com>,
-	Alyssa Rosenzweig <alyssa@rosenzweig.io>,
-	Bjorn Andersson <andersson@kernel.org>,
-	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
-	asahi@lists.linux.dev,
-	Baolin Wang <baolin.wang@linux.alibaba.com>,
-	devicetree@vger.kernel.org,
-	Frank Rowand <frowand.list@gmail.com>,
-	Hanjun Guo <guohanjun@huawei.com>,
-	"Gustavo A. R. Silva" <gustavoars@kernel.org>,
-	Heiko Stuebner <heiko@sntech.de>,
-	iommu@lists.linux.dev,
-	Jean-Philippe Brucker <jean-philippe@linaro.org>,
-	Jernej Skrabec <jernej.skrabec@gmail.com>,
-	Jonathan Hunter <jonathanh@nvidia.com>,
-	Joerg Roedel <joro@8bytes.org>,
-	Kees Cook <keescook@chromium.org>,
-	Konrad Dybcio <konrad.dybcio@linaro.org>,
-	Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
-	Len Brown <lenb@kernel.org>,
-	linux-acpi@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-arm-msm@vger.kernel.org,
-	linux-hardening@vger.kernel.org,
-	linux-mediatek@lists.infradead.org,
-	linux-rockchip@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org,
-	linux-sunxi@lists.linux.dev,
-	linux-tegra@vger.kernel.org,
-	Lorenzo Pieralisi <lpieralisi@kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hector Martin <marcan@marcan.st>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Orson Zhai <orsonzhai@gmail.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Rob Clark <robdclark@gmail.com>,
-	Robert Moore <robert.moore@intel.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Robin Murphy <robin.murphy@arm.com>,
-	Samuel Holland <samuel@sholland.org>,
-	Sudeep Holla <sudeep.holla@arm.com>,
-	Sven Peter <sven@svenpeter.dev>,
-	Thierry Reding <thierry.reding@gmail.com>,
-	Krishna Reddy <vdumpa@nvidia.com>,
-	virtualization@lists.linux.dev,
-	Chen-Yu Tsai <wens@csie.org>,
-	Will Deacon <will@kernel.org>,
-	Yong Wu <yong.wu@mediatek.com>,
-	Chunyan Zhang <zhang.lyra@gmail.com>
-Cc: =?utf-8?q?Andr=C3=A9_Draszik?= <andre.draszik@linaro.org>,
-	patches@lists.linux.dev
-Subject: [PATCH 28/30] iommu: Call all drivers if there is no fwspec
-Date: Wed, 29 Nov 2023 21:10:35 -0400
-Message-ID: <28-v1-f82a05539a64+5042-iommu_fwspec_p2_jgg@nvidia.com>
-In-Reply-To: <0-v1-f82a05539a64+5042-iommu_fwspec_p2_jgg@nvidia.com>
-References:
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: SA0PR13CA0030.namprd13.prod.outlook.com
- (2603:10b6:806:130::35) To LV2PR12MB5869.namprd12.prod.outlook.com
- (2603:10b6:408:176::16)
+Authentication-Results: smtp.subspace.kernel.org; dkim=none
+Received: from out30-119.freemail.mail.aliyun.com (out30-119.freemail.mail.aliyun.com [115.124.30.119])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C3CE0CC;
+	Wed, 29 Nov 2023 18:59:03 -0800 (PST)
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R121e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046049;MF=xueshuai@linux.alibaba.com;NM=1;PH=DS;RN=34;SR=0;TI=SMTPD_---0VxQ.im6_1701313137;
+Received: from 30.240.112.131(mailfrom:xueshuai@linux.alibaba.com fp:SMTPD_---0VxQ.im6_1701313137)
+          by smtp.aliyun-inc.com;
+          Thu, 30 Nov 2023 10:59:00 +0800
+Message-ID: <a3cd9b79-4be5-4f77-b32a-51a624a65ec0@linux.alibaba.com>
+Date: Thu, 30 Nov 2023 10:58:53 +0800
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: LV2PR12MB5869:EE_|DM6PR12MB4484:EE_
-X-MS-Office365-Filtering-Correlation-Id: f67500fe-40c5-4676-d4a3-08dbf1412d51
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info:
-	kU3T7H5J57NLM9QajWOnU7z7Xu9y794iVNtOqReqjjMT9Tu3yv2lFF8WAgFzrOqUWvpglv1Igb3RhXi2xM94Vmx3ebqu31En5zdMgZdN2j6yCnaFCTlapBrEjZ07EFM02cLu5UlvXpr0O2YLeKQqySJlZPiFsZy6iPky8VAIaywxdG4vGtMxVL6Up4OzMueg6OGciJxgdCDn7Jbcn0ZUqHn3K1ym+q5+8vyrxsqmsFB1GWogzupFWDt4RGofVfAoS2bMJ9h+j/OlqIOZ0CcUv709vKKkqEIsu00l4IOoZmX6C5Zd3noH4KZSQ5tAfdJXpP5uiZBR3eX8cVBF0HAQCyY3Erel1ZQ0UzCBMLqd27W+pQvoKQ4CqvObpWlzzj3xtlt+jxiLwH+ZKkGyOeg7Gmnb018jPv6bkNLgPvGyE48yby4y2X43+C/mhKh9gib9m26cHq4bcioT+oSPmn90EvCigfgVy+3RpxEkuZ+9Er4LN91nrNVkLndQxMeBUneW/bnjVEPaAklk5VZZgViEQtZAqC6+wAKPyfQRp7dGgdwKpe0gAQSfo5tdmEBQE8GmA3Plk89UnM/zCCZBQgJoIkEAHk2ynbKiPI2fFEEsp6gsEOnFprXEbm5h9DHRPEffpcudc1+f/Lwiy5bAvwmgww==
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:LV2PR12MB5869.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(376002)(366004)(396003)(136003)(346002)(39860400002)(230922051799003)(1800799012)(451199024)(186009)(64100799003)(83380400001)(1191002)(2616005)(26005)(921008)(66476007)(66946007)(66556008)(7406005)(7366002)(7416002)(110136005)(2906002)(8676002)(4326008)(8936002)(86362001)(5660300002)(41300700001)(6506007)(6666004)(6512007)(36756003)(316002)(478600001)(6486002)(202311291699003)(38100700002);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?r3OsdJrBhVIA+ZSfZKD6MQxElvohXeb8xslb73RAKupEeYHmd/CydVrE2+CY?=
- =?us-ascii?Q?UsrVOF42DMuBW55zsqBMyZfs3OztqOw7he9GYAcFZWzjCohoE9tKzYE2FqeW?=
- =?us-ascii?Q?vjKPp6Nf2one0OYjZOr82gRrisxHrTSr9Wz8H6jRtEcoLRAqoQw45RzZytR6?=
- =?us-ascii?Q?L/qzh1ORcI0wqFwIdJX170WWoyymABvPtUsxx8ndY47CWtF9PDXc7JsI2VQn?=
- =?us-ascii?Q?MXPI+t7gfrNqy/b/junKEaltSde2B4oFoN+RLhhF75uEn07pd7Z2coRkUxMd?=
- =?us-ascii?Q?8jtnKfuJ+EmzimuXyl43yk4NgZdNRJIxG5ftLTVndNOGZYDDgoSiLn0KVlaB?=
- =?us-ascii?Q?bXH09SRjC8ktap8vOUrigULSwYkkQLkmFxNjTLO5phGmL302qpMNCuChIQoR?=
- =?us-ascii?Q?iB6fx6oSWImvMPRe38EFmoG1DBXN3S/EMjEmFAmabNOoACaTVUEbFxJs3nsx?=
- =?us-ascii?Q?K/o3M10UhlzCmkgMnapIZOgKG0YulADBN7a0hkP4/0uEqTS9ff8WxMJSqgpZ?=
- =?us-ascii?Q?GmWZMxlKu48TmxDe3lzvm6ZoUZAP+s+0afKgfKaC2BO01jB2pHrIqt5paOVU?=
- =?us-ascii?Q?cNLy/8GlmNsrgU3gST+fu1wP99Q4vsfs27xb/8hc8vKkQQTebLIKmy6YuOyp?=
- =?us-ascii?Q?0LWchuAsiIlCQ+ARMHJFND8/JjyoRIJCFzZCT5uVScLUPEAknF1G36sveW68?=
- =?us-ascii?Q?SYquR4aFSMqgGmustnm46nElOaMsD9JxKApJmpCuOyePfWsC1H6HBA5kiGxD?=
- =?us-ascii?Q?l+lSMhX36/lQO2hosmef4wv+g9eMH9WhInszOlcyv0kzlYohlobDGDn5g+3i?=
- =?us-ascii?Q?s3cpXZkmmdDjetyzZRH0jo+IInH+0CFZu5hnr70BgM1FomN4k4bxk72unbpx?=
- =?us-ascii?Q?u8US3TckRuZSna1CnHOL8/u69s+zlUY34gWeOi/JKrgKmj9rR9C6qKaqrh81?=
- =?us-ascii?Q?YNmpmk0t2S5nHsrUtHQvU/k30worvyMFLRgJIwKjV7S9jLDijlBR/meGUe0s?=
- =?us-ascii?Q?zE35nLA2KoFlQ2w7+rNGUKEd0nlUGYU3CVqHoRjtyaXBWFBSotVufp0RNMip?=
- =?us-ascii?Q?3TqoAzkCGfHDkl6Lj2Bn2xmbsA/+etx8sGi+KYVwdOQXrJV+8+Fe+LuRLLZM?=
- =?us-ascii?Q?dFIfS3Y7iVfYro+LjMjuudXkHKzTvz3ZmR1F7diUEGIsn0whZHpx928lNtBv?=
- =?us-ascii?Q?/o2F0ZXzp+bwI2VEpyrVMdViYLe9JmUzwJeCr5c6RMN4AQFWEtqRRGYZPE9U?=
- =?us-ascii?Q?6sTbxhAns2JwdjZEcW/AvwN7TkVInvdsF7ipvMh4W1WEMOcdJ57rbCqqZAb4?=
- =?us-ascii?Q?ZzKkwVo2nSC5h/Wycs/x4NtJddua7xgmfLB/mdUALnjhVLTkop+qUyI88cUB?=
- =?us-ascii?Q?F3xg2/6N0TbLQvfNtw0tl8p8OXQAHQJG9PzP4wygd2/lUT1RTkFxY/4hzYv1?=
- =?us-ascii?Q?MsbtpUn9s8N/txi65RSuNHz92nwSkUxFZX0DtV2L8vYXWKP7qFP9GDkgieHe?=
- =?us-ascii?Q?UG6FnvNnLSCgIDdL4W7N4/sHJn53Z8AX9avvGuRSJuKR8PK1kVhI9ts7sIUm?=
- =?us-ascii?Q?I716MAo0H1am2tjWz5DvuvRKDkLJNmFhmWnXwUhd?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: f67500fe-40c5-4676-d4a3-08dbf1412d51
-X-MS-Exchange-CrossTenant-AuthSource: LV2PR12MB5869.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Nov 2023 01:10:43.9426
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: TEOSbs4TX0OsynOw7k+u1QMSzSAFEHuPp5BjKVlPQuf9rZ/slvmuhCDeEsWEh4zy
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR12MB4484
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v9 0/2] ACPI: APEI: handle synchronous errors in task work
+ with proper si_code
+To: Borislav Petkov <bp@alien8.de>, james.morse@arm.com
+Cc: rafael@kernel.org, wangkefeng.wang@huawei.com, tanxiaofei@huawei.com,
+ mawupeng1@huawei.com, tony.luck@intel.com, linmiaohe@huawei.com,
+ naoya.horiguchi@nec.com, gregkh@linuxfoundation.org, will@kernel.org,
+ jarkko@kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org,
+ linux-kernel@vger.kernel.org, akpm@linux-foundation.org,
+ linux-edac@vger.kernel.org, acpica-devel@lists.linuxfoundation.org,
+ stable@vger.kernel.org, x86@kernel.org, justin.he@arm.com, ardb@kernel.org,
+ ying.huang@intel.com, ashish.kalra@amd.com, baolin.wang@linux.alibaba.com,
+ tglx@linutronix.de, mingo@redhat.com, dave.hansen@linux.intel.com,
+ lenb@kernel.org, hpa@zytor.com, robert.moore@intel.com, lvying6@huawei.com,
+ xiexiuqi@huawei.com, zhuo.song@linux.alibaba.com
+References: <20221027042445.60108-1-xueshuai@linux.alibaba.com>
+ <20231007072818.58951-1-xueshuai@linux.alibaba.com>
+ <20231123150710.GEZV9qnkWMBWrggGc1@fat_crate.local>
+ <9e92e600-86a4-4456-9de4-b597854b107c@linux.alibaba.com>
+ <20231125121059.GAZWHkU27odMLns7TZ@fat_crate.local>
+ <1048123e-b608-4db1-8d5f-456dd113d06f@linux.alibaba.com>
+ <20231129185406.GBZWeIzqwgRQe7XDo/@fat_crate.local>
+Content-Language: en-US
+From: Shuai Xue <xueshuai@linux.alibaba.com>
+In-Reply-To: <20231129185406.GBZWeIzqwgRQe7XDo/@fat_crate.local>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Now all the iommu drivers can self probe by checking the struct device to
-see if it has an appropriate FW attached to it. We don't need the concept
-of "global" drivers with a NULL fwspec, just invoke all the ops.
 
-Real systems only have one ops, so this effectively invokes the single op
-in the system to probe each device. If there are multiple ops we invoke
-each one once, and drivers that don't understand the struct device should
-return -ENODEV.
 
-Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
----
- drivers/iommu/iommu.c | 59 +++++++++++++++++++++++++++++++++++--------
- 1 file changed, 48 insertions(+), 11 deletions(-)
+On 2023/11/30 02:54, Borislav Petkov wrote:
+> Moving James to To:
+> 
+> On Sun, Nov 26, 2023 at 08:25:38PM +0800, Shuai Xue wrote:
+>>> On Sat, Nov 25, 2023 at 02:44:52PM +0800, Shuai Xue wrote:
+>>>> - an AR error consumed by current process is deferred to handle in a
+>>>>   dedicated kernel thread, but memory_failure() assumes that it runs in the
+>>>>   current context
+>>>
+>>> On x86? ARM?
+>>>
+>>> Pease point to the exact code flow.
+>>
+>> An AR error consumed by current process is deferred to handle in a
+>> dedicated kernel thread on ARM platform. The AR error is handled in bellow
+>> flow:
+>>
+>> -----------------------------------------------------------------------------
+>> [usr space task einj_mem_uc consumd data poison, CPU 3]         STEP 0
+>>
+>> -----------------------------------------------------------------------------
+>> [ghes_sdei_critical_callback: current einj_mem_uc, CPU 3]		STEP 1
+>> ghes_sdei_critical_callback
+>>     => __ghes_sdei_callback
+>>         => ghes_in_nmi_queue_one_entry 		// peak and read estatus
+>>         => irq_work_queue(&ghes_proc_irq_work) <=> ghes_proc_in_irq // irq_work
+>> [ghes_sdei_critical_callback: return]
+>> -----------------------------------------------------------------------------
+>> [ghes_proc_in_irq: current einj_mem_uc, CPU 3]			        STEP 2
+>>             => ghes_do_proc
+>>                 => ghes_handle_memory_failure
+>>                     => ghes_do_memory_failure
+>>                         => memory_failure_queue	 // put work task on current CPU
+>>                             => if (kfifo_put(&mf_cpu->fifo, entry))
+>>                                   schedule_work_on(smp_processor_id(), &mf_cpu->work);
+>>             => task_work_add(current, &estatus_node->task_work, TWA_RESUME);
+>> [ghes_proc_in_irq: return]
+>> -----------------------------------------------------------------------------
+>> // kworker preempts einj_mem_uc on CPU 3 due to RESCHED flag	STEP 3
+>> [memory_failure_work_func: current kworker, CPU 3]	
+>>      => memory_failure_work_func(&mf_cpu->work)
+>>         => while kfifo_get(&mf_cpu->fifo, &entry);	// until get no work
+>>             => memory_failure(entry.pfn, entry.flags);
+> 
+> From the comment above that function:
+> 
+>  * The function is primarily of use for corruptions that
+>  * happen outside the current execution context (e.g. when
+>  * detected by a background scrubber)
+>  *
+>  * Must run in process context (e.g. a work queue) with interrupts
+>  * enabled and no spinlocks held.
 
-diff --git a/drivers/iommu/iommu.c b/drivers/iommu/iommu.c
-index 7468a64778931b..54e3f14429b3b4 100644
---- a/drivers/iommu/iommu.c
-+++ b/drivers/iommu/iommu.c
-@@ -241,6 +241,26 @@ static int remove_iommu_group(struct device *dev, void *data)
- 	return 0;
- }
- 
-+static void iommu_device_add(struct iommu_device *iommu)
-+{
-+	struct iommu_device *cur;
-+
-+	/*
-+	 * Keep the iommu_device_list grouped by ops so that
-+	 * iommu_find_init_device() works efficiently.
-+	 */
-+	mutex_lock(&iommu_probe_device_lock);
-+	list_for_each_entry(cur, &iommu_device_list, list) {
-+		if (cur->ops == iommu->ops) {
-+			list_add(&iommu->list, &cur->list);
-+			goto out;
-+		}
-+	}
-+	list_add(&iommu->list, &iommu_device_list);
-+out:
-+	mutex_unlock(&iommu_probe_device_lock);
-+}
-+
- /**
-  * iommu_device_register() - Register an IOMMU hardware instance
-  * @iommu: IOMMU handle for the instance
-@@ -262,9 +282,7 @@ int iommu_device_register(struct iommu_device *iommu,
- 	if (hwdev)
- 		iommu->fwnode = dev_fwnode(hwdev);
- 
--	mutex_lock(&iommu_probe_device_lock);
--	list_add_tail(&iommu->list, &iommu_device_list);
--	mutex_unlock(&iommu_probe_device_lock);
-+	iommu_device_add(iommu);
- 
- 	for (int i = 0; i < ARRAY_SIZE(iommu_buses) && !err; i++)
- 		err = bus_iommu_probe(iommu_buses[i]);
-@@ -502,6 +520,29 @@ static void iommu_deinit_device(struct device *dev)
- 
- DEFINE_MUTEX(iommu_probe_device_lock);
- 
-+static int iommu_find_init_device(struct iommu_probe_info *pinf)
-+{
-+	const struct iommu_ops *ops = NULL;
-+	struct iommu_device *iommu;
-+	int ret;
-+
-+	lockdep_assert_held(&iommu_probe_device_lock);
-+
-+	/*
-+	 * Each unique ops gets a chance to claim the device, -ENODEV means the
-+	 * driver does not support the device.
-+	 */
-+	list_for_each_entry(iommu, &iommu_device_list, list) {
-+		if (iommu->ops != ops) {
-+			ops = iommu->ops;
-+			ret = iommu_init_device(pinf, iommu->ops);
-+			if (ret != -ENODEV)
-+				return ret;
-+		}
-+	}
-+	return -ENODEV;
-+}
-+
- static int __iommu_probe_device(struct iommu_probe_info *pinf)
- {
- 	struct device *dev = pinf->dev;
-@@ -524,13 +565,6 @@ static int __iommu_probe_device(struct iommu_probe_info *pinf)
- 		ops = fwspec->ops;
- 		if (!ops)
- 			return -ENODEV;
--	} else {
--		struct iommu_device *iommu;
--
--		iommu = iommu_device_from_fwnode(NULL);
--		if (!iommu)
--			return -ENODEV;
--		ops = iommu->ops;
- 	}
- 
- 	/*
-@@ -546,7 +580,10 @@ static int __iommu_probe_device(struct iommu_probe_info *pinf)
- 	if (dev->iommu_group)
- 		return 0;
- 
--	ret = iommu_init_device(pinf, ops);
-+	if (ops)
-+		ret = iommu_init_device(pinf, ops);
-+	else
-+		ret = iommu_find_init_device(pinf);
- 	if (ret)
- 		return ret;
- 
--- 
-2.42.0
+Hi, Borislav,
+
+Thank you for your comments.
+
+But we are talking about Action Required error, it does happen *inside the
+current execution context*.  The Action Required error does not meet the
+function comments.
+
+> 
+>> -----------------------------------------------------------------------------
+>> [ghes_kick_task_work: current einj_mem_uc, other cpu]           STEP 4
+>>                 => memory_failure_queue_kick
+>>                     => cancel_work_sync - waiting memory_failure_work_func finish
+>>                     => memory_failure_work_func(&mf_cpu->work)
+>>                         => kfifo_get(&mf_cpu->fifo, &entry); // no work
+>> -----------------------------------------------------------------------------
+>> [einj_mem_uc resume at the same PC, trigger a page fault        STEP 5
+>>
+>> STEP 0: A user space task, named einj_mem_uc consume a poison. The firmware
+>> notifies hardware error to kernel through is SDEI
+>> (ACPI_HEST_NOTIFY_SOFTWARE_DELEGATED).
+>>
+>> STEP 1: The swapper running on CPU 3 is interrupted. irq_work_queue() rasie
+>> a irq_work to handle hardware errors in IRQ context
+>>
+>> STEP2: In IRQ context, ghes_proc_in_irq() queues memory failure work on
+>> current CPU in workqueue and add task work to sync with the workqueue.
+>>
+>> STEP3: The kworker preempts the current running thread and get CPU 3. Then
+>> memory_failure() is processed in kworker.
+> 
+> See above.
+> 
+>> STEP4: ghes_kick_task_work() is called as task_work to ensure any queued
+>> workqueue has been done before returning to user-space.
+>>
+>> STEP5: Upon returning to user-space, the task einj_mem_uc resumes at the
+>> current instruction, because the poison page is unmapped by
+>> memory_failure() in step 3, so a page fault will be triggered.
+>>
+>> memory_failure() assumes that it runs in the current context on both x86
+>> and ARM platform.
+>>
+>>
+>> for example:
+>> 	memory_failure() in mm/memory-failure.c:
+>>
+>> 		if (flags & MF_ACTION_REQUIRED) {
+>> 			folio = page_folio(p);
+>> 			res = kill_accessing_process(current, folio_pfn(folio), flags);
+>> 		}
+> 
+> And?
+> 
+> Do you see the check above it?
+> 
+> 	if (TestSetPageHWPoison(p)) {
+> 
+> test_and_set_bit() returns true only when the page was poisoned already.
+> 
+>  * This function is intended to handle "Action Required" MCEs on already
+>  * hardware poisoned pages. They could happen, for example, when
+>  * memory_failure() failed to unmap the error page at the first call, or
+>  * when multiple local machine checks happened on different CPUs.
+> 
+> And that's kill_accessing_process().
+> 
+> So AFAIU, the kworker running memory_failure() would only mark the page
+> as poison.
+> 
+> The killing happens when memory_failure() runs again and the process
+> touches the page again.
+
+When a Action Required error occurs, it triggers a MCE-like exception
+(SEA).  In the first call of memory_failure(), it will poison the page. If
+it failed to unmap the error page, the user space task resumes at the
+current PC and triggers another SEA exception, then the second call of
+memory_failure() will run into kill_accessing_process() which do nothing
+and just return -EFAULT. As a result, a third SEA exception will be
+triggered.  Finally, a exception loop happens resulting a hard lockup
+panic.
+
+> 
+> But I'd let James confirm here.
+>
+> 
+> I still don't know what you're fixing here.
+
+In ARM64 platform, when a Action Required error occurs, the kernel should
+send SIGBUS with si_code BUS_MCEERR_AR instead of BUS_MCEERR_AO. (It is
+also the subject of this thread)
+
+> 
+> Is this something you're encountering on some machine or you simply
+> stared at code?
+
+I met the wrong si_code problem on Yitian 710 machine which is based on
+ARM64 platform. And I think it is gernel on ARM64 platfrom.
+
+To reproduce this problem:
+
+	# STEP1: enable early kill mode
+	#sysctl -w vm.memory_failure_early_kill=1
+	vm.memory_failure_early_kill = 1
+
+	# STEP2: inject an UCE error and consume it to trigger a synchronous error
+	#einj_mem_uc single
+	0: single   vaddr = 0xffffb0d75400 paddr = 4092d55b400
+	injecting ...
+	triggering ...
+	signal 7 code 5 addr 0xffffb0d75000
+	page not present
+	Test passed
+
+The si_code (code 5) from einj_mem_uc indicates that it is BUS_MCEERR_AO error
+and it is not fact.
+
+After this patch set:
+
+	# STEP1: enable early kill mode
+	#sysctl -w vm.memory_failure_early_kill=1
+	vm.memory_failure_early_kill = 1
+
+	# STEP2: inject an UCE error and consume it to trigger a synchronous error
+	#einj_mem_uc single
+	0: single   vaddr = 0xffffb0d75400 paddr = 4092d55b400
+	injecting ...
+	triggering ...
+	signal 7 code 4 addr 0xffffb0d75000
+	page not present
+	Test passed
+
+The si_code (code 4) from einj_mem_uc indicates that it is BUS_MCEERR_AR error
+as we expected.
+
+
+> 
+> What does that
+> 
+> "Both Alibaba and Huawei met the same issue in products, and we hope it
+> could be fixed ASAP."
+> 
+> mean?
+> 
+> What did you meet?
+> 
+> What was the problem?
+
+We both got wrong si_code of SIGBUS from kernel side on ARM64 platform.
+
+The VMM in our product relies on the si_code of SIGBUS to handle memory
+failure in userspace.
+
+- For BUS_MCEERR_AO, we regard that the corruptions happen *outside the
+  current execution context* e.g. detected by a background scrubber, the
+  VMM will ignore the error and the VM will not be killed immediately.
+- For BUS_MCEERR_AR, we regard that the corruptions happen *insdie the
+  current execution context*, e.g. when a data poison is consumed, the VMM
+  will kill the VM immediately to avoid any further potential data
+  propagation.
+
+> 
+> I still note that you're avoiding answering the question what the issue
+> is and if you keep avoiding it, I'll ignore this whole thread.
+> 
+
+Sorry, Borislav, thank you for your patient and time. I really appreciate
+that you are involving in to review this patchset. But I have to say it is
+not the truth, I am avoiding anything. I tried my best to answer every comments
+you raised, give the details of ARM RAS specific and code flow.
+
+Best Regards,
+Shuai
 
