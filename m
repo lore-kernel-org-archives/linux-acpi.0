@@ -1,34 +1,34 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="WTeVm8yC"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="doEttS/l"
 Received: from NAM12-DM6-obe.outbound.protection.outlook.com (mail-dm6nam12on2053.outbound.protection.outlook.com [40.107.243.53])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 917D5122;
-	Wed, 29 Nov 2023 17:10:57 -0800 (PST)
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DA1D110CB;
+	Wed, 29 Nov 2023 17:11:00 -0800 (PST)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=VfDXirknL7L1BUCs8bc0tSs5Bu4CkkWpVp6Qq0z/Qc4hGiBnGVve7/OGkvEp49n/egXdGqIZa71tbmulM/d8nWqWUNjYeIa/wW5BmHNEsh5muKcWpIHoVDhLkxZ2d3DJ/atqkSPAi6F1Feouuj1o+uQkOl4vKiX8oMoiUvUFOxf1kM3fzQmq8U8hN/9ePVo8BBR/b6BoRuU5WARcb8wfSLSR8UHKdMgvwpbvGLhXdIUadzEwwB61w1a4faUk8FXcPCBYbGjhQjNa660t3n7gbO5BOn09FKNp5bON8ngxJ14YYnD+ahx1MD0lsmaCjryToDGbjTThoOyB1GdYX9hN/Q==
+ b=HORhBOqFrxfTFHe3FuDPVTyBPEWQkdsesYUlMZPPB/PV1+nha7Sx3tZqUEDwqK/RyTn/VvDUfNXbMh4O2Y3MS4q3HAb+CLMQhrGuHubL3GLcAreTh1+iE/3CIrje6cyH65XJ3zvhfE2rKmstu179fGH5CmPzXEhE3Z/3/slbLpTpaz1SyCuD3RThDLXOV8Uwg8i1QYl2jztVJIpSfHMb8Q93HpPF5y0x6FrXqypHabLyDWRPTgWsV6MdDqMuLJolcN9j/nHHZCnMBQ99LNLxvm3RJthe36g9B3XrnJiVBGEfyTveNU2GI3Abx2gqZrhLfk9pcxuPZlOMSU0d3lRlWA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=at3ERfr6LNQE1weSlr6/SqXNAe3XLITf/XZmwv1CCw8=;
- b=kdDdHPTRHJzQFCJS+uU9G0X6tl97txATwKrM8u6EUWw+yDjEA85OcxGHOEz8MR4HK43kzzNYKol/sUGUpo0TK8/t44Alfk8zAqpgDua7TisGBYR8ouNNRgwEzP3cwhOaLJ8WhIZt9gKEVHYSwV9tPIYgpcXmdEIlYVBTWc33JLBBwc6wHYRJFXolZJwu1drCcOPaQmh2H1LH0qiSr0hNybD6isge74gj6E9xTsRuhVCk3Wsg2VEOSeoPfv3omWrj7cbY2uYaiwHOK77rXHHStD35HjkhSMrv5hj/hWYtcULHU+ZmiPpZpxr+aQxUn01c7H52/b187+F2huaxgwrflQ==
+ bh=1otHA+LIL3W1WZMWhBTV+rqHH68xzfh1OFbgeJsyAew=;
+ b=dIzx2Ow2yuwP8iT0OWYVSHQEpkPqxbjqRm2Cn0wg3J13QvBEAJjFA2iaXJK15n612Gm+EMQRd3TY13xWecpUctJHJUm+M+H8o1WjVa1twVae21ulKjyqsm7L8Mf78R0r5+DYnVyypPYpxoEXXRdeEREiHSUnPSt6wapzXeeAcfTrdp77z0m04b1tR5B6kMNrExIYgrHlzz/8ifB892SmyyakxdlK+3IbrnmqoCvmBsB7uSgxZL/4VXV5Rvz5ktR4bcq/ynEMl2LT83B9yRRJ3uzd5B0QCXKs0h4397I4mFfdRk+W8aTXizj+Q9NTqHIhANvbifhfuR0U696EDoMtEw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
  dkim=pass header.d=nvidia.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=at3ERfr6LNQE1weSlr6/SqXNAe3XLITf/XZmwv1CCw8=;
- b=WTeVm8yC8YoCWKayhEb92LyMM+ZHBIcQUVWj+Dx9ePMAEynIA88CXUkA8/ZT9N/KWM63fOvFtIyh8uydbNDYDsPZfZ2p9ni1U9sI8O9VvmqN4lYr9HtrwoqPD2HPTywBUo9m2wR54IqgqsUllx5Ko2DYJb5RnzD0rP4KHmY8eHXnyMITWM7ltIoGub7Dtwk63g+6rZD73jlSSHYDYkCma1AW6+aWMVa9NiZrtbfImc+V2sIByhNiyM0VVmeDxVilxTNIpJ0J+EyU7mbTHN68hW8HoXVqGaB5fnG3vaa/WSprmBAKqKEbYaViHm23lZm6lnSbB9el0+DD1M+UKX5pGw==
+ bh=1otHA+LIL3W1WZMWhBTV+rqHH68xzfh1OFbgeJsyAew=;
+ b=doEttS/lS7F+WQ093rXr+f1jzMGxAYZ/ZFHsN0NuBff5/S67oZASEaVROX1bTDHL2faxMu9E/W7Fcl7wXUzFw7b0vR8RPM1NimFG94/Qcyo/5TT6PBsvKylYx3MaypZOrZGa0BPQ/MAa9VBM/UErjL4SQtc5fOQ6CpqWlIyjtEbSsQC84neUevIH1P5AaG6wDmplLuAjGbSM363ruUoNCanwqpxK7M67qrfp48EhTwmSrFWklUMvxNJUvG3wgD9UMz9zsxA8f/W4vVQcpbvENRDHvYKW8bY0y7HIqhbF/k1N6290ZmqjZWf+3BsFhWuBv8kmrBp23yNggPQbsA6EkQ==
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=nvidia.com;
 Received: from LV2PR12MB5869.namprd12.prod.outlook.com (2603:10b6:408:176::16)
  by PH0PR12MB5484.namprd12.prod.outlook.com (2603:10b6:510:eb::14) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7046.24; Thu, 30 Nov
- 2023 01:10:47 +0000
+ 2023 01:10:52 +0000
 Received: from LV2PR12MB5869.namprd12.prod.outlook.com
  ([fe80::60d4:c1e3:e1aa:8f93]) by LV2PR12MB5869.namprd12.prod.outlook.com
  ([fe80::60d4:c1e3:e1aa:8f93%4]) with mapi id 15.20.7046.015; Thu, 30 Nov 2023
- 01:10:47 +0000
+ 01:10:52 +0000
 From: Jason Gunthorpe <jgg@nvidia.com>
 To: acpica-devel@lists.linux.dev,
 	Andy Gross <agross@kernel.org>,
@@ -83,15 +83,15 @@ To: acpica-devel@lists.linux.dev,
 	Chunyan Zhang <zhang.lyra@gmail.com>
 Cc: =?utf-8?q?Andr=C3=A9_Draszik?= <andre.draszik@linaro.org>,
 	patches@lists.linux.dev
-Subject: [PATCH 12/30] iommu/of: Add iommu_of_xlate()
-Date: Wed, 29 Nov 2023 21:10:19 -0400
-Message-ID: <12-v1-f82a05539a64+5042-iommu_fwspec_p2_jgg@nvidia.com>
+Subject: [PATCH 02/30] ACPI: VIOT: Make a viot_iommu_for_each_id()
+Date: Wed, 29 Nov 2023 21:10:09 -0400
+Message-ID: <2-v1-f82a05539a64+5042-iommu_fwspec_p2_jgg@nvidia.com>
 In-Reply-To: <0-v1-f82a05539a64+5042-iommu_fwspec_p2_jgg@nvidia.com>
 References:
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-ClientProxiedBy: SN7P222CA0006.NAMP222.PROD.OUTLOOK.COM
- (2603:10b6:806:124::19) To LV2PR12MB5869.namprd12.prod.outlook.com
+X-ClientProxiedBy: SN6PR08CA0011.namprd08.prod.outlook.com
+ (2603:10b6:805:66::24) To LV2PR12MB5869.namprd12.prod.outlook.com
  (2603:10b6:408:176::16)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
@@ -101,196 +101,201 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
 X-MS-TrafficTypeDiagnostic: LV2PR12MB5869:EE_|PH0PR12MB5484:EE_
-X-MS-Office365-Filtering-Correlation-Id: 2f806ee4-4326-45e2-79e6-08dbf1412b63
+X-MS-Office365-Filtering-Correlation-Id: 3b7c2a46-bde1-43ba-de9f-08dbf1412c2b
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
 X-Microsoft-Antispam-Message-Info:
-	TIZFqfzvtr2YcYNETFF/PTb94RNIUhTKxEEbcXysqAEzMAQoDXWV8aJFOi75zFaI0Il5TP4NPzByEX5F4XAhxGeE4tISihfjAz+eiHGxeNjT5XRrLukZy5iM2DLqlBNBSsBLqaXUUoO+tKjMsDsTVHkav75R34Yu1u5OQnfWYlp65PLg4mvIH4VJTfqV2FSsvPoEj1TASVrSAOkWsi1BMTHSMvlpSMReWwo5cDJoyzm6GcwrCmzB+zdkAxAP9htTkvIfi2vwU6Zw3jTV1A8/81ee52LNiTs6vtGNG0uuAJW7DGu+c+rmLV8pfxCiYjOL4p7wWpCN4wqDPYny4RUkKhxPRGhx1kGJnnQsViyHw6NxLspRbntoCnW7xEImAmedCqwHbZMngmgII4hR7G319RNBMiGxoCIv0BVsr19KkObtLnQOStGLEsSYVLRNU8qATn3Zn6wBiYaAnr1DIk47DQIdGs3l1h36pYGLA6RHiwM+6mm+G+ZB3SN7nOAy6P6KOHYrQlt3ptvtb5bN4dg+NZ2EOOf802I9EEbRwRjgYIeE8QTE/QcykFH/p+EkZez9d1lrBHCKQKAE9dtlxUPjBQ4trFIjKwjAT5H3dNvQJazHUc8/+NQhK2vYHdRsJXH20357ODwmeYDRCPFUicWPNw==
+	2i71bxGKun33R1DeXVHUpr3CXstj44PRyf0JQC09JOqxra+4rpqi5V/a+/WNw06/dj83EGkjEtD9uRBPznXeSDDkNdiSHgywYfHFohfJfP5b4rz7XPeQjq9TcVX9mDGt1dEHDjb0iasrFInbtiy7uLqrvF3BfAh/nQqbR5aEWR/lmLQoDZEiu3TUE8unhP/ke6+ROgtIBc/402OUrVaT5sn4QOgTnOAOctotEwEkLjyyh3IjWXYFRh+aBAV/94KDX6IUP8AGOGvnVOvMSmj8UWwnH6bZFKZcCddZBBxbb11988ipr7g7OlpVTCplEPjQj2GAyLjdL26mzDwDi7+FqE1dYFb7uZmb0cgcf0Nmd9dcI9FZOjs/qlRwk+m0CQ0XlMVu2WvTh9o4YVkntL2HGmFrNPEK01LJc0rtP/hUGEgdVJuqdhLr6akwU3miEWqKf5QGHKUhvRYdLUBNhVbblfanJ0na3Z/TL4VY9SLfFNvfR6z0I29DRgxucRw+JF1oP8gv1fBVfNUFRWM8qHkySEglkzkqh8mV/m0sg929hf/Rux4IUzNyRAuu4q+WRIzPGBGmIYbFwvAm6le49EmunEZVWerPmJYb+CGZZBkheEqksA/whO/VlZDCoH+wheChpCp9NkzpFNPFDAIG8aJgQaKelX7TxfkNz45ZEVkrcGo=
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:LV2PR12MB5869.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(366004)(346002)(136003)(396003)(39860400002)(376002)(230922051799003)(451199024)(1800799012)(186009)(64100799003)(1191002)(8936002)(110136005)(8676002)(316002)(66556008)(4326008)(86362001)(66476007)(6486002)(478600001)(66946007)(41300700001)(36756003)(921008)(7416002)(7366002)(2906002)(7406005)(5660300002)(38100700002)(2616005)(6512007)(6506007)(6666004)(83380400001)(26005)(202311291699003);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:LV2PR12MB5869.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(366004)(346002)(136003)(396003)(39860400002)(376002)(230922051799003)(451199024)(1800799012)(186009)(64100799003)(1191002)(8936002)(110136005)(8676002)(316002)(66556008)(4326008)(86362001)(66476007)(6486002)(478600001)(66946007)(41300700001)(36756003)(921008)(7416002)(7366002)(2906002)(7406005)(5660300002)(38100700002)(2616005)(6512007)(6506007)(6666004)(83380400001)(26005)(202311291699003)(4216001);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?HkGVBSCT9IGS1U/algNjEDu00nCBkERPgTh2ZudgjMK8/qB6HPEgafNREsBl?=
- =?us-ascii?Q?G/4vTMnQ2uEbm33HKDHnsBzo2gHoqRyCyTKwrTiy7KuuEvxyJ9fnW5NrYqgG?=
- =?us-ascii?Q?MVMTzIgR/TbZ5Es1Yp6KrUHGYmDTdfcfOzmMLiatRNaprFWGMXwruJWUhsDc?=
- =?us-ascii?Q?97Fkdk/NgN+nl2HdEXVqrWJ7um1bn0sTa4MtAsTlcXTJI6XX3ZtJtW44YsPt?=
- =?us-ascii?Q?A8paIVNJOp62CnVpeCufgbEx0Z9qfvLOMHWVnCcza5gMdxA0Yz9/adQkhU36?=
- =?us-ascii?Q?+6wZR13bY+97HyPMaKhQLytgld10nHj3k+ToGH+n3c5CJ+VNlK3Qs+YcNJzF?=
- =?us-ascii?Q?wGPa1wJrA9FFg/o3M2pTJSXpE+GiLVJNLSbd89RZBYFOsRESPH62svGVBTeL?=
- =?us-ascii?Q?aupliGjznLkHf7hCR2FYm0W6RgoIi522IzjJuayYKq/leLq28CN8+L1lTyuj?=
- =?us-ascii?Q?vAiMDbuVg+7UxXH63FmuX2jFoN+U92G+W3Mgs2TrpMROhIllFkRqKeJjCH21?=
- =?us-ascii?Q?+KAbZREINMDlNME3LO0W8ITTDcqT30lHRvb+bJFEts0y7y2knmVBJEZf5WAx?=
- =?us-ascii?Q?oganc61AncBesmxvrOm/ByG2ZCzZYzE8tmZCS3A2qsvf4CcaYoEKGF3HWZgh?=
- =?us-ascii?Q?njeJJwJT2VbfUAA+Z/gRu4wsekJZ8Pd2eUEQDiXHJhXnANp6hK4Tl4uJXui9?=
- =?us-ascii?Q?fH/sNS7lUVNs55ukLC2lioLTNlRH0RFKT9wH8i4iMhqzpnMnaZ6KhSXh5LmP?=
- =?us-ascii?Q?W+yOeTiSvUWZ8wH6ISJOvv5k3rforInSAFHs/k7YjTaCGn5Iu0dwvk1dfFw7?=
- =?us-ascii?Q?cREWbdkx3iict5BWt0zfdnn7KQv4msGTSPKLouj4YtkS1TA5CoT4vUwOf1gW?=
- =?us-ascii?Q?vPZlwVkIXjMDxYakxxsjrNf5RPkZkDRXeQOtZmqruseceH+xS02Pc3xFboBj?=
- =?us-ascii?Q?ciTW4G78EYMdHz2YgveI5cN5qlMuvNHg6u5H9CP8AWVr5YhHiaLYCG5qR6mV?=
- =?us-ascii?Q?0Pns850dXm/wl5MDaV6qQgatKQTo7bD5lwyY7V4znNnAMEvCyuILT9BGlZcg?=
- =?us-ascii?Q?OF42a4nKeftmaiElEK+wTWoLzNbSWj89X6yA35n6UoKqNNtUf4qCGvUFzgaJ?=
- =?us-ascii?Q?U2owZNycMrYws4k8aQ/zV38tu/+3ue9ZTI9GexHRYdJln3hxM0/J/PWFjji6?=
- =?us-ascii?Q?BuTfDaM72ZTovBPeNJa7RgXZgru217vUnpUSQarBCG2TKMdesqeQlgOB2bPF?=
- =?us-ascii?Q?Vu9iHOnUeLtEIugulnONacvWYvPmtf5xlzUqf8yCeeEIGrax8xM28YXBgn3h?=
- =?us-ascii?Q?MhVIl5P10WFM3bBIMMb0oKcG4KxdSuTLrlnGeD/T/IDYfvGxuNk8rxuXuiyl?=
- =?us-ascii?Q?pRcvv0t/NQ//gbJurtiIBVoSzEYKDaigCwVWNgy5zA8286mdTkYk5BqGaZ2U?=
- =?us-ascii?Q?SznxpIhd/eVfUF3CAxzkYWbzScdVtZvSr9XfPLPEE05aN03mDvoz+tH4A6CL?=
- =?us-ascii?Q?xKRgiFLWzTsJi2eegK2zXIx0x2tKWQT33djZzavCGPecHCoN0ZznnjQ1Yj2u?=
- =?us-ascii?Q?utamU7fneNgVD2rWJbpV5NxW+XyYVflFPKa529Hn?=
+	=?us-ascii?Q?o93vOzgPifG1P4VbkFhWTGFFahkhlARUTrm73NWNXsXUnTuxLZ6yq8GJaBMt?=
+ =?us-ascii?Q?RGwqFGsGLuWRFp2q4YQM+9D6gQ2MePrzhiz3/gU5Tz7/NS2z6BpVbDiAE96w?=
+ =?us-ascii?Q?35u0Or/eXUXm7Xzcm66fLtslM1UNp/ABFr1THw/JegH0NWolq9xqMS/B9eKU?=
+ =?us-ascii?Q?vF42pJnrTnWuXpMPEh/0ho4iEbriw+9e97QbTc7u9ChjUxcuyWqjOsaNUWM7?=
+ =?us-ascii?Q?QkDTq6renXotM9hzoq8AYz079eSg/zH3WlZxVmGM9Q8pTWPOoU7JmBQUMBgb?=
+ =?us-ascii?Q?9ScqzzwZEDu8Jb+sOTGlw5v0/SGatkYAof4EaHSJRcLg10NyzoGR5/BxOtZD?=
+ =?us-ascii?Q?t5AhVtdK29nbvqsA9/b1YaVDJB+crL7vk9KHdCW5MsJ9BxDv8DBnX7phfHXt?=
+ =?us-ascii?Q?U/CP+v8bwACV1XYaqxLdnvrhqHGZeoQjFdTnRZQ9T1AUVFybd0E7i6ZOyPyT?=
+ =?us-ascii?Q?Z/lEh9Eww4cvKsifl0XR9CITk+a2HNLdoQoCZXiyddBKcgzN5Fk3TAN1uAnC?=
+ =?us-ascii?Q?ZLr/+imCvCuj+GYyja5AMJODWY23umKFYSXk1+k9P2S3E4vWYZ94ORdethA5?=
+ =?us-ascii?Q?gzpFfcwui0/4PH8ZV065Ab7oxpqMLEoEMEnM9fVFiwEKLXiBnMZKCBGatPCF?=
+ =?us-ascii?Q?iHo5DwA+/dZzYuC79TNgGZV2sdYy8DM9L2HYn8qbFGtwkGfrXOr+6yeMyVrd?=
+ =?us-ascii?Q?4RP2ZcgQn1Xos4hD09ifvRxnlNFlfLVTHfcARbXWOKB+58PNw67IoAfRCyJi?=
+ =?us-ascii?Q?paIjfyYlP89rG7CAzERtn3z/Zawhmxz+rzvGQ74acndrk5d8IKMcQWk2xBiX?=
+ =?us-ascii?Q?RMNQLsfTvGfYfswXq5Eu3m85TH75mJpP6g4me/zdldZWhhnNg0zyBY+PgSd5?=
+ =?us-ascii?Q?sMErvND4/es1Mfs5LcrawXiZgf+eGoDU8/e9tekzm9nOLsGPIMnNi3ToMJm8?=
+ =?us-ascii?Q?qO1f/LvCu3NM0jAYkwQngplTWjNLO9M+ntuwb3gIGIok4S5qFVjuyorrRSls?=
+ =?us-ascii?Q?VeXH++qLaQH1K9ECUvEWvl5wInCKkuVlknqJSXTzpi+BMmQRb0jPIX7Kh4u8?=
+ =?us-ascii?Q?6A1cBehBlgFKUSYguRzYsIdXOnl8ZoYgm3YEzhxikhb+z5Q2L5ym33IWUAN7?=
+ =?us-ascii?Q?8djx5V7kye2dMNgxdEQ2fDn1ilL0+hzS6iCS4h4wCHOkAogroJvChs/vYvEF?=
+ =?us-ascii?Q?osBnG4/9YwZ0D6NcdyPBGV3OgKjxGSG0F8ka1V7wNuImt6rDWS+6o7BOz74Q?=
+ =?us-ascii?Q?7kpmKCjTUANR+WtMC8pgtquDAa2sA72tJoDK3u4QNN/4wWok5W4iwD4KbFUP?=
+ =?us-ascii?Q?olUV0qqSQAB8+v2fZBNRwpwohOJO/CKMXug58RFtgNjr78jkLMLFFf2k34bc?=
+ =?us-ascii?Q?zjUkiG637PQFFk0Di7IA7p8VWD2Yoadii1L+fg/yoDNZKQftOFxt8d+6yMGO?=
+ =?us-ascii?Q?FeVLUoXg7W7pfWz8UghOhbZw+BwvmmNayRhwoKZx9VvkzeifYv5vOL7UxN7y?=
+ =?us-ascii?Q?kuTl/OFazFw4QI4R9nCU5aDUSB2IjT2XfOsHZEPfShSoSsAv4nhyziF9zCGB?=
+ =?us-ascii?Q?M7GJztsQySxonQWwzySNF2zDj+GDqo1w+/1oVIOb?=
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 2f806ee4-4326-45e2-79e6-08dbf1412b63
+X-MS-Exchange-CrossTenant-Network-Message-Id: 3b7c2a46-bde1-43ba-de9f-08dbf1412c2b
 X-MS-Exchange-CrossTenant-AuthSource: LV2PR12MB5869.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Nov 2023 01:10:40.7736
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Nov 2023 01:10:42.0115
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: wqSzRYknoJdjHiGX0z3ucmQf7nPG+CbmvO67yHZIMSADsmvKJUkHoPYZETTpR9Ko
+X-MS-Exchange-CrossTenant-UserPrincipalName: rKRdU3xUv0YfjqjwVjOiGYZpIlTC16NPNlmHBn1LiMBDSU/VmIXb/gDGNS0ISUvI
 X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH0PR12MB5484
 
-This function can be called by drivers in their probe function if they
-want to parse their own ID table, almost always because the driver
-supports a multi-instance configuration and needs to extract the list of
-iommu_driver's and data from the ID into some internal format.
+Similar to of_iommu_for_each_id() this parses the VIOT ACPI description
+and invokes a function over each entry in the table.
 
-The core code will find the iommu_driver for each ID table entry and
-validate that it matches the driver's ops. A driver provided function is
-called to handle the (iommu_driver, ID) tuple.
-
-Before calling this function the driver should allocate its per-driver
-private data and pass it through the opaque cookie priv argument.
-
-Driver's should follow a typical pattern in their probe_device:
-
- static int apple_dart_of_xlate(struct iommu_device *iommu,
-                                struct of_phandle_args *args, void *priv);
-[..]
-
-	cfg = kzalloc(sizeof(*cfg), GFP_KERNEL);
- 	if (!cfg) return ERR_PTR(-ENOMEM);
-
-	ret = iommu_of_xlate(pinf, &apple_dart_iommu_ops, 1,
-			     &apple_dart_of_xlate, cfg);
-	if (ret) goto err_free;
-
-	dev_iommu_priv_set(dev, cfg);
-        return &??->iommu; // The first iommu_device parsed
+Have viot_iommu_configure() use the new function to call
+viot_dev_iommu_init().
 
 Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 ---
- drivers/iommu/of_iommu.c     | 58 ++++++++++++++++++++++++++++++++++++
- include/linux/iommu-driver.h | 13 ++++++++
- 2 files changed, 71 insertions(+)
+ drivers/acpi/viot.c       | 54 +++++++++++++++++++++++----------------
+ include/linux/acpi_viot.h | 11 ++++++++
+ 2 files changed, 43 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/iommu/of_iommu.c b/drivers/iommu/of_iommu.c
-index 37af32a6bc84e5..9c1d398aa2cd9c 100644
---- a/drivers/iommu/of_iommu.c
-+++ b/drivers/iommu/of_iommu.c
-@@ -285,6 +285,8 @@ struct parse_info {
- 	struct iommu_probe_info *pinf;
- 	const struct iommu_ops *ops;
- 	int num_cells;
-+	iommu_of_xlate_fn xlate_fn;
-+	void *priv;
- };
+diff --git a/drivers/acpi/viot.c b/drivers/acpi/viot.c
+index c8025921c129b2..7ab35ef05c84e0 100644
+--- a/drivers/acpi/viot.c
++++ b/drivers/acpi/viot.c
+@@ -25,13 +25,6 @@
+ #include <linux/pci.h>
+ #include <linux/platform_device.h>
  
- static struct iommu_device *parse_iommu(struct parse_info *info,
-@@ -336,3 +338,59 @@ struct iommu_device *__iommu_of_get_single_iommu(struct iommu_probe_info *pinf,
- 	return iommu_fw_finish_get_single(pinf);
+-struct viot_iommu {
+-	/* Node offset within the table */
+-	unsigned int			offset;
+-	struct fwnode_handle		*fwnode;
+-	struct list_head		list;
+-};
+-
+ struct viot_endpoint {
+ 	union {
+ 		/* PCI range */
+@@ -304,10 +297,10 @@ void __init acpi_viot_init(void)
+ 	acpi_put_table(hdr);
  }
- EXPORT_SYMBOL_GPL(__iommu_of_get_single_iommu);
-+
-+static int parse_of_xlate(struct of_phandle_args *iommu_spec, void *_info)
-+{
-+	struct parse_info *info = _info;
-+	struct iommu_device *iommu;
-+
-+	iommu = parse_iommu(info, iommu_spec);
-+	if (IS_ERR(iommu))
-+		return PTR_ERR(iommu);
-+	info->pinf->num_ids++;
-+	return info->xlate_fn(iommu, iommu_spec, info->priv);
-+}
-+
-+/**
-+ * iommu_of_xlate - Parse all OF ids for an IOMMU
-+ * @pinf: The iommu_probe_info
-+ * @ops: The ops the iommu instance must have
-+ * @num_cells: #iommu-cells value to enforce, -1 is no check
-+ * @fn: Call for each Instance and ID
-+ * @priv: Opaque cookie for fn
-+ *
-+ * Drivers that support multiple iommu instances must call this function to
-+ * parse each instance from the OF table. fn will be called with the driver's
-+ * iommu_driver instance and the raw of_phandle_args that contains the ID.
-+ *
-+ * Drivers that need to parse a complex ID format should also use this function.
-+ */
-+int iommu_of_xlate(struct iommu_probe_info *pinf, const struct iommu_ops *ops,
-+		   int num_cells, iommu_of_xlate_fn fn, void *priv)
-+{
-+	struct parse_info info = { .pinf = pinf,
-+				   .ops = ops,
-+				   .num_cells = num_cells,
-+				   .xlate_fn = fn,
-+				   .priv = priv };
-+
-+	pinf->num_ids = 0;
-+	return of_iommu_for_each_id(pinf->dev, pinf->of_master_np,
-+				    pinf->of_map_id, parse_of_xlate, &info);
-+}
-+EXPORT_SYMBOL_GPL(iommu_of_xlate);
-+
-+/*
-+ * Temporary approach to allow drivers to opt into the bus probe. It configures
-+ * the iommu_probe_info to probe the dev->of_node. This is a bit hacky because
-+ * it mutates the iommu_probe_info and thus assumes there is only one op in the
-+ * system. Remove when we call probe from the bus always anyhow.
-+ */
-+void iommu_of_allow_bus_probe(struct iommu_probe_info *pinf)
-+{
-+	if (pinf->is_dma_configure)
-+		return;
-+	pinf->of_master_np = pinf->dev->of_node;
-+	pinf->is_dma_configure = true;
-+}
-+EXPORT_SYMBOL_GPL(iommu_of_allow_bus_probe);
-diff --git a/include/linux/iommu-driver.h b/include/linux/iommu-driver.h
-index 597998a62b0dd6..622d6ad9056ce0 100644
---- a/include/linux/iommu-driver.h
-+++ b/include/linux/iommu-driver.h
-@@ -60,9 +60,16 @@ iommu_device_from_fwnode_pinf(struct iommu_probe_info *pinf,
- 			      struct fwnode_handle *fwnode);
- struct iommu_device *iommu_fw_finish_get_single(struct iommu_probe_info *pinf);
  
-+typedef int (*iommu_of_xlate_fn)(struct iommu_device *iommu,
-+				struct of_phandle_args *args, void *priv);
-+void iommu_of_allow_bus_probe(struct iommu_probe_info *pinf);
-+
- #if IS_ENABLED(CONFIG_OF_IOMMU)
- void of_iommu_get_resv_regions(struct device *dev, struct list_head *list);
- 
-+int iommu_of_xlate(struct iommu_probe_info *pinf, const struct iommu_ops *ops,
-+		   int num_cells, iommu_of_xlate_fn fn, void *priv);
-+
- struct iommu_device *__iommu_of_get_single_iommu(struct iommu_probe_info *pinf,
- 						 const struct iommu_ops *ops,
- 						 int num_cells);
-@@ -71,6 +78,12 @@ static inline void of_iommu_get_resv_regions(struct device *dev,
- 					     struct list_head *list)
+-static int viot_dev_iommu_init(struct device *dev, struct viot_iommu *viommu,
+-			       u32 epid)
++static int viot_dev_iommu_init(struct viot_iommu *viommu, u32 epid, void *info)
  {
+ 	const struct iommu_ops *ops;
++	struct device *dev = info;
+ 
+ 	if (!viommu)
+ 		return -ENODEV;
+@@ -324,11 +317,17 @@ static int viot_dev_iommu_init(struct device *dev, struct viot_iommu *viommu,
+ 	return acpi_iommu_fwspec_init(dev, epid, viommu->fwnode, ops);
  }
-+static inline int iommu_of_xlate(struct iommu_probe_info *pinf,
-+				 const struct iommu_ops *ops, int num_cells,
-+				 iommu_of_xlate_fn fn, void *priv)
+ 
+-static int viot_pci_dev_iommu_init(struct pci_dev *pdev, u16 dev_id, void *data)
++struct viot_pci_iommu_alias_info {
++	struct device *dev;
++	viot_for_each_fn fn;
++	void *info;
++};
++
++static int __for_each_pci_alias(struct pci_dev *pdev, u16 dev_id, void *data)
+ {
+ 	u32 epid;
+ 	struct viot_endpoint *ep;
+-	struct device *aliased_dev = data;
++	struct viot_pci_iommu_alias_info *info = data;
+ 	u32 domain_nr = pci_domain_nr(pdev->bus);
+ 
+ 	list_for_each_entry(ep, &viot_pci_ranges, list) {
+@@ -339,14 +338,14 @@ static int viot_pci_dev_iommu_init(struct pci_dev *pdev, u16 dev_id, void *data)
+ 			epid = ((domain_nr - ep->segment_start) << 16) +
+ 				dev_id - ep->bdf_start + ep->endpoint_id;
+ 
+-			return viot_dev_iommu_init(aliased_dev, ep->viommu,
+-						   epid);
++			return info->fn(ep->viommu, epid, info->info);
+ 		}
+ 	}
+ 	return -ENODEV;
+ }
+ 
+-static int viot_mmio_dev_iommu_init(struct platform_device *pdev)
++static int __for_each_platform(struct platform_device *pdev,
++			       viot_for_each_fn fn, void *info)
+ {
+ 	struct resource *mem;
+ 	struct viot_endpoint *ep;
+@@ -357,12 +356,28 @@ static int viot_mmio_dev_iommu_init(struct platform_device *pdev)
+ 
+ 	list_for_each_entry(ep, &viot_mmio_endpoints, list) {
+ 		if (ep->address == mem->start)
+-			return viot_dev_iommu_init(&pdev->dev, ep->viommu,
+-						   ep->endpoint_id);
++			return fn(ep->viommu, ep->endpoint_id, info);
+ 	}
+ 	return -ENODEV;
+ }
+ 
++int viot_iommu_for_each_id(struct device *dev, viot_for_each_fn fn, void *info)
 +{
++	if (dev_is_pci(dev)) {
++		struct viot_pci_iommu_alias_info pci_info = {
++			.dev = dev,
++			.fn = fn,
++			.info = info,
++		};
++		return pci_for_each_dma_alias(to_pci_dev(dev),
++					      __for_each_pci_alias, &pci_info);
++	}
++
++	if (dev_is_platform(dev))
++		return __for_each_platform(to_platform_device(dev), fn, info);
 +	return -ENODEV;
 +}
- static inline
- struct iommu_device *__iommu_of_get_single_iommu(struct iommu_probe_info *pinf,
- 						 const struct iommu_ops *ops,
++
+ /**
+  * viot_iommu_configure - Setup IOMMU ops for an endpoint described by VIOT
+  * @dev: the endpoint
+@@ -371,10 +386,5 @@ static int viot_mmio_dev_iommu_init(struct platform_device *pdev)
+  */
+ int viot_iommu_configure(struct device *dev)
+ {
+-	if (dev_is_pci(dev))
+-		return pci_for_each_dma_alias(to_pci_dev(dev),
+-					      viot_pci_dev_iommu_init, dev);
+-	else if (dev_is_platform(dev))
+-		return viot_mmio_dev_iommu_init(to_platform_device(dev));
+-	return -ENODEV;
++	return viot_iommu_for_each_id(dev, viot_dev_iommu_init, dev);
+ }
+diff --git a/include/linux/acpi_viot.h b/include/linux/acpi_viot.h
+index a5a12243156377..fce4eefcae4aad 100644
+--- a/include/linux/acpi_viot.h
++++ b/include/linux/acpi_viot.h
+@@ -5,6 +5,17 @@
+ 
+ #include <linux/acpi.h>
+ 
++struct viot_iommu {
++	/* Node offset within the table */
++	unsigned int			offset;
++	struct fwnode_handle		*fwnode;
++	struct list_head		list;
++};
++
++typedef int (*viot_for_each_fn)(struct viot_iommu *viommu, u32 epid,
++				void *info);
++int viot_iommu_for_each_id(struct device *dev, viot_for_each_fn fn, void *info);
++
+ #ifdef CONFIG_ACPI_VIOT
+ void __init acpi_viot_early_init(void);
+ void __init acpi_viot_init(void);
 -- 
 2.42.0
 
