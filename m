@@ -1,13 +1,13 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTP id AA5B41717;
-	Fri,  1 Dec 2023 04:38:59 -0800 (PST)
+	by lindbergh.monkeyblade.net (Postfix) with ESMTP id BB44E1A4;
+	Fri,  1 Dec 2023 04:39:17 -0800 (PST)
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id DC57B1007;
-	Fri,  1 Dec 2023 04:39:45 -0800 (PST)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id F2A3E1007;
+	Fri,  1 Dec 2023 04:40:03 -0800 (PST)
 Received: from bogus (unknown [10.57.42.162])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id B9CE53F5A1;
-	Fri,  1 Dec 2023 04:38:56 -0800 (PST)
-Date: Fri, 1 Dec 2023 12:36:55 +0000
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id F14B53F5A1;
+	Fri,  1 Dec 2023 04:39:14 -0800 (PST)
+Date: Fri, 1 Dec 2023 12:37:13 +0000
 From: Sudeep Holla <sudeep.holla@arm.com>
 To: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: linux-arm-kernel@lists.infradead.org, suzuki.poulose@arm.com,
@@ -20,11 +20,11 @@ Cc: linux-arm-kernel@lists.infradead.org, suzuki.poulose@arm.com,
 	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
 	coresight@lists.linaro.org,
 	linux-stm32@st-md-mailman.stormreply.com
-Subject: Re: [PATCH V2 6/7] coresight: stm: Move ACPI support from AMBA
+Subject: Re: [PATCH V2 7/7] coresight: debug: Move ACPI support from AMBA
  driver to platform driver
-Message-ID: <20231201123655.qo3nn5fdvxjbsr4z@bogus>
+Message-ID: <20231201123713.t4yv2unu4vzh5brp@bogus>
 References: <20231201062053.1268492-1-anshuman.khandual@arm.com>
- <20231201062053.1268492-7-anshuman.khandual@arm.com>
+ <20231201062053.1268492-8-anshuman.khandual@arm.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -33,19 +33,18 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20231201062053.1268492-7-anshuman.khandual@arm.com>
+In-Reply-To: <20231201062053.1268492-8-anshuman.khandual@arm.com>
 
-On Fri, Dec 01, 2023 at 11:50:52AM +0530, Anshuman Khandual wrote:
-> Add support for the stm devices in the platform driver, which can then be
-> used on ACPI based platforms. This change would now allow runtime power
-> management for ACPI based systems. The driver would try to enable the APB
-> clock if available.
+On Fri, Dec 01, 2023 at 11:50:53AM +0530, Anshuman Khandual wrote:
+> Add support for the cpu debug devices in a new platform driver, which can
+> then be used on ACPI based platforms. This change would now allow runtime
+> power management for ACPI based systems. The driver would try to enable
+> the APB clock if available.
 > 
 > Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>
 > Cc: Sudeep Holla <sudeep.holla@arm.com>
 
 Acked-by: Sudeep Holla <sudeep.holla@arm.com> # For ACPI related changes
-Tested-by: Sudeep Holla <sudeep.holla@arm.com> # Boot and driver probe only
 
 -- 
 Regards,
