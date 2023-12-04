@@ -1,109 +1,60 @@
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="c9Sil9zK";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="zBwXBxP/"
-Received: from galois.linutronix.de (Galois.linutronix.de [IPv6:2a0a:51c0:0:12e:550::1])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A762CBB;
-	Mon,  4 Dec 2023 00:13:56 -0800 (PST)
-From: Thomas Gleixner <tglx@linutronix.de>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1701677635;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=gMNsPU3Juib2yJf6SWQqDXaxEhWmoFOPHWoGv9RWmGg=;
-	b=c9Sil9zKcRmAM17YdNijnJ738PZPkK/vFPXvfZqAahgs6pPDG3sDKWQXOdww6YNmkHldsI
-	vjwOnAXB+bYEjHmN1RamCkmOVTAX2fGQdmvw2pNYjUI0MxdPmd4T1YHOg6v27La0V6EFgU
-	shnYxpZ7VtqifbKRJUw+fltnGt8KchZV9aqpZBYYCcSMPwCNLOTLDHzMzJ3OMeRCm6gji/
-	ZBI7XVm6Xe+uzjQsA5VNiKpVTduqxYnPjwbaeWpGWrT98UaiypT/oFki+dXe3gGk7j402j
-	xblTjyWiv/lL2Vg+dWyUHVVUVgRYDX3x98dOizKDaWFwW3nuPFqS5GwLQ0e/Fg==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1701677635;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=gMNsPU3Juib2yJf6SWQqDXaxEhWmoFOPHWoGv9RWmGg=;
-	b=zBwXBxP/CtRum3O7TXJpoQS0cbxSZPFzNqDfrXvR7wNiGLNFMWJgE3xAEKIaSQKeV6xH6I
-	vHV1cGfsxAipPcAw==
-To: Jiqian Chen <Jiqian.Chen@amd.com>, Juergen Gross <jgross@suse.com>,
- Stefano Stabellini <sstabellini@kernel.org>, Oleksandr Tyshchenko
- <oleksandr_tyshchenko@epam.com>, Boris Ostrovsky
- <boris.ostrovsky@oracle.com>, "Rafael J . Wysocki" <rafael@kernel.org>,
- Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Roger
- Pau =?utf-8?Q?Monn=C3=A9?= <roger.pau@citrix.com>,
- xen-devel@lists.xenproject.org,
- linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: Stefano Stabellini <stefano.stabellini@amd.com>, Alex Deucher
- <Alexander.Deucher@amd.com>, Christian Koenig <Christian.Koenig@amd.com>,
- Stewart Hildebrand <Stewart.Hildebrand@amd.com>, Xenia Ragiadakou
- <xenia.ragiadakou@amd.com>, Honglei Huang <Honglei1.Huang@amd.com>, Julia
- Zhang <Julia.Zhang@amd.com>, Huang Rui <Ray.Huang@amd.com>, Jiqian Chen
- <Jiqian.Chen@amd.com>, Huang Rui <ray.huang@amd.com>
-Subject: Re: [RFC KERNEL PATCH v2 2/3] xen/pvh: Unmask irq for passthrough
- device in PVH dom0
-In-Reply-To: <20231124103123.3263471-3-Jiqian.Chen@amd.com>
-References: <20231124103123.3263471-1-Jiqian.Chen@amd.com>
- <20231124103123.3263471-3-Jiqian.Chen@amd.com>
-Date: Mon, 04 Dec 2023 09:13:54 +0100
-Message-ID: <87bkb6xu4d.ffs@tglx>
+Received: from verein.lst.de (verein.lst.de [213.95.11.211])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 81A511733;
+	Mon,  4 Dec 2023 00:43:26 -0800 (PST)
+Received: by verein.lst.de (Postfix, from userid 2407)
+	id D793368AFE; Mon,  4 Dec 2023 09:43:19 +0100 (CET)
+Date: Mon, 4 Dec 2023 09:43:19 +0100
+From: Christoph Hellwig <hch@lst.de>
+To: Robin Murphy <robin.murphy@arm.com>
+Cc: Joerg Roedel <joro@8bytes.org>, Christoph Hellwig <hch@lst.de>,
+	Vineet Gupta <vgupta@kernel.org>,
+	Russell King <linux@armlinux.org.uk>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>, Huacai Chen <chenhuacai@kernel.org>,
+	WANG Xuerui <kernel@xen0n.name>,
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+	Paul Walmsley <paul.walmsley@sifive.com>,
+	Palmer Dabbelt <palmer@dabbelt.com>,
+	Albert Ou <aou@eecs.berkeley.edu>,
+	Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	Hanjun Guo <guohanjun@huawei.com>,
+	Sudeep Holla <sudeep.holla@arm.com>,
+	"K. Y. Srinivasan" <kys@microsoft.com>,
+	Haiyang Zhang <haiyangz@microsoft.com>,
+	Wei Liu <wei.liu@kernel.org>, Dexuan Cui <decui@microsoft.com>,
+	Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>,
+	David Woodhouse <dwmw2@infradead.org>,
+	Lu Baolu <baolu.lu@linux.intel.com>,
+	Niklas Schnelle <schnelle@linux.ibm.com>,
+	Matthew Rosato <mjrosato@linux.ibm.com>,
+	Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+	Jean-Philippe Brucker <jean-philippe@linaro.org>,
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Jason Gunthorpe <jgg@ziepe.ca>, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org,
+	iommu@lists.linux.dev, devicetree@vger.kernel.org
+Subject: Re: [PATCH 4/7] dma-mapping: Add helpers for dma_range_map bounds
+Message-ID: <20231204084319.GA919@lst.de>
+References: <cover.1701268753.git.robin.murphy@arm.com> <b6626985d97ddc33a23b4b9fafa881b35001547e.1701268753.git.robin.murphy@arm.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <b6626985d97ddc33a23b4b9fafa881b35001547e.1701268753.git.robin.murphy@arm.com>
+User-Agent: Mutt/1.5.17 (2007-11-01)
 
-On Fri, Nov 24 2023 at 18:31, Jiqian Chen wrote:
-> diff --git a/drivers/xen/xen-pciback/pci_stub.c b/drivers/xen/xen-pciback/pci_stub.c
-> index 5a96b6c66c07..b83d02bcc76c 100644
-> --- a/drivers/xen/xen-pciback/pci_stub.c
-> +++ b/drivers/xen/xen-pciback/pci_stub.c
-> @@ -357,6 +357,7 @@ static int pcistub_match(struct pci_dev *dev)
->  static int pcistub_init_device(struct pci_dev *dev)
->  {
->  	struct xen_pcibk_dev_data *dev_data;
-> +	struct irq_desc *desc = NULL;
->  	int err = 0;
->  
->  	dev_dbg(&dev->dev, "initializing...\n");
-> @@ -399,6 +400,12 @@ static int pcistub_init_device(struct pci_dev *dev)
->  	if (err)
->  		goto config_release;
->  
-> +	if (xen_initial_domain() && xen_pvh_domain()) {
-> +		if (dev->irq <= 0 || !(desc = irq_to_desc(dev->irq)))
+On Wed, Nov 29, 2023 at 05:43:01PM +0000, Robin Murphy wrote:
+> Several places want to compute the lower and/or upper bounds of a
+> dma_range_map, so let's factor that out into reusable helpers.
 
-Driver code has absolutely no business to access irq_desc.
+As the build bot pointed out this will need a fix for the initialization
+all-Fs for a 32-bit dma_addr_t, e.g. by using (dma_addr_t)-1, but
+otherwise looks good:
 
-> +			goto config_release;
-> +		unmask_irq(desc);
-
-Or to invoke any internal function.
-
-> --- a/kernel/irq/chip.c
-> +++ b/kernel/irq/chip.c
-> @@ -439,6 +439,7 @@ void unmask_irq(struct irq_desc *desc)
->  		irq_state_clr_masked(desc);
->  	}
->  }
-> +EXPORT_SYMBOL_GPL(unmask_irq);
-
-Not going to happen.
-
-> --- a/kernel/irq/irqdesc.c
-> +++ b/kernel/irq/irqdesc.c
-> @@ -380,7 +380,7 @@ struct irq_desc *irq_to_desc(unsigned int irq)
->  {
->  	return mtree_load(&sparse_irqs, irq);
->  }
-> -#ifdef CONFIG_KVM_BOOK3S_64_HV_MODULE
-> +#if defined CONFIG_KVM_BOOK3S_64_HV_MODULE || defined CONFIG_XEN_PVH
-
-Neither that.
-
-This all smells badly like a XEN internal issue and we are not going to
-hack around it by exposing interrupt internals.
-
-Thanks,
-
-        tglx
+Reviewed-by: Christoph Hellwig <hch@lst.de>
