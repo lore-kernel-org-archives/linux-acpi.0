@@ -1,78 +1,76 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTP id B9995B6;
-	Mon,  4 Dec 2023 03:50:58 -0800 (PST)
+	by lindbergh.monkeyblade.net (Postfix) with ESMTP id 9FA4210E7;
+	Mon,  4 Dec 2023 03:58:10 -0800 (PST)
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id C3CED152B;
-	Mon,  4 Dec 2023 03:51:45 -0800 (PST)
-Received: from [10.163.35.18] (unknown [10.163.35.18])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 3B9B63F5A1;
-	Mon,  4 Dec 2023 03:50:53 -0800 (PST)
-Message-ID: <e53cec31-9452-4c2a-a3a1-b6ef33be8e22@arm.com>
-Date: Mon, 4 Dec 2023 17:20:49 +0530
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id AD3BD152B;
+	Mon,  4 Dec 2023 03:58:57 -0800 (PST)
+Received: from bogus (e103737-lin.cambridge.arm.com [10.1.197.49])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id BC4533F5A1;
+	Mon,  4 Dec 2023 03:58:08 -0800 (PST)
+Date: Mon, 4 Dec 2023 11:58:06 +0000
+From: Sudeep Holla <sudeep.holla@arm.com>
+To: James Clark <james.clark@arm.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>,
+	Sudeep Holla <sudeep.holla@arm.com>,
+	linux-arm-kernel@lists.infradead.org, suzuki.poulose@arm.com,
+	Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	Mike Leach <mike.leach@linaro.org>,
+	Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+	Alexandre Torgue <alexandre.torgue@foss.st.com>,
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+	coresight@lists.linaro.org,
+	linux-stm32@st-md-mailman.stormreply.com
+Subject: Re: [PATCH V2 6/7] coresight: stm: Move ACPI support from AMBA
+ driver to platform driver
+Message-ID: <ZW2-zuTtV5GxaiFH@bogus>
+References: <20231201062053.1268492-1-anshuman.khandual@arm.com>
+ <20231201062053.1268492-7-anshuman.khandual@arm.com>
+ <0adc3a16-0fc4-2a25-cd48-4667881b9490@arm.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH V2 6/7] coresight: stm: Move ACPI support from AMBA driver
- to platform driver
-Content-Language: en-US
-To: James Clark <james.clark@arm.com>, linux-arm-kernel@lists.infradead.org,
- suzuki.poulose@arm.com
-Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>,
- Sudeep Holla <sudeep.holla@arm.com>, Mike Leach <mike.leach@linaro.org>,
- Maxime Coquelin <mcoquelin.stm32@gmail.com>,
- Alexandre Torgue <alexandre.torgue@foss.st.com>, linux-acpi@vger.kernel.org,
- linux-kernel@vger.kernel.org, coresight@lists.linaro.org,
- linux-stm32@st-md-mailman.stormreply.com
-References: <20231201062053.1268492-1-anshuman.khandual@arm.com>
- <20231201062053.1268492-7-anshuman.khandual@arm.com>
- <0adc3a16-0fc4-2a25-cd48-4667881b9490@arm.com>
-From: Anshuman Khandual <anshuman.khandual@arm.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 In-Reply-To: <0adc3a16-0fc4-2a25-cd48-4667881b9490@arm.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
 
-
-
-On 12/4/23 15:53, James Clark wrote:
-> 
+On Mon, Dec 04, 2023 at 10:23:49AM +0000, James Clark wrote:
 > 
 > On 01/12/2023 06:20, Anshuman Khandual wrote:
->> Add support for the stm devices in the platform driver, which can then be
->> used on ACPI based platforms. This change would now allow runtime power
->> management for ACPI based systems. The driver would try to enable the APB
->> clock if available.
->>
->> Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>
->> Cc: Sudeep Holla <sudeep.holla@arm.com>
->> Cc: Suzuki K Poulose <suzuki.poulose@arm.com>
->> Cc: Mike Leach <mike.leach@linaro.org>
->> Cc: James Clark <james.clark@arm.com>
->> Cc: Maxime Coquelin <mcoquelin.stm32@gmail.com>
->> Cc: Alexandre Torgue <alexandre.torgue@foss.st.com>
->> Cc: linux-acpi@vger.kernel.org
->> Cc: linux-arm-kernel@lists.infradead.org
->> Cc: linux-kernel@vger.kernel.org
->> Cc: coresight@lists.linaro.org
->> Cc: linux-stm32@st-md-mailman.stormreply.com
->> Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
->> ---
+> > Add support for the stm devices in the platform driver, which can then be
+> > used on ACPI based platforms. This change would now allow runtime power
+> > management for ACPI based systems. The driver would try to enable the APB
+> > clock if available.
+> > 
+> > Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>
+> > Cc: Sudeep Holla <sudeep.holla@arm.com>
+> > Cc: Suzuki K Poulose <suzuki.poulose@arm.com>
+> > Cc: Mike Leach <mike.leach@linaro.org>
+> > Cc: James Clark <james.clark@arm.com>
+> > Cc: Maxime Coquelin <mcoquelin.stm32@gmail.com>
+> > Cc: Alexandre Torgue <alexandre.torgue@foss.st.com>
+> > Cc: linux-acpi@vger.kernel.org
+> > Cc: linux-arm-kernel@lists.infradead.org
+> > Cc: linux-kernel@vger.kernel.org
+> > Cc: coresight@lists.linaro.org
+> > Cc: linux-stm32@st-md-mailman.stormreply.com
+> > Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+> > ---
 > [...]
->>  
->> -module_amba_driver(stm_driver);
->> +static int stm_platform_probe(struct platform_device *pdev)
->> +{
->> +	struct resource *res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->> +	int ret = 0;
->> +
->> +	pm_runtime_get_noresume(&pdev->dev);
->> +	pm_runtime_set_active(&pdev->dev);
->> +	pm_runtime_enable(&pdev->dev);
->> +
->> +	ret = __stm_probe(&pdev->dev, res, NULL);
+> >  
+> > -module_amba_driver(stm_driver);
+> > +static int stm_platform_probe(struct platform_device *pdev)
+> > +{
+> > +	struct resource *res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> > +	int ret = 0;
+> > +
+> > +	pm_runtime_get_noresume(&pdev->dev);
+> > +	pm_runtime_set_active(&pdev->dev);
+> > +	pm_runtime_enable(&pdev->dev);
+> > +
+> > +	ret = __stm_probe(&pdev->dev, res, NULL);
 > 
 > Very minor nit, but this used to print this:
 > 
@@ -85,6 +83,9 @@ On 12/4/23 15:53, James Clark wrote:
 > (null) kind of makes it look a little bit like something has gone wrong.
 > Maybe we could just put "initialised" if you don't have a string from ACPI?
 
-__stm_probe() gets called from both AMBA and platform driver paths. Even though
-a NULL check inside dev_info(..."%s initialized\n",...) could be added, but how
-to differentiate it from a scenario when coresight_get_uci_data() returns NULL ?
+Ah right, I too noticed this and forgot to mention. Just add a generic
+"STM" string for ACPI if we don't have a way to identify exact IP ?
+
+--
+Regards,
+Sudeep
