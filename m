@@ -1,55 +1,64 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BF09FF1;
+	Fri,  8 Dec 2023 12:07:50 -0800 (PST)
+Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
+ by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 5.4.0)
+ id 7a7783680b52a6be; Fri, 8 Dec 2023 21:07:49 +0100
+Received: from kreacher.localnet (unknown [195.136.19.94])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86D5F51C27
-	for <linux-acpi@vger.kernel.org>; Fri,  8 Dec 2023 20:00:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cxJ35/V0"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 5C886C433B9;
-	Fri,  8 Dec 2023 20:00:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1702065615;
-	bh=+mg2Ycx/25evKO4XjrlZ0RIrM2NqEraXGcSh2peU0Z8=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-	b=cxJ35/V0N8+cuXfI4TuSp6fjXDF0ZY0EotqsdwJ0Dn4TPumlFhhDrlaGIcmzp0wQc
-	 yAknZ0yTD8yqFXzckSmd8eqExOJF/TULw9e5Zp9dj26+HMw+3Fq3Tqk1OaCNSfrrmP
-	 x9DPgWB4PZ1LCVHwCxMK0UyCWFbcFRa/Hja28xzauYZ0kRkF5JOuFGixEl7Kn5R5Ic
-	 RL+X4zZtGRDh99dK+KLHWvbDeVsTrLdm9FDs313wJucI0PMxdjUqY1L+WIncrF6I4S
-	 pK+k9Po+S3E/MR2fFrqwpxXaDxPG/Jeiyf8It/DuHeO6psKgsItyTqUAbL41ad4Acy
-	 mV+SDos8A/NWw==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 390F2C04E24;
-	Fri,  8 Dec 2023 20:00:15 +0000 (UTC)
-Subject: Re: [GIT PULL] ACPI fix for v6.7-rc5
-From: pr-tracker-bot@kernel.org
-In-Reply-To: <CAJZ5v0ja548sr4QjzTgpNHZLMsNC_r8GY6Jys3sH1Y3jsXqK3w@mail.gmail.com>
-References: <CAJZ5v0ja548sr4QjzTgpNHZLMsNC_r8GY6Jys3sH1Y3jsXqK3w@mail.gmail.com>
-X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <CAJZ5v0ja548sr4QjzTgpNHZLMsNC_r8GY6Jys3sH1Y3jsXqK3w@mail.gmail.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-6.7-rc5
-X-PR-Tracked-Commit-Id: 8f0b960a42badda7a2781e8a33564624200debc9
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: c3e2f9bda2ffa2dd7dcaf2b45604db08c6ab0579
-Message-Id: <170206561522.12654.8671400626734986914.pr-tracker-bot@kernel.org>
-Date: Fri, 08 Dec 2023 20:00:15 +0000
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+	by cloudserver094114.home.pl (Postfix) with ESMTPSA id CD3A86688FF;
+	Fri,  8 Dec 2023 21:07:48 +0100 (CET)
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Hans de Goede <hdegoede@redhat.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: [PATCH v1 4/4] ACPI: utils: Fix white space in struct acpi_handle_list definition
+Date: Fri, 08 Dec 2023 21:07:41 +0100
+Message-ID: <2924343.e9J7NaK4W3@kreacher>
+In-Reply-To: <6008018.lOV4Wx5bFT@kreacher>
+References: <6008018.lOV4Wx5bFT@kreacher>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+X-CLIENT-IP: 195.136.19.94
+X-CLIENT-HOSTNAME: 195.136.19.94
+X-VADE-SPAMSTATE: clean
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvkedrudekiedgudefgecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvvefufffkjghfggfgtgesthfuredttddtjeenucfhrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqeenucggtffrrghtthgvrhhnpedvffeuiedtgfdvtddugeeujedtffetteegfeekffdvfedttddtuefhgeefvdejhfenucfkphepudelhedrudefiedrudelrdelgeenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpeduleehrddufeeirdduledrleegpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhnsggprhgtphhtthhopeehpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtohephhguvghgohgvuggvsehrvgguhhgrthdrtghomhdprhgtphhtthhopegrnhgurhhihidrshhhvghvtghhvghnkhhosehlihhnuhigrdhinhhtvghlrdgtohhm
+ pdhrtghpthhtohepmhhikhgrrdifvghsthgvrhgsvghrgheslhhinhhugidrihhnthgvlhdrtghomh
+X-DCC--Metrics: v370.home.net.pl 1024; Body=5 Fuz1=5 Fuz2=5
 
-The pull request you sent on Fri, 8 Dec 2023 18:55:09 +0100:
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-6.7-rc5
+Fix inadvertently introduced white space damage in the struct
+acpi_handle_list definition.
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/c3e2f9bda2ffa2dd7dcaf2b45604db08c6ab0579
+No functional impact.
 
-Thank you!
+Fixes: 2e57d10a6591 ("ACPI: utils: Dynamically determine acpi_handle_list size")
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ include/acpi/acpi_bus.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+Index: linux-pm/include/acpi/acpi_bus.h
+===================================================================
+--- linux-pm.orig/include/acpi/acpi_bus.h
++++ linux-pm/include/acpi/acpi_bus.h
+@@ -14,7 +14,7 @@
+ 
+ struct acpi_handle_list {
+ 	u32 count;
+-	acpi_handle* handles;
++	acpi_handle *handles;
+ };
+ 
+ /* acpi_utils.h */
+
+
+
