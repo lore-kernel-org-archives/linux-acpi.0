@@ -1,11 +1,11 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79CF050242
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86D5F51C27
 	for <linux-acpi@vger.kernel.org>; Fri,  8 Dec 2023 20:00:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
 	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cxJ35/V0"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 4DE6CC433C8;
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 5C886C433B9;
 	Fri,  8 Dec 2023 20:00:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=k20201202; t=1702065615;
@@ -18,7 +18,7 @@ DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	 pK+k9Po+S3E/MR2fFrqwpxXaDxPG/Jeiyf8It/DuHeO6psKgsItyTqUAbL41ad4Acy
 	 mV+SDos8A/NWw==
 Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 2C380C04DD9;
+	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 390F2C04E24;
 	Fri,  8 Dec 2023 20:00:15 +0000 (UTC)
 Subject: Re: [GIT PULL] ACPI fix for v6.7-rc5
 From: pr-tracker-bot@kernel.org
@@ -31,7 +31,7 @@ X-PR-Tracked-Commit-Id: 8f0b960a42badda7a2781e8a33564624200debc9
 X-PR-Merge-Tree: torvalds/linux.git
 X-PR-Merge-Refname: refs/heads/master
 X-PR-Merge-Commit-Id: c3e2f9bda2ffa2dd7dcaf2b45604db08c6ab0579
-Message-Id: <170206561517.13365.4217672733381363438.pr-tracker-bot@kernel.org>
+Message-Id: <170206561522.12654.8671400626734986914.pr-tracker-bot@kernel.org>
 Date: Fri, 08 Dec 2023 20:00:15 +0000
 To: "Rafael J. Wysocki" <rafael@kernel.org>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
