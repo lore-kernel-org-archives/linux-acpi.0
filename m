@@ -1,79 +1,108 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="CnIU0dTw"
-Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:3::133])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E14A892;
-	Tue, 12 Dec 2023 15:55:42 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-	Content-Type:In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:
-	Message-ID:Sender:Reply-To:Content-ID:Content-Description;
-	bh=kvcZNEP58ugqv20Pm1mONv8BuiUHlOHp24bA+swL/RE=; b=CnIU0dTwkYZLeCDDAl7dUkETmw
-	mXDyZZWZ0erdOyMV6hr212MWbfRA8D/Qk7N02Vf6D96nE0J3QoKq/qsrwU967k+WgcKliYYmsG0ZV
-	o7h6bOsx1UNX+Vf98XwJv9VYPg9P6YpbgxRvkokaCgysiGlOWrCejBj2QyUrV/nCxcKCWV5KZArBh
-	i8u4SkGvNIu3Hv4Qok7wd8zUuh0j0RCB1xU30xinXmmkZPv/ugtQxqqYArOgowwgJu70W8GHmxcOh
-	PnaJlj8kyd3Fmix9b5MmMOy1ajiK8vYij+CLHyA8Kkl9o06R4Hfd3rjwyXm3pGZ2XwJ8mq8w7Lh6D
-	SHLgpM7w==;
-Received: from [50.53.46.231] (helo=[192.168.254.15])
-	by bombadil.infradead.org with esmtpsa (Exim 4.96 #2 (Red Hat Linux))
-	id 1rDCbG-00D5YC-1v;
-	Tue, 12 Dec 2023 23:55:42 +0000
-Message-ID: <fd5e2d54-1309-48a9-8458-ee5f2ebb039e@infradead.org>
-Date: Tue, 12 Dec 2023 15:55:41 -0800
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="RQHitFp8"
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 507DFBC
+	for <linux-acpi@vger.kernel.org>; Tue, 12 Dec 2023 16:36:27 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1702427786;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=4J3yyMVT0Ck6UqVMMggnyCj20M3aIOGukmt1/w28WlA=;
+	b=RQHitFp8fXhxUD5EP4EHvhV7gBSpQZ/SN/nJmxzB4ZpvfKBWIA2F2/c/NhrhtCHAG4GLY1
+	fY3Hrz+XtTfBxwuezsT4LxEvWnlpgViJ++VBZbAeQGVyAROQvcIGa4ixo5a3ef8n8SMKy2
+	NQF7nm2XeQOnAuuhTsdy5d1RjpEQSpA=
+Received: from mimecast-mx02.redhat.com (mx-ext.redhat.com [66.187.233.73])
+ by relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-496-nIPG_mAZOtSj-ICft5S-pQ-1; Tue,
+ 12 Dec 2023 19:36:23 -0500
+X-MC-Unique: nIPG_mAZOtSj-ICft5S-pQ-1
+Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.rdu2.redhat.com [10.11.54.3])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id A3BE53833343;
+	Wed, 13 Dec 2023 00:36:22 +0000 (UTC)
+Received: from dell-r430-03.lab.eng.brq2.redhat.com (dell-r430-03.lab.eng.brq2.redhat.com [10.37.153.18])
+	by smtp.corp.redhat.com (Postfix) with ESMTP id D2C821121306;
+	Wed, 13 Dec 2023 00:36:20 +0000 (UTC)
+From: Igor Mammedov <imammedo@redhat.com>
+To: linux-kernel@vger.kernel.org
+Cc: Dongli Zhang <dongli.zhang@oracle.com>,
+	linux-acpi@vger.kernel.org,
+	linux-pci@vger.kernel.org,
+	imammedo@redhat.com,
+	mst@redhat.com,
+	rafael@kernel.org,
+	lenb@kernel.org,
+	bhelgaas@google.com,
+	mika.westerberg@linux.intel.com,
+	boris.ostrovsky@oracle.com,
+	joe.jin@oracle.com,
+	stable@vger.kernel.org,
+	Fiona Ebner <f.ebner@proxmox.com>,
+	Thomas Lamprecht <t.lamprecht@proxmox.com>
+Subject: [RFC 2/2] PCI: acpiphp: slowdown hotplug if hotplugging multiple devices at a time
+Date: Wed, 13 Dec 2023 01:36:14 +0100
+Message-Id: <20231213003614.1648343-3-imammedo@redhat.com>
+In-Reply-To: <20231213003614.1648343-1-imammedo@redhat.com>
+References: <20231213003614.1648343-1-imammedo@redhat.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 1/1] parse_phat: Add support for ACPI PHAT Table parsing
-Content-Language: en-US
-To: Avadhut Naik <avadhut.naik@amd.com>, linux-acpi@vger.kernel.org,
- linux-edac@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, yazen.ghannam@amd.com, avadnaik@amd.com
-References: <20231212195219.2348858-1-avadhut.naik@amd.com>
- <20231212195219.2348858-2-avadhut.naik@amd.com>
-From: Randy Dunlap <rdunlap@infradead.org>
-In-Reply-To: <20231212195219.2348858-2-avadhut.naik@amd.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 3.4.1 on 10.11.54.3
 
-Hi--
+previous commit ("PCI: acpiphp: enable slot only if it hasn't been enabled already"
+introduced a workaround to avoid a race between SCSI_SCAN_ASYNC job and
+bridge reconfiguration in case of single HBA hotplug.
+However in virt environment it's possible to pause machine hotplug several
+HBAs and let machine run. That can hit the same race when 2nd hotplugged
+HBA will start re-configuring bridge.
+Do the same thing as SHPC and throttle down hotplug of 2nd and up
+devices within single hotplug event.
 
-On 12/12/23 11:52, Avadhut Naik wrote:
-> ACPI Platform Health Assessment Table (PHAT) enables a platform to expose
-> an extensible set of platform health-related telemetry. The telemetry is
-> exposed through Firmware Version and Firmware Health Data Records which
-> provide version data and health-related information of their associated
-> components respectively.
-> 
-> Additionally, the platform also provides Reset Reason Health Record
-> in the table highlighting the cause of the last system reset in case
-> of expected and unexpected events. Vendor-specific data capturing the
-> underlying state of the system during reset can also be optionally
-> provided through the record.[1]
-> 
-> Introduce support for parsing, decoding, and logging the PHAT table, if
-> supported by the system. By default, the table will be logged to stdout.
-> The same, however, can be changed through the "-o" command line parameter.
-> Additionally, the tool also provides a hexdump of the entire table, if
-> needed, through the "-x" parameter.
-> 
-> Signed-off-by: Avadhut Naik <avadhut.naik@amd.com>
-> ---
->  Makefile     |  12 ++
->  parse_phat.c | 516 +++++++++++++++++++++++++++++++++++++++++++++++++++
->  2 files changed, 528 insertions(+)
->  create mode 100644 Makefile
->  create mode 100644 parse_phat.c
-> 
+Signed-off-by: Igor Mammedov <imammedo@redhat.com>
+---
+ drivers/pci/hotplug/acpiphp_glue.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-Does acpidump not parse the PHAT table?
-Could it?  Should it?
-
-
-thanks.
+diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+index 6b11609927d6..30bca2086b24 100644
+--- a/drivers/pci/hotplug/acpiphp_glue.c
++++ b/drivers/pci/hotplug/acpiphp_glue.c
+@@ -37,6 +37,7 @@
+ #include <linux/mutex.h>
+ #include <linux/slab.h>
+ #include <linux/acpi.h>
++#include <linux/delay.h>
+ 
+ #include "../pci.h"
+ #include "acpiphp.h"
+@@ -700,6 +701,7 @@ static void trim_stale_devices(struct pci_dev *dev)
+ static void acpiphp_check_bridge(struct acpiphp_bridge *bridge)
+ {
+ 	struct acpiphp_slot *slot;
++        int nr_hp_slots = 0;
+ 
+ 	/* Bail out if the bridge is going away. */
+ 	if (bridge->is_going_away)
+@@ -723,6 +725,10 @@ static void acpiphp_check_bridge(struct acpiphp_bridge *bridge)
+ 
+ 			/* configure all functions */
+ 			if (slot->flags != SLOT_ENABLED) {
++				if (nr_hp_slots)
++					msleep(1000);
++
++                                ++nr_hp_slots;
+ 				enable_slot(slot, true);
+ 			}
+ 		} else {
 -- 
-#Randy
-https://people.kernel.org/tglx/notes-about-netiquette
-https://subspace.kernel.org/etiquette.html
+2.39.3
+
