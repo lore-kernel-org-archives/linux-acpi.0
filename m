@@ -1,92 +1,77 @@
-Received: from mail-ot1-f43.google.com (mail-ot1-f43.google.com [209.85.210.43])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B552537169;
-	Fri, 15 Dec 2023 15:25:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-ot1-f43.google.com with SMTP id 46e09a7af769-6d9f9fbfd11so627152a34.2;
-        Fri, 15 Dec 2023 07:25:49 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1702653948; x=1703258748;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=C1OnF5rGFzI5RvYpjVRPlVSvXceBOIEFaHqDyOjiYTA=;
-        b=QemHuBOsmABUdqiwWTfxBpnCky3iNOklVT3DNVOP7hwiq1iyPgNFm87M9XQukIi0Mx
-         HbPx/V2tX2I0DMnmSKJOx/sKKbVyAcjzM1w80wH+libiOPD+XQn87qoZQ7pokydEt6/m
-         WbnamMc3YzD7EVc2dpVUyjL3QhGl1vAxNd3TIHQsGkpPMHX1jnddw1NHogu7kWkNpsb0
-         iGnlfAoqrH+5DwaNnazdyQPUClRHg7ozQjd6x8WWlUH5iYNd+Bi9AZlczOELu+I12zn9
-         HvQqOpUJOiRzPCHetnhsCuYf6er6zIEoLcDH8PEqIiShvGzi01N3UdcuPY9pj4bWkn/n
-         MCzQ==
-X-Gm-Message-State: AOJu0Ywf0+J7ryMhK1KuCHgIuUx7hKOCJd/5Zj/zz1u+Jem5zOeKusjn
-	yuxymEIA1jyjiJO7fZ6RwQ==
-X-Google-Smtp-Source: AGHT+IFsgHE029QXbOE4x52loz8JfsphgGoxGT3Z/OzVbTeZDrjy5prKIU2NDeJ5VZf7w9GpT5FMig==
-X-Received: by 2002:a05:6830:1517:b0:6d9:f68e:ded7 with SMTP id k23-20020a056830151700b006d9f68eded7mr11507380otp.64.1702653948485;
-        Fri, 15 Dec 2023 07:25:48 -0800 (PST)
-Received: from herring.priv (66-90-144-107.dyn.grandenetworks.net. [66.90.144.107])
-        by smtp.gmail.com with ESMTPSA id d16-20020a056830139000b006d874fc2555sm3671547otq.26.2023.12.15.07.25.46
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 15 Dec 2023 07:25:47 -0800 (PST)
-Received: (nullmailer pid 3996339 invoked by uid 1000);
-	Fri, 15 Dec 2023 15:25:46 -0000
-Date: Fri, 15 Dec 2023 09:25:46 -0600
-From: Rob Herring <robh@kernel.org>
-To: Robin Murphy <robin.murphy@arm.com>
-Cc: linux-kernel@vger.kernel.org, Vineet Gupta <vgupta@kernel.org>, 
-	David Woodhouse <dwmw2@infradead.org>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
-	Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, Dexuan Cui <decui@microsoft.com>, 
-	Catalin Marinas <catalin.marinas@arm.com>, iommu@lists.linux.dev, 
-	"K. Y. Srinivasan" <kys@microsoft.com>, Gerald Schaefer <gerald.schaefer@linux.ibm.com>, 
-	Matthew Rosato <mjrosato@linux.ibm.com>, Russell King <linux@armlinux.org.uk>, 
-	Will Deacon <will@kernel.org>, Huacai Chen <chenhuacai@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, 
-	linux-acpi@vger.kernel.org, Sudeep Holla <sudeep.holla@arm.com>, 
-	Christoph Hellwig <hch@lst.de>, Lorenzo Pieralisi <lpieralisi@kernel.org>, Albert Ou <aou@eecs.berkeley.edu>, 
-	Niklas Schnelle <schnelle@linux.ibm.com>, Paul Walmsley <paul.walmsley@sifive.com>, 
-	linux-arm-kernel@lists.infradead.org, 
-	Jean-Philippe Brucker <jean-philippe@linaro.org>, Wei Liu <wei.liu@kernel.org>, 
-	Palmer Dabbelt <palmer@dabbelt.com>, Haiyang Zhang <haiyangz@microsoft.com>, 
-	Marek Szyprowski <m.szyprowski@samsung.com>, Joerg Roedel <joro@8bytes.org>, 
-	Lu Baolu <baolu.lu@linux.intel.com>, Frank Rowand <frowand.list@gmail.com>, 
-	Hanjun Guo <guohanjun@huawei.com>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, 
-	WANG Xuerui <kernel@xen0n.name>
-Subject: Re: [PATCH v2 7/7] dma-mapping: Simplify arch_setup_dma_ops()
-Message-ID: <170265394575.3996198.15248667149121379629.robh@kernel.org>
-References: <cover.1702486837.git.robin.murphy@arm.com>
- <7e6af148e0df9a10b51cd60234ec6b35f7d4cc20.1702486837.git.robin.murphy@arm.com>
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id F0DF237152;
+	Fri, 15 Dec 2023 15:30:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 619E3C15;
+	Fri, 15 Dec 2023 07:31:40 -0800 (PST)
+Received: from [10.57.85.151] (unknown [10.57.85.151])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id D441A3F5A1;
+	Fri, 15 Dec 2023 07:30:53 -0800 (PST)
+Message-ID: <30891c4e-0fec-4477-ba49-905ea05a4545@arm.com>
+Date: Fri, 15 Dec 2023 15:31:57 +0000
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <7e6af148e0df9a10b51cd60234ec6b35f7d4cc20.1702486837.git.robin.murphy@arm.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v1] thermal: core: Fix NULL pointer dereference in zone
+ registration error path
+Content-Language: en-US
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PM <linux-pm@vger.kernel.org>,
+ Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+ Zhang Rui <rui.zhang@intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>,
+ LKML <linux-kernel@vger.kernel.org>, Dan Carpenter
+ <dan.carpenter@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>
+References: <5737641.DvuYhMxLoT@kreacher>
+From: Lukasz Luba <lukasz.luba@arm.com>
+In-Reply-To: <5737641.DvuYhMxLoT@kreacher>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
 
-On Wed, 13 Dec 2023 17:18:00 +0000, Robin Murphy wrote:
-> The dma_base, size and iommu arguments are only used by ARM, and can
-> now easily be deduced from the device itself, so there's no need to pass
-> them through the callchain as well.
+
+On 12/14/23 10:52, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > 
-> Reviewed-by: Christoph Hellwig <hch@lst.de>
-> Signed-off-by: Robin Murphy <robin.murphy@arm.com>
+> If device_register() in thermal_zone_device_register_with_trips()
+> returns an error, the tz variable is set to NULL and subsequently
+> dereferenced in kfree(tz->tzp).
+> 
+> Commit adc8749b150c ("thermal/drivers/core: Use put_device() if
+> device_register() fails") added the tz = NULL assignment in question to
+> avoid a possible double-free after dropping the reference to the zone
+> device.  However, after commit 4649620d9404 ("thermal: core: Make
+> thermal_zone_device_unregister() return after freeing the zone"), that
+> assignment has become redundant, because dropping the reference to the
+> zone device does not cause the zone object to be freed any more.
+> 
+> Drop it to address the NULL pointer dereference.
+> 
+> Fixes: 3d439b1a2ad3 ("thermal/core: Alloc-copy-free the thermal zone parameters structure")
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > ---
-> v2: Make sure the ARM changes actually build (oops...)
-> ---
->  arch/arc/mm/dma.c               |  3 +--
->  arch/arm/mm/dma-mapping-nommu.c |  3 +--
->  arch/arm/mm/dma-mapping.c       | 18 ++++++++++--------
->  arch/arm64/mm/dma-mapping.c     |  3 +--
->  arch/mips/mm/dma-noncoherent.c  |  3 +--
->  arch/riscv/mm/dma-noncoherent.c |  3 +--
->  drivers/acpi/scan.c             |  3 +--
->  drivers/hv/hv_common.c          |  6 +-----
->  drivers/of/device.c             |  4 +---
->  include/linux/dma-map-ops.h     |  6 ++----
->  10 files changed, 20 insertions(+), 32 deletions(-)
+>   drivers/thermal/thermal_core.c |    1 -
+>   1 file changed, 1 deletion(-)
+> 
+> Index: linux-pm/drivers/thermal/thermal_core.c
+> ===================================================================
+> --- linux-pm.orig/drivers/thermal/thermal_core.c
+> +++ linux-pm/drivers/thermal/thermal_core.c
+> @@ -1394,7 +1394,6 @@ unregister:
+>   	device_del(&tz->device);
+>   release_device:
+>   	put_device(&tz->device);
+> -	tz = NULL;
+>   remove_id:
+>   	ida_free(&thermal_tz_ida, id);
+>   free_tzp:
+> 
+> 
 > 
 
-Acked-by: Rob Herring <robh@kernel.org>
-
+Reviewed-by: Lukasz Luba <lukasz.luba@arm.com>
