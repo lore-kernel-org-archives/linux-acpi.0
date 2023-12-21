@@ -1,225 +1,222 @@
-Received: from mail-ot1-f43.google.com (mail-ot1-f43.google.com [209.85.210.43])
+Received: from mail-ot1-f44.google.com (mail-ot1-f44.google.com [209.85.210.44])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED9E236080;
-	Thu, 21 Dec 2023 13:55:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 479016D6D4;
+	Thu, 21 Dec 2023 14:13:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-ot1-f43.google.com with SMTP id 46e09a7af769-6dbb9d03b5eso95556a34.1;
-        Thu, 21 Dec 2023 05:55:45 -0800 (PST)
+Received: by mail-ot1-f44.google.com with SMTP id 46e09a7af769-6dbb72a1754so205874a34.0;
+        Thu, 21 Dec 2023 06:13:01 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1703166945; x=1703771745;
+        d=1e100.net; s=20230601; t=1703167980; x=1703772780;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=tn1YpB9RSUb3kYqtYjrWXVkua1HlT1atP73EUz1/0nY=;
-        b=AP3Z9VeeKl3jB2MCKXBmdlCJrJacLeC9oYo684TxHCay2sVYpIcqCFpp6k4jBX7IP2
-         D45fRN2ex+QCUTENHS1Et7uG4qgLslwmy81OBO0ErDnwhIcg0+Nfw4voI6GJ8KMYTwOd
-         uK5h6Mh7MTfJsrQauGSYg8we6ehumpl4iHbnugIg2PPnx3MmnQ6RmTB7ZFzFpYpLRfe6
-         fceoVE+MhtRhsRJPvrvUlbT4EQ3N21MFzQ2ffLishVbxPBLM7+z/CQC/ef7Kpxs1ivoy
-         cqkz9esf2qc/8m1RvWZnGeR4e6axmw8mxZ4zEZG2QyvDHd6nOeWqGA0vMQ03XkGL4QU4
-         DMrQ==
-X-Gm-Message-State: AOJu0Yz3wEaZnXX6qGh5rDlL/oecy9zECauQiYDbOl60jdyq8NHfTJoJ
-	QEc3V5tmFxSg2OxRmDWYPfQbXND6NLOunFnSWPI=
-X-Google-Smtp-Source: AGHT+IGyDCjQzUrqeW1hQnA1vPHGjsH39gBljxA4HGmC4zmiOGkpax/gOnaTZ3Hp+uBUwVKFr9RB00v6d1OjIBF6qys=
-X-Received: by 2002:a4a:a581:0:b0:591:cdc0:f28d with SMTP id
- d1-20020a4aa581000000b00591cdc0f28dmr13283358oom.0.1703166944879; Thu, 21 Dec
- 2023 05:55:44 -0800 (PST)
+        bh=G/WbGoRshQ4VaQFeCygAMbZ4TZHbi2rym6nHpBDGXK4=;
+        b=gvDm2QATSOVMzDfJq3gfO2YtSCZT81KokCM85jTRBTcdzdAc+Vp/FK/9qya90uvDsq
+         WElOwKnd8HOud1+ZvGzsKH/J83iwqIILRWdS7GVMUdVbBqNzodL17EhV/0U69RvDkfXz
+         gS9t78oRU5DfdaYU+DrrBxYnbI2sPdpL6QKECC7EFYZ9ShLq0+yDu+EqaNrNDJO5kdMp
+         FP28u2CdVj4dCLhOfKDvdFGxEtHEm80C3yPdHH5p/nGMMdQLd2FShzmR5lYyN/wVpRSM
+         mFZkaQ83/diAERLGmMxWmaGSLcSBGgQPcaHqCqoQAyu5Q4pmr5JjMcgESuYr/spT2Q8n
+         gSww==
+X-Gm-Message-State: AOJu0YwcA7Ddm4IYk9Yjk8UrcQ9revMqrug8n3eI/fpjfzS3dEf/ECvC
+	havbyKHVOjxpeL9a1cPcBEZfdaNY98c2N87KC5A=
+X-Google-Smtp-Source: AGHT+IG7ayD+vIeXhXXVYd0QVilpfO8Q6f1ptPsa6AlyPvCxe/FOHZX56xr6bCFJsC6PH0SN4rS0VSOmVDUj44MqmHM=
+X-Received: by 2002:a4a:b803:0:b0:593:fbd5:10aa with SMTP id
+ g3-20020a4ab803000000b00593fbd510aamr5926811oop.1.1703167980304; Thu, 21 Dec
+ 2023 06:13:00 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20221027042445.60108-1-xueshuai@linux.alibaba.com> <20231218064521.37324-2-xueshuai@linux.alibaba.com>
-In-Reply-To: <20231218064521.37324-2-xueshuai@linux.alibaba.com>
+References: <20231216001312.1160-1-jarredwhite@linux.microsoft.com>
+In-Reply-To: <20231216001312.1160-1-jarredwhite@linux.microsoft.com>
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Thu, 21 Dec 2023 14:55:33 +0100
-Message-ID: <CAJZ5v0hnKP9S+5PfuO1EzvpSdHM09s0HidGjfinf491xkdop3g@mail.gmail.com>
-Subject: Re: [PATCH v10 1/4] ACPI: APEI: set memory failure flags as
- MF_ACTION_REQUIRED on synchronous events
-To: Shuai Xue <xueshuai@linux.alibaba.com>
-Cc: bp@alien8.de, rafael@kernel.org, wangkefeng.wang@huawei.com, 
-	tanxiaofei@huawei.com, mawupeng1@huawei.com, tony.luck@intel.com, 
-	linmiaohe@huawei.com, naoya.horiguchi@nec.com, james.morse@arm.com, 
-	gregkh@linuxfoundation.org, will@kernel.org, jarkko@kernel.org, 
-	linux-acpi@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, 
-	akpm@linux-foundation.org, linux-edac@vger.kernel.org, 
-	acpica-devel@lists.linuxfoundation.org, stable@vger.kernel.org, 
-	x86@kernel.org, justin.he@arm.com, ardb@kernel.org, ying.huang@intel.com, 
-	ashish.kalra@amd.com, baolin.wang@linux.alibaba.com, tglx@linutronix.de, 
-	mingo@redhat.com, dave.hansen@linux.intel.com, lenb@kernel.org, hpa@zytor.com, 
-	robert.moore@intel.com, lvying6@huawei.com, xiexiuqi@huawei.com, 
-	zhuo.song@linux.alibaba.com
+Date: Thu, 21 Dec 2023 15:12:49 +0100
+Message-ID: <CAJZ5v0gZ39zJEGV7gQLg6Y0=ke1W7bctqtZ46K+SR9RT5Bx4Hg@mail.gmail.com>
+Subject: Re: [RESEND PATCH v2] acpi: Use access_width over register_width for
+ system memory accesses
+To: Jarred White <jarredwhite@linux.microsoft.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
+	"open list:ACPI" <linux-acpi@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Dec 18, 2023 at 7:45=E2=80=AFAM Shuai Xue <xueshuai@linux.alibaba.c=
-om> wrote:
+On Sat, Dec 16, 2023 at 1:13=E2=80=AFAM Jarred White
+<jarredwhite@linux.microsoft.com> wrote:
 >
-> There are two major types of uncorrected recoverable (UCR) errors :
->
-> - Synchronous error: The error is detected and raised at the point of the
->   consumption in the execution flow, e.g. when a CPU tries to access
->   a poisoned cache line. The CPU will take a synchronous error exception
->   such as Synchronous External Abort (SEA) on Arm64 and Machine Check
->   Exception (MCE) on X86. OS requires to take action (for example, offlin=
-e
->   failure page/kill failure thread) to recover this uncorrectable error.
->
-> - Asynchronous error: The error is detected out of processor execution
->   context, e.g. when an error is detected by a background scrubber. Some =
-data
->   in the memory are corrupted. But the data have not been consumed. OS is
->   optional to take action to recover this uncorrectable error.
->
-> When APEI firmware first is enabled, a platform may describe one error
-> source for the handling of synchronous errors (e.g. MCE or SEA notificati=
-on
-> ), or for handling asynchronous errors (e.g. SCI or External Interrupt
-> notification). In other words, we can distinguish synchronous errors by
-> APEI notification. For synchronous errors, kernel will kill the current
-> process which accessing the poisoned page by sending SIGBUS with
-> BUS_MCEERR_AR. In addition, for asynchronous errors, kernel will notify t=
-he
-> process who owns the poisoned page by sending SIGBUS with BUS_MCEERR_AO i=
-n
-> early kill mode. However, the GHES driver always sets mf_flags to 0 so th=
-at
-> all synchronous errors are handled as asynchronous errors in memory failu=
-re.
->
-> To this end, set memory failure flags as MF_ACTION_REQUIRED on synchronou=
-s
-> events.
->
-> Signed-off-by: Shuai Xue <xueshuai@linux.alibaba.com>
-> Tested-by: Ma Wupeng <mawupeng1@huawei.com>
-> Reviewed-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-> Reviewed-by: Xiaofei Tan <tanxiaofei@huawei.com>
-> Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-> Reviewed-by: James Morse <james.morse@arm.com>
+> To align with ACPI 6.3+, since bit_width can be any 8-bit value, we canno=
+t
+> depend on it being always on a clean 8b boundary.
 
-Applied as 6.8 material.
+So presumably, there are systems out there in which the platform
+firmware uses bit_width that is not on a clean 8-bit boundary.
 
-The other patches in the series still need to receive tags from the
-APEI designated reviewers (as per MAINTAINERS).
+It would be good to mention them here.
 
-Thanks!
+> Instead, use access_width
+> to determine the size and use the offset and width to shift and mask the
+> bits we want to read/write out. Make sure to add a check for system memor=
+y
+> since pcc redefines the access_width to subspace id.
 
+And it would be good to add a comment to the code for it too.
 
+>
+> Signed-off-by: Jarred White <jarredwhite@linux.microsoft.com>
 > ---
->  drivers/acpi/apei/ghes.c | 29 +++++++++++++++++++++++------
->  1 file changed, 23 insertions(+), 6 deletions(-)
+> Original thread
+> https://lore.kernel.org/all/20230925180552.76071-1-jarredwhite@linux.micr=
+osoft.com/
+> ---
+> changelog:
+> v1-->v2:
+>         1. Fixed coding style errors
+>         2. Backwards compatibility with ioremapping of address still an
+>            open question. Suggestions are welcomed.
 >
-> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-> index 63ad0541db38..ab2a82cb1b0b 100644
-> --- a/drivers/acpi/apei/ghes.c
-> +++ b/drivers/acpi/apei/ghes.c
-> @@ -101,6 +101,20 @@ static inline bool is_hest_type_generic_v2(struct gh=
-es *ghes)
->         return ghes->generic->header.type =3D=3D ACPI_HEST_TYPE_GENERIC_E=
-RROR_V2;
->  }
+>  drivers/acpi/cppc_acpi.c | 36 +++++++++++++++++++++++++++++++-----
+>  1 file changed, 31 insertions(+), 5 deletions(-)
 >
-> +/*
-> + * A platform may describe one error source for the handling of synchron=
-ous
-> + * errors (e.g. MCE or SEA), or for handling asynchronous errors (e.g. S=
-CI
-> + * or External Interrupt). On x86, the HEST notifications are always
-> + * asynchronous, so only SEA on ARM is delivered as a synchronous
-> + * notification.
-> + */
-> +static inline bool is_hest_sync_notify(struct ghes *ghes)
-> +{
-> +       u8 notify_type =3D ghes->generic->notify.type;
+> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+> index 7ff269a78c20..fb37e1727bf8 100644
+> --- a/drivers/acpi/cppc_acpi.c
+> +++ b/drivers/acpi/cppc_acpi.c
+> @@ -163,6 +163,13 @@ show_cppc_data(cppc_get_perf_caps, cppc_perf_caps, n=
+ominal_freq);
+>  show_cppc_data(cppc_get_perf_ctrs, cppc_perf_fb_ctrs, reference_perf);
+>  show_cppc_data(cppc_get_perf_ctrs, cppc_perf_fb_ctrs, wraparound_time);
+>
+> +/* Use access_width to determine the total number of bits */
+> +#define ACCESS_WIDTH_TO_BITS(reg) 8 << ((reg)->access_width - 1)
+
+Consider adding parens around the entire expression, or you may get
+unexpected results.
+
 > +
-> +       return notify_type =3D=3D ACPI_HEST_NOTIFY_SEA;
-> +}
+> +/* Shift and apply the mask for CPC reads/writes */
+> +#define MASK_VAL(val) (((val) >> reg->bit_offset) &                    \
+> +                                       GENMASK((reg->bit_width), 0))
+
+'reg' should be an argument of the macro or it will be prone to subtle mist=
+akes.
+
 > +
->  /*
->   * This driver isn't really modular, however for the time being,
->   * continuing to use module_param is the easiest way to remain
-> @@ -489,7 +503,7 @@ static bool ghes_do_memory_failure(u64 physical_addr,=
- int flags)
+>  static ssize_t show_feedback_ctrs(struct kobject *kobj,
+>                 struct kobj_attribute *attr, char *buf)
+>  {
+> @@ -777,6 +784,7 @@ int acpi_cppc_processor_probe(struct acpi_processor *=
+pr)
+>                         } else if (gas_t->space_id =3D=3D ACPI_ADR_SPACE_=
+SYSTEM_MEMORY) {
+>                                 if (gas_t->address) {
+>                                         void __iomem *addr;
+> +                                       size_t access_width;
+>
+>                                         if (!osc_cpc_flexible_adr_space_c=
+onfirmed) {
+>                                                 pr_debug("Flexible addres=
+s space capability not supported\n");
+> @@ -784,7 +792,8 @@ int acpi_cppc_processor_probe(struct acpi_processor *=
+pr)
+>                                                         goto out_free;
+>                                         }
+>
+> -                                       addr =3D ioremap(gas_t->address, =
+gas_t->bit_width/8);
+> +                                       access_width =3D ACCESS_WIDTH_TO_=
+BITS(gas_t) / 8;
+
+What would happen if the platform firmware incorrectly provided
+reg->access_witdh =3D=3D 0?
+
+> +                                       addr =3D ioremap(gas_t->address, =
+access_width);
+>                                         if (!addr)
+>                                                 goto out_free;
+>                                         cpc_ptr->cpc_regs[i-2].sys_mem_va=
+ddr =3D addr;
+> @@ -980,6 +989,7 @@ int __weak cpc_write_ffh(int cpunum, struct cpc_reg *=
+reg, u64 val)
+>  static int cpc_read(int cpu, struct cpc_register_resource *reg_res, u64 =
+*val)
+>  {
+>         void __iomem *vaddr =3D NULL;
+> +       int size;
+>         int pcc_ss_id =3D per_cpu(cpu_pcc_subspace_idx, cpu);
+>         struct cpc_reg *reg =3D &reg_res->cpc_entry.reg;
+>
+> @@ -991,7 +1001,7 @@ static int cpc_read(int cpu, struct cpc_register_res=
+ource *reg_res, u64 *val)
+>         *val =3D 0;
+>
+>         if (reg->space_id =3D=3D ACPI_ADR_SPACE_SYSTEM_IO) {
+> -               u32 width =3D 8 << (reg->access_width - 1);
+> +               u32 width =3D ACCESS_WIDTH_TO_BITS(reg);
+>                 u32 val_u32;
+>                 acpi_status status;
+>
+> @@ -1015,7 +1025,12 @@ static int cpc_read(int cpu, struct cpc_register_r=
+esource *reg_res, u64 *val)
+>                 return acpi_os_read_memory((acpi_physical_address)reg->ad=
+dress,
+>                                 val, reg->bit_width);
+>
+> -       switch (reg->bit_width) {
+> +       if (reg->space_id =3D=3D ACPI_ADR_SPACE_SYSTEM_MEMORY)
+> +               size =3D ACCESS_WIDTH_TO_BITS(reg);
+> +       else
+> +               size =3D reg->bit_width;
+> +
+> +       switch (size) {
+>         case 8:
+>                 *val =3D readb_relaxed(vaddr);
+>                 break;
+> @@ -1034,18 +1049,22 @@ static int cpc_read(int cpu, struct cpc_register_=
+resource *reg_res, u64 *val)
+>                 return -EFAULT;
+>         }
+>
+> +       if (reg->space_id =3D=3D ACPI_ADR_SPACE_SYSTEM_MEMORY)
+> +               *val =3D MASK_VAL(*val);
+> +
+>         return 0;
 >  }
 >
->  static bool ghes_handle_memory_failure(struct acpi_hest_generic_data *gd=
-ata,
-> -                                      int sev)
-> +                                      int sev, bool sync)
+>  static int cpc_write(int cpu, struct cpc_register_resource *reg_res, u64=
+ val)
 >  {
->         int flags =3D -1;
->         int sec_sev =3D ghes_severity(gdata->error_severity);
-> @@ -503,7 +517,7 @@ static bool ghes_handle_memory_failure(struct acpi_he=
-st_generic_data *gdata,
->             (gdata->flags & CPER_SEC_ERROR_THRESHOLD_EXCEEDED))
->                 flags =3D MF_SOFT_OFFLINE;
->         if (sev =3D=3D GHES_SEV_RECOVERABLE && sec_sev =3D=3D GHES_SEV_RE=
-COVERABLE)
-> -               flags =3D 0;
-> +               flags =3D sync ? MF_ACTION_REQUIRED : 0;
+>         int ret_val =3D 0;
+> +       int size;
+>         void __iomem *vaddr =3D NULL;
+>         int pcc_ss_id =3D per_cpu(cpu_pcc_subspace_idx, cpu);
+>         struct cpc_reg *reg =3D &reg_res->cpc_entry.reg;
 >
->         if (flags !=3D -1)
->                 return ghes_do_memory_failure(mem_err->physical_addr, fla=
-gs);
-> @@ -511,9 +525,11 @@ static bool ghes_handle_memory_failure(struct acpi_h=
-est_generic_data *gdata,
->         return false;
->  }
+>         if (reg->space_id =3D=3D ACPI_ADR_SPACE_SYSTEM_IO) {
+> -               u32 width =3D 8 << (reg->access_width - 1);
+> +               u32 width =3D ACCESS_WIDTH_TO_BITS(reg);
+>                 acpi_status status;
 >
-> -static bool ghes_handle_arm_hw_error(struct acpi_hest_generic_data *gdat=
-a, int sev)
-> +static bool ghes_handle_arm_hw_error(struct acpi_hest_generic_data *gdat=
-a,
-> +                                      int sev, bool sync)
->  {
->         struct cper_sec_proc_arm *err =3D acpi_hest_get_payload(gdata);
-> +       int flags =3D sync ? MF_ACTION_REQUIRED : 0;
->         bool queued =3D false;
->         int sec_sev, i;
->         char *p;
-> @@ -538,7 +554,7 @@ static bool ghes_handle_arm_hw_error(struct acpi_hest=
-_generic_data *gdata, int s
->                  * and don't filter out 'corrected' error here.
->                  */
->                 if (is_cache && has_pa) {
-> -                       queued =3D ghes_do_memory_failure(err_info->physi=
-cal_fault_addr, 0);
-> +                       queued =3D ghes_do_memory_failure(err_info->physi=
-cal_fault_addr, flags);
->                         p +=3D err_info->length;
->                         continue;
->                 }
-> @@ -666,6 +682,7 @@ static bool ghes_do_proc(struct ghes *ghes,
->         const guid_t *fru_id =3D &guid_null;
->         char *fru_text =3D "";
->         bool queued =3D false;
-> +       bool sync =3D is_hest_sync_notify(ghes);
+>                 status =3D acpi_os_write_port((acpi_io_address)reg->addre=
+ss,
+> @@ -1067,7 +1086,14 @@ static int cpc_write(int cpu, struct cpc_register_=
+resource *reg_res, u64 val)
+>                 return acpi_os_write_memory((acpi_physical_address)reg->a=
+ddress,
+>                                 val, reg->bit_width);
 >
->         sev =3D ghes_severity(estatus->error_severity);
->         apei_estatus_for_each_section(estatus, gdata) {
-> @@ -683,13 +700,13 @@ static bool ghes_do_proc(struct ghes *ghes,
->                         atomic_notifier_call_chain(&ghes_report_chain, se=
-v, mem_err);
->
->                         arch_apei_report_mem_error(sev, mem_err);
-> -                       queued =3D ghes_handle_memory_failure(gdata, sev)=
-;
-> +                       queued =3D ghes_handle_memory_failure(gdata, sev,=
- sync);
->                 }
->                 else if (guid_equal(sec_type, &CPER_SEC_PCIE)) {
->                         ghes_handle_aer(gdata);
->                 }
->                 else if (guid_equal(sec_type, &CPER_SEC_PROC_ARM)) {
-> -                       queued =3D ghes_handle_arm_hw_error(gdata, sev);
-> +                       queued =3D ghes_handle_arm_hw_error(gdata, sev, s=
-ync);
->                 } else {
->                         void *err =3D acpi_hest_get_payload(gdata);
->
+> -       switch (reg->bit_width) {
+> +       if (reg->space_id =3D=3D ACPI_ADR_SPACE_SYSTEM_MEMORY) {
+> +               size =3D ACCESS_WIDTH_TO_BITS(reg);
+> +               val =3D MASK_VAL(val);
+> +       } else {
+> +               size =3D reg->bit_width;
+> +       }
+> +
+> +       switch (size) {
+>         case 8:
+>                 writeb_relaxed(val, vaddr);
+>                 break;
 > --
-> 2.39.3
->
