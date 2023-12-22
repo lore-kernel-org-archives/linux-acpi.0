@@ -1,97 +1,102 @@
-Received: from out30-100.freemail.mail.aliyun.com (out30-100.freemail.mail.aliyun.com [115.124.30.100])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.13])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E1BDA31;
-	Fri, 22 Dec 2023 01:07:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R111e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046059;MF=xueshuai@linux.alibaba.com;NM=1;PH=DS;RN=34;SR=0;TI=SMTPD_---0Vyz1YYc_1703207271;
-Received: from 30.240.112.165(mailfrom:xueshuai@linux.alibaba.com fp:SMTPD_---0Vyz1YYc_1703207271)
-          by smtp.aliyun-inc.com;
-          Fri, 22 Dec 2023 09:07:54 +0800
-Message-ID: <f8bff25f-714a-40ab-b450-5dee8d964463@linux.alibaba.com>
-Date: Fri, 22 Dec 2023 09:07:50 +0800
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D196E18038;
+	Fri, 22 Dec 2023 12:46:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="JaGVH2zl"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1703249179; x=1734785179;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:content-transfer-encoding:in-reply-to;
+  bh=79KGKvfI99h6FsUQLnzddH+/22c8KQjG2/EbM0CWaFg=;
+  b=JaGVH2zlaSu2zo2OKByQtdScM5q5fIT+aCk5gXKkFqU5nHqJoBaMQ2fE
+   YR3LT9qknOaBK69s1r6+1wHIXjmgKf7UTj5Ip6EBgFcHs4jHSaSEP7alo
+   w5lCvshrRgb5MLUL+zyUzEm3TjxrRzRUVub3t3Ja9vjlbrV1NpqcYcGFq
+   AcFUtHEkauf8cmFdkqF35vcQBNpjUrnYpN2QUOPIay4ojFbYzE83NPpiE
+   wMZW1fHoGvrBHeeefg3/wJZeNLAbH3xRHnSarSKN0r3m0uZ1dYs/FFZle
+   EeYJlkyvlkbcUokdwaadxWBBw/3DPh94PFIEJlPlTdhm+6z8ADA+GJSu5
+   A==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10931"; a="3197001"
+X-IronPort-AV: E=Sophos;i="6.04,296,1695711600"; 
+   d="scan'208";a="3197001"
+Received: from orsmga003.jf.intel.com ([10.7.209.27])
+  by orvoesa105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Dec 2023 04:46:18 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10931"; a="726778691"
+X-IronPort-AV: E=Sophos;i="6.04,296,1695711600"; 
+   d="scan'208";a="726778691"
+Received: from smile.fi.intel.com ([10.237.72.54])
+  by orsmga003.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Dec 2023 04:46:13 -0800
+Received: from andy by smile.fi.intel.com with local (Exim 4.97)
+	(envelope-from <andriy.shevchenko@intel.com>)
+	id 1rGeuo-0000000895l-03PO;
+	Fri, 22 Dec 2023 14:46:10 +0200
+Date: Fri, 22 Dec 2023 14:46:09 +0200
+From: Andy Shevchenko <andriy.shevchenko@intel.com>
+To: Raul Rangel <rrangel@chromium.org>
+Cc: Mark Hasemeyer <markhas@chromium.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
+	Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
+	Tzung-Bi Shih <tzungbi@kernel.org>,
+	Konrad Dybcio <konrad.dybcio@linaro.org>,
+	Rob Herring <robh@kernel.org>, Sudeep Holla <sudeep.holla@arm.com>,
+	Daniel Scally <djrscally@gmail.com>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Len Brown <lenb@kernel.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	devicetree@vger.kernel.org, linux-acpi@vger.kernel.org
+Subject: Re: [PATCH v2 20/22] device property: Modify fwnode irq_get() to use
+ resource
+Message-ID: <ZYWFEZNPaLASir-y@smile.fi.intel.com>
+References: <20231220235459.2965548-1-markhas@chromium.org>
+ <20231220165423.v2.20.I38ac58ab04985a404ed6551eb5813fa7841ef410@changeid>
+ <ZYRD9Y3Y_jd1NBs8@smile.fi.intel.com>
+ <CANg-bXDLC_+mxFU+dHyCx1K=HKTwwGw+r__6_++Co2-viTbsgQ@mail.gmail.com>
+ <CAHQZ30BOA7zuRrN-kK5Qw+NYSVydfhJ0gDPr9q-U+7VKXHzG8g@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v10 1/4] ACPI: APEI: set memory failure flags as
- MF_ACTION_REQUIRED on synchronous events
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: bp@alien8.de, wangkefeng.wang@huawei.com, tanxiaofei@huawei.com,
- mawupeng1@huawei.com, tony.luck@intel.com, linmiaohe@huawei.com,
- naoya.horiguchi@nec.com, james.morse@arm.com, gregkh@linuxfoundation.org,
- will@kernel.org, jarkko@kernel.org, linux-acpi@vger.kernel.org,
- linux-mm@kvack.org, linux-kernel@vger.kernel.org, akpm@linux-foundation.org,
- linux-edac@vger.kernel.org, acpica-devel@lists.linuxfoundation.org,
- stable@vger.kernel.org, x86@kernel.org, justin.he@arm.com, ardb@kernel.org,
- ying.huang@intel.com, ashish.kalra@amd.com, baolin.wang@linux.alibaba.com,
- tglx@linutronix.de, mingo@redhat.com, dave.hansen@linux.intel.com,
- lenb@kernel.org, hpa@zytor.com, robert.moore@intel.com, lvying6@huawei.com,
- xiexiuqi@huawei.com, zhuo.song@linux.alibaba.com
-References: <20221027042445.60108-1-xueshuai@linux.alibaba.com>
- <20231218064521.37324-2-xueshuai@linux.alibaba.com>
- <CAJZ5v0hnKP9S+5PfuO1EzvpSdHM09s0HidGjfinf491xkdop3g@mail.gmail.com>
-Content-Language: en-US
-From: Shuai Xue <xueshuai@linux.alibaba.com>
-In-Reply-To: <CAJZ5v0hnKP9S+5PfuO1EzvpSdHM09s0HidGjfinf491xkdop3g@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAHQZ30BOA7zuRrN-kK5Qw+NYSVydfhJ0gDPr9q-U+7VKXHzG8g@mail.gmail.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 
-
-
-On 2023/12/21 21:55, Rafael J. Wysocki wrote:
-> On Mon, Dec 18, 2023 at 7:45 AM Shuai Xue <xueshuai@linux.alibaba.com> wrote:
->>
->> There are two major types of uncorrected recoverable (UCR) errors :
->>
->> - Synchronous error: The error is detected and raised at the point of the
->>   consumption in the execution flow, e.g. when a CPU tries to access
->>   a poisoned cache line. The CPU will take a synchronous error exception
->>   such as Synchronous External Abort (SEA) on Arm64 and Machine Check
->>   Exception (MCE) on X86. OS requires to take action (for example, offline
->>   failure page/kill failure thread) to recover this uncorrectable error.
->>
->> - Asynchronous error: The error is detected out of processor execution
->>   context, e.g. when an error is detected by a background scrubber. Some data
->>   in the memory are corrupted. But the data have not been consumed. OS is
->>   optional to take action to recover this uncorrectable error.
->>
->> When APEI firmware first is enabled, a platform may describe one error
->> source for the handling of synchronous errors (e.g. MCE or SEA notification
->> ), or for handling asynchronous errors (e.g. SCI or External Interrupt
->> notification). In other words, we can distinguish synchronous errors by
->> APEI notification. For synchronous errors, kernel will kill the current
->> process which accessing the poisoned page by sending SIGBUS with
->> BUS_MCEERR_AR. In addition, for asynchronous errors, kernel will notify the
->> process who owns the poisoned page by sending SIGBUS with BUS_MCEERR_AO in
->> early kill mode. However, the GHES driver always sets mf_flags to 0 so that
->> all synchronous errors are handled as asynchronous errors in memory failure.
->>
->> To this end, set memory failure flags as MF_ACTION_REQUIRED on synchronous
->> events.
->>
->> Signed-off-by: Shuai Xue <xueshuai@linux.alibaba.com>
->> Tested-by: Ma Wupeng <mawupeng1@huawei.com>
->> Reviewed-by: Kefeng Wang <wangkefeng.wang@huawei.com>
->> Reviewed-by: Xiaofei Tan <tanxiaofei@huawei.com>
->> Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
->> Reviewed-by: James Morse <james.morse@arm.com>
+On Thu, Dec 21, 2023 at 04:47:59PM -0700, Raul Rangel wrote:
+> On Thu, Dec 21, 2023 at 4:46 PM Mark Hasemeyer <markhas@chromium.org> wrote:
 > 
-> Applied as 6.8 material.
+> > > > -int fwnode_irq_get(const struct fwnode_handle *fwnode, unsigned int
+> > index)
+> > > > +int fwnode_irq_get_resource(const struct fwnode_handle *fwnode,
+> > > > +                         unsigned int index, struct resource *r)
+> > >
+> > > It's perfectly fine to replace ) by , on the previous line, no need
+> > > to make it shorter.
+> >
+> > That puts the line at 115 chars? checkpatch.pl allows a maximum line
+> > length of 100. I can bump the 'index' argument up a line and keep it
+> > to a length of 95?
 > 
-> The other patches in the series still need to receive tags from the
-> APEI designated reviewers (as per MAINTAINERS).
-> 
-> Thanks!
-> 
+> clang-format should do the right thing.
 
-Thank you :)
+Sorry, but no. It has some interesting results sometimes.
+Like any other tool it has to be used with caution and
+common sense. If it works in the particular case, fine.
 
-I will wait more feedback of other patches from MAINTAINERS.
+-- 
+With Best Regards,
+Andy Shevchenko
 
-Cheers,
-Shuai
+
