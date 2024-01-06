@@ -1,67 +1,59 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.10])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.11])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62CC07469;
-	Sat,  6 Jan 2024 14:05:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFF2D79D0;
+	Sat,  6 Jan 2024 14:49:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="WnhsEeM4"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="RNb9v6Lz"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1704549955; x=1736085955;
+  t=1704552542; x=1736088542;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=b8S9YQ723Vakq/AypdH+EFs2g1D+6lWqicTwgFrXQVY=;
-  b=WnhsEeM47w4acjUoTE0d+WugJ3tUhpSkBWxmi66OWMQ3eGckmWG26yda
-   n9AU4MOEs2fm3QLE+Y4iw1LVS7fgPhDocTbKK5w0z+UxRSuB9fgenqrz/
-   kRRz/rq/J0A+X//rFleXgYrMzGXKzoqXor3nIKJpPjUNyt/ECWEAEtygf
-   YrCxcm/Q13p21vH37Ft+f9G7JddjO5+RWOIiBDUbPWXGMhY/JuEl4vlpU
-   ppOToTOxeVhNkxdd6zxxmVYSBzp1nwtvw9LzXn3cIWL2xVQlnWyBeVJcq
-   mb1HWSsxucJ6hsN90yQNA6kazJKzNyayxKuGe9XAshKExeCiPDrwDHRWf
+  bh=WIkTRh0rEAEx1IV0OlVa7qZ0mU0jqtNw0XlETmXqXN0=;
+  b=RNb9v6LzKEpP0A69mh3ufv/817AoxDJKJyF7rJfCO66fBC1I4Wh3vNFF
+   nrZdzMJercZARDUKPMw7B+QgLjWKfINnT1uSCRTwFVE40ru8VowRBNsFx
+   X9KO87xSyCfKM4wmBZ4MEuMS7G4xgSbAw0mdbEnBvcjmdPFi1TAZirnKN
+   KxfI5vUfsUK9OH0LS0I1pwW/7zp1UxWbOMazolqRnL8wsYRgHGVtU3OwD
+   E379KlzISUNDIFgXwDAMwwyuqh2wWfgD5lWfC6pGGhqiFQd6s8bpZF2oB
+   PAnDtNWyg3xLEuyC/uLVAv/AxmlZumNFiJ5GuUryn82LqBXF571j5/dnc
    Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10945"; a="5025338"
+X-IronPort-AV: E=McAfee;i="6600,9927,10945"; a="4417952"
 X-IronPort-AV: E=Sophos;i="6.04,337,1695711600"; 
-   d="scan'208";a="5025338"
-Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by fmvoesa104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Jan 2024 06:05:54 -0800
+   d="scan'208";a="4417952"
+Received: from fmsmga007.fm.intel.com ([10.253.24.52])
+  by orvoesa103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Jan 2024 06:49:01 -0800
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10945"; a="1112336317"
+X-IronPort-AV: E=McAfee;i="6600,9927,10945"; a="784453178"
 X-IronPort-AV: E=Sophos;i="6.04,337,1695711600"; 
-   d="scan'208";a="1112336317"
+   d="scan'208";a="784453178"
 Received: from smile.fi.intel.com ([10.237.72.54])
-  by fmsmga005.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Jan 2024 06:05:49 -0800
+  by fmsmga007.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Jan 2024 06:48:58 -0800
 Received: from andy by smile.fi.intel.com with local (Exim 4.97)
 	(envelope-from <andriy.shevchenko@intel.com>)
-	id 1rM7J4-0000000BvKX-1CLt;
-	Sat, 06 Jan 2024 16:05:46 +0200
-Date: Sat, 6 Jan 2024 16:05:46 +0200
+	id 1rM7yp-0000000Bvtd-16vY;
+	Sat, 06 Jan 2024 16:48:55 +0200
+Date: Sat, 6 Jan 2024 16:48:54 +0200
 From: Andy Shevchenko <andriy.shevchenko@intel.com>
 To: Mark Hasemeyer <markhas@chromium.org>
 Cc: LKML <linux-kernel@vger.kernel.org>,
-	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
-	Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
-	Rob Herring <robh@kernel.org>,
-	Konrad Dybcio <konrad.dybcio@linaro.org>,
 	Sudeep Holla <sudeep.holla@arm.com>,
+	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
+	Rob Herring <robh@kernel.org>,
+	Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
+	Konrad Dybcio <konrad.dybcio@linaro.org>,
 	Raul Rangel <rrangel@chromium.org>,
 	Tzung-Bi Shih <tzungbi@kernel.org>,
-	Daniel Scally <djrscally@gmail.com>,
-	Frank Rowand <frowand.list@gmail.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Len Brown <lenb@kernel.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	devicetree@vger.kernel.org, linux-acpi@vger.kernel.org
-Subject: Re: [PATCH v3 21/24] device property: Modify fwnode irq_get() to use
+	Mika Westerberg <mika.westerberg@linux.intel.com>,
+	Wolfram Sang <wsa@kernel.org>, linux-acpi@vger.kernel.org,
+	linux-i2c@vger.kernel.org
+Subject: Re: [PATCH v4 03/24] i2c: acpi: Modify i2c_acpi_get_irq() to use
  resource
-Message-ID: <ZZleOi6-ekoTL-Jk@smile.fi.intel.com>
-References: <20231226192149.1830592-1-markhas@chromium.org>
- <20231226122113.v3.21.I38ac58ab04985a404ed6551eb5813fa7841ef410@changeid>
- <ZYxdwrJw7_JudQXB@smile.fi.intel.com>
- <CANg-bXBwWXaJWv9gMtjYvRBnOaP3E8U1nh5-ScWOoyRayzn7Zw@mail.gmail.com>
+Message-ID: <ZZloVhod_hbhDTGP@smile.fi.intel.com>
+References: <20240102210820.2604667-1-markhas@chromium.org>
+ <20240102140734.v4.3.Ib65096357993ff602e7dd0000dd59a36571c48d8@changeid>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -70,43 +62,57 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CANg-bXBwWXaJWv9gMtjYvRBnOaP3E8U1nh5-ScWOoyRayzn7Zw@mail.gmail.com>
+In-Reply-To: <20240102140734.v4.3.Ib65096357993ff602e7dd0000dd59a36571c48d8@changeid>
 Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 
-On Wed, Dec 27, 2023 at 12:09:19PM -0700, Mark Hasemeyer wrote:
-> > A side note: in all files where you use ioport.h check if you actually included it.
-
-...
-
-> > > -#include <linux/types.h>
-> > > -#include <linux/list.h>
-> > >  #include <linux/bits.h>
-> > >  #include <linux/err.h>
-> > > +#include <linux/ioport.h>
-> > > +#include <linux/list.h>
-> > > +#include <linux/types.h>
-> >
-> > Fine, but no. This file is still not using the iopoll.h.
-> > See the forward declarations below? It should be there.
-> >
-> > >  struct fwnode_operations;
-> > >  struct device;
-
-...
-
-> > > --- a/include/linux/property.h
-> > > +++ b/include/linux/property.h
-> >
-> > Same comment(s) here.
+On Tue, Jan 02, 2024 at 02:07:27PM -0700, Mark Hasemeyer wrote:
+> The i2c_acpi_irq_context structure provides redundant information that
+> can be provided with struct resource.
 > 
-> I don't fully follow. Are you suggesting adding an explicit 'struct
-> resource' declaration as opposed to including ioport.h?
+> Refactor i2c_acpi_get_irq() to use struct resource instead of struct
+> i2c_acpi_irq_context.
 
-Yes.
+...
 
-> If so, why? To reduce scope?
+>  	ret = acpi_dev_get_resources(adev, &resource_list,
+> -				     i2c_acpi_add_irq_resource, &irq_ctx);
+> +				     i2c_acpi_add_irq_resource, r);
 
-Build time, better granularity, less include hellness.
+Up to you, but you can make it a single line.
+
+	ret = acpi_dev_get_resources(adev, &resource_list, i2c_acpi_add_irq_resource, r);
+
+>  	if (ret < 0)
+>  		return ret;
+
+...
+
+> +++ b/drivers/i2c/i2c-core-base.c
+
+> +			struct resource r = {};
+
+Needs ioport.h.
+
+...
+
+> +			irq = i2c_acpi_get_irq(client, &r);
+> +			if (r.flags & IORESOURCE_IRQ_WAKECAPABLE)
+
+Ditto.
+
+>  				client->flags |= I2C_CLIENT_WAKE;
+>  		}
+
+...
+
+> +++ b/drivers/i2c/i2c-core.h
+
+> +int i2c_acpi_get_irq(struct i2c_client *client, struct resource *r);
+
+> +static inline int i2c_acpi_get_irq(struct i2c_client *client, struct resource *r)
+
+Needs a forward declaration (besides the inclusion block is a total mess
+in this file).
 
 -- 
 With Best Regards,
