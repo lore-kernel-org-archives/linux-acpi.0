@@ -1,120 +1,103 @@
-Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.31])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qv1-f42.google.com (mail-qv1-f42.google.com [209.85.219.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1B3F8C1D;
-	Sat,  6 Jan 2024 15:25:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73EB0101DD;
+	Sun,  7 Jan 2024 02:13:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="FcqwQi6q"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1704554708; x=1736090708;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=uchMTwyNWsn3FIvlNecAOL81jzA+hn5613XxiosJYxA=;
-  b=FcqwQi6qJCfs5GHPfPhXC+WJ+sKjqI+q5qAQ7Mib3nySa+1LbaFWUK0J
-   2E3wFEO3FtkSWyBLEjtd9uTZRg9y7XR01+IRWD2NOfCvnPVTL5h/bezXF
-   yGxFZXsoxnakequCBcrUNnTiokUNHF+iyD0n+jb57aft9Mx4mNYkzftkz
-   yeFTQYj3aLhyIvZWlcGxw4xB7HpH048D7lqhRSzzv1q/pKYe6CAQVwZ6Z
-   AzYV+gaQGJAiB06UnQlZklDV0oRkilrK3tIA+Mi0NvdCzuhTsE4a+RWkt
-   ilUsw+ZiDLgWjBA86QZRPNykmBNsj4S6UQsNZyySbYWFGWU1Ky2/Hj7uh
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10945"; a="461961914"
-X-IronPort-AV: E=Sophos;i="6.04,337,1695711600"; 
-   d="scan'208";a="461961914"
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Jan 2024 07:25:08 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10945"; a="871478208"
-X-IronPort-AV: E=Sophos;i="6.04,337,1695711600"; 
-   d="scan'208";a="871478208"
-Received: from smile.fi.intel.com ([10.237.72.54])
-  by FMSMGA003.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Jan 2024 07:25:03 -0800
-Received: from andy by smile.fi.intel.com with local (Exim 4.97)
-	(envelope-from <andriy.shevchenko@linux.intel.com>)
-	id 1rM8Rz-0000000BwHY-1tMh;
-	Sat, 06 Jan 2024 17:19:03 +0200
-Date: Sat, 6 Jan 2024 17:19:03 +0200
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Jonathan Cameron <jic23@kernel.org>
-Cc: linux-iio@vger.kernel.org, "Rafael J . Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Nuno =?iso-8859-1?Q?S=E1?= <nuno.sa@analog.com>,
-	Cosmin Tanislav <cosmin.tanislav@analog.com>,
-	Mihail Chindris <mihail.chindris@analog.com>,
-	Rasmus Villemoes <linux@rasmusvillemoes.dk>,
-	Tomislav Denis <tomislav.denis@avl.com>,
-	Marek Vasut <marex@denx.de>,
-	Olivier Moysan <olivier.moysan@foss.st.com>,
-	Fabrice Gasnier <fabrice.gasnier@foss.st.com>,
-	Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>,
-	Dmitry Baryshkov <dmitry.baryshkov@linaro.org>,
-	Marijn Suijten <marijn.suijten@somainline.org>,
-	Marius Cristea <marius.cristea@microchip.com>,
-	Ibrahim Tilki <Ibrahim.Tilki@analog.com>,
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Subject: Re: [RFC PATCH 00/13] device property / IIO: Use cleanup.h magic for
- fwnode_handle_put() handling.
-Message-ID: <ZZlvZ_9_72nyKEU1@smile.fi.intel.com>
-References: <20240101172611.694830-1-jic23@kernel.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="apvNioIi"
+Received: by mail-qv1-f42.google.com with SMTP id 6a1803df08f44-68009cb4669so8006956d6.1;
+        Sat, 06 Jan 2024 18:13:34 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1704593613; x=1705198413; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=0Z6x4FnsNbhe0lWnxf/CCjJTz+ocztnYQV+3F3SJpB8=;
+        b=apvNioIii0BOYMbjEtaBL+z82EiwLi5GnWyKe4ugnYC1l+Svayu+may+6JtxrsnyLM
+         rg3gV6CAc9AiKnMXYTLCppUHV+9zl7q9TPFAF+1cs8x4+6rmIz3xQioRhcegFRXaXH/e
+         t4hsWxHGwpq12dPwPfqfiDJS+dtyz/CnWNWE9KFSfH9ckQY33ZHrtLvDlfxZwJsqzm/+
+         QkuL9Pw3bJbKjdJ1AcMH9wQ8Aucu5EDaBvf2ERvlN6qxhbcZ2ZsL8CEYussCESGdWkoP
+         Tp84oFoXKwKKwMmm0bm1Ax70IZp55HbfmufWKVNXzjVtD70GEuGffSPr3IhjQgLhPZeE
+         3YTw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1704593613; x=1705198413;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=0Z6x4FnsNbhe0lWnxf/CCjJTz+ocztnYQV+3F3SJpB8=;
+        b=N/WnraCFgWSVVSaHqQPF3PqAQtC++rv9uj5y+yua3hvmZws7dCdk72jwuUdSn//MFq
+         v8N1vsKsjf0ei71QrucSpbdF1Xqx0Tm1Jwh683K7DaAZdRaKdDHmr9IzFhwBQbDy38Wu
+         TCmrgs67DKqTn6Q6xZ9JgLorEVuiQXpPYUvaQE27VHytDAK0sk6f9YC7XA/LMm50wosN
+         1q4MAF2KKhoaSztqykQoevTshJFCKAckhnFfb0QlSRdZ3Fdda6xcgpUX10IUOksuopTJ
+         xwJ+DkU/gUAZhdshoKR50FWh3at9qnx+81tcor2JDLux+NOPaqmKz3ALwNwk1vwS6OdX
+         /Mzg==
+X-Gm-Message-State: AOJu0Yx4x46D11hwwyXRM/7uXtElq4LNXLVwgR2w5GqMvz4nmodH9MXc
+	nAqZkGGugln3HNNVIPqfF68=
+X-Google-Smtp-Source: AGHT+IG+3gpbyy5Rr6t26K0+FkAI1ImeNZYdD1pLE0WX+5Hw5LBTnlMADrivVQlorCF6HK50YmzNGw==
+X-Received: by 2002:a05:6214:528e:b0:680:c5ef:b170 with SMTP id kj14-20020a056214528e00b00680c5efb170mr2314365qvb.58.1704593613194;
+        Sat, 06 Jan 2024 18:13:33 -0800 (PST)
+Received: from fedora.. (c-73-4-251-179.hsd1.ct.comcast.net. [73.4.251.179])
+        by smtp.gmail.com with ESMTPSA id a17-20020a0cefd1000000b0067f70c0dcd9sm1744870qvt.64.2024.01.06.18.13.31
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 06 Jan 2024 18:13:32 -0800 (PST)
+From: Ben Mayo <benny1091@gmail.com>
+To: rafael@kernel.org,
+	lenb@kernel.org,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: Ben Mayo <benny1091@gmail.com>
+Subject: [PATCH] acpi/drivers: add DMI exception for ASUS Vivobook E1504GA and E1504GAB to resource.c
+Date: Sat,  6 Jan 2024 21:13:23 -0500
+Message-ID: <20240107021322.7709-2-benny1091@gmail.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240101172611.694830-1-jic23@kernel.org>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+Content-Transfer-Encoding: 8bit
 
-On Mon, Jan 01, 2024 at 05:25:58PM +0000, Jonathan Cameron wrote:
-> From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-> 
-> RFC mainly because it's untested. I have none of the relevant hardware and
-> haven't yet emulated the firmware descriptions to test this.
-> I have tested the device tree only version:
-> https://lore.kernel.org/linux-iio/20231217184648.185236-1-jic23@kernel.org/
-> which is very similar.
-> 
-> Failing to release the references on early exit from loops over child nodes
-> and similar are a fairly common source of bugs. The need to explicitly
-> release the references via fwnode_handle_put() also complicate the code.
-> 
-> The first patch enables
-> 
-> 	struct fwnode_handle *child __free(fwnode_handle) = NULL;
-> 
-> 	device_for_each_child_node(dev, child) {
-> 		if (err)
-> 			/*
-> 			 * Previously needed a fwnode_handle_put() here,
-> 			 * will now be called automatically as well leave
-> 			 * the scope within which the cleanup is registered
-> 			 */
-> 			return err;
-> 	}
-> 
-> /*
->  * fwnode_handle_put() no automatically called here - but child == NULL so
->  * that call is a noop
->  */
-> }
-> 
-> As can be seen by the examples from IIO that follow this can save
-> a reasonable amount of complexity and boiler plate code, often enabling
-> additional cleanups in related code such as use of
-> return dev_err_probe().
+Asus Vivobook E1504GA and E1504GAB notebooks are affected by bug #216158
+(DSDT specifies the kbd IRQ as level active-low and using the override
+changes this to rising edge, stopping the keyboard from working).
+Users of these notebooks do not have a working keyboard unless they add
+their DMI information to the struct irq1_level_low_skip_override array
+in resource.c and compile a custom kernel. This patch will add support
+for these computers to the linux kernel without requiring the end-user
+to recompile the kernel.
 
-Important comment on the first patch, otherwise LGTM.
+Signed-off-by: Ben Mayo <benny1091@gmail.com>
+---
+ drivers/acpi/resource.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
+diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+index 9bd9f79cd409..eb34d201b65f 100644
+--- a/drivers/acpi/resource.c
++++ b/drivers/acpi/resource.c
+@@ -482,6 +482,20 @@ static const struct dmi_system_id irq1_level_low_skip_override[] = {
+ 			DMI_MATCH(DMI_BOARD_NAME, "B2502CBA"),
+ 		},
+ 	},
++	{
++		/* Asus Vivobook E1504GA */
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
++			DMI_MATCH(DMI_BOARD_NAME, "E1504GA"),
++		},
++	},
++	{
++		/* Asus Vivobook E1504GAB */
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
++			DMI_MATCH(DMI_BOARD_NAME, "E1504GAB"),
++		},
++	},
+ 	{
+ 		/* LG Electronics 17U70P */
+ 		.matches = {
 -- 
-With Best Regards,
-Andy Shevchenko
-
+2.43.0
 
