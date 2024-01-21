@@ -1,108 +1,143 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.120])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9A6A364DE;
-	Sun, 21 Jan 2024 12:56:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.55.52.120
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70A2C34550;
+	Sun, 21 Jan 2024 16:39:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705841821; cv=none; b=GPrq/KFJbFbbdMNG8TYcexfDpw4cLn2Nih4hKqbm1b4ppjwLAXj3uh1EmPM61s9dv50ObfroPGv1zG43AGl4yUOXPmi9xBpLnmi4GuKiwdVhBuwsjoQOe/RgJVg5NE7jRpP4tODFCeMXmXLeeZu8+s+aedD43OLHMaxhJUpmPgA=
+	t=1705855140; cv=none; b=Z203qOX4aY3YTCpvFpmJXiKg/7m+bXi6W7Hhz5dCb8pCZSJycaF9Jk86gZXzLVHUJ8oXiBF1QWeMT88wEHfOu/BQQS+HWfWy6bDm4YncbISOxLl+CZi1qc/+Ikug4VkxQGYx9hRUi5xvWhG+IZyD9lGgfuYCRX7WNCIWi6kvaC0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705841821; c=relaxed/simple;
-	bh=6eY2EsvgLtd1tdx27pT2jiesQjvpacfStJLRMuLR5HE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=EbI2R762K1RUJxnoYElRP+FWtTbAPvEi6ph7jIaRWI9APnxYTBnDdpm/zz/yrH0/ac2CjDrU1yRIUxt0mVLZSZ5IwwrIe/ZppPk52kEmKt4J86HbtOag/lzvwMCV4m9UaqxLGYpzubDka5ZWrZ4jew/xuNtQ7BeQ721Jlhgoxmo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=gOkdsABu; arc=none smtp.client-ip=192.55.52.120
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1705855140; c=relaxed/simple;
+	bh=IveSG9w2cySCDzTVB6sh7mkjc06OisQW+mSDCMXOLTQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=dkiYzMSJVVm1raekvPiJILgnsPPT504uY5bO8C83uM/Xs3LApvaLUP4N9ld7nz+gUvGuikrRLKr74buYPETMxYz0/FmTqK8PKDPFba7BmwPlrLMvDTRNT7goD/NQxG7R/j6IEiUFFDaGwIhPJPuCYZgLRc+mSIYEnQ8DB61mOKM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CpBc+JVJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="gOkdsABu"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1705841819; x=1737377819;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=6eY2EsvgLtd1tdx27pT2jiesQjvpacfStJLRMuLR5HE=;
-  b=gOkdsABujlYpPKXOsyMhkdgfyPtnEwyVeRfaflS52qbKavpD8iVKljO7
-   iqKuitkzX4ulMrsaSnjX4S+/ZOSDCeRBYiEWXUJCkB6XwVv3vCOqJamZj
-   kvwHg0uvL79KSdq7idHCATzrMCR/RrovZcOaWiXkvvVcZoocAg5twjwPW
-   usgzMH7RxJMw7QjzjbJ30niSzHqfapSBMJ93ARvtQ2Km134XcwUJVLnr6
-   gPekFGYZnnqtx89co3EK+LOzg7JP7xY3U8Dk10bKNNgFtqTT2AXKp55oj
-   qfuNKXOhT8DbBT94M3rLbuBPI1PLPBoGX/OrHNCkqviaxAx3mvuV4HzCJ
-   w==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10959"; a="399901697"
-X-IronPort-AV: E=Sophos;i="6.05,209,1701158400"; 
-   d="scan'208";a="399901697"
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Jan 2024 04:56:58 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10959"; a="904591545"
-X-IronPort-AV: E=Sophos;i="6.05,209,1701158400"; 
-   d="scan'208";a="904591545"
-Received: from smile.fi.intel.com ([10.237.72.54])
-  by fmsmga002.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Jan 2024 04:56:53 -0800
-Received: from andy by smile.fi.intel.com with local (Exim 4.97)
-	(envelope-from <andriy.shevchenko@linux.intel.com>)
-	id 1rRWvW-0000000FcFt-2GTK;
-	Sun, 21 Jan 2024 14:27:50 +0200
-Date: Sun, 21 Jan 2024 14:27:50 +0200
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Jonathan Cameron <jic23@kernel.org>
-Cc: linux-iio@vger.kernel.org, "Rafael J . Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Nuno =?iso-8859-1?Q?S=E1?= <nuno.sa@analog.com>,
-	Cosmin Tanislav <cosmin.tanislav@analog.com>,
-	Mihail Chindris <mihail.chindris@analog.com>,
-	Rasmus Villemoes <linux@rasmusvillemoes.dk>,
-	Tomislav Denis <tomislav.denis@avl.com>,
-	Marek Vasut <marex@denx.de>,
-	Olivier Moysan <olivier.moysan@foss.st.com>,
-	Fabrice Gasnier <fabrice.gasnier@foss.st.com>,
-	Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>,
-	Dmitry Baryshkov <dmitry.baryshkov@linaro.org>,
-	Marijn Suijten <marijn.suijten@somainline.org>,
-	Marius Cristea <marius.cristea@microchip.com>,
-	Ibrahim Tilki <Ibrahim.Tilki@analog.com>,
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Subject: Re: [PATCH 00/13] device property / IIO: Use cleanup.h magic for
- fwnode_handle_put() handling.
-Message-ID: <Za0NxrgBb0ve233b@smile.fi.intel.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CpBc+JVJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70280C43390;
+	Sun, 21 Jan 2024 16:38:42 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1705855140;
+	bh=IveSG9w2cySCDzTVB6sh7mkjc06OisQW+mSDCMXOLTQ=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=CpBc+JVJSlhBQ++UpKAxuK3aWFzgongPgBPheyLZpm0Gr/lmsMP8smI/rWHnFWln9
+	 gXP5B35l3xiIIG3sv7Ac+ANutHxTX92wBLzYBT0OoTwg7PgACeylFVF4ibGglWWSpT
+	 teOS5olEAfx/CAtYQ6+NAh2YLpzYz0EN63TorxqPHoNxPbil06SylFvChS1dSAIkWy
+	 lM9NGtBv17BQbIuf6sIOzXHspzC8iHQ0Quu+Idi5puUAonoboi+CGLBWd0z85MUSKH
+	 6Rt1+8M7aMzfqsfUmu7bWxbc5AQvtGkrtcre2zUY/gsLW0SBkiNEDx+7uOA5dCzdvO
+	 Rph/YbH0FRnqQ==
+Date: Sun, 21 Jan 2024 16:38:29 +0000
+From: Jonathan Cameron <jic23@kernel.org>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: linux-iio@vger.kernel.org, "Rafael J . Wysocki" <rafael@kernel.org>, Len
+ Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Greg Kroah-Hartman
+ <gregkh@linuxfoundation.org>, Daniel Scally <djrscally@gmail.com>, Heikki
+ Krogerus <heikki.krogerus@linux.intel.com>, Sakari Ailus
+ <sakari.ailus@linux.intel.com>, Nuno =?UTF-8?B?U8Oh?= <nuno.sa@analog.com>,
+ Cosmin Tanislav <cosmin.tanislav@analog.com>, Mihail Chindris
+ <mihail.chindris@analog.com>, Rasmus Villemoes <linux@rasmusvillemoes.dk>,
+ Tomislav Denis <tomislav.denis@avl.com>, Marek Vasut <marex@denx.de>,
+ Olivier Moysan <olivier.moysan@foss.st.com>, Fabrice Gasnier
+ <fabrice.gasnier@foss.st.com>, Lad Prabhakar
+ <prabhakar.mahadev-lad.rj@bp.renesas.com>, Dmitry Baryshkov
+ <dmitry.baryshkov@linaro.org>, Marijn Suijten
+ <marijn.suijten@somainline.org>, Marius Cristea
+ <marius.cristea@microchip.com>, Ibrahim Tilki <Ibrahim.Tilki@analog.com>,
+ Jonathan Cameron <Jonathan.Cameron@huawei.com>, Rob Herring
+ <robh@kernel.org>
+Subject: Re: [PATCH 01/13] device property: Add cleanup.h based
+ fwnode_handle_put() scope based cleanup.
+Message-ID: <20240121163714.3670498f@jic23-huawei>
+In-Reply-To: <Za0N_5Hp2s-uwOoM@smile.fi.intel.com>
 References: <20240114172009.179893-1-jic23@kernel.org>
+	<20240114172009.179893-2-jic23@kernel.org>
+	<Za0N_5Hp2s-uwOoM@smile.fi.intel.com>
+X-Mailer: Claws Mail 4.2.0 (GTK 3.24.40; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240114172009.179893-1-jic23@kernel.org>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-On Sun, Jan 14, 2024 at 05:19:56PM +0000, Jonathan Cameron wrote:
-> From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+On Sun, 21 Jan 2024 14:28:47 +0200
+Andy Shevchenko <andriy.shevchenko@linux.intel.com> wrote:
+
+> On Sun, Jan 14, 2024 at 05:19:57PM +0000, Jonathan Cameron wrote:
+> > From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+> > 
+> > This allows the following
+> > 
+> > struct fwnode_handle *child __free(kfree) = NULL;
+
+That's garbage.  Should be __free(fwnode_handle)!
+
+> > 
+> > device_for_each_child_node(dev, child) {
+> > 	if (false)
+> > 		return -EINVAL;
+> > }
+> > 
+> > without the fwnode_handle_put() call which tends to complicate early
+> > exits from such loops and lead to resource leak bugs.
+> > 
+> > Can also be used where the fwnode_handle was obtained from a call
+> > such as fwnode_find_reference() as it will safely do nothing if
+> > IS_ERR() is true.  
 > 
-> Chances since RFC.
-> - Add if (!IS_ERR_OR_NULL(_T)) check as suggested by Andy Shevchenko.
->   This may allow the compiler to optimize cases where it can tell that
->   this check will fail rather than calling into fwnode_handle_put().
+> ...
+> 
+> >  struct fwnode_handle *fwnode_handle_get(struct fwnode_handle *fwnode);
+> >  void fwnode_handle_put(struct fwnode_handle *fwnode);  
+> 
+> I would add a blank line here
+> 
+> > +DEFINE_FREE(fwnode_handle, struct fwnode_handle *,
+> > +	    if (!IS_ERR_OR_NULL(_T)) fwnode_handle_put(_T))
+> >  
+> >  int fwnode_irq_get(const struct fwnode_handle *fwnode, unsigned int index);
+> >  int fwnode_irq_get_byname(const struct fwnode_handle *fwnode, const char *name);  
+> 
+> With the above,
+> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> 
+Thanks Andy - however..
 
-FWIW, this nuance is mentioned in [1] as:
+The discussion with Rob about the DT equivalent took an interesting turn.
 
-  "Within the macro, this declaration is creating a new function called
-  __free_kfree() that makes a call to kfree() if the passed-in pointer is not
-  NULL. Nobody will ever call that function directly, but the declaration makes
-  it possible to write code like: ..."
+He raised the concern that the __free was not always tightly coupled with the
+equivalent of  device_for_each_child_node() which as per similar
+discussions elsewhere results in:
+a) Potentially wrong ordering if there is other cleanup.h based stuff going on
+   in the same function.
+b) A lack of association between the setup of the free and what it is undoing.
+  (this was the one Rob pointed at).
 
-Not so explicit, but still...
+I proposed two options that here map to
+1) Always drag the declaration next to the device_for_each_child_node()
+   and intentionally don't set it to NULL.
 
-[1]: https://lwn.net/Articles/934679/
+{
+	.... stuff....
 
--- 
-With Best Regards,
-Andy Shevchenko
+	struct fwnode_handle *child __free(fwnode);
+	device_for_each_child_node(dev, child) {
+	}
 
+2) Scoped version of the loops themselves.
 
+#define device_for_each_child_node_scoped(dev, child)				\
+	for (struct fw_node_handle *child __free(fwnode_handle)                 \
+		 = device_get_next_child_node(dev, NULL);                       \
+	    child; child = device_get_next_child_node(dev, child))
+
+So that the child only exists at all in the scope of the loop.
+
+What do you think of the options?
+
+DT thread is here:
+https://lore.kernel.org/linux-iio/20240114165358.119916-1-jic23@kernel.org/T/#t
+
+Jonathan
