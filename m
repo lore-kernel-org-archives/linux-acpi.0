@@ -1,61 +1,76 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.11])
+Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83107364A7;
-	Sun, 21 Jan 2024 12:56:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9A6A364DE;
+	Sun, 21 Jan 2024 12:56:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.55.52.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705841795; cv=none; b=Cb3MaaEoPtbfVpqlGJHUGkmlNQADBg7zKPXde/2srC3lPsKRudSsnZC09h2sTtLQzll8PeUcxATu0lj+TdzAS0zYQKBKx6dnH2uqvLHWZBkMCxNvrifHiMyVOGS4H9PtAnoInQzPcdSUwW5FZpRK5ruNsxlUJhIVV4YgYdIbguo=
+	t=1705841821; cv=none; b=GPrq/KFJbFbbdMNG8TYcexfDpw4cLn2Nih4hKqbm1b4ppjwLAXj3uh1EmPM61s9dv50ObfroPGv1zG43AGl4yUOXPmi9xBpLnmi4GuKiwdVhBuwsjoQOe/RgJVg5NE7jRpP4tODFCeMXmXLeeZu8+s+aedD43OLHMaxhJUpmPgA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705841795; c=relaxed/simple;
-	bh=CU8CVt0gIhATyZrqsZlQzuxnGQAXF7t8casXv8CS7Go=;
+	s=arc-20240116; t=1705841821; c=relaxed/simple;
+	bh=6eY2EsvgLtd1tdx27pT2jiesQjvpacfStJLRMuLR5HE=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RIWSyWUmlgg9eMv2Q1SlplWUuHZwb284NnQ2dYL7MmS1eUJdhqowxizuJVbwHjiJ3CvMGndeEfDJAYPkednsw5piLHl4owncGbg30pHxdNwx8mYmEk4iyyWxexdJ1N2H6fuYULVRlLQlzJCkufu/o1BwZi29Fqs2oVbX0aE2Skg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=JBkIyFi4; arc=none smtp.client-ip=198.175.65.11
+	 Content-Type:Content-Disposition:In-Reply-To; b=EbI2R762K1RUJxnoYElRP+FWtTbAPvEi6ph7jIaRWI9APnxYTBnDdpm/zz/yrH0/ac2CjDrU1yRIUxt0mVLZSZ5IwwrIe/ZppPk52kEmKt4J86HbtOag/lzvwMCV4m9UaqxLGYpzubDka5ZWrZ4jew/xuNtQ7BeQ721Jlhgoxmo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=gOkdsABu; arc=none smtp.client-ip=192.55.52.120
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="JBkIyFi4"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="gOkdsABu"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1705841794; x=1737377794;
+  t=1705841819; x=1737377819;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=CU8CVt0gIhATyZrqsZlQzuxnGQAXF7t8casXv8CS7Go=;
-  b=JBkIyFi4xXgSeiLUFHzyf7qCHYVmNybE3t9VIGiFODsjoVDrvaEuknL6
-   IIym4B6Op/N64Vlv5kRIs8ntkLlKZ+xyEClMBoF55RKx8bwjm1U2bVvXh
-   88lDVcjwLhFnNZz81Da9HmshFsCjycf0hYLXIc8Y9L3+w2KVFs8V2oWgk
-   o3UgeAo5JOm6JfGkpFm+6RvUZ2LEJYXLCzoa07SAFY7rKDgl9R56F2+2X
-   RVCjHM1DE/9N0Y+0Nrkd4h5Uyp+Lu15ctsCUNs5LlQnwHScCt/TZ6V+YJ
-   VS8ejrIG/NZ25G2wrXeKr2IfxkFP7kxTq1kqQeFWc7DRf4op3BgDlxSyn
-   Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10959"; a="7705119"
+  bh=6eY2EsvgLtd1tdx27pT2jiesQjvpacfStJLRMuLR5HE=;
+  b=gOkdsABujlYpPKXOsyMhkdgfyPtnEwyVeRfaflS52qbKavpD8iVKljO7
+   iqKuitkzX4ulMrsaSnjX4S+/ZOSDCeRBYiEWXUJCkB6XwVv3vCOqJamZj
+   kvwHg0uvL79KSdq7idHCATzrMCR/RrovZcOaWiXkvvVcZoocAg5twjwPW
+   usgzMH7RxJMw7QjzjbJ30niSzHqfapSBMJ93ARvtQ2Km134XcwUJVLnr6
+   gPekFGYZnnqtx89co3EK+LOzg7JP7xY3U8Dk10bKNNgFtqTT2AXKp55oj
+   qfuNKXOhT8DbBT94M3rLbuBPI1PLPBoGX/OrHNCkqviaxAx3mvuV4HzCJ
+   w==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10959"; a="399901697"
 X-IronPort-AV: E=Sophos;i="6.05,209,1701158400"; 
-   d="scan'208";a="7705119"
-Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by orvoesa103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Jan 2024 04:56:33 -0800
+   d="scan'208";a="399901697"
+Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Jan 2024 04:56:58 -0800
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10959"; a="1032341043"
+X-IronPort-AV: E=McAfee;i="6600,9927,10959"; a="904591545"
 X-IronPort-AV: E=Sophos;i="6.05,209,1701158400"; 
-   d="scan'208";a="1032341043"
+   d="scan'208";a="904591545"
 Received: from smile.fi.intel.com ([10.237.72.54])
-  by fmsmga006.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Jan 2024 04:56:30 -0800
+  by fmsmga002.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Jan 2024 04:56:53 -0800
 Received: from andy by smile.fi.intel.com with local (Exim 4.97)
 	(envelope-from <andriy.shevchenko@linux.intel.com>)
-	id 1rRXND-0000000Fcqz-0jn9;
-	Sun, 21 Jan 2024 14:56:27 +0200
-Date: Sun, 21 Jan 2024 14:56:26 +0200
+	id 1rRWvW-0000000FcFt-2GTK;
+	Sun, 21 Jan 2024 14:27:50 +0200
+Date: Sun, 21 Jan 2024 14:27:50 +0200
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Mario Limonciello <mario.limonciello@amd.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>,
-	Bartosz Golaszewski <brgl@bgdev.pl>,
-	"open list:PIN CONTROL SUBSYSTEM" <linux-gpio@vger.kernel.org>,
-	open list <linux-kernel@vger.kernel.org>,
-	linux-acpi@vger.kernel.org, stable@vger.kernel.org,
-	George Melikov <mail@gmelikov.ru>
-Subject: Re: [PATCH] gpiolib: acpi: Ignore touchpad wakeup on GPD G1619-04
-Message-ID: <Za0UenM4CweUNZhW@smile.fi.intel.com>
-References: <20240117142942.5924-1-mario.limonciello@amd.com>
+To: Jonathan Cameron <jic23@kernel.org>
+Cc: linux-iio@vger.kernel.org, "Rafael J . Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Nuno =?iso-8859-1?Q?S=E1?= <nuno.sa@analog.com>,
+	Cosmin Tanislav <cosmin.tanislav@analog.com>,
+	Mihail Chindris <mihail.chindris@analog.com>,
+	Rasmus Villemoes <linux@rasmusvillemoes.dk>,
+	Tomislav Denis <tomislav.denis@avl.com>,
+	Marek Vasut <marex@denx.de>,
+	Olivier Moysan <olivier.moysan@foss.st.com>,
+	Fabrice Gasnier <fabrice.gasnier@foss.st.com>,
+	Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>,
+	Dmitry Baryshkov <dmitry.baryshkov@linaro.org>,
+	Marijn Suijten <marijn.suijten@somainline.org>,
+	Marius Cristea <marius.cristea@microchip.com>,
+	Ibrahim Tilki <Ibrahim.Tilki@analog.com>,
+	Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Subject: Re: [PATCH 00/13] device property / IIO: Use cleanup.h magic for
+ fwnode_handle_put() handling.
+Message-ID: <Za0NxrgBb0ve233b@smile.fi.intel.com>
+References: <20240114172009.179893-1-jic23@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -64,15 +79,27 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20240117142942.5924-1-mario.limonciello@amd.com>
+In-Reply-To: <20240114172009.179893-1-jic23@kernel.org>
 Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 
-On Wed, Jan 17, 2024 at 08:29:42AM -0600, Mario Limonciello wrote:
-> Spurious wakeups are reported on the GPD G1619-04 which
-> can be absolved by programming the GPIO to ignore wakeups.
+On Sun, Jan 14, 2024 at 05:19:56PM +0000, Jonathan Cameron wrote:
+> From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+> 
+> Chances since RFC.
+> - Add if (!IS_ERR_OR_NULL(_T)) check as suggested by Andy Shevchenko.
+>   This may allow the compiler to optimize cases where it can tell that
+>   this check will fail rather than calling into fwnode_handle_put().
 
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+FWIW, this nuance is mentioned in [1] as:
 
+  "Within the macro, this declaration is creating a new function called
+  __free_kfree() that makes a call to kfree() if the passed-in pointer is not
+  NULL. Nobody will ever call that function directly, but the declaration makes
+  it possible to write code like: ..."
+
+Not so explicit, but still...
+
+[1]: https://lwn.net/Articles/934679/
 
 -- 
 With Best Regards,
