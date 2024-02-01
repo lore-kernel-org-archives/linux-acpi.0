@@ -1,172 +1,207 @@
-Received: from mail-wm1-f50.google.com (mail-wm1-f50.google.com [209.85.128.50])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49B6315AACB
-	for <linux-acpi@vger.kernel.org>; Thu,  1 Feb 2024 08:39:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B93CE4D9E8;
+	Thu,  1 Feb 2024 11:22:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706776794; cv=none; b=s2gyq/r8TweXyr7ouVVg9edczirR53a0vWerDfw573FE0d8RwP5Ur8yk/8B6vU/Q5Nhr+WZkuA4CwBtqnxP/+Op0AjUulQXJcytZKR572KQyBqLIeZstj5BipX32mSCT5UWp3H6dLZ4dx1T0ynPbQ4YH8S1H9cwEIzdXAy023uc=
+	t=1706786546; cv=none; b=GXCVOG7t3CwUCLMU+7eaQx0aLzlUi321Ysu6B9XHCQ2cqQhwdIrHaS59M4O/NfFKmZIseO/cUBZT3B01j1iybIE1gCMy/4AC3oakDC2oR+iKmAxWwAoE+XjH355z/RZI1GzAZzaQLNgW8erSgaquPbbgMGGdaGN6K6sIizOulyk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706776794; c=relaxed/simple;
-	bh=Y19IbEX3FXAZ7R2Z+dmkGvLzD3cE4MKEu+r+iHhHUaU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=cxh67V/kRFoT/W/Xz+6S/K5+L/bVgBWNTg6iKaviKAlwKG4kdwyFTAfF+KdgBrUv0VUbqzi2D3omItlMmC/HUXphzFqZkTabwhzLAxW9qkOUz6JXFztYaS4hYNqOkhqNVlEuTF42IfoWhVI4UAkYEoWNfw/g8vJcf/KxOve9YrU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=citrix.com; spf=pass smtp.mailfrom=cloud.com; dkim=pass (1024-bit key) header.d=citrix.com header.i=@citrix.com header.b=FTc9W/U0; arc=none smtp.client-ip=209.85.128.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=citrix.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cloud.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=citrix.com header.i=@citrix.com header.b="FTc9W/U0"
-Received: by mail-wm1-f50.google.com with SMTP id 5b1f17b1804b1-40ef6da20feso3123555e9.0
-        for <linux-acpi@vger.kernel.org>; Thu, 01 Feb 2024 00:39:52 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=citrix.com; s=google; t=1706776790; x=1707381590; darn=vger.kernel.org;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=Mmx7Ge44ylq+xRaE54Mmi5lsueMZNlgqIRQYM/UNpUU=;
-        b=FTc9W/U0K6Iz1YQa0AFdLfWmj+AzqhUx3NaSA666dcrUnhZCzPDhZyMpDp6DmkAsHH
-         CXdHxaC4SS3UocOmv6B5DOrLjbGKXDYFzibbitlteovquDPxWfD7JmavCadrXmdKn799
-         mD31YISgaWqEJNW2xjLkBk0EP8lg8cNJHmWTc=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1706776790; x=1707381590;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=Mmx7Ge44ylq+xRaE54Mmi5lsueMZNlgqIRQYM/UNpUU=;
-        b=EnoRAvTV9Jq6xyfRhF8xhi3R+u3JW8mEVKSvs/Jweb7T43/nEO/1HgIA9vcm9DdpdK
-         0eX4vt0Vky7ofSw1qp4XwFf7DvRDi0a27/szT8FalSIrO7yM3s5b8BmEf2ugE842lHE3
-         O2ouGII2L5klUmsJ2UInnJ2gtoGlgHNbbVytKSslpVl/O/+FBBBKdtOZfvuPOG4tHVCs
-         kLrJtqzFgtHqp6cIen7O9aay7O16T7E35I7plE5UMXesaMgrxTMH27InWGpBmwysUXsY
-         KoI2tXjHKIAV+Cq02Hbu+4P86/i8NDi2WxYwHXviBUg9YLcRqTMP4ifi99lH5bm+lkGR
-         Tddg==
-X-Gm-Message-State: AOJu0YzspZ+KjbPg6HGvRC/6Bo16px3qJyp/fbV1Yz+sA+Xk/gE//t5M
-	Pb06xW00UoL+CVcSm+B91gsymbEc3WJbTAr+JPDeGM07d9w++Y+vbDR38fYciZs=
-X-Google-Smtp-Source: AGHT+IGW7bgbJkTrR4Yza/IRXj8QJZwTE7Cr91T4ok2nKqWk8e0wQ2sciL8gpCHIKiRmLekUEHkNew==
-X-Received: by 2002:a05:600c:1c9a:b0:40e:f972:9901 with SMTP id k26-20020a05600c1c9a00b0040ef9729901mr3736599wms.4.1706776790540;
-        Thu, 01 Feb 2024 00:39:50 -0800 (PST)
-X-Forwarded-Encrypted: i=0; AJvYcCXDCVhgfb0o24SN4Wqn/FgnWkJYm9QCYpD/ESYbFl4VjZTFA1lzb2EecVom9k5fEwfP12Y/uppYGzcffTRrzp/icQGv3HjGZpMbEHP1O0bmMpkENMmh/i5WpK5zIezuae0Uf4YZJFj/GIIpi8YgFkSb+ve1+U2VK0dRTY3tLYI0EKqJsftwJxoWx8X1Knfb8tnC76BuOBql1srwLsN7vGSl2wcbMkEqp6rlaRVuZC9dj8g2KKow5t0/nsSr8nJZlls/92TMW3QXD5Uc/pJNuCeeBPj2+nM9/cIi4ZkYdMgG2c7Y3W/85xx3atQ7NFnga1NjCNQMDhJbuqruZaGAYHg7aAFbNfLKQC7xPnI5wPmFp1E3D2qFqwlvqSIyLUOZrN5YudkUPsFIPL0Qk1faQOXY4FjKqsnSsDMGI58pczPV4freLpRkOBnJ+zblZe0frUgjrALk1NdUEoPj3Y9vKQ+JxYOJfr1AnKZs/vkDbp6joC8yuId8ZmXn+YeGnhlWwAZhccdcXntd3R0=
-Received: from localhost ([213.195.118.74])
-        by smtp.gmail.com with ESMTPSA id g10-20020a05600c4eca00b0040fbba734f3sm1082225wmq.34.2024.02.01.00.39.50
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 01 Feb 2024 00:39:50 -0800 (PST)
-Date: Thu, 1 Feb 2024 09:39:49 +0100
-From: Roger Pau =?utf-8?B?TW9ubsOp?= <roger.pau@citrix.com>
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: "Chen, Jiqian" <Jiqian.Chen@amd.com>,
-	"Rafael J . Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>, Juergen Gross <jgross@suse.com>,
-	Stefano Stabellini <sstabellini@kernel.org>,
-	Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>,
-	Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	"xen-devel@lists.xenproject.org" <xen-devel@lists.xenproject.org>,
-	"linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-	"Hildebrand, Stewart" <Stewart.Hildebrand@amd.com>,
-	"Huang, Ray" <Ray.Huang@amd.com>,
-	"Ragiadakou, Xenia" <Xenia.Ragiadakou@amd.com>
-Subject: Re: [RFC KERNEL PATCH v4 3/3] PCI/sysfs: Add gsi sysfs for pci_dev
-Message-ID: <ZbtY1R15pYZz3F3B@macbook>
-References: <ZboLq6kZhwpUC_c3@macbook>
- <20240131190014.GA593286@bhelgaas>
+	s=arc-20240116; t=1706786546; c=relaxed/simple;
+	bh=E1JEBjzKqKX7niomlMIXco/erWHsqVwDhTObrROcdHk=;
+	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=MMNcg2KIrLgdhE+zETyMSG88cjW29DeTuo5Bk8u1oy30f70Zf1V5qlD2vb3WBk73+eeJyewcjEbmYSs5X93fGrcVNVR0OUev+yyKvHqeiEEw82OCjed0xvmHJ3k6eKxg7NAQeO/TpORJ0TPMUEqxOrhuJ7ZSNP8hA56IKa39gP4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.18.186.31])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4TQby53hVBz6JBTc;
+	Thu,  1 Feb 2024 19:18:53 +0800 (CST)
+Received: from lhrpeml500005.china.huawei.com (unknown [7.191.163.240])
+	by mail.maildlp.com (Postfix) with ESMTPS id E23C7140A36;
+	Thu,  1 Feb 2024 19:22:15 +0800 (CST)
+Received: from localhost (10.202.227.76) by lhrpeml500005.china.huawei.com
+ (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.35; Thu, 1 Feb
+ 2024 11:22:15 +0000
+Date: Thu, 1 Feb 2024 11:22:14 +0000
+From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+To: Alison Schofield <alison.schofield@intel.com>
+CC: Ira Weiny <ira.weiny@intel.com>, Dan Williams <dan.j.williams@intel.com>,
+	Davidlohr Bueso <dave@stgolabs.net>, Dave Jiang <dave.jiang@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>, <linux-acpi@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, <linux-efi@vger.kernel.org>,
+	<linux-cxl@vger.kernel.org>
+Subject: Re: [PATCH 1/2] cxl/cper: Fix errant CPER prints for CXL events
+Message-ID: <20240201112214.00005fea@Huawei.com>
+In-Reply-To: <ZbrxDMwn4h3y5waj@aschofie-mobl2>
+References: <20240131-cxl-cper-fixups-v1-0-335c85b1d77b@intel.com>
+	<20240131-cxl-cper-fixups-v1-1-335c85b1d77b@intel.com>
+	<ZbrxDMwn4h3y5waj@aschofie-mobl2>
+Organization: Huawei Technologies Research and Development (UK) Ltd.
+X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20240131190014.GA593286@bhelgaas>
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: lhrpeml500001.china.huawei.com (7.191.163.213) To
+ lhrpeml500005.china.huawei.com (7.191.163.240)
 
-On Wed, Jan 31, 2024 at 01:00:14PM -0600, Bjorn Helgaas wrote:
-> On Wed, Jan 31, 2024 at 09:58:19AM +0100, Roger Pau Monné wrote:
-> > On Tue, Jan 30, 2024 at 02:44:03PM -0600, Bjorn Helgaas wrote:
-> > > On Tue, Jan 30, 2024 at 10:07:36AM +0100, Roger Pau Monné wrote:
-> > > > On Mon, Jan 29, 2024 at 04:01:13PM -0600, Bjorn Helgaas wrote:
-> > > > > On Thu, Jan 25, 2024 at 07:17:24AM +0000, Chen, Jiqian wrote:
-> > > > > > On 2024/1/24 00:02, Bjorn Helgaas wrote:
-> > > > > > > On Tue, Jan 23, 2024 at 10:13:52AM +0000, Chen, Jiqian wrote:
-> > > > > > >> On 2024/1/23 07:37, Bjorn Helgaas wrote:
-> > > > > > >>> On Fri, Jan 05, 2024 at 02:22:17PM +0800, Jiqian Chen wrote:
-> > > > > > >>>> There is a need for some scenarios to use gsi sysfs.
-> > > > > > >>>> For example, when xen passthrough a device to dumU, it will
-> > > > > > >>>> use gsi to map pirq, but currently userspace can't get gsi
-> > > > > > >>>> number.
-> > > > > > >>>> So, add gsi sysfs for that and for other potential scenarios.
-> > > > > > >> ...
-> > > > > > > 
-> > > > > > >>> I don't know enough about Xen to know why it needs the GSI in
-> > > > > > >>> userspace.  Is this passthrough brand new functionality that can't be
-> > > > > > >>> done today because we don't expose the GSI yet?
-> > > > > 
-> > > > > I assume this must be new functionality, i.e., this kind of
-> > > > > passthrough does not work today, right?
-> > > > > 
-> > > > > > >> has ACPI support and is responsible for detecting and controlling
-> > > > > > >> the hardware, also it performs privileged operations such as the
-> > > > > > >> creation of normal (unprivileged) domains DomUs. When we give to a
-> > > > > > >> DomU direct access to a device, we need also to route the physical
-> > > > > > >> interrupts to the DomU. In order to do so Xen needs to setup and map
-> > > > > > >> the interrupts appropriately.
-> > > > > > > 
-> > > > > > > What kernel interfaces are used for this setup and mapping?
-> > > > > >
-> > > > > > For passthrough devices, the setup and mapping of routing physical
-> > > > > > interrupts to DomU are done on Xen hypervisor side, hypervisor only
-> > > > > > need userspace to provide the GSI info, see Xen code:
-> > > > > > xc_physdev_map_pirq require GSI and then will call hypercall to pass
-> > > > > > GSI into hypervisor and then hypervisor will do the mapping and
-> > > > > > routing, kernel doesn't do the setup and mapping.
-> > > > > 
-> > > > > So we have to expose the GSI to userspace not because userspace itself
-> > > > > uses it, but so userspace can turn around and pass it back into the
-> > > > > kernel?
-> > > > 
-> > > > No, the point is to pass it back to Xen, which doesn't know the
-> > > > mapping between GSIs and PCI devices because it can't execute the ACPI
-> > > > AML resource methods that provide such information.
-> > > > 
-> > > > The (Linux) kernel is just a proxy that forwards the hypercalls from
-> > > > user-space tools into Xen.
-> > > 
-> > > But I guess Xen knows how to interpret a GSI even though it doesn't
-> > > have access to AML?
+On Wed, 31 Jan 2024 17:17:00 -0800
+Alison Schofield <alison.schofield@intel.com> wrote:
+
+> On Wed, Jan 31, 2024 at 03:55:38PM -0800, Ira Weiny wrote:
+> > Jonathan reports that CXL CPER events dump an extra generic error
+> > message.
 > > 
-> > On x86 Xen does know how to map a GSI into an IO-APIC pin, in order
-> > configure the RTE as requested.
+> > 	{1}[Hardware Error]: Hardware error from APEI Generic Hardware Error Source: 1
+> > 	{1}[Hardware Error]: event severity: recoverable
+> > 	{1}[Hardware Error]:  Error 0, type: recoverable
+> > 	{1}[Hardware Error]:   section type: unknown, fbcd0a77-c260-417f-85a9-088b1621eba6
+> > 	{1}[Hardware Error]:   section length: 0x90
+> > 	{1}[Hardware Error]:   00000000: 00000090 00000007 00000000 0d938086 ................
+> > 	{1}[Hardware Error]:   00000010: 00100000 00000000 00040000 00000000 ................
+> > 	...
+> > 
+> > CXL events were rerouted though the CXL subsystem for additional
+> > processing.  However, when that work was done it was missed that
+> > cper_estatus_print_section() continued with a generic error message
+> > which is confusing.
+> > 
+> > Teach CPER print code to ignore printing details of some section types.
+> > Assign the CXL event GUIDs to this set to prevent confusing unknown
+> > prints.  
 > 
-> IIUC, mapping a GSI to an IO-APIC pin requires information from the
-> MADT.  So I guess Xen does use the static ACPI tables, but not the AML
-> _PRT methods that would connect a GSI with a PCI device?
+> Reviewed-by: Alison Schofield <alison.schofield@intel.com>
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 
-Yes, Xen can parse the static tables, and knows the base GSI of
-IO-APICs from the MADT.
+> 
+> 
+> > 
+> > Reported-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+> > Suggested-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+> > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> > ---
+> >  drivers/acpi/apei/ghes.c    | 26 --------------------------
+> >  drivers/firmware/efi/cper.c | 19 +++++++++++++++++++
+> >  include/linux/cper.h        | 23 +++++++++++++++++++++++
+> >  3 files changed, 42 insertions(+), 26 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> > index 7b7c605166e0..fe825a432c5b 100644
+> > --- a/drivers/acpi/apei/ghes.c
+> > +++ b/drivers/acpi/apei/ghes.c
+> > @@ -680,32 +680,6 @@ static void ghes_defer_non_standard_event(struct acpi_hest_generic_data *gdata,
+> >  static DECLARE_RWSEM(cxl_cper_rw_sem);
+> >  static cxl_cper_callback cper_callback;
+> >  
+> > -/* CXL Event record UUIDs are formatted as GUIDs and reported in section type */
+> > -
+> > -/*
+> > - * General Media Event Record
+> > - * CXL rev 3.0 Section 8.2.9.2.1.1; Table 8-43
+> > - */
+> > -#define CPER_SEC_CXL_GEN_MEDIA_GUID					\
+> > -	GUID_INIT(0xfbcd0a77, 0xc260, 0x417f,				\
+> > -		  0x85, 0xa9, 0x08, 0x8b, 0x16, 0x21, 0xeb, 0xa6)
+> > -
+> > -/*
+> > - * DRAM Event Record
+> > - * CXL rev 3.0 section 8.2.9.2.1.2; Table 8-44
+> > - */
+> > -#define CPER_SEC_CXL_DRAM_GUID						\
+> > -	GUID_INIT(0x601dcbb3, 0x9c06, 0x4eab,				\
+> > -		  0xb8, 0xaf, 0x4e, 0x9b, 0xfb, 0x5c, 0x96, 0x24)
+> > -
+> > -/*
+> > - * Memory Module Event Record
+> > - * CXL rev 3.0 section 8.2.9.2.1.3; Table 8-45
+> > - */
+> > -#define CPER_SEC_CXL_MEM_MODULE_GUID					\
+> > -	GUID_INIT(0xfe927475, 0xdd59, 0x4339,				\
+> > -		  0xa5, 0x86, 0x79, 0xba, 0xb1, 0x13, 0xb7, 0x74)
+> > -
+> >  static void cxl_cper_post_event(enum cxl_event_type event_type,
+> >  				struct cxl_cper_event_rec *rec)
+> >  {
+> > diff --git a/drivers/firmware/efi/cper.c b/drivers/firmware/efi/cper.c
+> > index 35c37f667781..9b3884ff81e6 100644
+> > --- a/drivers/firmware/efi/cper.c
+> > +++ b/drivers/firmware/efi/cper.c
+> > @@ -523,6 +523,17 @@ static void cper_print_tstamp(const char *pfx,
+> >  	}
+> >  }
+> >  
+> > +struct ignore_section {
+> > +	guid_t guid;
+> > +	const char *name;
+> > +};
+> > +
+> > +static const struct ignore_section ignore_sections[] = {
+> > +	{ .guid = CPER_SEC_CXL_GEN_MEDIA_GUID, .name = "CXL General Media Event" },
+> > +	{ .guid = CPER_SEC_CXL_DRAM_GUID, .name = "CXL DRAM Event" },
+> > +	{ .guid = CPER_SEC_CXL_MEM_MODULE_GUID, .name = "CXL Memory Module Event" },
+> > +};
+> > +
+> >  static void
+> >  cper_estatus_print_section(const char *pfx, struct acpi_hest_generic_data *gdata,
+> >  			   int sec_no)
+> > @@ -543,6 +554,14 @@ cper_estatus_print_section(const char *pfx, struct acpi_hest_generic_data *gdata
+> >  		printk("%s""fru_text: %.20s\n", pfx, gdata->fru_text);
+> >  
+> >  	snprintf(newpfx, sizeof(newpfx), "%s ", pfx);
+> > +
+> > +	for (int i = 0; i < ARRAY_SIZE(ignore_sections); i++) {
+> > +		if (guid_equal(sec_type, &ignore_sections[i].guid)) {
+> > +			printk("%ssection_type: %s\n", newpfx, ignore_sections[i].name);
+> > +			return;
+> > +		}
+> > +	}
+> > +
+> >  	if (guid_equal(sec_type, &CPER_SEC_PROC_GENERIC)) {
+> >  		struct cper_sec_proc_generic *proc_err = acpi_hest_get_payload(gdata);
+> >  
+> > diff --git a/include/linux/cper.h b/include/linux/cper.h
+> > index c1a7dc325121..265b0f8fc0b3 100644
+> > --- a/include/linux/cper.h
+> > +++ b/include/linux/cper.h
+> > @@ -90,6 +90,29 @@ enum {
+> >  	GUID_INIT(0x667DD791, 0xC6B3, 0x4c27, 0x8A, 0x6B, 0x0F, 0x8E,	\
+> >  		  0x72, 0x2D, 0xEB, 0x41)
+> >  
+> > +/* CXL Event record UUIDs are formatted as GUIDs and reported in section type */
+> > +/*
+> > + * General Media Event Record
+> > + * CXL rev 3.0 Section 8.2.9.2.1.1; Table 8-43
+> > + */
+> > +#define CPER_SEC_CXL_GEN_MEDIA_GUID					\
+> > +	GUID_INIT(0xfbcd0a77, 0xc260, 0x417f,				\
+> > +		  0x85, 0xa9, 0x08, 0x8b, 0x16, 0x21, 0xeb, 0xa6)
+> > +/*
+> > + * DRAM Event Record
+> > + * CXL rev 3.0 section 8.2.9.2.1.2; Table 8-44
+> > + */
+> > +#define CPER_SEC_CXL_DRAM_GUID						\
+> > +	GUID_INIT(0x601dcbb3, 0x9c06, 0x4eab,				\
+> > +		  0xb8, 0xaf, 0x4e, 0x9b, 0xfb, 0x5c, 0x96, 0x24)
+> > +/*
+> > + * Memory Module Event Record
+> > + * CXL rev 3.0 section 8.2.9.2.1.3; Table 8-45
+> > + */
+> > +#define CPER_SEC_CXL_MEM_MODULE_GUID					\
+> > +	GUID_INIT(0xfe927475, 0xdd59, 0x4339,				\
+> > +		  0xa5, 0x86, 0x79, 0xba, 0xb1, 0x13, 0xb7, 0x74)
+> > +
+> >  /*
+> >   * Flags bits definitions for flags in struct cper_record_header
+> >   * If set, the error has been recovered
+> > 
+> > -- 
+> > 2.43.0
+> >   
+> 
 
-> I guess this means Xen would not be able to deal with _MAT methods,
-> which also contains MADT entries?  I don't know the implications of
-> this -- maybe it means Xen might not be able to use with hot-added
-> devices?
-
-It's my understanding _MAT will only be present on some very specific
-devices (IO-APIC or CPU objects).  Xen doesn't support hotplug of
-IO-APICs, but hotplug of CPUs should in principle be supported with
-cooperation from the control domain OS (albeit it's not something that
-we tests on our CI).  I don't expect however that a CPU object _MAT
-method will return IO APIC entries.
-
-> The tables (including DSDT and SSDTS that contain the AML) are exposed
-> to userspace via /sys/firmware/acpi/tables/, but of course that
-> doesn't mean Xen knows how to interpret the AML, and even if it did,
-> Xen probably wouldn't be able to *evaluate* it since that could
-> conflict with the host kernel's use of AML.
-
-Indeed, there can only be a single OSPM, and that's the dom0 OS (Linux
-in our context).
-
-Getting back to our context though, what would be a suitable place for
-exposing the GSI assigned to each device?
-
-Thanks, Roger.
