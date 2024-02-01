@@ -1,117 +1,143 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76CE815B970;
-	Thu,  1 Feb 2024 11:23:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFA7715B984;
+	Thu,  1 Feb 2024 12:03:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.8
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706786601; cv=none; b=tCHMHEFsojt0LUcgpj1kCFZCDp54z0yFIfUI0yuge+l/fgU9oYuNRB0tJqh1+s/2QDB0rtwylAzWZRVUwADabKBSZnCDrxrgAkIIyb8pDPIXnTUNvFtOcfpKn8T7hXXKNyWFEvpWmwYq0g1k3h4M5Q9aBaqOVqIIwL6AiTuhZ/g=
+	t=1706788987; cv=none; b=GdhUk8m+cyqyYmk5EUcaRcWwwKc3OCpqJYPsBUTou3dzY2SZINsP6mr1F7dGsI/iJdenlmf6pXxX2nscup2QctILg/a3DaEiMOPW7GytmFuSTinsXU0OiF8PrxAkM9IIP05/X59b8IaIZbmIMmiwAyhYPqVCYpW4SHSP4jC+KRQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706786601; c=relaxed/simple;
-	bh=lix+9YkAqqOOpOyydIQmC81jZuQWHhwyMTu4skQlNZA=;
-	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=P04tWhVladxosxb/G9Dg1j7bxwwBm2jnceX1zOllEsGolBnT5U510l6DcSgkMrDUei6mE4R2NHNklOPnlcp/R1/xFiGuF1NcYSmgWx8xwFGCeVYF4I105JEnXU2Vz6Pi17ybVK/dGEH2xSFqVnaZe7mUfpUNZAs4kBIcmvF86tI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.186.231])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4TQbzW5Mgrz6K807;
-	Thu,  1 Feb 2024 19:20:07 +0800 (CST)
-Received: from lhrpeml500005.china.huawei.com (unknown [7.191.163.240])
-	by mail.maildlp.com (Postfix) with ESMTPS id B27951409EA;
-	Thu,  1 Feb 2024 19:23:15 +0800 (CST)
-Received: from localhost (10.202.227.76) by lhrpeml500005.china.huawei.com
- (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.35; Thu, 1 Feb
- 2024 11:23:15 +0000
-Date: Thu, 1 Feb 2024 11:23:14 +0000
-From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-To: Alison Schofield <alison.schofield@intel.com>
-CC: Ira Weiny <ira.weiny@intel.com>, Dan Williams <dan.j.williams@intel.com>,
-	Davidlohr Bueso <dave@stgolabs.net>, Dave Jiang <dave.jiang@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>, <linux-acpi@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, <linux-efi@vger.kernel.org>,
-	<linux-cxl@vger.kernel.org>
-Subject: Re: [PATCH 2/2] cxl/trace: Remove unnecessary memcpy's
-Message-ID: <20240201112314.00005dbc@Huawei.com>
-In-Reply-To: <ZbrxQ+FehE6nq9w5@aschofie-mobl2>
-References: <20240131-cxl-cper-fixups-v1-0-335c85b1d77b@intel.com>
-	<20240131-cxl-cper-fixups-v1-2-335c85b1d77b@intel.com>
-	<ZbrxQ+FehE6nq9w5@aschofie-mobl2>
-Organization: Huawei Technologies Research and Development (UK) Ltd.
-X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
+	s=arc-20240116; t=1706788987; c=relaxed/simple;
+	bh=pJuSO9d6uzAqQ3VtPCr5pnKI1a/DU5bzRyIqtixtObA=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=j6Pd8+DKPLhE532e9iHEvB2YCEXH5I+5cbQcwissGkDsNGTq9EThZ+pdAyXV6aT5K/tGdflMsOLNP3/7EZ9M9IjuHWFWDbiheLVnfxVqBUD9TLR8kC4r71sv5yYgg+w36V7tflZV1ebAAzDXXUwffmXjQGd/SGZLyKFR6R3lJ8w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=PnSlo+3r; arc=none smtp.client-ip=192.198.163.8
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="PnSlo+3r"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1706788986; x=1738324986;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=pJuSO9d6uzAqQ3VtPCr5pnKI1a/DU5bzRyIqtixtObA=;
+  b=PnSlo+3redwfuu//uLdEuT0r9vJ7dVxtOcOkcz6TzSjtqYR7+A542oEh
+   xD5WbMPS2GWrAkLcMkr5O+l2a1K7F+tFpNHb8BnqjADDaF9MBWbKBiCsr
+   KLvUki1YwdDufleyKhvIKQLBXHHQdPfbyTcYPkjLPlRVqRfTOR7M0Aby7
+   EDGBQTQWIAi1szp7KJKFxh+FwN2EABNw1nRIiTZSKDuEMESgfNBOZ6xG0
+   yV2pru2bXR1mtOAM34QDET8nh/oAYhBseMFBW9f2b3jAAOYQcpbGFAa3K
+   14xJvwJ8GmWpaAUZqG2KMCTYou6FtwqMy8DsVoiyq0PNc7BxPd/j41val
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10969"; a="17409704"
+X-IronPort-AV: E=Sophos;i="6.05,234,1701158400"; 
+   d="scan'208";a="17409704"
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Feb 2024 04:03:05 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10969"; a="961902005"
+X-IronPort-AV: E=Sophos;i="6.05,234,1701158400"; 
+   d="scan'208";a="961902005"
+Received: from smile.fi.intel.com ([10.237.72.54])
+  by orsmga005.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Feb 2024 04:03:01 -0800
+Received: from andy by smile.fi.intel.com with local (Exim 4.97)
+	(envelope-from <andriy.shevchenko@linux.intel.com>)
+	id 1rVV7Q-00000000ofZ-1VUT;
+	Thu, 01 Feb 2024 13:20:32 +0200
+Date: Thu, 1 Feb 2024 13:20:31 +0200
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Jonathan Cameron <jic23@kernel.org>
+Cc: linux-iio@vger.kernel.org, Rob Herring <robh@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>, linux-kernel@vger.kernel.org,
+	Julia Lawall <Julia.Lawall@inria.fr>,
+	Nicolas Palix <nicolas.palix@imag.fr>,
+	Sumera Priyadarsini <sylphrenadin@gmail.com>,
+	"Rafael J . Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Nuno =?iso-8859-1?Q?S=E1?= <nuno.sa@analog.com>,
+	Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Subject: Re: [RFC PATCH 0/5] of: automate of_node_put() - new approach to
+ loops.
+Message-ID: <Zbt-fw8eUrQzBjX9@smile.fi.intel.com>
+References: <20240128160542.178315-1-jic23@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml500001.china.huawei.com (7.191.163.213) To
- lhrpeml500005.china.huawei.com (7.191.163.240)
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240128160542.178315-1-jic23@kernel.org>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 
-On Wed, 31 Jan 2024 17:17:55 -0800
-Alison Schofield <alison.schofield@intel.com> wrote:
+On Sun, Jan 28, 2024 at 04:05:37PM +0000, Jonathan Cameron wrote:
+> From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+> 
+> +CC includes peopleinterested in property.h equivalents to minimize
+> duplication of discussion.  Outcome of this discussion will affect:
+> https://lore.kernel.org/all/20240114172009.179893-1-jic23@kernel.org/
+> [PATCH 00/13] device property / IIO: Use cleanup.h magic for fwnode_handle_put() handling.
+> 
+> In discussion of previous approach with Rob Herring we talked about various
+> ways to avoid a disconnect between the declaration of the __free(device_node)
+> and the first non NULL assignment. Making this connection clear is useful for 2
+> reasons:
+> 1) Avoids out of order cleanup with respect to other cleanup.h usage.
+> 2) Avoids disconnect between how cleanup is to be done and how the reference
+>    was acquired in the first place.
+> 
+> https://lore.kernel.org/all/20240117194743.GA2888190-robh@kernel.org/
+> 
+> The options we discussed are:
+> 
+> 1) Ignore this issue and merge original set.
+> 
+> 2) Always put the declaration just before the for loop and don't set it NULL.
+> 
+> {
+> 	int ret;
+> 
+> 	ret = ... and other fun code.
+> 
+> 	struct device_node *child __free(device_node);
+> 	for_each_child_of_node(np, child) {
+> 	}
+> }
+> 
+> This works but careful review is needed to ensure that this unusual pattern is
+> followed.  We don't set it to NULL as the loop will do that anyway if there are
+> no child nodes, or the loop finishes without an early break or return.
+> 
+> 3) Introduced the pointer to auto put device_node only within the
+>    for loop scope.
+> 
+> +#define for_each_child_of_node_scoped(parent, child) \
+> +	for (struct device_node *child __free(device_node) =		\
+> +	     of_get_next_child(parent, NULL);				\
+> +	     child != NULL;						\
 
-> On Wed, Jan 31, 2024 at 03:55:39PM -0800, Ira Weiny wrote:
-> > CPER events don't have UUIDs.  Therefore UUIDs were removed from the
-> > records passed to trace events and replaced with hard coded values.
-> > 
-> > As pointed out by Jonathan, the new defines for the UUIDs present a more
-> > efficient way to assign UUID in trace records.[1]
-> > 
-> > Replace memcpy's with the use of static data.  
-> 
-> Reviewed-by: Alison Schofield <alison.schofield@intel.com>
+Just
 
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+	     child;							\
 
+> +	     child = of_get_next_available_child(parent, child))
+> +
 > 
+> This series is presenting option 3.  I only implemented this loop out of
+> all the similar ones and it is only compile tested.
 > 
-> > 
-> > [1] https://lore.kernel.org/all/20240108132325.00000e9c@Huawei.com/
-> > 
-> > Suggested-by: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-> > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-> > ---
-> >  drivers/cxl/core/trace.h | 6 +++---
-> >  1 file changed, 3 insertions(+), 3 deletions(-)
-> > 
-> > diff --git a/drivers/cxl/core/trace.h b/drivers/cxl/core/trace.h
-> > index 89445435303a..bdf117a33744 100644
-> > --- a/drivers/cxl/core/trace.h
-> > +++ b/drivers/cxl/core/trace.h
-> > @@ -338,7 +338,7 @@ TRACE_EVENT(cxl_general_media,
-> >  
-> >  	TP_fast_assign(
-> >  		CXL_EVT_TP_fast_assign(cxlmd, log, rec->hdr);
-> > -		memcpy(&__entry->hdr_uuid, &CXL_EVENT_GEN_MEDIA_UUID, sizeof(uuid_t));
-> > +		__entry->hdr_uuid = CXL_EVENT_GEN_MEDIA_UUID;
-> >  
-> >  		/* General Media */
-> >  		__entry->dpa = le64_to_cpu(rec->phys_addr);
-> > @@ -425,7 +425,7 @@ TRACE_EVENT(cxl_dram,
-> >  
-> >  	TP_fast_assign(
-> >  		CXL_EVT_TP_fast_assign(cxlmd, log, rec->hdr);
-> > -		memcpy(&__entry->hdr_uuid, &CXL_EVENT_DRAM_UUID, sizeof(uuid_t));
-> > +		__entry->hdr_uuid = CXL_EVENT_DRAM_UUID;
-> >  
-> >  		/* DRAM */
-> >  		__entry->dpa = le64_to_cpu(rec->phys_addr);
-> > @@ -573,7 +573,7 @@ TRACE_EVENT(cxl_memory_module,
-> >  
-> >  	TP_fast_assign(
-> >  		CXL_EVT_TP_fast_assign(cxlmd, log, rec->hdr);
-> > -		memcpy(&__entry->hdr_uuid, &CXL_EVENT_MEM_MODULE_UUID, sizeof(uuid_t));
-> > +		__entry->hdr_uuid = CXL_EVENT_MEM_MODULE_UUID;
-> >  
-> >  		/* Memory Module Event */
-> >  		__entry->event_type = rec->event_type;
-> > 
-> > -- 
-> > 2.43.0
-> >   
-> 
+> Disadvantage Rob raised is that it isn't obvious this macro will instantiate
+> a struct device_node *child.  I can't see a way around that other than option 2
+> above, but all suggestions welcome.  Note that if a conversion leaves an
+> 'external' struct device_node *child variable, in many cases the compiler
+> will catch that as an unused variable. We don't currently run shaddow
+> variable detection in normal kernel builds, but that could also be used
+> to catch such bugs.
+
+-- 
+With Best Regards,
+Andy Shevchenko
+
 
