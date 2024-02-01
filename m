@@ -1,143 +1,134 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFA7715B984;
-	Thu,  1 Feb 2024 12:03:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.8
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5523E62141;
+	Thu,  1 Feb 2024 15:17:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706788987; cv=none; b=GdhUk8m+cyqyYmk5EUcaRcWwwKc3OCpqJYPsBUTou3dzY2SZINsP6mr1F7dGsI/iJdenlmf6pXxX2nscup2QctILg/a3DaEiMOPW7GytmFuSTinsXU0OiF8PrxAkM9IIP05/X59b8IaIZbmIMmiwAyhYPqVCYpW4SHSP4jC+KRQ=
+	t=1706800629; cv=none; b=ZFGBrWbl+2ba9lKrEXmtaMfks00Oi4F7WShfslRHDLgEdrE718opQ+h30FPr7o2uBxCaHzmeHeWkNfHPC4+hoM704CBrINLXy4VP6Ih7hSXm9likhU6f1pJ/cImVC26X8AUgVxQOPd1h5jLh/JtCC23vcWxWmd6JEJK1BXoswLc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706788987; c=relaxed/simple;
-	bh=pJuSO9d6uzAqQ3VtPCr5pnKI1a/DU5bzRyIqtixtObA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=j6Pd8+DKPLhE532e9iHEvB2YCEXH5I+5cbQcwissGkDsNGTq9EThZ+pdAyXV6aT5K/tGdflMsOLNP3/7EZ9M9IjuHWFWDbiheLVnfxVqBUD9TLR8kC4r71sv5yYgg+w36V7tflZV1ebAAzDXXUwffmXjQGd/SGZLyKFR6R3lJ8w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=PnSlo+3r; arc=none smtp.client-ip=192.198.163.8
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="PnSlo+3r"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1706788986; x=1738324986;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=pJuSO9d6uzAqQ3VtPCr5pnKI1a/DU5bzRyIqtixtObA=;
-  b=PnSlo+3redwfuu//uLdEuT0r9vJ7dVxtOcOkcz6TzSjtqYR7+A542oEh
-   xD5WbMPS2GWrAkLcMkr5O+l2a1K7F+tFpNHb8BnqjADDaF9MBWbKBiCsr
-   KLvUki1YwdDufleyKhvIKQLBXHHQdPfbyTcYPkjLPlRVqRfTOR7M0Aby7
-   EDGBQTQWIAi1szp7KJKFxh+FwN2EABNw1nRIiTZSKDuEMESgfNBOZ6xG0
-   yV2pru2bXR1mtOAM34QDET8nh/oAYhBseMFBW9f2b3jAAOYQcpbGFAa3K
-   14xJvwJ8GmWpaAUZqG2KMCTYou6FtwqMy8DsVoiyq0PNc7BxPd/j41val
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10969"; a="17409704"
-X-IronPort-AV: E=Sophos;i="6.05,234,1701158400"; 
-   d="scan'208";a="17409704"
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Feb 2024 04:03:05 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10969"; a="961902005"
-X-IronPort-AV: E=Sophos;i="6.05,234,1701158400"; 
-   d="scan'208";a="961902005"
-Received: from smile.fi.intel.com ([10.237.72.54])
-  by orsmga005.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Feb 2024 04:03:01 -0800
-Received: from andy by smile.fi.intel.com with local (Exim 4.97)
-	(envelope-from <andriy.shevchenko@linux.intel.com>)
-	id 1rVV7Q-00000000ofZ-1VUT;
-	Thu, 01 Feb 2024 13:20:32 +0200
-Date: Thu, 1 Feb 2024 13:20:31 +0200
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Jonathan Cameron <jic23@kernel.org>
-Cc: linux-iio@vger.kernel.org, Rob Herring <robh@kernel.org>,
-	Frank Rowand <frowand.list@gmail.com>, linux-kernel@vger.kernel.org,
-	Julia Lawall <Julia.Lawall@inria.fr>,
-	Nicolas Palix <nicolas.palix@imag.fr>,
-	Sumera Priyadarsini <sylphrenadin@gmail.com>,
-	"Rafael J . Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Nuno =?iso-8859-1?Q?S=E1?= <nuno.sa@analog.com>,
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Subject: Re: [RFC PATCH 0/5] of: automate of_node_put() - new approach to
- loops.
-Message-ID: <Zbt-fw8eUrQzBjX9@smile.fi.intel.com>
+	s=arc-20240116; t=1706800629; c=relaxed/simple;
+	bh=SQTRgcD+I6ibp2a9ZIUzFHD1oB/zY7oXL+TAzvzz0I0=;
+	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=EFezXi0l5TOj7WDhXz+UujN+0HWYzfdGU1s62LDmLQPoiNh/wcl0AqHoerBoOEgXcv+YsQciA8Th3CsADHq79uPswLd4NqmQD+hWPfKDAMqHIYEq0ICjmPGUyicTS6mP4ZM4OyH60vaKZ/ZUAowFCKiYHYEQJyFh40fbei9kVJQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.18.186.216])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4TQj8z1Wqlz6JB1P;
+	Thu,  1 Feb 2024 23:13:39 +0800 (CST)
+Received: from lhrpeml500005.china.huawei.com (unknown [7.191.163.240])
+	by mail.maildlp.com (Postfix) with ESMTPS id 12A8E140DAF;
+	Thu,  1 Feb 2024 23:17:02 +0800 (CST)
+Received: from localhost (10.202.227.76) by lhrpeml500005.china.huawei.com
+ (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.35; Thu, 1 Feb
+ 2024 15:17:01 +0000
+Date: Thu, 1 Feb 2024 15:17:00 +0000
+From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+To: Rob Herring <robh@kernel.org>
+CC: David Lechner <dlechner@baylibre.com>, Jonathan Cameron
+	<jic23@kernel.org>, <linux-iio@vger.kernel.org>, Frank Rowand
+	<frowand.list@gmail.com>, <linux-kernel@vger.kernel.org>, Julia Lawall
+	<Julia.Lawall@inria.fr>, Nicolas Palix <nicolas.palix@imag.fr>, "Sumera
+ Priyadarsini" <sylphrenadin@gmail.com>, "Rafael J . Wysocki"
+	<rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+	<linux-acpi@vger.kernel.org>, Andy Shevchenko
+	<andriy.shevchenko@linux.intel.com>, Greg Kroah-Hartman
+	<gregkh@linuxfoundation.org>, Nuno =?ISO-8859-1?Q?S=E1?= <nuno.sa@analog.com>
+Subject: Re: [RFC PATCH 2/5] of: Introduce for_each_child_of_node_scoped()
+ to automate of_node_put() handling
+Message-ID: <20240201151700.000038ee@Huawei.com>
+In-Reply-To: <20240131235148.GA2743404-robh@kernel.org>
 References: <20240128160542.178315-1-jic23@kernel.org>
+	<20240128160542.178315-3-jic23@kernel.org>
+	<CAMknhBEL3cv4L0A-W=_1EcDmD3Cj8apheDcpnqjyJjKBZuPYew@mail.gmail.com>
+	<20240131235148.GA2743404-robh@kernel.org>
+Organization: Huawei Technologies Research and Development (UK) Ltd.
+X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240128160542.178315-1-jic23@kernel.org>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+X-ClientProxiedBy: lhrpeml100001.china.huawei.com (7.191.160.183) To
+ lhrpeml500005.china.huawei.com (7.191.163.240)
 
-On Sun, Jan 28, 2024 at 04:05:37PM +0000, Jonathan Cameron wrote:
-> From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-> 
-> +CC includes peopleinterested in property.h equivalents to minimize
-> duplication of discussion.  Outcome of this discussion will affect:
-> https://lore.kernel.org/all/20240114172009.179893-1-jic23@kernel.org/
-> [PATCH 00/13] device property / IIO: Use cleanup.h magic for fwnode_handle_put() handling.
-> 
-> In discussion of previous approach with Rob Herring we talked about various
-> ways to avoid a disconnect between the declaration of the __free(device_node)
-> and the first non NULL assignment. Making this connection clear is useful for 2
-> reasons:
-> 1) Avoids out of order cleanup with respect to other cleanup.h usage.
-> 2) Avoids disconnect between how cleanup is to be done and how the reference
->    was acquired in the first place.
-> 
-> https://lore.kernel.org/all/20240117194743.GA2888190-robh@kernel.org/
-> 
-> The options we discussed are:
-> 
-> 1) Ignore this issue and merge original set.
-> 
-> 2) Always put the declaration just before the for loop and don't set it NULL.
-> 
-> {
-> 	int ret;
-> 
-> 	ret = ... and other fun code.
-> 
-> 	struct device_node *child __free(device_node);
-> 	for_each_child_of_node(np, child) {
-> 	}
-> }
-> 
-> This works but careful review is needed to ensure that this unusual pattern is
-> followed.  We don't set it to NULL as the loop will do that anyway if there are
-> no child nodes, or the loop finishes without an early break or return.
-> 
-> 3) Introduced the pointer to auto put device_node only within the
->    for loop scope.
-> 
-> +#define for_each_child_of_node_scoped(parent, child) \
-> +	for (struct device_node *child __free(device_node) =		\
-> +	     of_get_next_child(parent, NULL);				\
-> +	     child != NULL;						\
+On Wed, 31 Jan 2024 17:51:48 -0600
+Rob Herring <robh@kernel.org> wrote:
 
-Just
+> On Sun, Jan 28, 2024 at 03:11:01PM -0600, David Lechner wrote:
+> > On Sun, Jan 28, 2024 at 10:06=E2=80=AFAM Jonathan Cameron <jic23@kernel=
+.org> wrote: =20
+> > >
+> > > From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+> > >
+> > > To avoid issues with out of order cleanup, or ambiguity about when the
+> > > auto freed data is first instantiated, do it within the for loop defi=
+nition.
+> > >
+> > > The disadvantage is that the struct device_node *child variable creat=
+ion
+> > > is not immediately obvious where this is used.
+> > > However, in many cases, if there is another definition of
+> > > struct device_node *child; the compiler / static analysers will notif=
+y us
+> > > that it is unused, or uninitialized.
+> > >
+> > > Signed-off-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+> > > ---
+> > >  include/linux/of.h | 6 ++++++
+> > >  1 file changed, 6 insertions(+)
+> > >
+> > > diff --git a/include/linux/of.h b/include/linux/of.h
+> > > index 50e882ee91da..f822226eac6d 100644
+> > > --- a/include/linux/of.h
+> > > +++ b/include/linux/of.h
+> > > @@ -1434,6 +1434,12 @@ static inline int of_property_read_s32(const s=
+truct device_node *np,
+> > >         for (child =3D of_get_next_available_child(parent, NULL); chi=
+ld !=3D NULL; \
+> > >              child =3D of_get_next_available_child(parent, child))
+> > >
+> > > +#define for_each_child_of_node_scoped(parent, child) \
+> > > +       for (struct device_node *child __free(device_node) =3D       =
+     \
+> > > +            of_get_next_child(parent, NULL);                        =
+   \
+> > > +            child !=3D NULL;                                        =
+     \
+> > > +            child =3D of_get_next_available_child(parent, child)) =20
+> >=20
+> > Doesn't this need to match the initializer (of_get_next_child)?
+> > Otherwise it seems like the first node could be a disabled node but no
+> > other disabled nodes would be included in the iteration.
+> >=20
+> > It seems like we would want two macros, one for each variation,
+> > analogous to for_each_child_of_node() and
+> > for_each_available_child_of_node(). =20
+>=20
+> Yes, but really I'd like these the other way around. 'available' should=20
+> be the default as disabled should really be the same as a node not=20
+> present except for a few cases where it is not.
+>=20
+> I bring it up only because if we're changing things then it is a=20
+> convenient time to change this. That's really a side issue to sorting=20
+> out how this new way should work.
 
-	     child;							\
+Happy to push that forwards by not initially defining the non available ver=
+sion
+of this scoped form. So we will just have
 
-> +	     child = of_get_next_available_child(parent, child))
-> +
-> 
-> This series is presenting option 3.  I only implemented this loop out of
-> all the similar ones and it is only compile tested.
-> 
-> Disadvantage Rob raised is that it isn't obvious this macro will instantiate
-> a struct device_node *child.  I can't see a way around that other than option 2
-> above, but all suggestions welcome.  Note that if a conversion leaves an
-> 'external' struct device_node *child variable, in many cases the compiler
-> will catch that as an unused variable. We don't currently run shaddow
-> variable detection in normal kernel builds, but that could also be used
-> to catch such bugs.
+for_each_avaiable_child_of_node_scoped()
 
--- 
-With Best Regards,
-Andy Shevchenko
+Short and snappy it isn't but such is life.
 
+Jonathan
+
+>=20
+> Rob
+>=20
 
