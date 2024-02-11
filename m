@@ -1,155 +1,127 @@
-Received: from mail-wm1-f46.google.com (mail-wm1-f46.google.com [209.85.128.46])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from NAM10-MW2-obe.outbound.protection.outlook.com (mail-mw2nam10on2042.outbound.protection.outlook.com [40.107.94.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3AA45A119
-	for <linux-acpi@vger.kernel.org>; Sun, 11 Feb 2024 14:52:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.46
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707663131; cv=none; b=aeoFoKwx25iAfRtkItefplk7BHp2zY4IFatQNN06n8nMjPihgjoBJIcBoSA/exWsM/JNMzSFLcmyIPcM9il07+U3nRjT7NtyhvF7No0ntCl57sNn0oUpj73VqpX90jO6gPkjc9G/mlNofFfR8fwOHtNYwkaSj7tkyD49atgtx1Y=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707663131; c=relaxed/simple;
-	bh=akPs4ic2npN944w9uoDhIDSuo+2cQoHE/g50WuXE/aE=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=HAn3gWvfw2qvQ0msM2d3eEm3wQbtMxCIhLtkQfdIWy/lriQpUFtzGk32ImpX6Es/XRwNPlR78vBRyCg1+3VzxpP/0mrvF/4lt9zZYJe4+Sef8sEACGsW4E1IhwesGs+2gg1vNrYHTF0fv2L8GM9qdYQcK+HmKZp/1zpQuPf8Pv4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org; spf=pass smtp.mailfrom=linaro.org; dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b=Ri1mjy+7; arc=none smtp.client-ip=209.85.128.46
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC8B241AAC;
+	Sun, 11 Feb 2024 14:54:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.94.42
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1707663301; cv=fail; b=X4L6VG8owM6VHHur2w+p+rmzB2Nn21jWbPe5Nc0SKMEXwueknMypquYYeWwuQrZ/BkrUSkKYzIA5N4sPojUebdkKnMFDSEyjSYbRxoqPg8CROP5E9QW8wyN1HJMvR7Jql8L4+xM0Ac0o3AzCPLFTmMCmj8/QjifM5GDXLCMaTHo=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1707663301; c=relaxed/simple;
+	bh=iUR6SALwWk2aG4BnGXb1Kmfr8MXqvZKHUkJgjTHbITc=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=UYyvrw4jafYIs3pGsfPooMIKB/2bsOFOzzyGLYF8290vbq8RdRCzEOJYYm9B1joZqJT6HJWI1Josu4/AO5WAeB7oyoJ+0tyWdbHuD2WZ+pt/i4+uX21qfsqm5LBKCR0V1wnWXVTh/RinvzVEGPQmnoPNXf/30sz4ci2CzKCQwh0=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=WRorG8xv; arc=fail smtp.client-ip=40.107.94.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="Ri1mjy+7"
-Received: by mail-wm1-f46.google.com with SMTP id 5b1f17b1804b1-410d087c528so704555e9.1
-        for <linux-acpi@vger.kernel.org>; Sun, 11 Feb 2024 06:52:08 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1707663127; x=1708267927; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:autocrypt:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:from:to:cc:subject:date:message-id:reply-to;
-        bh=57CKClG5X0Vlg2RBUhylrYTb7t1l/cmHjDC9W+jrWys=;
-        b=Ri1mjy+7KXFh3T9qhhLB+tcyzbaoxSKURrlhn2UEuo/4xXMCDszQ/sGDLFiuiTNzpQ
-         53B4ha/3AK2aakS1hWnKKXHd5894l4pQ27DEHefNVnmwYZPH05BHF27qO0gY/aKvFcjb
-         5w/9xQSYfXyokYOyEybeW59TmFw8Me8rbuYVeFVQJQqRh2JNr1lZr2FmObG5pms/wEfm
-         SwCYy4WSHQk7zrR36JJm94BSr1JNvgTAXJmvbmpvAyqm7tb2xkeJEZ1BkF4e+q4NIQE8
-         qktuzXdvMTiUWP96es4CHfPeemaK5g20bLd6lnJOxW6H6f9ABJfHppE8oUft/rRD8ucH
-         dQxg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1707663127; x=1708267927;
-        h=content-transfer-encoding:in-reply-to:autocrypt:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=57CKClG5X0Vlg2RBUhylrYTb7t1l/cmHjDC9W+jrWys=;
-        b=MMB0YdX9ccVo34b/KdajZgfNbtUi5SAyvhh9kdDdavq11T1RN7IKkCJG4N2MDRQ5IC
-         7CSlIXZIJF2tG2qj7xm0nzoI47fIoQi6xBzd/7QrDDqco1kytwViZQpjVcalSP3OERWn
-         vgltDM/Krz6vcOYbQhSc+5vBUL4HEx4PEYgCuIiDjV4zBrVMk8pVTuTG+W4I6EFZuCfN
-         hP6wewjEKj1hrxzbCs32WPRGK9WzlXzszoglgpNl5GXgKSmqN2mURq7QFUypPqZsqt5t
-         uc9V9ZAmE2X+wcPPe9kfOUuFqlRmvkIthf7PgPG/uSF0xTOPowrglfLEJkJ07pLaEv8a
-         2IAw==
-X-Forwarded-Encrypted: i=1; AJvYcCWio5Dsd2LVdtWzqBl7/uYJ/w6KaqhWNiMm4sJxc8RmuzIEmLkEhqfpaX41SZyV2/wdAwRUSDPFY0BTTiDvf2z3Jh+UQOYLNzMKpA==
-X-Gm-Message-State: AOJu0YxK1PzWqMNca7jTNP5ibO8sowqLfW5a+YdGF4S4SO6RZfAc3ju1
-	4reUfdHVSNk2Qwkmlo9spcNbhOPXbhKAuFo7owJf7H8RfIiK2t8ymkdcIC9L/FI=
-X-Google-Smtp-Source: AGHT+IG5/HODDHSHhpKYxxvXrHzAyVHmrYHxegil02oRxyNf5hTaqCkLQqwcVjoWh4YAoIVBNBxQiQ==
-X-Received: by 2002:a05:600c:4f09:b0:40f:bbdb:4f2b with SMTP id l9-20020a05600c4f0900b0040fbbdb4f2bmr5229793wmq.19.1707663127108;
-        Sun, 11 Feb 2024 06:52:07 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AJvYcCUwWRqroDV8/WtU+IwQEaoPCJ7A7V2Im4LsT2vbSs2mpxQyrzv+UIQBItOg2ASgDmAHfkpYTUdH9QG3bBwnXeGu4IsZFrirbrS432OLn3PUTYNPjCkNTh5KsFDcTmXNxDX9HNoObkZPwvt8sIPpKFVEENUUk9lN3KeNWQsaooZx3rnZtwaaA/geI+p8lZpr/Mutff8a/arZxaGkR5eX08yHh8ZvoQiNhDus6+At+qgcfzjtaEWv28p2PXvA4Apvm1Fj5t/7Y+dkQCMeJJUPm47KMTUq/iSv/KMaIhNSm1OygD4YXMB6CamLT+QUdxqFhKoAyfPzjEpsZvwdGSkr16aEalSij8eGv9po+1n2n2NJRs6rlXe58EwoHAnRlGSKAThSDLk+3KSXbzUtldTSFI+JVIhEfR7GxCAllBGlJJyLErYt1IyOC3i3U96xJT4zML6EgrjWf0mevcSvPqP5SyCezzMwmDZHN9crue2UDl9gqgup0hRmlToOj5JUVKr7CLY6TOC1IAOE2/S5eFSFUNxf01O3eyhIvMnyLtHdHq9TB/zOHVz+/v2yhDMA3PplGIBNZu9UmGiASGcCHV5LyS/HFTu2kzkDwKR/AY0=
-Received: from [192.168.1.20] ([178.197.223.6])
-        by smtp.gmail.com with ESMTPSA id k12-20020a5d428c000000b0033b4d603e13sm4392289wrq.51.2024.02.11.06.52.04
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sun, 11 Feb 2024 06:52:06 -0800 (PST)
-Message-ID: <05e4fb58-f075-4995-9331-c3f8e8a850de@linaro.org>
-Date: Sun, 11 Feb 2024 15:52:03 +0100
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="WRorG8xv"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=b/mVyjsiy0W8opZhzpDutzvIUTq5Q20hDGAZSonveSixAGsdVPtBIk703ZsgqMvMKpgH0uE8CucHNppTcmOyJ0XEEKAkN2PGJsPUdbasfXa4V2jhHF4SokLKhR6GQxmrQ6fRnVVet4VUsCDkXKrLkThu8Pve/YmYzMBBYNhzU0IOxO7IrEgJYd9S583zy6kyOHUQIMVLuGxq2qcWHgRvVqCgwQImK3fY8SuTyxypIu03XPGG6hCxhV6LtfyPdZp2dhyoIyRenijHYNTiD8BPSCZjKBELg3/ysnKgAEtb2SlbEHhAY2POb1pinhIk/ktAUpsy8gn7xoa55ygqMtQ2CA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=KYCgkMIdCjW/msvM1ArOUBr59ZQ7J7LpM9CsGxAJhFY=;
+ b=KeB8Xri9vrw4LW01j8/u7iSk8XZRYSzTOJeR/MeIXRsz7bpHIQ8GX9WvKARxVM4joxLwn/341vJKF3lxT/t1uT8+KIwSMRMIr51rmkcT9ZyJGFzrxQuAAcAAfdDIiZnanebuwYUZ4F8JuRxj7Vpm193O8AT7JR8i3K0czpGhqgjil13elYAX8kG7gMRBctKVX2+tXAk45QbfazAtmLbiU6IKygQnhkUCGak1RwqmLwZ62gr53GWgij3ki3hXaD/Tl22z8FK6WzAz/D3QWkxqlBoo9O5vb1cU4jHywARAB5J5oOZ69EqlVpOFB/EThSMVm8UpcnI2uuKuAn7uJbR4xw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 165.204.84.17) smtp.rcpttodomain=lists.freedesktop.org smtp.mailfrom=amd.com;
+ dmarc=pass (p=quarantine sp=quarantine pct=100) action=none
+ header.from=amd.com; dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=KYCgkMIdCjW/msvM1ArOUBr59ZQ7J7LpM9CsGxAJhFY=;
+ b=WRorG8xvrstjU10mCKdBNPjDe9oMFbKBY6p5mpLv6dOzdjyPdJtKA8fxsqlVrv6c2CZnlTFKtBSTLqM0pT/kIA3jtKjxWvTwIbw+gBHobc5DIT2D+ZU2nG+VdmLmCZmrhMS/xeBjnA5rEg9h6b2HKAzvRFfwN35FKE3JS74vVMM=
+Received: from BL1PR13CA0252.namprd13.prod.outlook.com (2603:10b6:208:2ba::17)
+ by LV3PR12MB9354.namprd12.prod.outlook.com (2603:10b6:408:211::20) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7292.11; Sun, 11 Feb
+ 2024 14:54:57 +0000
+Received: from BL02EPF0001A0FB.namprd03.prod.outlook.com
+ (2603:10b6:208:2ba:cafe::39) by BL1PR13CA0252.outlook.office365.com
+ (2603:10b6:208:2ba::17) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7270.32 via Frontend
+ Transport; Sun, 11 Feb 2024 14:54:57 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
+ smtp.mailfrom=amd.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=amd.com;
+Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
+ 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
+ client-ip=165.204.84.17; helo=SATLEXMB04.amd.com; pr=C
+Received: from SATLEXMB04.amd.com (165.204.84.17) by
+ BL02EPF0001A0FB.mail.protection.outlook.com (10.167.242.102) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.20.7249.19 via Frontend Transport; Sun, 11 Feb 2024 14:54:57 +0000
+Received: from AUS-P9-MLIMONCI.amd.com (10.180.168.240) by SATLEXMB04.amd.com
+ (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.35; Sun, 11 Feb
+ 2024 08:54:56 -0600
+From: Mario Limonciello <mario.limonciello@amd.com>
+To: <amd-gfx@lists.freedesktop.org>, "open list:DRM DRIVERS"
+	<dri-devel@lists.freedesktop.org>
+CC: "open list:ACPI" <linux-acpi@vger.kernel.org>, open list
+	<linux-kernel@vger.kernel.org>, Melissa Wen <mwen@igalia.com>, Mark Pearson
+	<mpearson-lenovo@squebb.ca>, Mario Limonciello <mario.limonciello@amd.com>
+Subject: [PATCH v5 0/3] Add support for getting EDID over ACPI to DRM
+Date: Sat, 10 Feb 2024 23:50:08 -0600
+Message-ID: <20240211055011.3583-1-mario.limonciello@amd.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v1 3/4] dt-bindings: Add post-init-supplier property
-To: Saravana Kannan <saravanak@google.com>, Rob Herring <robh+dt@kernel.org>,
- Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
- Conor Dooley <conor+dt@kernel.org>,
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- "Rafael J. Wysocki" <rafael@kernel.org>, Ard Biesheuvel <ardb@kernel.org>,
- Frank Rowand <frowand.list@gmail.com>,
- Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
- Daniel Scally <djrscally@gmail.com>,
- Heikki Krogerus <heikki.krogerus@linux.intel.com>,
- Sakari Ailus <sakari.ailus@linux.intel.com>, Len Brown <lenb@kernel.org>
-Cc: kernel-team@android.com, linux-kernel@vger.kernel.org,
- devicetree@vger.kernel.org, linux-efi@vger.kernel.org,
- linux-acpi@vger.kernel.org
-References: <20240210030549.4048795-1-saravanak@google.com>
- <20240210030549.4048795-4-saravanak@google.com>
-Content-Language: en-US
-From: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-Autocrypt: addr=krzysztof.kozlowski@linaro.org; keydata=
- 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
- D2GYIS41Kv4Isx2dEFh+/Q==
-In-Reply-To: <20240210030549.4048795-4-saravanak@google.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: SATLEXMB04.amd.com (10.181.40.145) To SATLEXMB04.amd.com
+ (10.181.40.145)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BL02EPF0001A0FB:EE_|LV3PR12MB9354:EE_
+X-MS-Office365-Filtering-Correlation-Id: abd9fdcb-b39f-4d18-b06b-08dc2b1169fd
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info:
+	ZawKwSG0y8Ql/P9KP4raWMuRhHV4ssrOvV/FsfYeR93+hWMip8PUNhfEQmfIo3LKHCtYqnunQs/wWSM+8itjCNFCJycAoiQcE3ciG1JAIw3OVObdhhKuhElS+Yn+YGAMUrdWKVd3UyYSiJ0rrkKoQhhyXogj/hLdphXWQBe9CQua6DOkzsCeWV0QobxCLSHy+Etcvc1eZtg5oEFQJqd+PgLpmezp2pGSQQ9PUcXidEXij+SSjBr1RRP2SXeEM1isS73VTvo/AQi07uKFKcAdwo2sG+AJp/zrUqO4ln/nAYrd7wTARoGj/tv0b3mOaWiyGKphmG52S6eaV4dp8baF8UFxyXZgLDYSmV+W+JCnUnUM6qjllNETYgMherQJVCuKNyKnOapN/r4kjn01SQ0DvXsZnqowa3Z5JCqNxWD1VhLP/AFvXmQ+321vdZjjFHpXAEnQwSCkn2W61P/dAMe/CI83pQC9k9iMZeiDJbHhG6zF9GFDpyZz4OH4lRohoTtgWTAN1clAVSRoU0PN93FT+bYgGHen0HNdp1O5PsOtjTERFkKk/wnWp1/ZXXNC8IMTRIDjAyWmk1/sbT2fFw/i1juYcLugDqKXwzeCpkSyCUs=
+X-Forefront-Antispam-Report:
+	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230031)(4636009)(346002)(376002)(136003)(396003)(39860400002)(230922051799003)(64100799003)(451199024)(1800799012)(82310400011)(186009)(36840700001)(46966006)(40470700004)(41300700001)(356005)(86362001)(82740400003)(5660300002)(4744005)(2906002)(81166007)(44832011)(70206006)(336012)(26005)(36756003)(16526019)(70586007)(426003)(8676002)(478600001)(1076003)(54906003)(110136005)(316002)(4326008)(2616005)(6666004)(8936002)(7696005)(83380400001);DIR:OUT;SFP:1101;
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 Feb 2024 14:54:57.1970
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: abd9fdcb-b39f-4d18-b06b-08dc2b1169fd
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	BL02EPF0001A0FB.namprd03.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: LV3PR12MB9354
 
-On 10/02/2024 04:05, Saravana Kannan wrote:
-> The post-init-supplier property can be used to break a dependency cycle by
-> marking some supplier(s) as a post device initialization supplier(s). This
-> allows the kernel to do a better job at ordering initialization and
-> suspend/resume of the devices in a dependency cycle.
+This series adds the ability to fetch the EDID through ACPI for laptop
+panels. Drivers need to opt into the behavior.
 
-...
+In this series it's enabled by default for all eDP or LVDS panels with
+AMDGPU and certain panels for Nouveau.
 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 3dfe7ea25320..40fd498543a5 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -6055,10 +6055,11 @@ S:	Maintained
->  F:	drivers/base/devcoredump.c
->  F:	include/linux/devcoredump.h
->  
-> -DEVICE DEPENDENCY HELPER SCRIPT
-> +FIRMWARE DEVICE LINK (fw_devlink)
+Mario Limonciello (3):
+  drm: Add support to get EDID from ACPI
+  drm/amd: Fetch the EDID from _DDC if available for eDP
+  drm/nouveau: Use drm_edid_read_acpi() helper
 
-This breaks ordering of MAINTAINERS...
+ drivers/gpu/drm/Kconfig                       |   7 ++
+ drivers/gpu/drm/amd/amdgpu/amdgpu.h           |   1 +
+ .../gpu/drm/amd/amdgpu/amdgpu_connectors.c    |   3 +
+ drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c       |   8 ++
+ .../gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c |   2 +
+ .../amd/display/amdgpu_dm/amdgpu_dm_helpers.c |   2 +
+ drivers/gpu/drm/drm_edid.c                    | 113 ++++++++++++++++--
+ drivers/gpu/drm/nouveau/nouveau_acpi.c        |  27 -----
+ drivers/gpu/drm/nouveau/nouveau_acpi.h        |   2 -
+ drivers/gpu/drm/nouveau/nouveau_connector.c   |  35 +++---
+ include/drm/drm_connector.h                   |   6 +
+ include/drm/drm_edid.h                        |   1 +
+ 12 files changed, 149 insertions(+), 58 deletions(-)
 
-Best regards,
-Krzysztof
+-- 
+2.34.1
 
