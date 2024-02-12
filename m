@@ -1,85 +1,100 @@
-Received: from mail-vs1-f54.google.com (mail-vs1-f54.google.com [209.85.217.54])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.15])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED86679C0
-	for <linux-acpi@vger.kernel.org>; Mon, 12 Feb 2024 09:20:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.217.54
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FB2517BA1
+	for <linux-acpi@vger.kernel.org>; Mon, 12 Feb 2024 10:08:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.15
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707729606; cv=none; b=Fn34OJfwg0D0rTsmTsLJCCaw0NMC95WwJG1RnPuD8Vzx0npY78qfBCXkzKd7/eCS/luSfVQBRziTw5Y2XFQMBeTXliCXwj7ZR2TThLrqmyCASQ3jvHmxf+NIr5/niHwOLV62G2suOG1NQrJRK6lEh4AUvVGSf7NP+BQB+AXmb9A=
+	t=1707732520; cv=none; b=JTpx8WbSn3U5lgUGiz0bkD6giA5a86VJcr1H509jodvvvEj3wCONyeNNEWGqu+n5DWO7/G7axXeT6p2q3E5zQqBtE28m2dSOrB43lfsp0SDR0P05STixcoju+TlYlIZszgnsPFnvsZP1RdWDwFXBTVoJnIX1j18iZ9fLY7C5qY8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707729606; c=relaxed/simple;
-	bh=n9Ov502+N3u49Z6R6ct/dWB+FR+V6UVDXzvlJNlA6/A=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=iYG9tXAyGxntSRRsdZx15CY0Wmz5rmL6Rt99xnISPHElghcuDYJcB0RaSZgdK5l+ly1vkEkqgUzKRQWXXBvuZxe1Mltf02OyKfwGsvUDblRmTxNwvOOdNT7zeIci3t0Ejso5pjStSCnGBmzPqtbm0FtXCoXfy7yg5sxmM0c8bzg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=bgdev.pl; spf=none smtp.mailfrom=bgdev.pl; dkim=pass (2048-bit key) header.d=bgdev-pl.20230601.gappssmtp.com header.i=@bgdev-pl.20230601.gappssmtp.com header.b=XJ/dvrFp; arc=none smtp.client-ip=209.85.217.54
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=bgdev.pl
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bgdev.pl
+	s=arc-20240116; t=1707732520; c=relaxed/simple;
+	bh=lhJp13aKccQVnVMitYg8BP4PHIHmRaUxm0qo0/2x0IA=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=B4e/LuOL2cs/EWPlmj2HyuBwwSsq7lSXZOGLlTdqQQZe74CbJuiLAjuLlCmbsK1LN/s09t52Q6KlID9NKYEL3EHBrmqMwt2lkR1GpbuTfbquwtz8CJlprqrbYpB6PJIpmJc2S84ac/SjykgH2nFvSdLSp5iKDYG5F/PSleJD+F0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=cSPLXa82; arc=none smtp.client-ip=192.198.163.15
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bgdev-pl.20230601.gappssmtp.com header.i=@bgdev-pl.20230601.gappssmtp.com header.b="XJ/dvrFp"
-Received: by mail-vs1-f54.google.com with SMTP id ada2fe7eead31-46d2ef81f32so240078137.2
-        for <linux-acpi@vger.kernel.org>; Mon, 12 Feb 2024 01:20:02 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bgdev-pl.20230601.gappssmtp.com; s=20230601; t=1707729602; x=1708334402; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=n9Ov502+N3u49Z6R6ct/dWB+FR+V6UVDXzvlJNlA6/A=;
-        b=XJ/dvrFpttiQ0eQAWsv6BNf28mhumKXDBJL1kRyE5XvscwtHjwCHH5e9Df4dR8sVRj
-         1xvcCsY6MKuj3VtfNahIH9UiG79XntdW0IVzEvXbrXcz2j34pvgrMH3VwgkD6d+V9Xq3
-         RsvIDHJVyKEHSJc/DHvqExwb6Rlq4EVaCyDZ4ypUhFKrD2DTngy8/IepEPyPPh+NkvR4
-         MXAghX71DJOFEyYpgf0+gdloMuPaAxhKWh1OTdlRiVNENRGrxPh1YP1uswd1ZeDYBDtE
-         /Nnw7lfkTLudfiS1x5SUby3xr5hhIPF67gi/2pvq3BCqiLxEpOZPGe+kSvAEnGCt/0mT
-         IxgA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1707729602; x=1708334402;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=n9Ov502+N3u49Z6R6ct/dWB+FR+V6UVDXzvlJNlA6/A=;
-        b=CrSxTX7JEnDr5JgRzkkorA7rT7cnbDFlZGd2JHK8EXSDXyG3fQEiksu3Xk81RhBj1e
-         PwxifR3vutCpB2v6t/ScaG8m6ECwUDNzv6rX0b8baWvHGfUyg2mpNTQ1DhGrcg81NaUq
-         Q+gAC5d4VO5JxHaI7ksUut3Ns6RJXRcenURznrwz2auL0u5BDT+NTXaUivMHnQUERsJ9
-         XlupGND1dzycBYGFYj44s1DOZ0R+COUDaA0D5UqiSj/mEmWQ8pnZuFj+u2y5ufPOHQ/c
-         iFi4N/moUVWRGk6CKcV1tseUIowyYcrSqnvYzHON10ARTxiJi3JBRE+thDUbOi9Tlbh5
-         qPYA==
-X-Gm-Message-State: AOJu0YwzqG/CfnbfpB8eWuyG/m2m2apjiKn4DTbqgmWDLgvU85CK4ORu
-	uoGQFktmGBrtfiOVUcCSwuRwvMRE8Fp3AwtgnziLaHNPdJOKnAhGx+9QnPsodfQuOcqp2eA+UP6
-	MxfiHVn6sni9t1kmODkW7Y4d+opgaGj9rYW+XeQ==
-X-Google-Smtp-Source: AGHT+IHSNotxSJ3ltewKqxnRlk/iLnxwhZoi5Ou1X3qQ81yggKFAcv995ilite4ToFQmhx0SV+6LFcU5SayNI88fb6M=
-X-Received: by 2002:a05:6102:495:b0:46d:2336:fcc0 with SMTP id
- n21-20020a056102049500b0046d2336fcc0mr3136855vsa.25.1707729601851; Mon, 12
- Feb 2024 01:20:01 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="cSPLXa82"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1707732519; x=1739268519;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=lhJp13aKccQVnVMitYg8BP4PHIHmRaUxm0qo0/2x0IA=;
+  b=cSPLXa823TIyb+QxWiC3cDrsZ5vbi1HzyTJCbVIuukaNDOnrdBiAiqPl
+   Bru6xNKOo2v0yVtUYhL8t2VodsWvKlbmFx4fJZt7wBMUoKNLugnwNFEtx
+   1bfeBf71eAtKQ/kqUMubJ90mt2BBbxTTpb26cqKyIIaKqpyu+nGnFKJvV
+   FfGgO4SCUIAWcvbpUy4WnPTOhMjq3sjhd91Bbrbx9J5IzsWf77zk50T4s
+   xzBdwzyTXJuq6ksTGG6aBv0IRDfneP4fvUULj0D36wcwVuHIUUbOjnOfw
+   wGDS13Hbd33NwQQfWa+60ab9vcA+NwgEMrai3mNVUI7QJeLM49s/JQ3Q5
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10981"; a="1828606"
+X-IronPort-AV: E=Sophos;i="6.05,262,1701158400"; 
+   d="scan'208";a="1828606"
+Received: from fmviesa001.fm.intel.com ([10.60.135.141])
+  by fmvoesa109.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Feb 2024 02:08:38 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.05,262,1701158400"; 
+   d="scan'208";a="33617876"
+Received: from turnipsi.fi.intel.com (HELO kekkonen.fi.intel.com) ([10.237.72.44])
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Feb 2024 02:08:36 -0800
+Received: from svinhufvud.ger.corp.intel.com (localhost [IPv6:::1])
+	by kekkonen.fi.intel.com (Postfix) with ESMTP id 992B911F9DB;
+	Mon, 12 Feb 2024 12:00:33 +0200 (EET)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-acpi@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>
+Subject: [PATCH 1/2] ACPI: utils: Make acpi_handle_path() not static
+Date: Mon, 12 Feb 2024 12:00:31 +0200
+Message-Id: <20240212100032.346422-2-sakari.ailus@linux.intel.com>
+X-Mailer: git-send-email 2.39.2
+In-Reply-To: <20240212100032.346422-1-sakari.ailus@linux.intel.com>
+References: <20240212100032.346422-1-sakari.ailus@linux.intel.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240208202704.631203-1-krzysztof.kozlowski@linaro.org>
-In-Reply-To: <20240208202704.631203-1-krzysztof.kozlowski@linaro.org>
-From: Bartosz Golaszewski <brgl@bgdev.pl>
-Date: Mon, 12 Feb 2024 10:19:50 +0100
-Message-ID: <CAMRc=Mfezg_tt7Fd8AiJmL2ryQRp9pjozdOnM9Ak7mFdNVw34Q@mail.gmail.com>
-Subject: Re: [PATCH] gpio: constify opaque pointer in gpio_device_find() match function
-To: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, 
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
-	Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, 
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Thu, Feb 8, 2024 at 9:27=E2=80=AFPM Krzysztof Kozlowski
-<krzysztof.kozlowski@linaro.org> wrote:
->
-> The match function used in gpio_device_find() should not modify the
-> contents of passed opaque pointer, because such modification would not
-> be necessary for actual matching and it could lead to quite unreadable,
-> spaghetti code.
->
-> Signed-off-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-> ---
+acpi_handle_path() will soon be required for node name comparison
+elsewhere in ACPI framework. Remove the static keyword and add the
+prototype to include/linux/acpi.h.
 
-Applied, thanks!
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/acpi/utils.c | 2 +-
+ include/linux/acpi.h | 1 +
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-Bart
+diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+index abac5cc25477..202234ba54bd 100644
+--- a/drivers/acpi/utils.c
++++ b/drivers/acpi/utils.c
+@@ -559,7 +559,7 @@ EXPORT_SYMBOL(acpi_evaluate_ost);
+  *
+  * Caller must free the returned buffer
+  */
+-static char *acpi_handle_path(acpi_handle handle)
++char *acpi_handle_path(acpi_handle handle)
+ {
+ 	struct acpi_buffer buffer = {
+ 		.length = ACPI_ALLOCATE_BUFFER,
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index b7165e52b3c6..a170c389dd74 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -1170,6 +1170,7 @@ static inline void acpi_ec_set_gpe_wake_mask(u8 action) {}
+ #endif
+ 
+ #ifdef CONFIG_ACPI
++char *acpi_handle_path(acpi_handle handle);
+ __printf(3, 4)
+ void acpi_handle_printk(const char *level, acpi_handle handle,
+ 			const char *fmt, ...);
+-- 
+2.39.2
+
