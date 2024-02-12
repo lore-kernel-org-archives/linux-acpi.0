@@ -1,54 +1,71 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.15])
+Received: from mailout1.samsung.com (mailout1.samsung.com [203.254.224.24])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 392F917BA1
-	for <linux-acpi@vger.kernel.org>; Mon, 12 Feb 2024 10:08:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.15
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79EF52574F
+	for <linux-acpi@vger.kernel.org>; Mon, 12 Feb 2024 10:35:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.24
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707732522; cv=none; b=RQohZOSVLR2HdGGTz+fQClELzpPLljyrl8aJV2lBu5ujRH2p5QjZCeViMDQIhtJ8QBUv8pzsqyOZ7GBRmEFfwuWUP+PyST3vyiFbSnN+DbyxkYdhRPnwF8ppX3oJXb1xtrgYZ6ALYflbgcVIuwvxeNWcoGDzRyaacAlddJToG08=
+	t=1707734125; cv=none; b=Xu7azT2/8DpjIxHE5hifuTY3XrGVMu7PKG+eNW/moV2JU0pQ83MxOEnVoBVABfsPSw2Z+cVHsOlV61dT45NbMhyPzCnbVEvfbuqh0z3zV3gat7LjayUnLP6I6Gf5AUKVB2CLIiyO8QFVmHgkbvUZXtYNOpDKtKI9MF1nk5Tl/AI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707732522; c=relaxed/simple;
-	bh=n3RP9hA84JDLfF7gvR6MAk7+5E54vfA2XVkDCPflTIc=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=Q6qRT2jeRFiv4zRMlmH2Dpv9m4HTm7KobjYQ6myv6EFhpFjJoIFxAFpd4Tl0wa0mBm6EOVQ23m2A887ZQixK4vVq3i2nIluWcLipmdUEIJGkhhmMovcfK+Eu9qXUvXiCgBMd0cO11uTDNJMffi4juf3NJqoKJJTlnwQ1hBn8Uic=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=h1qr+a0u; arc=none smtp.client-ip=192.198.163.15
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1707734125; c=relaxed/simple;
+	bh=Ny+DBifyKyXAz2F/UFQ1+Xjj9V0tXAdi8v8PFXVQZ3E=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version:Content-Type:
+	 References; b=sfRNsJuhDLfXGHQ8sH7XLUQEJ7nGpu/QV0FjLg5BHWRsd4KWVvE9DZ4wHfpL+3VJ2bst1jASOk2z6pmoWu74Q1qXBMODtWTeSctdSoa9xT+Sm7xmAyfHOOG+rhyhcK56C283VPhuqMm11xlnWmPicZtwjEHYOlIFXFXc096vtzs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=tsRvo5XF; arc=none smtp.client-ip=203.254.224.24
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="h1qr+a0u"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1707732521; x=1739268521;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=n3RP9hA84JDLfF7gvR6MAk7+5E54vfA2XVkDCPflTIc=;
-  b=h1qr+a0u68gkotEpkgdgsSgJp5M1BD+/8QodS0KhqcyhNll38f2jBq9X
-   nqZIJa1MoRD3J9L/NHEodjPtBOouurc+OlJW/pFYOtTuIBbm66ikllPZK
-   uHTWeiL3Vbx6X4JPSxDM7vXMLLT6EzPDc6yPuqqDt2QwREjOTpklNPnTl
-   L83V2ieFggOdn/rmR4gKNjiOqlCs8Gbn3rYAPhjDdAPFewIj9zN7YeHny
-   D7uGDz2bEoYN6Q5r0DvQqGVBe0h0i+/HDdjz7quTeHNH/QSw6mWzdWHEY
-   EA1Ic30OQ3BV/fIR82MENxxOsq/MDulRlIEfiTTwUkkJ5yFgLRsf+hbBI
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10981"; a="1828604"
-X-IronPort-AV: E=Sophos;i="6.05,262,1701158400"; 
-   d="scan'208";a="1828604"
-Received: from fmviesa001.fm.intel.com ([10.60.135.141])
-  by fmvoesa109.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Feb 2024 02:08:38 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.05,262,1701158400"; 
-   d="scan'208";a="33617874"
-Received: from turnipsi.fi.intel.com (HELO kekkonen.fi.intel.com) ([10.237.72.44])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Feb 2024 02:08:36 -0800
-Received: from svinhufvud.ger.corp.intel.com (localhost [IPv6:::1])
-	by kekkonen.fi.intel.com (Postfix) with ESMTP id 0899211F86A;
-	Mon, 12 Feb 2024 12:00:32 +0200 (EET)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-acpi@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>
-Subject: [PATCH 0/2] Ignore bad graph port nodes on Dell XPS 9315
-Date: Mon, 12 Feb 2024 12:00:30 +0200
-Message-Id: <20240212100032.346422-1-sakari.ailus@linux.intel.com>
-X-Mailer: git-send-email 2.39.2
+	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="tsRvo5XF"
+Received: from epcas5p2.samsung.com (unknown [182.195.41.40])
+	by mailout1.samsung.com (KnoxPortal) with ESMTP id 20240212103516epoutp012760758e35beae305fe2105a0a98cbfc~zFyFuuN-P0582605826epoutp01I
+	for <linux-acpi@vger.kernel.org>; Mon, 12 Feb 2024 10:35:16 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout1.samsung.com 20240212103516epoutp012760758e35beae305fe2105a0a98cbfc~zFyFuuN-P0582605826epoutp01I
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
+	s=mail20170921; t=1707734116;
+	bh=wX5Y9NIxXbSlgIWh11+vw5uicM2wfMs5ez2NdzS/V6E=;
+	h=From:To:Cc:Subject:Date:References:From;
+	b=tsRvo5XFQpSnypXCoVDvymQ6F/GD4qjsByO59Q3AYLoDyhLAjTzEZwJ9I0j52wL9C
+	 Wpwlf/aqUsI8vNXzxTm4PvgdhdTokVU5xAdr4XHBQe81PpMawyHv6wi6QgtviOPvIu
+	 KK5YdGxOnwRQnnLnvqB6RmN5CmuwU7Ufj71Yyjm8=
+Received: from epsmges5p1new.samsung.com (unknown [182.195.42.73]) by
+	epcas5p1.samsung.com (KnoxPortal) with ESMTP id
+	20240212103515epcas5p153badaf7f7ce587fc7d9bc415dcfd4b8~zFyFBoxj91433214332epcas5p1U;
+	Mon, 12 Feb 2024 10:35:15 +0000 (GMT)
+Received: from epcas5p4.samsung.com ( [182.195.41.42]) by
+	epsmges5p1new.samsung.com (Symantec Messaging Gateway) with SMTP id
+	28.BE.09634.364F9C56; Mon, 12 Feb 2024 19:35:15 +0900 (KST)
+Received: from epsmtrp2.samsung.com (unknown [182.195.40.14]) by
+	epcas5p3.samsung.com (KnoxPortal) with ESMTPA id
+	20240212102417epcas5p31745b234ab239009c7ff29d0f59c1126~zFogiJnfL0631406314epcas5p3n;
+	Mon, 12 Feb 2024 10:24:17 +0000 (GMT)
+Received: from epsmgms1p1new.samsung.com (unknown [182.195.42.41]) by
+	epsmtrp2.samsung.com (KnoxPortal) with ESMTP id
+	20240212102417epsmtrp28115ed66ef2231ea12f9b577b9c524cf~zFoggw2Bi1178511785epsmtrp2j;
+	Mon, 12 Feb 2024 10:24:17 +0000 (GMT)
+X-AuditID: b6c32a49-159fd700000025a2-93-65c9f4636f94
+Received: from epsmtip2.samsung.com ( [182.195.34.31]) by
+	epsmgms1p1new.samsung.com (Symantec Messaging Gateway) with SMTP id
+	A3.14.08755.1D1F9C56; Mon, 12 Feb 2024 19:24:17 +0900 (KST)
+Received: from localhost.localdomain (unknown [107.109.224.44]) by
+	epsmtip2.samsung.com (KnoxPortal) with ESMTPA id
+	20240212102413epsmtip2ba84ef33e822b2456c2c3afb1a2f8550~zFocuQrGZ1282812828epsmtip2h;
+	Mon, 12 Feb 2024 10:24:13 +0000 (GMT)
+From: Onkarnarth <onkarnath.1@samsung.com>
+To: rafael@kernel.org, lenb@kernel.org, bhelgaas@google.com,
+	viresh.kumar@linaro.org, mingo@redhat.com, peterz@infradead.org,
+	juri.lelli@redhat.com, vincent.guittot@linaro.org, dietmar.eggemann@arm.com,
+	rostedt@goodmis.org, bsegall@google.com, mgorman@suse.de,
+	bristot@redhat.com, vschneid@redhat.com
+Cc: linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org,
+	r.thapliyal@samsung.com, maninder1.s@samsung.com, helgaas@kernel.org,
+	Onkarnath <onkarnath.1@samsung.com>, Stanislaw Gruszka
+	<stanislaw.gruszka@linux.intel.com>
+Subject: [PATCH v2 1/2] ACPI: use %pe for better readability of errors while
+ printing
+Date: Mon, 12 Feb 2024 15:54:03 +0530
+Message-Id: <20240212102404.1900708-1-onkarnath.1@samsung.com>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -56,29 +73,104 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFvrAKsWRmVeSWpSXmKPExsWy7bCmlm7yl5OpBmcX81ksacqwuPT4KpvF
+	9JeNLBZPJ2xltnh1Zi2bxd3+qSwWOx++ZbNYvq+f0eLyrjlsFmfnHWez+Nx7hNHi8Pw2FovJ
+	754xWlw6sIDJYkXPB1aL470HmCw23su2mPtlKrPFvo4HTBYf92xgtOg48o3ZYuNXD4utR7+z
+	O4h7rJm3htGjZd8tdo8Fm0o9Nq/Q8ti0qpPN4861PWwe804Gerzfd5XNo2/LKkaPzaerPT5v
+	kgvgjuKySUnNySxLLdK3S+DKmH/7EnvBa8GKJTsvMzUwTubvYuTkkBAwkTj6tpMJxBYS2M0o
+	8Wy5QxcjF5D9iVHi57lLrBDON0aJQ5cvM8F0XFwziREisZdR4v2ySSwQzhdGiSl3f7KDVLEJ
+	aEnMuHOACSQhIrCFSWLJpYPsIA6zwGwmiXXfvrOAVAkLhEts/zEBbC6LgKrEt+eTweK8AnYS
+	a9cvh9onLzHz0nd2iLigxMmZT8BqmIHizVtnM4MMlRB4wSFxsfMhO0SDi0TTrrtQtrDEq+Nb
+	oGwpic/v9rJB2PkSLbNnATVzANk1ElefqkKE7SWeXFzIChJmFtCUWL9LHyIsKzH11DomiLV8
+	Er2/n0CdxiuxYx6MrSrxa8pUFghbWuL+77lQmzwkzl28zA4J4FiJxqb7rBMY5Wch+WYWkm9m
+	IWxewMi8ilEytaA4Nz212LTAMC+1XK84Mbe4NC9dLzk/dxMjOFFqee5gvPvgg94hRiYOxkOM
+	EhzMSiK8l2acSBXiTUmsrEotyo8vKs1JLT7EKM3BoiTO+7p1boqQQHpiSWp2ampBahFMlomD
+	U6qBKVS13FRSXvR45SmFfoFk/1+xDVZVIhfzPPwXHnppon7xUqTkv48CFmnbzbr0D5cqmonv
+	42sUiZK5ZLPbaJJuW1NKfPDtyXMnpNnpifpvuGO20nHpuhvTWlcudJu1M6GM4Y/Z+bzi4lf/
+	DKqCbFaE/ljtZ/1Abe1ShfbgWe4v7Hc9FZ5Tavdoy+8Aq5ryvqCHVdcue5xnr9DTn9LXU8rG
+	siv31zm/MCWOq+lOcV849zzaaOrpfs/ULzJ3/weGeM6w7cHWR93nifMa8vz8bWf/bl6gmMWF
+	/WqiCq4OS5XebN28ta9fvEhbVWUyX0yHv3PZnW0zjsQcWMyzJr3lrdi9XUae+44sfTTnd/jn
+	vAdKLMUZiYZazEXFiQBbRB9xAwQAAA==
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFprBIsWRmVeSWpSXmKPExsWy7bCSvO7FjydTDebfkrFY0pRhcenxVTaL
+	6S8bWSyeTtjKbPHqzFo2i7v9U1ksdj58y2axfF8/o8XlXXPYLM7OO85m8bn3CKPF4fltLBaT
+	3z1jtLh0YAGTxYqeD6wWx3sPMFlsvJdtMffLVGaLfR0PmCw+7tnAaNFx5BuzxcavHhZbj35n
+	dxD3WDNvDaNHy75b7B4LNpV6bF6h5bFpVSebx51re9g85p0M9Hi/7yqbR9+WVYwem09Xe3ze
+	JBfAHcVlk5Kak1mWWqRvl8CVMf/2JfaC14IVS3ZeZmpgnMzfxcjJISFgInFxzSTGLkYuDiGB
+	3YwSB3b8YodISEt8ujwHyhaWWPnvOTtE0SdGiTVL7jKCJNgEtCRm3DnABJIQETjGJDGtfyML
+	iMMssJhJYmP3ArAqYYFQiZ6z75hBbBYBVYlvzyezgNi8AnYSa9cvZ4JYIS8x89J3doi4oMTJ
+	mU/AapiB4s1bZzNPYOSbhSQ1C0lqASPTKkbJ1ILi3PTcYsMCw7zUcr3ixNzi0rx0veT83E2M
+	4MjT0tzBuH3VB71DjEwcjIcYJTiYlUR4L804kSrEm5JYWZValB9fVJqTWnyIUZqDRUmcV/xF
+	b4qQQHpiSWp2ampBahFMlomDU6qBSbSo1nLGLMlc88hDyW4yX1yuLZGefnCaQtYzl5h5zzMz
+	PT3lpDdFbc0+tFWsyMwpxOur9/NFK/d0PVZffpMtdRYXu7Fd7Fn/W4/mc3PcseKZ8fVWl79M
+	+qKbhtNNDAryuaK+i3w+MuPgK+5JO546phasTF0+rUA4MvHZpAjDt0WHZu/+Ynai9kVTfF34
+	rZVnAhfN9p5RxjJ7XULfZye3JYG9GgtsHO7MXiAlXaHNOntjo8eVxclJ9yZnbTkfeFJS3iJ+
+	csGPKa9fnPV9WHUs5+yM5u5zuyJr82QFmeoKbSdVfUiYxbkzsH9m/Syu4PLr3ys1pNgLAyL9
+	n8WfWzRP8UzfWmEm4c6/7PE5FuablViKMxINtZiLihMBEMFtiisDAAA=
+X-CMS-MailID: 20240212102417epcas5p31745b234ab239009c7ff29d0f59c1126
+X-Msg-Generator: CA
+Content-Type: text/plain; charset="utf-8"
+X-Sendblock-Type: REQ_APPROVE
+CMS-TYPE: 105P
+X-CMS-RootMailID: 20240212102417epcas5p31745b234ab239009c7ff29d0f59c1126
+References: <CGME20240212102417epcas5p31745b234ab239009c7ff29d0f59c1126@epcas5p3.samsung.com>
 
-Hi Rafael,
+From: Onkarnath <onkarnath.1@samsung.com>
 
-These two patches skip instantiating bad port nodes on Dell XPS 9315.
+As %pe is already introduced, it's better to use it in place of (%ld) for
+printing errors in logs. It would enhance readability of logs.
 
-The ACPI firmware contains Linux specific camera declarations but they are
-missing the IVSC which sits between the camera and the IPU. The IPU bridge
-can be instead used to obtain a configuration that is usable in the
-system.
+Signed-off-by: Maninder Singh <maninder1.s@samsung.com>
+Signed-off-by: Onkarnath <onkarnath.1@samsung.com>
+Reviewed-by: Stanislaw Gruszka <stanislaw.gruszka@linux.intel.com>
+Reviewed-by: Bjorn Helgaas <helgaas@kernel.org>
+---
+v1->v2: Updated subject line as per file history & corrected spellings
+in description.
 
-I presume there are other models that have the same issue.
+ drivers/acpi/acpi_processor.c | 2 +-
+ drivers/acpi/acpi_watchdog.c  | 2 +-
+ drivers/acpi/pci_slot.c       | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-Sakari Ailus (2):
-  ACPI: utils: Make acpi_handle_path() not static
-  ACPI: property: Ignore bad data nodes
-
- drivers/acpi/internal.h       |  1 +
- drivers/acpi/mipi-disco-img.c | 71 +++++++++++++++++++++++++++++++++++
- drivers/acpi/property.c       |  3 ++
- drivers/acpi/utils.c          |  2 +-
- include/linux/acpi.h          |  1 +
- 5 files changed, 77 insertions(+), 1 deletion(-)
-
+diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+index 4fe2ef54088c..2ddd36a21850 100644
+--- a/drivers/acpi/acpi_processor.c
++++ b/drivers/acpi/acpi_processor.c
+@@ -161,7 +161,7 @@ static void cpufreq_add_device(const char *name)
+ 
+ 	pdev = platform_device_register_simple(name, PLATFORM_DEVID_NONE, NULL, 0);
+ 	if (IS_ERR(pdev))
+-		pr_info("%s device creation failed: %ld\n", name, PTR_ERR(pdev));
++		pr_info("%s device creation failed: %pe\n", name, pdev);
+ }
+ 
+ #ifdef CONFIG_X86
+diff --git a/drivers/acpi/acpi_watchdog.c b/drivers/acpi/acpi_watchdog.c
+index 8e9e001da38f..14b24157799c 100644
+--- a/drivers/acpi/acpi_watchdog.c
++++ b/drivers/acpi/acpi_watchdog.c
+@@ -179,7 +179,7 @@ void __init acpi_watchdog_init(void)
+ 	pdev = platform_device_register_simple("wdat_wdt", PLATFORM_DEVID_NONE,
+ 					       resources, nresources);
+ 	if (IS_ERR(pdev))
+-		pr_err("Device creation failed: %ld\n", PTR_ERR(pdev));
++		pr_err("Device creation failed: %pe\n", pdev);
+ 
+ 	kfree(resources);
+ 
+diff --git a/drivers/acpi/pci_slot.c b/drivers/acpi/pci_slot.c
+index d6cb2c27a23b..741bcc9d6d6a 100644
+--- a/drivers/acpi/pci_slot.c
++++ b/drivers/acpi/pci_slot.c
+@@ -111,7 +111,7 @@ register_slot(acpi_handle handle, u32 lvl, void *context, void **rv)
+ 	snprintf(name, sizeof(name), "%llu", sun);
+ 	pci_slot = pci_create_slot(pci_bus, device, name, NULL);
+ 	if (IS_ERR(pci_slot)) {
+-		pr_err("pci_create_slot returned %ld\n", PTR_ERR(pci_slot));
++		pr_err("pci_create_slot returned %pe\n", pci_slot);
+ 		kfree(slot);
+ 		return AE_OK;
+ 	}
 -- 
-2.39.2
+2.25.1
 
