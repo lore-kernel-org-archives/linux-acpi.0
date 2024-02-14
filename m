@@ -1,274 +1,188 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f42.google.com (mail-ej1-f42.google.com [209.85.218.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5F25524C2;
-	Wed, 14 Feb 2024 12:36:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C09E1A731;
+	Wed, 14 Feb 2024 12:48:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707914187; cv=none; b=b3Lr40oC1RJqziBqgNfeAoCE9gTQdCQTc/H4YjR7bDldSQ6mM5ZpL8v4ZuyNKm4QK28EBkUaL01Pma929M/1X0dGY718Nrnxv6HQMRcFKpvIGALh4+ZAq8YGHYgcziIQeXXBLygI50NSgnOZfV0aG7D6Iz5Qy+UeLehd31C/8E4=
+	t=1707914894; cv=none; b=pp3GKgoXMraQZl6nyW463TBTLe+ApB0L9c2wQBKgPxF2EyV1G99Y+kYhfvQMLcxRqv/7qr2DXquFHnZ980/cfDcVg3z+WzurfbR20U256+07/fiJvVu0vS3NKSxkrhsdtP4F7J6CoZDSMCX9vDMWJ7kPAWv372TXy7X6DTbz9BE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707914187; c=relaxed/simple;
-	bh=u/VJoNipza+0O4SI6cwJgedCwXKb+w+2SL1NxYQ59zk=;
-	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=SUFR/F2YhYcBbV0emxuAgVsizD57nX/+zPBNBaNg0olNCZxG/x6TH+iK6nFvO1+bKkHj11r8Ef+J4JC78XFCQEle11hv8rRrkxlFjsQ+2Z1lPuyciBNNsdZsHlu+3jqQu4lDCtktOlNiiwLm1IhUdQca449FoJA35cyuV71z+ok=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.186.31])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4TZczC0H5Hz6F97w;
-	Wed, 14 Feb 2024 20:32:39 +0800 (CST)
-Received: from lhrpeml500005.china.huawei.com (unknown [7.191.163.240])
-	by mail.maildlp.com (Postfix) with ESMTPS id 05603140F37;
-	Wed, 14 Feb 2024 20:36:20 +0800 (CST)
-Received: from localhost (10.202.227.76) by lhrpeml500005.china.huawei.com
- (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.35; Wed, 14 Feb
- 2024 12:36:19 +0000
-Date: Wed, 14 Feb 2024 12:36:18 +0000
-From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-To: Robert Richter <rrichter@amd.com>
-CC: Alison Schofield <alison.schofield@intel.com>, Vishal Verma
-	<vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>, Dan Williams
-	<dan.j.williams@intel.com>, Dave Jiang <dave.jiang@intel.com>, "Davidlohr
- Bueso" <dave@stgolabs.net>, "Rafael J. Wysocki" <rafael@kernel.org>, Andrew
- Morton <akpm@linux-foundation.org>, <linux-cxl@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>,
-	<linux-acpi@vger.kernel.org>
-Subject: Re: [PATCH v2 3/3] lib/firmware_table: Provide buffer length
- argument to cdat_table_parse()
-Message-ID: <20240214123618.00001dd6@Huawei.com>
-In-Reply-To: <ZcYLOzd0KUX9ckYo@rric.localdomain>
-References: <20240108114833.241710-1-rrichter@amd.com>
-	<20240108114833.241710-4-rrichter@amd.com>
-	<20240126164603.000040fd@Huawei.com>
-	<ZcYLOzd0KUX9ckYo@rric.localdomain>
-Organization: Huawei Technologies Research and Development (UK) Ltd.
-X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
+	s=arc-20240116; t=1707914894; c=relaxed/simple;
+	bh=DR9oD1vhlP0vc3JPAqFuhWP9LjrRHFpS5jANBMn3sSE=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=mTIPhzZEeYpCtKMehisVMhIOi8hGsYpD7bFlD1NrTeiX9LQHrBtQp+GqF8Lko05ka4d7IKJfBH40DR/PNFa89WE8HCrzZxKYul6pzflCxnnORrAYuGRxu32bx1C7BJur2sysTW6c/Puk1TcRSUrylbgHxh30lksUVQYds3s1RpQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=A/mBddbj; arc=none smtp.client-ip=209.85.218.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="A/mBddbj"
+Received: by mail-ej1-f42.google.com with SMTP id a640c23a62f3a-a34c5ca2537so699366266b.0;
+        Wed, 14 Feb 2024 04:48:12 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1707914890; x=1708519690; darn=vger.kernel.org;
+        h=mime-version:user-agent:content-transfer-encoding:references
+         :in-reply-to:date:cc:to:from:subject:message-id:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=DR9oD1vhlP0vc3JPAqFuhWP9LjrRHFpS5jANBMn3sSE=;
+        b=A/mBddbjY5uThLIimlGXhZCcjpxuAgvZ9tylwMXkIEzGHnUlo33ks305yOyWrW7rpq
+         YAdrWT48j+S1QXK+rRnyXe2Y5K7t/6D0UGDPVaaHPvHdJvfgVlRhdcrx9Is5od/F3oAt
+         kO7hIbkBFIWpSDEknBmD3TC4TPJrYa6JxsfeueqmaWn+ERElCsuwGWLN/d4ps6ImI4ph
+         A86YqAtKv0BG7nJPSYXBvLmZCByLEHPvn2YCReA2RpexQDKotfxMuTJkfKxkunMwZOB5
+         mvGVv90Lkltxs9/iCuYm+6AGJold/1ihygwkgbhxCHnzONHC5A9IGqIYzbeM7BOIquaI
+         zeUA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1707914890; x=1708519690;
+        h=mime-version:user-agent:content-transfer-encoding:references
+         :in-reply-to:date:cc:to:from:subject:message-id:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=DR9oD1vhlP0vc3JPAqFuhWP9LjrRHFpS5jANBMn3sSE=;
+        b=AqMvlGpMXIgUVtl8o62/D2e44GwyBYzubuXItL+TJRlptj82js3CDzJ50zevZaxPAp
+         1obcoOcGop6TePvi2NlOyzxnAazl6N5yZlakBsn9wEuBMiNq4OkWOyCAR9D6mZTntcFE
+         kWvvPRE7ypXAHTU/yJsH6JUmdXB2Qxjj0bo2puxt2yz/ANch4G9BYo2lYadC3IFVlaGj
+         Lvt7V2uMp6Wg2YkRXDrChX0ZYdxJpUbLBeO3Yi4xH5RLi2s1cB2HcZuW1/1rOljyJCkJ
+         y9pZoJmzzTG4vUrWdC9AzQFtekTzm1geLS3adqXDNlNktT8V+SaeCPRgvc2XOlIxFR6R
+         ydQQ==
+X-Forwarded-Encrypted: i=1; AJvYcCUbLGQ5W2lMJ0YTw+Xn9aU9uob108oK7BtR//FB0WmlRhVkSkOpf8akDU0u2c4AcGyrv93Pru4K66OFRSBFg9CtcMWpMFXHYRNhC42sgz0VA9MNLFrFaK9RvsgwdvWsPyTYLY5U7FUap175XpQKlDTk4KejqlQh0N61RlFvJNAzh7AqnZU=
+X-Gm-Message-State: AOJu0Yw+OPlAlGu6mXyPAzdH4L6TxCoL5B5rqfNCNKtnK4ZF9rVQtRJ0
+	QtoW5CdwyIwxKc6DN1k/3tTBIxSD5rmFJSjLMGEgF9gcgVnOHbyF
+X-Google-Smtp-Source: AGHT+IEegKSAQFOUPzMSNOuf2C8AnGjL8nXFejPi9Vp2cIOBbNkVpvxcH4iJcmb+xLaYqTxRhwFNfA==
+X-Received: by 2002:a17:907:7653:b0:a3c:f045:a516 with SMTP id kj19-20020a170907765300b00a3cf045a516mr1538013ejc.57.1707914890398;
+        Wed, 14 Feb 2024 04:48:10 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AJvYcCV6PwgYAS1wBsdNItpTgnbAL/LcHw7GQaolP+YXvl6K5d1+ONW4LpZ7FQ6gnnAUTKXjnhL9x3DxmkJts5ckoZ3iQJobuLRXsBhVudUu91Azarp4zXPHlwtytk8YPCOnFvwHRHdCEBo6GzdeKI6D02xmLS0bG9U3c8TwJYBjz728eAOnX8cgIf3y84V1jc9KW/N7u7o7MOpazGotf0Xqt3jkn3V9jT6FXoZbDupwtWQvyyqiAEumhyPcPWN/ShCsR8Bjnc9YKlAJAFTCcXnKZlsZPMOS2bqDIBaECjT0XxF8U6HsHQQXAEuo8tnr9a9+Hddlm4CgLvi9vqpxHftVO90GuukHXv3QZ4mIZx3108ICpXL8hGTO5cweHSkdL+dIWP/gDsVR0o3KhpbTP6PY5ruJbsarojyIW8D4Qj6co237TfthBfrYhvjy4WdlWulQecjEHWsDKMzU+w8Z7lYneAHDqS8JzlFS1gHIzuUloW2QIwMkdjlJ6TkJ5leVAW5/Gag=
+Received: from ?IPv6:2003:f6:ef1b:2000:944c:cbc7:1e1c:2c47? (p200300f6ef1b2000944ccbc71e1c2c47.dip0.t-ipconnect.de. [2003:f6:ef1b:2000:944c:cbc7:1e1c:2c47])
+        by smtp.gmail.com with ESMTPSA id h2-20020a1709063c0200b00a3d1ea6134dsm1155253ejg.197.2024.02.14.04.48.09
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 14 Feb 2024 04:48:10 -0800 (PST)
+Message-ID: <71fa22870246c4ed6ae9cbb2cb93db557dd855f7.camel@gmail.com>
+Subject: Re: [PATCH v2 2/2] of: dynamic: flush devlinks workqueue before
+ destroying the changeset
+From: Nuno =?ISO-8859-1?Q?S=E1?= <noname.nuno@gmail.com>
+To: Saravana Kannan <saravanak@google.com>
+Cc: Rob Herring <robh@kernel.org>, Nuno Sa <nuno.sa@analog.com>, Greg
+ Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki"
+ <rafael@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Andy Shevchenko
+ <andriy.shevchenko@linux.intel.com>,  Daniel Scally <djrscally@gmail.com>,
+ Heikki Krogerus <heikki.krogerus@linux.intel.com>, Sakari Ailus
+ <sakari.ailus@linux.intel.com>, Len Brown <lenb@kernel.org>, 
+ linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, 
+ linux-kernel@vger.kernel.org, Android Kernel Team <kernel-team@android.com>
+Date: Wed, 14 Feb 2024 13:51:29 +0100
+In-Reply-To: <CAGETcx9xgLykm7Ti-A4+sYxQkn=KTUptW9fbFxgTcceihutwRQ@mail.gmail.com>
+References: 
+	<20240205-fix-device-links-overlays-v2-0-5344f8c79d57@analog.com>
+	 <20240205-fix-device-links-overlays-v2-2-5344f8c79d57@analog.com>
+	 <aed988a09cb4347ec7ac1b682c4ee53b7d2a840b.camel@gmail.com>
+	 <20240213145131.GA1180152-robh@kernel.org>
+	 <48a86fa6908a2a7a38a45dc6dbb5574c4a9d7400.camel@gmail.com>
+	 <CAGETcx9xgLykm7Ti-A4+sYxQkn=KTUptW9fbFxgTcceihutwRQ@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.50.3 
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml100005.china.huawei.com (7.191.160.25) To
- lhrpeml500005.china.huawei.com (7.191.163.240)
 
-On Fri, 9 Feb 2024 12:23:39 +0100
-Robert Richter <rrichter@amd.com> wrote:
+On Tue, 2024-02-13 at 19:44 -0800, Saravana Kannan wrote:
+> On Tue, Feb 13, 2024 at 6:57=E2=80=AFAM Nuno S=C3=A1 <noname.nuno@gmail.c=
+om> wrote:
+> >=20
+> > On Tue, 2024-02-13 at 08:51 -0600, Rob Herring wrote:
+> > > On Mon, Feb 12, 2024 at 01:10:27PM +0100, Nuno S=C3=A1 wrote:
+> > > > On Mon, 2024-02-05 at 13:09 +0100, Nuno Sa wrote:
+> > > > > Device links will drop their supplier + consumer refcounts
+> > > > > asynchronously. That means that the refcount of the of_node attac=
+hed
+> > > > > to
+> > > > > these devices will also be dropped asynchronously and so we canno=
+t
+> > > > > guarantee the DT overlay assumption that the of_node refcount mus=
+t be
+> > > > > 1 in
+> > > > > __of_changeset_entry_destroy().
+> > > > >=20
+> > > > > Given the above, call the new fwnode_links_flush_queue() helper t=
+o
+> > > > > flush
+> > > > > the devlink workqueue so we can be sure that all links are droppe=
+d
+> > > > > before
+> > > > > doing the proper checks.
+> > > > >=20
+> > > > > Signed-off-by: Nuno Sa <nuno.sa@analog.com>
+> > > > > ---
+> > > > > =C2=A0drivers/of/dynamic.c | 8 ++++++++
+> > > > > =C2=A01 file changed, 8 insertions(+)
+> > > > >=20
+> > > > > diff --git a/drivers/of/dynamic.c b/drivers/of/dynamic.c
+> > > > > index 3bf27052832f..b7153c72c9c9 100644
+> > > > > --- a/drivers/of/dynamic.c
+> > > > > +++ b/drivers/of/dynamic.c
+> > > > > @@ -14,6 +14,7 @@
+> > > > > =C2=A0#include <linux/slab.h>
+> > > > > =C2=A0#include <linux/string.h>
+> > > > > =C2=A0#include <linux/proc_fs.h>
+> > > > > +#include <linux/fwnode.h>
+> > > > >=20
+> > > > > =C2=A0#include "of_private.h"
+> > > > >=20
+> > > > > @@ -518,6 +519,13 @@ EXPORT_SYMBOL(of_changeset_create_node);
+> > > > >=20
+> > > > > =C2=A0static void __of_changeset_entry_destroy(struct of_changese=
+t_entry
+> > > > > *ce)
+> > > > > =C2=A0{
+> > > > > + /*
+> > > > > +=C2=A0 * device links drop their device references (and hence th=
+eir
+> > > > > of_node
+> > > > > +=C2=A0 * references) asynchronously on a dedicated workqueue. He=
+nce we
+> > > > > need
+> > > > > +=C2=A0 * to flush it to make sure everything is done before doin=
+g the
+> > > > > below
+> > > > > +=C2=A0 * checks.
+> > > > > +=C2=A0 */
+> > > > > + fwnode_links_flush_queue();
+> > > > > =C2=A0 if (ce->action =3D=3D OF_RECONFIG_ATTACH_NODE &&
+> > > > > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 of_node_check_flag(ce->np, OF_OVER=
+LAY)) {
+> > > > > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 if (kref_r=
+ead(&ce->np->kobj.kref) > 1) {
+> > > > >=20
+> > > >=20
+> > > > Hi Rob and Frank,
+> > > >=20
+> > > > Any way you could take a look at this and see if you're ok with the
+> > > > change
+> > > > in the
+> > > > overlay code?
+> > > >=20
+> > > > On the devlink side , we already got the ok from Rafael.
+> > >=20
+> > > Didn't Saravana say he was going to look at this? As of yesterday, he=
+'s
+> > > also a DT maintainer so deferring to him.
+> > >=20
+> >=20
+> > Yeah, I did asked him but I guess he never had the time for it... Sarav=
+ana,
+> > could you please give some feedback on this? I think the most sensible =
+part
+> > is
+> > on the devlink side but I assume this is not going to be merged without=
+ an
+> > ack
+> > from a DT maintainer...
+>=20
+> Sorry for the delay Nuno. I'll get to this. I promise. This week is a bit
+> busy.
+>=20
 
-> On 26.01.24 16:46:03, Jonathan Cameron wrote:
-> > On Mon, 8 Jan 2024 12:48:33 +0100
-> > Robert Richter <rrichter@amd.com> wrote:
-> >   
-> > > The last entry in the CDAT table may not mark the end of the CDAT
-> > > table buffer specified by the length field in the CDAT header. It can
-> > > be shorter with trailing unused (zero'ed) data. The actual table
-> > > length is determined when reading all CDAT entries of the table with
-> > > DOE.  
-> > 
-> > Can you give some reasons why this would occur?  
-> 
-> I have seen card implementations where the CDAT table is some sort of
-> fix buffer, but with entries filled in that do not fill the whole
-> table length size. Which means that the last DOE ends earlier than the
-> table end that then contains padding bytes. Spec is not entierly clear
-> here. It could be interpreted as a spec violation, but DOE is the card
-> vendor's firmware there is not much that can be done to fix that
-> there...
+No worries. Just making sure it's not forgotten :)
 
-We can fall back on the usual kernel developer nudge solution.
-Print a rude message and hope their customers tell them to fix it ;)
-
-> 
-> > 
-> > Need to be clear if this is:
-> > 1) Hardening against device returning borked table.  
-> 
-> So this was the main motivation. It will be likely there are more
-> cards with that issue.
-> 
-> > 2) Hardening against in flight update of CDAT racing with the readout
-> >    (not sure table can change size, but maybe.. I haven't checked).  
-> 
-> That is a side effect I realized while implementing this patch. To
-> prevent an out of bound buffer access, either the buffer needs a
-> length argument or the length field in the header needs to be checked.
-> The earlier is more reasonable and natural to me as no buffer insight
-> is needed for that.
-> 
-> > 3) DW read back vs packed structures?  
-> 
-> Good point. But that was not the reason. IIR the PCI DOE code
-> correctly, there is a DW access but only the missing bytes are written
-> to the buffer. The CDAT structures are all DW aligned, but the DOE
-> header isn't.
-
-Yes. I hoped that was still working :)
-
-> 
-> > 
-> > Patch seems reasonable to me, I'd just like a clear statement of why
-> > it happens!  
-> 
-> So regardless of padding bytes or not, a length check is required in
-> any case, one or the other way.
-> 
-> Will update the patch description.
-
-Great.
-> 
-> Thanks,
-> 
-> -Robert
-> 
-> > 
-> > Jonathan
-> >   
-> > > 
-> > > If the table is greater than expected (containing zero'ed trailing
-> > > data), the CDAT parser fails with:
-> > > 
-> > >  [   48.691717] Malformed DSMAS table length: (24:0)
-> > >  [   48.702084] [CDAT:0x00] Invalid zero length
-> > >  [   48.711460] cxl_port endpoint1: Failed to parse CDAT: -22
-> > > 
-> > > In addition, the table buffer size can be different from the size
-> > > specified in the length field. This may cause out-of-bound access then
-> > > parsing the CDAT table.
-> > > 
-> > > Fix that by providing an optonal buffer length argument to
-> > > acpi_parse_entries_array() that can be used by cdat_table_parse() to
-> > > propagate the buffer size down to its users.
-> > > 
-> > > Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-> > > Cc: Len Brown <lenb@kernel.org>
-> > > Signed-off-by: Robert Richter <rrichter@amd.com>
-> > > ---
-> > >  drivers/acpi/tables.c    |  2 +-
-> > >  drivers/cxl/core/cdat.c  |  6 +++---
-> > >  include/linux/fw_table.h |  4 +++-
-> > >  lib/fw_table.c           | 15 ++++++++++-----
-> > >  4 files changed, 17 insertions(+), 10 deletions(-)
-> > > 
-> > > diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-> > > index b07f7d091d13..b976e5fc3fbc 100644
-> > > --- a/drivers/acpi/tables.c
-> > > +++ b/drivers/acpi/tables.c
-> > > @@ -253,7 +253,7 @@ int __init_or_acpilib acpi_table_parse_entries_array(
-> > >  
-> > >  	count = acpi_parse_entries_array(id, table_size,
-> > >  					 (union fw_table_header *)table_header,
-> > > -					 proc, proc_num, max_entries);
-> > > +					 0, proc, proc_num, max_entries);
-> > >  
-> > >  	acpi_put_table(table_header);
-> > >  	return count;
-> > > diff --git a/drivers/cxl/core/cdat.c b/drivers/cxl/core/cdat.c
-> > > index 6fe11546889f..012d8f2a7945 100644
-> > > --- a/drivers/cxl/core/cdat.c
-> > > +++ b/drivers/cxl/core/cdat.c
-> > > @@ -149,13 +149,13 @@ static int cxl_cdat_endpoint_process(struct cxl_port *port,
-> > >  	int rc;
-> > >  
-> > >  	rc = cdat_table_parse(ACPI_CDAT_TYPE_DSMAS, cdat_dsmas_handler,
-> > > -			      dsmas_xa, port->cdat.table);
-> > > +			      dsmas_xa, port->cdat.table, port->cdat.length);
-> > >  	rc = cdat_table_parse_output(rc);
-> > >  	if (rc)
-> > >  		return rc;
-> > >  
-> > >  	rc = cdat_table_parse(ACPI_CDAT_TYPE_DSLBIS, cdat_dslbis_handler,
-> > > -			      dsmas_xa, port->cdat.table);
-> > > +			      dsmas_xa, port->cdat.table, port->cdat.length);
-> > >  	return cdat_table_parse_output(rc);
-> > >  }
-> > >  
-> > > @@ -511,7 +511,7 @@ void cxl_switch_parse_cdat(struct cxl_port *port)
-> > >  		return;
-> > >  
-> > >  	rc = cdat_table_parse(ACPI_CDAT_TYPE_SSLBIS, cdat_sslbis_handler,
-> > > -			      port, port->cdat.table);
-> > > +			      port, port->cdat.table, port->cdat.length);
-> > >  	rc = cdat_table_parse_output(rc);
-> > >  	if (rc)
-> > >  		dev_dbg(&port->dev, "Failed to parse SSLBIS: %d\n", rc);
-> > > diff --git a/include/linux/fw_table.h b/include/linux/fw_table.h
-> > > index 95421860397a..3ff4c277296f 100644
-> > > --- a/include/linux/fw_table.h
-> > > +++ b/include/linux/fw_table.h
-> > > @@ -40,12 +40,14 @@ union acpi_subtable_headers {
-> > >  
-> > >  int acpi_parse_entries_array(char *id, unsigned long table_size,
-> > >  			     union fw_table_header *table_header,
-> > > +			     unsigned long max_length,
-> > >  			     struct acpi_subtable_proc *proc,
-> > >  			     int proc_num, unsigned int max_entries);
-> > >  
-> > >  int cdat_table_parse(enum acpi_cdat_type type,
-> > >  		     acpi_tbl_entry_handler_arg handler_arg, void *arg,
-> > > -		     struct acpi_table_cdat *table_header);
-> > > +		     struct acpi_table_cdat *table_header,
-> > > +		     unsigned long length);
-> > >  
-> > >  /* CXL is the only non-ACPI consumer of the FIRMWARE_TABLE library */
-> > >  #if IS_ENABLED(CONFIG_ACPI) && !IS_ENABLED(CONFIG_CXL_BUS)
-> > > diff --git a/lib/fw_table.c b/lib/fw_table.c
-> > > index 1e5e0b2f7012..ddb67853b7ac 100644
-> > > --- a/lib/fw_table.c
-> > > +++ b/lib/fw_table.c
-> > > @@ -132,6 +132,7 @@ static __init_or_fwtbl_lib int call_handler(struct acpi_subtable_proc *proc,
-> > >   *
-> > >   * @id: table id (for debugging purposes)
-> > >   * @table_size: size of the root table
-> > > + * @max_length: maximum size of the table (ignore if 0)
-> > >   * @table_header: where does the table start?
-> > >   * @proc: array of acpi_subtable_proc struct containing entry id
-> > >   *        and associated handler with it
-> > > @@ -153,10 +154,11 @@ static __init_or_fwtbl_lib int call_handler(struct acpi_subtable_proc *proc,
-> > >  int __init_or_fwtbl_lib
-> > >  acpi_parse_entries_array(char *id, unsigned long table_size,
-> > >  			 union fw_table_header *table_header,
-> > > +			 unsigned long max_length,
-> > >  			 struct acpi_subtable_proc *proc,
-> > >  			 int proc_num, unsigned int max_entries)
-> > >  {
-> > > -	unsigned long table_end, subtable_len, entry_len;
-> > > +	unsigned long table_len, table_end, subtable_len, entry_len;
-> > >  	struct acpi_subtable_entry entry;
-> > >  	enum acpi_subtable_type type;
-> > >  	int count = 0;
-> > > @@ -164,8 +166,10 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
-> > >  	int i;
-> > >  
-> > >  	type = acpi_get_subtable_type(id);
-> > > -	table_end = (unsigned long)table_header +
-> > > -		    acpi_table_get_length(type, table_header);
-> > > +	table_len = acpi_table_get_length(type, table_header);
-> > > +	if (max_length && max_length < table_len)
-> > > +		table_len = max_length;
-> > > +	table_end = (unsigned long)table_header + table_len;
-> > >  
-> > >  	/* Parse all entries looking for a match. */
-> > >  
-> > > @@ -220,7 +224,8 @@ int __init_or_fwtbl_lib
-> > >  cdat_table_parse(enum acpi_cdat_type type,
-> > >  		 acpi_tbl_entry_handler_arg handler_arg,
-> > >  		 void *arg,
-> > > -		 struct acpi_table_cdat *table_header)
-> > > +		 struct acpi_table_cdat *table_header,
-> > > +		 unsigned long length)
-> > >  {
-> > >  	struct acpi_subtable_proc proc = {
-> > >  		.id		= type,
-> > > @@ -234,6 +239,6 @@ cdat_table_parse(enum acpi_cdat_type type,
-> > >  	return acpi_parse_entries_array(ACPI_SIG_CDAT,
-> > >  					sizeof(struct acpi_table_cdat),
-> > >  					(union fw_table_header *)table_header,
-> > > -					&proc, 1, 0);
-> > > +					length, &proc, 1, 0);
-> > >  }
-> > >  EXPORT_SYMBOL_FWTBL_LIB(cdat_table_parse);  
-> >   
+- Nuno S=C3=A1
 
