@@ -1,55 +1,84 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f172.google.com (mail-pl1-f172.google.com [209.85.214.172])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AAA11E535
-	for <linux-acpi@vger.kernel.org>; Sun, 18 Feb 2024 15:15:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 233A76D1B6;
+	Sun, 18 Feb 2024 16:14:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708269343; cv=none; b=bKxYhHszLO0dDRtYkeK8FDSDWNWw49TyXyL6RIGwBnVdcqbigmOJST/6glSEoY3F0/qQfSR7qb76BWqNhbur1ksSy7cTdEIbr5fhgKAjLkAR1y7dXctk1pi5ezPsWv1eUTuNFWS+/OihnduTOQ8oQWmmStl7RmY9Zk14Z9RwqyM=
+	t=1708272893; cv=none; b=sec4xB145XUpPS3Nkrd9H/uZA52bRZCgnrw35C4xa1uTo7LvCzZxZ7duDi/dAcvh5m5ZgSsE5NJselWM+El1xaSU9UGsGcgEAvo735Xbr+32huRYamycFxiDihOwqINSPtll/2Ces5w/GNNG+0q1nDym+JAWz8UhxDX/K7HaqO8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708269343; c=relaxed/simple;
-	bh=47gYo+6V4NcqdbeCjPKxECWzFOEikvDHDEcE27qBXnY=;
+	s=arc-20240116; t=1708272893; c=relaxed/simple;
+	bh=KWAyxR0P1SelFxL/jAWkpeot6DvJbS6DVpjN+zhCWtE=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Zeu/sp7w3M0jCVj7bNa8RafDGiDEE1MRM2U1W5HR371t+C1mmoFXt9IrkRNYuMolA4wIqrsMgpHWvKtc+M8NHjGjmmJk16fGr3gXgSJRCGEK00j+34AOY0cSFshFiiBUpN2axhZXM7i2BboWKVz0IxpQxpsUNvyI3g+Hcs+QGOg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=W7a43Pyp; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	 MIME-Version; b=RxpnsOkhm2+MlMV3RFsc8KPPzbnKst+N4OozwXFMJ8vqfN2RzJ1MjDq3Nn57wgQqcS88UTW6C9KPFEbEha8qwTvoPVlhRKSWSCYaTT9Fah5qjMMsn0hHtbULYxM99Xk3LcamgmQMPsfySHGAWM+Xh41ECTxLsLribd7WjoQYEBY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=RwRk8WPH; arc=none smtp.client-ip=209.85.214.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="W7a43Pyp"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1708269340;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=DvS7py2O5sHCpgd6/qQ9PkKedBLMh3VykhNo0lcazUc=;
-	b=W7a43PypxbTiI4t2NuXbzN2fJcZlcucAMMe5oa+X2O4vx7/Zzqc/ot2jYz4UolK12l1cwh
-	yRcETLQIeVot3Qfk2raRsM/vnVYUYQICZ2CVQ+KfGMXsX0CXU86knPmV2Tx3u06ib0copI
-	fpq8evRuHbmqOM6GCNYX5qW+SH/aUjw=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-343-ejna66cBMGqfGLEuEJodEg-1; Sun, 18 Feb 2024 10:15:36 -0500
-X-MC-Unique: ejna66cBMGqfGLEuEJodEg-1
-Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.rdu2.redhat.com [10.11.54.4])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id F3F728489A5;
-	Sun, 18 Feb 2024 15:15:35 +0000 (UTC)
-Received: from shalem.redhat.com (unknown [10.39.192.50])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id 55431200B302;
-	Sun, 18 Feb 2024 15:15:35 +0000 (UTC)
-From: Hans de Goede <hdegoede@redhat.com>
-To: "Rafael J . Wysocki" <rafael@kernel.org>
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Andy Shevchenko <andy@kernel.org>,
-	linux-acpi@vger.kernel.org
-Subject: [RFC 1/2] ACPI: x86: Move acpi_quirk_skip_serdev_enumeration() out of CONFIG_X86_ANDROID_TABLETS
-Date: Sun, 18 Feb 2024 16:15:32 +0100
-Message-ID: <20240218151533.5720-2-hdegoede@redhat.com>
-In-Reply-To: <20240218151533.5720-1-hdegoede@redhat.com>
-References: <20240218151533.5720-1-hdegoede@redhat.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="RwRk8WPH"
+Received: by mail-pl1-f172.google.com with SMTP id d9443c01a7336-1d934c8f8f7so33919655ad.2;
+        Sun, 18 Feb 2024 08:14:51 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1708272891; x=1708877691; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=KWAyxR0P1SelFxL/jAWkpeot6DvJbS6DVpjN+zhCWtE=;
+        b=RwRk8WPH/i3z6RoeKvDL00pBLEHZTh09vA1nbuD7dpx9RR81jH9DgurrwSPXN9jCK4
+         nlYD6tLiZEVtHyIlTtPgXb2sWL5WcpMEiZ4HxpMHfvipQH6us+kKeS5OsYbBaZaroRx0
+         O3K6A8UnmfRBPxpS0jZxI7zghl9jlydFVB6ejRz7jQ/MT4XU/t9B7mBIhh0dJcf6uiC6
+         DXDnpITY42WSS5y4ZWWtp7w1J/4qi7iR6K2WwbwkIyrqxJQ8564WS4DLB+FnsxCMk/BK
+         i9jDFZ7UEkhJ+0FvFql1i/d3WBNzz8E5SRy6/troaE9w4PC9JQ8RXcZ0bvIxAnRluWK8
+         lPkA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1708272891; x=1708877691;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=KWAyxR0P1SelFxL/jAWkpeot6DvJbS6DVpjN+zhCWtE=;
+        b=GKhpEjau6rWpePl0Hn1Xnb45pp3vJj4OgcU5m3ZJxp+tb44JLj3BiDfKyRYhWcAsFu
+         DbKi2+h0mAiXdhjgqBVQ31jLR+ELBRmTZXqlUGF/4Vy2l7Z9nboN0nvRgltZ7hxzXqu+
+         xTrQsGSSTpBW0EkhPdX0HTlVtj9iiPQg4x7MiLIFSmWXA6nyuThpvArkC8FqRxp837Sg
+         Gyd4RSnNC74KTIqxuQ2lo9qJcGESFDDXfi+0wXLz8WTZw7TtV87T6EeiGD54JzDV3+f2
+         Bz/W+EBDEUmLv7FigV564jJzYzCjuyQIb/4WvhRjFfMnY/KDHaD2+S5dRbvuyTUHMAYB
+         4ufA==
+X-Forwarded-Encrypted: i=1; AJvYcCWUJW8ytqaaJDAgsW6SlRCbr2aVNOlYbEdGP6FUfzoMDK9feZlE8Uc6fWFbO0y16qNkiNEf1zCNdmvSAPJipeKKeiCuQTcQDqwJ/ke/PDhMKBgMo0LR8hlm72Q9asdEy8Ay0fcvYsrOe35ZU5UFFzTHqDeGXkKSU1qc+TX3G42girGp/OJE3mkylqUMiz3+tY6Y+X/tEnTItOGwEFZvcaj/0Un+
+X-Gm-Message-State: AOJu0YzJU5w6Xd4CJf8fChUXAyv9ZJ6p6kf2JteiXSVi/M3455j3U8GT
+	e5YeHlk9oySKxezdTfQLuMVWnyX4lzjnDXZF50mpOYoce9vTjO4X
+X-Google-Smtp-Source: AGHT+IHz+X3SQBoReWXOgdtliQZai4QR45NIoF6DjKjc39m4Ih58pAWJu5DpuHd+g+88sRTjTARV5A==
+X-Received: by 2002:a17:902:c40e:b0:1db:5b41:c5ac with SMTP id k14-20020a170902c40e00b001db5b41c5acmr11689188plk.68.1708272891272;
+        Sun, 18 Feb 2024 08:14:51 -0800 (PST)
+Received: from localhost.localdomain ([2406:3003:2000:500f:a246:8a16:bee7:140f])
+        by smtp.gmail.com with ESMTPSA id je20-20020a170903265400b001db4caef8d6sm2849500plb.161.2024.02.18.08.14.47
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 18 Feb 2024 08:14:50 -0800 (PST)
+From: Lucas Lee Jing Yi <lucasleeeeeeeee@gmail.com>
+To: rafael@kernel.org
+Cc: Perry.Yuan@amd.com,
+	Xiaojian.Du@amd.com,
+	alexander.deucher@amd.com,
+	bp@alien8.de,
+	deepak.sharma@amd.com,
+	li.meng@amd.com,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-kselftest@vger.kernel.org,
+	linux-pm@vger.kernel.org,
+	mario.limonciello@amd.com,
+	nathan.fontenot@amd.com,
+	oleksandr@natalenko.name,
+	rafael.j.wysocki@intel.com,
+	ray.huang@amd.com,
+	shimmer.huang@amd.com,
+	skhan@linuxfoundation.org,
+	viresh.kumar@linaro.org,
+	x86@kernel.org
+Subject: Re: [PATCH V14 0/7] amd-pstate preferred core
+Date: Mon, 19 Feb 2024 00:10:30 +0800
+Message-ID: <20240218161435.38312-1-lucasleeeeeeeee@gmail.com>
+X-Mailer: git-send-email 2.43.2
+In-Reply-To: <CAJZ5v0hRk3tME7yeC+1r0RM4-oPPrnSu2=JCsOshBbJp_Nq2Hg@mail.gmail.com>
+References: <CAJZ5v0hRk3tME7yeC+1r0RM4-oPPrnSu2=JCsOshBbJp_Nq2Hg@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -57,126 +86,16 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.4.1 on 10.11.54.4
 
-Some recent(ish) Dell AIO devices have a backlight controller board
-connected to an UART.
+Dear all,
+I have found an issue with the patchset when applying on 6.7, leading to a large degradation in performance.
 
-This UART has a DELL0501 HID with CID set to PNP0501 so that the UART is
-still handled by 8250_pnp.c. Unfortunately there is no separate ACPI device
-with an UartSerialBusV2() resource to model the backlight-controller.
+On my 7840HS on *STOCK* 6.7 highest_perf is reported as 196, not 166 as assumed in the patchset. Applying the patchset causes highest_perf to be misreported and hence a misreported maximum frequency as well, at 4.35GHz instead of 5.14GHz, leading to the degradation in performance.
+However, On my 5950X, highest_perf is indeed reported as 166 before and after applying the patchset.
 
-The next patch in this series will use acpi_quirk_skip_serdev_enumeration()
-to still create a serdev for this for a backlight driver to bind to
-instead of creating a /dev/ttyS0.
+Hence, I propose the following patch (should be attached).
 
-This new acpi_quirk_skip_serdev_enumeration() use is not limited to Android
-X86 tablets, so move it out of the ifdef CONFIG_X86_ANDROID_TABLETS block.
+I do apologize for any mistakes as I am new to this and this is my first email on the mailing list.
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/acpi/x86/utils.c | 18 ++++++++++++++----
- include/acpi/acpi_bus.h  | 22 +++++++++++-----------
- 2 files changed, 25 insertions(+), 15 deletions(-)
-
-diff --git a/drivers/acpi/x86/utils.c b/drivers/acpi/x86/utils.c
-index b37a4f44d05f..185176a521ad 100644
---- a/drivers/acpi/x86/utils.c
-+++ b/drivers/acpi/x86/utils.c
-@@ -437,7 +437,7 @@ bool acpi_quirk_skip_i2c_client_enumeration(struct acpi_device *adev)
- }
- EXPORT_SYMBOL_GPL(acpi_quirk_skip_i2c_client_enumeration);
- 
--int acpi_quirk_skip_serdev_enumeration(struct device *controller_parent, bool *skip)
-+static int acpi_dmi_skip_serdev_enumeration(struct device *controller_parent, bool *skip)
- {
- 	struct acpi_device *adev = ACPI_COMPANION(controller_parent);
- 	const struct dmi_system_id *dmi_id;
-@@ -445,8 +445,6 @@ int acpi_quirk_skip_serdev_enumeration(struct device *controller_parent, bool *s
- 	u64 uid;
- 	int ret;
- 
--	*skip = false;
--
- 	ret = acpi_dev_uid_to_integer(adev, &uid);
- 	if (ret)
- 		return 0;
-@@ -472,7 +470,6 @@ int acpi_quirk_skip_serdev_enumeration(struct device *controller_parent, bool *s
- 
- 	return 0;
- }
--EXPORT_SYMBOL_GPL(acpi_quirk_skip_serdev_enumeration);
- 
- bool acpi_quirk_skip_gpio_event_handlers(void)
- {
-@@ -487,8 +484,21 @@ bool acpi_quirk_skip_gpio_event_handlers(void)
- 	return (quirks & ACPI_QUIRK_SKIP_GPIO_EVENT_HANDLERS);
- }
- EXPORT_SYMBOL_GPL(acpi_quirk_skip_gpio_event_handlers);
-+#else
-+static int acpi_dmi_skip_serdev_enumeration(struct device *controller_parent, bool *skip)
-+{
-+	return 0;
-+}
- #endif
- 
-+int acpi_quirk_skip_serdev_enumeration(struct device *controller_parent, bool *skip)
-+{
-+	*skip = false;
-+
-+	return acpi_dmi_skip_serdev_enumeration(controller_parent, skip);
-+}
-+EXPORT_SYMBOL_GPL(acpi_quirk_skip_serdev_enumeration);
-+
- /* Lists of PMIC ACPI HIDs with an (often better) native charger driver */
- static const struct {
- 	const char *hid;
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index e4d24d3f9abb..446225aada50 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -749,6 +749,7 @@ bool acpi_device_override_status(struct acpi_device *adev, unsigned long long *s
- bool acpi_quirk_skip_acpi_ac_and_battery(void);
- int acpi_install_cmos_rtc_space_handler(acpi_handle handle);
- void acpi_remove_cmos_rtc_space_handler(acpi_handle handle);
-+int acpi_quirk_skip_serdev_enumeration(struct device *controller_parent, bool *skip);
- #else
- static inline bool acpi_device_override_status(struct acpi_device *adev,
- 					       unsigned long long *status)
-@@ -766,23 +767,22 @@ static inline int acpi_install_cmos_rtc_space_handler(acpi_handle handle)
- static inline void acpi_remove_cmos_rtc_space_handler(acpi_handle handle)
- {
- }
--#endif
--
--#if IS_ENABLED(CONFIG_X86_ANDROID_TABLETS)
--bool acpi_quirk_skip_i2c_client_enumeration(struct acpi_device *adev);
--int acpi_quirk_skip_serdev_enumeration(struct device *controller_parent, bool *skip);
--bool acpi_quirk_skip_gpio_event_handlers(void);
--#else
--static inline bool acpi_quirk_skip_i2c_client_enumeration(struct acpi_device *adev)
--{
--	return false;
--}
- static inline int
- acpi_quirk_skip_serdev_enumeration(struct device *controller_parent, bool *skip)
- {
- 	*skip = false;
- 	return 0;
- }
-+#endif
-+
-+#if IS_ENABLED(CONFIG_X86_ANDROID_TABLETS)
-+bool acpi_quirk_skip_i2c_client_enumeration(struct acpi_device *adev);
-+bool acpi_quirk_skip_gpio_event_handlers(void);
-+#else
-+static inline bool acpi_quirk_skip_i2c_client_enumeration(struct acpi_device *adev)
-+{
-+	return false;
-+}
- static inline bool acpi_quirk_skip_gpio_event_handlers(void)
- {
- 	return false;
--- 
-2.43.0
-
+Cheers!
+Lucas
