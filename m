@@ -1,16 +1,16 @@
 Received: from metis.whiteo.stw.pengutronix.de (metis.whiteo.stw.pengutronix.de [185.203.201.7])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3657A12D208
-	for <linux-acpi@vger.kernel.org>; Thu, 22 Feb 2024 18:52:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C05E14B808
+	for <linux-acpi@vger.kernel.org>; Thu, 22 Feb 2024 18:52:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.203.201.7
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708627973; cv=none; b=Q1j8IQTA2kPLySWl2aWDceacH/WPLVCwjc8KqhKhQ8w6PN0ViiON/NUaR/IYvzcitpnrzsdjtpEPBd70DuKgjGilZ0QapSYCKm2B49vlYNnsjW20Tn0J8kwFRA+PcxxbPvz0wPNhs97i5lSdeGQanJa15XrpOhijxnpDwi5E0Hs=
+	t=1708627974; cv=none; b=rgBwLXo/yq8eTkD7jJbO3k8sgbIY0CP2taZwVsrKnrrQvkXYWbayvKMqfavH+6TyOvFhArlb68/YgCBF1Im4ZoR/TdMho1c33TAR4qso3vkittHL/kR/Ch4dLV1S6xA2i/JgbsIBolxb4tT/31SL7JLYR1tOSCEp3EViJqDJxys=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708627973; c=relaxed/simple;
-	bh=fAlGPZxX+yovfBFVUw/Aze9TIZyyaeDy+h6cvTvOjjU=;
+	s=arc-20240116; t=1708627974; c=relaxed/simple;
+	bh=tC6LGyOBG9pBQHYV+OieRt5sFVsUVitpWNTNIBsS0m8=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=ttTXWgC13o1k/aZG1Vo4j+j7SxXcYWGEC1FCYW08Gh1rjtUYuiiRRkaHPu7I1kZyIuQKwTSI/a7GzncqDtEC1BIlyZLDA/JMKJI4EkTkXrel771yBvkn2GbgXwYEGWf5te5DvLnN9VsL5igB/UvY8CbwibXuICCQQ5LrRpwXFKo=
+	 MIME-Version:Content-Type; b=Tgn8HtTxTf82S6HR7uJKMXuSg8UV7A1VYaHfA9OER7fJ8zY1/nRb4v1mCijJ18nCtZHgDX1ozEAfkggseI+YcECuLlDeFt8KY7b+YAh4Q8NHca1Tv8/iFIGbdr3LbRDh6OmWzoEiuJzwSqZdYVvbbfzdT4Ku2nRZEl6bfMa7WsA=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pengutronix.de; spf=pass smtp.mailfrom=pengutronix.de; arc=none smtp.client-ip=185.203.201.7
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pengutronix.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=pengutronix.de
@@ -18,24 +18,24 @@ Received: from drehscheibe.grey.stw.pengutronix.de ([2a0a:edc0:0:c01:1d::a2])
 	by metis.whiteo.stw.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
 	(Exim 4.92)
 	(envelope-from <ukl@pengutronix.de>)
-	id 1rdEBa-0003OL-FH; Thu, 22 Feb 2024 19:52:46 +0100
+	id 1rdEBb-0003OY-3d; Thu, 22 Feb 2024 19:52:47 +0100
 Received: from [2a0a:edc0:0:900:1d::77] (helo=ptz.office.stw.pengutronix.de)
 	by drehscheibe.grey.stw.pengutronix.de with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.94.2)
 	(envelope-from <ukl@pengutronix.de>)
-	id 1rdEBa-002HYh-2T; Thu, 22 Feb 2024 19:52:46 +0100
+	id 1rdEBa-002HYr-N9; Thu, 22 Feb 2024 19:52:46 +0100
 Received: from ukl by ptz.office.stw.pengutronix.de with local (Exim 4.96)
 	(envelope-from <ukl@pengutronix.de>)
-	id 1rdEBZ-009dAJ-3D;
+	id 1rdEBa-009dAV-22;
 	Thu, 22 Feb 2024 19:52:46 +0100
 From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
 To: "Rafael J. Wysocki" <rafael@kernel.org>
 Cc: Len Brown <lenb@kernel.org>,
 	linux-acpi@vger.kernel.org,
 	kernel@pengutronix.de
-Subject: [PATCH 1/7] ACPI: TAD: Convert to platform remove callback returning void
-Date: Thu, 22 Feb 2024 19:52:33 +0100
-Message-ID:  <15600c270b1684c1a24cdd6da5e110d8eac42266.1708627599.git.u.kleine-koenig@pengutronix.de>
+Subject: [PATCH 4/7] ACPI: GED: Convert to platform remove callback returning void
+Date: Thu, 22 Feb 2024 19:52:36 +0100
+Message-ID:  <e9d2d8fc577b98983df0c600bf04ef03e53aad6b.1708627599.git.u.kleine-koenig@pengutronix.de>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <cover.1708627599.git.u.kleine-koenig@pengutronix.de>
 References: <cover.1708627599.git.u.kleine-koenig@pengutronix.de>
@@ -46,7 +46,7 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1910; i=u.kleine-koenig@pengutronix.de; h=from:subject:message-id; bh=fAlGPZxX+yovfBFVUw/Aze9TIZyyaeDy+h6cvTvOjjU=; b=owEBbQGS/pANAwAKAY+A+1h9Ev5OAcsmYgBl15fzr6RJWKCtJhntx9ZX55g3mVwX+MmNmQZAW yNo3VSqLUWJATMEAAEKAB0WIQQ/gaxpOnoeWYmt/tOPgPtYfRL+TgUCZdeX8wAKCRCPgPtYfRL+ TtUzB/91pzcvfCZMPnvqG7OfRX4IRXk77i/LG0clQlJhcaX8u52zifqaEPE7m/rA+itKOtX1esV e4U0aXAMbC9ObrYDnFWbHRsrGL37XCp7WO/AV1YioUgQowhvGuY1xq2DS0r55SaOv4bEJjUxdJ6 k5TdQ06l7/9u9w4tglLEFFdPvOZkyVzNtUi6K4wbxfMCzN2STzRvzMfHYaVxnbMe+zfX2NxVbwf Zr4+muTkH/sLZEPT3GQeCJOGnPiJk7hHDrNMKnWoYCEblAg4ZARG7z1Q6Tjfmo7F1sQuh7bObT2 GoQPUJRWf43bNkh7JfVS2WpvlYWJ5gY55SYq1kRKCEoMldw9
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1576; i=u.kleine-koenig@pengutronix.de; h=from:subject:message-id; bh=tC6LGyOBG9pBQHYV+OieRt5sFVsUVitpWNTNIBsS0m8=; b=owGbwMvMwMXY3/A7olbonx/jabUkhtTr078/8923sUzX+/cOxSCWuKvdHDWpf+TSv16ZftTSn 8u36NOtTkZjFgZGLgZZMUUW+8Y1mVZVcpGda/9dhhnEygQyhYGLUwAmkubJ/k9VSPDPPrt4xYja MJbqnQrmd7ZEbjjDyxnUspJV53V/q3DK4+JMNSOb2KVcnLV7vnPF8Fdc0OP2M7fr3NfpfIlz6tk q0R/9JQvEWh8bFc3/zSOf4XOl5sOFii6vJUdkndKKd05/sepa1xk56fCZj9zOHFi5PEJyqs7yym /pLMU/+o9LJ10q22Id9ylQ76tnpx1z+vrkD5cKZ2jLz/MTPZzqX8dZVh4fmlt9IoRHtttkS0ter 4b4g6WttfmPuJlDIqb1q7/eNXP2Potb594drJSw0LggVdBYLJz4gOX9beHQ9KBdGwxEZtWI2G7l aG//s+vNbc5753sa5VkMfu/8PddFcZNN38az8guWGdoCAA==
 X-Developer-Key: i=u.kleine-koenig@pengutronix.de; a=openpgp; fpr=0D2511F322BFAB1C1580266BE2DCDD9132669BD6
 Content-Transfer-Encoding: 8bit
 X-SA-Exim-Connect-IP: 2a0a:edc0:0:c01:1d::a2
@@ -69,39 +69,34 @@ callback to the void returning variant.
 
 Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
 ---
- drivers/acpi/acpi_tad.c | 5 ++---
+ drivers/acpi/evged.c | 5 ++---
  1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/acpi_tad.c b/drivers/acpi/acpi_tad.c
-index 33c3b16af556..1d670dbe4d1d 100644
---- a/drivers/acpi/acpi_tad.c
-+++ b/drivers/acpi/acpi_tad.c
-@@ -554,7 +554,7 @@ static int acpi_tad_disable_timer(struct device *dev, u32 timer_id)
- 	return acpi_tad_wake_set(dev, "_STV", timer_id, ACPI_TAD_WAKE_DISABLED);
+diff --git a/drivers/acpi/evged.c b/drivers/acpi/evged.c
+index fe6b6792c8bb..11778c93254b 100644
+--- a/drivers/acpi/evged.c
++++ b/drivers/acpi/evged.c
+@@ -173,10 +173,9 @@ static void ged_shutdown(struct platform_device *pdev)
+ 	}
  }
  
--static int acpi_tad_remove(struct platform_device *pdev)
-+static void acpi_tad_remove(struct platform_device *pdev)
+-static int ged_remove(struct platform_device *pdev)
++static void ged_remove(struct platform_device *pdev)
  {
- 	struct device *dev = &pdev->dev;
- 	acpi_handle handle = ACPI_HANDLE(dev);
-@@ -579,7 +579,6 @@ static int acpi_tad_remove(struct platform_device *pdev)
- 	pm_runtime_put_sync(dev);
- 	pm_runtime_disable(dev);
- 	acpi_remove_cmos_rtc_space_handler(handle);
+ 	ged_shutdown(pdev);
 -	return 0;
  }
  
- static int acpi_tad_probe(struct platform_device *pdev)
-@@ -684,7 +683,7 @@ static struct platform_driver acpi_tad_driver = {
- 		.acpi_match_table = acpi_tad_ids,
- 	},
- 	.probe = acpi_tad_probe,
--	.remove = acpi_tad_remove,
-+	.remove_new = acpi_tad_remove,
- };
- MODULE_DEVICE_TABLE(acpi, acpi_tad_ids);
+ static const struct acpi_device_id ged_acpi_ids[] = {
+@@ -186,7 +185,7 @@ static const struct acpi_device_id ged_acpi_ids[] = {
  
+ static struct platform_driver ged_driver = {
+ 	.probe = ged_probe,
+-	.remove = ged_remove,
++	.remove_new = ged_remove,
+ 	.shutdown = ged_shutdown,
+ 	.driver = {
+ 		.name = MODULE_NAME,
 -- 
 2.43.0
 
