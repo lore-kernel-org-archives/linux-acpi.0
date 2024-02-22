@@ -1,121 +1,121 @@
-Received: from metis.whiteo.stw.pengutronix.de (metis.whiteo.stw.pengutronix.de [185.203.201.7])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-f45.google.com (mail-ot1-f45.google.com [209.85.210.45])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B92314B815
-	for <linux-acpi@vger.kernel.org>; Thu, 22 Feb 2024 18:52:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.203.201.7
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 062EC548E6
+	for <linux-acpi@vger.kernel.org>; Thu, 22 Feb 2024 19:34:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.45
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708627980; cv=none; b=SGRRtfiUqBRa44v4+72YNV5YGw8ju8p9xiaNawZOhc3x4GkrxC2nTtS/0DtiuQtX4v3Y0DKocVc9Kd1CR1v7/XeLhzdf8BPZC969f1l3Gafe6kCWOjvIpGN9L7IBUWA2muzT2odhkvjNrt9nmXEPmHtfmgT6YtzV+d7Bt4QR8eA=
+	t=1708630498; cv=none; b=sY0f2YL8celYBdQ5Rnps5Atg8YwtoUcT8Edz5ioTeFxH9JI9EQh50j9euP0MqC64w61OyMdq2xlhgxRYCjWqASbuvzu5aR8EAMlkV2lco1GmsqyD7b0AxOzV+5f6XnIGLyjuoDH7BfWYgfW2gN3H0OZTFrTN9Hkt0o/DnCqklMI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708627980; c=relaxed/simple;
-	bh=vIi5PB6mBSI3DnBlsSRa3+P9radJLrcOBAJNG7A7HK4=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=jAjv7VIA7mx+ACKQMRv9y4GmCXk8JyXiVFzp5ufiVpG4DBTSEJNA+KMxCHLvjeeVV36lpuQCTaxNF0M92HCgL0zEWp/6XA7o7zFUzMNpSam2mla1rkcv7EiYzu5GjL3DbuuHdocaJvQCc1GniswiArk6/dBONvS99en3XSWxTuo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pengutronix.de; spf=pass smtp.mailfrom=pengutronix.de; arc=none smtp.client-ip=185.203.201.7
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pengutronix.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=pengutronix.de
-Received: from drehscheibe.grey.stw.pengutronix.de ([2a0a:edc0:0:c01:1d::a2])
-	by metis.whiteo.stw.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
-	(Exim 4.92)
-	(envelope-from <ukl@pengutronix.de>)
-	id 1rdEBc-0003OS-P6; Thu, 22 Feb 2024 19:52:48 +0100
-Received: from [2a0a:edc0:0:900:1d::77] (helo=ptz.office.stw.pengutronix.de)
-	by drehscheibe.grey.stw.pengutronix.de with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <ukl@pengutronix.de>)
-	id 1rdEBa-002HYk-9g; Thu, 22 Feb 2024 19:52:46 +0100
-Received: from ukl by ptz.office.stw.pengutronix.de with local (Exim 4.96)
-	(envelope-from <ukl@pengutronix.de>)
-	id 1rdEBa-009dAN-0g;
-	Thu, 22 Feb 2024 19:52:46 +0100
-From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>,
-	Hanjun Guo <guohanjun@huawei.com>,
-	Sudeep Holla <sudeep.holla@arm.com>,
-	Len Brown <lenb@kernel.org>,
-	linux-acpi@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	kernel@pengutronix.de
-Subject: [PATCH 2/7] ACPI: AGDI: Convert to platform remove callback returning void
-Date: Thu, 22 Feb 2024 19:52:34 +0100
-Message-ID:  <c41853160b8947e865357f99171cfbdbb4b4804e.1708627599.git.u.kleine-koenig@pengutronix.de>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <cover.1708627599.git.u.kleine-koenig@pengutronix.de>
-References: <cover.1708627599.git.u.kleine-koenig@pengutronix.de>
+	s=arc-20240116; t=1708630498; c=relaxed/simple;
+	bh=GIUPpOX6sWw7yIdM/OGEErmL8k21/n+H9qssV0Wrmm8=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=M/Rh9N1eHs1YumSxC7YZV9gvgOX/2r4eSrCst6OpZQqh6i9WxgtUJVkzCshGGD4hHJUMXjRHNHcts0VxNjs5n2ij/+BnfU2FYL3IsSmIHyC+rL+d57OUxUoIK5b5hhGoNHRDg365g/ZKBE3Sk+waTZUSWXeLonqUjt1yaQDp6ns=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.210.45
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Received: by mail-ot1-f45.google.com with SMTP id 46e09a7af769-6e45f7c63f4so293901a34.1
+        for <linux-acpi@vger.kernel.org>; Thu, 22 Feb 2024 11:34:56 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1708630496; x=1709235296;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=sWMB93Yce+qvbP3XGZ4gkn9Tf1QMCG9ANHfkLhDRC8A=;
+        b=I5JocjzrSAbDtLk9xdzAnV2yH3He/5+bBOolECbMvy58CwtX5M6LEEAaO39EvRZLxE
+         1us3lJMA5Rsalx077tkqn/gRZZmE0PaWXIb9UXGPtJ++yNU85Etxk9RRrIPX++vXHUGo
+         KwQQC5btE5qnZSrKqXr5+6ioM0KT07x3km1BF53S1fp53RTLd/R+EOaNoRgyjALXGCn+
+         EMbaZVyvz0iuYOYnWCV00n4Rtsh1lXrlFPAMDrB0x23SNFsVi0nzwlWuWUP6lcME/86U
+         kDz7bveaB2h6KxoVuG/Dz4UauutyvRkPJkR/ricp+11mlUYwioB3a5ulLaTM+tiRpgNR
+         8klA==
+X-Gm-Message-State: AOJu0YzdbqbpkM8T2bBOsT8ViRRL5DhrXBJqgkeckG/LmcU7t04LHglo
+	zVT6UyA3mS0IyIogXnZnYz4qYJ55AGuFqp/sn1LXmMMWPmzWHZ/9YOvRZfKK2ubdL8b/OshR8TO
+	IKwDDyiMkzk7uBo2351LnY5lQZjTr3YTy
+X-Google-Smtp-Source: AGHT+IHQThqkaojGtInB8FGkFJQufMjaQ7bQNlq5hiQHvKF+PDnQIYfef0lsGEVNu7kkjwwLdBQT5IaynElmFGkXh5w=
+X-Received: by 2002:a4a:c3cb:0:b0:5a0:3d13:a45a with SMTP id
+ e11-20020a4ac3cb000000b005a03d13a45amr708319ooq.0.1708630496186; Thu, 22 Feb
+ 2024 11:34:56 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-X-Developer-Signature: v=1; a=openpgp-sha256; l=2074; i=u.kleine-koenig@pengutronix.de; h=from:subject:message-id; bh=vIi5PB6mBSI3DnBlsSRa3+P9radJLrcOBAJNG7A7HK4=; b=owEBbQGS/pANAwAKAY+A+1h9Ev5OAcsmYgBl15f0xqptdAC5hEDdn2wh5R231nJb0dnMsCV/x 7U3KRN60tiJATMEAAEKAB0WIQQ/gaxpOnoeWYmt/tOPgPtYfRL+TgUCZdeX9AAKCRCPgPtYfRL+ TqWCB/9l6oenxy72Kf0YfqU3sH9aj3b0y64880Oa0pka6LqJLF6E49dhvrc75HVPQPX7KXE7m+t 3Mun9/JJ9GOYHfHIvs17Y97ScydbCr9YUUMQR1N02r+Sa13SU2+kOtW72uJ6MKTuu1azYpJLTb/ L5YRI6eaHqsGLzyLHC391frafw6ZDEVnfc6qTHvrDddcFYNe6YYSIG6ZNlhNf11fg7+a0ekptdP SnVbt6IcfX7R0aA4BowRlR75HHM1xvqtlKR5/xnx5Jg/n+djv9yvp7+Wed3dqwH8lS1eJGfnetb GrWb1mNrKxWWJXOU8YBObh+d7IHOfpfmmHSZlL9YaFjpQbqc
-X-Developer-Key: i=u.kleine-koenig@pengutronix.de; a=openpgp; fpr=0D2511F322BFAB1C1580266BE2DCDD9132669BD6
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2a0a:edc0:0:c01:1d::a2
-X-SA-Exim-Mail-From: ukl@pengutronix.de
-X-SA-Exim-Scanned: No (on metis.whiteo.stw.pengutronix.de); SAEximRunCond expanded to false
-X-PTX-Original-Recipient: linux-acpi@vger.kernel.org
+References: <20240222141321.616794-1-sakari.ailus@linux.intel.com>
+In-Reply-To: <20240222141321.616794-1-sakari.ailus@linux.intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Thu, 22 Feb 2024 20:34:45 +0100
+Message-ID: <CAJZ5v0jOtP1hJCyg4cosy+dEvxHiU0GeZwSTNMzqLGw-hzQs-g@mail.gmail.com>
+Subject: Re: [PATCH 1/1] ACPI: property: Polish ignoring bad data nodes
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Len Brown <lenb@kernel.org>, "Shevchenko, Andriy" <andriy.shevchenko@intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-The .remove() callback for a platform driver returns an int which makes
-many driver authors wrongly assume it's possible to do error handling by
-returning an error code. However the value returned is ignored (apart
-from emitting a warning) and this typically results in resource leaks.
+On Thu, Feb 22, 2024 at 3:13=E2=80=AFPM Sakari Ailus
+<sakari.ailus@linux.intel.com> wrote:
+>
+> Clean up ignoring data nodes in mipi-disco-img.c: use { } initialiser, fi=
+x
+> a kernel-doc warning and use isdigit().
+>
+> Fixes: 6018731b04ca ("ACPI: property: Ignore bad graph port nodes on Dell=
+ XPS 9315")
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+> Hi Rafael,
+>
+> Feel free to squash this to the original patch.
+>
+>  drivers/acpi/mipi-disco-img.c | 8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/acpi/mipi-disco-img.c b/drivers/acpi/mipi-disco-img.=
+c
+> index da71eb4bf6a6..d05413a0672a 100644
+> --- a/drivers/acpi/mipi-disco-img.c
+> +++ b/drivers/acpi/mipi-disco-img.c
+> @@ -732,7 +732,7 @@ static const struct dmi_system_id dmi_ignore_port_nod=
+es[] =3D {
+>                         DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "XPS 9315"),
+>                 },
+>         },
+> -       { 0 }
+> +       { }
+>  };
+>
+>  static const char *strnext(const char *s1, const char *s2)
+> @@ -749,7 +749,7 @@ static const char *strnext(const char *s1, const char=
+ *s2)
+>   * acpi_graph_ignore_port - Tell whether a port node should be ignored
+>   * @handle: The ACPI handle of the node (which may be a port node)
+>   *
+> - * Returns true if a port node should be ignored and the data to that sh=
+ould
+> + * Return: true if a port node should be ignored and the data to that sh=
+ould
+>   * come from other sources instead (Windows ACPI definitions and
+>   * ipu-bridge). This is currently used to ignore bad port nodes related =
+to IPU6
+>   * ("IPU?") and camera sensor devices ("LNK?") in certain Dell systems w=
+ith
+> @@ -778,12 +778,12 @@ bool acpi_graph_ignore_port(acpi_handle handle)
+>         if (!path)
+>                 goto out_free;
+>
+> -       if (!(path[0] >=3D '0' && path[0] <=3D '9' && path[1] =3D=3D '.')=
+)
+> +       if (!(isdigit(path[0]) && path[1] =3D=3D '.'))
+>                 goto out_free;
+>
+>         /* Check if the node has a "PRT" prefix. */
+>         path =3D strnext(path, "PRT");
+> -       if (path && path[0] >=3D '0' && path[0] <=3D '9' && !path[1]) {
+> +       if (path && isdigit(path[0]) && !path[1]) {
+>                 acpi_handle_debug(handle, "ignoring data node\n");
+>
+>                 kfree(orig_path);
+> --
 
-To improve here there is a quest to make the remove callback return
-void. In the first step of this quest all drivers are converted to
-.remove_new(), which already returns void. Eventually after all drivers
-are converted, .remove_new() will be renamed to .remove().
-
-Trivially convert this driver from always returning zero in the remove
-callback to the void returning variant.
-
-Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
----
- drivers/acpi/arm64/agdi.c | 8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/acpi/arm64/agdi.c b/drivers/acpi/arm64/agdi.c
-index 8b3c7d42b41b..f5f21dd0d277 100644
---- a/drivers/acpi/arm64/agdi.c
-+++ b/drivers/acpi/arm64/agdi.c
-@@ -58,7 +58,7 @@ static int agdi_probe(struct platform_device *pdev)
- 	return agdi_sdei_probe(pdev, adata);
- }
- 
--static int agdi_remove(struct platform_device *pdev)
-+static void agdi_remove(struct platform_device *pdev)
- {
- 	struct agdi_data *adata = dev_get_platdata(&pdev->dev);
- 	int err, i;
-@@ -67,7 +67,7 @@ static int agdi_remove(struct platform_device *pdev)
- 	if (err) {
- 		dev_err(&pdev->dev, "Failed to disable sdei-event #%d (%pe)\n",
- 			adata->sdei_event, ERR_PTR(err));
--		return 0;
-+		return;
- 	}
- 
- 	for (i = 0; i < 3; i++) {
-@@ -81,8 +81,6 @@ static int agdi_remove(struct platform_device *pdev)
- 	if (err)
- 		dev_err(&pdev->dev, "Failed to unregister sdei-event #%d (%pe)\n",
- 			adata->sdei_event, ERR_PTR(err));
--
--	return 0;
- }
- 
- static struct platform_driver agdi_driver = {
-@@ -90,7 +88,7 @@ static struct platform_driver agdi_driver = {
- 		.name = "agdi",
- 	},
- 	.probe = agdi_probe,
--	.remove = agdi_remove,
-+	.remove_new = agdi_remove,
- };
- 
- void __init acpi_agdi_init(void)
--- 
-2.43.0
-
+Applied, thanks!
