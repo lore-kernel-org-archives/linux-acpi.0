@@ -1,146 +1,157 @@
-Received: from mail.alien8.de (mail.alien8.de [65.109.113.108])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08CD41C6B5;
-	Mon, 26 Feb 2024 10:46:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=65.109.113.108
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE22D1292D2;
+	Mon, 26 Feb 2024 14:10:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708944419; cv=none; b=JkcJKh3yQ/1DWnxmmymW++abKZivKszT/sTqTGdR1B8YVsYMt9iSJ2vMObGOMamoF402s2OJnMeVy8mIoJ0/bb6u9av/euqOTcIH7hNfUTnQIqU9V3qoz4jwVxSplcVG4SXha3wwQAJeNZo0Ov64///1sqZPaviDK91FaHEgcxU=
+	t=1708956633; cv=none; b=Fu9aa9QqGiYncH20nTozE966t76ouBdbBVLLdNqT0wA6XKSSBGxRTXdakvUOtuRExu1qW9VWJGlKmipiUzQZnTZ+4Ujic9Ou3QVIVS5IxtCju1u+oQPhhNrfy7FuuDRnf858rwzqysw9BeBe9qZg32R5t8K/ZTcde0+3BcnOlDU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708944419; c=relaxed/simple;
-	bh=h0CHJQF50KwK8mIjEWCRDsj1eq3eD3C/obvTaUXkT3Y=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Kn1UOFl/EIHyqk4UYIPgqJ9HWWTmKEUfvobplzOkR32/NHTSfeihTZ+B3FIsjOQ4w8VllkwYDoPDbK3ZL1VaDpaD2HfrORYk4Ja+cchziUsNAXhtqGe+0rdez4R1CoGOOg07Y8jXBnbuT09mjgIwYzVMIo3P3h04/4kUEqdubCc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de; spf=pass smtp.mailfrom=alien8.de; dkim=pass (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b=g6HOrIAM; arc=none smtp.client-ip=65.109.113.108
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=alien8.de
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b="g6HOrIAM"
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with ESMTP id 4F4E240E00B2;
-	Mon, 26 Feb 2024 10:46:54 +0000 (UTC)
-X-Virus-Scanned: Debian amavisd-new at mail.alien8.de
-Authentication-Results: mail.alien8.de (amavisd-new); dkim=pass (4096-bit key)
-	header.d=alien8.de
-Received: from mail.alien8.de ([127.0.0.1])
-	by localhost (mail.alien8.de [127.0.0.1]) (amavisd-new, port 10026)
-	with ESMTP id U7uW1zKRoeoK; Mon, 26 Feb 2024 10:46:52 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=alien8;
-	t=1708944411; bh=0CUdEbnigVU9mXxGYVPNrIQnBDNCqMVq2aXpPsduCD0=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=g6HOrIAMBI/QdrQCHnh6KLtisQeavnbe4CIRbk5nJQZFObd2N2xPrKOGuXqYMg2t6
-	 P4Dmj/wJwv1rYMqLn+i4zxnBWaBG9Cebrj+lVhkKl9vyQj4rZ4RpjExeUQsEgNqwER
-	 2PLB98axkXAIPxgZ/CW5yxyV3w7usK4m/N4N82rR1SPvO3mJsmJ17Y44w5CGu4wEeq
-	 c/schnPIPTJrw3nOlbFi53BoJXIKJLmF/0L6NWbCMn0lZV7LkHJqla5KSSPh+Ke8Qz
-	 rdBfvZoNA1H+jP0+DXhiI+9iRBWMEuUMPl/eBi3ghQpJeRebfYNN9sPRZXoFyjZet5
-	 HSTuZ57hFy4M0Ym+SYqOyeL030DoTjKmHdhiI5wH9RTGzz/Ai+E/Q6YIeAFAiTz/TB
-	 +WvD6mlU5YujNYju/yyQfYjp/u+xLdEi8MV0NgOHozqGiHAd70X+cTrQxWco86YUZs
-	 lTh4PKq+w3p16TNk2UPgqxUA4Q+zQ8w7VZ9xr8pVsZDI0Fg6+jfplM2ilB8u4VrBz9
-	 ii9/B6ZZ0aoHI/ZVNJm/mh6g4lLPALdPmSoVPo+vLbMHiEhw3VSdleofAGMfkSVQhB
-	 BsFAwm40e2IREa1nZCNfc28OgNKKSQ8a0g+2Ul+RVN8/fqPrLxe9cspumL6YxgnBRD
-	 piQBTNX/Di/raOX/POmXs3HY=
-Received: from zn.tnic (pd953021b.dip0.t-ipconnect.de [217.83.2.27])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (P-256) server-signature ECDSA (P-256) server-digest SHA256)
-	(No client certificate requested)
-	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id DA82840E0196;
-	Mon, 26 Feb 2024 10:46:18 +0000 (UTC)
-Date: Mon, 26 Feb 2024 11:46:11 +0100
-From: Borislav Petkov <bp@alien8.de>
-To: Shuai Xue <xueshuai@linux.alibaba.com>
-Cc: rafael@kernel.org, wangkefeng.wang@huawei.com, tanxiaofei@huawei.com,
-	mawupeng1@huawei.com, tony.luck@intel.com, linmiaohe@huawei.com,
-	naoya.horiguchi@nec.com, james.morse@arm.com,
-	gregkh@linuxfoundation.org, will@kernel.org, jarkko@kernel.org,
-	linux-acpi@vger.kernel.org, linux-mm@kvack.org,
-	linux-kernel@vger.kernel.org, akpm@linux-foundation.org,
-	linux-edac@vger.kernel.org, x86@kernel.org, justin.he@arm.com,
-	ardb@kernel.org, ying.huang@intel.com, ashish.kalra@amd.com,
-	baolin.wang@linux.alibaba.com, tglx@linutronix.de, mingo@redhat.com,
-	dave.hansen@linux.intel.com, lenb@kernel.org, hpa@zytor.com,
-	robert.moore@intel.com, lvying6@huawei.com, xiexiuqi@huawei.com,
-	zhuo.song@linux.alibaba.com
-Subject: Re: [PATCH v11 2/3] mm: memory-failure: move return value
- documentation to function declaration
-Message-ID: <20240226104611.GCZdxr82q-Wcms7R3S@fat_crate.local>
-References: <20221027042445.60108-1-xueshuai@linux.alibaba.com>
- <20240204080144.7977-3-xueshuai@linux.alibaba.com>
+	s=arc-20240116; t=1708956633; c=relaxed/simple;
+	bh=Z19xIouIl+bCnizOctHJ7cIatm4j/vf898NH19suaAo=;
+	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=CxCoTwnv/utRDSYKvUP1+BvL4v/foS1Ov8MmnBN/YlIKZFHrGYnKp2BB1F8iivGbOlByu+UnvT49tffSrBUg1q+gMYFa9sWIgde4KFfeCUZuIVUbEIDoNse/XM+wgnq7GVl2cbWRXamybHhnx433y8MhaSeHqCIQgvSP58TatWQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.18.186.31])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Tk2VC6XJkz6K9N9;
+	Mon, 26 Feb 2024 22:06:43 +0800 (CST)
+Received: from lhrpeml500005.china.huawei.com (unknown [7.191.163.240])
+	by mail.maildlp.com (Postfix) with ESMTPS id 34279140DDB;
+	Mon, 26 Feb 2024 22:10:27 +0800 (CST)
+Received: from localhost (10.202.227.76) by lhrpeml500005.china.huawei.com
+ (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.35; Mon, 26 Feb
+ 2024 14:10:26 +0000
+Date: Mon, 26 Feb 2024 14:10:25 +0000
+From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+To: Dan Williams <dan.j.williams@intel.com>
+CC: <linux-cxl@vger.kernel.org>, <stable@vger.kernel.org>, Breno Leitao
+	<leitao@debian.org>, Alison Schofield <alison.schofield@intel.com>, "Vishal
+ Verma" <vishal.l.verma@intel.com>, <linux-acpi@vger.kernel.org>
+Subject: Re: [PATCH] cxl/acpi: Fix load failures due to single window
+ creation failure
+Message-ID: <20240226141025.00001acf@Huawei.com>
+In-Reply-To: <65da43d38df20_2bca029483@dwillia2-mobl3.amr.corp.intel.com.notmuch>
+References: <170820177238.631006.1012639681618409284.stgit@dwillia2-xfh.jf.intel.com>
+	<20240219124041.00002bda@Huawei.com>
+	<65d6335ea74ac_6c745294a8@dwillia2-xfh.jf.intel.com.notmuch>
+	<20240223132829.00007741@Huawei.com>
+	<65d8eeaaeb302_2509b294f3@dwillia2-mobl3.amr.corp.intel.com.notmuch>
+	<65d987b04e98b_2509b294e4@dwillia2-mobl3.amr.corp.intel.com.notmuch>
+	<65da43d38df20_2bca029483@dwillia2-mobl3.amr.corp.intel.com.notmuch>
+Organization: Huawei Technologies Research and Development (UK) Ltd.
+X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20240204080144.7977-3-xueshuai@linux.alibaba.com>
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: lhrpeml500004.china.huawei.com (7.191.163.9) To
+ lhrpeml500005.china.huawei.com (7.191.163.240)
 
-On Sun, Feb 04, 2024 at 04:01:43PM +0800, Shuai Xue wrote:
-> Part of return value comments for memory_failure() were originally
-> documented at the call site. Move those comments to the function
-> declaration to improve code readability and to provide developers with
-> immediate access to function usage and return information.
+On Sat, 24 Feb 2024 11:30:27 -0800
+Dan Williams <dan.j.williams@intel.com> wrote:
+
+> Dan Williams wrote:
+> > Dan Williams wrote:
+> > [..]  
+> > > > This is definitely not nice to read.  We are randomly setting an
+> > > > apparently unrelated pointer to NULL.  At very least the __free
+> > > > should operating on cxld then we can use  
+> > 
+> > So, how about this... I don't hate it:  
 > 
-> Signed-off-by: Shuai Xue <xueshuai@linux.alibaba.com>
-> ---
->  arch/x86/kernel/cpu/mce/core.c | 9 +--------
->  mm/memory-failure.c            | 9 ++++++---
->  2 files changed, 7 insertions(+), 11 deletions(-)
+> ...and the version that actually compiles, fixed up cxl_root_decoder
+> declaration and dropped the BUILD_BUG_ON() since it will naturally fail
+> to compile if more than the supported number of variables is passed to
+> cond_no_free_ptr():
 > 
-> diff --git a/arch/x86/kernel/cpu/mce/core.c b/arch/x86/kernel/cpu/mce/core.c
-> index bc39252bc54f..822b21eb48ad 100644
-> --- a/arch/x86/kernel/cpu/mce/core.c
-> +++ b/arch/x86/kernel/cpu/mce/core.c
-> @@ -1365,17 +1365,10 @@ static void kill_me_maybe(struct callback_head *cb)
->  		return;
->  	}
+> -- 8< --
+> diff --git a/drivers/cxl/acpi.c b/drivers/cxl/acpi.c
+> index 1a3e6aafbdcc..5c1dc4adf80d 100644
+> --- a/drivers/cxl/acpi.c
+> +++ b/drivers/cxl/acpi.c
+> @@ -316,6 +316,8 @@ static const struct cxl_root_ops acpi_root_ops = {
+>  	.qos_class = cxl_acpi_qos_class,
+>  };
 >  
-> -	/*
-> -	 * -EHWPOISON from memory_failure() means that it already sent SIGBUS
-> -	 * to the current process with the proper error info,
-> -	 * -EOPNOTSUPP means hwpoison_filter() filtered the error event,
-> -	 *
-> -	 * In both cases, no further processing is required.
-> -	 */
->  	if (ret == -EHWPOISON || ret == -EOPNOTSUPP)
->  		return;
+> +DEFINE_FREE(put_cxlrd, struct cxl_root_decoder *,
+> +	    if (!IS_ERR_OR_NULL(_T)) put_device(&_T->cxlsd.cxld.dev))
+>  static int __cxl_parse_cfmws(struct acpi_cedt_cfmws *cfmws,
+>  			     struct cxl_cfmws_context *ctx)
+>  {
+> @@ -323,21 +325,15 @@ static int __cxl_parse_cfmws(struct acpi_cedt_cfmws *cfmws,
+
+
+>  	/* add to the local resource tracking to establish a sort order */
+>  	rc = insert_resource(cxl_res, res);
+> -	if (rc)
+> -		goto err_insert;
+> +	cond_no_free_ptr(rc == 0, return rc, res, name);
+
+I'm not convinced this is that much clearer than
+	rc = insert_resource(cxl_res, res);
+	if (rc)
+		return rc;
+	no_check_no_free_ptrs(res);
+	no_check_no_free_ptrs(name);
+
+with better naming and with that being defined in similar way to your
+__cond_no_free_ptrs()
+
+Just keeping them in the same code block is probably enough to indicate
+that these are there because of success of insert_resource()
++ no need to handle bigger and bigger sets of params in the future.
+
+
+Rest looks good to me
+
+Jonathan
+
+ 
+	
+
+...
+
+> diff --git a/include/linux/cleanup.h b/include/linux/cleanup.h
+> index c2d09bc4f976..e156fed88f51 100644
+> --- a/include/linux/cleanup.h
+> +++ b/include/linux/cleanup.h
+> @@ -77,6 +77,28 @@ const volatile void * __must_check_fn(const volatile void *val)
 >  
-> -	pr_err("Memory error not recovered");
-> +	pr_err("Sending SIGBUS to current task due to memory error not recovered");
-
-Unrelated change.
-
->  	kill_me_now(cb);
->  }
+>  #define return_ptr(p)	return no_free_ptr(p)
 >  
-> diff --git a/mm/memory-failure.c b/mm/memory-failure.c
-> index 636280d04008..d33729c48eff 100644
-> --- a/mm/memory-failure.c
-> +++ b/mm/memory-failure.c
-> @@ -2175,9 +2175,12 @@ static int memory_failure_dev_pagemap(unsigned long pfn, int flags,
->   * Must run in process context (e.g. a work queue) with interrupts
->   * enabled and no spinlocks held.
->   *
-> - * Return: 0 for successfully handled the memory error,
-> - *         -EOPNOTSUPP for hwpoison_filter() filtered the error event,
-> - *         < 0(except -EOPNOTSUPP) on failure.
-> + * Return values:
-> + *   0             - success
-> + *   -EOPNOTSUPP   - hwpoison_filter() filtered the error event.
-> + *   -EHWPOISON    - sent SIGBUS to the current process with the proper
-> + *                   error info by kill_accessing_process().
+> +#define __cond_no_free_ptrs(p) ({__auto_type __always_unused __ptr = no_free_ptr(p);})
 
-kill_accessing_process() is not the only one returning -EHWPOISON.
+Nasty ;)
 
-And if you look at the code, it should be:
+> +#define __cond_no_free_ptrs1(p, ...) __cond_no_free_ptrs(p)
+> +#define __cond_no_free_ptrs2(p, ...) \
+> +	__cond_no_free_ptrs(p), __cond_no_free_ptrs1(__VA_ARGS__)
+> +#define __cond_no_free_ptrs3(p, ...) \
+> +	__cond_no_free_ptrs(p), __cond_no_free_ptrs2(__VA_ARGS__)
+> +
+> +/*
+> + * When an object is built up by an amalgamation of multiple allocations
+> + * each of those need to be cleaned up on error, but there are occasions
+> + * where once the object is registered all of those cleanups can be
+> + * cancelled.  cond_no_free_ptr() arranges to call no_free_ptr() on all
+> + * its arguments (up to 3) if @condition is true and runs @_fail
+> + * otherwise (typically to return and trigger auto-cleanup).
+> + */
+> +#define cond_no_free_ptr(condition, _fail, ...)                           \
+> +	if (condition) {                                                  \
+> +		CONCATENATE(__cond_no_free_ptrs, COUNT_ARGS(__VA_ARGS__)) \
+> +		(__VA_ARGS__);                                            \
+> +	} else {                                                          \
+> +		_fail;                                                    \
+> +	}
+>  
+>  /*
+>   * DEFINE_CLASS(name, type, exit, init, init_args...):
 
-	-EHWPOISON	- the page was already poisoned, potentially
-			kill process
-
-or so.
-
--- 
-Regards/Gruss,
-    Boris.
-
-https://people.kernel.org/tglx/notes-about-netiquette
