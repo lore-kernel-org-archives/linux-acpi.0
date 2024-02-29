@@ -1,46 +1,47 @@
 Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0AFA0160642;
-	Thu, 29 Feb 2024 16:27:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF8CA160657;
+	Thu, 29 Feb 2024 16:27:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.13
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709224076; cv=none; b=ggPiSVUq2hrqdPI7OXVIs9AiJcf/JEMDmMXf0X1gDmwEBuU8jEd9YTDmA1AqPxm+OPKf70RbrA/9uRb5Ktay58t75dIt4MS2LicosLAJljkKmau0UtdlnA97Fnlg3HXSwjCry92gEmYFQHogYHqHP0PhgrW5o9hbqcIGZTT14ck=
+	t=1709224077; cv=none; b=ocZ9hH0129KY62tnz4Hhzn7jDtXJTd5rg1n66AL1sIOG6Nb45BELjJshb+Gq3YbXDDSlsHr4D3jtQCIfxZtrlnJGTmPHTXL99sSs9IY2fw0Hbpv6lyrnA4WPBU1AvXxPzcNyEeV1owugLJakoeGWFJrisMhkjAovWHsbT57+2ao=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709224076; c=relaxed/simple;
-	bh=ejvm1bmnxBFMRwAGP7H9c0MFEeLIiilFk0iRRW12wW4=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=XPvTxDIbg10BJ1h2Du9tza/SZqDp5knLsXkCm3jENhsp6Z5HVASy6OhjtblOaG/mEy8BYXAobKx+RN0jtGyXNHvmCft40/bMWXLTF8nFBivURGatTDxzROSupGaKrVtG/zCgluhycVfcaMP4dBJw7B81gT6xAqNsJO8DkS2UIGI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=ieCkvpQH; arc=none smtp.client-ip=192.198.163.13
+	s=arc-20240116; t=1709224077; c=relaxed/simple;
+	bh=FZ4hzcjZ3N2IVSb6CQTAkW7bY97q2ac7mesHQV4f33s=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=H22IJbaS9p8DbmJ/GNrdHPmbgVmZE7IkIYrFhssPD22dwF1fADwcTznP08iMNC1OupL3Su/kzcd0F/PlfaseYyty7mjfsTuzXBz7wDyHA/PtkClb9aIM0icb+3G6JP5mfWyCzYkhf0RFRkVTEX+saM4DnzXvVLrX0P0wJp/8z8s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=hPUpE9ty; arc=none smtp.client-ip=192.198.163.13
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="ieCkvpQH"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="hPUpE9ty"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1709224074; x=1740760074;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=ejvm1bmnxBFMRwAGP7H9c0MFEeLIiilFk0iRRW12wW4=;
-  b=ieCkvpQHJtxnjSizOR4ld81czQ8F2KehjyHqpRA6DbL92I1b1GPg9kUP
-   Bd7ncMZEvxpdk8r9niSAwD40+UomwCOvTgWnfYf3oYgM0P0eJwPjX0wxp
-   FQ/bNuyz/H4saRcOB8xRQWIPruNgs/Jaf1w0XaqcN/V6w8UPEFNSSAVbF
-   bUmPvIenRdyIPPLn8lORDsGXiKN4VLflaYX6ZyGqMHiD8Lpw2DsvpiHtz
-   8El5YKKd1B+vd0wHz8pKUVWm9jmBokH3v8tCWChC0HaXCTXr7L4B0Uh3K
-   SDH6OvoWDzfvop2HGQ3f4bifg42WdS3IzDzuBi8X+NA0CD+KxJ/AugYMc
-   w==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10999"; a="6660703"
+  t=1709224075; x=1740760075;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=FZ4hzcjZ3N2IVSb6CQTAkW7bY97q2ac7mesHQV4f33s=;
+  b=hPUpE9tyZf54LEKYI69bmcQZi1kTQDHVxQ2Gd9GnzokOvdmwpdg/zrNf
+   HF26moOhPO/GqjMAeHCxIzdg8rU7+Ypu00XYxiMwBcZWtNbsnTPSL61yo
+   D4DTKevR0v6tMwpO9KwMAanLefTuvx4sez6tO8yvclENTQCyXcu4eQs2h
+   vnes3gcheYwjWwkM73Z1+Iq0v2Wl55AUGgDDKIs2sR/f9eJargUynG4Ra
+   oZIKnbdUD2m4pqK0RWVuXL2TkziX3XYH2Aqwj2LCG8P/jMqw+PdgHSSHO
+   qmROu/9VpBLmxDfdzKmqyNmPK9cjNcHgrDeVq4lUqDepHZmDVbscuiZXK
+   Q==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10999"; a="6660709"
 X-IronPort-AV: E=Sophos;i="6.06,194,1705392000"; 
-   d="scan'208";a="6660703"
+   d="scan'208";a="6660709"
 Received: from fmsmga001.fm.intel.com ([10.253.24.23])
   by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Feb 2024 08:27:49 -0800
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10999"; a="937036135"
+X-IronPort-AV: E=McAfee;i="6600,9927,10999"; a="937036137"
 X-IronPort-AV: E=Sophos;i="6.06,194,1705392000"; 
-   d="scan'208";a="937036135"
+   d="scan'208";a="937036137"
 Received: from black.fi.intel.com ([10.237.72.28])
   by fmsmga001.fm.intel.com with ESMTP; 29 Feb 2024 08:27:45 -0800
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-	id 821A023A; Thu, 29 Feb 2024 18:27:44 +0200 (EET)
+	id BB8384E9; Thu, 29 Feb 2024 18:27:44 +0200 (EET)
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
 	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
@@ -53,10 +54,12 @@ Cc: "Rafael J. Wysocki" <rafael@kernel.org>,
 	Len Brown <lenb@kernel.org>,
 	Jonathan Cameron <jic23@kernel.org>,
 	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH v3 0/4] driver core & device property: clean up APIs
-Date: Thu, 29 Feb 2024 18:23:42 +0200
-Message-ID: <20240229162741.3854912-1-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v3 4/4] device property: Don't use "proxy" headers
+Date: Thu, 29 Feb 2024 18:23:46 +0200
+Message-ID: <20240229162741.3854912-5-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.43.0.rc1.1.gbec44491f096
+In-Reply-To: <20240229162741.3854912-1-andriy.shevchenko@linux.intel.com>
+References: <20240229162741.3854912-1-andriy.shevchenko@linux.intel.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -65,36 +68,101 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-There are two, but dependent pair of patches that:
-- makes some of devlink APIs static
-- removes 'proxy' header use
+Update header inclusions to follow IWYU (Include What You Use)
+principle.
 
-This is rebased on top of latest patches from Jonathan as it has a minor
-conflict in property.h. The series can be applied directly to driver
-core tree with reduced context, but it may be better just to route it
-via IIO. Greg, which way do you prefer?
+Reviewed-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Rafael J. Wysocki <rafael@kernel.org>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/base/property.c  | 11 ++++++-----
+ drivers/base/swnode.c    | 13 ++++++++++++-
+ include/linux/fwnode.h   |  4 ++--
+ include/linux/property.h |  1 +
+ 4 files changed, 21 insertions(+), 8 deletions(-)
 
-v3:
-- improved commit message in patch 2 (Rafael)
-- added tag (Rafael)
-
-v2: https://lore.kernel.org/r/20240223155731.858412-1-andriy.shevchenko@linux.intel.com
-- most of the patches were sent separately as v1, thus this series is v2
-- harvested tags from that patches (Sakari, Saravana)
-
-Andy Shevchenko (4):
-  driver core: Drop unneeded 'extern' keyword in fwnode.h
-  driver core: Move fw_devlink stuff to where it belongs
-  device property: Move enum dev_dma_attr to fwnode.h
-  device property: Don't use "proxy" headers
-
- drivers/base/core.c      | 58 ++++++++++++++++++++++++++++++++++
- drivers/base/property.c  | 67 ++++------------------------------------
- drivers/base/swnode.c    | 13 +++++++-
- include/linux/fwnode.h   | 13 +++++---
- include/linux/property.h |  9 +-----
- 5 files changed, 86 insertions(+), 74 deletions(-)
-
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index d983a4dea105..6a3a434d0d6f 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -7,15 +7,16 @@
+  *          Mika Westerberg <mika.westerberg@linux.intel.com>
+  */
+ 
+-#include <linux/acpi.h>
++#include <linux/device.h>
++#include <linux/err.h>
+ #include <linux/export.h>
+-#include <linux/kernel.h>
++#include <linux/kconfig.h>
+ #include <linux/of.h>
+-#include <linux/of_address.h>
+-#include <linux/of_graph.h>
+-#include <linux/of_irq.h>
+ #include <linux/property.h>
+ #include <linux/phy.h>
++#include <linux/slab.h>
++#include <linux/string.h>
++#include <linux/types.h>
+ 
+ struct fwnode_handle *__dev_fwnode(struct device *dev)
+ {
+diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
+index 36512fb75a20..eb6eb25b343b 100644
+--- a/drivers/base/swnode.c
++++ b/drivers/base/swnode.c
+@@ -6,10 +6,21 @@
+  * Author: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+  */
+ 
++#include <linux/container_of.h>
+ #include <linux/device.h>
+-#include <linux/kernel.h>
++#include <linux/err.h>
++#include <linux/export.h>
++#include <linux/idr.h>
++#include <linux/init.h>
++#include <linux/kobject.h>
++#include <linux/kstrtox.h>
++#include <linux/list.h>
+ #include <linux/property.h>
+ #include <linux/slab.h>
++#include <linux/spinlock.h>
++#include <linux/string.h>
++#include <linux/sysfs.h>
++#include <linux/types.h>
+ 
+ #include "base.h"
+ 
+diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
+index 4228c45d5ccc..80f3cd91b471 100644
+--- a/include/linux/fwnode.h
++++ b/include/linux/fwnode.h
+@@ -9,10 +9,10 @@
+ #ifndef _LINUX_FWNODE_H_
+ #define _LINUX_FWNODE_H_
+ 
+-#include <linux/types.h>
+-#include <linux/list.h>
+ #include <linux/bits.h>
+ #include <linux/err.h>
++#include <linux/list.h>
++#include <linux/types.h>
+ 
+ enum dev_dma_attr {
+ 	DEV_DMA_NOT_SUPPORTED,
+diff --git a/include/linux/property.h b/include/linux/property.h
+index 5761878d42c7..61fc20e5f81f 100644
+--- a/include/linux/property.h
++++ b/include/linux/property.h
+@@ -11,6 +11,7 @@
+ #define _LINUX_PROPERTY_H_
+ 
+ #include <linux/args.h>
++#include <linux/array_size.h>
+ #include <linux/bits.h>
+ #include <linux/cleanup.h>
+ #include <linux/fwnode.h>
 -- 
 2.43.0.rc1.1.gbec44491f096
 
