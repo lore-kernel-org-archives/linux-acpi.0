@@ -1,47 +1,47 @@
 Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1BFD182B9;
-	Fri,  1 Mar 2024 18:02:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D05418C05;
+	Fri,  1 Mar 2024 18:02:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.15
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709316129; cv=none; b=H9DjQki5UOrJjrqt8yS0UlQRLaLlfQhEU+jyGPzkqiPUxdRHZcShN0g8u7zZWKTZWfhIx9+aPzRi4/RPYU//x2l57v0jQ57pB8/Ous7sYDuL0JQkl0fSkduTmI2vmpRoeqW4aqp5H9eMV+fV64HkOv0q6DZUDuFKHWUL/CDOlq4=
+	t=1709316130; cv=none; b=XSd42mCng1RuTzdTShBxKKnbsLEXXU5eNP9PSqiFaO+SUbULj9ujsqIUNn/WTQBamYVEg5AC0aZfo/upTw5K+r5UMDe9yiBZmkILFl1Gi445sLx8gwyMbBsNsSS161ua8jc5mH0dA41EeeZtpEYGapzRQXrTMI5VeG98F3Vfx1I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709316129; c=relaxed/simple;
-	bh=V8+OMrGJNYpNhTQT2vDFWxjT4YZYTDz3ivFoPvsgR8A=;
+	s=arc-20240116; t=1709316130; c=relaxed/simple;
+	bh=M6HgetbOB4Qie85fj5S+id3KjUoO4wwWwiWoU9zE7fw=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=nqwoUVNUC0NDCgE5a9miowdM6Sf75iLoheixTup+GIeuQGxPVxHg4EvRUehjTSnmoC1JxZ486ntOR6ieZHZfSxz/5fgoE121f7WKGQH2zDKH4cn1nw2uYxj9XHtRoxRUpPwECds4cFnFoiEodxnls1nBRUDVbiZsGk1i0iZjZBI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=RlwNIISg; arc=none smtp.client-ip=198.175.65.15
+	 MIME-Version; b=P3GaFJwpoOljpBuLrkM4AnwhM415YKpP4K+RtcvnoJVTXPiYqZw1YHgzQ4sYlhnbdqzrhhM+mBVG99q7sqCvaxIe8hQq5JBG8XklLN+zrZDehRDmwfm1GiL7joePvcP9ctRQ6PNTNTFMB/SRvGqkaBjOxLVvGvUNBCQI1YRbTuM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=AW8e37CR; arc=none smtp.client-ip=198.175.65.15
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="RlwNIISg"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="AW8e37CR"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1709316128; x=1740852128;
+  t=1709316129; x=1740852129;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=V8+OMrGJNYpNhTQT2vDFWxjT4YZYTDz3ivFoPvsgR8A=;
-  b=RlwNIISgE/AF27JPnJJYR5uBiMse/LjL87r9pVqX5YxAZOWhu7HEruAU
-   10sseWG2jqCjDNmGCkHF9XokYFkBdclB50LAwKKg9e1KGgNue6LjEEol1
-   Qdu43rqqWPL+ytuSScysrHRrcXhhiMp9BgaJLR85RqznPNephUJnueDK3
-   JrzWIgAnb1899jWpngyD+DZlWkZ0bHypBszlUMinLEQCLiwfy9L3n0d7d
-   FoloayQR26KE58q0RWKWQ1DpB/ZCNM97RCeTDfJCkmykvt5iQhJ5M6imV
-   A8HNnYYndz/0YjMTP0z9p5cSAyNE3sKoVe2oULtp4/7G7YyWvSDW92GWm
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,11000"; a="7684804"
+  bh=M6HgetbOB4Qie85fj5S+id3KjUoO4wwWwiWoU9zE7fw=;
+  b=AW8e37CRvhpseyqX3RkoAzoZIacm7uaEehgoLHnxPXqa1wpj72uMA0zV
+   npAQm3QP37Gy7aa+jHIY30q1+h54xFWbcs3/dcyIRG9Lz2cYjsCJfK6qZ
+   e2gey7OjJ77BJa5eUo0WlNVuZA3N49MTgkD5HBpYO+PfA5vWrFmVOJ0Io
+   Ng6p02f/hVTUgbuxfy+zub76ggwcZ/bt5wC/J44blO0w9Pbi5qJmovOko
+   74+3W7Tnpsl2FCDigpP/LjA2gpkiQB1Wvg3dDMv1iuSmN+aL/vWc8NkYf
+   j7PrOsBUUIYUYDtNNtUqDsGo6zCmzMuKQZo9DfFA81DI5L+6rnWIqwujN
+   w==;
+X-IronPort-AV: E=McAfee;i="6600,9927,11000"; a="7684811"
 X-IronPort-AV: E=Sophos;i="6.06,196,1705392000"; 
-   d="scan'208";a="7684804"
+   d="scan'208";a="7684811"
 Received: from fmsmga001.fm.intel.com ([10.253.24.23])
   by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Mar 2024 10:01:45 -0800
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,11000"; a="937037847"
+X-IronPort-AV: E=McAfee;i="6600,9927,11000"; a="937037845"
 X-IronPort-AV: E=Sophos;i="6.06,196,1705392000"; 
-   d="scan'208";a="937037847"
+   d="scan'208";a="937037845"
 Received: from black.fi.intel.com ([10.237.72.28])
   by fmsmga001.fm.intel.com with ESMTP; 01 Mar 2024 10:01:42 -0800
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-	id 3BDFE524; Fri,  1 Mar 2024 20:01:41 +0200 (EET)
+	id 517B05F5; Fri,  1 Mar 2024 20:01:41 +0200 (EET)
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
 	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
@@ -54,9 +54,9 @@ Cc: Daniel Scally <djrscally@gmail.com>,
 	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
 	Len Brown <lenb@kernel.org>,
 	Jonathan Cameron <jic23@kernel.org>
-Subject: [PATCH v4 2/4] driver core: Move fw_devlink stuff to where it belongs
-Date: Fri,  1 Mar 2024 20:00:06 +0200
-Message-ID: <20240301180138.271590-3-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v4 4/4] device property: Don't use "proxy" headers
+Date: Fri,  1 Mar 2024 20:00:08 +0200
+Message-ID: <20240301180138.271590-5-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.43.0.rc1.1.gbec44491f096
 In-Reply-To: <20240301180138.271590-1-andriy.shevchenko@linux.intel.com>
 References: <20240301180138.271590-1-andriy.shevchenko@linux.intel.com>
@@ -68,203 +68,101 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-A few APIs, i.e. fwnode_is_ancestor_of(), fwnode_get_next_parent_dev(),
-and get_dev_from_fwnode(), that belong specifically to the fw_devlink APIs,
-may be static, but they are not.
-
-Resolve this mess by moving them to the driver/base/core where the all
-users are being resided and make static.
-
-No functional changes intended.
+Update header inclusions to follow IWYU (Include What You Use)
+principle.
 
 Reviewed-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 Acked-by: Rafael J. Wysocki <rafael@kernel.org>
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/base/core.c      | 58 ++++++++++++++++++++++++++++++++++++++++
- drivers/base/property.c  | 56 --------------------------------------
- include/linux/fwnode.h   |  1 -
- include/linux/property.h |  2 --
- 4 files changed, 58 insertions(+), 59 deletions(-)
+ drivers/base/property.c  | 11 ++++++-----
+ drivers/base/swnode.c    | 13 ++++++++++++-
+ include/linux/fwnode.h   |  4 ++--
+ include/linux/property.h |  1 +
+ 4 files changed, 21 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/base/core.c b/drivers/base/core.c
-index 9828da9b933c..35ccd8bb2c9b 100644
---- a/drivers/base/core.c
-+++ b/drivers/base/core.c
-@@ -1871,6 +1871,7 @@ static void fw_devlink_unblock_consumers(struct device *dev)
- 	device_links_write_unlock();
- }
- 
-+#define get_dev_from_fwnode(fwnode)	get_device((fwnode)->dev)
- 
- static bool fwnode_init_without_drv(struct fwnode_handle *fwnode)
- {
-@@ -1901,6 +1902,63 @@ static bool fwnode_ancestor_init_without_drv(struct fwnode_handle *fwnode)
- 	return false;
- }
- 
-+/**
-+ * fwnode_is_ancestor_of - Test if @ancestor is ancestor of @child
-+ * @ancestor: Firmware which is tested for being an ancestor
-+ * @child: Firmware which is tested for being the child
-+ *
-+ * A node is considered an ancestor of itself too.
-+ *
-+ * Return: true if @ancestor is an ancestor of @child. Otherwise, returns false.
-+ */
-+static bool fwnode_is_ancestor_of(const struct fwnode_handle *ancestor,
-+				  const struct fwnode_handle *child)
-+{
-+	struct fwnode_handle *parent;
-+
-+	if (IS_ERR_OR_NULL(ancestor))
-+		return false;
-+
-+	if (child == ancestor)
-+		return true;
-+
-+	fwnode_for_each_parent_node(child, parent) {
-+		if (parent == ancestor) {
-+			fwnode_handle_put(parent);
-+			return true;
-+		}
-+	}
-+	return false;
-+}
-+
-+/**
-+ * fwnode_get_next_parent_dev - Find device of closest ancestor fwnode
-+ * @fwnode: firmware node
-+ *
-+ * Given a firmware node (@fwnode), this function finds its closest ancestor
-+ * firmware node that has a corresponding struct device and returns that struct
-+ * device.
-+ *
-+ * The caller is responsible for calling put_device() on the returned device
-+ * pointer.
-+ *
-+ * Return: a pointer to the device of the @fwnode's closest ancestor.
-+ */
-+static struct device *fwnode_get_next_parent_dev(const struct fwnode_handle *fwnode)
-+{
-+	struct fwnode_handle *parent;
-+	struct device *dev;
-+
-+	fwnode_for_each_parent_node(fwnode, parent) {
-+		dev = get_dev_from_fwnode(parent);
-+		if (dev) {
-+			fwnode_handle_put(parent);
-+			return dev;
-+		}
-+	}
-+	return NULL;
-+}
-+
- /**
-  * __fw_devlink_relax_cycles - Relax and mark dependency cycles.
-  * @con: Potential consumer device.
 diff --git a/drivers/base/property.c b/drivers/base/property.c
-index a1b01ab42052..afa1bf2b3c5a 100644
+index afa1bf2b3c5a..7324a704a9a1 100644
 --- a/drivers/base/property.c
 +++ b/drivers/base/property.c
-@@ -699,34 +699,6 @@ struct fwnode_handle *fwnode_get_next_parent(struct fwnode_handle *fwnode)
- }
- EXPORT_SYMBOL_GPL(fwnode_get_next_parent);
+@@ -7,15 +7,16 @@
+  *          Mika Westerberg <mika.westerberg@linux.intel.com>
+  */
  
--/**
-- * fwnode_get_next_parent_dev - Find device of closest ancestor fwnode
-- * @fwnode: firmware node
-- *
-- * Given a firmware node (@fwnode), this function finds its closest ancestor
-- * firmware node that has a corresponding struct device and returns that struct
-- * device.
-- *
-- * The caller is responsible for calling put_device() on the returned device
-- * pointer.
-- *
-- * Return: a pointer to the device of the @fwnode's closest ancestor.
-- */
--struct device *fwnode_get_next_parent_dev(const struct fwnode_handle *fwnode)
--{
--	struct fwnode_handle *parent;
--	struct device *dev;
--
--	fwnode_for_each_parent_node(fwnode, parent) {
--		dev = get_dev_from_fwnode(parent);
--		if (dev) {
--			fwnode_handle_put(parent);
--			return dev;
--		}
--	}
--	return NULL;
--}
--
- /**
-  * fwnode_count_parents - Return the number of parents a node has
-  * @fwnode: The node the parents of which are to be counted
-@@ -773,34 +745,6 @@ struct fwnode_handle *fwnode_get_nth_parent(struct fwnode_handle *fwnode,
- }
- EXPORT_SYMBOL_GPL(fwnode_get_nth_parent);
+-#include <linux/acpi.h>
++#include <linux/device.h>
++#include <linux/err.h>
+ #include <linux/export.h>
+-#include <linux/kernel.h>
++#include <linux/kconfig.h>
+ #include <linux/of.h>
+-#include <linux/of_address.h>
+-#include <linux/of_graph.h>
+-#include <linux/of_irq.h>
+ #include <linux/property.h>
+ #include <linux/phy.h>
++#include <linux/slab.h>
++#include <linux/string.h>
++#include <linux/types.h>
  
--/**
-- * fwnode_is_ancestor_of - Test if @ancestor is ancestor of @child
-- * @ancestor: Firmware which is tested for being an ancestor
-- * @child: Firmware which is tested for being the child
-- *
-- * A node is considered an ancestor of itself too.
-- *
-- * Return: true if @ancestor is an ancestor of @child. Otherwise, returns false.
-- */
--bool fwnode_is_ancestor_of(const struct fwnode_handle *ancestor, const struct fwnode_handle *child)
--{
--	struct fwnode_handle *parent;
--
--	if (IS_ERR_OR_NULL(ancestor))
--		return false;
--
--	if (child == ancestor)
--		return true;
--
--	fwnode_for_each_parent_node(child, parent) {
--		if (parent == ancestor) {
--			fwnode_handle_put(parent);
--			return true;
--		}
--	}
--	return false;
--}
--
- /**
-  * fwnode_get_next_child_node - Return the next child node handle for a node
-  * @fwnode: Firmware node to find the next child node for.
+ struct fwnode_handle *__dev_fwnode(struct device *dev)
+ {
+diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
+index 36512fb75a20..eb6eb25b343b 100644
+--- a/drivers/base/swnode.c
++++ b/drivers/base/swnode.c
+@@ -6,10 +6,21 @@
+  * Author: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+  */
+ 
++#include <linux/container_of.h>
+ #include <linux/device.h>
+-#include <linux/kernel.h>
++#include <linux/err.h>
++#include <linux/export.h>
++#include <linux/idr.h>
++#include <linux/init.h>
++#include <linux/kobject.h>
++#include <linux/kstrtox.h>
++#include <linux/list.h>
+ #include <linux/property.h>
+ #include <linux/slab.h>
++#include <linux/spinlock.h>
++#include <linux/string.h>
++#include <linux/sysfs.h>
++#include <linux/types.h>
+ 
+ #include "base.h"
+ 
 diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
-index 2d23a14857c7..416cbe72f0c7 100644
+index 4228c45d5ccc..80f3cd91b471 100644
 --- a/include/linux/fwnode.h
 +++ b/include/linux/fwnode.h
-@@ -187,7 +187,6 @@ struct fwnode_operations {
- 		if (fwnode_has_op(fwnode, op))				\
- 			(fwnode)->ops->op(fwnode, ## __VA_ARGS__);	\
- 	} while (false)
--#define get_dev_from_fwnode(fwnode)	get_device((fwnode)->dev)
+@@ -9,10 +9,10 @@
+ #ifndef _LINUX_FWNODE_H_
+ #define _LINUX_FWNODE_H_
  
- static inline void fwnode_init(struct fwnode_handle *fwnode,
- 			       const struct fwnode_operations *ops)
+-#include <linux/types.h>
+-#include <linux/list.h>
+ #include <linux/bits.h>
+ #include <linux/err.h>
++#include <linux/list.h>
++#include <linux/types.h>
+ 
+ enum dev_dma_attr {
+ 	DEV_DMA_NOT_SUPPORTED,
 diff --git a/include/linux/property.h b/include/linux/property.h
-index e6516d0b7d52..284ff79ebf03 100644
+index 1f0135e24d00..3a1045eb786c 100644
 --- a/include/linux/property.h
 +++ b/include/linux/property.h
-@@ -156,11 +156,9 @@ struct fwnode_handle *fwnode_get_next_parent(struct fwnode_handle *fwnode);
- 	for (parent = fwnode_get_parent(fwnode); parent;	\
- 	     parent = fwnode_get_next_parent(parent))
+@@ -11,6 +11,7 @@
+ #define _LINUX_PROPERTY_H_
  
--struct device *fwnode_get_next_parent_dev(const struct fwnode_handle *fwnode);
- unsigned int fwnode_count_parents(const struct fwnode_handle *fwn);
- struct fwnode_handle *fwnode_get_nth_parent(struct fwnode_handle *fwn,
- 					    unsigned int depth);
--bool fwnode_is_ancestor_of(const struct fwnode_handle *ancestor, const struct fwnode_handle *child);
- struct fwnode_handle *fwnode_get_next_child_node(
- 	const struct fwnode_handle *fwnode, struct fwnode_handle *child);
- struct fwnode_handle *fwnode_get_next_available_child_node(
+ #include <linux/args.h>
++#include <linux/array_size.h>
+ #include <linux/bits.h>
+ #include <linux/fwnode.h>
+ #include <linux/stddef.h>
 -- 
 2.43.0.rc1.1.gbec44491f096
 
