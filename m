@@ -1,47 +1,47 @@
 Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EEF7D364BC;
-	Fri,  1 Mar 2024 18:02:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A79B37701;
+	Fri,  1 Mar 2024 18:02:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.15
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709316131; cv=none; b=GE16oWGMFbfQeKFTXHtEcErWkeSkmPkWt/EThuZVHewK2fT4hwtK4viCNoj2m+zQfkezLxmWlH1S4NTxw0ZF6rKDDlOs1Hbba8JhnsQfROa5q8lQLaDdglmG4LH5AF0VmDRsiVE9PKOOg+oAbFy2aCzb49KN303FPq3CmrFT2bQ=
+	t=1709316131; cv=none; b=lQmmH8ZrznpeAgro6wjZdT6JDDjdp7pViFt830ndgAvPTymZG5vaIn61mp5x3mqwE3ZQ/fTCo0pnk9gWwfHNQ7ci+76GLmN7jG4qqDVboa6pR1gyuRc00golwIWDwYMjmiZ9dnxTtlFDU7vzZxn4oM78BzCpLDulNM2DMU2kcCM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1709316131; c=relaxed/simple;
-	bh=UGi/J2/VhF7b5YdpT5D5KqWdO44033odkiuQlnQjuvY=;
+	bh=BW1c/RkhUJtoUJ2pTjmMw2HsXxDX+1fRKgzP9b4AcP8=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=fMmlzb8qbWtz/vCcDOSXLB8nj2kfS1BWk/PVOvviSwIdB05gj+jSzjNJlQpM9ubl4qRbbp9stBkqqHaFShrueNtnEctbuuEGcRFrZIdVfgFxpasj2ogYPS7Y73SAgxhgcTvg1KlSMcR4Wkx9ZZzFvctvifBL2P3bAB4Wbm1QPbw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=I/ETq48V; arc=none smtp.client-ip=198.175.65.15
+	 MIME-Version; b=leIqbBRkSPnbVgVDKQk6lDQPzAYMmHaTjzHlU8IAyGyv5ULRc+48UUErg+Ia3vymR80FpHXLWKQTN2yMjfY0pVuA7Fyn5Cis4Hr45d8HGGjq1D+Rpbml7ePMEjxgzQwJ0JsJcGzQbUYvqtlroKkmXWYxPj5H5XN08/y4xMuwZIo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=mQL0Cqh3; arc=none smtp.client-ip=198.175.65.15
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="I/ETq48V"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="mQL0Cqh3"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
   t=1709316130; x=1740852130;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=UGi/J2/VhF7b5YdpT5D5KqWdO44033odkiuQlnQjuvY=;
-  b=I/ETq48VHSIAXW8mq6Ke0KzWTJqn6XKoOuw0aNtJh9bd4wXi5hJ69DVZ
-   TRDPS34bEyEYeoEwAhkxBsYmv2QeItoCM1Ns9hVAojZffAXMPaXG7L38i
-   gbc8j4s5peGE+A52QZOLeAWslFkyHKLiUjha9Xj7TYd5KZrH74IzHVybk
-   /j4dysWQAHxyoMSuMjvskeDXC5cl0UQXhPMLUvZmoiQD4/jC53Tcgyzca
-   uAGgJekZbGlKujYkSt3qumo2k4npQD/8DSfNTlR+em8N5gyZaI2+4DKvP
-   4ljkdMagKyVYdBj+DVUUZxG4rMOYagKN7/QuPePWZY/X1z/aYl4P/rQ5y
+  bh=BW1c/RkhUJtoUJ2pTjmMw2HsXxDX+1fRKgzP9b4AcP8=;
+  b=mQL0Cqh3f4G8+GV4y5XZt556trM4BlE7/bQIDtKvNTvFZ3WSpXdQMh1t
+   o9TRh11QnL3TyA8BTpIkCUbyyRKeH4VfVHo8KIQY3eVOL3EjIdf68BwQR
+   yfg3GYJ7frgmbBIe08zUYR38ohxn5018T0+ykIII8v0gnPpAZIiaVqNMe
+   7CX/g+PR0SwiA1znuxZ/Tmn5RBQfzDsP1qCFvvWvpoJWyUIZsR5H358M7
+   +zKtx6T3H/Q5rX4xVZGRvRCjBpXlAP5Fdkf0A83yP8QDkN3iLqkuELllQ
+   dJfCDvzIl+cmQtfCRN8VW9Owq3dQcAkWOmD2iq1HEpBxtk+6IIpH2olzR
    g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,11000"; a="7684816"
+X-IronPort-AV: E=McAfee;i="6600,9927,11000"; a="7684821"
 X-IronPort-AV: E=Sophos;i="6.06,196,1705392000"; 
-   d="scan'208";a="7684816"
+   d="scan'208";a="7684821"
 Received: from fmsmga001.fm.intel.com ([10.253.24.23])
   by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Mar 2024 10:01:45 -0800
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,11000"; a="937037846"
+X-IronPort-AV: E=McAfee;i="6600,9927,11000"; a="937037848"
 X-IronPort-AV: E=Sophos;i="6.06,196,1705392000"; 
-   d="scan'208";a="937037846"
+   d="scan'208";a="937037848"
 Received: from black.fi.intel.com ([10.237.72.28])
   by fmsmga001.fm.intel.com with ESMTP; 01 Mar 2024 10:01:42 -0800
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-	id 46B68537; Fri,  1 Mar 2024 20:01:41 +0200 (EET)
+	id 2CA611A5; Fri,  1 Mar 2024 20:01:41 +0200 (EET)
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
 	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
@@ -53,10 +53,11 @@ To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
 Cc: Daniel Scally <djrscally@gmail.com>,
 	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
 	Len Brown <lenb@kernel.org>,
-	Jonathan Cameron <jic23@kernel.org>
-Subject: [PATCH v4 3/4] device property: Move enum dev_dma_attr to fwnode.h
-Date: Fri,  1 Mar 2024 20:00:07 +0200
-Message-ID: <20240301180138.271590-4-andriy.shevchenko@linux.intel.com>
+	Jonathan Cameron <jic23@kernel.org>,
+	Saravana Kannan <saravanak@google.com>
+Subject: [PATCH v4 1/4] driver core: Drop unneeded 'extern' keyword in fwnode.h
+Date: Fri,  1 Mar 2024 20:00:05 +0200
+Message-ID: <20240301180138.271590-2-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.43.0.rc1.1.gbec44491f096
 In-Reply-To: <20240301180138.271590-1-andriy.shevchenko@linux.intel.com>
 References: <20240301180138.271590-1-andriy.shevchenko@linux.intel.com>
@@ -68,53 +69,32 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The struct fwnode_operations defines one of the callback to return
-enum dev_dma_attr. But this currently is defined in property.h.
-Move it to the correct location.
+We do not use 'extern' keyword with functions. Remove the last one
+mistakenly added to fwnode.h.
 
-Fixes: 8c756a0a2de1 ("device property: Convert device_{dma_supported,get_dma_attr} to fwnode")
 Reviewed-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Saravana Kannan <saravanak@google.com>
 Acked-by: Rafael J. Wysocki <rafael@kernel.org>
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- include/linux/fwnode.h   | 6 ++++++
- include/linux/property.h | 6 ------
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ include/linux/fwnode.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
-index 416cbe72f0c7..4228c45d5ccc 100644
+index 2a72f55d26eb..2d23a14857c7 100644
 --- a/include/linux/fwnode.h
 +++ b/include/linux/fwnode.h
-@@ -14,6 +14,12 @@
- #include <linux/bits.h>
- #include <linux/err.h>
+@@ -209,9 +209,9 @@ static inline void fwnode_dev_initialized(struct fwnode_handle *fwnode,
+ 		fwnode->flags &= ~FWNODE_FLAG_INITIALIZED;
+ }
  
-+enum dev_dma_attr {
-+	DEV_DMA_NOT_SUPPORTED,
-+	DEV_DMA_NON_COHERENT,
-+	DEV_DMA_COHERENT,
-+};
-+
- struct fwnode_operations;
- struct device;
+-extern bool fw_devlink_is_strict(void);
+ int fwnode_link_add(struct fwnode_handle *con, struct fwnode_handle *sup);
+ void fwnode_links_purge(struct fwnode_handle *fwnode);
+ void fw_devlink_purge_absent_suppliers(struct fwnode_handle *fwnode);
++bool fw_devlink_is_strict(void);
  
-diff --git a/include/linux/property.h b/include/linux/property.h
-index 284ff79ebf03..1f0135e24d00 100644
---- a/include/linux/property.h
-+++ b/include/linux/property.h
-@@ -27,12 +27,6 @@ enum dev_prop_type {
- 	DEV_PROP_REF,
- };
- 
--enum dev_dma_attr {
--	DEV_DMA_NOT_SUPPORTED,
--	DEV_DMA_NON_COHERENT,
--	DEV_DMA_COHERENT,
--};
--
- const struct fwnode_handle *__dev_fwnode_const(const struct device *dev);
- struct fwnode_handle *__dev_fwnode(struct device *dev);
- #define dev_fwnode(dev)							\
+ #endif
 -- 
 2.43.0.rc1.1.gbec44491f096
 
