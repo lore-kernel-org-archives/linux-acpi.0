@@ -1,68 +1,99 @@
-Received: from out30-112.freemail.mail.aliyun.com (out30-112.freemail.mail.aliyun.com [115.124.30.112])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ECDC34F1E3;
-	Fri,  8 Mar 2024 07:32:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.112
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54CC24F61D;
+	Fri,  8 Mar 2024 08:01:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.8
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709883141; cv=none; b=WggQ6cpKd0jr3GvVgs2ZZvYC1a5q4Ufq8h7COQ5+TKxZmHae256DZc9iO4FaKck+yibHGbY8UW8Aq6RN/gFZ2gEnrAGoDehA2FreKbZti8eWc1bsfWv0PKV8bvL0vBptXcGFa+KRtt7bv8/G1GYyH10LMYzVsjIxhJCAJFXXdK8=
+	t=1709884876; cv=none; b=Ew+no0YoWok8kPHD7+LS+ppWbv3TNMQzetaiuNq63uHYiWdHI2/FTMMCW2xVCb//rGEoNQs8Ov1RwA9PEm8/lXrhu40Esbl9X6TDd/XOkHaYN6wkScBZRQO8J8DftPfrQETx373jlsRuYSzqdfneDdYwSAjdUC0DRW1skQcgyKE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709883141; c=relaxed/simple;
-	bh=z/Jzop/xcOF0UsmGrGdSmhNu+gX+BqNaPpjSqxQzzAE=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=PxMK/GSoh5st0E+0aVNICX1k0/h2cbPXZQ/kY55T7AHV/ryU9z6nLr3V7gAa5lDuF2qfqbjNK5WU2J1O+PKVKmL9m41oN8lRUHph87x0/zTTc3ti+sw8frgBuX/wqLUq9pcq9+P7qlm2FS+AKe4Si+A9Osmo5I7FrwdU+IrWR8M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=SBkYY+8g; arc=none smtp.client-ip=115.124.30.112
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+	s=arc-20240116; t=1709884876; c=relaxed/simple;
+	bh=ioKP+FCr73IWPP6an5pqKpjOX6aJDfsCIfbs7bCOtM4=;
+	h=From:Date:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=k76NZPfkfAi6sUK6e6ptyiaHqm1fkxOHYyku1HzO+/RYtzKWjPpmhaynI6paY3KD2aDAUwhswsykPHP69J7BMWKDWG/AflR79bYGiBvJ30R+odOmfQJwKBRIRhGkklvzJ5cdNu9xIYvvrugUUitVDkzD4/RxlGpp4HtQI3k3HYM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=oFxDBR3u; arc=none smtp.client-ip=192.198.163.8
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="SBkYY+8g"
-DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux.alibaba.com; s=default;
-	t=1709883136; h=From:To:Subject:Date:Message-Id:MIME-Version;
-	bh=LEaQuW7svx3Ut6/i/Znb5O8w/jVnOY46iEm+jkT/Fhw=;
-	b=SBkYY+8gqafRV7K99BeLRo78H2jOHqgoIuYA3CjbRaLIHCZZgf1d8R2J+2Jk1WK8qc5WYlN2C+40sX9BBokEeqz6tcRMJbn3QLXpnJsda4052Xb5FaNqluV338DB15SZ1MOUsGIVgLXq0f/XxFAjPCiccqmeZbkEi5SchbLY5+Q=
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R191e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018045170;MF=yang.lee@linux.alibaba.com;NM=1;PH=DS;RN=5;SR=0;TI=SMTPD_---0W21nh7e_1709883135;
-Received: from localhost(mailfrom:yang.lee@linux.alibaba.com fp:SMTPD_---0W21nh7e_1709883135)
-          by smtp.aliyun-inc.com;
-          Fri, 08 Mar 2024 15:32:16 +0800
-From: Yang Li <yang.lee@linux.alibaba.com>
-To: rafael@kernel.org,
-	lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Yang Li <yang.lee@linux.alibaba.com>
-Subject: [PATCH -next] ACPI: Add kernel-doc comments to handle_eject_request function
-Date: Fri,  8 Mar 2024 15:32:14 +0800
-Message-Id: <20240308073214.11262-1-yang.lee@linux.alibaba.com>
-X-Mailer: git-send-email 2.20.1.7.g153144c
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="oFxDBR3u"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1709884875; x=1741420875;
+  h=from:date:to:cc:subject:in-reply-to:message-id:
+   references:mime-version;
+  bh=ioKP+FCr73IWPP6an5pqKpjOX6aJDfsCIfbs7bCOtM4=;
+  b=oFxDBR3uFBt1q5ukkI/g+DqSRm3tD9qyF56RJlHCMb9ot9/zN4uuHMqc
+   +cwlEb/Q6WDE5x+Q4dBHb+CRk3D8TEb+tQWEmmbtsxlF1piphOzAjOd2Q
+   tcG1k87Wy1WJaJrnkhE481hBlSvcUUfWzvJq9nJagReHfA9fFAsHYpxUu
+   9nkeWASFsnIyFwEJEzjhgAQEuQTGuFX2ymRg5vSKIRacSC0lLZocWpNY6
+   +V1fS7HNZvDdNpK7pE7yYFeLPUVrw1DYaC1wsatUXZF1jEutY5XWXs+At
+   Jrg7+xJ0Qv0SXSrcoNcpSRtNbb2GKEd+F+8VHYBLoJVAOajH9haDZaCK/
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,11006"; a="22119413"
+X-IronPort-AV: E=Sophos;i="6.07,108,1708416000"; 
+   d="scan'208";a="22119413"
+Received: from fmviesa009.fm.intel.com ([10.60.135.149])
+  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Mar 2024 00:01:14 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.07,108,1708416000"; 
+   d="scan'208";a="10267075"
+Received: from ijarvine-desk1.ger.corp.intel.com (HELO localhost) ([10.245.244.186])
+  by fmviesa009-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Mar 2024 00:01:11 -0800
+From: =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
+Date: Fri, 8 Mar 2024 10:01:05 +0200 (EET)
+To: Armin Wolf <W_Armin@gmx.de>
+cc: Hans de Goede <hdegoede@redhat.com>, 
+    "Rafael J. Wysocki" <rafael@kernel.org>, lenb@kernel.org, 
+    linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, 
+    LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v2 1/2] platform/x86: wmi: Support reading/writing 16
+ bit EC values
+In-Reply-To: <20240307195753.2961-1-W_Armin@gmx.de>
+Message-ID: <21fd57a2-d8c3-779c-7090-b7cdfc8198be@linux.intel.com>
+References: <20240307195753.2961-1-W_Armin@gmx.de>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
 
-This patch adds proper kernel-doc comments to the
-handle_eject_request function in the ACPI dock subsystem.
+On Thu, 7 Mar 2024, Armin Wolf wrote:
 
-Signed-off-by: Yang Li <yang.lee@linux.alibaba.com>
----
- drivers/acpi/dock.c | 2 ++
- 1 file changed, 2 insertions(+)
+> The ACPI EC address space handler currently only supports
+> reading/writing 8 bit values. Some firmware implementations however
+> want to access for example 16 bit values, which is prefectly legal
+> according to the ACPI spec.
+> 
+> Add support for reading/writing such values.
+> 
+> Tested on a Dell Inspiron 3505 and a Asus Prime B650-Plus.
+> 
+> Signed-off-by: Armin Wolf <W_Armin@gmx.de>
 
-diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
-index a89bdbe00184..a7c00ef78086 100644
---- a/drivers/acpi/dock.c
-+++ b/drivers/acpi/dock.c
-@@ -380,6 +380,8 @@ static int dock_in_progress(struct dock_station *ds)
- 
- /**
-  * handle_eject_request - handle an undock request checking for error conditions
-+ * @ds: The dock station to undock.
-+ * @event: The ACPI event number associated with the undock request.
-  *
-  * Check to make sure the dock device is still present, then undock and
-  * hotremove all the devices that may need removing.
+> @@ -1162,27 +1188,28 @@ acpi_wmi_ec_space_handler(u32 function, acpi_physical_address address,
+>  			  u32 bits, u64 *value,
+>  			  void *handler_context, void *region_context)
+>  {
+> -	int result = 0;
+> -	u8 temp = 0;
+> +	int bytes = bits / BITS_PER_BYTE;
+> +	int ret;
+> +
+> +	if (!value)
+> +		return AE_NULL_ENTRY;
+> 
+> -	if ((address > 0xFF) || !value)
+> +	if (bytes > sizeof(*value))
+>  		return AE_BAD_PARAMETER;
+> 
+> -	if (function != ACPI_READ && function != ACPI_WRITE)
+> +	if (address > U8_MAX || address + bytes > U8_MAX)
+
+This doesn't look correct. With address = 0xff and bits = 8 this will 
+return AE_BAD_PARAMETER, is that intensional?
+
 -- 
-2.20.1.7.g153144c
+ i.
 
