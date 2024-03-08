@@ -1,39 +1,55 @@
-Received: from out30-97.freemail.mail.aliyun.com (out30-97.freemail.mail.aliyun.com [115.124.30.97])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.14])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EFE34EB41;
-	Fri,  8 Mar 2024 07:20:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.97
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFD634F5F9
+	for <linux-acpi@vger.kernel.org>; Fri,  8 Mar 2024 07:30:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.14
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709882441; cv=none; b=l7fkRj1weyS1Fywl2CJhi7UbVnza16SX55ftMPeZNbbCvvZv1m/DZU0IjGrYBy6Gf+iv+8H8BdllJLmLI0l+lZoTbZD1xOmc0GSgpxcjYbyWTPsm/X3sy60oUyQwdfGtHPmrXXpMy2qNK8e9Gz4zyOHUTi6ugBpYBUZJBwhZAHA=
+	t=1709883056; cv=none; b=kbC4IHlM29zz1kyahswZoXM/SYpZuOkyQxvxtRJpSqMJyYBz1Tpblum4dDQJuoEl6CICaFBgSdDzyfSGXpYgY0vxbAeX/+CpjIasCCOHQmpz+v+q+lz91zfyG6ARPSErbMYovEHXbk17AyTuTxoMNgndJvIQlY55KZT54ZmIX+0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709882441; c=relaxed/simple;
-	bh=1rMp09pt+DJziaOPTfngoZfnVNRH/uQtUHw0I3KJEa4=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=jg5avUgTo2PFHTRe61/AwtLlsLvFX7xxv9IP2abck9gM2yOuc0O/9Le0yzRynjsx/Lvhs7hENDXbERj7hfL5YfZzkMpNuzMuZnkmpDyIf4B1HmrGQa3SdTkmTaYkFuLo/elu3uOxdZ3VQn4/Y10d9vI4IeycMpGBcunrYHdSpGM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=rDb2+2zg; arc=none smtp.client-ip=115.124.30.97
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+	s=arc-20240116; t=1709883056; c=relaxed/simple;
+	bh=vW0X54LcIFK6xdIHsf9sdlfXF/+2DACdn4J590QU6M8=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=Dy20XzatRmD7Pck7Z8tlJ7gjsmbs4TB3z0RvKh9G849TfTMnOdMP8tyb/sxUgRHjFueyTg/ig8Dy19XRLLBD5Duo6io+Ua7R1TAfER/PnTx9qytdmx/dXgfiCQ6HN0+204HXDWwL4jlQPQDwmaChc2HeMYr22cV8lhm/vcdQsvY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=ERo/2rZC; arc=none smtp.client-ip=192.198.163.14
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="rDb2+2zg"
-DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux.alibaba.com; s=default;
-	t=1709882435; h=From:To:Subject:Date:Message-Id:MIME-Version;
-	bh=sore9SltRzniIBmsB1VRaVO6lEzW9PUjGtyywAUpNBM=;
-	b=rDb2+2zgQAmUdjXIrDp7UZ09F7qHo1hPD6/TTjad+fDzNE+8ZzpmDeGQJrzsK63Jf3BokZi8/8Ckit3zO7v9uQ6MBIpFDemkvdNFp6ipA6GXpoSCHS+7mZzM5MjHFaBtjOKgdF4ZxlyM19xQnRBlrQiDKaZxyoxE6z1qLgMUK80=
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R571e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046056;MF=yang.lee@linux.alibaba.com;NM=1;PH=DS;RN=5;SR=0;TI=SMTPD_---0W21q8eo_1709882434;
-Received: from localhost(mailfrom:yang.lee@linux.alibaba.com fp:SMTPD_---0W21q8eo_1709882434)
-          by smtp.aliyun-inc.com;
-          Fri, 08 Mar 2024 15:20:34 +0800
-From: Yang Li <yang.lee@linux.alibaba.com>
-To: rafael@kernel.org,
-	lenb@kernel.org
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="ERo/2rZC"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1709883055; x=1741419055;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=vW0X54LcIFK6xdIHsf9sdlfXF/+2DACdn4J590QU6M8=;
+  b=ERo/2rZC2w5p9MuUdGSmvlDFvP0WXZaGCz4zVwErJBDKyIByuQzo/ftF
+   RVeUgNNMXhANI8KE+K9IFtYLOFqvtfPye3hkcTZDgXBZwCr4fW7p3k8co
+   jmVm+2GYsBxlJTmjAnxeNnIXzeprxMr5uEZiwvQbPn1lnp0HxO+viY+FR
+   WIizFNFEa4OJX2p+YtDb987xSByTs5SQbTOIDDJ5KD9LWcfZ3jRjfY0zV
+   PPI9NMfQ0YVeqeQgBSqqJTWAWiY2Jlrqr04I3Ua2zobuCGCJwU1blPiUt
+   x5rCYzZip918qA/x2AVXKbu+baUTseSB8wu1sebue5F9+Xw6f33PKfJ5h
+   w==;
+X-IronPort-AV: E=McAfee;i="6600,9927,11006"; a="4771715"
+X-IronPort-AV: E=Sophos;i="6.07,108,1708416000"; 
+   d="scan'208";a="4771715"
+Received: from fmviesa008.fm.intel.com ([10.60.135.148])
+  by fmvoesa108.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Mar 2024 23:30:54 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.07,108,1708416000"; 
+   d="scan'208";a="10472216"
+Received: from crojewsk-ctrl.igk.intel.com ([10.102.9.28])
+  by fmviesa008.fm.intel.com with ESMTP; 07 Mar 2024 23:30:52 -0800
+From: Cezary Rojewski <cezary.rojewski@intel.com>
+To: rafael@kernel.org
 Cc: linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Yang Li <yang.lee@linux.alibaba.com>
-Subject: [PATCH -next] ACPI: Add kernel-doc comments for ACPI suspend and hibernation functions
-Date: Fri,  8 Mar 2024 15:20:33 +0800
-Message-Id: <20240308072033.116556-1-yang.lee@linux.alibaba.com>
-X-Mailer: git-send-email 2.20.1.7.g153144c
+	robert.moore@intel.com,
+	amadeuszx.slawinski@linux.intel.com,
+	pierre-louis.bossart@linux.intel.com,
+	andriy.shevchenko@linux.intel.com,
+	Cezary Rojewski <cezary.rojewski@intel.com>
+Subject: [PATCH v6 0/4] ACPI: NHLT: Access and query helpers
+Date: Fri,  8 Mar 2024 08:32:36 +0100
+Message-Id: <20240308073240.2047932-1-cezary.rojewski@intel.com>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -42,72 +58,89 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This patch enhances the documentation for the ACPI power management
-functions related to system suspend and hibernation. This includes the
-use of kernel-doc style comments which provide developers with clearer
-guidance on the usage and expectations of these functions.
+The goal of this patchset is to refactor existing interface of
+Non HDAudio Link Table (NHLT) table so it becomes useful for the Intel
+AudioDSP sound-drivers. Right now the useful duplicate resides in
+sound/hda/intel-nhlt.c.
 
-Signed-off-by: Yang Li <yang.lee@linux.alibaba.com>
----
- drivers/acpi/sleep.c | 24 ++++++++++++++----------
- 1 file changed, 14 insertions(+), 10 deletions(-)
+The API takes form of query functions that help access device or
+audio-format configuration space. This information can be then utilized
+by a sound-driver to perform necessary programming and facilitate
+streaming over I2S/PDM interfaces. Once the series is merged, existing
+sound-drivers can move from utilizing sound/hda/intel-nhlt.c to this
+very code and ultimately the former file can be removed.
 
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index 728acfeb774d..5bc61f40c189 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -502,6 +502,7 @@ static void acpi_pm_finish(void)
- 
- /**
-  * acpi_pm_start - Start system PM transition.
-+ * @acpi_state: The target ACPI power state to transition to.
-  */
- static void acpi_pm_start(u32 acpi_state)
- {
-@@ -540,8 +541,9 @@ static u32 acpi_suspend_states[] = {
- };
- 
- /**
-- *	acpi_suspend_begin - Set the target system sleep state to the state
-- *		associated with given @pm_state, if supported.
-+ *acpi_suspend_begin - Set the target system sleep state to the state
-+ *	associated with given @pm_state, if supported.
-+ *@pm_state: The target system power management state.
-  */
- static int acpi_suspend_begin(suspend_state_t pm_state)
- {
-@@ -671,10 +673,11 @@ static const struct platform_suspend_ops acpi_suspend_ops = {
- };
- 
- /**
-- *	acpi_suspend_begin_old - Set the target system sleep state to the
-- *		state associated with given @pm_state, if supported, and
-- *		execute the _PTS control method.  This function is used if the
-- *		pre-ACPI 2.0 suspend ordering has been requested.
-+ *acpi_suspend_begin_old - Set the target system sleep state to the
-+ *	state associated with given @pm_state, if supported, and
-+ *	execute the _PTS control method.  This function is used if the
-+ *	pre-ACPI 2.0 suspend ordering has been requested.
-+ *@pm_state: The target suspend state for the system.
-  */
- static int acpi_suspend_begin_old(suspend_state_t pm_state)
- {
-@@ -967,10 +970,11 @@ static const struct platform_hibernation_ops acpi_hibernation_ops = {
- };
- 
- /**
-- *	acpi_hibernation_begin_old - Set the target system sleep state to
-- *		ACPI_STATE_S4 and execute the _PTS control method.  This
-- *		function is used if the pre-ACPI 2.0 suspend ordering has been
-- *		requested.
-+ *acpi_hibernation_begin_old - Set the target system sleep state to
-+ *	ACPI_STATE_S4 and execute the _PTS control method.  This
-+ *	function is used if the pre-ACPI 2.0 suspend ordering has been
-+ *	requested.
-+ *@stage: The power management event message.
-  */
- static int acpi_hibernation_begin_old(pm_message_t stage)
- {
+Paired with equivalent change on ACPICA [1].
+
+-
+
+Non HDAudio Link Table (NHLT) is designed to separate hardware-related
+description (registers) from AudioDSP firmware-related one i.e.:
+pipelines and modules that together make up the audio stream on Intel
+DSPs. This task is important as same set of hardware registers can be
+used with different topologies and vice versa, same topology could be
+utilized with different set of hardware. As the hardware registers
+description is directly tied to specific platform, intention is to have
+such description part of low-level firmware e.g.: BIOS.
+
+The initial design has been provided in early Sky Lake (SKL) days. The
+audio architecture goes by the name cAVS. SKL is a representative of
+cAVS 1.5. The table helps describe endpoint capabilities ever since.
+While Raptor Lake (RPL) is the last of cAVS architecture - cAVS 2.5 to
+be precise - its successor, the ACE architecture which begun with
+Meteor Lake (MTL) inherited the design for all I2S and PDM
+configurations. These two configurations are the primary targets for
+NHLT table.
+
+Due to naming conflicts with existing code, several structs are named
+'nhlt2' rather than 'nhlt'. Last patch cleans the situation up.
+
+
+Changes in v6:
+- added comments explaining usage of LINKTYPE and DEVICETYPE constants
+
+Changes in v5:
+- split find_endpoint/fmtcfg() into tb-less and tb-aware variants.
+  This is to make API scale with 2+ NHLTs and removes the need for
+  acpi_gbl_nhlt to be accessible globally.
+- acpi_nhlt_device_config now a union that encompasses all device_config
+  types.
+
+Changes in v4:
+- relocated ACPI_NHLT kconfig in the drivers/acpi/Kconfig to a more
+  relevant area within the file
+
+Changes in v3:
+- uncapitalized acpi_gbl_NHLT
+- fixed compilation problems when CONFIG_ACPI_NHLT is disabled
+- dropped Reviewed-by tags in the 2/4 patch due to above, those were not
+  one-line changes
+
+Changes in v2:
+- minor wording improvements in kernel-doc for patch 3/4
+- dropped parentheses around loop cursors in for_each_nhlt_*() macros
+- readability improvements in compound if-statements within query
+  functions
+- dropped NULL-checks in query functions
+
+[1]: https://github.com/acpica/acpica/pull/912
+
+
+Cezary Rojewski (4):
+  ACPI: NHLT: Reintroduce types the table consists of
+  ACPI: NHLT: Introduce API for the table
+  ACPI: NHLT: Drop redundant types
+  ACPI: NHLT: Streamline struct naming
+
+ drivers/acpi/Kconfig  |   3 +
+ drivers/acpi/Makefile |   1 +
+ drivers/acpi/nhlt.c   | 284 +++++++++++++++++++++++++++++++++++++++
+ include/acpi/actbl2.h | 299 +++++++++++++++++-------------------------
+ include/acpi/nhlt.h   | 180 +++++++++++++++++++++++++
+ 5 files changed, 585 insertions(+), 182 deletions(-)
+ create mode 100644 drivers/acpi/nhlt.c
+ create mode 100644 include/acpi/nhlt.h
+
 -- 
-2.20.1.7.g153144c
+2.25.1
 
