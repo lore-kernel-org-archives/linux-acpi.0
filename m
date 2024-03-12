@@ -1,136 +1,101 @@
-Received: from desiato.infradead.org (desiato.infradead.org [90.155.92.199])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.7])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BF995B1E1;
-	Tue, 12 Mar 2024 13:41:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=90.155.92.199
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86D0E57307;
+	Tue, 12 Mar 2024 14:17:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.7
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710250918; cv=none; b=V3YH6NNAzbKvKuk5g1aitiffYsUhnpDydhYR+oRQZaXirwTXdBAiN0iG0zjcGL8FOZw63cUrkA8NwHpBnAd1JTyOxgfe2A+U7bhEtRz2LEhzIPWjY7wml6evVsP2pXIAutopfC9QuvwEX94wSmHCCUZf/UcqPvaVXwlXcLT4hf4=
+	t=1710253062; cv=none; b=A1cOGhsvbN8zXZ6Ak3YN4kj0y6HPml4/5wEVuPdAfk6j3OL/WsAhooBmK1gg14uamF31+Nnf2/5sJkP/kh4zylNeiNxzXGnMM2y0oLJOzeRnSXZlCZEZmDasjW9cKslNoyDkye2drc3AKCdX/CCHtg+Z5wU1t4vj4hXHLEuFrG0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710250918; c=relaxed/simple;
-	bh=e0tD6pX6xwZoiwXkNmdHyZiDqoGTK5swzwTMQ0e4R40=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=oHkAKf+Pgaqv9M188Xu2INAnVKAR+9Zb57pmPO+nwIGXDREtvKMv67EbogPrHsTNCXsMu2TGWeugLcPytLL0FMcXYfZebFBbcLT7ymKwWmYq/+E6JiK6dT5VTG2HdvDA3Wu1q7a8tJMlubH7MmaHH5UrSwB1vRHZTC9RTLPWOZY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=desiato.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=AsFv99gt; arc=none smtp.client-ip=90.155.92.199
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=desiato.srs.infradead.org
+	s=arc-20240116; t=1710253062; c=relaxed/simple;
+	bh=XoAwf9+kEnAUGF56LAReX+Da1CDiFMk4mBryFYNhyhI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=KvfcpzcjG1sU7nANNFFwvKfzqU2FFjM97L/r4wT6hDdRVlEw98+z+fvY9ft7sQVhVs3/UrlY/W4FZ9QL4briD9uV1KkLwMyS4hEr2qA8WrQtGWyD9kv4bXWHcCMmlgZ3LgQHScGbm40r5ONl2cIzqYby9dGJ/TvXRr+P9V//8vM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=YHh3Xnaq; arc=none smtp.client-ip=192.198.163.7
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="AsFv99gt"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=desiato.20200630; h=Sender:Content-Transfer-Encoding:
-	MIME-Version:Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-Type:
-	Content-ID:Content-Description:In-Reply-To:References;
-	bh=xa8JQ3KvRA3TOgaBHWeRGuMMjhi7suQa/WUm17VoCcg=; b=AsFv99gt9tiVB4IvPWpp0zhn/q
-	yAbrTW80SEAlzDGcnxg0eIauLDMd8Ueell+LxV1jgKPF6ZeEHtxE95I4up6xl7/iYxoR+E4PbscFS
-	+UKnA2/qIyCqV3MF1qK3cHd7Ga86D01o45mEWZJYrJCtP3dPc57wEz85CqU/DQ7FdAyoK2Xzr+xOA
-	lc08WumNg6hxdL2/7cf6dYDCvBqBGk5/WMCu2n4/5DIZhidooDV9qS9CdjA0WHKMGaYl8sZrPs1Al
-	9yNGbz6L5ql2Ubj5V3bvOM24V/9i7h58oz/wSqcZ5nkqkWPI2BQUaR0BzstRC23MOlPJRUqwNECAT
-	VAq7uKSw==;
-Received: from [2001:8b0:10b:1::ebe] (helo=i7.infradead.org)
-	by desiato.infradead.org with esmtpsa (Exim 4.97.1 #2 (Red Hat Linux))
-	id 1rk2O5-00000009UzB-2mNO;
-	Tue, 12 Mar 2024 13:41:49 +0000
-Received: from dwoodhou by i7.infradead.org with local (Exim 4.97.1 #2 (Red Hat Linux))
-	id 1rk2O4-000000033FJ-0PsV;
-	Tue, 12 Mar 2024 13:41:48 +0000
-From: David Woodhouse <dwmw2@infradead.org>
-To: linux-arm-kernel@lists.infradead.org
-Cc: Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will@kernel.org>,
-	Robert Moore <robert.moore@intel.com>,
-	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-	Len Brown <lenb@kernel.org>,
-	mediou@amazon.de,
-	alisaidi@amazon.com,
-	linux-kernel@vger.kernel.org,
-	linux-acpi@vger.kernel.org,
-	acpica-devel@lists.linux.dev
-Subject: [PATCH 1/2] ACPICA: Detect FACS even for hardware reduced platforms
-Date: Tue, 12 Mar 2024 13:41:46 +0000
-Message-ID: <20240312134148.727454-1-dwmw2@infradead.org>
-X-Mailer: git-send-email 2.44.0
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="YHh3Xnaq"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1710253059; x=1741789059;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=XoAwf9+kEnAUGF56LAReX+Da1CDiFMk4mBryFYNhyhI=;
+  b=YHh3Xnaq8BYPzBxBybjgYp1LfLWETk6ccMXfsghQWw94IaIhnjTdT5ch
+   0XRG1li3y9wt4T48FIULWcvNmXY+CMEZXABLdBQiL1jdTNwQRwpGSM2jq
+   S04BRLLxq1idRmyaWrkUPwA6sjU7WPllozi0z9a3PZcdbLVf3AcVRn/Xn
+   OF8dXCyo5wIAnQZCHS+UByDWLZTO+LmQ+uGLVW0ozNOYZAscRmA2YpYU3
+   frHlcnwfylJvoUruGhXCppy1gGhROcqWkBz+N7MqtNb/aXXoLn+6U+rzS
+   PL1Zkg4fhx9LjBYcVuL8oKEBAxsnXKbAnxDVB3Yqg5GItPUDYzklQk/er
+   Q==;
+X-IronPort-AV: E=McAfee;i="6600,9927,11010"; a="30400912"
+X-IronPort-AV: E=Sophos;i="6.07,119,1708416000"; 
+   d="scan'208";a="30400912"
+Received: from fmviesa003.fm.intel.com ([10.60.135.143])
+  by fmvoesa101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Mar 2024 07:17:39 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.07,119,1708416000"; 
+   d="scan'208";a="16123852"
+Received: from lkp-server01.sh.intel.com (HELO b21307750695) ([10.239.97.150])
+  by fmviesa003.fm.intel.com with ESMTP; 12 Mar 2024 07:17:34 -0700
+Received: from kbuild by b21307750695 with local (Exim 4.96)
+	(envelope-from <lkp@intel.com>)
+	id 1rk2wd-000ABb-0O;
+	Tue, 12 Mar 2024 14:17:31 +0000
+Date: Tue, 12 Mar 2024 22:16:50 +0800
+From: kernel test robot <lkp@intel.com>
+To: Ben Cheatham <Benjamin.Cheatham@amd.com>, dan.j.williams@intel.com,
+	jonathan.cameron@huawei.com, rafael@kernel.org, james.morse@arm.com,
+	tony.luck@intel.com, bp@alien8.de
+Cc: oe-kbuild-all@lists.linux.dev, dave@stogolabs.net, dave.jiang@intel.com,
+	alison.schofield@intel.com, vishal.l.verma@intel.com,
+	ira.weiny@intel.com, linux-cxl@vger.kernel.org,
+	linux-acpi@vger.kernel.org, benjamin.cheatham@amd.com
+Subject: Re: [PATCH v15 2/4] EINJ: Add CXL error type support
+Message-ID: <202403122225.k6RQAbBI-lkp@intel.com>
+References: <20240311142508.31717-3-Benjamin.Cheatham@amd.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Sender: David Woodhouse <dwmw2@infradead.org>
-X-SRS-Rewrite: SMTP reverse-path rewritten from <dwmw2@infradead.org> by desiato.infradead.org. See http://www.infradead.org/rpr.html
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240311142508.31717-3-Benjamin.Cheatham@amd.com>
 
-From: David Woodhouse <dwmw@amazon.co.uk>
+Hi Ben,
 
-ACPICA PR https://github.com/acpica/acpica/pull/933
+kernel test robot noticed the following build errors:
 
-The FACS is optional even on hardware reduced platforms, and may exist
-for the purpose of communicating the hardware_signature field to provke
-a clean reboot instead of a resume from hibernation.
+[auto build test ERROR on rafael-pm/linux-next]
+[also build test ERROR on linus/master v6.8 next-20240312]
+[cannot apply to rafael-pm/acpi-bus rafael-pm/devprop]
+[If your patch is applied to the wrong git tree, kindly drop us a note.
+And when submitting patch, we suggest to use '--base' as documented in
+https://git-scm.com/docs/git-format-patch#_base_tree_information]
 
-Signed-off-by: David Woodhouse <dwmw@amazon.co.uk>
----
- drivers/acpi/acpica/tbfadt.c  | 30 +++++++++++++-----------------
- drivers/acpi/acpica/tbutils.c |  7 +------
- 2 files changed, 14 insertions(+), 23 deletions(-)
+url:    https://github.com/intel-lab-lkp/linux/commits/Ben-Cheatham/EINJ-Migrate-to-a-platform-driver/20240311-222800
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
+patch link:    https://lore.kernel.org/r/20240311142508.31717-3-Benjamin.Cheatham%40amd.com
+patch subject: [PATCH v15 2/4] EINJ: Add CXL error type support
+config: arm64-randconfig-001-20240312 (https://download.01.org/0day-ci/archive/20240312/202403122225.k6RQAbBI-lkp@intel.com/config)
+compiler: aarch64-linux-gcc (GCC) 13.2.0
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20240312/202403122225.k6RQAbBI-lkp@intel.com/reproduce)
 
-diff --git a/drivers/acpi/acpica/tbfadt.c b/drivers/acpi/acpica/tbfadt.c
-index 44267a92bce5..3c126c6d306b 100644
---- a/drivers/acpi/acpica/tbfadt.c
-+++ b/drivers/acpi/acpica/tbfadt.c
-@@ -315,23 +315,19 @@ void acpi_tb_parse_fadt(void)
- 				       ACPI_TABLE_ORIGIN_INTERNAL_PHYSICAL,
- 				       NULL, FALSE, TRUE, &acpi_gbl_dsdt_index);
- 
--	/* If Hardware Reduced flag is set, there is no FACS */
--
--	if (!acpi_gbl_reduced_hardware) {
--		if (acpi_gbl_FADT.facs) {
--			acpi_tb_install_standard_table((acpi_physical_address)
--						       acpi_gbl_FADT.facs,
--						       ACPI_TABLE_ORIGIN_INTERNAL_PHYSICAL,
--						       NULL, FALSE, TRUE,
--						       &acpi_gbl_facs_index);
--		}
--		if (acpi_gbl_FADT.Xfacs) {
--			acpi_tb_install_standard_table((acpi_physical_address)
--						       acpi_gbl_FADT.Xfacs,
--						       ACPI_TABLE_ORIGIN_INTERNAL_PHYSICAL,
--						       NULL, FALSE, TRUE,
--						       &acpi_gbl_xfacs_index);
--		}
-+	if (acpi_gbl_FADT.facs) {
-+		acpi_tb_install_standard_table((acpi_physical_address)
-+					       acpi_gbl_FADT.facs,
-+					       ACPI_TABLE_ORIGIN_INTERNAL_PHYSICAL,
-+					       NULL, FALSE, TRUE,
-+					       &acpi_gbl_facs_index);
-+	}
-+	if (acpi_gbl_FADT.Xfacs) {
-+		acpi_tb_install_standard_table((acpi_physical_address)
-+					       acpi_gbl_FADT.Xfacs,
-+					       ACPI_TABLE_ORIGIN_INTERNAL_PHYSICAL,
-+					       NULL, FALSE, TRUE,
-+					       &acpi_gbl_xfacs_index);
- 	}
- }
- 
-diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
-index bb4a56e5673a..15fa68a5ea6e 100644
---- a/drivers/acpi/acpica/tbutils.c
-+++ b/drivers/acpi/acpica/tbutils.c
-@@ -36,12 +36,7 @@ acpi_status acpi_tb_initialize_facs(void)
- {
- 	struct acpi_table_facs *facs;
- 
--	/* If Hardware Reduced flag is set, there is no FACS */
--
--	if (acpi_gbl_reduced_hardware) {
--		acpi_gbl_FACS = NULL;
--		return (AE_OK);
--	} else if (acpi_gbl_FADT.Xfacs &&
-+	if (acpi_gbl_FADT.Xfacs &&
- 		   (!acpi_gbl_FADT.facs
- 		    || !acpi_gbl_use32_bit_facs_addresses)) {
- 		(void)acpi_get_table_by_index(acpi_gbl_xfacs_index,
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202403122225.k6RQAbBI-lkp@intel.com/
+
+All errors (new ones prefixed by >>):
+
+   aarch64-linux-ld: Unexpected GOT/PLT entries detected!
+   aarch64-linux-ld: Unexpected run-time procedure linkages detected!
+   aarch64-linux-ld: drivers/acpi/apei/einj-cxl.o: in function `einj_cxl_inject_error':
+>> einj-cxl.c:(.text+0x2b4): undefined reference to `pci_find_host_bridge'
+
 -- 
-2.44.0
-
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
