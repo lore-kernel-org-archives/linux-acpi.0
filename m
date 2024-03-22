@@ -1,103 +1,90 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
+Received: from relay162.nicmail.ru (relay162.nicmail.ru [91.189.117.6])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DEB363137;
-	Fri, 22 Mar 2024 18:16:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.9
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72D8062801;
+	Fri, 22 Mar 2024 18:23:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.189.117.6
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711131407; cv=none; b=bEYyYRYGZ3gjm/zAif5Jq9Qi51xTaHIDiAMRbUonv91J7y9kn0vW0Ufu0QgmX4M9a+37354vI3Se2U97neA6aqt9AINzXQj3fx+g3O40ke++Rh+0p7P9FiwwfDaJ+EXGgPZwS9sIctYRO7Vus4HxASgDu2vRzWuldaaL2HSFVv4=
+	t=1711131788; cv=none; b=Rlmm6NSxFCZVNOcht8uz/2uzv6jMyH4C/p+6fBBEYRHlMgHKMbqAsc2l1kF2ZFy4tmpB5ya+watbFDjBAIXSNW4qJ5bnRpW9aI8nWNCvP0EaVbTrb5JPjtxaqV48e0hVOg67VkTT2qqrfYhPYNqmT8gPg+1WDxoLSIolp7x6lYs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711131407; c=relaxed/simple;
-	bh=CSb/2Xd0kjyrzXVz+VuBtqsWEMSEE9CK8ZtmpNce0Hw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=AkwSFl9fTlBbt1FGDZC/nRtD6IlIYTdBNzHszXuah7tJK0vdGrz408pZuqibHPn/E4SN+CRrXYD0cjIJEl4LgMo1Nda5ilg6U0aK/Xjctb2y7JjvrZ8nkv0Hu8DdKw/Ctao5sg6aQoEM1jy60a2leeGZtA3zoy53yaC9HjX8DcM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=axSqTKNk; arc=none smtp.client-ip=198.175.65.9
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="axSqTKNk"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1711131406; x=1742667406;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=CSb/2Xd0kjyrzXVz+VuBtqsWEMSEE9CK8ZtmpNce0Hw=;
-  b=axSqTKNkTnEVbovQV5wPy2pEYWljKjAVmd1nu4G+XVERUIL9KwuuMXIw
-   UWcio8egxcmzvTO5JuYxx6rLWEsOTjkjHXzoEDo4rpsQaGeBo2WYQ+VlC
-   kwSprKDIeAj9pklpZDD3oBiwIrrEUqKsgr71lLchnG68JSLzuOpVLYGJK
-   WZ+HkuLM+YrR3JOFe+ws2ysdqKxj6sq7Wr4AjK+5lCBQJnuyDrwOqi5YI
-   hztT38hmECrTpLcl0DRFSzMID4JeYWEsWnA4iQe/n+BK1lWQIGto7P/vr
-   pF9TVrZK75fjbCeueOUxcs1xJ99FWuwG7mxm+RyKTYg5yjA50vxfXOLSO
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,11020"; a="28671897"
-X-IronPort-AV: E=Sophos;i="6.07,146,1708416000"; 
-   d="scan'208";a="28671897"
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Mar 2024 11:16:45 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,11020"; a="914750928"
-X-IronPort-AV: E=Sophos;i="6.07,146,1708416000"; 
-   d="scan'208";a="914750928"
-Received: from smile.fi.intel.com ([10.237.72.54])
-  by fmsmga002.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Mar 2024 11:16:41 -0700
-Received: from andy by smile.fi.intel.com with local (Exim 4.97)
-	(envelope-from <andriy.shevchenko@linux.intel.com>)
-	id 1rnjRW-0000000FEYM-2S1Q;
-	Fri, 22 Mar 2024 20:16:38 +0200
-Date: Fri, 22 Mar 2024 20:16:38 +0200
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Sui Jingfeng <sui.jingfeng@linux.dev>
-Cc: "Rafael J . Wysocki" <rafael@kernel.org>,
-	Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	s=arc-20240116; t=1711131788; c=relaxed/simple;
+	bh=C3yFCYIxjXBw2tTNFQ6IgQn83J6QjcwG/Tyrj2jYoiM=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=YNh6e2IA6+gd5hHJhqIKuwh3R4FaV+nV3v2HUluZHmZoRBcEUUy5r1SYI9fu5Dg15f3cay9fs83DZ78+aw9MwUXJOU8CiPXSL0OIPGXg45oupKDXtjfoIeCZVrifz/0ja3gEC98PdRqn4q5WjZdaDdqG2dtvRKNPIYOLC5Ov0J4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ancud.ru; spf=pass smtp.mailfrom=ancud.ru; arc=none smtp.client-ip=91.189.117.6
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ancud.ru
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ancud.ru
+Received: from [10.28.138.19] (port=24516 helo=mitx-gfx..)
+	by relay.hosting.mail.nic.ru with esmtp (Exim 5.55)
+	(envelope-from <kiryushin@ancud.ru>)
+	id 1rnjJu-0007gk-6r;
+	Fri, 22 Mar 2024 21:08:46 +0300
+Received: from [87.245.155.195] (account kiryushin@ancud.ru HELO mitx-gfx..)
+	by incarp1106.mail.hosting.nic.ru (Exim 5.55)
+	with id 1rnjJu-003M2t-03;
+	Fri, 22 Mar 2024 21:08:46 +0300
+From: Nikita Kiryushin <kiryushin@ancud.ru>
+To: Robert Moore <robert.moore@intel.com>
+Cc: Nikita Kiryushin <kiryushin@ancud.ru>,
+	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+	Len Brown <lenb@kernel.org>,
+	linux-acpi@vger.kernel.org,
+	acpica-devel@lists.linux.dev,
 	linux-kernel@vger.kernel.org,
-	Vladimir Oltean <vladimir.oltean@nxp.com>
-Subject: Re: [PATCH] software node: Implement device_get_match_data fwnode
- callback
-Message-ID: <Zf3LBvJEJF9xr2fv@smile.fi.intel.com>
-References: <20240318234222.1278882-1-sui.jingfeng@linux.dev>
- <Zfq85f-Dp1S3CKuG@smile.fi.intel.com>
- <9ced20e0-dfbd-4337-b5df-223b7baffd9e@linux.dev>
- <ZftG6Q5AaG71dhWq@smile.fi.intel.com>
- <9644da91-f367-4083-a3e4-4d0677c8cbca@linux.dev>
- <Zf2uUwcMgIpo6rVh@smile.fi.intel.com>
- <6bf102a4-6419-4083-8918-4f7c76cfa9a1@linux.dev>
- <Zf3IWyrW8IZLTg4x@smile.fi.intel.com>
- <8afe3f27-fc8e-4c20-ba28-74a0a2937e55@linux.dev>
+	lvc-project@linuxtesting.org
+Subject: [PATCH v2] ACPICA: debugger: check status of acpi_evaluate_object in acpi_db_walk_for_fields
+Date: Fri, 22 Mar 2024 21:07:53 +0300
+Message-Id: <20240322180753.5612-1-kiryushin@ancud.ru>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <CAJZ5v0i7LYzF13M0qdeYWXZ7uO6HUpAS7pE5RJnOAJtKB8o88A@mail.gmail.com>
+References: 
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <8afe3f27-fc8e-4c20-ba28-74a0a2937e55@linux.dev>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+Content-Transfer-Encoding: 8bit
+X-MS-Exchange-Organization-SCL: -1
 
-On Sat, Mar 23, 2024 at 02:12:14AM +0800, Sui Jingfeng wrote:
-> On 2024/3/23 02:05, Andy Shevchenko wrote:
-> >   Besides that, the kernel project rule is "we do not add
-> > the dead (unused) code".
-> 
-> This rule is good an correct and I admit.
-> 
-> But the problem is that it is chicken-and-egg problem,
-> it probably have at least two user now.
+ACPICA commit 9061cd9aa131205657c811a52a9f8325a040c6c9
 
-Then show them! Convert in the same series and show that.
+Errors in acpi_evaluate_object can lead to incorrect state of buffer.
+This can lead to access to data in previously ACPI_FREEd buffer and
+secondary ACPI_FREE to the same buffer later.
 
-> it's possible that it will gain more users in the future.
-> 
-> But if you reject everybody from now, then it is zero.
+Handle errors in acpi_evaluate_object the same way it is done earlier
+with acpi_ns_handle_to_pathname.
 
-As a no-user patch, yes, I reject this.
+Found by Linux Verification Center (linuxtesting.org) with SVACE.
 
+Link: https://github.com/acpica/acpica/commit/9061cd9a
+Fixes: 5fd033288a86 ("ACPICA: debugger: add command to dump all fields of particular subtype")
+Signed-off-by: Nikita Kiryushin <kiryushin@ancud.ru>
+---
+v2: Add ACPICA project git links for corresponding changes
+ drivers/acpi/acpica/dbnames.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/acpica/dbnames.c b/drivers/acpi/acpica/dbnames.c
+index b91155ea9c34..c9131259f717 100644
+--- a/drivers/acpi/acpica/dbnames.c
++++ b/drivers/acpi/acpica/dbnames.c
+@@ -550,8 +550,12 @@ acpi_db_walk_for_fields(acpi_handle obj_handle,
+ 	ACPI_FREE(buffer.pointer);
+ 
+ 	buffer.length = ACPI_ALLOCATE_LOCAL_BUFFER;
+-	acpi_evaluate_object(obj_handle, NULL, NULL, &buffer);
+-
++	status = acpi_evaluate_object(obj_handle, NULL, NULL, &buffer);
++	if (ACPI_FAILURE(status)) {
++		acpi_os_printf("Could Not evaluate object %p\n",
++			       obj_handle);
++		return (AE_OK);
++	}
+ 	/*
+ 	 * Since this is a field unit, surround the output in braces
+ 	 */
 -- 
-With Best Regards,
-Andy Shevchenko
-
+2.34.1
 
