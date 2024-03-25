@@ -1,46 +1,47 @@
 Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59B0613F44B;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA438140364;
 	Mon, 25 Mar 2024 12:34:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.15
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711370094; cv=none; b=T0TJgK9rLMkeGeKlEQ5i9S0kJLTkw5zzG6H54z302zOjHE1UB2fHN+bk9KjBIkDTyugMrXC0GradhjPdeCNHPO8vHKno8quP0/PJI6b3L6Cf6rhYFakR52kcmr138DZkTYjZyDpfFPg9fbiWx9jGdCqDFGkOJ7fbmcMssWEk0a8=
+	t=1711370095; cv=none; b=bKMOJZr720ZLhNq9xB1dE3t3tOz14swiVpz4WAeUjYi+6Z4CSwU2BkbgNNSaAoBBEvCctIhruFuMRqxR8xDodc8DuwwOJtdG2tIGp36lAlhnW/txMvoY4zcRv9+JThJxBvmZv0d5N/yfE/CFsV4fWt6DKCOUHg05zv7eZlTVjZU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711370094; c=relaxed/simple;
-	bh=kOSHnnIN9sq3z7o0gS6aJTFnjb5+mMzfpmkgeSG5CvI=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=BOg12QDkOtd7bZql/JeGYZp2TN71ihums5U6x2Mb8zZWMWu8Ng+97DRi3GxYfntlC2JfPFrhMclR9f5hsq7EX1/duFjVTlVf5LP27+Jj1Jt/JoDYjOsehwWX2KI3NafpAQHqmjHUy0kZ08MRz/V/3zKQJ/qf94t8aE+o3E+zzW0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=K9Zlo0CI; arc=none smtp.client-ip=192.198.163.15
+	s=arc-20240116; t=1711370095; c=relaxed/simple;
+	bh=biGNLvjZxsnLB/YZsxsoQQ4aRn4EP/9IpoXiUDXO3iE=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=o6KYYI7phU8whxbVwwus1NkeYB4d8oDdHLE1Omq477wyc1j5aDCovOsTejvlpdvJsqZyPN8D+fXg2gH0DJsdxsI+xld6ThbBC7u5Enw5JQwJuRGvWVTkyeE0GEQq2OYSxY6ngrCYHYwNl6AK7fKeOBqwRxxi3yvObF2bguWPWIk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=et2XpH8p; arc=none smtp.client-ip=192.198.163.15
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="K9Zlo0CI"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="et2XpH8p"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1711370093; x=1742906093;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=kOSHnnIN9sq3z7o0gS6aJTFnjb5+mMzfpmkgeSG5CvI=;
-  b=K9Zlo0CI9P47fKna6r49i9r2nG7SC2Rbq8NAp1hyIbAOp5BA0++0RJOM
-   T4aPg9KnsdtjI5EWeZE6nk0b+fZL8b+LtH9rnu1uzw2uh+GE/sUxW4/zX
-   optgMB6h34gXPyLJcRfO9/c/QYvs+Jh7wXapAD1d4Bh5E/cseJsD4KVkO
-   X1zqAE39HCtMxhgBBmnQZT6E3H0c2BdKGdqG51+FQrUlSfO+xm2SsIGUS
-   ftB2fOslGit1dnOfKs4X3XExs/ZLrNtPoO1SUK3aG5halATHOaZTKVF2f
-   GGdIg3Z19i+Pnm2J1rZlFNTUyDVTSPAs8GNf5DzudSvLe5iBH7hmBr0K9
-   Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,11023"; a="6549688"
+  t=1711370094; x=1742906094;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=biGNLvjZxsnLB/YZsxsoQQ4aRn4EP/9IpoXiUDXO3iE=;
+  b=et2XpH8pfxksdOIy0CJkHtsBEMcD6uC7vKhqhATluMWy0bt2F0ZrR4b1
+   E8fzL6BxJomf/jJHTA/xnZgobgJrUq1l0yDZjDoN6JzGeBSMXsgdi6GeS
+   TNZ1Ki7ndwIn6PgCclW5wasI4SAlred5WdHqv28uiBLg6n9FC5Ruwnlrs
+   K7yQxHfvKqROPr81GMd6aOMm2Uz4+/Jmb2AWh1AiVWUG16aIdwKg52EOk
+   ryenLXS6Bo43WM0ez3VY2ZWqKqjHa6rG3Fi6FZ3lBErbLkD7IqjZdM7fY
+   20OfJuyOgdnnVEhcjeeeOAQeejL9q1NN606h+QM2866Tv79v92Axw/2nD
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,11023"; a="6549694"
 X-IronPort-AV: E=Sophos;i="6.07,153,1708416000"; 
-   d="scan'208";a="6549688"
+   d="scan'208";a="6549694"
 Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmvoesa109.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Mar 2024 05:34:49 -0700
+  by fmvoesa109.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Mar 2024 05:34:50 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,11023"; a="937070329"
+X-IronPort-AV: E=McAfee;i="6600,9927,11023"; a="937070333"
 X-IronPort-AV: E=Sophos;i="6.07,153,1708416000"; 
-   d="scan'208";a="937070329"
+   d="scan'208";a="937070333"
 Received: from black.fi.intel.com ([10.237.72.28])
   by fmsmga001.fm.intel.com with ESMTP; 25 Mar 2024 05:34:47 -0700
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-	id 9B8B2228; Mon, 25 Mar 2024 14:34:46 +0200 (EET)
+	id BD3852CA; Mon, 25 Mar 2024 14:34:46 +0200 (EET)
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
 	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
@@ -50,10 +51,12 @@ To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
 Cc: "Rafael J. Wysocki" <rafael@kernel.org>,
 	Len Brown <lenb@kernel.org>,
 	Robert Moore <robert.moore@intel.com>
-Subject: [PATCH v1 0/7] ACPI: scan: A few ad-hoc cleanups
-Date: Mon, 25 Mar 2024 14:32:56 +0200
-Message-ID: <20240325123444.3031851-1-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 2/7] ACPI: bus: Don't use "proxy" headers
+Date: Mon, 25 Mar 2024 14:32:58 +0200
+Message-ID: <20240325123444.3031851-3-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.43.0.rc1.1.gbec44491f096
+In-Reply-To: <20240325123444.3031851-1-andriy.shevchenko@linux.intel.com>
+References: <20240325123444.3031851-1-andriy.shevchenko@linux.intel.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -62,26 +65,32 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-While looking for something else in the scan.c I noticed the room
-of improvement. Hence this series. Also bus.c patches, which some
-how were related to my research, but I think are independent from
-the scan.c improvements.
+Update header inclusions to follow IWYU (Include What You Use)
+principle.
 
-Andy Shevchenko (7):
-  ACPI: bus: Make container_of() no-op where it makes sense
-  ACPI: bus: Don't use "proxy" headers
-  ACPI: scan: Replace infinite for-loop with finite while-loop
-  ACPI: scan: Use list_first_entry_or_null() in acpi_device_hid()
-  ACPI: scan: Move misleading comment to acpi_dma_configure_id()
-  ACPI: scan: Use standard error checking pattern
-  ACPI: scan: Introduce typedef:s for struct acpi_hotplug_context
-    members
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ include/acpi/acpi_bus.h | 5 +++++
+ 1 file changed, 5 insertions(+)
 
- drivers/acpi/dock.c     | 48 +++++++++++++++--------------------------
- drivers/acpi/scan.c     | 42 +++++++++++++++++-------------------
- include/acpi/acpi_bus.h | 28 +++++++++++++++---------
- 3 files changed, 55 insertions(+), 63 deletions(-)
-
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index cdee38ef9ba5..acb62d1d3306 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -9,8 +9,13 @@
+ #ifndef __ACPI_BUS_H__
+ #define __ACPI_BUS_H__
+ 
++#include <linux/completion.h>
++#include <linux/container_of.h>
+ #include <linux/device.h>
++#include <linux/kobject.h>
++#include <linux/mutex.h>
+ #include <linux/property.h>
++#include <linux/types.h>
+ 
+ struct acpi_handle_list {
+ 	u32 count;
 -- 
 2.43.0.rc1.1.gbec44491f096
 
