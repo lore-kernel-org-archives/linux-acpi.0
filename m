@@ -1,197 +1,76 @@
-Received: from out30-119.freemail.mail.aliyun.com (out30-119.freemail.mail.aliyun.com [115.124.30.119])
+Received: from szxga04-in.huawei.com (szxga04-in.huawei.com [45.249.212.190])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B72AD23775;
-	Wed, 27 Mar 2024 03:45:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.119
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FEF5224F0
+	for <linux-acpi@vger.kernel.org>; Wed, 27 Mar 2024 04:11:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.190
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711511122; cv=none; b=flBhEBNy2Y9UNZtzZo8KKVtev5YG7GPDkJPIndG26dUI3c1hAy3LAQMgxiQ0oS7Ty+36NJyBFmymaUqbkSkwcHCsT3MAO/hrXDXqqVdl+DG+uWuGNAc21SERVBzm7Qt3WsJkf8Gbx4AerUjWaPDoLZ2P7LYdpdyux5DzyCLQ/jE=
+	t=1711512690; cv=none; b=pCcnBEMI1zs86l0MdBMIokMA9nTSPi3BMANrnyxGs/K6ZeO3ZitEV6HKpOoBwUfeCsWEg9FAMrdS5seYY9LSBi+WYeph2onn1fGWlnBH8GqRVEN1f9Sp+9jugVBJBNgnYeaN+XZqKxHwgq/BbXkhhbE3Gc0Sisbz2ry9T1x6uSE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711511122; c=relaxed/simple;
-	bh=KuhaToY0pnSer8l7LmdO1BYdg4X1cESqPqxsiTiWM9A=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=S2PCZAkrSXgLCJeR1adjm0uuW6Jsjrs1KosIbd4ByvhRU4HlggET48UbegUH6WHgpGZm8+rHGZMtQC/QuW8S7Rs8nt32TjR1TB8wzytju/91nlWnJDkGPX/2srqTdi7c3n/iydCI/S4BuhxMp7NQR8a4YElnqNTaJc4hVY/HWj4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=KtLz88Md; arc=none smtp.client-ip=115.124.30.119
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="KtLz88Md"
-DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux.alibaba.com; s=default;
-	t=1711511111; h=From:To:Subject:Date:Message-Id:MIME-Version;
-	bh=bufF6x1T2H32EvFgYBhPmQfSD25Igr+N5RI/zTUl+yE=;
-	b=KtLz88MdyrJCBlWCzHSFpt3IFadzHK1PindfVMOuRbhOsJHd7pVdT7rT7f0mS5p4scAfvAMhHCOZib3OXf2xL1siU6F5yVC50AygVV9DEQdvK4XoqXiilqb5w7/RLc1Y66wJ+DthO4Q4lS/4aLjdxfRRUTA7j7qHml/wGEUaB9Q=
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R161e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046059;MF=tianruidong@linux.alibaba.com;NM=1;PH=DS;RN=8;SR=0;TI=SMTPD_---0W3NLs2o_1711511108;
-Received: from localhost(mailfrom:tianruidong@linux.alibaba.com fp:SMTPD_---0W3NLs2o_1711511108)
-          by smtp.aliyun-inc.com;
-          Wed, 27 Mar 2024 11:45:11 +0800
-From: Ruidong Tian <tianruidong@linux.alibaba.com>
-To: robert.moore@intel.com,
-	rafael.j.wysocki@intel.com,
-	lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org,
-	acpica-devel@lists.linux.dev,
-	linux-kernel@vger.kernel.org,
-	tianruidond@linux.alibaba.com,
-	Ruidong Tian <tianruidong@linux.alibaba.com>
-Subject: [PATCH 1/2] ACPICA: AEST: Fix coding style at struct definition
-Date: Wed, 27 Mar 2024 11:44:59 +0800
-Message-Id: <20240327034500.95601-2-tianruidong@linux.alibaba.com>
-X-Mailer: git-send-email 2.33.1
-In-Reply-To: <20240327034500.95601-1-tianruidong@linux.alibaba.com>
-References: <20240327034500.95601-1-tianruidong@linux.alibaba.com>
+	s=arc-20240116; t=1711512690; c=relaxed/simple;
+	bh=aE0wrt3onU8ZQtCvaeErZnHCExQ6dME88PEQRLCb8wM=;
+	h=To:CC:From:Subject:Message-ID:Date:MIME-Version:Content-Type; b=luY5wWS2MB4xTGvzRKmgTsVKOJiOmhXnu4dW1I8Ybby4QhCpjRGV0okq/T6lnHiXAs6Ty6WHAxGL98F/P4clbj6iNLI0jmuUHYn6Xr3jMlrWk+sWBCvAexv4NxksGuSN0NB4XjQGMnjxV1Qjl0JD/NuhfaZu5yLSECHA2UjtJ+k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.190
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.19.163.17])
+	by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4V4CpJ1S3Zz2BhbQ;
+	Wed, 27 Mar 2024 12:08:40 +0800 (CST)
+Received: from dggpemm500002.china.huawei.com (unknown [7.185.36.229])
+	by mail.maildlp.com (Postfix) with ESMTPS id 82FFD1A0188;
+	Wed, 27 Mar 2024 12:11:19 +0800 (CST)
+Received: from [10.174.179.5] (10.174.179.5) by dggpemm500002.china.huawei.com
+ (7.185.36.229) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.35; Wed, 27 Mar
+ 2024 12:11:19 +0800
+To: James Morse <james.morse@arm.com>
+CC: <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel
+ Maling List <linux-acpi@vger.kernel.org>, Xie XiuQi <xiexiuqi@huawei.com>
+From: Xiongfeng Wang <wangxiongfeng2@huawei.com>
+Subject: [Question] report ghes_estatus_pool consume too much memory
+Message-ID: <b77541c1-5dcc-d4a2-77c0-5d30f1be6d20@huawei.com>
+Date: Wed, 27 Mar 2024 12:11:18 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
+ Thunderbird/68.4.1
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: dggems705-chm.china.huawei.com (10.3.19.182) To
+ dggpemm500002.china.huawei.com (7.185.36.229)
 
-Delete unnecessary blank lines and typedef to follow Kernel coding
-style.
+Hello James,
 
-Signed-off-by: Ruidong Tian <tianruidong@linux.alibaba.com>
----
- include/acpi/actbl2.h | 50 +++++++++++++++++--------------------------
- 1 file changed, 20 insertions(+), 30 deletions(-)
+   Sorry to bother you. It's just that we have come across a problem that
+ghes_estatus_pool consume too much meory.
+   I upgrade the linux kernel of a AMD machine from 4.18 to 5.10. The free
+memory decreased about 1GB. I found out it is because ghes_estatus_pool consumed
+about 900MB.
+root:~ # cat /proc/vmallocinfo | grep ghes
+0xffffb3eb06aed000-0xffffb3eb06caf000 1843200 ghes_estatus_pool_init+0x3e/0xa0
+pages=449 vmalloc N0=449
+0xffffb3eb30001000-0xffffb3eb680d3000 940384256 ghes_estatus_pool_init+0x3e/0xa0
+pages=229585 vmalloc vpages N0=229585
 
-diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-index 9775384d61c6..c32e97855031 100644
---- a/include/acpi/actbl2.h
-+++ b/include/acpi/actbl2.h
-@@ -116,15 +116,14 @@ struct acpi_aest_hdr {
- 
- /* 0: Processor Error */
- 
--typedef struct acpi_aest_processor {
-+struct acpi_aest_processor {
- 	u32 processor_id;
- 	u8 resource_type;
- 	u8 reserved;
- 	u8 flags;
- 	u8 revision;
- 	u64 processor_affinity;
--
--} acpi_aest_processor;
-+};
- 
- /* Values for resource_type above, related structs below */
- 
-@@ -135,11 +134,10 @@ typedef struct acpi_aest_processor {
- 
- /* 0R: Processor Cache Resource Substructure */
- 
--typedef struct acpi_aest_processor_cache {
-+struct acpi_aest_processor_cache {
- 	u32 cache_reference;
- 	u32 reserved;
--
--} acpi_aest_processor_cache;
-+};
- 
- /* Values for cache_type above */
- 
-@@ -150,50 +148,44 @@ typedef struct acpi_aest_processor_cache {
- 
- /* 1R: Processor TLB Resource Substructure */
- 
--typedef struct acpi_aest_processor_tlb {
-+struct acpi_aest_processor_tlb {
- 	u32 tlb_level;
- 	u32 reserved;
--
--} acpi_aest_processor_tlb;
-+};
- 
- /* 2R: Processor Generic Resource Substructure */
- 
--typedef struct acpi_aest_processor_generic {
-+struct acpi_aest_processor_generic {
- 	u32 resource;
--
--} acpi_aest_processor_generic;
-+};
- 
- /* 1: Memory Error */
- 
--typedef struct acpi_aest_memory {
-+struct acpi_aest_memory {
- 	u32 srat_proximity_domain;
--
--} acpi_aest_memory;
-+};
- 
- /* 2: Smmu Error */
- 
--typedef struct acpi_aest_smmu {
-+struct acpi_aest_smmu {
- 	u32 iort_node_reference;
- 	u32 subcomponent_reference;
--
--} acpi_aest_smmu;
-+};
- 
- /* 3: Vendor Defined */
- 
--typedef struct acpi_aest_vendor {
-+struct acpi_aest_vendor {
- 	u32 acpi_hid;
- 	u32 acpi_uid;
- 	u8 vendor_specific_data[16];
--
--} acpi_aest_vendor;
-+};
- 
- /* 4: Gic Error */
- 
--typedef struct acpi_aest_gic {
-+struct acpi_aest_gic {
- 	u32 interface_type;
- 	u32 instance_id;
--
--} acpi_aest_gic;
-+};
- 
- /* Values for interface_type above */
- 
-@@ -205,7 +197,7 @@ typedef struct acpi_aest_gic {
- 
- /* Node Interface Structure */
- 
--typedef struct acpi_aest_node_interface {
-+struct acpi_aest_node_interface {
- 	u8 type;
- 	u8 reserved[3];
- 	u32 flags;
-@@ -215,8 +207,7 @@ typedef struct acpi_aest_node_interface {
- 	u64 error_record_implemented;
- 	u64 error_status_reporting;
- 	u64 addressing_mode;
--
--} acpi_aest_node_interface;
-+};
- 
- /* Values for Type field above */
- 
-@@ -226,15 +217,14 @@ typedef struct acpi_aest_node_interface {
- 
- /* Node Interrupt Structure */
- 
--typedef struct acpi_aest_node_interrupt {
-+struct acpi_aest_node_interrupt {
- 	u8 type;
- 	u8 reserved[2];
- 	u8 flags;
- 	u32 gsiv;
- 	u8 iort_id;
- 	u8 reserved1[3];
--
--} acpi_aest_node_interrupt;
-+};
- 
- /* Values for Type field above */
- 
--- 
-2.33.1
+It is because the following commit alloc 64K for each ghes.
+   ACPI / APEI: Make estatus pool allocation a static size
+
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?h=v6.8-rc7&id=fb7be08f1a091ec243780bfdad4bf0c492057808
+
+But the AMD machine have 14350 ghes, only 8 of them are nofified through NMI.
+64K for each ghes. So it will consume about 900M
+[wxf@localhost ~]$ cat HEST.dsl | grep "Notify Type : 04 \[NMI\]" | wc -l
+8
+[wxf@localhost ~]$ cat HEST.dsl | grep "Notify Type :" | wc -l
+14350
+
+So I'm wondering whether we can revert this commit. I am not sure if there
+exists any retriction. Thanks a lot!
+
+Thanks,
+Xiongfeng
 
