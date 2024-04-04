@@ -1,96 +1,94 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.9])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B03785276;
-	Thu,  4 Apr 2024 11:57:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06E4B6A005;
+	Thu,  4 Apr 2024 12:09:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.9
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712231867; cv=none; b=MPQKuQQjoLTa9ZlP/HNL2ZC7D7ecYrimqzE5JP5YMBXcOA8LnI3mmqOd8dfukxXIsRWQhUtK/xdmC8qBHomIBFJTVQzcBsH449m/IkTjU4sCx2ASMSdbRh7JP5j5hkA4BW24L5Q5CfGqZia0qoL5zVY77Kpno1gQpay5Nuu9z9I=
+	t=1712232542; cv=none; b=tCy4TaXG2KM2skDbTIAkeofgg71CtyEfvDfDCvdWR9fSi9ZJbmMyFrLaYRIn9uITe+E9nmwe8MN19w3FhZ+L6xlq/VW73/LPCSmPxKpelaYy815sLDEmbcSFljGpJp70wVErx7x/ISfGhxrFun4MVbr+m8NbWtc/d9WGpaHRPfI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712231867; c=relaxed/simple;
-	bh=vfjVnDcA4y40C1ptsdkzs8++Rd0MHm7wYp7KYKcJhZA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ortODAXbvv+CO8GcK4ysKj+O3ZFZciDOFaMCsv0yVXn1DeEk4hT31BeJn5VKNUQ2ZRT3bQtWlaCDULPtWos/5LPnuo91CxV57WDjknx+dBX0sfTl2idXoYOE95kocPfPEskTB1R7E/IgOoUIVWNWfkThbVJQmUZo4D1ClJR+cjM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=bGIPWXvv; arc=none smtp.client-ip=192.198.163.18
+	s=arc-20240116; t=1712232542; c=relaxed/simple;
+	bh=iDPQ2vVkxpAwDuDwOEgx6CmC+oACC23Hj4S4yh3efDU=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=pJD/+63FXV37n7hHmoxVEzMaVia1Qu2GCUVhIWOI+Z0kWAZ6TOlHffXNOO4wY2CLgrgEGZwpK9Dv03MbhvEWe6TWmGN78rvijBSgWNC2uLkZzOKvZPfLGuaz6cncC6fUJKMYz+XF+G+zOvsdeSVW2f2eh9R47aJ6CWaDiM3ID8Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Xrv3c56q; arc=none smtp.client-ip=192.198.163.9
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="bGIPWXvv"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Xrv3c56q"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1712231862; x=1743767862;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:content-transfer-encoding:in-reply-to;
-  bh=vfjVnDcA4y40C1ptsdkzs8++Rd0MHm7wYp7KYKcJhZA=;
-  b=bGIPWXvvYI9w38+N4HOIwsBTuDB9Bx8g0hRE6/CwnkiyEqJIMiOUQ0Lh
-   6nFecPGgSa/x//O/3ePxupuR/w/lJMxqjkh9an1uo/rFy1IpEX/kkK8ow
-   QX1o16mYuUwamwvYQ/W0KNuL95iX49XCgLdJ6LNu4oj5HIMNWaUP75I/w
-   hOuhU9BFS5ZNwox75bYCxYt1mn9FUWR0QBRF6XgH+5xkCYILogz8BSyyH
-   pz4tqbuVyfytRJb33LYYAWSO6sIPdDMqBFzvjcDl6vXl+52yRQxQu+XJi
-   wUyYpuzmJbO/gczIRE6jSnUZr3BgBkUz/hYpbrnh6KFl3oAG1wpoA5HC5
-   A==;
-X-CSE-ConnectionGUID: IbiyF15MQtyWOHRKlXUWZw==
-X-CSE-MsgGUID: +PiQYXwDTB6RKHJ1RyZcYA==
-X-IronPort-AV: E=McAfee;i="6600,9927,11033"; a="7349576"
+  t=1712232541; x=1743768541;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=iDPQ2vVkxpAwDuDwOEgx6CmC+oACC23Hj4S4yh3efDU=;
+  b=Xrv3c56qUTE1yl0F5KT5HghTfTb5nusybTN/9x6hj0xezbf3CU2TmjYw
+   Nnm3zUU59RAlOz/hRx5gBGMsywudK7MfJaGiqm58zGo+g0EmvW40maasH
+   CJ1pYoNCawA/tzgQL0G6GTYCuyDfpoox8RIBdKWOJcCQR2gThNclui7N2
+   cXo1sqB+anQuRGWcx01bcKxigQ4aDA8D1wkT1O1TECqlBoCs0J8soUcWD
+   5bFghhpQ9DTBtA8Ee7EjiydQJXrtCWy5CwqDnwur8OnAz4X4T/Pr0XX1J
+   LtsW/oFz9EckvLWr8zIGzLPBkt3O81yIFcuLZnhPt+WwxIDkye4RkXLIs
+   Q==;
+X-CSE-ConnectionGUID: 9mY35rnbQDez+k/mDbKV6Q==
+X-CSE-MsgGUID: PAaM0nMBS+2FUrAKqVw/9g==
+X-IronPort-AV: E=McAfee;i="6600,9927,11033"; a="18240566"
 X-IronPort-AV: E=Sophos;i="6.07,179,1708416000"; 
-   d="scan'208";a="7349576"
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Apr 2024 04:57:42 -0700
+   d="scan'208";a="18240566"
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by fmvoesa103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Apr 2024 05:09:00 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,11033"; a="915216165"
+X-IronPort-AV: E=McAfee;i="6600,9927,11033"; a="937086418"
 X-IronPort-AV: E=Sophos;i="6.07,179,1708416000"; 
-   d="scan'208";a="915216165"
-Received: from smile.fi.intel.com (HELO smile) ([10.237.72.54])
-  by fmsmga002.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Apr 2024 04:57:38 -0700
-Received: from andy by smile with local (Exim 4.97)
-	(envelope-from <andriy.shevchenko@linux.intel.com>)
-	id 1rsLir-00000001PyV-2E4J;
-	Thu, 04 Apr 2024 14:57:37 +0300
-Date: Thu, 4 Apr 2024 14:57:37 +0300
+   d="scan'208";a="937086418"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by fmsmga001.fm.intel.com with ESMTP; 04 Apr 2024 05:08:58 -0700
+Received: by black.fi.intel.com (Postfix, from userid 1003)
+	id 8270E3E5; Thu,  4 Apr 2024 15:08:57 +0300 (EEST)
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH v1 2/2] ACPI: LPSS: Advertise number of chip selects via
- property
-Message-ID: <Zg6Vsc-Uh-iUX8XB@smile.fi.intel.com>
-References: <20240402152952.3578659-1-andriy.shevchenko@linux.intel.com>
- <20240402152952.3578659-3-andriy.shevchenko@linux.intel.com>
- <CAJZ5v0iQZXbFQFsZ+gL3==LV7UsqfOr-FZuWdoPSv0veUkuCrQ@mail.gmail.com>
+To: linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v2 2/2] ACPI: LPSS: Remove nested ifdeffery for CONFIG_PM
+Date: Thu,  4 Apr 2024 15:06:59 +0300
+Message-ID: <20240404120856.4109303-3-andriy.shevchenko@linux.intel.com>
+X-Mailer: git-send-email 2.43.0.rc1.1.gbec44491f096
+In-Reply-To: <20240404120856.4109303-1-andriy.shevchenko@linux.intel.com>
+References: <20240404120856.4109303-1-andriy.shevchenko@linux.intel.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAJZ5v0iQZXbFQFsZ+gL3==LV7UsqfOr-FZuWdoPSv0veUkuCrQ@mail.gmail.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 
-On Thu, Apr 04, 2024 at 12:58:29PM +0200, Rafael J. Wysocki wrote:
-> On Tue, Apr 2, 2024 at 5:30 PM Andy Shevchenko
-> <andriy.shevchenko@linux.intel.com> wrote:
-> >
-> > Advertise number of chip selects via property for Intel Braswell.
-> >
-> > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> 
-> A Fixes: tag, please?
+There is no need to have the ifdef CONFIG_PM to be nested.
+The second and so on will obviously become a no-op.
 
-Sure.
+Remove redundant nested ifdeffery.
 
-> Also, IIUC this should be applied before
-> https://lore.kernel.org/linux-acpi/20240403170302.1073841-1-andriy.shevchenko@linux.intel.com/
-> ?
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/acpi/acpi_lpss.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-I believe yes for the sake of simplicity in maintaining / backporting
-(if needed).
-
+diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+index 8e01792228d1..a3d2d94be5c0 100644
+--- a/drivers/acpi/acpi_lpss.c
++++ b/drivers/acpi/acpi_lpss.c
+@@ -887,10 +887,8 @@ static int acpi_lpss_activate(struct device *dev)
+ 	if (pdata->dev_desc->flags & (LPSS_SAVE_CTX | LPSS_SAVE_CTX_ONCE))
+ 		lpss_deassert_reset(pdata);
+ 
+-#ifdef CONFIG_PM
+ 	if (pdata->dev_desc->flags & LPSS_SAVE_CTX_ONCE)
+ 		acpi_lpss_save_ctx(dev, pdata);
+-#endif
+ 
+ 	return 0;
+ }
 -- 
-With Best Regards,
-Andy Shevchenko
-
+2.43.0.rc1.1.gbec44491f096
 
