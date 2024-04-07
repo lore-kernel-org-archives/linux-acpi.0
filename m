@@ -1,88 +1,150 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.11])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f175.google.com (mail-pl1-f175.google.com [209.85.214.175])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B387E6AB9;
-	Sun,  7 Apr 2024 06:33:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DD5E2BAFD;
+	Sun,  7 Apr 2024 12:39:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.175
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712471635; cv=none; b=nEwnZkYtexECWr1lZ2GFDbXctnVZGhI0tH8edm4fX5EFTY3YwLnEV1dTubCdfw8k/kUpfppcNsJcjTYD0Ag3lE+QKGCTVr4GHnrGvrQWk8NLrS3Ni5qRm+Orf7lofR2ec2nJAYkO+ZjbqfvktWv2rQRfkL7hrikVOx7V6Zk2J84=
+	t=1712493561; cv=none; b=VK1SVdIUG4QO0E4e/rfpaiWi91mCSaO18hnrqHN0BCqPsugRo748Pyf1/xqw/3/yf68OZ2SsVGrkm6btZjNPZVG2MXrC/h0W8JEjzfd0hntFxP3+rbjvYgP0D9Bw5ZivpIPrD1E9pErb8wzjrdG0OJkXFoyRHPn0kgVOtFlJx9A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712471635; c=relaxed/simple;
-	bh=ueiNX1HaLfToIZUTUWgeWXk4WWITjkG0gU8uwB57+vc=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=uuoPhHDBwFPg1hRsFMhhdtJc5vANz2U3vLDv5YoGqRUAsMWcD7A5YEztjaVMTV/W0aJtyeLjCTquAgNuX6n/9AKdb4V3YCdcalW0OAvxcC28P1oa0F7ZEuGjkNrB0nLnKYqwPz5QjXR+iIVE0o39FGjKUhTtgMFj8Jej1tLtj4E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=QG89tVRI; arc=none smtp.client-ip=198.175.65.11
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="QG89tVRI"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1712471633; x=1744007633;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=ueiNX1HaLfToIZUTUWgeWXk4WWITjkG0gU8uwB57+vc=;
-  b=QG89tVRI06LWwk9rMNWgfiyapdgfcvA+vLs/rkE48ognm6ekH3Nvjp4c
-   Qp1dNg2jCbr7cv1ny2ugkmK4p17JbbQ6DhzOuHfWVwnesz6Wl2tHKMKS3
-   /c9CAB2y4G1bag9oTIYal3mZ3fI3QQqw192ksZo84yF7aemuOuEB8t3Wa
-   RHxr7mMaM9ELBo0EBhRCFPIvanH7fJpIhIzj8cG6KygVOwCkc+Tzw0/Y0
-   yMVgA9i9T1+OlminvK2Ja/XEuWMbRvbWH//WoJnbEcvq+DBRzVqi0P/vP
-   Bt3BDtZBagIw24ZNuiHKT0+tNUqgXYcZ+Ho7dHiwUYJhKVfn144uCFOOC
-   w==;
-X-CSE-ConnectionGUID: Q7aEcHdsQFuYml1xVGm8nw==
-X-CSE-MsgGUID: sIAeDWqPQa2PsZZ17vdmPw==
-X-IronPort-AV: E=McAfee;i="6600,9927,11036"; a="18333299"
-X-IronPort-AV: E=Sophos;i="6.07,184,1708416000"; 
-   d="scan'208";a="18333299"
-Received: from fmviesa008.fm.intel.com ([10.60.135.148])
-  by orvoesa103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Apr 2024 23:33:52 -0700
-X-CSE-ConnectionGUID: lyYkMamuTCC0iuuE5kEu/A==
-X-CSE-MsgGUID: ZaB5BIjbTOemTxDr/pIGew==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.07,184,1708416000"; 
-   d="scan'208";a="19684324"
-Received: from emscott-mobl.amr.corp.intel.com (HELO skuppusw-mobl3.amr.corp.intel.com) ([10.209.36.196])
-  by fmviesa008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Apr 2024 23:33:52 -0700
-From: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
-To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-	linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org,
-	Len Brown <lenb@kernel.org>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1] ACPI: Declare acpi_blacklisted() only if CONFIG_X86 is enabled
-Date: Sat,  6 Apr 2024 23:33:41 -0700
-Message-Id: <20240407063341.3710801-1-sathyanarayanan.kuppuswamy@linux.intel.com>
+	s=arc-20240116; t=1712493561; c=relaxed/simple;
+	bh=J1H/qX8SRFDlHJ/QBkm7cFTa1sYh0vN4k5jahtXiAaQ=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=pUQGVzu/ZwFNkvDqQ/iwJpy9vd3ORzaA8LgeUeVS4EkprUFwv+JKmSY6ghpX68m8mI7BdMSnmSk6/ugU+xyN/uWIWmLdpHkoLyWiwWWTFmn043vW/eHe7rQ7LSySCipA+eoTudEUbeylnWmhiOaeZs6IftuSpAHkKJvNOhPS5wc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.214.175
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Received: by mail-pl1-f175.google.com with SMTP id d9443c01a7336-1e2be2361efso6417585ad.0;
+        Sun, 07 Apr 2024 05:39:18 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1712493557; x=1713098357;
+        h=content-transfer-encoding:mime-version:list-id:references
+         :in-reply-to:message-id:date:subject:cc:to:from:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=gH1KKOCelF2ThGU1cHU4FIyi0LwXgGcMVoj+JXuvN68=;
+        b=vg5GThUmBhLZLqR7YeFet6S30bYvAc28z8jKXY7XPcqSg6gNSYnp4u/3qLl5dxHEJR
+         IwxIShFsQtbtUrAfGibJMyvwkENO7V+0AFQLx9DDY34PWZnplD1QHJSl5v6gncNrNhGu
+         jwIF7px5xObWGtg1lOv+TP60jMQWFSq8pXy5VIec1n5McacCNqGuISWplOffjSO2h3A1
+         xSr2NZBR5esF3sWhjXy2SwCFYnvYN+AALlu3S184fHN+yi8iglA9jaFLDgVG7l+oMuO7
+         grS1OwU1HkDAzvsj3jk0k4GDLbxVztZ6D2F6j4Kxet9ZImZPi9/pCAKIVyaeyOJt4tzk
+         exzg==
+X-Forwarded-Encrypted: i=1; AJvYcCUJLW3Q4knEX5vy21AgGdd++yeBcbM7ii9wYTGIIxO3erWzoqiay54FyyXH6suuI0aBX1sn1vnofb8lR41nzuO19KxWhvf3se4x4N4d1jmuzVu7nYjyQcUI+zqqLE/nQcNkDYC9OO5pw06i+R631APetr+PaEDU2UwTqsdjg1QnikLwFyayeX8lA1kmrYEj4+tO9wcNWDuEJZ3kYn4TUBU6Kni6HW9Zl80aKEdDTJTqkAwkGsrarm7Qzd91hU+gJ/FLD24=
+X-Gm-Message-State: AOJu0YxGLrNZMT3iBbQLyo9o7VeA0haQSuCGSaImLBrF/d9HPuQ/uiVV
+	nOdpTWLQIDANd3wHQGPaRGseXfagr0ouDpBxXNMgIcVcKx0+m6uZ
+X-Google-Smtp-Source: AGHT+IHyvAb+guuz0e00AaSmzIzllRxt4szwRJ66ajt1UGZg+b5metBcaJu7z1HTr0mFKQWF0c3bmQ==
+X-Received: by 2002:a17:902:e5c1:b0:1dd:b883:3398 with SMTP id u1-20020a170902e5c100b001ddb8833398mr7436090plf.4.1712493557482;
+        Sun, 07 Apr 2024 05:39:17 -0700 (PDT)
+Received: from tgsp-ThinkPad-X280.. ([223.153.78.230])
+        by smtp.gmail.com with ESMTPSA id h15-20020a170902f7cf00b001e27c7ecd24sm4828518plw.283.2024.04.07.05.39.10
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 07 Apr 2024 05:39:17 -0700 (PDT)
+From: xiongxin <xiongxin@kylinos.cn>
+To: xiongxin@kylinos.cn,
+	Rafael Wysocki <rafael@kernel.org>,
+	hdegoede@redhat.com,
+	linus.walleij@linaro.org
+Cc: Mario Limonciello <mario.limonciello@amd.com>,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	platform-driver-x86@vger.kernel.org,
+	linux-gpio@vger.kernel.org,
+	linux-pm@vger.kernel.org,
+	Basavaraj.Natikar@amd.com,
+	Shyam-sundar.S-k@amd.com
+Subject: [PATCH v4 1/4] include/linux/suspend.h: Only show pm_pr_dbg messages at suspend/resume
+Date: Sun,  7 Apr 2024 20:39:03 +0800
+Message-ID: <20230602073025.22884-1-mario.limonciello@amd.com>
 X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20230602073025.22884-1-mario.limonciello@amd.com>
+References: <20230602073025.22884-1-mario.limonciello@amd.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
+Message-ID: <20240407123903.lWqaMr0BiYMzvCGkCgqhPSVpIz03QrukWt1i7idwX00@z>
 
-The function acpi_blacklisted() is defined only when CONFIG_X86 is
-enabled. So to keep it consistent, protect its declaration with
-CONFIG_X86.
+From: Mario Limonciello <mario.limonciello@amd.com>
 
-Signed-off-by: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
+All uses in the kernel are currently already oriented around
+suspend/resume. As some other parts of the kernel may also use these
+messages in functions that could also be used outside of
+suspend/resume, only enable in suspend/resume path.
+
+Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
 ---
- include/linux/acpi.h | 2 ++
- 1 file changed, 2 insertions(+)
+v3->v4:
+ * add back do/while as it wasn't pointless.  It fixes a warning.
+---
+ include/linux/suspend.h | 8 +++++---
+ kernel/power/main.c     | 6 ++++++
+ 2 files changed, 11 insertions(+), 3 deletions(-)
 
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 34829f2c517a..3ad6bed9eb4f 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -421,7 +421,9 @@ extern char *wmi_get_acpi_device_uid(const char *guid);
+diff --git a/include/linux/suspend.h b/include/linux/suspend.h
+index 1a0426e6761c..74f406c53ac0 100644
+--- a/include/linux/suspend.h
++++ b/include/linux/suspend.h
+@@ -555,6 +555,7 @@ static inline void unlock_system_sleep(unsigned int flags) {}
+ #ifdef CONFIG_PM_SLEEP_DEBUG
+ extern bool pm_print_times_enabled;
+ extern bool pm_debug_messages_on;
++extern bool pm_debug_messages_should_print(void);
+ static inline int pm_dyn_debug_messages_on(void)
+ {
+ #ifdef CONFIG_DYNAMIC_DEBUG
+@@ -568,14 +569,14 @@ static inline int pm_dyn_debug_messages_on(void)
+ #endif
+ #define __pm_pr_dbg(fmt, ...)					\
+ 	do {							\
+-		if (pm_debug_messages_on)			\
++		if (pm_debug_messages_should_print())		\
+ 			printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__);	\
+ 		else if (pm_dyn_debug_messages_on())		\
+ 			pr_debug(fmt, ##__VA_ARGS__);	\
+ 	} while (0)
+ #define __pm_deferred_pr_dbg(fmt, ...)				\
+ 	do {							\
+-		if (pm_debug_messages_on)			\
++		if (pm_debug_messages_should_print())		\
+ 			printk_deferred(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__);	\
+ 	} while (0)
+ #else
+@@ -593,7 +594,8 @@ static inline int pm_dyn_debug_messages_on(void)
+ /**
+  * pm_pr_dbg - print pm sleep debug messages
+  *
+- * If pm_debug_messages_on is enabled, print message.
++ * If pm_debug_messages_on is enabled and the system is entering/leaving
++ *      suspend, print message.
+  * If pm_debug_messages_on is disabled and CONFIG_DYNAMIC_DEBUG is enabled,
+  *	print message only from instances explicitly enabled on dynamic debug's
+  *	control.
+diff --git a/kernel/power/main.c b/kernel/power/main.c
+index 3113ec2f1db4..daa535012e51 100644
+--- a/kernel/power/main.c
++++ b/kernel/power/main.c
+@@ -556,6 +556,12 @@ power_attr_ro(pm_wakeup_irq);
  
- extern char acpi_video_backlight_string[];
- extern long acpi_is_video_device(acpi_handle handle);
-+#ifdef CONFIG_X86
- extern int acpi_blacklisted(void);
-+#endif
- extern void acpi_osi_setup(char *str);
- extern bool acpi_osi_is_win8(void);
+ bool pm_debug_messages_on __read_mostly;
  
++bool pm_debug_messages_should_print(void)
++{
++	return pm_debug_messages_on && pm_suspend_target_state != PM_SUSPEND_ON;
+
+> hibernate processes also mostly use the pm_pr_dbg() function, which
+> results in hibernate processes only being able to output such logs
+> through dynamic debug, which is unfriendly to kernels without
+> CONFIG_DYNAMIC_DEBUG configuration.
+
++}
++EXPORT_SYMBOL_GPL(pm_debug_messages_should_print);
++
+ static ssize_t pm_debug_messages_show(struct kobject *kobj,
+ 				      struct kobj_attribute *attr, char *buf)
+ {
+
 -- 
 2.34.1
-
