@@ -1,103 +1,149 @@
-Received: from mail-pl1-f172.google.com (mail-pl1-f172.google.com [209.85.214.172])
+Received: from mail-pf1-f173.google.com (mail-pf1-f173.google.com [209.85.210.173])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FBDC25624
-	for <linux-acpi@vger.kernel.org>; Sun,  7 Apr 2024 12:39:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.172
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E03E4C7B;
+	Sun,  7 Apr 2024 12:49:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.173
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712493587; cv=none; b=GmS2HdrbilBwzLM9Wnol+z2CKfX6VMqokcxGzJ8m677m1U3rQ3QAXSqcMWHXn03VCusQFz+XiqJcOX+OwAYAxguxqvMAGqQkSs5UzB+kNTmosm47UHXGsWMSsisnWBlJIsXqG4jfTkgGsCoF0v69JqSPIhCoUS5DSUPTZQ+wGWM=
+	t=1712494180; cv=none; b=j62qt1VXQr8n+q/2P672WyalYKb8OHc5M6JJVE3VIQN0fnpkkxg5QygW3IHIYdAe6N1gfudifoUfGO1zRuZfOq9gR1k4vf1x7zn24CxwuQcITblVdy4mloo85YC8BHTuZxqG37D4QllKhOEuUkH3xeOu+HIquVPO9xWLLHV89UY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712493587; c=relaxed/simple;
-	bh=Q9cI46jHROpXEcEx+2Kb3vH9QS/DAv0M67aNROrNxCU=;
+	s=arc-20240116; t=1712494180; c=relaxed/simple;
+	bh=J1H/qX8SRFDlHJ/QBkm7cFTa1sYh0vN4k5jahtXiAaQ=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=CJ14Eq3Tq9NyiBSFIo0OR3tfjop5u19isGxsfImvY37tx11daQm+hBeUIhFIgdFGUC/FNxuPD5pOp7RYTtxKrpmRzB1e8M1CnVqLaLsU+oXe2yO5Qk24436X1Bf64HmW+peTGA5RXzPOGQQ7i1ilZ/ZSdVCVpgdaT+PIOOfpBBU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com; spf=pass smtp.mailfrom=bytedance.com; dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b=MGNEoUd7; arc=none smtp.client-ip=209.85.214.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bytedance.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b="MGNEoUd7"
-Received: by mail-pl1-f172.google.com with SMTP id d9443c01a7336-1e0f0398553so34305405ad.3
-        for <linux-acpi@vger.kernel.org>; Sun, 07 Apr 2024 05:39:45 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bytedance.com; s=google; t=1712493585; x=1713098385; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=T6IuRa8hdLZMnRGRnTZb4QaetvYCU2DguTsJIRtmhQg=;
-        b=MGNEoUd7wNQDPVp5PA2Pn3TxDvL/hksOL9qAdgLRvXbJaRBC7+Fkej2f29JGKIdySw
-         XMzv7GHVyIOoxfWEEdtolEpVZTHwg5vnxKudk1o28uJeVq+2SpqOJO4wDIrrRFmrXcHW
-         hn+1BeCbaNsII6cHzcNdzIwe1otkvD114KWxPCRL/0nHvwsxi1BCADd2eGdX2wBNP9AQ
-         ewyyIcRlbYdRO+jq5fgzniydao9eFacprXZaZYyKjfVEJdWvix9UdIIPZV+Z+xp2etdu
-         9x/8FeYkKXKATbm31EvbgHl8m13QCc3uAkkZJew9fc2FakpZPv6zAH2dDMxgZfaUj6lK
-         ZmtA==
+	 MIME-Version:Content-Type; b=UMFyPKfVQso35X0c1TW6cQ5hMTV5uh4gxvHeky3pMzYHSb0OC+ILfQIObatVlJkYYLrPuTuCFj9Pm9G2E4o1fI/JQDgMLEmVERLGMVoQU5veCSTQ/ftKk+9xHo/+hR3WrChcntwquCBh1cqguHbkqaS/u2z/4HWdBhYTri16+Cw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.210.173
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Received: by mail-pf1-f173.google.com with SMTP id d2e1a72fcca58-6ecee443c79so411687b3a.0;
+        Sun, 07 Apr 2024 05:49:38 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1712493585; x=1713098385;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=T6IuRa8hdLZMnRGRnTZb4QaetvYCU2DguTsJIRtmhQg=;
-        b=IO2g2QW4MVBBgrhO+JhKCH3DIj5smrXdkT4Jp34h0baK3NJjv6WeQEWOdOPUtRVr5y
-         Dv6SSKwuUje8GPIB/lhzGJBzXW4OgoaEASwaGcAkTRWz/nLqXA9ZOk6ZrBMgFFl986S2
-         SrkrV/yo+OWqHqeeBhiQERDaUnnJbGuyc2QdV8XjXKztadK6FR3SrOWG4KDFUFJOXdVo
-         UzUpc8rr2NtVTuCgh5wYdBsboWvaueksj2sAQm2T9ZZeDGSXnBA5YIpUrliVxRub0cC+
-         JMTW2z7KR77cojpDZPBP3ms0VC5aslvKytR6qa8gEwi+vFtvkOisX47/aSL2jmxuhY86
-         Gzmw==
-X-Forwarded-Encrypted: i=1; AJvYcCURm/v6Mv8bCoIto+i2TullEdoY7C2lG1oCBvF06ERZvziKNopsubSt1asHdjZ6vkUuVcH4i+Gz/lSj8jdOcaq1XJex2M5EbHPXpQ==
-X-Gm-Message-State: AOJu0Yz3vgKYgGcJd6ny6hNbsB9IWym+XNn4bGHMoKHM8Mjtpdt98Fmv
-	XhaghkQlXdwTgIKE8WgNr339yVjUiyzjzJcBRAdcR5kKAt2NxScnJXhR1ru9lZo=
-X-Google-Smtp-Source: AGHT+IES+scM9i8kf42aC/wFRIZyb6jz0P0Ddi4JaOD3Ny9vmXFhRZbHDQ5wSOLAP8Vf/nUtTo7nbA==
-X-Received: by 2002:a17:902:6f08:b0:1e2:ac0e:b0c9 with SMTP id w8-20020a1709026f0800b001e2ac0eb0c9mr6349701plk.24.1712493584797;
-        Sun, 07 Apr 2024 05:39:44 -0700 (PDT)
-Received: from L6YN4KR4K9.bytedance.net ([139.177.225.242])
-        by smtp.gmail.com with ESMTPSA id e7-20020a170902784700b001dd578121d4sm4933210pln.204.2024.04.07.05.39.41
-        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Sun, 07 Apr 2024 05:39:44 -0700 (PDT)
-From: Yunhui Cui <cuiyunhui@bytedance.com>
-To: rafael@kernel.org,
-	lenb@kernel.org,
+        d=1e100.net; s=20230601; t=1712494178; x=1713098978;
+        h=content-transfer-encoding:mime-version:list-id:references
+         :in-reply-to:message-id:date:subject:cc:to:from:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=gH1KKOCelF2ThGU1cHU4FIyi0LwXgGcMVoj+JXuvN68=;
+        b=MIJA0Wot1Qghh8EQLxxyyfbLrBYRKDYh7aNXOqdQNmN+CJsqDCipBR5eWRnI5x70mA
+         05ThpeHeLEPSk6/XVVESA2RV4GWzaoHMel2tjwzV5syjTsJ2BwN372/5wZGIiAqGKZNd
+         KOEQj1kF0io5iNGktVOjZ2+3e4fvLsI0NL5ReralF9Z7Pu5I304/F0+Kf1uuuYCmZv5Q
+         2ZlumbaNpx+/rMqHYmU6zX1KXstrozYLXpsNSXFrTdivtIvQAzfBxZKxd6W4Sp0ozlch
+         0OfRM6kGgQTZGxvVUc2CRGBFTIw0ypRD99rhEY8QzyRjk7ammTF+7PhoJvKBH4+8tb3h
+         Rjow==
+X-Forwarded-Encrypted: i=1; AJvYcCVhM7fTIZhDD8Qshqy0I1Kc+w+bKR6q8OPoXVvUfiT80bnhn7cjloNKQKeVCO8z9UihmhScWZomyQ7t6oEtiBuNbbVInSnLvJGIejYjn1+1ZZ1AY36HRJCcflcMJDtd5ptl4mtZSwOMzD3GmTgCNhyb0VyR8VBUlZedclQ9Q+uEKfsSDBV4FcMLrlqNd2m52tHKeGXWm+1p4hZQ6xW5EGTpMODLCktTwfLZNAIl6jExjFoBha2wYg5K2vYFtiCVjCQKJ/M=
+X-Gm-Message-State: AOJu0YzZ+GU6xzTsuqvNvmEw68gC55YnLvWajrm9EvkASsqJwWIquiNj
+	/LnTlCGxp9e+fasH2hrXUfs6HHq081bQJQYuC4hUCFfUKzcv+uh4
+X-Google-Smtp-Source: AGHT+IGmwZEw1xm9D6NmAXuVXmOZeBYvUcoCH5DdguExSt3s8bitCu93PDdAZPDeUUAbx3SB5z+oag==
+X-Received: by 2002:a05:6a20:2452:b0:1a7:17d:8863 with SMTP id t18-20020a056a20245200b001a7017d8863mr8555787pzc.4.1712494177572;
+        Sun, 07 Apr 2024 05:49:37 -0700 (PDT)
+Received: from tgsp-ThinkPad-X280.. ([223.153.78.230])
+        by smtp.gmail.com with ESMTPSA id e7-20020a63aa07000000b005f09e966e8asm4495442pgf.60.2024.04.07.05.49.32
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 07 Apr 2024 05:49:37 -0700 (PDT)
+From: xiongxin <xiongxin@kylinos.cn>
+To: mario.limonciello@amd.com,
+	Rafael Wysocki <rafael@kernel.org>,
+	hdegoede@redhat.com,
+	linus.walleij@linaro.org
+Cc: Basavaraj.Natikar@amd.com,
+	Shyam-sundar.S-k@amd.com,
+	linux-pm@vger.kernel.org,
 	linux-acpi@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
-	paul.walmsley@sifive.com,
-	palmer@dabbelt.com,
-	aou@eecs.berkeley.edu,
-	linux-riscv@lists.infradead.org
-Cc: Yunhui Cui <cuiyunhui@bytedance.com>
-Subject: [PATCH 2/2] RISC-V: Select ACPI PPTT drivers
-Date: Sun,  7 Apr 2024 20:38:29 +0800
-Message-Id: <20240407123829.36474-2-cuiyunhui@bytedance.com>
-X-Mailer: git-send-email 2.39.2 (Apple Git-143)
-In-Reply-To: <20240407123829.36474-1-cuiyunhui@bytedance.com>
-References: <20240407123829.36474-1-cuiyunhui@bytedance.com>
+	platform-driver-x86@vger.kernel.org,
+	linux-gpio@vger.kernel.org
+Subject: [PATCH v4 1/4] include/linux/suspend.h: Only show pm_pr_dbg messages at suspend/resume
+Date: Sun,  7 Apr 2024 20:49:15 +0800
+Message-ID: <20230602073025.22884-1-mario.limonciello@amd.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20230602073025.22884-1-mario.limonciello@amd.com>
+References: <20230602073025.22884-1-mario.limonciello@amd.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
+Message-ID: <20240407124915.1HfyECiogna_1TO8EcLRQCAGgrmvJAXFRl6BfOzX654@z>
 
-RSIC-V currently does not have a set of registers similar to ARM64
-that describe cache-related attributes. In order to make RISC-V
-cacheinfo normally supported by ACPI, through the optimization of
-pptt.c, RISC-V can build cacheinfo through the ACPI PPTT table.
+From: Mario Limonciello <mario.limonciello@amd.com>
 
-Signed-off-by: Yunhui Cui <cuiyunhui@bytedance.com>
+All uses in the kernel are currently already oriented around
+suspend/resume. As some other parts of the kernel may also use these
+messages in functions that could also be used outside of
+suspend/resume, only enable in suspend/resume path.
+
+Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
 ---
- arch/riscv/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
+v3->v4:
+ * add back do/while as it wasn't pointless.  It fixes a warning.
+---
+ include/linux/suspend.h | 8 +++++---
+ kernel/power/main.c     | 6 ++++++
+ 2 files changed, 11 insertions(+), 3 deletions(-)
 
-diff --git a/arch/riscv/Kconfig b/arch/riscv/Kconfig
-index 8f10a2fb5f86..cc516c12cb92 100644
---- a/arch/riscv/Kconfig
-+++ b/arch/riscv/Kconfig
-@@ -14,6 +14,7 @@ config RISCV
- 	def_bool y
- 	select ACPI_GENERIC_GSI if ACPI
- 	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
-+	select ACPI_PPTT if ACPI
- 	select ARCH_DMA_DEFAULT_COHERENT
- 	select ARCH_ENABLE_HUGEPAGE_MIGRATION if HUGETLB_PAGE && MIGRATION
- 	select ARCH_ENABLE_SPLIT_PMD_PTLOCK if PGTABLE_LEVELS > 2
+diff --git a/include/linux/suspend.h b/include/linux/suspend.h
+index 1a0426e6761c..74f406c53ac0 100644
+--- a/include/linux/suspend.h
++++ b/include/linux/suspend.h
+@@ -555,6 +555,7 @@ static inline void unlock_system_sleep(unsigned int flags) {}
+ #ifdef CONFIG_PM_SLEEP_DEBUG
+ extern bool pm_print_times_enabled;
+ extern bool pm_debug_messages_on;
++extern bool pm_debug_messages_should_print(void);
+ static inline int pm_dyn_debug_messages_on(void)
+ {
+ #ifdef CONFIG_DYNAMIC_DEBUG
+@@ -568,14 +569,14 @@ static inline int pm_dyn_debug_messages_on(void)
+ #endif
+ #define __pm_pr_dbg(fmt, ...)					\
+ 	do {							\
+-		if (pm_debug_messages_on)			\
++		if (pm_debug_messages_should_print())		\
+ 			printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__);	\
+ 		else if (pm_dyn_debug_messages_on())		\
+ 			pr_debug(fmt, ##__VA_ARGS__);	\
+ 	} while (0)
+ #define __pm_deferred_pr_dbg(fmt, ...)				\
+ 	do {							\
+-		if (pm_debug_messages_on)			\
++		if (pm_debug_messages_should_print())		\
+ 			printk_deferred(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__);	\
+ 	} while (0)
+ #else
+@@ -593,7 +594,8 @@ static inline int pm_dyn_debug_messages_on(void)
+ /**
+  * pm_pr_dbg - print pm sleep debug messages
+  *
+- * If pm_debug_messages_on is enabled, print message.
++ * If pm_debug_messages_on is enabled and the system is entering/leaving
++ *      suspend, print message.
+  * If pm_debug_messages_on is disabled and CONFIG_DYNAMIC_DEBUG is enabled,
+  *	print message only from instances explicitly enabled on dynamic debug's
+  *	control.
+diff --git a/kernel/power/main.c b/kernel/power/main.c
+index 3113ec2f1db4..daa535012e51 100644
+--- a/kernel/power/main.c
++++ b/kernel/power/main.c
+@@ -556,6 +556,12 @@ power_attr_ro(pm_wakeup_irq);
+ 
+ bool pm_debug_messages_on __read_mostly;
+ 
++bool pm_debug_messages_should_print(void)
++{
++	return pm_debug_messages_on && pm_suspend_target_state != PM_SUSPEND_ON;
+
+> hibernate processes also mostly use the pm_pr_dbg() function, which
+> results in hibernate processes only being able to output such logs
+> through dynamic debug, which is unfriendly to kernels without
+> CONFIG_DYNAMIC_DEBUG configuration.
+
++}
++EXPORT_SYMBOL_GPL(pm_debug_messages_should_print);
++
+ static ssize_t pm_debug_messages_show(struct kobject *kobj,
+ 				      struct kobj_attribute *attr, char *buf)
+ {
+
 -- 
-2.20.1
-
+2.34.1
