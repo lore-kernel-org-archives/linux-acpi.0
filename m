@@ -1,24 +1,24 @@
 Received: from air.basealt.ru (air.basealt.ru [194.107.17.39])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BD645810A;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4D3356461;
 	Mon,  8 Apr 2024 10:32:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=194.107.17.39
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712572346; cv=none; b=ChxZYhSrg/rNd/gS0xNww5CHLDrnJ9eESHbbSdrRr0r99BGt5F1kcbc3qmsN81xtEaUDTGYX7bRusmXVyHNGyZ9RwwocZlVWmK95PhsK16oyCFb6ZqvfHyAxTqaR7YShmU736y8eL2iv9Kt5BCxbGAzJoBsMS9UG7IAikOh791g=
+	t=1712572348; cv=none; b=uFirePR9gLKRWCpx3Hi7wn2VAmSmgQi49Pk40tMRN6dUSDiCQr6oRfdmDGmqr4S/9MSmx/zGq4zXkfb3a+1kaj+4ZnzlIP3MHpwexpvaAAkoomBsPHpm158MkHspEBsukCr8iL+iN3dcrzNqZrvmTt9Nnw6tKQEAckblHs9Xmmo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712572346; c=relaxed/simple;
-	bh=leV/hO1lT0ThkwVwzmco7siUwL9jreY0Hyp6cd76cp8=;
+	s=arc-20240116; t=1712572348; c=relaxed/simple;
+	bh=fXIqXueGUbGfH2unVIcGkhP53qXTuywBVNkfQJP/4pY=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=BeFIt+v7XKJgBboLYUMHdLsRrQxzOuLCiaZxfv6w6PdRXSvU6Ksa7wkQqEyJQtkIY+Q2wcT2O+vAYDdQKRfSoi95uu4HBYEKQvK3chyHlx1U5+bkYqOG6WlGIGUEnLStj/hVMRU5PdlyA1SG6NgnW+M24dzFbpGROoKGb171GIA=
+	 MIME-Version; b=pJAoF6EtMig48R6miwPbHTpqpCC0kTeq71F5WN+49Defrb0oX2WnIelJ8wakolpHGMLvSwV+ce9ww8XC+182geRr/F9VnOhoe3tlsFr+C+uc83dSfXolBFOSX7im0DYMQoL/O03X+csgLvnAr97YfKCa8tJJ6fLXU/L0dIdMWpg=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=altlinux.org; spf=pass smtp.mailfrom=altlinux.org; arc=none smtp.client-ip=194.107.17.39
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=altlinux.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=altlinux.org
 Received: by air.basealt.ru (Postfix, from userid 490)
-	id D84BF2F2024E; Mon,  8 Apr 2024 10:32:23 +0000 (UTC)
+	id 301DE2F20267; Mon,  8 Apr 2024 10:32:24 +0000 (UTC)
 X-Spam-Level: 
 Received: from altlinux.malta.altlinux.ru (obninsk.basealt.ru [217.15.195.17])
-	by air.basealt.ru (Postfix) with ESMTPSA id 732C42F2024C;
+	by air.basealt.ru (Postfix) with ESMTPSA id F16B72F20258;
 	Mon,  8 Apr 2024 10:32:09 +0000 (UTC)
 From: kovalev@altlinux.org
 To: stable@vger.kernel.org
@@ -28,9 +28,9 @@ Cc: rafael@kernel.org,
 	hdegoede@redhat.com,
 	linux-acpi@vger.kernel.org,
 	kovalev@altlinux.org
-Subject: [PATCH 6.1.y 01/14] ACPI: resource: Skip IRQ override on Asus Expertbook B2402FBA
-Date: Mon,  8 Apr 2024 13:31:54 +0300
-Message-Id: <20240408103207.197423-2-kovalev@altlinux.org>
+Subject: [PATCH 6.1.y 08/14] ACPI: resource: Drop .ident values from dmi_system_id tables
+Date: Mon,  8 Apr 2024 13:32:01 +0300
+Message-Id: <20240408103207.197423-9-kovalev@altlinux.org>
 X-Mailer: git-send-email 2.33.8
 In-Reply-To: <20240408103207.197423-1-kovalev@altlinux.org>
 References: <20240408103207.197423-1-kovalev@altlinux.org>
@@ -42,41 +42,156 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Vojtech Hejsek <hejsekvojtech@gmail.com>
+From: Hans de Goede <hdegoede@redhat.com>
 
-commit 65eb2867f5bf46023ab42ba8347106870d961cf3 upstream.
+commit 424009ab203086288dcd183d3ab48d243eb31268 upstream.
 
-The Asus Expertbook B2502FBA has IRQ 1 described as Active_Low
-in its ACPI table. However, the kernel overrides this and sets it to
-Edge_High, which prevents the internal keyboard from working properly.
+The dmi_system_id.ident values are not used, replace the
+.ident = "$ident" lines with /* $ident */ to drop the unused strings
+from the text section.
 
-Adding this laptop model to the override_table fixes the issue.
-
-Signed-off-by: Vojtech Hejsek <hejsekvojtech@gmail.com>
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Vasiliy Kovalev <kovalev@altlinux.org>
 ---
- drivers/acpi/resource.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/acpi/resource.c | 32 ++++++++++++++++----------------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
 
 diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index 1c5c1a269fbee4..2d3ed21c010fb8 100644
+index 54bd6919f719c8..ef5a08c1596031 100644
 --- a/drivers/acpi/resource.c
 +++ b/drivers/acpi/resource.c
-@@ -460,6 +460,13 @@ static const struct dmi_system_id asus_laptop[] = {
+@@ -392,56 +392,56 @@ EXPORT_SYMBOL_GPL(acpi_dev_get_irq_type);
+  */
+ static const struct dmi_system_id irq1_level_low_skip_override[] = {
+ 	{
+-		.ident = "MEDION P15651",
++		/* MEDION P15651 */
+ 		.matches = {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "MEDION"),
+ 			DMI_MATCH(DMI_BOARD_NAME, "M15T"),
+ 		},
+ 	},
+ 	{
+-		.ident = "MEDION S17405",
++		/* MEDION S17405 */
+ 		.matches = {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "MEDION"),
+ 			DMI_MATCH(DMI_BOARD_NAME, "M17T"),
+ 		},
+ 	},
+ 	{
+-		.ident = "MEDION S17413",
++		/* MEDION S17413 */
+ 		.matches = {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "MEDION"),
+ 			DMI_MATCH(DMI_BOARD_NAME, "M1xA"),
+ 		},
+ 	},
+ 	{
+-		.ident = "Asus Vivobook K3402ZA",
++		/* Asus Vivobook K3402ZA */
+ 		.matches = {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
+ 			DMI_MATCH(DMI_BOARD_NAME, "K3402ZA"),
+ 		},
+ 	},
+ 	{
+-		.ident = "Asus Vivobook K3502ZA",
++		/* Asus Vivobook K3502ZA */
+ 		.matches = {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
+ 			DMI_MATCH(DMI_BOARD_NAME, "K3502ZA"),
+ 		},
+ 	},
+ 	{
+-		.ident = "Asus Vivobook S5402ZA",
++		/* Asus Vivobook S5402ZA */
+ 		.matches = {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
+ 			DMI_MATCH(DMI_BOARD_NAME, "S5402ZA"),
+ 		},
+ 	},
+ 	{
+-		.ident = "Asus Vivobook S5602ZA",
++		/* Asus Vivobook S5602ZA */
+ 		.matches = {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
+ 			DMI_MATCH(DMI_BOARD_NAME, "S5602ZA"),
+ 		},
+ 	},
+ 	{
+-		.ident = "Asus ExpertBook B1402CBA",
++		/* Asus ExpertBook B1402CBA */
+ 		.matches = {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
+ 			DMI_MATCH(DMI_BOARD_NAME, "B1402CBA"),
+@@ -455,35 +455,35 @@ static const struct dmi_system_id irq1_level_low_skip_override[] = {
+ 		},
+ 	},
+ 	{
+-		.ident = "Asus ExpertBook B1502CBA",
++		/* Asus ExpertBook B1502CBA */
+ 		.matches = {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
+ 			DMI_MATCH(DMI_BOARD_NAME, "B1502CBA"),
+ 		},
+ 	},
+ 	{
+-		.ident = "Asus ExpertBook B2402CBA",
++		/* Asus ExpertBook B2402CBA */
+ 		.matches = {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
  			DMI_MATCH(DMI_BOARD_NAME, "B2402CBA"),
  		},
  	},
-+	{
-+		.ident = "Asus ExpertBook B2402FBA",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
-+			DMI_MATCH(DMI_BOARD_NAME, "B2402FBA"),
-+		},
-+	},
  	{
- 		.ident = "Asus ExpertBook B2502",
+-		.ident = "Asus ExpertBook B2402FBA",
++		/* Asus ExpertBook B2402FBA */
  		.matches = {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
+ 			DMI_MATCH(DMI_BOARD_NAME, "B2402FBA"),
+ 		},
+ 	},
+ 	{
+-		.ident = "Asus ExpertBook B2502",
++		/* Asus ExpertBook B2502 */
+ 		.matches = {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
+ 			DMI_MATCH(DMI_BOARD_NAME, "B2502CBA"),
+ 		},
+ 	},
+ 	{
+-		.ident = "LG Electronics 17U70P",
++		/* LG Electronics 17U70P */
+ 		.matches = {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "LG Electronics"),
+ 			DMI_MATCH(DMI_BOARD_NAME, "17U70P"),
+@@ -499,13 +499,13 @@ static const struct dmi_system_id irq1_level_low_skip_override[] = {
+  */
+ static const struct dmi_system_id irq1_edge_low_force_override[] = {
+ 	{
+-		.ident = "TongFang GMxRGxx/XMG CORE 15 (M22)/TUXEDO Stellaris 15 Gen4 AMD",
++		/* TongFang GMxRGxx/XMG CORE 15 (M22)/TUXEDO Stellaris 15 Gen4 AMD */
+ 		.matches = {
+ 			DMI_MATCH(DMI_BOARD_NAME, "GMxRGxx"),
+ 		},
+ 	},
+ 	{
+-		.ident = "MAINGEAR Vector Pro 2 15",
++		/* MAINGEAR Vector Pro 2 15 */
+ 		.matches = {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "Micro Electronics Inc"),
+ 			DMI_MATCH(DMI_PRODUCT_NAME, "MG-VCP2-15A3070T"),
+@@ -531,7 +531,7 @@ static const struct dmi_system_id irq1_edge_low_force_override[] = {
+ 		},
+ 	},
+ 	{
+-		.ident = "MAINGEAR Vector Pro 2 17",
++		/* MAINGEAR Vector Pro 2 17 */
+ 		.matches = {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "Micro Electronics Inc"),
+ 			DMI_MATCH(DMI_PRODUCT_NAME, "MG-VCP2-17A3070T"),
 -- 
 2.33.8
 
