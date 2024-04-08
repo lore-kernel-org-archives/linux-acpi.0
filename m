@@ -1,37 +1,39 @@
 Received: from air.basealt.ru (air.basealt.ru [194.107.17.39])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7DC21535DC;
-	Mon,  8 Apr 2024 10:29:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6968555C07;
+	Mon,  8 Apr 2024 10:32:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=194.107.17.39
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712572198; cv=none; b=VZ/N0H0zm+5doUtW2bv7rf2L2eMgJ6U3HKQKLSmUloNDAD8IZctp2C8wTQfVJMtlukUhVG0bPt5DCVxG6oNr+Rw/A3WhesEKO8cXbs7ShLdnqo1XdbabgwKoLu27lCUV8VcnDV/l2TO2b1j5vOcFS/PFJ6Hwflnrfj92WyDL49o=
+	t=1712572343; cv=none; b=DjXQX0phgEG0GWOYGCMKqbfeh/bYCpgQ5sqzBUPFJCq3UMHyIFx1MvF/UOnG7KRlRvO5fqk928gj1vMgmE8igPh9Xojtx1mVslS/kTokZvAhX5t4j/Cu1wLqlw+XpqoaztePD0s0VXeFRqHmpTiNWgHzEOQ5heMSrBNq4rhQWcw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712572198; c=relaxed/simple;
-	bh=EBbPXX1GRVfEnGt9wh3Y1T42heRsa6Z1PnPbI5TzPzo=;
+	s=arc-20240116; t=1712572343; c=relaxed/simple;
+	bh=yoTDhlWQfE6S6gLckI5sPJKv73dejU/mHkcxeFKARsY=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=oSrEpcYq1CRZpv8dPa0nlGSaNjCBFp8v83KR4u8vpeYhiMRHg9ii82rd2J15oZxosi3BDiqet0adMF2ujISXdatIVj3B6hHKczkG6PG0EVEnxn39mZNDGU4aWHVHYIhljit0ux5aD2K0SPZu98zJuoODIrhVmeXYhwzfPp1r3SU=
+	 MIME-Version; b=dSzvN5ZpvomtUL+Zqf/eGPfYyHVSfuU8ZiwQVx7Lm+3Nmc3hxufk0YDByIDo0MW+LFfMgvin+Z386Xy36a/WPie0It6k8PvQyVoQZIBqD8RBP8+XfW84ioWy6yaKlCPPcAGy3HlwehFHMMd2kLlVr3EFXD20Q8bDqtHV6Pwdkh0=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=altlinux.org; spf=pass smtp.mailfrom=altlinux.org; arc=none smtp.client-ip=194.107.17.39
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=altlinux.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=altlinux.org
 Received: by air.basealt.ru (Postfix, from userid 490)
-	id 08E502F20248; Mon,  8 Apr 2024 10:29:55 +0000 (UTC)
+	id ED0082F2024A; Mon,  8 Apr 2024 10:32:20 +0000 (UTC)
 X-Spam-Level: 
 Received: from altlinux.malta.altlinux.ru (obninsk.basealt.ru [217.15.195.17])
-	by air.basealt.ru (Postfix) with ESMTPSA id C1F9D2F2024B;
-	Mon,  8 Apr 2024 10:29:43 +0000 (UTC)
+	by air.basealt.ru (Postfix) with ESMTPSA id 94EDD2F20253;
+	Mon,  8 Apr 2024 10:32:09 +0000 (UTC)
 From: kovalev@altlinux.org
 To: stable@vger.kernel.org
 Cc: rafael@kernel.org,
 	lenb@kernel.org,
+	pavel@ucw.cz,
+	hdegoede@redhat.com,
 	linux-acpi@vger.kernel.org,
 	kovalev@altlinux.org
-Subject: [PATCH 6.6.y 7/7] ACPI: resource: Use IRQ override on Maibenben X565
-Date: Mon,  8 Apr 2024 13:29:40 +0300
-Message-Id: <20240408102940.197282-8-kovalev@altlinux.org>
+Subject: [PATCH 6.1.y 03/14] ACPI: resource: Always use MADT override IRQ settings for all legacy non i8042 IRQs
+Date: Mon,  8 Apr 2024 13:31:56 +0300
+Message-Id: <20240408103207.197423-4-kovalev@altlinux.org>
 X-Mailer: git-send-email 2.33.8
-In-Reply-To: <20240408102940.197282-1-kovalev@altlinux.org>
-References: <20240408102940.197282-1-kovalev@altlinux.org>
+In-Reply-To: <20240408103207.197423-1-kovalev@altlinux.org>
+References: <20240408103207.197423-1-kovalev@altlinux.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -40,41 +42,81 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Sergey Kalinichev <kalinichev.so.0@gmail.com>
+From: Hans de Goede <hdegoede@redhat.com>
 
-commit 00efe7fcf9ceeff0808bca9460afb49e7ada6068 upstream.
+commit 9728ac221160c5ea111879125a7694bb81364720 upstream.
 
-Use ACPI IRQ override on Maibenben X565 laptop to make the internal
-keyboard work.
+All the cases, were the DSDT IRQ settings should be used instead of
+the MADT override, are for IRQ 1 or 12, the PS/2 kbd resp. mouse IRQs.
 
-Add a new entry to the irq1_edge_low_force_override structure, similar
-to the existing ones.
+Simplify things by always honering the override for other legacy IRQs
+(for non DMI quirked cases).
 
-Signed-off-by: Sergey Kalinichev <kalinichev.so.0@gmail.com>
+This allows removing the DMI quirks to honor the override for
+some non i8042 IRQs on some AMD ZEN based Lenovo models.
+
+Fixes: a9c4a912b7dc ("ACPI: resource: Remove "Zen" specific match and quirks")
+Cc: All applicable <stable@vger.kernel.org>
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Vasiliy Kovalev <kovalev@altlinux.org>
 ---
- drivers/acpi/resource.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/acpi/resource.c | 28 ++++++++--------------------
+ 1 file changed, 8 insertions(+), 20 deletions(-)
 
 diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index 42b594f5127e4a..e2db4d5883ca40 100644
+index 548fd63ed26927..2a3b8bf58b7ac4 100644
 --- a/drivers/acpi/resource.c
 +++ b/drivers/acpi/resource.c
-@@ -623,6 +623,13 @@ static const struct dmi_system_id irq1_edge_low_force_override[] = {
- 			DMI_MATCH(DMI_BOARD_NAME, "X577"),
- 		},
- 	},
-+	{
-+		/* Maibenben X565 */
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "MAIBENBEN"),
-+			DMI_MATCH(DMI_BOARD_NAME, "X565"),
-+		},
-+	},
+@@ -484,24 +484,6 @@ static const struct dmi_system_id asus_laptop[] = {
  	{ }
  };
  
+-static const struct dmi_system_id lenovo_laptop[] = {
+-	{
+-		.ident = "LENOVO IdeaPad Flex 5 14ALC7",
+-		.matches = {
+-			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+-			DMI_MATCH(DMI_PRODUCT_NAME, "82R9"),
+-		},
+-	},
+-	{
+-		.ident = "LENOVO IdeaPad Flex 5 16ALC7",
+-		.matches = {
+-			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+-			DMI_MATCH(DMI_PRODUCT_NAME, "82RA"),
+-		},
+-	},
+-	{ }
+-};
+-
+ static const struct dmi_system_id tongfang_gm_rg[] = {
+ 	{
+ 		.ident = "TongFang GMxRGxx/XMG CORE 15 (M22)/TUXEDO Stellaris 15 Gen4 AMD",
+@@ -605,8 +587,6 @@ struct irq_override_cmp {
+ static const struct irq_override_cmp override_table[] = {
+ 	{ medion_laptop, 1, ACPI_LEVEL_SENSITIVE, ACPI_ACTIVE_LOW, 0, false },
+ 	{ asus_laptop, 1, ACPI_LEVEL_SENSITIVE, ACPI_ACTIVE_LOW, 0, false },
+-	{ lenovo_laptop, 6, ACPI_LEVEL_SENSITIVE, ACPI_ACTIVE_LOW, 0, true },
+-	{ lenovo_laptop, 10, ACPI_LEVEL_SENSITIVE, ACPI_ACTIVE_LOW, 0, true },
+ 	{ tongfang_gm_rg, 1, ACPI_EDGE_SENSITIVE, ACPI_ACTIVE_LOW, 1, true },
+ 	{ maingear_laptop, 1, ACPI_EDGE_SENSITIVE, ACPI_ACTIVE_LOW, 1, true },
+ 	{ lg_laptop, 1, ACPI_LEVEL_SENSITIVE, ACPI_ACTIVE_LOW, 0, false },
+@@ -629,6 +609,14 @@ static bool acpi_dev_irq_override(u32 gsi, u8 triggering, u8 polarity,
+ 	}
+ 
+ #ifdef CONFIG_X86
++	/*
++	 * Always use the MADT override info, except for the i8042 PS/2 ctrl
++	 * IRQs (1 and 12). For these the DSDT IRQ settings should sometimes
++	 * be used otherwise PS/2 keyboards / mice will not work.
++	 */
++	if (gsi != 1 && gsi != 12)
++		return true;
++
+ 	/*
+ 	 * IRQ override isn't needed on modern AMD Zen systems and
+ 	 * this override breaks active low IRQs on AMD Ryzen 6000 and
 -- 
 2.33.8
 
