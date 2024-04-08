@@ -1,91 +1,102 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.19])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yw1-f201.google.com (mail-yw1-f201.google.com [209.85.128.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5938147C62;
-	Mon,  8 Apr 2024 21:19:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.19
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA1B31DA5E
+	for <linux-acpi@vger.kernel.org>; Mon,  8 Apr 2024 23:13:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712611160; cv=none; b=QK1SUP+okv8fHYLikYgFY6kpTgdAPBCQbo9Uya7h/dAYli/zlO2HAtcx3+4tyynZLsDqMyX4vq/1IyWwxG+Z04IAMLH0Tj2sxFfGrW0dyAmoDMRro2+gP0jkAqNLd1m9/kbgBGKfbTbt2Yz833hhWTI+eHseTXkT3VmXcRibsFs=
+	t=1712618003; cv=none; b=KH09SrhvSrQ3DI0bokZPD+oStQveI3wPMFvIel7vzaH0a8KiPrfTcZ35r1/yDu+M6PAAGhgrkSa4tpW5fVRXILLVinskShIJ1PI/IKgy2aubdCQBT2YNt1yAaNdIMqMvQa5hpOtIKY9K0SACbnQpcAKAXeeKFPBkffg5FPPBVeY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712611160; c=relaxed/simple;
-	bh=E215z4yNgNQnZ5yyZUlVNUGteHZIYbQ3gK1FUVJXYsw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=mUrZK47SPrzCjsDqlQ8ME9Q4RxTx9E4H0k7xaQYI55qlr0lOs6FjWoserfk/E4v5zGM6uABvBkjYCvotw9KBInrp9WYtYDaKHO+a1scgFJOZGxBm2QMDY2vmQSoyaLkQNzNT9MvxxhkY0rvOPIbA+PZhw5ZLtlZBEaZaxOSNgvo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=fDrebjF1; arc=none smtp.client-ip=192.198.163.19
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1712618003; c=relaxed/simple;
+	bh=x9mwVZCtRJZxj4SxW0pxGiYFzzdRxitCW4paJ8e6Vwk=;
+	h=Date:Message-Id:Mime-Version:Subject:From:To:Cc:Content-Type; b=nFZ4jLOUQ2sOrLbl65fh9FMAD11Ehkhz+CKvw9uZDWkIoXDEoUGD/2wH0j+xRcxZj4fpT5sEgOZbKD8iRD6HUDfZ3d0/Pf2Vtv0aDecwVy36PCvVicD9/hw/YTtqs/tHCbUB/xnGXLHfw8tI4qKe3sYs/ZeGKnbTtXqFZ93YJTQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--saravanak.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=tfUfF1PX; arc=none smtp.client-ip=209.85.128.201
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--saravanak.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="fDrebjF1"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1712611159; x=1744147159;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=E215z4yNgNQnZ5yyZUlVNUGteHZIYbQ3gK1FUVJXYsw=;
-  b=fDrebjF1Rl45UkT4Bo6Qni8dpcx/f3nNVBoBi/mvx8B2pn3TnqtaCSjj
-   wKs79IYoRVMenVO6Zs/Vl3930Ka9eFMxEaulElYxr/3FbPdTHdmZetVc6
-   2ItUi/S1Skhs2HmcFJch2WHDOgz600erEOemOQilvwMuS/sUAe83jb3cn
-   6PTbw9hvYfij51bhJLe7y4hUuN5kyGqI3Es1xBDPLeBHwFzGVSQpK3N85
-   SJKvH4vOr+2X2IB7cmy4lZsFoHKTu3Bc0mvdQiEV4NYr5P5b1IlIhZ1gL
-   3cTY28YYXWx4XW4Q9oRR+lsMht8LDUMD0oSVJ2F3qFWlo53ZviiIWVizU
-   A==;
-X-CSE-ConnectionGUID: PxlJ0tneRmaLXulJ6OEZZQ==
-X-CSE-MsgGUID: +xm6HA57ShaLycf/pVNDEA==
-X-IronPort-AV: E=McAfee;i="6600,9927,11038"; a="7764769"
-X-IronPort-AV: E=Sophos;i="6.07,187,1708416000"; 
-   d="scan'208";a="7764769"
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Apr 2024 14:19:18 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,11038"; a="915377857"
-X-IronPort-AV: E=Sophos;i="6.07,187,1708416000"; 
-   d="scan'208";a="915377857"
-Received: from smile.fi.intel.com (HELO smile) ([10.237.72.54])
-  by fmsmga002.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Apr 2024 14:19:16 -0700
-Received: from andy by smile with local (Exim 4.97)
-	(envelope-from <andriy.shevchenko@linux.intel.com>)
-	id 1rtwOX-00000002eS9-37Sw;
-	Tue, 09 Apr 2024 00:19:13 +0300
-Date: Tue, 9 Apr 2024 00:19:13 +0300
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>,
-	Kent Gibson <warthog618@gmail.com>, linux-gpio@vger.kernel.org,
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>,
-	Linus Walleij <linus.walleij@linaro.org>,
-	Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: Re: [PATCH v1 1/1] gpiolib: Update the kernel documentation - add
- Return sections
-Message-ID: <ZhRfUQP8GlJ7ZEBd@smile.fi.intel.com>
-References: <20240404212706.3587456-1-andriy.shevchenko@linux.intel.com>
- <ZhQ1l6naYpVlmlex@smile.fi.intel.com>
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="tfUfF1PX"
+Received: by mail-yw1-f201.google.com with SMTP id 00721157ae682-615110c3472so92954557b3.3
+        for <linux-acpi@vger.kernel.org>; Mon, 08 Apr 2024 16:13:21 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1712618001; x=1713222801; darn=vger.kernel.org;
+        h=cc:to:from:subject:mime-version:message-id:date:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=8KR9ZDVpmFlaIwvKuBx+EnAZl+aysJrEDZLL4TycsvM=;
+        b=tfUfF1PX/ufUeMkiwBfJE8B2Dbxw/WmajPZ105zDKfBVIZ9eg33wauBAvVOhenKp21
+         VTV5ca2mPMiwo7MsCYkqY/lcPrZG6qt3iV7crDBTqHL0ilpvMQkJCpOJBt4wXSvXM3gq
+         QoqN/pHlRJyr8flcdomG8fpD5nybyDE3XUaxXPOUuAxUL53EZxUH1EG6kM39g+xnlsuP
+         W/uURi2mV+pHGZrnIVRJKSW9yqUAAJ2fOb5e+8T1oPFXMBIC2S2/o9PLZXmAK/cdIx/c
+         RCqsu+EW59nXMSN9ugUboQy1VxMdtz8p0HoZKGSAMmQ29lqt+dLEnrg4lc+2lbow+DBJ
+         zGGA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1712618001; x=1713222801;
+        h=cc:to:from:subject:mime-version:message-id:date:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=8KR9ZDVpmFlaIwvKuBx+EnAZl+aysJrEDZLL4TycsvM=;
+        b=AWuQ4swy/wN67GA5IcXhkDL1N3XPMmsucq2Hky33/e0rpbV9qx+Ni9THYDPllOEUye
+         2ZXB3xy9oZEQXRo7WX6g1/AkDVblLyf78V5gQ99egv582eGm0U08Boy2K92XuVSSb1WO
+         vHpgy7r8ib02Rf1zLnC+cJUlQevPljUxJEp0aI33dRfswHmXrfnm4Gs8HS9wb+zzOZAG
+         DdDzniY1rk4xTksQbdejEKvLs/r4hYbg7O+y39X2MZb85FOayAys8QJPXbhe5YB47A6g
+         KI1LEUAyCEnMOnlTJ+bR6/0rLoBFSOjvGkGtzcWUImvMC1OHHK0Qwvq9LTZs1nwXoI5S
+         Pt/w==
+X-Forwarded-Encrypted: i=1; AJvYcCX8FbXB6o6cQLYJF85bVEyTa+fhWFMXwU9Uw8Z0hAxzal/ih/e01nx+nQ/AbTTOYMOHcnFcbtK/qtP9MpK0H6+V74MxMvyUXQ0/FA==
+X-Gm-Message-State: AOJu0YwiPwufpQTV3wYtADM8SxAPJ2ibcM1HK6gK5a2JcF2R19ENCqqP
+	/gO7R0NAzHd4dYlXgzaSz8hW1sLlgpOaa0dyi9PFHpCeVO2KjMlpMnHmA/tQYbKogGe43GaVjSq
+	Spokggbztd7pxMg==
+X-Google-Smtp-Source: AGHT+IEiBKuFp9QTgBmavvNyeuDLhVieZKacyXA60iTXYXv5owwSC1k0jFYE2SUKHElIfDGTrdBpXZCX+VZqUfk=
+X-Received: from saravanak.san.corp.google.com ([2620:15c:2d:3:96d3:321a:67f3:5322])
+ (user=saravanak job=sendgmr) by 2002:a81:73d6:0:b0:614:2c5c:d275 with SMTP id
+ o205-20020a8173d6000000b006142c5cd275mr2854389ywc.4.1712618000795; Mon, 08
+ Apr 2024 16:13:20 -0700 (PDT)
+Date: Mon,  8 Apr 2024 16:13:07 -0700
+Message-Id: <20240408231310.325451-1-saravanak@google.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ZhQ1l6naYpVlmlex@smile.fi.intel.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+Mime-Version: 1.0
+X-Mailer: git-send-email 2.44.0.478.gd926399ef9-goog
+Subject: [RFC PATCH v1 0/2] fw_devlink overlay fix
+From: Saravana Kannan <saravanak@google.com>
+To: Herve Codina <herve.codina@bootlin.com>, Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: Saravana Kannan <saravanak@google.com>, Rob Herring <robh@kernel.org>, kernel-team@android.com, 
+	linux-kernel@vger.kernel.org, imx@lists.linux.dev, 
+	linux-arm-kernel@lists.infradead.org, linux-i2c@vger.kernel.org, 
+	devicetree@vger.kernel.org, linux-spi@vger.kernel.org, 
+	linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-On Mon, Apr 08, 2024 at 09:21:11PM +0300, Andy Shevchenko wrote:
-> On Fri, Apr 05, 2024 at 12:27:06AM +0300, Andy Shevchenko wrote:
-> > $ scripts/kernel-doc -v -none -Wall drivers/gpio/gpiolib* 2>&1 | grep -w warning | wc -l
-> > 67
-> > 
-> > Fix these by adding Return sections. While at it, make sure all of
-> > Return sections use the same style.
-> 
-> Bart, this is the biggest part from the v1, I would like to have that applied
-> first if no objections since it fixes kernel doc warnings. What do you think?
+Don't bother review this patch. It needs to be refactored better once I
+know it works.
 
-Hold on a sec, I found bigger issue that needs to be backported and this patch
-needs to be rebased on top of it. I'll send an update.
+Geert and Herve,
+
+This patch serious should hopefully fix both of your use cases. Can you
+please check to make sure the device links created to/from the overlay
+devices are to/from the right ones?
+
+I've only compile tested it. If I made some obvious mistake, feel free
+to fix it and give it a shot.
+
+Cc: Rob Herring <robh@kernel.org>
+
+Thanks,
+Saravana
+
+Saravana Kannan (2):
+  Revert "treewide: Fix probing of devices in DT overlays"
+  of: dynamic: Fix probing of overlay devices
+
+ drivers/base/core.c       | 10 ++++++++++
+ drivers/bus/imx-weim.c    |  6 ------
+ drivers/i2c/i2c-core-of.c |  5 -----
+ drivers/of/dynamic.c      |  9 ++++++++-
+ drivers/of/platform.c     |  5 -----
+ drivers/spi/spi.c         |  5 -----
+ include/linux/fwnode.h    |  2 ++
+ 7 files changed, 20 insertions(+), 22 deletions(-)
 
 -- 
-With Best Regards,
-Andy Shevchenko
-
+2.44.0.478.gd926399ef9-goog
 
