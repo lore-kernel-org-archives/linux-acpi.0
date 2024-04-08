@@ -1,24 +1,24 @@
 Received: from air.basealt.ru (air.basealt.ru [194.107.17.39])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6E5257332;
-	Mon,  8 Apr 2024 10:32:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D521E57335;
+	Mon,  8 Apr 2024 10:32:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=194.107.17.39
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712572350; cv=none; b=DQ7cbDXW/AANPzkun8wW3lm2IeCyVQvrGhcOEAcxIBCVPUSADabxipdm3YHpsZdi6lWisYgPRvdx+XMt382b0pZKOy0cJPfmHOdTm8c923x8Yr5lkhCtk3aJbLCU3l9moN2WrvB9TG0QSxmGfbTJSV74rrAvdJCPeKy0Y/LtnVE=
+	t=1712572351; cv=none; b=CPjEsw5RGi6EwkDlIjwXeuXPuPZoO8O67Pbyn2kjer1gHktafFye/rc1xSZR9r1WJ0gR8cRTgPHcu/otB31kb/EBApDBP7SrcxGCSN9VhwNtgsTNEXCP7AvRaKml3Cj5p4TKQJ77lQMpus5ldOJrbd0YXuSYqRagvh2ij2hWFXU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712572350; c=relaxed/simple;
-	bh=mndJf29iEej2EkWzUYBmNEMOuaaJfmsB3kDkrrmDq3c=;
+	s=arc-20240116; t=1712572351; c=relaxed/simple;
+	bh=1+2N9VD8aWYC8y5MqMhMYEILaIevx0gzV/OF6Mwttf0=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=ZgaiWVycrqSa9A3sBSVOQQk7m+AqNKJylLbtHpu29olJODFcc1lIkpM2355GhnvLLEKtjHwgHHuGXmBx84sZzblSelGOarGWU6JvygyETVYztjQFhToK5cCJ9/44Q8v4RoB5FvcNyjXLMVZTPk+Y11EwBFAblmmEZhjS8ny9mmA=
+	 MIME-Version; b=ahDMW6VrKlNy/Sx7N6g7t4JmHhJCDQy+fY+ZktJWMSZzqUqK2n8aZpCZMnrUl2RwvdPIs9ntoNlQobIPOJEiFqbj1PIvAuEiiiyQ569Gm2SXluQF5uP+HNQppAs7/i5Wy3ebWwHM7vOzLWe/5B/PCQr2pRVID3mpDUw8wanx7Os=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=altlinux.org; spf=pass smtp.mailfrom=altlinux.org; arc=none smtp.client-ip=194.107.17.39
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=altlinux.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=altlinux.org
 Received: by air.basealt.ru (Postfix, from userid 490)
-	id 7389E2F20272; Mon,  8 Apr 2024 10:32:27 +0000 (UTC)
+	id 698352F20273; Mon,  8 Apr 2024 10:32:28 +0000 (UTC)
 X-Spam-Level: 
 Received: from altlinux.malta.altlinux.ru (obninsk.basealt.ru [217.15.195.17])
-	by air.basealt.ru (Postfix) with ESMTPSA id 201EE2F20246;
+	by air.basealt.ru (Postfix) with ESMTPSA id 5F4FE2F2025F;
 	Mon,  8 Apr 2024 10:32:10 +0000 (UTC)
 From: kovalev@altlinux.org
 To: stable@vger.kernel.org
@@ -28,9 +28,9 @@ Cc: rafael@kernel.org,
 	hdegoede@redhat.com,
 	linux-acpi@vger.kernel.org,
 	kovalev@altlinux.org
-Subject: [PATCH 6.1.y 10/14] ACPI: resource: Add DMI quirks for ASUS Vivobook E1504GA and E1504GAB
-Date: Mon,  8 Apr 2024 13:32:03 +0300
-Message-Id: <20240408103207.197423-11-kovalev@altlinux.org>
+Subject: [PATCH 6.1.y 13/14] ACPI: resource: Add IRQ override quirk for ASUS ExpertBook B2502FBA
+Date: Mon,  8 Apr 2024 13:32:06 +0300
+Message-Id: <20240408103207.197423-14-kovalev@altlinux.org>
 X-Mailer: git-send-email 2.33.8
 In-Reply-To: <20240408103207.197423-1-kovalev@altlinux.org>
 References: <20240408103207.197423-1-kovalev@altlinux.org>
@@ -42,54 +42,41 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Ben Mayo <benny1091@gmail.com>
+From: Sviatoslav Harasymchuk <sviatoslav.harasymchuk@gmail.com>
 
-commit d2aaf19965045f70bb2ece514399cdc6fcce2e73 upstream.
+commit 0793e511c4c66c38dd26add86f7236bcdc70c3b5 upstream.
 
-Asus Vivobook E1504GA and E1504GAB notebooks are affected by bug #216158
-(DSDT specifies the kbd IRQ as level active-low and using the override
-changes this to rising edge, stopping the keyboard from working).
+In order to fix the keyboard on ASUS ExpertBook B2502FBA, add an IRQ
+override quirk for it in analogy with how it was done for other members
+of this machine family.
 
-Users of these notebooks do not have a working keyboard unless they add
-their DMI information to the struct irq1_level_low_skip_override array
-and compile a custom kernel.
-
-Add support for these computers to the Linux kernel without requiring
-the end-user to recompile the kernel.
-
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=216158
-Signed-off-by: Ben Mayo <benny1091@gmail.com>
-[ rjw: Link tag, subject and changelog edits ]
+Link: https://lore.kernel.org/linux-acpi/20230411183144.6932-1-pmenzel@molgen.mpg.de
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=217323
+Signed-off-by: Sviatoslav Harasymchuk <sviatoslav.harasymchuk@gmail.com>
+[ rjw: Subject and changelog rewrite, fix broken white space ]
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Vasiliy Kovalev <kovalev@altlinux.org>
 ---
- drivers/acpi/resource.c | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ drivers/acpi/resource.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
 diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index c8dbe3cc3bbae0..d5cac22b6b7261 100644
+index a4f245669d24a5..42b594f5127e4a 100644
 --- a/drivers/acpi/resource.c
 +++ b/drivers/acpi/resource.c
-@@ -482,6 +482,20 @@ static const struct dmi_system_id irq1_level_low_skip_override[] = {
+@@ -496,6 +496,13 @@ static const struct dmi_system_id irq1_level_low_skip_override[] = {
  			DMI_MATCH(DMI_BOARD_NAME, "B2502CBA"),
  		},
  	},
 +	{
-+		/* Asus Vivobook E1504GA */
++		/* Asus ExpertBook B2502FBA */
 +		.matches = {
 +			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
-+			DMI_MATCH(DMI_BOARD_NAME, "E1504GA"),
-+		},
-+	},
-+	{
-+		/* Asus Vivobook E1504GAB */
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
-+			DMI_MATCH(DMI_BOARD_NAME, "E1504GAB"),
++			DMI_MATCH(DMI_BOARD_NAME, "B2502FBA"),
 +		},
 +	},
  	{
- 		/* LG Electronics 17U70P */
+ 		/* Asus Vivobook E1504GA */
  		.matches = {
 -- 
 2.33.8
