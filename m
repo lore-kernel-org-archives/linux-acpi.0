@@ -1,25 +1,25 @@
 Received: from air.basealt.ru (air.basealt.ru [194.107.17.39])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 843F65813F;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E74A556461;
 	Mon,  8 Apr 2024 10:32:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=194.107.17.39
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712572351; cv=none; b=CSccQoJP7+9B5p7w/nQFeUXe8VztfuIyvLjGixoZKZ62SH41/BRJiNb7OBRqpn16Oq8P+V0r2zeVLxAiRaz97fj4yLnr9I9rNlRzTn8iSxysZlLx2fxRX9UdILI0JfeLMXHzFuo34K3YYJnuOszR4rwDTWOk2VrI2/7EbIuXjK0=
+	t=1712572352; cv=none; b=UEO7E7ZQdIycwXL0nxDWdI5MUsgzW/keffK/fgNQ8rHlk1ZQAVLZlFfff0fm4LEDDqyFofBxENpw0VEaH10PWSwgwAmajJB1j3Gg+0ipCo1LA7ibaniTeVrisaDxIVDx/sFy4VK1l15uQxOxShz0Z4U+U8WeTax7shFi3Uzt8vU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712572351; c=relaxed/simple;
-	bh=NwtmJOtk7FCAQ3mRWiBh/LpxG8ViaB5l2wms0Oo7kjA=;
+	s=arc-20240116; t=1712572352; c=relaxed/simple;
+	bh=EBbPXX1GRVfEnGt9wh3Y1T42heRsa6Z1PnPbI5TzPzo=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=npeJMGbkt7pA1ijhhrxRQHogyTjtqRWrgcX5Sahh28sCRfTK59MCtrx6LPq3d3I4RBE3eBWI/hYl6UV12pjEQTZDd+8noW/7VPUkjF8bD1MGAiY91qgxq5EwXYa3T2kLo31U+14erPGCHi55Hno4fr8Vvz+Z7154qoadKlXlOqQ=
+	 MIME-Version; b=p5oNRoPgfonmISLMhU11uP4iEibZLDNqJk/w6b/MHLA5Cp4OzJq281VF4Mly3COJHchpDIU05vZ6JKHSzTM5sSNuAUwqHeioOMBH+yycKhEGH2V1bejaM3krctDjmn/KeeeqBZFqnUaPtE+crS3pEIUoifGWljlkmYBqZJHKNaQ=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=altlinux.org; spf=pass smtp.mailfrom=altlinux.org; arc=none smtp.client-ip=194.107.17.39
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=altlinux.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=altlinux.org
 Received: by air.basealt.ru (Postfix, from userid 490)
-	id D1BB72F20274; Mon,  8 Apr 2024 10:32:28 +0000 (UTC)
+	id 4B4DB2F20256; Mon,  8 Apr 2024 10:32:29 +0000 (UTC)
 X-Spam-Level: 
 Received: from altlinux.malta.altlinux.ru (obninsk.basealt.ru [217.15.195.17])
-	by air.basealt.ru (Postfix) with ESMTPSA id CC33F2F20256;
-	Mon,  8 Apr 2024 10:32:09 +0000 (UTC)
+	by air.basealt.ru (Postfix) with ESMTPSA id 70A732F20260;
+	Mon,  8 Apr 2024 10:32:10 +0000 (UTC)
 From: kovalev@altlinux.org
 To: stable@vger.kernel.org
 Cc: rafael@kernel.org,
@@ -28,9 +28,9 @@ Cc: rafael@kernel.org,
 	hdegoede@redhat.com,
 	linux-acpi@vger.kernel.org,
 	kovalev@altlinux.org
-Subject: [PATCH 6.1.y 06/14] ACPI: resource: Fix IRQ override quirk for PCSpecialist Elimina Pro 16 M
-Date: Mon,  8 Apr 2024 13:31:59 +0300
-Message-Id: <20240408103207.197423-7-kovalev@altlinux.org>
+Subject: [PATCH 6.1.y 14/14] ACPI: resource: Use IRQ override on Maibenben X565
+Date: Mon,  8 Apr 2024 13:32:07 +0300
+Message-Id: <20240408103207.197423-15-kovalev@altlinux.org>
 X-Mailer: git-send-email 2.33.8
 In-Reply-To: <20240408103207.197423-1-kovalev@altlinux.org>
 References: <20240408103207.197423-1-kovalev@altlinux.org>
@@ -42,45 +42,41 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Hans de Goede <hdegoede@redhat.com>
+From: Sergey Kalinichev <kalinichev.so.0@gmail.com>
 
-commit 453b014e2c294abf762d3bce12e91ce4b34055e6 upstream.
+commit 00efe7fcf9ceeff0808bca9460afb49e7ada6068 upstream.
 
-It turns out that some PCSpecialist Elimina Pro 16 M models
-have "GM6BGEQ" as DMI product-name instead of "Elimina Pro 16 M",
-causing the existing DMI quirk to not work on these models.
+Use ACPI IRQ override on Maibenben X565 laptop to make the internal
+keyboard work.
 
-The DMI board-name is always "GM6BGEQ", so match on that instead.
+Add a new entry to the irq1_edge_low_force_override structure, similar
+to the existing ones.
 
-Fixes: 56fec0051a69 ("ACPI: resource: Add IRQ override quirk for PCSpecialist Elimina Pro 16 M")
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=217394#c36
-Cc: All applicable <stable@vger.kernel.org>
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Sergey Kalinichev <kalinichev.so.0@gmail.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Vasiliy Kovalev <kovalev@altlinux.org>
 ---
- drivers/acpi/resource.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/acpi/resource.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
 diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index eebfc26c325866..a14a1adaac99a0 100644
+index 42b594f5127e4a..e2db4d5883ca40 100644
 --- a/drivers/acpi/resource.c
 +++ b/drivers/acpi/resource.c
-@@ -534,9 +534,13 @@ static const struct dmi_system_id maingear_laptop[] = {
- static const struct dmi_system_id pcspecialist_laptop[] = {
- 	{
- 		.ident = "PCSpecialist Elimina Pro 16 M",
-+		/*
-+		 * Some models have product-name "Elimina Pro 16 M",
-+		 * others "GM6BGEQ". Match on board-name to match both.
-+		 */
- 		.matches = {
- 			DMI_MATCH(DMI_SYS_VENDOR, "PCSpecialist"),
--			DMI_MATCH(DMI_PRODUCT_NAME, "Elimina Pro 16 M"),
-+			DMI_MATCH(DMI_BOARD_NAME, "GM6BGEQ"),
+@@ -623,6 +623,13 @@ static const struct dmi_system_id irq1_edge_low_force_override[] = {
+ 			DMI_MATCH(DMI_BOARD_NAME, "X577"),
  		},
  	},
++	{
++		/* Maibenben X565 */
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "MAIBENBEN"),
++			DMI_MATCH(DMI_BOARD_NAME, "X565"),
++		},
++	},
  	{ }
+ };
+ 
 -- 
 2.33.8
 
