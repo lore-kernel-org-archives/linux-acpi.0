@@ -1,25 +1,25 @@
 Received: from air.basealt.ru (air.basealt.ru [194.107.17.39])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7FA757335;
-	Mon,  8 Apr 2024 10:32:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D20025A11C;
+	Mon,  8 Apr 2024 10:32:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=194.107.17.39
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712572353; cv=none; b=N85MTETgaKDyiGu0Bjw5IwLfvfCUMFpgUu4O8d0eysUHcyUhP877hgEKxc5PignJYpKM03TmR84wz8nMAzb3sICDPOjCpAMt7fqFPx3+BlHphDHANHcs8OwpoufrsS8t3a/SKOCfBmXJadcl6Dh+zmYm5tGrZILx1aJIrwp8ZKE=
+	t=1712572354; cv=none; b=sb7k1uKCzXyx2yzUl2xaFa9yvIUu1G0sWFFQVPsK0zlXxyB/hsXEsK12w9cFJZRdYIRFNSSSdJUSvTqPI88ZVse86VIWk69SWaTlO3gocpQ2JGmE8epgkHS6h51C2QkUvE2/B09tsM0X9V8RTsRjxNcpqIFi9U6xqAZx6jhZv+A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712572353; c=relaxed/simple;
-	bh=dmpC4cQYnSwpaSj1SZixLV/xSssDQufO+mwY1wkUQNA=;
+	s=arc-20240116; t=1712572354; c=relaxed/simple;
+	bh=m9BJlA3v26UaNJxmSCbA61ukI2y0NQsanGsLp9fpqec=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=P0+5GUjHnc+kmE91D8MIUgieQPMYwLDE7BFkcCcJSupP7oHmWwhAS+F8Q8vcKjVnYad61VlMwtckBtwrTjf7j9BZCJA/DDf4jMV8JyugfyGYQVzN5aZk0abLbRa6UhgQVpKXno+WFruJqn7sw4dIVLyZALEu06yuyQ1rDzGhuls=
+	 MIME-Version; b=I9lbZSYHh5HhsST5QEWUbS1pPOXlYCzAz56A9l4mKVxHSeD3SHc6PwLfTBSzooOvswq6yBDX4Zkc8blrb8txOKmjxK/ydV+Dw9QZQFQrzc8O2dtpbfuQV2OlExjTFAUyJGO570SzFPujqRJyxuYPhdlk9gPvggLP5BAb5wuObWM=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=altlinux.org; spf=pass smtp.mailfrom=altlinux.org; arc=none smtp.client-ip=194.107.17.39
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=altlinux.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=altlinux.org
 Received: by air.basealt.ru (Postfix, from userid 490)
-	id 31D5F2F20257; Mon,  8 Apr 2024 10:32:30 +0000 (UTC)
+	id 6596A2F20255; Mon,  8 Apr 2024 10:32:31 +0000 (UTC)
 X-Spam-Level: 
 Received: from altlinux.malta.altlinux.ru (obninsk.basealt.ru [217.15.195.17])
-	by air.basealt.ru (Postfix) with ESMTPSA id BA7AC2F20255;
-	Mon,  8 Apr 2024 10:32:09 +0000 (UTC)
+	by air.basealt.ru (Postfix) with ESMTPSA id 4CF232F2025C;
+	Mon,  8 Apr 2024 10:32:10 +0000 (UTC)
 From: kovalev@altlinux.org
 To: stable@vger.kernel.org
 Cc: rafael@kernel.org,
@@ -28,9 +28,9 @@ Cc: rafael@kernel.org,
 	hdegoede@redhat.com,
 	linux-acpi@vger.kernel.org,
 	kovalev@altlinux.org
-Subject: [PATCH 6.1.y 05/14] ACPI: resource: Add IRQ override quirk for PCSpecialist Elimina Pro 16 M
-Date: Mon,  8 Apr 2024 13:31:58 +0300
-Message-Id: <20240408103207.197423-6-kovalev@altlinux.org>
+Subject: [PATCH 6.1.y 12/14] ACPI: resource: Skip IRQ override on ASUS ExpertBook B1502CVA
+Date: Mon,  8 Apr 2024 13:32:05 +0300
+Message-Id: <20240408103207.197423-13-kovalev@altlinux.org>
 X-Mailer: git-send-email 2.33.8
 In-Reply-To: <20240408103207.197423-1-kovalev@altlinux.org>
 References: <20240408103207.197423-1-kovalev@altlinux.org>
@@ -42,57 +42,39 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Hans de Goede <hdegoede@redhat.com>
+From: Nicolas Haye <nicolas.haye@proton.me>
 
-commit 56fec0051a69ace182ca3fba47be9c13038b4e3f upstream.
+commit ca3afc2806046f626a1518f160a564b90f141f95 upstream.
 
-The PCSpecialist Elimina Pro 16 M laptop model is a Zen laptop which
-needs to use the MADT IRQ settings override and which does not have
-an INT_SRC_OVR entry for IRQ 1 in its MADT.
+Like many b1502 models,
+the b1502CVA keyboard doesn't work because of an ACPI DSDT table that
+describes IRQ 1 as ActiveLow while the kernel overrides it to Edge_High.
 
-So this model needs a DMI quirk to enable the MADT IRQ settings override
-to fix its keyboard not working.
-
-Fixes: a9c4a912b7dc ("ACPI: resource: Remove "Zen" specific match and quirks")
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=217394#c18
-Cc: All applicable <stable@vger.kernel.org>
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Nicolas Haye <nicolas.haye@proton.me>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Vasiliy Kovalev <kovalev@altlinux.org>
 ---
- drivers/acpi/resource.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ drivers/acpi/resource.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
 diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index 8e28e76158894f..eebfc26c325866 100644
+index 5697ccf902184e..a4f245669d24a5 100644
 --- a/drivers/acpi/resource.c
 +++ b/drivers/acpi/resource.c
-@@ -531,6 +531,17 @@ static const struct dmi_system_id maingear_laptop[] = {
- 	{ }
- };
- 
-+static const struct dmi_system_id pcspecialist_laptop[] = {
+@@ -468,6 +468,13 @@ static const struct dmi_system_id irq1_level_low_skip_override[] = {
+ 			DMI_MATCH(DMI_BOARD_NAME, "B1502CGA"),
+ 		},
+ 	},
 +	{
-+		.ident = "PCSpecialist Elimina Pro 16 M",
++		/* Asus ExpertBook B1502CVA */
 +		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "PCSpecialist"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "Elimina Pro 16 M"),
++			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
++			DMI_MATCH(DMI_BOARD_NAME, "B1502CVA"),
 +		},
 +	},
-+	{ }
-+};
-+
- static const struct dmi_system_id lg_laptop[] = {
  	{
- 		.ident = "LG Electronics 17U70P",
-@@ -589,6 +600,7 @@ static const struct irq_override_cmp override_table[] = {
- 	{ asus_laptop, 1, ACPI_LEVEL_SENSITIVE, ACPI_ACTIVE_LOW, 0, false },
- 	{ tongfang_gm_rg, 1, ACPI_EDGE_SENSITIVE, ACPI_ACTIVE_LOW, 1, true },
- 	{ maingear_laptop, 1, ACPI_EDGE_SENSITIVE, ACPI_ACTIVE_LOW, 1, true },
-+	{ pcspecialist_laptop, 1, ACPI_EDGE_SENSITIVE, ACPI_ACTIVE_LOW, 1, true },
- 	{ lg_laptop, 1, ACPI_LEVEL_SENSITIVE, ACPI_ACTIVE_LOW, 0, false },
- };
- 
+ 		/* Asus ExpertBook B2402CBA */
+ 		.matches = {
 -- 
 2.33.8
 
