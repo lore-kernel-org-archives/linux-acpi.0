@@ -1,49 +1,48 @@
 Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.11])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 696B650A77;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C430D535D9;
 	Thu, 11 Apr 2024 17:26:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.11
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712856404; cv=none; b=WtpiUiRD1ghXqCafy1Uq2rsuNytlDRiRhKftRzhYzXCoyNGnzzOwdomzSHamFaNq5LDjaH1LCSY61ZyIs/7TqM2YeTliz1RjMZP9iAR94iOd+s8CRX9OoqnC/kV/XqIZcjH5+8KzvLrmLsTFtCXNZ9TONhNnEGlsa6uejFDSMWE=
+	t=1712856405; cv=none; b=AQRza/lm69jZWxgKExSoo6iuqAPv7rffxRomty9ZDNjzybj+n+/jM9FM1v5Hytdgj1nhlxovfHSGCjNoLEqLxUgUgX5SLKPQ89PlOaKsRnKMyxaUzwGRYLAVknlWKMhEVW/fuIcB1Umx2g7jdg7EVSiyHFrnmI78aNL5TEIGdeo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712856404; c=relaxed/simple;
-	bh=mkcaxfIAu8Shkk3u4f6ITrX0al+FrzCJ1eyBmzPJWoo=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Dm+9auKEbcevnUrDUckQsvP1OdYzdeKrIgx1Xst5qAaLW8pAjMStVxrFW+/Ec7jvGGWGjHq/hIqk+QT2X7otHUNpImCk+RR2WPtpWYGl11XraAQXxorxHkwLXw8VGeu5ElAXogixXrRPJhKN/Y5Y/F4OvIfgf1IgHcAy+/KZBZ0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=cnnxGZNU; arc=none smtp.client-ip=198.175.65.11
+	s=arc-20240116; t=1712856405; c=relaxed/simple;
+	bh=rb4Rwfv5xHnQdtI+SSu0ajaicwDU38E72wab/KYC78w=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=KR2qB5EJF5GQZ+PFzKn+U8I6yLQAbgIWyGCTAMVQA/Q7YUqqz8dIf8po0EFUhhGe+/Y7gHBGvGlu89JwJqgRTuwZs2ZxPnJGzqjbd6k1s3GsdS65pTGmz1LoGJIcy2q34jYxsIZF7/AtNb8GrrE2dBOMkvpYYLJhU8tjXJPL3Po=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=CDyejZbC; arc=none smtp.client-ip=198.175.65.11
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="cnnxGZNU"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="CDyejZbC"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
   t=1712856404; x=1744392404;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=mkcaxfIAu8Shkk3u4f6ITrX0al+FrzCJ1eyBmzPJWoo=;
-  b=cnnxGZNU3xxMElhZGYp6aDVOvkVvxJQuFJr5mCZyhFdxwnZpi4stAGfG
-   8lQWbQFctO1NIyw8zioiChXAI+ZGKQ3Q+OGcfMaMpti+2WSaSt+Ju4vNo
-   jotbmDysUT6u1GRrMBUhIgiacMuM+qiqBWOIM2vn8vhp0JSEbkvMU1PwM
-   AmcwgTY7KzgncXO0jcoVcOqzkIs2ne4LBCCq7Dc8Po3Cetusa3LPJuWB6
-   lf3/oOB8dD174lmAk5jnwHRvMzdTIIAZIa2kqyvd3BAuUmzgnXjl97iu+
-   SmSkxlxunFKYs6ifrk/4wpZWu4R/ocJPOPI+NQNf8x0gHBfEiJMZ/YPye
-   g==;
-X-CSE-ConnectionGUID: NRO8WPnCS+Sl99JdXQnPGA==
-X-CSE-MsgGUID: U/tu2Y4SSZmgBguKyKPF4w==
-X-IronPort-AV: E=McAfee;i="6600,9927,11041"; a="18845023"
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=rb4Rwfv5xHnQdtI+SSu0ajaicwDU38E72wab/KYC78w=;
+  b=CDyejZbCvLFiFmOLVt9/RkTrbxuYqiJP72FFAZ2zOGCogQv076JnnPNg
+   1L9Z7KrjtLv5i1zGmm1EsRLwOzE3lZ29yPClI1qMqzRMSH7YhO4TPeIDh
+   I3SKhTQuk2J6lRg48rOmUyH7GN+MMOLxDV1ZIKgTeAVzB1waXqvo31Hgi
+   Sqy5zuwXsH+7jxNK0mIN0ODQu9eqX9ZLOFu1MzDqSRKv7vryuLxJNdU3P
+   5/8++PXiXtkWWKrMCG3RSs3/FCPA3Tuxh14G3pxBuo27sgZQDGDNH9FiG
+   /z/peF8fiVH904gBUXKS2cx7qyFfUQBilHKdA9Te6prFbNncHAWPqNuge
+   A==;
+X-CSE-ConnectionGUID: mQTJ7LqGRnCJl1C1YPR7xg==
+X-CSE-MsgGUID: 3AhjIcm2SzKPeD+XY0VtGA==
+X-IronPort-AV: E=McAfee;i="6600,9927,11041"; a="18845025"
 X-IronPort-AV: E=Sophos;i="6.07,193,1708416000"; 
-   d="scan'208";a="18845023"
+   d="scan'208";a="18845025"
 Received: from fmsmga001.fm.intel.com ([10.253.24.23])
   by orvoesa103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Apr 2024 10:26:40 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,11041"; a="937097276"
+X-IronPort-AV: E=McAfee;i="6600,9927,11041"; a="937097278"
 X-IronPort-AV: E=Sophos;i="6.07,193,1708416000"; 
-   d="scan'208";a="937097276"
+   d="scan'208";a="937097278"
 Received: from black.fi.intel.com ([10.237.72.28])
   by fmsmga001.fm.intel.com with ESMTP; 11 Apr 2024 10:26:35 -0700
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-	id 1C123374; Thu, 11 Apr 2024 20:26:34 +0300 (EEST)
+	id E99FC194; Thu, 11 Apr 2024 20:26:33 +0300 (EEST)
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>,
 	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
@@ -63,12 +62,10 @@ Cc: Bartosz Golaszewski <brgl@bgdev.pl>,
 	Paolo Abeni <pabeni@redhat.com>,
 	"Rafael J. Wysocki" <rafael@kernel.org>,
 	Len Brown <lenb@kernel.org>
-Subject: [PATCH v1 2/4] gpiolib: acpi: Simplify error handling in __acpi_find_gpio()
-Date: Thu, 11 Apr 2024 20:22:30 +0300
-Message-ID: <20240411172540.4122581-4-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 0/4] gpiolib: acpi: Use con_id in acpi_dev_gpio_irq_get_by()
+Date: Thu, 11 Apr 2024 20:22:28 +0300
+Message-ID: <20240411172540.4122581-2-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.43.0.rc1.1336.g36b5255a03ac
-In-Reply-To: <20240411172540.4122581-2-andriy.shevchenko@linux.intel.com>
-References: <20240411172540.4122581-2-andriy.shevchenko@linux.intel.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -77,45 +74,26 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Now that we don't perform anything on the GPIO descriptor,
-we may simplify the error path in newly introduced helper.
-Do it so.
+Use con_id instead of property in the acpi_dev_gpio_irq_get_by().
+It will be aligned with other GPIO library functions.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/gpio/gpiolib-acpi.c | 16 +++++-----------
- 1 file changed, 5 insertions(+), 11 deletions(-)
+Assumed to go via my GPIO ACPI library tree follwoed by GPIO subsystem.
 
-diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-index d47b22ac3ecb..fb2e14670b7a 100644
---- a/drivers/gpio/gpiolib-acpi.c
-+++ b/drivers/gpio/gpiolib-acpi.c
-@@ -974,20 +974,14 @@ __acpi_find_gpio(struct fwnode_handle *fwnode, const char *con_id, unsigned int
- 			return ERR_CAST(desc);
- 
- 		if (!IS_ERR(desc))
--			break;
--	}
--
--	/* Then from plain _CRS GPIOs */
--	if (IS_ERR(desc)) {
--		if (!adev || !acpi_can_fallback_to_crs(adev, con_id))
--			return ERR_PTR(-ENOENT);
--
--		desc = acpi_get_gpiod_by_index(adev, NULL, idx, info);
--		if (IS_ERR(desc))
- 			return desc;
- 	}
- 
--	return desc;
-+	/* Then from plain _CRS GPIOs */
-+	if (!adev || !acpi_can_fallback_to_crs(adev, con_id))
-+		return ERR_PTR(-ENOENT);
-+
-+	return acpi_get_gpiod_by_index(adev, NULL, idx, info);
- }
- 
- struct gpio_desc *acpi_find_gpio(struct fwnode_handle *fwnode,
+Andy Shevchenko (4):
+  gpiolib: acpi: Extract __acpi_find_gpio() helper
+  gpiolib: acpi: Simplify error handling in __acpi_find_gpio()
+  gpiolib: acpi: Move acpi_can_fallback_to_crs() out of
+    __acpi_find_gpio()
+  gpiolib: acpi: Pass con_id instead of property into
+    acpi_dev_gpio_irq_get_by()
+
+ drivers/gpio/gpio-pca953x.c                   |  2 +-
+ drivers/gpio/gpiolib-acpi.c                   | 52 +++++++++++--------
+ .../mellanox/mlxbf_gige/mlxbf_gige_main.c     |  2 +-
+ drivers/pinctrl/pinctrl-cy8c95x0.c            |  2 +-
+ include/linux/acpi.h                          |  8 +--
+ 5 files changed, 37 insertions(+), 29 deletions(-)
+
 -- 
 2.43.0.rc1.1336.g36b5255a03ac
 
