@@ -1,49 +1,49 @@
 Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.11])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B9DD18050;
-	Thu, 11 Apr 2024 17:26:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D968D2BB1C;
+	Thu, 11 Apr 2024 17:26:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.11
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712856401; cv=none; b=lj0KHv+9Eo+e64KwQPfdrdYj67CJamqT0+eOjL8WVpCcsD08CjKna5rlH9QA6cr0XqsU2kAa9VuJBq4yqXEbL1aDGUVIzGQTufLjXA2QfqQTrpTXtRkdKQaWJIIaN6r4B3H0K0ZXxtlldxvYhKQrP/nXYfyWgAB2CwS56j750uE=
+	t=1712856403; cv=none; b=fsKFYvI/BHuXPKbBLRMSj9GSkuHYl6RKBM9Sln7YJsmw3DZkc8kqUzNPcEuId2GyDf/rZFtUNVy36p0BMOciptXXIR7PR+UyD2oEIPueMd+L29ZnK1AONWV94Mpsl6Niq9er8SyNj40tW6+80v6rn6ga51C6ePGV9itN1pGpIoc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712856401; c=relaxed/simple;
-	bh=A2+jXtS5g8HA0A8/2hmcMBqno1MQ7oBHc6IPFkKw3e8=;
+	s=arc-20240116; t=1712856403; c=relaxed/simple;
+	bh=GCmd6EWyeSI61/ahtWxVMlmLMfAP5vYzOKp2NSFA8/I=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=om549zUD831/F28DxPqXQ/WGvj6F6pYOHsUcqpNffHCddUbtt9qJwI65Q8yx9qq/C2tqB0VFt4CYW/JE+af4OnfE+5qG6VNRETcCrCvL0qNqI5MLcmRRnBY0tvsgyO052uWLOjOWYGHR0G02yu3NTngbpEl8Nkj+zatMkIvn6PA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=WC28LqO8; arc=none smtp.client-ip=198.175.65.11
+	 MIME-Version; b=mJRwNbflxCE4pfb2GRrrk8MsaCD8fQJCMRYFTVoO+BVdCSk0U3gmgqcupmYu4vfdcGWxkSdtRmKp1F6momeKD4X7X6lCUPkttTQs70qsrrAxZJhfFiW9URW21FCUFrLAjy0pZaLH2ZEJgI0QNvjTZI8T6OnSWQzJqGYz4XIH1Ms=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=lXUpBEwj; arc=none smtp.client-ip=198.175.65.11
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="WC28LqO8"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="lXUpBEwj"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1712856400; x=1744392400;
+  t=1712856402; x=1744392402;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=A2+jXtS5g8HA0A8/2hmcMBqno1MQ7oBHc6IPFkKw3e8=;
-  b=WC28LqO886XPiO9g611lcP4THsUDjjmeQEAtQ19xypW59zlhD2FtatuK
-   lwZGg7RpTQVLx5H5rfcyElOZqmjAiGpGT+g2GwmYb4L5pSIePuKa7jUQ3
-   g1KM+YD1MtRZlOjAmzXU1PgnHe+Fp+v+d19M8elF53Y1BnSzv6WMDKfID
-   MW8Tv7j7gPnnWVn5Uacw8IobRJKfcbqDuUqgEtzZ16hAIDy1eQjV/8M0w
-   AvEtAlR1kHaRB3AI2n+c3ey954VVGH1km7DpXzxco2DqQBcKBuyn4EFfC
-   que0V9KNsVIG1m3q0UR+4CqPhArSv3k593JcTbqPMPURnQNQ5ENmiaXQQ
-   Q==;
-X-CSE-ConnectionGUID: VQclX42vR0aiFqbXrUtmuA==
-X-CSE-MsgGUID: RNyzALCHRhyv78PLv4d8tQ==
-X-IronPort-AV: E=McAfee;i="6600,9927,11041"; a="18844983"
+  bh=GCmd6EWyeSI61/ahtWxVMlmLMfAP5vYzOKp2NSFA8/I=;
+  b=lXUpBEwju9hHwDYAjqGVNgAjmo0NkZOY1QhOmqvKWy6+UB4UqtjAIW67
+   AQdBo5iuUslUnKqawseAgZuhR+fQSLosCw0tLyVRfcMx6haf3KF0K4xBi
+   x7D+wDCIQkTrvfYYYO1p8C8a76/MEhNg7tJi4sD3hBq81rkOZ9waJysEn
+   w9ZSfkXMcGxN5AocoWMOVM1mYJHABf2vpdhXf0a16FjdyLg5l7nElXrzV
+   r7D6q7lgYeckKGaKoOiU4r8MI//+82NKbK+HVeUj9J1nJSBqdW31nF+i/
+   HazS+1inMFLuE2YUiyaN9CFBi865HOAMvU3gfg3Jjfk8J0tTNj6ilfKta
+   w==;
+X-CSE-ConnectionGUID: FNuNgM5kReSxgswtEStJpQ==
+X-CSE-MsgGUID: APbE3zVKSHmKWiPsliT4tQ==
+X-IronPort-AV: E=McAfee;i="6600,9927,11041"; a="18844992"
 X-IronPort-AV: E=Sophos;i="6.07,193,1708416000"; 
-   d="scan'208";a="18844983"
+   d="scan'208";a="18844992"
 Received: from fmsmga001.fm.intel.com ([10.253.24.23])
   by orvoesa103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Apr 2024 10:26:39 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,11041"; a="937097272"
+X-IronPort-AV: E=McAfee;i="6600,9927,11041"; a="937097271"
 X-IronPort-AV: E=Sophos;i="6.07,193,1708416000"; 
-   d="scan'208";a="937097272"
+   d="scan'208";a="937097271"
 Received: from black.fi.intel.com ([10.237.72.28])
   by fmsmga001.fm.intel.com with ESMTP; 11 Apr 2024 10:26:35 -0700
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-	id 2B32C4C5; Thu, 11 Apr 2024 20:26:34 +0300 (EEST)
+	id 0AE03161; Thu, 11 Apr 2024 20:26:33 +0300 (EEST)
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>,
 	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
@@ -63,9 +63,9 @@ Cc: Bartosz Golaszewski <brgl@bgdev.pl>,
 	Paolo Abeni <pabeni@redhat.com>,
 	"Rafael J. Wysocki" <rafael@kernel.org>,
 	Len Brown <lenb@kernel.org>
-Subject: [PATCH v1 3/4] gpiolib: acpi: Move acpi_can_fallback_to_crs() out of __acpi_find_gpio()
-Date: Thu, 11 Apr 2024 20:22:31 +0300
-Message-ID: <20240411172540.4122581-5-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 1/4] gpiolib: acpi: Extract __acpi_find_gpio() helper
+Date: Thu, 11 Apr 2024 20:22:29 +0300
+Message-ID: <20240411172540.4122581-3-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.43.0.rc1.1336.g36b5255a03ac
 In-Reply-To: <20240411172540.4122581-2-andriy.shevchenko@linux.intel.com>
 References: <20240411172540.4122581-2-andriy.shevchenko@linux.intel.com>
@@ -77,50 +77,79 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-New coming user may need to check for _CRS fallback slightly differently.
-Move the current check out of the helper function to allow that user to
-use it.
+We want to reuse it later on in the code. In particular, it helps
+to clean up the users of acpi_dev_gpio_irq_wake_get_by().
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/gpio/gpiolib-acpi.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/gpio/gpiolib-acpi.c | 32 +++++++++++++++++++++++---------
+ 1 file changed, 23 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-index fb2e14670b7a..2b3fd43b13fc 100644
+index c2a33beeec50..d47b22ac3ecb 100644
 --- a/drivers/gpio/gpiolib-acpi.c
 +++ b/drivers/gpio/gpiolib-acpi.c
-@@ -947,7 +947,7 @@ static bool acpi_can_fallback_to_crs(struct acpi_device *adev,
+@@ -945,14 +945,11 @@ static bool acpi_can_fallback_to_crs(struct acpi_device *adev,
+ 	return con_id == NULL;
+ }
  
- static struct gpio_desc *
- __acpi_find_gpio(struct fwnode_handle *fwnode, const char *con_id, unsigned int idx,
--		 struct acpi_gpio_info *info)
-+		 bool can_fallback, struct acpi_gpio_info *info)
+-struct gpio_desc *acpi_find_gpio(struct fwnode_handle *fwnode,
+-				 const char *con_id,
+-				 unsigned int idx,
+-				 enum gpiod_flags *dflags,
+-				 unsigned long *lookupflags)
++static struct gpio_desc *
++__acpi_find_gpio(struct fwnode_handle *fwnode, const char *con_id, unsigned int idx,
++		 struct acpi_gpio_info *info)
  {
  	struct acpi_device *adev = to_acpi_device_node(fwnode);
+-	struct acpi_gpio_info info;
  	struct gpio_desc *desc;
-@@ -978,7 +978,7 @@ __acpi_find_gpio(struct fwnode_handle *fwnode, const char *con_id, unsigned int
+ 	char propname[32];
+ 	int i;
+@@ -969,10 +966,10 @@ struct gpio_desc *acpi_find_gpio(struct fwnode_handle *fwnode,
+ 
+ 		if (adev)
+ 			desc = acpi_get_gpiod_by_index(adev,
+-						       propname, idx, &info);
++						       propname, idx, info);
+ 		else
+ 			desc = acpi_get_gpiod_from_data(fwnode,
+-						        propname, idx, &info);
++							propname, idx, info);
+ 		if (PTR_ERR(desc) == -EPROBE_DEFER)
+ 			return ERR_CAST(desc);
+ 
+@@ -985,11 +982,28 @@ struct gpio_desc *acpi_find_gpio(struct fwnode_handle *fwnode,
+ 		if (!adev || !acpi_can_fallback_to_crs(adev, con_id))
+ 			return ERR_PTR(-ENOENT);
+ 
+-		desc = acpi_get_gpiod_by_index(adev, NULL, idx, &info);
++		desc = acpi_get_gpiod_by_index(adev, NULL, idx, info);
+ 		if (IS_ERR(desc))
+ 			return desc;
  	}
  
- 	/* Then from plain _CRS GPIOs */
--	if (!adev || !acpi_can_fallback_to_crs(adev, con_id))
-+	if (!adev || !can_fallback)
- 		return ERR_PTR(-ENOENT);
- 
- 	return acpi_get_gpiod_by_index(adev, NULL, idx, info);
-@@ -991,10 +991,11 @@ struct gpio_desc *acpi_find_gpio(struct fwnode_handle *fwnode,
- 				 unsigned long *lookupflags)
- {
- 	struct acpi_device *adev = to_acpi_device_node(fwnode);
-+	bool can_fallback = acpi_can_fallback_to_crs(adev, con_id);
- 	struct acpi_gpio_info info;
- 	struct gpio_desc *desc;
- 
--	desc = __acpi_find_gpio(fwnode, con_id, idx, &info);
-+	desc = __acpi_find_gpio(fwnode, con_id, idx, can_fallback, &info);
- 	if (IS_ERR(desc))
- 		return desc;
- 
++	return desc;
++}
++
++struct gpio_desc *acpi_find_gpio(struct fwnode_handle *fwnode,
++				 const char *con_id,
++				 unsigned int idx,
++				 enum gpiod_flags *dflags,
++				 unsigned long *lookupflags)
++{
++	struct acpi_device *adev = to_acpi_device_node(fwnode);
++	struct acpi_gpio_info info;
++	struct gpio_desc *desc;
++
++	desc = __acpi_find_gpio(fwnode, con_id, idx, &info);
++	if (IS_ERR(desc))
++		return desc;
++
+ 	if (info.gpioint &&
+ 	    (*dflags == GPIOD_OUT_LOW || *dflags == GPIOD_OUT_HIGH)) {
+ 		dev_dbg(&adev->dev, "refusing GpioInt() entry when doing GPIOD_OUT_* lookup\n");
 -- 
 2.43.0.rc1.1336.g36b5255a03ac
 
