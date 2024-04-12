@@ -1,47 +1,47 @@
 Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEBF0148852;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E66F9148FE7;
 	Fri, 12 Apr 2024 15:13:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=79.96.170.134
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712934806; cv=none; b=d31UITwy12hERVc1Whvl26X8ICrltcbhbpffQ90sOeAxheEi+4AXXo71X4YvsqhuZOoZgF88PfoyGvzeEVASJhAwGOnor2MKdV6qjNlCAahIwjS/dBqWKNnsi5qunyKOFEtOJZI4S/pB8Vtw0hbbFyuiTa6BBND9xFdwSL6S67c=
+	t=1712934807; cv=none; b=LsnhMlKZfR89EVmyXQSTE3qwo3/Y5SpMe8pLSn2pQM0IhtWPcbW3mUDfCMmk4wNFikF9n0EsQKePvg/LIzNTTxdo5jcdgQUiBk4HHEK2Dem0+rWmp6/7DiEMq2XcXxatjjRPZaF+SxvOlM1yU60CYg/H6xNHznlUbKk35asPYbY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712934806; c=relaxed/simple;
-	bh=p4RQPeK0t0p2e2jCLxKSwbzqwUNfBGe8Sq+4GIgMmpo=;
+	s=arc-20240116; t=1712934807; c=relaxed/simple;
+	bh=cVGtdaiupYjV8guLODOd/qTyWi620xz/uwHunw1pD5Y=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=AX0kCwEP9uBTdsLpNUYsTvCpjegvo2gDEFrD3DUSf+pRLK22XA6nhM8+iZX7cwymSq6QKOsl5yqjgaYE4BkYPtI4M+hjU+TSJLZJdLutG3vrbwXGy673siTBHCFDKfZd1GMY9ILkGultSwjN6k9CVQ2WUwHwuHeEKlBlgMuZ/ns=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net; spf=pass smtp.mailfrom=rjwysocki.net; dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b=Yo6NiBpQ; arc=none smtp.client-ip=79.96.170.134
+	 MIME-Version:Content-Type; b=Q9HzqkiJF93WiUSRAlumDniWmKMlcFH/fXp2ofqRt1pQFT2mh7nvYpwN/h/xIuixBPhiYpDmYA7atYlCGn9Ze/zZjUmO9hES2ZbovKQ6l8bRtzW7h9gFWBC5h0zCEtBlNkElpt3NfEjntYMhi1lzXtB56lLpzNofjLsD49Sg3PQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net; spf=pass smtp.mailfrom=rjwysocki.net; dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b=cVytqs01; arc=none smtp.client-ip=79.96.170.134
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rjwysocki.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b="Yo6NiBpQ"
+	dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b="cVytqs01"
 Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
  by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 6.0.0)
- id 78badbab5f534439; Fri, 12 Apr 2024 17:13:17 +0200
+ id 49711fe95accb72e; Fri, 12 Apr 2024 17:13:22 +0200
 Received: from kreacher.localnet (unknown [195.136.19.94])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by cloudserver094114.home.pl (Postfix) with ESMTPSA id 84BA866CC48;
-	Fri, 12 Apr 2024 17:13:16 +0200 (CEST)
+	by cloudserver094114.home.pl (Postfix) with ESMTPSA id 6194566CC48;
+	Fri, 12 Apr 2024 17:13:22 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=rjwysocki.net;
-	s=dkim; t=1712934797;
-	bh=p4RQPeK0t0p2e2jCLxKSwbzqwUNfBGe8Sq+4GIgMmpo=;
+	s=dkim; t=1712934802;
+	bh=cVGtdaiupYjV8guLODOd/qTyWi620xz/uwHunw1pD5Y=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=Yo6NiBpQEy0o83yG+bqFvdaxWxNKjVdqxSuVqzys0B+2veY6Chrc411w4+H9njz5t
-	 J9QiFRtLaLHUizzt21p8TOPEWWLo22PgclHFpdjoQ6Aq9S5qzq7ZQZ7xkh3oC7ISO3
-	 AUO5GoXa3NTCnz4ZjAygcZP3zZQT/M0pRFpGlbP1ljWHWKMGKVAZt7hHTwssgpxNHg
-	 2kVLDz+qYi2mT/84n5CHGLy2l2coKsVlXx9n8iqoMveifyiOHaQnaBuUf1voJd5J55
-	 CMhp0L/RGYs8JWULCHMvyRKMntuB6liTR0eQ0IriFuKu7kTj8oqZLWWlXQvwqkqmz/
-	 h4RFSq75tHt/Q==
+	b=cVytqs01jJrVM6XHYQmvy5ShTl6BdjSEGVwN+H9WUVonuScSltq4L7UjfMMLFTbue
+	 Phk9lDWE/tWjbnHS/HWbMev6N1WMWcfq07psXMlY+yQvD0DsTVBn2haIFAVypba+ux
+	 qgHMfIBMEjKuO8lI05DFMGqu1ajelH2zlWFOkDCtDhuwXyCuC5Ih6mQ52ALxHQ6VPy
+	 M1s+AnNYrM+NawvUxxPt+pJwAAAhdGJ+evu8tagXC5+R3bCtKHx35AdODef1h/KmIV
+	 wD1+SNE7u2/cL8A0VxDwhxqX1yrAV1Neid/8zWruR9aNwIuDtV4RDAd7kNDjUKDdG8
+	 BGyVTUD8iaFlA==
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>, Bob Moore <robert.moore@intel.com>,
  Saket Dumbre <saket.dumbre@intel.com>
-Subject: [PATCH v1 08/12] ACPICA: SRAT: Add RISC-V RINTC affinity structure
-Date: Fri, 12 Apr 2024 17:09:44 +0200
-Message-ID: <3810933.kQq0lBPeGt@kreacher>
+Subject: [PATCH v1 02/12] ACPICA: ACPI 6.5: RAS2: Add support for RAS2 table
+Date: Fri, 12 Apr 2024 17:05:03 +0200
+Message-ID: <1893131.tdWV9SEqCh@kreacher>
 In-Reply-To: <4920972.31r3eYUQgx@kreacher>
 References: <4920972.31r3eYUQgx@kreacher>
 Precedence: bulk
@@ -58,57 +58,173 @@ X-VADE-SPAMSTATE: clean
 X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvledrudeiuddgkeejucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvfevufffkfgjfhgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepledtieekkeekveeikeetgffgteeuteefjeevjeegudelvdduheeiuedvieehieevnecuffhomhgrihhnpehgihhthhhusgdrtghomhenucfkphepudelhedrudefiedrudelrdelgeenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpeduleehrddufeeirdduledrleegpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhnsggprhgtphhtthhopeegpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheprhhosggvrhhtrdhmohhorhgvsehinhhtvghlrdgtohhmpdhrtghpthhtohepshgrkhgvthdrughumhgsrhgvsehinhhtvghlrdgtohhm
 X-DCC--Metrics: v370.home.net.pl 1024; Body=4 Fuz1=4 Fuz2=4
 
-From: Haibo Xu <haibo1.xu@intel.com>
+From: Shiju Jose <shiju.jose@huawei.com>
 
-ACPICA commit 93caddbf2f620769052c59ec471f018281dc3a24
+ACPICA commit c581606cf49b7574d29c02b1a3bc144650375e32
 
-Add definition of RISC-V Interrupt Controller(RINTC)
-affinity structure which was approved by UEFI forum
-and will be part of next ACPI spec version(6.6).
+Add support for ACPI RAS2 feature table(RAS2) defined in the ACPI 6.5
+Specification & upwards revision, section 5.2.21.
 
-Link: https://github.com/acpica/acpica/commit/93caddbf
-Signed-off-by: Haibo Xu <haibo1.xu@intel.com>
+The RAS2 table provides interfaces for platform RAS features. RAS2 offers
+the same services as RASF, but is more scalable than the latter.
+RAS2 supports independent RAS controls and capabilities for a given RAS
+feature for multiple instances of the same component in a given system.
+The platform can support either RAS2 or RASF but not both.
+
+Link: https://github.com/acpica/acpica/commit/c581606c
+Signed-off-by: Shiju Jose <shiju.jose@huawei.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- include/acpi/actbl3.h | 18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
+ include/acpi/actbl2.h | 129 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 129 insertions(+)
 
-diff --git a/include/acpi/actbl3.h b/include/acpi/actbl3.h
-index c080d579a546..e32149d605dc 100644
---- a/include/acpi/actbl3.h
-+++ b/include/acpi/actbl3.h
-@@ -192,7 +192,8 @@ enum acpi_srat_type {
- 	ACPI_SRAT_TYPE_GIC_ITS_AFFINITY = 4,	/* ACPI 6.2 */
- 	ACPI_SRAT_TYPE_GENERIC_AFFINITY = 5,	/* ACPI 6.3 */
- 	ACPI_SRAT_TYPE_GENERIC_PORT_AFFINITY = 6,	/* ACPI 6.4 */
--	ACPI_SRAT_TYPE_RESERVED = 7	/* 7 and greater are reserved */
-+	ACPI_SRAT_TYPE_RINTC_AFFINITY = 7,	/* ACPI 6.6 */
-+	ACPI_SRAT_TYPE_RESERVED = 8	/* 8 and greater are reserved */
- };
+diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
+index 9775384d61c6..64a3f9ae2641 100644
+--- a/include/acpi/actbl2.h
++++ b/include/acpi/actbl2.h
+@@ -47,6 +47,7 @@
+ #define ACPI_SIG_PPTT           "PPTT"	/* Processor Properties Topology Table */
+ #define ACPI_SIG_PRMT           "PRMT"	/* Platform Runtime Mechanism Table */
+ #define ACPI_SIG_RASF           "RASF"	/* RAS Feature table */
++#define ACPI_SIG_RAS2           "RAS2"	/* RAS2 Feature table */
+ #define ACPI_SIG_RGRT           "RGRT"	/* Regulatory Graphics Resource Table */
+ #define ACPI_SIG_RHCT           "RHCT"	/* RISC-V Hart Capabilities Table */
+ #define ACPI_SIG_SBST           "SBST"	/* Smart Battery Specification Table */
+@@ -2751,6 +2752,134 @@ enum acpi_rasf_status {
+ #define ACPI_RASF_ERROR                 (1<<2)
+ #define ACPI_RASF_STATUS                (0x1F<<3)
  
- /*
-@@ -296,6 +297,21 @@ struct acpi_srat_generic_affinity {
- #define ACPI_SRAT_GENERIC_AFFINITY_ENABLED     (1)	/* 00: Use affinity structure */
- #define ACPI_SRAT_ARCHITECTURAL_TRANSACTIONS   (1<<1)	/* ACPI 6.4 */
- 
-+/* 7: RINTC Affinity Structure(ACPI 6.6) */
++/*******************************************************************************
++ *
++ * RAS2 - RAS2 Feature Table (ACPI 6.5)
++ *        Version 1
++ *
++ *
++ ******************************************************************************/
 +
-+struct acpi_srat_rintc_affinity {
-+	struct acpi_subtable_header header;
++struct acpi_table_ras2 {
++	struct acpi_table_header header;	/* Common ACPI table header */
 +	u16 reserved;
-+	u32 proximity_domain;
-+	u32 acpi_processor_uid;
-+	u32 flags;
-+	u32 clock_domain;
++	u16 num_pcc_descs;
 +};
 +
-+/* Flags for ACPI_SRAT_RINTC_AFFINITY */
++/* RAS2 Platform Communication Channel Descriptor */
 +
-+#define ACPI_SRAT_RINTC_ENABLED     (1)	/* 00: Use affinity structure */
++struct acpi_ras2_pcc_desc {
++	u8 channel_id;
++	u16 reserved;
++	u8 feature_type;
++	u32 instance;
++};
++
++/* RAS2 Platform Communication Channel Shared Memory Region */
++
++struct acpi_ras2_shared_memory {
++	u32 signature;
++	u16 command;
++	u16 status;
++	u16 version;
++	u8 features[16];
++	u8 set_capabilities[16];
++	u16 num_parameter_blocks;
++	u32 set_capabilities_status;
++};
++
++/* RAS2 Parameter Block Structure for PATROL_SCRUB */
++
++struct acpi_ras2_parameter_block {
++	u16 type;
++	u16 version;
++	u16 length;
++};
++
++/* RAS2 Parameter Block Structure for PATROL_SCRUB */
++
++struct acpi_ras2_patrol_scrub_parameter {
++	struct acpi_ras2_parameter_block header;
++	u16 patrol_scrub_command;
++	u64 requested_address_range[2];
++	u64 actual_address_range[2];
++	u32 flags;
++	u32 scrub_params_out;
++	u32 scrub_params_in;
++};
++
++/* Masks for Flags field above */
++
++#define ACPI_RAS2_SCRUBBER_RUNNING      1
++
++/* RAS2 Parameter Block Structure for LA2PA_TRANSLATION */
++
++struct acpi_ras2_la2pa_translation_parameter {
++	struct acpi_ras2_parameter_block header;
++	u16 addr_translation_command;
++	u64 sub_inst_id;
++	u64 logical_address;
++	u64 physical_address;
++	u32 status;
++};
++
++/* Channel Commands */
++
++enum acpi_ras2_commands {
++	ACPI_RAS2_EXECUTE_RAS2_COMMAND = 1
++};
++
++/* Platform RAS2 Features */
++
++enum acpi_ras2_features {
++	ACPI_RAS2_PATROL_SCRUB_SUPPORTED = 0,
++	ACPI_RAS2_LA2PA_TRANSLATION = 1
++};
++
++/* RAS2 Patrol Scrub Commands */
++
++enum acpi_ras2_patrol_scrub_commands {
++	ACPI_RAS2_GET_PATROL_PARAMETERS = 1,
++	ACPI_RAS2_START_PATROL_SCRUBBER = 2,
++	ACPI_RAS2_STOP_PATROL_SCRUBBER = 3
++};
++
++/* RAS2 LA2PA Translation Commands */
++
++enum acpi_ras2_la2_pa_translation_commands {
++	ACPI_RAS2_GET_LA2PA_TRANSLATION = 1,
++};
++
++/* RAS2 LA2PA Translation Status values */
++
++enum acpi_ras2_la2_pa_translation_status {
++	ACPI_RAS2_LA2PA_TRANSLATION_SUCCESS = 0,
++	ACPI_RAS2_LA2PA_TRANSLATION_FAIL = 1,
++};
++
++/* Channel Command flags */
++
++#define ACPI_RAS2_GENERATE_SCI          (1<<15)
++
++/* Status values */
++
++enum acpi_ras2_status {
++	ACPI_RAS2_SUCCESS = 0,
++	ACPI_RAS2_NOT_VALID = 1,
++	ACPI_RAS2_NOT_SUPPORTED = 2,
++	ACPI_RAS2_BUSY = 3,
++	ACPI_RAS2_FAILED = 4,
++	ACPI_RAS2_ABORTED = 5,
++	ACPI_RAS2_INVALID_DATA = 6
++};
++
++/* Status flags */
++
++#define ACPI_RAS2_COMMAND_COMPLETE      (1)
++#define ACPI_RAS2_SCI_DOORBELL          (1<<1)
++#define ACPI_RAS2_ERROR                 (1<<2)
++#define ACPI_RAS2_STATUS                (0x1F<<3)
 +
  /*******************************************************************************
   *
-  * STAO - Status Override Table (_STA override) - ACPI 6.0
+  * RGRT - Regulatory Graphics Resource Table
 -- 
 2.35.3
 
