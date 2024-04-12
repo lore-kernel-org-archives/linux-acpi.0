@@ -1,47 +1,47 @@
 Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1778B1482EC;
-	Fri, 12 Apr 2024 15:13:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D909A1487C4;
+	Fri, 12 Apr 2024 15:13:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=79.96.170.134
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712934804; cv=none; b=Zv9kdkIm6qJ9klBzqrGS2Xe4oj29ysDPI0ge2HsOHhfSXCXrK4rBudRgAPQojVHfIIxQLuP1YfUk1ne9Wie/Pm42y2AW+FRZQslPIk1FCXCkugcTa7Gatk2cTnH2RAAjopRr0IVV/tDjA99bLLb6Ot2ouY73A53IqpzLYI/qh4A=
+	t=1712934804; cv=none; b=VUVg9ISaj/tsuixMYRys08jbE1Xc+mWVOjBVrSBvBMI1Qlzszd6guEjMFe1fFjBZXmaYuKHC1Y2u2vAAzlmnplTucvAtlNBVOTSi3Bn5H9jLr9M2+JDyEpUcxjivANvIFTheaqdA7jNlqcF52CrnBToRHpyKJIY19zdHRYZka9E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1712934804; c=relaxed/simple;
-	bh=wsSXAxCERv7P2sWCk0/q7yMeWx5a3fu8XZr5NSXXZPI=;
+	bh=Hs9biZqLKEfTkKiiF95DKblDQ5tMVujTw07s2sLFZhg=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=bRM192GXTyVjN44rV2dORRbzPdWAXiyHt27AOmlBDL0XDESQjOgBxZt8vZFq0HG4wUeQjBGKlXgX0N74ZIBrReackiWY8W8xxpi0ehjT5bWHxgnimbAumPsjoP37xcM6Mm91+yZc4K28uQyxkElTIfemhZrkvFPNO90CpvQGfBo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net; spf=pass smtp.mailfrom=rjwysocki.net; dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b=uajkZPHE; arc=none smtp.client-ip=79.96.170.134
+	 MIME-Version:Content-Type; b=MqQ4F/sbDaTWGV/k7NJwvyFmkGBRcvsqB2FZEjM+sYdrEhO9Jv2XRCIR1dmzmxIbVNGfiuak15/RSaqqJj/gZn+oS/GKVR//G4sxHrxTLq6znxpU4lkzzrs9jMREhwu9upcl3YzerbDo9OXVZnEG5pIof1iBWwNLCadVZKi9F3Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net; spf=pass smtp.mailfrom=rjwysocki.net; dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b=exoCXUQI; arc=none smtp.client-ip=79.96.170.134
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rjwysocki.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b="uajkZPHE"
+	dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b="exoCXUQI"
 Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
  by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 6.0.0)
- id 25fe0833119f93a8; Fri, 12 Apr 2024 17:13:19 +0200
+ id dc1f162837375e90; Fri, 12 Apr 2024 17:13:19 +0200
 Received: from kreacher.localnet (unknown [195.136.19.94])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by cloudserver094114.home.pl (Postfix) with ESMTPSA id 75B3766CCA6;
-	Fri, 12 Apr 2024 17:13:18 +0200 (CEST)
+	by cloudserver094114.home.pl (Postfix) with ESMTPSA id 5D56D66CC48;
+	Fri, 12 Apr 2024 17:13:19 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=rjwysocki.net;
-	s=dkim; t=1712934798;
-	bh=wsSXAxCERv7P2sWCk0/q7yMeWx5a3fu8XZr5NSXXZPI=;
+	s=dkim; t=1712934799;
+	bh=Hs9biZqLKEfTkKiiF95DKblDQ5tMVujTw07s2sLFZhg=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=uajkZPHE5tsNY1YyqXpX45UdjRGZxKOjpPQQ8zRvv5lVezy4W7ChZEq6rJ/AXbSfp
-	 hIcVYo73nZ+0stE6S9qtcvlR/prUNL+7onaIxA7nq6b8vRij2NSBnD2n0m9jmp91QS
-	 kFiZfFrPyctRTimOGyL4CAPIH5eDicsYnmzvAxjLto1dn3m/v/E2nanWz1a8RB3p/f
-	 VXqESoX2HtnCAqr8bl/pqzVBTor6+L24BIWGWnpaEm4FhEgfBLAUJicAZvkVydqF8M
-	 RhAeSuSXtrwAHNkA/+dzQAVsmD/+Ck6XJ8X6G7w4kpN5GYqoT8M+fADcdWsYwahS5i
-	 mXL9Aj7IlRsLw==
+	b=exoCXUQIlavw70iTMGN8Amu/8FmN8Ho5ix9+TnNpmKYb4W/V6QKvl6iByOv/F7u0u
+	 NDEf62uA8Bw6dObauWFRbssjBO6d2EwAmmfpq50spCtScH74votEmESSEql4r01jmM
+	 tjOEFwlZjpKxZeQcxZYYb81RrPTJQxDcTJYCX8zXNK3zI40XhyJ3ekNXBLrb8lk+xb
+	 cQho2HIDwkTnDdgTARQGmqoUu7pEYMXKBo7f/SlNX2iX0MyyntyTlxMUsEcDmKJHNH
+	 cmXXMlyyOExK4sxQXyvQY/y2E+aPY1iPktXFFg9JBPKOzY4Pd+9DB7KNl0klZJqoSu
+	 WpHEHf8gnCS9A==
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>, Bob Moore <robert.moore@intel.com>,
  Saket Dumbre <saket.dumbre@intel.com>
-Subject: [PATCH v1 06/12] ACPICA: Fix spelling and typos
-Date: Fri, 12 Apr 2024 17:07:59 +0200
-Message-ID: <2272660.iZASKD2KPV@kreacher>
+Subject: [PATCH v1 05/12] ACPICA: Clean up the fix for Issue #900
+Date: Fri, 12 Apr 2024 17:07:17 +0200
+Message-ID: <8368629.T7Z3S40VBb@kreacher>
 In-Reply-To: <4920972.31r3eYUQgx@kreacher>
 References: <4920972.31r3eYUQgx@kreacher>
 Precedence: bulk
@@ -55,31 +55,42 @@ Content-Type: text/plain; charset="UTF-8"
 X-CLIENT-IP: 195.136.19.94
 X-CLIENT-HOSTNAME: 195.136.19.94
 X-VADE-SPAMSTATE: clean
-X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvledrudeiuddgkeejucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvfevufffkfgjfhgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepledtieekkeekveeikeetgffgteeuteefjeevjeegudelvdduheeiuedvieehieevnecuffhomhgrihhnpehgihhthhhusgdrtghomhenucfkphepudelhedrudefiedrudelrdelgeenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpeduleehrddufeeirdduledrleegpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhnsggprhgtphhtthhopeegpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheprhhosggvrhhtrdhmohhorhgvsehinhhtvghlrdgtohhmpdhrtghpthhtohepshgrkhgvthdrughumhgsrhgvsehinhhtvghlrdgtohhm
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvledrudeiuddgkeeiucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvfevufffkfgjfhgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepledtieekkeekveeikeetgffgteeuteefjeevjeegudelvdduheeiuedvieehieevnecuffhomhgrihhnpehgihhthhhusgdrtghomhenucfkphepudelhedrudefiedrudelrdelgeenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpeduleehrddufeeirdduledrleegpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhnsggprhgtphhtthhopeegpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheprhhosggvrhhtrdhmohhorhgvsehinhhtvghlrdgtohhmpdhrtghpthhtohepshgrkhgvthdrughumhgsrhgvsehinhhtvghlrdgtohhm
 X-DCC--Metrics: v370.home.net.pl 1024; Body=4 Fuz1=4 Fuz2=4
 
 From: Saket Dumbre <saket.dumbre@intel.com>
 
-ACPICA commit a6a236c44c7d3eb54562fb5ddde4144d8347e0ac
+ACPICA commit b6b38edb0c18017af0bd2aff4eaa502810c8873f
 
-Clean up the fix for Issue #900.
-
-Link: https://github.com/acpica/acpica/commit/a6a236c4
+Link: https://github.com/acpica/acpica/commit/b6b38edb
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/acpica/utdebug.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/acpica/utdebug.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/acpi/acpica/utdebug.c b/drivers/acpi/acpica/utdebug.c
-index 98027d2f7bfb..3d71bd9245c7 100644
+index 2f37d673e285..98027d2f7bfb 100644
 --- a/drivers/acpi/acpica/utdebug.c
 +++ b/drivers/acpi/acpica/utdebug.c
-@@ -67,7 +67,7 @@ void acpi_ut_track_stack_ptr(void)
+@@ -42,6 +42,7 @@ void acpi_ut_init_stack_ptr_trace(void)
  #pragma GCC diagnostic ignored "-Wdangling-pointer="
  #endif
- 		acpi_gbl_lowest_stack_pointer = &current_sp;
--#pragma GCC diagnostic popmake
+ 	acpi_gbl_entry_stack_pointer = &current_sp;
 +#pragma GCC diagnostic pop
+ }
+ 
+ /*******************************************************************************
+@@ -61,8 +62,12 @@ void acpi_ut_track_stack_ptr(void)
+ 	acpi_size current_sp;
+ 
+ 	if (&current_sp < acpi_gbl_lowest_stack_pointer) {
++#pragma GCC diagnostic push
++#if defined(__GNUC__) && __GNUC__ >= 12
++#pragma GCC diagnostic ignored "-Wdangling-pointer="
++#endif
+ 		acpi_gbl_lowest_stack_pointer = &current_sp;
+-#pragma GCC diagnostic pop
++#pragma GCC diagnostic popmake
  	}
  
  	if (acpi_gbl_nesting_level > acpi_gbl_deepest_nesting) {
