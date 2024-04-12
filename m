@@ -1,70 +1,80 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.17])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83DB0145333;
-	Fri, 12 Apr 2024 14:52:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.17
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEBB9145B36;
+	Fri, 12 Apr 2024 14:54:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.19
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712933572; cv=none; b=HO8JDTJZac0eU5OdyGs2XBy28cB9pzgHDPYM/60b0HEm0999nj9zCzR12ZCUBSfsN+bvKpQqhVYvxOE/sgOrupqcsCeqxZvQ/zjdJ+5rJ1Jfh/8AXJ5YmDII1aDRdlnwWPeOcW4pqo4OTvYGzSwBJJ6r5Xv/Vo94gdI+KE82wYA=
+	t=1712933657; cv=none; b=aku2LWtGaiOA4OMlfCqO+sOtYv6HLeGG37hziF2iMjGH5mMu6axqJvED27eh1Ln+Sv/Ur7GTm41TsokzEXQ7/3aHjJGvHre8lqbi6VNhMnW4TYPup6UpiO1NADK6sz07XB1t3H6UNfE1/HmM1NP3880lr4ElOnrGxCOKl3VMs9k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712933572; c=relaxed/simple;
-	bh=3VJO+40pwSkL8WEP5XEs7367DXnCHzRW9AIbe65tr7w=;
+	s=arc-20240116; t=1712933657; c=relaxed/simple;
+	bh=in6s0CayvsuzQeqaiNyjVowzPqlZrAQVR/B3bv4tggk=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=h1ixzWl+R1yCRCu+dSqbLikH2KzgyrgVoftv+40dCgeodPe8SRDdKeafVr7xfeXpJt27Kx97nlj7sXb4bFSEn/hbh52hCAoPVMuTn/sOJYO0BiQunWGtq/sPZc/xGqyJe/TgMnuKYQNiMkKNu7jBq/y2ybS6lR4WuNOZxCihp+o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=PXAJs4g5; arc=none smtp.client-ip=198.175.65.17
+	 Content-Type:Content-Disposition:In-Reply-To; b=m4BU6hTSz0iODNBmRxJzExBXNEXjrWG6ihQeOuEaivSuUOY9fBsUfAeqf5cwVM2ka8Bo6Lr18b7Sy8vDM1kYGZ93iSF1fy7wwuDyfVi9cpEwnXmkHEtNSnX81/D1/eJK2ABSmqB42fth85RB4pcSPWi2qembERwJ4wtjYieDCnE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=PZ+7TOIl; arc=none smtp.client-ip=192.198.163.19
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="PXAJs4g5"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="PZ+7TOIl"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1712933571; x=1744469571;
+  t=1712933656; x=1744469656;
   h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=3VJO+40pwSkL8WEP5XEs7367DXnCHzRW9AIbe65tr7w=;
-  b=PXAJs4g5wg3ErC1btReuQ0iiYUy8BKv8nVcclBwEa+cM9Un6mH4WcYAe
-   AFYgML7ccsQ2l+QtWUP97joyNtmOWHPsUsM/JP5YU9EIsBCTPDt8HzF+8
-   5ng6j6Ld0NeviflAFfc74eLzX1fP4DDESayIatu4IV/9gQdGD4+kBRUpc
-   eLT0iEp5cAeu3uDms74G0cMVOB92eWBfkBDX41qmpDtKLLtcyLIZzIGKa
-   HToSXqvb5MYCYKo18wb5YUfn/kLDPA/JBLEQkGck+6BnHISAaU0utNl6g
-   LCSs7IMsBDY5SQlSgDm4RH17WBtSJaFVJ/VxYHSSVTjkzOV3zpb+3fHSk
-   g==;
-X-CSE-ConnectionGUID: 7gGmLBNDSYCUN8qqGendhg==
-X-CSE-MsgGUID: 0E1ZN7QZRTSIaYuVw6rNUA==
-X-IronPort-AV: E=McAfee;i="6600,9927,11042"; a="8497359"
+   mime-version:content-transfer-encoding:in-reply-to;
+  bh=in6s0CayvsuzQeqaiNyjVowzPqlZrAQVR/B3bv4tggk=;
+  b=PZ+7TOIl3IMkcVwvngqbigo3519xjbImb4htVZ5I/Ae5SO2umBr1U6cZ
+   ZoFxJMp7/lvDcoit1zc/mkZxZQfo94VDm09Ct0CrK8nof70cAcvPnZwKK
+   1JC4jwA3j8vw9fjKW3ZsfUpaFON6m2s5371j85RR4Lx78TrfdWf2DX79F
+   wv9dPSnuo3KTGXIjTcKJYCrH4KIthUS+qqKUEiRqGppfV97CYQVUe9ZzH
+   FfPNpuj6n3pRu2OBBVT9H6ozBsk5Ksap3v8ROVsMFPAHnYmktRQXBvvk/
+   ZsBBEqDCcu8jWcocQ+RpCZp0pCn917AhYFkfF9jGQnhmpCSVonjp0fcKh
+   A==;
+X-CSE-ConnectionGUID: EtnHBXRSSiGavd3eXC5xmw==
+X-CSE-MsgGUID: ZzY2kez7SpGHngCwWB3tDQ==
+X-IronPort-AV: E=McAfee;i="6600,9927,11042"; a="8249778"
 X-IronPort-AV: E=Sophos;i="6.07,196,1708416000"; 
-   d="scan'208";a="8497359"
-Received: from fmviesa004.fm.intel.com ([10.60.135.144])
-  by orvoesa109.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Apr 2024 07:52:50 -0700
-X-CSE-ConnectionGUID: UR2HQIB/T9aOUxFJHHipNw==
-X-CSE-MsgGUID: IbdOgvKoQS2wVBiMBfp5dQ==
+   d="scan'208";a="8249778"
+Received: from fmviesa010.fm.intel.com ([10.60.135.150])
+  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Apr 2024 07:54:15 -0700
+X-CSE-ConnectionGUID: 6fFYUjUFQBanhxX5HwRLfw==
+X-CSE-MsgGUID: 167iCC+KQkS2JkX98wu9pQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.07,196,1708416000"; 
-   d="scan'208";a="25906271"
-Received: from black.fi.intel.com ([10.237.72.28])
-  by fmviesa004.fm.intel.com with ESMTP; 12 Apr 2024 07:52:46 -0700
-Received: by black.fi.intel.com (Postfix, from userid 1001)
-	id CCE371B02; Fri, 12 Apr 2024 13:19:44 +0300 (EEST)
-Date: Fri, 12 Apr 2024 13:19:44 +0300
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>,
-	David Thompson <davthompson@nvidia.com>,
-	Linus Walleij <linus.walleij@linaro.org>,
-	Patrick Rudolph <patrick.rudolph@9elements.com>,
-	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-	linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-acpi@vger.kernel.org, netdev@vger.kernel.org,
-	Bartosz Golaszewski <brgl@bgdev.pl>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+   d="scan'208";a="21238596"
+Received: from smile.fi.intel.com (HELO smile) ([10.237.72.54])
+  by fmviesa010.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Apr 2024 07:54:09 -0700
+Received: from andy by smile with local (Exim 4.97)
+	(envelope-from <andriy.shevchenko@linux.intel.com>)
+	id 1rvHtF-00000003eRB-20ZW;
+	Fri, 12 Apr 2024 17:28:29 +0300
+Date: Fri, 12 Apr 2024 17:28:29 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Rob Herring <robh@kernel.org>
+Cc: Saravana Kannan <saravanak@google.com>,
+	Herve Codina <herve.codina@bootlin.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
 	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH v1 0/4] gpiolib: acpi: Use con_id in
- acpi_dev_gpio_irq_get_by()
-Message-ID: <20240412101944.GE112498@black.fi.intel.com>
-References: <20240411172540.4122581-2-andriy.shevchenko@linux.intel.com>
+	Shawn Guo <shawnguo@kernel.org>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Pengutronix Kernel Team <kernel@pengutronix.de>,
+	Fabio Estevam <festevam@gmail.com>,
+	Wolfram Sang <wsa+renesas@sang-engineering.com>,
+	Mark Brown <broonie@kernel.org>, Len Brown <lenb@kernel.org>,
+	Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Geert Uytterhoeven <geert+renesas@glider.be>,
+	kernel-team@android.com, Wolfram Sang <wsa@kernel.org>,
+	linux-kernel@vger.kernel.org, imx@lists.linux.dev,
+	linux-arm-kernel@lists.infradead.org, linux-i2c@vger.kernel.org,
+	devicetree@vger.kernel.org, linux-spi@vger.kernel.org,
+	linux-acpi@vger.kernel.org
+Subject: Re: [PATCH v3 2/2] of: dynamic: Fix overlayed devices not probing
+ because of fw_devlink
+Message-ID: <ZhlFDeDxict3ThJO@smile.fi.intel.com>
+References: <20240411235623.1260061-1-saravanak@google.com>
+ <20240411235623.1260061-3-saravanak@google.com>
+ <CAL_JsqKRVVNzgQk6PETfJ9RrDuzT1CTjHWW02Twc_T4C82t__Q@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -73,25 +83,30 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20240411172540.4122581-2-andriy.shevchenko@linux.intel.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAL_JsqKRVVNzgQk6PETfJ9RrDuzT1CTjHWW02Twc_T4C82t__Q@mail.gmail.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 
-On Thu, Apr 11, 2024 at 08:22:28PM +0300, Andy Shevchenko wrote:
-> Use con_id instead of property in the acpi_dev_gpio_irq_get_by().
-> It will be aligned with other GPIO library functions.
-> 
-> Assumed to go via my GPIO ACPI library tree follwoed by GPIO subsystem.
-> 
-> Andy Shevchenko (4):
->   gpiolib: acpi: Extract __acpi_find_gpio() helper
->   gpiolib: acpi: Simplify error handling in __acpi_find_gpio()
->   gpiolib: acpi: Move acpi_can_fallback_to_crs() out of
->     __acpi_find_gpio()
->   gpiolib: acpi: Pass con_id instead of property into
->     acpi_dev_gpio_irq_get_by()
-> 
->  drivers/gpio/gpio-pca953x.c                   |  2 +-
->  drivers/gpio/gpiolib-acpi.c                   | 52 +++++++++++--------
+On Fri, Apr 12, 2024 at 07:54:32AM -0500, Rob Herring wrote:
+> On Thu, Apr 11, 2024 at 6:56 PM Saravana Kannan <saravanak@google.com> wrote:
 
-For the gpiolib-acpi.c parts,
+> I think it is better to not have this wrapper. We want it to be clear
+> when we're acquiring a ref. I know get_device() does that, but I have
+> to look up what get_dev_from_fwnode() does exactly.
+> 
+> Side note: I didn't know fwnode has a ptr to the struct device. I
+> wonder if we can kill off of_find_device_by_node() using that. That's
+> for platform devices though.
 
-Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+I don't like the idea because we already have a big design issue with fwnode
+that is used in struct device. Ideally, fwnode has to be a node in the linked
+list, head of which is provided by the user (struct device, for example).
+When it's done, it will be easy to handle.
+
+Have you read the comment in the struct fwnode_handle definition?
+
+-- 
+With Best Regards,
+Andy Shevchenko
+
+
