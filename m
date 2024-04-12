@@ -1,46 +1,46 @@
 Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE582149C69;
-	Fri, 12 Apr 2024 15:13:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 446DF1494D2;
+	Fri, 12 Apr 2024 15:15:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=79.96.170.134
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712934809; cv=none; b=q2W4rWk+bJOtJpNlToBVzQ8dnQQG+S4jFciHpdVV68djypITWWj06GuXwJbpHkQfWzNeMphQ3VYxz+XpqCaNT4hdWxyxCWTyvd0MuPKpep2krPm8AALsSN03FJPZjLx5mgSFxdSlgVlyq5vWxRTOs8GyP1gvyakJM6ohILQ3jXs=
+	t=1712934913; cv=none; b=c6g0NmQOl9peyGOizmfOr1GnMXNN20eKYYIRQcex3iVU7nUy4PhkHZN98upj9Q7rnXMVWJO9at3GS1yxPUuwHvQkwoJi2qUsyJMf/b8VfQ689GAUPYOxKqvOLhfHn5YrssduBKp6/cFlNd0FfWeyRD9bFLyTlFTp29OAp7wFyaw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712934809; c=relaxed/simple;
+	s=arc-20240116; t=1712934913; c=relaxed/simple;
 	bh=iy828oKVlqy5QYuzJ9LrPcNXklGl7u7M6Q8lvH1qjy8=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=m6ZBKwrGxjtiENrVCmqlo8/dPvBNHhsaWwjhtXAZwXfNZC0KaUws4mnXzhoGxv5hGQKb1eZx1hQHWGgU9yT8nK161W6M76zFs7xKk3l7pn2je4QVqjl9jMGkpGfWz/8XM9pBUO7lzcmE0UGJtg9gtezlhtO3supGZgyYrG8aFUA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net; spf=pass smtp.mailfrom=rjwysocki.net; dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b=VMmrQF0I; arc=none smtp.client-ip=79.96.170.134
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=q7lA/Wv60MvO/RQmAmto6VdX50FDRstWztshqIXbIJHxQ5jZb4m/AenRSgKgi9BEB4m6bZfEb37tqvzj7ISCYQkIA7lnFCA04l0+rurqeUStkb6lPp9uC0I2vUdhwL1P7j30kc1jFyrQMK7uhcc6mwBYq5HcUe8JuHzqzQ6cA60=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net; spf=pass smtp.mailfrom=rjwysocki.net; dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b=hK+7XMub; arc=none smtp.client-ip=79.96.170.134
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rjwysocki.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b="VMmrQF0I"
+	dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b="hK+7XMub"
 Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
  by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 6.0.0)
- id bb10227b299c9ff8; Fri, 12 Apr 2024 17:13:24 +0200
+ id 5c93bcff7a742ab9; Fri, 12 Apr 2024 17:15:09 +0200
 Received: from kreacher.localnet (unknown [195.136.19.94])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by cloudserver094114.home.pl (Postfix) with ESMTPSA id 4E83966CC48;
-	Fri, 12 Apr 2024 17:13:24 +0200 (CEST)
+	by cloudserver094114.home.pl (Postfix) with ESMTPSA id AB0F566CC48;
+	Fri, 12 Apr 2024 17:15:08 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=rjwysocki.net;
-	s=dkim; t=1712934804;
+	s=dkim; t=1712934909;
 	bh=iy828oKVlqy5QYuzJ9LrPcNXklGl7u7M6Q8lvH1qjy8=;
 	h=From:To:Cc:Subject:Date;
-	b=VMmrQF0IiwxzbvSSe5kRCSCXGKWuZOXJouTiUYCRugUpy/OfKPSJO9mA0Jt4IAjGh
-	 NcutBK3jD9UboPwbOk18HnsT8n36Li2GJKdK2jOz2AAEAhfKkJMhyHybfL2uii4IfH
-	 T+Qnu6BWTZo54w2r5w2HXr55PhSeQmUpgY/5UGa2kjeVesWBrTgf0lvdSUr44QThj+
-	 aFYeFztj8JtCCq/bvkTiq7SWK0r+ZiDHQGon4ESWwI2QleCnjAsosEEkPh1egmcXZ3
-	 ANPe7n9a1VdH5ZMQG9Cfc8IYsPUmikwNHL6koP1rew6nNmsevu/S4QKHeTN8OdBOEV
-	 IHtXXzsa010Rg==
+	b=hK+7XMub3oYigTkcr8hiCCwooLvJfAIJ48F8ft67ncdrDEu6Y14gFciGVB02n4Wvt
+	 BRiNLWekdzhybLXLmHFkwVFV68AnR+Ddk2FMkWU3Oyis6/fdXpmmKWLWa1PnxZ/lW9
+	 0oced6puw94SVcZiAS5okooli4zCiVAXYuC8Rb55lXuu2H2Agccxaocu+8UIQbkX1z
+	 FVDMbTzoK9nzaHQGnq7QHA1U4skM+Tw3z6V1lFcIvrFPirABKPC4Ajbug8gQuA3OAw
+	 x5cwLjypVINouDUPhupwUrjQTpIs7OUC/BhcB3c9p+zCd+Eof1KwUpONpks1jFfoC7
+	 LfLcMeRLWddtA==
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>, Bob Moore <robert.moore@intel.com>,
  Saket Dumbre <saket.dumbre@intel.com>
 Subject: [PATCH v1 00/12] ACPICA: ACPICA 20240322
-Date: Fri, 12 Apr 2024 17:03:13 +0200
-Message-ID: <4920972.31r3eYUQgx@kreacher>
+Date: Fri, 12 Apr 2024 17:15:08 +0200
+Message-ID: <23477713.6Emhk5qWAg@kreacher>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -53,7 +53,7 @@ X-CLIENT-IP: 195.136.19.94
 X-CLIENT-HOSTNAME: 195.136.19.94
 X-VADE-SPAMSTATE: clean
 X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvledrudeiuddgkeejucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvfevufffkfgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepueffhffgiefhteeffefgtdeuudefkeejjeffteejvdegfefhhfefkeekheetleeknecuffhomhgrihhnpehinhhtvghlrdgtohhmnecukfhppeduleehrddufeeirdduledrleegnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehinhgvthepudelhedrudefiedrudelrdelgedphhgvlhhopehkrhgvrggthhgvrhdrlhhotggrlhhnvghtpdhmrghilhhfrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqedpnhgspghrtghpthhtohepgedprhgtphhtthhopehlihhnuhigqdgrtghpihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehrohgsvghrthdrmhhoohhrvgesihhnthgvlhdrtghomhdprhgtphhtthhopehsrghkvghtrdguuhhmsghrvgesihhnthgvlhdrtghomh
-X-DCC--Metrics: v370.home.net.pl 1024; Body=4 Fuz1=4 Fuz2=4
+X-DCC--Metrics: v370.home.net.pl 1024; Body=8 Fuz1=8 Fuz2=8
 
 Hi All,
 
