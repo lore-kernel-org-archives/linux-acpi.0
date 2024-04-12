@@ -1,112 +1,166 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.19])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEBB9145B36;
-	Fri, 12 Apr 2024 14:54:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.19
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id E28255E22C;
+	Fri, 12 Apr 2024 15:03:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712933657; cv=none; b=aku2LWtGaiOA4OMlfCqO+sOtYv6HLeGG37hziF2iMjGH5mMu6axqJvED27eh1Ln+Sv/Ur7GTm41TsokzEXQ7/3aHjJGvHre8lqbi6VNhMnW4TYPup6UpiO1NADK6sz07XB1t3H6UNfE1/HmM1NP3880lr4ElOnrGxCOKl3VMs9k=
+	t=1712934203; cv=none; b=bE0KaBM8GHeJflbngjwJYphYtisbrzAGipzduKDmO0HsHYYxq1rUMfwutGlp3fBvlVzrnyvvDavATsps25/WN2w8u4F/+gypGLjM5q1gK2E87IdJX2SZeIDQEj4DRCm20LEpJ8bNLFX7GTm5G6fGri8Kcwo2tDy/gqZLZ6WK93A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712933657; c=relaxed/simple;
-	bh=in6s0CayvsuzQeqaiNyjVowzPqlZrAQVR/B3bv4tggk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=m4BU6hTSz0iODNBmRxJzExBXNEXjrWG6ihQeOuEaivSuUOY9fBsUfAeqf5cwVM2ka8Bo6Lr18b7Sy8vDM1kYGZ93iSF1fy7wwuDyfVi9cpEwnXmkHEtNSnX81/D1/eJK2ABSmqB42fth85RB4pcSPWi2qembERwJ4wtjYieDCnE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=PZ+7TOIl; arc=none smtp.client-ip=192.198.163.19
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="PZ+7TOIl"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1712933656; x=1744469656;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:content-transfer-encoding:in-reply-to;
-  bh=in6s0CayvsuzQeqaiNyjVowzPqlZrAQVR/B3bv4tggk=;
-  b=PZ+7TOIl3IMkcVwvngqbigo3519xjbImb4htVZ5I/Ae5SO2umBr1U6cZ
-   ZoFxJMp7/lvDcoit1zc/mkZxZQfo94VDm09Ct0CrK8nof70cAcvPnZwKK
-   1JC4jwA3j8vw9fjKW3ZsfUpaFON6m2s5371j85RR4Lx78TrfdWf2DX79F
-   wv9dPSnuo3KTGXIjTcKJYCrH4KIthUS+qqKUEiRqGppfV97CYQVUe9ZzH
-   FfPNpuj6n3pRu2OBBVT9H6ozBsk5Ksap3v8ROVsMFPAHnYmktRQXBvvk/
-   ZsBBEqDCcu8jWcocQ+RpCZp0pCn917AhYFkfF9jGQnhmpCSVonjp0fcKh
-   A==;
-X-CSE-ConnectionGUID: EtnHBXRSSiGavd3eXC5xmw==
-X-CSE-MsgGUID: ZzY2kez7SpGHngCwWB3tDQ==
-X-IronPort-AV: E=McAfee;i="6600,9927,11042"; a="8249778"
-X-IronPort-AV: E=Sophos;i="6.07,196,1708416000"; 
-   d="scan'208";a="8249778"
-Received: from fmviesa010.fm.intel.com ([10.60.135.150])
-  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Apr 2024 07:54:15 -0700
-X-CSE-ConnectionGUID: 6fFYUjUFQBanhxX5HwRLfw==
-X-CSE-MsgGUID: 167iCC+KQkS2JkX98wu9pQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.07,196,1708416000"; 
-   d="scan'208";a="21238596"
-Received: from smile.fi.intel.com (HELO smile) ([10.237.72.54])
-  by fmviesa010.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Apr 2024 07:54:09 -0700
-Received: from andy by smile with local (Exim 4.97)
-	(envelope-from <andriy.shevchenko@linux.intel.com>)
-	id 1rvHtF-00000003eRB-20ZW;
-	Fri, 12 Apr 2024 17:28:29 +0300
-Date: Fri, 12 Apr 2024 17:28:29 +0300
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Rob Herring <robh@kernel.org>
-Cc: Saravana Kannan <saravanak@google.com>,
-	Herve Codina <herve.codina@bootlin.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Shawn Guo <shawnguo@kernel.org>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Pengutronix Kernel Team <kernel@pengutronix.de>,
-	Fabio Estevam <festevam@gmail.com>,
-	Wolfram Sang <wsa+renesas@sang-engineering.com>,
-	Mark Brown <broonie@kernel.org>, Len Brown <lenb@kernel.org>,
-	Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Geert Uytterhoeven <geert+renesas@glider.be>,
-	kernel-team@android.com, Wolfram Sang <wsa@kernel.org>,
-	linux-kernel@vger.kernel.org, imx@lists.linux.dev,
-	linux-arm-kernel@lists.infradead.org, linux-i2c@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-spi@vger.kernel.org,
-	linux-acpi@vger.kernel.org
-Subject: Re: [PATCH v3 2/2] of: dynamic: Fix overlayed devices not probing
- because of fw_devlink
-Message-ID: <ZhlFDeDxict3ThJO@smile.fi.intel.com>
-References: <20240411235623.1260061-1-saravanak@google.com>
- <20240411235623.1260061-3-saravanak@google.com>
- <CAL_JsqKRVVNzgQk6PETfJ9RrDuzT1CTjHWW02Twc_T4C82t__Q@mail.gmail.com>
+	s=arc-20240116; t=1712934203; c=relaxed/simple;
+	bh=mDlAyg03Xf+YaOewa7opqqZcaya2AsaSnYev+L3GrAA=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=ec971CX36qcxjnRGrK23P1aWxcIH2LJCFcJKPNl3d084JeOwbWTZJ6MDPR3ldUY3w1vIMmhLAxzCX/c5vzKKnV67dvf9Cqg+er4cCD4N6DlEEw5y5h8YHNSxLu7Cf0N8Lug5+ztj2E7mFe7XkSIDkhoFPTxmbbR8JvU8LitedwQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 385FF339;
+	Fri, 12 Apr 2024 08:03:47 -0700 (PDT)
+Received: from [192.168.20.58] (usa-sjc-mx-foss1.foss.arm.com [172.31.20.19])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id B84C83F64C;
+	Fri, 12 Apr 2024 08:03:15 -0700 (PDT)
+Message-ID: <2cde00c8-7878-45c0-8621-fca4e70c75e7@arm.com>
+Date: Fri, 12 Apr 2024 10:03:14 -0500
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+User-Agent: Mozilla Thunderbird
+Subject: Re: [External] Re: [PATCH 1/2] ACPI: PPTT: Populate cacheinfo
+ entirely with PPTT
+Content-Language: en-US
+To: yunhui cui <cuiyunhui@bytedance.com>
+Cc: rafael@kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org,
+ linux-kernel@vger.kernel.org, paul.walmsley@sifive.com, palmer@dabbelt.com,
+ aou@eecs.berkeley.edu, linux-riscv@lists.infradead.org
+References: <20240407123829.36474-1-cuiyunhui@bytedance.com>
+ <abd135fa-c432-4e37-9792-07a0e17e93d5@arm.com>
+ <CAEEQ3w=+C2J0ZS227-1P-B+pe_NRp_3i4c4CxGssiKqbpXx_qw@mail.gmail.com>
+From: Jeremy Linton <jeremy.linton@arm.com>
+In-Reply-To: <CAEEQ3w=+C2J0ZS227-1P-B+pe_NRp_3i4c4CxGssiKqbpXx_qw@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAL_JsqKRVVNzgQk6PETfJ9RrDuzT1CTjHWW02Twc_T4C82t__Q@mail.gmail.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 
-On Fri, Apr 12, 2024 at 07:54:32AM -0500, Rob Herring wrote:
-> On Thu, Apr 11, 2024 at 6:56 PM Saravana Kannan <saravanak@google.com> wrote:
+Hi,
 
-> I think it is better to not have this wrapper. We want it to be clear
-> when we're acquiring a ref. I know get_device() does that, but I have
-> to look up what get_dev_from_fwnode() does exactly.
+
+On 4/10/24 21:28, yunhui cui wrote:
+> Hi Jeremy,
 > 
-> Side note: I didn't know fwnode has a ptr to the struct device. I
-> wonder if we can kill off of_find_device_by_node() using that. That's
-> for platform devices though.
+> On Wed, Apr 10, 2024 at 9:30 AM Jeremy Linton <jeremy.linton@arm.com> wrote:
+>>
+>> Hi,
+>>
+>>
+>> First thanks for working on this.
+>>
+>> On 4/7/24 07:38, Yunhui Cui wrote:
+>>> When the type and level information of this_leaf cannot be obtained
+>>> from arch, cacheinfo is completely filled in with the content of PPTT.
+>>
+>> I started reviewing this, based on what I understood to be the need to
+>> generate the topology entirely from the PPTT. But, it was raising more
+>> questions than answers because the PPTT is far too flexable in its
+>> ability to represent cache hierachies that arn't logically useful. For
+>> example multiple I or D caches at the same level, or I or D caches
+>> higher in the topology than unified ones.
+>>
+>> At least for arm64 (and I think others) there is an understood
+>> simplification that there will be N levels of split I/D caches and M
+>> unified levels. And from that, the number of cache leaves are computed
+>> and allocated, and then we go in and largly skip PPTT cache nodes which
+>> don't make sense in view of a generic topology like that. (see the
+>> comment in cacheinfo.c:506)
+>>
+>> Both of those pieces of information are available in
+>> acpi_get_cache_info(). The missing part is marking those N levels of I/D
+>> cache as such.
+>>
+>> Looking at this code I don't really see all the error/allocation
+>> logic/etc that assures the cache leaf indexing is allocated correctly
+>> which worries me, although admidditly I could be missing something
+>> important.
+>>
+>> In summary, did you consider just allocating matching I/D caches from
+>> the number of split levels in acpi_get_cache_info() then removing or
+>> invalidating the ones that don't have matching PPTT entries after
+>> running cache_setup_acpi()? Thats a fairly trivial change AFAIK if the
+>> decision is based on the lack of a cache_id or just changing the
+>> this_leaf->type = CACHE_TYPE_UNIFIED assignment to the correct type and
+>> assuring left over CACHE_TYPE_NOCACHE entries are removed. I think much
+>> of the "significant work" is likely fixed for that to work. Just
+>> tweaking detect_cache_level()/get_cache_type() to set
+>> CACHE_TYPE_SEPERATE if the level is less than the acpi_get_cache_info()
+>> split_level value probably also does the majority of what you need
+>> outside of having unequal counts of I and D caches.
+>>
+>> There are probably other choices as well, thoughts?
+>>
+> 
+> First, I think the current state of the ACPI PPTT specification meets
+> the requirements and is logically complete. Otherwise, the PPTT
+> specification needs to be updated, right?
 
-I don't like the idea because we already have a big design issue with fwnode
-that is used in struct device. Ideally, fwnode has to be a node in the linked
-list, head of which is provided by the user (struct device, for example).
-When it's done, it will be easy to handle.
+The specification is capable of representing all the actual physical 
+topologies I'm aware of, its also capable of representing quite a number 
+of topologies that don't make sense to (cant be) build and are largely 
+nonsense. There are some further details around replacement and 
+allocation which could be represented but were AFAIK not considered 
+worth the effort because it makes the representation far more complex.
 
-Have you read the comment in the struct fwnode_handle definition?
+So, except for minor clarifications I'm not aware of a need to update it.
 
--- 
-With Best Regards,
-Andy Shevchenko
+> Our discussion is best focused on the existing and usual case, even on
+> ARM64, which is as you say "N-level separated I/D cache, M-level
+> unified".
 
+I understood this was for RISC-V when I reviewed it, but i'm fairly 
+certain the general cache topologies of RISC-V machines don't vary in 
+their core concepts and layout much from the wide variety of 
+possibilities available elsewhere. So its roughly the same problem, you 
+will likely have one or two layers of split I/D caches and then a number 
+of unified private or shared caches above that.
+
+
+> 
+> And then, the problem we have now is that the RISC-V architecture does
+> not have a set of registers to describe the cache level and type like
+> ARM64 does, so we need to fully trust the contents of the PPTT table.
+> Please check the patch:
+> https://patchwork.kernel.org/project/linux-riscv/patch/20240407123829.36474-2-cuiyunhui@bytedance.com/
+
+I don't think "fully trust" is something you really want, or is helpful 
+as I suggested above.
+
+I suspect all that is needed is the construction of the missing I/D 
+layers, as the existing code will create the Unified layers above as it 
+does today. On Arm64 the unified system level caches aren't usually 
+described by the core cache registers either, which is why there is that 
+existing bit of code to change unknown caches to unified. But it also 
+turns out the pptt walking code is capable of providing the information 
+to create the I/D layers as well, if they are matched (ex there exists 
+an I cache for every D cache at a certain level).
+
+So, more clarity about the kinds of topologies you expect is helpful to 
+understand where the current code is failing.
+
+AKA, As I mentioned I'm fairly certain that its possible to construct 
+the entire cache topology from the PPTT by changing get_cache_type() to 
+return "CACHE_TYPE_SEPERATE" when the level is less than the value 
+returned as "split_level" from acpi_get_cache_info(). That tends to 
+ignore some edge cases, but I might put them in the "don't to that" bucket.
+
+
+> .
+> 
+> Judging from this requirement, can you help review this patch? Thanks.
+
+If so, can you describe the edge case you care about that isn't solved 
+with a change like that?
+
+> 
+> 
+> Thanks,
+> Yunhui
 
