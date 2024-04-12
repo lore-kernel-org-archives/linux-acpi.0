@@ -1,49 +1,47 @@
 Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D904F1487C3;
-	Fri, 12 Apr 2024 15:13:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1778B1482EC;
+	Fri, 12 Apr 2024 15:13:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=79.96.170.134
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712934804; cv=none; b=CwZvHQxucixsx4cMu6qrXvbsUPAtSZ0abdl0t5gJWesFkJXalRAmN7+usRI7L+LoOcUrgfzZGYofeT5YZexlgevVdDVjH8y0xAuJqaDdg+awM7jtOsZavfxqwSpBA3xn0svOiWoyPuMWUZqAj5YyE0MRJNDz5IBIMkReI4Nrzkk=
+	t=1712934804; cv=none; b=Zv9kdkIm6qJ9klBzqrGS2Xe4oj29ysDPI0ge2HsOHhfSXCXrK4rBudRgAPQojVHfIIxQLuP1YfUk1ne9Wie/Pm42y2AW+FRZQslPIk1FCXCkugcTa7Gatk2cTnH2RAAjopRr0IVV/tDjA99bLLb6Ot2ouY73A53IqpzLYI/qh4A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1712934804; c=relaxed/simple;
-	bh=D/I7zxNBS8m8Chbv2XRv0I+6HHBNWVRfkhP2l99McE0=;
+	bh=wsSXAxCERv7P2sWCk0/q7yMeWx5a3fu8XZr5NSXXZPI=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=JvjCKuCGP1cLWTlHSycjUrGAxDIaV4aclmCTutf7D+iQuShwmyEWymArXIiGSpM8vwE0syPaAE7ENhT6NYXeuJt14MD90pz9XcZKVpkQt0kh+215e1N9yCz14T+TWcGnSeYajOcfIXrHqdE3q1+/qOfk1VTzFAoLRGFdbrLrIVQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net; spf=pass smtp.mailfrom=rjwysocki.net; dkim=fail (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b=QA4kR7uJ reason="signature verification failed"; arc=none smtp.client-ip=79.96.170.134
+	 MIME-Version:Content-Type; b=bRM192GXTyVjN44rV2dORRbzPdWAXiyHt27AOmlBDL0XDESQjOgBxZt8vZFq0HG4wUeQjBGKlXgX0N74ZIBrReackiWY8W8xxpi0ehjT5bWHxgnimbAumPsjoP37xcM6Mm91+yZc4K28uQyxkElTIfemhZrkvFPNO90CpvQGfBo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net; spf=pass smtp.mailfrom=rjwysocki.net; dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b=uajkZPHE; arc=none smtp.client-ip=79.96.170.134
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rjwysocki.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b="QA4kR7uJ"
+	dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b="uajkZPHE"
 Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
  by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 6.0.0)
- id 8ba249045168371a; Fri, 12 Apr 2024 17:13:14 +0200
+ id 25fe0833119f93a8; Fri, 12 Apr 2024 17:13:19 +0200
 Received: from kreacher.localnet (unknown [195.136.19.94])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by cloudserver094114.home.pl (Postfix) with ESMTPSA id EB84466CC48;
-	Fri, 12 Apr 2024 17:13:13 +0200 (CEST)
+	by cloudserver094114.home.pl (Postfix) with ESMTPSA id 75B3766CCA6;
+	Fri, 12 Apr 2024 17:13:18 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=rjwysocki.net;
-	s=dkim; t=1712934794;
-	bh=D/I7zxNBS8m8Chbv2XRv0I+6HHBNWVRfkhP2l99McE0=;
+	s=dkim; t=1712934798;
+	bh=wsSXAxCERv7P2sWCk0/q7yMeWx5a3fu8XZr5NSXXZPI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=QA4kR7uJKDXiNZkWegNMd3v9l1E8+saTyFWpAV5nQ+y1rK2LlvFetr5m/6t1Se1CK
-	 Vc8HxWQaMCHTbf4ZYM3j6fqt2+FDEFyJitJdoRCEbf0JkzOvssmvPOfsFjKw8ZdEf1
-	 AI59NgRPSQjNI8+wJHmpPTda2YkIiwJSjClA9NYk0VcOtoNYOtJBVoGxo5caJJ075j
-	 C2w8KPY6DTt9E4O+DO3D0T1briGf5jPrtw8CjhrB7pvbeItQRSrRARYoelasVObYb5
-	 VPbufxnDALv10nDvNRjjf8TQMMehJgF3ZUMJrVpjru1bwPsxkGJtBLqzEaabadFZPN
-	 oeYLtOLTre1KA==
+	b=uajkZPHE5tsNY1YyqXpX45UdjRGZxKOjpPQQ8zRvv5lVezy4W7ChZEq6rJ/AXbSfp
+	 hIcVYo73nZ+0stE6S9qtcvlR/prUNL+7onaIxA7nq6b8vRij2NSBnD2n0m9jmp91QS
+	 kFiZfFrPyctRTimOGyL4CAPIH5eDicsYnmzvAxjLto1dn3m/v/E2nanWz1a8RB3p/f
+	 VXqESoX2HtnCAqr8bl/pqzVBTor6+L24BIWGWnpaEm4FhEgfBLAUJicAZvkVydqF8M
+	 RhAeSuSXtrwAHNkA/+dzQAVsmD/+Ck6XJ8X6G7w4kpN5GYqoT8M+fADcdWsYwahS5i
+	 mXL9Aj7IlRsLw==
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>, Bob Moore <robert.moore@intel.com>,
  Saket Dumbre <saket.dumbre@intel.com>
-Subject:
- [PATCH v1 11/12] ACPICA: events/evgpeinit: don't forget to increment
- registered GPE count
-Date: Fri, 12 Apr 2024 17:12:21 +0200
-Message-ID: <8409590.NyiUUSuA9g@kreacher>
+Subject: [PATCH v1 06/12] ACPICA: Fix spelling and typos
+Date: Fri, 12 Apr 2024 17:07:59 +0200
+Message-ID: <2272660.iZASKD2KPV@kreacher>
 In-Reply-To: <4920972.31r3eYUQgx@kreacher>
 References: <4920972.31r3eYUQgx@kreacher>
 Precedence: bulk
@@ -57,36 +55,34 @@ Content-Type: text/plain; charset="UTF-8"
 X-CLIENT-IP: 195.136.19.94
 X-CLIENT-HOSTNAME: 195.136.19.94
 X-VADE-SPAMSTATE: clean
-X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvledrudeiuddgkeeiucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvfevufffkfgjfhgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepledtieekkeekveeikeetgffgteeuteefjeevjeegudelvdduheeiuedvieehieevnecuffhomhgrihhnpehgihhthhhusgdrtghomhenucfkphepudelhedrudefiedrudelrdelgeenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpeduleehrddufeeirdduledrleegpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhnsggprhgtphhtthhopeegpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheprhhosggvrhhtrdhmohhorhgvsehinhhtvghlrdgtohhmpdhrtghpthhtohepshgrkhgvthdrughumhgsrhgvsehinhhtvghlrdgtohhm
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvledrudeiuddgkeejucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvfevufffkfgjfhgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepledtieekkeekveeikeetgffgteeuteefjeevjeegudelvdduheeiuedvieehieevnecuffhomhgrihhnpehgihhthhhusgdrtghomhenucfkphepudelhedrudefiedrudelrdelgeenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpeduleehrddufeeirdduledrleegpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhnsggprhgtphhtthhopeegpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheprhhosggvrhhtrdhmohhorhgvsehinhhtvghlrdgtohhmpdhrtghpthhtohepshgrkhgvthdrughumhgsrhgvsehinhhtvghlrdgtohhm
 X-DCC--Metrics: v370.home.net.pl 1024; Body=4 Fuz1=4 Fuz2=4
 
-From: Daniil Tatianin <99danilt@gmail.com>
+From: Saket Dumbre <saket.dumbre@intel.com>
 
-ACPICA commit ba8a36b5c7343cb56af6b331362e97b25e898eb2
+ACPICA commit a6a236c44c7d3eb54562fb5ddde4144d8347e0ac
 
-This was used to log the number of newly discovered GPEs post table
-load in acpi_ev_update_gpes(), but we never incremented the number inside
-acpi_ev_match_gpe_method(), so that was never logged.
+Clean up the fix for Issue #900.
 
-Link: https://github.com/acpica/acpica/commit/ba8a36b5
-Signed-off-by: Daniil Tatianin <99danilt@gmail.com>
+Link: https://github.com/acpica/acpica/commit/a6a236c4
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/acpica/evgpeinit.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/acpi/acpica/utdebug.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpica/evgpeinit.c b/drivers/acpi/acpica/evgpeinit.c
-index 0dbc4d88919a..38f408cf13ce 100644
---- a/drivers/acpi/acpica/evgpeinit.c
-+++ b/drivers/acpi/acpica/evgpeinit.c
-@@ -413,6 +413,7 @@ acpi_ev_match_gpe_method(acpi_handle obj_handle,
- 	gpe_event_info->flags &= ~(ACPI_GPE_DISPATCH_MASK);
- 	gpe_event_info->flags |= (u8)(type | ACPI_GPE_DISPATCH_METHOD);
- 	gpe_event_info->dispatch.method_node = method_node;
-+	walk_info->count++;
+diff --git a/drivers/acpi/acpica/utdebug.c b/drivers/acpi/acpica/utdebug.c
+index 98027d2f7bfb..3d71bd9245c7 100644
+--- a/drivers/acpi/acpica/utdebug.c
++++ b/drivers/acpi/acpica/utdebug.c
+@@ -67,7 +67,7 @@ void acpi_ut_track_stack_ptr(void)
+ #pragma GCC diagnostic ignored "-Wdangling-pointer="
+ #endif
+ 		acpi_gbl_lowest_stack_pointer = &current_sp;
+-#pragma GCC diagnostic popmake
++#pragma GCC diagnostic pop
+ 	}
  
- 	ACPI_DEBUG_PRINT((ACPI_DB_LOAD,
- 			  "Registered GPE method %s as GPE number 0x%.2X\n",
+ 	if (acpi_gbl_nesting_level > acpi_gbl_deepest_nesting) {
 -- 
 2.35.3
 
