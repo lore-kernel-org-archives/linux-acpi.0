@@ -1,139 +1,78 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.14])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.16])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F475139F;
-	Wed, 17 Apr 2024 08:45:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.14
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7BB5C13C675;
+	Wed, 17 Apr 2024 10:38:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.16
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713343555; cv=none; b=mJaMjywzc+juoQ1c8vZ4KzeJO/L2Zsuf9bevbsjHehMxaCR4wMhol1AjeJXbF0mz9Yj25Cn2Szc/LRHsTGS/BZquuY/PZG/F5xHXb4gUITKCM0WUWRRq/utH1MpxIClOkp8PzW2SoP8sGMCgNfrV3VB+xhbQoRDISgX19BZLyiM=
+	t=1713350316; cv=none; b=WBxGNSSIGIpmf966M1VuC775jghX7+ppuiMyAU1olFieMQaVtEeWHUMXeGQIaz4O7hfx9OfjEH2Ysw/G8HO5LM5sETuk2dombJSHTKRYatVaGnDu0dcuDqgJqPc+ti9Y00OdMvPorS8iFiyvfo+ooQKn5kbpbd9217jCJSTGRuk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713343555; c=relaxed/simple;
-	bh=DGDR1TQ4GEjxmU4I2WPT0qXg9Na4g1DIFeR8IF/YkD0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=as9avO8z9rZHw/F6aCZ/gwB8pdPExHPDYwfsoqOv7toRKZtqkyNaCsVlrC+JitdBlXsjpOEx2Ipy6XRX/jYha5kqnBmSyAYdSts/6nWtug3D0WskcJTl2/tRfyDU5gRscbFaQnYvY1ka9Pj6xrJjLeqSKnGa3eg3I/+9wJyvK2w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=O4TxVyDj; arc=none smtp.client-ip=192.198.163.14
+	s=arc-20240116; t=1713350316; c=relaxed/simple;
+	bh=F9UqnodzBIeYgsNxxhT57u+9cZfmEUsgk8l6hGT4o+8=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=pkpdqZIyasUy/LMiqsjpceG3yz1sWwP6R8YxuXz3UwkoeogTStnpmWZd1cnhqrXGWfUdBDUptbyLrUzh6f9a2duCPX6eEnSZjUovU9Td4P6+YjQYfCz9zH74P7MZWbxkXgxpvleYcTPhfc3D2YlQWPGUefcClj3yEraffST4Ae8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=eL7KmI7k; arc=none smtp.client-ip=192.198.163.16
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="O4TxVyDj"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="eL7KmI7k"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1713343554; x=1744879554;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:content-transfer-encoding:in-reply-to;
-  bh=DGDR1TQ4GEjxmU4I2WPT0qXg9Na4g1DIFeR8IF/YkD0=;
-  b=O4TxVyDjf8GNGl0zqJOWEPEqjxdJ9iba+xWO6bn18OHZGAMr6VU2Odin
-   W1/W6+NlRM+FjbhnVrImw93fYzWLNhRfl/eyD6xki6HbAu0zzuS+BnloW
-   +T0o4gLEeFAU/CcLMxSrYkmr0EpcgPUOnJXKMeyGIBQJKUKLAwwtvzw94
-   N/z3DeC9cMLXonDIoYR7mA9RF1Cmtj5FslQIcGMWsL2ire0ANcUV/tztn
-   omDH857puFHCLCIy3fdIYNCIVDXM7pguBLb04knnwqE2VFiKXseTYBBCW
-   /Eee2jjB3sFVdWoNTCdanzbAr0ymiF/deLle5bsLm8zPXiRm6eO9U3Sum
+  t=1713350315; x=1744886315;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=F9UqnodzBIeYgsNxxhT57u+9cZfmEUsgk8l6hGT4o+8=;
+  b=eL7KmI7kEAWtw9icdmgz2Un7Qev39+BY/+rsECViqjWSDYjorNosmnIh
+   ctAoqrZO2+u41ZGCCU2dMTweZvHnq/AT3mHSZZLOxVxUceFfyufL1ucCz
+   u+wThyYmplWd9Md/uB9B0+MZ2HBO0+h/ENFGcMjw/V2dgRVfTTbk+iccA
+   SVthCzoisA5jvTZi8q9e9BBhpvu9DifpHv1e7iBpnsDvhmaN2Unm7NmaI
+   1K5UkXM9FIA+NwIhcQGWf+H5RjzxFg+HZxiOe0QPQyLKGgzZ4s2PciPn6
+   38sxrNXFgozEyqUpCfO1AVnd34QTt+Ws1fJIOBPHLyVSGckiZVCWKKC0i
    g==;
-X-CSE-ConnectionGUID: S6D2uqSZSemEaRVoq8TyIQ==
-X-CSE-MsgGUID: lo/vW5hFT3SG50PRULtfvA==
-X-IronPort-AV: E=McAfee;i="6600,9927,11046"; a="9042939"
-X-IronPort-AV: E=Sophos;i="6.07,208,1708416000"; 
-   d="scan'208";a="9042939"
-Received: from orviesa002.jf.intel.com ([10.64.159.142])
-  by fmvoesa108.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Apr 2024 01:45:46 -0700
-X-CSE-ConnectionGUID: ECKDBFvHTOS9kjeT29b6JQ==
-X-CSE-MsgGUID: VqHYRbHcT+eYQVnX3Br7UQ==
+X-CSE-ConnectionGUID: HNuikW6wQdKj6MIDxS1YDg==
+X-CSE-MsgGUID: jwdlDio7QhKJOFHwe0fGGg==
+X-IronPort-AV: E=McAfee;i="6600,9927,11046"; a="9384038"
+X-IronPort-AV: E=Sophos;i="6.07,209,1708416000"; 
+   d="scan'208";a="9384038"
+Received: from orviesa003.jf.intel.com ([10.64.159.143])
+  by fmvoesa110.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Apr 2024 03:38:34 -0700
+X-CSE-ConnectionGUID: wbu1214bSzKZ7VaRKKORSQ==
+X-CSE-MsgGUID: W7sFZuTHRKani18F0+sWJw==
 X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.07,208,1708416000"; 
-   d="scan'208";a="53520463"
-Received: from smile.fi.intel.com ([10.237.72.54])
-  by orviesa002.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Apr 2024 01:45:40 -0700
-Received: from andy by smile.fi.intel.com with local (Exim 4.97)
-	(envelope-from <andriy.shevchenko@linux.intel.com>)
-	id 1rx0vA-00000004y1K-2EOo;
-	Wed, 17 Apr 2024 11:45:36 +0300
-Date: Wed, 17 Apr 2024 11:45:36 +0300
+X-IronPort-AV: E=Sophos;i="6.07,209,1708416000"; 
+   d="scan'208";a="27257833"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by orviesa003.jf.intel.com with ESMTP; 17 Apr 2024 03:38:31 -0700
+Received: by black.fi.intel.com (Postfix, from userid 1003)
+	id 8C935491; Wed, 17 Apr 2024 13:38:30 +0300 (EEST)
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Bartosz Golaszewski <brgl@bgdev.pl>
-Cc: Linus Walleij <linus.walleij@linaro.org>,
-	Rob Herring <robh+dt@kernel.org>,
-	Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
-	Bartosz Golaszewski <bartosz.golaszewski@linaro.org>,
-	Kent Gibson <warthog618@gmail.com>, linux-gpio@vger.kernel.org,
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-wireless@vger.kernel.org, brcm80211@lists.linux.dev,
-	brcm80211-dev-list.pdl@broadcom.com,
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
 	Mika Westerberg <mika.westerberg@linux.intel.com>,
-	Arend van Spriel <arend.vanspriel@broadcom.com>,
-	Kalle Valo <kvalo@kernel.org>,
-	Charles Keepax <ckeepax@opensource.cirrus.com>
-Subject: Re: [PATCH v2 1/2] gpiolib: Fix a mess with the GPIO_* flags
-Message-ID: <Zh-MMAjf6hhNOCpL@smile.fi.intel.com>
-References: <20240408231727.396452-1-andriy.shevchenko@linux.intel.com>
- <20240408231727.396452-2-andriy.shevchenko@linux.intel.com>
- <CACRpkdYaXVvtt3b9rFxU4ZNShD17Bm4XU9X3h4dY501iJy3kPA@mail.gmail.com>
- <ZhlSaFWlbE6OS7om@smile.fi.intel.com>
- <CAMRc=Me489H-mTfT1hfUsY47iKwoaVsf6sgkiBwBVkxJOBo9UA@mail.gmail.com>
- <CACRpkdZRp-DFQgb3=Ut27DHd1w11_aEY0HbLjJHob=C5Ek-dyw@mail.gmail.com>
- <Zh6FkejXcwBTAqIR@smile.fi.intel.com>
- <CAMRc=MeXV4_MT5_DKYtHqO+324dFJnr+Y1UtR9w9mj-y2OOqAw@mail.gmail.com>
+	linux-gpio@vger.kernel.org,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: Linus Walleij <linus.walleij@linaro.org>,
+	Bartosz Golaszewski <brgl@bgdev.pl>
+Subject: [PATCH v1 0/2] gpiolib: acpi: Improve IRQ labeling
+Date: Wed, 17 Apr 2024 13:37:26 +0300
+Message-ID: <20240417103829.2324960-1-andriy.shevchenko@linux.intel.com>
+X-Mailer: git-send-email 2.43.0.rc1.1336.g36b5255a03ac
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAMRc=MeXV4_MT5_DKYtHqO+324dFJnr+Y1UtR9w9mj-y2OOqAw@mail.gmail.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 
-On Tue, Apr 16, 2024 at 11:07:58PM +0200, Bartosz Golaszewski wrote:
-> On Tue, Apr 16, 2024 at 4:05 PM Andy Shevchenko
-> <andriy.shevchenko@linux.intel.com> wrote:
-> >
-> > On Tue, Apr 16, 2024 at 02:22:09PM +0200, Linus Walleij wrote:
-> > > On Fri, Apr 12, 2024 at 9:44 PM Bartosz Golaszewski <brgl@bgdev.pl> wrote:
-> > >
-> > > > IIUC include/dt-bindings/ headers should only be used by DT sources
-> > > > and code that parses the OF properties.
-> > >
-> > > That's what I have come to understand as well.
-> > >
-> > > I wonder if there is something that can be done to enforce it?
-> > >
-> > > Ideally the code that parses OF properties should have to
-> > > opt in to get access to the <dt-bindings/*> namespace.
-> >
-> > Whatever you, guys, come up with as a solution, can it be fixed sooner than later?
-> > I mean, I would appreciate if somebody got it done for v6.9-rcX/v6.10-rc1 so we don't
-> > need to look into this again.
-> 
-> I'm not sure you got what I was saying. I don't think this can be
-> fixed quickly. This is just another bunch of technical debt that will
-> have to be addressed carefully on a case-by-case basis and run through
-> autobuilders in all possible configurations.
-> 
-> This type of include-related issues is always brittle and will lead to
-> build failures if we don't consider our moves.
+The IRQ labeling now is quite ambiguous, improve it here.
 
-I proposed a quick fix which was rejected. I think this is still doable in a
-few steps:
+Andy Shevchenko (2):
+  gpiolib: acpi: Add fwnode name to the GPIO interrupt label
+  gpiolib: acpi: Set label for IRQ only lines
 
-- align constant values in DT and enum
-- drop usage of DT in the kernel code (That's what you want IIUC, however
-  I disagree with this from technical perspective as DT constants can be used
-  in the code as long as they are mapped 1:1 to what code does. That's current
-  state of affairs. OTOH semantically this may be an issue.)
-- restore enum usage treewide (?)
-
-Again, the problem now is only in open source / open drain configurations
-and there are only a few users of these flags _in kernel_. I do not see
-why it can not be done in one or two evenings time range.
-
-P.S>
-Most of the time I spent when prepared the proposed fix is digging the history
-and trying to understand how comes that we have desynchronisation of the values
-over the time. The output of that is the list of Fixes tags.
+ drivers/gpio/gpiolib-acpi.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
 -- 
-With Best Regards,
-Andy Shevchenko
-
+2.43.0.rc1.1336.g36b5255a03ac
 
