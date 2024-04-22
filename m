@@ -1,147 +1,130 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4FFC13D607
-	for <linux-acpi@vger.kernel.org>; Mon, 22 Apr 2024 10:02:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B6E5146D46;
+	Mon, 22 Apr 2024 10:39:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713780153; cv=none; b=ICArAHB/5c77Dg7GqJOXLBr1tIJFuDNe7PYVAQPleWW52F/+3W/+RRGOHiY7yFSbkDVYjWCw1PMTaN7WnHYMbafSVTp+sm4Jyv9og3JQE7+3/H+dpIt3zXQrR3IZAEOCxpjinmxM4VnddOTCkysbGo/0WPFzVmYPtIqaRNWWrfY=
+	t=1713782362; cv=none; b=WPH1t3tbL9B/m0Y5hwzJoJwqk81JWvquxnw0HDvbRO67s9w0sBEIplY6AFnuIXs/Ic/CmY8VETcW6OHnEvYjvPID34moSmflklas83SC778t4VIw72XT2ukObQZEUphhIZFyelsoaUNe97oHaEFMor8q30AH+xho0bL1jyXEtXI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713780153; c=relaxed/simple;
-	bh=JRLv+7c6/54HDoGYrbdHXHSK8O4NnP+tTLDS2tZlvxk=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=YgYCEMjG2wgg7JykbmTFiA4HaTVB+PXnM2jVSYkDFNtKQJ5wEoFGqhwAwv48cKQWZmmvwN/3TJPiPtC+iUtaw90oRk2RT3afDVIi+XHIvioiOv7fCMkry5Jw8xUCv6GrrZMdD5lXEKS4L6l/3LqGD/yv6IYQ0DmiODuEfStReUA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=E+wa/HXb; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="E+wa/HXb"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1713780150;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=bCvduDYfaBEzJg7iPTcnkiyhAz7LjPATOqpFPP2ip+k=;
-	b=E+wa/HXbsA35G55AUkQz/iabalCCnkW+b4KQdSAhIoekaug0alo1uZq0qf9XE4bqerXtdb
-	ZgP332i04PLbCV+pcBJTrIR63Ytrz5wmEYywvfClR8TvW5SfIqYipEBZ7xJ9qeMd/1tnzP
-	eqGqQp/XRDeNnJUvL4ey7b87R5N7ZQk=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-589-Xn71PnciPfS0PSnNXqt9Fg-1; Mon, 22 Apr 2024 06:02:26 -0400
-X-MC-Unique: Xn71PnciPfS0PSnNXqt9Fg-1
-Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.rdu2.redhat.com [10.11.54.5])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 1DDC1811003;
-	Mon, 22 Apr 2024 10:02:26 +0000 (UTC)
-Received: from x1.localdomain.com (unknown [10.39.192.177])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id 3508F44049;
-	Mon, 22 Apr 2024 10:02:25 +0000 (UTC)
-From: Hans de Goede <hdegoede@redhat.com>
-To: Jonathan Cameron <jic23@kernel.org>
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Sean Rhodes <sean@starlabs.systems>,
-	"Rafael J . Wysocki" <rafael@kernel.org>,
-	linux-iio@vger.kernel.org,
-	linux-acpi@vger.kernel.org
-Subject: [PATCH v2 3/4] iio: bmc150-accel-core: Use acpi_read_mount_matrix() helper
-Date: Mon, 22 Apr 2024 12:02:17 +0200
-Message-ID: <20240422100218.7693-4-hdegoede@redhat.com>
-In-Reply-To: <20240422100218.7693-1-hdegoede@redhat.com>
-References: <20240422100218.7693-1-hdegoede@redhat.com>
+	s=arc-20240116; t=1713782362; c=relaxed/simple;
+	bh=JqE3ylYWKarL5FDsaFXHHjgdDBTPGkxZWyvz1pBSwRY=;
+	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=tZvr1uUiE1xKovsTXYa3hGaj1A7xUS7rXUqCMNUQqX0O3UOGu3QWQP/+DSQANOD4Vlae9kXouzRzVyCUZOwsQ2JlaOe6CP1iLMFzOeORCJMwLbMIpcJgpHRyV+VekKAUiAjoH6we9zEmpozLRuUNpE+iI38Ww7onKod8YLa+vdw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.18.186.231])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4VNMBM0NFfz6JBRQ;
+	Mon, 22 Apr 2024 18:36:59 +0800 (CST)
+Received: from lhrpeml500005.china.huawei.com (unknown [7.191.163.240])
+	by mail.maildlp.com (Postfix) with ESMTPS id 928E1140CB1;
+	Mon, 22 Apr 2024 18:39:12 +0800 (CST)
+Received: from localhost (10.202.227.76) by lhrpeml500005.china.huawei.com
+ (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.35; Mon, 22 Apr
+ 2024 11:39:11 +0100
+Date: Mon, 22 Apr 2024 11:39:10 +0100
+From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+To: Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra
+	<peterz@infradead.org>, <linux-pm@vger.kernel.org>,
+	<loongarch@lists.linux.dev>, <linux-acpi@vger.kernel.org>,
+	<linux-arch@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>, <kvmarm@lists.linux.dev>,
+	<x86@kernel.org>, Russell King <linux@armlinux.org.uk>, "Rafael J . Wysocki"
+	<rafael@kernel.org>, Miguel Luis <miguel.luis@oracle.com>, "James Morse"
+	<james.morse@arm.com>, Salil Mehta <salil.mehta@huawei.com>, Jean-Philippe
+ Brucker <jean-philippe@linaro.org>, Catalin Marinas
+	<catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
+	<linuxarm@huawei.com>
+CC: Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "Dave
+ Hansen" <dave.hansen@linux.intel.com>, <justin.he@arm.com>,
+	<jianyong.wu@arm.com>, Marc Zyngier <maz@kernel.org>
+Subject: Re: [PATCH v7 10/16] irqchip/gic-v3: Don't return errors from
+ gic_acpi_match_gicc()
+Message-ID: <20240422113839.00000cde@huawei.com>
+In-Reply-To: <20240418135412.14730-11-Jonathan.Cameron@huawei.com>
+References: <20240418135412.14730-1-Jonathan.Cameron@huawei.com>
+	<20240418135412.14730-11-Jonathan.Cameron@huawei.com>
+Organization: Huawei Technologies Research and Development (UK) Ltd.
+X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.4.1 on 10.11.54.5
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: lhrpeml100006.china.huawei.com (7.191.160.224) To
+ lhrpeml500005.china.huawei.com (7.191.163.240)
 
-Replace the duplicate ACPI "ROTM" data parsing code with the new
-shared acpi_read_mount_matrix() helper.
+On Thu, 18 Apr 2024 14:54:06 +0100
+Jonathan Cameron <Jonathan.Cameron@huawei.com> wrote:
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/iio/accel/bmc150-accel-core.c | 45 ++-------------------------
- 1 file changed, 3 insertions(+), 42 deletions(-)
+> From: James Morse <james.morse@arm.com>
+> 
+> gic_acpi_match_gicc() is only called via gic_acpi_count_gicr_regions().
+> It should only count the number of enabled redistributors, but it
+> also tries to sanity check the GICC entry, currently returning an
+> error if the Enabled bit is set, but the gicr_base_address is zero.
+> 
+> Adding support for the online-capable bit to the sanity check will
+> complicate it, for no benefit. The existing check implicitly depends on
+> gic_acpi_count_gicr_regions() previous failing to find any GICR regions
+> (as it is valid to have gicr_base_address of zero if the redistributors
+> are described via a GICR entry).
+> 
+> Instead of complicating the check, remove it. Failures that happen at
+> this point cause the irqchip not to register, meaning no irqs can be
+> requested. The kernel grinds to a panic() pretty quickly.
+> 
+> Without the check, MADT tables that exhibit this problem are still
+> caught by gic_populate_rdist(), which helpfully also prints what went
+> wrong:
+> | CPU4: mpidr 100 has no re-distributor!
+> 
+> Signed-off-by: James Morse <james.morse@arm.com>
+> Reviewed-by: Gavin Shan <gshan@redhat.com>
+> Signed-off-by: Russell King (Oracle) <rmk+kernel@armlinux.org.uk>
+> Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+> Signed-off-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 
-diff --git a/drivers/iio/accel/bmc150-accel-core.c b/drivers/iio/accel/bmc150-accel-core.c
-index 110591804b4c..ace550b0ba40 100644
---- a/drivers/iio/accel/bmc150-accel-core.c
-+++ b/drivers/iio/accel/bmc150-accel-core.c
-@@ -23,6 +23,7 @@
- #include <linux/regmap.h>
- #include <linux/regulator/consumer.h>
- 
-+#include "acpi-helpers.h"
- #include "bmc150-accel.h"
- 
- #define BMC150_ACCEL_DRV_NAME			"bmc150_accel"
-@@ -386,13 +387,9 @@ static int bmc150_accel_set_power_state(struct bmc150_accel_data *data, bool on)
- static bool bmc150_apply_bosc0200_acpi_orientation(struct device *dev,
- 						   struct iio_mount_matrix *orientation)
- {
--	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
- 	struct iio_dev *indio_dev = dev_get_drvdata(dev);
- 	struct acpi_device *adev = ACPI_COMPANION(dev);
--	char *name, *alt_name, *label, *str;
--	union acpi_object *obj, *elements;
--	acpi_status status;
--	int i, j, val[3];
-+	char *name, *alt_name, *label;
- 
- 	if (strcmp(dev_name(dev), "i2c-BOSC0200:base") == 0) {
- 		alt_name = "ROMK";
-@@ -411,43 +408,7 @@ static bool bmc150_apply_bosc0200_acpi_orientation(struct device *dev,
- 		return false;
- 	}
- 
--	status = acpi_evaluate_object(adev->handle, name, NULL, &buffer);
--	if (ACPI_FAILURE(status)) {
--		dev_warn(dev, "Failed to get ACPI mount matrix: %d\n", status);
--		return false;
--	}
--
--	obj = buffer.pointer;
--	if (obj->type != ACPI_TYPE_PACKAGE || obj->package.count != 3)
--		goto unknown_format;
--
--	elements = obj->package.elements;
--	for (i = 0; i < 3; i++) {
--		if (elements[i].type != ACPI_TYPE_STRING)
--			goto unknown_format;
--
--		str = elements[i].string.pointer;
--		if (sscanf(str, "%d %d %d", &val[0], &val[1], &val[2]) != 3)
--			goto unknown_format;
--
--		for (j = 0; j < 3; j++) {
--			switch (val[j]) {
--			case -1: str = "-1"; break;
--			case 0:  str = "0";  break;
--			case 1:  str = "1";  break;
--			default: goto unknown_format;
--			}
--			orientation->rotation[i * 3 + j] = str;
--		}
--	}
--
--	kfree(buffer.pointer);
--	return true;
--
--unknown_format:
--	dev_warn(dev, "Unknown ACPI mount matrix format, ignoring\n");
--	kfree(buffer.pointer);
--	return false;
-+	return acpi_read_mount_matrix(dev, orientation, name);
- }
- 
- static bool bmc150_apply_dual250e_acpi_orientation(struct device *dev,
--- 
-2.44.0
+I've been focused on the ACPI aspects until now, but now realize that this
+and the next patch should have included the GIC maintainer in the
+to list. I'll fix that for future versions, but for now
+
++CC Marc.
+> ---
+> v7: No change
+> ---
+>  drivers/irqchip/irq-gic-v3.c | 13 ++-----------
+>  1 file changed, 2 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/irqchip/irq-gic-v3.c b/drivers/irqchip/irq-gic-v3.c
+> index 6fb276504bcc..10af15f93d4d 100644
+> --- a/drivers/irqchip/irq-gic-v3.c
+> +++ b/drivers/irqchip/irq-gic-v3.c
+> @@ -2415,19 +2415,10 @@ static int __init gic_acpi_match_gicc(union acpi_subtable_headers *header,
+>  	 * If GICC is enabled and has valid gicr base address, then it means
+>  	 * GICR base is presented via GICC
+>  	 */
+> -	if (acpi_gicc_is_usable(gicc) && gicc->gicr_base_address) {
+> +	if (acpi_gicc_is_usable(gicc) && gicc->gicr_base_address)
+>  		acpi_data.enabled_rdists++;
+> -		return 0;
+> -	}
+>  
+> -	/*
+> -	 * It's perfectly valid firmware can pass disabled GICC entry, driver
+> -	 * should not treat as errors, skip the entry instead of probe fail.
+> -	 */
+> -	if (!acpi_gicc_is_usable(gicc))
+> -		return 0;
+> -
+> -	return -ENODEV;
+> +	return 0;
+>  }
+>  
+>  static int __init gic_acpi_count_gicr_regions(void)
 
