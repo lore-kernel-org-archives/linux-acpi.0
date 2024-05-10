@@ -1,119 +1,168 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA173127E18;
-	Fri, 10 May 2024 13:31:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCBFC171E70;
+	Fri, 10 May 2024 14:05:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=79.96.170.134
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715347909; cv=none; b=XbBiuOYDBvftRKYTEsQM7xrRtcR+zcibP8keAHltVmx5Jf/k9QSRHgXPzqrQ8rVL/KlM4u3AWZd0HyB1TlA69PsTbKIAdp7lDM98vdtutHMUQiRvnjP0YhZeoflpxJX7wiBgbL2dIsxqQCfZiHrZZOmKrFdFa8nhCchOx7X9N2s=
+	t=1715349904; cv=none; b=dUn98AXlH8nF6Be9JuMTOqYLJwuDoWiFYrJ/4WYRD+G1bO9/Mu/gooawy8drzSnEXMOevk6vWeehxvswCuDYENKWx3tb4eZL5nHSNxy7uOCz9102e1uai6t7MyYd/zcqy3uKPu4tdxqzwE+J5EE1LRp4WPwrcdiKtRO42DhpaNs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1715347909; c=relaxed/simple;
-	bh=QDeUIilVTn4GdjQ9ikQzbhB+jiyiep3X6WCQDzncYZI=;
-	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=VWHJSuyLO1MdCu0b3cKrfeWJwIMB0gC4PKH+Qi/AjqVPm1m7JpFC1JwTnr0lD2pFtrgs/Rv0LGkDvrdPhr49tQ0LxoMa5JKJIBvp2klOgSO1mi22SS9OQq44YG9C3W93xYOXRr4RFMSskk1eHFsfDcQBjWWw0lVB6ppJ/mbpT0Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.186.231])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4VbV7z4xFKz6K5ks;
-	Fri, 10 May 2024 21:28:31 +0800 (CST)
-Received: from lhrpeml500005.china.huawei.com (unknown [7.191.163.240])
-	by mail.maildlp.com (Postfix) with ESMTPS id C21D61400D4;
-	Fri, 10 May 2024 21:31:43 +0800 (CST)
-Received: from localhost (10.202.227.76) by lhrpeml500005.china.huawei.com
- (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Fri, 10 May
- 2024 14:31:42 +0100
-Date: Fri, 10 May 2024 14:31:41 +0100
-From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-To: Borislav Petkov <bp@alien8.de>
-CC: Shiju Jose <shiju.jose@huawei.com>, "linux-cxl@vger.kernel.org"
-	<linux-cxl@vger.kernel.org>, "linux-acpi@vger.kernel.org"
-	<linux-acpi@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>,
-	"dan.j.williams@intel.com" <dan.j.williams@intel.com>, "dave@stgolabs.net"
-	<dave@stgolabs.net>, "dave.jiang@intel.com" <dave.jiang@intel.com>,
-	"alison.schofield@intel.com" <alison.schofield@intel.com>,
-	"vishal.l.verma@intel.com" <vishal.l.verma@intel.com>, "ira.weiny@intel.com"
-	<ira.weiny@intel.com>, "linux-edac@vger.kernel.org"
-	<linux-edac@vger.kernel.org>, "linux-kernel@vger.kernel.org"
-	<linux-kernel@vger.kernel.org>, "david@redhat.com" <david@redhat.com>,
-	"Vilas.Sridharan@amd.com" <Vilas.Sridharan@amd.com>, "leo.duran@amd.com"
-	<leo.duran@amd.com>, "Yazen.Ghannam@amd.com" <Yazen.Ghannam@amd.com>,
-	"rientjes@google.com" <rientjes@google.com>, "jiaqiyan@google.com"
-	<jiaqiyan@google.com>, "tony.luck@intel.com" <tony.luck@intel.com>,
-	"Jon.Grimm@amd.com" <Jon.Grimm@amd.com>, "dave.hansen@linux.intel.com"
-	<dave.hansen@linux.intel.com>, "rafael@kernel.org" <rafael@kernel.org>,
-	"lenb@kernel.org" <lenb@kernel.org>, "naoya.horiguchi@nec.com"
-	<naoya.horiguchi@nec.com>, "james.morse@arm.com" <james.morse@arm.com>,
-	"jthoughton@google.com" <jthoughton@google.com>, "somasundaram.a@hpe.com"
-	<somasundaram.a@hpe.com>, "erdemaktas@google.com" <erdemaktas@google.com>,
-	"pgonda@google.com" <pgonda@google.com>, "duenwen@google.com"
-	<duenwen@google.com>, "mike.malvestuto@intel.com"
-	<mike.malvestuto@intel.com>, "gthelen@google.com" <gthelen@google.com>,
-	"wschwartz@amperecomputing.com" <wschwartz@amperecomputing.com>,
-	"dferguson@amperecomputing.com" <dferguson@amperecomputing.com>,
-	"wbs@os.amperecomputing.com" <wbs@os.amperecomputing.com>,
-	"nifan.cxl@gmail.com" <nifan.cxl@gmail.com>, tanxiaofei
-	<tanxiaofei@huawei.com>, "Zengtao (B)" <prime.zeng@hisilicon.com>,
-	"kangkang.shen@futurewei.com" <kangkang.shen@futurewei.com>, wanghuiqiang
-	<wanghuiqiang@huawei.com>, Linuxarm <linuxarm@huawei.com>, "Greg
- Kroah-Hartman" <gregkh@linuxfoundation.org>, Jean Delvare
-	<jdelvare@suse.com>, Guenter Roeck <linux@roeck-us.net>, Dmitry Torokhov
-	<dmitry.torokhov@gmail.com>
-Subject: Re: [RFC PATCH v8 01/10] ras: scrub: Add scrub subsystem
-Message-ID: <20240510143141.000042da@Huawei.com>
-In-Reply-To: <D9511DC1-1566-473A-A426-111BB1F7F9F0@alien8.de>
-References: <20240419164720.1765-1-shiju.jose@huawei.com>
-	<20240419164720.1765-2-shiju.jose@huawei.com>
-	<20240425101542.GAZiotThrq7bOE9Ieb@fat_crate.local>
-	<63fdbe26b51f4b7c859bfb30287c8673@huawei.com>
-	<20240506103014.GHZjixNhhFkgkMhDg_@fat_crate.local>
-	<e0ce36eb80054440ab877ccee4e606de@huawei.com>
-	<20240508172002.GGZju0QvNfjB7Xm6qL@fat_crate.local>
-	<4ceb38897d854cc095fca1220d49a4d2@huawei.com>
-	<20240508192546.GHZjvRuvtu0XSJbkmz@fat_crate.local>
-	<20240509101939.0000263a@Huawei.com>
-	<D9511DC1-1566-473A-A426-111BB1F7F9F0@alien8.de>
-Organization: Huawei Technologies Research and Development (UK) Ltd.
-X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
+	s=arc-20240116; t=1715349904; c=relaxed/simple;
+	bh=AigkgpHRx5u5xY7r4e5L9K+exbczmphxJ+c+WCFIIDE=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=LiLfW93R5zzkVDCzv0Id4KXEnBMhKF2z0oJPkjUiWwqgj0WTBBN9rCAKMGGRqWBeL9YC8f1lsD0WOCSOHLbjE4Qb6kjClaWLF79l0MQA7Ls0Y899/UVCFrh7vaDLGEI5E47NCpY03zVhb8xbkHeS33tWA9kO1386v+ukno2ACVk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net; spf=pass smtp.mailfrom=rjwysocki.net; dkim=fail (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b=MjV+YDeh reason="signature verification failed"; arc=none smtp.client-ip=79.96.170.134
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rjwysocki.net
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b="MjV+YDeh"
+Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
+ by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 6.0.0)
+ id a7fd470ac8d4b3c8; Fri, 10 May 2024 16:04:59 +0200
+Received: from kreacher.localnet (unknown [195.136.19.94])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by cloudserver094114.home.pl (Postfix) with ESMTPSA id BA58821031DA;
+	Fri, 10 May 2024 16:04:58 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=rjwysocki.net;
+	s=dkim; t=1715349899;
+	bh=AigkgpHRx5u5xY7r4e5L9K+exbczmphxJ+c+WCFIIDE=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=MjV+YDehwUHtsp2lTEOQugh+oqzekHf0mRoM2nu0a17A2RM7kZs3vyRTU35Do+hs9
+	 DHdTCxVRFTKtm63K8uACJc006JsyFeySnRtNc0nv+r9/kBz/gIEURLtXTAZUqn7wpL
+	 uydkDZ1qIj9e2pjXc1SDpP0l4pqYhd3y/dFeY4GuGpBO5hrQm8Z88y+wY65+LhMyWn
+	 hXxs161oUdoaBPAFQfz3M1UccJ5En0Ou14sPaKNsiFkkkV7QtNiK6sgIAYIjQ/WnHR
+	 K7gL05hWpvhc3WYU9tND39Fckvt7Ac3Emda3ZIghPmZeZA0RGmpxMLE7zKgJp8YD5s
+	 3fNhOKWjU1HIw==
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+ Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+ Hans de Goede <hdegoede@redhat.com>,
+ Mario Limonciello <mario.limonciello@amd.com>, Armin Wolf <w_armin@gmx.de>,
+ Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject:
+ [PATCH v1 2/2] platform/x86: wmi: Remove custom EC address space handler
+Date: Fri, 10 May 2024 16:04:50 +0200
+Message-ID: <2332870.ElGaqSPkdT@kreacher>
+In-Reply-To: <5787281.DvuYhMxLoT@kreacher>
+References: <5787281.DvuYhMxLoT@kreacher>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml500005.china.huawei.com (7.191.163.240) To
- lhrpeml500005.china.huawei.com (7.191.163.240)
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+X-CLIENT-IP: 195.136.19.94
+X-CLIENT-HOSTNAME: 195.136.19.94
+X-VADE-SPAMSTATE: clean
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvledrvdefkedgjedvucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvfevufffkfgjfhgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepvdffueeitdfgvddtudegueejtdffteetgeefkeffvdeftddttdeuhfegfedvjefhnecukfhppeduleehrddufeeirdduledrleegnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehinhgvthepudelhedrudefiedrudelrdelgedphhgvlhhopehkrhgvrggthhgvrhdrlhhotggrlhhnvghtpdhmrghilhhfrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqedpnhgspghrtghpthhtohepjedprhgtphhtthhopehlihhnuhigqdgrtghpihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopegrnhgurhhihidrshhhvghvtghhvghnkhhosehlihhnuhigrdhinhhtvghlrdgtohhmpdhrtghpthhtohephhguvghgohgvuggvsehrvgguhhgrthdrtghomhdprhgtphhtthhopehmrghrihhordhlihhmohhntghivghllhhosegrmhgurdgtohhmpdhrtghpthhtohepfigprghrmhhinhesghhmgidruggv
+X-DCC--Metrics: v370.home.net.pl 1024; Body=7 Fuz1=7 Fuz2=7
+
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+The custom EC address space handler in the WMI driver was only needed
+because the EC driver did not install its address space handler for
+EC operation regions beyond the EC device scope in the ACPI namespace.
+
+That has just changed, so the custom EC address handler is not needed
+any more and it can be removed.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/platform/x86/wmi.c |   62 ---------------------------------------------
+ 1 file changed, 62 deletions(-)
+
+Index: linux-pm/drivers/platform/x86/wmi.c
+===================================================================
+--- linux-pm.orig/drivers/platform/x86/wmi.c
++++ linux-pm/drivers/platform/x86/wmi.c
+@@ -1153,47 +1153,6 @@ static int parse_wdg(struct device *wmi_
+ 	return 0;
+ }
+ 
+-/*
+- * WMI can have EmbeddedControl access regions. In which case, we just want to
+- * hand these off to the EC driver.
+- */
+-static acpi_status
+-acpi_wmi_ec_space_handler(u32 function, acpi_physical_address address,
+-			  u32 bits, u64 *value,
+-			  void *handler_context, void *region_context)
+-{
+-	int result = 0;
+-	u8 temp = 0;
+-
+-	if ((address > 0xFF) || !value)
+-		return AE_BAD_PARAMETER;
+-
+-	if (function != ACPI_READ && function != ACPI_WRITE)
+-		return AE_BAD_PARAMETER;
+-
+-	if (bits != 8)
+-		return AE_BAD_PARAMETER;
+-
+-	if (function == ACPI_READ) {
+-		result = ec_read(address, &temp);
+-		*value = temp;
+-	} else {
+-		temp = 0xff & *value;
+-		result = ec_write(address, temp);
+-	}
+-
+-	switch (result) {
+-	case -EINVAL:
+-		return AE_BAD_PARAMETER;
+-	case -ENODEV:
+-		return AE_NOT_FOUND;
+-	case -ETIME:
+-		return AE_TIME;
+-	default:
+-		return AE_OK;
+-	}
+-}
+-
+ static int wmi_get_notify_data(struct wmi_block *wblock, union acpi_object **obj)
+ {
+ 	struct acpi_buffer data = { ACPI_ALLOCATE_BUFFER, NULL };
+@@ -1308,14 +1267,6 @@ static void acpi_wmi_remove_notify_handl
+ 	acpi_remove_notify_handler(acpi_device->handle, ACPI_ALL_NOTIFY, acpi_wmi_notify_handler);
+ }
+ 
+-static void acpi_wmi_remove_address_space_handler(void *data)
+-{
+-	struct acpi_device *acpi_device = data;
+-
+-	acpi_remove_address_space_handler(acpi_device->handle, ACPI_ADR_SPACE_EC,
+-					  &acpi_wmi_ec_space_handler);
+-}
+-
+ static void acpi_wmi_remove_bus_device(void *data)
+ {
+ 	struct device *wmi_bus_dev = data;
+@@ -1347,19 +1298,6 @@ static int acpi_wmi_probe(struct platfor
+ 
+ 	dev_set_drvdata(&device->dev, wmi_bus_dev);
+ 
+-	status = acpi_install_address_space_handler(acpi_device->handle,
+-						    ACPI_ADR_SPACE_EC,
+-						    &acpi_wmi_ec_space_handler,
+-						    NULL, NULL);
+-	if (ACPI_FAILURE(status)) {
+-		dev_err(&device->dev, "Error installing EC region handler\n");
+-		return -ENODEV;
+-	}
+-	error = devm_add_action_or_reset(&device->dev, acpi_wmi_remove_address_space_handler,
+-					 acpi_device);
+-	if (error < 0)
+-		return error;
+-
+ 	status = acpi_install_notify_handler(acpi_device->handle, ACPI_ALL_NOTIFY,
+ 					     acpi_wmi_notify_handler, wmi_bus_dev);
+ 	if (ACPI_FAILURE(status)) {
 
 
-> How hard is that "jump through hoops" thing anyway?
 
-I'd conservatively estimate 500 lines of duplicated code from the CXL
-subsystem just to handle the setup and discovery of the mailbox, plus
-all the checks needed to establish the device is in a state to reply.
-Also locking or module load ordering constraints because we need
-to ensure mutual exclusion on that mailbox between this module and the CXL
-core. So it would approximately triple the size of this driver to
-check for CXL scrub support. Not to mention hotplug - which could
-possibly be solved with appropriate udev rules to try loading this again
-whenever a CXL memory device gets plugged in.
-
-Alternative would be to make this ras class driver dependent on the CXL
-driver stack running first. Thus if you wanted RAS2 ACPI table support, you'd
-need to load a whole bunch of CXL stuff.
-
-Add another similar driver in future and we get another few 100 lines of code
-or another dependency. To me those numbers make it unsustainable.
-
-> 
-> You mean it should load so that when booting an allmodconfig kernel there are not enough modules which are loading so lemme load one more. And then I need to go and rmmod them all before I need to do localmodconfig and build a tailored kernel for the machine.
-> 
-> Or is there some other reason to load silly modules, use up resources for no good reason whatsoever and bloat the machine?
-
-As Dan, Shiju and I observed (and Shiju tested to be sure we weren't
-getting it wrong), normal setups including your allmodconfig
-build would not even load the driver.  What are we missing?
-
-Jonathan
