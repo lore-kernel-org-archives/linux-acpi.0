@@ -1,144 +1,101 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.11])
+Received: from mail.alien8.de (mail.alien8.de [65.109.113.108])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 51AE917EB8C;
-	Fri, 10 May 2024 11:28:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD54D376;
+	Fri, 10 May 2024 12:52:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=65.109.113.108
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715340524; cv=none; b=Iab7hf7f6mLAZz0rNUP0oIfTMrxAXG0cSa6ZTcorSZT68STLnwUJzq6kAJP8ymQA84+alsndiOZmwVAU91NM8Q6YIlsJKP7qbIY5lpYdnVFyFZ61+/7SlgqWBSQqhMup4pOT2F+qKjwGGyzyX4mSmQtZPspj3OjK1bAP9g3FUx8=
+	t=1715345557; cv=none; b=t+EbtiDWEXjjI349Rj+3H49tT4UUa2oTRuIQrDK4o8Z33HB6Yet6ywIyuO+8RR9mQQks4vUUNFMp9JZKXktp8WAP8pkTKJNNGT+8S6Vij2Vj1nQuSPLRCY8mdCrAtwLb3poLTx1hvOxy2SxrTbGFHMe7yW6bHB1maw5rGzXPMRY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1715340524; c=relaxed/simple;
-	bh=YjRIFyy5x+XNHBrFPdcWuNaJba67+I+b0UephR4q89w=;
-	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=MsgZdvMU/KWidEqOPXkS7NE4dtVaEvpODk2tOfCBHGr2u7bAcvVIoTsV2iIt0wcBU0/5566qZccO+vlYTRytBIt8hcCJvOt8V0tD441r3yBBjkp7dHWdWMBHeO+i61nOjWlqkq/PHQmxYj+l7j7fqf27j+qt1RDdMHr9lXkbUOg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=dvnzRQwN; arc=none smtp.client-ip=192.198.163.11
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1715345557; c=relaxed/simple;
+	bh=pDwlZWiIXP/ed5ZKK47iOK1IxJybI7zmM6gq7+VyleA=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=F2iAirbzvWVWeTWqUZqWGgfrvduogdEswF9MY5CKYzUmwAxjNwtH/qr+vooQeuPJg3YRgamZ7AWCJsqrz3cZA3HO+A4Mi5gx1BMWUynZVRc10A2qdSPlXLC+OQwEycJpxR7clzhbts47a4Fy4RkIXjRHX+0Dbmqgoq+MQnHp0Ho=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de; spf=pass smtp.mailfrom=alien8.de; dkim=pass (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b=OovjXAU7; arc=none smtp.client-ip=65.109.113.108
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=alien8.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="dvnzRQwN"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1715340523; x=1746876523;
-  h=from:to:subject:date:message-id:in-reply-to:references:
-   mime-version:content-transfer-encoding;
-  bh=YjRIFyy5x+XNHBrFPdcWuNaJba67+I+b0UephR4q89w=;
-  b=dvnzRQwN5T7Et5rL3sFJOu6tWGiK72TURfAT7L20H1H9fXvN6cHoqW7j
-   5GLaWURSZ/KSkHBtve71o4hOX98ZK93W8wzcvnzjH7EM0Vz1nciwZu/oH
-   f1KHWyZfVGyWiB90Qg76C2WkHAVPp7RhBUZfNWjka9JBbbyomv0kNzCUZ
-   WHtSv0kk0ZfNCX3wOvh75KAoKBrN+szwikpv6QYDrazgjd/Z9Zifz9r1p
-   2lAAN6bybGjp4s/faJ5TaThiekwC+WyreSyGb4+VEB71O91Onco9iwDkN
-   QrMRqpmM1nbXfqW+R41UuTrXJEUjkTeG1DzCKH/ACZX8dJpe0kxVRPBGF
-   w==;
-X-CSE-ConnectionGUID: ObYN1OZHQiK0YI0zHHvzng==
-X-CSE-MsgGUID: qAURdJuLR06/ElWUIdeOfw==
-X-IronPort-AV: E=McAfee;i="6600,9927,11068"; a="21913210"
-X-IronPort-AV: E=Sophos;i="6.08,150,1712646000"; 
-   d="scan'208";a="21913210"
-Received: from orviesa008.jf.intel.com ([10.64.159.148])
-  by fmvoesa105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 May 2024 04:28:42 -0700
-X-CSE-ConnectionGUID: 3xFHPiSyR0Oz6j6r6yQdww==
-X-CSE-MsgGUID: kwgn+PjsRPGlvdoAX2nhJw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.08,150,1712646000"; 
-   d="scan'208";a="30138449"
-Received: from fdefranc-mobl3.ger.corp.intel.com (HELO fdefranc-mobl3.intel.com) ([10.245.246.191])
-  by orviesa008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 May 2024 04:28:39 -0700
-From: "Fabio M. De Francesco" <fabio.m.de.francesco@linux.intel.com>
-To: "Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	Tony Luck <tony.luck@intel.com>,
-	Borislav Petkov <bp@alien8.de>,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-edac@vger.kernel.org,
-	Dan Williams <dan.j.williams@intel.com>,
-	"Fabio M. De Francesco" <fabio.m.de.francesco@linux.intel.com>
-Subject: [RFC PATCH v2 3/3] ACPI: extlog: Make print_extlog_rcd() log unconditionally
-Date: Fri, 10 May 2024 13:21:47 +0200
-Message-ID: <20240510112740.667445-4-fabio.m.de.francesco@linux.intel.com>
-X-Mailer: git-send-email 2.45.0
-In-Reply-To: <20240510112740.667445-1-fabio.m.de.francesco@linux.intel.com>
+	dkim=pass (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b="OovjXAU7"
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with ESMTP id 53F7D40E024C;
+	Fri, 10 May 2024 12:52:31 +0000 (UTC)
+X-Virus-Scanned: Debian amavisd-new at mail.alien8.de
+Authentication-Results: mail.alien8.de (amavisd-new); dkim=pass (4096-bit key)
+	header.d=alien8.de
+Received: from mail.alien8.de ([127.0.0.1])
+	by localhost (mail.alien8.de [127.0.0.1]) (amavisd-new, port 10026)
+	with ESMTP id 2geoQ1AAp8Ho; Fri, 10 May 2024 12:52:28 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=alien8;
+	t=1715345548; bh=vXXmcFqFduUzeShgTnzVQzbxh5p2i8qrDyrsMQmHWzc=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=OovjXAU7Fg8DyDHu6YjJN7KRin/dtzIfRaoaKpuXQ/vPijUDDJkjaMa5xs9UTsnf7
+	 +vHBIVa0kRqXkutRpOBjlNKq8shi9kLA1spCHWB9LQEyyF2fpWA9OoZ49sFq4j/e2A
+	 c3j3dinA5cFSC3zTdnNHDErwZepu1iwWo4UpzqDpcyKBAsXaNsKexKSXPhC38MXcc7
+	 uSRJtvoGLZLb+58Mnl3NLfu3VlHkLFA1xUh3uJ5xSPlXwHe1JBGQkjXgbb4Q6c5437
+	 cRrIOH3dUItgtlv58Y0piJKXGEEdvh97LkqNGyC/JJPX40kDkDyeqqW7njICYwdccI
+	 p8SBeti0ChQe1MRcjo8kJbjcOI5QhnY/1RWGyRJGtNQ8MHqxMs+B9DYFtFt4CJEvlx
+	 XKK0/6KKCVQacpx3nvj/3NkKuj+mWsZ0NPQTxQb5qzWpLKZjSoSaSehqhgTFc9f72l
+	 VZhLjFHAWnnwjMIXd51wuOR4SIUB0WPm7OWHfK8+IkmMpSFYzX376eV0BSMNuWKjrZ
+	 Vp/n/I5TzLa7Mx78oFkhN2jJ1vtaA4arKEkymaL4b63DCzlgoX7sJzjMAndgwzKl4M
+	 XHVzNKM1IIyMUNMQYqvOso4Hlw+1JaEpmgJ5QE9vUxIkSxT7FpZeY9ARiWjURsMkgc
+	 QmsLuWeC4dc87PhPGOkmwq/8=
+Received: from zn.tnic (pd953020b.dip0.t-ipconnect.de [217.83.2.11])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (P-256) server-signature ECDSA (P-256) server-digest SHA256)
+	(No client certificate requested)
+	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id 1ED5B40E0187;
+	Fri, 10 May 2024 12:52:20 +0000 (UTC)
+Date: Fri, 10 May 2024 14:52:14 +0200
+From: Borislav Petkov <bp@alien8.de>
+To: "Fabio M. De Francesco" <fabio.m.de.francesco@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+	Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-edac@vger.kernel.org,
+	Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [RFC PATCH v2 3/3] ACPI: extlog: Make print_extlog_rcd() log
+ unconditionally
+Message-ID: <20240510125214.GCZj4YfluoP-mDz3_U@fat_crate.local>
 References: <20240510112740.667445-1-fabio.m.de.francesco@linux.intel.com>
+ <20240510112740.667445-4-fabio.m.de.francesco@linux.intel.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20240510112740.667445-4-fabio.m.de.francesco@linux.intel.com>
 
-Make extlog_print_rcd() log unconditionally to report errors even if
-userspace is not consuming trace events. Remove ras_userspace_consumers()
-because it is not anymore used.
+On Fri, May 10, 2024 at 01:21:47PM +0200, Fabio M. De Francesco wrote:
+> Make extlog_print_rcd() log unconditionally to report errors even if
+> userspace is not consuming trace events. Remove ras_userspace_consumers()
+> because it is not anymore used.
 
-This change makes extlog_print() (ELOG) log consistently with ghes_proc()
-(GHES).
+Did you do any git archeology before that?
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Fabio M. De Francesco <fabio.m.de.francesco@linux.intel.com>
----
- drivers/acpi/acpi_extlog.c | 6 +-----
- drivers/ras/debugfs.c      | 6 ------
- include/linux/ras.h        | 2 --
- 3 files changed, 1 insertion(+), 13 deletions(-)
+d6cae935ec5b ("trace, eMCA: Add a knob to adjust where to save event log")
 
-diff --git a/drivers/acpi/acpi_extlog.c b/drivers/acpi/acpi_extlog.c
-index fb7b0c73f86a..41ee66306234 100644
---- a/drivers/acpi/acpi_extlog.c
-+++ b/drivers/acpi/acpi_extlog.c
-@@ -189,10 +189,7 @@ static int extlog_print(struct notifier_block *nb, unsigned long val,
- 
- 	tmp = (struct acpi_hest_generic_status *)elog_buf;
- 
--	if (!ras_userspace_consumers()) {
--		print_extlog_rcd(NULL, tmp, cpu);
--		goto out;
--	}
-+	print_extlog_rcd(NULL, tmp, cpu);
- 
- 	/* log event via trace */
- 	err_seq++;
-@@ -225,7 +222,6 @@ static int extlog_print(struct notifier_block *nb, unsigned long val,
- 		}
- 	}
- 
--out:
- 	mce->kflags |= MCE_HANDLED_EXTLOG;
- 	return NOTIFY_OK;
- }
-diff --git a/drivers/ras/debugfs.c b/drivers/ras/debugfs.c
-index 42afd3de68b2..6633844acdd6 100644
---- a/drivers/ras/debugfs.c
-+++ b/drivers/ras/debugfs.c
-@@ -13,12 +13,6 @@ struct dentry *ras_get_debugfs_root(void)
- }
- EXPORT_SYMBOL_GPL(ras_get_debugfs_root);
- 
--int ras_userspace_consumers(void)
--{
--	return atomic_read(&trace_count);
--}
--EXPORT_SYMBOL_GPL(ras_userspace_consumers);
--
- static int trace_show(struct seq_file *m, void *v)
- {
- 	return 0;
-diff --git a/include/linux/ras.h b/include/linux/ras.h
-index a64182bc72ad..98840f16b697 100644
---- a/include/linux/ras.h
-+++ b/include/linux/ras.h
-@@ -7,11 +7,9 @@
- #include <linux/cper.h>
- 
- #ifdef CONFIG_DEBUG_FS
--int ras_userspace_consumers(void);
- void ras_debugfs_init(void);
- int ras_add_daemon_trace(void);
- #else
--static inline int ras_userspace_consumers(void) { return 0; }
- static inline void ras_debugfs_init(void) { }
- static inline int ras_add_daemon_trace(void) { return 0; }
- #endif
+I can't find in this commit message why this is needed... Do share pls.
+
+> This change makes extlog_print() (ELOG) log consistently with ghes_proc()
+> (GHES).
+
+Avoid having "This patch" or "This commit" in the commit message. It is
+tautologically useless.
+
+Also, do
+
+$ git grep 'This patch' Documentation/process
+
+for more details.
+
+Pls have a look at our documentation and check all your patches.
+
+Thx.
+
 -- 
-2.45.0
+Regards/Gruss,
+    Boris.
 
+https://people.kernel.org/tglx/notes-about-netiquette
