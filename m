@@ -1,135 +1,182 @@
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5307D172795;
-	Fri, 10 May 2024 16:06:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
+Received: from mout.gmx.net (mout.gmx.net [212.227.17.22])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74A93171E6A;
+	Fri, 10 May 2024 16:10:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.17.22
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715357189; cv=none; b=bxkZNWBF6GXxSXel1R/4/vCY70hVrouQu0wDOiBrWYshYTyt5TJBC/7EvuUYwUA99HUINxwccIqB3eYHQ77O4HnffK7YNL+50yd4/1rmFn2MfXHTt98981tGgkNmQWtLxYdoP4+jrWseo50kbjmW4ykH83mIUTXdcSKKYZyD76U=
+	t=1715357458; cv=none; b=Tw4LvjV9d1za4J3EXSt0EWk99HD9AI35NNYm54FrXXvi6WVcZK/BzF/kafq8W2BMZZpqWvYUTLRqmzRQmJ+Jd0xK2dO3xk/zdrYcvHVGlRtcN4Ofhyvp0Fbtu+ovU16vtdbrGA2ZnZk+RARse2UjZbr9lkp+Ed2SLQnuL/yQLsM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1715357189; c=relaxed/simple;
-	bh=UsbnjB4gtW5blpakM91WS9EhR6bLL6Lpgeic4mxEgKc=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=tDs4oH7nfJhukY5iBtt28HpnqN/IOJn1TL3RoxV5IPlX3QzmxSqTuKZsTrKDAc5Fy7xYLwVMDGcqvDb3p4QWHqDTAiTLHAQh7WVnppovimTNnQ6ke9Sw5Y8NruehHbgsYQIajz699XrjtYQhoPeu++HecYKb+o0aSRDOxHXVDo8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=l+uYgJ8/; arc=none smtp.client-ip=13.77.154.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+	s=arc-20240116; t=1715357458; c=relaxed/simple;
+	bh=vIb63Tg9ODhQyImpTi/p/It9EzWF4hC3W4ffMtiZYOc=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Uf5MbdukQH7Y7TDASAC37knLe72gkzlbWUTWWM5BOXr5VS6xZE/p32fnQDgaWn6JOX8g4Pni2rGvzI465zkM+MvPyBoWKS087leFZjTQoYe3V5YQ7p8dBw/uDk8U0ny9FdGEJeq8Xjwtl9/ANPP3GjvIYAc9ZPwp08WpI/x8HFw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de; spf=pass smtp.mailfrom=gmx.de; dkim=pass (2048-bit key) header.d=gmx.de header.i=w_armin@gmx.de header.b=e5I/E8M9; arc=none smtp.client-ip=212.227.17.22
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmx.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="l+uYgJ8/"
-Received: from xps-8930.corp.microsoft.com (unknown [131.107.160.48])
-	by linux.microsoft.com (Postfix) with ESMTPSA id E10C320B2C87;
-	Fri, 10 May 2024 09:06:20 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com E10C320B2C87
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1715357181;
-	bh=SEb/v+0tEn4l473lcXeO/Vet6aCRc4eg0h0XcwR05H4=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=l+uYgJ8/vVfn6h1kO7xgjuIKnvBevf8xe3OhJc+gLZ+G7PPvh33xPIk8HsMt8fPCE
-	 VHYEP674UnmQV+8VvYXv8KDirpyOoWqiEsDI3wQSjZ1nMGUcfJQdA4mMbB3Brz96ub
-	 REuYI8So3Z+FUFR9yHOaaJw91gFOQBj4MybCrf8U=
-From: romank@linux.microsoft.com
-To: kys@microsoft.com,
-	haiyangz@microsoft.com,
-	wei.liu@kernel.org,
-	decui@microsoft.com,
-	linux-hyperv@vger.kernel.org,
-	rafael@kernel.org,
-	lenb@kernel.org,
-	linux-acpi@vger.kernel.org
-Cc: ssengar@microsoft.com,
-	sunilmut@microsoft.com
-Subject: [PATCH 5/6] drivers/hv/vmbus: Get the irq number from DeviceTree
-Date: Fri, 10 May 2024 09:05:04 -0700
-Message-ID: <20240510160602.1311352-6-romank@linux.microsoft.com>
-X-Mailer: git-send-email 2.45.0
-In-Reply-To: <20240510160602.1311352-1-romank@linux.microsoft.com>
-References: <20240510160602.1311352-1-romank@linux.microsoft.com>
+	dkim=pass (2048-bit key) header.d=gmx.de header.i=w_armin@gmx.de header.b="e5I/E8M9"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmx.de;
+	s=s31663417; t=1715357443; x=1715962243; i=w_armin@gmx.de;
+	bh=xr1Ot3xxQfSAEra0ddoF6dHCjwQwKZTlryFWw7m/NIw=;
+	h=X-UI-Sender-Class:Message-ID:Date:MIME-Version:Subject:To:Cc:
+	 References:From:In-Reply-To:Content-Type:
+	 Content-Transfer-Encoding:cc:content-transfer-encoding:
+	 content-type:date:from:message-id:mime-version:reply-to:subject:
+	 to;
+	b=e5I/E8M97ujDrGuoRzcE1uYI1tMBXWaxpZW/QF7sf9dmS/1XyuWYFptOq+RzcyeA
+	 qZ6/+NU8OPM4d+SNBOJsYXRVxZORMmF3kxAahLTqtQrgplk1M87e7YagkjIlpCwTa
+	 RtjGu2secTOdpZZ6S1ymkY3noPAOmrzVDP0yNsKEedjFOdaaA6gA+n8wg71xd8VX9
+	 YC67GaMDd12vIQo0XEMyH7qLNxiMhz+q1Ag95ueYahXI0V6QVvmZRt8jaoYscaFap
+	 vZvaHRhE1/EYvEYLaByvhtoMNoAMBk+/c3Y5N2o6wQE4iQLFvEw/4RBKEOD7Ly++t
+	 0ggnz005491jJeY0/w==
+X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
+Received: from [141.30.226.129] ([141.30.226.129]) by mail.gmx.net (mrgmx105
+ [212.227.17.168]) with ESMTPSA (Nemesis) id 1MD9T7-1rwyO21lYn-0094wz; Fri, 10
+ May 2024 18:10:43 +0200
+Message-ID: <ac04c433-b0ac-4b82-b8eb-98ac16f872d8@gmx.de>
+Date: Fri, 10 May 2024 18:10:42 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v1 1/2] ACPI: EC: Install address space handler at the
+ namespace root
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+ Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+ Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+ Hans de Goede <hdegoede@redhat.com>,
+ Mario Limonciello <mario.limonciello@amd.com>,
+ Heikki Krogerus <heikki.krogerus@linux.intel.com>
+References: <5787281.DvuYhMxLoT@kreacher> <4926735.31r3eYUQgx@kreacher>
+Content-Language: en-US
+From: Armin Wolf <W_Armin@gmx.de>
+In-Reply-To: <4926735.31r3eYUQgx@kreacher>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: quoted-printable
+X-Provags-ID: V03:K1:wT+tLSg2LVm+YP/FL5UN8kpyCaKCGFIvyGUPP/xh/wPnOaDV56r
+ yYx/2FRPk8cGNlfVqBgjCf0IqqambicmHIL3lWGOQ5G3gCMKj6stPvWIzeEb9caTmxixewX
+ m5weDTBex+msUw8JO9vU7W1pSq8SrJwArJSWnhedn3iJqQ///NUduLr68spl6hZF0gOaHIh
+ YSK+t6W0r6y0xMdM9VsZw==
+X-Spam-Flag: NO
+UI-OutboundReport: notjunk:1;M01:P0:B1Q9O29DO6k=;5JAa00wiMzS+9jZ5sBBfJXlIKvS
+ ippXqs6y/q0bvs2T9xaBYAlJAayYnQUTHOxf4D/mOoSbtZAttUsXoyb0orxwYosAgL7QQ4cPR
+ q3Ag/WlGGeNH/vsYQ9gTB/XRIvQ7m2WEr59Wa06UrLR2JN8vvn9Wm50oQgW96ViV1L/rL7rtq
+ xFqZyi9evjXCkVRmn7inaS3W8/J7TseuOp606rnjJxf3ECWH3Q9McW4na3q6/a6Gtv9x3ovWG
+ omSNmbe+gjyPxuLOo4iRpaMJN6JbawpCXGeE1xQ+ISJJibbZxvVM0ztfPLzXgOJyR/dUkCRYQ
+ 06d7/QqSS1H37NIeUH9LMkWo4WCMFCLT0vMdGdFwTqa/MUTj7uHIkZIua/1NNSf2o00UoAml8
+ e5oUSBVNmSuWjWWL+vUMOgF6TDd4erprYxMqd0fIZEn+dYTUyYPx+j0WruUwvZYlueWJrco8h
+ QsBVSex3BchnTMurJbpBNokazNs71bRhpCXKArW7TppKsvB1Q8yrcHjsBtC+M727w04Esuwml
+ yL8ZsANJZuA1vLMRybJ/pDYdUFduehFwDogFP2joaDUii+B+i3VSXR280xUOhVNvgvfcv8tCH
+ Tm0V7TIo5ZG+tT+TSmn7hAJqjHXSiJNOJJW7aWi2ba4z4xNbmfS89ZZHR3nDbuT+glBmqkx7z
+ uv5UEK7sswUo7ugVDP1oYit7jWZm+xRCbjn3c9gcyi07MIfU6frDbr8lP9EOABF8Vn3+IuPDl
+ olBBlEGD63e1H6JApPH+xs7tVE+YCJ+87vluubpDae11bNaqhlpt9j71wABOF7mkbdGAZqLvz
+ YAkoUv+fdn8evLRs6bHAQ2Gl6r94JcOjjJnRpWKhiag3o=
 
-From: Roman Kisel <romank@linux.microsoft.com>
+Am 10.05.24 um 16:03 schrieb Rafael J. Wysocki:
 
-When booting on arm64, one has to configure the irq
-using the data from the system configuration. There
-has already been support for ACPI, support DeviceTree
-as booting in a Virtual Trust Level relies on DT.
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>
+> It is reported that _DSM evaluation fails in ucsi_acpi_dsm() on Lenovo
+> IdeaPad Pro 5 due to a missing address space handler for the EC address
+> space:
+>
+>   ACPI Error: No handler for Region [ECSI] (000000007b8176ee) [EmbeddedC=
+ontrol] (20230628/evregion-130)
+>
+> This happens because the EC driver only registers the EC address space
+> handler for operation regions defined in the EC device scope of the
+> ACPI namespace while the operation region being accessed by the _DSM
+> in question is located beyond that scope.
+>
+> To address this, modify the ACPI EC driver to install the EC address
+> space handler at the root of the ACPI namespace.
+>
+> Note that this change is consistent with some examples in the ACPI
+> specification in which EC operation regions located outside the EC
+> device scope are used (for example, see Section 9.17.15 in ACPI 6.5),
+> so the current behavior of the EC driver is arguably questionable.
 
-Signed-off-by: Roman Kisel <romank@linux.microsoft.com>
----
- drivers/hv/vmbus_drv.c | 37 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 37 insertions(+)
+Hi,
 
-diff --git a/drivers/hv/vmbus_drv.c b/drivers/hv/vmbus_drv.c
-index e25223cee3ab..52f01bd1c947 100644
---- a/drivers/hv/vmbus_drv.c
-+++ b/drivers/hv/vmbus_drv.c
-@@ -36,6 +36,7 @@
- #include <linux/syscore_ops.h>
- #include <linux/dma-map-ops.h>
- #include <linux/pci.h>
-+#include <linux/of_irq.h>
- #include <clocksource/hyperv_timer.h>
- #include <asm/mshyperv.h>
- #include "hyperv_vmbus.h"
-@@ -2316,6 +2317,34 @@ static int vmbus_acpi_add(struct platform_device *pdev)
- }
- #endif
- 
-+static int __maybe_unused vmbus_of_set_irq(struct device_node *np)
-+{
-+	struct irq_desc *desc;
-+	int irq;
-+
-+	irq = of_irq_get(np, 0);
-+	if (irq == 0) {
-+		pr_err("VMBus interrupt mapping failure\n");
-+		return -EINVAL;
-+	}
-+	if (irq < 0) {
-+		pr_err("VMBus interrupt data can't be read from DeviceTree, error %d\n", irq);
-+		return irq;
-+	}
-+
-+	desc = irq_to_desc(irq);
-+	if (!desc) {
-+		pr_err("VMBus interrupt description can't be found for virq %d\n", irq);
-+		return -ENODEV;
-+	}
-+
-+	vmbus_irq = irq;
-+	vmbus_interrupt = desc->irq_data.hwirq;
-+	pr_debug("VMBus virq %d, hwirq %d\n", vmbus_irq, vmbus_interrupt);
-+
-+	return 0;
-+}
-+
- static int vmbus_device_add(struct platform_device *pdev)
- {
- 	struct resource **cur_res = &hyperv_mmio;
-@@ -2324,12 +2353,20 @@ static int vmbus_device_add(struct platform_device *pdev)
- 	struct device_node *np = pdev->dev.of_node;
- 	int ret;
- 
-+	pr_debug("VMBus is present in DeviceTree\n");
-+
- 	hv_dev = &pdev->dev;
- 
- 	ret = of_range_parser_init(&parser, np);
- 	if (ret)
- 		return ret;
- 
-+#ifndef HYPERVISOR_CALLBACK_VECTOR
-+	ret = vmbus_of_set_irq(np);
-+	if (ret)
-+		return ret;
-+#endif
-+
- 	for_each_of_range(&parser, &range) {
- 		struct resource *res;
- 
--- 
-2.45.0
+the patch itself looks good to me, but i wonder what happens if multiple
+ACPI EC devices are present. How would we handle such a situation?
 
+Thanks,
+Armin Wolf
+
+> Reported-by: webcaptcha <webcapcha@gmail.com>
+> Link: https://bugzilla.kernel.org/show_bug.cgi?id=3D218789
+> Link: https://uefi.org/specs/ACPI/6.5/09_ACPI_Defined_Devices_and_Device=
+_Specific_Objects.html#example-asl-code
+> Link: https://lore.kernel.org/linux-acpi/Zi+0whTvDbAdveHq@kuha.fi.intel.=
+com
+> Suggested-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>   drivers/acpi/ec.c       |   10 +++++-----
+>   drivers/acpi/internal.h |    1 -
+>   2 files changed, 5 insertions(+), 6 deletions(-)
+>
+> Index: linux-pm/drivers/acpi/ec.c
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- linux-pm.orig/drivers/acpi/ec.c
+> +++ linux-pm/drivers/acpi/ec.c
+> @@ -1488,7 +1488,7 @@ static int ec_install_handlers(struct ac
+>
+>   	if (!test_bit(EC_FLAGS_EC_HANDLER_INSTALLED, &ec->flags)) {
+>   		acpi_ec_enter_noirq(ec);
+> -		status =3D acpi_install_address_space_handler_no_reg(ec->handle,
+> +		status =3D acpi_install_address_space_handler_no_reg(ACPI_ROOT_OBJECT=
+,
+>   								   ACPI_ADR_SPACE_EC,
+>   								   &acpi_ec_space_handler,
+>   								   NULL, ec);
+> @@ -1497,11 +1497,10 @@ static int ec_install_handlers(struct ac
+>   			return -ENODEV;
+>   		}
+>   		set_bit(EC_FLAGS_EC_HANDLER_INSTALLED, &ec->flags);
+> -		ec->address_space_handler_holder =3D ec->handle;
+>   	}
+>
+>   	if (call_reg && !test_bit(EC_FLAGS_EC_REG_CALLED, &ec->flags)) {
+> -		acpi_execute_reg_methods(ec->handle, ACPI_ADR_SPACE_EC);
+> +		acpi_execute_reg_methods(ACPI_ROOT_OBJECT, ACPI_ADR_SPACE_EC);
+>   		set_bit(EC_FLAGS_EC_REG_CALLED, &ec->flags);
+>   	}
+>
+> @@ -1555,8 +1554,9 @@ static void ec_remove_handlers(struct ac
+>   {
+>   	if (test_bit(EC_FLAGS_EC_HANDLER_INSTALLED, &ec->flags)) {
+>   		if (ACPI_FAILURE(acpi_remove_address_space_handler(
+> -					ec->address_space_handler_holder,
+> -					ACPI_ADR_SPACE_EC, &acpi_ec_space_handler)))
+> +						ACPI_ROOT_OBJECT,
+> +						ACPI_ADR_SPACE_EC,
+> +						&acpi_ec_space_handler)))
+>   			pr_err("failed to remove space handler\n");
+>   		clear_bit(EC_FLAGS_EC_HANDLER_INSTALLED, &ec->flags);
+>   	}
+> Index: linux-pm/drivers/acpi/internal.h
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- linux-pm.orig/drivers/acpi/internal.h
+> +++ linux-pm/drivers/acpi/internal.h
+> @@ -186,7 +186,6 @@ enum acpi_ec_event_state {
+>
+>   struct acpi_ec {
+>   	acpi_handle handle;
+> -	acpi_handle address_space_handler_holder;
+>   	int gpe;
+>   	int irq;
+>   	unsigned long command_addr;
+>
+>
+>
