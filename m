@@ -1,63 +1,109 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 326FA181CF4;
-	Tue, 14 May 2024 21:30:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id D1A751DDEE;
+	Tue, 14 May 2024 22:45:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715722226; cv=none; b=ZC3StUuzaKSc7xnhphVAOtMADUNG9E8bb9TW08BaPtd1hrt7Uy8t1RJCwgbdTKYPh5s+RHph6bCzqyK3WhsIuXvYQaUK6fh5JpXvgG3w9Ley13O+5M2ANLD79iAY9CmX20zvZODQ+Mh1roaym+5EOfUHdoA3AYEr+vulQ8/OeXc=
+	t=1715726728; cv=none; b=k4Lgo8KlKKCTmjCjQJuMg3GQc50enuUlWzhK0LJ+FaxIALlojDirH1ME++96ax/T4n10YzVSuzWifkffE9C2mdHLk0FxOKIyCOG5qvHsMcht0PDS7Xakv8KziGQPit4Tu5HtnrACTdvySTgqooctJBv/00GM/RW1bdMBghbzwq0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1715722226; c=relaxed/simple;
-	bh=VaL8nFiczpgfRJMQ3pv8cT6KlJb4XCkuMxz7HK4MrbQ=;
-	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=dqvcopS8TM6hEABifRhsag//EdvPUbESGItvdfr1YYDg8nCnkCtdOzXJrrnW/0UlVprUb2GXYBnfTcFER9cD0VDbXVTJMxc1/DItjLiLGl6Ksr0nN2ykdl6OBQWVRkiuV3oh42IlZbHY9TS5pwiGH9avuVO97DiI/SXWHdztCM0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=pHZK/Hwl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1715726728; c=relaxed/simple;
+	bh=HHDHLSCUcDkXx2uqLNf9uPS83M7l1vBf2On96gJLrfg=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=j1vrtLNWT2bDERDzsIpzXWxHPQLC1+tBf8yA5GVrp9nVe+IUEdLilGNuPbaWGj/zcHp+n7pjlYau6UYPB60mOntGW+8HnPMkP69lbwEG9zBqtXFndFjtuml9vPbG+kF7sTJeAwjrYiGS4V02HKattkGT5tXB/IJpxRsdFs1B9uI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=hxA4XCe8; arc=none smtp.client-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="pHZK/Hwl"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 0A36CC2BD10;
-	Tue, 14 May 2024 21:30:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1715722226;
-	bh=VaL8nFiczpgfRJMQ3pv8cT6KlJb4XCkuMxz7HK4MrbQ=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-	b=pHZK/HwlN8D7EBWHzpLoZ8NCJemEREw4wTblKa+6+0Uf3QTlWNGYmLhDaYrGUtD4D
-	 y1TEtNYkklwqVfMGra74RPW6VhgcJUjBN9BvMt54dW1ZKfeERJmMQR5YXuIthgYv46
-	 fS9wDdwCL7to0OQTZ9/SE7Nx5Eu7rpUD18OHgCPa2FWDe1NTuHI/9dlAqiQ7J9JuPI
-	 XgzIIHbiw+dJeJz2BhB3kX0M7eo80+ARVpfhEz2bkODOlNxAsFuc/vVNkPLtbiu32i
-	 52Dl2nje7EhLDShNKy08Wpfba8dmufBc2J1DR5wmz/w9aqmdvDMfE0fpVQbQztz48z
-	 ncIPzMn5Lue8w==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id E64A5C433A2;
-	Tue, 14 May 2024 21:30:25 +0000 (UTC)
-Subject: Re: [GIT PULL] ACPI updates for v6.10-rc1
-From: pr-tracker-bot@kernel.org
-In-Reply-To: <CAJZ5v0iTaVs5EBUkq0Vs39y+gYCcsZypW5YJNS1n3ES+upM2JQ@mail.gmail.com>
-References: <CAJZ5v0iTaVs5EBUkq0Vs39y+gYCcsZypW5YJNS1n3ES+upM2JQ@mail.gmail.com>
-X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <CAJZ5v0iTaVs5EBUkq0Vs39y+gYCcsZypW5YJNS1n3ES+upM2JQ@mail.gmail.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-6.10-rc1
-X-PR-Tracked-Commit-Id: e573d27e18f8289454b6abb378de531374bd3cde
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 101b7a97143a018b38b1f7516920a7d7d23d1745
-Message-Id: <171572222593.832.7300894485575755490.pr-tracker-bot@kernel.org>
-Date: Tue, 14 May 2024 21:30:25 +0000
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="hxA4XCe8"
+Received: from xps-8930.corp.microsoft.com (unknown [131.107.160.48])
+	by linux.microsoft.com (Postfix) with ESMTPSA id 8524D2095D0A;
+	Tue, 14 May 2024 15:45:20 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 8524D2095D0A
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1715726720;
+	bh=qxYAU41ufrcEuk5MBvISwhpcVtWEJqX1bSnGVnSsBJA=;
+	h=From:To:Cc:Subject:Date:From;
+	b=hxA4XCe8Juhir+FZZpJrKKh+6AgX5CJywj6GV8Xi/9mMDaSuTJADZOUG6chVjOeoI
+	 iFIa6Lspd7PVMua/OJlt8zSCUs/T4QbGvSO/XjtyBlWqNOG/FKHivMiM5m2YwtLVoM
+	 Dmgp84jtkEDkxqeGm8kbKFXVtvJqijFdODzWecY0=
+From: Roman Kisel <romank@linux.microsoft.com>
+To: arnd@arndb.de,
+	bhelgaas@google.com,
+	bp@alien8.de,
+	catalin.marinas@arm.com,
+	dave.hansen@linux.intel.com,
+	decui@microsoft.com,
+	haiyangz@microsoft.com,
+	hpa@zytor.com,
+	kw@linux.com,
+	kys@microsoft.com,
+	lenb@kernel.org,
+	lpieralisi@kernel.org,
+	mingo@redhat.com,
+	mhklinux@outlook.com,
+	rafael@kernel.org,
+	robh@kernel.org,
+	tglx@linutronix.de,
+	wei.liu@kernel.org,
+	will@kernel.org,
+	linux-acpi@vger.kernel.org,
+	linux-arch@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-hyperv@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-pci@vger.kernel.org,
+	x86@kernel.org
+Cc: ssengar@microsoft.com,
+	sunilmut@microsoft.com,
+	vdso@hexbites.dev
+Subject: [PATCH v2 0/6] arm64/hyperv: Support Virtual Trust Level Boot
+Date: Tue, 14 May 2024 15:43:47 -0700
+Message-ID: <20240514224508.212318-1-romank@linux.microsoft.com>
+X-Mailer: git-send-email 2.45.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-The pull request you sent on Mon, 13 May 2024 21:30:05 +0200:
+This patch set enables the Hyper-V code to boot on ARM64 inside a Virtual Trust
+Level. These levels are a part of the Virtual Secure Mode documented in the
+Top-Level Functional Specification available at
+https://learn.microsoft.com/en-us/virtualization/hyper-v-on-windows/tlfs/vsm
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-6.10-rc1
+[V2]
+    - Decreased number of #ifdef's
+    - Updated the wording in the commit messages to adhere to the guidlines
+    - Sending to the correct set of maintainers and mail lists
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/101b7a97143a018b38b1f7516920a7d7d23d1745
+Roman Kisel (6):
+  arm64/hyperv: Support DeviceTree
+  drivers/hv: Enable VTL mode for arm64
+  drivers/hv: arch-neutral implementation of get_vtl()
+  arm64/hyperv: Boot in a Virtual Trust Level
+  drivers/hv/vmbus: Get the irq number from DeviceTree
+  drivers/pci/hyperv/arm64: vPCI MSI IRQ domain from DT
 
-Thank you!
+ arch/arm64/hyperv/Makefile          |  1 +
+ arch/arm64/hyperv/hv_vtl.c          | 19 +++++++++++++
+ arch/arm64/hyperv/mshyperv.c        | 40 +++++++++++++++++++++++----
+ arch/arm64/include/asm/mshyperv.h   |  8 ++++++
+ arch/x86/hyperv/hv_init.c           | 34 -----------------------
+ arch/x86/hyperv/hv_vtl.c            |  2 +-
+ arch/x86/include/asm/hyperv-tlfs.h  |  7 -----
+ drivers/hv/Kconfig                  |  6 ++--
+ drivers/hv/hv_common.c              | 43 +++++++++++++++++++++++++++++
+ drivers/hv/vmbus_drv.c              | 37 +++++++++++++++++++++++++
+ drivers/pci/controller/pci-hyperv.c | 13 +++++++--
+ include/asm-generic/hyperv-tlfs.h   |  7 +++++
+ include/asm-generic/mshyperv.h      |  6 ++++
+ include/linux/acpi.h                |  9 ++++++
+ 14 files changed, 179 insertions(+), 53 deletions(-)
+ create mode 100644 arch/arm64/hyperv/hv_vtl.c
 
+
+base-commit: f2580a907e5c0e8fc9354fd095b011301c64f949
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+2.45.0
+
