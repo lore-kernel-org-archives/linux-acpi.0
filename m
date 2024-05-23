@@ -1,116 +1,139 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f171.google.com (mail-pl1-f171.google.com [209.85.214.171])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A81313D297;
-	Thu, 23 May 2024 11:13:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28A4180031
+	for <linux-acpi@vger.kernel.org>; Thu, 23 May 2024 11:13:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.171
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716462826; cv=none; b=eGxfJw6B0gtx6+YF2kugxGYf295j5DTevv4PMmH8ltW4yoTnLxM0uefqRJeC56GnPCNoC3vydjrrlWCYSo9jtfzdT9Zg20yHQyvtrxqMLLcUPgxbo5PidMZdGzMjVsIiR57jckNeMwoP1PRKO3eXn9BMlx8rneT7R/E/zgxlSBA=
+	t=1716462826; cv=none; b=AUgyVAkllDsojVqxgQh/jZgJtx3EtmTG9z3shdAC63xpCg/H09TYgrHp9SfbR3zj9xDWYR1vS7dHX5+l5tfkcY6E0/Pco25SsrRBe/WsnFcoyiPyb0chJAd+Kehzb67Hwzfqpsrm7RzyR3gG4/3XfjDkURdqmgDUj9AX0RHSN/s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1716462826; c=relaxed/simple;
-	bh=8Iv96qeK3XO6FCLRf729LFGYnVsyZm+QYnohsytJjMQ=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=RtkEG+UFJvYsSIp1QIghjjCB99cXXBktr/aVRTXOnsW7BqJNgJr/fxssx6HRSsm6v9hBWuuKnFZn2MPnbmFxFiUMKaOIqqhjlFIEo/vsrKtBFVEVzWtFbtwmLJTRwzWgCrMUO8uIc7cVCqA7Q1Unyy1PK5+ew86zrf+OdhKWIFY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=H+seZe7t; arc=none smtp.client-ip=10.30.226.201
+	bh=f1DDzJv3xHeLtz/8Uh38H6uqD2mqnmTd8LGL7fsQk2Q=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=rg0cx+/pKZ4Mq2zqNUpI8Js1MTjO0dHh8LL1D8fn1nP9/JuISZqvzVVETKtkcBN54A/YxfOCEDTkRPlDC0b/XF++2hYd8jRYb4mitRc3IVlUX2c/xQ4i1Krx9oxgypljOsHxRatcL7Mz64C43q/ovuvCfgf1jO2iMc20gK2dC14=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com; spf=pass smtp.mailfrom=bytedance.com; dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b=HR57gyKi; arc=none smtp.client-ip=209.85.214.171
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bytedance.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="H+seZe7t"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF729C4AF09;
-	Thu, 23 May 2024 11:13:45 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1716462825;
-	bh=8Iv96qeK3XO6FCLRf729LFGYnVsyZm+QYnohsytJjMQ=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=H+seZe7tia9XlPVFbMv1VD3pMpCR28zP+PYcUgiD0HO1ott5vOkK+LXl8bv8ATOEV
-	 Ad7Ijqn3GCoXbbBre2uB55H4H1dRQNmRXl/deA5egIYXocWhAF9rjgR8lVkJ5+o8NZ
-	 OG5SDUld0NahdcHQMt64J6N7ht+au3cZ7TP09Urx3Iapvq5rotxpP0AiIYeXXglQ+6
-	 eZ6rD75sGB4BUdqavP/iRsVStenQOXZHzPwo0753UW4DF8n8g0eL1BvpVIdVLbJYOM
-	 wm7k3mmwTOQHb3zq+xrznKr/qzcbVsen8qnT1gcW3fzAwIv2+ZiRq09Avg0ymvLDR1
-	 yv6vXxM56UoxA==
-Received: by mail-oo1-f50.google.com with SMTP id 006d021491bc7-5b2fbe85f82so947956eaf.1;
-        Thu, 23 May 2024 04:13:45 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCVKsIadf99X0BzkPk+l6LddPS9eZ9A6+jRMez0YTqkp7wEXO0YKFWS9JWCMRQBKNKZHtudmCb+rCO2IJDurGvSzkFQz1a2wLgjHaMh8iewwNxZLdBGcXPLLxLQVe8QFCbE66dCZFhRLS592oLfBB78rpdaTQBrs4jhwnN3yhQORWQ+lhIGhf1CZl+hJ20zfeWuEqHxRMLnUjAnsAQf6juZfjcFryIHPM4EPJWinszlC0CjsHtqXHwlKeT6AEQ==
-X-Gm-Message-State: AOJu0Yw98/6IyxrJn++77Nj+MCIXnjt+u8gS22J55flQtqgm6K2hN+vS
-	q2Ca/cPUE3um+2E9wFZDOOimyekt0TRyaOBaPp343DmTQXCZUsM1T9aRp2wY0Ng7SFAi2kYmQ//
-	j3DDs1ISqFC3oGKBpiVMxDavdJoM=
-X-Google-Smtp-Source: AGHT+IGDJUzVNILe+89DNDK58fKL2girzfjapTcy0TAMQFrntEneDV5GD9qcXO8dgV6h6vsQw1LQsO6L8qszS/mlEfc=
-X-Received: by 2002:a05:6820:2c8a:b0:5b2:89f:452 with SMTP id
- 006d021491bc7-5b6a240fad5mr4236608eaf.1.1716462825087; Thu, 23 May 2024
- 04:13:45 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b="HR57gyKi"
+Received: by mail-pl1-f171.google.com with SMTP id d9443c01a7336-1f3406f225bso3678675ad.3
+        for <linux-acpi@vger.kernel.org>; Thu, 23 May 2024 04:13:44 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=bytedance.com; s=google; t=1716462824; x=1717067624; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=+aKuxY2Fk4OLcsa0CSr6w7+nYt28fnnuhVioZfggdrc=;
+        b=HR57gyKi5zIzh0IZ1XOhdMr/xGQYMgBsTFhXHRufptcwgNjM+zeUrYCeN2P4blt9Rj
+         jxO22nqdFpcFZGKLvV2Fyf4NSvRb9uVhDEi+8C5Qb+q4BMbnQpmBut6FWHvJKMtwTvnv
+         IMn5e11KZ4exqSAIYLHOtf8sIWOfgAhh2FNQlLpmHR+tpqGDZWDyGbXA9RmvRlJNkBHH
+         eXqtwKQYI63oTBImgDAiKtfGjtsHbxCI23xavOmltUo6BCLpeoQ15qotIMhcEExPwQZb
+         AoV5ztfDBFG/cMIVPfnsFYM64a6Wnj2p2Eer4fRPZeVTKdW8sCFNhix1dLPNXYlmB/JS
+         WdlQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1716462824; x=1717067624;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=+aKuxY2Fk4OLcsa0CSr6w7+nYt28fnnuhVioZfggdrc=;
+        b=MRzF/ax9FCcICUWUPXuac3kR8IVBXIIRon9BIIIaNU6UX7I02r11nAWWyvO1wEHa7j
+         B2T63nshxyTKfuq8NRk5dU4/GklkidoQ1t+Yzexr+RCeEbMfNUqwKPC5W+HFWwXxxEgg
+         yiVCuLjqsc8h++Qlj/zmVrlA616p7nXAqe9P3CurBsVBwMAN6rV5BOByM5ZZitKJ8tGD
+         4oVgH691RKfPMhLAN5xItPMarHAXNkFQqAXnv4iIuD8ePNL4VCzgidM0yTAu651GbXXD
+         CfPAWH4MFgcNbW+bqFTF9MRuQKGYfZ0pqxqn26vwocgrxf2sEryNl/4is1yGvW0dSGvc
+         xJgw==
+X-Forwarded-Encrypted: i=1; AJvYcCX/+CE0GQQgVVd45p2AISUjl6wm0ovDZHof8G1k0xJDzcMZPAlOxQoTnGL3n5Um9CkdA5RPQEgiA/BMI6poMrICPjSAl4iiLjea+A==
+X-Gm-Message-State: AOJu0Yyw57s8CxOykuF8kyqeW+RE6KWVnEHmABx5jvSk7u/aIwzLZTbe
+	e7VCo6FiY9nKQwUbd7NLRBq//+qTxKRROMBcqvUsk8wHKM19foXjiP9Fhcj+haI=
+X-Google-Smtp-Source: AGHT+IGfvwX4nHErQyEQ6tKcNt4WXio4qE4pV5EfAuWWShz5bnwIL0deO6asuZ7WelH2PvE/SRuq2w==
+X-Received: by 2002:a17:903:1104:b0:1e5:3c5:55a5 with SMTP id d9443c01a7336-1f31c95d67emr50609535ad.8.1716462824368;
+        Thu, 23 May 2024 04:13:44 -0700 (PDT)
+Received: from L6YN4KR4K9.bytedance.net ([61.213.176.14])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-1f2fb4ca0ebsm76399555ad.119.2024.05.23.04.13.39
+        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
+        Thu, 23 May 2024 04:13:44 -0700 (PDT)
+From: Yunhui Cui <cuiyunhui@bytedance.com>
+To: rafael@kernel.org,
+	lenb@kernel.org,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	paul.walmsley@sifive.com,
+	palmer@dabbelt.com,
+	sunilvl@ventanamicro.com,
+	aou@eecs.berkeley.edu,
+	linux-riscv@lists.infradead.org,
+	bhelgaas@google.com,
+	james.morse@arm.com,
+	jeremy.linton@arm.com,
+	Jonathan.Cameron@huawei.com,
+	pierre.gondois@arm.com,
+	sudeep.holla@arm.com,
+	tiantao6@huawei.com
+Cc: Yunhui Cui <cuiyunhui@bytedance.com>
+Subject: [PATCH RESEND v5 1/3] riscv: cacheinfo: remove the useless input parameter (node) of ci_leaf_init()
+Date: Thu, 23 May 2024 19:13:20 +0800
+Message-Id: <20240523111322.19243-1-cuiyunhui@bytedance.com>
+X-Mailer: git-send-email 2.39.2 (Apple Git-143)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <2024052334-nape-wanting-0a2a@gregkh> <05f4290439a58730738a15b0c99cd8576c4aa0d9.1716461752.git.lukas@wunner.de>
-In-Reply-To: <05f4290439a58730738a15b0c99cd8576c4aa0d9.1716461752.git.lukas@wunner.de>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Thu, 23 May 2024 13:13:34 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0ihKzCbFxfVn9s5zB3WJepzi+dUPk1LFRMnbFF-9EV6nw@mail.gmail.com>
-Message-ID: <CAJZ5v0ihKzCbFxfVn9s5zB3WJepzi+dUPk1LFRMnbFF-9EV6nw@mail.gmail.com>
-Subject: Re: [PATCH] sysfs: Unbreak the build around sysfs_bin_attr_simple_read()
-To: Lukas Wunner <lukas@wunner.de>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
-	linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>, 
-	Michael Ellerman <mpe@ellerman.id.au>, linuxppc-dev@lists.ozlabs.org, 
-	linux-acpi@vger.kernel.org, Jean Delvare <jdelvare@suse.com>, 
-	Ard Biesheuvel <ardb@kernel.org>, linux-efi@vger.kernel.org, 
-	Zhenyu Wang <zhenyuw@linux.intel.com>, Zhi Wang <zhi.wang.linux@gmail.com>, 
-	intel-gvt-dev@lists.freedesktop.org, 
-	Daniel Lezcano <daniel.lezcano@linaro.org>, linux-pm@vger.kernel.org, 
-	Luis Chamberlain <mcgrof@kernel.org>, linux-modules@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Thu, May 23, 2024 at 1:00=E2=80=AFPM Lukas Wunner <lukas@wunner.de> wrot=
-e:
->
-> G=C3=BCnter reports build breakage for m68k "m5208evb_defconfig" plus
-> CONFIG_BLK_DEV_INITRD=3Dy caused by commit 66bc1a173328 ("treewide:
-> Use sysfs_bin_attr_simple_read() helper").
->
-> The defconfig disables CONFIG_SYSFS, so sysfs_bin_attr_simple_read()
-> is not compiled into the kernel.  But init/initramfs.c references
-> that function in the initializer of a struct bin_attribute.
->
-> Add an empty static inline to avoid the build breakage.
->
-> Fixes: 66bc1a173328 ("treewide: Use sysfs_bin_attr_simple_read() helper")
-> Reported-by: Guenter Roeck <linux@roeck-us.net>
-> Closes: https://lore.kernel.org/r/e12b0027-b199-4de7-b83d-668171447ccc@ro=
-eck-us.net
-> Signed-off-by: Lukas Wunner <lukas@wunner.de>
+ci_leaf_init() is a declared static function. The implementation of the
+function body and the caller do not use the parameter (struct device_node
+*node) input parameter, so remove it.
 
-Works for me.
+Fixes: 6a24915145c9 ("Revert "riscv: Set more data to cacheinfo"")
+Signed-off-by: Yunhui Cui <cuiyunhui@bytedance.com>
+Reviewed-by: Jeremy Linton <jeremy.linton@arm.com>
+Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
+---
+ arch/riscv/kernel/cacheinfo.c | 13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-Reviewed-by: Rafael J. Wysocki <rafael@kernel.org>
+diff --git a/arch/riscv/kernel/cacheinfo.c b/arch/riscv/kernel/cacheinfo.c
+index 09e9b88110d1..30a6878287ad 100644
+--- a/arch/riscv/kernel/cacheinfo.c
++++ b/arch/riscv/kernel/cacheinfo.c
+@@ -64,7 +64,6 @@ uintptr_t get_cache_geometry(u32 level, enum cache_type type)
+ }
+ 
+ static void ci_leaf_init(struct cacheinfo *this_leaf,
+-			 struct device_node *node,
+ 			 enum cache_type type, unsigned int level)
+ {
+ 	this_leaf->level = level;
+@@ -80,11 +79,11 @@ int populate_cache_leaves(unsigned int cpu)
+ 	int levels = 1, level = 1;
+ 
+ 	if (of_property_read_bool(np, "cache-size"))
+-		ci_leaf_init(this_leaf++, np, CACHE_TYPE_UNIFIED, level);
++		ci_leaf_init(this_leaf++, CACHE_TYPE_UNIFIED, level);
+ 	if (of_property_read_bool(np, "i-cache-size"))
+-		ci_leaf_init(this_leaf++, np, CACHE_TYPE_INST, level);
++		ci_leaf_init(this_leaf++, CACHE_TYPE_INST, level);
+ 	if (of_property_read_bool(np, "d-cache-size"))
+-		ci_leaf_init(this_leaf++, np, CACHE_TYPE_DATA, level);
++		ci_leaf_init(this_leaf++, CACHE_TYPE_DATA, level);
+ 
+ 	prev = np;
+ 	while ((np = of_find_next_cache_node(np))) {
+@@ -97,11 +96,11 @@ int populate_cache_leaves(unsigned int cpu)
+ 		if (level <= levels)
+ 			break;
+ 		if (of_property_read_bool(np, "cache-size"))
+-			ci_leaf_init(this_leaf++, np, CACHE_TYPE_UNIFIED, level);
++			ci_leaf_init(this_leaf++, CACHE_TYPE_UNIFIED, level);
+ 		if (of_property_read_bool(np, "i-cache-size"))
+-			ci_leaf_init(this_leaf++, np, CACHE_TYPE_INST, level);
++			ci_leaf_init(this_leaf++, CACHE_TYPE_INST, level);
+ 		if (of_property_read_bool(np, "d-cache-size"))
+-			ci_leaf_init(this_leaf++, np, CACHE_TYPE_DATA, level);
++			ci_leaf_init(this_leaf++, CACHE_TYPE_DATA, level);
+ 		levels = level;
+ 	}
+ 	of_node_put(np);
+-- 
+2.20.1
 
-> ---
->  include/linux/sysfs.h | 9 +++++++++
->  1 file changed, 9 insertions(+)
->
-> diff --git a/include/linux/sysfs.h b/include/linux/sysfs.h
-> index a7d725fbf739..c4e64dc11206 100644
-> --- a/include/linux/sysfs.h
-> +++ b/include/linux/sysfs.h
-> @@ -750,6 +750,15 @@ static inline int sysfs_emit_at(char *buf, int at, c=
-onst char *fmt, ...)
->  {
->         return 0;
->  }
-> +
-> +static inline ssize_t sysfs_bin_attr_simple_read(struct file *file,
-> +                                                struct kobject *kobj,
-> +                                                struct bin_attribute *at=
-tr,
-> +                                                char *buf, loff_t off,
-> +                                                size_t count)
-> +{
-> +       return 0;
-> +}
->  #endif /* CONFIG_SYSFS */
->
->  static inline int __must_check sysfs_create_file(struct kobject *kobj,
-> --
-> 2.43.0
->
