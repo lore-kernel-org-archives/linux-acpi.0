@@ -1,112 +1,167 @@
-Received: from mail-pl1-f179.google.com (mail-pl1-f179.google.com [209.85.214.179])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3341C1474B1
-	for <linux-acpi@vger.kernel.org>; Thu, 23 May 2024 11:13:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.179
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5976B13BAF1;
+	Thu, 23 May 2024 11:49:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716462836; cv=none; b=S//akLENWVvf0xA/WJqkvHR50isOXsCt25gVj32B4n57gfD2OL2YnoKI9K+b1/0osLjJhHwP0J8YBFitehEXWNwTHaIZigrUFOzXAj6hN0YNSnCc7i9bGq4OBXl3qNYw6GtCI5XnIwwO2iwvRW6gmG9uoh57HIf8o3F9P+KIfuo=
+	t=1716464995; cv=none; b=IfA+kmd3Uo/Lzwxl+g3qPGOkqd/xs7mFYG8yeGSvlcFk5aELyRuOIFk8+u37eUULdpihNunMoh1u4n6wxnYyRSKEfhqUYwpfRooSv7WDlV+tXcgLo0FWe75ZxL5mEQm52nU1wR7IB/SslI70zGCZhHS4pKS40vFq0f4JcQ0XPAA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716462836; c=relaxed/simple;
-	bh=vniUVQGgbZH5XUSS0fWMGrRPi3jnpi6vMBuF5oFpj5c=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=X3mLeva6jM3GxCY9o3r6fjRl7JdIixnAeIsk2bSfTLZClbCiiQZbDCd7bfpYx7RFTOYZDXoj/LySpyTKg2GMSzV5ODwFb9vaf2+/+6OaJDcLXLdp6TQ2elnXSUR/t8aSQ07ZQ1NpRDZHqrYgqnK7LDxS5J87Rw/PbZ6i3ACtDE8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com; spf=pass smtp.mailfrom=bytedance.com; dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b=IponsUZf; arc=none smtp.client-ip=209.85.214.179
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bytedance.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b="IponsUZf"
-Received: by mail-pl1-f179.google.com with SMTP id d9443c01a7336-1f304533064so13856105ad.0
-        for <linux-acpi@vger.kernel.org>; Thu, 23 May 2024 04:13:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bytedance.com; s=google; t=1716462834; x=1717067634; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=rKyIwcUjX1px2GE9S/CV6LaiV7WK04/0FO5MZQuO7/8=;
-        b=IponsUZfWWnVFxsS8C9Y2srnxHBmJBe0FJ3Xcvg/Tqi4kX8Byp7/JgU5BHzyKL9FCc
-         vDGjwKPLhk0qrZiAF7ZLzI7IgHs/Z7O9I24P5hb9DhviPdneK6TwVOKBDh+ebOKkSUWk
-         6Z/yLKaW5iv1VjH9lCdH4uk7ZhGvPMNoCwb4YIbVFBejMYeSaGCEejxSCY+ox7xey49H
-         GvoItSHrNenaq4RUsIfIJxW2Q36wE+CprS2IrmzHtUz3HUlPF8h1ibS0E1JA5j213RXZ
-         avFhdGf35sMP0KDk8hw+zPm7eK1IbzVnx1VLNO/HJ1OraYAfnX6THpxT6frKW5IHEnXZ
-         S6mg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1716462834; x=1717067634;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=rKyIwcUjX1px2GE9S/CV6LaiV7WK04/0FO5MZQuO7/8=;
-        b=iTNOzP5U/SwRGhP2a9Da4Wfnyaoqrm/S2A12P/exHIH/wxw2LvaMA7xOUMYZoBy0kX
-         b8zyzdksmE0cfmHUfZ05R9e2iSLYdZY4X4MlzJGqL7s/7ZYtmKh/EeTxVqSU1Z7Na3Lc
-         WechBSPCx0Um1JKyg6gEzEqgx6rm7qXzsSyxJIRNaj0xJtoIV+Fq9mQEj1LcrdaN0tLS
-         lWPKzIzj7BuNdCrsgQgNc/lUSoJyFbXN/KxudiYKC4Io5xFikNtqiES32wL2oUm8ksXw
-         ohSAK+J/lzPfu+tFuU8ojELp0e+InvNPPhufp8ul3/tRw9uNCcnXICc2wr6xP2SH34OZ
-         Jnnw==
-X-Forwarded-Encrypted: i=1; AJvYcCVCkgtL3UEVJTHg2/wnf5/kYae9utS5iFW2RCgUkA+9Tc2SQhuwFw6LG4jtGTgasaq7jgVqnggSV2jQXENvKo+j0ChZMIWJfleXiw==
-X-Gm-Message-State: AOJu0YzSaGULaxmPbdxNoZWf/F7Umn4HIwA9vZ5aQmmXf/mOkPCy+Qzc
-	NlL/mqJPw18QP8GArPbbLxG1OWxPvGNR/AogbXh5eCpNSg99zoQoGrQBmD2kARg=
-X-Google-Smtp-Source: AGHT+IF28aGrHScmfXD9R1tHK/6jmVsl792vI89tw9o1F0p1t+mCK4U7dtx62wkc9E7Mq6lP3ETRug==
-X-Received: by 2002:a17:903:1245:b0:1f2:fbe5:7d62 with SMTP id d9443c01a7336-1f339f602aemr23791545ad.33.1716462834501;
-        Thu, 23 May 2024 04:13:54 -0700 (PDT)
-Received: from L6YN4KR4K9.bytedance.net ([61.213.176.14])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-1f2fb4ca0ebsm76399555ad.119.2024.05.23.04.13.49
-        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Thu, 23 May 2024 04:13:54 -0700 (PDT)
-From: Yunhui Cui <cuiyunhui@bytedance.com>
-To: rafael@kernel.org,
-	lenb@kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	paul.walmsley@sifive.com,
-	palmer@dabbelt.com,
-	sunilvl@ventanamicro.com,
-	aou@eecs.berkeley.edu,
-	linux-riscv@lists.infradead.org,
-	bhelgaas@google.com,
-	james.morse@arm.com,
-	jeremy.linton@arm.com,
-	Jonathan.Cameron@huawei.com,
-	pierre.gondois@arm.com,
-	sudeep.holla@arm.com,
-	tiantao6@huawei.com
-Cc: Yunhui Cui <cuiyunhui@bytedance.com>
-Subject: [PATCH RESEND v5 3/3] RISC-V: Select ACPI PPTT drivers
-Date: Thu, 23 May 2024 19:13:22 +0800
-Message-Id: <20240523111322.19243-3-cuiyunhui@bytedance.com>
-X-Mailer: git-send-email 2.39.2 (Apple Git-143)
-In-Reply-To: <20240523111322.19243-1-cuiyunhui@bytedance.com>
-References: <20240523111322.19243-1-cuiyunhui@bytedance.com>
+	s=arc-20240116; t=1716464995; c=relaxed/simple;
+	bh=A52g3Xc/AtKCBKCjKIjz4Neu/2FlICZ2BJzBiYmYj+Y=;
+	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=Z81zAvmD6v4niak+GJP+jJvKac7eypmxin8EANZEetEPGmXGLkQbJsMZr5GwAbC+WEdIbXNr9AgLds6U3ITjiAMxHEzObGJfnF2rGKY3V/Tya+USpX9BrPhz2Bi2BXOtnGBIe7+owmFjzBdx6apRPxED1HCxyEJfsVVtKXHP+DE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.18.186.231])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4VlRFq4FHPz6JB3Z;
+	Thu, 23 May 2024 19:46:07 +0800 (CST)
+Received: from lhrpeml500005.china.huawei.com (unknown [7.191.163.240])
+	by mail.maildlp.com (Postfix) with ESMTPS id 8A3C91400CA;
+	Thu, 23 May 2024 19:49:49 +0800 (CST)
+Received: from localhost (10.202.227.76) by lhrpeml500005.china.huawei.com
+ (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Thu, 23 May
+ 2024 12:49:48 +0100
+Date: Thu, 23 May 2024 12:49:47 +0100
+From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+To: Dan Williams <dan.j.williams@intel.com>
+CC: <linux-cxl@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
+	<mahesh.natu@intel.com>, <rafael@kernel.org>
+Subject: Re: [ACPI Code First ECN] Enumerate "Inclusive Linear Address Mode"
+ memory-side caches
+Message-ID: <20240523124947.000034df@Huawei.com>
+In-Reply-To: <664cc3a76e7d_2c2629462@dwillia2-xfh.jf.intel.com.notmuch>
+References: <663ea70884cfd_db82d29414@dwillia2-xfh.jf.intel.com.notmuch>
+	<20240517174550.0000242a@Huawei.com>
+	<6647bbf6c88e3_2c2629451@dwillia2-xfh.jf.intel.com.notmuch>
+	<20240520125333.00007a47@Huawei.com>
+	<664cc3a76e7d_2c2629462@dwillia2-xfh.jf.intel.com.notmuch>
+Organization: Huawei Technologies Research and Development (UK) Ltd.
+X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: lhrpeml100004.china.huawei.com (7.191.162.219) To
+ lhrpeml500005.china.huawei.com (7.191.163.240)
 
-After adding ACPI support to populate_cache_leaves(), RISC-V can build
-cacheinfo through the ACPI PPTT table, thus enabling the ACPI_PPTT
-configuration.
+> 
+> > > > Whilst the CXL side of things (and I assume your hardware migration engine)
+> > > > don't provide a way to recover this, it would be possible to build
+> > > > a system that otherwise looked like you describe that did provide access
+> > > > to the tag bits and so wouldn't present the aliasing problem.    
+> > > 
+> > > Aliasing problem? All direct-mapped caches have aliases, it just happens that
+> > > this address mode allows direct-addressability of at least one alias.  
+> > 
+> > As I understand this the problem is you get address A in the error record,
+> > but that actually means any of A, A + N, A + 2N etc and the issue is you
+> > have no way of recovering which alias you have. 
+> > 
+> > Another implementation might have the same aliasing in the cache, but allow
+> > for establishing which one you have (the hardware inherently has to know that
+> > but I presume in this case doesn't provide a way to look it up - or if it
+> > does, then issue here is that the OS querying of the CXL device doesn't know
+> > about that interface?).  So I think the critical here is that information is
+> > not available, not that aliasing occurs.  
+> 
+> The critical information is that the address range is extended by the cache
+> capacity compared to the typical case. Maybe "extended-linear" is the term I was
+> searching for last Friday when I could not think of a better bikeshed color?
+> 
+> The reason an "extended-linear" indicator is important is for the driver to
+> recognize that the CXL address range programmed into the decoders is only a
+> subset of the system-physical address ranges that may route traffic to CXL. So
+> when the memory-side-cache is in this "extended" mode there are more addresses
+> that may route to CXL.
 
-Signed-off-by: Yunhui Cui <cuiyunhui@bytedance.com>
-Reviewed-by: Jeremy Linton <jeremy.linton@arm.com>
-Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
----
- arch/riscv/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
+I think we need to be careful with decoders here because the extra translation in the
+path means they aren't in HPA space as such.  They are in a new HPA+ space.
+In your case I think the translation is such that addresses are the bottom of the
+HPA window, but they could just as easily be the top of the HPA window or not
+within it at all...
 
-diff --git a/arch/riscv/Kconfig b/arch/riscv/Kconfig
-index f961449ca077..a9ebecd72052 100644
---- a/arch/riscv/Kconfig
-+++ b/arch/riscv/Kconfig
-@@ -14,6 +14,7 @@ config RISCV
- 	def_bool y
- 	select ACPI_GENERIC_GSI if ACPI
- 	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
-+	select ACPI_PPTT if ACPI
- 	select ARCH_DMA_DEFAULT_COHERENT
- 	select ARCH_ENABLE_HUGEPAGE_MIGRATION if HUGETLB_PAGE && MIGRATION
- 	select ARCH_ENABLE_SPLIT_PMD_PTLOCK if PGTABLE_LEVELS > 2
--- 
-2.20.1
+|     HPA window 1 - Length = Cache + CXL                 |
+|   HPA+ window 1 - Length = CXL only |
+
+or
+|     HPA window 1 - Length = Cache + CXL                |
+                   |   HPA+ window 1 - Length = CXL only |
+
+or for giggles
+
+|     HPA window 1 - Length = Cache + CXL                |
+                                                   |   HPA+ window - Length = CXL only |
+
+last one might seem odd but if you are packing multiple of these you might get
+|     HPA window 1 - Length = Cache + CXL      |   HPA window 2 Ln = Cache + CXL           |
+|   HPA+ window 1 - Length = CXL only |  HPA+ window 2  Len = CXL only|
+
+To reduce decoder costs in the fabric (yeah we don't do this today but the
+bios might :)
+
+So should the text say anything about decoder address vs (SRAT / HMAT addressing)
+Maybe reasonable to say it's contained and aligned so modulo maths works?
+This is a bit odd as HMAT wouldn't typically provide this info, but this addressing
+mode already incorporates it sort of...
+
+
+
+> 
+> Again, whether the address mode is extended-linear, or "non-extended"-linear the
+> math to find aliases is the same. Rather, Linux needs this indication to break
+> its assumptions around which system-physical-address ranges may decode to CXL,
+> and avoid misinterpretations of ACPI SRAT/HMAT and CEDT.CFMWS.
+> 
+> [..]
+> > > But it is relevant. If the near memory (cache memory) is 64GB and the far memory
+> > > (backing store) is 64GB then the SRAT range is 64GB (cache-excluded). With this
+> > > new mode the SRAT range is 128GB.  
+> > 
+> > Sure, but this is a cache, not normal memory so in what people normally expect
+> > from a memory-side cache (write through / write back etc) there is no
+> > reason to ever include it in SRAT. Hence it's not 'excluded' it just has
+> > nothing to do with SRAT which is about memory, not caches. I'm not
+> > arguing it is irrelevant in your case (where it clearly is because it is part
+> > of the memory), but it is irrelevant in for example a write-through cache.
+> > Saying it was excluded is implying a lot more that 'not-included' would for
+> > example.  
+> 
+> Ok, that's starting to get through, and it seems to support the proposal to call
+> this address-mode "extended-linear".
+
+That works. 
+
+> [..]
+> > > I still disagree with the implication that "inclusion" is a property of the
+> > > cache and not the address layout for this ECN.  
+> > 
+> > It's an ECN about caches - the chance of misunderstanding is high.
+> > Maybe there isn't a better option, but it definitely makes me feel uncomfortable.  
+> [..]
+> > Maybe hyphen will help? Inclusive-linear Address mode?
+> > to avoid reading this as separate adjectives as in that this is an
+> > 'inclusive' cache that has a 'linear address' mode?  
+> 
+> Try this on for size:
+> 
+> * "When Address Mode is 1 'Extended-Linear' it indicates that the associated
+>    address range (SRAT.MemoryAffinityStructure.Length) is comprised of the
+>    backing store capacity extended by the cache capacity. It is arranged such
+>    that there are N directly addressable aliases of a given cacheline where N is
+>    the ratio of target memory proximity domain size and the memory side cache
+>    size. Where the N aliased addresses for a given cacheline all share the same
+>    result for the operation 'address modulo cache size'. This setting is only
+>    allowed when 'Cache Associativity' is 'Direct Map'."  
+> 
+> 
+I don't promise not to change my mind, but today LGTM.
+
+> [..]
 
