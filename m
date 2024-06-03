@@ -1,129 +1,104 @@
-Received: from mout.kundenserver.de (mout.kundenserver.de [217.72.192.73])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC6CB20ED;
-	Mon,  3 Jun 2024 19:56:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.72.192.73
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8ED9FB651
+	for <linux-acpi@vger.kernel.org>; Mon,  3 Jun 2024 20:51:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717444564; cv=none; b=WHOzI9EHZMa+Iuy4nkC7ownMTxmoQlMAe3bXUiB/ND5HEAgEza0+4zP3Fj77PHLzAQ0iTv0w+fHf0ZKK4sHnq8wvBUgx/zsMvd1dFAfpHB02dWbqvbQLtc1udxyLgAzkMaMxtu+t2UU3LfpxpOWQDQwl/BaqvdRAoxucq2DMy1w=
+	t=1717447863; cv=none; b=i6h00UgGvN/IZkbW6bDUQO/7OrzaqCUYTg3ecbQYs6DeKYA3K5fTLJa/rp6tTBeP88C5cUv+X51HH2qKWpfWuNuK3cAQ5hzpfCEHJvuf515xlW3Oeg8VfZcXDr6U1TJy7k6eJsX8hmg8MoNueOs2Xa2b/zCtx2ZfEYAYdkvATac=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717444564; c=relaxed/simple;
-	bh=X02/WrcKG3y6tPosHO5YUNSdqDVkQDTVr3S+20CPbGQ=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=KA8YtshiV92Q2NOZqKnkZGg+Dw+Y6mxTM6WYy2adSwRViVVMWDtI8OI4uAcP5V+UgrHMj+z8yp15ZHGwg/S+8VEKhJLJqhb8nLqKxSusF1iq3lJvg5yDYmaRwp2wyHKryfn1Y4Ih0icJvx0BbsXZedZq54SMqCtA4zdrDU5XshE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=oldschoolsolutions.biz; spf=pass smtp.mailfrom=oldschoolsolutions.biz; dkim=pass (2048-bit key) header.d=oldschoolsolutions.biz header.i=jens.glathe@oldschoolsolutions.biz header.b=HNQZFbxv; arc=none smtp.client-ip=217.72.192.73
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=oldschoolsolutions.biz
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oldschoolsolutions.biz
+	s=arc-20240116; t=1717447863; c=relaxed/simple;
+	bh=unDaOeY2f1Ime1NC/i6r4nmlvC92sp9KHWcJMQqUEWM=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=FHzGnutzgVfwg5Hm3SEjSpMUeT/UwMbBM2KnUVM/s12Q5POACr+sOenTz0D9ixZBaISBCFwLvbTcK7yKkOO0GeUV7LzIvDLu8zIUgJGaNzQQEhM/bkBTbb+prB888uJv9Q0ii/MrBs4o7+4r9rzbCbRq50bxzazlBTDtG69vdu4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=LZkj8qUa; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=oldschoolsolutions.biz header.i=jens.glathe@oldschoolsolutions.biz header.b="HNQZFbxv"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=oldschoolsolutions.biz; s=s1-ionos; t=1717444555; x=1718049355;
-	i=jens.glathe@oldschoolsolutions.biz;
-	bh=X02/WrcKG3y6tPosHO5YUNSdqDVkQDTVr3S+20CPbGQ=;
-	h=X-UI-Sender-Class:Message-ID:Date:MIME-Version:Subject:To:Cc:
-	 References:From:In-Reply-To:Content-Type:
-	 Content-Transfer-Encoding:cc:content-transfer-encoding:
-	 content-type:date:from:message-id:mime-version:reply-to:subject:
-	 to;
-	b=HNQZFbxv4wWkrF+W7wobqlWCXDH3m4+DT87C2AGRVIWtdylbvLh6n2UwQsIt1SiX
-	 HlmzQk+5pzrCYnu1g3nPgBj/ALYjf3zmVhMZwieaQprmtzdyX0lMBmc+6qArBtrnW
-	 cxRcxvKEVUadMvJF1s9flL4Ga1DQPPKdWEDyPGxCsPFX5l2yFcwG/96N+n5zNVB+z
-	 mRCR7fZzqYHVwYmFHtsqOgeJcKTYYxbBwPVdMk/Hfp2QUH4oo4xbCIKHjWuBK/L9/
-	 +l87GaNi1vCod6gzM1wXzuG5HDjkNK4MzeR7E2eo+EXH04zrxGmGtFOnWj4eOVjCQ
-	 bsdBeWgpsQdSJ6mzGQ==
-X-UI-Sender-Class: 55c96926-9e95-11ee-ae09-1f7a4046a0f6
-Received: from [192.168.0.174] ([91.64.229.215]) by mrelayeu.kundenserver.de
- (mreue107 [212.227.15.183]) with ESMTPSA (Nemesis) id
- 1M42X0-1sEDgf3Pua-0002kL; Mon, 03 Jun 2024 21:49:45 +0200
-Message-ID: <753fd496-ea66-42dd-a607-a879c3cce6b6@oldschoolsolutions.biz>
-Date: Mon, 3 Jun 2024 21:49:43 +0200
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="LZkj8qUa"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1717447860;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=vzmMB6XxXPRXSfazlmTWuRuS8YfP5O1rWg9B1xuk3S0=;
+	b=LZkj8qUaP4vQVaNt25eJy+du5HNOnHtm9+3q14c5PsOgfghUkc/VvXevbRlE+ZtUNaHAX6
+	fKBUHXPV7Xq7SvTFwmVjnOP6nUw/WiU8D0nouscv3av9vLlWiHsmA+HvJ+KRop/2yYBA+A
+	4JLsucl8Z0/eNLRrwgBf5oO7Rma/Eh0=
+Received: from mx-prod-mc-03.mail-002.prod.us-west-2.aws.redhat.com
+ (ec2-54-186-198-63.us-west-2.compute.amazonaws.com [54.186.198.63]) by
+ relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-85-LGq5ZXZJPCe3-Z0hkAw-HA-1; Mon,
+ 03 Jun 2024 16:50:56 -0400
+X-MC-Unique: LGq5ZXZJPCe3-Z0hkAw-HA-1
+Received: from mx-prod-int-04.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-04.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.40])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mx-prod-mc-03.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id D44651913F5A;
+	Mon,  3 Jun 2024 20:50:54 +0000 (UTC)
+Received: from shalem.redhat.com (unknown [10.39.192.102])
+	by mx-prod-int-04.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTP id 8F5081956087;
+	Mon,  3 Jun 2024 20:50:51 +0000 (UTC)
+From: Hans de Goede <hdegoede@redhat.com>
+To: "Rafael J . Wysocki" <rafael@kernel.org>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Wentong Wu <wentong.wu@intel.com>,
+	Tomas Winkler <tomas.winkler@intel.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	linux-acpi@vger.kernel.org,
+	Kate Hsuan <hpa@redhat.com>,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] mei: vsc: Fix wrong invocation of ACPI SID method
+Date: Mon,  3 Jun 2024 22:50:50 +0200
+Message-ID: <20240603205050.505389-1-hdegoede@redhat.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 5/7] iommu/dma: Make limit checks self-contained
-To: Robin Murphy <robin.murphy@arm.com>, Joerg Roedel <joro@8bytes.org>,
- Christoph Hellwig <hch@lst.de>
-Cc: Vineet Gupta <vgupta@kernel.org>, Russell King <linux@armlinux.org.uk>,
- Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
- Huacai Chen <chenhuacai@kernel.org>, WANG Xuerui <kernel@xen0n.name>,
- Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
- Paul Walmsley <paul.walmsley@sifive.com>, Palmer Dabbelt
- <palmer@dabbelt.com>, Albert Ou <aou@eecs.berkeley.edu>,
- Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo
- <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@arm.com>,
- "K. Y. Srinivasan" <kys@microsoft.com>,
- Haiyang Zhang <haiyangz@microsoft.com>, Wei Liu <wei.liu@kernel.org>,
- Dexuan Cui <decui@microsoft.com>,
- Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>,
- David Woodhouse <dwmw2@infradead.org>, Lu Baolu <baolu.lu@linux.intel.com>,
- Niklas Schnelle <schnelle@linux.ibm.com>,
- Matthew Rosato <mjrosato@linux.ibm.com>,
- Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
- Jean-Philippe Brucker <jean-philippe@linaro.org>,
- Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>,
- Marek Szyprowski <m.szyprowski@samsung.com>, Jason Gunthorpe <jgg@ziepe.ca>,
- linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
- linux-acpi@vger.kernel.org, iommu@lists.linux.dev,
- devicetree@vger.kernel.org, Jason Gunthorpe <jgg@nvidia.com>
-References: <cover.1713523152.git.robin.murphy@arm.com>
- <e28a114243d1e79eb3609aded034f8529521333f.1713523152.git.robin.murphy@arm.com>
- <aeb13631-7504-4c3c-ba7b-812bf121a60f@oldschoolsolutions.biz>
- <a4105d70-bec5-4fff-b9bf-04d0b03f81d6@arm.com>
-Content-Language: en-US
-From: Jens Glathe <jens.glathe@oldschoolsolutions.biz>
-In-Reply-To: <a4105d70-bec5-4fff-b9bf-04d0b03f81d6@arm.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: quoted-printable
-X-Provags-ID: V03:K1:iScz297IREJFID4bB3dtWwm3UthsXvjTmxRXzgKye5unhq4O8El
- UAp0YhhOkMt18jGteSmf+HbA5IqXBght1LGj55BFwT5gKovF2QMJd2VLv6ju+yQgF8OEFS2
- 6TaC7X10u8+U2BtvRcbGKRdmDiXJzZtuViJBoL2mdaHA+YN3BjKzQAkCp4jPPCqkuGrfhjb
- TmZJ62CruJPxm1u+aLqdg==
-X-Spam-Flag: NO
-UI-OutboundReport: notjunk:1;M01:P0:qGcpoOb2bMA=;OYMmfwCyP4ATmR7YLDzYf0NQvOT
- Vq4EF7Zw55G8zloA1nBYhi3PnJpDKhr6DQuKVQr3x/OZ4bVovUeOP9Yt8JkF/Y3cuKHRYd3pm
- z4EcOGd2xQWOmhytIzyqyIMwTugk4WHA4YgupoSI1ss7Myt9hMlbYsWlRzM3OScGnvMS+UoGb
- 85l5GjXASHV/+xZMzoM6p+FGBmXvmTDYF/19wfEPLgPQgUwiwgn0esCVk1U2P2+j3SWunOhkO
- BiT6hEAASzaCLrCGWU+YcKfGZaLrBXIACblUeG+jswWpEWNOrFotuhFFZvyD53sAJpqX493Uo
- RwJKpMm5DOvg8pEw0YqLojiX34HiIKBwZNUFhtu/mUXR0n5InMvQnYnX/U6uuuySmdovXF0y7
- 2r7d6YthJBJD03qjdVn0/V7C8YoLzH6jOWNXhF0vKkw6oMAbh2hCOgCLqReGEcgt+M/4D9F9K
- nfzg//8+1S/scX2BM1ehQRkwh8TwpKYkML4JgnLavGn/9ip6PmTXKuwq/6K1W4sXNnNRxKVyq
- s0Yp07QJy+Qh5Z7VDbTO8oCxx5Yh+p07HDY03lTpxYjerStd4Si+JiqgDPWwnYjn5wbZXoS8u
- EbH9hA1EUtv6nU1AfKSZz3WaDCCSBkvdbKGvcmcMOOq/X64/O4yyJOlRFwLHBqpf3XkEVVasK
- BUOxk3YQFpJRwFmpdawerEUUjoxOvJEPg1NzAFRaW45XQGnAIaKA9KuFwTxAmHyr1msW30x/l
- h0Pf1q34pySadLyjOAfbs/cNEk2HLfWCTQtmVOKYuIwDbsfKzG6Z8M=
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 3.0 on 10.30.177.40
 
-Hi Robin,
+When using an initializer for a union only one of the union members
+must be initialized. The initializer for the acpi_object union variable
+passed as argument to the SID ACPI method was initializing both
+the type and the integer members of the union.
 
-oh that was fast. Will test, thanks!
+Unfortunately rather then complaining about this gcc simply ignores
+the first initializer and only used the second integer.value = 1
+initializer. Leaving type set to 0 which leads to the argument being
+skipped by acpi acpi_ns_evaluate() resulting in:
 
-with best regards
+ACPI Warning: \_SB.PC00.SPI1.SPFD.CVFD.SID: Insufficient arguments -
+Caller passed 0, method requires 1 (20240322/nsarguments-232)
 
-Jens
+Fix this by initializing only the integer struct part of the union
+and initializing both members of the integer struct.
 
-On 6/3/24 21:46, Robin Murphy wrote:
-> Hi Jens,
->
-> On 2024-06-03 8:37 pm, Jens Glathe wrote:
->> Hi Robin,
->>
->> an observation from 6.10-rc1: On sc8280xp (Lenovo X13s, Windows Dev Kit
->> 2023), when booted to EL2 with the arm-smmuv3 under control of Linux, i=
-t
->> fails to set up DMA transfers to nvme. My box boots from nvme, so I onl=
-y
->> got a black screen. @craftyguy booted from USB, and got this:
->
-> Indeed, I see there's a dma-ranges property with a base of 0 in that
-> DT, so all manner of hilarity may ensue. The fix is here, just waiting
-> to be picked up:
->
-> https://lore.kernel.org/linux-iommu/159193e80b6a7701c61b32d6119ac68989d4=
-57bd.1716997607.git.robin.murphy@arm.com/
->
->
-> Thanks,
-> Robin.
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+Even though this is a one-liner, figuring out what was actually going
+wrong here took quite a while.
+---
+ drivers/misc/mei/vsc-fw-loader.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/misc/mei/vsc-fw-loader.c b/drivers/misc/mei/vsc-fw-loader.c
+index ffa4ccd96a10..596a9d695dfc 100644
+--- a/drivers/misc/mei/vsc-fw-loader.c
++++ b/drivers/misc/mei/vsc-fw-loader.c
+@@ -252,7 +252,7 @@ static int vsc_get_sensor_name(struct vsc_fw_loader *fw_loader,
+ {
+ 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER };
+ 	union acpi_object obj = {
+-		.type = ACPI_TYPE_INTEGER,
++		.integer.type = ACPI_TYPE_INTEGER,
+ 		.integer.value = 1,
+ 	};
+ 	struct acpi_object_list arg_list = {
+-- 
+2.45.1
+
