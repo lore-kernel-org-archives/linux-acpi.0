@@ -1,134 +1,132 @@
-Received: from mail-pl1-f193.google.com (mail-pl1-f193.google.com [209.85.214.193])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3CDD1922F9;
-	Wed,  5 Jun 2024 07:38:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.193
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E35EC1946AD;
+	Wed,  5 Jun 2024 08:40:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717573085; cv=none; b=OZM3X0hgK6JzSne2NpBiI0CFOiFEVvgiGyfetupQWnsAN4nptVYcgxUYh6ncuthkz7p7nAsEA1J6CII38j7Jn2M/bB4QpqEicAPbo/ZHQkY1XzIfhDxlJ1BsiA1TcezdxPrelYMrEZUVl5C2fEO4AX6jfQ+C/hN+qznSH5ZBgrQ=
+	t=1717576837; cv=none; b=RQtbxKCXygHkK1G2wK7QnpBw23JfZuSuwAQVGDe4B8CvnAa5m3UhL7mXKJPoFVWXfCHKzlIox/Smv65o3gzUoVLqMfURp9jBRT0I68Ch07zzPrxTXPpGgudM25AwHTgTLbEQFi4SbEDDp2A7thVk6w6RgelbXLqV0S7gGcWOdnA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717573085; c=relaxed/simple;
-	bh=4yM/wI32avSH0RS9ciqQ4wcoPwL6cs7kX9mFZ0MD9tQ=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=I+7QvmZnLcqrcVoLT+zCvzeN69Tv2dhaAuP9TRBEQ+grLRdpP5ZAXXLDUU5iaJ7SyLFpN0YNGAuKOpPQLxXTYbpCZTr9MDcovStb1AXV2MphDEWqLwVubE6a+lf3vOSwZdfGcWeQh3Ubmzk+QzTk1qEgaqGXfvmscu0H920OQFo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=GwxDi6gV; arc=none smtp.client-ip=209.85.214.193
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1717576837; c=relaxed/simple;
+	bh=SSuUeQbO2I34BDzHIPG6kv2UTPDB/m4P39TM9c87s7U=;
+	h=MIME-Version:Date:From:To:Cc:Subject:In-Reply-To:References:
+	 Message-ID:Content-Type; b=gFr4KAVAo69vEJEsk1kc4/rCvbYj2Awxg1pybNS+YrXKxVu2d03MBICfRVkNgAFVQvb2IlMC3hHbWMiLQhGyqN3Udrc80eSz1IDLvLXpNbQtWOWUhk/BWww5scBRf+tXzifGGWNorWsfjqiGskz8Jy9jGIgGLFYnkzmYgPCY5V4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=M8Ol6eQ8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="GwxDi6gV"
-Received: by mail-pl1-f193.google.com with SMTP id d9443c01a7336-1f62217f806so56500065ad.2;
-        Wed, 05 Jun 2024 00:38:03 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1717573083; x=1718177883; darn=vger.kernel.org;
-        h=references:in-reply-to:message-id:date:subject:cc:to:from:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=e8BWSpIlzHJyNkmNvRW327/r98gdCbnh5C95lF/K86k=;
-        b=GwxDi6gVfCh0PpcV/C5B5uoSIDC/xn+I1RzG9k5KooiteJ8nkq7J2nPPxYesF1v8FB
-         pbekavR0j3TsoYP2CXan6y3k/eMZaPko6sukEAEeTCaaaKO1CC8WN4nnthXNsPPJ0XR/
-         jz01+lfDcq1ICKRpkCQYUn6Ox3s6Fw/AGgao6oXaUg7WvgQGiEA+Yg/cGxScZeumruiw
-         2wF7+LCRk299M0kOGfUhAm46OXkjlCaQ4En3X19gvmAkkW9dycr3T6otJhjP8CTZGWYG
-         D5JQgMMFkGeWjFRhSe3MFpGaXan0+QAPbdZsZLJjyA7MNtg5Vx35oHFuRGIb3378UH/M
-         tJQg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1717573083; x=1718177883;
-        h=references:in-reply-to:message-id:date:subject:cc:to:from
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=e8BWSpIlzHJyNkmNvRW327/r98gdCbnh5C95lF/K86k=;
-        b=AfLVMg8YlgHk+zprzy7JoEU2cJSIfZbtgfZwfJ157BBxLKh6YxgGraRZKPdrl/2bqD
-         pQEVSOYH2hggDnOa22IoyiLqdJctFDYgp0GYtHdxy6ofhcS7lUw1DYsIEpY2TkORHij3
-         A2PvCQ2gMlKzpFMeO197LaP7SuUuAtQwFoUQ7keUFBqoLzxEhIf0yweu/xT7aK8/3N/u
-         191/gOJ7ecBqN4fUUTVJmDC5yMUn62Cv6W6Y4v357/w1zGKbDxR7fL8ObqfoaRc7GzzT
-         Wv0lza1/QwQyBRdAX96ErDsA+5xmVg7nFCMzop7/vMDJ7gLjPAg2T9TgmjI67rjOFdEP
-         1vTQ==
-X-Forwarded-Encrypted: i=1; AJvYcCVzN1GAgax2+lC9Lgdmq9TAepKBinUl0eG+ImeZh4DU6xPVkgta4GbUogb2kc/oij7vaf5Hqo6Kc9ageeVdLymHivenuWFOq4kps1Cp6DIAC+AkCpxKPVsea2sCb3xrC71QgAK7WCbqLDKPQnZXeaGlOOw/fFzGXmR6RQxoPV0asQHjOY26/8jYEFuHgXEAtdas1iwHN1B8j+94KGVZa9o=
-X-Gm-Message-State: AOJu0YzOo513JfxB9T4KBS02ff2h+PP6wApdL61JStTNfvP3okO3GZea
-	yCanM5YbwLW/Q5AIjgIPcaQ2HaCs1mxSEnYYHwg2g2wL7ucUP5Zo
-X-Google-Smtp-Source: AGHT+IHh5cxecQo/wp3TkXPB4T7v8hzDY+DRBHVH9fdZp5fHLInM0xzv5DCE8mytLXwDepY1szGczg==
-X-Received: by 2002:a17:902:d504:b0:1f6:80e2:e423 with SMTP id d9443c01a7336-1f6a5a849fcmr21687855ad.68.1717573083206;
-        Wed, 05 Jun 2024 00:38:03 -0700 (PDT)
-Received: from localhost.localdomain ([103.29.142.67])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-1f64cff714csm77680805ad.215.2024.06.05.00.37.57
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 05 Jun 2024 00:38:02 -0700 (PDT)
-From: Frank Wang <frawang.cn@gmail.com>
-To: bjorn.andersson@linaro.org,
-	heiko@sntech.de,
-	heikki.krogerus@linux.intel.com
-Cc: gregkh@linuxfoundation.org,
-	andriy.shevchenko@linux.intel.com,
-	devicetree@vger.kernel.org,
-	djrscally@gmail.com,
-	hdegoede@redhat.com,
-	krzysztof.kozlowski+dt@linaro.org,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-usb@vger.kernel.org,
-	rafael@kernel.org,
-	robh+dt@kernel.org,
-	sakari.ailus@linux.intel.com,
-	william.wu@rock-chips.com,
-	yubing.zhang@rock-chips.com,
-	frank.wang@rock-chips.com
-Subject: Re: [PATCH v5 5/7] usb: typec: mux: Allow multiple mux_devs per mux
-Date: Wed,  5 Jun 2024 15:37:55 +0800
-Message-Id: <20240605073755.17452-1-frawang.cn@gmail.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20220422222351.1297276-6-bjorn.andersson@linaro.org>
-References: <20220422222351.1297276-6-bjorn.andersson@linaro.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="M8Ol6eQ8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D6F8C4AF07;
+	Wed,  5 Jun 2024 08:40:36 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1717576836;
+	bh=SSuUeQbO2I34BDzHIPG6kv2UTPDB/m4P39TM9c87s7U=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=M8Ol6eQ8uwNDtxC0NQ5T5LtnOoyj9T/kgJ15LXylZws9yVCogCgIqt1iRnAu70HqR
+	 EKgizvqOq80Myld4yIAl2s2Qc3lBefOF0J+opuYC/n2F3LB+uM7GER6A3GSLZsFEFq
+	 GL0BcmY1L79oanQSiOMW3z6Y655VQCxMElhWuH+ctMhXdj7cAzzeVsvc54z9WxTsT/
+	 8GxqXFvo6yzQKV7qYAa0y7xP4v1RbLnYbRyCcikOuuZcvlZrqTsmXwcCDE3LD2VHsD
+	 DEf3GYbh7jo0TmM/Hq2dZwwo4K3lLH0r6xS5cbaOmhnEfdVL7xpnkeqY7Zqj9Euoft
+	 2ED/w2eiEXVSA==
+Received: from disco-boy.misterjones.org ([217.182.43.188] helo=www.loen.fr)
+	by disco-boy.misterjones.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.95)
+	(envelope-from <maz@kernel.org>)
+	id 1sEmCA-000r52-Af;
+	Wed, 05 Jun 2024 09:40:34 +0100
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Date: Wed, 05 Jun 2024 09:40:34 +0100
+From: Marc Zyngier <maz@kernel.org>
+To: Lorenzo Pieralisi <lpieralisi@kernel.org>
+Cc: linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>,
+ Robin Murphy <robin.murphy@arm.com>, Mark Rutland <mark.rutland@arm.com>,
+ linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org,
+ acpica-devel@lists.linux.dev, Fang Xiang <fangxiang3@xiaomi.com>, Robert
+ Moore <robert.moore@intel.com>
+Subject: Re: [PATCH v5 1/1] irqchip/gic-v3: Enable non-coherent
+ redistributors/ITSes ACPI probing
+In-Reply-To: <ZmAQQVR+inUJpJ7z@lpieralisi>
+References: <20240123110332.112797-1-lpieralisi@kernel.org>
+ <20240123110332.112797-2-lpieralisi@kernel.org>
+ <ZiYi64/VBWkfM2E2@lpieralisi> <ZmAQQVR+inUJpJ7z@lpieralisi>
+User-Agent: Roundcube Webmail/1.4.15
+Message-ID: <eefc3a76d6cfb3400a3d6e39e8887177@kernel.org>
+X-Sender: maz@kernel.org
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+X-SA-Exim-Connect-IP: 217.182.43.188
+X-SA-Exim-Rcpt-To: lpieralisi@kernel.org, linux-kernel@vger.kernel.org, rafael@kernel.org, robin.murphy@arm.com, mark.rutland@arm.com, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev, fangxiang3@xiaomi.com, robert.moore@intel.com
+X-SA-Exim-Mail-From: maz@kernel.org
+X-SA-Exim-Scanned: No (on disco-boy.misterjones.org); SAEximRunCond expanded to false
 
-Hi Bjorn,
+On 2024-06-05 08:14, Lorenzo Pieralisi wrote:
+> On Mon, Apr 22, 2024 at 10:42:19AM +0200, Lorenzo Pieralisi wrote:
+>> On Tue, Jan 23, 2024 at 12:03:32PM +0100, Lorenzo Pieralisi wrote:
+>> > The GIC architecture specification defines a set of registers for
+>> > redistributors and ITSes that control the sharebility and cacheability
+>> > attributes of redistributors/ITSes initiator ports on the interconnect
+>> > (GICR_[V]PROPBASER, GICR_[V]PENDBASER, GITS_BASER<n>).
+>> >
+>> > Architecturally the GIC provides a means to drive shareability and
+>> > cacheability attributes signals but it is not mandatory for designs to
+>> > wire up the corresponding interconnect signals that control the
+>> > cacheability/shareability of transactions.
+>> >
+>> > Redistributors and ITSes interconnect ports can be connected to
+>> > non-coherent interconnects that are not able to manage the
+>> > shareability/cacheability attributes; this implicitly makes the
+>> > redistributors and ITSes non-coherent observers.
+>> >
+>> > To enable non-coherent GIC designs on ACPI based systems, parse the MADT
+>> > GICC/GICR/ITS subtables non-coherent flags to determine whether the
+>> > respective components are non-coherent observers and force the
+>> > shareability attributes to be programmed into the redistributors and
+>> > ITSes registers.
+>> >
+>> > An ACPI global function (acpi_get_madt_revision()) is added to retrieve
+>> > the MADT revision, in that it is essential to check the MADT revision
+>> > before checking for flags that were added with MADT revision 7 so that
+>> > if the kernel is booted with an ACPI MADT table with revision < 7 it
+>> > skips parsing the newly added flags (that should be zeroed reserved
+>> > values for MADT versions < 7 but they could turn out to be buggy and
+>> > should be ignored).
+>> >
+>> > Signed-off-by: Lorenzo Pieralisi <lpieralisi@kernel.org>
+>> > Cc: Robin Murphy <robin.murphy@arm.com>
+>> > Cc: Mark Rutland <mark.rutland@arm.com>
+>> > Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+>> > Cc: Marc Zyngier <maz@kernel.org>
+>> > ---
+>> >  drivers/acpi/processor_core.c    | 15 +++++++++++++++
+>> >  drivers/irqchip/irq-gic-v3-its.c |  4 ++++
+>> >  drivers/irqchip/irq-gic-v3.c     |  9 +++++++++
+>> >  include/linux/acpi.h             |  3 +++
+>> >  4 files changed, 31 insertions(+)
+>> 
+>> Hi Marc, Rafael,
+>> 
+>> I would kindly ask you please what to do with this patch, it still
+>> applies to v6.9-rc5 - I can resend it if needed, ACPICA changes
+>> are already merged as-per the cover letter.
+> 
+> Hi Marc, Rafael,
+> 
+> I would kindly ask please what to do with this patch, rebased to 
+> v6.10-rc1,
+> I can resend it if that's preferred, please let me know.
 
-> In the Qualcomm platforms the USB/DP PHY handles muxing and orientation
-> switching of the SuperSpeed lines, but the SBU lines needs to be
-> connected and switched by external (to the SoC) hardware.
->
-> It's therefor necessary to be able to have the TypeC controller operate
-> multiple TypeC muxes and switches. Use the newly introduced indirection
-> object to handle this, to avoid having to taint the TypeC controllers
-> with knowledge about the downstream hardware configuration.
->
-> The max number of devs per indirection is set to 3, which account for
-> being able to mux/switch the USB HS, SS and SBU lines, as per defined
-> defined in the usb-c-connector binding. This number could be grown if
-> need arrises at a later point in time.
->
-> Acked-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-> Signed-off-by: Bjorn Andersson <bjorn.andersson@linaro.org>
-> ---
->
-> Changes since v4:
-> - None
->
+Please resend it with my:
 
-With this commit, TCPC device shall match *two* endpoint ports both for switch
-device and mux device if they have the same parent node like the following
-existed DT. It causes the callback function is invoked twice both for switch and
-mux in tcpm_mux_set() process.
+Acked-by: Marc Zyngier <maz@kernel.org>
 
-// arch/arm64/boot/dts/rockchip/rk3588-evb1-v10.dts
-&usbdp_phy0 {
-        mode-switch;
-        orientation-switch;
-        [...]
-        port {
-                #address-cells = <1>;
-                #size-cells = <0>;
+and Cc'ing Thomas Gleixner.
 
-                usbdp_phy0_orientation_switch: endpoint@0 {
-                        reg = <0>;
-                        remote-endpoint = <&usbc0_orien_sw>;
-                };
+Thanks,
 
-                usbdp_phy0_dp_altmode_mux: endpoint@1 {
-                        reg = <1>;
-                        remote-endpoint = <&dp_altmode_mux>;
-                };
-        };
-};
-
-BR.
-Frank
+         M.
+-- 
+Jazz is not dead. It just smells funny...
