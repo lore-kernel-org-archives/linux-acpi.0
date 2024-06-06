@@ -1,28 +1,28 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32D0D197534;
-	Thu,  6 Jun 2024 14:08:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 845E319CCFB;
+	Thu,  6 Jun 2024 14:17:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717682917; cv=none; b=qnQFLd7+cDq34KkDtR+dTAH6jkJRlyV+vs3HCFnNJM1dehvh1VAnxlyFmK+ReJqTJJykDyipsjm6q+Z4CiCckawJfUyPKYiyvPqxQV00y3SnU0sa5N3HYxveYnm4ogUSuc9rm2kZVrn0iDNsmVhvg78Z5JDXro8zyUZB/vQ3kd0=
+	t=1717683427; cv=none; b=C6kBtAaIhxAkhlPXpbEFCg2tdGlxwJRN6JuVfFx3vL/aWqIHX5q+YWP2SPde5DJ2JUlP3xowA/oxmQM6c1NPL+ac1laKsb+K9nqvNDZY4xxChb3+0ZJKNEU71Vuxz/fCevLHRFNDMlp3r6+YDrGFp5H0HiHtF/Bwnu8GfMbYZKA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717682917; c=relaxed/simple;
-	bh=gwBxuAl9XIkvDtF0BsEAr+TUf8kHo5riTQFuFZ/JSvY=;
+	s=arc-20240116; t=1717683427; c=relaxed/simple;
+	bh=7FPLIoOdl0Zmsq6B7Q7QW7kzcK/k4/6nu2KE144GnMU=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=f9IlFuVE5BveXPXtofvLHVQwkVKLDPMIxYT+2PQfxjc9lT+ZZgryIwzFEYxnr66SAvbnO6yiYHoqGct8eybLysOSFiksRLBGcf4c9OqWirnPfOgF0bJBtwmBngUsV/vrV8CJUY+07HKxQyWAa31r/MAZohb85vlFADuTXYahH8I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=tVBhg3Zk; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=SzxJnqkjW6Qwm5Vg3gEBquVUcLsM+5K00PbAgOS1ZcHk9H4VAVJuQsjSyrowaFxEhxEpt6gzJbw+xiWWslHONj4agQ5icJksniAoolJUym25lgdPojNbpvkb+IRlBt3xeM6BYfIeil3GzL3PC9UD+Vr5UBA8O81xFws8LPPRXCM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=yoPRq6ZL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="tVBhg3Zk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05CFEC2BD10;
-	Thu,  6 Jun 2024 14:08:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="yoPRq6ZL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56925C32781;
+	Thu,  6 Jun 2024 14:17:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1717682917;
-	bh=gwBxuAl9XIkvDtF0BsEAr+TUf8kHo5riTQFuFZ/JSvY=;
+	s=korg; t=1717683427;
+	bh=7FPLIoOdl0Zmsq6B7Q7QW7kzcK/k4/6nu2KE144GnMU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=tVBhg3ZktcEeOYyMg3lI/0HzlGFkPkEiEwiJaR49lvwWi1lydP6lp+f29/xAYerdC
-	 nLkUPnyrRdnu9+qima359zv/47qlkjLJnoP8ZAPUEn+1kgpmzgrb5wMCIIbX8cmJl7
-	 10JAjY465d1iKnZ7pZNZjBRd/VcChePEjAtqH2JY=
+	b=yoPRq6ZLMsTyHQ/CYMS7UjlpGAGUmRDHt66Pvqfas6tKJkH5+IcU4qlUQeyU7XDE1
+	 0/ceEIqLcc9qLLqxfURFetbxPSk4s0jCjyGYCLCA4Be61QyQF+ytpavoBLnknbAqY6
+	 Ixyx+zIlP1pUpPblxmltKniClJcQ1AyDb7LAKDzE=
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 To: stable@vger.kernel.org
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
@@ -42,12 +42,12 @@ Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
 	coresight@lists.linaro.org,
 	Anshuman Khandual <anshuman.khandual@arm.com>,
 	Sasha Levin <sashal@kernel.org>
-Subject: [PATCH 6.9 049/374] coresight: etm4x: Fix unbalanced pm_runtime_enable()
-Date: Thu,  6 Jun 2024 16:00:28 +0200
-Message-ID: <20240606131653.457872907@linuxfoundation.org>
+Subject: [PATCH 6.1 313/473] coresight: etm4x: Fix unbalanced pm_runtime_enable()
+Date: Thu,  6 Jun 2024 16:04:02 +0200
+Message-ID: <20240606131710.288688254@linuxfoundation.org>
 X-Mailer: git-send-email 2.45.2
-In-Reply-To: <20240606131651.683718371@linuxfoundation.org>
-References: <20240606131651.683718371@linuxfoundation.org>
+In-Reply-To: <20240606131659.786180261@linuxfoundation.org>
+References: <20240606131659.786180261@linuxfoundation.org>
 User-Agent: quilt/0.67
 X-stable: review
 X-Patchwork-Hint: ignore
@@ -59,7 +59,7 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-6.9-stable review patch.  If anyone has any objections, please let me know.
+6.1-stable review patch.  If anyone has any objections, please let me know.
 
 ------------------
 
@@ -108,11 +108,11 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 3 insertions(+)
 
 diff --git a/drivers/hwtracing/coresight/coresight-etm4x-core.c b/drivers/hwtracing/coresight/coresight-etm4x-core.c
-index c2ca4a02dfce1..06a9b94b8c13e 100644
+index fda48a0afc1a5..63fe506a60314 100644
 --- a/drivers/hwtracing/coresight/coresight-etm4x-core.c
 +++ b/drivers/hwtracing/coresight/coresight-etm4x-core.c
-@@ -2213,6 +2213,9 @@ static int etm4_probe_platform_dev(struct platform_device *pdev)
- 	ret = etm4_probe(&pdev->dev);
+@@ -2053,6 +2053,9 @@ static int etm4_probe_platform_dev(struct platform_device *pdev)
+ 	ret = etm4_probe(&pdev->dev, NULL, 0);
  
  	pm_runtime_put(&pdev->dev);
 +	if (ret)
