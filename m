@@ -1,31 +1,31 @@
 Received: from todd.t-8ch.de (todd.t-8ch.de [159.69.126.157])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23026199B0;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 230591B28D;
 	Sun,  9 Jun 2024 07:27:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.69.126.157
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717918041; cv=none; b=kFOVAYfCaNeLtyJ4elufA7FNrHPo6GnbjooPEBl4lx9AQKMgH/UHsj//6HBHSIy6yko8o4J48bWSdgLIy0jdi4uOUKvZ11J3yAF6HEqOmQDLv0vNwXVMoShtSG384X9hWHvBXs5Q57a5wqnHaeeYDhV4zjNElQgX6XXAH9Osh9g=
+	t=1717918042; cv=none; b=DTNbFbp7knIqMLeWNtnyB9FMMIg+VJrgtiHWO8vzIHJgZLaUvEmn1eH3UOeOKaZm4ZAvK0qgNJnqHShhbW1EIfJREdafRBjCIG90Zo6E++9jbicp29CeJEDorlvhPgVWQlUf5CgoE/QrYuoJp0HOG3ELdTm/Qaz5tzmkLVa7Gso=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717918041; c=relaxed/simple;
-	bh=aoSODJ4LTnZo/dUXDqhr/JAwLyA+u5wjURLU6Jl0d1E=;
-	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=Am7cwit17BYj1q93E+DKw5TibIkCOTeCPa3BZmEnXLHitx0IEI+EBabeUP2f2DgvY5qYxtxpG7QSc89SW3mjdh2Bv5Mim+ibb5azC2VYwJNl61k5M735yxRLblRUAPmJRL3q7DDhQroGCBA/acXpVvSL8B0mPuHO9yvgF9Gka6Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net; spf=pass smtp.mailfrom=weissschuh.net; dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b=JcPfG9fL; arc=none smtp.client-ip=159.69.126.157
+	s=arc-20240116; t=1717918042; c=relaxed/simple;
+	bh=n1WQcr0Jjs8K54pWJ570AATvW6C/bMm/V7v5t/VuBkM=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=EdxS4mcnLsVrjLEOsf/FVj6BkmhkbOpS1MUgj/sCw4xF+ca9jCySkHtvf6AbsqUxJc6xSZDQ/3Rwww2GQWuozKO7n/aSRTqiWCnTflvRGTlPwElzAjBCg+wBkyz5tyqGRc4oHXdyMvKumDlu0zqERM6OnwSyOqJRnf1dhvQddJg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net; spf=pass smtp.mailfrom=weissschuh.net; dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b=o2vTTYa/; arc=none smtp.client-ip=159.69.126.157
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=weissschuh.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b="JcPfG9fL"
+	dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b="o2vTTYa/"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=weissschuh.net;
 	s=mail; t=1717918035;
-	bh=aoSODJ4LTnZo/dUXDqhr/JAwLyA+u5wjURLU6Jl0d1E=;
-	h=From:Subject:Date:To:Cc:From;
-	b=JcPfG9fLd4ra0+j308D3Ox1hlowhvNFm+NN1Kk+OgwxXzbkXva6YCoX3bT8CgURXP
-	 Mbpp8HUUwBK69+7xiZySlX3+w3YA6tLTt5zNipxsqWe6OQOC84sfFyHTI6yPZ/KXwL
-	 prBbqlgEa9jLKmnHvL9iENOOfUzcOjP6UuZMAMrc=
+	bh=n1WQcr0Jjs8K54pWJ570AATvW6C/bMm/V7v5t/VuBkM=;
+	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
+	b=o2vTTYa/52GfwDIH50bo5k56LhILhUQZSaJcau3u0IwZMqnCNwzTQFQILPKMokNS0
+	 tz0ZOWTYzz3V5w2t4Pv7yxOIoJFmQOpZLjflPgserUW3sGgA2vNXCPBqnvU9tvBrsL
+	 aMvH+HUlkuA85AgpD0IqSPjNBJ1OAB+cvUn7wY7o=
 From: =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <linux@weissschuh.net>
-Subject: [PATCH 0/5] ACPI: (mostly) battery: various fixes
-Date: Sun, 09 Jun 2024 09:27:11 +0200
-Message-Id: <20240609-acpi-battery-cleanup-v1-0-344517bdca73@weissschuh.net>
+Date: Sun, 09 Jun 2024 09:27:15 +0200
+Subject: [PATCH 4/5] ACPI: battery: use sysfs_emit over sprintf
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -34,39 +34,43 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-X-B4-Tracking: v=1; b=H4sIAE9ZZWYC/6tWKk4tykwtVrJSqFYqSi3LLM7MzwNyDHUUlJIzE
- vPSU3UzU4B8JSMDIxMDMwNL3cTkgkzdpMSSktSiSt3knNTEvNICXbMkA4M0i6TERMOUNCWg1oK
- i1LTMCrCx0bG1tQDEf+t1ZgAAAA==
+Message-Id: <20240609-acpi-battery-cleanup-v1-4-344517bdca73@weissschuh.net>
+References: <20240609-acpi-battery-cleanup-v1-0-344517bdca73@weissschuh.net>
+In-Reply-To: <20240609-acpi-battery-cleanup-v1-0-344517bdca73@weissschuh.net>
 To: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
  =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <linux@weissschuh.net>
 X-Mailer: b4 0.13.0
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1717918035; l=712;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1717918035; l=770;
  i=linux@weissschuh.net; s=20221212; h=from:subject:message-id;
- bh=aoSODJ4LTnZo/dUXDqhr/JAwLyA+u5wjURLU6Jl0d1E=;
- b=R6T8I+7jWMSA2L5/7bynBmIxF55gi5/2oMXSURMoEck7nLrOiS0jD/ishu8gjdasghB5GFIp1
- 4/aWhdId78jAypHIjMy/KkvMSeMnR5pwIvyQcn8jHWwCVXPkSRgwB4O
+ bh=n1WQcr0Jjs8K54pWJ570AATvW6C/bMm/V7v5t/VuBkM=;
+ b=X2WU9aZZtK2pcr/wgLdCSvmY+kM+VWNyNxvaxbW1JmfNI+WIBFdfdTXNF6HALMSrEv2Oqft3J
+ SGIrh7Z6uVKCoHHhTQPP92w45mr+gvZFXv2ewccYpeN04fbA0iyPHOh
 X-Developer-Key: i=linux@weissschuh.net; a=ed25519;
  pk=KcycQgFPX2wGR5azS7RhpBqedglOZVgRPfdFSPB1LNw=
 
+sysfs_emit validates assumptions made by sysfs and is the correct
+mechanism to format data for sysfs.
+
 Signed-off-by: Thomas Weißschuh <linux@weissschuh.net>
 ---
-Thomas Weißschuh (5):
-      ACPI: AC: constify powersupply properties
-      ACPI: SBS: constify powersupply properties
-      ACPI: battery: constify powersupply properties
-      ACPI: battery: use sysfs_emit over sprintf
-      ACPI: battery: create alarm sysfs attribute atomically
+ drivers/acpi/battery.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- drivers/acpi/ac.c      |  2 +-
- drivers/acpi/battery.c | 26 +++++++++++++++++---------
- drivers/acpi/sbs.c     |  6 +++---
- 3 files changed, 21 insertions(+), 13 deletions(-)
----
-base-commit: 771ed66105de9106a6f3e4311e06451881cdac5e
-change-id: 20240609-acpi-battery-cleanup-6b00f8baa1df
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 984236b95dff..5f47bd58aff3 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -661,7 +661,7 @@ static ssize_t acpi_battery_alarm_show(struct device *dev,
+ {
+ 	struct acpi_battery *battery = to_acpi_battery(dev_get_drvdata(dev));
+ 
+-	return sprintf(buf, "%d\n", battery->alarm * 1000);
++	return sysfs_emit(buf, "%d\n", battery->alarm * 1000);
+ }
+ 
+ static ssize_t acpi_battery_alarm_store(struct device *dev,
 
-Best regards,
 -- 
-Thomas Weißschuh <linux@weissschuh.net>
+2.45.2
 
