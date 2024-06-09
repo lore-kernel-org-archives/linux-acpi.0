@@ -1,31 +1,31 @@
 Received: from todd.t-8ch.de (todd.t-8ch.de [159.69.126.157])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22FC217997;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23026199B0;
 	Sun,  9 Jun 2024 07:27:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.69.126.157
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717918041; cv=none; b=k6/K20b7QML5MX2UB06osxKDwEzEUWTHfIsDnF46e6C9NtNFJMEarNIU3AZEimj0YLLsRi1N3TRfjL59K7UhpiQ2D/31KN3rXQh6OqBn9jcqAgCq5x2CaPnpVKBH/8iLg3+APOjKR5u74SxTxIHyU2qhsQl6/q1vAPQq4eDH6yQ=
+	t=1717918041; cv=none; b=kFOVAYfCaNeLtyJ4elufA7FNrHPo6GnbjooPEBl4lx9AQKMgH/UHsj//6HBHSIy6yko8o4J48bWSdgLIy0jdi4uOUKvZ11J3yAF6HEqOmQDLv0vNwXVMoShtSG384X9hWHvBXs5Q57a5wqnHaeeYDhV4zjNElQgX6XXAH9Osh9g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1717918041; c=relaxed/simple;
-	bh=RJZgnCB5BUCDv22+RPw4ZAtNO1sIx6+p/3RbQvlhnWs=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=rO6oB9frkvmb1DXgPccXSFEwtZInjBxF9GOmROmlEhKPBRrV1PKzXr5EbixN8iL6o4h0eZCXPPPCr80sgM9EnwCigvOx26vtIrtrrjWAb6sUgRTI9VJX4qhy4MMzP/CAj//fXFBQl8LZ3KyU/Uoj8s8hr/Lu60GkuimxpfMeCLY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net; spf=pass smtp.mailfrom=weissschuh.net; dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b=LnlR9jpB; arc=none smtp.client-ip=159.69.126.157
+	bh=aoSODJ4LTnZo/dUXDqhr/JAwLyA+u5wjURLU6Jl0d1E=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=Am7cwit17BYj1q93E+DKw5TibIkCOTeCPa3BZmEnXLHitx0IEI+EBabeUP2f2DgvY5qYxtxpG7QSc89SW3mjdh2Bv5Mim+ibb5azC2VYwJNl61k5M735yxRLblRUAPmJRL3q7DDhQroGCBA/acXpVvSL8B0mPuHO9yvgF9Gka6Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net; spf=pass smtp.mailfrom=weissschuh.net; dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b=JcPfG9fL; arc=none smtp.client-ip=159.69.126.157
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=weissschuh.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b="LnlR9jpB"
+	dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b="JcPfG9fL"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=weissschuh.net;
 	s=mail; t=1717918035;
-	bh=RJZgnCB5BUCDv22+RPw4ZAtNO1sIx6+p/3RbQvlhnWs=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-	b=LnlR9jpBQkNjBNVbOqnzzg1QcyeODyClP98zajH9iop3yd4v81XjLVaffExACQWww
-	 fLvzIQvDchYk8p7PibGOJDpkSYX9i6ZTok119Po3VmU74MrydbaHcPDYdMvD9/t3iv
-	 FT41UFIR88PLrYJWI7PjuJXbP3GlIwxYrYGLo7Os=
+	bh=aoSODJ4LTnZo/dUXDqhr/JAwLyA+u5wjURLU6Jl0d1E=;
+	h=From:Subject:Date:To:Cc:From;
+	b=JcPfG9fLd4ra0+j308D3Ox1hlowhvNFm+NN1Kk+OgwxXzbkXva6YCoX3bT8CgURXP
+	 Mbpp8HUUwBK69+7xiZySlX3+w3YA6tLTt5zNipxsqWe6OQOC84sfFyHTI6yPZ/KXwL
+	 prBbqlgEa9jLKmnHvL9iENOOfUzcOjP6UuZMAMrc=
 From: =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <linux@weissschuh.net>
-Date: Sun, 09 Jun 2024 09:27:14 +0200
-Subject: [PATCH 3/5] ACPI: battery: constify powersupply properties
+Subject: [PATCH 0/5] ACPI: (mostly) battery: various fixes
+Date: Sun, 09 Jun 2024 09:27:11 +0200
+Message-Id: <20240609-acpi-battery-cleanup-v1-0-344517bdca73@weissschuh.net>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -34,69 +34,39 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Message-Id: <20240609-acpi-battery-cleanup-v1-3-344517bdca73@weissschuh.net>
-References: <20240609-acpi-battery-cleanup-v1-0-344517bdca73@weissschuh.net>
-In-Reply-To: <20240609-acpi-battery-cleanup-v1-0-344517bdca73@weissschuh.net>
+X-B4-Tracking: v=1; b=H4sIAE9ZZWYC/6tWKk4tykwtVrJSqFYqSi3LLM7MzwNyDHUUlJIzE
+ vPSU3UzU4B8JSMDIxMDMwNL3cTkgkzdpMSSktSiSt3knNTEvNICXbMkA4M0i6TERMOUNCWg1oK
+ i1LTMCrCx0bG1tQDEf+t1ZgAAAA==
 To: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
  =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <linux@weissschuh.net>
 X-Mailer: b4 0.13.0
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1717918035; l=1841;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1717918035; l=712;
  i=linux@weissschuh.net; s=20221212; h=from:subject:message-id;
- bh=RJZgnCB5BUCDv22+RPw4ZAtNO1sIx6+p/3RbQvlhnWs=;
- b=P4wUdzdC2tWG0jbHRMuRKjRLTtMm1Ac9HwtTuXg+7G0CROrZy2CZ090nUUBru8n4VJR88RPh2
- riqFeGR8a3ZBImDfQ+rueWzfmOa7Q928VXzv9iQfDJT22IKOVjAGTkr
+ bh=aoSODJ4LTnZo/dUXDqhr/JAwLyA+u5wjURLU6Jl0d1E=;
+ b=R6T8I+7jWMSA2L5/7bynBmIxF55gi5/2oMXSURMoEck7nLrOiS0jD/ishu8gjdasghB5GFIp1
+ 4/aWhdId78jAypHIjMy/KkvMSeMnR5pwIvyQcn8jHWwCVXPkSRgwB4O
 X-Developer-Key: i=linux@weissschuh.net; a=ed25519;
  pk=KcycQgFPX2wGR5azS7RhpBqedglOZVgRPfdFSPB1LNw=
 
-The arrays are never modified, make them const.
-
 Signed-off-by: Thomas Weißschuh <linux@weissschuh.net>
 ---
- drivers/acpi/battery.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+Thomas Weißschuh (5):
+      ACPI: AC: constify powersupply properties
+      ACPI: SBS: constify powersupply properties
+      ACPI: battery: constify powersupply properties
+      ACPI: battery: use sysfs_emit over sprintf
+      ACPI: battery: create alarm sysfs attribute atomically
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index b379401ff1c2..984236b95dff 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -308,7 +308,7 @@ static int acpi_battery_get_property(struct power_supply *psy,
- 	return ret;
- }
- 
--static enum power_supply_property charge_battery_props[] = {
-+static const enum power_supply_property charge_battery_props[] = {
- 	POWER_SUPPLY_PROP_STATUS,
- 	POWER_SUPPLY_PROP_PRESENT,
- 	POWER_SUPPLY_PROP_TECHNOLOGY,
-@@ -326,7 +326,7 @@ static enum power_supply_property charge_battery_props[] = {
- 	POWER_SUPPLY_PROP_SERIAL_NUMBER,
- };
- 
--static enum power_supply_property charge_battery_full_cap_broken_props[] = {
-+static const enum power_supply_property charge_battery_full_cap_broken_props[] = {
- 	POWER_SUPPLY_PROP_STATUS,
- 	POWER_SUPPLY_PROP_PRESENT,
- 	POWER_SUPPLY_PROP_TECHNOLOGY,
-@@ -340,7 +340,7 @@ static enum power_supply_property charge_battery_full_cap_broken_props[] = {
- 	POWER_SUPPLY_PROP_SERIAL_NUMBER,
- };
- 
--static enum power_supply_property energy_battery_props[] = {
-+static const enum power_supply_property energy_battery_props[] = {
- 	POWER_SUPPLY_PROP_STATUS,
- 	POWER_SUPPLY_PROP_PRESENT,
- 	POWER_SUPPLY_PROP_TECHNOLOGY,
-@@ -358,7 +358,7 @@ static enum power_supply_property energy_battery_props[] = {
- 	POWER_SUPPLY_PROP_SERIAL_NUMBER,
- };
- 
--static enum power_supply_property energy_battery_full_cap_broken_props[] = {
-+static const enum power_supply_property energy_battery_full_cap_broken_props[] = {
- 	POWER_SUPPLY_PROP_STATUS,
- 	POWER_SUPPLY_PROP_PRESENT,
- 	POWER_SUPPLY_PROP_TECHNOLOGY,
+ drivers/acpi/ac.c      |  2 +-
+ drivers/acpi/battery.c | 26 +++++++++++++++++---------
+ drivers/acpi/sbs.c     |  6 +++---
+ 3 files changed, 21 insertions(+), 13 deletions(-)
+---
+base-commit: 771ed66105de9106a6f3e4311e06451881cdac5e
+change-id: 20240609-acpi-battery-cleanup-6b00f8baa1df
 
+Best regards,
 -- 
-2.45.2
+Thomas Weißschuh <linux@weissschuh.net>
 
