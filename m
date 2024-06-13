@@ -1,32 +1,32 @@
 Received: from todd.t-8ch.de (todd.t-8ch.de [159.69.126.157])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA659130A4D;
-	Thu, 13 Jun 2024 20:15:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40929137931;
+	Thu, 13 Jun 2024 20:15:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.69.126.157
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718309738; cv=none; b=VbZT26GgHY/VVFJvSqrVX/Upvm3eUxeVUCd0zW329w4Lv7IlT5thmoDXflMuR6kquWD/7WocRZbqbwwjGY6aR7zSZ4+ojFi8PFfJQhTdI1c86pFUiMQP7YLTA1L09B/QIWa+LFkpp2kZjK/5Boe2bekdHsWf+cU3ygZ/xmVJ238=
+	t=1718309740; cv=none; b=H7XmAAPJQ81yAOIXvxm274nBDvdZ414tVfDKRg0q6blu/ea1g3MXhMHmNbleg60roEqB0I2/kaf6zq6qk0YUMCugkL3Hqd1cBnIryidkYuWWvyVK4Bz1dp6A/ZAImTjJjeQRj3JJIf9HB/ysO8xlISl/JvNTo/HWkIdba/3hHcs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718309738; c=relaxed/simple;
-	bh=wuIQfkHjHbUZk36PrIyzZVKJCwONssrSuDQUKyE3G5M=;
+	s=arc-20240116; t=1718309740; c=relaxed/simple;
+	bh=Wibaem2muyMRSUGsOkiWV4LRhlCo/E5mStSJIoYEpqc=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=DDQly55kfAlKE+yE+nkyw6cQh0wladrKepMzWpTVzmqfYsL6CatHODG368gQHqYBnVmEGxQ27fY5jc96J7nHFe8zG6eOmQ7PSuFLDyVgtge8Fqkas3qai/Z0X2sjQsAn6GeH36FZRYkRyc7DiRHlE9NelHg5+7bQn4ybr6C5zOk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net; spf=pass smtp.mailfrom=weissschuh.net; dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b=iJViCu4B; arc=none smtp.client-ip=159.69.126.157
+	 In-Reply-To:To:Cc; b=B3JDRc3S6o1BlXM+BJlRE5RiaLC1BIHUlyaGOxd/+GJ6OOs9LKkiMnWGSYrncbEiM8sFxL3+a7t81xNx+FiSWw8vRyO/kcpvKsimRQjWK/Zmhz/d0Bl2RoYvePtkLehLgNvMRf/9M1tZW4kGTbN+Z+I4ZH07lgAI3fsIVgxyohM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net; spf=pass smtp.mailfrom=weissschuh.net; dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b=Vfc8BmPA; arc=none smtp.client-ip=159.69.126.157
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=weissschuh.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b="iJViCu4B"
+	dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b="Vfc8BmPA"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=weissschuh.net;
 	s=mail; t=1718309732;
-	bh=wuIQfkHjHbUZk36PrIyzZVKJCwONssrSuDQUKyE3G5M=;
+	bh=Wibaem2muyMRSUGsOkiWV4LRhlCo/E5mStSJIoYEpqc=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-	b=iJViCu4BWydYRUpcLgnPGEsG9KdqygZVvPyoLRbwSu2rQQNpSiJakyuBd1FBDBW12
-	 5ATqbmNx0D6tlp5lU3p3oizPAfxjhh2PY71xT3gdqtX1dJHYXkGhNrd/FbctnzieKs
-	 LZU9UZWKQtdVT0M87U8QSvNj+S7OJcRRyb/6KsjY=
+	b=Vfc8BmPARWzf7qfetgooexXKzNr0QqQ3BFDOmWH4ATs3OaPwyQW2wToBC7e7ymR5N
+	 oErhuLVLmLAdJw3Dj8yKnC8nWZbr8pYwcu8HDfj9gF2AGyBDRb+izoLSfnF+8RLLik
+	 qmzB2TaxKkja1NzyV+ZXzin6nzKnbsWtFTV6Bdd4=
 From: =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <linux@weissschuh.net>
-Date: Thu, 13 Jun 2024 22:15:32 +0200
-Subject: [PATCH 1/5] ACPI: sysfs: convert utf-16 from _STR to utf-8 only
- once
+Date: Thu, 13 Jun 2024 22:15:35 +0200
+Subject: [PATCH 4/5] ACPI: sysfs: manage sysfs attributes through device
+ core
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -35,7 +35,7 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Message-Id: <20240613-acpi-sysfs-groups-v1-1-665e0deb052a@weissschuh.net>
+Message-Id: <20240613-acpi-sysfs-groups-v1-4-665e0deb052a@weissschuh.net>
 References: <20240613-acpi-sysfs-groups-v1-0-665e0deb052a@weissschuh.net>
 In-Reply-To: <20240613-acpi-sysfs-groups-v1-0-665e0deb052a@weissschuh.net>
 To: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
@@ -44,144 +44,79 @@ Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
  acpica-devel@lists.linux.dev, 
  =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <linux@weissschuh.net>
 X-Mailer: b4 0.13.0
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1718309732; l=4089;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1718309732; l=2575;
  i=linux@weissschuh.net; s=20221212; h=from:subject:message-id;
- bh=wuIQfkHjHbUZk36PrIyzZVKJCwONssrSuDQUKyE3G5M=;
- b=R8UTwK2oub0RzCvElNIobM/59YinmrpFME0s4J3K483SIT4LkKzFZdZJbdLdN1un29b+4qh5I
- 4ll3lIsCBhNDbgW+Z3CEKKA+PR2rpKadc5+jB4E1j8zo/8RVPWo42IU
+ bh=Wibaem2muyMRSUGsOkiWV4LRhlCo/E5mStSJIoYEpqc=;
+ b=qUJNj/gSuC+i8EkW98Yb9mxUeGPU+gnjv0yh5/B7Z/ZCUFurxsAdGIvU9Ba4qwuHSPxmeHKNs
+ 31wgZiuKiw9DyNCn8gW/H2Vzg3mdTZpWy1RoVyN4Gi+106WkFAO3I7r
 X-Developer-Key: i=linux@weissschuh.net; a=ed25519;
  pk=KcycQgFPX2wGR5azS7RhpBqedglOZVgRPfdFSPB1LNw=
 
-The ACPI _STR method returns an UTF-16 string that is converted to utf-8
-before printing it in sysfs.
-Currently this conversion is performed every time the "description"
-sysfs attribute is read, which is not necessary.
-
-Only perform the conversion once and cache the result.
+Now that the acpi sysfs attributes are organized around an
+attribute_group the device core can manage them.
 
 Signed-off-by: Thomas Weißschuh <linux@weissschuh.net>
 ---
- drivers/acpi/device_sysfs.c | 63 ++++++++++++++++++++++++++++-----------------
- include/acpi/acpi_bus.h     |  2 +-
- 2 files changed, 40 insertions(+), 25 deletions(-)
+ drivers/acpi/device_sysfs.c | 8 +++++---
+ drivers/acpi/internal.h     | 1 +
+ drivers/acpi/scan.c         | 1 +
+ 3 files changed, 7 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/acpi/device_sysfs.c b/drivers/acpi/device_sysfs.c
-index 23373faa35ec..4bedbe8f57ed 100644
+index a673488066b3..f1e8928254c2 100644
 --- a/drivers/acpi/device_sysfs.c
 +++ b/drivers/acpi/device_sysfs.c
-@@ -439,24 +439,11 @@ static ssize_t description_show(struct device *dev,
- 				char *buf)
- {
- 	struct acpi_device *acpi_dev = to_acpi_device(dev);
--	int result;
- 
--	if (acpi_dev->pnp.str_obj == NULL)
-+	if (acpi_dev->pnp.str == NULL)
- 		return 0;
- 
--	/*
--	 * The _STR object contains a Unicode identifier for a device.
--	 * We need to convert to utf-8 so it can be displayed.
--	 */
--	result = utf16s_to_utf8s(
--		(wchar_t *)acpi_dev->pnp.str_obj->buffer.pointer,
--		acpi_dev->pnp.str_obj->buffer.length,
--		UTF16_LITTLE_ENDIAN, buf,
--		PAGE_SIZE - 1);
--
--	buf[result++] = '\n';
--
--	return result;
-+	return sysfs_emit("%s\n", acpi_dev->pnp.str);
- }
- static DEVICE_ATTR_RO(description);
- 
-@@ -507,14 +494,46 @@ static ssize_t status_show(struct device *dev, struct device_attribute *attr,
- }
- static DEVICE_ATTR_RO(status);
- 
-+static const char *acpi_device_str(struct acpi_device *dev)
-+{
-+	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER, NULL};
-+	union acpi_object *str_obj;
-+	acpi_status status;
-+	const char *ret;
-+	char buf[512];
-+	int result;
-+
-+	if (!acpi_has_method(dev->handle, "_STR"))
-+		return NULL;
-+
-+	status = acpi_evaluate_object(dev->handle, "_STR",
-+				      NULL, &buffer);
-+	if (ACPI_FAILURE(status))
-+		return NULL;
-+
-+	str_obj = buffer.pointer;
-+	/*
-+	 * The _STR object contains a Unicode identifier for a device.
-+	 * We need to convert to utf-8 so it can be displayed.
-+	 */
-+	result = utf16s_to_utf8s((wchar_t *)str_obj->buffer.pointer,
-+				 str_obj->buffer.length,
-+				 UTF16_LITTLE_ENDIAN,
-+				 buf, sizeof(buf) - 1);
-+	buf[result++] = '\0';
-+
-+	ret = kstrdup(buf, GFP_KERNEL);
-+	kfree(buffer.pointer);
-+
-+	return ret;
-+}
-+
- /**
-  * acpi_device_setup_files - Create sysfs attributes of an ACPI device.
-  * @dev: ACPI device object.
-  */
- int acpi_device_setup_files(struct acpi_device *dev)
- {
--	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER, NULL};
--	acpi_status status;
- 	int result = 0;
- 
- 	/*
-@@ -539,12 +558,8 @@ int acpi_device_setup_files(struct acpi_device *dev)
- 	/*
- 	 * If device has _STR, 'description' file is created
- 	 */
--	if (acpi_has_method(dev->handle, "_STR")) {
--		status = acpi_evaluate_object(dev->handle, "_STR",
--					NULL, &buffer);
--		if (ACPI_FAILURE(status))
--			buffer.pointer = NULL;
--		dev->pnp.str_obj = buffer.pointer;
-+	dev->pnp.str = acpi_device_str(dev);
-+	if (dev->pnp.str) {
- 		result = device_create_file(&dev->dev, &dev_attr_description);
- 		if (result)
- 			goto end;
-@@ -618,7 +633,7 @@ void acpi_device_remove_files(struct acpi_device *dev)
- 	 * If device has _STR, remove 'description' file
- 	 */
- 	if (acpi_has_method(dev->handle, "_STR")) {
--		kfree(dev->pnp.str_obj);
-+		kfree(dev->pnp.str);
- 		device_remove_file(&dev->dev, &dev_attr_description);
- 	}
- 	/*
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 1a4dfd7a1c4a..32e3105c9ece 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -254,7 +254,7 @@ struct acpi_device_pnp {
- 	struct list_head ids;		/* _HID and _CIDs */
- 	acpi_device_name device_name;	/* Driver-determined */
- 	acpi_device_class device_class;	/*        "          */
--	union acpi_object *str_obj;	/* unicode string for _STR method */
-+	const char *str;		/* _STR */
+@@ -576,6 +576,11 @@ static const struct attribute_group acpi_group = {
+ 	.is_visible = acpi_attr_is_visible,
  };
  
- #define acpi_device_bid(d)	((d)->pnp.bus_id)
++const struct attribute_group *acpi_groups[] = {
++	&acpi_group,
++	NULL
++};
++
+ static const char *devm_acpi_device_str(struct acpi_device *dev)
+ {
+ 	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER, NULL};
+@@ -619,8 +624,6 @@ int acpi_device_setup_files(struct acpi_device *dev)
+ 	int result = 0;
+ 
+ 	dev->pnp.str = devm_acpi_device_str(dev);
+-	result = device_add_group(&dev->dev, &acpi_group);
+-
+ 	acpi_expose_nondev_subnodes(&dev->dev.kobj, &dev->data);
+ 
+ 	return result;
+@@ -633,5 +636,4 @@ int acpi_device_setup_files(struct acpi_device *dev)
+ void acpi_device_remove_files(struct acpi_device *dev)
+ {
+ 	acpi_hide_nondev_subnodes(&dev->data);
+-	device_remove_group(&dev->dev, &acpi_group);
+ }
+diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+index 2a0e9fc7b74c..63dd78d80508 100644
+--- a/drivers/acpi/internal.h
++++ b/drivers/acpi/internal.h
+@@ -120,6 +120,7 @@ int acpi_tie_acpi_dev(struct acpi_device *adev);
+ int acpi_device_add(struct acpi_device *device);
+ int acpi_device_setup_files(struct acpi_device *dev);
+ void acpi_device_remove_files(struct acpi_device *dev);
++extern const struct attribute_group *acpi_groups[];
+ void acpi_device_add_finalize(struct acpi_device *device);
+ void acpi_free_pnp_ids(struct acpi_device_pnp *pnp);
+ bool acpi_device_is_enabled(const struct acpi_device *adev);
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 503773707e01..c15fffefca0a 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -1813,6 +1813,7 @@ void acpi_init_device_object(struct acpi_device *device, acpi_handle handle,
+ 	device->dev.parent = parent ? &parent->dev : NULL;
+ 	device->dev.release = release;
+ 	device->dev.bus = &acpi_bus_type;
++	device->dev.groups = acpi_groups;
+ 	fwnode_init(&device->fwnode, &acpi_device_fwnode_ops);
+ 	acpi_set_device_status(device, ACPI_STA_DEFAULT);
+ 	acpi_device_get_busid(device);
 
 -- 
 2.45.2
