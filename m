@@ -1,336 +1,145 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from todd.t-8ch.de (todd.t-8ch.de [159.69.126.157])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 086A86E5FD
-	for <linux-acpi@vger.kernel.org>; Sun, 16 Jun 2024 10:00:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2103482FE;
+	Sun, 16 Jun 2024 19:03:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.69.126.157
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718532031; cv=none; b=kGCskRgyg8PgN+mWd1jRUPvfgzV+jdhr4ufeZLP28Dqh58tLJaDIy2qP/jVq2qJBFWcXZVIjNE4psurlqM4JAK7sekfKxBh0z5b2hij9Aq3LjA4s1qmGHFrpiLN5D1o2PJ4SCNfzaj6V51Z7fvXyACxYYAoNzoZVSwVPiz7TTv8=
+	t=1718564620; cv=none; b=NqP8s7v5wh25P3NxnQbLge/O8zPMdGJE7l4p7vLAZPVblWGec4Ti1rlx5Acht/dc5+fQrzq63ic/LW0Kvn4DzDqs8NleHDjGbRsWL6bsT4BjDugbNYt5uaWEAzrwuGAh0Ou05TkwRIfCj3GQTqm6IPhLp01aDo7yZzJn5dt7E9s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718532031; c=relaxed/simple;
-	bh=fn26IYYsVjQN1qVKMkB2K/oCzXSdfzYaRpVPMFKjHNk=;
-	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
-	 In-Reply-To:Content-Type; b=DkOA7+SjbCadQ1+YQd7k5Y6xa1CHzwVOCWYuge1mGbsXIfkQTRyJKHxpbT1lv2UYNPidTC2Vn7LStkrH1XgY1uuHFOZKeYufSYfzjzHrd8gnOY2n4DG+IXsA4Nkt5MKRxVBX16LVfnWEaNelX12o54vmr4Knw/hFVJpmfQm3/20=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=htnA1+66; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1718564620; c=relaxed/simple;
+	bh=wiXThF8Cv8s9BfLtjBMdMwv3BjfaTV7Ak2mbNROgkoo=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=Iu8kzvnqq6HTV5UF4oPQuqHbq2ear2IBeCyApuV7EdGJ+mmF+w4nlkmB7ytuwaGhNW7t7ooeceNa7aFGfl6QA5lYJ7jhfI90Uhz1Ivl5usayzsOeQem/jnzPRJ01NWzD/PxOf3GqUHO8YlGm8mLX9J4USbfZ1RiCZFKsi2SaaZA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net; spf=pass smtp.mailfrom=weissschuh.net; dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b=VcMl4GwX; arc=none smtp.client-ip=159.69.126.157
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=weissschuh.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="htnA1+66"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1718532029;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=14ev4XXs24GzM2Zvxm0xypGR8QNykGnP5Gnb2uyHzdY=;
-	b=htnA1+66mj1QFM67d6v/5vXdIGDUaeUZe9gpafvkdNWFkGBdWPk+ubiRj7xMfzhWZ9gKZv
-	mYQXCEu2etuWptln7Kjkc2V+OpHQ6hAPxa7CG1OI/1xWurQ7tYtZQ1emVcWakIHrepKO1l
-	pRYGsiQGyKijUQoXeidMYfWcX0tvpiI=
-Received: from mail-ed1-f69.google.com (mail-ed1-f69.google.com
- [209.85.208.69]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-274-55AAmTO6OpyjMyc15KysCg-1; Sun, 16 Jun 2024 06:00:27 -0400
-X-MC-Unique: 55AAmTO6OpyjMyc15KysCg-1
-Received: by mail-ed1-f69.google.com with SMTP id 4fb4d7f45d1cf-57caaaecc6fso2091669a12.2
-        for <linux-acpi@vger.kernel.org>; Sun, 16 Jun 2024 03:00:27 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1718532026; x=1719136826;
-        h=content-transfer-encoding:in-reply-to:content-language:references
-         :cc:to:from:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=14ev4XXs24GzM2Zvxm0xypGR8QNykGnP5Gnb2uyHzdY=;
-        b=BgMsuZ/zKkucVnS/mqJnF4OrkY3UI8TNJPZqjlg26a/T+Xk41UGU2Nr8bExOzXO6DN
-         InFDP7BRaLUvKeVIfZRmiXzEFUDkLUFOV4gEq/EahIIANiSGzCUQCMMX8D9tG+XRScje
-         iolmGbMQ8UVXeGt7t3IOF43hxD2HWHYfB8WJQsVmwlX6AKE+aNZy4qxZU0GiU0Aa1x0p
-         jwowD+yw/+xuLEHJDK0A8B2v3Nuzh9x0npaSzvBzIgKKZuIs4r+iswpzpdEOq7c4edt/
-         TqYT+KBezlSy9k/W3RCyq3nIg04EFYJIB0YSLWQ88syF6CdfFUcdZRsqhzXdqx3wFrgg
-         NroA==
-X-Forwarded-Encrypted: i=1; AJvYcCXkLEKBqaL2BLdH60hXWEC8MbZmCN+lG6XsodatkDAE67E8JNS2Bajxp6O1t87xigsTkmoo8NoEheooakmnnPHbyzwIOTq319h1wQ==
-X-Gm-Message-State: AOJu0YybSXHTmbtJPfVqddBhTuKRQHqYdu4XcIakkMN2qQ7tTqnu1IPn
-	YRinKvVaXlzbkyjvnvmZdaveHvbGnCVTeiRl4wO5bfPqED09PmWKoEBFaHANKEMwQnyFYHwe7vz
-	kwJROOwKureYVCBOd/3K4gLh6BcZmFJq7o/dWVixOx3xxXeq/mhmCsHl93d8=
-X-Received: by 2002:a50:d746:0:b0:57a:33a5:9b78 with SMTP id 4fb4d7f45d1cf-57cbd69c3f9mr4603120a12.34.1718532026069;
-        Sun, 16 Jun 2024 03:00:26 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IE9F0vsjZ1zn2WJXnEpGpivAMWyKkWYmPC7faj8ld5ew4JWVkiQgyDSvNN3Peq+0cIZe5ssTQ==
-X-Received: by 2002:a50:d746:0:b0:57a:33a5:9b78 with SMTP id 4fb4d7f45d1cf-57cbd69c3f9mr4603109a12.34.1718532025517;
-        Sun, 16 Jun 2024 03:00:25 -0700 (PDT)
-Received: from ?IPV6:2001:1c00:c32:7800:5bfa:a036:83f0:f9ec? (2001-1c00-0c32-7800-5bfa-a036-83f0-f9ec.cable.dynamic.v6.ziggo.nl. [2001:1c00:c32:7800:5bfa:a036:83f0:f9ec])
-        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-57cb741e70dsm4787562a12.62.2024.06.16.03.00.24
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sun, 16 Jun 2024 03:00:25 -0700 (PDT)
-Message-ID: <3e902b05-40be-4f59-bafa-9f1d7b415064@redhat.com>
-Date: Sun, 16 Jun 2024 12:00:24 +0200
+	dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b="VcMl4GwX"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=weissschuh.net;
+	s=mail; t=1718564615;
+	bh=wiXThF8Cv8s9BfLtjBMdMwv3BjfaTV7Ak2mbNROgkoo=;
+	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
+	b=VcMl4GwXivkS0gMvmLsKdmAZ9ZxGXLhL17neqJpsuNvxf2wkM+bEKt//ojBWS14Af
+	 KP0/8FeATMGiE2NQ70HB19Yz61PU+0qi4X+Z7LkdbVX9lfD6vHf0HiB5Tk86ZOQUn8
+	 16uuMpPkG36ZFDFx7Oi0s3aDLZBbsBZo6Zt2PRT8=
+From: =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <linux@weissschuh.net>
+Date: Sun, 16 Jun 2024 21:03:30 +0200
+Subject: [PATCH v4 2/5] platform/chrome: Update binary interface for
+ EC-based charge control
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v1] ACPI: EC: Evaluate orphan _REG under EC device
-From: Hans de Goede <hdegoede@redhat.com>
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>,
- Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
- Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
- VitaliiT <vitaly.torshyn@gmail.com>, Armin Wolf <w_armin@gmx.de>
-References: <12466682.O9o76ZdvQC@kreacher>
- <533a5778-3d68-4b61-b4ca-e82c37d65b33@redhat.com>
-Content-Language: en-US, nl
-In-Reply-To: <533a5778-3d68-4b61-b4ca-e82c37d65b33@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Message-Id: <20240616-cros_ec-charge-control-v4-2-74d649a9117d@weissschuh.net>
+References: <20240616-cros_ec-charge-control-v4-0-74d649a9117d@weissschuh.net>
+In-Reply-To: <20240616-cros_ec-charge-control-v4-0-74d649a9117d@weissschuh.net>
+To: Benson Leung <bleung@chromium.org>, Guenter Roeck <groeck@chromium.org>, 
+ Sebastian Reichel <sre@kernel.org>, 
+ =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas@weissschuh.net>, 
+ "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
+ Robert Moore <robert.moore@intel.com>, Tzung-Bi Shih <tzungbi@kernel.org>
+Cc: chrome-platform@lists.linux.dev, linux-kernel@vger.kernel.org, 
+ linux-pm@vger.kernel.org, Mario Limonciello <mario.limonciello@amd.com>, 
+ Dustin Howett <dustin@howett.net>, 
+ Stephen Horvath <s.horvath@outlook.com.au>, 
+ Rajas Paranjpe <paranjperajas@gmail.com>, linux-acpi@vger.kernel.org, 
+ acpica-devel@lists.linux.dev, Matt Hartley <matt.hartley@gmail.com>, 
+ =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <linux@weissschuh.net>
+X-Mailer: b4 0.14.0
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1718564614; l=2737;
+ i=linux@weissschuh.net; s=20221212; h=from:subject:message-id;
+ bh=wiXThF8Cv8s9BfLtjBMdMwv3BjfaTV7Ak2mbNROgkoo=;
+ b=Ozh9vbRj8DJVI4tHkjK6kWS4/q3va4TRN9j6tc7R+t7Q8Q0y2OVygcfZLRIWSWsxSn/2qpJaL
+ WVrUC7JPaizCGMMHSXzaUfrkkMA4IM5lzSdg2ZvspVMh4y8zNr1R3uL
+X-Developer-Key: i=linux@weissschuh.net; a=ed25519;
+ pk=KcycQgFPX2wGR5azS7RhpBqedglOZVgRPfdFSPB1LNw=
 
-Hi,
+The charge-control command v2/v3 is more featureful than v1, it
+additionally supports charge thresholds.
 
-On 6/16/24 11:47 AM, Hans de Goede wrote:
-> Hi,
-> 
-> On 6/12/24 4:15 PM, Rafael J. Wysocki wrote:
->> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>
->> After starting to install the EC address space handler at the ACPI
->> namespace root, if there is an "orphan" _REG method in the EC device's
->> scope, it will not be evaluated any more.  This breaks EC operation
->> regions on some systems, like Asus gu605.
->>
->> To address this, use a wrapper around an existing ACPICA function to
->> look for an "orphan" _REG method in the EC device scope and evaluate
->> it if present.
->>
->> Fixes: 60fa6ae6e6d0 ("ACPI: EC: Install address space handler at the namespace root")
->> Closes: https://bugzilla.kernel.org/show_bug.cgi?id=218945
->> Reported-by: VitaliiT <vitaly.torshyn@gmail.com>
->> Tested-by: VitaliiT <vitaly.torshyn@gmail.com>
->> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->> ---
->>
->> Yes, this includes ACPICA changes that are obviously not upstream
->> and I am going to take care of pusing them to upstream, but for
->> now there is a regression to fix and it is relatively late in the
->> cycle.
->>
->> ---
->>  drivers/acpi/acpica/acevents.h |    4 +++
->>  drivers/acpi/acpica/evregion.c |    6 ----
->>  drivers/acpi/acpica/evxfregn.c |   54 +++++++++++++++++++++++++++++++++++++++++
->>  drivers/acpi/ec.c              |    3 ++
->>  include/acpi/acpixf.h          |    4 +++
->>  5 files changed, 66 insertions(+), 5 deletions(-)
->>
->> Index: linux-pm/drivers/acpi/acpica/evxfregn.c
->> ===================================================================
->> --- linux-pm.orig/drivers/acpi/acpica/evxfregn.c
->> +++ linux-pm/drivers/acpi/acpica/evxfregn.c
->> @@ -306,3 +306,57 @@ acpi_execute_reg_methods(acpi_handle dev
->>  }
->>  
->>  ACPI_EXPORT_SYMBOL(acpi_execute_reg_methods)
->> +
->> +/*******************************************************************************
->> + *
->> + * FUNCTION:    acpi_execute_orphan_reg_method
->> + *
->> + * PARAMETERS:  device          - Handle for the device
->> + *              space_id        - The address space ID
->> + *
->> + * RETURN:      Status
->> + *
->> + * DESCRIPTION: Execute an "orphan" _REG method that appears under an ACPI
->> + *              device. This is a _REG method that has no corresponding region
->> + *              within the device's scope.
->> + *
->> + ******************************************************************************/
->> +acpi_status
->> +acpi_execute_orphan_reg_method(acpi_handle device, acpi_adr_space_type space_id)
->> +{
->> +	struct acpi_namespace_node *node;
->> +	acpi_status status;
->> +
->> +	ACPI_FUNCTION_TRACE(acpi_execute_orphan_reg_method);
->> +
->> +	/* Parameter validation */
->> +
->> +	if (!device) {
->> +		return_ACPI_STATUS(AE_BAD_PARAMETER);
->> +	}
->> +
->> +	status = acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
->> +	if (ACPI_FAILURE(status)) {
->> +		return_ACPI_STATUS(status);
->> +	}
->> +
->> +	/* Convert and validate the device handle */
->> +
->> +	node = acpi_ns_validate_handle(device);
->> +	if (node) {
->> +
->> +		/*
->> +		 * If an "orphan" _REG method is present in the device's scope
->> +		 * for the given address space ID, run it.
->> +		 */
->> +
->> +		acpi_ev_execute_orphan_reg_method(node, space_id);
->> +	} else {
->> +		status = AE_BAD_PARAMETER;
->> +	}
->> +
->> +	(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
->> +	return_ACPI_STATUS(status);
->> +}
->> +
->> +ACPI_EXPORT_SYMBOL(acpi_execute_orphan_reg_method)
->> Index: linux-pm/include/acpi/acpixf.h
->> ===================================================================
->> --- linux-pm.orig/include/acpi/acpixf.h
->> +++ linux-pm/include/acpi/acpixf.h
->> @@ -663,6 +663,10 @@ ACPI_EXTERNAL_RETURN_STATUS(acpi_status
->>  						     acpi_adr_space_type
->>  						     space_id))
->>  ACPI_EXTERNAL_RETURN_STATUS(acpi_status
->> +			    acpi_execute_orphan_reg_method(acpi_handle device,
->> +							   acpi_adr_space_type
->> +							   space_id))
->> +ACPI_EXTERNAL_RETURN_STATUS(acpi_status
->>  			    acpi_remove_address_space_handler(acpi_handle
->>  							      device,
->>  							      acpi_adr_space_type
->> Index: linux-pm/drivers/acpi/acpica/acevents.h
->> ===================================================================
->> --- linux-pm.orig/drivers/acpi/acpica/acevents.h
->> +++ linux-pm/drivers/acpi/acpica/acevents.h
->> @@ -191,6 +191,10 @@ void
->>  acpi_ev_execute_reg_methods(struct acpi_namespace_node *node,
->>  			    acpi_adr_space_type space_id, u32 function);
->>  
->> +void
->> +acpi_ev_execute_orphan_reg_method(struct acpi_namespace_node *node,
->> +				  acpi_adr_space_type space_id);
->> +
->>  acpi_status
->>  acpi_ev_execute_reg_method(union acpi_operand_object *region_obj, u32 function);
->>  
->> Index: linux-pm/drivers/acpi/acpica/evregion.c
->> ===================================================================
->> --- linux-pm.orig/drivers/acpi/acpica/evregion.c
->> +++ linux-pm/drivers/acpi/acpica/evregion.c
->> @@ -20,10 +20,6 @@ extern u8 acpi_gbl_default_address_space
->>  
->>  /* Local prototypes */
->>  
->> -static void
->> -acpi_ev_execute_orphan_reg_method(struct acpi_namespace_node *device_node,
->> -				  acpi_adr_space_type space_id);
->> -
->>  static acpi_status
->>  acpi_ev_reg_run(acpi_handle obj_handle,
->>  		u32 level, void *context, void **return_value);
->> @@ -818,7 +814,7 @@ acpi_ev_reg_run(acpi_handle obj_handle,
->>   *
->>   ******************************************************************************/
->>  
->> -static void
->> +void
->>  acpi_ev_execute_orphan_reg_method(struct acpi_namespace_node *device_node,
->>  				  acpi_adr_space_type space_id)
->>  {
->> Index: linux-pm/drivers/acpi/ec.c
->> ===================================================================
->> --- linux-pm.orig/drivers/acpi/ec.c
->> +++ linux-pm/drivers/acpi/ec.c
->> @@ -1507,6 +1507,9 @@ static int ec_install_handlers(struct ac
->>  
->>  	if (call_reg && !test_bit(EC_FLAGS_EC_REG_CALLED, &ec->flags)) {
->>  		acpi_execute_reg_methods(scope_handle, ACPI_ADR_SPACE_EC);
->> +		if (scope_handle != ec->handle)
->> +			acpi_execute_orphan_reg_method(ec->handle, ACPI_ADR_SPACE_EC);
->> +
->>  		set_bit(EC_FLAGS_EC_REG_CALLED, &ec->flags);
->>  	}
->>  
-> 
-> TL;DR: this change made me wonder about a possible issue, but all is
-> fine, except that the code flow leading to "fine" is a bit convoluted.
-> 
-> I noticed this landing in Linus' tree and this got me thinking about
-> if the "if (scope_handle != ec->handle)" would not cause the orphan
-> _REG method to not get called for the case where the EC is created
-> by parsing the ECDT early on, since then we set
-> ec->handle = ACPI_ROOT_OBJECT for the ec object.
-> 
-> So I checked and acpi_ec_ecdt_probe() calls acpi_ec_setup(ec, NULL, false)
-> with the false making call_reg above false, so the _REG methods do not
-> get executed at this point.
-> 
-> Instead they should get executed when parsing the DSDT finds the EC ACPI
-> device by acpi_ec_add() calling acpi_ec_setup(ec, device, true).
-> 
-> acpi_ec_add() updated ec->handle away from ACPI_ROOT_OBJECT to the actual
-> acpi_device's handle before calling acpi_ec_setup(ec, device, true) so
-> all should be well.
-> 
-> But while checkimg this I noticed a pre-existing issue where if the boot_ec
-> object is created from the ECDT, so with ec->handle == NULL, acpi_ec_add()
-> does not update ec->handle, which means an orphan _REG method will not get
-> executed.
-> 
-> Specifically if this if condition evaluated to true, because the !strcmp()
-> evaluates to true:
-> 
->         if (boot_ec && (boot_ec->handle == device->handle ||
->             !strcmp(acpi_device_hid(device), ACPI_ECDT_HID))) {
->                 /* Fast path: this device corresponds to the boot EC. */
->                 ec = boot_ec;
->         } else {
-> 
-> then [boot_]ec->handle does not get set to device->handle .
-> 
-> So at a first glance it looks like we need something like this to make sure
-> that any orphan _REG methods are also run in the described scenario:
-> 
-> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-> index e7793ee9e649..af61b9bb3749 100644
-> --- a/drivers/acpi/ec.c
-> +++ b/drivers/acpi/ec.c
-> @@ -1635,6 +1635,7 @@ static int acpi_ec_add(struct acpi_device *device)
->  	    !strcmp(acpi_device_hid(device), ACPI_ECDT_HID))) {
->  		/* Fast path: this device corresponds to the boot EC. */
->  		ec = boot_ec;
-> +		ec->handle = device->handle;
->  	} else {
->  		acpi_status status;
->  
-> 
-> 
-> But upon further checking the only place creating an acpi_device
-> with an ACPI_ECDT_HID is acpi_ec_ecdt_start() which does:
-> 
->         status = acpi_get_handle(NULL, ecdt_ptr->id, &handle);
->         if (ACPI_SUCCESS(status)) {
->                 boot_ec->handle = handle;
-> 
->                 /* Add a special ACPI device object to represent the boot EC. */
->                 acpi_bus_register_early_device(ACPI_BUS_TYPE_ECDT_EC);
->         }
-> 
-> So boot_ec->handle gets updated in this case before acpi_ec_add() runs
-> and everything is fine.
-> 
-> ...
-> 
-> Still I'm wondering if it would not be better to replace this
-> "boot_ec->handle = handle;" in acpi_ec_ecdt_start() with the change
-> from my proposed diff above, so that we consistently about the
-> [boot_]ec->handle with device->handle for the being added acpi_device
-> in both branches of the if ... else ... in acpi_ec_add() ?
+The definitions were imported from ChromeOS EC commit
+32870d602317 ("squirtle: modify motionsense rotation matrix")
 
-Never mind that will not work because then we would set boot_ec->handle
-to the handle of the special / fake ACPI device object added to
-represent the boot EC, rather then to the handle corresponding to
-ecdt_ptr->id, so this is a bad idea.
+Acked-by: Tzung-Bi Shih <tzungbi@kernel.org>
+Signed-off-by: Thomas Weißschuh <linux@weissschuh.net>
+---
+ include/linux/platform_data/cros_ec_commands.h | 49 ++++++++++++++++++++++++--
+ 1 file changed, 47 insertions(+), 2 deletions(-)
 
-Regards,
+diff --git a/include/linux/platform_data/cros_ec_commands.h b/include/linux/platform_data/cros_ec_commands.h
+index ec598057d1da..e574b790be6f 100644
+--- a/include/linux/platform_data/cros_ec_commands.h
++++ b/include/linux/platform_data/cros_ec_commands.h
+@@ -3843,16 +3843,61 @@ struct ec_params_i2c_write {
+  * discharge the battery.
+  */
+ #define EC_CMD_CHARGE_CONTROL 0x0096
+-#define EC_VER_CHARGE_CONTROL 1
++#define EC_VER_CHARGE_CONTROL 3
+ 
+ enum ec_charge_control_mode {
+ 	CHARGE_CONTROL_NORMAL = 0,
+ 	CHARGE_CONTROL_IDLE,
+ 	CHARGE_CONTROL_DISCHARGE,
++	/* Add no more entry below. */
++	CHARGE_CONTROL_COUNT,
++};
++
++#define EC_CHARGE_MODE_TEXT                               \
++	{                                                 \
++		[CHARGE_CONTROL_NORMAL] = "NORMAL",       \
++		[CHARGE_CONTROL_IDLE] = "IDLE",           \
++		[CHARGE_CONTROL_DISCHARGE] = "DISCHARGE", \
++	}
++
++enum ec_charge_control_cmd {
++	EC_CHARGE_CONTROL_CMD_SET = 0,
++	EC_CHARGE_CONTROL_CMD_GET,
++};
++
++enum ec_charge_control_flag {
++	EC_CHARGE_CONTROL_FLAG_NO_IDLE = BIT(0),
+ };
+ 
+ struct ec_params_charge_control {
+-	uint32_t mode;  /* enum charge_control_mode */
++	uint32_t mode; /* enum charge_control_mode */
++
++	/* Below are the fields added in V2. */
++	uint8_t cmd; /* enum ec_charge_control_cmd. */
++	uint8_t flags; /* enum ec_charge_control_flag (v3+) */
++	/*
++	 * Lower and upper thresholds for battery sustainer. This struct isn't
++	 * named to avoid tainting foreign projects' name spaces.
++	 *
++	 * If charge mode is explicitly set (e.g. DISCHARGE), battery sustainer
++	 * will be disabled. To disable battery sustainer, set mode=NORMAL,
++	 * lower=-1, upper=-1.
++	 */
++	struct {
++		int8_t lower; /* Display SoC in percentage. */
++		int8_t upper; /* Display SoC in percentage. */
++	} sustain_soc;
++} __ec_align4;
++
++/* Added in v2 */
++struct ec_response_charge_control {
++	uint32_t mode; /* enum charge_control_mode */
++	struct { /* Battery sustainer thresholds */
++		int8_t lower;
++		int8_t upper;
++	} sustain_soc;
++	uint8_t flags; /* enum ec_charge_control_flag (v3+) */
++	uint8_t reserved;
+ } __ec_align4;
+ 
+ /*****************************************************************************/
 
-Hans
-
+-- 
+2.45.2
 
