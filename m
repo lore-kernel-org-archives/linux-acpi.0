@@ -1,130 +1,110 @@
-Received: from mout.gmx.net (mout.gmx.net [212.227.15.19])
+Received: from todd.t-8ch.de (todd.t-8ch.de [159.69.126.157])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 311791B4C49;
-	Thu, 20 Jun 2024 19:14:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.15.19
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0EFC3C6AC;
+	Thu, 20 Jun 2024 20:34:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.69.126.157
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718910869; cv=none; b=PNV4pnv5gdeDQ6rB2hU1/ZjHVFLTc57fDIDsaOLhosraq8aj2nG78LkoXubdSkBQZj2o0ASSObniw4/Fr+kBxA9iY2cRtFzQ+xFjevfYjlIsIlMrHlerntx5q0p7BBt1PgbHMZ9NHxYlRZr6zLsCzdeT6JqAXSNrP1N20H2H5WA=
+	t=1718915674; cv=none; b=p36Fpaywoqzw8NtxCAn0Hk2tTE5sSRFKPSzwi4kbAvtGTvVojSKOONR3TCs6oMLf+a06A2XpyvTNgMZOMSCyvWK0rFh/ug1TBgT+lvhcl9MJBaXfK0bhdf7Dcf27FVyzyGt5N9hJ78vWBFZhZrZeVUOuQt+DFRzDc5mWF6bRAEA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718910869; c=relaxed/simple;
-	bh=oM7d2nU/1EXglGqyMknsqP4KzMVjfNITvBaD0xtbb8U=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=FSSGUWdjXpIOmkB5tG0jHhXkNWu6Yh/Ms7qA6VzQ2ek91bTYG1FbBHECiLveTd7nNZdecgHbq0UE688Zc7qgvG3z9b9MwO/ZOc8rA9KM2UkBaFhacVjQtFe0AotjWA07QNlmsTTnbkB1ywNKCse77kiM/g3sStU2yqnGaeZktmU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de; spf=pass smtp.mailfrom=gmx.de; dkim=pass (2048-bit key) header.d=gmx.de header.i=w_armin@gmx.de header.b=XxTpuznq; arc=none smtp.client-ip=212.227.15.19
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmx.de
+	s=arc-20240116; t=1718915674; c=relaxed/simple;
+	bh=Qjgls1+fDHoSlp8kty5p8JufKc02nlgR5ecC7mawsk4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Fl7Lqm8QwF/NhPfZAckoyHOEQOKylt0O0SmTCCxySJViBR/BQM09OeB7pSAKWpDp9a/UgrMyuLh4ygNzjTzopc/g8vaJ9xbqCu4BhPkosTYPEZk4LbSUPbF+lDU0uFPvwR6umwanW5VBhi+djJ+eRPrr7MjuLJ2AdqIOL7OZKLM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net; spf=pass smtp.mailfrom=weissschuh.net; dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b=Bg8yPHsV; arc=none smtp.client-ip=159.69.126.157
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=weissschuh.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmx.de header.i=w_armin@gmx.de header.b="XxTpuznq"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmx.de;
-	s=s31663417; t=1718910856; x=1719515656; i=w_armin@gmx.de;
-	bh=JfxDuAxw0I5rokPnnN/NN9/gOvD5EFn1E9laPeck6iA=;
-	h=X-UI-Sender-Class:From:To:Cc:Subject:Date:Message-Id:
-	 MIME-Version:Content-Transfer-Encoding:cc:
-	 content-transfer-encoding:content-type:date:from:message-id:
-	 mime-version:reply-to:subject:to;
-	b=XxTpuznqa5s0SpQ6YdBrvZNwCXRJ0edFeG7RwA4nafWEyqJXBNYwkwFHqkAwFph/
-	 obu4vTPFY+7Qo8UXInbPMrj96MAUMv7WH+7KynWZbaU6jWpmgpfI3EtAqC0iGv7tB
-	 R6/iC0NBkzpWYJe/A+3dBrppWvzsVla1nGnwu66kc6DXtUyEZ/Znr8eFMdKXi77bu
-	 +xt7LGs4mr+Swymo1EOxUvTy59CZERil76zkUyBO9n3ndytFj8qd11eeWXYQwZGYP
-	 y9QhxcX50jwPqpUX5rCcdjiU6Z6DT0uJoGV+4O4YWpCBzUpj4V+Bq1MYzUKtq/GeN
-	 ytkbdoU/jbWr0NIakw==
-X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
-Received: from mx-amd-b650.users.agdsn.de ([141.30.226.129]) by mail.gmx.net
- (mrgmx004 [212.227.17.190]) with ESMTPSA (Nemesis) id
- 1N8XTv-1sP43t1c9p-015xmJ; Thu, 20 Jun 2024 21:14:16 +0200
-From: Armin Wolf <W_Armin@gmx.de>
-To: rafael@kernel.org,
-	lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH 1/2] ACPI: battery: Add support for charge limiting state
-Date: Thu, 20 Jun 2024 21:14:09 +0200
-Message-Id: <20240620191410.3646-1-W_Armin@gmx.de>
-X-Mailer: git-send-email 2.39.2
+	dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b="Bg8yPHsV"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=weissschuh.net;
+	s=mail; t=1718915668;
+	bh=Qjgls1+fDHoSlp8kty5p8JufKc02nlgR5ecC7mawsk4=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=Bg8yPHsVg7YcnTXyQtCFTUNvWfpV80lMIWHE6HVlp//JgZpLevL+72yjpW16OMiea
+	 9wfF5ort/6xXLv+beVTMts562W1f+KV7s4t12JykJNG0rb2MbJ6QgowAxk1QZmCbPK
+	 BSJ178aUs5djvWTBHYV9DIwT0yqtgki9kKvNtf3E=
+Date: Thu, 20 Jun 2024 22:34:28 +0200
+From: Thomas =?utf-8?Q?Wei=C3=9Fschuh?= <linux@weissschuh.net>
+To: Sebastian Reichel <sebastian.reichel@collabora.com>
+Cc: Benson Leung <bleung@chromium.org>, 
+	Guenter Roeck <groeck@chromium.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, 
+	Tzung-Bi Shih <tzungbi@kernel.org>, chrome-platform@lists.linux.dev, linux-kernel@vger.kernel.org, 
+	linux-pm@vger.kernel.org, Mario Limonciello <mario.limonciello@amd.com>, 
+	Dustin Howett <dustin@howett.net>, Stephen Horvath <s.horvath@outlook.com.au>, 
+	Rajas Paranjpe <paranjperajas@gmail.com>, linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev, 
+	Matt Hartley <matt.hartley@gmail.com>
+Subject: Re: [PATCH v4 4/5] power: supply: add ChromeOS EC based charge
+ control driver
+Message-ID: <933f6510-2496-4ff9-af50-dd3ff35ddffd@t-8ch.de>
+References: <20240616-cros_ec-charge-control-v4-0-74d649a9117d@weissschuh.net>
+ <20240616-cros_ec-charge-control-v4-4-74d649a9117d@weissschuh.net>
+ <syoaiwmmxuz4ai6jomu42kvwocwozpzfbnjhvndlfqi6zkio4x@vrg6hle2httr>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-X-Provags-ID: V03:K1:uNBDOBDXPCELTkGamOlx2L0j/W2Zhplj2lD9/D7v5T+apEJnnw9
- YiM8dfeyyR6Sy2iqGvBwBDR6TNNFBsC9VaQzIPF0Zi5MqlrWxVwPMPuZuRC8nQgDl6lfsIT
- NNaneKZl8AKNkuZEFKyFzA3bTq9rBVXFdlx/onmHI+b7i3oAv8ZBdY2ucgGs31HLhjlPCCZ
- eV4atUc4q9u9vxLvvUQpg==
-X-Spam-Flag: NO
-UI-OutboundReport: notjunk:1;M01:P0:1ivwSHmpePc=;uSM9rr41Wuw5kjzAoyyV5tk2mIl
- i3jkEV278EZxI7Tk/3ljPtMJcjPoU7q2SD0TKmrBG8zaCd1wn9zF183BELhNv0Vz6fxEa1Op0
- CYjwyMDqZHupFczhdiADcP3WdB53f9HVAK0KB+USScSkLgiu1AGKwkoHNnhLvXxK6K0vaNcsZ
- A8iThkF8WUgig558RbKPTTVjpE4yyI5xeuJ8m5wxTj/BvHcenpIuXOFPuhmIZAETe+JbVjZyY
- kdVion2B/yeZ+WS2V2FVwbyh1s9sXNLNvioudWhER+U7rEqykfYIHoJll5px93LumYyvalSNo
- b6b4eAt5FMXefwAdhc1WQaf9LcUuXwTvLBJxDVMmk+MToV0W9eRkYanJbW/YAune218sx7M3w
- UyTwWk5eBSckWg2GFCz8zjLJ62pYXFWo2gC3d8UVVmSG+sudcgEBjyaDxaVHF6WPfRl2NyheG
- /ss80HzssXQwewBtvvvm4QzyloC5TNoD9KaORUWWFYYKO7xMg0avbO33Z0vEV9kqMsTSa1Wel
- wb0JtzFQhnBIRS1/ulhAjNtrKVtMQzBqLiDPgmUUv8zfMxoLhiYpMagXzvDQCoc5Buzr6FgvH
- jDhA3MuPWGLufg+nCVMyiOsYRArwG52PSBbF107eEPGxEkM3igcCkaprQVTZv+huO+fSOVK/Y
- YSw1InfHXFjx9mRga1WvahMB06QO7rCfD7/3H4ht8+hLQxPIn4J/gyFGXLRkdumLXtayoU7kh
- nEAPyxyGRIMZOmvO0O2EHYiwveoCWIc7U+2D+KnQ6UnaZ/nQmLJ/1XtzCA2dRL6V4tefU69Qy
- 1dWpymJu7A6bbYvJ5cBYL7zeMf8Q3zp1OitpB8c7FIj0g=
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <syoaiwmmxuz4ai6jomu42kvwocwozpzfbnjhvndlfqi6zkio4x@vrg6hle2httr>
 
-The ACPI specification says that bit 3 inside the battery state
-signals that the battery is in charge limiting state. In this state,
-the platform limits the battery from reaching its full capacity, the
-exact limit is platform-specific.
+Hi Sebastian,
 
-This might explain why a number of batteries reported a "Unknown"
-battery state in the past when using platform-specific interfaces to
-stop battery charging at a user defined level.
+On 2024-06-20 00:24:23+0000, Sebastian Reichel wrote:
+> On Sun, Jun 16, 2024 at 09:03:32PM GMT, Thomas Weißschuh wrote:
+> > The ChromeOS Embedded Controller implements a command to control charge
+> > thresholds and behaviour.
+> > 
+> > Use it to implement the standard Linux charge_control_start_threshold,
+> > charge_control_end_threshold and charge_behaviour sysfs UAPIs.
+> > 
+> > The driver is designed to be probed via the cros_ec mfd device.
+> > 
+> > Signed-off-by: Thomas Weißschuh <linux@weissschuh.net>
+> > ---
+> 
+> Acked-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 
-Unfortunately not all platforms set this bit in such cases, so
-"non-charging" is still the default state when the battery is neither
-charging, discharging or full.
+Thanks!
 
-Tested on a Lenovo Ideapad S145-14IWL.
+<snip>
 
-Signed-off-by: Armin Wolf <W_Armin@gmx.de>
-=2D--
- drivers/acpi/battery.c | 11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+Would you also take a look at patch 5,
+"power: supply: cros_charge-control: don't load if Framework control is present"?
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index d289b98a2cca..9ba2191a96d6 100644
-=2D-- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -38,9 +38,10 @@
- /* Battery power unit: 0 means mW, 1 means mA */
- #define ACPI_BATTERY_POWER_UNIT_MA	1
+I'm still wondering what the best solution for the two different EC APIs
+would be. Maybe you have an idea?
 
--#define ACPI_BATTERY_STATE_DISCHARGING	0x1
--#define ACPI_BATTERY_STATE_CHARGING	0x2
--#define ACPI_BATTERY_STATE_CRITICAL	0x4
-+#define ACPI_BATTERY_STATE_DISCHARGING		0x1
-+#define ACPI_BATTERY_STATE_CHARGING		0x2
-+#define ACPI_BATTERY_STATE_CRITICAL		0x4
-+#define ACPI_BATTERY_STATE_CHARGE_LIMITING	0x8
+In short:
 
- #define MAX_STRING_LENGTH	64
+Framework laptops have a downstream charge control API in their EC.
+This drivers binds to the upstream CrOS EC APIs, which does work on
+Framework laptops.
+If the downstream API is used, it overrides the functionality of the
+upstream API.
 
-@@ -155,7 +156,7 @@ static int acpi_battery_get_state(struct acpi_battery =
-*battery);
+Choices I see:
+* Ignore the incompatibility and just load the driver (maybe log something)
+* Detect if the downstream API is actively used during probing
+  (If enabled by UEFI) and either
+  * don't load the driver
+  * disable the current downstream API configuration, so the driver works
+  * disable the downstream API and take over its configuration into the
+    upstream driver
+* Detect if the downstream API is present at all and don't load the
+  driver (currently implemented)
 
- static int acpi_battery_is_charged(struct acpi_battery *battery)
- {
--	/* charging, discharging or critical low */
-+	/* charging, discharging, critical low or charge limited */
- 	if (battery->state !=3D 0)
- 		return 0;
+The problem is that the downstream API is still usable and its usage
+would break this driver.
+On the other hand, disabling the driver forces users to manually specify
+a kernel commandline, preventing most users from actually making use of it.
 
-@@ -215,6 +216,8 @@ static int acpi_battery_get_property(struct power_supp=
-ly *psy,
- 			val->intval =3D acpi_battery_handle_discharging(battery);
- 		else if (battery->state & ACPI_BATTERY_STATE_CHARGING)
- 			val->intval =3D POWER_SUPPLY_STATUS_CHARGING;
-+		else if (battery->state & ACPI_BATTERY_STATE_CHARGE_LIMITING)
-+			val->intval =3D POWER_SUPPLY_STATUS_NOT_CHARGING;
- 		else if (acpi_battery_is_charged(battery))
- 			val->intval =3D POWER_SUPPLY_STATUS_FULL;
- 		else
-=2D-
-2.39.2
+(For the future I plan on adapting the Framework EC firmware to avoid
+this issue, but there is no telling how long it will take and if it is
+accepted at all)
 
+Thanks for any ideas,
+Thomas
