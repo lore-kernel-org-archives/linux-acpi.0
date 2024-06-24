@@ -1,33 +1,33 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id C1F7819B5B0;
-	Mon, 24 Jun 2024 14:48:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id D6CA319ADA6;
+	Mon, 24 Jun 2024 15:02:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719240531; cv=none; b=Z9fosUGIaYKiuiee9l4a7XEeU7JNf5k9OKuL/Jmri+LhZSiRWJCUBuCWPFv6R+YIr2dSaNY/EekrApAhNKzXoefeU/JFXvuNGtIl9U3PVtsgWimPWGw5BEfzVwrGlQDPyVnNTwjkN/Y5P02NgRAhilICRm9kYDI4ZSND4bkK+mo=
+	t=1719241345; cv=none; b=JLMmXC9QqUdh3TNBiQqx1yR6fp9dyuUKKes6+QuuYEKXRS3t+1r/5p9hcH0/pfM76rMYANYbGaWMadrvzJXg/iqvvQIOtqi7TTjsUI/afzxE0lPVUl3cW96/dYy9RU269Vig+q+MgavhhGQd48CB7BO0yuzJ5xpPKoHtpSNjI1o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719240531; c=relaxed/simple;
-	bh=4/dgeUPK7JV/t7zHVj1dhDdp+7TjPbrs4jAQPOfn2Hw=;
+	s=arc-20240116; t=1719241345; c=relaxed/simple;
+	bh=7/n0M37UbHanag3ZtvhTAiruyypQB04RHFuFUP75xTw=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=AVAa81p+7mHp1Nt5hGVJEI0thgifB19jDOG+Ulwx7ON877jRHmZF354IjyWjunnzxNBHbxrT5t3EKpEW+yU4yYyP4djrw36aIG4Cx5nARsfA2PFQ9SFFvojWfH5qtBaH3L08bZpG2Jjvin+ke7sxVqgxFWarE+blyhVvK6HLuw0=
+	 Content-Type:Content-Disposition:In-Reply-To; b=TRh7LdyPWu3q4iwCFaP3aVX6Qedv9wsSpufL1cAETH7wMibxrctYJUnSlsVN7XPvO2Gkk+IwmaT4FM79yirrPCekOz/BWhfpIhQK2mUiyrl2kRO9E6D5kGwLl2l8x3TYSHYMFnASE7MMwjBfBmG5smv7m2b/AYw/gQT9stfjzbk=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 59A2BDA7;
-	Mon, 24 Jun 2024 07:49:07 -0700 (PDT)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id C821DDA7;
+	Mon, 24 Jun 2024 08:02:46 -0700 (PDT)
 Received: from bogus (e103737-lin.cambridge.arm.com [10.1.197.49])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id C26CE3F73B;
-	Mon, 24 Jun 2024 07:48:40 -0700 (PDT)
-Date: Mon, 24 Jun 2024 15:48:38 +0100
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 3A8243F73B;
+	Mon, 24 Jun 2024 08:02:20 -0700 (PDT)
+Date: Mon, 24 Jun 2024 16:02:17 +0100
 From: Sudeep Holla <sudeep.holla@arm.com>
-To: Youwan Wang <youwan@nfschina.com>
+To: Youwan Wang <youwan@nfschina.com>, catalin.marinas@arm.com
 Cc: guohanjun@huawei.com, lenb@kernel.org, linux-acpi@vger.kernel.org,
 	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	lpieralisi@kernel.org, rafael@kernel.org, catalin.marinas@arm.com,
-	will@kernel.org, Sudeep Holla <sudeep.holla@arm.com>
+	lpieralisi@kernel.org, rafael@kernel.org, will@kernel.org,
+	Sudeep Holla <sudeep.holla@arm.com>
 Subject: Re: [PATCH v4] ACPI / amba: Drop unnecessary check for registered
  amba_dummy_clk
-Message-ID: <ZnmHRgnwNUsQidWj@bogus>
+Message-ID: <ZnmKebiTxIbZHfSf@bogus>
 References: <20240620133758.319392-1-youwan@nfschina.com>
  <20240624023101.369633-1-youwan@nfschina.com>
 Precedence: bulk
@@ -51,32 +51,12 @@ On Mon, Jun 24, 2024 at 10:31:01AM +0800, Youwan Wang wrote:
 > Acked-by: Sudeep Holla <sudeep.holla@arm.com>
 > Acked-by: Hanjun Guo <guohanjun@huawei.com>
 > ---
-> v1->v2->v3: Modify the commit log description
-> v3->v4: Update the commit message suggested by Sudeep;
->         Add Acked-by from Sudeep;
->         +Cc ARM64 maintainers Catalin and Will.
 
+Hi Catalin,
 
-I think I have told you many time now and you are missing to understand
-few basic stuff. So I suggest to give
-`Documentation/process/submitting-patches.rst`
-under the kernel source a read and especially the section
-`The canonical patch format`
-
-Ideally this patch should have been v5 as you added Hanjun's Ack
-Also "v1->v2->v3: Modify the commit log description" makes no sense.
-
-The changelog should list all the deltas like:
-v4->v5:
-	- <blah3 blah3>
-v3->v4:
-	- <blah2 blah2>
-v2->v3:
-	- <blah1 blah1>
-v1->v2:
-	- <blah blah>
-
-Anyways, it is only for your learning and future references.
+Can you please pick up this simple cleanup patch under ACPI changes ?
+It is very hard to follow the versions as it is messed up, but this
+version is good to take though.
 
 --
 Regards,
