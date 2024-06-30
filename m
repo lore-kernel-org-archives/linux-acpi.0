@@ -1,106 +1,121 @@
-Received: from mail-lj1-f182.google.com (mail-lj1-f182.google.com [209.85.208.182])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from todd.t-8ch.de (todd.t-8ch.de [159.69.126.157])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B01D12FB34;
-	Sun, 30 Jun 2024 17:36:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.182
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA31E433CE;
+	Sun, 30 Jun 2024 20:57:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.69.126.157
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719769001; cv=none; b=N9/4esXkbYs1JH/RaaaYpsx+H+zDPKHrExN7Lxmj+dm7Z9mJc9idzq6cgcpu6QeswMBn1Fv/rH4zETs/MBcAjL1zWDLPV6S3xQxU3BIqF5PBgmfd9w9hL8VlgmjgvnWnNDsF74MrLc+cbAyeBkm+/Tl+sXUKu2jPXxgTEbqrS8c=
+	t=1719781025; cv=none; b=LoX2AF5nbCVYv8heuaoXXcxOzuHXTw57kx3717pZjcESI6iMep10RNTHYj7cW6YHulaicj6iB1G6q00iaKxPYym5JEcdlRpnQej6Oq9RVWg2fr1g+AxGW8PMPem7aCw5/3dUaKNWxyudCSLKucnRWDd+bhz2oOI1mm8e4izwMFU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719769001; c=relaxed/simple;
-	bh=CEC/uj+jHgVHI5ry1SInCzFe6GhCVaTspmdYEMfm9Eo=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=mS5d0Q9vGoQsR1vu2THnFRDDPD+nAYOIHDgZR1jpe79ldmXLah4MeKWkksuXulmOlmLXf956hvZXDSVlLFICRWZ/BsLGgStBjYVrD5YEUhP+gcImx/btviGv3kHZOyAzwgCbVeQe3bLaXkeoNehpvDMt0JKuZyzgOpkgqDZF16s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=jkuGZOG7; arc=none smtp.client-ip=209.85.208.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1719781025; c=relaxed/simple;
+	bh=uw8nLh7+K+VERVHPyxd+3eO/7NhujZLZvDsfiJLrD+k=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=NuOMK70QDV7ZZe8EO0JejQ01L7SHOSlwBuLFUpUEcld+H73xdjD5ABsPgfEjmYMrzcjjdA+vLigZxBvxmTf8Ik1Ud8iJmAJgEkprzKzTKXO2zmgaFnVXPYlw6iX6a8SqBlLI84AhW33vgh7CxM/hwog044TdeaIaW2CI3Q064bQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net; spf=pass smtp.mailfrom=weissschuh.net; dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b=ZAydGxhz; arc=none smtp.client-ip=159.69.126.157
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=weissschuh.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jkuGZOG7"
-Received: by mail-lj1-f182.google.com with SMTP id 38308e7fff4ca-2ebe40673e8so25508131fa.3;
-        Sun, 30 Jun 2024 10:36:39 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1719768997; x=1720373797; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=dy3gLu7I5dJFeESwGxccqcPXiCFfnXkkk3gsTdwYcCI=;
-        b=jkuGZOG71feBJTnWxahUpJp6sdEqr/GOINstHobk3HS7k2wfjkeUay1agZ3hmHmPAZ
-         Flkj/r4NiTtnYbyNpz5HF8fy4yArbB4FnQ4byhJvd7W8ZWvdF0WtRAMM7qLpBybgFAZN
-         En//0d56bHnwqJMybO1W7jherFtnVw+Bwr++79a5/Mvj4eUJ4/Gppamu9GyA/0U4/nz3
-         p7AqIn0D0wdH8H2Tev1UPrr4mtnsf9Kx1USu157XiqhSfBvqElGMQBsZ+ZZtPq1gc2xM
-         vmKm7nsxJRu0I8wy5Nu7d9uWPQKbXHldNHCj5hyoMv5BEQdMR4ugNMFaDSPuZH8tYYRy
-         8azQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1719768997; x=1720373797;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=dy3gLu7I5dJFeESwGxccqcPXiCFfnXkkk3gsTdwYcCI=;
-        b=a+8Myp5I/rgZBIMUjKEorl+AEkzlMgiw1TeSs4lDZbuqdrL67IJ4+Xsh8qGAuJ79Yu
-         6eIibpZAoB1KmvIxrJ1Lsba0uzpFQYfBsLeo3rsyIY8BFtVkQF9A3sjH/zk94Q7jZOrd
-         i/Eu5RqcAGX8oO/G4yztXChQasO8rExJGWPTJRK832F6JzrTxeLzyQFGGBTpHW79aSAU
-         m94pfUKEv7OJDvkrZrmQxProlusAfhft+k+2lXPfjPqr/FSxEu++pd4IHOQKeTBSutAY
-         qmy3oT6UXsAMbVEDuXEqpcdgZipNgYm9aicJsEIXOCAKOkZ+7gEQ2eEPo7+Wqsm+Il2a
-         shgQ==
-X-Forwarded-Encrypted: i=1; AJvYcCXaDlYNCK09WSVf4rtPU3PpT7gPekcD1f2Zm0Rn5qrPpXxgrdyTBh4AGFL9p6aVF5QEPBlhSLP0/kvnHTYQMWxUsLeuYpSmHt1lHJbjJqPEWeolhve90nyU/jyTHpa1fW/VXcNesN4YSw==
-X-Gm-Message-State: AOJu0Yzui4ZOLi+A7j373vHdpkjY70QCNbgvkdkCVsS6fuw80T4XaSey
-	jegp70CSN87Q+Miu00yD8SxpBPgcw2G6Ewk5UKXXTa+ujDl1G7EJ
-X-Google-Smtp-Source: AGHT+IEluxmXHWuWL59Y3dBrov94K52axD5ahoJlnyO9WMAgLtJbqeeymhVYBmVpEr7qOY961jxTow==
-X-Received: by 2002:a2e:3e15:0:b0:2ec:3c55:3056 with SMTP id 38308e7fff4ca-2ee5e6c9951mr19863121fa.44.1719768997070;
-        Sun, 30 Jun 2024 10:36:37 -0700 (PDT)
-Received: from qamajeed.Home ([39.45.181.116])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-425787f37casm34202085e9.1.2024.06.30.10.36.34
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 30 Jun 2024 10:36:36 -0700 (PDT)
-From: Muhammad Qasim Abdul Majeed <qasim.majeed20@gmail.com>
-To: rafael@kernel.org,
-	lenb@kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: Muhammad Qasim Abdul Majeed <qasim.majeed20@gmail.com>
-Subject: [PATCH v2] Updating a vulnerable use of strcpy.
-Date: Sun, 30 Jun 2024 22:35:10 +0500
-Message-Id: <20240630173510.9481-1-qasim.majeed20@gmail.com>
-X-Mailer: git-send-email 2.34.1
+	dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b="ZAydGxhz"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=weissschuh.net;
+	s=mail; t=1719781013;
+	bh=uw8nLh7+K+VERVHPyxd+3eO/7NhujZLZvDsfiJLrD+k=;
+	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
+	b=ZAydGxhzKy2BRBPebAf7jE+fd7WxQqrzZxNBo/mukB5ZHdKF5KZFR0MufVAIF2b1N
+	 GGNOORrbdWk+h7TccUCPrZj8f0FY3aBHEaMHdpMVodMdsth58+r9qfXnXMWU5/KWs3
+	 ibv478/fkqXAKT/IM4ac8JVXf6OmKpEK6xWDOfnE=
+From: =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <linux@weissschuh.net>
+Date: Sun, 30 Jun 2024 22:54:08 +0200
+Subject: [PATCH v5 1/5] ACPI: battery: add devm_battery_hook_register()
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
+Message-Id: <20240630-cros_ec-charge-control-v5-1-8f649d018c52@weissschuh.net>
+References: <20240630-cros_ec-charge-control-v5-0-8f649d018c52@weissschuh.net>
+In-Reply-To: <20240630-cros_ec-charge-control-v5-0-8f649d018c52@weissschuh.net>
+To: Benson Leung <bleung@chromium.org>, Guenter Roeck <groeck@chromium.org>, 
+ Sebastian Reichel <sre@kernel.org>, 
+ =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas@weissschuh.net>, 
+ "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
+ Robert Moore <robert.moore@intel.com>, Tzung-Bi Shih <tzungbi@kernel.org>
+Cc: chrome-platform@lists.linux.dev, linux-kernel@vger.kernel.org, 
+ linux-pm@vger.kernel.org, Mario Limonciello <mario.limonciello@amd.com>, 
+ Dustin Howett <dustin@howett.net>, 
+ Stephen Horvath <s.horvath@outlook.com.au>, 
+ Rajas Paranjpe <paranjperajas@gmail.com>, linux-acpi@vger.kernel.org, 
+ acpica-devel@lists.linux.dev, Matt Hartley <matt.hartley@gmail.com>, 
+ Kieran Levin <ktl@framework.net>, 
+ "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, 
+ =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <linux@weissschuh.net>
+X-Mailer: b4 0.14.0
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1719781012; l=1828;
+ i=linux@weissschuh.net; s=20221212; h=from:subject:message-id;
+ bh=uw8nLh7+K+VERVHPyxd+3eO/7NhujZLZvDsfiJLrD+k=;
+ b=RVHWtd+9L3ZrbCRqbpof/wsE5mrtK9K0/YEZaN/a9i6SR8hj7KrpRk8ZtiXYKXO9+44YXlQiI
+ QQn4bscPzLNDyntpXJ4CsPxXedowJSEKebuEvvKhMTz6EuIMxZ1eENi
+X-Developer-Key: i=linux@weissschuh.net; a=ed25519;
+ pk=KcycQgFPX2wGR5azS7RhpBqedglOZVgRPfdFSPB1LNw=
 
-Replacing strcpy with strscpy and memory bound the copy.
+Add a utility function for device-managed registration of battery hooks.
+The function makes it easier to manage the lifecycle of a hook.
 
-Signed-off-by: Muhammad Qasim Abdul Majeed <qasim.majeed20@gmail.com>
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Thomas Weißschuh <linux@weissschuh.net>
 ---
- drivers/acpi/acpi_video.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/acpi/battery.c | 15 +++++++++++++++
+ include/acpi/battery.h |  2 ++
+ 2 files changed, 17 insertions(+)
 
-diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
-index 1fda30388297..6113baffd53f 100644
---- a/drivers/acpi/acpi_video.c
-+++ b/drivers/acpi/acpi_video.c
-@@ -1128,8 +1128,8 @@ static int acpi_video_bus_get_one_device(struct acpi_device *device, void *arg)
- 		return -ENOMEM;
- 	}
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index b379401ff1c2..6ea979f76f84 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -756,6 +756,21 @@ void battery_hook_register(struct acpi_battery_hook *hook)
+ }
+ EXPORT_SYMBOL_GPL(battery_hook_register);
  
--	strcpy(acpi_device_name(device), ACPI_VIDEO_DEVICE_NAME);
--	strcpy(acpi_device_class(device), ACPI_VIDEO_CLASS);
-+	strscpy(acpi_device_name(device), ACPI_VIDEO_DEVICE_NAME, strlen(ACPI_VIDEO_DEVICE_NAME));
-+	strscpy(acpi_device_class(device), ACPI_VIDEO_CLASS, strlen(ACPI_VIDEO_CLASS));
++static void devm_battery_hook_unregister(void *data)
++{
++	struct acpi_battery_hook *hook = data;
++
++	battery_hook_unregister(hook);
++}
++
++int devm_battery_hook_register(struct device *dev, struct acpi_battery_hook *hook)
++{
++	battery_hook_register(hook);
++
++	return devm_add_action_or_reset(dev, devm_battery_hook_unregister, hook);
++}
++EXPORT_SYMBOL_GPL(devm_battery_hook_register);
++
+ /*
+  * This function gets called right after the battery sysfs
+  * attributes have been added, so that the drivers that
+diff --git a/include/acpi/battery.h b/include/acpi/battery.h
+index 611a2561a014..c93f16dfb944 100644
+--- a/include/acpi/battery.h
++++ b/include/acpi/battery.h
+@@ -2,6 +2,7 @@
+ #ifndef __ACPI_BATTERY_H
+ #define __ACPI_BATTERY_H
  
- 	data->device_id = device_id;
- 	data->video = video;
-@@ -2010,8 +2010,8 @@ static int acpi_video_bus_add(struct acpi_device *device)
- 	}
++#include <linux/device.h>
+ #include <linux/power_supply.h>
  
- 	video->device = device;
--	strcpy(acpi_device_name(device), ACPI_VIDEO_BUS_NAME);
--	strcpy(acpi_device_class(device), ACPI_VIDEO_CLASS);
-+	strscpy(acpi_device_name(device), ACPI_VIDEO_BUS_NAME, strlen(ACPI_VIDEO_BUS_NAME));
-+	strscpy(acpi_device_class(device), ACPI_VIDEO_CLASS, strlen(ACPI_VIDEO_CLASS));
- 	device->driver_data = video;
+ #define ACPI_BATTERY_CLASS "battery"
+@@ -19,5 +20,6 @@ struct acpi_battery_hook {
  
- 	acpi_video_bus_find_cap(video);
+ void battery_hook_register(struct acpi_battery_hook *hook);
+ void battery_hook_unregister(struct acpi_battery_hook *hook);
++int devm_battery_hook_register(struct device *dev, struct acpi_battery_hook *hook);
+ 
+ #endif
+
 -- 
-2.34.1
+2.45.2
 
