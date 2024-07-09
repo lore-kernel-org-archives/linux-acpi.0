@@ -1,32 +1,32 @@
 Received: from todd.t-8ch.de (todd.t-8ch.de [159.69.126.157])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF2C914F9C5;
-	Tue,  9 Jul 2024 20:38:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C39918C16D;
+	Tue,  9 Jul 2024 20:38:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.69.126.157
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720557505; cv=none; b=lWj1u2QnhRYbW4pKffEWlQGazAysjuWKtLW1yhVRGz+1MuY1GTc3VZns+pFjsfvWZB4McZl7yYtvM7EnIh9YFjKGanldqUl1U3M4G3EIXiMGXM67OV11EunWIuw5BmgWnX0ofc+H998C0jYTVYKQPglCt/o9nE9zfjlapZ+ney8=
+	t=1720557507; cv=none; b=GWEFAHMKrDDb/U4ko+HItF6Nt9Zl5iznu7Fgoe1on+ffWd7i6BMiqgpzZShM8FCqGVg+zw/CkYQhe31flFheyAhli6LEDrIQc0JoWMJzzHPO1K/TsMO0U5mU0+5lcUDTEVUhQM65LNHFUU9Q6N4GVMA2wyUIhWnTop1o77SPDEg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720557505; c=relaxed/simple;
-	bh=g9CAzBCrhH0KyzUhTyFmcpsSKbBxqlMkXvbzM7Nks+I=;
-	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=j8FXlwU8ybvDZGSPWoJAnrfy7kUD9ckIGB0boAnmgma9j0Usauvyva62le5xQgRNH8AchAEJGp0gjqWY46Kd/yYs0gexs4OZt/jXHorlCPVErCfl1wGhM0+1ep7+65DE6jCEaQPaptv7GN7y2PgJ+iEGcY/sx3j57rqBRoFAUSg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net; spf=pass smtp.mailfrom=weissschuh.net; dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b=B5pXDWIx; arc=none smtp.client-ip=159.69.126.157
+	s=arc-20240116; t=1720557507; c=relaxed/simple;
+	bh=Sp5DrYzmn3EazYQ2PC86K+raUE9JkwKEQCb8FTClzrs=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=l+8YXT8+brpXlr+kD9CpA3yZDTmeoyo7n2NkQMQrckD1+CzysFEVR3zwFQ4S+JCRKoi6S65DO0hyu/SeJniW8AzhCqLUnj09uG/fhq4QcpoPmLs4snn658C9NzEpW/d7eKKdW9hNMVJ5DwFbOXaf0M78xDcXaejA5ZvoTs2lvZs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net; spf=pass smtp.mailfrom=weissschuh.net; dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b=EA3+0yB2; arc=none smtp.client-ip=159.69.126.157
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=weissschuh.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b="B5pXDWIx"
+	dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b="EA3+0yB2"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=weissschuh.net;
-	s=mail; t=1720557499;
-	bh=g9CAzBCrhH0KyzUhTyFmcpsSKbBxqlMkXvbzM7Nks+I=;
-	h=From:Subject:Date:To:Cc:From;
-	b=B5pXDWIxAztaemjI7X/kMrPneIFHWXiYTEqPmahTrFulSplW1LVt1mVdr9tq2wKGy
-	 V1jgERaNVItNGg20/f06PRSxAw69iAmUCVANke+LXEJsncdN4aPzj6/OJloXX+xoRW
-	 9mfBJWgtsahHsqy2zSMC1Ib39S59vlikVY7mJ2dc=
+	s=mail; t=1720557500;
+	bh=Sp5DrYzmn3EazYQ2PC86K+raUE9JkwKEQCb8FTClzrs=;
+	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
+	b=EA3+0yB2PHIBJKtW+y3CQIBw5APR8fXUtu2+dS0wz0E0csy5gCyo8wh+a+jMwogjp
+	 ZthHyPewjWYNfkTtvKxFGW0ZpG7cVfdTUAyAQFSWw1x5Bbr2uAKP2j2zxDCIT2s2Hv
+	 7IRMtJ0bGjU9XZmK/+8ZJf/POcSUZlYRbwS1m4qs=
 From: =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <linux@weissschuh.net>
-Subject: [PATCH v2 0/5] ACPI: sysfs: manage sysfs attributes through device
- core
-Date: Tue, 09 Jul 2024 22:37:23 +0200
-Message-Id: <20240709-acpi-sysfs-groups-v2-0-058ab0667fa8@weissschuh.net>
+Date: Tue, 09 Jul 2024 22:37:28 +0200
+Subject: [PATCH v2 5/5] ACPI: sysfs: remove return value of
+ acpi_device_setup_files()
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -35,54 +35,81 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-X-B4-Tracking: v=1; b=H4sIAIOfjWYC/22NQQ6CMBBFr0Jm7Zi22hJdcQ/DopaBzgZIB1BCu
- LuVuHT5XvLf30AoMQnciw0SLSw89BnMqYAQfd8RcpMZjDJX5dQNfRgZZZVWsEvDPAqG1pfWNdq
- V1kDejYlafh/NR505skxDWo+LRX/tr6Yvf2qLRoXOWVINPZU1vnoRi0iIczz3NEG97/sHZh8HY
- 7cAAAA=
+Message-Id: <20240709-acpi-sysfs-groups-v2-5-058ab0667fa8@weissschuh.net>
+References: <20240709-acpi-sysfs-groups-v2-0-058ab0667fa8@weissschuh.net>
+In-Reply-To: <20240709-acpi-sysfs-groups-v2-0-058ab0667fa8@weissschuh.net>
 To: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
  Robert Moore <robert.moore@intel.com>, Lance Ortiz <lance.ortiz@hp.com>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
  acpica-devel@lists.linux.dev, 
- =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <linux@weissschuh.net>, 
- stable@vger.kernel.org
+ =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <linux@weissschuh.net>
 X-Mailer: b4 0.14.0
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1720557498; l=1194;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1720557498; l=2071;
  i=linux@weissschuh.net; s=20221212; h=from:subject:message-id;
- bh=g9CAzBCrhH0KyzUhTyFmcpsSKbBxqlMkXvbzM7Nks+I=;
- b=DMAXXcEu/RfLHrcim8ExpwLv0EvE6GmgQ0UoJannbHTutXx8KlBvZIFQpx7mcHINBuo+CSAmJ
- LAVzyxSNfvzBE2dgogYWGGhn3BAyMejMiIy7/qH4vuwZWECHnsSJkfO
+ bh=Sp5DrYzmn3EazYQ2PC86K+raUE9JkwKEQCb8FTClzrs=;
+ b=7EuhOxj3EfzvjJ6IlNBC3jBTFhZv8oaD26FNHK1WVARBYCgFBEcOl4P9HVJcVh6FfMc8j+xOj
+ ESnbwQWGUJ6AtnqHUsLtobZ0QUa3XboUCwZ5xRAsgYpcc0W0/JjI0qj
 X-Developer-Key: i=linux@weissschuh.net; a=ed25519;
  pk=KcycQgFPX2wGR5azS7RhpBqedglOZVgRPfdFSPB1LNw=
 
-Simplify the lifecycle of the sysfs attributes by letting the device
-core manage them.
+The function can not fail anymore, so drop its return value.
 
 Signed-off-by: Thomas Weißschuh <linux@weissschuh.net>
 ---
-Changes in v2:
-- Add fix to validate buffer type validation (patch 1)
-- Drop usage of devm-APIs as these are unusable for unbound devices
-- Evaluate _STR on each sysfs access
-- Link to v1: https://lore.kernel.org/r/20240613-acpi-sysfs-groups-v1-0-665e0deb052a@weissschuh.net
+ drivers/acpi/device_sysfs.c | 6 +-----
+ drivers/acpi/internal.h     | 2 +-
+ drivers/acpi/scan.c         | 5 +----
+ 3 files changed, 3 insertions(+), 10 deletions(-)
 
----
-Thomas Weißschuh (5):
-      ACPI: sysfs: validate return type of _STR method
-      ACPI: sysfs: evaluate _STR on each sysfs access
-      ACPI: sysfs: manage attributes as attribute_group
-      ACPI: sysfs: manage sysfs attributes through device core
-      ACPI: sysfs: remove return value of acpi_device_setup_files()
+diff --git a/drivers/acpi/device_sysfs.c b/drivers/acpi/device_sysfs.c
+index 0bff4a1654ed..3961fc47152c 100644
+--- a/drivers/acpi/device_sysfs.c
++++ b/drivers/acpi/device_sysfs.c
+@@ -605,13 +605,9 @@ const struct attribute_group *acpi_groups[] = {
+  * acpi_device_setup_files - Create sysfs attributes of an ACPI device.
+  * @dev: ACPI device object.
+  */
+-int acpi_device_setup_files(struct acpi_device *dev)
++void acpi_device_setup_files(struct acpi_device *dev)
+ {
+-	int result = 0;
+-
+ 	acpi_expose_nondev_subnodes(&dev->dev.kobj, &dev->data);
+-
+-	return result;
+ }
+ 
+ /**
+diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+index 8e1c21e45d0e..ca712a7fde21 100644
+--- a/drivers/acpi/internal.h
++++ b/drivers/acpi/internal.h
+@@ -118,7 +118,7 @@ void acpi_init_device_object(struct acpi_device *device, acpi_handle handle,
+ 			     int type, void (*release)(struct device *));
+ int acpi_tie_acpi_dev(struct acpi_device *adev);
+ int acpi_device_add(struct acpi_device *device);
+-int acpi_device_setup_files(struct acpi_device *dev);
++void acpi_device_setup_files(struct acpi_device *dev);
+ void acpi_device_remove_files(struct acpi_device *dev);
+ extern const struct attribute_group *acpi_groups[];
+ void acpi_device_add_finalize(struct acpi_device *device);
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index c15fffefca0a..49a8172fe0de 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -766,10 +766,7 @@ int acpi_device_add(struct acpi_device *device)
+ 		goto err;
+ 	}
+ 
+-	result = acpi_device_setup_files(device);
+-	if (result)
+-		pr_err("Error creating sysfs interface for device %s\n",
+-		       dev_name(&device->dev));
++	acpi_device_setup_files(device);
+ 
+ 	return 0;
+ 
 
- drivers/acpi/device_sysfs.c | 196 +++++++++++++++++++-------------------------
- drivers/acpi/internal.h     |   3 +-
- drivers/acpi/scan.c         |   6 +-
- include/acpi/acpi_bus.h     |   1 -
- 4 files changed, 89 insertions(+), 117 deletions(-)
----
-base-commit: 34afb82a3c67f869267a26f593b6f8fc6bf35905
-change-id: 20240609-acpi-sysfs-groups-cfa756d16752
-
-Best regards,
 -- 
-Thomas Weißschuh <linux@weissschuh.net>
+2.45.2
 
