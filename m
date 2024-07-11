@@ -1,87 +1,97 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F0211C3D;
-	Thu, 11 Jul 2024 05:26:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8AC4D79CC;
+	Thu, 11 Jul 2024 06:31:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720675614; cv=none; b=uxin3HyECrssatJkFpaZ4ADd1pCcKbJIKoPaJ8S8LWLg3/Kyp7wEN6I2frsiCef7aSTDFyd/CDGdvf2cTMamcDCx1tGUZguSDdcYKx5mf9JeH7EMOZojimKrHV28b3N57WpdM+fwt2xlhuViS9zoCkoMcTceqtAh6D0a3dtGS+g=
+	t=1720679469; cv=none; b=GgEyQfWxfS5OoHnGBvHyKgVRfw5/y+6S70f5yKiq0A6/TbRLrdQ55RDlNnPXJTFqv91V7lQ3IGzw4JR1szZSaqN3TC5lKT3ag/IYfmET0t2Eh+2vkPaYDU1KxA5vOLd8YFfp4egH/Et4X2eNOoyS30aYbqNGACafQ6C5mNhft+I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720675614; c=relaxed/simple;
-	bh=CsBxqXxsnlnIpJPe1pd2qKHMevWjw0yx/s0ljzQ6Rys=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=TGqfp0pOTCT2i5U7yohv6JOtRkNt1hCnfmqMzo9CXGR5JWF9WxgIWMcofa8Px929xbo2yA2JGCpZiCmBYBcshoz1RK1qcMErNsQngn/xK5R20M/zT/CqpbrgiiJqjqmDJvGpJ0BpyAEIQ+lsg5l+HmAPnoEeyyyo5W/nxLvvC/s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Hcrtkpq0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720679469; c=relaxed/simple;
+	bh=LayJjNlHt7RdDKs2eSpJizuqfyzjoPSkSmmLznNH6CU=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=ChSr/osEPT+EY0Cvst0Gu2ylDZ0Wxp81W+ionW9PP8agGym6Eiec67NZCM7bhLQkxnAXLoPY3f5jX2O9SQy4k7FFpIELJTFLYQmLeRDZcpMXe9IOizdzfBb181WwLOPdrIUYh4By4wd4G5nBbrChd5eYQ9U35YkkFpYwmtoFHBA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=G6p/fCI1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Hcrtkpq0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57DECC4AF0A;
-	Thu, 11 Jul 2024 05:26:50 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="G6p/fCI1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E607C4AF0B;
+	Thu, 11 Jul 2024 06:31:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1720675614;
-	bh=CsBxqXxsnlnIpJPe1pd2qKHMevWjw0yx/s0ljzQ6Rys=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=Hcrtkpq0JDLkd5yfNqRKBhyrIWtytjOo8z7Gmxsu+xZ5apUxOk04diSAhdcRDmlUz
-	 Wt3ySEnHuEs8ezQy70pJVV2PFNWFvPcW4V9B4DPAgcc8hVcugKqvYvOaUyzyw/lmlM
-	 VSZtR4oNW3bmlLmY1ipo5IdY5iSo7GijOoAdyYSbXRn26qiF6OE6pny2PoByBLICZO
-	 RJ+4r96blIyNm/HGZF5s3bLeihiXH1Tiz1Q8D5VueW0VqQl8QlrqH8Y10G0Vz6VCSl
-	 i7thcRYE4iH8SfeJkPyO28HzMzZlN6f03d8FAE5akAsguEF+hoxVYvUBTjJPJ6SaXz
-	 y4Y3r3RB4Fhuw==
-Date: Thu, 11 Jul 2024 07:26:45 +0200
+	s=k20201202; t=1720679469;
+	bh=LayJjNlHt7RdDKs2eSpJizuqfyzjoPSkSmmLznNH6CU=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=G6p/fCI1Xwjdz9VtJR5h0uLoLArpORl2wmbBdel2djAHQ5xla9ppGAZs6asRBdN+R
+	 BJRECSj7KTS1v6zaB11YhhnxNY9CKax3VeLz34/lM+crMM5pMRg+R7OF3UORAaOdUT
+	 Xl4mceFzcjqz9X2rHhLBFm/qx4qJYIIydUjQqmKOK0CpXIRXXSSvVZyRyUfhbMpwl7
+	 yyBB4qQ7sIO7Tg/DMEpr6uwA2YKY4GVRTgLjrst/MMKd+OpLHBQiYJHLSJpR1gdNm9
+	 5RD5vwYWyu2+eymXAJ3CPA9lmaUFoQYqJqy9yy7Bq5aTFG1yAdmTvqfY3viwDzOch4
+	 99fSeYtMJ9nDQ==
+Received: from mchehab by mail.kernel.org with local (Exim 4.97.1)
+	(envelope-from <mchehab@kernel.org>)
+	id 1sRnKc-00000002b5U-1F3c;
+	Thu, 11 Jul 2024 08:31:06 +0200
 From: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-To: Borislav Petkov <bp@alien8.de>
-Cc: Tony Luck <tony.luck@intel.com>, Daniel Ferguson
- <danielf@os.amperecomputing.com>, Ard Biesheuvel <ardb@kernel.org>, James
- Morse <james.morse@arm.com>, Jonathan Cameron
- <Jonathan.Cameron@huawei.com>, Len Brown <lenb@kernel.org>, "Rafael J.
- Wysocki" <rafael@kernel.org>, Shiju Jose <shiju.jose@huawei.com>, Uwe
- =?UTF-8?B?S2xlaW5lLUvDtm5pZw==?= <u.kleine-koenig@pengutronix.de>, Dan
- Williams <dan.j.williams@intel.com>, Dave Jiang <dave.jiang@intel.com>, Ira
- Weiny <ira.weiny@intel.com>, Shuai Xue <xueshuai@linux.alibaba.com>,
- linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org,
- linux-efi@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 1/6] RAS: ACPI: APEI: add conditional compilation to ARM
- error report functions
-Message-ID: <20240711072645.776c0f5d@foz.lan>
-In-Reply-To: <20240708144312.GDZov7AEzBDfSEGQEY@fat_crate.local>
-References: <cover.1720436039.git.mchehab+huawei@kernel.org>
-	<f520f2529bb27d452a2dee762b6968939df42f45.1720436039.git.mchehab+huawei@kernel.org>
-	<20240708113234.GDZovOUgjXFt2XoNg6@fat_crate.local>
-	<20240708141025.3e5ddd51@foz.lan>
-	<20240708144312.GDZov7AEzBDfSEGQEY@fat_crate.local>
-X-Mailer: Claws Mail 4.3.0 (GTK 3.24.42; x86_64-redhat-linux-gnu)
+To: Borislav Petkov <bp@alien8.de>,
+	Tony Luck <tony.luck@intel.com>
+Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>,
+	"Ard Biesheuvel" <ardb@kernel.org>,
+	"James Morse" <james.morse@arm.com>,
+	"Jonathan Cameron" <Jonathan.Cameron@huawei.com>,
+	"Len Brown" <lenb@kernel.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	"Shiju Jose" <shiju.jose@huawei.com>,
+	linux-acpi@vger.kernel.org,
+	linux-edac@vger.kernel.org,
+	linux-efi@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH v2 2/5] efi/cper: Adjust infopfx size to accept an extra space
+Date: Thu, 11 Jul 2024 08:28:53 +0200
+Message-ID: <11aa9d2944bdc9b21ce7af7599bef431ccce508e.1720679234.git.mchehab+huawei@kernel.org>
+X-Mailer: git-send-email 2.45.2
+In-Reply-To: <cover.1720679234.git.mchehab+huawei@kernel.org>
+References: <cover.1720679234.git.mchehab+huawei@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Sender: Mauro Carvalho Chehab <mchehab@kernel.org>
 
-Em Mon, 8 Jul 2024 16:43:12 +0200
-Borislav Petkov <bp@alien8.de> escreveu:
+Compiling with W=1 with werror enabled produces an error:
 
-> On Mon, Jul 08, 2024 at 02:10:25PM +0200, Mauro Carvalho Chehab wrote:
-> > This patch itself just add conditionals to optimize out code on
-> > non-ARM architectures. The next one will add some ARM-specific bits
-> > inside ARM processor CPER trace, thus causing compilation breakages
-> > on non-ARM, due to arm-specific kAPI bits that will be used then.  
-> 
-> Are you sure?
+drivers/firmware/efi/cper-arm.c: In function ‘cper_print_proc_arm’:
+drivers/firmware/efi/cper-arm.c:298:64: error: ‘snprintf’ output may be truncated before the last format character [-Werror=format-truncation=]
+  298 |                         snprintf(infopfx, sizeof(infopfx), "%s ", newpfx);
+      |                                                                ^
+drivers/firmware/efi/cper-arm.c:298:25: note: ‘snprintf’ output between 2 and 65 bytes into a destination of size 64
+  298 |                         snprintf(infopfx, sizeof(infopfx), "%s ", newpfx);
+      |                         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-That is what reviews to past attempts to merge patch 2 implied. 
+As the logic there adds an space at the end of infopx buffer.
+Add an extra space to avoid such warning.
 
-> I have both patches applied and then practically reverting the second one
-> builds an allmodconfig just fine.
+Signed-off-by: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+---
+ drivers/firmware/efi/cper-arm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-I double-checked the logic: I noticed just one kABI symbol that
-it is arm-specific (CPU midr), and there is has already a wrapper 
-for it.
+diff --git a/drivers/firmware/efi/cper-arm.c b/drivers/firmware/efi/cper-arm.c
+index fa9c1c3bf168..eb7ee6af55f2 100644
+--- a/drivers/firmware/efi/cper-arm.c
++++ b/drivers/firmware/efi/cper-arm.c
+@@ -240,7 +240,7 @@ void cper_print_proc_arm(const char *pfx,
+ 	int i, len, max_ctx_type;
+ 	struct cper_arm_err_info *err_info;
+ 	struct cper_arm_ctx_info *ctx_info;
+-	char newpfx[64], infopfx[64];
++	char newpfx[64], infopfx[ARRAY_SIZE(newpfx) + 1];
+ 
+ 	printk("%sMIDR: 0x%016llx\n", pfx, proc->midr);
+ 
+-- 
+2.45.2
 
-I also did a cross-compilation for both x86_64 and s390 to verify,
-and indeed it is building fine without the ifdefs.
-
-So, I'll drop patch 1.
-
-Thanks,
-Mauro
