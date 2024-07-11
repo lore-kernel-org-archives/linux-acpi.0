@@ -1,372 +1,121 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB4A212C54A;
-	Thu, 11 Jul 2024 06:31:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B29712C54A;
+	Thu, 11 Jul 2024 06:56:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720679469; cv=none; b=eAB45Zi0qtoLMYczEBQCQ43eXBQGOTxFAlGdivn0HxnlKpxlqrXXVoZ2kQntEnhwWGlOOfdnlFHaKc+mbZ9VF9uBaosl/gl7QdyS44uuOmfLJ/wO2yDMjLpExOMIPDmEBBbHadxJm/LaoEQ5MZn1SzpBKvnOYikcrXAwjQHvg+w=
+	t=1720680997; cv=none; b=Lkm0qJ8QGaweLx+2YOxsnUKUF61sR02miQEEOmzhBnkPaItjBu6mJ4mcPzuJJbGAMldIv8zUwGj3K6ms3Yy031lejf8fu347Uj/cyQ8nwpOQ24JaXfCLPr+s5F2guGF05asUMXczr9f32zXYt5GtgTFXpmfMn+lvEPNJiep+FD8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720679469; c=relaxed/simple;
-	bh=QZo4oL6GUN43R5UPIvL59I9WV7zA3uhzdtl4tWVbi48=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=CRpRhGSodkRTDmzD0GCDILDN9B4KA5Zjh8E0PC9eAbmQdmnli/wSjyNyQkT+Ex3AsN07z0k2HWOjB7ygZhiBZVXxLtB8LOrgEEyrws+z3OSinlASzluDLCieTgWC0dUuNevfP15wWE4XC8Ew2ac5lbB0ZkGeNkmGC2+Fk3LD//Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hXKkMFCA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1720680997; c=relaxed/simple;
+	bh=7PdI6dGb0scfg3lG1tvlmkvFOJyPIaXxnPjFo6A1gQA=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=mc416RFKabQKQUwFkZt1h9bzU8Y5C41fpWq/dKhqqiu+0Td4fjRFjP7vs45fiRRPXVNHz/A5EtnuV94myGe68bScIl0sPXBfERLNl3kvDXuSEt+r76gyDDNzI6EHRE18sQAKwYw+NLOiZNUkFSEVNBxknrI2D2rzLYeCd2jbPRk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=HXx3rhj9; arc=none smtp.client-ip=198.175.65.18
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hXKkMFCA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33418C4AF07;
-	Thu, 11 Jul 2024 06:31:09 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1720679469;
-	bh=QZo4oL6GUN43R5UPIvL59I9WV7zA3uhzdtl4tWVbi48=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=hXKkMFCAnFI+f0/em8hecx6yySjLE6vhA7+Ki9mkMU460ADGt+wWpQeDKHWvUbmQh
-	 /j7Bg/hj3WUaXsTCu29vk4sqXdyX018xcVbn52HscboOGvdqmHqOjqe812q/jr1cVA
-	 vNeiMe80TQohrunQDRUB5mKFw9bVa1WbVA3fBO6oDf5a4CSPgSKE2xq/7nibIyx1QV
-	 on2tKCLkSjOixXGW0LUSvqeALhEKUGue+nQWxlVdsHS17IUFOnPrLHsvqwT+vFOlkS
-	 0SXR8gEbgo68sy41pxbejDxBR7XHrOutNw3LMbB+XPROWDx+ymSeTGxqJ9Vous9vzm
-	 sYkLRml06TBOQ==
-Received: from mchehab by mail.kernel.org with local (Exim 4.97.1)
-	(envelope-from <mchehab@kernel.org>)
-	id 1sRnKc-00000002b5R-17xp;
-	Thu, 11 Jul 2024 08:31:06 +0200
-From: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-To: Borislav Petkov <bp@alien8.de>,
-	Tony Luck <tony.luck@intel.com>
-Cc: Daniel Ferguson <danielf@os.amperecomputing.com>,
-	"Ard Biesheuvel" <ardb@kernel.org>,
-	"James Morse" <james.morse@arm.com>,
-	"Jonathan Cameron" <Jonathan.Cameron@huawei.com>,
-	"Len Brown" <lenb@kernel.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	"Shiju Jose" <shiju.jose@huawei.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Ira Weiny <ira.weiny@intel.com>,
-	Shuai Xue <xueshuai@linux.alibaba.com>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	Tyler Baicar <tbaicar@codeaurora.org>,
-	Will Deacon <will@kernel.org>,
-	Xie XiuQi <xiexiuqi@huawei.com>,
-	linux-acpi@vger.kernel.org,
-	linux-edac@vger.kernel.org,
-	linux-efi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Shengwei Luo <luoshengwei@huawei.com>,
-	Jason Tian <jason@os.amperecomputing.com>,
-	Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-Subject: [PATCH v2 1/5] RAS: Report all ARM processor CPER information to userspace
-Date: Thu, 11 Jul 2024 08:28:52 +0200
-Message-ID: <3853853f820a666253ca8ed6c7c724dc3d50044a.1720679234.git.mchehab+huawei@kernel.org>
-X-Mailer: git-send-email 2.45.2
-In-Reply-To: <cover.1720679234.git.mchehab+huawei@kernel.org>
-References: <cover.1720679234.git.mchehab+huawei@kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="HXx3rhj9"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1720680997; x=1752216997;
+  h=from:to:cc:subject:in-reply-to:references:date:
+   message-id:mime-version;
+  bh=7PdI6dGb0scfg3lG1tvlmkvFOJyPIaXxnPjFo6A1gQA=;
+  b=HXx3rhj9g2+ke0pA1yW1kOJb/2ePkn/M/qEPc0/ru3GLBV0nYEiXajA0
+   LNWksR6M97pIsDW0Hp4S65QTgvjNAl6esQcuo6hFOX3XZ0DmqAASe6Icl
+   rACU8nSKbSPmV/eMr9T8xJWG1WFtGmml1G/M+tw9m6dh+RbwR9NF79ktp
+   3GL3kanvbbgxzaXq6RLllvX0KU70lbRwkW9rjWvXSvf/tv9xFGKEbfsSE
+   bsW/0AjSX9y4qS3JHmXZt6XY3Hi4tLIYV6puXsosGxv6K/RDmVeKGqGhC
+   lPyzEEHZugD1LZK8NtnC+6Vxmajkl84XawbjWGcHR7AVADecdntHxkfgM
+   w==;
+X-CSE-ConnectionGUID: tfuBTGTVS0Wcnbh7uMO1gw==
+X-CSE-MsgGUID: X5tIQrPsQl+6YiQm7IddTQ==
+X-IronPort-AV: E=McAfee;i="6700,10204,11129"; a="18177119"
+X-IronPort-AV: E=Sophos;i="6.09,199,1716274800"; 
+   d="scan'208";a="18177119"
+Received: from orviesa005.jf.intel.com ([10.64.159.145])
+  by orvoesa110.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Jul 2024 23:56:36 -0700
+X-CSE-ConnectionGUID: zc9BorrXTNSYgESHKXov3Q==
+X-CSE-MsgGUID: 7poP+vrFS9i8o6vwFQ1pRQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.09,199,1716274800"; 
+   d="scan'208";a="53401877"
+Received: from unknown (HELO yhuang6-desk2.ccr.corp.intel.com) ([10.238.208.55])
+  by orviesa005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Jul 2024 23:56:33 -0700
+From: "Huang, Ying" <ying.huang@intel.com>
+To: Nathan Chancellor <nathan@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,  "Rafael J. Wysocki"
+ <rafael@kernel.org>,  Len Brown <lenb@kernel.org>,  Ho-Ren Chuang
+ <horen.chuang@linux.dev>,  Jonathan Cameron <Jonathan.Cameron@Huawei.com>,
+  linux-acpi@vger.kernel.org,  linux-kernel@vger.kernel.org,  kernel test
+ robot <lkp@intel.com>
+Subject: Re: [PATCH] ACPI: HMAT: Mark hmat_set_default_dram_perf() as __init
+In-Reply-To: <20240710-fix-modpost-warning-default_dram_nodes-v1-1-8961453cc82d@kernel.org>
+	(Nathan Chancellor's message of "Wed, 10 Jul 2024 09:29:57 -0700")
+References: <20240710-fix-modpost-warning-default_dram_nodes-v1-1-8961453cc82d@kernel.org>
+Date: Thu, 11 Jul 2024 14:54:42 +0800
+Message-ID: <87jzhsa05p.fsf@yhuang6-desk2.ccr.corp.intel.com>
+User-Agent: Gnus/5.13 (Gnus v5.13)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Sender: Mauro Carvalho Chehab <mchehab@kernel.org>
+Content-Type: text/plain; charset=ascii
 
-From: Daniel Ferguson <danielf@os.amperecomputing.com>
+Nathan Chancellor <nathan@kernel.org> writes:
 
-The ARM processor CPER record was added at UEFI 2.6, and hasn't
-any changes up to UEFI 2.10 on its struct.
+> After commit 4dc70b711dbc ("memory tier: consolidate the initialization
+> of memory tiers"), there is a modpost warning when
+> hmat_set_default_dram_perf() is not inlined into its callsite, as it
+> appears that default_dram_nodes may be accessed after its memory has
+> been freed.
+>
+>   WARNING: modpost: vmlinux: section mismatch in reference: hmat_set_default_dram_perf+0x18 (section: .text) -> default_dram_nodes (section: .init.data)
+>
+> The single callsite, hmat_init(), is __init, so this warning is not a
+> problem in reality but it is easily solvable by marking
+> hmat_set_default_dram_perf() as __init, which should have been done when
+> this function was added in commit 3718c02dbd4c ("acpi, hmat: calculate
+> abstract distance with HMAT").
 
-Yet, the original arm_event trace code added on changeset
-e9279e83ad1f ("trace, ras: add ARM processor error trace event") is
-incomplete, as it only traces some fields of UAPI 2.6 table N.16,
-not exporting at all any information from tables N.17 to N.29 of
-the record.
+Good catch!  Thanks for your fix!  If it's necessary, feel free to add
 
-This is not enough for user to take appropriate action or to log
-what exactly happened.
+Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
 
-According to UEFI_2_9 specification chapter N2.4.4, the ARM processor
-error section includes:
+> Reported-by: kernel test robot <lkp@intel.com>
+> Closes: https://lore.kernel.org/oe-kbuild-all/202406292310.hlRATeZJ-lkp@intel.com/
+> Signed-off-by: Nathan Chancellor <nathan@kernel.org>
+> ---
+> I left off a fixes tag as I assume this is going to be squashed into the
+> former change mentioned above, as it is still in mm-unstable, but feel
+> free to add one if the patch is going to be standalone.
+> ---
+>  drivers/acpi/numa/hmat.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/acpi/numa/hmat.c b/drivers/acpi/numa/hmat.c
+> index a2f9e7a4b479..ca0c0ea3e1ef 100644
+> --- a/drivers/acpi/numa/hmat.c
+> +++ b/drivers/acpi/numa/hmat.c
+> @@ -933,7 +933,7 @@ static int hmat_callback(struct notifier_block *self,
+>  	return NOTIFY_OK;
+>  }
+>  
+> -static int hmat_set_default_dram_perf(void)
+> +static __init int hmat_set_default_dram_perf(void)
+>  {
+>  	int rc;
+>  	int nid, pxm;
+>
+> ---
+> base-commit: 17bcc624e67da6383060ee24483db77aa17276aa
+> change-id: 20240710-fix-modpost-warning-default_dram_nodes-38b6faffe3da
+>
+> Best regards,
 
-- several (ERR_INFO_NUM) ARM processor error information structures
-  (Tables N.17 to N.20);
-- several (CONTEXT_INFO_NUM) ARM processor context information
-  structures (Tables N.21 to N.29);
-- several vendor specific error information structures. The
-  size is given by Section Length minus the size of the other
-  fields.
-
-In addition to those data, it also exports two fields that are
-parsed by the GHES driver when firmware reports it, e. g.:
-
-- error severity
-- cpu logical index
-
-Report all of these information to userspace via trace uAPI, So that
-userspace can properly record the error and take decisions related
-to cpu core isolation according to error severity and other info.
-
-After this patch, all the data from ARM Processor record from table
-N.16 are directly or indirectly visible on userspace:
-
-======================================	=============================
-UEFI field on table N.16		ARM Processor trace fields
-======================================	=============================
-Validation				handled when filling data for
-					affinity MPIDR and running
-					state.
-ERR_INFO_NUM				pei_len
-CONTEXT_INFO_NUM			ctx_len
-Section Length				indirectly reported by
-					pei_len, ctx_len and oem_len
-Error affinity level			affinity
-MPIDR_EL1				mpidr
-MIDR_EL1				midr
-Running State				running_state
-PSCI State				psci_state
-Processor Error Information Structure	pei_err - count at pei_len
-Processor Context			ctx_err- count at ctx_len
-Vendor Specific Error Info		oem - count at oem_len
-======================================	=============================
-
-It should be noticed that decoding of tables N.17 to N.29, if needed,
-will be handled on userspace. That gives more flexibility, as there
-won't be any need to flood the Kernel with micro-architecture specific
-error decoding).
-Also, decoding the other fields require a complex logic, and should
-be done for each of the several values inside the record field.
-So, let userspace daemons like rasdaemon decode them, parsing such
-tables and having vendor-specific micro-architecture-specific decoders.
-
-[mchehab: modified patch description, solve merge conflicts and fix coding style]
-Fixes: e9279e83ad1f ("trace, ras: add ARM processor error trace event")
-Signed-off-by: Shengwei Luo <luoshengwei@huawei.com>
-Signed-off-by: Jason Tian <jason@os.amperecomputing.com>
-Signed-off-by: Daniel Ferguson <danielf@os.amperecomputing.com>
-Tested-by: Shiju Jose <shiju.jose@huawei.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Link: https://uefi.org/specs/UEFI/2.10/Apx_N_Common_Platform_Error_Record.html#arm-processor-error-section
----
- drivers/acpi/apei/ghes.c | 11 ++++-----
- drivers/ras/ras.c        | 45 +++++++++++++++++++++++++++++++++++--
- include/linux/ras.h      | 16 +++++++++++---
- include/ras/ras_event.h  | 48 +++++++++++++++++++++++++++++++++++-----
- 4 files changed, 103 insertions(+), 17 deletions(-)
-
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 623cc0cb4a65..06d9351a9abc 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -529,7 +529,7 @@ static bool ghes_handle_memory_failure(struct acpi_hest_generic_data *gdata,
- }
- 
- static bool ghes_handle_arm_hw_error(struct acpi_hest_generic_data *gdata,
--				       int sev, bool sync)
-+				     int sev, bool sync)
- {
- 	struct cper_sec_proc_arm *err = acpi_hest_get_payload(gdata);
- 	int flags = sync ? MF_ACTION_REQUIRED : 0;
-@@ -537,9 +537,8 @@ static bool ghes_handle_arm_hw_error(struct acpi_hest_generic_data *gdata,
- 	int sec_sev, i;
- 	char *p;
- 
--	log_arm_hw_error(err);
--
- 	sec_sev = ghes_severity(gdata->error_severity);
-+	log_arm_hw_error(err, sec_sev);
- 	if (sev != GHES_SEV_RECOVERABLE || sec_sev != GHES_SEV_RECOVERABLE)
- 		return false;
- 
-@@ -773,11 +772,9 @@ static bool ghes_do_proc(struct ghes *ghes,
- 
- 			arch_apei_report_mem_error(sev, mem_err);
- 			queued = ghes_handle_memory_failure(gdata, sev, sync);
--		}
--		else if (guid_equal(sec_type, &CPER_SEC_PCIE)) {
-+		} else if (guid_equal(sec_type, &CPER_SEC_PCIE)) {
- 			ghes_handle_aer(gdata);
--		}
--		else if (guid_equal(sec_type, &CPER_SEC_PROC_ARM)) {
-+		} else if (guid_equal(sec_type, &CPER_SEC_PROC_ARM)) {
- 			queued = ghes_handle_arm_hw_error(gdata, sev, sync);
- 		} else if (guid_equal(sec_type, &CPER_SEC_CXL_GEN_MEDIA_GUID)) {
- 			struct cxl_cper_event_rec *rec = acpi_hest_get_payload(gdata);
-diff --git a/drivers/ras/ras.c b/drivers/ras/ras.c
-index a6e4792a1b2e..359bb163aee0 100644
---- a/drivers/ras/ras.c
-+++ b/drivers/ras/ras.c
-@@ -52,9 +52,50 @@ void log_non_standard_event(const guid_t *sec_type, const guid_t *fru_id,
- 	trace_non_standard_event(sec_type, fru_id, fru_text, sev, err, len);
- }
- 
--void log_arm_hw_error(struct cper_sec_proc_arm *err)
-+void log_arm_hw_error(struct cper_sec_proc_arm *err, const u8 sev)
- {
--	trace_arm_event(err);
-+	struct cper_arm_err_info *err_info;
-+	struct cper_arm_ctx_info *ctx_info;
-+	u8 *ven_err_data;
-+	u32 ctx_len = 0;
-+	int n, sz, cpu;
-+	s32 vsei_len;
-+	u32 pei_len;
-+	u8 *pei_err;
-+	u8 *ctx_err;
-+
-+	pei_len = sizeof(struct cper_arm_err_info) * err->err_info_num;
-+	pei_err = (u8 *)err + sizeof(struct cper_sec_proc_arm);
-+
-+	err_info = (struct cper_arm_err_info *)(err + 1);
-+	ctx_info = (struct cper_arm_ctx_info *)(err_info + err->err_info_num);
-+	ctx_err = (u8 *)ctx_info;
-+	for (n = 0; n < err->context_info_num; n++) {
-+		sz = sizeof(struct cper_arm_ctx_info) + ctx_info->size;
-+		ctx_info = (struct cper_arm_ctx_info *)((long)ctx_info + sz);
-+		ctx_len += sz;
-+	}
-+
-+	vsei_len = err->section_length - (sizeof(struct cper_sec_proc_arm) +
-+					  pei_len + ctx_len);
-+	if (vsei_len < 0) {
-+		pr_warn(FW_BUG
-+			"section length: %d\n", err->section_length);
-+		pr_warn(FW_BUG
-+			"section length is too small\n");
-+		pr_warn(FW_BUG
-+			"firmware-generated error record is incorrect\n");
-+		vsei_len = 0;
-+	}
-+	ven_err_data = (u8 *)ctx_info;
-+
-+	cpu = GET_LOGICAL_INDEX(err->mpidr);
-+	/* when return value is invalid, set cpu index to -1 */
-+	if (cpu < 0)
-+		cpu = -1;
-+
-+	trace_arm_event(err, pei_err, pei_len, ctx_err, ctx_len,
-+			ven_err_data, (u32)vsei_len, sev, cpu);
- }
- 
- static int __init ras_init(void)
-diff --git a/include/linux/ras.h b/include/linux/ras.h
-index a64182bc72ad..df444492b434 100644
---- a/include/linux/ras.h
-+++ b/include/linux/ras.h
-@@ -24,8 +24,7 @@ int __init parse_cec_param(char *str);
- void log_non_standard_event(const guid_t *sec_type,
- 			    const guid_t *fru_id, const char *fru_text,
- 			    const u8 sev, const u8 *err, const u32 len);
--void log_arm_hw_error(struct cper_sec_proc_arm *err);
--
-+void log_arm_hw_error(struct cper_sec_proc_arm *err, const u8 sev);
- #else
- static inline void
- log_non_standard_event(const guid_t *sec_type,
-@@ -33,7 +32,7 @@ log_non_standard_event(const guid_t *sec_type,
- 		       const u8 sev, const u8 *err, const u32 len)
- { return; }
- static inline void
--log_arm_hw_error(struct cper_sec_proc_arm *err) { return; }
-+log_arm_hw_error(struct cper_sec_proc_arm *err, const u8 sev) { return; }
- #endif
- 
- struct atl_err {
-@@ -53,4 +52,15 @@ static inline unsigned long
- amd_convert_umc_mca_addr_to_sys_addr(struct atl_err *err) { return -EINVAL; }
- #endif /* CONFIG_AMD_ATL */
- 
-+#if defined(CONFIG_ARM) || defined(CONFIG_ARM64)
-+#include <asm/smp_plat.h>
-+/*
-+ * Include ARM specific SMP header which provides a function mapping mpidr to
-+ * cpu logical index.
-+ */
-+#define GET_LOGICAL_INDEX(mpidr) get_logical_index(mpidr & MPIDR_HWID_BITMASK)
-+#else
-+#define GET_LOGICAL_INDEX(mpidr) -EINVAL
-+#endif /* CONFIG_ARM || CONFIG_ARM64 */
-+
- #endif /* __RAS_H__ */
-diff --git a/include/ras/ras_event.h b/include/ras/ras_event.h
-index 7c47151d5c72..7d818763934f 100644
---- a/include/ras/ras_event.h
-+++ b/include/ras/ras_event.h
-@@ -168,11 +168,24 @@ TRACE_EVENT(mc_event,
-  * This event is generated when hardware detects an ARM processor error
-  * has occurred. UEFI 2.6 spec section N.2.4.4.
-  */
-+#define APEIL "ARM Processor Err Info data len"
-+#define APEID "ARM Processor Err Info raw data"
-+#define APECIL "ARM Processor Err Context Info data len"
-+#define APECID "ARM Processor Err Context Info raw data"
-+#define VSEIL "Vendor Specific Err Info data len"
-+#define VSEID "Vendor Specific Err Info raw data"
- TRACE_EVENT(arm_event,
- 
--	TP_PROTO(const struct cper_sec_proc_arm *proc),
-+	TP_PROTO(const struct cper_sec_proc_arm *proc, const u8 *pei_err,
-+			const u32 pei_len,
-+			const u8 *ctx_err,
-+			const u32 ctx_len,
-+			const u8 *oem,
-+			const u32 oem_len,
-+			u8 sev,
-+			int cpu),
- 
--	TP_ARGS(proc),
-+	TP_ARGS(proc, pei_err, pei_len, ctx_err, ctx_len, oem, oem_len, sev, cpu),
- 
- 	TP_STRUCT__entry(
- 		__field(u64, mpidr)
-@@ -180,6 +193,14 @@ TRACE_EVENT(arm_event,
- 		__field(u32, running_state)
- 		__field(u32, psci_state)
- 		__field(u8, affinity)
-+		__field(u32, pei_len)
-+		__dynamic_array(u8, pei_buf, pei_len)
-+		__field(u32, ctx_len)
-+		__dynamic_array(u8, ctx_buf, ctx_len)
-+		__field(u32, oem_len)
-+		__dynamic_array(u8, oem_buf, oem_len)
-+		__field(u8, sev)
-+		__field(int, cpu)
- 	),
- 
- 	TP_fast_assign(
-@@ -199,12 +220,29 @@ TRACE_EVENT(arm_event,
- 			__entry->running_state = ~0;
- 			__entry->psci_state = ~0;
- 		}
-+		__entry->pei_len = pei_len;
-+		memcpy(__get_dynamic_array(pei_buf), pei_err, pei_len);
-+		__entry->ctx_len = ctx_len;
-+		memcpy(__get_dynamic_array(ctx_buf), ctx_err, ctx_len);
-+		__entry->oem_len = oem_len;
-+		memcpy(__get_dynamic_array(oem_buf), oem, oem_len);
-+		__entry->sev = sev;
-+		__entry->cpu = cpu;
- 	),
- 
--	TP_printk("affinity level: %d; MPIDR: %016llx; MIDR: %016llx; "
--		  "running state: %d; PSCI state: %d",
-+	TP_printk("cpu: %d; error: %d; affinity level: %d; MPIDR: %016llx; MIDR: %016llx; "
-+		  "running state: %d; PSCI state: %d; "
-+		  "%s: %d; %s: %s; %s: %d; %s: %s; %s: %d; %s: %s",
-+		  __entry->cpu,
-+		  __entry->sev,
- 		  __entry->affinity, __entry->mpidr, __entry->midr,
--		  __entry->running_state, __entry->psci_state)
-+		  __entry->running_state, __entry->psci_state,
-+		  APEIL, __entry->pei_len, APEID,
-+		  __print_hex(__get_dynamic_array(pei_buf), __entry->pei_len),
-+		  APECIL, __entry->ctx_len, APECID,
-+		  __print_hex(__get_dynamic_array(ctx_buf), __entry->ctx_len),
-+		  VSEIL, __entry->oem_len, VSEID,
-+		  __print_hex(__get_dynamic_array(oem_buf), __entry->oem_len))
- );
- 
- /*
--- 
-2.45.2
-
+--
+Best Regards,
+Huang, Ying
