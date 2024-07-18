@@ -1,32 +1,32 @@
-Received: from mx2.zhaoxin.com (mx2.zhaoxin.com [203.110.167.99])
+Received: from mx1.zhaoxin.com (MX1.ZHAOXIN.COM [210.0.225.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2BBF42078
-	for <linux-acpi@vger.kernel.org>; Thu, 18 Jul 2024 06:37:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.110.167.99
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 580005381B
+	for <linux-acpi@vger.kernel.org>; Thu, 18 Jul 2024 06:40:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=210.0.225.12
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721284679; cv=none; b=hvchNW7HYWdMC9X5UUqtfOpgWa2g4Tax9PBRPT3VeSB/Z4ubz05gtQi78iZeKijSdxlgsJoeXFrH91dqDDNguGY6L/ETs94zFl/EUUG26k0HY3qu6V2eEcT0zCgf8+K9DEfeRLGyDjpGYuUhN6SjvqZL4WBKRrRt3R3Dv3tjCfw=
+	t=1721284837; cv=none; b=J6+wfVa0S8apZ5B8ndimFiz+gaSzesnvnrYnJQgsA2vvirS7iQD85LyRr1UytjoT8dAM7/LdSoBbWiL0HsEWSFrXYObmZSEbNCN1lnN54Nxir98iAEyPouhTn8GBAaB7FSZSwZjb5edfaCzK5d3udp1nIaGMsch7B8BQ2O6qXHw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721284679; c=relaxed/simple;
-	bh=ZGMAaa3hz4DkXQmXeLg0cxOwAuuJE5uqmlYG/Vh/z8Q=;
+	s=arc-20240116; t=1721284837; c=relaxed/simple;
+	bh=jSqh8m+C2SFNommQ6euW0PBLZpeUL7QNgmxU4JFdRLE=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=h4qzioiDDtCoqf9gIRCk0494TKMr1lPMlT00x5HRCUwdo6sXbYZJmVTy127zNP/jzPOdhyc3GyuXCM7Ps4lMK+OwiVz7Udm7cm8E4BKqYTwy2ut79JMzalMU01KNIF52El9HheDFbpFEHFCyRkMC+SVfBjjH8a3nvpC9JgTasPQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=zhaoxin.com; spf=pass smtp.mailfrom=zhaoxin.com; arc=none smtp.client-ip=203.110.167.99
+	 MIME-Version:Content-Type; b=Y+lIlu4pLAWuj5tlfyhLR3PzPzVtcUe/Or2tBu3vidle9gBQUHE0VRHxekz3/GIAWI3lx7Rl2ZoGgA5m32V3HXXz4BTKxWZzbvAQRee9cg2ta9lNQfFrn5qKj91vE2G3ccZX3kplpBFdilv1Vy4Ubmxbecih+Buh4izfTgMq14E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=zhaoxin.com; spf=pass smtp.mailfrom=zhaoxin.com; arc=none smtp.client-ip=210.0.225.12
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=zhaoxin.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zhaoxin.com
-X-ASG-Debug-ID: 1721283848-1eb14e2e5f151040001-I98ny2
-Received: from ZXSHMBX2.zhaoxin.com (ZXSHMBX2.zhaoxin.com [10.28.252.164]) by mx2.zhaoxin.com with ESMTP id c4cjHLpIiBIaD9bC (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NO); Thu, 18 Jul 2024 14:24:08 +0800 (CST)
+X-ASG-Debug-ID: 1721283852-086e230c713ae80001-I98ny2
+Received: from ZXSHMBX3.zhaoxin.com (ZXSHMBX3.zhaoxin.com [10.28.252.165]) by mx1.zhaoxin.com with ESMTP id 9RPsW2IEx1WrjrzB (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NO); Thu, 18 Jul 2024 14:24:12 +0800 (CST)
 X-Barracuda-Envelope-From: LeoLiu-oc@zhaoxin.com
-X-Barracuda-RBL-Trusted-Forwarder: 10.28.252.164
-Received: from ZXBJMBX03.zhaoxin.com (10.29.252.7) by ZXSHMBX2.zhaoxin.com
- (10.28.252.164) with Microsoft SMTP Server (version=TLS1_2,
+X-Barracuda-RBL-Trusted-Forwarder: 10.28.252.165
+Received: from ZXBJMBX03.zhaoxin.com (10.29.252.7) by ZXSHMBX3.zhaoxin.com
+ (10.28.252.165) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Thu, 18 Jul
- 2024 14:24:08 +0800
+ 2024 14:24:12 +0800
 Received: from xin.lan (10.32.64.1) by ZXBJMBX03.zhaoxin.com (10.29.252.7)
  with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.39; Thu, 18 Jul
- 2024 14:24:06 +0800
-X-Barracuda-RBL-Trusted-Forwarder: 10.28.252.164
+ 2024 14:24:10 +0800
+X-Barracuda-RBL-Trusted-Forwarder: 10.28.252.165
 From: LeoLiu-oc <LeoLiu-oc@zhaoxin.com>
 X-Barracuda-RBL-Trusted-Forwarder: 10.29.252.7
 To: <rafael@kernel.org>, <lenb@kernel.org>, <james.morse@arm.com>,
@@ -36,13 +36,14 @@ To: <rafael@kernel.org>, <lenb@kernel.org>, <james.morse@arm.com>,
 	<linux-pci@vger.kernel.org>, <acpica-devel@lists.linux.dev>
 CC: <CobeChen@zhaoxin.com>, <TimGuo@zhaoxin.com>, <TonyWWang-oc@zhaoxin.com>,
 	<leoliu-oc@zhaoxin.com>, LeoLiuoc <LeoLiu-oc@zhaoxin.com>
-Subject: [PATCH v3 0/3] Parse the HEST PCIe AER and set to relevant registers
-Date: Thu, 18 Jul 2024 14:24:02 +0800
-X-ASG-Orig-Subj: [PATCH v3 0/3] Parse the HEST PCIe AER and set to relevant registers
-Message-ID: <20240718062405.30571-1-LeoLiu-oc@zhaoxin.com>
+Subject: [PATCH v3 2/3] PCI: Add AER bits #defines for PCIe to PCI/PCI-X Bridge
+Date: Thu, 18 Jul 2024 14:24:04 +0800
+X-ASG-Orig-Subj: [PATCH v3 2/3] PCI: Add AER bits #defines for PCIe to PCI/PCI-X Bridge
+Message-ID: <20240718062405.30571-3-LeoLiu-oc@zhaoxin.com>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <b99685d9-9f3a-4c21-8d33-2eaa5de8be54@zhaoxin.com>
+In-Reply-To: <20240718062405.30571-1-LeoLiu-oc@zhaoxin.com>
 References: <b99685d9-9f3a-4c21-8d33-2eaa5de8be54@zhaoxin.com>
+ <20240718062405.30571-1-LeoLiu-oc@zhaoxin.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -53,12 +54,12 @@ Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
 X-ClientProxiedBy: zxbjmbx1.zhaoxin.com (10.29.252.163) To
  ZXBJMBX03.zhaoxin.com (10.29.252.7)
-X-Barracuda-Connect: ZXSHMBX2.zhaoxin.com[10.28.252.164]
-X-Barracuda-Start-Time: 1721283848
+X-Barracuda-Connect: ZXSHMBX3.zhaoxin.com[10.28.252.165]
+X-Barracuda-Start-Time: 1721283852
 X-Barracuda-Encrypted: ECDHE-RSA-AES128-GCM-SHA256
-X-Barracuda-URL: https://10.28.252.36:4443/cgi-mod/mark.cgi
+X-Barracuda-URL: https://10.28.252.35:4443/cgi-mod/mark.cgi
 X-Virus-Scanned: by bsmtpd at zhaoxin.com
-X-Barracuda-Scan-Msg-Size: 1611
+X-Barracuda-Scan-Msg-Size: 1195
 X-Barracuda-BRTS-Status: 1
 X-Barracuda-Bayes: INNOCENT GLOBAL 0.0000 1.0000 -2.0210
 X-Barracuda-Spam-Score: -2.02
@@ -70,41 +71,31 @@ X-Barracuda-Spam-Report: Code version 3.2, rules version 3.2.3.127785
 
 From: LeoLiuoc <LeoLiu-oc@zhaoxin.com>
 
-According to the Section 18.3.2.4, 18.3.2.5 and 18.3.2.6 in ACPI SPEC
-r6.5, the register value form HEST PCI Express AER Structure should be
-written to relevant PCIe Device's AER Capabilities. So the purpose of the
-patch set is to extract register value from HEST PCI Express AER
-structures and program them into PCIe Device's AER registers.
-Refer to the ACPI SPEC r6.5 for the more detailed description. This patch
-is an effective supplement to _HPP/_HPX method when the Firmware does not
-support the _HPP/_HPX method and can be specially configured for the AER
-register of the specific device.
+Define secondary uncorrectable error mask register, secondary
+uncorrectable error severity register and secondary error capabilities and
+control register bits in AER capability for PCIe to PCI/PCI-X Bridge.
+Please refer to PCIe to PCI/PCI-X Bridge Specification r1.0, sec 5.2.3.2,
+5.2.3.3 and 5.2.3.4.
 
-v1->v2:
-- Move the definition of structure "hest_parse_aer_info" to file apei.h.
+Signed-off-by: LeoLiuoc <LeoLiu-oc@zhaoxin.com>
+---
+ include/uapi/linux/pci_regs.h | 3 +++
+ 1 file changed, 3 insertions(+)
 
-v2->v3:
-- The applicable hardware for this patch is added to the commit
-  information.
-- Change the function name "program_hest_aer_endpoint" to
-  "program_hest_aer_common".
-- Add the comment to function "program_hest_aer_common".
-- Remove the "PCI_EXP_TYPE_PCIE_BRIDGE" branch handling in function
-  "program_hest_aer_params".
-
-LeoLiuoc (3):
-  ACPI/APEI: Add hest_parse_pcie_aer()
-  PCI: Add AER bits #defines for PCIe to PCI/PCI-X Bridge
-  PCI/ACPI: Add pci_acpi_program_hest_aer_params()
-
- drivers/acpi/apei/hest.c      |  66 +++++++++++++++++++++-
- drivers/pci/pci-acpi.c        | 101 ++++++++++++++++++++++++++++++++++
- drivers/pci/pci.h             |   9 +++
- drivers/pci/probe.c           |   1 +
- include/acpi/apei.h           |  17 ++++++
- include/uapi/linux/pci_regs.h |   3 +
- 6 files changed, 195 insertions(+), 2 deletions(-)
-
+diff --git a/include/uapi/linux/pci_regs.h b/include/uapi/linux/pci_regs.h
+index 94c00996e633..09c788597be9 100644
+--- a/include/uapi/linux/pci_regs.h
++++ b/include/uapi/linux/pci_regs.h
+@@ -802,6 +802,9 @@
+ #define  PCI_ERR_ROOT_FATAL_RCV		0x00000040 /* Fatal Received */
+ #define  PCI_ERR_ROOT_AER_IRQ		0xf8000000 /* Advanced Error Interrupt Message Number */
+ #define PCI_ERR_ROOT_ERR_SRC	0x34	/* Error Source Identification */
++#define PCI_ERR_UNCOR_MASK2	0x30    /* PCIe to PCI/PCI-X Bridge */
++#define PCI_ERR_UNCOR_SEVER2	0x34    /* PCIe to PCI/PCI-X Bridge */
++#define PCI_ERR_CAP2	0x38    /* PCIe to PCI/PCI-X Bridge */
+ 
+ /* Virtual Channel */
+ #define PCI_VC_PORT_CAP1	0x04
 -- 
 2.34.1
 
