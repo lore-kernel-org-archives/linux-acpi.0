@@ -1,316 +1,209 @@
-Received: from NAM04-DM6-obe.outbound.protection.outlook.com (mail-dm6nam04on2057.outbound.protection.outlook.com [40.107.102.57])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4322F2F34;
-	Fri, 19 Jul 2024 14:50:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.102.57
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721400624; cv=fail; b=jKGxyu1xYFwp3KDZHCRzcrhOh8Fh+7XM0Xwuah9z5DH4AVIhUJenkU1sTLo+tXYK0eVgtIHRsux61mJqm3wa8IQi3ZfJyCKtW4iPmz/cCC2RbjLYs7uB1ns3M6C1PyDVCzKxHpCcWma+yodNEU/y9x7/Sh/MRlKusyrQvUKoFk0=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721400624; c=relaxed/simple;
-	bh=sk6bagv/harPPkC6ayKvHGhuR47PSSuLXDiFQqOJGNE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=PZbl3L5xcTCdjaWxvPHhscqpyHSWRiI80MBXNMmVQjVRGoyduUAUfUGB4ID1ENiFh0wrkxrqHHO92AOeKqyvU9SUJdWYqvF4mRyksGA/VC+OV5DDzcaF74+TFTA74DVqg9wzPz8f3bcFAjcye3q284Hck2yEQWDZ9E5DlNXBoT4=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=hgLhP87P; arc=fail smtp.client-ip=40.107.102.57
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBEC814535F
+	for <linux-acpi@vger.kernel.org>; Fri, 19 Jul 2024 15:07:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1721401664; cv=none; b=QoytVjkPFSytISqAai8iW1H/t14VuCIwg0h2wDd1ZmW+WeVI2YFEyruNsEhrYqu6Cy+Ddavmc8uSRzdJOY0lyfXlSne1ZGFhSu1w2HnR3V/uj1wJGVFyFcnPo64xn0G06XDX54FiSIrAVOvBRWiYvJ+oYEYPBEM+cUWDOlA61nI=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1721401664; c=relaxed/simple;
+	bh=x74t0FO6EnAFkdZO0g+pbMZIBzD6UwTLnWZfNaslDZ4=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=ROx2z1W/uwumiD3s70dBueI8CBiH81JrrFJi9a27UH4toWBICsgAtZe7hBO/i+tYIV6WgQF4Nk4GzSiRYH5UWjtahZkq6S1pgaK8/fxgO0zTlyYsYBY2Cmhz3cKsthv0NgcJdnufLf1he+N5HaJhrBMsCV3U5eMfqXYPJarePiQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=DR6+TVxN; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="hgLhP87P"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=NU7V0AHPJhgUm7EwiKwVjpXlFUstkdumuUIYGv/djq39qadc0QWZCM01713CXsp1UUF0pjDvEhMsaVRs25GJpZDm6bTuC/s3jAB5Zv5r4nsQNELHuT70WCKcPuO5lDdiDbM9jmJkU6+m6llBwYaM8byHd7oYoTRpR2pq7ZMFXhL9fGrnPWiNFvTEHEQypTSXdogQDgMFlllemavB+lX3r4le9uNFR1aK5HqfSDCNh4NTmeGD9LmjGiZamaF2k91pWtSUJJERkay8xxiB0eI+WdxfUggPoYenl7Upk1MPpNvfAFuYf9/rEmebzSpoVRU6CFBWqMovpi9qbh0G/i6x6w==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=YSEBlVh8KDUjoLCLyeXPPXuBsvC500znqfmusHqvi7A=;
- b=D8DqX66UOGsUfyc/KaJFapTuaQGtxtRQzI/jG2wX3WFN5WnaJ07oNUbgmKAKqlmNnG5NUPOEuJYp46as7pCL8FZRSdvfcoYFERY/Ntc1hHyRlK7dAW8/fLqaH2U7oOXaQ6gvap2QyNXuDDBDc2/02BGzQFVXE0LRWzeJAaIjQBL3UtoJYRTRZpNexbQRHpMNQvVXa+wXj25tkLZTxwRQAL4GSIy13xl3jd2VNDtW3JnBlwhG+V26dEdgrgKWVsupryYDaCPZDl8N5dYhU8YhD9MY1jku1ZDDPW5EU9dTLluQgDp/is2p8EtEy4gLHzIfzphElamkiCXbpCOQex7wmw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
- header.d=amd.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=YSEBlVh8KDUjoLCLyeXPPXuBsvC500znqfmusHqvi7A=;
- b=hgLhP87PQtjiIh+vAdSbt4YIEzBDjD7xfBlqg0EjQTpUQVr/sVutXi8Mp3lj9iyiJiGaeRdYrt76HFHqfDwPY1Vy7xxWUv4pJRBRj1A1O7hLb6iIrf4FKZOv/gimVNfUBJoiQNtU11Lf5GEn8UbvGItGUsX/fis4kQTtxo2VxWU=
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=amd.com;
-Received: from BN8PR12MB3108.namprd12.prod.outlook.com (2603:10b6:408:40::20)
- by PH7PR12MB7020.namprd12.prod.outlook.com (2603:10b6:510:1ba::17) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7784.17; Fri, 19 Jul
- 2024 14:50:18 +0000
-Received: from BN8PR12MB3108.namprd12.prod.outlook.com
- ([fe80::43a5:ed10:64c2:aba3]) by BN8PR12MB3108.namprd12.prod.outlook.com
- ([fe80::43a5:ed10:64c2:aba3%6]) with mapi id 15.20.7784.017; Fri, 19 Jul 2024
- 14:50:18 +0000
-Date: Fri, 19 Jul 2024 10:50:09 -0400
-From: Yazen Ghannam <yazen.ghannam@amd.com>
-To: LeoLiu-oc <LeoLiu-oc@zhaoxin.com>
-Cc: rafael@kernel.org, lenb@kernel.org, james.morse@arm.com,
-	tony.luck@intel.com, bp@alien8.de, bhelgaas@google.com,
-	robert.moore@intel.com, avadhut.naik@amd.com,
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-pci@vger.kernel.org, acpica-devel@lists.linux.dev,
-	CobeChen@zhaoxin.com, TimGuo@zhaoxin.com, TonyWWang-oc@zhaoxin.com
-Subject: Re: [PATCH v3 3/3] PCI/ACPI: Add pci_acpi_program_hest_aer_params()
-Message-ID: <20240719145009.GC17507@yaz-khff2.amd.com>
-References: <b99685d9-9f3a-4c21-8d33-2eaa5de8be54@zhaoxin.com>
- <20240718062405.30571-1-LeoLiu-oc@zhaoxin.com>
- <20240718062405.30571-4-LeoLiu-oc@zhaoxin.com>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240718062405.30571-4-LeoLiu-oc@zhaoxin.com>
-X-ClientProxiedBy: BN9PR03CA0385.namprd03.prod.outlook.com
- (2603:10b6:408:f7::30) To BN8PR12MB3108.namprd12.prod.outlook.com
- (2603:10b6:408:40::20)
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="DR6+TVxN"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1721401661;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
+	bh=+Hqez4+gddnelY4DOtO/pf2QUbb3lrjCJ7TtxZBjoRk=;
+	b=DR6+TVxNhQ+pnJ5TMfW2OxUNhni2We9krK710joePUW0OBJBCodBOs9eBLA5TO/3MVyJ/J
+	8EGYp1K7nbRmGwUX1iQQjLsRXsbnEzjdO25YdXAXrh17tKdGCtZNnpEdJDMfPFEV8BZKS0
+	vsfVcz+5/X7Jl6hmooq/3cSBg/3Bdr8=
+Received: from mail-wr1-f71.google.com (mail-wr1-f71.google.com
+ [209.85.221.71]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-472-3zD7Sdz7N122eRnB3hLs2w-1; Fri, 19 Jul 2024 11:07:40 -0400
+X-MC-Unique: 3zD7Sdz7N122eRnB3hLs2w-1
+Received: by mail-wr1-f71.google.com with SMTP id ffacd0b85a97d-3686658856fso756022f8f.0
+        for <linux-acpi@vger.kernel.org>; Fri, 19 Jul 2024 08:07:39 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1721401659; x=1722006459;
+        h=content-transfer-encoding:in-reply-to:organization:autocrypt
+         :content-language:from:references:cc:to:subject:user-agent
+         :mime-version:date:message-id:x-gm-message-state:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=+Hqez4+gddnelY4DOtO/pf2QUbb3lrjCJ7TtxZBjoRk=;
+        b=VnGqk7A/lr0xLbgTeWq4vtbJG1+8CW1kOgUV6YoHbjXmNtrNonTITU2LZkDVxZLIkX
+         eqsEVp7Z6ZyFTD3qEFWPa7I5IF2P2Xkmm5JgBXL9QnW/7LzoDrGoozT6bHFxf4caS7/I
+         LU+dJ6Uu3whZ3+ApzqXgCkwDI3kQZSj6xFz5blNk2iDd1rm6uDeHBCMQv7lJ8jb0WkDZ
+         2srlgFCXa1zL4delXWiL2/6YM9kCLQWd457Rjg0pjRhRmeL2BsxM7RMe+dx/gzf+enlp
+         1nOgl7+BGnjP88mlGHe5PSIEDysXPr/stIIrifR9NdR4EgHBrZ2IEvBsjuFoY9QuHPOX
+         CRJA==
+X-Forwarded-Encrypted: i=1; AJvYcCWWTWEu0FZtvsVnjmjGutVpRiTQbRBbqqLP35BVlenmOHq3XzVnwdJwn+4TxelZ1Z2Zt1BJpEc3JtCyl1raPMPptOh8g8o8ywp3UA==
+X-Gm-Message-State: AOJu0Yxq1LVXonXqzG0F//uIxuGDeBQ9Nhjs2G50APWSv9Av5xomsAYx
+	K08u5zBmDKLYNuGbLSTLpeXE+4mPmpLfMUPHc6mnWWKIYbgyeKswOzZxMLge2TcFeJ/e5eBTGeW
+	uycheCJKcGj1KqwH+2f2pe0TrvXzmzHiuHFozVcBJzkHrbzvh6gbooVEvWbYFK5wmYOA=
+X-Received: by 2002:adf:f6c8:0:b0:367:96b9:760a with SMTP id ffacd0b85a97d-3683171fa20mr5351621f8f.41.1721401658856;
+        Fri, 19 Jul 2024 08:07:38 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IH3kf0+DVAX3s8AIoi07dbvv+TNfmFDQl0q2xJMZuXjXyMFfWvqwQOQgw4uRzUtRYfwr43y2A==
+X-Received: by 2002:adf:f6c8:0:b0:367:96b9:760a with SMTP id ffacd0b85a97d-3683171fa20mr5351603f8f.41.1721401658315;
+        Fri, 19 Jul 2024 08:07:38 -0700 (PDT)
+Received: from ?IPV6:2003:cb:c705:1000:c4af:a24f:b8ba:8bbc? (p200300cbc7051000c4afa24fb8ba8bbc.dip0.t-ipconnect.de. [2003:cb:c705:1000:c4af:a24f:b8ba:8bbc])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-368785c58e7sm1876063f8f.0.2024.07.19.08.07.36
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Fri, 19 Jul 2024 08:07:37 -0700 (PDT)
+Message-ID: <96850252-a49f-4d78-a94b-a9a25e3f2bd5@redhat.com>
+Date: Fri, 19 Jul 2024 17:07:35 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BN8PR12MB3108:EE_|PH7PR12MB7020:EE_
-X-MS-Office365-Filtering-Correlation-Id: 78385656-0bbb-40b4-9652-08dca8021b2a
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|366016|7416014|376014;
-X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?fLIAebiHnQUFUImyY8by7yg74qJ8FjDC9CicF1mGG/x2UeDm9hueE5bjyXtW?=
- =?us-ascii?Q?wgD5nLyWAVn57UVWfBuPEODweXyqLFgOBp4VknhbESOliBffHR/8rh5iKD0B?=
- =?us-ascii?Q?MIaXL21X5MXusLJapfEXz+oX6X5VCy1t9h4YOSDz0uMGei0sqg/IoACEgmxV?=
- =?us-ascii?Q?ALsA/txlJbAV3Oq+H/6f+Af4OVnvF/uFlSStvVlba5WmZhIa0w9ziSm/Auwa?=
- =?us-ascii?Q?qgk4vE3CR910kUprvlW9xBkLyLbyMpLAWY+3CCKMrHmY2Dl8e8fzle3afX6S?=
- =?us-ascii?Q?DyJ5Nkh63wp3xPgamNCIp1XUR8i17D8D4LyCyxQUFjH7laF56vNorNZ+Gkry?=
- =?us-ascii?Q?2FMC1EkVsGbRoKrI5PYBsOY13UetzuTOk6sBVQYxX4OGEur1f77BeTks8Tgq?=
- =?us-ascii?Q?zT1h+0nvsN4P03y84Oq404IiPYjUW+UPpdapoiVFaYSfs5cvH9n/eh8qyKT9?=
- =?us-ascii?Q?C4mXKLrNsjfFGYQJLXk0drPPiIEc7r7xOE6hXIZvW7zaMfBYxuqI39GRQ2xC?=
- =?us-ascii?Q?g9sZMu4n8AU5fpS2t1vmIyuTJcNxvkD+1wpM1mYqEf5VsVtUib01ppOqLeNc?=
- =?us-ascii?Q?Bkh8ErbVmYRhscnK0Yv7h1uQHc2GV1KB/q4rv3u5usUjbE8eueOnpK1yOhBF?=
- =?us-ascii?Q?84MK2s1XegKlg8EHswtEDqnjV4SgASheuUvlMrIOK4R78s8a4E85lXCNADfa?=
- =?us-ascii?Q?DO2nU1lCZPcXiXlGAYNddbEfxh5EON5NKNCNpD/eIbLK8WizvnYSpMZfXVBM?=
- =?us-ascii?Q?pm4QtI53/2mft626s8vJEgDY3vQ+E+nwoQkKYhNlTyYN5Hu7AOP/0R2iAbfk?=
- =?us-ascii?Q?7cTWLi3mfUCRP3GaEm1wfNo/MgRSYzNBo/nFXR3G8P5irB7EjVM1FLiot0Td?=
- =?us-ascii?Q?pcMJDF4+kyk8OGbfq7NcKql3WjK9oWEM5jl93PSDoRv+EhrSXttTEG/Kzrp5?=
- =?us-ascii?Q?EhBooSES/8E8bqtDUBMT0O64OQjp3E3zinKVNoYkAPBH6DgsvLtaNv0t7kYe?=
- =?us-ascii?Q?vmHRGHWWmqpgJXOGYTqlzZF5Y5CIoW2qodhhuvfI6Jr5l1kMp3YCd3FBhwuU?=
- =?us-ascii?Q?RFJDbnmVvuQLGfEq9Iu24Ula3SEQGl86DlrjcDF12XN9AoEpZaVqn2kCi5lt?=
- =?us-ascii?Q?zFWgHVRCAmmqTgmLrXWft/SHAGy5U3BNhFlUcvYegov/zfiBalJxCEzr1BAj?=
- =?us-ascii?Q?QPUaFEDl3ExZ0DIpaN9b8RPe3lWjpvjacZ4GOi5tG5Yw2j0POZe0U275ba1P?=
- =?us-ascii?Q?y65sp1WGvqpqj8+G9PMLkg1dPz1Drt7AeYjeYl+JDBDOAk3r6F/eLurnhA+Q?=
- =?us-ascii?Q?zR2c1VtCEVPe+hUQOhDOr+Ah+RAVD8IeuxVM6bqyQkO04Q=3D=3D?=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BN8PR12MB3108.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(7416014)(376014);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?UZgXvIMp90hPdnSeDkSuVY9fiFk0/fMJHSFtTlWOx2KjdZuK/rdZvW2H9dsH?=
- =?us-ascii?Q?qdKo32mJvbIAdx1rdMfPf6AXfin6N2RKlLxMFh0LTunn5mTyL1Q/U0Dcv8Co?=
- =?us-ascii?Q?TqeZa1Jqp/J7TzHMcztgNjqRGPsdjWhmjFyJ0jy9/bMhr8tNl+6ZmGMOoumh?=
- =?us-ascii?Q?g3jy5zwTlFEQpDWYbvajgX72ZGKeAQDNRsQoH+bgSsQ/YuASc71GDBPjH6Cu?=
- =?us-ascii?Q?Rz2NP3lbCYBnFndQLxox60gVCUT68TRqq2sSqKYk1f11X8Sx/0fhPps00Qom?=
- =?us-ascii?Q?u+gRKMszH1z7YAAjhDVrakHpjI0jDwi73i23P91KP5t9RTeTMfpbRx06I4hA?=
- =?us-ascii?Q?pLAEQGgSm3Xy+ORD0Tk2j8WAodTOxqI+Q5n3Rme8WR04efSjj3RCmLuq3ggp?=
- =?us-ascii?Q?vdrPGuMJLGAtltnIwzBCSmWhDFAxTkTKfRfq7ck2q3rvicHfbXu14Vh/WznQ?=
- =?us-ascii?Q?/pgaIfGFtIVTJvlZDQCPa8FhZAKbMvA5hSaw7Bczx0yBwWphfmvUC9VNX9AX?=
- =?us-ascii?Q?bXL431QjQ1mEtHRWrQik5x6teTkfDgXCthKWEO27H8j33xlzoN6/YgrHJQdD?=
- =?us-ascii?Q?ntfoArsWoWDTpZIAUeEHlLwGL+/4/00t/3BD9CBHPt0RJVpqvlE+ZBJbSiUB?=
- =?us-ascii?Q?xYDmSPghnMu2YDPqFOSE6sKSY/3MNkAtNRVy0//EV9v7VxraAAWcsQBfxn+3?=
- =?us-ascii?Q?gitWkURgLPOpRi0fmoVUWS4fBolkm7tbFeIb1YFphFDGC40T7jBVE/hbla1j?=
- =?us-ascii?Q?NXVl8ApBHhp8u8mtHtQ4Q5L1xouqwjb5c1FDAv2qHzoCaQXn5YnuXStTwIgi?=
- =?us-ascii?Q?/idldsK+cj74/XQKGLsU0e/YmgKEN4KFAm5h6PdlB+8POfykzdRElvlP/uMi?=
- =?us-ascii?Q?3SD5d/DEoEwicfAUFUCJEx2oLelGLBfbK8wX2bka+ecVpiaWjHQE9cWJZPtO?=
- =?us-ascii?Q?jBkYhC3a6p1sxTm+Hnu/lfk6f1yyopqyU/kX3gjY020QZBbBb7/nc/MsGHsj?=
- =?us-ascii?Q?vKgdlaT4oQ68Q2GUByEVEglyjc5bSot2ELaiVQXF6MISF97GPb+zCz2TRDNg?=
- =?us-ascii?Q?fgdMpn/Svxs35y1kQbstHpdSrdRicg7IVbx4N49an/2KqBHDyiJ+lNcnSJ26?=
- =?us-ascii?Q?yTYbR59ikJyNd7X8faXiwzSnDm3uRhhdEzUm9SL/NzS0fFroEOsdOrQidDQ5?=
- =?us-ascii?Q?0YiLmsFn4IPtoq0465zWB+QWKg9awymsB1YXGCHJmNCwVNFrTphpyuHRrmp+?=
- =?us-ascii?Q?ng94+BfWj+94SBsXGfSrUceX+NYFVXFoAdL2UsNMIr/2E+zryxT4VrQPjjjR?=
- =?us-ascii?Q?v6jVYD6XYlTxm7NW6zH3ih3VMet2XabWIowpSbsHTT5I+ZQIwa8ABI9h3Hau?=
- =?us-ascii?Q?O+OYSaCbVZuR7qdQOWX6fbtyG9g4d9qpdt5agfk0ysSy7EdEyTbBOF4b57s6?=
- =?us-ascii?Q?lUxxA6zJsxqs04stcx7eyJDS+r8nxAPVaKs9x9whIXC4vghllbkFI/qJsyff?=
- =?us-ascii?Q?0ZcuBm0VIPTJ9ZesbX8Z9s2T+ibwKTcpvNWYNGY7H/eo3UY7N0ZVe4mU3uZC?=
- =?us-ascii?Q?pWZtZ+UF43r3iS2jLDx1HnBeyKF74r/ryzh/WDXq?=
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 78385656-0bbb-40b4-9652-08dca8021b2a
-X-MS-Exchange-CrossTenant-AuthSource: BN8PR12MB3108.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 19 Jul 2024 14:50:18.0978
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: /i1S8ySb7pXhSInBCiUX3ZGoDtxXl9oruQ7llIeY0uzvXYHhpWQimBayo9V1lliRmie8x45zzwl3bKZNOqTINg==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR12MB7020
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 05/17] arch, mm: pull out allocation of NODE_DATA to
+ generic code
+To: Mike Rapoport <rppt@kernel.org>
+Cc: linux-kernel@vger.kernel.org, Alexander Gordeev <agordeev@linux.ibm.com>,
+ Andreas Larsson <andreas@gaisler.com>,
+ Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>,
+ Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>,
+ Christophe Leroy <christophe.leroy@csgroup.eu>,
+ Dan Williams <dan.j.williams@intel.com>,
+ Dave Hansen <dave.hansen@linux.intel.com>,
+ "David S. Miller" <davem@davemloft.net>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ Heiko Carstens <hca@linux.ibm.com>, Huacai Chen <chenhuacai@kernel.org>,
+ Ingo Molnar <mingo@redhat.com>, Jiaxun Yang <jiaxun.yang@flygoat.com>,
+ John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+ Jonathan Cameron <jonathan.cameron@huawei.com>,
+ Michael Ellerman <mpe@ellerman.id.au>, Palmer Dabbelt <palmer@dabbelt.com>,
+ "Rafael J. Wysocki" <rafael@kernel.org>, Rob Herring <robh@kernel.org>,
+ Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+ Thomas Gleixner <tglx@linutronix.de>, Vasily Gorbik <gor@linux.ibm.com>,
+ Will Deacon <will@kernel.org>, linux-arm-kernel@lists.infradead.org,
+ loongarch@lists.linux.dev, linux-mips@vger.kernel.org,
+ linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
+ linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+ sparclinux@vger.kernel.org, linux-acpi@vger.kernel.org,
+ linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
+ devicetree@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org,
+ x86@kernel.org
+References: <20240716111346.3676969-1-rppt@kernel.org>
+ <20240716111346.3676969-6-rppt@kernel.org>
+ <220da8ed-337a-4b1e-badf-2bff1d36e6c3@redhat.com>
+ <Zpi-HAb7EBxrZBtK@kernel.org>
+From: David Hildenbrand <david@redhat.com>
+Content-Language: en-US
+Autocrypt: addr=david@redhat.com; keydata=
+ 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
+ WNyWQQ==
+Organization: Red Hat
+In-Reply-To: <Zpi-HAb7EBxrZBtK@kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Thu, Jul 18, 2024 at 02:24:05PM +0800, LeoLiu-oc wrote:
-> From: LeoLiuoc <LeoLiu-oc@zhaoxin.com>
+>>> -	 * Allocate node data.  Try node-local memory and then any node.
+>>> -	 * Never allocate in DMA zone.
+>>> -	 */
+>>> -	nd_pa = memblock_phys_alloc_try_nid(nd_size, SMP_CACHE_BYTES, nid);
+>>> -	if (!nd_pa) {
+>>> -		pr_err("Cannot find %zu bytes in any node (initial node: %d)\n",
+>>> -		       nd_size, nid);
+>>> -		return;
+>>> -	}
+>>> -	nd = __va(nd_pa);
+>>> -
+>>> -	/* report and initialize */
+>>> -	printk(KERN_INFO "NODE_DATA(%d) allocated [mem %#010Lx-%#010Lx]\n", nid,
+>>> -	       nd_pa, nd_pa + nd_size - 1);
+>>> -	tnid = early_pfn_to_nid(nd_pa >> PAGE_SHIFT);
+>>> -	if (tnid != nid)
+>>> -		printk(KERN_INFO "    NODE_DATA(%d) on node %d\n", nid, tnid);
+>>> -
+>>> -	node_data[nid] = nd;
+>>> -	memset(NODE_DATA(nid), 0, sizeof(pg_data_t));
+>>> -
+>>> -	node_set_online(nid);
+>>> -}
+>>> -
+>>>    /**
+>>>     * numa_cleanup_meminfo - Cleanup a numa_meminfo
+>>>     * @mi: numa_meminfo to clean up
+>>> @@ -571,6 +538,7 @@ static int __init numa_register_memblks(struct numa_meminfo *mi)
+>>>    			continue;
+>>>    		alloc_node_data(nid);
+>>> +		node_set_online(nid);
+>>>    	}
+>>
+>> I can spot that we only remove a single node_set_online() call from x86.
+>>
+>> What about all the other architectures? Will there be any change in behavior
+>> for them? Or do we simply set the nodes online later once more?
 > 
-> Call the func pci_acpi_program_hest_aer_params() for every PCIe device,
-> the purpose of this function is to extract register value from HEST PCIe
-> AER structures and program them into AER Capabilities. This function
-> applies to all hardware platforms that has a PCI Express AER structure
-> in HEST.
-> 
-> Signed-off-by: LeoLiuoc <LeoLiu-oc@zhaoxin.com>
-> ---
->  drivers/pci/pci-acpi.c | 101 +++++++++++++++++++++++++++++++++++++++++
->  drivers/pci/pci.h      |   9 ++++
->  drivers/pci/probe.c    |   1 +
->  3 files changed, 111 insertions(+)
-> 
-> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-> index 004575091596..b522e8b226b8 100644
-> --- a/drivers/pci/pci-acpi.c
-> +++ b/drivers/pci/pci-acpi.c
-> @@ -18,6 +18,7 @@
->  #include <linux/pm_runtime.h>
->  #include <linux/pm_qos.h>
->  #include <linux/rwsem.h>
-> +#include <acpi/apei.h>
->  #include "pci.h"
->  
->  /*
-> @@ -783,6 +784,106 @@ int pci_acpi_program_hp_params(struct pci_dev *dev)
->  	return -ENODEV;
->  }
->  
-> +#ifdef CONFIG_ACPI_APEI
-> +/*
-> + * program_hest_aer_common() - configure AER common registers for Root Ports,
-> + * Endpoints and PCIe to PCI/PCI-X bridges
-> + */
-> +static void program_hest_aer_common(struct acpi_hest_aer_common aer_common, struct pci_dev *dev,
-> +				    int pos)
-> +{
-> +	u32 uncor_mask;
-> +	u32 uncor_severity;
-> +	u32 cor_mask;
-> +	u32 adv_cap;
-> +
-> +	uncor_mask = aer_common.uncorrectable_mask;
-> +	uncor_severity = aer_common.uncorrectable_severity;
-> +	cor_mask = aer_common.correctable_mask;
-> +	adv_cap = aer_common.advanced_capabilities;
-> +
-> +	pci_write_config_dword(dev, pos + PCI_ERR_UNCOR_MASK, uncor_mask);
-> +	pci_write_config_dword(dev, pos + PCI_ERR_UNCOR_SEVER, uncor_severity);
-> +	pci_write_config_dword(dev, pos + PCI_ERR_COR_MASK, cor_mask);
-> +	pci_write_config_dword(dev, pos + PCI_ERR_CAP, adv_cap);
-> +}
-> +
-> +static void program_hest_aer_root(struct acpi_hest_aer_root *aer_root, struct pci_dev *dev, int pos)
-> +{
-> +	u32 root_err_cmd;
-> +
-> +	root_err_cmd = aer_root->root_error_command;
-> +
-> +	pci_write_config_dword(dev, pos + PCI_ERR_ROOT_COMMAND, root_err_cmd);
-> +}
-> +
-> +static void program_hest_aer_bridge(struct acpi_hest_aer_bridge *hest_aer_bridge,
-> +				    struct pci_dev *dev, int pos)
-> +{
-> +	u32 uncor_mask2;
-> +	u32 uncor_severity2;
-> +	u32 adv_cap2;
-> +
-> +	uncor_mask2 = hest_aer_bridge->uncorrectable_mask2;
-> +	uncor_severity2 = hest_aer_bridge->uncorrectable_severity2;
-> +	adv_cap2 = hest_aer_bridge->advanced_capabilities2;
-> +
-> +	pci_write_config_dword(dev, pos + PCI_ERR_UNCOR_MASK2, uncor_mask2);
-> +	pci_write_config_dword(dev, pos + PCI_ERR_UNCOR_SEVER2, uncor_severity2);
-> +	pci_write_config_dword(dev, pos + PCI_ERR_CAP2, adv_cap2);
-> +}
-> +
-> +static void program_hest_aer_params(struct hest_parse_aer_info info)
-> +{
-> +	struct pci_dev *dev;
-> +	int port_type;
-> +	int pos;
-> +	struct acpi_hest_aer_root *hest_aer_root;
-> +	struct acpi_hest_aer *hest_aer_endpoint;
-> +	struct acpi_hest_aer_bridge *hest_aer_bridge;
-> +
-> +	dev = info.pci_dev;
-> +	port_type = pci_pcie_type(dev);
-> +	pos = pci_find_ext_capability(dev, PCI_EXT_CAP_ID_ERR);
-> +	if (!pos)
-> +		return;
-> +
-> +	switch (port_type) {
-> +	case PCI_EXP_TYPE_ROOT_PORT:
-> +		hest_aer_root = info.hest_aer_root_port;
-> +		program_hest_aer_common(hest_aer_root->aer, dev, pos);
-> +		program_hest_aer_root(hest_aer_root, dev, pos);
-> +		break;
-> +	case PCI_EXP_TYPE_ENDPOINT:
-> +		hest_aer_endpoint = info.hest_aer_endpoint;
-> +		program_hest_aer_common(hest_aer_endpoint->aer, dev, pos);
-> +		break;
-> +	case PCI_EXP_TYPE_PCI_BRIDGE:
-> +		hest_aer_bridge = info.hest_aer_bridge;
-> +		program_hest_aer_common(hest_aer_bridge->aer, dev, pos);
-> +		program_hest_aer_bridge(hest_aer_bridge, dev, pos);
-> +		break;
-> +	default:
-> +		break;
-> +	}
-> +}
-> +
-> +int pci_acpi_program_hest_aer_params(struct pci_dev *dev)
-> +{
-> +	struct hest_parse_aer_info info = {
-> +		.pci_dev = dev
-> +	};
-> +
-> +	if (!pci_is_pcie(dev))
-> +		return -ENODEV;
-> +
-> +	if (apei_hest_parse(hest_parse_pcie_aer, &info) == 1)
-> +		program_hest_aer_params(info);
-> +
-> +	return 0;
-> +}
-> +#endif
-> +
->  /**
->   * pciehp_is_native - Check whether a hotplug port is handled by the OS
->   * @bridge: Hotplug port to check
-> diff --git a/drivers/pci/pci.h b/drivers/pci/pci.h
-> index fd44565c4756..03b5339f399f 100644
-> --- a/drivers/pci/pci.h
-> +++ b/drivers/pci/pci.h
-> @@ -731,6 +731,15 @@ static inline void pci_save_aer_state(struct pci_dev *dev) { }
->  static inline void pci_restore_aer_state(struct pci_dev *dev) { }
->  #endif
->  
-> +#ifdef CONFIG_ACPI_APEI
-> +int pci_acpi_program_hest_aer_params(struct pci_dev *dev);
-> +#else
-> +static inline int pci_acpi_program_hest_aer_params(struct pci_dev *dev)
-> +{
-> +	return 0;
-> +}
-> +#endif
-> +
->  #ifdef CONFIG_ACPI
->  int pci_acpi_program_hp_params(struct pci_dev *dev);
->  extern const struct attribute_group pci_dev_acpi_attr_group;
-> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-> index 4c367f13acdc..f7d80b2a9d1d 100644
-> --- a/drivers/pci/probe.c
-> +++ b/drivers/pci/probe.c
-> @@ -2267,6 +2267,7 @@ static void pci_configure_device(struct pci_dev *dev)
->  	pci_configure_serr(dev);
->  
->  	pci_acpi_program_hp_params(dev);
-> +	pci_acpi_program_hest_aer_params(dev);
->  }
->  
->  static void pci_release_capabilities(struct pci_dev *dev)
-> -- 
+> On x86 node_set_online() was a part of alloc_node_data() and I moved it
+> outside so it's called right after alloc_node_data(). On other
+> architectures the allocation didn't include that call, so there should be
+> no difference there.
 
-I don't see where this accounts for _OSC negotiation. The OS must be
-granted control of AER before accessing AER registers in general.
+But won't their arch code try setting the nodes online at a later stage?
 
-Thanks,
-Yazen
+And I think, some architectures only set nodes online conditionally
+(see most other node_set_online() calls).
+
+Sorry if I'm confused here, but with now unconditional node_set_online(), won't
+we change the behavior of other architectures?
+
+-- 
+Cheers,
+
+David / dhildenb
+
