@@ -1,371 +1,127 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oa1-f54.google.com (mail-oa1-f54.google.com [209.85.160.54])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E89E159217;
-	Mon,  5 Aug 2024 12:54:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52BB715574D
+	for <linux-acpi@vger.kernel.org>; Mon,  5 Aug 2024 13:24:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722862446; cv=none; b=EQBmH4HGjB9g1MxaKUgAmwtkA3IHgjGdsPsUWOmQEV7Q+oh5PLsdnVO97RBPgBCABEu0yd4d2CBPz3YMbOtNPvAe6hSiciomcZGQvCGoZAfoKVNMcyG6qYetomduSfRB6IZDRNkVmFq/4efVRjoqFgScl7HpjdScNhDK3l59Y/M=
+	t=1722864290; cv=none; b=c08qCvEUu89sEdUdKKPYB/2R5L6J8Yv5lNak+LfMVuzUBssZEHqI9C3DLt6+22f0MrCapVFQbuas44n1oHYVGRENz5mG71PrwvmPRK0hFdGfnuA6+kybWX1Cf2wOvYJnwpzN/yDRTHGdc9qLT4ClDAWIy0w7sJ7W5xJw36CUlW0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722862446; c=relaxed/simple;
-	bh=K1z1776vJPrjE8ftj7y56DWPLsPvMjcXiZ7xWhfZ7ak=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=XhIA63MP3Lc4JjeihlWF2LkQKwzR53zzYg3B40trv7XMgK/Qf26FdjGElTrwmz9l+wtIRuItk+jzZe6db1n6HSLYZbpT8rsWkxOe9fYSB5vzWuJDKNRYhgqaQZRCbKq6r4sOPzPA3kHuoDwZ1Px0mopC5t2bibDBvvLGVxVmbCU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IgFqUP87; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1722864290; c=relaxed/simple;
+	bh=TZATUwU6iDMhtqysoYgKMFJfhQgZNs4raEb2aAFBWXk=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=c9wZSpxkBDNRudAf/xTT2Tt9aMI12WC/QD+yfcxnv90DaLc/2+aA3Le24IW2jqtlW8ZvxEg2/z+64OqZrx25WyXFjR5hvmtiybCeU3rLrtkf6a2wxOQTbYiFCtSGT0cyDvhzXoFXU9T9YzF51MCdeXZ2u0RLFIuRB4hDSQQc7A0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org; spf=pass smtp.mailfrom=linaro.org; dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b=rt4iGDP1; arc=none smtp.client-ip=209.85.160.54
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IgFqUP87"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7D7BC4AF10;
-	Mon,  5 Aug 2024 12:54:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1722862446;
-	bh=K1z1776vJPrjE8ftj7y56DWPLsPvMjcXiZ7xWhfZ7ak=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=IgFqUP87OIchhRMs0WQ/YmFF4gISH2G1gbo5DvvB3h3xj50RK1NC47xzl7UGra4zZ
-	 LLQb8Ir1a8hP33UAn0TCh7YHTPfexZpekEemvUCmxg64pSF+6Bzo60CFhJ6DRES97C
-	 B1od12ocXuajhjaPQZ++/fwqOLqI/PRNEOdtf1mGimzsPvtUq1n5X2fDxjrQTCMz+F
-	 k2jQ9PlXCPmTvkQEK+v7EXiY2K6cYQ544xuMfLqGEzpi2HqkTt0EP206orZFmT2Hcn
-	 zwy2YQr/Vax5KOoLdU2P9ODB3viZUEFjU0CQlsD4p1bpXNSooyp+A8d7BxFHLbYMwj
-	 bSVXzLDNp5+Jw==
-Received: from mchehab by mail.kernel.org with local (Exim 4.98)
-	(envelope-from <mchehab+huawei@kernel.org>)
-	id 1saxDv-0000000CyYg-3Ysu;
-	Mon, 05 Aug 2024 14:54:03 +0200
-From: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-To: 
-Cc: Daniel Ferguson <danielf@os.amperecomputing.com>,
-	"Rafael J. Wysocki" <mchehab+huawei@kernel.org>,
-	Borislav Petkov <bp@alien8.de>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Ira Weiny <ira.weiny@intel.com>,
-	James Morse <james.morse@arm.com>,
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
-	Len Brown <mchehab+huawei@kernel.org>,
-	Shiju Jose <shiju.jose@huawei.com>,
-	Shuai Xue <xueshuai@linux.alibaba.com>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	Tony Luck <tony.luck@intel.com>,
-	Tyler Baicar <tbaicar@codeaurora.org>,
-	Will Deacon <mchehab+huawei@kernel.org>,
-	Xie XiuQi <xiexiuqi@huawei.com>,
-	linux-acpi@vger.kernel.org,
-	linux-edac@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Shengwei Luo <luoshengwei@huawei.com>,
-	Jason Tian <jason@os.amperecomputing.com>,
-	Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-Subject: [PATCH v3 1/5] RAS: Report all ARM processor CPER information to userspace
-Date: Mon,  5 Aug 2024 14:53:32 +0200
-Message-ID: <60efa1c1d70edd3d69d489f2c6bbeb0f41d25612.1722861911.git.mchehab+huawei@kernel.org>
-X-Mailer: git-send-email 2.45.2
-In-Reply-To: <cover.1722861911.git.mchehab+huawei@kernel.org>
-References: <cover.1722861911.git.mchehab+huawei@kernel.org>
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="rt4iGDP1"
+Received: by mail-oa1-f54.google.com with SMTP id 586e51a60fabf-26119999171so7286450fac.2
+        for <linux-acpi@vger.kernel.org>; Mon, 05 Aug 2024 06:24:49 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google; t=1722864288; x=1723469088; darn=vger.kernel.org;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=zgWBpeW+c8UsIAW6t5xDuJojZNlu5tiBF3elgCc/hzE=;
+        b=rt4iGDP1sN/tjOQqqmwYRKT3FKNJF4TraTg+x223FyLajHZOmIVcprwJ/vMMb2Bv5n
+         w92ZA4D9oCSOdDrB4sMaCGn2DCXP/XUJ7FbrMIypgKTBGvjD2Xe9eki41UqKFl7b+ydF
+         5f3oITm7+A1WwSFXd0UWJLWT0MpDH1H82aM/J3raut6uyE+9QRnY9Vm6ONo7BNY5JAgW
+         6ucZpmtjM11fHmGNzuFO57mdgehBYntbs7TlEAg9wz7KZgtGCSauPvHbARIylfp7O2WM
+         I1rrCNYQ7B4DZaiWXjmLYBJ2oUVHW8uwyLviybsW5xZMUKIOgj6lRSJsb9ShrZUomOq/
+         sUhQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1722864288; x=1723469088;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=zgWBpeW+c8UsIAW6t5xDuJojZNlu5tiBF3elgCc/hzE=;
+        b=SVT15hzjaGKrgsFMG6UYXNq3JN/pEZ8rK8lgcCVjYMMHDv4iO9odxJcKDQ/EgecnCR
+         Pqk4V0KVE49fDQXe9jjRa1U9xxBWOhcQT7TBKJPPXUVDhVbEQpT1cXmsQ9cBNci+4AmY
+         a633IkYOGNRiIqRI6Llwo7ojAjeVVYEZDIbIG4NWRSOFInlchvPOPpt+gMUYWFumyJzN
+         cK3v2HYXGw9SyQU6mmlywLvDVh6NtDUaZuq7nhvpDq2RoRsOal6YkZUblV5rHNPLiSx1
+         tDEi6ToVLSkYq2V8+8ryD7CAF7KItjfEDajzq9jqqVbKX9aTLzbMItOMUqAPr0C31ETt
+         Tf/g==
+X-Forwarded-Encrypted: i=1; AJvYcCX9V3tc0wjPgijUl3Mrc1uAt1U6yWzl4huyEL7wOGhRA+mBYvqwQ6oSGO+Je2aRozn5eBXvO8i2iggE2TONVTDrIFLgLhXBgMpiQA==
+X-Gm-Message-State: AOJu0YxTHhAQA3O65yukRBv2MY7BpOYLiVQmOEg8rfAHreLUBMipmgDW
+	IFpMgnrCY4lbiUMpKbGduNPC+Gbho2OnRtPJJoYENj9FqeDdZUaAYjzpz1OHqw==
+X-Google-Smtp-Source: AGHT+IFT6HKcVwhCHdgf3H5pt/UkTYjavM3s6b+M2jbxZ4twj8oeHQB6x1XNEJm+43Oe93LNk7Ig1A==
+X-Received: by 2002:a05:6871:3a25:b0:268:880c:9e0a with SMTP id 586e51a60fabf-26891d40a1emr14029560fac.20.1722864288389;
+        Mon, 05 Aug 2024 06:24:48 -0700 (PDT)
+Received: from thinkpad ([120.56.197.55])
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-7b763469e79sm5445269a12.26.2024.08.05.06.24.44
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 05 Aug 2024 06:24:47 -0700 (PDT)
+Date: Mon, 5 Aug 2024 18:54:42 +0530
+From: Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
+To: Lukas Wunner <lukas@wunner.de>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>,
+	Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>,
+	linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-acpi@vger.kernel.org, mika.westerberg@linux.intel.com,
+	Hsin-Yi Wang <hsinyi@chromium.org>
+Subject: Re: [PATCH v5 1/4] PCI/portdrv: Make use of pci_dev::bridge_d3 for
+ checking the D3 possibility
+Message-ID: <20240805132442.GA7274@thinkpad>
+References: <20240802-pci-bridge-d3-v5-0-2426dd9e8e27@linaro.org>
+ <20240802-pci-bridge-d3-v5-1-2426dd9e8e27@linaro.org>
+ <Zqyro5mW-1kpFGQd@wunner.de>
+ <CAJZ5v0hw7C2dHC3yXAwya-KAjzYxU+QgavO_MkR9Rscsm_YHvg@mail.gmail.com>
+ <Zq08i2i_ETHsJiKW@wunner.de>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-Sender: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+In-Reply-To: <Zq08i2i_ETHsJiKW@wunner.de>
 
-From: Daniel Ferguson <danielf@os.amperecomputing.com>
+On Fri, Aug 02, 2024 at 10:07:39PM +0200, Lukas Wunner wrote:
+> On Fri, Aug 02, 2024 at 01:19:24PM +0200, Rafael J. Wysocki wrote:
+> > On Fri, Aug 2, 2024 at 11:49AM Lukas Wunner <lukas@wunner.de> wrote:
+> > >
+> > > On Fri, Aug 02, 2024 at 11:25:00AM +0530, Manivannan Sadhasivam via B4 Relay wrote:
+> > > > PCI core is already caching the value of pci_bridge_d3_possible() in
+> > > > pci_dev::bridge_d3 during pci_pm_init(). Since the value is not going to
+> > > > change,
+> > 
+> > Is that really the case?
+> > 
+> > Have you seen pci_bridge_d3_update()?
+> 
+> Okay the value may change at runtime, e.g. due to user space
+> manipulating d3cold_allowed in sysfs.
+> 
 
-The ARM processor CPER record was added at UEFI 2.6, and hasn't
-any changes up to UEFI 2.10 on its struct.
+The last part of the commit message is wrong, but pci_bridge_d3_update() is
+already updating pci_dev::bridge_d3. And pci_bridge_d3_possible() is not making
+use of any checks that could change dynamically IIUC. So what is wrong in using
+pci_dev::bridge_d3?
 
-Yet, the original arm_event trace code added on changeset
-e9279e83ad1f ("trace, ras: add ARM processor error trace event") is
-incomplete, as it only traces some fields of UAPI 2.6 table N.16,
-not exporting at all any information from tables N.17 to N.29 of
-the record.
+Even more, if the client drivers have changed the state of pci_dev::bridge_d3
+during runtime, then pci_bridge_d3_possible() won't catch that. Or is there a
+reason to not do so purposefully?
 
-This is not enough for user to take appropriate action or to log
-what exactly happened.
+> > > I don't know if there was a reason to call pci_bridge_d3_possible()
+> > > (instead of using the cached value) on probe, remove and shutdown.
+> > >
+> > > The change is probably safe but it would still be good to get some
+> > > positive test results with Thunderbolt laptops etc to raise the
+> > > confidence.
+> > 
+> > If I'm not mistaken, the change is not correct.
+> 
+> You're right.  Because the value may change, different code paths
+> may be chosen on probe, remove and shutdown.  Sorry for missing that.
+> 
 
-According to UEFI_2_9 specification chapter N2.4.4, the ARM processor
-error section includes:
+Again, pci_bridge_d3_possible() is not making use of values that could change
+dynamically.
 
-- several (ERR_INFO_NUM) ARM processor error information structures
-  (Tables N.17 to N.20);
-- several (CONTEXT_INFO_NUM) ARM processor context information
-  structures (Tables N.21 to N.29);
-- several vendor specific error information structures. The
-  size is given by Section Length minus the size of the other
-  fields.
+- Mani
 
-In addition to those data, it also exports two fields that are
-parsed by the GHES driver when firmware reports it, e. g.:
-
-- error severity
-- cpu logical index
-
-Report all of these information to userspace via trace uAPI, So that
-userspace can properly record the error and take decisions related
-to cpu core isolation according to error severity and other info.
-
-After this patch, all the data from ARM Processor record from table
-N.16 are directly or indirectly visible on userspace:
-
-======================================	=============================
-UEFI field on table N.16		ARM Processor trace fields
-======================================	=============================
-Validation				handled when filling data for
-					affinity MPIDR and running
-					state.
-ERR_INFO_NUM				pei_len
-CONTEXT_INFO_NUM			ctx_len
-Section Length				indirectly reported by
-					pei_len, ctx_len and oem_len
-Error affinity level			affinity
-MPIDR_EL1				mpidr
-MIDR_EL1				midr
-Running State				running_state
-PSCI State				psci_state
-Processor Error Information Structure	pei_err - count at pei_len
-Processor Context			ctx_err- count at ctx_len
-Vendor Specific Error Info		oem - count at oem_len
-======================================	=============================
-
-It should be noticed that decoding of tables N.17 to N.29, if needed,
-will be handled on userspace. That gives more flexibility, as there
-won't be any need to flood the Kernel with micro-architecture specific
-error decoding).
-Also, decoding the other fields require a complex logic, and should
-be done for each of the several values inside the record field.
-So, let userspace daemons like rasdaemon decode them, parsing such
-tables and having vendor-specific micro-architecture-specific decoders.
-
-[mchehab: modified patch description, solve merge conflicts and fix coding style]
-Fixes: e9279e83ad1f ("trace, ras: add ARM processor error trace event")
-Signed-off-by: Shengwei Luo <luoshengwei@huawei.com>
-Signed-off-by: Jason Tian <jason@os.amperecomputing.com>
-Signed-off-by: Daniel Ferguson <danielf@os.amperecomputing.com>
-Tested-by: Shiju Jose <shiju.jose@huawei.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Link: https://uefi.org/specs/UEFI/2.10/Apx_N_Common_Platform_Error_Record.html#arm-processor-error-section
----
- drivers/acpi/apei/ghes.c | 11 ++++-----
- drivers/ras/ras.c        | 45 +++++++++++++++++++++++++++++++++++--
- include/linux/ras.h      | 16 +++++++++++---
- include/ras/ras_event.h  | 48 +++++++++++++++++++++++++++++++++++-----
- 4 files changed, 103 insertions(+), 17 deletions(-)
-
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 623cc0cb4a65..06d9351a9abc 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -529,7 +529,7 @@ static bool ghes_handle_memory_failure(struct acpi_hest_generic_data *gdata,
- }
- 
- static bool ghes_handle_arm_hw_error(struct acpi_hest_generic_data *gdata,
--				       int sev, bool sync)
-+				     int sev, bool sync)
- {
- 	struct cper_sec_proc_arm *err = acpi_hest_get_payload(gdata);
- 	int flags = sync ? MF_ACTION_REQUIRED : 0;
-@@ -537,9 +537,8 @@ static bool ghes_handle_arm_hw_error(struct acpi_hest_generic_data *gdata,
- 	int sec_sev, i;
- 	char *p;
- 
--	log_arm_hw_error(err);
--
- 	sec_sev = ghes_severity(gdata->error_severity);
-+	log_arm_hw_error(err, sec_sev);
- 	if (sev != GHES_SEV_RECOVERABLE || sec_sev != GHES_SEV_RECOVERABLE)
- 		return false;
- 
-@@ -773,11 +772,9 @@ static bool ghes_do_proc(struct ghes *ghes,
- 
- 			arch_apei_report_mem_error(sev, mem_err);
- 			queued = ghes_handle_memory_failure(gdata, sev, sync);
--		}
--		else if (guid_equal(sec_type, &CPER_SEC_PCIE)) {
-+		} else if (guid_equal(sec_type, &CPER_SEC_PCIE)) {
- 			ghes_handle_aer(gdata);
--		}
--		else if (guid_equal(sec_type, &CPER_SEC_PROC_ARM)) {
-+		} else if (guid_equal(sec_type, &CPER_SEC_PROC_ARM)) {
- 			queued = ghes_handle_arm_hw_error(gdata, sev, sync);
- 		} else if (guid_equal(sec_type, &CPER_SEC_CXL_GEN_MEDIA_GUID)) {
- 			struct cxl_cper_event_rec *rec = acpi_hest_get_payload(gdata);
-diff --git a/drivers/ras/ras.c b/drivers/ras/ras.c
-index a6e4792a1b2e..359bb163aee0 100644
---- a/drivers/ras/ras.c
-+++ b/drivers/ras/ras.c
-@@ -52,9 +52,50 @@ void log_non_standard_event(const guid_t *sec_type, const guid_t *fru_id,
- 	trace_non_standard_event(sec_type, fru_id, fru_text, sev, err, len);
- }
- 
--void log_arm_hw_error(struct cper_sec_proc_arm *err)
-+void log_arm_hw_error(struct cper_sec_proc_arm *err, const u8 sev)
- {
--	trace_arm_event(err);
-+	struct cper_arm_err_info *err_info;
-+	struct cper_arm_ctx_info *ctx_info;
-+	u8 *ven_err_data;
-+	u32 ctx_len = 0;
-+	int n, sz, cpu;
-+	s32 vsei_len;
-+	u32 pei_len;
-+	u8 *pei_err;
-+	u8 *ctx_err;
-+
-+	pei_len = sizeof(struct cper_arm_err_info) * err->err_info_num;
-+	pei_err = (u8 *)err + sizeof(struct cper_sec_proc_arm);
-+
-+	err_info = (struct cper_arm_err_info *)(err + 1);
-+	ctx_info = (struct cper_arm_ctx_info *)(err_info + err->err_info_num);
-+	ctx_err = (u8 *)ctx_info;
-+	for (n = 0; n < err->context_info_num; n++) {
-+		sz = sizeof(struct cper_arm_ctx_info) + ctx_info->size;
-+		ctx_info = (struct cper_arm_ctx_info *)((long)ctx_info + sz);
-+		ctx_len += sz;
-+	}
-+
-+	vsei_len = err->section_length - (sizeof(struct cper_sec_proc_arm) +
-+					  pei_len + ctx_len);
-+	if (vsei_len < 0) {
-+		pr_warn(FW_BUG
-+			"section length: %d\n", err->section_length);
-+		pr_warn(FW_BUG
-+			"section length is too small\n");
-+		pr_warn(FW_BUG
-+			"firmware-generated error record is incorrect\n");
-+		vsei_len = 0;
-+	}
-+	ven_err_data = (u8 *)ctx_info;
-+
-+	cpu = GET_LOGICAL_INDEX(err->mpidr);
-+	/* when return value is invalid, set cpu index to -1 */
-+	if (cpu < 0)
-+		cpu = -1;
-+
-+	trace_arm_event(err, pei_err, pei_len, ctx_err, ctx_len,
-+			ven_err_data, (u32)vsei_len, sev, cpu);
- }
- 
- static int __init ras_init(void)
-diff --git a/include/linux/ras.h b/include/linux/ras.h
-index a64182bc72ad..df444492b434 100644
---- a/include/linux/ras.h
-+++ b/include/linux/ras.h
-@@ -24,8 +24,7 @@ int __init parse_cec_param(char *str);
- void log_non_standard_event(const guid_t *sec_type,
- 			    const guid_t *fru_id, const char *fru_text,
- 			    const u8 sev, const u8 *err, const u32 len);
--void log_arm_hw_error(struct cper_sec_proc_arm *err);
--
-+void log_arm_hw_error(struct cper_sec_proc_arm *err, const u8 sev);
- #else
- static inline void
- log_non_standard_event(const guid_t *sec_type,
-@@ -33,7 +32,7 @@ log_non_standard_event(const guid_t *sec_type,
- 		       const u8 sev, const u8 *err, const u32 len)
- { return; }
- static inline void
--log_arm_hw_error(struct cper_sec_proc_arm *err) { return; }
-+log_arm_hw_error(struct cper_sec_proc_arm *err, const u8 sev) { return; }
- #endif
- 
- struct atl_err {
-@@ -53,4 +52,15 @@ static inline unsigned long
- amd_convert_umc_mca_addr_to_sys_addr(struct atl_err *err) { return -EINVAL; }
- #endif /* CONFIG_AMD_ATL */
- 
-+#if defined(CONFIG_ARM) || defined(CONFIG_ARM64)
-+#include <asm/smp_plat.h>
-+/*
-+ * Include ARM specific SMP header which provides a function mapping mpidr to
-+ * cpu logical index.
-+ */
-+#define GET_LOGICAL_INDEX(mpidr) get_logical_index(mpidr & MPIDR_HWID_BITMASK)
-+#else
-+#define GET_LOGICAL_INDEX(mpidr) -EINVAL
-+#endif /* CONFIG_ARM || CONFIG_ARM64 */
-+
- #endif /* __RAS_H__ */
-diff --git a/include/ras/ras_event.h b/include/ras/ras_event.h
-index e5f7ee0864e7..af43857f0934 100644
---- a/include/ras/ras_event.h
-+++ b/include/ras/ras_event.h
-@@ -168,11 +168,24 @@ TRACE_EVENT(mc_event,
-  * This event is generated when hardware detects an ARM processor error
-  * has occurred. UEFI 2.6 spec section N.2.4.4.
-  */
-+#define APEIL "ARM Processor Err Info data len"
-+#define APEID "ARM Processor Err Info raw data"
-+#define APECIL "ARM Processor Err Context Info data len"
-+#define APECID "ARM Processor Err Context Info raw data"
-+#define VSEIL "Vendor Specific Err Info data len"
-+#define VSEID "Vendor Specific Err Info raw data"
- TRACE_EVENT(arm_event,
- 
--	TP_PROTO(const struct cper_sec_proc_arm *proc),
-+	TP_PROTO(const struct cper_sec_proc_arm *proc, const u8 *pei_err,
-+			const u32 pei_len,
-+			const u8 *ctx_err,
-+			const u32 ctx_len,
-+			const u8 *oem,
-+			const u32 oem_len,
-+			u8 sev,
-+			int cpu),
- 
--	TP_ARGS(proc),
-+	TP_ARGS(proc, pei_err, pei_len, ctx_err, ctx_len, oem, oem_len, sev, cpu),
- 
- 	TP_STRUCT__entry(
- 		__field(u64, mpidr)
-@@ -180,6 +193,14 @@ TRACE_EVENT(arm_event,
- 		__field(u32, running_state)
- 		__field(u32, psci_state)
- 		__field(u8, affinity)
-+		__field(u32, pei_len)
-+		__dynamic_array(u8, pei_buf, pei_len)
-+		__field(u32, ctx_len)
-+		__dynamic_array(u8, ctx_buf, ctx_len)
-+		__field(u32, oem_len)
-+		__dynamic_array(u8, oem_buf, oem_len)
-+		__field(u8, sev)
-+		__field(int, cpu)
- 	),
- 
- 	TP_fast_assign(
-@@ -199,12 +220,29 @@ TRACE_EVENT(arm_event,
- 			__entry->running_state = ~0;
- 			__entry->psci_state = ~0;
- 		}
-+		__entry->pei_len = pei_len;
-+		memcpy(__get_dynamic_array(pei_buf), pei_err, pei_len);
-+		__entry->ctx_len = ctx_len;
-+		memcpy(__get_dynamic_array(ctx_buf), ctx_err, ctx_len);
-+		__entry->oem_len = oem_len;
-+		memcpy(__get_dynamic_array(oem_buf), oem, oem_len);
-+		__entry->sev = sev;
-+		__entry->cpu = cpu;
- 	),
- 
--	TP_printk("affinity level: %d; MPIDR: %016llx; MIDR: %016llx; "
--		  "running state: %d; PSCI state: %d",
-+	TP_printk("cpu: %d; error: %d; affinity level: %d; MPIDR: %016llx; MIDR: %016llx; "
-+		  "running state: %d; PSCI state: %d; "
-+		  "%s: %d; %s: %s; %s: %d; %s: %s; %s: %d; %s: %s",
-+		  __entry->cpu,
-+		  __entry->sev,
- 		  __entry->affinity, __entry->mpidr, __entry->midr,
--		  __entry->running_state, __entry->psci_state)
-+		  __entry->running_state, __entry->psci_state,
-+		  APEIL, __entry->pei_len, APEID,
-+		  __print_hex(__get_dynamic_array(pei_buf), __entry->pei_len),
-+		  APECIL, __entry->ctx_len, APECID,
-+		  __print_hex(__get_dynamic_array(ctx_buf), __entry->ctx_len),
-+		  VSEIL, __entry->oem_len, VSEID,
-+		  __print_hex(__get_dynamic_array(oem_buf), __entry->oem_len))
- );
- 
- /*
 -- 
-2.45.2
-
+மணிவண்ணன் சதாசிவம்
