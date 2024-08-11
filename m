@@ -1,38 +1,41 @@
 Received: from szxga04-in.huawei.com (szxga04-in.huawei.com [45.249.212.190])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02C81FBE8
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1BE1D101C4
 	for <linux-acpi@vger.kernel.org>; Sun, 11 Aug 2024 04:23:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.190
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723350213; cv=none; b=DX62ZozFi6ycSAt1+Ok+eqfZ7APxQ23abPwxqIb22VVRY9W/LsFbWACMtRuW2p8+YW97awJcYjHMSqF+TRXpQmqJe61Z0ikztuLwwp3NB5vZUw++eh7+plJvvRfoPCOmmIvvg+TZW/cVFV0nb7pF927T/zdFynZdL7c1Bp1ElT8=
+	t=1723350214; cv=none; b=F93sJisrNa1qYhW2ImdoYcB+FzDMItCA11iuD2FezPdV+EuxZ2oELsr5VvVVWht5oR0StrB4leTs5aXg7QYDm1u8ktR3IU4LEBZjXwUFTI7DkNa9baaRR5oZo3HoXp+KX9c2fvQe7y6UNA0O3Royo3vD7Uq+vcqFV4YRna0yvJA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723350213; c=relaxed/simple;
-	bh=Kv24KHA23+ovb0FXM3xYsvy6s7/1dJY0TJQ1BYKJTp0=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=krL25lSZ2iVmu+jcoLJ3NXUdhJ7vjOhGm9yB6JywtluO2UQlxpmOXFXhLmZNVASQRWJK6Gb0ki6JTTgwWv2uooHPB8wGPfXWOK2DVGOFoUkY+gcDWt2s5hmm0C+/JMf6v1KtQ0R3D4DVLJC8MZQVUGj/lij26GRA3KF4c5E+lJs=
+	s=arc-20240116; t=1723350214; c=relaxed/simple;
+	bh=5iBR2l9ylKoGUWPzBkh3Or4BcYRBka8ZpxwL+cmpe4M=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=iP9Qx5pEgabC8DEZMtwPF6X2Om1zABAbBiQZpgvj3/Ho/87EJ/yq6yl9R//tBintX8jfr8nrfbstU9/RwGnwpllgwmgogQEEdcC7lKGy4hiJTlr7M9TYqwySLpxZF7dKq+zf3ybgmbFvXwgvYP9RZqh6Z1uShCjblTW55vjFvWI=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.190
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.19.162.112])
-	by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4WhPXr2DgXz20l7w;
-	Sun, 11 Aug 2024 12:18:52 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.19.88.163])
+	by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4WhPXX25fqz2CmK8;
+	Sun, 11 Aug 2024 12:18:36 +0800 (CST)
 Received: from dggpemf500002.china.huawei.com (unknown [7.185.36.57])
-	by mail.maildlp.com (Postfix) with ESMTPS id AD7D6140138;
-	Sun, 11 Aug 2024 12:23:22 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id 1A38618001B;
+	Sun, 11 Aug 2024 12:23:24 +0800 (CST)
 Received: from localhost.localdomain (10.175.112.125) by
  dggpemf500002.china.huawei.com (7.185.36.57) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Sun, 11 Aug 2024 12:23:22 +0800
+ 15.2.1544.11; Sun, 11 Aug 2024 12:23:23 +0800
 From: Hanjun Guo <guohanjun@huawei.com>
 To: Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi
 	<lpieralisi@kernel.org>, "Rafael J . Wysocki" <rafael@kernel.org>
 CC: Will Deacon <will@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>,
 	<linux-acpi@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>, Hanjun
  Guo <guohanjun@huawei.com>
-Subject: [PATCH v2 0/4] Cleanups for ARM64 ACPI
-Date: Sun, 11 Aug 2024 12:22:59 +0800
-Message-ID: <20240811042303.3498761-1-guohanjun@huawei.com>
+Subject: [PATCH v2 3/4] ARM64: ACPI: Make acpi_numa_get_nid() invisible to kernel/smp.c
+Date: Sun, 11 Aug 2024 12:23:02 +0800
+Message-ID: <20240811042303.3498761-4-guohanjun@huawei.com>
 X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20240811042303.3498761-1-guohanjun@huawei.com>
+References: <20240811042303.3498761-1-guohanjun@huawei.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -44,37 +47,84 @@ Content-Type: text/plain
 X-ClientProxiedBy: dggems704-chm.china.huawei.com (10.3.19.181) To
  dggpemf500002.china.huawei.com (7.185.36.57)
 
-Cleanups for ARM64 ACPI, first remove some leftover functions in
-asm/acpi.h, then make acpi_numa_get_nid() invisible to kernel/smp.c
-for the preparation to move acpi_numa.c to drivers/acpi/arm64/.
+To do the preparation of moving acpi_numa.c to drivers/acpi/arm64,
+Make acpi_numa_get_nid() invisible to kernel/smp.c, with less
+export functions.
 
-ACPI NUMA code for ARM64 are not strictly arch specific, move them
-to drivers/acpi/arm64/.
+Signed-off-by: Hanjun Guo <guohanjun@huawei.com>
+---
+ arch/arm64/include/asm/acpi.h | 2 --
+ arch/arm64/kernel/acpi_numa.c | 8 +++++++-
+ arch/arm64/kernel/smp.c       | 5 -----
+ 3 files changed, 7 insertions(+), 8 deletions(-)
 
-From v1:
-1. Add patch "ACPI: Make acpi_numa_get_nid() invisible to
-   kernel/smp.c" to do some preparation for moving acpi_numa.c
-   to drivers/acpi/arm64/.
-2. Fix the conflict with riscv implementation.
-
-Compiled with ACPI enabled and disabled on ARM64, with ACPI enabled
-on RISC-V.
-
-Hanjun Guo (4):
-  ARM64: ACPI: Remove the leftover acpi_init_cpus()
-  ARM64: ACPI: Remove the leftover arm64_acpi_numa_init()
-  ARM64: ACPI: Make acpi_numa_get_nid() invisible to kernel/smp.c
-  ARM64: ACPI: Move the NUMA code to drivers/acpi/arm64/
-
- arch/arm64/include/asm/acpi.h                        | 12 ------------
- arch/arm64/kernel/Makefile                           |  1 -
- arch/arm64/kernel/smp.c                              |  5 -----
- drivers/acpi/arm64/Makefile                          |  1 +
- .../arm64/kernel => drivers/acpi/arm64}/acpi_numa.c  |  8 +++++++-
- include/linux/acpi.h                                 |  1 +
- 6 files changed, 9 insertions(+), 19 deletions(-)
- rename {arch/arm64/kernel => drivers/acpi/arm64}/acpi_numa.c (94%)
-
+diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+index 5e25110ad1b7..40a501e1f26b 100644
+--- a/arch/arm64/include/asm/acpi.h
++++ b/arch/arm64/include/asm/acpi.h
+@@ -175,10 +175,8 @@ static inline pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr)
+ #endif /* CONFIG_ACPI_APEI */
+ 
+ #ifdef CONFIG_ACPI_NUMA
+-int acpi_numa_get_nid(unsigned int cpu);
+ void acpi_map_cpus_to_nodes(void);
+ #else
+-static inline int acpi_numa_get_nid(unsigned int cpu) { return NUMA_NO_NODE; }
+ static inline void acpi_map_cpus_to_nodes(void) { }
+ #endif /* CONFIG_ACPI_NUMA */
+ 
+diff --git a/arch/arm64/kernel/acpi_numa.c b/arch/arm64/kernel/acpi_numa.c
+index 0c036a9a3c33..2e55ff02bf07 100644
+--- a/arch/arm64/kernel/acpi_numa.c
++++ b/arch/arm64/kernel/acpi_numa.c
+@@ -29,7 +29,7 @@
+ 
+ static int acpi_early_node_map[NR_CPUS] __initdata = { NUMA_NO_NODE };
+ 
+-int __init acpi_numa_get_nid(unsigned int cpu)
++static int __init acpi_numa_get_nid(unsigned int cpu)
+ {
+ 	return acpi_early_node_map[cpu];
+ }
+@@ -72,9 +72,15 @@ static int __init acpi_parse_gicc_pxm(union acpi_subtable_headers *header,
+ 
+ void __init acpi_map_cpus_to_nodes(void)
+ {
++	int i;
++
+ 	acpi_table_parse_entries(ACPI_SIG_SRAT, sizeof(struct acpi_table_srat),
+ 					    ACPI_SRAT_TYPE_GICC_AFFINITY,
+ 					    acpi_parse_gicc_pxm, 0);
++
++	for (i = 0; i < nr_cpu_ids; i++)
++		early_map_cpu_to_node(i, acpi_numa_get_nid(i));
++
+ }
+ 
+ /* Callback for Proximity Domain -> ACPI processor UID mapping */
+diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
+index 5e18fbcee9a2..b717b77ed4d6 100644
+--- a/arch/arm64/kernel/smp.c
++++ b/arch/arm64/kernel/smp.c
+@@ -650,8 +650,6 @@ acpi_parse_gic_cpu_interface(union acpi_subtable_headers *header,
+ 
+ static void __init acpi_parse_and_init_cpus(void)
+ {
+-	int i;
+-
+ 	/*
+ 	 * do a walk of MADT to determine how many CPUs
+ 	 * we have including disabled CPUs, and get information
+@@ -669,9 +667,6 @@ static void __init acpi_parse_and_init_cpus(void)
+ 	 * as separate steps.
+ 	 */
+ 	acpi_map_cpus_to_nodes();
+-
+-	for (i = 0; i < nr_cpu_ids; i++)
+-		early_map_cpu_to_node(i, acpi_numa_get_nid(i));
+ }
+ #else
+ #define acpi_parse_and_init_cpus(...)	do { } while (0)
 -- 
 2.25.1
 
