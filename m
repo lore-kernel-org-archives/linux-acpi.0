@@ -1,44 +1,46 @@
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90DAA1BE844
-	for <linux-acpi@vger.kernel.org>; Wed, 14 Aug 2024 19:02:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D46A71BE844
+	for <linux-acpi@vger.kernel.org>; Wed, 14 Aug 2024 19:02:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723662148; cv=none; b=Wp6gypPon85SovCd/ph10caMvfQ+v0tPovJ2Y01VW6Fdm6Tj8EdZCiZd9djGBN9qGsxypUr5ZgdQCJR+KhaN7MivFFzslzfnWfn+eSRPRBmfVctP9n4xoXvpLBAkiSZw7DR5IJQjHX28Xe4KXWBPVthpS8vsxpiMNlD1UZ4xiUM=
+	t=1723662153; cv=none; b=VgYwVrtiWF7TKu7dLF9ot961XPCgCLigbN+cFhY5RkJY5mDkVU9pR0OzoDYHmIJ4o5b4D7F9S1E9nyBeQ5Udy/f9B4ShWnQHU27yWSHypJr13ByW4q1i5j1yVwGj636BojMn7aeFoFecn0zc+e6fIapHH7mNbflSo8xThiXKbzY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723662148; c=relaxed/simple;
-	bh=Xnh2Cto9uxR6JyO/0gR8xiy8P50HYEbg0oHLAFVDbH4=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=D8vLWqDkf0k+VMHbUss9vxmq4aJnixryW2MWRpuF3H4RIXvbSwTSU1VIDPKOY4wJr7dxIdToIFDupMYWMg7QvZU0/P6hd7GzUNlLMYkyIXrlQSqgkY4r23srogW5bEPlphmAkyEx6L1FS+afRdP25Oqx49KDX9GTzU/SsrhVOb0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Pt0XY/2k; arc=none smtp.client-ip=170.10.129.124
+	s=arc-20240116; t=1723662153; c=relaxed/simple;
+	bh=/gQAx//LLHunDUHHUyadR6Ntsfu9RtzzOdDAO3gpR1c=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=XCeZZK1bYIaTbGxIUYf6YkKVSb4/Ziv+Ae4gEHqJ9QVP+dfDE8bgL2Ouc0t3QEPKhjsp0UxdD0YHaF/YGcN5lPp9IewaDMMpfzLrQ2AGrZdrbwAsi3Jx6+7tBjOtJT/SE3PNcbkfaG33ol+Q5JDjsj+TgydiXb+D0DVlXtdnyy8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=PoQpA7bN; arc=none smtp.client-ip=170.10.129.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Pt0XY/2k"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="PoQpA7bN"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1723662145;
+	s=mimecast20190719; t=1723662150;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=sCzm2W6O4T8GkztKRcrottopCG1C6+IdUKb3GyWFWZU=;
-	b=Pt0XY/2k6eWwLVD1HNUWy92otw08dVbUR5wOrDEmXADqiE7ByhNBwWraJD1rA43YocYqPO
-	zpXGtUUcOs2a5Vps5LECY/C+3szEOi1TkjyvwAHFiuwbjnU7QQRtKi5D991kfqdZUfGjmZ
-	MSheYC4IxbYUf0I9X+3E5iXv3Nhss2U=
-Received: from mx-prod-mc-02.mail-002.prod.us-west-2.aws.redhat.com
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=xnCD2jCv8+LRBXs1DCD1n71FWSSYMHrFi8IT/1BCheY=;
+	b=PoQpA7bN08HD7E/kWHuUHU2TDvzp/idtmSOpr96EpIeJguZz9rPOCufLVNAScVPx6c69TW
+	UhOm90vIGh3ZKqodxMMkLCvalrfi+J1zTczfeBsTA6+Uaj+BLMoiqeGzSHhwYPbCzYmSxZ
+	aBkm4GghOt30CkaKVA3TZpWXlk9XAm0=
+Received: from mx-prod-mc-05.mail-002.prod.us-west-2.aws.redhat.com
  (ec2-54-186-198-63.us-west-2.compute.amazonaws.com [54.186.198.63]) by
  relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
- cipher=TLS_AES_256_GCM_SHA384) id us-mta-191-cu-_gS2zO0SWi46f11Rezw-1; Wed,
- 14 Aug 2024 15:02:04 -0400
-X-MC-Unique: cu-_gS2zO0SWi46f11Rezw-1
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-205--yCz_wvxPGiD8RTeLWKdOg-1; Wed,
+ 14 Aug 2024 15:02:18 -0400
+X-MC-Unique: -yCz_wvxPGiD8RTeLWKdOg-1
 Received: from mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.12])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by mx-prod-mc-02.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 45D6718EB232;
-	Wed, 14 Aug 2024 19:02:03 +0000 (UTC)
+	by mx-prod-mc-05.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 87B7A1955F06;
+	Wed, 14 Aug 2024 19:02:13 +0000 (UTC)
 Received: from shalem.redhat.com (unknown [10.39.192.22])
-	by mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTP id 351A319560AA;
-	Wed, 14 Aug 2024 19:02:00 +0000 (UTC)
+	by mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTP id 8C3E319560AA;
+	Wed, 14 Aug 2024 19:02:10 +0000 (UTC)
 From: Hans de Goede <hdegoede@redhat.com>
 To: "Rafael J . Wysocki" <rafael@kernel.org>,
 	=?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
@@ -46,10 +48,13 @@ To: "Rafael J . Wysocki" <rafael@kernel.org>,
 Cc: Hans de Goede <hdegoede@redhat.com>,
 	dri-devel@lists.freedesktop.org,
 	linux-acpi@vger.kernel.org,
-	platform-driver-x86@vger.kernel.org
-Subject: [PATCH 0/3] ACPI/video / platform/x86: Add backlight=native quirk for Dell OptiPlex 7760 AIO
-Date: Wed, 14 Aug 2024 21:01:56 +0200
-Message-ID: <20240814190159.15650-1-hdegoede@redhat.com>
+	platform-driver-x86@vger.kernel.org,
+	stable@vger.kernel.org
+Subject: [PATCH 3/3] ACPI: video: Add backlight=native quirk for Dell OptiPlex 7760 AIO
+Date: Wed, 14 Aug 2024 21:01:59 +0200
+Message-ID: <20240814190159.15650-4-hdegoede@redhat.com>
+In-Reply-To: <20240814190159.15650-1-hdegoede@redhat.com>
+References: <20240814190159.15650-1-hdegoede@redhat.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -59,44 +64,58 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Scanned-By: MIMEDefang 3.0 on 10.30.177.12
 
-Hi Rafael,
+Dell All In One (AIO) models released after 2017 may use a backlight
+controller board connected to an UART.
 
-6.10 has a new backlight driver for UART attached backlight controller
-boards found in some Dell All in One models.
+In DSDT this uart port will be defined as:
 
-Now the first AIO has turned up which has not only the DSDT bits for this,
-but also an actual controller attached to the UART, yet it is not using
-this controller for backlight control (it needs GPU native control).
+   Name (_HID, "DELL0501")
+   Name (_CID, EisaId ("PNP0501")
 
-I did not tie the dell-uart-backlight into acpi_video_get_backlight_type()
-yet, so the first 2 patches in this series deal with that and the third
-patch adds a DMI quirk to select native backlight control on top.
+The Dell OptiPlex 7760 AIO has an ACPI device for one if its UARTs with
+the above _HID + _CID. Loading the dell-uart-backlight driver shows that
+there actually is a backlight controller board attached to the UART,
+which reports a firmware version of "G&MX01-V15".
 
-Backlight control used to work on the Dell OptiPlex 7760 AIO with kernel
-6.9 and older, so this is a regression and I would like to see this
-series merged as fixes for 6.11.
+But the backlight controller board does not actually control the backlight
+brightness and the GPU's native backlight control method does work.
 
-Rafael, the drivers/platform/x86/dell/dell-uart-backlight.c are small
-and isolated. So I believe it is best if you take the entire series,
-to avoid conflicts if any other drivers/apci/video_detect.c DMI quirks
-show up this cycle.
+Add a quirk to use the GPU's native backlight control method on this model.
 
-Regards,
+Fixes: 484bae9e4d6a ("platform/x86: Add new Dell UART backlight driver")
+Closes: https://bugzilla.redhat.com/show_bug.cgi?id=2303936
+Cc: stable@vger.kernel.org
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/acpi/video_detect.c | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-Hans
-
-
-Hans de Goede (3):
-  ACPI: video: Add Dell UART backlight controller detection
-  platform/x86: dell-uart-backlight: Use acpi_video_get_backlight_type()
-  ACPI: video: Add backlight=native quirk for Dell OptiPlex 7760 AIO
-
- drivers/acpi/video_detect.c                   | 22 +++++++++++++++++++
- drivers/platform/x86/dell/Kconfig             |  1 +
- .../platform/x86/dell/dell-uart-backlight.c   |  8 +++++++
- include/acpi/video.h                          |  1 +
- 4 files changed, 32 insertions(+)
-
+diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+index e509dcbf3090..674b9db7a1ef 100644
+--- a/drivers/acpi/video_detect.c
++++ b/drivers/acpi/video_detect.c
+@@ -823,6 +823,21 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
+ 		},
+ 	},
+ 
++	/*
++	 * Dell AIO (All in Ones) which advertise an UART attached backlight
++	 * controller board in their ACPI tables (and may even have one), but
++	 * which need native backlight control nevertheless.
++	 */
++	{
++	 /* https://bugzilla.redhat.com/show_bug.cgi?id=2303936 */
++	 .callback = video_detect_force_native,
++	 /* Dell OptiPlex 7760 AIO */
++	 .matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
++		DMI_MATCH(DMI_PRODUCT_NAME, "OptiPlex 7760 AIO"),
++		},
++	},
++
+ 	/*
+ 	 * Models which have nvidia-ec-wmi support, but should not use it.
+ 	 * Note this indicates a likely firmware bug on these models and should
 -- 
 2.46.0
 
