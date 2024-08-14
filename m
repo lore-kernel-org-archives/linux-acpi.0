@@ -1,147 +1,148 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32A3C1B86D1;
-	Wed, 14 Aug 2024 16:37:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7516B1BD514
+	for <linux-acpi@vger.kernel.org>; Wed, 14 Aug 2024 19:02:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723653434; cv=none; b=dfG/dVXFewKZlgXfUndyNK1mucbHT7hCBy3ks3h4IQVDpRWoOWl5W6zRCYTZyf+3HojPAwqw0qAquZhgeSoU1saL3k3dxH6h2hUi1lcmBmw72zldHImkk64NYsppU0HeHPJeYuQPf+U2ss2cLUd61oV9a4Hf/1MMny7+Kw1PMsw=
+	t=1723662134; cv=none; b=Z33u2HHzM3Pw+WQ3lH0RIWTH55WRtayASJ6gvy6gBfuOMbz9bY2rynqm+L14NwugGc49cYZoQjOEnE847E/Q/wQVAOxFk/xVX4mezbAbUDy6uBk4G6YNdDxcdbPQy7OZHsA/DsfS31cpMoVhKJM8nv+wc6f+CNhPZ++RzDnhb5A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723653434; c=relaxed/simple;
-	bh=6RJi14OWFncm4pr5rNS4VYJAxaixOf/qt2UvNYUHlGs=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition:In-Reply-To; b=imBJmMron4OiiUlDfQkMc9OeFFmcvrIQAzs1S8w+WxOoy5k0rtermgLf4+zOm3FBemsLv5lY8zqh6Xc2PjwDhYU9ZWVb1f0JF4OSHeuVs2U23172XMtGQIPm26E47FhY89hD7OSxuvsLXoTFm3z3DOtM7VbIMvr2LXnG2552YBI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=h/xMr0H5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723662134; c=relaxed/simple;
+	bh=DGy+c13+26Igia4lcHdcGdci1sn6tyDhQb+bo4/0JFA=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=A19esbuMKBLpkb6cp3C7WaQZQVIXjxhs8w9nV+jBSW+tf7hpsMFAHcRe5EgFb9Xfoz5NUV6wR+cgVip3GtiMsMnTW+kmp7PHeshVAazA+bn3A/Yt31jfhFcYO7kBXgeLHw468Cjuoi3OIBWlDKGTZJ0OTyFMtxVvhNOmxt70kuQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Bmql6bD3; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="h/xMr0H5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66712C116B1;
-	Wed, 14 Aug 2024 16:37:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1723653433;
-	bh=6RJi14OWFncm4pr5rNS4VYJAxaixOf/qt2UvNYUHlGs=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:From;
-	b=h/xMr0H5zKif+MNaGHUajjGxNuAubvRat9btd7tMkvLATRe/2ui4G16qWnZzYjfEb
-	 4kpuHeHKjnJva71CApWlQVD/H/JzFWrOS21FSgW4MS2oLS+Xn7vU6qbjGoQHsrIPbA
-	 jCyDz1h3r7h3nyAr8K/qOJOsjo0OIWagkkhFXRocNXhGsljX2vZwlLhtE+mnCEqJ1x
-	 vFFBDyCiAdwjGVOwx9VAnLl6E7JDI+9umBueXOAMDwfsqg/h33Tkrm4Ua/shR1RIpP
-	 9ecFpA0WM60CQ1hzgM7SqvIUvnKgLMK/Wlo9QIBNXbwo/8r6rTQS4JELFnEY2yn6zd
-	 NpSAEniob9nhg==
-Date: Wed, 14 Aug 2024 11:37:11 -0500
-From: Bjorn Helgaas <helgaas@kernel.org>
-To: shankerwangmiao@gmail.com
-Cc: Ilpo =?utf-8?B?SsOkcnZpbmVu?= <ilpo.jarvinen@linux.intel.com>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>, linux-pci@vger.kernel.org,
-	linux-acpi@vger.kernel.org, linux-mm@kvack.org
-Subject: Re: [PATCH v3] ACPI: PCI: check if the root io space is page aligned
-Message-ID: <20240814163711.GA351420@bhelgaas>
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Bmql6bD3"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1723662131;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=3/HYaNpt+Hxgow8hyB4/IctLXMbXyzlPpsD0bDBpFGE=;
+	b=Bmql6bD3uUY4n6E83qs6luk0Lz4ihuj8FEOswUUre2GqsQNI8RH4GDtAhwel4gyNCqvF59
+	kgHIfNwHB4KR3HShP6xcQH173sPgSUMoCirXRAO2rMicCJaRz1vk5oIb62CiZ8GzzvpE6T
+	G/cpTZ6st3bgZaI3+JTM0eAT1YfyiXM=
+Received: from mx-prod-mc-01.mail-002.prod.us-west-2.aws.redhat.com
+ (ec2-54-186-198-63.us-west-2.compute.amazonaws.com [54.186.198.63]) by
+ relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-264-9ojPAhtCPGakEkwjO7Rkug-1; Wed,
+ 14 Aug 2024 15:02:08 -0400
+X-MC-Unique: 9ojPAhtCPGakEkwjO7Rkug-1
+Received: from mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.12])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mx-prod-mc-01.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 6099A1944CEE;
+	Wed, 14 Aug 2024 19:02:06 +0000 (UTC)
+Received: from shalem.redhat.com (unknown [10.39.192.22])
+	by mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTP id AC0AB19560AA;
+	Wed, 14 Aug 2024 19:02:03 +0000 (UTC)
+From: Hans de Goede <hdegoede@redhat.com>
+To: "Rafael J . Wysocki" <rafael@kernel.org>,
+	=?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+	Andy Shevchenko <andy@kernel.org>
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	dri-devel@lists.freedesktop.org,
+	linux-acpi@vger.kernel.org,
+	platform-driver-x86@vger.kernel.org,
+	stable@vger.kernel.org
+Subject: [PATCH 1/3] ACPI: video: Add Dell UART backlight controller detection
+Date: Wed, 14 Aug 2024 21:01:57 +0200
+Message-ID: <20240814190159.15650-2-hdegoede@redhat.com>
+In-Reply-To: <20240814190159.15650-1-hdegoede@redhat.com>
+References: <20240814190159.15650-1-hdegoede@redhat.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240814-check_pci_probe_res-v3-1-b6eaa6f99032@gmail.com>
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 3.0 on 10.30.177.12
 
-[+cc linux-mm for vmap page alignment checking question]
+Dell All In One (AIO) models released after 2017 use a backlight
+controller board connected to an UART.
 
-On Wed, Aug 14, 2024 at 08:09:15PM +0800, Miao Wang via B4 Relay wrote:
-> From: Miao Wang <shankerwangmiao@gmail.com>
-> 
-> When the IO resource given by _CRS method is not page aligned, especially
-> when the page size is larger than 4KB, serious problems will happen
-> because the misaligned address is passed down to pci_remap_iospace(),
-> then to vmap_page_range(), and finally to vmap_pte_range(), where the
-> length between addr and end is expected to be divisible by PAGE_SIZE, or
-> the loop will overrun till the pfn_none check fails.
+In DSDT this uart port will be defined as:
 
-What does this problem look like to a user?  Panic, oops, hang,
-warning backtrace?  I assume this is not a regression, but maybe
-something you tripped over because of a BIOS defect?  Does this need
-to be backported to stable kernels?
+   Name (_HID, "DELL0501")
+   Name (_CID, EisaId ("PNP0501")
 
-It seems sort of weird to me that all those vmap_*_range() functions
-take the full page address (not a PFN) and depend on the addr/size
-being page-aligned, but they don't validate the alignment.  But I'm
-not a VM person and I suppose there's a reason for passing the full
-address.
+Commit 484bae9e4d6a ("platform/x86: Add new Dell UART backlight driver")
+has added support for this, but I neglected to tie this into
+acpi_video_get_backlight_type().
 
-But it does mean that other users of vmap_page_range() are also
-potentially susceptible to this issue, e.g., vmap(), vm_map_ram(),
-ioremap_page_range(), etc., so I'm not sure that
-acpi_pci_root_remap_iospace() is the best place to check the
-alignment.
+Now the first AIO has turned up which has not only the DSDT bits for this,
+but also an actual controller attached to the UART, yet it is not using
+this controller for backlight control.
 
-> Signed-off-by: Miao Wang <shankerwangmiao@gmail.com>
-> ---
-> Changes in v3:
-> - Adjust code formatting.
-> - Reword the commit message for further description of the possible reason
->   leading to misaligned IO resource addresses.
-> - Link to v2: https://lore.kernel.org/r/20240814-check_pci_probe_res-v2-1-a03c8c9b498b@gmail.com
-> 
-> Changes in v2:
-> - Sorry for posting out the draft version in V1, fixed a silly compiling issue.
-> - Link to v1: https://lore.kernel.org/r/20240814-check_pci_probe_res-v1-1-122ee07821ab@gmail.com
-> ---
->  drivers/acpi/pci_root.c | 14 +++++++++++---
->  1 file changed, 11 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> index d0bfb3706801..a425e93024f2 100644
-> --- a/drivers/acpi/pci_root.c
-> +++ b/drivers/acpi/pci_root.c
-> @@ -858,7 +858,7 @@ static void acpi_pci_root_validate_resources(struct device *dev,
->  	}
->  }
->  
-> -static void acpi_pci_root_remap_iospace(struct fwnode_handle *fwnode,
-> +static void acpi_pci_root_remap_iospace(struct acpi_device *device,
->  			struct resource_entry *entry)
->  {
->  #ifdef PCI_IOBASE
-> @@ -868,7 +868,15 @@ static void acpi_pci_root_remap_iospace(struct fwnode_handle *fwnode,
->  	resource_size_t length = resource_size(res);
->  	unsigned long port;
->  
-> -	if (pci_register_io_range(fwnode, cpu_addr, length))
-> +	if (!PAGE_ALIGNED(cpu_addr) || !PAGE_ALIGNED(length) ||
-> +	    !PAGE_ALIGNED(pci_addr)) {
-> +		dev_err(&device->dev,
-> +			FW_BUG "I/O resource %pR or its offset %pa is not page aligned\n",
-> +			res, &entry->offset);
-> +		goto err;
-> +	}
-> +
-> +	if (pci_register_io_range(&device->fwnode, cpu_addr, length))
->  		goto err;
+Add support to acpi_video_get_backlight_type() for a new dell_uart
+backlight type. So that the existing infra to override the backlight
+control method on the commandline or with DMI quirks can be used.
 
-This change verifies alignment for the ACPI case that leads to the
-pci_remap_iospace() -> vmap_page_range() -> vmap_pte_range() path, but 
-there are others even in drivers/pci/, e.g., pci_remap_iospace() is
-also used in the DT path, where I suppose a defective DT could cause a
-similar issue.
+Fixes: 484bae9e4d6a ("platform/x86: Add new Dell UART backlight driver")
+Cc: stable@vger.kernel.org
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/acpi/video_detect.c | 7 +++++++
+ include/acpi/video.h        | 1 +
+ 2 files changed, 8 insertions(+)
 
->  	port = pci_address_to_pio(cpu_addr);
-> @@ -910,7 +918,7 @@ int acpi_pci_probe_root_resources(struct acpi_pci_root_info *info)
->  	else {
->  		resource_list_for_each_entry_safe(entry, tmp, list) {
->  			if (entry->res->flags & IORESOURCE_IO)
-> -				acpi_pci_root_remap_iospace(&device->fwnode,
-> +				acpi_pci_root_remap_iospace(device,
->  						entry);
->  
->  			if (entry->res->flags & IORESOURCE_DISABLED)
-> 
-> ---
-> base-commit: 7c626ce4bae1ac14f60076d00eafe71af30450ba
-> change-id: 20240813-check_pci_probe_res-27e3e6df72b2
-> 
-> Best regards,
-> -- 
-> Miao Wang <shankerwangmiao@gmail.com>
-> 
-> 
+diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+index c11cbe5b6eaa..e509dcbf3090 100644
+--- a/drivers/acpi/video_detect.c
++++ b/drivers/acpi/video_detect.c
+@@ -54,6 +54,8 @@ static void acpi_video_parse_cmdline(void)
+ 		acpi_backlight_cmdline = acpi_backlight_nvidia_wmi_ec;
+ 	if (!strcmp("apple_gmux", acpi_video_backlight_string))
+ 		acpi_backlight_cmdline = acpi_backlight_apple_gmux;
++	if (!strcmp("dell_uart", acpi_video_backlight_string))
++		acpi_backlight_cmdline = acpi_backlight_dell_uart;
+ 	if (!strcmp("none", acpi_video_backlight_string))
+ 		acpi_backlight_cmdline = acpi_backlight_none;
+ }
+@@ -918,6 +920,7 @@ enum acpi_backlight_type __acpi_video_get_backlight_type(bool native, bool *auto
+ 	static DEFINE_MUTEX(init_mutex);
+ 	static bool nvidia_wmi_ec_present;
+ 	static bool apple_gmux_present;
++	static bool dell_uart_present;
+ 	static bool native_available;
+ 	static bool init_done;
+ 	static long video_caps;
+@@ -932,6 +935,7 @@ enum acpi_backlight_type __acpi_video_get_backlight_type(bool native, bool *auto
+ 				    &video_caps, NULL);
+ 		nvidia_wmi_ec_present = nvidia_wmi_ec_supported();
+ 		apple_gmux_present = apple_gmux_detect(NULL, NULL);
++		dell_uart_present = acpi_dev_present("DELL0501", NULL, -1);
+ 		init_done = true;
+ 	}
+ 	if (native)
+@@ -962,6 +966,9 @@ enum acpi_backlight_type __acpi_video_get_backlight_type(bool native, bool *auto
+ 	if (apple_gmux_present)
+ 		return acpi_backlight_apple_gmux;
+ 
++	if (dell_uart_present)
++		return acpi_backlight_dell_uart;
++
+ 	/* Use ACPI video if available, except when native should be preferred. */
+ 	if ((video_caps & ACPI_VIDEO_BACKLIGHT) &&
+ 	     !(native_available && prefer_native_over_acpi_video()))
+diff --git a/include/acpi/video.h b/include/acpi/video.h
+index 3d538d4178ab..044c463138df 100644
+--- a/include/acpi/video.h
++++ b/include/acpi/video.h
+@@ -50,6 +50,7 @@ enum acpi_backlight_type {
+ 	acpi_backlight_native,
+ 	acpi_backlight_nvidia_wmi_ec,
+ 	acpi_backlight_apple_gmux,
++	acpi_backlight_dell_uart,
+ };
+ 
+ #if IS_ENABLED(CONFIG_ACPI_VIDEO)
+-- 
+2.46.0
+
