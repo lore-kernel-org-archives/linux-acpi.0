@@ -1,126 +1,121 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.11])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69E981B1424;
-	Wed, 14 Aug 2024 12:46:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 439801B29BD;
+	Wed, 14 Aug 2024 14:06:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723639585; cv=none; b=LIbL+4K8DB/SW2qJtW7J3h5pLvL2NOMgnjlEwcoOgOKQ/bUXE0/sA4CGq0jDvO1iM3CHlgoRB3su0XFgVA0make1uWTQH6Mdu8jdxM2fi2XmxsWDEQ+NAHSERqN8IaokOM0DXu+rBk10/3Bv8z2FS62fw6BjPNPPOyVrRB2WZwE=
+	t=1723644398; cv=none; b=l5P2P0r1c2SsP2vORsjM/4N9BMKa0SHu17IqHs2onl5DkVc9UeIwRIo5C4kgHVTCWUXADv+LZSdUoZFhk12fZQvGUVG+Uo26yeHaoz4ZltAYIHXPFQPwW3cMo7LhJZvMfQf0+cRN9EC8qd4ILAV3NVeA5pME0lDcVy02iyrSqj0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723639585; c=relaxed/simple;
-	bh=UWxjYETrwKYpnkeQWK7cdIq4YlS3gl5oLnqpqmIeIrc=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=kGkxpnxNVsCM5I21rwLuU0ZAQGJZzS9HGLT2Ux9lUd4IXIySJMqFCnm2WDFLwAsbR8wVLzREe+IeQ4QzsM68qUaNyUPCjIl3tL89kaBvhvhl4ENITGzDyFwtlivKKojX7I/eV8VJJ6yQFbIPXoKAspFIuJuLns1yF4hKiKxGyX8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.helo=mgamail.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=aeke90bB; arc=none smtp.client-ip=198.175.65.11
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.helo=mgamail.intel.com
+	s=arc-20240116; t=1723644398; c=relaxed/simple;
+	bh=+/gaF3YEZ5Rg+zNdj7tQPt9leIADZ0LAP1MJimY8rac=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=H+d+f+C4wI6YKs+BWwHEjGOkZ0+BjXFWZE1OF1s0T/ZlKhuYYcC5O8412QlsUMfapbMbBUf7H6swUvmVA50L4ZLzt1vxwRCWcgjwQANj4G5pHtCcF991sTRJqa7hAVaITx8sSBR+DJgkpPU0V3MC2JQLOcpv7PKtMcKkoyyK130=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=J/nf9JVa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="aeke90bB"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1723639584; x=1755175584;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=UWxjYETrwKYpnkeQWK7cdIq4YlS3gl5oLnqpqmIeIrc=;
-  b=aeke90bBZF/vGpSOY2euadbD+UabrMTQDeSRVOUR+0n0kPPFsw9bkRlV
-   rq3zBIg2qmC+nOVYf9tEmClub3L8g2tFbdJHkfVxrepwS2+x5WyUlXDuX
-   DTlsC7mp7rBc+MSgv5M4ePmbWtAKYEEXsE+uRHTajNAdmMxgAC3A/1g7O
-   jMomCBcVJOCZXvJv8+wk8p8ibMJgjYlWUTwIpyqC5hQtrOyBmkCA2K2Ya
-   /z7n4dsSOja5dEjTK3wDwrb5roYD4vjQD86uy0BQCofPzwohvIvEAdz+3
-   rBg9jEJ83SY4z5zwhjuLdaIBIF/hrmoUe5j27tQCdd1CZxxwlZLVuKo/h
-   Q==;
-X-CSE-ConnectionGUID: F1ObqZOPTPeLxE4sM8H86w==
-X-CSE-MsgGUID: OX6Iw//0ToucqEqm6mwTEg==
-X-IronPort-AV: E=McAfee;i="6700,10204,11164"; a="32426974"
-X-IronPort-AV: E=Sophos;i="6.10,145,1719903600"; 
-   d="scan'208";a="32426974"
-Received: from orviesa010.jf.intel.com ([10.64.159.150])
-  by orvoesa103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Aug 2024 05:46:20 -0700
-X-CSE-ConnectionGUID: nNw7kFyaQiiiioFI5c8XyQ==
-X-CSE-MsgGUID: C0Yp4WoaQzmKtT+9oxYNuw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.10,145,1719903600"; 
-   d="scan'208";a="58886400"
-Received: from black.fi.intel.com ([10.237.72.28])
-  by orviesa010.jf.intel.com with ESMTP; 14 Aug 2024 05:46:16 -0700
-Received: by black.fi.intel.com (Postfix, from userid 1000)
-	id 8A8153BC; Wed, 14 Aug 2024 15:46:14 +0300 (EEST)
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-To: Thomas Gleixner <tglx@linutronix.de>,
-	Ingo Molnar <mingo@redhat.com>,
-	Borislav Petkov <bp@alien8.de>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	x86@kernel.org,
-	"H. Peter Anvin" <hpa@zytor.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Andy Lutomirski <luto@kernel.org>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Baoquan He <bhe@redhat.com>
-Cc: Ard Biesheuvel <ardb@kernel.org>,
-	Tom Lendacky <thomas.lendacky@amd.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Thomas Zimmermann <tzimmermann@suse.de>,
-	Sean Christopherson <seanjc@google.com>,
-	linux-kernel@vger.kernel.org,
-	linux-acpi@vger.kernel.org,
-	"Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: [PATCHv2 3/4] x86/64/kexec: Map original relocate_kernel() in init_transition_pgtable()
-Date: Wed, 14 Aug 2024 15:46:12 +0300
-Message-ID: <20240814124613.2632226-4-kirill.shutemov@linux.intel.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20240814124613.2632226-1-kirill.shutemov@linux.intel.com>
-References: <20240814124613.2632226-1-kirill.shutemov@linux.intel.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="J/nf9JVa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6316FC116B1;
+	Wed, 14 Aug 2024 14:06:32 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1723644397;
+	bh=+/gaF3YEZ5Rg+zNdj7tQPt9leIADZ0LAP1MJimY8rac=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=J/nf9JVa+Xjkx5sPwnC10znwjrfTmOOCoqjNdRo4ANX9SWBpjUlX0u8CG6p3UbFoI
+	 OzHhOEfslIzPPBT97HxYjqFHNDSj74LZLznjsHLVrjxUpnL8/H4BXz0Rnvly+o/5/H
+	 /kYefFt/ip1v8L1QM8Sorw2COWy8dApXeOAJHDL7V2nfGCQwXQxRz2CaAHDpalzqfk
+	 CgTW/Ds5s6lR6tA44aANMjB6AcAih7vy8+vecar/YpgOGD+HGhtEyRGXve9603NoIF
+	 hvTiF3dRZyxslrp4pjokRRjbnFOG+h7blTKm+2G2+ULsYUASIXDKDnBCJHFhVey5AY
+	 gVtDQkQXFqy5g==
+Message-ID: <2eb416b1-09b7-411d-8070-883238883403@kernel.org>
+Date: Wed, 14 Aug 2024 16:06:30 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3 2/3] dt-bindings: platform: Add Surface System
+ Aggregator Module
+To: Konrad Dybcio <konradybcio@kernel.org>, Rob Herring <robh@kernel.org>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ Jiri Slaby <jirislaby@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>,
+ Conor Dooley <conor+dt@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>,
+ Len Brown <lenb@kernel.org>, Maximilian Luz <luzmaximilian@gmail.com>,
+ Hans de Goede <hdegoede@redhat.com>,
+ =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
+Cc: Marijn Suijten <marijn.suijten@somainline.org>,
+ linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org,
+ devicetree@vger.kernel.org, linux-acpi@vger.kernel.org,
+ platform-driver-x86@vger.kernel.org, Bjorn Andersson <andersson@kernel.org>,
+ Konrad Dybcio <quic_kdybcio@quicinc.com>
+References: <20240814-topic-sam-v3-0-a84588aad233@quicinc.com>
+ <20240814-topic-sam-v3-2-a84588aad233@quicinc.com>
+From: Krzysztof Kozlowski <krzk@kernel.org>
+Content-Language: en-US
+Autocrypt: addr=krzk@kernel.org; keydata=
+ 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 fv0=
+In-Reply-To: <20240814-topic-sam-v3-2-a84588aad233@quicinc.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-The init_transition_pgtable() function sets up transitional page tables.
-It ensures that the relocate_kernel() function is present in the
-identity mapping at the same location as in the kernel page tables.
-relocate_kernel() switches to the identity mapping, and the function
-must be present at the same location in the virtual address space before
-and after switching page tables.
+On 14/08/2024 12:27, Konrad Dybcio wrote:
+> From: Konrad Dybcio <quic_kdybcio@quicinc.com>
+> 
+> Add bindings for the Surface System Aggregator Module (SAM/SSAM), the
+> Microsoft Surface-standard Embedded Controller, used on both x86- and
+> Qualcomm-based devices.
+> 
+> It provides a plethora of functions, depending on what's wired up to
+> it. That includes but is not limited to: fan control, keyboard/touchpad
+> support, thermal sensors, power control, special buttons, tablet mode.
+> 
+> Signed-off-by: Konrad Dybcio <quic_kdybcio@quicinc.com>
+> ---
 
-init_transition_pgtable() maps a copy of relocate_kernel() in
-image->control_code_page at the relocate_kernel() virtual address, but
-the original physical address of relocate_kernel() would also work.
+Reviewed-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
 
-It is safe to use original relocate_kernel() physical address cannot be
-overwritten until swap_pages() is called, and the relocate_kernel()
-virtual address will not be used by then.
-
-Map the original relocate_kernel() at the relocate_kernel() virtual
-address in the identity mapping. It is preparation to replace the
-init_transition_pgtable() implementation with a call to
-kernel_ident_mapping_init().
-
-Note that while relocate_kernel() switches to the identity mapping, it
-does not flush global TLB entries (CR4.PGE is not cleared). This means
-that in most cases, the kernel still runs relocate_kernel() from the
-original physical address before the change.
-
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
----
- arch/x86/kernel/machine_kexec_64.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/arch/x86/kernel/machine_kexec_64.c b/arch/x86/kernel/machine_kexec_64.c
-index 9c9ac606893e..645690e81c2d 100644
---- a/arch/x86/kernel/machine_kexec_64.c
-+++ b/arch/x86/kernel/machine_kexec_64.c
-@@ -157,7 +157,7 @@ static int init_transition_pgtable(struct kimage *image, pgd_t *pgd)
- 	pte_t *pte;
- 
- 	vaddr = (unsigned long)relocate_kernel;
--	paddr = __pa(page_address(image->control_code_page)+PAGE_SIZE);
-+	paddr = __pa(relocate_kernel);
- 	pgd += pgd_index(vaddr);
- 	if (!pgd_present(*pgd)) {
- 		p4d = (p4d_t *)get_zeroed_page(GFP_KERNEL);
--- 
-2.43.0
+Best regards,
+Krzysztof
 
