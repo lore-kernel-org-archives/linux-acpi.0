@@ -1,142 +1,106 @@
-Received: from flow8-smtp.messagingengine.com (flow8-smtp.messagingengine.com [103.168.172.143])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f54.google.com (mail-pj1-f54.google.com [209.85.216.54])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53ADB1AC8AC;
-	Thu, 15 Aug 2024 11:11:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.143
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B191619D89D;
+	Thu, 15 Aug 2024 13:04:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723720278; cv=none; b=FZxbwynd08E88lhgjD8rB1q0Xj86GarggNFTcErDakxpRwd8pQRTLbgtn2zVy05y5JsqnTb/sbMemtA4tUDad7AjYRQWQvLQDqCNSWVjSyg9zzIE0Qfd45dezcNttgTZRSa3UkDYr+YwaHVSZB0UxUQdCV8jDj7+ujH8WPrpMnY=
+	t=1723727083; cv=none; b=poUamoVqiOp0bCZbhXcKsCY1GO0wVcmu1xU45StTw2krgi2uwOCt2T5yKQrZMdqkQ1ahiKtk+fzrIKWG+weY9zZzNOQeU/RG2ViFtyZw5XxyyRJOHGqLZO1EUuDLcTasM+1Uafoq8fXUwLSj5g1Vhw50FK81Iqv2b5ii8X4PE4s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723720278; c=relaxed/simple;
-	bh=cM/oa+aXFrNIzMB4+mBWw40HctDtv+Aci9IQkyQCuug=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=b+oLQYWx8j5va+GZvxrBv7X+PN5WAA0/TGXFVhLnQXzju3PLQRzfUNyJ8fMUJaQV72i1tpENdUB6mfMGG5E2OXigKIfHXDqWGqUxz9yFOvmuIqbVVPVOj5chR+q1Jmndyq1huyGajLbg/NcYnFiekh9ANq1498mZCdERRXxgVS8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kroah.com; spf=pass smtp.mailfrom=kroah.com; dkim=pass (2048-bit key) header.d=kroah.com header.i=@kroah.com header.b=iBR1wMYI; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=KVMre4P/; arc=none smtp.client-ip=103.168.172.143
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kroah.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kroah.com
+	s=arc-20240116; t=1723727083; c=relaxed/simple;
+	bh=CDgGq5qU3Wr0Pir/YqVs7Al/PZ/iVw/ki/I4EssR9Gs=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=Oxh2i9Rki4tB9HqnNUIzTnX64cC0i0ZJR8nNbthAoHD/bwDGO8PGE5xVn37iFspLi6CPDQ1y4zcFxGblVTHXE4RptgdZgKpWif1nnNcfrmWf+0NL1BQP+z2EOHTEBc/45vuJFBrHT9OPKlLHpn7HVTTposuG/qhDYEN4e7BxGUE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Bv7HjBoR; arc=none smtp.client-ip=209.85.216.54
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kroah.com header.i=@kroah.com header.b="iBR1wMYI";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="KVMre4P/"
-Received: from phl-compute-07.internal (phl-compute-07.nyi.internal [10.202.2.47])
-	by mailflow.nyi.internal (Postfix) with ESMTP id 464B5200A34;
-	Thu, 15 Aug 2024 05:24:26 -0400 (EDT)
-Received: from phl-mailfrontend-01 ([10.202.2.162])
-  by phl-compute-07.internal (MEProxy); Thu, 15 Aug 2024 05:24:26 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kroah.com; h=cc
-	:cc:content-type:content-type:date:date:from:from:in-reply-to
-	:in-reply-to:message-id:mime-version:references:reply-to:subject
-	:subject:to:to; s=fm3; t=1723713866; x=1723721066; bh=DJrlepPVyE
-	+yZqIgbQ54BkO2ZvNmAfile0WCqAW+g3Q=; b=iBR1wMYIvM5n4U4j9ojUn2xlhC
-	TxvTDAwt/nwgs+2zmiaHQZDMqoqh1T8AGAWcfVi3d5dcZi3Hugw09lt2CFrR2yMG
-	a3VWsCVkCMOsmGZSNweIEkNVa2T3Mi9vFA2VdJ5F03VSiP8uhJ2fGuCccEGMs6g9
-	ENiDFWbPGoL6f7ZGhkknVGz7Fn/trhE+cCNF/6XdM47Jq6uT4zMs7SH/vSdQGY+Q
-	I1Zvf/WWb58YdMlqrCn9x8sKjpUp1oGgr4wcpksLTlzF6ZwgO9X1D2FDZA0iEV7L
-	HPkXEUJgKXP3kjUcNqxZIjr0xAKbP7vAZwFVfMuI+CRNXtOIE5RaHO45qlJg==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-type:content-type:date:date
-	:feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
-	:message-id:mime-version:references:reply-to:subject:subject:to
-	:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
-	fm3; t=1723713866; x=1723721066; bh=DJrlepPVyE+yZqIgbQ54BkO2ZvNm
-	Afile0WCqAW+g3Q=; b=KVMre4P/zOVhUEqNei7d4gCpmWhHoJ7TMwaIs9mXpkIa
-	8Kr1YzdEg/ucwYT+fTLlcQbuzMD3FMfE9iFyix/6pSVMkEiK46LuO0/kIQGVlLsW
-	L3pxTn5aBuEtPK3kER2Kmt8F+Sfo97p67lWcDkt9hMs/IPEwlS1inU+9dKNtqY7D
-	QwxSs8Z3Kk3g6zcVTe6RS4+uKnlM8EBoJEmoJ0dpyLSgzU1JKAVjIXeX/I/yfhQK
-	eOoJ0DzF25tGyR8gS+PzuWSA3d8b2088lRLRjLlYEAGt3eBn7QsbirBbNZH9I+dT
-	Ep1w/wtpcfCdu47jA0BXbP3/xqQ8ET60I9X7KmE1ug==
-X-ME-Sender: <xms:Scm9Zr44ufvsXsylmy04oXubruVNMTwC_NH8lxtvpjrFxphYCzgp0w>
-    <xme:Scm9Zg759fHIramAPVWZWOcfnaWS7Mgl9BnqTgssZwgk5OExyIiGFiyMBIGTT0RN0
-    jO2WS6ej06Whw>
-X-ME-Received: <xmr:Scm9Zif3xbeEDC2d37bvApihyPYrYAptc7X2PiNnCS1r60iWr1xBOQHZ1GsFLzoDFBkLY70AabKozf82Eq2Qo_ujlVzqrznUFcDJvA>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeeftddruddtiedgudegucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdggtfgfnhhsuhgsshgtrhhisggvpdfu
-    rfetoffkrfgpnffqhgenuceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnh
-    htshculddquddttddmnecujfgurhepfffhvfevuffkfhggtggujgesthdtredttddtvden
-    ucfhrhhomhepifhrvghgucfmjfcuoehgrhgvgheskhhrohgrhhdrtghomheqnecuggftrf
-    grthhtvghrnhepheegvdevvdeljeeugfdtudduhfekledtiefhveejkeejuefhtdeufefh
-    gfehkeetnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomh
-    epghhrvghgsehkrhhorghhrdgtohhmpdhnsggprhgtphhtthhopeehtddpmhhouggvpehs
-    mhhtphhouhhtpdhrtghpthhtohepphhivghrrhgvrdhgohhnughoihhssegrrhhmrdgtoh
-    hmpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdho
-    rhhgpdhrtghpthhtoheprhgrfhgrvghlsehkvghrnhgvlhdrohhrghdprhgtphhtthhope
-    hlvghnsgeskhgvrhhnvghlrdhorhhgpdhrtghpthhtohepvhhirhgvshhhrdhkuhhmrghr
-    sehlihhnrghrohdrohhrghdprhgtphhtthhopehrohgsvghrthdrmhhoohhrvgesihhnth
-    gvlhdrtghomhdprhgtphhtthhopehojhgvuggrsehkvghrnhgvlhdrohhrghdprhgtphht
-    thhopegrlhgvgidrghgrhihnohhrsehgmhgrihhlrdgtohhmpdhrtghpthhtohepfigvug
-    hsohhnrghfsehgmhgrihhlrdgtohhm
-X-ME-Proxy: <xmx:Scm9ZsKxLgryY2bIonp-45LEqE5IFULfg2yV1sKSkkOSCR-cf4PBeg>
-    <xmx:Scm9ZvK_saCXo3XcEjOkFk5yNo0CJrsQZSZVCcTVgX2M45Y7G9mXVg>
-    <xmx:Scm9ZlzCIG7C4fIwfrhCpuh07SdtuXzlVJ4FKzCvqmemALBno60U7Q>
-    <xmx:Scm9ZrL6_rnIvDjhmzhOOvu7InSxqGihlTolXs-HCyjcpaijTbm-QA>
-    <xmx:Ssm9ZpTgcQ0NxjHBc_8hQ_LOehZMU26etWUiR8XZL1I9PDF9of7bvgZT>
-Feedback-ID: i787e41f1:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Thu,
- 15 Aug 2024 05:24:24 -0400 (EDT)
-Date: Thu, 15 Aug 2024 11:24:23 +0200
-From: Greg KH <greg@kroah.com>
-To: Pierre Gondois <pierre.gondois@arm.com>
-Cc: linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>,
-	Robert Moore <robert.moore@intel.com>,
-	Miguel Ojeda <ojeda@kernel.org>,
-	Alex Gaynor <alex.gaynor@gmail.com>,
-	Wedson Almeida Filho <wedsonaf@gmail.com>,
-	Boqun Feng <boqun.feng@gmail.com>, Gary Guo <gary@garyguo.net>,
-	=?iso-8859-1?Q?Bj=F6rn?= Roy Baron <bjorn3_gh@protonmail.com>,
-	Benno Lossin <benno.lossin@proton.me>,
-	Andreas Hindborg <a.hindborg@samsung.com>,
-	Alice Ryhl <aliceryhl@google.com>,
-	Martin Rodriguez Reboredo <yakoyoku@gmail.com>,
-	Manos Pitsidianakis <manos.pitsidianakis@linaro.org>,
-	Mika Westerberg <mika.westerberg@linux.intel.com>,
-	FUJITA Tomonori <fujita.tomonori@gmail.com>,
-	Thomas Bertschinger <tahbertschinger@gmail.com>,
-	Danilo Krummrich <dakr@redhat.com>, linux-acpi@vger.kernel.org,
-	linux-pm@vger.kernel.org, acpica-devel@lists.linux.dev,
-	rust-for-linux@vger.kernel.org
-Subject: Re: [RFC PATCH 6/6] rust: cpufreq: Add rust implementation of
- cppc_cpufreq driver
-Message-ID: <2024081519-magenta-giddily-09ad@gregkh>
-References: <20240815082916.1210110-1-pierre.gondois@arm.com>
- <20240815082916.1210110-7-pierre.gondois@arm.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Bv7HjBoR"
+Received: by mail-pj1-f54.google.com with SMTP id 98e67ed59e1d1-2d3c05dc63eso642036a91.0;
+        Thu, 15 Aug 2024 06:04:41 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1723727081; x=1724331881; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=ia3t2Va5NtSu3BetvUd2KwI5mB/axZOmAEnZeyG3umQ=;
+        b=Bv7HjBoRSkwYJp+afAgm6m9wEWXbr+lydKjFjFAa5HCHVOUCx3KwjAblF6ATDo5AP5
+         uXdCWcwcEje2tCelFYELBx2tu9tljmjPvyu8UwUqtgy+eVKJaOr3CCQTjRrIN7ELPCbv
+         2Ry2sBgojVaVT9p0tSBJvFSa8Htk27q693stQ4xMvxh6GWyAGxJJtENnRD84oafH59SY
+         hRdqHXq8v5F6usr6mTG7uC4VL6LnEhMundc3qYuZkf1ZggiouBCH/g/ZiH3q9DelIa/3
+         EhnCpGxXtvpxWKuiVdVnPmFrSGJ0iDvaxMtCbwizePEDPLfzlcXZ7YAU3zLucaHfyuRV
+         mkCA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1723727081; x=1724331881;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=ia3t2Va5NtSu3BetvUd2KwI5mB/axZOmAEnZeyG3umQ=;
+        b=XnKKUyIxCiQn8o/8F5TvfqqXPG22iITBKEbSSkT9jQNXdpbpXAK2PwDJKCreGhqSlz
+         I+3Z/jkuY2Zv5j/4fBWhf42DgOlbtEo9XEVlxucD8gvQz/LB+fiKFiUKCQVAmS9oz4W7
+         NYqzxXs6B9RjUpSPNlUW06YCiptSlU4qLb2yRgz+zXA8MmfB/K8mgTE1fFO4Oa8MXupv
+         GkQxwfKoBeQ4nQEll8ENGWiJr93/JbL2yoscFbJs9MYp7xNRsN6dw64bZEPDbvhkrqwg
+         YjqRAs8lCeQZVvAacjIMjbyY6RFr34rBkQKIBULxgsY1t1kfD3kjx/6hVzTWhvBt/Q8p
+         52ng==
+X-Forwarded-Encrypted: i=1; AJvYcCVO3/J3XugBVcGsbYotU8ZkeeJmM2c9RYCMUaX5ok/0csKBl6wZwezFljuo0v/Np6244SW6BF+S3Ql6YjvCv6F2QTfHaZPlgc9ajOjUdnLzTPhLpJWSNhgV+CNOsc+tydCZsFZA7buLQFEveG+Pge7IKzLHqsDEBtPIrsTeNdhteM3k2CY=
+X-Gm-Message-State: AOJu0YyCMo9iH6K0frof48ic4gF7tsxSbEUzSBclENggs20cj3wvd9Gl
+	VVfFdVu+RhH5++XbC7RADng9z+6GtDaaUbJ8XHxQ7y7uD+JBOGDSN4UNYC/Nt2FebgGpV+iEZ26
+	8d7k8y+MIyGWTrl8+dsf/IrCFZtPTpp2rBwk=
+X-Google-Smtp-Source: AGHT+IGSrLrwuM5RhDoD7uxpi1mK7ij3LB5lI6V4fRyA+cAlhCiR6Vgro+l7Mk/y4jnJPGmGy0vvDkvDt+x+XsPj1nk=
+X-Received: by 2002:a17:90b:4c51:b0:2d3:d0b7:da4 with SMTP id
+ 98e67ed59e1d1-2d3d0b70f31mr1146539a91.19.1723727080832; Thu, 15 Aug 2024
+ 06:04:40 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+References: <20240815082916.1210110-1-pierre.gondois@arm.com> <20240815082916.1210110-7-pierre.gondois@arm.com>
 In-Reply-To: <20240815082916.1210110-7-pierre.gondois@arm.com>
+From: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
+Date: Thu, 15 Aug 2024 15:04:27 +0200
+Message-ID: <CANiq72mjvE7h_aH5tYnuuzdPHAzDUpioMi-h44HNCro8qFfDSw@mail.gmail.com>
+Subject: Re: [RFC PATCH 6/6] rust: cpufreq: Add rust implementation of
+ cppc_cpufreq driver
+To: Pierre Gondois <pierre.gondois@arm.com>
+Cc: linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Len Brown <lenb@kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>, 
+	Robert Moore <robert.moore@intel.com>, Miguel Ojeda <ojeda@kernel.org>, 
+	Alex Gaynor <alex.gaynor@gmail.com>, Wedson Almeida Filho <wedsonaf@gmail.com>, 
+	Boqun Feng <boqun.feng@gmail.com>, Gary Guo <gary@garyguo.net>, 
+	=?UTF-8?Q?Bj=C3=B6rn_Roy_Baron?= <bjorn3_gh@protonmail.com>, 
+	Benno Lossin <benno.lossin@proton.me>, Andreas Hindborg <a.hindborg@samsung.com>, 
+	Alice Ryhl <aliceryhl@google.com>, Martin Rodriguez Reboredo <yakoyoku@gmail.com>, 
+	Manos Pitsidianakis <manos.pitsidianakis@linaro.org>, 
+	Mika Westerberg <mika.westerberg@linux.intel.com>, 
+	FUJITA Tomonori <fujita.tomonori@gmail.com>, Thomas Bertschinger <tahbertschinger@gmail.com>, 
+	Danilo Krummrich <dakr@redhat.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, 
+	acpica-devel@lists.linux.dev, rust-for-linux@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, Aug 15, 2024 at 10:29:10AM +0200, Pierre Gondois wrote:
+On Thu, Aug 15, 2024 at 10:31=E2=80=AFAM Pierre Gondois <pierre.gondois@arm=
+.com> wrote:
+>
 > In an effort to add test/support the cpufreq framework in rust,
 > add a rust implementation of the cppc_cpufreq driver named:
 > `rcppc_cpufreq`.
-> 
-> This implementation doesn't support/implement:
-> - vendor specific workarounds
-> - Frequency Invariance Engine (FIE)
-> - artificial Energy Model (EM)
-> - (struct cpufreq_driver).attr field
-> - QoS requests
-> 
-> Basic support is provided to get/set the frequency on a platform
-> implementing the CPPC section of the ACPI spec.
-> 
-> Signed-off-by: Pierre Gondois <pierre.gondois@arm.com>
-> ---
->  drivers/cpufreq/Kconfig          |  16 ++
->  drivers/cpufreq/Makefile         |   1 +
->  drivers/cpufreq/rcppc_cpufreq.rs | 333 +++++++++++++++++++++++++++++++
->  3 files changed, 350 insertions(+)
->  create mode 100644 drivers/cpufreq/rcppc_cpufreq.rs
 
-I'm missing why you want to re-implement an existing driver here.  Why
-are you going to have 2 drivers for the same functionality/hardware?
+Similar to what Greg said -- is this intended to be something like a
+"Rust reference driver" [1] for the subsystem?
 
-How is the system going to handle switching between the two drivers?
+[1] https://rust-for-linux.com/rust-reference-drivers
 
-thanks,
+> +       depends on ACPI_PROCESSOR
+> +       depends on ARM || ARM64 || RISCV
 
-greg k-h
+`depends on RUST`?
+
+Also, I imagine you skipped all safety comments etc. since it is an
+RFC, but I thought I would mention it nevertheless.
+
+Thanks for experimenting with Rust!
+
+Cheers,
+Miguel
