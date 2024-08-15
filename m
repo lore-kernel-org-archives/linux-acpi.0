@@ -1,103 +1,85 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.15])
+Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D736613C80C;
-	Thu, 15 Aug 2024 09:18:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.15
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5756D1AC88C;
+	Thu, 15 Aug 2024 10:57:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723713521; cv=none; b=cmUitm8R3h7bnFby5mvZYINOjwSL+vtLaBdf3uiHkCA85waUHhq8fFc2ffPK+A6GAkAw5yybs5cPeOAVcN8g5EulRkwlmC7F+IJ2JcotNNvg5g1meUksuHpTRiLPBSXX/188wfDk64yqFCthp+6WtFfrp1MLhdn/U5u93RbMTrE=
+	t=1723719473; cv=none; b=Aa7nJxkSeTJs1frqjhxik73BPzkPbYcr18TbPEM083kpS9iQTyr/oSoc6FarAMb0axCf1/ILT5K60Fz2kF/TCW7w0dAvNUJnDuWTqXUFlMsmYbesDPgQoHGPC7hYg1uAmlLTPpSa/DUY0RqQMGgkleBJ+DjihfgX+k0w9BzdfIs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723713521; c=relaxed/simple;
-	bh=Vn/33MWONqQw9slQOdPWYKBhOYVMnF8T4GyznBvYU0E=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Ois5FC5GLmb4vcW2dN43WuvSTHeD3l4VaMuEgftxxpVH8MGAC4tyhyqA3ypG2suKdelGPjjrM+00MRvUtPOhdoacisgdwL2iKN+GWWF7auvPH8sNb9dEBioSrVsTNiRVFzMYraz7fxa6u3CAsuTeXDr2cXAg3grktpTlZje/zQg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=XzzTemNC; arc=none smtp.client-ip=192.198.163.15
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1723719473; c=relaxed/simple;
+	bh=OR897adyomGx6ta2gTUOROeKGS/AwcNG/7KEA8caKhw=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=H+eFr3wld2MLRXK+RpIWVS1IGm5xkBZlVbLM7k2K60B8foNcTsrqOqndrmKfgkSNQ9e4N1ABexoU62Zvw7r9Q7tZBYVrGOFIZU+o0tf2bBm1O7giEGifYXC4mUI6kQ5oD8m5hEiHJIg03tYte9MEYz/VKSZb5ctJ5jQGBKCvf8o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=fNHIL7NF; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=hBt6hR7X; arc=none smtp.client-ip=193.142.43.55
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="XzzTemNC"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1723713520; x=1755249520;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=Vn/33MWONqQw9slQOdPWYKBhOYVMnF8T4GyznBvYU0E=;
-  b=XzzTemNCKecOD3Ej38gqVqK0nVoRnMziI+RDOeUrtxqbAtO1ut1Kiwyc
-   gVsBi8x8yiMyjqfFvJiNqzi5GijqkENQwY4yBkIQaiU5Uez0MTfTFFii8
-   PdZnyTHnxko3AJSXeSUTV9y38TKnmM3ThqhVLw6aZySbl/pWhq++woRzj
-   o5yemTRThMWqpzFAE4CRusoPXxRk4rtzRw21tO0JXZ594+xneReJ3pYjR
-   zfF4J8x8uYImzOEjUvEzFVVkuEYSAVMpODD6I1EUsSsl4OcUA5Ln5MZ3+
-   qmJJAQA9b0Ga6u7uBEjP7Y5ix+3cmbtGgymi4N1bLyA2MQh2pAMx6fA4A
-   g==;
-X-CSE-ConnectionGUID: 6bTJUHJ2RwWxZEhp061D8w==
-X-CSE-MsgGUID: g5uKaAVFReSi1TjW7crcYQ==
-X-IronPort-AV: E=McAfee;i="6700,10204,11164"; a="22124144"
-X-IronPort-AV: E=Sophos;i="6.10,148,1719903600"; 
-   d="scan'208";a="22124144"
-Received: from orviesa002.jf.intel.com ([10.64.159.142])
-  by fmvoesa109.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Aug 2024 02:18:39 -0700
-X-CSE-ConnectionGUID: DxkNY6K7QfCGjdGCUomwQw==
-X-CSE-MsgGUID: B7jVgnBKTB6YXtsQJI21sQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.10,148,1719903600"; 
-   d="scan'208";a="89996985"
-Received: from black.fi.intel.com ([10.237.72.28])
-  by orviesa002.jf.intel.com with ESMTP; 15 Aug 2024 02:18:33 -0700
-Received: by black.fi.intel.com (Postfix, from userid 1000)
-	id 3AC9339D; Thu, 15 Aug 2024 12:18:32 +0300 (EEST)
-Date: Thu, 15 Aug 2024 12:18:32 +0300
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-To: Baoquan He <bhe@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>, 
-	Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
-	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>, 
-	"Rafael J. Wysocki" <rafael@kernel.org>, Andy Lutomirski <luto@kernel.org>, 
-	Peter Zijlstra <peterz@infradead.org>, Ard Biesheuvel <ardb@kernel.org>, 
-	Tom Lendacky <thomas.lendacky@amd.com>, Andrew Morton <akpm@linux-foundation.org>, 
-	Thomas Zimmermann <tzimmermann@suse.de>, Sean Christopherson <seanjc@google.com>, 
-	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, kexec@lists.infradead.org
-Subject: Re: [PATCHv2 3/4] x86/64/kexec: Map original relocate_kernel() in
- init_transition_pgtable()
-Message-ID: <6a5jgjdwnjseqxsxfzfcyflqyrpmzr7n5ki5haxc3e6llu5cbe@3lmi4qbfol7q>
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="fNHIL7NF";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="hBt6hR7X"
+From: Thomas Gleixner <tglx@linutronix.de>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020; t=1723719470;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=A8ebSU8/6XZn/8ULIh3Q/WZP2fvFGkPefnWFmwKN9UM=;
+	b=fNHIL7NFy3j+g1DPbddkuRqf4tichpEWQzTSwt6b6rliU183ZQD9rSaVnUWWNOHOw8HxGJ
+	iNfUp5aUvemQt+MO8csAQlcO/EouyMWWMrhOHxQxgZqSGyI21RRhRlKOGB6L8eglJt8euy
+	+M8zDp1lPZV9eHiatQ5k9ufmnewcYyd9ieo5ztSsqKES9aDTHfwZop0zV7//44hr42pGB4
+	ODsD2FgLM95i76U73TJXduX/DDhMthuu/wAsnrmo6N9rSJgXUXMt3jlw7UtT+bM5Hdok9D
+	WJw1vKd1TQOHi+MbRI28f63aV51DOu2xsi1ZvYbNT1CKY23Dt2Yg3DGp5OqdvA==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020e; t=1723719470;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=A8ebSU8/6XZn/8ULIh3Q/WZP2fvFGkPefnWFmwKN9UM=;
+	b=hBt6hR7XhsC4/kP0g8rbOg1cvUe/nPv9tT3CbjPUmAXR2oeyPOnkbfwScKFrED+4Dc/IcZ
+	VDvjKRn8LLEx34CA==
+To: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Dave
+ Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, "H. Peter Anvin"
+ <hpa@zytor.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Andy Lutomirski
+ <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Baoquan He
+ <bhe@redhat.com>, Ard Biesheuvel <ardb@kernel.org>, Tom Lendacky
+ <thomas.lendacky@amd.com>, Andrew Morton <akpm@linux-foundation.org>,
+ Thomas Zimmermann <tzimmermann@suse.de>, Sean Christopherson
+ <seanjc@google.com>, linux-kernel@vger.kernel.org,
+ linux-acpi@vger.kernel.org, Kai Huang <kai.huang@intel.com>
+Subject: Re: [PATCHv2 1/4] x86/mm/ident_map: Fix virtual address wrap to zero
+In-Reply-To: <5iijyqzxd3ccranzvmfgvf3mvkesfbjsuggtuppa5wf6z444dd@ft5h2m6u2ggw>
 References: <20240814124613.2632226-1-kirill.shutemov@linux.intel.com>
- <20240814124613.2632226-4-kirill.shutemov@linux.intel.com>
- <Zr2dDKP4JuRUSOL3@MiWiFi-R3L-srv>
+ <20240814124613.2632226-2-kirill.shutemov@linux.intel.com>
+ <87cymaoqj4.ffs@tglx>
+ <5iijyqzxd3ccranzvmfgvf3mvkesfbjsuggtuppa5wf6z444dd@ft5h2m6u2ggw>
+Date: Thu, 15 Aug 2024 12:57:49 +0200
+Message-ID: <87wmkim4sy.ffs@tglx>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Zr2dDKP4JuRUSOL3@MiWiFi-R3L-srv>
+Content-Type: text/plain
 
-On Thu, Aug 15, 2024 at 02:15:40PM +0800, Baoquan He wrote:
-> Cc Eric and kexec mailing list.
-> 
-> On 08/14/24 at 03:46pm, Kirill A. Shutemov wrote:
-> > The init_transition_pgtable() function sets up transitional page tables.
-> > It ensures that the relocate_kernel() function is present in the
-> > identity mapping at the same location as in the kernel page tables.
-> > relocate_kernel() switches to the identity mapping, and the function
-> > must be present at the same location in the virtual address space before
-> > and after switching page tables.
-> > 
-> > init_transition_pgtable() maps a copy of relocate_kernel() in
-> > image->control_code_page at the relocate_kernel() virtual address, but
-> > the original physical address of relocate_kernel() would also work.
-> > 
-> > It is safe to use original relocate_kernel() physical address cannot be
-> > overwritten until swap_pages() is called, and the relocate_kernel()
-> > virtual address will not be used by then.
-> 
-> I haven't read these codes for long time, wondering if we still need
-> copy relocate_kernel() to image->control_code_page + PAGE_SIZE as you
-> said.
+On Thu, Aug 15 2024 at 12:15, Kirill A. Shutemov wrote:
+> On Wed, Aug 14, 2024 at 09:25:35PM +0200, Thomas Gleixner wrote:
+>> On Wed, Aug 14 2024 at 15:46, Kirill A. Shutemov wrote:
+>> > Calculation of 'next' virtual address doesn't protect against wrapping
+>> > to zero. It can result in page table corruption and hang. The
+>> > problematic case is possible if user sets high x86_mapping_info::offset.
+>> 
+>> So this should have a Fixes tag, right?
+>
+> Well, I guess we can add
+>
+> Fixes: e4630fdd4763 ("x86/power/64: Always create temporary identity mapping correctly")
+>
+> but the bug is not triggirable with current upstream code.
+>
+> It only wraps to zero if you touch top PGD entry. There's no such users in
+> upstream. Only hibernate_64.c uses x86_mapping_info::offset and it works
+> on direct mapping range which is not top PGD entry.
 
-I think we can get away with only coping starting with identity_mapped().
-But given that KEXEC_CONTROL_CODE_MAX_SIZE is 2K I don't see a reason to
-change anything here.
-
--- 
-  Kiryl Shutsemau / Kirill A. Shutemov
+Fair enough, but please mention that in the change log.
