@@ -1,49 +1,50 @@
 Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2899172BCE;
-	Mon, 19 Aug 2024 14:29:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 595261741DC;
+	Mon, 19 Aug 2024 14:29:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.10
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724077797; cv=none; b=OCmTghARkXtDe0BjJ9gFJicN7E6l2GlCErtu6eFfDqiIFl2YEWffgZh3Mk24NxR45ecE5JMhqOSIU0fXRhUPnTn2kG9dXi0a7Z62X2uDta9Mr8iokwxIzH29yLfDlxyUxYFwllgyYkDzDFsp82I1AH8M2PoB5SmQ1pryFtWDZAk=
+	t=1724077799; cv=none; b=Xo37jqNAMXakX7qFr/WgKrLVz0ps4rY1feoh74n4K4/aay6bsla7KtI4Z/GUyLEqGSRZoLA+LjdeSbyzSc3Fx7SqASfATo879wB00ZclbtMaoWmfuMuICYhb4ajH0c0mRHEYP5/XKv9PU3r+CuZfZnYqNh+ein5gwNwCHVnEAFQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724077797; c=relaxed/simple;
-	bh=3vFAVBemVu5G1r3HkBWDFfS7TdtqyGi99iIkVJzw9PY=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Ai6+Isu61Oijw67OGf4prqtyqu2t+Z8Bq6cly7Ceb969z0JQQe73xnDOS+g5XzX3Bpd95RE7ivffCJ+1Gu4kjOG9uVkmitLW84M3tLAwUKJ9hybcU2BZtS6rMoTcBf6lFuKeLtIAo1DmyTDlhIH4zmew8ynHDQgMaRxlw/LCXK0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=BroEVKs1; arc=none smtp.client-ip=192.198.163.10
+	s=arc-20240116; t=1724077799; c=relaxed/simple;
+	bh=rFuwdwcbQYp8sy5sHNy4OFa8J5BoSjowDcZF++YteB0=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=GSfmwq8KJfuUbI4mnbjOfnlcmy+WsZIZkZ2gXE+E0leBEofsFkZFLVmqnH6TPNM265AkWVmFZfS6tz7RLPTfaBbMsAJzRr1vV3TCSuuDKp0EshkolK0EGKtEjs8Ju1cnjywAK9TQfoXDfij4pCieDpXk/9qToF9mZvXTvfNASK8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Z/jZa4U7; arc=none smtp.client-ip=192.198.163.10
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="BroEVKs1"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Z/jZa4U7"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1724077796; x=1755613796;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=3vFAVBemVu5G1r3HkBWDFfS7TdtqyGi99iIkVJzw9PY=;
-  b=BroEVKs1m/VXgx0+H+x7rHBbEYyvyxKpIZmkbux4D+xhJCE48ifwXbKm
-   TkaSBWqZG6BB+S7HorKc0gatkPrLt10XWlk8m2dL22SoQnAuZnVwBQNQa
-   ozoJfZGh6EiMJi2Zq8exEXNmtS7hyO7WjedUQ50ifyKHrggIu3Ue9jWUb
-   QqWwUsMusa5vxZCVz40S3gPAYeyi5dX9Ht8PBnMDOB/8Haf5y7tqxg5Vt
-   20COoDNSQ7jWmV/VcX3nVxMb6nY98wV8w6+KYMe0QvGUwIiFPEadJxuEx
-   0ra/2+/+OdP8Aa+/UzKlpyG6ApOn79XKul8ssnopqaYG/xY4Dte91aDrt
-   A==;
-X-CSE-ConnectionGUID: e9g6iYBNSIepzx7RgnxdSQ==
-X-CSE-MsgGUID: +fa5viyuSJyIcAPUkYp3fg==
-X-IronPort-AV: E=McAfee;i="6700,10204,11169"; a="33744479"
+  t=1724077798; x=1755613798;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=rFuwdwcbQYp8sy5sHNy4OFa8J5BoSjowDcZF++YteB0=;
+  b=Z/jZa4U7qKrEQEAZIq8tBewCE/GgEhSjdXo0BgB6OQUZ1yg+CGcvgMDu
+   bNw13pBAgRr4jMW6vy3RXuXWCl8gn7cZGNN2jKrvLjkYm0+VecA7eVQVP
+   OBn8zbZn+oa1ElV0JZixO3Yw88aH2Y6+nowkFYB4z9ihz2NM3d34rufty
+   gfaRuSN2q9JxQBQcwlGB2vC4uQ2dQRIHfa+sJwPENBBm/ZkpObMQGOelF
+   GsHFAybr3oJsyXdjckR546ZrYILttqayVO1b8rrSriGRfCptGMSNqhakk
+   sLuexj+mOe2mlKZCsnS0Ubd85EzkVMd67IufCFRPeLUB6bPcYM6o8Cgfa
+   Q==;
+X-CSE-ConnectionGUID: dUHzdR+jR7idL1cluImErQ==
+X-CSE-MsgGUID: nkQf8t19RA2vvJSKkWeMgQ==
+X-IronPort-AV: E=McAfee;i="6700,10204,11169"; a="33744485"
 X-IronPort-AV: E=Sophos;i="6.10,159,1719903600"; 
-   d="scan'208";a="33744479"
+   d="scan'208";a="33744485"
 Received: from fmviesa005.fm.intel.com ([10.60.135.145])
   by fmvoesa104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Aug 2024 07:29:53 -0700
-X-CSE-ConnectionGUID: VoU4aJEGTwuzkfGhXKHkJQ==
-X-CSE-MsgGUID: pyBIB+YtTUW0xEw9aS1BdA==
+X-CSE-ConnectionGUID: h1FjunUMQgmIcbwYzZk/0A==
+X-CSE-MsgGUID: kmiOfzEQQLiS4F+RL2FwCg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.10,159,1719903600"; 
-   d="scan'208";a="64783798"
+   d="scan'208";a="64783797"
 Received: from black.fi.intel.com ([10.237.72.28])
   by fmviesa005.fm.intel.com with ESMTP; 19 Aug 2024 07:29:50 -0700
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-	id 1B34A2D8; Mon, 19 Aug 2024 17:29:49 +0300 (EEST)
+	id 505A15CF; Mon, 19 Aug 2024 17:29:49 +0300 (EEST)
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
 	Bartosz Golaszewski <bartosz.golaszewski@linaro.org>,
@@ -53,10 +54,12 @@ To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
 Cc: Mika Westerberg <mika.westerberg@linux.intel.com>,
 	Linus Walleij <linus.walleij@linaro.org>,
 	Bartosz Golaszewski <brgl@bgdev.pl>
-Subject: [PATCH v2 0/5] gpiolib: Add and utilise for_each_gpio_property_name()
-Date: Mon, 19 Aug 2024 17:28:55 +0300
-Message-ID: <20240819142945.327808-1-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v2 3/5] gpiolib: swnode: Introduce swnode_gpio_get_reference() helper
+Date: Mon, 19 Aug 2024 17:28:58 +0300
+Message-ID: <20240819142945.327808-4-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.43.0.rc1.1336.g36b5255a03ac
+In-Reply-To: <20240819142945.327808-1-andriy.shevchenko@linux.intel.com>
+References: <20240819142945.327808-1-andriy.shevchenko@linux.intel.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -65,28 +68,59 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-There are a few of duplication of the same for-loop against GPIO
-suffixes. This series addresses that along with proposal to eliminate
-the exported gpio_suffix_count by converting the array to be
-NULL-terminated.
+Instead of the spreading simlar code over the file, introduce a helper.
+It also enforces the nargs validation for all GPIO software node APIs.
 
-v2:
-- fixed a rebase issue (LKP)
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/gpio/gpiolib-swnode.c | 20 +++++++++++++-------
+ 1 file changed, 13 insertions(+), 7 deletions(-)
 
-Andy Shevchenko (5):
-  gpiolib: Introduce for_each_gpio_property_name() helper
-  gpiolib: swnode: Unify return code variable name
-  gpiolib: swnode: Introduce swnode_gpio_get_reference() helper
-  gpiolib: swnode: Make use of for_each_gpio_property_name()
-  gpiolib: Replace gpio_suffix_count with NULL-terminated array
-
- drivers/gpio/gpiolib-acpi.c   | 21 ++----------
- drivers/gpio/gpiolib-of.c     | 25 +++------------
- drivers/gpio/gpiolib-swnode.c | 60 ++++++++++++++++-------------------
- drivers/gpio/gpiolib.c        |  3 +-
- drivers/gpio/gpiolib.h        | 16 ++++++++--
- 5 files changed, 49 insertions(+), 76 deletions(-)
-
+diff --git a/drivers/gpio/gpiolib-swnode.c b/drivers/gpio/gpiolib-swnode.c
+index e7ba6cc73966..d5e58a9673b5 100644
+--- a/drivers/gpio/gpiolib-swnode.c
++++ b/drivers/gpio/gpiolib-swnode.c
+@@ -59,6 +59,17 @@ static struct gpio_device *swnode_get_gpio_device(struct fwnode_handle *fwnode)
+ 	return gdev ?: ERR_PTR(-EPROBE_DEFER);
+ }
+ 
++static int swnode_gpio_get_reference(const struct fwnode_handle *fwnode,
++				     const char *propname, unsigned int idx,
++				     struct fwnode_reference_args *args)
++{
++	/*
++	 * We expect all swnode-described GPIOs have GPIO number and
++	 * polarity arguments, hence nargs is set to 2.
++	 */
++	return fwnode_property_get_reference_args(fwnode, propname, NULL, 2, idx, args);
++}
++
+ struct gpio_desc *swnode_find_gpio(struct fwnode_handle *fwnode,
+ 				   const char *con_id, unsigned int idx,
+ 				   unsigned long *flags)
+@@ -75,11 +86,7 @@ struct gpio_desc *swnode_find_gpio(struct fwnode_handle *fwnode,
+ 
+ 	swnode_format_propname(con_id, propname, sizeof(propname));
+ 
+-	/*
+-	 * We expect all swnode-described GPIOs have GPIO number and
+-	 * polarity arguments, hence nargs is set to 2.
+-	 */
+-	ret = fwnode_property_get_reference_args(fwnode, propname, NULL, 2, idx, &args);
++	ret = swnode_gpio_get_reference(fwnode, propname, idx, &args);
+ 	if (ret) {
+ 		pr_debug("%s: can't parse '%s' property of node '%pfwP[%d]'\n",
+ 			__func__, propname, fwnode, idx);
+@@ -128,8 +135,7 @@ int swnode_gpio_count(const struct fwnode_handle *fwnode, const char *con_id)
+ 	 * 1 or 2 entries.
+ 	 */
+ 	count = 0;
+-	while (fwnode_property_get_reference_args(fwnode, propname, NULL, 0,
+-						  count, &args) == 0) {
++	while (swnode_gpio_get_reference(fwnode, propname, count, &args) == 0) {
+ 		fwnode_handle_put(args.fwnode);
+ 		count++;
+ 	}
 -- 
 2.43.0.rc1.1336.g36b5255a03ac
 
