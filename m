@@ -1,163 +1,126 @@
-Received: from mail-wm1-f44.google.com (mail-wm1-f44.google.com [209.85.128.44])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 988F23EA69;
-	Mon, 19 Aug 2024 05:23:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 264541B960;
+	Mon, 19 Aug 2024 07:08:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.9
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724045027; cv=none; b=I9OuatGI3vGxGAQxA2MJmg7l5PtPtd0IMlFH9dDFia6rNMy/yS/sqd1JZVu923trYeFI4YPGOi3sJ2azzB+0ciycs6g6ZxUBGgKxMtFS+Oxv4szi3mrOz4vZwomVVazSFFq/4+vIzGJ9fMJ70et0V2kbiEpharJbktwKvaPv7Qw=
+	t=1724051317; cv=none; b=b85pO3aQOjlMe5iZAszqN7L2QxSE2NM1xLCg8cSmjQRBz9Xo4jWmfquxLn140EtRTnHSq+hV98fWUVGdyvDF3fW1yt9A/Dnu7JRKK0IggcdgqFsOkMIG0fGFzpCs5PRnIfZk2BRU2HiVI9XjM45JBgYwZ0bR61WDcQEBG3EKrmI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724045027; c=relaxed/simple;
-	bh=X3EgMsIbon1gHKAxnq591Y3MaAWr5c+4mgi81laTTTo=;
-	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
-	 In-Reply-To:Content-Type; b=Rt1+3Am4m1Qu/lUcw4m6Y6eGuaSLylcRPqnoyRECi4fxRP1NBtwhKLsQFm2oh73f80dw/zP5xl67Ow1C2LIUX8EPf+5PoscRfFEZm87PU3dUGp/Q66hl9cbmxdeT7nXN3O1HOp9WPfaqk8WFCGuM/XfZYo21fgUWdv0wcCsABrw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.128.44
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-wm1-f44.google.com with SMTP id 5b1f17b1804b1-4281ca54fd3so30924425e9.2;
-        Sun, 18 Aug 2024 22:23:45 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1724045024; x=1724649824;
-        h=content-transfer-encoding:in-reply-to:autocrypt:content-language
-         :references:cc:to:from:subject:user-agent:mime-version:date
-         :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=QRPnZgfuD04mlqn1AsHHKOM++TRQ9dP251PdCGyiwmk=;
-        b=m7UlB4zCUUYP722gxN9+pNWTG6Ajfot/FbP2n+NcNQb9Hir+LA50ImGmqgJ4iPHDed
-         ZH208pWsjWvQvBLRPd8/1mY6DxZm43GspgV2VZTFP3LTbOnxqDKPSElN9v7cJWcerrUa
-         q4O9dELTzNeeGVUdCTw4SrW+xigokVhwSQ3kWLtwOIJjjsJnyUDAYnagg9ymUZKhOvqA
-         aziGa2dq32mjpGCk5/g0P+i3RGGKQtOGDC54uv33LwNkDfR73LYhpNuGqzsvMvez5Je4
-         KTjECMA26q63Urv6DtZNExoWgwgI/QFgDAI+JJPVtDALyfZ/JUGJzsbiFMAOO3fQa/V4
-         9Obw==
-X-Forwarded-Encrypted: i=1; AJvYcCWNQ4iim2tM3lZUoEu85dKx6ePMxsdMlBrFx3eMoLWkCruWq+jK0mB0QaABH6TBi8MCbafoP+T4ZluJcGr8Mry3O8+aGGNXRlJlYCTXkKjGdVQp/5sm4p02znTQR+3FFU+RskhhvfOsYg==
-X-Gm-Message-State: AOJu0YwEr4jLt8+sFIr+oglsrA4lrgYfwVk0wP9WqVkW7n4le62DVKZm
-	6GRss395Wnw0XETKGGRglJODfcUave9OSsNM0hWm/yGDIZuSRjDQ
-X-Google-Smtp-Source: AGHT+IHKzVPlN+RRAyCEZScNVcdul0vfaAZE0h4JYP0WeGlRZ4xobxUDZoF2oj/4yb3KyKR8uZjxNA==
-X-Received: by 2002:a05:600c:4692:b0:425:7bbf:fd07 with SMTP id 5b1f17b1804b1-429ed7856b4mr71755305e9.5.1724045023749;
-        Sun, 18 Aug 2024 22:23:43 -0700 (PDT)
-Received: from ?IPV6:2a0b:e7c0:0:107::aaaa:69? ([2a0b:e7c0:0:107::aaaa:69])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-371898aa229sm9438557f8f.88.2024.08.18.22.23.42
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sun, 18 Aug 2024 22:23:43 -0700 (PDT)
-Message-ID: <782b7159-076a-4064-8333-69c454972b29@kernel.org>
-Date: Mon, 19 Aug 2024 07:23:42 +0200
+	s=arc-20240116; t=1724051317; c=relaxed/simple;
+	bh=UWxjYETrwKYpnkeQWK7cdIq4YlS3gl5oLnqpqmIeIrc=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=SX51M94XyDyGw0ShACHMXQkSeeiWC8oFqpo2RxhhqGKk7rNLC5jkflRIhdeYc1DA2Z31oWoYk9mINOk4fYi6d9vBn2wKgQ4cVj9w4iCi5p3FPNtLGxNJk1tMdCIyQCkdi1dRgQmgf1qMP8JC++o5+sh3FVfrz3pvDsngkUM/Ck8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.helo=mgamail.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=j7uMBitx; arc=none smtp.client-ip=198.175.65.9
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.helo=mgamail.intel.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="j7uMBitx"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1724051316; x=1755587316;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=UWxjYETrwKYpnkeQWK7cdIq4YlS3gl5oLnqpqmIeIrc=;
+  b=j7uMBitxb43s2OjlFqyjHkXMLxcs2SIuWS/0ci5A/z2Kd0PEvPcpKA5b
+   ZTWnV1/3HOaJP2A8vVEIS1J+VKB1eLc3OoMujatxQeWjVeLJ1wGFwXdxi
+   IRQEOj0XT6wyh9igTFnKKL6F5NnCzgs++Y2DxKNHqllmOkTH3AudWzvyP
+   H1CUzI3RUx6TdXBl8QhF40yQC9i7X8uSWh1+M/UHiRqrEJ6Fda1SwfA4p
+   /vZR4NoQp557+C0XrpW9hO9D+7FH4ccz+6WLtW1G7bKg5Q553h4KP8Vuj
+   NBaTZe0qRoKnE9OAIV5aiT8oJ0vPtcIZKZVOxx1jhijbTLRQdykCGn34X
+   Q==;
+X-CSE-ConnectionGUID: XRULnYE9QgKhBbwfxCcqXw==
+X-CSE-MsgGUID: SjyWQuPFT/mZLoOSq7A9hg==
+X-IronPort-AV: E=McAfee;i="6700,10204,11168"; a="44804862"
+X-IronPort-AV: E=Sophos;i="6.10,158,1719903600"; 
+   d="scan'208";a="44804862"
+Received: from orviesa003.jf.intel.com ([10.64.159.143])
+  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Aug 2024 00:08:36 -0700
+X-CSE-ConnectionGUID: HsZlm58LQPykTvOHDHNebA==
+X-CSE-MsgGUID: dRm1BgzDRVK0PBZpSBNM6Q==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.10,158,1719903600"; 
+   d="scan'208";a="65113230"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by orviesa003.jf.intel.com with ESMTP; 19 Aug 2024 00:08:32 -0700
+Received: by black.fi.intel.com (Postfix, from userid 1000)
+	id 72DC6452; Mon, 19 Aug 2024 10:08:30 +0300 (EEST)
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+To: Thomas Gleixner <tglx@linutronix.de>,
+	Ingo Molnar <mingo@redhat.com>,
+	Borislav Petkov <bp@alien8.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	x86@kernel.org,
+	"H. Peter Anvin" <hpa@zytor.com>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Andy Lutomirski <luto@kernel.org>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Baoquan He <bhe@redhat.com>
+Cc: Ard Biesheuvel <ardb@kernel.org>,
+	Tom Lendacky <thomas.lendacky@amd.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Thomas Zimmermann <tzimmermann@suse.de>,
+	Sean Christopherson <seanjc@google.com>,
+	linux-kernel@vger.kernel.org,
+	linux-acpi@vger.kernel.org,
+	"Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: [PATCHv3 3/4] x86/64/kexec: Map original relocate_kernel() in init_transition_pgtable()
+Date: Mon, 19 Aug 2024 10:08:26 +0300
+Message-ID: <20240819070827.3620020-4-kirill.shutemov@linux.intel.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20240819070827.3620020-1-kirill.shutemov@linux.intel.com>
+References: <20240819070827.3620020-1-kirill.shutemov@linux.intel.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: ACPI IRQ storm with 6.10
-From: Jiri Slaby <jirislaby@kernel.org>
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Len Brown <lenb@kernel.org>,
- "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
- Linux kernel mailing list <linux-kernel@vger.kernel.org>,
- Linux regressions mailing list <regressions@lists.linux.dev>,
- Tony Nguyen <anthony.l.nguyen@intel.com>, przemyslaw.kitszel@intel.com,
- intel-wired-lan@lists.osuosl.org, jesse.brandeburg@intel.com,
- "Rafael J. Wysocki" <rafael@kernel.org>, Petr Valenta <petr@jevklidu.cz>
-References: <60ac8988-ace4-4cf0-8c44-028ca741c0a1@kernel.org>
- <bd149809-f670-4b5d-a18a-f1f63624265f@kernel.org>
- <CAJZ5v0jrgC+cvjDfw+vQ1jyVz1oj28uTf9k+-Kk2EAPJj3VmdQ@mail.gmail.com>
- <6eac5c37-a5a8-4ccf-aef6-62a4a0bfcea0@jevklidu.cz>
- <95ef6fd9-6d86-40e2-9814-d1f671b2262d@kernel.org>
-Content-Language: en-US
-Autocrypt: addr=jirislaby@kernel.org; keydata=
- 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
-In-Reply-To: <95ef6fd9-6d86-40e2-9814-d1f671b2262d@kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-On 19. 08. 24, 6:50, Jiri Slaby wrote:
-> CC e1000e guys + Jesse (due to 75a3f93b5383) + Bjorn (due to b2c289415b2b)
+The init_transition_pgtable() function sets up transitional page tables.
+It ensures that the relocate_kernel() function is present in the
+identity mapping at the same location as in the kernel page tables.
+relocate_kernel() switches to the identity mapping, and the function
+must be present at the same location in the virtual address space before
+and after switching page tables.
 
-Bjorn,
+init_transition_pgtable() maps a copy of relocate_kernel() in
+image->control_code_page at the relocate_kernel() virtual address, but
+the original physical address of relocate_kernel() would also work.
 
-I am confused by these changes:
-==========================================
-@@ -291,16 +288,13 @@ static int e1000_set_link_ksettings(struct 
-net_device *net
-dev,
-          * duplex is forced.
-          */
-         if (cmd->base.eth_tp_mdix_ctrl) {
--               if (hw->phy.media_type != e1000_media_type_copper) {
--                       ret_val = -EOPNOTSUPP;
--                       goto out;
--               }
-+               if (hw->phy.media_type != e1000_media_type_copper)
-+                       return -EOPNOTSUPP;
+It is safe to use original relocate_kernel() physical address cannot be
+overwritten until swap_pages() is called, and the relocate_kernel()
+virtual address will not be used by then.
 
-                 if ((cmd->base.eth_tp_mdix_ctrl != ETH_TP_MDI_AUTO) &&
-                     (cmd->base.autoneg != AUTONEG_ENABLE)) {
-                         e_err("forcing MDI/MDI-X state is not supported 
-when lin
-k speed and/or duplex are forced\n");
--                       ret_val = -EINVAL;
--                       goto out;
-+                       return -EINVAL;
-                 }
-         }
+Map the original relocate_kernel() at the relocate_kernel() virtual
+address in the identity mapping. It is preparation to replace the
+init_transition_pgtable() implementation with a call to
+kernel_ident_mapping_init().
 
-@@ -347,7 +341,6 @@ static int e1000_set_link_ksettings(struct 
-net_device *netde
-v,
-         }
+Note that while relocate_kernel() switches to the identity mapping, it
+does not flush global TLB entries (CR4.PGE is not cleared). This means
+that in most cases, the kernel still runs relocate_kernel() from the
+original physical address before the change.
 
-  out:
--       pm_runtime_put_sync(netdev->dev.parent);
-         clear_bit(__E1000_RESETTING, &adapter->state);
-         return ret_val;
-  }
-==========================================
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+---
+ arch/x86/kernel/machine_kexec_64.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-So no more clear_bit(__E1000_RESETTING in the above fail paths. Is that 
-intentional?
-
-thanks,
+diff --git a/arch/x86/kernel/machine_kexec_64.c b/arch/x86/kernel/machine_kexec_64.c
+index 9c9ac606893e..645690e81c2d 100644
+--- a/arch/x86/kernel/machine_kexec_64.c
++++ b/arch/x86/kernel/machine_kexec_64.c
+@@ -157,7 +157,7 @@ static int init_transition_pgtable(struct kimage *image, pgd_t *pgd)
+ 	pte_t *pte;
+ 
+ 	vaddr = (unsigned long)relocate_kernel;
+-	paddr = __pa(page_address(image->control_code_page)+PAGE_SIZE);
++	paddr = __pa(relocate_kernel);
+ 	pgd += pgd_index(vaddr);
+ 	if (!pgd_present(*pgd)) {
+ 		p4d = (p4d_t *)get_zeroed_page(GFP_KERNEL);
 -- 
-js
-suse labs
+2.43.0
 
