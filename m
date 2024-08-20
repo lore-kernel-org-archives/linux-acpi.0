@@ -1,140 +1,173 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+Received: from mail-wm1-f48.google.com (mail-wm1-f48.google.com [209.85.128.48])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 532AD12FB34;
-	Tue, 20 Aug 2024 08:20:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D453118B460
+	for <linux-acpi@vger.kernel.org>; Tue, 20 Aug 2024 08:20:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.48
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724142019; cv=none; b=BwyZrSvE1XCH16nEz3kOIbDyvdx35gr+vKP5jrcxMA0HgIGhbfrIsxSMflITpSuZ9dpVRNybs06VzDLAT7R6uPjW3g3Wo4WP8RDog6MnHW3Apm3fR7ei7tJKf8amCwi5Z0zVKQTdpWcYQorXluWMyH1onL9GLzmM7cg+RUbIjQI=
+	t=1724142042; cv=none; b=D02yd37gZo27FAzPbUOXWirk3qgLCxKL90eJmgBqANa4fGVZupYn/dIO9bbbBRwV9+qpVMdF49yXGnXpdCut5Npiq0R7sHgle8EtfAiaZj7uWs1i/izMvgpNf5GnLOHMut1l7UqTgIpXOO8NsPqL9/hr4XBbUu2ISoQiJG1wIeM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724142019; c=relaxed/simple;
-	bh=b1CjUpKKAmAJsrz+QBxfl9wW3dUj9vcgeCiMN83Ij78=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=JbmrgjL5lEiJ6A7FoMhU/M87KS7QI6P6h5fGzA1hAmzEyAoxQfyBoVX8XPPw4wG6jY1l6ph96gDveeRFmwvrnMO1sqhxfiNEydk88mLeZ+MYhg7pOD09K+641biXpLL+WkzZLel6UMEf6PsIPxIUnHk2+LfYxiguwYcfFVHaHs8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (1024-bit key) header.d=suse.com header.i=@suse.com header.b=YvV/+XCd; dkim=pass (1024-bit key) header.d=suse.com header.i=@suse.com header.b=YvV/+XCd; arc=none smtp.client-ip=195.135.223.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
+	s=arc-20240116; t=1724142042; c=relaxed/simple;
+	bh=U2fujsx9Rc4n0rHEX/kn6T7aFQIMaoi7z30UTc1xBT4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=JL63pJAE5vKNuMK3oHpkJ7Ldg5U5N5PN+XLH46x9kFHt4yo9fuXasLfhMYIqi1nEGCwaQGvpS2kDWkLq6x4TLjK2UjsgqJNzJ8fxPOX9BMnTab0DbDrNk3w3xZ6WVKNigyT8QIaBGF+ofUsNDYtHOxwj9W1CkHyuA6jDCTdJUx8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=cB1B0E0H; arc=none smtp.client-ip=209.85.128.48
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.com header.i=@suse.com header.b="YvV/+XCd";
-	dkim=pass (1024-bit key) header.d=suse.com header.i=@suse.com header.b="YvV/+XCd"
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 7911F1FFB3;
-	Tue, 20 Aug 2024 08:20:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
-	t=1724142015; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=4KYVEXnC+ZhHA3BCFJAEBnlMKyTINJg9vlBPCcs8xc0=;
-	b=YvV/+XCdljrzW8kQlBoIna+DYDrGHvTkBX4owjjkAxCU5Ge1dH2qDBYb/vA4c9x5qCfIb0
-	Yd8CSVZ0qGO2zS6I2AIoQH80IBPWssGlyNUfOCICSYZ9k2VtE+oDPg5Zv7k5WMDN6R0VhP
-	xcU2jEhVfOSE2v2IS5GMjuTrmqD+A9M=
-Authentication-Results: smtp-out2.suse.de;
-	dkim=pass header.d=suse.com header.s=susede1 header.b="YvV/+XCd"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
-	t=1724142015; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=4KYVEXnC+ZhHA3BCFJAEBnlMKyTINJg9vlBPCcs8xc0=;
-	b=YvV/+XCdljrzW8kQlBoIna+DYDrGHvTkBX4owjjkAxCU5Ge1dH2qDBYb/vA4c9x5qCfIb0
-	Yd8CSVZ0qGO2zS6I2AIoQH80IBPWssGlyNUfOCICSYZ9k2VtE+oDPg5Zv7k5WMDN6R0VhP
-	xcU2jEhVfOSE2v2IS5GMjuTrmqD+A9M=
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 1506413A17;
-	Tue, 20 Aug 2024 08:20:15 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id ZzuYA79RxGaSKwAAD6G6ig
-	(envelope-from <jgross@suse.com>); Tue, 20 Aug 2024 08:20:15 +0000
-From: Juergen Gross <jgross@suse.com>
-To: linux-kernel@vger.kernel.org,
-	x86@kernel.org,
-	linux-acpi@vger.kernel.org
-Cc: Juergen Gross <jgross@suse.com>,
-	Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Ingo Molnar <mingo@redhat.com>,
-	Borislav Petkov <bp@alien8.de>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	"H. Peter Anvin" <hpa@zytor.com>,
-	xen-devel@lists.xenproject.org,
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="cB1B0E0H"
+Received: by mail-wm1-f48.google.com with SMTP id 5b1f17b1804b1-428e12f6e56so23685e9.0
+        for <linux-acpi@vger.kernel.org>; Tue, 20 Aug 2024 01:20:39 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1724142038; x=1724746838; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=hSwrIo6MlWvOQ+mcUv6uS1wZ25LrFB1ewOcC/h8kM+Q=;
+        b=cB1B0E0HDINAV4QlIST4084cMK23ljnRmK9UHqmEGmj4uq+TxG9rsyfm9UNvPxLXN/
+         YqCDelr7SQa1UBWuHeHn3g1KEKcSwTSrkXmhH9umqOkWyYmY844AkoAKoxuc6e65Y3zN
+         KxCK55OSX2BA9HthAe4GcIDpymCedtin+TxBjkW6JBUfY9OHXKXFSyRRb1fRBC7macTn
+         m9KuviXsQZdXVQa2PFxsZ8viV5w9gV+HR9eibP/32tcy6CRNgeO6Ypkn+LbDME+6uMK8
+         B/lAuRlT3OQi8/sNXBSFNTb+i7hbl6P3yGq7v+Gzm/wSktROI3dH4nTxaxYlvxtrGJK3
+         CsxQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1724142038; x=1724746838;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=hSwrIo6MlWvOQ+mcUv6uS1wZ25LrFB1ewOcC/h8kM+Q=;
+        b=tAS6KzEloofjwiJbGEGEznflpb3ERPuea0rcePVyToexUrS49WfduNHSHlCtchznJq
+         ZjZydPv/k/K+ZmtCgj2Pry0PLT8NOMm2PmOCvSAXlDKKPx2qUC6KYlHUbL8yLMJ/Yfic
+         OeWi0w2/96n/dVqOyVLilE7i8mTJWeBzqrRLI0tK591wNRz1j9JGdLOgjRFWnENrqep7
+         6HP7qRSpJJ6dozHwO/NdXFXpCWVvI+z4O0y9g8U9VRWN1r9UlhVGP7rm7PpLyThZGe1j
+         sXBRoEqInC5uac2x9QUPtr69MU6gLJ5RIVOjuIntzFGf71oSwzCGRfccDqJGDJGvVctF
+         WdBA==
+X-Forwarded-Encrypted: i=1; AJvYcCVXQEUArkKAhCwO+iiwq1fHpDedqQt5iVnl6Piix4nNch7dc035N40XNatokI3oD1rTXeMzISVVuYID8gu/Bc+7B88FiL/r/idkkw==
+X-Gm-Message-State: AOJu0YyQvWJc9jesxbUK34zsPiyeCLlivQf19WPojyy11CHFb+ehG14B
+	Wxd23xVSq/VyG9XX+cWRSWTlJ/lSx6aAeKmtbZU6qY+OqfPFKBCC1BHSqk84cQ==
+X-Google-Smtp-Source: AGHT+IFkxwYbutMYvAck6HWY9AZnwzgvx67PU4bYEmqMtnbNvH7bwgVYyvbPkbuBgiiDj1GbnYCL7w==
+X-Received: by 2002:a05:600c:a0e:b0:426:66a0:6df6 with SMTP id 5b1f17b1804b1-42ab5bee335mr461955e9.0.1724142037758;
+        Tue, 20 Aug 2024 01:20:37 -0700 (PDT)
+Received: from google.com (203.75.199.104.bc.googleusercontent.com. [104.199.75.203])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-42ab87ef024sm10121515e9.1.2024.08.20.01.20.37
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 20 Aug 2024 01:20:37 -0700 (PDT)
+Date: Tue, 20 Aug 2024 08:20:32 +0000
+From: Mostafa Saleh <smostafa@google.com>
+To: Jason Gunthorpe <jgg@nvidia.com>
+Cc: acpica-devel@lists.linux.dev,
+	Alex Williamson <alex.williamson@redhat.com>,
+	Hanjun Guo <guohanjun@huawei.com>, iommu@lists.linux.dev,
+	Joerg Roedel <joro@8bytes.org>, Kevin Tian <kevin.tian@intel.com>,
+	kvm@vger.kernel.org, Len Brown <lenb@kernel.org>,
+	linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Lorenzo Pieralisi <lpieralisi@kernel.org>,
 	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>
-Subject: [PATCH v2 0/7] xen: fix dom0 PV boot on some AMD machines
-Date: Tue, 20 Aug 2024 10:20:05 +0200
-Message-ID: <20240820082012.31316-1-jgross@suse.com>
-X-Mailer: git-send-email 2.43.0
+	Robert Moore <robert.moore@intel.com>,
+	Robin Murphy <robin.murphy@arm.com>,
+	Sudeep Holla <sudeep.holla@arm.com>, Will Deacon <will@kernel.org>,
+	Eric Auger <eric.auger@redhat.com>,
+	Jean-Philippe Brucker <jean-philippe@linaro.org>,
+	Moritz Fischer <mdf@kernel.org>,
+	Michael Shavit <mshavit@google.com>,
+	Nicolin Chen <nicolinc@nvidia.com>, patches@lists.linux.dev,
+	Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
+Subject: Re: [PATCH 0/8] Initial support for SMMUv3 nested translation
+Message-ID: <ZsRR0MUHPz23zxu3@google.com>
+References: <0-v1-54e734311a7f+14f72-smmuv3_nesting_jgg@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Rspamd-Queue-Id: 7911F1FFB3
-X-Spam-Level: 
-X-Spamd-Result: default: False [-3.01 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	MID_CONTAINS_FROM(1.00)[];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_MISSING_CHARSET(0.50)[];
-	R_DKIM_ALLOW(-0.20)[suse.com:s=susede1];
-	NEURAL_HAM_SHORT(-0.20)[-0.999];
-	MIME_GOOD(-0.10)[text/plain];
-	MX_GOOD(-0.01)[];
-	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	ARC_NA(0.00)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	FROM_HAS_DN(0.00)[];
-	RCPT_COUNT_TWELVE(0.00)[13];
-	MIME_TRACE(0.00)[0:+];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	FUZZY_BLOCKED(0.00)[rspamd.com];
-	FROM_EQ_ENVFROM(0.00)[];
-	DKIM_SIGNED(0.00)[suse.com:s=susede1];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns,suse.com:dkim,suse.com:mid];
-	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
-	RCVD_COUNT_TWO(0.00)[2];
-	RCVD_TLS_ALL(0.00)[];
-	TO_DN_SOME(0.00)[];
-	DKIM_TRACE(0.00)[suse.com:+]
-X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
-X-Rspamd-Action: no action
-X-Spam-Score: -3.01
-X-Spam-Flag: NO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <0-v1-54e734311a7f+14f72-smmuv3_nesting_jgg@nvidia.com>
 
-There have been reports of failed boots with Xen due to an overlap of
-the kernel's memory with ACPI NVS reported in the E820 map of the host.
+Hi Jason,
 
-This series fixes this issue by moving the NVS area in dom0 to some
-higher address.
+On Tue, Aug 06, 2024 at 08:41:13PM -0300, Jason Gunthorpe wrote:
+> This brings support for the IOMMFD ioctls:
+> 
+>  - IOMMU_GET_HW_INFO
+>  - IOMMU_HWPT_ALLOC_NEST_PARENT
+>  - IOMMU_DOMAIN_NESTED
+>  - ops->enforce_cache_coherency()
+> 
+> This is quite straightforward as the nested STE can just be built in the
+> special NESTED domain op and fed through the generic update machinery.
+> 
+> The design allows the user provided STE fragment to control several
+> aspects of the translation, including putting the STE into a "virtual
+> bypass" or a aborting state. This duplicates functionality available by
+> other means, but it allows trivially preserving the VMID in the STE as we
+> eventually move towards the VIOMMU owning the VMID.
+> 
+> Nesting support requires the system to either support S2FWB or the
+> stronger CANWBS ACPI flag. This is to ensure the VM cannot bypass the
+> cache and view incoherent data, currently VFIO lacks any cache flushing
+> that would make this safe.
+> 
+> Yan has a series to add some of the needed infrastructure for VFIO cache
+> flushing here:
+> 
+>  https://lore.kernel.org/linux-iommu/20240507061802.20184-1-yan.y.zhao@intel.com/
+> 
+> Which may someday allow relaxing this further.
+> 
+> Remove VFIO_TYPE1_NESTING_IOMMU since it was never used and superseded by
+> this.
+> 
+> This is the first series in what will be several to complete nesting
+> support. At least:
+>  - IOMMU_RESV_SW_MSI related fixups
+>  - VIOMMU object support to allow ATS invalidations
+>  - vCMDQ hypervisor support for direct invalidation queue assignment
+>  - KVM pinned VMID using VIOMMU for vBTM
+>  - Cross instance S2 sharing
+>  - Virtual Machine Structure using VIOMMU (for vMPAM?)
+>  - Fault forwarding support through IOMMUFD's fault fd for vSVA
+> 
+> It is enough to allow significant amounts of qemu work to progress.
+> 
+Are there any qemu patches to tests this?
+As I am confused with some of the user space bits and that would help.
 
-Changes in V2:
-- split of v1 patch 5
-- new patch 6
+Thanks,
+Mostafa
 
-Juergen Gross (7):
-  xen: use correct end address of kernel for conflict checking
-  xen: introduce generic helper checking for memory map conflicts
-  xen: move checks for e820 conflicts further up
-  xen: move max_pfn in xen_memory_setup() out of function scope
-  xen: add capability to remap non-RAM pages to different PFNs
-  xen: allow mapping ACPI data using a different physical address
-  xen: tolerate ACPI NVS memory overlapping with Xen allocated memory
-
- arch/x86/include/asm/acpi.h        |   8 ++
- arch/x86/kernel/acpi/boot.c        |  10 ++
- arch/x86/kernel/mmconf-fam10h_64.c |   2 +-
- arch/x86/kernel/x86_init.c         |   2 +-
- arch/x86/xen/mmu_pv.c              |   5 +-
- arch/x86/xen/p2m.c                 |  95 ++++++++++++++
- arch/x86/xen/setup.c               | 203 ++++++++++++++++++++++-------
- arch/x86/xen/xen-ops.h             |   6 +-
- 8 files changed, 279 insertions(+), 52 deletions(-)
-
--- 
-2.43.0
-
+> This is on github: https://github.com/jgunthorpe/linux/commits/smmuv3_nesting
+> 
+> Jason Gunthorpe (5):
+>   vfio: Remove VFIO_TYPE1_NESTING_IOMMU
+>   iommu/arm-smmu-v3: Use S2FWB when available
+>   iommu/arm-smmu-v3: Report IOMMU_CAP_ENFORCE_CACHE_COHERENCY for CANWBS
+>   iommu/arm-smmu-v3: Implement IOMMU_HWPT_ALLOC_NEST_PARENT
+>   iommu/arm-smmu-v3: Support IOMMU_DOMAIN_NESTED
+> 
+> Nicolin Chen (3):
+>   ACPI/IORT: Support CANWBS memory access flag
+>   iommu/arm-smmu-v3: Support IOMMU_GET_HW_INFO via struct
+>     arm_smmu_hw_info
+>   iommu/arm-smmu-v3: Add arm_smmu_cache_invalidate_user
+> 
+>  drivers/acpi/arm64/iort.c                   |  13 +
+>  drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c | 398 ++++++++++++++++++--
+>  drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.h |  27 ++
+>  drivers/iommu/arm/arm-smmu/arm-smmu.c       |  16 -
+>  drivers/iommu/io-pgtable-arm.c              |  24 +-
+>  drivers/iommu/iommu.c                       |  10 -
+>  drivers/iommu/iommufd/vfio_compat.c         |   7 +-
+>  drivers/vfio/vfio_iommu_type1.c             |  12 +-
+>  include/acpi/actbl2.h                       |   1 +
+>  include/linux/io-pgtable.h                  |   2 +
+>  include/linux/iommu.h                       |  54 ++-
+>  include/uapi/linux/iommufd.h                |  79 ++++
+>  include/uapi/linux/vfio.h                   |   2 +-
+>  13 files changed, 572 insertions(+), 73 deletions(-)
+> 
+> 
+> base-commit: e5e288d94186b266b062b3e44c82c285dfe68712
+> -- 
+> 2.46.0
+> 
