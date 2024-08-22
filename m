@@ -1,50 +1,50 @@
 Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD748181B87;
-	Thu, 22 Aug 2024 12:40:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A26741C9452;
+	Thu, 22 Aug 2024 12:40:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.13
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724330410; cv=none; b=g6rnf/aNP0iiFAL+wWNSUz4D3X7RZTjiTuMEgLORuyjzWwoxpW69AX7TmYoq3J7aBD38f5hFGpnu/ulpdClRx29e2VnH+kmXNXL79Fbs+UfzkUkVsW/L8WTt+cHOMKpOsgu6/quMyoCULulGSWPgRLOfHkgKFs6A0t0I3bfKa/c=
+	t=1724330411; cv=none; b=noWqGY65ogSAR/NL3SvL1fMQbMCLi3GzruIYvHU91G4Z+RhaWtrE29VrLC2A97crr8+wbldEqDix5nBUo41/xbeOmmjn4GRiGtbuLiP8qaoKDNJko/GTdd/9OJki2x3cHSA1b2I8hobVB/s7jC9qjRSQkWYdDncesQGhR6JPvLE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724330410; c=relaxed/simple;
-	bh=o8GaH3tn8yQHjvX1TbIRinqknzeRTVHuSafiEciVSrc=;
+	s=arc-20240116; t=1724330411; c=relaxed/simple;
+	bh=QQ0UbpyqdIB6+YfJjPDDx6eJHiL0EplzplL8JUqBi1Y=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=IOkP4eXZE1dREZVSv6Le4dAyziTmoy977JMcr7CojjgxoKtSjY7j3SNUpGNgVAmta3L4aWPD+x9sZPKX0YFX5XyLuGBMhxsrw+Xi7ds4Ed9S66RUrrwdWX07Cag+vXEIutAdV/PCL+mBMKhzo5orCtnW57m+z+DNnxpzzsSGveg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.helo=mgamail.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=FdN4PAxV; arc=none smtp.client-ip=192.198.163.13
+	 MIME-Version; b=P69T4lUkHpl+CtRZhuI3QgEAW+lTObbS8Ju3eDgt3jk4PDEgzXu8zjuXs2cN3E1/g5rqEYl5wL0WSvm9GSvIdY5LibUaQqWVt2tosqJpe+qq5C2XV5Gfgpb2rlFPOLGrmtq/UB5OND/b/BSzFPWD2LGUIXbcGBt9fkkp3t3GFFU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.helo=mgamail.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=mM6FDNtr; arc=none smtp.client-ip=192.198.163.13
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.helo=mgamail.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="FdN4PAxV"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="mM6FDNtr"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1724330409; x=1755866409;
+  t=1724330410; x=1755866410;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=o8GaH3tn8yQHjvX1TbIRinqknzeRTVHuSafiEciVSrc=;
-  b=FdN4PAxVJHTdbxPXevO7D7Yv0eJHOg8Cvej6JLuQtWRWxHihPyG1KewW
-   3qboVo/nhovJ6l0v2W7VJQXtsJVoIdIc26U+HefLKRpJbmNzly3tLFvJ9
-   o2IGQocBqCJ7WyBLeXIBK0yGhfvXpuPV0+edDxzVy73nbvF1jLfv9175m
-   8/hN8rp5HHuCbeEGycPUMDGCZfC+S1L5ZJT+p4NLX37lZtEKXzNna+Oo5
-   6fogC3HnXwwxtkULhlteXyyrL34wYg+UdwRzghNbrMkUJXTmwCfuw1rKh
-   GnxI4fL0zN3WT9Qy7hLBZ9ib2ZcUThri+Xq09PHqKKmlngW8VqqA1sBxb
-   w==;
-X-CSE-ConnectionGUID: tx5Nl5WYRqKkyblA150ZrQ==
-X-CSE-MsgGUID: G09r91iOR1OOPeMvyZY6cQ==
-X-IronPort-AV: E=McAfee;i="6700,10204,11172"; a="25635669"
+  bh=QQ0UbpyqdIB6+YfJjPDDx6eJHiL0EplzplL8JUqBi1Y=;
+  b=mM6FDNtrX3g2cWoEB2Y6UX3PpTnvIRjNdJay5l2L7X+HDbxPv/Hwt3hE
+   kWKIxpd1g7p6Q2tC5KSqJPwaDcQEWSX9iZxDhhXPJ6bXl2ynoiriwDt1z
+   ug9REs27zSJTTwgq1L6HUKFm77pjxaE/IoS0IyqO2WFTYSrqFCdADOZEM
+   GNnURKOM6wKWz24lXkZ8oo15dFhZHFmsKKtNqevsYKXf750VANmw7UJAh
+   FSSHx2pPt3POME32lOKY7dYXd5VtGLRzB2l2gKBiOV4kb5qs2opf4MKYz
+   fmBonY0EtMyck1TiZFO5A5cRWf19eoLxbolpn5yeQEgJtYqmkrRVG5Nnw
+   g==;
+X-CSE-ConnectionGUID: aBfRq49DTcGhxyoeuojZeA==
+X-CSE-MsgGUID: EyWXIhf/R5+0QzxnGDBKnQ==
+X-IronPort-AV: E=McAfee;i="6700,10204,11172"; a="25635649"
 X-IronPort-AV: E=Sophos;i="6.10,167,1719903600"; 
-   d="scan'208";a="25635669"
+   d="scan'208";a="25635649"
 Received: from fmviesa008.fm.intel.com ([10.60.135.148])
-  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Aug 2024 05:40:08 -0700
-X-CSE-ConnectionGUID: N+QYkLQWRQy3O0wBzY/BNA==
-X-CSE-MsgGUID: 9JTr/ASpSguPvM1WMUyHYA==
+  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Aug 2024 05:40:07 -0700
+X-CSE-ConnectionGUID: /8lyXqRMRoWLnT3KU/uRSg==
+X-CSE-MsgGUID: T6DzAN3XT52XnPEN5X1CJg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.10,167,1719903600"; 
-   d="scan'208";a="61443076"
+   d="scan'208";a="61443073"
 Received: from black.fi.intel.com ([10.237.72.28])
   by fmviesa008.fm.intel.com with ESMTP; 22 Aug 2024 05:40:03 -0700
 Received: by black.fi.intel.com (Postfix, from userid 1000)
-	id 17D592B3; Thu, 22 Aug 2024 15:40:02 +0300 (EEST)
+	id 3FC324D7; Thu, 22 Aug 2024 15:40:02 +0300 (EEST)
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 To: Thomas Gleixner <tglx@linutronix.de>,
 	Ingo Molnar <mingo@redhat.com>,
@@ -65,9 +65,9 @@ Cc: Ard Biesheuvel <ardb@kernel.org>,
 	linux-acpi@vger.kernel.org,
 	"Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
 	Kai Huang <kai.huang@intel.com>
-Subject: [PATCHv4 1/4] x86/mm/ident_map: Fix virtual address wrap to zero
-Date: Thu, 22 Aug 2024 15:39:57 +0300
-Message-ID: <20240822124000.1171321-2-kirill.shutemov@linux.intel.com>
+Subject: [PATCHv4 3/4] x86/64/kexec: Map original relocate_kernel() in init_transition_pgtable()
+Date: Thu, 22 Aug 2024 15:39:59 +0300
+Message-ID: <20240822124000.1171321-4-kirill.shutemov@linux.intel.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20240822124000.1171321-1-kirill.shutemov@linux.intel.com>
 References: <20240822124000.1171321-1-kirill.shutemov@linux.intel.com>
@@ -79,64 +79,50 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Calculation of 'next' virtual address doesn't protect against wrapping
-to zero. It can result in page table corruption and hang. The
-problematic case is possible if user sets high x86_mapping_info::offset.
+The init_transition_pgtable() function sets up transitional page tables.
+It ensures that the relocate_kernel() function is present in the
+identity mapping at the same location as in the kernel page tables.
+relocate_kernel() switches to the identity mapping, and the function
+must be present at the same location in the virtual address space before
+and after switching page tables.
 
-The wrapping to zero only occurs if the top PGD entry is accessed.
-There are no such users in the upstream. Only hibernate_64.c uses
-x86_mapping_info::offset, and it operates on the direct mapping range,
-which is not the top PGD entry.
+init_transition_pgtable() maps a copy of relocate_kernel() in
+image->control_code_page at the relocate_kernel() virtual address, but
+the original physical address of relocate_kernel() would also work.
 
-Replace manual 'next' calculation with p?d_addr_end() which handles
-wrapping correctly.
+It is safe to use original relocate_kernel() physical address cannot be
+overwritten until swap_pages() is called, and the relocate_kernel()
+virtual address will not be used by then.
+
+Map the original relocate_kernel() at the relocate_kernel() virtual
+address in the identity mapping. It is preparation to replace the
+init_transition_pgtable() implementation with a call to
+kernel_ident_mapping_init().
+
+Note that while relocate_kernel() switches to the identity mapping, it
+does not flush global TLB entries (CR4.PGE is not cleared). This means
+that in most cases, the kernel still runs relocate_kernel() from the
+original physical address before the change.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Reviewed-by: Kai Huang <kai.huang@intel.com>
-Reviewed-by: Tom Lendacky <thomas.lendacky@amd.com>
 ---
- arch/x86/mm/ident_map.c | 14 +++-----------
- 1 file changed, 3 insertions(+), 11 deletions(-)
+ arch/x86/kernel/machine_kexec_64.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/x86/mm/ident_map.c b/arch/x86/mm/ident_map.c
-index 437e96fb4977..5872f3ee863c 100644
---- a/arch/x86/mm/ident_map.c
-+++ b/arch/x86/mm/ident_map.c
-@@ -101,9 +101,7 @@ static int ident_pud_init(struct x86_mapping_info *info, pud_t *pud_page,
- 		pmd_t *pmd;
- 		bool use_gbpage;
+diff --git a/arch/x86/kernel/machine_kexec_64.c b/arch/x86/kernel/machine_kexec_64.c
+index 9c9ac606893e..645690e81c2d 100644
+--- a/arch/x86/kernel/machine_kexec_64.c
++++ b/arch/x86/kernel/machine_kexec_64.c
+@@ -157,7 +157,7 @@ static int init_transition_pgtable(struct kimage *image, pgd_t *pgd)
+ 	pte_t *pte;
  
--		next = (addr & PUD_MASK) + PUD_SIZE;
--		if (next > end)
--			next = end;
-+		next = pud_addr_end(addr, end);
- 
- 		/* if this is already a gbpage, this portion is already mapped */
- 		if (pud_leaf(*pud))
-@@ -154,10 +152,7 @@ static int ident_p4d_init(struct x86_mapping_info *info, p4d_t *p4d_page,
- 		p4d_t *p4d = p4d_page + p4d_index(addr);
- 		pud_t *pud;
- 
--		next = (addr & P4D_MASK) + P4D_SIZE;
--		if (next > end)
--			next = end;
--
-+		next = p4d_addr_end(addr, end);
- 		if (p4d_present(*p4d)) {
- 			pud = pud_offset(p4d, 0);
- 			result = ident_pud_init(info, pud, addr, next);
-@@ -199,10 +194,7 @@ int kernel_ident_mapping_init(struct x86_mapping_info *info, pgd_t *pgd_page,
- 		pgd_t *pgd = pgd_page + pgd_index(addr);
- 		p4d_t *p4d;
- 
--		next = (addr & PGDIR_MASK) + PGDIR_SIZE;
--		if (next > end)
--			next = end;
--
-+		next = pgd_addr_end(addr, end);
- 		if (pgd_present(*pgd)) {
- 			p4d = p4d_offset(pgd, 0);
- 			result = ident_p4d_init(info, p4d, addr, next);
+ 	vaddr = (unsigned long)relocate_kernel;
+-	paddr = __pa(page_address(image->control_code_page)+PAGE_SIZE);
++	paddr = __pa(relocate_kernel);
+ 	pgd += pgd_index(vaddr);
+ 	if (!pgd_present(*pgd)) {
+ 		p4d = (p4d_t *)get_zeroed_page(GFP_KERNEL);
 -- 
 2.43.0
 
