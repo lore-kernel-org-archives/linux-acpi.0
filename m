@@ -1,47 +1,47 @@
 Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 137FF1B86CB;
-	Thu, 29 Aug 2024 18:44:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C8561B7913;
+	Thu, 29 Aug 2024 18:44:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=79.96.170.134
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724957068; cv=none; b=LrUTZy8G7c65W2NxqITaTqHR43yx6MzELj7vuKGR7kG3zvV0em4TjMTtPkSm2ygl7Gon3w0cu9/c7DbowzClZjpa0VNNUUxp68NmpVoDv3mD7JuU2htYT2j3zeCtFnwOzY0wGeoylONWqBHNP5TyAQfLZ8NcFt7eMX0CzaNSGJw=
+	t=1724957068; cv=none; b=sBG/DihXF6FVJtb5eS/6RMszGsj08Desnt6tyNLEjGgmQI1Qs7BIvKwmUAsH+bMKOPdA/e6YsNlaR4/DD5jdiO2LD54pnxAKWhiqtNIk98/2SxrDzpeOscgxPSCT96uekLYvzrWkf0a+6VRRlrZOB9R16njZFsLzRkK4ZScSpvM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1724957068; c=relaxed/simple;
-	bh=f4QawFDrkxc9FYxc2ZnUoqDvFnriRlCrP6Xnwi1lzY0=;
+	bh=mIy9JxvhRIRvLzO+6BkJm+Q6Vl9WccDSq/P3Lw03wgI=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=nKag7IJUDys0k0z4tKFcVjREU1BlhBCDbkIU+Hy5ZM/oi32FQhH9z9ohmdwOKUrXagneLMlhb4Wgc6wmhsQTAqWTHeQ9oRa/HlEWBUpDPkq4VaXvJTWqlgiKGrifBdbXoIGSt7RMpuAVeVGJRA8g3vQkMrP5c5JwtHATSAuYGg4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net; spf=pass smtp.mailfrom=rjwysocki.net; dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b=nA7l2bIu; arc=none smtp.client-ip=79.96.170.134
+	 MIME-Version:Content-Type; b=P/PGiA8zrHDmRTsDTx9E5CJIvmqUG3H6duAws4LZGN7Fcf5UkMe5amn4VxNYGLP7sfPCRE5NtcvKrdczdqy9k2V4FzNsDluzaO+NMarPs4jCA3DxtSyxtgtjx6F7yFugrzYlgNQHM9f5KVDZLCN5rgsFy5lMCcbO5k6fmh26y8A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net; spf=pass smtp.mailfrom=rjwysocki.net; dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b=jVi6pACt; arc=none smtp.client-ip=79.96.170.134
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rjwysocki.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b="nA7l2bIu"
+	dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b="jVi6pACt"
 Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
  by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 6.2.0)
- id 8447b55ca506c874; Thu, 29 Aug 2024 20:44:18 +0200
+ id e9c951e4dd3a5a6d; Thu, 29 Aug 2024 20:44:23 +0200
 Received: from kreacher.localnet (unknown [195.136.19.94])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by cloudserver094114.home.pl (Postfix) with ESMTPSA id DB4F36A8C17;
-	Thu, 29 Aug 2024 20:44:17 +0200 (CEST)
+	by cloudserver094114.home.pl (Postfix) with ESMTPSA id 972706A8C15;
+	Thu, 29 Aug 2024 20:44:22 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=rjwysocki.net;
-	s=dkim; t=1724957058;
-	bh=f4QawFDrkxc9FYxc2ZnUoqDvFnriRlCrP6Xnwi1lzY0=;
+	s=dkim; t=1724957063;
+	bh=mIy9JxvhRIRvLzO+6BkJm+Q6Vl9WccDSq/P3Lw03wgI=;
 	h=From:Subject:Date;
-	b=nA7l2bIutXF6LR525PoZ8sPSTASlzvDnxcQ2u7yaykVeAEuawKJLvPit8ZWixUGHw
-	 tMsJDZprzP5TqiW2pLtzBWQ9MUxf+5NpRHh9H5mvGI7ZHnic0QkyaE3WjEdZUbYJAc
-	 UnjpXa8+ah1rogapsrokUYFL072SB5MvZbMobF3Y1A+JEwB4AODeZ0CexnVKMfycd9
-	 mQvE72nv5gLID1n+nWU3j1mH2BvHKCBGVpMG9HUkRdLR38y13nb+sgtdHCtfR9ued6
-	 2bGgFBpNlnpI6OuO1Q34sf3wwiuDIaV46kCuMwUjvvh8fr40r2lLpqtW3AUV+be8vF
-	 UR07/YNvp3fdg==
+	b=jVi6pACttOrlpM1ujtVt+DTS4KO9ojmHPdn01wdrw7mVqxl+vkCdHqZoLDFpIMrTE
+	 jox2w7uCLujGpAXhs8yR0TdY1qPw2ldhNNFbFWdwp0gDFpBwGXxu1r8gxmMbaeUNO5
+	 OhZ6immaBCF0zVR/vgM3szR2Azwr5vNuoDH2QJNxwS3x/cpKQ2nF6R9alIIWpHKKvX
+	 KYNiwuSXCev5zSOO3AQUtL75kVryuc+zmRhA9PznJBIxqDhEVYLcgQ/LsxjxvS7dDb
+	 TOAXo0s75DrsnM2xHGjkO7/dfmefgliVBKvOCjfCd2Xr/dm56c6Y363/nBrmhM5q28
+	 gZwen6hvcGiQQ==
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>, Bob Moore <robert.moore@intel.com>,
  Saket Dumbre <saket.dumbre@intel.com>
-Subject: [PATCH v1 19/20] ACPICA: Allow for more flexibility in _DSM args
-Date: Thu, 29 Aug 2024 20:43:20 +0200
-Message-ID: <2410511.NG923GbCHz@rjwysocki.net>
+Subject: [PATCH v1 14/20] ACPICA: Update integer-to-hex-string conversions
+Date: Thu, 29 Aug 2024 20:39:15 +0200
+Message-ID: <4378385.ejJDZkT8p0@rjwysocki.net>
 In-Reply-To: <5819337.DvuYhMxLoT@rjwysocki.net>
 References: <5819337.DvuYhMxLoT@rjwysocki.net>
 Precedence: bulk
@@ -55,37 +55,73 @@ Content-Type: text/plain; charset="UTF-8"
 X-CLIENT-IP: 195.136.19.94
 X-CLIENT-HOSTNAME: 195.136.19.94
 X-VADE-SPAMSTATE: clean
-X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgeeftddrudefgedguddvkecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvvefufffkjghfggfgtgesthfuredttddtjeenucfhrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqeenucggtffrrghtthgvrhhnpeeltdeikeekkeevieektefggfetueetfeejveejgeduledvudehieeuvdeiheeiveenucffohhmrghinhepghhithhhuhgsrdgtohhmnecukfhppeduleehrddufeeirdduledrleegnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehinhgvthepudelhedrudefiedrudelrdelgedphhgvlhhopehkrhgvrggthhgvrhdrlhhotggrlhhnvghtpdhmrghilhhfrhhomheprhhjfiesrhhjfiihshhotghkihdrnhgvthdpnhgspghrtghpthhtohepgedprhgtphhtthhopehlihhnuhigqdgrtghpihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehrohgsvghrthdrmhhoohhrvgesihhnthgvlhdrtghomhdprhgtphhtthhopehsrghkvghtrdguuhhmsghrvgesihhnthgvlhdrtghomh
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgeeftddrudefgedguddvkecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvvefufffkjghfggfgtgesthfuredttddtjeenucfhrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqeenucggtffrrghtthgvrhhnpeeltdeikeekkeevieektefggfetueetfeejveejgeduledvudehieeuvdeiheeiveenucffohhmrghinhepghhithhhuhgsrdgtohhmnecukfhppeduleehrddufeeirdduledrleegnecuvehluhhsthgvrhfuihiivgepudenucfrrghrrghmpehinhgvthepudelhedrudefiedrudelrdelgedphhgvlhhopehkrhgvrggthhgvrhdrlhhotggrlhhnvghtpdhmrghilhhfrhhomheprhhjfiesrhhjfiihshhotghkihdrnhgvthdpnhgspghrtghpthhtohepgedprhgtphhtthhopehlihhnuhigqdgrtghpihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehrohgsvghrthdrmhhoohhrvgesihhnthgvlhdrtghomhdprhgtphhtthhopehsrghkvghtrdguuhhmsghrvgesihhnthgvlhdrtghomh
 X-DCC--Metrics: v370.home.net.pl 1024; Body=4 Fuz1=4 Fuz2=4
 
-From: Saket Dumbre <saket.dumbre@intel.com>
+From: Armin Wolf <W_Armin@gmx.de>
 
-ACPICA commit fbb651249ced5e19cc9c4452fec1408f595aa702
+ACPICA commit f2cb44f6deb6325a6b348b225fc82f565a870899
 
-To eliminate annoying driver-side warnings.
+Add "0x" prefix for explicitly converted integers
+and suppress leading zeros in such a case.
+Provides compatibility with other ACPI implementations.
 
-ASWG ECR to follow soon.
-
-Link: https://github.com/acpica/acpica/commit/fbb65124
-Signed-off-by: Saket Dumbre <saket.dumbre@intel.com>
+Link: https://github.com/acpica/acpica/commit/f2cb44f6
+Signed-off-by: Armin Wolf <W_Armin@gmx.de>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/acpica/acpredef.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/acpica/exconvrt.c | 24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-diff --git a/drivers/acpi/acpica/acpredef.h b/drivers/acpi/acpica/acpredef.h
-index 2e442f5a3123..ef068f4c864a 100644
---- a/drivers/acpi/acpica/acpredef.h
-+++ b/drivers/acpi/acpica/acpredef.h
-@@ -450,7 +450,7 @@ const union acpi_predefined_info acpi_gbl_predefined_methods[] = {
+diff --git a/drivers/acpi/acpica/exconvrt.c b/drivers/acpi/acpica/exconvrt.c
+index 9647325d290d..bb1be42daee1 100644
+--- a/drivers/acpi/acpica/exconvrt.c
++++ b/drivers/acpi/acpica/exconvrt.c
+@@ -417,6 +417,16 @@ acpi_ex_convert_to_string(union acpi_operand_object * obj_desc,
+ 			base = 10;
+ 			break;
  
- 	{{"_DSM",
- 	  METHOD_4ARGS(ACPI_TYPE_BUFFER, ACPI_TYPE_INTEGER, ACPI_TYPE_INTEGER,
--		       ACPI_TYPE_PACKAGE),
-+		       ACPI_TYPE_ANY) | ARG_COUNT_IS_MINIMUM,
- 	  METHOD_RETURNS(ACPI_RTYPE_ALL)}},	/* Must return a value, but it can be of any type */
++		case ACPI_EXPLICIT_CONVERT_HEX:
++			/*
++			 * From to_hex_string.
++			 *
++			 * Supress leading zeros and append "0x"
++			 */
++			string_length =
++			    ACPI_MUL_2(acpi_gbl_integer_byte_width) + 2;
++			leading_zeros = FALSE;
++			break;
+ 		default:
  
- 	{{"_DSS", METHOD_1ARGS(ACPI_TYPE_INTEGER),
+ 			/* Two hex string characters for each integer byte */
+@@ -437,6 +447,13 @@ acpi_ex_convert_to_string(union acpi_operand_object * obj_desc,
+ 		}
+ 
+ 		new_buf = return_desc->buffer.pointer;
++		if (type == ACPI_EXPLICIT_CONVERT_HEX) {
++
++			/* Append "0x" prefix for explicit hex conversion */
++
++			*new_buf++ = '0';
++			*new_buf++ = 'x';
++		}
+ 
+ 		/* Convert integer to string */
+ 
+@@ -449,6 +466,13 @@ acpi_ex_convert_to_string(union acpi_operand_object * obj_desc,
+ 		/* Null terminate at the correct place */
+ 
+ 		return_desc->string.length = string_length;
++		if (type == ACPI_EXPLICIT_CONVERT_HEX) {
++
++			/* Take "0x" prefix into account */
++
++			return_desc->string.length += 2;
++		}
++
+ 		new_buf[string_length] = 0;
+ 		break;
+ 
 -- 
 2.43.0
 
