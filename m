@@ -1,99 +1,90 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 209741B5824
-	for <linux-acpi@vger.kernel.org>; Thu, 29 Aug 2024 17:59:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C8241B5832;
+	Thu, 29 Aug 2024 18:44:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=79.96.170.134
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724954355; cv=none; b=UHokmGOH0VfH+cd2hVssaNv/K7NAbloX+DMIL6HZV/i3/Ylbl6KXTif3xUSEaKpnIYEIDdvVYTa0U10z6UWO4vpmibb/L2mKt7h682W62QMU4kqYanhK+sYE2vOD+MgUBifz+J20ddRPrjdXJU7MG9ghY5p0YgRBUYZaJTMXy40=
+	t=1724957067; cv=none; b=pvrTQiKDTbeThPIaeqA02E/d2+YS3FQQI9wNk4cMQhi0veaU3gR0OdHOuMSnrjuY3TI2BIOwd46JUKAXu5Ls5QAREOmQ7mBFaVLa1IolXMtPDTLhyta8XxqTEdGMYTNpf+L0hIgxeBG0yu8S0PHv/JvKN3D/mNJq+KBgdF5wBbA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724954355; c=relaxed/simple;
-	bh=1uBP7ZtDpO7WmioTXxs7gKKRM78GV0Ri0C+m8EiT3y0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=uWmGd3pVn8eg8kmc5Pr/+QhJWFx1u9z0tTeK10/itqrk9cSR3dlXPfB7NKu8KJzUPUZbTOZ5Dj6eUlVIH69PyDMJYBvdX0yfhXdwdDvl53FzsYqFJpPmxd3FEP6k7WU15KSzLJstHzR7peDRFPCmLYC22qk7DoTdotuCI6z/r6I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 636061477;
-	Thu, 29 Aug 2024 10:59:38 -0700 (PDT)
-Received: from bogus (unknown [10.57.87.200])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 5E3D83F762;
-	Thu, 29 Aug 2024 10:59:10 -0700 (PDT)
-Date: Thu, 29 Aug 2024 18:58:56 +0100
-From: Sudeep Holla <sudeep.holla@arm.com>
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Miao Wang <shankerwangmiao@gmail.com>,
-	Sudeep Holla <sudeep.holla@arm.com>,
-	Hanjun Guo <guohanjun@huawei.com>, Len Brown <lenb@kernel.org>,
-	Sunil V L <sunilvl@ventanamicro.com>, linux-acpi@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH v3] ACPI: introduce acpi_arch_init
-Message-ID: <20240829175856.GA936920@bogus>
-References: <20240808-intro-acpi-arch-init-v3-1-ba510859baff@gmail.com>
- <64bd9991-61a9-5cb5-60fe-941cb4171290@huawei.com>
- <4EC8AF0D-321F-437B-93C6-E597E4D4BB34@gmail.com>
- <ZtCbLIfCklb5kQN1@bogus>
- <CAJZ5v0hXW+oH6KkJiXP7mtg2rgvgy85D_x6snckaA=cw9iFy6Q@mail.gmail.com>
+	s=arc-20240116; t=1724957067; c=relaxed/simple;
+	bh=Atu+xXyCVD3GRZg4LEOA0rmnqtiiKHU9Is28nBj7sZk=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=fwE3KxpE3H1Qqlkbp8dDyXjaIuCQ4ZpbUNcNiuqDD1klCXQRbaMgWxN4GNn+to5Zbm28rlfKY1T+qUvmXE3pMUttVz6WD07xz+BGH/wohQw7gw8ZeKrBSn8xsNg7XpXv+sgKdtSqa75iVdCHc96cdu+FGOC7fYevXt4bLPuGlPA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net; spf=pass smtp.mailfrom=rjwysocki.net; dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b=jUoEGvwh; arc=none smtp.client-ip=79.96.170.134
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rjwysocki.net
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b="jUoEGvwh"
+Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
+ by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 6.2.0)
+ id 62da0b2b23048a9e; Thu, 29 Aug 2024 20:44:17 +0200
+Received: from kreacher.localnet (unknown [195.136.19.94])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by cloudserver094114.home.pl (Postfix) with ESMTPSA id 011F06A8C16;
+	Thu, 29 Aug 2024 20:44:16 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=rjwysocki.net;
+	s=dkim; t=1724957057;
+	bh=Atu+xXyCVD3GRZg4LEOA0rmnqtiiKHU9Is28nBj7sZk=;
+	h=From:Subject:Date;
+	b=jUoEGvwhtrXxqZHGGNzRJoQ1bTrU5GRQKQy+yiYYuLLlhrrB2FVDAKrVY3PMUJPcC
+	 rJtgtCbZI2jf2gUQRAQFwlZbqjt14GUGBxNstXhANskZIiV0BjWl41ORQmQTcU4/H/
+	 hiaBl85bzPQx9jPAcnLHvw58ta2Ja57r61V0IdRaHXSKLPWK1kjUs4ENzR8lCMhJtP
+	 9XG0gPT9JPUAgJpYWwuRkyFUKS74pvEWGTrPklGMM8lhFsPwJpSo6CD8KgQ3cKNe8R
+	 pfTGw9VM9RtQDW9c2e1oCq1cGeSfnn64FWZSN/YVPFNZzDLvlqppfLMa2hvbr9NgES
+	 50HsAbmaEyEzg==
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Bob Moore <robert.moore@intel.com>,
+ Saket Dumbre <saket.dumbre@intel.com>
+Subject: [PATCH v1 20/20] ACPICA: Setup for ACPICA release 20240827
+Date: Thu, 29 Aug 2024 20:44:01 +0200
+Message-ID: <5504899.Sb9uPGUboI@rjwysocki.net>
+In-Reply-To: <5819337.DvuYhMxLoT@rjwysocki.net>
+References: <5819337.DvuYhMxLoT@rjwysocki.net>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAJZ5v0hXW+oH6KkJiXP7mtg2rgvgy85D_x6snckaA=cw9iFy6Q@mail.gmail.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+X-CLIENT-IP: 195.136.19.94
+X-CLIENT-HOSTNAME: 195.136.19.94
+X-VADE-SPAMSTATE: clean
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgeeftddrudefgedguddvjecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvvefufffkjghfggfgtgesthfuredttddtjeenucfhrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqeenucggtffrrghtthgvrhhnpeeltdeikeekkeevieektefggfetueetfeejveejgeduledvudehieeuvdeiheeiveenucffohhmrghinhepghhithhhuhgsrdgtohhmnecukfhppeduleehrddufeeirdduledrleegnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehinhgvthepudelhedrudefiedrudelrdelgedphhgvlhhopehkrhgvrggthhgvrhdrlhhotggrlhhnvghtpdhmrghilhhfrhhomheprhhjfiesrhhjfiihshhotghkihdrnhgvthdpnhgspghrtghpthhtohepgedprhgtphhtthhopehlihhnuhigqdgrtghpihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehrohgsvghrthdrmhhoohhrvgesihhnthgvlhdrtghomhdprhgtphhtthhopehsrghkvghtrdguuhhmsghrvgesihhnthgvlhdrtghomh
+X-DCC--Metrics: v370.home.net.pl 1024; Body=4 Fuz1=4 Fuz2=4
 
-On Thu, Aug 29, 2024 at 06:42:16PM +0200, Rafael J. Wysocki wrote:
-> On Thu, Aug 29, 2024 at 6:00 PM Sudeep Holla <sudeep.holla@arm.com> wrote:
-> >
-> > On Wed, Aug 28, 2024 at 04:40:29AM +0800, Miao Wang wrote:
-> > >
-> > >
-> > > > 2024年8月8日 17:43，Hanjun Guo <guohanjun@huawei.com> 写道：
-> > > >
-> > > > On 2024/8/8 17:00, Miao Wang via B4 Relay wrote:
-> > > >> From: Miao Wang <shankerwangmiao@gmail.com>
-> > > >> To avoid arch-specific code in general ACPI initialization flow,
-> > > >> we introduce a weak symbol acpi_arch_init. Currently, arm64 can
-> > > >> utillize this to insert its specific flow. In the future,
-> > > >> other architectures can also have chance to define their own
-> > > >> arch-specific acpi initialization process if necessary.
-> > > >> Signed-off-by: Miao Wang <shankerwangmiao@gmail.com>
-> > > >> Reviewed-by: Sunil V L <sunilvl@ventanamicro.com>
-> > > >> Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
-> > > >> ---
-> > > >> Changes from v1
-> > > >> - Change acpi_arch_init from a static inline stub to a weak function
-> > > >>   according to Haijun Guo's advice
-> > > >> ---
-> > > >> Changes from v2:
-> > > >> - Add __init attribute to the weak acpi_arch_init stub
-> > > >> - Link to v2: https://lore.kernel.org/r/20240807-intro-acpi-arch-init-v2-1-9231e23a7721@gmail.com
-> > > >
-> > > > Thanks for the quick update,
-> > > >
-> > > > Acked-by: Hanjun Guo <guohanjun@huawei.com>
-> > >
-> > > Hi, all. I wonder whether this patch is good to be applied or
-> > > any improvement is needed.
-> > >
-> >
-> > LGTM. Rafael, do you want to take this via your tree or arm64(need your ack)
-> > once you are happy with the change ?
-> 
-> Actually, I'd prefer the RISCV ACPI changes to land first:
-> 
-> https://lore.kernel.org/linux-acpi/20240812005929.113499-1-sunilvl@ventanamicro.com/
-> 
-> and then it can be consolidated to use acpi_arch_init() in both places.
-> 
-> I'm going to move the RISCV material to linux-next on Monday, but I'd
-> prefer to defer the consolidation to the 6.13 cycle (after 6.12-rc1 is
-> out).
+From: Saket Dumbre <saket.dumbre@intel.com>
 
-Makes sense, thanks!
+ACPICA commit 86c762afe5bf915e8101a0455513368e2a60dd80
 
+Link: https://github.com/acpica/acpica/commit/86c762af
+Signed-off-by: Saket Dumbre <saket.dumbre@intel.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ include/acpi/acpixf.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index 99bb45a46600..6c1cd90efae8 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -12,7 +12,7 @@
+ 
+ /* Current ACPICA subsystem version in YYYYMMDD format */
+ 
+-#define ACPI_CA_VERSION                 0x20240322
++#define ACPI_CA_VERSION                 0x20240827
+ 
+ #include <acpi/acconfig.h>
+ #include <acpi/actypes.h>
 -- 
-Regards,
-Sudeep
+2.43.0
+
+
+
+
