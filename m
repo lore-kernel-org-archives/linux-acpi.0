@@ -1,49 +1,47 @@
 Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AA531B86E9;
-	Thu, 29 Aug 2024 18:44:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF1B31AE87D;
+	Thu, 29 Aug 2024 18:44:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=79.96.170.134
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724957068; cv=none; b=f5SeOau4Esvc8OR+b/ihUmGLCEWcuUlC4hAUnKHklVi2jOP9b4aSB03winu35hO6O0krBpXBkFbEBjOF5ZSZPKEFW/f+kMfdooTxCpMvNfjftbPBNP1L3GcmD993iGdNEV5GmzfHdRAIinFJMcgqACBWuXFTBEGtQE8MGhCvc30=
+	t=1724957069; cv=none; b=XW1h1snRjzPycdmWfKSreBE1JnjFLTkwKj5BJWuRg81MtgbfwMCKExsJv4Os4nZLy6APWEfq/XJukR+6twAGI2oft9s++9RQl+soItzF9H+nYD1PPR09265YsQESrgqbvPwqSgOLeb12rA/y9Azg/UMMpHXYXUXFMUlhnjqcINk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724957068; c=relaxed/simple;
-	bh=Jx/BFerNDf7r5tR1yNitkZFck465J+ltG0IRRiB5vtA=;
+	s=arc-20240116; t=1724957069; c=relaxed/simple;
+	bh=SM2L06wyyGFCYq0I0UkjyhZdArH+g1ybSzlTJ8JhSRk=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=sVRlwcu8raTgMtwedrMuo+4P1+s+1BsSxHJz53YrR649EZMYEFfBf0OgHVv5EZkp5kyB2k6qUBeG1C1inuiVk5aQZu04/0y7n9deD/qJLpBthzhP764NKFRZ2Nbi9uIf52eQL/ofN1t2HFqGO/hgnejfqlmW0OxuUMc7sU9JnW4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net; spf=pass smtp.mailfrom=rjwysocki.net; dkim=fail (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b=cbjseovY reason="signature verification failed"; arc=none smtp.client-ip=79.96.170.134
+	 MIME-Version:Content-Type; b=TR/e+O5Fl4tNc/wRdVRSOAV1m4ARUCMn9Vp2iBQXTHALQxqDhwT9zFdAHW01LIXhi4bFqeBxUuW1L1bgZJGR+yNmwK69RDO7r17MgESHZB8EKHiqe+RsUxKz7MGnxUiFsoWlYcoKprvgIgbYm8z6BZcygIa6aO600cTTtrbg6T8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net; spf=pass smtp.mailfrom=rjwysocki.net; dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b=VMu2NHl4; arc=none smtp.client-ip=79.96.170.134
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rjwysocki.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b="cbjseovY"
+	dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b="VMu2NHl4"
 Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
  by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 6.2.0)
- id 49512f7242cb57d7; Thu, 29 Aug 2024 20:44:24 +0200
+ id 7fc385bf7bc6a151; Thu, 29 Aug 2024 20:44:19 +0200
 Received: from kreacher.localnet (unknown [195.136.19.94])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by cloudserver094114.home.pl (Postfix) with ESMTPSA id B7F1A6A8C15;
-	Thu, 29 Aug 2024 20:44:23 +0200 (CEST)
+	by cloudserver094114.home.pl (Postfix) with ESMTPSA id B287C6A8C15;
+	Thu, 29 Aug 2024 20:44:18 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=rjwysocki.net;
-	s=dkim; t=1724957064;
-	bh=Jx/BFerNDf7r5tR1yNitkZFck465J+ltG0IRRiB5vtA=;
+	s=dkim; t=1724957059;
+	bh=SM2L06wyyGFCYq0I0UkjyhZdArH+g1ybSzlTJ8JhSRk=;
 	h=From:Subject:Date;
-	b=cbjseovY4lVygyiB81PefKCkpynKJ7qZiPXxX2pwj8A3xtl/1STyjA34kVQlYNT9A
-	 WkZHMn/+9Ks56G21WxzEY+mDgpS3/suwViaLrqOWJp9O4873OchyM2IC8inuph6SPS
-	 0qCkd+gFPjmnVWr584rS7kaYxJWMHG4YqmqbUPep1FrrP5DoeeDrOtAYf4si8jQJ9N
-	 CFuVTSxOLhPieoa1EBFXOnrpXon0jReNBTW4qn036w2XrhY3yN12doFuqdSkPsrqJ+
-	 rsnWmLbO8fIagQaMfbGIch+x1Pq652AX7M3EjRsonZeFXdI4FAu+pHwGO4MRNpWv6G
-	 RHDs6CaLEwM1A==
+	b=VMu2NHl4VzGk+NYvyygIzD59cY8ZUurQY4aVHr4HYc42PeEEUA6ACglP3/jDxx8fB
+	 hOILmS4sFunE1NLpzXqMHMe1UOki/mcBtow5tbpCo574xh9W+PMjZBp+BhuPZBbVa3
+	 vNeuTaRjFbEehOBYx3yqP4H6gdFXdOdq48YGQht55cXZ6kEQHUlMnqZiWPkPytogxd
+	 XhXMYZ7uGfcvC/0V3oSALTawHCeilXFaND68klpzrk8VVykloTIVulga+tZBBY7fC5
+	 fY0peDInOq1fudPJo35lxQdLko5Nng6XO9DhxyUu0IdU6bDqEcrlt6EpJgLetNijKa
+	 RJ5I9vVq+A58Q==
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>, Bob Moore <robert.moore@intel.com>,
  Saket Dumbre <saket.dumbre@intel.com>
-Subject:
- [PATCH v1 13/20] ACPICA: Add support for supressing leading zeros in hex
- strings
-Date: Thu, 29 Aug 2024 20:38:31 +0200
-Message-ID: <23640949.6Emhk5qWAg@rjwysocki.net>
+Subject: [PATCH v1 18/20] ACPICA: iasl: handle empty connection_node
+Date: Thu, 29 Aug 2024 20:42:37 +0200
+Message-ID: <115008536.nniJfEyVGO@rjwysocki.net>
 In-Reply-To: <5819337.DvuYhMxLoT@rjwysocki.net>
 References: <5819337.DvuYhMxLoT@rjwysocki.net>
 Precedence: bulk
@@ -58,53 +56,33 @@ X-CLIENT-IP: 195.136.19.94
 X-CLIENT-HOSTNAME: 195.136.19.94
 X-VADE-SPAMSTATE: clean
 X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgeeftddrudefgedguddvjecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvvefufffkjghfggfgtgesthfuredttddtjeenucfhrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqeenucggtffrrghtthgvrhhnpeeltdeikeekkeevieektefggfetueetfeejveejgeduledvudehieeuvdeiheeiveenucffohhmrghinhepghhithhhuhgsrdgtohhmnecukfhppeduleehrddufeeirdduledrleegnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehinhgvthepudelhedrudefiedrudelrdelgedphhgvlhhopehkrhgvrggthhgvrhdrlhhotggrlhhnvghtpdhmrghilhhfrhhomheprhhjfiesrhhjfiihshhotghkihdrnhgvthdpnhgspghrtghpthhtohepgedprhgtphhtthhopehlihhnuhigqdgrtghpihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehrohgsvghrthdrmhhoohhrvgesihhnthgvlhdrtghomhdprhgtphhtthhopehsrghkvghtrdguuhhmsghrvgesihhnthgvlhdrtghomh
-X-DCC--Metrics: v370.home.net.pl 1024; Body=4 Fuz1=4 Fuz2=4
+X-DCC--Metrics: v370.home.net.pl 1024; Body=4 Fuz1=4
 
-From: Armin Wolf <W_Armin@gmx.de>
+From: Aleksandrs Vinarskis <alex.vinarskis@gmail.com>
 
-ACPICA commit 86289439d9f8b9eda28c249da66ae230d6439491
+ACPICA commit 6c551e2c9487067d4b085333e7fe97e965a11625
 
-Currently the leading_zeros argument has no effect when
-converting hex integers. Fix that.
-
-Link: https://github.com/acpica/acpica/commit/86289439
-Signed-off-by: Armin Wolf <W_Armin@gmx.de>
+Link: https://github.com/acpica/acpica/commit/6c551e2c
+Signed-off-by: Aleksandrs Vinarskis <alex.vinarskis@gmail.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/acpica/exconvrt.c | 12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ drivers/acpi/acpica/exprep.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/acpi/acpica/exconvrt.c b/drivers/acpi/acpica/exconvrt.c
-index 4e8ab3c26565..9647325d290d 100644
---- a/drivers/acpi/acpica/exconvrt.c
-+++ b/drivers/acpi/acpica/exconvrt.c
-@@ -270,6 +270,7 @@ acpi_ex_convert_to_ascii(u64 integer,
- 	u32 decimal_length;
- 	u32 remainder;
- 	u8 supress_zeros = !leading_zeros;
-+	u8 hex_char;
+diff --git a/drivers/acpi/acpica/exprep.c b/drivers/acpi/acpica/exprep.c
+index 08196fa17080..82b1fa2d201f 100644
+--- a/drivers/acpi/acpica/exprep.c
++++ b/drivers/acpi/acpica/exprep.c
+@@ -437,6 +437,9 @@ acpi_status acpi_ex_prep_field_value(struct acpi_create_field_info *info)
  
- 	ACPI_FUNCTION_ENTRY();
- 
-@@ -330,8 +331,17 @@ acpi_ex_convert_to_ascii(u64 integer,
- 
- 			/* Get one hex digit, most significant digits first */
- 
--			string[k] = (u8)
-+			hex_char = (u8)
- 			    acpi_ut_hex_to_ascii_char(integer, ACPI_MUL_4(j));
-+
-+			/* Supress leading zeros until the first non-zero character */
-+
-+			if (hex_char == ACPI_ASCII_ZERO && supress_zeros) {
-+				continue;
+ 		if (info->connection_node) {
+ 			second_desc = info->connection_node->object;
++			if (second_desc == NULL) {
++				break;
 +			}
-+
-+			supress_zeros = FALSE;
-+			string[k] = hex_char;
- 			k++;
- 		}
- 		break;
+ 			if (!(second_desc->common.flags & AOPOBJ_DATA_VALID)) {
+ 				status =
+ 				    acpi_ds_get_buffer_arguments(second_desc);
 -- 
 2.43.0
 
