@@ -1,47 +1,49 @@
 Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 408BF1B9B2E;
-	Thu, 29 Aug 2024 18:44:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C61C1B5832;
+	Thu, 29 Aug 2024 18:44:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=79.96.170.134
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724957072; cv=none; b=bs/85R3QPXoJQv44q+/xMoSyzwTp9XYPNspSHwGkeLaZgYz/mz0/dfdi2sfCtPn35Dv9+NilbfR94NDRsXF29xbWVhfEz2rKZ9f5QGRuXk3zr+CI5KW4nWUvXr69r8vYuZon8g3E6Rb4FJVVsXwGMZmmql6z1XexmxszQWAkEaM=
+	t=1724957073; cv=none; b=SnBXt/G0+zj1XjkOlxG+qgvhDU/fsrkVd75dKK3++VCDVnz1pmzwTCRqYPN/rKy3lbbyMs+A87Q1ri+RuqbEXEvzqnRbZMkVd0HBQTZOa645WHVHRX4C8nKrhtwOmU9FVztYl8IcTythhLmt5K0xZvwmEsRHxcEd+Va6RRgQ/2o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724957072; c=relaxed/simple;
-	bh=1mP2WXzEu1T/V/DU7z3r3MxyDUKhG9ynlkh8+4AbtME=;
+	s=arc-20240116; t=1724957073; c=relaxed/simple;
+	bh=9VvRDYMIhcmiIAtIr14hUIJwDhBgrG/Q+hQ5W2XHwjo=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=LF5ZWmtBfp2+Bsen8x0YfeEqE2CYqXD49KvZr8FTHKP55dd3YXQiUVjxJaOuOrf9TOVVj8AFOCEMibC+gX5sSoxDQkLNaBIZ7z+PSzj3l58l9Ln3cvY/gxiMfMukS7UObWNhrvlGWPaE3MUgrVOBouQ671DcbCxZO+xI8v21wro=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net; spf=pass smtp.mailfrom=rjwysocki.net; dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b=c0/2YIdR; arc=none smtp.client-ip=79.96.170.134
+	 MIME-Version:Content-Type; b=IzqC/tybC/0y6a9FF1SM8QVbAZ/BL/deZyQqWKzuK4ya8FjIFCg3wYE3n+CFbb1p2nGbk1n4i55GebSSa+ZpvJK9o2FbCZ4z3ZZW9fB3YrvStMvaGmt2VXbsqZlecfwdOtBE79gQXXqBYxUnbdiMfI3MJJFck2IayznPrNfU66M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net; spf=pass smtp.mailfrom=rjwysocki.net; dkim=fail (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b=TL+oV/87 reason="signature verification failed"; arc=none smtp.client-ip=79.96.170.134
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rjwysocki.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b="c0/2YIdR"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b="TL+oV/87"
 Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
  by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 6.2.0)
- id 643a3073f4df1198; Thu, 29 Aug 2024 20:44:21 +0200
+ id 1addb6147f9438a9; Thu, 29 Aug 2024 20:44:29 +0200
 Received: from kreacher.localnet (unknown [195.136.19.94])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by cloudserver094114.home.pl (Postfix) with ESMTPSA id 8C87A6A8C15;
-	Thu, 29 Aug 2024 20:44:20 +0200 (CEST)
+	by cloudserver094114.home.pl (Postfix) with ESMTPSA id A565B6A8C15;
+	Thu, 29 Aug 2024 20:44:28 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=rjwysocki.net;
-	s=dkim; t=1724957061;
-	bh=1mP2WXzEu1T/V/DU7z3r3MxyDUKhG9ynlkh8+4AbtME=;
+	s=dkim; t=1724957069;
+	bh=9VvRDYMIhcmiIAtIr14hUIJwDhBgrG/Q+hQ5W2XHwjo=;
 	h=From:Subject:Date;
-	b=c0/2YIdROc3cN9g2CZaXyrxHRLW2qD1BhRyJp7w+ie3BFOb4wV5GHwzHJByLZ7JzH
-	 SpJfLsJsDA1lGzpjnKqbq/HGtilLWsjjIJ1az8G4/hfvhaHe84a9TtQA/mTGU1jGz1
-	 a93fGdc70rNcrmSRZ5FcIYnYhqIIj5ip8/+NIZQkeej9fSozZDq60CdYleBa99Z0Qx
-	 lDBFEHmNi8IyV4wfcNQ3mPX/sEwfMNhA6eQ10NQiqNYhfl4t6Z3efrR2sR557Ce1JT
-	 f0I9Ge1SBBLjRABTQof981KfZhR0cS/Shb1sQBfb1qsVJjSAiZ3a1NWXvVuvFoVf2z
-	 szvGS+JtjvJOQ==
+	b=TL+oV/871+AstnupCBvtzuvyoxIEjqBI2IC3RdMzURcHYR/u5PQwWevtF/lxCtg4K
+	 jWb7V50IZILVJqeZQ1nQWLn9y85TWgD6THlkf+xgaRSDlk0XDn7SiQQ12Hhl8EtG+O
+	 JP5wrzV8XQb/ZiNKJMC2xuW6+dZY3VQoaEbLSEtQgwF3c/njWMPUHuAaXeBrS1fP+F
+	 MPGZ9iya3BgWbzmc0bDcXAS+5mGAm//oa5OFmfQAPDVbiW2/pfZBcwBmJY9d6J/T+V
+	 jbayb5J2MbDDG94H6iVB/u4AW7qylq1tcLc/PchS1QzD3CIe0dqY+GRuYIVBX31vWb
+	 keXOQuZ9h6ahQ==
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>, Bob Moore <robert.moore@intel.com>,
  Saket Dumbre <saket.dumbre@intel.com>
-Subject: [PATCH v1 16/20] ACPICA: Avoid warning for Dump Functions
-Date: Thu, 29 Aug 2024 20:41:07 +0200
-Message-ID: <1951739.taCxCBeP46@rjwysocki.net>
+Subject:
+ [PATCH v1 08/20] ACPICA: executer/exsystem: Don't nag user about every
+ Stall() violating the spec
+Date: Thu, 29 Aug 2024 20:32:31 +0200
+Message-ID: <7712103.EvYhyI6sBW@rjwysocki.net>
 In-Reply-To: <5819337.DvuYhMxLoT@rjwysocki.net>
 References: <5819337.DvuYhMxLoT@rjwysocki.net>
 Precedence: bulk
@@ -55,45 +57,57 @@ Content-Type: text/plain; charset="UTF-8"
 X-CLIENT-IP: 195.136.19.94
 X-CLIENT-HOSTNAME: 195.136.19.94
 X-VADE-SPAMSTATE: clean
-X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgeeftddrudefgedguddvjecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvvefufffkjghfggfgtgesthfuredttddtjeenucfhrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqeenucggtffrrghtthgvrhhnpeeltdeikeekkeevieektefggfetueetfeejveejgeduledvudehieeuvdeiheeiveenucffohhmrghinhepghhithhhuhgsrdgtohhmnecukfhppeduleehrddufeeirdduledrleegnecuvehluhhsthgvrhfuihiivgepudenucfrrghrrghmpehinhgvthepudelhedrudefiedrudelrdelgedphhgvlhhopehkrhgvrggthhgvrhdrlhhotggrlhhnvghtpdhmrghilhhfrhhomheprhhjfiesrhhjfiihshhotghkihdrnhgvthdpnhgspghrtghpthhtohepgedprhgtphhtthhopehlihhnuhigqdgrtghpihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehrohgsvghrthdrmhhoohhrvgesihhnthgvlhdrtghomhdprhgtphhtthhopehsrghkvghtrdguuhhmsghrvgesihhnthgvlhdrtghomh
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgeeftddrudefgedguddvjecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvvefufffkjghfggfgtgesthfuredttddtjeenucfhrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqeenucggtffrrghtthgvrhhnpeeltdeikeekkeevieektefggfetueetfeejveejgeduledvudehieeuvdeiheeiveenucffohhmrghinhepghhithhhuhgsrdgtohhmnecukfhppeduleehrddufeeirdduledrleegnecuvehluhhsthgvrhfuihiivgepvdenucfrrghrrghmpehinhgvthepudelhedrudefiedrudelrdelgedphhgvlhhopehkrhgvrggthhgvrhdrlhhotggrlhhnvghtpdhmrghilhhfrhhomheprhhjfiesrhhjfiihshhotghkihdrnhgvthdpnhgspghrtghpthhtohepgedprhgtphhtthhopehlihhnuhigqdgrtghpihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehrohgsvghrthdrmhhoohhrvgesihhnthgvlhdrtghomhdprhgtphhtthhopehsrghkvghtrdguuhhmsghrvgesihhnthgvlhdrtghomh
 X-DCC--Metrics: v370.home.net.pl 1024; Body=4 Fuz1=4 Fuz2=4
 
-From: Adam Lackorzynski <adam@l4re.org>
+From: Vasily Khoruzhick <anarsoul@gmail.com>
 
-ACPICA commit 6031b34b5dbabfaaebe80e57e8e415790b51d285
+ACPICA commit 129b75516fc49fe1fd6b8c5798f86c13854630b3
 
-Only include the functions acpi_rs_dump_resource_list()
-and acpi_rs_dump_irq_list() if ACPI_DEBUGGER is defined, as
-specified in the header.
+Stop nagging user about every Stall() that violates the spec
 
-This avoids a compiler warning by adding the ifdef for ACPI_DEBUGGER.
+On my Dell XPS 15 7590 I get hundreds of these warnings after few hours of
+uptime:
 
-Link: https://github.com/acpica/acpica/commit/6031b34b
+$ dmesg | grep "fix the firmware" | wc -l
+261
+
+I cannot fix the firmware and I doubt that Dell cares about 4 year old
+laptop either
+
+Fixes: ace8f1c54a02 ("ACPICA: executer/exsystem: Inform users about ACPI spec violation")
+Link: https://github.com/acpica/acpica/commit/129b7551
+Signed-off-by: Vasily Khoruzhick <anarsoul@gmail.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/acpica/rsdump.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/acpi/acpica/exsystem.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/acpi/acpica/rsdump.c b/drivers/acpi/acpica/rsdump.c
-index 611bc71c193f..5b7d7074ce4f 100644
---- a/drivers/acpi/acpica/rsdump.c
-+++ b/drivers/acpi/acpica/rsdump.c
-@@ -48,6 +48,7 @@ static void acpi_rs_dump_address_common(union acpi_resource_data *resource);
- static void
- acpi_rs_dump_descriptor(void *resource, struct acpi_rsdump_info *table);
- 
-+#ifdef ACPI_DEBUGGER
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_rs_dump_resource_list
-@@ -160,6 +161,7 @@ void acpi_rs_dump_irq_list(u8 *route_table)
- 					   prt_element, prt_element->length);
+diff --git a/drivers/acpi/acpica/exsystem.c b/drivers/acpi/acpica/exsystem.c
+index f665ffd9a396..2c384bd52b9c 100644
+--- a/drivers/acpi/acpica/exsystem.c
++++ b/drivers/acpi/acpica/exsystem.c
+@@ -133,14 +133,15 @@ acpi_status acpi_ex_system_do_stall(u32 how_long_us)
+ 		 * (ACPI specifies 100 usec as max, but this gives some slack in
+ 		 * order to support existing BIOSs)
+ 		 */
+-		ACPI_ERROR((AE_INFO,
+-			    "Time parameter is too large (%u)", how_long_us));
++		ACPI_ERROR_ONCE((AE_INFO,
++				 "Time parameter is too large (%u)",
++				 how_long_us));
+ 		status = AE_AML_OPERAND_VALUE;
+ 	} else {
+ 		if (how_long_us > 100) {
+-			ACPI_WARNING((AE_INFO,
+-				      "Time parameter %u us > 100 us violating ACPI spec, please fix the firmware.",
+-				      how_long_us));
++			ACPI_WARNING_ONCE((AE_INFO,
++					   "Time parameter %u us > 100 us violating ACPI spec, please fix the firmware.",
++					   how_long_us));
+ 		}
+ 		acpi_os_stall(how_long_us);
  	}
- }
-+#endif
- 
- /*******************************************************************************
-  *
 -- 
 2.43.0
 
