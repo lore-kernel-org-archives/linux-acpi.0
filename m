@@ -1,47 +1,47 @@
 Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 949191B9B40;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 611631BA267;
 	Thu, 29 Aug 2024 18:44:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=79.96.170.134
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724957071; cv=none; b=a9i0BydKVLry+Z8r0OlBPQB7VtSHdVYzthDjGhHv9k7Rc9S9ecHBhwYd7n3Thfr3+UYA72uymCH3/hhZRqdPSnnO6b023H5SM+OYkl5Pg22FCcDTVF5cKnmwjnhB9RJSclhPLfIsuEwERwZKX4pQvve8XIruHKXZa5lfgT4rLVM=
+	t=1724957072; cv=none; b=i6yjtFAXcyx8qsr3bRRCefr598YcwbHhnYVzQ0Ki9DIR0smAABJPrkaoAeTdr62rXmgdvIKBJVzjF+gPzLCTk0gu7xbEEiFqKZs6qOcNbYFF7lYDhEB0OQEhnsNZxbtQJdCcUcj831yw3kiO2cpyybzWUl1Oo0yHTLTc6mgR7m8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724957071; c=relaxed/simple;
-	bh=HzMJ/uZdWToDtRXGQNX+YGchahkVJYxZl3cBRKqyuhw=;
+	s=arc-20240116; t=1724957072; c=relaxed/simple;
+	bh=oKU/vh/PQ+kWaWVHJ4AO9C6R5Dk9lh0qjrxYoItlfeA=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=UOb9jj1q9MeZGrdRedR77dDBzQ+WJ+7nAauBFz3PeX0UsqgeQ07boI09Cfmc6DCCW/NqJsRj21vSqqslFcox5D8++Yo0k6cvDGcy8aY+bxMuEUHeNy2abbQETlaGDv5JPelefjT0c69nh00aCNNrOfHmgQZ5Dg6CkZwx6Idc9W8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net; spf=pass smtp.mailfrom=rjwysocki.net; dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b=CS0E4Ppn; arc=none smtp.client-ip=79.96.170.134
+	 MIME-Version:Content-Type; b=ECAXidwtKRgztqTb8f6Epzs/MR5/J/Hvkx49nmBg8wSEFEPTXoaPBrjPHEunTEwDUzMIr7bPezLeNdpiQQIb4MyNwCFvAH74JxiNLEtKB5TVDS5UXXoXCR7UM3p23fYt2319FbcVS7DECbm9O1nS0Ui8LFQfksBQBSoONrynMWc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net; spf=pass smtp.mailfrom=rjwysocki.net; dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b=e8F2YYo2; arc=none smtp.client-ip=79.96.170.134
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rjwysocki.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b="CS0E4Ppn"
+	dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b="e8F2YYo2"
 Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
  by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 6.2.0)
- id 1bf1df12ccb76b4d; Thu, 29 Aug 2024 20:44:22 +0200
+ id e0c3b0a80af672f6; Thu, 29 Aug 2024 20:44:28 +0200
 Received: from kreacher.localnet (unknown [195.136.19.94])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by cloudserver094114.home.pl (Postfix) with ESMTPSA id AC5426A8C15;
-	Thu, 29 Aug 2024 20:44:21 +0200 (CEST)
+	by cloudserver094114.home.pl (Postfix) with ESMTPSA id BB7D06A8C15;
+	Thu, 29 Aug 2024 20:44:27 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=rjwysocki.net;
-	s=dkim; t=1724957062;
-	bh=HzMJ/uZdWToDtRXGQNX+YGchahkVJYxZl3cBRKqyuhw=;
+	s=dkim; t=1724957068;
+	bh=oKU/vh/PQ+kWaWVHJ4AO9C6R5Dk9lh0qjrxYoItlfeA=;
 	h=From:Subject:Date;
-	b=CS0E4Ppn4KiYysZYm3QWgqw+EC41vdWezKafBWX4C10E5S/VVI47KwRa85BYhP5ZS
-	 yxOVMMffR3tQr8/q/2cP+AWXigPcHoGumm5dIbczKCbxEnKrOj2RJOINSVLrjrucAu
-	 xWsVl2FYb3mIIAgUUV9qfgXDh0hE9Z3l5gER6uRHW0O3bnTxBGoEGQ3igHvsbHV0XF
-	 sjDOU1VYkG7FDwTt5jGojKvsq1KxIeETkkckxTm38RWug1M0SgyeElMjcV30r/KUjF
-	 s3GPA+KMwkRQiqFbpXyKxe0rdoyUVelFxNpzpiZxC6gY+vjW/zkHiwEzB/MDXKHp39
-	 8M0A5UykMki8A==
+	b=e8F2YYo2W4ptWnAutW6N86+tIVvjEyLyDFMap6BGOKvBBzewsiqcVh3tDHKJzzMLy
+	 Q6QlOMzd2gWcWpRN6fRPbbg+AZJaZ7ir7BOz/09Q/jR08neTrQ44eGGa17IVA32nTx
+	 ebfV7HWHHbBwN+D4W2Mr/Ue4/CEb2TbeV4bHNSpeQY5VTTyVhQ/CC8pnTO5GcvhRu3
+	 TMN9BnLHjLn78gScsjeJwYAEx3qoVtQsel57KLtDoUdf3HPFFhR/+qKH3kvfz3Pip2
+	 yOcSucQJ5H3NzJRFa90Gwu+VIL6zH1ANTp83jXkJObpYpUMPa3LaFuvgCrbPzlC4Uo
+	 FPDNb07vOEbOw==
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>, Bob Moore <robert.moore@intel.com>,
  Saket Dumbre <saket.dumbre@intel.com>
-Subject: [PATCH v1 15/20] ACPICA: Add support for Windows 11 22H2 _OSI string
-Date: Thu, 29 Aug 2024 20:40:07 +0200
-Message-ID: <3650555.R56niFO833@rjwysocki.net>
+Subject: [PATCH v1 09/20] ACPICA: Allow PCC Data Type in MCTP resource
+Date: Thu, 29 Aug 2024 20:34:40 +0200
+Message-ID: <9335495.CDJkKcVGEf@rjwysocki.net>
 In-Reply-To: <5819337.DvuYhMxLoT@rjwysocki.net>
 References: <5819337.DvuYhMxLoT@rjwysocki.net>
 Precedence: bulk
@@ -55,46 +55,48 @@ Content-Type: text/plain; charset="UTF-8"
 X-CLIENT-IP: 195.136.19.94
 X-CLIENT-HOSTNAME: 195.136.19.94
 X-VADE-SPAMSTATE: clean
-X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgeeftddrudefgedguddvjecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvvefufffkjghfggfgtgesthfuredttddtjeenucfhrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqeenucggtffrrghtthgvrhhnpeeltdeikeekkeevieektefggfetueetfeejveejgeduledvudehieeuvdeiheeiveenucffohhmrghinhepghhithhhuhgsrdgtohhmnecukfhppeduleehrddufeeirdduledrleegnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehinhgvthepudelhedrudefiedrudelrdelgedphhgvlhhopehkrhgvrggthhgvrhdrlhhotggrlhhnvghtpdhmrghilhhfrhhomheprhhjfiesrhhjfiihshhotghkihdrnhgvthdpnhgspghrtghpthhtohepgedprhgtphhtthhopehlihhnuhigqdgrtghpihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehrohgsvghrthdrmhhoohhrvgesihhnthgvlhdrtghomhdprhgtphhtthhopehsrghkvghtrdguuhhmsghrvgesihhnthgvlhdrtghomh
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgeeftddrudefgedguddvjecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvvefufffkjghfggfgtgesthfuredttddtjeenucfhrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqeenucggtffrrghtthgvrhhnpeeuteeilefhueefgfffteeihfduudevjeefhfejfedvleeuheekledttdetvdeuvdenucffohhmrghinhepthhirghnohgtohhrvgdrohhrghdpghhithhhuhgsrdgtohhmnecukfhppeduleehrddufeeirdduledrleegnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehinhgvthepudelhedrudefiedrudelrdelgedphhgvlhhopehkrhgvrggthhgvrhdrlhhotggrlhhnvghtpdhmrghilhhfrhhomheprhhjfiesrhhjfiihshhotghkihdrnhgvthdpnhgspghrtghpthhtohepgedprhgtphhtthhopehlihhnuhigqdgrtghpihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehrohgsvghrthdrmhhoohhrvgesihhnthgvlhdrtghomhdprhgtphhtthhopehsrghkvghtrdguuhhmsghrvgesihhnthgvlhdrtghomh
 X-DCC--Metrics: v370.home.net.pl 1024; Body=4 Fuz1=4 Fuz2=4
 
-From: Armin Wolf <W_Armin@gmx.de>
+From: Adam Young <ayoung@amperecomputing.com>
 
-ACPICA commit f56218c4e4dc1d1f699662d0726ad9e7a0d58548
+ACPICA commit f0776a465cc2c20393bec534c16bdee4a78f7bb7
 
-See: https://github.com/microsoft_docs/windows-driver-docs/commit/be9d1c211adf8fabe5a43de71c034b1b6d7372de
+Explicitly allow QWord address space description type
+to be 0xA to indicate it refers to a Platform Communication channel
+IAW  ACPI_ECR_PCC_DESCRIPTORS_CF_V2
 
-Link: https://github.com/acpica/acpica/commit/f56218c4
-Signed-off-by: Armin Wolf <W_Armin@gmx.de>
+An entity in a DSDT or in SSDTs that requires
+a platform communication channel table (PCCT) entry
+to communicate with a remote service will have a single
+value that is the index of the entry in the PCCT.
+
+This data type with have a resource_type value of 0xA.
+
+This value indicates that the type shares the same
+footprint as a Dword_space section.
+
+Link: https://bugzilla.tianocore.org/show_bug.cgi?id=4594
+Link: https://github.com/acpica/acpica/commit/f0776a46
+Signed-off-by: Adam Young <ayoung@amperecomputing.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/acpica/utosi.c | 1 +
- include/acpi/actypes.h      | 1 +
- 2 files changed, 2 insertions(+)
+ drivers/acpi/acpica/rsaddr.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpica/utosi.c b/drivers/acpi/acpica/utosi.c
-index 251bd396c6fd..99b85fd6eccf 100644
---- a/drivers/acpi/acpica/utosi.c
-+++ b/drivers/acpi/acpica/utosi.c
-@@ -75,6 +75,7 @@ static struct acpi_interface_info acpi_default_supported_interfaces[] = {
- 	{"Windows 2019", NULL, 0, ACPI_OSI_WIN_10_19H1},	/* Windows 10 version 1903 - Added 08/2019 */
- 	{"Windows 2020", NULL, 0, ACPI_OSI_WIN_10_20H1},	/* Windows 10 version 2004 - Added 08/2021 */
- 	{"Windows 2021", NULL, 0, ACPI_OSI_WIN_11},	/* Windows 11 - Added 01/2022 */
-+	{"Windows 2022", NULL, 0, ACPI_OSI_WIN_11_22H2},	/* Windows 11 version 22H2 - Added 04/2024 */
+diff --git a/drivers/acpi/acpica/rsaddr.c b/drivers/acpi/acpica/rsaddr.c
+index fff48001d7ef..27384ee245f0 100644
+--- a/drivers/acpi/acpica/rsaddr.c
++++ b/drivers/acpi/acpica/rsaddr.c
+@@ -282,7 +282,8 @@ acpi_rs_get_address_common(struct acpi_resource *resource,
  
- 	/* Feature Group Strings */
+ 	/* Validate the Resource Type */
  
-diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-index 85c2dcf2b704..80767e8bf3ad 100644
---- a/include/acpi/actypes.h
-+++ b/include/acpi/actypes.h
-@@ -1311,6 +1311,7 @@ typedef enum {
- #define ACPI_OSI_WIN_10_19H1            0x14
- #define ACPI_OSI_WIN_10_20H1            0x15
- #define ACPI_OSI_WIN_11                 0x16
-+#define ACPI_OSI_WIN_11_22H2            0x17
- 
- /* Definitions of getopt */
+-	if ((address.resource_type > 2) && (address.resource_type < 0xC0)) {
++	if ((address.resource_type > 2) &&
++	    (address.resource_type < 0xC0) && (address.resource_type != 0x0A)) {
+ 		return (FALSE);
+ 	}
  
 -- 
 2.43.0
