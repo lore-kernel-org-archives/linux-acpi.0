@@ -1,112 +1,100 @@
-Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f176.google.com (mail-pl1-f176.google.com [209.85.214.176])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E789F1BDA94;
-	Thu, 29 Aug 2024 18:44:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=79.96.170.134
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56E0F44C7C;
+	Fri, 30 Aug 2024 07:11:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.176
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724957080; cv=none; b=EudgWTHY+4tXK/OY3vtfnObb0TbI8uw+M+Q/jHNtO+tpJOZSShdMQPKcNwFXL0sX9DucYaEI8uKd2oinfxGFQLt9b5OQJUCysidjOeLSREbqIQxWYmgHNcknQFqpihQCXSEinknaYfYKrCdPuaNB4fKizmBAkOEvUmUWRh2iVbQ=
+	t=1725001884; cv=none; b=mlRAQYWs48B1Q3f8CCe2gPjr0fvRymyu/f3FZ8RxF7kgRvXqhx1odLlVXVNzFIkPJfD5aaRAKcvOVzIJvWQXRbmMLm/Qgckvjmni+21HDdLMoNrNI04s05qyjCF9DodbSA2sZA3z91tZztV59APIkgSwbA2tEYfhqE8ZtWZiwoc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724957080; c=relaxed/simple;
-	bh=D9Kqd3FKIOYvAEPnmVq1vDuA0cMh5s8MRJ8xmOBpr7Y=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=l2dxTm9k/xSXHziKJHdBkhTAknyxHwN541CDWXOc4HchRy43NDNWQmkcF2RWy2xzn30lqJZVYdLiDtFrONgaNfX+Upg57zykTVrzh7iIEqj8/JlPYVpzCyukznnS9X1looP3CGEIsi0+iFhGWv03mR3agDYaAelcXURS9UxCxaE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net; spf=pass smtp.mailfrom=rjwysocki.net; dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b=I3rjWKT7; arc=none smtp.client-ip=79.96.170.134
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rjwysocki.net
+	s=arc-20240116; t=1725001884; c=relaxed/simple;
+	bh=Q9zo8i84cdABomh+rkak0lKLEIIWvG4IvVr6aF7PKMI=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=DNlMo0admVpYprXCcFjtGaTP3E7QYULICY5mcMEB5U7HchIrW9wFEQOcDGhCF3Mjj0lLaiyfZKn8xc+jxEIowQgHkGkVd9yRzR/Iis2fAlZ3n/t+j52Bfheeb3kQaUHcjsDBqCIk24W0o+8lKLZMdiGnZvRzXR+60gCceSsOQRA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=YR9oJD4F; arc=none smtp.client-ip=209.85.214.176
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b="I3rjWKT7"
-Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
- by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 6.2.0)
- id 96faff22bc9cb589; Thu, 29 Aug 2024 20:44:37 +0200
-Received: from kreacher.localnet (unknown [195.136.19.94])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by cloudserver094114.home.pl (Postfix) with ESMTPSA id A9D876A8C15;
-	Thu, 29 Aug 2024 20:44:36 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=rjwysocki.net;
-	s=dkim; t=1724957077;
-	bh=D9Kqd3FKIOYvAEPnmVq1vDuA0cMh5s8MRJ8xmOBpr7Y=;
-	h=From:Subject:Date;
-	b=I3rjWKT7/20WEhOoPufhG4WG99D7kblUSzX+rJfFPD5AIPyPVah5ojO7H1IFT5G07
-	 L3nM3MOY+lyUucTSN1g4/7NZyrVOuQzJycdbznoZmThfKsF7Kk4jQgh9JHyiNunQXQ
-	 CwdZ4SzRvzDf/p9ygRIZ3EsW3JN6fajBS9FMiWa4AdPZQQ9FqKgE/bT2T9SPIJ9MOk
-	 j98LUZ4jnVMO+JNgNB2lm9GaoUjhqC0ljmb1HcyqEnceupIEbSaLwtufF0N3rAPzWS
-	 eDqvtrscWPUJUaZZ4drKMN1gB6rUOpz/DX9xLraoddKMJmw3Bm/RlqUXE8qbaW45zR
-	 J/92JefRGnksA==
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To: Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Bob Moore <robert.moore@intel.com>,
- Saket Dumbre <saket.dumbre@intel.com>
-Subject: [PATCH v1 00/20] ACPICA: Release 20240827
-Date: Thu, 29 Aug 2024 20:18:53 +0200
-Message-ID: <5819337.DvuYhMxLoT@rjwysocki.net>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YR9oJD4F"
+Received: by mail-pl1-f176.google.com with SMTP id d9443c01a7336-201f2b7fe0dso12691275ad.1;
+        Fri, 30 Aug 2024 00:11:23 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1725001882; x=1725606682; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=jVk8LINkbTRQSWBWSOj1f6VAOaUL2cUfSgT/UyEtcj8=;
+        b=YR9oJD4FzIj+33OkZeA1oLTZcN/7/AQbRbqu5NWr2VgzFHKFJzzUXKtETdXtMi6kpa
+         e2bxd4Ur4405ogUTrkqdH6HLZgYQCyZ1ei0i82mpaZdtVtkb1dVQ998rOGy/MZ8kEPY0
+         vYA+2FMYiehYX8wcRmoaDqJ05/5h4UkGm2qxiKklTz7jHyq0Loa9e0XwQg1i9wx8gmsJ
+         0rcrFFboi6OAvVWqpFG2zcxn4FWUNvxxgoPcjoZDznkOwW5Zlaf3ZxXLVT40RcVaozMX
+         iGI7QUAxngwSadswpyFtCYPyoZaW85bGFr5eR9whUse63h6xnm/6GMgh84KMpiTCirRr
+         8Y3w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1725001882; x=1725606682;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=jVk8LINkbTRQSWBWSOj1f6VAOaUL2cUfSgT/UyEtcj8=;
+        b=vXUxMUILLhjBwygAvJTCjIcryVpnl4vvXNgsfLT7QQbQlatVEWi8t1zxoGdgoyPhLS
+         8n7uNYkQKOw4s07tGNTocFMvWCKCZiHgqM9Oleh5O+U6EgoKEcyYmZpN7sY6Dz7naZ/Q
+         I5/Hiinpz4DaEVQPZ/Ltm3hHKhsDQQZlQX1jKlFWsJWZ7jFcVZo2DDBZIShKEbnaQXvy
+         q7btNLbSk6ccB+MZklfbQ77UhvkUS/vHt4nPzE+GTEj+sDrnPWRa51BA6xEGURDbLM+X
+         k4i4U87RSjmx34wn6mrm91OC2jcXQ/tmqhkYmi21j/iVvaq1pyIUGjFEzRAeVmTk0xXl
+         GPAA==
+X-Forwarded-Encrypted: i=1; AJvYcCUpFNZ9Tk4mMm/gP8RlXppd4g5ucLRFa2jbEbgijt5rEyMHyS7UUfH9NTHexx4QOz2LWleEx2gHVPxFrsc=@vger.kernel.org
+X-Gm-Message-State: AOJu0Ywfqm2UPUmQHuGpD16tZ5pQF114Ubze99olVcudsWotMSsfGyni
+	2K4qluYY+zU4bhgFmTOj5IsdgcU8onw3M9RPWU1KKV820fV6ZRlRMB0xX+HIeLE=
+X-Google-Smtp-Source: AGHT+IEG86tnZcFSGgrjOxo6oZCRr3aVnnMeXGdSQvX8M1+dO29teMaRbeJ7yb+I7rzB4yHNGS6kzA==
+X-Received: by 2002:a17:902:ec8e:b0:202:4b99:fd27 with SMTP id d9443c01a7336-2050c4d38b5mr53444925ad.51.1725001882185;
+        Fri, 30 Aug 2024 00:11:22 -0700 (PDT)
+Received: from fedora.. ([106.219.166.11])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2052a485dacsm5243615ad.212.2024.08.30.00.11.18
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 30 Aug 2024 00:11:21 -0700 (PDT)
+From: Riyan Dhiman <riyandhiman14@gmail.com>
+To: lpieralisi@kernel.org,
+	guohanjun@huawei.com,
+	sudeep.holla@arm.com
+Cc: linux-acpi@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org,
+	Riyan Dhiman <riyandhiman14@gmail.com>
+Subject: [PATCH] ACPI: arm64: Calculate size from pointer instead of struct
+Date: Fri, 30 Aug 2024 12:41:10 +0530
+Message-ID: <20240830071110.120350-1-riyandhiman14@gmail.com>
+X-Mailer: git-send-email 2.46.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="UTF-8"
-X-CLIENT-IP: 195.136.19.94
-X-CLIENT-HOSTNAME: 195.136.19.94
-X-VADE-SPAMSTATE: clean
-X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgeeftddrudefgedguddvjecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvvefufffkggfgtgesthfuredttddtjeenucfhrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqeenucggtffrrghtthgvrhhnpeffffffkefgheehffelteeiveeffeevhfelteejvddvieejjeelvdeiheeuveeuffenucfkphepudelhedrudefiedrudelrdelgeenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpeduleehrddufeeirdduledrleegpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpehrjhifsehrjhifhihsohgtkhhirdhnvghtpdhnsggprhgtphhtthhopeegpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheprhhosggvrhhtrdhmohhorhgvsehinhhtvghlrdgtohhmpdhrtghpthhtohepshgrkhgvthdrughumhgsrhgvsehinhhtvghlrdgtohhm
-X-DCC--Metrics: v370.home.net.pl 1024; Body=4 Fuz1=4 Fuz2=4
+Content-Transfer-Encoding: 8bit
 
-Hi All,
+Calculate the size from pointer instead of struct to adhere to
+kernel coding style.
 
-These are ACPICA 20240827 changes ported to Linux, except for some
-patches that have been applied already or are going to be routed
-through other maintainer trees.
+Issue reported in checkpatch
 
-The following changes are included:
+This commit has no functional changes.
 
-Adam Lackorzynski (1):
-      ACPICA: Avoid warning for Dump Functions
+Signed-off-by: Riyan Dhiman <riyandhiman14@gmail.com>
+---
+ drivers/acpi/arm64/iort.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Adam Young (1):
-      ACPICA: Allow PCC Data Type in MCTP resource.
-
-Adrien Destugues (1):
-      ACPICA: haiku: Fix invalid value used for semaphores
-
-Aleksandrs Vinarskis (1):
-      ACPICA: iasl: handle empty connection_node
-
-Armin Wolf (6):
-      ACPICA: Fix memory leak if acpi_ps_get_next_namepath() fails
-      ACPICA: Fix memory leak if acpi_ps_get_next_field() fails
-      ACPICA: Allow for supressing leading zeros when using acpi_ex_convert_to_ascii()
-      ACPICA: Add support for supressing leading zeros in hex strings
-      ACPICA: Update integer-to-hex-string conversions
-      ACPICA: Add support for Windows 11 22H2 _OSI string
-
-Dave Jiang (1):
-      ACPICA: HMAT: Add extended linear address mode to MSCIS
-
-Jose Marinho (1):
-      ACPICA: Implement the Dword_PCC Resource Descriptor Macro
-
-Punit Agrawal (1):
-      ACPICA: MPAM: Correct the typo in struct acpi_mpam_msc_node member
-
-Saket Dumbre (2):
-      ACPICA: Allow for more flexibility in _DSM args
-      ACPICA: Setup for ACPICA release 20240827
-
-Sia Jee Heng (2):
-      ACPICA: SPCR: Update the SPCR table to version 4
-      ACPICA: Headers: Add RISC-V SBI Subtype to DBG2
-
-Vasily Khoruzhick (2):
-      ACPICA: Implement ACPI_WARNING_ONCE and ACPI_ERROR_ONCE
-      ACPICA: executer/exsystem: Don't nag user about every Stall() violating the spec
-
-Zhang Rui (1):
-      ACPICA: Complete CXL 3.0 CXIMS structures
-
-Thanks!
-
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index 1b39e9ae7ac1..6a87ec243c56 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -56,7 +56,7 @@ static inline int iort_set_fwnode(struct acpi_iort_node *iort_node,
+ {
+ 	struct iort_fwnode *np;
+ 
+-	np = kzalloc(sizeof(struct iort_fwnode), GFP_ATOMIC);
++	np = kzalloc(sizeof(*np), GFP_ATOMIC);
+ 
+ 	if (WARN_ON(!np))
+ 		return -ENOMEM;
+-- 
+2.46.0
 
