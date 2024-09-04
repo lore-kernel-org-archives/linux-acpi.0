@@ -1,96 +1,100 @@
-Received: from todd.t-8ch.de (todd.t-8ch.de [159.69.126.157])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06F6C14831E;
-	Wed,  4 Sep 2024 07:13:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.69.126.157
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46DF8136657;
+	Wed,  4 Sep 2024 09:36:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725433993; cv=none; b=kVaJOOMAf238IzOc6fwkq6kjfkMPhLq6G75IIPkZ91YQQ5Laank2MVXkRqd7+FvtFORAN9GQhTtbpJG6DpojLqcbsaHM7JZMKrx/a+guiZ7lBxVkOPz1Gl8ZXhzdmlAxiLwNI5ZtGIkZHljtAr12a7ALOBkUgudHxX0jeTIcLP0=
+	t=1725442567; cv=none; b=MjDc+95ImwhCnf+r5iJy4g+XKoj6IiCezvDYzXhxPV7bc4cruIx+HEPCLlUQJz28Vl8EK+3fvP7oh+L/X3NSBLSHwvB5UftsTeM8iZcT/UaUEavTxB4U8vRSnFjRtWUOx0yJ8vKsCh+LFeff9JCB/JOBmxVfWDek4vlxMYXPQfM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725433993; c=relaxed/simple;
-	bh=iidNbhVu9dGaX9vvLnlzhXLhakvIQbqR4E89Zx6qqiw=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=ftP7cz5y/Bmyawv75f6bmF7iPt09+rYMjCMLEBR8K7CYXcZTCDF9+dn4ozGBf2ayw2clGb+QBeKgM+/TrnDy1l9BQJtMYwbUkI1TEJjBzivuLectsxtT5XPECvgN9FxFho33gxGEt/OG9G8niL4B81uxrbwJuzw66rWHShQ37nM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net; spf=pass smtp.mailfrom=weissschuh.net; dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b=Gy97Wmbd; arc=none smtp.client-ip=159.69.126.157
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=weissschuh.net
+	s=arc-20240116; t=1725442567; c=relaxed/simple;
+	bh=LxkNSYAofDOvfm/1x55QP/ob58WB2jeme7PmvxzQTxc=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=bnT2pEZn7c4yFJJdVil/z8QjWmdgKww4xf0q5ddA0k94u7BAvMnf39pXhDG8VANHTgExLoTTLY4tgV2B6uw4e0Y3AgIckymhNHW1vFT1LeG6iUjFbvJwdqFtxK14Iw8DaamOWhsjiroFXUnzzKaPDzrJjnoVkEJ+v4GW7oIkbYk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Fjiksoh/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b="Gy97Wmbd"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=weissschuh.net;
-	s=mail; t=1725433984;
-	bh=iidNbhVu9dGaX9vvLnlzhXLhakvIQbqR4E89Zx6qqiw=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-	b=Gy97WmbdUGElt/MXyov6S7aJ497tLRKJYxLsMSG933t+uIS/luPBApz4axlyzs5HF
-	 jm8f7fbSnvsJqDBxe9lMIdF1fce3qW4UJUBbIUrjHIU6Qa5dQinNtMGMretzM9qNIh
-	 9/T7zgjGNtMqXRazSMzmURKJnCK3Le8qqQtkDjqk=
-From: =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <linux@weissschuh.net>
-Date: Wed, 04 Sep 2024 09:12:54 +0200
-Subject: [PATCH 3/5] ACPI: battery: initialize mutexes through devm_ APIs
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Fjiksoh/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45089C4CEC2;
+	Wed,  4 Sep 2024 09:36:01 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1725442566;
+	bh=LxkNSYAofDOvfm/1x55QP/ob58WB2jeme7PmvxzQTxc=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=Fjiksoh/7cDs5GAQtGkF7NbvnZvYCQXencrq4xsA3j8WLlB5ZuhafJ9Vxjm3ZDbwH
+	 GUh0CvwTi2GHEpHVM44sRvCEWC8sT0VAKXN7l89dwztEdpArFDCkp2KCHsS0vTHPPC
+	 r8l3OrP+06WDLdb0jQSBqTOD7W64qAA4kqkYkjE9vYnrYowoV7xu79/GHYQnmyywC4
+	 XW3WHlGlZFOWro4shc+uMwsp5VeFQTizl6UasNkYoMWfRuDxWFL26r2MHgOvsfLEx1
+	 8dKjtp7Va87ug3+24UIMvgmCZXw3juGcUHKjHsfADBFfQ9L70JyVtTPGydZclGRGzn
+	 +ZZ0F9aF6JDIw==
+Date: Wed, 4 Sep 2024 09:35:59 +0000
+From: Tzung-Bi Shih <tzungbi@kernel.org>
+To: Stephen Boyd <swboyd@chromium.org>
+Cc: chrome-platform@lists.linux.dev, linux-kernel@vger.kernel.org,
+	patches@lists.linux.dev, devicetree@vger.kernel.org,
+	Douglas Anderson <dianders@chromium.org>,
+	Pin-yen Lin <treapking@chromium.org>,
+	Andrzej Hajda <andrzej.hajda@intel.com>,
+	Benson Leung <bleung@chromium.org>,
+	Conor Dooley <conor+dt@kernel.org>, Daniel Vetter <daniel@ffwll.ch>,
+	David Airlie <airlied@gmail.com>,
+	Dmitry Baryshkov <dmitry.baryshkov@linaro.org>,
+	dri-devel@lists.freedesktop.org,
+	Guenter Roeck <groeck@chromium.org>,
+	Jernej Skrabec <jernej.skrabec@gmail.com>,
+	Jonas Karlman <jonas@kwiboo.se>,
+	Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+	Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
+	Lee Jones <lee@kernel.org>,
+	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+	Maxime Ripard <mripard@kernel.org>,
+	Neil Armstrong <neil.armstrong@linaro.org>,
+	Prashant Malani <pmalani@chromium.org>,
+	Robert Foss <rfoss@kernel.org>, Rob Herring <robh+dt@kernel.org>,
+	Thomas Zimmermann <tzimmermann@suse.de>,
+	Alexandre Belloni <alexandre.belloni@bootlin.com>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Daniel Scally <djrscally@gmail.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Ivan Orlov <ivan.orlov0322@gmail.com>, linux-acpi@vger.kernel.org,
+	linux-usb@vger.kernel.org,
+	Mika Westerberg <mika.westerberg@linux.intel.com>,
+	"Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Vinod Koul <vkoul@kernel.org>
+Subject: Re: [PATCH v4 16/18] platform/chrome: cros_ec_typec: Add support for
+ signaling DP HPD via drm_bridge
+Message-ID: <Ztgp_8UxEgBCiEMz@google.com>
+References: <20240901040658.157425-1-swboyd@chromium.org>
+ <20240901040658.157425-17-swboyd@chromium.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Message-Id: <20240904-acpi-battery-cleanups-v1-3-a3bf74f22d40@weissschuh.net>
-References: <20240904-acpi-battery-cleanups-v1-0-a3bf74f22d40@weissschuh.net>
-In-Reply-To: <20240904-acpi-battery-cleanups-v1-0-a3bf74f22d40@weissschuh.net>
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
- =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <linux@weissschuh.net>
-X-Mailer: b4 0.14.1
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1725433984; l=1468;
- i=linux@weissschuh.net; s=20221212; h=from:subject:message-id;
- bh=iidNbhVu9dGaX9vvLnlzhXLhakvIQbqR4E89Zx6qqiw=;
- b=6jatBtz7LB/NNCd63oh4MIxWG+ziT6GhhTJ8cyWPxddrGz4HLd6tEECn4bzLm3FXqYHJoj89Q
- 6fKaSg1vDPXA4azW52X1E31H98T9PpjN9G0oZExIyLR2OxYnW4AolKz
-X-Developer-Key: i=linux@weissschuh.net; a=ed25519;
- pk=KcycQgFPX2wGR5azS7RhpBqedglOZVgRPfdFSPB1LNw=
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240901040658.157425-17-swboyd@chromium.org>
 
-Simplify the cleanup logic a bit.
+On Sat, Aug 31, 2024 at 09:06:54PM -0700, Stephen Boyd wrote:
+> We can imagine that logically the EC is a device that has some number of
+> DisplayPort (DP) connector inputs, some number of USB3 connector inputs,
+> and some number of USB type-c connector outputs. If you squint enough it
+> looks like a USB type-c dock. Logically there's a crossbar pin
+> assignment capability within the EC that can assign USB and DP lanes to
+> USB type-c lanes in the connector (i.e. USB type-c pin configurations).
+> In reality, the EC is a microcontroller that has some TCPCs and
+> redrivers connected to it over something like i2c and DP/USB from the AP
+> is wired directly to those ICs, not the EC.
+> 
+> [...]
+> 
+> Cc: Prashant Malani <pmalani@chromium.org>
+> Cc: Benson Leung <bleung@chromium.org>
+> Cc: Tzung-Bi Shih <tzungbi@kernel.org>
+> Cc: <chrome-platform@lists.linux.dev>
+> Cc: Pin-yen Lin <treapking@chromium.org>
+> Signed-off-by: Stephen Boyd <swboyd@chromium.org>
 
-Signed-off-by: Thomas Weißschuh <linux@weissschuh.net>
----
- drivers/acpi/battery.c | 9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index a778bf6a6c4e..da50ca8df007 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -1222,8 +1222,8 @@ static int acpi_battery_add(struct acpi_device *device)
- 	strcpy(acpi_device_name(device), ACPI_BATTERY_DEVICE_NAME);
- 	strcpy(acpi_device_class(device), ACPI_BATTERY_CLASS);
- 	device->driver_data = battery;
--	mutex_init(&battery->lock);
--	mutex_init(&battery->sysfs_lock);
-+	devm_mutex_init(&device->dev, &battery->lock);
-+	devm_mutex_init(&device->dev, &battery->sysfs_lock);
- 	if (acpi_has_method(battery->device->handle, "_BIX"))
- 		set_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags);
- 
-@@ -1253,8 +1253,6 @@ static int acpi_battery_add(struct acpi_device *device)
- 	unregister_pm_notifier(&battery->pm_nb);
- fail:
- 	sysfs_remove_battery(battery);
--	mutex_destroy(&battery->lock);
--	mutex_destroy(&battery->sysfs_lock);
- 
- 	return result;
- }
-@@ -1274,9 +1272,6 @@ static void acpi_battery_remove(struct acpi_device *device)
- 	device_init_wakeup(&device->dev, 0);
- 	unregister_pm_notifier(&battery->pm_nb);
- 	sysfs_remove_battery(battery);
--
--	mutex_destroy(&battery->lock);
--	mutex_destroy(&battery->sysfs_lock);
- }
- 
- #ifdef CONFIG_PM_SLEEP
-
--- 
-2.46.0
-
+Reviewed-by: Tzung-Bi Shih <tzungbi@kernel.org>
