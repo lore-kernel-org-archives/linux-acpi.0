@@ -1,31 +1,32 @@
 Received: from todd.t-8ch.de (todd.t-8ch.de [159.69.126.157])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B1B7146A86;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F1BB146A7B;
 	Wed,  4 Sep 2024 07:13:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.69.126.157
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725433990; cv=none; b=uSuwDwC55ix5OduE7oqV6GcaeUKIMT2T2KbjmfqvKMs4/BnoIljUT0Yn9ksA8Tx4fK1yeX3HM6r40uH7sOCIiKcDgxz2MiY/FvgJG753gzeaNf0yMUnagT9gOPOtqh+q7+RX6M7shL5LTNvXR/3QVyXZ8ZXwmPvkdze+C6+Dm0s=
+	t=1725433991; cv=none; b=rjZGnxJdTFnBCHF6mRZVlHYuI8OjyYxJ9TD006gI16m7OVmL9goRBazrF1RmhC2kTYcXycs27Lp+YU4p5mzTV8zFYfVJSBvlP0cd+Fxfk7czYDsvdueftO/sXLJ/JAb1EPfp3lqckjwLmiiChAl8Frr+WIdqVQOteXLpyf/RbuA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725433990; c=relaxed/simple;
-	bh=wkA1Ag1bZ5p18BJ58kweeNOw7CQlEmrZboPv4f9bCUw=;
-	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=lMXOvDIG0Z2yXtza+YGVfu1O7nluaCb5/gYQmgEbf1tLvZCBK3a1V6BNRR6ijQOzp/GG1eFW9i90qHkdy9QpAmYi3vpcHH0/w3Iayg53RzS4PxogNV75Jtd9iyqsGwqji+kY5kiS9bfzWhH+dAWf9Uqw9xRJl5iu9SEbDSrS5eg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net; spf=pass smtp.mailfrom=weissschuh.net; dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b=OoE81LeU; arc=none smtp.client-ip=159.69.126.157
+	s=arc-20240116; t=1725433991; c=relaxed/simple;
+	bh=wQXxSCmkiFU6W3wml5qaESF/PpuUQynjgR0MHH9BQqs=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=I8gRv8M1EWEGu6x8pHlcHPv7Pm4OIEZ1DXLmMg5coEIHl/CdxdZRDaFCSGE+vHZNgp0BcQ6gqGfwuSTJiAM+ZIPg8DjkLadswPhroIwQrhBG7K9oGKMzaq7CTEiMWobHun7CXij/tcAmUmOnHK5pC2Hx5MkO2g1SwJG1vPy4+C8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net; spf=pass smtp.mailfrom=weissschuh.net; dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b=IScRhpdU; arc=none smtp.client-ip=159.69.126.157
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=weissschuh.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b="OoE81LeU"
+	dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b="IScRhpdU"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=weissschuh.net;
-	s=mail; t=1725433984;
-	bh=wkA1Ag1bZ5p18BJ58kweeNOw7CQlEmrZboPv4f9bCUw=;
-	h=From:Subject:Date:To:Cc:From;
-	b=OoE81LeUdOWp+1XU9os7LbbVL1dk6/9AP5R6JYpvAId49eitldTYETlt4DneF3rVR
-	 N6fV+P8f6d3znBh9eX/nQuZAlrMjuB4qWJR1WqyvF/Y7qO1wXtkvUwWfNXLAk6DMUd
-	 tMxtdl46iWd/V9zUSuhrfY6SPARl7dB20PKp6CYs=
+	s=mail; t=1725433985;
+	bh=wQXxSCmkiFU6W3wml5qaESF/PpuUQynjgR0MHH9BQqs=;
+	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
+	b=IScRhpdUMdSYuhxrFcDgc31tTLS/2hCqPdKV8GDggsreCqLen1I27dxau8mahB8pw
+	 u5YQaD583WgH8314m/ol/M22r6gCEM4oIURMsZ+jhc4mZWq/2eCjWaDAiNpTxdumjI
+	 ZeKhF2n1PI9AECiIB/RvTv61LVM+iQf265OJjRRI=
 From: =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <linux@weissschuh.net>
-Subject: [PATCH 0/5] ACPI: battery: various cleanups
-Date: Wed, 04 Sep 2024 09:12:51 +0200
-Message-Id: <20240904-acpi-battery-cleanups-v1-0-a3bf74f22d40@weissschuh.net>
+Date: Wed, 04 Sep 2024 09:12:56 +0200
+Subject: [PATCH 5/5] ACPI: battery: install notify handler through ACPI
+ core
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -34,37 +35,84 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-X-B4-Tracking: v=1; b=H4sIAHMI2GYC/x3MQQ5AMBBA0avIrE0y6EJdRSzaGkwi1bQIEXfXW
- L7F/w8kjsIJuuKByKck2XxGVRbgFuNnRhmzoaZakSaFxgVBa/ad441uZeOPkFC3mho7KWVHgty
- GyJNc/7cf3vcDtDJ0qWcAAAA=
+Message-Id: <20240904-acpi-battery-cleanups-v1-5-a3bf74f22d40@weissschuh.net>
+References: <20240904-acpi-battery-cleanups-v1-0-a3bf74f22d40@weissschuh.net>
+In-Reply-To: <20240904-acpi-battery-cleanups-v1-0-a3bf74f22d40@weissschuh.net>
 To: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
  =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <linux@weissschuh.net>
 X-Mailer: b4 0.14.1
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1725433984; l=689;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1725433984; l=1982;
  i=linux@weissschuh.net; s=20221212; h=from:subject:message-id;
- bh=wkA1Ag1bZ5p18BJ58kweeNOw7CQlEmrZboPv4f9bCUw=;
- b=3JhgsFHkxMA+9POHbXXv9PApqxoXBHemz9Qc7NpMGAXt6d+xxJJ1xCiOaPLBEyOdmkb2UTS5a
- 7fzp1J8tGHZDtkLnnowZqXiZYn7hAohxac2v9lUlVbFONvzWDzfauEK
+ bh=wQXxSCmkiFU6W3wml5qaESF/PpuUQynjgR0MHH9BQqs=;
+ b=Gu1oTyUw6dW6jhbdERyp4pMp6ClyLdmCg7yYgA6t/OFkhX+YKdypTcRa80nnz0FhcN1L7mmT6
+ 7DEmGnqbdgKAhsn0UaVD3dZWMYz5UGW7ql0bfhaZxrJMJuXKZsahdbs
 X-Developer-Key: i=linux@weissschuh.net; a=ed25519;
  pk=KcycQgFPX2wGR5azS7RhpBqedglOZVgRPfdFSPB1LNw=
 
+The ACPI core can register the notify handler on its own,
+simplifying error handling and cleanup.
+
 Signed-off-by: Thomas Weißschuh <linux@weissschuh.net>
 ---
-Thomas Weißschuh (5):
-      ACPI: battery: check result of register_pm_notifier()
-      ACPI: battery: allocate driver data through devm_ APIs
-      ACPI: battery: initialize mutexes through devm_ APIs
-      ACPI: battery: use DEFINE_SIMPLE_DEV_PM_OPS
-      ACPI: battery: install notify handler through ACPI core
+ drivers/acpi/battery.c | 16 +++-------------
+ 1 file changed, 3 insertions(+), 13 deletions(-)
 
- drivers/acpi/battery.c | 41 +++++++++++------------------------------
- 1 file changed, 11 insertions(+), 30 deletions(-)
----
-base-commit: 88fac17500f4ea49c7bac136cf1b27e7b9980075
-change-id: 20240904-acpi-battery-cleanups-98903bf44bd0
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 4bd746f8c0ac..88899c417f15 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -1060,9 +1060,8 @@ static void acpi_battery_refresh(struct acpi_battery *battery)
+ }
+ 
+ /* Driver Interface */
+-static void acpi_battery_notify(acpi_handle handle, u32 event, void *data)
++static void acpi_battery_notify(struct acpi_device *device, u32 event)
+ {
+-	struct acpi_device *device = data;
+ 	struct acpi_battery *battery = acpi_driver_data(device);
+ 	struct power_supply *old;
+ 
+@@ -1241,16 +1240,8 @@ static int acpi_battery_add(struct acpi_device *device)
+ 
+ 	device_init_wakeup(&device->dev, 1);
+ 
+-	result = acpi_dev_install_notify_handler(device, ACPI_ALL_NOTIFY,
+-						 acpi_battery_notify, device);
+-	if (result)
+-		goto fail_pm;
+-
+ 	return 0;
+ 
+-fail_pm:
+-	device_init_wakeup(&device->dev, 0);
+-	unregister_pm_notifier(&battery->pm_nb);
+ fail:
+ 	sysfs_remove_battery(battery);
+ 
+@@ -1266,9 +1257,6 @@ static void acpi_battery_remove(struct acpi_device *device)
+ 
+ 	battery = acpi_driver_data(device);
+ 
+-	acpi_dev_remove_notify_handler(device, ACPI_ALL_NOTIFY,
+-				       acpi_battery_notify);
+-
+ 	device_init_wakeup(&device->dev, 0);
+ 	unregister_pm_notifier(&battery->pm_nb);
+ 	sysfs_remove_battery(battery);
+@@ -1297,9 +1285,11 @@ static struct acpi_driver acpi_battery_driver = {
+ 	.name = "battery",
+ 	.class = ACPI_BATTERY_CLASS,
+ 	.ids = battery_device_ids,
++	.flags = ACPI_DRIVER_ALL_NOTIFY_EVENTS,
+ 	.ops = {
+ 		.add = acpi_battery_add,
+ 		.remove = acpi_battery_remove,
++		.notify = acpi_battery_notify,
+ 		},
+ 	.drv.pm = pm_sleep_ptr(&acpi_battery_pm),
+ };
 
-Best regards,
 -- 
-Thomas Weißschuh <linux@weissschuh.net>
+2.46.0
 
