@@ -1,235 +1,145 @@
-Received: from szxga05-in.huawei.com (szxga05-in.huawei.com [45.249.212.191])
+Received: from mout.gmx.net (mout.gmx.net [212.227.17.22])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B239171A7;
-	Thu, 19 Sep 2024 01:17:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.191
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA36D7345B;
+	Thu, 19 Sep 2024 06:34:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.17.22
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726708682; cv=none; b=JqL9ujVn1/xkyptEgpdfwc/PeVik1bH0iJL5vJ36deKA7DeeIUO3zvwztdvoi6MJ/rZzf/+vhA8dVi9RNnIu4XVqJEApd8ccidw67zREEmR0/AdHLdP+CywaScMfZ2l5QrDSFC3RlnSieBUjl8pMUtR/6zWnHAiibJFI4TLy0bo=
+	t=1726727651; cv=none; b=EZSxmp4gyXnc1/+4280e0ihhPjRp4NvQZyBA8TEVEilbHpSCM/6AkznLgs0lD46+VaRXn5t6GrcdkPwIvAxwTrwgC3JmW+qAoDXKSy8N5hzk48w5Tt5WzPMtF4u6TYseekzL+vDuKgm4U0hEm/jtBigKJDKjR1niD4+oCHmdRMs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726708682; c=relaxed/simple;
-	bh=LWSfe6FBhKQvo8lU3hiFHZAObPKLFUCOgNVGLdF1Us8=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=OUlf/ywIbRjbWlTTen/xxE3NC0Nzbkh3nhrbeA0Vcz7HJPOqN6o8/ZwY4RYfYAodKlo//iAElKd5KfrQIAg73zG3sRoMSNRr67zjh3VZW/UEOfL9SJfIUxtkmAgSNEjw89s8Y31yKNjgQN+ZGJbTvWOung/sLrubWQEWU8b+cYA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.191
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
-Received: from mail.maildlp.com (unknown [172.19.162.112])
-	by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4X8Hbg3WFfz1HJjj;
-	Thu, 19 Sep 2024 09:14:07 +0800 (CST)
-Received: from dggpeml500019.china.huawei.com (unknown [7.185.36.137])
-	by mail.maildlp.com (Postfix) with ESMTPS id F41C814010C;
-	Thu, 19 Sep 2024 09:17:50 +0800 (CST)
-Received: from [10.67.121.58] (10.67.121.58) by dggpeml500019.china.huawei.com
- (7.185.36.137) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Thu, 19 Sep
- 2024 09:17:50 +0800
-Message-ID: <81aad4a6-0276-297a-65d3-378dfdc629cc@hisilicon.com>
-Date: Thu, 19 Sep 2024 09:17:50 +0800
+	s=arc-20240116; t=1726727651; c=relaxed/simple;
+	bh=89cRcYvE1cRdyq3k7ZQ7ijDCs7yVlHDdxaRO+kFukN8=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=Z1GJq79xC8gJxIJjAHqDJPhr4Dmq+EyfylcKhw0LNvfCga+WPi0MhoF+mO4MjNIn6CFZhzP3tdoVNbljH4dGLNfplIMOxl6HxxSagvvWoM59kNg/ea9Cw57zOaOIgP/6xqzkCMCIX3Ae5UgC9P5pzdTK+vWgthPusjQc0dEi3Cg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de; spf=pass smtp.mailfrom=gmx.de; dkim=pass (2048-bit key) header.d=gmx.de header.i=w_armin@gmx.de header.b=OX+Bx7Xw; arc=none smtp.client-ip=212.227.17.22
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmx.de
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmx.de header.i=w_armin@gmx.de header.b="OX+Bx7Xw"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmx.de;
+	s=s31663417; t=1726727630; x=1727332430; i=w_armin@gmx.de;
+	bh=0TAOlCNSTaYIQfLLnbrxO4iE3HoqYpdFMBeupOI56GU=;
+	h=X-UI-Sender-Class:From:To:Cc:Subject:Date:Message-Id:
+	 MIME-Version:Content-Transfer-Encoding:cc:
+	 content-transfer-encoding:content-type:date:from:message-id:
+	 mime-version:reply-to:subject:to;
+	b=OX+Bx7XwpbV/fnwMJpHUaBV4RIa88HZu4ziHfsG/dwBgBG2cDOeknbn8Fll7BGat
+	 VtuONILwv9kgRf9++OICv25LUYDlTRfXPerkRJLMqzMovXdF7q1svlQOh+wy+3lQD
+	 vqAH9SbgKWaawKwkRPETDS6va2XofXF30oqZQFQxr76MpRO3wfoADLK5m3rmxPQPT
+	 GD4Ah4UnQ+5QQfrBENsp3YZt0Wc2j1bUDAuF+ac93yuwm+Z/TczNx/vK6gJ8Jyatl
+	 KdNOmov8V5Qy4kZQ0vc85ebDSrm6jzTb8H0Zf/glG+w9k9+0oMEd2k8O7csosWo5Y
+	 JU/VA0U8tX9cbzc/rg==
+X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
+Received: from mx-amd-b650.users.agdsn.de ([141.30.226.129]) by mail.gmx.net
+ (mrgmx104 [212.227.17.168]) with ESMTPSA (Nemesis) id
+ 1Mwwdf-1s1ZQ52O2F-00yNxW; Thu, 19 Sep 2024 08:33:50 +0200
+From: Armin Wolf <W_Armin@gmx.de>
+To: mjg59@srcf.ucam.org,
+	pali@kernel.org,
+	dilinger@queued.net
+Cc: rafael@kernel.org,
+	lenb@kernel.org,
+	hdegoede@redhat.com,
+	ilpo.jarvinen@linux.intel.com,
+	platform-driver-x86@vger.kernel.org,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] platform/x86: dell-laptop: Fix crash when unregistering battery hook
+Date: Thu, 19 Sep 2024 08:33:32 +0200
+Message-Id: <20240919063332.362201-1-W_Armin@gmx.de>
+X-Mailer: git-send-email 2.39.5
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
- Thunderbird/102.3.2
-Subject: Re: [PATCH v2 1/3] cppc_cpufreq: Return desired perf in ->get() if
- feedback counters are 0
-To: Ionela Voinescu <ionela.voinescu@arm.com>
-CC: <beata.michalska@arm.com>, <wangxiongfeng2@huawei.com>,
-	<viresh.kumar@linaro.org>, <rafael@kernel.org>, <linux-pm@vger.kernel.org>,
-	<linux-acpi@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
-	<linuxarm@huawei.com>, <jonathan.cameron@huawei.com>,
-	<wanghuiqiang@huawei.com>, <zhenglifeng1@huawei.com>, <lihuisong@huawei.com>,
-	<yangyicong@huawei.com>, <liaochang1@huawei.com>, <zengheng4@huawei.com>
-References: <20240912072231.439332-1-zhanjie9@hisilicon.com>
- <20240912072231.439332-2-zhanjie9@hisilicon.com> <ZuK3sfcKf2gHssKa@arm.com>
- <79353a26-7304-9d6a-9237-cfa8e7794601@hisilicon.com>
- <ZulbtT8joKPXlFCL@arm.com>
- <30147eff-6e2f-1651-3875-52c9401273fb@hisilicon.com>
- <ZuqoV/RmVXDkg6uv@arm.com>
-From: Jie Zhan <zhanjie9@hisilicon.com>
-In-Reply-To: <ZuqoV/RmVXDkg6uv@arm.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: dggems704-chm.china.huawei.com (10.3.19.181) To
- dggpeml500019.china.huawei.com (7.185.36.137)
+Content-Transfer-Encoding: quoted-printable
+X-Provags-ID: V03:K1:yNcooaYQb2R4h9fb1MmgCBjuE+BdHSrdZx/pB76/DldD36OLmx3
+ FPqiJGbTU3MI/IflALFRwoV26RrvN3N89RvnW39rqRkCNz+BMdJ/qk+aKx43rUrpcyVRSUZ
+ O8WtuqhGpGTwVmHP9CJ3thdDBdN4uFXEhCTpGkC5XouvkQyD4+MFVKGbrb3ivPk6pmictm7
+ +ugbEoeog9PnuAVC9mmkw==
+X-Spam-Flag: NO
+UI-OutboundReport: notjunk:1;M01:P0:TVrXL/CWSjA=;WY41oLw9jEiXH8a0KOy2nNPh25C
+ 6q3EBk4LqYeqAjdVTHJ6R2b9f3hw642i9ak6onSCl1FVWrWKUuMOCHIkMgpeYdLJ3xF9CWdxR
+ hQIN+G6KuSrGu6KQ/3LGr/sY8/pWLJMUDxiDig5Y7sZ+b8U4otM59E/vuZTzOPVIWgkFASkW9
+ cVAmtt4Hoe0FBHQMLhIHEcJJoXvjg1AW3ezGrKNcT4jXxveHAnvozuu4GVCRSR5rzLaHm4s3G
+ z6f0/s/9bMXrxxINy1Nut0EKqS4gp5ygxeAvOnN6iG/LuQLm/KBah8YR/02GulHHPnhN1pirf
+ cEAhr+oFifTEFjLmTA0PQXCfWH5bN4VD+vf1GeXaPM7Rmi45J9lNHywzhGQp3DadLu0Q6Qp4t
+ skBwQ8yccf3Vw03Y9+FZY9mHO4NvB39HwXJ4Dn05LGm/JGDu4HQND0HvbBcs5z0Iu+wiuWMIU
+ k7qBXtePT7qxjF2XANXLkZqqZKi+//tGcBdkMjXJJD4Ksn9KryWAwjgpWReygOmamss9qXox6
+ utxNT6W0hWNcvg5I3UHrd/sBs//8uCpsn4WdiAikAKtdRjGVsWmq+89v7d2DXrpAQzTvveopX
+ 8OkqrS0+IjA9nuAxgd9EJBGkMzc5IPkCJfbMb0+UqJLl/+6aWHpZIykLr/mJrALXlUL4wczgd
+ wvk7C68lxw06gGsPqXIZ9cu/s/ZXD+CHWRDfCybovNNjzzrMbEu0dHDkF/17N5pW90qjeKJSs
+ V7vM/TKvDHrsudeyfXPcXmhiv4Z/tDQDhIYyQZLmUDbaYAlEVfmNV881rxbeMwmU00N9GZmdV
+ P3xDoo7doI2KuUksRGKCfM2A==
 
+If the battery hook encounters a unsupported battery, it will
+return an error. This in turn will cause the battery driver to
+automatically unregister the battery hook.
 
+However as soon as the driver itself attempts to unregister the
+already unregistered battery hook, a crash occurs due to a
+corrupted linked list.
 
-On 18/09/2024 18:15, Ionela Voinescu wrote:
-> Hi,
-> 
-> On Wednesday 18 Sep 2024 at 10:05:13 (+0800), Jie Zhan wrote:
->>
->>
->> On 17/09/2024 18:36, Ionela Voinescu wrote:
->>
->> ...
->>
->>>>> @@ -747,19 +750,22 @@ static unsigned int cppc_cpufreq_get_rate(unsigned int cpu)
->>>>>         cpufreq_cpu_put(policy);
->>>>>
->>>>>         ret = cppc_get_perf_ctrs(cpu, &fb_ctrs_t0);
->>>>> -       if (ret)
->>>>> -               return 0;
->>>>> -
->>>>> -       udelay(2); /* 2usec delay between sampling */
->>>>> -
->>>>> -       ret = cppc_get_perf_ctrs(cpu, &fb_ctrs_t1);
->>>>> -       if (ret)
->>>>> -               return 0;
->>>>> +       if (!ret) {
->>>>> +               udelay(2); /* 2usec delay between sampling */
->>>>> +               ret = cppc_get_perf_ctrs(cpu, &fb_ctrs_t1);
->>>>> +       }
->>>>> +       if (!ret)
->>>>> +               delivered_perf = cppc_perf_from_fbctrs(cpu_data, &fb_ctrs_t0,
->>>>> +                                                      &fb_ctrs_t1);
->>>>
->>>> TBH, 'if (!ret)' style looks very strange to me.
->>>> We haven't done so anywhere in cppc_cpufreq, so let's keep consistency and make
->>>> it easier for people to read and maintain?
->>>
->>> I agree it's a bit of a difficult read, that's why I only sent my code
->>> as a suggestion. I did like the benefit of not having to have two
->>> different calls to cppc_perf_to_khz() and making the code below common
->>> for the error and non-error paths. But it's up to you. 
->>
->> Yeah understood. I did try minimizing duplicate code, but ended up with either
->> duplicate 'get desired perf' stuff or duplicate cppc_perf_to_khz().
->>
->> ...
->>>>
->>>>           delivered_perf = cppc_perf_from_fbctrs(cpu_data, &fb_ctrs_t0,
->>>>                                                  &fb_ctrs_t1);
->>>
->>> You need a check here for !delivered_perf (when at least one of the
->>> deltas is 0) in which case it would be good to take the same error path
->>> below. Something like:
->>>
->>>             if(delivered_perf)
->>> 	            return cppc_perf_to_khz(&cpu_data->perf_caps, delivered_perf);
->>> 	    else
->>> 		ret = -EFAULT;
->>>
->>> That's why I did the tricky if/else dance above as we need to take the
->>> error path below for multiple cases.
->>>
->>> Thanks,
->>> Ionela.
->>>
->>
->> Sure, thanks for reminding this.
->>
->> ...
->>
->> How does this look? I think this should have the least duplicate code except for
->> two cppc_perf_to_khz() calls, while keeping the logic easy to follow.
->>
->> diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
->> index bafa32dd375d..6070444ed098 100644
->> --- a/drivers/cpufreq/cppc_cpufreq.c
->> +++ b/drivers/cpufreq/cppc_cpufreq.c
->> @@ -118,6 +118,9 @@ static void cppc_scale_freq_workfn(struct kthread_work *work)
->>  
->>         perf = cppc_perf_from_fbctrs(cpu_data, &cppc_fi->prev_perf_fb_ctrs,
->>                                      &fb_ctrs);
->> +       if (!perf)
->> +               return;
->> +
->>         cppc_fi->prev_perf_fb_ctrs = fb_ctrs;
->>  
->>         perf <<= SCHED_CAPACITY_SHIFT;
->> @@ -726,11 +729,27 @@ static int cppc_perf_from_fbctrs(struct cppc_cpudata *cpu_data,
->>  
->>         /* Check to avoid divide-by zero and invalid delivered_perf */
->>         if (!delta_reference || !delta_delivered)
->> -               return cpu_data->perf_ctrls.desired_perf;
->> +               return 0;
->>  
->>         return (reference_perf * delta_delivered) / delta_reference;
->>  }
->>  
->> +static int cppc_get_perf_ctrs_sample(int cpu,
->> +                                    struct cppc_perf_fb_ctrs *fb_ctrs_t0,
->> +                                    struct cppc_perf_fb_ctrs *fb_ctrs_t1)
->> +{
->> +       int ret;
->> +
->> +       ret = cppc_get_perf_ctrs(cpu, fb_ctrs_t0);
->> +       if (ret)
->> +               return ret;
->> +
->> +       udelay(2); /* 2usec delay between sampling */
->> +
->> +       ret = cppc_get_perf_ctrs(cpu, fb_ctrs_t1);
-> 
-> nit: white line before return.
-> 
->> +       return ret;
->> +}
->> +
->>  static unsigned int cppc_cpufreq_get_rate(unsigned int cpu)
->>  {
->>         struct cppc_perf_fb_ctrs fb_ctrs_t0 = {0}, fb_ctrs_t1 = {0};
->> @@ -746,20 +765,30 @@ static unsigned int cppc_cpufreq_get_rate(unsigned int cpu)
->>  
->>         cpufreq_cpu_put(policy);
->>  
->> -       ret = cppc_get_perf_ctrs(cpu, &fb_ctrs_t0);
->> -       if (ret)
->> -               return 0;
->> -
->> -       udelay(2); /* 2usec delay between sampling */
->> -
->> -       ret = cppc_get_perf_ctrs(cpu, &fb_ctrs_t1);
->> -       if (ret)
->> -               return 0;
->> +       ret = cppc_get_perf_ctrs_sample(cpu, &fb_ctrs_t0, &fb_ctrs_t1);
->> +       if (ret) {
->> +               if (ret == -EFAULT)
->> +                       goto out_invalid_counters;
->> +               else
->> +                       return 0;
->> +       }
->>  
->>         delivered_perf = cppc_perf_from_fbctrs(cpu_data, &fb_ctrs_t0,
->>                                                &fb_ctrs_t1);
->> +       if (!delivered_perf)
->> +               goto out_invalid_counters;
->>  
->>         return cppc_perf_to_khz(&cpu_data->perf_caps, delivered_perf);
->> +
->> +out_invalid_counters:
->> +       /*
->> +        * Feedback counters could be unchanged or 0 when a cpu enters a
->> +        * low-power idle state, e.g. clock-gated or power-gated.
->> +        * Get the lastest or cached desired perf for reflecting frequency.
->> +        */
->> +       if (cppc_get_desired_perf(cpu, &delivered_perf))
->> +               delivered_perf = cpu_data->perf_ctrls.desired_perf;
-> 
-> nit: same white line before return here :).
-> 
-> Looks good, thanks for the changes.
-> 
-> Reviewed-by: Ionela Voinescu <ionela.voinescu@arm.com>
-> 
-> Ionela.
+Fix this by simply ignoring unsupported batteries.
 
-Sure, thanks. I'll send a V3 based on this.
+Tested on a Dell Inspiron 3505.
 
-Jie
+Fixes: ab58016c68cc ("platform/x86:dell-laptop: Add knobs to change batter=
+y charge settings")
+Signed-off-by: Armin Wolf <W_Armin@gmx.de>
+=2D--
+I CCed the maintainers of the ACPI battery driver since i believe
+that this patch highlights a general issue inside the battery hook
+mechanism.
 
-> 
->> +       return cppc_perf_to_khz(&cpu_data->perf_caps, delivered_perf);
->>  }
->>  
->>  static int cppc_cpufreq_set_boost(struct cpufreq_policy *policy, int state)
->>
->>
->> Thanks!
->> Jie
-> 
+This is because the same crash will be triggered should for example
+device_add_groups() fail.
+
+Any ideas on how to solve this problem?
+=2D--
+ drivers/platform/x86/dell/dell-laptop.c | 15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/platform/x86/dell/dell-laptop.c b/drivers/platform/x8=
+6/dell/dell-laptop.c
+index a3cd0505f282..5671bd0deee7 100644
+=2D-- a/drivers/platform/x86/dell/dell-laptop.c
++++ b/drivers/platform/x86/dell/dell-laptop.c
+@@ -2391,12 +2391,18 @@ static struct attribute *dell_battery_attrs[] =3D =
+{
+ };
+ ATTRIBUTE_GROUPS(dell_battery);
+
++static bool dell_battery_supported(struct power_supply *battery)
++{
++	/* We currently only support the primary battery */
++	return strcmp(battery->desc->name, "BAT0") =3D=3D 0;
++}
++
+ static int dell_battery_add(struct power_supply *battery,
+ 		struct acpi_battery_hook *hook)
+ {
+-	/* this currently only supports the primary battery */
+-	if (strcmp(battery->desc->name, "BAT0") !=3D 0)
+-		return -ENODEV;
++	/* Return 0 instead of an error to avoid being unloaded */
++	if (!dell_battery_supported(battery))
++		return 0;
+
+ 	return device_add_groups(&battery->dev, dell_battery_groups);
+ }
+@@ -2404,6 +2410,9 @@ static int dell_battery_add(struct power_supply *bat=
+tery,
+ static int dell_battery_remove(struct power_supply *battery,
+ 		struct acpi_battery_hook *hook)
+ {
++	if (!dell_battery_supported(battery))
++		return 0;
++
+ 	device_remove_groups(&battery->dev, dell_battery_groups);
+ 	return 0;
+ }
+=2D-
+2.39.5
+
