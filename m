@@ -1,29 +1,29 @@
-Received: from out30-119.freemail.mail.aliyun.com (out30-119.freemail.mail.aliyun.com [115.124.30.119])
+Received: from out30-112.freemail.mail.aliyun.com (out30-112.freemail.mail.aliyun.com [115.124.30.112])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46D602574B;
-	Fri, 20 Sep 2024 04:30:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.119
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10594225D9;
+	Fri, 20 Sep 2024 04:30:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.112
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726806654; cv=none; b=rs6UNV6Uc+S+NVvH4D7F6M7Or6rbg1daZ19grSxgxDG9IDLwrEWvIfuh0xoRanrYTeGxUXN7anup7LEQMngjuT7vNLJ1DJuJSPNCQ4yAaGWu/qR4Lagy2TDIoSF41BdfDy9CMCr5PMb8btghwgPGw6wRFj14d1K2udqjjk7QB80=
+	t=1726806659; cv=none; b=cOcR3aNQbvfrnn3gH71uOjyClAz9DGnGFfChpQ1CHqfjhAOYepRx7n2lOoemhpqMmiXoXcy/CGLZC+UoxLulst/Uz1zWwfKFdlhEBtxTTI4+MQZQUID3STrsPXuBgUhYkGMsZBZBfW1JL6Lj548jLk93n1NacYmNdpg4BLcZppA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726806654; c=relaxed/simple;
-	bh=61+D44caa7v8N/CkTnNqF63lgoQQciLap3XVaJodn3I=;
+	s=arc-20240116; t=1726806659; c=relaxed/simple;
+	bh=fIMLD1rt+41xDZuWXGa73wInGBXQeaBM6YkQYwFzPrE=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=rdUMUoTrlqeFlOkYFuIBcCv678sRTbVpAk/tVMUDWiBtFrfFzR4ZoGLEr+gx2aBtmEc40DClvLkb3+FJxd+vOSZ6jdMDrlWUiEzLXGuhlUivRVrXjEN+Zp5YTXbz2kKGZVDYBn5fzBgS1WXVQUVeT0eDSMJF8V++OrLy8v6+e7g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=MjOIBuLN; arc=none smtp.client-ip=115.124.30.119
+	 MIME-Version; b=T2b4cFmB+/R51J7mGYRHqpbsp1ooqiWnkQmsYy7Rybe4yEilXpLvJHrGuIB7eR1vk/C1g591lLuLzZ+ch5+hViMEV+sxZKyinsUh9dVZU7Bbe+Q4ZNCXepn+LiijDJZKINK7/7zSKGV/o8xEMtY7dfvzNFUqSgPpYuxVnGia0Ck=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=FbklQAx1; arc=none smtp.client-ip=115.124.30.112
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="MjOIBuLN"
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="FbklQAx1"
 DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
 	d=linux.alibaba.com; s=default;
-	t=1726806642; h=From:To:Subject:Date:Message-ID:MIME-Version;
-	bh=CgWPrHA1WqKU122KWW54ucmriKCe6Cyz7dYNTHTUd0w=;
-	b=MjOIBuLNL7+rwM+izs9LVNsZmBkD2Zhtp1tbnwIgdanvuDf4u0jrk0ZlaBoWNw0P53Zx28ZqblCUzXWPru/VNrWcbAshEpb866bEAiTYrSNTC228LxZAcecUNijMn5xJrzVNZ38r8uOSHkD53eqHJH4xDbWAvxiWlVhoQI+essM=
-Received: from localhost.localdomain(mailfrom:xueshuai@linux.alibaba.com fp:SMTPD_---0WFJd0I._1726806637)
+	t=1726806648; h=From:To:Subject:Date:Message-ID:MIME-Version;
+	bh=8jM9dyWnnwjU50YL8fxan8rwEju68SjJDB73GCBd/LY=;
+	b=FbklQAx1aAo2SBpdHltmCRfZoQPdyqntJeU1OBWz6ySar0pLVrH6RSfX31AV4nC1CQka/Dif7ANojcOTYKuQlLjiWMl/2oqGy6NwgjG5TOofTo4ObbLos6qDAQo02nA179dHzaWxVx7JFhpqN0TH3opB36LAxMSN4f+DNHl+Lqo=
+Received: from localhost.localdomain(mailfrom:xueshuai@linux.alibaba.com fp:SMTPD_---0WFJd0KC_1726806645)
           by smtp.aliyun-inc.com;
-          Fri, 20 Sep 2024 12:30:40 +0800
+          Fri, 20 Sep 2024 12:30:46 +0800
 From: Shuai Xue <xueshuai@linux.alibaba.com>
 To: mark.rutland@arm.com,
 	catalin.marinas@arm.com,
@@ -63,9 +63,9 @@ Cc: linux-acpi@vger.kernel.org,
 	lvying6@huawei.com,
 	xiexiuqi@huawei.com,
 	zhuo.song@linux.alibaba.com
-Subject: [PATCH v13 0/3] ACPI: APEI: handle synchronous errors in task work
-Date: Fri, 20 Sep 2024 12:30:24 +0800
-Message-ID: <20240920043027.21907-1-xueshuai@linux.alibaba.com>
+Subject: [PATCH v13 3/3] ACPI: APEI: handle synchronous exceptions in task work
+Date: Fri, 20 Sep 2024 12:30:27 +0800
+Message-ID: <20240920043027.21907-4-xueshuai@linux.alibaba.com>
 X-Mailer: git-send-email 2.44.0
 In-Reply-To: <20221027042445.60108-1-xueshuai@linux.alibaba.com>
 References: <20221027042445.60108-1-xueshuai@linux.alibaba.com>
@@ -77,87 +77,17 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-## Changes Log
+The memory uncorrected error could be signaled by asynchronous interrupt
+(specifically, SPI in arm64 platform), e.g. when an error is detected by
+a background scrubber, or signaled by synchronous exception
+(specifically, data abort excepction in arm64 platform), e.g. when a CPU
+tries to access a poisoned cache line. Currently, both synchronous and
+asynchronous error use memory_failure_queue() to schedule
+memory_failure() exectute in kworker context.
 
-changes since v12:
-- tweak error message for force kill (per Jarkko)
-- fix comments style (per Jarkko)
-- fix commit log typo (per Jarko)
-
-changes since v11:
-- rebase to Linux 6.11-rc6
-- fix grammer and typo in commit log (per Borislav)
-- remove `sync_` perfix of `sync_task_work`  (per Borislav)
-- comments flags and description of `task_work`  (per Borislav)
-
-changes since v10:
-- rebase to v6.8-rc2
-
-changes since v9:
-- split patch 2 to address exactly one issue in one patch (per Borislav)
-- rewrite commit log according to template (per Borislav)
-- pickup reviewed-by tag of patch 1 from James Morse
-- alloc and free twcb through gen_pool_{alloc, free) (Per James)
-- rewrite cover letter
-
-changes since v8:
-- remove the bug fix tag of patch 2 (per Jarkko Sakkinen)
-- remove the declaration of memory_failure_queue_kick (per Naoya Horiguchi)
-- rewrite the return value comments of memory_failure (per Naoya Horiguchi)
-
-changes since v7:
-- rebase to Linux v6.6-rc2 (no code changed)
-- rewritten the cover letter to explain the motivation of this patchset
-
-changes since v6:
-- add more explicty error message suggested by Xiaofei
-- pick up reviewed-by tag from Xiaofei
-- pick up internal reviewed-by tag from Baolin
-
-changes since v5 by addressing comments from Kefeng:
-- document return value of memory_failure()
-- drop redundant comments in call site of memory_failure() 
-- make ghes_do_proc void and handle abnormal case within it
-- pick up reviewed-by tag from Kefeng Wang 
-
-changes since v4 by addressing comments from Xiaofei:
-- do a force kill only for abnormal sync errors
-
-changes since v3 by addressing comments from Xiaofei:
-- do a force kill for abnormal memory failure error such as invalid PA,
-unexpected severity, OOM, etc
-- pcik up tested-by tag from Ma Wupeng
-
-changes since v2 by addressing comments from Naoya:
-- rename mce_task_work to sync_task_work
-- drop ACPI_HEST_NOTIFY_MCE case in is_hest_sync_notify()
-- add steps to reproduce this problem in cover letter
-
-changes since v1:
-- synchronous events by notify type
-- Link: https://lore.kernel.org/lkml/20221206153354.92394-3-xueshuai@linux.alibaba.com/
-
-## Cover Letter
-
-There are two major types of uncorrected recoverable (UCR) errors :
-
-- Synchronous error: The error is detected and raised at the point of the
-  consumption in the execution flow, e.g. when a CPU tries to access
-  a poisoned cache line. The CPU will take a synchronous error exception
-  such as Synchronous External Abort (SEA) on Arm64 and Machine Check
-  Exception (MCE) on X86. OS requires to take action (for example, offline
-  failure page/kill failure thread) to recover this uncorrectable error.
-
-- Asynchronous error: The error is detected out of processor execution
-  context, e.g. when an error is detected by a background scrubber. Some data
-  in the memory are corrupted. But the data have not been consumed. OS is
-  optional to take action to recover this uncorrectable error.
-
-Currently, both synchronous and asynchronous error use
-memory_failure_queue() to schedule memory_failure() exectute in kworker
-context. As a result, when a user-space process is accessing a poisoned
-data, a data abort is taken and the memory_failure() is executed in the
-kworker context:
+As a result, when a user-space process is accessing a poisoned data, a
+data abort is taken and the memory_failure() is executed in the kworker
+context:
 
   - will send wrong si_code by SIGBUS signal in early_kill mode, and
   - can not kill the user-space in some cases resulting a synchronous
@@ -181,7 +111,6 @@ where the error was triggered.
 
 To reproduce this problem:
 
-  # STEP1: enable early kill mode
   #sysctl -w vm.memory_failure_early_kill=1
   vm.memory_failure_early_kill = 1
 
@@ -197,15 +126,11 @@ To reproduce this problem:
 The si_code (code 5) from einj_mem_uc indicates that it is BUS_MCEERR_AO
 error and it is not fact.
 
-To fix it, queue memory_failure() as a task_work so that it runs in
-the context of the process that is actually consuming the poisoned data.
-
-After this patch set:
+After this patch:
 
   # STEP1: enable early kill mode
   #sysctl -w vm.memory_failure_early_kill=1
   vm.memory_failure_early_kill = 1
-
   # STEP2: inject an UCE error and consume it to trigger a synchronous error
   #einj_mem_uc single
   0: single   vaddr = 0xffffb0d75400 paddr = 4092d55b400
@@ -218,7 +143,7 @@ After this patch set:
 The si_code (code 4) from einj_mem_uc indicates that it is BUS_MCEERR_AR
 error as we expected.
 
-Issue 2: a synchronous error infinite loop due to memory_failure() failed
+Issue 2: a synchronous error infinite loop
 
 If a user-space process, e.g. devmem, a poisoned page which has been set
 HWPosion flag, kill_accessing_process() is called to send SIGBUS to the
@@ -243,49 +168,217 @@ To reproduce this problem:
   # STEP 2: access the same page and it will trigger a synchronous error infinite loop
   devmem 0x4092d55b400
 
-To fix it, if memory_failure() failed, perform a force kill to current process.
+To fix above two issues, queue memory_failure() as a task_work so that it runs in
+the context of the process that is actually consuming the poisoned data.
 
-Issue 3: a synchronous error infinite loop due to no memory_failure() queued
+Signed-off-by: Shuai Xue <xueshuai@linux.alibaba.com>
+Tested-by: Ma Wupeng <mawupeng1@huawei.com>
+Reviewed-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Reviewed-by: Xiaofei Tan <tanxiaofei@huawei.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+---
+ drivers/acpi/apei/ghes.c | 78 +++++++++++++++++++++++-----------------
+ include/acpi/ghes.h      |  3 --
+ include/linux/mm.h       |  1 -
+ mm/memory-failure.c      | 13 -------
+ 4 files changed, 45 insertions(+), 50 deletions(-)
 
-No memory_failure() work is queued unless all bellow preconditions check passed:
-
-- `if (!(mem_err->validation_bits & CPER_MEM_VALID_PA))` in ghes_handle_memory_failure()
-- `if (flags == -1)` in ghes_handle_memory_failure()
-- `if (!IS_ENABLED(CONFIG_ACPI_APEI_MEMORY_FAILURE))` in ghes_do_memory_failure()
-- `if (!pfn_valid(pfn) && !arch_is_platform_page(physical_addr)) ` in ghes_do_memory_failure()
-
-If the preconditions are not passed, the user-space process will trigger SEA again.
-This loop can potentially exceed the platform firmware threshold or even
-trigger a kernel hard lockup, leading to a system reboot.
-
-To fix it, if no memory_failure() queued, perform a force kill to current process.
-
-And the the memory errors triggered in kernel-mode[5], also relies on this
-patchset to kill the failure thread.
-
-Lv Ying and XiuQi from Huawei also proposed to address similar problem[2][4].
-Acknowledge to discussion with them.
-
-[1] Add ARMv8 RAS virtualization support in QEMU https://patchew.org/QEMU/20200512030609.19593-1-gengdongjiu@huawei.com/
-[2] https://lore.kernel.org/lkml/20221205115111.131568-3-lvying6@huawei.com/
-[3] https://lkml.kernel.org/r/20220914064935.7851-1-xueshuai@linux.alibaba.com
-[4] https://lore.kernel.org/lkml/20221209095407.383211-1-lvying6@huawei.com/
-[5] https://patchwork.kernel.org/project/linux-arm-kernel/cover/20240528085915.1955987-1-tongtiangen@huawei.com/
-
-Shuai Xue (3):
-  ACPI: APEI: send SIGBUS to current task if synchronous memory error
-    not recovered
-  mm: memory-failure: move return value documentation to function
-    declaration
-  ACPI: APEI: handle synchronous exceptions in task work
-
- arch/x86/kernel/cpu/mce/core.c |  7 ---
- drivers/acpi/apei/ghes.c       | 86 +++++++++++++++++++++-------------
- include/acpi/ghes.h            |  3 --
- include/linux/mm.h             |  1 -
- mm/memory-failure.c            | 22 +++------
- 5 files changed, 60 insertions(+), 59 deletions(-)
-
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index 93eb11482832..60d8044f14d1 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -467,28 +467,42 @@ static void ghes_clear_estatus(struct ghes *ghes,
+ }
+ 
+ /*
+- * Called as task_work before returning to user-space.
+- * Ensure any queued work has been done before we return to the context that
+- * triggered the notification.
++ * struct task_work - for synchronous RAS event
++ *
++ * @twork:                callback_head for task work
++ * @pfn:                  page frame number of corrupted page
++ * @flags:                work control flags
++ *
++ * Structure to pass task work to be handled before
++ * returning to user-space via task_work_add().
+  */
+-static void ghes_kick_task_work(struct callback_head *head)
++struct task_work {
++	struct callback_head twork;
++	u64 pfn;
++	int flags;
++};
++
++static void memory_failure_cb(struct callback_head *twork)
+ {
+-	struct acpi_hest_generic_status *estatus;
+-	struct ghes_estatus_node *estatus_node;
+-	u32 node_len;
++	struct task_work *twcb = container_of(twork, struct task_work, twork);
++	unsigned long pfn = twcb->pfn;
++	int ret;
+ 
+-	estatus_node = container_of(head, struct ghes_estatus_node, task_work);
+-	if (IS_ENABLED(CONFIG_ACPI_APEI_MEMORY_FAILURE))
+-		memory_failure_queue_kick(estatus_node->task_work_cpu);
++	ret = memory_failure(twcb->pfn, twcb->flags);
++	gen_pool_free(ghes_estatus_pool, (unsigned long)twcb, sizeof(*twcb));
+ 
+-	estatus = GHES_ESTATUS_FROM_NODE(estatus_node);
+-	node_len = GHES_ESTATUS_NODE_LEN(cper_estatus_len(estatus));
+-	gen_pool_free(ghes_estatus_pool, (unsigned long)estatus_node, node_len);
++	if (!ret || ret == -EHWPOISON || ret == -EOPNOTSUPP)
++		return;
++
++	pr_err("%#lx: Sending SIGBUS to %s:%d due to hardware memory corruption\n",
++			pfn, current->comm, task_pid_nr(current));
++	force_sig(SIGBUS);
+ }
+ 
+ static bool ghes_do_memory_failure(u64 physical_addr, int flags)
+ {
+ 	unsigned long pfn;
++	struct task_work *twcb;
+ 
+ 	if (!IS_ENABLED(CONFIG_ACPI_APEI_MEMORY_FAILURE))
+ 		return false;
+@@ -501,6 +515,18 @@ static bool ghes_do_memory_failure(u64 physical_addr, int flags)
+ 		return false;
+ 	}
+ 
++	if (flags == MF_ACTION_REQUIRED && current->mm) {
++		twcb = (void *)gen_pool_alloc(ghes_estatus_pool, sizeof(*twcb));
++		if (!twcb)
++			return false;
++
++		twcb->pfn = pfn;
++		twcb->flags = flags;
++		init_task_work(&twcb->twork, memory_failure_cb);
++		task_work_add(current, &twcb->twork, TWA_RESUME);
++		return true;
++	}
++
+ 	memory_failure_queue(pfn, flags);
+ 	return true;
+ }
+@@ -745,7 +771,7 @@ int cxl_cper_kfifo_get(struct cxl_cper_work_data *wd)
+ }
+ EXPORT_SYMBOL_NS_GPL(cxl_cper_kfifo_get, CXL);
+ 
+-static bool ghes_do_proc(struct ghes *ghes,
++static void ghes_do_proc(struct ghes *ghes,
+ 			 const struct acpi_hest_generic_status *estatus)
+ {
+ 	int sev, sec_sev;
+@@ -810,8 +836,6 @@ static bool ghes_do_proc(struct ghes *ghes,
+ 			current->comm, task_pid_nr(current));
+ 		force_sig(SIGBUS);
+ 	}
+-
+-	return queued;
+ }
+ 
+ static void __ghes_print_estatus(const char *pfx,
+@@ -1113,9 +1137,7 @@ static void ghes_proc_in_irq(struct irq_work *irq_work)
+ 	struct ghes_estatus_node *estatus_node;
+ 	struct acpi_hest_generic *generic;
+ 	struct acpi_hest_generic_status *estatus;
+-	bool task_work_pending;
+ 	u32 len, node_len;
+-	int ret;
+ 
+ 	llnode = llist_del_all(&ghes_estatus_llist);
+ 	/*
+@@ -1130,25 +1152,16 @@ static void ghes_proc_in_irq(struct irq_work *irq_work)
+ 		estatus = GHES_ESTATUS_FROM_NODE(estatus_node);
+ 		len = cper_estatus_len(estatus);
+ 		node_len = GHES_ESTATUS_NODE_LEN(len);
+-		task_work_pending = ghes_do_proc(estatus_node->ghes, estatus);
++
++		ghes_do_proc(estatus_node->ghes, estatus);
++
+ 		if (!ghes_estatus_cached(estatus)) {
+ 			generic = estatus_node->generic;
+ 			if (ghes_print_estatus(NULL, generic, estatus))
+ 				ghes_estatus_cache_add(generic, estatus);
+ 		}
+-
+-		if (task_work_pending && current->mm) {
+-			estatus_node->task_work.func = ghes_kick_task_work;
+-			estatus_node->task_work_cpu = smp_processor_id();
+-			ret = task_work_add(current, &estatus_node->task_work,
+-					    TWA_RESUME);
+-			if (ret)
+-				estatus_node->task_work.func = NULL;
+-		}
+-
+-		if (!estatus_node->task_work.func)
+-			gen_pool_free(ghes_estatus_pool,
+-				      (unsigned long)estatus_node, node_len);
++		gen_pool_free(ghes_estatus_pool, (unsigned long)estatus_node,
++			      node_len);
+ 
+ 		llnode = next;
+ 	}
+@@ -1209,7 +1222,6 @@ static int ghes_in_nmi_queue_one_entry(struct ghes *ghes,
+ 
+ 	estatus_node->ghes = ghes;
+ 	estatus_node->generic = ghes->generic;
+-	estatus_node->task_work.func = NULL;
+ 	estatus = GHES_ESTATUS_FROM_NODE(estatus_node);
+ 
+ 	if (__ghes_read_estatus(estatus, buf_paddr, fixmap_idx, len)) {
+diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
+index be1dd4c1a917..ebd21b05fe6e 100644
+--- a/include/acpi/ghes.h
++++ b/include/acpi/ghes.h
+@@ -35,9 +35,6 @@ struct ghes_estatus_node {
+ 	struct llist_node llnode;
+ 	struct acpi_hest_generic *generic;
+ 	struct ghes *ghes;
+-
+-	int task_work_cpu;
+-	struct callback_head task_work;
+ };
+ 
+ struct ghes_estatus_cache {
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 13bff7cf03b7..304fa2e0c75e 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -3992,7 +3992,6 @@ enum mf_flags {
+ int mf_dax_kill_procs(struct address_space *mapping, pgoff_t index,
+ 		      unsigned long count, int mf_flags);
+ extern int memory_failure(unsigned long pfn, int flags);
+-extern void memory_failure_queue_kick(int cpu);
+ extern int unpoison_memory(unsigned long pfn);
+ extern atomic_long_t num_poisoned_pages __read_mostly;
+ extern int soft_offline_page(unsigned long pfn, int flags);
+diff --git a/mm/memory-failure.c b/mm/memory-failure.c
+index 7984e0d99d09..31561855a87e 100644
+--- a/mm/memory-failure.c
++++ b/mm/memory-failure.c
+@@ -2486,19 +2486,6 @@ static void memory_failure_work_func(struct work_struct *work)
+ 	}
+ }
+ 
+-/*
+- * Process memory_failure work queued on the specified CPU.
+- * Used to avoid return-to-userspace racing with the memory_failure workqueue.
+- */
+-void memory_failure_queue_kick(int cpu)
+-{
+-	struct memory_failure_cpu *mf_cpu;
+-
+-	mf_cpu = &per_cpu(memory_failure_cpu, cpu);
+-	cancel_work_sync(&mf_cpu->work);
+-	memory_failure_work_func(&mf_cpu->work);
+-}
+-
+ static int __init memory_failure_init(void)
+ {
+ 	struct memory_failure_cpu *mf_cpu;
 -- 
 2.39.3
 
