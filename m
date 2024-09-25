@@ -1,57 +1,55 @@
-Received: from mail-qv1-f54.google.com (mail-qv1-f54.google.com [209.85.219.54])
+Received: from mail-qv1-f44.google.com (mail-qv1-f44.google.com [209.85.219.44])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1E086E614
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E4A46088F
 	for <linux-acpi@vger.kernel.org>; Wed, 25 Sep 2024 15:25:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.54
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.44
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727277921; cv=none; b=Y2UYr1e4ga1R5EbVD4GJib+DFysqHlsje7BWalgZzgN16vvg/IramVjuUeFU88BQykzaGdJyv/001M1m5Ybs8qkWQtojtYB6XNx6Dt07np9yJDfqpeNAqEWZ3CJTZoHIdXqmES71mQfnNNJkevlf4ON4ii0gcDim9T6F8L0dBws=
+	t=1727277921; cv=none; b=uRtGkqGxsG9FK35xl/1JvbxO1pKirn9Jgi8B2D4HHyD0BAM7bhk4lC0l87WOctfOCFk2pAbatSjdITrbLaO0ijOjza4Al8l7aYA8QJL5+ntVRGTIm2N1i8SEuuoEpt8wRjFeRedKl9tcG10LMRAigQ6jx/peOBuVAeCwYtALGlQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1727277921; c=relaxed/simple;
-	bh=4NzR5DidyoUmrZ+K4uxE/Z4IXAaQsNqkWmWjxvs3iYQ=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=YQQt9cSJQ25U4CDctQgL/NJiOJm9k1+wbZ2d3j0F+gogs9bPi3r7CzC3O+0dwf6h6s7KD3YsLeljFq3bvO/2bAUJrpp+pADOCZ6zLR2DCdNbKPBCGM25gHHNrAfgYKT7XCxShb5QwVuIJlbUBbReTn5TCCn0Ae7ZslQ20znnL9g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=gZGwU3h5; arc=none smtp.client-ip=209.85.219.54
+	bh=/ZmUMys4DtorXcnR1Qb85Qe9XFVHtwDK3x2Oba/L4+U=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=cQO/c3ihgiDr5a29C/zYxcY8ynnPm3dxpbslZpnFRwnzUduHPoDb4tdRYJO+B4Ip2Lvp6X+sdpJpXCjmQ00j4OR385WLD+bJwhyh6PB7Lp/cedwk4Q0n1SHs674GfoTWAuc77SbNsIXC2+agOgyXxNlKtLJk9fw9wIg2KOt6Ttc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=lIHx3dJY; arc=none smtp.client-ip=209.85.219.44
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="gZGwU3h5"
-Received: by mail-qv1-f54.google.com with SMTP id 6a1803df08f44-6cb2ad51162so38556d6.3
+	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="lIHx3dJY"
+Received: by mail-qv1-f44.google.com with SMTP id 6a1803df08f44-6c579748bf4so119356d6.1
         for <linux-acpi@vger.kernel.org>; Wed, 25 Sep 2024 08:25:19 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gourry.net; s=google; t=1727277918; x=1727882718; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=0hGdMDbh9UwXnFNGPPTkVVdPgZQuI/AwB7by/k6hdyY=;
-        b=gZGwU3h5M/qbKdJw0tXpKvFFYq7mMahz6WxKSJTwrWD0JvKMcupMto1bUiZefr1xJB
-         Tnad00H/+EMb2h15ul0ZgGAu/K6HE93EA2Svi+LMNsgVnCsW7K2p2x3zZ+maurUlXAC+
-         IPwyo18+9kb+GUWRMtpTG0jGOIB+sl18gBIxES51Knzx64TNQc0E/9Ov+R/VPro4U+qc
-         zuOXIMz3adTbXjr0lfPNZu9Ya/nH0DT04UbYs+ARM2u+9oNdBGuQjj+EAEy2wg+/+zD4
-         BjuXQdahJ2Wyw8HDHlP/tNsDk10naE9C2lfxtwHQzEwxBa+lvr412Ptnxj+lojJswOfF
-         PrCw==
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=orIOabJvqf20M5UAV+7ODryvOD0sVY9jQ3+6D8aBSg4=;
+        b=lIHx3dJY0s4/GfALNOr6YSNqLkyM6spHclF8dQDKNchnezjFzYLzTL73cx0yAgsb9D
+         AE9ELp6LeCArE7KfwVTuAtxzYxACkd9ItWSeO6TWFGg+eqpKAmgLed8anpSSrkNVwpEP
+         PV84MmoPZpnA+7I746Am38hr2ZvrWeJSTdzDmiOKp1G2itUflxAT7xodCLT0Hd4guTOq
+         D9cFd0mIzJ7n00xytQlxNH22DzzGUsHhZuHzXlUOo9D5ueGvfpwexvys81PcAuqy0cUP
+         +w0ANwdPZ4aL/cotIVc3jD2ZDVGYTF/Frmg5X2rLKgBO8JwE7XxVaqYA1OvDzpI7j+1M
+         lvpQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20230601; t=1727277918; x=1727882718;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=0hGdMDbh9UwXnFNGPPTkVVdPgZQuI/AwB7by/k6hdyY=;
-        b=rIwQnAKC0XHPmu46nkm+zD88O4hcGIqNJJ8sWsd7+2zR4B2Ei1BE+HAXJas0naszCl
-         trF6vLeAxg8cdiwrlzAwkU6EuAAWgikpeVG1HW7HsrRkBb0tlMs+KU1BAZs+rS9iYcr8
-         ujgtYQFlF5brv5W+fom4PUxLpOpxGLaSe8QYMv9oU9HM2xJBUddVejyt+BenBTEegw1B
-         +klXhZ3BB7wBOlPnhpAxe1ZxIQ1Ax2Ov3pN7qSQAjStl3RmZVT1JVE75Njy/qVFRrk77
-         +63Ji6EsjjmnvdqBKhNGVQBrT1ZmvRciqO8TlWthxYuCx7f40N2r7dbMTZg1c4LbcNOV
-         /ybA==
-X-Gm-Message-State: AOJu0Yx5VUI3UYAdQizea3TC1oGAVsA/53CQbRRFihfr54o40hOAjJQ2
-	ZBmZX7ZmLhzV9JOQrPbZjGYCaB0etJ+4yeiLQzFFJ0KUBfifsYMyTWZuAtc9Dg1ShNtJUezT3y4
-	t
-X-Google-Smtp-Source: AGHT+IE8TN9DFo2XaKG3bw9ola+OVqnHsX+9dbOdRMmzQMA3REfDiTueYYqSEpdhSgbt26BHpwX0sA==
-X-Received: by 2002:a05:6214:17c1:b0:6cb:21e9:aba8 with SMTP id 6a1803df08f44-6cb21e9ac79mr24554266d6.3.1727277918201;
-        Wed, 25 Sep 2024 08:25:18 -0700 (PDT)
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=orIOabJvqf20M5UAV+7ODryvOD0sVY9jQ3+6D8aBSg4=;
+        b=hX7EKmDLWjbQP29cmp2kFn+wd1llZ8w7dEht2cd2oqbfFut1Ouv5G2piofZcABnrIO
+         0wIQ7UTrkbpTokq1tr2bA7heQmmPNZYmisTdoMNnzUGC5u1SKnZVhGn36nsoWIT4ONpJ
+         D78tYY25JVMDF98tXci5UYHNCegWemPDR5a7NQZ78cmGH0JTEb9t6/tq/h/riLLFBoeB
+         v68Oz80Bl4Bc46wP3o2IjV+kJIfvuieFKDoyDAh3nqV1b7t744C9KCoZCuIBO1yFeqbV
+         zGKuOnaAL4/BQ8sOhsQbQQLVouhNo5Vim9yc2OtVF9cTig7oRg4C8c061aWLsTZBSq2M
+         2NHw==
+X-Gm-Message-State: AOJu0YzL99IOtpaNVAaY1eUUduXQHQ7TMU8L6Z4NmI9ePusVxNrYpeF0
+	63p309T44J/hLZM+lA0vQyXzLdoQgpOQoygkBghaBIojCZkiow296zg7LeQKEihisZ1IEA2nRde
+	P
+X-Google-Smtp-Source: AGHT+IHiFngUSnA8bK4RDalu/gI9E5kd/laZHZZZkJO9IZtX9rzd8lIUxM/bxgBqoO1qdJ3dIV5NXA==
+X-Received: by 2002:a05:6214:3287:b0:6cb:2ad6:78ef with SMTP id 6a1803df08f44-6cb2ad67dd6mr16130356d6.4.1727277916341;
+        Wed, 25 Sep 2024 08:25:16 -0700 (PDT)
 Received: from PC2K9PVX.TheFacebook.com (pool-173-79-56-208.washdc.fios.verizon.net. [173.79.56.208])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-6cb254ead6fsm4583356d6.26.2024.09.25.08.25.17
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-6cb254ead6fsm4583356d6.26.2024.09.25.08.25.14
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 25 Sep 2024 08:25:17 -0700 (PDT)
+        Wed, 25 Sep 2024 08:25:15 -0700 (PDT)
 From: Gregory Price <gourry@gourry.net>
 To: linux-acpi@vger.kernel.org,
 	x86@kernel.org
@@ -73,12 +71,10 @@ Cc: linux-kernel@vger.kernel.org,
 	gourry@gourry.net,
 	dave.jiang@intel.com,
 	haibo1.xu@intel.com
-Subject: [RFC PATCH 2/2] acpi,srat: reduce memory block size if CFMWS has a smaller alignment
-Date: Wed, 25 Sep 2024 00:52:42 -0400
-Message-ID: <20240925045242.3735-2-gourry@gourry.net>
+Subject: [RFC PATCH 1/2] x86/mm: if memblock size is adjusted, update the cached value
+Date: Wed, 25 Sep 2024 00:52:41 -0400
+Message-ID: <20240925045242.3735-1-gourry@gourry.net>
 X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20240925045242.3735-1-gourry@gourry.net>
-References: <20240925045242.3735-1-gourry@gourry.net>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -87,100 +83,59 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The CXL Fixed Memory Window allows for memory aligned down to the
-size of 256MB.  However, by default, memory blocks increase in size
-as total System RAM capacity increases. On x86, this caps out at
-2G when 64GB of System RAM is reached.
+When parsing CFMWS, we need to know the current block size expected
+to avoid accidentally adjusting the size upward. This causes a value
+to be cached in a static global.  Update the static global if the
+value is subsequently updated.
 
-When the CFMWS regions are not 2GB aligned, this results in lost
-capacity on either side of the alignment - regardless of if the
-memory is mapped as normal system ram or hotplug.
+Print a warning that this has occurred for debugging purposes if
+blocksize is changed at an unexpected time.
 
-In ACPI, when the CFMWS is parsed, reduce the block size to the
-smallest amount detected if it is less than 2GB.
-
-Suggested-by: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Gregory Price <gourry@gourry.net>
 ---
- drivers/acpi/numa/srat.c | 44 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 44 insertions(+)
+ arch/x86/mm/init_64.c | 15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/numa/srat.c b/drivers/acpi/numa/srat.c
-index 44f91f2c6c5d..5074e6158dc7 100644
---- a/drivers/acpi/numa/srat.c
-+++ b/drivers/acpi/numa/srat.c
-@@ -14,6 +14,7 @@
- #include <linux/errno.h>
- #include <linux/acpi.h>
- #include <linux/memblock.h>
-+#include <linux/memory.h>
- #include <linux/numa.h>
- #include <linux/nodemask.h>
- #include <linux/topology.h>
-@@ -333,6 +334,35 @@ acpi_parse_memory_affinity(union acpi_subtable_headers *header,
+diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
+index ff253648706f..0db7ce11e5c5 100644
+--- a/arch/x86/mm/init_64.c
++++ b/arch/x86/mm/init_64.c
+@@ -1424,6 +1424,7 @@ void mark_rodata_ro(void)
+ 
+ /* Adjustable memory block size */
+ static unsigned long set_memory_block_size;
++static unsigned long memory_block_size_probed;
+ int __init set_memory_block_size_order(unsigned int order)
+ {
+ 	unsigned long size = 1UL << order;
+@@ -1432,6 +1433,19 @@ int __init set_memory_block_size_order(unsigned int order)
+ 		return -EINVAL;
+ 
+ 	set_memory_block_size = size;
++
++	/*
++	 * If the block size has already been probed, we need to change it.
++	 * This can happen during ACPI/CFMWS parsing, since it needs to
++	 * probe the system for the existing block size to avoid increasing
++	 * the block size if lower memory happens to be misaligned
++	 */
++	if (memory_block_size_probed) {
++		memory_block_size_probed = size;
++		pr_warn("x86/mm: Memory block size changed: %ldMB\n",
++			size >> 20);
++	}
++
  	return 0;
  }
  
-+/*
-+ * CXL allows CFMW to be aligned along 256MB boundaries, but larger
-+ * memory systems typically default to ~2GB memory boundaries for
-+ * memblocks. Calculate the largest supported alignment for all CFMWS.
-+ *
-+ * Only adjust downward if less than 2G, and error on invalid alignment.
-+ */
-+static int __init acpi_align_cfmws(union acpi_subtable_headers *header,
-+				   void *arg, const unsigned long table_end)
-+{
-+	struct acpi_cedt_cfmws *cfmws = (struct acpi_cedt_cfmws *)header;
-+	u64 start = cfmws->base_hpa;
-+	u64 size = cfmws->window_size;
-+	unsigned long *fin_bz = arg;
-+	unsigned long bz;
-+
-+	for (bz = SZ_2G; bz >= SZ_256M; bz >>= 1) {
-+		if (IS_ALIGNED(start, bz) && IS_ALIGNED(size, bz))
-+			break;
-+	}
-+
-+	if (bz < *fin_bz && bz >= SZ_256M)
-+		*fin_bz = bz;
-+	else if (bz < SZ_256M)
-+		pr_err("CFMWS: [BIOS BUG] base/size alignment violates spec\n");
-+
-+	return 0;
-+}
-+
- static int __init acpi_parse_cfmws(union acpi_subtable_headers *header,
- 				   void *arg, const unsigned long table_end)
- {
-@@ -501,6 +531,8 @@ acpi_table_parse_srat(enum acpi_srat_type id,
- int __init acpi_numa_init(void)
- {
- 	int i, fake_pxm, cnt = 0;
-+	unsigned long block_sz = memory_block_size_bytes();
-+	unsigned long cfmw_align = block_sz;
+@@ -1471,7 +1485,6 @@ static unsigned long probe_memory_block_size(void)
+ 	return bz;
+ }
  
- 	if (acpi_disabled)
- 		return -EINVAL;
-@@ -552,6 +584,18 @@ int __init acpi_numa_init(void)
- 	}
- 	last_real_pxm = fake_pxm;
- 	fake_pxm++;
-+
-+	/*
-+	 * First parse the CFMWS to determine if the memory block size
-+	 * should be smaller than 2G. We don't care about larger sizes,
-+	 * this simply avoids losing memory to smaller alignements.
-+	 */
-+	acpi_table_parse_cedt(ACPI_CEDT_TYPE_CFMWS, acpi_align_cfmws,
-+			      &cfmw_align);
-+	if (cfmw_align < block_sz && cfmw_align >= SZ_256M)
-+		set_memory_block_size_order(ffs(cfmw_align)-1);
-+
-+	/* Then we need to make a pass to fill the numa nodes */
- 	acpi_table_parse_cedt(ACPI_CEDT_TYPE_CFMWS, acpi_parse_cfmws,
- 			      &fake_pxm);
- 
+-static unsigned long memory_block_size_probed;
+ unsigned long memory_block_size_bytes(void)
+ {
+ 	if (!memory_block_size_probed)
 -- 
 2.43.0
 
