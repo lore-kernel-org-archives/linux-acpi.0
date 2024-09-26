@@ -1,141 +1,160 @@
-Received: from mail-qv1-f44.google.com (mail-qv1-f44.google.com [209.85.219.44])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E4A46088F
-	for <linux-acpi@vger.kernel.org>; Wed, 25 Sep 2024 15:25:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC05F4C91;
+	Thu, 26 Sep 2024 02:57:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.187
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727277921; cv=none; b=uRtGkqGxsG9FK35xl/1JvbxO1pKirn9Jgi8B2D4HHyD0BAM7bhk4lC0l87WOctfOCFk2pAbatSjdITrbLaO0ijOjza4Al8l7aYA8QJL5+ntVRGTIm2N1i8SEuuoEpt8wRjFeRedKl9tcG10LMRAigQ6jx/peOBuVAeCwYtALGlQ=
+	t=1727319480; cv=none; b=qFiD/yAn9xXpr7hpZDof5sSW1BHwkRjvTWW8yWkcxr/MT407ZlwvC8reSRhN2IQxw+jFaY2XR0HNcPfMpTVRjIEMeWoVoIkzXLlNJBjOcKHp0UZ/O/dM8jpoLoh03YWQgrAGGtlMs4ASKCmTWWOg+7RoFIlH7pC+G4EvU7iQe7Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727277921; c=relaxed/simple;
-	bh=/ZmUMys4DtorXcnR1Qb85Qe9XFVHtwDK3x2Oba/L4+U=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=cQO/c3ihgiDr5a29C/zYxcY8ynnPm3dxpbslZpnFRwnzUduHPoDb4tdRYJO+B4Ip2Lvp6X+sdpJpXCjmQ00j4OR385WLD+bJwhyh6PB7Lp/cedwk4Q0n1SHs674GfoTWAuc77SbNsIXC2+agOgyXxNlKtLJk9fw9wIg2KOt6Ttc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=lIHx3dJY; arc=none smtp.client-ip=209.85.219.44
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="lIHx3dJY"
-Received: by mail-qv1-f44.google.com with SMTP id 6a1803df08f44-6c579748bf4so119356d6.1
-        for <linux-acpi@vger.kernel.org>; Wed, 25 Sep 2024 08:25:19 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gourry.net; s=google; t=1727277918; x=1727882718; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=orIOabJvqf20M5UAV+7ODryvOD0sVY9jQ3+6D8aBSg4=;
-        b=lIHx3dJY0s4/GfALNOr6YSNqLkyM6spHclF8dQDKNchnezjFzYLzTL73cx0yAgsb9D
-         AE9ELp6LeCArE7KfwVTuAtxzYxACkd9ItWSeO6TWFGg+eqpKAmgLed8anpSSrkNVwpEP
-         PV84MmoPZpnA+7I746Am38hr2ZvrWeJSTdzDmiOKp1G2itUflxAT7xodCLT0Hd4guTOq
-         D9cFd0mIzJ7n00xytQlxNH22DzzGUsHhZuHzXlUOo9D5ueGvfpwexvys81PcAuqy0cUP
-         +w0ANwdPZ4aL/cotIVc3jD2ZDVGYTF/Frmg5X2rLKgBO8JwE7XxVaqYA1OvDzpI7j+1M
-         lvpQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1727277918; x=1727882718;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=orIOabJvqf20M5UAV+7ODryvOD0sVY9jQ3+6D8aBSg4=;
-        b=hX7EKmDLWjbQP29cmp2kFn+wd1llZ8w7dEht2cd2oqbfFut1Ouv5G2piofZcABnrIO
-         0wIQ7UTrkbpTokq1tr2bA7heQmmPNZYmisTdoMNnzUGC5u1SKnZVhGn36nsoWIT4ONpJ
-         D78tYY25JVMDF98tXci5UYHNCegWemPDR5a7NQZ78cmGH0JTEb9t6/tq/h/riLLFBoeB
-         v68Oz80Bl4Bc46wP3o2IjV+kJIfvuieFKDoyDAh3nqV1b7t744C9KCoZCuIBO1yFeqbV
-         zGKuOnaAL4/BQ8sOhsQbQQLVouhNo5Vim9yc2OtVF9cTig7oRg4C8c061aWLsTZBSq2M
-         2NHw==
-X-Gm-Message-State: AOJu0YzL99IOtpaNVAaY1eUUduXQHQ7TMU8L6Z4NmI9ePusVxNrYpeF0
-	63p309T44J/hLZM+lA0vQyXzLdoQgpOQoygkBghaBIojCZkiow296zg7LeQKEihisZ1IEA2nRde
-	P
-X-Google-Smtp-Source: AGHT+IHiFngUSnA8bK4RDalu/gI9E5kd/laZHZZZkJO9IZtX9rzd8lIUxM/bxgBqoO1qdJ3dIV5NXA==
-X-Received: by 2002:a05:6214:3287:b0:6cb:2ad6:78ef with SMTP id 6a1803df08f44-6cb2ad67dd6mr16130356d6.4.1727277916341;
-        Wed, 25 Sep 2024 08:25:16 -0700 (PDT)
-Received: from PC2K9PVX.TheFacebook.com (pool-173-79-56-208.washdc.fios.verizon.net. [173.79.56.208])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-6cb254ead6fsm4583356d6.26.2024.09.25.08.25.14
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 25 Sep 2024 08:25:15 -0700 (PDT)
-From: Gregory Price <gourry@gourry.net>
-To: linux-acpi@vger.kernel.org,
-	x86@kernel.org
-Cc: linux-kernel@vger.kernel.org,
-	dave.hansen@linux.intel.com,
-	luto@kernel.org,
-	peterz@infradead.org,
-	tglx@linutronix.de,
-	mingo@redhat.com,
-	bp@alien8.de,
-	hpa@zytor.com,
-	rafael@kernel.org,
-	lenb@kernel.org,
-	dan.j.williams@intel.com,
-	alison.schofield@intel.com,
-	Jonathan.Cameron@huawei.com,
-	rrichter@amd.com,
-	ytcoode@gmail.com,
-	gourry@gourry.net,
-	dave.jiang@intel.com,
-	haibo1.xu@intel.com
-Subject: [RFC PATCH 1/2] x86/mm: if memblock size is adjusted, update the cached value
-Date: Wed, 25 Sep 2024 00:52:41 -0400
-Message-ID: <20240925045242.3735-1-gourry@gourry.net>
-X-Mailer: git-send-email 2.43.0
+	s=arc-20240116; t=1727319480; c=relaxed/simple;
+	bh=nLzQtHIeba8hCfgmHtfd7LWR9caXaIJNdrAhiNoEOas=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=au7MUfS7XLKBLoVupVLkrcN44jbf30lfkt1i4ewHfL3HbgViSwEQ4w40oYcr2p8GIT9IcYEUMo5ucTytDEu3PbwJ5IWVooxMxK5wlsGBz0lvxSRtVK+5VVJTFO0Hs/GYjjmNqBUpLiU3kFpUV2rCOP3Z34pu70XmNzeiuBEG7Vw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.187
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
+Received: from mail.maildlp.com (unknown [172.19.163.174])
+	by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4XDdXz71n6zySPF;
+	Thu, 26 Sep 2024 10:56:51 +0800 (CST)
+Received: from dggpeml500019.china.huawei.com (unknown [7.185.36.137])
+	by mail.maildlp.com (Postfix) with ESMTPS id C553D14037E;
+	Thu, 26 Sep 2024 10:57:53 +0800 (CST)
+Received: from [10.67.121.58] (10.67.121.58) by dggpeml500019.china.huawei.com
+ (7.185.36.137) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Thu, 26 Sep
+ 2024 10:57:53 +0800
+Message-ID: <887a977c-c5b0-10d5-256c-06f278b667f7@hisilicon.com>
+Date: Thu, 26 Sep 2024 10:57:53 +0800
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
+ Thunderbird/102.3.2
+Subject: Re: [PATCH v3 1/2] cppc_cpufreq: Use desired perf if feedback ctrs
+ are 0 or unchanged
+To: "lihuisong (C)" <lihuisong@huawei.com>, <ionela.voinescu@arm.com>,
+	<beata.michalska@arm.com>, <wangxiongfeng2@huawei.com>,
+	<viresh.kumar@linaro.org>, <rafael@kernel.org>
+CC: <linux-pm@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>, <linuxarm@huawei.com>,
+	<jonathan.cameron@huawei.com>, <wanghuiqiang@huawei.com>,
+	<zhenglifeng1@huawei.com>, <yangyicong@huawei.com>, <liaochang1@huawei.com>,
+	<zengheng4@huawei.com>
+References: <20240919084552.3591400-1-zhanjie9@hisilicon.com>
+ <20240919084552.3591400-2-zhanjie9@hisilicon.com>
+ <f888bd45-120a-a045-c35c-52ae40ae8a9a@huawei.com>
+From: Jie Zhan <zhanjie9@hisilicon.com>
+In-Reply-To: <f888bd45-120a-a045-c35c-52ae40ae8a9a@huawei.com>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: dggems703-chm.china.huawei.com (10.3.19.180) To
+ dggpeml500019.china.huawei.com (7.185.36.137)
 
-When parsing CFMWS, we need to know the current block size expected
-to avoid accidentally adjusting the size upward. This causes a value
-to be cached in a static global.  Update the static global if the
-value is subsequently updated.
 
-Print a warning that this has occurred for debugging purposes if
-blocksize is changed at an unexpected time.
 
-Signed-off-by: Gregory Price <gourry@gourry.net>
----
- arch/x86/mm/init_64.c | 15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+On 25/09/2024 17:28, lihuisong (C) wrote:
+> Hi Jie,
+> 
+> LGTM except for some trivial,
+> Reviewed-by: Huisong Li <lihuisong@huawei.com>
 
-diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
-index ff253648706f..0db7ce11e5c5 100644
---- a/arch/x86/mm/init_64.c
-+++ b/arch/x86/mm/init_64.c
-@@ -1424,6 +1424,7 @@ void mark_rodata_ro(void)
- 
- /* Adjustable memory block size */
- static unsigned long set_memory_block_size;
-+static unsigned long memory_block_size_probed;
- int __init set_memory_block_size_order(unsigned int order)
- {
- 	unsigned long size = 1UL << order;
-@@ -1432,6 +1433,19 @@ int __init set_memory_block_size_order(unsigned int order)
- 		return -EINVAL;
- 
- 	set_memory_block_size = size;
-+
-+	/*
-+	 * If the block size has already been probed, we need to change it.
-+	 * This can happen during ACPI/CFMWS parsing, since it needs to
-+	 * probe the system for the existing block size to avoid increasing
-+	 * the block size if lower memory happens to be misaligned
-+	 */
-+	if (memory_block_size_probed) {
-+		memory_block_size_probed = size;
-+		pr_warn("x86/mm: Memory block size changed: %ldMB\n",
-+			size >> 20);
-+	}
-+
- 	return 0;
- }
- 
-@@ -1471,7 +1485,6 @@ static unsigned long probe_memory_block_size(void)
- 	return bz;
- }
- 
--static unsigned long memory_block_size_probed;
- unsigned long memory_block_size_bytes(void)
- {
- 	if (!memory_block_size_probed)
--- 
-2.43.0
+Thanks.
 
+> 
+> 
+> 在 2024/9/19 16:45, Jie Zhan 写道:
+>> The CPPC performance feedback counters could be 0 or unchanged when the
+>> target cpu is in a low-power idle state, e.g. power-gated or clock-gated.
+>>
+>> When the counters are 0, cppc_cpufreq_get_rate() returns 0 KHz, which makes
+>> cpufreq_online() get a false error and fail to generate a cpufreq policy.
+>>
+>> When the counters are unchanged, the existing cppc_perf_from_fbctrs()
+>> returns a cached desired perf, but some platforms may update the real
+>> frequency back to the desired perf reg.
+>>
+>> For the above cases in cppc_cpufreq_get_rate(), get the latest desired perf
+>> to reflect the frequency; if failed, return the cached desired perf.
+>>
+>> Fixes: 6a4fec4f6d30 ("cpufreq: cppc: cppc_cpufreq_get_rate() returns zero in all error cases.")
+>> Signed-off-by: Jie Zhan <zhanjie9@hisilicon.com>
+>> Reviewed-by: Zeng Heng <zengheng4@huawei.com>
+>> Reviewed-by: Ionela Voinescu <ionela.voinescu@arm.com>
+>> ---
+>>   drivers/cpufreq/cppc_cpufreq.c | 49 +++++++++++++++++++++++++++-------
+>>   1 file changed, 39 insertions(+), 10 deletions(-)
+>>
+>> diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
+>> index bafa32dd375d..e55192303a9f 100644
+>> --- a/drivers/cpufreq/cppc_cpufreq.c
+>> +++ b/drivers/cpufreq/cppc_cpufreq.c
+>> @@ -118,6 +118,9 @@ static void cppc_scale_freq_workfn(struct kthread_work *work)
+>>         perf = cppc_perf_from_fbctrs(cpu_data, &cppc_fi->prev_perf_fb_ctrs,
+>>                        &fb_ctrs);
+>> +    if (!perf)
+>> +        return;
+>> +
+>>       cppc_fi->prev_perf_fb_ctrs = fb_ctrs;
+>>         perf <<= SCHED_CAPACITY_SHIFT;
+>> @@ -726,11 +729,26 @@ static int cppc_perf_from_fbctrs(struct cppc_cpudata *cpu_data,
+>>         /* Check to avoid divide-by zero and invalid delivered_perf */
+> Now this comment can be removed, right?
+
+Didn't notice this comment, but, having a check, I think it still fits.
+'!delta_reference' avoids divide-by zero, and '!delta_delivered' checks
+invalid delivered_perf.
+
+So I think we just leave it unchanged.
+
+>>       if (!delta_reference || !delta_delivered)
+>> -        return cpu_data->perf_ctrls.desired_perf;
+>> +        return 0;
+>>         return (reference_perf * delta_delivered) / delta_reference;
+>>   }
+>>   +static int cppc_get_perf_ctrs_sample(int cpu,
+>> +                     struct cppc_perf_fb_ctrs *fb_ctrs_t0,
+>> +                     struct cppc_perf_fb_ctrs *fb_ctrs_t1)
+>> +{
+>> +    int ret;
+>> +
+>> +    ret = cppc_get_perf_ctrs(cpu, fb_ctrs_t0);
+>> +    if (ret)
+>> +        return ret;
+>> +
+>> +    udelay(2); /* 2usec delay between sampling */
+>> +
+>> +    return cppc_get_perf_ctrs(cpu, fb_ctrs_t1);
+>> +}
+>> +
+>>   static unsigned int cppc_cpufreq_get_rate(unsigned int cpu)
+>>   {
+>>       struct cppc_perf_fb_ctrs fb_ctrs_t0 = {0}, fb_ctrs_t1 = {0};
+>> @@ -746,18 +764,29 @@ static unsigned int cppc_cpufreq_get_rate(unsigned int cpu)
+>>         cpufreq_cpu_put(policy);
+>>   -    ret = cppc_get_perf_ctrs(cpu, &fb_ctrs_t0);
+>> -    if (ret)
+>> -        return 0;
+>> -
+>> -    udelay(2); /* 2usec delay between sampling */
+>> -
+>> -    ret = cppc_get_perf_ctrs(cpu, &fb_ctrs_t1);
+>> -    if (ret)
+>> -        return 0;
+>> +    ret = cppc_get_perf_ctrs_sample(cpu, &fb_ctrs_t0, &fb_ctrs_t1);
+>> +    if (ret) {
+>> +        if (ret == -EFAULT)
+>> +            goto out_invalid_counters;
+> suggest that add some comments for ret == -EFAULT case.
+> Because this error code depands on the implementation of cppc_get_perf_ctrs.
+> If add a new exception case which also return -EFAULT, then this switch is unreasonable.
+
+Sure. What about adding the following comment:
+
+/* -EFAULT indicates that any of the associated CPPC regs is 0. */
+
+Thanks,
+Jie
