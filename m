@@ -1,43 +1,39 @@
-Received: from szxga04-in.huawei.com (szxga04-in.huawei.com [45.249.212.190])
+Received: from szxga06-in.huawei.com (szxga06-in.huawei.com [45.249.212.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54A9E18622;
-	Sun, 29 Sep 2024 03:38:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.190
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6CC723BE;
+	Mon, 30 Sep 2024 02:49:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.32
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727581112; cv=none; b=ZJ4saBBl+FtiqXeUfq+JCXVJEebvLSgUz1KWtMzPESAgQiJYi2yc6xsQcXbcOReuk0yCkfrIWu8Q7N9MHmJWGV+em95g+i+WtAYqY2q7sS3mhbd7hlCyTDfKYECXgpJbiNvYoYUJPJSFd/RvBE2ougGAUfQObyhICQIw7b/fYl4=
+	t=1727664579; cv=none; b=pxk/jLAQDhmeGU9eEF135p9T2jIXU/IPdrKKiqsKkcexVoSo2QDaaXMOrKl5y2LXPwT7LRs8j/ZqMCKOWVOSFSaoH1VLONiHpbxf13e7Nk+6MUz6Sr21xg+srqzmYeLQZvzwRWiMgT4XyESsgSdotHF0PlgxHiNnpoOg5uuZ19I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727581112; c=relaxed/simple;
-	bh=QyhnZSCV/4kED/+WUoxOEjsEcTST7fFRK0mbp3oR//c=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=OCEgRQWCBbHuPy1XHNQQ6c1UpXl64ZLSERTT3/J20ylCVped0bSNz8MCBfxVYzlztcHDwhtJwB2STcDNGrfdJ/ep6OYKWOsPqD5Vhc/mVaWT9waN6Q2dOJI/FgqR+5UE5KfB2/SZ2KzjCx/51dDmTwNKmBMjRbN33JxFdun9pXg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.190
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
-Received: from mail.maildlp.com (unknown [172.19.88.214])
-	by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4XGVJN1dDmz2Dchg;
-	Sun, 29 Sep 2024 11:37:24 +0800 (CST)
-Received: from dggpeml500019.china.huawei.com (unknown [7.185.36.137])
-	by mail.maildlp.com (Postfix) with ESMTPS id 579371A016C;
-	Sun, 29 Sep 2024 11:38:16 +0800 (CST)
-Received: from localhost.localdomain (10.90.30.45) by
- dggpeml500019.china.huawei.com (7.185.36.137) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.39; Sun, 29 Sep 2024 11:38:16 +0800
-From: Jie Zhan <zhanjie9@hisilicon.com>
-To: <viresh.kumar@linaro.org>, <rafael@kernel.org>, <ionela.voinescu@arm.com>,
-	<beata.michalska@arm.com>, <wangxiongfeng2@huawei.com>
-CC: <linux-pm@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>, <linuxarm@huawei.com>,
-	<zhanjie9@hisilicon.com>, <jonathan.cameron@huawei.com>,
-	<wanghuiqiang@huawei.com>, <zhenglifeng1@huawei.com>, <lihuisong@huawei.com>,
-	<yangyicong@huawei.com>, <liaochang1@huawei.com>, <zengheng4@huawei.com>
-Subject: [PATCH v4 1/2] cppc_cpufreq: Use desired perf if feedback ctrs are 0 or unchanged
-Date: Sun, 29 Sep 2024 11:32:13 +0800
-Message-ID: <20240929033214.1039485-2-zhanjie9@hisilicon.com>
-X-Mailer: git-send-email 2.30.0
-In-Reply-To: <20240929033214.1039485-1-zhanjie9@hisilicon.com>
-References: <20240929033214.1039485-1-zhanjie9@hisilicon.com>
+	s=arc-20240116; t=1727664579; c=relaxed/simple;
+	bh=wtjLt8960yLV3Py+Qw0SRePYsCBSsb/uMtZ/ZObjOH0=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=iI2ii3LMhf1L0KgB9SDXL6DhR/xqJhdM2CpYugNoEWR3pO/9I7Bxkgrj0lonnw5Ndi7aYxOq9Xd7G0yQxNQc4IRkJKlbOGPSDXJRWbDK2buH/2VV5i5NZ8LhHP6reu3XohHHpO6gJUwP17hlJ3pN9RNgrbG6iCv1q6F1aCVp6K8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.32
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.19.163.44])
+	by szxga06-in.huawei.com (SkyGuard) with ESMTP id 4XH5Bk6wDgz1ymhS;
+	Mon, 30 Sep 2024 10:49:34 +0800 (CST)
+Received: from kwepemd200010.china.huawei.com (unknown [7.221.188.124])
+	by mail.maildlp.com (Postfix) with ESMTPS id 604161400CA;
+	Mon, 30 Sep 2024 10:49:32 +0800 (CST)
+Received: from huawei.com (10.175.113.25) by kwepemd200010.china.huawei.com
+ (7.221.188.124) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1258.34; Mon, 30 Sep
+ 2024 10:49:31 +0800
+From: Zheng Zengkai <zhengzengkai@huawei.com>
+To: <lpieralisi@kernel.org>, <guohanjun@huawei.com>, <sudeep.holla@arm.com>,
+	<mark.rutland@arm.com>, <maz@kernel.org>, <rafael@kernel.org>,
+	<lenb@kernel.org>
+CC: <daniel.lezcano@linaro.org>, <tglx@linutronix.de>,
+	<linux-acpi@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
+	<linux-kernel@vger.kernel.org>, <zhengzengkai@huawei.com>
+Subject: [PATCH] ACPI: GTDT: simplify acpi_gtdt_init() implementation
+Date: Mon, 30 Sep 2024 11:07:16 +0800
+Message-ID: <20240930030716.179992-1-zhengzengkai@huawei.com>
+X-Mailer: git-send-email 2.20.1
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -46,123 +42,144 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-ClientProxiedBy: dggems703-chm.china.huawei.com (10.3.19.180) To
- dggpeml500019.china.huawei.com (7.185.36.137)
+X-ClientProxiedBy: dggems702-chm.china.huawei.com (10.3.19.179) To
+ kwepemd200010.china.huawei.com (7.221.188.124)
 
-The CPPC performance feedback counters could be 0 or unchanged when the
-target cpu is in a low-power idle state, e.g. power-gated or clock-gated.
+According to GTDT Table Structure of ACPI specification, the result of
+expression '(void *)gtdt + gtdt->platform_timer_offset' will be same
+with the expression '(void *)table + sizeof(struct acpi_table_gtdt)'
+in function acpi_gtdt_init(), so the condition of the "invalid timer
+data" check will never be true, remove the EINVAL error check branch
+and change to void return type for acpi_gtdt_init() to simplify the
+function implementation and error handling by callers.
 
-When the counters are 0, cppc_cpufreq_get_rate() returns 0 KHz, which makes
-cpufreq_online() get a false error and fail to generate a cpufreq policy.
+Besides, after commit c2743a36765d ("clocksource: arm_arch_timer: add
+GTDT support for memory-mapped timer"), acpi_gtdt_init() currently will
+not be called with parameter platform_timer_count set to NULL and we
+can explicitly initialize the integer variable which is used for storing
+the number of platform timers by caller to zero, so there is no need to
+do null pointer check for platform_timer_count in acpi_gtdt_init(),
+remove it to make code a bit more concise.
 
-When the counters are unchanged, the existing cppc_perf_from_fbctrs()
-returns a cached desired perf, but some platforms may update the real
-frequency back to the desired perf reg.
-
-For the above cases in cppc_cpufreq_get_rate(), get the latest desired perf
-from the CPPC reg to reflect the frequency because some platforms may
-update the actual frequency back there; if failed, use the cached desired
-perf.
-
-Fixes: 6a4fec4f6d30 ("cpufreq: cppc: cppc_cpufreq_get_rate() returns zero in all error cases.")
-Signed-off-by: Jie Zhan <zhanjie9@hisilicon.com>
-Reviewed-by: Zeng Heng <zengheng4@huawei.com>
-Reviewed-by: Ionela Voinescu <ionela.voinescu@arm.com>
-Reviewed-by: Huisong Li <lihuisong@huawei.com>
+Signed-off-by: Zheng Zengkai <zhengzengkai@huawei.com>
 ---
- drivers/cpufreq/cppc_cpufreq.c | 57 +++++++++++++++++++++++++++-------
- 1 file changed, 46 insertions(+), 11 deletions(-)
+ drivers/acpi/arm64/gtdt.c            | 31 +++++++---------------------
+ drivers/clocksource/arm_arch_timer.c |  6 ++----
+ include/linux/acpi.h                 |  2 +-
+ 3 files changed, 11 insertions(+), 28 deletions(-)
 
-diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
-index 1a5ad184d28f..646b466002c6 100644
---- a/drivers/cpufreq/cppc_cpufreq.c
-+++ b/drivers/cpufreq/cppc_cpufreq.c
-@@ -118,6 +118,9 @@ static void cppc_scale_freq_workfn(struct kthread_work *work)
- 
- 	perf = cppc_perf_from_fbctrs(cpu_data, &cppc_fi->prev_perf_fb_ctrs,
- 				     &fb_ctrs);
-+	if (!perf)
-+		return;
-+
- 	cppc_fi->prev_perf_fb_ctrs = fb_ctrs;
- 
- 	perf <<= SCHED_CAPACITY_SHIFT;
-@@ -724,13 +727,31 @@ static int cppc_perf_from_fbctrs(struct cppc_cpudata *cpu_data,
- 	delta_delivered = get_delta(fb_ctrs_t1->delivered,
- 				    fb_ctrs_t0->delivered);
- 
--	/* Check to avoid divide-by zero and invalid delivered_perf */
-+	/*
-+	 * Avoid divide-by zero and unchanged feedback counters.
-+	 * Leave it for callers to handle.
-+	 */
- 	if (!delta_reference || !delta_delivered)
--		return cpu_data->perf_ctrls.desired_perf;
-+		return 0;
- 
- 	return (reference_perf * delta_delivered) / delta_reference;
- }
- 
-+static int cppc_get_perf_ctrs_sample(int cpu,
-+				     struct cppc_perf_fb_ctrs *fb_ctrs_t0,
-+				     struct cppc_perf_fb_ctrs *fb_ctrs_t1)
-+{
-+	int ret;
-+
-+	ret = cppc_get_perf_ctrs(cpu, fb_ctrs_t0);
-+	if (ret)
-+		return ret;
-+
-+	udelay(2); /* 2usec delay between sampling */
-+
-+	return cppc_get_perf_ctrs(cpu, fb_ctrs_t1);
-+}
-+
- static unsigned int cppc_cpufreq_get_rate(unsigned int cpu)
+diff --git a/drivers/acpi/arm64/gtdt.c b/drivers/acpi/arm64/gtdt.c
+index c0e77c1c8e09..b6d248ddb1b3 100644
+--- a/drivers/acpi/arm64/gtdt.c
++++ b/drivers/acpi/arm64/gtdt.c
+@@ -147,45 +147,30 @@ bool __init acpi_gtdt_c3stop(int type)
+  * @table:			The pointer to GTDT table.
+  * @platform_timer_count:	It points to a integer variable which is used
+  *				for storing the number of platform timers.
+- *				This pointer could be NULL, if the caller
+- *				doesn't need this info.
+- *
+- * Return: 0 if success, -EINVAL if error.
+  */
+-int __init acpi_gtdt_init(struct acpi_table_header *table,
++void __init acpi_gtdt_init(struct acpi_table_header *table,
+ 			  int *platform_timer_count)
  {
- 	struct cppc_perf_fb_ctrs fb_ctrs_t0 = {0}, fb_ctrs_t1 = {0};
-@@ -746,18 +767,32 @@ static unsigned int cppc_cpufreq_get_rate(unsigned int cpu)
+-	void *platform_timer;
+ 	struct acpi_table_gtdt *gtdt;
  
- 	cpufreq_cpu_put(policy);
+ 	gtdt = container_of(table, struct acpi_table_gtdt, header);
+ 	acpi_gtdt_desc.gtdt = gtdt;
+ 	acpi_gtdt_desc.gtdt_end = (void *)table + table->length;
+ 	acpi_gtdt_desc.platform_timer = NULL;
+-	if (platform_timer_count)
+-		*platform_timer_count = 0;
  
--	ret = cppc_get_perf_ctrs(cpu, &fb_ctrs_t0);
--	if (ret)
+ 	if (table->revision < 2) {
+ 		pr_warn("Revision:%d doesn't support Platform Timers.\n",
+ 			table->revision);
 -		return 0;
--
--	udelay(2); /* 2usec delay between sampling */
--
--	ret = cppc_get_perf_ctrs(cpu, &fb_ctrs_t1);
--	if (ret)
++		return;
+ 	}
+ 
+ 	if (!gtdt->platform_timer_count) {
+ 		pr_debug("No Platform Timer.\n");
 -		return 0;
-+	ret = cppc_get_perf_ctrs_sample(cpu, &fb_ctrs_t0, &fb_ctrs_t1);
-+	if (ret) {
-+		if (ret == -EFAULT)
-+			/* Any of the associated CPPC regs is 0. */
-+			goto out_invalid_counters;
-+		else
-+			return 0;
-+	}
++		return;
+ 	}
  
- 	delivered_perf = cppc_perf_from_fbctrs(cpu_data, &fb_ctrs_t0,
- 					       &fb_ctrs_t1);
-+	if (!delivered_perf)
-+		goto out_invalid_counters;
-+
-+	return cppc_perf_to_khz(&cpu_data->perf_caps, delivered_perf);
-+
-+out_invalid_counters:
-+	/*
-+	 * Feedback counters could be unchanged or 0 when a cpu enters a
-+	 * low-power idle state, e.g. clock-gated or power-gated.
-+	 * Use desired perf for reflecting frequency.  Get the latest register
-+	 * value first as some platforms may update the actual delivered perf
-+	 * there; if failed, resort to the cached desired perf.
-+	 */
-+	if (cppc_get_desired_perf(cpu, &delivered_perf))
-+		delivered_perf = cpu_data->perf_ctrls.desired_perf;
- 
- 	return cppc_perf_to_khz(&cpu_data->perf_caps, delivered_perf);
+-	platform_timer = (void *)gtdt + gtdt->platform_timer_offset;
+-	if (platform_timer < (void *)table + sizeof(struct acpi_table_gtdt)) {
+-		pr_err(FW_BUG "invalid timer data.\n");
+-		return -EINVAL;
+-	}
+-	acpi_gtdt_desc.platform_timer = platform_timer;
+-	if (platform_timer_count)
+-		*platform_timer_count = gtdt->platform_timer_count;
+-
+-	return 0;
++	acpi_gtdt_desc.platform_timer = (void *)gtdt + gtdt->platform_timer_offset;
++	*platform_timer_count = gtdt->platform_timer_count;
  }
+ 
+ static int __init gtdt_parse_timer_block(struct acpi_gtdt_timer_block *block,
+@@ -377,7 +362,7 @@ static int __init gtdt_sbsa_gwdt_init(void)
+ {
+ 	void *platform_timer;
+ 	struct acpi_table_header *table;
+-	int ret, timer_count, gwdt_count = 0;
++	int ret, timer_count = 0, gwdt_count = 0;
+ 
+ 	if (acpi_disabled)
+ 		return 0;
+@@ -394,8 +379,8 @@ static int __init gtdt_sbsa_gwdt_init(void)
+ 	 * to re-initialize them with permanent mapped pointer values to let the
+ 	 * GTDT parsing possible.
+ 	 */
+-	ret = acpi_gtdt_init(table, &timer_count);
+-	if (ret || !timer_count)
++	acpi_gtdt_init(table, &timer_count);
++	if (!timer_count)
+ 		goto out_put_gtdt;
+ 
+ 	for_each_platform_timer(platform_timer) {
+diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
+index 03733101e231..4ca06aba68a4 100644
+--- a/drivers/clocksource/arm_arch_timer.c
++++ b/drivers/clocksource/arm_arch_timer.c
+@@ -1741,7 +1741,7 @@ static int __init arch_timer_mem_acpi_init(int platform_timer_count)
+ /* Initialize per-processor generic timer and memory-mapped timer(if present) */
+ static int __init arch_timer_acpi_init(struct acpi_table_header *table)
+ {
+-	int ret, platform_timer_count;
++	int ret, platform_timer_count = 0;
+ 
+ 	if (arch_timers_present & ARCH_TIMER_TYPE_CP15) {
+ 		pr_warn("already initialized, skipping\n");
+@@ -1750,9 +1750,7 @@ static int __init arch_timer_acpi_init(struct acpi_table_header *table)
+ 
+ 	arch_timers_present |= ARCH_TIMER_TYPE_CP15;
+ 
+-	ret = acpi_gtdt_init(table, &platform_timer_count);
+-	if (ret)
+-		return ret;
++	acpi_gtdt_init(table, &platform_timer_count);
+ 
+ 	arch_timer_ppi[ARCH_TIMER_PHYS_NONSECURE_PPI] =
+ 		acpi_gtdt_map_ppi(ARCH_TIMER_PHYS_NONSECURE_PPI);
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 3a21f1cf126f..7ebc031ff8c0 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -750,7 +750,7 @@ int acpi_reconfig_notifier_register(struct notifier_block *nb);
+ int acpi_reconfig_notifier_unregister(struct notifier_block *nb);
+ 
+ #ifdef CONFIG_ACPI_GTDT
+-int acpi_gtdt_init(struct acpi_table_header *table, int *platform_timer_count);
++void __init acpi_gtdt_init(struct acpi_table_header *table, int *platform_timer_count);
+ int acpi_gtdt_map_ppi(int type);
+ bool acpi_gtdt_c3stop(int type);
+ int acpi_arch_timer_mem_init(struct arch_timer_mem *timer_mem, int *timer_count);
 -- 
-2.33.0
+2.20.1
 
