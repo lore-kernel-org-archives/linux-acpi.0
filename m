@@ -1,32 +1,32 @@
 Received: from todd.t-8ch.de (todd.t-8ch.de [159.69.126.157])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7BDB954F95;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7BE0513D276;
 	Sat,  5 Oct 2024 10:05:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.69.126.157
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728122730; cv=none; b=Tscr0CvkMxWdF5gyJO4vPubWTZ+VTPMA1/k2ndxnE3OmI9QVlTZvW7XZ8aTdjqrE5VFdwaVr7WgwWtCumKsXFJGkoivIjwgsabgajvqCTDQqLrxAQ+AY49Qd8vDUBGdQRqDmn4UyZAlX9wRuGlXoMvaD5bWygTgWd5cGxVkWnd8=
+	t=1728122730; cv=none; b=pUA3bsXeZXb5LBCw5LQINSYdmLvVIjYifKRj09BGHZbpAnjPb/ER6GrEBJZpjkh/2nzgK4mKZ6PZAAz/lNiAHRyHdtQ1f59J9WHULi5WGAMhBT5D/QN0WJgBokcnC3Cvr8dj7zXjh6WNTqgMyYFLhKC/kVHj4HRzcpHBiRIyKkE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1728122730; c=relaxed/simple;
-	bh=aY3x1zoEK/AerqbuxoCWJqyPGjSGQrsN4fv559DLlnc=;
-	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=VfWKFaYA1cc3BCK6ZkUD0dfFdo3x55/SWjWTrZZnUggbNb4bhcNsOooxQTOmpAQFz2hsLwBZuq8cU2z56s2sX5te/zZ2XxF3sdW2Fe+6pDPxHRVH22f9P9PjJHT6HlNTzNKGriT+ZsiU7r0Pw1CcYVEXp+fVb+eTeIwT8YHpu58=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net; spf=pass smtp.mailfrom=weissschuh.net; dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b=XVKwSV9C; arc=none smtp.client-ip=159.69.126.157
+	bh=WQKSkjSktZCriiwkdWIUgiePB+EnguIBlEAzjDlXbT8=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=BUs8kCqI/ZOnWbEFOdBu12dF/lqPcPyEqNsisUK44PCaM/roPiYOqN9x6euqCRd0LJrpzLjiIIBV+nFurquo8d1/Z3jUtR/ryWqc2EObKCjy8JbcielQ9KilHT0rp7fWxDqRFBS7gdbd9uO2KmEUc83ydqUf7+ooM1preM2JHLg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net; spf=pass smtp.mailfrom=weissschuh.net; dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b=NHfnLLUb; arc=none smtp.client-ip=159.69.126.157
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=weissschuh.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b="XVKwSV9C"
+	dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b="NHfnLLUb"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=weissschuh.net;
 	s=mail; t=1728122726;
-	bh=aY3x1zoEK/AerqbuxoCWJqyPGjSGQrsN4fv559DLlnc=;
-	h=From:Subject:Date:To:Cc:From;
-	b=XVKwSV9Cb3eg68g+wKRk224+KTLGOoprfOxyFZQKjnAOUDI8t2fH+6kZXeShr6F4Z
-	 JVuW3SHewQ0gSh5cXhVS1VC8xUPtHo+oPjrZydjsjlgIDdQrFytRIWjFRhI+MGS/Bx
-	 zZaR8HEO9dIDUvIswJJ9Dht+WhKtBPi8ArXI1ERk=
+	bh=WQKSkjSktZCriiwkdWIUgiePB+EnguIBlEAzjDlXbT8=;
+	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
+	b=NHfnLLUbldI/L+kjukmJjkdP/ksheXaJsmwm0+R7zyiiftDHfCQH4kZqPeGKRxCLs
+	 1AMSBIy/5PbmfOBsl3dCKHjGT5zY+LphyrmNMRtfxHyTI/cudjqtiZDbBvdJ0WIn9a
+	 +7amOUZFxqm8aHObS6IS2MyiGDQFl8fIWmcpR+HY=
 From: =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <linux@weissschuh.net>
-Subject: [PATCH 0/8] power: supply: core: remove
- {,devm_}power_supply_register_no_ws()
-Date: Sat, 05 Oct 2024 12:05:02 +0200
-Message-Id: <20241005-power-supply-no-wakeup-source-v1-0-1d62bf9bcb1d@weissschuh.net>
+Date: Sat, 05 Oct 2024 12:05:05 +0200
+Subject: [PATCH 3/8] power: supply: acer_a500_battery: register power
+ supply with devm_power_supply_register()
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -35,10 +35,9 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-X-B4-Tracking: v=1; b=H4sIAE4PAWcC/x3MwQqDMAwA0F+RnBfQosPuV8YOXc1mUNqQ0Lkh/
- rtlx3d5Oxgpk8Gt2UHpw8Y5VXSXBuIc0puQp2pwretb7xxK3kjRisj6w5RxCwsVQctFI2E/xKn
- zz+sYfIB6iNKLv////jiOE39d7IlvAAAA
-X-Change-ID: 20240922-power-supply-no-wakeup-source-45cd19b68a9a
+Message-Id: <20241005-power-supply-no-wakeup-source-v1-3-1d62bf9bcb1d@weissschuh.net>
+References: <20241005-power-supply-no-wakeup-source-v1-0-1d62bf9bcb1d@weissschuh.net>
+In-Reply-To: <20241005-power-supply-no-wakeup-source-v1-0-1d62bf9bcb1d@weissschuh.net>
 To: Sebastian Reichel <sre@kernel.org>, 
  "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
  =?utf-8?q?Pali_Roh=C3=A1r?= <pali@kernel.org>, 
@@ -48,46 +47,46 @@ Cc: linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org,
  linux-acpi@vger.kernel.org, chrome-platform@lists.linux.dev, 
  =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <linux@weissschuh.net>
 X-Mailer: b4 0.14.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1728122726; l=1840;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1728122726; l=1231;
  i=linux@weissschuh.net; s=20221212; h=from:subject:message-id;
- bh=aY3x1zoEK/AerqbuxoCWJqyPGjSGQrsN4fv559DLlnc=;
- b=6a85BGLKptqISfDlab43RGOcxCftbSsCSnFrs47gEEzs4VONZ1vV5qMB9IXg5s4/iAKYMHd/r
- qOZAfotnmMZB4VGH/otOj534lvLNv9UwiWwpS74no/6E4JeM1rNp4zA
+ bh=WQKSkjSktZCriiwkdWIUgiePB+EnguIBlEAzjDlXbT8=;
+ b=kJ4kyvm3rSkSK9d7BH2dX6xc6AmzbCJi+3MyyQvRFk32eAI889qmopc+SG6KbmeFgfZDBI3UT
+ auXgsi7YK6XAIZl+9+aizcn6z38bUCsYnnT6CeSaRqIWJX1fUNhKgZi
 X-Developer-Key: i=linux@weissschuh.net; a=ed25519;
  pk=KcycQgFPX2wGR5azS7RhpBqedglOZVgRPfdFSPB1LNw=
 
-The meaning of the _no_ws() suffix is not immediately clear when reading
-the code. Furthermore there is already a dedicated API to configure the
-details of the created power supply in "struct power_supply_config".
-Migrate the functionality to "struct power_supply_config" and remove the
-special functions.
+devm_power_supply_register_no_ws() is going to be removed.
+Switch to the general registration API.
 
 Signed-off-by: Thomas Weißschuh <linux@weissschuh.net>
 ---
-Thomas Weißschuh (8):
-      power: supply: core: add wakeup source inhibit by power_supply_config
-      ACPI: battery: Register power supply with power_supply_register()
-      power: supply: acer_a500_battery: register power supply with devm_power_supply_register()
-      power: supply: bq27xxx_battery: register power supply with power_supply_register()
-      power: supply: cros_usbpd-charger: register power supply with devm_power_supply_register()
-      power: supply: lenovo_yoga_c630_battery: register power supplies with power_supply_register()
-      power: supply: max77976_charger: register power supply with devm_power_supply_register()
-      power: supply: core: remove {,devm_}power_supply_register_no_ws()
+ drivers/power/supply/acer_a500_battery.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
- drivers/acpi/battery.c                          |  3 +-
- drivers/power/supply/acer_a500_battery.c        |  7 +--
- drivers/power/supply/bq27xxx_battery.c          |  3 +-
- drivers/power/supply/cros_usbpd-charger.c       |  4 +-
- drivers/power/supply/lenovo_yoga_c630_battery.c | 14 ++---
- drivers/power/supply/max77976_charger.c         |  3 +-
- drivers/power/supply/power_supply_core.c        | 68 ++-----------------------
- include/linux/power_supply.h                    | 10 +---
- 8 files changed, 26 insertions(+), 86 deletions(-)
----
-base-commit: 27cc6fdf720183dce1dbd293483ec5a9cb6b595e
-change-id: 20240922-power-supply-no-wakeup-source-45cd19b68a9a
+diff --git a/drivers/power/supply/acer_a500_battery.c b/drivers/power/supply/acer_a500_battery.c
+index ef5c419b1b7f20744b48e1648c38289f4d546cf9..58e7b2eac68f9745f5a2c48ba27951f65e681d2f 100644
+--- a/drivers/power/supply/acer_a500_battery.c
++++ b/drivers/power/supply/acer_a500_battery.c
+@@ -233,14 +233,15 @@ static int a500_battery_probe(struct platform_device *pdev)
+ 
+ 	psy_cfg.of_node = pdev->dev.parent->of_node;
+ 	psy_cfg.drv_data = bat;
++	psy_cfg.no_wakeup_source = true;
+ 
+ 	bat->regmap = dev_get_regmap(pdev->dev.parent, "KB930");
+ 	if (!bat->regmap)
+ 		return -EINVAL;
+ 
+-	bat->psy = devm_power_supply_register_no_ws(&pdev->dev,
+-						    &a500_battery_desc,
+-						    &psy_cfg);
++	bat->psy = devm_power_supply_register(&pdev->dev,
++					      &a500_battery_desc,
++					      &psy_cfg);
+ 	if (IS_ERR(bat->psy))
+ 		return dev_err_probe(&pdev->dev, PTR_ERR(bat->psy),
+ 				     "failed to register battery\n");
 
-Best regards,
 -- 
-Thomas Weißschuh <linux@weissschuh.net>
+2.46.2
 
