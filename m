@@ -1,327 +1,155 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE5411C6F55;
-	Wed, 16 Oct 2024 09:00:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AB5D1D90DD;
+	Wed, 16 Oct 2024 09:21:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.188
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729069211; cv=none; b=X+16r0HpuTLCWETHxalGflC/+azkzNhFjSzgs09P1C97z244Sx4/Ogsq0TCfaXx8B4klweEfDmu+0W/9l/d9/Z+tfcTejUhvD1GG+Ik/+MgcaIldrlbPIDwG5FJmcuKdpG/+exHgY7CMi1D9RPRbqj9wRfmR7Yd74QL6/ajwHcU=
+	t=1729070495; cv=none; b=L5lx18YhiNvAOCR1BAzYHs9S2bNm0Scn4uPUQZWzZX5xgPsPJ5DdqoLiF1qSrwJxxgkq6pN6w55RLL2iTfFzPw/h4Jd2cE869vrEPpEiGDwPnKzl3jNcTHWDRHRxmnwQeCapqof8H2GazrgZRFPfIChFcyMVg8Wc/GnIYFHAyLQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729069211; c=relaxed/simple;
-	bh=Z8vYqfcihPahyj6XkwjiIM4tnoQjxhP9bBwIwwT90C4=;
-	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=LGZukVFs+LKB3HCfZDlVprBHxCD5U7VThfW55f39M+uiPl8tJth4sjTjHTyLLqy4sI+o2AwwsRkEnc5F+hEPe8n6K7UzVLSis1Mj3rzK6082iyjiQxIlvdpD3LYFMqCEkOPe2APKdHO2cocbG15LG8NhygCeu4bMxm/lFWzzk4Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
+	s=arc-20240116; t=1729070495; c=relaxed/simple;
+	bh=re5iF3yVOjF2BgRHj3pjVBxIhCLycoiqhjrd3dLPAvA=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=VEZO9uhRG7t76266zyHEhSAcxKk7SZME/udVFzt3kyW71vRxnqjlUBEgAc/jxEkgntoNjytmrt3+E5XD6iqHJtgKpTr7Cuj/qVxh6OrV9FSMNigxlgvsRbZYSy6STv/rMq2/0FM/WQhEwMRY3RtYY51VJWa8cqeuqTEbORZywWg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.188
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.186.216])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4XT4cx6f2mz67ntN;
-	Wed, 16 Oct 2024 16:58:25 +0800 (CST)
-Received: from frapeml500008.china.huawei.com (unknown [7.182.85.71])
-	by mail.maildlp.com (Postfix) with ESMTPS id 3079E140B67;
-	Wed, 16 Oct 2024 17:00:06 +0800 (CST)
-Received: from localhost (10.203.177.66) by frapeml500008.china.huawei.com
- (7.182.85.71) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Wed, 16 Oct
- 2024 11:00:04 +0200
-Date: Wed, 16 Oct 2024 10:00:03 +0100
-From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-CC: Greg KH <gregkh@linuxfoundation.org>, <linuxarm@huawei.com>,
-	<shiju.jose@huawei.com>, <linux-edac@vger.kernel.org>,
-	<linux-cxl@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
-	<linux-mm@kvack.org>, <linux-kernel@vger.kernel.org>, <bp@alien8.de>,
-	<tony.luck@intel.com>, <lenb@kernel.org>, <mchehab@kernel.org>,
-	<dan.j.williams@intel.com>, <dave@stgolabs.net>, <dave.jiang@intel.com>,
-	<alison.schofield@intel.com>, <vishal.l.verma@intel.com>,
-	<ira.weiny@intel.com>, <david@redhat.com>, <Vilas.Sridharan@amd.com>,
-	<leo.duran@amd.com>, <Yazen.Ghannam@amd.com>, <rientjes@google.com>,
-	<jiaqiyan@google.com>, <Jon.Grimm@amd.com>, <dave.hansen@linux.intel.com>,
-	<naoya.horiguchi@nec.com>, <james.morse@arm.com>, <jthoughton@google.com>,
-	<somasundaram.a@hpe.com>, <erdemaktas@google.com>, <pgonda@google.com>,
-	<duenwen@google.com>, <gthelen@google.com>, <wschwartz@amperecomputing.com>,
-	<dferguson@amperecomputing.com>, <wbs@os.amperecomputing.com>,
-	<nifan.cxl@gmail.com>, <tanxiaofei@huawei.com>, <prime.zeng@hisilicon.com>,
-	<roberto.sassu@huawei.com>, <kangkang.shen@futurewei.com>,
-	<wanghuiqiang@huawei.com>, Sudeep Holla <sudeep.holla@arm.com>, Jassi Brar
-	<jassisinghbrar@gmail.com>
-Subject: Re: [PATCH v13 12/18] platform: Add __free() based cleanup function
- for platform_device_put
-Message-ID: <20241016100003.000072fd@Huawei.com>
-In-Reply-To: <CAJZ5v0iRzFQ4EaHKjs0oirmh1HpkONz--JKYB3oLrT84A+XXzA@mail.gmail.com>
-References: <20241009124120.1124-1-shiju.jose@huawei.com>
-	<20241009124120.1124-13-shiju.jose@huawei.com>
-	<20241014164339.00003e73@Huawei.com>
-	<2024101410-turf-junior-7739@gregkh>
-	<2024101451-reword-animation-2179@gregkh>
-	<20241014181654.00005180@Huawei.com>
-	<CAJZ5v0j-mwZmuciSTaL8MyAp530y=n9HbQ=uVvcnvGLR1n+YuQ@mail.gmail.com>
-	<20241015101025.00005305@Huawei.com>
-	<20241015104021.00002906@huawei.com>
-	<2024101517-bubbling-deploy-1be0@gregkh>
-	<CAJZ5v0iyc5gvpXjpZdmv-vh8+haPENz+UBXVSF6UDBCRT12fMg@mail.gmail.com>
-	<20241015151947.00006a4f@Huawei.com>
-	<CAJZ5v0iRzFQ4EaHKjs0oirmh1HpkONz--JKYB3oLrT84A+XXzA@mail.gmail.com>
-Organization: Huawei Technologies Research and Development (UK) Ltd.
-X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
+Received: from mail.maildlp.com (unknown [172.19.88.105])
+	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4XT55J22WtzpX4f;
+	Wed, 16 Oct 2024 17:19:32 +0800 (CST)
+Received: from kwepemd200010.china.huawei.com (unknown [7.221.188.124])
+	by mail.maildlp.com (Postfix) with ESMTPS id A30DD1402C8;
+	Wed, 16 Oct 2024 17:21:30 +0800 (CST)
+Received: from huawei.com (10.175.113.25) by kwepemd200010.china.huawei.com
+ (7.221.188.124) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1258.34; Wed, 16 Oct
+ 2024 17:21:29 +0800
+From: Zheng Zengkai <zhengzengkai@huawei.com>
+To: <lpieralisi@kernel.org>, <guohanjun@huawei.com>, <sudeep.holla@arm.com>,
+	<mark.rutland@arm.com>, <maz@kernel.org>, <rafael@kernel.org>,
+	<lenb@kernel.org>
+CC: <daniel.lezcano@linaro.org>, <tglx@linutronix.de>,
+	<linux-acpi@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
+	<linux-kernel@vger.kernel.org>, <zhengzengkai@huawei.com>
+Subject: [PATCH v4] ACPI: GTDT: Tighten the check for the array of platform timer structures
+Date: Wed, 16 Oct 2024 17:54:58 +0800
+Message-ID: <20241016095458.34126-1-zhengzengkai@huawei.com>
+X-Mailer: git-send-email 2.20.1
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-X-ClientProxiedBy: lhrpeml100002.china.huawei.com (7.191.160.241) To
- frapeml500008.china.huawei.com (7.182.85.71)
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: dggems702-chm.china.huawei.com (10.3.19.179) To
+ kwepemd200010.china.huawei.com (7.221.188.124)
 
-On Tue, 15 Oct 2024 17:35:31 +0200
-"Rafael J. Wysocki" <rafael@kernel.org> wrote:
+As suggested by Marc and Lorenzo, first we need to check whether the
+platform_timer entry pointer is within gtdt bounds (< gtdt_end) before
+de-referencing what it points at to detect the length of the platform
+timer struct and then check that the length of current platform_timer
+struct is also valid, i.e. the length is not zero and within gtdt_end.
+Now next_platform_timer() only checks against gtdt_end for the entry of
+subsequent platform timer without checking the length of it and will
+not report error if the check failed and the existing check in function
+acpi_gtdt_init() is also not enough.
 
-> On Tue, Oct 15, 2024 at 4:19=E2=80=AFPM Jonathan Cameron
-> <Jonathan.Cameron@huawei.com> wrote:
-> >
-> > On Tue, 15 Oct 2024 15:32:28 +0200
-> > "Rafael J. Wysocki" <rafael@kernel.org> wrote:
-> > =20
-> > > On Tue, Oct 15, 2024 at 12:17=E2=80=AFPM Greg KH <gregkh@linuxfoundat=
-ion.org> wrote: =20
-> > > >
-> > > > On Tue, Oct 15, 2024 at 10:40:54AM +0100, Jonathan Cameron wrote: =
-=20
-> > > > > On Tue, 15 Oct 2024 10:10:25 +0100
-> > > > > Jonathan Cameron <Jonathan.Cameron@Huawei.com> wrote:
-> > > > > =20
-> > > > > > On Mon, 14 Oct 2024 20:06:40 +0200
-> > > > > > "Rafael J. Wysocki" <rafael@kernel.org> wrote:
-> > > > > > =20
-> > > > > > > On Mon, Oct 14, 2024 at 7:17=E2=80=AFPM Jonathan Cameron
-> > > > > > > <Jonathan.Cameron@huawei.com> wrote: =20
-> > > > > > > >
-> > > > > > > > On Mon, 14 Oct 2024 18:04:37 +0200
-> > > > > > > > Greg KH <gregkh@linuxfoundation.org> wrote:
-> > > > > > > > =20
-> > > > > > > > > On Mon, Oct 14, 2024 at 06:00:51PM +0200, Greg KH wrote: =
-=20
-> > > > > > > > > > On Mon, Oct 14, 2024 at 04:43:39PM +0100, Jonathan Came=
-ron wrote: =20
-> > > > > > > > > > > On Wed, 9 Oct 2024 13:41:13 +0100
-> > > > > > > > > > > <shiju.jose@huawei.com> wrote:
-> > > > > > > > > > > =20
-> > > > > > > > > > > > From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-> > > > > > > > > > > >
-> > > > > > > > > > > > Add __free() based cleanup function for platform_de=
-vice_put().
-> > > > > > > > > > > >
-> > > > > > > > > > > > Signed-off-by: Jonathan Cameron <Jonathan.Cameron@h=
-uawei.com>
-> > > > > > > > > > > > Signed-off-by: Shiju Jose <shiju.jose@huawei.com>
-> > > > > > > > > > > > ---
-> > > > > > > > > > > >  include/linux/platform_device.h | 1 +
-> > > > > > > > > > > >  1 file changed, 1 insertion(+)
-> > > > > > > > > > > >
-> > > > > > > > > > > > diff --git a/include/linux/platform_device.h b/incl=
-ude/linux/platform_device.h
-> > > > > > > > > > > > index d422db6eec63..606533b88f44 100644
-> > > > > > > > > > > > --- a/include/linux/platform_device.h
-> > > > > > > > > > > > +++ b/include/linux/platform_device.h
-> > > > > > > > > > > > @@ -232,6 +232,7 @@ extern int platform_device_add_=
-data(struct platform_device *pdev,
-> > > > > > > > > > > >  extern int platform_device_add(struct platform_dev=
-ice *pdev);
-> > > > > > > > > > > >  extern void platform_device_del(struct platform_de=
-vice *pdev);
-> > > > > > > > > > > >  extern void platform_device_put(struct platform_de=
-vice *pdev);
-> > > > > > > > > > > > +DEFINE_FREE(platform_device_put, struct platform_d=
-evice *, if (_T) platform_device_put(_T))
-> > > > > > > > > > > >
-> > > > > > > > > > > >  struct platform_driver {
-> > > > > > > > > > > >         int (*probe)(struct platform_device *); =20
-> > > > > > > > > > >
-> > > > > > > > > > > +CC Greg KH and Rafael.
-> > > > > > > > > > >
-> > > > > > > > > > > Makes sure to include them on v14 as this needs revie=
-w from a driver core point
-> > > > > > > > > > > of view I think. =20
-> > > > > > > > > >
-> > > > > > > > > > Why is this needed for a platform device?  This feels l=
-ike you will have
-> > > > > > > > > > to do more work to "keep" the reference on the normal p=
-ath than you to
-> > > > > > > > > > today to release the reference on the error path, right=
-?  Have a pointer
-> > > > > > > > > > to a patch that uses this? =20
-> > > > > > > > >
-> > > > > > > > > Ah, is it this one:
-> > > > > > > > >       https://lore.kernel.org/all/20241014164955.00003439=
-@Huawei.com/
-> > > > > > > > > ?
-> > > > > > > > >
-> > > > > > > > > If so, no, that's an abuse of a platform device, don't do=
- that, make a
-> > > > > > > > > REAL device on the bus that this device lives on.  If it =
-doesn't live on
-> > > > > > > > > a real bus, then put it on the virtual bus but do NOT abu=
-se the platform
-> > > > > > > > > device layer for something like this. =20
-> > > > > > > >
-> > > > > > > > Ok.  Probably virtual bus it is then.  Rafael, what do you =
-think makes sense
-> > > > > > > > for a 'feature' that is described only by an ACPI table (he=
-re RAS2)?
-> > > > > > > > Kind of similar(ish) to say IORT. =20
-> > > > > > >
-> > > > > > > Good question.
-> > > > > > >
-> > > > > > > I guess it depends on whether or not there are any registers =
-to access
-> > > > > > > or AML to interact with.  If so, I think that a platform devi=
-ce makes
-> > > > > > > sense. =20
-> > > > > >
-> > > > > > Unfortunately still a gray area I think.
-> > > > > >
-> > > > > > This does access mailbox memory addresses, but they are provided
-> > > > > > by an existing platform device, so maybe platform device for th=
-is
-> > > > > > device is still inappropriate :(
-> > > > > >
-> > > > > > What this uses is:
-> > > > > > PCC channel (mailbox in memory + doorbells, etc but that is ind=
-irectly
-> > > > > > provided as a service via reference in ACPI to the PCCT table e=
-ntry
-> > > > > > allowing this to find the mailbox device - which is a platform
-> > > > > > device drivers/mailbox/pcc.c).
-> > > > > > Because it's all spec defined content in the mailbox messages, =
-we don't
-> > > > > > have the more flexible (and newer I think) 'register' via opera=
-tion region
-> > > > > > stuff in AML.
-> > > > > >
-> > > > > > A wrinkle though.  The mailbox data is mapped into this driver =
-via
-> > > > > > an acpi_os_ioremap() call.
-> > > > > >
-> > > > > > So I'm thinking we don't have a strong reason for a platform de=
-vice
-> > > > > > other than 'similarity' to other examples.  Never the strongest=
- reason!
-> > > > > >
-> > > > > > We'll explore alternatives and see what they end up looking lik=
-e.
-> > > > > >
-> > > > > > Jonathan
-> > > > > > =20
-> > > > >
-> > > > > Greg,
-> > > > >
-> > > > > I'm struggling a little to figure out how you envision the virtua=
-l bus
-> > > > > working here.  So before we spend too much time implementing the =
-wrong thing
-> > > > > as it feels non trivial, let me check my understanding.
-> > > > >
-> > > > > Would this mean registering a ras2 bus via subsys_virtual_registe=
-r().
-> > > > > (Similar to done for memory tiers) =20
-> > > >
-> > > > It should show up under /sys/devices/virtual/ is what I mean.
-> > > > =20
-> > > > > On that we'd then add all the devices: one per RAS2 PCC descripto=
-r (these
-> > > > > are one per independent feature). Each feature has its own mailbo=
-x sub
-> > > > > channel (via a reference to the PCC mailbox devices .
-> > > > > Typically you have one of these per feature type per numa node, b=
-ut
-> > > > > that isn't guaranteed.  That will then need wiring up with bus->p=
-robe() etc
-> > > > > so that the RAS2 edac feature drivers can find this later and bin=
-d to it to
-> > > > > register with edac etc.
-> > > > >
-> > > > > So spinning up a full new bus, to support this?  I'm not against =
-that. =20
-> > > >
-> > > > No, again, see how the stuff that shows up in /sys/devices/virtual
-> > > > works, that should be much simpler.
-> > > >
-> > > > But really, as this is a "bus", just make a new one.  I don't under=
-stand
-> > > > why ACPI isn't creating your devices for you, as this is ACPI code,
-> > > > perhaps just fix that up instead?  That would make much more sense =
-to
-> > > > me... =20
-> > >
-> > > Because it is a data-only table, not AML.
-> > >
-> > > It looks to me like this could be an auxiliary device, similar to the
-> > > Intel VSEC driver: see intel_vsec_add_aux() etc.
-> > > =20
-> >
-> > That was in the other branch of the thread abbreviated as auxbus.
-> > My concern with that approach is we have no parent device and the
-> > auxiliary bus is always described as being for sub parts of a
-> > compound device. In the intel_vsec case there is always a parent
-> > pci device or platform device.
-> >
-> > I don't think there is any functional requirement for a real parent,
-> > it just feels like abuse given the stated purpose of auxiliary bus.
-> > Greg, auxiliary bus or separate acpi_ras2 bus feel better to you?
-> >
-> > We'd need to parent it off something to avoid the check in
-> > auxiliary_device_init() + all devices should have a parent anyway. =20
->=20
-> Wouldn't that be the platform device providing the mailbox memory
-> addresses mentioned in one of the previous messages?
+Modify the for_each_platform_timer() iterator and use it combined with
+a dedicated check function platform_timer_valid() to do the check
+against table length (gtdt_end) for each element of platform timer
+array in function acpi_gtdt_init(), making sure that both their entry
+and length actually fit in the table.
 
-Added Sudeep and Jassi given this feels like we'd need their input
-to consider doing this.
+Suggested-by: Lorenzo Pieralisi <lpieralisi@kernel.org>
+Co-developed-by: Marc Zyngier <maz@kernel.org>
+Signed-off-by: Marc Zyngier <maz@kernel.org>
+Signed-off-by: Zheng Zengkai <zhengzengkai@huawei.com>
+---
+Changes in v4:
+- remove the tmp pointer to make the code more concise.
 
-Hmm. Probably works, though it will be a little inelegant as we'll have
-a discovery path unrelated to the mailbox provider discovery path
-that then instantiates children of the mailbox device. This is just
-one consumer of the mailbox device. It feels not too bad for this particular
-combination at all because RAS2 entries don't have any other resources
-so unlike many PCC channel users we wouldn't be introduce devices with
-wider scope than the mailbox parent device (note I think there is only
-device for all PCC in the system - each actual mailbox is a PCC subspace).
+Changes in v3:
+- based on Marc's patch and reuse the for_each_platform_timer() loop
+Link to v3: https://lore.kernel.org/linux-arm-kernel/20241015152602.184108-1-zhengzengkai@huawei.com/
 
-1) Mailbox path:
-	acpi_pcc_probe() in drivers/mailbox/pcc.c via postcore_init_call()
- 	Checks there are PCC channels in PCCT ACPI table.
-	Instantiates a platform device and binds that via
-	platform_create_bundle()
-	Probes the available channels and stashes all the info
-	about them in arrays associated with that platform device.
-	Calls mbox_controller_register() which sounds like as
-	class registration but isn't. That just puts it on
-	LIST_HEAD(mbox_cons) so that it can be searched for
-	by consumers of this channel.
-2) RAS2 parsing (tweaked version of patch 13)
-	acpi_ras2_probe() currently via a late_initcall()
-	Checks for RAS2 table and for each RAS2 PCC descriptor and
-	gets a channel from the appropriate mailbox via
-	pcc_mbox_request_channel() giving us a struct pcc_mbox_chan.
-	Then we would need to get from there to the platform device
-	that represents all the mailboxes.
-	pcc_mbox->mchan->mbox_controller->dev is it I think.
-	Finally we parent our new device off that.
+Changes in v2:
+- Check against gtdt_end for both entry and len of each array element
+Link to v2: https://lore.kernel.org/linux-arm-kernel/20241012085343.6594-1-zhengzengkai@huawei.com/
 
-What do people think of this vs option of spinning a new bus/acpi_ras2
-and no parent relationship between a ras2 feature entry the PCC
-platform device - just a client of mailbox relationship
-(effectively what is in patch 13, but with devices on a new bus rather
-than as platform_device)
-https://lore.kernel.org/all/20241009124120.1124-14-shiju.jose@huawei.com/
-is that patch.
+Link to v1: https://lore.kernel.org/all/20241010144703.113728-1-zhengzengkai@huawei.com/
 
-Jonathan
+Link to previous related patches:
+https://lore.kernel.org/all/20241008082429.33646-1-zhengzengkai@huawei.com/
+https://lore.kernel.org/all/20240930030716.179992-1-zhengzengkai@huawei.com/
+---
+ drivers/acpi/arm64/gtdt.c | 29 ++++++++++++++++++++---------
+ 1 file changed, 20 insertions(+), 9 deletions(-)
 
-
-
-
-
+diff --git a/drivers/acpi/arm64/gtdt.c b/drivers/acpi/arm64/gtdt.c
+index c0e77c1c8e09..d7c4e1b9915b 100644
+--- a/drivers/acpi/arm64/gtdt.c
++++ b/drivers/acpi/arm64/gtdt.c
+@@ -36,19 +36,25 @@ struct acpi_gtdt_descriptor {
+ 
+ static struct acpi_gtdt_descriptor acpi_gtdt_desc __initdata;
+ 
+-static inline __init void *next_platform_timer(void *platform_timer)
++static __init bool platform_timer_valid(void *platform_timer)
+ {
+ 	struct acpi_gtdt_header *gh = platform_timer;
+ 
+-	platform_timer += gh->length;
+-	if (platform_timer < acpi_gtdt_desc.gtdt_end)
+-		return platform_timer;
++	return (platform_timer >= (void *)(acpi_gtdt_desc.gtdt + 1) &&
++		platform_timer < acpi_gtdt_desc.gtdt_end &&
++		gh->length != 0 &&
++		platform_timer + gh->length <= acpi_gtdt_desc.gtdt_end);
++}
++
++static __init void *next_platform_timer(void *platform_timer)
++{
++	struct acpi_gtdt_header *gh = platform_timer;
+ 
+-	return NULL;
++	return platform_timer + gh->length;
+ }
+ 
+ #define for_each_platform_timer(_g)				\
+-	for (_g = acpi_gtdt_desc.platform_timer; _g;	\
++	for (_g = acpi_gtdt_desc.platform_timer; platform_timer_valid(_g);\
+ 	     _g = next_platform_timer(_g))
+ 
+ static inline bool is_timer_block(void *platform_timer)
+@@ -157,6 +163,7 @@ int __init acpi_gtdt_init(struct acpi_table_header *table,
+ {
+ 	void *platform_timer;
+ 	struct acpi_table_gtdt *gtdt;
++	int cnt = 0;
+ 
+ 	gtdt = container_of(table, struct acpi_table_gtdt, header);
+ 	acpi_gtdt_desc.gtdt = gtdt;
+@@ -176,12 +183,16 @@ int __init acpi_gtdt_init(struct acpi_table_header *table,
+ 		return 0;
+ 	}
+ 
+-	platform_timer = (void *)gtdt + gtdt->platform_timer_offset;
+-	if (platform_timer < (void *)table + sizeof(struct acpi_table_gtdt)) {
++	acpi_gtdt_desc.platform_timer = (void *)gtdt + gtdt->platform_timer_offset;
++	for_each_platform_timer(platform_timer)
++		cnt++;
++
++	if (cnt != gtdt->platform_timer_count) {
++		acpi_gtdt_desc.platform_timer = NULL;
+ 		pr_err(FW_BUG "invalid timer data.\n");
+ 		return -EINVAL;
+ 	}
+-	acpi_gtdt_desc.platform_timer = platform_timer;
++
+ 	if (platform_timer_count)
+ 		*platform_timer_count = gtdt->platform_timer_count;
+ 
+-- 
+2.20.1
 
