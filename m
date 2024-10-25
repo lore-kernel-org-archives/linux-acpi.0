@@ -1,340 +1,180 @@
-Received: from NAM10-DM6-obe.outbound.protection.outlook.com (mail-dm6nam10on2071.outbound.protection.outlook.com [40.107.93.71])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ua1-f73.google.com (mail-ua1-f73.google.com [209.85.222.73])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DD1720D519;
-	Fri, 25 Oct 2024 17:15:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.93.71
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729876547; cv=fail; b=VRtXw/AN4XFoWscZmNORxin06dtmt/aghDPpSRHVczXpHzolhBUemm5neByID2WzM2VNqpnjgJA7pGd8Cnbfue3/MdX/cCDRmhi6XQuuIEQZYEJoLqcwYaQweLwy+e6/r5vp4HVgh/7MTzdTdlGCtmuZ7dx8UjsHi5lwZwNhrHg=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729876547; c=relaxed/simple;
-	bh=xLXhOXFwiZdODODdFucl+qVR53ccCY0OTthGpRJkTeo=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=aDhs8jglAzy1WnyheFrjtdEUz85msH7jkDJSWF7piq7oQOVq41Y1OZCIxuVLxPAF8ZLihUj4YYG93SC+py829nyE6frczw3fNh/b6bqytzmKKDWVbz+NYKr3BMKCihoPSjkQXX3BDYXey7SXSVTVSEmESLsR0AwQ+Mt9mnV0/BQ=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=PCHJVmzb; arc=fail smtp.client-ip=40.107.93.71
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7787620D4F6
+	for <linux-acpi@vger.kernel.org>; Fri, 25 Oct 2024 17:29:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.73
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1729877376; cv=none; b=OSF/3MHyc6jWtFdo0c6qSfhoFuNUFx+R2hMSU0bTesXyMXrphTzIaMAKjWMz5hfxNj2QM7uyispRe1b29AqhhNdAcKpmo1o03ecp0yFIkxQ1VjftzjrPx6ckbmEav+mD80wA421OyghiOqUBQp336snM3GNAxQTLCjPL/UnYxJA=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1729877376; c=relaxed/simple;
+	bh=vaWqE33Jp7HhvmUBvUQBmOBfExpF5yd2WBDLLHr3k1g=;
+	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
+	 To:Cc:Content-Type; b=cvx1zmPpRlqgG14R9uH8fYevrdsPhKJeLJ+I01MdBV3X8xXVB/rTmVjgaZJsBjoNyP4R4wpH6FSs+4X25lbBrOSKnaDn7p+TF7UNY7gdKIo6IaGCPeBiizHwkWBPUgKsfEpl8tn4wY2ImlrOmIUti0S0dect3CnRic9lolIaDpU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--moritzf.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=GJFZn0dg; arc=none smtp.client-ip=209.85.222.73
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--moritzf.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="PCHJVmzb"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=IhHqhPf1M0OHNvMT75fULJZG7QT6MjPv43infl9Iu7AHwHN5zrYqM2jgCcnUa/mHiQAeodm5PSeNLMmLUe5tmBs/A3FWnzHT+F9qK81vAodr7PWx5hCx9OI7K5tXJUy2cat2lYb+dmdnnSpCjjrMiiBBexmogQv1TFp+Wmo+obBV8gQR5pDgu07yH6kJthYhj/AhMcRWVXrQH2yG0ovIVGHJEjdnSV0yyOOBw0GvyTUH4LRe/+zRmHNXbDmjESDB4TsVB9y0kHM/+8cRQwljj3PbWvnYDd33s4wI50crx68tGDZcom2nX+kSfdkDg4RiIFrunD537qch9+l2GBuL4A==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=mHRltCZ5SLQ2seKqbyRXFY4YE0LQjCoHDlAIxLK5uP0=;
- b=U1NFW5bUOkbXEikYbxKfygeSG6wlRmpDKPO+hz8hV+t6O7lfW6+SmE5S5shFfF6dmkrFKUiJN3nceNZ0lqTZriDUJBjn0Zwiam6F6K10JoufqxzRIDk2l96d8vsgYUWxWy86mU/eEXTyhIPeJw987lBh0imDhFDJoSwwI2tb1lA9Oub/FkZmyniDxd5QLRuv076v2QvNbmYniLAfus5s5SmFPARS4r1f6blls/OzvK5rFK5A6JiK3MQD5Zv/9qoxRY3XNpU1NWCSljIDM8w85Agr6eOoCIHZZTqcAMPupdQFDl4rAGTxErF3dqVGjm3wKHFf0xfaalDpPH3qINVFuw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 165.204.84.17) smtp.rcpttodomain=alien8.de smtp.mailfrom=amd.com; dmarc=pass
- (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=mHRltCZ5SLQ2seKqbyRXFY4YE0LQjCoHDlAIxLK5uP0=;
- b=PCHJVmzbAyrdE9y/gnQOw0TuIJckOBeR5JY2eoHxH5Zyx0GAlmSPuFkWMO8bROb4HYbG3l8dBKjA6+IY9kILeEE/a8ZZZgbCEIkozPeO6PLDLuuSNFNJSLJJC1xpbUz/nfYT4VaKz3tMsMp3xWq3Ku2zLUorRwxlBZRUp4mlxV0=
-Received: from BN8PR03CA0016.namprd03.prod.outlook.com (2603:10b6:408:94::29)
- by PH0PR12MB7981.namprd12.prod.outlook.com (2603:10b6:510:26c::13) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8093.23; Fri, 25 Oct
- 2024 17:15:36 +0000
-Received: from BN2PEPF00004FBE.namprd04.prod.outlook.com
- (2603:10b6:408:94:cafe::7d) by BN8PR03CA0016.outlook.office365.com
- (2603:10b6:408:94::29) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8093.22 via Frontend
- Transport; Fri, 25 Oct 2024 17:15:36 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
- smtp.mailfrom=amd.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=amd.com;
-Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
- 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
- client-ip=165.204.84.17; helo=SATLEXMB04.amd.com; pr=C
-Received: from SATLEXMB04.amd.com (165.204.84.17) by
- BN2PEPF00004FBE.mail.protection.outlook.com (10.167.243.184) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.20.8093.14 via Frontend Transport; Fri, 25 Oct 2024 17:15:35 +0000
-Received: from AUS-P9-MLIMONCI.xilinx.com (10.180.168.240) by
- SATLEXMB04.amd.com (10.181.40.145) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.39; Fri, 25 Oct 2024 12:15:33 -0500
-From: Mario Limonciello <mario.limonciello@amd.com>
-To: Borislav Petkov <bp@alien8.de>
-CC: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>,
-	"Dave Hansen" <dave.hansen@linux.intel.com>, "maintainer:X86 ARCHITECTURE
- (32-BIT AND 64-BIT)" <x86@kernel.org>, "H . Peter Anvin" <hpa@zytor.com>,
-	"Rafael J . Wysocki" <rafael@kernel.org>, "Gautham R . Shenoy"
-	<gautham.shenoy@amd.com>, Mario Limonciello <mario.limonciello@amd.com>,
-	Perry Yuan <perry.yuan@amd.com>, Brijesh Singh <brijesh.singh@amd.com>, Peter
- Zijlstra <peterz@infradead.org>, Li RongQing <lirongqing@baidu.com>, "open
- list:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <linux-kernel@vger.kernel.org>,
-	"open list:ACPI" <linux-acpi@vger.kernel.org>, "open list:AMD PSTATE DRIVER"
-	<linux-pm@vger.kernel.org>, Pawan Gupta <pawan.kumar.gupta@linux.intel.com>
-Subject: [PATCH v4 4/5] x86/cpu: Add CPU type to struct cpuinfo_topology
-Date: Fri, 25 Oct 2024 12:14:58 -0500
-Message-ID: <20241025171459.1093-5-mario.limonciello@amd.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20241025171459.1093-1-mario.limonciello@amd.com>
-References: <20241025171459.1093-1-mario.limonciello@amd.com>
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="GJFZn0dg"
+Received: by mail-ua1-f73.google.com with SMTP id a1e0cc1a2514c-84fded07841so686822241.1
+        for <linux-acpi@vger.kernel.org>; Fri, 25 Oct 2024 10:29:34 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1729877373; x=1730482173; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:from:subject:message-id:references
+         :mime-version:in-reply-to:date:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=vaWqE33Jp7HhvmUBvUQBmOBfExpF5yd2WBDLLHr3k1g=;
+        b=GJFZn0dg8dbOpPDEhKXb6fqvm34L86rfYyCyPQbwgY9ao4jnWh+X/TtNpTXlDTj/hO
+         9WwR36q1yTLYU3D1OG1h/Lr3RseoyZU30BFajsFsey3nIfPs4HE2bLJ7HQ3/seKDNDe6
+         HfX/DSEz1nEnC13GQd/tvd3vyujq65HXpAKwisKApVYvh6pXoJ8Xlkfl8/yEzp8hXziH
+         gVhuCJW/wCGoaBY6gryLlnno+t7j7IzQR7pONqf6ZB6Wevz3vH3sncjAi+jNO5pYSQ4Q
+         T+sRKQXQTMAmovxwARlQCSC0/6dKYUMq+qAVWhsbMAh72hLWR5lBdK2fotr/3cz2DIHz
+         4CRA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1729877373; x=1730482173;
+        h=content-transfer-encoding:cc:to:from:subject:message-id:references
+         :mime-version:in-reply-to:date:x-gm-message-state:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=vaWqE33Jp7HhvmUBvUQBmOBfExpF5yd2WBDLLHr3k1g=;
+        b=LZpNLnBQQGw5olIS110L1C3HrQywMkWImfsHwKEtfBhTsL+vjdoBLSqlLTyO2E4HPN
+         SYZcJa7SML2KGiVS2ioDmv+U7TvceKN2CBL5g7NAAP9pTWHTHVwmpww/nN7vhUfArQew
+         fBo/R6Y+SwlX0JoIUaCpP/x3yIaoIJXHuFKAm3pIRvXLZGX+mLZbBAq3yOQ/YvfEqMmy
+         EeVR93nA8APXTILGf1iRtLBNCNkfpzAbw1QGTadULR2IYEgMtgy2g4xNUi53FJoI1YN+
+         /S1C5lZwSXuopE7Ke164/9wUYxnWtzjuUzVr3IM8L94KuLc93ymwwHqkSevucU13BNtj
+         2fAA==
+X-Forwarded-Encrypted: i=1; AJvYcCWctA3H2vOozH+s8v6jRxZJFgGvYPklBz51aDGRKO//MoKDDx57IRWa04EZfRcGquvKK8mO5D4qxeIt@vger.kernel.org
+X-Gm-Message-State: AOJu0Yz0T7TYtZwsl3KU9c0qrfT3lOOJigSBEL1PNjqHk2qmz+obY1zZ
+	6Kywdy91oZfGZJm+mf8kJRlQXg+qP3ILz9BrytjJjP9jgBQfe6SLB/NYgh3SpEtgiX0oKMrK7t6
+	IMfXFmg==
+X-Google-Smtp-Source: AGHT+IHvR9B99oJaoIKK1hLWj8GKaITp7BpvPF0jOKvhMdVFUorXpcgarVI0m/9EYmbjpSpv134t+JBKnhKl
+X-Received: from morats.c.googlers.com ([fda3:e722:ac3:cc00:13f:f0c:ac12:c151])
+ (user=moritzf job=sendgmr) by 2002:ab0:69c3:0:b0:848:92ea:87dd with SMTP id
+ a1e0cc1a2514c-853f01a4d6bmr13173241.2.1729877373187; Fri, 25 Oct 2024
+ 10:29:33 -0700 (PDT)
+Date: Fri, 25 Oct 2024 17:29:32 +0000
+In-Reply-To: <lbffqd6wuigivpd4ryrxwirhkc5ghj6k4nenm75dtgeea42535@7v2fzt5i7app>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: SATLEXMB03.amd.com (10.181.40.144) To SATLEXMB04.amd.com
- (10.181.40.145)
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BN2PEPF00004FBE:EE_|PH0PR12MB7981:EE_
-X-MS-Office365-Filtering-Correlation-Id: 0f9d2cd3-ed5c-4fbc-205f-08dcf518a3ea
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|7416014|376014|36860700013|82310400026|1800799024;
-X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?j1LI5AMMUrSVMvlLi0iYwGX+CPJbTZWJyfqSZXjLlz8M3dFpfxdD0s3bhwt4?=
- =?us-ascii?Q?jzEr+9XSREs+Nf8Yx5tHdCkqeFfKzmetDnJi70os5yn3v+MB17ckarLanDEz?=
- =?us-ascii?Q?RJK+tZTn4wKGCu16ouQilyzgTqsC07tU/jN36hAbGKb+seTgK+TrOzkEN+h+?=
- =?us-ascii?Q?tF3tiEGzpibRssN6SzKCY+EoyAJDP9NZtk9Rx9vqv9BRY1sII6skHV1//SNs?=
- =?us-ascii?Q?6JYbmFUGVhrEJ7MQ0IMWh/sVzlJbf4FKoD0KshCscO+VPdGGKk6TGg/6l+e+?=
- =?us-ascii?Q?bBOTc8+iLfYnXVQImb40t0rYfP+3ZzyJR08PX7i8FkpOF7SeZQkoZUs8BZVA?=
- =?us-ascii?Q?cIYlA8SEBzx0B4GogpkutAnygvJs3UYJxxl3mtzaSt/MrC9g8Q3GJB+nWelR?=
- =?us-ascii?Q?STLMSuxydRywFPBK9RI2lMxSoy74doW9Ua0PDQaLuEpR2xsve3hBzBKoK6QE?=
- =?us-ascii?Q?gFlhw7/n/tu22Wbvusy6n3r+1yN/RdKljUjwDpMuMKGhWPC1/h8V60kzTx66?=
- =?us-ascii?Q?xb4NC0iDnFYDkqUhMWGXjpkdb6wDPuGfurDnw2l7SLqrmvRAuVIXPvYkTfCv?=
- =?us-ascii?Q?InS74GGbQ3RwqDAZ8dhUpUWE4D1fnf8Pgn0EZ+MJO3bf5d7j9tJ6EAatAR5N?=
- =?us-ascii?Q?WForfT9lLijrWHKrgq3v5GqtnTlHal38wYTzi2IvsbYe4f3Au0IgyuAhANCs?=
- =?us-ascii?Q?I9hjP0tTR2Cc/qJczRlnOQ0UF1AYCRsc6ldv4FevLtkY8/hTUilw9VlluvSd?=
- =?us-ascii?Q?N+iXqL41dextk97rUV3G175cL/+ZgeulZp2BcF33bPMKNY9r8AcQ/ioGcpcX?=
- =?us-ascii?Q?mO3dYTDvCgDjGs46uReGuMW3zvqMkdLa12k1hAvKpxvFE1NQuOO3jkwIS+rt?=
- =?us-ascii?Q?g1wOc8isiYtpqPLgWDkRwW7dTmAoKusaHR6Djlhmfpcag9Z9ZKJNVdBxe0NZ?=
- =?us-ascii?Q?sYVJx8lXrQTmoTnOLDAOPEUyQWX7U8XYRoi/Gwfe8aj8STT0qSuTnQY73tPA?=
- =?us-ascii?Q?LF+hqwTpi0F6HlgS5c3a+5o+bJOJ4XLG3k2gRUqoa+YSLbGT+xiW1XpMEyn4?=
- =?us-ascii?Q?syx46f+n4VjjbM4/AKk/lscmJLIDOrD3Cigmv6mmGJA0Ldclj0KffAYozKn3?=
- =?us-ascii?Q?fyLtJ8k1/+UDLN5yyUM8lwYtQjkwS5WasGuROSPJ4z5kPDUL1jYR4774Yw9E?=
- =?us-ascii?Q?pPCBNle3BZmjPWifOjyzogpQdAdtLANhIDEEXBc3w/Fmsv3w6YG02Jfacnxs?=
- =?us-ascii?Q?TemGxkk5EUkggspUvRZ6S+3st0KiHudLExFT/ap2xp8AojyudpBZNcf7wJTp?=
- =?us-ascii?Q?W5iZ404q5txzD0Bbb9gqTf41OCPAThvE4glFRc/a9whe5epoEY2IlD3fS3UO?=
- =?us-ascii?Q?svIAN0xzubfCwmd+0PzfSz0m2gPDKMPMGko68BPW3hOXgKAZxw=3D=3D?=
-X-Forefront-Antispam-Report:
-	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(7416014)(376014)(36860700013)(82310400026)(1800799024);DIR:OUT;SFP:1101;
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Oct 2024 17:15:35.7037
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 0f9d2cd3-ed5c-4fbc-205f-08dcf518a3ea
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	BN2PEPF00004FBE.namprd04.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH0PR12MB7981
+Mime-Version: 1.0
+References: <20241017035940.4067922-1-payamm@google.com> <CAJZ5v0hbg_5VLCT3cXgK4WkCTwNAUGrUuRe66DoCHf6xydsTzQ@mail.gmail.com>
+ <lbffqd6wuigivpd4ryrxwirhkc5ghj6k4nenm75dtgeea42535@7v2fzt5i7app>
+Message-ID: <ei3jeuuslvva5ka7tcdwn4abcidfuvdfdhymlxx66sxabmowo2@35iasm2ew6ws>
+Subject: Re: [PATCH] acpi: zero-initialize acpi_object union structure
+From: Moritz Fischer <moritzf@google.com>
+To: Payam Moradshahi <payamm@google.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+Content-Transfer-Encoding: base64
 
-From: Pawan Gupta <pawan.kumar.gupta@linux.intel.com>
-
-Sometimes it is required to take actions based on if a CPU is a performance
-or efficiency core. As an example, intel_pstate driver uses the Intel
-core-type to determine CPU scaling. Also, some CPU vulnerabilities only
-affect a specific CPU type, like RFDS only affects Intel Atom. Hybrid
-systems that have variants P+E, P-only(Core) and E-only(Atom), it is not
-straightforward to identify which variant is affected by a type specific
-vulnerability.
-
-Such processors do have CPUID field that can uniquely identify them. Like,
-P+E, P-only and E-only enumerates CPUID.1A.CORE_TYPE identification, while
-P+E additionally enumerates CPUID.7.HYBRID. Based on this information, it
-is possible for boot CPU to identify if a system has mixed CPU types.
-
-Add a new field hw_cpu_type to struct cpuinfo_topology that stores the
-hardware specific CPU type. This saves the overhead of IPIs to get the CPU
-type of a different CPU. CPU type is populated early in the boot process,
-before vulnerabilities are enumerated.
-
-Acked-by: Dave Hansen <dave.hansen@linux.intel.com>
-Signed-off-by: Pawan Gupta <pawan.kumar.gupta@linux.intel.com>
-Co-developed-by: Mario Limonciello <mario.limonciello@amd.com>
-Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
----
-v3->v4:
- * Drop generic from function name (Boris)
- * Pick up tag
-v2->v3:
- * Remove a bunch of boilerplate code
- * Convert to showing string in debugfs
- * Rename to get_topology_generic_cpu_type/get_topology_cpu_type_name
- * Add Intel definitions to intel-family.h
----
- arch/x86/include/asm/intel-family.h   |  6 +++++
- arch/x86/include/asm/processor.h      | 18 ++++++++++++++
- arch/x86/include/asm/topology.h       |  9 +++++++
- arch/x86/kernel/cpu/debugfs.c         |  1 +
- arch/x86/kernel/cpu/topology_amd.c    |  3 +++
- arch/x86/kernel/cpu/topology_common.c | 34 +++++++++++++++++++++++++++
- 6 files changed, 71 insertions(+)
-
-diff --git a/arch/x86/include/asm/intel-family.h b/arch/x86/include/asm/intel-family.h
-index 1a42f829667a3..7367644720484 100644
---- a/arch/x86/include/asm/intel-family.h
-+++ b/arch/x86/include/asm/intel-family.h
-@@ -183,4 +183,10 @@
- /* Family 19 */
- #define INTEL_PANTHERCOVE_X		IFM(19, 0x01) /* Diamond Rapids */
- 
-+/* CPU core types */
-+enum intel_cpu_type {
-+	INTEL_CPU_TYPE_ATOM = 0x20,
-+	INTEL_CPU_TYPE_CORE = 0x40,
-+};
-+
- #endif /* _ASM_X86_INTEL_FAMILY_H */
-diff --git a/arch/x86/include/asm/processor.h b/arch/x86/include/asm/processor.h
-index 4a686f0e5dbf6..c0975815980c8 100644
---- a/arch/x86/include/asm/processor.h
-+++ b/arch/x86/include/asm/processor.h
-@@ -105,6 +105,24 @@ struct cpuinfo_topology {
- 	// Cache level topology IDs
- 	u32			llc_id;
- 	u32			l2c_id;
-+
-+	// Hardware defined CPU-type
-+	union {
-+		u32		cpu_type;
-+		struct {
-+			// CPUID.1A.EAX[23-0]
-+			u32	intel_native_model_id	:24;
-+			// CPUID.1A.EAX[31-24]
-+			u32	intel_type		:8;
-+		};
-+		struct {
-+			// CPUID 0x80000026.EBX
-+			u32	amd_num_processors	:16,
-+				amd_power_eff_ranking	:8,
-+				amd_native_model_id	:4,
-+				amd_type		:4;
-+		};
-+	};
- };
- 
- struct cpuinfo_x86 {
-diff --git a/arch/x86/include/asm/topology.h b/arch/x86/include/asm/topology.h
-index aef70336d6247..9f9376db64e32 100644
---- a/arch/x86/include/asm/topology.h
-+++ b/arch/x86/include/asm/topology.h
-@@ -114,6 +114,12 @@ enum x86_topology_domains {
- 	TOPO_MAX_DOMAIN,
- };
- 
-+enum x86_topology_cpu_type {
-+	TOPO_CPU_TYPE_PERFORMANCE,
-+	TOPO_CPU_TYPE_EFFICIENCY,
-+	TOPO_CPU_TYPE_UNKNOWN,
-+};
-+
- struct x86_topology_system {
- 	unsigned int	dom_shifts[TOPO_MAX_DOMAIN];
- 	unsigned int	dom_size[TOPO_MAX_DOMAIN];
-@@ -149,6 +155,9 @@ extern unsigned int __max_threads_per_core;
- extern unsigned int __num_threads_per_package;
- extern unsigned int __num_cores_per_package;
- 
-+const char *get_topology_cpu_type_name(struct cpuinfo_x86 *c);
-+enum x86_topology_cpu_type get_topology_cpu_type(struct cpuinfo_x86 *c);
-+
- static inline unsigned int topology_max_packages(void)
- {
- 	return __max_logical_packages;
-diff --git a/arch/x86/kernel/cpu/debugfs.c b/arch/x86/kernel/cpu/debugfs.c
-index 3baf3e4358347..10719aba62768 100644
---- a/arch/x86/kernel/cpu/debugfs.c
-+++ b/arch/x86/kernel/cpu/debugfs.c
-@@ -22,6 +22,7 @@ static int cpu_debug_show(struct seq_file *m, void *p)
- 	seq_printf(m, "die_id:              %u\n", c->topo.die_id);
- 	seq_printf(m, "cu_id:               %u\n", c->topo.cu_id);
- 	seq_printf(m, "core_id:             %u\n", c->topo.core_id);
-+	seq_printf(m, "cpu_type:            %s\n", get_topology_cpu_type_name(c));
- 	seq_printf(m, "logical_pkg_id:      %u\n", c->topo.logical_pkg_id);
- 	seq_printf(m, "logical_die_id:      %u\n", c->topo.logical_die_id);
- 	seq_printf(m, "llc_id:              %u\n", c->topo.llc_id);
-diff --git a/arch/x86/kernel/cpu/topology_amd.c b/arch/x86/kernel/cpu/topology_amd.c
-index 7d476fa697ca5..03b3c9c3a45e2 100644
---- a/arch/x86/kernel/cpu/topology_amd.c
-+++ b/arch/x86/kernel/cpu/topology_amd.c
-@@ -182,6 +182,9 @@ static void parse_topology_amd(struct topo_scan *tscan)
- 	if (cpu_feature_enabled(X86_FEATURE_TOPOEXT))
- 		has_topoext = cpu_parse_topology_ext(tscan);
- 
-+	if (cpu_feature_enabled(X86_FEATURE_AMD_HETEROGENEOUS_CORES))
-+		tscan->c->topo.cpu_type = cpuid_ebx(0x80000026);
-+
- 	if (!has_topoext && !parse_8000_0008(tscan))
- 		return;
- 
-diff --git a/arch/x86/kernel/cpu/topology_common.c b/arch/x86/kernel/cpu/topology_common.c
-index 9a6069e7133c9..8277c64f88dbf 100644
---- a/arch/x86/kernel/cpu/topology_common.c
-+++ b/arch/x86/kernel/cpu/topology_common.c
-@@ -3,6 +3,7 @@
- 
- #include <xen/xen.h>
- 
-+#include <asm/intel-family.h>
- #include <asm/apic.h>
- #include <asm/processor.h>
- #include <asm/smp.h>
-@@ -27,6 +28,36 @@ void topology_set_dom(struct topo_scan *tscan, enum x86_topology_domains dom,
- 	}
- }
- 
-+enum x86_topology_cpu_type get_topology_cpu_type(struct cpuinfo_x86 *c)
-+{
-+	if (c->x86_vendor == X86_VENDOR_INTEL) {
-+		switch (c->topo.intel_type) {
-+		case INTEL_CPU_TYPE_ATOM: return TOPO_CPU_TYPE_EFFICIENCY;
-+		case INTEL_CPU_TYPE_CORE: return TOPO_CPU_TYPE_PERFORMANCE;
-+		}
-+	}
-+	if (c->x86_vendor == X86_VENDOR_AMD) {
-+		switch (c->topo.amd_type) {
-+		case 0:	return TOPO_CPU_TYPE_PERFORMANCE;
-+		case 1:	return TOPO_CPU_TYPE_EFFICIENCY;
-+		}
-+	}
-+
-+	return TOPO_CPU_TYPE_UNKNOWN;
-+}
-+
-+const char *get_topology_cpu_type_name(struct cpuinfo_x86 *c)
-+{
-+	switch (get_topology_cpu_type(c)) {
-+	case TOPO_CPU_TYPE_PERFORMANCE:
-+		return "performance";
-+	case TOPO_CPU_TYPE_EFFICIENCY:
-+		return "efficiency";
-+	default:
-+		return "unknown";
-+	}
-+}
-+
- static unsigned int __maybe_unused parse_num_cores_legacy(struct cpuinfo_x86 *c)
- {
- 	struct {
-@@ -87,6 +118,7 @@ static void parse_topology(struct topo_scan *tscan, bool early)
- 		.cu_id			= 0xff,
- 		.llc_id			= BAD_APICID,
- 		.l2c_id			= BAD_APICID,
-+		.cpu_type		= TOPO_CPU_TYPE_UNKNOWN,
- 	};
- 	struct cpuinfo_x86 *c = tscan->c;
- 	struct {
-@@ -132,6 +164,8 @@ static void parse_topology(struct topo_scan *tscan, bool early)
- 	case X86_VENDOR_INTEL:
- 		if (!IS_ENABLED(CONFIG_CPU_SUP_INTEL) || !cpu_parse_topology_ext(tscan))
- 			parse_legacy(tscan);
-+		if (c->cpuid_level >= 0x1a)
-+			c->topo.cpu_type = cpuid_eax(0x1a);
- 		break;
- 	case X86_VENDOR_HYGON:
- 		if (IS_ENABLED(CONFIG_CPU_SUP_HYGON))
--- 
-2.43.0
-
+SGkgUmFmYWVsLA0KDQpPbiBUaHUsIE9jdCAyNCwgMjAyNCBhdCAwMjo1ODoyN1BNIEdNVCwgUGF5
+YW0gTW9yYWRzaGFoaSB3cm90ZToNCj4gSGkgUmFmYWVsLA0KDQo+IFRoYW5rIHlvdSBmb3IgeW91
+ciByZXNwb25zZS4gUGxlYXNlIHNlZSBiZWxvdyBmb3IgbXkgcmVzcG9uc2UuDQoNCj4gUGF5YW0N
+Cg0KPiBPbiBNb24sIE9jdCAyMSwgMjAyNCBhdCAwMTozMTozOVBNIEdNVCwgUmFmYWVsIEouIFd5
+c29ja2kgd3JvdGU6DQo+ID4gT24gVGh1LCBPY3QgMTcsIDIwMjQgYXQgNTo1OeKAr0FNIFBheWFt
+IE1vcmFkc2hhaGkgPHBheWFtbUBnb29nbGUuY29tPg0KPiA+IHdyb3RlOg0KPiA+ID4NCj4gPiA+
+IFRoZSB3YXkgaW4gd2hpY2ggYWNwaV9vYmplY3QgdW5pb24gaXMgYmVpbmcgaW5pdGlhbGl6ZWQg
+dmFyaWVzIGJhc2VkICANCj4gb24NCj4gPiA+IGNvbXBpbGVyIHR5cGUsIHZlcnNpb24gYW5kIGZs
+YWdzIHVzZWQuIFNvbWUgd2lsbCB6ZXJvLWluaXRpYWxpemUgdGhlDQo+ID4gPiBlbnRpcmUgdW5p
+b24gc3RydWN0dXJlIGFuZCBzb21lIHdpbGwgb25seSBpbml0aWFsaXplIHRoZSBmaXJzdCBOLWJ5
+dGVzDQo+ID4gPiBvZiB0aGUgdW5pb24gc3RydWN0dXJlLg0KDQo+ID4gQW55IGRldGFpbHM/DQo+
+IEkgZHVtcGVkIGFjcGlfb2JqZWN0IGFmdGVyIGluaXRpYWxpemF0aW9uIGFuZCBub3RpY2VkIGVp
+dGhlciB0aGUNCj4gZW50aXJlIHN0cnVjdHVyZSB3YXMgemVyby1pbml0aWFsaXplZCBvciBqdXN0
+IHRoZSBmaXJzdCA4IGJ5dGVzDQo+IGRlcGVuZGluZyBvbiBjb21waWxlciB0eXBlIGFuZCB2ZXJz
+aW9uLg0KDQo+IGdjYyAxMy4yLjA6IGJhZA0KPiBDTEFOR19DTD0zNjIxMjEyNjk6IGdvb2QNCj4g
+Q0xBTkdfQ0w9NjA5NDQzMTI2OiBiYWQNCj4gQ0xBTkdfQ0w9Njg0NzczOTYwOiBnb29kDQoNCkZv
+ciByZWZlcmVuY2UgdGhlIGxhdHRlciBvbmVzIGFyZSBHb29nbGUgaW50ZXJuYWwgYnVpbGRzIG9m
+IGNsYW5nLCBidXQNCndlJ3ZlIHBsYXllZCBhcm91bmQgaW4gZ29kYm9sdCB3aXRoIHRoaXMgaW4g
+YSB2YXJpZXR5IG9mIHZlcnNpb25zIGFuZA0Kc29tZSB3b3JrIGFuZCBzb21lIGRvbid0LiBQYXlh
+bSBoYXMgdGhlIHJlbGV2YW50IHNlY3Rpb24gZnJvbSB0aGUgQw0Kc3RhbmRhcmQgYmVsb3cuDQoN
+Cg0KPiA+ID4gVGhpcyBjb3VsZCBsZWFkIHRvIHVuaW5pdGlhbGl6ZWQgdW5pb24gbWVtYmVycy4N
+Cg0KPiA+IFNvIHRoaXMgaXMgd29ya2luZyBhcm91bmQgYSBjb21waWxlciBidWcgQUZBSUNTLg0K
+DQo+ID4gSWYgdGhlIGNvbXBpbGVyIGhhcyB0aGlzIGJ1ZywgaXMgaXQgZ3VhcmFudGVlZCB0byBj
+b21waWxlIHRoZSByZXN0IG9mDQo+ID4gdGhlIGtlcm5lbCBjb3JyZWN0bHk/DQo+IFRoaXMgaXMg
+bm90IGEgY29tcGlsZXIgYnVnLiBUaGUgd2F5IGFjcGlfb2JqZWN0IHVuaW9uIGlzIGJlaW5nDQo+
+IGluaXRpYWxpemVkIGlzIG5vdCBjLXNwZWMgY29tcGxpYW50Lg0KDQpJIHRoaW5rIGluIHBhc3Qg
+dmVyc2lvbnMgd2UgbWlnaHQndmUgZ290dGVuIGx1Y2t5IHdpdGggdGhpcywgcmVjZW50DQpjb21w
+aWxlcnMgbWlnaHQndmUgdGlnaHRlbmVkIHRoaXMgdXAgc29tZSBvciBjaGFuZ2VkIGJlaGF2aW9y
+Lg0KDQoNCj4gQmFzZWQgb24gQyBTdGFuZGFyZCBJU08vSUVDIDk4OTk6MjAyeCAoRSk6DQoNCj4g
+U2VjdGlvbiA2LjIuNi4xICg3KSBzYXlzOg0KDQo+IFdoZW4gYSB2YWx1ZSBpcyBzdG9yZWQgaW4g
+YSBtZW1iZXIgb2YgYW4gb2JqZWN0IG9mIHVuaW9uIHR5cGUsIHRoZSBieXRlcyAgDQo+IG9mDQo+
+IHRoZQ0KPiBvYmplY3QgcmVwcmVzZW50YXRpb24gdGhhdCBkbyBub3QgY29ycmVzcG9uZCB0byB0
+aGF0IG1lbWJlciBidXQgZG8NCj4gY29ycmVzcG9uZA0KPiB0byBvdGhlciBtZW1iZXJzIHRha2Ug
+dW5zcGVjaWZpZWQgdmFsdWVzDQoNCj4gU2VjdGlvbiA2LjcuOSBzYXlzOg0KDQo+IElmIGFuIG9i
+amVjdCB0aGF0IGhhcyBhdXRvbWF0aWMgc3RvcmFnZSBkdXJhdGlvbiBpcyBub3QgaW5pdGlhbGl6
+ZWQNCj4gZXhwbGljaXRseSwNCj4gaXRzIHZhbHVlIGlzIGluZGV0ZXJtaW5hdGUuDQoNCj4gSWYg
+YW4gb2JqZWN0IHRoYXQgaGFzIHN0YXRpYyBvciB0aHJlYWQgc3RvcmFnZSBkdXJhdGlvbiBpcyBu
+b3QgaW5pdGlhbGl6ZWQNCj4gZXhwbGljaXRseSwgdGhlbjoNCj4gICAtIGlmIGl0IGlzIGEgdW5p
+b24sIHRoZSBmaXJzdCBuYW1lZCBtZW1iZXIgaXMgaW5pdGlhbGl6ZWQgKHJlY3Vyc2l2ZWx5KQ0K
+PiAgICAgYWNjb3JkaW5nIHRvIHRoZXNlIHJ1bGVzLCBhbmQgYW55IHBhZGRpbmcgaXMgaW5pdGlh
+bGl6ZWQgdG8gemVybyBiaXRzOw0KDQo+IFRoZSBhYm92ZSBndWFyYW50ZWVzIHplcm8gb25seSBp
+biB0aGUgY2FzZSBvZiBzdGF0aWMgb3IgdGhyZWFkIHN0b3JhZ2UsDQo+IHdoaWNoIGlzIG5vdCB0
+aGUgY2FzZSBoZXJlLg0KDQoNCj4gPiA+IFRoaXMgYnVnIHdhcyBjb25maXJtZWQgYnkgb2JzZXJ2
+aW5nIG5vbi16ZXJvIHZhbHVlIGZvciAgDQo+IG9iamVjdC0+cHJvY2Vzc29yDQo+ID4gPiBzdHJ1
+Y3R1cmUgdmFyaWFibGVzLg0KDQo+ID4gV2hlcmUgaGFzIGl0IGJlZW4gb2JzZXJ2ZWQ/ICBXaGF0
+IGNvbXBpbGVyIHZlcnNpb24ocyk/IGV0Yy4NCj4gU2VlIGFib3ZlIGZvciBzb21lIGV4YW1wbGVz
+DQoNClRoaXMgbWFuaWZlc3RzIGxpa2UgdGhpcyBvbiBHb29nbGUgQXhpb24gYXJtNjQgYnVpbGRz
+IHVzaW5nIEFybSdzDQpwcmVidWlsdCBHQ0MgMTMuMi4wOg0KDQpbICAgIDEuODQ0NTA4XSBhY3Bp
+IEFDUEkwMDA3OjA4OiBJbnZhbGlkIFBCTEsgbGVuZ3RoIFsyNzExNzAxMTJdDQpbICAgIDEuODUw
+MjUzXSBhY3BpIEFDUEkwMDA3OjA5OiBJbnZhbGlkIFBCTEsgbGVuZ3RoIFsyNzExNzAxMTJdDQpb
+ICAgIDEuODU1OTkyXSBhY3BpIEFDUEkwMDA3OjBhOiBJbnZhbGlkIFBCTEsgbGVuZ3RoIFsyNzEx
+NzAxMTJdDQpbICAgIDEuODYxNzMwXSBhY3BpIEFDUEkwMDA3OjBiOiBJbnZhbGlkIFBCTEsgbGVu
+Z3RoIFsyNzExNzAxMTJdDQpbICAgIDEuODY3NDcwXSBhY3BpIEFDUEkwMDA3OjBjOiBJbnZhbGlk
+IFBCTEsgbGVuZ3RoIFsyNzExNzAxMTJdDQpbICAgIDEuODczMjA4XSBhY3BpIEFDUEkwMDA3OjBk
+OiBJbnZhbGlkIFBCTEsgbGVuZ3RoIFsyNzExNzAxMTJdDQpbICAgIDEuODc4OTQ3XSBhY3BpIEFD
+UEkwMDA3OjBlOiBJbnZhbGlkIFBCTEsgbGVuZ3RoIFsyNzExNzAxMTJdDQpbICAgIDEuODg0Njg2
+XSBhY3BpIEFDUEkwMDA3OjBmOiBJbnZhbGlkIFBCTEsgbGVuZ3RoIFsyNzExNzAxMTJdDQpbICAg
+IDEuODkwNDI0XSBhY3BpIEFDUEkwMDA3OjEwOiBJbnZhbGlkIFBCTEsgbGVuZ3RoIFsyNzExNzAx
+MTJdDQpbICAgIDEuODk2MTYxXSBhY3BpIEFDUEkwMDA3OjExOiBJbnZhbGlkIFBCTEsgbGVuZ3Ro
+IFsyNzExNzAxMTJdDQpbICAgIDEuOTAxODk4XSBhY3BpIEFDUEkwMDA3OjEyOiBJbnZhbGlkIFBC
+TEsgbGVuZ3RoIFsyNzExNzAxMTJdDQpbICAgIDEuOTA3NjM2XSBhY3BpIEFDUEkwMDA3OjEzOiBJ
+bnZhbGlkIFBCTEsgbGVuZ3RoIFsyNzExNzAxMTJdDQpbICAgIDEuOTEzMzc0XSBhY3BpIEFDUEkw
+MDA3OjE0OiBJbnZhbGlkIFBCTEsgbGVuZ3RoIFsyNzExNzAxMTJdDQpbICAgIDEuOTE5MTEzXSBh
+Y3BpIEFDUEkwMDA3OjE1OiBJbnZhbGlkIFBCTEsgbGVuZ3RoIFsyNzExNzAxMTJdDQpbICAgIDEu
+OTI0ODUxXSBhY3BpIEFDUEkwMDA3OjE2OiBJbnZhbGlkIFBCTEsgbGVuZ3RoIFsyNzExNzAxMTJd
+DQoNCg0KPiA+ID4gbm9uLXplcm8gaW5pdGlhbGl6ZWQgbWVtYmVycyBvZiBhY3BpX29iamVjdCB1
+bmlvbiBzdHJ1Y3R1cmUgY2F1c2VzDQo+ID4gPiBpbmNvcnJlY3QgZXJyb3IgcmVwb3J0aW5nIGJ5
+IHRoZSBkcml2ZXIuDQo+ID4gPg0KPiA+ID4gSWYgYSBCSU9TIGlzIHVzaW5nICJEZXZpY2UiIHN0
+YXRlbWVudCBhcyBvcHBvc2VkIHRvICJQcm9jZXNzb3IiDQo+ID4gPiBzdGF0ZW1lbnQsIG9iamVj
+dCB2YXJpYWJsZSBtYXkgY29udGFpbiB1bmluaXRpYWxpemVkIG1lbWJlcnMgY2F1c2luZyAgDQo+
+IHRoZQ0KPiA+ID4gZHJpdmVyIHRvIHJlcG9ydCAiSW52YWxpZCBQQkxLIGxlbmd0aCIgaW5jb3Jy
+ZWN0bHkuDQo+ID4gPg0KPiA+ID4gVXNpbmcgbWVtc2V0IHRvIHplcm8taW5pdGlhbGl6ZSB0aGUg
+dW5pb24gc3RydWN0dXJlIGZpeGVzIHRoaXMgaXNzdWUgIA0KPiBhbmQNCj4gPiA+IGFsc28gcmVt
+b3ZlcyB0aGUgZGVwZW5kZW5jeSBvZiB0aGlzIGZ1bmN0aW9uIG9uIGNvbXBpbGVyIHZlcnNpb25z
+IGFuZA0KPiA+ID4gZmxhZ3MgYmVpbmcgdXNlZC4NCj4gPiA+DQo+ID4gPiBUZXN0ZWQ6IFRlc3Rl
+ZCBvbiBBUk02NCBoYXJkd2FyZSB0aGF0IHdhcyBwcmludGluZyB0aGlzIGVycm9yIGFuZA0KPiA+
+ID4gY29uZmlybWVkIHRoZSBwcmludHMgd2VyZSBnb25lLg0KPiA+ID4NCj4gPiA+IEFsc28gY29u
+ZmlybWVkIHRoaXMgZG9lcyBub3QgY2F1c2UgcmVncmVzc2lvbiBvbiBBUk02NCBhbmQgWDg2DQo+
+ID4gPiBtYWNoaW5lcy4NCj4gPiA+DQo+ID4gPiBTaWduZWQtb2ZmLWJ5OiBQYXlhbSBNb3JhZHNo
+YWhpIDxwYXlhbW1AZ29vZ2xlLmNvbT4NCj4gPiA+IC0tLQ0KPiA+ID4gIGRyaXZlcnMvYWNwaS9h
+Y3BpX3Byb2Nlc3Nvci5jIHwgNCArKystDQo+ID4gPiAgMSBmaWxlIGNoYW5nZWQsIDMgaW5zZXJ0
+aW9ucygrKSwgMSBkZWxldGlvbigtKQ0KPiA+ID4NCj4gPiA+IGRpZmYgLS1naXQgYS9kcml2ZXJz
+L2FjcGkvYWNwaV9wcm9jZXNzb3IuYw0KPiA+IGIvZHJpdmVycy9hY3BpL2FjcGlfcHJvY2Vzc29y
+LmMNCj4gPiA+IGluZGV4IDdjZjYxMDFjYjRjNzMuLjY2OTZhZDQ5MzdkMjEgMTAwNjQ0DQo+ID4g
+PiAtLS0gYS9kcml2ZXJzL2FjcGkvYWNwaV9wcm9jZXNzb3IuYw0KPiA+ID4gKysrIGIvZHJpdmVy
+cy9hY3BpL2FjcGlfcHJvY2Vzc29yLmMNCj4gPiA+IEBAIC0yNzUsNyArMjc1LDcgQEAgc3RhdGlj
+IGlubGluZSBpbnQNCj4gPiBhY3BpX3Byb2Nlc3Nvcl9ob3RhZGRfaW5pdChzdHJ1Y3QgYWNwaV9w
+cm9jZXNzb3IgKnByLA0KPiA+ID4NCj4gPiA+ICBzdGF0aWMgaW50IGFjcGlfcHJvY2Vzc29yX2dl
+dF9pbmZvKHN0cnVjdCBhY3BpX2RldmljZSAqZGV2aWNlKQ0KPiA+ID4gIHsNCj4gPiA+IC0gICAg
+ICAgdW5pb24gYWNwaV9vYmplY3Qgb2JqZWN0ID0geyAwIH07DQo+ID4gPiArICAgICAgIHVuaW9u
+IGFjcGlfb2JqZWN0IG9iamVjdDsNCj4gPiA+ICAgICAgICAgc3RydWN0IGFjcGlfYnVmZmVyIGJ1
+ZmZlciA9IHsgc2l6ZW9mKHVuaW9uIGFjcGlfb2JqZWN0KSwNCj4gPiAmb2JqZWN0IH07DQo+ID4g
+PiAgICAgICAgIHN0cnVjdCBhY3BpX3Byb2Nlc3NvciAqcHIgPSBhY3BpX2RyaXZlcl9kYXRhKGRl
+dmljZSk7DQo+ID4gPiAgICAgICAgIGludCBkZXZpY2VfZGVjbGFyYXRpb24gPSAwOw0KPiA+ID4g
+QEAgLTI4NCw2ICsyODQsOCBAQCBzdGF0aWMgaW50IGFjcGlfcHJvY2Vzc29yX2dldF9pbmZvKHN0
+cnVjdA0KPiA+IGFjcGlfZGV2aWNlICpkZXZpY2UpDQo+ID4gPiAgICAgICAgIHVuc2lnbmVkIGxv
+bmcgbG9uZyB2YWx1ZTsNCj4gPiA+ICAgICAgICAgaW50IHJldDsNCj4gPiA+DQo+ID4gPiArICAg
+ICAgIG1lbXNldCgmb2JqZWN0LCAwLCBzaXplb2YodW5pb24gYWNwaV9vYmplY3QpKTsNCj4gPiA+
+ICsNCj4gPiA+ICAgICAgICAgYWNwaV9wcm9jZXNzb3JfZXJyYXRhKCk7DQo+ID4gPg0KPiA+ID4g
+ICAgICAgICAvKg0KPiA+ID4gLS0NCg0KUGF5YW0sIGl0IG1pZ2h0IGJlIGdvb2QgdG8gYWRkIGEg
+bG9nIHNuaXBwZXQgYW5kIHJlZmVyZW5jZXMgdG8gdGhlIHJlbGV2YW50ICANCnNwZWMNCnNlY3Rp
+b25zIHRvIHlvdXIgdjIgY29tbWl0IG1lc3NhZ2UuDQoNCk1vcmVvdmVyLCBmb3IgdjIgb2YgdGhl
+IHBhdGNoIHlvdSBwcm9iYWJseSB3YW50IHRvIGFkZCBhDQogICBDYzogc3RhYmxlQHZnZXIua2Vy
+bmVsLm9yZw0KDQp0byB5b3VyIHBhdGNoIHRvIG1ha2Ugc3VyZSBpdCBnZXRzIHBpY2tlZCB1cCBv
+bmNlIGl0IGdldHMgcGlja2VkIHVwDQpmb3IgbWFpbmxpbmUuIFNlZSBbMV0gZm9yIG1vcmUgaW5m
+byBvbiB0aGUgc3RhYmxlIHByb2Nlc3MuDQoNCkNoZWVycywNCk1vcml0eg0KDQpbMV0gaHR0cHM6
+Ly93d3cua2VybmVsLm9yZy9kb2MvRG9jdW1lbnRhdGlvbi9wcm9jZXNzL3N0YWJsZS1rZXJuZWwt
+cnVsZXMucnN0DQo=
