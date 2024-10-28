@@ -1,147 +1,124 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lf1-f54.google.com (mail-lf1-f54.google.com [209.85.167.54])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90D0C1DD533;
-	Mon, 28 Oct 2024 17:28:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6AD4A18BC3D;
+	Mon, 28 Oct 2024 17:30:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730136537; cv=none; b=gFTyMBl1vhfxyU97JyN/P3X+N3DQ5bALJHRODT4Nv3Is3+W18BodOYUXT+J9X/4n6ur5XW/lDY43AnjjSVVtxMg31V+xaex3qI8HyRemkUTsZIATmn2V0saZ93EzIEWwg9PzUcCWYeKz3NM24aElF361LEGurXHorVGn0q/Z1IY=
+	t=1730136651; cv=none; b=a5Ekqa60zoVD6kyPgkpGEyf6TmvKxy2nRTUQsCMxJATTkqarbuzyCJlHQshUbpW5OuxbBKL4KiO7p2TN5XhVxyHWsfork1QbTSfdvCE0CpgTLlNnpF1w6W41f9Y86D6RQvlSWdrToVjSNn9NZNOBm3brj9Gk1u3+LWBTdrciit4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730136537; c=relaxed/simple;
-	bh=GMw9tnIqWm+cDbQ2JkNYh5ueM+04Z5tH7xQN/ccSh5w=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=pU8Ib8iN00Ky1PQ8V7qsAraa7jyqpc0Hx193bPNHPM0S94UHay+k8iPQoh2xmkHYb04U/7ePgp5jWx6aA9YqZaJnOv08G39e+dfOExB0rn/M65hAT4EL9ZBTNK3Qh68xk/8YSfRp5mEd2gDaA4tK9znaZDpT9DZ0OT0fMwwVSn4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cT3xRtho; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730136651; c=relaxed/simple;
+	bh=en+0/b80xoMqfpIFPi3drNS6iY00gOUQkLTiBt9paQ8=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=QgbdctgH9BE+Q1nHUZ2NHbU5nYwwubQTJUr7zpiGgEGR1c8Zu2jKWVR//V9fBMf+ehxEw3QyLAlSXhJZy9BaH6ymS/Gmm0s+asCNRNgNcJOR40WHqu28oeeUlW6p1euKPdsytUD4PoaB1v6YLJmS/vYpPfEBkS0nssx4re9gRZw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=cDhgYrih; arc=none smtp.client-ip=209.85.167.54
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cT3xRtho"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8E37C4CEC3;
-	Mon, 28 Oct 2024 17:28:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1730136537;
-	bh=GMw9tnIqWm+cDbQ2JkNYh5ueM+04Z5tH7xQN/ccSh5w=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=cT3xRtho1COzvSIOKQ/DHwqhHI8WdIzYDPMeDHykv1W41JcyXeKtj8lrwTEmKOLHJ
-	 S8veFLIU1f9GOWpAGSGNubqH7/bda9doKyx0ezzIhz5ZKDEzB5NbDnnXuce3zw3fjL
-	 ZTtlM49KXRqpsegh0Y4QxZZGL8T0hvurAN0ThaKmKeoDzFwYHSISRBPEiO+6eYsqsB
-	 boLj8ue2yCIk4Bbplv9CgaaxEHyjZ98fZR0O/MBZsMkQvZH/OKmuPpwCc4/5dsEySZ
-	 ywdQrCi552PYCON4EWI2l9MsLovmXRUnPsnUrXs5i0RwOmCHq452fKcN6rCWS4Jpq4
-	 bxmP9GRDxhZBg==
-Date: Mon, 28 Oct 2024 19:24:54 +0200
-From: Mike Rapoport <rppt@kernel.org>
-To: Gregory Price <gourry@gourry.net>
-Cc: x86@kernel.org, linux-kernel@vger.kernel.org,
-	linux-acpi@vger.kernel.org, linux-mm@kvack.org, linux-cxl@kvack.org,
-	Jonathan.Cameron@huawei.com, dan.j.williams@intel.com,
-	rrichter@amd.com, Terry.Bowman@amd.com, dave.jiang@intel.com,
-	ira.weiny@intel.com, alison.schofield@intel.com,
-	dave.hansen@linux.intel.com, luto@kernel.org, peterz@infradead.org,
-	tglx@linutronix.de, mingo@redhat.com, bp@alien8.de, hpa@zytor.com,
-	rafael@kernel.org, lenb@kernel.org, david@redhat.com,
-	osalvador@suse.de, gregkh@linuxfoundation.org,
-	akpm@linux-foundation.org
-Subject: Re: [PATCH v3 3/3] acpi,srat: give memory block size advice based on
- CFMWS alignment
-Message-ID: <Zx_I5vPrXmZhQNj0@kernel.org>
-References: <20241022213450.15041-1-gourry@gourry.net>
- <20241022213450.15041-4-gourry@gourry.net>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="cDhgYrih"
+Received: by mail-lf1-f54.google.com with SMTP id 2adb3069b0e04-539f8490856so4216381e87.2;
+        Mon, 28 Oct 2024 10:30:49 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1730136648; x=1730741448; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=+npSDU/6eO84tdQb6NEblNRrwQw7Vs4S01viEtwA4sc=;
+        b=cDhgYrihcqMwTfw3xFARKY8edxPBwZm7QiH2XbuoVKRXmWqDyKCahBPRObvT0ecJcj
+         IqyLi6RroanbM7HJDKLPfec0qv/S7StCF7BSxq2DH2lg0ik0AmniKmVFMIEvjJJJls/a
+         Ts4oTnkirqqcXdgf3v0OpENqMeL3EEL2bNl4xZyiVLzxrwx9VfWGNT58qQeyV1CUCs6e
+         fh0GCWtwnWLllfZsLi8LP1RoIdo0ATkRPYyY7VDUwN8sCwsDVUEyxI8u7IiWsvjx6Qri
+         nITyOUObrfffRJ1tFds3Me5uAlnnTZO4m+ZooCh9cpXAqY8q0bqqkm7E4Q9uD0kVCCCn
+         mWFw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1730136648; x=1730741448;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=+npSDU/6eO84tdQb6NEblNRrwQw7Vs4S01viEtwA4sc=;
+        b=fAfawc2XTm9xb2V4QKiTbKq1rLtKLoUTXCkMXQevMuScbT57IrPMt5C82TUkLWwQoa
+         RoMs6G6+cbwxd1dxyYWJ8WM6SceBSdTYQIKnCim7EERqYgxn6A6XT4kNyGE4AmPh+SH1
+         8yx49pkQddgf/7Yc4DvAySo0MAGI7NZzpwQ6YixFaflfH9etRRFeOamumgZ3kh438YQK
+         qRv3Bs7LYNOS4TUxB1dgYOObaprpxxphWfEzSWDRVuBiopJfj8/4Ky7shxKdT6IyVVPh
+         fHrY68ujPmicvh3GEtGEpriFm3iUR+dWlpkzBwlIpCIO3qzqKt9b+qOWw2KCUkVqhEVC
+         aXug==
+X-Forwarded-Encrypted: i=1; AJvYcCU2J6DPieMMVv//gv77v4i2KSmewZPT/1JvwG1hQfP7Mujq9OnvVOTADJ2jSGw0rI3dD1H81AiSu2K9@vger.kernel.org, AJvYcCV934HcbWaXRWQaJ7NOvkvZmKcDeWV2Gu6+kNLVWd9xExxPyU5vSMVN9eH1EOrNeJ0M60SUa16Yx/IW3KsS@vger.kernel.org, AJvYcCX1PZ1th3yYkgH9YHGOPijACO83Z++/EteMs9ae2usb8czETf/fLE8rUZB/yGwd/JwRTfJJ/h/+mCE6i32H3Z8lrZQxQw==@vger.kernel.org
+X-Gm-Message-State: AOJu0YwUz3rdUN11KABP14OhV77yjcX4kaYe5157sY6lGp+2U/mvIbg6
+	A8WiznBzJMyFNlmXJcyUq0Yta5BRHcSym+nkf8eA2Af5CAy693Lf
+X-Google-Smtp-Source: AGHT+IEzlAiuaLY0pXur/4pY7BiMQ8uaSjTMPmEc83Ii2p02tll3LoFp9D/0/Fzmak84mIwejUXllg==
+X-Received: by 2002:a05:6512:e99:b0:539:f496:aa88 with SMTP id 2adb3069b0e04-53b34a198c0mr3480807e87.53.1730136647146;
+        Mon, 28 Oct 2024 10:30:47 -0700 (PDT)
+Received: from ?IPV6:2a02:8071:b783:140:927c:82ba:d32d:99c1? ([2a02:8071:b783:140:927c:82ba:d32d:99c1])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4319360c10asm116270075e9.43.2024.10.28.10.30.45
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 28 Oct 2024 10:30:46 -0700 (PDT)
+Message-ID: <2934c00a-8bbc-4090-ad0d-8bc5f79cacaf@gmail.com>
+Date: Mon, 28 Oct 2024 18:30:45 +0100
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20241022213450.15041-4-gourry@gourry.net>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2 02/15] platform/surface: aggregator: Add platform
+ handler pointer to device
+To: Mario Limonciello <mario.limonciello@amd.com>,
+ Hans de Goede <hdegoede@redhat.com>,
+ =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
+Cc: "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+ Lee Chun-Yi <jlee@suse.com>, Shyam Sundar S K <Shyam-sundar.S-k@amd.com>,
+ Corentin Chary <corentin.chary@gmail.com>, "Luke D . Jones"
+ <luke@ljones.dev>, Ike Panhc <ike.pan@canonical.com>,
+ Henrique de Moraes Holschuh <hmh@hmh.eng.br>,
+ Alexis Belmonte <alexbelm48@gmail.com>,
+ =?UTF-8?Q?Uwe_Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>,
+ Ai Chao <aichao@kylinos.cn>, Gergo Koteles <soyer@irl.hu>,
+ open list <linux-kernel@vger.kernel.org>,
+ "open list:ACPI" <linux-acpi@vger.kernel.org>,
+ "open list:MICROSOFT SURFACE PLATFORM PROFILE DRIVER"
+ <platform-driver-x86@vger.kernel.org>,
+ "open list:THINKPAD ACPI EXTRAS DRIVER"
+ <ibm-acpi-devel@lists.sourceforge.net>,
+ Mark Pearson <mpearson-lenovo@squebb.ca>,
+ Matthew Schwartz <matthew.schwartz@linux.dev>
+References: <20241028020131.8031-1-mario.limonciello@amd.com>
+ <20241028020131.8031-3-mario.limonciello@amd.com>
+Content-Language: en-US
+From: Maximilian Luz <luzmaximilian@gmail.com>
+In-Reply-To: <20241028020131.8031-3-mario.limonciello@amd.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Tue, Oct 22, 2024 at 05:34:50PM -0400, Gregory Price wrote:
-> Capacity is stranded when CFMWS regions are not aligned to block size.
-> On x86, block size increases with capacity (2G blocks @ 64G capacity).
+On 10/28/24 3:01 AM, Mario Limonciello wrote:
+> To be able to reference the platform handler in remove, add
+> a pointer to `struct ssam_device`.
 > 
-> Use CFMWS base/size to report memory block size alignment advice.
-> 
-> After the alignment, the acpi code begins populating numa nodes with
-> memblocks, so probe the value just prior to lock it in.  All future
-> callers should be providing advice prior to this point.
-> 
-> Suggested-by: Dan Williams <dan.j.williams@intel.com>
-> Signed-off-by: Gregory Price <gourry@gourry.net>
+> Tested-by: Matthew Schwartz <matthew.schwartz@linux.dev>
+> Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
 > ---
->  drivers/acpi/numa/srat.c | 33 +++++++++++++++++++++++++++++++++
->  1 file changed, 33 insertions(+)
+> v2:
+>   * Use ssam_device_set_drvdata()
+> ---
+>   drivers/platform/surface/surface_platform_profile.c | 1 +
+>   1 file changed, 1 insertion(+)
 > 
-> diff --git a/drivers/acpi/numa/srat.c b/drivers/acpi/numa/srat.c
-> index 44f91f2c6c5d..35e6f7c17f60 100644
-> --- a/drivers/acpi/numa/srat.c
-> +++ b/drivers/acpi/numa/srat.c
-> @@ -14,6 +14,7 @@
->  #include <linux/errno.h>
->  #include <linux/acpi.h>
->  #include <linux/memblock.h>
-> +#include <linux/memory.h>
->  #include <linux/numa.h>
->  #include <linux/nodemask.h>
->  #include <linux/topology.h>
-> @@ -333,6 +334,29 @@ acpi_parse_memory_affinity(union acpi_subtable_headers *header,
->  	return 0;
->  }
->  
-> +/* Advise memblock on maximum block size to avoid stranded capacity. */
-> +static int __init acpi_align_cfmws(union acpi_subtable_headers *header,
-> +				   void *arg, const unsigned long table_end)
-> +{
-> +	struct acpi_cedt_cfmws *cfmws = (struct acpi_cedt_cfmws *)header;
-> +	u64 start = cfmws->base_hpa;
-> +	u64 size = cfmws->window_size;
-> +	unsigned long bz;
+> diff --git a/drivers/platform/surface/surface_platform_profile.c b/drivers/platform/surface/surface_platform_profile.c
+> index 61aa488a80eb5..a18eb93eebb92 100644
+> --- a/drivers/platform/surface/surface_platform_profile.c
+> +++ b/drivers/platform/surface/surface_platform_profile.c
+> @@ -210,6 +210,7 @@ static int surface_platform_profile_probe(struct ssam_device *sdev)
+>   		return -ENOMEM;
+>   
+>   	tpd->sdev = sdev;
+> +	ssam_device_set_drvdata(sdev, tpd);
+>   
+>   	tpd->handler.name = "Surface Platform Profile";
+>   	tpd->handler.profile_get = ssam_platform_profile_get;
 
-Maybe unsigned long size?
+Looks good to me now, thanks!
 
-> +
-> +	for (bz = SZ_64T; bz >= SZ_256M; bz >>= 1) {
-> +		if (IS_ALIGNED(start, bz) && IS_ALIGNED(size, bz))
-> +			break;
-> +	}
-> +
-> +	if (bz >= SZ_256M) {
-> +		if (memory_block_advise_max_size(bz) < 0)
-> +			pr_warn("CFMWS: memblock size advise failed\n");
-> +	} else
+Maybe this could/should be squashed into patch 03 now that it's just a
+one-line change, but I'll leave that decision to Hans or Ilpo.
 
-Nit: braces needed for else arm as well
-
-> +		pr_err("CFMWS: [BIOS BUG] base/size alignment violates spec\n");
-> +
-> +	return 0;
-> +}
-> +
->  static int __init acpi_parse_cfmws(union acpi_subtable_headers *header,
->  				   void *arg, const unsigned long table_end)
->  {
-> @@ -545,6 +569,15 @@ int __init acpi_numa_init(void)
->  	 * Initialize a fake_pxm as the first available PXM to emulate.
->  	 */
->  
-> +	/* Align memblock size to CFMW regions if possible */
-> +	acpi_table_parse_cedt(ACPI_CEDT_TYPE_CFMWS, acpi_align_cfmws, NULL);
-> +
-> +	/*
-> +	 * Nodes start populating with blocks after this, so probe the max
-> +	 * block size to prevent it from changing in the future.
-> +	 */
-> +	memory_block_probe_max_size();
-> +
-
-It won't change, but how drivers/base/memory.c will know about the probed
-size if architecture does not override memory_block_size_bytes()?
-
->  	/* fake_pxm is the next unused PXM value after SRAT parsing */
->  	for (i = 0, fake_pxm = -1; i < MAX_NUMNODES; i++) {
->  		if (node_to_pxm_map[i] > fake_pxm)
-> -- 
-> 2.43.0
-> 
-
--- 
-Sincerely yours,
-Mike.
+Reviewed-by: Maximilian Luz <luzmaximilian@gmail.com>
