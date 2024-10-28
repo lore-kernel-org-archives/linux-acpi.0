@@ -1,46 +1,46 @@
-Received: from NAM12-BN8-obe.outbound.protection.outlook.com (mail-bn8nam12on2057.outbound.protection.outlook.com [40.107.237.57])
+Received: from NAM04-DM6-obe.outbound.protection.outlook.com (mail-dm6nam04on2059.outbound.protection.outlook.com [40.107.102.59])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8009E18B475;
-	Mon, 28 Oct 2024 02:02:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.237.57
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62ED618E744;
+	Mon, 28 Oct 2024 02:02:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.102.59
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730080943; cv=fail; b=V7Wx2GNe3CAFLuJkizO5zlpQlktJnmin7TpFD1qf5MtTUftTL9Nr3EK9UKBV6AEGkRbijMOGueQODAhHkWb5qUDAGY2oVXkfr6ddLEuTIKMZ02FRlZ6L0QvF7FRQGj4DD2L8ttmcIVJPqQhRkxQXfl5ro7KNsff66RocWYgjrt0=
+	t=1730080950; cv=fail; b=Y8z5vAvvO/JnL7yQ8CZ8GjxbkdkiYHtpvb+L8niE5n1lJ+L+zz5S2B0oqeg1ePnCN1wzNih3ZjNXbtK9Bgyhl2NvGDK9gXjNikGxEX+aJ0M8ZNjgX3jvyf9vDSABdYYjdu6UcG2YtRwCJ+i+LqHEZAACk/7PMD+c1kOSLNUjxpk=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730080943; c=relaxed/simple;
-	bh=2QWvixAlAOe4y3rfwVCRHvrO11PnTziEQIsgrr0+79o=;
+	s=arc-20240116; t=1730080950; c=relaxed/simple;
+	bh=W+fSgJhDtdVD/6141uj9L3PIS1UUOjhO6wr49vbQxCY=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=jdPDEWid8vJQhskP5nD6HFj2gAnaE2S+nddYSD0gVk0PS5NnWzFxjnn6LiscqR9DsrdWQfzFW0KX8kOjKUMqNzjhkEK1iHdz17kK/OtwqFBFqR0WpN230ja95P4qJymzRyDC+s9rQgPRMFtn/Xt4XiOW/vovfVVAjphhheBm2MI=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=x2L9dHY4; arc=fail smtp.client-ip=40.107.237.57
+	 MIME-Version:Content-Type; b=BkNzaRtLvnhiLM7G3H48FAUAtNDculsXgu4XyjJFBkqWle2OUKKZKnXxwIwWosW8tHDj0ClT0cS/AzUTfBITtjeWgcsQWiIFm5fSPGqVuiilp3IvWzrudiljkl7ZaxaII6WUULHR82XnhP0YEgoRasz2mNBrainKTAnc/mUhlM0=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=YwME/gla; arc=fail smtp.client-ip=40.107.102.59
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="x2L9dHY4"
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="YwME/gla"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=pMH61BkrcHXJKGnsJ6WqkunhqbEXDo5EM9Q3+ziAOvpwJshEislzEoi0kO0Y1DXFj3JfDZpXcnWEt5wWZzY8iL9+BLMkiot4FDwpekQm7rdzVQRX2fUpvAesUp4El0TUYke32cw6DbEd0rf12or8LjlHRaYG/A2a99WsFjyK7oCJDf50FE2tJ+hCsfGXn8+6Xqb5ANo3qkAlXsDHSVkMWuLoLyNLz6pbjt612npSKygl/25WMbu4H8pVS79ymp14TXcnI61QyFCXyd/r0Hh+wng08e0UVStrqOHHQBGVZTiBD72j9P3q3T9dOmTSm25OlFvnGlGwJh9fB1QeMNL+wA==
+ b=ud8LDt1DfCaGlX6vj9gODJOr8PWwVYV5yydDOGy842G56JUZTkYvhQ+pGMGUkvBzC7ozP94Uy3cLWS7EZXetkFJyD67xg5cimG8+2N83RbpTOr/A6YZruQT9hD9iLdh9OHmwx06xT2jWaiJ1DNCz48kTrNK3awnyE6P10k/gyMzSifgJ5P8JFQGIA5y6vnye+Lnx98reDO2VJteK+a06I9bPek6IN0r7XuC9KwBCGm+VNjnR495YnADLNnvMIzqW9bx6C4bRshEHP2PmrOt0JGQ8ZKbLNER/D2QjbqUtyemu9TDxlggXArrgCM3LZacrCyBkeuBBwr24/nJb3mamIg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=S2vb0lbHs0eiBbQV/g463nhHMqsys4ERBQOYpqJcx6A=;
- b=LB3y4W2Gli3vbCR9FLYxH3y93DtZ8GHKGLy7sEEZ3L5rkWoz+l+UCkZclwFUldBC+0Rf62tcvwJPG1CRKsCtpLbcfuzeeKQDw05ghKnQDmr6kM4wYM1PJIH4lbZsnsJLOtU1gu2BCM9/G4SsfI6BaX2ghjkvqy2gw7k/yEex+hWLH4p/pHIW7eDNI8lOHlXkyiFugkEKXCz9jqgh/onVzl+H9vgCdzbUo4JLpGW9vy5rSgSI3hZm24e+pplDMunGgb+4BJhNH4dhinoYSHH/I5cerV+oDdzZJxwRnS4m0zwx8EMAbqpyuaGnTRcyWv6moE48fk65OeZyJo3giDRGqQ==
+ bh=Ql6c7Js8FYvAm4PiZo27iRN5a3gxXJfJtHYC8UW3PnU=;
+ b=VWujriMC88RZTwIFHkk5VFpTQVOT3Pa2bAwcbJ5cJJgyvA6/JEgUOlhp1y4Ti1t2fqWm5Iz6BzH7L4qB3925Bry55ZiE/Bgj4I5FE817Qzy9CRlfbfVegWPgSx/JJsWwRw3Sm6yl1GrlXfoMPSZGDst6Mr0i5VWxFx/x2zYtKDEejy3m2fzjX0FlR9ov0BEOTllhhmeJLBW58+SB+f72KM59+JqAcBA99SbaZLvR4mGEZYrpAsFevS2T3BSGwavdZzvKeYWAg73gOiz+Smt96h1Zp3mPTRbBc5w650gWzYvfywujYzf68z24ZiWQ29u4Ugt/b9Q/ehVubeM5qL4sBg==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  165.204.84.17) smtp.rcpttodomain=redhat.com smtp.mailfrom=amd.com; dmarc=pass
  (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
  dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=S2vb0lbHs0eiBbQV/g463nhHMqsys4ERBQOYpqJcx6A=;
- b=x2L9dHY474nUjfD2p9u2kriB2MSOAopMiJvMxTFubuXrv85wlHD5LAsXlsLgf2h3thxKORf3lHiXld2TdY2H5Bt5Zzl4m5sPNDy98tzioqolhhyLj+k4sDx0sL1KR86+LEpm/sJtmeA2bwPnn5rO0KSigaFdNSLMqH3V+P5WfyQ=
-Received: from BLAPR03CA0068.namprd03.prod.outlook.com (2603:10b6:208:329::13)
- by PH0PR12MB5632.namprd12.prod.outlook.com (2603:10b6:510:14c::17) with
+ bh=Ql6c7Js8FYvAm4PiZo27iRN5a3gxXJfJtHYC8UW3PnU=;
+ b=YwME/glaOTxtVRGLsZB7lRpOTK/Dti9Q8qaZdYY1iQZi27WXEvvMlpvwZByuPLswqbmmbJsQB+7PaZlRs8uIE7L4X1nLzTsdQHOKshqGVsFbOLdn1Zo8QB7ZSGIaYmzmAtlotJZV9U6U5KPFbPxsm5dpmi4GSLq+klkhLrX/KTM=
+Received: from BN9PR03CA0911.namprd03.prod.outlook.com (2603:10b6:408:107::16)
+ by IA1PR12MB6410.namprd12.prod.outlook.com (2603:10b6:208:38a::21) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8093.18; Mon, 28 Oct
- 2024 02:02:17 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8093.25; Mon, 28 Oct
+ 2024 02:02:23 +0000
 Received: from BL02EPF00021F69.namprd02.prod.outlook.com
- (2603:10b6:208:329:cafe::e2) by BLAPR03CA0068.outlook.office365.com
- (2603:10b6:208:329::13) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8093.25 via Frontend
- Transport; Mon, 28 Oct 2024 02:02:17 +0000
+ (2603:10b6:408:107:cafe::65) by BN9PR03CA0911.outlook.office365.com
+ (2603:10b6:408:107::16) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8093.21 via Frontend
+ Transport; Mon, 28 Oct 2024 02:02:23 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
  smtp.mailfrom=amd.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=amd.com;
@@ -50,11 +50,11 @@ Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
 Received: from SATLEXMB04.amd.com (165.204.84.17) by
  BL02EPF00021F69.mail.protection.outlook.com (10.167.249.5) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.20.8114.16 via Frontend Transport; Mon, 28 Oct 2024 02:02:17 +0000
+ 15.20.8114.16 via Frontend Transport; Mon, 28 Oct 2024 02:02:22 +0000
 Received: from AUS-P9-MLIMONCI.amd.com (10.180.168.240) by SATLEXMB04.amd.com
  (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.39; Sun, 27 Oct
- 2024 21:02:15 -0500
+ 2024 21:02:19 -0500
 From: Mario Limonciello <mario.limonciello@amd.com>
 To: Hans de Goede <hdegoede@redhat.com>, =?UTF-8?q?Ilpo=20J=C3=A4rvinen?=
 	<ilpo.jarvinen@linux.intel.com>
@@ -71,9 +71,9 @@ CC: "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
  EXTRAS DRIVER" <ibm-acpi-devel@lists.sourceforge.net>, Mark Pearson
 	<mpearson-lenovo@squebb.ca>, Matthew Schwartz <matthew.schwartz@linux.dev>,
 	Mario Limonciello <mario.limonciello@amd.com>
-Subject: [PATCH v2 10/15] ACPI: platform_profile: Only show profiles common for all handlers
-Date: Sun, 27 Oct 2024 21:01:26 -0500
-Message-ID: <20241028020131.8031-11-mario.limonciello@amd.com>
+Subject: [PATCH v2 12/15] ACPI: platform_profile: Make sure all profile handlers agree on profile
+Date: Sun, 27 Oct 2024 21:01:28 -0500
+Message-ID: <20241028020131.8031-13-mario.limonciello@amd.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20241028020131.8031-1-mario.limonciello@amd.com>
 References: <20241028020131.8031-1-mario.limonciello@amd.com>
@@ -89,117 +89,141 @@ X-ClientProxiedBy: SATLEXMB03.amd.com (10.181.40.144) To SATLEXMB04.amd.com
  (10.181.40.145)
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BL02EPF00021F69:EE_|PH0PR12MB5632:EE_
-X-MS-Office365-Filtering-Correlation-Id: c6dddaea-2375-47be-a19a-08dcf6f48cab
+X-MS-TrafficTypeDiagnostic: BL02EPF00021F69:EE_|IA1PR12MB6410:EE_
+X-MS-Office365-Filtering-Correlation-Id: 0c8f6d72-da6a-4415-ef45-08dcf6f49024
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|376014|7416014|82310400026|36860700013;
+	BCL:0;ARA:13230040|1800799024|36860700013|82310400026|376014|7416014;
 X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?ZOzBeZQpnBBvI2tAY8HRbAKRRg0PzC4HJMKnengqtezIkAVKGJz2erJaba6E?=
- =?us-ascii?Q?iyctYpHCvhunKurxE+i+JHb1WYF3YvPwpTD89TcoCnTn018XxM1gPArYjXhG?=
- =?us-ascii?Q?s7bVqYExK/OSbAUQzW2kotGs6z9Txi3xhpkFlLGMhWUmu/DWuxzqvSU+IjM7?=
- =?us-ascii?Q?oUwjmCijLmBnBcH6+255q2v18I4Poh6jJ0cIpyn9E6UH2PhN76BgcnYUDEzT?=
- =?us-ascii?Q?hEPPRb/kEZsGJ0FWAOuP39U7gW9/Pwr1eJ1AIJ58HktajFpRaJ1FoBNPcXq7?=
- =?us-ascii?Q?ppolyXdbyjHn14jA/J/bxbh7BoQzkZSNyes9uY5WAmtL2KQPPtSyd95ym0qG?=
- =?us-ascii?Q?1byBuReCQCWWA1ib9iQEKB4QnuaqP5+Hw4u1EOnTP+UzKSemmAF5DygsLZL7?=
- =?us-ascii?Q?B6i7lKV5rqZa/j7P8U7WDtxFKq8yB+hNz6aFtcB3ml9Di/oaPvA/yc9ENA78?=
- =?us-ascii?Q?FbuOGC0jWpfNjjQmevJ5Patornt+qlS9NCwGCAfDmfugLGVd4U9+GIs6zrp/?=
- =?us-ascii?Q?1G50ireyDnjaDgB1vX6RdP37yFJpUs7v2AbIn/kNPaUaNHGumiUkCDOYuKcH?=
- =?us-ascii?Q?VA8qp2SiMGjLCuIdfPWU0wNGr4BW1Uzv5XyE+f070VubDLF1UqCF9cGFRkYV?=
- =?us-ascii?Q?VyJNo5LNlnzs07/S0FB08cTzEDD6TnedUa+sOm49djVUsx9Ex84BybzOtRnY?=
- =?us-ascii?Q?CxmF5l2yMlT4LUN2/GiPVfOQQvPF1HjTuNjzklQrdtVvqpFI3lyI8wcYuJlw?=
- =?us-ascii?Q?xZlWEzKHs6m5D0S84HX+gHmzqytoKEO4D6FZ/lFdGZOl0tJ8wAj5jQgwTShA?=
- =?us-ascii?Q?OF9HYqf8Qkr/oxeJwZvnMDhJU7bj4wOtKcsfcuesuYmBGjXNVUf9IqZokgHq?=
- =?us-ascii?Q?zIbIS4cgyjfBnGRYlYHTuT4773r3MT2WCZSiTW4FKLiQSYwEfRc8+9nlWBAB?=
- =?us-ascii?Q?SSEtJm6e8VdvI63gOy7FodNZPBpRUT0cmZjq8QotePie+FHWe6n5U9CNZA4c?=
- =?us-ascii?Q?CGgNjQdW0Used9RGMOH0DKZ1CIlt2XWphNvilyT3sSnIUD2g47AkcsfJ25v7?=
- =?us-ascii?Q?XuLB5rFUtIdT9+15Qi4OF9S62gfFGVRtRlNg3P5Snbw7XP/noY6ymDHXiA8U?=
- =?us-ascii?Q?dejiRxKNByjNY0DMBUkHiMVdvcj4Mtz7scT0XFPyQHew8Ag6QTdO18W4Q/DP?=
- =?us-ascii?Q?P7+MDdLHUjRSdpQAvy5+0G/EUp20E5a/G4KrEHgRSCUKBcrFIgizd93kbYDo?=
- =?us-ascii?Q?8PrlCcVWYmVkl9R1YdE+RBAGSSnzSRsdi063lK6QrtGcsUr1OVtp2t4PKUWr?=
- =?us-ascii?Q?70woWgkSpscaw/DsCOtvzMAEVNqjOQn7+PMLJAm/VAtWxhuY0XvZz6yoOwaW?=
- =?us-ascii?Q?AVOpZ50tgfMTLQJZxjhAc6tG0bqfybGwyf22rQOpgT384MTW9g=3D=3D?=
+	=?us-ascii?Q?ZEz8A4/nGThEAHyxIFuDiJkcyaAkVMKVAEO+aeZNU401bbghYKV8myb4lTNP?=
+ =?us-ascii?Q?XbNvQh6pv/ZFwVNfFzqq0FAwdQUaX5BnrCMrO82xA5uq8CAfdYC/sS1MuAcL?=
+ =?us-ascii?Q?pKInTolNFgOcJiwcWe+CTyxHQjCVnns8NefBgFOLn1t6MuCb/oBLiCkHyK65?=
+ =?us-ascii?Q?DhNUa33z4m9b63dAkN27dPjh5Cu82dbYqFQJvCFVOciE4nOwkeyL3hn9e8+k?=
+ =?us-ascii?Q?zCnOd15bZM/IKmgbuZrsPJEK4MZBVmRAqO4M6HJUkiygnPG2yAO6ZzwnNN2X?=
+ =?us-ascii?Q?ugDp6Sb7x5ZhPRXT1YzEw9MjxqVdm6bYcA+90m41J3B6FLfPy27yZnhXkbJP?=
+ =?us-ascii?Q?CKTB71Egmw+rs/PE0ylXrkHTHBm9u8XeEFnbYifQ4cA49Dunxhf6NVJ8aav2?=
+ =?us-ascii?Q?XbuJsCfjVR0SQGlkYHrGXeQbGu2L7G0txDzCuTWyGfI1Y7Z0YiGLf4bqVZMn?=
+ =?us-ascii?Q?RdPDjGG99QKK5ET8e/9YIfArbB2rAnP1W9JwmGrR5KoGOgSNOJlY64eR7sW/?=
+ =?us-ascii?Q?A8fRD1qVrWtFr36Z0RrqtiLOgmXBJf2+PwFhxbem7QPLtzX6rvOoal1uoPM6?=
+ =?us-ascii?Q?JHhnSzWzJpO05kKNwgvwya2SWxUSm1kiBZWzH6j1pct2jzQETsfzrl0B+GHN?=
+ =?us-ascii?Q?ivYmp/85aj6usKHB+q67cfNPHnUfsGHZKhA0NhI00oyaGTKPFx04SIy98uRK?=
+ =?us-ascii?Q?4oKP5Gxx42fAOx/Hk4vim3BDJRyH2JEIOCXfaKxCcMVq8VI7kEhCnnRSgN4V?=
+ =?us-ascii?Q?rn388Mo+mLIwyaxtjIz7RM47yIX0uVZ9g4wbjz4NZ2D/erDmhk8fw3OXP77q?=
+ =?us-ascii?Q?emMhZyf1w9LbDNOc4U+f3g2mZEL1Jr1j+LgsL9kj+91dwzQir+rvIwSd6PJM?=
+ =?us-ascii?Q?V6jXRO1Tv1Bi1304wa3/ZOWS971jGgV/a/LJeH97Z6ciVeGGC+bqbAsaiCg4?=
+ =?us-ascii?Q?TVnm5LdSdwhGqIdjbPlTYiUq/eks1Y6RxM0Fd001YYibmmzOdFe+JYtb4zCH?=
+ =?us-ascii?Q?hlsC4OexUqApa0QDp18lNZ4aOI1RHX6zDOKVHehSYxWT1FufKb/3cGK5mzDJ?=
+ =?us-ascii?Q?Y6FjcHO4xqrcbvgD74nw6KUQAhpjky8RgQVAkY4WxLrTJmBcriWsOgzMlRx2?=
+ =?us-ascii?Q?WjKS7QTS59bu2aOgYYU5pA4OPGaFEJSQ6TitkxdpgaHwvMg89XchvIYw8ytG?=
+ =?us-ascii?Q?zy/oRKvxpl1+9Nl7IPHn6yNW1DoBNMkOC+cUAM+B+2Y6MlA2xkkfam0c01d3?=
+ =?us-ascii?Q?PEHDRnGOUl2kG1EVkNFhQz4logzOgclsYf7M6ISnDAeN6A+DMkIsYPeCpyuk?=
+ =?us-ascii?Q?tUNyaKLqk0FHj9GUCwP5jRiXhp5E/cRvyL+iZ+b6IG75QJMiJIHnS7dnOJSu?=
+ =?us-ascii?Q?LXNKH9H7muUf1D+t5EjBV5RLoWrz59rdxfDtmWeKsQMxl+Pryw=3D=3D?=
 X-Forefront-Antispam-Report:
-	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(1800799024)(376014)(7416014)(82310400026)(36860700013);DIR:OUT;SFP:1101;
+	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(1800799024)(36860700013)(82310400026)(376014)(7416014);DIR:OUT;SFP:1101;
 X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 28 Oct 2024 02:02:17.1654
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 28 Oct 2024 02:02:22.9935
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: c6dddaea-2375-47be-a19a-08dcf6f48cab
+X-MS-Exchange-CrossTenant-Network-Message-Id: 0c8f6d72-da6a-4415-ef45-08dcf6f49024
 X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
 X-MS-Exchange-CrossTenant-AuthSource:
 	BL02EPF00021F69.namprd02.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH0PR12MB5632
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR12MB6410
 
-If multiple platform profile handlers have been registered, don't allow
-switching to profiles unique to only one handler.
+If for any reason multiple profile handlers don't agree on the profile
+set for the system then the value shown in sysfs can be wrong.
+
+Explicitly check that they match.
 
 Tested-by: Matthew Schwartz <matthew.schwartz@linux.dev>
 Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
 ---
- drivers/acpi/platform_profile.c | 35 ++++++++++++++++++++++-----------
- 1 file changed, 24 insertions(+), 11 deletions(-)
+ drivers/acpi/platform_profile.c | 61 ++++++++++++++++++++++++---------
+ 1 file changed, 45 insertions(+), 16 deletions(-)
 
 diff --git a/drivers/acpi/platform_profile.c b/drivers/acpi/platform_profile.c
-index 5fee467614eac..a83842f05022b 100644
+index db2ebd0393cf7..d22c4eb5f0c36 100644
 --- a/drivers/acpi/platform_profile.c
 +++ b/drivers/acpi/platform_profile.c
-@@ -33,30 +33,43 @@ static bool platform_profile_is_registered(void)
- 	return count > 0;
+@@ -51,6 +51,45 @@ static unsigned long platform_profile_get_choices(void)
+ 	return seen;
  }
  
 +/* expected to be called under mutex */
-+static unsigned long platform_profile_get_choices(void)
++static int platform_profile_get_active(enum platform_profile_option *profile)
 +{
 +	struct platform_profile_handler *handler;
-+	unsigned long seen = 0;
-+	int i;
++	enum platform_profile_option active = PLATFORM_PROFILE_LAST;
++	enum platform_profile_option active2 = PLATFORM_PROFILE_LAST;
++	int err;
 +
 +	list_for_each_entry(handler, &platform_profile_handler_list, list) {
-+		for_each_set_bit(i, handler->choices, PLATFORM_PROFILE_LAST) {
-+			if (seen & BIT(i))
-+				continue;
-+			seen |= BIT(i);
++		if (active == PLATFORM_PROFILE_LAST)
++			err = handler->profile_get(handler, &active);
++		else
++			err = handler->profile_get(handler, &active2);
++		if (err) {
++			pr_err("Failed to get profile for handler %s\n", handler->name);
++			return err;
 +		}
++
++		if (WARN_ON(active == PLATFORM_PROFILE_LAST))
++			return -EINVAL;
++		if (active2 == PLATFORM_PROFILE_LAST)
++			continue;
++
++		if (active != active2) {
++			pr_warn("Profile handlers don't agree on current profile\n");
++			return -EINVAL;
++		}
++		active = active2;
 +	}
 +
-+	return seen;
++	/* Check that profile is valid index */
++	if (WARN_ON((active < 0) || (active >= ARRAY_SIZE(profile_names))))
++		return -EIO;
++
++	*profile = active;
++
++	return 0;
 +}
 +
  static ssize_t platform_profile_choices_show(struct device *dev,
  					struct device_attribute *attr,
  					char *buf)
- {
-+	unsigned long choices;
- 	int len = 0;
--	int err, i;
--
+@@ -80,24 +119,14 @@ static ssize_t platform_profile_show(struct device *dev,
+ 	enum platform_profile_option profile = PLATFORM_PROFILE_BALANCED;
+ 	int err;
+ 
 -	err = mutex_lock_interruptible(&profile_lock);
 -	if (err)
 -		return err;
-+	int i;
- 
+-
 -	if (!cur_profile) {
 -		mutex_unlock(&profile_lock);
 -		return -ENODEV;
--	}
-+	scoped_cond_guard(mutex_intr, return -ERESTARTSYS, &profile_lock)
-+		choices = platform_profile_get_choices();
- 
--	for_each_set_bit(i, cur_profile->choices, PLATFORM_PROFILE_LAST) {
-+	for_each_set_bit(i, &choices, PLATFORM_PROFILE_LAST) {
- 		if (len == 0)
- 			len += sysfs_emit_at(buf, len, "%s", profile_names[i]);
- 		else
- 			len += sysfs_emit_at(buf, len, " %s", profile_names[i]);
++	scoped_cond_guard(mutex_intr, return -ERESTARTSYS, &profile_lock) {
++		if (!platform_profile_is_registered())
++			return -ENODEV;
++		err = platform_profile_get_active(&profile);
++		if (err)
++			return err;
  	}
-+
- 	len += sysfs_emit_at(buf, len, "\n");
+ 
+-	err = cur_profile->profile_get(cur_profile, &profile);
 -	mutex_unlock(&profile_lock);
- 	return len;
+-	if (err)
+-		return err;
+-
+-	/* Check that profile is valid index */
+-	if (WARN_ON((profile < 0) || (profile >= ARRAY_SIZE(profile_names))))
+-		return -EIO;
+-
+ 	return sysfs_emit(buf, "%s\n", profile_names[profile]);
  }
  
 -- 
