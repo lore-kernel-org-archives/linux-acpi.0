@@ -1,66 +1,50 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.11])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F04821440F
-	for <linux-acpi@vger.kernel.org>; Wed, 30 Oct 2024 16:35:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91E75768FC;
+	Wed, 30 Oct 2024 16:46:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.11
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730306126; cv=none; b=asC+/bg/RRzjwtJlgDU6dcsBSKeCQYPZR7Z7rEN5XKtH4HJ5ZaRRdg/H0vy9PTXhcP6IQ4IT6XD1HtMbzyE8hhW0Ezkzzd7CxJEIsSBKclJEjDb/9lXxe+GhCkDTsnS941Sgi4xgtJZcYptKDC74QV88ik+uqVrpxGEOuKGt1yM=
+	t=1730306788; cv=none; b=kcZK6j63SaUg9qt0KDzoBobkbmdPY8eZNoCd42djeUrVm1upWzswCPDszwiioWsM9irivgiNsa31LU1mdvc4P6jtZuDwFp4hkxNs6F5nKE2qDljiQKjwM/Ro/8zhPf+J2ZuhwgzekYsbOYJY8J9jWxIWyytY3WiD0sw4ZHbnY/A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730306126; c=relaxed/simple;
-	bh=dhrozV30TGx4VYLiojNcQH9l5EgARbwA5XiErr+7L1Q=;
+	s=arc-20240116; t=1730306788; c=relaxed/simple;
+	bh=kkCKvFjpUCVV69H1kfwrpgpFazlpD0ZkPP3c2tJJ1tg=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=q/tkN0Pl2ktsZh2ON9isfDtEvnO4fDQUdEGOHS9HDqLdKYrl6jYZ2eOrKROeTF4KrkHhaULKI6VcQ2rcTU19gnDw2qYAvPDuCs6bHk76K7YI7uvvF/MPXLMv7480Vg4jmFxcQd0fiUCn7BJC7iAxB4a4o3tEltPHneREC28Ucu8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=HpK4xw0n; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	 In-Reply-To:Content-Type; b=d4UeDKAM0oJw7y3Adpeo/6+dihl7iqZWjOmBoP/mLobMGzInz+7URSDtmzx6WoPkhGJymeqVrMOIpjEwp/7R7ToTe5WL4q0WIVhGAM1JqzukE4ms+L5MFOR40LdRfymeUlMjf+3jfyhxYAwdoAxNNtbRhjMEgL7ghX3jrByxbfc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=aKq3cCm8; arc=none smtp.client-ip=192.198.163.11
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="HpK4xw0n"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1730306123;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=xkqgwW5DDeMgXcXsiXK7EYvX8QOBdi4WhcFSY0Iyx7U=;
-	b=HpK4xw0nx2+GmLYpuYsMJFwZZbzcBxwDGq/rLHhwDSRu2L37gpSYdzsfqBfMpkxJyM3pSC
-	Kda9QhAghh1maXfTwqal5gs2Cd3fKlXxRyZit0c+oCkmPxv3SA4BysHyHglwy0XIWcTSnB
-	4sDKWxLB1sovE+VBa+g1eKrIyVZ0Iy8=
-Received: from mail-lf1-f69.google.com (mail-lf1-f69.google.com
- [209.85.167.69]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-683--N-8Z3lMNHOdlF7dRDA_hw-1; Wed, 30 Oct 2024 12:35:22 -0400
-X-MC-Unique: -N-8Z3lMNHOdlF7dRDA_hw-1
-Received: by mail-lf1-f69.google.com with SMTP id 2adb3069b0e04-53a0b48e8d4so9077e87.3
-        for <linux-acpi@vger.kernel.org>; Wed, 30 Oct 2024 09:35:22 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1730306121; x=1730910921;
-        h=content-transfer-encoding:in-reply-to:organization:autocrypt
-         :content-language:from:references:cc:to:subject:user-agent
-         :mime-version:date:message-id:x-gm-message-state:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=xkqgwW5DDeMgXcXsiXK7EYvX8QOBdi4WhcFSY0Iyx7U=;
-        b=wGTM2EN5VsJwJJxiYTyluKo2mzgHo65JB8IZtJUXFUCRCVWaAnQzJaQdibVMxbFjqp
-         g2BR4pe/A1gliDuTUkREgmKbVRG5NgHjuhZKAvlqybVSZ9/fls4IHCL5l6qquhWEa4Dx
-         YcipeFNoQYh7s1mzUC/uILoyznez2Inv2vqlj6JUF1NVCJJ7+MnZVWBzFxn+aYiIgaKo
-         pvCFkg5NS0Z7P3GhWJZmNpDDuPDsCXD6L/0BWW0A/Td3pS0Zum4xgoke5tsjh1TthCpM
-         EhyJEEloA/X71T1QBYrZIRmZikSqQfCK7NGmYFFjgS328dGTt1VX7+5ZhmwvgFoDUtyB
-         cGSg==
-X-Forwarded-Encrypted: i=1; AJvYcCVA5ezYOf8wU5xIaz6/my1+TRT6bm5EcWDPdCw6Oy2jcno6hYmTnkLj3Osw9tIZn/a4ZxvQA/hGmYkI@vger.kernel.org
-X-Gm-Message-State: AOJu0YxpFHgR2seu3bSX5sy5wyV0+Z/mI0AouHu5f8IeN79ZiEGop24C
-	taHMs3KfcDtk6SVIiMhgRyezwqH2srKdPjqrfv9G71NSuWdchYF1J/uHMhPgfnb2FNdKAalgA/e
-	v6BfViUcLGsC8LfrRMDpCjYKj6WN940sJ505xzH/Cda42m6k4NPGZxjwGDCI=
-X-Received: by 2002:a05:6512:6517:b0:53c:6999:1791 with SMTP id 2adb3069b0e04-53c69991a99mr1335609e87.25.1730306120662;
-        Wed, 30 Oct 2024 09:35:20 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IEBIX4YAlC7xoL2jdNmLWbtxSn1v+FBNKJjuAg2C9j5Ikk8Ss+h9mz2eCOmNNpGMndTbF0v+w==
-X-Received: by 2002:a05:6512:6517:b0:53c:6999:1791 with SMTP id 2adb3069b0e04-53c69991a99mr1335577e87.25.1730306120159;
-        Wed, 30 Oct 2024 09:35:20 -0700 (PDT)
-Received: from ?IPV6:2003:cb:c733:7c00:d067:e327:4f99:7546? (p200300cbc7337c00d067e3274f997546.dip0.t-ipconnect.de. [2003:cb:c733:7c00:d067:e327:4f99:7546])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-431bd9a99c8sm25842275e9.29.2024.10.30.09.35.18
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 30 Oct 2024 09:35:19 -0700 (PDT)
-Message-ID: <c99e0eca-49f6-4167-ad2b-d4168193ea7e@redhat.com>
-Date: Wed, 30 Oct 2024 17:35:18 +0100
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="aKq3cCm8"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1730306785; x=1761842785;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=kkCKvFjpUCVV69H1kfwrpgpFazlpD0ZkPP3c2tJJ1tg=;
+  b=aKq3cCm8Qfyofv33tOobtuPqk5YsKVORGziaV4oWSBf8dui+2O91IGaY
+   ee46XxOcXqwgoRDtm26mD85D3we3JWPgJNAJwgZwCM2f62prThR3p3Yk+
+   CwFSCsTh6gUPgG2i+ixnGxnuDQxxLxGl7SzKaFSMguKFdJ4wzm67zSjhi
+   1s0WAvX3srLrIV1dia1uPWCpk4pz53XQHVLfq+uwNKlxNB2as4NtvsQA1
+   mnvZUTc45IY0GQD5TCRDirIRtuvGRrKKdjfJ2NM7zb/9p7dHzwbj6P9Dh
+   y/dNHnCzaZ8t0LuAv4ETjWu1zCIPq5GRibnu3SD7PtVFRbAZZw351Ufdx
+   g==;
+X-CSE-ConnectionGUID: wt/O2aquQtq96/i97ClxuQ==
+X-CSE-MsgGUID: BXrcFWUASJqEFxia4Q4qZg==
+X-IronPort-AV: E=McAfee;i="6700,10204,11241"; a="40592506"
+X-IronPort-AV: E=Sophos;i="6.11,245,1725346800"; 
+   d="scan'208";a="40592506"
+Received: from orviesa005.jf.intel.com ([10.64.159.145])
+  by fmvoesa105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Oct 2024 09:46:23 -0700
+X-CSE-ConnectionGUID: yB+rFLQpRhmf61Ein+LMbw==
+X-CSE-MsgGUID: FAVjUsqvTqeuOf+OyGtp+Q==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.11,245,1725346800"; 
+   d="scan'208";a="87150911"
+Received: from nnlnb-sb-019.ccr.corp.intel.com (HELO [10.125.108.160]) ([10.125.108.160])
+  by orviesa005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Oct 2024 09:46:17 -0700
+Message-ID: <35faf0e5-9f54-44e8-ae65-ce1dc91b9cbd@intel.com>
+Date: Wed, 30 Oct 2024 09:46:16 -0700
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -68,139 +52,257 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 1/3] memory: implement
- memory_block_advise/probe_max_size
-To: Gregory Price <gourry@gourry.net>
-Cc: x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
- linux-mm@kvack.org, linux-cxl@vger.kernel.org, Jonathan.Cameron@huawei.com,
- dan.j.williams@intel.com, rrichter@amd.com, Terry.Bowman@amd.com,
- dave.jiang@intel.com, ira.weiny@intel.com, alison.schofield@intel.com,
- dave.hansen@linux.intel.com, luto@kernel.org, peterz@infradead.org,
- tglx@linutronix.de, mingo@redhat.com, bp@alien8.de, hpa@zytor.com,
- rafael@kernel.org, lenb@kernel.org, osalvador@suse.de,
- gregkh@linuxfoundation.org, akpm@linux-foundation.org, rppt@kernel.org
-References: <20241029202041.25334-1-gourry@gourry.net>
- <20241029202041.25334-2-gourry@gourry.net>
- <55df76a9-afa3-4dc0-a7f9-ff9b6f139448@redhat.com>
- <ZyJJ5Pvfj4Spcyo7@PC2K9PVX.TheFacebook.com>
-From: David Hildenbrand <david@redhat.com>
+Subject: Re: [PATCH v14 07/14] cxl/memfeature: Add CXL memory device patrol
+ scrub control feature
+To: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+Cc: Shiju Jose <shiju.jose@huawei.com>,
+ "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>,
+ "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
+ "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+ "linux-mm@kvack.org" <linux-mm@kvack.org>,
+ "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+ "bp@alien8.de" <bp@alien8.de>, "tony.luck@intel.com" <tony.luck@intel.com>,
+ "rafael@kernel.org" <rafael@kernel.org>, "lenb@kernel.org"
+ <lenb@kernel.org>, "mchehab@kernel.org" <mchehab@kernel.org>,
+ "dan.j.williams@intel.com" <dan.j.williams@intel.com>,
+ "dave@stgolabs.net" <dave@stgolabs.net>,
+ "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
+ "sudeep.holla@arm.com" <sudeep.holla@arm.com>,
+ "jassisinghbrar@gmail.com" <jassisinghbrar@gmail.com>,
+ "alison.schofield@intel.com" <alison.schofield@intel.com>,
+ "vishal.l.verma@intel.com" <vishal.l.verma@intel.com>,
+ "ira.weiny@intel.com" <ira.weiny@intel.com>,
+ "david@redhat.com" <david@redhat.com>,
+ "Vilas.Sridharan@amd.com" <Vilas.Sridharan@amd.com>,
+ "leo.duran@amd.com" <leo.duran@amd.com>,
+ "Yazen.Ghannam@amd.com" <Yazen.Ghannam@amd.com>,
+ "rientjes@google.com" <rientjes@google.com>,
+ "jiaqiyan@google.com" <jiaqiyan@google.com>,
+ "Jon.Grimm@amd.com" <Jon.Grimm@amd.com>,
+ "dave.hansen@linux.intel.com" <dave.hansen@linux.intel.com>,
+ "naoya.horiguchi@nec.com" <naoya.horiguchi@nec.com>,
+ "james.morse@arm.com" <james.morse@arm.com>,
+ "jthoughton@google.com" <jthoughton@google.com>,
+ "somasundaram.a@hpe.com" <somasundaram.a@hpe.com>,
+ "erdemaktas@google.com" <erdemaktas@google.com>,
+ "pgonda@google.com" <pgonda@google.com>,
+ "duenwen@google.com" <duenwen@google.com>,
+ "gthelen@google.com" <gthelen@google.com>,
+ "wschwartz@amperecomputing.com" <wschwartz@amperecomputing.com>,
+ "dferguson@amperecomputing.com" <dferguson@amperecomputing.com>,
+ "wbs@os.amperecomputing.com" <wbs@os.amperecomputing.com>,
+ "nifan.cxl@gmail.com" <nifan.cxl@gmail.com>,
+ tanxiaofei <tanxiaofei@huawei.com>, "Zengtao (B)"
+ <prime.zeng@hisilicon.com>, Roberto Sassu <roberto.sassu@huawei.com>,
+ "kangkang.shen@futurewei.com" <kangkang.shen@futurewei.com>,
+ wanghuiqiang <wanghuiqiang@huawei.com>, Linuxarm <linuxarm@huawei.com>
+References: <20241025171356.1377-1-shiju.jose@huawei.com>
+ <20241025171356.1377-8-shiju.jose@huawei.com>
+ <3a007a70-136b-4a45-8dd2-d33725ea96bc@intel.com>
+ <e6aed765394b4822ad5a70018c87ef1f@huawei.com>
+ <67b569b0-1cd5-44e0-8465-064b41a1afd8@intel.com>
+ <20241030161628.00001fdc@Huawei.com>
 Content-Language: en-US
-Autocrypt: addr=david@redhat.com; keydata=
- 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
- WNyWQQ==
-Organization: Red Hat
-In-Reply-To: <ZyJJ5Pvfj4Spcyo7@PC2K9PVX.TheFacebook.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <20241030161628.00001fdc@Huawei.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-On 30.10.24 15:59, Gregory Price wrote:
-> On Wed, Oct 30, 2024 at 11:25:33AM +0100, David Hildenbrand wrote:
->> On 29.10.24 21:20, Gregory Price wrote:
->>> Hotplug memory sources may have opinions on what the memblock size
->>> should be - usually for alignment purposes.  For example, CXL memory
->>> extents can be 256MB with a matching alignment. If this size/alignment
->>> is smaller than the block size, it can result in stranded capacity.
+
+
+On 10/30/24 9:16 AM, Jonathan Cameron wrote:
+> On Tue, 29 Oct 2024 11:32:47 -0700
+> Dave Jiang <dave.jiang@intel.com> wrote:
+> 
+>> On 10/29/24 10:00 AM, Shiju Jose wrote:
 >>>
->>> Implement memory_block_advise_max_size for use prior to allocator init,
->>> for software to advise the system on the max block size.
+>>>   
+>>>> -----Original Message-----
+>>>> From: Dave Jiang <dave.jiang@intel.com>
+>>>> Sent: 29 October 2024 16:32
+>>>> To: Shiju Jose <shiju.jose@huawei.com>; linux-edac@vger.kernel.org; linux-
+>>>> cxl@vger.kernel.org; linux-acpi@vger.kernel.org; linux-mm@kvack.org; linux-
+>>>> kernel@vger.kernel.org
+>>>> Cc: bp@alien8.de; tony.luck@intel.com; rafael@kernel.org; lenb@kernel.org;
+>>>> mchehab@kernel.org; dan.j.williams@intel.com; dave@stgolabs.net; Jonathan
+>>>> Cameron <jonathan.cameron@huawei.com>; gregkh@linuxfoundation.org;
+>>>> sudeep.holla@arm.com; jassisinghbrar@gmail.com; alison.schofield@intel.com;
+>>>> vishal.l.verma@intel.com; ira.weiny@intel.com; david@redhat.com;
+>>>> Vilas.Sridharan@amd.com; leo.duran@amd.com; Yazen.Ghannam@amd.com;
+>>>> rientjes@google.com; jiaqiyan@google.com; Jon.Grimm@amd.com;
+>>>> dave.hansen@linux.intel.com; naoya.horiguchi@nec.com;
+>>>> james.morse@arm.com; jthoughton@google.com; somasundaram.a@hpe.com;
+>>>> erdemaktas@google.com; pgonda@google.com; duenwen@google.com;
+>>>> gthelen@google.com; wschwartz@amperecomputing.com;
+>>>> dferguson@amperecomputing.com; wbs@os.amperecomputing.com;
+>>>> nifan.cxl@gmail.com; tanxiaofei <tanxiaofei@huawei.com>; Zengtao (B)
+>>>> <prime.zeng@hisilicon.com>; Roberto Sassu <roberto.sassu@huawei.com>;
+>>>> kangkang.shen@futurewei.com; wanghuiqiang <wanghuiqiang@huawei.com>;
+>>>> Linuxarm <linuxarm@huawei.com>
+>>>> Subject: Re: [PATCH v14 07/14] cxl/memfeature: Add CXL memory device patrol
+>>>> scrub control feature
+>>>>
+>>>>
+>>>>
+>>>> On 10/25/24 10:13 AM, shiju.jose@huawei.com wrote:  
+>>>>> From: Shiju Jose <shiju.jose@huawei.com>
+>>>>>
+>>>>> CXL spec 3.1 section 8.2.9.9.11.1 describes the device patrol scrub
+>>>>> control feature. The device patrol scrub proactively locates and makes
+>>>>> corrections to errors in regular cycle.
+>>>>>
+>>>>> Allow specifying the number of hours within which the patrol scrub
+>>>>> must be completed, subject to minimum and maximum limits reported by the  
+>>>> device.  
+>>>>> Also allow disabling scrub allowing trade-off error rates against
+>>>>> performance.
+>>>>>
+>>>>> Add support for patrol scrub control on CXL memory devices.
+>>>>> Register with the EDAC device driver, which retrieves the scrub
+>>>>> attribute descriptors from EDAC scrub and exposes the sysfs scrub
+>>>>> control attributes to userspace. For example, scrub control for the
+>>>>> CXL memory device "cxl_mem0" is exposed in  
+>>>> /sys/bus/edac/devices/cxl_mem0/scrubX/.  
+>>>>>
+>>>>> Additionally, add support for region-based CXL memory patrol scrub control.
+>>>>> CXL memory regions may be interleaved across one or more CXL memory
+>>>>> devices. For example, region-based scrub control for "cxl_region1" is
+>>>>> exposed in /sys/bus/edac/devices/cxl_region1/scrubX/.
+>>>>>
+>>>>> Co-developed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+>>>>> Signed-off-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+>>>>> Signed-off-by: Shiju Jose <shiju.jose@huawei.com>
+>>>>> ---
+>>>>>  Documentation/edac/edac-scrub.rst |  74 ++++++
+>>>>>  drivers/cxl/Kconfig               |  18 ++
+>>>>>  drivers/cxl/core/Makefile         |   1 +
+>>>>>  drivers/cxl/core/memfeature.c     | 381 ++++++++++++++++++++++++++++++
+>>>>>  drivers/cxl/core/region.c         |   6 +
+>>>>>  drivers/cxl/cxlmem.h              |   7 +
+>>>>>  drivers/cxl/mem.c                 |   4 +
+>>>>>  7 files changed, 491 insertions(+)
+>>>>>  create mode 100644 Documentation/edac/edac-scrub.rst  create mode
+>>>>> 100644 drivers/cxl/core/memfeature.c
+>>>>>
+>>>>> diff --git a/Documentation/edac/edac-scrub.rst
+>>>>> b/Documentation/edac/edac-scrub.rst
+>>>>> new file mode 100644
+>>>>> index 000000000000..4aad4974b208
+>>>>> --- /dev/null
+>>>>> +++ b/Documentation/edac/edac-scrub.rst
+>>>>> @@ -0,0 +1,74 @@
+>>>>> +.. SPDX-License-Identifier: GPL-2.0
+>>>>> +  
+>>> [...]
+>>>   
+>>>>> +static int cxl_mem_ps_get_attrs(struct cxl_memdev_state *mds,
+>>>>> +				struct cxl_memdev_ps_params *params) {
+>>>>> +	size_t rd_data_size = sizeof(struct cxl_memdev_ps_rd_attrs);
+>>>>> +	size_t data_size;
+>>>>> +	struct cxl_memdev_ps_rd_attrs *rd_attrs __free(kfree) =
+>>>>> +						kmalloc(rd_data_size,  
+>>>> GFP_KERNEL);  
+>>>>> +	if (!rd_attrs)
+>>>>> +		return -ENOMEM;
+>>>>> +
+>>>>> +	data_size = cxl_get_feature(mds, cxl_patrol_scrub_uuid,
+>>>>> +				    CXL_GET_FEAT_SEL_CURRENT_VALUE,
+>>>>> +				    rd_attrs, rd_data_size);
+>>>>> +	if (!data_size)
+>>>>> +		return -EIO;
+>>>>> +
+>>>>> +	params->scrub_cycle_changeable =  
+>>>> FIELD_GET(CXL_MEMDEV_PS_SCRUB_CYCLE_CHANGE_CAP_MASK,  
+>>>>> +						   rd_attrs->scrub_cycle_cap);
+>>>>> +	params->enable =  
+>>>> FIELD_GET(CXL_MEMDEV_PS_FLAG_ENABLED_MASK,  
+>>>>> +				   rd_attrs->scrub_flags);
+>>>>> +	params->scrub_cycle_hrs =  
+>>>> FIELD_GET(CXL_MEMDEV_PS_CUR_SCRUB_CYCLE_MASK,  
+>>>>> +					    rd_attrs->scrub_cycle_hrs);
+>>>>> +	params->min_scrub_cycle_hrs =  
+>>>> FIELD_GET(CXL_MEMDEV_PS_MIN_SCRUB_CYCLE_MASK,  
+>>>>> +						rd_attrs->scrub_cycle_hrs);
+>>>>> +
+>>>>> +	return 0;
+>>>>> +}
+>>>>> +
+>>>>> +static int cxl_ps_get_attrs(struct device *dev, void *drv_data,  
+>>>>
+>>>> Would a union be better than a void *drv_data for all the places this is used as a
+>>>> parameter? How many variations of this are there?
+>>>>
+>>>> DJ  
+>>> Hi Dave,
 >>>
->>> Implement memory_block_probe_max_size for use by arch init code to
->>> calculate the best block size. Use of advice is architecture defined.
->>>
->>> The probe value can never change after first probe. Calls to advise
->>> after probe will return -EBUSY to aid debugging.
->>>
->>> On systems without hotplug, always return -ENODEV and 0 respectively.
->>>
->>> Suggested-by: Ira Weiny <ira.weiny@intel.com>
->>> Signed-off-by: Gregory Price <gourry@gourry.net>
->>> ---
->>>    drivers/base/memory.c  | 48 ++++++++++++++++++++++++++++++++++++++++++
->>>    include/linux/memory.h | 10 +++++++++
->>>    2 files changed, 58 insertions(+)
->>>
->>> diff --git a/drivers/base/memory.c b/drivers/base/memory.c
->>> index 67858eeb92ed..099a972c52dc 100644
->>> --- a/drivers/base/memory.c
->>> +++ b/drivers/base/memory.c
->>> @@ -110,6 +110,54 @@ static void memory_block_release(struct device *dev)
->>>    	kfree(mem);
->>>    }
->>> +/**
->>> + * memory_block_advise_max_size() - advise memory hotplug on the max suggested
->>> + *				    block size, usually for alignment.
->>> + * @size: suggestion for maximum block size. must be aligned on power of 2.
->>> + *
->>> + * Early boot software (pre-allocator init) may advise archs on the max block
->>> + * size. This value can only decrease after initialization, as the intent is
->>> + * to identify the largest supported alignment for all sources.
->>> + *
->>> + * Use of this value is arch-defined, as is min/max block size.
->>> + *
->>> + * Return: 0 on success
->>> + *	   -EINVAL if size is 0 or not pow2 aligned
->>> + *	   -EBUSY if value has already been probed
->>> + */
->>> +static size_t memory_block_advised_sz;
+>>> Can you give more info on this given this is a generic callback for the scrub control and each
+>>> implementation will have its own context struct (for eg. struct cxl_patrol_scrub_context here
+>>> for CXL scrub control), which in turn will be passed in and out as opaque data.  
 >>
->> Nit: if everything is called "size", call this "size" as well.
+>> Mainly I'm just seeing a lot of calls with (void *). Just asking if we want to make it a union that contains 'struct cxl_patrol_scrub_context' and etc.
+> 
+> You could but then every new driver would need to include
+> changes in the edac core to add it's own entry to that union.
+> 
+> Not sure that's a good way to go for opaque driver specific context.
+> 
+> This particular function though can use
+> a struct cxl_patrol_scrub_context * anyway as it's not part of the
+> core interface, but rather one called only indirectly
+> by functions that are passed a void * but know it is a
+> struct clx_patrol_scrub_context *.
+
+Thanks Jonathan. That's basically what I wanted to know. 
+
+> 
+> Jonathan
+> 
+> 
+>>
+>>>
+>>> Thanks,
+>>> Shiju  
+>>>>  
+>>>>> +			    struct cxl_memdev_ps_params *params) {
+>>>>> +	struct cxl_patrol_scrub_context *cxl_ps_ctx = drv_data;
+>>>>> +	struct cxl_memdev *cxlmd;
+>>>>> +	struct cxl_dev_state *cxlds;
+>>>>> +	struct cxl_memdev_state *mds;
+>>>>> +	u16 min_scrub_cycle = 0;
+>>>>> +	int i, ret;
+>>>>> +
+>>>>> +	if (cxl_ps_ctx->cxlr) {
+>>>>> +		struct cxl_region *cxlr = cxl_ps_ctx->cxlr;
+>>>>> +		struct cxl_region_params *p = &cxlr->params;
+>>>>> +
+>>>>> +		for (i = p->interleave_ways - 1; i >= 0; i--) {
+>>>>> +			struct cxl_endpoint_decoder *cxled = p->targets[i];
+>>>>> +
+>>>>> +			cxlmd = cxled_to_memdev(cxled);
+>>>>> +			cxlds = cxlmd->cxlds;
+>>>>> +			mds = to_cxl_memdev_state(cxlds);
+>>>>> +			ret = cxl_mem_ps_get_attrs(mds, params);
+>>>>> +			if (ret)
+>>>>> +				return ret;
+>>>>> +
+>>>>> +			if (params->min_scrub_cycle_hrs > min_scrub_cycle)
+>>>>> +				min_scrub_cycle = params-
+>>>>> min_scrub_cycle_hrs;
+>>>>> +		}
+>>>>> +		params->min_scrub_cycle_hrs = min_scrub_cycle;
+>>>>> +		return 0;
+>>>>> +	}
+>>>>> +	cxlmd = cxl_ps_ctx->cxlmd;
+>>>>> +	cxlds = cxlmd->cxlds;
+>>>>> +	mds = to_cxl_memdev_state(cxlds);
+>>>>> +
+>>>>> +	return cxl_mem_ps_get_attrs(mds, params); }
+>>>>> +  
+>>> [...]  
+>>>>  
+>>>   
+>>
 >>
 > 
-> Mostly shortened here because
 > 
-> 	if (memory_block_advised_sz)
-> 		memory_block_advised_size = min(size, memory_block_advised_size);
-> 
-> is over 80 characters lol.  Happy to change if you have strong feelings.
-
-Feel free to exceed 80 chars if there is good reason to -- like in this 
-case. checkpatch.pl nowadays complains if you exceed 100 chars.
-
-No strong feelings, making it consistent in some way would be "nice" ;)
-
--- 
-Cheers,
-
-David / dhildenb
 
