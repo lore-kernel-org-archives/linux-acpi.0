@@ -1,172 +1,178 @@
-Received: from NAM12-MW2-obe.outbound.protection.outlook.com (mail-mw2nam12on2081.outbound.protection.outlook.com [40.107.244.81])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9293215C73;
-	Tue, 12 Nov 2024 18:29:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.244.81
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731436188; cv=fail; b=DWKzsFODGe4pp21k9mL3by+pxfgKf5PgL6irXcc7ciedFQ6x7nKHATJhNRMcQSisEYc9HFwh17BbnnrRGzTt/EPBzcukMDhVL6gn2EPEXqYVbjFhWRKJ/TUFjNs4S946MHV9yY/FCMJiT/M0LpcKluIaW5RZnLyQWsA6Cy/3/Uk=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731436188; c=relaxed/simple;
-	bh=xGsUlHw4Sq/BmeXK/ffeG46UufU4MBrpqO9hH9BMFc4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=FMfxo4SZmV8pdfB2yIuGiOwERqipQbmVqIw8ymqzAdSKIs1IkNzRqHamXVhWLwZIIFRGSPTfMj89kGvGQg3oDNqmFfUa3XYOC/6JsfGXNBdJQPRXSzvSocx4DEo+x80qY7NYyO56I7bbbwXFydJAZ4sZQoWeZ+LRnAXd7xuF0r8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=QEnvaRPp; arc=fail smtp.client-ip=40.107.244.81
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0616D19F115;
+	Tue, 12 Nov 2024 20:16:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1731442610; cv=none; b=U45Xg3j/TBnomAJYnK9BxwxK1C1L8mIvnJunhDCjuOkbZcu/RDk+tg2HD/f+9HaZNaBuhCMypADFjJ3rQ04VxXcj+JLnv/wxfSBJfJRTvEB2rqdMzwkUt9NgYkzT65044UAJQzP1qw9BQ0IYREgq6LtxyOgPkYFZE4C6d36N0xk=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1731442610; c=relaxed/simple;
+	bh=SS/rjAXPtHfu1bb9tzPEZAUs5OUMggHetyMYQXeht2Y=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=n7iu9tEhFCrgyVa6Je+VHaxiFt3OH6glt9S/+R1kR9ei53H7o+kl0brnejz98yDwmHT2YG9ydZtW8xr3gDYCKE9kLMMNEwV3FTHZFRH7WG6nd1gAKTTL1fKXH1sMKdbPxXo8QphiYfP9HiD1/21PsisjAV7StGdMFHHGHuyOCJk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=auQSndQ7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="QEnvaRPp"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=N4Dpq6iW+BuRURrTqWCAP8MeH62RrclAyNStdhNjfmfm4MiS3svbFk0CnBKmDKyeP3lE9RgNGsMFJCFU3pjeGmEx22Fi/ku6VO5Wdy2LLMseesoRP7ieF1wusD5O7TQuFY3d9IXrLnpRYXNw996Fr1g1qC9b0Sfr6hEi8K4uunFO6kefRRsowImEyYF8m8RNFdAOP0KjDTzrix/GUPwh+yITLItKeAuq3vhqac59dhV5LQJ/DWkzDEmzfj3AQvWVYaC4HLXDwjgJ5N2yuQj31ukypoEbY7uDcjpcy3Po0Fv1uNWpTBq0mUxtEBKcfIX6YRGbKMisb4YSxbEpdebuwA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=pXIbQQQ8yDyW7l37GYP8bkvAQbnhwG0mdYvYqZwCELs=;
- b=Nd8Fim/USs6d6/rBgjGdvtW7GZsJ3Qm/Ehq+Pw4ZE35HPag6UuqspzXmYFjv9BdpgDolq5UXmSYGxUKT/NSq3mOOwWyPNbPBiOKx/+e/Fy7fnzTPTjxwzMBTGUtLmiWho2iMWZCe2veHT6PhVX5Fe185N/jXgxw4JVqxiwcuaEEIkjg1325fSnXLDZOb77eTwIWt/GIwKGB99w/0YeI/HokWmAMEhj0/YXRv9swL7uXLSOIXGtOIXBnMyJdNlNPObZhPkhz1jzWneYmRxTwx8fM0laZ1zVw8K3UgcFl4OyvaxUefHZEAhUUVj9Q0O8pTDEcq6ow2/3w1gn8Z/LJ2rg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=pXIbQQQ8yDyW7l37GYP8bkvAQbnhwG0mdYvYqZwCELs=;
- b=QEnvaRPpzeHmbqjspP8RhxqMdqOs49Jav8QnTAt8sgT2e0WuzLDbfkev+1LxI+VItT4+mbCJ/N6uE+al3U87x6LdHrrddz6VhL/1AcyI+SZzYnOUi5SEWVp7hz3xGni5aER+puET6Va2qJbz+4lPUUXDrvhjgPRlLafwhy5MYD/iydw/cuOu2DBGCHxj5Y/ZF5i1cX8bv19nFWr3exR1wzK3SF7liSikGeHTrSrXjYni0TJkfJdVeCaE4q696uxWpv3l9EGgvBBhIRZ/loufJSgnGjRKy7HJjEKIxHjBW9NSogAQjYcpklSLJyNNRtp9aL3SHYL+FxFG0rpGq35CWQ==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from CH3PR12MB8659.namprd12.prod.outlook.com (2603:10b6:610:17c::13)
- by IA1PR12MB6482.namprd12.prod.outlook.com (2603:10b6:208:3a9::18) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8137.27; Tue, 12 Nov
- 2024 18:29:41 +0000
-Received: from CH3PR12MB8659.namprd12.prod.outlook.com
- ([fe80::6eb6:7d37:7b4b:1732]) by CH3PR12MB8659.namprd12.prod.outlook.com
- ([fe80::6eb6:7d37:7b4b:1732%4]) with mapi id 15.20.8137.027; Tue, 12 Nov 2024
- 18:29:40 +0000
-Date: Tue, 12 Nov 2024 14:29:38 -0400
-From: Jason Gunthorpe <jgg@nvidia.com>
-To: acpica-devel@lists.linux.dev, iommu@lists.linux.dev,
-	Joerg Roedel <joro@8bytes.org>, Kevin Tian <kevin.tian@intel.com>,
-	kvm@vger.kernel.org, Len Brown <lenb@kernel.org>,
-	linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	Lorenzo Pieralisi <lpieralisi@kernel.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Robert Moore <robert.moore@intel.com>,
-	Robin Murphy <robin.murphy@arm.com>,
-	Sudeep Holla <sudeep.holla@arm.com>, Will Deacon <will@kernel.org>
-Cc: Alex Williamson <alex.williamson@redhat.com>,
-	Donald Dutile <ddutile@redhat.com>,
-	Eric Auger <eric.auger@redhat.com>,
-	Hanjun Guo <guohanjun@huawei.com>,
-	Jean-Philippe Brucker <jean-philippe@linaro.org>,
-	Jerry Snitselaar <jsnitsel@redhat.com>,
-	Moritz Fischer <mdf@kernel.org>,
-	Michael Shavit <mshavit@google.com>,
-	Nicolin Chen <nicolinc@nvidia.com>, patches@lists.linux.dev,
-	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-	Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>,
-	Mostafa Saleh <smostafa@google.com>
-Subject: Re: [PATCH v4 00/12] Initial support for SMMUv3 nested translation
-Message-ID: <20241112182938.GA172989@nvidia.com>
-References: <0-v4-9e99b76f3518+3a8-smmuv3_nesting_jgg@nvidia.com>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <0-v4-9e99b76f3518+3a8-smmuv3_nesting_jgg@nvidia.com>
-X-ClientProxiedBy: MN2PR15CA0065.namprd15.prod.outlook.com
- (2603:10b6:208:237::34) To CH3PR12MB8659.namprd12.prod.outlook.com
- (2603:10b6:610:17c::13)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="auQSndQ7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7AB76C4CED8;
+	Tue, 12 Nov 2024 20:16:49 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1731442609;
+	bh=SS/rjAXPtHfu1bb9tzPEZAUs5OUMggHetyMYQXeht2Y=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=auQSndQ7pmBKqUbxPMPXjaW8kj7UDtrLfTzHIGvSe2+Pvc5qNErEzR7comGF6Hc3b
+	 c7hvZzDcSsmNDR6Js30Fx3G6ftnWCgVPIAAvNR+qL4ihQh3A4OAg0g3BLPDnXukg/4
+	 339k8V3MaAmcPf48pMy5L2HWma17f08kig5R49l1C2zItuXFkwHOoqKSYH+0k1ISTl
+	 vnFaCj+PPkje6in9gONW28TpLPPUtfNIuHipAPASy5twpvzXTpbEc9Qijoz9TR/Af8
+	 jMYeiYxP51ubQxovywHIMEsJdIqfbwkSKQDlx8uqaOeqo4YY7FHnhvvR1m6SHqBTsu
+	 KXf+kndc/oCWA==
+Received: by mail-ot1-f50.google.com with SMTP id 46e09a7af769-7181b86a749so2697125a34.3;
+        Tue, 12 Nov 2024 12:16:49 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AJvYcCXN9saMb096f/A7QU7jEjunEqRhLMrMnrJ5kVLrOSXOdbLW01sCdhxkxYfnZOVvdQEleNSNYlHwWyhP@vger.kernel.org, AJvYcCXZXIiS+k1R7pw4YLRETCyF7pdX60lOYJbbmgfG2vsrPFhayWhvDBtljNMzx/9rWbJ70WspK9ncUdn0eAYn@vger.kernel.org, AJvYcCXi8ZGhOQwONukQzBIEJSs4aKX5g92x0e6YEtR+jOetHdCP3oo47LhcB/JXOhWV8L8rnzlPjEjLdKTmUEtXBjSL+lnjwQ==@vger.kernel.org
+X-Gm-Message-State: AOJu0Yx6WvzBoRwU6xZkwZfKUIMYsORNU++ydA+LwbIfRy6YqqsOzgwX
+	fNubvKnsYXP/fMEB7hcw0C2itoWT9x21MEqTxZ5nJCH0V+pXpt61rqZqyJDPIunF63TGUBrsclA
+	crz7G1dH6nq2bFr1fMRdJ7qXE0Uw=
+X-Google-Smtp-Source: AGHT+IH/JnJpO5YQfQKUNDwekjJUjo6v6sqC4pmMl3hn+ZnZhzkr5nmVDlDnDh840H/gbeKpvSjgdRrOVbFJlVofLXY=
+X-Received: by 2002:a05:6830:6c0c:b0:710:fef4:3c92 with SMTP id
+ 46e09a7af769-71a1c288988mr17676536a34.21.1731442608496; Tue, 12 Nov 2024
+ 12:16:48 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CH3PR12MB8659:EE_|IA1PR12MB6482:EE_
-X-MS-Office365-Filtering-Correlation-Id: a60af493-d0e4-491b-181d-08dd0347f835
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|366016|7416014|1800799024|921020;
-X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?M3lgGGgXyx+sSjVM5yu1uEK+v1kf3OfMMPDPCFeO2gXZIFImAyr0xW2CR1uA?=
- =?us-ascii?Q?r5y/8kNKHdKqxGoAie0uN/B35tuGXRq7mNVpzD9LtoffOB1GE/5xUl9wPvNY?=
- =?us-ascii?Q?Vd84EFAa1nfptHc/5UPSl+Xotr9uYgEnz0DLhhrTnHGusyGOIIYvTnoO+Urc?=
- =?us-ascii?Q?4lV/GURcnFqTVy6habeYb7vYcjBMY7pAN9f0YjT28Y2THFrFkdFiWeK00ZJf?=
- =?us-ascii?Q?as8mRd6s3LsS6VtIp5ulj+WnXbchv5aL9FKGfeGkLrUCUz2eLJdvcm8LyXzk?=
- =?us-ascii?Q?wZPdgZpIrkkmCTLjZn0wW33KmWceLvJxGVE4J9ocd/oR5HMK+ADVEfLT6w2W?=
- =?us-ascii?Q?E8o1yzyTsNMCx6ZdTFFc6nFq3bhuOI1GPx42pmkRnZcpleHCTI4Bc2gEoNdz?=
- =?us-ascii?Q?3aeQcE0ejlc8EdzqlweGqGAXry+r+kfeD29LJG0vDGs0Gns2S0EtyEdhkIzy?=
- =?us-ascii?Q?oXs+0FEwu4NJk0JSqBDZnasEhJ6/3Zt7w6sdXyXAD5nW6gxkCsUs0CaSPLh4?=
- =?us-ascii?Q?LbpzWEaFC4TbMjdOOoCRVEaDMTh7mxCwU6iwTeyKJNiFMRYGphvn++mx9ANZ?=
- =?us-ascii?Q?y3XxC7D1UXNVvSh/3V30bBc5+2aDpP8W7JkBzpM0hoWcJmCfE/9F3XuW5R+T?=
- =?us-ascii?Q?2v5z7/s/Umdngp7pRPthzPg8fGgrCyEmeK9I1XKKqd9zy39bx0hpkPpI32bj?=
- =?us-ascii?Q?OUry4umYUEJ83zyrqeh1WT08lR/m1MboI31IHky2MAhu4/+V8NFrd7iQIN56?=
- =?us-ascii?Q?gt3lUSWwRhJIZG3N7jvU3DAcvRkQPr0lqSYACtxNFeXjt4huoZ4SgVe8Tw9O?=
- =?us-ascii?Q?7NWmu5BTT/8xjVb8ix/HXHle/E5hxkHzSrwBDBIOenJQerK5CnBPikR6MiX/?=
- =?us-ascii?Q?gRy/NjMJUR/09fLqD8xOuhG1AVPl+7ElKPmgDCj7G0AJTpO5m8r/vDheo4nx?=
- =?us-ascii?Q?u96QSBs00iB/WKYYAIZgAChg8vvfnU8YPXIGGMH71PtWSjjEDDO3PvwrVAfb?=
- =?us-ascii?Q?Mi2Bt77tgeR+oUUve1C4RKBoSNCK/bomTTqO44O/eOkooMSS+cexUarxFK+a?=
- =?us-ascii?Q?ka1Tc65V/re5SLXN3wRXEfm0k8j6vhvwYvlJOa9s862t4U8yChR2k0DJgSsP?=
- =?us-ascii?Q?zz9Kn/NtFIXfs1VuOi7dOycpEkQLqUN7vSC8f0HsZB6bHuE1YYo46exrpYbb?=
- =?us-ascii?Q?cCu6EY+H3PIrFqt9GTMPoeKE4hBRpvo6LyQ/ljUeSFCqhTrgYmpvqn0HLN5x?=
- =?us-ascii?Q?XrJ3+LtdsMjvD+Ktq5ayJ05YfUS6/TmJKB3pEKwFLqKTO5pi54xWQMtHH5jm?=
- =?us-ascii?Q?v1LgAi1xYGaGSeNH7ueKi3UH7O5G4rBbE44yEmFO3DAVs1OsDI4DWH+cSoca?=
- =?us-ascii?Q?fI5gMuY=3D?=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CH3PR12MB8659.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(366016)(7416014)(1800799024)(921020);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?XYMQAUyFGnTXWbwdUe3WC8bsB3n9HT0ge7sji3la4gThn8+FGa3yep9BASkD?=
- =?us-ascii?Q?Wg0ifESUNLwzujAsSdtoZWt+apFr7S+DMq8DogCwHqLmcwBIFWkaONKnAH/0?=
- =?us-ascii?Q?uAoRRSqZXZDpphiJJNjbtYU/hK4bU7+CNK7n6x+2ko1Adjrfe16e1JLfqPwe?=
- =?us-ascii?Q?ACUIls+zkA5iGWeWXXzkpHGz7VYRmHWqeIMHXHHd3lpxAaKpeGyN9G3HuNU3?=
- =?us-ascii?Q?mqSiJP+kL3+wETvbLT5gcoG7DQISB3gfJCHPXA8/ju8B9bK9inM+2r7E8+QP?=
- =?us-ascii?Q?ceR/3iGXq/GpmguZYd2ISvDObJVI2IsD3NdIAOfnyi3HPaAAear/tq8A7sEA?=
- =?us-ascii?Q?36T4r9qdctj8EZRCff8nCG+rCCMRWoJOKX/IBk7pHRQNLOICd7Zrweq0CgkH?=
- =?us-ascii?Q?As4KQNb6Z27L8NkF0C0OWDqlTTCiPFb2NKWrcUIlYa3JEV+ypVOeLu+fjN0/?=
- =?us-ascii?Q?7QBCUTVDYgT/jom8W5rTRmbN1N7kSm1KThkckrsizFr2lRxlmOOamr046fro?=
- =?us-ascii?Q?fXwKX6Lmj3zNtt6MvBPnL/OUDMyO81Lxctfp//Fds7zC+Zj0an0DZn5R88UM?=
- =?us-ascii?Q?cMGPBJ/lNJUdBI66Q+H46IVj90gDdV15giABYxIv/1kUdQ1DKjKolKAW+K83?=
- =?us-ascii?Q?w4vQb0MqnuPUcf0TIOazzqx6Bp+2h+0aJJEK271GZfHQgcsrfCds4+E7UjYJ?=
- =?us-ascii?Q?3zu/RYI4Hygk8Ys13TSxtBNalY/UH8J4oS/bXirVn4XJ+KYmcmQr8tNqr/VK?=
- =?us-ascii?Q?LcV/sZiClI7bWWuXn8L7UpHKN0Slq+3vfp7oksH3pIAEZSY7NJSM3NWuwqyc?=
- =?us-ascii?Q?qzob24BYDeZzT+wH5geLrTUUJMNphaA+TUUZFdKXJ1JDaXTHct/SU+S4VWgK?=
- =?us-ascii?Q?7aEdpx3jTy1dCYSU82wtLLTNNhOu6Hv9FsvylK6O+UToxQGLf5/h5yJliGOU?=
- =?us-ascii?Q?aXFZr7lHI0PnyZrgvMQjIeRxzZMz+3Gt1nX+CYJdcvLRXmZCxfxLulZ3tyus?=
- =?us-ascii?Q?yTkpN1Mv8bGnymnEr7/esDcUbTdpx6gVWNUEjPsb6sSeP+exv4SzaF3pmDL5?=
- =?us-ascii?Q?JSABeq43JenFY6k75pRam+HZHWMFudYyRQh/SnjkUeAYpUVg4GblNevp3Dm/?=
- =?us-ascii?Q?TP70A3gB/uOhoHdiMrYYrE+9WOEKluIleJwzA0P8YBOIziS1LSP5yDAi2hfq?=
- =?us-ascii?Q?3YnjTI20nTEufOJLNDkMteG/6JkgbDJZ7GluB1RIOBYbDhyk5RP9Un1LHAXD?=
- =?us-ascii?Q?Xul0s080JzTrxNQxUsoys/hzAg4ZU8PP/zk6g0O9BOuZr0AdyCyEfp2MZIXm?=
- =?us-ascii?Q?Cpblwy7050pa76HVhdXXGFBjXbbJJhgG/ZNLRkbdMfUTo544cB/mvJCnICOq?=
- =?us-ascii?Q?BKWpgfuGB+x7uqm4HmcCdKsZP7YuTlGseFfhSZWMntDXqGNX551RhrisnyyV?=
- =?us-ascii?Q?ApQ4nIqPZ1HhTJrlFQLX6baQnp4JWgmWFQtbJuRC7VvNZCFF+NAfGsUwIsMM?=
- =?us-ascii?Q?ayvKYX8i+DKlAMSSnc4mG1YPX67Ytmmsf6ukAWWuA6L225tEwu6ZqUgZ9dgA?=
- =?us-ascii?Q?qCE5917YvWngSeCYqDY=3D?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: a60af493-d0e4-491b-181d-08dd0347f835
-X-MS-Exchange-CrossTenant-AuthSource: CH3PR12MB8659.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 12 Nov 2024 18:29:40.0508
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: fExhsYtRoGGLNbIu4ccvApSNdh8LOSNB5eey6/pUqwbVWvahlIr7eYowaxtx0lc0
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR12MB6482
+References: <20241109044151.29804-1-mario.limonciello@amd.com>
+In-Reply-To: <20241109044151.29804-1-mario.limonciello@amd.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Tue, 12 Nov 2024 21:16:37 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0gaNKKbf29WD5keQxJdgP93P_iWiQMwp7cOL9NCUumeZA@mail.gmail.com>
+Message-ID: <CAJZ5v0gaNKKbf29WD5keQxJdgP93P_iWiQMwp7cOL9NCUumeZA@mail.gmail.com>
+Subject: Re: [PATCH v6 00/22] Add support for binding ACPI platform profile to
+ multiple drivers
+To: Mario Limonciello <mario.limonciello@amd.com>
+Cc: Hans de Goede <hdegoede@redhat.com>, =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, 
+	"Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
+	Maximilian Luz <luzmaximilian@gmail.com>, Lee Chun-Yi <jlee@suse.com>, 
+	Shyam Sundar S K <Shyam-sundar.S-k@amd.com>, Corentin Chary <corentin.chary@gmail.com>, 
+	"Luke D . Jones" <luke@ljones.dev>, Ike Panhc <ike.pan@canonical.com>, 
+	Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Alexis Belmonte <alexbelm48@gmail.com>, 
+	=?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= <u.kleine-koenig@pengutronix.de>, 
+	Ai Chao <aichao@kylinos.cn>, Gergo Koteles <soyer@irl.hu>, 
+	open list <linux-kernel@vger.kernel.org>, 
+	"open list:ACPI" <linux-acpi@vger.kernel.org>, 
+	"open list:MICROSOFT SURFACE PLATFORM PROFILE DRIVER" <platform-driver-x86@vger.kernel.org>, 
+	"open list:THINKPAD ACPI EXTRAS DRIVER" <ibm-acpi-devel@lists.sourceforge.net>, 
+	Mark Pearson <mpearson-lenovo@squebb.ca>, Matthew Schwartz <matthew.schwartz@linux.dev>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Wed, Oct 30, 2024 at 09:20:44PM -0300, Jason Gunthorpe wrote:
-> Jason Gunthorpe (7):
->   iommu/arm-smmu-v3: Support IOMMU_DOMAIN_NESTED
->   iommu/arm-smmu-v3: Use S2FWB for NESTED domains
->   iommu/arm-smmu-v3: Allow ATS for IOMMU_DOMAIN_NESTED
-> 
-> Nicolin Chen (5):
->   iommu/arm-smmu-v3: Support IOMMU_VIOMMU_ALLOC
->   iommu/arm-smmu-v3: Support IOMMU_HWPT_INVALIDATE using a VIOMMU object
+On Sat, Nov 9, 2024 at 5:42=E2=80=AFAM Mario Limonciello
+<mario.limonciello@amd.com> wrote:
+>
+> Currently there are a number of ASUS products on the market that happen t=
+o
+> have ACPI objects for amd-pmf to bind to as well as an ACPI platform
+> profile provided by asus-wmi.
+>
+> The ACPI platform profile support created by amd-pmf on these ASUS
+> products is "Function 9" which is specifically for "BIOS or EC
+> notification" of power slider position. This feature is actively used
+> by some designs such as Framework 13 and Framework 16.
+>
+> On these ASUS designs we keep on quirking more and more of them to turn
+> off this notification so that asus-wmi can bind.
+>
+> This however isn't how Windows works.  "Multiple" things are notified for
+> the power slider position. This series adjusts Linux to behave similarly.
+>
+> Multiple drivers can now register an ACPI platform profile and will react
+> to set requests.
+>
+> To avoid chaos, only positions that are common to both drivers are
+> accepted when the legacy /sys/firmware/acpi/platform_profile interface
+> is used.
+>
+> This series also adds a new concept of a "custom" profile.  This allows
+> userspace to discover that there are multiple driver handlers that are
+> configured differently.
+>
+> This series also allows dropping all of the PMF quirks from amd-pmf.
+>
+> ---
+> v6:
+>  * Add patch dev patch but don't make mandatory
 
-Applied to iommufd for-next along with all the dependencies and the
-additional hunk Zhangfei pointed out.
+Probably a typo?
 
-Thanks,
-Jason
+Which patch is it, BTW?
+
+In any case, if the merge window for 6.13 starts on the upcoming
+weekend, which is likely to happen AFAICS, I'll defer applying this
+series until 6.13-rc1 is out.
+
+It's larger and it's been changing too often recently for me to catch
+up and I'll be much more comfortable if it spends some time in
+linux-next before going into the mainline (and not during a merge
+window for that matter).
+
+>  * See other patches changelogs for individualized changes
+>
+> Mario Limonciello (22):
+>   ACPI: platform-profile: Add a name member to handlers
+>   platform/x86/dell: dell-pc: Create platform device
+>   ACPI: platform_profile: Add device pointer into platform profile
+>     handler
+>   ACPI: platform_profile: Add platform handler argument to
+>     platform_profile_remove()
+>   ACPI: platform_profile: Pass the profile handler into
+>     platform_profile_notify()
+>   ACPI: platform_profile: Move sanity check out of the mutex
+>   ACPI: platform_profile: Move matching string for new profile out of
+>     mutex
+>   ACPI: platform_profile: Use guard(mutex) for register/unregister
+>   ACPI: platform_profile: Use `scoped_cond_guard`
+>   ACPI: platform_profile: Create class for ACPI platform profile
+>   ACPI: platform_profile: Add name attribute to class interface
+>   ACPI: platform_profile: Add choices attribute for class interface
+>   ACPI: platform_profile: Add profile attribute for class interface
+>   ACPI: platform_profile: Notify change events on register and
+>     unregister
+>   ACPI: platform_profile: Only show profiles common for all handlers
+>   ACPI: platform_profile: Add concept of a "custom" profile
+>   ACPI: platform_profile: Make sure all profile handlers agree on
+>     profile
+>   ACPI: platform_profile: Check all profile handler to calculate next
+>   ACPI: platform_profile: Notify class device from
+>     platform_profile_notify()
+>   ACPI: platform_profile: Allow multiple handlers
+>   platform/x86/amd: pmf: Drop all quirks
+>   Documentation: Add documentation about class interface for platform
+>     profiles
+>
+>  .../ABI/testing/sysfs-platform_profile        |   5 +
+>  .../userspace-api/sysfs-platform_profile.rst  |  28 +
+>  drivers/acpi/platform_profile.c               | 537 ++++++++++++++----
+>  .../surface/surface_platform_profile.c        |   8 +-
+>  drivers/platform/x86/acer-wmi.c               |  12 +-
+>  drivers/platform/x86/amd/pmf/Makefile         |   2 +-
+>  drivers/platform/x86/amd/pmf/core.c           |   1 -
+>  drivers/platform/x86/amd/pmf/pmf-quirks.c     |  66 ---
+>  drivers/platform/x86/amd/pmf/pmf.h            |   3 -
+>  drivers/platform/x86/amd/pmf/sps.c            |   4 +-
+>  drivers/platform/x86/asus-wmi.c               |  10 +-
+>  drivers/platform/x86/dell/alienware-wmi.c     |   8 +-
+>  drivers/platform/x86/dell/dell-pc.c           |  36 +-
+>  drivers/platform/x86/hp/hp-wmi.c              |   8 +-
+>  drivers/platform/x86/ideapad-laptop.c         |   6 +-
+>  .../platform/x86/inspur_platform_profile.c    |   7 +-
+>  drivers/platform/x86/thinkpad_acpi.c          |  16 +-
+>  include/linux/platform_profile.h              |   9 +-
+>  18 files changed, 553 insertions(+), 213 deletions(-)
+>  delete mode 100644 drivers/platform/x86/amd/pmf/pmf-quirks.c
+>
+>
+> base-commit: d68cb6023356af3bd3193983ad4ec03954a0b3e2
+> --
+> 2.43.0
+>
