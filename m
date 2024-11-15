@@ -1,235 +1,203 @@
-Received: from mail-lf1-f45.google.com (mail-lf1-f45.google.com [209.85.167.45])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from NAM11-DM6-obe.outbound.protection.outlook.com (mail-dm6nam11on2052.outbound.protection.outlook.com [40.107.223.52])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26A811D5CFB
-	for <linux-acpi@vger.kernel.org>; Fri, 15 Nov 2024 17:17:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.45
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731691044; cv=none; b=GRAHBjiRs7l54OE4bvrSNN65CJHTRS07BUNDFjj+2boqpVly34Gd9lipJW4QzCis+cdciO2TPWyVOkUP2QvdUFN02VwzG2Tmru9TjyqQb12LZyzt+1NNVc55FyFbEf4DiZU4mYL+K7DLirXmuD6P5HsbCmOPfME5MpAa9hyjnNc=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731691044; c=relaxed/simple;
-	bh=dudNV8lZaARJ8R6vtUHMru3xb0b25fmDo9FMLHGOLD0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=aN0dpFoNBZkQmBEeWDKKlA2Nq3jgEOBGNJMw6bl5O3IIcB5yhMJwMuxVGwgulxHRISv1ioyJKElKuo467Pr6b0q5EzELAMZGAcOTiDpQ6kNsaZCVyYc9C4k3CwRNSrfM745ns9mpVLEYfW1ZVPq/DcrEar1lw+jGNoS2/2HFx9g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org; spf=pass smtp.mailfrom=linaro.org; dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b=CU86FSKs; arc=none smtp.client-ip=209.85.167.45
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 331E51D5ADB;
+	Fri, 15 Nov 2024 17:55:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.223.52
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1731693331; cv=fail; b=iV8TaJ0LH6ni3VBCWXPMAbOtG/NzBFlreiEpw4epygCFtSoGY6uUSNMWv9HLAsz5A8OL6Kwi+GJSPljz6ARCZRc+K1GNTvdqowGV5uBjnntFeHL03dxYIAV//1KDdlSXZ8+lTbpahWru+zo5RIDUHiARtTqOxumBLUTvF5HZgoM=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1731693331; c=relaxed/simple;
+	bh=b79WYDYD47DuJDVuPLoMc0OMVn+z+z1A70V7s1GaPxM=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=MNR5IcbHdE9e7tzgZJFrw/OzYlJN8ERmkFeTzQsHtN0Seaw1xjJdpCty8QOg/zFhvFHliJkE4cmw7+HNDv3IvxVecDfbFzDsgDb3O5Xd9TUC4LTk7syXPnpteEDiZ8zO4pru/q2RMmQ1TMALXIkH9W0rhVHTK8L84bGqEkwD18M=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=aoYtLkik; arc=fail smtp.client-ip=40.107.223.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="CU86FSKs"
-Received: by mail-lf1-f45.google.com with SMTP id 2adb3069b0e04-53da4fd084dso2048776e87.0
-        for <linux-acpi@vger.kernel.org>; Fri, 15 Nov 2024 09:17:21 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1731691040; x=1732295840; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=D4Jij5ZiyYR7q7f1BKhrLmhVfOlfLfWFGY97ESBDfCI=;
-        b=CU86FSKsRCC4XV1/3InxYZBUkoYYleJwLaZmJQzmGxU/JNY01weWpH74FuFFI3z/Uh
-         bBb2UHbRq6FLgvu7jPpCG51+zWcigtU8KFvyeI9d9srch4RpxUyqR3lflj+KWvcWZj8Z
-         KatR4wwOD4CCBoAYtn2jBy651i8aHp1+gXaLBm8X3NebboJaqeem182WwHq+w+6zJ0Al
-         IWxPHMOaXAWfg/pMd6K7xGEFNaLQI1oc+hUP9hfDF9fHxETP9y/4lyDLxHzjCRhBs7/f
-         JyfxA/77s/BCHWQZFhaPWBSzl4lpIBO9CON4iGOFdO7OSsu3IjUNpOptLRtMy9MgelVq
-         htvA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1731691040; x=1732295840;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=D4Jij5ZiyYR7q7f1BKhrLmhVfOlfLfWFGY97ESBDfCI=;
-        b=fo6CGMfBH42DxTePyRuX0nEWoiM6Z4AxrWV6chZSuh+ZP2ORcPytnxTJL/p63ltNQj
-         AfvnjXHoVlRJmY5litEn+jardO04oLP9ffH9F8lZvZtf+DXkbuLcl8+xvP6tr8nnffJM
-         J93eAj26919pmOL1liEDY308m99EEV07M/NiafZUSSNTU49wM/U7e0F54gxvUAggvl94
-         wmLfyI0dvFbMURYw9Y0P1Dy7GU0wixkx1fx9is0Nja5VGDjPdQ/Iha8ToF0T8xMkZtPn
-         T2pLyw1TF8AEN6U4p7hSMg3R3aOGIx1e0Jj7ROD+bSow2vH9qQK73ymnC+DLNbao6ZDd
-         HkZg==
-X-Forwarded-Encrypted: i=1; AJvYcCV+iiC01veSXZYIdYH+MAcRdCzkQHnj5Zw8XL7WHCJ3SUSWQpfbYCuMgi3XSuIhVaoUT1e9GvvXmm79@vger.kernel.org
-X-Gm-Message-State: AOJu0Yyv5kOdAk9fDHQDKIlG61VJvYyuxObvssieKskVFwY09FF1ENwR
-	ico0AqXffL2Zyb9ZBunxpdnyNxB7ls/4w8BbaGLJU6XqZYEbl7UhGc2hgPM9ziM=
-X-Google-Smtp-Source: AGHT+IGfdczbNo1qbqPUDSTwkxc1cdI7zsZl3k/BO2AM1dhdUD0Y5jnw7Lrulzx60UW10cgrMTk37g==
-X-Received: by 2002:ac2:43ab:0:b0:53d:ace6:f64e with SMTP id 2adb3069b0e04-53dace6f74bmr728670e87.16.1731691040151;
-        Fri, 15 Nov 2024 09:17:20 -0800 (PST)
-Received: from eriador.lumag.spb.ru (2001-14ba-a0c3-3a00--7a1.rev.dnainternet.fi. [2001:14ba:a0c3:3a00::7a1])
-        by smtp.gmail.com with ESMTPSA id 2adb3069b0e04-53da64f8c63sm636998e87.24.2024.11.15.09.17.16
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 15 Nov 2024 09:17:18 -0800 (PST)
-Date: Fri, 15 Nov 2024 19:17:15 +0200
-From: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
-To: Stephen Boyd <swboyd@chromium.org>
-Cc: chrome-platform@lists.linux.dev, linux-kernel@vger.kernel.org, 
-	patches@lists.linux.dev, devicetree@vger.kernel.org, 
-	Douglas Anderson <dianders@chromium.org>, Pin-yen Lin <treapking@chromium.org>, 
-	Andrzej Hajda <andrzej.hajda@intel.com>, Benson Leung <bleung@chromium.org>, 
-	Conor Dooley <conor+dt@kernel.org>, Daniel Vetter <daniel@ffwll.ch>, 
-	David Airlie <airlied@gmail.com>, dri-devel@lists.freedesktop.org, 
-	Guenter Roeck <groeck@chromium.org>, Jernej Skrabec <jernej.skrabec@gmail.com>, 
-	Jonas Karlman <jonas@kwiboo.se>, Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>, 
-	Laurent Pinchart <Laurent.pinchart@ideasonboard.com>, Lee Jones <lee@kernel.org>, 
-	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, Maxime Ripard <mripard@kernel.org>, 
-	Neil Armstrong <neil.armstrong@linaro.org>, Prashant Malani <pmalani@chromium.org>, 
-	Robert Foss <rfoss@kernel.org>, Rob Herring <robh+dt@kernel.org>, 
-	Thomas Zimmermann <tzimmermann@suse.de>, Tzung-Bi Shih <tzungbi@kernel.org>, 
-	Alexandre Belloni <alexandre.belloni@bootlin.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
-	Daniel Scally <djrscally@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>, Ivan Orlov <ivan.orlov0322@gmail.com>, 
-	linux-acpi@vger.kernel.org, linux-usb@vger.kernel.org, 
-	Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, 
-	Sakari Ailus <sakari.ailus@linux.intel.com>, Vinod Koul <vkoul@kernel.org>, Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH v4 15/18] dt-bindings: usb: Add ports to
- google,cros-ec-typec for DP altmode
-Message-ID: <5kisfv22tgqwzjpxqrbx56ywr7l4r7pny3pl2r7crv4rijqbwk@azricdasttg7>
-References: <phdcjgqqpjpruxp7v2mw446q73xr3eg4wfgfbjw5tasgr2pgg2@77swbk47b2tg>
- <CAE-0n514QMaQC2yjKP8bZqyfbv6B3AQm=+NJ87vxo6NdYiL03A@mail.gmail.com>
- <lf7y7wpuca6kzqcglgs5d443iusf7xjocum4adi7t3npfavccx@zgsp37oyztme>
- <CAE-0n53-KmOS3zXmJPvOOZ7xxkek9-S=oBExgaY0PDnt_HjdNw@mail.gmail.com>
- <yk3xidaisbd56yndaucax7otijjauqmm7lqm6q4q633kdawlqo@qaq27lwxmvwd>
- <CAE-0n501j+8bMnMKabFyZjn+MLUy3Z68Hiv1PsfW0APy5ggN8g@mail.gmail.com>
- <gstohhcdnmnkszk4l2ikd5xiewtotgo5okia62paauj6zpaw7y@4wchyvoynm2p>
- <CAE-0n50z6MNa7WOsg-NU7k8BpFeJJyYfHX3ov6DsthLWauSNpA@mail.gmail.com>
- <hqmx7jtkvrwvb27n56hw7rpefhp37lhr3a5fawz7gsl76uuj5s@h7m6wpdhibkk>
- <CAE-0n50y1O2C47zOGJPmMjKXK_m6a=jhpEAP4nW+RymZbo2xyg@mail.gmail.com>
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="aoYtLkik"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=y5Dm2MtCe66WUlbIBkjD3Bz1oH/qau96g0xVKEOaqINLmY8p2MsxG7YNE8af+T3GgtoGe40mMu8vvm7b1BPqY/KIP3oBknvOglaNqYuOp3FRmnKEtWRjZgjZSvaDSUdyrvfU8a8dZU0Wy7ZA9nva/YM9+JWEF6APxnljD1uUGlVG5MhunSfxjaTG7rLd551a0OeF1ZurAKXdkMMNyKbHWPiVFpOClqDXYNvTLK2MRBmvEOOrlzeY+RKLjSKOCJcIRkyrqRS3LhJbCgPFtghy4VUz9/sKuSSoJv5DEJn8s0mxy3q+ULPj9uij3ofKJFC6g7YjRvKRR0hxMsV33lkWVw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=lE8VoHLIWRB4ibsLC9j/Wnt/YktLXTPLTZmciV+yDMI=;
+ b=q0/AtyZJ+k3bwxKqYfycuh7xhdFKat4LzoJkyZMKd0xA+CJOJBzf6OTNiCYIkdIV+y8P4mB4RKTetsBM2u3EcB5TzL161GFCImuw63pAD61uN++A0FblyoEB15lmJVmVBwwRXawaaSdZCuvr10klBgshTNIC32g7JaoPaLlUbglZn632jOSne7Mxpub8ikI9DwiwTJFjZpG3Ioxi34wIYr7r8jztm4mtqz5LgyL/edlZH+jysGk82eycCsjz/hHS6poUwHFGBM8aOGQdHx/wxP5e4xkRrJxqRr00OPU44tc+uTmWO0MOOwt3YPCMV1o+MrcQQSCNqOINjH9shzUFJg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=lE8VoHLIWRB4ibsLC9j/Wnt/YktLXTPLTZmciV+yDMI=;
+ b=aoYtLkikxOluR61jq+mjAvXzLaj5VhaUTjiW8CL3dJXJfDvwawfpNySaeUq5abSH7E6EB5Gn48A7nPF0tJZxnKuBLsPUMlvDPSwlVNS4/GH46w+hw3A9aIgOgs9Pt4VQn2F4qThFrMbSHKx9+iCSTp6okH66GmNGQOHvvWzV7FS4ie+03QxTSZjCvnAKcDN3wiM7FYPGoIPkAW0mFDfZNiH0h1GqMj8zviNHpq2BJsZtYtx+qEvrmKEHT4cS1H/6qk9jQ8jun11ivZA67qhKvzOw0/pvnHQThsuV7vY/d2oDxMDmZ1+UoauIkrDKkNqRGIdxyiFXx0iYBjXaEH0adw==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from MW6PR12MB8663.namprd12.prod.outlook.com (2603:10b6:303:240::9)
+ by CYYPR12MB8752.namprd12.prod.outlook.com (2603:10b6:930:b9::13) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8158.17; Fri, 15 Nov
+ 2024 17:55:23 +0000
+Received: from MW6PR12MB8663.namprd12.prod.outlook.com
+ ([fe80::594:5be3:34d:77f]) by MW6PR12MB8663.namprd12.prod.outlook.com
+ ([fe80::594:5be3:34d:77f%6]) with mapi id 15.20.8158.019; Fri, 15 Nov 2024
+ 17:55:23 +0000
+Date: Fri, 15 Nov 2024 13:55:22 -0400
+From: Jason Gunthorpe <jgg@nvidia.com>
+To: Baolu Lu <baolu.lu@linux.intel.com>
+Cc: Zhangfei Gao <zhangfei.gao@linaro.org>, acpica-devel@lists.linux.dev,
+	iommu@lists.linux.dev, Joerg Roedel <joro@8bytes.org>,
+	Kevin Tian <kevin.tian@intel.com>, kvm@vger.kernel.org,
+	Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Robert Moore <robert.moore@intel.com>,
+	Robin Murphy <robin.murphy@arm.com>,
+	Sudeep Holla <sudeep.holla@arm.com>, Will Deacon <will@kernel.org>,
+	Alex Williamson <alex.williamson@redhat.com>,
+	Donald Dutile <ddutile@redhat.com>,
+	Eric Auger <eric.auger@redhat.com>,
+	Hanjun Guo <guohanjun@huawei.com>,
+	Jean-Philippe Brucker <jean-philippe@linaro.org>,
+	Jerry Snitselaar <jsnitsel@redhat.com>,
+	Moritz Fischer <mdf@kernel.org>,
+	Michael Shavit <mshavit@google.com>,
+	Nicolin Chen <nicolinc@nvidia.com>, patches@lists.linux.dev,
+	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+	Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>,
+	Mostafa Saleh <smostafa@google.com>
+Subject: Re: [PATCH v4 00/12] Initial support for SMMUv3 nested translation
+Message-ID: <20241115175522.GA35230@nvidia.com>
+References: <0-v4-9e99b76f3518+3a8-smmuv3_nesting_jgg@nvidia.com>
+ <20241112182938.GA172989@nvidia.com>
+ <CABQgh9HOHzeRF7JfrXrRAcGB53o29HkW9rnVTf4JefeVWDvzyQ@mail.gmail.com>
+ <20241113012359.GB35230@nvidia.com>
+ <9df3dd17-375a-4327-b2a8-e9f7690d81b1@linux.intel.com>
+ <20241113164316.GL35230@nvidia.com>
+ <6ed97a10-853f-429e-8506-94b218050ad3@linux.intel.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <6ed97a10-853f-429e-8506-94b218050ad3@linux.intel.com>
+X-ClientProxiedBy: BN9PR03CA0335.namprd03.prod.outlook.com
+ (2603:10b6:408:f6::10) To MW6PR12MB8663.namprd12.prod.outlook.com
+ (2603:10b6:303:240::9)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAE-0n50y1O2C47zOGJPmMjKXK_m6a=jhpEAP4nW+RymZbo2xyg@mail.gmail.com>
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: MW6PR12MB8663:EE_|CYYPR12MB8752:EE_
+X-MS-Office365-Filtering-Correlation-Id: 960e9745-0ad5-4ba7-f22c-08dd059eadbb
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|7416014|366016|1800799024|376014;
+X-Microsoft-Antispam-Message-Info:
+	=?us-ascii?Q?mbxJjowsLnZ8zHTgcI7P2yvZzlRzGcs396HiH68FJ5z+6YRTfBbU/WxY0j1U?=
+ =?us-ascii?Q?ee0hy3QrIUdwA/EVq11ELyhK86VrwbU3X9LApYsNzJVo2V8lNgSUxpr3/sBG?=
+ =?us-ascii?Q?H9GfjcOVTlDBdgAAqYqUdgPHXf53/76+0Cvhl0u9ocNVRfYoQX5VMVY4feiw?=
+ =?us-ascii?Q?5jlj4ERPcArOZoRiWi0KM9QzBwJUaZlkfz8cN/U+nKqlTAUnMEa9S2LrFJGT?=
+ =?us-ascii?Q?75GmD/QTYEX0CXJL9OD7oZpeXcUhjxcxpCZc7VJE4B5WCnSSW+LAZ8GVLw+x?=
+ =?us-ascii?Q?KHB/c/3OrMOioW4ZKgccXd8BHxobQJCZFXkYUeAYS8Z7cZEylwMoG1isigy9?=
+ =?us-ascii?Q?IpRVM/RYlQGnT0+Ul0qem8us0oKXBDf+JXx22hiUSUzCp3map99DOB5eqAaY?=
+ =?us-ascii?Q?zudXKqGCIBUqGum4Vo4W2rqzLVJvq5jN+Cm0BU51wjmxUUMMg+RId/lHWTKw?=
+ =?us-ascii?Q?aU2+SLt9rBCHfzV0j3a3eRcsmymC7rIOd9u/kLHglZ9aOs5M6pJcPau6zBd2?=
+ =?us-ascii?Q?mLD9hcZthZo/1huz+2BDBQqVJpkjKBABl4twEIXDW5nq5oUA3cMnDBkgel0E?=
+ =?us-ascii?Q?pq/VNvmNCFMA996JLjnrNsQ89f+WeF3VmhEjkxmnqOawxXrdnygICBC/ooPa?=
+ =?us-ascii?Q?+9DdxmhqfTiMfPo4++FoSt3LsZ5ss8Fa6OxDyRHZXFDaZav6rVLB5n3lHHDd?=
+ =?us-ascii?Q?fX/afm47kZs5j/4NXbKqtuHRaCjlkw80QDGUweF8Xd1wK2zH03ie10VgKPZ2?=
+ =?us-ascii?Q?xxlByjU9+87DA0cZe09xFgonJmLKNcBiuhVk1U0xElRBTX+CgTmgkWtUkXm8?=
+ =?us-ascii?Q?zs7ATww0DgvvUjJ7JSMBeZw2nwKXkB0iNvr32gANbTLXMo+dr6PVMGjOPjvd?=
+ =?us-ascii?Q?mDmKc0INi5japg1BJvsHaGhJxPFVXibAGq9uA7i99/8PN8iyaAEerbUAesje?=
+ =?us-ascii?Q?repeuuatnoTrbhCU/mJEYfybWFe6u8zMBDxKUa2ATIYPqKdNpbZIEyAQUbIs?=
+ =?us-ascii?Q?sRZ3C6kMQj/3bkEVztqHLlgBbhDOsYxx3x+zjpGnv6w7j45TpnzjueDM8o2n?=
+ =?us-ascii?Q?Vl5xyp/N58UEjipOfKzpbbDZBJ+Fl1T+B+4M4xVhZdZPG6JuRmi+x/l32IMy?=
+ =?us-ascii?Q?1GZ4Vd+sFaNhy44W0FbBmGSt7X3dDQOn1it3kl2UMrKX1HypdT+AP199EGlq?=
+ =?us-ascii?Q?H3teLyZEVLj/KjSfQ3o0Ee1B5rsPki/ZwOhSzd6y89N+/oCYzzFMZchnTLgq?=
+ =?us-ascii?Q?s1FIDwoYp2P4IK93KSQrEoRAe+OENvLLGnxSj+j7R9NmqGrMBA2UozHzyux3?=
+ =?us-ascii?Q?EHb9AnhO/xS8yijMhPnotwva?=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MW6PR12MB8663.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(7416014)(366016)(1800799024)(376014);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?V7tKoSvmOgXEOdU9Cl2dG2FnQmINMsJsmau2Th0VknkMoeI0JmwRR9Xkl8gk?=
+ =?us-ascii?Q?sKb8hi5SqJtQc7Eld6xIFrE4+eeOfMiRMPRqPmcJBVDFWs5Qf7rnflts2G7H?=
+ =?us-ascii?Q?Fc7RlCN9TtDzSFV9laaBFrPs1JoAe1LEl5PMxViPuC5wRE+B3rxvknPZTesn?=
+ =?us-ascii?Q?EsmBpA5lFoldMd3tO+0upiYSPiXRo9K3kGtFAH/6rxIz7uQRzX2x+km0AK7u?=
+ =?us-ascii?Q?/CCobAfRzslWrS8WbljNeSTbjHA+8YKYTtvSoi3JrrC+cMZqBUwSfXdSUWGc?=
+ =?us-ascii?Q?XNfprZXKQS9OoIHw43Z95A4Ym0ng0Wi+7/FtmG88QVm3jbqVBqcrJuYDQUA4?=
+ =?us-ascii?Q?FcE8P0tiJch/Bagn9HMTYw660h4gTAXu+qAjaUgon13jNAJ+IsWx8MCkpuDI?=
+ =?us-ascii?Q?53ktvkI4M81hQ0A5xl8eS8xBS4FjYAo5ZO1YmwWWYLXGGFcm9+i1tVVU2LjB?=
+ =?us-ascii?Q?oVS8dV5fxuU+1jrIqcyRSDVDoLe6HExqrrRzLPZiH1W1zHulP+BB37qOsyj9?=
+ =?us-ascii?Q?kTXuzAUVAijxZJHJGJu6ITB0GDglh6oHGZiz5cIDOE/QvpJXWdpvT44EWZoi?=
+ =?us-ascii?Q?MB1OEa0C6QAodmkZ0y8UU64ruEPdtVmgw4F8Ygr/5lOEg42/0/byd/QaSGPe?=
+ =?us-ascii?Q?PNphNi3Oozrj77sjEypedwQE32mkgZaOVTjx297OqZiwLZEq79RXFuUfHj4M?=
+ =?us-ascii?Q?Sv7pEtDVfkzjwxvI2WVfKQ4atXFmYYOESTw+3a0iq0K42BdECZj6F88wy+Ey?=
+ =?us-ascii?Q?vcxnUPCH6SFm+eSvLA5hir811AcW92G7If026UYW9B/zHaUeYox/zPPuDEgD?=
+ =?us-ascii?Q?UFYW4sVj9afJpx8+xdx3vmZ6WogfWKQey7VbcfNO9kqj8mMzauVH14lzBsCX?=
+ =?us-ascii?Q?Z5/wCpWR9MSJZioRy1tCZ0ThsBBelThFS3ZcCKiMOd2FdqmhYH0stnAgQySQ?=
+ =?us-ascii?Q?UnsXVdj3uJOg4Qfkk7ZAbaptpfzqUH/ThanD3RtzmMogUdmseQZfdK43OJpT?=
+ =?us-ascii?Q?qBLm3R9wAoxQNXyekt8iigmyutJ09ErD7NRM6xROn2MB1/bg9YuUzSW7V7ZB?=
+ =?us-ascii?Q?ZhnIvUr9ZKh8k5ZPjZiaka9XC4FZreM36WD4Pb4TqZ5heO8FkafaItbTi5II?=
+ =?us-ascii?Q?Fm7TzEhkqY1bflEEt5h/Omvl9oBGf7FmTEtmeL6kccGFT/F/K9EfUdWUn5Gp?=
+ =?us-ascii?Q?Y6iuEi2hAByzyNCMrlDx1ceqK4pFEsje/ojMk209N7Sq5nttOpxa+P4OjA8E?=
+ =?us-ascii?Q?9826PjSTEi2H4evaR5iF6/9CkzFnsTlKedZQU0ONvej/fGQSqGkeXEyXoSfX?=
+ =?us-ascii?Q?YCmBmoYUwdC+vK12w7mvjnYYJh0NbNZxFBHbngmRhCCG7YtDGCJgXSNmyrl4?=
+ =?us-ascii?Q?QbTwPKv3S31STBalpTdtP6n14oE1JhymKs7cUlsfX+fxJ/Ak+Z3fSn6ZAgDq?=
+ =?us-ascii?Q?oVyy90JT8FtALcvPU0bxTEoIw4IBrClTF5pFodNPPNVyZ7bYQ3G9HAfZbVzh?=
+ =?us-ascii?Q?7ZeMCi3GkogcZrFXOgm6dSdV+0HD/xT7T/4ZfPn3TKalayWM92MkQFAM/ItN?=
+ =?us-ascii?Q?aVMEm0ETRu16FNMMmL8=3D?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 960e9745-0ad5-4ba7-f22c-08dd059eadbb
+X-MS-Exchange-CrossTenant-AuthSource: MW6PR12MB8663.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 15 Nov 2024 17:55:23.6182
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: ADDYgfLVKWdM12Z/bDc9HTHPH7LNOShfVZI4K2HdWxb3zc6+drPW60AholDfnfHq
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CYYPR12MB8752
 
-On Mon, Nov 11, 2024 at 06:16:27PM -0800, Stephen Boyd wrote:
-> Quoting Dmitry Baryshkov (2024-11-08 23:05:18)
-> > On Thu, Nov 07, 2024 at 04:28:24PM -0800, Stephen Boyd wrote:
-> > > Quoting Dmitry Baryshkov (2024-10-31 15:54:49)
-> > > > On Thu, Oct 31, 2024 at 02:45:29PM -0700, Stephen Boyd wrote:
-> > > > > Quoting Dmitry Baryshkov (2024-10-31 11:42:36)
-> > > > > > On Tue, Oct 29, 2024 at 01:15:51PM -0700, Stephen Boyd wrote:
-> > > Long story short, I don't see how we can avoid _any_ lane assignment
-> > > logic in drm_bridge. The logic shouldn't walk the entire bridge chain,
-> > > but it should at least act on the bridge that is a DP bridge. I think
-> > > you're saying pretty much the same thing here, but you want the lane
-> > > remapping to be done via the typec layer whereas I want it to be done in
-> > > the drm_bridge layer. To me it looks out of place to add a
-> > > typec_switch_desc inside each DP drm_bridge because we duplicate the
-> > > logic about USB type-c DP altmode lane assignment to each DP bridge. A
-> > > DP bridge should just think about DP and not know or care about USB
-> > > type-c.
-> > >
-> > > This is what's leading me to think we need some sort of lane assignment
-> > > capability at the DP connector. How that assignment flows from the DP
-> > > connector created in drm_bridge_connector.c to the hardware is where it
-> > > is less clear to me. Should that be implemented as a typec_switch_desc,
-> > > essentially out of band with drm_bridge, or as some drm_bridge_funcs
-> > > function similar to struct drm_bridge_funcs::hdmi_*()? If you look at
-> > > IT6505 in it6505_get_extcon_property() it actually wants to pull the
-> > > orientation of the type-c port with extcon_get_property(EXTCON_DISP_DP,
-> > > EXTCON_PROP_USB_TYPEC_POLARITY). Maybe pushing the orientation to the DP
-> > > bridge is backwards and we should be exposing this as some sort of
-> > > connector API that the drm_bridge can query whenever it wants.
-> >
-> > And it6505_get_extcon_property() / EXTCON_PROP_USB_TYPEC_POLARITY is a
-> > Type-C code, isn't it?
-> >
+On Thu, Nov 14, 2024 at 08:51:47AM +0800, Baolu Lu wrote:
+> On 11/14/24 00:43, Jason Gunthorpe wrote:
+> > On Wed, Nov 13, 2024 at 10:55:41AM +0800, Baolu Lu wrote:
+> > > On 11/13/24 09:23, Jason Gunthorpe wrote:
+> > > > > https://github.com/Linaro/linux-kernel-uadk/tree/6.12-wip
+> > > > > https://github.com/Linaro/qemu/tree/6.12-wip
+> > > > > 
+> > > > > Still need this hack
+> > > > > https://github.com/Linaro/linux-kernel-uadk/commit/
+> > > > > eaa194d954112cad4da7852e29343e546baf8683
+> > > > > 
+> > > > > One is adding iommu_dev_enable/disable_feature IOMMU_DEV_FEAT_SVA,
+> > > > > which you have patchset before.
+> > > > Yes, I have a more complete version of that here someplace. Need some
+> > > > help on vt-d but hope to get that done next cycle.
+> > > 
+> > > Can you please elaborate this a bit more? Are you talking about below
+> > > change
+> > 
+> > I need your help to remove IOMMU_DEV_FEAT_IOPF from the intel
+> > driver. I have a patch series that eliminates it from all the other
+> > drivers, and I wrote a patch to remove FEAT_SVA from intel..
 > 
-> Sort of? It's combining DP and USB_TYPEC enums there so it's not very
-> clear if it's one or the other instead of just both.
+> Yes, sure. Let's make this happen in the next cycle.
+>
+> FEAT_IOPF could be removed. IOPF manipulation can be handled in the
+> domain attachment path. A per-device refcount can be implemented. This
+> count increments with each iopf-capable domain attachment and decrements
+> with each detachment. PCI PRI is enabled for the first iopf-capable
+> domain and disabled when the last one is removed. Probably we can also
+> solve the PF/VF sharing PRI issue.
 
-But EXTCON_PROP_USB_TYPEC_POLARITY is just a Type-C, nothing about DP in it.
+Here is what I have so far, if you send me a patch for vt-d to move
+FEAT_IOPF into attach as you describe above (see what I did to arm for
+example), then I can send it next cycle
 
-> 
-> > > and then a drm_bridge is created in cros-ec to terminate the bridge
-> > > chain. The displayport altmode driver will find the drm_bridge and the
-> > > drm_connector from the cros-ec node. When DP altmode is entered the
-> > > displayport altmode driver will set the drm_connector orientation based
-> > > on the presence of the dp-reverse-orientation property. We'll be able to
-> > > hook the hpd_notify() path in cros-ec by adding code to the drm_bridge
-> > > made there to do the HPD workaround. I'm not sure we need to use an
-> > > auxiliary device in this case, because it's a one-off solution for
-> > > cros-ec. And we don't even need to signal HPD from the cros-ec
-> > > drm_bridge because the oob_hotplug event will do it for us. If anything,
-> > > we need that displayport.c code to skip sending the hotplug event when
-> > > "no-hpd" is present in the cros-ec node. Note, this works for any number
-> > > of usb-c-connector nodes. And finally, DP bridges like IT6505 don't need
-> > > to implement a typec_switch_desc, they can simply support flipping the
-> > > orientation by querying the drm_connector for the bridge chain when they
-> > > see fit. ANX7625 can support that as well when it doesn't see the
-> > > 'orientation-switch' property.
-> > >
-> > > Did I miss anything? I suspect a drm_connector having an orientation is
-> > > the most controversial part of this proposal.
-> >
-> > Yes... I understand that having orientation-switch handling in the DRM
-> > driver sounds strange, but this is what we do in the QMP PHY driver. It
-> > makes the code easier, as it keeps lane remapping local to the place
-> > where it belongs - to the Type-C handlers.
-> >
-> 
-> The QMP PHY is a type-c PHY, similar to ANX7625. It sits on the output
-> of the DP and USB PHYs and handles the type-c orientation and lane
-> merging for different USB type-c alternate modes. It's not a great
-> example of a plain DP bridge because it combines USB and USB type-c
-> features.
-> 
-> Either way, doing this through Type-C handlers is weird because the port
-> orientation in the Type-C framework is for the connector and there is an
-> orientation control hardware that handles the orientation already. For
-> example, with the IT6505 part on Corsola, the orientation is controlled
-> by a redriver part that the EC controls. It takes the DP and USB signals
-> and routes them to the correct pins on the usb-c-connector depending on
-> the cable orientation. The input side pinout is basically 2 or 4 lanes
-> DP and 2 lanes USB and the output side pinout is the USB type-c pinout
-> SSTXRX1 and SSTXRX2.
-> 
-> This redriver is equivalent to the QMP PHY type-c part. Maybe to bring
-> this example closer to QMP we can imagine if the QMP PHY was split into
-> two pairs of lanes, and the USB functionality wasn't used. The
-> orientation control for a usb-c-connector would be on a redriver that
-> takes 2 DP lanes from the QMP PHY as input. Saying that this QMP PHY is
-> the "orientation-switch" with that property in DT is confusing, because
-> it isn't controlling the orientation of the type-c port. The orientation
-> is handled by the redriver. That redriver may even be controlled by the
-> kernel as an orientation-switch.
+https://github.com/jgunthorpe/linux/commits/iommu_no_feat/
 
-This is clear.
-
-> 
-> I understand that the QMP PHY driver has implemented the lane control
-> for orientation with a typec_switch_desc, but the QMP PHY is a plain DP
-> PHY in this scenario. How would the type-c handlers work here? We
-> couldn't call them through the type-c framework as far as I can tell.
-
-If QMP PHY is a plain DP PHY, it usually has no support for lane remapping
-(e.g. phy-qcom-edp doesn't).
-
-Let me reiterate, please: lane management is outside of the DisplayPort
-spec, at least as far as I can understand it. All lane remapping
-(especially a dynamic one) is a pure vendor extension to the standard.
-I'm trying to find a way to support Corsola and Trogdor without adding
-"this is done specially for Google" kind of API. Usually that doesn't
-fly in the long term.
-
-I understand that using Type-C API for the DRM bridge sounds strange.
-But even the mentioned bridge uses Type-C API. It asks for the Type-C
-polarity, not the DP polarity.
-
-> This is why I'm thinking the end of the bridge chain needs to have some
-> sort of orientation. If we had that then the place where the chain ends
-> and becomes muxed onto the usb-c-connector, i.e. the redriver, would be
-> where the DP bridge is told that it needs to flip the lanes. In the
-> cases I have, the redriver is the EC, and so we've combined them all
-> together in one node, cros-ec-typec. In the QMP PHY case the redriver is
-> the QMP PHY type-c part that sits on the DP and USB PHYs and sends their
-> signals out of the SoC.
-> 
-> Maybe the DT property in the ANX7625 or IT6505 node should be something
-> like "dp-orientation-switch" and then we have the type-c framework find
-> this property? Then we would need to add support for that property in
-> IT6505 using a typec_switch_desc, which is weird. I guess it all feels
-> like a hack because it's not always the case that the DP PHY is glued to
-> a USB type-c PHY.
-
-I think just "orientation-switch" is enough. In the end it's not a
-"typec-orientation-switch".
-
--- 
-With best wishes
-Dmitry
+Thanks,
+Jason
