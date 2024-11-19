@@ -1,46 +1,46 @@
-Received: from NAM10-DM6-obe.outbound.protection.outlook.com (mail-dm6nam10on2079.outbound.protection.outlook.com [40.107.93.79])
+Received: from NAM11-BN8-obe.outbound.protection.outlook.com (mail-bn8nam11on2048.outbound.protection.outlook.com [40.107.236.48])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 495AF1DA2F1;
-	Tue, 19 Nov 2024 17:21:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.93.79
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8F8B1DD885;
+	Tue, 19 Nov 2024 17:21:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.236.48
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732036897; cv=fail; b=JIYZP1grE+jedfFiW/ZRtSW/JBV13NdUXuHgF9bHnK0xpKnXzDpCVNssHZuJk9z5ULlJnjD4nWQGsPtMFE5b2C8PxQMCLk/cvzeaEuP5pUDMKVnbORxGDsQoPeZ5GhXrYEI9zpK0Mgvm5fFFG62oFDNt1xicLxvYio61Goc0/ug=
+	t=1732036901; cv=fail; b=nxLtkrHJ1Lw756pvacd0/v4xgLZ4eTNDha/GoAvDyk3if+RMDIfWjF5ighCi1apEoXZWvFsJUbpiWQRiQbi7IAPhB9cRlXuNBPCLSIN6QRH33dSC1q423/fvw9EXm4PzVwsj/XuN73y+xNMspa9mTnOgAIPboDownJQwvOrb4TU=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732036897; c=relaxed/simple;
-	bh=tPk8iBelMkozwVP4JFH/dleWnueKOlHY6NqDmg11oOs=;
+	s=arc-20240116; t=1732036901; c=relaxed/simple;
+	bh=/ijD+PUIhicssB7moXneLFJ/twRbt+uNOZkim5O1JiU=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=sWSGv8b7Xue6JIbr0E1PA2mVreqpAAmD2LsSuIC22jqEeTyr8GczayQwVmp+JofOEDEGRTRbg+/2siPRDPbGffOFgDUajtw8wMy7aX28KYGI1KrRq3dA/O7GrYKlYid1l8T/NXBcYxceG/yLdmqLRnItksN4t7B82zhZVva1k6g=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=0+a4u+3O; arc=fail smtp.client-ip=40.107.93.79
+	 MIME-Version:Content-Type; b=N6fhI5uzKnseO9/jhgalbbNdh+W36RcTgSHzZ5PHyaCsMdN7qQxKqV3+5WDJUBlZYtEDB2LKgh6U+vqF6yXcf54Kuvf3diKryd2h5VyxacnaBEeRe+n+g/5ThQDQHjFi8C8mn+Zg47avn81E5VXNBXa+2KB59vuAertICdFQyjI=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=XOrnoCeK; arc=fail smtp.client-ip=40.107.236.48
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="0+a4u+3O"
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="XOrnoCeK"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=sMIxtv5F4lBCpVRzUuD7cMEjYmNPc33gESPv8p52DfkZFPh8tPdIePCL0C+ksbT4/Si1qPNSvEEeekxBP6+O3O7RXRRi6OIUGor4FPjWl7bwPsLtsRuFtsUo9vE84FIGyHhgiS4GU2qcM0byeSdYGegVg9IKR1yeAWt/7D7FtK/6Z6K5mvsR2xPUQuDsEEgCBEOeODEFeE2mU0MXuS/nZ8wR6e3/RbyyiBoXP/79951GcRg9T8hAHYfW4SfLVlcKIujq/XiKrleVKyO5ufDXJ3RCpx7RaKE80ItYWS9C5J2afmGwI751Gf27ZzPZWH2RmzCCmRAYTPrIsFtMjjAKXg==
+ b=EiS6MEI+dNMpYjeYKRcxJSuZI9092036lt5KuuHHPffiPJEkV4366uqilz7zReOcPhB4vhkp3sDwIHGGFwKgzp5RaLjKuYX5BbqBNITl0xWD4TlTGi0GqHyYuOQ+OgqCyv8bnx/LT6kfzIKwuKz6zjEsbaEZgqU88IxuKZg0fELw7iRMywtix4kR6pNVRsn1XM17zcv4PgueYCeHRoLXdVshlizFO9Zl1Aga/PFEkKFG381NeuROAxnN6RABteXp9RnOQdq/4aPUQmdujDJKInPzLPWA2OXLaHK4VihPb/LCSAzP42/RYNAOxSmxiFMNgxsP/ksgbh/WwOWLQCY8OQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=Gdw4LcMjSmWQqzwh5N3XehtHblWWjBa8rpF+/nMuPGw=;
- b=PVI9GEukSHWDD1AUOAhdzF/Y9JGZH5YcJLpbb3HY+g1O0HeCTndA21vvrWb+/rNC6dzNNsw7opPjQuoIPPHlU/UjzfuwITI7E3bmLZzBODhQN45qRZxzFRmEG9arfwA6M0pwVlj6dgG/NW/D3EFh7Zsj5jx1tM7d0LKgS6CTI68VR1iwRv4RBRiLF2xZBZ6dIA1QgzCKZFxdUJNP+rPpUuiAPQ3NU8hxeSdixoLJobw8UEtEiZp7tgbCTJwLf1gEwIcc2M7+y8dw1FVzidZ3wb70bafIUSovLlu+fIF4vAdoNYfmkbNcwyZ95OysWeRcrGuvCi4/gIUYZLFJkCbZOg==
+ bh=4AzDiAVdPZo1X4zMIDEdTxASEFf9b61AT6G4X2TX4TA=;
+ b=m+h0ldZE69dK95mC8oXZo8UEz+ZP5Nq2g9F0qKikUtdzKudkTg9t6LNwVbGLtEUV69APLthzUFMfDMysitAbFfUF6X/PFjGF+fFVdacfniLR2ogrIwZQlm/NEwixDx6gwe8osk01su9lrlslWrHyAzmWrBcNTFGOoVYWPXHhkcE4bLOoICVhJoXDD8CfAGVxM2tZKEigOGKeIBxKVpjL1/t/TZhv5yHoKP4wsR159bdV8WaH8OShabC4ENFn/MB22oJ5coPyUAOjkYWQKj7TWRQvBYfLSIJu4Zut8rHN1LI8tv+9JZn+PPIqnsyHMkjGq6h2e3Z9wfOfcyFcWF0i4w==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  165.204.84.12) smtp.rcpttodomain=redhat.com smtp.mailfrom=amd.com; dmarc=pass
  (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
  dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=Gdw4LcMjSmWQqzwh5N3XehtHblWWjBa8rpF+/nMuPGw=;
- b=0+a4u+3OnOgOiBRVFpA41Vd20k1OL6bIsKcIbi5UjpjuaZ1q3nMA2PJi9Xi233wgvdVGcLuEUY3EHuAsNs4UAWx7vK8CZY7kLy9NKwrQY9GBDVf0W+MbW3uXDIFs1zUhk0tzIkQOaFh5ktxFrfbwpgGTovd2ph7TqG15vtU7hRk=
-Received: from PH7PR02CA0003.namprd02.prod.outlook.com (2603:10b6:510:33d::31)
- by SA1PR12MB6800.namprd12.prod.outlook.com (2603:10b6:806:25c::9) with
+ bh=4AzDiAVdPZo1X4zMIDEdTxASEFf9b61AT6G4X2TX4TA=;
+ b=XOrnoCeKMZnh1imad37NdUAs9yCRLNMvy6ypNHk0tRjH15qNiLFVwSfoe7XyWvDifbmJhMfNrzYPmBYZinkqAygPvudnLMLIrLv22zIN3eOWkF2KExCeJ97ivcXAsud3PTzYG1D0SfYZdw37USxuU+9UQ7VJ6GeBlXM1WNp9yW4=
+Received: from PH3PEPF0000409D.namprd05.prod.outlook.com (2603:10b6:518:1::50)
+ by PH7PR12MB7377.namprd12.prod.outlook.com (2603:10b6:510:20c::12) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8158.21; Tue, 19 Nov
- 2024 17:21:33 +0000
-Received: from CY4PEPF0000EDD2.namprd03.prod.outlook.com
- (2603:10b6:510:33d:cafe::37) by PH7PR02CA0003.outlook.office365.com
- (2603:10b6:510:33d::31) with Microsoft SMTP Server (version=TLS1_2,
+ 2024 17:21:36 +0000
+Received: from CY4PEPF0000EDD5.namprd03.prod.outlook.com
+ (2a01:111:f403:f912::1) by PH3PEPF0000409D.outlook.office365.com
+ (2603:1036:903:49::3) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8158.24 via Frontend
- Transport; Tue, 19 Nov 2024 17:21:32 +0000
+ Transport; Tue, 19 Nov 2024 17:21:36 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.12)
  smtp.mailfrom=amd.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=amd.com;
@@ -48,13 +48,13 @@ Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
  165.204.84.12 as permitted sender) receiver=protection.outlook.com;
  client-ip=165.204.84.12; helo=SATLEXMB04.amd.com; pr=C
 Received: from SATLEXMB04.amd.com (165.204.84.12) by
- CY4PEPF0000EDD2.mail.protection.outlook.com (10.167.241.198) with Microsoft
+ CY4PEPF0000EDD5.mail.protection.outlook.com (10.167.241.201) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.20.8158.14 via Frontend Transport; Tue, 19 Nov 2024 17:21:32 +0000
+ 15.20.8158.14 via Frontend Transport; Tue, 19 Nov 2024 17:21:35 +0000
 Received: from AUS-P9-MLIMONCI.amd.com (10.180.168.240) by SATLEXMB04.amd.com
  (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.39; Tue, 19 Nov
- 2024 11:21:30 -0600
+ 2024 11:21:33 -0600
 From: Mario Limonciello <mario.limonciello@amd.com>
 To: Hans de Goede <hdegoede@redhat.com>, =?UTF-8?q?Ilpo=20J=C3=A4rvinen?=
 	<ilpo.jarvinen@linux.intel.com>
@@ -71,9 +71,9 @@ CC: "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
  EXTRAS DRIVER" <ibm-acpi-devel@lists.sourceforge.net>, Mark Pearson
 	<mpearson-lenovo@squebb.ca>, Matthew Schwartz <matthew.schwartz@linux.dev>,
 	Mario Limonciello <mario.limonciello@amd.com>, Armin Wolf <W_Armin@gmx.de>
-Subject: [PATCH v7 20/22] ACPI: platform_profile: Allow multiple handlers
-Date: Tue, 19 Nov 2024 11:17:37 -0600
-Message-ID: <20241119171739.77028-21-mario.limonciello@amd.com>
+Subject: [PATCH v7 22/22] Documentation: Add documentation about class interface for platform profiles
+Date: Tue, 19 Nov 2024 11:17:39 -0600
+Message-ID: <20241119171739.77028-23-mario.limonciello@amd.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20241119171739.77028-1-mario.limonciello@amd.com>
 References: <20241119171739.77028-1-mario.limonciello@amd.com>
@@ -89,141 +89,121 @@ X-ClientProxiedBy: SATLEXMB04.amd.com (10.181.40.145) To SATLEXMB04.amd.com
  (10.181.40.145)
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CY4PEPF0000EDD2:EE_|SA1PR12MB6800:EE_
-X-MS-Office365-Filtering-Correlation-Id: f7072b11-5d1b-4295-8829-08dd08be9cff
+X-MS-TrafficTypeDiagnostic: CY4PEPF0000EDD5:EE_|PH7PR12MB7377:EE_
+X-MS-Office365-Filtering-Correlation-Id: 6c272c68-6453-45b4-46da-08dd08be9f0b
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|7416014|376014|82310400026|1800799024|36860700013;
+	BCL:0;ARA:13230040|1800799024|82310400026|376014|7416014|36860700013;
 X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?mAeT9dXHfaSZ9oBHtIGsi473jTnBGCSLDgqIbRPc3CKj/gpKNcuw/ropT06f?=
- =?us-ascii?Q?hKywW85CG5UWXfpIy9cb0w+kaTy8Z4m0xWaDQrIJBKA1oc2MJaPtWy+8gOvk?=
- =?us-ascii?Q?31EAF5p0U7+ezOYyuX9DYXGtX1OKWH1gJO7XIapbaTGa85GDBz3qQh0jA7Be?=
- =?us-ascii?Q?OMErGD/xk0D1iOdLx9LPoPSCfOF44gw8G5gXYw6s5AS4qNlte4+sLKRhLfJm?=
- =?us-ascii?Q?5iRlCUN7Yr6spX1JjemdMEoU4AcyMK14NRQkjvn/rO7ojapyI/BNjpH5D9Wr?=
- =?us-ascii?Q?vTSnq+ZcKhvsgPEsMR+59pnA5OvmqQJhHun0l2XYRjYScYSMRDJebGSZHAvN?=
- =?us-ascii?Q?hPOch6L5pLzBBaKt8E1eixjtW7dcntcQgMWxsYN5Qx7hbWM6hRe+ceNlhsA4?=
- =?us-ascii?Q?0ze9tLRqr0FU+MLKC83QM+NquVxJHmMo78RNsmVQ8NBLIiS8ADHZhAb2yhOG?=
- =?us-ascii?Q?6LiMkPeo7BAwQ/Ol67tCdyGQcnklkeM0E6yG6wSceaOmucZ0QdVO15QHCLxE?=
- =?us-ascii?Q?C0RzTtkeFcKOn4X5ZpuNeeHinQWVofNbvgB6euZHaZpa2jY0W7vjFgtj+48V?=
- =?us-ascii?Q?2E+SdkzU1ISefeX1Uw4rQLTcdruwog72GqJ3jpoVWUvTJiu6ThGg7plnI11T?=
- =?us-ascii?Q?8kt6r5kd03XcmrFdpb6IB1ENL/DQ0eagVHsTfkmS+4YHSYWTw8pHQHATy9XQ?=
- =?us-ascii?Q?2VWj8ar+Cm0AJ3k/KojyUA0mQf1YhOifm6GuVWhWX870mHSwqSeMkbO9wHCT?=
- =?us-ascii?Q?C4jAp4Ny+kQAXFa3ozBzWBW6sKec2JMQIn5NDLNCpJaymPorQTAY8c5O4xm5?=
- =?us-ascii?Q?C4OpqThYHeMtO0HLjIC87B0XgaTJJkV4pLZ82k606M5cQ1xKXa0xfTwAaXGW?=
- =?us-ascii?Q?mVNFGxflDWXgKSZYtrNnkFy2tU78ujrVNXf1fEafT4sLSTKYEUhRm6bAMQX8?=
- =?us-ascii?Q?OhYMLhu4x6Pnb9rXpUNEfCupPH0KvXKGTd30u0ND7w7q/kvhFyltwglabDge?=
- =?us-ascii?Q?6sz9Gae0DU/T3xH6vLK0uhLKLP+1saIFppfibPeep2IaIUUnzDT1f8eC11fV?=
- =?us-ascii?Q?AZm+E1VlnR4PicEaIWo4+DSq1aKxqH+J64Gt+SGueklgTMCcwWev5cSGfQcr?=
- =?us-ascii?Q?yTjTGhn9K+DshiLUZJnDsCaqFjWImmTkaqJssb+8rVnzoaLJxlxlAqQ3hNc4?=
- =?us-ascii?Q?O/ox46ZkamKShkHF7jpN3IpmomqlRtLWqJm8cWn0f35406WICuBOds+w0083?=
- =?us-ascii?Q?/bxUmy+wQvNYuh5fEvjmkXOLQ09HPuJFbC1t7IaGdIyCxIOKBo3q+ozNv2I6?=
- =?us-ascii?Q?HriXrScRPcblCtwhb5u1ZcIk7fHosL78g7VgnaYIzQ1w4iAs2RvFBLf4RTnB?=
- =?us-ascii?Q?rl8jqjgxU0eTD3b4YOHJiXHirbJCygsw58/+/4adogcIPHM0UQ=3D=3D?=
+	=?us-ascii?Q?5SPm2S8EHlrzBwDV6HQmAmR21vVjw4TnDSN94dlnya9rhbEM/nkRuCxdAoUM?=
+ =?us-ascii?Q?J412WxrjGiABZPKhck8vgbSiQ9ig4y+0vP4Jolpv9yRuvk7GSypaDAx2zypQ?=
+ =?us-ascii?Q?geNucBK4QahdsUGPJ8EIZRWhlmA9O1yMzuypCoW7uKS6B1bnSr7kSl9Svvni?=
+ =?us-ascii?Q?aGzfqulSqlYU57MaI6oIKvp3yMXm7ug/JfSb8OiL53e9JGkmrUVuuSgF/sM9?=
+ =?us-ascii?Q?cPh+2mcgm2n08t+WsRxhGaYUnq6cXND0UU7FzAaB2S7x359dFSLUgdPCqScD?=
+ =?us-ascii?Q?iZhcpjzJjf9M0qqJlBPMh4XU7xUMSiaAyFoNGgqXrFbfqcd6iR8Dgl+ELzWG?=
+ =?us-ascii?Q?8Cy4VIci2IR2kpGPIQ1iM1y1uMKV+cY8mkR6m7hFwlsQOROAewVDa8xz3qU5?=
+ =?us-ascii?Q?qQnxxd9/KEs+t7YRpibjVeeALz8Fw/oLPuKefGOYJhnynj80Ar6uTucO9BUU?=
+ =?us-ascii?Q?Xi3g7meSl7o3nYZwdP+wQW5WZW2wxCCl1gsX0nAfPfWvmCXxFRihb3XX4azM?=
+ =?us-ascii?Q?x4+ZVDLaxci7k7exL1lklABkvwt2/Pk5FCe1PSkZKRTfr+cCrJxFmFsncDQY?=
+ =?us-ascii?Q?hatYTx46iXfQIqxFe4E33eXusy+wBlav/TUEFQ//kKzCv/9hwuS9xyVOvs1D?=
+ =?us-ascii?Q?vDTHI+FTRt29Etjc4PbwVmWmyc5qiToIVTsq146VIAecqP7ZbTjSOFdNf1Hn?=
+ =?us-ascii?Q?k9tkhPnSXn9ACqqjyvyReTlaaJ20UgLMx9/cOwVXp18oilFBCys+JJ8yvG8m?=
+ =?us-ascii?Q?pdhdYQedr6YNlGYiYoYtSvpq/7MsbD+S+Nb5mYHppOW726gXKnLnL4ENv3Ei?=
+ =?us-ascii?Q?MvbAsU2Qil71wakb6WZVpJcFI6HjGvdh4AXGHV+wsm9J092KGrLRRAy9p34U?=
+ =?us-ascii?Q?+7LsvwTkZLk8m/V/89gLKKBVsx5jcimGxYS6yXhn2VKovMYJNyVECCL9rxzr?=
+ =?us-ascii?Q?KLr+hmCxtfBbDiW1crSKqSS6YKPijiZc8GQJvpq8d8Ytu83PfrGm3xprBHHI?=
+ =?us-ascii?Q?P3gr95YPjXM9mDyJxPBIyvqu5jmzjKNFTxyGI6QgPCdEThnSOhBpWk4kXae4?=
+ =?us-ascii?Q?bbfhuc9BAAeSUcHr5DzZnJsVok/9/F/4bLn/NGKWMWGBrDOQsVuRlqmuRvC9?=
+ =?us-ascii?Q?G0Owch2dP0MW8OtdS/IxyQesHJkNIBldmQhKlKmYXM3A0EJXgCvxuE5RIuAf?=
+ =?us-ascii?Q?tymhRrYDz2Nht8XNer9BMzWHiJuxRWNgBt4nBB1e3ZVIA/WPeHrBuRwRr1Ha?=
+ =?us-ascii?Q?IaT2Pspb2zZA3Z0BrquO49RjSW0QDzzHZgGmsAskVcgyO6pQZU6KWRhNgLft?=
+ =?us-ascii?Q?fZ7WMxHdFe3w7ltRXGoGKz5DJ1sCNeg8FNFZs2FLMhr8Gk4FRNOS+Gra5PW9?=
+ =?us-ascii?Q?XusFGBKgszOXqHs3gOZHcweWIhszjy5Blr8ZmVfMYsM4L4oLqQ=3D=3D?=
 X-Forefront-Antispam-Report:
-	CIP:165.204.84.12;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:atlvpn-bp.amd.com;CAT:NONE;SFS:(13230040)(7416014)(376014)(82310400026)(1800799024)(36860700013);DIR:OUT;SFP:1101;
+	CIP:165.204.84.12;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:atlvpn-bp.amd.com;CAT:NONE;SFS:(13230040)(1800799024)(82310400026)(376014)(7416014)(36860700013);DIR:OUT;SFP:1101;
 X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 19 Nov 2024 17:21:32.5716
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 19 Nov 2024 17:21:35.9728
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: f7072b11-5d1b-4295-8829-08dd08be9cff
+X-MS-Exchange-CrossTenant-Network-Message-Id: 6c272c68-6453-45b4-46da-08dd08be9f0b
 X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.12];Helo=[SATLEXMB04.amd.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	CY4PEPF0000EDD2.namprd03.prod.outlook.com
+	CY4PEPF0000EDD5.namprd03.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR12MB6800
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR12MB7377
 
-Multiple drivers may attempt to register platform profile handlers,
-but only one may be registered and the behavior is non-deterministic
-for which one wins.  It's mostly controlled by probing order.
+The class interface allows changing multiple platform profiles on a system
+to different values. The semantics of it are similar to the legacy
+interface.
 
-This can be problematic if one driver changes CPU settings and another
-driver notifies the EC for changing fan curves.
-
-Modify the ACPI platform profile handler to let multiple drivers
-register platform profile handlers and abstract this detail from userspace.
-
-To avoid undefined behaviors only offer profiles that are commonly
-advertised across multiple handlers.
-
-If any problems occur when changing profiles for any driver, then the
-drivers that were already changed remain changed and the legacy sysfs
-handler will report 'custom'.
-
-Tested-by: Mark Pearson <mpearson-lenovo@squebb.ca>
-Tested-by: Matthew Schwartz <matthew.schwartz@linux.dev>
-Reviewed-by: Mark Pearson <mpearson-lenovo@squebb.ca>
 Reviewed-by: Armin Wolf <W_Armin@gmx.de>
+Tested-by: Mark Pearson <mpearson-lenovo@squebb.ca>
 Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
 ---
 v7:
- * rebase
-v6:
- * rebase
+ * Add tag
+ * Add description for name attribute
 v5:
- * reword commit message
+ * Fix some typos
 ---
- drivers/acpi/platform_profile.c | 11 -----------
- 1 file changed, 11 deletions(-)
+ .../ABI/testing/sysfs-platform_profile        |  5 +++
+ .../userspace-api/sysfs-platform_profile.rst  | 31 +++++++++++++++++++
+ 2 files changed, 36 insertions(+)
 
-diff --git a/drivers/acpi/platform_profile.c b/drivers/acpi/platform_profile.c
-index e88b355a72112..7d774c43f4fa7 100644
---- a/drivers/acpi/platform_profile.c
-+++ b/drivers/acpi/platform_profile.c
-@@ -10,7 +10,6 @@
- #include <linux/platform_profile.h>
- #include <linux/sysfs.h>
- 
--static struct platform_profile_handler *cur_profile;
- static DEFINE_MUTEX(profile_lock);
- 
- static const char * const profile_names[] = {
-@@ -400,8 +399,6 @@ static const struct attribute_group platform_profile_group = {
- 
- void platform_profile_notify(struct platform_profile_handler *pprof)
- {
--	if (!cur_profile)
--		return;
- 	scoped_cond_guard(mutex_intr, return, &profile_lock) {
- 		class_for_each_device(&platform_profile_class, NULL, NULL,
- 				      _notify_class_profile);
-@@ -465,9 +462,6 @@ int platform_profile_register(struct platform_profile_handler *pprof)
- 	}
- 
- 	guard(mutex)(&profile_lock);
--	/* We can only have one active profile */
--	if (cur_profile)
--		return -EEXIST;
- 
- 	/* create class interface for individual handler */
- 	pprof->minor = ida_alloc(&platform_profile_ida, GFP_KERNEL);
-@@ -483,8 +477,6 @@ int platform_profile_register(struct platform_profile_handler *pprof)
- 
- 	sysfs_notify(acpi_kobj, NULL, "platform_profile");
- 
--	cur_profile = pprof;
--
- 	err = sysfs_update_group(acpi_kobj, &platform_profile_group);
- 	if (err)
- 		goto cleanup_cur;
-@@ -492,7 +484,6 @@ int platform_profile_register(struct platform_profile_handler *pprof)
- 	return 0;
- 
- cleanup_cur:
--	cur_profile = NULL;
- 	device_unregister(pprof->class_dev);
- 
- cleanup_ida:
-@@ -507,8 +498,6 @@ int platform_profile_remove(struct platform_profile_handler *pprof)
- 	int id;
- 	guard(mutex)(&profile_lock);
- 
--	cur_profile = NULL;
--
- 	id = pprof->minor;
- 	device_unregister(pprof->class_dev);
- 	ida_free(&platform_profile_ida, id);
+diff --git a/Documentation/ABI/testing/sysfs-platform_profile b/Documentation/ABI/testing/sysfs-platform_profile
+index baf1d125f9f83..125324ab53a96 100644
+--- a/Documentation/ABI/testing/sysfs-platform_profile
++++ b/Documentation/ABI/testing/sysfs-platform_profile
+@@ -33,3 +33,8 @@ Description:	Reading this file gives the current selected profile for this
+ 		source such as e.g. a hotkey triggered profile change handled
+ 		either directly by the embedded-controller or fully handled
+ 		inside the kernel.
++
++		This file may also emit the string 'custom' to indicate
++		that multiple platform profiles drivers are in use but
++		have different values.  This string can not be written to
++		this interface and is solely for informational purposes.
+diff --git a/Documentation/userspace-api/sysfs-platform_profile.rst b/Documentation/userspace-api/sysfs-platform_profile.rst
+index 4fccde2e45639..0aa384c75095a 100644
+--- a/Documentation/userspace-api/sysfs-platform_profile.rst
++++ b/Documentation/userspace-api/sysfs-platform_profile.rst
+@@ -40,3 +40,34 @@ added. Drivers which wish to introduce new profile names must:
+  1. Explain why the existing profile names cannot be used.
+  2. Add the new profile name, along with a clear description of the
+     expected behaviour, to the sysfs-platform_profile ABI documentation.
++
++Multiple driver support
++=======================
++When multiple drivers on a system advertise a platform profile handler, the
++platform profile handler core will only advertise the profiles that are
++common between all drivers to the ``/sys/firmware/acpi`` interfaces.
++
++This is to ensure there is no ambiguity on what the profile names mean when
++all handlers don't support a profile.
++
++Individual drivers will register a 'platform_profile' class device that has
++similar semantics as the ``/sys/firmware/acpi/platform_profile`` interface.
++
++To discover which driver is associated with a platform profile handler the
++user can read the ``name`` attribute of the class device.
++
++To discover available profiles from the class interface the user can read the
++``choices`` attribute.
++
++If a user wants to select a profile for a specific driver, they can do so
++by writing to the ``profile`` attribute of the driver's class device.
++
++This will allow users to set different profiles for different drivers on the
++same system. If the selected profile by individual drivers differs the
++platform profile handler core will display the profile 'custom' to indicate
++that the profiles are not the same.
++
++While the ``platform_profile`` attribute has the value ``custom``, writing a
++common profile from ``platform_profile_choices`` to the platform_profile
++attribute of the platform profile handler core will set the profile for all
++drivers.
 -- 
 2.43.0
 
