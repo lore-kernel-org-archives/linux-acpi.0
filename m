@@ -1,132 +1,101 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.9])
+Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21842208992;
-	Mon,  2 Dec 2024 15:26:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.9
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62C7613CFA8;
+	Mon,  2 Dec 2024 16:00:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=90.155.50.34
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733153201; cv=none; b=VU+07wjpqzvTrkOF/lD/61HuaDu7uvzxACiVJVsuJuW7qVJLETsaAStKPO0heHgTat81i9E8bNjZoIzcbVk8LW2RrpQBhRzBIf41OBiZXmHhq8DsV8I0ejqXGjWon1Dbjjq7XDEE2eoItxPmQhZjm+xQGKjHnOluSdDARcscNmQ=
+	t=1733155206; cv=none; b=aPpVhYVLn9WnLfdcRcaOCs0xWNfMxJDsurSJyRJys8/CdbASeIV3USyC9rFh9j1ASOx1VUiczGzl+/hPBMvW/DWJ8fEejhMxXjI4fGlNCs6HcYzA6VtH/jqqyq/KZYqGU6gpJemTJNmkR1Y/rALqJdimf/Vaaaer7tn4+OPi25o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733153201; c=relaxed/simple;
-	bh=rtIOev6fnqSJdfmM9KINIa78sHwNSBxTRYjDvhrxH+U=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Q7MTLEsqAomFyKG+ver3de3szYHdxocLVV5bxckDz4NskM2SnU4HFTKEOQkoeEa88lJ3mFEPfzz8MLloXD8S7ljLAPbnZ3OG2WgHZCqQcmTqwennM8QwqGDzs9QqfXxUY33kwY9baxA5FwXlT0J4cwOI1ltzxSU3vS4wekMCAmY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=deUmPdPE; arc=none smtp.client-ip=192.198.163.9
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1733155206; c=relaxed/simple;
+	bh=jwFkINJKzZ/sB6LcTpliw8jxBgl+f+o3H72qiwyiS6Q=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=rrG/dFH3RdR8ZjRmYvPN+/fX91RBef+kR3D3rakfPxBdFejUV/Z8W3e4wcQ8It60Exs0EkMgD4YQgWoTutbva4x0LUZ/upiok27sITtKTLa9PqsLT7pBqv9QngDVBfIXYRvjgMJsRnK3UjY4ErDWlW8SlUWt+NS9DyeiQlDMSVQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=tly6BIIZ; arc=none smtp.client-ip=90.155.50.34
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="deUmPdPE"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1733153199; x=1764689199;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=rtIOev6fnqSJdfmM9KINIa78sHwNSBxTRYjDvhrxH+U=;
-  b=deUmPdPEnQJtjCj3PGJzDSiN6sRijeizJ8XO2qbfPhhk4ADwWYuaCkJG
-   H5qof9MwvVQuzR/BFaaqLFRUfbVvxv20fWauV5A35AZiSSQyc/lC7sRi2
-   S3fR5hn7zODY9yyixnHo5tZ5Mvh7EEyhRf3M1lH/JEIF2y5WAja9XC6Ur
-   ygSQbcresYi0/922VL4JJT0Diw7EOCiRPyIkae9PvvoX4NhyOVAdMfjps
-   /Mwg+lQYsnLI1x3OY8yDlaN52omF2w+ivEJ1NsNP6t+/uoA25zc2WdUhq
-   w0to3hS/UlDTXlQ0lOtgRyjUF/Toa9DAKhBkSu+kU4br4AjVSvlLEDy5U
-   g==;
-X-CSE-ConnectionGUID: OJPqEDcQTouRzRbx6PEtew==
-X-CSE-MsgGUID: UE8bJiDXTte8HYysSKSliA==
-X-IronPort-AV: E=McAfee;i="6700,10204,11274"; a="43994377"
-X-IronPort-AV: E=Sophos;i="6.12,202,1728975600"; 
-   d="scan'208";a="43994377"
-Received: from orviesa003.jf.intel.com ([10.64.159.143])
-  by fmvoesa103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Dec 2024 07:26:34 -0800
-X-CSE-ConnectionGUID: 5blnOipIQ/Gz1znfqoGBKA==
-X-CSE-MsgGUID: sci3YQEQScCF9mfDXchEHQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.11,199,1725346800"; 
-   d="scan'208";a="98173354"
-Received: from aschofie-mobl2.amr.corp.intel.com (HELO [10.125.111.153]) ([10.125.111.153])
-  by ORVIESA003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Dec 2024 07:26:33 -0800
-Message-ID: <377b8a42-dc65-4b3f-9096-b57dea435d74@intel.com>
-Date: Mon, 2 Dec 2024 08:26:32 -0700
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="tly6BIIZ"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=qJdX4p3CGkapW21MdDcnSCR9NN49ym504eCw+/R0/hQ=; b=tly6BIIZpi4/awGcjyEWCFadRV
+	COO5+8pL6DNDJuddGgvzd+SnCsCVfKI+lo2KqbJzD0G1k7VC1JPawyrZ7vqcRz+QDLEn8kf2ziy5u
+	Bm2MtX+aAk6vleCe3Al5nRWGKI6b9vfqHmYX0gNjGoHig0/zM8wBcAKWJHkzY6Ss6vuHePZvcYjr5
+	7y40GkEmI44cOpJf1hhgCMNLm0j01FBDR63BmAPY1M7K1Nu1bQtL6Alh36Km14y/OTy8pwFvvYSCU
+	oBoiiOAF144yTTwI75i0+xv9wYBCnE3eIrj0ozH3yTfeYKQPHmYICq36+JEPfSY/Z5P5i4v8+IsIL
+	lfG5g+Hw==;
+Received: from 77-249-17-89.cable.dynamic.v4.ziggo.nl ([77.249.17.89] helo=noisy.programming.kicks-ass.net)
+	by casper.infradead.org with esmtpsa (Exim 4.98 #2 (Red Hat Linux))
+	id 1tI8py-00000008GKq-2EZe;
+	Mon, 02 Dec 2024 15:59:52 +0000
+Received: by noisy.programming.kicks-ass.net (Postfix, from userid 1000)
+	id 325E7300402; Mon,  2 Dec 2024 16:59:51 +0100 (CET)
+Date: Mon, 2 Dec 2024 16:59:51 +0100
+From: Peter Zijlstra <peterz@infradead.org>
+To: Mario Limonciello <mario.limonciello@amd.com>
+Cc: Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>,
+	Ingo Molnar <mingo@redhat.com>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	"maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <x86@kernel.org>,
+	"H . Peter Anvin" <hpa@zytor.com>,
+	"Rafael J . Wysocki" <rafael@kernel.org>,
+	"Gautham R . Shenoy" <gautham.shenoy@amd.com>,
+	Perry Yuan <perry.yuan@amd.com>,
+	Brijesh Singh <brijesh.singh@amd.com>,
+	Li RongQing <lirongqing@baidu.com>,
+	"open list:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <linux-kernel@vger.kernel.org>,
+	"open list:ACPI" <linux-acpi@vger.kernel.org>,
+	"open list:AMD PSTATE DRIVER" <linux-pm@vger.kernel.org>,
+	Pawan Gupta <pawan.kumar.gupta@linux.intel.com>
+Subject: Re: [PATCH v7 09/12] x86/process: Clear hardware feedback history
+ for AMD processors
+Message-ID: <20241202155951.GH35539@noisy.programming.kicks-ass.net>
+References: <20241130140703.557-1-mario.limonciello@amd.com>
+ <20241130140703.557-10-mario.limonciello@amd.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v6] acpi: nfit: vmalloc-out-of-bounds Read in
- acpi_nfit_ctl
-To: Suraj Sonawane <surajsonawane0215@gmail.com>, dan.j.williams@intel.com
-Cc: vishal.l.verma@intel.com, ira.weiny@intel.com, rafael@kernel.org,
- lenb@kernel.org, nvdimm@lists.linux.dev, linux-acpi@vger.kernel.org,
- linux-kernel@vger.kernel.org,
- syzbot+7534f060ebda6b8b51b3@syzkaller.appspotmail.com
-References: <20241118162609.29063-1-surajsonawane0215@gmail.com>
-Content-Language: en-US
-From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <20241118162609.29063-1-surajsonawane0215@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20241130140703.557-10-mario.limonciello@amd.com>
 
-
-
-On 11/18/24 9:26 AM, Suraj Sonawane wrote:
-> Fix an issue detected by syzbot with KASAN:
+On Sat, Nov 30, 2024 at 08:07:00AM -0600, Mario Limonciello wrote:
+> From: Perry Yuan <perry.yuan@amd.com>
 > 
-> BUG: KASAN: vmalloc-out-of-bounds in cmd_to_func drivers/acpi/nfit/
-> core.c:416 [inline]
-> BUG: KASAN: vmalloc-out-of-bounds in acpi_nfit_ctl+0x20e8/0x24a0
-> drivers/acpi/nfit/core.c:459
+> Incorporate a mechanism within the context switching code to reset
+> the hardware history for AMD processors. Specifically, when a task
+> is switched in, the class ID was read and reset the hardware workload
+> classification history of CPU firmware and then it start to trigger
+> workload classification for the next running thread.
 > 
-> The issue occurs in cmd_to_func when the call_pkg->nd_reserved2
-> array is accessed without verifying that call_pkg points to a buffer
-> that is appropriately sized as a struct nd_cmd_pkg. This can lead
-> to out-of-bounds access and undefined behavior if the buffer does not
-> have sufficient space.
-> 
-> To address this, a check was added in acpi_nfit_ctl() to ensure that
-> buf is not NULL and that buf_len is less than sizeof(*call_pkg)
-> before accessing it. This ensures safe access to the members of
-> call_pkg, including the nd_reserved2 array.
-> 
-> Reported-by: syzbot+7534f060ebda6b8b51b3@syzkaller.appspotmail.com
-> Closes: https://syzkaller.appspot.com/bug?extid=7534f060ebda6b8b51b3
-> Tested-by: syzbot+7534f060ebda6b8b51b3@syzkaller.appspotmail.com
-> Fixes: ebe9f6f19d80 ("acpi/nfit: Fix bus command validation")
-> Signed-off-by: Suraj Sonawane <surajsonawane0215@gmail.com>
-
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-
+> Signed-off-by: Perry Yuan <perry.yuan@amd.com>
+> Co-developed-by: Mario Limonciello <mario.limonciello@amd.com>
+> Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
 > ---
-> V1: https://lore.kernel.org/lkml/20241111080429.9861-1-surajsonawane0215@gmail.com/
-> V2: Initialized `out_obj` to `NULL` in `acpi_nfit_ctl()` to prevent
-> potential uninitialized variable usage if condition is true.
-> V3: Changed the condition to if (!buf || buf_len < sizeof(*call_pkg))
-> and updated the Fixes tag to reference the correct commit.
-> V4: Removed the explicit cast to maintain the original code style.
-> V5: Re-Initialized `out_obj` to NULL. To prevent
-> potential uninitialized variable usage if condition is true.
-> V6: Remove the goto out condition from the error handling and directly
-> returned -EINVAL in the check for buf and buf_len
-> 
->  drivers/acpi/nfit/core.c | 7 ++++++-
->  1 file changed, 6 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-> index 5429ec9ef..a5d47819b 100644
-> --- a/drivers/acpi/nfit/core.c
-> +++ b/drivers/acpi/nfit/core.c
-> @@ -454,8 +454,13 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
->  	if (cmd_rc)
->  		*cmd_rc = -EINVAL;
+
+> diff --git a/arch/x86/kernel/process_64.c b/arch/x86/kernel/process_64.c
+> index 226472332a70d..371e0e8f987fa 100644
+> --- a/arch/x86/kernel/process_64.c
+> +++ b/arch/x86/kernel/process_64.c
+> @@ -709,6 +709,10 @@ __switch_to(struct task_struct *prev_p, struct task_struct *next_p)
+>  	/* Load the Intel cache allocation PQR MSR. */
+>  	resctrl_sched_in(next_p);
 >  
-> -	if (cmd == ND_CMD_CALL)
-> +	if (cmd == ND_CMD_CALL) {
-> +		if (!buf || buf_len < sizeof(*call_pkg))
-> +			return -EINVAL;
+> +	/* Reset hw history on AMD CPUs */
+> +	if (cpu_feature_enabled(X86_FEATURE_AMD_WORKLOAD_CLASS))
+> +		wrmsrl(AMD_WORKLOAD_HRST, 0x1);
 > +
->  		call_pkg = buf;
-> +	}
-> +
->  	func = cmd_to_func(nfit_mem, cmd, call_pkg, &family);
->  	if (func < 0)
->  		return func;
+>  	return prev_p;
+>  }
+
+BTW, how many cycles for this WRMSR ?
+
+And, as already stated, I'm failing to find the actual classification
+code, but assuming that's RDMSR(s?), how much for them?
+
 
