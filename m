@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E1233DAC00;
-	Wed,  4 Dec 2024 16:59:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 970692139D2;
+	Wed,  4 Dec 2024 17:01:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733331543; cv=none; b=krzhzLM1FeUFS49HWbvLRxcTqOisfYWTVJmuKuoRKGsKcn5Doi58+hxqmmOfhsVTTCLuKmdCVtEzZgvhxeLPcOPKqMiwafdNaNf8ZC5jDi6NdIFyD6+G05nr9qDVuP6ReIircuBiUIFCChE8XNJQh9VYBlFbCkIhU5geVhkWcjc=
+	t=1733331661; cv=none; b=MOPL+JrlDj3zmTVE/Om8A8cRyX97Le5UgKxVajuUuOdt3rIUXAJJDYShFKGXVVyKMmsGyJi6cQAYk6VbSO80kqYEAP5TpaHJiXIBeQo1DTvzrkGCEwZA/XkavPzA2jdWfl5tSjeuAPIr7Uq76Kequmjw9/195GDki3X6wX5vOLY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733331543; c=relaxed/simple;
+	s=arc-20240116; t=1733331661; c=relaxed/simple;
 	bh=7TN0xW6egqreWmtzs9zkF80AingF69k+BcAEFWULy5o=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=DmTQ2CoUzB4IeAaLRS986230C/oPYjSLelbePPR+fPVyEOGEOfHAUaB8fhv0GeokjDmGqQphB/YZazKbrecG01OEHcJCIK953gzvjVyRFWRIsxKwPJGg7/0HwV+Qe4Lj4y7JQXpP8/YH1JGQOKk9HaNU1lRr70L4RFWLunS+kPM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ba5vuvCx; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=Tgjk1Qt2Hsal6R8k8bbDJJ6fkzlWsWD1Dn7Wm2BEUBOtl3KG+cUd1T82n71uskNdoCFKkl9x+8qm7rqcg6wRBxJLwZ21KVL47MlySSDBdysHr08i797fwy6E4oRxnjENBwVZX/1Sy5CFByIRrLcKBE37Dmsg8/ww8QbwMwsUghA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=u6Ensv+5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ba5vuvCx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33DC0C4CECD;
-	Wed,  4 Dec 2024 16:59:02 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="u6Ensv+5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5EFB7C4CED1;
+	Wed,  4 Dec 2024 17:01:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1733331543;
+	s=k20201202; t=1733331661;
 	bh=7TN0xW6egqreWmtzs9zkF80AingF69k+BcAEFWULy5o=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=Ba5vuvCxzs7h0R5OfmTLgQl94iEzY8Ygo1d84utug0fNTRp+rzEy9wq7CisBm5bPq
-	 RkjC1SCBWa6MXl1rrpgruBf+W8FJbZ7fhH9a2jBB1IktkpYh6FWP1R4lp8QnNAnRUs
-	 4RYpvvLRCQVC5Hh5uHphlc3VIH9y+RStftRzb04OjVInYANQ4Is4EcRJ0l2JqF6D14
-	 z1OWMq9YjtzH6QgsSyYnX9uIqxAtFDJLFCPUNzaDVSTq7EmssYTPEIZPKveBvDSKZz
-	 VYLXgCq2rzqI1tGklWr1oLHJeekRljyQz43ALfudP9nF3/TIS73Hmh0btBX7k6+QFG
-	 9HRAm57PGW0lQ==
+	b=u6Ensv+5PeX0kzepPdqcKGqyYGUumQz8XztAo6zJ8cKQ+Va9cYpe4pewTlDvHa/Aa
+	 iPP5eaAb18+2NmNkgGCm9HK0b5z7//NO4slD4Cgrf2tgkU9qbeqYmbAhZ6hPRuwZXO
+	 lgWTX0eOLMzuHzLLnFu9FQfKtDj7evqbviB6cVf8cRC5nYRnN0Is/GKl4cYtynpiIu
+	 xr3VYFeypdsbIpkitZRxLEpZ6uK8cUESi8X6MtFJ9yA1ZcH4fK3evOEUtoOQ1ipoVt
+	 fKK1eRqg7duZkdyWVYdmsORg4VaU5f9j+kgQOwPWoKHNlwT8z6X6vy7gmgHNuqwEjh
+	 8v5RSZfMYRFag==
 From: Sasha Levin <sashal@kernel.org>
 To: linux-kernel@vger.kernel.org,
 	stable@vger.kernel.org
@@ -33,16 +33,16 @@ Cc: Adam Young <admiyo@os.amperecomputing.com>,
 	Sudeep Holla <sudeep.holla@arm.com>,
 	Jassi Brar <jassisinghbrar@gmail.com>,
 	Sasha Levin <sashal@kernel.org>,
+	rafael@kernel.org,
 	robert.moore@intel.com,
-	rafael.j.wysocki@intel.com,
 	linux-acpi@vger.kernel.org,
 	acpica-devel@lists.linux.dev
-Subject: [PATCH AUTOSEL 6.12 36/36] mailbox: pcc: Check before sending MCTP PCC response ACK
-Date: Wed,  4 Dec 2024 10:45:52 -0500
-Message-ID: <20241204154626.2211476-36-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.11 33/33] mailbox: pcc: Check before sending MCTP PCC response ACK
+Date: Wed,  4 Dec 2024 10:47:46 -0500
+Message-ID: <20241204154817.2212455-33-sashal@kernel.org>
 X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20241204154626.2211476-1-sashal@kernel.org>
-References: <20241204154626.2211476-1-sashal@kernel.org>
+In-Reply-To: <20241204154817.2212455-1-sashal@kernel.org>
+References: <20241204154817.2212455-1-sashal@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -51,7 +51,7 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
-X-stable-base: Linux 6.12.1
+X-stable-base: Linux 6.11.10
 Content-Transfer-Encoding: 8bit
 
 From: Adam Young <admiyo@os.amperecomputing.com>
