@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C111207DEB;
-	Wed,  4 Dec 2024 17:12:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4B0E234963;
+	Wed,  4 Dec 2024 17:13:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733332367; cv=none; b=t4B9F5D5W8UJgwkSEkygt6dWgOGgn5ValnFiECmuqq/XrWJ3amdRzz7HxTQs0fDJiR1KpyHeJlaDg96MjL6PoQyaAfoWPLUKIc+pR+i0PHKDecyDCZk6z3ORmUN1DcUcJrMRSUViddSSRZ93DX/UrYz1dCKjxxCEVeafF7HjGMc=
+	t=1733332387; cv=none; b=Ny25KvVckOtWUcVYeijEHYo/jSI3XXqETzFcHBI+jndiQg0uNzsb+1aUXSPFu7vVEpDLvVbwyPlwAjC+CVPSIBYI4JsBjoQ7mz9FBcFSugj5y+TTUx500BgqegILmDl6LMIBs8a8guUKRSk2w1NQskHjW9UEQ8lOGtLdFTE1kiY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733332367; c=relaxed/simple;
-	bh=JcQBRPnFqVpdCGukwP5CGlHoIqQWzo9rlbQJWSp6bGc=;
+	s=arc-20240116; t=1733332387; c=relaxed/simple;
+	bh=UnnGKOXd0BhwwrAWMPw9umXxrSXIo78IY90fEx33PDQ=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=m48RxVuqSmL2+Fbm28cvEM5NF+XNbllwgByrAhejIKeMvA6//XBiVONNZDAKQhoFlQ1hzEI7ipAyyEUbfkC8B7V75pBkf0R8NP68N2aLSFlnXEh8V9mBZlfGIiBc0x1QTos5uCP76EnM96xGVTlBuFlnUFLQM4FECa+xpHnK9Y0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=k1Qa1rCm; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=N3J3M6eAdBOypKrKAHTMs3mJMAqzdrqCbxA9fUAzWjeCfMVkjIGZu6SMesS+s+OgkTJsO/fZD9BCTk6dMO7CehlNeVfYEg/XDFmLfbUlRKyakOOTZjm1MHkd/rSxbSWzmRFWkMFS9sJo1Ir2F3f9ll9wMdIYrGM4Jpa0lVJMf+0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=LNIjphcw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="k1Qa1rCm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63F94C4CECD;
-	Wed,  4 Dec 2024 17:12:45 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LNIjphcw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 070CAC4CED6;
+	Wed,  4 Dec 2024 17:13:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1733332367;
-	bh=JcQBRPnFqVpdCGukwP5CGlHoIqQWzo9rlbQJWSp6bGc=;
+	s=k20201202; t=1733332387;
+	bh=UnnGKOXd0BhwwrAWMPw9umXxrSXIo78IY90fEx33PDQ=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=k1Qa1rCmcW+M9kNVD9YycgEkUPNItLernZYyu3D6PQjxrpS0fja/bXGFEPGenQqtS
-	 6V8jZAG0oBEoTPbjVG7E7pjmgenFkkiOIbprC3Nlwp4uRo7rS1obgglxPz+xtYSrZp
-	 51evHLVuxNGGHe6hx6DWvqFgE5ybgpSuqfrEEAs+HaOUWhJoB4aUDy5Rl70YcQT/MQ
-	 bONd41TRaO8yrnRLd+m8psFMcnA71dDJHeJkKmeVCOdkFN/JHvFQTfoYvvZoRszr7f
-	 JS0tjJqz1TxUsVnuIPEUh2p2HObiSujrbEx6n9a8IxNcLYY+NnKsqXSzv/RA4IA7GY
-	 gR9Pr44w+ROjg==
+	b=LNIjphcwNglJmpiG5Yz5CsHAvHcJk2y5yUlvW19pahgEG7yEDuIIbanQHtyKMDBnB
+	 3a1wUmR4PTeR6frppQDZ0HJLG1F/Ieo0sms4DrdBpkAxhYMWlv4oeXTJqNV5QILyei
+	 VO+zylgLLKs8L8iYvcvK2mQu/D9cnmWT6UVsPJkfCh5NiVZQTfuCb5EMoLM/ztJgCr
+	 Sq5wo7M9xPqf7yojccbse1eTw6zi6deEwi4VG0DsfGDBJ/uoWjoZCx8UZqFAsbjFzk
+	 cIZKSqVlfxi5WtclkVpqRDD69w2y9rHGgvLHDVMtopb89JK6APsh2LyTlAf9BDH9si
+	 h2XcP+aT2/P7w==
 From: Sasha Levin <sashal@kernel.org>
 To: linux-kernel@vger.kernel.org,
 	stable@vger.kernel.org
@@ -42,12 +42,12 @@ Cc: Esther Shimanovich <eshimanovich@chromium.org>,
 	x86@kernel.org,
 	linux-acpi@vger.kernel.org,
 	linux-pci@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.6 07/12] PCI: Detect and trust built-in Thunderbolt chips
-Date: Wed,  4 Dec 2024 11:01:04 -0500
-Message-ID: <20241204160115.2216718-7-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.1 3/6] PCI: Detect and trust built-in Thunderbolt chips
+Date: Wed,  4 Dec 2024 11:01:35 -0500
+Message-ID: <20241204160142.2217017-3-sashal@kernel.org>
 X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20241204160115.2216718-1-sashal@kernel.org>
-References: <20241204160115.2216718-1-sashal@kernel.org>
+In-Reply-To: <20241204160142.2217017-1-sashal@kernel.org>
+References: <20241204160142.2217017-1-sashal@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -56,7 +56,7 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
-X-stable-base: Linux 6.6.63
+X-stable-base: Linux 6.1.119
 Content-Transfer-Encoding: 8bit
 
 From: Esther Shimanovich <eshimanovich@chromium.org>
@@ -120,11 +120,11 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  3 files changed, 148 insertions(+), 7 deletions(-)
 
 diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-index ea2eb2ec90e2b..1e3bdefe9cb42 100644
+index 2f82480fd4305..4421560a5e825 100644
 --- a/arch/x86/pci/acpi.c
 +++ b/arch/x86/pci/acpi.c
-@@ -250,6 +250,125 @@ void __init pci_acpi_crs_quirks(void)
- 		pr_info("Please notify linux-pci@vger.kernel.org so future kernels can do this automatically\n");
+@@ -248,6 +248,125 @@ void __init pci_acpi_crs_quirks(void)
+ 		printk(KERN_INFO "PCI: Please notify linux-pci@vger.kernel.org so future kernels can this automatically\n");
  }
  
 +/*
@@ -250,10 +250,10 @@ index ea2eb2ec90e2b..1e3bdefe9cb42 100644
  static int check_segment(u16 seg, struct device *dev, char *estr)
  {
 diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-index 43159965e09e9..03b519a228403 100644
+index e19b79821dd6d..5c1ab9ee65eb3 100644
 --- a/drivers/pci/probe.c
 +++ b/drivers/pci/probe.c
-@@ -1602,23 +1602,33 @@ static void set_pcie_thunderbolt(struct pci_dev *dev)
+@@ -1593,23 +1593,33 @@ static void set_pcie_thunderbolt(struct pci_dev *dev)
  
  static void set_pcie_untrusted(struct pci_dev *dev)
  {
@@ -292,7 +292,7 @@ index 43159965e09e9..03b519a228403 100644
  	 * device to be removable by the user. We're mainly concerned with
  	 * consumer platforms with user accessible thunderbolt ports that are
  	 * vulnerable to DMA attacks, and we expect those ports to be marked by
-@@ -1628,9 +1638,15 @@ static void pci_set_removable(struct pci_dev *dev)
+@@ -1619,9 +1629,15 @@ static void pci_set_removable(struct pci_dev *dev)
  	 * accessible to user / may not be removed by end user, and thus not
  	 * exposed as "removable" to userspace.
  	 */
@@ -311,10 +311,10 @@ index 43159965e09e9..03b519a228403 100644
  
  /**
 diff --git a/include/linux/pci.h b/include/linux/pci.h
-index 2b7e45bae9408..2d1fb935a8c86 100644
+index df73fb26b8250..9e58e5400d783 100644
 --- a/include/linux/pci.h
 +++ b/include/linux/pci.h
-@@ -2577,6 +2577,12 @@ pci_host_bridge_acpi_msi_domain(struct pci_bus *bus) { return NULL; }
+@@ -2471,6 +2471,12 @@ pci_host_bridge_acpi_msi_domain(struct pci_bus *bus) { return NULL; }
  static inline bool pci_pr3_present(struct pci_dev *pdev) { return false; }
  #endif
  
