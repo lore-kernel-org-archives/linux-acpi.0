@@ -1,152 +1,235 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.7])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 013B71DA634;
-	Thu,  5 Dec 2024 10:57:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AF60207E16;
+	Thu,  5 Dec 2024 11:41:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.7
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733396223; cv=none; b=Q4rJW9FqWiorM6NCgjtAI+gWV3Ze0+35WHIlX/LGtAoInNR9y9HBYNfCq6YVJgRsc0CRGdktyeZz9unzOv9STunLAnu4Du9wCqfWOwWmiDWyxkOQxdiN6xQDnx4bB0LLfDiRDjnX41AMuW4UXs9AOEUXyfp0mS62T2izVyTMtt0=
+	t=1733398871; cv=none; b=SBYg646tNhOIPYS8Qa/5wXB1IAf4uMCM/C6xReJ26TD0Uo1FlAWAxprtwlnc97QIMX5vRSlsJLlnYsPnovqqKtMqJ62Kr6a5i1EmKBSRe2MPBUFcOxSu0VZSYkf8juwdTzXKgL2FNOKCMredkxOtgRVGXADJBu8qNSqtDp9/PE8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733396223; c=relaxed/simple;
-	bh=6kRllVnfwcu5TGBiLiC1h5yQU5pzrxdhDoaU3LZA5sQ=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=GQpO+VnWtfZzUNpIYDxEZMHvkShCQmtvcnCNlBTo5aIytbj3VNFCvpg0AVlc7Y6BDzWEqE0DSdEOy8O45i1G0iPrr8OBm2T1WRS8OtE64NEG43Zg8+cU/ItUevDDG3ljpO19hkYUUnJM1CRxYSztrY6OLZgnyst6NbRyw3IGI1A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=LpHHat8j; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733398871; c=relaxed/simple;
+	bh=prkes8uEj3iYakr3bZXZUj3FeRAXRPmf/dzG75uRGTY=;
+	h=From:Date:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=R16INxI5mcfZkCzCvrIZIywBsOScaPALYLFQtZQubtb/tR8q6BbTrh4DTGUgeAUcDgIqnaH/rNQ7Z7/28+cZr7Uq8nkYEg9IVHN1Hd/pOZ52ycmw1hYoTIndQzVKD2qUvsIFQO5xR1OuiM0kNHNZGgkxAM5tLLE/RPmjC3FdnKA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=juw6fBuG; arc=none smtp.client-ip=192.198.163.7
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LpHHat8j"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82246C4CEDE;
-	Thu,  5 Dec 2024 10:57:02 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1733396222;
-	bh=6kRllVnfwcu5TGBiLiC1h5yQU5pzrxdhDoaU3LZA5sQ=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=LpHHat8jlUvC2RvdsBaxsPhWFrR5FOi0j2bh+OmZIqrLXRS29BhPJhHeTatXihsfK
-	 a5r0QhoeB2fdziyY0nzIMQK4g/f4c65WLoGAeGncHH3PEpyPtKmIkBjzZK8tDlL8fT
-	 1JkF/Lka1XJtVRmQylp2yqfkAyfCzF/DKr3o/VeUhX3YF40CSLFrnzXIQC/hKl656Y
-	 7OOL9iHPBUe5KywfPpmjr95oGrxxrkOD+2FCBYCIzMlLvqVzgjcIfahqSPyd5bhKAN
-	 UH2bbTkg5p1XSVG+ZjwoaTEyRtaVB2OnVzq3Hs3vDJYvWA7K3TDwle6Nk+QrMdNTnI
-	 FTs6rRHC0yl5g==
-Received: by mail-oa1-f52.google.com with SMTP id 586e51a60fabf-29e2e768952so555706fac.3;
-        Thu, 05 Dec 2024 02:57:02 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AJvYcCU6GMaALuqWdqVqpNU9Tqgh6hdMABtVUslHDKOGECys9jbLf+hzG9p4vXFwq1xToXEl/VNmx4MyzXU=@vger.kernel.org, AJvYcCVE3xz3WXicXoRJTaot+kaYZrJwgmgMuq4FNzuxnWd9cTbjP/ACpnbYUsPsCVIBiLFlBGIfg4wIMUCug7Mm@vger.kernel.org, AJvYcCVK+EoTgVqQN3SFO3Q7T443xR/AJM1vvBEPHbJhJeX4P72b1/BJ84nMnNzMXpkeNK43nB6cuOFpWe46@vger.kernel.org
-X-Gm-Message-State: AOJu0YzjBgUxc7iFPJrkvr8WJvAwlUaZHRChmQMfv2ZsL51iHoBD7k0E
-	ngbi/X78VYB73Ed1vjMMxYrL3gTbkp1JwzF8t7Y8AaMxLrvtzKHAHE5uybcLKENzWf7It3OnVEr
-	JiCsFP9/rBczG42Ajyk+My46Xmk8=
-X-Google-Smtp-Source: AGHT+IEBhDb774kuTMEXvIw3iQI6Z6uT2XhUQ6Oq/3PIm7kHDHLw4Lr3Y9TLCfDOBFAM4M1j1i5HAhTilnR+x2ZiLBs=
-X-Received: by 2002:a05:6870:798f:b0:29e:3701:47c3 with SMTP id
- 586e51a60fabf-29e8891ba52mr8780289fac.42.1733396221840; Thu, 05 Dec 2024
- 02:57:01 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="juw6fBuG"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1733398869; x=1764934869;
+  h=from:date:to:cc:subject:in-reply-to:message-id:
+   references:mime-version;
+  bh=prkes8uEj3iYakr3bZXZUj3FeRAXRPmf/dzG75uRGTY=;
+  b=juw6fBuGCXzRsnRdbx9kEGtay3JnQJaqXoFeg0sQpQRbMh2Yv+R/Ax0o
+   yVJRm1Jg4k3jvsg57S0pN1OtkNd3TwdW92owqyk6foyxQ8APIFoFgEuGZ
+   gx/Wm6DdcEJ9y1ryUF3UcxhRuUFWsvugHKXMAUxq3nI/Bjv4nviyFyYDs
+   UrtlHiHNPa7Obsi2I1kNHlGRmHVe0NkGNk5XlXYVFR3i9Wo9tyo2BjqFE
+   Zu2ujPTOH2ZOo7Kho6YPEckd5XxGNXiQl1jThEmjX0CdKD0OD0WpSp4JI
+   kkIJ6vvh2j4D1ilhStugU2Lupn5U/FJpgxN/82lhzzSdtqC7SpzqKZW4/
+   A==;
+X-CSE-ConnectionGUID: sgQo8BPgQKWgJiJN1SZHRQ==
+X-CSE-MsgGUID: eXo4CmEbQUq35uOaSiXJNw==
+X-IronPort-AV: E=McAfee;i="6700,10204,11276"; a="59109861"
+X-IronPort-AV: E=Sophos;i="6.12,210,1728975600"; 
+   d="scan'208";a="59109861"
+Received: from orviesa004.jf.intel.com ([10.64.159.144])
+  by fmvoesa101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Dec 2024 03:41:07 -0800
+X-CSE-ConnectionGUID: YFY5WZ7lSs2Kl6PvWWfpKw==
+X-CSE-MsgGUID: VXl5A4MUQjO/8c/AYI66QA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.12,210,1728975600"; 
+   d="scan'208";a="99149356"
+Received: from ijarvine-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.244.60])
+  by orviesa004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Dec 2024 03:40:59 -0800
+From: =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
+Date: Thu, 5 Dec 2024 13:40:56 +0200 (EET)
+To: Mario Limonciello <mario.limonciello@amd.com>
+cc: Hans de Goede <hdegoede@redhat.com>, 
+    "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
+    Maximilian Luz <luzmaximilian@gmail.com>, Lee Chun-Yi <jlee@suse.com>, 
+    Shyam Sundar S K <Shyam-sundar.S-k@amd.com>, 
+    Corentin Chary <corentin.chary@gmail.com>, 
+    "Luke D . Jones" <luke@ljones.dev>, Ike Panhc <ike.pan@canonical.com>, 
+    Henrique de Moraes Holschuh <hmh@hmh.eng.br>, 
+    Alexis Belmonte <alexbelm48@gmail.com>, 
+    =?ISO-8859-15?Q?Uwe_Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, 
+    Ai Chao <aichao@kylinos.cn>, Gergo Koteles <soyer@irl.hu>, 
+    open list <linux-kernel@vger.kernel.org>, 
+    "open list:ACPI" <linux-acpi@vger.kernel.org>, 
+    "open list:MICROSOFT SURFACE PLATFORM PROFILE DRIVER" <platform-driver-x86@vger.kernel.org>, 
+    "open list:THINKPAD ACPI EXTRAS DRIVER" <ibm-acpi-devel@lists.sourceforge.net>, 
+    Mark Pearson <mpearson-lenovo@squebb.ca>, 
+    Matthew Schwartz <matthew.schwartz@linux.dev>, Armin Wolf <W_Armin@gmx.de>
+Subject: Re: [PATCH v9 13/22] ACPI: platform_profile: Add profile attribute
+ for class interface
+In-Reply-To: <20241202055031.8038-14-mario.limonciello@amd.com>
+Message-ID: <5b1a2aa1-b9be-744a-9c8d-074d981eaf30@linux.intel.com>
+References: <20241202055031.8038-1-mario.limonciello@amd.com> <20241202055031.8038-14-mario.limonciello@amd.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <5839859.DvuYhMxLoT@rjwysocki.net> <CAJvTdKm4Fermz1zgTWohEGSoGpoB3CJL2FF-u6y9FAEBwBbcnQ@mail.gmail.com>
-In-Reply-To: <CAJvTdKm4Fermz1zgTWohEGSoGpoB3CJL2FF-u6y9FAEBwBbcnQ@mail.gmail.com>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Thu, 5 Dec 2024 11:56:50 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0hyY6v2ZV-h0KMX_ehmJa38K1oQgSnNU4Mvab2Vv8y=-A@mail.gmail.com>
-Message-ID: <CAJZ5v0hyY6v2ZV-h0KMX_ehmJa38K1oQgSnNU4Mvab2Vv8y=-A@mail.gmail.com>
-Subject: Re: [RFC/RFT][PATCH v0.1] ACPI: OSL: Use usleep_range() in acpi_os_sleep()
-To: Len Brown <lenb@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux ACPI <linux-acpi@vger.kernel.org>, 
-	LKML <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, 
-	Len Brown <len.brown@intel.com>, Arjan van de Ven <arjan@linux.intel.com>, 
-	Pierre Gondois <pierre.gondois@arm.com>, Dietmar Eggemann <dietmar.eggemann@arm.com>, 
-	Hans de Goede <hdegoede@redhat.com>, Mario Limonciello <mario.limonciello@amd.com>, 
-	"Gautham R. Shenoy" <gautham.shenoy@amd.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="8323328-386674404-1733398856=:932"
 
-On Wed, Dec 4, 2024 at 10:41=E2=80=AFPM Len Brown <lenb@kernel.org> wrote:
->
-> On Thu, Nov 21, 2024 at 8:15=E2=80=AFAM Rafael J. Wysocki <rjw@rjwysocki.=
-net> wrote:
-> >
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >
-> > As stated by Len in [1], the extra delay added by msleep() to the
-> > sleep time value passed to it can be significant, roughly between
-> > 1.5 ns on systems with HZ =3D 1000 and as much as 15 ms on systems with
-> > HZ =3D 100, which is hardly acceptable, at least for small sleep time
-> > values.
->
-> Maybe the problem statement is more clear with a concrete example:
->
-> msleep(5) on the default HZ=3D250 on a modern PC takes about 11.9 ms.
-> This results in over 800 ms of spurious system resume delay
-> on systems such as the Dell XPS-13-9300, which use ASL Sleep(5ms)
-> in a tight loop.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Sure, I can add this information to the changelog.
+--8323328-386674404-1733398856=:932
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-> (yes, this additional cost used to be over 1200 ms before the v6.12
-> msleep rounding fix)
->
-> > -       msleep(ms);
-> > +       u64 usec =3D ms * USEC_PER_MSEC, delta_us =3D 50;
->
-> > +       if (ms > 5)
-> > +               delta_us =3D (USEC_PER_MSEC / 100) * ms
->
-> I measured 100 resume cycles on the Dell XPS 13 9300 on 4 kernels.
-> Here is the measured fastest kernel resume time in msec for each:
->
-> 1. 1921.292 v6.12 msleep (baseline)
-> 2. 1115.579 v6.12 delta_us =3D (USEC_PER_MSEC / 100) * ms (this patch)
-> 3. 1113.396 v6.12 delta_us =3D 50
-> 4. 1107.835 v6.12 delta_us =3D 0
->
-> (I didn't average the 100 runs, because random very long device
-> hiccups  throw off the average)
->
-> So any of #2, #3 and #4 are a huge step forward from what is shipping tod=
-ay!
->
-> So considering #2 vs #3 vs #4....
->
-> I agree that it is a problem for the timer sub-system to work to
-> maintain a 1ns granularity
-> that it can't actually deliver.
->
-> I think it is fine for the timer sub-system to allow calls to opt into
-> timer slack --
-> some callers may actually know what number to use.
->
-> However, I don't think that the timer sub-system should force callers to =
-guess
-> how much slack is appropriate.  I think that a caller with 0 slack
-> should be internally
-> rounded up by the timer sub-system to the granularity that it can
-> actually deliver
-> with the timer that is currently in use on that system.
->
-> Note also that slack of 0 doesn't mean that no coalescing can happen.
-> A slack=3D0 timer can land within the slack another timer, and the other
-> timer will be pulled forward to coalesce.
->
-> The 50 usec default for user timer slack is certainly a magic number born
-> of tests of interesting workloads on interesting systems on a certain dat=
-e.
-> It may not be the right number for other workloads, or other systems
-> with other timers on other dates.
->
-> My opinion...
->
-> I don't see a justification for increasing timer slack with increasing du=
-ration.
-> User-space timers don't pay this additional delay, why should the ASL
-> programmer?
->
-> Also, the graduated increasing slack with duration is a guess no more
-> valid than the guess of a flat 50 usec.
->
-> A flat 50 or a flat 0 have the virtue of being simple -- they will be sim=
-pler
-> to understand and maintain in the future.
->
-> But I can live with any of these options, since they are all a big step f=
-orward.
+On Sun, 1 Dec 2024, Mario Limonciello wrote:
 
-All right, thanks!
+> Reading and writing the `profile` sysfs file will use the callbacks for
+> the platform profile handler to read or set the given profile.
+>=20
+> Tested-by: Mark Pearson <mpearson-lenovo@squebb.ca>
+> Reviewed-by: Mark Pearson <mpearson-lenovo@squebb.ca>
+> Reviewed-by: Armin Wolf <W_Armin@gmx.de>
+> Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
+
+
+Reviewed-by: Ilpo J=E4rvinen <ilpo.jarvinen@linux.intel.com>
+
+--=20
+ i.
+
+> ---
+> v8:
+>  * whitespace
+>  * rename variables
+> ---
+>  drivers/acpi/platform_profile.c | 102 ++++++++++++++++++++++++++++++++
+>  1 file changed, 102 insertions(+)
+>=20
+> diff --git a/drivers/acpi/platform_profile.c b/drivers/acpi/platform_prof=
+ile.c
+> index 885f41bca6c25..fdff374aab128 100644
+> --- a/drivers/acpi/platform_profile.c
+> +++ b/drivers/acpi/platform_profile.c
+> @@ -47,6 +47,52 @@ static ssize_t _commmon_choices_show(unsigned long *ch=
+oices, char *buf)
+>  =09return len;
+>  }
+> =20
+> +/**
+> + * _store_class_profile - Set the profile for a class device
+> + * @dev: The class device
+> + * @data: The profile to set
+> + */
+> +static int _store_class_profile(struct device *dev, void *data)
+> +{
+> +=09struct platform_profile_handler *handler;
+> +=09int *bit =3D (int *)data;
+> +
+> +=09lockdep_assert_held(&profile_lock);
+> +=09handler =3D dev_get_drvdata(dev);
+> +=09if (!test_bit(*bit, handler->choices))
+> +=09=09return -EOPNOTSUPP;
+> +
+> +=09return handler->profile_set(handler, *bit);
+> +}
+> +
+> +/**
+> + * get_class_profile - Show the current profile for a class device
+> + * @dev: The class device
+> + * @profile: The profile to return
+> + * Return: 0 on success, -errno on failure
+> + */
+> +static int get_class_profile(struct device *dev,
+> +=09=09=09     enum platform_profile_option *profile)
+> +{
+> +=09struct platform_profile_handler *handler;
+> +=09enum platform_profile_option val;
+> +=09int err;
+> +
+> +=09lockdep_assert_held(&profile_lock);
+> +=09handler =3D dev_get_drvdata(dev);
+> +=09err =3D handler->profile_get(handler, &val);
+> +=09if (err) {
+> +=09=09pr_err("Failed to get profile for handler %s\n", handler->name);
+> +=09=09return err;
+> +=09}
+> +
+> +=09if (WARN_ON(val >=3D PLATFORM_PROFILE_LAST))
+> +=09=09return -EINVAL;
+> +=09*profile =3D val;
+> +
+> +=09return 0;
+> +}
+> +
+>  /**
+>   * name_show - Show the name of the profile handler
+>   * @dev: The device
+> @@ -81,9 +127,65 @@ static ssize_t choices_show(struct device *dev,
+>  }
+>  static DEVICE_ATTR_RO(choices);
+> =20
+> +/**
+> + * profile_show - Show the current profile for a class device
+> + * @dev: The device
+> + * @attr: The attribute
+> + * @buf: The buffer to write to
+> + *
+> + * Return: The number of bytes written
+> + */
+> +static ssize_t profile_show(struct device *dev,
+> +=09=09=09    struct device_attribute *attr,
+> +=09=09=09    char *buf)
+> +{
+> +=09enum platform_profile_option profile =3D PLATFORM_PROFILE_LAST;
+> +=09int err;
+> +
+> +=09scoped_cond_guard(mutex_intr, return -ERESTARTSYS, &profile_lock) {
+> +=09=09err =3D get_class_profile(dev, &profile);
+> +=09=09if (err)
+> +=09=09=09return err;
+> +=09}
+> +
+> +=09return sysfs_emit(buf, "%s\n", profile_names[profile]);
+> +}
+> +
+> +/**
+> + * profile_store - Set the profile for a class device
+> + * @dev: The device
+> + * @attr: The attribute
+> + * @buf: The buffer to read from
+> + * @count: The number of bytes to read
+> + *
+> + * Return: The number of bytes read
+> + */
+> +static ssize_t profile_store(struct device *dev,
+> +=09=09=09     struct device_attribute *attr,
+> +=09=09=09     const char *buf, size_t count)
+> +{
+> +=09int index, ret;
+> +
+> +=09index =3D sysfs_match_string(profile_names, buf);
+> +=09if (index < 0)
+> +=09=09return -EINVAL;
+> +
+> +=09scoped_cond_guard(mutex_intr, return -ERESTARTSYS, &profile_lock) {
+> +=09=09ret =3D _store_class_profile(dev, &index);
+> +=09=09if (ret)
+> +=09=09=09return ret;
+> +=09}
+> +
+> +=09sysfs_notify(acpi_kobj, NULL, "platform_profile");
+> +
+> +=09return count;
+> +}
+> +static DEVICE_ATTR_RW(profile);
+> +
+>  static struct attribute *profile_attrs[] =3D {
+>  =09&dev_attr_name.attr,
+>  =09&dev_attr_choices.attr,
+> +=09&dev_attr_profile.attr,
+>  =09NULL
+>  };
+>  ATTRIBUTE_GROUPS(profile);
+>=20
+--8323328-386674404-1733398856=:932--
