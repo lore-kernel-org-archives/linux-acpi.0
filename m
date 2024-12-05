@@ -1,151 +1,158 @@
-Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.16])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9604F1C3C03;
-	Thu,  5 Dec 2024 12:24:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=79.96.170.134
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDE341B59A;
+	Thu,  5 Dec 2024 14:23:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.16
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733401481; cv=none; b=pHKpf4PiVmRCt0Ey0UpHp8T1diWtSW6nrYTtzFpGqpC6PWbg9sWj1iIRowXMrY+7DCaBbUgP+HfiR+RhMpxzPUeQMY0btBfQ2piDrcLLr0rS2m60BbG0ZpayrcOkaJOTODWZXE6a30HdXLZSz3cuTg1dLVXerXjhiEGMba+2JTE=
+	t=1733408592; cv=none; b=UbZWPXIg+vv2NqwnklP1O2/TRFXgwIpYreF0ksc/MYHSFb5gcmPLJ4uuIFvfHGWb/BThFz2ww5rXUDCRx6/bSeysReTfLMOktQkRhwS2MSpcCQY/I6ZRX3DJW3r+uztairQ5TUpZpNF+vhMfxkocCYRgY4dbazaeoolMuGWgcto=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733401481; c=relaxed/simple;
-	bh=6HOpsc625EGjC9PL02c3HToHWwFMARP9I2Vi0twgIrs=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=UnKNiHkdmZ76Z8I7IVRL4rOqykEhyTqXvtuPBhw3EMHqopwH930zy56G9Isqoe8wf28SlDtcEdWiw3/y8UIAwWhyYXy0QAcs+lyvcgBSI95PXVMt9k8Td1QLnc13seBDoNDnufIg+c9ADwtx2Wd3xeKdlhNfCrsWff4RgnfeiUk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net; spf=pass smtp.mailfrom=rjwysocki.net; dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b=YpOQGx8j; arc=none smtp.client-ip=79.96.170.134
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rjwysocki.net
+	s=arc-20240116; t=1733408592; c=relaxed/simple;
+	bh=KV0cBHy/QqFDgX3uFP6QgbhHS3lUE5VEmKJ05QIhPEI=;
+	h=From:Date:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=BjNdQulewL1FOnIq2+yOfOnqmaS8oLWZ+pdHTC250vwAlWm8K5BsBeYlcpXo2gSHuyMJXKYNVD5xr+vgLpw0CrQJaToTRZMmAn6yum3l5HO1VUGuX0tlrwwEPDL0vqthGDH3NBx4qxPTZndRfkGHVoHkd+0c5b9iqJbSqpmgkJY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=D7L4gMkV; arc=none smtp.client-ip=192.198.163.16
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b="YpOQGx8j"
-Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
- by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 6.2.1)
- id a11382d7935d7579; Thu, 5 Dec 2024 12:24:36 +0100
-Received: from kreacher.localnet (unknown [195.136.19.94])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by cloudserver094114.home.pl (Postfix) with ESMTPSA id 88CB515F00FF;
-	Thu,  5 Dec 2024 12:24:35 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=rjwysocki.net;
-	s=dkim; t=1733397876;
-	bh=6HOpsc625EGjC9PL02c3HToHWwFMARP9I2Vi0twgIrs=;
-	h=From:Subject:Date;
-	b=YpOQGx8j1i8ximeDtP0jet2Kgcq/S07XVQDZoWoGp549h4TA9ib79Wzi+isWkIYLc
-	 t4iehrv36QW2woWClLQ+SsKLY7EIDFI+9pYGQjActjoXR61TcZVvVSs1EFZCEaGh7j
-	 +18l7IxfFBkbQ0Bs0FRJWoOLHksaltggG5peethbxmToy+CaH04pLxlqYqvmElJ6HU
-	 l2AfzGk3tHQKvF4zmQ5LBbRMd4qScppx2pVimiM1zznpaSyyUK9w8D+kxDvqz8I4m7
-	 ebhVOnB5aFrU186PGLbpgQI2VNwnqjQF6dHBSzFT6MRYasBFm1fLIPCtco7Za6CcO8
-	 O1yMY0+NVLk+Q==
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To: Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>,
- Len Brown <len.brown@intel.com>, Arjan van de Ven <arjan@linux.intel.com>,
- Pierre Gondois <pierre.gondois@arm.com>,
- Dietmar Eggemann <dietmar.eggemann@arm.com>,
- Hans de Goede <hdegoede@redhat.com>,
- Mario Limonciello <mario.limonciello@amd.com>,
- "Gautham R. Shenoy" <gautham.shenoy@amd.com>
-Subject: [PATCH v1] ACPI: OSL: Use usleep_range() in acpi_os_sleep()
-Date: Thu, 05 Dec 2024 12:24:35 +0100
-Message-ID: <5857066.DvuYhMxLoT@rjwysocki.net>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="D7L4gMkV"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1733408591; x=1764944591;
+  h=from:date:to:cc:subject:in-reply-to:message-id:
+   references:mime-version;
+  bh=KV0cBHy/QqFDgX3uFP6QgbhHS3lUE5VEmKJ05QIhPEI=;
+  b=D7L4gMkVWhw3ETMmxGXwRuw44Rqk1TLKeCBqO4o9nUtyo96gx7Vrr1Ve
+   w5I2jQPBUd45q2LycVKsVdnQlAcWaWcfPQz1vRMuhvocf7Cv4JQMHSxSJ
+   mGA6wD3ytWwMXmJA66gYl6IOpX6b1MPDtb4ynC9OjC4xhaeqBPBlQutG5
+   3cnsUYWte19bjUw22GmjMiAmT/mC1LMl/g86gZW+O7Jl4HgwozYhze6nt
+   N5eQKSPnaDLeAwyhbhzATtZrdZKUA76ZKlcifb6PWLwX3HIujTCCTllVO
+   uqr95wi29U0Pzo2x0Xqp51DwJD1iljOTqHMbcjqp/KDGBNqvdxDziHPuR
+   g==;
+X-CSE-ConnectionGUID: I9hgzMASRlOlY/LWgTG9dQ==
+X-CSE-MsgGUID: jVG0HtapTJKGtPEMF9UPdA==
+X-IronPort-AV: E=McAfee;i="6700,10204,11277"; a="21308541"
+X-IronPort-AV: E=Sophos;i="6.12,210,1728975600"; 
+   d="scan'208";a="21308541"
+Received: from fmviesa008.fm.intel.com ([10.60.135.148])
+  by fmvoesa110.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Dec 2024 06:23:10 -0800
+X-CSE-ConnectionGUID: PmBgtXJ7Rr6Xz8L0Q3KGPw==
+X-CSE-MsgGUID: iowx0A/aQ0yUaXxZzCnpPQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.12,210,1728975600"; 
+   d="scan'208";a="94302147"
+Received: from ijarvine-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.244.60])
+  by fmviesa008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Dec 2024 06:23:02 -0800
+From: =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
+Date: Thu, 5 Dec 2024 16:22:59 +0200 (EET)
+To: Mario Limonciello <mario.limonciello@amd.com>
+cc: Hans de Goede <hdegoede@redhat.com>, 
+    "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
+    Maximilian Luz <luzmaximilian@gmail.com>, Lee Chun-Yi <jlee@suse.com>, 
+    Shyam Sundar S K <Shyam-sundar.S-k@amd.com>, 
+    Corentin Chary <corentin.chary@gmail.com>, 
+    "Luke D . Jones" <luke@ljones.dev>, Ike Panhc <ike.pan@canonical.com>, 
+    Henrique de Moraes Holschuh <hmh@hmh.eng.br>, 
+    Alexis Belmonte <alexbelm48@gmail.com>, 
+    =?ISO-8859-15?Q?Uwe_Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, 
+    Ai Chao <aichao@kylinos.cn>, Gergo Koteles <soyer@irl.hu>, 
+    open list <linux-kernel@vger.kernel.org>, 
+    "open list:ACPI" <linux-acpi@vger.kernel.org>, 
+    "open list:MICROSOFT SURFACE PLATFORM PROFILE DRIVER" <platform-driver-x86@vger.kernel.org>, 
+    "open list:THINKPAD ACPI EXTRAS DRIVER" <ibm-acpi-devel@lists.sourceforge.net>, 
+    Mark Pearson <mpearson-lenovo@squebb.ca>, 
+    Matthew Schwartz <matthew.schwartz@linux.dev>, Armin Wolf <W_Armin@gmx.de>
+Subject: Re: [PATCH v9 18/22] ACPI: platform_profile: Check all profile
+ handler to calculate next
+In-Reply-To: <20241202055031.8038-19-mario.limonciello@amd.com>
+Message-ID: <fc57acd9-396c-e047-12c1-14836e477d14@linux.intel.com>
+References: <20241202055031.8038-1-mario.limonciello@amd.com> <20241202055031.8038-19-mario.limonciello@amd.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="UTF-8"
-X-CLIENT-IP: 195.136.19.94
-X-CLIENT-HOSTNAME: 195.136.19.94
-X-VADE-SPAMSTATE: spam:low
-X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgeefuddrieejgddviecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnegoufhprghmkfhpucdlfedttddmnecujfgurhephffvvefufffkggfgtgesthfuredttddtjeenucfhrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqeenucggtffrrghtthgvrhhnpeegfffhudejlefhtdegffekteduhfethffhieettefhkeevgfdvgfefieekiefgheenucffohhmrghinhepkhgvrhhnvghlrdhorhhgnecukfhppeduleehrddufeeirdduledrleegnecuufhprghmkfhppeduleehrddufeeirdduledrleegnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehinhgvthepudelhedrudefiedrudelrdelgedphhgvlhhopehkrhgvrggthhgvrhdrlhhotggrlhhnvghtpdhmrghilhhfrhhomheprhhjfiesrhhjfiihshhotghkihdrnhgvthdpnhgspghrtghpthhtohepuddtpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqphhmsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthh
-X-DCC--Metrics: v370.home.net.pl 1024; Body=10 Fuz1=10 Fuz2=10
+Content-Type: text/plain; charset=US-ASCII
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Subject: [PATCH v0.1] ACPI: OSL: Use usleep_range() in acpi_os_sleep()
+On Sun, 1 Dec 2024, Mario Limonciello wrote:
 
-As stated by Len in [1], the extra delay added by msleep() to the
-sleep time value passed to it can be significant, roughly between
-1.5 ns on systems with HZ = 1000 and as much as 15 ms on systems with
-HZ = 100, which is hardly acceptable, at least for small sleep time
-values.
+> As multiple platform profile handlers might not all support the same
+> profile, cycling to the next profile could have a different result
+> depending on what handler are registered.
+> 
+> Check what is active and supported by all handlers to decide what
+> to do.
+> 
+> Reviewed-by: Armin Wolf <W_Armin@gmx.de>
+> Tested-by: Mark Pearson <mpearson-lenovo@squebb.ca>
+> Reviewed-by: Mark Pearson <mpearson-lenovo@squebb.ca>
+> Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
+> ---
+>  drivers/acpi/platform_profile.c | 30 +++++++++++++++++++++---------
+>  1 file changed, 21 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/acpi/platform_profile.c b/drivers/acpi/platform_profile.c
+> index d5f0679d59d50..16746d9b9aa7c 100644
+> --- a/drivers/acpi/platform_profile.c
+> +++ b/drivers/acpi/platform_profile.c
+> @@ -407,25 +407,37 @@ EXPORT_SYMBOL_GPL(platform_profile_notify);
+>  
+>  int platform_profile_cycle(void)
+>  {
+> -	enum platform_profile_option profile;
+> -	enum platform_profile_option next;
+> +	enum platform_profile_option next = PLATFORM_PROFILE_LAST;
+> +	enum platform_profile_option profile = PLATFORM_PROFILE_LAST;
+> +	unsigned long choices[BITS_TO_LONGS(PLATFORM_PROFILE_LAST)];
+>  	int err;
+>  
+> +	set_bit(PLATFORM_PROFILE_LAST, choices);
+>  	scoped_cond_guard(mutex_intr, return -ERESTARTSYS, &profile_lock) {
+> -		if (!cur_profile)
+> -			return -ENODEV;
+> +		err = class_for_each_device(&platform_profile_class, NULL,
+> +					    &profile, _aggregate_profiles);
+> +		if (err)
+> +			return err;
+>  
+> -		err = cur_profile->profile_get(cur_profile, &profile);
+> +		if (profile == PLATFORM_PROFILE_CUSTOM ||
+> +		    profile == PLATFORM_PROFILE_LAST)
+> +			return -EINVAL;
+> +
+> +		err = class_for_each_device(&platform_profile_class, NULL,
+> +					    choices, _aggregate_choices);
+>  		if (err)
+>  			return err;
+>  
+> -		next = find_next_bit_wrap(cur_profile->choices, PLATFORM_PROFILE_LAST,
+> +		/* never iterate into a custom if all drivers supported it */
+> +		clear_bit(PLATFORM_PROFILE_CUSTOM, choices);
 
-msleep(5) on the default HZ = 250 in Ubuntu on a modern PC takes about
-12 ms.  This results in over 800 ms of spurious system resume delay on
-systems such as the Dell XPS-13-9300, which use ASL Sleep(5ms) in a
-tight loop.
+I'm confused by the comment. I was under impression the custom "profile" 
+is just a framework construct when the _framework_ couldn't find a 
+consistent profile? How can a driver decide to "support it"? It sounds 
+like a driver overstepping its intended domain of operation.
 
-Address this by using usleep_range() in acpi_os_sleep() instead of
-msleep().  For short sleep times this is a no brainer, but even for
-long sleeps usleep_range() should be preferred because timer wheel
-timers are optimized for cancelation before they expire and this
-particular timer is not going to be canceled.
+If the intention really is for the driver to "support" or "not support" 
+custom profile, then you should adjust the commit message of the patch
+which introduced it.
 
-Add at least 50 us on top of the requested sleep time in case the
-timer can be subject to coalescing, which is consistent with what's
-done in user space in this context [2], but for sleeps longer than 5 ms
-use 1% of the requested sleep time for this purpose.
+-- 
+ i.
 
-The rationale here is that longer sleeps don't need that much of a timer
-precision as a rule and making the timer a more likely candidate for
-coalescing in these cases is generally desirable.  It starts at 5 ms so
-that the delta between the requested sleep time and the effective
-deadline is a contiuous function of the former.
-
-Link: https://lore.kernel.org/linux-pm/c7db7e804c453629c116d508558eaf46477a2d73.1731708405.git.len.brown@intel.com/ [1]
-Link: https://lore.kernel.org/linux-pm/
-CAJvTdK=Q1kwWA6Wxn8Zcf0OicDEk6cHYFAvQVizgA47mXu63+g@mail.gmail.com/ [2]
-Closes: https://bugzilla.kernel.org/show_bug.cgi?id=216263
-Reported-by: Len Brown <lenb@kernel.org>
-Reviewed-by: Hans de Goede <hdegoede@redhat.com>
-Reviewed-by: Mario Limonciello <mario.limonciello@amd.com>
-Tested-by: Mario Limonciello <mario.limonciello@amd.com>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
-
-The previous RFC version of this patch is here:
-
-https://lore.kernel.org/linux-pm/5839859.DvuYhMxLoT@rjwysocki.net/
-
-The difference between this version and the RFC is a changelog update
-suggested by Len, the Closes: tag and the tags from Hans and Mario.
-
----
- drivers/acpi/osl.c |   22 +++++++++++++++++++++-
- 1 file changed, 21 insertions(+), 1 deletion(-)
-
-Index: linux-pm/drivers/acpi/osl.c
-===================================================================
---- linux-pm.orig/drivers/acpi/osl.c
-+++ linux-pm/drivers/acpi/osl.c
-@@ -607,7 +607,27 @@ acpi_status acpi_os_remove_interrupt_han
- 
- void acpi_os_sleep(u64 ms)
- {
--	msleep(ms);
-+	u64 usec = ms * USEC_PER_MSEC, delta_us = 50;
-+
-+	/*
-+	 * Use a hrtimer because the timer wheel timers are optimized for
-+	 * cancelation before they expire and this timer is not going to be
-+	 * canceled.
-+	 *
-+	 * Set the delta between the requested sleep time and the effective
-+	 * deadline to at least 50 us in case there is an opportunity for timer
-+	 * coalescing.
-+	 *
-+	 * Moreover, longer sleeps can be assumed to need somewhat less timer
-+	 * precision, so sacrifice some of it for making the timer a more likely
-+	 * candidate for coalescing by setting the delta to 1% of the sleep time
-+	 * if it is above 5 ms (this value is chosen so that the delta is a
-+	 * continuous function of the sleep time).
-+	 */
-+	if (ms > 5)
-+		delta_us = (USEC_PER_MSEC / 100) * ms;
-+
-+	usleep_range(usec, usec + delta_us);
- }
- 
- void acpi_os_stall(u32 us)
-
-
-
+> +		next = find_next_bit_wrap(choices,
+> +					  PLATFORM_PROFILE_LAST,
+>  					  profile + 1);
+>  
+> -		if (WARN_ON(next == PLATFORM_PROFILE_LAST))
+> -			return -EINVAL;
+> +		err = class_for_each_device(&platform_profile_class, NULL, &next,
+> +					    _store_and_notify);
+>  
+> -		err = cur_profile->profile_set(cur_profile, next);
+>  		if (err)
+>  			return err;
+>  	}
+> 
