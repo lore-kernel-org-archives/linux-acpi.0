@@ -1,224 +1,171 @@
-Received: from NAM04-BN8-obe.outbound.protection.outlook.com (mail-bn8nam04on2046.outbound.protection.outlook.com [40.107.100.46])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB04A1917FD;
-	Fri,  6 Dec 2024 03:27:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.100.46
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733455666; cv=fail; b=gCMr6B7xH3RLMJOK0Q+cgFK8XfWGbXj5Ed6tuOrVOybCktm+32tmM4GdJCb22DkXeL1CDn3ltxzC57l8gN24QidyKD3d8V9dhQqy6t6IFxkZmgdI1mQWfFyYf7C3HddbvLhYgZL53UEamTGqmCrJOA5azCe0cYw7es1/OR4NTwQ=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733455666; c=relaxed/simple;
-	bh=l2U2KjFfLUmyApn2ATtD6b4JTW7rGlGqzZsqU6yv/I8=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=plgTxnoDoMuRHl6NYhGM29eklMORq6xf4tiQC3k6aCQBz/4AZVo0SYZPA91IJInKlw/KcOv40kLrF7LEUI9SaWf+lZH4z6zFczHYj5wYY5Y1liHe+zbPmfgtWgOPiy4+M96U0vPeDex3zr72yYdY95osFbkpU3tzu0j5VX6XYl8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=XCIvd1c1; arc=fail smtp.client-ip=40.107.100.46
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13ADC28FD;
+	Fri,  6 Dec 2024 04:55:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.9
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1733460952; cv=none; b=Mh+9smrvL8LScJ1Y8q6hyj1JCx2oYkTEcmTcKZtOs3xDRPOm4mbOvPbAeZXaIjjy1iifvZL0yx94hUU3MENW7jlxj3MKP9ZgZDJE/+D7QuoRKPf9AD1lmN9gnF9XEhcy+oKe0vfpZCRbCmvFTTXoyLtdDTk+vGsX/dDPzfbpwcc=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1733460952; c=relaxed/simple;
+	bh=AmLWblXxxrtbKW+nU/XBqH+Po3pZ7cYVz5x5QTefPso=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=V8TaVc/bD7iXSpTtAy7gUll6LsqP7AVZqOahlLsEoiupeiCOkDIxZjB1GZAKYiT06+Z7xS0Q9TF4848zsLGhtjJVFJzF6SCYFlp/j1N5G/pzHX7/Ckt7AAaLd9KmcXlnYeKiqAX8FjRYjLeo7vVJxZ1Nqo8faH/w+/NnlhRalAI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=VJrw1aoU; arc=none smtp.client-ip=198.175.65.9
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="XCIvd1c1"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=Hv59tU+Zb1lV1PQuzaFF0KbdXB7EfFmSwDON0lio/R5CVs502Vc/FWuIp8kwIu1Ti7GFrT7QCysSQLggS293yPUZC35B6ZJPxbGvvwNctmLobCNFhRHmyjdIA0Tq/nlDdhxxL8J4U7T3z8A9lY6hG7sZth201qJdpMrq4L3tCFdO6jJnGkvMMgb9kDpOWNe/pMkf0bzXAtqMnKBVh80mz3G2Ds8mrKQQnPB8udbwF+pJI1KamkyUQI69c121RcTzfwzAj3wTD7n4I03jXQdY/hnF/3NgDU6n7jC/1ldPtPysvXqupyxuGwvQnT9zmzGuEBDiXHCddFrxuPoEUjUwBg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=WUTFvONGs1tTyLtC91QLAACJkBeUgHTdatBQ/+u7ljE=;
- b=H8vE6Qv2vZjCxpvMl+WdgrlQ9z+xDPQtwTC25Ud95a+m478LM4YYu3XuwVM4AltthdgbAFezMjMA0NPPORr7OAudQ6v6fM5iFjZ5bbqUbHXJOc+fzXv7dLjiSIewhleeLrC4+CSFkQhKosPbO+70VtVV25xK0uW39fhCCJwTBxAnaZ0QWzwNJvz7zj70W/RbL9xBHCuCRhfPJKD68hd1edpgolfNjFhb5Y8vY0kBzDOtigh7/UIsT9yLpd86njaUUBRv/KA9mLlbBwAEKZEGBtjVd/EVfk71OncA0upk60DC+TlGTHI6nFekqAaRE2qVD+J7RePcSZoOqlaZ0Y9mWg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 165.204.84.17) smtp.rcpttodomain=redhat.com smtp.mailfrom=amd.com; dmarc=pass
- (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=WUTFvONGs1tTyLtC91QLAACJkBeUgHTdatBQ/+u7ljE=;
- b=XCIvd1c1YoUUXoRDncLRQ32dW3pmD4XMMil8kMIz349pZncAzKygKW1UEJ+925qHjY4FHN0ZN90IQJtbZcdWg/Acm4p0GIVSwWg/2zXmvw25SLqBXOQ/ngvvkV5nHTHklJR9j4SXsdJU7BxHjO68Vy1MFXdX2hiXjdiyvvmsQu4=
-Received: from BY3PR10CA0007.namprd10.prod.outlook.com (2603:10b6:a03:255::12)
- by IA1PR12MB9031.namprd12.prod.outlook.com (2603:10b6:208:3f9::19) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8230.12; Fri, 6 Dec
- 2024 03:27:39 +0000
-Received: from SJ1PEPF000023CF.namprd02.prod.outlook.com
- (2603:10b6:a03:255:cafe::4a) by BY3PR10CA0007.outlook.office365.com
- (2603:10b6:a03:255::12) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.8230.10 via Frontend Transport; Fri,
- 6 Dec 2024 03:27:39 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
- smtp.mailfrom=amd.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=amd.com;
-Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
- 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
- client-ip=165.204.84.17; helo=SATLEXMB04.amd.com; pr=C
-Received: from SATLEXMB04.amd.com (165.204.84.17) by
- SJ1PEPF000023CF.mail.protection.outlook.com (10.167.244.11) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.20.8230.7 via Frontend Transport; Fri, 6 Dec 2024 03:27:39 +0000
-Received: from AUS-P9-MLIMONCI.amd.com (10.180.168.240) by SATLEXMB04.amd.com
- (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.39; Thu, 5 Dec
- 2024 21:26:28 -0600
-From: Mario Limonciello <mario.limonciello@amd.com>
-To: Hans de Goede <hdegoede@redhat.com>, =?UTF-8?q?Ilpo=20J=C3=A4rvinen?=
-	<ilpo.jarvinen@linux.intel.com>
-CC: "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
-	Maximilian Luz <luzmaximilian@gmail.com>, Lee Chun-Yi <jlee@suse.com>, "Shyam
- Sundar S K" <Shyam-sundar.S-k@amd.com>, Corentin Chary
-	<corentin.chary@gmail.com>, "Luke D . Jones" <luke@ljones.dev>, Ike Panhc
-	<ike.pan@canonical.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>,
-	"Alexis Belmonte" <alexbelm48@gmail.com>, =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
-	<u.kleine-koenig@pengutronix.de>, Ai Chao <aichao@kylinos.cn>, Gergo Koteles
-	<soyer@irl.hu>, open list <linux-kernel@vger.kernel.org>, "open list:ACPI"
-	<linux-acpi@vger.kernel.org>, "open list:MICROSOFT SURFACE PLATFORM PROFILE
- DRIVER" <platform-driver-x86@vger.kernel.org>, "open list:THINKPAD ACPI
- EXTRAS DRIVER" <ibm-acpi-devel@lists.sourceforge.net>, Mark Pearson
-	<mpearson-lenovo@squebb.ca>, Matthew Schwartz <matthew.schwartz@linux.dev>,
-	Mario Limonciello <mario.limonciello@amd.com>, Armin Wolf <W_Armin@gmx.de>
-Subject: [PATCH v10 22/22] Documentation: Add documentation about class interface for platform profiles
-Date: Thu, 5 Dec 2024 21:19:18 -0600
-Message-ID: <20241206031918.1537-23-mario.limonciello@amd.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20241206031918.1537-1-mario.limonciello@amd.com>
-References: <20241206031918.1537-1-mario.limonciello@amd.com>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="VJrw1aoU"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1733460950; x=1764996950;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=AmLWblXxxrtbKW+nU/XBqH+Po3pZ7cYVz5x5QTefPso=;
+  b=VJrw1aoUUN339RAP8sB+TXs+QrpadzoTFUH0yPngW0zN/SFfhjACZ1Lc
+   JqUnjDaz0Q1wzGy8Ist+RQ9g0rDrp7ttcAjuwf93ecImeGuJQQt2IRnKX
+   gzWBxJAwaFqyjphKTJJiNZfcgH6Iwx4a9AY1PyBJp42Rfsv9gLE+/ETjR
+   REJNx/uQd+Z3d5ctLmBT6NpuFHqTX8cRQ0A0lLH3J9gghJQSpaQNJTUT0
+   wIvqcRpxnDeyBl2+eeVxpjX48mT4Rn7Ph3OPyCGL63uS60w+fYRNOUL0u
+   soLA29h8hCRiMCmYHmHFPY0bSe3v7EXp/mr8NGubockmdsZrTe/2hdGyA
+   A==;
+X-CSE-ConnectionGUID: QIoprJMoQN+a+bKWaQRKwg==
+X-CSE-MsgGUID: Y5LHS6RKRtGqXdA9ECy8rA==
+X-IronPort-AV: E=McAfee;i="6700,10204,11277"; a="56296859"
+X-IronPort-AV: E=Sophos;i="6.12,212,1728975600"; 
+   d="scan'208";a="56296859"
+Received: from fmviesa001.fm.intel.com ([10.60.135.141])
+  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Dec 2024 20:55:50 -0800
+X-CSE-ConnectionGUID: V0ByfAr8Rbm8yd//5J+6Rg==
+X-CSE-MsgGUID: qMY21bOjTaSKQohmsjCShw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.12,212,1728975600"; 
+   d="scan'208";a="125205266"
+Received: from lkp-server01.sh.intel.com (HELO 82a3f569d0cb) ([10.239.97.150])
+  by fmviesa001.fm.intel.com with ESMTP; 05 Dec 2024 20:55:44 -0800
+Received: from kbuild by 82a3f569d0cb with local (Exim 4.96)
+	(envelope-from <lkp@intel.com>)
+	id 1tJQNS-0000i7-0t;
+	Fri, 06 Dec 2024 04:55:42 +0000
+Date: Fri, 6 Dec 2024 12:54:51 +0800
+From: kernel test robot <lkp@intel.com>
+To: Zaid Alali <zaidal@os.amperecomputing.com>, rafael@kernel.org,
+	lenb@kernel.org, james.morse@arm.com, tony.luck@intel.com,
+	bp@alien8.de, robert.moore@intel.com, dan.j.williams@intel.com,
+	Jonathan.Cameron@huawei.com, Benjamin.Cheatham@amd.com,
+	Avadhut.Naik@amd.com, viro@zeniv.linux.org.uk, arnd@arndb.de,
+	ira.weiny@intel.com, dave.jiang@intel.com,
+	sthanneeru.opensrc@micron.com, linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org, acpica-devel@lists.linux.dev
+Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev
+Subject: Re: [PATCH v2 5/9] ACPI: APEI: EINJ: Enable the discovery of EINJv2
+ capabilities
+Message-ID: <202412061210.H6R0JvCL-lkp@intel.com>
+References: <20241205211854.43215-6-zaidal@os.amperecomputing.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: SATLEXMB03.amd.com (10.181.40.144) To SATLEXMB04.amd.com
- (10.181.40.145)
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SJ1PEPF000023CF:EE_|IA1PR12MB9031:EE_
-X-MS-Office365-Filtering-Correlation-Id: f7b29437-0bb4-4069-77b7-08dd15a5efd4
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|36860700013|376014|1800799024|7416014|82310400026;
-X-Microsoft-Antispam-Message-Info:
-	=?utf-8?B?T1k3dEo1VTZjNDlmUWJkbWR5SnlXbURCbDdqZU51Q2tyRENkcmc5UEpiM0dq?=
- =?utf-8?B?WFUydzNjeFBuOWh5eDBSbHprbURmaUJ3MGd4d29DUVRFRHJoSWVxWWg2TW53?=
- =?utf-8?B?bE5uN1J4RytuUFd1SFRNNjRJdmFndldwYTNiZlFYRC9HaDRYYUNPVExTOC85?=
- =?utf-8?B?QXg5R2lCWFpQR256TGJucWlTa09WNjVPZFVOQnplUWs2c3pTcTVwdnJ4N2cv?=
- =?utf-8?B?Z3Q0Mmc1b0MvNWhVQkhmSlN0YnpLUTRRTHorTTBzeGpvRHJoNDZqMVpTaEk1?=
- =?utf-8?B?Q2wzbC93b25kU2VQZFZmdTlrZkNxb1VCb0V3Q0doblVCK056SWVtZWVjSXFx?=
- =?utf-8?B?L0tkbE1aakIrWllnaS9FNHlyM0pHVGE0QXVFZFJCK210N1hGUmhEYnU5bHNk?=
- =?utf-8?B?S2p6QnBmWm1kRklVcUpPZnhmY1FUOTYxQzRvSUREUWR0Z0Zvd1l3M3lGVTI3?=
- =?utf-8?B?M2pyT002NVJPSFMvQW1hSGpvNkhzUU1LR0RoRUx3WjcvUUNTWm1iYllNTkNw?=
- =?utf-8?B?MFc4Ykhyd3lrSkZyR0lRVWNLcUxFNXdIZUE5d0krdFFmWU9KNG1sWVB2OXFF?=
- =?utf-8?B?ekl4WUxWaFJYVlVXRUVvTSsxblFhQmdBTlAwMlpEQjhNQlMzTk40WGZBeXJG?=
- =?utf-8?B?QkFMVVJFRmJPZmdQZHg5S2dETm1sNitsRG94Lzk1UVoxejM1NjlDT1lldTBy?=
- =?utf-8?B?TkpYaUdBaWU3TUg5S2tNTEwza3ViOHRCZE9IWXVDZkI1SUMxRjM2azdZUGIx?=
- =?utf-8?B?NGxYM3FyeFcySGxGckJ3aUlzMW5JTFltNHpRSGZPNTd0N2hqcndaeGVtVmZN?=
- =?utf-8?B?ZXNZNlF2S29TNHNMSFZuelU2dlR5cmw4OUg5SC9LMko2eWM0aXgvamNBR3BX?=
- =?utf-8?B?aTJzRG5pWXljSEdaZkFIQTJrV0VVNHFRWlZzN3U5YmU4bWdENXpOQ3NWOEx2?=
- =?utf-8?B?b3dHQURmd21uRFlOTVQ2L1BQTUJJTVFpRkhEUGVtQVNYeFpIMVJ1V1oxMUov?=
- =?utf-8?B?RkViZFNjWUpRUXJYWFdWTk9zUG52dG40R1JJRkFsRzBHTnZMM1FZQjIzNE1R?=
- =?utf-8?B?RjNkTi9RMHAwbG1MREd2U0F3Y256cUxYajFob0ZZQWFGYWdtb2YvRGFJTVlL?=
- =?utf-8?B?MmE4aTc1RHR0b3JnZ29lTjlOOXdTTGI2a0NKc28ra2tCd1B0eU9NMkxMVVpZ?=
- =?utf-8?B?TTFLbjVvRDNSZVhYTWJFVnR5R2FQQng3a2pXa3NNM21sUU1IQjlxZkxtcHNO?=
- =?utf-8?B?RTVJR09pTVdSdm5KY294TWFORXJmOTBZOWdmUUZPTFJ6YW5vempGVUVYOEhN?=
- =?utf-8?B?U052UFBuNG9rRW8rQzhXK05LMURmTVhOcTgyQkZCa3l1WVduc3Y4OVpIVUo0?=
- =?utf-8?B?OFhhRnVvb2hpVytJYit3Z3RwcDNMSDVBNFdCajk4QlNUdmJJdkVJNEUwSDQv?=
- =?utf-8?B?ZkhWNVQ0RTQ1Z2dtVS83ZlZ0SktuRy9tM1ZDdUZWSW5qMllkWE91WUNDcGo1?=
- =?utf-8?B?b2hmTEI1SXdJY2FzZDBESVQzM3JEdGI1K2lMN0dUVlVjUnBCcklsbHFxcUl4?=
- =?utf-8?B?MlNBUUhwZ1hXcEhyKzBkZ1A2cVgxWVBJbEhzZEkrS2NFOHFOQldFanJjUURQ?=
- =?utf-8?B?S2FKME9lOVBKc2NFWC8wZnFZQlAzRUVtaVRQR0tKaHNXMXcyYlBmaFZHbXFa?=
- =?utf-8?B?SUpBRTYwNkJvRmptYzA4a0xQS1MycHEvTzE0Nklya3N2OXBRNm81UDk5Tklr?=
- =?utf-8?B?d25UcUdGekhVU0dKSmpNdU9tKzZLSnZlZ0ZRM0gvNUJqK2I4UWVNSVRVWTZZ?=
- =?utf-8?B?Y1R1UGNXbzZDb2JxSVJOVldDdXhZQUY1Z1VadmlaM25xeVZDa2xwQzdQNHoz?=
- =?utf-8?B?d09SMWwrU2o2alVVNGFaSWVFZGFGaFFiSVFXZjZCYUorVnk1NGRrK3lZWXZR?=
- =?utf-8?Q?m3zeM1q3JAg7ljVsi0yEzKjv8OO61L6M?=
-X-Forefront-Antispam-Report:
-	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(36860700013)(376014)(1800799024)(7416014)(82310400026);DIR:OUT;SFP:1101;
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 06 Dec 2024 03:27:39.2381
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: f7b29437-0bb4-4069-77b7-08dd15a5efd4
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	SJ1PEPF000023CF.namprd02.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR12MB9031
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20241205211854.43215-6-zaidal@os.amperecomputing.com>
 
-The class interface allows changing multiple platform profiles on a system
-to different values. The semantics of it are similar to the legacy
-interface.
+Hi Zaid,
 
-Reviewed-by: Armin Wolf <W_Armin@gmx.de>
-Tested-by: Mark Pearson <mpearson-lenovo@squebb.ca>
-Reviewed-by: Mark Pearson <mpearson-lenovo@squebb.ca>
-Reviewed-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
-Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
----
-v10:
- * Add custom section
----
- .../ABI/testing/sysfs-platform_profile        |  5 +++
- .../userspace-api/sysfs-platform_profile.rst  | 38 +++++++++++++++++++
- 2 files changed, 43 insertions(+)
+kernel test robot noticed the following build warnings:
 
-diff --git a/Documentation/ABI/testing/sysfs-platform_profile b/Documentation/ABI/testing/sysfs-platform_profile
-index baf1d125f9f83..125324ab53a96 100644
---- a/Documentation/ABI/testing/sysfs-platform_profile
-+++ b/Documentation/ABI/testing/sysfs-platform_profile
-@@ -33,3 +33,8 @@ Description:	Reading this file gives the current selected profile for this
- 		source such as e.g. a hotkey triggered profile change handled
- 		either directly by the embedded-controller or fully handled
- 		inside the kernel.
-+
-+		This file may also emit the string 'custom' to indicate
-+		that multiple platform profiles drivers are in use but
-+		have different values.  This string can not be written to
-+		this interface and is solely for informational purposes.
-diff --git a/Documentation/userspace-api/sysfs-platform_profile.rst b/Documentation/userspace-api/sysfs-platform_profile.rst
-index 4fccde2e45639..7f013356118ae 100644
---- a/Documentation/userspace-api/sysfs-platform_profile.rst
-+++ b/Documentation/userspace-api/sysfs-platform_profile.rst
-@@ -40,3 +40,41 @@ added. Drivers which wish to introduce new profile names must:
-  1. Explain why the existing profile names cannot be used.
-  2. Add the new profile name, along with a clear description of the
-     expected behaviour, to the sysfs-platform_profile ABI documentation.
-+
-+"Custom" profile support
-+========================
-+The platform_profile class also supports profiles advertising a "custom"
-+profile. This is intended to be set by drivers when the setttings in the
-+driver have been modified in a way that a standard profile doesn't represent
-+the current state.
-+
-+Multiple driver support
-+=======================
-+When multiple drivers on a system advertise a platform profile handler, the
-+platform profile handler core will only advertise the profiles that are
-+common between all drivers to the ``/sys/firmware/acpi`` interfaces.
-+
-+This is to ensure there is no ambiguity on what the profile names mean when
-+all handlers don't support a profile.
-+
-+Individual drivers will register a 'platform_profile' class device that has
-+similar semantics as the ``/sys/firmware/acpi/platform_profile`` interface.
-+
-+To discover which driver is associated with a platform profile handler the
-+user can read the ``name`` attribute of the class device.
-+
-+To discover available profiles from the class interface the user can read the
-+``choices`` attribute.
-+
-+If a user wants to select a profile for a specific driver, they can do so
-+by writing to the ``profile`` attribute of the driver's class device.
-+
-+This will allow users to set different profiles for different drivers on the
-+same system. If the selected profile by individual drivers differs the
-+platform profile handler core will display the profile 'custom' to indicate
-+that the profiles are not the same.
-+
-+While the ``platform_profile`` attribute has the value ``custom``, writing a
-+common profile from ``platform_profile_choices`` to the platform_profile
-+attribute of the platform profile handler core will set the profile for all
-+drivers.
+[auto build test WARNING on rafael-pm/linux-next]
+[also build test WARNING on rafael-pm/bleeding-edge linus/master v6.13-rc1 next-20241205]
+[If your patch is applied to the wrong git tree, kindly drop us a note.
+And when submitting patch, we suggest to use '--base' as documented in
+https://git-scm.com/docs/git-format-patch#_base_tree_information]
+
+url:    https://github.com/intel-lab-lkp/linux/commits/Zaid-Alali/ACPICA-Update-values-to-hex-to-follow-ACPI-specs/20241206-052420
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
+patch link:    https://lore.kernel.org/r/20241205211854.43215-6-zaidal%40os.amperecomputing.com
+patch subject: [PATCH v2 5/9] ACPI: APEI: EINJ: Enable the discovery of EINJv2 capabilities
+config: i386-buildonly-randconfig-005-20241206 (https://download.01.org/0day-ci/archive/20241206/202412061210.H6R0JvCL-lkp@intel.com/config)
+compiler: clang version 19.1.3 (https://github.com/llvm/llvm-project ab51eccf88f5321e7c60591c5546b254b6afab99)
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20241206/202412061210.H6R0JvCL-lkp@intel.com/reproduce)
+
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202412061210.H6R0JvCL-lkp@intel.com/
+
+All warnings (new ones prefixed by >>):
+
+   In file included from drivers/acpi/apei/einj-core.c:23:
+   In file included from include/linux/mm.h:2223:
+   include/linux/vmstat.h:518:36: warning: arithmetic between different enumeration types ('enum node_stat_item' and 'enum lru_list') [-Wenum-enum-conversion]
+     518 |         return node_stat_name(NR_LRU_BASE + lru) + 3; // skip "nr_"
+         |                               ~~~~~~~~~~~ ^ ~~~
+   drivers/acpi/apei/einj-core.c:342:6: warning: variable 'p' is used uninitialized whenever 'if' condition is true [-Wsometimes-uninitialized]
+     342 |         if (!r) {
+         |             ^~
+   drivers/acpi/apei/einj-core.c:440:6: note: uninitialized use occurs here
+     440 |         if (p)
+         |             ^
+   drivers/acpi/apei/einj-core.c:342:2: note: remove the 'if' if its condition is always false
+     342 |         if (!r) {
+         |         ^~~~~~~~~
+     343 |                 pr_err("Can not request [mem %#010llx-%#010llx] for Trigger table\n",
+         |                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     344 |                        (unsigned long long)trigger_paddr,
+         |                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     345 |                        (unsigned long long)trigger_paddr +
+         |                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     346 |                             sizeof(*trigger_tab) - 1);
+         |                             ~~~~~~~~~~~~~~~~~~~~~~~~~~
+     347 |                 goto out;
+         |                 ~~~~~~~~~
+     348 |         }
+         |         ~
+   drivers/acpi/apei/einj-core.c:338:17: note: initialize the variable 'p' to silence this warning
+     338 |         void __iomem *p;
+         |                        ^
+         |                         = NULL
+>> drivers/acpi/apei/einj-core.c:728:29: warning: 'memset' call operates on objects of type 'char' while the size is based on a different type 'char *' [-Wsizeof-pointer-memaccess]
+     728 |         memset(einj_buf, 0, sizeof(einj_buf));
+         |                ~~~~~~~~            ^~~~~~~~
+   drivers/acpi/apei/einj-core.c:728:29: note: did you mean to provide an explicit length?
+     728 |         memset(einj_buf, 0, sizeof(einj_buf));
+         |                                    ^~~~~~~~
+   3 warnings generated.
+
+
+vim +728 drivers/acpi/apei/einj-core.c
+
+   721	
+   722	static ssize_t error_type_set(struct file *file, const char __user *buf,
+   723					size_t count, loff_t *ppos)
+   724	{
+   725		int rc;
+   726		u64 val;
+   727	
+ > 728		memset(einj_buf, 0, sizeof(einj_buf));
+   729		if (copy_from_user(einj_buf, buf, count))
+   730			return -EFAULT;
+   731	
+   732		if (strncmp(einj_buf, "V2_", 3) == 0) {
+   733			if (!sscanf(einj_buf, "V2_%llx", &val))
+   734				return -EINVAL;
+   735		} else
+   736			if (!sscanf(einj_buf, "%llx", &val))
+   737				return -EINVAL;
+   738	
+   739		rc = einj_validate_error_type(val);
+   740		if (rc)
+   741			return rc;
+   742	
+   743		error_type = val;
+   744	
+   745		return count;
+   746	}
+   747	
+
 -- 
-2.43.0
-
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
