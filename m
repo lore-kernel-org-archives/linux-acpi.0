@@ -1,248 +1,299 @@
-Received: from mx1.zhaoxin.com (MX1.ZHAOXIN.COM [210.0.225.12])
+Received: from sender4-pp-f112.zoho.com (sender4-pp-f112.zoho.com [136.143.188.112])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BB971E51D
-	for <linux-acpi@vger.kernel.org>; Fri,  6 Dec 2024 00:48:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=210.0.225.12
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733446135; cv=none; b=UbYvkWORyngLMBgt4Q9tzL2Zj5IdlIB8FoSrnBNzUFeMeWwX1NGC2mlbzPlNEoWBPG460fH2P7rxLnArg0VeDNZA8EDYZOBDUiRG6vNMHliKCfMm2HD49WnLOeDSygIhKcb4JvBlEiLhZwBALZt5LeSdkzJWiKJYtaz5pgTxEZ0=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733446135; c=relaxed/simple;
-	bh=RDfVKyiGPkxjQWiZXYTMz5EOd1dIdsbHDvSH0iNDcAE=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=KqZld9Oq9mNthXUbVsK3S9st4f3AZenuh5mhjAkXh14DWw2cmShPaGNpsW1TgA1XSle0VL0e63J2OvGGILbfFNgYw7i4+FfKc9L0Ap8dpeRRjf/6T6AwGX09Jcdljxj3BkDfLo9E9Y9YgYuXJRhDwBaBLMQo8GPTDjyiTUduGhk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=zhaoxin.com; spf=pass smtp.mailfrom=zhaoxin.com; arc=none smtp.client-ip=210.0.225.12
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=zhaoxin.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zhaoxin.com
-X-ASG-Debug-ID: 1733446126-086e2312d5235b0001-I98ny2
-Received: from ZXSHMBX1.zhaoxin.com (ZXSHMBX1.zhaoxin.com [10.28.252.163]) by mx1.zhaoxin.com with ESMTP id IQ6SxxUcIQQpJ0vr (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NO); Fri, 06 Dec 2024 08:48:46 +0800 (CST)
-X-Barracuda-Envelope-From: LeoLiu-oc@zhaoxin.com
-X-Barracuda-RBL-Trusted-Forwarder: 10.28.252.163
-Received: from ZXSHMBX1.zhaoxin.com (10.28.252.163) by ZXSHMBX1.zhaoxin.com
- (10.28.252.163) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Fri, 6 Dec
- 2024 08:48:45 +0800
-Received: from ZXSHMBX1.zhaoxin.com ([fe80::3066:e339:e3d6:5264]) by
- ZXSHMBX1.zhaoxin.com ([fe80::3066:e339:e3d6:5264%7]) with mapi id
- 15.01.2507.039; Fri, 6 Dec 2024 08:48:45 +0800
-X-Barracuda-RBL-Trusted-Forwarder: 10.28.252.163
-Received: from xin.lan (10.32.64.1) by ZXBJMBX03.zhaoxin.com (10.29.252.7)
- with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.39; Thu, 5 Dec
- 2024 19:40:53 +0800
-From: LeoLiu-oc <LeoLiu-oc@zhaoxin.com>
-To: <rafael@kernel.org>, <lenb@kernel.org>, <james.morse@arm.com>,
-	<tony.luck@intel.com>, <bp@alien8.de>, <bhelgaas@google.com>,
-	<robert.moore@intel.com>, <avadhut.naik@amd.com>, <yazen.ghannam@amd.com>,
-	<linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-pci@vger.kernel.org>, <acpica-devel@lists.linux.dev>
-CC: <CobeChen@zhaoxin.com>, <TonyWWang@zhaoxin.com>, <ErosZhang@zhaoxin.com>,
-	<LeoLiu-oc@zhaoxin.com>
-Subject: [PATCH v4 3/3] PCI/ACPI: Add pci_acpi_program_hest_aer_params()
-Date: Thu, 5 Dec 2024 19:40:48 +0800
-X-ASG-Orig-Subj: [PATCH v4 3/3] PCI/ACPI: Add pci_acpi_program_hest_aer_params()
-Message-ID: <20241205114048.60291-4-LeoLiu-oc@zhaoxin.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20241205114048.60291-1-LeoLiu-oc@zhaoxin.com>
-References: <20241205114048.60291-1-LeoLiu-oc@zhaoxin.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF6CDBE46;
+	Fri,  6 Dec 2024 00:51:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=136.143.188.112
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1733446274; cv=pass; b=pM/FfI3To6WQdr73r1hgB6PEFHPWsRpSZqx6oZFDkGo4LQlq/5m+tUaR6pgV8Am9smTsgzcNppKLCz+pRqvVhZP/mAfqmGDZePW6X71vP21q9WU8fghCt6u49lun4QpSwTn5Vm8omxkqTwdWJIPa8ZgTNVdw1vWEa8U3j/+E/yk=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1733446274; c=relaxed/simple;
+	bh=0vuc1ot7po0pTPhZ8XizidPqvBDqgivsSOGg6k1ViW4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=o3iS219TiYKz4fDgwhB/Fh5k+l8nbVZ1IvVVMpgB53hkDb8KIQrDBl12+itqC2FtI+YIfZfMFUBjlJj5Ggep9CHNAFi1BEJOsKIagWEuQpVC/Ghawm1slpISfR/BXqNVuwrWqtX76cUst3EMO6wFSUp9VglRqSH46dyENMdBqiA=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=collabora.com; spf=pass smtp.mailfrom=collabora.com; dkim=pass (1024-bit key) header.d=collabora.com header.i=sebastian.reichel@collabora.com header.b=O4e4t5jz; arc=pass smtp.client-ip=136.143.188.112
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=collabora.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=collabora.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=collabora.com header.i=sebastian.reichel@collabora.com header.b="O4e4t5jz"
+ARC-Seal: i=1; a=rsa-sha256; t=1733446259; cv=none; 
+	d=zohomail.com; s=zohoarc; 
+	b=FTEPkgWt5theEaJhaIQ0Zcx2coD3HA1BwmW28EjwvoioD9EGleAuoYnsxrWA1uihHluFFgCtYCgUL/zyW4v2IGHIwIrzWRyWSp8Evvy2tWJ5EWtrY5DL4HcAfW6bTH24vQQXdsHriuUqDJp5kg8zoMyMmdbuXy/gQ4mMCG3et9U=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.com; s=zohoarc; 
+	t=1733446259; h=Content-Type:Cc:Cc:Date:Date:From:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:Subject:To:To:Message-Id:Reply-To; 
+	bh=zr4ckYF8n1QIsz+yI8VPDPEhhMlAZtVoa8ioCrUMcMk=; 
+	b=Gwdoa10FCiSZNYJOyhATmycxwtYKktjDBGk1xC3k9Iorp++ZoABrab11+//JGTqqOKLtpELS/9UV0v8dmW0ZoNsjABm8Kv2+maeG35NljA1D2a8/tqcyOrT+SBjnypCbxd35EmmXp/bFQ/5V5I6BUxqD10MK4E4CWXBEqTjrAjs=
+ARC-Authentication-Results: i=1; mx.zohomail.com;
+	dkim=pass  header.i=collabora.com;
+	spf=pass  smtp.mailfrom=sebastian.reichel@collabora.com;
+	dmarc=pass header.from=<sebastian.reichel@collabora.com>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1733446259;
+	s=zohomail; d=collabora.com; i=sebastian.reichel@collabora.com;
+	h=Date:Date:From:From:To:To:Cc:Cc:Subject:Subject:Message-ID:References:MIME-Version:Content-Type:In-Reply-To:Message-Id:Reply-To;
+	bh=zr4ckYF8n1QIsz+yI8VPDPEhhMlAZtVoa8ioCrUMcMk=;
+	b=O4e4t5jzERrQGeLoGtgMsqZ+M/cRUZ0OSLgYulzrJo+vsFheq2Pz2aEa1Tblg7ke
+	HOQv64c4Vx/7Kyn5jksYVsrOHLdBYycZTjUkwpRenWZmUJhvcIC92geVA3qbZ9ppbYd
+	uRLQ12RFfPYe9NyzK6tmjN6rGldw+KcP5Nu1Cpyc=
+Received: by mx.zohomail.com with SMTPS id 1733446257589438.50251727226885;
+	Thu, 5 Dec 2024 16:50:57 -0800 (PST)
+Received: by mercury (Postfix, from userid 1000)
+	id 6DADB10604B0; Fri, 06 Dec 2024 01:50:53 +0100 (CET)
+Date: Fri, 6 Dec 2024 01:50:53 +0100
+From: Sebastian Reichel <sebastian.reichel@collabora.com>
+To: Thomas =?utf-8?Q?Wei=C3=9Fschuh?= <linux@weissschuh.net>
+Cc: Armin Wolf <W_Armin@gmx.de>, Hans de Goede <hdegoede@redhat.com>, 
+	Thomas =?utf-8?Q?Wei=C3=9Fschuh?= <thomas@weissschuh.net>, Benson Leung <bleung@chromium.org>, 
+	Guenter Roeck <groeck@chromium.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Len Brown <lenb@kernel.org>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	chrome-platform@lists.linux.dev, linux-acpi@vger.kernel.org
+Subject: Re: [PATCH v5 3/4] power: supply: test-power: implement a power
+ supply extension
+Message-ID: <foytwrb2sihficgrlcmxclnzm6mmpxqyjrfdkzardx3mkivmvg@b3hfby3fw2fm>
+References: <20241205-power-supply-extensions-v5-0-f0f996db4347@weissschuh.net>
+ <20241205-power-supply-extensions-v5-3-f0f996db4347@weissschuh.net>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="a6heirp7h7ua6hpv"
+Content-Disposition: inline
+In-Reply-To: <20241205-power-supply-extensions-v5-3-f0f996db4347@weissschuh.net>
+X-Zoho-Virus-Status: 1
+X-Zoho-AV-Stamp: zmail-av-1.3.1/233.425.61
+X-ZohoMailClient: External
+
+
+--a6heirp7h7ua6hpv
+Content-Type: text/plain; protected-headers=v1; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain
-X-ClientProxiedBy: zxbjmbx1.zhaoxin.com (10.29.252.163) To
- ZXBJMBX03.zhaoxin.com (10.29.252.7)
-X-Moderation-Data: 12/6/2024 8:48:45 AM
-X-Barracuda-Connect: ZXSHMBX1.zhaoxin.com[10.28.252.163]
-X-Barracuda-Start-Time: 1733446126
-X-Barracuda-Encrypted: ECDHE-RSA-AES128-GCM-SHA256
-X-Barracuda-URL: https://10.28.252.35:4443/cgi-mod/mark.cgi
-X-Virus-Scanned: by bsmtpd at zhaoxin.com
-X-Barracuda-Scan-Msg-Size: 5221
-X-Barracuda-BRTS-Status: 1
-X-Barracuda-Bayes: INNOCENT GLOBAL 0.0000 1.0000 -2.0210
-X-Barracuda-Spam-Score: -2.02
-X-Barracuda-Spam-Status: No, SCORE=-2.02 using global scores of TAG_LEVEL=1000.0 QUARANTINE_LEVEL=1000.0 KILL_LEVEL=9.0 tests=
-X-Barracuda-Spam-Report: Code version 3.2, rules version 3.2.3.134151
-	Rule breakdown below
-	 pts rule name              description
-	---- ---------------------- --------------------------------------------------
+Subject: Re: [PATCH v5 3/4] power: supply: test-power: implement a power
+ supply extension
+MIME-Version: 1.0
 
-From: LeoLiuoc <LeoLiu-oc@zhaoxin.com>
+Hi,
 
-Call the func pci_acpi_program_hest_aer_params() for every PCIe device,
-the purpose of this function is to extract register value from HEST PCIe
-AER structures and program them into AER Capabilities. This function
-applies to all hardware platforms that has a PCI Express AER structure
-in HEST.
+On Thu, Dec 05, 2024 at 09:46:37PM +0100, Thomas Wei=DFschuh wrote:
+> Allow easy testing of the new power supply extension functionality.
+>=20
+> Signed-off-by: Thomas Wei=DFschuh <linux@weissschuh.net>
+> ---
 
-Signed-off-by: LeoLiuoc <LeoLiu-oc@zhaoxin.com>
----
- drivers/pci/pci-acpi.c | 103 +++++++++++++++++++++++++++++++++++++++++
- drivers/pci/pci.h      |   9 ++++
- drivers/pci/probe.c    |   1 +
- 3 files changed, 113 insertions(+)
+This looks good to me apart from the function / variable names. For
+example power_supply_ext_get_property() looks like a function from
+the power-supply core and not from the test driver :)
 
-diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-index af370628e583..6e29af8e6cc4 100644
---- a/drivers/pci/pci-acpi.c
-+++ b/drivers/pci/pci-acpi.c
-@@ -19,6 +19,7 @@
- #include <linux/pm_runtime.h>
- #include <linux/pm_qos.h>
- #include <linux/rwsem.h>
-+#include <acpi/apei.h>
- #include "pci.h"
-=20
- /*
-@@ -806,6 +807,108 @@ int pci_acpi_program_hp_params(struct pci_dev *dev)
- 	return -ENODEV;
- }
-=20
-+#ifdef CONFIG_ACPI_APEI
-+/*
-+ * program_hest_aer_common() - configure AER common registers for Root Por=
-ts,
-+ * Endpoints and PCIe to PCI/PCI-X bridges
-+ */
-+static void program_hest_aer_common(struct acpi_hest_aer_common aer_common=
-,
-+				    struct pci_dev *dev, int pos)
-+{
-+	u32 uncor_mask;
-+	u32 uncor_severity;
-+	u32 cor_mask;
-+	u32 adv_cap;
-+
-+	uncor_mask =3D aer_common.uncorrectable_mask;
-+	uncor_severity =3D aer_common.uncorrectable_severity;
-+	cor_mask =3D aer_common.correctable_mask;
-+	adv_cap =3D aer_common.advanced_capabilities;
-+
-+	pci_write_config_dword(dev, pos + PCI_ERR_UNCOR_MASK, uncor_mask);
-+	pci_write_config_dword(dev, pos + PCI_ERR_UNCOR_SEVER, uncor_severity);
-+	pci_write_config_dword(dev, pos + PCI_ERR_COR_MASK, cor_mask);
-+	pci_write_config_dword(dev, pos + PCI_ERR_CAP, adv_cap);
-+}
-+
-+static void program_hest_aer_root(struct acpi_hest_aer_root *aer_root,
-+				  struct pci_dev *dev, int pos)
-+{
-+	u32 root_err_cmd;
-+
-+	root_err_cmd =3D aer_root->root_error_command;
-+
-+	pci_write_config_dword(dev, pos + PCI_ERR_ROOT_COMMAND, root_err_cmd);
-+}
-+
-+static void program_hest_aer_bridge(struct acpi_hest_aer_bridge *hest_aer_=
-bridge,
-+				    struct pci_dev *dev, int pos)
-+{
-+	u32 uncor_mask2;
-+	u32 uncor_severity2;
-+	u32 adv_cap2;
-+
-+	uncor_mask2 =3D hest_aer_bridge->uncorrectable_mask2;
-+	uncor_severity2 =3D hest_aer_bridge->uncorrectable_severity2;
-+	adv_cap2 =3D hest_aer_bridge->advanced_capabilities2;
-+
-+	pci_write_config_dword(dev, pos + PCI_ERR_UNCOR_MASK2, uncor_mask2);
-+	pci_write_config_dword(dev, pos + PCI_ERR_UNCOR_SEVER2, uncor_severity2);
-+	pci_write_config_dword(dev, pos + PCI_ERR_CAP2, adv_cap2);
-+}
-+
-+static void program_hest_aer_params(struct hest_parse_aer_info info)
-+{
-+	struct pci_dev *dev;
-+	int port_type;
-+	int pos;
-+	struct acpi_hest_aer_root *hest_aer_root;
-+	struct acpi_hest_aer *hest_aer_endpoint;
-+	struct acpi_hest_aer_bridge *hest_aer_bridge;
-+
-+	dev =3D info.pci_dev;
-+	port_type =3D pci_pcie_type(dev);
-+	pos =3D pci_find_ext_capability(dev, PCI_EXT_CAP_ID_ERR);
-+	if (!pos)
-+		return;
-+
-+	switch (port_type) {
-+	case PCI_EXP_TYPE_ROOT_PORT:
-+		hest_aer_root =3D info.hest_aer_root_port;
-+		program_hest_aer_common(hest_aer_root->aer, dev, pos);
-+		program_hest_aer_root(hest_aer_root, dev, pos);
-+	break;
-+	case PCI_EXP_TYPE_ENDPOINT:
-+		hest_aer_endpoint =3D info.hest_aer_endpoint;
-+		program_hest_aer_common(hest_aer_endpoint->aer, dev, pos);
-+	break;
-+	case PCI_EXP_TYPE_PCI_BRIDGE:
-+		hest_aer_bridge =3D info.hest_aer_bridge;
-+		program_hest_aer_common(hest_aer_bridge->aer, dev, pos);
-+		program_hest_aer_bridge(hest_aer_bridge, dev, pos);
-+	break;
-+	default:
-+		return;
-+	break;
-+	}
-+}
-+
-+int pci_acpi_program_hest_aer_params(struct pci_dev *dev)
-+{
-+	struct hest_parse_aer_info info =3D {
-+		.pci_dev =3D dev
-+	};
-+
-+	if (!pci_is_pcie(dev))
-+		return -ENODEV;
-+
-+	if (apei_hest_parse(hest_parse_pcie_aer, &info) =3D=3D 1)
-+		program_hest_aer_params(info);
-+
-+	return 0;
-+}
-+#endif
-+
- /**
-  * pciehp_is_native - Check whether a hotplug port is handled by the OS
-  * @bridge: Hotplug port to check
-diff --git a/drivers/pci/pci.h b/drivers/pci/pci.h
-index 2e40fc63ba31..78bdc121c905 100644
---- a/drivers/pci/pci.h
-+++ b/drivers/pci/pci.h
-@@ -897,6 +897,15 @@ static inline void pci_save_aer_state(struct pci_dev *=
-dev) { }
- static inline void pci_restore_aer_state(struct pci_dev *dev) { }
- #endif
-=20
-+#ifdef CONFIG_ACPI_APEI
-+int pci_acpi_program_hest_aer_params(struct pci_dev *dev);
-+#else
-+static inline int pci_acpi_program_hest_aer_params(struct pci_dev *dev)
-+{
-+	return 0;
-+}
-+#endif
-+
- #ifdef CONFIG_ACPI
- bool pci_acpi_preserve_config(struct pci_host_bridge *bridge);
- int pci_acpi_program_hp_params(struct pci_dev *dev);
-diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-index 2e81ab0f5a25..33b8b46ca554 100644
---- a/drivers/pci/probe.c
-+++ b/drivers/pci/probe.c
-@@ -2304,6 +2304,7 @@ static void pci_configure_device(struct pci_dev *dev)
- 	pci_configure_serr(dev);
-=20
- 	pci_acpi_program_hp_params(dev);
-+	pci_acpi_program_hest_aer_params(dev);
- }
-=20
- static void pci_release_capabilities(struct pci_dev *dev)
---=20
-2.34.1
+I suggest replacing 'power_supply_ext_' prefixes with 'test_power_ext_'
+and 'struct power_supply_ext power_supply_ext' with
+'struct power_supply_ext test_power_ext'.
 
+Greetings,
+
+-- Sebastian
+
+>  drivers/power/supply/test_power.c | 111 ++++++++++++++++++++++++++++++++=
+++++++
+>  1 file changed, 111 insertions(+)
+>=20
+> diff --git a/drivers/power/supply/test_power.c b/drivers/power/supply/tes=
+t_power.c
+> index 442ceb7795e1d84e34da2801d228d53fb67e08d9..1e15d3d192ef4040839aa9740=
+b06f5ab78b6b6d3 100644
+> --- a/drivers/power/supply/test_power.c
+> +++ b/drivers/power/supply/test_power.c
+> @@ -37,6 +37,7 @@ static int battery_charge_counter	=3D -1000;
+>  static int battery_current		=3D -1600;
+>  static enum power_supply_charge_behaviour battery_charge_behaviour =3D
+>  	POWER_SUPPLY_CHARGE_BEHAVIOUR_AUTO;
+> +static bool battery_hook;
+> =20
+>  static bool module_initialized;
+> =20
+> @@ -238,6 +239,85 @@ static const struct power_supply_config test_power_c=
+onfigs[] =3D {
+>  	},
+>  };
+> =20
+> +static int power_supply_ext_manufacture_year =3D 1234;
+> +static int power_supply_ext_temp_max =3D 1000;
+> +static const enum power_supply_property power_supply_ext_props[] =3D {
+> +	POWER_SUPPLY_PROP_MANUFACTURE_YEAR,
+> +	POWER_SUPPLY_PROP_TEMP_MAX,
+> +};
+> +
+> +static int power_supply_ext_get_property(struct power_supply *psy,
+> +					 const struct power_supply_ext *ext,
+> +					 void *ext_data,
+> +					 enum power_supply_property psp,
+> +					 union power_supply_propval *val)
+> +{
+> +	switch (psp) {
+> +	case POWER_SUPPLY_PROP_MANUFACTURE_YEAR:
+> +		val->intval =3D power_supply_ext_manufacture_year;
+> +		break;
+> +	case POWER_SUPPLY_PROP_TEMP_MAX:
+> +		val->intval =3D power_supply_ext_temp_max;
+> +		break;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +	return 0;
+> +}
+> +
+> +static int power_supply_ext_set_property(struct power_supply *psy,
+> +					 const struct power_supply_ext *ext,
+> +					 void *ext_data,
+> +					 enum power_supply_property psp,
+> +					 const union power_supply_propval *val)
+> +{
+> +	switch (psp) {
+> +	case POWER_SUPPLY_PROP_MANUFACTURE_YEAR:
+> +		power_supply_ext_manufacture_year =3D val->intval;
+> +		break;
+> +	case POWER_SUPPLY_PROP_TEMP_MAX:
+> +		power_supply_ext_temp_max =3D val->intval;
+> +		break;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +	return 0;
+> +}
+> +
+> +static int power_supply_ext_property_is_writeable(struct power_supply *p=
+sy,
+> +						  const struct power_supply_ext *ext,
+> +						  void *ext_data,
+> +						  enum power_supply_property psp)
+> +{
+> +	return true;
+> +}
+> +
+> +static const struct power_supply_ext power_supply_ext =3D {
+> +	.properties =3D power_supply_ext_props,
+> +	.num_properties =3D ARRAY_SIZE(power_supply_ext_props),
+> +	.get_property =3D power_supply_ext_get_property,
+> +	.set_property =3D power_supply_ext_set_property,
+> +	.property_is_writeable =3D power_supply_ext_property_is_writeable,
+> +};
+> +
+> +static void test_battery_configure_battery_hook(bool enable)
+> +{
+> +	struct power_supply *psy;
+> +
+> +	psy =3D test_power_supplies[TEST_BATTERY];
+> +
+> +	if (enable) {
+> +		if (power_supply_register_extension(psy, &power_supply_ext, NULL)) {
+> +			pr_err("registering battery extension failed\n");
+> +			return;
+> +		}
+> +	} else {
+> +		power_supply_unregister_extension(psy, &power_supply_ext);
+> +	}
+> +
+> +	battery_hook =3D enable;
+> +}
+> +
+>  static int __init test_power_init(void)
+>  {
+>  	int i;
+> @@ -258,6 +338,8 @@ static int __init test_power_init(void)
+>  		}
+>  	}
+> =20
+> +	test_battery_configure_battery_hook(true);
+> +
+>  	module_initialized =3D true;
+>  	return 0;
+>  failed:
+> @@ -524,6 +606,26 @@ static int param_set_battery_current(const char *key,
+> =20
+>  #define param_get_battery_current param_get_int
+> =20
+> +static int param_set_battery_hook(const char *key,
+> +				  const struct kernel_param *kp)
+> +{
+> +	bool old_battery_hook;
+> +	int ret;
+> +
+> +	old_battery_hook =3D battery_hook;
+> +
+> +	ret =3D param_set_bool(key, kp);
+> +	if (ret)
+> +		return ret;
+> +
+> +	if (old_battery_hook !=3D battery_hook)
+> +		test_battery_configure_battery_hook(battery_hook);
+> +
+> +	return 0;
+> +}
+> +
+> +#define param_get_battery_hook param_get_bool
+> +
+>  static const struct kernel_param_ops param_ops_ac_online =3D {
+>  	.set =3D param_set_ac_online,
+>  	.get =3D param_get_ac_online,
+> @@ -574,6 +676,11 @@ static const struct kernel_param_ops param_ops_batte=
+ry_current =3D {
+>  	.get =3D param_get_battery_current,
+>  };
+> =20
+> +static const struct kernel_param_ops param_ops_battery_hook =3D {
+> +	.set =3D param_set_battery_hook,
+> +	.get =3D param_get_battery_hook,
+> +};
+> +
+>  #define param_check_ac_online(name, p) __param_check(name, p, void);
+>  #define param_check_usb_online(name, p) __param_check(name, p, void);
+>  #define param_check_battery_status(name, p) __param_check(name, p, void);
+> @@ -584,6 +691,7 @@ static const struct kernel_param_ops param_ops_batter=
+y_current =3D {
+>  #define param_check_battery_voltage(name, p) __param_check(name, p, void=
+);
+>  #define param_check_battery_charge_counter(name, p) __param_check(name, =
+p, void);
+>  #define param_check_battery_current(name, p) __param_check(name, p, void=
+);
+> +#define param_check_battery_hook(name, p) __param_check(name, p, void);
+> =20
+> =20
+>  module_param(ac_online, ac_online, 0644);
+> @@ -621,6 +729,9 @@ MODULE_PARM_DESC(battery_charge_counter,
+>  module_param(battery_current, battery_current, 0644);
+>  MODULE_PARM_DESC(battery_current, "battery current (milliampere)");
+> =20
+> +module_param(battery_hook, battery_hook, 0644);
+> +MODULE_PARM_DESC(battery_hook, "battery hook");
+> +
+>  MODULE_DESCRIPTION("Power supply driver for testing");
+>  MODULE_AUTHOR("Anton Vorontsov <cbouatmailru@gmail.com>");
+>  MODULE_LICENSE("GPL");
+>=20
+> --=20
+> 2.47.1
+>=20
+
+--a6heirp7h7ua6hpv
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAmdSSmUACgkQ2O7X88g7
++pqg0w//VcvsU3luUpvulZLhzlLOhQ3/lkZyAKA5qFrvOUt89msQnq0fTEELlNbs
+iyIB2n6Nm4leI1Uv1+h/sGYzXcKosn2hZMkj92EkDBvROXTpa+4wYwEzG+w14Otu
+L0pnkG8KkK5JWMXYBQ4KjC4lceWaw6Ymc3WwFGr7CvcKMZYIdw6/54urCMlon6nj
+PpJwvPeqT5QkHOQU1oRmHHgVeVbCmktnBDwwhKD3SX0cPu6jmdtM47yZtKPZvMNL
+j9TF+lWPjhx2WR9D9w/qsvo+Hb7NkRKmy1icNpRLyGPasCxwMOYCniNvIUaWaIzW
+CMeNIdyD6mfB2xZRmd5yL9cQVAMaeCqQr4WefLllL/r6Izhnl8njGsuM4d75t7Ys
+Qkl1PA4eZOzPasFIxcwtBvghOSQstVGDY22vpcbJTaHxJP1bRDZv5INqHX/lNTmT
+FWZk2f6+pAQil5O0RMGOpRQxYSE7TnmVoMGCs3/pyy+qWQgkxNmXeafrXlsN41hX
+FINVhUa/m3XFe1GTvhXMswlpQR5qXSqiHZKuBJ0g0NmPLXnzitZNhMsWrennjyM8
+MrGlhz1Hb1hyruvNTaIgHlIjt9NWOozyflhCOzn8DnIMlTsDaYGautTbEuZaeSkz
+jaGQlm8GtHyQ0pYV+Y0J9vRFYWPLxyZ7e0gnXZgjU8THYbDxkDQ=
+=6lbs
+-----END PGP SIGNATURE-----
+
+--a6heirp7h7ua6hpv--
