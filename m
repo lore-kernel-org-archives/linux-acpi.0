@@ -1,130 +1,203 @@
-Received: from mail-pl1-f171.google.com (mail-pl1-f171.google.com [209.85.214.171])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AF0C4A3C
-	for <linux-acpi@vger.kernel.org>; Sun,  8 Dec 2024 13:53:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.171
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D539214A64;
+	Mon,  9 Dec 2024 07:49:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.187
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733666035; cv=none; b=RNg2Ojy71LpXTsKKPs87wpI+pDytOZngd9+3CcuaortSj4Awuv5Q7IXuDYIUQHh5bvhQpiHpiUTjEymY837hzn6/dSph9bWKjMvkQlC0InkePEMO+YXo+3sE7e8+NcfmJEPgB3flJYeKZxcic1bMcD/uzUKx8wGNmoOX8KsUhlY=
+	t=1733730584; cv=none; b=ca6rORfab8RrKMkKJoZo9euXHOWiYqu/Z9P5Zl6+XS0mDSPZuk/57ThCHMWi4vyypPQVON/lNn2laQJsl+Qj62tBM/060DgBfB4vuUwnGVPtpXCJh2xqSq9nUziIJdSjjRbtfR9uhBWVXRmUvVP96SRG0mp2cW3Ea+IQ876DV80=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733666035; c=relaxed/simple;
-	bh=eerFgtGd/HqSvsrzRLeFC5/NYF5/ni7FrBQR/PQyPh4=;
-	h=Content-Type:Mime-Version:Subject:From:In-Reply-To:Date:Cc:
-	 Message-Id:References:To; b=M04y83cJW4NpR9ziyIM7Wq3Q+GzlV58CJZAU1H8d1j6E6Yr/yWeZ0KPpovKF9tBwbo7Sknt8tdPv8fla9qZKei46ek6p8G9hn15ndCvNQqpxAt7ZOBPPczFztjxihvPpDOGPsuWDJUA3W9B3AAGx9y4QHSztQTN+cKdrxCFu01M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=RvNsZ7s8; arc=none smtp.client-ip=209.85.214.171
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="RvNsZ7s8"
-Received: by mail-pl1-f171.google.com with SMTP id d9443c01a7336-21564262babso2442815ad.3
-        for <linux-acpi@vger.kernel.org>; Sun, 08 Dec 2024 05:53:54 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1733666033; x=1734270833; darn=vger.kernel.org;
-        h=to:references:message-id:content-transfer-encoding:cc:date
-         :in-reply-to:from:subject:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=E5zr3V42aTZGJJxz5l78WQcpAPgo+zvGTkekdCXdeP4=;
-        b=RvNsZ7s8I77g4BNBf86Yn9XJytGLl36ScC2Sfb5d1Qs3XodzwM9Ny+VCXp1zGjj+rE
-         pfQzJSbIwrBSKsHe38aKocdpSLsYPph7rUoGzgwekntb3VFoj/uYRep/YaM6Jqshr1R1
-         6xH5eIZc/mPCp100sLSpOfL098oxCqNmhNZkbIxJ6NhVpNv9t9PLWpm0hBP9D42tbNdf
-         jjRIu65dhkr3jvaV6ErDoKmOjkbXb8Nb9hYxJ7m7hZEDSzvP0ntBSMbIlmVFwZVpaWHJ
-         fWipqlyIztQUoYV26CNGOi5F7UBg56ZqG9C13yRybuj/KzCSQSPEotEXLs4WJ7ehS7TN
-         tI2g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1733666033; x=1734270833;
-        h=to:references:message-id:content-transfer-encoding:cc:date
-         :in-reply-to:from:subject:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=E5zr3V42aTZGJJxz5l78WQcpAPgo+zvGTkekdCXdeP4=;
-        b=qEryRC8S+CrAerQuDvxC0hpHrJHtrEGGNQGynYWNpxf9ab6SjZFm6RpRiPwiQ2G8D2
-         li9o60GAxRG91LDxCrPaALMdFro3wHS7XlL5Q9cNM02yDLcnK1xcA5PdbnPWgJr3fCKz
-         9FSkL98qZB2tC5HQHWRk42t1PzWbLap0IrgpiXDw9jeB4y0fBgfLyYYVO2xupu2+4zhj
-         +f2VaXgmWrYLJjlNCifUzQWSrZ1aYtMkxNIiKyBvdS2oG3xLjYkkCI+bzi0KgqNdiQ7D
-         qHMdZJrE3wviBqol19RW/yw6tsA2snB63Ej6xVvmZoPl2xt2LLBUC2SE2qNSTCmMOCh0
-         AUtA==
-X-Forwarded-Encrypted: i=1; AJvYcCUV074q5+VvhN/ns7Y4MSccIMFRu2v0T1hVx9eSzp+yt6GdTN1IDW30PzZGOUoZq6jyKOQ13+YwLuQx@vger.kernel.org
-X-Gm-Message-State: AOJu0YwMu21UivL6I1AlJbs4QxLkwGsFIRALeomotEzZ1yDXWMzFkDdz
-	APsUtrkki+7H9qdud3UgTexT13lNG9jMy/ojhxw0r3p4jRzbwyyiMJOTew==
-X-Gm-Gg: ASbGncvPhZNWrX0u9zIL8Qh20CyNZQj+jCVQN7gKsbRkOWklRVoE79mC47VTx+cC4GB
-	Y5grmRKxh1/T5+WpXOOLnsqHbf9yfbW45U5xaNYSiuVw2sYw43iquifZkBm1r9vQkJTNetoJsyH
-	Th9mfjnTQWdLeCcuFPE/aYq1OD8WH+/bsxV7ssOpGCAiLMVXAPGx/CZ3GnFRwyjwMGkiRg3xMcD
-	kjLlJ/uz6aDLQ8m0Zc7Z8Ys40B5qFT9ZbQ/6qZjxzs9IJ8+kDeDSS8h1EsGRA==
-X-Google-Smtp-Source: AGHT+IF7gOXoukBRUGOW7WzT1pRXz7xO6PvHfxcp6MU8SsFsXaIgj1sx4L4TmmYJ75j53jQbwmKG1A==
-X-Received: by 2002:a17:902:f54d:b0:215:5f17:4296 with SMTP id d9443c01a7336-21614d763famr49026605ad.8.1733666033363;
-        Sun, 08 Dec 2024 05:53:53 -0800 (PST)
-Received: from smtpclient.apple ([2406:4440:0:105::41:a])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-215f8e61ef7sm57021825ad.95.2024.12.08.05.53.50
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Sun, 08 Dec 2024 05:53:52 -0800 (PST)
-Content-Type: text/plain;
-	charset=utf-8
+	s=arc-20240116; t=1733730584; c=relaxed/simple;
+	bh=R8kCdwKbk8Fy59TANbitmY9vXQFcRjYWd5ShkaVdGAs=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=YcXCDDhwY4gHg1ZQ3oZ+bkTP0zOx6DbnHjLwHCivLVAUxxAbV4nWfVguDDqM3IVnxu3CMHV8uDQIVDBC8jeIlr9KYmNbBlqM6se5TbSKSjN4ranrAs086Z7yWoK0R8TEKueRuxTHo00BvBzmtXVKTzQyDXYpv0w9HpurIOIsmJk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.187
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.19.163.252])
+	by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4Y6DT75Q7Bz11MCC;
+	Mon,  9 Dec 2024 15:46:35 +0800 (CST)
+Received: from kwepemh100008.china.huawei.com (unknown [7.202.181.93])
+	by mail.maildlp.com (Postfix) with ESMTPS id DCAF6180357;
+	Mon,  9 Dec 2024 15:49:38 +0800 (CST)
+Received: from [10.67.121.90] (10.67.121.90) by kwepemh100008.china.huawei.com
+ (7.202.181.93) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Mon, 9 Dec
+ 2024 15:49:38 +0800
+Message-ID: <57e94a65-d9df-4114-bcee-998addb6e60f@huawei.com>
+Date: Mon, 9 Dec 2024 15:49:37 +0800
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3826.200.121\))
-Subject: Re: [PATCH v3 2/7] ACPI: scan: Extract CSI-2 connection graph from
- _CRS
-From: Miao Wang <shankerwangmiao@gmail.com>
-In-Reply-To: <CAJZ5v0hzHONOO=JCCniQONPAhFMLuDaWO=_n=fpStEQyaYP5hg@mail.gmail.com>
-Date: Sun, 8 Dec 2024 21:53:34 +0800
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>,
- Linux ACPI <linux-acpi@vger.kernel.org>,
- Sakari Ailus <sakari.ailus@linux.intel.com>
-Content-Transfer-Encoding: quoted-printable
-Message-Id: <4AE6B366-4F8A-41AC-BCE9-4C39CCFE767F@gmail.com>
-References: <4542595.LvFx2qVVIh@kreacher> <2927980.e9J7NaK4W3@kreacher>
- <C20272A3-65B5-4AAD-B6AD-0B93A95C5D93@gmail.com>
- <CAJZ5v0jeE=3-0ad7OMWETnhYfQE+fhw2dQTfYTmn=_6gDnDghQ@mail.gmail.com>
- <2D27B47A-A6EB-487C-8DEA-6792A0BAE886@gmail.com>
- <CAJZ5v0hzHONOO=JCCniQONPAhFMLuDaWO=_n=fpStEQyaYP5hg@mail.gmail.com>
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-X-Mailer: Apple Mail (2.3826.200.121)
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 1/3] ACPI: CPPC: Refactor register get and set ABIs
+To: Pierre Gondois <pierre.gondois@arm.com>, <rafael@kernel.org>,
+	<lenb@kernel.org>, <robert.moore@intel.com>, <viresh.kumar@linaro.org>
+CC: <acpica-devel@lists.linux.dev>, <linux-acpi@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, <linux-pm@vger.kernel.org>,
+	<zhanjie9@hisilicon.com>, <lihuisong@huawei.com>, <fanghao11@huawei.com>,
+	"zhenglifeng (A)" <zhenglifeng1@huawei.com>
+References: <20241114084816.1128647-1-zhenglifeng1@huawei.com>
+ <20241114084816.1128647-2-zhenglifeng1@huawei.com>
+ <0f113d9d-faac-420a-9c75-9b620bf5c3f6@arm.com>
+From: "zhenglifeng (A)" <zhenglifeng1@huawei.com>
+In-Reply-To: <0f113d9d-faac-420a-9c75-9b620bf5c3f6@arm.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: dggems704-chm.china.huawei.com (10.3.19.181) To
+ kwepemh100008.china.huawei.com (7.202.181.93)
 
+Hello Pierre，
 
+On 2024/12/6 22:23, Pierre Gondois wrote:
+> Hello Lifeng,
+> 
+> On 11/14/24 09:48, Lifeng Zheng wrote:
+>> Refactor register get and set ABIs using cppc_get_reg() and cppc_set_reg().
+>>
+>> Rename cppc_get_perf() to cppc_get_reg() as a generic function to read cppc
+>> registers, with two changes:
+>>
+>> 1. Change the error kind to "no such device" when pcc_ss_id < 0, which
+>> means that this cpu cannot get a valid pcc_ss_id.
+>>
+>> 2. Add a check to verify if the register is a cpc supported one before
+>> using it.
+>>
+>> Add cppc_set_reg() as a generic function for setting cppc registers. Unlike
+>> other set reg ABIs, this function checks CPC_SUPPORTED right after getting
+>> the register, because the rest of the operations are meaningless if this
+>> register is not a cpc supported one.
+>>
+>> Signed-off-by: Lifeng Zheng <zhenglifeng1@huawei.com>
+>> ---
+>>   drivers/acpi/cppc_acpi.c | 191 +++++++++++++++------------------------
+>>   1 file changed, 72 insertions(+), 119 deletions(-)
+>>
+>> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+>> index c1f3568d0c50..306ced9c3376 100644
+>> --- a/drivers/acpi/cppc_acpi.c
+>> +++ b/drivers/acpi/cppc_acpi.c
+>> @@ -1179,10 +1179,13 @@ static int cpc_write(int cpu, struct cpc_register_resource *reg_res, u64 val)
+>>       return ret_val;
+>>   }
+>>   -static int cppc_get_perf(int cpunum, enum cppc_regs reg_idx, u64 *perf)
+>> +static int cppc_get_reg(int cpunum, enum cppc_regs reg_idx, u64 *val)
+>>   {
+>>       struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpunum);
+>> +    struct cppc_pcc_data *pcc_ss_data = NULL;
+>>       struct cpc_register_resource *reg;
+>> +    int pcc_ss_id;
+>> +    int ret = 0;
+> 
+> NIT: Might not be necessary if we save the value returned by cpc_read(),
+> cf. other comment below.
+> 
+>>         if (!cpc_desc) {
+>>           pr_debug("No CPC descriptor for CPU:%d\n", cpunum);
+>> @@ -1191,20 +1194,23 @@ static int cppc_get_perf(int cpunum, enum cppc_regs reg_idx, u64 *perf)
+>>         reg = &cpc_desc->cpc_regs[reg_idx];
+>>   +    if (!CPC_SUPPORTED(reg)) {
+>> +        pr_debug("CPC register (reg_idx=%u) is not supported\n", reg_idx);
+>> +        return -EOPNOTSUPP;
+>> +    }
+>> +
+>>       if (CPC_IN_PCC(reg)) {
+>> -        int pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, cpunum);
+>> -        struct cppc_pcc_data *pcc_ss_data = NULL;
+>> -        int ret = 0;
+>> +        pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, cpunum);
+>>             if (pcc_ss_id < 0)
+>> -            return -EIO;
+>> +            return -ENODEV;
+> 
+> NIT: Could add here:
+>   pr_debug("Invalid pcc_ss_id\n");
+> just as you did in cppc_set_reg()
 
-> 2024=E5=B9=B412=E6=9C=885=E6=97=A5 18:54=EF=BC=8CRafael J. Wysocki =
-<rafael@kernel.org> =E5=86=99=E9=81=93=EF=BC=9A
->=20
->>=20
->> Maybe we can prioritize the initialization of the PCI host bridge to
->> fully eliminate this issue?
->=20
-> The problem with this is that the current code requires struct
-> acpi_device objects to be present for all PCI devices that have
-> corresponding objects in the ACPI Namespace at the time when the host
-> bridge is initialized because that causes the PCI bus to be scanned
-> for devices and struct acpi_device objects are looked up from there.
->=20
-> To make this work, the "ACPI companion lookup" code needs to be
-> changed and that would be kind of a heavy lifting and it may introduce
-> some unexpected enumeration ordering issues.
->=20
-> Alternatively, the PCI host bridge could be initialized early, but
-> without scanning the PCI bus which would be scanned at the time when
-> all of the struct acpi_device objects are present.  It looks like this
-> could be made work, but it would require some investigation and code
-> refactoring.
+Will add it in next version, Thanks.
 
-Thanks again for your explanation on this. I understand that it may need
-lots of work. I think it would be better if the fix would become as =
-minor
-as possible, because it would be easier to backport and more =
-importantly,
-the case where legacy IO device is used on non-x86 ACPI-enabled
-architectures is really rare.
+> 
+>>             pcc_ss_data = pcc_data[pcc_ss_id];
+>>             down_write(&pcc_ss_data->pcc_lock);
+>>             if (send_pcc_cmd(pcc_ss_id, CMD_READ) >= 0)
+>> -            cpc_read(cpunum, reg, perf);
+>> +            cpc_read(cpunum, reg, val);
+> 
+> This was not introduced by your patch, but cpc_read() return a value.
+> Shouldn't we return it instead of 0 ?
 
-I'm currently running out of better ideas, due to my limited experience
-on this part of code. I suppose maybe we can scan the ACPI device tree
-in three passes, adding one in the beginning to pick out the PCI Host.
-But we should deal with the case where evaluating the _CRS of the PCI
-Host itself requires reading IO ports, since it seems that the
-specification does not forbid this...
+Indeed. Will optimize it, Thanks.
 
-If you are familiar with someone in the UEFI forum, maybe this problem
-can be raised to them and a clarification can be requested.
+> 
+>>           else
+>>               ret = -EIO;
+>>   @@ -1213,21 +1219,65 @@ static int cppc_get_perf(int cpunum, enum cppc_regs reg_idx, u64 *perf)
+>>           return ret;
+>>       }
+>>   -    cpc_read(cpunum, reg, perf);
+>> +    cpc_read(cpunum, reg, val);
+> 
+> Same comment as above
+> 
+>>         return 0;
+>>   }
+>>   +static int cppc_set_reg(int cpu, enum cppc_regs reg_idx, u64 val)
+> 
+> Just to have similar functions, maybe 'cpu' should be renamed to 'cpunum' ?
+> Or the other way around.
 
-Cheers,
+I prefer 'cpu', 'cpunum' looks like the number of cpus to me.
+Will rename 'cpunum' to 'cpu' in cppc_get_reg(). Thanks.
 
-Miao Wang=
+> 
+>> +{
+>> +    struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpu);
+>> +    struct cppc_pcc_data *pcc_ss_data = NULL;
+>> +    struct cpc_register_resource *reg;
+>> +    int pcc_ss_id;
+>> +    int ret;
+>> +
+>> +    if (!cpc_desc) {
+>> +        pr_debug("No CPC descriptor for CPU:%d\n", cpu);
+>> +        return -ENODEV;
+>> +    }
+>> +
+>> +    reg = &cpc_desc->cpc_regs[reg_idx];
+>> +
+>> +    if (!CPC_SUPPORTED(reg)) {
+>> +        pr_debug("CPC register (reg_idx=%u) is not supported\n", reg_idx);
+>> +        return -EOPNOTSUPP;
+>> +    }
+>> +
+>> +    if (CPC_IN_PCC(reg)) {
+>> +        pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, cpu);
+>> +
+>> +        if (pcc_ss_id < 0) {
+>> +            pr_debug("Invalid pcc_ss_id\n");
+>> +            return -ENODEV;
+>> +        }
+>> +
+>> +        ret = cpc_write(cpu, reg, val);
+>> +        if (ret)
+>> +            return ret;
+>> +
+>> +        pcc_ss_data = pcc_data[pcc_ss_id];
+>> +
+>> +        down_write(&pcc_ss_data->pcc_lock);
+>> +        /* after writing CPC, transfer the ownership of PCC to platform */
+>> +        ret = send_pcc_cmd(pcc_ss_id, CMD_WRITE);
+>> +        up_write(&pcc_ss_data->pcc_lock);
+>> +        return ret;
+>> +    }
+>> +
+>> +    return cpc_write(cpu, reg, val);
+>> +}
+>> +
+> 
+> [snip]
+> 
+
