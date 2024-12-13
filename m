@@ -1,73 +1,140 @@
-Received: from arara2.ipen.br (arara2.ipen.br [200.136.52.33])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01C641BBBEB
-	for <linux-acpi@vger.kernel.org>; Fri, 13 Dec 2024 10:37:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=200.136.52.33
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 474761A08A6;
+	Fri, 13 Dec 2024 11:59:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734086247; cv=none; b=TSlXERknvy1VGA0trsR/VaLY9Zo4lC9IWlvAPcthSh64BPQHuZ7uAsYe8FgBeH7+MflvLasVaH6lq+VAvzonMAYqLS799Fr3oY3K0Y/SKkYxNNxxJJYTBT28nMk7Y2Z6bwYH+qdwi6tUeJzNKaRjfWUT3tJk9uE1oZ7uDC0wTUE=
+	t=1734091200; cv=none; b=pjYCgIIYIv+BK7ne0allwnK04vWn2qaQVtAWtk2Kq4Lt/+u+iSznVkXSL/Tjz0sv2g4krToDoVYpcfKZObtR5m1BJdBg27/x+LmkVIt4SiX4yeNCe9N+zYBI6enyMED31G8im0Ecf8fEix1sBIL0wNS8plig7Ssrf+7llPyoS7s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734086247; c=relaxed/simple;
-	bh=Cgr97JBiSX1QIcd2ZZZsKVChGTY1ZlWJ/4AhaVFA7Wc=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type; b=HN5gGTjVZmn63ygfPgkcV0jY4QK2u/xXvc/DxmXnJ+x8E1UNL4LdoBhF0eK3Fnlw0tbhf3R3UVIiOjx7M6EM6Y+M1yqUmBoMXv9HyhZ0CD+xnwzu15+atDaP5DU2+ngiAO00PfVABjgXwruMY+aWO+Fes4pdgGj5N7c1qAV7TmM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ipen.br; spf=pass smtp.mailfrom=ipen.br; arc=none smtp.client-ip=200.136.52.33
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ipen.br
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ipen.br
-X-ASG-Debug-ID: 1734086209-055fc729ec14abc50005-I98ny2
-Received: from arara.ipen.br (webmail.ip.ipen.br [10.0.10.11]) by arara2.ipen.br with ESMTP id Fbz1fK5iT19DEIiq for <linux-acpi@vger.kernel.org>; Fri, 13 Dec 2024 07:37:18 -0300 (BRT)
-X-Barracuda-Envelope-From: TCWM178549@ipen.br
-X-Barracuda-RBL-Trusted-Forwarder: 10.0.10.11
-Received: from ipen.br (unknown [102.129.145.191])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by arara.ipen.br (Postfix) with ESMTPSA id 2B663FBE3A5
-	for <linux-acpi@vger.kernel.org>; Fri, 13 Dec 2024 01:24:29 -0300 (-03)
-Reply-To: t.mazowieckie@mazowieckie.org
-X-Barracuda-Effective-Source-IP: UNKNOWN[102.129.145.191]
-X-Barracuda-Apparent-Source-IP: 102.129.145.191
-X-Barracuda-RBL-IP: 102.129.145.191
-From: <TCWM178549@ipen.br>
-To: linux-acpi@vger.kernel.org
-Subject:  I urge you to understand my viewpoint accurately.
-Date: 13 Dec 2024 12:24:29 +0800
-X-ASG-Orig-Subj: I urge you to understand my viewpoint accurately.
-Message-ID: <20241213122429.A72A5BAE57F8AB04@ipen.br>
+	s=arc-20240116; t=1734091200; c=relaxed/simple;
+	bh=u0Sb066jR4i3kqSYmXzuGtO7rP72CJmz06cNlBH0hcA=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=czMnj5Qk2zlBGVhaHDadCnA8VQmibzfK0EQAXsRtgQTxDEeLJ5mVXQZqq0mrhX7Ik24s+nJuoytLPVgpBtBR/dE5Rc0ZxywOmqoeIPbWRw3jSyB93mi85KIneQ57MLdiDHCJuEGpAZxPJg60IC3NYK7dpXilEv/x1miJsIndLKo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=h20qHjUa; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="h20qHjUa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7DE4CC4CED0;
+	Fri, 13 Dec 2024 11:59:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1734091199;
+	bh=u0Sb066jR4i3kqSYmXzuGtO7rP72CJmz06cNlBH0hcA=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=h20qHjUaqsqR+9NToxHdTB+ZXljbPxXf5x7esKb1rptLnC+k0tAuDX7BDYy/Rxs9b
+	 FIe28TYqmNsuONipa9+1Oo3lnfvmxFU72y3DX+ExlO6j4WUtqg87z92VUp+jk4dqU1
+	 6FgmsVHGzERI2i50vy56E8dSWPmeC9VyLuDabda/AkdOjtKKXRrNczr9A3/UOQ2suK
+	 qdaHx+6l4ZmUZWjKKgemuVKveceuqNHwgjyaKy0nBcXEQapF7xo+0iQGdgliiJdnvv
+	 lLw93Pcd6XH4nmnOJZCsRQ++NngErwz1vQCOMmSVD+vL1zT+UkpUen/2ME8sC+h5k5
+	 AboVCEqYCSlBA==
+Date: Fri, 13 Dec 2024 12:59:57 +0100
+From: Maxime Ripard <mripard@kernel.org>
+To: Brian Norris <briannorris@chromium.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, kunit-dev@googlegroups.com, 
+	David Gow <davidgow@google.com>, Rae Moar <rmoar@google.com>, linux-kselftest@vger.kernel.org, 
+	"Rafael J. Wysocki" <rafael@kernel.org>, Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH v2 3/3] drivers: base: test: Add ...find_device_by...(...
+ NULL) tests
+Message-ID: <20241213-athletic-strong-bumblebee-bfabf1@houat>
+References: <20241212003201.2098123-1-briannorris@chromium.org>
+ <20241212003201.2098123-4-briannorris@chromium.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
+Content-Type: multipart/signed; micalg=pgp-sha384;
+	protocol="application/pgp-signature"; boundary="7snr6qwlmjeebc3w"
+Content-Disposition: inline
+In-Reply-To: <20241212003201.2098123-4-briannorris@chromium.org>
+
+
+--7snr6qwlmjeebc3w
+Content-Type: text/plain; protected-headers=v1; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
-X-Barracuda-Connect: webmail.ip.ipen.br[10.0.10.11]
-X-Barracuda-Start-Time: 1734086238
-X-Barracuda-URL: https://10.40.40.18:443/cgi-mod/mark.cgi
-X-Barracuda-Scan-Msg-Size: 512
-X-Virus-Scanned: by bsmtpd at ipen.br
-X-Barracuda-BRTS-Status: 1
-X-Barracuda-BRTS-Evidence: 34fbb5788938ad5710ad28835fd12206-499-txt
-X-Barracuda-Spam-Score: 1.11
-X-Barracuda-Spam-Status: No, SCORE=1.11 using global scores of TAG_LEVEL=1000.0 QUARANTINE_LEVEL=1000.0 KILL_LEVEL=1000.0 tests=DATE_IN_PAST_06_12, DATE_IN_PAST_06_12_2, NO_REAL_NAME
-X-Barracuda-Spam-Report: Code version 3.2, rules version 3.2.3.45577
-	Rule breakdown below
-	 pts rule name              description
-	---- ---------------------- --------------------------------------------------
-	0.00 NO_REAL_NAME           From: does not include a real name
-	0.01 DATE_IN_PAST_06_12     Date: is 6 to 12 hours before Received: date
-	1.10 DATE_IN_PAST_06_12_2   DATE_IN_PAST_06_12_2
+Subject: Re: [PATCH v2 3/3] drivers: base: test: Add ...find_device_by...(...
+ NULL) tests
+MIME-Version: 1.0
 
-I am Tomasz Chmielewski, a Portfolio Manager and Chartered=20
-Financial Analyst affiliated with Iwoca Poland Sp. Z OO in=20
-Poland. I have the privilege of working with distinguished=20
-investors who are eager to support your company's current=20
-initiatives, thereby broadening their investment portfolios. If=20
-this proposal aligns with your interests, I invite you to=20
-respond, and I will gladly share more information to assist you.
+Hi,
 
-=20
-Yours sincerely,=20
-Tomasz Chmielewski Warsaw, Mazowieckie,
-=20
-Poland.
+On Wed, Dec 11, 2024 at 04:31:41PM -0800, Brian Norris wrote:
+> We recently updated these device_match*() (and therefore, various
+> *find_device_by*()) functions to return a consistent 'false' value when
+> trying to match a NULL handle. Add tests for this.
+>=20
+> This provides regression-testing coverage for the sorts of bugs that
+> underly commit 5c8418cf4025 ("PCI/pwrctrl: Unregister platform device
+> only if one actually exists").
+>=20
+> Signed-off-by: Brian Norris <briannorris@chromium.org>
+> ---
+>=20
+> Changes in v2:
+>  * Keep "devm" and "match" tests in separate suites
+>=20
+>  drivers/base/test/platform-device-test.c | 42 +++++++++++++++++++++++-
+>  1 file changed, 41 insertions(+), 1 deletion(-)
+>=20
+> diff --git a/drivers/base/test/platform-device-test.c b/drivers/base/test=
+/platform-device-test.c
+> index ea05b8785743..c8d4b0a385f2 100644
+> --- a/drivers/base/test/platform-device-test.c
+> +++ b/drivers/base/test/platform-device-test.c
+> @@ -3,6 +3,8 @@
+>  #include <kunit/resource.h>
+> =20
+>  #include <linux/device.h>
+> +#include <linux/device/bus.h>
+> +#include <linux/of_platform.h>
+>  #include <linux/platform_device.h>
+> =20
+>  #define DEVICE_NAME "test"
+> @@ -217,7 +219,45 @@ static struct kunit_suite platform_device_devm_test_=
+suite =3D {
+>  	.test_cases =3D platform_device_devm_tests,
+>  };
+> =20
+> -kunit_test_suite(platform_device_devm_test_suite);
+> +static void platform_device_find_by_null_test(struct kunit *test)
+> +{
+> +	struct platform_device *pdev;
+> +	int ret;
+> +
+> +	pdev =3D platform_device_alloc(DEVICE_NAME, PLATFORM_DEVID_NONE);
+> +	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, pdev);
+> +
+> +	ret =3D platform_device_add(pdev);
+> +	KUNIT_ASSERT_EQ(test, ret, 0);
+
+I *think* you have a bug there: if platform_device_add fails,
+KUNIT_ASSERT will stop the test execution and thus you will leak the
+platform_device you just allocated.
+
+You need to call platform_device_put in such a case, but if
+platform_device_add succeeds then you need to call
+platform_device_unregister instead.
+
+It would be better to use kunit_platform_device_alloc and
+kunit_platform_device_add that already deal with this.
+
+The rest looks good to me, once fixed:
+Reviewed-by: Maxime Ripard <mripard@kernel.org>
+
+Maxime
+
+--7snr6qwlmjeebc3w
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iJUEABMJAB0WIQTkHFbLp4ejekA/qfgnX84Zoj2+dgUCZ1whtgAKCRAnX84Zoj2+
+drgVAYC25+nvuEysmbcasOB2RjIFmcZ9PldsACXyDBDoeJeXBpB3YhMh6Vw90BIG
+EQQ03CABgKbWgKqxNLrM68+yaHDG9u7bdRhZDyRHxPS9jx20dAxOJSsQ1J3uB8Kq
+pc2gSDAyqw==
+=sA+0
+-----END PGP SIGNATURE-----
+
+--7snr6qwlmjeebc3w--
