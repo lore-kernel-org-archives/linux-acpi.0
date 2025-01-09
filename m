@@ -1,35 +1,35 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EC3984039;
-	Thu,  9 Jan 2025 19:42:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56CFA1FBCB9;
+	Thu,  9 Jan 2025 19:42:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736451747; cv=none; b=YP2dIE650r3pEhwdoxPBhl/4mJ6KUh67rWViNyn0FCRafA+R9FRYGEO/et7qIFSyjSYIqe33190sUGp4lMzqWKcZVyj1NSJka1u096F0cOATPPFUPK9o5qf8cIKJ6q36KQXu6PbYm1tmNCN4me7vTRDQ8QLT6qFRPrp4p1xKkeE=
+	t=1736451749; cv=none; b=CzRM9TZdk+4DuoEtaw+UAVfgUDxKfNyms0Itb2sbEw32qQrJbBalJCRGtL5HxTyGV6WQGV1QudfS31r7mQiaRwXo6E63z4L7j8bAYRWLljpMivbd38BuVBP2mBZyaEdAEVi+n4dlYVB+twXKlPMiLuR+mzvTpjhEMEusQEt/UtY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736451747; c=relaxed/simple;
-	bh=XtUl7FPNqYDK8EwQIxQ9yB0/v394mKPMwRsJLf2eJlY=;
-	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=AXl+M1VK18POPyIIYAkurayVWWE7SmYMo8fzOzCarf6BhgzIPhX0huhZV8G1ytgxgYTIU8SM+0lZpqM3aLF82Ei273KBvGj4hXfD0nNJnV94AKdPursLm0qWzpCoF7XfocBWXfGUtvF2qU/j+/NxCsrcvHBseJAjNWLcP63qY4w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Q1AGDMq+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736451749; c=relaxed/simple;
+	bh=SReleW9OsRRKN79QlIuTYUST58IFqSH13JU+BxJdkEs=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=ekR49y4LCCZXsUpBUn8IQ0V5+jwzR5tRdzZWL5y4rrRJG7N2eDEIYWHIccPBoKPLsdvJ+s+EW49DJA5JqwVHVeEX8faRlut0cX9zuj1AJ/Kz7so5iXXyUYt8RGfVyNPrfem+gblYR15IGKCydE3u8ZmkHzDkMzyBKNFamwAFFRw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=OrwUYS87; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Q1AGDMq+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64F6AC4CED2;
-	Thu,  9 Jan 2025 19:42:25 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="OrwUYS87"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D723BC4CED2;
+	Thu,  9 Jan 2025 19:42:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1736451745;
-	bh=XtUl7FPNqYDK8EwQIxQ9yB0/v394mKPMwRsJLf2eJlY=;
-	h=From:Subject:Date:To:Cc:From;
-	b=Q1AGDMq+jGdMGqBI2AK6Q5DwxRAQQQtn3etn7SovkxmlJqo7gZCwT+Rlhw9xzUQ5l
-	 S8BLV61MmubE1krYmi95FS4NcrPK8cSqYUztRfcjcqmnoHy/SAnEbpsYrAjN04lPB0
-	 j5mkoC86kQQsiMvO0Gmb+N+iQom7iESyj/EhgpQr9gGfzR/MdmklHtRRvk0etjlAbv
-	 V0/2bEclx7XjGZHwiiK0uYJj+BHJWG007bc6zFOnvrkxx077PXCfrp8C1cQaW5gxBm
-	 Nm7UwXkhfHVfrgGyvL04NHLDNSLIQzojU5YK6W3JLeO6ti6HfrfibYER2iBzIb3mBM
-	 1+Pqk+6VAo5ZA==
+	s=k20201202; t=1736451748;
+	bh=SReleW9OsRRKN79QlIuTYUST58IFqSH13JU+BxJdkEs=;
+	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
+	b=OrwUYS87AQz8wE7C4sGt7YKR7y77qF0I+bgiaIDXF6rIcJmmI0mUuRhUaMcwFeeBE
+	 PxfL5RfQ6XYL3+mbcYeuqgTPBghf2duV0w5RQww3/JsMDvHntIykV3HuMw93CS8aQ4
+	 AoQX+JWJ2tt8+HA+vdCKHu54+JSSVg6BwQ8mXjhF/MRA9S09bocXpPzRLcSUB/h7Cm
+	 7Cg8OJp+UqlH+Bae0G2ZIc5zsOha3b8vRae5D6E9AZVuH+YKtgOoA+ACnGMN02LykG
+	 ycYlQW0Bmq7z/IyRm8GYeFo4rQBGk3a5BIHD5wY3QtZFgfkCp56LpMpRY+Tnaq8W0d
+	 4YicIGj/epVSA==
 From: "Rob Herring (Arm)" <robh@kernel.org>
-Subject: [PATCH 0/2] device property: Warn on
- (of|fwnode|device)_property_read_bool() for non-boolean properties
-Date: Thu, 09 Jan 2025 13:42:04 -0600
-Message-Id: <20250109-dt-type-warnings-v1-0-0150e32e716c@kernel.org>
+Date: Thu, 09 Jan 2025 13:42:06 -0600
+Subject: [PATCH 2/2] of: Warn when of_property_read_bool() is used on
+ non-boolean properties
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -38,10 +38,9 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-B4-Tracking: v=1; b=H4sIAIwmgGcC/x3MPQqAMAxA4atIZgO1IFKvIg6tjTVLlUT8Qby7x
- fEb3ntASZgU+uoBoYOV11zQ1BVMi8+JkGMxWGNb0xiHccf93ghPL5lzUqSZWhtd14VgoWSb0Mz
- XvxzG9/0A1AiqbWIAAAA=
-X-Change-ID: 20250109-dt-type-warnings-efe52d977bb2
+Message-Id: <20250109-dt-type-warnings-v1-2-0150e32e716c@kernel.org>
+References: <20250109-dt-type-warnings-v1-0-0150e32e716c@kernel.org>
+In-Reply-To: <20250109-dt-type-warnings-v1-0-0150e32e716c@kernel.org>
 To: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
  Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
  Daniel Scally <djrscally@gmail.com>, 
@@ -53,41 +52,105 @@ Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
  devicetree@vger.kernel.org
 X-Mailer: b4 0.15-dev
 
-This series makes using (of|fwnode|device)_property_read_bool() on 
-non-boolean properties give a warning when used with DT. This has been 
-deprecated behavior for a while now. Soon we will add yet another 
-variant of this function with a Rust binding[1].
-
-Why not put the warning in the fwnode code? The fwnode code doesn't know 
-the property's type as that depends on the firmware. For DT, a boolean 
-is a property with no value.
-
-Perhaps the ACPI backend should have a warning too? I looked briefly at 
-it, but I don't have a clue how or if that can be detected. Doesn't look 
-like there's a specific type for booleans. In any case, that would be an 
-additional change on top of this series.
-
-[1] https://lore.kernel.org/all/20241025-rust-platform-dev-v1-2-0df8dcf7c20b@kernel.org/
+The use of of_property_read_bool() for non-boolean properties is
+deprecated. The primary use of it was to test property presence, but
+that has been replaced in favor of of_property_present(). With those
+uses now fixed, add a warning to discourage new ones.
 
 Signed-off-by: Rob Herring (Arm) <robh@kernel.org>
 ---
-Rob Herring (Arm) (2):
-      device property: Split property reading bool and presence test ops
-      of: Warn when of_property_read_bool() is used on non-boolean properties
+ drivers/of/property.c | 26 ++++++++++++++++++++++++++
+ include/linux/of.h    | 25 +++++++------------------
+ 2 files changed, 33 insertions(+), 18 deletions(-)
 
- drivers/acpi/property.c  |  1 +
- drivers/base/property.c  | 38 ++++++++++++++++++++++++++++++++++++++
- drivers/base/swnode.c    |  1 +
- drivers/of/property.c    | 33 +++++++++++++++++++++++++++++++++
- include/linux/fwnode.h   |  3 +++
- include/linux/of.h       | 29 ++++++++++-------------------
- include/linux/property.h | 15 +++------------
- 7 files changed, 89 insertions(+), 31 deletions(-)
----
-base-commit: 40384c840ea1944d7c5a392e8975ed088ecf0b37
-change-id: 20250109-dt-type-warnings-efe52d977bb2
+diff --git a/drivers/of/property.c b/drivers/of/property.c
+index 1b46be88cc0498fcbe74e7b988f22a86245c366e..9a6d84d19ff371def8bedc009bb6ab488458a29b 100644
+--- a/drivers/of/property.c
++++ b/drivers/of/property.c
+@@ -31,6 +31,32 @@
+ 
+ #include "of_private.h"
+ 
++/**
++ * of_property_read_bool - Find a property
++ * @np:		device node from which the property value is to be read.
++ * @propname:	name of the property to be searched.
++ *
++ * Search for a boolean property in a device node. Usage on non-boolean
++ * property types is deprecated.
++ *
++ * Return: true if the property exists false otherwise.
++ */
++bool of_property_read_bool(const struct device_node *np, const char *propname)
++{
++	struct property *prop = of_find_property(np, propname, NULL);
++
++	/*
++	 * Boolean properties should not have a value. Testing for property
++	 * presence should either use of_property_present() or just read the
++	 * property value and check the returned error code.
++	 */
++	if (prop && prop->length)
++		pr_warn("%pOF: Read of boolean property '%s' with a value.\n", np, propname);
++
++	return prop ? true : false;
++}
++EXPORT_SYMBOL(of_property_read_bool);
++
+ /**
+  * of_graph_is_present() - check graph's presence
+  * @node: pointer to device_node containing graph port
+diff --git a/include/linux/of.h b/include/linux/of.h
+index 1cb4eb7fc2eded2246c697c3bcaf1b85d43108ab..0cdd58ff0a4190724309ba1eddbac51b188b6136 100644
+--- a/include/linux/of.h
++++ b/include/linux/of.h
+@@ -311,6 +311,7 @@ extern struct device_node *of_find_node_with_property(
+ extern struct property *of_find_property(const struct device_node *np,
+ 					 const char *name,
+ 					 int *lenp);
++extern bool of_property_read_bool(const struct device_node *np, const char *propname);
+ extern int of_property_count_elems_of_size(const struct device_node *np,
+ 				const char *propname, int elem_size);
+ extern int of_property_read_u32_index(const struct device_node *np,
+@@ -615,6 +616,12 @@ static inline struct device_node *of_find_compatible_node(
+ 	return NULL;
+ }
+ 
++static inline bool of_property_read_bool(const struct device_node *np,
++					const char *propname)
++{
++	return false;
++}
++
+ static inline int of_property_count_elems_of_size(const struct device_node *np,
+ 			const char *propname, int elem_size)
+ {
+@@ -1242,24 +1249,6 @@ static inline int of_property_read_string_index(const struct device_node *np,
+ 	return rc < 0 ? rc : 0;
+ }
+ 
+-/**
+- * of_property_read_bool - Find a property
+- * @np:		device node from which the property value is to be read.
+- * @propname:	name of the property to be searched.
+- *
+- * Search for a boolean property in a device node. Usage on non-boolean
+- * property types is deprecated.
+- *
+- * Return: true if the property exists false otherwise.
+- */
+-static inline bool of_property_read_bool(const struct device_node *np,
+-					 const char *propname)
+-{
+-	const struct property *prop = of_find_property(np, propname, NULL);
+-
+-	return prop ? true : false;
+-}
+-
+ /**
+  * of_property_present - Test if a property is present in a node
+  * @np:		device node to search for the property.
 
-Best regards,
 -- 
-Rob Herring (Arm) <robh@kernel.org>
+2.45.2
 
