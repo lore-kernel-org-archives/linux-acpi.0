@@ -1,79 +1,90 @@
-Received: from szxga04-in.huawei.com (szxga04-in.huawei.com [45.249.212.190])
+Received: from mail.alien8.de (mail.alien8.de [65.109.113.108])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A595A22AE7B;
-	Mon, 13 Jan 2025 12:21:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.190
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE9781CAA94;
+	Mon, 13 Jan 2025 12:51:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=65.109.113.108
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736770886; cv=none; b=qDVRrnLv4rak+lhEbQJ9PuE8dzPOuGNV8Uu+MmJJqKLci0zd/Fi5igPljyh3kSR2AQFzMUMpDZNM7LaV9HEXpZpLaLX9rN3ULiaFnEV+OwCzejS7x3aFADCt/bWj0P2lOfFx+utSGwma1wIsQATUXsKat0epI09b73h6reY7kfM=
+	t=1736772665; cv=none; b=dcjBCi8oncJ7ehTHPx/WENAswosoT93+2nvpDjz7hoM/pCP4wZW7wNpYNwg5QmZAzpiG4zl8PivAzl1UGwYTRjt6gLESGCbpbc1g6yqYQnFoPPYn6jMZNDQDuJeXpwuFPJf4m9cW7z/+vJuCCuKvN73GhpJ4Trksnan2RP/Y+Mw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736770886; c=relaxed/simple;
-	bh=zekOdi6n3VYMxHGrckuhAG8bsTJ3kkcv6UwM1qs/lgI=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=T/4xxALigUsBsk7kfsRPSeg0OPWduJd+KVE6OWKPH050W16rN0YLqn82Gfyr9ozahM+hT28QDkxoQ/iVtTfQ53c4ojrC9uzjC1LEme2jywGF4euppvs9QoJHGzDDzn4cOrFCSXz30mVgdotLgUjhV/G5eLSpEPtaZBpE9R7FpOA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.190
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.19.88.234])
-	by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4YWrs24b89z22l71;
-	Mon, 13 Jan 2025 20:18:46 +0800 (CST)
-Received: from kwepemh100008.china.huawei.com (unknown [7.202.181.93])
-	by mail.maildlp.com (Postfix) with ESMTPS id 265111401F4;
-	Mon, 13 Jan 2025 20:21:07 +0800 (CST)
-Received: from localhost.huawei.com (10.50.165.33) by
- kwepemh100008.china.huawei.com (7.202.181.93) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Mon, 13 Jan 2025 20:21:06 +0800
-From: Lifeng Zheng <zhenglifeng1@huawei.com>
-To: <rafael@kernel.org>, <lenb@kernel.org>, <robert.moore@intel.com>,
-	<viresh.kumar@linaro.org>, <mario.limonciello@amd.com>,
-	<gautham.shenoy@amd.com>, <ray.huang@amd.com>, <pierre.gondois@arm.com>
-CC: <acpica-devel@lists.linux.dev>, <linux-acpi@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, <linux-pm@vger.kernel.org>,
-	<linuxarm@huawei.com>, <jonathan.cameron@huawei.com>,
-	<zhanjie9@hisilicon.com>, <lihuisong@huawei.com>, <zhenglifeng1@huawei.com>,
-	<hepeng68@huawei.com>, <fanghao11@huawei.com>
-Subject: [PATCH v4 1/6] ACPI: CPPC: Add IS_OPTIONAL_CPC_REG macro
-Date: Mon, 13 Jan 2025 20:20:59 +0800
-Message-ID: <20250113122104.3870673-2-zhenglifeng1@huawei.com>
-X-Mailer: git-send-email 2.33.0
-In-Reply-To: <20250113122104.3870673-1-zhenglifeng1@huawei.com>
-References: <20250113122104.3870673-1-zhenglifeng1@huawei.com>
+	s=arc-20240116; t=1736772665; c=relaxed/simple;
+	bh=xmuJEHbzKx2Ewy3hz9GAsvpIb+AQNYPsv4qspSltbh4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=UW2MQYD2xD7G3XmkDpcQlB14hyenMAbJpvkTdvmH6gR7MTKFXL618RhRMd3h9U9ghEARacp39cwQphZdTJIsIOKx2TrTnZ7hizADDu+KMV9/pSyEr4evOs1cNAnppK807fEPsIH33GNZDaMqKAUJYjKNg1+HJYsjtXxP+hdPqaE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de; spf=pass smtp.mailfrom=alien8.de; dkim=pass (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b=gZAuXuQQ; arc=none smtp.client-ip=65.109.113.108
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=alien8.de
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b="gZAuXuQQ"
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with ESMTP id 860C240E0163;
+	Mon, 13 Jan 2025 12:51:00 +0000 (UTC)
+X-Virus-Scanned: Debian amavisd-new at mail.alien8.de
+Authentication-Results: mail.alien8.de (amavisd-new); dkim=pass (4096-bit key)
+	header.d=alien8.de
+Received: from mail.alien8.de ([127.0.0.1])
+	by localhost (mail.alien8.de [127.0.0.1]) (amavisd-new, port 10026)
+	with ESMTP id xbEicsve7YXt; Mon, 13 Jan 2025 12:50:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=alien8;
+	t=1736772657; bh=gh1AJ5p8OkXQHUsIR9YibeFO+Bge/KzQk76jBDTfYsQ=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=gZAuXuQQDy11HvCIjKFqjTG4TjGcp/vpwL28jsUhGHYae83H9j8bte7kAVjLnIwRS
+	 qbyi/z7j75LzRwwU9BiW3hQxqVAFIQKCPmaueiQx3TMh2AzLkahNOLLdskD2bGb9aq
+	 CZW5odq6IdNpxa5sulT0iOkEgYFWSduh2sJfMNjAaZGZc+LA7S2XthEXbPnv5JaOT7
+	 6tiV5kfyyyeZ0YxAyzbvW2d8ylPKIPvlXoGVrhmdMp3sixltsJZfm0r773lMn3FtNi
+	 Yuqp1bIxgXKDhDn0ynWxiabbQCTIDHnxggGKgDCJ76JoKVfovn0r1X3KAqAsGqqyf7
+	 OTWO1UxbZbuXTGUQBzyZy2qMYYruf2RYQ2ScBzoL1Ou8D6N1UmDdCnvg/pjNXpU96S
+	 363abVT0oNOVplc0Kfqu8SwBQ7eEtonz45IJ0fVKe91GuMc03qgFpofKo6a5RhVjzI
+	 l8sVWz9qJtO4v48k7v7yXCXDJqBORVDTXGFmCFuDZpY/PmB9wG2/xORU85fXm67JdZ
+	 Dx5sjCI2f8xHgFMAluFunI+9Xx8VBgSmwK5VZgt4JEr16I38KVpvMA/RyldqEnc/6a
+	 8T0RnGfLunESEA0/zJkUVpTprg+sW80Z9q7a2XVhY3LhWWX3kmwRmoxG2L5ZxHElmE
+	 o3Qbi7bhewzjx96vFCKIQnss=
+Received: from zn.tnic (pd953008e.dip0.t-ipconnect.de [217.83.0.142])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (P-256) server-signature ECDSA (P-256) server-digest SHA256)
+	(No client certificate requested)
+	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id E356F40E0269;
+	Mon, 13 Jan 2025 12:50:44 +0000 (UTC)
+Date: Mon, 13 Jan 2025 13:50:39 +0100
+From: Borislav Petkov <bp@alien8.de>
+To: Feng Tang <feng.tang@linux.alibaba.com>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>, rafael@kernel.org,
+	Len Brown <lenb@kernel.org>, James Morse <james.morse@arm.com>,
+	Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Ira Weiny <ira.weiny@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Andi Kleen <ak@linux.intel.com>
+Subject: Re: [PATCH] acpi/ghes: Make ghes_panic_timeout adjustable as a
+ parameter
+Message-ID: <20250113125039.GEZ4UMH770bbNF9KFM@fat_crate.local>
+References: <20241230112608.GCZ3KDUNU2OVZanpFb@fat_crate.local>
+ <Z3KGopUvilZLwsBK@U-2FWC9VHC-2323.local>
+ <20241230121009.GDZ3KNoe0-hUwQDLG7@fat_crate.local>
+ <Z3KaSxr2sjCC8FpJ@U-2FWC9VHC-2323.local>
+ <20241230132403.GEZ3Ke8zm7HxSv84pA@fat_crate.local>
+ <Z3OS4LCCxfVN32uH@U-2FWC9VHC-2323.local>
+ <20241231092358.GAZ3O4LroNtlnztneC@fat_crate.local>
+ <Z3PEXxFTGXW2j2F3@U-2FWC9VHC-2323.local>
+ <20241231111314.GDZ3PRyq_tiU002p5d@fat_crate.local>
+ <Z3_TjYzeQVIZirpK@U-2FWC9VHC-2323.local>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: dggems702-chm.china.huawei.com (10.3.19.179) To
- kwepemh100008.china.huawei.com (7.202.181.93)
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <Z3_TjYzeQVIZirpK@U-2FWC9VHC-2323.local>
 
-Add IS_OPTIONAL_CPC_REG macro to judge if a cpc_reg is an optional one.
+On Thu, Jan 09, 2025 at 09:47:57PM +0800, Feng Tang wrote:
+> Also, is it worth including this patch into stable tree?
 
-Signed-off-by: Lifeng Zheng <zhenglifeng1@huawei.com>
----
- drivers/acpi/cppc_acpi.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+Only if this fixes a regression. Which this is not, AFAICT.
 
-diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-index f193e713825a..6454b469338f 100644
---- a/drivers/acpi/cppc_acpi.c
-+++ b/drivers/acpi/cppc_acpi.c
-@@ -129,6 +129,12 @@ static DEFINE_PER_CPU(struct cpc_desc *, cpc_desc_ptr);
- #define CPC_SUPPORTED(cpc) ((cpc)->type == ACPI_TYPE_INTEGER ?		\
- 				!!(cpc)->cpc_entry.int_value :		\
- 				!IS_NULL_REG(&(cpc)->cpc_entry.reg))
-+
-+/* These indicate optional of the per-cpu cpc_regs[]. */
-+#define REG_OPTIONAL (0b111111100011111010000)
-+
-+#define IS_OPTIONAL_CPC_REG(reg_idx) (REG_OPTIONAL & (1U << (reg_idx)))
-+
- /*
-  * Arbitrary Retries in case the remote processor is slow to respond
-  * to PCC commands. Keeping it high enough to cover emulators where
 -- 
-2.33.0
+Regards/Gruss,
+    Boris.
 
+https://people.kernel.org/tglx/notes-about-netiquette
