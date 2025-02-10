@@ -1,168 +1,98 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44021189B8C;
-	Mon, 10 Feb 2025 21:24:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5793325EFBE;
+	Mon, 10 Feb 2025 23:22:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739222684; cv=none; b=qdFmlZzujExMwxUvmqwQISyUG9lUxUI3uNqefZ1WBz7ng6kk/y66Ab9JhDX84aUkyo0Vxk4UlBdSHbEyCz49a8YIQ7kOKxJ12JKQTkaYXBMDIscvFVJgOf+jUG5xT8EmWdO/gYXP7OAtpVKL2LaD/PaoVt8omD0k04bcHRyWnk4=
+	t=1739229762; cv=none; b=iCjqFTS6S0yk4Hps0pa80dFTvp8h5Xzz3vFcvNvO5XRuEhHubl4p65Kh+dqjxk2SGwadEtHu2j/TwPZ316DtCTqxpbZ0mQVnyC6X//w9uWZiTGw707riGBVWHup1Rht6rHTLC4eRi6wSkZQioc5vgoS1cTbymfOJ1xxRA6/plbo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739222684; c=relaxed/simple;
-	bh=IiZI6Y+jSHKNVuJcmPYi5fkyq5b2zOSr7oCwF4V/zF8=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=IG3vT2kCCu4z1taZQ9QsU3PUyKR4jgbHnYlqb+FesUtDRwlC6OQoZznKk+icAYPnblm5NWgxeHvnKsZLksi64X1Ki2CKzti2qDco/d4bKLp2Um0/UqCnItxf+1SvemDdgwIShK97+nvEURuFhIUpJ+x3lashU+nHrCDNO/XgS6s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=t9l0mpnQ; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="t9l0mpnQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 131D0C4CED1;
-	Mon, 10 Feb 2025 21:24:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1739222683;
-	bh=IiZI6Y+jSHKNVuJcmPYi5fkyq5b2zOSr7oCwF4V/zF8=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=t9l0mpnQDIGjED4MiXFbdwmG6tEhvX5Jm6TUzQZ5rUg8c5JtM+25z/YPfVt7r/ASq
-	 wB8DyPexaTzgoCPG5xg8rNL2ltuPvVbAcFmoKl+JI/mYpSVUUnu2e4xh9GC9KF2SFI
-	 Qnc0vcHSPaQDbxc8bBTDzuEtJryBQQvsgIxGcqUkD1GdCPDyJvQtKaAl96KjSfstGD
-	 SzzhKfCwqeY/XYpq56Klpsb3Vbuitk2sblF4Y4ti0CEaLajv9OKY3QQMBIYu+eOK0b
-	 REExXNT8ItbKWsfCNUWy2KVmbBz6w73c3D5VZtz4Zqs3x5qEkYBcb689LTPSclUH9k
-	 Y0uX5hhO94tgg==
-Message-ID: <c8527274-fd84-4745-b996-d1c66694aba4@kernel.org>
-Date: Mon, 10 Feb 2025 15:24:42 -0600
+	s=arc-20240116; t=1739229762; c=relaxed/simple;
+	bh=ZGhydeZxTvcnRna3S1bP4MtIhyq1lqgmB9PIFRWKoUg=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=jCsRyWa8iHz/vLoWh2Vfw4QecBpbLB5Bh4JsB9s6dYV8WFEWu4+rxDB02b66myh9ne7K/meYC490XI6ddao8cRnW/CT5nVzBlRMJQ72nRJya0sRJ04KRimE6eI6U48hi870qSQzovc64UuxE78GNONLbzDV/dnpCKSwSTGxRny4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 7224E237B;
+	Mon, 10 Feb 2025 15:23:01 -0800 (PST)
+Received: from beelzebub.ast.arm.com (unknown [10.118.29.240])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 880863F6A8;
+	Mon, 10 Feb 2025 15:22:39 -0800 (PST)
+From: Stuart Yoder <stuart.yoder@arm.com>
+To: linux-integrity@vger.kernel.org,
+	jarkko@kernel.org,
+	peterhuewe@gmx.de,
+	jgg@ziepe.ca,
+	sudeep.holla@arm.com,
+	rafael@kernel.org,
+	lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 2/4] tpm_crb: refactor check for idle support into TPM into inline function
+Date: Mon, 10 Feb 2025 17:22:25 -0600
+Message-Id: <20250210232227.97761-3-stuart.yoder@arm.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20250210232227.97761-1-stuart.yoder@arm.com>
+References: <20250210232227.97761-1-stuart.yoder@arm.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 2/4] ACPI: battery: Save and report battery capacity over
- suspend
-To: Sebastian Reichel <sebastian.reichel@collabora.com>
-Cc: "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
- Pavel Machek <pavel@ucw.cz>, "open list:ACPI" <linux-acpi@vger.kernel.org>,
- "open list:HIBERNATION (aka Software Suspend, aka swsusp)"
- <linux-pm@vger.kernel.org>, Mario Limonciello <mario.limonciello@amd.com>
-References: <20250208162210.3929473-1-superm1@kernel.org>
- <20250208162210.3929473-3-superm1@kernel.org>
- <bzltxadthnef5c4xaidfcjuq7tt2h23znn76povptoxbb2iax6@xvuzfqbtomzb>
-Content-Language: en-US
-From: Mario Limonciello <superm1@kernel.org>
-In-Reply-To: <bzltxadthnef5c4xaidfcjuq7tt2h23znn76povptoxbb2iax6@xvuzfqbtomzb>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-On 2/10/2025 09:23, Sebastian Reichel wrote:
-> Hi,
-> 
-> On Sat, Feb 08, 2025 at 10:22:08AM -0600, Mario Limonciello wrote:
->> From: Mario Limonciello <mario.limonciello@amd.com>
->>
->> To find out if a device is malfunctioning over suspend it's often
->> interesting to know how much battery was lost.
->>
->> At the start of the suspend cycle cache the amount of battery.
->> During resume, read the battery level again and if the battery
->> has decreased report the difference to the suspend stats using
->> pm_report_sleep_energy()
->>
->> Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
->> ---
-> 
-> This code assumes, that there is only a single battery, but there
-> can be more than one battery supplying the system. For example
-> Thinkpads used to have an internal battery and a user swappable
-> one.
-> 
-> Also it seems in almost all cases debugging this from userspace
-> by dropping a script in /usr/lib/systemd/system-sleep is good
-> enough, so I wonder if extending the kernel ABI makes sense at
-> all.
-> 
+Refactor the two checks for whether the TPM supports idle into a single
+inline function.
 
-Thanks for looking.  I think it could be extended to add all the 
-batteries up and collectively look at how much each went down.
+Signed-off-by: Stuart Yoder <stuart.yoder@arm.com>
+---
+ drivers/char/tpm/tpm_crb.c | 18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
 
-But that's a good point it's pretty easy to do the same thing from 
-userspace.
-
-> Greetings,
-> 
-> -- Sebastian
-> 
->>   drivers/acpi/battery.c | 30 ++++++++++++++++++++++++++----
->>   1 file changed, 26 insertions(+), 4 deletions(-)
->>
->> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
->> index 6760330a8af55..f21bfd02a26d1 100644
->> --- a/drivers/acpi/battery.c
->> +++ b/drivers/acpi/battery.c
->> @@ -124,6 +124,7 @@ struct acpi_battery {
->>   	char oem_info[MAX_STRING_LENGTH];
->>   	int state;
->>   	int power_unit;
->> +	int capacity_suspend;
->>   	unsigned long flags;
->>   };
->>   
->> @@ -1011,9 +1012,6 @@ static int acpi_battery_update(struct acpi_battery *battery, bool resume)
->>   		return 0;
->>   	}
->>   
->> -	if (resume)
->> -		return 0;
->> -
->>   	if (!battery->update_time) {
->>   		result = acpi_battery_get_info(battery);
->>   		if (result)
->> @@ -1032,6 +1030,14 @@ static int acpi_battery_update(struct acpi_battery *battery, bool resume)
->>   			return result;
->>   	}
->>   
->> +	if (resume) {
->> +		if (battery->capacity_suspend > battery->capacity_now)
->> +			pm_report_sleep_energy(battery->capacity_suspend - battery->capacity_now);
->> +		else
->> +			pm_report_sleep_energy(0);
->> +		return 0;
->> +	}
->> +
->>   	/*
->>   	 * Wakeup the system if battery is critical low
->>   	 * or lower than the alarm level
->> @@ -1285,6 +1291,22 @@ static void acpi_battery_remove(struct acpi_device *device)
->>   }
->>   
->>   /* this is needed to learn about changes made in suspended state */
->> +static int acpi_battery_suspend(struct device *dev)
->> +{
->> +	struct acpi_battery *battery;
->> +
->> +	if (!dev)
->> +		return -EINVAL;
->> +
->> +	battery = acpi_driver_data(to_acpi_device(dev));
->> +	if (!battery)
->> +		return -EINVAL;
->> +
->> +	battery->capacity_suspend = battery->capacity_now;
->> +
->> +	return 0;
->> +}
->> +
->>   static int acpi_battery_resume(struct device *dev)
->>   {
->>   	struct acpi_battery *battery;
->> @@ -1301,7 +1323,7 @@ static int acpi_battery_resume(struct device *dev)
->>   	return 0;
->>   }
->>   
->> -static DEFINE_SIMPLE_DEV_PM_OPS(acpi_battery_pm, NULL, acpi_battery_resume);
->> +static DEFINE_SIMPLE_DEV_PM_OPS(acpi_battery_pm, acpi_battery_suspend, acpi_battery_resume);
->>   
->>   static struct acpi_driver acpi_battery_driver = {
->>   	.name = "battery",
->> -- 
->> 2.43.0
->>
->>
+diff --git a/drivers/char/tpm/tpm_crb.c b/drivers/char/tpm/tpm_crb.c
+index ea085b14ab7c..87d69e990249 100644
+--- a/drivers/char/tpm/tpm_crb.c
++++ b/drivers/char/tpm/tpm_crb.c
+@@ -115,6 +115,16 @@ struct tpm2_crb_pluton {
+ 	u64 reply_addr;
+ };
+ 
++static inline bool does_tpm_support_idle(u32 start_method)
++{
++	if ((start_method == ACPI_TPM2_START_METHOD) ||
++	    (start_method == ACPI_TPM2_COMMAND_BUFFER_WITH_START_METHOD) ||
++	    (start_method == ACPI_TPM2_COMMAND_BUFFER_WITH_ARM_SMC))
++		return false;
++	else
++		return true;
++}
++
+ static bool crb_wait_for_reg_32(u32 __iomem *reg, u32 mask, u32 value,
+ 				unsigned long timeout)
+ {
+@@ -173,9 +183,7 @@ static int __crb_go_idle(struct device *dev, struct crb_priv *priv)
+ {
+ 	int rc;
+ 
+-	if ((priv->sm == ACPI_TPM2_START_METHOD) ||
+-	    (priv->sm == ACPI_TPM2_COMMAND_BUFFER_WITH_START_METHOD) ||
+-	    (priv->sm == ACPI_TPM2_COMMAND_BUFFER_WITH_ARM_SMC))
++	if (!does_tpm_support_idle(priv->sm))
+ 		return 0;
+ 
+ 	iowrite32(CRB_CTRL_REQ_GO_IDLE, &priv->regs_t->ctrl_req);
+@@ -222,9 +230,7 @@ static int __crb_cmd_ready(struct device *dev, struct crb_priv *priv)
+ {
+ 	int rc;
+ 
+-	if ((priv->sm == ACPI_TPM2_START_METHOD) ||
+-	    (priv->sm == ACPI_TPM2_COMMAND_BUFFER_WITH_START_METHOD) ||
+-	    (priv->sm == ACPI_TPM2_COMMAND_BUFFER_WITH_ARM_SMC))
++	if (!does_tpm_support_idle(priv->sm))
+ 		return 0;
+ 
+ 	iowrite32(CRB_CTRL_REQ_CMD_READY, &priv->regs_t->ctrl_req);
+-- 
+2.34.1
 
