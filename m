@@ -1,48 +1,48 @@
 Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2082124C695;
-	Mon, 10 Feb 2025 21:12:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8671E24CED5;
+	Mon, 10 Feb 2025 21:12:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.15
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739221955; cv=none; b=ryYXXunlZSL7h3k2TojZud+NGtmJyTtI91tsW7lVbAYoa9gZ0VaMvPd9O9CrN1EfyOC4qv61gpCTBHv1hfcHbwXvQC4J8hkrIaJBQ+vaGOqKGvxUCS/4tB6k1UjDrpgngZqaldjxnSfDijN+QxCn/OPRQBxq6PmkzewD2MSx1tY=
+	t=1739221957; cv=none; b=CtJVugP5hka7uGMi2jINFQthtA14LaDC0nmnLrWl2HOOwW1etKNFf1vpnlHAhnEeqFTXHszH6dLhjh9223WGxGAwXmilCWkWK6oAVIAjtrjcy3REXTF+ZZN0EEgxlH/Rmpg0/nUVu9EjkLoNfUPQNYSZwAPdAWZTC1tXruphtq4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739221955; c=relaxed/simple;
-	bh=aJAmjDnrPg2HWKPCN+W545IuNK6kBBz+2H4Vz/bwqpE=;
+	s=arc-20240116; t=1739221957; c=relaxed/simple;
+	bh=8MX2jSRA6p3msqeidieChxEGZWfp3uNvo8+3hloLNGA=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=eso/laQIUxUBwpw7WZHjqCSS1Z7JS6fqmT/xcag0lAXsvEBTiDMOYNDZP2fpqzBFM8lmynV0o47M5DF2HBPWNCsHXthHSfhHAetp8xd4dma2n7pkfaCSgHEOG7qXpyCnvHay2oc/46rZ4uJZMhcnZJv9ziGpeNMX7vxup8vSozA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=k11DC9S2; arc=none smtp.client-ip=192.198.163.15
+	 MIME-Version; b=sz4QSRLjUvV6kUxg13XI8aSIVRCclNDdIbyL22CWQnpWot6lCQdMGYx1+Hk49wuP2TcePmLS6U54VmyvJbJwwCORI7GZiM8aotLpLKrb4W3zvGPANa81LJ7AGhD9M7zeHCiszP8zNSGc6Zgj0xCXGntq2FOco1JnVRtDB7Hg0Gk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=MIxVqEGV; arc=none smtp.client-ip=192.198.163.15
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="k11DC9S2"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="MIxVqEGV"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1739221954; x=1770757954;
+  t=1739221956; x=1770757956;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=aJAmjDnrPg2HWKPCN+W545IuNK6kBBz+2H4Vz/bwqpE=;
-  b=k11DC9S2LWcXxYMhMpDaEJ5TdPqGGev34znlRfqCI2wobnaMZbj5kqGu
-   mDGvm7jMkQjIU45VJFkJmZx9S7bXcfVEW1C/GndzAnGtpnk9X5su/e6qb
-   z8XF/LjnJSLQvKdiJ7Mv/IB7jKqdDPnizDcmOtCRTVHB7Ye2cUUAJSrOf
-   hS38dfr5MOQJSxVRt2rJMhSRtL9o3S4PF1wXKxQ531xQMdc5h+yDZrFil
-   ruwP6dAhjvTB1Q2lFtoM7LYvvXn7MI7H4pO49DQrzJ0ryXTsnglGn3CF6
-   yETBMlrdK9L5bU4sTGBD1OVBXpbeiH7WmK+SvU8gXpCFeUj3ZFOGxeJ7I
-   Q==;
-X-CSE-ConnectionGUID: 0kzXfoSHQJiZz7sCHxhHvg==
-X-CSE-MsgGUID: gvc/2KhMSPSyWqz6fD3FFQ==
-X-IronPort-AV: E=McAfee;i="6700,10204,11341"; a="39969738"
+  bh=8MX2jSRA6p3msqeidieChxEGZWfp3uNvo8+3hloLNGA=;
+  b=MIxVqEGVYeDg7TtN/OMuWGreAh+yVb8mGbexBzromDcqNMdhCoVaix1Q
+   w7VpO5D39Uk+GUYDHdXryB1MeRkXw79Y6lXOkz/GCYHckUHBMs8L35mCs
+   WzddDgMRYI70JkgJ3rkVWw1kLwRZ5YlkhKrnqjiYEGlzzSgR92ejdH5Br
+   VxMURjfV2gqqR2lzYVUy97Tu7ZxdHRB51vsG1DNufKuQVYmO+rlZsRPFi
+   xcP/uG7ciulOizrf0rPMGGehL0QCouCK4MtptxuwiOv6KkFHdEdX2NtYa
+   WEYam7WkshbgsBDD2bsqhdwP/oLyxROA1FULLkhPDYKVCbo/0Ab2DedPw
+   g==;
+X-CSE-ConnectionGUID: QmfB+vwyQwy68lv/gz5iGQ==
+X-CSE-MsgGUID: O2KqbZK8T6+9d2I0aIVkQA==
+X-IronPort-AV: E=McAfee;i="6700,10204,11341"; a="39969766"
 X-IronPort-AV: E=Sophos;i="6.13,275,1732608000"; 
-   d="scan'208";a="39969738"
+   d="scan'208";a="39969766"
 Received: from fmviesa003.fm.intel.com ([10.60.135.143])
   by fmvoesa109.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Feb 2025 13:12:31 -0800
-X-CSE-ConnectionGUID: UWzPXJeEQs+KHVpefmiK9g==
-X-CSE-MsgGUID: MXIaOGq1Se2SpcNwO9ZK+w==
+X-CSE-ConnectionGUID: 6f5cx5jLSf67/Q4eRH5Qig==
+X-CSE-MsgGUID: 9jJCCjNwSTm3QG2+dIaX/g==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.12,224,1728975600"; 
-   d="scan'208";a="116393880"
+   d="scan'208";a="116393887"
 Received: from agluck-desk3.sc.intel.com ([172.25.222.70])
-  by fmviesa003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Feb 2025 13:12:30 -0800
+  by fmviesa003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Feb 2025 13:12:31 -0800
 From: Tony Luck <tony.luck@intel.com>
 To: Robert Moore <robert.moore@intel.com>,
 	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
@@ -61,11 +61,10 @@ Cc: linux-acpi@vger.kernel.org,
 	Danilo Krummrich <dakr@kernel.org>,
 	Andrew Morton <akpm@linux-foundation.org>,
 	linux-kernel@vger.kernel.org,
-	Fenghua Yu <fenghua.yu@intel.com>,
 	Tony Luck <tony.luck@intel.com>
-Subject: [PATCH 1/4] ACPICA: Define MRRM ACPI table
-Date: Mon, 10 Feb 2025 13:12:20 -0800
-Message-ID: <20250210211223.6139-2-tony.luck@intel.com>
+Subject: [PATCH 3/4] ACPI/MRRM: Add "node" symlink to /sys/devices/system/memory/rangeX
+Date: Mon, 10 Feb 2025 13:12:22 -0800
+Message-ID: <20250210211223.6139-4-tony.luck@intel.com>
 X-Mailer: git-send-email 2.48.1
 In-Reply-To: <20250210211223.6139-1-tony.luck@intel.com>
 References: <20250210211223.6139-1-tony.luck@intel.com>
@@ -77,82 +76,63 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Fenghua Yu <fenghua.yu@intel.com>
+Users will likely want to know which node owns each memory range
+and which CPUs are local to the range.
 
-The MRRM table describes association between physical address ranges
-and "region numbers". This is used by:
+Add a symlink to the node directory to provide both pieces of information.
 
-1) The /sys/fs/resctrl filesystem to report memory traffic per-RMID for
-each region.
-2) Perf subsystem to report memory related uncore events per region.
-
-Structure defined in the Intel Resource Director Technology (RDT)
-Architecture specification downloadable from www.intel.com/sdm
-
-Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
 Signed-off-by: Tony Luck <tony.luck@intel.com>
 ---
- include/acpi/actbl3.h | 40 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 40 insertions(+)
+ drivers/acpi/acpi_mrrm.c | 29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
 
-diff --git a/include/acpi/actbl3.h b/include/acpi/actbl3.h
-index 5cd755143b7d..1b9a03ff73ba 100644
---- a/include/acpi/actbl3.h
-+++ b/include/acpi/actbl3.h
-@@ -42,6 +42,7 @@
- #define ACPI_SIG_WSMT           "WSMT"	/* Windows SMM Security Mitigations Table */
- #define ACPI_SIG_XENV           "XENV"	/* Xen Environment table */
- #define ACPI_SIG_XXXX           "XXXX"	/* Intermediate AML header for ASL/ASL+ converter */
-+#define ACPI_SIG_MRRM           "MRRM"	/* Memory Range and Region Mapping table */
+diff --git a/drivers/acpi/acpi_mrrm.c b/drivers/acpi/acpi_mrrm.c
+index 51ed9064e025..28b484943bbd 100644
+--- a/drivers/acpi/acpi_mrrm.c
++++ b/drivers/acpi/acpi_mrrm.c
+@@ -119,6 +119,31 @@ static struct attribute *memory_range_attrs[] = {
  
- /*
-  * All tables must be byte-packed to match the ACPI specification, since
-@@ -793,6 +794,45 @@ struct acpi_table_xenv {
- 	u8 event_flags;
- };
+ ATTRIBUTE_GROUPS(memory_range);
  
-+/*******************************************************************************
-+ *
-+ * MRRM - Memory Range and Region Mapping (MRRM) table
-+ *
-+ ******************************************************************************/
++static __init int add_node_link(struct mrrm_mem_range_entry *entry)
++{
++	struct node *node = NULL;
++	int ret = 0;
++	int nid;
 +
-+struct acpi_table_mrrm {
-+	struct acpi_table_header header;
-+	u8 max_mem_region;	/* Max Memory Regions supported */
-+	u8 flags;		/* Region assignment type */
-+	u8 reserved[26];
-+	/* Memory range entry array */
-+};
-+#define ACPI_MRRM_FLAGS_REGION_ASSIGNMENT_OS	(1<<0)
++	for_each_online_node(nid) {
++		for (int z = 0; z < MAX_NR_ZONES; z++) {
++			struct zone *zone = NODE_DATA(nid)->node_zones + z;
 +
-+/*******************************************************************************
-+ *
-+ * Memory Range entry - Memory Range entry in MRRM table
-+ *
-+ ******************************************************************************/
++			if (!populated_zone(zone))
++				continue;
++			if (zone_intersects(zone, PHYS_PFN(entry->base), PHYS_PFN(entry->length))) {
++				node = node_devices[zone->node];
++				goto found;
++			}
++		}
++	}
++found:
++	if (node)
++		ret = sysfs_create_link(&entry->dev.kobj, &node->dev.kobj, "node");
 +
-+struct acpi_table_mrrm_mem_range_entry {
-+	u16 type;		/* Type 0="MRRM" */
-+	u16 length;		/* 32B + sizeof(Region-ID Programming Reg[]) */
-+	u32 reserved;		/* Reserved */
-+	u32 base_addr_low;	/* Low 32 bits of base addr of the mem range */
-+	u32 base_addr_high;	/* High 32 bits of base addr of the mem range */
-+	u32 len_low;		/* Low 32 bits of length of the mem range */
-+	u32 len_high;		/* High 32 bits of length of the mem range */
-+	u16 region_id_flags;	/* Valid local or remote Region-ID */
-+	u8  local_region_id;	/* Platform-assigned static local Region-ID */
-+	u8  remote_region_id;	/* Platform-assigned static remote Region-ID */
-+	u32 reserved1;		/* Reserved */
-+	/* Region-ID Programming Registers[] */
-+};
++	return ret;
++}
 +
-+#define ACPI_MRRM_VALID_REGION_ID_FLAGS_LOCAL 	(1<<0)
-+#define ACPI_MRRM_VALID_REGION_ID_FLAGS_REMOTE	(1<<1)
+ static __init int add_boot_memory_ranges(void)
+ {
+ 	char name[16];
+@@ -140,6 +165,10 @@ static __init int add_boot_memory_ranges(void)
+ 			put_device(&entry->dev);
+ 			return ret;
+ 		}
 +
- /* Reset to default packing */
++		ret = add_node_link(entry);
++		if (ret)
++			break;
+ 	}
  
- #pragma pack()
+ 	return ret;
 -- 
 2.48.1
 
