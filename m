@@ -1,205 +1,273 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.7])
+Received: from fout-b1-smtp.messagingengine.com (fout-b1-smtp.messagingengine.com [202.12.124.144])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2651624E4C2;
-	Tue, 11 Feb 2025 17:05:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.7
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739293550; cv=fail; b=k9qYmfjjerqcgbrmwD2dK1Td+BEWBZz2fpUgCFbC/hSWTu/caAEzWFuFQDfVoLfaXax3o5om8ObVkXv4ue2vz1zsg0xfj2bFqzqOrogFc8lqqtZX9oDWUIsTsky3ON6JG9ZJPSDt5UyQGSHfJVjpgMUYSgsq4hLsJXovcuGUAwo=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739293550; c=relaxed/simple;
-	bh=ZlhqkMw2DgQ3H+4Uum1RheO2qMP/XDe58kIuwhjSGBY=;
-	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
-	 Content-Type:MIME-Version; b=CUv3XAa1eXSWM4Y32BAkqHoDNot9J4M/sdFWfn6ctGEOsTBoXcwrysgoiN+fAmBxXVsMe/mFi3uOi6ZRCPAExJi9nhd0d+aQbHmFh9/we0QDFhfC2bbETAaAHmflpULZKgBxjIKVC/o3iH4XQYzSSdwgoSsw60r3xbrBWJkmvfU=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Ex0T+w0W; arc=fail smtp.client-ip=192.198.163.7
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F2BF261571;
+	Tue, 11 Feb 2025 17:41:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.144
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1739295710; cv=none; b=RZ8LhBD+zi4cxLDibSfdQGOzT2A+3JxxMxNxuqH9smwYi90La6mLcF9QHokxLQVa1eWXQSEi+NnvwgGLZzmiK0gmRgjQg1gOMrqWgEB11DXXXCBa3g7tAFnwxQ//5ZxaAmtYKOwHQhHBQhanD3s6/uDWzFeTNi0CS8bTu8i9P4o=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1739295710; c=relaxed/simple;
+	bh=5aQ92cdC4eJfVEoFmrdzyqjx6f3bfVgQOkqs4X/GeOg=;
+	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
+	 Subject:Content-Type; b=u+obR53rPwHjZTovb8MXs8kaCA2TKoxKj/+Qh4lQCyRPOm7wN3p+Y7xYf21h46MS6dN/Qe+jTvJN0BIEC+M7+rkbGPO2BXr8GZUN7YdvdIlXbuiPlN4QmprH/ZOK+qNSWdVq6/a+nk/8Ce0/gqzdW6Uh0BqFvf0wOFR4vHOikvY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=squebb.ca; spf=pass smtp.mailfrom=squebb.ca; dkim=pass (2048-bit key) header.d=squebb.ca header.i=@squebb.ca header.b=Bx4ECKGQ; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=klWqRZJO; arc=none smtp.client-ip=202.12.124.144
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=squebb.ca
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=squebb.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Ex0T+w0W"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1739293549; x=1770829549;
-  h=from:to:cc:subject:date:message-id:references:
-   in-reply-to:content-transfer-encoding:mime-version;
-  bh=ZlhqkMw2DgQ3H+4Uum1RheO2qMP/XDe58kIuwhjSGBY=;
-  b=Ex0T+w0W25TqCl+vcBlH1XXMYWMRboaTp6GOsjVrnLSCJ6hxW5ucDvKN
-   X35z3zVVEIGBAIrRqyMkZnBt7Nr72FqmXaQMXtPOonauieHgXfcaVHX3A
-   lSwkOXAKSSGsJ6RRVc3TjZyWzKOYexFT53r3rgKugG6Idef4toIjc26bs
-   wZL4u+NJttWvBG8iKuiQ5His9AcxKwm5hmL6tYztvHrO+n2MTXjrPtmXM
-   AYP/QEGj4NEPtOaofioz6yE+TVdisPXEZY6YmREFU2NGSco8IkhHh5O3B
-   D9Ky3ZWskhy/kBmSvcTeKvVkvgSpOAC+RHCBL1IhQNOcrMWy5r6aA6Yye
-   A==;
-X-CSE-ConnectionGUID: 2bBcV/VPQeSXuqwJMQjtuQ==
-X-CSE-MsgGUID: 0vNd/wQIQEeHO+kgMZp00w==
-X-IronPort-AV: E=McAfee;i="6700,10204,11342"; a="65278914"
-X-IronPort-AV: E=Sophos;i="6.13,278,1732608000"; 
-   d="scan'208";a="65278914"
-Received: from orviesa003.jf.intel.com ([10.64.159.143])
-  by fmvoesa101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Feb 2025 09:04:09 -0800
-X-CSE-ConnectionGUID: p9Ev+3wpQUOc0AzZQG1omw==
-X-CSE-MsgGUID: /fyA0oQuQTmSabn8Yc6QAw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.11,199,1725346800"; 
-   d="scan'208";a="117496257"
-Received: from orsmsx603.amr.corp.intel.com ([10.22.229.16])
-  by orviesa003.jf.intel.com with ESMTP/TLS/AES256-GCM-SHA384; 11 Feb 2025 09:04:08 -0800
-Received: from orsmsx603.amr.corp.intel.com (10.22.229.16) by
- ORSMSX603.amr.corp.intel.com (10.22.229.16) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.44; Tue, 11 Feb 2025 09:04:03 -0800
-Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
- orsmsx603.amr.corp.intel.com (10.22.229.16) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.44 via Frontend Transport; Tue, 11 Feb 2025 09:04:03 -0800
-Received: from NAM04-MW2-obe.outbound.protection.outlook.com (104.47.73.171)
- by edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.44; Tue, 11 Feb 2025 09:02:56 -0800
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=wNAXtxbi8XADpny1637A83F6fpNgpIvk69O/TLK2q8X97sp995NwdsRRLHrL0ExB002WWp4DI8ne9XG4QLgHWXK0y9eCWXlM3XHp4CjsSUm3RJ4V8zYZFa+w7JgmqSLnUzyy8yEP6P+bjLtR3OIUKaXBdsoQuFNHICiFVSSIncmSPuRFtgqiwQdUn/L0u0tUb/xenAQIm5ZZDZVGzpugtGszg0Exz75fuSXbs5Mc7nWeSMduKfajplXeDmchSMFJLh+6C7xD/wQdhYdsOS1ybwQVFkkWVLql56LyBn7Z9dHb4zWGwQ4vojlEQdgfKRyIcKotDq8Mfp/PfN5N3zvSaA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=NVyJ9rW9l/IPxRgAz4zvUTeZqIUDxmKG4lrjZuIKAhw=;
- b=KZwO421J+CJMhTgcatW9SvR5MGZmKAUwYINW2I0NzcuCf2sF1AWvtOX5Cmfwphd7/X2H6PQ4HvkecDy+Y5YKIL5/QJi6QIWlF0NflGs1lgYJ2IBCoAbMzuj4bGsRb1HurGHN2SthlYOAcBswUi2BOAQwdkTLii+R39FdFcmqtR9HUNt5miS+w9tXfKJOgr67KGdGox1yxFzce2hr+1kqvBaAhd0InnulpjGGp278DXgsT7ADp+8ieFb/24vf/hzmImdMs666S3saFQGBkXy8fcFlPXANu3J20nUrnmddJ9fEhSFegU+K7PWEoTQDDzF/pSMJrC+kXyaJC8wflimmVg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Received: from SJ1PR11MB6083.namprd11.prod.outlook.com (2603:10b6:a03:48a::9)
- by SJ0PR11MB6792.namprd11.prod.outlook.com (2603:10b6:a03:485::22) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8422.18; Tue, 11 Feb
- 2025 17:02:11 +0000
-Received: from SJ1PR11MB6083.namprd11.prod.outlook.com
- ([fe80::acfd:b7e:b73b:9361]) by SJ1PR11MB6083.namprd11.prod.outlook.com
- ([fe80::acfd:b7e:b73b:9361%7]) with mapi id 15.20.8422.015; Tue, 11 Feb 2025
- 17:02:11 +0000
-From: "Luck, Tony" <tony.luck@intel.com>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-CC: "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J"
-	<rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>,
-	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-	"acpica-devel@lists.linux.dev" <acpica-devel@lists.linux.dev>, "Thomas
- Gleixner" <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "Borislav
- Petkov" <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>,
-	"x86@kernel.org" <x86@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, "David
- Hildenbrand" <david@redhat.com>, Oscar Salvador <osalvador@suse.de>, "Danilo
- Krummrich" <dakr@kernel.org>, Andrew Morton <akpm@linux-foundation.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: RE: [PATCH 3/4] ACPI/MRRM: Add "node" symlink to
- /sys/devices/system/memory/rangeX
-Thread-Topic: [PATCH 3/4] ACPI/MRRM: Add "node" symlink to
- /sys/devices/system/memory/rangeX
-Thread-Index: AQHbfACE0Yu2SiLzv0qtSfoPrdz0Y7NBqsKAgACpUNA=
-Date: Tue, 11 Feb 2025 17:02:11 +0000
-Message-ID: <SJ1PR11MB6083BF8F07A18FEF581DAAF2FCFD2@SJ1PR11MB6083.namprd11.prod.outlook.com>
-References: <20250210211223.6139-1-tony.luck@intel.com>
- <20250210211223.6139-4-tony.luck@intel.com>
- <2025021111-deepen-landing-4252@gregkh>
-In-Reply-To: <2025021111-deepen-landing-4252@gregkh>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-authentication-results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-x-ms-publictraffictype: Email
-x-ms-traffictypediagnostic: SJ1PR11MB6083:EE_|SJ0PR11MB6792:EE_
-x-ms-office365-filtering-correlation-id: 958bf1f5-6399-4e97-e798-08dd4abdd3b0
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam: BCL:0;ARA:13230040|376014|7416014|1800799024|366016|38070700018;
-x-microsoft-antispam-message-info: =?us-ascii?Q?f+v6pgi2dY77WsISvNAFUb0nolVpW+w0CFkPj0sehBoXycD04ObEeFucJBQf?=
- =?us-ascii?Q?gxckYiU5MBH9oDHRnjyi+MOvDdrlPp8t2oFnQuX6SFbHXT+LDQxovKKDONO0?=
- =?us-ascii?Q?rduHyHJ/wZdi6XC09Uk1LO7PQMDZDQQiIqED+hjbxKqfTQV4dL+HPjIu2BaF?=
- =?us-ascii?Q?9FiroAvTSK90RGfK2cipQF8BKn7elfc/+Z/W1bf4U7EVun+hP7eSvp/0okak?=
- =?us-ascii?Q?+epH98feIEZrwIzgnfkHIuVj4EWCbQq1mJFzmmKHXBSdgEa9ckdonHkPOEXU?=
- =?us-ascii?Q?dj/Su1DkROjNQV1kdd6wIpyNXRM66d14PZZscmrMwo0yUFeE9IpIsi/hbj3I?=
- =?us-ascii?Q?1eiUMFUfx5wZzhf36c+YmTStcMly5dIl3Vy0VJqzNAfQk3zyddgu/pKynr5Y?=
- =?us-ascii?Q?MK9MaV3GOb2rlICyRsyRPEAhJZdyrcE4AFfdU4e9WROKNqGFOiFzOACV2SX4?=
- =?us-ascii?Q?g9jR2vaK2Tv6QTQWXT2QQms6Y0ngX8W5HKcoULdwzXuTQD8KgdXnto7hvorS?=
- =?us-ascii?Q?CG/+/VfMfdLzWNYHisS866yD4jeSDECOUn7ozcDpwsgX5afxmis+W8+WfbYg?=
- =?us-ascii?Q?W8Bu5YbaNeGcn5tKp+g0bVJo1CAfl0vtXtZey6xp9ZTee6QDL4J5sCSmgbmg?=
- =?us-ascii?Q?U4PiAoj9LQPmu5avbTjCNy7q2C/mCx48CLhzipCwuUZkWBfXGe1tGcSfJrcU?=
- =?us-ascii?Q?x7W5SC5FqhbYBGwgcl1Fa358PSaHlQdqXkmOw0shKXNjCdoCtPNBLN/a8MYp?=
- =?us-ascii?Q?W2r2ND9TBg4vV3yPs1KHHci6O4IiGq3Wc5DcDAKfTCd2wwMzc+IqLvLrwcoI?=
- =?us-ascii?Q?IABSczn3Txs4LLKbYCh93fVsHLHnPj02a6FvA+mJtHBXMugPk5zYIDAN9pvS?=
- =?us-ascii?Q?aiU5YDpLvhTzDRQhWpgVChnuap/LdbR1eUVyTnJMJwQUa2jcatJi7JMo9YCn?=
- =?us-ascii?Q?iXmFXaljpbREKU24QZkDJleFSnhOewtS4tPPPIffY2+edkh9O78X0pXsBM+1?=
- =?us-ascii?Q?JC8NbGgzT/9t1NNBO7+6kC2yXqCX3j6i+atslua/TpISIjFkr9Ka7yA/GBn0?=
- =?us-ascii?Q?FHBps9doP8338/FR0c8sTomeg7+RJR4fRF9qmOwkwjgta+6tQvJjdzCCzNRQ?=
- =?us-ascii?Q?SPIy+NOUQmoDys+y5mssey+2k3zix/RF4L1DU26GyxedbYsfEDr+BXGJNi9t?=
- =?us-ascii?Q?j9MWXIeryUWbZqttJ8rlhyAaiyJEvBkyW5XFhFnXEbp850Henv0oo7eY4b7N?=
- =?us-ascii?Q?0MvOT6Fj66jjGB3+E6jF80QaXPTAxSv5gM59uoP40BdxWaV/nc//ty21Upfc?=
- =?us-ascii?Q?0Ko3Jz5QrSlbChRXrJHyHzLlDWCrTlKWR9juD2bgbOckogpRI5NR3YDXsePf?=
- =?us-ascii?Q?wye/hrR+9TT84koKK9U1d0hj+MCeeXGSIWjwUiZ95f7m0xqNNuW56olBO0rt?=
- =?us-ascii?Q?vXLDPs64XY7rmFam9CtWE6YroPOeI3+p?=
-x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SJ1PR11MB6083.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(7416014)(1800799024)(366016)(38070700018);DIR:OUT;SFP:1101;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0: =?us-ascii?Q?eDxsJaNdL76N9+Z0Iq6Ih9h0eDy/PL8Lug8+7gRaoxSkvpaRNXB9YW26k7jr?=
- =?us-ascii?Q?YL5keZ/L4pjUjapxa9pmgXa4P7rQ7/vf1z4Ooc0ritZ7KLrRhqlxkWd+++ps?=
- =?us-ascii?Q?jABW2/3H5qri+AEjiNZQ5WZyUEeyIhl/9uNX8ly91M4TZAMOw9F5cA3e3cq1?=
- =?us-ascii?Q?fXA9hTcdUITSystG4cB4z2h/FPxogGjzVleQaBU03ekPS8m6dPVWhWy9zsEG?=
- =?us-ascii?Q?eUP71nMp7OmCDY7pqUJjn+hyezmfyP3JzRBI15q3vmVuenVpPQ2xTSFmiFXv?=
- =?us-ascii?Q?Msw34rMSou5iEsmd4fn0Rc3cwHIKuy/7GIwH3CCJCoENdb0sDqi75w3a4Oce?=
- =?us-ascii?Q?45sOMDD5/lep3BOm7/2cGkmTjESzwiI4CVaEp7OTXoIxjU0Y6jf1Ws7Jm3Wb?=
- =?us-ascii?Q?O3zsOPryeUTOq3cZyxAwcex1c/5uW4grOG4afGxsbw0XOCfcb1zmEsFYiWUv?=
- =?us-ascii?Q?I6vsYbC7FtK6bZDHKovdvTZAVQDCQsNPaICk56z524Ybj58vXp+HGxyxl9eC?=
- =?us-ascii?Q?OLMIuxp9/tsYhOuAaRp2ABQ1vdNtiZM00A7bU+HESDjHbFlFtbnAoaIQIGYO?=
- =?us-ascii?Q?Or6kXQxZDdmMiRmE6Nd5s5Zy4kPEOmQrUqOTt+ER4e0TgL/bWzLr278pZi2m?=
- =?us-ascii?Q?2A/TPYLSj73peujx9OcDUe3v+c1I9W0KJNo7c0uQd9Fa2y6tq3FpdoVW6y/s?=
- =?us-ascii?Q?te/9MH1SmhDY5emr2jlhX6H/cEgKUEKft3uL8PviAM7fRB942z20HvszlkEy?=
- =?us-ascii?Q?gFUgkbJIkCqC08evHJnT0sZt0uLF0nGXHH21LT6D7QPB198F1klnk4M/I2yC?=
- =?us-ascii?Q?KwDLj/lTV1Sk8UfSUZyF8t4EbBf4S3padw2kq7tG8JWSeE0MN2jILMZU3rYd?=
- =?us-ascii?Q?DGcc554aMUXogcFM3hfiJKChmXtd2ObVPENZ+CSrflAo6+9lKP/olPcn3D/D?=
- =?us-ascii?Q?KIFz7Yswu5I6sRelkTP+EoeRNktneLHZchuP8/DFMA4v1Z0CAvbSIUMUFrNU?=
- =?us-ascii?Q?FeQ6EfkARPJ3rqObcAw3I2Bi9NogNo60RbhTQ/nM2RqjB/Z6buETi0kG0E56?=
- =?us-ascii?Q?TlEUFUCzPS4jegYnQG4xD1rfUGFjCB+tnu9ICqlfuvDk+fsDMLoTb47nIagk?=
- =?us-ascii?Q?nn0tYYUa4bME15zCrIL/5oc5sn7QiHMLj9qNEv8HBIYwqCGXPGvNmMXwii0a?=
- =?us-ascii?Q?0oeI6OyApl9PuJhaFE/AE79bfRjMBOVHI4r2N9Bl0R74FwS52JKGUaypafi3?=
- =?us-ascii?Q?9kz4HEoGA0LCtoBrb8tpDmuU15wi4FtC1xPzNRLy3I2vsWSIW4GchOXXDzJe?=
- =?us-ascii?Q?rvjGPpEx4XAPh94V17v0tUCEd0KZhLwl96AaVy6o5Se/YC0ZZ5YWrIx35c16?=
- =?us-ascii?Q?7ywjnjkNu9+lMcJRNTS+UYBI2UL24Qp+XF5zWV6FJCwsxR8+p5BPsGs9g/wU?=
- =?us-ascii?Q?c1H5EkveVbAx535o3v8UjYiJRWuWzsSG3zaTdcnct4PGeE+vM5SSi1etEk4G?=
- =?us-ascii?Q?k7PHUzX+uWRGkM6HLkmJT1P5mfnolEVbYBSGe7wmhUrhwb2ttdu3XBAAKARz?=
- =?us-ascii?Q?4y6BgGMW8IRKEnvOgIZqtVUxeekaEehpf8zzaF5U?=
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+	dkim=pass (2048-bit key) header.d=squebb.ca header.i=@squebb.ca header.b="Bx4ECKGQ";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="klWqRZJO"
+Received: from phl-compute-02.internal (phl-compute-02.phl.internal [10.202.2.42])
+	by mailfout.stl.internal (Postfix) with ESMTP id 581C011400EA;
+	Tue, 11 Feb 2025 12:41:46 -0500 (EST)
+Received: from phl-imap-10 ([10.202.2.85])
+  by phl-compute-02.internal (MEProxy); Tue, 11 Feb 2025 12:41:46 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=squebb.ca; h=cc
+	:cc:content-transfer-encoding:content-type:content-type:date
+	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:subject:subject:to:to; s=fm1; t=1739295706;
+	 x=1739382106; bh=nv/+K3v73BFIxVV/VmtwVsySnWMnTNl2C8GVI0us/tw=; b=
+	Bx4ECKGQT4jbM9xgSSk0gAiEG03RWAgQXPy4GmuzYP1pGgEQjPNunsCRA3v3SFiy
+	D1o/idHOIw2YZteeSKtr0P5/3zvEMCzp1v1k3d6rAfd4LX/+YLGrlnFP3STQGJWx
+	BRPchl8nxX01c2wsbXCrcbhPXYCcCbYeLjeZ2kKr3Yn0hVmxUQbUFyCjsdLq2h1Y
+	2QzbDps83v2LqY7TZqOChrZZJIjWx8Uvq4o7SWNz9OiyFqUqc5lObNHIwlQnVGEF
+	73oVc4+h+UHLC++JLvv78m58PQ5NMlVEvumqzadewXNy01EmwkNpWL/ieAmkkMGz
+	sHfeQbBgo3D+74bWgHDz7A==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-transfer-encoding
+	:content-type:content-type:date:date:feedback-id:feedback-id
+	:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:subject:subject:to:to:x-me-proxy
+	:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=1739295706; x=
+	1739382106; bh=nv/+K3v73BFIxVV/VmtwVsySnWMnTNl2C8GVI0us/tw=; b=k
+	lWqRZJOaFsPCFes+fjuriXVuqKdOhVzGr5rnQ+XgGshqmrGToiYbdG/0eAh+4nT2
+	odSp4WaHqjHtcHPiC8ODRPyp4RgcjX3XNGOPrYXY7p07i1kC8DOAHX22FiDrRroX
+	u7wdHN03Ys40PxhBQT8XLdBpP24ENrCKzT2r1+hCj0BYcCqgSUL8xFgzn2NCyIIu
+	3qpa5wb+HFRvZ3JvFIpBorQv0UxBB/vACG7nmIz8Ic/j/erRowDqzHujk0wCmE3k
+	5F+KQIDh0YCLNZyNwrfWal39RMOpMOKQzPY5WLtp4lpr5phQThKr3NPk2ZgWYQCW
+	ngKZE7z/bgc1TiMVgI45Q==
+X-ME-Sender: <xms:2YurZ2SBjG-oDIbfC1NklnnDkCDYultpWZarcKdilxytBKI4oT54MQ>
+    <xme:2YurZ7wLOQP0tBokBBfBuJpja5m1rLcUibJZ9bykEImnPHEiW8gCtP8UPE2GiCWNy
+    eOu0T8AF6QSfYmiIuM>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefvddrtddtgdegudeivdcutefuodetggdotefrod
+    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpggftfghnshhusghstghrihgsvgdp
+    uffrtefokffrpgfnqfghnecuuegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivg
+    hnthhsucdlqddutddtmdenucfjughrpefoggffhffvvefkjghfufgtgfesthejredtredt
+    tdenucfhrhhomhepfdforghrkhcurfgvrghrshhonhdfuceomhhpvggrrhhsohhnqdhlvg
+    hnohhvohesshhquhgvsggsrdgtrgeqnecuggftrfgrthhtvghrnhepleevvdeihfffgeel
+    ieeugedtiefggeelledtheektdduudeggeefheeuleduvdehnecuffhomhgrihhnpehgih
+    hthhhusgdrtghomhdpkhgvrhhnvghlrdhorhhgnecuvehluhhsthgvrhfuihiivgeptden
+    ucfrrghrrghmpehmrghilhhfrhhomhepmhhpvggrrhhsohhnqdhlvghnohhvohesshhquh
+    gvsggsrdgtrgdpnhgspghrtghpthhtohepudefpdhmohguvgepshhmthhpohhuthdprhgt
+    phhtthhopehmrghrihhordhlihhmohhntghivghllhhosegrmhgurdgtohhmpdhrtghpth
+    htohepshgrmhhithholhhvrghnvghnsehgohhoghhlvgdrtghomhdprhgtphhtthhopehl
+    khhmlhesjhhohhhnrhhofihlvgihrdhmvgdprhgtphhtthhopehkvggvsheskhgvrhhnvg
+    hlrdhorhhgpdhrtghpthhtoheplhgvnhgssehkvghrnhgvlhdrohhrghdprhgtphhtthho
+    pehnrghthhgrnheskhgvrhhnvghlrdhorhhgpdhrtghpthhtoheprhgrfhgrvghlsehkvg
+    hrnhgvlhdrohhrghdprhgtphhtthhopehllhhvmheslhhishhtshdrlhhinhhugidruggv
+    vhdprhgtphhtthhopehprghttghhvghssehlihhsthhsrdhlihhnuhigrdguvghv
+X-ME-Proxy: <xmx:2YurZz0_hXD_ut2rIRPTag6aCQEgpM322OuflG9o4gvypQdfsSUolA>
+    <xmx:2YurZyAnrBYlhNEmY-kXK_SO-OjgFC4-3UkfLWqYUfLlaGIYhU_8hw>
+    <xmx:2YurZ_gsN2CjfcV29-sAIwAcr5pFb1zSre-PtG13YhS6PVdy-sMDtA>
+    <xmx:2YurZ-qRa49YoFR7S09TteGigx9HjHYhpGCen0LpM7ZZeBKjpiDczg>
+    <xmx:2ourZ4bInq3Wxcg_sVANOlqFbeNIVJBQ-JsI0m4MsEWmB0VJYetfxVPr>
+Feedback-ID: ibe194615:Fastmail
+Received: by mailuser.phl.internal (Postfix, from userid 501)
+	id 9B53C3C0066; Tue, 11 Feb 2025 12:41:45 -0500 (EST)
+X-Mailer: MessagingEngine.com Webmail Interface
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: SJ1PR11MB6083.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 958bf1f5-6399-4e97-e798-08dd4abdd3b0
-X-MS-Exchange-CrossTenant-originalarrivaltime: 11 Feb 2025 17:02:11.6780
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: sEPBxhyGDYrTJIBfYPA2SVYQ8/LP8DSSy4in2YNh58BbTSZBwM1DVbvf3D1VXJv65KE+oNWSb8/xqjU05UM20g==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ0PR11MB6792
-X-OriginatorOrg: intel.com
+Date: Tue, 11 Feb 2025 12:41:25 -0500
+From: "Mark Pearson" <mpearson-lenovo@squebb.ca>
+To: "Nathan Chancellor" <nathan@kernel.org>,
+ "Rafael J. Wysocki" <rafael@kernel.org>, "Len Brown" <lenb@kernel.org>
+Cc: "Hans de Goede" <hdegoede@redhat.com>,
+ "Limonciello, Mario" <mario.limonciello@amd.com>,
+ "Kees Cook" <kees@kernel.org>, "Sami Tolvanen" <samitolvanen@google.com>,
+ "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+ linux-kernel@vger.kernel.org, llvm@lists.linux.dev, patches@lists.linux.dev,
+ stable@vger.kernel.org, "John Rowley" <lkml@johnrowley.me>
+Message-Id: <f9bae655-2835-4623-b18e-1d370dd220d5@app.fastmail.com>
+In-Reply-To: <52c49252-7a81-4d27-a8a9-b2f1e5f837df@app.fastmail.com>
+References: 
+ <20250210-acpi-platform_profile-fix-cfi-violation-v3-1-ed9e9901c33a@kernel.org>
+ <52c49252-7a81-4d27-a8a9-b2f1e5f837df@app.fastmail.com>
+Subject: Re: [PATCH v3] ACPI: platform-profile: Fix CFI violation when accessing sysfs
+ files
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
->> +	if (node)
->> +		ret =3D sysfs_create_link(&entry->dev.kobj, &node->dev.kobj, "node");
+
+
+On Tue, Feb 11, 2025, at 10:05 AM, Mark Pearson wrote:
+> Hi Nathan
 >
-> What is going to remove this symlink if the memory goes away?  Or do
-> these never get removed?
+> On Mon, Feb 10, 2025, at 9:28 PM, Nathan Chancellor wrote:
+>> When an attribute group is created with sysfs_create_group(), the
+>> ->sysfs_ops() callback is set to kobj_sysfs_ops, which sets the ->show()
+>> and ->store() callbacks to kobj_attr_show() and kobj_attr_store()
+>> respectively. These functions use container_of() to get the respective
+>> callback from the passed attribute, meaning that these callbacks need to
+>> be the same type as the callbacks in 'struct kobj_attribute'.
+>>
+>> However, the platform_profile sysfs functions have the type of the
+>> ->show() and ->store() callbacks in 'struct device_attribute', which
+>> results a CFI violation when accessing platform_profile or
+>> platform_profile_choices under /sys/firmware/acpi because the types do
+>> not match:
+>>
+>>   CFI failure at kobj_attr_show+0x19/0x30 (target: 
+>> platform_profile_choices_show+0x0/0x140; expected type: 0x7a69590c)
+>>
+>> There is no functional issue from the type mismatch because the layout
+>> of 'struct kobj_attribute' and 'struct device_attribute' are the same,
+>> so the container_of() cast does not break anything aside from CFI.
+>>
+>> Change the type of platform_profile_choices_show() and
+>> platform_profile_{show,store}() to match the callbacks in
+>> 'struct kobj_attribute' and update the attribute variables to match,
+>> which resolves the CFI violation.
+>>
+>> Cc: stable@vger.kernel.org
+>> Fixes: a2ff95e018f1 ("ACPI: platform: Add platform profile support")
+>> Reported-by: John Rowley <lkml@johnrowley.me>
+>> Closes: https://github.com/ClangBuiltLinux/linux/issues/2047
+>> Tested-by: John Rowley <lkml@johnrowley.me>
+>> Reviewed-by: Sami Tolvanen <samitolvanen@google.com>
+>> Signed-off-by: Nathan Chancellor <nathan@kernel.org>
+>> ---
+>> Changes in v3:
+>> - Rebase on 6.14-rc1, which includes updates to the driver to address
+>>   Greg's previous concerns but this change is still needed for the
+>>   legacy sysfs interface. v2 can be used for the stable backport.
+>> - Link to v2: 
+>> https://lore.kernel.org/r/20241118-acpi-platform_profile-fix-cfi-violation-v2-1-62ff952804de@kernel.org
+>>
+>> Changes in v2:
+>> - Rebase on linux-pm/acpi
+>> - Pick up Sami's reviewed-by tag
+>> - Adjust wording around why there is no functional issue from the
+>>   mismatched types
+>> - Link to v1: 
+>> https://lore.kernel.org/r/20240819-acpi-platform_profile-fix-cfi-violation-v1-1-479365d848f6@kernel.org
+>> ---
+>>  drivers/acpi/platform_profile.c | 26 +++++++++++++-------------
+>>  1 file changed, 13 insertions(+), 13 deletions(-)
+>>
+>> diff --git a/drivers/acpi/platform_profile.c 
+>> b/drivers/acpi/platform_profile.c
+>> index fc92e43d0fe9..1b6317f759f9 100644
+>> --- a/drivers/acpi/platform_profile.c
+>> +++ b/drivers/acpi/platform_profile.c
+>> @@ -260,14 +260,14 @@ static int _aggregate_choices(struct device *dev, 
+>> void *data)
+>> 
+>>  /**
+>>   * platform_profile_choices_show - Show the available profile choices 
+>> for legacy sysfs interface
+>> - * @dev: The device
+>> + * @kobj: The kobject
+>>   * @attr: The attribute
+>>   * @buf: The buffer to write to
+>>   *
+>>   * Return: The number of bytes written
+>>   */
+>> -static ssize_t platform_profile_choices_show(struct device *dev,
+>> -					     struct device_attribute *attr,
+>> +static ssize_t platform_profile_choices_show(struct kobject *kobj,
+>> +					     struct kobj_attribute *attr,
+>>  					     char *buf)
+>>  {
+>>  	unsigned long aggregate[BITS_TO_LONGS(PLATFORM_PROFILE_LAST)];
+>> @@ -333,14 +333,14 @@ static int _store_and_notify(struct device *dev, 
+>> void *data)
+>> 
+>>  /**
+>>   * platform_profile_show - Show the current profile for legacy sysfs interface
+>> - * @dev: The device
+>> + * @kobj: The kobject
+>>   * @attr: The attribute
+>>   * @buf: The buffer to write to
+>>   *
+>>   * Return: The number of bytes written
+>>   */
+>> -static ssize_t platform_profile_show(struct device *dev,
+>> -				     struct device_attribute *attr,
+>> +static ssize_t platform_profile_show(struct kobject *kobj,
+>> +				     struct kobj_attribute *attr,
+>>  				     char *buf)
+>>  {
+>>  	enum platform_profile_option profile = PLATFORM_PROFILE_LAST;
+>> @@ -362,15 +362,15 @@ static ssize_t platform_profile_show(struct device *dev,
+>> 
+>>  /**
+>>   * platform_profile_store - Set the profile for legacy sysfs interface
+>> - * @dev: The device
+>> + * @kobj: The kobject
+>>   * @attr: The attribute
+>>   * @buf: The buffer to read from
+>>   * @count: The number of bytes to read
+>>   *
+>>   * Return: The number of bytes read
+>>   */
+>> -static ssize_t platform_profile_store(struct device *dev,
+>> -				      struct device_attribute *attr,
+>> +static ssize_t platform_profile_store(struct kobject *kobj,
+>> +				      struct kobj_attribute *attr,
+>>  				      const char *buf, size_t count)
+>>  {
+>>  	unsigned long choices[BITS_TO_LONGS(PLATFORM_PROFILE_LAST)];
+>> @@ -401,12 +401,12 @@ static ssize_t platform_profile_store(struct device *dev,
+>>  	return count;
+>>  }
+>> 
+>> -static DEVICE_ATTR_RO(platform_profile_choices);
+>> -static DEVICE_ATTR_RW(platform_profile);
+>> +static struct kobj_attribute attr_platform_profile_choices = 
+>> __ATTR_RO(platform_profile_choices);
+>> +static struct kobj_attribute attr_platform_profile = 
+>> __ATTR_RW(platform_profile);
+>> 
+>>  static struct attribute *platform_profile_attrs[] = {
+>> -	&dev_attr_platform_profile_choices.attr,
+>> -	&dev_attr_platform_profile.attr,
+>> +	&attr_platform_profile_choices.attr,
+>> +	&attr_platform_profile.attr,
+>>  	NULL
+>>  };
+>> 
+>>
+>> ---
+>> base-commit: 2014c95afecee3e76ca4a56956a936e23283f05b
+>> change-id: 20240819-acpi-platform_profile-fix-cfi-violation-de278753bd5f
+>>
+>> Best regards,
+>> -- 
+>> Nathan Chancellor <nathan@kernel.org>
+>
+> Just a note to say thank you for noticing my email address change - the 
+> old lenovo one was awful to use so I dropped it a while back, but it 
+> meant I missed your first two patches (my mail filters for the list 
+> should have caught it and I'll have to figure out why not...)
+>
+> From the V1 patch there was a question about why it was done this way: 
+> I believe I just copied how it seems to be done everywhere else in the 
+> kernel. I can't remember what I used as a reference exactly, but I went 
+> and checked a few random drivers and it seems to be everywhere.
+>
+> Patch looks fine (I'd like to try it out on my system - will aim to do 
+> that today). I didn't know what CFI was (and have lightly educated 
+> myself now). 
+> Is there a better way to fix this so it's common across all drivers 
+> somehow? Updating every individual instance is going to be a lot.
+>
+> Reviewed-by: Mark Pearson <mpearson-lenovo@squebb.ca>
+>
+Also:
+Tested-by: Mark Pearson <mpearson-lenovo@squebb.ca>
 
-There's currently no method for runtime changes to these memory ranges. The=
-y
-are described by a static ACPI table.  I need to poke the folks that came u=
-p
-with this to ask how memory hotplug will be handled (since CXL seems to be
-making that fashionable again).
-
-> symlinks in sysfs created like this always worry me.  What is going to
-> use it?
-
-<hand waves>User space tools that want to understand what the "per-region"
-monitoring and control features are actually operating on.</hand waves>
-
--Tony
+Mark
