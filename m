@@ -1,44 +1,56 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D4011D89E4;
-	Fri, 21 Feb 2025 06:22:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B6291FC11E;
+	Fri, 21 Feb 2025 09:13:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740118971; cv=none; b=V5oxsHwkr4vNa62sUgYVvGNeQEeWPYbZa+mg98J+RCW1NrHHLk7QOzpMfZtrzyYruIJ2eiJtdlLGz73Nly7GBiW2pe9aTp7RFXPawgQ7MMwrkznPuw2y2QWfRuG856ZMomnWExasnTv5I7fpjyX1vd+Hd0xwNP3DOWpi9zoXGcc=
+	t=1740129219; cv=none; b=Vog2NBZnEjv8DqQhUU3zC8QiRDz2GRdCQmriVEq8sgYMrrSGbvtWjylid/Y9FZK2KJCcviOJV8CY+rHTxgYGJEN0JijrhqjvroejpnvhnTRJ6qni17y8vSt77k2ujBx2TO2c4cPA9hDbKe0NEb5RryX2dri0x8DGEdDID7vTCQE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740118971; c=relaxed/simple;
-	bh=OcphQuiU8TOis33FpWcJWtMOdsI54Ux3WhFuco7MjO4=;
+	s=arc-20240116; t=1740129219; c=relaxed/simple;
+	bh=rDEihz2SYq+qWRIswF8iAj6c1YlBHyFHD/d/IEGQKvg=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=lxkfPyQyylz5yR7nYpyReKyomlD6eCxK2PX227axOcvufGTHwIgO5ctaRyEwZNFM0KPfspJ93EGxNdC2MnNS3xfd9JBAaGiiRmsGMy8HcsBzG/flyb7gZTZfqMTE3PhZMVSJcty8TRgAwk0tALizFFGAmdvuQFfawGX0iMq6gOY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=EgU87aoO; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=JBChZbL0JFpTNqklEgRFpcP2zePKyiZeUexAr2Kj0nh6tQ0JpPiFXbD43ohu47M6H+0MHOI+ilwKF12lj2RgGtJXiZ5snEUnFvKEGdYMacti00T1NqgPDtnMksV0FUHCfGdGWkYJTCwIrpKhcQaMsFkTwPZwFnGowd3m3pvBv9U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ULDQ2ZjH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="EgU87aoO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65A76C4CEE2;
-	Fri, 21 Feb 2025 06:22:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1740118970;
-	bh=OcphQuiU8TOis33FpWcJWtMOdsI54Ux3WhFuco7MjO4=;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ULDQ2ZjH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73B57C4CED6;
+	Fri, 21 Feb 2025 09:13:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1740129219;
+	bh=rDEihz2SYq+qWRIswF8iAj6c1YlBHyFHD/d/IEGQKvg=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=EgU87aoO4RUlseqtC9ZN5Ytgy8r6M5J5SHUcvjGCR30AGeR3mwArlMb+BtdII3/Cc
-	 rLRwuexNRl66YWcEepD+bjN6gwdNzfjLV8Hh08aQF+N05rjDq0ylrVqYyfge6pJUPy
-	 3/14nKwVo/m7mhkFlF4oQA/ULqCILyvUdfpeJ+XI=
-Date: Fri, 21 Feb 2025 07:21:44 +0100
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Joshua Peraza <jperaza@google.com>
-Cc: baolu.lu@linux.intel.com, bhelgaas@google.com, dtor@google.com,
-	dwmw2@infradead.org, helgaas@kernel.org,
-	iommu@lists.linux-foundation.org, jean-philippe@linaro.org,
-	joro@8bytes.org, jsbarnes@google.com, lenb@kernel.org,
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-pci@vger.kernel.org, mika.westerberg@linux.intel.com,
-	oohall@gmail.com, pavel@denx.de, rafael.j.wysocki@intel.com,
-	rafael@kernel.org, rajatja@google.com, rajatxjain@gmail.com,
-	will@kernel.org
-Subject: Re: [v9 PATCH 1/2] PCI/ACPI: Support Microsoft's "DmaProperty"
-Message-ID: <2025022136-demanding-affluent-c72a@gregkh>
-References: <20250221000943.973221-1-jperaza@google.com>
- <20250221000943.973221-2-jperaza@google.com>
+	b=ULDQ2ZjH02Hj782GvcFfA82R6BeT8ck4xAGbF1R7G9A1V6rPQ+XUGRLwETaN5KaRH
+	 iJsup2Fu+bhvBseHfPDLh3UbOgoTzye12t+JfSzVVAu9tk5/Zviqzh8uSqjt0oFWPq
+	 k/Scy0aQAwbKtKeIDAaBF/6j6XRPGLqal+hgUbcwL2XIdtZj4a0GgEMYtREIFuEU0x
+	 Zv7bFWsLpR83Rwm/3dDdXlVa4jevjYdDmA080UR1FlIBH2uzTx+xNAYlKLNyUOLMLq
+	 nK4s2UecTMKwxGxVK2a+Z9MWB++Xg9c0Y7KjorfLW0oPTQBmSKyjeAwPWN93Xo2MXT
+	 IaQ0uqQjn2iIA==
+Date: Fri, 21 Feb 2025 08:59:54 +0100
+From: Joel Granados <joel.granados@kernel.org>
+To: Heiko Carstens <hca@linux.ibm.com>
+Cc: Kees Cook <kees@kernel.org>, Steven Rostedt <rostedt@goodmis.org>, 
+	Masami Hiramatsu <mhiramat@kernel.org>, Mark Rutland <mark.rutland@arm.com>, 
+	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Peter Zijlstra <peterz@infradead.org>, 
+	Ingo Molnar <mingo@redhat.com>, Arnaldo Carvalho de Melo <acme@kernel.org>, 
+	Namhyung Kim <namhyung@kernel.org>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, 
+	Jiri Olsa <jolsa@kernel.org>, Ian Rogers <irogers@google.com>, 
+	Adrian Hunter <adrian.hunter@intel.com>, "Liang, Kan" <kan.liang@linux.intel.com>, 
+	"David S. Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, 
+	Vasily Gorbik <gor@linux.ibm.com>, Alexander Gordeev <agordeev@linux.ibm.com>, 
+	Christian Borntraeger <borntraeger@linux.ibm.com>, Sven Schnelle <svens@linux.ibm.com>, 
+	Gerald Schaefer <gerald.schaefer@linux.ibm.com>, Thomas Gleixner <tglx@linutronix.de>, 
+	Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, 
+	"H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	linux-trace-kernel@vger.kernel.org, linux-perf-users@vger.kernel.org, sparclinux@vger.kernel.org, 
+	linux-s390@vger.kernel.org, linux-acpi@vger.kernel.org
+Subject: Re: [PATCH 7/8] s390: mv s390 sysctls into their own file under
+ arch/s390 dir
+Message-ID: <yiuirrlckwb5ressit6gcoi6yljcy6ggtopaf5bsgpxb5jp4v4@azntrnnk7zdr>
+References: <20250218-jag-mv_ctltables-v1-0-cd3698ab8d29@kernel.org>
+ <20250218-jag-mv_ctltables-v1-7-cd3698ab8d29@kernel.org>
+ <20250218140821.7740Ab5-hca@linux.ibm.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -47,32 +59,64 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20250221000943.973221-2-jperaza@google.com>
+In-Reply-To: <20250218140821.7740Ab5-hca@linux.ibm.com>
 
-On Fri, Feb 21, 2025 at 12:09:40AM +0000, Joshua Peraza wrote:
-> From: Rajat Jain <rajatja@google.com>
-> 
-> The "DmaProperty" is supported and currently documented and used by
-> Microsoft [link 1 below], to flag internal PCIe root ports that need
-> DMA protection [link 2 below]. We have discussed with them and reached
-> a common understanding that they shall change their MSDN documentation
-> to say that the same property can be used to protect any PCI device,
-> and not just internal PCIe root ports (since there is no point
-> introducing yet another property for arbitrary PCI devices). This helps
-> with security from internal devices that offer an attack surface for
-> DMA attacks (e.g. internal network devices).
-> 
-> Support DmaProperty to mark DMA from a PCI device as untrusted.
-> 
-> Link: [1] https://docs.microsoft.com/en-us/windows-hardware/drivers/pci/dsd-for-pcie-root-ports#identifying-internal-pcie-ports-accessible-to-users-and-requiring-dma-protection
-> Link: [2] https://docs.microsoft.com/en-us/windows/security/information-protection/kernel-dma-protection-for-thunderbolt
-> Signed-off-by: Rajat Jain <rajatja@google.com>
-> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Signed-off-by: Joshua Peraza <jperaza@google.com>
-> ---
->  drivers/acpi/property.c |  3 +++
->  drivers/pci/pci-acpi.c  | 22 ++++++++++++++++++++++
->  2 files changed, 25 insertions(+)
+On Tue, Feb 18, 2025 at 03:08:21PM +0100, Heiko Carstens wrote:
+> On Tue, Feb 18, 2025 at 10:56:23AM +0100, joel granados wrote:
+> > Move s390 sysctls (spin_retry and userprocess_debug) into their own
+> > files under arch/s390. We create two new sysctl tables
+> > (2390_{fault,spin}_sysctl_table) which will be initialized with
+> > arch_initcall placing them after their original place in proc_root_init.
+> > 
+> > This is part of a greater effort to move ctl tables into their
+> > respective subsystems which will reduce the merge conflicts in
+> > kerenel/sysctl.c.
+>   ^^^^^^^
+> typo
+Fixed
 
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> 
+> > diff --git a/arch/s390/lib/spinlock.c b/arch/s390/lib/spinlock.c
+> > index a81a01c44927..4483fdc9d472 100644
+> > --- a/arch/s390/lib/spinlock.c
+> > +++ b/arch/s390/lib/spinlock.c
+> > @@ -17,6 +17,10 @@
+> >  #include <asm/alternative.h>
+> >  #include <asm/asm.h>
+> >  
+> > +#if defined(CONFIG_SMP)
+> > +#include <linux/sysctl.h>
+> > +#endif
+> > +
+> ...
+> > +#if defined(CONFIG_SMP)
+> > +static const struct ctl_table s390_spin_sysctl_table[] = {
+> > +	{
+> > +		.procname	= "spin_retry",
+> > +		.data		= &spin_retry,
+> > +		.maxlen		= sizeof(int),
+> > +		.mode		= 0644,
+> > +		.proc_handler	= proc_dointvec,
+> > +	},
+> > +};
+> > +
+> > +static int __init init_s390_spin_sysctls(void)
+> > +{
+> > +	register_sysctl_init("kernel", s390_spin_sysctl_table);
+> > +	return 0;
+> > +}
+> > +arch_initcall(init_s390_spin_sysctls);
+> > +#endif
+> 
+> I see that you want to keep the existing CONFIG_SMP behaviour, but since a
+> long time s390 enforces CONFIG_SMP=y (this was obviously never reflected in
+> kernel/sysctl.c).
+> Therefore the above ifdefs should be removed, and in addition the include
+> statement should be added to the other linux includes at the top of the file.
+I'll add these changes to my V2
+
+Thx for the review
+
+-- 
+
+Joel Granados
