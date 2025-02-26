@@ -1,214 +1,201 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.18])
+Received: from mx2.zhaoxin.com (mx2.zhaoxin.com [61.152.208.219])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69B35A55;
-	Thu, 27 Feb 2025 00:18:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79E7E482EB
+	for <linux-acpi@vger.kernel.org>; Thu, 27 Feb 2025 00:37:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=61.152.208.219
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740615514; cv=none; b=ty0lk4sl//UpXJSjzTjK+3EY5ajb4PVx4lSg+uXxm9Jfz1UsGxMGA+vCy2qwvcSz64t4WQyFk8kmAbK0PDir6MVdGhJQsrDkXep5dms9gFa4Fc84Xo7f51zrfA+9Nrr3+7DwiA83xq1p/KUUB04Ioo/qH3YbfdCpReftvYJmmLY=
+	t=1740616675; cv=none; b=fnQZ7Ng+1F6zTeZaExGYbEo7mIh35CYLJwvM88TWwhU097tJvLMji5NVVsX6YaBXFkEUeCemEjArbNaFjC5watDAVDkGBs2yarSKbtKNoUhQxM5ggFyOADFqC+Car/t90D4wBVtA4KlVP3LS+o2GmXw29znm1j6C0Aben8jyhqM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740615514; c=relaxed/simple;
-	bh=zy/JC+sJhhNV8yGVMMwVPJdDAc7mBSWAHJKrnS3U5tI=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=sofr++uFbOwbskBX/tFu4spS6nDIuDJvoCqEuLFN2CfncI4HAmSfZTLoDh5sl8eAWkasLbmGdmnWSkRW/JS2kcELN5Vs6PKPZOP8NV9GuK5G1HfmKZR7C5qffDlGlQM3Dv+cfTzkXuzQfc3MrPa4Olgr843xmc5i1eh8UOCjmH4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=iDD0iNjF; arc=none smtp.client-ip=198.175.65.18
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="iDD0iNjF"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1740615513; x=1772151513;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=zy/JC+sJhhNV8yGVMMwVPJdDAc7mBSWAHJKrnS3U5tI=;
-  b=iDD0iNjFxbRBTBlxLFKuedeYhEZAlB/LBujeEUyPlAobKGng1cLubBZY
-   aJf1xMPW+7oVNs2OzQ8ORkIXtGY9fBxOLqDXsvYMvSUG18n8GrfYTatMI
-   ie+7UbbLC3nbiPYpjUfuw07nRz+6BwWBGSjFUwNC74AnFvx0Tcmm2r74D
-   3HPk/p9++Y5lNPk2vp14wf/hk93w0mRhgwLoIIvXBch9VTYbhMMDOY1Mq
-   MTfCH+cGPpPLFiv07PmoTPMS0G5qskbH86bBUUflr9y1olBW5XwlB66Sg
-   vstz05UW3qw77TMGc5OdM2MmzDKqFhxm/Z80B8YVO6M2mQMMM+zWMa/0/
-   A==;
-X-CSE-ConnectionGUID: 9rhi4EZ6QbCB1y6jwip5bg==
-X-CSE-MsgGUID: J5Kn6D6bTE2pzX/17FwjpA==
-X-IronPort-AV: E=McAfee;i="6700,10204,11314"; a="41687877"
-X-IronPort-AV: E=Sophos;i="6.12,310,1728975600"; 
-   d="scan'208";a="41687877"
-Received: from orviesa006.jf.intel.com ([10.64.159.146])
-  by orvoesa110.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Feb 2025 16:18:30 -0800
-X-CSE-ConnectionGUID: q3bKHKf9QhS0Sk5zTXJc3A==
-X-CSE-MsgGUID: nv5vN+BjR+uo9yCn+g0iAg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.13,318,1732608000"; 
-   d="scan'208";a="116889473"
-Received: from sohilmeh.sc.intel.com ([172.25.103.65])
-  by orviesa006.jf.intel.com with ESMTP; 26 Feb 2025 16:18:29 -0800
-From: Sohil Mehta <sohil.mehta@intel.com>
-To: x86@kernel.org,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	Tony Luck <tony.luck@intel.com>
-Cc: Peter Zijlstra <peterz@infradead.org>,
-	Ingo Molnar <mingo@redhat.com>,
-	Arnaldo Carvalho de Melo <acme@kernel.org>,
-	Namhyung Kim <namhyung@kernel.org>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-	Jiri Olsa <jolsa@kernel.org>,
-	Ian Rogers <irogers@google.com>,
-	Adrian Hunter <adrian.hunter@intel.com>,
-	Kan Liang <kan.liang@linux.intel.com>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Borislav Petkov <bp@alien8.de>,
-	"H . Peter Anvin" <hpa@zytor.com>,
-	"Rafael J . Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	Andy Lutomirski <luto@kernel.org>,
-	Viresh Kumar <viresh.kumar@linaro.org>,
-	Jean Delvare <jdelvare@suse.com>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Zhang Rui <rui.zhang@intel.com>,
-	Andrew Cooper <andrew.cooper3@citrix.com>,
-	David Laight <david.laight.linux@gmail.com>,
-	Dapeng Mi <dapeng1.mi@linux.intel.com>,
-	Sohil Mehta <sohil.mehta@intel.com>,
-	linux-perf-users@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-pm@vger.kernel.org
-Subject: [PATCH v3.1 14/15] perf/x86: Simplify Intel PMU initialization
-Date: Thu, 27 Feb 2025 00:16:15 +0000
-Message-ID: <20250227001615.1231958-1-sohil.mehta@intel.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20250219184133.816753-15-sohil.mehta@intel.com>
-References: <20250219184133.816753-15-sohil.mehta@intel.com>
+	s=arc-20240116; t=1740616675; c=relaxed/simple;
+	bh=xf6aa909pkiri3/XbRp02yuy6janMrg6fh9L8J/CqZg=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=eiKnlLExqmJAuDGVsvJhNBFoalqwLED+vKkhQf/+00wlCEJzsJcgK0bFG8MwpROJoY/OHBuNGUiPa2+USqp/2EToYr22Iz44YL/rsuN+d2ldEsVvdoWY4ALYnMYtIA6ruBrYGFKtutvBQG5dkxfX0Eq4lcTIB0+1DuEFY78AHOg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=zhaoxin.com; spf=pass smtp.mailfrom=zhaoxin.com; arc=none smtp.client-ip=61.152.208.219
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=zhaoxin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zhaoxin.com
+X-ASG-Debug-ID: 1740616661-1eb14e79ff31220001-I98ny2
+Received: from ZXSHMBX1.zhaoxin.com (ZXSHMBX1.zhaoxin.com [10.28.252.163]) by mx2.zhaoxin.com with ESMTP id eI7UeMFzGx2DDqYp (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NO); Thu, 27 Feb 2025 08:37:41 +0800 (CST)
+X-Barracuda-Envelope-From: LeoLiu-oc@zhaoxin.com
+X-Barracuda-RBL-Trusted-Forwarder: 10.28.252.163
+Received: from ZXSHMBX2.zhaoxin.com (10.28.252.164) by ZXSHMBX1.zhaoxin.com
+ (10.28.252.163) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.44; Thu, 27 Feb
+ 2025 08:37:41 +0800
+Received: from ZXSHMBX2.zhaoxin.com ([fe80::4dfc:4f6a:c0cf:4298]) by
+ ZXSHMBX2.zhaoxin.com ([fe80::4dfc:4f6a:c0cf:4298%4]) with mapi id
+ 15.01.2507.044; Thu, 27 Feb 2025 08:37:41 +0800
+X-Barracuda-RBL-Trusted-Forwarder: 10.28.252.163
+Received: from xin.lan (10.32.64.1) by ZXBJMBX03.zhaoxin.com (10.29.252.7)
+ with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.44; Wed, 26 Feb
+ 2025 20:18:54 +0800
+From: LeoLiu-oc <LeoLiu-oc@zhaoxin.com>
+To: <rafael@kernel.org>, <lenb@kernel.org>, <james.morse@arm.com>,
+	<tony.luck@intel.com>, <bp@alien8.de>, <bhelgaas@google.com>,
+	<robert.moore@intel.com>, <yazen.ghannam@amd.com>, <avadhut.naik@amd.com>,
+	<linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-pci@vger.kernel.org>, <acpica-devel@lists.linux.dev>
+CC: <CobeChen@zhaoxin.com>, <TonyWWang@zhaoxin.com>, <ErosZhang@zhaoxin.com>,
+	<leoliu@zhaoxin.com>, LeoLiuoc <LeoLiu-oc@zhaoxin.com>
+Subject: [PATCH v5 2/4] ACPI: APEI: Add new hest_parse_pcie_aer()
+Date: Wed, 26 Feb 2025 20:18:36 +0800
+X-ASG-Orig-Subj: [PATCH v5 2/4] ACPI: APEI: Add new hest_parse_pcie_aer()
+Message-ID: <20250226121838.364533-3-LeoLiu-oc@zhaoxin.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20250226121838.364533-1-LeoLiu-oc@zhaoxin.com>
+References: <20250226121838.364533-1-LeoLiu-oc@zhaoxin.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+X-ClientProxiedBy: zxbjmbx1.zhaoxin.com (10.29.252.163) To
+ ZXBJMBX03.zhaoxin.com (10.29.252.7)
+X-Moderation-Data: 2/27/2025 8:37:40 AM
+X-Barracuda-Connect: ZXSHMBX1.zhaoxin.com[10.28.252.163]
+X-Barracuda-Start-Time: 1740616661
+X-Barracuda-Encrypted: ECDHE-RSA-AES128-GCM-SHA256
+X-Barracuda-URL: https://10.28.252.36:4443/cgi-mod/mark.cgi
+X-Virus-Scanned: by bsmtpd at zhaoxin.com
+X-Barracuda-Scan-Msg-Size: 3598
+X-Barracuda-BRTS-Status: 1
+X-Barracuda-Bayes: INNOCENT GLOBAL 0.0000 1.0000 -2.0210
+X-Barracuda-Spam-Score: -2.02
+X-Barracuda-Spam-Status: No, SCORE=-2.02 using global scores of TAG_LEVEL=1000.0 QUARANTINE_LEVEL=1000.0 KILL_LEVEL=9.0 tests=
+X-Barracuda-Spam-Report: Code version 3.2, rules version 3.2.3.137756
+	Rule breakdown below
+	 pts rule name              description
+	---- ---------------------- --------------------------------------------------
 
-Architectural Perfmon was introduced on the Family 6 "Core" processors
-starting with Yonah. Processors before Yonah need their own customized
-PMU initialization.
+From: LeoLiuoc <LeoLiu-oc@zhaoxin.com>
 
-p6_pmu_init() is expected to provide that initialization for early
-Family 6 processors. But, currently, it could get called for any Family
-6 processor if the architectural perfmon feature is disabled on that
-processor. To simplify, restrict the P6 PMU initialization to early
-Family 6 processors that do not have architectural perfmon support and
-truly need the special handling.
+The purpose of the function apei_hest_parse_aer() is used to parse and
+extract register value from HEST PCIe AER structures. This applies to
+all hardware platforms that has a PCI Express AER structure in HEST.
 
-As a result, the "unsupported" console print becomes practically
-unreachable because all the released P6 processors are covered by the
-switch cases. Move the console print to a common location where it can
-cover all modern processors (including Family >15) that may not have
-architectural perfmon support enumerated.
-
-Also, use this opportunity to get rid of the unnecessary switch cases in
-P6 initialization. Only the Pentium Pro processor needs a quirk, and the
-rest of the processors do not need any special handling. The gaps in the
-case numbers are only due to no processor with those model numbers being
-released.
-
-Use decimal numbers for Intel Family numbers. Also, convert one of the
-last few Intel x86_model comparison to a VFM based one.
-
-Signed-off-by: Sohil Mehta <sohil.mehta@intel.com>
-Reviewed-by: Kan Liang <kan.liang@linux.intel.com>
+Signed-off-by: LeoLiuoc <LeoLiu-oc@zhaoxin.com>
 ---
-Sending an updated version for this one since it's the only one with a
-change. This would make it feasible to pickup the entire patchset in
-this cycle if desired.
+ drivers/acpi/apei/hest.c | 52 +++++++++++++++++++++++++++++++++++++++-
+ include/acpi/apei.h      | 11 +++++++++
+ 2 files changed, 62 insertions(+), 1 deletion(-)
 
-v3.1: Move the default case outside of the switch.
-      Pickup the Reviewed-by tag from Kan Liang.
-
-v3: Restrict calling p6_pmu_init() to only when needed.
-    Move the console print to a common location.
-
-v2: No change.
----
- arch/x86/events/intel/core.c | 14 ++++++++++----
- arch/x86/events/intel/p6.c   | 26 +++-----------------------
- 2 files changed, 13 insertions(+), 27 deletions(-)
-
-diff --git a/arch/x86/events/intel/core.c b/arch/x86/events/intel/core.c
-index 7601196d1d18..ef59643a9d23 100644
---- a/arch/x86/events/intel/core.c
-+++ b/arch/x86/events/intel/core.c
-@@ -6466,15 +6466,21 @@ __init int intel_pmu_init(void)
- 	char *name;
- 	struct x86_hybrid_pmu *pmu;
- 
-+	/* Architectural Perfmon was introduced starting with Core "Yonah" */
- 	if (!cpu_has(&boot_cpu_data, X86_FEATURE_ARCH_PERFMON)) {
- 		switch (boot_cpu_data.x86) {
--		case 0x6:
--			return p6_pmu_init();
--		case 0xb:
-+		case 6:
-+			if (boot_cpu_data.x86_vfm < INTEL_CORE_YONAH)
-+				return p6_pmu_init();
-+			break;
-+		case 11:
- 			return knc_pmu_init();
--		case 0xf:
-+		case 15:
- 			return p4_pmu_init();
- 		}
+diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
+index 35d08f4e50e6..e7a15d60ecc1 100644
+--- a/drivers/acpi/apei/hest.c
++++ b/drivers/acpi/apei/hest.c
+@@ -22,6 +22,7 @@
+ #include <linux/kdebug.h>
+ #include <linux/highmem.h>
+ #include <linux/io.h>
++#include <linux/pci.h>
+ #include <linux/platform_device.h>
+ #include <acpi/apei.h>
+ #include <acpi/ghes.h>
+@@ -132,7 +133,56 @@ static bool is_ghes_assist_struct(struct acpi_hest_hea=
+der *hest_hdr)
+ 	return false;
+ }
+=20
+-typedef int (*apei_hest_func_t)(struct acpi_hest_header *hest_hdr, void *d=
+ata);
++static bool hest_match_pci_devfn(struct acpi_hest_aer_common *p, struct pc=
+i_dev *dev)
++{
++	return ACPI_HEST_SEGMENT(p->bus) =3D=3D pci_domain_nr(dev->bus) &&
++	       ACPI_HEST_BUS(p->bus)     =3D=3D dev->bus->number &&
++	       p->device                 =3D=3D PCI_SLOT(dev->devfn) &&
++	       p->function               =3D=3D PCI_FUNC(dev->devfn);
++}
 +
-+		pr_cont("unsupported CPU family %d model %d ",
-+			boot_cpu_data.x86, boot_cpu_data.x86_model);
- 		return -ENODEV;
- 	}
- 
-diff --git a/arch/x86/events/intel/p6.c b/arch/x86/events/intel/p6.c
-index a6cffb4f4ef5..65b45e9d7016 100644
---- a/arch/x86/events/intel/p6.c
-+++ b/arch/x86/events/intel/p6.c
-@@ -2,6 +2,8 @@
- #include <linux/perf_event.h>
- #include <linux/types.h>
- 
-+#include <asm/cpu_device_id.h>
++static bool hest_source_is_pcie_aer(struct acpi_hest_header *hest_hdr, str=
+uct pci_dev *dev)
++{
++	u16 hest_type =3D hest_hdr->type;
++	u8 pcie_type =3D pci_pcie_type(dev);
++	struct acpi_hest_aer_common *common =3D (struct acpi_hest_aer_common *)(h=
+est_hdr + 1);
 +
- #include "../perf_event.h"
- 
- /*
-@@ -248,30 +250,8 @@ __init int p6_pmu_init(void)
++	switch (hest_type) {
++	case ACPI_HEST_TYPE_AER_ROOT_PORT:
++		if (pcie_type !=3D PCI_EXP_TYPE_ROOT_PORT)
++			return false;
++		break;
++	case ACPI_HEST_TYPE_AER_ENDPOINT:
++		if (pcie_type !=3D PCI_EXP_TYPE_ENDPOINT)
++			return false;
++		break;
++	case ACPI_HEST_TYPE_AER_BRIDGE:
++		if (pcie_type !=3D PCI_EXP_TYPE_PCI_BRIDGE && pcie_type !=3D PCI_EXP_TYP=
+E_PCIE_BRIDGE)
++			return false;
++		break;
++	default:
++		return false;
++	}
++
++	if (common->flags & ACPI_HEST_GLOBAL)
++		return true;
++
++	if (hest_match_pci_devfn(common, dev))
++		return true;
++
++	return false;
++}
++
++int hest_parse_pcie_aer(struct acpi_hest_header *hest_hdr, void *data)
++{
++	struct hest_parse_aer_info *info =3D data;
++
++	info->data =3D (void *)hest_hdr;
++	if (!hest_source_is_pcie_aer(hest_hdr, info->pci_dev))
++		return 0;
++	else
++		return 1;
++}
+=20
+ int apei_hest_parse(apei_hest_func_t func, void *data)
  {
- 	x86_pmu = p6_pmu;
- 
--	switch (boot_cpu_data.x86_model) {
--	case  1: /* Pentium Pro */
-+	if (boot_cpu_data.x86_vfm == INTEL_PENTIUM_PRO)
- 		x86_add_quirk(p6_pmu_rdpmc_quirk);
--		break;
--
--	case  3: /* Pentium II - Klamath */
--	case  5: /* Pentium II - Deschutes */
--	case  6: /* Pentium II - Mendocino */
--		break;
--
--	case  7: /* Pentium III - Katmai */
--	case  8: /* Pentium III - Coppermine */
--	case 10: /* Pentium III Xeon */
--	case 11: /* Pentium III - Tualatin */
--		break;
--
--	case  9: /* Pentium M - Banias */
--	case 13: /* Pentium M - Dothan */
--		break;
--
--	default:
--		pr_cont("unsupported p6 CPU model %d ", boot_cpu_data.x86_model);
--		return -ENODEV;
--	}
- 
- 	memcpy(hw_cache_event_ids, p6_hw_cache_event_ids,
- 		sizeof(hw_cache_event_ids));
--- 
-2.43.0
+diff --git a/include/acpi/apei.h b/include/acpi/apei.h
+index b79976daa4bb..047e0469927c 100644
+--- a/include/acpi/apei.h
++++ b/include/acpi/apei.h
+@@ -23,6 +23,11 @@ enum hest_status {
+ 	HEST_NOT_FOUND,
+ };
+=20
++struct hest_parse_aer_info {
++	struct pci_dev *pci_dev;
++	void *data;
++};
++
+ extern int hest_disable;
+ extern int erst_disable;
+ #ifdef CONFIG_ACPI_APEI_GHES
+@@ -33,12 +38,18 @@ void __init acpi_ghes_init(void);
+ static inline void acpi_ghes_init(void) { }
+ #endif
+=20
++typedef int (*apei_hest_func_t)(struct acpi_hest_header *hest_hdr, void *d=
+ata);
+ int apei_hest_parse(apei_hest_func_t func, void *data);
+=20
+ #ifdef CONFIG_ACPI_APEI
+ void __init acpi_hest_init(void);
++int hest_parse_pcie_aer(struct acpi_hest_header *hest_hdr, void *data);
+ #else
+ static inline void acpi_hest_init(void) { }
++static inline int hest_parse_pcie_aer(struct acpi_hest_header *hest_hdr, v=
+oid *data)
++{
++	return 0;
++}
+ #endif
+=20
+ int erst_write(const struct cper_record_header *record);
+--=20
+2.34.1
 
