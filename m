@@ -1,305 +1,234 @@
 Received: from mx2.zhaoxin.com (mx2.zhaoxin.com [61.152.208.219])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15736270058
-	for <linux-acpi@vger.kernel.org>; Thu, 27 Feb 2025 00:38:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1649227004C
+	for <linux-acpi@vger.kernel.org>; Thu, 27 Feb 2025 00:48:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=61.152.208.219
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740616719; cv=none; b=l2QQrHnX5WY6SYJBwZpRlPNFc02lXdKjKSMzfsaeghbPcsIXbqgDbNu1RHSEc/JYFG+BMgdf8w2nCr35CWDlCg6wA6uCcl/0KDZZogV1ZnCzWvQQjlT6Lqm8/CHhMkT8zHQdcPER5I07lrW1+u/Gp0t0lEx2/efRAiYEtzzyAkA=
+	t=1740617310; cv=none; b=Wm5AQp79H9cUP7HSJpOJ8USmOz6dNUblqOu351oSa2AmIANJfInOyUGukACgUhXdrEKgQRbGRDADHOrdW6BFMinY9j5dmGevNNhVL6WCiiedju1kVS5euQegHU3aBtXS5dSNWm49IoBY179x1F1+x9wSHZ71IWMSS0d+t8/EToc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740616719; c=relaxed/simple;
-	bh=FIiVtcNHJYrmZ+Yz2YVjUiAkhpAPHWrX1l2qB64oxFE=;
-	h=Message-ID:Date:MIME-Version:From:Subject:To:CC:References:
-	 In-Reply-To:Content-Type; b=KF1N8kPTq+vKi32cFmU72qjqWeVh0hhhdD8blxEjNyr1r83EExkMW8jTgN2Vs8RlELBOJSjSZWGJZKMgxx6JoJLp+8t9qGSFRiHfiDcyy4dRtgeD8fBJAIeFMFyfYu8nr9e2Px7zGyZW6teBBb8Q1GKj6ZT7OUjIojvyktjPYYo=
+	s=arc-20240116; t=1740617310; c=relaxed/simple;
+	bh=TW2S73cCRvglYfDwmQGd9RWd8/DD6yZTh696UemLXhU=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=KdfL0p4qNu5B5MN4IS97f+yxCYE/P2GjLqFesbcXDkcj1q2TO04pOCNOFR4D75r60WeEx4w9C1oA8GxEJ1Mh9kXh76Ky40y9Cn0xc2N7sA026iYHj0eDm6yq/47SYf43cmTIHQD0mib9ttEO9gH+22at2jMZHMJ9tudKy160j5M=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=zhaoxin.com; spf=pass smtp.mailfrom=zhaoxin.com; arc=none smtp.client-ip=61.152.208.219
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=zhaoxin.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zhaoxin.com
-X-ASG-Debug-ID: 1740616714-1eb14e79fe312d0001-I98ny2
-Received: from ZXSHMBX3.zhaoxin.com (ZXSHMBX3.zhaoxin.com [10.28.252.165]) by mx2.zhaoxin.com with ESMTP id gy3gPjRKSLH6Qt18 (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NO); Thu, 27 Feb 2025 08:38:34 +0800 (CST)
+X-ASG-Debug-ID: 1740616660-1eb14e7a0031330001-I98ny2
+Received: from ZXSHMBX3.zhaoxin.com (ZXSHMBX3.zhaoxin.com [10.28.252.165]) by mx2.zhaoxin.com with ESMTP id UYHoqvL7SyDRaaIW (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NO); Thu, 27 Feb 2025 08:37:40 +0800 (CST)
 X-Barracuda-Envelope-From: LeoLiu-oc@zhaoxin.com
 X-Barracuda-RBL-Trusted-Forwarder: 10.28.252.165
 Received: from ZXSHMBX2.zhaoxin.com (10.28.252.164) by ZXSHMBX3.zhaoxin.com
  (10.28.252.165) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.44; Thu, 27 Feb
- 2025 08:38:34 +0800
+ 2025 08:37:40 +0800
 Received: from ZXSHMBX2.zhaoxin.com ([fe80::4dfc:4f6a:c0cf:4298]) by
  ZXSHMBX2.zhaoxin.com ([fe80::4dfc:4f6a:c0cf:4298%4]) with mapi id
- 15.01.2507.044; Thu, 27 Feb 2025 08:38:34 +0800
+ 15.01.2507.044; Thu, 27 Feb 2025 08:37:40 +0800
 X-Barracuda-RBL-Trusted-Forwarder: 10.28.252.165
-Received: from [10.32.64.4] (10.32.64.4) by ZXBJMBX03.zhaoxin.com
- (10.29.252.7) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.44; Wed, 26 Feb
- 2025 17:41:12 +0800
-Message-ID: <1cb4d7de-ee6d-4ce7-bb4a-86ef5a986dba@zhaoxin.com>
-Date: Wed, 26 Feb 2025 17:41:10 +0800
+Received: from xin.lan (10.32.64.1) by ZXBJMBX03.zhaoxin.com (10.29.252.7)
+ with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.44; Wed, 26 Feb
+ 2025 20:19:04 +0800
+From: LeoLiu-oc <LeoLiu-oc@zhaoxin.com>
+To: <rafael@kernel.org>, <lenb@kernel.org>, <james.morse@arm.com>,
+	<tony.luck@intel.com>, <bp@alien8.de>, <bhelgaas@google.com>,
+	<robert.moore@intel.com>, <yazen.ghannam@amd.com>, <avadhut.naik@amd.com>,
+	<linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-pci@vger.kernel.org>, <acpica-devel@lists.linux.dev>
+CC: <CobeChen@zhaoxin.com>, <TonyWWang@zhaoxin.com>, <ErosZhang@zhaoxin.com>,
+	<leoliu@zhaoxin.com>, LeoLiuoc <LeoLiu-oc@zhaoxin.com>
+Subject: [PATCH v5 4/4] PCI: ACPI: Add new pci_acpi_program_hest_aer_params()
+Date: Wed, 26 Feb 2025 20:18:38 +0800
+X-ASG-Orig-Subj: [PATCH v5 4/4] PCI: ACPI: Add new pci_acpi_program_hest_aer_params()
+Message-ID: <20250226121838.364533-5-LeoLiu-oc@zhaoxin.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20250226121838.364533-1-LeoLiu-oc@zhaoxin.com>
+References: <20250226121838.364533-1-LeoLiu-oc@zhaoxin.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-From: LeoLiu-oc <leoliu-oc@zhaoxin.com>
-Subject: Re: [PATCH v4 3/3] PCI/ACPI: Add pci_acpi_program_hest_aer_params()
-To: Yazen Ghannam <yazen.ghannam@amd.com>
-X-ASG-Orig-Subj: Re: [PATCH v4 3/3] PCI/ACPI: Add pci_acpi_program_hest_aer_params()
-CC: <rafael@kernel.org>, <lenb@kernel.org>, <james.morse@arm.com>,
-	<tony.luck@intel.com>, <bp@alien8.de>, <bhelgaas@google.com>,
-	<robert.moore@intel.com>, <avadhut.naik@amd.com>,
-	<linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-pci@vger.kernel.org>, <acpica-devel@lists.linux.dev>,
-	<CobeChen@zhaoxin.com>, <TonyWWang@zhaoxin.com>, <ErosZhang@zhaoxin.com>
-References: <20241205114048.60291-1-LeoLiu-oc@zhaoxin.com>
- <20241205114048.60291-4-LeoLiu-oc@zhaoxin.com>
- <20241211194735.GB1960478@yaz-khff2.amd.com>
-In-Reply-To: <20241211194735.GB1960478@yaz-khff2.amd.com>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: quoted-printable
-X-ClientProxiedBy: ZXSHCAS2.zhaoxin.com (10.28.252.162) To
+Content-Type: text/plain
+X-ClientProxiedBy: zxbjmbx1.zhaoxin.com (10.29.252.163) To
  ZXBJMBX03.zhaoxin.com (10.29.252.7)
-X-Moderation-Data: 2/27/2025 8:38:32 AM
+X-Moderation-Data: 2/27/2025 8:37:39 AM
 X-Barracuda-Connect: ZXSHMBX3.zhaoxin.com[10.28.252.165]
-X-Barracuda-Start-Time: 1740616714
+X-Barracuda-Start-Time: 1740616660
 X-Barracuda-Encrypted: ECDHE-RSA-AES128-GCM-SHA256
 X-Barracuda-URL: https://10.28.252.36:4443/cgi-mod/mark.cgi
 X-Virus-Scanned: by bsmtpd at zhaoxin.com
-X-Barracuda-Scan-Msg-Size: 7645
+X-Barracuda-Scan-Msg-Size: 5086
 X-Barracuda-BRTS-Status: 1
 X-Barracuda-Bayes: INNOCENT GLOBAL 0.0000 1.0000 -2.0210
-X-Barracuda-Spam-Score: -1.52
-X-Barracuda-Spam-Status: No, SCORE=-1.52 using global scores of TAG_LEVEL=1000.0 QUARANTINE_LEVEL=1000.0 KILL_LEVEL=9.0 tests=BSF_SC0_SA983
+X-Barracuda-Spam-Score: -2.02
+X-Barracuda-Spam-Status: No, SCORE=-2.02 using global scores of TAG_LEVEL=1000.0 QUARANTINE_LEVEL=1000.0 KILL_LEVEL=9.0 tests=
 X-Barracuda-Spam-Report: Code version 3.2, rules version 3.2.3.137756
 	Rule breakdown below
 	 pts rule name              description
 	---- ---------------------- --------------------------------------------------
-	0.50 BSF_SC0_SA983          Custom Rule BSF_SC0_SA983
 
+From: LeoLiuoc <LeoLiu-oc@zhaoxin.com>
 
+Call the func pci_acpi_program_hest_aer_params() for every PCIe device,
+the purpose of this function is to extract register value from HEST PCIe
+AER structures and program them into AER Capabilities. This function
+applies to all hardware platforms that has a PCI Express AER structure
+in HEST.
 
-=E5=9C=A8 2024/12/12 3:47, Yazen Ghannam =E5=86=99=E9=81=93:
->=20
->=20
-> [=E8=BF=99=E5=B0=81=E9=82=AE=E4=BB=B6=E6=9D=A5=E8=87=AA=E5=A4=96=E9=83=A8=
-=E5=8F=91=E4=BB=B6=E4=BA=BA =E8=B0=A8=E9=98=B2=E9=A3=8E=E9=99=A9]
->=20
-> On Thu, Dec 05, 2024 at 07:40:48PM +0800, LeoLiu-oc wrote:
->> From: LeoLiuoc <LeoLiu-oc@zhaoxin.com>
->>
->> Call the func pci_acpi_program_hest_aer_params() for every PCIe device,
->> the purpose of this function is to extract register value from HEST PCIe
->> AER structures and program them into AER Capabilities. This function
->> applies to all hardware platforms that has a PCI Express AER structure
->> in HEST.
->>
->> Signed-off-by: LeoLiuoc <LeoLiu-oc@zhaoxin.com>
->> ---
->>   drivers/pci/pci-acpi.c | 103 +++++++++++++++++++++++++++++++++++++++++
->>   drivers/pci/pci.h      |   9 ++++
->>   drivers/pci/probe.c    |   1 +
->>   3 files changed, 113 insertions(+)
->>
->> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
->> index af370628e583..6e29af8e6cc4 100644
->> --- a/drivers/pci/pci-acpi.c
->> +++ b/drivers/pci/pci-acpi.c
->> @@ -19,6 +19,7 @@
->>   #include <linux/pm_runtime.h>
->>   #include <linux/pm_qos.h>
->>   #include <linux/rwsem.h>
->> +#include <acpi/apei.h>
->>   #include "pci.h"
->>
->>   /*
->> @@ -806,6 +807,108 @@ int pci_acpi_program_hp_params(struct pci_dev *dev=
-)
->>        return -ENODEV;
->>   }
->>
->> +#ifdef CONFIG_ACPI_APEI
->> +/*
->> + * program_hest_aer_common() - configure AER common registers for Root =
-Ports,
->> + * Endpoints and PCIe to PCI/PCI-X bridges
->> + */
->> +static void program_hest_aer_common(struct acpi_hest_aer_common aer_com=
-mon,
->> +                                 struct pci_dev *dev, int pos)
->> +{
->> +     u32 uncor_mask;
->> +     u32 uncor_severity;
->> +     u32 cor_mask;
->> +     u32 adv_cap;
->> +
->> +     uncor_mask =3D aer_common.uncorrectable_mask;
->> +     uncor_severity =3D aer_common.uncorrectable_severity;
->> +     cor_mask =3D aer_common.correctable_mask;
->> +     adv_cap =3D aer_common.advanced_capabilities;
->> +
->=20
-> These can be done at the same time as the declarations. Same for the
-> remaining functions.
->=20
-These functions are called only in this pci-acpi.c file and should not=20
-require additional declarations.
+Signed-off-by: LeoLiuoc <LeoLiu-oc@zhaoxin.com>
+---
+ drivers/pci/pci-acpi.c | 90 ++++++++++++++++++++++++++++++++++++++++++
+ drivers/pci/pci.h      |  6 +++
+ drivers/pci/probe.c    |  1 +
+ 3 files changed, 97 insertions(+)
 
->> +     pci_write_config_dword(dev, pos + PCI_ERR_UNCOR_MASK, uncor_mask);
->> +     pci_write_config_dword(dev, pos + PCI_ERR_UNCOR_SEVER, uncor_sever=
-ity);
->> +     pci_write_config_dword(dev, pos + PCI_ERR_COR_MASK, cor_mask);
->> +     pci_write_config_dword(dev, pos + PCI_ERR_CAP, adv_cap);
->> +}
->> +
->> +static void program_hest_aer_root(struct acpi_hest_aer_root *aer_root,
->> +                               struct pci_dev *dev, int pos)
->> +{
->> +     u32 root_err_cmd;
->> +
->> +     root_err_cmd =3D aer_root->root_error_command;
->> +
->> +     pci_write_config_dword(dev, pos + PCI_ERR_ROOT_COMMAND, root_err_c=
-md);
->> +}
->> +
->> +static void program_hest_aer_bridge(struct acpi_hest_aer_bridge *hest_a=
-er_bridge,
->> +                                 struct pci_dev *dev, int pos)
->> +{
->> +     u32 uncor_mask2;
->> +     u32 uncor_severity2;
->> +     u32 adv_cap2;
->> +
->> +     uncor_mask2 =3D hest_aer_bridge->uncorrectable_mask2;
->> +     uncor_severity2 =3D hest_aer_bridge->uncorrectable_severity2;
->> +     adv_cap2 =3D hest_aer_bridge->advanced_capabilities2;
->> +
->> +     pci_write_config_dword(dev, pos + PCI_ERR_UNCOR_MASK2, uncor_mask2=
-);
->> +     pci_write_config_dword(dev, pos + PCI_ERR_UNCOR_SEVER2, uncor_seve=
-rity2);
->> +     pci_write_config_dword(dev, pos + PCI_ERR_CAP2, adv_cap2);
->> +}
->> +
->> +static void program_hest_aer_params(struct hest_parse_aer_info info)
->> +{
->> +     struct pci_dev *dev;
->> +     int port_type;
->> +     int pos;
->> +     struct acpi_hest_aer_root *hest_aer_root;
->> +     struct acpi_hest_aer *hest_aer_endpoint;
->> +     struct acpi_hest_aer_bridge *hest_aer_bridge;
->> +
->> +     dev =3D info.pci_dev;
->> +     port_type =3D pci_pcie_type(dev);
->> +     pos =3D pci_find_ext_capability(dev, PCI_EXT_CAP_ID_ERR);
->> +     if (!pos)
->> +             return;
->> +
->> +     switch (port_type) {
->> +     case PCI_EXP_TYPE_ROOT_PORT:
->> +             hest_aer_root =3D info.hest_aer_root_port;
->> +             program_hest_aer_common(hest_aer_root->aer, dev, pos);
->> +             program_hest_aer_root(hest_aer_root, dev, pos);
->> +     break;
->> +     case PCI_EXP_TYPE_ENDPOINT:
->> +             hest_aer_endpoint =3D info.hest_aer_endpoint;
->> +             program_hest_aer_common(hest_aer_endpoint->aer, dev, pos);
->> +     break;
->> +     case PCI_EXP_TYPE_PCI_BRIDGE:
->> +             hest_aer_bridge =3D info.hest_aer_bridge;
->> +             program_hest_aer_common(hest_aer_bridge->aer, dev, pos);
->> +             program_hest_aer_bridge(hest_aer_bridge, dev, pos);
->> +     break;
->> +     default:
->> +             return;
->> +     break;
->> +     }
->> +}
->> +
->> +int pci_acpi_program_hest_aer_params(struct pci_dev *dev)
->> +{
->> +     struct hest_parse_aer_info info =3D {
->> +             .pci_dev =3D dev
->> +     };
->> +
->> +     if (!pci_is_pcie(dev))
->> +             return -ENODEV;
->> +
->> +     if (apei_hest_parse(hest_parse_pcie_aer, &info) =3D=3D 1)
->=20
-> Don't need the "=3D=3D 1".
->=20
-The apei_hest_parse function may return an error value, data are written=20
-to the aer registers only if the device in hest_parse_pcie_aer() matches=20
-the correct hest aer structure information. It is necessary to check=20
-whether the return value of the apei_hest_parse function is equal to 1.
-
->> +             program_hest_aer_params(info);
->> +
->> +     return 0;
->> +}
->> +#endif
->> +
->>   /**
->>    * pciehp_is_native - Check whether a hotplug port is handled by the O=
-S
->>    * @bridge: Hotplug port to check
->> diff --git a/drivers/pci/pci.h b/drivers/pci/pci.h
->> index 2e40fc63ba31..78bdc121c905 100644
->> --- a/drivers/pci/pci.h
->> +++ b/drivers/pci/pci.h
->> @@ -897,6 +897,15 @@ static inline void pci_save_aer_state(struct pci_de=
-v *dev) { }
->>   static inline void pci_restore_aer_state(struct pci_dev *dev) { }
->>   #endif
->>
->> +#ifdef CONFIG_ACPI_APEI
->> +int pci_acpi_program_hest_aer_params(struct pci_dev *dev);
->=20
-> The return value is never checked, so this can return void.
->=20
-Ok, I agree with you, I will modify it in the next version.
-
->> +#else
->> +static inline int pci_acpi_program_hest_aer_params(struct pci_dev *dev)
->> +{
->> +     return 0;
->> +}
->> +#endif
->> +
->>   #ifdef CONFIG_ACPI
->>   bool pci_acpi_preserve_config(struct pci_host_bridge *bridge);
->>   int pci_acpi_program_hp_params(struct pci_dev *dev);
->> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
->> index 2e81ab0f5a25..33b8b46ca554 100644
->> --- a/drivers/pci/probe.c
->> +++ b/drivers/pci/probe.c
->> @@ -2304,6 +2304,7 @@ static void pci_configure_device(struct pci_dev *d=
-ev)
->>        pci_configure_serr(dev);
->>
->>        pci_acpi_program_hp_params(dev);
->> +     pci_acpi_program_hest_aer_params(dev);
->=20
-> This should not be called here unconditionally.
->=20
-> OS should only write AER registers if granted permission through
-> _OSC.
->=20
-> It would be more appropriate to call this from pci_aer_init().
->=20
-> Thanks,
-> Yazen
-The question about whether OS has control of AER to write the=20
-information in the HEST AER structure to the AER register of the=20
-corresponding device has been discussed, see the link for more details:=20
-https://lore.kernel.org/all/a3a603ef-b813-4798-bb54-62076d53bd3a@zhaoxin.co=
-m/
-
-It is inappropriate to add the pci_acpi_program_hest_aer_params function=20
-to the pci_aer_init function=EF=BC=8CThe reason for this is that no involve=
-ment=20
-of the AER driver.
-
-Leoliu-oc
-Best Regards
+diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+index af370628e583..2e9a50fc7433 100644
+--- a/drivers/pci/pci-acpi.c
++++ b/drivers/pci/pci-acpi.c
+@@ -19,6 +19,7 @@
+ #include <linux/pm_runtime.h>
+ #include <linux/pm_qos.h>
+ #include <linux/rwsem.h>
++#include <acpi/apei.h>
+ #include "pci.h"
+=20
+ /*
+@@ -806,6 +807,95 @@ int pci_acpi_program_hp_params(struct pci_dev *dev)
+ 	return -ENODEV;
+ }
+=20
++#ifdef CONFIG_ACPI_APEI
++/*
++ * program_hest_aer_common() - configure AER common registers for Root Por=
+ts,
++ * Endpoints and PCIe to PCI/PCI-X bridges
++ */
++static void program_hest_aer_common(struct acpi_hest_aer_common aer_common=
+, struct pci_dev *dev,
++				    int pos)
++{
++	u32 uncor_mask =3D aer_common.uncorrectable_mask;
++	u32 uncor_severity =3D aer_common.uncorrectable_severity;
++	u32 cor_mask =3D aer_common.correctable_mask;
++	u32 adv_cap =3D aer_common.advanced_capabilities;
++
++	pci_write_config_dword(dev, pos + PCI_ERR_UNCOR_MASK, uncor_mask);
++	pci_write_config_dword(dev, pos + PCI_ERR_UNCOR_SEVER, uncor_severity);
++	pci_write_config_dword(dev, pos + PCI_ERR_COR_MASK, cor_mask);
++	pci_write_config_dword(dev, pos + PCI_ERR_CAP, adv_cap);
++}
++
++static void program_hest_aer_root(struct acpi_hest_aer_root *aer_root, str=
+uct pci_dev *dev, int pos)
++{
++	u32 root_err_cmd =3D aer_root->root_error_command;
++
++	pci_write_config_dword(dev, pos + PCI_ERR_ROOT_COMMAND, root_err_cmd);
++}
++
++static void program_hest_aer_bridge(struct acpi_hest_aer_bridge *hest_aer_=
+bridge,
++				    struct pci_dev *dev, int pos)
++{
++	u32 uncor_mask2 =3D hest_aer_bridge->uncorrectable_mask2;
++	u32 uncor_severity2 =3D hest_aer_bridge->uncorrectable_severity2;
++	u32 adv_cap2 =3D hest_aer_bridge->advanced_capabilities2;
++
++	pci_write_config_dword(dev, pos + PCI_ERR_UNCOR_MASK2, uncor_mask2);
++	pci_write_config_dword(dev, pos + PCI_ERR_UNCOR_SEVER2, uncor_severity2);
++	pci_write_config_dword(dev, pos + PCI_ERR_CAP2, adv_cap2);
++}
++
++static void program_hest_aer_params(struct hest_parse_aer_info info)
++{
++	struct pci_dev *dev;
++	int port_type;
++	int pos;
++	struct acpi_hest_aer_root *hest_aer_root;
++	struct acpi_hest_aer *hest_aer_endpoint;
++	struct acpi_hest_aer_bridge *hest_aer_bridge;
++
++	dev =3D info.pci_dev;
++	port_type =3D pci_pcie_type(dev);
++	pos =3D pci_find_ext_capability(dev, PCI_EXT_CAP_ID_ERR);
++	if (!pos)
++		return;
++
++	switch (port_type) {
++	case PCI_EXP_TYPE_ROOT_PORT:
++		hest_aer_root =3D (struct acpi_hest_aer_root *)info.data;
++		program_hest_aer_common(hest_aer_root->aer, dev, pos);
++		program_hest_aer_root(hest_aer_root, dev, pos);
++		break;
++	case PCI_EXP_TYPE_ENDPOINT:
++		hest_aer_endpoint =3D (struct acpi_hest_aer *)info.data;
++		program_hest_aer_common(hest_aer_endpoint->aer, dev, pos);
++		break;
++	case PCI_EXP_TYPE_PCI_BRIDGE:
++		hest_aer_bridge =3D (struct acpi_hest_aer_bridge *)info.data;
++		program_hest_aer_common(hest_aer_bridge->aer, dev, pos);
++		program_hest_aer_bridge(hest_aer_bridge, dev, pos);
++		break;
++	default:
++		break;
++	}
++}
++
++void pci_acpi_program_hest_aer_params(struct pci_dev *dev)
++{
++	struct hest_parse_aer_info info =3D {
++		.pci_dev =3D dev
++	};
++
++	if (!pci_is_pcie(dev))
++		return;
++
++	if (apei_hest_parse(hest_parse_pcie_aer, &info) > 0)
++		program_hest_aer_params(info);
++
++	return;
++}
++#endif
++
+ /**
+  * pciehp_is_native - Check whether a hotplug port is handled by the OS
+  * @bridge: Hotplug port to check
+diff --git a/drivers/pci/pci.h b/drivers/pci/pci.h
+index 01e51db8d285..6ce44a2a3a69 100644
+--- a/drivers/pci/pci.h
++++ b/drivers/pci/pci.h
+@@ -902,6 +902,12 @@ static inline void pci_save_aer_state(struct pci_dev *=
+dev) { }
+ static inline void pci_restore_aer_state(struct pci_dev *dev) { }
+ #endif
+=20
++#ifdef CONFIG_ACPI_APEI
++void pci_acpi_program_hest_aer_params(struct pci_dev *dev);
++#else
++static inline void pci_acpi_program_hest_aer_params(struct pci_dev *dev){ =
+}
++#endif
++
+ #ifdef CONFIG_ACPI
+ bool pci_acpi_preserve_config(struct pci_host_bridge *bridge);
+ int pci_acpi_program_hp_params(struct pci_dev *dev);
+diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+index 246744d8d268..40ef918c049c 100644
+--- a/drivers/pci/probe.c
++++ b/drivers/pci/probe.c
+@@ -2352,6 +2352,7 @@ static void pci_configure_device(struct pci_dev *dev)
+ 	pci_configure_serr(dev);
+=20
+ 	pci_acpi_program_hp_params(dev);
++	pci_acpi_program_hest_aer_params(dev);
+ }
+=20
+ static void pci_release_capabilities(struct pci_dev *dev)
+--=20
+2.34.1
 
