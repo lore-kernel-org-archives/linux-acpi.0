@@ -1,138 +1,180 @@
-Received: from linux1587.grserver.gr (linux1587.grserver.gr [185.138.42.100])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87F5525BAA0;
-	Wed, 26 Feb 2025 22:15:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.138.42.100
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id F401A19597F;
+	Wed, 26 Feb 2025 23:08:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740608145; cv=none; b=gxFQY9wl26Ui1tg93tD3bzYao7AWaBdSnPogGCp3j/LhbFwIt/BI+kZohNK5j8raFwZKOil4oIVgcZQWWs8KN8jcxnQ10Pw+z0mCZKQbethrSs5OdT1ofX17yJjBMVwTIDx8qMl5sovTXiwStrhfcLAv/Do4ROFV8AxO/e1ZeD0=
+	t=1740611340; cv=none; b=l93cbCSuq1ak/Fs0fzvKmbscknQifohEccsigjauQL18s9RHaG4PScCWe27ZN/CSxbhfMHHaLmQIJBffpUMhda7OQ99ydGyiTFnbYW2J4cTeP3wc32TYxRMOFLxTydETf0/QxQ7br9582Xhhzsvvi+AUI2SK5/aBcQCElBieEjI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740608145; c=relaxed/simple;
-	bh=nB+jmAHxPZ3soQmc5wLgDtK8Av2gzHEq4MFA/UQ0nAA=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=cxwLrXLNF1lX/lP00AIuIhdVrtGlNqPgf9hfmhhpeP1sO9a8n6Aabqoi2KzdWuQ+IpVIKf4/OiqvVDwqcz0+jkLYqvaT0xtSXKcBk2OW8/+G2+mOi8retCuXUU2ff2l24aq5PSjb/SwWZP0CJaHZ7oC+TwhKBV7hFI52NGsxx2I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=antheas.dev; spf=pass smtp.mailfrom=antheas.dev; dkim=pass (1024-bit key) header.d=antheas.dev header.i=@antheas.dev header.b=2P7POLzv; arc=none smtp.client-ip=185.138.42.100
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=antheas.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=antheas.dev
+	s=arc-20240116; t=1740611340; c=relaxed/simple;
+	bh=ZebPFwCxMEWBUraXVn7cAy7LhzzBqgUECRkpu1XPMkE=;
+	h=From:To:Cc:Subject:Date:Message-Id; b=iJHywbTcr0MYTI4AA+YUqPu2zZWlwCRNGTg2Yz9PICign6nZEGfTDeQIwxd6V0fkewcT9b/wZoAsD3z+vkHl6XdDah0ZdwVqDxzUZ0IOrhylTFyoOIkSWiqVaty+/2f8+0yEcK5IaIz2FynIhVQP06PdiEdYvAP2WunN2dPocMg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=UKMSUvEv; arc=none smtp.client-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=antheas.dev header.i=@antheas.dev header.b="2P7POLzv"
-Received: from mail-lj1-f174.google.com (mail-lj1-f174.google.com [209.85.208.174])
-	by linux1587.grserver.gr (Postfix) with ESMTPSA id 49D992E08410;
-	Thu, 27 Feb 2025 00:15:31 +0200 (EET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=antheas.dev;
-	s=default; t=1740608131;
-	bh=VgIwtkMZ00hXOGNLHlqyEU83xt25hqz8jtzstHZ0Rbo=;
-	h=Received:From:Subject:To;
-	b=2P7POLzvQF3ldZmQNpUlDEFHdn0IgH8qKgCOmnUTM3OVCKMov+Y4ix8k1TuzJyKjF
-	 ejkfIwUpm63e0H48uLRXS7s1dQAeVlAq976pudNSQglUvw/Zg0cfvQQOkmus8pqsGi
-	 L2iqIYJ0imAwPkR4RlhEaJ4ytgCMtfQ6j6kdcBh4=
-Authentication-Results: linux1587.grserver.gr;
-        spf=pass (sender IP is 209.85.208.174) smtp.mailfrom=lkml@antheas.dev smtp.helo=mail-lj1-f174.google.com
-Received-SPF: pass (linux1587.grserver.gr: connection is authenticated)
-Received: by mail-lj1-f174.google.com with SMTP id
- 38308e7fff4ca-30613802a6bso3677941fa.1;
-        Wed, 26 Feb 2025 14:15:31 -0800 (PST)
-X-Forwarded-Encrypted: i=1;
- AJvYcCWC/VeId7UW2g0rq3aKHg0Dbwo8w+1i8hvXGSCgLaINgtUizuL7yCaoDcHWuU6ikhzWEQuBSJnIIUzqpU3vQ4l30NL0jw==@vger.kernel.org,
- AJvYcCXFb1Z5hxbFf0PJNBvvHd4C7UUQIxBPrQ0faAF1f7vLMqAtDC7qcidA6ApVWl/BslS8b0ZIWUKIGmAS@vger.kernel.org,
- AJvYcCXh1Ug0b9tAHmHAUuDmyXarW+ebGELeyH+S7D0Lp2JXOYLJE2KUMP865YBwBejckuwaBOUHi7BT7uSTPO+F@vger.kernel.org
-X-Gm-Message-State: AOJu0YyqtzEVj4qHg4EZvAUrxz6WgGkrTa0IqzNlM8kFnrdnnvLA5ze7
-	NyzMj3S7ikiv1cPUlZW21vBw8McAoij+XklJxFhWeRXORcejmWA/Qio4X2rGB7TDKqw7YEaJu/U
-	xAcKJXzmfI7eq44RH37qwbABImUU=
-X-Google-Smtp-Source: 
- AGHT+IFg4wyGK6VF2wjPjpIZ8OKnRzWWaJZk6o/Gjb7Is6KTQDwhUqgOfMyd55qPLWosSWcc5Up9ckS22GBNFVqu8cQ=
-X-Received: by 2002:a2e:968b:0:b0:304:68e5:eabd with SMTP id
- 38308e7fff4ca-30a80c0f0admr41386401fa.3.1740608130090; Wed, 26 Feb 2025
- 14:15:30 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="UKMSUvEv"
+Received: from linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net (linux.microsoft.com [13.77.154.182])
+	by linux.microsoft.com (Postfix) with ESMTPSA id 7463B210EAC2;
+	Wed, 26 Feb 2025 15:08:58 -0800 (PST)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 7463B210EAC2
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1740611338;
+	bh=lWL9w60RgCFJvxxxcjzNA366fYz5ZKlmrqBqiOc+Q/g=;
+	h=From:To:Cc:Subject:Date:From;
+	b=UKMSUvEv3THtmb9g5aJiCCDyMciP7ngSYzLOlZsEfYIlPXKPGvB2TRsNtJmqddGYU
+	 tH11c73Be9Yhta0hqTigHkzGT2UnIsvlEVX3bbhRoIlC/pLu04nIm977y8hCo9IvUo
+	 Tw6a0qyunjQu8u67QPyY/bCTHgaRgpP2difIJaac=
+From: Nuno Das Neves <nunodasneves@linux.microsoft.com>
+To: linux-hyperv@vger.kernel.org,
+	x86@kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org,
+	linux-arch@vger.kernel.org,
+	linux-acpi@vger.kernel.org
+Cc: kys@microsoft.com,
+	haiyangz@microsoft.com,
+	wei.liu@kernel.org,
+	mhklinux@outlook.com,
+	decui@microsoft.com,
+	catalin.marinas@arm.com,
+	will@kernel.org,
+	tglx@linutronix.de,
+	mingo@redhat.com,
+	bp@alien8.de,
+	dave.hansen@linux.intel.com,
+	hpa@zytor.com,
+	daniel.lezcano@linaro.org,
+	joro@8bytes.org,
+	robin.murphy@arm.com,
+	arnd@arndb.de,
+	jinankjain@linux.microsoft.com,
+	muminulrussell@gmail.com,
+	skinsburskii@linux.microsoft.com,
+	mrathor@linux.microsoft.com,
+	ssengar@linux.microsoft.com,
+	apais@linux.microsoft.com,
+	Tianyu.Lan@microsoft.com,
+	stanislav.kinsburskiy@gmail.com,
+	gregkh@linuxfoundation.org,
+	vkuznets@redhat.com,
+	prapal@linux.microsoft.com,
+	muislam@microsoft.com,
+	anrayabh@linux.microsoft.com,
+	rafael@kernel.org,
+	lenb@kernel.org,
+	corbet@lwn.net
+Subject: [PATCH v5 00/10] Introduce /dev/mshv root partition driver
+Date: Wed, 26 Feb 2025 15:07:54 -0800
+Message-Id: <1740611284-27506-1-git-send-email-nunodasneves@linux.microsoft.com>
+X-Mailer: git-send-email 1.8.3.1
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <20250224195059.10185-1-lkml@antheas.dev>
- <1c0c988b-8fe6-4857-9556-6ac6880b76ff@app.fastmail.com>
- <633bbd2d5469db5595f66c9eb6ea3172ab7c56b7.camel@ljones.dev>
- <CAGwozwGmDHMRbURuCvWsk8VTJEf-eFXTh+mamB1sKaHX5DO8WA@mail.gmail.com>
- <9fa91732-3085-4e79-9a8f-b38263ee7d08@gmx.de>
- <CAGwozwHZCLaVD8iRgRxvQNqw3v+T9J+omMF+JoNe1r=+S1-OsA@mail.gmail.com>
- <CAGwozwEEbsLOJROm7rW-240Zoqh3K_JOtZE_NL8AnLy1eChR6A@mail.gmail.com>
- <CAJZ5v0jpSN_Tq6D3OrRj5KDuXwqVuzcwyNXwEuL90fr=juH48g@mail.gmail.com>
- <CAGwozwHAKbR4y9cW8H0nmESS7yv6RrXtgcZyEdz1Wy2e8tAdqQ@mail.gmail.com>
- <CAJZ5v0ihavOHCzfqMc7nd7HUaxYta7-vBBTo6WoJ3gDduZ6iRA@mail.gmail.com>
-In-Reply-To: 
- <CAJZ5v0ihavOHCzfqMc7nd7HUaxYta7-vBBTo6WoJ3gDduZ6iRA@mail.gmail.com>
-From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Wed, 26 Feb 2025 23:15:16 +0100
-X-Gmail-Original-Message-ID: 
- <CAGwozwEkGDfhUoCSM6eA-1QN3-pCixT-YVPBNY4bLUZYxvff8Q@mail.gmail.com>
-X-Gm-Features: AQ5f1JqPcnpjoEwypmX0Ot_L-bCpE2CHv_Ze7HXHX5i7ZuRYsRKVxaYGbPY5yHs
-Message-ID: 
- <CAGwozwEkGDfhUoCSM6eA-1QN3-pCixT-YVPBNY4bLUZYxvff8Q@mail.gmail.com>
-Subject: Re: [PATCH 0/3] ACPI: platform_profile: fix legacy sysfs with
- multiple handlers
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Armin Wolf <W_Armin@gmx.de>, Luke Jones <luke@ljones.dev>,
-	Mark Pearson <mpearson-lenovo@squebb.ca>,
-	"Limonciello, Mario" <mario.limonciello@amd.com>,
-	=?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
-	Len Brown <lenb@kernel.org>,
- "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-	linux-kernel@vger.kernel.org,
-	"platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>,
- Hans de Goede <hdegoede@redhat.com>,
-	me@kylegospodneti.ch
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-X-PPP-Message-ID: 
- <174060813166.13020.1806907721096684722@linux1587.grserver.gr>
-X-PPP-Vhost: antheas.dev
-X-Virus-Scanned: clamav-milter 0.103.11 at linux1587.grserver.gr
-X-Virus-Status: Clean
 
-On Wed, 26 Feb 2025 at 21:04, Rafael J. Wysocki <rafael@kernel.org> wrote:
->
-> Top-posting not welcome.
+This series introduces support for creating and running guest virtual
+machines while running on the Microsoft Hypervisor[0] as root partition.
+This is done via an IOCTL interface accessed through /dev/mshv, similar to
+/dev/kvm. Another series introducing this support was previously posted in
+2021[1], and v4 of this series was last posted in 2023[2].
 
-?
+Patches 1-4 are small refactors and additions to Hyper-V code.
+Patches 5-6 just export some definitions needed by /dev/mshv.
+Patches 7-9 introduce some functionality and definitions in common code, that
+is needed by the driver.
+Patch 10 contains the driver code.
 
-> On Wed, Feb 26, 2025 at 8:52=E2=80=AFPM Antheas Kapenekakis <lkml@antheas=
-.dev> wrote:
-> > >
-> > > What about adding "quiet" as a "hidden choice" to amd-pmf such that i=
-t
-> > > would allow the test_bit(*bit, handler->choices) check in
-> > > _store_class_profile() to pass, but it would not cause this "choice"
-> > > to become visible in the new I/F (or when amd-pmf becomes the only
-> > > platform-profile driver) and it would be aliased to "low-power"
-> > > internally?
-> >
-> > This is what this patch series essentially does. It makes amd-pmf
-> > accept all choices but only show its own in its own handler and when
-> > it is the only option
->
-> No, it does more than this.
+-----------------
+[0] "Hyper-V" is more well-known, but it really refers to the whole stack
+    including the hypervisor and other components that run in Windows
+    kernel and userspace.
+[1] Previous /dev/mshv patch series (2021) and discussion:
+https://lore.kernel.org/linux-hyperv/1632853875-20261-1-git-send-email-nunodasneves@linux.microsoft.com/
+[2] v4 (2023):
+https://lore.kernel.org/linux-hyperv/1696010501-24584-1-git-send-email-nunodasneves@linux.microsoft.com/
 
-I would say functionality-wise no. The patch could be minified further.
+-----------------
+Changes since v4:
+* Slim down the IOCTL interface significantly, via several means:
+  1. Use generic "passthrough" call MSHV_ROOT_HVCALL to replace many ioctls.
+  2. Use MSHV_* versions of some of the HV_* definitions.
+  3. Move hv headers out of uapi altogether, into include/hyperv/, see:
+https://lore.kernel.org/linux-hyperv/1732577084-2122-1-git-send-email-nunodasneves@linux.microsoft.com/
+* Remove mshv_vtl module altogther, it will be posted in followup series
+  * Also remove the parent "mshv" module which didn't serve much purpose
+* Update and refactor parts of the driver code for clarity, extensibility
 
->  For instance, it is not necessary to do
-> anything about PLATFORM_PROFILE_BALANCED_PERFORMANCE in it.
+Changes since v3 (summarized):
+* Clean up the error and debug logging:
+  1. Add a set of macros vp_*() and partition_*() which call the equivalent
+     dev_*(), passing the device from the partition struct
+     * The new macros also print the partition and vp ids to aid debugging
+	   and reduce repeated code
+  2. Use dev_*() (mostly via the new macros) instead of pr_*() *almost*
+  everywhere - in interrupt context we can't always get the device struct
+  3. Remove pr_*() logging from hv_call.c and mshv_root_hv_call.c
 
-I do not see a difference between QUIET and BALANCED_PERFORMANCE, any
-driver occluding either causes the same issue. Severity is debatably
-lower on BP though.
+Changes since v2 (summarized):
+* Fix many checkpatch.pl --strict style issues
+* Initialize status in get/set registers hypercall helpers
+* Add missing return on error in get_vp_signaled_count
 
-> The structure of it is questionable either.  It really should be two
-> patches, one modifying the ACPI platform-profile driver and the other
-> changing amd-pmf on top of this.
+Changes since v1 (summarized):
+* Clean up formatting, commit messages
 
-Ack. I can spin it up as 2 patches.
+Nuno Das Neves (9):
+  hyperv: Convert Hyper-V status codes to strings
+  arm64/hyperv: Add some missing functions to arm64
+  hyperv: Introduce hv_recommend_using_aeoi()
+  acpi: numa: Export node_to_pxm()
+  Drivers/hv: Export some functions for use by root partition module
+  Drivers: hv: Introduce per-cpu event ring tail
+  x86: hyperv: Add mshv_handler irq handler and setup function
+  hyperv: Add definitions for root partition driver to hv headers
+  Drivers: hv: Introduce mshv_root module to expose /dev/mshv to VMMs
 
-> Moreover, I'm not entirely convinced that the "secondary" driver
-> concept is needed to address the problem at hand.
+Stanislav Kinsburskii (1):
+  x86/mshyperv: Add support for extended Hyper-V features
 
-Any suggestions on that front would be welcome. This is just the way I
-came up with doing it.
+ .../userspace-api/ioctl/ioctl-number.rst      |    2 +
+ arch/arm64/hyperv/hv_core.c                   |   17 +
+ arch/arm64/hyperv/mshyperv.c                  |    1 +
+ arch/arm64/include/asm/mshyperv.h             |   12 +
+ arch/x86/kernel/cpu/mshyperv.c                |   16 +-
+ drivers/acpi/numa/srat.c                      |    1 +
+ drivers/hv/Makefile                           |    5 +-
+ drivers/hv/hv.c                               |   12 +-
+ drivers/hv/hv_common.c                        |  105 +-
+ drivers/hv/hv_proc.c                          |   16 +-
+ drivers/hv/mshv.h                             |   30 +
+ drivers/hv/mshv_common.c                      |  161 ++
+ drivers/hv/mshv_eventfd.c                     |  833 ++++++
+ drivers/hv/mshv_eventfd.h                     |   71 +
+ drivers/hv/mshv_irq.c                         |  128 +
+ drivers/hv/mshv_portid_table.c                |   84 +
+ drivers/hv/mshv_root.h                        |  321 +++
+ drivers/hv/mshv_root_hv_call.c                |  876 +++++++
+ drivers/hv/mshv_root_main.c                   | 2329 +++++++++++++++++
+ drivers/hv/mshv_synic.c                       |  665 +++++
+ include/asm-generic/mshyperv.h                |   18 +
+ include/hyperv/hvgdk_mini.h                   |   64 +-
+ include/hyperv/hvhdk.h                        |  132 +-
+ include/hyperv/hvhdk_mini.h                   |   91 +
+ include/uapi/linux/mshv.h                     |  287 ++
+ 25 files changed, 6248 insertions(+), 29 deletions(-)
+ create mode 100644 drivers/hv/mshv.h
+ create mode 100644 drivers/hv/mshv_common.c
+ create mode 100644 drivers/hv/mshv_eventfd.c
+ create mode 100644 drivers/hv/mshv_eventfd.h
+ create mode 100644 drivers/hv/mshv_irq.c
+ create mode 100644 drivers/hv/mshv_portid_table.c
+ create mode 100644 drivers/hv/mshv_root.h
+ create mode 100644 drivers/hv/mshv_root_hv_call.c
+ create mode 100644 drivers/hv/mshv_root_main.c
+ create mode 100644 drivers/hv/mshv_synic.c
+ create mode 100644 include/uapi/linux/mshv.h
 
-Best,
-Antheas
+-- 
+2.34.1
+
