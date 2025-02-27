@@ -1,20 +1,20 @@
-Received: from invmail4.hynix.com (exvmail4.hynix.com [166.125.252.92])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id A2CBE17A2F7;
-	Thu, 27 Feb 2025 02:32:31 +0000 (UTC)
+Received: from invmail4.hynix.com (exvmail4.skhynix.com [166.125.252.92])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 01E7F433C8;
+	Thu, 27 Feb 2025 03:20:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=166.125.252.92
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740623558; cv=none; b=P7/RXIYU9ALKoQydZAIW5dBzEfo5hZvIAjAZQwc6s+gmwu5tLoOrhQuRTb9g/cYkHlawLB0vPgbHwfxhRNu73DTj+iGUi9GBh920VKjVvT+232tEHV5DUA4GZbgBpbERUybb2O0cl6o2Wds+MTmWwwp8xzh+FjDoQ2Icq1fLU9o=
+	t=1740626414; cv=none; b=ClMav7odxlCnFIrvYfMyHWD+wj8rylx4w5xQbJ+Y1Z1QMDBi2N2LonWyWQ+tuLFMyUAieZV8eDAiKGRG4ew/xY/+q5ShfrcJpJXeyTE1uyn9bJZ+xTThkh786SlCFCcJPvSeLZh0SyA0C3HjGFnMYlb0juqJjPVMPqLIo1rcG0Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740623558; c=relaxed/simple;
-	bh=rcZzV1+yyOYgRs0JzYcXNOpIDUWuhSnP4b3WaJ28ETQ=;
-	h=Message-ID:Date:MIME-Version:Cc:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=fTawSKTYCOXgwROa3z09JlANqhlA2t8SZcZSc/g7mkhX4Pg2/BmnP4JJG8swpadvwNv0R6EhLCfLTnW2IyWubD2lm/FsK5Ce0TeZg3nS0F4az79lJMPaX/w/5xQK9TRVp8a+DKpYexB50HtNl4qlNx0XIll8TypDfg6kjCl0XKc=
+	s=arc-20240116; t=1740626414; c=relaxed/simple;
+	bh=R1oUGUJ3OqUHv0YN/Ju4WgkqxoyLksUqGo2pit4ydF4=;
+	h=Message-ID:Date:MIME-Version:Cc:Subject:From:To:References:
+	 In-Reply-To:Content-Type; b=M80bLhKAsDUe+TnuiAK9GawNn2ObWG/y4ochw/gKm8mPjhzS5Rlk2X2+TLqf25wD4lEn0x3xnBs779gif/W8uzMzCU6CRrphjBSU8sHZ8U4rvoTLjaitwDjLmetvL+3xtu0IlSoAwAR4rQxqPBgN2xxYa+q8CTpaFkIXooGxzAs=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sk.com; spf=pass smtp.mailfrom=sk.com; arc=none smtp.client-ip=166.125.252.92
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sk.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sk.com
-X-AuditID: a67dfc5b-3e1ff7000001d7ae-21-67bfcebd10c6
-Message-ID: <b8ac8654-92bd-4c08-a3fc-e28a7be5e0e6@sk.com>
-Date: Thu, 27 Feb 2025 11:32:26 +0900
+X-AuditID: a67dfc5b-3e1ff7000001d7ae-83-67bfd9e6a2cf
+Message-ID: <c43c64f4-e697-468e-80af-87bd02a95ba2@sk.com>
+Date: Thu, 27 Feb 2025 12:20:03 +0900
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -31,115 +31,133 @@ Cc: kernel_team@skhynix.com, gregkh@linuxfoundation.org, rakie.kim@sk.com,
 Subject: Re: [PATCH 2/2 v6] mm/mempolicy: Don't create weight sysfs for
  memoryless nodes
 Content-Language: ko
+From: Honggyu Kim <honggyu.kim@sk.com>
 To: Joshua Hahn <joshua.hahnjy@gmail.com>, gourry@gourry.net,
  harry.yoo@oracle.com, ying.huang@linux.alibaba.com
 References: <20250226213518.767670-1-joshua.hahnjy@gmail.com>
  <20250226213518.767670-2-joshua.hahnjy@gmail.com>
-From: Honggyu Kim <honggyu.kim@sk.com>
-In-Reply-To: <20250226213518.767670-2-joshua.hahnjy@gmail.com>
+ <b8ac8654-92bd-4c08-a3fc-e28a7be5e0e6@sk.com>
+In-Reply-To: <b8ac8654-92bd-4c08-a3fc-e28a7be5e0e6@sk.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFjrNIsWRmVeSWpSXmKPExsXC9ZZnoe7ec/vTDZZcMbeYs34Nm8X0qRcY
+Content-Transfer-Encoding: 8bit
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFjrFIsWRmVeSWpSXmKPExsXC9ZZnoe6zm/vTDX6d4LeYs34Nm8X0qRcY
 	LU7cbGSz+Hn3OLtF8+L1bBarN/la3F/2jMXidv85VotVC6+xWRzfOo/dYt9FoIadD9+yWSzf
 	189ocXnXHDaLe2v+s1rM/TKV2WL1mgwHQY/Db94ze+ycdZfdo7vtMrtHy5G3rB6L97xk8ti0
 	qpPNY9OnSeweJ2b8ZvHY+dDSY2HDVGaP/XPXsHucu1jh8fHpLRaPz5vkAviiuGxSUnMyy1KL
-	9O0SuDLmX9vMWtArUrFvk2wD4yy+LkZODgkBE4l/H1oZYey3u7ewg9i8ApYS2zd9YQKxWQRU
-	Ja437GGBiAtKnJz5BMwWFZCXuH9rBlA9FwezQAuzxKRTq5hBEsICURI7X/0Fa2YWEJGY3dkG
-	FhcRKJI4PuMz2DIhgUKJq3v7wWw2ATWJKy8ngdVzCthJfP/XwALRaybRtbWLEcKWl9j+dg4z
-	yDIJgUvsEgc6trNAXC0pcXDFDZYJjIKzkBw4C8nuWUhmzUIyawEjyypGocy8stzEzBwTvYzK
-	vMwKveT83E2MwCheVvsnegfjpwvBhxgFOBiVeHgjxPenC7EmlhVX5h5ilOBgVhLh5czcky7E
-	m5JYWZValB9fVJqTWnyIUZqDRUmc1+hbeYqQQHpiSWp2ampBahFMlomDU6qBccnziKnchY8+
-	tHfVqh6SqeN0jzQoyNpnMuO+9lwj1t6b9zzSdQx/T/i48V6n7oI1z2+d59q69//2KXd/N7G2
-	/L9+sOjl4ZMvDrjKqCr90/WZI/JO/9SCR5f1xSz1k6Jsd+XPPVe0bOq6z3a2kR9+SPhKspy4
-	/OT39u3+Ll8mCKot1Xq+bOvM5SFKLMUZiYZazEXFiQC7PhKr3gIAAA==
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFjrAIsWRmVeSWpSXmKPExsXCNUNLT3fvuf3pBjc6dCzmrF/DZjF96gVG
-	ixM3G9ksft49zm7RvHg9m8XqTb4W95c9Y7G43X+O1WLVwmtsFse3zmO32HcRqOHw3JOsFjsf
-	vmWzWL6vn9Hi8q45bBb31vxntZj7ZSqzxaFrz1ktVq/JsPi9bQWbg4jH4TfvmT12zrrL7tHd
-	dpndo+XIW1aPxXteMnlsWtXJ5rHp0yR2jxMzfrN47Hxo6bGwYSqzx/65a9g9zl2s8Pj49BaL
-	x7fbHh6LX3xg8vi8SS5AIIrLJiU1J7MstUjfLoErY/61zawFvSIV+zbJNjDO4uti5OSQEDCR
-	eLt7CzuIzStgKbF90xcmEJtFQFXiesMeFoi4oMTJmU/AbFEBeYn7t2YA1XNxMAu0MEtMOrWK
-	GSQhLBAlsfPVX7BmZgERidmdbWBxEYEiieMzPjOC2EIChRJX9/aD2WwCahJXXk4Cq+cUsJP4
-	/q+BBaLXTKJraxcjhC0vsf3tHOYJjHyzkNwxC8mKWUhaZiFpWcDIsopRJDOvLDcxM8dUrzg7
-	ozIvs0IvOT93EyMwXpfV/pm4g/HLZfdDjAIcjEo8vBHi+9OFWBPLiitzDzFKcDArifByZu5J
-	F+JNSaysSi3Kjy8qzUktPsQozcGiJM7rFZ6aICSQnliSmp2aWpBaBJNl4uCUamDMFIib5Gk3
-	k5v/NMe01Yfnavur5qyY2/HmNfv3R00Khz+rP+XhKHrPlqjX1Ll9VbjBkd8bA/PtCiV5Vz3S
-	4Wb4W9R1oGyRnd4P1oPnNv+POnuQdR0L69YdRT9ufd3+d+WVOcdM9/pKPVEQUvjVxbSp5mCu
-	6hRpH/n/NxdWm7h+W+tdcHrNxZnWSizFGYmGWsxFxYkAqqI149MCAAA=
+	9O0SuDI27MoouC9VMbWtha2B8aZoFyMnh4SAicTH3q9sXYwcYPa0AwIgYV4BS4nnXU/ZQWwW
+	AVWJ/193sEHEBSVOznzCAmKLCshL3L81A6iGi4NZoIVZYtKpVcwgCWGBKImdr/4ygdjMAiIS
+	szvbwOJsAmoSV15OAouLCBRJHJ/xmRGkWUhgIaPErJ4HLCBHcApYSZw6zAHRaybRtbWLEcKW
+	l2jeOpsZpF5C4Bq7xOynU9khHpCUOLjiBssERsFZSA6chWT3LCSzZiGZtYCRZRWjUGZeWW5i
+	Zo6JXkZlXmaFXnJ+7iZGYAwvq/0TvYPx04XgQ4wCHIxKPLwR4vvThVgTy4orcw8xSnAwK4nw
+	cmbuSRfiTUmsrEotyo8vKs1JLT7EKM3BoiTOa/StPEVIID2xJDU7NbUgtQgmy8TBKdXAuEJD
+	47rW7e49RrxxOU83GGr8cDjVv+gc92oZ3gnBDEZ3O/Pkv82XPFTwaGvWyu3c0nIlq8W1H6w8
+	98E0xrtCr3+K0uuVuXuaom1Pqfc73NeLDrBk2ChouOv5rHdum/Ut9l+6u2oBT0Abs8jR3UK7
+	MiWztj7gv3J1/7SdZ2K8Zz9bYcH5V8VzvhJLcUaioRZzUXEiAOhEgyvdAgAA
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFtrPIsWRmVeSWpSXmKPExsXCNUNLT/fpzf3pBoeWmVvMWb+GzWL61AuM
+	FiduNrJZ/Lx7nN2iefF6NovVm3wt7i97xmJxu/8cq8WqhdfYLI5vncduse8iUMPhuSdZLXY+
+	fMtmsXxfP6PF5V1z2CzurfnPajH3y1Rmi0PXnrNarF6TYfF72wo2BxGPw2/eM3vsnHWX3aO7
+	7TK7R8uRt6wei/e8ZPLYtKqTzWPTp0nsHidm/Gbx2PnQ0mNhw1Rmj/1z17B7nLtY4fHx6S0W
+	j2+3PTwWv/jA5PF5k1yAQBSXTUpqTmZZapG+XQJXxoZdGQX3pSqmtrWwNTDeFO1i5OCQEDCR
+	mHZAoIuRk4NXwFLieddTdhCbRUBV4v/XHWwQcUGJkzOfsIDYogLyEvdvzQCq4eJgFmhhlph0
+	ahUzSEJYIEpi56u/TCA2s4CIxOzONrA4m4CaxJWXk8DiIgJFEsdnfGYEaRYSWMgoMavnAQvI
+	EZwCVhKnDnNA9JpJdG3tYoSw5SWat85mnsDINwvJHbOQrJiFpGUWkpYFjCyrGEUy88pyEzNz
+	TPWKszMq8zIr9JLzczcxAqN1We2fiTsYv1x2P8QowMGoxMMbIb4/XYg1say4MvcQowQHs5II
+	L2fmnnQh3pTEyqrUovz4otKc1OJDjNIcLErivF7hqQlCAumJJanZqakFqUUwWSYOTqkGRse6
+	tvgfko7WarMv1GxP7ri0gSHjxrrrG5QDPP8qxaUr1/CG/67/c8pyo/UWAaEvn9IFxbLuBZVe
+	fryNZcfG4Li5jyQO67o3TFyeWPFy735Ha/ZFriVVSuo26aHNH08lL/ryJtCj8f2zYFkebq22
+	pdNurJjk89+w4o/Y74y+BPk+hyX87ifUlViKMxINtZiLihMBTgQItdICAAA=
 X-CFilter-Loop: Reflected
 
-Hi Joshua,
 
-On 2/27/2025 6:35 AM, Joshua Hahn wrote:
-> We should never try to allocate memory from a memoryless node. Creating a
-> sysfs knob to control its weighted interleave weight does not make sense,
-> and can be unsafe.
+
+On 2/27/2025 11:32 AM, Honggyu Kim wrote:
+> Hi Joshua,
 > 
-> Only create weighted interleave weight knobs for nodes with memory.
+> On 2/27/2025 6:35 AM, Joshua Hahn wrote:
+>> We should never try to allocate memory from a memoryless node. Creating a
+>> sysfs knob to control its weighted interleave weight does not make sense,
+>> and can be unsafe.
+>>
+>> Only create weighted interleave weight knobs for nodes with memory.
+>>
+>> Signed-off-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+>> ---
+>>   mm/mempolicy.c | 2 +-
+>>   1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/mm/mempolicy.c b/mm/mempolicy.c
+>> index 4cc04ff8f12c..50cbb7c047fa 100644
+>> --- a/mm/mempolicy.c
+>> +++ b/mm/mempolicy.c
+>> @@ -3721,7 +3721,7 @@ static int add_weighted_interleave_group(struct 
+>> kobject *root_kobj)
+>>           return err;
+>>       }
+>> -    for_each_node_state(nid, N_POSSIBLE) {
 > 
-> Signed-off-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-> ---
->   mm/mempolicy.c | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
+> Actually, we're aware of this issue and currently trying to fix this.
+> In our system, we've attached 4ch of CXL memory for each socket as
+> follows.
 > 
-> diff --git a/mm/mempolicy.c b/mm/mempolicy.c
-> index 4cc04ff8f12c..50cbb7c047fa 100644
-> --- a/mm/mempolicy.c
-> +++ b/mm/mempolicy.c
-> @@ -3721,7 +3721,7 @@ static int add_weighted_interleave_group(struct kobject *root_kobj)
->   		return err;
->   	}
->   
-> -	for_each_node_state(nid, N_POSSIBLE) {
+>          node0             node1
+>        +-------+   UPI   +-------+
+>        | CPU 0 |-+-----+-| CPU 1 |
+>        +-------+         +-------+
+>        | DRAM0 |         | DRAM1 |
+>        +---+---+         +---+---+
+>            |                 |
+>        +---+---+         +---+---+
+>        | CXL 0 |         | CXL 4 |
+>        +---+---+         +---+---+
+>        | CXL 1 |         | CXL 5 |
+>        +---+---+         +---+---+
+>        | CXL 2 |         | CXL 6 |
+>        +---+---+         +---+---+
+>        | CXL 3 |         | CXL 7 |
+>        +---+---+         +---+---+
+>          node2             node3
+> 
+> The 4ch of CXL memory are detected as a single NUMA node in each socket,
+> but it shows as follows with the current N_POSSIBLE loop.
+> 
+> $ ls /sys/kernel/mm/mempolicy/weighted_interleave/
+> node0 node1 node2 node3 node4 node5
+> node6 node7 node8 node9 node10 node11
+> 
+>> +    for_each_node_state(nid, N_MEMORY) {
 
-Actually, we're aware of this issue and currently trying to fix this.
-In our system, we've attached 4ch of CXL memory for each socket as
-follows.
+Thinking it again, we can leave it as a separate patch but add our patch 
+on top of it.
 
-         node0             node1
-       +-------+   UPI   +-------+
-       | CPU 0 |-+-----+-| CPU 1 |
-       +-------+         +-------+
-       | DRAM0 |         | DRAM1 |
-       +---+---+         +---+---+
-           |                 |
-       +---+---+         +---+---+
-       | CXL 0 |         | CXL 4 |
-       +---+---+         +---+---+
-       | CXL 1 |         | CXL 5 |
-       +---+---+         +---+---+
-       | CXL 2 |         | CXL 6 |
-       +---+---+         +---+---+
-       | CXL 3 |         | CXL 7 |
-       +---+---+         +---+---+
-         node2             node3
+The only concern I have is having only N_MEMORY patch hides weight
+setting knobs for CXL memory and it makes there is no way to set weight 
+values to CXL memory in my system.
 
-The 4ch of CXL memory are detected as a single NUMA node in each socket,
-but it shows as follows with the current N_POSSIBLE loop.
-
-$ ls /sys/kernel/mm/mempolicy/weighted_interleave/
-node0 node1 node2 node3 node4 node5
-node6 node7 node8 node9 node10 node11
-
-> +	for_each_node_state(nid, N_MEMORY) {
-
-But using N_MEMORY doesn't fix this problem and it hides the entire CXL
-memory nodes in our system because the CXL memory isn't detected at this
-point of creating node*.  Maybe there is some difference when multiple
-CXL memory is detected as a single node.
-
-We have to create more nodes when CXL memory is detected later.  In 
-addition, this part can be changed to "for_each_online_node(nid)"
-although N_MEMORY is also fine here.
-
-We've internally fixed it using a memory hotpluging callback so we can
-upload another working version later.
-
-Do you mind if we continue fixing this work?
+IMHO, this and our patch is better to be submitted together.
 
 Thanks,
 Honggyu
 
->   		err = add_weight_node(nid, wi_kobj);
->   		if (err) {
->   			pr_err("failed to add sysfs [node%d]\n", nid);
+> 
+> But using N_MEMORY doesn't fix this problem and it hides the entire CXL
+> memory nodes in our system because the CXL memory isn't detected at this
+> point of creating node*.  Maybe there is some difference when multiple
+> CXL memory is detected as a single node.
+> 
+> We have to create more nodes when CXL memory is detected later.  In 
+> addition, this part can be changed to "for_each_online_node(nid)"
+> although N_MEMORY is also fine here.
+> 
+> We've internally fixed it using a memory hotpluging callback so we can
+> upload another working version later.
+> 
+> Do you mind if we continue fixing this work?
+> 
+> Thanks,
+> Honggyu
+> 
+>>           err = add_weight_node(nid, wi_kobj);
+>>           if (err) {
+>>               pr_err("failed to add sysfs [node%d]\n", nid);
+> 
 
