@@ -1,105 +1,145 @@
-Received: from mx1.zhaoxin.com (MX1.ZHAOXIN.COM [210.0.225.12])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B510F7462
-	for <linux-acpi@vger.kernel.org>; Thu, 27 Feb 2025 00:50:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=210.0.225.12
+Received: from invmail4.hynix.com (exvmail4.hynix.com [166.125.252.92])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id A2CBE17A2F7;
+	Thu, 27 Feb 2025 02:32:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=166.125.252.92
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740617449; cv=none; b=eTFMr0zenlkFSmP3bVt/V951hlMEqEipiqRu/GEiendq23w1Qt4ohyIHAfNA6IQxRhoNqL7GSk46oP4nAdoSpsZckMn3RasCPTOkNUWhJgS8qsGeCPx5aMoW0a6NNlqU209kMTZSgmfMDRYplrZ8neMml+9orQdPz6+HCj6y/ww=
+	t=1740623558; cv=none; b=P7/RXIYU9ALKoQydZAIW5dBzEfo5hZvIAjAZQwc6s+gmwu5tLoOrhQuRTb9g/cYkHlawLB0vPgbHwfxhRNu73DTj+iGUi9GBh920VKjVvT+232tEHV5DUA4GZbgBpbERUybb2O0cl6o2Wds+MTmWwwp8xzh+FjDoQ2Icq1fLU9o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740617449; c=relaxed/simple;
-	bh=VNYGYJK2seFGVd1KiZeuCd8DMJxYxkvPtam/PB9klKQ=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=urbwv5pBE3Lms10hC0uQho8dgwimJCzHJRLTRS6pHmdfNthvYmCvTLYlLSnnsKg7lFu2Tm8LIaOJvHHnDZ5L9ica+EyH5zwxnn9jp2mD0SSdAMVmnOTcKpBEDjDjBF8Da0K4VteJGYqSjlOKO82b4V1peF9A8kFql6T18UGz+PU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=zhaoxin.com; spf=pass smtp.mailfrom=zhaoxin.com; arc=none smtp.client-ip=210.0.225.12
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=zhaoxin.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zhaoxin.com
-X-ASG-Debug-ID: 1740616659-086e23601815e2e0002-I98ny2
-Received: from ZXSHMBX1.zhaoxin.com (ZXSHMBX1.zhaoxin.com [10.28.252.163]) by mx1.zhaoxin.com with ESMTP id IjfANJBAOSPLeToM (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NO); Thu, 27 Feb 2025 08:37:40 +0800 (CST)
-X-Barracuda-Envelope-From: LeoLiu-oc@zhaoxin.com
-X-Barracuda-RBL-Trusted-Forwarder: 10.28.252.163
-Received: from ZXSHMBX2.zhaoxin.com (10.28.252.164) by ZXSHMBX1.zhaoxin.com
- (10.28.252.163) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.44; Thu, 27 Feb
- 2025 08:37:40 +0800
-Received: from ZXSHMBX2.zhaoxin.com ([fe80::4dfc:4f6a:c0cf:4298]) by
- ZXSHMBX2.zhaoxin.com ([fe80::4dfc:4f6a:c0cf:4298%4]) with mapi id
- 15.01.2507.044; Thu, 27 Feb 2025 08:37:40 +0800
-X-Barracuda-RBL-Trusted-Forwarder: 10.28.252.163
-Received: from xin.lan (10.32.64.1) by ZXBJMBX03.zhaoxin.com (10.29.252.7)
- with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.44; Wed, 26 Feb
- 2025 20:19:02 +0800
-From: LeoLiu-oc <LeoLiu-oc@zhaoxin.com>
-To: <rafael@kernel.org>, <lenb@kernel.org>, <james.morse@arm.com>,
-	<tony.luck@intel.com>, <bp@alien8.de>, <bhelgaas@google.com>,
-	<robert.moore@intel.com>, <yazen.ghannam@amd.com>, <avadhut.naik@amd.com>,
-	<linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-pci@vger.kernel.org>, <acpica-devel@lists.linux.dev>
-CC: <CobeChen@zhaoxin.com>, <TonyWWang@zhaoxin.com>, <ErosZhang@zhaoxin.com>,
-	<leoliu@zhaoxin.com>, LeoLiuoc <LeoLiu-oc@zhaoxin.com>
-Subject: [PATCH v5 3/4] PCI: Add AER bits #defines for PCIe to PCI/PCI-X Bridge
-Date: Wed, 26 Feb 2025 20:18:37 +0800
-X-ASG-Orig-Subj: [PATCH v5 3/4] PCI: Add AER bits #defines for PCIe to PCI/PCI-X Bridge
-Message-ID: <20250226121838.364533-4-LeoLiu-oc@zhaoxin.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20250226121838.364533-1-LeoLiu-oc@zhaoxin.com>
-References: <20250226121838.364533-1-LeoLiu-oc@zhaoxin.com>
+	s=arc-20240116; t=1740623558; c=relaxed/simple;
+	bh=rcZzV1+yyOYgRs0JzYcXNOpIDUWuhSnP4b3WaJ28ETQ=;
+	h=Message-ID:Date:MIME-Version:Cc:Subject:To:References:From:
+	 In-Reply-To:Content-Type; b=fTawSKTYCOXgwROa3z09JlANqhlA2t8SZcZSc/g7mkhX4Pg2/BmnP4JJG8swpadvwNv0R6EhLCfLTnW2IyWubD2lm/FsK5Ce0TeZg3nS0F4az79lJMPaX/w/5xQK9TRVp8a+DKpYexB50HtNl4qlNx0XIll8TypDfg6kjCl0XKc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sk.com; spf=pass smtp.mailfrom=sk.com; arc=none smtp.client-ip=166.125.252.92
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sk.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sk.com
+X-AuditID: a67dfc5b-3e1ff7000001d7ae-21-67bfcebd10c6
+Message-ID: <b8ac8654-92bd-4c08-a3fc-e28a7be5e0e6@sk.com>
+Date: Thu, 27 Feb 2025 11:32:26 +0900
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain
-X-ClientProxiedBy: zxbjmbx1.zhaoxin.com (10.29.252.163) To
- ZXBJMBX03.zhaoxin.com (10.29.252.7)
-X-Moderation-Data: 2/27/2025 8:37:38 AM
-X-Barracuda-Connect: ZXSHMBX1.zhaoxin.com[10.28.252.163]
-X-Barracuda-Start-Time: 1740616660
-X-Barracuda-Encrypted: ECDHE-RSA-AES128-GCM-SHA256
-X-Barracuda-URL: https://10.28.252.35:4443/cgi-mod/mark.cgi
-X-Virus-Scanned: by bsmtpd at zhaoxin.com
-X-Barracuda-Scan-Msg-Size: 1179
-X-Barracuda-BRTS-Status: 1
-X-Barracuda-Bayes: INNOCENT GLOBAL 0.0000 1.0000 -2.0210
-X-Barracuda-Spam-Score: -2.02
-X-Barracuda-Spam-Status: No, SCORE=-2.02 using global scores of TAG_LEVEL=1000.0 QUARANTINE_LEVEL=1000.0 KILL_LEVEL=9.0 tests=
-X-Barracuda-Spam-Report: Code version 3.2, rules version 3.2.3.137757
-	Rule breakdown below
-	 pts rule name              description
-	---- ---------------------- --------------------------------------------------
+User-Agent: Mozilla Thunderbird
+Cc: kernel_team@skhynix.com, gregkh@linuxfoundation.org, rakie.kim@sk.com,
+ akpm@linux-foundation.org, rafael@kernel.org, lenb@kernel.org,
+ dan.j.williams@intel.com, Jonathan.Cameron@huawei.com, dave.jiang@intel.com,
+ horen.chuang@linux.dev, hannes@cmpxchg.org, linux-kernel@vger.kernel.org,
+ linux-acpi@vger.kernel.org, linux-mm@kvack.org, kernel-team@meta.com,
+ yunjeong.mun@sk.com
+Subject: Re: [PATCH 2/2 v6] mm/mempolicy: Don't create weight sysfs for
+ memoryless nodes
+Content-Language: ko
+To: Joshua Hahn <joshua.hahnjy@gmail.com>, gourry@gourry.net,
+ harry.yoo@oracle.com, ying.huang@linux.alibaba.com
+References: <20250226213518.767670-1-joshua.hahnjy@gmail.com>
+ <20250226213518.767670-2-joshua.hahnjy@gmail.com>
+From: Honggyu Kim <honggyu.kim@sk.com>
+In-Reply-To: <20250226213518.767670-2-joshua.hahnjy@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFjrNIsWRmVeSWpSXmKPExsXC9ZZnoe7ec/vTDZZcMbeYs34Nm8X0qRcY
+	LU7cbGSz+Hn3OLtF8+L1bBarN/la3F/2jMXidv85VotVC6+xWRzfOo/dYt9FoIadD9+yWSzf
+	189ocXnXHDaLe2v+s1rM/TKV2WL1mgwHQY/Db94ze+ycdZfdo7vtMrtHy5G3rB6L97xk8ti0
+	qpPNY9OnSeweJ2b8ZvHY+dDSY2HDVGaP/XPXsHucu1jh8fHpLRaPz5vkAviiuGxSUnMyy1KL
+	9O0SuDLmX9vMWtArUrFvk2wD4yy+LkZODgkBE4l/H1oZYey3u7ewg9i8ApYS2zd9YQKxWQRU
+	Ja437GGBiAtKnJz5BMwWFZCXuH9rBlA9FwezQAuzxKRTq5hBEsICURI7X/0Fa2YWEJGY3dkG
+	FhcRKJI4PuMz2DIhgUKJq3v7wWw2ATWJKy8ngdVzCthJfP/XwALRaybRtbWLEcKWl9j+dg4z
+	yDIJgUvsEgc6trNAXC0pcXDFDZYJjIKzkBw4C8nuWUhmzUIyawEjyypGocy8stzEzBwTvYzK
+	vMwKveT83E2MwCheVvsnegfjpwvBhxgFOBiVeHgjxPenC7EmlhVX5h5ilOBgVhLh5czcky7E
+	m5JYWZValB9fVJqTWnyIUZqDRUmc1+hbeYqQQHpiSWp2ampBahFMlomDU6qBccnziKnchY8+
+	tHfVqh6SqeN0jzQoyNpnMuO+9lwj1t6b9zzSdQx/T/i48V6n7oI1z2+d59q69//2KXd/N7G2
+	/L9+sOjl4ZMvDrjKqCr90/WZI/JO/9SCR5f1xSz1k6Jsd+XPPVe0bOq6z3a2kR9+SPhKspy4
+	/OT39u3+Ll8mCKot1Xq+bOvM5SFKLMUZiYZazEXFiQC7PhKr3gIAAA==
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFjrAIsWRmVeSWpSXmKPExsXCNUNLT3fvuf3pBjc6dCzmrF/DZjF96gVG
+	ixM3G9ksft49zm7RvHg9m8XqTb4W95c9Y7G43X+O1WLVwmtsFse3zmO32HcRqOHw3JOsFjsf
+	vmWzWL6vn9Hi8q45bBb31vxntZj7ZSqzxaFrz1ktVq/JsPi9bQWbg4jH4TfvmT12zrrL7tHd
+	dpndo+XIW1aPxXteMnlsWtXJ5rHp0yR2jxMzfrN47Hxo6bGwYSqzx/65a9g9zl2s8Pj49BaL
+	x7fbHh6LX3xg8vi8SS5AIIrLJiU1J7MstUjfLoErY/61zawFvSIV+zbJNjDO4uti5OSQEDCR
+	eLt7CzuIzStgKbF90xcmEJtFQFXiesMeFoi4oMTJmU/AbFEBeYn7t2YA1XNxMAu0MEtMOrWK
+	GSQhLBAlsfPVX7BmZgERidmdbWBxEYEiieMzPjOC2EIChRJX9/aD2WwCahJXXk4Cq+cUsJP4
+	/q+BBaLXTKJraxcjhC0vsf3tHOYJjHyzkNwxC8mKWUhaZiFpWcDIsopRJDOvLDcxM8dUrzg7
+	ozIvs0IvOT93EyMwXpfV/pm4g/HLZfdDjAIcjEo8vBHi+9OFWBPLiitzDzFKcDArifByZu5J
+	F+JNSaysSi3Kjy8qzUktPsQozcGiJM7rFZ6aICSQnliSmp2aWpBaBJNl4uCUamDMFIib5Gk3
+	k5v/NMe01Yfnavur5qyY2/HmNfv3R00Khz+rP+XhKHrPlqjX1Ll9VbjBkd8bA/PtCiV5Vz3S
+	4Wb4W9R1oGyRnd4P1oPnNv+POnuQdR0L69YdRT9ufd3+d+WVOcdM9/pKPVEQUvjVxbSp5mCu
+	6hRpH/n/NxdWm7h+W+tdcHrNxZnWSizFGYmGWsxFxYkAqqI149MCAAA=
+X-CFilter-Loop: Reflected
 
-From: LeoLiuoc <LeoLiu-oc@zhaoxin.com>
+Hi Joshua,
 
-Define secondary uncorrectable error mask register, secondary
-uncorrectable error severity register and secondary error capabilities and
-control register bits in AER capability for PCIe to PCI/PCI-X Bridge.
-Please refer to PCIe to PCI/PCI-X Bridge Specification r1.0, sec 5.2.3.2,
-5.2.3.3 and 5.2.3.4.
+On 2/27/2025 6:35 AM, Joshua Hahn wrote:
+> We should never try to allocate memory from a memoryless node. Creating a
+> sysfs knob to control its weighted interleave weight does not make sense,
+> and can be unsafe.
+> 
+> Only create weighted interleave weight knobs for nodes with memory.
+> 
+> Signed-off-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+> ---
+>   mm/mempolicy.c | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/mm/mempolicy.c b/mm/mempolicy.c
+> index 4cc04ff8f12c..50cbb7c047fa 100644
+> --- a/mm/mempolicy.c
+> +++ b/mm/mempolicy.c
+> @@ -3721,7 +3721,7 @@ static int add_weighted_interleave_group(struct kobject *root_kobj)
+>   		return err;
+>   	}
+>   
+> -	for_each_node_state(nid, N_POSSIBLE) {
 
-Signed-off-by: LeoLiuoc <LeoLiu-oc@zhaoxin.com>
----
- include/uapi/linux/pci_regs.h | 4 ++++
- 1 file changed, 4 insertions(+)
+Actually, we're aware of this issue and currently trying to fix this.
+In our system, we've attached 4ch of CXL memory for each socket as
+follows.
 
-diff --git a/include/uapi/linux/pci_regs.h b/include/uapi/linux/pci_regs.h
-index 3445c4970e4d..0566c663beb7 100644
---- a/include/uapi/linux/pci_regs.h
-+++ b/include/uapi/linux/pci_regs.h
-@@ -812,6 +812,10 @@
- #define PCI_ERR_ROOT_ERR_SRC	0x34	/* Error Source Identification */
- #define PCI_ERR_PREFIX_LOG	0x38	/* TLP Prefix LOG Register (up to 16 bytes=
-) */
-=20
-+#define PCI_ERR_UNCOR_MASK2	0x30	/* PCIe to PCI/PCI-X Bridge */
-+#define PCI_ERR_UNCOR_SEVER2	0x34	/* PCIe to PCI/PCI-X Bridge */
-+#define PCI_ERR_CAP2		0x38	/* PCIe to PCI/PCI-X Bridge */
-+
- /* Virtual Channel */
- #define PCI_VC_PORT_CAP1	0x04
- #define  PCI_VC_CAP1_EVCC	0x00000007	/* extended VC count */
---=20
-2.34.1
+         node0             node1
+       +-------+   UPI   +-------+
+       | CPU 0 |-+-----+-| CPU 1 |
+       +-------+         +-------+
+       | DRAM0 |         | DRAM1 |
+       +---+---+         +---+---+
+           |                 |
+       +---+---+         +---+---+
+       | CXL 0 |         | CXL 4 |
+       +---+---+         +---+---+
+       | CXL 1 |         | CXL 5 |
+       +---+---+         +---+---+
+       | CXL 2 |         | CXL 6 |
+       +---+---+         +---+---+
+       | CXL 3 |         | CXL 7 |
+       +---+---+         +---+---+
+         node2             node3
+
+The 4ch of CXL memory are detected as a single NUMA node in each socket,
+but it shows as follows with the current N_POSSIBLE loop.
+
+$ ls /sys/kernel/mm/mempolicy/weighted_interleave/
+node0 node1 node2 node3 node4 node5
+node6 node7 node8 node9 node10 node11
+
+> +	for_each_node_state(nid, N_MEMORY) {
+
+But using N_MEMORY doesn't fix this problem and it hides the entire CXL
+memory nodes in our system because the CXL memory isn't detected at this
+point of creating node*.  Maybe there is some difference when multiple
+CXL memory is detected as a single node.
+
+We have to create more nodes when CXL memory is detected later.  In 
+addition, this part can be changed to "for_each_online_node(nid)"
+although N_MEMORY is also fine here.
+
+We've internally fixed it using a memory hotpluging callback so we can
+upload another working version later.
+
+Do you mind if we continue fixing this work?
+
+Thanks,
+Honggyu
+
+>   		err = add_weight_node(nid, wi_kobj);
+>   		if (err) {
+>   			pr_err("failed to add sysfs [node%d]\n", nid);
 
