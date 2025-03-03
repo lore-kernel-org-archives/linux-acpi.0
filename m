@@ -1,128 +1,87 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.20])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.13])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1DBE72356BD;
-	Mon,  3 Mar 2025 16:03:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.20
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 317AC21B9C3;
+	Mon,  3 Mar 2025 16:09:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.13
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741017833; cv=none; b=GCD3x7GJ5IR1+ElyCRWyvPaNBt0Cw+7zW8nRLpfT7nVAit+Y7HnSIPhQnhF9otnx+atAGVylP7BkJk1hemOAsvEsKI6Xpt+PhOgAqVPV/BwRL5HXcxy/cTHxYcOItn47pM6q0/yGbMmxpSer3f0mMNypbadIbBUwbjUJP5PpzwU=
+	t=1741018168; cv=none; b=XJ0P+pfR08YVpHDoeIjSoGOFbGgzglfcOsp15CMC1MYHzKbiUM/MHOra7Fq9bV1eDtwDY8IE8aTOChpTK7em+D+0CVJJbmPqurdLF4HIzzXN1Ji4eVm8STU06M7EWkl88uHjt+x5UDxVkfV13PN21bWhxYgwu6rnggXLjrzNtAk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741017833; c=relaxed/simple;
-	bh=augAjJ6JBGkm/7HH6cDggAy9sIwGeNJ3Wqj6kBfuH3A=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=X3ICuJP0HcMrgyZ0X2jG6+QZxZwwDHCntu47WncfATUUsSzR/M0l5MBd6dcBPJ8AB4dW4ssgfVamtn72fIROG9PyLcEKYq1tKEeDDtS39QEcanFjbrLFYSmLduR58ZrrjDMCXZ7nIj/3kUrJQUiG6wd+TimJw3OTERC9tAbeAkQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=gGXtLRUA; arc=none smtp.client-ip=198.175.65.20
+	s=arc-20240116; t=1741018168; c=relaxed/simple;
+	bh=Bbur522PKr26lQbrZOuRbC4ZeP7+GMbA+yItAhu0OzY=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Jb8cFzeAdrYFqFLO1QDeibyP+fToql5LDIvqdN4qaeEtrzE2la2clQc5l3U222fkaFVU3noc4DQDvYc+vWAj754EUJi/yOIhZ8msO9ESr/EOVbS7Cn0PLHTtxmAGmBSx1Rh/kEdOZAVPj4olMe8MUmt277dns+FRFE4+JFzZpK4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=fU2yHPpv; arc=none smtp.client-ip=198.175.65.13
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="gGXtLRUA"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="fU2yHPpv"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1741017832; x=1772553832;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=augAjJ6JBGkm/7HH6cDggAy9sIwGeNJ3Wqj6kBfuH3A=;
-  b=gGXtLRUAB7s5nENSx+7qtT9gbmvulSALViexwhnrJlVC4hvCIe9K3U4i
-   HX3B0geMqfce27Y0yfcYCqlHmmVmkh6MNcyI5aAAbkEqRecE5zAUpuFPB
-   aPUlXlzDvHUcA7S5v54SGJYeFaWySYykp+pCp1WdWrYr7/Kc6qBnk2wYV
-   akMeggDSwisnrdZkbrmet7olISgemJcg6nm/YoZhG+GXZHtCXmguHTllT
-   4mXd5oWwzcdMfviHBCTEF+MI5FvkL4GtG0F2MT5SOSaC7Xs0IZVgYb9Do
-   8+MaGTClR87vZwyUO/7BcH7rZKWJeil3pRu4vle6XpjJNog8hVYRRwcjt
+  t=1741018167; x=1772554167;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=Bbur522PKr26lQbrZOuRbC4ZeP7+GMbA+yItAhu0OzY=;
+  b=fU2yHPpvMk2JVU32C70zwaDT/0Wb9hzzp/VnQXxZklenSE2uzd5Tfypx
+   wfGUGnrZZ/2mfXd2HKanJwxuLMvwe9TlYngiTXYUs/7PgNf6lPO0XIj7b
+   bQGIAx0SOUCQ4Xe16fAjrRcoZiRs8IXY6AJ2SRKXC4lpUZzKTrdyCn94s
+   cg37+fUE6Bmrhn+zLFeV74xvABVc3OPp2k2nY+XZVaDfooAwzztgVtvve
+   KwAqAeOqWK4YqxlYHRaovrTNbuckxMFGzABn1ce9+Cjv5vWw/pdJbc6Zx
+   AvlYgEypf2cONScMxG5/49wYa3G/EqmrXe00RjYc9j+dQojcm7cH9STZ8
    A==;
-X-CSE-ConnectionGUID: b6e88eTVTsGLl+9akR0Q4g==
-X-CSE-MsgGUID: vUvFUJFfQ9e5dx210TYjaw==
-X-IronPort-AV: E=McAfee;i="6700,10204,11362"; a="41606704"
+X-CSE-ConnectionGUID: y7F99MkNRUGvuifpG3+02w==
+X-CSE-MsgGUID: Sq3p52W7SJKBKxaF41fi/g==
+X-IronPort-AV: E=McAfee;i="6700,10204,11362"; a="52878159"
 X-IronPort-AV: E=Sophos;i="6.13,330,1732608000"; 
-   d="scan'208";a="41606704"
-Received: from fmviesa002.fm.intel.com ([10.60.135.142])
-  by orvoesa112.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Mar 2025 08:03:48 -0800
-X-CSE-ConnectionGUID: i7L2M9F0RVu//8paJfl1yg==
-X-CSE-MsgGUID: ShdMkc4fS/CEU86m0ora/w==
+   d="scan'208";a="52878159"
+Received: from fmviesa007.fm.intel.com ([10.60.135.147])
+  by orvoesa105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Mar 2025 08:09:26 -0800
+X-CSE-ConnectionGUID: INAV7lvPQAGOgLyCQawUfg==
+X-CSE-MsgGUID: cN8iAshRSJiqrvq4nqT8vw==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.13,330,1732608000"; 
-   d="scan'208";a="141285581"
-Received: from black.fi.intel.com ([10.237.72.28])
-  by fmviesa002.fm.intel.com with ESMTP; 03 Mar 2025 08:03:44 -0800
-Received: by black.fi.intel.com (Postfix, from userid 1003)
-	id F38D0DC; Mon, 03 Mar 2025 18:03:42 +0200 (EET)
+   d="scan'208";a="118065042"
+Received: from smile.fi.intel.com ([10.237.72.58])
+  by fmviesa007.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Mar 2025 08:09:24 -0800
+Received: from andy by smile.fi.intel.com with local (Exim 4.98)
+	(envelope-from <andriy.shevchenko@linux.intel.com>)
+	id 1tp8M5-0000000GrJe-45zn;
+	Mon, 03 Mar 2025 18:09:21 +0200
+Date: Mon, 3 Mar 2025 18:09:21 +0200
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Bartosz Golaszewski <bartosz.golaszewski@linaro.org>,
-	linux-gpio@vger.kernel.org,
-	linux-acpi@vger.kernel.org,
+To: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>,
+	linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org,
 	linux-kernel@vger.kernel.org
 Cc: Mika Westerberg <westeri@kernel.org>,
 	Linus Walleij <linus.walleij@linaro.org>,
 	Bartosz Golaszewski <brgl@bgdev.pl>,
 	Kent Gibson <warthog618@gmail.com>
-Subject: [PATCH v1 1/3] gpiolib: Align FLAG_* definitions in the struct gpio_desc
-Date: Mon,  3 Mar 2025 18:00:32 +0200
-Message-ID: <20250303160341.1322640-2-andriy.shevchenko@linux.intel.com>
-X-Mailer: git-send-email 2.47.2
-In-Reply-To: <20250303160341.1322640-1-andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v1 3/3] gpiolib: Rename gpio_do_set_config() -->
+ gpiod_do_set_config()
+Message-ID: <Z8XUMRAlR3H13zha@smile.fi.intel.com>
 References: <20250303160341.1322640-1-andriy.shevchenko@linux.intel.com>
+ <20250303160341.1322640-4-andriy.shevchenko@linux.intel.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250303160341.1322640-4-andriy.shevchenko@linux.intel.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 
-Align FLAG_* definitions in the struct gpio_desc for better readability.
+On Mon, Mar 03, 2025 at 06:00:34PM +0200, Andy Shevchenko wrote:
+> In order to reduce the 'gpio' namespace when operate over GPIO descriptor
+> rename gpio_do_set_config() to gpiod_do_set_config().
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/gpio/gpiolib.h | 36 ++++++++++++++++++------------------
- 1 file changed, 18 insertions(+), 18 deletions(-)
+This change was made against my custom tree and I forgot about that.
+I will wait for the overall response to this series and if okay I
+may issue the correct patch.
 
-diff --git a/drivers/gpio/gpiolib.h b/drivers/gpio/gpiolib.h
-index 7663c9caebaf..65db879d1c74 100644
---- a/drivers/gpio/gpiolib.h
-+++ b/drivers/gpio/gpiolib.h
-@@ -183,24 +183,24 @@ struct gpio_desc {
- 	struct gpio_device	*gdev;
- 	unsigned long		flags;
- /* flag symbols are bit numbers */
--#define FLAG_REQUESTED	0
--#define FLAG_IS_OUT	1
--#define FLAG_EXPORT	2	/* protected by sysfs_lock */
--#define FLAG_SYSFS	3	/* exported via /sys/class/gpio/control */
--#define FLAG_ACTIVE_LOW	6	/* value has active low */
--#define FLAG_OPEN_DRAIN	7	/* Gpio is open drain type */
--#define FLAG_OPEN_SOURCE 8	/* Gpio is open source type */
--#define FLAG_USED_AS_IRQ 9	/* GPIO is connected to an IRQ */
--#define FLAG_IRQ_IS_ENABLED 10	/* GPIO is connected to an enabled IRQ */
--#define FLAG_IS_HOGGED	11	/* GPIO is hogged */
--#define FLAG_TRANSITORY 12	/* GPIO may lose value in sleep or reset */
--#define FLAG_PULL_UP    13	/* GPIO has pull up enabled */
--#define FLAG_PULL_DOWN  14	/* GPIO has pull down enabled */
--#define FLAG_BIAS_DISABLE    15	/* GPIO has pull disabled */
--#define FLAG_EDGE_RISING     16	/* GPIO CDEV detects rising edge events */
--#define FLAG_EDGE_FALLING    17	/* GPIO CDEV detects falling edge events */
--#define FLAG_EVENT_CLOCK_REALTIME	18 /* GPIO CDEV reports REALTIME timestamps in events */
--#define FLAG_EVENT_CLOCK_HTE		19 /* GPIO CDEV reports hardware timestamps in events */
-+#define FLAG_REQUESTED			0
-+#define FLAG_IS_OUT			1
-+#define FLAG_EXPORT			2	/* protected by sysfs_lock */
-+#define FLAG_SYSFS			3	/* exported via /sys/class/gpio/control */
-+#define FLAG_ACTIVE_LOW			6	/* value has active low */
-+#define FLAG_OPEN_DRAIN			7	/* Gpio is open drain type */
-+#define FLAG_OPEN_SOURCE		8	/* Gpio is open source type */
-+#define FLAG_USED_AS_IRQ		9	/* GPIO is connected to an IRQ */
-+#define FLAG_IRQ_IS_ENABLED		10	/* GPIO is connected to an enabled IRQ */
-+#define FLAG_IS_HOGGED			11	/* GPIO is hogged */
-+#define FLAG_TRANSITORY			12	/* GPIO may lose value in sleep or reset */
-+#define FLAG_PULL_UP			13	/* GPIO has pull up enabled */
-+#define FLAG_PULL_DOWN			14	/* GPIO has pull down enabled */
-+#define FLAG_BIAS_DISABLE		15	/* GPIO has pull disabled */
-+#define FLAG_EDGE_RISING		16	/* GPIO CDEV detects rising edge events */
-+#define FLAG_EDGE_FALLING		17	/* GPIO CDEV detects falling edge events */
-+#define FLAG_EVENT_CLOCK_REALTIME	18	/* GPIO CDEV reports REALTIME timestamps in events */
-+#define FLAG_EVENT_CLOCK_HTE		19	/* GPIO CDEV reports hardware timestamps in events */
- 
- 	/* Connection label */
- 	struct gpio_desc_label __rcu *label;
 -- 
-2.47.2
+With Best Regards,
+Andy Shevchenko
+
 
