@@ -1,30 +1,30 @@
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14DEB1C1F0C;
-	Thu, 13 Mar 2025 09:56:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64234264F9A;
+	Thu, 13 Mar 2025 09:59:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741859771; cv=none; b=QmIkgOUXiTIg3ox8wNRbWHiok4+cALERu7r5CeRC0ywKCPiIxkXDnPKObrAXWJa4Q9k3g1MKY49ZmnQ2kCYQ9NteTfXAv1KU+paWKCEhMTnD0aZKljK/QrIQv9jNtQLkg3lmncqRjYXpWEhJo47yFhDnoR+/6gvx9ga3CMjLeBI=
+	t=1741859961; cv=none; b=hTnw6YiGocEYotwVc41fE5rUwOJ5zfhybFoBOxZmmMtCioc6fmPtvYUl8A72Jmb7Eh6yts/2iHraa0ngtJaXBDgOP6SiFADve7RSeekSjad6omIcBTprjmIqH1XA9/3W0Igi05i9Q0bpZkRtZ7kQ+FoIXSkU6cSM/8TIaqaQVa4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741859771; c=relaxed/simple;
-	bh=8S9vrq166jilX+o1O51fu4DeDsRpbJT1z2ZmakIqa1E=;
+	s=arc-20240116; t=1741859961; c=relaxed/simple;
+	bh=pyKfBjqDAN4P+9rSQW/SVJRyKIFw6ExLmm2iZO2gyuA=;
 	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=GrD6jS5NgcOJ9x4b+dzvDmBz77HvCe6axtokA5IhisQXI0EUA70q8L93M1o3yDHxkI8yPiRHbAAaa3uC5CRkzLTZsOM3HzQClU7ZqR9Z6pNMi/XTN6j8C8qwDPp6Dt8pec1CAiMpPPLU/2LQzXcibJ8ITR2Dvhb6zYUhyvfpPB8=
+	 MIME-Version:Content-Type; b=PpF4TQRg5Y1+aNdsRzX9sFWic6lS1MGqv4vOuaRJAA4TXLaK8ophALDPngDaapcDrcuwkaGEMA6tNjd6+2CoY0qMZgAVi+EqtpnzFZu5Ff7LKMfPHUtsRdnZixyw1AaZJlp3GGO9noAfRoYLrDD6I9c8Va6sZhGU8TZP54qfzgg=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.186.231])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4ZD2qY1djfz6H8fW;
-	Thu, 13 Mar 2025 17:52:57 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.18.186.31])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4ZD2vC6gdJz6H8fC;
+	Thu, 13 Mar 2025 17:56:07 +0800 (CST)
 Received: from frapeml500008.china.huawei.com (unknown [7.182.85.71])
-	by mail.maildlp.com (Postfix) with ESMTPS id C1B061400CA;
-	Thu, 13 Mar 2025 17:56:06 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id 7BF471403A2;
+	Thu, 13 Mar 2025 17:59:17 +0800 (CST)
 Received: from localhost (10.203.177.66) by frapeml500008.china.huawei.com
  (7.182.85.71) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Thu, 13 Mar
- 2025 10:56:05 +0100
-Date: Thu, 13 Mar 2025 09:56:04 +0000
+ 2025 10:59:16 +0100
+Date: Thu, 13 Mar 2025 09:59:15 +0000
 From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 To: Zaid Alali <zaidal@os.amperecomputing.com>
 CC: <rafael@kernel.org>, <lenb@kernel.org>, <james.morse@arm.com>,
@@ -34,11 +34,12 @@ CC: <rafael@kernel.org>, <lenb@kernel.org>, <james.morse@arm.com>,
 	<ira.weiny@intel.com>, <dave.jiang@intel.com>,
 	<sthanneeru.opensrc@micron.com>, <linux-acpi@vger.kernel.org>,
 	<linux-kernel@vger.kernel.org>, <acpica-devel@lists.linux.dev>
-Subject: Re: [PATCH v4 8/9] ACPI: APEI: EINJ: Enable EINJv2 error injections
-Message-ID: <20250313095604.00001ccf@huawei.com>
-In-Reply-To: <20250306234810.75511-9-zaidal@os.amperecomputing.com>
+Subject: Re: [PATCH v4 9/9] ACPI: APEI: EINJ: Update the documentation for
+ EINJv2 support
+Message-ID: <20250313095915.00000847@huawei.com>
+In-Reply-To: <20250306234810.75511-10-zaidal@os.amperecomputing.com>
 References: <20250306234810.75511-1-zaidal@os.amperecomputing.com>
-	<20250306234810.75511-9-zaidal@os.amperecomputing.com>
+	<20250306234810.75511-10-zaidal@os.amperecomputing.com>
 X-Mailer: Claws Mail 4.3.0 (GTK 3.24.42; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
@@ -51,88 +52,123 @@ Content-Transfer-Encoding: 7bit
 X-ClientProxiedBy: lhrpeml500005.china.huawei.com (7.191.163.240) To
  frapeml500008.china.huawei.com (7.182.85.71)
 
-On Thu,  6 Mar 2025 15:48:09 -0800
+On Thu,  6 Mar 2025 15:48:10 -0800
 Zaid Alali <zaidal@os.amperecomputing.com> wrote:
 
-> Enable the driver to inject EINJv2 type errors. The component
-> array values are parsed from user_input and expected to contain
-> hex values for component id and syndrome separated by space,
-> and multiple components are separated by new line as follows:
+> Add documentation for the updated ACPI specs for EINJv2(1)(2)
 > 
-> component_id1 component_syndrome1
-> component_id2 component_syndrome2
->  :
-> component_id(n) component_syndrome(n)
-> 
-> for example:
-> 
-> $comp_arr="0x1 0x2
-> >0x1 0x4
-> >0x2 0x4"  
-> $cd /sys/kernel/debug/apei/einj/
-> $echo "$comp_arr" > einjv2_component_array
+> (1)https://bugzilla.tianocore.org/show_bug.cgi?id=4615
+> (2)https://bugzilla.tianocore.org/attachment.cgi?id=1446
 > 
 > Signed-off-by: Zaid Alali <zaidal@os.amperecomputing.com>
 > ---
->  drivers/acpi/apei/einj-core.c | 101 ++++++++++++++++++++++++++++++----
->  1 file changed, 90 insertions(+), 11 deletions(-)
+>  .../firmware-guide/acpi/apei/einj.rst         | 41 ++++++++++++++++++-
+>  1 file changed, 39 insertions(+), 2 deletions(-)
 > 
-> diff --git a/drivers/acpi/apei/einj-core.c b/drivers/acpi/apei/einj-core.c
-> index 4c748fa0a479..1aea84958b00 100644
-> --- a/drivers/acpi/apei/einj-core.c
-> +++ b/drivers/acpi/apei/einj-core.c
-
->  static void einj_exec_ctx_init(struct apei_exec_context *ctx)
->  {
-> @@ -288,11 +298,24 @@ static void *einj_get_parameter_address(void)
->  		struct set_error_type_with_address v5param;
->  		void __iomem *p;
+> diff --git a/Documentation/firmware-guide/acpi/apei/einj.rst b/Documentation/firmware-guide/acpi/apei/einj.rst
+> index c52b9da08fa9..31c848183af0 100644
+> --- a/Documentation/firmware-guide/acpi/apei/einj.rst
+> +++ b/Documentation/firmware-guide/acpi/apei/einj.rst
+> @@ -59,6 +59,9 @@ The following files belong to it:
+>    0x00000200        Platform Correctable
+>    0x00000400        Platform Uncorrectable non-fatal
+>    0x00000800        Platform Uncorrectable fatal
+> +  V2_0x00000001     EINJV2 Processor Error
+> +  V2_0x00000002     EINJV2 Memory Error
+> +  V2_0x00000004     EINJV2 PCI Express Error
+>    ================  ===================================
 >  
-> +		v5param_size = sizeof(v5param);
->  		p = acpi_os_map_iomem(pa_v5, sizeof(v5param));
->  		if (p) {
-> -			memcpy_fromio(&v5param, p, sizeof(v5param));
-> +			int offset, len;
+>    The format of the file contents are as above, except present are only
+> @@ -85,9 +88,11 @@ The following files belong to it:
+>      Bit 0
+>        Processor APIC field valid (see param3 below).
+>      Bit 1
+> -      Memory address and mask valid (param1 and param2).
+> +      Memory address and range valid (param1 and param2).
+
+So was this a bug technically before?  If it was maybe separate
+patch.
+
+
+>      Bit 2
+>        PCIe (seg,bus,dev,fn) valid (see param4 below).
+> +    Bit 3
+> +      EINJv2 extension structure is valid
+>  
+>    If set to zero, legacy behavior is mimicked where the type of
+>    injection specifies just one bit set, and param1 is multiplexed.
+> @@ -110,6 +115,7 @@ The following files belong to it:
+>    Used when the 0x1 bit is set in "flags" to specify the APIC id
+>  
+>  - param4
 > +
-> +			memcpy_fromio(&v5param, p, v5param_size);
->  			acpi5 = 1;
->  			check_vendor_extension(pa_v5, &v5param);
-> +			if (available_error_type & ACPI65_EINJV2_SUPP) {
-> +				len = v5param.einjv2_struct.length;
-> +				offset = offsetof(struct einjv2_extension_struct, component_arr);
-> +				nr_components = (len - offset) / 32;
+This also shouldn't really be in a patch adding new stuff.
+We should treat docs in similar fashion to code - if it is just whitespace
+separate patch.
 
-Can we use sizeof() anything for that 32?
-
-> +				acpi_os_unmap_iomem(p, v5param_size);
-I wonder if a comment or two would be useful here to explain why we need to expand the mapping.
-
-> +				offset = offsetof(struct set_error_type_with_address, einjv2_struct);
-> +				v5param_size = offset + struct_size(&v5param.einjv2_struct,
-> +					component_arr, nr_components);
-> +				p = acpi_os_map_iomem(pa_v5, v5param_size);
-> +			}
->  			return p;
->  		}
->  	}
-
-...
-
-
-> @@ -945,10 +1023,11 @@ static void __exit einj_remove(struct platform_device *pdev)
+>    Used when the 0x4 bit is set in "flags" to specify target PCIe device
 >  
->  	if (einj_param) {
->  		acpi_size size = (acpi5) ?
-> -			sizeof(struct set_error_type_with_address) :
-> +			v5param_size :
->  			sizeof(struct einj_parameter);
+>  - notrigger
+> @@ -122,6 +128,18 @@ The following files belong to it:
+>    this actually works depends on what operations the BIOS actually
+>    includes in the trigger phase.
 >  
->  		acpi_os_unmap_iomem(einj_param, size);
+> +- einjv2_component_count
 > +
-Unrelated change that shouldn't be in this patch.
+> +  The value from this file is used to set the "Component Array Count"
+> +  field of EINJv2 Extension Structure.
+
+Can we not parse this from the provided component array?  Why is separate
+parameter useful?  You don't seem to write it below in the example.
 
 
->  		if (vendor_errors.size)
->  			acpi_os_unmap_memory(vendor_errors.data, vendor_errors.size);
->  	}
+> +
+> +- einjv2_component_array
+> +
+> +  The contents of this file are used to set the "Component Array" field
+> +  of the EINJv2 Extension Structure. The expected format is hex values
+> +  for component id and syndrome separated by space, and multiple
+> +  components are separated by new line.
+> +
+>  CXL error types are supported from ACPI 6.5 onwards (given a CXL port
+>  is present). The EINJ user interface for CXL error types is at
+>  <debugfs mount point>/cxl. The following files belong to it:
+> @@ -139,7 +157,6 @@ is present). The EINJ user interface for CXL error types is at
+>    under <debugfs mount point>/apei/einj, while CXL 1.1/1.0 port injections
+>    must use this file.
+>  
+> -
+
+Another white space change that shouldn't be in this patch in my view.
+
+>  BIOS versions based on the ACPI 4.0 specification have limited options
+>  in controlling where the errors are injected. Your BIOS may support an
+>  extension (enabled with the param_extension=1 module parameter, or boot
+> @@ -194,6 +211,26 @@ An error injection example::
+>    # echo 0x8 > error_type			# Choose correctable memory error
+>    # echo 1 > error_inject			# Inject now
+>  
+> +An EINJv2 error injection example::
+> +
+> +  # cd /sys/kernel/debug/apei/einj
+> +  # cat available_error_type			# See which errors can be injected
+> +  0x00000002	Processor Uncorrectable non-fatal
+> +  0x00000008	Memory Correctable
+> +  0x00000010	Memory Uncorrectable non-fatal
+> +  0x00000001	EINJV2 Processor Error
+> +  0x00000002	EINJV2 Memory Error
+> +
+> +  # echo 0x12345000 > param1			# Set memory address for injection
+> +  # echo 0xfffffffffffff000 > param2		# Range - anywhere in this page
+> +  # comp_arr="0x1 0x2				# Fill in the component array
+> +    >0x1 0x4
+> +    >0x2 0x4"
+> +  # echo "$comp_arr" > einjv2_component_array
+> +  # echo V2_0x2 > error_type			# Choose EINJv2 memory error
+> +  # echo 0xa > flags				# set flags to indicate EINJv2
+> +  # echo 1 > error_inject			# Inject now
+> +
+>  You should see something like this in dmesg::
+>  
+>    [22715.830801] EDAC sbridge MC3: HANDLING MCE MEMORY ERROR
 
