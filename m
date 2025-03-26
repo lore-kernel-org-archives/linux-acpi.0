@@ -1,63 +1,63 @@
-Received: from mail-oi1-f173.google.com (mail-oi1-f173.google.com [209.85.167.173])
+Received: from mail-oa1-f50.google.com (mail-oa1-f50.google.com [209.85.160.50])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC19F49659;
-	Wed, 26 Mar 2025 21:04:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.173
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3F9A253B68;
+	Wed, 26 Mar 2025 21:06:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743023069; cv=none; b=VGiY9pV6HhVoc4/zY18zDdTGlhsH1MIrRGLMHdUuJ1CiYwGwInEj52jCUrCSCR7CUNIewYpBuBNhpJaoCd0d/OVYkZARN8oVP/SeA1QFrxiCOvx/UI7HRLZnc3yw3LnR2qM816Z+ANBeg6m9JHf5BvHLD9h8ne5Csql9H8xKgf4=
+	t=1743023198; cv=none; b=VHoA9qtaQkCCxpPGm3y4gPWPHZXwXwmd/80SMhJsvzNpoIbAq/X54aswNdlxPaprkhSNrXlSRb5TYnLq6WLKPqfniMf7tD8kia+ibUrt6X+wE9SQ3/6eYID41lrxpVA/KB/h38R+bBnQ3wOuv/vHsyJhXefz+MCG2qQK9kuSybw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743023069; c=relaxed/simple;
-	bh=TArcQTxrgr1eb9R+JMG9nSrSsD2zBBgzcm7kkL2AbpE=;
+	s=arc-20240116; t=1743023198; c=relaxed/simple;
+	bh=u1KKFwlHMV+XwZjtWbdcpJPJxVd7jlTCsavRzYqtYBI=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=CSs6m6OnXEew/o9Xpb2KF5QrqgaHTX6cYQbTTjKCyE8yg9iz96TmkTv/vjS5DXsm88QnJkkckC2sPMq7EQAmxP7pSzA7jnQZ/pfsX4XVlQhZ1/NwXfPJmzYC93vJPScuPrSzD+nUkVj+f65hSIWqMZKrjPtrB+fwdGJdOzd0LkQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=aGH83QG7; arc=none smtp.client-ip=209.85.167.173
+	 MIME-Version; b=T60ykZUujCspaJcTeVlJvwNt5zMJjvKmpL6LkQcwdeF/sD4qk/hzXfa2+c7tdvZ2hLnN7v5Jm5jiJ29LpxAYdlznH8fpzwaAlBn2cj55hrNhZ9K69F1rh22ZuHKZ0TVRI7cyZkXg5C/rjdyT9DV3KgflkQd2SRG2MoR1tyBnMiE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=QQQRDIQ/; arc=none smtp.client-ip=209.85.160.50
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="aGH83QG7"
-Received: by mail-oi1-f173.google.com with SMTP id 5614622812f47-3fefbbc7dd4so81388b6e.2;
-        Wed, 26 Mar 2025 14:04:27 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="QQQRDIQ/"
+Received: by mail-oa1-f50.google.com with SMTP id 586e51a60fabf-2c6ed7efb1dso116694fac.2;
+        Wed, 26 Mar 2025 14:06:36 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1743023067; x=1743627867; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1743023196; x=1743627996; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=ozVPTnoMLma4OglcHu3vIpr2scI7Wzqzcsqtqzz0t8g=;
-        b=aGH83QG7Id/cTKa5PfhlseoZ6n0b7h0n53v5vQNa14pCkahNVn+h7N288TmGwWrUls
-         6vVXSd+CT56mAOfJHTqmfVvBPakniWTyJMRlRbSQBo62pqzKCX5Q0KoWKClfpN5RDLWp
-         Zp28VOxFCErXeydB8jK9dKhs429fecrYi8m98fAsP4+xn3WDsLrJRonva/DLLMJsUYxe
-         5zJt/LccXbS0n6as2NBrGjTuWnZ1I2sYk4l42sZj1CLTMQsXDUyNX5wdl1lgE54K3tWT
-         A11RW9oqMpI4REj91lSekuA3ua8ZubB/eZvPd1xQoXs+02hkE7gud4DjWvzW8UgvKYWh
-         Nzmw==
+        bh=9JOjr+0Qr4MoAVBxIa3oIk039R0iGfKEGtCgpeZh3CA=;
+        b=QQQRDIQ/NsFukujrpoMbsUhqFQsskqEGIcld/N5ruXQFSRgQLR3Dkw9g8D/6907PNG
+         oUYOARaR7CzsXc2Ix/yDTHhIRaK7iIIc8jx4GcxQ3bwGLkx+SaugUCXdrtV4UDV3zZT6
+         F//zi/+gkFG5cUBEXuuuo/nlokLudK5zS5f7uO2ACFZua8Xvy8ZFTv3H5o92fMS2yPMz
+         PoyY8j85XzVi6ut0LgrgeBeP0hKdfI/PWvH0gjA+TPzQi64RqDDlpmGr4V4fPk+a9qpd
+         PS2m+lAzBN3aYP8nPdT8M4E+WBhLZe1lLzqsVp6lGyVORMIctvIbTWn+u218iPelITrL
+         Tn6g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1743023067; x=1743627867;
+        d=1e100.net; s=20230601; t=1743023196; x=1743627996;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=ozVPTnoMLma4OglcHu3vIpr2scI7Wzqzcsqtqzz0t8g=;
-        b=Pt3uStI13GST7XFiHQotzUM3w1O+JLWAQ7odpguM1/2PziE4k1/yqY2wkNlITERvY9
-         dUV3CqJTD1vPlsELjk3MkQscF23jCWhoMkrT4Q08VBd4C5r2cAtZfqiJcY4Mj14Yhkhf
-         oAusK5tZcQkjU4AD13W9XaTXpG8REOblsOWs85BErDj1b8BBVAYjE9fSIUAsF8GebP8W
-         aXRMllcYsj4s+LjPMP7i886Pkudu2fh+K9NulPGMySDCGBakdHHNIVb82YP7T6/S2/XT
-         e7rcoLywK40hk8QQ55gJejLCTfm7crzaVt9Ny9r6V2LRHStaZQ5caqNc6Ui7I6oDiH8B
-         jhEw==
-X-Forwarded-Encrypted: i=1; AJvYcCUJALTEyWbnkca4cGJ1K7Y9l6zqASUl4EQrksFoEsZ+5orKwC8/QtEgard1BbKkjC+VwHRZziNhqOR+hw==@vger.kernel.org, AJvYcCUPNyTY3GlfrXsQqCOa+3s8y+BaXBFg02AEEWB4Er5MCF+9QARfWPV6juzEhenjxInMWLI3MWUchO1RnZl5lLc=@vger.kernel.org, AJvYcCW4jz/IdunM8SpUkA18AfyLtZARs9v2HmZcAIcGUChvl/hp5GhgeknVVF76JTwWirnejqM3sE109bZD0T0k@vger.kernel.org, AJvYcCWEl3Ca2A3kzs7fRzyxZvNcuxwv/NyggIX/gtZz8VYoCB/gHPrcz2wWPc/Twc7V3RsCHyBGITBfrwUh@vger.kernel.org
-X-Gm-Message-State: AOJu0YzyBYWIv3Nj92s2Gyu71vBwPrNH/DGauG6jBcJLFCQptI8j2ih5
-	smjNlaDSKgTXIe2U8kTd7zgyxtcJWAyM0eVDMMhnlwHQeYSnWr1b
-X-Gm-Gg: ASbGnctLl+qike10iXK++A1isaMnh3r/ZziGg9EA+m+H895uRtucmVQ4dlkonrQHQe0
-	FXYVyXQOQTPd/6+89xoujP4VUVryHAk4+9rzDliFL5c6azeZpcYgjvy6awzb0xOoDsE0D4dzI8m
-	EuAVNyTqawpWRz21KPr2LDNEGfBzEwiySIR/2L45jWn4hgBpl0Q30uv16NDS8MBaiQ5A21l3AyH
-	zf3Aqwwgjow+ipV+vgtWDUPihpNNG9z3dDaj8EzGU/QtRL85AjFPMFsltlN2ujD/qJ1gxfSonm1
-	iJrbgJlsCGf9iv1riiH9v8ckmGiMZVe7NLjHCP3yaHDmRWTLxkaUqhp2t7f/6zupTb6uT/GD29Y
-	IU4bvQqBwygFj0i+6HqWHyGtIMyc=
-X-Google-Smtp-Source: AGHT+IGFpzMq1O2Poh6oWUp4yY8thHY+iW8mZHjXAEYKAsdnMpS0h9TCqF7PT/JKmZxnM7+vPN5Irg==
-X-Received: by 2002:a05:6808:3186:b0:3f8:c7ce:2723 with SMTP id 5614622812f47-3fefa5ffff2mr679866b6e.25.1743023066745;
-        Wed, 26 Mar 2025 14:04:26 -0700 (PDT)
+        bh=9JOjr+0Qr4MoAVBxIa3oIk039R0iGfKEGtCgpeZh3CA=;
+        b=jwncPAe+Zd5UIvVu0ajDx6aJ0NMKhO6PTQigAYvR1R9I2yRRnwANHEGJTzVWUVsYmK
+         4AWXe9DRBT8QQPSiL7Etyo0oYELr2xseni4695asqH8k4qdh4oxc5yAGRV9uYVFF/k7X
+         Hn11BlGspW0O2nUaQCwHfzFmiondtFjcl8mLplbZ/g1DIungS04ofQ3ufUno3ckFTlkL
+         12ZdxQ82e4DGf7u1Ush/O7PvCK2C3ijC+ax5b2ag0QUHibNSTw/Bo2y05gPDmrUUO+pX
+         jH+UXNwJsOOMWjlMQBL+l1djWUIW8fLTNlm/ofZrVflnY1GgxikhrQ13UuQocfjy7709
+         1d3Q==
+X-Forwarded-Encrypted: i=1; AJvYcCVSJoc6l4syo8yww6WoiIre0mx7OZYEYY21FfR1bC9fGDh0NXHMfqbMW1pF88GzeHzKgqLNYFCAbFSinQ==@vger.kernel.org, AJvYcCWIi4UQyEwksEI3zVpPCNNE+Zt3IikzFaOdrAnMfWkFiGA0S1MO2EaRV7dsUCtPKgaPdx+p3PzfCGltwdDesNo=@vger.kernel.org, AJvYcCXL4AWb6/ReG5hRXYZnC7y3LzeBy9LOPDJVxlSEcjqzhDZwOGzWHm6xMsegRHVaubadYKBG7Tbyf90/KuSA@vger.kernel.org, AJvYcCXWjVIvgzQWo9pRYCetRqGli1U3RnjjNlgtzZubRsk8k2uQKeuWQKketQmSmdi5d/dzAYgenae+egEM@vger.kernel.org
+X-Gm-Message-State: AOJu0YyjPGJW9zfssxS7vnWQWLjBkSM+tBvb4qZiW3QOEd4UpZad/xlW
+	PPrPhsK3RUC0NS+gf6E8J9GnbLlcsRhQpLGWdoTs0uPvt1wIJXmG
+X-Gm-Gg: ASbGncsiwCkhjna57hmNCF5lnrB6W6B8a+yAb8sL5QaLWrKxbMpbfVEvDY+Om4d45n4
+	i2FyTz58U4uCPliy3S0FqnxP50D54gFd+4itGjHRP2lld4o3U4WqbgaBRVepNa4xTB1TPiP0Fyl
+	o6PjIfz4JOpLL2GWc4FXQes9UkH/g5gUR1I2L8k27eQ7U5U+5PvUwOqBRAh1rXbKauhligAjLRQ
+	nilE+AiCFQ66ISgkkOOVnEmvaL4vFTLbB/PYHC90wk5KcUjCek0v5oMcxKixF599VV+cdY/9BwU
+	TzBlHBaM8UqjwH3k0KNZGqp4izK8RXZLP7TjbxB27wL4AcC1JNmchOHHOjzBnYGEGfOhlTa53I/
+	9WFHcQSAPTths4a+L
+X-Google-Smtp-Source: AGHT+IHQNtPcwcTbkL3ozNLpTAgid4LRiOvA4DfqxExbFGHGGPBuOQdhi6WkcEySpIVWuP72t6SU0w==
+X-Received: by 2002:a05:6871:b13:b0:2a3:c59f:4cba with SMTP id 586e51a60fabf-2c848018e3emr679398fac.17.1743023195608;
+        Wed, 26 Mar 2025 14:06:35 -0700 (PDT)
 Received: from my-computer.lan (c-73-76-29-249.hsd1.tx.comcast.net. [73.76.29.249])
-        by smtp.googlemail.com with ESMTPSA id 46e09a7af769-72c0abac389sm2500628a34.4.2025.03.26.14.04.21
+        by smtp.googlemail.com with ESMTPSA id 586e51a60fabf-2c78b6cc741sm3034713fac.21.2025.03.26.14.06.30
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 26 Mar 2025 14:04:26 -0700 (PDT)
+        Wed, 26 Mar 2025 14:06:35 -0700 (PDT)
 From: Andrew Ballance <andrewjballance@gmail.com>
 To: remo@buenzli.dev
 Cc: a.hindborg@kernel.org,
@@ -84,12 +84,12 @@ Cc: a.hindborg@kernel.org,
 	saravanak@google.com,
 	tmgross@umich.edu,
 	andrewjballance@gmail.com
-Subject: Re: [PATCH 06/10] rust: property: Add child accessor and iterator
-Date: Wed, 26 Mar 2025 16:04:00 -0500
-Message-ID: <20250326210400.695960-1-andrewjballance@gmail.com>
+Subject: Re: [PATCH 07/10] rust: Add arrayvec
+Date: Wed, 26 Mar 2025 16:06:15 -0500
+Message-ID: <20250326210615.696266-1-andrewjballance@gmail.com>
 X-Mailer: git-send-email 2.49.0
-In-Reply-To: <20250326171411.590681-7-remo@buenzli.dev>
-References: <20250326171411.590681-7-remo@buenzli.dev>
+In-Reply-To: <20250326171411.590681-8-remo@buenzli.dev>
+References: <20250326171411.590681-8-remo@buenzli.dev>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -99,29 +99,64 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
 On Wed, Mar 26, 2025 at 12:13 PM Remo Senekowitsch Wrote: 
->  impl FwNode {
-> +    // SAFETY: `raw` must have its refcount incremented.
-> +    unsafe fn from_raw(raw: *mut bindings::fwnode_handle) -> ARef<Self> {
-> +        unsafe { ARef::from_raw(ptr::NonNull::new_unchecked(raw.cast())) }
+> +pub struct ArrayVec<const N: usize, T> {
+> +    array: [core::mem::MaybeUninit<T>; N],
+> +    len: usize,
+> +}
+
+I would reverse the order of the generic arguments so T is first so
+that it matches the declaration of an array: [T; N] 
+
+> +    /// Adds a new element to the end of the vector.
+> +    ///
+> +    /// # Panics
+> +    ///
+> +    /// Panics if the vector is already full.
+> +    pub fn push(&mut self, elem: T) {
+> +        if self.len == N {
+> +            panic!("OOM")
+> +        }
+> +        self.array[self.len] = MaybeUninit::new(elem);
+> +        self.len += 1;
 > +    }
 
-this safety comment should say why it is ok to cast from a
-struct fwnode_handle* to a *const FwNode
+This function should not panic. I would rewrite it so that its signature is
+pub fn push(&mut self, elem: T) -> Result<(), T>
 
-> +                    // We will pass `prev` to `fwnode_get_next_child_node`,
-> +                    // which decrements its refcount, so we use
-> +                    // `ARef::into_raw` to avoid decrementing the refcount
-> +                    // twice.
-> +                    let prev = ARef::into_raw(prev);
-> +                    prev.as_ptr().cast()
-> +                }
-> +            };
-> +            let next = unsafe { bindings::fwnode_get_next_child_node(self.as_raw(), prev_ptr) };
+> +impl<const N: usize, T> AsRef<[T]> for ArrayVec<N, T> {
+> +    fn as_ref(&self) -> &[T] {
+> +        // SAFETY: As per the type invariant, all elements at index < self.len
+> +        // are initialized.
+> +        unsafe { core::mem::transmute(&self.array[..self.len]) }
+> +    }
+> +}
+> +
+> +impl<const N: usize, T> AsMut<[T]> for ArrayVec<N, T> {
+> +    fn as_mut(&mut self) -> &mut [T] {
+> +        // SAFETY: As per the type invariant, all elements at index < self.len
+> +        // are initialized.
+> +        unsafe { core::mem::transmute(&mut self.array[..self.len]) }
+> +    }
+> +}
+
+I would replace both uses of transmute here with slice::from_raw_parts
+like you did in drop. 
+
+also it's not needed but you could also impl Deref and DerefMut for ArrayVec
+because you have already impl'ed AsRef and AsMut so it should be simple
+
+> +impl<const N: usize, T> Drop for ArrayVec<N, T> {
+> +    fn drop(&mut self) {
+> +        unsafe {
 
 this is missing a safety comment
 
-> +            if next.is_null() {
-> +                return None;
-> +            }
+> +            let slice: &mut [T] =
+> +                core::slice::from_raw_parts_mut(self.array.as_mut_ptr().cast(), self.len);
+> +            core::ptr::drop_in_place(slice);
+> +        }
+> +    }
+> +}
 
 Andrew
+
