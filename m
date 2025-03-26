@@ -1,164 +1,94 @@
-Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f44.google.com (mail-pj1-f44.google.com [209.85.216.44])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D06F264A7C;
-	Wed, 26 Mar 2025 21:12:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=79.96.170.134
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4C4224EF7C;
+	Wed, 26 Mar 2025 21:25:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.44
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743023533; cv=none; b=pOgKnOU3S1bC9qp4zk19VRmuNRoaMKkTG5yg8hcTeekDxkrLmaZEiu5+mq2GwY/dMw8khIbZW7vi2jlgL+QjrvMU1lEw0ZZZyLiYrCQiTCEFxyzccqPHKIGi+PC0DheUCvOzozJcvdQki4/APEBN+nZ45KogQCIMwzfVMDHcM+Y=
+	t=1743024361; cv=none; b=idEb0xzwLzkTuQame5qwDYNSayhC4CAcWuN7TG4BWLt48jMehxjD3ckeF9zox13boDUUEvOgg/PdJqSQOFnoBum/ZtGLKoo6rDlVEovj7F2tw6Z4bHIrXMh+xiuOhja0l8thIusLo6R2U0cbxqc78mfh+gckefHbxew2ZuQqY+I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743023533; c=relaxed/simple;
-	bh=Aq2XzqOC5nMpZJOEBsVis4FKKUElJdHhuR5fhNOfqR4=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=Da+PJI5Ckmyo7AuvOBnx/97uPwDugjSkOiG8XVjU2pC9d+YRlESuJwBjq202gAUeWP2Fm5vnganCrrSXgmUWKBKQBX2WoN6hGxnK71+kaeP+UCB7pQsmRkV3wZntN+qwu/bRBNBkKAYyAstfyNahRQ1nmIYiBaytaEwV2YWdFN4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net; spf=pass smtp.mailfrom=rjwysocki.net; dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b=mBiBtUcc; arc=none smtp.client-ip=79.96.170.134
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rjwysocki.net
+	s=arc-20240116; t=1743024361; c=relaxed/simple;
+	bh=5dd6mTNGubCGg1g4nFzCM8Oi/0JxeDqx+tX2b+VPkns=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=Xz51dGJdoKgTsdKvt0h7PJ3H0saArr3P7n3hRYku4uSW60w0xACsfopfV5AVNPAxiQM9d2axJhr9OCZl67Pi4H2wBw+5IX9M8+HRSCWp1j/NDreOwLf0X0rUm2HzesjAepec9tJC5SEQXl3DUgCzsx/USSlG/3bhVFSrXGob9Yw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=TbyAMKOl; arc=none smtp.client-ip=209.85.216.44
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b="mBiBtUcc"
-Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
- by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 6.3.1)
- id c407651733a6d66c; Wed, 26 Mar 2025 21:12:09 +0100
-Received: from kreacher.localnet (unknown [195.136.19.94])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by cloudserver094114.home.pl (Postfix) with ESMTPSA id 4D7587F6388;
-	Wed, 26 Mar 2025 21:12:09 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=rjwysocki.net;
-	s=dkim; t=1743019929;
-	bh=Aq2XzqOC5nMpZJOEBsVis4FKKUElJdHhuR5fhNOfqR4=;
-	h=From:Subject:Date;
-	b=mBiBtUcc37x51Y3/TpcS6re11JEWQQ7eSge9nc/zV2rO+pmKwUsLIR/37Sgfy0j/v
-	 p0gkxG+P5bYR1rd73MbNTMgf2NI05H+pzKIw4Gxg62pWtEjXlzg1tYptp5rrIV3LQk
-	 XhwwVgVoTmdxk/UNgpQe/ol1C0R6ZTdKMRverC0ulRBaQvCA/F/hxyfDcTJeD0Vnpo
-	 ZVmAGKY6WHtTY8jBnFo6kRI2Ar618SGxs+rKpP2BU24TYqstxYrOgzxUuAa1KypoQD
-	 AO5LrLzH8V2NxYwqhkOuTBsVgLbyurNEUl5V6fHmAO7fayxrWDfzVJtJBAAwQWiLzl
-	 bBGKtPU5ZW7PQ==
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To: Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Bob Moore <robert.moore@intel.com>,
- Saket Dumbre <saket.dumbre@intel.com>
-Subject: [PATCH v1 1/8] ACPICA: fix acpi operand cache leak in dswstate.c
-Date: Wed, 26 Mar 2025 21:05:24 +0100
-Message-ID: <4999480.31r3eYUQgx@rjwysocki.net>
-In-Reply-To: <5873907.DvuYhMxLoT@rjwysocki.net>
-References: <5873907.DvuYhMxLoT@rjwysocki.net>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TbyAMKOl"
+Received: by mail-pj1-f44.google.com with SMTP id 98e67ed59e1d1-2ff6ce72844so56225a91.2;
+        Wed, 26 Mar 2025 14:25:59 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1743024359; x=1743629159; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=5dd6mTNGubCGg1g4nFzCM8Oi/0JxeDqx+tX2b+VPkns=;
+        b=TbyAMKOlvkq+bGfxrrfGJ5ETNVACo+g/nBUoq1ULP89GameFvBBytVMP0QiqIEAUVm
+         jY/ZF/R6ZwDUIkZHUn55PKAOBHjiyMNRm5hWhwBN0NHVaVyZ/vgG5N3q6xVrUDpLxxWF
+         cWzQImTtkEqPU/g5XrGjArolyK2iUMpzClXgK69MfV3cPA6G3zCZblzmqTBkZtboC4c4
+         ojac0FiYlbIsPhShX4H/eatefqZjk0okuxqyeBgEOIt9h4Yi4bKOGPSWP2693W7PFT+Q
+         NPFXaizC6kvLlAWryYIbXRuLSbs8haRe6rn5VBUctapTwl2/ewCV8wJ+0XQ//DF3499s
+         hglw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1743024359; x=1743629159;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=5dd6mTNGubCGg1g4nFzCM8Oi/0JxeDqx+tX2b+VPkns=;
+        b=BvZgpWoYwQBzMKofDM146lA6L/ZipZm59Hw7v4Xb4AMFU4ZMGeLt5uo3FG28ynKhdJ
+         cqEszevy2XnCp9TTsKM8nXj/WajmjfLNYgNXqe7Mi+xBdef4vfIKsM1DJ70G8lmm7SBF
+         wgGE/NzvL2EyOL4bTU9IUYLvY9qspRsUJ4gGj88GuysbRiLdQ2E47WfqXjJarRGzn3o+
+         C6r+YLN7YWknrJ3SGByqYccURSE+UnZZ1wgKkCKvvew0ZP2SPNaNiy9jFvS7Sm4kKXCa
+         SZizzGvGOddqbCl8SWa4dAy8iu6Gj7dLXJzKfcWkYCsqwBxZ5V48d3eWAEMrcotUdkTj
+         8ybw==
+X-Forwarded-Encrypted: i=1; AJvYcCUin4JPoylc2b4WJHYg82y790zfFrgSTDaQT2kE9QtCIF6lU6DDAFOgHxiTC54gy9iGtjbAkfrp/h2l1A==@vger.kernel.org, AJvYcCUsAHIWEM8HoQoc1nQMDvbeXKCp/XPeSHtBLHr+bZTqmWExj8jafY8G2hm8y5pySxOhoSxWwiMvfWADI+3BV1w=@vger.kernel.org, AJvYcCWpaIMFVMc/+qM4LljseC9DtV0QhN9ngF2cWzGzLPiatobiEBl2SVSOuMYQKdclxIfoHDk1DlOlEBvvh8Hv@vger.kernel.org, AJvYcCXEH14pwJLdTuLl1XCHO8VFqFDps+vFxzs5l8g4YZRYC3cE9X1Dgrq6zbJ8NGUK6F+K/375pMV8YUI7@vger.kernel.org
+X-Gm-Message-State: AOJu0YzMLj6UVzurinENqH+ogjXKJKZgcRErdFXbrziekTJ5jGeU4keZ
+	BqHQmpQJR6GwT90AsMYa9WkCKtnyfyDimoi3g17C50kKP48g587ms+mhPLxidE/t+cQcGGyP895
+	pT6LSxSVz5M2Lzr+qlCwS6L4QGiA=
+X-Gm-Gg: ASbGncvf20ZPphsj3bTSU+rQxcCaqMEvY2eexCYjXXErN1W+M76Q0CBHa44L2GjlXW/
+	ZQgIH2IcA7r6MwGOAS1lS2mfTa1RiIFI14zs1mie/yc47+YdOFuWmT+ltXKhjSQpOLE6r7i4yWZ
+	ArPEzHCTSuxvlLee1PGbosQgCn
+X-Google-Smtp-Source: AGHT+IEED3VZRyXSj1RWmXvdwtqZOUHywyrSkL0ECd59uK04S5vf0a3JXMoziVw+bs6ZQOSa5dnlhNjG/4as8bSJVCk=
+X-Received: by 2002:a17:90b:4b0f:b0:2fe:b77a:2eba with SMTP id
+ 98e67ed59e1d1-303a7d5b70cmr671784a91.1.1743024358841; Wed, 26 Mar 2025
+ 14:25:58 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
+References: <20250326171411.590681-9-remo@buenzli.dev> <20250326210735.696416-1-andrewjballance@gmail.com>
+In-Reply-To: <20250326210735.696416-1-andrewjballance@gmail.com>
+From: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
+Date: Wed, 26 Mar 2025 22:25:46 +0100
+X-Gm-Features: AQ5f1Jp0Rp7E84Il1vwCrqKhN7FBkfP8izd3SLqtwQoJKmWnVsdDbD-_koYxdjo
+Message-ID: <CANiq72nP3EEYH6cdZRj2S9XZUYyi=RyyQARypGCFj3ULEB=+fQ@mail.gmail.com>
+Subject: Re: [PATCH 08/10] rust: property: Add property_get_reference_args
+To: Andrew Ballance <andrewjballance@gmail.com>
+Cc: remo@buenzli.dev, a.hindborg@kernel.org, alex.gaynor@gmail.com, 
+	aliceryhl@google.com, andriy.shevchenko@linux.intel.com, 
+	benno.lossin@proton.me, bjorn3_gh@protonmail.com, boqun.feng@gmail.com, 
+	dakr@kernel.org, devicetree@vger.kernel.org, dirk.behme@de.bosch.com, 
+	djrscally@gmail.com, gary@garyguo.net, gregkh@linuxfoundation.org, 
+	heikki.krogerus@linux.intel.com, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, ojeda@kernel.org, rafael@kernel.org, 
+	robh@kernel.org, rust-for-linux@vger.kernel.org, sakari.ailus@linux.intel.com, 
+	saravanak@google.com, tmgross@umich.edu
 Content-Type: text/plain; charset="UTF-8"
-X-CLIENT-IP: 195.136.19.94
-X-CLIENT-HOSTNAME: 195.136.19.94
-X-VADE-SPAMSTATE: clean
-X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgeefvddrtddtgdduieeigeeiucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvfevufffkfgjfhgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepledtieekkeekveeikeetgffgteeuteefjeevjeegudelvdduheeiuedvieehieevnecuffhomhgrihhnpehgihhthhhusgdrtghomhenucfkphepudelhedrudefiedrudelrdelgeenucevlhhushhtvghrufhiiigvpedvnecurfgrrhgrmhepihhnvghtpeduleehrddufeeirdduledrleegpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpehrjhifsehrjhifhihsohgtkhhirdhnvghtpdhnsggprhgtphhtthhopeegpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheprhhosggvrhhtrdhmohhorhgvsehinhhtvghlrdgtohhmpdhrtghpthhtohepshgrkhgvthdrughumhgsrhgvsehinhhtvghlrdgtohhm
-X-DCC--Metrics: v370.home.net.pl 1024; Body=4 Fuz1=4 Fuz2=4
+Content-Transfer-Encoding: quoted-printable
 
-From: Seunghun Han <kkamagui@gmail.com>
+On Wed, Mar 26, 2025 at 10:07=E2=80=AFPM Andrew Ballance
+<andrewjballance@gmail.com> wrote:
+>
+> This function is missing safety comments.
 
-ACPICA commit 987a3b5cf7175916e2a4b6ea5b8e70f830dfe732
+Yeah -- that should be spotted by Clippy.
 
-I found an ACPI cache leak in ACPI early termination and boot continuing case.
+Remo: did you build with `CLIPPY=3D1`?
 
-When early termination occurs due to malicious ACPI table, Linux kernel
-terminates ACPI function and continues to boot process. While kernel terminates
-ACPI function, kmem_cache_destroy() reports Acpi-Operand cache leak.
+Thanks!
 
-Boot log of ACPI operand cache leak is as follows:
->[    0.585957] ACPI: Added _OSI(Module Device)
->[    0.587218] ACPI: Added _OSI(Processor Device)
->[    0.588530] ACPI: Added _OSI(3.0 _SCP Extensions)
->[    0.589790] ACPI: Added _OSI(Processor Aggregator Device)
->[    0.591534] ACPI Error: Illegal I/O port address/length above 64K: C806E00000004002/0x2 (20170303/hwvalid-155)
->[    0.594351] ACPI Exception: AE_LIMIT, Unable to initialize fixed events (20170303/evevent-88)
->[    0.597858] ACPI: Unable to start the ACPI Interpreter
->[    0.599162] ACPI Error: Could not remove SCI handler (20170303/evmisc-281)
->[    0.601836] kmem_cache_destroy Acpi-Operand: Slab cache still has objects
->[    0.603556] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.12.0-rc5 #26
->[    0.605159] Hardware name: innotek gmb_h virtual_box/virtual_box, BIOS virtual_box 12/01/2006
->[    0.609177] Call Trace:
->[    0.610063]  ? dump_stack+0x5c/0x81
->[    0.611118]  ? kmem_cache_destroy+0x1aa/0x1c0
->[    0.612632]  ? acpi_sleep_proc_init+0x27/0x27
->[    0.613906]  ? acpi_os_delete_cache+0xa/0x10
->[    0.617986]  ? acpi_ut_delete_caches+0x3f/0x7b
->[    0.619293]  ? acpi_terminate+0xa/0x14
->[    0.620394]  ? acpi_init+0x2af/0x34f
->[    0.621616]  ? __class_create+0x4c/0x80
->[    0.623412]  ? video_setup+0x7f/0x7f
->[    0.624585]  ? acpi_sleep_proc_init+0x27/0x27
->[    0.625861]  ? do_one_initcall+0x4e/0x1a0
->[    0.627513]  ? kernel_init_freeable+0x19e/0x21f
->[    0.628972]  ? rest_init+0x80/0x80
->[    0.630043]  ? kernel_init+0xa/0x100
->[    0.631084]  ? ret_from_fork+0x25/0x30
->[    0.633343] vgaarb: loaded
->[    0.635036] EDAC MC: Ver: 3.0.0
->[    0.638601] PCI: Probing PCI hardware
->[    0.639833] PCI host bridge to bus 0000:00
->[    0.641031] pci_bus 0000:00: root bus resource [io  0x0000-0xffff]
-> ... Continue to boot and log is omitted ...
-
-I analyzed this memory leak in detail and found acpi_ds_obj_stack_pop_and_
-delete() function miscalculated the top of the stack. acpi_ds_obj_stack_push()
-function uses walk_state->operand_index for start position of the top, but
-acpi_ds_obj_stack_pop_and_delete() function considers index 0 for it.
-Therefore, this causes acpi operand memory leak.
-
-This cache leak causes a security threat because an old kernel (<= 4.9) shows
-memory locations of kernel functions in stack dump. Some malicious users
-could use this information to neutralize kernel ASLR.
-
-I made a patch to fix ACPI operand cache leak.
-
-Link: https://github.com/acpica/acpica/commit/987a3b5c
-Signed-off-by: Seunghun Han <kkamagui@gmail.com>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/acpica/dsutils.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/acpica/dsutils.c b/drivers/acpi/acpica/dsutils.c
-index fb9ed5e1da89..2bdae8a25e08 100644
---- a/drivers/acpi/acpica/dsutils.c
-+++ b/drivers/acpi/acpica/dsutils.c
-@@ -668,6 +668,8 @@ acpi_ds_create_operands(struct acpi_walk_state *walk_state,
- 	union acpi_parse_object *arguments[ACPI_OBJ_NUM_OPERANDS];
- 	u32 arg_count = 0;
- 	u32 index = walk_state->num_operands;
-+	u32 prev_num_operands = walk_state->num_operands;
-+	u32 new_num_operands;
- 	u32 i;
- 
- 	ACPI_FUNCTION_TRACE_PTR(ds_create_operands, first_arg);
-@@ -696,6 +698,7 @@ acpi_ds_create_operands(struct acpi_walk_state *walk_state,
- 
- 	/* Create the interpreter arguments, in reverse order */
- 
-+	new_num_operands = index;
- 	index--;
- 	for (i = 0; i < arg_count; i++) {
- 		arg = arguments[index];
-@@ -720,7 +723,11 @@ acpi_ds_create_operands(struct acpi_walk_state *walk_state,
- 	 * pop everything off of the operand stack and delete those
- 	 * objects
- 	 */
--	acpi_ds_obj_stack_pop_and_delete(arg_count, walk_state);
-+	walk_state->num_operands = i;
-+	acpi_ds_obj_stack_pop_and_delete(new_num_operands, walk_state);
-+
-+	/* Restore operand count */
-+	walk_state->num_operands = prev_num_operands;
- 
- 	ACPI_EXCEPTION((AE_INFO, status, "While creating Arg %u", index));
- 	return_ACPI_STATUS(status);
--- 
-2.43.0
-
-
-
-
+Cheers,
+Miguel
