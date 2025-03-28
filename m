@@ -1,354 +1,148 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6487213E66;
-	Fri, 28 Mar 2025 10:18:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78FD3214205;
+	Fri, 28 Mar 2025 11:12:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743157107; cv=none; b=OPjKBMU/xWyq91BTF0u9B0L0JvRLMgm6y3dplFcM8Lm1lkwqo+u0wjJqDtXnOx7HVGZ/ejQJP5UgbldjQMdMNSDLOPDkTSwTPXGQ4pRkaBKQpcK2E4VSBhQidQJ5UPnV1f0lQFYEEeAnonIJ7QobTmGK9g3sNdFnoif2gJdK67Q=
+	t=1743160352; cv=none; b=GKNpDi0DsX9iAApzKQzSGXH3mF9cZXLkPWiK+5RmDG133gEPlHalgQHgqkDDhLMzPBkRZRbO/KhQwiFX7ZKQk7oOot/TcAEqW5So6iocubKYUjuf8vdYSi9wt7isFKGzzWadS/HsFPRWv+Efb4sQwnVKKJCowH+rv75N01pMKPk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743157107; c=relaxed/simple;
-	bh=gcgr7z5Ippm2KnaPGtAze5iGXSlisr88DVXAquZgt80=;
-	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
-	 Content-Type:MIME-Version; b=ZMZ0qUt6R9nM+Qw4DdymQVzIh+rGkNy/KEWV47dUBy+uBUvKEBYIRVq3qDLI2dOKHUaToFmkjN5VE+DeFePL1kgIVxFjo7KUFWg6z502rXNuzUmyh8FE4tilEJMOW2J+WeUNLzdnmUNFOciBxwhA+Aix4RNsYi+cbXwCyQpTLA8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.186.216])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4ZPGgY5P0Gz6L53b;
-	Fri, 28 Mar 2025 18:18:01 +0800 (CST)
-Received: from frapeml500006.china.huawei.com (unknown [7.182.85.219])
-	by mail.maildlp.com (Postfix) with ESMTPS id 70380140119;
-	Fri, 28 Mar 2025 18:18:21 +0800 (CST)
-Received: from frapeml500007.china.huawei.com (7.182.85.172) by
- frapeml500006.china.huawei.com (7.182.85.219) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.39; Fri, 28 Mar 2025 11:18:21 +0100
-Received: from frapeml500007.china.huawei.com ([7.182.85.172]) by
- frapeml500007.china.huawei.com ([7.182.85.172]) with mapi id 15.01.2507.039;
- Fri, 28 Mar 2025 11:18:21 +0100
-From: Shiju Jose <shiju.jose@huawei.com>
-To: Dan Williams <dan.j.williams@intel.com>, "linux-cxl@vger.kernel.org"
-	<linux-cxl@vger.kernel.org>, "dave@stgolabs.net" <dave@stgolabs.net>,
-	Jonathan Cameron <jonathan.cameron@huawei.com>, "dave.jiang@intel.com"
-	<dave.jiang@intel.com>, "alison.schofield@intel.com"
-	<alison.schofield@intel.com>, "vishal.l.verma@intel.com"
-	<vishal.l.verma@intel.com>, "ira.weiny@intel.com" <ira.weiny@intel.com>,
-	"david@redhat.com" <david@redhat.com>, "Vilas.Sridharan@amd.com"
-	<Vilas.Sridharan@amd.com>
-CC: "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>,
-	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-	"linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-kernel@vger.kernel.org"
-	<linux-kernel@vger.kernel.org>, "bp@alien8.de" <bp@alien8.de>,
-	"tony.luck@intel.com" <tony.luck@intel.com>, "rafael@kernel.org"
-	<rafael@kernel.org>, "lenb@kernel.org" <lenb@kernel.org>,
-	"mchehab@kernel.org" <mchehab@kernel.org>, "leo.duran@amd.com"
-	<leo.duran@amd.com>, "Yazen.Ghannam@amd.com" <Yazen.Ghannam@amd.com>,
-	"rientjes@google.com" <rientjes@google.com>, "jiaqiyan@google.com"
-	<jiaqiyan@google.com>, "Jon.Grimm@amd.com" <Jon.Grimm@amd.com>,
-	"dave.hansen@linux.intel.com" <dave.hansen@linux.intel.com>,
-	"naoya.horiguchi@nec.com" <naoya.horiguchi@nec.com>, "james.morse@arm.com"
-	<james.morse@arm.com>, "jthoughton@google.com" <jthoughton@google.com>,
-	"somasundaram.a@hpe.com" <somasundaram.a@hpe.com>, "erdemaktas@google.com"
-	<erdemaktas@google.com>, "pgonda@google.com" <pgonda@google.com>,
-	"duenwen@google.com" <duenwen@google.com>, "gthelen@google.com"
-	<gthelen@google.com>, "wschwartz@amperecomputing.com"
-	<wschwartz@amperecomputing.com>, "dferguson@amperecomputing.com"
-	<dferguson@amperecomputing.com>, "wbs@os.amperecomputing.com"
-	<wbs@os.amperecomputing.com>, "nifan.cxl@gmail.com" <nifan.cxl@gmail.com>,
-	tanxiaofei <tanxiaofei@huawei.com>, "Zengtao (B)" <prime.zeng@hisilicon.com>,
-	Roberto Sassu <roberto.sassu@huawei.com>, "kangkang.shen@futurewei.com"
-	<kangkang.shen@futurewei.com>, wanghuiqiang <wanghuiqiang@huawei.com>,
-	Linuxarm <linuxarm@huawei.com>
-Subject: RE: [PATCH v2 3/8] cxl/edac: Add CXL memory device patrol scrub
- control feature
-Thread-Topic: [PATCH v2 3/8] cxl/edac: Add CXL memory device patrol scrub
- control feature
-Thread-Index: AQHbmcKuLCBs/xi+XkeVn732q30wUbOGMAMAgAESV/A=
-Date: Fri, 28 Mar 2025 10:18:20 +0000
-Message-ID: <d75c574e26d94aa9b398acfca0ecac9d@huawei.com>
-References: <20250320180450.539-1-shiju.jose@huawei.com>
-	<20250320180450.539-4-shiju.jose@huawei.com>
- <67e4ae1cb0cdd_152c29462@dwillia2-mobl3.amr.corp.intel.com.notmuch>
-In-Reply-To: <67e4ae1cb0cdd_152c29462@dwillia2-mobl3.amr.corp.intel.com.notmuch>
-Accept-Language: en-GB, en-US
-Content-Language: en-US
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+	s=arc-20240116; t=1743160352; c=relaxed/simple;
+	bh=tdiV8jooMBZ2aJx8rltIZQeVkN+R4v7ZLa2bFv4yEZw=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=Z3PIWvAs/jIML5Q3CGOvim/VsprTEdIvnGjESMbQ8xo7Atc7u3dGhwHbmVabh2TjKUwcHjFt5tF6LObwCplmBQldplfjB4j8cRjcOQdE7gW0gxZUhybHDsvMY5KybavcPoKVLxMpInhtEiWukgZbelbV4gU6c1E309NGofO5Row=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IEBnl8bH; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IEBnl8bH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9FFEC4CEEF;
+	Fri, 28 Mar 2025 11:12:30 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1743160351;
+	bh=tdiV8jooMBZ2aJx8rltIZQeVkN+R4v7ZLa2bFv4yEZw=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=IEBnl8bHhJyioeIdHEH9lY67XRAKZbXsAPEoB9lg5k+DMyKnQf5IfivG9qr6UWHej
+	 iRdG0WCc3CweksF1PK8aDHqLjACVstWABUNSj7+8m+wTVBiD3FoNNCWbWLrXf8NR/W
+	 x+8WnPCyxjY/TDS1kvUl3W37f0ezQWhKGia4tAYFaSH9TmZJYuD6n86Ev6e0AEe+k5
+	 7NSr4lEjAWFwd2XzNgiYSy8nz1PgvcxilfcX6+mlilMgeosp86xL5fJkuAVaNVO9yl
+	 otRR3a8TLyxGN/K+wqpRrp4VQj61+oaoZChQoaHp8Us+CUHcjEGZP9J0EtNl7b9gT0
+	 e9jlZ4NbPvH4w==
+Received: by mail-oi1-f180.google.com with SMTP id 5614622812f47-3f8d2f8d890so1213121b6e.0;
+        Fri, 28 Mar 2025 04:12:30 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCXvXlUchlWDvpn/r9KWlT3IIjkvArIwjCj8UtSLN2I4423HK8C2zDzSo8VirYPsh/7inmSRhNoOx33Y@vger.kernel.org, AJvYcCXyq2OZh0pPKyaHqzvUiw5HJ7VMX5+aBGJjTFZJhObwHoRBBv6cc5+OoKwa89zsCaDzTcfkUgwChjllZpSK@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy863+cExLAxDBuTbghb5h6uwL8nBzLK0gvCtzuWhHNXmKcNU93
+	dk/cc9hfPeXmy+0hA0CkUZQ+E0wcYumvcb+4RZvUHo6b1zhcfYHRN3dkYo8lfHfGD0pmSRt2S8Y
+	KGzEhJTIAvTHLFSn5hj1IwMMCfGg=
+X-Google-Smtp-Source: AGHT+IEBc+PzLf7kQyxJxN660tXPVD8Ng9hOTrCSQoAZZFYeWPUf39m1FWqMoEkTz6Jp39FXpjE7W9d+1x3MNw5s7Jg=
+X-Received: by 2002:a05:6808:1524:b0:3fa:3d63:ac58 with SMTP id
+ 5614622812f47-3fefa54d450mr4877883b6e.17.1743160350106; Fri, 28 Mar 2025
+ 04:12:30 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+References: <4cef341fdf7a0e877c50b502fc95ee8be28aa811.1743129387.git.soyer@irl.hu>
+In-Reply-To: <4cef341fdf7a0e877c50b502fc95ee8be28aa811.1743129387.git.soyer@irl.hu>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Fri, 28 Mar 2025 12:12:17 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0hAZ6nYbQ7M5BPbkeMh2_VQFdonBdrFYOfGbq3Y_Kh51w@mail.gmail.com>
+X-Gm-Features: AQ5f1JoH6FMgp2NUlC4f-9Wruph1kv2VPl-kjHMMoGcMuzoeBNdH473Vgx71Wpo
+Message-ID: <CAJZ5v0hAZ6nYbQ7M5BPbkeMh2_VQFdonBdrFYOfGbq3Y_Kh51w@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: video: Handle fetching EDID as ACPI_TYPE_PACKAGE
+To: Gergo Koteles <soyer@irl.hu>
+Cc: Len Brown <lenb@kernel.org>, Mario Limonciello <mario.limonciello@amd.com>, 
+	Rodrigo Siqueira <siqueira@igalia.com>, Alex Hung <alex.hung@amd.com>, 
+	Alex Deucher <alexander.deucher@amd.com>, linux-acpi@vger.kernel.org, 
+	amd-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org, 
+	Hans de Goede <hdegoede@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
->-----Original Message-----
->From: Dan Williams <dan.j.williams@intel.com>
->Sent: 27 March 2025 01:47
->To: Shiju Jose <shiju.jose@huawei.com>; linux-cxl@vger.kernel.org;
->dan.j.williams@intel.com; dave@stgolabs.net; Jonathan Cameron
-><jonathan.cameron@huawei.com>; dave.jiang@intel.com;
->alison.schofield@intel.com; vishal.l.verma@intel.com; ira.weiny@intel.com;
->david@redhat.com; Vilas.Sridharan@amd.com
->Cc: linux-edac@vger.kernel.org; linux-acpi@vger.kernel.org; linux-
->mm@kvack.org; linux-kernel@vger.kernel.org; bp@alien8.de;
->tony.luck@intel.com; rafael@kernel.org; lenb@kernel.org;
->mchehab@kernel.org; leo.duran@amd.com; Yazen.Ghannam@amd.com;
->rientjes@google.com; jiaqiyan@google.com; Jon.Grimm@amd.com;
->dave.hansen@linux.intel.com; naoya.horiguchi@nec.com;
->james.morse@arm.com; jthoughton@google.com; somasundaram.a@hpe.com;
->erdemaktas@google.com; pgonda@google.com; duenwen@google.com;
->gthelen@google.com; wschwartz@amperecomputing.com;
->dferguson@amperecomputing.com; wbs@os.amperecomputing.com;
->nifan.cxl@gmail.com; tanxiaofei <tanxiaofei@huawei.com>; Zengtao (B)
-><prime.zeng@hisilicon.com>; Roberto Sassu <roberto.sassu@huawei.com>;
->kangkang.shen@futurewei.com; wanghuiqiang <wanghuiqiang@huawei.com>;
->Linuxarm <linuxarm@huawei.com>; Shiju Jose <shiju.jose@huawei.com>
->Subject: Re: [PATCH v2 3/8] cxl/edac: Add CXL memory device patrol scrub
->control feature
->
->shiju.jose@ wrote:
->> From: Shiju Jose <shiju.jose@huawei.com>
->>
->> CXL spec 3.2 section 8.2.10.9.11.1 describes the device patrol scrub
-[...]
->> diff --git a/drivers/cxl/core/edac.c b/drivers/cxl/core/edac.c new
->> file mode 100644 index 000000000000..5ec3535785e1
->> --- /dev/null
->> +++ b/drivers/cxl/core/edac.c
->> @@ -0,0 +1,474 @@
->> +// SPDX-License-Identifier: GPL-2.0-only
->> +/*
->> + * CXL EDAC memory feature driver.
->> + *
->> + * Copyright (c) 2024-2025 HiSilicon Limited.
->> + *
->> + *  - Supports functions to configure EDAC features of the
->> + *    CXL memory devices.
->> + *  - Registers with the EDAC device subsystem driver to expose
->> + *    the features sysfs attributes to the user for configuring
->> + *    CXL memory RAS feature.
->> + */
->> +
->> +#include <linux/cleanup.h>
->> +#include <linux/edac.h>
->> +#include <linux/limits.h>
->> +#include <cxl/features.h>
->> +#include <cxl.h>
->> +#include <cxlmem.h>
->> +#include "core.h"
->> +
->> +#define CXL_NR_EDAC_DEV_FEATURES 1
->> +
->> +static struct rw_semaphore *cxl_acquire(struct rw_semaphore *rwsem) {
->> +	if (down_read_interruptible(rwsem))
->> +		return NULL;
->> +
->> +	return rwsem;
->> +}
->> +
->> +DEFINE_FREE(cxl_unlock, struct rw_semaphore *, if (_T) up_read(_T))
->
->I know I suggested cxl_acquire() and cxl_unlock(), but this really is a ge=
-neric
->facility.
->
->Let's call it rwsem_read_intr_acquire() and rwsem_read_release(), and I'll
->follow up later with Peter to see if he wants this to graduate from CXL.
->
->Also, go ahead and define it in cxl.h for now as I think other places in t=
-he
->subsystem could benefit from this approach.
+CC: Hans
 
-Hi Dan,
-
-Thanks for the comments.
-Sure. should these definitions in cxl.h  require in a separate patch?
-
+On Fri, Mar 28, 2025 at 3:51=E2=80=AFAM Gergo Koteles <soyer@irl.hu> wrote:
 >
->> +
->> +/*
->> + * CXL memory patrol scrub control
->> + */
->> +struct cxl_patrol_scrub_context {
+> Some Lenovo laptops incorrectly return EDID as
+> buffer in ACPI package (instead of just a buffer)
+> when calling _DDC.
 >
->I like "patrol_scrub" spelled out here compared to "ps" used everywhere el=
-se.
-Will change.
-
+> Calling _DDC generates this ACPI Warning:
+> ACPI Warning: \_SB.PCI0.GP17.VGA.LCD._DDC: Return type mismatch - \
+> found Package, expected Integer/Buffer (20240827/nspredef-254)
 >
->> +	u8 instance;
->> +	u16 get_feat_size;
->> +	u16 set_feat_size;
->> +	u8 get_version;
->> +	u8 set_version;
->> +	u16 effects;
->> +	struct cxl_memdev *cxlmd;
->> +	struct cxl_region *cxlr;
->> +};
->> +
->> +/**
->> + * struct cxl_memdev_ps_params - CXL memory patrol scrub parameter data
->structure.
->> + * @enable:     [IN & OUT] enable(1)/disable(0) patrol scrub.
->> + * @scrub_cycle_changeable: [OUT] scrub cycle attribute of patrol scrub=
- is
->changeable.
->> + * @scrub_cycle_hrs:    [IN] Requested patrol scrub cycle in hours.
->> + *                      [OUT] Current patrol scrub cycle in hours.
->> + * @min_scrub_cycle_hrs:[OUT] minimum patrol scrub cycle in hours
->supported.
->> + */
->> +struct cxl_memdev_ps_params {
->> +	bool enable;
->> +	bool scrub_cycle_changeable;
+> Use the first element of the package to get the EDID buffer.
 >
->This is set but unused. Even if it were to be used I would expect it to be=
- set in the
->cxl_patrol_scrub_context.
-I will add  to cxl_patrol_scrub_context and will add an extra check against=
- this when
-user request to change the scrub rate.
+> The DSDT:
 >
->> +	u8 scrub_cycle_hrs;
->> +	u8 min_scrub_cycle_hrs;
->> +};
+> Name (AUOP, Package (0x01)
+> {
+>         Buffer (0x80)
+>         {
+>         ...
+>         }
+> })
 >
->I do not understand the point of this extra object and would prefer to kee=
-p
->intermediate data structures to a minimum.
+> ...
 >
->It looks like all this does is provide for short lived parsed caching of t=
-he raw
->hardware patrol scrube attributes. Just pass those raw objects around and
->provide helpers to do the conversion.
-
-Sure. Will do. Was added to avoid more number of function parameters.=20
+> Method (_DDC, 1, NotSerialized)  // _DDC: Display Data Current
+> {
+>         If ((PAID =3D=3D AUID))
+>         {
+>                 Return (AUOP) /* \_SB_.PCI0.GP17.VGA_.LCD_.AUOP */
+>         }
+>         ElseIf ((PAID =3D=3D IVID))
+>         {
+>                 Return (IVOP) /* \_SB_.PCI0.GP17.VGA_.LCD_.IVOP */
+>         }
+>         ElseIf ((PAID =3D=3D BOID))
+>         {
+>                 Return (BOEP) /* \_SB_.PCI0.GP17.VGA_.LCD_.BOEP */
+>         }
+>         ElseIf ((PAID =3D=3D SAID))
+>         {
+>                 Return (SUNG) /* \_SB_.PCI0.GP17.VGA_.LCD_.SUNG */
+>         }
 >
->The less data structures the less confusion for the next person that has t=
-o read
->this code a few years down the road.
+>         Return (Zero)
+> }
 >
->> +
->> +enum cxl_scrub_param {
->> +	CXL_PS_PARAM_ENABLE,
->> +	CXL_PS_PARAM_SCRUB_CYCLE,
->> +};
+> Cc: stable@vger.kernel.org
+> Fixes: c6a837088bed ("drm/amd/display: Fetch the EDID from _DDC if availa=
+ble for eDP")
+> Closes: https://gitlab.freedesktop.org/drm/amd/-/issues/4085
+> Signed-off-by: Gergo Koteles <soyer@irl.hu>
+> ---
+>  drivers/acpi/acpi_video.c | 5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
 >
->This seems unforuntate, why not make non-zero scrub rate an implied enable
->and zero to disable? A non-zero sentinel value like U32_MAX can indicate "=
-keep
->scrub rate unchanged".
-
-These  enums can be removed with remove using cxl_memdev_ps_params.
-
+> diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
+> index efdadc74e3f4..65cf36796506 100644
+> --- a/drivers/acpi/acpi_video.c
+> +++ b/drivers/acpi/acpi_video.c
+> @@ -649,6 +649,9 @@ acpi_video_device_EDID(struct acpi_video_device *devi=
+ce, void **edid, int length
 >
->> +#define CXL_MEMDEV_PS_SCRUB_CYCLE_CHANGE_CAP_MASK BIT(0)
+>         obj =3D buffer.pointer;
 >
->This CXL_MEMDEV_PS prefix is awkward due to overload with 'struct
->cxl_memdev'. Minimize it to something like:
+> +       if (obj && obj->type =3D=3D ACPI_TYPE_PACKAGE && obj->package.cou=
+nt =3D=3D 1)
+> +               obj =3D &obj->package.elements[0];
+> +
+>         if (obj && obj->type =3D=3D ACPI_TYPE_BUFFER) {
+>                 *edid =3D kmemdup(obj->buffer.pointer, obj->buffer.length=
+, GFP_KERNEL);
+>                 ret =3D *edid ? obj->buffer.length : -ENOMEM;
+> @@ -658,7 +661,7 @@ acpi_video_device_EDID(struct acpi_video_device *devi=
+ce, void **edid, int length
+>                 ret =3D -EFAULT;
+>         }
 >
->CXL_SCRUB_CONTROL_CHANGEABLE
->CXL_SCRUB_CONTROL_REALTIME
->CXL_SCRUB_CONTROL_CYCLE_MASK
->CXL_SCRUB_CONTROL_MIN_CYCLE_MASK
-
-Will change.
+> -       kfree(obj);
+> +       kfree(buffer.pointer);
+>         return ret;
+>  }
 >
->> +#define CXL_MEMDEV_PS_SCRUB_CYCLE_REALTIME_REPORT_CAP_MASK
->BIT(1)
->> +#define CXL_MEMDEV_PS_CUR_SCRUB_CYCLE_MASK GENMASK(7, 0)
->#define
->> +CXL_MEMDEV_PS_MIN_SCRUB_CYCLE_MASK GENMASK(15, 8) #define
->> +CXL_MEMDEV_PS_FLAG_ENABLED_MASK BIT(0)
+> --
+> 2.49.0
 >
->CXL_SCRUB_CONTROL_ENABLE
->
->...no need to call it a mask when it is just a single-bit, and when it is =
-both the
->status and the control just call it "enable".
-
-Sure. Will change.
->
->> +
->> +/*
->> + * See CXL spec rev 3.2 @8.2.10.9.11.1 Table 8-222 Device Patrol
->> +Scrub Control
->> + * Feature Readable Attributes.
->> + */
->> +struct cxl_memdev_ps_rd_attrs {
->> +	u8 scrub_cycle_cap;
->> +	__le16 scrub_cycle_hrs;
->
->"hours" is just 2 more characters than "hrs", I think we can afford the ex=
-tra
->bytes.
-
-Will change.
->
->[..]
->> +int devm_cxl_memdev_edac_register(struct cxl_memdev *cxlmd) {
->> +	struct edac_dev_feature ras_features[CXL_NR_EDAC_DEV_FEATURES];
->> +	int num_ras_features =3D 0;
->> +	u8 scrub_inst =3D 0;
->> +	int rc;
->> +
->> +	rc =3D cxl_memdev_scrub_init(cxlmd, &ras_features[num_ras_features],
->> +				   scrub_inst);
->> +	if (rc < 0 && rc !=3D -EOPNOTSUPP)
->> +		return rc;
->> +
->> +	if (rc !=3D -EOPNOTSUPP)
->> +		num_ras_features++;
->> +
->> +	char *cxl_dev_name __free(kfree) =3D
->> +		kasprintf(GFP_KERNEL, "cxl_%s", dev_name(&cxlmd->dev));
->
->if (!cxl_dev_name)
->	return -ENOMEM;
-
-Will add.
->
->> +
->> +	return edac_dev_register(&cxlmd->dev, cxl_dev_name, NULL,
->> +				 num_ras_features, ras_features); }
->> +EXPORT_SYMBOL_NS_GPL(devm_cxl_memdev_edac_register, "CXL");
->> +
->> +int devm_cxl_region_edac_register(struct cxl_region *cxlr) {
->> +	struct edac_dev_feature ras_features[CXL_NR_EDAC_DEV_FEATURES];
->> +	int num_ras_features =3D 0;
->> +	u8 scrub_inst =3D 0;
->> +	int rc;
->> +
->> +	rc =3D cxl_region_scrub_init(cxlr, &ras_features[num_ras_features],
->> +				   scrub_inst);
->> +	if (rc < 0)
->> +		return rc;
->> +
->> +	num_ras_features++;
->> +
->> +	char *cxl_dev_name __free(kfree) =3D
->> +		kasprintf(GFP_KERNEL, "cxl_%s", dev_name(&cxlr->dev));
->> +
->> +	return edac_dev_register(&cxlr->dev, cxl_dev_name, NULL,
->> +				 num_ras_features, ras_features); }
->> +EXPORT_SYMBOL_NS_GPL(devm_cxl_region_edac_register, "CXL");
->> diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
->> index b3260d433ec7..2aa6eb675fdf 100644
->> --- a/drivers/cxl/core/region.c
->> +++ b/drivers/cxl/core/region.c
->> @@ -3542,6 +3542,11 @@ static int cxl_region_probe(struct device *dev)
->>  	case CXL_PARTMODE_PMEM:
->>  		return devm_cxl_add_pmem_region(cxlr);
->>  	case CXL_PARTMODE_RAM:
->> +		rc =3D devm_cxl_region_edac_register(cxlr);
->
->Why do only volatile regions get EDAC support? PMEM patrol scrub seems
->equally valid.
-
-Will add devm_cxl_region_edac_register () for PMEM as well.
-
-Thanks,
-Shiju
