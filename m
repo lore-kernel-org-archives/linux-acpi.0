@@ -1,224 +1,198 @@
-Received: from NAM04-MW2-obe.outbound.protection.outlook.com (mail-mw2nam04on2042.outbound.protection.outlook.com [40.107.101.42])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 746B324BBEF
-	for <linux-acpi@vger.kernel.org>; Thu,  3 Apr 2025 14:33:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.101.42
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743690805; cv=fail; b=AQtvp3671SjE1Z9dtNNLewX6j/ZTS8/wpja2gNh0D6142N5NK5eUmPyndjnaGCP5348r1BctkhmDnhAa0TUL9x6Qeuy6+slISD2+LLoezfXenEZMGpS6TLR2ceRSyTwnSe6f5uCaR3wT5t0X9oFo2FUHotutRWBJhR+k1CUx46w=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743690805; c=relaxed/simple;
-	bh=nKzfgpKMaRBLHmj8mPtE9+3W2fPCehW71LtnR22nZfw=;
-	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=DUZGZZ07CHcNcndT68z8jeRAzFk7qkT+Akaqsycry0JSZNDE9ypDmbAuXlPg+ERc4j7ocq1i6sVN7a8oD8j3/IcudUbwsDKN/rieUH4kvfs5e7pj4PmLLJB+zF3e4UdaS+B240AhJyLI/9eIWag5BJqYH9vSNFYgeaxx3swuNX8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=AdqLcUOg; arc=fail smtp.client-ip=40.107.101.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E673149C4A;
+	Thu,  3 Apr 2025 16:00:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.8
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1743696047; cv=none; b=dYD5y0aLqhqaH6WfN5GgIU/q8rEyVrQvMXo+4/a9BJ4wEQb8QpHN8Xm1ZoIo4KqE2KddSYAnxlUxNiaXAbXBiLUonznVTHXMMiGMiVv3TTdzDb04wvn3XWvjoUvMQm77TcrJXycdbmF2mBsY9QIC3hydwQ1TxboFEqBoPZwHTN0=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1743696047; c=relaxed/simple;
+	bh=LRKHiTtshFgZNPJAnBtQFUQlju7HJJJmlBxX+E467Rk=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=U2+jAqoS7qPLizdSI2b4Zhtng9LJNNg83D5aMEi0KXzbOQ8DmxuT/X4L1pgA+egR1eahsqAQzN2obWGgzDcGVC+Ltbx14XRHuz044KqlBcU0Nxs36UIPkit7660/NF2p95x5qGOLpteDoWpnJhBlLPbJ+PCRsx1hdGhy1MHE1S4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=emFq9L13; arc=none smtp.client-ip=192.198.163.8
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="AdqLcUOg"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=BKC5UeaXbyoN1vD2YtO9+HQ1u41KAX7UzeEBNylCUnWspfQKvqYSOfPfehhk4YkdYB0rPTbG1AHaMtaitbun1qyU3CUiZRJ5Ro4jzNgsAcNeKAgOlDdVjNMjMdYrA8z8EcHG+jJ8myR5fRw1MQvQa3BTkXw8EguMvAPSzc//pzguzKoPpvyX8MUHzJ1CQdTvxP7oPL3FS10gzRQKL1j3L/IsaSRvpeWLV/xmPxVrsK4t/CcjhpB4u++oeLZPx0o0XO3C1i1rgWc9mv4rpWvP1E0QdgjNL5t0zfQ6xQgdJ0AbVyUHGRDjgklAwTuohF7bguh0rM40/m33zb8A5CWvRw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=SkafsVjL0/KNL3UpuFLiqxSvcsWMqR106O8Y/aQop4Y=;
- b=d9xddJ60ilaHXc7Cyt7+eWDeEG2T1+j7uTpllD5hXUh/Q269S7tGnBJAhDVpz83M5Qljp5YCHtZ3DRAkzH2o9dzeF2bY+wzGySDgeKO7XWIyj+dShquCHY3LNyrXy4YMZr+I9GgD4/c429nmn6NpjO1Tp5K5PqAAgwkU+JEgUPoI67YOpsQT9xZ9pq6jo/RM1S92Dqy/szS5Cw/gVX3kUG2FWQoC0wh6+OvA77m8zSxnWedUIqZC+zWI41jJiemOiNVOTkW10rtEU3vVV1VBaV8M0XruAw76WrwhwyRBDpO56EPGfpB9mh+AI1LOmROFqN+GoYlLw36HPVHYNPXaTw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
- header.d=amd.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=SkafsVjL0/KNL3UpuFLiqxSvcsWMqR106O8Y/aQop4Y=;
- b=AdqLcUOgwPbXtRkwHoJF/HfCyySP+vPjBgjjX/6bbbbYWUfCSsyraEV8IftPstC9Wi/bFUNhU4ZXlGkfO2eRs9I+/iUI7vNbqDlTj1Oh9mzgjfwt7ERjsLWseyVun3wchLGltjTvjxQ/fPTcwuuCEsGWElgskLHdqd5DyrsbvNU=
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=amd.com;
-Received: from MN0PR12MB6101.namprd12.prod.outlook.com (2603:10b6:208:3cb::10)
- by IA1PR12MB6577.namprd12.prod.outlook.com (2603:10b6:208:3a3::20) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8583.42; Thu, 3 Apr
- 2025 14:33:21 +0000
-Received: from MN0PR12MB6101.namprd12.prod.outlook.com
- ([fe80::37ee:a763:6d04:81ca]) by MN0PR12MB6101.namprd12.prod.outlook.com
- ([fe80::37ee:a763:6d04:81ca%4]) with mapi id 15.20.8534.043; Thu, 3 Apr 2025
- 14:33:21 +0000
-Message-ID: <c3bdb7a0-a604-4084-b302-3575af89641d@amd.com>
-Date: Thu, 3 Apr 2025 09:33:19 -0500
-User-Agent: Mozilla Thunderbird
-Subject: Re: kernel-6.15 randomly shutting down system on bogus power button
- events
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Ian Laurie <nixuser@mail.com>,
- "Shen, Yijun" <Yijun.Shen@dell.com>
-Cc: linux-acpi@vger.kernel.org
-References: <548ec422-e504-4171-8780-cbd83f877b3e@mail.com>
- <CAJZ5v0hbA6bqxHupTh4NZR-GVSb9M5RL7JSb2yQgvYYJg+z2aQ@mail.gmail.com>
-Content-Language: en-US
-From: Mario Limonciello <mario.limonciello@amd.com>
-In-Reply-To: <CAJZ5v0hbA6bqxHupTh4NZR-GVSb9M5RL7JSb2yQgvYYJg+z2aQ@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: SA1PR02CA0009.namprd02.prod.outlook.com
- (2603:10b6:806:2cf::14) To MN0PR12MB6101.namprd12.prod.outlook.com
- (2603:10b6:208:3cb::10)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="emFq9L13"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1743696045; x=1775232045;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=LRKHiTtshFgZNPJAnBtQFUQlju7HJJJmlBxX+E467Rk=;
+  b=emFq9L13ouZ/xrrO6iEYGo6OTKimakJaa6zdbxbHp6tl4iHs2tIhusax
+   dKYU2V1C8OAqT0kB9Le8hlUoIAN4Aw9+1bidX6KLxBimkE7Xn6SO0N5zm
+   deFkRGJdCyppbAMw67O7W4L+go4F+qlTMzB2tGy9eXfZqitUvGh+hnSE0
+   q07yUXKosralcTFI8+0a44c5STFoooM3/skLd5rDy0sGuYs2KatVq5UvJ
+   2m1aUNIP8MV7AzhjRFyxYma7PlMPEN9NCubbVLjjtJpD2vYGjyesFAQog
+   HTWplFQJ/WLm6Y/GzRKzNwxvGnYGu2Y0EqQDR2zUhAMC3U1FQeQB3nVVx
+   g==;
+X-CSE-ConnectionGUID: wmu0i06mShu3hetYVdT6ng==
+X-CSE-MsgGUID: 3pGfKlitQtClay2FLIeydA==
+X-IronPort-AV: E=McAfee;i="6700,10204,11393"; a="62651612"
+X-IronPort-AV: E=Sophos;i="6.15,184,1739865600"; 
+   d="scan'208";a="62651612"
+Received: from orviesa004.jf.intel.com ([10.64.159.144])
+  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Apr 2025 09:00:43 -0700
+X-CSE-ConnectionGUID: bxS8qnZDTXmXnLH8gNkq1A==
+X-CSE-MsgGUID: x23ln8zdQyqUV+IHsuR3hA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.15,184,1739865600"; 
+   d="scan'208";a="132029475"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by orviesa004.jf.intel.com with ESMTP; 03 Apr 2025 09:00:40 -0700
+Received: by black.fi.intel.com (Postfix, from userid 1003)
+	id 5F9C726F; Thu, 03 Apr 2025 19:00:36 +0300 (EEST)
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Bartosz Golaszewski <bartosz.golaszewski@linaro.org>,
+	linux-gpio@vger.kernel.org,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: Mika Westerberg <westeri@kernel.org>,
+	Linus Walleij <linus.walleij@linaro.org>,
+	Bartosz Golaszewski <brgl@bgdev.pl>
+Subject: [PATCH v2 5/6] gpiolib: acpi: Reuse struct acpi_gpio_params in struct acpi_gpio_lookup
+Date: Thu,  3 Apr 2025 18:59:16 +0300
+Message-ID: <20250403160034.2680485-6-andriy.shevchenko@linux.intel.com>
+X-Mailer: git-send-email 2.47.2
+In-Reply-To: <20250403160034.2680485-1-andriy.shevchenko@linux.intel.com>
+References: <20250403160034.2680485-1-andriy.shevchenko@linux.intel.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MN0PR12MB6101:EE_|IA1PR12MB6577:EE_
-X-MS-Office365-Filtering-Correlation-Id: b0b1496c-96b9-4c92-768e-08dd72bc7b8e
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|1800799024|376014;
-X-Microsoft-Antispam-Message-Info:
-	=?utf-8?B?eVJNL0hkLzUySDRaNnFSSXVvQm1rTkpqVmN6ZHNIYmh6WkNSbWVIQnVoejR5?=
- =?utf-8?B?cnR2NUlJenpRV0k5WWpEbmpTalFtWVNQL056YnZ5V0VhdjBVYUNheXJ5b1M4?=
- =?utf-8?B?dWJtOVUwbGIvWXc2ZzFoRlp3NGoyU202ekhnQitGTnpJVU1lZ05SSGE3Vnht?=
- =?utf-8?B?a0s2U0RGUVplbnpBZWFNSU1ZQzZmQzlYekpGVGR3bjExUlVwSWhKTlFFWHBI?=
- =?utf-8?B?UENzYUloRnBLUmxkSTBhN1d6TE1TaDZvaWpDTWhKODRRUkxhRDdMOWNSR0E0?=
- =?utf-8?B?U21ydHU2ZThIeW1kUkJyTE1ZV2tMUkEwdTRiWEo3K0tJanhXRGVXM05HY1Rs?=
- =?utf-8?B?dURlaDFWYXlJS1lzcUZjS2JvR1lWckZ0NWF0TjNhb0JURkF6MzFsUFhyUlda?=
- =?utf-8?B?WVgxRXRKdHVLTHNIZ1h6d2FRTDM0ckgxeGk4TEkvWU9TcWloU1dMa3RYM3cy?=
- =?utf-8?B?YUk5ZzJ3dEVSV0NTcTRyTEVmREhSYlBjMUp1Y3pvYTQxUmZKOEtsVEk2b0pI?=
- =?utf-8?B?V0VGM0ZxYXEzbUZuZWw0ZXRVNkIyN1FhWHpKRGQ4d1BKNUdxb3dIU3IrbVN5?=
- =?utf-8?B?ZHBQNDFJZjFiM09kV1luZHpiQ3dWV3dQelVqYmRRbzN5N3RGWlhVcVQvM292?=
- =?utf-8?B?VlMxc2hrY1p4TVptM2k0Nm9oeSs4NmVyNURzS3pOcVZNeGNoVHlVdjRtb2E2?=
- =?utf-8?B?TmlpbFdmMlM1RG55WGhLRHJLVnZDUnpFakpUZmpLd3cxVTNHc3l4d2llRGUy?=
- =?utf-8?B?L0szNkZTNS9iNnpJVEh3eGYzaEtEREw1a1J5WDlZaHZoRFo4YUxJNDdMMjNM?=
- =?utf-8?B?NGlqbzU1Z3ZPekZTV0M2eGZCZjVzbUx0RGRNKzh4N3VJT2MyaHN6V1NTa3l5?=
- =?utf-8?B?VjN1UmdIY040a0d2OWxEd2tiRlpQZHhmSVVKVysvV3RwbWNDRkpUbzRXMXk4?=
- =?utf-8?B?M3U1UWtOR01LdkYycVpYU2F4MmFoMmhtY0lGcUc5WHVoV3hLVlhSOGhyRmRH?=
- =?utf-8?B?MTF6SGYrdUxpNEd4K0djRXJaYkFzdVVKL21UN0M3TlFRNGhNVmgvOG0vUW5Q?=
- =?utf-8?B?VmtNRFMzWGdwQW1WWmwvSmVDb3BteVF3N3NIUk83bnY2RTkvQ2Qwa2ZEQWp4?=
- =?utf-8?B?dHBadDdFUXBSSnBFTVdNZjcxbFNXbjBUQWowbW1zOFFjdGR2VzhCK2ZZQlNk?=
- =?utf-8?B?UjlmelpTSUxEOGFaMlM1MkRtTUtpV1FidzRpeWZvcTBRa1o4azRRRDkzLzJP?=
- =?utf-8?B?WnVCR242R3ZzYXJ2Q254ZUg2bXlueWFKNjEvN3BCOE9sd2k4Z3B4bnFLVjZ5?=
- =?utf-8?B?aDB2L0lLK2VxSkxDVFZjL1crbEQ1SWlRU1RWcEFaelRQaWFnQ1FaNDllMytJ?=
- =?utf-8?B?QWhsaEJhOEhMakNESzcydTJLckpCN1pHeGJKLzdjcVMzN1JHa1lMc1hCWDgz?=
- =?utf-8?B?eFFEUXN6YUlaWHdWS1pOU0xLOGxab1VFZ1F5aXBBSG55V0NmbnBlMTNMY3Q2?=
- =?utf-8?B?WVZXcHZCdmtBUVF6YUFDYmE0VEZXZ0pTVkhNVEk5SzdCQ2pSck9aTForQjVV?=
- =?utf-8?B?ZjNDUXhzejIySDI0a21ncHJaMEVDQjZxUDRqc0hvNGhzeEkwN2syRUs0TUdC?=
- =?utf-8?B?TlNTMlRYUFZzeXRvVWQwejlyZGhVaTBqdm5qQzJ0eG56anA4YWNGWG55WVZL?=
- =?utf-8?B?L0hQb080U3doNXN0N0hkUUpKQzdwRVJpNUZwbzFTSGIvNTVSN2ZvWlZ6TkdU?=
- =?utf-8?B?cG54RW00OFpFZTF2Z0dkSjZtSHBZK2VJTCtadDZ5S2JjcFluZXVYNk9HQzFj?=
- =?utf-8?B?TXZwVDliSUJNTFN3WnlBY3VYeGUrOUJOcVpRdEx3eVRiNzRRNGdEUUtKM0hN?=
- =?utf-8?Q?M1dp3IM+XBpUw?=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MN0PR12MB6101.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(376014);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?bko3dEM4SENkSlJidFdJWUpRaVlEaDNicCtTQ3lvc2RDTUlXL3J5Yjhwb1I0?=
- =?utf-8?B?anhjbzRpa040T1lEU0hKZHpzR3YzU21Ib2F3RHE1VUh6NlpBY3BXdXptRThj?=
- =?utf-8?B?UGs1UEtyUDNiNzNaemlTa2VYNlBWSnRnOFhXTCtnWWdReEw2dmRLc010Qm1E?=
- =?utf-8?B?UDZxR0hOSTl6WnN2clVGUGpQaDBsb3NLanlTL2h4NkNKQW9VVzJWajdnR0RZ?=
- =?utf-8?B?cUpQcVl3NVFWL29EdzNvQjJxMFFQaXFnVWFwQnZMcEh1Tzh0d0hqRXZ1ZFo4?=
- =?utf-8?B?SHhtb1F2RGZ1UXYwemU1cUxOM0w5cUx6Y3ZnNVZWMFg5R3MyT2hhbVRvckRl?=
- =?utf-8?B?TlZLeEs0VlpQQWpzRFFtUU5hSnpBNTZ1aUFiMWZSRVhtcXZyY0x6MjBIaG95?=
- =?utf-8?B?R0g2dnBWL0NPcysxR3FqWk94cTN1eWkzT1dzdW9hUGNFK3RmamY5ckNyYkQ1?=
- =?utf-8?B?Z0xrQUZCUkJaMGExdVFSaWN0RXVLR3NQMVhHaHlGVy9LSC9NOHBhaHh6WUcv?=
- =?utf-8?B?OTFPMG1ZSTJVK3BCbVJsMW5URTR3VzBJeDRJU2JJUis1UHBDeEdxdHZmaXJQ?=
- =?utf-8?B?OHEyeUo0RFIyU0tmK3ZMNW8yQ3JFZEpzODZTd0FFa2ZreUhnanpZZ3FQV1JM?=
- =?utf-8?B?czFJSmNmNnE0dm8vMFAzeDhHOThmQ3VyUENLS3Rmd3hEMUpCbUhxcEdqaWNP?=
- =?utf-8?B?LzNUQzZoZHJQeHZlMkZFdHNZWW1hMTIzYURiTHI5OWJLeWU0cWtqODlyTFBu?=
- =?utf-8?B?aWdOQk5lb2k2Vmt2MS9NV3d5c01Uckw2UVh1c1FMcUlrZ3AyZUdQcXVlcmpq?=
- =?utf-8?B?NU5VL3o5eWdZT2F4cTZHMXZRVURTNDQ0a1UrbkZVNzZBbzFuS1lEVHRKM1Fh?=
- =?utf-8?B?WGVETEVlRVR4NWtXeFlqSG44RzhSVFNIZjVJbVF2dHJxR0hiZ1FKSG96Z1FZ?=
- =?utf-8?B?VUtwOTY4b0pRQ2JFeDBlVnFMa0tvNGE0Z3YyRURNU0cyZTk4bDRoYkkxVklJ?=
- =?utf-8?B?UitXem13NFI1ak5yNGhXOFUzUCttTk05WW1wNHhQdnl3bHN2V2xSdW1NV0xa?=
- =?utf-8?B?QThqeVhNSTl3SG1pazY1UmdxWUkyY21DVXJOYklEcUxJSVhWeXd0bkFEVHQ3?=
- =?utf-8?B?Y3lKaTBRVnY3ZjFmR3F5ZWR1UlpaZFYxdDhYU1Q4dWI5WGlXZ2RSL1lvU3I5?=
- =?utf-8?B?NWtqc2YrR0ttRUs0YS9iMjlpQkhzbGxLRHpQajc5NlVjNlRqK3ZYa0ZIeUto?=
- =?utf-8?B?TkxEdll5eEg3MHlJalZONGI1Vnl1Y1gxM2E2NURuYnByZ2hmaVJMSTBjV3dh?=
- =?utf-8?B?VlY3Z1l4a0owMytrd3ZLM3Y5Rk1pL0gzNWZITjNMWVJkejNIbUxZTzlsdDVB?=
- =?utf-8?B?dVdmLzBEZUwvTjQ5ak1NSjBMVTNCaFRKQlYwU3IrcXdldjJVcFBUVVFsNUZK?=
- =?utf-8?B?ZUVzQ0tVVVM0eEMydk4xdEhiMGRWZVA1QVpPeTJNbitsYkJpOUE5dU1uZzgr?=
- =?utf-8?B?cVREQXVqd3hMQ3ZteUNaelVrNUNKSGRRMlVjRnJNRjJKRXgxaTIyaDhRVWdz?=
- =?utf-8?B?MkU1Rm1PTUgxWC9jWXhFcVhzNkhhZ3MwbWlmK0UxTjlzQjdTYmJVWkpFZG05?=
- =?utf-8?B?OUF5dHVVNUFwU2VJdVJMazFwNThkTXZjWVRyOFZRV2NUM05pdC9KaTNiOUFK?=
- =?utf-8?B?SjR4ajFaWFNlUU9XUlRLTk8xVlBpWjhyd2hWcDlTR2VzbUJXa2Raa2hFMndi?=
- =?utf-8?B?eDI1NGtGWnJxcmxEMHBtNm90SjJRMFF5ZTNqb1Z2TzVKN2JBZVV6a3o0U3dP?=
- =?utf-8?B?MVpTeUZvZnFuNkpCV043L2c1RmxReTBQRHdFYlFlNGZvNHBNQjNPN2NlUjdx?=
- =?utf-8?B?KzJFMEVBaUIwcDhOa3R0VDM2L2dpMW1GTEFhTTkvbzlvSjBkNjJkZ3JGNVA2?=
- =?utf-8?B?TE12eXFsRE1OWG5RaVhsV2NMejNLNERqN1ltVFFyWEZMenVxbEtOeFNzUEsy?=
- =?utf-8?B?ZVlQWU03RHF4S0QzM3laMmJURHBqMlV4cnhqbjNMTHAzKzhTVFJ4YVU4bko2?=
- =?utf-8?B?Z2ZnY0VFRmxYWDNEZWsrb3llVUJNeElkd1FZWTFUaGVFRzFWZGdmbUUzbEVZ?=
- =?utf-8?Q?VHfkOa5CBASbttTRsuw2Jfg8V?=
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: b0b1496c-96b9-4c92-768e-08dd72bc7b8e
-X-MS-Exchange-CrossTenant-AuthSource: MN0PR12MB6101.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Apr 2025 14:33:21.0573
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: ZWRWODMmf50Cr1hz8Dc3EUWbRNwQiubbOBn7xxip2TSI0apVgBYG2ERLNUR0RuxGExr0RidYcRVBJXKqvlnkhQ==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR12MB6577
+Content-Transfer-Encoding: 8bit
 
-+ Yijun (awareness)
+Some of the contents of struct acpi_gpio_lookup repeats what we have
+in the struct acpi_gpio_params. Reuse the latter in the former.
 
-On 4/3/2025 5:48 AM, Rafael J. Wysocki wrote:
-> On Thu, Apr 3, 2025 at 1:30 AM Ian Laurie <nixuser@mail.com> wrote:
->>
->> I am seeing an issue where (in Fedora Rawhide) the following kernels:
->>
->> kernel-6.15.0-0.rc0.20250327git1a9239bb4253.5.fc43.x86_64
->> kernel-6.15.0-0.rc0.20250401git08733088b566.8.fc43.x86_64
->>
->> are randomly shutting the system down because bogus power button events
->> are being received every 10 minutes to about 2 hours.  My actual power
->> button generates an event2, while the bogus events are arriving as event1.
->>
->> Latest available 6.14 kernel:
->>
->> kernel-6.14.0-0.rc7.20250321gitb3ee1e460951.60.fc43.x86_64
->>
->> does not suffer from this issue.
->>
->> Using 'sudo evtest --grab /dev/input/event1' I am able to prevent the
->> system from shutting down and also record the bogus events.
->>
->> The RedHat Bugzilla entry has more details and also links to a thread on
->> the Fedora test mailing list:
->>
->> https://bugzilla.redhat.com/show_bug.cgi?id=2357044
-> 
-> I would try to revert the following commit and see if that helps:
-> 
-> commit a7e23ec17feecc7bac0d500cea900cace7b50129
-> Author: Mario Limonciello <mario.limonciello@amd.com>
-> Date:   Mon Mar 3 15:27:09 2025 -0600
-> 
->     ACPI: button: Install notifier for system events as well
-> 
->     On some systems when the system is put to sleep pressing the ACPI power
->     button will cause the EC SCI to try to wake the system by a Notify(DEV, 0x2)
->     with an intention to wake the system up from suspend.
-> 
->     This behavior matches the ACPI specification in ACPI 6.4 section
->     4.8.3.1.1.2 which describes that the AML handler would generate a Notify()
->     with a code of 0x2 to indicate it was responsible for waking the system.
-> 
->     This currently doesn't work because acpi_button_add() only configured
->     `ACPI_DEVICE_NOTIFY` which means that device handler notifications
->     0x80 through 0xFF are handled.
-> 
->     To fix the wakeups on such systems, adjust the ACPI button handler to
->     use `ACPI_ALL_NOTIFY` which will handle all events 0x00 through 0x7F.
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/gpio/gpiolib-acpi.c | 36 +++++++++++++++++++-----------------
+ 1 file changed, 19 insertions(+), 17 deletions(-)
 
-Yeah I think that's a very likely candidate from what you describe.
+diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+index d6e9563d9364..f44d25df15cb 100644
+--- a/drivers/gpio/gpiolib-acpi.c
++++ b/drivers/gpio/gpiolib-acpi.c
+@@ -744,9 +744,7 @@ static int acpi_gpio_update_gpiod_lookup_flags(unsigned long *lookupflags,
+ 
+ struct acpi_gpio_lookup {
+ 	struct acpi_gpio_info info;
+-	int index;
+-	u16 pin_index;
+-	bool active_low;
++	struct acpi_gpio_params params;
+ 	struct gpio_desc *desc;
+ 	int n;
+ };
+@@ -754,6 +752,7 @@ struct acpi_gpio_lookup {
+ static int acpi_populate_gpio_lookup(struct acpi_resource *ares, void *data)
+ {
+ 	struct acpi_gpio_lookup *lookup = data;
++	struct acpi_gpio_params *params = &lookup->params;
+ 
+ 	if (ares->type != ACPI_RESOURCE_TYPE_GPIO)
+ 		return 1;
+@@ -765,12 +764,12 @@ static int acpi_populate_gpio_lookup(struct acpi_resource *ares, void *data)
+ 		u16 pin_index;
+ 
+ 		if (lookup->info.quirks & ACPI_GPIO_QUIRK_ONLY_GPIOIO && gpioint)
+-			lookup->index++;
++			params->crs_entry_index++;
+ 
+-		if (lookup->n++ != lookup->index)
++		if (lookup->n++ != params->crs_entry_index)
+ 			return 1;
+ 
+-		pin_index = lookup->pin_index;
++		pin_index = params->line_index;
+ 		if (pin_index >= agpio->pin_table_length)
+ 			return 1;
+ 
+@@ -796,7 +795,7 @@ static int acpi_populate_gpio_lookup(struct acpi_resource *ares, void *data)
+ 			lookup->info.polarity = agpio->polarity;
+ 			lookup->info.triggering = agpio->triggering;
+ 		} else {
+-			lookup->info.polarity = lookup->active_low;
++			lookup->info.polarity = params->active_low;
+ 		}
+ 
+ 		lookup->info.flags = acpi_gpio_to_gpiod_flags(agpio, lookup->info.polarity);
+@@ -834,7 +833,8 @@ static int acpi_gpio_property_lookup(struct fwnode_handle *fwnode, const char *p
+ 				     struct acpi_gpio_lookup *lookup)
+ {
+ 	struct fwnode_reference_args args;
+-	unsigned int index = lookup->index;
++	struct acpi_gpio_params *params = &lookup->params;
++	unsigned int index = params->crs_entry_index;
+ 	unsigned int quirks = 0;
+ 	int ret;
+ 
+@@ -857,9 +857,9 @@ static int acpi_gpio_property_lookup(struct fwnode_handle *fwnode, const char *p
+ 	if (args.nargs != 3)
+ 		return -EPROTO;
+ 
+-	lookup->index = args.args[0];
+-	lookup->pin_index = args.args[1];
+-	lookup->active_low = !!args.args[2];
++	params->crs_entry_index = args.args[0];
++	params->line_index = args.args[1];
++	params->active_low = !!args.args[2];
+ 
+ 	lookup->info.adev = to_acpi_device_node(args.fwnode);
+ 	lookup->info.quirks = quirks;
+@@ -897,10 +897,11 @@ static struct gpio_desc *acpi_get_gpiod_by_index(struct acpi_device *adev,
+ 						 struct acpi_gpio_info *info)
+ {
+ 	struct acpi_gpio_lookup lookup;
++	struct acpi_gpio_params *params = &lookup.params;
+ 	int ret;
+ 
+ 	memset(&lookup, 0, sizeof(lookup));
+-	lookup.index = index;
++	params->crs_entry_index = index;
+ 
+ 	if (propname) {
+ 		dev_dbg(&adev->dev, "GPIO: looking up %s\n", propname);
+@@ -909,11 +910,11 @@ static struct gpio_desc *acpi_get_gpiod_by_index(struct acpi_device *adev,
+ 		if (ret)
+ 			return ERR_PTR(ret);
+ 
+-		dev_dbg(&adev->dev, "GPIO: _DSD returned %s %d %u %u\n",
+-			dev_name(&lookup.info.adev->dev), lookup.index,
+-			lookup.pin_index, lookup.active_low);
++		dev_dbg(&adev->dev, "GPIO: _DSD returned %s %u %u %u\n",
++			dev_name(&lookup.info.adev->dev),
++			params->crs_entry_index, params->line_index, params->active_low);
+ 	} else {
+-		dev_dbg(&adev->dev, "GPIO: looking up %d in _CRS\n", index);
++		dev_dbg(&adev->dev, "GPIO: looking up %u in _CRS\n", params->crs_entry_index);
+ 		lookup.info.adev = adev;
+ 	}
+ 
+@@ -943,6 +944,7 @@ static struct gpio_desc *acpi_get_gpiod_from_data(struct fwnode_handle *fwnode,
+ 						  struct acpi_gpio_info *info)
+ {
+ 	struct acpi_gpio_lookup lookup;
++	struct acpi_gpio_params *params = &lookup.params;
+ 	int ret;
+ 
+ 	if (!is_acpi_data_node(fwnode))
+@@ -952,7 +954,7 @@ static struct gpio_desc *acpi_get_gpiod_from_data(struct fwnode_handle *fwnode,
+ 		return ERR_PTR(-EINVAL);
+ 
+ 	memset(&lookup, 0, sizeof(lookup));
+-	lookup.index = index;
++	params->crs_entry_index = index;
+ 
+ 	ret = acpi_gpio_property_lookup(fwnode, propname, &lookup);
+ 	if (ret)
+-- 
+2.47.2
 
-I'd like to understand how this is actually happening to decide what we 
-should do about it.  I'll subscribe to the bug report and we can go back 
-and forth there.
-
-1) Could you please add an acpidump into the bug report?
-2) Can you please use acpica tracing to determine what is happening when 
-this notify event comes in?  The basic way to do it:
-
-echo 0x00000004 | sudo tee /sys/module/acpi/parameters/trace_debug_layer
-echo 0x00000004 | sudo tee /sys/module/acpi/parameters/trace_debug_level
-echo enable | sudo tee /sys/module/acpi/parameters/trace_state
-
-This should then save to the journal the associated event info.
