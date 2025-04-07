@@ -1,81 +1,52 @@
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 812AB223300;
-	Mon,  7 Apr 2025 20:13:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
+Received: from out-187.mta1.migadu.com (out-187.mta1.migadu.com [95.215.58.187])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2AC64223705;
+	Mon,  7 Apr 2025 22:37:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.187
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744056831; cv=none; b=DNlhoVagHlKmeop+k7B6qby7wUjy4YAhtiAM2f+Aw71XTib+y57I3G9gvsmkYv1E2aWZB4fHkvjd7sFSaLHq25Jv1XkMVOLD0mrFrfAaunbAQyCiHcZyXeQTyxaLMijOPJ45cbj0zK9yMsukhxPSDFGVDxUMbXpN8oP4xp2xEdM=
+	t=1744065447; cv=none; b=D9C1FNbNGE6ikSY8MaNmJ+ICbOqsv9L2miI6F0AmNb+L5pDnGyvvPCtIchPDdAmIae30ETLQPyMsJSIITRiJm/QuEgaGYtyB8/L6JbbDhlHv1kGUk9pdOagbxkKpnYTD2BUGmy4SizQb2ej9KFZNox2ej/9BIhQqUMHkwwGOUqM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744056831; c=relaxed/simple;
-	bh=QUapfEldpyCw648cR7hTfLhDYfYdHNw9I24sIY3wewA=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=A4WDUAu4oBi7G3BNlWGcw2qZz4ca7gVpPXuJBOQX/vZt8VvrKexd7MLsyWSQDp7fRCUe/WOe97NUk4xqOpv8ZXYBH4gHRs6y7JG5Ta0dZSWleORYCj6X1FlqY3/bb2QzuHrEsLzW7yM25daSOsLqqNyffOKMdkjnLFkwR+irBX4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=E0MkSuc4; arc=none smtp.client-ip=13.77.154.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+	s=arc-20240116; t=1744065447; c=relaxed/simple;
+	bh=MQM1kmIoyeIPIvXSo+fdLdzfUuOIRsInGoIf6OY/FxA=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=U58ULh+mvydRIlbIZ6MsPwPVAhZl7ZA0UaE0dlTG0iNgEG3IHIVIETpGJKAz4Xdyls17crri9/8Kqx5kbe2l0cYHzChrVoFQjMNS9IxywhmZI+CzNGKZ1DD/28E6E35/jee/ImsEGza8KURuigf1WlKA23dGUV7/cdYEaaWzYis=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=E/gjyn3e; arc=none smtp.client-ip=95.215.58.187
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="E0MkSuc4"
-Received: from romank-3650.corp.microsoft.com (unknown [131.107.160.188])
-	by linux.microsoft.com (Postfix) with ESMTPSA id B47742113E7B;
-	Mon,  7 Apr 2025 13:13:41 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com B47742113E7B
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1744056822;
-	bh=k4K++fqiP84qacsZ/10/m3tNXa1bo+IGgMpwd09KRMY=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=E0MkSuc4AWTZBbrsulJffigv5JiHduEwoVUmHpE7ydw/fwD0EiuNP8mZS9B0OLUu6
-	 LmxgxlugN67qHgG7dz65ki2/ijUW7lvX1HJAfkPMu41fVQSvRluuwIu2mMT9Yqm9bR
-	 AIBXIm7ohm/LIRhXEEulGwsLpV5FlDJIadD9ks7s=
-From: Roman Kisel <romank@linux.microsoft.com>
-To: arnd@arndb.de,
-	bhelgaas@google.com,
-	bp@alien8.de,
-	catalin.marinas@arm.com,
-	conor+dt@kernel.org,
-	dan.carpenter@linaro.org,
-	dave.hansen@linux.intel.com,
-	decui@microsoft.com,
-	haiyangz@microsoft.com,
-	hpa@zytor.com,
-	joey.gouly@arm.com,
-	krzk+dt@kernel.org,
-	kw@linux.com,
-	kys@microsoft.com,
-	lenb@kernel.org,
-	lpieralisi@kernel.org,
-	manivannan.sadhasivam@linaro.org,
-	mark.rutland@arm.com,
-	maz@kernel.org,
-	mingo@redhat.com,
-	oliver.upton@linux.dev,
-	rafael@kernel.org,
-	robh@kernel.org,
-	rafael.j.wysocki@intel.com,
-	ssengar@linux.microsoft.com,
-	sudeep.holla@arm.com,
-	suzuki.poulose@arm.com,
-	tglx@linutronix.de,
-	wei.liu@kernel.org,
-	will@kernel.org,
-	yuzenghui@huawei.com,
-	devicetree@vger.kernel.org,
-	kvmarm@lists.linux.dev,
-	linux-acpi@vger.kernel.org,
-	linux-arch@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-hyperv@vger.kernel.org,
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="E/gjyn3e"
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1744065443;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=0XQwgBGUl+kN6A+/kOzVZipYCaxZjyIp9j83vL3Yths=;
+	b=E/gjyn3eXJgs6JaLMvFqLeCUH5QHFYamcevGa6Rr4uF4/gIcHmdh1mHQsIne5nw1xa7BZq
+	XkcMcI+hIjtFacsTC3HG80QvRF75Dif0ywvGrW9uzwAgHqWt6IrmZXDZb15KZJnIpo60fM
+	GWzH3uDint/eKFdS3qez3rZrj0hW31o=
+From: Sean Anderson <sean.anderson@linux.dev>
+To: Rob Herring <robh@kernel.org>,
+	Saravana Kannan <saravanak@google.com>,
+	devicetree@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J . Wysocki" <rafael@kernel.org>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Len Brown <lenb@kernel.org>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Daniel Scally <djrscally@gmail.com>,
 	linux-kernel@vger.kernel.org,
-	linux-pci@vger.kernel.org,
-	x86@kernel.org
-Cc: apais@microsoft.com,
-	benhill@microsoft.com,
-	bperkins@microsoft.com,
-	sunilmut@microsoft.com
-Subject: [PATCH hyperv-next v7 09/11] Drivers: hv: vmbus: Introduce hv_get_vmbus_root_device()
-Date: Mon,  7 Apr 2025 13:13:34 -0700
-Message-ID: <20250407201336.66913-10-romank@linux.microsoft.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20250407201336.66913-1-romank@linux.microsoft.com>
-References: <20250407201336.66913-1-romank@linux.microsoft.com>
+	Danilo Krummrich <dakr@kernel.org>,
+	linux-acpi@vger.kernel.org,
+	Sean Anderson <sean.anderson@linux.dev>
+Subject: [PATCH 1/2] device property: Add optional nargs_prop for get_reference_args
+Date: Mon,  7 Apr 2025 18:37:13 -0400
+Message-Id: <20250407223714.2287202-2-sean.anderson@linux.dev>
+In-Reply-To: <20250407223714.2287202-1-sean.anderson@linux.dev>
+References: <20250407223714.2287202-1-sean.anderson@linux.dev>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -83,119 +54,119 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-Migadu-Flow: FLOW_OUT
 
-The ARM64 PCI code for hyperv needs to know the VMBus root
-device, and it is private.
+get_reference_args does not permit falling back to nargs when nargs_prop
+is missing. This makes it difficult to support older devicetrees where
+nargs_prop may not be present. Add support for this by converting nargs
+to a signed value. Where before nargs was ignored if nargs_prop was
+passed, now nargs is only ignored if it is strictly negative. When it is
+positive, nargs represents the fallback cells to use if nargs_prop is
+absent.
 
-Provide a function that returns it. Rename it from "hv_dev"
-as "hv_dev" as a symbol is very overloaded. No functional
-changes.
-
-Signed-off-by: Roman Kisel <romank@linux.microsoft.com>
-Reviewed-by: Michael Kelley <mhklinux@outlook.com>
+Signed-off-by: Sean Anderson <sean.anderson@linux.dev>
 ---
- drivers/hv/vmbus_drv.c | 23 +++++++++++++++--------
- include/linux/hyperv.h |  2 ++
- 2 files changed, 17 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/hv/vmbus_drv.c b/drivers/hv/vmbus_drv.c
-index e8f2c3e92d1f..df18b4070b01 100644
---- a/drivers/hv/vmbus_drv.c
-+++ b/drivers/hv/vmbus_drv.c
-@@ -45,7 +45,8 @@ struct vmbus_dynid {
- 	struct hv_vmbus_device_id id;
- };
+ drivers/base/property.c |  4 ++--
+ drivers/base/swnode.c   | 13 +++++++++----
+ drivers/of/property.c   | 10 +++-------
+ include/linux/fwnode.h  |  2 +-
+ 4 files changed, 15 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index c1392743df9c..049f8a6088a1 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -606,7 +606,7 @@ int fwnode_property_get_reference_args(const struct fwnode_handle *fwnode,
+ 		return -ENOENT;
  
--static struct device  *hv_dev;
-+/* VMBus Root Device */
-+static struct device  *vmbus_root_device;
- 
- static int hyperv_cpuhp_online;
- 
-@@ -80,9 +81,15 @@ static struct resource *fb_mmio;
- static struct resource *hyperv_mmio;
- static DEFINE_MUTEX(hyperv_mmio_lock);
- 
-+struct device *hv_get_vmbus_root_device(void)
-+{
-+	return vmbus_root_device;
-+}
-+EXPORT_SYMBOL_GPL(hv_get_vmbus_root_device);
-+
- static int vmbus_exists(void)
- {
--	if (hv_dev == NULL)
-+	if (vmbus_root_device == NULL)
- 		return -ENODEV;
- 
- 	return 0;
-@@ -861,7 +868,7 @@ static int vmbus_dma_configure(struct device *child_device)
- 	 * On x86/x64 coherence is assumed and these calls have no effect.
- 	 */
- 	hv_setup_dma_ops(child_device,
--		device_get_dma_attr(hv_dev) == DEV_DMA_COHERENT);
-+		device_get_dma_attr(vmbus_root_device) == DEV_DMA_COHERENT);
- 	return 0;
- }
- 
-@@ -1930,7 +1937,7 @@ int vmbus_device_register(struct hv_device *child_device_obj)
- 		     &child_device_obj->channel->offermsg.offer.if_instance);
- 
- 	child_device_obj->device.bus = &hv_bus;
--	child_device_obj->device.parent = hv_dev;
-+	child_device_obj->device.parent = vmbus_root_device;
- 	child_device_obj->device.release = vmbus_device_release;
- 
- 	child_device_obj->device.dma_parms = &child_device_obj->dma_parms;
-@@ -2292,7 +2299,7 @@ static int vmbus_acpi_add(struct platform_device *pdev)
- 	struct acpi_device *ancestor;
- 	struct acpi_device *device = ACPI_COMPANION(&pdev->dev);
- 
--	hv_dev = &device->dev;
-+	vmbus_root_device = &device->dev;
- 
- 	/*
- 	 * Older versions of Hyper-V for ARM64 fail to include the _CCA
-@@ -2378,7 +2385,7 @@ static int vmbus_device_add(struct platform_device *pdev)
- 	struct device_node *np = pdev->dev.of_node;
- 	int ret;
- 
--	hv_dev = &pdev->dev;
-+	vmbus_root_device = &pdev->dev;
- 
- 	ret = of_range_parser_init(&parser, np);
- 	if (ret)
-@@ -2696,7 +2703,7 @@ static int __init hv_acpi_init(void)
- 	if (ret)
+ 	ret = fwnode_call_int_op(fwnode, get_reference_args, prop, nargs_prop,
+-				 nargs, index, args);
++				 nargs_prop ? -1 : nargs, index, args);
+ 	if (ret == 0)
  		return ret;
  
--	if (!hv_dev) {
-+	if (!vmbus_root_device) {
- 		ret = -ENODEV;
- 		goto cleanup;
- 	}
-@@ -2727,7 +2734,7 @@ static int __init hv_acpi_init(void)
+@@ -614,7 +614,7 @@ int fwnode_property_get_reference_args(const struct fwnode_handle *fwnode,
+ 		return ret;
  
- cleanup:
- 	platform_driver_unregister(&vmbus_platform_driver);
--	hv_dev = NULL;
-+	vmbus_root_device = NULL;
- 	return ret;
+ 	return fwnode_call_int_op(fwnode->secondary, get_reference_args, prop, nargs_prop,
+-				  nargs, index, args);
++				  nargs_prop ? -1 : nargs, index, args);
  }
+ EXPORT_SYMBOL_GPL(fwnode_property_get_reference_args);
  
-diff --git a/include/linux/hyperv.h b/include/linux/hyperv.h
-index 675959fb97ba..1f310fbbc4f9 100644
---- a/include/linux/hyperv.h
-+++ b/include/linux/hyperv.h
-@@ -1277,6 +1277,8 @@ static inline void *hv_get_drvdata(struct hv_device *dev)
- 	return dev_get_drvdata(&dev->device);
- }
- 
-+struct device *hv_get_vmbus_root_device(void);
+diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
+index b1726a3515f6..11af2001478f 100644
+--- a/drivers/base/swnode.c
++++ b/drivers/base/swnode.c
+@@ -503,7 +503,7 @@ software_node_get_named_child_node(const struct fwnode_handle *fwnode,
+ static int
+ software_node_get_reference_args(const struct fwnode_handle *fwnode,
+ 				 const char *propname, const char *nargs_prop,
+-				 unsigned int nargs, unsigned int index,
++				 int nargs, unsigned int index,
+ 				 struct fwnode_reference_args *args)
+ {
+ 	struct swnode *swnode = to_swnode(fwnode);
+@@ -543,10 +543,15 @@ software_node_get_reference_args(const struct fwnode_handle *fwnode,
+ 		error = property_entry_read_int_array(ref->node->properties,
+ 						      nargs_prop, sizeof(u32),
+ 						      &nargs_prop_val, 1);
+-		if (error)
 +
- struct hv_ring_buffer_debug_info {
- 	u32 current_interrupt_mask;
- 	u32 current_read_index;
++		if (error == -EINVAL) {
++			if (nargs < 0)
++				return error;
++		} else if (error) {
+ 			return error;
+-
+-		nargs = nargs_prop_val;
++		} else {
++			nargs = nargs_prop_val;
++		}
+ 	}
+ 
+ 	if (nargs > NR_FWNODE_REFERENCE_ARGS)
+diff --git a/drivers/of/property.c b/drivers/of/property.c
+index c1feb631e383..c41190e47111 100644
+--- a/drivers/of/property.c
++++ b/drivers/of/property.c
+@@ -1116,19 +1116,15 @@ of_fwnode_get_named_child_node(const struct fwnode_handle *fwnode,
+ static int
+ of_fwnode_get_reference_args(const struct fwnode_handle *fwnode,
+ 			     const char *prop, const char *nargs_prop,
+-			     unsigned int nargs, unsigned int index,
++			     int nargs, unsigned int index,
+ 			     struct fwnode_reference_args *args)
+ {
+ 	struct of_phandle_args of_args;
+ 	unsigned int i;
+ 	int ret;
+ 
+-	if (nargs_prop)
+-		ret = of_parse_phandle_with_args(to_of_node(fwnode), prop,
+-						 nargs_prop, index, &of_args);
+-	else
+-		ret = of_parse_phandle_with_fixed_args(to_of_node(fwnode), prop,
+-						       nargs, index, &of_args);
++	ret = __of_parse_phandle_with_args(to_of_node(fwnode), prop, nargs_prop,
++					   nargs, index, &of_args);
+ 	if (ret < 0)
+ 		return ret;
+ 	if (!args) {
+diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
+index 6fa0a268d538..69fe44c68f8c 100644
+--- a/include/linux/fwnode.h
++++ b/include/linux/fwnode.h
+@@ -163,7 +163,7 @@ struct fwnode_operations {
+ 				const char *name);
+ 	int (*get_reference_args)(const struct fwnode_handle *fwnode,
+ 				  const char *prop, const char *nargs_prop,
+-				  unsigned int nargs, unsigned int index,
++				  int nargs, unsigned int index,
+ 				  struct fwnode_reference_args *args);
+ 	struct fwnode_handle *
+ 	(*graph_get_next_endpoint)(const struct fwnode_handle *fwnode,
 -- 
-2.43.0
+2.35.1.1320.gc452695387.dirty
 
