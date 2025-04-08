@@ -1,136 +1,95 @@
-Received: from bout3.ijzerbout.nl (bout3.ijzerbout.nl [136.144.140.114])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id A91EA157A72;
-	Tue,  8 Apr 2025 20:19:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=136.144.140.114
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EED9813CFB6;
+	Tue,  8 Apr 2025 20:48:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744143571; cv=none; b=mHGJ9zHh16z3YJiATrql8hvEJ0IIM5dIJXgWN6EfBA2u4COTswJWsFKMvHIB0pfBumhfBgbCOqqx0H0XEgY4+cbbkQEfBg9TieLp5P2fbEQeH5IeEbwXulLLdGgy6MRkLREGvbMQAAkoxa0FLtJUvGqOmxNQd6jj9UzHQ6Tucls=
+	t=1744145316; cv=none; b=g7kAJ1tejJPCqS+FYi8zqL7y7uNScAErAwpLVI+GzrhYFSGxwwAeyc1NnQwByqe/XJyVSjGpZ+JWGEQcnwYrQLJnnCYvPH5qizvfwzIV9CzYx06YSAbCuKM5uqss34xBQ7vCrve2hs6AZ4DdwiPXaAKLx5NjxchZOG37HCXKe4s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744143571; c=relaxed/simple;
-	bh=8DxBHdaCsnQq1alPWYBxe7geh2qcYCwnyHzf4Mu7E6Q=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=V4MrcFXw/zuUqh6cYNaV06Thryelr1g39sbCOMgKYodqRh5HOrZmrpvR7QbNcb9V5KnHTyy0QbC42CBuGoNTcBdedtky7KecMqW1nP9iO0r0+wlmjg9akA3VKCX9EGa0hOKmo1BQj79p37inaSVGJeDp9rEsGkkE5Ecw93kkeA8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ijzerbout.nl; spf=pass smtp.mailfrom=ijzerbout.nl; dkim=pass (4096-bit key) header.d=ijzerbout.nl header.i=@ijzerbout.nl header.b=LNfxLNJK; arc=none smtp.client-ip=136.144.140.114
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ijzerbout.nl
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ijzerbout.nl
+	s=arc-20240116; t=1744145316; c=relaxed/simple;
+	bh=zAvEvlzAln/TlRU8vv7yAddue9mFYC9Fd0ZT0VyLmDw=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To; b=NluX8LK9UEglRpGeuncMoY8AeHvx20BOtnhNRshUc1h4lNHGPKGuPaIZTAI9HNd1Rd851gCnZhSEa8ucxxDkt3PO/QnGSGjjQT1SzlN/h2oAgbh+3dqk9uvgAuQlR8jMi+OJD7wXuhiK8vU4oBEZyZ0plx1uba74olE1CznwHTU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZeerjqIt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=ijzerbout.nl header.i=@ijzerbout.nl header.b="LNfxLNJK"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ijzerbout.nl; s=key;
-	t=1744142967; bh=8DxBHdaCsnQq1alPWYBxe7geh2qcYCwnyHzf4Mu7E6Q=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=LNfxLNJKXkH4rrx0+HEkW33W8OLwXaAWNjn6Q6heeWmxFDVUf+OI82EdBCMaB7Gr0
-	 qeaiuK6571AXAm1NneWny8lguRtVuqZrB1zG1RxrHTw5ZdoyK5Zd6fcSlPphQOjgU7
-	 QmI1PLX1Ar7OU2H9UA9GfBt+QvG/0wQupjjU1ksD1W8qmjgjSMk0qJrYQimo63a6em
-	 93BnHDYutz7m+KRIS66cnN0xf7BdD0xjsX7MWSQ2cyrtGRT7x1BmuhHOctfmVujgfV
-	 1QQJav7x9syS4hs81UjWcQYbqWhkUpkyANoUHQssdivIVOOR7WGBikLO8BcYwu5pFJ
-	 NgjaikNkLPVr7iu8PkCgh7fu7b9gcR6mOi6MuH9vksg0C0RScx70CiGanQVG+7z5v+
-	 V0c78nTiG9Ij0p3yw7OfVCLH8H1n3Fba01mnLZWsANVIp0UK6enG5LBiQAz5vc+MYp
-	 Dy2sUYVx/+RBsAdmOJyFjiGBPgp6OWD73SDZsoas7/1eQyA+Gx4TI+KiblPozu4L+J
-	 nptfzI1T82zK7BSJ/COy6ylYltczr6ttKKv593OkNvjZ6gMcPyoskELWDfd32ZO0C8
-	 1RQZ/5OopDG9P2HLtG4Z3cdAuT6jKmkS+X5CtRO0/1DIu+4oeauTj+Je8hZEawldm1
-	 dL4US5EsOwbTYcmKCJdFwnAk=
-Received: from [IPV6:2a10:3781:99:1:1ac0:4dff:fea7:ec3a] (racer.ijzerbout.nl [IPv6:2a10:3781:99:1:1ac0:4dff:fea7:ec3a])
-	by bout3.ijzerbout.nl (Postfix) with ESMTPSA id 7BFD51633EB;
-	Tue,  8 Apr 2025 22:09:27 +0200 (CEST)
-Message-ID: <9715c8dd-38df-48fd-a9d1-7a78163dc989@ijzerbout.nl>
-Date: Tue, 8 Apr 2025 22:09:25 +0200
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZeerjqIt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5477FC4CEE5;
+	Tue,  8 Apr 2025 20:48:34 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1744145314;
+	bh=zAvEvlzAln/TlRU8vv7yAddue9mFYC9Fd0ZT0VyLmDw=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:From;
+	b=ZeerjqItVG+XzKiXVjEV3+a9A4z9SmvYa36d/vvVodFOpQeet67+HnRiQEfYnfPZt
+	 AkNrjZQ2aIUus8osASPhych7Wtiw8F/AU2b4iJAjpnvS1omNVRfeXmiLqkawtGU5Ef
+	 0DiLd882sIJ9NUcV+WJ/ePfxZHnogkjG37UvTWwUwwp14xOJk5pEzyt5+p/K5Byz0i
+	 DFAQmTEwcB/wq02v+YZskwvvvy+Q9MP+PpIb4y/8mbrQbuoIQxI+F8Pzs5hlvBGBxt
+	 T8YHVBHPXWk2iL0XhvXPTfkFhVBtpNQszU4nV6EBD65QuFuYQn3zBJChJoYCBgxczr
+	 qowTh2+/K4GGQ==
+Date: Tue, 8 Apr 2025 15:48:32 -0500
+From: Bjorn Helgaas <helgaas@kernel.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Anshuman Gupta <anshuman.gupta@intel.com>,
+	intel-xe@lists.freedesktop.org, linux-acpi@vger.kernel.org,
+	linux-pci@vger.kernel.org, lenb@kernel.org, bhelgaas@google.com,
+	ilpo.jarvinen@linux.intel.com, lucas.demarchi@intel.com,
+	rodrigo.vivi@intel.com, badal.nilawar@intel.com,
+	varun.gupta@intel.com, ville.syrjala@linux.intel.com,
+	uma.shankar@intel.com
+Subject: Re: [PATCH 02/12] PCI/ACPI: Add PERST# Assertion Delay _DSM method
+Message-ID: <20250408204832.GA64565@bhelgaas>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 6/6] gpiolib: acpi: Deduplicate some code in
- __acpi_find_gpio()
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
- Bartosz Golaszewski <bartosz.golaszewski@linaro.org>,
- linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Cc: Mika Westerberg <westeri@kernel.org>,
- Linus Walleij <linus.walleij@linaro.org>, Bartosz Golaszewski <brgl@bgdev.pl>
-References: <20250403160034.2680485-1-andriy.shevchenko@linux.intel.com>
- <20250403160034.2680485-7-andriy.shevchenko@linux.intel.com>
-Content-Language: en-US
-From: Kees Bakker <kees@ijzerbout.nl>
-In-Reply-To: <20250403160034.2680485-7-andriy.shevchenko@linux.intel.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAJZ5v0hQjtTCu1wXgKvBWBBegbj-VD+Z0yBspt1uFes8Xun7Cw@mail.gmail.com>
 
-Op 03-04-2025 om 17:59 schreef Andy Shevchenko:
-> __acpi_find_gpio() calls two functions depending on the supplied con_id
-> and possibility to fallback to _CRS lookup. Those functions have the same
-> pieces of code that can be done only in one place. Do it so.
->
-> This gives an impressive shrink of the generated code for x86_64:
->
-> add/remove: 0/2 grow/shrink: 0/4 up/down: 0/-1204 (-1204)
-> Function                                     old     new   delta
-> acpi_find_gpio.__UNIQUE_ID_ddebug478          56       -     -56
-> acpi_dev_gpio_irq_wake_get_by.__UNIQUE_ID_ddebug480      56       -     -56
-> acpi_find_gpio                               354     216    -138
-> acpi_get_gpiod_by_index                      456     307    -149
-> __acpi_find_gpio                             877     638    -239
-> acpi_dev_gpio_irq_wake_get_by                695     129    -566
-> Total: Before=15358, After=14154, chg -7.84%
->
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> ---
->   drivers/gpio/gpiolib-acpi.c | 101 +++++++++++++++++-------------------
->   1 file changed, 48 insertions(+), 53 deletions(-)
->
-> diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-> index f44d25df15cb..b3fcb9d5a39f 100644
-> --- a/drivers/gpio/gpiolib-acpi.c
-> +++ b/drivers/gpio/gpiolib-acpi.c
-> [...]
-> @@ -983,17 +966,24 @@ __acpi_find_gpio(struct fwnode_handle *fwnode, const char *con_id, unsigned int
->   		 bool can_fallback, struct acpi_gpio_info *info)
->   {
->   	struct acpi_device *adev = to_acpi_device_node(fwnode);
-> +	struct acpi_gpio_lookup lookup;
->   	struct gpio_desc *desc;
->   	char propname[32];
-> +	int ret;
-> +
-> +	memset(&lookup, 0, sizeof(lookup));
-> +	lookup.params.crs_entry_index = idx;
->   
->   	/* Try first from _DSD */
->   	for_each_gpio_property_name(propname, con_id) {
->   		if (adev)
-> -			desc = acpi_get_gpiod_by_index(adev,
-> -						       propname, idx, info);
-> +			ret = acpi_get_gpiod_by_index(adev, propname, &lookup);
->   		else
-> -			desc = acpi_get_gpiod_from_data(fwnode,
-> -							propname, idx, info);
-> +			ret = acpi_get_gpiod_from_data(fwnode, propname, &lookup);
-> +		if (ret)
-> +			continue;
-> +
-> +		desc = lookup.desc;
->   		if (PTR_ERR(desc) == -EPROBE_DEFER)
->   			return desc;
->   
-> @@ -1002,8 +992,13 @@ __acpi_find_gpio(struct fwnode_handle *fwnode, const char *con_id, unsigned int
->   	}
->   
->   	/* Then from plain _CRS GPIOs */
-> -	if (can_fallback)
-> -		return acpi_get_gpiod_by_index(adev, NULL, idx, info);
-> +	if (can_fallback) {
-> +		ret = acpi_get_gpiod_by_index(adev, NULL, &lookup);
-> +		if (ret)
-> +			return ERR_PTR(ret);
-> +
-> +		return lookup.desc;
-> +	}
->   
->   	return ERR_PTR(-ENOENT);
->   }
-Please, check the changes in this function again.
-`__acpi_find_gpio` doesn't fill `info` anymore. The callers of this 
-function will continue with
-an uninitialized struct.
--- 
-Kees
+On Wed, Apr 02, 2025 at 09:36:01PM +0200, Rafael J. Wysocki wrote:
+> On Wed, Apr 2, 2025 at 8:48 PM Bjorn Helgaas <helgaas@kernel.org> wrote:
+
+> > I don't *expect* rev 5 to be different.  But as a user of it, why
+> > would I change working, tested code that is not broken?
+> >
+> > The PCI DPC function 0xc is an example where rev 5 (per ECN) and rev 6
+> > (per r3.3) are not compatible.
+> >
+> > If the OS implemented rev 5, then learns via function 0 that function
+> > 0xc is also supported at rev 6, and starts using the same OS code with
+> > rev 6, the OS is broken.
+> 
+> Yes, in this case the backward compatibility language in the _DSM
+> definition is obviously not followed.
+
+Rev 5 in the ECN isn't compatible with rev 6 in the PCI FW r3.3 spec,
+so it doesn't follow the ACPI compatibility requirement.  And this is
+documented in PCI FW, which says "Fn 0xC was added with rev 5 (see ECN
+for rev 5 details); here is how rev 6 works."
+
+An OS implemented to the ECN doesn't know that rev 6 is different from
+rev 5; it assumes they're the same because ACPI says we can assume
+that, and PCI FW r3.3 even says the OS should use the same rev for all
+functions.  If OS adds support for rev 6 of a some other function, it
+is supposed to use rev 6 of Fn 0xC, which doesn't work as the OS
+expects.
+
+I guess one could argue that "OS didn't add rev 6 support for anything
+until PCI FW r3.3 added a function at rev 6, r3.3 did mention the
+difference between Fn 0xC rev 5 and 6, and OS should have looked at
+all the already-implemented unrelated functions for possible changes
+between rev 5 and rev 6."
+
+I think that causes unnecessary changes in unrelated code.  The OS can
+avoid the problem by *always* using Fn 0xC rev 5, regardless of what
+rev it uses for other functions.
+
+Of course, the OS can include support for multiple revs, e.g., it
+could add support for Fn 0xC rev 6 and use that when available.  And
+it could retain support for Fn 0xC rev 5 and use that if rev 6 isn't
+available.
+
+Bjorn
