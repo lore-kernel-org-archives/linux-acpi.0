@@ -1,46 +1,45 @@
 Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A69A521E0A8;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A68B621E08D;
 	Fri, 25 Apr 2025 19:34:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=79.96.170.134
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745609665; cv=none; b=rKbc50s5K5+hOycFgI1UiMoEBefA49AbcJPTDhH8zlluq2RlyWgUUtDqviUwoQ96NQYy3xequzdEwftqRHZdesI+nkUN8VDHVy76lIPrLI3T7Dbwtl9Tx8SnRu1LyNHLLvkJRzoBEIkhRf7XKLH2hBNhdV96i4JiqUMTZAfJGIQ=
+	t=1745609665; cv=none; b=RyFhXqt2czjauVTsT6uUG/j5jAdvaWmP+VcxAFlZlcRAB2CMtbpBZyS1djFREnsqTYI/CIHsx0rIA9pIicxBy/BVOiZhlQkAjvul7c0/y4ZY/8KrIgJw0fDkjxh5nyl0yk65YcZZFttK4LZVh5yUsFs69hNFHX9xpJToCBd3+mQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1745609665; c=relaxed/simple;
-	bh=0MI0aBmXATawN3V0PUL/WS1ALDsJbUtNJjz41S1xg0U=;
+	bh=hqtJr8+mT8Zz8ZDa1vDTxS94/n4yDl8s7QStI+V417w=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=b7NGOGNiHrg6Sr4NKP+CXMlCprCPkBmt4DJyy6LbIBaRhk29h8pPuyD1yLCcr1HgjN/UDlx2TeopCdbPosPNHn+1lyZ4yGGdqhtLCrnbTYgrfKSWdwh3pXjlME5b79zmreNtHKRnfbSmA+MURlCbGGpCyZIbC1EHetrSmud6wCU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net; spf=pass smtp.mailfrom=rjwysocki.net; dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b=KlZDEm/Y; arc=none smtp.client-ip=79.96.170.134
+	 MIME-Version:Content-Type; b=BrdNuC8hrwcfhjVRs/J04CV6qvlrOjlmDS+7vkEMqiBmZbBDJaBhdyock6ZOdWKPtf3IvMib2oxsiD0fHbfMUE3MKzc6a/LqA8d3TCpH8+JB5sMATNWJrBBSycUy3GNeV8d05pljQxWUsQGpMfWMXBRQV0cwPg9fh76CN7FkpcY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net; spf=pass smtp.mailfrom=rjwysocki.net; dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b=FbztuFDs; arc=none smtp.client-ip=79.96.170.134
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rjwysocki.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b="KlZDEm/Y"
+	dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b="FbztuFDs"
 Received: from kreacher.localnet (unknown [217.114.34.19])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by cloudserver094114.home.pl (Postfix) with ESMTPSA id CA4836644DF;
-	Fri, 25 Apr 2025 21:34:14 +0200 (CEST)
+	by cloudserver094114.home.pl (Postfix) with ESMTPSA id DDC376646B5;
+	Fri, 25 Apr 2025 21:34:17 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=rjwysocki.net;
-	s=dkim; t=1745609655;
-	bh=0MI0aBmXATawN3V0PUL/WS1ALDsJbUtNJjz41S1xg0U=;
+	s=dkim; t=1745609658;
+	bh=hqtJr8+mT8Zz8ZDa1vDTxS94/n4yDl8s7QStI+V417w=;
 	h=From:Subject:Date;
-	b=KlZDEm/Yf4nJBS0tj28RYxlfsutp5v1Ifsbz5Pm1HkHZX1iYTVA/VHA54HKnHE82q
-	 WmUJu+3yDBDAvg5L0AAXm3Z3qsWytSCkMmCSDve4xyUErBByyku5LvrWetHCZb77CF
-	 L8VHR8RbPfR3KOELrdjrvhMYBO+8QAT2vmZBY6LchUGE8DCHo8Qcjsxm2hn1g7v8S3
-	 3857eJyApqByqCt0ybylFj5U7P7CVIiMDtCVmVMHwn7tpr99AH6Rwv0KcAaLyO7g5c
-	 GBAcE4cXgqyjYS0JS7jSlQVKykpL+sn2/DfLOsfgUnwMjcoBSATYyKPwpmw1ovp9Um
-	 YiTbl6Te1CeGQ==
+	b=FbztuFDs5ftm4CRlXhuVQ9MUQsQqSe6ddPW7523aFBQF0WTiQl5BWd80SEctjEWV+
+	 x1tyA5uZst3xEQB+FwYglDPXl0+iA2dgbNcf7E+CW8LFDWlvijAD7eaZdpHeXhhGsQ
+	 ONNlX+VhKofL5HTOSdXG+gkHWTPskMWHHvD5+G0ozb6wOfJwdXApZtBTPTRacfO0R2
+	 yqp77gpu6rDi0Cwc2RgKyNGTu+x637yVeXxr++HbWppM+c3sj8t1LUTjjAK1wN3Ez2
+	 Kftl4FeiLSb6OmNicGTx6VxaT5PsBf7/oNWcH+bcoDcFIKrbiIOikTVDzW/GFupdng
+	 0Srxv4959fI3A==
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>, Bob Moore <robert.moore@intel.com>,
  Saket Dumbre <saket.dumbre@intel.com>
 Subject:
- [PATCH v1 14/19] ACPICA: actbl2.h: ACPI 6.5: RAS2: Rename structure and field
- names of the RAS2 table
-Date: Fri, 25 Apr 2025 21:29:12 +0200
-Message-ID: <1942053.CQOukoFCf9@rjwysocki.net>
+ [PATCH v1 11/19] ACPICA: actbl2.h: ERDT: Add typedef and other  definitions
+Date: Fri, 25 Apr 2025 21:27:24 +0200
+Message-ID: <3296755.5fSG56mABF@rjwysocki.net>
 In-Reply-To: <12671029.O9o76ZdvQC@rjwysocki.net>
 References: <12671029.O9o76ZdvQC@rjwysocki.net>
 Precedence: bulk
@@ -54,78 +53,236 @@ Content-Type: text/plain; charset="UTF-8"
 X-CLIENT-IP: 217.114.34.19
 X-CLIENT-HOSTNAME: 217.114.34.19
 X-VADE-SPAMSTATE: clean
-X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgeefvddrtddtgddvheefudekucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvfevufffkfgjfhgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepledtieekkeekveeikeetgffgteeuteefjeevjeegudelvdduheeiuedvieehieevnecuffhomhgrihhnpehgihhthhhusgdrtghomhenucfkphepvddujedruddugedrfeegrdduleenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpedvudejrdduudegrdefgedrudelpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpehrjhifsehrjhifhihsohgtkhhirdhnvghtpdhnsggprhgtphhtthhopeegpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheprhhosggvrhhtrdhmohhorhgvsehinhhtvghlrdgtohhmpdhrtghpthhtohepshgrkhgvthdrughumhgsrhgvsehinhhtvghlrdgtohhm
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgeefvddrtddtgddvheefudelucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvfevufffkfgjfhgggfgtsehtufertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnheptefhgffgueeileffleffieeuvefgtdetheeiheelveehtdfhveeggedtkeelgeehnecuffhomhgrihhnpehinhhtvghlrdgtohhmpdhgihhthhhusgdrtghomhenucfkphepvddujedruddugedrfeegrdduleenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpedvudejrdduudegrdefgedrudelpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpehrjhifsehrjhifhihsohgtkhhirdhnvghtpdhnsggprhgtphhtthhopeegpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheprhhosggvrhhtrdhmohhorhgvsehinhhtvghlrdgtohhmpdhrtghpthhtohepshgrkhgvthdrughumhgsrhgvsehinhhtvghlrdgtohh
 X-DCC--Metrics: v370.home.net.pl 1024; Body=4 Fuz1=4 Fuz2=4
 
-From: Shiju Jose <shiju.jose@huawei.com>
+From: Tony Luck <tony.luck@intel.com>
 
-ACPICA commit 2c8a38f747de9d977491a494faf0dfaf799b777b
+ACPICA commit dddd9270531d74af523afa68515d8aae6a18bbe0
 
-Rename the structure and field names of the RAS2 table to shorten them and
-avoid long lines in the ACPI RAS2 drivers.
+The ERDT table (and its many subtables) enumerate capabilities
+and methods for Intel Resource Director Technology to monitor
+and control L3 cache allocation and memory bandwidth by CPU
+cores and IO devices.
 
- 1. struct acpi_ras2_shared_memory to struct acpi_ras2_shmem
+Structure defined in the Intel Resource Director Technology (RDT)
+Architecture specification downloadable from www.intel.com/sdm
 
- 2. In struct acpi_ras2_shared_memory: fields,
-    - set_capabilities[16] to set_caps[16]
-    - num_parameter_blocks to num_param_blks
-    - set_capabilities_status to set_caps_status
-
- 3. struct acpi_ras2_patrol_scrub_parameter to
-    struct acpi_ras2_patrol_scrub_param
-
- 4. In struct acpi_ras2_patrol_scrub_parameter: fields,
-    - patrol_scrub_command to command
-    - requested_address_range to req_addr_range
-    - actual_address_range to actl_addr_range
-
-Link: https://github.com/acpica/acpica/commit/2c8a38f7
-Signed-off-by: Shiju Jose <shiju.jose@huawei.com>
+Link: https://github.com/acpica/acpica/commit/dddd9270
+Signed-off-by: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- include/acpi/actbl2.h | 16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ include/acpi/actbl2.h | 190 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 190 insertions(+)
 
 diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-index ccbf543bceeb..3c2c0730165d 100644
+index 2c07b097ef9f..ccbf543bceeb 100644
 --- a/include/acpi/actbl2.h
 +++ b/include/acpi/actbl2.h
-@@ -3035,15 +3035,15 @@ struct acpi_ras2_pcc_desc {
- 
- /* RAS2 Platform Communication Channel Shared Memory Region */
- 
--struct acpi_ras2_shared_memory {
-+struct acpi_ras2_shmem {
- 	u32 signature;
- 	u16 command;
- 	u16 status;
- 	u16 version;
- 	u8 features[16];
--	u8 set_capabilities[16];
--	u16 num_parameter_blocks;
--	u32 set_capabilities_status;
-+	u8 set_caps[16];
-+	u16 num_param_blks;
-+	u32 set_caps_status;
+@@ -29,6 +29,7 @@
+ #define ACPI_SIG_BDAT           "BDAT"	/* BIOS Data ACPI Table */
+ #define ACPI_SIG_CCEL           "CCEL"	/* CC Event Log Table */
+ #define ACPI_SIG_CDAT           "CDAT"	/* Coherent Device Attribute Table */
++#define ACPI_SIG_ERDT           "ERDT"	/* Enhanced Resource Director Technology */
+ #define ACPI_SIG_IORT           "IORT"	/* IO Remapping Table */
+ #define ACPI_SIG_IVRS           "IVRS"	/* I/O Virtualization Reporting Structure */
+ #define ACPI_SIG_LPIT           "LPIT"	/* Low Power Idle Table */
+@@ -450,6 +451,195 @@ struct acpi_table_ccel {
+ 	u64 log_area_start_address;
  };
  
- /* RAS2 Parameter Block Structure for PATROL_SCRUB */
-@@ -3056,11 +3056,11 @@ struct acpi_ras2_parameter_block {
- 
- /* RAS2 Parameter Block Structure for PATROL_SCRUB */
- 
--struct acpi_ras2_patrol_scrub_parameter {
-+struct acpi_ras2_patrol_scrub_param {
- 	struct acpi_ras2_parameter_block header;
--	u16 patrol_scrub_command;
--	u64 requested_address_range[2];
--	u64 actual_address_range[2];
-+	u16 command;
-+	u64 req_addr_range[2];
-+	u64 actl_addr_range[2];
- 	u32 flags;
- 	u32 scrub_params_out;
- 	u32 scrub_params_in;
++/*******************************************************************************
++ *
++ * ERDT - Enhanced Resource Director Technology (ERDT) table
++ *
++ * Conforms to "Intel Resource Director Technology Architecture Specification"
++ * Version 1.1, January 2025
++ *
++ ******************************************************************************/
++
++struct acpi_table_erdt {
++	struct acpi_table_header header;	/* Common ACPI table header */
++	u32 max_clos;		/* Maximum classes of service */
++	u8 reserved[24];
++	u8 erdt_substructures[];
++};
++
++/* Values for subtable type in struct acpi_subtbl_hdr_16 */
++
++enum acpi_erdt_type {
++	ACPI_ERDT_TYPE_RMDD = 0,
++	ACPI_ERDT_TYPE_CACD = 1,
++	ACPI_ERDT_TYPE_DACD = 2,
++	ACPI_ERDT_TYPE_CMRC = 3,
++	ACPI_ERDT_TYPE_MMRC = 4,
++	ACPI_ERDT_TYPE_MARC = 5,
++	ACPI_ERDT_TYPE_CARC = 6,
++	ACPI_ERDT_TYPE_CMRD = 7,
++	ACPI_ERDT_TYPE_IBRD = 8,
++	ACPI_ERDT_TYPE_IBAD = 9,
++	ACPI_ERDT_TYPE_CARD = 10,
++	ACPI_ERDT_TYPE_RESERVED = 11	/* 11 and above are reserved */
++};
++
++/*
++ * ERDT Subtables, correspond to Type in struct acpi_subtbl_hdr_16
++ */
++
++/* 0: RMDD - Resource Management Domain Description */
++
++struct acpi_erdt_rmdd {
++	struct acpi_subtbl_hdr_16 header;
++	u16 flags;
++	u16 IO_l3_slices;	/* Number of slices in IO cache */
++	u8 IO_l3_sets;		/* Number of sets in IO cache */
++	u8 IO_l3_ways;		/* Number of ways in IO cache */
++	u64 reserved;
++	u16 domain_id;		/* Unique domain ID */
++	u32 max_rmid;		/* Maximun RMID supported */
++	u64 creg_base;		/* Control Register Base Address */
++	u16 creg_size;		/* Control Register Size (4K pages) */
++	u8 rmdd_structs[];
++};
++
++/* 1: CACD - CPU Agent Collection Description */
++
++struct acpi_erdt_cacd {
++	struct acpi_subtbl_hdr_16 header;
++	u16 reserved;
++	u16 domain_id;		/* Unique domain ID */
++	u32 X2APICIDS[];
++};
++
++/* 2: DACD - Device Agent Collection Description */
++
++struct acpi_erdt_dacd {
++	struct acpi_subtbl_hdr_16 header;
++	u16 reserved;
++	u16 domain_id;		/* Unique domain ID */
++	u8 dev_paths[];
++};
++
++struct acpi_erdt_dacd_dev_paths {
++	struct acpi_subtable_header header;
++	u16 segment;
++	u8 reserved;
++	u8 start_bus;
++	u8 path[];
++};
++
++/* 3: CMRC - Cache Monitoring Registers for CPU Agents */
++
++struct acpi_erdt_cmrc {
++	struct acpi_subtbl_hdr_16 header;
++	u32 reserved1;
++	u32 flags;
++	u8 index_fn;
++	u8 reserved2[11];
++	u64 cmt_reg_base;
++	u32 cmt_reg_size;
++	u16 clump_size;
++	u16 clump_stride;
++	u64 up_scale;
++};
++
++/* 4: MMRC - Memory-bandwidth Monitoring Registers for CPU Agents */
++
++struct acpi_erdt_mmrc {
++	struct acpi_subtbl_hdr_16 header;
++	u32 reserved1;
++	u32 flags;
++	u8 index_fn;
++	u8 reserved2[11];
++	u64 reg_base;
++	u32 reg_size;
++	u8 counter_width;
++	u64 up_scale;
++	u8 reserved3[7];
++	u32 corr_factor_list_len;
++	u32 corr_factor_list[];
++};
++
++/* 5: MARC - Memory-bandwidth Allocation Registers for CPU Agents */
++
++struct acpi_erdt_marc {
++	struct acpi_subtbl_hdr_16 header;
++	u16 reserved1;
++	u16 flags;
++	u8 index_fn;
++	u8 reserved2[7];
++	u64 reg_base_opt;
++	u64 reg_base_min;
++	u64 reg_base_max;
++	u32 mba_reg_size;
++	u32 mba_ctrl_range;
++};
++
++/* 6: CARC - Cache Allocation Registers for CPU Agents */
++
++struct acpi_erdt_carc {
++	struct acpi_subtbl_hdr_16 header;
++};
++
++/* 7: CMRD - Cache Monitoring Registers for Device Agents */
++
++struct acpi_erdt_cmrd {
++	struct acpi_subtbl_hdr_16 header;
++	u32 reserved1;
++	u32 flags;
++	u8 index_fn;
++	u8 reserved2[11];
++	u64 reg_base;
++	u32 reg_size;
++	u16 cmt_reg_off;
++	u16 cmt_clump_size;
++	u64 up_scale;
++};
++
++/* 8: IBRD - Cache Monitoring Registers for Device Agents */
++
++struct acpi_erdt_ibrd {
++	struct acpi_subtbl_hdr_16 header;
++	u32 reserved1;
++	u32 flags;
++	u8 index_fn;
++	u8 reserved2[11];
++	u64 reg_base;
++	u32 reg_size;
++	u16 total_bw_offset;
++	u16 Iomiss_bw_offset;
++	u16 total_bw_clump;
++	u16 Iomiss_bw_clump;
++	u8 reserved3[7];
++	u8 counter_width;
++	u64 up_scale;
++	u32 corr_factor_list_len;
++	u32 corr_factor_list[];
++};
++
++/* 9: IBAD - IO bandwidth Allocation Registers for device agents */
++
++struct acpi_erdt_ibad {
++	struct acpi_subtbl_hdr_16 header;
++};
++
++/* 10: CARD - IO bandwidth Allocation Registers for Device Agents */
++
++struct acpi_erdt_card {
++	struct acpi_subtbl_hdr_16 header;
++	u32 reserved1;
++	u32 flags;
++	u32 contention_mask;
++	u8 index_fn;
++	u8 reserved2[7];
++	u64 reg_base;
++	u32 reg_size;
++	u16 cat_reg_offset;
++	u16 cat_reg_block_size;
++};
++
+ /*******************************************************************************
+  *
+  * IORT - IO Remapping Table
 -- 
 2.43.0
 
