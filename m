@@ -1,204 +1,215 @@
-Received: from NAM10-BN7-obe.outbound.protection.outlook.com (mail-bn7nam10on2086.outbound.protection.outlook.com [40.107.92.86])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E98561DE8BB;
-	Sun, 27 Apr 2025 07:53:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.92.86
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745740441; cv=fail; b=MSUn9j5stFs2LhXQKAKAMF+ZOCAphlqAXxoJntsMwY0pETCRqSdvYhGroYPZLYR/cAwngrjIgn+ulWtNgLBQt9nstyHnuLCnrwyRTOAI3E8HmIMAQUHlfQxvSb0UQzkxO0o9YoGUt9YfYrTwyqb2liQmU1Az5eRJmSLi6tTAR1Q=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745740441; c=relaxed/simple;
-	bh=Utci7A3zm04tp9YkPO9VPwYn81k6rtKtm6OQZLbbo74=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=VxsTtfL9hDorFPicPvB1kFFWGSjW3hMrx4Kay15yFDiHM76DmsmK9sFKcNOPQPIL5AjCqKa/Ns1ugnsnvBBXvLOzZV1IStYA3BaKv1RaYTlX8qLcNNQdioK7+HJYg62MGVz/Nnsa8+4lRHM1Ka54qyvCHKnD85a+/1q5gMbQCbw=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=cUXOcMxI; arc=fail smtp.client-ip=40.107.92.86
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67A252505BA;
+	Sun, 27 Apr 2025 09:21:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.19
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1745745683; cv=none; b=DJvu8EfduhVZHWvRz7T9UOPHoK68XXcRXo7yKyKNa139eudmRsd2u7tAWhqVDs11E8JQi5Xky/fijw2EgsOUghbtcj5/oZtaly0hpODMk6mwMXhadmqWzlKx9OoKLIoaohoEVOF7oN4nfNSF8cBpXEvIGMcnrQl8eLPS8R2d5qs=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1745745683; c=relaxed/simple;
+	bh=StjvexCO/8zLImAhby8WhuBY7Msfnw3+TtbfmBdURq4=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=GCfCsnirTvra3AJhjJuLNKu+u6VwHkWoTRfduHpae+TOMmo0bccKA1ClvbOWZEAVuWQV+GWfXrSYGDgR6P1QXBDqSsYprinPrbf9uwyTAyGcsoR7lrkjE5EDVpY3DQJs9LaCoJOjJc4iaFKhMCq/GWwFHG5G0ZC/L9LQmlq99PE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=i4m4S/wy; arc=none smtp.client-ip=198.175.65.19
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="cUXOcMxI"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=lrB16WytloQni0NDJlNwfC1RAIj8vbbXT3TKbOjvirkTTYMoZTvGHAH3dc0lsKO6jSgFo2ZOjeo4xgQimxV8yKuPKiVEAT4aJcXH0OiaS7KOjOFjszF3wBQ2LJT6tyCmShHWIdIbRi82a7q2SRKBAG8167RjSDGqBeA4HA4YRq7rED23W+QsapM+QolytbAIQ//nU3+Eu7DZBsp7jwGAE1H/Ku0S8S4ixUkzd7EK2aOUUdDaGllVzAEgHwx3TqtKKIisKPPwkY/mtdIFZWFqMQRHs6sv9X/Fa+qH9BgADRi6rO1nsJzgCYD9Q2+5uEmWTLcYWsiZIa/BFla5I33HOg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=s3YAzKJZLJqfk1Xsi969Z88EZu02mRJelfre43IGml8=;
- b=N0Cklx4Si4TKH6UiAYoA87VSqXOXvbMqCMzd46wgo5lqrA3ZQkVmxSCpyEpM1JiawvX3saCOmWptkMnjXyY+33kar0tmE2cz2CmkdQrXQaqxaR5WkYTgBhDts6azRjfVASvJVEerPrQSco9iWx4SOHx02O7B65TSHE/YvEh30lnfcTiRfLVMULRD539pJ7jM9+OZhIp7d64QQO0uTT9fdFUTz8KIWwvrHHbyzYHDHPBwYC8IVM8YUDvRANRsuZFgOhIlub3eCOApRqe4Q1/fNz8XKg26fbSMCaPt3LfMNxlgcFs0vbjwvuKBvK6PCUzdI56XyAXY69m31NgY5cWGJw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 165.204.84.17) smtp.rcpttodomain=kernel.org smtp.mailfrom=amd.com; dmarc=pass
- (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=s3YAzKJZLJqfk1Xsi969Z88EZu02mRJelfre43IGml8=;
- b=cUXOcMxIqdaPdUkPpeJ+aNEt3Cnp+ktVREUKrd64Ct9V8OHtJoaZFACJMjz1a/SnuE09iUPHUXD/MSXg/xpsz9XFtwxYMTD2n3XrqsKyb5nviHgYJkdUdkN4cHNjhs1mTv+ccIozj/AcfVcBJ2RBjD3DD7KLc6febWXhQp1og5A=
-Received: from DM6PR02CA0092.namprd02.prod.outlook.com (2603:10b6:5:1f4::33)
- by CH3PR12MB9196.namprd12.prod.outlook.com (2603:10b6:610:197::6) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8678.28; Sun, 27 Apr
- 2025 07:53:52 +0000
-Received: from DS3PEPF000099DD.namprd04.prod.outlook.com
- (2603:10b6:5:1f4:cafe::e1) by DM6PR02CA0092.outlook.office365.com
- (2603:10b6:5:1f4::33) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.8655.35 via Frontend Transport; Sun,
- 27 Apr 2025 07:53:52 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
- smtp.mailfrom=amd.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=amd.com;
-Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
- 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
- client-ip=165.204.84.17; helo=SATLEXMB04.amd.com; pr=C
-Received: from SATLEXMB04.amd.com (165.204.84.17) by
- DS3PEPF000099DD.mail.protection.outlook.com (10.167.17.199) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.20.8655.12 via Frontend Transport; Sun, 27 Apr 2025 07:53:52 +0000
-Received: from sh-pool-purico-44bd.sha.scpi (10.180.168.240) by
- SATLEXMB04.amd.com (10.181.40.145) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.39; Sun, 27 Apr 2025 02:53:50 -0500
-From: Zhu Qiyu <qiyuzhu2@amd.com>
-To: <rafael@kernel.org>, <lenb@kernel.org>
-CC: <linux-acpi@vger.kernel.org>, <qiyuzhu2@amd.com>,
-	<linux-kernel@vger.kernel.org>
-Subject: [PATCH] ACPI:PRM: Reduce unnecessary printing to avoid the worries of regular users
-Date: Sun, 27 Apr 2025 15:53:17 +0800
-Message-ID: <20250427075317.42687-1-qiyuzhu2@amd.com>
-X-Mailer: git-send-email 2.34.1
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="i4m4S/wy"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1745745682; x=1777281682;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=StjvexCO/8zLImAhby8WhuBY7Msfnw3+TtbfmBdURq4=;
+  b=i4m4S/wyRbt9VxBy3mtZQMMrWxzwfy0jIlDKtnwmyJej1Qe2+w14/R9u
+   9kO2M+OyoBG0GRYOhiVjmNfrR1Mqz3Q90aFFnBPJD1XM6MsN/5F73X+F7
+   0HAx0e7SRpTS9oM6n/Knb+XYEv3AWgiIe4BIwYXxsDWiiWTItI1jHAlur
+   1k8htBneUKeDzpxBh2uDrDL5ToLu+9hMPSAMyB3UpLXlrYeivICXefvmN
+   XLCSdQopL0DBxq9AzfoZORwf6fMJQ18c8MIQ2DlB22Am72MfMlaa8jTzT
+   rqSeECXzG6Rd4aPeAHvhkj6G4XwgoNsEGc1Wymf3GOpgmlq7EA6CCInPF
+   A==;
+X-CSE-ConnectionGUID: nMuMAj5nR72ceNwSJV0KwA==
+X-CSE-MsgGUID: DHY+4D5/TJeL6mLrzwdr7A==
+X-IronPort-AV: E=McAfee;i="6700,10204,11415"; a="47236481"
+X-IronPort-AV: E=Sophos;i="6.15,243,1739865600"; 
+   d="scan'208";a="47236481"
+Received: from fmviesa006.fm.intel.com ([10.60.135.146])
+  by orvoesa111.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Apr 2025 02:21:19 -0700
+X-CSE-ConnectionGUID: JeWrP7m0Q8KAGkBMWvxeDQ==
+X-CSE-MsgGUID: lIrEAOnkShqHlZAf/7h3KA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.15,243,1739865600"; 
+   d="scan'208";a="133151304"
+Received: from dapengmi-mobl1.ccr.corp.intel.com (HELO [10.124.245.128]) ([10.124.245.128])
+  by fmviesa006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Apr 2025 02:21:12 -0700
+Message-ID: <d2bdd61d-cab6-401f-9b6a-17b28f3cd19c@linux.intel.com>
+Date: Sun, 27 Apr 2025 17:21:08 +0800
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: SATLEXMB03.amd.com (10.181.40.144) To SATLEXMB04.amd.com
- (10.181.40.145)
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS3PEPF000099DD:EE_|CH3PR12MB9196:EE_
-X-MS-Office365-Filtering-Correlation-Id: 473a0d9e-7f67-48bf-34eb-08dd8560a73a
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|376014|82310400026|36860700013|13003099007;
-X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?/lnIGRD+EhLtkOqdfaiU3qt8q9zOqN5FOfdVaxdNJcvUuRFMB2mJcDExt7cS?=
- =?us-ascii?Q?KoTeCZIQoFDBrar4hA8XTh826bYHm7/J4nld3vR8d5DwScuPReNUVY2TSLia?=
- =?us-ascii?Q?IvE5lq21lKfDpOk1uctXbIFtWBA/m3G0t8CwrPW64AA1u3b4BjhqXo9KrKKM?=
- =?us-ascii?Q?te0gBmUINjTARbZK+GqcIp5GepUfyMEKk4cjnFuW5kRjAYp5emIXttRmpnXv?=
- =?us-ascii?Q?O7y1ayUlLUCLm0ydfFxp2Hf8H/CFToUZngbPOrDLNxGIiWhgYUbS169lfND8?=
- =?us-ascii?Q?1jkBE2oW3cHf6HM39eDsefechQcl58LL42dJ79HiNvWVKFjAOpIh2mlzfba1?=
- =?us-ascii?Q?EHmheF7oDKYJjypXKCGSd0WqjNop24nycLXimqFxdqwSbuUGs4Kg3p55rSDD?=
- =?us-ascii?Q?tJ5NP/T0gjNHM2DbJedypu7fv6NaB62wgiceKYtExfLx4Vxg5q6L4wssqoLG?=
- =?us-ascii?Q?fdMCtHnT1aauhC97JtS7vZLeb6CrRmnQRAtCSR2/4cKRb+JxnnRz9ZsZlMo7?=
- =?us-ascii?Q?6J+fDmzYERE//bApORYm/+487SNuxanzrp5uZ84LhzkkSShw2kbUKsN1he5U?=
- =?us-ascii?Q?o2PmYDhbkQllsWAIp+fjYoupeFWb+WJZVU+17BNpQH49JFPHdj6QLXZeX3Fw?=
- =?us-ascii?Q?Ctl2fCKOuJxGYdydXtFK416YEtG1zChIEPtzbC+FoL9C/3CMnaN4a6Elj9ia?=
- =?us-ascii?Q?1/SevJsTJAwjsnQhWjuu7+/A81xHO1ULgobK9h/dOoKksvpXNZAaUWFsax+v?=
- =?us-ascii?Q?tnifo9OHMIB/JgwuqeG9Y34E9GySLB1oe28IlJ7wijZ6uHvkfRxN+Jw/a9j8?=
- =?us-ascii?Q?M96tiFZg2mlLsERpDpHxxjoqTz30/A3VSDJFzP98UNTcT+QgfDCOTrQHJKt9?=
- =?us-ascii?Q?zuhF5j+bkKFHTkeTCYzoBMDguOLToj9tggQb0NhoJtTbzb7QOuvpByKkz8sy?=
- =?us-ascii?Q?vE8loKuuoaJ8vHMNebwIRtanOoapx55Jjg2v6rdoiyW6K98mCsU0BJboiqot?=
- =?us-ascii?Q?LY/KX/FEAIHXEtgw87v1feozyhbY39B7676qRjupETV6Y0jt/qdrghqVLq4t?=
- =?us-ascii?Q?BKoqO7AqqC8FYsBBY5oAJo+5VD780uJPdauTOjp5DtTP83qefq5EAqhzdy1s?=
- =?us-ascii?Q?aUHeJZWEb0TL3DzwYsxoabTFGnqxVU3TLDj7eHQc2PJwM4GisCsAHpv2FPd4?=
- =?us-ascii?Q?MzBR9+B8epFP2X1ygGxq76eNfQ/RLEKQWDLWrUoOYQF019eHwnpITxTYYs4L?=
- =?us-ascii?Q?r05PIhZmHVKtpUIXrmhWh0gjdAFA0IMrE8c/6Hh+NxPojkx6lJGu+zHTIbnX?=
- =?us-ascii?Q?CAmSow2QCKvwvVXqE6Spqi6davm4bOr+cSrEKrELi6TRAAE9gRSEhMIS2vUj?=
- =?us-ascii?Q?srlCGdXrF6TKs2V/9BOX75YqmdXpFQHpwglWaML9ZMiYXvJsNaKKggypI2Q0?=
- =?us-ascii?Q?cve9LTOz0NX84sQ5UHh+xUCzobjy2cl/5MWx3tIvNv0Di998cIsIrg=3D=3D?=
-X-Forefront-Antispam-Report:
-	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(1800799024)(376014)(82310400026)(36860700013)(13003099007);DIR:OUT;SFP:1101;
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 27 Apr 2025 07:53:52.4661
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 473a0d9e-7f67-48bf-34eb-08dd8560a73a
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	DS3PEPF000099DD.namprd04.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH3PR12MB9196
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3 09/14] x86/xen/msr: Remove calling
+ native_{read,write}_msr{,_safe}() in pmu_msr_{read,write}()
+To: "Xin Li (Intel)" <xin@zytor.com>, linux-kernel@vger.kernel.org,
+ kvm@vger.kernel.org, linux-perf-users@vger.kernel.org,
+ linux-hyperv@vger.kernel.org, virtualization@lists.linux.dev,
+ linux-pm@vger.kernel.org, linux-edac@vger.kernel.org,
+ xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org,
+ linux-hwmon@vger.kernel.org, netdev@vger.kernel.org,
+ platform-driver-x86@vger.kernel.org
+Cc: tglx@linutronix.de, mingo@redhat.com, bp@alien8.de,
+ dave.hansen@linux.intel.com, x86@kernel.org, hpa@zytor.com, acme@kernel.org,
+ jgross@suse.com, andrew.cooper3@citrix.com, peterz@infradead.org,
+ namhyung@kernel.org, mark.rutland@arm.com,
+ alexander.shishkin@linux.intel.com, jolsa@kernel.org, irogers@google.com,
+ adrian.hunter@intel.com, kan.liang@linux.intel.com, wei.liu@kernel.org,
+ ajay.kaher@broadcom.com, bcm-kernel-feedback-list@broadcom.com,
+ tony.luck@intel.com, pbonzini@redhat.com, vkuznets@redhat.com,
+ seanjc@google.com, luto@kernel.org, boris.ostrovsky@oracle.com,
+ kys@microsoft.com, haiyangz@microsoft.com, decui@microsoft.com
+References: <20250425083442.2390017-1-xin@zytor.com>
+ <20250425083442.2390017-10-xin@zytor.com>
+Content-Language: en-US
+From: "Mi, Dapeng" <dapeng1.mi@linux.intel.com>
+In-Reply-To: <20250425083442.2390017-10-xin@zytor.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Commit 088984c8d54c ("ACPI: PRM: Find EFI_MEMORY_RUNTIME block for PRM
-handler and context") introduces non-essential printing "Failed
-to find VA for GUID: 7626C6AE-F973-429C-A91C-107D7BE298B0, PA: 0x0"
-which causes unnecessary worry for regular users.
 
-Refer to PRM Spec Section 4.1.2[1], both static data buffer address
-and ACPI parameter buffer address may be NULL if they are not needed.
-So there is no need to print out "Failed to find VA ... " to intimidate
-regular users.
+On 4/25/2025 4:34 PM, Xin Li (Intel) wrote:
+> hpa found that pmu_msr_write() is actually a completely pointless
+> function [1]: all it does is shuffle some arguments, then calls
+> pmu_msr_chk_emulated() and if it returns true AND the emulated flag
+> is clear then does *exactly the same thing* that the calling code
+> would have done if pmu_msr_write() itself had returned true.  And
+> pmu_msr_read() does the equivalent stupidity.
+>
+> Remove the calls to native_{read,write}_msr{,_safe}() within
+> pmu_msr_{read,write}().  Instead reuse the existing calling code
+> that decides whether to call native_{read,write}_msr{,_safe}() based
+> on the return value from pmu_msr_{read,write}().  Consequently,
+> eliminate the need to pass an error pointer to pmu_msr_{read,write}().
+>
+> While at it, refactor pmu_msr_write() to take the MSR value as a u64
+> argument, replacing the current dual u32 arguments, because the dual
+> u32 arguments were only used to call native_write_msr{,_safe}(), which
+> has now been removed.
+>
+> [1]: https://lore.kernel.org/lkml/0ec48b84-d158-47c6-b14c-3563fd14bcc4@zytor.com/
+>
+> Suggested-by: H. Peter Anvin (Intel) <hpa@zytor.com>
+> Sign-off-by: Xin Li (Intel) <xin@zytor.com>
+> ---
+>
+> Change in v3:
+> *) Rename pmu_msr_{read,write}() to pmu_msr_{read,write}_emulated()
+>    (Dapeng Mi).
+> *) Fix a pmu_msr_read() callsite with wrong arguments (Dapeng Mi).
+> ---
+>  arch/x86/xen/enlighten_pv.c |  8 ++++++--
+>  arch/x86/xen/pmu.c          | 27 ++++-----------------------
+>  arch/x86/xen/xen-ops.h      |  4 ++--
+>  3 files changed, 12 insertions(+), 27 deletions(-)
+>
+> diff --git a/arch/x86/xen/enlighten_pv.c b/arch/x86/xen/enlighten_pv.c
+> index 846b5737d320..61e51a970f3c 100644
+> --- a/arch/x86/xen/enlighten_pv.c
+> +++ b/arch/x86/xen/enlighten_pv.c
+> @@ -1090,7 +1090,7 @@ static u64 xen_do_read_msr(unsigned int msr, int *err)
+>  {
+>  	u64 val = 0;	/* Avoid uninitialized value for safe variant. */
+>  
+> -	if (pmu_msr_read(msr, &val, err))
+> +	if (pmu_msr_read_emulated(msr, &val))
+>  		return val;
+>  
+>  	if (err)
+> @@ -1132,6 +1132,8 @@ static void set_seg(unsigned int which, unsigned int low, unsigned int high,
+>  static void xen_do_write_msr(unsigned int msr, unsigned int low,
+>  			     unsigned int high, int *err)
+>  {
+> +	u64 val;
+> +
+>  	switch (msr) {
+>  	case MSR_FS_BASE:
+>  		set_seg(SEGBASE_FS, low, high, err);
+> @@ -1158,7 +1160,9 @@ static void xen_do_write_msr(unsigned int msr, unsigned int low,
+>  		break;
+>  
+>  	default:
+> -		if (!pmu_msr_write(msr, low, high, err)) {
+> +		val = (u64)high << 32 | low;
+> +
+> +		if (!pmu_msr_write_emulated(msr, val)) {
+>  			if (err)
+>  				*err = native_write_msr_safe(msr, low, high);
+>  			else
+> diff --git a/arch/x86/xen/pmu.c b/arch/x86/xen/pmu.c
+> index 9c1682af620a..b6557f2d1a2e 100644
+> --- a/arch/x86/xen/pmu.c
+> +++ b/arch/x86/xen/pmu.c
+> @@ -313,37 +313,18 @@ static bool pmu_msr_chk_emulated(unsigned int msr, uint64_t *val, bool is_read,
+>  	return true;
+>  }
+>  
+> -bool pmu_msr_read(unsigned int msr, uint64_t *val, int *err)
+> +bool pmu_msr_read_emulated(u32 msr, u64 *val)
+>  {
+>  	bool emulated;
+>  
+> -	if (!pmu_msr_chk_emulated(msr, val, true, &emulated))
+> -		return false;
+> -
+> -	if (!emulated) {
+> -		*val = err ? native_read_msr_safe(msr, err)
+> -			   : native_read_msr(msr);
+> -	}
+> -
+> -	return true;
+> +	return pmu_msr_chk_emulated(msr, val, true, &emulated) && emulated;
+>  }
+>  
+> -bool pmu_msr_write(unsigned int msr, uint32_t low, uint32_t high, int *err)
+> +bool pmu_msr_write_emulated(u32 msr, u64 val)
+>  {
+> -	uint64_t val = ((uint64_t)high << 32) | low;
+>  	bool emulated;
+>  
+> -	if (!pmu_msr_chk_emulated(msr, &val, false, &emulated))
+> -		return false;
+> -
+> -	if (!emulated) {
+> -		if (err)
+> -			*err = native_write_msr_safe(msr, low, high);
+> -		else
+> -			native_write_msr(msr, low, high);
+> -	}
+> -
+> -	return true;
+> +	return pmu_msr_chk_emulated(msr, &val, false, &emulated) && emulated;
+>  }
+>  
+>  static u64 xen_amd_read_pmc(int counter)
+> diff --git a/arch/x86/xen/xen-ops.h b/arch/x86/xen/xen-ops.h
+> index 735f58780704..163e03e33089 100644
+> --- a/arch/x86/xen/xen-ops.h
+> +++ b/arch/x86/xen/xen-ops.h
+> @@ -274,8 +274,8 @@ void xen_pmu_finish(int cpu);
+>  static inline void xen_pmu_init(int cpu) {}
+>  static inline void xen_pmu_finish(int cpu) {}
+>  #endif
+> -bool pmu_msr_read(unsigned int msr, uint64_t *val, int *err);
+> -bool pmu_msr_write(unsigned int msr, uint32_t low, uint32_t high, int *err);
+> +bool pmu_msr_read_emulated(u32 msr, u64 *val);
+> +bool pmu_msr_write_emulated(u32 msr, u64 val);
+>  int pmu_apic_update(uint32_t reg);
+>  u64 xen_read_pmc(int counter);
+>  
 
-Link: https://uefi.org/sites/default/files/resources/Platform%20Runtime%20Mechanism%20-%20with%20legal%20notice.pdf # [1]
+Reviewed-by: Dapeng Mi <dapeng1.mi@linux.intel.com>
 
-Signed-off-by: Zhu Qiyu <qiyuzhu2@amd.com>
----
- drivers/acpi/prmt.c | 31 ++++++++++++++++++++++++++-----
- 1 file changed, 26 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/acpi/prmt.c b/drivers/acpi/prmt.c
-index e549914a636c..fcd721559eb5 100644
---- a/drivers/acpi/prmt.c
-+++ b/drivers/acpi/prmt.c
-@@ -72,7 +72,20 @@ struct prm_module_info {
- 	struct prm_handler_info handlers[] __counted_by(handler_count);
- };
- 
--static u64 efi_pa_va_lookup(efi_guid_t *guid, u64 pa)
-+enum prm_addr_type {
-+	PRM_HANDLER_ADDR,
-+	PRM_STATIC_DATA_BUFFER_ADDR,
-+	PRM_ACPI_PARAM_BUFFER_ADDR,
-+	PRM_ADD_TYPE_MAX,
-+};
-+
-+static char *prm_addr_type_name[PRM_ADD_TYPE_MAX] = {
-+	"handler",
-+	"static data buffer",
-+	"acpi param buffer",
-+};
-+
-+static u64 efi_pa_va_lookup(efi_guid_t *guid, u64 pa, enum prm_addr_type type)
- {
- 	efi_memory_desc_t *md;
- 	u64 pa_offset = pa & ~PAGE_MASK;
-@@ -85,7 +98,12 @@ static u64 efi_pa_va_lookup(efi_guid_t *guid, u64 pa)
- 		}
- 	}
- 
--	pr_warn("Failed to find VA for GUID: %pUL, PA: 0x%llx", guid, pa);
-+	if (type == PRM_HANDLER_ADDR)
-+		pr_warn("Failed to find %s VA for GUID: %pUL, PA: 0x%llx",
-+			prm_addr_type_name[type], guid, pa);
-+	else
-+		pr_debug("Failed to find %s VA for GUID: %pUL, PA: 0x%llx",
-+			prm_addr_type_name[type], guid, pa);
- 
- 	return 0;
- }
-@@ -153,13 +171,16 @@ acpi_parse_prmt(union acpi_subtable_headers *header, const unsigned long end)
- 
- 		guid_copy(&th->guid, (guid_t *)handler_info->handler_guid);
- 		th->handler_addr =
--			(void *)efi_pa_va_lookup(&th->guid, handler_info->handler_address);
-+			(void *)efi_pa_va_lookup(&th->guid, handler_info->handler_address,
-+					PRM_HANDLER_ADDR);
- 
- 		th->static_data_buffer_addr =
--			efi_pa_va_lookup(&th->guid, handler_info->static_data_buffer_address);
-+			efi_pa_va_lookup(&th->guid, handler_info->static_data_buffer_address,
-+					PRM_STATIC_DATA_BUFFER_ADDR);
- 
- 		th->acpi_param_buffer_addr =
--			efi_pa_va_lookup(&th->guid, handler_info->acpi_param_buffer_address);
-+			efi_pa_va_lookup(&th->guid, handler_info->acpi_param_buffer_address,
-+					PRM_ACPI_PARAM_BUFFER_ADDR);
- 
- 	} while (++cur_handler < tm->handler_count && (handler_info = get_next_handler(handler_info)));
- 
-
-base-commit: 9d7a0577c9db35c4cc52db90bc415ea248446472
--- 
-2.34.1
 
