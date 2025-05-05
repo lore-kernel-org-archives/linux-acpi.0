@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71BC628643A;
-	Mon,  5 May 2025 23:03:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC233397A52;
+	Mon,  5 May 2025 23:20:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746486186; cv=none; b=rSJx80kDP3A9qIMtV2X0sqv2o5CEz9eAndaIUr83qzhbGBr95hfxfGVbqdbKcuIL0rbHIu9MyzFsovCbHoSxXmrgNawE2Rr2EHVsm6asQQNigzfOCxDdMrBSy5/M8Fp9271ZEng1NKsUg2NdN1STKlyJWPnq2tte88MGOmZ/8ro=
+	t=1746487254; cv=none; b=tL2Uvhb/i8+n+Xs31nz87KJ5FWyB8w5NAGBV8PNfsew4XQ8zzNk0Fq2OCQToYQ/iO4+4tO0Ch6J1GacNDjZCf/jIA64GpHS7NSTV+0s1jEl2zBb5iwQ6zrzqJDRzmab456qI1kNV56xVrdS/PIIn+BuI6QxmQvycnoq10ew0DNk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746486186; c=relaxed/simple;
-	bh=KxLftJXMcxBhqTMpwF3Do4ToKuaFC/nLHHWSzDlw2Gg=;
+	s=arc-20240116; t=1746487254; c=relaxed/simple;
+	bh=NxJNsoAxLeDBk9yF6lFLn9BWm/zUoZR/evMbI6ZeLjc=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=SLsGPTNKMJyJBPLhU2QokuuyKJtIpVyNt5TqxAu3FujTMBBeWifgKwHMv3q2p37tPPfVUYHGfBqenIJIbUGQFjgsh7sAaA/W0WuMbbOiJttbPUJcJHi+ciP0RHiPPsLe1SNJwJhRiKRnsMuou3/p3B1KNAwe5m8HtqEP/WLu2mQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BoWBRHnO; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=Hn9NxU8u+TWK5AXslocx4yf7z3Wb2s9tm5DFnzJJLS3Z1rdx7jvNvuLvXjcM4gojs105TRJYbT2cOvt5sxWTf3umafQJD8fRHVwIBaIEs/geO3OaHw27NAttX+v1VWj5dADIj1xLVr7yQW8gaXaXaM5n6ndPHdhpVNI6ja7h/2A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lliWnBaL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BoWBRHnO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85257C4CEED;
-	Mon,  5 May 2025 23:03:05 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lliWnBaL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8FD31C4CEED;
+	Mon,  5 May 2025 23:20:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1746486186;
-	bh=KxLftJXMcxBhqTMpwF3Do4ToKuaFC/nLHHWSzDlw2Gg=;
+	s=k20201202; t=1746487252;
+	bh=NxJNsoAxLeDBk9yF6lFLn9BWm/zUoZR/evMbI6ZeLjc=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=BoWBRHnOmopgMO+CE+ZjOncJbGfJgDjGIClp14PelaH0I2Y89cCmNj+0msx8lLHA0
-	 LAePgISqVd59IyxnxNfzE9TDfN5Fv0cIvIDnDNAu8X41KtbHeL4+c+VlUpZ1rU0gEo
-	 7us4lGm5GI1ZBSNesT2WhruxjNFqCMbd5OVOlIst3iy6/HI6fJOCKBYDoCeMQ3FRXy
-	 h+tc6CwXotYYh3qFYjiVrHLxxJIozAtMo4TDiVr3XKAZKE9HbIjg7+L4kPvbr86iVn
-	 IiYfMUcoSqDG7++5it702n8Q4UPybpWuAG3t78ILmMkfnRmfzfXpf8SCjNHp7BNktD
-	 CRvdjCj/Gu89A==
+	b=lliWnBaLUyVIFkO10sniy1mblN2uMJwrEN8x5Av5+3vH2HhnPyOpW2XQBlDRHfS1q
+	 A5qoo6XWHjZ+vjDGOWU4EkTq/BBICpFKSTUSArZZ+Ay+ZhmDX0Ol6loSkrSJBugRCW
+	 zujSQQx/IhEi2FVjdV1PRDaqv0pyNptmSJ0JzwHUde+1VjQUQKvD5xIBMd9nasYAZ9
+	 OAZkUx63HfltpeZMNLf7pYKunXss6Ouo//a1/mzjT0b2oAVbfzxU32i8/psd5qSvCN
+	 kM1Lu472brmeaozCVfJ9GBictJmWApwWCcj88ivy3/vDD7y6e08oAzewfv7XB9h7ky
+	 brVrkqfbuoQ+Q==
 From: Sasha Levin <sashal@kernel.org>
 To: linux-kernel@vger.kernel.org,
 	stable@vger.kernel.org
@@ -34,12 +34,12 @@ Cc: Xiaofei Tan <tanxiaofei@huawei.com>,
 	Sasha Levin <sashal@kernel.org>,
 	rafael@kernel.org,
 	linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.6 193/294] ACPI: HED: Always initialize before evged
-Date: Mon,  5 May 2025 18:54:53 -0400
-Message-Id: <20250505225634.2688578-193-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.10 081/114] ACPI: HED: Always initialize before evged
+Date: Mon,  5 May 2025 19:17:44 -0400
+Message-Id: <20250505231817.2697367-81-sashal@kernel.org>
 X-Mailer: git-send-email 2.39.5
-In-Reply-To: <20250505225634.2688578-1-sashal@kernel.org>
-References: <20250505225634.2688578-1-sashal@kernel.org>
+In-Reply-To: <20250505231817.2697367-1-sashal@kernel.org>
+References: <20250505231817.2697367-1-sashal@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -48,7 +48,7 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
-X-stable-base: Linux 6.6.89
+X-stable-base: Linux 5.10.237
 Content-Transfer-Encoding: 8bit
 
 From: Xiaofei Tan <tanxiaofei@huawei.com>
@@ -80,10 +80,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  2 files changed, 7 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index cee82b473dc50..648228831f5e8 100644
+index b5ea34c340ccc..3ef66a39111c0 100644
 --- a/drivers/acpi/Kconfig
 +++ b/drivers/acpi/Kconfig
-@@ -438,7 +438,7 @@ config ACPI_SBS
+@@ -432,7 +432,7 @@ config ACPI_SBS
  	  the modules will be called sbs and sbshc.
  
  config ACPI_HED
@@ -93,11 +93,11 @@ index cee82b473dc50..648228831f5e8 100644
  	  This driver supports the Hardware Error Device (PNP0C33),
  	  which is used to report some hardware errors notified via
 diff --git a/drivers/acpi/hed.c b/drivers/acpi/hed.c
-index 46c6f8c35b436..2e01eaa8d8cd5 100644
+index cf148287e2baf..75166839c99e0 100644
 --- a/drivers/acpi/hed.c
 +++ b/drivers/acpi/hed.c
-@@ -80,7 +80,12 @@ static struct acpi_driver acpi_hed_driver = {
- 		.remove = acpi_hed_remove,
+@@ -72,7 +72,12 @@ static struct acpi_driver acpi_hed_driver = {
+ 		.notify = acpi_hed_notify,
  	},
  };
 -module_acpi_driver(acpi_hed_driver);
@@ -108,8 +108,8 @@ index 46c6f8c35b436..2e01eaa8d8cd5 100644
 +}
 +subsys_initcall(acpi_hed_driver_init);
  
+ ACPI_MODULE_NAME("hed");
  MODULE_AUTHOR("Huang Ying");
- MODULE_DESCRIPTION("ACPI Hardware Error Device Driver");
 -- 
 2.39.5
 
