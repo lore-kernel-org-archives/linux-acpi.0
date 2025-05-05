@@ -1,43 +1,41 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F369534D65F;
-	Mon,  5 May 2025 22:39:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A034629A3F3;
+	Mon,  5 May 2025 22:43:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746484796; cv=none; b=lAklKxtfkLFynvBr3LLB1XXqMaXArDopPBhFKbkHwJvqpICLgHuw4NGXkGmkp2sNo+RCx9Yvb3Qxt1jyjjtw63JNAOZDDBboHbwiRnY5nwmYiK4f+SOEm7UW8Y1xrNim20/W0EiMGE8qJ0i36+CDszftP7dk7/6DlWMVINwuU0Q=
+	t=1746485039; cv=none; b=uUmyf7uOQGXxG0b4p9kw/Lm4P+smFTpf6Hu9iSTC10pEqB2egIdF0fk2Olbw1AOxkvW8V4Glumz+vg8TE2hf5e+PLtYao5DRHQeykzV6r1EfzMKlEpJ2vMWPg6r0wpKiDgj/PEVtVbsRRCZdUTcg5GRmzpBNObhJU9ISSp6N9rk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746484796; c=relaxed/simple;
-	bh=eEUI680ypmPuZ5QWILhPpSBV4+NzpYcdAqCvbVpWpUg=;
+	s=arc-20240116; t=1746485039; c=relaxed/simple;
+	bh=1VbaWWLdA5HmNjEIviEi/XhdFnVk+gwnKiAHhTR9D7s=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=padfEphMl3HaAEm45yXBiKT1G3k2wKJWZEdhVvjB5677deBR1IBk574khmqDXJIWWDGFRzt9hT+k8MGtZOMO6JRa5qQVspws3W7E8BohABjzx/p+wLFggLVaI06pQpJcVSjsbxR8MilBRHFCT0A+tpRhoyzmh3nhy1NWeL44Clg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=odjJcCPd; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=LGnFS1dl1WAP50x6Bzj1ZO2t4vbm8Y5lpc3hooJIFxAUrdPP5lquF9r7+PyR/GMLtl/5v4zS4u6ByUufM9HyPQMab4/V0hhkK1rzyHdC1de1/eSefwdodv+E+X9BMR8eaY7DujSH4Suoy0px+T6A7BOPccq/FNg4D2XUoMeDTdU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UozyPwGI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="odjJcCPd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 885BDC4CEED;
-	Mon,  5 May 2025 22:39:54 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UozyPwGI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C46F5C4CEEE;
+	Mon,  5 May 2025 22:43:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1746484795;
-	bh=eEUI680ypmPuZ5QWILhPpSBV4+NzpYcdAqCvbVpWpUg=;
+	s=k20201202; t=1746485039;
+	bh=1VbaWWLdA5HmNjEIviEi/XhdFnVk+gwnKiAHhTR9D7s=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=odjJcCPdV2qqFeYIqfkQOifHKnm3huwoX7nmMX769j2mKch2phJSCYA/fYlgAnT6g
-	 e+k5kXL3YJAAQyX7TnogSqMiyYqjyew7PHxI3+wuFipDjcBBI8D/rfnfcy/WyqDYF2
-	 OwdD4qAYpP7scX0Cy3VMTbTn2NJnGoa3xI/j19qSBX0UrelwZ2dn5x37RywBuMVB47
-	 +c6tNv7owjVPTI9yuPooHYax+pkKTIYyzrC1StZvkRNysKQV1sWKvklNQEGVtfKhIH
-	 QTMMyEs4fiNlSGPtORdktnuke4CT4tt+H7xFT+G8aan6c2emPvUzCP2ARH3mYpXK8i
-	 Dmd2CWNj31Y6w==
+	b=UozyPwGIEmCU1YE6S85lnKz4gD6hn2IlqIV+/eZ5BtGiJMi1b9JIgWLz9eKyGYszp
+	 GGpFkJkxQtoWJytrH4rDobXTBFSAeFI5pdu4RhscuryeE3La05RwgHLLS7ggKRVcU+
+	 bcyCQ18PI5hyx/rhSTy4/Ryqg7UloIxR4a3mACbeDZT4zmQihqzr4Y0O0yH70FggLq
+	 eD2RHPa1l/sVb4le2+jHLvuXClpZXIhPnl16nn6dFjcddB+tOP6Rp2VtqeHdjJQ5Uz
+	 UPYuLq6y8mKuDNAwdrV2XlRLh6LCoamSzjRjS61yyU7jYJAVifA4RSZjts4dpuo30T
+	 laQrlcVTd0vFQ==
 From: Sasha Levin <sashal@kernel.org>
 To: linux-kernel@vger.kernel.org,
 	stable@vger.kernel.org
-Cc: Sudeep Holla <sudeep.holla@arm.com>,
-	Huisong Li <lihuisong@huawei.com>,
-	Adam Young <admiyo@os.amperecomputing.com>,
-	Jassi Brar <jassisinghbrar@gmail.com>,
+Cc: Kees Cook <kees@kernel.org>,
+	"Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
 	Sasha Levin <sashal@kernel.org>,
 	linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.12 019/486] mailbox: pcc: Use acpi_os_ioremap() instead of ioremap()
-Date: Mon,  5 May 2025 18:31:35 -0400
-Message-Id: <20250505223922.2682012-19-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.12 136/486] PNP: Expand length of fixup id string
+Date: Mon,  5 May 2025 18:33:32 -0400
+Message-Id: <20250505223922.2682012-136-sashal@kernel.org>
 X-Mailer: git-send-email 2.39.5
 In-Reply-To: <20250505223922.2682012-1-sashal@kernel.org>
 References: <20250505223922.2682012-1-sashal@kernel.org>
@@ -52,47 +50,37 @@ X-Patchwork-Hint: Ignore
 X-stable-base: Linux 6.12.26
 Content-Transfer-Encoding: 8bit
 
-From: Sudeep Holla <sudeep.holla@arm.com>
+From: Kees Cook <kees@kernel.org>
 
-[ Upstream commit d181acea5b864e91f38f5771b8961215ce5017ae ]
+[ Upstream commit 425b1c97b07f2290700f708edabef32861e2b2db ]
 
-The Platform Communication Channel (PCC) mailbox driver currently uses
-ioremap() to map channel shared memory regions. However it is preferred
-to use acpi_os_ioremap(), which is mapping function specific to EFI/ACPI
-defined memory regions. It ensures that the correct memory attributes
-are applied when mapping ACPI-provided regions.
+GCC 15's -Wunterminated-string-initialization saw that "id" was not
+including the required trailing NUL character. Instead of marking "id"
+with __nonstring[1], expand the length of the string as it is used in
+(debugging) format strings that expect a properly formed C string.
 
-While at it, also add checks for handling any errors with the mapping.
-
-Acked-by: Huisong Li <lihuisong@huawei.com>
-Tested-by: Huisong Li <lihuisong@huawei.com>
-Tested-by: Adam Young <admiyo@os.amperecomputing.com>
-Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
-Signed-off-by: Jassi Brar <jassisinghbrar@gmail.com>
+Link: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=117178 [1]
+Signed-off-by: Kees Cook <kees@kernel.org>
+Link: https://patch.msgid.link/20250310222432.work.826-kees@kernel.org
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/mailbox/pcc.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ include/linux/pnp.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
-index f8215a8f656a4..49254d99a8ad6 100644
---- a/drivers/mailbox/pcc.c
-+++ b/drivers/mailbox/pcc.c
-@@ -419,8 +419,12 @@ int pcc_mbox_ioremap(struct mbox_chan *chan)
- 		return -1;
- 	pchan_info = chan->con_priv;
- 	pcc_mbox_chan = &pchan_info->chan;
--	pcc_mbox_chan->shmem = ioremap(pcc_mbox_chan->shmem_base_addr,
--				       pcc_mbox_chan->shmem_size);
-+
-+	pcc_mbox_chan->shmem = acpi_os_ioremap(pcc_mbox_chan->shmem_base_addr,
-+					       pcc_mbox_chan->shmem_size);
-+	if (!pcc_mbox_chan->shmem)
-+		return -ENXIO;
-+
- 	return 0;
+diff --git a/include/linux/pnp.h b/include/linux/pnp.h
+index b7a7158aaf65e..23fe3eaf242d6 100644
+--- a/include/linux/pnp.h
++++ b/include/linux/pnp.h
+@@ -290,7 +290,7 @@ static inline void pnp_set_drvdata(struct pnp_dev *pdev, void *data)
  }
- EXPORT_SYMBOL_GPL(pcc_mbox_ioremap);
+ 
+ struct pnp_fixup {
+-	char id[7];
++	char id[8];
+ 	void (*quirk_function) (struct pnp_dev *dev);	/* fixup function */
+ };
+ 
 -- 
 2.39.5
 
