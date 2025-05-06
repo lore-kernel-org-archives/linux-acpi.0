@@ -1,260 +1,110 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.17])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2DE134B1E51;
-	Tue,  6 May 2025 07:26:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13EFF1AA79C;
+	Tue,  6 May 2025 08:05:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.17
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746516362; cv=none; b=rJaIwi2K/k+LIPd7BzlUJ0I0alrDFPnctWaGGUUVTSzQu/tRMo/GI+tn0mS6aanKbUsyvRaED/9hZA3vYkzT1jhPGJs9xucxDZqkOcdXGV9wQg1AoRzDA4ZhMK1gH0zjvx/FeJ8vSS6N8oqjG2CcY+bsq0VddSCMoZKdk67+F1w=
+	t=1746518753; cv=none; b=ettXrrQGUZ/ocn5Uj7w1RafoGR6oqTUhDXH49FyCMK/U4o3pBXzx9ZWYQeIV/lPakoRR0fkB9QAMpqV7ZQMV7WyGOe9JCmfINcG09/6cwgAb2aOEbg6tRNA7GYlQAqmA8WagNL3eXHefCnD75QNWZzgrGA/KinjqfQ8o5h4cGnk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746516362; c=relaxed/simple;
-	bh=8Oc0xkyq6v9wmSnKpRvRRCYkyApCq0GyR4eU9o97d10=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=g8j2Hue3fKcehvohxZm/GWykTDm2Xa79GsRMPtpIRtgh4Cgj6AgasnMKSe+5O2tgWjJsJ42I/a2UbytH4u8t4c0IpaHYrf3t/s+EhdsCtqIC2O1hf27LVFX3z9dIe9J1yOA+AwenQYTmkLf76TlLwoxYS45ShHvdEIH682an1O4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=n/AxhGZr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746518753; c=relaxed/simple;
+	bh=uO7fc6V3D2/gI0yn6ReNgKH+8/Wuv56u0BGHjLXJPeo=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition; b=jaosiGruZAk6ooMvPmz77sFe6rxuLySNEDnImqpoZp2OczC5eLi/471/Fyc+U/urXIadCsOKBZ7ucITn7KJfH1j3+4tMjKdKQ44WBVPteHjwKl3W0S3fkfZSjPsccR56qtxe8vY/PMEsVsntuUYyB6CcAEuxRd1HrBFq+y0/yG8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=ar8PTbt7; arc=none smtp.client-ip=192.198.163.17
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="n/AxhGZr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18D75C4CEE4;
-	Tue,  6 May 2025 07:26:00 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1746516361;
-	bh=8Oc0xkyq6v9wmSnKpRvRRCYkyApCq0GyR4eU9o97d10=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=n/AxhGZrOHtwo6+F1w7BzO0PPWzgrskAu4Ole1I7TUFlEmjQhooCVGCw5v5XWU4EH
-	 NLxsf0XTfRLPP09itezWit/lyooHaeTgYUosKH+jRwjNW2FkvH8Y18UDp54u3g9Daa
-	 8KebqO6mBuIJjOY04DFXzVCSYhurYkadfxe/f3eh+Rpx0FQiHEuAbHEIceYguo7Le3
-	 Un2reHfZNb1xSXzYgA3/DXnIBYNUyt0H40xjT/vvQMt9qX2icNmQLkb37VJbzKq38l
-	 YKSQzRFyB6fBDKgM6Cp/HM3UFf28alfBpk+m92URSacW14zjFeqza4RRXgwX56mJLv
-	 7JsHQFDlzsi/w==
-Date: Tue, 6 May 2025 09:25:59 +0200
-From: Krzysztof Kozlowski <krzk@kernel.org>
-To: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
-Cc: x86@kernel.org, Krzysztof Kozlowski <krzk+dt@kernel.org>, 
-	Conor Dooley <conor+dt@kernel.org>, Rob Herring <robh@kernel.org>, 
-	"K. Y. Srinivasan" <kys@microsoft.com>, Haiyang Zhang <haiyangz@microsoft.com>, 
-	Wei Liu <wei.liu@kernel.org>, Dexuan Cui <decui@microsoft.com>, 
-	Michael Kelley <mhklinux@outlook.com>, devicetree@vger.kernel.org, 
-	Saurabh Sengar <ssengar@linux.microsoft.com>, Chris Oo <cho@microsoft.com>, linux-hyperv@vger.kernel.org, 
-	"Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	"Ravi V. Shankar" <ravi.v.shankar@intel.com>, Ricardo Neri <ricardo.neri@intel.com>
-Subject: Re: [PATCH v3 04/13] dt-bindings: x86: Add CPU bindings for x86
-Message-ID: <20250506-alluring-beaver-of-modernism-65ff8a@kuoka>
-References: <20250503191515.24041-1-ricardo.neri-calderon@linux.intel.com>
- <20250503191515.24041-5-ricardo.neri-calderon@linux.intel.com>
- <20250504-happy-spoonbill-of-radiance-3b9fec@kuoka>
- <20250506045235.GB25533@ranerica-svr.sc.intel.com>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="ar8PTbt7"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1746518751; x=1778054751;
+  h=date:from:to:cc:subject:message-id:mime-version;
+  bh=uO7fc6V3D2/gI0yn6ReNgKH+8/Wuv56u0BGHjLXJPeo=;
+  b=ar8PTbt7gjcwCIEMrDAlWOL3pEso3zPdobEPSEpLPAhMAgNu4zRe/hdL
+   nQOdhthVlfKQnPRLc2KPMESZ0vJdd0nEU5tEP5kFBuEe9JnAqY9PpPfF1
+   mHKazQbQCNtidnIGBDpDeoUsEtwuZFo/7YNNpvIZNVxx3DjVHhvPSuMLu
+   IYlmjtPttlimzak4Vlr8hWjqGr0kli2eojjUYzX1YS8UiMkgKR+GEa9OH
+   pCgPadpM8+Z3HZvQWFLkSc6GUvUfJWkVXlXecYJlYO+9EwVkQoEPWK4/4
+   XqhOocs5DGq+S3KbjeVViFxfI1fV9kXJWeE3dEwyH2/Y1p9kii7QBqzWB
+   Q==;
+X-CSE-ConnectionGUID: GPxSrYMTS9uFjgVvMQxsew==
+X-CSE-MsgGUID: 4wdIkpISS32Cbkus9ZWdqQ==
+X-IronPort-AV: E=McAfee;i="6700,10204,11424"; a="48077569"
+X-IronPort-AV: E=Sophos;i="6.15,265,1739865600"; 
+   d="scan'208";a="48077569"
+Received: from orviesa007.jf.intel.com ([10.64.159.147])
+  by fmvoesa111.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 May 2025 01:05:50 -0700
+X-CSE-ConnectionGUID: JCRwmQQsQ9ObY7qM4ihNyQ==
+X-CSE-MsgGUID: KQtkHFplSj6a35dt+urp2g==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.15,265,1739865600"; 
+   d="scan'208";a="136029801"
+Received: from lkp-server01.sh.intel.com (HELO 1992f890471c) ([10.239.97.150])
+  by orviesa007.jf.intel.com with ESMTP; 06 May 2025 01:05:49 -0700
+Received: from kbuild by 1992f890471c with local (Exim 4.96)
+	(envelope-from <lkp@intel.com>)
+	id 1uCDJB-0006O7-2p;
+	Tue, 06 May 2025 08:05:45 +0000
+Date: Tue, 6 May 2025 16:05:41 +0800
+From: kernel test robot <lkp@intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
+	linux-acpi@vger.kernel.org, devel@acpica.org,
+	linux-pm@vger.kernel.org,
+	Mario Limonciello <mario.limonciello@amd.com>
+Subject: [rafael-pm:bleeding-edge 91/93] drivers/pinctrl/pinctrl-amd.c:987:2:
+ error: must use 'struct' tag to refer to type 'pinctrl_dev'
+Message-ID: <202505061622.qVVdwLYk-lkp@intel.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20250506045235.GB25533@ranerica-svr.sc.intel.com>
 
-On Mon, May 05, 2025 at 09:52:35PM GMT, Ricardo Neri wrote:
-> On Sun, May 04, 2025 at 06:45:59PM +0200, Krzysztof Kozlowski wrote:
-> > On Sat, May 03, 2025 at 12:15:06PM GMT, Ricardo Neri wrote:
-> > > Add bindings for CPUs in x86 architecture. Start by defining the `reg` and
-> > 
-> > What for?
-> 
-> Thank you for your quick feedback, Krzysztof!
-> 
-> Do you mean for what reason I want to start bindings for x86 CPUs? Or only
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
+head:   c6039ca5edc14d1f0b34aa83a37fb7a379d8de46
+commit: a2c2d5006579832e53851808f05d1bcf866215ca [91/93] pinctrl: amd: Fix hibernation support with CONFIG_SUSPEND unset
+config: x86_64-buildonly-randconfig-001-20250506 (https://download.01.org/0day-ci/archive/20250506/202505061622.qVVdwLYk-lkp@intel.com/config)
+compiler: clang version 20.1.2 (https://github.com/llvm/llvm-project 58df0ef89dd64126512e4ee27b4ac3fd8ddf6247)
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20250506/202505061622.qVVdwLYk-lkp@intel.com/reproduce)
 
-Yes. For which devices, what purpose.
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202505061622.qVVdwLYk-lkp@intel.com/
 
-> the `reg` property? If the former, it is to add an enable-method property to
-> x86 CPUs. If the latter, is to show the relationship between APIC and `reg`.
-> 
-> > 
-> > > `enable-method` properties and their relationship to x86 APIC ID and the
-> > > available mechanisms to boot secondary CPUs.
-> > > 
-> > > Start defining bindings for Intel processors. Bindings for other vendors
-> > > can be added later as needed.
-> > > 
-> > > Signed-off-by: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
-> > > ---
-> > 
-> > Not really tested so only limited review follows.
-> 
-> Sorry, I ran make dt_binding_check but only on this schema. I missed the
-> reported error.
-> 
-> > 
-> > >  .../devicetree/bindings/x86/cpus.yaml         | 80 +++++++++++++++++++
-> > >  1 file changed, 80 insertions(+)
-> > >  create mode 100644 Documentation/devicetree/bindings/x86/cpus.yaml
-> > > 
-> > > diff --git a/Documentation/devicetree/bindings/x86/cpus.yaml b/Documentation/devicetree/bindings/x86/cpus.yaml
-> > > new file mode 100644
-> > > index 000000000000..108b3ad64aea
-> > > --- /dev/null
-> > > +++ b/Documentation/devicetree/bindings/x86/cpus.yaml
-> > > @@ -0,0 +1,80 @@
-> > > +# SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
-> > > +%YAML 1.2
-> > > +---
-> > > +$id: http://devicetree.org/schemas/x86/cpus.yaml#
-> > > +$schema: http://devicetree.org/meta-schemas/core.yaml#
-> > > +
-> > > +title: x86 CPUs
-> > > +
-> > > +maintainers:
-> > > +  - Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
-> > > +
-> > > +description: |
-> > > +  Description of x86 CPUs in a system through the "cpus" node.
-> > > +
-> > > +  Detailed information about the CPU architecture can be found in the Intel
-> > > +  Software Developer's Manual:
-> > > +    https://intel.com/sdm
-> > > +
-> > > +properties:
-> > > +  compatible:
-> > > +    enum:
-> > > +      - intel,x86
-> > 
-> > That's architecture, not a CPU. CPUs are like 80286, 80386, so that's
-> > not even specific instruction set. I don't get what you need it for.
-> 
-> Am I to understand the the `compatible` property is not needed if the
-> bindings apply to any x86 CPU?
+All errors (new ones prefixed by >>):
 
-Every device needs compatible. Its meaning is explained:
-https://devicetree-specification.readthedocs.io/en/latest/chapter2-devicetree-basics.html#compatible
-
-If you add here a device representing CPU, then look at existing
-bindings for CPUs how they do it.
-
-It again feels like you add DT for platform which is not a real thing.
-If you use DT, you do not get different rules, therefore read all
-standard guides and tutorials (there were many, quite comprehensive).
+>> drivers/pinctrl/pinctrl-amd.c:987:2: error: must use 'struct' tag to refer to type 'pinctrl_dev'
+     987 |         pinctrl_dev = dev_get_drvdata(dev);
+         |         ^
+         |         struct 
+>> drivers/pinctrl/pinctrl-amd.c:987:14: error: expected identifier or '('
+     987 |         pinctrl_dev = dev_get_drvdata(dev);
+         |                     ^
+   2 errors generated.
 
 
-> 
-> > 
-> > > +
-> > > +  reg:
-> > 
-> > Missing constraints.
-> 
-> I could add minItems. For maxItems, there is no limit to the number of
-> threads.
+vim +987 drivers/pinctrl/pinctrl-amd.c
 
-I am pretty sure that any given CPU, e.g. 80486 has a fixed number of
-threads...
+79d2c8bede2c93 Daniel Drake        2017-09-11  984  
+f31f33dbb3bab5 Maciej S. Szmigiero 2025-01-06  985  static int amd_gpio_suspend(struct device *dev)
+f31f33dbb3bab5 Maciej S. Szmigiero 2025-01-06  986  {
+179db1909c5c4b Mario Limonciello   2025-04-07 @987  	pinctrl_dev = dev_get_drvdata(dev);
+f31f33dbb3bab5 Maciej S. Szmigiero 2025-01-06  988  	return amd_gpio_suspend_hibernate_common(dev, true);
+f31f33dbb3bab5 Maciej S. Szmigiero 2025-01-06  989  }
+f31f33dbb3bab5 Maciej S. Szmigiero 2025-01-06  990  
 
-> 
-> > 
-> > > +    description: |
-> > 
-> > Do not need '|' unless you need to preserve formatting.
-> 
-> OK.
-> 
-> > 
-> > > +      Local APIC ID of the CPU. If the CPU has more than one execution thread,
-> > > +      then the property is an array with one element per thread.
-> > > +
-> > > +  enable-method:
-> > > +    $ref: /schemas/types.yaml#/definitions/string
-> > > +    description: |
-> > > +      The method used to wake up secondary CPUs. This property is not needed if
-> > > +      the secondary processors are booted using INIT assert, de-assert followed
-> > > +      by Start-Up IPI messages as described in the Volume 3, Section 11.4 of
-> > > +      Intel Software Developer's Manual.
-> > > +
-> > > +      It is also optional for the bootstrap CPU.
-> > > +
-> > > +    oneOf:
-> > 
-> > I see only one entry, so didn't you want an enum?
-> 
-> Indeed, enum would be more appropriate.
-> 
-> > 
-> > > +      - items:
-> > 
-> > Not a list
-> > 
-> > > +          - const: intel,wakeup-mailbox
-> > 
-> > So every vendor is supposed to come with different name for the same
-> > feature? Or is wakeup-mailnox really intel specific, but then specific
-> > to which processors?
-> 
-> It would not be necessary for every vendor to provide a different name for
-> the same feature. I saw, however that the Devicetree specification requires
-> a [vendor],[method] stringlist.
+:::::: The code at line 987 was first introduced by commit
+:::::: 179db1909c5c4b5300cce626507b0f843f7d2cc2 pinctrl: amd: Add an LPS0 check() callback
 
-Indeed, it's fine then.
+:::::: TO: Mario Limonciello <mario.limonciello@amd.com>
+:::::: CC: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-> 
-> Also, platform firmware for any processor could implement the wakeup
-> mailbox.
-> 
-> > 
-> > 
-> > > +            description: |
-> > > +              CPUs are woken up using the mailbox mechanism. The platform
-> > > +              firmware boots the secondary CPUs and puts them in a state
-> > > +              to check the mailbox for a wakeup command from the operating
-> > > +              system.
-> > > +
-> > > +required:
-> > > +  - reg
-> > > +  - compatible
-> > > +
-> > > +unevaluatedProperties: false
-> > 
-> > Missing ref in top-level or this is supposed to be additionalProps. See
-> > example-schema.
-> 
-> I will check.
-> 
-> > 
-> > > +
-> > > +examples:
-> > > +  - |
-> > > +    /*
-> > > +     * A system with two CPUs. cpu@0 is the bootstrap CPU and its status is
-> > > +     * "okay". It does not have the enable-method property. cpu@1 is a
-> > > +     * secondary CPU. Its status is "disabled" and defines the enable-method
-> > > +     * property.
-> > > +     */
-> > > +
-> > > +    cpus {
-> > > +      #address-cells = <1>;
-> > > +      #size-cells = <0>;
-> > > +
-> > > +      cpu@0 {
-> > > +        reg = <0x0 0x1>;
-> > > +        compatible = "intel,x86";
-> > > +        status = "okay";
-> > 
-> > Drop
-> 
-> I will drop status = "okay"
-> 
-> > 
-> > > +      };
-> > > +
-> > > +      cpu@1 {
-> > > +        reg = <0x0 0x1>;
-> > > +        compatible = "intel,x86";
-> > > +        status = "disabled";
-> > 
-> > Why?
-> 
-> Because this is a secondary CPU that the operating system will enable using
-> the method specified in the `enable-method` property.
-
-OK, so this was intentional to express it is in quiescent state.
-
-Best regards,
-Krzysztof
-
+-- 
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
