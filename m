@@ -1,145 +1,81 @@
-Received: from sgoci-sdnproxy-4.icoremail.net (sgoci-sdnproxy-4.icoremail.net [129.150.39.64])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id EC99119342F;
-	Tue,  6 May 2025 06:23:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=129.150.39.64
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F6FB17A310;
+	Tue,  6 May 2025 07:10:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746512608; cv=none; b=XPay8iXQLKVTIgLKtwsGz5+Z21XFXefv4HDtr9TgOI7H3RtX9St1oVPtLPvawuudMLeW6A4dhwL+RPxZHADb4r8NubxCiazRcse/m7C7hLCmxX72V43wBxVgncAllwiJz6FKZcspENEG8C5TZ/XruWaaEq47y5SpM8zIkaQojac=
+	t=1746515426; cv=none; b=BTO0r6IaE4XSZGmE2gFZc3wmqgdDEK32r7Cw7TQxJu1fwKHLthayKRUBMiIDY8UWwh8TRBZgKTq9vlIFXiiz5OuNIiM/mDcws68K4Tz5H2ukG0tQco6W/sgm/cgHz+I1RNien7GdQdphhWld+LCr/2kgpgI8Qsxqhfy+AgeTtlY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746512608; c=relaxed/simple;
-	bh=RIkJJP+RXcI6vPURQiIkAusnMMfRzBhxynerb81vkFY=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=gh2jdc+R0ZLTYVaUXEqrxWWjXc8eJRV1kHnmc4Qw626lGV4EA9ISNZlmABi+egs3bXNe8X/uCW3lZN2NWCxHT13vbatrTqjcg9vYrFjDoF/jxh0CgixXzgxkLB1SB13Qm0kaEfUdM+XX5g8rnhjvZTNgNslNNItfh5w9NQbSG2A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=phytium.com.cn; spf=pass smtp.mailfrom=phytium.com.cn; arc=none smtp.client-ip=129.150.39.64
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=phytium.com.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=phytium.com.cn
-Received: from prodtpl.icoremail.net (unknown [10.12.1.20])
-	by hzbj-icmmx-6 (Coremail) with SMTP id AQAAfwBXXmrVqhlonb+oAg--.27522S2;
-	Tue, 06 May 2025 14:23:17 +0800 (CST)
-Received: from phytium.com.cn (unknown [123.150.8.50])
-	by mail (Coremail) with SMTP id AQAAfwA3yyTJqhloDVAUAA--.24S3;
-	Tue, 06 May 2025 14:23:06 +0800 (CST)
-From: Yuquan Wang <wangyuquan1236@phytium.com.cn>
-To: Jonathan.Cameron@huawei.com,
-	dan.j.williams@intel.com,
-	rppt@kernel.org,
-	rafael@kernel.org,
-	lenb@kernel.org,
-	akpm@linux-foundation.org,
-	alison.schofield@intel.com,
-	rrichter@amd.com,
-	bfaccini@nvidia.com,
-	haibo1.xu@intel.com,
-	david@redhat.com,
-	chenhuacai@kernel.org
-Cc: linux-cxl@vger.kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-mm@kvack.org,
-	chenbaozi@phytium.com.cn,
-	loongarch@lists.linux.dev,
-	Yuquan Wang <wangyuquan1236@phytium.com.cn>
-Subject: [PATCH v2] mm: numa_memblks: introduce numa_add_reserved_memblk
-Date: Tue,  6 May 2025 14:22:45 +0800
-Message-Id: <20250506062245.3816791-1-wangyuquan1236@phytium.com.cn>
-X-Mailer: git-send-email 2.34.1
+	s=arc-20240116; t=1746515426; c=relaxed/simple;
+	bh=yv6EvulzuyOjzbFqHlNYUWQZ40kXK+s59mBrzAxeERw=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=eh3y1swVaeVOQAQHtC/vgmt6HIm4XI5Tyr3c9hgXxUkclZeOI4m6z2AH8EP9LqNQI3q0tMdnoCCkFKU1I1E/+8SzLzwVvc1UT+ddoEoKq7HAH0con5w7YhpBptvOUzHAWvYiSDzHZApzPhH96gGaKLU2yLyis9T6vTBBXDtoGoA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lqz0uf5J; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lqz0uf5J"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1471C4CEE4;
+	Tue,  6 May 2025 07:10:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1746515425;
+	bh=yv6EvulzuyOjzbFqHlNYUWQZ40kXK+s59mBrzAxeERw=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=lqz0uf5JziG2vyN3X5hTRcFbqzFC6daZjAnWixLageNBzBmkKhn1Q6zhj1a0nZ3rc
+	 OhHge9jfKP66r1YSkjtHSHZVPVWO2DDE7Zi5qQ9jH4KtxNy7v0Kr1cNYDg1/G57his
+	 bxGX6YhpF9bvCvP3GFyyrhic7aYjAVrjDD+ghRgO4XEbHdque0k5lNUIg0ryJkENXG
+	 iPXVSJGyo0gDybEWC/umL8vg8fy8OhHbjff/eC13hxcHv6p0nMO2QaTxxsp+SKbcD3
+	 EL8GbZYWRmx/UOppKNWaFg/VJGzCraSSY4GZJB48mv6In+uUldXd/GterkHVGtAyb0
+	 fBp4ZFaw4UQIA==
+Date: Tue, 6 May 2025 09:10:22 +0200
+From: Krzysztof Kozlowski <krzk@kernel.org>
+To: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
+Cc: x86@kernel.org, Krzysztof Kozlowski <krzk+dt@kernel.org>, 
+	Conor Dooley <conor+dt@kernel.org>, Rob Herring <robh@kernel.org>, 
+	"K. Y. Srinivasan" <kys@microsoft.com>, Haiyang Zhang <haiyangz@microsoft.com>, 
+	Wei Liu <wei.liu@kernel.org>, Dexuan Cui <decui@microsoft.com>, 
+	Michael Kelley <mhklinux@outlook.com>, devicetree@vger.kernel.org, 
+	Saurabh Sengar <ssengar@linux.microsoft.com>, Chris Oo <cho@microsoft.com>, linux-hyperv@vger.kernel.org, 
+	"Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	"Ravi V. Shankar" <ravi.v.shankar@intel.com>, Ricardo Neri <ricardo.neri@intel.com>
+Subject: Re: [PATCH v3 06/13] dt-bindings: reserved-memory: Wakeup Mailbox
+ for Intel processors
+Message-ID: <20250506-pompous-meaty-crane-97efce@kuoka>
+References: <20250503191515.24041-1-ricardo.neri-calderon@linux.intel.com>
+ <20250503191515.24041-7-ricardo.neri-calderon@linux.intel.com>
+ <20250504-original-leopard-of-vigor-5702ef@kuoka>
+ <20250506051610.GC25533@ranerica-svr.sc.intel.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:AQAAfwA3yyTJqhloDVAUAA--.24S3
-X-CM-SenderInfo: 5zdqw5pxtxt0arstlqxsk13x1xpou0fpof0/1tbiAQAQAWgRLLwIYwBJsb
-Authentication-Results: hzbj-icmmx-6; spf=neutral smtp.mail=wangyuquan
-	1236@phytium.com.cn;
-X-Coremail-Antispam: 1Uk129KBjvJXoWxXFW7Ar4xuF4DCry5trWrKrg_yoW5uFyrpa
-	yUG3Z8XF4xGw1xGw1xuryj9w1S93WrKr1DJFZrGr43ZF4rWry2vr4UtFsxZF1DtrW7Zr1r
-	Wr4vyw15uw1rAF7anT9S1TB71UUUUjDqnTZGkaVYY2UrUUUUj1kv1TuYvTs0mT0YCTnIWj
-	DUYxn0WfASr-VFAU7a7-sFnT9fnUUIcSsGvfJ3UbIYCTnIWIevJa73UjIFyTuYvj4RJUUU
-	UUUUU
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20250506051610.GC25533@ranerica-svr.sc.intel.com>
 
-acpi_parse_cfmws() currently adds empty CFMWS ranges to numa_meminfo
-with the expectation that numa_cleanup_meminfo moves them to
-numa_reserved_meminfo. There is no need for that indirection when it is
-known in advance that these unpopulated ranges are meant for
-numa_reserved_meminfo in support of future hotplug / CXL provisioning.
+On Mon, May 05, 2025 at 10:16:10PM GMT, Ricardo Neri wrote:
+> > If this is a device, then compatibles specific to devices. You do not
+> > get different rules than all other bindings... or this does not have to
+> > be binding at all. Why standard reserved-memory does not work for here?
+> > 
+> > Why do you need compatible in the first place?
+> 
+> Are you suggesting something like this?
+> 
+> reserved-memory {
+> 	# address-cells = <2>;
+> 	# size-cells = <1>;
+> 
+> 	wakeup_mailbox: wakeupmb@fff000 {
+> 		reg = < 0x0 0xfff000 0x1000>
+> 	}
+> 
+> and then reference to the reserved memory using the wakeup_mailbox
+> phandle?
 
-Introduce and use numa_add_reserved_memblk() to add the empty CFMWS
-ranges directly.
+Yes just like every other, typical reserved memory block.
 
-Signed-off-by: Yuquan Wang <wangyuquan1236@phytium.com.cn>
----
-
-Changes in v2 (Thanks to Dan & Alison):
-- Use numa_add_reserved_memblk() to replace numa_add_memblk() in acpi_parse_cfmws()
-- Add comments to describe the usage of numa_add_reserved_memblk()
-- Updating the commit message to clarify the purpose of the patch
-
-By the way, "LoongArch: Introduce the numa_memblks conversion" is in linux-next.
-
- drivers/acpi/numa/srat.c     |  2 +-
- include/linux/numa_memblks.h |  1 +
- mm/numa_memblks.c            | 22 ++++++++++++++++++++++
- 3 files changed, 24 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/numa/srat.c b/drivers/acpi/numa/srat.c
-index 0a725e46d017..751774f0b4e5 100644
---- a/drivers/acpi/numa/srat.c
-+++ b/drivers/acpi/numa/srat.c
-@@ -453,7 +453,7 @@ static int __init acpi_parse_cfmws(union acpi_subtable_headers *header,
- 		return -EINVAL;
- 	}
- 
--	if (numa_add_memblk(node, start, end) < 0) {
-+	if (numa_add_reserved_memblk(node, start, end) < 0) {
- 		/* CXL driver must handle the NUMA_NO_NODE case */
- 		pr_warn("ACPI NUMA: Failed to add memblk for CFMWS node %d [mem %#llx-%#llx]\n",
- 			node, start, end);
-diff --git a/include/linux/numa_memblks.h b/include/linux/numa_memblks.h
-index dd85613cdd86..991076cba7c5 100644
---- a/include/linux/numa_memblks.h
-+++ b/include/linux/numa_memblks.h
-@@ -22,6 +22,7 @@ struct numa_meminfo {
- };
- 
- int __init numa_add_memblk(int nodeid, u64 start, u64 end);
-+int __init numa_add_reserved_memblk(int nid, u64 start, u64 end);
- void __init numa_remove_memblk_from(int idx, struct numa_meminfo *mi);
- 
- int __init numa_cleanup_meminfo(struct numa_meminfo *mi);
-diff --git a/mm/numa_memblks.c b/mm/numa_memblks.c
-index ff4054f4334d..541a99c4071a 100644
---- a/mm/numa_memblks.c
-+++ b/mm/numa_memblks.c
-@@ -200,6 +200,28 @@ int __init numa_add_memblk(int nid, u64 start, u64 end)
- 	return numa_add_memblk_to(nid, start, end, &numa_meminfo);
- }
- 
-+/**
-+ * numa_add_reserved_memblk - Add one numa_memblk to numa_reserved_meminfo
-+ * @nid: NUMA node ID of the new memblk
-+ * @start: Start address of the new memblk
-+ * @end: End address of the new memblk
-+ *
-+ * Add a new memblk to the numa_reserved_meminfo.
-+ *
-+ * Usage Case: numa_cleanup_meminfo() reconciles all numa_memblk instances
-+ * against memblock_type information and moves any that intersect reserved
-+ * ranges to numa_reserved_meminfo. However, when that information is known
-+ * ahead of time, we use numa_add_reserved_memblk() to add the numa_memblk
-+ * to numa_reserved_meminfo directly.
-+ *
-+ * RETURNS:
-+ * 0 on success, -errno on failure.
-+ */
-+int __init numa_add_reserved_memblk(int nid, u64 start, u64 end)
-+{
-+	return numa_add_memblk_to(nid, start, end, &numa_reserved_meminfo);
-+}
-+
- /**
-  * numa_cleanup_meminfo - Cleanup a numa_meminfo
-  * @mi: numa_meminfo to clean up
--- 
-2.34.1
+Best regards,
+Krzysztof
 
