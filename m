@@ -1,106 +1,112 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from fout-a7-smtp.messagingengine.com (fout-a7-smtp.messagingengine.com [103.168.172.150])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5CD5212B07;
-	Sun, 18 May 2025 10:18:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E6C11DF973;
+	Sun, 18 May 2025 10:37:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.150
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747563521; cv=none; b=iR3jnSZMmjAiCYhxkBhhAf4dgXJLmg15EbsFIwuroTWE409kbYie+Wq7s3aEHpfgU+3y0KM8fY797gbV35kK8Gldewnuk1is1VtASpk5OlK+zJ8KzR+tYXaRaa8a25UI7QO0DmF8PzusxL3je6SRHluObiawl4KkNEHXU6ClpqA=
+	t=1747564630; cv=none; b=NCCN1bN4uN5Hgs+5oo70DrA2aUULMV8oMse6onXLJNGN+3a4M+ccFqLg/QH7UWl2CT8SicFSvr5EevTYhBGxH6Xoj3hiqNfrXqYOrbEPcw0+AyGnAc6atTeWQPHOLo001Q5W7mFIr79ftDg7PXfE8rACVyXMvWf1wC7RVWzq6fU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747563521; c=relaxed/simple;
-	bh=aVJrjK39DSynV0njKAvRApf87m93tSsBJqU1s3Im3Ew=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=na0+4w/QNdXpNnmouTZ8XNH4dJ3JWGIpHGx3M4uS9CYbfBWfBfkpohCYwKBFjjzC2JXby86hlDG8VCLazB9FB5Tc4ALsW+ndDhZohfcaGCNjukWqOU49cTMnMK1zXOHxsP7+4zAMi6Bq7ku95SbbvUg87QaRxRqbEgXPYTqPX7I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XzmFaBEd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747564630; c=relaxed/simple;
+	bh=Rdr4/LLt19WMj0Jnc4oDWc8eUb/VMHycvcZIIqxGGFE=;
+	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
+	 Subject:Content-Type; b=YA3tuiLRQ3Rr1q0b6ZrBlhuKlVUS5YsdcXeN21nVvqwbkIUbcNCgk2TUh71MEnDCRky+wyT2o+yJZQTCgb2OqERV3tp+9+5FGIH+0z0F65/YhdrivL//Tm/hKbGIC/EVXaaThJ6GVrbdwBD9UgXa4ANmC5Rw+iwg2PlwB1IyLB8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de; spf=pass smtp.mailfrom=arndb.de; dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b=OPgAgb5Q; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=vD47HsKk; arc=none smtp.client-ip=103.168.172.150
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XzmFaBEd"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 598D3C4CEEB;
-	Sun, 18 May 2025 10:18:41 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1747563521;
-	bh=aVJrjK39DSynV0njKAvRApf87m93tSsBJqU1s3Im3Ew=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
-	b=XzmFaBEdQ7gifcZQi8RBOtlalPUMpJbiTubfs4PKBvtFYiLU+3E8TIBJt+2/lkScH
-	 g10jFjFnxeEelCezOSj3Hvsd2EyJWmZ1tEDoaUQygpfNNA/6pph6ZyxjDRVxWOorAe
-	 OV4Lucc9eT2r39rxK7y7UuwNFo/UGZ/6xwSOhxKMzn2z9SU2HNYrUmb5qple0MJD80
-	 0AoByw0+K9dWRPKV2M0v0ee/dW2ie50qWrPnWmL1bwfTGfVV6BU0GPyVKT0Lv/O/2H
-	 fMkop9BfAZNpq4SkHDOyRHMAL3fTndNEuHY4DgzpdHQlUxuFzxanCPjaukBYfouIVa
-	 TRYde9iIsjvoQ==
-Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47739C3ABDD;
-	Sun, 18 May 2025 10:18:41 +0000 (UTC)
-From: Janne Grunau via B4 Relay <devnull+j.jannau.net@kernel.org>
-Date: Sun, 18 May 2025 12:18:37 +0200
-Subject: [PATCH 1/2] ACPI: platform_profile: Stub platform_profile_cycle
+	dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b="OPgAgb5Q";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="vD47HsKk"
+Received: from phl-compute-05.internal (phl-compute-05.phl.internal [10.202.2.45])
+	by mailfout.phl.internal (Postfix) with ESMTP id 274CE1380156;
+	Sun, 18 May 2025 06:37:06 -0400 (EDT)
+Received: from phl-imap-12 ([10.202.2.86])
+  by phl-compute-05.internal (MEProxy); Sun, 18 May 2025 06:37:06 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
+	:cc:content-transfer-encoding:content-type:content-type:date
+	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:subject:subject:to:to; s=fm3; t=1747564626;
+	 x=1747651026; bh=asZJIugkMSLeXuWUY+4CGpyc9cFNSY12yXMfKnbFWeA=; b=
+	OPgAgb5QcmR8rj7MfCQ3Ct4CjhXcxRpp73Ac3j9Ly8G0frtLC0kuoSoVSg4yuvSN
+	JdigRxPyxQyCqUAuMVTgrgyhZmk8tZiijeszrq72VSWHW95BrE2tK7g/WyGX/Syc
+	0TYJBqpr/JZITbplPNagiVnOAR5amJxlhfZHeDSyotpBTWjyLVEQktwiEtIIqgS7
+	xWH8/s4BeNcy4fZb4iqqBdOV+FkJX9zK8ezks6LJL3+0Pe44fdFNkKamJuUJskGj
+	Zn2FRM/vTKMiSTqccnD7M5XqY6wqAFZjmLmFgUNVh4EEYu6h11TfKfIB+UAWM850
+	tqhdvA8uhU56x27HRNXQKg==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-transfer-encoding
+	:content-type:content-type:date:date:feedback-id:feedback-id
+	:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:subject:subject:to:to:x-me-proxy
+	:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=1747564626; x=
+	1747651026; bh=asZJIugkMSLeXuWUY+4CGpyc9cFNSY12yXMfKnbFWeA=; b=v
+	D47HsKktiwjoaLyXIWlBhNNSCTAlJRGOhk4P1/RxKnb/JdbA0wytfUtw7QsUdPHI
+	R+IFwNMtNWZJ5Bs5vY4nNsCpBGMtQL+4ckqk1mDn3gsbFMDdOPjInlysEH5Oemc7
+	LvN6MLkIYq5Kld79CQY7yoSHAQpP3aTr8kOJzqI6gMJhtujzt1aryuqJ6jR2dW0n
+	C4CdVhgg67GQpbluslqUvOEGN3LO+az6hLiAAEAoscBefNzHxRdpSa04q2X5eBiI
+	DqaKmYSTY3ULDdmGKOCnee3DaQIG13VtU0mRfiqiwnkcomTAd1zA0rdfrhOWtvev
+	G4GxNnu9r/VM8ybJ75w4A==
+X-ME-Sender: <xms:UbgpaOsv9KCNjTo-a-j4Ffguj_IR7RwnvluaHCQD_NB2pAd5qlGVUg>
+    <xme:UbgpaDelnykCGylM2Y6p_bu2rVKqJh1kX9J5xsrBvtb8bunJsBPUunBTeErAuNyNh
+    QGYmVqVwzNhu9GpMnE>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefvddrtddtgdefudekvdelucetufdoteggodetrf
+    dotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdggtfgfnhhsuhgsshgtrhhisggv
+    pdfurfetoffkrfgpnffqhgenuceurghilhhouhhtmecufedttdenucesvcftvggtihhpih
+    gvnhhtshculddquddttddmnecujfgurhepofggfffhvfevkfgjfhfutgfgsehtjeertder
+    tddtnecuhfhrohhmpedftehrnhguuceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnug
+    gsrdguvgeqnecuggftrfgrthhtvghrnhephfdthfdvtdefhedukeetgefggffhjeeggeet
+    fefggfevudegudevledvkefhvdeinecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrg
+    hmpehmrghilhhfrhhomheprghrnhgusegrrhhnuggsrdguvgdpnhgspghrtghpthhtohep
+    kedpmhhouggvpehsmhhtphhouhhtpdhrtghpthhtohepjhesjhgrnhhnrghurdhnvghtpd
+    hrtghpthhtohepsggvnhhtihhssheskhgvrhhnvghlrdhorhhgpdhrtghpthhtohepjhhi
+    khhosheskhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhgvnhgssehkvghrnhgvlhdroh
+    hrghdprhgtphhtthhopehrrghfrggvlheskhgvrhhnvghlrdhorhhgpdhrtghpthhtohep
+    lhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplh
+    hinhhugidqihhnphhuthesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehl
+    ihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrgh
+X-ME-Proxy: <xmx:UbgpaJwafR8SXzG5BIm5oIK3X2vPh7jMrAqpbO7b9Tfw44KGtRgRFQ>
+    <xmx:UbgpaJPo3-LqdRbJxJ2x6lfjiNdISu8ssEwVgFUyE-6KOFa8keRrWA>
+    <xmx:UbgpaO_cEeJBbR8U1b9AvA5iMN80gs9soxYZCkkxH17SOpx6RrOl9A>
+    <xmx:UbgpaBVoVL1J5pCi7wSOOml6YcfLRD0ZYwicLvGBZVyI0cz9b4laow>
+    <xmx:UrgpaJr9X-wZb8lP8TUVcnniqLjSnGiOKH9LCG4niWoym3_WS590I0jI>
+Feedback-ID: i56a14606:Fastmail
+Received: by mailuser.phl.internal (Postfix, from userid 501)
+	id AA6001060060; Sun, 18 May 2025 06:37:05 -0400 (EDT)
+X-Mailer: MessagingEngine.com Webmail Interface
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+X-ThreadId: T5605245bb69d7150
+Date: Sun, 18 May 2025 12:36:44 +0200
+From: "Arnd Bergmann" <arnd@arndb.de>
+To: "Janne Grunau" <j@jannau.net>, "Jiri Kosina" <jikos@kernel.org>,
+ "Benjamin Tissoires" <bentiss@kernel.org>,
+ "Rafael J . Wysocki" <rafael@kernel.org>, "Len Brown" <lenb@kernel.org>
+Cc: linux-kernel@vger.kernel.org, linux-input@vger.kernel.org,
+ linux-acpi@vger.kernel.org
+Message-Id: <d57ff24a-bf6f-454d-9b00-8abf8071658e@app.fastmail.com>
+In-Reply-To: 
+ <20250518-hid_lenovo_acpi_dependency-v1-2-afdb93b5d1a6@jannau.net>
+References: 
+ <20250518-hid_lenovo_acpi_dependency-v1-0-afdb93b5d1a6@jannau.net>
+ <20250518-hid_lenovo_acpi_dependency-v1-2-afdb93b5d1a6@jannau.net>
+Subject: Re: [PATCH 2/2] HID: lenovo: Remove CONFIG_ACPI dependency
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Message-Id: <20250518-hid_lenovo_acpi_dependency-v1-1-afdb93b5d1a6@jannau.net>
-References: <20250518-hid_lenovo_acpi_dependency-v1-0-afdb93b5d1a6@jannau.net>
-In-Reply-To: <20250518-hid_lenovo_acpi_dependency-v1-0-afdb93b5d1a6@jannau.net>
-To: Arnd Bergmann <arnd@arndb.de>, Jiri Kosina <jikos@kernel.org>, 
- Benjamin Tissoires <bentiss@kernel.org>, 
- "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>
-Cc: linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, 
- linux-acpi@vger.kernel.org, Janne Grunau <j@jannau.net>
-X-Mailer: b4 0.14.2
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1409; i=j@jannau.net;
- s=yk2024; h=from:subject:message-id;
- bh=OlgPj4E6TaBNRe/5BROdqUQFmhB+Ec3RjhF6hKrPB94=;
- b=owGbwMvMwCW2UNrmdq9+ahrjabUkhgzNLQwMvefyyg6k51d8+nXzxaWpjaLL3963U9ziGrCYa
- 9vn0NXiHaUsDGJcDLJiiixJ2i87GFbXKMbUPgiDmcPKBDaEi1MAJmJsxPC/Nmj9vTNGkdz9k5+k
- vrUzZLu3jbP4/HuLdat3axvdi/g/kZGhaR1v/oqd240U1GxmHutKFRdX5+S+eu7k68bre1czLDj
- ICwA=
-X-Developer-Key: i=j@jannau.net; a=openpgp;
- fpr=8B336A6BE4E5695E89B8532B81E806F586338419
-X-Endpoint-Received: by B4 Relay for j@jannau.net/yk2024 with auth_id=264
-X-Original-From: Janne Grunau <j@jannau.net>
-Reply-To: j@jannau.net
 
-From: Janne Grunau <j@jannau.net>
+On Sun, May 18, 2025, at 12:18, Janne Grunau via B4 Relay wrote:
+> 
+>  config HID_LENOVO
+>  	tristate "Lenovo / Thinkpad devices"
+> -	depends on ACPI
+> -	select ACPI_PLATFORM_PROFILE
+> +	depends on ACPI || !ACPI
 
-This is required to allow USB/Bluetooth HID devices to cycle through
-platform profiles without depending on ACPI. Commit 52572cde8b4a4
-("HID: lenovo: select CONFIG_ACPI_PLATFORM_PROFILE") added this
-dependency for hid-lenovo which is used for external USB and Bluetooth
-devices.
+Since ACPI is a 'bool' symbol, the 'ACPI || !ACPI' dependency
+has no actual effect. I don't see any way that ACPI will ever
+become a loadable module.
 
-Fixes: 52572cde8b4a4 ("HID: lenovo: select CONFIG_ACPI_PLATFORM_PROFILE")
-Signed-off-by: Janne Grunau <j@jannau.net>
----
- include/linux/platform_profile.h | 11 +++++++++++
- 1 file changed, 11 insertions(+)
-
-diff --git a/include/linux/platform_profile.h b/include/linux/platform_profile.h
-index a299225ab92e78ce2e978b1774cdfc95cc688e8f..05a6749991601fd373683c3d498c6e9cc4f97882 100644
---- a/include/linux/platform_profile.h
-+++ b/include/linux/platform_profile.h
-@@ -54,7 +54,18 @@ void platform_profile_remove(struct device *dev);
- struct device *devm_platform_profile_register(struct device *dev, const char *name,
- 					      void *drvdata,
- 					      const struct platform_profile_ops *ops);
-+#ifdef CONFIG_ACPI_PLATFORM_PROFILE
- int platform_profile_cycle(void);
-+#else
-+/*
-+ * This stub is needed to allow USB/Bluetooth HID drivers to cycle through
-+ * platform profiles.
-+ */
-+static inline int platform_profile_cycle(void)
-+{
-+	return 0;
-+}
-+#endif /* CONFIG_ACPI_PLATFORM_PROFILE */
- void platform_profile_notify(struct device *dev);
- 
- #endif  /*_PLATFORM_PROFILE_H_*/
-
--- 
-2.49.0
-
-
+      Arnd
