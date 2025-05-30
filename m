@@ -1,96 +1,200 @@
-Received: from mail.alien8.de (mail.alien8.de [65.109.113.108])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB14C1DA5F;
-	Fri, 30 May 2025 10:27:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=65.109.113.108
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EC7D21C19B;
+	Fri, 30 May 2025 12:38:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748600867; cv=none; b=ScoZeQ5UF+nT9mAmBROpF6drPPWXCPJYCK5s/rVaMtPPk/MyA8dRQTYyP1Her8I2P5H46+64DaLnpYOLERm0lc2ZqpLN/76q7vyOJe1X3DFN4bhKsY2du1cwDqgRicLUq8b7MdfzJKfboiXi/7x3Ua5//1Ij3ulCkugGm59nLtg=
+	t=1748608735; cv=none; b=HusD40L+Ee5uF0A3BpckfeBKBP91+Ub4XPiYXB+UsVRWhvDHXPQSBfI5GuAhjTa8hx8qlKHgB8PnoAhLk9hmz7jVuCwgUSC31lWFi63j4EhXO2qCyat5ZqRMrWwKPZolm8bjdbRJQy706mbhaphJZFuxiqBLvUitWKTutE+Eafg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748600867; c=relaxed/simple;
-	bh=yimb/h/oIv9nrFU36k+skWXKj5ccHe01EMDttikc/sI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=NhmRshq2Jipx3iFUE7BKXnAQlpGnYVT4uim8iXJ81cyCM6+0H/zyslFNL1NnL+fHI4XQl7/CKSjqdOnZ8qKAXRkwcs2DbqK6JYnyGdQSGO5eqgZqJPh/tKbUWd70dNycVse5e4nIUJQs5PQy2ZAbKPoiVoVq4iulawdmpbsRD9E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de; spf=pass smtp.mailfrom=alien8.de; dkim=pass (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b=JOE1VagW; arc=none smtp.client-ip=65.109.113.108
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=alien8.de
+	s=arc-20240116; t=1748608735; c=relaxed/simple;
+	bh=16wZIjI3rM+SR9jJf6FfDXb7wOEnVPcIjK1MwsxP91c=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version:Content-Type; b=MmW+4MUKd2MOatKb+NrUbaq+v5P9OwFck0NLnLYt2v1iVgIp9lhQssMr+agpgqsUkyj1+BLuNyWWjChqKCRpklrGvCa1aU37u31NWHSFLWIbu2AW8RmV1hUlyHAq3HJHFfDJTyj+zhaGtbSsSQeO9C4Tut4Z5ZRvkqu/lXx1buA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=m4leAmUe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b="JOE1VagW"
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with ESMTP id D951140E01A3;
-	Fri, 30 May 2025 10:27:40 +0000 (UTC)
-X-Virus-Scanned: Debian amavisd-new at mail.alien8.de
-Authentication-Results: mail.alien8.de (amavisd-new); dkim=pass (4096-bit key)
-	header.d=alien8.de
-Received: from mail.alien8.de ([127.0.0.1])
-	by localhost (mail.alien8.de [127.0.0.1]) (amavisd-new, port 10026)
-	with ESMTP id P9lM-Eo2BI2t; Fri, 30 May 2025 10:27:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=alien8;
-	t=1748600856; bh=blS/JssQQ0agsCa6iwZIdjI/QV/iJgq7L8Ra63G35JA=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=JOE1VagW3LYq3qu19XX/Arlt27IOQZt4+zPdZpViVzMy6uWRVk/mkXSNTXzPr38xn
-	 D/b7Z6745UcKg3okH4WGahMbGP3+iNOG9Zb8Ocmq3U74uV9bOJwdIX7oWX44dCQkQP
-	 u54doDUI/UV45/wP7sFLZX2Fm/wTlcL4ViWNmT8PuylToQrstROVIiuYpaIbWFksYQ
-	 WJ3vhjMZX7ELJ0SzQI2EW9MeZtuZleMry3k1Qlx3kB0EKDmpl+PvEUe9FysqMVOWqU
-	 H7FwKfyrJxQl9HxIgiHB+3aZ3UVoe/v75/3n7ZEJyAMF0CJ+BoIvyqBJuOu2qgQoW9
-	 31aqPfQ/9l61h+oYXz3wgVNUVlXwx0REwbhlLlSZE2EucBbrENuNX4gdRx5g0of8vP
-	 pO/OVN0jCutGg56HJVf3dd0hFNQ8ds/AYpdrVTQe46XUiryBQEPWfsuPflXOsqVD46
-	 1S9AORwC8RP0TBzzGrWu6+nVQ6RGbYwaMKAWbR0UuFEhEMf6LGlvIUvHhDFf/H47Si
-	 upGfGM5fsHupxhda7XSxT11MLb5MnOgteJFK5AuuTI1soRoL0qL++hETl1ZMwk7UGu
-	 FHFr0o/klRY4IWEVWnuiVHaqAy3lgKTE+3sH0C9hrJe1s3hT+oaEnBKN6I+M2Fwppy
-	 rRS45TdAQBSTODtdNbAILmSc=
-Received: from zn.tnic (p57969c58.dip0.t-ipconnect.de [87.150.156.88])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (P-256) server-signature ECDSA (P-256) server-digest SHA256)
-	(No client certificate requested)
-	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id 3B32D40E015E;
-	Fri, 30 May 2025 10:27:19 +0000 (UTC)
-Date: Fri, 30 May 2025 12:27:11 +0200
-From: Borislav Petkov <bp@alien8.de>
-To: Zaid Alali <zaidal@os.amperecomputing.com>
-Cc: rafael@kernel.org, lenb@kernel.org, james.morse@arm.com,
-	tony.luck@intel.com, robert.moore@intel.com,
-	Jonathan.Cameron@huawei.com, ira.weiny@intel.com,
-	Benjamin.Cheatham@amd.com, dan.j.williams@intel.com, arnd@arndb.de,
-	Avadhut.Naik@amd.com, u.kleine-koenig@pengutronix.de,
-	john.allen@amd.com, linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org, acpica-devel@lists.linux.dev
-Subject: Re: [PATCH v7 9/9] ACPI: APEI: EINJ: Update the documentation for
- EINJv2 support
-Message-ID: <20250530102711.GAaDmH_1O7lc6kuveY@fat_crate.local>
-References: <20250506213814.2365788-1-zaidal@os.amperecomputing.com>
- <20250506213814.2365788-10-zaidal@os.amperecomputing.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="m4leAmUe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8F0CC4CEE9;
+	Fri, 30 May 2025 12:38:53 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1748608735;
+	bh=16wZIjI3rM+SR9jJf6FfDXb7wOEnVPcIjK1MwsxP91c=;
+	h=From:To:Cc:Subject:Date:From;
+	b=m4leAmUeZ3VJ7H45htY+KMG0Cg0L+7+8Uu7gPItHSt6WSNbUFYuAZZKOJzf6TViiN
+	 ChuDnSn3NHJMEUHqosuHeFBF6jND+PrmVKW5wpRcD/4UzMEpJHw8j0wbX3j1VPzSEJ
+	 bIw2gKr2XPJxPtrc8w1uQR8c1+v2gD5pxMiRtJ+SexeUbDcc1baZDeoav/r4HdW8qx
+	 ibbSAfq256sQEPQXqrWRDDDK8q5sjJpMm31YQ5dFSwwl3HNqscmCjzwz9KBON9RLLE
+	 GpPrFIDa+7CPXNLtNEeXzHLOM65UqPQwDY7GBeV99eM2dVJpSufaDyfqM0Qy5mfGTq
+	 ssiWrZgDAeepg==
+From: Sasha Levin <sashal@kernel.org>
+To: patches@lists.linux.dev,
+	stable@vger.kernel.org
+Cc: Seunghun Han <kkamagui@gmail.com>,
+	"Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
+	Sasha Levin <sashal@kernel.org>,
+	robert.moore@intel.com,
+	erik.schmauss@intel.com,
+	lenb@kernel.org,
+	linux-acpi@vger.kernel.org,
+	devel@acpica.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH AUTOSEL 6.15 01/30] ACPICA: fix acpi operand cache leak in dswstate.c
+Date: Fri, 30 May 2025 08:38:23 -0400
+Message-Id: <20250530123852.2574030-1-sashal@kernel.org>
+X-Mailer: git-send-email 2.39.5
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20250506213814.2365788-10-zaidal@os.amperecomputing.com>
+X-stable: review
+X-Patchwork-Hint: Ignore
+X-stable-base: Linux 6.15
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-On Tue, May 06, 2025 at 02:38:13PM -0700, Zaid Alali wrote:
-> +- einjv2_component_array
-> +
-> +  The contents of this file are used to set the "Component Array" field
-> +  of the EINJv2 Extension Structure. The expected format is hex values
-> +  for component id and syndrome separated by space, and multiple
-> +  components are separated by new line.
+From: Seunghun Han <kkamagui@gmail.com>
 
-How is this a good design?
+[ Upstream commit 156fd20a41e776bbf334bd5e45c4f78dfc90ce1c ]
 
-Do you guys not see that the other injection files are one value per file?
+ACPICA commit 987a3b5cf7175916e2a4b6ea5b8e70f830dfe732
 
-> +  # comp_arr="0x1 0x2				# Fill in the component array
-> +    >0x1 0x4
-> +    >0x2 0x4"
-> +  # echo "$comp_arr" > einjv2_component_array
+I found an ACPI cache leak in ACPI early termination and boot continuing case.
 
-Oh boy. Srsly?!
+When early termination occurs due to malicious ACPI table, Linux kernel
+terminates ACPI function and continues to boot process. While kernel terminates
+ACPI function, kmem_cache_destroy() reports Acpi-Operand cache leak.
 
+Boot log of ACPI operand cache leak is as follows:
+>[    0.585957] ACPI: Added _OSI(Module Device)
+>[    0.587218] ACPI: Added _OSI(Processor Device)
+>[    0.588530] ACPI: Added _OSI(3.0 _SCP Extensions)
+>[    0.589790] ACPI: Added _OSI(Processor Aggregator Device)
+>[    0.591534] ACPI Error: Illegal I/O port address/length above 64K: C806E00000004002/0x2 (20170303/hwvalid-155)
+>[    0.594351] ACPI Exception: AE_LIMIT, Unable to initialize fixed events (20170303/evevent-88)
+>[    0.597858] ACPI: Unable to start the ACPI Interpreter
+>[    0.599162] ACPI Error: Could not remove SCI handler (20170303/evmisc-281)
+>[    0.601836] kmem_cache_destroy Acpi-Operand: Slab cache still has objects
+>[    0.603556] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.12.0-rc5 #26
+>[    0.605159] Hardware name: innotek gmb_h virtual_box/virtual_box, BIOS virtual_box 12/01/2006
+>[    0.609177] Call Trace:
+>[    0.610063]  ? dump_stack+0x5c/0x81
+>[    0.611118]  ? kmem_cache_destroy+0x1aa/0x1c0
+>[    0.612632]  ? acpi_sleep_proc_init+0x27/0x27
+>[    0.613906]  ? acpi_os_delete_cache+0xa/0x10
+>[    0.617986]  ? acpi_ut_delete_caches+0x3f/0x7b
+>[    0.619293]  ? acpi_terminate+0xa/0x14
+>[    0.620394]  ? acpi_init+0x2af/0x34f
+>[    0.621616]  ? __class_create+0x4c/0x80
+>[    0.623412]  ? video_setup+0x7f/0x7f
+>[    0.624585]  ? acpi_sleep_proc_init+0x27/0x27
+>[    0.625861]  ? do_one_initcall+0x4e/0x1a0
+>[    0.627513]  ? kernel_init_freeable+0x19e/0x21f
+>[    0.628972]  ? rest_init+0x80/0x80
+>[    0.630043]  ? kernel_init+0xa/0x100
+>[    0.631084]  ? ret_from_fork+0x25/0x30
+>[    0.633343] vgaarb: loaded
+>[    0.635036] EDAC MC: Ver: 3.0.0
+>[    0.638601] PCI: Probing PCI hardware
+>[    0.639833] PCI host bridge to bus 0000:00
+>[    0.641031] pci_bus 0000:00: root bus resource [io  0x0000-0xffff]
+> ... Continue to boot and log is omitted ...
+
+I analyzed this memory leak in detail and found acpi_ds_obj_stack_pop_and_
+delete() function miscalculated the top of the stack. acpi_ds_obj_stack_push()
+function uses walk_state->operand_index for start position of the top, but
+acpi_ds_obj_stack_pop_and_delete() function considers index 0 for it.
+Therefore, this causes acpi operand memory leak.
+
+This cache leak causes a security threat because an old kernel (<= 4.9) shows
+memory locations of kernel functions in stack dump. Some malicious users
+could use this information to neutralize kernel ASLR.
+
+I made a patch to fix ACPI operand cache leak.
+
+Link: https://github.com/acpica/acpica/commit/987a3b5c
+Signed-off-by: Seunghun Han <kkamagui@gmail.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Link: https://patch.msgid.link/4999480.31r3eYUQgx@rjwysocki.net
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+
+**YES** This commit should be backported to stable kernel trees based on
+the following analysis: ## Analysis of the Commit **1. Bug Fix Nature**:
+This commit fixes a clear memory leak bug in the ACPICA subsystem. The
+issue occurs when `acpi_ds_create_operands()` encounters an error during
+operand creation and needs to clean up allocated operands. **2. Root
+Cause**: The core issue is a mismatch between how operands are pushed
+and popped from the stack: - `acpi_ds_obj_stack_push()` uses
+`walk_state->operand_index` to track the current position -
+`acpi_ds_obj_stack_pop_and_delete()` incorrectly assumes operands start
+at index 0 - This causes incomplete cleanup when errors occur, leading
+to memory leaks **3. Code Analysis**: The fix correctly addresses the
+issue by: - Tracking the original operand count (`prev_num_operands`) -
+Calculating the correct number of operands to clean up
+(`new_num_operands`) - Setting `walk_state->num_operands = i` before
+cleanup to ensure proper indexing - Restoring the original operand count
+after cleanup **4. Security Implications**: The commit message
+explicitly mentions this is a security issue - the memory leak can
+expose kernel function addresses in older kernels (≤4.9), potentially
+defeating ASLR. This elevates the importance beyond a simple memory
+leak. **5. Pattern Consistency**: This follows the exact same pattern as
+other ACPICA operand cache leak fixes that were successfully backported
+(commits `97f3c0a4b057`, `2915f16bdce2`, etc.), all authored by the same
+developer addressing similar issues. **6. Stability Characteristics**: -
+**Small and contained**: Only 8 lines of actual logic changes - **Clear
+error path**: Only affects cleanup during error conditions - **No
+behavioral changes**: No impact on normal operation - **Low regression
+risk**: Only modifies error handling paths **7. Backport Suitability
+Criteria**: - ✅ Fixes important bug affecting users (memory leak) - ✅
+Small, contained fix with minimal risk - ✅ No architectural changes - ✅
+Addresses security concern (ASLR bypass potential) - ✅ Follows
+established patterns for ACPICA fixes - ✅ Critical kernel subsystem
+(ACPI) **8. Historical Precedent**: The similar commits in the reference
+examples (Similar Commits #1, #2, #3) all have "Backport Status: YES"
+and address nearly identical ACPICA operand cache leak issues with
+similar fixes and commit message patterns. This commit meets all
+criteria for stable tree backporting: it's an important bugfix, has
+minimal regression risk, affects a critical subsystem, and follows
+established patterns for similar fixes that were previously backported.
+
+ drivers/acpi/acpica/dsutils.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/acpica/dsutils.c b/drivers/acpi/acpica/dsutils.c
+index fb9ed5e1da89d..2bdae8a25e084 100644
+--- a/drivers/acpi/acpica/dsutils.c
++++ b/drivers/acpi/acpica/dsutils.c
+@@ -668,6 +668,8 @@ acpi_ds_create_operands(struct acpi_walk_state *walk_state,
+ 	union acpi_parse_object *arguments[ACPI_OBJ_NUM_OPERANDS];
+ 	u32 arg_count = 0;
+ 	u32 index = walk_state->num_operands;
++	u32 prev_num_operands = walk_state->num_operands;
++	u32 new_num_operands;
+ 	u32 i;
+ 
+ 	ACPI_FUNCTION_TRACE_PTR(ds_create_operands, first_arg);
+@@ -696,6 +698,7 @@ acpi_ds_create_operands(struct acpi_walk_state *walk_state,
+ 
+ 	/* Create the interpreter arguments, in reverse order */
+ 
++	new_num_operands = index;
+ 	index--;
+ 	for (i = 0; i < arg_count; i++) {
+ 		arg = arguments[index];
+@@ -720,7 +723,11 @@ acpi_ds_create_operands(struct acpi_walk_state *walk_state,
+ 	 * pop everything off of the operand stack and delete those
+ 	 * objects
+ 	 */
+-	acpi_ds_obj_stack_pop_and_delete(arg_count, walk_state);
++	walk_state->num_operands = i;
++	acpi_ds_obj_stack_pop_and_delete(new_num_operands, walk_state);
++
++	/* Restore operand count */
++	walk_state->num_operands = prev_num_operands;
+ 
+ 	ACPI_EXCEPTION((AE_INFO, status, "While creating Arg %u", index));
+ 	return_ACPI_STATUS(status);
 -- 
-Regards/Gruss,
-    Boris.
+2.39.5
 
-https://people.kernel.org/tglx/notes-about-netiquette
