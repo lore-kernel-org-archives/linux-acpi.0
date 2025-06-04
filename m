@@ -1,140 +1,115 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f176.google.com (mail-pf1-f176.google.com [209.85.210.176])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29D4D17F7;
-	Wed,  4 Jun 2025 01:31:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9325E1BC4E
+	for <linux-acpi@vger.kernel.org>; Wed,  4 Jun 2025 02:31:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.176
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749000705; cv=none; b=tBOxo3+0HUDOju95j+b1reNlFJuY4ncfpNWhEkKNRWyDh1uslH1lwBK+NURCCSQCN6lIOgfewVzGNrMoitxvvVxOTzhl0karc1j9hhQIo+i7l7/sW5IvhMWjcJ9si6TAW1bHKXl7fJPfbBCds4Ldpyxrt/XFe7fI4k5vmMST4sE=
+	t=1749004272; cv=none; b=px26bgbM3IHLs/o6VY2ZtrA8bU7v8WVyMGrUzWyXdVVU+SS+uL2PkIh0cv3WL7e5KcNJeywjxSITrXdPlvsno9E/Ygr66KseY9NApqBi293/NFt8MjEXCMsQXZONCJ/SzMgyH+cSs26yOM4aaLYkG1u4Qq0D3WX6Vopb64gXDdU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749000705; c=relaxed/simple;
-	bh=wBpHwHC/yiEzi+aiWB3oS6cN1vItlh5c+B/X2waVchg=;
-	h=Date:Content-Type:MIME-Version:From:Cc:To:In-Reply-To:References:
-	 Message-Id:Subject; b=HpI84t/HbJqK+N8Ky7LcMp2JIwiSwLDt3zaUQi0cnDG//zDzpCdjzjQeMSJu47XPRHv4vSX+zIc9tGKtf8hKaFdsZ5hat0U5PMYei64yW+0kk6GNEIOjdHkVGK0bjhA81OWavRG8HITnQe4iOTudaap8W6pvPG8uKgvQ/1OGL9Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kpdN6K3q; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749004272; c=relaxed/simple;
+	bh=k8xgcrym5qDtX84bQ8gtzxF7cH5SzBupbkfxITaTvZM=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=GFqWgUA3hQAOuU21ySoiCqPgxnKW2j+gsEwYB35oN1mawqMjYz+kkVNeY7/HTfUn5wSQSdaICbfUAdjXKGq6dkASnIx3iGr4lz/GTmj9wQ7Um0mytyCrmdAXewJlyI6pcFzfM8FNUZyyPYAt0WJY47juZqut630AT6JEU6Z2S8U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com; spf=pass smtp.mailfrom=bytedance.com; dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b=BLo2BSJP; arc=none smtp.client-ip=209.85.210.176
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bytedance.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kpdN6K3q"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D594C4CEED;
-	Wed,  4 Jun 2025 01:31:44 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1749000704;
-	bh=wBpHwHC/yiEzi+aiWB3oS6cN1vItlh5c+B/X2waVchg=;
-	h=Date:From:Cc:To:In-Reply-To:References:Subject:From;
-	b=kpdN6K3qjsBQnVYnYuGdosYN/m3LBW77x/c8cYu7kZiVS9dbYPnkhrPy82Qe0qx3j
-	 2CAOF95Q95IdA23b6EFT1gCrE+wzqpUGpmq0XLTOAqyfPpD9XESh7MZnebGfGWgzB6
-	 VBVaMvHH7qjdXY7lqcicyW+Ci1nWIof1ubd4z2Lqncy1fqbCDk57S20cdbGBnW8oUS
-	 1U6/HRbPCSWaip8t7VmiwpDtnwMbyMlyJybWR6SyPyRy3CTrr1mh4KJcAyS/SX7qH7
-	 ADjt39R7AYOeP7N81CCPb3+j/XvAHG4cyydPak5TI5hKZZs3ZrmamI+2Xx4DaXNpXx
-	 yEcfo/+eXTyXA==
-Date: Tue, 03 Jun 2025 20:31:42 -0500
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b="BLo2BSJP"
+Received: by mail-pf1-f176.google.com with SMTP id d2e1a72fcca58-742c7a52e97so5326922b3a.3
+        for <linux-acpi@vger.kernel.org>; Tue, 03 Jun 2025 19:31:09 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=bytedance.com; s=google; t=1749004269; x=1749609069; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=Nzx5EhyNYQwHeWkDzz8IdLJSsRXErPCykhPMATKhuXU=;
+        b=BLo2BSJP0+xYQtpurYSZh5SKKU9jzGN52ZuByGD+RBLm5OCo6MCAAHtCx2Cy0BVpj6
+         z6TyiOdo+G7beCAwE0qeOQXp3fxTWvN1u+ZD+ZIBRVNo1Y/uaz8bsEqqYyIB7qLCusz1
+         mWodwYn7AX1b+a0FG/nmDELXj88/YaE2jPxuiHVRdQBHOXqEEReAMUmHsrBfWKgRmTD2
+         LzbnvJZOdpo1faC6cmoshNIJHROt09nY8zGRPT7Hla/oFtTcSapztlVdL/gxoACLK9py
+         7BPXcVBNe7m23pQUT2UOyVqSFWk307cOM4PrqAQk/XHvasSObZ+8zrrOxERMZXU98lWb
+         r3PA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1749004269; x=1749609069;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=Nzx5EhyNYQwHeWkDzz8IdLJSsRXErPCykhPMATKhuXU=;
+        b=mW0Tkd9WMME/L5nEy2FHd0ckNVSU0j/RSVlQTKVX2YWkdBPr6RcRQz54HuxkPPsZqP
+         TpQaZJXdXh1cqNN9jdBubW6x8WEo5z8VOdm/MCCQS7BG+OW2p2rH64zFkMPUydllY68K
+         5dnSOaBrh+PNFr+gK9rtOUSVXDOotr6vtfDeB/Lq+Rzzk79+070+i2jMYbDPxR2de146
+         iL/30U22f5SoYSPI1GR+k7KgW5QOywfIy1QX4DH9a8+ddPIk7p5Qx3XfrdwQslleRS2M
+         8BZmZPI5rOxcYDd5yDo+xNskHRr4gxmy+uAD1/hC8rGuL09zMhjlfDfD+cP7dVLB+Zw5
+         GhbA==
+X-Forwarded-Encrypted: i=1; AJvYcCXHDkX+DMN1gaX8PyuM7o9KWLnQC0O1+P7lQWWF52RdND49ocQG/4hZQLOUxEvYLU+se+DTdfrhwXkH@vger.kernel.org
+X-Gm-Message-State: AOJu0YxykujAsbIF/c+Z5t97C3QPDa5SDegneE1Kde0gMfHlHSV4GHBA
+	Ppic7qq4h0y1mobf0zT2F8VVhP8GiQTFyBzFaPk0t26kMY++pg7jkMPqeajYgTLCAZ8=
+X-Gm-Gg: ASbGncvByZLtkMptfPaJdgcgt6BVq4nEietACk0cDxKNVQkOEPsSvUUv11VYVvwj6cq
+	y+S4H6K2IuI38ZEGkOR4h7NFbwfy7Tw6BmXQjE8GEPpn6awuhD8Znu/cWi1i3CcvH6TWbfqM9+s
+	nOEtO3Iz2/QfatKWt4ajkL1LrYnndxQsco7kLylHwAl0Ugq4KdhBhv+ZY9pb7HJDpjVEgGfGK2u
+	hhcwZkzlw+Ulr0ax63UOy+gNQ0d0NkAK1zAU86+hYCza424X/JQL4zK9rDK43PkDdTiilutrd/N
+	knS7J5d2GKTOpuv6HYphCdt5jm8mTmIuWpt6I8N2WkXA+0to4X1GwahJRHdmUMNi9HwJt5rEsQs
+	n1kn+lOLHbQ==
+X-Google-Smtp-Source: AGHT+IFOKXiUkg7DlGRUfdahAUAzm5CSAm5gLh6cesXxENqVYTXs/ggCdQWKGgbEMqM7qu6iI5d4xw==
+X-Received: by 2002:a05:6a20:1594:b0:1f5:7873:304f with SMTP id adf61e73a8af0-21d22bb720fmr1601124637.37.1749004268701;
+        Tue, 03 Jun 2025 19:31:08 -0700 (PDT)
+Received: from L6YN4KR4K9.bytedance.net ([139.177.225.252])
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-b2eceb0a1eesm6739256a12.14.2025.06.03.19.31.05
+        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
+        Tue, 03 Jun 2025 19:31:08 -0700 (PDT)
+From: Yunhui Cui <cuiyunhui@bytedance.com>
+To: rafael@kernel.org,
+	lenb@kernel.org,
+	Pierre.Gondois@arm.com,
+	viresh.kumar@linaro.org,
+	sudeep.holla@arm.com,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: Yunhui Cui <cuiyunhui@bytedance.com>,
+	Xu Lu <luxu.kernel@bytedance.com>
+Subject: [PATCH] ACPI: CPPC: Fix panic caused by NULL pointer dereference
+Date: Wed,  4 Jun 2025 10:30:36 +0800
+Message-Id: <20250604023036.99553-1-cuiyunhui@bytedance.com>
+X-Mailer: git-send-email 2.39.2 (Apple Git-143)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-From: "Rob Herring (Arm)" <robh@kernel.org>
-Cc: Michael Kelley <mhklinux@outlook.com>, linux-acpi@vger.kernel.org, 
- Wei Liu <wei.liu@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
- Yunhong Jiang <yunhong.jiang@linux.intel.com>, 
- "K. Y. Srinivasan" <kys@microsoft.com>, Chris Oo <cho@microsoft.com>, 
- Ricardo Neri <ricardo.neri@intel.com>, linux-hyperv@vger.kernel.org, 
- Haiyang Zhang <haiyangz@microsoft.com>, 
- Krzysztof Kozlowski <krzk+dt@kernel.org>, linux-kernel@vger.kernel.org, 
- "Ravi V. Shankar" <ravi.v.shankar@intel.com>, 
- "Rafael J. Wysocki" <rafael@kernel.org>, 
- "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, x86@kernel.org, 
- Saurabh Sengar <ssengar@linux.microsoft.com>, 
- Dexuan Cui <decui@microsoft.com>, devicetree@vger.kernel.org
-To: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
-In-Reply-To: <20250603-rneri-wakeup-mailbox-v4-3-d533272b7232@linux.intel.com>
-References: <20250603-rneri-wakeup-mailbox-v4-0-d533272b7232@linux.intel.com>
- <20250603-rneri-wakeup-mailbox-v4-3-d533272b7232@linux.intel.com>
-Message-Id: <174900070284.2624702.4580450009482590306.robh@kernel.org>
-Subject: Re: [PATCH v4 03/10] dt-bindings: reserved-memory: Wakeup Mailbox
- for Intel processors
+Content-Transfer-Encoding: 8bit
 
+With nosmp in cmdline, other CPUs are not brought up, leaving
+their cpc_desc_ptr NULL. CPU0's iteration via for_each_possible_cpu()
+dereferences these NULL pointers, causing panic.
 
-On Tue, 03 Jun 2025 17:15:15 -0700, Ricardo Neri wrote:
-> Add DeviceTree bindings to enumerate the wakeup mailbox used in platform
-> firmware for Intel processors.
-> 
-> x86 platforms commonly boot secondary CPUs using an INIT assert, de-assert
-> followed by Start-Up IPI messages. The wakeup mailbox can be used when this
-> mechanism is unavailable.
-> 
-> The wakeup mailbox offers more control to the operating system to boot
-> secondary CPUs than a spin-table. It allows the reuse of same wakeup vector
-> for all CPUs while maintaining control over which CPUs to boot and when.
-> While it is possible to achieve the same level of control using a spin-
-> table, it would require to specify a separate `cpu-release-addr` for each
-> secondary CPU.
-> 
-> The operation and structure of the mailbox is described in the
-> Multiprocessor Wakeup Structure defined in the ACPI specification. Note
-> that this structure does not specify how to publish the mailbox to the
-> operating system (ACPI-based platform firmware uses a separate table). No
-> ACPI table is needed in DeviceTree-based firmware to enumerate the mailbox.
-> 
-> Add a `compatible` property that the operating system can use to discover
-> the mailbox. Nodes wanting to refer to the reserved memory usually define a
-> `memory-region` property. /cpus/cpu* nodes would want to refer to the
-> mailbox, but they do not have such property defined in the DeviceTree
-> specification. Moreover, it would imply that there is a memory region per
-> CPU.
-> 
-> Co-developed-by: Yunhong Jiang <yunhong.jiang@linux.intel.com>
-> Signed-off-by: Yunhong Jiang <yunhong.jiang@linux.intel.com>
-> Signed-off-by: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
-> ---
-> Changes since v3:
->  - Removed redefinitions of the mailbox and instead referred to ACPI
->    specification as per discussion on LKML.
->  - Clarified that DeviceTree-based firmware do not require the use of
->    ACPI tables to enumerate the mailbox. (Rob)
->  - Described the need of using a `compatible` property.
->  - Dropped the `alignment` property. (Krzysztof, Rafael)
->  - Used a real address for the mailbox node. (Krzysztof)
-> 
-> Changes since v2:
->  - Implemented the mailbox as a reserved-memory node. Add to it a
->    `compatible` property. (Krzysztof)
->  - Explained the relationship between the mailbox and the `enable-mehod`
->    property of the CPU nodes.
->  - Expanded the documentation of the binding.
-> 
-> Changes since v1:
->  - Added more details to the description of the binding.
->  - Added requirement a new requirement for cpu@N nodes to add an
->    `enable-method`.
-> ---
->  .../reserved-memory/intel,wakeup-mailbox.yaml      | 48 ++++++++++++++++++++++
->  1 file changed, 48 insertions(+)
-> 
+Panic backtrace:
 
-My bot found errors running 'make dt_binding_check' on your patch:
+[    0.401123] Unable to handle kernel NULL pointer dereference at virtual address 00000000000000b8
+...
+[    0.403255] [<ffffffff809a5818>] cppc_allow_fast_switch+0x6a/0xd4
+...
+Kernel panic - not syncing: Attempted to kill init!
 
-yamllint warnings/errors:
-./Documentation/devicetree/bindings/reserved-memory/intel,wakeup-mailbox.yaml:20:111: [warning] line too long (113 > 110 characters) (line-length)
+Fixes: 3cc30dd00a58 ("cpufreq: CPPC: Enable fast_switch")
+Reported-by: Xu Lu <luxu.kernel@bytedance.com>
+Signed-off-by: Yunhui Cui <cuiyunhui@bytedance.com>
+---
+ drivers/acpi/cppc_acpi.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-dtschema/dtc warnings/errors:
-
-doc reference errors (make refcheckdocs):
-
-See https://patchwork.ozlabs.org/project/devicetree-bindings/patch/20250603-rneri-wakeup-mailbox-v4-3-d533272b7232@linux.intel.com
-
-The base for the series is generally the latest rc1. A different dependency
-should be noted in *this* patch.
-
-If you already ran 'make dt_binding_check' and didn't see the above
-error(s), then make sure 'yamllint' is installed and dt-schema is up to
-date:
-
-pip3 install dtschema --upgrade
-
-Please check and re-submit after running the above command yourself. Note
-that DT_SCHEMA_FILES can be set to your schema file to speed up checking
-your schema. However, it must be unset to test all examples with your schema.
+diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+index a9ae2fd628630..6b649031808f8 100644
+--- a/drivers/acpi/cppc_acpi.c
++++ b/drivers/acpi/cppc_acpi.c
+@@ -476,7 +476,7 @@ bool cppc_allow_fast_switch(void)
+ 	struct cpc_desc *cpc_ptr;
+ 	int cpu;
+ 
+-	for_each_possible_cpu(cpu) {
++	for_each_present_cpu(cpu) {
+ 		cpc_ptr = per_cpu(cpc_desc_ptr, cpu);
+ 		desired_reg = &cpc_ptr->cpc_regs[DESIRED_PERF];
+ 		if (!CPC_IN_SYSTEM_MEMORY(desired_reg) &&
+-- 
+2.39.5
 
