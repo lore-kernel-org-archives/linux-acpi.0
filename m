@@ -1,97 +1,88 @@
-Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oa1-f53.google.com (mail-oa1-f53.google.com [209.85.160.53])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE0812749F0;
-	Thu,  5 Jun 2025 15:10:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=79.96.170.134
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE158D2FB
+	for <linux-acpi@vger.kernel.org>; Thu,  5 Jun 2025 15:35:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.53
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749136205; cv=none; b=ZcEMw8LgdhA4Oekf1RxhDCHc2R8yIjHz9b5tL1Mv3l0HUFz0nDCnB2glt03nxUmkTkJ2YTxSwvRJT4Dhs/i3SvPmEmeE+OKdssxWq1/WF/up6/b733WEB4TDo6NCZktTUcxsUrEV3GLfm6XmpApVIUsPIOHgzObtQsOgkpcz9mg=
+	t=1749137722; cv=none; b=ncQrYIkVk4cfP215Lirwyt3h0Sq/qa6X54+ggSgfdlhowo8smZH+ar8cy4xLZ1/2MyGTAFmwHUicp5bz1uzUZi66e7mmSF+2jXRnutrZDSqpnAn0Qqfp70to6rhQ4j6KYvFX4Qsv/uvp/kbXxgWWNfL7OnjzJnAtqrkwt4unjIs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749136205; c=relaxed/simple;
-	bh=WsntjljouOPbHdbSquLJoJXrNH7kjo5Cyehy4uSQ4Uo=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=THledoigrYJcUbMhBXd+rbUROpG4o/Ei/Hmv0oYKWEnd3Ob2/8GosNTm4h9NKb8DjlRyvIxgTx8OsElGVun/m/X/KPbkIRAeMNClpwDjcltAf6DqpoHerCxN98wWwEDrqTkVoLkQHTA+4f4i4CeXqOQ20uq+bGK3W7cAkSc2zS8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net; spf=pass smtp.mailfrom=rjwysocki.net; dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b=yAUwfp9f; arc=none smtp.client-ip=79.96.170.134
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rjwysocki.net
+	s=arc-20240116; t=1749137722; c=relaxed/simple;
+	bh=PabdidyP4NaRipTa2zwLZ60C9FmAviV1zEm0duJFP1Y=;
+	h=MIME-Version:From:Date:Message-ID:Subject:To:Content-Type; b=aNdXRGB6+qVfscZqN4rBUWlNxzRisd+0o7RUAnsiWLDKXI4EQ8WRqyWFCJMk+/pC7ZgjDwP0d954dZtnaNrVBFzSvVtn1wv/f0+brLdSOqnOFVdjL0tF7FxVSTcdVF9BnrVfbumhOGwyywpCKHrGdL/vHKq4ALFmtrQ16Pla4Vk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=buPR9/2u; arc=none smtp.client-ip=209.85.160.53
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b="yAUwfp9f"
-Received: from kreacher.localnet (unknown [5.63.189.50])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by cloudserver094114.home.pl (Postfix) with ESMTPSA id 1F2A966C044;
-	Thu,  5 Jun 2025 17:09:49 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=rjwysocki.net;
-	s=dkim; t=1749136189;
-	bh=WsntjljouOPbHdbSquLJoJXrNH7kjo5Cyehy4uSQ4Uo=;
-	h=From:Subject:Date;
-	b=yAUwfp9f6+Yf3Fewx70/e6mr97+PWDZevnXvooQV8plIaTg3M2rfGuhgE2J77lvnX
-	 cXwkfCWJhXaA06qOCNMMqAMR0rK4BCUU9rgUJS0QacqkFCPitzhG6UjKfdpifdfLeR
-	 7m+OHbBGcAPYuLFwtopHYH0OtEcrTo1onq/op+qBmDdPVh21eJh68HKBGoYgtkIX+a
-	 lp4XksNWMNRwXi3Yri7fxst6cQ73jtOdjA+FqabwOxBJpBPdi0UcNOlfmlMEJNeSYz
-	 2nF0As3011AkOtnjrp47SOzF0U9X+DCCJNgJZUIsSJ/iehKq72En5ndTKkR0kTFHDb
-	 ooiCdJVItfoMA==
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To: x86 Maintainers <x86@kernel.org>, Linux PM <linux-pm@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>,
- Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>,
- Dave Hansen <dave.hansen@linux.intel.com>,
- Artem Bityutskiy <artem.bityutskiy@linux.intel.com>,
- "Gautham R. Shenoy" <gautham.shenoy@amd.com>, Ingo Molnar <mingo@redhat.com>,
- Borislav Petkov <bp@alien8.de>, Linux ACPI <linux-acpi@vger.kernel.org>
-Subject:
- [PATCH v1 0/5] x86/smp: Restore the elimination of
- mwait_play_dead_cpuid_hint()
-Date: Thu, 05 Jun 2025 17:03:01 +0200
-Message-ID: <2226957.irdbgypaU6@rjwysocki.net>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="buPR9/2u"
+Received: by mail-oa1-f53.google.com with SMTP id 586e51a60fabf-2da3c572a0bso691105fac.3
+        for <linux-acpi@vger.kernel.org>; Thu, 05 Jun 2025 08:35:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1749137720; x=1749742520; darn=vger.kernel.org;
+        h=to:subject:message-id:date:from:mime-version:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=PabdidyP4NaRipTa2zwLZ60C9FmAviV1zEm0duJFP1Y=;
+        b=buPR9/2ubNMv71NEjChGATe91bkB4iD+bGM93FIcgwXUOF3sPg3oWE9ryeQHkIdlx4
+         vXUpWpIRM3tvSbUF4GInED4TjZqEXiezc7QylNONmduKmRZlH2ukaTVmWCD5F5DrHjiU
+         Jxyb9TkQdyTIZLyLqZVAvQPnf8QfyLaF0jON5J4OOLxdrhqoiB2Hg+skVmYmIxsZzXl2
+         rE2yniwjxbz1opgnjOrqXSf/Oq+njN5Up74ptZ38+BdkoQjRCp8BrEk4uv2u35TNUxxa
+         bG2q+4/z0PJWvh5mBNeTJE5Uds6LpWb2gW1PP4uUo6QzheoBWp7hCARKuslysqUhxI/F
+         d7WQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1749137720; x=1749742520;
+        h=to:subject:message-id:date:from:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=PabdidyP4NaRipTa2zwLZ60C9FmAviV1zEm0duJFP1Y=;
+        b=E07gOnaeBT+xiFlY5HKLJlWhmxMtxZvh1KXOODmgWqvCUZtE3nrExSwA9fXihLYY9p
+         qFl7I8aEUaB/a1pGgMUqU6zdGxG64/M73rJ45D1/BDKoR0OzicUrvkwoJyTRmrgjKxPZ
+         4Nb5x+C+uVOcCbyoLyYoOHvWeIK3GMeKmMLZKipi3hYVPD6cu6wwKUijHPYuOx7Tol6V
+         oOC4W8GdyYGM7u9oi7IeRojTqUl7aN9PRdkEH19oXKUd61VHpRnDaa2TqvEfdcTby9Lk
+         cyU774yyGJQQ48ZcHcdR5ZUk2JPJn5mQpeK25+k8AaRHEdNq8j95ZG/Bn0rswBI86bCQ
+         GhZQ==
+X-Gm-Message-State: AOJu0Yzo9Mw58epsyJtWUGTOkAaEgd6tw3VPHq7JuZ00ytjqtvVJTJt/
+	vBFfbL1Ib86A5PQlkg2pXODfj6RmGiGotKr24hI4BMwpEiNpfrfMTMpLSUMwQuc03UYaJn802Ze
+	4A0cY7m3jlCWJ6z+YeH2u3kcvPHD+RQ/4Ig5i
+X-Gm-Gg: ASbGncsYmBNHcYmzAAmoS0Nlfs24ccdy9rLhGhHf7Ykn2BzbG6n5wUwRvg4q9f7I9k8
+	37pkFjJVNnkaI33WTnBeO0QvQog/CIYZYRlfeGOQH62PnFGXTtjJG8o0zomkJ5B0zXmljm+fSDV
+	7Tck3WaW5D0jBswtpMhWQjoKh3Aw187bOzR9kGc/7FbuIlGlMNnn+y3dwlNmG6OiiGIg==
+X-Google-Smtp-Source: AGHT+IGEcMxj+LTFkexOsxfBQWrqJwZ6qx30H/hcJh7qg7Na8J3AW6zEDO9h+rYpY6cyoEmLzdygVVi50jLQ5EmL71Q=
+X-Received: by 2002:a05:6870:ac25:b0:29e:3921:b1ea with SMTP id
+ 586e51a60fabf-2e9bf538bb7mr5028409fac.30.1749137714833; Thu, 05 Jun 2025
+ 08:35:14 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
+From: zepta <z3ptaa@gmail.com>
+Date: Thu, 5 Jun 2025 17:35:04 +0200
+X-Gm-Features: AX0GCFv-tBJYCJ57PVVEk1Gj_iimZFZ_kgw0_MBmdJ1CpQYsm9ermDD4fvj2Z3g
+Message-ID: <CAPBS6KpGThpPpzLfJDJxQc_Njv+yEY2z7XFo6zX5EFKG8O-1Tg@mail.gmail.com>
+Subject: Stack overflow uefi get variable
+To: linux-acpi@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
-X-CLIENT-IP: 5.63.189.50
-X-CLIENT-HOSTNAME: 5.63.189.50
-X-VADE-SPAMSTATE: clean
-X-VADE-SPAMCAUSE: dmFkZTFgxoheEI+NWfLhkXW46nOJRwoQPjyhtjzK2PMeqp+IFBJDv0dbEecaOBBQv3ODI5hHoLvKO4qggjV7wMyUKH7rvpHM+2q0khd4cBskzjMXa5OVP6/fvVR4NX+IAE5MxbqJhaHV/vLI25++Oxhw0XvJ7Tw1sFvnxsCKjMaiNir/+zhHMbLDTXMAKwoMw0omSoSUQQcZvFJ3WoDQZACckhevk32yYB4ONnkF33LKMXdb51mmTA7HQ7cV8udNC0KF6dGNnLw14bB1fQ1KCQnmYPrUcnheafZ9YxO/DRArbD7H2nOxZzsT37izNVqDHA/Ekyf57/cQFQp8EyOMgRwfFYdCqY4sdDZ3bAYNLDffVlO7RVG9gvXiWPM4sr5/zc6m+y93dNVw/ZMAQ4micCAd0lhuTTl/FJdeD00HpzHXNaK6SUO9i/8mCO7qfOfojK/6TNe+EQEy2XQh/ErVRhx7lseeN4BNoMpGyb5M7au63GWlsF+FkMls3U8c+pOy9tFEUmjA2koqWVQpvzSEL+7Ry6ZFV5q06EH7Mm6LC9lB1JOXiWlxjHg8rGDuksaF0wGoZ7fbeFSzTC57fjeTVg53UmmsFHwz6KoZZ7aJnvrB7EYQVoHKKjUuSFd+9Vct5D+vsS9T9uyBeW4C0Thj/zoF2bXbvDzsXzYYYojt89IjKIl/mQ
-X-DCC--Metrics: v370.home.net.pl 1024; Body=12 Fuz1=12 Fuz2=12
 
-Hi Everyone,
+Hi!
 
-The purpose of this series is to reapply the code changes from commit
-96040f7273e2 ("x86/smp: Eliminate mwait_play_dead_cpuid_hint()") that
-has been reverted because of an issue introduced by it.  This takes
-place in the last patch ([5/5]) and the previous patches make
-preparatory changes needed to avoid breaking systems in the field
-once again.
+I recently discovered a stack overflow in a Bluetooth driver. Here is
+the commit https://github.com/torvalds/linux/commit/3aa1dc3c9060e335e82e9c182bf3d1db29220b1b
+fixing the issue.
 
-The problem with commit 96040f7273e2 was that on SMT-capable systems
-booting with "nosmt" in the kernel command line, the "dead" SMT siblings
-were stuck in idle state C1 after initialization because they were
-initialized before a proper cpuidle driver for the given platform got
-ready.  That prevented the whole processor from entering deep package
-C-states later on and pretty much ruined idle power (including power
-in suspend-to-idle).
+You could exploit this vulnerability:
+With physical access, one could modify the nvram values to exploit the
+stack overflow.
 
-To prevent that from happening, patches [1-4/5] use the approach that
-has been used for some time to address an analogous issue during resume
-from hibernation, in which case the "dead" SMT siblings are also in C1
-when the image kernel gets control back and they need to be put into
-sufficiently deep C-states.  Namely, they are taken online and then
-back offline immediately to make that happen.
+I also found in an email thread that says the OEM does not need to
+create this uefi
+variable(https://patches.linaro.org/project/linux-bluetooth/patch/20240626092801.2343844-1-kiran.k@intel.com/).
+This bypasses any runtime variable lock that the firmware might have.
+Then user can set/create the variable from the OS and overflow the
+stack in the kernel.
 
-The general idea is to take the "dead" SMT siblings online and then
-back offline immediately when a proper cpuidle driver gets ready, but
-some changes are made to avoid doing that twice in a row in vain.
-For this purpose, the intel_idle driver initialization is pushed
-to an earlier initialization phase (patch [1/5]) and the ACPI
-processor driver only "rescans" the "dead" SMT siblings when
-the ACPI idle driver is the current cpuidle driver.  It also
-avoids doing this on architectures other than x86 (patch [4/5]).
+I was told that this might be outside the Linux threat model because
+the general consensus is that we trust the data coming from the
+firmware. In this case, we can set the variable from both outside
+and inside. Is this a security issue on Linux end?
 
-Thanks!
-
-
-
+/ Oliver
