@@ -1,63 +1,64 @@
-Received: from mail-lf1-f46.google.com (mail-lf1-f46.google.com [209.85.167.46])
+Received: from mail-lf1-f54.google.com (mail-lf1-f54.google.com [209.85.167.54])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3168B2750F0
-	for <linux-acpi@vger.kernel.org>; Thu,  5 Jun 2025 17:53:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55DB0279915
+	for <linux-acpi@vger.kernel.org>; Thu,  5 Jun 2025 17:53:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749145988; cv=none; b=XRJij+RVVq+/t59/JcXDahPe8fPfp4tYmNZ522byTYinmjSOsYSQbzCRny8HlVhm2UF5WvB/GhPW9DK0LU8oEAgQ5giYlDt2N2VxqL8HvYmVeyoPaIwXZM5bCYiGTT266cF+GNU3W73GpPV4zN4mm0+MVEHSAv4Ahu0A7HzU+MI=
+	t=1749145989; cv=none; b=CvA9uqjmHPfVNEpgsCx/scMhCVBOHIQZLS0mHvDcxlaCewDzlSasLYKOLyPOvSPj7D9l/ie814Dz7yqeXLRB0pMHMhxTcdYkUVjJ31n+Z8QhpavFHDDfdGYLzTIuydLOvY1ljDXEUHeWSCN5zjJsQIbLtgzPD9r3i6kYBshvCWI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749145988; c=relaxed/simple;
-	bh=9bzS54upE3rRAonWBAvA9rFLasmw9Br1LIIjE4DGYuQ=;
-	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=Nlh8IzCkXsZhzUiX8aTdgznYVJQzjrY7KUIUHWSV4cvJyLlOsa9K7qpdGGEZwujNje7iR25LCtELI6lCxei3S/kzHP4cH0oc93wiOJCnUpZnkC66FnucyTRCNxFARUTZqB0fN058WM9Ew1PG46yI8msEeNFc2LhxE5qjIF/r93U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=N3kPXvIw; arc=none smtp.client-ip=209.85.167.46
+	s=arc-20240116; t=1749145989; c=relaxed/simple;
+	bh=V3mF7pLDoaruyqIzAwwMyJdM0YQYzWL05/erg95lnDI=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=anW6CH3UAA0hemT+6qLptp2Cid/KMAFCUgh3VDqIBxJ+PITD3KZEYSZ5gfmMODZ1Wc1u9GO1ESdiNvHkoTwqhfAH2evTheUYkfryk4QLZQ/fknKxxCmhxRcvvWdvIuMs0nCJGHZxrVDyaifhdkd3J6H9W+qRKlYIvP2EW22aRUI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=ETjM1jqi; arc=none smtp.client-ip=209.85.167.54
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="N3kPXvIw"
-Received: by mail-lf1-f46.google.com with SMTP id 2adb3069b0e04-54e7967cf67so1434558e87.0
-        for <linux-acpi@vger.kernel.org>; Thu, 05 Jun 2025 10:53:03 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="ETjM1jqi"
+Received: by mail-lf1-f54.google.com with SMTP id 2adb3069b0e04-551fc6d4a76so1309689e87.0
+        for <linux-acpi@vger.kernel.org>; Thu, 05 Jun 2025 10:53:05 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1749145982; x=1749750782; darn=vger.kernel.org;
-        h=cc:to:content-transfer-encoding:mime-version:message-id:date
-         :subject:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=qg8B5BhnvwwywdhBinf22u9UEobn5/4x1o1lWUndYM0=;
-        b=N3kPXvIwmX+CDcGbVtvQyBHqnAw4wRwfWsKoRmpClmjchCcMtJsDTnkxxp8Bq86x4m
-         4k5IFnZBE+AX4YgIUEa3F3+/bbOlXV7uVaGZ4T5P5bP6HUcTr6GlUgciNTod9rnBMhyp
-         cCcAARQwisqCyj+yGzLEcOVsrZECC8+UPVg2g=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1749145982; x=1749750782;
-        h=cc:to:content-transfer-encoding:mime-version:message-id:date
-         :subject:from:x-gm-message-state:from:to:cc:subject:date:message-id
+        d=chromium.org; s=google; t=1749145984; x=1749750784; darn=vger.kernel.org;
+        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
+         :mime-version:subject:date:from:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=qg8B5BhnvwwywdhBinf22u9UEobn5/4x1o1lWUndYM0=;
-        b=EVW4fNMYMZIx3WgiFMguLhSDz+Vxsq096hYSdC20CQBipSg7yJajoCsf/zznQRsyBu
-         EQUcUlUHWudfX0auwiLvQYmnd49tPr94or2snreztCu/vIavne8hP3e8MXWrcm8Do36K
-         X74ftKMoSuOe6DjoVjvnLhsAr3EnIzU/ETL7NkswLKwCwUe74VOoCqp0s0gSFZCu6T9+
-         eeWonlgldfzdn+iwFkOJLcuL2EbveDihDTJqsWLpfkIbfQVU/PwWVyuigeRCKF7u8hG2
-         wIgGSzaTR8bQ5R+X9+no+jzYNPdodFZEB9VQkfrWV+Mf4nT5y1x/KX3Wc2E3nQHxczsE
-         WOEQ==
-X-Forwarded-Encrypted: i=1; AJvYcCUf+WLkUZqinT6qxLWhZzqz6ZiZOoBWaDXxXFT+6vWT5FEPq8XjPc/sC/kXBS3tzOXBAg/K91tq2HO3@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz3/Djz6BPn+cwkDj39YMaV4vJwZJCpW33I0UNMDXJBoEkBGt56
-	F+mi4tfoOL0KzDcu9Hk55l0+eY5udPF2703DqoaZBAi6hhk8GOYOxwz6ge/jZ0B0Yg==
-X-Gm-Gg: ASbGncvgF3d1zgreSrTvzsnsfT8KYR/E4LTT50IX3Fs8bwgUmQzS5R1/2DzsWRFnPNV
-	3KMGehNGNFZXMlC6MVzdqnsbkHTCoN6J8w9NUEJz2qd+P0Dv86wp5swqHxKE9J3ce8DQUac7tV+
-	vvdmScO8GtU59HL5ksD+SR7MXS98NbwzcX3M/Fk9VpnUFLBLTqVxUAk1MA3wG0juhMt0jLBIycW
-	q6vq2/Pxifil8VPuY1PTJwGF8alFK/FN4EDEgXFaQLmsCcqSiJKEZJoDNYSDaymC0dvla5HR5Hf
-	VMtb8yKIDhAcN/5dnkj4gxAq1odW4l5g657c95IXfTcqo01T2+3GTddbETXIAN6JPTnLH9buwJY
-	puwesGvEpA0S+z2XrL2XRPvx5hw==
-X-Google-Smtp-Source: AGHT+IGFGY6JTGI6n0VkqKupH8+3OyGz0rwOerV6A58fRuz/+CnpGIvq6+ZmFKqYacJXbJhZzyj18Q==
-X-Received: by 2002:a05:6512:3b89:b0:553:3892:5ead with SMTP id 2adb3069b0e04-55366bd23bbmr23901e87.2.1749145982087;
-        Thu, 05 Jun 2025 10:53:02 -0700 (PDT)
+        bh=W8OIPxZw+kNtaX9XsRliFjEOnUVpjIedNlprBesFBFM=;
+        b=ETjM1jqiveXzdwPDQFMdlninWX7WCzWyBBTNVcW8rRYgpQ9RBIljJU1/Z4o4pYaX/E
+         ho9z0jjgKf6qSxZ5fghWCD/nUGaOdMY0r3O5cfwPsx6FHPvxDVWfvcfWQgD956eFgjyj
+         gwNfHRFdK2iaQ2xUr6iRIhtPpoIHBQRoN6HSM=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1749145984; x=1749750784;
+        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
+         :mime-version:subject:date:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=W8OIPxZw+kNtaX9XsRliFjEOnUVpjIedNlprBesFBFM=;
+        b=r3sCgax+Bra0iRMErRB0CCmwjY45nbJ8oG5QLQci/ktqXmLUSE+wccPWd4zb8cMHsx
+         7dLBdF9TzfqWN/9b8ju02uIqFXx4Ul45zsyuR9wkM0suRe34J+NtgTioC0EaPQTfzMgh
+         aKgJXWSYR3JHhpcodAfkz6MBIRjz55aSKax3vwoVZAoCvQkJy6mNIpCePpHXo7qm29xt
+         c3K99oSs4sQrHGEd2WmB2omdKxBk2MawQ3Yc/h0ND8rZ3245FJZ1U7LeBkgewg/w0VBj
+         TAPMsG25QiNBvQsQpoT46wSNsJoyiYQTkX0HgolWL7KYsH+7aMqjJElfcLDsCANMTTbS
+         6qyg==
+X-Forwarded-Encrypted: i=1; AJvYcCWo/WwZ1P5Lt0sLcdW+EOQKVfZcqJ7065lukOJO0eYWoP6LsCaPnQjD3AFGrZRaCTmnbFyZD85b1CVF@vger.kernel.org
+X-Gm-Message-State: AOJu0YyVrAmJ9q6QcWtAyQF1DZP6Dvtn8Ci8vRHi1eL85CvqqJQDlW96
+	IwFPlYblKX1FVEQo1L2JO29AEqu/aXyBaD2Ue5w6ChVtbDThMOQKYkLSuQkcfNMKOw==
+X-Gm-Gg: ASbGnctU7S91jpYwVNWPJZqCpLpmhLjWLbgN64A/xv3mYd0PXPgEjN0orT5DfAHHOaO
+	bZdZ1HrEbq2iamI0tGhNiEfL711utxlULsiB5FS2+Bi3D1c/RiIMgusdwsSWehNHvON05hxuyjp
+	t0yvFprdr4QT00xzs+ePSnH9NP7E2oeodKrvN1E71mW0iHpjPqRqKkPSTeSl6YvHow/XkKggaKC
+	rMJFfheJ22V21yLKBAT9MmoARxyT0z49xRKJt4bMOgoI7oRkVwrCTiA40/ZoAotL5awi867kAl8
+	xB/elxNksxpwIZxkTUfySGXeGitf1u0Ni7+TQUNY8o3DQu1QTf+U/7wJwZflB0Y+FfXpGmKbEJt
+	9N29I37eq3Sn3XofLCgADpGBgN7/XKxg4i9k3WBCzbbs76hE=
+X-Google-Smtp-Source: AGHT+IGs54mK0grF5GpYvNrIRBVyl5RIQTl5wT33xEXZ6lSNp2Qm87PtJXgiSarLAOoqtbFmQtgqJA==
+X-Received: by 2002:a05:6512:224b:b0:553:2bf2:e303 with SMTP id 2adb3069b0e04-55366bf9034mr20502e87.30.1749145984304;
+        Thu, 05 Jun 2025 10:53:04 -0700 (PDT)
 Received: from ribalda.c.googlers.com (90.52.88.34.bc.googleusercontent.com. [34.88.52.90])
-        by smtp.gmail.com with ESMTPSA id 2adb3069b0e04-553379379c2sm2641210e87.251.2025.06.05.10.53.01
+        by smtp.gmail.com with ESMTPSA id 2adb3069b0e04-553379379c2sm2641210e87.251.2025.06.05.10.53.03
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 05 Jun 2025 10:53:01 -0700 (PDT)
+        Thu, 05 Jun 2025 10:53:04 -0700 (PDT)
 From: Ricardo Ribalda <ribalda@chromium.org>
-Subject: [PATCH v2 00/12] media: uvcvideo: Add support for orientation and
- rotation.
-Date: Thu, 05 Jun 2025 17:52:53 +0000
-Message-Id: <20250605-uvc-orientation-v2-0-5710f9d030aa@chromium.org>
+Date: Thu, 05 Jun 2025 17:52:56 +0000
+Subject: [PATCH v2 03/12] ACPI: mipi-disco-img: Do not duplicate rotation
+ info into swnodes
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -66,10 +67,9 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-B4-Tracking: v=1; b=H4sIAHXZQWgC/3WNyw7CIBREf6W5azGAoqkr/8N0gTzKXRTMhRJNw
- 7+L3bs8kzkzG2RH6DLchg3IVcyYYgd5GMAEHWfH0HYGyaXiZ35iazUsdSUWXXqXKX/1YrRaafu
- Ebr3IeXzvi4+pc8BcEn32gyp+6f+tKhhnQnNj1Kj0Rdq7CZQWXJdjohmm1toXP2vZL7EAAAA=
-X-Change-ID: 20250403-uvc-orientation-5f7f19da5adb
+Message-Id: <20250605-uvc-orientation-v2-3-5710f9d030aa@chromium.org>
+References: <20250605-uvc-orientation-v2-0-5710f9d030aa@chromium.org>
+In-Reply-To: <20250605-uvc-orientation-v2-0-5710f9d030aa@chromium.org>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, 
  Hans de Goede <hdegoede@redhat.com>, 
  Mauro Carvalho Chehab <mchehab@kernel.org>, 
@@ -87,61 +87,42 @@ Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
  Ricardo Ribalda <ribalda@chromium.org>
 X-Mailer: b4 0.14.2
 
-The ACPI has ways to annotate the location of a USB device. Wire that
-annotation to a v4l2 control.
-
-To support all possible devices, add a way to annotate USB devices on DT
-as well. The original binding discussion happened here:
-https://lore.kernel.org/linux-devicetree/20241212-usb-orientation-v1-1-0b69adf05f37@chromium.org/
-
-The following patches are needed regardless if we finally add support
-for orientation and rotation or not:
-- media: uvcvideo: Always set default_value
-- media: uvcvideo: Do not create MC entities for virtual entities
+The function v4l2_fwnode_device_parse() is not capable of parsint the
+_PLD method, there is no need to duplicate the rotation information in a
+swnode.
 
 Signed-off-by: Ricardo Ribalda <ribalda@chromium.org>
 ---
-Changes in v2:
-- Add support for rotation
-- Rename fwnode to swentity
-- Remove the patch to move the gpio file
-- Remove patches already in media-committers
-- Change priority of data origins
-- Patch mipi-disco
-- Link to v1: https://lore.kernel.org/r/20250403-uvc-orientation-v1-0-1a0cc595a62d@chromium.org
+ drivers/acpi/mipi-disco-img.c | 15 ---------------
+ 1 file changed, 15 deletions(-)
 
----
-Ricardo Ribalda (12):
-      media: uvcvideo: Always set default_value
-      media: v4l: fwnode: Support ACPI's _PLD for v4l2_fwnode_device_parse
-      ACPI: mipi-disco-img: Do not duplicate rotation info into swnodes
-      media: ipu-bridge: Use v4l2_fwnode_device_parse helper
-      media: ipu-bridge: Use v4l2_fwnode for unknown rotations
-      dt-bindings: usb: usb-device: Add orientation and rotation
-      media: uvcvideo: Make uvc_alloc_entity non static
-      media: uvcvideo: Add support for V4L2_CID_CAMERA_ORIENTATION
-      media: uvcvideo: Add uvc_ctrl_query_entity helper
-      media: uvcvideo: Add get_* functions to uvc_entity
-      media: uvcvideo: Add support for V4L2_CID_CAMERA_ROTATION
-      media: uvcvideo: Do not create MC entities for virtual entities
+diff --git a/drivers/acpi/mipi-disco-img.c b/drivers/acpi/mipi-disco-img.c
+index 5b85989f96beeb726f59ac9e12e965a215fb38f6..b58b5ba22a47a4afc5212998074d322f0b7586dc 100644
+--- a/drivers/acpi/mipi-disco-img.c
++++ b/drivers/acpi/mipi-disco-img.c
+@@ -617,21 +617,6 @@ static void init_crs_csi2_swnodes(struct crs_csi2 *csi2)
+ 
+ 	adev_fwnode = acpi_fwnode_handle(adev);
+ 
+-	/*
+-	 * If the "rotation" property is not present, but _PLD is there,
+-	 * evaluate it to get the "rotation" value.
+-	 */
+-	if (!fwnode_property_present(adev_fwnode, "rotation")) {
+-		struct acpi_pld_info *pld;
+-
+-		if (acpi_get_physical_device_location(handle, &pld)) {
+-			swnodes->dev_props[NEXT_PROPERTY(prop_index, DEV_ROTATION)] =
+-					PROPERTY_ENTRY_U32("rotation",
+-							   pld->rotation * 45U);
+-			kfree(pld);
+-		}
+-	}
+-
+ 	if (!fwnode_property_read_u32(adev_fwnode, "mipi-img-clock-frequency", &val))
+ 		swnodes->dev_props[NEXT_PROPERTY(prop_index, DEV_CLOCK_FREQUENCY)] =
+ 			PROPERTY_ENTRY_U32("clock-frequency", val);
 
- .../devicetree/bindings/usb/usb-device.yaml        |  10 ++
- drivers/acpi/mipi-disco-img.c                      |  15 ---
- drivers/media/pci/intel/ipu-bridge.c               |  52 ++++----
- drivers/media/usb/uvc/Makefile                     |   3 +-
- drivers/media/usb/uvc/uvc_ctrl.c                   | 132 ++++++++++++++-------
- drivers/media/usb/uvc/uvc_driver.c                 |  18 ++-
- drivers/media/usb/uvc/uvc_entity.c                 |  11 ++
- drivers/media/usb/uvc/uvc_swentity.c               | 118 ++++++++++++++++++
- drivers/media/usb/uvc/uvcvideo.h                   |  29 +++++
- drivers/media/v4l2-core/v4l2-fwnode.c              |  85 ++++++++++++-
- include/linux/usb/uvc.h                            |   3 +
- 11 files changed, 377 insertions(+), 99 deletions(-)
----
-base-commit: 5e1ff2314797bf53636468a97719a8222deca9ae
-change-id: 20250403-uvc-orientation-5f7f19da5adb
-
-Best regards,
 -- 
-Ricardo Ribalda <ribalda@chromium.org>
+2.50.0.rc0.642.g800a2b2222-goog
 
