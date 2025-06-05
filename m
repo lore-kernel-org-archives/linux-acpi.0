@@ -1,69 +1,166 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4B01198E91;
-	Thu,  5 Jun 2025 14:34:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E83EA1CCB40;
+	Thu,  5 Jun 2025 15:09:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=79.96.170.134
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749134069; cv=none; b=CpokhdjyxM7naLd/uq1sYdEYtz2Ss2DsKFGxB2W4iG9ivui8Co3WQzq8MQyJGblrdRlLzLJtKltxqIFne9Uj78lxRNNegYTgpOiaNn+VlYdIl0jAWx7hFxRaM9esgL66KzWXJ5zUJP0vTifAbBMRYcgupasaWmR6IlbMDrpj+NA=
+	t=1749136195; cv=none; b=iCZvl0SHR6HGVnK7Cqw1MrH3egO1WVEXwjwtmogLc3Nz600uGlgUcSUelGgY895aE5kOQD9+fA2ev/PVVZRownEmdBPyEvfm1VfcsPQJQ74JXFoOg19LiZJz5xpCRKwZ6GIgwMzmJXUAz5jrUoxh3iRfqk/VSv5r5Ab7ClFKq/4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749134069; c=relaxed/simple;
-	bh=bizip3kwAB8W3CkUozAAw1K0artPGLYH9/tZAn3jPFE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=QVx4fukMJxWcqi0yrOZ/+nXm50OgHLUcUrEQ0HRO7L/5C/QhXQmEs/76uafey2ibCgZbfuyTst6RVgv/klu1gn7af+260vx9WQGPU39UyVpJ3q1QVZ++6MjsuymiDNuYQHmnG/8cvhdY2FN18qeX1tAxys5AUvethWaUsuygbCc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VzaUGgkx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749136195; c=relaxed/simple;
+	bh=5w6Yv93zAQ3ErcgdTrPiDO9Q9Wfrs45HpAf7J5N0gZQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=s9jeeM+0BV2LpBdI7T3+50OT127mbC+6zze6e641ohyQt09xgP6c53FaJS2llUWgClBgl0v274quT9LjIX9npW0GkNlFkjhueF+FoMF9Rgb0lR6EoemuY22m4J4THyO3lEbEe+ezLHFGHmH69yERNna937QXdX9GEZ4Yfi/jBG8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net; spf=pass smtp.mailfrom=rjwysocki.net; dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b=qSH1k1Bt; arc=none smtp.client-ip=79.96.170.134
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rjwysocki.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VzaUGgkx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C60DAC4CEE7;
-	Thu,  5 Jun 2025 14:34:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1749134068;
-	bh=bizip3kwAB8W3CkUozAAw1K0artPGLYH9/tZAn3jPFE=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=VzaUGgkxpwyq0iXmltUFBoaJF5gKx5fRQqw6VBXHJmHMr7647kbYYIzMr0zqHYA5F
-	 9XuiG14zr4AG3FOoVMQnWK5QnUXOwSmJP4Z+G0RHKxs1AnUTSZW0OAqyhIVt+92HPm
-	 41uGoXfabjdc4wDsGNmUzm+uscIu1bG3Ho2zoCVwFo/a5/NuE6aX0iK039fV0FDyJI
-	 c4qC4R+11e1RlgkDs+yfj0bwqR4h2AkseTUm0VrfIhPKscs7hzTcBP8zoMnPuqu9Tk
-	 YLbnj7TxqWPlAqGh9yRoh8fzF9prohAfRz9GgnWysqMZ3JFQ3NfFSusgLv5N8EHX53
-	 hDdPmOTLVCXkQ==
-Date: Thu, 5 Jun 2025 16:34:21 +0200
-From: Danilo Krummrich <dakr@kernel.org>
-To: Igor Korotin <igor.korotin@yahoo.com>
-Cc: Igor Korotin <igor.korotin.linux@gmail.com>,
-	Miguel Ojeda <ojeda@kernel.org>,
-	Alex Gaynor <alex.gaynor@gmail.com>, Rob Herring <robh@kernel.org>,
-	Saravana Kannan <saravanak@google.com>,
-	"Rafael J . Wysocki" <rafael@kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	rust-for-linux@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
-	Boqun Feng <boqun.feng@gmail.com>, Gary Guo <gary@garyguo.net>,
-	=?iso-8859-1?Q?Bj=F6rn?= Roy Baron <bjorn3_gh@protonmail.com>,
-	Benno Lossin <benno.lossin@proton.me>,
-	Andreas Hindborg <a.hindborg@kernel.org>,
-	Alice Ryhl <aliceryhl@google.com>, Trevor Gross <tmgross@umich.edu>,
-	Len Brown <lenb@kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>,
-	Wedson Almeida Filho <wedsonaf@gmail.com>,
-	Alex Hung <alex.hung@amd.com>, Tamir Duberstein <tamird@gmail.com>,
-	FUJITA Tomonori <fujita.tomonori@gmail.com>,
-	Xiangfei Ding <dingxiangfei2009@gmail.com>
-Subject: Re: [PATCH v1 0/5] rust: Add ACPI match table support for Rust
- drivers
-Message-ID: <aEGq7a6fVUoCPeAl@pollux>
-References: <20250604122945.3445776-1-igor.korotin.linux@gmail.com>
- <aEC73CHD0fvByrJs@cassiopeiae>
- <2d02be52-b22b-4a2b-bfbe-aff7b62200e8@yahoo.com>
+	dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b="qSH1k1Bt"
+Received: from kreacher.localnet (unknown [5.63.189.50])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by cloudserver094114.home.pl (Postfix) with ESMTPSA id 29D2566C036;
+	Thu,  5 Jun 2025 17:09:44 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=rjwysocki.net;
+	s=dkim; t=1749136184;
+	bh=5w6Yv93zAQ3ErcgdTrPiDO9Q9Wfrs45HpAf7J5N0gZQ=;
+	h=From:Subject:Date;
+	b=qSH1k1BtkumQjRlAiVzukEKaymWbwSyIEpgjTJCKwbbWza9OEwLmY60+XkKsJH/yi
+	 0eChstEywNEVUS5+ZcCor3NJkdVZxYWwedkT4EnfaDFc9WwPayV/zO1qhCbaU4CW9Z
+	 2YwyJRFpzW+v0vHX7daAFV0kVPMH4kBfPzRB833qY3U20izZP7DPnF7v8+qZHyk3rC
+	 FM6RwjMcgrStNBR79iBAOTFmLToLPd/QbiXb5UqpH25bF3N86pgbMd4am7m35Uir/s
+	 Gl47N9xeatvxdHmtOYVRp3BrMGzadQyqAWCr8aKT0HqTChfLq4NQRz5mVL2JV8vv95
+	 UnQEwyMZnDjKg==
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: x86 Maintainers <x86@kernel.org>, Linux PM <linux-pm@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>,
+ Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>,
+ Dave Hansen <dave.hansen@linux.intel.com>,
+ Artem Bityutskiy <artem.bityutskiy@linux.intel.com>,
+ "Gautham R. Shenoy" <gautham.shenoy@amd.com>, Ingo Molnar <mingo@redhat.com>,
+ Borislav Petkov <bp@alien8.de>, Linux ACPI <linux-acpi@vger.kernel.org>
+Subject:
+ [PATCH v1 5/5] Reapply "x86/smp: Eliminate mwait_play_dead_cpuid_hint()"
+Date: Thu, 05 Jun 2025 17:09:35 +0200
+Message-ID: <7813065.EvYhyI6sBW@rjwysocki.net>
+In-Reply-To: <2226957.irdbgypaU6@rjwysocki.net>
+References: <2226957.irdbgypaU6@rjwysocki.net>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2d02be52-b22b-4a2b-bfbe-aff7b62200e8@yahoo.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+X-CLIENT-IP: 5.63.189.50
+X-CLIENT-HOSTNAME: 5.63.189.50
+X-VADE-SPAMSTATE: clean
+X-VADE-SPAMCAUSE: dmFkZTEzSEGzZ/ONVrWENr6vcXfS3S2jicISDIUk4t6WJg+Zjj/tMsiKrH6p/W9hVn65rDd2JKDd5uTYEHknKQT2r7pOoqF3rdVD5yhK7Rprhh7g9Zvcj23lpp2rY7UCLtUpLjrE40L5kP2ENOt7F7JFMQrsU0BxCSyD9ImwCg/5uHKqloLfTfX1B6buKhq24d5iBCDj1fuCRg5EDPCCcGoXCAG/xJ8DxnVxdLMqNeA6Murrcf5yV2bVSf0qD3cTb1ZGJEaagT8ZwEZw1hwmHq4GBUTZA/geTkMBRKK8IMyXCx4LjU27eYT2E9Bi7kPkpz1heTPAWpmaTKgTxzYdBmQllqRTl/Yl2mbTQxvwrPd3I7zV7RAKW8lL8zC1Qqzv74Nqlxzwid9Qnd2k+6vzP8M8lTjbI3EUY48Qn0InRxGMdT0mI6F/wpdr91v91Wod4Xt1EmxclbwDJX2Is1vMQRh2U2mZLIDQN0M9sNrj+X3o5zkShMz+j9Z0XGTwte4UyGTpMainqH1zLPnxQEI/Cs8t6faBMja0m/aGPSYG7PZDZ0JZ8/fORk3jqIccuBkwbYmzOXwKB1kP9qI0b1DCJzVBeBsHtWzitHFlQ9cMDPKTooa6zSw9QtOGbQS78UXLSL9r4vruh1z2hDnMKDwCCPHN4KlkDj1wHu+122qK3UBoDbQH+w
+X-DCC--Metrics: v370.home.net.pl 1024; Body=12 Fuz1=12 Fuz2=12
 
-On Thu, Jun 05, 2025 at 02:57:21PM +0100, Igor Korotin wrote:
-> Should I resend the whole series as PATCH v2 with a changelog?
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-Yes, please do so.
+Revert commit 70523f335734 ("Revert "x86/smp: Eliminate
+mwait_play_dead_cpuid_hint()"") to reapply the changes from commit
+96040f7273e2 ("x86/smp: Eliminate mwait_play_dead_cpuid_hint()")
+reverted by it.
+
+Previously, these changes caused idle power to rise on systems booting
+with "nosmt" in the kernel command line because they effectively caused
+"dead" SMT siblings to remain in idle state C1 after executing the HLT
+instruction, which prevented the processor from reaching package idle
+states deeper than PC2 going forward.
+
+Now, the "dead" SMT siblings are rescanned after initializing a proper
+cpuidle driver for the processor (either intel_idle or ACPI idle), at
+which point they are able to enter a sufficiently deep idle state
+in native_play_dead() via cpuidle, so the code changes in question can
+be reapplied.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ arch/x86/kernel/smpboot.c |   54 +++++-----------------------------------------
+ 1 file changed, 7 insertions(+), 47 deletions(-)
+
+--- a/arch/x86/kernel/smpboot.c
++++ b/arch/x86/kernel/smpboot.c
+@@ -1238,6 +1238,10 @@
+ 	local_irq_disable();
+ }
+ 
++/*
++ * We need to flush the caches before going to sleep, lest we have
++ * dirty data in our caches when we come back up.
++ */
+ void __noreturn mwait_play_dead(unsigned int eax_hint)
+ {
+ 	struct mwait_cpu_dead *md = this_cpu_ptr(&mwait_cpu_dead);
+@@ -1284,50 +1288,6 @@
+ }
+ 
+ /*
+- * We need to flush the caches before going to sleep, lest we have
+- * dirty data in our caches when we come back up.
+- */
+-static inline void mwait_play_dead_cpuid_hint(void)
+-{
+-	unsigned int eax, ebx, ecx, edx;
+-	unsigned int highest_cstate = 0;
+-	unsigned int highest_subcstate = 0;
+-	int i;
+-
+-	if (boot_cpu_data.x86_vendor == X86_VENDOR_AMD ||
+-	    boot_cpu_data.x86_vendor == X86_VENDOR_HYGON)
+-		return;
+-	if (!this_cpu_has(X86_FEATURE_MWAIT))
+-		return;
+-	if (!this_cpu_has(X86_FEATURE_CLFLUSH))
+-		return;
+-
+-	eax = CPUID_LEAF_MWAIT;
+-	ecx = 0;
+-	native_cpuid(&eax, &ebx, &ecx, &edx);
+-
+-	/*
+-	 * eax will be 0 if EDX enumeration is not valid.
+-	 * Initialized below to cstate, sub_cstate value when EDX is valid.
+-	 */
+-	if (!(ecx & CPUID5_ECX_EXTENSIONS_SUPPORTED)) {
+-		eax = 0;
+-	} else {
+-		edx >>= MWAIT_SUBSTATE_SIZE;
+-		for (i = 0; i < 7 && edx; i++, edx >>= MWAIT_SUBSTATE_SIZE) {
+-			if (edx & MWAIT_SUBSTATE_MASK) {
+-				highest_cstate = i;
+-				highest_subcstate = edx & MWAIT_SUBSTATE_MASK;
+-			}
+-		}
+-		eax = (highest_cstate << MWAIT_SUBSTATE_SIZE) |
+-			(highest_subcstate - 1);
+-	}
+-
+-	mwait_play_dead(eax);
+-}
+-
+-/*
+  * Kick all "offline" CPUs out of mwait on kexec(). See comment in
+  * mwait_play_dead().
+  */
+@@ -1377,9 +1337,9 @@
+ 	play_dead_common();
+ 	tboot_shutdown(TB_SHUTDOWN_WFS);
+ 
+-	mwait_play_dead_cpuid_hint();
+-	if (cpuidle_play_dead())
+-		hlt_play_dead();
++	/* Below returns only on error. */
++	cpuidle_play_dead();
++	hlt_play_dead();
+ }
+ 
+ #else /* ... !CONFIG_HOTPLUG_CPU */
+
+
+
