@@ -1,158 +1,139 @@
-Received: from mail-wm1-f46.google.com (mail-wm1-f46.google.com [209.85.128.46])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from borehabit.cfd (ip160.ip-51-81-179.us [51.81.179.160])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF0DE225A5B;
-	Tue, 10 Jun 2025 14:59:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D7FC2397B0
+	for <linux-acpi@vger.kernel.org>; Tue, 10 Jun 2025 15:02:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=51.81.179.160
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749567563; cv=none; b=uHZ0zS1NQxKem2jvxqIw8+0SXvUwQa6JJumNxNT561gvm3o8HtPwv/3KgrdkpvU6pAym9839z6ANTtNOgs+5oyGrzZYU91vvib1b2i6i2Io1I+ZErLcmMtqnaD6duETrrK6tTlWpJ6qWMUjIwPq/V4bZvm/vjCxglQyO9EkL93E=
+	t=1749567738; cv=none; b=Yf1EeQSWp1Ce2fAcbwiXKbhB9vp6Odorry2qm7tDjtHSAvYcvJiXu7wWlDuKB8QvyTazJzeqxNsNX1HU+yROlnW4nDrvb76y0r7Nud58hXHcdzx/QEp0YKnmVzCSHBKwM9c01geNKiEPJu7Zmbt6MBLCWLT91YNlDfjcd10OuwU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749567563; c=relaxed/simple;
-	bh=eAzNjFltUxiELm09w9k9dxOVmIUtcLxfxaZgakO21jc=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=rJTYcZgxMedNZPdn9ox597SnrDeDYpD3UPWXgU/D4zkEt/WJ7L41sSxjI/giIaqUF3qdohyRpFUJH7CJ9tJLlUydSzPmPSQeVneXjL0oJrc599X05nTXIhaHuOpWVG13x/eOba1aAZhy0073TZteSckX3nlnbhxUT1kK7uXEUbU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=YvgH2+Ok; arc=none smtp.client-ip=209.85.128.46
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1749567738; c=relaxed/simple;
+	bh=j/qZ6nCFDOcbnwIbag40JF9HDzOLw0n9TJz9U1mz3X8=;
+	h=To:Subject:Date:From:Message-ID:MIME-Version:Content-Type; b=YtoQ5O4rM1M1hfzg7pkkUcxwoRzTemTySxj2+Dez1uxU3RMslGeJ40kcUtI9UBtYL0QiqkfqKh9dTkuYBd9BBahfqZAREz8+Ho5P1vZCH+dlLxKuI6S1uptXgu/YA19oVSqLeeSfwTucVXIs3DgvlKmxqLrpI06LzxUqfgbNDBY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=borehabit.cfd; spf=pass smtp.mailfrom=borehabit.cfd; dkim=pass (1024-bit key) header.d=borehabit.cfd header.i=@borehabit.cfd header.b=R9OGfYIm; arc=none smtp.client-ip=51.81.179.160
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=borehabit.cfd
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=borehabit.cfd
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YvgH2+Ok"
-Received: by mail-wm1-f46.google.com with SMTP id 5b1f17b1804b1-452f9735424so14028555e9.3;
-        Tue, 10 Jun 2025 07:59:21 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1749567560; x=1750172360; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:sender:from:to:cc:subject:date:message-id:reply-to;
-        bh=D4kwazpAlZo17qyn2Og7Cz+Ru1CTKqZ9TisRYwyWMCA=;
-        b=YvgH2+OkxYKZ2JGhoPhtU2dkoKvKGVNbmCGkvbWl605KNf8Yro4fEDE65bBnmbvi/U
-         KXuxdFhQito5I/zbQifik84OG9wvPpZLkPRhRjJ8VJ1MLCZpFmHiteLpqYBqk4k/awX0
-         P7SqiyifYKBzZbAz1Vup5TJvF7CKKYCg8D4oa1iH6HBVq2K7fIzJBhDrqK1bKKj0X/7a
-         aZoorTVOTsI39hUZ59aBq0zYYi6uHWYsvVFI4Swr26KeV76hs1rYlamslXh+XN/1nbBw
-         4wgVhP6GvxQlfI16ZmCc1/LRj8nmCRA1zAXuiWSbkeIhgGxFEqsNk+IBODeLHEXm7AVX
-         Ynlw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1749567560; x=1750172360;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:sender:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=D4kwazpAlZo17qyn2Og7Cz+Ru1CTKqZ9TisRYwyWMCA=;
-        b=QWd6pFgKK9G+o53q2dPwYKyDFpjyx7MCMTfQ5TfIb4B3rJlK0AcxhhjwLOMteEbbwu
-         FmWaS+tHReoVm1GY3K03t3WBKpXhsw4Qmawd/Fr1OnEoNXVmu2JMy4TvIDSKWgZp3PA+
-         WuP6JzrslyCneJtAzJ94uzIuSn0cSv6wQs1J6deM6Jkj/VT0poX9pZ5Zp0KMMFkHt4BN
-         9KP+ExjIcywq5bFDiykV4zV8/msg2kLIuB0bhyaHL3LJuVJ+qZgjeCmCuyyTvjX87X6o
-         qNnr35rusgo1CpiXv4NvJuFegVtIMOtJY0jWoWtnwcoCVWPRmQF3+xGiditkgLA8AEJL
-         SejQ==
-X-Forwarded-Encrypted: i=1; AJvYcCW8JBbF5r3FltrJCdQqFpGwt16qKAlZWSFBC9c8F2TvVH+C+gi3+GiSHOBmGdxuQMMTxRM8COUgC6E48kBo79M=@vger.kernel.org, AJvYcCWm3/v2msG6GLk2i1fUmqbth/kxwieUUSDawOF9GSjYPJEyZ3DbZzzoOM2OaEQXXLaDZJzV+IWimT6F@vger.kernel.org, AJvYcCWmNBVcftwCelKD/UCtmxlNXqSGM1GqpEheUg5EF7dweoSa6FyYf44ufQ6m4449hjJUC1R/T+owj0P5vmyu@vger.kernel.org
-X-Gm-Message-State: AOJu0YwZL7KLBQjfQ7UTc0QsoD5VM5HdSxenIfL2aMstkjUOArtGnmY1
-	06b0yz/qCU/5Yg/oXsKwAZnZ1PY09g3VikKA5K3XqywQNHaHICcQg9sF
-X-Gm-Gg: ASbGncsoDxiuVMKVPZJMdaYBctZ+7SYgRv2Q0B6kHSeby4tJZZHIhZRNiXQZeEEGP13
-	wuZBCgESAFk65oCXGYEbdOzDmAncEa90QDPvETFJTYRRg+d3EdE5b2Vlkxmx0ltH8Hpq374a1pi
-	H/WmAXNYLMSk5rigJlNW+MnHieyXGzJ97tLf/kR6FfNgRtFxmUmrAaEAO3SMJLrSeIkOjla2rm4
-	+9QQFEwzL3kRhZdmAndWKjU1dDhyeJ4UZLOXlIhNrb0OxE/NQnhwp7xN4msDaIpBvBtazmbVXn1
-	VOLJD4woKIFN1/0ZJ/xP2Z5nDVBpljtOV5eabqI6ekpAYhfvAFIHl0whLwHiyHOQOId7+Pb0tC9
-	X2JQWOXLCInE7l+AjSbfRqggIa7/OCgQTT4iA
-X-Google-Smtp-Source: AGHT+IENYHhXoQYe4kB3wXGt5TlTEHqhOFJJrxGvfo/0fGKH3HW1VUQx711wDe02QBcV90HmZxIDAA==
-X-Received: by 2002:a05:600c:34ca:b0:453:1058:f8c1 with SMTP id 5b1f17b1804b1-4531058ffa6mr86597895e9.3.1749567559618;
-        Tue, 10 Jun 2025 07:59:19 -0700 (PDT)
-Received: from igor-korotin-Precision-Tower-3620.airspan.com ([188.39.32.4])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-45209ce1afasm146136755e9.10.2025.06.10.07.59.18
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 10 Jun 2025 07:59:19 -0700 (PDT)
-Sender: Igor Korotin <igorkor.3vium@gmail.com>
-From: Igor Korotin <igor.korotin.linux@gmail.com>
-To: ojeda@kernel.org,
-	alex.gaynor@gmail.com,
-	rafael@kernel.org,
-	gregkh@linuxfoundation.org,
-	linux-kernel@vger.kernel.org,
-	rust-for-linux@vger.kernel.org,
-	linux-acpi@vger.kernel.org
-Cc: boqun.feng@gmail.com,
-	gary@garyguo.net,
-	bjorn3_gh@protonmail.com,
-	benno.lossin@proton.me,
-	a.hindborg@kernel.org,
-	aliceryhl@google.com,
-	tmgross@umich.edu,
-	dakr@kernel.org,
-	lenb@kernel.org,
-	wedsonaf@gmail.com,
-	viresh.kumar@linaro.org,
-	alex.hung@amd.com,
-	dingxiangfei2009@gmail.com
-Subject: [PATCH v4 0/5] rust: Add ACPI match table support for Rust drivers
-Date: Tue, 10 Jun 2025 15:52:34 +0100
-Message-ID: <20250610145234.235005-1-igor.korotin.linux@gmail.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (1024-bit key) header.d=borehabit.cfd header.i=@borehabit.cfd header.b="R9OGfYIm"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=borehabit.cfd; s=mail; h=Content-Transfer-Encoding:Content-Type:
+	MIME-Version:Message-ID:Reply-To:From:Date:Subject:To:Sender:Cc:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:
+	List-Subscribe:List-Post:List-Owner:List-Archive;
+	bh=CFYjPvEUim5mD5QwWelE+Axpgk7p2gwnF2M5gpb++Rg=; b=R9OGfYIm8wgXeOVNcEE6399N+I
+	ypkd5J9zqkp55Rfwn2vKgb7M0AXy9jIK1NZV4VUff3RP6DOb0dbYeqPDLmQKMiQBjMFIIJN9W3/J7
+	WCtdliYsN+rvZLh8RlCRrgT2iUUlvQAg3H0v4fSM5FjU7XEPrP7S3ay26mBomg7agZs8=;
+Received: from admin by borehabit.cfd with local (Exim 4.90_1)
+	(envelope-from <support@borehabit.cfd>)
+	id 1uP0UR-000550-WC
+	for linux-acpi@vger.kernel.org; Tue, 10 Jun 2025 22:02:16 +0700
+To: linux-acpi@vger.kernel.org
+Subject: WTS Available laptops and Memory
+Date: Tue, 10 Jun 2025 15:02:15 +0000
+From: Exceptional One PC <support@borehabit.cfd>
+Reply-To: info@exceptionalonepc.com
+Message-ID: <2d163e250d290f0feb2788474e65cffb@borehabit.cfd>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-This patch series introduces support for ACPI match tables in Rust 
-drivers.
+Hello,
 
-Currently, Rust abstractions support only Open Firmware (OF) device 
-matching. This series extends the driver model to support ACPI-based 
-matching, enabling Rust drivers to bind to ACPI-described devices.
-
-Changes include:
-  - A new `acpi::DeviceId` abstraction for working with 
-   `struct acpi_device_id`.
-  - Updates to the core `Adapter` trait and `platform::Driver` to support
-    optional ACPI ID tables.
-  - A sample implementation in the Rust platform driver, demonstrating 
-    multi-bus matching.
-
-This is especially useful for writing drivers that work across platforms 
-using both OF and ACPI.
-
-Tested using QEMU with a custom SSDT that creates an ACPI device matching
-the sample Rust platform driver.
-
-Igor Korotin (5):
-  rust: acpi: add `acpi::DeviceId` abstraction
-  rust: driver: Add ACPI id table support to Adapter trait
-  rust: driver: Consolidate `Adapter` methods using `#[cfg]`
-  rust: platform: Add ACPI match table support to `Driver` trait
-  samples: rust: add ACPI match table example to platform driver
-
-Changelog
----------
-v4:
- - Fixed code example for `trait Adapter` in platform.rs 
- - Fixed driver implementation example in rust_driver_platform.rs and moved
-   it to `trait Adapter` in platform.rs per Danilo Krummrich's suggestion.
- - Consolidated `Adapter::of_id_info` and `Adapter::acpi_id_info` methods using
-   `#[cfg]` per Benno Lossin's suggestion.
- - Link to v3: https://lore.kernel.org/rust-for-linux/20250606170341.3880941-1-igor.korotin.linux@gmail.com/
-v3:
- - Removed fwnode type check in `Adapter::id_info` per Greg's and Danilo's
-   comments
- - Removed `is_of_node` rust helper, due to unnecessity. 
- - Fixed example code in `rust_driver_platform.rs` per Danilo's comment
- - Added an instruction of testing ACPI using QEMU with a custom SSDT
- - Fixed minor code formatting issues.
- - Link to v2: https://lore.kernel.org/rust-for-linux/20250605161956.3658374-1-igor.korotin.linux@gmail.com/
-v2:
- - Removed misleading comment in `acpi::DeviceID` implementation. 
- - Removed unnecessary casting in `acpi::DeviceID::new`.
- - Moved `pub mod acpi` to correct alphabetical position in `rust/kernel/lib.rs`.
- - Link to v1: https://lore.kernel.org/rust-for-linux/20250530123815.1766726-1-igor.korotin.linux@gmail.com/
-
- MAINTAINERS                          |  1 +
- rust/bindings/bindings_helper.h      |  1 +
- rust/kernel/acpi.rs                  | 61 ++++++++++++++++++++++
- rust/kernel/driver.rs                | 77 ++++++++++++++++++++--------
- rust/kernel/lib.rs                   |  1 +
- rust/kernel/platform.rs              | 52 ++++++++++++++++++-
- samples/rust/rust_driver_platform.rs | 71 ++++++++++++++++++++++++-
- 7 files changed, 241 insertions(+), 23 deletions(-)
- create mode 100644 rust/kernel/acpi.rs
+Looking for a buyer to move any of the following Items located in USA.
 
 
-base-commit: 19272b37aa4f83ca52bdf9c16d5d81bdd1354494
--- 
-2.43.0
+Used MICRON SSD 7300 PRO 3.84TB 
+U.2 HTFDHBE3T8TDF SSD 2.5" NVMe 3480GB
+Quantity 400, price $100 EACH 
+
+
+ 005052112 _ 7.68TB HDD -$200 PER w/ caddies refurbished 
+ Quantity 76, price $100
+
+
+
+Brand New CISCO C9300-48UXM-E
+Available 5
+$2000 EACH
+
+
+Brand New C9200L-48T-4X-E
+$1,200 EACH
+QTY4
+
+HP 1040G3 Elite Book Folio Processor :- Intel Core i5
+◻Processor :- Intel Core i5
+◻Generation :- 6th
+◻RAM :- 16GB
+◻Storage :- 256G SSD
+◻Display :- 14 inch" Touch Screen 
+QTY 340 $90 EA
+
+
+
+SK HYNIX 16GB 2RX4 PC4 - 2133P-RAO-10
+HMA42GR7AFR4N-TF TD AB 1526
+QTY560 $20 EA
+
+
+Xeon Gold 6442Y (60M Cache, 2.60 GHz)	
+ PK8071305120500	 
+ QTY670 700 each 
+
+
+SAMSUNG 64GB 4DRX4 PC4-2666V-LD2-12-MAO
+M386A8K40BM2-CTD60 S
+QTY 320 $42 each
+
+
+
+Brand New CISCO C9300-48UXM-E
+Available 5
+$2500 EACH
+
+
+Core i3-1315U (10M Cache, up to 4.50 GHz)	
+ FJ8071505258601
+QTY50  $80 EA
+
+Intel Xeon Gold 5418Y Processors
+QTY28 $780 each
+
+
+Brand New C9200L-48T-4X-E  
+$1000 EACH
+QTY4
+
+
+Brand New Gigabyte NVIDIA GeForce RTX 5090 AORUS
+MASTER OC Graphics Card GPU 32GB GDDR7
+QTY50 $1,300
+
+
+ Brand New N9K-C93108TC-FX-24 Nexus
+9300-FX w/ 24p 100M/1/10GT & 6p 40/100G
+Available 4
+$3000 each
+
+
+
+Brand New NVIDIA GeForce RTX 4090 Founders
+Edition 24GB - QTY: 56 - $700 each
+
+
+
+
+Charles Lawson
+Exceptional One PC
+3645 Central Ave, Riverside
+CA 92506, United States
+www.exceptionalonepc.com
+info@exceptionalonepc.com
+Office: (951)-556-3104
 
