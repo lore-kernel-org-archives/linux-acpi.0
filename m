@@ -1,32 +1,34 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id B35722522B5
-	for <linux-acpi@vger.kernel.org>; Mon, 23 Jun 2025 13:21:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4BD9C253B67
+	for <linux-acpi@vger.kernel.org>; Mon, 23 Jun 2025 13:23:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750684918; cv=none; b=BxS/6UfV/WTB00zdyE/zxTFsBEQB+J/XeOOMEg63ccN6jJlA1gPqayJWorKiedMdQMBbgPi0Z33j41pkq/1LDq+Si8sD1HvqZfCk2QCG/F8pVwuzmXddm5M0g+CUoFHNt2ndlIQhBPpuW6lddwIRTUVlq+JwPXg0bz5cZj5YWDE=
+	t=1750684985; cv=none; b=E/Hi/t6cDBZ0+t1+INoTXTSkHGbCBgiGBRNYSkZ41syyNOuXAZYVw+uYF5ATpLirfYMcvFlJWs9G5Qc1PHcO8JmmEGiRz5sDJC9NFK7UvfIfBQ2f/GRX44Tg6cCAsDz40dTLh9I4kb7i73x2qwbfZenVgjXwudZ7AoNjl8gZ7mU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750684918; c=relaxed/simple;
-	bh=0XRNcluacRYsAi08j/Cuq8xpenx91XTxp/Mp7WBjW/Y=;
+	s=arc-20240116; t=1750684985; c=relaxed/simple;
+	bh=1v9xqiVxQoxrfhwSTh8Ua2g915xnaw8XgNXFfWF7RK4=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Yw1bC45ydjPgS5dcflwpb2RkkkCWzhQvW8CCVoR0OE/lPXmua8XFEF7b7lrfFP1P/7aHMUwAntF7hHQsKp19jZaeLF+kZ2i8kvn13uqnbhWioH/i/Gf2CmuNqDiPzGaKdLgTHwSx17YeDJTHs31QWmubSgSPlr4ON6qpNQ9Witc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=arm.com; spf=fail smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=arm.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=b2y3yUK/iZAKoveUoZizC0g8ATrfwTWqPgf39KiZ95U8FFJeDqcvXD8sZPz7/BPjSbNwYT28pGg6lDomJQSIjDf57+9mOZJHFoz4xpWWsPH6NENti2/BnVSARCLHcawkkg45Uod8Mt8mzdrNt8aX78sv/fFNsyQh2tayI5f9TLE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id EE203113E;
-	Mon, 23 Jun 2025 06:21:37 -0700 (PDT)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 989A5113E;
+	Mon, 23 Jun 2025 06:22:45 -0700 (PDT)
 Received: from bogus (e133711.arm.com [10.1.196.55])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 100FC3F58B;
-	Mon, 23 Jun 2025 06:21:54 -0700 (PDT)
-Date: Mon, 23 Jun 2025 14:21:52 +0100
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 8C6183F58B;
+	Mon, 23 Jun 2025 06:23:02 -0700 (PDT)
+Date: Mon, 23 Jun 2025 14:22:59 +0100
 From: Sudeep Holla <sudeep.holla@arm.com>
 To: James Morse <james.morse@arm.com>
 Cc: <linux-acpi@vger.kernel.org>, Rafael Wysocki <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>, <jeremy.linton@arm.com>
-Subject: Re: [PATCH 3/4] ACPI / PPTT: Find cache level by cache-id
-Message-ID: <20250623-archetypal-wildcat-of-youth-b79630@sudeepholla>
+	Len Brown <lenb@kernel.org>, <jeremy.linton@arm.com>,
+	Rohit Mathew <Rohit.Mathew@arm.com>
+Subject: Re: [PATCH 4/4] ACPI / PPTT: Add a helper to fill a cpumask from a
+ cache_id
+Message-ID: <20250623-witty-exotic-poodle-3fe0cf@sudeepholla>
 References: <20250612171336.4858-1-james.morse@arm.com>
- <20250612171336.4858-4-james.morse@arm.com>
+ <20250612171336.4858-5-james.morse@arm.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -35,24 +37,17 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20250612171336.4858-4-james.morse@arm.com>
+In-Reply-To: <20250612171336.4858-5-james.morse@arm.com>
 
-On Thu, Jun 12, 2025 at 05:13:35PM +0000, James Morse wrote:
-> The MPAM table identifies caches by id. The MPAM driver also wants to know
-> the cache level to determine if the platform is of the shape that can be
-> managed via resctrl. Cacheinfo has this information, but only for CPUs that
-> are online.
+On Thu, Jun 12, 2025 at 05:13:36PM +0000, James Morse wrote:
+> MPAM identifies CPUs by the cache_id in the PPTT cache structure.
 > 
-> Waiting for all CPUs to come online is a problem for platforms where
-> CPUs are brought online late by user-space.
+> The driver needs to know which CPUs are associated with the cache,
+> the CPUs may not all be online, so cacheinfo does not have the
+> information.
 > 
-> Add a helper that walks every possible cache, until it finds the one
-> identified by cache-id, then return the level.
-> 
-> acpi_count_levels() expects its levels parameter to be initialised to
-> zero as it passes it to acpi_find_cache_level() as starting_level.
-> The existing callers do this. Document it.
-> 
+> Add a helper to pull this information out of the PPTT.
+>
 
 Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
 
