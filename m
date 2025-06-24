@@ -1,46 +1,46 @@
-Received: from NAM11-CO1-obe.outbound.protection.outlook.com (mail-co1nam11on2061.outbound.protection.outlook.com [40.107.220.61])
+Received: from NAM11-CO1-obe.outbound.protection.outlook.com (mail-co1nam11on2078.outbound.protection.outlook.com [40.107.220.78])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 893122DFA57;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B08EF2DFF25;
 	Tue, 24 Jun 2025 14:16:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.220.61
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.220.78
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750774604; cv=fail; b=phEDPfA0qefmdOxwGwWvMW0tZ93+/ABm1v1j20HClkjeqvNtksZQgmIh93TYEtArT24nsQoSPveDO5hymeg9jjA2GWerJJKmIvXdcFcCVA+mCvcoshHi3Zf3ZPKDAoqZ/wl8opOiTRk55JPV7ljqebaVqTWHFaFsudcywFwFQ/4=
+	t=1750774605; cv=fail; b=KOC3kpJU6QwOd/p7DLUF2EHQppaWw5US48bK2ubymKs3SkuBuYcvr/fl51z/RK8RXHM8gmRkkPQu5hdl8JtkG1XhdF9As56QyuNfH1xbTeRVKn+CIJfGYC6FDVEhd8QPjgWPgmF2kWky3MAkPErrZpSivGdLVe6T86f/0e2GNfE=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750774604; c=relaxed/simple;
-	bh=gUsS/87xpdCqyg4916ZTRzKT4n9GYVnMs/6TcRgM5Ko=;
+	s=arc-20240116; t=1750774605; c=relaxed/simple;
+	bh=vPEQSSZrbPIEQ+3ZDYXQFGxEcbi0TwPXrNYJBi9QTBI=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-ID:References:
-	 In-Reply-To:To:CC; b=R4mcpKvfRaiJ70a/VjMbjj+YplEPPIkf1jcMNUkScAEcSZ13hHTonUplvGFiL5XUmyxBMGQiP3+vcTLDjmqt2eUiKaHCH2PD3WLjlcBQ73RCFi6BXwvtjO0lPnb0upDdiJcnbyMi2LPxi5PvJhVdIuKYsliC9KYv/j9sYkWe2JU=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=eHOdy4fZ; arc=fail smtp.client-ip=40.107.220.61
+	 In-Reply-To:To:CC; b=rZJwBjoTPgt09DX0xwTAvq3HlLDJUN4BTPPZH7c8PHid2O9oEEvu4OmbbdpZdJNGsRBanETt1fhyCeq86oMvAq8VXYwwryFzscMnv9v7eZ5BT7H4l6iZBhnicAOtR7P+150J71dCtl9PC+D7s7xnGS38oZEcKlIcFEwJzEA7g1o=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=w/l/mBHS; arc=fail smtp.client-ip=40.107.220.78
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="eHOdy4fZ"
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="w/l/mBHS"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=stuCA+zD+xcJuM4jKYh8Jgo/d8jogg+LdM1KOSbtgEY+Iun+8Adeo3QGhcuddkst+UoUX6MM4QIgUbMD49XhQE7wxTBlRmDyWkIFMZBWpOuSWlWNWum7raO9rc1y8xyDvFbISy0F5GpoAwyoWknp5dNYUQ02IwVVlOdwQlIXuF8dtwhGb6D3tycmZPlwow5AYQWnTPEQFv7LHehqKkAaU8HEsZUCwX+UmtwRH5w6xGl1vgSPVElnmK46gkARIYOvm9VJVTxaFuuO3/Za1GnvhUwj6+Qmgbf2tn00JWAPIhOCCeuzVPYRyJ8CgnSra2P6/jcxtmmYfzGl7jbhVHuZPA==
+ b=M0h0TTGh89EROFea9H+1sSn6V4dLXUvg21LlhryG4xUpglmUfOKEZm6OsvQBBoOT3x8R07ooORF4l5ME9RHE8Tk9K2Scn9G0fImsaOg7JdmLFc//DpRgDQwmjCAHXRmWGI65xYQGbrkYHUYrEXcTfAMiVDX8ToCp2jL6fRAHoS/xWwDlGvu7Wn9QZbHzVlXEha2fxVc3yvpbm1JkeEqZB7fBzKAmcDR4qe7nqygSz5SwgIZdBiNT/GIee4lnr8mOjlyRiAR3m9KMgG2u9D10tVmIegDsbHQRRLc3JXI3lMP3veSaztjhsa2g9HueOuZXJw5E84YREEIwScBM/8vFmw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=HaxW2R1slKCdaaOBhaVyDPlhumxCqfqU2ZGwn1rbz+s=;
- b=Nqp6wfL1Lq464cjbSSrGBsRQx1sEPNonuStggw6tXpxqrVxE9GdxtQXNSL44an6UHIYZnsOO9dNK8aE4JvaNS0EDkAhq6UCzHQndhp7s4L/C2JkxINjsWmoBckhCIxvBCC6256uww/6ORfcXLFQ1x09++djJ9iR2u6ZJmJxhzFwkhhBbzB7q1JtGj4vY8iJv3ekMLFi2O8qzP/hPMh4r2QNEf5+fMeoiIZx/UqVc5w1rdOJ1YayzjD9onZ632/Uduiu5ccyLPEnBWLkrvvvBLmujrxe9BgXZQWw5Pje2cYrmoJJI0cYzWCJm6+V2z6yoQX7FxbyZ77KFC1SiQYptqw==
+ bh=bP336B6mS4TQoArtsB77Dvuqac1/RA4b/+i+j1TYmhU=;
+ b=mLz2gcoE/WW9MgC+cFPLlxqMsGqCiDRDkm2T2wkLehADosnWWJr7F04qKMKM4Ar5Vb7hi4ek9G3jdSTWiH+hU6UZXQfk7pGkk2zMjJUKyU90OheF9DXuefw27gbjeeOPtRRjEfE70BAofUmxlxIsrb3WhyEpD/6InEl2VhuzK59IBOjz9uvJyOe+CemBVykJENqo6sOrgaOq9hAPu5sxw8QcrXfJjMJ/+wdPGzyVR1kOd8Hy8Bd/b2A2dDBI4Uu6R/CQy2s67MRyyVkwC5QelcunKc5qbMkE7Q0RZhNiIo54hRaKN7K86dN/80/AvYmRvV1M0IcOsEm6YECxewMtjg==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  165.204.84.17) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=amd.com;
  dmarc=pass (p=quarantine sp=quarantine pct=100) action=none
  header.from=amd.com; dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=HaxW2R1slKCdaaOBhaVyDPlhumxCqfqU2ZGwn1rbz+s=;
- b=eHOdy4fZiH5CqJgnNJjvMsCkm3OTma4A2USgOBGdxnLSbeBB2CePPrTvSTiggnp7sSfA48oqr74rduInppcYow+dYzfBhRMrNSSf5z7Glb++/SEb6b/9gd9sknV3X0T8lkZ5Ut4OEEFfPZMDNBfj3ACvOPder7of7/zVuvDQBaI=
-Received: from BYAPR02CA0063.namprd02.prod.outlook.com (2603:10b6:a03:54::40)
- by DS0PR12MB7748.namprd12.prod.outlook.com (2603:10b6:8:130::22) with
+ bh=bP336B6mS4TQoArtsB77Dvuqac1/RA4b/+i+j1TYmhU=;
+ b=w/l/mBHSNuWAyqyTUwj8pm8/dva5sXuUjL/SCntldyf1E/079k5/+YYIY/LWYzfACRFhj+QOM/IURNV192AU56ktWSAVXj9RoSCUBrytosZ7Prh9ohtrWGSKD2eCWdhi6hTQu22FxZ+7cFMZ8wymW69pVYTVJ6wDRiXgsk9U1K4=
+Received: from BYAPR05CA0042.namprd05.prod.outlook.com (2603:10b6:a03:74::19)
+ by CH3PR12MB8583.namprd12.prod.outlook.com (2603:10b6:610:15f::12) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8857.28; Tue, 24 Jun
- 2025 14:16:39 +0000
-Received: from SJ1PEPF00001CE7.namprd03.prod.outlook.com
- (2603:10b6:a03:54:cafe::ef) by BYAPR02CA0063.outlook.office365.com
- (2603:10b6:a03:54::40) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.8857.30 via Frontend Transport; Tue,
- 24 Jun 2025 14:16:39 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8880.17; Tue, 24 Jun
+ 2025 14:16:38 +0000
+Received: from SJ1PEPF00001CE6.namprd03.prod.outlook.com
+ (2603:10b6:a03:74:cafe::2a) by BYAPR05CA0042.outlook.office365.com
+ (2603:10b6:a03:74::19) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.8880.16 via Frontend Transport; Tue,
+ 24 Jun 2025 14:16:37 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
  smtp.mailfrom=amd.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=amd.com;
@@ -48,17 +48,16 @@ Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
  165.204.84.17 as permitted sender) receiver=protection.outlook.com;
  client-ip=165.204.84.17; helo=SATLEXMB04.amd.com; pr=C
 Received: from SATLEXMB04.amd.com (165.204.84.17) by
- SJ1PEPF00001CE7.mail.protection.outlook.com (10.167.242.23) with Microsoft
+ SJ1PEPF00001CE6.mail.protection.outlook.com (10.167.242.22) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.20.8880.14 via Frontend Transport; Tue, 24 Jun 2025 14:16:39 +0000
+ 15.20.8880.14 via Frontend Transport; Tue, 24 Jun 2025 14:16:37 +0000
 Received: from [127.0.1.1] (10.180.168.240) by SATLEXMB04.amd.com
  (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.39; Tue, 24 Jun
- 2025 09:16:36 -0500
+ 2025 09:16:31 -0500
 From: Yazen Ghannam <yazen.ghannam@amd.com>
-Date: Tue, 24 Jun 2025 14:16:13 +0000
-Subject: [PATCH v4 18/22] x86/mce/amd: Support SMCA Corrected Error
- Interrupt
+Date: Tue, 24 Jun 2025 14:16:06 +0000
+Subject: [PATCH v4 11/22] x86/mce: Define BSP-only init
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -67,7 +66,7 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-ID: <20250624-wip-mca-updates-v4-18-236dd74f645f@amd.com>
+Message-ID: <20250624-wip-mca-updates-v4-11-236dd74f645f@amd.com>
 References: <20250624-wip-mca-updates-v4-0-236dd74f645f@amd.com>
 In-Reply-To: <20250624-wip-mca-updates-v4-0-236dd74f645f@amd.com>
 To: <x86@kernel.org>, Tony Luck <tony.luck@intel.com>, "Rafael J. Wysocki"
@@ -80,80 +79,70 @@ X-ClientProxiedBy: SATLEXMB04.amd.com (10.181.40.145) To SATLEXMB04.amd.com
  (10.181.40.145)
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SJ1PEPF00001CE7:EE_|DS0PR12MB7748:EE_
-X-MS-Office365-Filtering-Correlation-Id: edb915d3-76e3-42aa-f499-08ddb329bc90
+X-MS-TrafficTypeDiagnostic: SJ1PEPF00001CE6:EE_|CH3PR12MB8583:EE_
+X-MS-Office365-Filtering-Correlation-Id: db46ff50-5b1d-40bb-77ce-08ddb329bb75
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|36860700013|1800799024|82310400026|376014;
+	BCL:0;ARA:13230040|376014|82310400026|36860700013|1800799024|13003099007;
 X-Microsoft-Antispam-Message-Info:
-	=?utf-8?B?d245ZmdoRjU1eS9COVNaR1JyNGQzNk1VMEloazgzeUVtQVJIS1pEdm02YXdq?=
- =?utf-8?B?SG1WMlFZNk5UNFJVRDBjZGc0YjlsS2R6Y0t4Q0JVZmdlZS93SXJPdEFLaVIx?=
- =?utf-8?B?am5sQVNlRmRKV1ZzemJnL3RmMlFISVFkOU01NjdXbWNjcDZVRFloZTE5ZHJa?=
- =?utf-8?B?b2tTMXBOa0hadnNoVWhQVWkzZUw5MUZFWTIrM3Jrd2ZONzVIa0hiS3hpa1BM?=
- =?utf-8?B?T3VudGdsTW5RMHVFbmZGL0xBR0JQanJHNmkvUXJnc1RTMmdDRlI3MldjN3kw?=
- =?utf-8?B?WHpDODZvVmRXdHMrRE5Ga3hjS21CNkY0Qi84WFdUOGpJS0VvYXJqUHR4eExX?=
- =?utf-8?B?MlU1TG1xdmc4dmRETnppRUVWT3RIU2FlR1pkUGVwdDliQkliSEk1V3U5ZnFs?=
- =?utf-8?B?NStibTlMYTJCSUFwcHo2SVVUSTZKZ1Evc1dOZlRWSlI0OVIyRk80R3BOKzZW?=
- =?utf-8?B?dnFUbGM1UitKYURXN2Z3R1FKaHdRTUxhNkEvYUtXaUZ0Z3Q4NnpRbVNMTGVF?=
- =?utf-8?B?eS9QWTZhRk5uQlBwaTBhNWFIa0ZHb0UrZXp1QlJiSlR3aG5uYWF6VHVkU3FI?=
- =?utf-8?B?TS9WVlhtTlFnUGhCVkxVWUExYW9LQ3loSEszdWZYeWdNVHZ0dFMvTjd2K1kw?=
- =?utf-8?B?amExbGdjdnJ1YzNZNnJLeGZUZHBxalVneDhsY2FSNW5iZjYwYjI5YUJCN0Jv?=
- =?utf-8?B?SlluMUMxVEg1aUFyN1dDLzN6Q05ibG1VejhXS1JJY0N0a0h3UzJWV2RFL09P?=
- =?utf-8?B?ei9WTlhmYkx6L1BaMWVrR0VITkVzZUh5R3Y4a3JYck1tTmh5cEM4R1JFZTJl?=
- =?utf-8?B?bUN6Nzg2dkFWUHFmY3IyUjNocFpBNW1YYVp3cDExVFh2eklZcjhKWVhDR1pJ?=
- =?utf-8?B?eE9PL2dEdHJUNlJCRXpVT3h5ZHBSOGdaa3MvUE5oODVoS3NiclFWQ2JKSFFG?=
- =?utf-8?B?eC80YTFxd2ZHUDVHWDhmZUYyR2owazcrMHJMYnV6WFU0bExWRk1aRmg1Y0Iz?=
- =?utf-8?B?SGxaNTVkRnF5SlpTOUREWjdNSGdZOXNoNys3M1ZTcjBVMUszUWJVUktNYnYv?=
- =?utf-8?B?VGF0OVZsY1NsUGQrUFBsR25ML01IUDBOYmpVSXpLby9SUXJyK1lHSFRQaW9Z?=
- =?utf-8?B?Z1dWYUZhbmtIYWF6TnlVK2wxaC9RMFB5ZTYwZ1ZxWEZEQUs1UjNCcTB6dkRa?=
- =?utf-8?B?a0M5SG8zSi96OVBGdnozSTZ0YVNtK3pucWh3TDRzSTBQYXN6TjhianBkc0F6?=
- =?utf-8?B?bHNSMFBYL0tTaXV0c1c3S3NCQkVmdmVWelVRV1hiVGFoQWdNbTN3bVVLbWdX?=
- =?utf-8?B?K3h0cGdCbi8wbU1Mb1VYN3JVSHVnRHE4OThpSiswSEdyUUNIaTJxa1FBcDNQ?=
- =?utf-8?B?NUt6TzhHdldKMWpwRzFTWEpZZE1MQnd5L2t3bjkrL0liR09Ga3l5ZGtUaVlU?=
- =?utf-8?B?Z2gyOUhlN0puMUM3bmx5Q1lhc2Y1bFlmd2phODRsVUFWNmJrUGMwQ3Mza2Fw?=
- =?utf-8?B?UTNQN0Q1bVlLbEdwU3FKZVI0OFVONjZhWC93R0tSd3NSUVdkRDFQT1IyTXky?=
- =?utf-8?B?L2hOaTRwZjRBZTVmblN0NHBUKzJnUWVIOFhQZGIrY0pMNjZyMGxPWU92RHNt?=
- =?utf-8?B?N3ZrM2NBOVdnbVRRdnJnUnYzQU05dXBQNmNkMjRJTjdRanhKY0JYQ0RXbStY?=
- =?utf-8?B?aSt5ZnFBaXBHK2FSZ1hTeWhiRnU0WDNMeUxxNStxK3hDdWIzZTlJM1RpYU5q?=
- =?utf-8?B?VU9wR09TeWJ0c09nbmRoTGJKZmlBQnNoMVZtL2tlanlqOXVRdVNQd0duOXR5?=
- =?utf-8?B?REQrTmNSNUsyQ3hlczdQc2YvT2pFNS9ZTVo5L3h6OTBOdUV4bm5TOEdjdzlv?=
- =?utf-8?B?MTFkbE1scENEOGJqc1Y1bVRQNXpNYUpjc1NiMEx6eVFsVVlSQ3FBc2Z2UFIv?=
- =?utf-8?B?SW9EY1dKN25UZXVxUnlCbHJPRnFKVmFQUG9jWU4zOHVUUUI3bnNIa1owcEdW?=
- =?utf-8?B?L0R3ZGFaTTg4NUR5dUtnVTZpeExwMFpXSHpPaFFlcE5kYmRCbmtNV1FMR2RV?=
- =?utf-8?B?SWFtZ200V0NXcmtSNlZaRjdUaDdxazdIRTcvQT09?=
+	=?utf-8?B?R1Q3NWk4RDFNSUVtNGdJeU15LzJhSVdFK0lpeVVudjZCN1RlTG0weDIrdUJV?=
+ =?utf-8?B?MkdBc3Q4cm9HeXo3L1R3b0E1T1FaV1BaRVpxd3dRVUhDaHZ3UkxLL2Rud01F?=
+ =?utf-8?B?UjVFbVhGTmw4ZnVsRzJUZXFYeXNaZENPSWpFbkV6bVB6aGxBUHh5NGh6QTA3?=
+ =?utf-8?B?aytzcXhhdFQxR1ljMkFGSGJTQ3g0TkFWV0RMR052eDVVbTB5OFFaMmVpblll?=
+ =?utf-8?B?UHpqeUFFeERVL1Q5czdkTDk3RWZIOTY3bVpHTGJ1SEZxRGtIdVN1TmNOdDFD?=
+ =?utf-8?B?dDh6ZGF2dG04N1ZWd21FWFdDY05ZeS9pS1RQWDVBYVFSS093UHNhNHJ4aHIy?=
+ =?utf-8?B?citVQ3JnYUVndlp5emtpYkNNaS9SNS9Da1E4UGFJc2R1R2JqUnF3RHhzRFEy?=
+ =?utf-8?B?dUptQTZuOUkyUEVKd0FXTFNwNjJDdmJab0lFdE9iUHRTdGRrb1lRcGM1WHRw?=
+ =?utf-8?B?NC9WTFFzQjJUU2N0aW96VHNxTHRTaWZ3b2ZPL2ZMYUUxM1RJM0xHK3ZNYXp2?=
+ =?utf-8?B?ZzZsNXJaSVFLOVF1ZXJ0Tmd0aWxYcFIvQ1pIOFNnREdSbFZMTjFEQUhhNlNo?=
+ =?utf-8?B?WVg2RXpTWkFSbVlrcTd1eVhyR1RtUFV5VGc0ZTZ1M09xTFUyOXhKd3dMTmMv?=
+ =?utf-8?B?S25leVRUTzRVbWUxWkZBNHRxZHUxVXB6VHZMYWRMYU1xMGlsUFFIbUcvYmNy?=
+ =?utf-8?B?Z0d0bVh6ZlFZYzRPRkdveFZhZnBKcXZjOHpPa0JLNThNVXQwV3FPejMwRDI0?=
+ =?utf-8?B?TnlIb3VOM08rWTJoZmlSczNVK3M3SjlkLzBjWmw2Njc0WiswdTBtQzVYWWpF?=
+ =?utf-8?B?VXI2aUV6L2hXZlkrOUx5bHRTS3ltSGxSU3dsSEloSDlXOUxQYXB5WWJ1R2ti?=
+ =?utf-8?B?UnNwS3dVa0xSTDdHa0tPZEZ5UDNEWUkzYVJqZGJibEFGT3U4MFJMaFNFVnpD?=
+ =?utf-8?B?YkVEZzVGZFFVMHUyT3NvSHpsb2tlNXkwRVBYVGdnblR6ZlZwQk8ydi8zNEg2?=
+ =?utf-8?B?c3dybE5VcWIwT0t3MXNSOFJ6S3NHT2l3R1VEVVdmbXNUbVcvbmZqUktUSEd3?=
+ =?utf-8?B?T0VHcm1PQUdQaUI1TjlKSWhGWmtRWHFkRVFULytCUWN2aFFSOWFYLzgxUlhm?=
+ =?utf-8?B?WDljWjdzbUFHUTdFME1zSnRtdFhwRTloMzJFK29zNEhKeFA0VzNGRXRncitv?=
+ =?utf-8?B?K1JXMlh1OWFvY3lKQ2diR3hXSVJGNXdmQ0c0QmlBaWdtV0krTnAvVWorZHZj?=
+ =?utf-8?B?dFVaQjB1TXhpQkg5MjV6ektzN0h1K1NidVdoK3BSdlVQbE4wTWJCMlJNUE5s?=
+ =?utf-8?B?MVNZMHdMS3hvN2JnaXBxaGpLdURGbXhWcFJ6SWhGUFBuaHZrTTlwcU5aOWhJ?=
+ =?utf-8?B?dDhDdjVwQjdtS0x0cEVKRTRLU1lkWC9LOHkwbGFiWEJ5ZTNqMTNGdUpNQUF3?=
+ =?utf-8?B?M05oQ2xQOERaYmxWMkdYL0hCK1ZaZWEzaHQxdUxmRVlHV3Z3THhKNW8wRGpG?=
+ =?utf-8?B?UGFVbzh4OWJ6UWNNNnUwbm8zaG9NdHZLbE14UGRMYW9BUFEzQ2tHMTUvWDFq?=
+ =?utf-8?B?OFJRQmVQM1IrUjViZkQrYzQxNVBvOVBHc1k5RFgySWM2VjBMSVlBQ0wyNWI4?=
+ =?utf-8?B?dFU5ZktSY29aM3I1cnBoWGlXallzQmFMK2dCOEt2UDQvQ0dLRUJaakk2L3NT?=
+ =?utf-8?B?dXI2eElmVTZlKzlvdDB5eCsvLzlHU0Zrc1BGSjVidmpuNjBLeFY4b2FBYUph?=
+ =?utf-8?B?b1hDTlFWaVludXBQSTR6dHNSYzJPaDIwVXBDeHpRTkZpVk9tc3FGT1kvbm9J?=
+ =?utf-8?B?UXdGS1B6aEpKT3RmTDBoUjRrRGwyajBzb1NrZGFmWDZSQXduS1U1cTBpTDgv?=
+ =?utf-8?B?dGpPZnUvU3UxZjlrT1ZUTHVHc1ByV0dIUWNtU0RiWnFVU3gxVU05RE9uMDMv?=
+ =?utf-8?B?TW4xL3psTmhuVFRNaC9QZ0wvYW9EUE1XRVU5blVLUnFYaEpCUjh2LzFiT1k5?=
+ =?utf-8?B?T0lhblhBdDFueGo5SnNwQWJxSEtoUXZTWVg1cWQ3bmRPTUkzN29wYnlRd1dL?=
+ =?utf-8?Q?9A0FXZ?=
 X-Forefront-Antispam-Report:
-	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(36860700013)(1800799024)(82310400026)(376014);DIR:OUT;SFP:1101;
+	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(376014)(82310400026)(36860700013)(1800799024)(13003099007);DIR:OUT;SFP:1101;
 X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 24 Jun 2025 14:16:39.3782
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 24 Jun 2025 14:16:37.5193
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: edb915d3-76e3-42aa-f499-08ddb329bc90
+X-MS-Exchange-CrossTenant-Network-Message-Id: db46ff50-5b1d-40bb-77ce-08ddb329bb75
 X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	SJ1PEPF00001CE7.namprd03.prod.outlook.com
+	SJ1PEPF00001CE6.namprd03.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS0PR12MB7748
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH3PR12MB8583
 
-AMD systems optionally support MCA thresholding which provides the
-ability for hardware to send an interrupt when a set error threshold is
-reached. This feature counts errors of all severities, but it is
-commonly used to report correctable errors with an interrupt rather than
-polling.
+Currently, MCA initialization is executed identically on each CPU as
+they are brought online. However, a number of MCA initialization tasks
+only need to be done once.
 
-Scalable MCA systems allow the Platform to take control of this feature.
-In this case, the OS will not see the feature configuration and control
-bits in the MCA_MISC* registers. The OS will not receive the MCA
-thresholding interrupt, and it will need to poll for correctable errors.
+Define a function to collect all 'global' init tasks and call this from
+the BSP only. Start with CPU features.
 
-A "corrected error interrupt" will be available on Scalable MCA systems.
-This will be used in the same configuration where the Platform controls
-MCA thresholding. However, the Platform will now be able to send the
-MCA thresholding interrupt to the OS.
-
-Check for, and enable, this feature during per-CPU SMCA init.
-
+Reviewed-by: Qiuxu Zhuo <qiuxu.zhuo@intel.com>
 Tested-by: Tony Luck <tony.luck@intel.com>
 Reviewed-by: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Yazen Ghannam <yazen.ghannam@amd.com>
@@ -161,61 +150,115 @@ Signed-off-by: Yazen Ghannam <yazen.ghannam@amd.com>
 
 Notes:
     Link:
-    https://lore.kernel.org/r/20250415-wip-mca-updates-v3-15-8ffd9eb4aa56@amd.com
+    https://lore.kernel.org/r/20250415-wip-mca-updates-v3-7-8ffd9eb4aa56@amd.com
     
     v3->v4:
-    * Add code comment describing bits.
+    * Change cpu_mca_init() to mca_bsp_init().
+    * Drop code comment.
     
     v2->v3:
-    * Add tags from Tony.
+    * Add tags from Qiuxu and Tony.
     
     v1->v2:
-    * Use new per-CPU struct.
+    * New in v2.
 
- arch/x86/kernel/cpu/mce/amd.c | 20 +++++++++++++++++++-
- 1 file changed, 19 insertions(+), 1 deletion(-)
+ arch/x86/include/asm/mce.h     |  2 ++
+ arch/x86/kernel/cpu/common.c   |  1 +
+ arch/x86/kernel/cpu/mce/amd.c  |  3 ---
+ arch/x86/kernel/cpu/mce/core.c | 28 +++++++++++++++++++++-------
+ 4 files changed, 24 insertions(+), 10 deletions(-)
 
+diff --git a/arch/x86/include/asm/mce.h b/arch/x86/include/asm/mce.h
+index 3224f3862dc8..31e3cb550fb3 100644
+--- a/arch/x86/include/asm/mce.h
++++ b/arch/x86/include/asm/mce.h
+@@ -241,12 +241,14 @@ struct cper_ia_proc_ctx;
+ 
+ #ifdef CONFIG_X86_MCE
+ int mcheck_init(void);
++void mca_bsp_init(struct cpuinfo_x86 *c);
+ void mcheck_cpu_init(struct cpuinfo_x86 *c);
+ void mcheck_cpu_clear(struct cpuinfo_x86 *c);
+ int apei_smca_report_x86_error(struct cper_ia_proc_ctx *ctx_info,
+ 			       u64 lapic_id);
+ #else
+ static inline int mcheck_init(void) { return 0; }
++static inline void mca_bsp_init(struct cpuinfo_x86 *c) {}
+ static inline void mcheck_cpu_init(struct cpuinfo_x86 *c) {}
+ static inline void mcheck_cpu_clear(struct cpuinfo_x86 *c) {}
+ static inline int apei_smca_report_x86_error(struct cper_ia_proc_ctx *ctx_info,
+diff --git a/arch/x86/kernel/cpu/common.c b/arch/x86/kernel/cpu/common.c
+index 8feb8fd2957a..8a00faa1042a 100644
+--- a/arch/x86/kernel/cpu/common.c
++++ b/arch/x86/kernel/cpu/common.c
+@@ -1771,6 +1771,7 @@ static void __init early_identify_cpu(struct cpuinfo_x86 *c)
+ 		setup_clear_cpu_cap(X86_FEATURE_LA57);
+ 
+ 	detect_nopl();
++	mca_bsp_init(c);
+ }
+ 
+ void __init init_cpu_devs(void)
 diff --git a/arch/x86/kernel/cpu/mce/amd.c b/arch/x86/kernel/cpu/mce/amd.c
-index 9d4d0169713b..3ddb28f90d70 100644
+index 292109e46a94..25a24d0b9cf9 100644
 --- a/arch/x86/kernel/cpu/mce/amd.c
 +++ b/arch/x86/kernel/cpu/mce/amd.c
-@@ -271,6 +271,7 @@ void (*deferred_error_int_vector)(void) = default_deferred_error_interrupt;
+@@ -655,9 +655,6 @@ void mce_amd_feature_init(struct cpuinfo_x86 *c)
+ 	u32 low = 0, high = 0, address = 0;
+ 	int offset = -1;
  
- static void smca_configure(unsigned int bank, unsigned int cpu)
- {
-+	struct mce_amd_cpu_data *data = this_cpu_ptr(&mce_amd_data);
- 	u8 *bank_counts = this_cpu_ptr(smca_bank_counts);
- 	const struct smca_hwid *s_hwid;
- 	unsigned int i, hwid_mcatype;
-@@ -302,10 +303,27 @@ static void smca_configure(unsigned int bank, unsigned int cpu)
- 		 * set.
- 		 */
- 		if ((low & BIT(5)) && !((high >> 5) & 0x3)) {
--			__set_bit(bank, this_cpu_ptr(&mce_amd_data)->dfr_intr_banks);
-+			__set_bit(bank, data->dfr_intr_banks);
- 			high |= BIT(5);
- 		}
+-	mce_flags.overflow_recov = cpu_feature_enabled(X86_FEATURE_OVERFLOW_RECOV);
+-	mce_flags.succor	 = cpu_feature_enabled(X86_FEATURE_SUCCOR);
+-	mce_flags.smca		 = cpu_feature_enabled(X86_FEATURE_SMCA);
+ 	mce_flags.amd_threshold	 = 1;
  
-+		/*
-+		 * SMCA Corrected Error Interrupt
-+		 *
-+		 * MCA_CONFIG[IntPresent] is bit 10, and tells us if the bank can
-+		 * send an MCA Thresholding interrupt without the OS initializing
-+		 * this feature. This can be used if the threshold limit is managed
-+		 * by the platform.
-+		 *
-+		 * MCA_CONFIG[IntEn] is bit 40 (8 in the high portion of the MSR).
-+		 * The OS should set this to inform the platform that the OS is ready
-+		 * to handle the MCA Thresholding interrupt.
-+		 */
-+		if (low & BIT(10)) {
-+			__set_bit(bank, data->thr_intr_banks);
-+			high |= BIT(8);
-+		}
+ 	for (bank = 0; bank < this_cpu_read(mce_num_banks); ++bank) {
+diff --git a/arch/x86/kernel/cpu/mce/core.c b/arch/x86/kernel/cpu/mce/core.c
+index ebe3e98f7606..c55462e6af1c 100644
+--- a/arch/x86/kernel/cpu/mce/core.c
++++ b/arch/x86/kernel/cpu/mce/core.c
+@@ -1837,13 +1837,6 @@ static void __mcheck_cpu_cap_init(void)
+ 	this_cpu_write(mce_num_banks, b);
+ 
+ 	__mcheck_cpu_mce_banks_init();
+-
+-	/* Use accurate RIP reporting if available. */
+-	if ((cap & MCG_EXT_P) && MCG_EXT_CNT(cap) >= 9)
+-		mca_cfg.rip_msr = MSR_IA32_MCG_EIP;
+-
+-	if (cap & MCG_SER_P)
+-		mca_cfg.ser = 1;
+ }
+ 
+ static void __mcheck_cpu_init_generic(void)
+@@ -2243,6 +2236,27 @@ DEFINE_IDTENTRY_RAW(exc_machine_check)
+ }
+ #endif
+ 
++void mca_bsp_init(struct cpuinfo_x86 *c)
++{
++	u64 cap;
 +
- 		this_cpu_ptr(mce_banks_array)[bank].lsb_in_status = !!(low & BIT(8));
- 
- 		wrmsr(smca_config, low, high);
++	if (!mce_available(c))
++		return;
++
++	mce_flags.overflow_recov = cpu_feature_enabled(X86_FEATURE_OVERFLOW_RECOV);
++	mce_flags.succor	 = cpu_feature_enabled(X86_FEATURE_SUCCOR);
++	mce_flags.smca		 = cpu_feature_enabled(X86_FEATURE_SMCA);
++
++	rdmsrq(MSR_IA32_MCG_CAP, cap);
++
++	/* Use accurate RIP reporting if available. */
++	if ((cap & MCG_EXT_P) && MCG_EXT_CNT(cap) >= 9)
++		mca_cfg.rip_msr = MSR_IA32_MCG_EIP;
++
++	if (cap & MCG_SER_P)
++		mca_cfg.ser = 1;
++}
++
+ /*
+  * Called for each booted CPU to set up machine checks.
+  * Must be called with preempt off:
 
 -- 
 2.49.0
