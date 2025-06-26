@@ -1,148 +1,185 @@
-Received: from mail-pl1-f194.google.com (mail-pl1-f194.google.com [209.85.214.194])
+Received: from mail-pl1-f180.google.com (mail-pl1-f180.google.com [209.85.214.180])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3C052ECD3E;
-	Thu, 26 Jun 2025 17:53:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.194
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F07731D5170;
+	Thu, 26 Jun 2025 18:07:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.180
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750960413; cv=none; b=GUkTktJmkRgbPHQWRUoJLICq6m/01ojn4/d3AgJ70pannOOLyHlp6VpdAcNbkap577ius01oY45WvDdResI41f3wSeCcZl/zEQPQpsQRiIoAi/EGXI8wpg9vb3zyVz2oJsp2sNGEJWv8scdVLpiIF4outIKCZ93sVSdLseIAI3Q=
+	t=1750961266; cv=none; b=hFkJuBZh9K00+ZQkAo5rCoemL5aOMr8VVDi6qWYBe7W4TVZy8sSxjHU5r1hdmnCkJ/zJPhhuDfDmMOYZSqN9mXFok8QOAHYRKGiLktK67+t+YgHAULtLh/o8s85lJDXtnzXdEUPBWpIvS+evOZ280mL8p9sr/7jPY8+afZRO0rc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750960413; c=relaxed/simple;
-	bh=3DW+isIgbcOam9K3su8rrNYApBVcaHJL5UXxTcvoqeA=;
-	h=Date:From:To:CC:Subject:In-Reply-To:References:Message-ID:
-	 MIME-Version:Content-Type; b=FvdJ/9K+wV32NlfGd0KWpY4l27zWL3/uY7LWBpWC2/bm/rFZvL4fpl1J2bfO8YvBlN4HfTVQjfAPCOZpRUNaVZDnCPGexLjTO5ss+WRTGACu0lVaSpPneISkEuRMWzEl9jULsv/L3ApbOwRsuEUjk5xR/DHneHWpCI0dUVeCi78=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=KN5mwU0K; arc=none smtp.client-ip=209.85.214.194
+	s=arc-20240116; t=1750961266; c=relaxed/simple;
+	bh=s9x6dxudyjRS9durYlnGruJYjvUGIGYo6npJKPm0fB4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=D5pihdQUcblIsFsrU5kaaH+Qf9PW0PFZskm8NdI3t+gXjBrNflJ6cDup8Q+kv9MrXV/Ss27kBZ4W77pKFJhIII53A985Sm0Khx6EKI/Sg3+/npXVffaUAt07EISipv6F97iDO/jVFNA7DozXHLE1BgHuqViLU6nexHJqziJGlsQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=BG5V7TOV; arc=none smtp.client-ip=209.85.214.180
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KN5mwU0K"
-Received: by mail-pl1-f194.google.com with SMTP id d9443c01a7336-236377f00easo16668745ad.1;
-        Thu, 26 Jun 2025 10:53:31 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="BG5V7TOV"
+Received: by mail-pl1-f180.google.com with SMTP id d9443c01a7336-2363497cc4dso13690585ad.1;
+        Thu, 26 Jun 2025 11:07:44 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1750960411; x=1751565211; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:references
-         :in-reply-to:user-agent:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=3DW+isIgbcOam9K3su8rrNYApBVcaHJL5UXxTcvoqeA=;
-        b=KN5mwU0KK7pXmP/CH45uebT/jMPCaGZnKvGm20uu8lP2kLrANHK+9MY1DHUVoviPnd
-         NoQ2ahO4jkWZG69Wpz3Rvvyo7aociNoyrh71Qp2Zv7rtYNHYvcptMKKreFBdIC7rfjm8
-         1tb1K+jbTDcsYLSQtR4yCrCb/qH+0jtkDqevLvutgzLrpCGs9ZlKCndjW0QcUitSqwAG
-         o3Snn+fiFw3fVr3jd1x8zzhhqOWmIcWRvPyVTgKwO1qSnrI/acHUTNfY34N+ArT9lrzY
-         1F2jgmKxv0plqzQKAuK6cd8hJ+wg7s/GTmXtNJO2yUD2/uwo9mgHDIuQ5MJiwXViCibf
-         pzEA==
+        d=gmail.com; s=20230601; t=1750961264; x=1751566064; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=Anccgxz8ioAQ/FehorCp97CbyBsNiWT7FvoW6DOnuQM=;
+        b=BG5V7TOVtgkS+0/L2TB6WUJTU8tvknuexgCn+EmchFRZXWEI4xUQLakt0BJruQblVS
+         9y+VPkWP+8xo47GKFcAskA2/zjSD2HEI1Ik5+S1NWhIs8svg/+LC/r4Vwd56ta3drwXW
+         V3FNY3SgvJCsiMKoWatJiEQZ1kdq++C31VErloGYvV8oxCg6YAWex0EiqKzRjTRxeZyt
+         +qi/rrhURVvX3urGQYfLSiFLnwcT9Q18Foj1ThOcLx/5R0HwBIMKnqz72qVuu9IoDQXB
+         +pqNCE4BLvKsIumLkjrkEzbK4QPFCtLd9ILdLAWTVIMXRi5petCse+eC9/kHdZ/I48qg
+         psWw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1750960411; x=1751565211;
-        h=content-transfer-encoding:mime-version:message-id:references
-         :in-reply-to:user-agent:subject:cc:to:from:date:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=3DW+isIgbcOam9K3su8rrNYApBVcaHJL5UXxTcvoqeA=;
-        b=unPdtOc9NE/dtwJqG4bKt749VrX0X/ZFvgLP4L+SPIUWfIKvKhmOYgIMJF/WRjE2xm
-         IfC7zvC9+CcRr5el2Dy0HsUqeAw7nSr37lNlo9tyVzSMqYzBAgfEG3Dh/kXWPbotYQXq
-         lNbH1ULWuzBvmDndK3K5fpwg49QooeFkHPyYvroP4CqPf498Yb73ngL8TqKB/OgFieyd
-         igQhcXNXfmZ+loXhS52yx3kZ8SfFuqkMMdYXraW/aZik/PRRdyu7G/u+SWpt0xljgeRh
-         KD+89t3udqWTIEBaZ6oyi7aDj4HhvUeqUptPexn/CyQN5GDvirY1Z4h3Mf4BucrEBTRk
-         tuog==
-X-Forwarded-Encrypted: i=1; AJvYcCUhzCZyZ6NWSCn2YFD//lKhOIKmm12EjwT+LQR4ylWNlXviaAFFLQ6C0+8brUDsoY8wGwOoyDvx@vger.kernel.org, AJvYcCWm21K1DGcQcvSv7pkMPRTCPUQImhLXw4SJwnpTZUXbqkF6WHhH7OKhRLDn4r+ND7gIo/61jIn2nLae6OgKpgo=@vger.kernel.org, AJvYcCWxqO4z8K+DJAn3U5TdqCGAriX2H0vKpNFv/4YjXvXG5J6TF0R9OlyLFiyh5nQgzPeLIq2aWV2XbADn@vger.kernel.org, AJvYcCXN59WdDr8IBXnOkHX5cE7+mSqlZXh6LaXBoiVm/DlTmQpB5a2UXBKMRp00bEJIl9YecqrkgVpKhS1P@vger.kernel.org
-X-Gm-Message-State: AOJu0YyYqieERovBdSbAmzWK54ziQyyaq51Z6XHS7m6Ii8zXubIN6oE3
-	OZyNvrf6+3HzFbNlcX/orx0MPclbUKP0/MYMOvrbouB9TmAhCOCS24mcx8qnPykwSCs=
-X-Gm-Gg: ASbGncsv6sDHFjzWkwXWmV86Sm1RNh+8LSgutvo+1uMplZqbvFd8RZj2Lo52iszbgl8
-	eSLxp+Z10p/xLR8od16Mku7B1l6DCYdEDEVE/6SyFuJLP5zqsTa8VpA9BoQTLKADKFsjcd2/Msg
-	oiJVeJHXYs2zEerarnSmxiyqTd0FcP8Qpls7q6wmR40l9x+1ZaZ6abnjCqntX/hTxwvt9ptoz6O
-	9w6eIDZ56pPltSF80yf1dk1DGuyMJLo5aA6PMDY5mULpXfYgfsi9T5aGX4a0BYx3K2n7x8Wpeqz
-	KWwKsGd1LNeVZjGHlbRh7HUg/Wn3mXnxsdAb7P8ngCs0ITSEfvmL4++cTKUOX9H2iiemTp52uJj
-	eugE=
-X-Google-Smtp-Source: AGHT+IGMAGEXF0yV0ZZzuhQSFlpR4GVzlRjXoSxE+CF+J+ar1VbxUo+RYXwsDYzu1MLVP4aLNgLoyA==
-X-Received: by 2002:a17:902:c950:b0:235:799:eca5 with SMTP id d9443c01a7336-23ac463e850mr3573485ad.44.1750960410691;
-        Thu, 26 Jun 2025 10:53:30 -0700 (PDT)
-Received: from [127.0.0.1] ([116.206.223.154])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-23abe312819sm3768515ad.34.2025.06.26.10.53.29
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 26 Jun 2025 10:53:30 -0700 (PDT)
-Date: Thu, 26 Jun 2025 23:23:14 +0530
-From: Bandhan Pramanik <bandhanpramanik06.foss@gmail.com>
-To: Bjorn Helgaas <helgaas@kernel.org>
-CC: Jeff Johnson <jjohnson@kernel.org>, linux-pci@vger.kernel.org,
- linux-acpi@vger.kernel.org, ath10k@lists.infradead.org,
- linux-wireless@vger.kernel.org, stable@vger.kernel.org
-Subject: =?US-ASCII?Q?Re=3A_Instability_in_ALL_stable_an?=
- =?US-ASCII?Q?d_LTS_distro_kernels_=28IRQ_=2316_be?=
- =?US-ASCII?Q?ing_disabled=2C_PCIe_bus_errors=2C_a?=
- =?US-ASCII?Q?th10k=5Fpci=29_in_Dell_Inspiron_5567?=
-User-Agent: Thunderbird for Android
-In-Reply-To: <CAEmM+Qg+xxMfXb=704OfwYLou7Mh_BNaTevLaGfiG2peZotJoA@mail.gmail.com>
-References: <CAEmM+Qi-Waxk5qcR+nfip-QGXaKk0-Kq7QSq890e9oYOPjW+bA@mail.gmail.com> <20250625202014.GA1585022@bhelgaas> <CAEmM+Qg+xxMfXb=704OfwYLou7Mh_BNaTevLaGfiG2peZotJoA@mail.gmail.com>
-Message-ID: <E8A26FD9-13E3-474A-87FF-ED8D27A1F27B@gmail.com>
+        d=1e100.net; s=20230601; t=1750961264; x=1751566064;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Anccgxz8ioAQ/FehorCp97CbyBsNiWT7FvoW6DOnuQM=;
+        b=w8Hnxt+Gq5WPapgtvfR0XJzJM3lS7aOTBmrEuiE/CjeHp9crAk19LjiWSS/ZJ7e8nA
+         Po8w6vrkPyneD0UV15LlqZtibzrIsj9AtapU+IGQ3WffsUsonyDWyX1aJFCfRDGFij4B
+         lhDurA7FICQIDm7TT1zR64t1+GYEsSLCLWXfTZ+N5XlfHOgugVNGP2UZK8AkktyyKpwG
+         xptOx3SCtEBUKCatDjbxBfAq4NSWSzJ85YT3UBA3RT69j8vwIhXuh4YsgVd4QNMBls7y
+         KENkawp3z8WWHOGURk2xVzQsZQ+194lH4M0jvZf/vd/esxcgOsV+IHCeBDRujvvPKWX3
+         3BGw==
+X-Forwarded-Encrypted: i=1; AJvYcCUsZMSA0+Hr409JL4kssjwYFGTi0jtCHx06ZoF+z1pQo1LSduUXCal9X1Zh2M8IW3KMd3fdxbJqu6ihxA==@vger.kernel.org, AJvYcCUu2Y5LFYWqMJ/Tbu9rEKugyT9MNiA0Z8F3Q3mpheoJZ6JJZ/p8RchfhUm/nqdQ2MdSN+ZeTvNUuu2g4IIc@vger.kernel.org, AJvYcCX6l5Rvfyucl1Pem5XsOTe0+dpHhyW8dYR9sScJ+8gn2gNch7F+w/kdYUV1pqg+SZzrRGwrn96rvkBrgmM=@vger.kernel.org, AJvYcCX9bxP5ufEHbVEdD2RxpSraDsAaiDooZbqXdE9lsYqrMPEOW6hZ4fb/BDiwOkvzlFWDuapGO9AgeOl7@vger.kernel.org
+X-Gm-Message-State: AOJu0YyoJKeRE4LZMRVKu8493Z5jGwogX+2cPBPfiCbrKEn7wV+iiNqI
+	KMx0LCvhmI7wGTAwVCOvEhOLVw8Bm1XcAX5MR0B05QIoEwcfhHqHSF5Da7YxVw==
+X-Gm-Gg: ASbGnctlWegnHK3y9rld110JARHL/VOe+YZ1Y28OYX30i5So3U5bbJHV0ISErmxjiq7
+	hagoZKAvI3gYIG8htJlPHWERtN+RMRV5+S/wmCOUxUdJRJvWwgHIjyprj7D4vBcyCR4m+jvBm01
+	dCy/lYxZB1+vbUKK7n4wbK1eQfwLGi6dNq7NIjUZE08xkwHqZekdChMDwQsvnylC7RvVT5veZ75
+	Nk6VEloB7nQx1jG4WCa7xl9/SmgAcK8UPFEUBHbWLqzeE7IFEXisqBWEtfKRccFM9bcPWTIAriQ
+	nPkC/O4fOpMp/omwmOZ/yafX2D9t55DMa3TXMSakdq5IfSXPtWERws36QDYoexk=
+X-Google-Smtp-Source: AGHT+IHRrMPthSLR2hySukimOy0SgmAYGGUGgUW/V+UP4Nhki2DlSmyuhAPLRzU/2oBAiHJxrCWglQ==
+X-Received: by 2002:a17:902:c94c:b0:225:abd2:5e4b with SMTP id d9443c01a7336-23ac3afd0d2mr4689205ad.16.1750961264017;
+        Thu, 26 Jun 2025 11:07:44 -0700 (PDT)
+Received: from google.com ([2620:15c:9d:2:9c8f:acd3:efcb:bc3d])
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-b34c44730c6sm2154595a12.60.2025.06.26.11.07.42
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 26 Jun 2025 11:07:43 -0700 (PDT)
+Date: Thu, 26 Jun 2025 11:07:40 -0700
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Mario Limonciello <superm1@kernel.org>
+Cc: Hans de Goede <hansg@kernel.org>, Mika Westerberg <westeri@kernel.org>, 
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, 
+	Bartosz Golaszewski <brgl@bgdev.pl>, "open list:GPIO ACPI SUPPORT" <linux-gpio@vger.kernel.org>, 
+	"open list:GPIO ACPI SUPPORT" <linux-acpi@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, 
+	"open list:INPUT (KEYBOARD, MOUSE, JOYSTICK, TOUCHSCREEN)..." <linux-input@vger.kernel.org>, Mario Limonciello <mario.limonciello@amd.com>
+Subject: Re: [PATCH v3 4/4] Input: Don't send fake button presses to wake
+ system
+Message-ID: <nxticocp26r5mmpkttritw76h5igw7bdpus6zaf5krkso2h5xy@wna6m2quekfi>
+References: <20250625215813.3477840-1-superm1@kernel.org>
+ <20250625215813.3477840-5-superm1@kernel.org>
+ <710f7c04-0099-4611-b2ea-4dd4219ad5e2@kernel.org>
+ <23f30094-68cc-47fe-86e0-5289cb41e940@kernel.org>
+ <rn2kp5tog2agvswva2ipqq2ytiqdcgccnocudsg6ckwfh4roei@provk2g6dita>
+ <363c2b92-4bfc-4537-9fca-025eef09526f@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <363c2b92-4bfc-4537-9fca-025eef09526f@kernel.org>
 
-Hello everyone,
+On Thu, Jun 26, 2025 at 12:53:02PM -0500, Mario Limonciello wrote:
+> 
+> 
+> On 6/26/25 12:44 PM, Dmitry Torokhov wrote:
+> > Hi Mario,
+> > 
+> > On Thu, Jun 26, 2025 at 06:33:08AM -0500, Mario Limonciello wrote:
+> > > 
+> > > 
+> > > On 6/26/25 3:35 AM, Hans de Goede wrote:
+> > > > Hi Mario,
+> > > > 
+> > > > On 25-Jun-25 23:58, Mario Limonciello wrote:
+> > > > > From: Mario Limonciello <mario.limonciello@amd.com>
+> > > > > 
+> > > > > Sending an input event to wake a system does wake it, but userspace picks
+> > > > > up the keypress and processes it.  This isn't the intended behavior as it
+> > > > > causes a suspended system to wake up and then potentially turn off if
+> > > > > userspace is configured to turn off on power button presses.
+> > > > > 
+> > > > > Instead send a PM wakeup event for the PM core to handle waking the system.
+> > > > > 
+> > > > > Cc: Hans de Goede <hansg@kernel.org>
+> > > > > Fixes: 0f107573da417 ("Input: gpio_keys - handle the missing key press event in resume phase")
+> > > > > Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
+> > > > > ---
+> > > > >    drivers/input/keyboard/gpio_keys.c | 7 +------
+> > > > >    1 file changed, 1 insertion(+), 6 deletions(-)
+> > > > > 
+> > > > > diff --git a/drivers/input/keyboard/gpio_keys.c b/drivers/input/keyboard/gpio_keys.c
+> > > > > index 773aa5294d269..4c6876b099c43 100644
+> > > > > --- a/drivers/input/keyboard/gpio_keys.c
+> > > > > +++ b/drivers/input/keyboard/gpio_keys.c
+> > > > > @@ -420,12 +420,7 @@ static irqreturn_t gpio_keys_gpio_isr(int irq, void *dev_id)
+> > > > >    		pm_stay_awake(bdata->input->dev.parent);
+> > > > >    		if (bdata->suspended  &&
+> > > > >    		    (button->type == 0 || button->type == EV_KEY)) {
+> > > > > -			/*
+> > > > > -			 * Simulate wakeup key press in case the key has
+> > > > > -			 * already released by the time we got interrupt
+> > > > > -			 * handler to run.
+> > > > > -			 */
+> > > > > -			input_report_key(bdata->input, button->code, 1);
+> > > > > +			pm_wakeup_event(bdata->input->dev.parent, 0);
+> > 
+> > There is already pm_stay_awake() above.
+> 
+> But that doesn't help with the fact that userspace gets KEY_POWER from this
+> and reacts to it.
+> 
+> > 
+> > > > >    		}
+> > > > >    	}
+> > > > 
+> > > > Hmm, we have the same problem on many Bay Trail / Cherry Trail
+> > > > windows 8 / win10 tablets, so  this has been discussed before and e.g.
+> > > > Android userspace actually needs the button-press (evdev) event to not
+> > > > immediately go back to sleep, so a similar patch has been nacked in
+> > > > the past.
+> > > > 
+> > > > At least for GNOME this has been fixed in userspace by ignoring
+> > > > power-button events the first few seconds after a resume from suspend.
+> > > > 
+> > > 
+> > > The default behavior for logind is:
+> > > 
+> > > HandlePowerKey=poweroff
+> > > 
+> > > Can you share more about what version of GNOME has a workaround?
+> > > This was actually GNOME (on Ubuntu 24.04) that I found this issue.
+> > > 
+> > > Nonetheless if this is dependent on an Android userspace problem could we
+> > > perhaps conditionalize it on CONFIG_ANDROID_BINDER_DEVICES?
+> > 
+> > No it is not only Android, other userspace may want to distinguish
+> > between normal and "dark" resume based on keyboard or other user
+> > activity.
+> > 
+> > Thanks.
+> > 
+> In this specific case does the key passed up to satisfy this userspace
+> requirement and keep it awake need to specifically be a fabricated
+> KEY_POWER?
+> 
+> Or could we find a key that doesn't require some userspace to ignore
+> KEY_POWER?
+> 
+> Maybe something like KEY_RESERVED, KEY_FN, or KEY_POWER2?
 
-I think I found it=2E I used irqpoll and I didn't experience any hiccups w=
-ith my mouse performance=2E But the Wi-Fi was still malfunctioning=2E
+The code makes no distinction between KEY_POWER and KEY_A or KEY_B, etc.
+It simply passes event to userspace for processing.
 
-To linux-pci and linux-acpi:
+You need to fix your userspace. Even with your tweak it is possible for
+userspace to get a normal key event "too early" and turn off the screen
+again, so you still need to handle this situation.
 
-It's an ath10k problem, sure, but there's something definitely problematic=
- happening if, in the normal state, these Wi-Fi bugs hamper the touchpad mo=
-vement=2E
+Thanks.
 
-To ath10k and linux-wireless:
-
-I tried out "options ath10k_core rawmode =3D 0" along with "skip_otp=3Dy' =
-and the Wi-Fi seems to work perfectly as of now=2E It might be the fix, it =
-might not be either=2E But I think there's something more important to ask:=
- Are there any good resources/documentation on referring to what the differ=
-ent key-value pairs mean? Like, what's the exact documentation through whic=
-h people arrive at "rawmode=3D0" or "skip_otp=3Dy"?
-
-
-
-Bandhan
-
-
-On 26 June 2025 4:20:13=E2=80=AFam IST, Bandhan Pramanik <bandhanpramanik0=
-6=2Efoss@gmail=2Ecom> wrote:
-> Please ignore the last email (I haven't replied to everyone)=2E Also,
-> here's the actual updated dmesg (the previous one was the old one):
-> https://gist=2Egithub=2Ecom/BandhanPramanik/ddb0cb23eca03ca2ea43a1d832a1=
-6180/raw/78460e6931a055b6776afe756a95d467913d5ebd/updated-dmesg
->=20
-> On Thu, Jun 26, 2025 at 4:16=E2=80=AFAM Bandhan Pramanik
-> <bandhanpramanik06=2Efoss@gmail=2Ecom> wrote:
-> >
-> > Hello Bjorn,
-> >
-> > First of all, thanks a LOT for replying=2E
-> >
-> > I have included the files in my previous GitHub Gist=2E Sharing the ra=
-w
-> > files for easier analysis=2E
-> >
-> > lspci -vv: https://gist=2Egithub=2Ecom/BandhanPramanik/ddb0cb23eca03ca=
-2ea43a1d832a16180/raw/78460e6931a055b6776afe756a95d467913d5ebd/detailed-lsp=
-ci=2Etxt
-> > dmesg: https://gist=2Egithub=2Ecom/BandhanPramanik/ddb0cb23eca03ca2ea4=
-3a1d832a16180/raw/78460e6931a055b6776afe756a95d467913d5ebd/dmesg=2Elog
-> >
-> > On a different note, I had to use pci=3Dnoaer, so that the ring buffer
-> > wouldn't get cleared that fast=2E
-> >
-> > Regarding the ath10k thing, none of the fixes worked this time=2E Only
-> > irqpoll worked=2E I don't know if it's because of a disparity b/w GNOM=
-E
-> > and KDE (because my daily driver is Fedora 42), but I'm 300% sure that
-> > it's not just the Wi-Fi that's the issue here=2E It's most probably a
-> > lot of issues here, and the harder issues to fix are usually the ones
-> > closer to the hardware=2E
-> >
-> > Anyway, if you get something, please let me know=2E
-> >
-> > Bandhan
-> >
+-- 
+Dmitry
