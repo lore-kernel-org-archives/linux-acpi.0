@@ -1,142 +1,201 @@
-Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 400A92F0C47;
-	Thu, 26 Jun 2025 18:15:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=79.96.170.134
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1979194AD5;
+	Thu, 26 Jun 2025 18:20:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750961754; cv=none; b=YLpjBMj3eVznpnKLyOoIB0yqh//9BiRSjGinPKSytp7qk3vP5gncA7RF+FhRf2m9Ujsie01pG+BfrdPXvWN/svHfVmZCfYyTs/KJ6tOXsqrAVGf9NDpKQzabfSPBQKfVz1I01djf65JPbHd+yAsiExz6nTLYrNTRjyaQ0K6s+uk=
+	t=1750962058; cv=none; b=a39NczTYOexXEhEg3WY9rhUwGZEM6KYI4sClGYX4kaHRG2WJxqxwWpJvPCjQLTZAX51xefv4EelC93ERrPoFmK+wDavjpwcryPoAzPStQc/DZkBeXz5bZpncvC+G3i4xmlfUZGtrFHhh7vvKlfbrbYw8QD127mgNU9tV+Mjj2sE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750961754; c=relaxed/simple;
-	bh=wINTbjSgE4hGTShU/WIi/YnLh3esbBO5/BZuSV/Ss6M=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=QUzSbuMImzY9aJIwa1baPvyuD2W2g61u7GTVpCk7cqDyRcoyg9GIFtsu0ZahkIspxXf/AgPgLiMEd5TMqs2iSq6fVVLh0id06X4ikkwzO1jsEx4z4snZhyEDQ6Yq/q2NciEdlsOXMT98nNBynKdUPI2LybJ1M8NgD3T/S8U9Exg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net; spf=pass smtp.mailfrom=rjwysocki.net; dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b=T0n6IXdY; arc=none smtp.client-ip=79.96.170.134
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rjwysocki.net
+	s=arc-20240116; t=1750962058; c=relaxed/simple;
+	bh=wfIlpLMZLEp7iEI0/9yZjuSwtSYUGXsKA3C6nGksKZA=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Z3oPoTy7eu2Hi4PuGZhmGocG3062CcHIGz4it06S7u4H4S1RQskzCVV8CULtOUC31tID4mxZZeQbeXRYLFeai2oKWVkj6EhShuJHDOeMu/+iUQcvKpHVPQPiKSeD5ZpySrw7MkNxc+TrfLQgbCkLEn8E9xCnVsZ9jcu+YOm7CA8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PxJyu2GI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=rjwysocki.net header.i=@rjwysocki.net header.b="T0n6IXdY"
-Received: from kreacher.localnet (unknown [5.63.189.50])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by cloudserver094114.home.pl (Postfix) with ESMTPSA id 0363066E9B3;
-	Thu, 26 Jun 2025 20:15:51 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=rjwysocki.net;
-	s=dkim; t=1750961751;
-	bh=wINTbjSgE4hGTShU/WIi/YnLh3esbBO5/BZuSV/Ss6M=;
-	h=From:Subject:Date;
-	b=T0n6IXdYhMe/hcTSZCIsnX40sD0W5OiXNCgZZ3WP7anD3JaJnT7P8A7fg3t8zHNlL
-	 zzsXVKEEPTNdsLeqAKOBVY+0EN05ZNFevW4aSSBFsqMq0FdW4ieCobGpJWrlnfVtW0
-	 aac/f8la00px9KphVgclu3zU6DbOctwb6nTA0uDcYHF6F8RlVqJlKif5UR8xpjH26i
-	 R5ic7GUgFAi2xNoZBqMcYcYvRu8gkkZRzKULalW4oCioRDZ1RWf5yeJZxqoU47tJNu
-	 4aBGpxz1d2J+m8WFfu6yfl444zmDzjWp69NjGlPqt+tNh+iJBK9n/2b+s9KI284ElG
-	 9pzG2ePCwDRRA==
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-To: Linux PM <linux-pm@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
- Linux ACPI <linux-acpi@vger.kernel.org>,
- Linux PCI <linux-pci@vger.kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>,
- Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject:
- [PATCH v2 0/9] PM: Reconcile different driver options for runtime PM
- integration with system sleep
-Date: Thu, 26 Jun 2025 19:56:15 +0200
-Message-ID: <5015172.GXAFRqVoOG@rjwysocki.net>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PxJyu2GI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5A41C4CEEB;
+	Thu, 26 Jun 2025 18:20:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1750962056;
+	bh=wfIlpLMZLEp7iEI0/9yZjuSwtSYUGXsKA3C6nGksKZA=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=PxJyu2GIGhPRAH6dE+pDZmNZXOtkj9toMN5pOarveVaVI8dLP9SnRN4sDeiPMocST
+	 3b89QJhvwFDJ0BafbAfX2DoDIYi3TqQmo9ZhfbHKTj9GC1tXFxB2y35DVMOqpkSCpi
+	 RgLeQBUYzvyuHlvzI2jAphGsYSLkfoXyoLVM6zLvI7sVk36bqKBcCFhrtkpMMgbc2P
+	 9Nt+0ZKBBMq1CNb84qgJgOzOQGstckj/dXRhh1zUbkppzD6yoYCxcEUBOIRRinT2Ae
+	 ker2RR3fa/G1/3DivxomVJ+9fKVwHmnxLCMO2xVxDVPTixiH79T2B2ZoyRyxkfHsRQ
+	 euOHV13x2fcNQ==
+Message-ID: <cbbf0caf-82ce-4427-9844-b11e0f5cacdb@kernel.org>
+Date: Thu, 26 Jun 2025 13:20:54 -0500
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="UTF-8"
-X-CLIENT-IP: 5.63.189.50
-X-CLIENT-HOSTNAME: 5.63.189.50
-X-VADE-SPAMSTATE: clean
-X-VADE-SPAMCAUSE: dmFkZTERS9BO6oFQrrKZvnjMLMhdxIjD6XTwY2np/2vb7rNOSSHXNNt9K8uhYOcu0GDQLMt+XBrMOqWs4K95ZBhlK8LjOX4FCYPC9tKINH38R6K+WTYb2AiWSb5pM4nk++djRgOCEoUDu5vU2Nt+trUEnM0akRY0i33LV3dxLykM/H0odvvgRjjlgeNZPkA1LEPZexEERpLMGCoqxV/VJx4JxSR7Vg80JzNeL2yXO0Mmf0et8u9bNy55ikrF8ic0eAo2pKFhaxz3IWgZYTdsTxlR3iEnQk4YYNSBE+MHpyS/+ATIWG1EqnktUYq0D3wtjTcsLEQCgMyhr/gN0TdAb/7/JLuTYTZULX/yzzRqEGd4iAn1bkDUw7W4Q/vy4BBLKp4rMPIxo+QqNnAsrLAgytIhhLs92YCVsx/aU8EpVN0sY4cTBeFJRRMUxK1F1a+gxCpkMrq+OqnD2YiR0oZEozpP4c1FFtxpR9aelDojZIsJ0uy+1l3sjqLgQS2doExld/C1Dp0ulMbAK9qw7QfOoNkVeVrjSUFiNtPjg8ZUoqIaOyEoRVkUCq3LdwaHbvizvqsoSuJ5oHOxnVemfWVibLeqL9HfUp3jpe3acOz+rpimarciXk5IozFrh+JTvXypls7ks5WdOJ5tGJYUhS/xib1wVgS2CCzDZqeCBavwsiUphwiNsQ
-X-DCC--Metrics: v370.home.net.pl 1024; Body=6 Fuz1=6 Fuz2=6
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3 4/4] Input: Don't send fake button presses to wake
+ system
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Hans de Goede <hansg@kernel.org>, Mika Westerberg <westeri@kernel.org>,
+ Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+ Linus Walleij <linus.walleij@linaro.org>, Bartosz Golaszewski
+ <brgl@bgdev.pl>, "open list:GPIO ACPI SUPPORT" <linux-gpio@vger.kernel.org>,
+ "open list:GPIO ACPI SUPPORT" <linux-acpi@vger.kernel.org>,
+ open list <linux-kernel@vger.kernel.org>,
+ "open list:INPUT (KEYBOARD, MOUSE, JOYSTICK, TOUCHSCREEN)..."
+ <linux-input@vger.kernel.org>, Mario Limonciello <mario.limonciello@amd.com>
+References: <20250625215813.3477840-1-superm1@kernel.org>
+ <20250625215813.3477840-5-superm1@kernel.org>
+ <710f7c04-0099-4611-b2ea-4dd4219ad5e2@kernel.org>
+ <23f30094-68cc-47fe-86e0-5289cb41e940@kernel.org>
+ <rn2kp5tog2agvswva2ipqq2ytiqdcgccnocudsg6ckwfh4roei@provk2g6dita>
+ <363c2b92-4bfc-4537-9fca-025eef09526f@kernel.org>
+ <nxticocp26r5mmpkttritw76h5igw7bdpus6zaf5krkso2h5xy@wna6m2quekfi>
+Content-Language: en-US
+From: Mario Limonciello <superm1@kernel.org>
+In-Reply-To: <nxticocp26r5mmpkttritw76h5igw7bdpus6zaf5krkso2h5xy@wna6m2quekfi>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Hi Everyone,
+On 6/26/2025 1:07 PM, Dmitry Torokhov wrote:
+> On Thu, Jun 26, 2025 at 12:53:02PM -0500, Mario Limonciello wrote:
+>>
+>>
+>> On 6/26/25 12:44 PM, Dmitry Torokhov wrote:
+>>> Hi Mario,
+>>>
+>>> On Thu, Jun 26, 2025 at 06:33:08AM -0500, Mario Limonciello wrote:
+>>>>
+>>>>
+>>>> On 6/26/25 3:35 AM, Hans de Goede wrote:
+>>>>> Hi Mario,
+>>>>>
+>>>>> On 25-Jun-25 23:58, Mario Limonciello wrote:
+>>>>>> From: Mario Limonciello <mario.limonciello@amd.com>
+>>>>>>
+>>>>>> Sending an input event to wake a system does wake it, but userspace picks
+>>>>>> up the keypress and processes it.  This isn't the intended behavior as it
+>>>>>> causes a suspended system to wake up and then potentially turn off if
+>>>>>> userspace is configured to turn off on power button presses.
+>>>>>>
+>>>>>> Instead send a PM wakeup event for the PM core to handle waking the system.
+>>>>>>
+>>>>>> Cc: Hans de Goede <hansg@kernel.org>
+>>>>>> Fixes: 0f107573da417 ("Input: gpio_keys - handle the missing key press event in resume phase")
+>>>>>> Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
+>>>>>> ---
+>>>>>>     drivers/input/keyboard/gpio_keys.c | 7 +------
+>>>>>>     1 file changed, 1 insertion(+), 6 deletions(-)
+>>>>>>
+>>>>>> diff --git a/drivers/input/keyboard/gpio_keys.c b/drivers/input/keyboard/gpio_keys.c
+>>>>>> index 773aa5294d269..4c6876b099c43 100644
+>>>>>> --- a/drivers/input/keyboard/gpio_keys.c
+>>>>>> +++ b/drivers/input/keyboard/gpio_keys.c
+>>>>>> @@ -420,12 +420,7 @@ static irqreturn_t gpio_keys_gpio_isr(int irq, void *dev_id)
+>>>>>>     		pm_stay_awake(bdata->input->dev.parent);
+>>>>>>     		if (bdata->suspended  &&
+>>>>>>     		    (button->type == 0 || button->type == EV_KEY)) {
+>>>>>> -			/*
+>>>>>> -			 * Simulate wakeup key press in case the key has
+>>>>>> -			 * already released by the time we got interrupt
+>>>>>> -			 * handler to run.
+>>>>>> -			 */
+>>>>>> -			input_report_key(bdata->input, button->code, 1);
+>>>>>> +			pm_wakeup_event(bdata->input->dev.parent, 0);
+>>>
+>>> There is already pm_stay_awake() above.
+>>
+>> But that doesn't help with the fact that userspace gets KEY_POWER from this
+>> and reacts to it.
+>>
+>>>
+>>>>>>     		}
+>>>>>>     	}
+>>>>>
+>>>>> Hmm, we have the same problem on many Bay Trail / Cherry Trail
+>>>>> windows 8 / win10 tablets, so  this has been discussed before and e.g.
+>>>>> Android userspace actually needs the button-press (evdev) event to not
+>>>>> immediately go back to sleep, so a similar patch has been nacked in
+>>>>> the past.
+>>>>>
+>>>>> At least for GNOME this has been fixed in userspace by ignoring
+>>>>> power-button events the first few seconds after a resume from suspend.
+>>>>>
+>>>>
+>>>> The default behavior for logind is:
+>>>>
+>>>> HandlePowerKey=poweroff
+>>>>
+>>>> Can you share more about what version of GNOME has a workaround?
+>>>> This was actually GNOME (on Ubuntu 24.04) that I found this issue.
+>>>>
+>>>> Nonetheless if this is dependent on an Android userspace problem could we
+>>>> perhaps conditionalize it on CONFIG_ANDROID_BINDER_DEVICES?
+>>>
+>>> No it is not only Android, other userspace may want to distinguish
+>>> between normal and "dark" resume based on keyboard or other user
+>>> activity.
+>>>
+>>> Thanks.
+>>>
+>> In this specific case does the key passed up to satisfy this userspace
+>> requirement and keep it awake need to specifically be a fabricated
+>> KEY_POWER?
+>>
+>> Or could we find a key that doesn't require some userspace to ignore
+>> KEY_POWER?
+>>
+>> Maybe something like KEY_RESERVED, KEY_FN, or KEY_POWER2?
+> 
+> The code makes no distinction between KEY_POWER and KEY_A or KEY_B, etc.
+> It simply passes event to userspace for processing.
 
-This is an update of the series posted yesterday:
+Right.  I don't expect a problem with most keys, but my proposal is to 
+special case KEY_POWER while suspended.  If a key press event must be 
+sent to keep Android and other userspace happy I suggest sending 
+something different just for that situation.
 
-https://lore.kernel.org/linux-pm/22759968.EfDdHjke4D@rjwysocki.net/
+Like this:
 
-which first of all fixes the patch numbering and makes some changes
-resulting from the following discussion.
-
-This part of the cover letter still applies:
-
-"This series addresses a couple of issues related to the integration of runtime
-PM with system sleep I was talking about at the OSMP-summit 2025:
-
-https://lwn.net/Articles/1021332/
-
-Most importantly, DPM_FLAG_SMART_SUSPEND cannot be used along with
-pm_runtime_force_suspend/resume() due to some conflicting expectations
-about the handling of device runtime PM status between these functions
-and the PM core.
-
-Also pm_runtime_force_suspend/resume() currently cannot be used in PCI
-drivers and in drivers that collaborate with the general ACPI PM domain
-because they both don't expect their mid-layer runtime PM callbacks to
-be invoked during system-wide suspend and resume.
-
-Patch [1/9] is a preparatory cleanup changing the code to use 'true' and
-'false' as needs_force_resume flag values for consistency."
-
-Patch [2/9], new in this version, makes pm_runtime_reinit() clear
-needs_force_resume in case it was set during driver remove.
-
-Patch [3/9] (which was [4/9] in v1) puts pm_runtime_force_resume() and one
-other function that is only used during system sleep transitions under
-CONFIG_PM_SLEEP.
-
-Patch [4/9] (which was [2/9] in v1) makes pm_runtime_force_suspend() check
-needs_force_resume along with the device's runtime PM status upfront, and bail
-out if it is set, which allows runtime PM status updates to be eliminated from
-both that function and pm_runtime_force_resume().
-
-Patch [5/9] (which was [3/9] in v1) causes the smart_suspend flag to be taken
-into account by pm_runtime_force_resume() which allows it to resume devices
-with smart_suspend set whose runtime PM status has been changed to RPM_ACTIVE
-by the PM core at the beginning of system resume.  After this patch, drivers
-that use pm_runtime_force_suspend/resume() can also set DPM_FLAG_SMART_SUSPEND
-which may be useful, for example, if devices handled by them are involved in
-dependency chains with other devices setting DPM_FLAG_SMART_SUSPEND.
-
-Patch [6/9] (which effectively is new in v2 because it was not submitted
-previously by mistake) makes the code for getting a runtime PM callback for a
-device a bit more straightforward in preparation for the subsequent changes.
-
-Patch [7/9] introduces a new device PM flag called strict_midlayer that
-can be set by middle layer code which doesn't want its runtime PM
-callbacks to be used during system-wide PM transitions, like the PCI bus
-type and the ACPI PM domain, and updates pm_runtime_force_suspend/resume()
-to take that flag into account.
-
-Patch [8/9] modifies the ACPI PM "prepare" and "complete" callback functions,
-used by the general ACPI PM domain and by the ACPI LPSS PM domain, to set and
-clear strict_midlayer, respectively, which allows drivers collaborating with it
-to use pm_runtime_force_suspend/resume().
-
-That may be useful if such a driver wants to be able to work with different
-PM domains on different systems.  It may want to work with the general ACPI PM
-domain on systems using ACPI, or with another PM domain (or even multiple PM
-domains at the same time) on systems without ACPI, and it may want to use
-pm_runtime_force_suspend/resume() as its system-wide PM callbacks.
-
-Patch [9/9] updates the PCI bus type to set and clear, respectively, strict_midlayer
-for all PCI devices in its "prepare" and "complete" PM callbacks, in case some
-PCI drivers want to use pm_runtime_force_suspend/resume() in the future.  They
-will still need to set DPM_FLAG_SMART_SUSPEND to avoid resuming their devices during
-system suspend, but now they may also use pm_runtime_force_suspend/resume() as
-suspend callbacks for the "regular suspend" phase of device suspend (or invoke
-these functions from their suspend callbacks).
-
-As usual, please refer to individual patch changelogs for more details.
-
-Thanks!
+diff --git a/drivers/input/keyboard/gpio_keys.c 
+b/drivers/input/keyboard/gpio_keys.c
+index 773aa5294d269..66e788d381956 100644
+--- a/drivers/input/keyboard/gpio_keys.c
++++ b/drivers/input/keyboard/gpio_keys.c
+@@ -425,7 +425,10 @@ static irqreturn_t gpio_keys_gpio_isr(int irq, void 
+*dev_id)
+                          * already released by the time we got interrupt
+                          * handler to run.
+                          */
+-                       input_report_key(bdata->input, button->code, 1);
++                       if (button->code == KEY_POWER)
++                               input_report_key(bdata->input, 
+KEY_WAKEUP, 1);
++                       else
++                               input_report_key(bdata->input, 
+button->code, 1);
+                 }
+         }
 
 
+
+> 
+> You need to fix your userspace. Even with your tweak it is possible for
+> userspace to get a normal key event "too early" and turn off the screen
+> again, so you still need to handle this situation.
+> 
+> Thanks.
+> 
+
+I want to note this driver works quite differently than how ACPI power 
+button does.
+
+You can see in acpi_button_notify() that the "keypress" is only 
+forwarded when not suspended [1].  Otherwise it's just wakeup event 
+(which is what my patch was modeling).
+
+https://github.com/torvalds/linux/blob/v6.16-rc3/drivers/acpi/button.c#L461 
+[1]
 
