@@ -1,66 +1,65 @@
-Received: from mail-wr1-f52.google.com (mail-wr1-f52.google.com [209.85.221.52])
+Received: from mail-wm1-f50.google.com (mail-wm1-f50.google.com [209.85.128.50])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A436B299931
-	for <linux-acpi@vger.kernel.org>; Fri, 27 Jun 2025 11:02:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8919E26B77D
+	for <linux-acpi@vger.kernel.org>; Fri, 27 Jun 2025 11:14:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751022147; cv=none; b=qiKIXEAYKjf/M8BNJSN3C/TeaRn8XH7dq8SiD02bojXR21LA0Ds5VvxOgVWhdHEy46pa2lvZ2Zku+ys/gt3i/LJ+tHlsKBqffy7HYxL+QTrFmpZs0o2Uouj+7MhUx1kdZpZ6qDKSTQWyzW99XnnQt3TzhyqXXCvxtlBjkG4AiRI=
+	t=1751022885; cv=none; b=Ymjg/NHewFgNUBNARkCVUlZErlY3v8Ujg/P5LhS8jty+kydpvJD4SG49wjt9J6atlJ5Hbcd7Lf5+VB/iIe3IYEsyJF7Eh4lnyrHXRvv+PMoYsfjuV17jHGhB9F3lMBGWdBnX6CYnSWOsYYxDJvsWjijEdS6VUngo13c35lhrZ7Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751022147; c=relaxed/simple;
-	bh=UbocRxrPuinG6iYFnuvEcRqpEfvfqq9ovOc0tDbRGtE=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Y7v4jofoRtGWqNz0vREWHBxpbll1mA7T1QT4Y81+9VkTeApr5u4PwBH8UaTGyVWm38bflk48J2YcliBkVJ6z4Sb4CU1aCL/BP2mbZaUYZEdfW9Q7O0caZlf4yEJtdb9IllVp3uUy27DFrt7UIKZbJjyTgGmC8SpJGjxc+93r36I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=ZQUl37sN; arc=none smtp.client-ip=209.85.221.52
+	s=arc-20240116; t=1751022885; c=relaxed/simple;
+	bh=w4MVazwHyGvA4nmO+5orzSzKQM8Ol8qd0ZCA8/lQu0g=;
+	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
+	 In-Reply-To:Content-Type; b=o/v4Elml1pXJFNqiIUSf9oQYS32GQFzXS/Vm1l0q0A2D2xcoQFfO1FoIFtjNRwwx84YVVV5q6w6UjAuj51/aAhrwGBLZxtyRWpq0YS7pnx62vb/yKP/wwd6XrQUzIuodadbrno4s9DTpcBW2qpVtmyjI1sXdsJvQIDI9wRjDa8Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=ba7wgyry; arc=none smtp.client-ip=209.85.128.50
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="ZQUl37sN"
-Received: by mail-wr1-f52.google.com with SMTP id ffacd0b85a97d-3a6d1369d4eso1116805f8f.2
-        for <linux-acpi@vger.kernel.org>; Fri, 27 Jun 2025 04:02:25 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="ba7wgyry"
+Received: by mail-wm1-f50.google.com with SMTP id 5b1f17b1804b1-45310223677so12242935e9.0
+        for <linux-acpi@vger.kernel.org>; Fri, 27 Jun 2025 04:14:43 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=suse.com; s=google; t=1751022144; x=1751626944; darn=vger.kernel.org;
+        d=suse.com; s=google; t=1751022882; x=1751627682; darn=vger.kernel.org;
         h=content-transfer-encoding:in-reply-to:autocrypt:content-language
-         :from:references:cc:to:subject:user-agent:mime-version:date
+         :references:cc:to:from:subject:user-agent:mime-version:date
          :message-id:from:to:cc:subject:date:message-id:reply-to;
-        bh=5MB5U8bqYDJvjeC9i1OhQ7bFIZu2Wa/gbdobERtzeqk=;
-        b=ZQUl37sNLgIwffCNus2cKZAu9Uzh5XeMjDhwKWFUBV9/TLxQrYWpKedzdQSg9xGMTI
-         AY9YQ7J3eOiJ5DFCSOt2tvXSma8zjhxUNEGuHEbHWMH6kq6fciIiIURtEU8Qj2xqEA59
-         AU19Ec9SvCI7gQNGKtVbvotIqZiSXTtLDVzVo5vATPPdGA92fupFMB+uqnjs2WX9paxg
-         9JTG/V+ZR6bJT9+vymVOMF4L27MiIKsFIdcZutiubRbkfghTxdz807LZVV5iSo9Az4J9
-         J8z100MTOjHHWg1kHYzaA6f6V5p8SSKltli1CZc44QDL5nXJTULtpc/gfvapuCOoHEZI
-         7Qaw==
+        bh=sT2Dty8HASo3E301EIpFBwg887/bkP44U7q2iAJe4Gc=;
+        b=ba7wgyrys8Nen/h9u+bXusV2IJ1xLTJL68LtLHSSXbqafpS5TWeOl0RJWTP9A24Wg8
+         nEWWYLqqlOAhrwpBJMMMbhCw7HOrApSN5jZ3/ZguxCMiUQFw8ttJzAFProFCgAXO8mh2
+         1rLIluUFfSsjl0UkCyl49twlnmtnpD1BtoiG4PuGox4t/RSf9w4jQYVqYvXLm3oZBLm4
+         4MIP0yFzqceAedEVriueRrqSXqUlhCjzdKTiis04aCWTd37omYuRlIeZ8XOVNlP5RESi
+         IyfsXpGml3paUhLmSk/PAIZ1lCLpItw86EhzjBirg4hFe4V+S7uCYv8kTDrlyjuIhO8X
+         rfqw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1751022144; x=1751626944;
+        d=1e100.net; s=20230601; t=1751022882; x=1751627682;
         h=content-transfer-encoding:in-reply-to:autocrypt:content-language
-         :from:references:cc:to:subject:user-agent:mime-version:date
+         :references:cc:to:from:subject:user-agent:mime-version:date
          :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=5MB5U8bqYDJvjeC9i1OhQ7bFIZu2Wa/gbdobERtzeqk=;
-        b=gRSXcxDXt3dQiV5HRR0Jf//yWnC259JHM4xgn0DA4U1zzQdu2E+xTORSLBZGr5ysGz
-         h2nJOZQGw/6F7LM8j79gF+WwOyq0c4375oZsEOenSN3P/67PM1u1LIGVWeR4tVKKXpdH
-         KuXwkwL+cv3vL1UyW0/5jnA15gr03anxiXOHavFWlRXCaZ7WqCfMWNLu2gXTcN7qJOwQ
-         FJnpE6+h2e+/mLC6ptlHz8djMYHjf07NU3CVipzdxKWFghwSfiL+gE7ESVpJP36JZ475
-         zsMJIFa6METnTuwpVnAMC6O5Y/zpBOLS+Ms99rtPndC2aJ/Oo/SwSsdaBZQ70NqTwv1w
-         /Yhg==
-X-Forwarded-Encrypted: i=1; AJvYcCVknhTcKMWTt2IRRSQ6Y93PJ3ndYxx9SR0EKRuo6boB29ttFLiD3zajRQO7u6tJrAVI05bUOxDWGSbU@vger.kernel.org
-X-Gm-Message-State: AOJu0YyMlqatGaIL3MJSfuL8B2z1rPNhpyYvm9o4d4DYvT84gkS0fC5e
-	8ooQbq+CWb3LqNuqVvnR0TFp951DFbNoTgtiAHF9ENLyGAc8aynUYWHWbcSDID/tbT4=
-X-Gm-Gg: ASbGnctirErOYpYaZmAVn1SyOZ2wz6M/2PQFWYbLxOm8ymySIMwveCSCHE9iwm4DGbN
-	daUKzXim2mHte/VTL12vr+iyTjfoQ0Bs5GDB4C9mxhLZFcSAAMSy4QmXa+vTR9pqh+qvvGWahdM
-	bMHQ6saU0+9rtSO2Q174MhpWyoR3MRJwVlUplQ3LgJGZopdVDz2auTApNiep3mj6WgvAKT6FwBZ
-	ncc0VaxM/VS09RQSPEZGs8XK50xwM7LMUAHL5cfkurHCBjoqXVJm/b3mS9vGgnbmQg/7nw35R40
-	xIxwW5CoFnsW1oM+MF5HALJ4Q0K6SviqhBHbzQWkRr3pmeUeiyURCUcXLfMqD19EnK3iNPfazn0
-	z
-X-Google-Smtp-Source: AGHT+IHdTlXlXAt6xlaCQO8aQcUU0g1Gwno+uw9Gk0I0YiQJvSGgcSxuFvYNh4HIOayLHeaO/O805w==
-X-Received: by 2002:a05:6000:2809:b0:3a5:232c:6976 with SMTP id ffacd0b85a97d-3a90038b991mr2054599f8f.44.1751022143774;
-        Fri, 27 Jun 2025 04:02:23 -0700 (PDT)
+        bh=sT2Dty8HASo3E301EIpFBwg887/bkP44U7q2iAJe4Gc=;
+        b=IzJepMc59xGkR+lUMvF0AI3JiHcew6OixEswonwNQXp++9lLh99xMUSZjHvx1bzf27
+         t5zo1tGXzoEw0/zlWuqPJJ2jmCUqwRziTR5TWjINyGn7c0ZpMqIztEuP8vRnEqXXqvrx
+         jAJbGNVlXKQJs9TfrIsg8xybMTEn8MahlJ/CcG2ODyK1+0CXJgrHQqMPg0O2YYKXI34l
+         U0vdMJc/qWY/XRaoQnAmWUdi65yRGcVrBIK7Q4RjJEyG44l+PLR9IaZ45E2C4tEmUqIy
+         wiyBkrX+sc672ZyCnbl1M5rXGzjqJpQ6oMJy1BpX9+YTrXuFnMgYFFkO2+aDOHmLrtNC
+         x8wg==
+X-Forwarded-Encrypted: i=1; AJvYcCX9gJVIgNMcEd+Gc0wTXjtlxXBcHDQ9G2Fc9+9Lo5MsbPFDta5JLol4ennpyqEmJGET7BpZA40KgHTb@vger.kernel.org
+X-Gm-Message-State: AOJu0YxIzaLwKmF9YD12cvT8cLa7p2x9uNbXuxG0EpBJrcnS5aDYMoeN
+	x1vskNi4KmLfX490agC80SF8FRQGAIcRqNmoqO1A6MVIKKj3JxAXA5Q5d34t3arfhnI=
+X-Gm-Gg: ASbGnctrqWDaTTOr45S31Hc5ovAKxTyUcxq9c1nXsJMasydIi96N9J+6sxJfVWjlZd5
+	xJuDT7JStsGQEiGeSbqEs1nnEM4DRqHhk62RWOvOOSkQQrFZkcCqnkBWek8JA99pTdEYwMAIWfw
+	E3Ax/yFW9Ywt7fJf30i6ulWXwNxVx2mfG+CDSb+7Cyoganzb2m+0tMRHZ/9O+iN1vT8bgNuUWDM
+	2wKx7gpXWSgXGOKeJX0LA/r6FSKLoMDFh1lyo4docnA7ZJBBdtc0zZfNKpb7TaljyGnmuIRzAxQ
+	YpwQ6FwsY5geKgbJU0FvfmS54rYiIymvdyrVAzjzVpPsWFkGs3lzK7QSKSuRiRCtaQ==
+X-Google-Smtp-Source: AGHT+IEwKKnJLjCucj3H+V14bUMgMBDIHsq7dD9B3IJhgOXR9ECVYmDuqEFe23uc3SMhFyT2EvpZ/g==
+X-Received: by 2002:a05:600c:5249:b0:450:cfe1:a827 with SMTP id 5b1f17b1804b1-4538ee95284mr35636735e9.31.1751022881721;
+        Fri, 27 Jun 2025 04:14:41 -0700 (PDT)
 Received: from [192.168.0.20] ([212.21.159.38])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-3a88c7fa8aasm2361784f8f.27.2025.06.27.04.02.22
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-3a88c7e6f23sm2498309f8f.11.2025.06.27.04.14.40
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 27 Jun 2025 04:02:23 -0700 (PDT)
-Message-ID: <c161e5b3-0719-4bf9-b7db-e5dd0fa8902b@suse.com>
-Date: Fri, 27 Jun 2025 14:02:22 +0300
+        Fri, 27 Jun 2025 04:14:41 -0700 (PDT)
+Message-ID: <fda62d41-ad87-4e33-9662-11d397a26f7c@suse.com>
+Date: Fri, 27 Jun 2025 14:14:40 +0300
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -68,7 +67,8 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 14/22] x86/mce: Separate global and per-CPU quirks
+Subject: Re: [PATCH v4 08/22] x86/mce/amd: Put list_head in threshold_bank
+From: Nikolay Borisov <nik.borisov@suse.com>
 To: Yazen Ghannam <yazen.ghannam@amd.com>, x86@kernel.org,
  Tony Luck <tony.luck@intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>,
  Len Brown <lenb@kernel.org>
@@ -76,8 +76,8 @@ Cc: linux-kernel@vger.kernel.org, linux-edac@vger.kernel.org,
  Smita.KoralahalliChannabasappa@amd.com, Qiuxu Zhuo <qiuxu.zhuo@intel.com>,
  linux-acpi@vger.kernel.org
 References: <20250624-wip-mca-updates-v4-0-236dd74f645f@amd.com>
- <20250624-wip-mca-updates-v4-14-236dd74f645f@amd.com>
-From: Nikolay Borisov <nik.borisov@suse.com>
+ <20250624-wip-mca-updates-v4-8-236dd74f645f@amd.com>
+ <68039ee2-5407-4bd4-9735-62674805eaad@suse.com>
 Content-Language: en-US
 Autocrypt: addr=nik.borisov@suse.com; keydata=
  xsFNBGcrpvIBEAD5cAR5+qu30GnmPrK9veWX5RVzzbgtkk9C/EESHy9Yz0+HWgCVRoNyRQsZ
@@ -122,37 +122,139 @@ Autocrypt: addr=nik.borisov@suse.com; keydata=
  JDjakbdjBoYDWVoaPbp5KAQ2VQRiR54lir/inyqGX+dwzPX/F4OHfB5RTiAFLJliCxniKFsM
  d8eHe88jWjm6/ilx4IlLl9/MdVUGjLpBi18X7ejLz3U2quYD8DBAGzCjy49wJ4Di4qQjblb2
  pTXoEyM2L6E604NbDu0VDvHg7EXh1WwmijEu28c/hEB6DwtzslLpBSsJV0s1/jE=
-In-Reply-To: <20250624-wip-mca-updates-v4-14-236dd74f645f@amd.com>
+In-Reply-To: <68039ee2-5407-4bd4-9735-62674805eaad@suse.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
 
 
-On 6/24/25 17:16, Yazen Ghannam wrote:
-> Many quirks are global configuration settings and a handful apply to
-> each CPU.
+On 6/25/25 19:52, Nikolay Borisov wrote:
 > 
-> Move the per-CPU quirks to vendor init to execute them on each online
-> CPU. Set the global quirks during BSP-only init so they're only executed
-> once and early.
 > 
-> Reviewed-by: Qiuxu Zhuo <qiuxu.zhuo@intel.com>
-> Tested-by: Tony Luck <tony.luck@intel.com>
-> Reviewed-by: Tony Luck <tony.luck@intel.com>
-> Signed-off-by: Yazen Ghannam <yazen.ghannam@amd.com>
+> On 6/24/25 17:16, Yazen Ghannam wrote:
+>> The threshold_bank structure is a container for one or more
+>> threshold_block structures. Currently, the container has a single
+>> pointer to the 'first' threshold_block structure which then has a linked
+>> list of the remaining threshold_block structures.
+>>
+>> This results in an extra level of indirection where the 'first' block is
+>> checked before iterating over the remaining blocks.
+>>
+>> Remove the indirection by including the head of the block list in the
+>> threshold_bank structure which already acts as a container for all the
+>> bank's thresholding blocks.
+>>
+>> Reviewed-by: Qiuxu Zhuo <qiuxu.zhuo@intel.com>
+>> Tested-by: Tony Luck <tony.luck@intel.com>
+>> Reviewed-by: Tony Luck <tony.luck@intel.com>
+>> Signed-off-by: Yazen Ghannam <yazen.ghannam@amd.com>
+>> ---
+>>
+>> Notes:
+>>      Link:
+>>      https://lore.kernel.org/r/20250415-wip-mca-updates- 
+>> v3-4-8ffd9eb4aa56@amd.com
+>>      v3->v4:
+>>      * No change.
+>>      v2->v3:
+>>      * Added tags from Qiuxu and Tony.
+>>      v1->v2:
+>>      * New in v2.
+>>
+>>   arch/x86/kernel/cpu/mce/amd.c | 43 +++++++++++ 
+>> +-------------------------------
+>>   1 file changed, 12 insertions(+), 31 deletions(-)
+>>
+>> diff --git a/arch/x86/kernel/cpu/mce/amd.c b/arch/x86/kernel/cpu/mce/ 
+>> amd.c
+>> index 0ffbee329a8c..5d351ec863cd 100644
+>> --- a/arch/x86/kernel/cpu/mce/amd.c
+>> +++ b/arch/x86/kernel/cpu/mce/amd.c
+>> @@ -241,7 +241,8 @@ struct threshold_block {
+>>   struct threshold_bank {
+>>       struct kobject        *kobj;
+>> -    struct threshold_block    *blocks;
+>> +    /* List of threshold blocks within this MCA bank. */
+>> +    struct list_head    miscj;
+>>   };
+>>   static DEFINE_PER_CPU(struct threshold_bank **, threshold_banks);
+>> @@ -900,9 +901,9 @@ static void log_and_reset_block(struct 
+>> threshold_block *block)
+>>    */
+>>   static void amd_threshold_interrupt(void)
+>>   {
+>> -    struct threshold_block *first_block = NULL, *block = NULL, *tmp = 
+>> NULL;
+>> -    struct threshold_bank **bp = this_cpu_read(threshold_banks);
+>> +    struct threshold_bank **bp = this_cpu_read(threshold_banks), 
+>> *thr_bank;
+>>       unsigned int bank, cpu = smp_processor_id();
+>> +    struct threshold_block *block, *tmp;
+>>       /*
+>>        * Validate that the threshold bank has been initialized 
+>> already. The
+>> @@ -916,16 +917,11 @@ static void amd_threshold_interrupt(void)
+>>           if (!(per_cpu(bank_map, cpu) & BIT_ULL(bank)))
+>>               continue;
+> 
+> <slight off topic>
+> 
+> nit: I wonder if instead of using per_cpu and manual bit testing can't a 
+> direct
+> call to x86_this_cpu_test_bit be a better solution. The assembly looks 
+> like:
+> 
+> [OLD]
+> 
+> xorl    %r14d, %r14d    # ivtmp.245
+> movq    %rax, 8(%rsp)   # cpu, %sfp
+> # arch/x86/kernel/cpu/mce/amd.c:917:        if (!(per_cpu(bank_map, cpu) 
+> & BIT_ULL(bank)))
+> movq    $bank_map, %rax #, __ptr
+> movq    %rax, (%rsp)    # __ptr, %sfp
+> .L236:
+> movq    8(%rsp), %rax   # %sfp, cpu
+> # arch/x86/kernel/cpu/mce/amd.c:917:        if (!(per_cpu(bank_map, cpu) 
+> & BIT_ULL(bank)))
+> movq    (%rsp), %rsi    # %sfp, __ptr
+> # arch/x86/kernel/cpu/mce/amd.c:917:        if (!(per_cpu(bank_map, cpu) 
+> & BIT_ULL(bank)))
+> movq    __per_cpu_offset(,%rax,8), %rax # __per_cpu_offset[cpu_23], 
+> __per_cpu_offset[cpu_23]
+> # arch/x86/kernel/cpu/mce/amd.c:917:        if (!(per_cpu(bank_map, cpu) 
+> & BIT_ULL(bank)))
+> movq    (%rax,%rsi), %rax
+> # arch/x86/kernel/cpu/mce/amd.c:917:        if (!(per_cpu(bank_map, cpu) 
+> & BIT_ULL(bank)))
+> btq %r14, %rax
+> 
+> [NEW]
+> 
+> xorl    %r15d, %r15d    # ivtmp.246
+> .L236:
+> # 917 "arch/x86/kernel/cpu/mce/amd.c" 1
+> btl %r15d, %gs:bank_map(%rip)   # ivtmp.246, *_9
+> 
+> 
+> That way you end up with a single btl (but I guess a version that uses 
+> btq should be added as well)
+> inside the loop rather than a bunch of instructions moving data around 
+> for per_cpu.
+> 
+> Alternatively, since this is running in interrupt context can't you use 
+> directly this_cpu_read(bank_map) and eliminate the smp_processor_id 
+> invocation?
 
 
-After this patch the code ends up with 2 sets of quirk functions with 
-very confusing names:
-
-amd_apply_quirks/apply_quirks_amd
-intel_apply_quirks/apply_quirks_intel
+Actually the total number of banks are at most 128 as per the layout of 
+MCG_CAP register, so using btl is fine. Also I'm not sure why the 
+original code uses BIT_ULL vs just BIT since we can't have a 64bit value.
 
 
-Better naming convention would be something along the lines of:
-
-amd_apply_global_quirks/amd_apply_cpu_quirks and the same for intel.
-
-
+> 
+> </slight off topic>
+> 
+> 
+> <snip>
 > 
 
