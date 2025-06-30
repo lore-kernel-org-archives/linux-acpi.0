@@ -1,205 +1,121 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.17])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4313721FF54;
-	Mon, 30 Jun 2025 20:59:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5205D125B2;
+	Mon, 30 Jun 2025 22:43:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.17
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751317188; cv=none; b=lZ4W85osCM3hjHeHBpiF90noJjJWuwTgcp+HeOsg1mWymT3YFVjJfpjr8l84Vt8/wsZzC+TBjMzstn5mYJPTdIYli5wwgPRn/y4NAKiqLAg9qYApc/YrUlDYmGb3NfZznU9vjqQ2PydmG3te85inaheHt7AnMv7YySzEItu76r8=
+	t=1751323432; cv=none; b=UVcJbj91rwefdxyp9WmM+FxdISIXQ1pKgouB1N+Kl0sA7jKKB47+xAJFpeAH7z5iSojfaJutEcDJZ1Zt6QZPa/qlGI10RGtWuZnDH3n1ILS6a+gublIj63bO1fDE6g2qD7LJkaasew9KcUEJ4GoG4kEa/4bngWj/RVV4PeerwQQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751317188; c=relaxed/simple;
-	bh=ketVR18fpnW4xkFERzMsiFpAF9jtuIK0RiDKnTgJDp8=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=L94ru+I5lN8AS6YAZU7mLv2E2sTNMBZ7MC5dMnz3EYghOwuDyTN2hDczIlfhIXHFEXe1oRfnYkdPyWIsUlj1SOivadcdS5CAuG8s5+Dw+EW3bShNSE78LzRLkNo2/s3r4T2nBpYnTzAJbClHMf1X5Wv4rvpGeK6hRZScZePXvN8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=qsrT9QP4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751323432; c=relaxed/simple;
+	bh=ffb/hTRPmY5KeK6OrulyF3uIh0DRkKHhLxkEtemA18k=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=r79WHAn+7Zqh8CCJ6qr1XD2jLzfS86lg9gRMpNTebYVdDbXLhjqQCZxuV0H6+gXwD2iB1ptZZUsRSMglmpr2k/7IH00hWPsDqUab8L5839uusN3/QHBLrFKYWjS2wZmITe/uzMXV6BCLro0uqRzh3gunAQjbdGwxxS3tcxG0XDs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=YuxvQJxX; arc=none smtp.client-ip=198.175.65.17
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="qsrT9QP4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58A8EC4CEE3;
-	Mon, 30 Jun 2025 20:59:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1751317187;
-	bh=ketVR18fpnW4xkFERzMsiFpAF9jtuIK0RiDKnTgJDp8=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=qsrT9QP4hpSZ7+iQwvQyzaAvp1GqENjmzjxVMW5CHElpIZsdveY7ZfISw4/MalZ9A
-	 PqUoJ8gH9qZzLjLKSyPVA3YqogUJo6yhFJgU59TEfxOPN+5lcvAVvfwux14jbKFKkg
-	 /ucNlT5O1LOvmNEdkYTk9kzUoVjE5F3Gp9Bl/uDHNe3Rq34ceTbi81B3gLyJ1wI+Yo
-	 lx0mpYFm+frK9fu90qugSwLtCducq1khGFWxcgWKLVNdsPA0Jn7iUiNM13c4CZkl4E
-	 SlRsJiKJwbqX+cPyapCm+Du8rVMHHzC2RU7AJ/i5h/ATOzS0p0G2F/pma5pdXdgwjX
-	 WUmgCGNEWVDeA==
-From: Sasha Levin <sashal@kernel.org>
-To: patches@lists.linux.dev,
-	stable@vger.kernel.org
-Cc: Zhe Qiao <qiaozhe@iscas.ac.cn>,
-	Dan Carpenter <dan.carpenter@linaro.org>,
-	"Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-	Sasha Levin <sashal@kernel.org>,
-	rafael@kernel.org,
-	bhelgaas@google.com,
-	linux-acpi@vger.kernel.org,
-	linux-pci@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.12 05/21] Revert "PCI/ACPI: Fix allocated memory release on error in pci_acpi_scan_root()"
-Date: Mon, 30 Jun 2025 16:45:20 -0400
-Message-Id: <20250630204536.1358327-5-sashal@kernel.org>
-X-Mailer: git-send-email 2.39.5
-In-Reply-To: <20250630204536.1358327-1-sashal@kernel.org>
-References: <20250630204536.1358327-1-sashal@kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="YuxvQJxX"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1751323431; x=1782859431;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:content-transfer-encoding:in-reply-to;
+  bh=ffb/hTRPmY5KeK6OrulyF3uIh0DRkKHhLxkEtemA18k=;
+  b=YuxvQJxX04qiPvwXTetOAwkyUiT6A1TqDO5ZPhTBMPF8IFMIJeZUyJoa
+   rj73HJo+xFpsmxqN+GB9rb4bhDrF6cK0b8xFg5UpHIt90fZBycScNiZOf
+   8NmPt31vmAf3XjTAxyw29kVllboR2wMBNvunZBtF7pHsYiHOqFbRG9q3Y
+   6mLxsGd7TMq6Pv/kgcotjXkfp0d2NyqXLXfE3J/ASEHjtEOPsh6P0RZwA
+   n4FN5gXUxiCIFJUEuvjvb4IFX5FO9ZB99By1QOB+Acyc9+94Ssy5d7cIu
+   aLv6lp9v9K4esQUXjSQxmjsbJtCJBrVqndqVKz/6LrkHppWndNF1UCCtr
+   g==;
+X-CSE-ConnectionGUID: 16DktrHjR5eXmqRUY6rIjQ==
+X-CSE-MsgGUID: CVfy4fu0QAG6tjR+97r34A==
+X-IronPort-AV: E=McAfee;i="6800,10657,11480"; a="53526456"
+X-IronPort-AV: E=Sophos;i="6.16,278,1744095600"; 
+   d="scan'208";a="53526456"
+Received: from fmviesa002.fm.intel.com ([10.60.135.142])
+  by orvoesa109.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Jun 2025 15:43:50 -0700
+X-CSE-ConnectionGUID: fiAwSQv8QKmrmHZGKskUGw==
+X-CSE-MsgGUID: +1nCDvr8SWaVJgaf3d6gvw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.16,278,1744095600"; 
+   d="scan'208";a="177246336"
+Received: from ranerica-svr.sc.intel.com ([172.25.110.23])
+  by fmviesa002.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Jun 2025 15:43:48 -0700
+Date: Mon, 30 Jun 2025 15:49:47 -0700
+From: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: x86@kernel.org, Krzysztof Kozlowski <krzk+dt@kernel.org>,
+	Conor Dooley <conor+dt@kernel.org>, Rob Herring <robh@kernel.org>,
+	"K. Y. Srinivasan" <kys@microsoft.com>,
+	Haiyang Zhang <haiyangz@microsoft.com>,
+	Wei Liu <wei.liu@kernel.org>, Dexuan Cui <decui@microsoft.com>,
+	Michael Kelley <mhklinux@outlook.com>,
+	Saurabh Sengar <ssengar@linux.microsoft.com>,
+	Chris Oo <cho@microsoft.com>,
+	"Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+	linux-hyperv@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Ricardo Neri <ricardo.neri@intel.com>,
+	Yunhong Jiang <yunhong.jiang@linux.intel.com>
+Subject: Re: [PATCH v5 03/10] dt-bindings: reserved-memory: Wakeup Mailbox
+ for Intel processors
+Message-ID: <20250630224947.GA3072@ranerica-svr.sc.intel.com>
+References: <20250627-rneri-wakeup-mailbox-v5-0-df547b1d196e@linux.intel.com>
+ <20250627-rneri-wakeup-mailbox-v5-3-df547b1d196e@linux.intel.com>
+ <CAJZ5v0h_oifyhJq4WiOzS0fcexrjeChJhVyAthfQCX=6v_GumA@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-X-stable-base: Linux 6.12.35
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAJZ5v0h_oifyhJq4WiOzS0fcexrjeChJhVyAthfQCX=6v_GumA@mail.gmail.com>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 
-From: Zhe Qiao <qiaozhe@iscas.ac.cn>
+On Mon, Jun 30, 2025 at 09:02:00PM +0200, Rafael J. Wysocki wrote:
+> On Sat, Jun 28, 2025 at 5:35 AM Ricardo Neri
+> <ricardo.neri-calderon@linux.intel.com> wrote:
+> >
+> > Add DeviceTree bindings to enumerate the wakeup mailbox used in platform
+> > firmware for Intel processors.
+> >
+> > x86 platforms commonly boot secondary CPUs using an INIT assert, de-assert
+> > followed by Start-Up IPI messages. The wakeup mailbox can be used when this
+> > mechanism is unavailable.
+> >
+> > The wakeup mailbox offers more control to the operating system to boot
+> > secondary CPUs than a spin-table. It allows the reuse of same wakeup vector
+> > for all CPUs while maintaining control over which CPUs to boot and when.
+> > While it is possible to achieve the same level of control using a spin-
+> > table, it would require to specify a separate `cpu-release-addr` for each
+> > secondary CPU.
+> >
+> > The operation and structure of the mailbox is described in the
+> > Multiprocessor Wakeup Structure defined in the ACPI specification. Note
+> > that this structure does not specify how to publish the mailbox to the
+> > operating system (ACPI-based platform firmware uses a separate table). No
+> > ACPI table is needed in DeviceTree-based firmware to enumerate the mailbox.
+> >
+> > Add a `compatible` property that the operating system can use to discover
+> > the mailbox. Nodes wanting to refer to the reserved memory usually define a
+> > `memory-region` property. /cpus/cpu* nodes would want to refer to the
+> > mailbox, but they do not have such property defined in the DeviceTree
+> > specification. Moreover, it would imply that there is a memory region per
+> > CPU.
+> >
+> > Co-developed-by: Yunhong Jiang <yunhong.jiang@linux.intel.com>
+> > Signed-off-by: Yunhong Jiang <yunhong.jiang@linux.intel.com>
+> > Signed-off-by: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
+> 
+> LGTM from the ACPI specification cross-referencing perspective, so
+> 
+> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-[ Upstream commit 2b8be57fa0c88ac824a906f29c04d728f9f6047a ]
+Thank you Rafael!
 
-This reverts commit 631b2af2f357 ("PCI/ACPI: Fix allocated memory release
-on error in pci_acpi_scan_root()").
-
-The reverted patch causes the 'ri->cfg' and 'root_ops' resources to be
-released multiple times.
-
-When acpi_pci_root_create() fails, these resources have already been
-released internally by the __acpi_pci_root_release_info() function.
-
-Releasing them again in pci_acpi_scan_root() leads to incorrect behavior
-and potential memory issues.
-
-We plan to resolve the issue using a more appropriate fix.
-
-Reported-by: Dan Carpenter <dan.carpenter@linaro.org>
-Closes: https://lore.kernel.org/all/aEmdnuw715btq7Q5@stanley.mountain/
-Signed-off-by: Zhe Qiao <qiaozhe@iscas.ac.cn>
-Acked-by: Dan Carpenter <dan.carpenter@linaro.org>
-Link: https://patch.msgid.link/20250619072608.2075475-1-qiaozhe@iscas.ac.cn
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
-
-Based on my analysis of the commit and examination of the kernel code, I
-need to determine if this revert should be backported.
-
-**YES**, this commit should be backported to stable kernel trees.
-
-## Extensive Explanation:
-
-### 1. **Critical Double-Free Bug Fix**
-This revert fixes a serious double-free bug introduced by commit
-631b2af2f357. The code analysis reveals that when
-`acpi_pci_root_create()` fails, it internally calls
-`__acpi_pci_root_release_info()`, which then invokes the `release_info`
-callback (`pci_acpi_generic_release_info()`). This callback already
-frees:
-- `ri->cfg` via `pci_ecam_free(ri->cfg)`
-- `ci->ops` (which is `root_ops`) via `kfree(ci->ops)`
-- `ri` via `kfree(ri)`
-
-The explicit cleanup added by the reverted commit causes these resources
-to be freed a second time, leading to memory corruption.
-
-### 2. **Error Path Issue - High Impact**
-The double-free occurs in the error handling path when
-`acpi_pci_root_create()` fails. While this is not the common case,
-PCI/ACPI initialization failures can occur due to:
-- Hardware issues
-- Firmware bugs
-- Resource allocation failures
-- Configuration problems
-
-When such failures occur, the double-free can cause kernel crashes, data
-corruption, or security vulnerabilities.
-
-### 3. **Simple and Safe Fix**
-The revert is straightforward - it removes the problematic error
-handling code that was incorrectly added. The code changes show:
-```diff
-- if (!root_ops)
-- goto free_ri;
-+       if (!root_ops) {
-+               kfree(ri);
-+               return NULL;
-+       }
-```
-This returns to the original, simpler error handling that only frees
-what hasn't been passed to `acpi_pci_root_create()` yet.
-
-### 4. **Matches Stable Backport Criteria**
-This fix meets the stable kernel criteria:
-- **Fixes a real bug**: Double-free causing potential crashes/corruption
-- **Small and contained**: Only modifies error paths in one function
-- **Already in Linus' tree**: This is a merged commit
-- **No new features**: Pure bug fix
-- **Low risk**: Reverts to previously known-working code
-
-### 5. **Similar to Successful Backports**
-Looking at the reference commits, this is similar to:
-- "ARM64: PCI: Fix struct acpi_pci_root_ops allocation failure path"
-  (Backported: YES) - Also fixed memory management in error paths
-- "Revert 'PCI: acpiphp: Reassign resources on bridge if necessary'"
-  (Backported: YES) - Also a revert fixing problematic behavior
-
-The commit message explicitly states "We plan to resolve the issue using
-a more appropriate fix," indicating the maintainers recognize there may
-be an underlying issue to address, but the immediate concern is fixing
-the double-free bug, making this suitable for stable backporting.
-
- drivers/pci/pci-acpi.c | 23 ++++++++++-------------
- 1 file changed, 10 insertions(+), 13 deletions(-)
-
-diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-index b78e0e4173244..af370628e5839 100644
---- a/drivers/pci/pci-acpi.c
-+++ b/drivers/pci/pci-acpi.c
-@@ -1676,19 +1676,24 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
- 		return NULL;
- 
- 	root_ops = kzalloc(sizeof(*root_ops), GFP_KERNEL);
--	if (!root_ops)
--		goto free_ri;
-+	if (!root_ops) {
-+		kfree(ri);
-+		return NULL;
-+	}
- 
- 	ri->cfg = pci_acpi_setup_ecam_mapping(root);
--	if (!ri->cfg)
--		goto free_root_ops;
-+	if (!ri->cfg) {
-+		kfree(ri);
-+		kfree(root_ops);
-+		return NULL;
-+	}
- 
- 	root_ops->release_info = pci_acpi_generic_release_info;
- 	root_ops->prepare_resources = pci_acpi_root_prepare_resources;
- 	root_ops->pci_ops = (struct pci_ops *)&ri->cfg->ops->pci_ops;
- 	bus = acpi_pci_root_create(root, root_ops, &ri->common, ri->cfg);
- 	if (!bus)
--		goto free_cfg;
-+		return NULL;
- 
- 	/* If we must preserve the resource configuration, claim now */
- 	host = pci_find_host_bridge(bus);
-@@ -1705,14 +1710,6 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
- 		pcie_bus_configure_settings(child);
- 
- 	return bus;
--
--free_cfg:
--	pci_ecam_free(ri->cfg);
--free_root_ops:
--	kfree(root_ops);
--free_ri:
--	kfree(ri);
--	return NULL;
- }
- 
- void pcibios_add_bus(struct pci_bus *bus)
--- 
-2.39.5
-
+I hope this looks good to Krzysztof and Rob too.
