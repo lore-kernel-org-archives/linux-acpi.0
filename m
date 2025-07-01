@@ -1,192 +1,87 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from fabulous-taliesin.relay-egress.a.mail.umich.edu (relay-egress-host.us-east-2.a.mail.umich.edu [13.59.128.245])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2591427F166;
-	Tue,  1 Jul 2025 21:08:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.12
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2AC502222A6;
+	Tue,  1 Jul 2025 21:39:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.59.128.245
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751404102; cv=none; b=r0Vot/Tsbt5f243oleFovNmu32fBWaCUyMxbSktZ4TA5jcggWZ+volq/cbXHjVmvsH72k19hel+eGoOzO51QEr9EPK6jmyrzPXKxoMBlcBEl1lrpr8eEbPMi1GBjWEeFuWYxXSYGBclxM5adzOz30EHm5JJzWfh2mpEzrgsahrs=
+	t=1751405964; cv=none; b=HgXGra6Z9Jw2wJF82LWAuNSHkUNgYX7oRepJ0dZlcr6YpJOWstbfDVG/F3CceUtCZ6iK/gpMuL3qxQw0+u5qTG0K306QTRlE5IFTxz7EyM7N31sbUCo7fG4OFkVCcN5+6MIv/Y1d0SIXeVEX02Gl1IRWiIhOU9RQuR/Lon93pKE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751404102; c=relaxed/simple;
-	bh=7G+jbXgl5YVxWYdBOuIOYBo+nDmZIN7ZkXNpl4Smf14=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=OviqsBcBBpkJjDRn3mgDQo4rdINNX1OYg7sFbhgiXwukgcWPZqRfeQ5476zOfjFt7ERlCQK9NtYtLSLpw0g+JZZk037jficRIlSGGkBZnNyPYMdwMbt88IUfiRWjnl/KnZ5qpXUtCBvXQex8t8kjnl2qZ4tbGzPKxF+6i8UWiCU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=H/83Ej8x; arc=none smtp.client-ip=198.175.65.12
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1751405964; c=relaxed/simple;
+	bh=FfRpsdCetCvTN4MvBRq2kYjiqRtFaR1ruWoUx1S7KfE=;
+	h=Mime-Version:Content-Type:Date:Message-Id:Cc:Subject:From:To:
+	 References:In-Reply-To; b=uX11jmFvGigILdVwOR/Ih98yBxWHMhSIA9R2jqXGOsc4Wfk15x8cj/5LB+wvJ3ipnEykyeg1z1GG4vuzd+21Bc95TokZJQ6Z/if3acKXjPTSxmdWn8ix95A1YGGqzbyivWsqTZnkhr49SGMV1b62ECyKaMM3QqzGzd0VqYj3gSc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=umich.edu; spf=pass smtp.mailfrom=umich.edu; dkim=pass (2048-bit key) header.d=umich.edu header.i=@umich.edu header.b=Tqr4Y0So; arc=none smtp.client-ip=13.59.128.245
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=umich.edu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=umich.edu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="H/83Ej8x"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1751404102; x=1782940102;
-  h=date:from:to:cc:subject:message-id;
-  bh=7G+jbXgl5YVxWYdBOuIOYBo+nDmZIN7ZkXNpl4Smf14=;
-  b=H/83Ej8xA9kuMGrKiEg9Hk2IMBvDOx+2NxuIs2rfecrYVD6cqUhDN3To
-   6FOPl8MydQzXpptdzAO48yFNeuqseHbZycyJsT6a0/ErxSMbQ5G2pTLcu
-   SuZ6ViUV7bAgInsVpyjgdzLj5a2vdSk8/9hTmCydB6RX9/gFXdbPJYVQ8
-   +b9a1g9djj95nh9wGA8dCbMidclD98Bv/9vHd1aMbKqMeDPsdjIsum2Be
-   wEa6Btq/y2znqsHKAqEZHEl4uLhG6ca87lv+c3iKN9BWE85jlN9ZIcX1w
-   jwsvKNbktv5XoUeSycAPETOwOfzhhLQCQaLuc7FWObFOmVQoLvjuqw4LG
-   A==;
-X-CSE-ConnectionGUID: kMKvquFOQ0WSfAoTTj81sQ==
-X-CSE-MsgGUID: TrY1XBUBRwGlR1KYyeexCA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11481"; a="65142811"
-X-IronPort-AV: E=Sophos;i="6.16,279,1744095600"; 
-   d="scan'208";a="65142811"
-Received: from orviesa003.jf.intel.com ([10.64.159.143])
-  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jul 2025 14:08:19 -0700
-X-CSE-ConnectionGUID: 35o5nLuwRhaMueTjIuSLcw==
-X-CSE-MsgGUID: xA4+9conSnqr1TT5Pia5Jw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.16,279,1744095600"; 
-   d="scan'208";a="158252699"
-Received: from lkp-server01.sh.intel.com (HELO e8142ee1dce2) ([10.239.97.150])
-  by orviesa003.jf.intel.com with ESMTP; 01 Jul 2025 14:08:17 -0700
-Received: from kbuild by e8142ee1dce2 with local (Exim 4.96)
-	(envelope-from <lkp@intel.com>)
-	id 1uWiD9-000aem-0o;
-	Tue, 01 Jul 2025 21:08:15 +0000
-Date: Wed, 02 Jul 2025 05:07:15 +0800
-From: kernel test robot <lkp@intel.com>
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, devel@acpica.org,
- linux-pm@vger.kernel.org
-Subject: [rafael-pm:bleeding-edge] BUILD SUCCESS
- 3ef1f3359bdbb7d0d8cd8f1c29ce7218570108b7
-Message-ID: <202507020504.mlyLlk3V-lkp@intel.com>
-User-Agent: s-nail v14.9.24
+	dkim=pass (2048-bit key) header.d=umich.edu header.i=@umich.edu header.b="Tqr4Y0So"
+Received: from enriching-yacaruna.authn-relay.a.mail.umich.edu (ip-10-0-73-67.us-east-2.compute.internal [10.0.73.67])
+	by fabulous-taliesin.relay-egress.a.mail.umich.edu with ESMTPS
+	id 68645573.2994DE00.13D81883.132849;
+	Tue, 01 Jul 2025 17:38:59 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=umich.edu;
+	s=relay-1; t=1751405937;
+	bh=EoCFQ7P8Tnk+dsaPLBjGlDsJb2PcEiJqEGBMjg3BNJA=;
+	h=Date:Cc:Subject:From:To:References:In-Reply-To;
+	b=Tqr4Y0SoTUl3hjVtISApUUlSvtP0x0o8Q7gTb9EPBigNjeSAYteDfqIdKlbKDDnWC
+	 hVm+wsmrlcn1Us/3D6z/iRMyZnzYslcRxSfRvXlln/hkKbBhxYhmbLKCtn5g473ZSR
+	 HEuJmQxcMTTCpNO0ktclae25mAPJ8ui8HIcibKoyapT/iGkVjjuOo9J56Lv70kVlHz
+	 +a2XCXpn7LEUcUk+2DzyblYtNAJxIEnFKbnMMoG/Y1XyKZYuf+zcPf67Oe32YCdZ/2
+	 cBbMyHkcsMANYRqq+RHR2KiO48ISBDdK6yaZSkzfA1pI7GiKCTV0K4vuN/vnQUTbMI
+	 jWvnRKklE2G/g==
+Authentication-Results: enriching-yacaruna.authn-relay.a.mail.umich.edu; 
+	iprev=fail policy.iprev=73.110.187.65 (Mismatch);
+	auth=pass smtp.auth=tmgross
+Received: from localhost (Mismatch [73.110.187.65])
+	by enriching-yacaruna.authn-relay.a.mail.umich.edu with ESMTPSA
+	id 68645571.4F66061.263F03BF.1065300;
+	Tue, 01 Jul 2025 17:38:57 -0400
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8
+Date: Tue, 01 Jul 2025 16:38:56 -0500
+Message-Id: <DB11L7KWH27S.8L9WLRAR1B0P@umich.edu>
+Cc: "Len Brown" <lenb@kernel.org>, <linux-acpi@vger.kernel.org>, "Boqun
+ Feng" <boqun.feng@gmail.com>, "Gary Guo" <gary@garyguo.net>,
+ =?utf-8?q?Bj=C3=B6rn_Roy_Baron?= <bjorn3_gh@protonmail.com>, "Benno Lossin"
+ <lossin@kernel.org>, "Andreas Hindborg" <a.hindborg@kernel.org>, "Alice
+ Ryhl" <aliceryhl@google.com>, <rust-for-linux@vger.kernel.org>,
+ <linux-kernel@vger.kernel.org>, <patches@lists.linux.dev>
+Subject: Re: [PATCH] rust: acpi: remove unneeded cast to clean future Clippy
+ warning
+From: "Trevor Gross" <tmgross@umich.edu>
+To: "Miguel Ojeda" <ojeda@kernel.org>, "Rafael J. Wysocki"
+ <rafael@kernel.org>, "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
+ "Danilo Krummrich" <dakr@kernel.org>, "Alex Gaynor" <alex.gaynor@gmail.com>
+X-Mailer: aerc 0.20.1
+References: <20250701174656.62205-1-ojeda@kernel.org>
+In-Reply-To: <20250701174656.62205-1-ojeda@kernel.org>
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
-branch HEAD: 3ef1f3359bdbb7d0d8cd8f1c29ce7218570108b7  Merge branch 'acpi-pfrut' into bleeding-edge
+On Tue Jul 1, 2025 at 12:46 PM CDT, Miguel Ojeda wrote:
+> A future Clippy warning, `clippy::as_underscore`, is getting enabled in
+> parallel in the rust-next tree:
+>
+>     error: using `as _` conversion
+>       --> rust/kernel/acpi.rs:25:9
+>        |
+>     25 |         self.0.driver_data as _
+>        |         ^^^^^^^^^^^^^^^^^^^^^^-
+>        |                               |
+>        |                               help: consider giving the type exp=
+licitly: `usize`
+>
+> The type is already `ulong`, which nowadays is always `usize`, so the
+> cast is unneeded. Thus remove it, which in turn will avoid the warning
+> in the future.
+>
+> Other abstractions of device tables do not use a cast here either.
+>
+> Signed-off-by: Miguel Ojeda <ojeda@kernel.org>
 
-elapsed time: 1451m
-
-configs tested: 114
-configs skipped: 1
-
-The following configs have been built successfully.
-More configs may be tested in the coming days.
-
-tested configs:
-alpha                             allnoconfig    gcc-15.1.0
-alpha                            allyesconfig    gcc-15.1.0
-arc                              allmodconfig    gcc-15.1.0
-arc                               allnoconfig    gcc-15.1.0
-arc                              allyesconfig    gcc-15.1.0
-arc                   randconfig-001-20250701    gcc-13.3.0
-arc                   randconfig-002-20250701    gcc-15.1.0
-arc                        vdk_hs38_defconfig    gcc-15.1.0
-arm                               allnoconfig    clang-21
-arm                        multi_v7_defconfig    gcc-15.1.0
-arm                   randconfig-001-20250701    clang-17
-arm                   randconfig-002-20250701    gcc-8.5.0
-arm                   randconfig-003-20250701    clang-21
-arm                   randconfig-004-20250701    clang-21
-arm64                             allnoconfig    gcc-15.1.0
-arm64                 randconfig-001-20250701    clang-21
-arm64                 randconfig-002-20250701    gcc-15.1.0
-arm64                 randconfig-003-20250701    clang-18
-arm64                 randconfig-004-20250701    gcc-8.5.0
-csky                              allnoconfig    gcc-15.1.0
-csky                  randconfig-001-20250701    gcc-11.5.0
-csky                  randconfig-002-20250701    gcc-10.5.0
-hexagon                          allmodconfig    clang-17
-hexagon                           allnoconfig    clang-21
-hexagon                          allyesconfig    clang-21
-hexagon               randconfig-001-20250701    clang-21
-hexagon               randconfig-002-20250701    clang-21
-i386                             allmodconfig    gcc-12
-i386                              allnoconfig    gcc-12
-i386        buildonly-randconfig-001-20250701    gcc-12
-i386        buildonly-randconfig-002-20250701    gcc-12
-i386        buildonly-randconfig-003-20250701    gcc-12
-i386        buildonly-randconfig-004-20250701    gcc-12
-i386        buildonly-randconfig-005-20250701    gcc-12
-i386        buildonly-randconfig-006-20250701    clang-20
-i386                                defconfig    clang-20
-loongarch                        allmodconfig    gcc-15.1.0
-loongarch                         allnoconfig    gcc-15.1.0
-loongarch             randconfig-001-20250701    gcc-13.3.0
-loongarch             randconfig-002-20250701    gcc-15.1.0
-m68k                             allmodconfig    gcc-15.1.0
-m68k                              allnoconfig    gcc-15.1.0
-m68k                             allyesconfig    gcc-15.1.0
-m68k                        m5307c3_defconfig    gcc-15.1.0
-m68k                           virt_defconfig    gcc-15.1.0
-microblaze                       allmodconfig    gcc-15.1.0
-microblaze                        allnoconfig    gcc-15.1.0
-microblaze                       allyesconfig    gcc-15.1.0
-mips                              allnoconfig    gcc-15.1.0
-mips                          eyeq6_defconfig    clang-21
-mips                         rt305x_defconfig    clang-21
-nios2                             allnoconfig    gcc-14.2.0
-nios2                 randconfig-001-20250701    gcc-14.2.0
-nios2                 randconfig-002-20250701    gcc-13.3.0
-openrisc                          allnoconfig    gcc-15.1.0
-openrisc                         allyesconfig    gcc-15.1.0
-parisc                           allmodconfig    gcc-15.1.0
-parisc                            allnoconfig    gcc-15.1.0
-parisc                           allyesconfig    gcc-15.1.0
-parisc                randconfig-001-20250701    gcc-14.3.0
-parisc                randconfig-002-20250701    gcc-10.5.0
-parisc64                         alldefconfig    gcc-15.1.0
-powerpc                           allnoconfig    gcc-15.1.0
-powerpc                       ebony_defconfig    clang-21
-powerpc               randconfig-001-20250701    gcc-13.3.0
-powerpc               randconfig-002-20250701    clang-21
-powerpc               randconfig-003-20250701    clang-21
-powerpc64             randconfig-001-20250701    clang-21
-powerpc64             randconfig-002-20250701    clang-21
-powerpc64             randconfig-003-20250701    gcc-10.5.0
-riscv                            allmodconfig    clang-21
-riscv                             allnoconfig    gcc-15.1.0
-riscv                 randconfig-001-20250701    gcc-14.3.0
-riscv                 randconfig-002-20250701    gcc-10.5.0
-s390                             allmodconfig    clang-18
-s390                              allnoconfig    clang-21
-s390                             allyesconfig    gcc-15.1.0
-s390                  randconfig-001-20250701    gcc-9.3.0
-s390                  randconfig-002-20250701    clang-17
-sh                               allmodconfig    gcc-15.1.0
-sh                                allnoconfig    gcc-15.1.0
-sh                               allyesconfig    gcc-15.1.0
-sh                         apsh4a3a_defconfig    gcc-15.1.0
-sh                         ecovec24_defconfig    gcc-15.1.0
-sh                             espt_defconfig    gcc-15.1.0
-sh                    randconfig-001-20250701    gcc-15.1.0
-sh                    randconfig-002-20250701    gcc-13.3.0
-sh                           se7722_defconfig    gcc-15.1.0
-sh                   secureedge5410_defconfig    gcc-15.1.0
-sh                        sh7757lcr_defconfig    gcc-15.1.0
-sparc                            allmodconfig    gcc-15.1.0
-sparc                             allnoconfig    gcc-15.1.0
-sparc                 randconfig-001-20250701    gcc-10.3.0
-sparc                 randconfig-002-20250701    gcc-15.1.0
-sparc64               randconfig-001-20250701    gcc-8.5.0
-sparc64               randconfig-002-20250701    gcc-12.4.0
-um                               allmodconfig    clang-19
-um                                allnoconfig    clang-21
-um                               allyesconfig    gcc-12
-um                    randconfig-001-20250701    gcc-12
-um                    randconfig-002-20250701    gcc-12
-x86_64                            allnoconfig    clang-20
-x86_64                           allyesconfig    clang-20
-x86_64      buildonly-randconfig-001-20250701    gcc-12
-x86_64      buildonly-randconfig-002-20250701    gcc-12
-x86_64      buildonly-randconfig-003-20250701    gcc-12
-x86_64      buildonly-randconfig-004-20250701    gcc-12
-x86_64      buildonly-randconfig-005-20250701    clang-20
-x86_64      buildonly-randconfig-006-20250701    clang-20
-x86_64                              defconfig    gcc-11
-x86_64                          rhel-9.4-rust    clang-18
-xtensa                            allnoconfig    gcc-15.1.0
-xtensa                randconfig-001-20250701    gcc-15.1.0
-xtensa                randconfig-002-20250701    gcc-13.3.0
-
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+Reviewed-by: Trevor Gross <tmgross@umich.edu>
