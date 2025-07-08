@@ -1,30 +1,30 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 585E6944F;
-	Tue,  8 Jul 2025 00:02:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E1A779DA;
+	Tue,  8 Jul 2025 00:02:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751932940; cv=none; b=mcnpM98iQQbVg4aQsjFmJlwG1cK3Ac/9SXMtaToxxQhwZvSLUIjxrml1CbNqVqILUNo11VDi0OqCyrbf44/wh29gbTk906A4sJ7Ia51E8b7WBDmn1Z1iE5hWSY7yKgqdoD+l1rILcdZ58RziwmgMxMwW529JKwAmbxlePOmshDs=
+	t=1751932953; cv=none; b=rAr69KyFM97MpexnE9UqEi0ixzyJY/Td635ie8ch1Emj0M1//zu93h1981EvZJ2czYmHFbigLIzALXqYITAY4oMlZOwIboYzbDDxU2U0vkwonofDIQ0YQnB4FfTxYkVYNQrhU/mt1LdWXZhiyyDeEIGuOzyxTVqcnCTg8mT0Xv0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751932940; c=relaxed/simple;
-	bh=GlFzYe43FUhyyIQgqvqd6gjeYhzmTUUOuoBAt919PFQ=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=GWoERPGsGj70jzNlcyoK5X8jKBIXmfmNIZUTAFGJOLOURi5pSbxgYqYSB40ELomHBitjIJ61W2krl6Vlt8AeJAYKivcOCdZp9qBI2NDbeFpJapM/zYy0ouRx2o8mX+ukVZaICHH2h6osbM1UOI5+HITBszwUoIH3MRdlQpjt5Gs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=SmUdarfF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751932953; c=relaxed/simple;
+	bh=/d4iOmSnG/Vh1H/PnfEjcqJlL6LQPz7FpYjpbY1m02s=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=UAVZuEqbJAP65YfIGBSRA3JPUcc7z2+f84tBKXBhr7aKAZ6HiIlQLRlcYp8rcZGJ7Vy9PaMm2y14yFQ6AKnBye4jy5/oNtjro/be2UPmKE5osg0JEw5GUBcazSFiw5KHRUgwauRqEN2ECi0tQW8E9werwWEzMuZv9OlUN1jzNuw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WnTY/KRk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="SmUdarfF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF046C4CEE3;
-	Tue,  8 Jul 2025 00:02:16 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WnTY/KRk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57223C4CEE3;
+	Tue,  8 Jul 2025 00:02:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1751932937;
-	bh=GlFzYe43FUhyyIQgqvqd6gjeYhzmTUUOuoBAt919PFQ=;
+	s=k20201202; t=1751932953;
+	bh=/d4iOmSnG/Vh1H/PnfEjcqJlL6LQPz7FpYjpbY1m02s=;
 	h=From:To:Cc:Subject:Date:From;
-	b=SmUdarfFQYxnfxrsWx4KIWHbXzHYvMIUaHc01hfE6jjxbogdSa1/lI9QWVBwxliv9
-	 3PHul0OX+Z6Q10u+GRD4oOvTTG2/Q73G89aWjR7XEhdcGy1ptwo+EM7GAPWWSZSylX
-	 j6ZYLyNZ8r/8iHHg079y2ujt1k0q46X88Vcqhc9vvrzy3UI/csPokWYAd+x5l7FuWT
-	 8Va+ElFMh+ufaKCJutC/15NwS4rfWT/iMMXUZq+jZ0eizVXAl09A2ZBXsvhnlWBRiY
-	 B/MnjX5eEHO4i14klFKiXAllVVtC/ZMxGfII9f/ffYjJreOlXuUqchAeIOCrZm0Q0h
-	 JvRa9Yzp3/3Zg==
+	b=WnTY/KRk1DYhAdAjFXTbcIfN0FFedyCmUyvoVdSeinBOvZHbRWr6iMIf6yjPwTqjm
+	 ZcS3SqOaTCS18qUolt87oG7cdbBxUiLBVMe1MO4XhfY9KP4yWtqH8trEIfC8oBGiCZ
+	 /wVBBMHtVHfwodTNaHgLa7iKB3rsGwQy+afIvZhsIaKU7gQDnfszLpLt15o/hyOgO8
+	 Vif2Kxe7f0/6jkEEi9o2K36TugWEpGMjupHicH4KylhUkqoho2pKP08+TiaZvPKJbs
+	 FEhlECETb7MA+IZS3HSCzQ2rNiEfW0E9cF1J+ouLbCFvZKq7R6jjT/7PwapxOoPjBQ
+	 zMclDFXVuLHhw==
 From: Sasha Levin <sashal@kernel.org>
 To: patches@lists.linux.dev,
 	stable@vger.kernel.org
@@ -33,9 +33,9 @@ Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
 	Sasha Levin <sashal@kernel.org>,
 	rafael@kernel.org,
 	linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.15 1/8] Revert "ACPI: battery: negate current when discharging"
-Date: Mon,  7 Jul 2025 20:02:08 -0400
-Message-Id: <20250708000215.793090-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.12 1/6] Revert "ACPI: battery: negate current when discharging"
+Date: Mon,  7 Jul 2025 20:02:25 -0400
+Message-Id: <20250708000230.793347-1-sashal@kernel.org>
 X-Mailer: git-send-email 2.39.5
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
@@ -45,7 +45,7 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
-X-stable-base: Linux 6.15.5
+X-stable-base: Linux 6.12.36
 Content-Transfer-Encoding: 8bit
 
 From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
@@ -137,7 +137,7 @@ change makes it even more suitable for stable backporting.
  1 file changed, 3 insertions(+), 16 deletions(-)
 
 diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index 93bb1f7d90986..6760330a8af55 100644
+index 6a7ac34d73bda..65fa3444367a1 100644
 --- a/drivers/acpi/battery.c
 +++ b/drivers/acpi/battery.c
 @@ -243,23 +243,10 @@ static int acpi_battery_get_property(struct power_supply *psy,
