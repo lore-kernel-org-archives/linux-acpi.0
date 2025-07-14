@@ -1,140 +1,197 @@
-Received: from perceval.ideasonboard.com (perceval.ideasonboard.com [213.167.242.64])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lf1-f47.google.com (mail-lf1-f47.google.com [209.85.167.47])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3F6B25A323;
-	Mon, 14 Jul 2025 14:36:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.167.242.64
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A217258CF1
+	for <linux-acpi@vger.kernel.org>; Mon, 14 Jul 2025 15:46:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.47
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752503812; cv=none; b=isAMHm+BQDt7ClV97V6KMwXQMAKRybwYKIHX4MqO2wkU4QCXH1mTjZ0dBM92WsQJ31RULGNQi/WYOFYNofMEC7oFz7R1af8aWqMb476HeggKtHJbWdA+5B7+WeRO5csJ0BjpHhTf+0HZQKGkKRe32tvbbSVjKbbuK/lXqrK4+fE=
+	t=1752508020; cv=none; b=mEVvOHk8Evc/Cl6Z1HV/VR9NQ9Cj997GISZGgyNuvGAcQyGYULnWlhsdUJMh3EaW3CdbovzUF0fhfvgJTMlbPVkUZ7Avg4B3B+bimMmfEfnrWD0KitVTiBqV4UnCp4ZmpwgP0Hbf4SG4f9RJyhZa8FvIFs/wQKpyGnO2aIo8MKw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752503812; c=relaxed/simple;
-	bh=daNTR/HyGPO4pkqAP0IH3ijmW/CroloVQwIyvm9agW0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ekFngM16U1m6K1QjQ2jp4vRdwEQvYeBL1im6bX29bLCoq0Zgtvr77h1QVMRLPyo1CI4QMnwuPDo+b1+Lr60GR39bPmUyqKLaM7nNcz8Qm/PeQvJTxvDSOZFAuUwV2Rf1KmlLmIzk/7dMVlj4kVwNvbeayWztX/2Meeo/IaL6VM4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ideasonboard.com; spf=pass smtp.mailfrom=ideasonboard.com; dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b=wWKHbIXR; arc=none smtp.client-ip=213.167.242.64
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ideasonboard.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ideasonboard.com
+	s=arc-20240116; t=1752508020; c=relaxed/simple;
+	bh=5LlMEN4J3o3aD6YDXjwZ5zCkBWXWLqScnxci+wtPW0U=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=YUN0tb2760e+3I6PUaTSCQpJQr4NMpXns+vhkAa5gQ//jYBW9LRErjXu35U9sJfIpCjQXO1aVfwjST7owGDF+qdl8X1wXUikvecbSkFrww18KwUcGIhgNTINi9JXmIaVckQLlS5K1Q/ACs7fJRNCQVAWmi5t4FfEx/pRQyM1qqg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=TO3Iq7Qe; arc=none smtp.client-ip=209.85.167.47
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="wWKHbIXR"
-Received: from pendragon.ideasonboard.com (81-175-209-231.bb.dnainternet.fi [81.175.209.231])
-	by perceval.ideasonboard.com (Postfix) with UTF8SMTPSA id 0DDBE5304;
-	Mon, 14 Jul 2025 16:36:16 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-	s=mail; t=1752503777;
-	bh=daNTR/HyGPO4pkqAP0IH3ijmW/CroloVQwIyvm9agW0=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=wWKHbIXRY9rClUbFLurK+f7wLbQVERRxuF+KFG7g3MQiMZK7BLEz2dyCFS4rzeUFD
-	 /U1mFCxcFCdu+aSnt+beiKmaKCUdv7rxETlzTDmUbfVMiwEjdP3CRaXIqH3HXhDm8n
-	 YPE2NChfWfX79Dhirm9u11+eebt7mbQpNc1TTb0A=
-Date: Mon, 14 Jul 2025 17:36:17 +0300
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Ricardo Ribalda <ribalda@chromium.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Hans de Goede <hdegoede@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Rob Herring <robh@kernel.org>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	Linus Walleij <linus.walleij@linaro.org>,
-	Bartosz Golaszewski <brgl@bgdev.pl>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-gpio@vger.kernel.org,
-	linux-acpi@vger.kernel.org
-Subject: Re: [PATCH v2 12/12] media: uvcvideo: Do not create MC entities for
- virtual entities
-Message-ID: <20250714143617.GK8243@pendragon.ideasonboard.com>
-References: <20250605-uvc-orientation-v2-0-5710f9d030aa@chromium.org>
- <20250605-uvc-orientation-v2-12-5710f9d030aa@chromium.org>
- <20250629180534.GN24912@pendragon.ideasonboard.com>
- <CANiDSCvcQ9MA+WBMQTpUzSxDLNiKpvaHsb-pDHTuiUQekgXvQA@mail.gmail.com>
- <CANiDSCtq0cr1LgFCgvdBtWcE3z1MWZEjc0e1wTH_BYPETC+s4Q@mail.gmail.com>
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="TO3Iq7Qe"
+Received: by mail-lf1-f47.google.com with SMTP id 2adb3069b0e04-553b6a349ccso5532481e87.0
+        for <linux-acpi@vger.kernel.org>; Mon, 14 Jul 2025 08:46:58 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1752508016; x=1753112816; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=9h6RiMEbdSPWHXVsj9OLxwFBmTJFmqoquTZg92Kpnmk=;
+        b=TO3Iq7QeVk002ueq3Qx/vgiIdEEyI7LQfxkhURcouoXe4MOrNKo+tGUbHirZ++TWyf
+         Phcwg3ctQpb9YeTAzrIjYk3WOhf1KeiN0NaOkkg24Jkqq/MLe1ni1bxlRj8OJzwb2ESX
+         SMoThRskLQ3+cO1SdpObAgNnPg+xxrCUx5zhI=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1752508016; x=1753112816;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=9h6RiMEbdSPWHXVsj9OLxwFBmTJFmqoquTZg92Kpnmk=;
+        b=I41nsKYX8wb5AgXaKuyGTyTo/yxvifK/2fvm+ey3Jdncaf8uQZwtO29nbyKHRSH1OV
+         1aiJftdkh5yjW8qynlSgkxqPH8+zkMUGoTsZbxQNPlqQSrrvFg/6ycGGqdkzI80nt9w2
+         gcYC5EgLqr65F91LV9GOu8HvQnS9eo8qGSK3JHmTVQlLJns/LBHMpRSEhbO4bJkliJqZ
+         nwKWkMP6t8GtixYzAlnYRm9qMrgcO6Gsia/bIhI4CmJ1wpNpS+Th3CINN5SpsymtuUIp
+         /a3ESh8GuFvWtAmJBFvyg1SyLbnraxDfLwfsp27DgRidRbqvzm+vrvl+v4qdHGx4QDJf
+         1mFg==
+X-Forwarded-Encrypted: i=1; AJvYcCWvyRjCQgE8q9Ae4RiRTYPUIZg2EuiaOZm3+3mZhvnCUsOweDNIulo/8YnD4LmPyHExaonnAjjnVsUP@vger.kernel.org
+X-Gm-Message-State: AOJu0YxsrJ4N1KEWrRLE7fVGM/qGKPQw/eZ4+OqBaA3BfqzXGfR2hO3j
+	0Ga5cRC89bzFTLwc3ALJsKboIlPtUJ/Wp8MtKxguKDziviuM2hxckupAaC9TX5WJ7MLY7qM9wgI
+	bFaqy+g==
+X-Gm-Gg: ASbGnctFmJbQyQOBYnlXpoZKThOUbHMQJMg50rTaDi8+57h5L6qSqNRHfePQG4ucJwI
+	fymvn/SNMZk/MPjLITcUZuOMfXfOslB3awEVqEyOTpcOaYVJav36q43u5cGD/Pe1tSmZGKuJsK2
+	ySncgZVti0z2HL6XMK06L9JqCRypeq6j+ZuvRbAHqjXqn39Z1swRUa8nDtOL407Z3MBB9774psL
+	8KTW92Sz4mLnPR35qNx0SINypFPwnZfbt1+OHa7UbD1foTpaDzGiih8M4inAzPvFDYDAphpFeIO
+	G5c8RPRyPN/rO/ZMray4HNfTgYTT2UyDvkbSPTX7Gm9+JnLWsdUVCbFKoNoSMkfZyXqcIC3LT2Y
+	LVkej+ahhzT9BCtgbKSQIc1s21iiJJuVmEPUKwswN6m/O4FEqyZU2glSgispU
+X-Google-Smtp-Source: AGHT+IGusZB/BRsAgr/nqTtKIvmPlhCspK0gKnrDAiok2hp+zws/2wbCdK2aX8orWoIwsqVq3ZSwsw==
+X-Received: by 2002:a05:6512:4026:b0:550:e527:886f with SMTP id 2adb3069b0e04-55a046264ebmr3902920e87.51.1752508016420;
+        Mon, 14 Jul 2025 08:46:56 -0700 (PDT)
+Received: from mail-lf1-f51.google.com (mail-lf1-f51.google.com. [209.85.167.51])
+        by smtp.gmail.com with ESMTPSA id 2adb3069b0e04-5593c7bbb5dsm1989823e87.18.2025.07.14.08.46.53
+        for <linux-acpi@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 14 Jul 2025 08:46:53 -0700 (PDT)
+Received: by mail-lf1-f51.google.com with SMTP id 2adb3069b0e04-553b6a349ccso5532377e87.0
+        for <linux-acpi@vger.kernel.org>; Mon, 14 Jul 2025 08:46:53 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCWLT7rautGd1gDi2YiHPkoQJl72OjMFWNbh15RD6gd71dvmpmFxnDtSbdCudPv7EnwsttIiEsL9nAgG@vger.kernel.org
+X-Received: by 2002:a05:6512:b10:b0:553:3492:b708 with SMTP id
+ 2adb3069b0e04-55a046250abmr3344250e87.49.1752508013248; Mon, 14 Jul 2025
+ 08:46:53 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <CANiDSCtq0cr1LgFCgvdBtWcE3z1MWZEjc0e1wTH_BYPETC+s4Q@mail.gmail.com>
+References: <20250605-uvc-orientation-v2-0-5710f9d030aa@chromium.org>
+ <20250605-uvc-orientation-v2-10-5710f9d030aa@chromium.org>
+ <20250629181246.GE6260@pendragon.ideasonboard.com> <CANiDSCsu0RT4dcGyBJRutP=9HTe+niUoohxTZE=qJ8O_9ez=+A@mail.gmail.com>
+ <20250714142926.GI8243@pendragon.ideasonboard.com>
+In-Reply-To: <20250714142926.GI8243@pendragon.ideasonboard.com>
+From: Ricardo Ribalda <ribalda@chromium.org>
+Date: Mon, 14 Jul 2025 17:46:40 +0200
+X-Gmail-Original-Message-ID: <CANiDSCvFe23xmrJ0-qbWWa6+vKGb+QdDFV8VSLkmWdAnfsFtzw@mail.gmail.com>
+X-Gm-Features: Ac12FXzUtyaVLj7tKhzc2QjlgMNdUTCkm86hTg8iZ2lfMiulh_fOCFYDlXtaIQQ
+Message-ID: <CANiDSCvFe23xmrJ0-qbWWa6+vKGb+QdDFV8VSLkmWdAnfsFtzw@mail.gmail.com>
+Subject: Re: [PATCH v2 10/12] media: uvcvideo: Add get_* functions to uvc_entity
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans de Goede <hdegoede@redhat.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, 
+	Hans Verkuil <hverkuil@xs4all.nl>, Sakari Ailus <sakari.ailus@linux.intel.com>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rob Herring <robh@kernel.org>, 
+	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
+	Linus Walleij <linus.walleij@linaro.org>, Bartosz Golaszewski <brgl@bgdev.pl>, 
+	"Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, linux-media@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, 
+	devicetree@vger.kernel.org, linux-gpio@vger.kernel.org, 
+	linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-On Tue, Jul 08, 2025 at 08:28:21AM +0200, Ricardo Ribalda wrote:
-> On Tue, 1 Jul 2025 at 13:20, Ricardo Ribalda wrote:
-> > On Sun, 29 Jun 2025 at 20:06, Laurent Pinchart wrote:
-> > > Hi Ricardo,
+Hi Laurent
+
+On Mon, 14 Jul 2025 at 16:30, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+>
+> On Tue, Jul 01, 2025 at 01:13:10PM +0200, Ricardo Ribalda wrote:
+> > On Sun, 29 Jun 2025 at 20:13, Laurent Pinchart wrote:
+> > > On Thu, Jun 05, 2025 at 05:53:03PM +0000, Ricardo Ribalda wrote:
+> > > > Virtual entities need to provide more values than get_cur and get_cur
 > > >
-> > > Thank you for the patch.
+> > > I think you meant "get_info and get_cur".
 > > >
-> > > I would use "software entities" and not "virtual entities" in the
-> > > subject line and everywhere else, as those entities are not virtual.
+> > > > for their controls. Add support for get_def, get_min, get_max and
+> > > > get_res.
 > > >
-> > > On Thu, Jun 05, 2025 at 05:53:05PM +0000, Ricardo Ribalda wrote:
-> > > > Neither the GPIO nor the SWENTITY entities form part of the device
-> > > > pipeline. We just create them to hold emulated uvc controls.
-> > > >
-> > > > When the device initializes, a warning is thrown by the v4l2 core:
-> > > > uvcvideo 1-1:1.0: Entity type for entity SWENTITY was not initialized!
-> > > >
-> > > > There are no entity function that matches what we are doing here, and
-> > > > it does not make to much sense to create a function for entities that
-> > > > do not really exist.
-> > >
-> > > I don't agree with this. The purpose of reporting entities to userspace
-> > > through the MC API is to let application enumerate what entities a
-> > > device contains. Being able to enumerate software entities seems as
-> > > useful as being able to enumerate hardware entities.
+> > > Do they ? The UVC specification defines controls that don't list
+> > > GET_DEF, GET_MIN, GET_MAX and GET_RES as mandatory requests. Can't we do
+> > > the same for the software controls ? This patch is meant to support the
+> > > UVC_SWENTITY_ORIENTATION and UVC_SWENTITY_ROTATION control in the next
+> > > patch, and those are read-only controls. Aren't GET_INFO and GET_CUR
+> > > enough ?
 > >
-> > What function shall we use in this case? Nothing here seems to match a
-> > software entity
-> > https://www.kernel.org/doc/html/latest/userspace-api/media/mediactl/media-types.html
+> > V4L2_CID_CAMERA_ROTATION has the type UVC_CTRL_DATA_TYPE_UNSIGNED,
+> > that time requires get_min and get_max.
+>
+> Where does that requirement come from ? Is it because how the
+> corresponding V4L2 type (V4L2_CTRL_TYPE_INTEGER) is handled in
+> uvc_ctrl_clamp() ? uvc_ctrl_clamp() is only called when setting a
+> control, from uvc_ctrl_set(), and V4L2_CID_CAMERA_ROTATION should be
+> read-only.
+
+It its for VIDIOC_QUERY_EXT_CTRL
+
+uvc_query_v4l2_ctrl -> __uvc_query_v4l2_ctrl -> __uvc_queryctrl_boundaries
+
+We need to list the min, max, def and step for every control. They are
+fetched with uvc_ctrl_populate_cache()
+
+
+
+>
+> > We can create a new type UVC_CTRL_DATA_TYPE_UNSIGNED_READ_ONLY that
+> > fakes min, max and res, but I think that it is cleaner this approach.
 > >
-> > Any suggestion for name?
-> > Shall we just live with the warning in dmesg?
-> 
->  I just realised that if/when we move to the control framework, the
-> software entity will be gone.... So to avoid introducing a uAPI change
-> that will be reverted later I think that we should keep this patch.
-
-You know my opinion about moving to the control framework, so that's not
-a very compelling argument :-)
-
-We could use MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER, as that's the
-function already used by XUs, and the SWENTITY fulfills the same role as
-XUs in some devices.
-
-> > > > Do not create MC entities for them and pretend nothing happened here.
+> > > > This is a preparation patch.
 > > > >
 > > > > Signed-off-by: Ricardo Ribalda <ribalda@chromium.org>
 > > > > ---
-> > > >  drivers/media/usb/uvc/uvc_entity.c | 10 ++++++++++
-> > > >  1 file changed, 10 insertions(+)
+> > > >  drivers/media/usb/uvc/uvc_ctrl.c | 12 ++++++++++++
+> > > >  drivers/media/usb/uvc/uvcvideo.h |  8 ++++++++
+> > > >  2 files changed, 20 insertions(+)
 > > > >
-> > > > diff --git a/drivers/media/usb/uvc/uvc_entity.c b/drivers/media/usb/uvc/uvc_entity.c
-> > > > index d1a652ef35ec34801bd39a5124b834edf838a79e..2dbeb4ab0c4c8cc763ff2dcd2d836a50f3c6a040 100644
-> > > > --- a/drivers/media/usb/uvc/uvc_entity.c
-> > > > +++ b/drivers/media/usb/uvc/uvc_entity.c
-> > > > @@ -72,6 +72,16 @@ static int uvc_mc_init_entity(struct uvc_video_chain *chain,
-> > > >  {
-> > > >       int ret;
+> > > > diff --git a/drivers/media/usb/uvc/uvc_ctrl.c b/drivers/media/usb/uvc/uvc_ctrl.c
+> > > > index 21ec7b978bc7aca21db7cb8fd5d135d876f3330c..59be62ae24a4219fa9d7aacf2ae7382c95362178 100644
+> > > > --- a/drivers/media/usb/uvc/uvc_ctrl.c
+> > > > +++ b/drivers/media/usb/uvc/uvc_ctrl.c
+> > > > @@ -596,6 +596,18 @@ static int uvc_ctrl_query_entity(struct uvc_device *dev,
+> > > >       if (query == UVC_GET_CUR && ctrl->entity->get_cur)
+> > > >               return ctrl->entity->get_cur(dev, ctrl->entity,
+> > > >                                            ctrl->info.selector, data, len);
+> > > > +     if (query == UVC_GET_DEF && ctrl->entity->get_def)
+> > > > +             return ctrl->entity->get_def(dev, ctrl->entity,
+> > > > +                                          ctrl->info.selector, data, len);
+> > > > +     if (query == UVC_GET_MIN && ctrl->entity->get_min)
+> > > > +             return ctrl->entity->get_min(dev, ctrl->entity,
+> > > > +                                          ctrl->info.selector, data, len);
+> > > > +     if (query == UVC_GET_MAX && ctrl->entity->get_max)
+> > > > +             return ctrl->entity->get_max(dev, ctrl->entity,
+> > > > +                                          ctrl->info.selector, data, len);
+> > > > +     if (query == UVC_GET_RES && ctrl->entity->get_res)
+> > > > +             return ctrl->entity->get_res(dev, ctrl->entity,
+> > > > +                                          ctrl->info.selector, data, len);
+> > > >       if (query == UVC_GET_INFO && ctrl->entity->get_info)
+> > > >               return ctrl->entity->get_info(dev, ctrl->entity,
+> > > >                                             ctrl->info.selector, data);
+> > > > diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+> > > > index a931750bdea25b9062dcc7644bf5f2ed89c1cb4c..d6da8ed3ad4cf3377df49923e051fe04d83d2e38 100644
+> > > > --- a/drivers/media/usb/uvc/uvcvideo.h
+> > > > +++ b/drivers/media/usb/uvc/uvcvideo.h
+> > > > @@ -261,6 +261,14 @@ struct uvc_entity {
+> > > >                       u8 cs, u8 *caps);
+> > > >       int (*get_cur)(struct uvc_device *dev, struct uvc_entity *entity,
+> > > >                      u8 cs, void *data, u16 size);
+> > > > +     int (*get_def)(struct uvc_device *dev, struct uvc_entity *entity,
+> > > > +                    u8 cs, void *data, u16 size);
+> > > > +     int (*get_min)(struct uvc_device *dev, struct uvc_entity *entity,
+> > > > +                    u8 cs, void *data, u16 size);
+> > > > +     int (*get_max)(struct uvc_device *dev, struct uvc_entity *entity,
+> > > > +                    u8 cs, void *data, u16 size);
+> > > > +     int (*get_res)(struct uvc_device *dev, struct uvc_entity *entity,
+> > > > +                    u8 cs, void *data, u16 size);
 > > > >
-> > > > +     /*
-> > > > +      * Do not initialize virtual entities, they do not really exist
-> > > > +      * and are not connected to any other entities.
-> > > > +      */
-> > > > +     switch (UVC_ENTITY_TYPE(entity)) {
-> > > > +     case UVC_EXT_GPIO_UNIT:
-> > > > +     case UVC_SWENTITY_UNIT:
-> > > > +             return 0;
-> > > > +     }
-> > > > +
-> > > >       if (UVC_ENTITY_TYPE(entity) != UVC_TT_STREAMING) {
-> > > >               u32 function;
-> > > >
+> > > >       unsigned int ncontrols;
+> > > >       struct uvc_control *controls;
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
 
--- 
-Regards,
 
-Laurent Pinchart
+
+--
+Ricardo Ribalda
