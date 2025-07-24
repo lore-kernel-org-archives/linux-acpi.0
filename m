@@ -1,349 +1,165 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f65.google.com (mail-wm1-f65.google.com [209.85.128.65])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 51DF82153EA;
-	Thu, 24 Jul 2025 05:50:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 535E1F9E8;
+	Thu, 24 Jul 2025 06:51:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.65
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753336231; cv=none; b=lG6KMwMdbAM6xibu6olBWNM88NpYPli+w5GjjM108ujue7QZQNu6SBGrpV+mjGMPyyuJyk2RruG1+LYblEOBJnIQ3d6U4xD3X+A25bWt3GDOcbdS65AQHZb8FhO43pv86bM/QB1ZKcDyglG12Nr567E77+Sqj/MWJmvPa2zNgYw=
+	t=1753339867; cv=none; b=mWbjFEAlzN3f/n0S5gk4mbSDBy+il8vofDzBB9+rXaElQx+48qwQjO2GSnpdzR4nqGFYo+OM6dERyVHC8Af3Y8Hcblenb2K4ZOPb7fahP7Dg4+C7Q7mlXPZ01xdXCo+1bJfNxlHXD+61uKo3JAsXo75Y7vCpRTCAcdCJskMRsGs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753336231; c=relaxed/simple;
-	bh=wNKQONSDACRjYYu6I5glKcwwkty7zb+PKkmvdUUj3Ig=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=DoEhbjNU1CDxUNoUA5eeFB31LrDOptgL/XsKUKkHPhV/5KT245KvZzr4dDUB114dpWWQDSO5NU26Fq1f0rUvNuiaat/Wi1Xqd/M7GzIZtZ9/WuOhIoZlz/bScQxOnGvdRnzu2wx7VtDO68eV1qm7gyqLAGlJfhItzSnufN7nExE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=t+HZl1rt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1753339867; c=relaxed/simple;
+	bh=w0X0br7o2eWaC/sCuDPbuNtjMrXI9dlkmLAYFCHsKxw=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=k0PgkO+7lqkuB0JLlsyVVqkkQvYdCa3iKvVT7bjrTB0lg2PZc3HpiVv0zv8LyqN177LWkOH70UJhCUPGZiu2xfO2RP458edLQ+zj0VMoINmu1l+y2NLuNZaJ56GGKjTACyhkmCwBHMGDEaF+ZkTU/yc+GvVpQwv1dxVhS6ahZMI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=RxmMO8Bo; arc=none smtp.client-ip=209.85.128.65
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="t+HZl1rt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95AC7C4CEFB;
-	Thu, 24 Jul 2025 05:50:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1753336230;
-	bh=wNKQONSDACRjYYu6I5glKcwwkty7zb+PKkmvdUUj3Ig=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=t+HZl1rt2NsEtntfRh6EdRo59KNXptZi6pZx+Yrf7cIlLmr71/JLlWZuAyOeTQM6a
-	 QagXP6QrI2p+FXqYRHHZ7XjXXGHD/aN7iPid8MJkn88iIkLQrCZ64w8w1N439rr4P0
-	 JhwyXJQ0+BUkLdpctVPFwt6PfFYGcCP8BENbupOoSW7tkzRHikSmr9JAyjqmRLqE/0
-	 fZVdqAHK8D+IHfTg7BC8eQL1k/rMnDpxqehelDjmBvAweYmiznUlNL9L7cwYxYk4tt
-	 oWsaKfu9b7+CnEDYoSulWT+E5BiI7D+szglDWQD/0JTgL7hwR0tSQPkky0lFwA4wy+
-	 bUamH4SrdTQuA==
-From: Kees Cook <kees@kernel.org>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Kees Cook <kees@kernel.org>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Ingo Molnar <mingo@redhat.com>,
-	Borislav Petkov <bp@alien8.de>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	x86@kernel.org,
-	"H. Peter Anvin" <hpa@zytor.com>,
-	Paolo Bonzini <pbonzini@redhat.com>,
-	Mike Rapoport <rppt@kernel.org>,
-	Ard Biesheuvel <ardb@kernel.org>,
-	Vitaly Kuznetsov <vkuznets@redhat.com>,
-	Henrique de Moraes Holschuh <hmh@hmh.eng.br>,
-	Hans de Goede <hdegoede@redhat.com>,
-	=?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	Masami Hiramatsu <mhiramat@kernel.org>,
-	Michal Wilczynski <michal.wilczynski@intel.com>,
-	Juergen Gross <jgross@suse.com>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	"Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-	Roger Pau Monne <roger.pau@citrix.com>,
-	David Woodhouse <dwmw@amazon.co.uk>,
-	Usama Arif <usama.arif@bytedance.com>,
-	"Guilherme G. Piccoli" <gpiccoli@igalia.com>,
-	Thomas Huth <thuth@redhat.com>,
-	Brian Gerst <brgerst@gmail.com>,
-	kvm@vger.kernel.org,
-	ibm-acpi-devel@lists.sourceforge.net,
-	platform-driver-x86@vger.kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-trace-kernel@vger.kernel.org,
-	linux-efi@vger.kernel.org,
-	linux-mm@kvack.org,
-	Will Deacon <will@kernel.org>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
-	Gavin Shan <gshan@redhat.com>,
-	"Russell King (Oracle)" <rmk+kernel@armlinux.org.uk>,
-	James Morse <james.morse@arm.com>,
-	Oza Pawandeep <quic_poza@quicinc.com>,
-	Anshuman Khandual <anshuman.khandual@arm.com>,
-	Hans de Goede <hansg@kernel.org>,
-	"Kirill A. Shutemov" <kas@kernel.org>,
-	Marco Elver <elver@google.com>,
-	Andrey Konovalov <andreyknvl@gmail.com>,
-	Andrey Ryabinin <ryabinin.a.a@gmail.com>,
-	Hou Wenlong <houwenlong.hwl@antgroup.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Masahiro Yamada <masahiroy@kernel.org>,
-	"Peter Zijlstra (Intel)" <peterz@infradead.org>,
-	Luis Chamberlain <mcgrof@kernel.org>,
-	Sami Tolvanen <samitolvanen@google.com>,
-	Christophe Leroy <christophe.leroy@csgroup.eu>,
-	Nathan Chancellor <nathan@kernel.org>,
-	Nicolas Schier <nicolas.schier@linux.dev>,
-	"Gustavo A. R. Silva" <gustavoars@kernel.org>,
-	Andy Lutomirski <luto@kernel.org>,
-	Baoquan He <bhe@redhat.com>,
-	Alexander Graf <graf@amazon.com>,
-	Changyuan Lyu <changyuanl@google.com>,
-	Paul Moore <paul@paul-moore.com>,
-	James Morris <jmorris@namei.org>,
-	"Serge E. Hallyn" <serge@hallyn.com>,
-	Nick Desaulniers <nick.desaulniers+lkml@gmail.com>,
-	Bill Wendling <morbo@google.com>,
-	Justin Stitt <justinstitt@google.com>,
-	Jan Beulich <jbeulich@suse.com>,
-	Boqun Feng <boqun.feng@gmail.com>,
-	Viresh Kumar <viresh.kumar@linaro.org>,
-	"Paul E. McKenney" <paulmck@kernel.org>,
-	Bibo Mao <maobibo@loongson.cn>,
-	linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	kasan-dev@googlegroups.com,
-	linux-kbuild@vger.kernel.org,
-	linux-hardening@vger.kernel.org,
-	kexec@lists.infradead.org,
-	linux-security-module@vger.kernel.org,
-	llvm@lists.linux.dev
-Subject: [PATCH v4 2/4] x86: Handle KCOV __init vs inline mismatches
-Date: Wed, 23 Jul 2025 22:50:26 -0700
-Message-Id: <20250724055029.3623499-2-kees@kernel.org>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20250724054419.it.405-kees@kernel.org>
-References: <20250724054419.it.405-kees@kernel.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="RxmMO8Bo"
+Received: by mail-wm1-f65.google.com with SMTP id 5b1f17b1804b1-45600581226so6157005e9.1;
+        Wed, 23 Jul 2025 23:51:05 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1753339864; x=1753944664; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=yzVCG5SoHn4Tr6BCxb/1N9GpLGi9jl777U0laKdYkLA=;
+        b=RxmMO8BorFBF0mjlPVAVCgLA3M3vEHHFjUYDfZCg2rcDKU9ZYmjOIL6XS+b3H55ZFC
+         4stupBolSL6/0UEuz5mRhu5iigBeaBemy3vl8pylq2DixeRd78voeQtKaAdJ+jFTrRaV
+         6c2aL4DOZszTgOln0lEMBEciFsiYwbmjz3FQkwGSDARH+3C9gISf/Zd5ZOGyXkmXYLbr
+         lE2hg5aZAWCvdLyxAXvYqgGP6B9VAdqQdzULAC1cS6hIxdKiaU49rh+NgJ9R4imsygzQ
+         jufGUOQXsRJZ0b8W7u3OOeG+DB+tgqk1JYQeyflEOkAUihV3foZNdXuuINhd5hdZhaNJ
+         +voQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1753339864; x=1753944664;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=yzVCG5SoHn4Tr6BCxb/1N9GpLGi9jl777U0laKdYkLA=;
+        b=m7l1PX8JRX1SRocJT2QLDDogLzo4VaccOsTgZJ5CQ2mFjtmE3dxOOSBy1xaaJi7Qwo
+         pPanIn2/iuWAd44Scfv0Xj5qB++8CH1HLbUc+x6t/+cW9PYO3AXEif/TWN4bZQtdQBmW
+         7Vd7ER2BWHKUmkyPsAHSqvp/DaaBBtjWH1bLG9Yip3+BIVgTk+wbmW0psmmkvsNdXFVK
+         cfVzgQ1BoZ6QEBcH4/d616yUg8ml7zhzZZaOuGmZVM+DETMIC5NWkoNh4WAqcPA7N6Dw
+         cNF7cx38SG0utbd1yTYhwjeyO4b3CP3gR1UlBx/FXqjmAg6OdRZuxhsQkBMQu/0FpALf
+         SWHA==
+X-Forwarded-Encrypted: i=1; AJvYcCUMTIcDvMqq9cuxkeyHqSr+ENYYF89rlhkumWSIjYuR6DbNe0BqvBEtbwqDcCfcnGEk1M8Hmh/Cbnle@vger.kernel.org, AJvYcCWLeNBmu/5X89H1giwRkEqvofEPj81JKNDUOdZeCC1gnNFy/YX+dLL2zoCqA4zhN3PnkqTrsC7eOFbzI+cR@vger.kernel.org, AJvYcCXC2wGVfr36RH/yotRVwTjyGbNdumON8c+A5suGd65doErLL30KfJvRwgvc3F+jDg5A92dP1c9QNR5E@vger.kernel.org
+X-Gm-Message-State: AOJu0YwsNZ7KuuH0HToH6heGJyQ4pF2nbOkn5ylv84gr/b8jwgiKTE7k
+	+cWmYAt4BOAciuX92CxZ5DfWRG51pMdXMZZjVX4PPSLSS42wiTVlPoFB
+X-Gm-Gg: ASbGncsmDyTRNMAMIbxmxPESj/Y36npqN4b/mbgD98PKNg64LM820/aijbjr2e/n5L5
+	YfHdGHZHSyjO9HZof8GHn21tMPGZgabDjY0Wd1xeYun6fHmxM2ksKdvqUZyick8RgD9sjXhoAgF
+	SBhIF7TE2xzgVtUf3TtGg2rDwaoUihg58cKlNhG/yWgl7clpdlH2sBRQwEn7jnCyCDRk0kNzEqU
+	+Op+M/SCDxa0U/KJCuXqIq6ZXBwNm3rLxAE52CozzZHC4Q89CLRii53BTESX3IEoj4QDUucvG8v
+	DVK5DGO20BtsY6RGgh/15WmzjS4nSO2AxR0a/tm7/lpd0jT8Qne84WbJ/QycRWBahjeoRhE3+Wn
+	80QVxuDuoLxSKuDjj6nrfGPrr0Fpl+VoFUoR+54MTJAmNwObvchtSytkV0Z485v0H2otJc723dc
+	Ch91h4aXbJLfXkrQ==
+X-Google-Smtp-Source: AGHT+IE9DAuzXlfO0T8BGbEaaDzrFKFbm9v9bayHfXRPMGOtvkB3z1CVZtyVEbYlFxT1eRAuNH/DWg==
+X-Received: by 2002:a05:600c:1e26:b0:456:25e7:bed with SMTP id 5b1f17b1804b1-45868c97accmr53096245e9.14.1753339863187;
+        Wed, 23 Jul 2025 23:51:03 -0700 (PDT)
+Received: from [26.26.26.1] (9.126.207.35.bc.googleusercontent.com. [35.207.126.9])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-3b76fcace54sm1166324f8f.45.2025.07.23.23.50.56
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 23 Jul 2025 23:51:02 -0700 (PDT)
+Message-ID: <4f7e4bfb-1bc7-4c87-a9f1-8c8b6ee9a336@gmail.com>
+Date: Thu, 24 Jul 2025 14:50:53 +0800
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-X-Developer-Signature: v=1; a=openpgp-sha256; l=8992; i=kees@kernel.org; h=from:subject; bh=wNKQONSDACRjYYu6I5glKcwwkty7zb+PKkmvdUUj3Ig=; b=owGbwMvMwCVmps19z/KJym7G02pJDBmNJxdHq87byTrV+eeFmu+pxk9mrDErymjTSZ7z2arJo lvq7NmajlIWBjEuBlkxRZYgO/c4F4+37eHucxVh5rAygQxh4OIUgIls1mZkeCNgEnr95wlTvr3M Ac17RX8sua+lf+fIw+nTLUNe7tJm2sTwV0gkcCqD+LfdNnp6PK+kC7LTjySv5f6gflLm/1bLzsz HjAA=
-X-Developer-Key: i=kees@kernel.org; a=openpgp; fpr=A5C3F68F229DD60F723E6E138972F4DFDC6DC026
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH RFC v2 0/4] Disable ATS via iommu during PCI resets
+To: Nicolin Chen <nicolinc@nvidia.com>, jgg@nvidia.com, joro@8bytes.org,
+ will@kernel.org, robin.murphy@arm.com, rafael@kernel.org, lenb@kernel.org,
+ bhelgaas@google.com
+Cc: iommu@lists.linux.dev, linux-kernel@vger.kernel.org,
+ linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org,
+ patches@lists.linux.dev, pjaroszynski@nvidia.com, vsethi@nvidia.com,
+ helgaas@kernel.org, baolu.lu@linux.intel.com
+References: <cover.1751096303.git.nicolinc@nvidia.com>
+Content-Language: en-US
+From: Ethan Zhao <etzhao1900@gmail.com>
+In-Reply-To: <cover.1751096303.git.nicolinc@nvidia.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-GCC appears to have kind of fragile inlining heuristics, in the
-sense that it can change whether or not it inlines something based on
-optimizations. It looks like the kcov instrumentation being added (or in
-this case, removed) from a function changes the optimization results,
-and some functions marked "inline" are _not_ inlined. In that case,
-we end up with __init code calling a function not marked __init, and we
-get the build warnings I'm trying to eliminate in the coming patch that
-adds __no_sanitize_coverage to __init functions:
 
-WARNING: modpost: vmlinux: section mismatch in reference: xbc_exit+0x8 (section: .text.unlikely) -> _xbc_exit (section: .init.text)
-WARNING: modpost: vmlinux: section mismatch in reference: real_mode_size_needed+0x15 (section: .text.unlikely) -> real_mode_blob_end (section: .init.data)
-WARNING: modpost: vmlinux: section mismatch in reference: __set_percpu_decrypted+0x16 (section: .text.unlikely) -> early_set_memory_decrypted (section: .init.text)
-WARNING: modpost: vmlinux: section mismatch in reference: memblock_alloc_from+0x26 (section: .text.unlikely) -> memblock_alloc_try_nid (section: .init.text)
-WARNING: modpost: vmlinux: section mismatch in reference: acpi_arch_set_root_pointer+0xc (section: .text.unlikely) -> x86_init (section: .init.data)
-WARNING: modpost: vmlinux: section mismatch in reference: acpi_arch_get_root_pointer+0x8 (section: .text.unlikely) -> x86_init (section: .init.data)
-WARNING: modpost: vmlinux: section mismatch in reference: efi_config_table_is_usable+0x16 (section: .text.unlikely) -> xen_efi_config_table_is_usable (section: .init.text)
 
-This problem is somewhat fragile (though using either __always_inline
-or __init will deterministically solve it), but we've tripped over
-this before with GCC and the solution has usually been to just use
-__always_inline and move on.
+On 6/28/2025 3:42 PM, Nicolin Chen wrote:
+> Hi all,
+> 
+> PCIe permits a device to ignore ATS invalidation TLPs, while processing a
+> reset. This creates a problem visible to the OS where an ATS invalidation
+> command will time out: e.g. an SVA domain will have no coordination with a
+> reset event and can racily issue ATS invalidations to a resetting device.
+> 
+> The OS should do something to mitigate this as we do not want production
+> systems to be reporting critical ATS failures, especially in a hypervisor
+> environment. Broadly, OS could arrange to ignore the timeouts, block page
+> table mutations to prevent invalidations, or disable and block ATS.
+> 
+> The PCIe spec in sec 10.3.1 IMPLEMENTATION NOTE recommends to disable and
+> block ATS before initiating a Function Level Reset. It also mentions that
+> other reset methods could have the same vulnerability as well.
+> 
+> Provide a callback from the PCI subsystem that will enclose the reset and
+> have the iommu core temporarily change all the attached domain to BLOCKED.
+> After attaching a BLOCKED domain, IOMMU drivers should fence any incoming
+> ATS queries, synchronously stop issuing new ATS invalidations, and wait
+> for all ATS invalidations to complete. This can avoid any ATS invaliation
+> timeouts.
 
-For x86 this means forcing several functions to be inline with
-__always_inline.
+This approach seems effective for reset operations initiated through 
+software interface functions, but how would we handle those triggered by 
+hardware mechanisms? For example, resets caused by PCIe DPC mechanisms, 
+device firmware, or manual hot-plug operations?
 
-Signed-off-by: Kees Cook <kees@kernel.org>
----
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: <x86@kernel.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Ard Biesheuvel <ardb@kernel.org>
-Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Hans de Goede <hdegoede@redhat.com>
-Cc: "Ilpo Järvinen" <ilpo.jarvinen@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Michal Wilczynski <michal.wilczynski@intel.com>
-Cc: Juergen Gross <jgross@suse.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Roger Pau Monne <roger.pau@citrix.com>
-Cc: David Woodhouse <dwmw@amazon.co.uk>
-Cc: Usama Arif <usama.arif@bytedance.com>
-Cc: "Guilherme G. Piccoli" <gpiccoli@igalia.com>
-Cc: Thomas Huth <thuth@redhat.com>
-Cc: Brian Gerst <brgerst@gmail.com>
-Cc: <kvm@vger.kernel.org>
-Cc: <ibm-acpi-devel@lists.sourceforge.net>
-Cc: <platform-driver-x86@vger.kernel.org>
-Cc: <linux-acpi@vger.kernel.org>
-Cc: <linux-trace-kernel@vger.kernel.org>
-Cc: <linux-efi@vger.kernel.org>
-Cc: <linux-mm@kvack.org>
----
- arch/x86/include/asm/acpi.h     | 4 ++--
- arch/x86/include/asm/realmode.h | 2 +-
- include/linux/acpi.h            | 4 ++--
- include/linux/bootconfig.h      | 2 +-
- include/linux/efi.h             | 2 +-
- include/linux/memblock.h        | 2 +-
- include/linux/smp.h             | 2 +-
- arch/x86/kernel/kvm.c           | 2 +-
- arch/x86/mm/init_64.c           | 2 +-
- kernel/kexec_handover.c         | 4 ++--
- 10 files changed, 13 insertions(+), 13 deletions(-)
-
-diff --git a/arch/x86/include/asm/acpi.h b/arch/x86/include/asm/acpi.h
-index 5ab1a4598d00..a03aa6f999d1 100644
---- a/arch/x86/include/asm/acpi.h
-+++ b/arch/x86/include/asm/acpi.h
-@@ -158,13 +158,13 @@ static inline bool acpi_has_cpu_in_madt(void)
- }
- 
- #define ACPI_HAVE_ARCH_SET_ROOT_POINTER
--static inline void acpi_arch_set_root_pointer(u64 addr)
-+static __always_inline void acpi_arch_set_root_pointer(u64 addr)
- {
- 	x86_init.acpi.set_root_pointer(addr);
- }
- 
- #define ACPI_HAVE_ARCH_GET_ROOT_POINTER
--static inline u64 acpi_arch_get_root_pointer(void)
-+static __always_inline u64 acpi_arch_get_root_pointer(void)
- {
- 	return x86_init.acpi.get_root_pointer();
- }
-diff --git a/arch/x86/include/asm/realmode.h b/arch/x86/include/asm/realmode.h
-index f607081a022a..e406a1e92c63 100644
---- a/arch/x86/include/asm/realmode.h
-+++ b/arch/x86/include/asm/realmode.h
-@@ -78,7 +78,7 @@ extern unsigned char secondary_startup_64[];
- extern unsigned char secondary_startup_64_no_verify[];
- #endif
- 
--static inline size_t real_mode_size_needed(void)
-+static __always_inline size_t real_mode_size_needed(void)
- {
- 	if (real_mode_header)
- 		return 0;	/* already allocated. */
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 71e692f95290..1c5bb1e887cd 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -759,13 +759,13 @@ int acpi_arch_timer_mem_init(struct arch_timer_mem *timer_mem, int *timer_count)
- #endif
- 
- #ifndef ACPI_HAVE_ARCH_SET_ROOT_POINTER
--static inline void acpi_arch_set_root_pointer(u64 addr)
-+static __always_inline void acpi_arch_set_root_pointer(u64 addr)
- {
- }
- #endif
- 
- #ifndef ACPI_HAVE_ARCH_GET_ROOT_POINTER
--static inline u64 acpi_arch_get_root_pointer(void)
-+static __always_inline u64 acpi_arch_get_root_pointer(void)
- {
- 	return 0;
- }
-diff --git a/include/linux/bootconfig.h b/include/linux/bootconfig.h
-index 3f4b4ac527ca..25df9260d206 100644
---- a/include/linux/bootconfig.h
-+++ b/include/linux/bootconfig.h
-@@ -290,7 +290,7 @@ int __init xbc_get_info(int *node_size, size_t *data_size);
- /* XBC cleanup data structures */
- void __init _xbc_exit(bool early);
- 
--static inline void xbc_exit(void)
-+static __always_inline void xbc_exit(void)
- {
- 	_xbc_exit(false);
- }
-diff --git a/include/linux/efi.h b/include/linux/efi.h
-index 50db7df0efab..a98cc39e7aaa 100644
---- a/include/linux/efi.h
-+++ b/include/linux/efi.h
-@@ -1336,7 +1336,7 @@ struct linux_efi_initrd {
- 
- bool xen_efi_config_table_is_usable(const efi_guid_t *guid, unsigned long table);
- 
--static inline
-+static __always_inline
- bool efi_config_table_is_usable(const efi_guid_t *guid, unsigned long table)
- {
- 	if (!IS_ENABLED(CONFIG_XEN_EFI))
-diff --git a/include/linux/memblock.h b/include/linux/memblock.h
-index bb19a2534224..b96746376e17 100644
---- a/include/linux/memblock.h
-+++ b/include/linux/memblock.h
-@@ -463,7 +463,7 @@ static inline void *memblock_alloc_raw(phys_addr_t size,
- 					  NUMA_NO_NODE);
- }
- 
--static inline void *memblock_alloc_from(phys_addr_t size,
-+static __always_inline void *memblock_alloc_from(phys_addr_t size,
- 						phys_addr_t align,
- 						phys_addr_t min_addr)
- {
-diff --git a/include/linux/smp.h b/include/linux/smp.h
-index bea8d2826e09..18e9c918325e 100644
---- a/include/linux/smp.h
-+++ b/include/linux/smp.h
-@@ -221,7 +221,7 @@ static inline void wake_up_all_idle_cpus(void) {  }
- 
- #ifdef CONFIG_UP_LATE_INIT
- extern void __init up_late_init(void);
--static inline void smp_init(void) { up_late_init(); }
-+static __always_inline void smp_init(void) { up_late_init(); }
- #else
- static inline void smp_init(void) { }
- #endif
-diff --git a/arch/x86/kernel/kvm.c b/arch/x86/kernel/kvm.c
-index 921c1c783bc1..8ae750cde0c6 100644
---- a/arch/x86/kernel/kvm.c
-+++ b/arch/x86/kernel/kvm.c
-@@ -420,7 +420,7 @@ static u64 kvm_steal_clock(int cpu)
- 	return steal;
- }
- 
--static inline void __set_percpu_decrypted(void *ptr, unsigned long size)
-+static inline __init void __set_percpu_decrypted(void *ptr, unsigned long size)
- {
- 	early_set_memory_decrypted((unsigned long) ptr, size);
- }
-diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
-index fdb6cab524f0..76e33bd7c556 100644
---- a/arch/x86/mm/init_64.c
-+++ b/arch/x86/mm/init_64.c
-@@ -805,7 +805,7 @@ kernel_physical_mapping_change(unsigned long paddr_start,
- }
- 
- #ifndef CONFIG_NUMA
--static inline void x86_numa_init(void)
-+static __always_inline void x86_numa_init(void)
- {
- 	memblock_set_node(0, PHYS_ADDR_MAX, &memblock.memory, 0);
- }
-diff --git a/kernel/kexec_handover.c b/kernel/kexec_handover.c
-index 49634cc3fb43..e49743ae52c5 100644
---- a/kernel/kexec_handover.c
-+++ b/kernel/kexec_handover.c
-@@ -310,8 +310,8 @@ static int kho_mem_serialize(struct kho_serialization *ser)
- 	return -ENOMEM;
- }
- 
--static void deserialize_bitmap(unsigned int order,
--			       struct khoser_mem_bitmap_ptr *elm)
-+static void __init deserialize_bitmap(unsigned int order,
-+				      struct khoser_mem_bitmap_ptr *elm)
- {
- 	struct kho_mem_phys_bits *bitmap = KHOSER_LOAD_PTR(elm->bitmap);
- 	unsigned long bit;
--- 
-2.34.1
+Thanks,
+Ethan
+> 
+> When a device is resetting, any new domain attachment should be deferred,
+> until the reset is finished. The iommu callback will log the
+> 
+> However, if there is a domain attachment/replacement happening during an
+> ongoing reset, the ATS might be re-enabled between the two function calls.
+> Introduce a new pending_reset flag in iommu_group to defer any attachment
+> during a reset, allowing iommu core to cache the target domains in the SW
+> level but bypassing the driver. The iommu_dev_reset_done() will re-attach
+> these soft-attached domains via __iommu_attach_device/set_group_pasid().
+> 
+> Notes:
+> - This only works for IOMMU drivers that implemented ops->blocked_domain
+> correctly with pci_disable_ats().
+> - This only works for IOMMU drivers that will not issue ATS invalidation
+> requests to the device, after it's docked at ops->blocked_domain.
+> Driver should fix itself to align with the aforementioned notes.
+> 
+> This is on Github:
+> https://github.com/nicolinc/iommufd/commits/iommu_dev_reset-rfcv2
+> 
+> Changelog
+> v2
+>   * [iommu] Update kdocs, inline comments, and commit logs
+>   * [iommu] Replace long-holding group->mutex with a pending_reset flag
+>   * [pci] Abort reset routines if iommu_dev_reset_prepare() fails
+>   * [pci] Apply the same vulnerability fix to other reset functions
+> v1
+>   https://lore.kernel.org/all/cover.1749494161.git.nicolinc@nvidia.com/
+> 
+> Thanks
+> Nicolin
+> 
+> Nicolin Chen (4):
+>    iommu: Lock group->mutex in iommu_deferred_attach
+>    iommu: Pass in gdev to __iommu_device_set_domain
+>    iommu: Introduce iommu_dev_reset_prepare() and iommu_dev_reset_done()
+>    pci: Suspend iommu function prior to resetting a device
+> 
+>   include/linux/iommu.h  |  12 +++
+>   drivers/iommu/iommu.c  | 180 ++++++++++++++++++++++++++++++++++++++---
+>   drivers/pci/pci-acpi.c |  21 ++++-
+>   drivers/pci/pci.c      |  84 +++++++++++++++++--
+>   drivers/pci/quirks.c   |  27 ++++++-
+>   5 files changed, 307 insertions(+), 17 deletions(-)
+> 
 
