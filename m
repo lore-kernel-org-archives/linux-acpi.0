@@ -1,115 +1,229 @@
-Received: from mail-pf1-f172.google.com (mail-pf1-f172.google.com [209.85.210.172])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from vps-ovh.mhejs.net (vps-ovh.mhejs.net [145.239.82.108])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19C0E1D63DF;
-	Sun,  3 Aug 2025 16:54:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.172
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20DD420311;
+	Sun,  3 Aug 2025 19:18:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=145.239.82.108
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754240082; cv=none; b=U5UiBLgnfMma7zdn6YnifPKtOclXfzGg8p/JosTssV2AThu22V6deg8YPRjAIM36XapZBQAMNOQ1TcgFahoduEDKG8RP9A425U9DTryjeuGjqTbPxD6bLDLVs3kuKVZPZFrojdjNpH6c27u8Z1HLDmyjUIMB3oLoWv8xJCkUZ1g=
+	t=1754248715; cv=none; b=Ju7bl4kdiGdXXgIESNQycjimovO7615d33CQQwr7JzwzwjD13Eb4sIuG3ChidzTLpqGQ6JY0grIFJh+t/kMYmQBzM7TVDll0lO9Bb9Vp0F3GGF30JawBt1gOrwLc5zHw4p1jcGTl6IgeC0AMuDJgD2qjs7n74wBYhgrPyrKNing=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754240082; c=relaxed/simple;
-	bh=013LWtY1z9ycHf9/jlJK5Gk4unBMj8NZDKNYsGQFV9Y=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=h6RJtmumOh0tchoMB7av84LAGbkeMDNFzkUrVuV2GybQNdJUiaZYB77mt1JgpHIX/a6fttJpU0ShvgU5vAlzvqmR/LvICZDT3nplH1c5S1vhcbguPhdPqE+g1BCq/+F5v4fCYo878wwcHEoa7ScRIudNh15FB4T83EsnHH6NyK8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=N9gmRP7Q; arc=none smtp.client-ip=209.85.210.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="N9gmRP7Q"
-Received: by mail-pf1-f172.google.com with SMTP id d2e1a72fcca58-76bd041c431so2929116b3a.2;
-        Sun, 03 Aug 2025 09:54:40 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1754240080; x=1754844880; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=pV9w0CQoRcUYhHYMt23UhoOkZT5o/JoD/yUyCBLIk2k=;
-        b=N9gmRP7QGIgX2lrvrHz01ovDZjAts5z4PIoSzB5pk/qtCv8270K9GWRPfl2Pe/HU23
-         E/F3wKYKPOeMNLHkL0u84t44L2wWxENbwpj8HWD5xOOw0iMmRUekgwrDrMOsf71S4EuU
-         2WGH3za0XbJwF+rwFHkpVsKHqP7c5E+T69GHt8Xq+fgNv6fs9aP3Als0fKFJemlYbafK
-         +5AYwtOYABAYeJ1P7kDRY7e8OZ6woVpU0nOPwNZSOopyxMiovkOoZBualNHQulXcURC6
-         7bqL3P9eJR8awAXGrfB2ZlRiXKvP+9GKEFmm67IioAQcxDDTopTaN35T4PtAq5oJv/3m
-         amrw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1754240080; x=1754844880;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=pV9w0CQoRcUYhHYMt23UhoOkZT5o/JoD/yUyCBLIk2k=;
-        b=Czjrsvt9eUoAN+nqV5WhDZbfU8dpj+oe1l/cMYayp5SDfDaY6/jDChnisR0/uaJNvu
-         5VXlrveQ+InPowmx5DNU/66MiMBPQyfGG/hJa6/CtNB54nYLpV3TDEGJO9ShC6OFC253
-         Q3i4gkYHoVdY5HQnuylzMQUbhaDPXnoRGvebtgIAReCBCwkQwpYwtW6uo+HvGGym6NY7
-         jFjOu/PM3KQUHYEvJhftmG61tdiQVnGoEGVy8tCp0vuQipvo9XDbUXwjUdtBEBIejCel
-         gP/kEMbdk3fuDyhQVqteV1G/MpJjtOFvH9j0wQYHDTW5+j5Sn3jch0xXg013FKRPGVdn
-         yPig==
-X-Forwarded-Encrypted: i=1; AJvYcCV5xt3fg1H6kFxnhIqauLvBz8u8bNKzfaUetoKW1CM5ku6jBfG8OPQgKZahFu2v3ggBZPISNtP2tKTS@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx78g7iQdhp5gxeCTzoZyMIoObD81xqfmxwuNBk0ihYBHnGbOHL
-	Qmo/B1tQiJ3Q5np+tWCDBLjIuWZ1RG9/IuZPQBAIqmSsvwi5jGH9HErz
-X-Gm-Gg: ASbGncsPuPs8oJCTlCNGyjvcaIzwKlRVLudd0bC5T8TS9idYZOcdCeKLHlpPddkH15C
-	Vi8XHMt+eCjiowCf+acGbHG4GtS7Xb3q93aMItuFX8iCVm6IvcxzjjRSYVdBt2rKS0JvzYkdYRj
-	+Jl3ctGYCQ9hKSAVnbqDTNudP/07vp4ByzFN61HjcL2qq1z+/RfHrT5C8nooHEb4feDiRzJP0Bb
-	Y6ILkeP1sAJXeBiXNRFjwnoudvP/fc9ovYRmTwZmXxXlVcLaCKaLnc21mTCCDRz38VytSeRCi2r
-	FVjf4P5Lm+ltZHsmcl+Yw2lEk90YxpFVaTrc3T3JRsWLeVMm0LHzkEJghReZ+wWah3AEJioyM4Y
-	N+w2nIytvgP5dbh0=
-X-Google-Smtp-Source: AGHT+IEo1gq33O5aUys0+8ALaihfteRTIBvMO85xRSUFfSJcipaf9qogGiVbnN9HwPKG58PZb99ALw==
-X-Received: by 2002:a05:6a20:734e:b0:238:3f54:78f2 with SMTP id adf61e73a8af0-23df91932cfmr10086332637.44.1754240080330;
-        Sun, 03 Aug 2025 09:54:40 -0700 (PDT)
-Received: from [192.168.79.25] ([49.207.53.32])
-        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-b422b7841besm7475766a12.3.2025.08.03.09.54.37
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sun, 03 Aug 2025 09:54:40 -0700 (PDT)
-Message-ID: <b30ef694-56c2-4023-8d6e-de8f7b8e10e6@gmail.com>
-Date: Sun, 3 Aug 2025 22:24:34 +0530
+	s=arc-20240116; t=1754248715; c=relaxed/simple;
+	bh=t4JFnPe9gqwe0MLV9N3+1ndOHzUwYCL+u3GoDH6fu10=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=jhKdWczqi2N6Q8cYxBc5L1krjmBufFtHYUz67Mj3DMZlHxc7v38W5sC03AtD01lH748P62hmfF5JE0KccUl9zKsCbi3y85sYGTNFCYSGEqDibGiQhZIB4qLGs1VVwydBkq0QiKy49vOBtU0ho7DmUwQ0DY8TP5//UPejM5/sdLQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=maciej.szmigiero.name; spf=pass smtp.mailfrom=vps-ovh.mhejs.net; arc=none smtp.client-ip=145.239.82.108
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=maciej.szmigiero.name
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=vps-ovh.mhejs.net
+Received: from MUA
+	by vps-ovh.mhejs.net with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
+	(Exim 4.98.2)
+	(envelope-from <mhej@vps-ovh.mhejs.net>)
+	id 1uieE2-00000000Muu-2ls7;
+	Sun, 03 Aug 2025 21:18:30 +0200
+From: "Maciej S. Szmigiero" <mail@maciej.szmigiero.name>
+To: "Rafael J. Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH v3 2/2] ACPI: PM: Add HP EliteBook 855 G7 WWAN modem power resource quirk
+Date: Sun,  3 Aug 2025 21:18:12 +0200
+Message-ID: <c6ff6931c5d27592052f30339de1b9cc298c43f0.1754243159.git.mail@maciej.szmigiero.name>
+X-Mailer: git-send-email 2.49.0
+In-Reply-To: <cover.1754243159.git.mail@maciej.szmigiero.name>
+References: <cover.1754243159.git.mail@maciej.szmigiero.name>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH V2] acpi: remove unnecessary parenthesis from return
- statement
-To: Markus Elfring <Markus.Elfring@web.de>,
- Diksha Kumari <dkdevgan@outlook.com>, linux-acpi@vger.kernel.org,
- acpica-devel@lists.linux.dev
-Cc: LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>,
- "Rafael J. Wysocki" <rafael@kernel.org>,
- Robert Moore <robert.moore@intel.com>
-References: <20250803153829.6545-1-dikshakdevgan@gmail.com>
- <a62ff710-4216-4c4a-9ca1-b376a3703531@web.de>
-Content-Language: en-US
-From: Diksha Kumari <dikshakdevgan@gmail.com>
-In-Reply-To: <a62ff710-4216-4c4a-9ca1-b376a3703531@web.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
+Sender: mhej@vps-ovh.mhejs.net
 
+This laptop (and possibly similar models too) has power resource called
+"GP12.PXP_" for its Intel XMM7360 WWAN modem.
 
-On 03/08/25 21:38, Markus Elfring wrote:
->> checkpatch.pl is generating a warning when return value is enclosed
->> in parenthesis. Remove the parenthesis to improve code readability.
->                               parentheses?
-This is my first patch, so i am not sure what you mean by this.
->
-> You propose to omit also some curly brackets, don't you?
-ok, i will include this in the next version.
->
-> …> ---
->>   drivers/acpi/acpica/dbconvert.c | 43 +++++++++++++++------------------
-> …
->
-> Did you overlook the addition of patch version descriptions?
-> https://lore.kernel.org/all/?q=%22This+looks+like+a+new+version+of+a+previously+submitted+patch%22
-> https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/Documentation/process/submitting-patches.rst?h=v6.16#n310
+For this power resource to turn ON power for the modem it needs certain
+internal flag called "ONEN" to be set:
+Method (_ON, 0, NotSerialized) // _ON_: Power On
+{
+	If (^^^LPCB.EC0.ECRG)
+	{
+		If ((ONEN == Zero))
+		{
+                        Return (Zero)
+		}
+(..)
+	}
+}
 
-yes, went through the document, thanks for the information. I will add 
-the change log in next version.
+This flag only gets set from this power resource "_OFF" method, while the
+actual modem power gets turned off during suspend by "GP12.PTS" method
+called from the global "_PTS" (Prepare To Sleep) method.
 
+In fact, this power resource "_OFF" method implementation just sets the
+aforementioned flag:
+Method (_OFF, 0, NotSerialized) // _OFF: Power Off
+{
+	OFEN = Zero
+	ONEN = One
+}
 
-Thanks for reviewing the patch and feedback.
+Upon hibernation finish we try to set this power resource back ON since its
+"_STA" method returns 0 and the resource is still considered in use as it
+is declared as required for D0 for both the modem ACPI device (GP12.PWAN)
+and its parent PCIe port ACPI device (GP12).
+But the "_ON" method won't do anything since that "ONEN" flag is not set.
 
-Regards,
+Overall, this means the modem is dead after hibernation finish until the
+laptop is rebooted since the modem power has been cut by "_PTS" and its PCI
+configuration was lost and not able to be restored.
 
-Diksha
+The easiest way to workaround this issue is to call this power resource
+"_OFF" method before calling the "_ON" method to make sure the "ONEN"
+flag gets properly set.
 
-> Regards,
-> Markus
+This makes the modem alive once again after hibernation finish - with
+properly restored PCI configuration space.
+
+Since this platform does *not* support S3 the fact that
+acpi_resume_power_resources() is also called during resume from S3 is
+not a problem there.
+
+Do the DMI based quirk matching and quirk flag initialization just
+once - in acpi_power_resources_init() function.
+
+This way the whole resume path overhead of this change on other systems
+amounts to simple hp_eb_gp12pxp_quirk flag comparison.
+
+Signed-off-by: Maciej S. Szmigiero <mail@maciej.szmigiero.name>
+---
+ drivers/acpi/power.c | 80 ++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 78 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
+index cd9380b1f951..361a7721a6a8 100644
+--- a/drivers/acpi/power.c
++++ b/drivers/acpi/power.c
+@@ -23,6 +23,7 @@
+ 
+ #define pr_fmt(fmt) "ACPI: PM: " fmt
+ 
++#include <linux/delay.h>
+ #include <linux/dmi.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+@@ -63,6 +64,7 @@ struct acpi_power_resource_entry {
+ 	struct acpi_power_resource *resource;
+ };
+ 
++static bool hp_eb_gp12pxp_quirk;
+ static bool unused_power_resources_quirk;
+ 
+ static LIST_HEAD(acpi_power_resource_list);
+@@ -994,6 +996,38 @@ struct acpi_device *acpi_add_power_resource(acpi_handle handle)
+ }
+ 
+ #ifdef CONFIG_ACPI_SLEEP
++static bool resource_is_gp12pxp(acpi_handle handle)
++{
++	const char *path;
++	bool ret;
++
++	path = acpi_handle_path(handle);
++	ret = path && strcmp(path, "\\_SB_.PCI0.GP12.PXP_") == 0;
++	kfree(path);
++
++	return ret;
++}
++
++static void acpi_resume_on_eb_gp12pxp(struct acpi_power_resource *resource)
++{
++	acpi_handle_notice(resource->device.handle,
++			   "HP EB quirk - turning OFF then ON\n");
++
++	__acpi_power_off(resource);
++	__acpi_power_on(resource);
++
++	/*
++	 * Use the same delay as DSDT uses in modem _RST method.
++	 *
++	 * Otherwise we get "Unable to change power state from unknown to D0,
++	 * device inaccessible" error for the modem PCI device after thaw.
++	 *
++	 * This power resource is normally being enabled only during thaw (once)
++	 * so this wait is not a performance issue.
++	 */
++	msleep(200);
++}
++
+ void acpi_resume_power_resources(void)
+ {
+ 	struct acpi_power_resource *resource;
+@@ -1015,8 +1049,14 @@ void acpi_resume_power_resources(void)
+ 
+ 		if (state == ACPI_POWER_RESOURCE_STATE_OFF
+ 		    && resource->ref_count) {
+-			acpi_handle_debug(resource->device.handle, "Turning ON\n");
+-			__acpi_power_on(resource);
++			if (hp_eb_gp12pxp_quirk &&
++			    resource_is_gp12pxp(resource->device.handle)) {
++				acpi_resume_on_eb_gp12pxp(resource);
++			} else {
++				acpi_handle_debug(resource->device.handle,
++						  "Turning ON\n");
++				__acpi_power_on(resource);
++			}
+ 		}
+ 
+ 		mutex_unlock(&resource->resource_lock);
+@@ -1026,6 +1066,41 @@ void acpi_resume_power_resources(void)
+ }
+ #endif
+ 
++static const struct dmi_system_id dmi_hp_elitebook_gp12pxp_quirk[] = {
++/*
++ * This laptop (and possibly similar models too) has power resource called
++ * "GP12.PXP_" for its WWAN modem.
++ *
++ * For this power resource to turn ON power for the modem it needs certain
++ * internal flag called "ONEN" to be set.
++ * This flag only gets set from this power resource "_OFF" method, while the
++ * actual modem power gets turned off during suspend by "GP12.PTS" method
++ * called from the global "_PTS" (Prepare To Sleep) method.
++ * On the other hand, this power resource "_OFF" method implementation just
++ * sets the aforementioned flag without actually doing anything else (it
++ * doesn't contain any code to actually turn off power).
++ *
++ * The above means that when upon hibernation finish we try to set this
++ * power resource back ON since its "_STA" method returns 0 (while the resource
++ * is still considered in use) its "_ON" method won't do anything since
++ * that "ONEN" flag is not set.
++ * Overall, this means the modem is dead until laptop is rebooted since its
++ * power has been cut by "_PTS" and its PCI configuration was lost and not able
++ * to be restored.
++ *
++ * The easiest way to workaround the issue is to call this power resource
++ * "_OFF" method before calling the "_ON" method to make sure the "ONEN"
++ * flag gets properly set.
++ */
++	{
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "HP"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "HP EliteBook 855 G7 Notebook PC"),
++		},
++	},
++	{}
++};
++
+ static const struct dmi_system_id dmi_leave_unused_power_resources_on[] = {
+ 	{
+ 		/*
+@@ -1070,6 +1145,7 @@ void acpi_turn_off_unused_power_resources(void)
+ 
+ void __init acpi_power_resources_init(void)
+ {
++	hp_eb_gp12pxp_quirk = dmi_check_system(dmi_hp_elitebook_gp12pxp_quirk);
+ 	unused_power_resources_quirk =
+ 		dmi_check_system(dmi_leave_unused_power_resources_on);
+ }
