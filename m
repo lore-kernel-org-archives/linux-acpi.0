@@ -1,116 +1,116 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from mail-m32117.qiye.163.com (mail-m32117.qiye.163.com [220.197.32.117])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0B0D1FECC3
-	for <linux-acpi@vger.kernel.org>; Mon,  4 Aug 2025 14:50:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13D4B221FDC;
+	Mon,  4 Aug 2025 15:44:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.197.32.117
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754319048; cv=none; b=YeJM6sEOI0oUlDVAq2HpmLlwVeI0RSWXvGZrTTg39iLykRDzj6AscDMVfCyw/QjaYHh8z1y4yT8ec0yo3PqCoumLK4iyJZ5imxCU8roVtav0kw8/FAqQRvI3Pv6H1F4OB5XDfFEXTRs5kbKgHrEZyPnhoelTQ+qhaDP5ZkGBDes=
+	t=1754322267; cv=none; b=dsGIZupobmIST4SgM4LuXpaABVpFKbOwzv50HjOpu/aPRn7FP75ntf8MvHK0hXDo06lOYesRloOWPDxQE6KvqfBAWH1IKFVtLH6qxuv5Ed8iRII4BUP8Qc1eq1tyF3EtmgyyJQB3ScW2ZpVImet7zjAMft7jChi+j2rZa7ZnC1U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754319048; c=relaxed/simple;
-	bh=Th/zbNG2w/sGAVRFlv12HJ6Li/jSTJBgQ6X2ZZll/S0=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=XogCxNR4TozfHlSLOhrpBefQAmU7BBqd47sLYcTgZtoVouj/K0U5bOCfryGHiC+OIQC2dH/J4+Af207mQHsh5TLvzWsoin6I6I56VtbmVMpx12w0asv88Aio9YgPE2WsjFgxJoUdE9dH4IzdTayQsCecYTK1IiHD/xecKvi/eQw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=aVVSzHLQ; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="aVVSzHLQ"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1754319045;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=Th/zbNG2w/sGAVRFlv12HJ6Li/jSTJBgQ6X2ZZll/S0=;
-	b=aVVSzHLQw6fg84JfSkKhF2q1tlPIzjPZ4WLZPDtx2ACWheNLR9vBglTpdxkL/J7LgvMgSu
-	ua1ih3+SvfyUKSqDJH7CV8074qKkobCHP+sAJb7x+EtDNv5NneZ1vFXA+XoqkP7NDtQHac
-	HnFeD0Gt8InYnuZjXh4s83vilNjLSUM=
-Received: from mail-wr1-f70.google.com (mail-wr1-f70.google.com
- [209.85.221.70]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-103-U_daTIcDNMORZP8WOtOevw-1; Mon, 04 Aug 2025 10:50:43 -0400
-X-MC-Unique: U_daTIcDNMORZP8WOtOevw-1
-X-Mimecast-MFC-AGG-ID: U_daTIcDNMORZP8WOtOevw_1754319042
-Received: by mail-wr1-f70.google.com with SMTP id ffacd0b85a97d-3b788d00e26so2366712f8f.1
-        for <linux-acpi@vger.kernel.org>; Mon, 04 Aug 2025 07:50:42 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1754319042; x=1754923842;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=Th/zbNG2w/sGAVRFlv12HJ6Li/jSTJBgQ6X2ZZll/S0=;
-        b=iIEpDBd/Lr4JtTOzT9sD60qREZq+kmSOl0fgztkky1Eb5lXiiRg8JJCDzSPMlPhzgT
-         gJloURacxE2XlAKWbWBBc+1TBN6+ywT7CvPEYEXiZnYUoxvSoTKtfi4fEMtStWEWSLOa
-         zbdF+hH151lNTcyyr1uBTUipuQfmHTJuH1qZ1EJOJ3S/FYHX+jmIXk5VerDl72yC0Oiq
-         TEgqk6PVfHCm+l9LmWEJsKAronGUice7UzMNt77EemyV0UCh24UWF02VZhkIftHdBpfB
-         A9KEE6qj1kh2oeC37V0OC+Sw08HB0u0VC5DPHK9a8ru1yt54/ImJRQtiiyD1zoXDTwrE
-         L7Ew==
-X-Forwarded-Encrypted: i=1; AJvYcCXnhc9lPmDwXtlvyTVYXasOixgDen5IRQSVHcalmvjE5XIXhkS2Tgu7ygsoinLiZqTX0xCaZOn4luA9@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz4nTWfFDMGw/COqoyHGDf1A/7tVA7O+4uXJ8fBbjJruKG1rzHU
-	RMVru86DjuZ6uZSXvjoDreCEIClhfmTD67HeUO5+UD7R2qfMY76RZ5fY6MfGMJe7yS5vX5y1Pt+
-	tfr78aS2+TeTz8ovD47vw4fdU8gm6cKqivPMttWEChgU4tGBPodwi0++hf9J6tgpMQHN6UFv9OY
-	otIiOCCfOcRL4X88t4rTHlKLdhaik+Hk7KCTw8HQ==
-X-Gm-Gg: ASbGncuV5H5wUM/87vOHxd7vK7b5xDu1yWQ6HooSnBbV+zS60JZvz8B1ZjwD+qB/Mtz
-	0drFu3L9aFM6lIVavMVK1QExVnQTte9S/b8yG4o3B7wIXPTnUCFwJURR7UeEhzSZVUNDhQboXI+
-	BMKoUnx4h2Xdpryu0qgxx+
-X-Received: by 2002:a05:6000:1788:b0:3b7:94c3:2786 with SMTP id ffacd0b85a97d-3b8d94c1c49mr6701547f8f.34.1754319041928;
-        Mon, 04 Aug 2025 07:50:41 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IHgsw4pwEJUoqykoSclSWi0JkSR9VtvKkMXz/zduARm+hjzykjvBGRpvCt0a+Ds377veRWW/i7OVVOUhVwFvkM=
-X-Received: by 2002:a05:6000:1788:b0:3b7:94c3:2786 with SMTP id
- ffacd0b85a97d-3b8d94c1c49mr6701520f8f.34.1754319041488; Mon, 04 Aug 2025
- 07:50:41 -0700 (PDT)
+	s=arc-20240116; t=1754322267; c=relaxed/simple;
+	bh=hsk6mw1fNdQeDmc6GdjZYLJn8zb/NmfxSTDxHHkAI00=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=ZHuVKCsw5lxkiUk3QdxC8/iXvPubeonrw48hWXwrJXVmChJJLNYCXdbN8o78N6lT0DD4X9Q6dItLbPNQQX6zBP86vhZ+qnBo29paqTIcFt2NTMk5yvMHwAVs6y/xclr6EajZOApBQIp/ufH8H/wkX8W4aTk7T3kNxE/3UXXqPDs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=easystack.cn; spf=pass smtp.mailfrom=easystack.cn; arc=none smtp.client-ip=220.197.32.117
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=easystack.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=easystack.cn
+Received: from localhost.localdomain (unknown [218.94.118.90])
+	by smtp.qiye.163.com (Hmail) with ESMTP id e1e51986;
+	Mon, 4 Aug 2025 20:15:01 +0800 (GMT+08:00)
+From: Zhen Ni <zhen.ni@easystack.cn>
+To: Markus.Elfring@web.de,
+	sudeep.holla@arm.com,
+	jassisinghbrar@gmail.com
+Cc: linux-acpi@vger.kernel.org,
+	Zhen Ni <zhen.ni@easystack.cn>,
+	stable@vger.kernel.org
+Subject: [PATCH v3] mailbox: pcc: Add missed acpi_put_table() to fix memory leak
+Date: Mon,  4 Aug 2025 20:14:53 +0800
+Message-Id: <20250804121453.75525-1-zhen.ni@easystack.cn>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20250804074115.44573-1-zhen.ni@easystack.cn>
+References: <20250804074115.44573-1-zhen.ni@easystack.cn>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <CACTEcX6oXBot1VBApOyKVMVXsAN9BsvQMLa8J0iKpNeB-eLttQ@mail.gmail.com>
- <642d439ea1be8e48ee5c47fd3921a786452fb931@intel.com> <CACTEcX5Y3PNXNkhnK1dGFe+k3sigOZNpj66KKGAS9XeHqRu35w@mail.gmail.com>
- <0b15e33603a46f6cc7ad7d09a156044f11367169@intel.com> <CACTEcX47bUd2tp=LYkQnhK29Js=vLN0JfXL8Aq6mOFBVYumpzQ@mail.gmail.com>
-In-Reply-To: <CACTEcX47bUd2tp=LYkQnhK29Js=vLN0JfXL8Aq6mOFBVYumpzQ@mail.gmail.com>
-From: Paolo Bonzini <pbonzini@redhat.com>
-Date: Mon, 4 Aug 2025 16:50:28 +0200
-X-Gm-Features: Ac12FXwltMgUzEEB8nqMLRA_D51YfOsfFkH1rt4nc_9cVgH_FR6V2EdEIAFZooc
-Message-ID: <CABgObfZKKeqMrAUyS8CB4ARkW_8Z9QREgpgYcq2jxoQ9ppS6MA@mail.gmail.com>
-Subject: Re: [REGRESSION] tty lockup and WWAN loss after hibernate/suspend in
- 6.8+ on ThinkPad X1 Carbon Gen 10
-To: Andy Mindful <andy.mindful@gmail.com>
-Cc: regressions@lists.linux.dev, linux-kernel@vger.kernel.org, 
-	linux-pm@vger.kernel.org, intel-gfx@lists.freedesktop.org, 
-	dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, 
-	rafael@kernel.org, ville.syrjala@linux.intel.com, tglx@linutronix.de, 
-	Christian Brauner <brauner@kernel.org>, Jani Nikula <jani.nikula@intel.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+X-HM-Tid: 0a987501af800229kunm8239557b498f5f
+X-HM-MType: 1
+X-HM-Spam-Status: e1kfGhgUHx5ZQUpXWQgPGg8OCBgUHx5ZQUlOS1dZFg8aDwILHllBWSg2Ly
+	tZV1koWUFJQjdXWS1ZQUlXWQ8JGhUIEh9ZQVkaT0xKVhlJHUNCSR9MTBpJQlYVFAkWGhdVGRETFh
+	oSFyQUDg9ZV1kYEgtZQVlJSkNVQk9VSkpDVUJLWVdZFhoPEhUdFFlBWU9LSFVKS0lPT09IVUpLS1
+	VKQktLWQY+
 
-On Mon, Aug 4, 2025 at 12:57=E2=80=AFPM Andy Mindful <andy.mindful@gmail.co=
-m> wrote:
-> Double-checked bisect, looks like I've have found broken commit:
->
-> > > git bisect bad
-> > > The merge base ba5afb9a84df2e6b26a1b6389b98849cd16ea757 is bad.
-> > > This means the bug has been fixed between
-> > > ba5afb9a84df2e6b26a1b6389b98849cd16ea757 and
-> > > [1b1934dbbdcf9aa2d507932ff488cec47999cf3f
-> > > 61da593f4458f25c59f65cfd9ba1bda570db5db7
-> > > 6fc5460ed8dd0edf29e7c5cfb1ef9b1aa04208a1
-> > > ba5afb9a84df2e6b26a1b6389b98849cd16ea757].
+In pcc_mbox_probe(), the PCCT table acquired via acpi_get_table() is
+only released in error paths but not in the success path. Fix a
+permanent ACPI memory leak when the driver successfully initializes. Add
+the goto label 'err_nomem'.
 
-This skip is messing up the results:
+Fixes: ce028702ddbc ("mailbox: pcc: Move bulk of PCCT parsing into pcc_mbox_probe")
+Cc: stable@vger.kernel.org
+Signed-off-by: Zhen Ni <zhen.ni@easystack.cn>
+---
+Changes in v2:
+- Add tags of 'Fixes' and 'Cc'
+- Change goto target from out_put_pcct to e_nomem
+---
+Changes in v3:
+- Add goto label err_nomem, keep the err label.
+- Update commit msg
+---
+ drivers/mailbox/pcc.c | 25 +++++++++++--------------
+ 1 file changed, 11 insertions(+), 14 deletions(-)
 
-# skip: [0dd3ee31125508cd67f7e7172247f05b7fd1753a] Linux 6.7
-git bisect skip 0dd3ee31125508cd67f7e7172247f05b7fd1753a
-
-and there are still 3858 commits in
-ba5afb9a84df2e6b26a1b6389b98849cd16ea757..{1b1934dbbdcf9aa2d507932ff488cec4=
-7999cf3f,61da593f4458f25c59f65cfd9ba1bda570db5db7,ba5afb9a84df2e6b26a1b6389=
-b98849cd16ea757}
-
-Any chance you can get 6.7 to work and restrict the range further?
-
-Thanks,
-
-Paolo
+diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
+index f6714c233f5a..b5ce3a5d2e7a 100644
+--- a/drivers/mailbox/pcc.c
++++ b/drivers/mailbox/pcc.c
+@@ -761,22 +761,16 @@ static int pcc_mbox_probe(struct platform_device *pdev)
+ 
+ 	pcc_mbox_channels = devm_kcalloc(dev, count, sizeof(*pcc_mbox_channels),
+ 					 GFP_KERNEL);
+-	if (!pcc_mbox_channels) {
+-		rc = -ENOMEM;
+-		goto err;
+-	}
++	if (!pcc_mbox_channels)
++		goto err_nomem;
+ 
+ 	chan_info = devm_kcalloc(dev, count, sizeof(*chan_info), GFP_KERNEL);
+-	if (!chan_info) {
+-		rc = -ENOMEM;
+-		goto err;
+-	}
++	if (!chan_info)
++		goto err_nomem;
+ 
+ 	pcc_mbox_ctrl = devm_kzalloc(dev, sizeof(*pcc_mbox_ctrl), GFP_KERNEL);
+-	if (!pcc_mbox_ctrl) {
+-		rc = -ENOMEM;
+-		goto err;
+-	}
++	if (!pcc_mbox_ctrl)
++		goto err_nomem;
+ 
+ 	/* Point to the first PCC subspace entry */
+ 	pcct_entry = (struct acpi_subtable_header *) (
+@@ -827,8 +821,11 @@ static int pcc_mbox_probe(struct platform_device *pdev)
+ 	rc = mbox_controller_register(pcc_mbox_ctrl);
+ 	if (rc)
+ 		pr_err("Err registering PCC as Mailbox controller: %d\n", rc);
+-	else
+-		return 0;
++	goto err;
++
++err_nomem:
++	rc = -ENOMEM;
++	goto err;
+ err:
+ 	acpi_put_table(pcct_tbl);
+ 	return rc;
+-- 
+2.20.1
 
