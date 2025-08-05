@@ -1,95 +1,131 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mail-m3285.qiye.163.com (mail-m3285.qiye.163.com [220.197.32.85])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63EED43ABC;
-	Tue,  5 Aug 2025 07:26:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C99DA202C48;
+	Tue,  5 Aug 2025 08:24:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.197.32.85
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754378774; cv=none; b=mdi3TiQO44plrS6rUAduRWQXJWEw6OuuaNnTbBAEJv4BkTy6X/kQtApX0AjchTSbABxFRbN7uzfgAR75Vii2mshhXK97FvhCHteGbEffkNFaWiFoGTR8BSAzWdFuUGFoX3m0/1ku13vDvzAD54dpWJNt268iEG6APsRt8H3pHLk=
+	t=1754382294; cv=none; b=H1S2GltWvz++JOiylbH/TFNP9TjfnMaV+7/JANnlRYnNX/oh5vSw1zUuTKs1N/NmHfXSAC10XZEswLiWVtA5DNKKb8TxJ/x8FWihcCO3wEoc+3uZRvQohrrMC8TNsqjSMRrDHX1UpwUB4cPGs2+FFmHVMLGrnzd/oyg4fy0Xcfs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754378774; c=relaxed/simple;
-	bh=PYwq5J6Qn188jtbbwXzze1QQOj7WLlrYWpzJYjArOe8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ZshfSV1XJkApR4niNcW/tOdjWakhTvznC1GnC/5O1C80I4QAkBP6F2Ne0pHmSYZbwNFE9z2PGZIx5aQYD1zzxNgdVfKCGSlLcnV+BD8wkzqAxYVGvOXICI+1YjisoRtBVfszUlZMNrLyu1FTqCEv3t9XecpiQkNOyuP4tV0CrH0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=fK0f2rtu; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="fK0f2rtu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 688E2C4CEF4;
-	Tue,  5 Aug 2025 07:26:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1754378773;
-	bh=PYwq5J6Qn188jtbbwXzze1QQOj7WLlrYWpzJYjArOe8=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=fK0f2rtu06y1CA7Vn/d7CPrELdSrhXnbdLVSimIpPcR1obohB1V/QQdWWD07JqPGf
-	 vDpaTPSWDRtbuZVoTi0NbfBOCLnHJ0LqQrI4rjF4eMGyh9IDCXipqfTKVQaryE8OMQ
-	 40dwhsfODRp+4bvVTJ8RJhxUyCwAVkrdTxomOd9Q=
-Date: Tue, 5 Aug 2025 08:26:08 +0100
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Markus Elfring <Markus.Elfring@web.de>
-Cc: Zhen Ni <zhen.ni@easystack.cn>, linux-acpi@vger.kernel.org,
-	stable@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	Jassi Brar <jassisinghbrar@gmail.com>,
-	Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v4] mailbox: pcc: Add missed acpi_put_table() to fix
- memory leak
-Message-ID: <2025080552-stubbly-elliptic-6fa0@gregkh>
+	s=arc-20240116; t=1754382294; c=relaxed/simple;
+	bh=VYW+2NN+F2UHY23WdMo4xYuy8k582nMwCF9udAoT1lk=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=LzG2gGpD5t7w3uc8lfh1ofO3ZR9qRVxJvz/ibGhjEDMrb1HeQ312UmwljZwq9fUx6hUSgo6oikN8AHagYncQ/mi7hJARMEBj4XA5u3RtkXx6FyQkTFOaSkPhnrbudmE8rlXUkpd7vLTNMQNI1TUzjgC264uN1pQhTKPNSIW3h90=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=easystack.cn; spf=pass smtp.mailfrom=easystack.cn; arc=none smtp.client-ip=220.197.32.85
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=easystack.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=easystack.cn
+Received: from localhost.localdomain (unknown [218.94.118.90])
+	by smtp.qiye.163.com (Hmail) with ESMTP id e26bf448;
+	Tue, 5 Aug 2025 11:48:38 +0800 (GMT+08:00)
+From: Zhen Ni <zhen.ni@easystack.cn>
+To: Markus.Elfring@web.de,
+	sudeep.holla@arm.com,
+	jassisinghbrar@gmail.com
+Cc: linux-acpi@vger.kernel.org,
+	Zhen Ni <zhen.ni@easystack.cn>,
+	stable@vger.kernel.org
+Subject: [PATCH v4] mailbox: pcc: Add missed acpi_put_table() to fix memory leak
+Date: Tue,  5 Aug 2025 11:48:29 +0800
+Message-Id: <20250805034829.168187-1-zhen.ni@easystack.cn>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20250804121453.75525-1-zhen.ni@easystack.cn>
 References: <20250804121453.75525-1-zhen.ni@easystack.cn>
- <20250805034829.168187-1-zhen.ni@easystack.cn>
- <41fdbd2b-92c5-4f11-9c58-aff9b9f35e72@web.de>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <41fdbd2b-92c5-4f11-9c58-aff9b9f35e72@web.de>
+X-HM-Tid: 0a98785871330229kunmd0caaa9c52bda0
+X-HM-MType: 1
+X-HM-Spam-Status: e1kfGhgUHx5ZQUpXWQgPGg8OCBgUHx5ZQUlOS1dZFg8aDwILHllBWSg2Ly
+	tZV1koWUFJQjdXWS1ZQUlXWQ8JGhUIEh9ZQVlCGB4dVh0eSB4ZSUpJSx9DSlYVFAkWGhdVGRETFh
+	oSFyQUDg9ZV1kYEgtZQVlJSkNVQk9VSkpDVUJLWVdZFhoPEhUdFFlBWU9LSFVKS0lPT09IVUpLS1
+	VKQktLWQY+
 
-On Tue, Aug 05, 2025 at 08:28:17AM +0200, Markus Elfring wrote:
-> > Fixes a permanent ACPI memory leak in the success path by adding
-> > acpi_put_table().
-> > Renaming generic 'err' label to 'put_table' for clarity.
-> 
-> Will a desire grow for the usage of imperative mood also in such change descriptions?
-> 
-> See also once more:
-> https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/Documentation/process/submitting-patches.rst?h=v6.16#n94
-> 
-> 
-> …> Changes in v4:
-> > - Change goto target from err to put_table.
-> 
-> Thanks.
-> 
-> 
-> > - Remove goto tatget err_nomem
-> …
-> 
-> Does this adjustment indicate questionable development difficulties?
-> 
-> Regards,
-> Markus
-> 
+Fixes a permanent ACPI memory leak in the success path by adding
+acpi_put_table().
+Renaming generic 'err' label to 'put_table' for clarity.
 
-Hi,
+Fixes: ce028702ddbc ("mailbox: pcc: Move bulk of PCCT parsing into pcc_mbox_probe")
+Cc: stable@vger.kernel.org
+Signed-off-by: Zhen Ni <zhen.ni@easystack.cn>
+---
+Changes in v4:
+- Change goto target from err to put_table.
+- Remove goto tatget err_nomem
+- Update commit msg
+Changes in v3:
+- Add goto label err_nomem, keep the err label.
+- Update commit msg
+Changes in v2:
+- Add tags of 'Fixes' and 'Cc'
+- Change goto target from out_put_pcct to e_nomem
+---
+ drivers/mailbox/pcc.c | 17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-This is the semi-friendly patch-bot of Greg Kroah-Hartman.
+diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
+index f6714c233f5a..d8420c87b615 100644
+--- a/drivers/mailbox/pcc.c
++++ b/drivers/mailbox/pcc.c
+@@ -763,19 +763,19 @@ static int pcc_mbox_probe(struct platform_device *pdev)
+ 					 GFP_KERNEL);
+ 	if (!pcc_mbox_channels) {
+ 		rc = -ENOMEM;
+-		goto err;
++		goto put_table;
+ 	}
+ 
+ 	chan_info = devm_kcalloc(dev, count, sizeof(*chan_info), GFP_KERNEL);
+ 	if (!chan_info) {
+ 		rc = -ENOMEM;
+-		goto err;
++		goto put_table;
+ 	}
+ 
+ 	pcc_mbox_ctrl = devm_kzalloc(dev, sizeof(*pcc_mbox_ctrl), GFP_KERNEL);
+ 	if (!pcc_mbox_ctrl) {
+ 		rc = -ENOMEM;
+-		goto err;
++		goto put_table;
+ 	}
+ 
+ 	/* Point to the first PCC subspace entry */
+@@ -796,17 +796,17 @@ static int pcc_mbox_probe(struct platform_device *pdev)
+ 		    !pcc_mbox_ctrl->txdone_irq) {
+ 			pr_err("Platform Interrupt flag must be set to 1");
+ 			rc = -EINVAL;
+-			goto err;
++			goto put_table;
+ 		}
+ 
+ 		if (pcc_mbox_ctrl->txdone_irq) {
+ 			rc = pcc_parse_subspace_irq(pchan, pcct_entry);
+ 			if (rc < 0)
+-				goto err;
++				goto put_table;
+ 		}
+ 		rc = pcc_parse_subspace_db_reg(pchan, pcct_entry);
+ 		if (rc < 0)
+-			goto err;
++			goto put_table;
+ 
+ 		pcc_parse_subspace_shmem(pchan, pcct_entry);
+ 
+@@ -827,9 +827,8 @@ static int pcc_mbox_probe(struct platform_device *pdev)
+ 	rc = mbox_controller_register(pcc_mbox_ctrl);
+ 	if (rc)
+ 		pr_err("Err registering PCC as Mailbox controller: %d\n", rc);
+-	else
+-		return 0;
+-err:
++
++put_table:
+ 	acpi_put_table(pcct_tbl);
+ 	return rc;
+ }
+-- 
+2.20.1
 
-Markus, you seem to have sent a nonsensical or otherwise pointless
-review comment to a patch submission on a Linux kernel developer mailing
-list.  I strongly suggest that you not do this anymore.  Please do not
-bother developers who are actively working to produce patches and
-features with comments that, in the end, are a waste of time.
-
-Patch submitter, please ignore Markus's suggestion; you do not need to
-follow it at all.  The person/bot/AI that sent it is being ignored by
-almost all Linux kernel maintainers for having a persistent pattern of
-behavior of producing distracting and pointless commentary, and
-inability to adapt to feedback.  Please feel free to also ignore emails
-from them.
-
-thanks,
-
-greg k-h's patch email bot
