@@ -1,131 +1,183 @@
-Received: from mail-m3285.qiye.163.com (mail-m3285.qiye.163.com [220.197.32.85])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C99DA202C48;
-	Tue,  5 Aug 2025 08:24:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.197.32.85
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25DAE1C6FE8;
+	Tue,  5 Aug 2025 10:20:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754382294; cv=none; b=H1S2GltWvz++JOiylbH/TFNP9TjfnMaV+7/JANnlRYnNX/oh5vSw1zUuTKs1N/NmHfXSAC10XZEswLiWVtA5DNKKb8TxJ/x8FWihcCO3wEoc+3uZRvQohrrMC8TNsqjSMRrDHX1UpwUB4cPGs2+FFmHVMLGrnzd/oyg4fy0Xcfs=
+	t=1754389202; cv=none; b=TNraR2i1GGYBCRETLCCGaCQGUzAA7LC8awCHrO5/cSzIVoqre/JnQBmoDb5jhHtnA2elbqiuF9WQyF0H8CvKtDuhEpeXjNE6YknyP829XDk78HscOApvCQAXQRo7qeDbbPEVc7nREjXTBcvpa6l6mbyqU8k24Rav1+plvKEZHAU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754382294; c=relaxed/simple;
-	bh=VYW+2NN+F2UHY23WdMo4xYuy8k582nMwCF9udAoT1lk=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=LzG2gGpD5t7w3uc8lfh1ofO3ZR9qRVxJvz/ibGhjEDMrb1HeQ312UmwljZwq9fUx6hUSgo6oikN8AHagYncQ/mi7hJARMEBj4XA5u3RtkXx6FyQkTFOaSkPhnrbudmE8rlXUkpd7vLTNMQNI1TUzjgC264uN1pQhTKPNSIW3h90=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=easystack.cn; spf=pass smtp.mailfrom=easystack.cn; arc=none smtp.client-ip=220.197.32.85
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=easystack.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=easystack.cn
-Received: from localhost.localdomain (unknown [218.94.118.90])
-	by smtp.qiye.163.com (Hmail) with ESMTP id e26bf448;
-	Tue, 5 Aug 2025 11:48:38 +0800 (GMT+08:00)
-From: Zhen Ni <zhen.ni@easystack.cn>
-To: Markus.Elfring@web.de,
-	sudeep.holla@arm.com,
-	jassisinghbrar@gmail.com
-Cc: linux-acpi@vger.kernel.org,
-	Zhen Ni <zhen.ni@easystack.cn>,
-	stable@vger.kernel.org
-Subject: [PATCH v4] mailbox: pcc: Add missed acpi_put_table() to fix memory leak
-Date: Tue,  5 Aug 2025 11:48:29 +0800
-Message-Id: <20250805034829.168187-1-zhen.ni@easystack.cn>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20250804121453.75525-1-zhen.ni@easystack.cn>
-References: <20250804121453.75525-1-zhen.ni@easystack.cn>
+	s=arc-20240116; t=1754389202; c=relaxed/simple;
+	bh=mdNZYWbFwgA6wLySuufnXZ/JAGUhvzf+uMdGc+KNcdA=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=bk0x56RZ2qIQ3HnrMLxjjrjgpbcTdGitzfJmTeTp6vjvMrt1P20BiVJmzcPSspAqF9CmZbXjX4L2XzdIUdtH29yCJVfX/hNxl71G9S3mMKrvAsLioocojjmBkYI7j3x05knUDEBXEWJV8m3ST9GMDNjPHFGZYoPfhN/OL/wuQHY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=oIQl1Zs0; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="oIQl1Zs0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80C66C4CEF0;
+	Tue,  5 Aug 2025 10:19:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1754389201;
+	bh=mdNZYWbFwgA6wLySuufnXZ/JAGUhvzf+uMdGc+KNcdA=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=oIQl1Zs0pphGzQ0D+uUStwqrKbP0YZ16uUALphH+BgUVJxBpBDD/jms0iHyHR3/4c
+	 VBiG6syvDMsxCFiM/ra36yC4X41rXNG34op9JTHWewqtax9FMGuVbtGqDnWb0YBKI+
+	 ZDQPX+200tPD+X09fpd+CGRmjFfj05gyHnfuvQRz8IpfmxME3tyMWrb3zwbJ7bnGZV
+	 jGGg0VOw03cOD40VrrsUelw/S2tLepRWw2Bn+eqrwJ9xDjjl8LkVGmsG1iuva/X7yA
+	 HKuixAgByb96cjaiT+nOQljFx33X4WlgUuoqYezLIsDVcXcjlmboUVzX8Ra3VSfejh
+	 VEit4gDLeGixw==
+Date: Tue, 5 Aug 2025 13:19:46 +0300
+From: Mike Rapoport <rppt@kernel.org>
+To: shiju.jose@huawei.com
+Cc: rafael@kernel.org, bp@alien8.de, akpm@linux-foundation.org,
+	dferguson@amperecomputing.com, linux-edac@vger.kernel.org,
+	linux-acpi@vger.kernel.org, linux-mm@kvack.org,
+	linux-doc@vger.kernel.org, tony.luck@intel.com, lenb@kernel.org,
+	leo.duran@amd.com, Yazen.Ghannam@amd.com, mchehab@kernel.org,
+	jonathan.cameron@huawei.com, linuxarm@huawei.com,
+	rientjes@google.com, jiaqiyan@google.com, Jon.Grimm@amd.com,
+	dave.hansen@linux.intel.com, naoya.horiguchi@nec.com,
+	james.morse@arm.com, jthoughton@google.com, somasundaram.a@hpe.com,
+	erdemaktas@google.com, pgonda@google.com, duenwen@google.com,
+	gthelen@google.com, wschwartz@amperecomputing.com,
+	wbs@os.amperecomputing.com, nifan.cxl@gmail.com,
+	tanxiaofei@huawei.com, prime.zeng@hisilicon.com,
+	roberto.sassu@huawei.com, kangkang.shen@futurewei.com,
+	wanghuiqiang@huawei.com
+Subject: Re: [PATCH v10 1/3] mm: Add node_to_range lookup facility to
+ numa_memblks
+Message-ID: <aJHawm1zE62x1YH9@kernel.org>
+References: <20250801172040.2175-1-shiju.jose@huawei.com>
+ <20250801172040.2175-2-shiju.jose@huawei.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-HM-Tid: 0a98785871330229kunmd0caaa9c52bda0
-X-HM-MType: 1
-X-HM-Spam-Status: e1kfGhgUHx5ZQUpXWQgPGg8OCBgUHx5ZQUlOS1dZFg8aDwILHllBWSg2Ly
-	tZV1koWUFJQjdXWS1ZQUlXWQ8JGhUIEh9ZQVlCGB4dVh0eSB4ZSUpJSx9DSlYVFAkWGhdVGRETFh
-	oSFyQUDg9ZV1kYEgtZQVlJSkNVQk9VSkpDVUJLWVdZFhoPEhUdFFlBWU9LSFVKS0lPT09IVUpLS1
-	VKQktLWQY+
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250801172040.2175-2-shiju.jose@huawei.com>
 
-Fixes a permanent ACPI memory leak in the success path by adding
-acpi_put_table().
-Renaming generic 'err' label to 'put_table' for clarity.
+On Fri, Aug 01, 2025 at 06:20:27PM +0100, shiju.jose@huawei.com wrote:
+> From: Shiju Jose <shiju.jose@huawei.com>
+> 
+> Lookup facility to retrieve memory phys lowest continuous range for
+> a NUMA node is required in the numa_memblks for the ACPI RAS2 memory
+> scrub use case.
 
-Fixes: ce028702ddbc ("mailbox: pcc: Move bulk of PCCT parsing into pcc_mbox_probe")
-Cc: stable@vger.kernel.org
-Signed-off-by: Zhen Ni <zhen.ni@easystack.cn>
----
-Changes in v4:
-- Change goto target from err to put_table.
-- Remove goto tatget err_nomem
-- Update commit msg
-Changes in v3:
-- Add goto label err_nomem, keep the err label.
-- Update commit msg
-Changes in v2:
-- Add tags of 'Fixes' and 'Cc'
-- Change goto target from out_put_pcct to e_nomem
----
- drivers/mailbox/pcc.c | 17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+If the code that needs to find the lowest contiguous range in a node runs
+before we discard .init you can just use
 
-diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
-index f6714c233f5a..d8420c87b615 100644
---- a/drivers/mailbox/pcc.c
-+++ b/drivers/mailbox/pcc.c
-@@ -763,19 +763,19 @@ static int pcc_mbox_probe(struct platform_device *pdev)
- 					 GFP_KERNEL);
- 	if (!pcc_mbox_channels) {
- 		rc = -ENOMEM;
--		goto err;
-+		goto put_table;
- 	}
+	unsigned long pfn = node_start_pfn(nid);
+	unsigned long start_pfn, end_pfn;
+
+	memblock_search_pfn_nid(pfn, &start_pfn, &end_pfn);
  
- 	chan_info = devm_kcalloc(dev, count, sizeof(*chan_info), GFP_KERNEL);
- 	if (!chan_info) {
- 		rc = -ENOMEM;
--		goto err;
-+		goto put_table;
- 	}
- 
- 	pcc_mbox_ctrl = devm_kzalloc(dev, sizeof(*pcc_mbox_ctrl), GFP_KERNEL);
- 	if (!pcc_mbox_ctrl) {
- 		rc = -ENOMEM;
--		goto err;
-+		goto put_table;
- 	}
- 
- 	/* Point to the first PCC subspace entry */
-@@ -796,17 +796,17 @@ static int pcc_mbox_probe(struct platform_device *pdev)
- 		    !pcc_mbox_ctrl->txdone_irq) {
- 			pr_err("Platform Interrupt flag must be set to 1");
- 			rc = -EINVAL;
--			goto err;
-+			goto put_table;
- 		}
- 
- 		if (pcc_mbox_ctrl->txdone_irq) {
- 			rc = pcc_parse_subspace_irq(pchan, pcct_entry);
- 			if (rc < 0)
--				goto err;
-+				goto put_table;
- 		}
- 		rc = pcc_parse_subspace_db_reg(pchan, pcct_entry);
- 		if (rc < 0)
--			goto err;
-+			goto put_table;
- 
- 		pcc_parse_subspace_shmem(pchan, pcct_entry);
- 
-@@ -827,9 +827,8 @@ static int pcc_mbox_probe(struct platform_device *pdev)
- 	rc = mbox_controller_register(pcc_mbox_ctrl);
- 	if (rc)
- 		pr_err("Err registering PCC as Mailbox controller: %d\n", rc);
--	else
--		return 0;
--err:
-+
-+put_table:
- 	acpi_put_table(pcct_tbl);
- 	return rc;
- }
+> Suggested-by: Jonathan Cameron <jonathan.cameron@huawei.com>
+> Signed-off-by: Shiju Jose <shiju.jose@huawei.com>
+> ---
+>  include/linux/numa.h         | 10 ++++++++++
+>  include/linux/numa_memblks.h |  2 ++
+>  mm/numa.c                    | 10 ++++++++++
+>  mm/numa_memblks.c            | 23 +++++++++++++++++++++++
+>  4 files changed, 45 insertions(+)
+> 
+> diff --git a/include/linux/numa.h b/include/linux/numa.h
+> index e6baaf6051bc..d41e583a902d 100644
+> --- a/include/linux/numa.h
+> +++ b/include/linux/numa.h
+> @@ -41,6 +41,10 @@ int memory_add_physaddr_to_nid(u64 start);
+>  int phys_to_target_node(u64 start);
+>  #endif
+>  
+> +#ifndef node_to_phys_lowest_continuous_range
+> +int node_to_phys_lowest_continuous_range(int nid, u64 *start, u64 *end);
+> +#endif
+> +
+>  int numa_fill_memblks(u64 start, u64 end);
+>  
+>  #else /* !CONFIG_NUMA */
+> @@ -63,6 +67,12 @@ static inline int phys_to_target_node(u64 start)
+>  	return 0;
+>  }
+>  
+> +static inline int node_to_phys_lowest_continuous_range(int nid, u64 *start,
+> +						       u64 *end)
+> +{
+> +	return 0;
+> +}
+> +
+>  static inline void alloc_offline_node_data(int nid) {}
+>  #endif
+>  
+> diff --git a/include/linux/numa_memblks.h b/include/linux/numa_memblks.h
+> index 991076cba7c5..ccc53029de8b 100644
+> --- a/include/linux/numa_memblks.h
+> +++ b/include/linux/numa_memblks.h
+> @@ -55,6 +55,8 @@ extern int phys_to_target_node(u64 start);
+>  #define phys_to_target_node phys_to_target_node
+>  extern int memory_add_physaddr_to_nid(u64 start);
+>  #define memory_add_physaddr_to_nid memory_add_physaddr_to_nid
+> +extern int node_to_phys_lowest_continuous_range(int nid, u64 *start, u64 *end);
+> +#define node_to_phys_lowest_continuous_range node_to_phys_lowest_continuous_range
+>  #endif /* CONFIG_NUMA_KEEP_MEMINFO */
+>  
+>  #endif /* CONFIG_NUMA_MEMBLKS */
+> diff --git a/mm/numa.c b/mm/numa.c
+> index 7d5e06fe5bd4..0affb56ef4f2 100644
+> --- a/mm/numa.c
+> +++ b/mm/numa.c
+> @@ -59,3 +59,13 @@ int phys_to_target_node(u64 start)
+>  }
+>  EXPORT_SYMBOL_GPL(phys_to_target_node);
+>  #endif
+> +
+> +#ifndef node_to_phys_lowest_continuous_range
+> +int node_to_phys_lowest_continuous_range(int nid, u64 *start, u64 *end)
+> +{
+> +	pr_info_once("Unknown target phys addr range for node=%d\n", nid);
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(node_to_phys_lowest_continuous_range);
+> +#endif
+> diff --git a/mm/numa_memblks.c b/mm/numa_memblks.c
+> index 541a99c4071a..9cbaa38cb92d 100644
+> --- a/mm/numa_memblks.c
+> +++ b/mm/numa_memblks.c
+> @@ -590,4 +590,27 @@ int memory_add_physaddr_to_nid(u64 start)
+>  }
+>  EXPORT_SYMBOL_GPL(memory_add_physaddr_to_nid);
+>  
+> +static int nid_to_meminfo(struct numa_meminfo *mi, int nid, u64 *start, u64 *end)
+> +{
+> +	int i;
+> +
+> +	if (!numa_valid_node(nid))
+> +		return -EINVAL;
+> +
+> +	for (i = 0; i < mi->nr_blks; i++) {
+> +		if (mi->blk[i].nid == nid) {
+> +			*start = mi->blk[i].start;
+> +			*end = mi->blk[i].end;
+> +			return 0;
+> +		}
+> +	}
+> +
+> +	return -ENODEV;
+> +}
+> +
+> +int node_to_phys_lowest_continuous_range(int nid, u64 *start, u64 *end)
+> +{
+> +	return nid_to_meminfo(&numa_meminfo, nid, start, end);
+> +}
+> +EXPORT_SYMBOL_GPL(node_to_phys_lowest_continuous_range);
+>  #endif /* CONFIG_NUMA_KEEP_MEMINFO */
+> -- 
+> 2.43.0
+> 
+
 -- 
-2.20.1
-
+Sincerely yours,
+Mike.
