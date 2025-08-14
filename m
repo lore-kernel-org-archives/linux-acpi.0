@@ -1,187 +1,142 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B95F225A4F
-	for <linux-acpi@vger.kernel.org>; Thu, 14 Aug 2025 15:34:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4C94239072;
+	Thu, 14 Aug 2025 15:46:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755185692; cv=none; b=VJObn4kuGU+DM2Ypz+Gep/rR7e9Ptz7Ds4IjLjbvnJVD4P3cJHBr+5HeuiEyxVzcYioPuwWkNwIKUGyhzcTBwdRe4o05Fx/ZMYyEtJ1WUXsfQWPH7hjpFHhLp6JF6NsmhW/wNdfODRisZI98Rw9rLI0zNR5SZjWAv/y3vp8bzrM=
+	t=1755186388; cv=none; b=mNUeyVwHjnbsmA+VmC25K/L7II3yJiLzuJhxA1MQlvhchhSl/wZ1k/MbY7MqTMDVDfEwjmz3AFVT8HNswxWBjfuK01LQNOoGFJlKDAqEs5Ns4745ROzCwY04GBQh+yjyxGcnt5wBImHxePaC45Sk7RvTf9z+STspm7HwuCC2gw8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755185692; c=relaxed/simple;
-	bh=xvGL7DY8ZMo2Ei32WQZRQ6BKK5rxE+s60T1JZuZ1YB8=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=mkMwrOASCDjQFALiRoFXt532mMNGW1+ODqjS5JEnQhf4GSTBHZ7QNgPGkyC2OOLeHGxTpa03PY6GtYRI3s7tRaw0KKCfhaEY6q0NRLCB8OnF5Tl+lsQd0FJpHWvk3ToxlR7RVukl4YWDyc9ZGZXxtpYOBbLjMWJgvtUCXGrtXU8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=C7pKTYJL; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1755186388; c=relaxed/simple;
+	bh=vgKNO9KMKM8wBYx2jsyzSgi+p35j799z+r40TDqKnfM=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=F0s5eeVzOZrm6DcENxyQ2m9cfb0UTqMrm1gaa67LoAbjkUs7qwFFXNPvkc7bWrAFF6w2GFVXJUSB06+2+Rj6UEAVe6J43MJvlGPFYi6kLgRZIQX/UWdDy7ORyvmkxXcIfWHIVXVoJN+OJnHb2Wg5bb4FIB0bY5j7lQdUBfzqolo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jr50G62H; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="C7pKTYJL"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1755185689;
-	h=from:from:reply-to:reply-to:subject:subject:date:date:
-	 message-id:message-id:to:to:cc:mime-version:mime-version:
-	 content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=FF21Vrb0E9HgLsPo9WR8fvObdoRI3So91Rz3YvTAOHs=;
-	b=C7pKTYJLxkD6YIksYuBYUWRvH63R82yq8bjLY9wFXqKVil1tStLEzoweh8NwPBUOO87Gg+
-	wpbpS7AUOiM9MxQBKwuTCI54+191vPrcY/CCmFq7cyW0xU6h88stG66ABIFrwfLPwVzumu
-	OydiEmUZDoawuYP6UZ8I6md3+B/Mf7A=
-Received: from mail-ua1-f70.google.com (mail-ua1-f70.google.com
- [209.85.222.70]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-379-dZat0phLPE24V1kUg7L4MQ-1; Thu, 14 Aug 2025 11:34:47 -0400
-X-MC-Unique: dZat0phLPE24V1kUg7L4MQ-1
-X-Mimecast-MFC-AGG-ID: dZat0phLPE24V1kUg7L4MQ_1755185687
-Received: by mail-ua1-f70.google.com with SMTP id a1e0cc1a2514c-89018f8e40cso393502241.1
-        for <linux-acpi@vger.kernel.org>; Thu, 14 Aug 2025 08:34:47 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1755185687; x=1755790487;
-        h=content-transfer-encoding:in-reply-to:from:references:to
-         :content-language:subject:reply-to:user-agent:mime-version:date
-         :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=FF21Vrb0E9HgLsPo9WR8fvObdoRI3So91Rz3YvTAOHs=;
-        b=QIOdISMjKXhh5JqjJl8sebfUtGnvS10YjDeMk5Jet2IE9EwN4+/59vNupNWfwk6X77
-         /4g8dlvRKNgSJvGUofRLCacOrv5h36ZOmcN//pHtzrxLrtQ1zdORwHM32BjNoD367XEN
-         JO846PgHK1h6KsBQfOuWmP/evbdzTkjGs6Df/sbNMiv6KHCppXUhZ5bpGYL20UfExBhG
-         vRDpfADQSBXuAwaTxfhmn1KVG71XkqbaDnbUg3CKamb3YX3AUaQChSLjNAZfMD41caEI
-         mfTHUfd0KBZfYLQt85GcEiOdxrITLaeTIpkmnP/aMyUlMAoy5IgfEAZMmC+0yNUWQo+U
-         dCfQ==
-X-Forwarded-Encrypted: i=1; AJvYcCX7JTAvhnSSspWKSbrTYcAfJPz8fBQMVGtHF2p6kkLXYozDmq4qU6RgXm8UeXyM52N6Ld8Ir3A0kAHY@vger.kernel.org
-X-Gm-Message-State: AOJu0YymjOmGk586+fKaX+0+w97NsWek7qC+P/aRzJWX2iZjUcubA+su
-	jisbDU6QapCwD4m/pbNnVnVIejviUk6HTi3UTsp0xDXR9kTVx4hXQq46iPWiGu7H6VXRVb9/9GG
-	IH9X2Sret5vGNcv0+HVtd/cLxKN9zq74l4tOAEzuYJKl7oIUSXRNnuzAaygKvHip9PStEaA0=
-X-Gm-Gg: ASbGncvC9ayvD1Ra4m4WrH+8vvtJzU1VSJ1U0PePmqDStGjaj/UHXU4JXLYCE4zHTpg
-	VdLgl6Y+XdYnhIAUmjvsmT/bJUCh9//K0jj83OK0W2/GyaXBiI2KYWVBFBLHv9RqQNi3H1jmX4g
-	lYB4EippNA6nR8pRGA533X8aDrv41C61H2/A/nQi1dUy1SFxafMvzclUedBly5RcQD4pzJFwfvW
-	VxcnLoG6u+utx5AQ/PNE1QgYzJmLQA6moyfdoI+ihDNP6DKblxTUn8SsYUhrG5EHiBV7bMJ9UhP
-	ylmFbWT5lJOo0G20qlPoaMtoiTHDQGRt/g/kF9hl3C1QsMsnrs+BW7gbGbRGHxm4ybjKpJ5hEwH
-	XNPAzY1BvPlw=
-X-Received: by 2002:a05:6102:d93:b0:4e7:5f31:7443 with SMTP id ada2fe7eead31-50fe0c158a1mr1427617137.9.1755185686476;
-        Thu, 14 Aug 2025 08:34:46 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IF+/6dKe1kJ911yQbOAzRDTDCXbofqZKWFiMIThFR3OOIAtFum7vkGGy+nnE5DHeftlrWrxEg==
-X-Received: by 2002:a05:6102:d93:b0:4e7:5f31:7443 with SMTP id ada2fe7eead31-50fe0c158a1mr1427588137.9.1755185686046;
-        Thu, 14 Aug 2025 08:34:46 -0700 (PDT)
-Received: from ?IPV6:2a01:e0a:f0e:9070:527b:9dff:feef:3874? ([2a01:e0a:f0e:9070:527b:9dff:feef:3874])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-70af5b82985sm13963766d6.65.2025.08.14.08.34.44
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 14 Aug 2025 08:34:45 -0700 (PDT)
-Message-ID: <e9212299-d66c-4779-93f9-3bb5833e5c07@redhat.com>
-Date: Thu, 14 Aug 2025 17:34:43 +0200
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jr50G62H"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2BFB1C4CEEF;
+	Thu, 14 Aug 2025 15:46:28 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1755186388;
+	bh=vgKNO9KMKM8wBYx2jsyzSgi+p35j799z+r40TDqKnfM=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=jr50G62H1Qx9CHSo0nMhM7RMBO9Uw6ApNxLok7rtAUSGkBwZ+JhCsnpYGVJRtHPvM
+	 NnLKi5V0XyhSxRWo1/MqhhHRggOgfi2HRkVxD0QR8f1W1zrGkcc/NBV25d4NHzjd2k
+	 MHiTlN8dc7WzXm81tD/nYXEIKVJbgq17C9rQ96Xc/+UwXheHmA+JQCrvZGGYW4QXI3
+	 XLgjtECPozalHMeOGvLIIa+Y/GziVCIuEqS9I5iHEzObHll/blbvk6dD8bvcJPIjHI
+	 ibywTtkmMtz1bF4kGaRZwPZobJbetf6q9xhssw5zeSEpSgj9pEdXBeBY8zDDoQw6+a
+	 2AkCgiRl2uHzA==
+Received: from sofa.misterjones.org ([185.219.108.64] helo=valley-girl.lan)
+	by disco-boy.misterjones.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.95)
+	(envelope-from <maz@kernel.org>)
+	id 1uma9p-007VqB-Qx;
+	Thu, 14 Aug 2025 16:46:25 +0100
+From: Marc Zyngier <maz@kernel.org>
+To: linux-kernel@vger.kernel.org,
+	linux-acpi@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org
+Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	Hanjun Guo <guohanjun@huawei.com>,
+	Sudeep Holla <sudeep.holla@arm.com>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Daniel Lezcano <daniel.lezcano@linaro.org>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Alexandru Elisei <alexandru.elisei@arm.com>,
+	Steven Price <steven.price@arm.com>
+Subject: [PATCH v2 1/4] ACPI: GTDT: Generate platform devices for MMIO timers
+Date: Thu, 14 Aug 2025 16:46:19 +0100
+Message-Id: <20250814154622.10193-2-maz@kernel.org>
+X-Mailer: git-send-email 2.39.2
+In-Reply-To: <20250814154622.10193-1-maz@kernel.org>
+References: <20250814154622.10193-1-maz@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Reply-To: eric.auger@redhat.com
-Subject: Re: [RFC] iommu: Fix virtio-iommu probing
-Content-Language: en-US
-To: Robin Murphy <robin.murphy@arm.com>, eric.auger.pro@gmail.com,
- rafael@kernel.org, bhelgaas@google.com, jgg@ziepe.ca, lpieralisi@kernel.org,
- linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org,
- jean-philippe@linaro.org, jsnitsel@redhat.com
-References: <20250814141758.2140641-1-eric.auger@redhat.com>
- <e3935099-6e29-493d-8587-64ceca8a20e9@arm.com>
- <3fdbd23d-cd65-453b-aa8d-78f9ed1bc4c4@redhat.com>
- <6065d82b-0a07-4f82-8b4e-9c00374d2f71@arm.com>
-From: Eric Auger <eric.auger@redhat.com>
-In-Reply-To: <6065d82b-0a07-4f82-8b4e-9c00374d2f71@arm.com>
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 185.219.108.64
+X-SA-Exim-Rcpt-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, lpieralisi@kernel.org, guohanjun@huawei.com, sudeep.holla@arm.com, rafael@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, mark.rutland@arm.com, alexandru.elisei@arm.com, steven.price@arm.com
+X-SA-Exim-Mail-From: maz@kernel.org
+X-SA-Exim-Scanned: No (on disco-boy.misterjones.org); SAEximRunCond expanded to false
 
+In preparation for the MMIO timer support code becoming an actual
+driver, mimic what is done for the SBSA watchdog and expose
+a synthetic device for each MMIO timer block.
 
+Tested-by: Sudeep Holla <sudeep.holla@arm.com>
+Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
+Link: https://lore.kernel.org/r/20250807160243.1970533-2-maz@kernel.org
+Signed-off-by: Marc Zyngier <maz@kernel.org>
+---
+ drivers/acpi/arm64/gtdt.c | 29 +++++++++++++++++++++++++----
+ 1 file changed, 25 insertions(+), 4 deletions(-)
 
-On 8/14/25 5:28 PM, Robin Murphy wrote:
-> On 14/08/2025 4:19 pm, Eric Auger wrote:
->> Hi Robin
->>
->> On 8/14/25 4:53 PM, Robin Murphy wrote:
->>> On 14/08/2025 3:17 pm, Eric Auger wrote:
->>>> Commit bcb81ac6ae3c ("iommu: Get DT/ACPI parsing into the proper
->>>> probe path") broke virtio-iommu probing and no iommu group are
->>>> produced anymore.
->>>>
->>>> When probe_iommu_group() gets called viommu_probe_device() fails
->>>> because viommu_get_by_fwnode(fwspec->iommu_fwnode) returns NULL.
->>>
->>> ...which it's not supposed to. And *now* I remember, we never got this
->>> finished, did we?
->> Seems we did not ;-)
->>>
->>> https://lore.kernel.org/linux-iommu/9beaed48da83a0882dba153e65e6cfd0a8e21482.1742484773.git.robin.murphy@arm.com/
->>>
->>>
->>
->> Unfortunately it does not fix my issue. Still no iommu group when
->> booting with ACPI.
->
-> Indeed the evidence at the time suggested the patch isn't quite right
-> as-is, but that is definitely the place which needs fixing. Since
-> Jean-Philippe's occupied with more exciting things at the moment, do
-> you happen to have an easy recipe for testing virtio-iommu so I can
-> try debugging it myself?
-No easy recipe. on my end I am using qemu/kvm with a rhel guest and
-custom kernel. I guess it was integrated in kvmtool, wasn't it? I am
-just testing with protected virtio devices.
-
-Thanks
-
-Eric
->
-> Cheers,
-> Robin.
->
->>
->> Thanks
->>
->> Eric
->>>
->>> Thanks,
->>> Robin.
->>>
->>>> So it seems we need to restore the original iommu_probe_device
->>>> call site in acpi_iommu_configure_id() to get a chance to probe
->>>> the device again.
->>>>
->>>> Maybe this defeats the whole purpose of the original commit but
->>>> at least it fixes the virtio-iommu probing.
->>>>
->>>> Fixes: bcb81ac6ae3c ("iommu: Get DT/ACPI parsing into the proper
->>>> probe path")
->>>> Cc: stable@vger.kernel.org # v6.15+
->>>> Signed-off-by: Eric Auger <eric.auger@redhat.com>
->>>>
->>>> ---
->>>>
->>>> I also tested smmu probing and this seems to work fine.
->>>> ---
->>>>    drivers/acpi/scan.c | 7 +++++++
->>>>    1 file changed, 7 insertions(+)
->>>>
->>>> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
->>>> index fb1fe9f3b1a3..9f4efa8f75a6 100644
->>>> --- a/drivers/acpi/scan.c
->>>> +++ b/drivers/acpi/scan.c
->>>> @@ -1632,6 +1632,13 @@ static int acpi_iommu_configure_id(struct
->>>> device *dev, const u32 *id_in)
->>>>            err = viot_iommu_configure(dev);
->>>>        mutex_unlock(&iommu_probe_device_lock);
->>>>    +    /*
->>>> +     * If we have reason to believe the IOMMU driver missed the
->>>> initial
->>>> +     * iommu_probe_device() call for dev, replay it to get things in
->>>> order.
->>>> +     */
->>>> +    if (!err && dev->bus)
->>>> +        err = iommu_probe_device(dev);
->>>> +
->>>>        return err;
->>>>    }
->>>>    
->>>
->>
->
+diff --git a/drivers/acpi/arm64/gtdt.c b/drivers/acpi/arm64/gtdt.c
+index 70f8290b659de..fd995a1d3d248 100644
+--- a/drivers/acpi/arm64/gtdt.c
++++ b/drivers/acpi/arm64/gtdt.c
+@@ -388,11 +388,11 @@ static int __init gtdt_import_sbsa_gwdt(struct acpi_gtdt_watchdog *wd,
+ 	return 0;
+ }
+ 
+-static int __init gtdt_sbsa_gwdt_init(void)
++static int __init gtdt_platform_timer_init(void)
+ {
+ 	void *platform_timer;
+ 	struct acpi_table_header *table;
+-	int ret, timer_count, gwdt_count = 0;
++	int ret, timer_count, gwdt_count = 0, mmio_timer_count = 0;
+ 
+ 	if (acpi_disabled)
+ 		return 0;
+@@ -414,20 +414,41 @@ static int __init gtdt_sbsa_gwdt_init(void)
+ 		goto out_put_gtdt;
+ 
+ 	for_each_platform_timer(platform_timer) {
++		ret = 0;
++
+ 		if (is_non_secure_watchdog(platform_timer)) {
+ 			ret = gtdt_import_sbsa_gwdt(platform_timer, gwdt_count);
+ 			if (ret)
+-				break;
++				continue;
+ 			gwdt_count++;
++		} else 	if (is_timer_block(platform_timer)) {
++			struct arch_timer_mem atm = {};
++			struct platform_device *pdev;
++
++			ret = gtdt_parse_timer_block(platform_timer, &atm);
++			if (ret)
++				continue;
++
++			pdev = platform_device_register_data(NULL, "gtdt-arm-mmio-timer",
++							     gwdt_count, &atm,
++							     sizeof(atm));
++			if (IS_ERR(pdev)) {
++				pr_err("Can't register timer %d\n", gwdt_count);
++				continue;
++			}
++
++			mmio_timer_count++;
+ 		}
+ 	}
+ 
+ 	if (gwdt_count)
+ 		pr_info("found %d SBSA generic Watchdog(s).\n", gwdt_count);
++	if (mmio_timer_count)
++		pr_info("found %d Generic MMIO timer(s).\n", mmio_timer_count);
+ 
+ out_put_gtdt:
+ 	acpi_put_table(table);
+ 	return ret;
+ }
+ 
+-device_initcall(gtdt_sbsa_gwdt_init);
++device_initcall(gtdt_platform_timer_init);
+-- 
+2.39.2
 
