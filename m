@@ -1,96 +1,94 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29AC430DD11;
-	Thu, 28 Aug 2025 11:03:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E7602E371F;
+	Thu, 28 Aug 2025 11:09:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.188
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756378999; cv=none; b=uzlujb5HQ5FUxESW5Jm3IQEW6Ofl4sOOuvw4pZdNZeCe57i20PsCTjuwOMuVq9GEdpy19EyoFipqe5N51/MrKk5z5doWzXh1Nkc2dtnQuLPrvRszk40MudHmswZIkZ5v0T1mC3O76Z4EQzFQaJpCG7MzfbY+6HkjsOqS8LyISYQ=
+	t=1756379390; cv=none; b=t5gs2AMzdDIP3EnC227ZO2PytQhTPexSVM/TjI56/LqNLB5fQq2zkz1tEGYrrDU8kkq/fOnHzXGbdRBBz4MfkPEScAqvmC1TU3ydOEAN5XWpjnSfgcqb5/z+1jMYDGFSvU5V9yx8Pf9PH6zyqazxAh7vtUnd8u2UA77/oSp8hjE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756378999; c=relaxed/simple;
-	bh=pjzAij7OpPaAmTNVqtQzbQpcumXq8d1CkhrUy4uidvo=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=QkaYCquSMIW6/Y0YJbJuaLcNZjUeeZHNbm9CykDJBmsyTDktCfY65U9CqwQn/jnY7UHFUKdyvMoTnNvH3u92uc2kHNvlLCQYymcvNDrTmWo876lRe3/xbkN4gAJ6zmwVBsqpfpaie96+RMceTBnnc5Bf9HzZ9J+/qW8nNYagoso=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iJVbwR9E; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iJVbwR9E"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 07FD0C4CEF6;
-	Thu, 28 Aug 2025 11:03:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1756378998;
-	bh=pjzAij7OpPaAmTNVqtQzbQpcumXq8d1CkhrUy4uidvo=;
-	h=From:To:Cc:Subject:Date:From;
-	b=iJVbwR9Ey1vPlkNXduKN6HwFO8hqpA39J8h7gOCQX34bfvbjY1IXJU3fzrOxt5ziw
-	 QQ2pIEY3VzMcpcUtH6YoQMqRNIz+83+sWXN4L1tUjuj8YOwUMsC0TUJEOaJtrZEKaB
-	 atOtmQ59xeHFS5OCJdfaB/PGydTHHdLZXQv/nvxnh4xKiYhwVtllS1rCKjWoggX/SW
-	 no2IbAY6HdTfRhaeOizQS+hW2r7UYD/J6akhL6buCNrxtl51EcfntjWy3COHgmE3/2
-	 Q7sWAQxDB1JYRrW77fzV8uCy3b3vgXz5r1XOx9SOSd0cYj5AKc9V4ZRiH8DyHS+wm8
-	 SlEbbF4CHV2+Q==
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-To: Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>,
- Zhang Rui <rui.zhang@intel.com>, Armin Wolf <w_armin@gmx.de>
-Subject:
- [PATCH v1] ACPI: fan: Fold two simple functions into their only caller
-Date: Thu, 28 Aug 2025 13:03:13 +0200
-Message-ID: <3386797.aeNJFYEL58@rafael.j.wysocki>
-Organization: Linux Kernel Development
+	s=arc-20240116; t=1756379390; c=relaxed/simple;
+	bh=+k4eAvJpmjns5X1DgKnXte3sMig9v+VmdsKLWI7eltU=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=Fr4LiTG0pHD+HC8Bd0bdvYiK/5KrChkPtWI1SgO2pFpC6/a6KIwkKwjct+huvJrDEaD2hlBjXimkDukOQQTV4BsNqD38EszrEqmrnSEP5D5tXrxkg5yMnMVUbRoMgYe1dzCd4Gril0f2jqlZPZOH2BRtS7OaoewVnRiHGAdmBy0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.188
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
+Received: from mail.maildlp.com (unknown [172.19.88.194])
+	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4cCJYT4l2RztT9q;
+	Thu, 28 Aug 2025 19:08:45 +0800 (CST)
+Received: from kwepemo100006.china.huawei.com (unknown [7.202.195.47])
+	by mail.maildlp.com (Postfix) with ESMTPS id 1B8E8140123;
+	Thu, 28 Aug 2025 19:09:43 +0800 (CST)
+Received: from localhost.localdomain (10.90.31.46) by
+ kwepemo100006.china.huawei.com (7.202.195.47) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.11; Thu, 28 Aug 2025 19:09:42 +0800
+From: Jie Zhan <zhanjie9@hisilicon.com>
+To: <viresh.kumar@linaro.org>, <rafael@kernel.org>, <ionela.voinescu@arm.com>,
+	<beata.michalska@arm.com>, <zhenglifeng1@huawei.com>
+CC: <linux-pm@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>, <linuxarm@huawei.com>,
+	<zhanjie9@hisilicon.com>, <jonathan.cameron@huawei.com>
+Subject: [PATCH v2 0/2] cpufreq: CPPC: Rework FIE warning prints and cppc_scale_freq_tick()
+Date: Thu, 28 Aug 2025 19:02:10 +0800
+Message-ID: <20250828110212.2108653-1-zhanjie9@hisilicon.com>
+X-Mailer: git-send-email 2.30.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: kwepems500001.china.huawei.com (7.221.188.70) To
+ kwepemo100006.china.huawei.com (7.202.195.47)
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Reading performance feedback counters on offline or low-power idle CPUs may
+return 0, which is interpreted as -EFAULT.
 
-Both acpi_fan_has_fst() and acpi_fan_is_acpi4() are called from one
-place only, so fold them both into there caller which yields slightly
-leaner code that is somewhat easier to follow.
+This leads to two issues related to the CPPC FIE:
 
-No intentional functional impact.
+1. When booting a subset of CPUs in policy->related_cpus (some CPUs under
+the cpufreq policy is offline), there are warnings of "failed to read perf
+counters for cpu" during the CPPC FIE initialization.
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/fan_core.c |   18 ++++--------------
- 1 file changed, 4 insertions(+), 14 deletions(-)
+2. On our platform with the CPC regs in System Memory and a power-down idle
+state enabled, if the CPPC FIE is registered successfully, there are
+repeated warnings of "failed to read perf counters" because
+cppc_scale_freq_workfn() is trying to access the counters of remote CPUs
+that enters the idle state.
 
---- a/drivers/acpi/fan_core.c
-+++ b/drivers/acpi/fan_core.c
-@@ -203,18 +203,6 @@
-  * --------------------------------------------------------------------------
- */
- 
--static bool acpi_fan_has_fst(struct acpi_device *device)
--{
--	return acpi_has_method(device->handle, "_FST");
--}
--
--static bool acpi_fan_is_acpi4(struct acpi_device *device)
--{
--	return acpi_has_method(device->handle, "_FIF") &&
--	       acpi_has_method(device->handle, "_FPS") &&
--	       acpi_has_method(device->handle, "_FSL");
--}
--
- static int acpi_fan_get_fif(struct acpi_device *device)
- {
- 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-@@ -331,9 +319,11 @@
- 	device->driver_data = fan;
- 	platform_set_drvdata(pdev, fan);
- 
--	if (acpi_fan_has_fst(device)) {
-+	if (acpi_has_method(device->handle, "_FST")) {
- 		fan->has_fst = true;
--		fan->acpi4 = acpi_fan_is_acpi4(device);
-+		fan->acpi4 = acpi_has_method(device->handle, "_FIF") &&
-+				acpi_has_method(device->handle, "_FPS") &&
-+				acpi_has_method(device->handle, "_FSL");
- 	}
- 
- 	if (fan->acpi4) {
+To solve the above issues:
 
+Patch 1 removes the warning when the CPPC FIE initialization fails to read
+counters on offline CPUs and changes the log leve to debug.  This can be
+applied separately.
 
+Patch 2 moves the update of FIE arch_freq_scale into ticks for non-PCC regs
+and maintains the existing mechanism for PCC regs, such that reading
+counters would be triggered on the local CPU only.  This inherently solves
+the issue in [1].  We have tested this on Kunpeng SoCs with the CPC regs
+both in System Memory and FFH.  More tests on other platforms are welcome
+though.
+[1] https://lore.kernel.org/linux-pm/20250730032312.167062-3-yubowen8@huawei.com/
+
+Changelog:
+
+v2:
+- Update the cover letter and the commit log based on v1 discussion
+- Update FIE arch_freq_scale in ticks for non-PCC regs
+
+v1:
+https://lore.kernel.org/linux-pm/20250730032312.167062-1-yubowen8@huawei.com/
+
+Jie Zhan (2):
+  cpufreq: CPPC: Don't warn if FIE init fails to read counters
+  cpufreq: CPPC: Update FIE arch_freq_scale in ticks for non-PCC regs
+
+ drivers/cpufreq/cppc_cpufreq.c | 64 +++++++++++++++++++++-------------
+ 1 file changed, 39 insertions(+), 25 deletions(-)
+
+-- 
+2.33.0
 
