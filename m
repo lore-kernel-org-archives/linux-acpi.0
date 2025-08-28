@@ -1,41 +1,81 @@
-Received: from szxga05-in.huawei.com (szxga05-in.huawei.com [45.249.212.191])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f173.google.com (mail-pl1-f173.google.com [209.85.214.173])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F2D0130E0C3;
-	Thu, 28 Aug 2025 11:09:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.191
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBE97244691;
+	Thu, 28 Aug 2025 11:22:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.173
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756379398; cv=none; b=ifi9sY7SxT54qZbVdFhqLjUn6xlWy9b36F2G8Lg/AyQkqUEGnNHmuULFMGaTe4RKBLJt0XiA6rztkIe+oL/7TWA/IWcfKZLkRjlKDzoe86rpxsG2W42gX1a7ZNKFj7z9jv0ZN26t11cuZ1/M/4/mnTe+rMoIi2uFc5ZmqJVvwqs=
+	t=1756380178; cv=none; b=ZivJeGmrCOM0Jeq3YSaM4BtwWLdaxw/N1JJc6VLt20YI1S2NxgTMwX1+awKwN9rG1GXsnPJmOr/HIZtTbDLWUt13Je7sDT5cDz3MPEDixv/Jmz5FZeqmSqILeIYizzoRa0vngh+ljeN9m7KF3HMSPkNOciT6gOopv7Wlg4tyEW0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756379398; c=relaxed/simple;
-	bh=t2Y0bnd795TMVI6XRgf9jTcTj4eXtdYtgxodDtSaYL8=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=pfbwA43yi//m2w+/2jA/6QBfrBOdyOuhyQQNNQZazlcMzcQfeVuuNob3YoWL8tUgFMwuSLAtqu0kYfThyGb6V9SxDasRq2KY7k9QwtbBJx+4ljLat0lX+dDhYeZ1oxQYbV5gK2Lp38l6+m8ujFM1aKglLOm43I9Jf1tklXoHdeA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.191
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
-Received: from mail.maildlp.com (unknown [172.19.88.163])
-	by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4cCJWC3Rz1z1R8vR;
-	Thu, 28 Aug 2025 19:06:47 +0800 (CST)
-Received: from kwepemo100006.china.huawei.com (unknown [7.202.195.47])
-	by mail.maildlp.com (Postfix) with ESMTPS id 2F409180043;
-	Thu, 28 Aug 2025 19:09:44 +0800 (CST)
-Received: from localhost.localdomain (10.90.31.46) by
- kwepemo100006.china.huawei.com (7.202.195.47) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Thu, 28 Aug 2025 19:09:43 +0800
-From: Jie Zhan <zhanjie9@hisilicon.com>
-To: <viresh.kumar@linaro.org>, <rafael@kernel.org>, <ionela.voinescu@arm.com>,
-	<beata.michalska@arm.com>, <zhenglifeng1@huawei.com>
-CC: <linux-pm@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>, <linuxarm@huawei.com>,
-	<zhanjie9@hisilicon.com>, <jonathan.cameron@huawei.com>
-Subject: [PATCH v2 2/2] cpufreq: CPPC: Update FIE arch_freq_scale in ticks for non-PCC regs
-Date: Thu, 28 Aug 2025 19:02:12 +0800
-Message-ID: <20250828110212.2108653-3-zhanjie9@hisilicon.com>
-X-Mailer: git-send-email 2.30.0
-In-Reply-To: <20250828110212.2108653-1-zhanjie9@hisilicon.com>
-References: <20250828110212.2108653-1-zhanjie9@hisilicon.com>
+	s=arc-20240116; t=1756380178; c=relaxed/simple;
+	bh=fvV1/34M0q/gAMQ253l/U84MmKBcsMJLgosMs2oZQgk=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=d/iv61m2I+TkmV3UGbPnvSUt7w3+7WzfeYdAba8KFn5cWOVI9wr4IIPQVNRaeXjmXkCdunDpvcn96vtvtPcXuXzxvMaGw6UNI48TUZKxO3pGKU36xrRMo2+3vvuwCF5/455Maka4GaaFr0SnffQ97nMPjxzmBNdlbqVnmZSnkXk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Qt1kh0yC; arc=none smtp.client-ip=209.85.214.173
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Qt1kh0yC"
+Received: by mail-pl1-f173.google.com with SMTP id d9443c01a7336-2445824dc27so7139685ad.3;
+        Thu, 28 Aug 2025 04:22:56 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1756380176; x=1756984976; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=PxeMfx1+uNFbtk5b+iMV6QezPtIYzUJuvmOTjg2DLuM=;
+        b=Qt1kh0yC0vw6jItCiCV9czAn4OxUuWnFj4N5JpMiJpbj0sAgDXYu9+mGe9LHRkJgQ2
+         lvZgeAvisXSaBFB8tM7pgmQ9knbZrvAs1ypnG0yKEJMa+/GFNvUJGJGpcQBKojNLE43Y
+         nofVOyfUHq/piwG50hZBRXhgxVvGSzAYxDTTrRD5oUmaxs6tNcc64V8TU2qYtcDlhNNc
+         qz8dL8THwnv9/3rW4mXFPJNUFZTGohLW/tcUISN/WWEazQil38RnyPNnjLKksr/sgrY7
+         78QjKisVDqJzF+P9oHKCkGI2uY5IBR/MF5O/z6bqlkE0fDF8B3ESYE7sim7GSMTIxe2R
+         I/xw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1756380176; x=1756984976;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=PxeMfx1+uNFbtk5b+iMV6QezPtIYzUJuvmOTjg2DLuM=;
+        b=UhrpCDLqTJpaX+ZgWymxslGSr3gR0ni8s/LQ3VeLWsQ4yB05xDeWUAV8HD4/K8VIou
+         AX9/ozU0UK/04U7sQX4uu+3pxsZgsTmaJdeoo4VEKj/mpDa2HRkmJoeHQGZjmblpvv2g
+         yAUHPtXc3K5+S0zIjdq6kGkiWxZ7+Z3Z7SQ7m5pDDL7Zwv+gatdBEviR0DklS8pNl/Ub
+         +W/k6F+fC6nHbkDv/WOjNaJKkwyWExPH+nLwdaFFm98bx1wUmDO4+P3iXwuGGmP5ClXy
+         mWKKM0kuoZoeFvzUrPG6/9O2VnVihVnODP+mM3bfw7DQPLs0UPJdG07rJNqRpDujCUvX
+         NTug==
+X-Forwarded-Encrypted: i=1; AJvYcCVBr6DgtmPWhbHdXj1CTfsfzvvVa7zCOMkysAvIGKps70G1JpgfNQ84fZBFQk18pLfRJRsskyE3@vger.kernel.org, AJvYcCWjwRlTwc6k3+H0LcjOisJarhehSPWbV54Q8Ywso8f5Pwa/TvaDs+rImEa64V3oaMVBQco=@vger.kernel.org, AJvYcCWpp76uyiENM6t509yPUC4nYseUZ6HPpuqVS8qHRrf/tNGJXbG3FSPx2lOTDWswoN+6AwjvMbFQOCq28w==@vger.kernel.org, AJvYcCXvR08hnM5jb73cboeoRv3nPFY2gooM0MZ43wqjSz1tZdD4IAkU8nH6IxHNpRS+TWsGiAjOcbSbrcLx/Jfr@vger.kernel.org
+X-Gm-Message-State: AOJu0YxmBuF3KO703f2KJGAixIW9chkaVIDaiUN9kAQhX94s/89Z0By4
+	zAJOg+f0i/sJDg7sAlUFbbgrBl93iIRMypC6fPHDQP3Sxibthimb77h8
+X-Gm-Gg: ASbGnctIbRq63VKxrki0H2ekp3f9sZWXOkSfjRliJprT2aLr+aJzLLgvKurDXGtIONB
+	uEWNkK5Km95fg8FJg8w38c5suHJkt5dzJdYjYCR7PcI/R5teEfo37ZSI2FOTrakuhdfOKZOBarj
+	8jKzy8rRZOs/19a6JuJmhgKUHMafqWYNIpnpueG3R9qJSvhfBvcr/04nvxw9JugdPEElxXNAgGH
+	c3C0ninF2lxFh2HEcXQzYiR0/+m6wRFiz8B+x66tsC2UV9TDuAilcPd7K2PprsgeC8MZ93efgkA
+	0ErCp4R8cTXCH7aTS+WPv3IbwDxTCoeSihffMdJmqZIJJMtn3PMqptDe94Uj4/BVMsluBt4KxVL
+	ULx8SUg2o3SOuI0sAHUWAgL01UTTVqUbSVhUOP81kjnsqsxFzbeRRyTWUH0wroIXvTj973noUxM
+	kyGr8Ipy/XHA9DbEZgN5wvOQ==
+X-Google-Smtp-Source: AGHT+IHQiVu4toyB2lDInXoaA+fupYv0LkXXDoJV5p3MjYWV2/Hw1sV5uJxKSw9UtwpQSAHlRTlqsQ==
+X-Received: by 2002:a17:902:fd0e:b0:242:accd:bbe8 with SMTP id d9443c01a7336-2462ef4ca76mr245371675ad.36.1756380175971;
+        Thu, 28 Aug 2025 04:22:55 -0700 (PDT)
+Received: from localhost.localdomain ([112.97.57.188])
+        by smtp.googlemail.com with ESMTPSA id 98e67ed59e1d1-3276f57ab3esm4952547a91.3.2025.08.28.04.22.48
+        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
+        Thu, 28 Aug 2025 04:22:55 -0700 (PDT)
+From: Miaoqian Lin <linmq006@gmail.com>
+To: Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	Hanjun Guo <guohanjun@huawei.com>,
+	Sudeep Holla <sudeep.holla@arm.com>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>,
+	Joerg Roedel <jroedel@suse.de>,
+	Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>,
+	Robin Murphy <robin.murphy@arm.com>,
+	linux-acpi@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org,
+	bpf@vger.kernel.org
+Cc: linmq006@gmail.com,
+	stable@vger.kernel.org
+Subject: [PATCH] ACPI/IORT: Fix memory leak in iort_rmr_alloc_sids()
+Date: Thu, 28 Aug 2025 19:22:43 +0800
+Message-Id: <20250828112243.61460-1-linmq006@gmail.com>
+X-Mailer: git-send-email 2.39.5 (Apple Git-154)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -43,156 +83,38 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: kwepems500001.china.huawei.com (7.221.188.70) To
- kwepemo100006.china.huawei.com (7.202.195.47)
 
-Currently, the CPPC Frequency Invariance Engine (FIE) is invoked from the
-scheduler tick but defers the update of arch_freq_scale to a separate
-thread because cppc_get_perf_ctrs() would sleep if the CPC regs are in PCC.
+If krealloc_array() fails in iort_rmr_alloc_sids(), the function returns
+NULL but does not free the original 'sids' allocation. This results in a
+memory leak since the caller overwrites the original pointer with the
+NULL return value.
 
-However, this deferred update mechanism is unnecessary and introduces extra
-overhead for non-PCC register spaces (e.g. System Memory or FFH), where
-accessing the regs won't sleep and can be safely performed from the tick
-context.  Also, reading perf counters of a remote CPU may return 0 if it's
-in a low-power idle state, e.g. power down or reset.
-
-Update arch_freq_scale directly in ticks for non-PCC regs and keep the
-deferred update mechanism for PCC regs.
-
-Signed-off-by: Jie Zhan <zhanjie9@hisilicon.com>
+Fixes: 491cf4a6735a ("ACPI/IORT: Add support to retrieve IORT RMR reserved regions")
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Miaoqian Lin <linmq006@gmail.com>
 ---
- drivers/cpufreq/cppc_cpufreq.c | 52 +++++++++++++++++++++++-----------
- 1 file changed, 36 insertions(+), 16 deletions(-)
+This follows the same pattern as the fix in commit 06615967d488
+("bpf, verifier: Fix memory leak in array reallocation for stack state").
+---
+ drivers/acpi/arm64/iort.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
-index 7724318b3415..66d74b062ceb 100644
---- a/drivers/cpufreq/cppc_cpufreq.c
-+++ b/drivers/cpufreq/cppc_cpufreq.c
-@@ -55,31 +55,24 @@ static int cppc_perf_from_fbctrs(struct cppc_cpudata *cpu_data,
- 				 struct cppc_perf_fb_ctrs *fb_ctrs_t1);
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index 98759d6199d3..65f0f56ad753 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -937,8 +937,10 @@ static u32 *iort_rmr_alloc_sids(u32 *sids, u32 count, u32 id_start,
  
- /**
-- * cppc_scale_freq_workfn - CPPC arch_freq_scale updater for frequency invariance
-- * @work: The work item.
-+ * __cppc_scale_freq_tick - CPPC arch_freq_scale updater for frequency invariance
-+ * @cppc_fi: per-cpu CPPC FIE data.
-  *
-- * The CPPC driver register itself with the topology core to provide its own
-+ * The CPPC driver registers itself with the topology core to provide its own
-  * implementation (cppc_scale_freq_tick()) of topology_scale_freq_tick() which
-  * gets called by the scheduler on every tick.
-  *
-  * Note that the arch specific counters have higher priority than CPPC counters,
-  * if available, though the CPPC driver doesn't need to have any special
-  * handling for that.
-- *
-- * On an invocation of cppc_scale_freq_tick(), we schedule an irq work (since we
-- * reach here from hard-irq context), which then schedules a normal work item
-- * and cppc_scale_freq_workfn() updates the per_cpu arch_freq_scale variable
-- * based on the counter updates since the last tick.
-  */
--static void cppc_scale_freq_workfn(struct kthread_work *work)
-+static void __cppc_scale_freq_tick(struct cppc_freq_invariance *cppc_fi)
- {
--	struct cppc_freq_invariance *cppc_fi;
- 	struct cppc_perf_fb_ctrs fb_ctrs = {0};
- 	struct cppc_cpudata *cpu_data;
- 	unsigned long local_freq_scale;
- 	u64 perf;
+ 	new_sids = krealloc_array(sids, count + new_count,
+ 				  sizeof(*new_sids), GFP_KERNEL);
+-	if (!new_sids)
++	if (!new_sids) {
++		kfree(sids);
+ 		return NULL;
++	}
  
--	cppc_fi = container_of(work, struct cppc_freq_invariance, work);
- 	cpu_data = cppc_fi->cpu_data;
- 
- 	if (cppc_get_perf_ctrs(cppc_fi->cpu, &fb_ctrs)) {
-@@ -104,6 +97,14 @@ static void cppc_scale_freq_workfn(struct kthread_work *work)
- 	per_cpu(arch_freq_scale, cppc_fi->cpu) = local_freq_scale;
- }
- 
-+static void cppc_scale_freq_workfn(struct kthread_work *work)
-+{
-+	struct cppc_freq_invariance *cppc_fi;
-+
-+	cppc_fi = container_of(work, struct cppc_freq_invariance, work);
-+	__cppc_scale_freq_tick(cppc_fi);
-+}
-+
- static void cppc_irq_work(struct irq_work *irq_work)
- {
- 	struct cppc_freq_invariance *cppc_fi;
-@@ -112,7 +113,14 @@ static void cppc_irq_work(struct irq_work *irq_work)
- 	kthread_queue_work(kworker_fie, &cppc_fi->work);
- }
- 
--static void cppc_scale_freq_tick(void)
-+/*
-+ * Reading perf counters may sleep if the CPC regs are in PCC.  Thus, we
-+ * schedule an irq work in scale_freq_tick (since we reach here from hard-irq
-+ * context), which then schedules a normal work item cppc_scale_freq_workfn()
-+ * that updates the per_cpu arch_freq_scale variable based on the counter
-+ * updates since the last tick.
-+ */
-+static void cppc_scale_freq_tick_pcc(void)
- {
- 	struct cppc_freq_invariance *cppc_fi = &per_cpu(cppc_freq_inv, smp_processor_id());
- 
-@@ -123,6 +131,11 @@ static void cppc_scale_freq_tick(void)
- 	irq_work_queue(&cppc_fi->irq_work);
- }
- 
-+static void cppc_scale_freq_tick(void)
-+{
-+	__cppc_scale_freq_tick(&per_cpu(cppc_freq_inv, smp_processor_id()));
-+}
-+
- static struct scale_freq_data cppc_sftd = {
- 	.source = SCALE_FREQ_SOURCE_CPPC,
- 	.set_freq_scale = cppc_scale_freq_tick,
-@@ -140,8 +153,10 @@ static void cppc_cpufreq_cpu_fie_init(struct cpufreq_policy *policy)
- 		cppc_fi = &per_cpu(cppc_freq_inv, cpu);
- 		cppc_fi->cpu = cpu;
- 		cppc_fi->cpu_data = policy->driver_data;
--		kthread_init_work(&cppc_fi->work, cppc_scale_freq_workfn);
--		init_irq_work(&cppc_fi->irq_work, cppc_irq_work);
-+		if (cppc_perf_ctrs_in_pcc()) {
-+			kthread_init_work(&cppc_fi->work, cppc_scale_freq_workfn);
-+			init_irq_work(&cppc_fi->irq_work, cppc_irq_work);
-+		}
- 
- 		ret = cppc_get_perf_ctrs(cpu, &cppc_fi->prev_perf_fb_ctrs);
- 		if (ret && cpu_online(cpu)) {
-@@ -174,6 +189,9 @@ static void cppc_cpufreq_cpu_fie_exit(struct cpufreq_policy *policy)
- 	/* policy->cpus will be empty here, use related_cpus instead */
- 	topology_clear_scale_freq_source(SCALE_FREQ_SOURCE_CPPC, policy->related_cpus);
- 
-+	if (!cppc_perf_ctrs_in_pcc())
-+		return;
-+
- 	for_each_cpu(cpu, policy->related_cpus) {
- 		cppc_fi = &per_cpu(cppc_freq_inv, cpu);
- 		irq_work_sync(&cppc_fi->irq_work);
-@@ -206,9 +224,11 @@ static void __init cppc_freq_invariance_init(void)
- 		}
- 	}
- 
--	if (fie_disabled)
-+	if (fie_disabled || !cppc_perf_ctrs_in_pcc())
- 		return;
- 
-+	cppc_sftd.set_freq_scale = cppc_scale_freq_tick_pcc;
-+
- 	kworker_fie = kthread_run_worker(0, "cppc_fie");
- 	if (IS_ERR(kworker_fie)) {
- 		pr_warn("%s: failed to create kworker_fie: %ld\n", __func__,
-@@ -228,7 +248,7 @@ static void __init cppc_freq_invariance_init(void)
- 
- static void cppc_freq_invariance_exit(void)
- {
--	if (fie_disabled)
-+	if (fie_disabled || !cppc_perf_ctrs_in_pcc())
- 		return;
- 
- 	kthread_destroy_worker(kworker_fie);
+ 	for (i = count; i < total_count; i++)
+ 		new_sids[i] = id_start++;
 -- 
-2.33.0
+2.39.5 (Apple Git-154)
 
