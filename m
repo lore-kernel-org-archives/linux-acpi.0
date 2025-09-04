@@ -1,95 +1,173 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14320251791
-	for <linux-acpi@vger.kernel.org>; Thu,  4 Sep 2025 18:30:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E1622D6630;
+	Thu,  4 Sep 2025 18:37:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757010653; cv=none; b=c30JCCjpQQ6A9Ab0B0cOjUV8LnX+ox6iJbuTsmupA3AZIojEX6HsET3+sZUJ6V6nZlYym4EI82u+9KYKbCa7EC5Aj5WwAsnCLUUxeuiv6XZUOPSUo1z/L+oq+SCBN+Fj91gytmXfgMPFId9BPQCmKuS++tRf8E4s6BGCSReKq2U=
+	t=1757011021; cv=none; b=jW5uednLDTDFrpp328hYJsD3FYWK37zCXESbnRS0NpDl2+2enbP2UV1ZVzDtY7zITvQD7HWb68UrC4BMYAghw2c+TDbpFNrO9O1k8Tweibc4DwkVj/09Ju0N8+u+bbkxI16jcwwDqE9v7fu2Jd2iDTqFQCoWnSRs0F/mLZyOoWs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757010653; c=relaxed/simple;
-	bh=w9jXHNsJCRm991eNtu7Vt87Z+zkxLPYSK9gsqrrtRPM=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=mJNTcsX6V7WQ0Of4KiqdL8H/hi4lmdE3hP/SfOW1g7Xg6eC/NEM5H4qNiL4zomKV88VwqnWRR+E4Z/BomuGNsKi/AE2HXWbwqIXDiHYzaL96LBc5AKPj2EkIaMwgpEGy8LZhfo6rsbBBJjdEUTaVAvrH3kzlT4hnRpW1a/Ql4CQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XUp8EIYE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757011021; c=relaxed/simple;
+	bh=ftjP0BgBhol/aJqy+0EAcs43kMLIGJAJVDQe4elAqE4=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To; b=h0ACGuTdABIgH0uFNJcnfgrKPGvV3NyvZRMb1PWCXYHBluFNGn44hpWzAHncvatmxbR+USsvsvBlYl/a7rncQ6br+xqYzyMkp4g34Q3P2C5YJ1EgSOEas06uQsmjD+g4S/j7WpOI8bhAiZB4W9ngmM42GBsZ5bn+qq+dUodOx1s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fK9TtnAK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XUp8EIYE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9143AC4CEF0
-	for <linux-acpi@vger.kernel.org>; Thu,  4 Sep 2025 18:30:52 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fK9TtnAK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CBB9FC4CEF0;
+	Thu,  4 Sep 2025 18:37:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1757010652;
-	bh=w9jXHNsJCRm991eNtu7Vt87Z+zkxLPYSK9gsqrrtRPM=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=XUp8EIYENfbzWoWio2ro4d+m6ZrspnpITC85zCPCJAaUDD29lWJUdjjvTeG8ET5oe
-	 cjf5Ev21yccap6ZYnWqqdU7l4U/173Z++zaZCoZVwrVEYsriKBov7up+9F4KM8zcBZ
-	 RnyaACVMF1xoqMHBuiTXIzO+e2DkkIZR2miMLyvGF/ft4fXcRkJZy+rgp4odJq40Vt
-	 29qdWPZXos24RFy3CdThWhyqwKNLvr+9+iyfFO9HoBvOhpjL3CbcELawIAEMND/4WG
-	 OAFCBcrwdwo+bLK4T40UzrN57MwC3a0GYOo/7UCoF70H5ACPygufPpF/S1vx5cpQSA
-	 HdzD4GrKrN+8A==
-Received: by mail-ot1-f52.google.com with SMTP id 46e09a7af769-74526ca7a46so566353a34.2
-        for <linux-acpi@vger.kernel.org>; Thu, 04 Sep 2025 11:30:52 -0700 (PDT)
-X-Gm-Message-State: AOJu0YyGYqXtJdEHJLQXy9X63v+75j1a9JeKDsXz9WSeCiIbNOkxo+PW
-	0Ox//nlx/VedLDtC8J24IQo/vwcQ9q/xDruZ8XK5MUDjwcgyF2Kqr0GYdL98SaJOCxdWA20WFuc
-	jlD8WG8ckVFg/ECN/OC6l2z0UKZ2HQPY=
-X-Google-Smtp-Source: AGHT+IF7IyOretU3C7zkpilB+C/jocUrV5MzKDeF1pccx4yLcMEqkod4dcUfW57sp92zkISYkrsP60VX8YrOavIvSlA=
-X-Received: by 2002:a05:6830:2aac:b0:742:f996:ef34 with SMTP id
- 46e09a7af769-74569ed6ae0mr11120338a34.27.1757010651866; Thu, 04 Sep 2025
- 11:30:51 -0700 (PDT)
+	s=k20201202; t=1757011021;
+	bh=ftjP0BgBhol/aJqy+0EAcs43kMLIGJAJVDQe4elAqE4=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:From;
+	b=fK9TtnAKgXX/kekyaKxa6YXvorPUEg6avFCJKW5o6hy8TneIFexM7MlDX4I167iE3
+	 EwO9anL4coTCc35WrDYsxvkW4xgN5a5ivg89pJUyIySyWFa9wi0bOTYCknilvZtMWT
+	 8hjAzcy9qigvBk6oo2MNBYxfOGHKrv/2gK7BjRuL64TMZePW2DN72v8JMTED5g0KMi
+	 z1AJHjUwEiMGdTrlnis2laZaZzD58lgLmtgLjgnVy0HTpl07f9o+9yCjA7NSH+QZya
+	 4oP2mYzZxuGn9s8W9f/Qkw7FdkwKY26cWuuNAEv5WSDDoQW6iE/WQWc5H1/+NikuVn
+	 EBV7fea9xR9nA==
+Date: Thu, 4 Sep 2025 13:36:59 -0500
+From: Bjorn Helgaas <helgaas@kernel.org>
+To: Badal Nilawar <badal.nilawar@intel.com>
+Cc: intel-xe@lists.freedesktop.org, linux-acpi@vger.kernel.org,
+	linux-pci@vger.kernel.org, anshuman.gupta@intel.com,
+	rafael@kernel.org, lenb@kernel.org, bhelgaas@google.com,
+	ilpo.jarvinen@linux.intel.com, lucas.demarchi@intel.com,
+	rodrigo.vivi@intel.com, varun.gupta@intel.com,
+	ville.syrjala@linux.intel.com, uma.shankar@intel.com
+Subject: Re: [PATCH v4 02/11] PCI/ACPI: Per root port allow one Aux power
+ limit request
+Message-ID: <20250904183659.GA1271032@bhelgaas>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250829145221.2294784-2-sam@tehsvk.net>
-In-Reply-To: <20250829145221.2294784-2-sam@tehsvk.net>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Thu, 4 Sep 2025 20:30:40 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0gCPFm7GVyuzNsSSBf_8CLNmu_sn1kE+yG3Tweyrm4pbg@mail.gmail.com>
-X-Gm-Features: Ac12FXxOypJ0mDMyznoueZMKIYMe-wY6xMBzSFKpLnidE9PbROmUdrQ4mhKmZgs
-Message-ID: <CAJZ5v0gCPFm7GVyuzNsSSBf_8CLNmu_sn1kE+yG3Tweyrm4pbg@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: resource: Skip IRQ override on ASUS Vivobook Pro N6506CU
-To: Sam van Kampen <sam@tehsvk.net>
-Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, 
-	Len Brown <lenb@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250529111654.3140766-3-badal.nilawar@intel.com>
 
-On Fri, Aug 29, 2025 at 4:52=E2=80=AFPM Sam van Kampen <sam@tehsvk.net> wro=
-te:
->
-> Just like the other Vivobooks here, the N6506CU has its keyboard IRQ
-> described as ActiveLow in the DSDT, which the kernel overrides to
-> EdgeHigh, causing the internal keyboard not to work.
->
-> Add the N6506CU to the irq1_level_low_skip_override[] quirk table to fix
-> this.
->
-> Signed-off-by: Sam van Kampen <sam@tehsvk.net>
+On Thu, May 29, 2025 at 04:46:45PM +0530, Badal Nilawar wrote:
+> For given root port allow one Aux power limit request.
+
+Please include the reason why we do this.  I don't think we need it.
+
+PCI Firmware r3.3, sec 4.6.10 says this _DSM function can be invoked
+multiple times with different requests.
+
+We might need a mutex just to avoid concurrent evaluations of this
+_DSM function by different drivers; I'm not sure whether there's a
+requirement to avoid that or whether the ACPI core already enforces
+something like that.  But that would be a separate thing from
+aux_power_limit.
+
+> Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Cc: Anshuman Gupta <anshuman.gupta@intel.com>
+> Signed-off-by: Badal Nilawar <badal.nilawar@intel.com>
 > ---
->  drivers/acpi/resource.c | 7 +++++++
->  1 file changed, 7 insertions(+)
->
-> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-> index b1ab192d7a08..ddedb6956a0d 100644
-> --- a/drivers/acpi/resource.c
-> +++ b/drivers/acpi/resource.c
-> @@ -510,6 +510,13 @@ static const struct dmi_system_id irq1_level_low_ski=
-p_override[] =3D {
->                         DMI_MATCH(DMI_BOARD_NAME, "N6506M"),
->                 },
->         },
-> +       {
-> +               /* Asus Vivobook Pro N6506CU* */
-> +               .matches =3D {
-> +                       DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."=
-),
-> +                       DMI_MATCH(DMI_BOARD_NAME, "N6506CU"),
-> +               },
-> +       },
->         {
->                 /* LG Electronics 17U70P */
->                 .matches =3D {
-> --
-
-Applied as 6.18 material, thanks!
+>  drivers/acpi/scan.c     |  1 +
+>  drivers/pci/pci-acpi.c  | 25 ++++++++++++++++++++++++-
+>  include/acpi/acpi_bus.h |  2 ++
+>  3 files changed, 27 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index fb1fe9f3b1a3..9ae7be9db01a 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -745,6 +745,7 @@ int acpi_device_add(struct acpi_device *device)
+>  	INIT_LIST_HEAD(&device->physical_node_list);
+>  	INIT_LIST_HEAD(&device->del_list);
+>  	mutex_init(&device->physical_node_lock);
+> +	mutex_init(&device->power.aux_pwr_lock);
+>  
+>  	mutex_lock(&acpi_device_lock);
+>  
+> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+> index 87f30910a5f1..d33efba4ca94 100644
+> --- a/drivers/pci/pci-acpi.c
+> +++ b/drivers/pci/pci-acpi.c
+> @@ -1451,6 +1451,7 @@ int pci_acpi_request_d3cold_aux_power(struct pci_dev *dev, u32 requested_power,
+>  	union acpi_object *out_obj;
+>  	acpi_handle handle;
+>  	int result, ret = -EINVAL;
+> +	struct acpi_device *adev;
+>  
+>  	if (!dev || !retry_interval)
+>  		return -EINVAL;
+> @@ -1464,11 +1465,27 @@ int pci_acpi_request_d3cold_aux_power(struct pci_dev *dev, u32 requested_power,
+>  		return -ENODEV;
+>  	}
+>  
+> +	adev = ACPI_COMPANION(&dev->dev);
+> +	if (!adev)
+> +		return -EINVAL;
+> +
+> +	mutex_lock(&adev->power.aux_pwr_lock);
+> +
+> +	/* Check if aux power already granted */
+> +	if (adev->power.aux_power_limit) {
+> +		pci_info(dev, "D3cold Aux Power request already granted: %u mW\n",
+> +			 adev->power.aux_power_limit);
+> +		mutex_unlock(&adev->power.aux_pwr_lock);
+> +		return -EPERM;
+> +	}
+> +
+>  	out_obj = acpi_evaluate_dsm_typed(handle, &pci_acpi_dsm_guid, 4,
+>  					  DSM_PCI_D3COLD_AUX_POWER_LIMIT,
+>  					  &in_obj, ACPI_TYPE_INTEGER);
+> -	if (!out_obj)
+> +	if (!out_obj) {
+> +		mutex_unlock(&adev->power.aux_pwr_lock);
+>  		return -EINVAL;
+> +	}
+>  
+>  	result = out_obj->integer.value;
+>  	if (retry_interval)
+> @@ -1478,14 +1495,17 @@ int pci_acpi_request_d3cold_aux_power(struct pci_dev *dev, u32 requested_power,
+>  	case 0x0:
+>  		pci_dbg(dev, "D3cold Aux Power %u mW request denied\n",
+>  			requested_power);
+> +		adev->power.aux_power_limit = 0;
+>  		break;
+>  	case 0x1:
+>  		pci_info(dev, "D3cold Aux Power request granted: %u mW\n",
+>  			 requested_power);
+> +		adev->power.aux_power_limit = requested_power;
+>  		ret = 0;
+>  		break;
+>  	case 0x2:
+>  		pci_info(dev, "D3cold Aux Power: Main power won't be removed\n");
+> +		adev->power.aux_power_limit = 0;
+>  		ret = -EBUSY;
+>  		break;
+>  	default:
+> @@ -1500,9 +1520,12 @@ int pci_acpi_request_d3cold_aux_power(struct pci_dev *dev, u32 requested_power,
+>  			pci_err(dev, "D3cold Aux Power: Reserved or unsupported response: 0x%x\n",
+>  				result);
+>  		}
+> +		adev->power.aux_power_limit = 0;
+>  		break;
+>  	}
+>  
+> +	mutex_unlock(&adev->power.aux_pwr_lock);
+> +
+>  	ACPI_FREE(out_obj);
+>  	return ret;
+>  }
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index aad1a95e6863..c4ce3d84be00 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -294,6 +294,8 @@ struct acpi_device_power {
+>  	struct acpi_device_power_flags flags;
+>  	struct acpi_device_power_state states[ACPI_D_STATE_COUNT];	/* Power states (D0-D3Cold) */
+>  	u8 state_for_enumeration; /* Deepest power state for enumeration */
+> +	u32 aux_power_limit;		/* aux power limit granted by bios */
+> +	struct mutex aux_pwr_lock;	/* prevent concurrent aux power limit requests */
+>  };
+>  
+>  struct acpi_dep_data {
+> -- 
+> 2.34.1
+> 
