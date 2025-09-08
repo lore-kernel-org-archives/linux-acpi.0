@@ -1,37 +1,37 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7843430FC23;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9C7030FC3D;
 	Mon,  8 Sep 2025 16:31:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757349109; cv=none; b=exOcVo3c7M7HqpXzYVNjiWuB+f0AxGDaqzawQQO63/xrsq4mSETkoUAo6Pnw3CdIHdNRJX9jkd86bHAxK5/HP8JCXo8FGLW3OEHbLL6dD4V3gN2Pcz7Dv9jhzvq3FgEZGorETN+XceTj0bEpJfS4xf6YtLWI7LnZ2JNM9r0GU+0=
+	t=1757349109; cv=none; b=V7Ix5R13peUy+Mp8k9dSbgqdy2HqbdEb7W8ub96ut7qXJFx1xw2zSGXD6ToXaFKVBhB6wl1SL8marwoYZeylhNNKtWNc5OUkbkhtLA4n2744vYO4vPtUF2h8G2Og+ShsTzZAmIUVwZu+1DbMEC3A9S+IzzMRJtKmxvwQIMAY82A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1757349109; c=relaxed/simple;
-	bh=t2t1XQhmTu4QwWw1Mvj257XNXGFyRkE9ARKAhPe4oJM=;
+	bh=gHNda0QWGnywO22OHTHAtrEXJraB/koPwbnWeNVZoWY=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=arvwUjG6OJMKiydBIra5p2ppBCW2Q26n7yBVOn7TqylLkWDIKtDAiA0fZRU5ZxJJV+dqM19hAnzU2gt5vVizRSMJlNeWrT900riKh2rKEBrV7psjsH0W9oEwxIGVEabH2Kry0zmW9xCzM8+BU6k4pmJ8tMXmGKDATdFKKUdoCZc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PZGJjwXa; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=Bx06waDJThTKTgZaOXR6KI56JdxMhghaNQrMWiodBerEyKM7vci5JgB0vV7ucBCePA8MhQCPndRQk7AR1YOwDxyLiN7Mw3KHkPnpEFfNd/+fqWbS79PeMIVTIGh5uexxQOetvSVmWHMuZ612g2vJRmuSH1+vfc7+RU+FIBmVr9k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DZEnrz9s; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PZGJjwXa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E97C6C4CEFA;
-	Mon,  8 Sep 2025 16:31:48 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DZEnrz9s"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9876DC4CEF7;
+	Mon,  8 Sep 2025 16:31:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=k20201202; t=1757349109;
-	bh=t2t1XQhmTu4QwWw1Mvj257XNXGFyRkE9ARKAhPe4oJM=;
+	bh=gHNda0QWGnywO22OHTHAtrEXJraB/koPwbnWeNVZoWY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=PZGJjwXa4GgFgzXH4FhpcpgeXYYGFHaTE8JKKorNoWhuxqrV+ph71/Wxqz50OWlym
-	 fYMU32cIM91+bFkjMDOQh8oFz9ZMg7qtYCcw0Gh/feKnM2DcicJ3IXiX72tXZl6FtB
-	 oAqZh0l0J5XNQB5Eb/jRHZ/tdlktjD0U4tA8+UkfAFxgRj4Pi9lrXQEJtzahwgAcU5
-	 TXtMJRHerwY2TRCDoWozvylBTU3zuZmX/iOb5/cu3dMuqgWpFo1T7O9Yl9527BBE7g
-	 Z2JJIVGdpT0+j59lajuZtnE4WumAelcS87NXt2JF8JOiGAdRNzv9QZyfBLrb0T5pSY
-	 Qu7riyUNDJKTg==
+	b=DZEnrz9sJ7lpSZAMHTArsytc/FiUfM49SOwDYW4NrS+2kHDyRvbcSsbUkyyZ0uv1o
+	 DOHscDRxurRZjbVQ4avbrca7Lr/4p1LMQZGR0rBoOmWuC6PY2GySrvqk4q6V98rNfD
+	 jdGLh7Dj0pNAQ/VgpgcO+S1j+DlLf252vPIsDDsy7TfREddGauciF/X5eXAx77Llti
+	 F/mR0l8QMvBhEt1Jly/5wVbXTyMmUr9HtcmUcmHu6WPPRZdER9ZC1bWcCOxNemLhNp
+	 OcAUEUQdFIoypvxb6IUTtqiWgSYy9KSYMlss32Aq7V6rni/42LfCpX6vGN4L7EylGL
+	 TQUJMuAJkMlYQ==
 Received: from sofa.misterjones.org ([185.219.108.64] helo=valley-girl.lan)
 	by disco-boy.misterjones.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.98.2)
 	(envelope-from <maz@kernel.org>)
-	id 1uvemQ-00000004NTm-3YV5;
-	Mon, 08 Sep 2025 16:31:46 +0000
+	id 1uvemR-00000004NTm-2rZM;
+	Mon, 08 Sep 2025 16:31:47 +0000
 From: Marc Zyngier <maz@kernel.org>
 To: linux-kernel@vger.kernel.org,
 	linux-arm-kernel@lists.infradead.org,
@@ -47,9 +47,9 @@ Cc: Thomas Gleixner <tglx@linutronix.de>,
 	Janne Grunau <j@jannau.net>,
 	Suzuki K Poulose <suzuki.poulose@arm.com>,
 	James Clark <james.clark@linaro.org>
-Subject: [PATCH 05/25] irqchip/gic-v3: Add FW info retrieval support
-Date: Mon,  8 Sep 2025 17:31:07 +0100
-Message-Id: <20250908163127.2462948-6-maz@kernel.org>
+Subject: [PATCH 08/25] perf: arm_pmu: Convert to new IRQ affinity retrieval API
+Date: Mon,  8 Sep 2025 17:31:10 +0100
+Message-Id: <20250908163127.2462948-9-maz@kernel.org>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <20250908163127.2462948-1-maz@kernel.org>
 References: <20250908163127.2462948-1-maz@kernel.org>
@@ -65,106 +65,53 @@ X-SA-Exim-Rcpt-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradea
 X-SA-Exim-Mail-From: maz@kernel.org
 X-SA-Exim-Scanned: No (on disco-boy.misterjones.org); SAEximRunCond expanded to false
 
-Plug the new .get_info() callback into the GICv3 core driver,
-using some of the existing PPI affinity handling infrastructure.
+Now that the relevant interrupt controllers are equipped with
+a callback returning the affinity of per-CPU interrupts, switch
+the OF side of the ARM PMU driver over to this new method.
 
 Signed-off-by: Marc Zyngier <maz@kernel.org>
 ---
- drivers/irqchip/irq-gic-v3.c | 55 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 55 insertions(+)
+ drivers/perf/arm_pmu_platform.c | 16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/irqchip/irq-gic-v3.c b/drivers/irqchip/irq-gic-v3.c
-index dbeb85677b08c..4a90dbf9daedb 100644
---- a/drivers/irqchip/irq-gic-v3.c
-+++ b/drivers/irqchip/irq-gic-v3.c
-@@ -69,6 +69,8 @@ struct gic_chip_data {
- 	bool			has_rss;
- 	unsigned int		ppi_nr;
- 	struct partition_desc	**ppi_descs;
-+	struct partition_affinity *parts;
-+	unsigned int		nr_parts;
- };
- 
- #define T241_CHIPS_MAX		4
-@@ -1796,11 +1798,60 @@ static int gic_irq_domain_select(struct irq_domain *d,
- 	return d == partition_get_domain(gic_data.ppi_descs[ppi_idx]);
+diff --git a/drivers/perf/arm_pmu_platform.c b/drivers/perf/arm_pmu_platform.c
+index 118170a5cedef..9c0494d8a867a 100644
+--- a/drivers/perf/arm_pmu_platform.c
++++ b/drivers/perf/arm_pmu_platform.c
+@@ -42,14 +42,13 @@ static int probe_current_pmu(struct arm_pmu *pmu,
+ 	return ret;
  }
  
-+static int gic_irq_get_info(struct irq_fwspec_info *info)
-+{
-+	struct irq_fwspec *fwspec = &info->fwspec;
-+	const struct cpumask *mask = NULL;
-+
-+	info->flags = 0;
-+	info->affinity = NULL;
-+
-+	/* ACPI is not capable of describing PPI affinity -- yet */
-+	if (!is_of_node(fwspec->fwnode))
-+		goto out;
-+
-+	/* If the specifier provides an affinity, use it */
-+	if (fwspec->param_count == 4 && fwspec->param[3]) {
-+		struct fwnode_handle *fw;
-+
-+		switch (fwspec->param[0]) {
-+		case 1:			/* PPI */
-+		case 3:			/* EPPI */
-+			break;
-+		default:
-+			goto out;
-+		}
-+
-+		fw = of_node_to_fwnode(of_find_node_by_phandle(fwspec->param[3]));
-+		if (!fw)
-+			goto out;
-+
-+		for (int i = 0; i < gic_data.nr_parts; i++) {
-+			if (gic_data.parts[i].partition_id == fw) {
-+				mask = &gic_data.parts[i].mask;
-+				break;
-+			}
-+		}
-+
-+		if (!mask)
-+			goto out;
-+	} else {
-+		mask = cpu_possible_mask;
-+	}
-+
-+	info->affinity = mask;
-+	info->flags = (IRQ_FWSPEC_INFO_FWSPEC_VALID |
-+		       IRQ_FWSPEC_INFO_AFFINITY_VALID);
-+out:
-+	return 0;
-+}
-+
- static const struct irq_domain_ops gic_irq_domain_ops = {
- 	.translate = gic_irq_domain_translate,
- 	.alloc = gic_irq_domain_alloc,
- 	.free = gic_irq_domain_free,
- 	.select = gic_irq_domain_select,
-+	.get_info = gic_irq_get_info,
- };
+-static int pmu_parse_percpu_irq(struct arm_pmu *pmu, int irq)
++static int pmu_parse_percpu_irq(struct arm_pmu *pmu, int irq,
++				const struct cpumask *affinity)
+ {
+-	int cpu, ret;
+ 	struct pmu_hw_events __percpu *hw_events = pmu->hw_events;
++	int cpu;
  
- static int partition_domain_translate(struct irq_domain *d,
-@@ -1839,6 +1890,7 @@ static int partition_domain_translate(struct irq_domain *d,
- static const struct irq_domain_ops partition_domain_ops = {
- 	.translate = partition_domain_translate,
- 	.select = gic_irq_domain_select,
-+	.get_info = gic_irq_get_info,
- };
+-	ret = irq_get_percpu_devid_partition(irq, &pmu->supported_cpus);
+-	if (ret)
+-		return ret;
++	cpumask_copy(&pmu->supported_cpus, affinity);
  
- static bool gic_enable_quirk_msm8996(void *data)
-@@ -2231,6 +2283,9 @@ static void __init gic_populate_ppi_partitions(struct device_node *gic_node)
- 		part_idx++;
+ 	for_each_cpu(cpu, &pmu->supported_cpus)
+ 		per_cpu(hw_events->irq, cpu) = irq;
+@@ -115,9 +114,12 @@ static int pmu_parse_irqs(struct arm_pmu *pmu)
  	}
  
-+	gic_data.parts = parts;
-+	gic_data.nr_parts = nr_parts;
+ 	if (num_irqs == 1) {
+-		int irq = platform_get_irq(pdev, 0);
++		const struct cpumask *affinity;
++		int irq;
 +
- 	for (i = 0; i < gic_data.ppi_nr; i++) {
- 		unsigned int irq;
- 		struct partition_desc *desc;
++		irq = platform_get_irq_affinity(pdev, 0, &affinity);
+ 		if ((irq > 0) && irq_is_percpu_devid(irq))
+-			return pmu_parse_percpu_irq(pmu, irq);
++			return pmu_parse_percpu_irq(pmu, irq, affinity);
+ 	}
+ 
+ 	if (nr_cpu_ids != 1 && !pmu_has_irq_affinity(dev->of_node))
 -- 
 2.39.2
 
