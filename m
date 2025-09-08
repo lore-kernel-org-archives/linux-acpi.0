@@ -1,46 +1,46 @@
-Received: from NAM12-BN8-obe.outbound.protection.outlook.com (mail-bn8nam12on2072.outbound.protection.outlook.com [40.107.237.72])
+Received: from NAM12-MW2-obe.outbound.protection.outlook.com (mail-mw2nam12on2061.outbound.protection.outlook.com [40.107.244.61])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C59EC30F94A;
-	Mon,  8 Sep 2025 15:41:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.237.72
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E52C30F53B;
+	Mon,  8 Sep 2025 15:41:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.244.61
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757346066; cv=fail; b=kEAvWqe7bUa4ny2gHX3J843+8isRwsfCoMhmvg7/osFcxgkRfN+Grw5ei09isoG4kvbCs/VeuNVAm3L/QS09FM/qDUu5obFREE2Y9MYw6iPoxMo1RIb0U/kFTognqHWJlgw5ykkItYiwhUJfapV/FL6I8dGshHTE+dmvfBTeneM=
+	t=1757346067; cv=fail; b=VzEH+yHxJ5ErnaO1R8UEMQOJR/IbBMqtle+yUznjV8iECyQnHqIgn+KMC0i6LRX02Bene2V+/L4P3V1Tm7XTpbLwVcDc6ykHElTgbS+zL4yQaZ7AlN3EsnY+9gBEoiPtCdD7ytVnf6eSZvvyxovGFQonID9BpkRy1lW3zzpcLz4=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757346066; c=relaxed/simple;
-	bh=77x9LotGz4q1pWU2rEqeRGQ0FKblUCqSUPOyv3VrGF8=;
+	s=arc-20240116; t=1757346067; c=relaxed/simple;
+	bh=DnP5dIsCL/uUORcjgeLDvuNE2dplQ1SdqwdWBQf2kGg=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-ID:References:
-	 In-Reply-To:To:CC; b=ti6Ol/dJyoobHaX/ze/wLNcI9yRio5WCLZiZiuYxZ5Y0QNktqWT0ROZIGgT7bvgh3PrtDrsuYShQvT/9dAS9bh+HyNu5oXYee72ey43JYwUIfUibdwgHf/XcK6YQCf2x5Mh9NNGcC+Ar4m2ecBdWriGwxNq0RlZIyQupLJg+Bh0=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=g4TsfL1L; arc=fail smtp.client-ip=40.107.237.72
+	 In-Reply-To:To:CC; b=WeGN/V+VZridmdxSEadvoYvchwq09NJxGx3KTsuOB4vXIGfwT/cgXKxW8SENGdcTD6BNRI4DGD1KHVb50WuKV34X3KP9NHPFdrvp0OSnAcyUCQebEpAOFlKDsBiwpIhufJOFljqgCOYUjGela9OOGBuNgY8zZAkTOdmq4v7TUfY=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=D7oMVl63; arc=fail smtp.client-ip=40.107.244.61
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="g4TsfL1L"
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="D7oMVl63"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=sI3ivR90m7Fe+i4P3kzM5oMNKE8qKnFfmjBcAXDI+sfuQfgR9lapU2wRr1XUeSctArTkIf1pqLjLvYMdNY65hIk+7rvswZufqGDoHedk+nzjyE57vhKtea9RtBmxuhK6lD3dO+IMbSMDCQ1Y0oVfsgvZ6yWCcaThDMhrewa58yzP8sVtKGqJxMR8F1jaNnwG5vPXdtt4BsBuYdUBui/kBvj1qO/V763FeXGOLo67aOtQPzRqF2Yc376m3ZUs51lIxvLLvvli2mIWXg7vm5BGD0iwMBnA64gxkrSlWYwLr2Psm0s+dYO6dvpMtmm6++7r1VjKnZY7aK/uMC0e+sPBMQ==
+ b=CbGwsv7p+fFKwhgAjqPPbBvQAg3lNCEjDDabWaFz00p1yc20akU1NNBeWgNCTpXS+CFPKCz3DLimsyMuoYpR1iu+sAuoyp/8CArA2++jCOzk41b/pNvUnduJdV1MoVYtV5uwNPBHJtBi44vOQqItOLBuFNcCDoLfvIK4v5kM6pNBsM0rs8GB3y5u85yQsHIy04T8+CMS2jbPEKraoRsbWTPiXT4WId9pvpvZOMfAmOaNmgP9w1udk/RsqqzGmlqIBg7Td/hZcOd0nCY0x+UtbJ4qtA6hSSzcUkHXwV88CxtOatnuaB39J2IV/wmCWLbOo9LZXIeNdsnuZxF0oPPaAg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=+3NQlZIGdz4iiviHwrtrXxCt/lgwIdNySNMmHRIDE2s=;
- b=gKu+sNJrj8AzYsc6ZUhK6+J6ckKWZ4Fnr5EZOphW9hQ/McAFkxw8JB2MHbWffJ2YijAuTR+w/FrauyQr0N7NpjweNVPcNrcMOW7w5b4pF+GkBsH1enh8tl0zggqOftfnlHqAbE8cxaJSfECAjoacGGK6hRUjVQzZ7vGrNNYly4v3n36vOB+7Huw2ye9RgirAriKJ070aN5i/lZzy3PWyqVXd2LPATAlNv3oXeN5UGSAYaxnVgSuAY2NxwNZjWg3ktJCNUQU/iXme4IMKBJO8cPkR3Giwbvy4hiT3n56G1IFut6hq7X81eRVHQQqWBGW2Jjs0TV0RJpKuGCAPtajgCg==
+ bh=N1s2grU9IgV1V9Iz8liZAOvJeBb1rty6Kpt26tyv4Ik=;
+ b=ugP/sldFiPtSDyDGn1ycahngCar3J95eiEFDcQH8wtFhO057zh3c3V2s+VwEDjQF9RgRt2lpmNYVbhRs1gecm124YtseCrkHQ7r1Wl3/UNU8FpbvfFWgBIeyoaxM3byVGA+oCpQEMJKdmyGXyB/CO0CeSZ5Cn0Ho0mlBtL6NmYk0u+c3MU5zs5oxinFmJGDjsH+3r8E+lsJWiW36PhwqZfi0wgZhWT96f0hJMZHeEJgeScIVUmGyMLDVLtk7SI5e+D02dbs1aJ0bwCdXHdnU2PfvzH3bVUFF5ZYA612mqW1pThTrFgHu0TYD2J6wVqKcfrrrDqQp48aYsmgUlVGIlQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  165.204.84.17) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=amd.com;
  dmarc=pass (p=quarantine sp=quarantine pct=100) action=none
  header.from=amd.com; dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=+3NQlZIGdz4iiviHwrtrXxCt/lgwIdNySNMmHRIDE2s=;
- b=g4TsfL1LcFCtH/FRE4o8iNScc6FjQWu+LgqDV63DPLWt8Tsa6cdDEZ2U5Pe/6EYsrhbq6Fj6DJj7etMNo+oRbiqo+y1MvVwf9L8LrBI4eAYhdsNf4aeTmBXYMd6bNfuB0tlGHXYi24IenXi+J/6JRixL7RcJn7E1wE9FwaZNhuA=
-Received: from CH2PR17CA0001.namprd17.prod.outlook.com (2603:10b6:610:53::11)
- by PH7PR12MB5760.namprd12.prod.outlook.com (2603:10b6:510:1d3::20) with
+ bh=N1s2grU9IgV1V9Iz8liZAOvJeBb1rty6Kpt26tyv4Ik=;
+ b=D7oMVl634oDQafjqrO6XHEME99gIrLeRZGC9vTIXUp67MxfKFenzWJQuQGkv8f2908EGL8tOWkdOdi8hsfEO+vig/z5BrVcP4kvuV4VuNMqgA4BES3JwzhwuFeP2WBiBqfa5sykT4IpIfQMBXUvjwhcXUfQY/feFdScFUTwKMvA=
+Received: from CH2PR17CA0023.namprd17.prod.outlook.com (2603:10b6:610:53::33)
+ by IA1PR12MB9031.namprd12.prod.outlook.com (2603:10b6:208:3f9::19) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9094.22; Mon, 8 Sep
- 2025 15:40:55 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9094.19; Mon, 8 Sep
+ 2025 15:41:00 +0000
 Received: from CH3PEPF0000000E.namprd04.prod.outlook.com
- (2603:10b6:610:53:cafe::80) by CH2PR17CA0001.outlook.office365.com
- (2603:10b6:610:53::11) with Microsoft SMTP Server (version=TLS1_3,
+ (2603:10b6:610:53:cafe::f0) by CH2PR17CA0023.outlook.office365.com
+ (2603:10b6:610:53::33) with Microsoft SMTP Server (version=TLS1_3,
  cipher=TLS_AES_256_GCM_SHA384) id 15.20.9094.22 via Frontend Transport; Mon,
- 8 Sep 2025 15:40:55 +0000
+ 8 Sep 2025 15:41:00 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
  smtp.mailfrom=amd.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=amd.com;
@@ -50,14 +50,15 @@ Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
 Received: from satlexmb07.amd.com (165.204.84.17) by
  CH3PEPF0000000E.mail.protection.outlook.com (10.167.244.42) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9115.13 via Frontend Transport; Mon, 8 Sep 2025 15:40:55 +0000
+ 15.20.9115.13 via Frontend Transport; Mon, 8 Sep 2025 15:41:00 +0000
 Received: from [127.0.1.1] (10.180.168.240) by satlexmb07.amd.com
  (10.181.42.216) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.17; Mon, 8 Sep
- 2025 08:40:54 -0700
+ 2025 08:40:58 -0700
 From: Yazen Ghannam <yazen.ghannam@amd.com>
-Date: Mon, 8 Sep 2025 15:40:30 +0000
-Subject: [PATCH v6 01/15] x86/mce: Set CR4.MCE last during init
+Date: Mon, 8 Sep 2025 15:40:35 +0000
+Subject: [PATCH v6 06/15] x86/mce: Move machine_check_poll() status checks
+ to helper functions
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -66,7 +67,7 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-ID: <20250908-wip-mca-updates-v6-1-eef5d6c74b9c@amd.com>
+Message-ID: <20250908-wip-mca-updates-v6-6-eef5d6c74b9c@amd.com>
 References: <20250908-wip-mca-updates-v6-0-eef5d6c74b9c@amd.com>
 In-Reply-To: <20250908-wip-mca-updates-v6-0-eef5d6c74b9c@amd.com>
 To: <x86@kernel.org>, Tony Luck <tony.luck@intel.com>, "Rafael J. Wysocki"
@@ -80,145 +81,206 @@ X-ClientProxiedBy: satlexmb07.amd.com (10.181.42.216) To satlexmb07.amd.com
  (10.181.42.216)
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CH3PEPF0000000E:EE_|PH7PR12MB5760:EE_
-X-MS-Office365-Filtering-Correlation-Id: f591b2e2-9ead-4cb1-6b18-08ddeeee19c1
+X-MS-TrafficTypeDiagnostic: CH3PEPF0000000E:EE_|IA1PR12MB9031:EE_
+X-MS-Office365-Filtering-Correlation-Id: 75def10f-76da-4996-c117-08ddeeee1c8a
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|82310400026|376014|36860700013;
+	BCL:0;ARA:13230040|82310400026|1800799024|376014|36860700013;
 X-Microsoft-Antispam-Message-Info:
-	=?utf-8?B?MWtQNHFkYW8xY1NjOGFpNnBncnFJemhIemJiSHZoZDNLZEk3Q3lVdGQ5T3FD?=
- =?utf-8?B?NWIxSmFzNXU2V3pkZDFVNkplcTNmMzdER2FDcm53TUovTTgwZ3d0VFluOUd3?=
- =?utf-8?B?UHVaWVRwamI0ekpVZXZPcEtBTGxEV3dENUJnZjlkOWxHcjJCSktvMHMzYUpq?=
- =?utf-8?B?cFJDYjdHMW1rM3A3L2Q1eWNLRUFPaEtxR0kwcEdhKzBnOFJvVHhvZXd3U0xs?=
- =?utf-8?B?Y084dGEveWN1NG1Zc0dxMEpka2tyWVhnSFplTnh4akdDbHkyMGE2Q0Rhc01j?=
- =?utf-8?B?SHArb09CQWhUNnBZWVJkNU5LTEduNTQxT2xSZUNhemFGQitlU3JPWnVtVnFu?=
- =?utf-8?B?MWVyYnlZN2lkK0hRajNGOUJzNG5na2l0Zy9HRiszQ1RNNm83ZkdVemRqUmZE?=
- =?utf-8?B?UFVqaSszdithSzU2TFQyYmprMHRBSzR1ck5meGVwQlhlUzY5Z3JsOU5pTWIr?=
- =?utf-8?B?VEYyemZSblA1Uk9KdFpHNWpvTElhZmU4bnJ1Z0EwWWIxbEZFUHR5c1BEeXRk?=
- =?utf-8?B?R1AxYW1Ub0R4b0Z2NEYvSERhZkJ6NDJ0TVFWak1vQXp3MFlaVHRsalcrNTEw?=
- =?utf-8?B?TnRjeDF0Tk41WlhaNXR0TlY0NG5reEhMQnVYYTVWNjlML0Z6VTBZTktLV1BJ?=
- =?utf-8?B?bG5RRTZSaTAzcXpDNGxlS2ptam42d2ZQWmh1ZjFuMk9sNURSTjQ3QUhGL2dr?=
- =?utf-8?B?dmtLOTFsdmlVeUlRRktUdlVzNDRSU0JNV3FmUU8zT2lya1BxYmEvOWhBbkxD?=
- =?utf-8?B?ME81dlRtMDdlVW9BejFtbGlOVXp4eWVPa2dDdFFuQXNwMDRLb3ZnVUtlUm4v?=
- =?utf-8?B?R0I1V0t5S0tXVklCQTREK21Ja1cyMFBtY0JDY0h6T2VBTlhhc1lzSC9ncHJ6?=
- =?utf-8?B?dytGWm9uZ2oxQlFZRkNMcFI4M09IM1lkV214UzlhNWVrb1dlM2lyT21HcGU2?=
- =?utf-8?B?dXJ0YU50YW9FVjdtR2tMV2EwUWFDWHRPUzhKV0dWRzRnWWNENTUydEtNSlZx?=
- =?utf-8?B?Nzl1RGl1ZDhxMm1GU2dtYVVVREpUdFJKSzFNOGZsZ1BZWDkxNmsxYXJsMVh0?=
- =?utf-8?B?ZGN2UkE5bkJwZ0tGdE5pbDZxanZDTzJuN1dNcGlGN1lLQUt6RkdQczFrL1Qx?=
- =?utf-8?B?R2RSbGNVazVWUjlhZXoyNS9HTEx4RlZxTVV5NXI1NE12Q1NCOG1DcE4yaGFi?=
- =?utf-8?B?MlFzRm0xKzlrTW03dk92THRoK1lWbTNkK01jRzVBVHdGQXAyMDlVS0lHMVd2?=
- =?utf-8?B?am5hUWZYa1MyQ1dySCtxanQ4dlUxL1VJTEtxTXVKNjFOdjN0MXd0cXk1a1pX?=
- =?utf-8?B?SHdmL2c0VDlhVjhwcDlaWFFQV2ZzL1JnVjNUNXB0M0hmVnFaakY5NDFvVEIv?=
- =?utf-8?B?SGxPODRMSnhLMjFCVHpPN3JYUTY5UFNXUVJ1V2REWmRNYWFkZWRFODBkSlpn?=
- =?utf-8?B?R3Y0Kyt4cm9PUkd1ZlJTWWV0Wk1wKzVKYThTTVNRdGxRVERJS201YkZZajRU?=
- =?utf-8?B?TjcxZnI1L2Z2dzNJcHljUGV6RTdZTDcwbSs0blRsTnlxb2ZYRkw3S043YjV5?=
- =?utf-8?B?dnRYSmM1blVGV004SnBIakVZMzNVVlB0Sk1razRIbjBVcGcycElnTjh2WEZz?=
- =?utf-8?B?MXd6NWR1OVAyQnNWZmtST0VTSWpFdFVWbmtPdmNUYzdJN1BOc0Vmc3o4ZUhr?=
- =?utf-8?B?VEM2b0h6L3RSQURqYU55RnBrdXQ0a1VTbkZZVEs1Q0Fad0plaUczeWRLTE9o?=
- =?utf-8?B?eDlJYnEwajJzQnhnd0RIYW5GUEZOdXRFNTRIYmdZZlZoSitxNExhQUFjMU9W?=
- =?utf-8?B?NTVEd1hRaEsxUVVXVDI4M0gwRmVKMHQzM3ltS2VyZWdZVG9FbXJrMFVyVDY3?=
- =?utf-8?B?QmpXYjkwSDdhczJlaUJLNE1RVlQxTjlrSUh3ei9yYlBSRHpUVHd0ZmcvYXZO?=
- =?utf-8?B?T2RYYXcyaFk2RFpTQzYwNEtueHpBdFhVVkEyK1Y3dXdVMVZ4ZFNlbG85Zk1S?=
- =?utf-8?B?WmlGVnlLb2xEOWZqSGdsKzErelFvV2g5NUhWNW1EemI0aS9sc3Y1c1NXb2J3?=
- =?utf-8?B?Q2dVUXd4YjRnQmxhMWVNajJXL1B5MWg4K0JMZz09?=
+	=?utf-8?B?MVpuN0R3OHRnSHY4MjFXeWhQL3N6ZnJYQkNDbTNzRlJSUFIyVVk1Qnk5TzVW?=
+ =?utf-8?B?b0ZWeEdNNXBQbDMvai9CR2x1L0k3a25OcDljMGxQZTNSb0x5MjRhNEJaeHZZ?=
+ =?utf-8?B?dE5COEFrNGE5djBJSDBpanBBaHd0Y3RKYXhLS1diM2lYQ0UyQ0tMcEJERzdp?=
+ =?utf-8?B?cVlnYkt1b1JTdXc2WG12clFBOU1QdDBIbllRTFVCOFZmbHRJK2k0VytjQjh5?=
+ =?utf-8?B?ZFYzeXY5SVlpcytrWU9Wc3dhRm9IQXJ3aU1lQmtNemlFa2dQN1BsQU15SGgw?=
+ =?utf-8?B?ck9HYVNMaWhaZlZQbGx2cU16aDI4cjd0V3RJOGNqQzI3c0dqU2ZTc3VpSkY2?=
+ =?utf-8?B?VURLOC92Tm53Q1Rqa2luWmNXTDAyRzBLeHNWR1VNb3NYRk5QSFdmR1hmWTFx?=
+ =?utf-8?B?RG02clMyeHROOSt4ajJmbWdzamZYakpRNjJ4dlpPallQVkRDaGpWeVBsZmpT?=
+ =?utf-8?B?SnArMnFoZmVBT3BkQTMzZzRDNEg0UUVpMGlVd29sOUlDMnZKNURWMGluUVdU?=
+ =?utf-8?B?bXFaa2p6b0VFMi91L1hUc29PYTZHbWRZQ3k4TzV1ZXB2amN1QTNBMjZjTFBD?=
+ =?utf-8?B?VzdLZGR4OWEwYm1BMXN1MWtKcFVWWTZjSEw0SEdZL2RVL05RdEUvVWRtbDJy?=
+ =?utf-8?B?eVJuemwyOFd2TVlKT3VhZTFPa0Zyc3V5NGpCV25hUVJVeFNocTVUWENmVzVl?=
+ =?utf-8?B?S3Q1b0RUdmtVdlVOeG5PSWFFd1RCZW4zUjUvRWR6MzdtbzZJcHAxaHM5aDVP?=
+ =?utf-8?B?dWs1VzNuZkJSZDhLSnRzZU5RZ09mNXp1YUwydTJZTnZJb253VUYrZGw4YVd2?=
+ =?utf-8?B?K0F4OUQ4TDBsVGdLajhEbjZBd3VBSTJCcURSMFYvcE45RTlHcEJZYUZFVENX?=
+ =?utf-8?B?U2l4V29vUHI4am93U0Z1ZzVZVGJnTWV3T29IRmhJSmZkeWU0V0RmMFZJZWRQ?=
+ =?utf-8?B?UDZKbThXc1g1cTNueVVZRit5K3A3Qmc1Y3hPK1BIUE5wMFRWRE9lTmkxNHh2?=
+ =?utf-8?B?VVFDZXNMOTVqdmp5Z3hpQnVKZjhjMXZzTzltSGhrRmRFY3hRRFNqMlZUQzQy?=
+ =?utf-8?B?K0hwZStCelZqRE9mTUtUWHFTd1BBdGhqajFnbm16YnJjd3g4QXhkVnFSdFB5?=
+ =?utf-8?B?U1VzVFpnTkM1bE9ZVGs0MitGL0U5d0RrWTBVQk5nMkptKzRaOHdVbmVCUDE3?=
+ =?utf-8?B?MHQzeUZPejBEL2VQRVJ3U3RYM1Z2aUVvRHlDM1lCdGYrUFVSYzBYLyt2V0VS?=
+ =?utf-8?B?YVR5MFd2UkJUd2hGOEp2a0lrNllOY3p5MmdZcEFPaGhIdDFWQlcxK3dnQ05T?=
+ =?utf-8?B?MHROSzdpR3pTeHNsR2gvZndnVVVYVGZ4SFd1UTdXM0lBMWZ2RGc1OEZkZUpa?=
+ =?utf-8?B?d3doZWdOWFZXbDVQRWdLUytKbW5CR2RYci9lN0ZxWVYxbjFhbVZJdXRKQUdP?=
+ =?utf-8?B?ak8wY1prQm4xaTVvRVRNQzFSUHVyUHo4ZjFDSUNIbHdSV3UxaVlROTBTbWcz?=
+ =?utf-8?B?RUxjVEpkeDBXQjlBdEd5RXlLS3hkTll5V1cyYzVSRVV4MFpFbzBoMmF0VUQ5?=
+ =?utf-8?B?QVo0RXloeTRqbU9nc3ZHVE81Ky9ycTFvMzd0OGZraCtYRkRCaWF1V1VDMUc1?=
+ =?utf-8?B?WENUb1JvWGRZV2FSc3JPUm5TNDhDTC9IVlZrNkd6NmN0dmNXY0ljejVBWGVZ?=
+ =?utf-8?B?OEpraUYzajExMHZ4MmpVNVhIZ1lPcDByNmhwM241ZktvQ2ZVWGZoZG9raUE5?=
+ =?utf-8?B?TXZESHZlbjZObFRkQkMyVlBWQ0swcjBkSjkxTXlmQXEycjB0Y0hqcXhrQkxV?=
+ =?utf-8?B?MlAyZnFReDJsVkZRbFh4UlpOc09tcDJ6ZVBQbjBzOEJSNTJYSUNwWjQ3ZzRI?=
+ =?utf-8?B?cXI4eUxDZUNHUXVRbVE5VzlsTGhONmRQUzBTTTljbm42N1llVnZyMndicnB5?=
+ =?utf-8?B?QlB3WENydDBuRjJZVGgyaTk2ZW5POWJ2NWtha0cwY2hLU1ZObUVJOUtsMzg3?=
+ =?utf-8?B?djV0RzBrMCtrMHNXMkFBUU5sUWsxYndPVHpiaW5abG9NamY3bFhZY1g4VExu?=
+ =?utf-8?Q?paEzGs?=
 X-Forefront-Antispam-Report:
-	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(1800799024)(82310400026)(376014)(36860700013);DIR:OUT;SFP:1101;
+	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(82310400026)(1800799024)(376014)(36860700013);DIR:OUT;SFP:1101;
 X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Sep 2025 15:40:55.7670
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Sep 2025 15:41:00.4413
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: f591b2e2-9ead-4cb1-6b18-08ddeeee19c1
+X-MS-Exchange-CrossTenant-Network-Message-Id: 75def10f-76da-4996-c117-08ddeeee1c8a
 X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb07.amd.com]
 X-MS-Exchange-CrossTenant-AuthSource:
 	CH3PEPF0000000E.namprd04.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR12MB5760
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR12MB9031
 
-Set the CR4.MCE bit as the last step during init. This brings the MCA
-init flow closer to what is described in the x86 docs.
+There are a number of generic and vendor-specific status checks in
+machine_check_poll(). These are used to determine if an error should be
+skipped.
 
-x86 docs:
-	AMD		Intel
-			MCG_CTL
-	MCA_CONFIG	MCG_EXT_CTL
-	MCi_CTL		MCi_CTL
-	MCG_CTL
-	CR4.MCE		CR4.MCE
+Move these into helper functions. Future vendor-specific checks will be
+added to the helpers.
 
-Current Linux:
-	AMD		Intel
-	CR4.MCE		CR4.MCE
-	MCG_CTL		MCG_CTL
-	MCA_CONFIG	MCG_EXT_CTL
-	MCi_CTL		MCi_CTL
-
-Updated Linux:
-	AMD		Intel
-	MCG_CTL		MCG_CTL
-	MCA_CONFIG	MCG_EXT_CTL
-	MCi_CTL		MCi_CTL
-	CR4.MCE		CR4.MCE
-
-The new init flow will match Intel's docs, but there will still be a
-mismatch for AMD regarding MCG_CTL. However, there is no known issue
-with this ordering, so leave it for now.
-
+Reviewed-by: Qiuxu Zhuo <qiuxu.zhuo@intel.com>
+Tested-by: Tony Luck <tony.luck@intel.com>
+Reviewed-by: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Yazen Ghannam <yazen.ghannam@amd.com>
 ---
 
 Notes:
     Link:
-    https://lore.kernel.org/r/20250825-wip-mca-updates-v5-7-865768a2eef8@amd.com
+    https://lore.kernel.org/r/20250825-wip-mca-updates-v5-12-865768a2eef8@amd.com
     
     v5->v6:
-    * Only move CR4.MCE programming.
-    * Update commit message to match the new change.
+    * No change.
     
     v4->v5:
-    * New in v5.
+    * No change.
+    
+    v3->v4:
+    * No change.
+    
+    v2->v3:
+    * Add tags from Qiuxu and Tony.
+    
+    v1->v2:
+    * Change log_poll_error() to should_log_poll_error().
+    * Keep code comment.
 
- arch/x86/kernel/cpu/mce/core.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ arch/x86/kernel/cpu/mce/core.c | 88 +++++++++++++++++++++++-------------------
+ 1 file changed, 48 insertions(+), 40 deletions(-)
 
 diff --git a/arch/x86/kernel/cpu/mce/core.c b/arch/x86/kernel/cpu/mce/core.c
-index 0326fbb83adc..9e31834b3542 100644
+index 7fd86c8006ba..5dec0da6169e 100644
 --- a/arch/x86/kernel/cpu/mce/core.c
 +++ b/arch/x86/kernel/cpu/mce/core.c
-@@ -1850,8 +1850,6 @@ static void __mcheck_cpu_init_generic(void)
- {
- 	u64 cap;
+@@ -714,6 +714,52 @@ static noinstr void mce_read_aux(struct mce_hw_err *err, int i)
  
--	cr4_set_bits(X86_CR4_MCE);
--
- 	rdmsrq(MSR_IA32_MCG_CAP, cap);
- 	if (cap & MCG_CTL_P)
- 		wrmsr(MSR_IA32_MCG_CTL, 0xffffffff, 0xffffffff);
-@@ -2276,6 +2274,7 @@ void mcheck_cpu_init(struct cpuinfo_x86 *c)
- 	__mcheck_cpu_init_vendor(c);
- 	__mcheck_cpu_init_prepare_banks();
- 	__mcheck_cpu_setup_timer();
-+	cr4_set_bits(X86_CR4_MCE);
- }
+ DEFINE_PER_CPU(unsigned, mce_poll_count);
  
++/*
++ * Newer Intel systems that support software error
++ * recovery need to make additional checks. Other
++ * CPUs should skip over uncorrected errors, but log
++ * everything else.
++ */
++static bool ser_should_log_poll_error(struct mce *m)
++{
++	/* Log "not enabled" (speculative) errors */
++	if (!(m->status & MCI_STATUS_EN))
++		return true;
++
++	/*
++	 * Log UCNA (SDM: 15.6.3 "UCR Error Classification")
++	 * UC == 1 && PCC == 0 && S == 0
++	 */
++	if (!(m->status & MCI_STATUS_PCC) && !(m->status & MCI_STATUS_S))
++		return true;
++
++	return false;
++}
++
++static bool should_log_poll_error(enum mcp_flags flags, struct mce_hw_err *err)
++{
++	struct mce *m = &err->m;
++
++	/* If this entry is not valid, ignore it. */
++	if (!(m->status & MCI_STATUS_VAL))
++		return false;
++
++	/*
++	 * If we are logging everything (at CPU online) or this
++	 * is a corrected error, then we must log it.
++	 */
++	if ((flags & MCP_UC) || !(m->status & MCI_STATUS_UC))
++		return true;
++
++	if (mca_cfg.ser)
++		return ser_should_log_poll_error(m);
++
++	if (m->status & MCI_STATUS_UC)
++		return false;
++
++	return true;
++}
++
  /*
-@@ -2443,6 +2442,7 @@ static void mce_syscore_resume(void)
- 	__mcheck_cpu_init_generic();
- 	__mcheck_cpu_init_vendor(raw_cpu_ptr(&cpu_info));
- 	__mcheck_cpu_init_prepare_banks();
-+	cr4_set_bits(X86_CR4_MCE);
- }
+  * Poll for corrected events or events that happened before reset.
+  * Those are just logged through /dev/mcelog.
+@@ -765,48 +811,10 @@ void machine_check_poll(enum mcp_flags flags, mce_banks_t *b)
+ 		if (!mca_cfg.cmci_disabled)
+ 			mce_track_storm(m);
  
- static struct syscore_ops mce_syscore_ops = {
-@@ -2462,6 +2462,7 @@ static void mce_cpu_restart(void *data)
- 	__mcheck_cpu_init_generic();
- 	__mcheck_cpu_init_prepare_banks();
- 	__mcheck_cpu_init_timer();
-+	cr4_set_bits(X86_CR4_MCE);
- }
+-		/* If this entry is not valid, ignore it */
+-		if (!(m->status & MCI_STATUS_VAL))
++		/* Verify that the error should be logged based on hardware conditions. */
++		if (!should_log_poll_error(flags, &err))
+ 			continue;
  
- /* Reinit MCEs after user configuration changes */
+-		/*
+-		 * If we are logging everything (at CPU online) or this
+-		 * is a corrected error, then we must log it.
+-		 */
+-		if ((flags & MCP_UC) || !(m->status & MCI_STATUS_UC))
+-			goto log_it;
+-
+-		/*
+-		 * Newer Intel systems that support software error
+-		 * recovery need to make additional checks. Other
+-		 * CPUs should skip over uncorrected errors, but log
+-		 * everything else.
+-		 */
+-		if (!mca_cfg.ser) {
+-			if (m->status & MCI_STATUS_UC)
+-				continue;
+-			goto log_it;
+-		}
+-
+-		/* Log "not enabled" (speculative) errors */
+-		if (!(m->status & MCI_STATUS_EN))
+-			goto log_it;
+-
+-		/*
+-		 * Log UCNA (SDM: 15.6.3 "UCR Error Classification")
+-		 * UC == 1 && PCC == 0 && S == 0
+-		 */
+-		if (!(m->status & MCI_STATUS_PCC) && !(m->status & MCI_STATUS_S))
+-			goto log_it;
+-
+-		/*
+-		 * Skip anything else. Presumption is that our read of this
+-		 * bank is racing with a machine check. Leave the log alone
+-		 * for do_machine_check() to deal with it.
+-		 */
+-		continue;
+-
+-log_it:
+ 		mce_read_aux(&err, i);
+ 		m->severity = mce_severity(m, NULL, NULL, false);
+ 		/*
 
 -- 
 2.51.0
