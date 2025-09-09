@@ -1,25 +1,25 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 3C0EA371EA6;
-	Tue,  9 Sep 2025 16:57:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id AACC0362087;
+	Tue,  9 Sep 2025 16:57:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757437055; cv=none; b=XLMVw+1XmXkOvS58lzCr+jxsXDJeb7BDt5PwljHVuM7lqMHIQylrG/zCz66OjKPwwm9HDAgzJ00VnwebFVcOJawFkhUJZT3fW1xAdQkYV0hiqqHAnR3AS+fEGb2ANSV/FsBfAbqnxZr5DABwiw/9fKKVNDlkdTqR9EX/IvlJ0cw=
+	t=1757437062; cv=none; b=TmkBorBOOCrDiyyiKrL6hcE00cjlDakkkso57a6xzNFGEcXj/Ztjwmrj5YS+MSxKdVMMoeVCFNM38o1R6nf/+ABWtXA+0HBw5yqv/8gyX1vwlxqg8/kETxZIA2guol1beFiI2ODMuph7mgxYR3om9sgeSM9cn6ORGV/wUy+jcJk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757437055; c=relaxed/simple;
-	bh=ln9VFRt7yyw3cu3AlJWX2zgOXdCM8GySL4/KhrfAA9o=;
+	s=arc-20240116; t=1757437062; c=relaxed/simple;
+	bh=4dSZ165qmpGFOYD4MEJwykS+T7jpCQJECJirqZzh1lA=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=ocE4LURd0rDKTumWMFNa1z8bhsPut5Q1wPR1htWJsk+pi5OfKMWwxhZYc8OUAVja0qkh2hJZj0aAglRHVcvSV/ugWjdYaG9YiZLLsL35rqqEEAxyiKzy5mshcyIwsZsHpwB3GKMO0Ye/DnyRxv5Mn8zluVqFOD3U9dzfhYP+wu4=
+	 In-Reply-To:Content-Type; b=p7t3flQB8qZW71WvUS0DRJxpx9sUxgyInrLLwL+ljO+Ts71z4Yf1o9a7b3KJGccEPZALlUyruSC/FRj+RqIV2i/Ehe7hZDbe+l2BlPcX3BjSyKmttRvQm0GDo3Fc4I1xtpY1T57X6uCm5EMsigiv+DpZoqsUGZkGfiS0qsJMriE=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 1201815A1;
-	Tue,  9 Sep 2025 09:57:25 -0700 (PDT)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id BB5762008;
+	Tue,  9 Sep 2025 09:57:31 -0700 (PDT)
 Received: from [10.1.197.69] (eglon.cambridge.arm.com [10.1.197.69])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 9EF853F694;
-	Tue,  9 Sep 2025 09:57:27 -0700 (PDT)
-Message-ID: <c4e6aff7-913f-41d4-b578-88e5d008ca9a@arm.com>
-Date: Tue, 9 Sep 2025 17:57:06 +0100
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id C76363F694;
+	Tue,  9 Sep 2025 09:57:33 -0700 (PDT)
+Message-ID: <fe25e8e0-4b3a-4427-8356-9235252db226@arm.com>
+Date: Tue, 9 Sep 2025 17:57:25 +0100
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -27,9 +27,9 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 16/33] arm_mpam: Add helpers for managing the locking
- around the mon_sel registers
-To: Fenghua Yu <fenghuay@nvidia.com>, linux-kernel@vger.kernel.org,
+Subject: Re: [PATCH 18/33] arm_mpam: Merge supported features during
+ mpam_enable() into mpam_class
+To: Ben Horgan <ben.horgan@arm.com>, linux-kernel@vger.kernel.org,
  linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org,
  devicetree@vger.kernel.org
 Cc: shameerali.kolothum.thodi@huawei.com,
@@ -41,9 +41,9 @@ Cc: shameerali.kolothum.thodi@huawei.com,
  dfustini@baylibre.com, amitsinght@marvell.com,
  David Hildenbrand <david@redhat.com>, Rex Nie <rex.nie@jaguarmicro.com>,
  Dave Martin <dave.martin@arm.com>, Koba Ko <kobak@nvidia.com>,
- Shanker Donthineni <sdonthineni@nvidia.com>, baisheng.gao@unisoc.com,
- Jonathan Cameron <jonathan.cameron@huawei.com>, Rob Herring
- <robh@kernel.org>, Rohit Mathew <rohit.mathew@arm.com>,
+ Shanker Donthineni <sdonthineni@nvidia.com>, fenghuay@nvidia.com,
+ baisheng.gao@unisoc.com, Jonathan Cameron <jonathan.cameron@huawei.com>,
+ Rob Herring <robh@kernel.org>, Rohit Mathew <rohit.mathew@arm.com>,
  Rafael Wysocki <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
  Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo
  <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@arm.com>,
@@ -53,87 +53,39 @@ Cc: shameerali.kolothum.thodi@huawei.com,
  Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
  Danilo Krummrich <dakr@kernel.org>
 References: <20250822153048.2287-1-james.morse@arm.com>
- <20250822153048.2287-17-james.morse@arm.com>
- <4c8da7b3-6235-4d0a-aeb1-81c8bdfd051a@nvidia.com>
+ <20250822153048.2287-19-james.morse@arm.com>
+ <b8af1782-0fb8-4e6e-8895-b229a1c67ebe@arm.com>
 Content-Language: en-GB
 From: James Morse <james.morse@arm.com>
-In-Reply-To: <4c8da7b3-6235-4d0a-aeb1-81c8bdfd051a@nvidia.com>
+In-Reply-To: <b8af1782-0fb8-4e6e-8895-b229a1c67ebe@arm.com>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 
-Hi Fenghua,
+Hi Ben,
 
-On 28/08/2025 18:07, Fenghua Yu wrote:
-> On 8/22/25 08:29, James Morse wrote:
->> The MSC MON_SEL register needs to be accessed from hardirq context by the
->> PMU drivers, making an irqsave spinlock the obvious lock to protect these
->> registers. On systems with SCMI mailboxes it must be able to sleep, meaning
->> a mutex must be used.
+On 29/08/2025 14:54, Ben Horgan wrote:
+> On 8/22/25 16:29, James Morse wrote:
+>> To make a decision about whether to expose an mpam class as
+>> a resctrl resource we need to know its overall supported
+>> features and properties.
 >>
->> Clearly these two can't exist at the same time.
+>> Once we've probed all the resources, we can walk the tree
+>> and produce overall values by merging the bitmaps. This
+>> eliminates features that are only supported by some MSC
+>> that make up a component or class.
 >>
->> Add helpers for the MON_SEL locking. The outer lock must be taken in a
->> pre-emptible context before the inner lock can be taken. On systems with
->> SCMI mailboxes where the MON_SEL accesses must sleep - the inner lock
->> will fail to be 'taken' if the caller is unable to sleep. This will allow
->> the PMU driver to fail without having to check the interface type of
->> each MSC.
+>> If bitmap properties are mismatched within a component we
+>> cannot support the mismatched feature.
+>>
+>> Care has to be taken as vMSC may hold mismatched RIS.
+
+> Intricate but, as far as I can tell, all correct.
+Yeah - its cpufeature.c all over again.
 
 
->> diff --git a/drivers/resctrl/mpam_internal.h b/drivers/resctrl/mpam_internal.h
->> index a623f405ddd8..c6f087f9fa7d 100644
->> --- a/drivers/resctrl/mpam_internal.h
->> +++ b/drivers/resctrl/mpam_internal.h
->> @@ -68,10 +68,19 @@ struct mpam_msc {
->>         /*
->>        * mon_sel_lock protects access to the MSC hardware registers that are
->> -     * affeted by MPAMCFG_MON_SEL.
->> +     * affected by MPAMCFG_MON_SEL, and the mbwu_state.
->> +     * Both the 'inner' and 'outer' must be taken.
->> +     * For real MMIO MSC, the outer lock is unnecessary - but keeps the
->> +     * code common with:
->> +     * Firmware backed MSC need to sleep when accessing the MSC, which
->> +     * means some code-paths will always fail. For these MSC the outer
->> +     * lock is providing the protection, and the inner lock fails to
->> +     * be taken if the task is unable to sleep.
->> +     *
->>        * If needed, take msc->probe_lock first.
->>        */
->>       struct mutex        outer_mon_sel_lock;
->> +    bool            outer_lock_held;
-
-> Is it better to define outer_lock_held at atomic_t?
-
-Writes a protected by the outer lock, its just something to generate a warning for debug.
-I can make it a READ_ONCE() if you're worried about torn values in the failure case.
-(as its just for debug, I'm not worried about false-negatives)
+> Reviewed-by: Ben Horgan <ben.horgan@arm.com>
 
 
->>       raw_spinlock_t        inner_mon_sel_lock;
->>       unsigned long        inner_mon_sel_flags;
->>   @@ -81,6 +90,52 @@ struct mpam_msc {
->>       struct mpam_garbage    garbage;
->>   };
->>   +static inline bool __must_check mpam_mon_sel_inner_lock(struct mpam_msc *msc)
->> +{
->> +    /*
->> +     * The outer lock may be taken by a CPU that then issues an IPI to run
->> +     * a helper that takes the inner lock. lockdep can't help us here.
->> +     */
->> +    WARN_ON_ONCE(!msc->outer_lock_held);
-> 
-> At this point, msc->outer_lock_held might not be true yet due to no memory barrier on it
-> on this CPU.
-
-The IPI machinery has this covered:
-https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/drivers/irqchip/irq-gic.c#n838
-
-
-> If it's atomic_t and it's set as true on another CPU by smp_store_release(),
-> it's guaranteed to be visible as true on this CPU. Without atomic setting, we may see a
-> false warning here and cause debug difficult.
-
-
-Thanks,
+Thanks!
 
 James
