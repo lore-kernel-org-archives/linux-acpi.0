@@ -1,234 +1,153 @@
-Received: from out30-100.freemail.mail.aliyun.com (out30-100.freemail.mail.aliyun.com [115.124.30.100])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED062313547;
-	Wed, 10 Sep 2025 09:34:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.100
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1003A285CAF;
+	Wed, 10 Sep 2025 09:37:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757496860; cv=none; b=LERKrxqJRC52MpuinMpDAGqeS/g1LyWdvsyYwL9xHRjv5gKu8UbeWfguX0f1sDSPjflFLwoMa+qHHpDwRMPirZX6DzQiopRDHY4/b8jrIDkPUERCf3ktSytaPXWG6sOoIw0gbBYPt3CsTg6dyJfYEJ4FtqZUUm/usH67PpmtFmI=
+	t=1757497034; cv=none; b=PNFY0hCVDnORwLBd33VA+ct3KDB/Kjf/uW5k/tBs1MTd+uWDwC0Opf3qXco2i80xpe8x9Y0+y5DK7TmA51Hgrs3LN7l+q3kKY6wexomVp9PxgeGwgazj38gPOpWhafjYH6O5iswmywFFR59/3UYVIwEMZKiNjI7kp7+Og9OfoFY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757496860; c=relaxed/simple;
-	bh=vb7ysZHJXr577SA49vAnSzIHlezKX5EJr+tN8E4GHQk=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=eSqt2aUuv5XUIcrq0kYEc6Gcgf/sz4n+6AzfaxBKhtXyzkFCRF6wUdUaMZXZkd2n/KRObxQdT+RAM4+ZzaEjvKgjovScl3u9+pGl0vQ0qlZhpRQ3LjgvWLZYAaHP4vyeTyISTU7QoZbNFAi9XMNDnk2CqPOGOX/nyxD7yR9rPvM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=ehgkz+qQ; arc=none smtp.client-ip=115.124.30.100
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+	s=arc-20240116; t=1757497034; c=relaxed/simple;
+	bh=28Z83TYU1HcXY9gGFlYZe5FSkvWNJL9vWbrzyGS+5pM=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=doJN3gpdvbbUb//4eIH52v2gf2qkcsjNQXMn4kcz4uAZmehq45rgNzMGVYCBCqynlNbE+z4g5WgBqnbAN/eA8uQtfJ/l2py+xWiBxKdMLTrvE6AU83Ycy1wfdTGvqnp3FM3NljqTKEXkBV1FNu3lAi3BwAErFaaiwubLqcMmiH0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=LrFC/fE/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="ehgkz+qQ"
-DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux.alibaba.com; s=default;
-	t=1757496848; h=From:To:Subject:Date:Message-Id:MIME-Version;
-	bh=5iaWrlk2P/qazoj+ucrjuJcazBZzpbTMnF2UzUvRWzk=;
-	b=ehgkz+qQ5zGXoB2Nb0SoBssgqv9IidQV8HS+xmYyLDrI3LMzXxyzTnvHmaFKIBy7qfrJNrCsn7qRKYrA1z15cC29ePYkYZqRLayQJHizvvNzhefPQ7J4pj3SGAgj4w/iUY5BiqN/DSpPhwoLi/Qj4rZ9Zea6bOQ8G2PJ09u6mOo=
-Received: from localhost(mailfrom:tianruidong@linux.alibaba.com fp:SMTPD_---0WnhXsbO_1757496846 cluster:ay36)
-          by smtp.aliyun-inc.com;
-          Wed, 10 Sep 2025 17:34:08 +0800
-From: Ruidong Tian <tianruidong@linux.alibaba.com>
-To: xueshuai@linux.alibaba.com,
-	palmer@dabbelt.com,
-	paul.walmsley@sifive.com,
-	linux-riscv@lists.infradead.org,
-	linux-kernel@vger.kernel.org,
-	linux-acpi@vger.kernel.org
-Cc: james.morse@arm.com,
-	tony.luck@intel.com,
-	cleger@rivosinc.com,
-	hchauhan@ventanamicro.com,
-	tianruidong@linux.alibaba.com
-Subject: [RFC PATCH 4/5] riscv: Introduce HEST HEE notification handlers for APEI
-Date: Wed, 10 Sep 2025 17:33:46 +0800
-Message-Id: <20250910093347.75822-5-tianruidong@linux.alibaba.com>
-X-Mailer: git-send-email 2.33.1
-In-Reply-To: <20250910093347.75822-1-tianruidong@linux.alibaba.com>
-References: <20250910093347.75822-1-tianruidong@linux.alibaba.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LrFC/fE/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D8B1C4CEF8;
+	Wed, 10 Sep 2025 09:37:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1757497033;
+	bh=28Z83TYU1HcXY9gGFlYZe5FSkvWNJL9vWbrzyGS+5pM=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=LrFC/fE/oDv/+Dn6Np09etM9Npqz03ErTqdlyl7GKVA9kDhwpcpp4HvrUmXaxz6Lo
+	 PKnUha90vZwmj5z5nri8qBNVmZnEnuIEgLcKVUsy2EU7IHPyot8jgZRE3o2p2R6ujq
+	 wE1hGalT7vT8CI2atXShbN0g5NOIOz2S39qEtH5pvXqLSg6bY7SOvY33Q8bR8s0mSa
+	 umY/oqnMyLkWte8iHy9yhhP30C3FDhBGtjZjiPWDfPALd9LJ9diSrYxZPnyZbwMe5i
+	 SnowW6qqWGUwd34SGJReguDbIKG5SBEkYaR80Xp9JLIdXMPGRNa+AfwpUhyFq2kpeF
+	 /tOMZGmjuVLDw==
+Message-ID: <12816b79-c9b0-43d1-9b99-a1e7c7d73571@kernel.org>
+Date: Wed, 10 Sep 2025 11:37:10 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v1] ACPI: video: Fix missing backlight node creation on
+ Zhaoxin platforms
+To: Zihuan Zhang <zhangzihuan@kylinos.cn>,
+ "Rafael J . wysocki" <rafael@kernel.org>
+Cc: Len Brown <lenb@kernel.org>, Mario Limonciello
+ <mario.limonciello@amd.com>, linux-acpi@vger.kernel.org,
+ linux-kernel@vger.kernel.org, stable@vger.kernel.org
+References: <20250910074711.1511753-1-zhangzihuan@kylinos.cn>
+From: Hans de Goede <hansg@kernel.org>
+Content-Language: en-US, nl
+In-Reply-To: <20250910074711.1511753-1-zhangzihuan@kylinos.cn>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Add functions to register a ghes entry with HEE, allowing the OS
-to receive hardware error notifications from firmware through
-standardized ACPI interfaces.
+Hi Zihuan,
 
-Signed-off-by: Ruidong Tian <tianruidong@linux.alibaba.com>
----
- arch/riscv/Kconfig              |  1 +
- arch/riscv/include/asm/fixmap.h |  6 ++++
- drivers/acpi/apei/Kconfig       | 12 +++++++
- drivers/acpi/apei/ghes.c        | 58 +++++++++++++++++++++++++++++++++
- include/acpi/ghes.h             |  6 ++++
- 5 files changed, 83 insertions(+)
+On 10-Sep-25 9:47 AM, Zihuan Zhang wrote:
+> Some recent Lenovo and Inspur machines with Zhaoxin CPUs fail to create
+> /sys/class/backlight/acpi_video0 on v6.6 kernels, while the same hardware
+> works correctly on v5.4.
+> 
+> Our analysis shows that the current implementation assumes the presence of a
+> GPU. The backlight registration is only triggered if a GPU is detected, but on
+> these platforms the backlight is handled purely by the EC without any GPU.
+> As a result, the detection path does not create the expected backlight node.
+> 
+> To fix this, move the following logic:
+> 
+> /* Use ACPI video if available, except when native should be preferred. */
+> if ((video_caps & ACPI_VIDEO_BACKLIGHT) &&
+>     !(native_available && prefer_native_over_acpi_video()))
+>         return acpi_backlight_video;
+> 
+> above the if (auto_detect) *auto_detect = true; statement.
+> 
+> This ensures that the ACPI video backlight node is created even when no GPU is
+> present, restoring the correct behavior observed on older kernels.
+> 
+> Fixes: 78dfc9d1d1ab ("ACPI: video: Add auto_detect arg to __acpi_video_get_backlight_type()")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Zihuan Zhang <zhangzihuan@kylinos.cn>
 
-diff --git a/arch/riscv/Kconfig b/arch/riscv/Kconfig
-index a4b233a0659e..b085e172b355 100644
---- a/arch/riscv/Kconfig
-+++ b/arch/riscv/Kconfig
-@@ -23,6 +23,7 @@ config RISCV
- 	select ARCH_ENABLE_MEMORY_HOTREMOVE if MEMORY_HOTPLUG
- 	select ARCH_ENABLE_SPLIT_PMD_PTLOCK if PGTABLE_LEVELS > 2
- 	select ARCH_ENABLE_THP_MIGRATION if TRANSPARENT_HUGEPAGE
-+	select HAVE_ACPI_APEI if (ACPI && EFI)
- 	select ARCH_HAS_BINFMT_FLAT
- 	select ARCH_HAS_CURRENT_STACK_POINTER
- 	select ARCH_HAS_DEBUG_VIRTUAL if MMU
-diff --git a/arch/riscv/include/asm/fixmap.h b/arch/riscv/include/asm/fixmap.h
-index 0a55099bb734..07421edc9daa 100644
---- a/arch/riscv/include/asm/fixmap.h
-+++ b/arch/riscv/include/asm/fixmap.h
-@@ -38,6 +38,12 @@ enum fixed_addresses {
- 	FIX_TEXT_POKE0,
- 	FIX_EARLYCON_MEM_BASE,
- 
-+#ifdef CONFIG_ACPI_APEI_HEE
-+	/* Used for GHES mapping from assorted contexts */
-+	FIX_APEI_GHES_IRQ,
-+	FIX_APEI_GHES_HEE,
-+#endif /* CONFIG_ACPI_APEI_GHES */
-+
- 	__end_of_permanent_fixed_addresses,
- 	/*
- 	 * Temporary boot-time mappings, used by early_ioremap(),
-diff --git a/drivers/acpi/apei/Kconfig b/drivers/acpi/apei/Kconfig
-index 070c07d68dfb..d54a295cfc8d 100644
---- a/drivers/acpi/apei/Kconfig
-+++ b/drivers/acpi/apei/Kconfig
-@@ -46,6 +46,18 @@ config ACPI_APEI_SEA
- 	depends on ARM64 && ACPI_APEI_GHES
- 	default y
- 
-+config ACPI_APEI_HEE
-+	bool "APEI Hardware Error Exception support"
-+	depends on RISCV && ACPI_APEI_GHES
-+	default y
-+	help
-+	  Enable support for RISC-V Hardware Error Exception (HEE) notification
-+	  in ACPI Platform Error Interface (APEI). This allows firmware
-+	  to report hardware errors through RISC-V exception mechanism.
-+
-+	  Say Y if you want to support firmware-first error handling
-+	  on RISC-V platforms with ACPI.
-+
- config ACPI_APEI_MEMORY_FAILURE
- 	bool "APEI memory error recovering support"
- 	depends on ACPI_APEI && MEMORY_FAILURE
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index a0d54993edb3..1011e28091dc 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -97,6 +97,11 @@
- #define FIX_APEI_GHES_SDEI_CRITICAL	__end_of_fixed_addresses
- #endif
- 
-+#if !defined(CONFIG_X86) && !defined(CONFIG_ARM64)
-+#define FIX_APEI_GHES_NMI		__end_of_fixed_addresses
-+#define FIX_APEI_GHES_SEA		__end_of_fixed_addresses
-+#endif
-+
- static ATOMIC_NOTIFIER_HEAD(ghes_report_chain);
- 
- static inline bool is_hest_type_generic_v2(struct ghes *ghes)
-@@ -1415,6 +1420,45 @@ static inline void ghes_sea_add(struct ghes *ghes) { }
- static inline void ghes_sea_remove(struct ghes *ghes) { }
- #endif /* CONFIG_ACPI_APEI_SEA */
- 
-+#ifdef CONFIG_ACPI_APEI_HEE
-+static LIST_HEAD(ghes_hee);
-+
-+/*
-+ * Return 0 only if one of the HEE error sources successfully reported an error
-+ * record sent from the firmware.
-+ */
-+int ghes_notify_hee(void)
-+{
-+	static DEFINE_RAW_SPINLOCK(ghes_notify_lock_hee);
-+	int rv;
-+
-+	raw_spin_lock(&ghes_notify_lock_hee);
-+	rv = ghes_in_nmi_spool_from_list(&ghes_hee, FIX_APEI_GHES_HEE);
-+	raw_spin_unlock(&ghes_notify_lock_hee);
-+
-+	return rv;
-+}
-+EXPORT_SYMBOL_GPL(ghes_notify_hee);
-+
-+static void ghes_hee_add(struct ghes *ghes)
-+{
-+	mutex_lock(&ghes_list_mutex);
-+	list_add_rcu(&ghes->list, &ghes_hee);
-+	mutex_unlock(&ghes_list_mutex);
-+}
-+
-+static void ghes_hee_remove(struct ghes *ghes)
-+{
-+	mutex_lock(&ghes_list_mutex);
-+	list_del_rcu(&ghes->list);
-+	mutex_unlock(&ghes_list_mutex);
-+	synchronize_rcu();
-+}
-+#else /* CONFIG_ACPI_APEI_HEE */
-+static inline void ghes_hee_add(struct ghes *ghes) { }
-+static inline void ghes_hee_remove(struct ghes *ghes) { }
-+#endif /* CONFIG_ACPI_APEI_HEE */
-+
- #ifdef CONFIG_HAVE_ACPI_APEI_NMI
- /*
-  * NMI may be triggered on any CPU, so ghes_in_nmi is used for
-@@ -1558,6 +1602,14 @@ static int ghes_probe(struct platform_device *ghes_dev)
- 			goto err;
- 		}
- 		break;
-+	case ACPI_HEST_NOTIFY_HEE:
-+		if (!IS_ENABLED(CONFIG_ACPI_APEI_HEE)) {
-+			pr_warn(GHES_PFX "Generic hardware error source: %d notified via HEE is not supported\n",
-+				generic->header.source_id);
-+			rc = -ENOTSUPP;
-+			goto err;
-+		}
-+		break;
- 	case ACPI_HEST_NOTIFY_NMI:
- 		if (!IS_ENABLED(CONFIG_HAVE_ACPI_APEI_NMI)) {
- 			pr_warn(GHES_PFX "Generic hardware error source: %d notified via NMI interrupt is not supported!\n",
-@@ -1631,6 +1683,9 @@ static int ghes_probe(struct platform_device *ghes_dev)
- 	case ACPI_HEST_NOTIFY_SEA:
- 		ghes_sea_add(ghes);
- 		break;
-+	case ACPI_HEST_NOTIFY_HEE:
-+		ghes_hee_add(ghes);
-+		break;
- 	case ACPI_HEST_NOTIFY_NMI:
- 		ghes_nmi_add(ghes);
- 		break;
-@@ -1698,6 +1753,9 @@ static void ghes_remove(struct platform_device *ghes_dev)
- 	case ACPI_HEST_NOTIFY_SEA:
- 		ghes_sea_remove(ghes);
- 		break;
-+	case ACPI_HEST_NOTIFY_HEE:
-+		ghes_hee_remove(ghes);
-+		break;
- 	case ACPI_HEST_NOTIFY_NMI:
- 		ghes_nmi_remove(ghes);
- 		break;
-diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
-index ebd21b05fe6e..8046e1b30c21 100644
---- a/include/acpi/ghes.h
-+++ b/include/acpi/ghes.h
-@@ -127,6 +127,12 @@ int ghes_notify_sea(void);
- static inline int ghes_notify_sea(void) { return -ENOENT; }
- #endif
- 
-+#ifdef CONFIG_ACPI_APEI_HEE
-+int ghes_notify_hee(void);
-+#else
-+static inline int ghes_notify_hee(void) { return -ENOENT; }
-+#endif
-+
- struct notifier_block;
- extern void ghes_register_report_chain(struct notifier_block *nb);
- extern void ghes_unregister_report_chain(struct notifier_block *nb);
--- 
-2.43.7
+Thank you for your patch.
+
+> ---
+>  drivers/acpi/video_detect.c | 10 +++++-----
+>  1 file changed, 5 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+> index d507d5e08435..c1bb22b57f56 100644
+> --- a/drivers/acpi/video_detect.c
+> +++ b/drivers/acpi/video_detect.c
+> @@ -1011,6 +1011,11 @@ enum acpi_backlight_type __acpi_video_get_backlight_type(bool native, bool *auto
+>  	if (acpi_backlight_dmi != acpi_backlight_undef)
+>  		return acpi_backlight_dmi;
+>  
+> +	/* Use ACPI video if available, except when native should be preferred. */
+> +	if ((video_caps & ACPI_VIDEO_BACKLIGHT) &&
+> +	     !(native_available && prefer_native_over_acpi_video()))
+> +		return acpi_backlight_video;
+> +
+>  	if (auto_detect)
+>  		*auto_detect = true;
+>  
+> @@ -1024,11 +1029,6 @@ enum acpi_backlight_type __acpi_video_get_backlight_type(bool native, bool *auto
+>  	if (dell_uart_present)
+>  		return acpi_backlight_dell_uart;
+>  
+> -	/* Use ACPI video if available, except when native should be preferred. */
+> -	if ((video_caps & ACPI_VIDEO_BACKLIGHT) &&
+> -	     !(native_available && prefer_native_over_acpi_video()))
+> -		return acpi_backlight_video;
+> -
+>  	/* Use native if available */
+>  	if (native_available)
+>  		return acpi_backlight_native;
+
+There is a very specific ordering, as the comment in the function says:
+
+        /*
+         * The below heuristics / detection steps are in order of descending
+         * presedence. The commandline takes presedence over anything else.
+         */
+
+You cannot just move one fo the detect steps like this, this will break
+many many other systems.
+
+NACK for this patch, sorry.
+
+We will need to figure out some other way to fix your issue.
+
+For starters I do not understand how this patch helps.
+
+You are moving the:
+
+	/* Use ACPI video if available, except when native should be preferred. */
+	if ((video_caps & ACPI_VIDEO_BACKLIGHT) &&
+	     !(native_available && prefer_native_over_acpi_video()))
+		return acpi_backlight_video;
+
+Above the nvidia_wmi_ec_present, apple_gmux_present and dell_uart_present
+checks, but I would expect all of these to be false on Lenovo and Inspur
+machines with Zhaoxin CPUs ?  So this patch should not make a difference.
+
+Please double check that this patch fixes things for you.
+
+And if it does really fix things then please add printk()
+calls printing the value of nvidia_wmi_ec_present, apple_gmux_present 
+and dell_uart_present these should all be false, but maybe we get
+a false-positive and one of them is set to true ?
+
+Regards,
+
+Hans
+
 
