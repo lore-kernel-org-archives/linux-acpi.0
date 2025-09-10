@@ -1,148 +1,79 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 26BFD311598;
-	Wed, 10 Sep 2025 09:12:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from out30-98.freemail.mail.aliyun.com (out30-98.freemail.mail.aliyun.com [115.124.30.98])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D62973081A0;
+	Wed, 10 Sep 2025 09:33:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.98
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757495525; cv=none; b=G3DicZa920FZrEDae0Tj4Ue1ouTwSbtyk+BFWiwapc3ly6+AwAtJj+QrM0DxxtdKKlTmUMzDtnQJy8IJmK7ydB/Hw8VEkLoFK9iuY7/x6NulgcjQKa5ovc48vNX5/ADuXTgBDWMyayzMFKUObx+PHcEs3jREyWKMsWrV9r6QTNE=
+	t=1757496843; cv=none; b=bsA4xOxe2Xj403og2kJNrsc0nJKt3otGDKnh6BGJ214QzUUVNA3UavqTKA262N8EgcJuLevbiDRPuNVrr2R3yf4HIr0bT03aHlbaMhXDWWE109++5UCyFvWzJSlur1m6qmCA/vxudp7WHzkoWHTt/JwOoSnu+XmFxOgiyPfKUT4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757495525; c=relaxed/simple;
-	bh=FfWGhA/4Am6wij7lc3o9EAzKNpebFH9XKwto/6jXpdI=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=txWLIWtWndf7a9oVNZQ09N99NKxx5J3ylGREHUEFrwcbmtJ7lUZEMK0DEgxNr/oD6FWm0tqBU887s0+ICn32ofKKMfP5/mNz9CYcb6yNFDvKtoeccjYCVN6NQylSGe/eaY5JqAgOOVz5ohFJTsrgb4XkoxYpacPNw/vaEvlwaM4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id CBAA516F8;
-	Wed, 10 Sep 2025 02:11:53 -0700 (PDT)
-Received: from [10.1.196.46] (e134344.arm.com [10.1.196.46])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id F28353F63F;
-	Wed, 10 Sep 2025 02:11:56 -0700 (PDT)
-Message-ID: <cefaff01-5e74-44b1-96aa-bb0c490f1ce3@arm.com>
-Date: Wed, 10 Sep 2025 10:11:55 +0100
+	s=arc-20240116; t=1757496843; c=relaxed/simple;
+	bh=W0kJHMJPyXLBD9AsLRJEuzaG4BOBAaE1iErjmIi/gbU=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=PtsGMS8hGk9DrmtTq2tHg4VC3YIZMLymVb/GgaKBd4Lv56RTGqWGbtGWe8DzvJzttWfIB7pOJzK9lu6HvW443M4opHO9HBnuXHuFysefW4jmI20B+dXzg7iXXzV2bMn8uQkCh7sKHgOGcgLCAehxh2alhXZRreMkDU9uSl3h7a4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=pUlEO+NC; arc=none smtp.client-ip=115.124.30.98
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="pUlEO+NC"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1757496836; h=From:To:Subject:Date:Message-Id:MIME-Version;
+	bh=CkbLKay4KW6gGBpr5vlMMMrvH8ODs320iGf0xAuSytA=;
+	b=pUlEO+NC9Qf5fV4RpDucAS4o6cIMdxsU34kTlWsq/ZUnV2nfhjDIxIXJ6Z8oIBDzREZG++uokHqrm3oIqaY3pa3MU9Fg4qVQPi5fUWooMdbyvVXYCCkra/TFae+befS25K4hOk5EUSGxOHZyjAGcTr9qaIghhfw83yFz70dv9+I=
+Received: from localhost(mailfrom:tianruidong@linux.alibaba.com fp:SMTPD_---0WnhhBo9_1757496834 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Wed, 10 Sep 2025 17:33:56 +0800
+From: Ruidong Tian <tianruidong@linux.alibaba.com>
+To: xueshuai@linux.alibaba.com,
+	palmer@dabbelt.com,
+	paul.walmsley@sifive.com,
+	linux-riscv@lists.infradead.org,
+	linux-kernel@vger.kernel.org,
+	linux-acpi@vger.kernel.org
+Cc: james.morse@arm.com,
+	tony.luck@intel.com,
+	cleger@rivosinc.com,
+	hchauhan@ventanamicro.com,
+	tianruidong@linux.alibaba.com
+Subject: [RFC PATCH 1/5] riscv: Define ioremap_cache for RISC-V
+Date: Wed, 10 Sep 2025 17:33:43 +0800
+Message-Id: <20250910093347.75822-2-tianruidong@linux.alibaba.com>
+X-Mailer: git-send-email 2.33.1
+In-Reply-To: <20250910093347.75822-1-tianruidong@linux.alibaba.com>
+References: <20250910093347.75822-1-tianruidong@linux.alibaba.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 17/33] arm_mpam: Probe the hardware features resctrl
- supports
-To: James Morse <james.morse@arm.com>, linux-kernel@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org,
- devicetree@vger.kernel.org
-Cc: shameerali.kolothum.thodi@huawei.com,
- D Scott Phillips OS <scott@os.amperecomputing.com>,
- carl@os.amperecomputing.com, lcherian@marvell.com,
- bobo.shaobowang@huawei.com, tan.shaopeng@fujitsu.com,
- baolin.wang@linux.alibaba.com, Jamie Iles <quic_jiles@quicinc.com>,
- Xin Hao <xhao@linux.alibaba.com>, peternewman@google.com,
- dfustini@baylibre.com, amitsinght@marvell.com,
- David Hildenbrand <david@redhat.com>, Rex Nie <rex.nie@jaguarmicro.com>,
- Dave Martin <dave.martin@arm.com>, Koba Ko <kobak@nvidia.com>,
- Shanker Donthineni <sdonthineni@nvidia.com>, fenghuay@nvidia.com,
- baisheng.gao@unisoc.com, Jonathan Cameron <jonathan.cameron@huawei.com>,
- Rob Herring <robh@kernel.org>, Rohit Mathew <rohit.mathew@arm.com>,
- Rafael Wysocki <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
- Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo
- <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@arm.com>,
- Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley
- <conor+dt@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>,
- Will Deacon <will@kernel.org>,
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- Danilo Krummrich <dakr@kernel.org>
-References: <20250822153048.2287-1-james.morse@arm.com>
- <20250822153048.2287-18-james.morse@arm.com>
- <17f4507c-c244-42ee-bea0-57ed22e0a05f@arm.com>
- <9c65c518-b4a2-4ac0-bf5d-9bdb8741dcf6@arm.com>
-From: Ben Horgan <ben.horgan@arm.com>
-Content-Language: en-US
-In-Reply-To: <9c65c518-b4a2-4ac0-bf5d-9bdb8741dcf6@arm.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-Hi James,
+From: Himanshu Chauhan <hchauhan@ventanamicro.com>
 
-On 9/9/25 17:57, James Morse wrote:
-> Hi Ben,
-> 
-> On 28/08/2025 14:44, Ben Horgan wrote:
->> On 8/22/25 16:29, James Morse wrote:
->>> Expand the probing support with the control and monitor types
->>> we can use with resctrl.
-> 
->>> diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_devices.c
->>> index 012e09e80300..290a04f8654f 100644
->>> --- a/drivers/resctrl/mpam_devices.c
->>> +++ b/drivers/resctrl/mpam_devices.c
->>> @@ -102,7 +102,7 @@ static LLIST_HEAD(mpam_garbage);
->>>  
->>>  static u32 __mpam_read_reg(struct mpam_msc *msc, u16 reg)
->>>  {
->>> -	WARN_ON_ONCE(reg > msc->mapped_hwpage_sz);
->>> +	WARN_ON_ONCE(reg + sizeof(u32) > msc->mapped_hwpage_sz);
-> 
->> Update in the patch that introduced this line.
-> 
-> Yeah - this got ripped out.
-> Now that the size is in the ACPI table, I should never need to debug it being wrong!
-> (and the resulting translation fault will be enough to say something is wrong)
-> 
-> 
->>> diff --git a/drivers/resctrl/mpam_internal.h b/drivers/resctrl/mpam_internal.h
->>> index c6f087f9fa7d..9f6cd4a68cce 100644
->>> --- a/drivers/resctrl/mpam_internal.h
->>> +++ b/drivers/resctrl/mpam_internal.h
->>> @@ -136,6 +136,56 @@ static inline void mpam_mon_sel_lock_held(struct mpam_msc *msc)
-> 
->>> +/* Bits for mpam_features_t */
->>> +enum mpam_device_features {
->>> +	mpam_feat_ccap_part = 0,
->>> +	mpam_feat_cpor_part,
->>> +	mpam_feat_mbw_part,
->>> +	mpam_feat_mbw_min,
->>> +	mpam_feat_mbw_max,
->>> +	mpam_feat_mbw_prop,
->>> +	mpam_feat_msmon,
->>> +	mpam_feat_msmon_csu,
->>> +	mpam_feat_msmon_csu_capture,
->>> +	mpam_feat_msmon_csu_hw_nrdy,
->>> +	mpam_feat_msmon_mbwu,
->>> +	mpam_feat_msmon_mbwu_capture,
->>> +	mpam_feat_msmon_mbwu_rwbw,
->>> +	mpam_feat_msmon_mbwu_hw_nrdy,
->>> +	mpam_feat_msmon_capt,
->>> +	MPAM_FEATURE_LAST,
-> 
->> This isn't all the features or just the features supported by resctrl.
->> Just add them all in this patch?
-> 
-> I'm having trouble parsing this ...
-> 
-> I needed somewhere to split the features up, as there are rather a lot. Those that resctrl
-> supports seemed like the logical spot.
+bert and einj drivers use ioremap_cache for mapping entries
+but ioremap_cache is not defined for RISC-V.
 
-I don't think resctrl doesn't support ccap, mpam_feat_ccap_part.
-Possibly the point is that this is split into more detailed features
-later but that's not clear from this patch or commit message.
+Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
+---
+ arch/riscv/include/asm/io.h | 3 +++
+ 1 file changed, 3 insertions(+)
 
-> 
-> 
->>> +};
->>> +static_assert(BITS_PER_TYPE(mpam_features_t) >= MPAM_FEATURE_LAST);
->>> +#define MPAM_ALL_FEATURES      ((1 << MPAM_FEATURE_LAST) - 1)
-> 
->> Unused?
-> 
-> Fixed, thanks!
-> 
-> 
-> Thanks,
-> 
-> James
-
-Thanks,
-
-Ben
+diff --git a/arch/riscv/include/asm/io.h b/arch/riscv/include/asm/io.h
+index a0e51840b9db..56eca6b3031f 100644
+--- a/arch/riscv/include/asm/io.h
++++ b/arch/riscv/include/asm/io.h
+@@ -30,6 +30,9 @@
+ #define PCI_IOBASE		((void __iomem *)PCI_IO_START)
+ #endif /* CONFIG_MMU */
+ 
++#define ioremap_cache(addr, size)					\
++	((__force void *)ioremap_prot((addr), (size), __pgprot(_PAGE_KERNEL)))
++
+ /*
+  * Emulation routines for the port-mapped IO space used by some PCI drivers.
+  * These are defined as being "fully synchronous", but also "not guaranteed to
+-- 
+2.43.7
 
