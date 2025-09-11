@@ -1,176 +1,90 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+Received: from szxga05-in.huawei.com (szxga05-in.huawei.com [45.249.212.191])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55C2C3112D8;
-	Thu, 11 Sep 2025 11:06:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B1842D7DD4;
+	Thu, 11 Sep 2025 11:24:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.191
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757588782; cv=none; b=FfUqTIwNeutusgoYGzd4tIk0yAUpbRvaefizBWW2jlHBJAEGwZz3fEYfYHH28Xz5LZydm9ETRp7MZZrJLfYzsZhXsRdjL6PO4VjLuduMP6tL81/6GaLTwhwZSZ5bY8wumYCjwKNXiXY0/3XMqkupKUc9VM9rIvTBcKU48Z9P5VU=
+	t=1757589855; cv=none; b=UPWSXNZVfs2qZ17J+mTzqm+YYjwMCsF7uM+FX2eYeXBkdz0C2xqR6yRZJmzkWQsS7sJhRv7UHCBgMOembWnO9+8kbsbUF7CgN3NLri08eWMXliEDDKtlaKhU2V4OPaeXgJV1O0FtHAGzQO0HBeqkIgT7rmsJIkGisFbnt46+ICs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757588782; c=relaxed/simple;
-	bh=GpOaQXv0EXTYsKvd/SPj5ZJhvQ2VPjLsr3QDgpJeGeg=;
-	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=KZrpIpIXK0F1j37SupKXdFnfspSUQCtsMVA++lm9+albNSB+Xt10cZ4fMWXZS91DFr+D/ITXlDNlHJUNvFYN8IjWtQm1CS5X2BSIHeEAJiFbTORs8ry35RlqZq5/7j25M3qXKOd3FBQe0gSBpNVsuj0HDXj6Hzh/k+cBF3v0eAE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.186.216])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4cMvlH2pWCz6L64s;
-	Thu, 11 Sep 2025 19:02:03 +0800 (CST)
-Received: from frapeml500008.china.huawei.com (unknown [7.182.85.71])
-	by mail.maildlp.com (Postfix) with ESMTPS id C5FCD1402F5;
-	Thu, 11 Sep 2025 19:06:16 +0800 (CST)
-Received: from localhost (10.203.177.15) by frapeml500008.china.huawei.com
- (7.182.85.71) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Thu, 11 Sep
- 2025 13:06:15 +0200
-Date: Thu, 11 Sep 2025 12:06:14 +0100
-From: Jonathan Cameron <jonathan.cameron@huawei.com>
-To: James Morse <james.morse@arm.com>
-CC: <linux-kernel@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
-	<linux-acpi@vger.kernel.org>, D Scott Phillips OS
-	<scott@os.amperecomputing.com>, <carl@os.amperecomputing.com>,
-	<lcherian@marvell.com>, <bobo.shaobowang@huawei.com>,
-	<tan.shaopeng@fujitsu.com>, <baolin.wang@linux.alibaba.com>, Jamie Iles
-	<quic_jiles@quicinc.com>, Xin Hao <xhao@linux.alibaba.com>,
-	<peternewman@google.com>, <dfustini@baylibre.com>, <amitsinght@marvell.com>,
-	David Hildenbrand <david@redhat.com>, Dave Martin <dave.martin@arm.com>, Koba
- Ko <kobak@nvidia.com>, Shanker Donthineni <sdonthineni@nvidia.com>,
-	<fenghuay@nvidia.com>, <baisheng.gao@unisoc.com>, Rob Herring
-	<robh@kernel.org>, Rohit Mathew <rohit.mathew@arm.com>, "Rafael Wysocki"
-	<rafael@kernel.org>, Len Brown <lenb@kernel.org>, Lorenzo Pieralisi
-	<lpieralisi@kernel.org>, Hanjun Guo <guohanjun@huawei.com>, Sudeep Holla
-	<sudeep.holla@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, "Will
- Deacon" <will@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Danilo Krummrich <dakr@kernel.org>
-Subject: Re: [PATCH v2 04/29] ACPI / PPTT: Add a helper to fill a cpumask
- from a cache_id
-Message-ID: <20250911120614.00001e92@huawei.com>
-In-Reply-To: <20250910204309.20751-5-james.morse@arm.com>
-References: <20250910204309.20751-1-james.morse@arm.com>
-	<20250910204309.20751-5-james.morse@arm.com>
-X-Mailer: Claws Mail 4.3.0 (GTK 3.24.42; x86_64-w64-mingw32)
+	s=arc-20240116; t=1757589855; c=relaxed/simple;
+	bh=/sbhAqa/bGWUUifrfJCtI47VcH+qtXTTG33lyC+B2Tg=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=opwyaXfZMiE8eXiiON4rzVfp/0m9OeTc7r6PmcBMembW0rm2n7SmzAyXsNiVUOpkHtmPPEb77Kq2YjdX477/Kk7CVvyoYfpUtlCBo9qvMMttH6ONlRv8s6IpqBfh+H7/Ah8Ol5WeqfJ6GuCQJupBTnUAVem2n4iu3msZyrDsUdc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=h-partners.com; arc=none smtp.client-ip=45.249.212.191
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=h-partners.com
+Received: from mail.maildlp.com (unknown [172.19.88.214])
+	by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4cMw9226Xnz24j7T;
+	Thu, 11 Sep 2025 19:20:54 +0800 (CST)
+Received: from dggemv705-chm.china.huawei.com (unknown [10.3.19.32])
+	by mail.maildlp.com (Postfix) with ESMTPS id 232621A016C;
+	Thu, 11 Sep 2025 19:24:11 +0800 (CST)
+Received: from kwepemn100009.china.huawei.com (7.202.194.112) by
+ dggemv705-chm.china.huawei.com (10.3.19.32) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.11; Thu, 11 Sep 2025 19:24:10 +0800
+Received: from localhost.localdomain (10.50.165.33) by
+ kwepemn100009.china.huawei.com (7.202.194.112) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.11; Thu, 11 Sep 2025 19:24:10 +0800
+From: Huisong Li <lihuisong@huawei.com>
+To: <rafael@kernel.org>, <lenb@kernel.org>
+CC: <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linuxarm@huawei.com>, <jonathan.cameron@huawei.com>,
+	<zhanjie9@hisilicon.com>, <zhenglifeng1@huawei.com>, <yubowen8@huawei.com>,
+	<lihuisong@huawei.com>
+Subject: [PATCH v3 2/3] ACPI: processor: Unify the place of function declaration of processor_idle.c
+Date: Thu, 11 Sep 2025 19:24:07 +0800
+Message-ID: <20250911112408.1668431-3-lihuisong@huawei.com>
+X-Mailer: git-send-email 2.33.0
+In-Reply-To: <20250911112408.1668431-1-lihuisong@huawei.com>
+References: <20250911112408.1668431-1-lihuisong@huawei.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml100012.china.huawei.com (7.191.174.184) To
- frapeml500008.china.huawei.com (7.182.85.71)
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: kwepems200001.china.huawei.com (7.221.188.67) To
+ kwepemn100009.china.huawei.com (7.202.194.112)
 
-On Wed, 10 Sep 2025 20:42:44 +0000
-James Morse <james.morse@arm.com> wrote:
+To unify the place of function declaration of processor_idle.c, move
+acpi_processor_ffh_lpi_probe and acpi_processor_ffh_lpi_enter to one
+place. And remove 'extern' key word in declaration by the way.
 
-> MPAM identifies CPUs by the cache_id in the PPTT cache structure.
-> 
-> The driver needs to know which CPUs are associated with the cache.
-> The CPUs may not all be online, so cacheinfo does not have the
-> information.
-> 
-> Add a helper to pull this information out of the PPTT.
-> 
-> CC: Rohit Mathew <Rohit.Mathew@arm.com>
-> Signed-off-by: James Morse <james.morse@arm.com>
-> Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
-> ---
-> Changes since v1:
->  * Added punctuation to the commit message.
->  * Removed a comment about an alternative implementaion.
->  * Made the loop continue with a warning if a CPU is missing from the PPTT.
-> 
-> Changes since RFC:
->  * acpi_count_levels() now returns a value.
->  * Converted the table-get stuff to use Jonathan's cleanup helper.
+Signed-off-by: Huisong Li <lihuisong@huawei.com>
+---
+ include/acpi/processor.h | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-Why for this case does it makes sense to not just use acpi_get_pptt()?
-
-Also you don't introduce the acpi_get_table_reg() helper until patch 6.
-
-
->  * Dropped Sudeep's Review tag due to the cleanup change.
-> ---
->  drivers/acpi/pptt.c  | 59 ++++++++++++++++++++++++++++++++++++++++++++
->  include/linux/acpi.h |  6 +++++
->  2 files changed, 65 insertions(+)
-> 
-> diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
-> index c5f2a51d280b..c379a9952b00 100644
-> --- a/drivers/acpi/pptt.c
-> +++ b/drivers/acpi/pptt.c
-> @@ -966,3 +966,62 @@ int find_acpi_cache_level_from_id(u32 cache_id)
->  
->  	return -ENOENT;
->  }
-> +
-> +/**
-> + * acpi_pptt_get_cpumask_from_cache_id() - Get the cpus associated with the
-> + *					   specified cache
-> + * @cache_id: The id field of the unified cache
-
-Similar comment to previous patch. If we are going to make this unified only
-can we reflect that in the function name.  I worry this will get reused
-and that restriction will surprise.
-
-
-> + * @cpus: Where to build the cpumask
-> + *
-> + * Determine which CPUs are below this cache in the PPTT. This allows the property
-> + * to be found even if the CPUs are offline.
-> + *
-> + * The PPTT table must be rev 3 or later,
-> + *
-> + * Return: -ENOENT if the PPTT doesn't exist, or the cache cannot be found.
-> + * Otherwise returns 0 and sets the cpus in the provided cpumask.
-> + */
-> +int acpi_pptt_get_cpumask_from_cache_id(u32 cache_id, cpumask_t *cpus)
-> +{
-> +	u32 acpi_cpu_id;
-> +	int level, cpu, num_levels;
-> +	struct acpi_pptt_cache *cache;
-> +	struct acpi_pptt_cache_v1 *cache_v1;
-> +	struct acpi_pptt_processor *cpu_node;
-> +	struct acpi_table_header *table __free(acpi_table) = acpi_get_table_ret(ACPI_SIG_PPTT, 0);
-> +
-> +	cpumask_clear(cpus);
-> +
-> +	if (IS_ERR(table))
-> +		return -ENOENT;
-> +
-> +	if (table->revision < 3)
-> +		return -ENOENT;
-> +
-> +	for_each_possible_cpu(cpu) {
-> +		acpi_cpu_id = get_acpi_id_for_cpu(cpu);
-> +		cpu_node = acpi_find_processor_node(table, acpi_cpu_id);
-> +		if (WARN_ON_ONCE(!cpu_node))
-> +			continue;
-> +		num_levels = acpi_count_levels(table, cpu_node, NULL);
-> +
-> +		/* Start at 1 for L1 */
-> +		for (level = 1; level <= num_levels; level++) {
-> +			cache = acpi_find_cache_node(table, acpi_cpu_id,
-> +						     ACPI_PPTT_CACHE_TYPE_UNIFIED,
-> +						     level, &cpu_node);
-> +			if (!cache)
-> +				continue;
-> +
-> +			cache_v1 = ACPI_ADD_PTR(struct acpi_pptt_cache_v1,
-> +						cache,
-> +						sizeof(struct acpi_pptt_cache));
-
-sizeof(*cache) makes more sense to me.
-
-> +
-> +			if (cache->flags & ACPI_PPTT_CACHE_ID_VALID &&
-> +			    cache_v1->cache_id == cache_id)
-> +				cpumask_set_cpu(cpu, cpus);
-> +		}
-> +	}
-> +
-> +	return 0;
-> +}
-
+diff --git a/include/acpi/processor.h b/include/acpi/processor.h
+index 2976a6d0c54f..6ee4a69412de 100644
+--- a/include/acpi/processor.h
++++ b/include/acpi/processor.h
+@@ -425,6 +425,8 @@ int acpi_processor_power_state_has_changed(struct acpi_processor *pr);
+ int acpi_processor_hotplug(struct acpi_processor *pr);
+ void acpi_processor_register_idle_driver(void);
+ void acpi_processor_unregister_idle_driver(void);
++int acpi_processor_ffh_lpi_probe(unsigned int cpu);
++int acpi_processor_ffh_lpi_enter(struct acpi_lpi_state *lpi);
+ #endif /* CONFIG_ACPI_PROCESSOR_IDLE */
+ 
+ /* in processor_thermal.c */
+@@ -447,11 +449,6 @@ static inline void acpi_thermal_cpufreq_exit(struct cpufreq_policy *policy)
+ }
+ #endif	/* CONFIG_CPU_FREQ */
+ 
+-#ifdef CONFIG_ACPI_PROCESSOR_IDLE
+-extern int acpi_processor_ffh_lpi_probe(unsigned int cpu);
+-extern int acpi_processor_ffh_lpi_enter(struct acpi_lpi_state *lpi);
+-#endif
+-
+ void acpi_processor_init_invariance_cppc(void);
+ 
+ #endif
+-- 
+2.33.0
 
