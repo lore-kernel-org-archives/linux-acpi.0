@@ -1,38 +1,38 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78ACA2C15AE;
-	Fri, 12 Sep 2025 20:06:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52AB9342C98;
+	Fri, 12 Sep 2025 20:06:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757707610; cv=none; b=QFegDqErt4Y5RGIXUlWq3NusUou56F4o5EPFi0oygKBAwCBAnGBCzWXrGSq2ok0ojWMo8m+qTfIQ+fxx+N3bql8qC3PIHA/FklEInpk0KapIsRXycw+qSmumg3LxQi0j682KgCrpoAUo7nVIlE0s4u0+CqTyOb0PhsRqWi5YSIA=
+	t=1757707613; cv=none; b=lB7j9AblA/u3+cvtdawwGfoo5gdjqH9d+ENoxXakmU2yl98bl66wydcAes332LcO8OhcWGQFP7Rj0HHN9vVOvRFwTztuOGWEeaG2MZycPlwIfdC4vJ6HIYmUjQJDOQofg94PTYYxHgPG+bAykOAmE12fv0seGU1xNHxW7P3HeuQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757707610; c=relaxed/simple;
-	bh=YtCqz04CZpIVXl0XfDRjPvSyv9kA2new/Y41ykI4vg0=;
+	s=arc-20240116; t=1757707613; c=relaxed/simple;
+	bh=lsb6zY3uqh4YuxeLz8ERC12aFRzr+uNUEtg0qry4Tko=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=UaPSbseldaqVnyn839EoPvW4JeZLjYdjQrbC7o0EoedsaOYbvLE0LJWkiZChtOeSA+fceTwtTkNY+NLOWa5cF7Eos6rAGK1IOG1S19TeRGg7VQedLvw3iUa1+6VFk8Q7vU8n9R9IHmcqCOBhQj3L0bxxNecY1oeZ7TgeVlZGJxA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ekr8Aj4f; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=EfctWWkysl7MSWo7UlIPbT6iR/yusEpq0OQQEHdUGw6HX0cR9JIfR/y0y9fPyv5Z7ES/Yk32+6oGx73HxruMqq1nLNsVGQEmJ3cUJdUZkdU9Wod/4C9W8cgYcIq8RlfNLSM6IPrwmWyybEubaX0rbkhAJ5o2JCknzufRKhyKvQE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=q+7eBA3e; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ekr8Aj4f"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31B07C4CEF1;
-	Fri, 12 Sep 2025 20:06:48 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="q+7eBA3e"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 671ABC4CEF9;
+	Fri, 12 Sep 2025 20:06:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1757707610;
-	bh=YtCqz04CZpIVXl0XfDRjPvSyv9kA2new/Y41ykI4vg0=;
+	s=k20201202; t=1757707613;
+	bh=lsb6zY3uqh4YuxeLz8ERC12aFRzr+uNUEtg0qry4Tko=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=Ekr8Aj4fxEPFcymIfp0SArWGivPRl8mT6AMwo38LM0bPvu8YmX55N2vP2ZfGsM14Q
-	 lp3GFLx7D5Lg2wk3jvOb6n2FRuORvSjhyPuwo1YpsIima3rkWkfupyl4ozsWgBq/hl
-	 PdzQAt2C3DwwMrOI0ZD5zG2OFITrbOQJuQMkWXn3Ls9XdrtepEvayvA1xuz6+c77X1
-	 TFR+GOpBtHKljVZBkawR9e508xaFWdk2RFycS07IE9qo8xi6yAjYsHC/1raCXAJf9W
-	 BxZSbDPKvfWPB6wAxz+GH5BTjRHrft15kKtsJ4Xbt9Fs+hC2kVTy7BlaCcAtWy25az
-	 0Edmian1iBQ5A==
+	b=q+7eBA3eLwtHr3sRdZjgPjzEJUGEsr4eTOaSMdtlnnH4AwRDztwJX2EZF43OdCLBN
+	 m5LKVads98BriBOV/5or3uR7yuewufhV8TWds0Dl+b32zr+6odEHVVzbPPfW/yPW3d
+	 KuraRlwWBI4hyhoKx6u3+VL3S4ATKGesNrN2BVW6K9hp4cVDYst++S/CfCGfNuwcFU
+	 ya0iahSdIhiAv55RWzDS5mMNGDuaDmvU6qGEkj4iIOihMQcREoSUW6tAo3xDqZE3Bg
+	 yKKm5WfbvERQTgR4MXWxzCH0rAnKLfS7p75aY1ag6RRx5dXWYarakNRWd8i7csuxON
+	 65SSpJAe4gXzA==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>,
  "Dumbre, Saket" <saket.dumbre@intel.com>
-Subject: [PATCH v1 06/16] ACPICA: iASL: Fix printing CDAT table header
-Date: Fri, 12 Sep 2025 21:56:18 +0200
-Message-ID: <1943926.CQOukoFCf9@rafael.j.wysocki>
+Subject: [PATCH v1 05/16] ACPICA: Apply ACPI_NONSTRING
+Date: Fri, 12 Sep 2025 21:55:35 +0200
+Message-ID: <2042286.usQuhbGJ8B@rafael.j.wysocki>
 Organization: Linux Kernel Development
 In-Reply-To: <2021361.PYKUYFuaPT@rafael.j.wysocki>
 References: <2021361.PYKUYFuaPT@rafael.j.wysocki>
@@ -47,48 +47,56 @@ Content-Type: text/plain; charset="UTF-8"
 
 From: Ahmed Salem <x0rw3ll@gmail.com>
 
-When disassembling CDAT AML, the lack of CDAT's common ACPI table header
-should be taken into consideration when printing the table's actual
-header. As the table header lacks fields like Signature, header
-information is mangled and incorrect:
+Add ACPI_NONSTRING for destination char arrays without a terminating NUL
+character.
 
- # $ iasl -d -ds CDAT cdat.aml
- # Input file cdat.aml, Length 0xE4 (228) bytes
- # ACPI: ?    0x0000000000000000 000C01 (v00        ?        00180000 ??   23456789)
+This is a follow-up to commit 2b82118845e0 ("ACPICA: Apply ACPI_NONSTRING")
+where a few more destination arrays were missed.
 
-Both Signature and Length are printed incorrectly, and the remaining
-fields are not applicable for this special table. To fix this, verify
-acpi_gbl_CDAT is set (<-ds CDAT> via command line) and Header->Signature
-is an invalid nameseg (due to the presence of non-ASCII char(s)), then
-print only the explicitly-passed signature (ACPI_SIG_CDAT) and the table
-length as cast with a pointer to the struct acpi_table_cdat structure.
-
-Link: https://github.com/acpica/acpica/commit/2b5586b4
+Link: https://github.com/acpica/acpica/commit/f359e5ed
+Fixes: 2b82118845e0 ("ACPICA: Apply ACPI_NONSTRING")
 Signed-off-by: Ahmed Salem <x0rw3ll@gmail.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/acpica/tbprint.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ include/acpi/actbl.h                                     | 2 +-
+ tools/power/acpi/os_specific/service_layers/oslinuxtbl.c | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/acpica/tbprint.c b/drivers/acpi/acpica/tbprint.c
-index fd64460a2e26..049f6c2f1e32 100644
---- a/drivers/acpi/acpica/tbprint.c
-+++ b/drivers/acpi/acpica/tbprint.c
-@@ -121,6 +121,14 @@ acpi_tb_print_table_header(acpi_physical_address address,
- 			   ACPI_CAST_PTR(struct acpi_table_rsdp,
- 					 header)->revision,
- 			   local_header.oem_id));
-+	} else if (acpi_gbl_CDAT && !acpi_ut_valid_nameseg(header->signature)) {
-+
-+		/* CDAT does not use the common ACPI table header */
-+
-+		ACPI_INFO(("%-4.4s 0x%8.8X%8.8X %06X",
-+			   ACPI_SIG_CDAT, ACPI_FORMAT_UINT64(address),
-+			   ACPI_CAST_PTR(struct acpi_table_cdat,
-+					 header)->length));
- 	} else {
- 		/* Standard ACPI table with full common header */
+diff --git a/include/acpi/actbl.h b/include/acpi/actbl.h
+index 243097a3da63..8a67d4ea6e3f 100644
+--- a/include/acpi/actbl.h
++++ b/include/acpi/actbl.h
+@@ -73,7 +73,7 @@ struct acpi_table_header {
+ 	char oem_id[ACPI_OEM_ID_SIZE] ACPI_NONSTRING;	/* ASCII OEM identification */
+ 	char oem_table_id[ACPI_OEM_TABLE_ID_SIZE] ACPI_NONSTRING;	/* ASCII OEM table identification */
+ 	u32 oem_revision;	/* OEM revision number */
+-	char asl_compiler_id[ACPI_NAMESEG_SIZE];	/* ASCII ASL compiler vendor ID */
++	char asl_compiler_id[ACPI_NAMESEG_SIZE] ACPI_NONSTRING;	/* ASCII ASL compiler vendor ID */
+ 	u32 asl_compiler_revision;	/* ASL compiler version */
+ };
  
+diff --git a/tools/power/acpi/os_specific/service_layers/oslinuxtbl.c b/tools/power/acpi/os_specific/service_layers/oslinuxtbl.c
+index 9741e7503591..de93067a5da3 100644
+--- a/tools/power/acpi/os_specific/service_layers/oslinuxtbl.c
++++ b/tools/power/acpi/os_specific/service_layers/oslinuxtbl.c
+@@ -995,7 +995,7 @@ static acpi_status osl_list_customized_tables(char *directory)
+ {
+ 	void *table_dir;
+ 	u32 instance;
+-	char temp_name[ACPI_NAMESEG_SIZE];
++	char temp_name[ACPI_NAMESEG_SIZE] ACPI_NONSTRING;
+ 	char *filename;
+ 	acpi_status status = AE_OK;
+ 
+@@ -1312,7 +1312,7 @@ osl_get_customized_table(char *pathname,
+ {
+ 	void *table_dir;
+ 	u32 current_instance = 0;
+-	char temp_name[ACPI_NAMESEG_SIZE];
++	char temp_name[ACPI_NAMESEG_SIZE] ACPI_NONSTRING;
+ 	char table_filename[PATH_MAX];
+ 	char *filename;
+ 	acpi_status status;
 -- 
 2.51.0
 
