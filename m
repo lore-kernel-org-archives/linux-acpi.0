@@ -1,41 +1,43 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4091533A004;
-	Fri, 12 Sep 2025 19:44:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 879F618FC97;
+	Fri, 12 Sep 2025 20:06:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757706246; cv=none; b=Tv4jXPNTXYSkHJwXfkRt12g3ri5TTt8qvQZ8Z72jhMYYBucNy2Pr8RnrjcWCvEQSIRSTqAcjre+6knXL9yrxShz0R3pEC65dt13UwDmvxO+ZR2b42+cCvaLusab+yhRxJvMFisuuKQKUKJChRtUz7YAdNTzZnM+U/ZeFihKBx28=
+	t=1757707581; cv=none; b=PeIFIkv9QkIfVXg4jwKx4+EjivKxfaxQJC9wl2SIsg2MNff/0xBclaKLc51rvPCxI015S7XLQ3ChPNGmb+Y+MGL/s4nyx2QgN7gFeAlf5XdoHlQeD815yTYDhHB5BtWTjzolo+26r1BKMyDonI9IiHM62Y8AQmzq2h1VcMAqPJQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757706246; c=relaxed/simple;
-	bh=L7/ch1AeVDMbG+MPfAnRwGn2Nys5E+FT9vZnW7GbuJw=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=qVGmKg9N4wzY7NSlHx+gRhp2RJtlZHvS30Fo+FS6rcNmM2CiDyFgqKj3McJFMviJl2ZL1FROIZiY9vyq868yCmuuQo1HoRPGDwtGW0y8P4XobQ/B5dbPxOONn/SX/dA6KVE36/R6iSSd7f7ZAIhMNhoy23GPJicZ1TPlZAdNqAM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=leNApAzR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757707581; c=relaxed/simple;
+	bh=IuBHjL73ZskqapjpJTBNcNowJv/7joUhld3OQUr1nNw=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=dnMG9mslYLEvn8bHU1+A26uh8SZ0X+OlYkvthAKfmbUIyM2rdHgzHY0oDMvzMlpt66sLKRqk4E65+6HjiRLx39IwZGR94g+DySs+DaFeP/Yqtzb37yH/hPgUbwC2jpHn9CuFfF6wMFDL/lnun24fxbVxp8rolu82IgLycPTgNh8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=P2a8Lcrf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="leNApAzR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 032DAC4CEF4;
-	Fri, 12 Sep 2025 19:44:04 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="P2a8Lcrf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD35EC4CEF1;
+	Fri, 12 Sep 2025 20:06:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1757706246;
-	bh=L7/ch1AeVDMbG+MPfAnRwGn2Nys5E+FT9vZnW7GbuJw=;
-	h=From:To:Cc:Subject:Date:From;
-	b=leNApAzRvY8v2gPIcnoosD8iYRknYITiLlUDTWfcfWuN34yHnjVHVNknLBKkWVEko
-	 FdlcuPAoDv1EvOR0QgYieq+8qNP1D/w6ECn2FQrl87bPNtca4L8tRdCTqP50vgZyAU
-	 R7ecLlbijTliWY9wfMJon2zi9i9UnY8aDlfZcQOotgeeN4K4XEIoUgIvJQMkWuYQBp
-	 T/kK8VTG4MBMjvIBOPKlF+JAPZxNMnbZKdtp4hJlIuUFykX8s8ViEXHkJJ4LO5zXcy
-	 Z9MmcVSMo/havJLccl/n68XIHp0SUZH0X9FHSiYDaDdWb5OG70J2h1P4/8eG0tgVp9
-	 qAkVXHXbWmHHw==
+	s=k20201202; t=1757707579;
+	bh=IuBHjL73ZskqapjpJTBNcNowJv/7joUhld3OQUr1nNw=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=P2a8LcrfRhvD7f9VZDhCWEEIzaQNPoKm+MFmD1lOFPZxZHCP1763r3GEmz534dbGl
+	 L9BwNSxsx4wtPPTPEKKj9jfMpeY0a/UzsyR0/xd5Bw/1W6fAQxUeHWCgnCYNRv9cn7
+	 79Lbj6uKb+83j6fVT9JwsBZpWiev6TSy3rRTbBBEd5s4VmPA8tovFs4VRSUEFtzJzn
+	 +rbtEA8oU980vubUz2JifrpYZJYXJ0Q3voFpzulNkPclPrgr/qfXxqweMZ5lkGLgE6
+	 Iq80+uwxQdcY1LQWmjeiaYgzfQoCG38HqArOMF8r23XUmi6bFm1Jf05ryVORPseSNl
+	 dDSa/tJzOSs5g==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>,
- Mika Westerberg <mika.westerberg@linux.intel.com>,
- Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
- Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v1 0/4] ACPI: property: Two fixes,
- more documentation and a cleanup
-Date: Fri, 12 Sep 2025 21:37:39 +0200
-Message-ID: <5046661.31r3eYUQgx@rafael.j.wysocki>
+ "Dumbre, Saket" <saket.dumbre@intel.com>
+Subject:
+ [PATCH v1 16/16] ACPICA: acpidump: fix return values in
+ ap_is_valid_checksum()
+Date: Fri, 12 Sep 2025 22:06:08 +0200
+Message-ID: <15565189.tv2OnDr8pf@rafael.j.wysocki>
 Organization: Linux Kernel Development
+In-Reply-To: <2021361.PYKUYFuaPT@rafael.j.wysocki>
+References: <2021361.PYKUYFuaPT@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -45,23 +47,42 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="UTF-8"
 
-Hi All,
+From: Kaushlendra Kumar <kaushlendra.kumar@intel.com>
 
-A user report regarding "ACPI: \: Can't tag data node" error messages in dmesg
-made me look at the ACPI property code and I've found a couple of issues in
-it.
+The function ap_is_valid_checksum() has a boolean name suggesting it
+should return TRUE/FALSE, but incorrectly returns AE_OK on success and
+has no explicit return on failure, leading to undefined behavior.
 
-Also, it took me some time to figure out why the code was doing what it was
-doing, so I decided to add some comments explaining it.
+Fix by returning proper values:
+ - FALSE when checksum validation fails
+ - TRUE when checksum validation succeeds
 
-Finally, there's always something that can be cleaned up in every piece of
-kernel code.
+Link: https://github.com/acpica/acpica/commit/479ba862
+Signed-off-by: Kaushlendra Kumar <kaushlendra.kumar@intel.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ tools/power/acpi/tools/acpidump/apdump.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Hence, this series.
+diff --git a/tools/power/acpi/tools/acpidump/apdump.c b/tools/power/acpi/tools/acpidump/apdump.c
+index bf30143efbdc..7a6223aa703c 100644
+--- a/tools/power/acpi/tools/acpidump/apdump.c
++++ b/tools/power/acpi/tools/acpidump/apdump.c
+@@ -86,9 +86,10 @@ u8 ap_is_valid_checksum(struct acpi_table_header *table)
+ 	if (ACPI_FAILURE(status)) {
+ 		fprintf(stderr, "%4.4s: Warning: wrong checksum in table\n",
+ 			table->signature);
++		return (FALSE);
+ 	}
+ 
+-	return (AE_OK);
++	return (TRUE);
+ }
+ 
+ /******************************************************************************
+-- 
+2.51.0
 
-Please refer to the patch changelogs for details.
-
-Thanks!
 
 
 
