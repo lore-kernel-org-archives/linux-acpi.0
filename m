@@ -1,90 +1,80 @@
-Received: from 14.mo584.mail-out.ovh.net (14.mo584.mail-out.ovh.net [46.105.40.29])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0C6526F478
-	for <linux-acpi@vger.kernel.org>; Fri, 12 Sep 2025 21:37:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.105.40.29
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24C7424A046;
+	Fri, 12 Sep 2025 22:19:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757713049; cv=none; b=JY368cFGH/ZpSQsJooLkN6DCLpnrYogfrFQrvOFGQu3aB3xDUXD+C4GgZOlGWAvuxhCcwsSgNFlwoGsTdgBc+7ODshEr1ObMsn5oBTGIj10n4GwLeTaLDqvPC273fB/0Zr4af6+42LMWRa33iM3InTM5b9kTPm3ZfR3vfnTpqrg=
+	t=1757715544; cv=none; b=k2QH3v4E0HnBAN2mux07r7QC+8YxJN9PFHL5xF3ZZ8o4c1sktShkq7ySkwJPhcunqss/bXfCGE8xa/ZkU4ouN7rGwDoGR96ZZZkQ4A3RtpULBeXOlzyeB7d51sFKSKbwdANZEo5tqBtBwodPeUC6/Bbqh02oiPam8gpnq8WVNC8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757713049; c=relaxed/simple;
-	bh=g9s4aBgq9mUA/MaM7/N6IjRsE8phQz3zLoYU9BI7XB4=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=lqS3STNSQSL12FbQd+TCAJw6YM0Dw3vA6r89HJxc/LG0vyVWHHq4qlUxQ041KFL819gRNJLd0fhXFfMp2MfzZuwLXF89tzk2NqDHlYwc3w6U3ns+IIX7PmgjfB9P7GrmyIqUhgufLylXl4UC2yMd+ZAZBjtXfqwqisazgoeqq20=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=armadeus.com; spf=pass smtp.mailfrom=armadeus.com; dkim=pass (2048-bit key) header.d=armadeus.com header.i=@armadeus.com header.b=i/yNa6K0; arc=none smtp.client-ip=46.105.40.29
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=armadeus.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=armadeus.com
+	s=arc-20240116; t=1757715544; c=relaxed/simple;
+	bh=RbPveMq+wUujHCh2U8cE2C1bMP4tSmoOr+Umu0UNfzg=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=kysSSbmSy3tYA2ohhB6UZIcFYCz5tq1XlAohZdeX8eBhNk2U48vNfUUQZHUp6Yy/dDnoDjS6QFrJ7htrusoviPJEgKhG2yj10OYvCY0lj5ORnvl8sly68mwN7fhhmF0tEeJRo1yv7+29kn/dQGiKW3cNAJmrYWFRtoyqdAp4Ank=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=O5mKPOrd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=armadeus.com header.i=@armadeus.com header.b="i/yNa6K0"
-Received: from director10.ghost.mail-out.ovh.net (unknown [10.110.43.5])
-	by mo584.mail-out.ovh.net (Postfix) with ESMTP id 4cNm3X6Cz4z8Cgh
-	for <linux-acpi@vger.kernel.org>; Fri, 12 Sep 2025 20:19:04 +0000 (UTC)
-Received: from ghost-submission-5b5ff79f4f-8lnd4 (unknown [10.110.188.251])
-	by director10.ghost.mail-out.ovh.net (Postfix) with ESMTPS id 2D59FC15C2;
-	Fri, 12 Sep 2025 20:19:04 +0000 (UTC)
-Received: from armadeus.com ([37.59.142.112])
-	by ghost-submission-5b5ff79f4f-8lnd4 with ESMTPSA
-	id LoviOjeAxGilAw4AMdo/aw
-	(envelope-from <sebastien.szymanski@armadeus.com>); Fri, 12 Sep 2025 20:19:04 +0000
-Authentication-Results:garm.ovh; auth=pass (GARM-112S006d9550b98-7ae0-4798-a2a1-6fec4990740f,
-                    24C0CD233B02D59DA4C9EFE158FBDB7975D525F0) smtp.auth=sebastien.szymanski@armadeus.com
-X-OVh-ClientIp:86.243.209.203
-From: =?utf-8?q?S=C3=A9bastien_Szymanski?= <sebastien.szymanski@armadeus.com>
-Date: Fri, 12 Sep 2025 22:18:50 +0200
-Subject: [PATCH] gpiolib: acpi: initialize acpi_gpio_info struct
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="O5mKPOrd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06D98C4CEF1;
+	Fri, 12 Sep 2025 22:19:01 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1757715543;
+	bh=RbPveMq+wUujHCh2U8cE2C1bMP4tSmoOr+Umu0UNfzg=;
+	h=From:To:Cc:Subject:Date:From;
+	b=O5mKPOrdXEOjALlLBJVr1vGQJXJcItEeixGlI+9dJg5I5QMN4C3sf5rHXczNa9wut
+	 sZ/cezKIxekFgigOl8KyZ7KrkrqSJI3v3RehxpcjGqxRkJMPKB4CLWIu3Py+FGtqmp
+	 tjFg/n9Orbh0F309UZHzWj0hnQaI7zYQKMO16o7iDf08PaugvitDBfBtWzp9TgnUvs
+	 DbzS67V41iaiCsb+f0Uow0younCcOwgJyGG62eGHul9mNQ4ji6kXGx05VNgIYJ+i5r
+	 g+/Z2i9QXmuuZYDLlLnifn48G8ft/7glnyxC2ooYXbsdwMyT9Ko/mqTtGaScbQDyUN
+	 2MLFazUJ2BRxw==
+From: Hans de Goede <hansg@kernel.org>
+To: Mika Westerberg <westeri@kernel.org>,
+	Andy Shevchenko <andy@kernel.org>,
+	Bartosz Golaszewski <brgl@bgdev.pl>,
+	Linus Walleij <linus.walleij@linaro.org>
+Cc: Hans de Goede <hansg@kernel.org>,
+	linux-gpio@vger.kernel.org,
+	linux-acpi@vger.kernel.org
+Subject: [6.17 REGRESSION FIX] gpiolib: acpi: Fix using random stack memory during GPIO lookups
+Date: Sat, 13 Sep 2025 00:18:59 +0200
+Message-ID: <20250912221859.368173-1-hansg@kernel.org>
+X-Mailer: git-send-email 2.51.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Message-Id: <20250912-gpiolib-acpi-fix-v1-1-1a41acbffadf@armadeus.com>
-X-B4-Tracking: v=1; b=H4sIACmAxGgC/x2MUQqAIBAFrxL73YJKUXaV6KPsZQtRohBBePekz
- xmYeSkhChIN1UsRtyS5zgK6rsjt8+nBshYmo0yrrDbsg1yHLDy7ILzJwx3QWINlbdFTyUJE0f9
- ynHL+AObJw7RiAAAA
-X-Change-ID: 20250912-gpiolib-acpi-fix-7ee492ebd5e8
-To: Mika Westerberg <westeri@kernel.org>, 
- Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
- Linus Walleij <linus.walleij@linaro.org>, 
- Bartosz Golaszewski <brgl@bgdev.pl>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, 
- linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, 
- linux-kernel@vger.kernel.org, 
- =?utf-8?q?S=C3=A9bastien_Szymanski?= <sebastien.szymanski@armadeus.com>
-X-Mailer: b4 0.14.2
-X-Ovh-Tracer-Id: 9239134636664548198
-X-VR-SPAMSTATE: OK
-X-VR-SPAMSCORE: -100
-X-VR-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgeeffedrtdeggddvleellecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfqggfjpdevjffgvefmvefgnecuuegrihhlohhuthemucehtddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhfffugggtgffkvfevofesthekredtredtjeenucfhrhhomhepuforsggrshhtihgvnhcuufiihihmrghnshhkihcuoehsvggsrghsthhivghnrdhsiiihmhgrnhhskhhisegrrhhmrgguvghushdrtghomheqnecuggftrfgrthhtvghrnhepleelgeetueelieekffeiveekvddukefgfeetvedtgedvjedtgedvheehkeeuleetnecuffhomhgrihhnpehkvghrnhgvlhdrohhrghenucfkphepuddvjedrtddrtddruddpkeeirddvgeefrddvtdelrddvtdefpdefjedrheelrddugedvrdduuddvnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehinhgvthepuddvjedrtddrtddruddpmhgrihhlfhhrohhmpehsvggsrghsthhivghnrdhsiiihmhgrnhhskhhisegrrhhmrgguvghushdrtghomhdpnhgspghrtghpthhtohepuddprhgtphhtthhopehlihhnuhigqdgrtghpihesvhhgvghrrdhkvghrnhgvlhdrohhrghdpoffvtefjohhsthepmhhoheekgegmpdhmohguvgepshhmthhpohhuth
-DKIM-Signature: a=rsa-sha256; bh=p8MdL3xIorxozybFE1L91018QY5I/1ptU7GUsykpYEE=;
- c=relaxed/relaxed; d=armadeus.com; h=From; s=ovhmo103079-selector1;
- t=1757708344; v=1;
- b=i/yNa6K0lMjZqi+wijFic2vsqkF2gxMVzZxSAwTGjghyf8NUs3NVmAznCr9v3dNSfU5+63yp
- APiYmO2HTAaYrbd0JWjGeRkh4hu/o/jA8I6nJX0LqDvNq/F8CTQBd6MBsCfK57THcQ7bSTKc4z1
- D6hydl1YdpZMQHWHwVzHiBSXSmy/YQqek9sCub1QjlZoN9kP0HC0jJRri4vszDQVg6hZ9D/sDb2
- Z3chzBacKjv36GASfqsKokTU0TLE3h9uP5Tt8yjDmCwZazazdsvNHFUCX5WOJ6usIkdnJtGN/J2
- E7v8q8irfevLf3fIPuuqmWyWrbc0Wx8HV/DBgOmJJdJ3w==
 
-Since commit 7c010d463372 ("gpiolib: acpi: Make sure we fill struct
-acpi_gpio_info"), uninitialized acpi_gpio_info struct are passed to
-__acpi_find_gpio() and later in the call stack info->quirks is used in
-acpi_populate_gpio_lookup. This breaks the i2c_hid_cpi driver:
+Before commit 8b4f52ef7a41 ("gpiolib: acpi: Deduplicate some code in
+__acpi_find_gpio()") and the follow-up fix commit 7c010d463372 ("gpiolib:
+acpi: Make sure we fill struct acpi_gpio_info"). The struct acpi_gpio_info
+used during lookups was part of struct acpi_gpio_lookup which gets
+memset() to 0 before use.
 
-[   58.122916] i2c_hid_acpi i2c-UNIW0001:00: HID over i2c has not been provided an Int IRQ
-[   58.123097] i2c_hid_acpi i2c-UNIW0001:00: probe with driver i2c_hid_acpi failed with error -22
+And then after a successful lookup, acpi_gpio_resource_lookup() would
+copy the content of the zeroed acpi_gpio_lookup.info to the on
+stack struct acpi_gpio_info in __acpi_find_gpio(), overwriting any
+uninitialized memory contents there.
 
-Fix this by initializing the acpi_gpio_info pass to __acpi_find_gpio()
+But now instead a pointer to the on stack struct acpi_gpio_info in
+__acpi_find_gpio() is passed around, but that struct is never
+initialized.
 
-Closes: https://bugzilla.kernel.org/show_bug.cgi?id=220388
+This passing around of the uninitialized struct breaks index based
+lookups of GpioInt GPIOs because info->quirks now contains some random
+on stack data which may contain ACPI_GPIO_QUIRK_ONLY_GPIOIO.
+
+Initialize the on stack struct acpi_gpio_info to 0 to fix this.
+
+Fixes: 8b4f52ef7a41 ("gpiolib: acpi: Deduplicate some code in __acpi_find_gpio()")
 Fixes: 7c010d463372 ("gpiolib: acpi: Make sure we fill struct acpi_gpio_info")
-Signed-off-by: Sébastien Szymanski <sebastien.szymanski@armadeus.com>
+Signed-off-by: Hans de Goede <hansg@kernel.org>
 ---
- drivers/gpio/gpiolib-acpi-core.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/gpio/gpiolib-acpi-core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/gpio/gpiolib-acpi-core.c b/drivers/gpio/gpiolib-acpi-core.c
-index 12b24a717e43f17621c054bfc4e9c2e287236d8c..d11bcaf1ae88421e5e5a11a2ba94983f437c413a 100644
+index 12b24a717e43..1cc5d0702ee1 100644
 --- a/drivers/gpio/gpiolib-acpi-core.c
 +++ b/drivers/gpio/gpiolib-acpi-core.c
 @@ -942,7 +942,7 @@ struct gpio_desc *acpi_find_gpio(struct fwnode_handle *fwnode,
@@ -92,25 +82,10 @@ index 12b24a717e43f17621c054bfc4e9c2e287236d8c..d11bcaf1ae88421e5e5a11a2ba94983f
  	struct acpi_device *adev = to_acpi_device_node(fwnode);
  	bool can_fallback = acpi_can_fallback_to_crs(adev, con_id);
 -	struct acpi_gpio_info info;
-+	struct acpi_gpio_info info = {};
++	struct acpi_gpio_info info = { };
  	struct gpio_desc *desc;
  
  	desc = __acpi_find_gpio(fwnode, con_id, idx, can_fallback, &info);
-@@ -992,7 +992,7 @@ int acpi_dev_gpio_irq_wake_get_by(struct acpi_device *adev, const char *con_id,
- 	int ret;
- 
- 	for (i = 0, idx = 0; idx <= index; i++) {
--		struct acpi_gpio_info info;
-+		struct acpi_gpio_info info = {};
- 		struct gpio_desc *desc;
- 
- 		/* Ignore -EPROBE_DEFER, it only matters if idx matches */
-
----
-base-commit: 76eeb9b8de9880ca38696b2fb56ac45ac0a25c6c
-change-id: 20250912-gpiolib-acpi-fix-7ee492ebd5e8
-
-Best regards,
 -- 
-Sébastien Szymanski <sebastien.szymanski@armadeus.com>
+2.51.0
 
