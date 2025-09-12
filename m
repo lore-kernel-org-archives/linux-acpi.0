@@ -1,40 +1,40 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EF3B33470A;
-	Fri, 12 Sep 2025 20:06:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5D1833470A;
+	Fri, 12 Sep 2025 20:06:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757707597; cv=none; b=U0u8XefWP7kqrnSAN4Wn6ewh8awrSYFO68LHRvLCED5rs65Jg4v0KS9WKQoH1fIsyEtLXd7JuFTn8WQwZm2JLlGAmlTjtmsJMGVAkjSE/Xmgj7yYDlYtMhHvwZwm8HHwLiWCk3y+JdpIlTUogK35MSrd5xhLjuxMn+t1yBpkSXE=
+	t=1757707600; cv=none; b=KgLSPo5ZkSK/UHwR4MnAcZpdwi6Bpl6H03zakDTLaqbVGg+czk0uU2/wzoJCn2yEFPo+IHWvZNlE21aR2fxAPef+essc4aQGFCy3YfEHW3jjNlCgETYLFYg6EOkwK8zgQ5iYPlg/FkvbH5IuKruhY7GZdPknxrUqPzH9NbiZdI0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757707597; c=relaxed/simple;
-	bh=ZEV5k4lWIarWwkvDxjAHesQzAAuS/N+6kDmCL+8lU3g=;
+	s=arc-20240116; t=1757707600; c=relaxed/simple;
+	bh=nWogzhpEzBLFEYQIKQTtxHTp4y2Pt5Fko01GhFprUaw=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=I6n9fmiHg/vY1/Wj/eej19JjuLLaGuefnanrLwWCnh588BcptP/q1HF9qyzy8oO9FBQxOQrSUvCWqMdjzpNx9CYGq97eOqcMJjjSSyho03TwlbEVlcyQ6DXjFm/16TwTA8oRt4ghQBe7L6EsGPWJsRs0arez+z2+aGZYT90iIPU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JwO1f5+Q; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=tGJ/eNe3I/fadkkMsC23HnQi1fkDE37FgAkQ0cH3/lJJptdLONqSg35Yig27CAvA8+qAo6J4W1R6AkPFo02eZ7vkJ1XwW3yy3y5GUuOcBduilQPp4VODh1fed0fyjXHUlEqCFKtmvjmEQFEjiLFSdPFGo/4xBKeBngcl3DQQqdg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=sdsDzi+B; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JwO1f5+Q"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F1BBC4CEF8;
-	Fri, 12 Sep 2025 20:06:36 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="sdsDzi+B"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD45EC4CEF9;
+	Fri, 12 Sep 2025 20:06:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1757707597;
-	bh=ZEV5k4lWIarWwkvDxjAHesQzAAuS/N+6kDmCL+8lU3g=;
+	s=k20201202; t=1757707600;
+	bh=nWogzhpEzBLFEYQIKQTtxHTp4y2Pt5Fko01GhFprUaw=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=JwO1f5+QCyE2CIDwVTx7H46dwxKVR5cF/xIRlPYHXT2fh4BABTPRcRjr5wBoKs90N
-	 zGC+UEPlPedJR+ag+0n0YnAFkt7dWsnCExWD4kmNrV3dVoPnCWuw425+7vuE9KUQI3
-	 Kh3atY1zTdZc1Mh/+drSCTsDbRm7wFPC5eIR8ClfX70QO4T567nsFLwWVXjGzjj28e
-	 UTv6OQY1WNf575O7MT4oA2Q1LqTIKAzSvIhVKbdLPWJ6VGIyxcTDGldgnOOBi9ZsTr
-	 T0kwLzlMuVYYHL6bVINDBPDlPpr+v4QLmzIJL3q5yDDXRXy0ErRQ+Q0sqME9NDVYcP
-	 kbIpWGXwUgAKw==
+	b=sdsDzi+BfsjxYBL9vuSKV9+KD46X55Z1eqy5qNj5drN82G+bCAIPOkf8xLlC0YTsd
+	 EiLMHC+/uxq3KWtobZ9iywrY47eBBvbVR6C7t3JklzI2CxkBzDnpKBAXQN9Jp0jb3T
+	 cH90j6nowM8QMQ02GPldseR2H6JB+bjY17WcpSPdwLUuWn/PBI4WlnnG37HvxgUb5X
+	 +Zc5lri2mHITuWHse81u0J5EzpAohD+kmHNRzur3MtMrwGv0krtcfP+Pw0+OhxVw0V
+	 K1HqirW2D3PrrfbjKAQZ+H0t1zIIWA+HL7ag97NlKQ3u6+WCLlK79WtnW3J8bxQ9uM
+	 eMvaurWiqBpHQ==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>,
  "Dumbre, Saket" <saket.dumbre@intel.com>
 Subject:
- [PATCH v1 10/16] ACPICA: Update dsmethod.c to get rid of unused variable
- warning
-Date: Fri, 12 Sep 2025 22:01:04 +0200
-Message-ID: <1912535.atdPhlSkOF@rafael.j.wysocki>
+ [PATCH v1 09/16] ACPICA: dispatcher: Use acpi_ds_clear_operands() in
+ acpi_ds_call_control_method()
+Date: Fri, 12 Sep 2025 22:00:17 +0200
+Message-ID: <3848043.MHq7AAxBmi@rafael.j.wysocki>
 Organization: Linux Kernel Development
 In-Reply-To: <2021361.PYKUYFuaPT@rafael.j.wysocki>
 References: <2021361.PYKUYFuaPT@rafael.j.wysocki>
@@ -47,31 +47,44 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="UTF-8"
 
-From: Saket Dumbre <saket.dumbre@intel.com>
+From: Hans de Goede <hansg@kernel.org>
 
-All the 3 major C compilers (MSVC, GCC, LLVM/Clang) warn about
-the unused variable i after the removal of its usage by PR #1031
-addressing Issue #1027
+When deleting the previous walkstate operand stack
+acpi_ds_call_control_method() was deleting obj_desc->Method.param_count
+operands. But Method.param_count does not necessarily match
+this_walk_state->num_operands, it may be either less or more.
 
-Link: https://github.com/acpica/acpica/commit/6d235320
-Signed-off-by: Saket Dumbre <saket.dumbre@intel.com>
+After correcting the for loop to check `i < this_walk_state->num_operands`
+the code is identical to acpi_ds_clear_operands(), so just outright
+replace the code with acpi_ds_clear_operands() to fix this.
+
+Link: https://github.com/acpica/acpica/commit/53fc0220
+Signed-off-by: Hans de Goede <hansg@kernel.org>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/acpica/dsmethod.c | 1 -
- 1 file changed, 1 deletion(-)
+ drivers/acpi/acpica/dsmethod.c | 9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
 
 diff --git a/drivers/acpi/acpica/dsmethod.c b/drivers/acpi/acpica/dsmethod.c
-index e707a7036802..b2f756b7078d 100644
+index fef6fb29ece4..e707a7036802 100644
 --- a/drivers/acpi/acpica/dsmethod.c
 +++ b/drivers/acpi/acpica/dsmethod.c
-@@ -462,7 +462,6 @@ acpi_ds_call_control_method(struct acpi_thread_state *thread,
- 	struct acpi_walk_state *next_walk_state = NULL;
- 	union acpi_operand_object *obj_desc;
- 	struct acpi_evaluate_info *info;
--	u32 i;
+@@ -546,14 +546,7 @@ acpi_ds_call_control_method(struct acpi_thread_state *thread,
+ 	 * Delete the operands on the previous walkstate operand stack
+ 	 * (they were copied to new objects)
+ 	 */
+-	for (i = 0; i < obj_desc->method.param_count; i++) {
+-		acpi_ut_remove_reference(this_walk_state->operands[i]);
+-		this_walk_state->operands[i] = NULL;
+-	}
+-
+-	/* Clear the operand stack */
+-
+-	this_walk_state->num_operands = 0;
++	acpi_ds_clear_operands(this_walk_state);
  
- 	ACPI_FUNCTION_TRACE_PTR(ds_call_control_method, this_walk_state);
- 
+ 	ACPI_DEBUG_PRINT((ACPI_DB_DISPATCH,
+ 			  "**** Begin nested execution of [%4.4s] **** WalkState=%p\n",
 -- 
 2.51.0
 
