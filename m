@@ -1,140 +1,207 @@
-Received: from mail-pf1-f170.google.com (mail-pf1-f170.google.com [209.85.210.170])
+Received: from mail-ej1-f41.google.com (mail-ej1-f41.google.com [209.85.218.41])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45AC32EB10
-	for <linux-acpi@vger.kernel.org>; Sat, 13 Sep 2025 00:46:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.170
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B362B70810
+	for <linux-acpi@vger.kernel.org>; Sat, 13 Sep 2025 00:46:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757724376; cv=none; b=owP0zXk6/Z4GVkp8vB+8gpKkn2QlAwDyiaQFBy6i3NY3NLmW93swl9aFq7r6iRGQCL7L0Iy0tgyePVNc0QVTWupfmRzpNMvR1GrMFZt+bIdxsg7MPT3DJ0tRDM1hzQtKM/rWsGGpU/GHENI06Iyvl2OKygnusy2Ib82Q229gWDc=
+	t=1757724398; cv=none; b=InmFh2cEQKAXv44xaIccHvErsrDCcoWL2Qd5v/2ZHBpcuTmX4RgOs4PHjU3OrHfbm9n1lCyGouB8C2VqmW4y0TD06tEsVEX5tKldqELPFmMPI/wSi1cjNakcBaQi3x9lV8Ys8xlePzA0lQEEHtu8nggUfWo9o0B/BL3/gZuYJyo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757724376; c=relaxed/simple;
-	bh=akUfeAAylR4EGyDlpaAVA7KbTqLrX6ucdpKbIQvNUvc=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=FtWj4m0gtgvXIXoVcLGbSTc1tjikzBgkWwLwCeJSBXBdMKC989/iRqGt4R1xtHHquqeAcsloVN912pFxBsZgRJnHyf99OfPqWSJWJMh/lbka28vfZMBAb5L7GF+Y50h66Sc/Gj7hgPipgnZV+1HKr7YsuhJOcJRtMKJHrWipKYc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=wbinvd.org; spf=pass smtp.mailfrom=wbinvd.org; dkim=pass (2048-bit key) header.d=wbinvd.org header.i=@wbinvd.org header.b=KhjvS34z; arc=none smtp.client-ip=209.85.210.170
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=wbinvd.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=wbinvd.org
+	s=arc-20240116; t=1757724398; c=relaxed/simple;
+	bh=zjnx3/NY9AOu8ee75jqsChu3O0QCH1Ezxe1gYYeY9CY=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=FdKCWVm/jAXOyKewjf/tKUn2jjgftobaZk0IOPmZpK0FK007ZnWYcjgoNdx927HNhLNCv4tJk4BaBx1q67Qn5fad75fk+mYFsd8WNpSL+ax/QIhQK5aa4etqCKClpoDAid1hLSxjT7hs0CJQkoTy+hYX+nmZWsjZw0e6O7vGglQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=PGk3bVsR; arc=none smtp.client-ip=209.85.218.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=wbinvd.org header.i=@wbinvd.org header.b="KhjvS34z"
-Received: by mail-pf1-f170.google.com with SMTP id d2e1a72fcca58-7723f0924a3so3170523b3a.2
-        for <linux-acpi@vger.kernel.org>; Fri, 12 Sep 2025 17:46:14 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="PGk3bVsR"
+Received: by mail-ej1-f41.google.com with SMTP id a640c23a62f3a-b00a9989633so461778166b.0
+        for <linux-acpi@vger.kernel.org>; Fri, 12 Sep 2025 17:46:35 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=wbinvd.org; s=wbinvd; t=1757724374; x=1758329174; darn=vger.kernel.org;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=y1rAyo0wYKz4qhM+kpJJzKO3IkA7FwTREfOLXkFqC+k=;
-        b=KhjvS34zI+GcCf64gWCiWFseNfwQXvcmSoc0EGu1w6jMug1/YOSgom7Ilmb5XsvCFe
-         9UEv2KLhlLpiqdFJXtlx1uaAbfStSdJgsbjmO55F3jJhHf0GZOBXAelmymvZKDaOauVd
-         DnicSisYcFeVlx2336UNEsJ1TAqU1FGBQksH9TqJh3W+ShEOLRjHXRmw0NOgJ9Mz8XkA
-         psy+yCvrod50D71r5gm4welJtCD5kgenard8rcDNj4a2EMI43IZKv0GD8QFnzO3iA7NQ
-         b08RQ8CjkURYGcyci+0If0Ww5xiDj9wTdgiUE0xyDamGJCGp0g9JoNuANnCUBBQdaBJ1
-         aLRw==
+        d=gmail.com; s=20230601; t=1757724394; x=1758329194; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Y83Wia04Z/mNTHCUGozzAt26nJVQ29vmo/6z8Jb/IIM=;
+        b=PGk3bVsRmWQpgLwAnVuCRO0kfYqwetnBUpZ9Zl3Pvel66XWmCXB4VKQL5Bdc7K3yzn
+         M/NiRXfXYINjUibah+GvZKkATvgQcgRMrf1NawlM6FGu0AMPYtqvTfiI1b3aVJjsZ1zG
+         5YdT6fe78qL81b9ih8iEIF4U5t2vDQEqoXcLlaw+dOojNkrgJ0XGZoO11wokr1P3l8k1
+         2POWKMHVAj+usqOdMHfl8x1l168nDqH0UlymBKEpDjbdysCodQukbPtnikPIMlUgCONA
+         EeCKIjtBRwOssS5KWaLD6MYW6PEx814n+0axgQBjjZ9AyZVboPwbEM/rFfBdkNQ+CZsf
+         jz+Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1757724374; x=1758329174;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=y1rAyo0wYKz4qhM+kpJJzKO3IkA7FwTREfOLXkFqC+k=;
-        b=kdGGE+9dw3L5Yz1oz4RaKXlgvwuFumD6oM6bkB6wdYvHLEa4jCbDGQ09QbJqhbecSL
-         5Zmp8hrWfvub5YydV47yUFS0oG3tdnORypkqD+LFZcMLMGk9i7ZXBtzD350tBuUoIKNw
-         CjPmzMVbrYUdn8beg+Vs1iJJpNDMe15+lAl+xTmJ655fLiL9YICevZ4T9I6Ift56FbtE
-         wbdVWZ0RXpJ2fTFeuu53B2mvkvXx/0mxEH7ymMhkpdzjHKI8FYB6xtDNdBBUhTJ4T+o/
-         9/7xkAy9QycM/uiCTDkI6BePLT7OMs0kDwep2zR9iTUYexn1Gd+H0sB358dZ6LvMnaoE
-         rjQw==
-X-Forwarded-Encrypted: i=1; AJvYcCXOAvzrzjYmSNHMEPYLeWPdOhDb36Fs3FhY8JZ1eeadrjPYUwot7j8gXbtisNWn2rc9BCb5TydOtCJZ@vger.kernel.org
-X-Gm-Message-State: AOJu0Yzei9Xk/Lg4hQPkEDwdRWbknlMr6jhDUEwN3wep7xYOdI2uCjY/
-	gBJXZwuOo25g27IGaQ3f7QjZ/cPWbRGbT5sodSQkmckpBN3s8wKpPWFrb84V2uL/ih0=
-X-Gm-Gg: ASbGncva2YdSWL9Vpm+nGSsrI+Zs34xx/j6J/CpmFISfTaWQ5SLnkcxgnYIN3V6gt98
-	/s97X+PhCzmEaq0RW8XKx7cM66ShNPUzbIvxIAIG8RBOQgQi8usRSw28L7AizZVzTEofQo4NGvQ
-	n2Ib1kr4qNSFHoJJ/jO2XXzYdyRp/oxziyH8zytVLSsEwGqF+oXXdcMz52PcFuUmTN1VE/6jHvM
-	x8tA4b65SqBlLuHL4yCPb7YbABR2qrfYyiYdsgYHyBL6HEqxcxJTkuO/Y27tjQRENkCUL8zb4DB
-	dV77jWTUXLZKw70bHV5cGyP3KSXvvcjlnFIFmyHDIkurT+c65FKSjJCzH49DpAKrfx+QJApeCEq
-	TqjccI4ZlOzCotilPb6/QiAUT
-X-Google-Smtp-Source: AGHT+IHMBcbueSicxR/8Vx8AuBr3VH7T7SswkJLlw1PiFiO49urRgXzVoKF+OSucjZhbIyJT/Kwvwg==
-X-Received: by 2002:a05:6a20:1590:b0:246:3a6:3e5e with SMTP id adf61e73a8af0-2602cd19bc3mr6462974637.54.1757724374277;
-        Fri, 12 Sep 2025 17:46:14 -0700 (PDT)
-Received: from mozart.vkv.me ([192.184.167.117])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-7760793be6csm6786234b3a.14.2025.09.12.17.46.13
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 12 Sep 2025 17:46:13 -0700 (PDT)
-Date: Fri, 12 Sep 2025 17:46:11 -0700
-From: Calvin Owens <calvin@wbinvd.org>
-To: =?utf-8?Q?S=C3=A9bastien?= Szymanski <sebastien.szymanski@armadeus.com>
-Cc: Mika Westerberg <westeri@kernel.org>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Linus Walleij <linus.walleij@linaro.org>,
-	Bartosz Golaszewski <brgl@bgdev.pl>,
-	Mika Westerberg <mika.westerberg@linux.intel.com>,
-	linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org,
+        d=1e100.net; s=20230601; t=1757724394; x=1758329194;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=Y83Wia04Z/mNTHCUGozzAt26nJVQ29vmo/6z8Jb/IIM=;
+        b=WcQVmBqB6okw8l6mBlfCMrVM1IU2JxQkXoeUtyvF5CNWHVvTp2Ic8uhzHutKlleZbb
+         uCd0k6zDOcWkdp35lgFqbVvEi6cn1woDf7l5yyHbqQZ9yFmxX5qNuFzyXbHOx0Ti1FRz
+         qDdATDVyOkIic8PNrTOi2+N1/HuDd70sWkoPLzKEN/U5dW6akwyEUh5KNwksaDI61VWk
+         nMXwi2mayCwDQ09WbImt3M7PPFn3DUfqC8/lE+Mm5M6oQyHocJfk+czQ7Vmo8J0oUvbS
+         Fo3omvIDDQmxR2UBIdnGX6W+B2zApxwYtI5GXLJZnTInNX2AS2WTGUCzD5Shbx/GUJx7
+         JeKA==
+X-Forwarded-Encrypted: i=1; AJvYcCXQATO0Rn8CCagTjEOucRiLkbL49DvlDDSXJjAm6HiFlxdelhfuWmOvElLHGYP6QaDj+qCwTd3OXrd+@vger.kernel.org
+X-Gm-Message-State: AOJu0YznPCsYOSESqi54QCZNfGxQFqQMpDHlAIhC3emcdYVeKsfNh4I0
+	j3NUCOFtbPT5F4l0X+Ko9R5A9wAWbb8TCdrdwIeMYOoAIBaIdESIsx5x
+X-Gm-Gg: ASbGncuDyw1ys7Vg8jWZ0itQj99GgyornsuYQDcaKn0q79rZv1MIlFAY4w7OMnUdY9b
+	PN8y9ZVIShGyCYpRB2aK5kkW0gXSqC+/+SoAh/BBbCTsDhkOu6moN553F5fW2wSGdku8xWn5SqG
+	x6sj5TWEnVnkaStDJiATyuFxbKLNP03ZvKtyhNHft1iXXiLKwvgXiAV6A4IKgE08TR+9vY6gvrq
+	iXcVxa8k5nocq9dxEs9grX6a21c+lORDVCuE9btgqsrCctleZ1/PmWOGD1s7nn3hgXFbY9mPgrh
+	wdkFoFwvpzajYb9R5yq0MgT9dxH78jnJXs9FtggkdJ3mMFRhnxWoCeb6aYbPdc+TdMZod2W9BZG
+	xUO4dDiWha6FI8c11Gms=
+X-Google-Smtp-Source: AGHT+IEhRE4IwIn6e21II3sG+AWhFOewnNElGtSUdTtt48+B8a0G24fjikoaCpJ97iRLzEKC56BiAg==
+X-Received: by 2002:a17:907:96a3:b0:b07:e258:4629 with SMTP id a640c23a62f3a-b07e2584a05mr103605766b.16.1757724393999;
+        Fri, 12 Sep 2025 17:46:33 -0700 (PDT)
+Received: from localhost ([212.73.77.104])
+        by smtp.gmail.com with UTF8SMTPSA id a640c23a62f3a-b07b32f2334sm475232966b.78.2025.09.12.17.46.29
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Fri, 12 Sep 2025 17:46:33 -0700 (PDT)
+From: Askar Safin <safinaskar@gmail.com>
+To: linux-fsdevel@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] gpiolib: acpi: initialize acpi_gpio_info struct
-Message-ID: <aMS-09x_YTV75r0n@mozart.vkv.me>
-References: <20250912-gpiolib-acpi-fix-v1-1-1a41acbffadf@armadeus.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Christian Brauner <brauner@kernel.org>,
+	Al Viro <viro@zeniv.linux.org.uk>,
+	Jan Kara <jack@suse.cz>,
+	Christoph Hellwig <hch@lst.de>,
+	Jens Axboe <axboe@kernel.dk>,
+	Andy Shevchenko <andy.shevchenko@gmail.com>,
+	Aleksa Sarai <cyphar@cyphar.com>,
+	=?UTF-8?q?Thomas=20Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>,
+	Julian Stecklina <julian.stecklina@cyberus-technology.de>,
+	Gao Xiang <hsiangkao@linux.alibaba.com>,
+	Art Nikpal <email2tema@gmail.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Eric Curtin <ecurtin@redhat.com>,
+	Alexander Graf <graf@amazon.com>,
+	Rob Landley <rob@landley.net>,
+	Lennart Poettering <mzxreary@0pointer.de>,
+	linux-arch@vger.kernel.org,
+	linux-alpha@vger.kernel.org,
+	linux-snps-arc@lists.infradead.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-csky@vger.kernel.org,
+	linux-hexagon@vger.kernel.org,
+	loongarch@lists.linux.dev,
+	linux-m68k@lists.linux-m68k.org,
+	linux-mips@vger.kernel.org,
+	linux-openrisc@vger.kernel.org,
+	linux-parisc@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org,
+	linux-riscv@lists.infradead.org,
+	linux-s390@vger.kernel.org,
+	linux-sh@vger.kernel.org,
+	sparclinux@vger.kernel.org,
+	linux-um@lists.infradead.org,
+	x86@kernel.org,
+	Ingo Molnar <mingo@redhat.com>,
+	linux-block@vger.kernel.org,
+	initramfs@vger.kernel.org,
+	linux-api@vger.kernel.org,
+	linux-doc@vger.kernel.org,
+	linux-efi@vger.kernel.org,
+	linux-ext4@vger.kernel.org,
+	"Theodore Y . Ts'o" <tytso@mit.edu>,
+	linux-acpi@vger.kernel.org,
+	Michal Simek <monstr@monstr.eu>,
+	devicetree@vger.kernel.org,
+	Luis Chamberlain <mcgrof@kernel.org>,
+	Kees Cook <kees@kernel.org>,
+	Thorsten Blum <thorsten.blum@linux.dev>,
+	Heiko Carstens <hca@linux.ibm.com>,
+	patches@lists.linux.dev
+Subject: [PATCH RESEND 06/62] arm: init: remove special logic for setting brd.rd_size
+Date: Sat, 13 Sep 2025 00:37:45 +0000
+Message-ID: <20250913003842.41944-7-safinaskar@gmail.com>
+X-Mailer: git-send-email 2.47.2
+In-Reply-To: <20250913003842.41944-1-safinaskar@gmail.com>
+References: <20250913003842.41944-1-safinaskar@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20250912-gpiolib-acpi-fix-v1-1-1a41acbffadf@armadeus.com>
 
-On Friday 09/12 at 22:18 +0200, Sébastien Szymanski wrote:
-> Since commit 7c010d463372 ("gpiolib: acpi: Make sure we fill struct
-> acpi_gpio_info"), uninitialized acpi_gpio_info struct are passed to
-> __acpi_find_gpio() and later in the call stack info->quirks is used in
-> acpi_populate_gpio_lookup. This breaks the i2c_hid_cpi driver:
-> 
-> [   58.122916] i2c_hid_acpi i2c-UNIW0001:00: HID over i2c has not been provided an Int IRQ
-> [   58.123097] i2c_hid_acpi i2c-UNIW0001:00: probe with driver i2c_hid_acpi failed with error -22
-> 
-> Fix this by initializing the acpi_gpio_info pass to __acpi_find_gpio()
-> 
-> Closes: https://bugzilla.kernel.org/show_bug.cgi?id=220388
-> Fixes: 7c010d463372 ("gpiolib: acpi: Make sure we fill struct acpi_gpio_info")
-> Signed-off-by: Sébastien Szymanski <sebastien.szymanski@armadeus.com>
+There is no any reason for having special mechanism
+for setting ramdisk size.
 
-Thanks Sébastien. This fixes the touchpad on my XPS 9340.
+Also this allows us to change rd_size variable to static
 
-If you want it:
+Signed-off-by: Askar Safin <safinaskar@gmail.com>
+---
+ arch/arm/kernel/atags_parse.c | 12 ------------
+ drivers/block/brd.c           |  8 ++++----
+ include/linux/initrd.h        |  3 ---
+ 3 files changed, 4 insertions(+), 19 deletions(-)
 
-Tested-By: Calvin Owens <calvin@wbinvd.org>
+diff --git a/arch/arm/kernel/atags_parse.c b/arch/arm/kernel/atags_parse.c
+index a3f0a4f84e04..615d9e83c9b5 100644
+--- a/arch/arm/kernel/atags_parse.c
++++ b/arch/arm/kernel/atags_parse.c
+@@ -87,18 +87,6 @@ static int __init parse_tag_videotext(const struct tag *tag)
+ __tagtable(ATAG_VIDEOTEXT, parse_tag_videotext);
+ #endif
+ 
+-#ifdef CONFIG_BLK_DEV_RAM
+-static int __init parse_tag_ramdisk(const struct tag *tag)
+-{
+-	if (tag->u.ramdisk.size)
+-		rd_size = tag->u.ramdisk.size;
+-
+-	return 0;
+-}
+-
+-__tagtable(ATAG_RAMDISK, parse_tag_ramdisk);
+-#endif
+-
+ static int __init parse_tag_serialnr(const struct tag *tag)
+ {
+ 	system_serial_low = tag->u.serialnr.low;
+diff --git a/drivers/block/brd.c b/drivers/block/brd.c
+index 0c2eabe14af3..72f02d2b8a99 100644
+--- a/drivers/block/brd.c
++++ b/drivers/block/brd.c
+@@ -27,6 +27,10 @@
+ 
+ #include <linux/uaccess.h>
+ 
++static unsigned long rd_size = CONFIG_BLK_DEV_RAM_SIZE;
++module_param(rd_size, ulong, 0444);
++MODULE_PARM_DESC(rd_size, "Size of each RAM disk in kbytes.");
++
+ /*
+  * Each block ramdisk device has a xarray brd_pages of pages that stores
+  * the pages containing the block device's contents.
+@@ -209,10 +213,6 @@ static int rd_nr = CONFIG_BLK_DEV_RAM_COUNT;
+ module_param(rd_nr, int, 0444);
+ MODULE_PARM_DESC(rd_nr, "Maximum number of brd devices");
+ 
+-unsigned long rd_size = CONFIG_BLK_DEV_RAM_SIZE;
+-module_param(rd_size, ulong, 0444);
+-MODULE_PARM_DESC(rd_size, "Size of each RAM disk in kbytes.");
+-
+ static int max_part = 1;
+ module_param(max_part, int, 0444);
+ MODULE_PARM_DESC(max_part, "Num Minors to reserve between devices");
+diff --git a/include/linux/initrd.h b/include/linux/initrd.h
+index 6320a9cb6686..b42235c21444 100644
+--- a/include/linux/initrd.h
++++ b/include/linux/initrd.h
+@@ -5,9 +5,6 @@
+ 
+ #define INITRD_MINOR 250 /* shouldn't collide with /dev/ram* too soon ... */
+ 
+-/* size of a single RAM disk */
+-extern unsigned long rd_size;
+-
+ /* 1 if it is not an error if initrd_start < memory_start */
+ extern int initrd_below_start_ok;
+ 
+-- 
+2.47.2
 
-> ---
->  drivers/gpio/gpiolib-acpi-core.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/gpio/gpiolib-acpi-core.c b/drivers/gpio/gpiolib-acpi-core.c
-> index 12b24a717e43f17621c054bfc4e9c2e287236d8c..d11bcaf1ae88421e5e5a11a2ba94983f437c413a 100644
-> --- a/drivers/gpio/gpiolib-acpi-core.c
-> +++ b/drivers/gpio/gpiolib-acpi-core.c
-> @@ -942,7 +942,7 @@ struct gpio_desc *acpi_find_gpio(struct fwnode_handle *fwnode,
->  {
->  	struct acpi_device *adev = to_acpi_device_node(fwnode);
->  	bool can_fallback = acpi_can_fallback_to_crs(adev, con_id);
-> -	struct acpi_gpio_info info;
-> +	struct acpi_gpio_info info = {};
->  	struct gpio_desc *desc;
->  
->  	desc = __acpi_find_gpio(fwnode, con_id, idx, can_fallback, &info);
-> @@ -992,7 +992,7 @@ int acpi_dev_gpio_irq_wake_get_by(struct acpi_device *adev, const char *con_id,
->  	int ret;
->  
->  	for (i = 0, idx = 0; idx <= index; i++) {
-> -		struct acpi_gpio_info info;
-> +		struct acpi_gpio_info info = {};
->  		struct gpio_desc *desc;
->  
->  		/* Ignore -EPROBE_DEFER, it only matters if idx matches */
-> 
-> ---
-> base-commit: 76eeb9b8de9880ca38696b2fb56ac45ac0a25c6c
-> change-id: 20250912-gpiolib-acpi-fix-7ee492ebd5e8
-> 
-> Best regards,
-> -- 
-> Sébastien Szymanski <sebastien.szymanski@armadeus.com>
-> 
