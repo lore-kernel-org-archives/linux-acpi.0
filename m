@@ -1,37 +1,37 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 621C52F618E;
-	Mon, 15 Sep 2025 08:57:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB8C72F6567;
+	Mon, 15 Sep 2025 08:57:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757926637; cv=none; b=PGiBnc1d2Ehnp2L8Ub1wjmwpeJvpsDciPFvxZEKv9e3JZ4/fRt8wYDExwsb0/tRP2SW2/I9mw1KQxwLRy/IZWtDjaDeSOQ5Ca7yay3I1AZH8uVtMN2G7StxTjydRkTAmMxpN2dWcIUSkqf/CHEqLoX7yVhr9H5dSh+W3KaT01+g=
+	t=1757926637; cv=none; b=VeoeCVL21aM392sKJBTwvsmIsXHyBzpOUHIxAwwlfqDsg+pd8Z0ibT+gqsIwsWFs0s4TFEs7q4uy9qjAWo5SfxqHdUkooW+ENSH3dw/smqCLP/PtYOSXQ/xfduGvzKmAjIhApQGl+73LpyfsvnX8H3POo3S8PbZZOxpcSWqDoTQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1757926637; c=relaxed/simple;
-	bh=a5Pq4IyChIRNpCI1Y1MOptr/VB0oiXKYMj/CA7z9q3U=;
+	bh=Guk8n6/b1YLuhiRYFvNKDDOTih1DJLDZjQ/MgdDE/uI=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=rybZyS/k/utiiHNj+N2f5P5rMzzz2TCWpDXhbk9lRkqQzCQgSVwRvx1OurhhMSaSu4IsI88ZRlkSGZzQC0QIZh/bvM3GudMQgwb1ZzDD4+T2ZNRL/i+JTsRcZ9GuTs58oBZ5ZS/IRIJNdL85/5HTV08wtKtaherUf8G5+SsFqbU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=qt2suhNt; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=gpD+LUgVTq+2iZoF1baa9Zijx8GFhbwJEs65cStBC+mqhHYrFoGodAPh/nARi9P8+3WLTC9cXHVLISVRsXzEIHRSk+UaReVHzTliBnc16+ngwlkZ7A2kO05Y7rjtEkKPYMwGAefqIrXVbYaqhkY+bURW7ucxB6expFHPPFq7NwY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XR17KXaS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="qt2suhNt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40A83C4CEFB;
-	Mon, 15 Sep 2025 08:57:17 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XR17KXaS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49064C4CEFE;
+	Mon, 15 Sep 2025 08:57:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1757926637;
-	bh=a5Pq4IyChIRNpCI1Y1MOptr/VB0oiXKYMj/CA7z9q3U=;
+	s=k20201202; t=1757926636;
+	bh=Guk8n6/b1YLuhiRYFvNKDDOTih1DJLDZjQ/MgdDE/uI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=qt2suhNtBryNbVM6DmZ8ZNhYrUzzxxAGTLn4ERk+k7tzEwRvzafwQ6VfjIMqfXSxa
-	 8zX9+meYdetpRmN/NuHhlox0X8NsejOuszCIH316PfWfK1auIo6YbwmwWtNQdDbMZp
-	 iGhDIS4rFdEyTAQBvpfRWCG7jdX83+MGY5/uGG5Jq6SWFvGce/5TcMqvmJr4ikZHXD
-	 ZXFe3/53qH//uGugC3cv1IeWh91KElkNK5pj44gII5yh/mI63Vh+7/nxGKUDn4OgGV
-	 ivlf1g2rRFsFP0rac7Tk9VRyo2LgaoHaouXU7B/5zujfKErLpGcX8J+EV1q27KM+ai
-	 ji5DCEuT7/oWQ==
+	b=XR17KXaSC/YvOWLt4YEscxJ5UGR3ahv++IZYFJsyCBLM6bai3fxliBp8sGLKnSn/7
+	 0NHgpc6R8s+nZBGg54NXu1Hi8OLVdMzxgEF/dAs+l6EYLmsbnm6gV4tC+GeBMYaK/D
+	 0GEk7gfRD5reIFnBLqmpAlRzIm3Hjex/7hZNfONq4xNXIyXtbmc+DL0/fMR80NVazk
+	 yXFkwICk1Kr/i31k5MY3JfPqdLFwM1I6ONHG/c/OLSc7ofJ/Epjg2kMqUii6aScZUS
+	 jdOzt/DDtWknNgFnCcuyaj+XGBcv+Rh/7nRgj36FteXv4X9QMe52/M9XeBCvJN6zvZ
+	 qW3pshMCy10gg==
 Received: from sofa.misterjones.org ([185.219.108.64] helo=valley-girl.lan)
 	by disco-boy.misterjones.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.98.2)
 	(envelope-from <maz@kernel.org>)
-	id 1uy51P-00000006IHP-23aU;
-	Mon, 15 Sep 2025 08:57:15 +0000
+	id 1uy51O-00000006IHP-1ybI;
+	Mon, 15 Sep 2025 08:57:14 +0000
 From: Marc Zyngier <maz@kernel.org>
 To: linux-kernel@vger.kernel.org,
 	linux-arm-kernel@lists.infradead.org,
@@ -47,9 +47,9 @@ Cc: Thomas Gleixner <tglx@linutronix.de>,
 	Janne Grunau <j@jannau.net>,
 	Suzuki K Poulose <suzuki.poulose@arm.com>,
 	James Clark <james.clark@linaro.org>
-Subject: [PATCH v2 17/25] genirq: Add request_percpu_irq_affinity() helper
-Date: Mon, 15 Sep 2025 09:56:54 +0100
-Message-Id: <20250915085702.519996-18-maz@kernel.org>
+Subject: [PATCH v2 13/25] genirq: Factor-in percpu irqaction creation
+Date: Mon, 15 Sep 2025 09:56:50 +0100
+Message-Id: <20250915085702.519996-14-maz@kernel.org>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <20250915085702.519996-1-maz@kernel.org>
 References: <20250915085702.519996-1-maz@kernel.org>
@@ -65,40 +65,96 @@ X-SA-Exim-Rcpt-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradea
 X-SA-Exim-Mail-From: maz@kernel.org
 X-SA-Exim-Scanned: No (on disco-boy.misterjones.org); SAEximRunCond expanded to false
 
-While it would be nice to simply make request_percpu_irq() take
-an affinity mask, the churn is likely to be on the irritating side
-given that most drivers do not give a damn about affinities.
+Move the code creating a per-cpu irqaction into its own helper, so that
+future changes to this code can be kept localised.
 
-So take the more innocuous path to provide a helper that parallels
-request_percpu_irq(), with an affinity as a bonus argument.
-
-Yes, request_percpu_irq_affinity() is a bit of a mouthful.
+At the same time, fix the documentation which appears to say the wrong
+thing when it comes to interrupts being automatically enabled
+(percpu_devid interrupts never are).
 
 Signed-off-by: Marc Zyngier <maz@kernel.org>
 ---
- include/linux/interrupt.h | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ kernel/irq/manage.c | 40 ++++++++++++++++++++++++----------------
+ 1 file changed, 24 insertions(+), 16 deletions(-)
 
-diff --git a/include/linux/interrupt.h b/include/linux/interrupt.h
-index 2134e7c08c169..c8e6f4895782c 100644
---- a/include/linux/interrupt.h
-+++ b/include/linux/interrupt.h
-@@ -196,6 +196,15 @@ request_percpu_irq(unsigned int irq, irq_handler_t handler,
- 				    devname, NULL, percpu_dev_id);
+diff --git a/kernel/irq/manage.c b/kernel/irq/manage.c
+index c94837382037e..d9ddc30678b5d 100644
+--- a/kernel/irq/manage.c
++++ b/kernel/irq/manage.c
+@@ -2442,6 +2442,24 @@ int setup_percpu_irq(unsigned int irq, struct irqaction *act)
+ 	return retval;
  }
  
-+static inline int __must_check
-+request_percpu_irq_affinity(unsigned int irq, irq_handler_t handler,
-+			    const char *devname, const cpumask_t *affinity,
-+			    void __percpu *percpu_dev_id)
++static
++struct irqaction *create_percpu_irqaction(irq_handler_t handler, unsigned long flags,
++					  const char *devname, void __percpu *dev_id)
 +{
-+	return __request_percpu_irq(irq, handler, 0,
-+				    devname, affinity, percpu_dev_id);
++	struct irqaction *action;
++
++	action = kzalloc(sizeof(struct irqaction), GFP_KERNEL);
++	if (!action)
++		return NULL;
++
++	action->handler = handler;
++	action->flags = flags | IRQF_PERCPU | IRQF_NO_SUSPEND;
++	action->name = devname;
++	action->percpu_dev_id = dev_id;
++
++	return action;
 +}
 +
- extern int __must_check
- request_percpu_nmi(unsigned int irq, irq_handler_t handler, const char *devname,
- 		   const struct cpumask *affinity, void __percpu *dev_id);
+ /**
+  * __request_percpu_irq - allocate a percpu interrupt line
+  * @irq:	Interrupt line to allocate
+@@ -2450,9 +2468,9 @@ int setup_percpu_irq(unsigned int irq, struct irqaction *act)
+  * @devname:	An ascii name for the claiming device
+  * @dev_id:	A percpu cookie passed back to the handler function
+  *
+- * This call allocates interrupt resources and enables the interrupt on the
+- * local CPU. If the interrupt is supposed to be enabled on other CPUs, it
+- * has to be done on each CPU using enable_percpu_irq().
++ * This call allocates interrupt resources, but doesn't enable the interrupt
++ * on any CPU, as all percpu-devid interrupts are flagged with IRQ_NOAUTOEN.
++ * It has to be done on each CPU using enable_percpu_irq().
+  *
+  * @dev_id must be globally unique. It is a per-cpu variable, and
+  * the handler gets called with the interrupted CPU's instance of
+@@ -2477,15 +2495,10 @@ int __request_percpu_irq(unsigned int irq, irq_handler_t handler,
+ 	if (flags && flags != IRQF_TIMER)
+ 		return -EINVAL;
+ 
+-	action = kzalloc(sizeof(struct irqaction), GFP_KERNEL);
++	action = create_percpu_irqaction(handler, flags, devname, dev_id);
+ 	if (!action)
+ 		return -ENOMEM;
+ 
+-	action->handler = handler;
+-	action->flags = flags | IRQF_PERCPU | IRQF_NO_SUSPEND;
+-	action->name = devname;
+-	action->percpu_dev_id = dev_id;
+-
+ 	retval = irq_chip_pm_get(&desc->irq_data);
+ 	if (retval < 0) {
+ 		kfree(action);
+@@ -2546,16 +2559,11 @@ int request_percpu_nmi(unsigned int irq, irq_handler_t handler,
+ 	if (irq_is_nmi(desc))
+ 		return -EINVAL;
+ 
+-	action = kzalloc(sizeof(struct irqaction), GFP_KERNEL);
++	action = create_percpu_irqaction(handler, IRQF_NO_THREAD | IRQF_NOBALANCING,
++					 name, dev_id);
+ 	if (!action)
+ 		return -ENOMEM;
+ 
+-	action->handler = handler;
+-	action->flags = IRQF_PERCPU | IRQF_NO_SUSPEND | IRQF_NO_THREAD
+-		| IRQF_NOBALANCING;
+-	action->name = name;
+-	action->percpu_dev_id = dev_id;
+-
+ 	retval = irq_chip_pm_get(&desc->irq_data);
+ 	if (retval < 0)
+ 		goto err_out;
 -- 
 2.39.2
 
