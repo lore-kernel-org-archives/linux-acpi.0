@@ -1,169 +1,180 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02B2F2F28EF
-	for <linux-acpi@vger.kernel.org>; Mon, 15 Sep 2025 12:09:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from pegase2.c-s.fr (pegase2.c-s.fr [93.17.235.10])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id B13DD27FD49;
+	Mon, 15 Sep 2025 12:20:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=93.17.235.10
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757938155; cv=none; b=SmAELYWjcPF74V0uFpWZt7C/sJfWRuOa5Cz6lHmGzo9m1QktTQvaDZA+0NDscq8GAORHCOviqBu1zznGDNDPteuEQX8hi5CgAl1+jKWma8yrhJ3iwP6xwKWWNAHbReYGMsZgKCzPgfXjzpsbC0gd/ECNaVvX+R0sX7w2MusCTTk=
+	t=1757938840; cv=none; b=KTkBWnsxxdJSSXJa5t7R9k/5iGbELLcN1SBBrjvQR37fJjidliedAGbNwNAN42pAHRtvovt/VVvWcCNluDVUoannPwcBaE2bKCqm9M2WJgsVQqffrZGsitcSViIhPoWxU+eWdBDM8L66Hn7LFrkUHXN+Evwo3I3xlvlh+7EAkh0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757938155; c=relaxed/simple;
-	bh=Teeh8KcQNzuIsJXPFF4rs0mxS9J90+7VxVkbhpr7iiE=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=PqI2fOcS/JMzP/efBiTQKg3jhzZ4xxPE9il0id/xU/jjfZe3yXAoybilL8VVukP+Ct9CNLUNi06d8UrJsFGiEOo1jaJwpk9hTKnfPDXYQBdeyebd1Xgk/XUFMld/SjuP03bVBcXMLgSW+jSNDLsc91QtcPo0se0w7jpu9+UcEMw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fMnLf5Ah; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fMnLf5Ah"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AAC1CC4AF09
-	for <linux-acpi@vger.kernel.org>; Mon, 15 Sep 2025 12:09:14 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1757938154;
-	bh=Teeh8KcQNzuIsJXPFF4rs0mxS9J90+7VxVkbhpr7iiE=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=fMnLf5AhvoQxAWsQ2XNQoYFXf8uDuEkEAyf+n46BRdVlbMgtVgrBN3bL8x77mKiGR
-	 2hR4eGOPagtAFZlmolRGZ2jb7WW0rQG6Bmr6ydcQvl0u2fahtpt4bp63rYvv94MOMV
-	 dpCEz3AZG2FZxdH8AVWgEhjgaFaUA7/om0vP13sN1ks/U+CyRzEIB+Zq0Jti4LLODY
-	 mn+SZbsKkriY1LRkttyfZSneLvuH6cwbbCdM8G6XuaAivN+/LnnnDYlKNnjjnLrH4F
-	 4+bxWCiwHug/iUMU4eP9Hk0Sy4sPe/0sFL9zhpqp0LnKVWdn8PuH4P/bh7qh7UdN6E
-	 NXAawDeLs7cBg==
-Received: by mail-oo1-f47.google.com with SMTP id 006d021491bc7-6219b29ed57so1525484eaf.1
-        for <linux-acpi@vger.kernel.org>; Mon, 15 Sep 2025 05:09:14 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCXMADzgo+sEFenDFgMTVw1uNkaTudOvd4s0haYJO2Ty3N917m58WALQOXbgh8yskkcpwu1nVSEEf5xU@vger.kernel.org
-X-Gm-Message-State: AOJu0YxivEcPJAueJG9NWM4bmcgNt2wTZfRj+BVb7qkx29s119N7XW9L
-	xZ63cpyYMmFSlXuho28OcEsD219ChL40aLaX2N8S+y1u6gcCbhpfOBsvJxT8DMQW6nIgnf28Qzr
-	KFq1oBtzlZ3cjA2I0VJ8pGBu9L4m2fM8=
-X-Google-Smtp-Source: AGHT+IHWVj7BbTDa433wRQXaT2JQvW3m4j1w+ikKLeCXzEnVOLyCvrMszDlpf3M5BCYVACy6h58yQCmNDWHvWpCDBiA=
-X-Received: by 2002:a05:6820:2d87:b0:61e:68b9:cb0d with SMTP id
- 006d021491bc7-621b2c31ebdmr6904407eaf.0.1757938153953; Mon, 15 Sep 2025
- 05:09:13 -0700 (PDT)
+	s=arc-20240116; t=1757938840; c=relaxed/simple;
+	bh=D/7KskjWGePd5lUSyB950r7KaGQ+t6CMELLiiCCjoR4=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=aU4AUazivDeU3t+9gZkBhGYS8zye33+zt8Ha10Te78XdnKag4yWWLhtm8RKhy9xZ1dP/jfohKrqG7azNxX+0XU9Ah3cvp/S+md5JV6CBBGhy9OfhSnJ2e5j/fjFrnIb2vXkkekSR6E7LMWt74m3rOKWzhm4FVSO43VOfYgXxOGM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=csgroup.eu; spf=pass smtp.mailfrom=csgroup.eu; arc=none smtp.client-ip=93.17.235.10
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=csgroup.eu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=csgroup.eu
+Received: from localhost (mailhub4.si.c-s.fr [172.26.127.67])
+	by localhost (Postfix) with ESMTP id 4cQNhn1N0hz9sxb;
+	Mon, 15 Sep 2025 13:53:29 +0200 (CEST)
+X-Virus-Scanned: amavisd-new at c-s.fr
+Received: from pegase2.c-s.fr ([172.26.127.65])
+	by localhost (pegase2.c-s.fr [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id anqguhIbwei8; Mon, 15 Sep 2025 13:53:29 +0200 (CEST)
+Received: from messagerie.si.c-s.fr (messagerie.si.c-s.fr [192.168.25.192])
+	by pegase2.c-s.fr (Postfix) with ESMTP id 4cQNhm09sdz9sxY;
+	Mon, 15 Sep 2025 13:53:28 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+	by messagerie.si.c-s.fr (Postfix) with ESMTP id CE0528B766;
+	Mon, 15 Sep 2025 13:53:27 +0200 (CEST)
+X-Virus-Scanned: amavisd-new at c-s.fr
+Received: from messagerie.si.c-s.fr ([127.0.0.1])
+	by localhost (messagerie.si.c-s.fr [127.0.0.1]) (amavisd-new, port 10023)
+	with ESMTP id xl8Y1gVm9bTH; Mon, 15 Sep 2025 13:53:27 +0200 (CEST)
+Received: from [10.25.207.160] (unknown [10.25.207.160])
+	by messagerie.si.c-s.fr (Postfix) with ESMTP id B538F8B763;
+	Mon, 15 Sep 2025 13:53:26 +0200 (CEST)
+Message-ID: <b7ecad05-9880-4443-b2d2-843cf6fcc937@csgroup.eu>
+Date: Mon, 15 Sep 2025 13:53:26 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <5046661.31r3eYUQgx@rafael.j.wysocki> <5017964.GXAFRqVoOG@rafael.j.wysocki>
- <aMfyqjZZwozuRmW_@kekkonen.localdomain>
-In-Reply-To: <aMfyqjZZwozuRmW_@kekkonen.localdomain>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Mon, 15 Sep 2025 14:09:03 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0g98Tt43y-jCS4Vn9hhv1HtcjcyeOkSv21zswhpxc0TRg@mail.gmail.com>
-X-Gm-Features: Ac12FXxdXXSBMo-UKdgHRtY55N_mZMFYhdOIYWa7Dl1VzzRLET2kLzV8rtE2wCg
-Message-ID: <CAJZ5v0g98Tt43y-jCS4Vn9hhv1HtcjcyeOkSv21zswhpxc0TRg@mail.gmail.com>
-Subject: Re: [PATCH v1 1/4] ACPI: property: Fix buffer properties extraction
- for subnodes
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, 
-	LKML <linux-kernel@vger.kernel.org>, 
-	Mika Westerberg <mika.westerberg@linux.intel.com>, 
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH RESEND 06/62] arm: init: remove special logic for setting
+ brd.rd_size
+To: Askar Safin <safinaskar@gmail.com>, linux-fsdevel@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ Christian Brauner <brauner@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>,
+ Jan Kara <jack@suse.cz>, Christoph Hellwig <hch@lst.de>,
+ Jens Axboe <axboe@kernel.dk>, Andy Shevchenko <andy.shevchenko@gmail.com>,
+ Aleksa Sarai <cyphar@cyphar.com>,
+ =?UTF-8?Q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>,
+ Julian Stecklina <julian.stecklina@cyberus-technology.de>,
+ Gao Xiang <hsiangkao@linux.alibaba.com>, Art Nikpal <email2tema@gmail.com>,
+ Andrew Morton <akpm@linux-foundation.org>, Eric Curtin <ecurtin@redhat.com>,
+ Alexander Graf <graf@amazon.com>, Rob Landley <rob@landley.net>,
+ Lennart Poettering <mzxreary@0pointer.de>, linux-arch@vger.kernel.org,
+ linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org,
+ linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
+ linux-hexagon@vger.kernel.org, loongarch@lists.linux.dev,
+ linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+ linux-openrisc@vger.kernel.org, linux-parisc@vger.kernel.org,
+ linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
+ linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+ sparclinux@vger.kernel.org, linux-um@lists.infradead.org, x86@kernel.org,
+ Ingo Molnar <mingo@redhat.com>, linux-block@vger.kernel.org,
+ initramfs@vger.kernel.org, linux-api@vger.kernel.org,
+ linux-doc@vger.kernel.org, linux-efi@vger.kernel.org,
+ linux-ext4@vger.kernel.org, "Theodore Y . Ts'o" <tytso@mit.edu>,
+ linux-acpi@vger.kernel.org, Michal Simek <monstr@monstr.eu>,
+ devicetree@vger.kernel.org, Luis Chamberlain <mcgrof@kernel.org>,
+ Kees Cook <kees@kernel.org>, Thorsten Blum <thorsten.blum@linux.dev>,
+ Heiko Carstens <hca@linux.ibm.com>, patches@lists.linux.dev
+References: <20250913003842.41944-1-safinaskar@gmail.com>
+ <20250913003842.41944-7-safinaskar@gmail.com>
+From: Christophe Leroy <christophe.leroy@csgroup.eu>
+Content-Language: fr-FR
+In-Reply-To: <20250913003842.41944-7-safinaskar@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-Hi Sakari,
 
-On Mon, Sep 15, 2025 at 1:04=E2=80=AFPM Sakari Ailus
-<sakari.ailus@linux.intel.com> wrote:
->
-> Hi Rafael,
->
-> On Fri, Sep 12, 2025 at 09:39:52PM +0200, Rafael J. Wysocki wrote:
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >
-> > The ACPI handle passed to acpi_extract_properties() as the first
-> > argument represents the ACPI namespace scope in which to look for
-> > objects returning buffers associated with buffer properties.
-> >
-> > For _DSD objects located immediately under ACPI devices, this handle is
-> > the same as the handle of the device object holding the _DSD, but for
-> > data-only subnodes it is not so.
-> >
-> > First of all, data-only subnodes are represented by objects that
-> > cannot hold other objects in their scopes (like control methods).
-> > Therefore a data-only subnode handle cannot be used for completing
-> > relative pathname segments, so the current code in
-> > in acpi_nondev_subnode_extract() passing a data-only subnode handle
-> > to acpi_extract_properties() is invalid.
-> >
-> > Moreover, a data-only subnode of device A may be represented by an
-> > object located in the scope of device B (which kind of makes sense,
-> > for instance, if A is a B's child).  In that case, the scope in
-> > question would be the one of device B.  In other words, the scope
-> > mentioned above is the same as the scope used for subnode object
-> > lookup in acpi_nondev_subnode_extract().
-> >
-> > Accordingly, rearrange that function to use the same scope for the
-> > extraction of properties and subnode object lookup.
-> >
-> > Fixes: 103e10c69c61 ("ACPI: property: Add support for parsing buffer pr=
-operty UUID")
->
-> I believe the commit introducing this is
-> 99db5ff7fe0b4e1657423d7bbe2aa8f655dd02d1 .
 
-No, it isn't.  Prior to commit 103e10c69c61, scope was not passed to
-acpi_extract_properties().
+Le 13/09/2025 à 02:37, Askar Safin a écrit :
+> [Vous ne recevez pas souvent de courriers de safinaskar@gmail.com. Découvrez pourquoi ceci est important à https://aka.ms/LearnAboutSenderIdentification ]
+> 
+> There is no any reason for having special mechanism
+> for setting ramdisk size.
 
-> > Cc: 6.0+ <stable@vger.kernel.org> # 6.0+
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > ---
-> >  drivers/acpi/property.c |   30 +++++++++++-------------------
-> >  1 file changed, 11 insertions(+), 19 deletions(-)
-> >
-> > --- a/drivers/acpi/property.c
-> > +++ b/drivers/acpi/property.c
-> > @@ -83,6 +83,7 @@ static bool acpi_nondev_subnode_extract(
-> >                                       struct fwnode_handle *parent)
-> >  {
-> >       struct acpi_data_node *dn;
-> > +     acpi_handle scope =3D NULL;
-> >       bool result;
-> >
-> >       if (acpi_graph_ignore_port(handle))
-> > @@ -98,27 +99,18 @@ static bool acpi_nondev_subnode_extract(
-> >       INIT_LIST_HEAD(&dn->data.properties);
-> >       INIT_LIST_HEAD(&dn->data.subnodes);
-> >
-> > -     result =3D acpi_extract_properties(handle, desc, &dn->data);
-> > +     /*
-> > +      * The scope for the completion of relative pathname segments and
-> > +      * subnode object lookup is the one of the namespace node (device=
-)
-> > +      * containing the object that has returned the package.  That is,=
- it's
-> > +      * the scope of that object's parent device.
-> > +      */
-> > +     if (handle)
-> > +             acpi_get_parent(handle, &scope);
-> >
-> > -     if (handle) {
-> > -             acpi_handle scope;
-> > -             acpi_status status;
-> > -
-> > -             /*
-> > -              * The scope for the subnode object lookup is the one of =
-the
-> > -              * namespace node (device) containing the object that has
-> > -              * returned the package.  That is, it's the scope of that
-> > -              * object's parent.
-> > -              */
-> > -             status =3D acpi_get_parent(handle, &scope);
-> > -             if (ACPI_SUCCESS(status)
-> > -                 && acpi_enumerate_nondev_subnodes(scope, desc, &dn->d=
-ata,
-> > -                                                   &dn->fwnode))
-> > -                     result =3D true;
-> > -     } else if (acpi_enumerate_nondev_subnodes(NULL, desc, &dn->data,
-> > -                                               &dn->fwnode)) {
-> > +     result =3D acpi_extract_properties(scope, desc, &dn->data);
-> > +     if (acpi_enumerate_nondev_subnodes(scope, desc, &dn->data, &dn->f=
-wnode))
-> >               result =3D true;
-> > -     }
-> >
-> >       if (result) {
-> >               dn->handle =3D handle;
-> >
-> >
->
+That's you opinion.
+
+You should explain why.
+
+> 
+> Also this allows us to change rd_size variable to static
+> 
+> Signed-off-by: Askar Safin <safinaskar@gmail.com>
+> ---
+>   arch/arm/kernel/atags_parse.c | 12 ------------
+>   drivers/block/brd.c           |  8 ++++----
+>   include/linux/initrd.h        |  3 ---
+
+What about:
+
+arch/mips/kernel/setup.c:early_param("rd_size", rd_size_early);
+
+Is it unrelated ?
+
+>   3 files changed, 4 insertions(+), 19 deletions(-)
+> 
+> diff --git a/arch/arm/kernel/atags_parse.c b/arch/arm/kernel/atags_parse.c
+> index a3f0a4f84e04..615d9e83c9b5 100644
+> --- a/arch/arm/kernel/atags_parse.c
+> +++ b/arch/arm/kernel/atags_parse.c
+> @@ -87,18 +87,6 @@ static int __init parse_tag_videotext(const struct tag *tag)
+>   __tagtable(ATAG_VIDEOTEXT, parse_tag_videotext);
+>   #endif
+> 
+> -#ifdef CONFIG_BLK_DEV_RAM
+> -static int __init parse_tag_ramdisk(const struct tag *tag)
+> -{
+> -       if (tag->u.ramdisk.size)
+> -               rd_size = tag->u.ramdisk.size;
+> -
+> -       return 0;
+> -}
+> -
+> -__tagtable(ATAG_RAMDISK, parse_tag_ramdisk);
+> -#endif
+> -
+>   static int __init parse_tag_serialnr(const struct tag *tag)
+>   {
+>          system_serial_low = tag->u.serialnr.low;
+> diff --git a/drivers/block/brd.c b/drivers/block/brd.c
+> index 0c2eabe14af3..72f02d2b8a99 100644
+> --- a/drivers/block/brd.c
+> +++ b/drivers/block/brd.c
+> @@ -27,6 +27,10 @@
+> 
+>   #include <linux/uaccess.h>
+> 
+> +static unsigned long rd_size = CONFIG_BLK_DEV_RAM_SIZE;
+> +module_param(rd_size, ulong, 0444);
+> +MODULE_PARM_DESC(rd_size, "Size of each RAM disk in kbytes.");
+> +
+>   /*
+>    * Each block ramdisk device has a xarray brd_pages of pages that stores
+>    * the pages containing the block device's contents.
+> @@ -209,10 +213,6 @@ static int rd_nr = CONFIG_BLK_DEV_RAM_COUNT;
+>   module_param(rd_nr, int, 0444);
+>   MODULE_PARM_DESC(rd_nr, "Maximum number of brd devices");
+> 
+> -unsigned long rd_size = CONFIG_BLK_DEV_RAM_SIZE;
+> -module_param(rd_size, ulong, 0444);
+> -MODULE_PARM_DESC(rd_size, "Size of each RAM disk in kbytes.");
+> -
+>   static int max_part = 1;
+>   module_param(max_part, int, 0444);
+>   MODULE_PARM_DESC(max_part, "Num Minors to reserve between devices");
+> diff --git a/include/linux/initrd.h b/include/linux/initrd.h
+> index 6320a9cb6686..b42235c21444 100644
+> --- a/include/linux/initrd.h
+> +++ b/include/linux/initrd.h
+> @@ -5,9 +5,6 @@
+> 
+>   #define INITRD_MINOR 250 /* shouldn't collide with /dev/ram* too soon ... */
+> 
+> -/* size of a single RAM disk */
+> -extern unsigned long rd_size;
+> -
+>   /* 1 if it is not an error if initrd_start < memory_start */
+>   extern int initrd_below_start_ok;
+> 
 > --
+> 2.47.2
+> 
+> 
+
