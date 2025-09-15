@@ -1,37 +1,37 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 138B42F5316;
-	Mon, 15 Sep 2025 08:57:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14AB72F5319;
+	Mon, 15 Sep 2025 08:57:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757926636; cv=none; b=LBde9gpscWYteD8xJTk96a4Pa9Pcoeqh3uJUvxF8kYyzx9lL/x9X8/GP/Xx4ZtcPIm4nV8Lz+e4EDjNDbfPD6Xkx+lmr37DIpJzNtmBV6kAI37BcXtBjxzIEjID0SUCHMoPth+TXN7T5oJiJn8mz+RCvQPkORL+jsx/WINqB2Ko=
+	t=1757926636; cv=none; b=qN+pqqe/Sg3wvdGncO8VTswgyhZhISEWk/GAStXc9AU7xLUpNKwPsZE5blnjmzu+oc72FCxwBl0G71puozIJis+9/cfI1S+QWM8N1h71aKPJTMxRdh940QaQwv5QNbE+Y+p+qVd+IJs7CgOSjaKUlzGVQwQxtQ4zS/YWPQcj0vY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1757926636; c=relaxed/simple;
-	bh=FpP+wQwpUSsvvoV5l0PFF2kZyltIOuG1yyX8/6val7c=;
+	bh=4u1DgiC0kHhkv9VtJrOAXn89dh7UYCtkT3pFEWYEx0k=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=IBA5QY0V+Dz9H0Z7STrknNs/b2xhEDKinvSRaV9qsJxqKtDm1pg8JsR2dn1daI3YVn7mMY7h/p3Tq/QK7+urJHAWq88T1bB9cQTGxS2v5q+gMFchemMqkhLSfhjorxRuxshcY+FJR6K5yEqy05Z2okrwQji0q6zDMkt+7DqgT6w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HwOMJ1Qs; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=t7lpJXmArJK8oiMwFcxSt/+DBe5HTaVEvYA1pQ7WZbDj3C9CcljnSbRVaegMWN3rRU5vZZqqVjdQcWa0xdfpDF8svtc1FEdBzEJtbFP3YxM52fZzKDoyoms/cw5CvH9hRyqDF6DFUlgkr3VaznviOR2g8wwUr+fx1cLnQ+GHJGs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=h+2r6WO+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HwOMJ1Qs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E79BDC4CEF9;
-	Mon, 15 Sep 2025 08:57:15 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="h+2r6WO+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F308C4CEFC;
+	Mon, 15 Sep 2025 08:57:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1757926635;
-	bh=FpP+wQwpUSsvvoV5l0PFF2kZyltIOuG1yyX8/6val7c=;
+	s=k20201202; t=1757926634;
+	bh=4u1DgiC0kHhkv9VtJrOAXn89dh7UYCtkT3pFEWYEx0k=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=HwOMJ1QsCKHum3+O6tpah9nAC+QaK2hT3MKttI5GVKDkep/VY13D4hs+pACNcCe/U
-	 D8EcTkXezdYRdovltwMnP+CYLor7PI4IgvPmqkvguLV8qzCGFntnwD0VV/WPUGi5wZ
-	 MxHni98v4JFcoqLMIgfRHSdoNhyMZgo8h0zAKvvfBX4QY+sWDcchXqGTFV42Xrgrkj
-	 buA+Ace9YFsWz3HMAUSXkfbSb2Nw5wYmHODCTJL0x7vziXV+wYmfwTSGT7sjT0WMST
-	 84ThnVflZxJ3g424ApIBph6C4BLCP4zZ09mdViZvsYrORa2RgjwgpbPMACEOI0E2uo
-	 rEDPvVpf/E+Nw==
+	b=h+2r6WO+SKBzliTvYSVlZgZ0OWsTN+miH21Dd7EWrVPNWoBydRGxWdC5Kvj73b72T
+	 DvhuY3FKkPSwde1c+lKgRHcyDdgDZnQ+AJZAW9YIkbOQpBRpvr9HROeCFSHQvElV9K
+	 nk30kpWEIbNTMldBbfI3bmDvWK2t0CSMx7hGGzr9OIuLdMqmwlb2kuKJRPI+Q+UEWo
+	 J7tQB3vQmsyw3hDfKduAeI3f2+AW5P/htZKgHPxmkI0RciYV8HrD+NZ7sAfzI55Cl1
+	 wRZKEH3vr9tWlx0E+Pftp83LDFxL3kFqK62n+fmo4nbg5L/DQDCFr6GoKDiRIVGz3r
+	 BQrGERW9/WEdw==
 Received: from sofa.misterjones.org ([185.219.108.64] helo=valley-girl.lan)
 	by disco-boy.misterjones.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.98.2)
 	(envelope-from <maz@kernel.org>)
-	id 1uy51O-00000006IHP-0wPL;
-	Mon, 15 Sep 2025 08:57:14 +0000
+	id 1uy51M-00000006IHP-2rPw;
+	Mon, 15 Sep 2025 08:57:12 +0000
 From: Marc Zyngier <maz@kernel.org>
 To: linux-kernel@vger.kernel.org,
 	linux-arm-kernel@lists.infradead.org,
@@ -47,9 +47,9 @@ Cc: Thomas Gleixner <tglx@linutronix.de>,
 	Janne Grunau <j@jannau.net>,
 	Suzuki K Poulose <suzuki.poulose@arm.com>,
 	James Clark <james.clark@linaro.org>
-Subject: [PATCH v2 12/25] genirq: Merge irqaction::{dev_id,percpu_dev_id}
-Date: Mon, 15 Sep 2025 09:56:49 +0100
-Message-Id: <20250915085702.519996-13-maz@kernel.org>
+Subject: [PATCH v2 06/25] irqchip/apple-aic: Add FW info retrieval support
+Date: Mon, 15 Sep 2025 09:56:43 +0100
+Message-Id: <20250915085702.519996-7-maz@kernel.org>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <20250915085702.519996-1-maz@kernel.org>
 References: <20250915085702.519996-1-maz@kernel.org>
@@ -65,41 +65,60 @@ X-SA-Exim-Rcpt-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradea
 X-SA-Exim-Mail-From: maz@kernel.org
 X-SA-Exim-Scanned: No (on disco-boy.misterjones.org); SAEximRunCond expanded to false
 
-When irqaction::percpu_dev_id was introduced, it was hoped that it
-could be part of an anonymous union with dev_id, as the two fields
-are mutually exclusive.
-
-However, toolchains used at the time were often showing terrible
-support for anonymous unions, breaking the build on a number of
-architectures. It was therefore decided to keep the two fields separate
-and address this down the line.
-
-14 years later, the compiler dark age is over, and there is universal
-support for anonymous unions. Let's get a whole pointer back that can
-immediately be spent on something else.
+Plug the new .get_info() callback into the Apple AIC driver,
+using some of the existing FIQ affinity handling infrastructure.
 
 Signed-off-by: Marc Zyngier <maz@kernel.org>
 ---
- include/linux/interrupt.h | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/irqchip/irq-apple-aic.c | 28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
 
-diff --git a/include/linux/interrupt.h b/include/linux/interrupt.h
-index 51b6484c04934..0ec1a71ab4e84 100644
---- a/include/linux/interrupt.h
-+++ b/include/linux/interrupt.h
-@@ -121,8 +121,10 @@ typedef irqreturn_t (*irq_handler_t)(int, void *);
-  */
- struct irqaction {
- 	irq_handler_t		handler;
--	void			*dev_id;
--	void __percpu		*percpu_dev_id;
-+	union {
-+		void		*dev_id;
-+		void __percpu	*percpu_dev_id;
-+	};
- 	struct irqaction	*next;
- 	irq_handler_t		thread_fn;
- 	struct task_struct	*thread;
+diff --git a/drivers/irqchip/irq-apple-aic.c b/drivers/irqchip/irq-apple-aic.c
+index 032d66dceb8ec..cb8b6f40ce8d3 100644
+--- a/drivers/irqchip/irq-apple-aic.c
++++ b/drivers/irqchip/irq-apple-aic.c
+@@ -651,6 +651,33 @@ static int aic_irq_domain_map(struct irq_domain *id, unsigned int irq,
+ 	return 0;
+ }
+ 
++static int aic_irq_get_fwspec_info(struct irq_fwspec *fwspec, struct irq_fwspec_info *info)
++{
++	const struct cpumask *mask;
++	u32 intid;
++
++	info->flags = 0;
++	info->affinity = NULL;
++
++	if (fwspec->param[0] != AIC_FIQ)
++		return 0;
++
++	if (fwspec->param_count == 3)
++		intid = fwspec->param[1];
++	else
++		intid = fwspec->param[2];
++
++	if (aic_irqc->fiq_aff[intid])
++		mask = &aic_irqc->fiq_aff[intid]->aff;
++	else
++		mask = cpu_possible_mask;
++
++	info->affinity = mask;
++	info->flags = IRQ_FWSPEC_INFO_AFFINITY_VALID;
++
++	return 0;
++}
++
+ static int aic_irq_domain_translate(struct irq_domain *id,
+ 				    struct irq_fwspec *fwspec,
+ 				    unsigned long *hwirq,
+@@ -753,6 +780,7 @@ static const struct irq_domain_ops aic_irq_domain_ops = {
+ 	.translate	= aic_irq_domain_translate,
+ 	.alloc		= aic_irq_domain_alloc,
+ 	.free		= aic_irq_domain_free,
++	.get_fwspec_info = aic_irq_get_fwspec_info,
+ };
+ 
+ /*
 -- 
 2.39.2
 
