@@ -1,171 +1,235 @@
-Received: from pegase2.c-s.fr (pegase2.c-s.fr [93.17.235.10])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 0101030C35A;
-	Mon, 15 Sep 2025 12:21:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=93.17.235.10
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBD09305947
+	for <linux-acpi@vger.kernel.org>; Mon, 15 Sep 2025 12:27:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757938874; cv=none; b=n1HsfQjcgyuTD5e21sqFRi+TaeHO7gurdpAPKSucOE88iCi4ZkR5UANI9eZhZnEDdbpjgHsBzhZcoH4JWN+EE3trbe5mwGt2E+LMzNefnQlWyncMR1Zb3/UPnRV+eEjBN+zLC9a9XI1pqCIw5AOHPFsAtr5iDLMr3ioHRUzQP9U=
+	t=1757939249; cv=none; b=WMeMdovdp8R3zw5GxdXSgQOm9ZeJ13G468PIZ5prcGD0twp8hGB9mh7jaHn5TY8KyUI3f2kAUEeo4EvWzGsqoS/5PZmVhVTNFPAlowKcwed0Df1cYu0RvD53gS6gdDB19IGdsQsGTAjHAVvfGoVSznp5DKTtLjzkvat3A8lJpCQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757938874; c=relaxed/simple;
-	bh=9RLcS91I7/JfJmj5gROsGNlF/zDbJRvo+2amvvvj6yQ=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=TZykKVC7pyy/mtCA1vR/XeLkskmICdXY19JpPrfPvCxndFS44alE5iIUJ4F532oWvlsA4WuBwV4zI8geUSt6dNvu6T9GrDT/dhkkcCBBVl9rofLH8ppvpAvkcE5pfqExzTh/P8Q8g9s2W9uIlci+63ND7ILUaB00dcJvoAIgEEk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=csgroup.eu; spf=pass smtp.mailfrom=csgroup.eu; arc=none smtp.client-ip=93.17.235.10
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=csgroup.eu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=csgroup.eu
-Received: from localhost (mailhub4.si.c-s.fr [172.26.127.67])
-	by localhost (Postfix) with ESMTP id 4cQNnR0pmTz9sxp;
-	Mon, 15 Sep 2025 13:57:31 +0200 (CEST)
-X-Virus-Scanned: amavisd-new at c-s.fr
-Received: from pegase2.c-s.fr ([172.26.127.65])
-	by localhost (pegase2.c-s.fr [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id CofbtF7b-0VV; Mon, 15 Sep 2025 13:57:31 +0200 (CEST)
-Received: from messagerie.si.c-s.fr (messagerie.si.c-s.fr [192.168.25.192])
-	by pegase2.c-s.fr (Postfix) with ESMTP id 4cQNnQ5DNGz9sxl;
-	Mon, 15 Sep 2025 13:57:30 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-	by messagerie.si.c-s.fr (Postfix) with ESMTP id 981DC8B766;
-	Mon, 15 Sep 2025 13:57:30 +0200 (CEST)
-X-Virus-Scanned: amavisd-new at c-s.fr
-Received: from messagerie.si.c-s.fr ([127.0.0.1])
-	by localhost (messagerie.si.c-s.fr [127.0.0.1]) (amavisd-new, port 10023)
-	with ESMTP id aYicW_kKuipv; Mon, 15 Sep 2025 13:57:30 +0200 (CEST)
-Received: from [10.25.207.160] (unknown [10.25.207.160])
-	by messagerie.si.c-s.fr (Postfix) with ESMTP id 227808B763;
-	Mon, 15 Sep 2025 13:57:30 +0200 (CEST)
-Message-ID: <99563c3d-7322-4164-81f3-0d28e91ed653@csgroup.eu>
-Date: Mon, 15 Sep 2025 13:57:29 +0200
+	s=arc-20240116; t=1757939249; c=relaxed/simple;
+	bh=RKSFfbGcm2+n1SCMDWQaq5ACjOkXSXR1Jz63OUPhNfM=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=BDmOKD80ggfMXukJdnVivP2ErEsngajZNWQdNW5XDAXfhdQA7k6eCpj08imqCRSWWLXi33RVD7suqMfj1LIXUOjQAxN9b1EFbVl7BkKAA6LEMWWTJa32434BL50UFy/zg0kBUAwvPdbpOPG8i/jG28VQ8cjtlnKYnYVwyxTi5vA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=A+ob66qH; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="A+ob66qH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9F56C4CEF7
+	for <linux-acpi@vger.kernel.org>; Mon, 15 Sep 2025 12:27:28 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1757939248;
+	bh=RKSFfbGcm2+n1SCMDWQaq5ACjOkXSXR1Jz63OUPhNfM=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=A+ob66qH4G+RiPsMouyZ5yVLpNRcaWRSfrN0JHItby5Nx32HQJKVMFpufp8bCiN+H
+	 HHWXz7ykSBwsYzci3WA3D2vnJeyAubXAAKGu74fU3vwg1kVgii7Wg7exCp1btpRVuF
+	 qFeOyZ53c8MrI3fv6Swli6tpfZ+wpRt7OZOOGInyRp2syDGQjHOfhBiMhu48yA2A+C
+	 zZVUbxYc7kZDYWneUG0xHsHWKHyrVQzAwke74zv3sR0bibZVP2zval6r9QBwFs0pON
+	 gjW5ML/Kq1xcLaxGvH9GZs4UK8/KAGj5R+1ZH5h4LvPWbSkBfw7Mwhmq3jP/O2/LQS
+	 JQS317YVnozEA==
+Received: by mail-ot1-f45.google.com with SMTP id 46e09a7af769-746d3b0f7e5so3622323a34.2
+        for <linux-acpi@vger.kernel.org>; Mon, 15 Sep 2025 05:27:28 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCVckmeV5u0TWYoDv/AnjKxb7Q9mMifrZ8BEyNvpZhTbZElHZBSIYqfwyZx5sHR2tpDnstyHeso8dmVl@vger.kernel.org
+X-Gm-Message-State: AOJu0YxSA5G1OYchsmpWxM0BgUy/E48ENNUV4oib/l3y2r0Taa1z3ZL8
+	wsro9MkSHbU/OsVejfFAcwO2pG4LqZ5Ors+myz84smqFmDGB+xXDvoqsXvobZ0o1XQGTFdLRNzz
+	xQt2J8dVcSohFgpJvH4AsIEODxfRh3GE=
+X-Google-Smtp-Source: AGHT+IE6ypWT+o/QQu9xqx/WP436dtT20oqRYRBRCgFJc4RydutPS+oW2mY6jvB84KZ0v4Ij//flGQtF3v2+iHlI8tI=
+X-Received: by 2002:a05:6830:82e6:b0:745:4b08:eea9 with SMTP id
+ 46e09a7af769-753552da33dmr8165646a34.30.1757939247951; Mon, 15 Sep 2025
+ 05:27:27 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH RESEND 06/62] arm: init: remove special logic for setting
- brd.rd_size
-To: Askar Safin <safinaskar@gmail.com>, linux-fsdevel@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- Christian Brauner <brauner@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>,
- Jan Kara <jack@suse.cz>, Christoph Hellwig <hch@lst.de>,
- Jens Axboe <axboe@kernel.dk>, Andy Shevchenko <andy.shevchenko@gmail.com>,
- Aleksa Sarai <cyphar@cyphar.com>,
- =?UTF-8?Q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>,
- Julian Stecklina <julian.stecklina@cyberus-technology.de>,
- Gao Xiang <hsiangkao@linux.alibaba.com>, Art Nikpal <email2tema@gmail.com>,
- Andrew Morton <akpm@linux-foundation.org>, Eric Curtin <ecurtin@redhat.com>,
- Alexander Graf <graf@amazon.com>, Rob Landley <rob@landley.net>,
- Lennart Poettering <mzxreary@0pointer.de>, linux-arch@vger.kernel.org,
- linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org,
- linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
- linux-hexagon@vger.kernel.org, loongarch@lists.linux.dev,
- linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
- linux-openrisc@vger.kernel.org, linux-parisc@vger.kernel.org,
- linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
- linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
- sparclinux@vger.kernel.org, linux-um@lists.infradead.org, x86@kernel.org,
- Ingo Molnar <mingo@redhat.com>, linux-block@vger.kernel.org,
- initramfs@vger.kernel.org, linux-api@vger.kernel.org,
- linux-doc@vger.kernel.org, linux-efi@vger.kernel.org,
- linux-ext4@vger.kernel.org, "Theodore Y . Ts'o" <tytso@mit.edu>,
- linux-acpi@vger.kernel.org, Michal Simek <monstr@monstr.eu>,
- devicetree@vger.kernel.org, Luis Chamberlain <mcgrof@kernel.org>,
- Kees Cook <kees@kernel.org>, Thorsten Blum <thorsten.blum@linux.dev>,
- Heiko Carstens <hca@linux.ibm.com>, patches@lists.linux.dev
-References: <20250913003842.41944-1-safinaskar@gmail.com>
- <20250913003842.41944-7-safinaskar@gmail.com>
-From: Christophe Leroy <christophe.leroy@csgroup.eu>
-Content-Language: fr-FR
-In-Reply-To: <20250913003842.41944-7-safinaskar@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+References: <5046661.31r3eYUQgx@rafael.j.wysocki> <2243680.irdbgypaU6@rafael.j.wysocki>
+ <aMf5ZNW9t_6tfsjy@kekkonen.localdomain>
+In-Reply-To: <aMf5ZNW9t_6tfsjy@kekkonen.localdomain>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Mon, 15 Sep 2025 14:27:16 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0ivX3s=pChGZ_+zeUswJgMPDH2Wi_cGeATyh+M9Tb0LYw@mail.gmail.com>
+X-Gm-Features: Ac12FXx8LSrrunyBiiNznOMNT6WX1PRcGZM1xU20-IJwBea6kXIXAWmzsDfB5iA
+Message-ID: <CAJZ5v0ivX3s=pChGZ_+zeUswJgMPDH2Wi_cGeATyh+M9Tb0LYw@mail.gmail.com>
+Subject: Re: [PATCH v1 2/4] ACPI: property: Add code comments explaining what
+ is going on
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, 
+	LKML <linux-kernel@vger.kernel.org>, 
+	Mika Westerberg <mika.westerberg@linux.intel.com>, 
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
+Hi Sakari,
 
+On Mon, Sep 15, 2025 at 1:32=E2=80=AFPM Sakari Ailus
+<sakari.ailus@linux.intel.com> wrote:
+>
+> Hi Rafael,
+>
+> On Fri, Sep 12, 2025 at 09:40:58PM +0200, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >
+> > In some places in the ACPI device properties handling code, it is
+> > unclear why the code is what it is.  Some assumptions are not documente=
+d
+> > and some pieces of code are based on experience that is not mentioned
+> > anywhere.
+> >
+> > Add code comments explaining these things.
+> >
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > ---
+> >  drivers/acpi/property.c |   51 +++++++++++++++++++++++++++++++++++++++=
++++++++--
+> >  1 file changed, 49 insertions(+), 2 deletions(-)
+> >
+> > --- a/drivers/acpi/property.c
+> > +++ b/drivers/acpi/property.c
+> > @@ -108,7 +108,18 @@ static bool acpi_nondev_subnode_extract(
+> >       if (handle)
+> >               acpi_get_parent(handle, &scope);
+> >
+> > +     /*
+> > +      * Extract properties from the _DSD-equivalent package pointed to=
+ by
+> > +      * desc and use scope (if not NULL) for the completion of relativ=
+e
+> > +      * pathname segments.
+> > +      *
+> > +      * The extracted properties will be held in the new data node dn.
+> > +      */
+> >       result =3D acpi_extract_properties(scope, desc, &dn->data);
+> > +     /*
+> > +      * Look for subnodes in the _DSD-equivalent package pointed to by=
+ desc
+> > +      * and create child nodes of dn if there are any.
+> > +      */
+> >       if (acpi_enumerate_nondev_subnodes(scope, desc, &dn->data, &dn->f=
+wnode))
+> >               result =3D true;
+> >
+> > @@ -153,6 +164,12 @@ static bool acpi_nondev_subnode_ok(acpi_
+> >       acpi_handle handle;
+> >       acpi_status status;
+> >
+> > +     /*
+> > +      * If the scope is unknown, the _DSD-equivalent package being par=
+sed
+> > +      * was embedded in an outer _DSD-equivalent package as a result o=
+f
+> > +      * direct evaluation of an object pointed to by a reference.  In =
+that
+> > +      * case, using a pathname as the target object pointer is invalid=
+.
+> > +      */
+> >       if (!scope)
+> >               return false;
+> >
+> > @@ -172,6 +189,10 @@ static bool acpi_add_nondev_subnodes(acp
+> >       bool ret =3D false;
+> >       int i;
+> >
+> > +     /*
+> > +      * Every element in the links package is expected to represent a =
+link
+> > +      * to a non-device node in a tree containing device-specific data=
+.
+> > +      */
+> >       for (i =3D 0; i < links->package.count; i++) {
+> >               union acpi_object *link, *desc;
+> >               acpi_handle handle;
+> > @@ -182,22 +203,48 @@ static bool acpi_add_nondev_subnodes(acp
+> >               if (link->package.count !=3D 2)
+> >                       continue;
+> >
+> > -             /* The first one must be a string. */
+> > +             /* The first one (the key) must be a string. */
+> >               if (link->package.elements[0].type !=3D ACPI_TYPE_STRING)
+> >                       continue;
+> >
+> > -             /* The second one may be a string, a reference or a packa=
+ge. */
+> > +             /*
+> > +              * The second one (the target) may be a string, a referen=
+ce or
+> > +              * a package.
+> > +              */
+> >               switch (link->package.elements[1].type) {
+> >               case ACPI_TYPE_STRING:
+> > +                     /*
+> > +                      * The string is expected to be a full pathname o=
+r a
+> > +                      * pathname segment relative to the given scope. =
+ That
+> > +                      * pathname is expected to point to an object ret=
+urning
+> > +                      * a package that contains _DSD-equivalent inform=
+ation.
+> > +                      */
+> >                       result =3D acpi_nondev_subnode_ok(scope, link, li=
+st,
+> >                                                        parent);
+> >                       break;
+> >               case ACPI_TYPE_LOCAL_REFERENCE:
+>
+> I think you get ACPI_TYPE_LOCAL_REFERENCE only when you evaluate a
+> reference to a device object.
 
-Le 13/09/2025 à 02:37, Askar Safin a écrit :
-> [Vous ne recevez pas souvent de courriers de safinaskar@gmail.com. Découvrez pourquoi ceci est important à https://aka.ms/LearnAboutSenderIdentification ]
-> 
-> There is no any reason for having special mechanism
-> for setting ramdisk size.
-> 
-> Also this allows us to change rd_size variable to static
+If it is so, the code below is just dead because the target here is
+expected to be a named object (not a device), in which case it would
+just be better to delete this code.
 
-Can you squash patches 6 to 9 all together ?
+Is this what you mean?
 
-> 
-> Signed-off-by: Askar Safin <safinaskar@gmail.com>
-> ---
->   arch/arm/kernel/atags_parse.c | 12 ------------
->   drivers/block/brd.c           |  8 ++++----
->   include/linux/initrd.h        |  3 ---
->   3 files changed, 4 insertions(+), 19 deletions(-)
-> 
-> diff --git a/arch/arm/kernel/atags_parse.c b/arch/arm/kernel/atags_parse.c
-> index a3f0a4f84e04..615d9e83c9b5 100644
-> --- a/arch/arm/kernel/atags_parse.c
-> +++ b/arch/arm/kernel/atags_parse.c
-> @@ -87,18 +87,6 @@ static int __init parse_tag_videotext(const struct tag *tag)
->   __tagtable(ATAG_VIDEOTEXT, parse_tag_videotext);
->   #endif
-> 
-> -#ifdef CONFIG_BLK_DEV_RAM
-> -static int __init parse_tag_ramdisk(const struct tag *tag)
-> -{
-> -       if (tag->u.ramdisk.size)
-> -               rd_size = tag->u.ramdisk.size;
-> -
-> -       return 0;
-> -}
-> -
-> -__tagtable(ATAG_RAMDISK, parse_tag_ramdisk);
-> -#endif
-> -
->   static int __init parse_tag_serialnr(const struct tag *tag)
->   {
->          system_serial_low = tag->u.serialnr.low;
-> diff --git a/drivers/block/brd.c b/drivers/block/brd.c
-> index 0c2eabe14af3..72f02d2b8a99 100644
-> --- a/drivers/block/brd.c
-> +++ b/drivers/block/brd.c
-> @@ -27,6 +27,10 @@
-> 
->   #include <linux/uaccess.h>
-> 
-> +static unsigned long rd_size = CONFIG_BLK_DEV_RAM_SIZE;
-> +module_param(rd_size, ulong, 0444);
-> +MODULE_PARM_DESC(rd_size, "Size of each RAM disk in kbytes.");
-> +
->   /*
->    * Each block ramdisk device has a xarray brd_pages of pages that stores
->    * the pages containing the block device's contents.
-> @@ -209,10 +213,6 @@ static int rd_nr = CONFIG_BLK_DEV_RAM_COUNT;
->   module_param(rd_nr, int, 0444);
->   MODULE_PARM_DESC(rd_nr, "Maximum number of brd devices");
-> 
-> -unsigned long rd_size = CONFIG_BLK_DEV_RAM_SIZE;
-> -module_param(rd_size, ulong, 0444);
-> -MODULE_PARM_DESC(rd_size, "Size of each RAM disk in kbytes.");
-> -
->   static int max_part = 1;
->   module_param(max_part, int, 0444);
->   MODULE_PARM_DESC(max_part, "Num Minors to reserve between devices");
-> diff --git a/include/linux/initrd.h b/include/linux/initrd.h
-> index 6320a9cb6686..b42235c21444 100644
-> --- a/include/linux/initrd.h
-> +++ b/include/linux/initrd.h
-> @@ -5,9 +5,6 @@
-> 
->   #define INITRD_MINOR 250 /* shouldn't collide with /dev/ram* too soon ... */
-> 
-> -/* size of a single RAM disk */
-> -extern unsigned long rd_size;
-> -
->   /* 1 if it is not an error if initrd_start < memory_start */
->   extern int initrd_below_start_ok;
-> 
+> > +                     /*
+> > +                      * The reference is expected to point to an objec=
+t
+> > +                      * returning a package that contains _DSD-equival=
+ent
+> > +                      * information.
+> > +                      */
+> >                       handle =3D link->package.elements[1].reference.ha=
+ndle;
+> >                       result =3D acpi_nondev_subnode_data_ok(handle, li=
+nk, list,
+> >                                                            parent);
+> >                       break;
+> >               case ACPI_TYPE_PACKAGE:
+>
+> And similarly, the result of an evaluation here is a package when a
+> reference points to a name object (i.e. a data node).
+
+Well, I'm not sure how this remark is related to the new comment below.
+
+Do you mean that this always happens when a reference is used in ASL
+to point to the target here?
+
+But the comment would still be valid in that case, wouldn't it?
+
+> > +                     /*
+> > +                      * This happens when the target package is embedd=
+ed
+> > +                      * within the links package as a result of direct
+> > +                      * evaluation of an object pointed to by a refere=
+nce.
+> > +                      *
+> > +                      * The target package is expected to contain _DSD=
+-
+> > +                      * equivalent information, but the scope in which=
+ it
+> > +                      * is located in the original AML is unknown.  Th=
+us
+> > +                      * it cannot contain pathname segments represente=
+d as
+> > +                      * strings because there is no way to build full
+> > +                      * pathnames out of them.
+> > +                      */
+> >                       desc =3D &link->package.elements[1];
+> >                       result =3D acpi_nondev_subnode_extract(desc, NULL=
+, link,
+> >                                                            list, parent=
+);
+> >
+>
 > --
-> 2.47.2
-> 
-> 
-
