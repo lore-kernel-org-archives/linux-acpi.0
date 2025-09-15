@@ -1,37 +1,37 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 51FD22F3637;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C23A02F39B5;
 	Mon, 15 Sep 2025 08:57:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757926634; cv=none; b=GKFpKVRDG44olp/Z1zb4ovkKjOA4HOYdLvNvhPxFh7P3PaLHjMUUGJUofKbHF5Sn4pA31gIF9KglUT1OB57hAGt2F3paNwYSgPzE2q17dGG1SAQjIccVtXj//qc8qCG33FBSNujPAgbuc0OqRkkGBgrXv2WdPWX/gFD4231qZrU=
+	t=1757926634; cv=none; b=I2IGkfh6xCSyX0xqpjnWbJAYm/2NPiBoqyWb4aGWsy6+VpHYomEHWZ7R8q2i4V5qgAiY5DJjdF7dk7e77PO5L+wKp/GX0nta+6LKq2+jNHt/u4ouBQYu/9T/WfG2w86UhE/GX1Z6we4dGxMmmOQ9aX1wMg9uBb7vZjjiT9lxjY8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1757926634; c=relaxed/simple;
-	bh=y+qpBialO0nK2NwGIINlkbx5XK+5lv6J5C1jwN7r+FU=;
+	bh=b54oXtSJ1jOB+4cqyMvjMq57VTZoxc0ThWvLI8ltuVk=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=Z3RGQO0urhJzxpHZmO7R8wTmBUYgxmiR6Is8wunSC8RiDaQEC1mabxJGBPOTx/l5ou+nQzOKNXA7nW3ARP/YyURPxR98AEwmz2K21JNWvXbcfAbttQ84FBkzF+lyLVNCTTDBAs0M/wz/iqnWIbos00Roji8xQuCws7UyWucudE8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QNaHcKRH; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=RrFgpaSHt5tq5t87zmaXviILCBLavB53X0oyR9O2DPpaJmSmkmlaDOK7GMARZr+Swr4Dp4CUwGZ/o8LxjZCG8OG/lGGWSwF87G9DLN0IyOBhTC4oMlQL8YYbvsaUtvSLmTtNx+Wj45aUP9QIe0S04zLroPxse9JvfZCRNWhyxHc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KjPSf40E; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QNaHcKRH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF935C4CEFA;
-	Mon, 15 Sep 2025 08:57:13 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KjPSf40E"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6571EC4CEFE;
+	Mon, 15 Sep 2025 08:57:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=k20201202; t=1757926634;
-	bh=y+qpBialO0nK2NwGIINlkbx5XK+5lv6J5C1jwN7r+FU=;
+	bh=b54oXtSJ1jOB+4cqyMvjMq57VTZoxc0ThWvLI8ltuVk=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=QNaHcKRH0c7bVGWjnYeS/q4So/+5khBagqnRwl20V97B1GZaeT3XGgeeI1cbOUIXR
-	 KyBLjmfpxjIaj8xkPeTOa+KjtOHQLm5ul7faZa+waTq+zT5sHkXuxOkS2LjYtjYZUY
-	 q4BRZS4ocvhRBp2VxmRnq0uIb/IqTy1/T2xXv8fpFWPn3826gt5s2aTQkvUXc9+xIB
-	 oOyr603CWkd5fORJljlxPRu3Pl4PIvUezGf/9gY/UClIu/RcF8W2Jw/bkqHnH0kzRo
-	 shuJw6sxhYq5Kc4kfSrle9owXBRQLOA1csanO6EuwFnmzKxbFK41Zfd6jkmDMRJt7E
-	 92nz22j2VX1bA==
+	b=KjPSf40E6TotVtFTseCZ7k5hHBxe+ZImDQR8/ElNulpp1ve3o5p7KZtWzGE1Uievc
+	 HNEo1y0XrLTxaI+SS7UgL5iihkLl4XwI1HrDaVkNG5jVMH41Y8giZbualFPiUGSupB
+	 ADA2Xj49/pL8+VMyijdfe2CSY/h4EwDaQ3I6kyOqU5lbKqqwGQogwlZdUv/AM5+wah
+	 Q+1KtZu2QYlaXID8IHFsUfizBmipkYTno0xtl/ZPrdmgJD0SOcXrWTnTjmIK+iMCtS
+	 UlF4BP4og2EADhqlcbUPOPkW8BFFli5xuCGxoAo8/DcXiZjQRDn7mvFqHACbtPmspZ
+	 Ymky/Wof7u3yw==
 Received: from sofa.misterjones.org ([185.219.108.64] helo=valley-girl.lan)
 	by disco-boy.misterjones.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.98.2)
 	(envelope-from <maz@kernel.org>)
-	id 1uy51L-00000006IHP-2mj4;
-	Mon, 15 Sep 2025 08:57:11 +0000
+	id 1uy51M-00000006IHP-1kaB;
+	Mon, 15 Sep 2025 08:57:12 +0000
 From: Marc Zyngier <maz@kernel.org>
 To: linux-kernel@vger.kernel.org,
 	linux-arm-kernel@lists.infradead.org,
@@ -47,9 +47,9 @@ Cc: Thomas Gleixner <tglx@linutronix.de>,
 	Janne Grunau <j@jannau.net>,
 	Suzuki K Poulose <suzuki.poulose@arm.com>,
 	James Clark <james.clark@linaro.org>
-Subject: [PATCH v2 02/25] ACPI: irq: Add IRQ affinity reporting interface
-Date: Mon, 15 Sep 2025 09:56:39 +0100
-Message-Id: <20250915085702.519996-3-maz@kernel.org>
+Subject: [PATCH v2 05/25] irqchip/gic-v3: Add FW info retrieval support
+Date: Mon, 15 Sep 2025 09:56:42 +0100
+Message-Id: <20250915085702.519996-6-maz@kernel.org>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <20250915085702.519996-1-maz@kernel.org>
 References: <20250915085702.519996-1-maz@kernel.org>
@@ -65,71 +65,104 @@ X-SA-Exim-Rcpt-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradea
 X-SA-Exim-Mail-From: maz@kernel.org
 X-SA-Exim-Scanned: No (on disco-boy.misterjones.org); SAEximRunCond expanded to false
 
-Plug the irq_populate_fwspec_info() helper into the ACPI layer
-to offer an IRQ affinity reporting function. This is currently
-only supported for the CONFIG_ACPI_GENERIC_GSI configurations,
-but could later be extended to legacy architectures if necessary.
+Plug the new .get_info() callback into the GICv3 core driver,
+using some of the existing PPI affinity handling infrastructure.
 
 Signed-off-by: Marc Zyngier <maz@kernel.org>
 ---
- drivers/acpi/irq.c   | 19 +++++++++++++++++++
- include/linux/acpi.h |  7 +++++++
- 2 files changed, 26 insertions(+)
+ drivers/irqchip/irq-gic-v3.c | 53 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 53 insertions(+)
 
-diff --git a/drivers/acpi/irq.c b/drivers/acpi/irq.c
-index 76a856c32c4d0..d1595156c86a4 100644
---- a/drivers/acpi/irq.c
-+++ b/drivers/acpi/irq.c
-@@ -300,6 +300,25 @@ int acpi_irq_get(acpi_handle handle, unsigned int index, struct resource *res)
- }
- EXPORT_SYMBOL_GPL(acpi_irq_get);
+diff --git a/drivers/irqchip/irq-gic-v3.c b/drivers/irqchip/irq-gic-v3.c
+index dbeb85677b08c..71c278ddd1e39 100644
+--- a/drivers/irqchip/irq-gic-v3.c
++++ b/drivers/irqchip/irq-gic-v3.c
+@@ -69,6 +69,8 @@ struct gic_chip_data {
+ 	bool			has_rss;
+ 	unsigned int		ppi_nr;
+ 	struct partition_desc	**ppi_descs;
++	struct partition_affinity *parts;
++	unsigned int		nr_parts;
+ };
  
-+const struct cpumask *acpi_irq_get_affinity(acpi_handle handle,
-+					    unsigned int index)
+ #define T241_CHIPS_MAX		4
+@@ -1796,11 +1798,58 @@ static int gic_irq_domain_select(struct irq_domain *d,
+ 	return d == partition_get_domain(gic_data.ppi_descs[ppi_idx]);
+ }
+ 
++static int gic_irq_get_fwspec_info(struct irq_fwspec *fwspec, struct irq_fwspec_info *info)
 +{
-+	struct irq_fwspec_info info;
-+	struct irq_fwspec fwspec;
-+	unsigned long flags;
++	const struct cpumask *mask = NULL;
 +
-+	if (acpi_irq_parse_one(handle, index, &fwspec, &flags))
-+		return NULL;
++	info->flags = 0;
++	info->affinity = NULL;
 +
-+	if (irq_populate_fwspec_info(&fwspec, &info))
-+		return NULL;
++	/* ACPI is not capable of describing PPI affinity -- yet */
++	if (!is_of_node(fwspec->fwnode))
++		return 0;
 +
-+	if (!(info.flags & IRQ_FWSPEC_INFO_AFFINITY_VALID))
-+		return NULL;
++	/* If the specifier provides an affinity, use it */
++	if (fwspec->param_count == 4 && fwspec->param[3]) {
++		struct fwnode_handle *fw;
 +
-+	return info.affinity;
++		switch (fwspec->param[0]) {
++		case 1:			/* PPI */
++		case 3:			/* EPPI */
++			break;
++		default:
++			return 0;
++		}
++
++		fw = of_node_to_fwnode(of_find_node_by_phandle(fwspec->param[3]));
++		if (!fw)
++			return -ENOENT;
++
++		for (int i = 0; i < gic_data.nr_parts; i++) {
++			if (gic_data.parts[i].partition_id == fw) {
++				mask = &gic_data.parts[i].mask;
++				break;
++			}
++		}
++
++		if (!mask)
++			return -ENOENT;
++	} else {
++		mask = cpu_possible_mask;
++	}
++
++	info->affinity = mask;
++	info->flags = IRQ_FWSPEC_INFO_AFFINITY_VALID;
++
++	return 0;
 +}
 +
- /**
-  * acpi_set_irq_model - Setup the GSI irqdomain information
-  * @model: the value assigned to acpi_irq_model
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 1c5bb1e887cd1..c506ae4bacc86 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -1509,12 +1509,19 @@ static inline int acpi_parse_spcr(bool enable_earlycon, bool enable_console)
+ static const struct irq_domain_ops gic_irq_domain_ops = {
+ 	.translate = gic_irq_domain_translate,
+ 	.alloc = gic_irq_domain_alloc,
+ 	.free = gic_irq_domain_free,
+ 	.select = gic_irq_domain_select,
++	.get_fwspec_info = gic_irq_get_fwspec_info,
+ };
  
- #if IS_ENABLED(CONFIG_ACPI_GENERIC_GSI)
- int acpi_irq_get(acpi_handle handle, unsigned int index, struct resource *res);
-+const struct cpumask *acpi_irq_get_affinity(acpi_handle handle,
-+					    unsigned int index);
- #else
- static inline
- int acpi_irq_get(acpi_handle handle, unsigned int index, struct resource *res)
- {
- 	return -EINVAL;
- }
-+static inline const struct cpumask *acpi_irq_get_affinity(acpi_handle handle,
-+							  unsigned int index)
-+{
-+	return NULL;
-+}
- #endif
+ static int partition_domain_translate(struct irq_domain *d,
+@@ -1839,6 +1888,7 @@ static int partition_domain_translate(struct irq_domain *d,
+ static const struct irq_domain_ops partition_domain_ops = {
+ 	.translate = partition_domain_translate,
+ 	.select = gic_irq_domain_select,
++	.get_fwspec_info = gic_irq_get_fwspec_info,
+ };
  
- #ifdef CONFIG_ACPI_LPIT
+ static bool gic_enable_quirk_msm8996(void *data)
+@@ -2231,6 +2281,9 @@ static void __init gic_populate_ppi_partitions(struct device_node *gic_node)
+ 		part_idx++;
+ 	}
+ 
++	gic_data.parts = parts;
++	gic_data.nr_parts = nr_parts;
++
+ 	for (i = 0; i < gic_data.ppi_nr; i++) {
+ 		unsigned int irq;
+ 		struct partition_desc *desc;
 -- 
 2.39.2
 
