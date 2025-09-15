@@ -1,37 +1,37 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CF2D2F83C0;
-	Mon, 15 Sep 2025 08:57:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 467562F83CB;
+	Mon, 15 Sep 2025 08:57:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757926639; cv=none; b=q2nn99lykwnzP5YluLDlnZ7SbKZVdTdhoQ56/oTM9n+U+N/XlcKt42y2169LmGOwBcotIGakmyIAt7jZ4M7+PwT1MHCZO9O1w0h2eYY0Z9NB8CEAiDSY2VDKM+ZKuInwYT7ugfBZpQlX/qu7rZdQtbgGvpoDIOpuQ/fksVU7RCA=
+	t=1757926639; cv=none; b=DUJ7gId3+z8MiKRjUuNzAZ47X/cBWIW1ljO1Kf/OH3vNdthh3quMqX/crGaTdymyWWjrm1ABCvXDqLFufT+wZpOhgAXycNKUtgpdHCBSsgp9mBAqYVRulMRF0lw9OyVpjtcq0T/wVyUXSoJKgyr07LltBy+tLDGajqd+cPRUIoI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1757926639; c=relaxed/simple;
-	bh=zjGTnTXeZxX9IWdZqt0xePIPCnSCFLQrvT6nM+URiUE=;
+	bh=f+QGIJt0TLdWgJhUimSN2JgMtMX5elof6Y6UFU21JN0=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=n18cqXfTZZF+4KuQsJlkAMadBc8S3Ki81lFUJhctq68yiwMxdTGrBbhqaponYAkaWKDN7dw6B1OSDaDJ79nGCvYH3Rs4OkgZeyC66QQMxWVqgl2rFSiAkvkZ/8T7sU0BhQoFlnH3+YiKJS7VQ0vns0Pmd/cg8BX2fQz+InJaIyY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ruTyMvFv; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=uQzry09PIU7ljp1sxtUdXd0g9L89h1gJNK7GjvhnlK3nRrFruh0K42S+SGUr8vKz1cQtm8snvx7zhrShgDvPCrnFv40NKhtd8LDulSu+WuoBTy04SNp3Z2hXFsDV1wbc1nzq6nsPLvnvYlWM1oGfsfyw6fbcdHa85ae3S1gDs1Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mLZ5PQKr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ruTyMvFv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3253C4CEFA;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mLZ5PQKr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B781C4CEF9;
 	Mon, 15 Sep 2025 08:57:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1757926639;
-	bh=zjGTnTXeZxX9IWdZqt0xePIPCnSCFLQrvT6nM+URiUE=;
+	s=k20201202; t=1757926638;
+	bh=f+QGIJt0TLdWgJhUimSN2JgMtMX5elof6Y6UFU21JN0=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=ruTyMvFvXi5wF4RTv9vNiyAy7u3vGpdMJohif3vDGXUanFxhSoNICzHSCsyJDRBEf
-	 SEyC80MXODrLsEYqf/0r3eJvAqgNTyTY20on6N4auQtugLBrQ1NH9t5sHVoGLmEmJT
-	 9Zyj+oTMOFZhBnd6POBl1jfKUwTJZFePhXWdfDLv89PAn/qyKh+e6wN6YplNG+K0ld
-	 WAviNoAaQV9KAMGW8jmVpIQLVD/Fsz6ypUP4Q9moy5vxxGnS6Ap8LWrF6jdi7pMWsj
-	 EbBrwH4DRi2vnO35EcFHNuJv0//FLzWoK4k3lwMoPkbfnSDmLfP+iE4Z4VaoYQOxTU
-	 aKCqhnsy+MHTw==
+	b=mLZ5PQKrGeL+mKmYZ4G2h/tpozhllluN3lpiXEsqAQuPuklDYRdWwBRBxtP1SBTeg
+	 gpMaDOoOHnXzOZeSjeG5c3ihWQmc9xR9WGu/V/dCbQ87cgRerKj5X0/gfhLaKvWbLU
+	 hIPkXdmj/MDroN17yaflfqmHUlFvN3vKudg9hKLIdVlj6nNUtpvHWgOzPUXLpqvixx
+	 wr9mwlZh7mM2ObBZuM2sgayCCUcj1WcmERv0L75zoEKdHBweyylROYMzaSOjiolUXl
+	 Q8ADc63+e/8w11+Q5nxtflHAQlqvivlmxrAqPoUTVWpzFLwjD0+lPCxagXqgThJDKH
+	 9JHuBQKuxv78g==
 Received: from sofa.misterjones.org ([185.219.108.64] helo=valley-girl.lan)
 	by disco-boy.misterjones.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.98.2)
 	(envelope-from <maz@kernel.org>)
-	id 1uy51R-00000006IHP-0ena;
-	Mon, 15 Sep 2025 08:57:17 +0000
+	id 1uy51Q-00000006IHP-2bf4;
+	Mon, 15 Sep 2025 08:57:16 +0000
 From: Marc Zyngier <maz@kernel.org>
 To: linux-kernel@vger.kernel.org,
 	linux-arm-kernel@lists.infradead.org,
@@ -47,9 +47,9 @@ Cc: Thomas Gleixner <tglx@linutronix.de>,
 	Janne Grunau <j@jannau.net>,
 	Suzuki K Poulose <suzuki.poulose@arm.com>,
 	James Clark <james.clark@linaro.org>
-Subject: [PATCH v2 23/25] irqchip: Kill irq-partition-percpu
-Date: Mon, 15 Sep 2025 09:57:00 +0100
-Message-Id: <20250915085702.519996-24-maz@kernel.org>
+Subject: [PATCH v2 21/25] irqchip/gic-v3: Drop support for custom PPI partitions
+Date: Mon, 15 Sep 2025 09:56:58 +0100
+Message-Id: <20250915085702.519996-22-maz@kernel.org>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <20250915085702.519996-1-maz@kernel.org>
 References: <20250915085702.519996-1-maz@kernel.org>
@@ -65,350 +65,253 @@ X-SA-Exim-Rcpt-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradea
 X-SA-Exim-Mail-From: maz@kernel.org
 X-SA-Exim-Scanned: No (on disco-boy.misterjones.org); SAEximRunCond expanded to false
 
-This code is now completely unused, and nobody will ever miss it.
+The only thing getting in the way of correctly handling PPIs the way
+they were intended is the GICv3 hack that deals with PPI partitions.
+
+Remove that code, allowing the common code to kick in.
 
 Signed-off-by: Marc Zyngier <maz@kernel.org>
 ---
- drivers/irqchip/Kconfig                      |   3 -
- drivers/irqchip/Makefile                     |   1 -
- drivers/irqchip/irq-partition-percpu.c       | 241 -------------------
- include/linux/irqchip/irq-partition-percpu.h |  53 ----
- 4 files changed, 298 deletions(-)
- delete mode 100644 drivers/irqchip/irq-partition-percpu.c
- delete mode 100644 include/linux/irqchip/irq-partition-percpu.h
+ drivers/irqchip/Kconfig      |   1 -
+ drivers/irqchip/irq-gic-v3.c | 133 +++--------------------------------
+ 2 files changed, 8 insertions(+), 126 deletions(-)
 
 diff --git a/drivers/irqchip/Kconfig b/drivers/irqchip/Kconfig
-index c31d2f99d7b91..4bb25d21f6e9b 100644
+index 6d12c6ab9ea47..c31d2f99d7b91 100644
 --- a/drivers/irqchip/Kconfig
 +++ b/drivers/irqchip/Kconfig
-@@ -450,9 +450,6 @@ config LS_SCFG_MSI
- 	depends on PCI_MSI
- 	select IRQ_MSI_LIB
- 
--config PARTITION_PERCPU
--	bool
--
- config STM32MP_EXTI
- 	tristate "STM32MP extended interrupts and event controller"
- 	depends on (ARCH_STM32 && !ARM_SINGLE_ARMV7M) || COMPILE_TEST
-diff --git a/drivers/irqchip/Makefile b/drivers/irqchip/Makefile
-index 93e3ced023bb8..da429f3e29ec7 100644
---- a/drivers/irqchip/Makefile
-+++ b/drivers/irqchip/Makefile
-@@ -36,7 +36,6 @@ obj-$(CONFIG_ARM_GIC_V3)		+= irq-gic-v3.o irq-gic-v3-mbi.o irq-gic-common.o
- obj-$(CONFIG_ARM_GIC_ITS_PARENT)	+= irq-gic-its-msi-parent.o
- obj-$(CONFIG_ARM_GIC_V3_ITS)		+= irq-gic-v3-its.o irq-gic-v4.o
- obj-$(CONFIG_ARM_GIC_V3_ITS_FSL_MC)	+= irq-gic-v3-its-fsl-mc-msi.o
--obj-$(CONFIG_PARTITION_PERCPU)		+= irq-partition-percpu.o
- obj-$(CONFIG_ARM_GIC_V5)		+= irq-gic-v5.o irq-gic-v5-irs.o irq-gic-v5-its.o \
- 					   irq-gic-v5-iwb.o
- obj-$(CONFIG_HISILICON_IRQ_MBIGEN)	+= irq-mbigen.o
-diff --git a/drivers/irqchip/irq-partition-percpu.c b/drivers/irqchip/irq-partition-percpu.c
-deleted file mode 100644
-index 4441ffe149ea0..0000000000000
---- a/drivers/irqchip/irq-partition-percpu.c
-+++ /dev/null
-@@ -1,241 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0-only
--/*
-- * Copyright (C) 2016 ARM Limited, All Rights Reserved.
-- * Author: Marc Zyngier <marc.zyngier@arm.com>
-- */
--
--#include <linux/bitops.h>
--#include <linux/interrupt.h>
--#include <linux/irqchip.h>
--#include <linux/irqchip/chained_irq.h>
+@@ -36,7 +36,6 @@ config GIC_NON_BANKED
+ config ARM_GIC_V3
+ 	bool
+ 	select IRQ_DOMAIN_HIERARCHY
+-	select PARTITION_PERCPU
+ 	select GENERIC_IRQ_EFFECTIVE_AFF_MASK if SMP
+ 	select HAVE_ARM_SMCCC_DISCOVERY
+ 	select IRQ_MSI_IOMMU
+diff --git a/drivers/irqchip/irq-gic-v3.c b/drivers/irqchip/irq-gic-v3.c
+index a14fd4c269692..0d8a6f46e9300 100644
+--- a/drivers/irqchip/irq-gic-v3.c
++++ b/drivers/irqchip/irq-gic-v3.c
+@@ -26,7 +26,6 @@
+ #include <linux/irqchip/arm-gic-common.h>
+ #include <linux/irqchip/arm-gic-v3.h>
+ #include <linux/irqchip/arm-gic-v3-prio.h>
 -#include <linux/irqchip/irq-partition-percpu.h>
--#include <linux/irqdomain.h>
--#include <linux/seq_file.h>
--#include <linux/slab.h>
+ #include <linux/bitfield.h>
+ #include <linux/bits.h>
+ #include <linux/arm-smccc.h>
+@@ -46,8 +45,6 @@ static u8 dist_prio_nmi __ro_after_init = GICV3_PRIO_NMI;
+ #define FLAGS_WORKAROUND_ASR_ERRATUM_8601001	(1ULL << 2)
+ #define FLAGS_WORKAROUND_INSECURE		(1ULL << 3)
+ 
+-#define GIC_IRQ_TYPE_PARTITION	(GIC_IRQ_TYPE_LPI + 1)
 -
--struct partition_desc {
--	int				nr_parts;
--	struct partition_affinity	*parts;
--	struct irq_domain		*domain;
--	struct irq_desc			*chained_desc;
--	unsigned long			*bitmap;
--	struct irq_domain_ops		ops;
--};
--
--static bool partition_check_cpu(struct partition_desc *part,
--				unsigned int cpu, unsigned int hwirq)
+ static struct cpumask broken_rdists __read_mostly __maybe_unused;
+ 
+ struct redist_region {
+@@ -68,11 +65,15 @@ struct gic_chip_data {
+ 	u64			flags;
+ 	bool			has_rss;
+ 	unsigned int		ppi_nr;
+-	struct partition_desc	**ppi_descs;
+ 	struct partition_affinity *parts;
+ 	unsigned int		nr_parts;
+ };
+ 
++struct partition_affinity {
++	cpumask_t			mask;
++	struct fwnode_handle		*partition_id;
++};
++
+ #define T241_CHIPS_MAX		4
+ static void __iomem *t241_dist_base_alias[T241_CHIPS_MAX] __read_mostly;
+ static DEFINE_STATIC_KEY_FALSE(gic_nvidia_t241_erratum);
+@@ -593,18 +594,6 @@ static void gic_irq_set_prio(struct irq_data *d, u8 prio)
+ 	writeb_relaxed(prio, base + offset + index);
+ }
+ 
+-static u32 __gic_get_ppi_index(irq_hw_number_t hwirq)
 -{
--	return cpumask_test_cpu(cpu, &part->parts[hwirq].mask);
--}
--
--static void partition_irq_mask(struct irq_data *d)
--{
--	struct partition_desc *part = irq_data_get_irq_chip_data(d);
--	struct irq_chip *chip = irq_desc_get_chip(part->chained_desc);
--	struct irq_data *data = irq_desc_get_irq_data(part->chained_desc);
--
--	if (partition_check_cpu(part, smp_processor_id(), d->hwirq) &&
--	    chip->irq_mask)
--		chip->irq_mask(data);
--}
--
--static void partition_irq_unmask(struct irq_data *d)
--{
--	struct partition_desc *part = irq_data_get_irq_chip_data(d);
--	struct irq_chip *chip = irq_desc_get_chip(part->chained_desc);
--	struct irq_data *data = irq_desc_get_irq_data(part->chained_desc);
--
--	if (partition_check_cpu(part, smp_processor_id(), d->hwirq) &&
--	    chip->irq_unmask)
--		chip->irq_unmask(data);
--}
--
--static int partition_irq_set_irqchip_state(struct irq_data *d,
--					   enum irqchip_irq_state which,
--					   bool val)
--{
--	struct partition_desc *part = irq_data_get_irq_chip_data(d);
--	struct irq_chip *chip = irq_desc_get_chip(part->chained_desc);
--	struct irq_data *data = irq_desc_get_irq_data(part->chained_desc);
--
--	if (partition_check_cpu(part, smp_processor_id(), d->hwirq) &&
--	    chip->irq_set_irqchip_state)
--		return chip->irq_set_irqchip_state(data, which, val);
--
--	return -EINVAL;
--}
--
--static int partition_irq_get_irqchip_state(struct irq_data *d,
--					   enum irqchip_irq_state which,
--					   bool *val)
--{
--	struct partition_desc *part = irq_data_get_irq_chip_data(d);
--	struct irq_chip *chip = irq_desc_get_chip(part->chained_desc);
--	struct irq_data *data = irq_desc_get_irq_data(part->chained_desc);
--
--	if (partition_check_cpu(part, smp_processor_id(), d->hwirq) &&
--	    chip->irq_get_irqchip_state)
--		return chip->irq_get_irqchip_state(data, which, val);
--
--	return -EINVAL;
--}
--
--static int partition_irq_set_type(struct irq_data *d, unsigned int type)
--{
--	struct partition_desc *part = irq_data_get_irq_chip_data(d);
--	struct irq_chip *chip = irq_desc_get_chip(part->chained_desc);
--	struct irq_data *data = irq_desc_get_irq_data(part->chained_desc);
--
--	if (chip->irq_set_type)
--		return chip->irq_set_type(data, type);
--
--	return -EINVAL;
--}
--
--static void partition_irq_print_chip(struct irq_data *d, struct seq_file *p)
--{
--	struct partition_desc *part = irq_data_get_irq_chip_data(d);
--	struct irq_chip *chip = irq_desc_get_chip(part->chained_desc);
--	struct irq_data *data = irq_desc_get_irq_data(part->chained_desc);
--
--	seq_printf(p, "%5s-%lu", chip->name, data->hwirq);
--}
--
--static struct irq_chip partition_irq_chip = {
--	.irq_mask		= partition_irq_mask,
--	.irq_unmask		= partition_irq_unmask,
--	.irq_set_type		= partition_irq_set_type,
--	.irq_get_irqchip_state	= partition_irq_get_irqchip_state,
--	.irq_set_irqchip_state	= partition_irq_set_irqchip_state,
--	.irq_print_chip		= partition_irq_print_chip,
--};
--
--static void partition_handle_irq(struct irq_desc *desc)
--{
--	struct partition_desc *part = irq_desc_get_handler_data(desc);
--	struct irq_chip *chip = irq_desc_get_chip(desc);
--	int cpu = smp_processor_id();
--	int hwirq;
--
--	chained_irq_enter(chip, desc);
--
--	for_each_set_bit(hwirq, part->bitmap, part->nr_parts) {
--		if (partition_check_cpu(part, cpu, hwirq))
--			break;
+-	switch (__get_intid_range(hwirq)) {
+-	case PPI_RANGE:
+-		return hwirq - 16;
+-	case EPPI_RANGE:
+-		return hwirq - EPPI_BASE_INTID + 16;
+-	default:
+-		unreachable();
 -	}
--
--	if (unlikely(hwirq == part->nr_parts))
--		handle_bad_irq(desc);
--	else
--		generic_handle_domain_irq(part->domain, hwirq);
--
--	chained_irq_exit(chip, desc);
 -}
 -
--static int partition_domain_alloc(struct irq_domain *domain, unsigned int virq,
--				  unsigned int nr_irqs, void *arg)
+ static int gic_irq_nmi_setup(struct irq_data *d)
+ {
+ 	struct irq_desc *desc = irq_to_desc(d->irq);
+@@ -1628,13 +1617,6 @@ static int gic_irq_domain_translate(struct irq_domain *d,
+ 		case GIC_IRQ_TYPE_LPI:	/* LPI */
+ 			*hwirq = fwspec->param[1];
+ 			break;
+-		case GIC_IRQ_TYPE_PARTITION:
+-			*hwirq = fwspec->param[1];
+-			if (fwspec->param[1] >= 16)
+-				*hwirq += EPPI_BASE_INTID - 16;
+-			else
+-				*hwirq += 16;
+-			break;
+ 		default:
+ 			return -EINVAL;
+ 		}
+@@ -1643,10 +1625,8 @@ static int gic_irq_domain_translate(struct irq_domain *d,
+ 
+ 		/*
+ 		 * Make it clear that broken DTs are... broken.
+-		 * Partitioned PPIs are an unfortunate exception.
+ 		 */
+-		WARN_ON(*type == IRQ_TYPE_NONE &&
+-			fwspec->param[0] != GIC_IRQ_TYPE_PARTITION);
++		WARN_ON(*type == IRQ_TYPE_NONE);
+ 		return 0;
+ 	}
+ 
+@@ -1703,32 +1683,11 @@ static void gic_irq_domain_free(struct irq_domain *domain, unsigned int virq,
+ 	}
+ }
+ 
+-static bool fwspec_is_partitioned_ppi(struct irq_fwspec *fwspec,
+-				      irq_hw_number_t hwirq)
 -{
--	int ret;
--	irq_hw_number_t hwirq;
--	unsigned int type;
--	struct irq_fwspec *fwspec = arg;
--	struct partition_desc *part;
+-	enum gic_intid_range range;
 -
--	BUG_ON(nr_irqs != 1);
--	ret = domain->ops->translate(domain, fwspec, &hwirq, &type);
--	if (ret)
+-	if (!gic_data.ppi_descs)
+-		return false;
+-
+-	if (!is_of_node(fwspec->fwnode))
+-		return false;
+-
+-	if (fwspec->param_count < 4 || !fwspec->param[3])
+-		return false;
+-
+-	range = __get_intid_range(hwirq);
+-	if (range != PPI_RANGE && range != EPPI_RANGE)
+-		return false;
+-
+-	return true;
+-}
+-
+ static int gic_irq_domain_select(struct irq_domain *d,
+ 				 struct irq_fwspec *fwspec,
+ 				 enum irq_domain_bus_token bus_token)
+ {
+-	unsigned int type, ret, ppi_idx;
++	unsigned int type, ret;
+ 	irq_hw_number_t hwirq;
+ 
+ 	/* Not for us */
+@@ -1747,15 +1706,7 @@ static int gic_irq_domain_select(struct irq_domain *d,
+ 	if (WARN_ON_ONCE(ret))
+ 		return 0;
+ 
+-	if (!fwspec_is_partitioned_ppi(fwspec, hwirq))
+-		return d == gic_data.domain;
+-
+-	/*
+-	 * If this is a PPI and we have a 4th (non-null) parameter,
+-	 * then we need to match the partition domain.
+-	 */
+-	ppi_idx = __gic_get_ppi_index(hwirq);
+-	return d == partition_get_domain(gic_data.ppi_descs[ppi_idx]);
++	return d == gic_data.domain;
+ }
+ 
+ static int gic_irq_get_fwspec_info(struct irq_fwspec *fwspec, struct irq_fwspec_info *info)
+@@ -1812,45 +1763,6 @@ static const struct irq_domain_ops gic_irq_domain_ops = {
+ 	.get_fwspec_info = gic_irq_get_fwspec_info,
+ };
+ 
+-static int partition_domain_translate(struct irq_domain *d,
+-				      struct irq_fwspec *fwspec,
+-				      unsigned long *hwirq,
+-				      unsigned int *type)
+-{
+-	unsigned long ppi_intid;
+-	struct device_node *np;
+-	unsigned int ppi_idx;
+-	int ret;
+-
+-	if (!gic_data.ppi_descs)
+-		return -ENOMEM;
+-
+-	np = of_find_node_by_phandle(fwspec->param[3]);
+-	if (WARN_ON(!np))
+-		return -EINVAL;
+-
+-	ret = gic_irq_domain_translate(d, fwspec, &ppi_intid, type);
+-	if (WARN_ON_ONCE(ret))
+-		return 0;
+-
+-	ppi_idx = __gic_get_ppi_index(ppi_intid);
+-	ret = partition_translate_id(gic_data.ppi_descs[ppi_idx],
+-				     of_fwnode_handle(np));
+-	if (ret < 0)
 -		return ret;
 -
--	part = domain->host_data;
--
--	set_bit(hwirq, part->bitmap);
--	irq_set_chained_handler_and_data(irq_desc_get_irq(part->chained_desc),
--					 partition_handle_irq, part);
--	irq_set_percpu_devid_partition(virq, &part->parts[hwirq].mask);
--	irq_domain_set_info(domain, virq, hwirq, &partition_irq_chip, part,
--			    handle_percpu_devid_irq, NULL, NULL);
--	irq_set_status_flags(virq, IRQ_NOAUTOEN);
+-	*hwirq = ret;
+-	*type = fwspec->param[2] & IRQ_TYPE_SENSE_MASK;
 -
 -	return 0;
 -}
 -
--static void partition_domain_free(struct irq_domain *domain, unsigned int virq,
--				  unsigned int nr_irqs)
--{
--	struct irq_data *d;
--
--	BUG_ON(nr_irqs != 1);
--
--	d = irq_domain_get_irq_data(domain, virq);
--	irq_set_handler(virq, NULL);
--	irq_domain_reset_irq_data(d);
--}
--
--int partition_translate_id(struct partition_desc *desc, void *partition_id)
--{
--	struct partition_affinity *part = NULL;
--	int i;
--
--	for (i = 0; i < desc->nr_parts; i++) {
--		if (desc->parts[i].partition_id == partition_id) {
--			part = &desc->parts[i];
--			break;
--		}
--	}
--
--	if (WARN_ON(!part)) {
--		pr_err("Failed to find partition\n");
--		return -EINVAL;
--	}
--
--	return i;
--}
--
--struct partition_desc *partition_create_desc(struct fwnode_handle *fwnode,
--					     struct partition_affinity *parts,
--					     int nr_parts,
--					     int chained_irq,
--					     const struct irq_domain_ops *ops)
--{
--	struct partition_desc *desc;
--	struct irq_domain *d;
--
--	BUG_ON(!ops->select || !ops->translate);
--
--	desc = kzalloc(sizeof(*desc), GFP_KERNEL);
--	if (!desc)
--		return NULL;
--
--	desc->ops = *ops;
--	desc->ops.free = partition_domain_free;
--	desc->ops.alloc = partition_domain_alloc;
--
--	d = irq_domain_create_linear(fwnode, nr_parts, &desc->ops, desc);
--	if (!d)
--		goto out;
--	desc->domain = d;
--
--	desc->bitmap = bitmap_zalloc(nr_parts, GFP_KERNEL);
--	if (WARN_ON(!desc->bitmap))
--		goto out;
--
--	desc->chained_desc = irq_to_desc(chained_irq);
--	desc->nr_parts = nr_parts;
--	desc->parts = parts;
--
--	return desc;
--out:
--	if (d)
--		irq_domain_remove(d);
--	kfree(desc);
--
--	return NULL;
--}
--
--struct irq_domain *partition_get_domain(struct partition_desc *dsc)
--{
--	if (dsc)
--		return dsc->domain;
--
--	return NULL;
--}
-diff --git a/include/linux/irqchip/irq-partition-percpu.h b/include/linux/irqchip/irq-partition-percpu.h
-deleted file mode 100644
-index b35ee22c278f8..0000000000000
---- a/include/linux/irqchip/irq-partition-percpu.h
-+++ /dev/null
-@@ -1,53 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0-only */
--/*
-- * Copyright (C) 2016 ARM Limited, All Rights Reserved.
-- * Author: Marc Zyngier <marc.zyngier@arm.com>
-- */
--
--#ifndef __LINUX_IRQCHIP_IRQ_PARTITION_PERCPU_H
--#define __LINUX_IRQCHIP_IRQ_PARTITION_PERCPU_H
--
--#include <linux/fwnode.h>
--#include <linux/cpumask_types.h>
--#include <linux/irqdomain.h>
--
--struct partition_affinity {
--	cpumask_t			mask;
--	void				*partition_id;
+-static const struct irq_domain_ops partition_domain_ops = {
+-	.translate = partition_domain_translate,
+-	.select = gic_irq_domain_select,
+-	.get_fwspec_info = gic_irq_get_fwspec_info,
 -};
 -
--struct partition_desc;
+ static bool gic_enable_quirk_msm8996(void *data)
+ {
+ 	struct gic_chip_data *d = data;
+@@ -2173,12 +2085,7 @@ static void __init gic_populate_ppi_partitions(struct device_node *gic_node)
+ 	if (!parts_node)
+ 		return;
+ 
+-	gic_data.ppi_descs = kcalloc(gic_data.ppi_nr, sizeof(*gic_data.ppi_descs), GFP_KERNEL);
+-	if (!gic_data.ppi_descs)
+-		goto out_put_node;
 -
--#ifdef CONFIG_PARTITION_PERCPU
--int partition_translate_id(struct partition_desc *desc, void *partition_id);
--struct partition_desc *partition_create_desc(struct fwnode_handle *fwnode,
--					     struct partition_affinity *parts,
--					     int nr_parts,
--					     int chained_irq,
--					     const struct irq_domain_ops *ops);
--struct irq_domain *partition_get_domain(struct partition_desc *dsc);
--#else
--static inline int partition_translate_id(struct partition_desc *desc,
--					 void *partition_id)
--{
--	return -EINVAL;
--}
+ 	nr_parts = of_get_child_count(parts_node);
 -
--static inline
--struct partition_desc *partition_create_desc(struct fwnode_handle *fwnode,
--					     struct partition_affinity *parts,
--					     int nr_parts,
--					     int chained_irq,
--					     const struct irq_domain_ops *ops)
--{
--	return NULL;
--}
+ 	if (!nr_parts)
+ 		goto out_put_node;
+ 
+@@ -2234,30 +2141,6 @@ static void __init gic_populate_ppi_partitions(struct device_node *gic_node)
+ 	gic_data.parts = parts;
+ 	gic_data.nr_parts = nr_parts;
+ 
+-	for (i = 0; i < gic_data.ppi_nr; i++) {
+-		unsigned int irq;
+-		struct partition_desc *desc;
+-		struct irq_fwspec ppi_fwspec = {
+-			.fwnode		= gic_data.fwnode,
+-			.param_count	= 3,
+-			.param		= {
+-				[0]	= GIC_IRQ_TYPE_PARTITION,
+-				[1]	= i,
+-				[2]	= IRQ_TYPE_NONE,
+-			},
+-		};
 -
--static inline
--struct irq_domain *partition_get_domain(struct partition_desc *dsc)
--{
--	return NULL;
--}
--#endif
+-		irq = irq_create_fwspec_mapping(&ppi_fwspec);
+-		if (WARN_ON(!irq))
+-			continue;
+-		desc = partition_create_desc(gic_data.fwnode, parts, nr_parts,
+-					     irq, &partition_domain_ops);
+-		if (WARN_ON(!desc))
+-			continue;
 -
--#endif /* __LINUX_IRQCHIP_IRQ_PARTITION_PERCPU_H */
+-		gic_data.ppi_descs[i] = desc;
+-	}
+-
+ out_put_node:
+ 	of_node_put(parts_node);
+ }
 -- 
 2.39.2
 
