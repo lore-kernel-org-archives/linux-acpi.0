@@ -1,36 +1,37 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D04F42FDC27;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D046C2FDC25;
 	Mon, 22 Sep 2025 08:28:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758529724; cv=none; b=LEvlAQMQr9p5D+eamN4H8+jX10zvWejywEIUlsnL0vw+vfKGLmCleKM+zxBOUaUVK9Sn51/sR+qwI7DUwdx1hs4EyZZa6cGjLMnL3QStFzb3Cufs3R7X14HE4ZuYIL8zjm09Q/x1PPIIZbMW8VgrX2AXFlTa+AAXN8vqSEQiEVg=
+	t=1758529724; cv=none; b=MoSnxr0q71b6koJUWotV1XRH/E6TLCJ5eMS5MRPwgX9oXanJgmeShw7DN7c3VhN8JxBh85LdGpCeE0mOll/KkWQ6edd8aFsAx1RRA6VsDI59FN+v3PH+9ddRB78jBr6Lj8Uy5QIa3Mqe13335EBPiJgZhPaZB0JcOb6gF57tZb8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1758529724; c=relaxed/simple;
-	bh=NXls5rbHqxDLi0/3KiCGchnqWOEFMs5iQ5o5i5E3JZ0=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=hcZFv4u4X8t+inC+AjqV0iT/aOpMVuVSWisFXPGBc9Gsby7BSEscfHnM2EQbsajNYdLoy1g15DBcVGmIi+0knbqvYjg2oT2290harS9R/7thvQr6SULRTn0dAtDOd7rom4CF4llgpSkNsXDQw8n3sVcsfHGxNBDr0bUNoQKMVZw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=oDU7b41W; arc=none smtp.client-ip=10.30.226.201
+	bh=+tEFpiH2SyGne7krnANKnL8umntjFTGvzqHPthyUCxA=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=Itk3Y29McpbSiWYFu5uIjFgWKbwsHd2PTHHRjRpZALiH5Y8pk1ZPQ/Vlsyutfut7B+1l0JdPUmthQ3NUpNA8m/o+dQPtN+kqRka4FgPSTeSrAQ/SSecUOpMLCIOCJXT5mRNH7b3c3YTqJV8k4E4Tv7v6SFW5qQpQ66oVqexXTWs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=tu0OU75t; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="oDU7b41W"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 523E7C116C6;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="tu0OU75t"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 891C5C4CEF5;
 	Mon, 22 Sep 2025 08:28:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=k20201202; t=1758529724;
-	bh=NXls5rbHqxDLi0/3KiCGchnqWOEFMs5iQ5o5i5E3JZ0=;
-	h=From:To:Cc:Subject:Date:From;
-	b=oDU7b41Wz7w32jihd3t9/LYaa0cDmaIj1mVdp43n+Gsc7i/IEb57IXE5iSL60+qSz
-	 GT/FXgIlUBZCcARV7J7bC2eddJwGAnRV7/nTiTNFFhC/z9PSlt3VXxGa/3Hxc9jWGg
-	 zrGlkNI+MpGNuOmByfa4txFbPZXYeDS8etIDwQnSBaazTzaa84B2wRy0D28smGtpg4
-	 xwRJX9FDlkK1XEjtbbeoQOVtCKIb5ZvEAHRjT94mtWAAaw9Tkx3YsfgnB5oxrMvQ8Q
-	 DjXOjYQxWRpfGjTTzjLuyH/ZDAFjkY3IVxl8woP9oH6tqGjdjUEncGmEoAn1xQHc2G
-	 ggbumsA/W7kdg==
+	bh=+tEFpiH2SyGne7krnANKnL8umntjFTGvzqHPthyUCxA=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=tu0OU75tau4SKPk+JYe4VzWArSZkTHxkUvjl5cOPg9X0Mn1/Iy+Wyd+Ht7kWDUO5a
+	 A5KItxZjEOHVQ0FYI+z4Z/tp7K+bqFD4DrM6OasYoo4a0lufpgjD4TaWax4p67qatd
+	 7cUrZccwf4LNW5jOiAupqIaOBMD4GbYh8b8eNPM7w9tUK3VKPxmHiD1uatrt6+CPVE
+	 bUipL0V0EoARbGS5hZTRAqIG4VairOQxOTPiAWYuXGZjX7Ha+Bvego+ZAxAU9FRdCJ
+	 Rv9M0n7KY5Yqt6DXyB0m5Y+XLauSY9GVS8kvqoK9CaNLGdqCObsJhpGbYeZ7L12LuR
+	 fZ+qSOOAs2pPQ==
 Received: from sofa.misterjones.org ([185.219.108.64] helo=valley-girl.lan)
 	by disco-boy.misterjones.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.98.2)
 	(envelope-from <maz@kernel.org>)
-	id 1v0bub-00000008Kds-2Vyj;
-	Mon, 22 Sep 2025 08:28:41 +0000
+	id 1v0buc-00000008Kds-29qc;
+	Mon, 22 Sep 2025 08:28:42 +0000
 From: Marc Zyngier <maz@kernel.org>
 To: linux-kernel@vger.kernel.org,
 	linux-arm-kernel@lists.infradead.org,
@@ -47,10 +48,12 @@ Cc: Thomas Gleixner <tglx@linutronix.de>,
 	Suzuki K Poulose <suzuki.poulose@arm.com>,
 	James Clark <james.clark@linaro.org>,
 	Jonathan Cameron <jonathan.cameron@huawei.com>
-Subject: [PATCH v3 00/26] genirq: Add support for percpu_devid IRQ affinity
-Date: Mon, 22 Sep 2025 09:28:07 +0100
-Message-ID: <20250922082833.2038905-1-maz@kernel.org>
+Subject: [PATCH v3 03/26] of/irq: Add IRQ affinity reporting interface
+Date: Mon, 22 Sep 2025 09:28:10 +0100
+Message-ID: <20250922082833.2038905-4-maz@kernel.org>
 X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20250922082833.2038905-1-maz@kernel.org>
+References: <20250922082833.2038905-1-maz@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -63,111 +66,71 @@ X-SA-Exim-Rcpt-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradea
 X-SA-Exim-Mail-From: maz@kernel.org
 X-SA-Exim-Scanned: No (on disco-boy.misterjones.org); SAEximRunCond expanded to false
 
-This is the third version of this series, originally posted at [1],
-which aims at allowing percpu_devid interrupt requests on the basis of
-an affinity mask. See the original submission for the details of why
-this is a desirable outcome.
+Plug the irq_populate_fwspec_info() helper into the OF layer
+to offer an IRQ affinity reporting function.
 
-From v2, we have some tidying up, thanks to Jonathan's review -- see
-changelog for details.
+Signed-off-by: Marc Zyngier <maz@kernel.org>
+---
+ drivers/of/irq.c       | 20 ++++++++++++++++++++
+ include/linux/of_irq.h |  7 +++++++
+ 2 files changed, 27 insertions(+)
 
-FWIW, I've pushed a branch at [3].
-
-* From v2 [2]:
-
-  - Turned of_node_to_fwnode() usage to of_fwnode_handle() (Jonathan)
-
-  - Added a patch to finally kill of_node_to_fwnode()
-
-  - Tidied-up documentation, comments and formatting (Jonathan)
-
-  - Collected ABs and Rbs, with thanks (Jonathan, Suzuki, Sven)
-
-* From v1 [1]:
-
-  - Fixed NMI handling by getting rid of the NMI-specific flow
-    handler, which was pretty useless anyway (Will)
-
-  - As a result, killed a metric buttload worth of GICv3 code
-
-  - Moved irq_fwspec out of irq_fwspec_info, and passed it as a
-    parameter to irq_get_fwspec_info(), renamed from irq_get_info(),
-    and applied some generous sanitisation of the structure (Thomas)
-
-  - Dropped the rather useless fwspec validity flag (Thomas)
-
-  - Rejigged the PMU per-CPU handling to better deal with the DT/ACPI
-    differences, and drop some now useless patches (Will)
-
-  - Plenty of cosmetic rework (Raphael, Thomas)
-
-[1] https://lore.kernel.org/r/20250908163127.2462948-1-maz@kernel.org
-[2] https://lore.kernel.org/r/20250915085702.519996-1-maz@kernel.org
-[3] git://git.kernel.org/pub/scm/linux/kernel/git/maz/arm-platforms.git irq/ppi-affinity
-
-Marc Zyngier (25):
-  irqdomain: Add firmware info reporting interface
-  ACPI: irq: Add IRQ affinity reporting interface
-  of/irq: Add IRQ affinity reporting interface
-  platform: Add firmware-agnostic irq and affinity retrieval interface
-  irqchip/gic-v3: Add FW info retrieval support
-  irqchip/apple-aic: Add FW info retrieval support
-  coresight: trbe: Convert to new IRQ affinity retrieval API
-  perf: arm_pmu: Convert to new IRQ affinity retrieval API
-  perf: arm_spe_pmu: Convert to new IRQ affinity retrieval API
-  irqchip/gic-v3: Switch high priority PPIs over to
-    handle_percpu_devid_irq()
-  genirq: Kill handle_percpu_devid_fasteoi_nmi()
-  genirq: Merge irqaction::{dev_id,percpu_dev_id}
-  genirq: Factor-in percpu irqaction creation
-  genirq: Add affinity to percpu_devid interrupt requests
-  genirq: Update request_percpu_nmi() to take an affinity
-  genirq: Allow per-cpu interrupt sharing for non-overlapping affinities
-  genirq: Add request_percpu_irq_affinity() helper
-  perf: arm_spe_pmu: Request specific affinities for percpu IRQ
-  coresight: trbe: Request specific affinities for percpu IRQ
-  irqchip/gic-v3: Drop support for custom PPI partitions
-  irqchip/apple-aic: Drop support for custom PMU irq partitions
-  irqchip: Kill irq-partition-percpu
-  genirq: Kill irq_{g,s}et_percpu_devid_partition()
-  irqdomain: Kill of_node_to_fwnode() helper
-  perf: arm_pmu: Kill last use of per-CPU cpu_armpmu pointer
-
-Will Deacon (1):
-  perf: arm_pmu: Request specific affinities for percpu NMI/IRQ
-
- arch/arm64/kernel/smp.c                      |   2 +-
- drivers/acpi/irq.c                           |  19 ++
- drivers/base/platform.c                      |  60 ++++-
- drivers/hwtracing/coresight/coresight-trbe.c |   9 +-
- drivers/irqchip/Kconfig                      |   4 -
- drivers/irqchip/Makefile                     |   1 -
- drivers/irqchip/irq-apple-aic.c              |  56 +++--
- drivers/irqchip/irq-gic-v3.c                 | 224 +++++------------
- drivers/irqchip/irq-partition-percpu.c       | 241 -------------------
- drivers/of/irq.c                             |  20 ++
- drivers/perf/arm_pmu.c                       |  49 ++--
- drivers/perf/arm_pmu_acpi.c                  |   2 +-
- drivers/perf/arm_pmu_platform.c              |  20 +-
- drivers/perf/arm_pmuv3.c                     |   2 +-
- drivers/perf/arm_spe_pmu.c                   |  13 +-
- include/linux/acpi.h                         |   7 +
- include/linux/interrupt.h                    |  24 +-
- include/linux/irq.h                          |   5 -
- include/linux/irqchip/irq-partition-percpu.h |  53 ----
- include/linux/irqdesc.h                      |   1 -
- include/linux/irqdomain.h                    |  33 ++-
- include/linux/of_irq.h                       |   7 +
- include/linux/perf/arm_pmu.h                 |   6 +-
- include/linux/platform_device.h              |   2 +
- kernel/irq/chip.c                            |  35 +--
- kernel/irq/irqdesc.c                         |  24 +-
- kernel/irq/irqdomain.c                       |  32 ++-
- kernel/irq/manage.c                          | 125 +++++++---
- 28 files changed, 420 insertions(+), 656 deletions(-)
- delete mode 100644 drivers/irqchip/irq-partition-percpu.c
- delete mode 100644 include/linux/irqchip/irq-partition-percpu.h
-
+diff --git a/drivers/of/irq.c b/drivers/of/irq.c
+index 74aaea61de13c..9a205cb033bda 100644
+--- a/drivers/of/irq.c
++++ b/drivers/of/irq.c
+@@ -479,6 +479,26 @@ int of_irq_get(struct device_node *dev, int index)
+ }
+ EXPORT_SYMBOL_GPL(of_irq_get);
+ 
++const struct cpumask *of_irq_get_affinity(struct device_node *dev, int index)
++{
++	struct of_phandle_args oirq;
++	struct irq_fwspec_info info;
++	struct irq_fwspec fwspec;
++	int rc;
++
++	rc = of_irq_parse_one(dev, index, &oirq);
++	if (rc)
++		return NULL;
++
++	of_phandle_args_to_fwspec(oirq.np, oirq.args, oirq.args_count,
++				  &fwspec);
++
++	if (!irq_populate_fwspec_info(&fwspec, &info))
++		return info.affinity;
++
++	return NULL;
++}
++
+ /**
+  * of_irq_get_byname - Decode a node's IRQ and return it as a Linux IRQ number
+  * @dev: pointer to device tree node
+diff --git a/include/linux/of_irq.h b/include/linux/of_irq.h
+index a480063c9cb19..721cbdbc292df 100644
+--- a/include/linux/of_irq.h
++++ b/include/linux/of_irq.h
+@@ -43,6 +43,8 @@ extern int of_irq_parse_one(struct device_node *device, int index,
+ 			  struct of_phandle_args *out_irq);
+ extern int of_irq_count(struct device_node *dev);
+ extern int of_irq_get(struct device_node *dev, int index);
++extern const struct cpumask *of_irq_get_affinity(struct device_node *dev,
++						      int index);
+ extern int of_irq_get_byname(struct device_node *dev, const char *name);
+ extern int of_irq_to_resource_table(struct device_node *dev,
+ 		struct resource *res, int nr_irqs);
+@@ -77,6 +79,11 @@ static inline int of_irq_get_byname(struct device_node *dev, const char *name)
+ {
+ 	return 0;
+ }
++static inline const struct cpumask *of_irq_get_affinity(struct device_node *dev,
++							int index)
++{
++	return NULL;
++}
+ static inline int of_irq_to_resource_table(struct device_node *dev,
+ 					   struct resource *res, int nr_irqs)
+ {
 -- 
 2.47.3
 
