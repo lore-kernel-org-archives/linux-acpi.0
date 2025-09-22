@@ -1,37 +1,37 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFB8930146D;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2A8B30147A;
 	Mon, 22 Sep 2025 08:28:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758529727; cv=none; b=FgFEIhvK9/e9VnqpPjzmdiwDCeoopn7XdEWOcwiYdy7jBcyMR1BVGi+Z0xU2yBJz1ZTOEQUXJM5Ufn9b6hubUNdk0WNxeqNeuP0ngIWAZw7yYiY4ssQEbFvrGV2MVFiM0tWebZpgEmjCMmgnhJj/Jhb+kq8jVhCbncyDVeBHtas=
+	t=1758529728; cv=none; b=T4z2K5PVYA4LfoTrml3V91SDUw0cAdJ9bCuC95eoA8RzWENxXS1eRpdUlbd4/wc8Q72eu30wnHjLwSexvSmxG076M/rysZ2CBsI7U5BlJjIddNciD3j7pHe9riLJCBpJOFouIo9wPevBRg3Ri8os1ygv78KAeqi3yMNtqE814no=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758529727; c=relaxed/simple;
-	bh=wUb93rzYZ46AvuCm0nEYQtzHfIxnso9k5I5Egiwv/gQ=;
+	s=arc-20240116; t=1758529728; c=relaxed/simple;
+	bh=cL0dLu/yunYyIA9qv0q4EUwvwvs8MYopt4TvNf98yyM=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=RM8gXHVHzYF3yyJGedEbYj6QKJAV61u4Yo3vvPHiIYCv8PgBJX+ajTjQV7ZD18xkPLMNqhjlud9Uu0fOpOarI+4yEhNl4Dt+6iU4ZWmLf+WxMHqdlCNp1OkfkJ9ruQ1YB2DYA39vahlYO5lMqsJJfSn3DJlcSIByKINdbUpACbk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gPj0XVCk; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=GVwE6fbBHv3TtkRqeAKonxDxDoEX5SlLP5SB8kqGIZKgcfaJVJy4UucPsfptG4t7f4ykkdiFJlM/nq+oTyZp7rzkIPBWHtQI2BUgVHu7rLOLaa8OOtWAtXm1lCoI2U0BqDVJ7mKOiOxWwG+B6+k525cLWtZ+8yD7TKflOg4b3Kk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dhCLzLiy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gPj0XVCk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A7FEC4CEF0;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dhCLzLiy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0DC0C2BC87;
 	Mon, 22 Sep 2025 08:28:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=k20201202; t=1758529727;
-	bh=wUb93rzYZ46AvuCm0nEYQtzHfIxnso9k5I5Egiwv/gQ=;
+	bh=cL0dLu/yunYyIA9qv0q4EUwvwvs8MYopt4TvNf98yyM=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=gPj0XVCkEY3x4shdXEnzhoTL7NxkNREGUzFf8D3rcwHTKETiXq8Ed8rAQlLxLcUam
-	 NQGslrB+b/FMJ9fxRTXCbcjFNIxpuEGhsp+Ajo8+1AgmnelN8IHr5qrkbY6jneyHjD
-	 3uFFC8QH8EP1A31L2HeE7+3HD+rqlv370zdTS79No4YEIG8szNkYKPgCb/F8BtvoQH
-	 7uDlzDnQRTvIQFbq1/iYR8vjMBZK3bj/riaD/LIwzFX+m97Uw8v8BtvreE/HHHCxWr
-	 X1IEZX5KmcflnYFfOXSQ17oGA4cKPkID5o1EOUowoU+3D3uBVubqSA/MvsrHMEBks5
-	 svtC3kXC4vBNw==
+	b=dhCLzLiy/FzVqvtaHauaa+xKdbZ+Jo+kp7TSBFh5mqBq5q4+PLXmz8+f8AsCsQSB4
+	 NExFKYDvLRf2aIqy0s5ePGgJR3iMGSUVw0bDEvHQNvWlvCUFU1yXctyN6rGMQ6/o09
+	 FKbE9Zj7cGok8iqqT7TJ75YesJXEtRHUEx5mZv/NEZQddRtORIr/qWSeVwW8tt0sDA
+	 QzKyoUiO27ccOugQKwujsTGC3fNf+qT6OWh/WqPLk0cFIe7W93jl03q0vh6ba7cD0D
+	 LtFUPCqdFUnKoXNxxgSItaioE1wrfEk08eqQRZgBQgqRpe8bIwXPkijr/CJO+cdzMP
+	 IG71cFHSLvdfA==
 Received: from sofa.misterjones.org ([185.219.108.64] helo=valley-girl.lan)
 	by disco-boy.misterjones.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.98.2)
 	(envelope-from <maz@kernel.org>)
-	id 1v0buf-00000008Kds-1gEz;
-	Mon, 22 Sep 2025 08:28:45 +0000
+	id 1v0buf-00000008Kds-42RF;
+	Mon, 22 Sep 2025 08:28:46 +0000
 From: Marc Zyngier <maz@kernel.org>
 To: linux-kernel@vger.kernel.org,
 	linux-arm-kernel@lists.infradead.org,
@@ -48,9 +48,9 @@ Cc: Thomas Gleixner <tglx@linutronix.de>,
 	Suzuki K Poulose <suzuki.poulose@arm.com>,
 	James Clark <james.clark@linaro.org>,
 	Jonathan Cameron <jonathan.cameron@huawei.com>
-Subject: [PATCH v3 13/26] genirq: Factor-in percpu irqaction creation
-Date: Mon, 22 Sep 2025 09:28:20 +0100
-Message-ID: <20250922082833.2038905-14-maz@kernel.org>
+Subject: [PATCH v3 15/26] genirq: Update request_percpu_nmi() to take an affinity
+Date: Mon, 22 Sep 2025 09:28:22 +0100
+Message-ID: <20250922082833.2038905-16-maz@kernel.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20250922082833.2038905-1-maz@kernel.org>
 References: <20250922082833.2038905-1-maz@kernel.org>
@@ -66,97 +66,100 @@ X-SA-Exim-Rcpt-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradea
 X-SA-Exim-Mail-From: maz@kernel.org
 X-SA-Exim-Scanned: No (on disco-boy.misterjones.org); SAEximRunCond expanded to false
 
-Move the code creating a per-cpu irqaction into its own helper, so that
-future changes to this code can be kept localised.
+Continue spreading the notion of affinity to the percpu interrupt
+request code by updating the call sites that use request_percpu_nmi()
+(all two of them) to take an affinity pointer. This pointer is
+firmly NULL for now.
 
-At the same time, fix the documentation which appears to say the wrong
-thing when it comes to interrupts being automatically enabled
-(percpu_devid interrupts never are).
-
-Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
 Signed-off-by: Marc Zyngier <maz@kernel.org>
 ---
- kernel/irq/manage.c | 40 ++++++++++++++++++++++++----------------
- 1 file changed, 24 insertions(+), 16 deletions(-)
+ arch/arm64/kernel/smp.c   |  2 +-
+ drivers/perf/arm_pmu.c    |  2 +-
+ include/linux/interrupt.h |  4 ++--
+ kernel/irq/manage.c       | 12 +++++++-----
+ 4 files changed, 11 insertions(+), 9 deletions(-)
 
-diff --git a/kernel/irq/manage.c b/kernel/irq/manage.c
-index c94837382037e..d9ddc30678b5d 100644
---- a/kernel/irq/manage.c
-+++ b/kernel/irq/manage.c
-@@ -2442,6 +2442,24 @@ int setup_percpu_irq(unsigned int irq, struct irqaction *act)
- 	return retval;
+diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
+index 68cea3a4a35ca..6fb838eee2e7d 100644
+--- a/arch/arm64/kernel/smp.c
++++ b/arch/arm64/kernel/smp.c
+@@ -1094,7 +1094,7 @@ static void ipi_setup_sgi(int ipi)
+ 	irq = ipi_irq_base + ipi;
+ 
+ 	if (ipi_should_be_nmi(ipi)) {
+-		err = request_percpu_nmi(irq, ipi_handler, "IPI", &irq_stat);
++		err = request_percpu_nmi(irq, ipi_handler, "IPI", NULL, &irq_stat);
+ 		WARN(err, "Could not request IRQ %d as NMI, err=%d\n", irq, err);
+ 	} else {
+ 		err = request_percpu_irq(irq, ipi_handler, "IPI", &irq_stat);
+diff --git a/drivers/perf/arm_pmu.c b/drivers/perf/arm_pmu.c
+index 5c310e803dd78..22c601b46c858 100644
+--- a/drivers/perf/arm_pmu.c
++++ b/drivers/perf/arm_pmu.c
+@@ -659,7 +659,7 @@ int armpmu_request_irq(int irq, int cpu)
+ 			irq_ops = &pmunmi_ops;
+ 		}
+ 	} else if (armpmu_count_irq_users(irq) == 0) {
+-		err = request_percpu_nmi(irq, handler, "arm-pmu", &cpu_armpmu);
++		err = request_percpu_nmi(irq, handler, "arm-pmu", NULL, &cpu_armpmu);
+ 
+ 		/* If cannot get an NMI, get a normal interrupt */
+ 		if (err) {
+diff --git a/include/linux/interrupt.h b/include/linux/interrupt.h
+index 52147d5f432b3..81506ab759b81 100644
+--- a/include/linux/interrupt.h
++++ b/include/linux/interrupt.h
+@@ -197,8 +197,8 @@ request_percpu_irq(unsigned int irq, irq_handler_t handler,
  }
  
-+static
-+struct irqaction *create_percpu_irqaction(irq_handler_t handler, unsigned long flags,
-+					  const char *devname, void __percpu *dev_id)
-+{
-+	struct irqaction *action;
-+
-+	action = kzalloc(sizeof(struct irqaction), GFP_KERNEL);
-+	if (!action)
-+		return NULL;
-+
-+	action->handler = handler;
-+	action->flags = flags | IRQF_PERCPU | IRQF_NO_SUSPEND;
-+	action->name = devname;
-+	action->percpu_dev_id = dev_id;
-+
-+	return action;
-+}
-+
- /**
-  * __request_percpu_irq - allocate a percpu interrupt line
+ extern int __must_check
+-request_percpu_nmi(unsigned int irq, irq_handler_t handler,
+-		   const char *devname, void __percpu *dev);
++request_percpu_nmi(unsigned int irq, irq_handler_t handler, const char *name,
++		   const struct cpumask *affinity, void __percpu *dev_id);
+ 
+ extern const void *free_irq(unsigned int, void *);
+ extern void free_percpu_irq(unsigned int, void __percpu *);
+diff --git a/kernel/irq/manage.c b/kernel/irq/manage.c
+index 5f4c651677436..b1a3140e5f3c9 100644
+--- a/kernel/irq/manage.c
++++ b/kernel/irq/manage.c
+@@ -2527,6 +2527,7 @@ EXPORT_SYMBOL_GPL(__request_percpu_irq);
   * @irq:	Interrupt line to allocate
-@@ -2450,9 +2468,9 @@ int setup_percpu_irq(unsigned int irq, struct irqaction *act)
-  * @devname:	An ascii name for the claiming device
+  * @handler:	Function to be called when the IRQ occurs.
+  * @name:	An ascii name for the claiming device
++ * @affinity:	A cpumask describing the target CPUs for this interrupt
   * @dev_id:	A percpu cookie passed back to the handler function
   *
-- * This call allocates interrupt resources and enables the interrupt on the
-- * local CPU. If the interrupt is supposed to be enabled on other CPUs, it
-- * has to be done on each CPU using enable_percpu_irq().
-+ * This call allocates interrupt resources, but doesn't enable the interrupt
-+ * on any CPU, as all percpu-devid interrupts are flagged with IRQ_NOAUTOEN.
-+ * It has to be done on each CPU using enable_percpu_irq().
-  *
-  * @dev_id must be globally unique. It is a per-cpu variable, and
-  * the handler gets called with the interrupted CPU's instance of
-@@ -2477,15 +2495,10 @@ int __request_percpu_irq(unsigned int irq, irq_handler_t handler,
- 	if (flags && flags != IRQF_TIMER)
+  * This call allocates interrupt resources for a per CPU NMI. Per CPU NMIs
+@@ -2543,8 +2544,8 @@ EXPORT_SYMBOL_GPL(__request_percpu_irq);
+  * If the interrupt line cannot be used to deliver NMIs, function
+  * will fail returning a negative value.
+  */
+-int request_percpu_nmi(unsigned int irq, irq_handler_t handler,
+-		       const char *name, void __percpu *dev_id)
++int request_percpu_nmi(unsigned int irq, irq_handler_t handler, const char *name,
++		       const struct cpumask *affinity, void __percpu *dev_id)
+ {
+ 	struct irqaction *action;
+ 	struct irq_desc *desc;
+@@ -2561,12 +2562,13 @@ int request_percpu_nmi(unsigned int irq, irq_handler_t handler,
+ 	    !irq_supports_nmi(desc))
  		return -EINVAL;
  
--	action = kzalloc(sizeof(struct irqaction), GFP_KERNEL);
-+	action = create_percpu_irqaction(handler, flags, devname, dev_id);
+-	/* The line cannot already be NMI */
+-	if (irq_is_nmi(desc))
++	/* The line cannot be NMI already if the new request covers all CPUs */
++	if (irq_is_nmi(desc) &&
++	    (!affinity || cpumask_equal(affinity, cpu_possible_mask)))
+ 		return -EINVAL;
+ 
+ 	action = create_percpu_irqaction(handler, IRQF_NO_THREAD | IRQF_NOBALANCING,
+-					 name, NULL, dev_id);
++					 name, affinity, dev_id);
  	if (!action)
  		return -ENOMEM;
  
--	action->handler = handler;
--	action->flags = flags | IRQF_PERCPU | IRQF_NO_SUSPEND;
--	action->name = devname;
--	action->percpu_dev_id = dev_id;
--
- 	retval = irq_chip_pm_get(&desc->irq_data);
- 	if (retval < 0) {
- 		kfree(action);
-@@ -2546,16 +2559,11 @@ int request_percpu_nmi(unsigned int irq, irq_handler_t handler,
- 	if (irq_is_nmi(desc))
- 		return -EINVAL;
- 
--	action = kzalloc(sizeof(struct irqaction), GFP_KERNEL);
-+	action = create_percpu_irqaction(handler, IRQF_NO_THREAD | IRQF_NOBALANCING,
-+					 name, dev_id);
- 	if (!action)
- 		return -ENOMEM;
- 
--	action->handler = handler;
--	action->flags = IRQF_PERCPU | IRQF_NO_SUSPEND | IRQF_NO_THREAD
--		| IRQF_NOBALANCING;
--	action->name = name;
--	action->percpu_dev_id = dev_id;
--
- 	retval = irq_chip_pm_get(&desc->irq_data);
- 	if (retval < 0)
- 		goto err_out;
 -- 
 2.47.3
 
