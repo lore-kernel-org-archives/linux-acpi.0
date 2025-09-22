@@ -1,36 +1,36 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2A8B30147A;
-	Mon, 22 Sep 2025 08:28:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 999F73019CC;
+	Mon, 22 Sep 2025 08:28:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758529728; cv=none; b=T4z2K5PVYA4LfoTrml3V91SDUw0cAdJ9bCuC95eoA8RzWENxXS1eRpdUlbd4/wc8Q72eu30wnHjLwSexvSmxG076M/rysZ2CBsI7U5BlJjIddNciD3j7pHe9riLJCBpJOFouIo9wPevBRg3Ri8os1ygv78KAeqi3yMNtqE814no=
+	t=1758529728; cv=none; b=cjHIiRnqmMAWHO0hsNKSq72ERCoaFOUKj1vqnANoDhof3mDXe99Em6pX8KEHTwU4AgDQUcJuOIt68aEsA7t+yG7PcIg8Muu60nHQGlIeng9gizMtuFyGkOqB8rDxp4+Or3jH98TM5HKyB+2Y2TPU2y1YVtu/dVhW9TDVN4rYXs8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1758529728; c=relaxed/simple;
-	bh=cL0dLu/yunYyIA9qv0q4EUwvwvs8MYopt4TvNf98yyM=;
+	bh=IXL+IAJnY+2vKkQwblhiCgALIEf3E4Odr7ea40In+Fs=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=GVwE6fbBHv3TtkRqeAKonxDxDoEX5SlLP5SB8kqGIZKgcfaJVJy4UucPsfptG4t7f4ykkdiFJlM/nq+oTyZp7rzkIPBWHtQI2BUgVHu7rLOLaa8OOtWAtXm1lCoI2U0BqDVJ7mKOiOxWwG+B6+k525cLWtZ+8yD7TKflOg4b3Kk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dhCLzLiy; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=V1j1ZTUAbqrolsbUZ2PURYIBO/7Pws5c2qcvNGvozrdvxUIcDRo5zVcquzSTODyjef9WT6CzECONsMnkO4H6hPQBQ5pM34J0WKMp2YKui9OIBBm0F2NTK2RCTIC66vv4zTa9VjvXUaX0zxK2FU2iRaHQG1x9wVJtE6XycxDxJ3Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ufK8efCt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dhCLzLiy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0DC0C2BC87;
-	Mon, 22 Sep 2025 08:28:47 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ufK8efCt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A63FC116C6;
+	Mon, 22 Sep 2025 08:28:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1758529727;
-	bh=cL0dLu/yunYyIA9qv0q4EUwvwvs8MYopt4TvNf98yyM=;
+	s=k20201202; t=1758529728;
+	bh=IXL+IAJnY+2vKkQwblhiCgALIEf3E4Odr7ea40In+Fs=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=dhCLzLiy/FzVqvtaHauaa+xKdbZ+Jo+kp7TSBFh5mqBq5q4+PLXmz8+f8AsCsQSB4
-	 NExFKYDvLRf2aIqy0s5ePGgJR3iMGSUVw0bDEvHQNvWlvCUFU1yXctyN6rGMQ6/o09
-	 FKbE9Zj7cGok8iqqT7TJ75YesJXEtRHUEx5mZv/NEZQddRtORIr/qWSeVwW8tt0sDA
-	 QzKyoUiO27ccOugQKwujsTGC3fNf+qT6OWh/WqPLk0cFIe7W93jl03q0vh6ba7cD0D
-	 LtFUPCqdFUnKoXNxxgSItaioE1wrfEk08eqQRZgBQgqRpe8bIwXPkijr/CJO+cdzMP
-	 IG71cFHSLvdfA==
+	b=ufK8efCtLc3aXcWKqIBHUVcqEce3ZIWNYDANBeCqn68VuoWJL3DqZCerRxLJx8N8w
+	 14Bp/8fyRVzv8y0bP3rYIN09FE/vQfPbllC1C3iVWL2+gvLbOhBwZb9vfSttt6Rxz6
+	 oO11vxLXUUqPRKTw9riZw7AjOFF3kAFvEo/R0GFjjxuvG7y5dWg7ycVWKFhcklRrW+
+	 Y6nMhlekZM4hwf9xX49f3ytGQdr4S/qmbwGzJjHN+RkBTQGOaoX/10HztkrjphLAdF
+	 /Yq4za5yrUbFCWQrpWlLL+QktbdXkCI5Khga2oN4VH4ljJJQM0q0BGVXro1NZyqUUx
+	 U/86+wJxu6BtA==
 Received: from sofa.misterjones.org ([185.219.108.64] helo=valley-girl.lan)
 	by disco-boy.misterjones.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.98.2)
 	(envelope-from <maz@kernel.org>)
-	id 1v0buf-00000008Kds-42RF;
+	id 1v0bug-00000008Kds-2GLT;
 	Mon, 22 Sep 2025 08:28:46 +0000
 From: Marc Zyngier <maz@kernel.org>
 To: linux-kernel@vger.kernel.org,
@@ -48,9 +48,9 @@ Cc: Thomas Gleixner <tglx@linutronix.de>,
 	Suzuki K Poulose <suzuki.poulose@arm.com>,
 	James Clark <james.clark@linaro.org>,
 	Jonathan Cameron <jonathan.cameron@huawei.com>
-Subject: [PATCH v3 15/26] genirq: Update request_percpu_nmi() to take an affinity
-Date: Mon, 22 Sep 2025 09:28:22 +0100
-Message-ID: <20250922082833.2038905-16-maz@kernel.org>
+Subject: [PATCH v3 17/26] genirq: Add request_percpu_irq_affinity() helper
+Date: Mon, 22 Sep 2025 09:28:24 +0100
+Message-ID: <20250922082833.2038905-18-maz@kernel.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20250922082833.2038905-1-maz@kernel.org>
 References: <20250922082833.2038905-1-maz@kernel.org>
@@ -66,100 +66,40 @@ X-SA-Exim-Rcpt-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradea
 X-SA-Exim-Mail-From: maz@kernel.org
 X-SA-Exim-Scanned: No (on disco-boy.misterjones.org); SAEximRunCond expanded to false
 
-Continue spreading the notion of affinity to the percpu interrupt
-request code by updating the call sites that use request_percpu_nmi()
-(all two of them) to take an affinity pointer. This pointer is
-firmly NULL for now.
+While it would be nice to simply make request_percpu_irq() take
+an affinity mask, the churn is likely to be on the irritating side
+given that most drivers do not give a damn about affinities.
+
+So take the more innocuous path to provide a helper that parallels
+request_percpu_irq(), with an affinity as a bonus argument.
+
+Yes, request_percpu_irq_affinity() is a bit of a mouthful.
 
 Signed-off-by: Marc Zyngier <maz@kernel.org>
 ---
- arch/arm64/kernel/smp.c   |  2 +-
- drivers/perf/arm_pmu.c    |  2 +-
- include/linux/interrupt.h |  4 ++--
- kernel/irq/manage.c       | 12 +++++++-----
- 4 files changed, 11 insertions(+), 9 deletions(-)
+ include/linux/interrupt.h | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
-index 68cea3a4a35ca..6fb838eee2e7d 100644
---- a/arch/arm64/kernel/smp.c
-+++ b/arch/arm64/kernel/smp.c
-@@ -1094,7 +1094,7 @@ static void ipi_setup_sgi(int ipi)
- 	irq = ipi_irq_base + ipi;
- 
- 	if (ipi_should_be_nmi(ipi)) {
--		err = request_percpu_nmi(irq, ipi_handler, "IPI", &irq_stat);
-+		err = request_percpu_nmi(irq, ipi_handler, "IPI", NULL, &irq_stat);
- 		WARN(err, "Could not request IRQ %d as NMI, err=%d\n", irq, err);
- 	} else {
- 		err = request_percpu_irq(irq, ipi_handler, "IPI", &irq_stat);
-diff --git a/drivers/perf/arm_pmu.c b/drivers/perf/arm_pmu.c
-index 5c310e803dd78..22c601b46c858 100644
---- a/drivers/perf/arm_pmu.c
-+++ b/drivers/perf/arm_pmu.c
-@@ -659,7 +659,7 @@ int armpmu_request_irq(int irq, int cpu)
- 			irq_ops = &pmunmi_ops;
- 		}
- 	} else if (armpmu_count_irq_users(irq) == 0) {
--		err = request_percpu_nmi(irq, handler, "arm-pmu", &cpu_armpmu);
-+		err = request_percpu_nmi(irq, handler, "arm-pmu", NULL, &cpu_armpmu);
- 
- 		/* If cannot get an NMI, get a normal interrupt */
- 		if (err) {
 diff --git a/include/linux/interrupt.h b/include/linux/interrupt.h
-index 52147d5f432b3..81506ab759b81 100644
+index 81506ab759b81..fa62ab556ee32 100644
 --- a/include/linux/interrupt.h
 +++ b/include/linux/interrupt.h
-@@ -197,8 +197,8 @@ request_percpu_irq(unsigned int irq, irq_handler_t handler,
+@@ -196,6 +196,15 @@ request_percpu_irq(unsigned int irq, irq_handler_t handler,
+ 				    devname, NULL, percpu_dev_id);
  }
  
++static inline int __must_check
++request_percpu_irq_affinity(unsigned int irq, irq_handler_t handler,
++			    const char *devname, const cpumask_t *affinity,
++			    void __percpu *percpu_dev_id)
++{
++	return __request_percpu_irq(irq, handler, 0,
++				    devname, affinity, percpu_dev_id);
++}
++
  extern int __must_check
--request_percpu_nmi(unsigned int irq, irq_handler_t handler,
--		   const char *devname, void __percpu *dev);
-+request_percpu_nmi(unsigned int irq, irq_handler_t handler, const char *name,
-+		   const struct cpumask *affinity, void __percpu *dev_id);
- 
- extern const void *free_irq(unsigned int, void *);
- extern void free_percpu_irq(unsigned int, void __percpu *);
-diff --git a/kernel/irq/manage.c b/kernel/irq/manage.c
-index 5f4c651677436..b1a3140e5f3c9 100644
---- a/kernel/irq/manage.c
-+++ b/kernel/irq/manage.c
-@@ -2527,6 +2527,7 @@ EXPORT_SYMBOL_GPL(__request_percpu_irq);
-  * @irq:	Interrupt line to allocate
-  * @handler:	Function to be called when the IRQ occurs.
-  * @name:	An ascii name for the claiming device
-+ * @affinity:	A cpumask describing the target CPUs for this interrupt
-  * @dev_id:	A percpu cookie passed back to the handler function
-  *
-  * This call allocates interrupt resources for a per CPU NMI. Per CPU NMIs
-@@ -2543,8 +2544,8 @@ EXPORT_SYMBOL_GPL(__request_percpu_irq);
-  * If the interrupt line cannot be used to deliver NMIs, function
-  * will fail returning a negative value.
-  */
--int request_percpu_nmi(unsigned int irq, irq_handler_t handler,
--		       const char *name, void __percpu *dev_id)
-+int request_percpu_nmi(unsigned int irq, irq_handler_t handler, const char *name,
-+		       const struct cpumask *affinity, void __percpu *dev_id)
- {
- 	struct irqaction *action;
- 	struct irq_desc *desc;
-@@ -2561,12 +2562,13 @@ int request_percpu_nmi(unsigned int irq, irq_handler_t handler,
- 	    !irq_supports_nmi(desc))
- 		return -EINVAL;
- 
--	/* The line cannot already be NMI */
--	if (irq_is_nmi(desc))
-+	/* The line cannot be NMI already if the new request covers all CPUs */
-+	if (irq_is_nmi(desc) &&
-+	    (!affinity || cpumask_equal(affinity, cpu_possible_mask)))
- 		return -EINVAL;
- 
- 	action = create_percpu_irqaction(handler, IRQF_NO_THREAD | IRQF_NOBALANCING,
--					 name, NULL, dev_id);
-+					 name, affinity, dev_id);
- 	if (!action)
- 		return -ENOMEM;
- 
+ request_percpu_nmi(unsigned int irq, irq_handler_t handler, const char *name,
+ 		   const struct cpumask *affinity, void __percpu *dev_id);
 -- 
 2.47.3
 
