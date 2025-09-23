@@ -1,290 +1,182 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f52.google.com (mail-ed1-f52.google.com [209.85.208.52])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3ADD2F2907
-	for <linux-acpi@vger.kernel.org>; Tue, 23 Sep 2025 11:49:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FB91313D48
+	for <linux-acpi@vger.kernel.org>; Tue, 23 Sep 2025 12:16:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758628145; cv=none; b=cCbFCH3B6zW2vTJOokak5Df1+vWkGIEg6v/sgJ7L6LYVwOnUMxbU/Op3Mj0cqPbz1G+7nMVvnp4DAVgXwXGWU10EzQvMd7FAoxnbbLRiGrMMUpo0lXbdjk2owdRrV4t8A3bGiLkFbdr83AIuRtgk425yPUk+M6GIj70Dtubc8Ac=
+	t=1758629783; cv=none; b=DeMIqoQADGw0iCva07kFUJEoXe2L+usaE+BgTid8339Y/WDMHdd+JGmShzB2pl+Xa2rHKlKBSMxx7cAvI5F7DmPn0Z7K2pULyvsq8evQi98SrE8T2cbWEAliOtnzNDs/1M4PPsOaL1BJVhtPULjw1l8kQ9J8V+K0pw2YDrIBcfI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758628145; c=relaxed/simple;
-	bh=LeTffhmL5eXDF230VugNOxznoEp6WHagf82tpaU5yK0=;
+	s=arc-20240116; t=1758629783; c=relaxed/simple;
+	bh=onAIH1BP/hCHvY4ff9ZnzH9KjooBVNRPhLS+/jqM0V4=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Y5dnxhdP8wj2EbIxmX2sBqwxy61OSjtiMsBXBYGElkpmVSIssRRAm5/6ksZzoOYMSAdbrd8KyQYzNW/FwnMxGOQCafccOacUoSsoe8KtTBCdRRvILgm8CjnZ0jhZT/w59QubK8MI7cu0+PLRGGBg+yDXOYmaG4qgqO70rAzrFVo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=APaVLgO2; arc=none smtp.client-ip=10.30.226.201
+	 To:Cc:Content-Type; b=kPjUE/Ff5G+MiUZYeFuG3NKXxHTFym0rgGj+/0lVDSYdznhaASVYEZxkeMTrvq3q5wj/g0o5mnZ/QD4ohklNK11u6bLUNQNJMp+8yzZxUAa+P+kLIwnYPepkg6lM47WgMX4kwKDLRp5QlV/mOUSnyzoOnq+NRNg5yh3uFYGSAfQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=L/B5z0Xm; arc=none smtp.client-ip=209.85.208.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="APaVLgO2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9BFD7C19422
-	for <linux-acpi@vger.kernel.org>; Tue, 23 Sep 2025 11:49:04 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1758628144;
-	bh=LeTffhmL5eXDF230VugNOxznoEp6WHagf82tpaU5yK0=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=APaVLgO27iHAW4huFC3BrcYbuWlaU1N2RKi92xzhj/XAbtqqtYz5NNDecQ2LH2dAW
-	 clpn31a7RpYuaVutuyFA70e0JvWFVpFcuUQ3QdMIftE4gH3RBT7lQG4qM7zuFMLa2n
-	 cR5GIz8yt3TqGDGU6wFrUqt8Q3FZgyqSFOrXbmRPjWNyMq+XMZ7BA2MgpjdE62Asii
-	 26TmY5ma+LInmUI2mtmIiAwZH2NDoMntJh0IKfhMZr28Ko03KLjeZQl78BMhwadk1b
-	 Ul2QmFz1zuKIKM1TSuKxHabnhomYIzn3Tv/sz98RWAiPFSQEeVglERlnf6I34abavZ
-	 109PmM8BaMCwg==
-Received: by mail-ot1-f41.google.com with SMTP id 46e09a7af769-757a43dbed1so4425364a34.2
-        for <linux-acpi@vger.kernel.org>; Tue, 23 Sep 2025 04:49:04 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCVBBSiy7SiMklGIRm46WJ4BYAwf1X3nX8tcaRcP0h4YHkM5BAVecHbjkpWiUxtBPAvAbL5klJol8r3t@vger.kernel.org
-X-Gm-Message-State: AOJu0YxY1CBRqIIqHNJu6HWgBV0pOEUpeugs0R5KvXwYNUOmDQOf9br4
-	QnOWTRzp3EAv5UFeLAVgzk/zGBeUoPZs/XAM9R3BlNysWT04HYnJBp6pDPXNaMN9vRPbZDvBsCr
-	FKRfH2al7wzga4E0pVQcH/UkAPvJRqwM=
-X-Google-Smtp-Source: AGHT+IHSlt8NcTczP8RicHCoFUnPUg4PpZC7XOsi+TsQzJXvBzNG6oDWCtz23COLpZWLOlU66fN7JJ0Juqrvzio/tYE=
-X-Received: by 2002:a05:6808:17a3:b0:43f:2aad:65cf with SMTP id
- 5614622812f47-43f2d29d5a0mr967541b6e.8.1758628143830; Tue, 23 Sep 2025
- 04:49:03 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="L/B5z0Xm"
+Received: by mail-ed1-f52.google.com with SMTP id 4fb4d7f45d1cf-62fca01f0d9so7518144a12.3
+        for <linux-acpi@vger.kernel.org>; Tue, 23 Sep 2025 05:16:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1758629779; x=1759234579; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=PUp5hVqBdVTJiqJx7CBSL/4eHZpd8ctRM9Gr/BWHC6Y=;
+        b=L/B5z0XmYmzeYryC+z0gCepziq3AIuw9nyJRYqopexb6PBQy5N6Xq6iHWslMMw8LoM
+         FuErEwGd1rWaijkZla9GzTyC+etp6u6pxyGLJPluarxI6b+AixUR7T806c9ytXq5uaOn
+         kSoa7G8kTVsJW0EsWlNmvkf5K96VrnIl4GM8Rvrx8Wju8sttVUoPq8U9e34bl+yWQlAr
+         q56mq8OAM34hT9SdPjdjN//tywh3mVMZOyGx+p2rZJVZ3USpaOsno9nDGU4sEkT6HdUX
+         bzqX7GPL0lckmz+4Yy7ZBvF9hyGfGdPUMQMnSFVOou3knTZKeB1AlZoO5WvnjzJNorsS
+         ycgQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1758629779; x=1759234579;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=PUp5hVqBdVTJiqJx7CBSL/4eHZpd8ctRM9Gr/BWHC6Y=;
+        b=bZ4VBaU2XwP+WdYN/dl/Ul+mz6ADkvebBq5PfLVppF6eeLnWv2QGSJICPdguKJRtFB
+         xt4Yqlr/cvyeHCGldNIqjOpI/gYgVuWajBsRc12yvm/sZmXlPShilXyBqIfsp8P73d/e
+         KvxC5CiQ9T0noqVvqwJaucCiMmAG73/ZK1CbsbI+0WuanrtLQcIkwkJyq/nDWzgyOpIQ
+         1Yz/QV3ESI3E53ZJPHt5du1aW9MnDvu5SIDdTSy62r9vzyfjhwyNgDXNd4EuDkYVhxAF
+         RcMybeijxO7NJXVeToGtvtJIAF1fS4nLNdsx2da/d3Yc5DC65F8zDn1Gyc9qsjkWvgXf
+         5GpQ==
+X-Forwarded-Encrypted: i=1; AJvYcCWyfTonYuANW9/5qytlHpv89d9M+77UeXH9o3ZUYtLQW7CyIZIyp4nbJmjDX1zU+954FtE8/LWKYf5D@vger.kernel.org
+X-Gm-Message-State: AOJu0YycR0JkcuaYEBzMl0V/k+txjLUIKIQl0KehvuSwMItRWfxtxjUF
+	X3KcYRTsm8n92If0BIbR4PJ2ahxEve3SnKup2TC5+amWJPQPh+xJolW226HMu5JZhXpirJuWVP5
+	+jxzuqpifkQl7RAhrXDAx40wR0F+fKYpG1gri3U3m
+X-Gm-Gg: ASbGnctNf3+hnLo39DZImIoV122ZepSiuq1xxRFM90E6Q4SkZq3o3oJjo6RccgsW6Xk
+	O1oj0R2sE8AukVs87OUUMCJC37r+NJUsrJob14tS8ZpsChHaLAOXoIscRluuSciD2IQNCwwdRqg
+	P7+jV4Pl8tpTsOHztDTFRG80tcD45us/COowHexiWgI6zo8EyhTU1zAy63+Si4XFjveNX3q+hzz
+	XxtQx6YoETNvHg=
+X-Google-Smtp-Source: AGHT+IEveYyZj5MyEVZQFYuTxHsz+ZNZHMmKqbmjzAUXJV1eHNokfwX3dejDcheTKNf1w0LWCArwX6JcEyNECgzztK0=
+X-Received: by 2002:a05:6402:44c5:b0:62f:67bb:d399 with SMTP id
+ 4fb4d7f45d1cf-63467821ef0mr1635778a12.29.1758629779214; Tue, 23 Sep 2025
+ 05:16:19 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250914111211.1570889-1-luogf2025@163.com> <20250923023854.158108-1-luogf2025@163.com>
-In-Reply-To: <20250923023854.158108-1-luogf2025@163.com>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Tue, 23 Sep 2025 13:48:52 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0guEkbMuMjS=aQRQdiiyUG_hxgu0imBX0kgho2womB0Hw@mail.gmail.com>
-X-Gm-Features: AS18NWCmosPgZ9p5jz32fvxqns84CfmBL88HcUN3JKAzB1wqCJ12KSRAmkJoA94
-Message-ID: <CAJZ5v0guEkbMuMjS=aQRQdiiyUG_hxgu0imBX0kgho2womB0Hw@mail.gmail.com>
-Subject: Re: [PATCH v6] ACPI: battery: prevent sysfs_add_battery re-entry on
- rapid events
-To: GuangFei Luo <luogf2025@163.com>
-Cc: rafael@kernel.org, dan.carpenter@linaro.org, lenb@kernel.org, 
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-pm@vger.kernel.org, lkp@intel.com, sre@kernel.org, 
-	stable@vger.kernel.org
+References: <20250917120719.2390847-1-srosek@google.com> <20250917120719.2390847-2-srosek@google.com>
+In-Reply-To: <20250917120719.2390847-2-srosek@google.com>
+From: =?UTF-8?Q?S=C5=82awomir_Rosek?= <srosek@google.com>
+Date: Tue, 23 Sep 2025 14:16:08 +0200
+X-Gm-Features: AS18NWDjTSTwRkbeN9yfpQFAD42r3vE_yfc3SX-fB05uAP2BGFyAB0dWxsKkdng
+Message-ID: <CAF3aWvHStokULYuGj9rZ4v9dESTxWYtzrx5H6FDP1kdjzfbjYw@mail.gmail.com>
+Subject: Re: [PATCH v2 1/6] ACPI: DPTF: Ignore SoC DTS thermal while scanning
+To: "Rafael J . Wysocki" <rafael@kernel.org>
+Cc: Daniel Lezcano <daniel.lezcano@linaro.org>, AceLan Kao <acelan.kao@canonical.com>, 
+	Ilpo Jarvinen <ilpo.jarvinen@linux.intel.com>, Hans de Goede <hansg@kernel.org>, 
+	Alex Hung <alexhung@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+	Zhang Rui <rui.zhang@intel.com>, 
+	Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Tomasz Nowicki <tnowicki@google.com>, 
+	Stanislaw Kardach <skardach@google.com>, Michal Krawczyk <mikrawczyk@google.com>, 
+	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, 
+	platform-driver-x86@vger.kernel.org, linux-pm@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Sep 23, 2025 at 4:39=E2=80=AFAM GuangFei Luo <luogf2025@163.com> wr=
-ote:
->
-> From: Guofeng Luo <luogf2025@163.com>
->
-> >On Thu, Sep 18, 2025 at 3:56=E2=80=AFPM GuangFei Luo <luogf2025@163.com>=
- wrote:
-> >>
-> >> When removing and reinserting the laptop battery, ACPI can trigger
-> >> two notifications in quick succession:
-> >>   - ACPI_BATTERY_NOTIFY_STATUS (0x80)
-> >>   - ACPI_BATTERY_NOTIFY_INFO   (0x81)
-> >>
-> >> Both notifications call acpi_battery_update(). Because the events
-> >> happen very close in time, sysfs_add_battery() can be re-entered
-> >> before battery->bat is set, causing a duplicate sysfs entry error.
-> >>
-> >> When the ACPI battery driver uses
-> >> acpi_dev_install_notify_handler() to register acpi_battery_notify,
-> >> the callback may be triggered twice in a very short period of time.
-> >>
-> >> This patch ensures that sysfs_add_battery() is not re-entered
-> >> when battery->bat is already non-NULL, preventing the duplicate
-> >> sysfs creation and stabilizing battery hotplug handling.
-> >>
-> >> [  476.117945] sysfs: cannot create duplicate filename '/devices/LNXSY=
-STM:00/LNXSYBUS:00/PNP0C0A:00/power_supply/BAT1'
-> >> [  476.118896] CPU: 1 UID: 0 PID: 185 Comm: kworker/1:4 Kdump: loaded =
-Not tainted 6.12.38+deb13-amd64 #1  Debian 6.12.38-1
-> >> [  476.118903] Hardware name: Gateway          NV44             /SJV40=
--MV        , BIOS V1.3121 04/08/2009
-> >> [  476.118906] Workqueue: kacpi_notify acpi_os_execute_deferred
-> >> [  476.118917] Call Trace:
-> >> [  476.118922]  <TASK>
-> >> [  476.118929]  dump_stack_lvl+0x5d/0x80
-> >> [  476.118938]  sysfs_warn_dup.cold+0x17/0x23
-> >> [  476.118943]  sysfs_create_dir_ns+0xce/0xe0
-> >> [  476.118952]  kobject_add_internal+0xba/0x250
-> >> [  476.118959]  kobject_add+0x96/0xc0
-> >> [  476.118964]  ? get_device_parent+0xde/0x1e0
-> >> [  476.118970]  device_add+0xe2/0x870
-> >> [  476.118975]  __power_supply_register.part.0+0x20f/0x3f0
-> >> [  476.118981]  ? wake_up_q+0x4e/0x90
-> >> [  476.118990]  sysfs_add_battery+0xa4/0x1d0 [battery]
-> >> [  476.118998]  acpi_battery_update+0x19e/0x290 [battery]
-> >> [  476.119002]  acpi_battery_notify+0x50/0x120 [battery]
-> >> [  476.119006]  acpi_ev_notify_dispatch+0x49/0x70
-> >> [  476.119012]  acpi_os_execute_deferred+0x1a/0x30
-> >> [  476.119015]  process_one_work+0x177/0x330
-> >> [  476.119022]  worker_thread+0x251/0x390
-> >> [  476.119026]  ? __pfx_worker_thread+0x10/0x10
-> >> [  476.119030]  kthread+0xd2/0x100
-> >> [  476.119033]  ? __pfx_kthread+0x10/0x10
-> >> [  476.119035]  ret_from_fork+0x34/0x50
-> >> [  476.119040]  ? __pfx_kthread+0x10/0x10
-> >> [  476.119042]  ret_from_fork_asm+0x1a/0x30
-> >> [  476.119049]  </TASK>
-> >> [  476.142552] kobject: kobject_add_internal failed for BAT1 with -EEX=
-IST, don't try to register things with the same name in the same directory.
-> >> [  476.415022] ata1.00: unexpected _GTF length (8)
-> >> [  476.428076] sd 0:0:0:0: [sda] Starting disk
-> >> [  476.835035] ata1.00: unexpected _GTF length (8)
-> >> [  476.839720] ata1.00: configured for UDMA/133
-> >> [  491.328831] sysfs: cannot create duplicate filename '/devices/LNXSY=
-STM:00/LNXSYBUS:00/PNP0C0A:00/power_supply/BAT1'
-> >> [  491.329720] CPU: 1 UID: 0 PID: 185 Comm: kworker/1:4 Kdump: loaded =
-Not tainted 6.12.38+deb13-amd64 #1  Debian 6.12.38-1
-> >> [  491.329727] Hardware name: Gateway          NV44             /SJV40=
--MV        , BIOS V1.3121 04/08/2009
-> >> [  491.329731] Workqueue: kacpi_notify acpi_os_execute_deferred
-> >> [  491.329741] Call Trace:
-> >> [  491.329745]  <TASK>
-> >> [  491.329751]  dump_stack_lvl+0x5d/0x80
-> >> [  491.329758]  sysfs_warn_dup.cold+0x17/0x23
-> >> [  491.329762]  sysfs_create_dir_ns+0xce/0xe0
-> >> [  491.329770]  kobject_add_internal+0xba/0x250
-> >> [  491.329775]  kobject_add+0x96/0xc0
-> >> [  491.329779]  ? get_device_parent+0xde/0x1e0
-> >> [  491.329784]  device_add+0xe2/0x870
-> >> [  491.329790]  __power_supply_register.part.0+0x20f/0x3f0
-> >> [  491.329797]  sysfs_add_battery+0xa4/0x1d0 [battery]
-> >> [  491.329805]  acpi_battery_update+0x19e/0x290 [battery]
-> >> [  491.329809]  acpi_battery_notify+0x50/0x120 [battery]
-> >> [  491.329812]  acpi_ev_notify_dispatch+0x49/0x70
-> >> [  491.329817]  acpi_os_execute_deferred+0x1a/0x30
-> >> [  491.329820]  process_one_work+0x177/0x330
-> >> [  491.329826]  worker_thread+0x251/0x390
-> >> [  491.329830]  ? __pfx_worker_thread+0x10/0x10
-> >> [  491.329833]  kthread+0xd2/0x100
-> >> [  491.329836]  ? __pfx_kthread+0x10/0x10
-> >> [  491.329838]  ret_from_fork+0x34/0x50
-> >> [  491.329842]  ? __pfx_kthread+0x10/0x10
-> >> [  491.329844]  ret_from_fork_asm+0x1a/0x30
-> >> [  491.329850]  </TASK>
-> >> [  491.329855] kobject: kobject_add_internal failed for BAT1 with -EEX=
-IST, don't try to register things with the same name in the same directory.
-> >>
-> >> Fixes: 10666251554c ("ACPI: battery: Install Notify() handler directly=
-")
-> >> Signed-off-by: GuangFei Luo <luogf2025@163.com>
-> >> Cc: stable@vger.kernel.org
-> >> ---
-> >> v6:
-> >>   - Update Fixes tag: point to commit 10666251554c ("ACPI: battery: In=
-stall
-> >>     Notify() handler directly"), which introduced the sysfs_add_batter=
-y()
-> >>     re-entry issue when acpi_battery_notify is registered via
-> >>     acpi_dev_install_notify_handler(). The problem does not occur with
-> >>     acpi_bus_register_driver().
-> >>
-> >> v5:
-> >>   - Move changelog above the '---' line as per submission guidelines.
-> >>
-> >> v4:
-> >>   - Uses guard(mutex) for battery->sysfs_lock in sysfs_add_battery().
-> >>   - Since sysfs_add_battery() now handles the battery->bat check with
-> >>     proper locking,the extra if (!battery->bat) check at the call site
-> >>     has become redundant.
-> >>
-> >> v3:
-> >>   - Modified the earlier approach: since sysfs_add_battery() is invoke=
-d
-> >>     from multiple places, the most reliable way is to add the lock ins=
-ide
-> >>     the function itself.
-> >>   - sysfs_remove_battery() had a similar race issue in the past, which=
- was
-> >>     fixed by adding a lock as well. Reference:
-> >>     https://lore.kernel.org/all/9c921c22a7f33397a6774d7fa076db9b6a0fd6=
-69
-> >>         .1312318300.git.len.brown@intel.com/
-> >>
-> >> v2:
-> >>  - Fix missing mutex_unlock in acpi_battery_update()
-> >>    (Reported-by: kernel test robot)
-> >>
-> >> v1:
-> >>  - Initial patch to handle race when hotplugging battery, preventing
-> >>    duplicate sysfs entries.
-> >> ---
-> >>  drivers/acpi/battery.c | 20 +++++++++++---------
-> >>  1 file changed, 11 insertions(+), 9 deletions(-)
-> >>
-> >> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-> >> index 6905b56bf3e4..20d68f3e881f 100644
-> >> --- a/drivers/acpi/battery.c
-> >> +++ b/drivers/acpi/battery.c
-> >> @@ -850,6 +850,10 @@ static void __exit battery_hook_exit(void)
-> >>
-> >>  static int sysfs_add_battery(struct acpi_battery *battery)
-> >>  {
-> >> +       guard(mutex)(&battery->sysfs_lock);
-> >> +       if (battery->bat)
-> >> +               return 0;
-> >> +
-> >>         struct power_supply_config psy_cfg =3D {
-> >>                 .drv_data =3D battery,
-> >>                 .attr_grp =3D acpi_battery_groups,
-> >> @@ -1026,11 +1030,9 @@ static int acpi_battery_update(struct acpi_batt=
-ery *battery, bool resume)
-> >>                 return result;
-> >>         acpi_battery_quirks(battery);
-> >>
-> >> -       if (!battery->bat) {
-> >> -               result =3D sysfs_add_battery(battery);
-> >> -               if (result)
-> >> -                       return result;
-> >> -       }
-> >> +       result =3D sysfs_add_battery(battery);
-> >> +       if (result)
-> >> +               return result;
-> >>
-> >>         /*
-> >>          * Wakeup the system if battery is critical low
-> >> @@ -1112,12 +1114,12 @@ static int battery_notify(struct notifier_bloc=
-k *nb,
-> >>                         result =3D acpi_battery_get_info(battery);
-> >>                         if (result)
-> >>                                 return result;
-> >> -
-> >> -                       result =3D sysfs_add_battery(battery);
-> >> -                       if (result)
-> >> -                               return result;
-> >>                 }
-> >>
-> >> +               result =3D sysfs_add_battery(battery);
-> >> +               if (result)
-> >> +                       return result;
-> >> +
-> >
-> >Why is this change necessary?
-> Hi Rafael,
->
-> In the previous code:
->
->         if (battery->bat) {
->                 acpi_battery_refresh(battery);
->         } else {
->                 result =3D acpi_battery_get_info(battery);
->                 if (result)
->                         return result;
->
->                 result =3D sysfs_add_battery(battery);
->                 if (result)
->                         return result;
->         }
->
-> the `if (!battery->bat)` check was done at the call site.  However,
-> this check is not atomic: two threads can both see `battery->bat =3D=3D N=
-ULL`
-> and then call `sysfs_add_battery()` concurrently, leading to duplicate
-> sysfs registration and `-EEXIST` errors.
->
-> By moving the check and mutex into `sysfs_add_battery()`, the race is
-> handled atomically.  All call sites can now invoke it unconditionally,
-> and the function itself will no-op if the battery is already registered.
-> This avoids duplicated `if (!battery->bat)` logic and ensures consistent
-> protection everywhere.
+Hi Rafael
 
-Since the lock is acquired in sysfs_add_battery(), the race is
-addressed regardless of the change in question.  The only difference
-is when the previous battery->bat check passes (that is, battery->bat
-is not NULL to start with), and if battery->bat becomes NULL between
-the two checks, the entire section of the code checking battery->bat
-needs to go under the lock.
+On Wed, Sep 17, 2025 at 2:07=E2=80=AFPM Slawomir Rosek <srosek@google.com> =
+wrote:
+>
+> The Intel SoC DTS thermal driver on Baytrail platform uses IRQ 86 for
+> critical overheating notification. The IRQ 86 is described in the _CRS
+> control method of INT3401 device, thus Intel SoC DTS thermal driver
+> requires INT3401 device to be enumerated.
+>
+> Since dependency on INT3401 device is unrelated to DPTF the IS_ENABLE()
+> macro is removed from ACPI DPTF INT340X scan handler, instead Kconfig
+> is updated to ensure proper enumeration of INT3401 device.
+>
+> Fixes: 014d9d5d0cc1 ("ACPI/int340x_thermal: enumerate INT3401 for Intel S=
+oC DTS thermal driver")
+> Signed-off-by: Slawomir Rosek <srosek@google.com>
+> ---
+>  drivers/acpi/dptf/int340x_thermal.c | 7 +------
+>  drivers/thermal/intel/Kconfig       | 1 +
+>  2 files changed, 2 insertions(+), 6 deletions(-)
+>
+> diff --git a/drivers/acpi/dptf/int340x_thermal.c b/drivers/acpi/dptf/int3=
+40x_thermal.c
+> index a222df059a16..947fe50c2ef6 100644
+> --- a/drivers/acpi/dptf/int340x_thermal.c
+> +++ b/drivers/acpi/dptf/int340x_thermal.c
+> @@ -11,10 +11,9 @@
+>
+>  #include "../internal.h"
+>
+> -#define INT3401_DEVICE 0X01
+>  static const struct acpi_device_id int340x_thermal_device_ids[] =3D {
+>         {"INT3400"},
+> -       {"INT3401", INT3401_DEVICE},
+> +       {"INT3401"},
+>         {"INT3402"},
+>         {"INT3403"},
+>         {"INT3404"},
+> @@ -76,10 +75,6 @@ static int int340x_thermal_handler_attach(struct acpi_=
+device *adev,
+>  {
+>         if (IS_ENABLED(CONFIG_INT340X_THERMAL))
+>                 acpi_create_platform_device(adev, NULL);
+> -       /* Intel SoC DTS thermal driver needs INT3401 to set IRQ descript=
+or */
+> -       else if (IS_ENABLED(CONFIG_INTEL_SOC_DTS_THERMAL) &&
+> -                id->driver_data =3D=3D INT3401_DEVICE)
+> -               acpi_create_platform_device(adev, NULL);
+>         return 1;
+>  }
+>
+> diff --git a/drivers/thermal/intel/Kconfig b/drivers/thermal/intel/Kconfi=
+g
+> index e0268fac7093..47950859b790 100644
+> --- a/drivers/thermal/intel/Kconfig
+> +++ b/drivers/thermal/intel/Kconfig
+> @@ -45,6 +45,7 @@ config INTEL_SOC_DTS_IOSF_CORE
+>  config INTEL_SOC_DTS_THERMAL
+>         tristate "Intel SoCs DTS thermal driver"
+>         depends on X86 && PCI && ACPI
+> +       select INT340X_THERMAL
 
-I think that all battery->bat accesses need to be done under the lock
-now, don't they?
+This selection does not meet INT340X_THERMAL requirements so
+kernel tests are failing for randomly generated i386 config
+https://lore.kernel.org/all/202509181359.fLTuROj6-lkp@intel.com/
+I am considering two options:
+
+1) Align SoC DTS thermal driver dependencies to match INT340X.
+Currently X86_64 and NET are missing. This is quite simple fix
+but after that enabling a SoC DTS thermal won't be possible
+for i386. From the other hand the driver requires ATOM Silvermont
+https://elixir.bootlin.com/linux/v6.17-rc7/source/drivers/thermal/intel/int=
+el_soc_dts_thermal.c#L39
+which is a 64bit architecture, so I am not sure if support
+for i386 is really required.
+
+2) Don't select INT340X driver (the original patch does not)
+and use acpi_walk_namespace to enumerate INT3401 on the platform
+bus just before intel_soc_dts_iosf_init is called
+https://elixir.bootlin.com/linux/v6.17-rc7/source/drivers/thermal/intel/int=
+el_soc_dts_thermal.c#L54
+The code would be cleaned up later with next version of patch 5/6
+and direct call to acpi_walk_namespace would be replaced with
+dedicated function exported by acpi platform core. Eventually,
+after the the last patch, there would be two drivers enumerating
+INT3401 which shouldn't be an issue since the acpi_walk_namespace
+uses global mutex while traversing the acpi device tree
+
+Please let me know your comment so I can prepare the next version.
+
+Thanks, Regards,
+Slawek
+
+>         select INTEL_SOC_DTS_IOSF_CORE
+>         help
+>           Enable this to register Intel SoCs (e.g. Bay Trail) platform di=
+gital
+> --
+> 2.51.0.384.g4c02a37b29-goog
+>
