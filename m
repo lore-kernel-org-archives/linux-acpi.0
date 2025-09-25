@@ -1,82 +1,206 @@
-Received: from mx10.gouders.net (mx10.gouders.net [202.61.206.94])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CAD8D157A5A
-	for <linux-acpi@vger.kernel.org>; Thu, 25 Sep 2025 07:31:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.61.206.94
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68369264F9C
+	for <linux-acpi@vger.kernel.org>; Thu, 25 Sep 2025 09:33:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758785493; cv=none; b=mZUNLC+mTL26ngGLZJh686ps9U0jLX33RbwXrIDYR0cFSY4/iJDyAAmp9XoHVc5bNbKSJ9KZ7ZQOlaV5VWNQlR+Xby/IN63iPTvuxJFqCQCUbO4loUnl+UoR4hVaBbIA5qd8ZWWqtIRoEjGdbYNMdbCNY/eeJg/X+M7Qz99MLVI=
+	t=1758792787; cv=none; b=tMIzEiZx0jk3g4MyHYzzzIraJzoEAwPIwMTH2qoMGlnqCqQMfrsVCr2UVhDRKmo/Ns92N5eEm1gyNiQRmIpCmCc1xs2eb3fAWQHLLKeegE2q2McgSHiusO9EbyqcqoxlP9jrSuLUa0+hX97etBLSx5KB7FKV3+oSWjjLDg/NX2o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758785493; c=relaxed/simple;
-	bh=LAeWxAX9hNeqInqdWNzekXI4thmR7vB+5nCfjOPRFR0=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type; b=aj4f2v9Ht3Ixdg+6X8KPdbZPA2w3veY81AaBU9TfNiZt366KiBC/Ix1rqY1GcluDOdt4TfscYDWbzppXU3ObFPn2uE/LAgqB3s3gxpBzL10lufgGlxHIO2KA0EaSkzxZnovBSyWFajNQDbFWu/3zVT/kpvWEfYCtrPLu9pmHb7U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gouders.net; spf=pass smtp.mailfrom=gouders.net; dkim=pass (1024-bit key) header.d=gouders.net header.i=@gouders.net header.b=CQy/64Gd; arc=none smtp.client-ip=202.61.206.94
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gouders.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gouders.net
+	s=arc-20240116; t=1758792787; c=relaxed/simple;
+	bh=+r7/EFuu/Z4+g80XOn67kdjppy2mS5EV6emp4qNg3J8=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=nbUomuMW4HsERodLoXVnI5DIFSXuxjfHaEQE0Fs6JzYNf/w4DId0JgJMYA58I/SNOsBpZzMueT0V6lx+kJ/dDVPCyI+sRaaaf7B7nJNNPLwsyIyxT311bGRna+kwn8I9pmoa3CFlwACoqQS7spyRGLX7VDFSXIBQ5tuZHv8YBh4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=Qn1Wh4DD; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=wes68xN3; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=Qn1Wh4DD; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=wes68xN3; arc=none smtp.client-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=gouders.net header.i=@gouders.net header.b="CQy/64Gd"
-Received: from localhost ([193.175.198.193])
-	(authenticated bits=0)
-	by mx10.gouders.net (8.18.1/8.17.1.9) with ESMTPSA id 58P7CNjr010495
-	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NO);
-	Thu, 25 Sep 2025 09:12:23 +0200
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=gouders.net; s=gnet;
-	t=1758784345; bh=LAeWxAX9hNeqInqdWNzekXI4thmR7vB+5nCfjOPRFR0=;
-	h=From:To:Subject:Date;
-	b=CQy/64Gd1fm3KHW2bMw48c62JZlNN8WhDmbdLwKT0UhhUTMnX2h8X9GjIVe8nBcjk
-	 hlnW7YXERM70v7rfQY/dqjcb5UA1DT9XiMFEfmXQQ4wju++x+Hp2k+oMlfJV6XBgIf
-	 1EzAeK4UT6pC4phIjuEFzvXMs/KxGeOYQLpibTmY=
-From: Dirk Gouders <dirk@gouders.net>
-To: Borislav Deianov <borislav@users.sf.net>,
-        Henrique de Moraes Holschuh
- <hmh@hmh.eng.br>,
-        linux-acpi@vger.kernel.org
-Subject: thinkpad_acpi: disagreement about versions
-User-Agent: Gnus/5.13 (Gnus v5.13)
-Date: Thu, 25 Sep 2025 09:12:18 +0200
-Message-ID: <gh7bxn0zvx.fsf@gouders.net>
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="Qn1Wh4DD";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="wes68xN3";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="Qn1Wh4DD";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="wes68xN3"
+Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id 58B454E624;
+	Thu, 25 Sep 2025 09:32:58 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1758792778; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=PktsIKsXT7+WofBjDIwf6iQfwyP9CFogd6p16sia/gQ=;
+	b=Qn1Wh4DDYle+RfyQF6cuLRawJoaacWpKkQtAwZ/8906+o4FSfhGe8DZYISx04MwIHczF+j
+	ttZJdjtHDGEj2vWNED1HKxNXSV1t8HdmX3t/tY8UjvK4Olx1l5V5jcp/Ibz96R6Iz1uhxG
+	yBycnKOlJeZ6swJQXK06LJNE1Tr8Rek=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1758792778;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=PktsIKsXT7+WofBjDIwf6iQfwyP9CFogd6p16sia/gQ=;
+	b=wes68xN3HKt4ysa7pijHIcKrJPMnh189kIxorhTj28QtII11L2cPWpE76KIgHVJg5tCczJ
+	K0NHosrQJlpiOJCA==
+Authentication-Results: smtp-out1.suse.de;
+	none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1758792778; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=PktsIKsXT7+WofBjDIwf6iQfwyP9CFogd6p16sia/gQ=;
+	b=Qn1Wh4DDYle+RfyQF6cuLRawJoaacWpKkQtAwZ/8906+o4FSfhGe8DZYISx04MwIHczF+j
+	ttZJdjtHDGEj2vWNED1HKxNXSV1t8HdmX3t/tY8UjvK4Olx1l5V5jcp/Ibz96R6Iz1uhxG
+	yBycnKOlJeZ6swJQXK06LJNE1Tr8Rek=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1758792778;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=PktsIKsXT7+WofBjDIwf6iQfwyP9CFogd6p16sia/gQ=;
+	b=wes68xN3HKt4ysa7pijHIcKrJPMnh189kIxorhTj28QtII11L2cPWpE76KIgHVJg5tCczJ
+	K0NHosrQJlpiOJCA==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 015FE13869;
+	Thu, 25 Sep 2025 09:32:56 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id 8MShOUgM1WjnWwAAD6G6ig
+	(envelope-from <svarbanov@suse.de>); Thu, 25 Sep 2025 09:32:56 +0000
+Message-ID: <3d2252ef-92a2-4717-a472-3e5b275419ce@suse.de>
+Date: Thu, 25 Sep 2025 12:32:54 +0300
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2 01/29] ACPI / PPTT: Add a helper to fill a cpumask from
+ a processor container
+To: James Morse <james.morse@arm.com>, linux-kernel@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org
+Cc: D Scott Phillips OS <scott@os.amperecomputing.com>,
+ carl@os.amperecomputing.com, lcherian@marvell.com,
+ bobo.shaobowang@huawei.com, tan.shaopeng@fujitsu.com,
+ baolin.wang@linux.alibaba.com, Jamie Iles <quic_jiles@quicinc.com>,
+ Xin Hao <xhao@linux.alibaba.com>, peternewman@google.com,
+ dfustini@baylibre.com, amitsinght@marvell.com,
+ David Hildenbrand <david@redhat.com>, Dave Martin <dave.martin@arm.com>,
+ Koba Ko <kobak@nvidia.com>, Shanker Donthineni <sdonthineni@nvidia.com>,
+ fenghuay@nvidia.com, baisheng.gao@unisoc.com,
+ Jonathan Cameron <jonathan.cameron@huawei.com>, Rob Herring
+ <robh@kernel.org>, Rohit Mathew <rohit.mathew@arm.com>,
+ Rafael Wysocki <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+ Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo
+ <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@arm.com>,
+ Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ Danilo Krummrich <dakr@kernel.org>
+References: <20250910204309.20751-1-james.morse@arm.com>
+ <20250910204309.20751-2-james.morse@arm.com>
+Content-Language: en-US
+From: Stanimir Varbanov <svarbanov@suse.de>
+In-Reply-To: <20250910204309.20751-2-james.morse@arm.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-Spamd-Result: default: False [-4.30 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	NEURAL_HAM_SHORT(-0.20)[-0.997];
+	MIME_GOOD(-0.10)[text/plain];
+	ARC_NA(0.00)[];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	RCVD_TLS_ALL(0.00)[];
+	RCPT_COUNT_TWELVE(0.00)[33];
+	MIME_TRACE(0.00)[0:+];
+	TO_DN_SOME(0.00)[];
+	FUZZY_RATELIMITED(0.00)[rspamd.com];
+	MID_RHS_MATCH_FROM(0.00)[];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	FROM_HAS_DN(0.00)[];
+	R_RATELIMIT(0.00)[to_ip_from(RLj7mp877dpkcx5p1r49fdbjkp)];
+	FROM_EQ_ENVFROM(0.00)[];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	RCVD_COUNT_TWO(0.00)[2];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo]
+X-Spam-Flag: NO
+X-Spam-Level: 
+X-Spam-Score: -4.30
 
-Hello,
+Hi James,
 
-after a longer time not using Zoom, I was asked to have a Zoom meeting
-with some colleague and recognized, my mic isn't working (I'm using
-Gentoo).
+On 9/10/25 11:42 PM, James Morse wrote:
+> The ACPI MPAM table uses the UID of a processor container specified in
+> the PPTT to indicate the subset of CPUs and cache topology that can
+> access each MPAM System Component (MSC).
+> 
+> This information is not directly useful to the kernel. The equivalent
+> cpumask is needed instead.
+> 
+> Add a helper to find the processor container by its id, then walk
+> the possible CPUs to fill a cpumask with the CPUs that have this
+> processor container as a parent.
+> 
+> CC: Dave Martin <dave.martin@arm.com>
+> Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
+> Signed-off-by: James Morse <james.morse@arm.com>
+> ---
+> Changes since v1:
+>  * Replaced commit message with wording from Dave.
+>  * Fixed a stray plural.
+>  * Moved further down in the file to make use of get_pptt() helper.
+>  * Added a break to exit the loop early.
+> 
+> Changes since RFC:
+>  * Removed leaf_flag local variable from acpi_pptt_get_cpus_from_container()
+> 
+> Changes since RFC:
+>  * Dropped has_leaf_flag dodging of acpi_pptt_leaf_node()
+>  * Added missing : in kernel-doc
+>  * Made helper return void as this never actually returns an error.
+> ---
+>  drivers/acpi/pptt.c  | 83 ++++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/acpi.h |  3 ++
+>  2 files changed, 86 insertions(+)
+> 
 
-Chances are high, I'm doing something wrong with ALSA or PulseAudio.
-These things usually just worked and I cannot preclude that I did
-something wrong without noticing that I "killed" my mic.
-But during the pandemic, I had several Zoom meetings and no problems --
-with a recently replaced thinkpad, however.
+<snip>
 
-I'm always running some recent kernel built from Linus' development
-branch and now noticed these messages:
+> +
+> +/**
+> + * acpi_pptt_get_cpus_from_container() - Populate a cpumask with all CPUs in a
+> + *                                       processor container
+> + * @acpi_cpu_id:	The UID of the processor container.
+> + * @cpus:		The resulting CPU mask.
+> + *
+> + * Find the specified Processor Container, and fill @cpus with all the cpus
+> + * below it.
+> + *
+> + * Not all 'Processor' entries in the PPTT are either a CPU or a Processor
+> + * Container, they may exist purely to describe a Private resource. CPUs
+> + * have to be leaves, so a Processor Container is a non-leaf that has the
+> + * 'ACPI Processor ID valid' flag set.
+> + *
+> + * Return: 0 for a complete walk, or an error if the mask is incomplete.
 
-[    4.943230] thinkpad_acpi: disagrees about version of symbol snd_ctl_add
-[    4.943235] thinkpad_acpi: Unknown symbol snd_ctl_add (err -22)
-[    4.943243] thinkpad_acpi: disagrees about version of symbol snd_card_register
-[    4.943246] thinkpad_acpi: Unknown symbol snd_card_register (err -22)
-[    4.943249] thinkpad_acpi: disagrees about version of symbol snd_card_free
-[    4.943252] thinkpad_acpi: Unknown symbol snd_card_free (err -22)
-[    4.943310] thinkpad_acpi: disagrees about version of symbol snd_ctl_new1
-[    4.943313] thinkpad_acpi: Unknown symbol snd_ctl_new1 (err -22)
-[    4.943343] thinkpad_acpi: disagrees about version of symbol snd_card_new
-[    4.943345] thinkpad_acpi: Unknown symbol snd_card_new (err -22)
-[    4.943350] thinkpad_acpi: disagrees about version of symbol snd_ctl_boolean_mono_info
-[    4.943352] thinkpad_acpi: Unknown symbol snd_ctl_boolean_mono_info (err -22)
-[    4.943381] thinkpad_acpi: disagrees about version of symbol snd_ctl_notify
-[    4.943383] thinkpad_acpi: Unknown symbol snd_ctl_notify (err -22)
+Leftover, drop this.
 
-I'm still gathering information and trying to get more understanding but
-maybe someone could give me a hint where to look or to ask questions if
-I don't get any further.
+> + */
+> +void acpi_pptt_get_cpus_from_container(u32 acpi_cpu_id, cpumask_t *cpus)
+> +{
+> +	struct acpi_pptt_processor *cpu_node;
+> +	struct acpi_table_header *table_hdr;
+> +	struct acpi_subtable_header *entry;
 
-Thanks,
+<snip>
 
-Dirk
+regards,
+~Stan
+
