@@ -1,52 +1,52 @@
-Received: from CH1PR05CU001.outbound.protection.outlook.com (mail-northcentralusazon11010070.outbound.protection.outlook.com [52.101.193.70])
+Received: from BN1PR04CU002.outbound.protection.outlook.com (mail-eastus2azon11010050.outbound.protection.outlook.com [52.101.56.50])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D92DF3C01;
-	Thu, 25 Sep 2025 06:53:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.193.70
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB90542A82;
+	Thu, 25 Sep 2025 07:16:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.56.50
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758783231; cv=fail; b=W1XiYZ535kCyzd1j9zpMV5BCSh3+PMC19LX5g1SgndBbwcS57D3rssXiLIo8gGpz8ePJB+0I5FAblxP9jVP48yMnINk/Tzo8vRZ8ySNUfqj+HRnZKVO1JosC1c4h39S9wyXTGPQvcc90hbMyGmgPDWbe1Ef6Tm6sGxNbQkLpm6A=
+	t=1758784617; cv=fail; b=Y5Pakpk+39SawiYLlkAndauNp7g//Asl/5nFNoIs/sLKZRQd11A8GaAcHne4SddoezyOF5d2jIOlq/mrUazgtcJJ2ETspSiMyj3wJtUMeXuorFhyWceluPuu55unYI+H4p+hpuqWNsz/opSLedO6KJlAfB2zoWZZwaSn1LlKBlM=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758783231; c=relaxed/simple;
-	bh=WIJ4v+IHoS3VtAWRcUbB3NwcaYkwUP2/txWZeWp2eMM=;
+	s=arc-20240116; t=1758784617; c=relaxed/simple;
+	bh=QwUoO4qIZso/YB6AoqvZ1fTC2rpin6++JAgZYddZDxw=;
 	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=jHM9j85WrimYiSYKTnZR4cNLXybc1gaT8DCzLOdWRhZrs7GhF7NGpiIfm5xLiU7KGfaIGFgYYN8kZDWYTdLT4gvIhygwuDTgtgpe7jqVOcoA7E9FDw1KqiV9pEjSSh/Pbud1yGfYSzp2neSI9F6OFdqzyGXEueiglv4KQp4Lr04=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=bfMTQCxJ; arc=fail smtp.client-ip=52.101.193.70
+	 Content-Type:MIME-Version; b=eMg8e+W6k6muYkbSH1ZMXj/vzjwHhCjSGjfQDo9+Wh/vdlx1M4YwJTSV7NtExPXPnvfsfK6EO5TfMw+oNtBdiFby4x46Jg23C5zRpLO+Cur5L3T83pYJfYuHbMfDfInR4GiqQW8dv/UP5sCexzUKWQMo8mpZYZc+CozhJVlhSPE=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=mHcsbBRI; arc=fail smtp.client-ip=52.101.56.50
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="bfMTQCxJ"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="mHcsbBRI"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=rrNiFO8lhSpIfbJzwmA2ac/O3bhbqXKLg77SvLGIGJvI5rnITcvnLAPA0R32waKdML97AUEzEKOg8AgP/QYZP1/05KlS+0zCjiVK2AeirtidHCIaR/PCcorUe/VxkqyanRPhRymOPEHT/gyG+Z8ElvUnW1klR3Ys8Y/TzOxuXg99JOLJLaKjQhC5dsZLrsyqpOtZHjqfrHDvP7KdgqGls7ihtUbk8YhrfOlFsi2HudzADSpFRXGoDeKTpLuSgwjzDMTXs58DQ4i8gyngmAMh/o0sEiX6yiboxjKQMazfeSSuk/Im3DlTKJqHQ3WF2CfK0ddz3bBh4eROitAisEso7Q==
+ b=f/xWKHAtSTXvR3RAXxGGUurdRoxBsqLHbenPIq+cYc4dkxFRjdxWXRzHM2C8TFxJTldJDYt6stfPSH2/oIlwvaEb0mEjkPxiXVJUWSPcxuLaufmUcie6RBmaqGciIcrITef1M2RYWYmqPeqMLWsP3lQ5gvIv+4eAF0FqO4+5ccF1SfWDfGpelFVvxP01zKEM263BfQJ81vDJWeT8XOHt/OOX2EY3Q/EY9Wm7etSrk0Hc0Ik4yH33QyAuANzVEEzDMaggyyV3uEMgPjifdbIaZ6Jz1voIK3pCoKf+Uw2WNOR+0F+flBNxEKUTLcloCLvxFoO1Y1jNs6Wy6aQajQDswg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=9CMn0ScplneJtBj9Ey3tV34nDZEUE6m4hY0w7XvxKKc=;
- b=KwIU58AjCl+HqfmIbJ/lybrjtT41qJUKJ+12WAFNb4A9xQcGnEwe41QzTvBrJHzw3+yfn/TGkB6VHkVLQCUix7cmdn6gc1Un5kpy3hMFPD0mggCLSNkXbQ8gAYoxh8ReLu6EN/XfIF2NViha25QWN2qHo7QNNkYtvEF6zXZpBGRS95/5BMLhhm0PnoRMJ7T66siZ2G7YkAOzVl64r1zwMlNWbpte+KMMz3cfcitv5ckvug3zwTjx9yzDiWMjIHX5QydHZM736sOOeajNiOgxPdUgpYRfzmqDk/JMeyuT7Jm53UqWg1Ud63aY/MA5yeWzJh7ogKITOKtiqd7gFxVttg==
+ bh=aSaLSM41eP2s0RVJ6Ohkzv5VzKHvosjx/a3okk1pVBY=;
+ b=EpKFxSA//6F5HFDjzXsz5wJk9OUtlg2az9ybkt6GcR/c+x0A5N08tBA2SHMeHu+aolYJ70SE0NGIzzvQOrY7UkBqXi9s5GW/dQ9FhuW7x0tbZZwDOg7GSE8CHXQ6VfWnmyNBcWc6IFOcwl3U/0G2qvohTpME31AWhBFaEjG35MN+rvG4JB1PjUIF3RqxJ1YTxO0mGJhYiC//lBA43ve+oXTitoRt6lShcWRp74PGwYZkPDU0jAiffQbDWqZFRUScwdwEa5S/Qopqn35528kHqHpjiyHN3sxjyczSH245GO/fjskUCdC2wnrhXYr7MJmiMTUyFgWvQZcrh97dabInEw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
  dkim=pass header.d=nvidia.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=9CMn0ScplneJtBj9Ey3tV34nDZEUE6m4hY0w7XvxKKc=;
- b=bfMTQCxJaFDXgslygJFBssyfXkab80d7L1gygtVzP9cnleinhIjIwJKqDc30RAnwOcMSNwfySk1OuYbmyOfoVTMG/uRZll2Z4Y3gNkAWLjIKjOLFh+cQrs6bdfNfiLTy/o48t4e98IdVn/8NemYqhG2ZgwA/auE1rEfl/ciguzvNyFVXNZZ2TOYV25tRuAuGj86JOqULzqkUOWDHy3CqOPSHqLM3Kujob4wkLeU/DPlvdNyQXdp1sQPgfsSEGBbW/MxZuzBMBAmmb6C/OAFX8ol3uBbMn01ZhmX76jTeS1XL/RpZRmcY2BP0przJArLKkDckZCAL44YzHYxqIIuSgA==
+ bh=aSaLSM41eP2s0RVJ6Ohkzv5VzKHvosjx/a3okk1pVBY=;
+ b=mHcsbBRIxkA+Gz4cNbyj33N9yzPiw05rty3PrwGMoQGozVlARfp7EwpklQJCReaohDBtU1rittbn1gfggKIZR5UjWVbB2jJFx1tGexwJWFJSJ7MIOpyciLbeJ2223OXCyummk3mqHSVl4RCA8cOaQFLVqYh5B0CLaWwhx2yoqF55+T95CGK9k5nhT6idQRKWlRzGNJL5JgGNkcFiQjMoofxQlKa38TXW5r4KjFQ0fathhaYxOgHctphbqhOjPPeeUY0lgX+6N3fZyOV4HyDzAQ6W7BPYz8d+Oi+FOEviy7RZ88N0BM19xygF4r71UE3FmlnB6AMhH6u/4DR2hEGJEw==
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=nvidia.com;
 Received: from DM6PR12MB2667.namprd12.prod.outlook.com (2603:10b6:5:42::28) by
- PH7PR12MB6610.namprd12.prod.outlook.com (2603:10b6:510:212::22) with
+ LV3PR12MB9186.namprd12.prod.outlook.com (2603:10b6:408:197::16) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9160.9; Thu, 25 Sep
- 2025 06:53:45 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9137.23; Thu, 25 Sep
+ 2025 07:16:52 +0000
 Received: from DM6PR12MB2667.namprd12.prod.outlook.com
  ([fe80::bd88:b883:813d:54a2]) by DM6PR12MB2667.namprd12.prod.outlook.com
  ([fe80::bd88:b883:813d:54a2%6]) with mapi id 15.20.9137.015; Thu, 25 Sep 2025
- 06:53:45 +0000
-Message-ID: <3359b947-6adb-4d77-97e1-5abb0b9d2a4e@nvidia.com>
-Date: Wed, 24 Sep 2025 23:53:42 -0700
+ 07:16:52 +0000
+Message-ID: <1249c061-dde7-4966-9c8c-2fa958fad37b@nvidia.com>
+Date: Thu, 25 Sep 2025 00:16:48 -0700
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 20/29] arm_mpam: Allow configuration to be applied and
- restored during cpu online
+Subject: Re: [PATCH v2 17/29] arm_mpam: Extend reset logic to allow devices to
+ be reset any time
 To: James Morse <james.morse@arm.com>, linux-kernel@vger.kernel.org,
  linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org
 Cc: D Scott Phillips OS <scott@os.amperecomputing.com>,
@@ -66,14 +66,14 @@ Cc: D Scott Phillips OS <scott@os.amperecomputing.com>,
  Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
  Danilo Krummrich <dakr@kernel.org>
 References: <20250910204309.20751-1-james.morse@arm.com>
- <20250910204309.20751-21-james.morse@arm.com>
+ <20250910204309.20751-18-james.morse@arm.com>
 Content-Language: en-US
 From: Fenghua Yu <fenghuay@nvidia.com>
-In-Reply-To: <20250910204309.20751-21-james.morse@arm.com>
+In-Reply-To: <20250910204309.20751-18-james.morse@arm.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: BYAPR21CA0015.namprd21.prod.outlook.com
- (2603:10b6:a03:114::25) To DM6PR12MB2667.namprd12.prod.outlook.com
+X-ClientProxiedBy: PH8PR21CA0006.namprd21.prod.outlook.com
+ (2603:10b6:510:2ce::18) To DM6PR12MB2667.namprd12.prod.outlook.com
  (2603:10b6:5:42::28)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
@@ -82,338 +82,217 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DM6PR12MB2667:EE_|PH7PR12MB6610:EE_
-X-MS-Office365-Filtering-Correlation-Id: 108e8473-125d-43f3-4725-08ddfc00456d
+X-MS-TrafficTypeDiagnostic: DM6PR12MB2667:EE_|LV3PR12MB9186:EE_
+X-MS-Office365-Filtering-Correlation-Id: abf98fbd-acd9-4e5a-4120-08ddfc037f8e
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|366016|376014|7416014|7053199007;
+	BCL:0;ARA:13230040|1800799024|366016|7416014|376014|7053199007;
 X-Microsoft-Antispam-Message-Info:
-	=?utf-8?B?dy9PUEZoVlcyeENwN1JFY1k2Q2FRWSszUWtYbm5wM1lnRnMrS2tqWUU3bUN3?=
- =?utf-8?B?VW0rT3RMRWtjcStyMDdoampzdjU2Y1FpU1d2OXNLdXV2TEFOb042dHBmdE9v?=
- =?utf-8?B?WEd2TTFoQk5VOEFrZHJROWFaeEpnWnV5b0tzRW0vVXBaa2NneEZIdXovYTg4?=
- =?utf-8?B?UnZUOTVnNGM0VkNWdWFwYm9NbVpHa0s2Z3VGbUFTVEtQZzZncnp0Vi9SYis5?=
- =?utf-8?B?WjhqczRWNENxWEljZDlMbjZ2ekpuZXRBcjFSQ2Rwd2FnQUFmdFBZMkhlMDBy?=
- =?utf-8?B?OCs4RzVUUFBNbmFyNFR6eFNySHJqZ29IWUFONVo2Nml2M1FOQ0hrY2FJOFJR?=
- =?utf-8?B?RE5pWVNYajY0QndJL25reUpxNTFudUVoencvV1NSeVhNS09FVU9wcXJVRStw?=
- =?utf-8?B?MzU5UXJrMTNidXhjUlFDYWgzZG9TYUkxTnBXakxEUTVyRzErZE5zN3l5VVNY?=
- =?utf-8?B?Z2t6VEk2N01ObEo0bTR5bVlqcmRaOTNoWnZOMFhrU0kyd0tneFZsaE5Ecm9W?=
- =?utf-8?B?NldRQW1pQXlFSmYyRFZjdmpRdkVJcHFNbFdweDVBUXRCcE5xZEYxdGJOVE5w?=
- =?utf-8?B?bzMrbFRSTTRVUU10eVQ1bXh6TGZVdkdYWG5VenBqTlIxYTdVRkFtRFlYdlVN?=
- =?utf-8?B?L2lHekJVQ1ZUM2pjeWhONDNEeWxnb1o4YURiRmhTSG1Ud3Y5TG9aSFN6amNK?=
- =?utf-8?B?eUoxOGp4OWpVWmlBN2M0UnNZOVNmUkpGbUoxM1NpSHZJQXMwY24xaHFIeitK?=
- =?utf-8?B?Z3FQeHFYWXZaRkVmTGhuQUttWUFCbERRR0ZqbktncUFWcTZTRHJRU3JZMUlY?=
- =?utf-8?B?eWkxU2piZmNiU0ZiS2x0OUkwRzNaeGhMTjBucGFHSWxSRjk3VmpTUzEyZXox?=
- =?utf-8?B?U05TTnZYc2tZSnQvYTMxd0dDTUREWWJGNFdTWGFVQVZJSHFFNTFnZ2ovK2M4?=
- =?utf-8?B?V0tCclRzZmJwSnJGTTBZOVdJUnVUckdnTFNnRG1qNWVJRndlQjNsV0trZjNG?=
- =?utf-8?B?Wld5VkhMcWR1eUpmNGR4d3dRblBaOTE2dUZMSVMvLzhwNUwrWjlOaFQzeE9u?=
- =?utf-8?B?dWExSjlRcnBJb1JoTDZFQ0pWNXZMaUIvdXI1ODRsTFp1MjJDRW1KR0RnYlVS?=
- =?utf-8?B?czZ0UzN1WXNyQjFraVN0bTM4RXNNeWxaT3lCTmR6b3hvZjczb24rYUFuY3hn?=
- =?utf-8?B?Unh4R3VVelU0dk05U2VyVGxTajN2MjIvNzBjdUEyZ1BFYW01QjZQblZyUU5G?=
- =?utf-8?B?UC9Cb3dRV3hZVVdkNzI3YVNSQTBYbVZMS3VlMGczRFdWUVBCaTZ6TER0cW1v?=
- =?utf-8?B?b0RIRlhTQXh0NVJWZURvNThaZEV0MjNqeGxZT3loQ0Ria2pQRFdReUFKK1h3?=
- =?utf-8?B?M2JrZG4rSHpoT3hVZWp4YzJaNUllTDZsOGpoWlA4OXhCQWd1MVJxazkzaTRE?=
- =?utf-8?B?cmtmYlFCV1VESlVTU1dGS3ZMWmxBNW14UkpaTCsrMDRXVnBPM045Q0xONEY0?=
- =?utf-8?B?TFVFTnozY2NpMEsrd0R0MGtaL0RPN1VOZE5vUFhQZm0yWW9kTFNNaHlpUUFn?=
- =?utf-8?B?bUlhOEZCeHdEZm11SHltUU05OEd3VTNTUklROFVjaG5jdGJucGExT3J2cDlG?=
- =?utf-8?B?VUR3VWNRSG50YkprdkI5WXdvWUZsVXdXbkxkUlJhNHdRZ1dnempzYjhEMlNL?=
- =?utf-8?B?K0U1R2JpMmh0SCtWZHlreXhlT0pMZTRGTm90MTIydHVRQ1Q4cG9MOEtmNWdj?=
- =?utf-8?B?YTlYUE4rMThOa0pxMDlPOWszeldkdm5HOXBQbGtGVXA4MlRZbGRQTGdmVWpt?=
- =?utf-8?B?NEFrbFM1VXdIYTkyWFkyaDQyQ2RiNW0wRmpNRVo1QjlzR2FIUVpPeVhrZ0RB?=
- =?utf-8?B?VmxIZHU3YnpoWHVKamNYSjVPR2EvL1RhUGJBNnM0bjBtcEtmcm8xYkpSTGtH?=
- =?utf-8?Q?+HzHHlDVU9A=3D?=
+	=?utf-8?B?QXBSZWVSUjZwL2xuRkIxTzZ0U0ZhOElMbklpWWgyOGpYWTBkRkJPTFNuTHJh?=
+ =?utf-8?B?bWNkOW5aTDZscXVTb1cyWExld0ZxOC91NG1zSFFiZlFRRGNQNjZ4MFVoNlVi?=
+ =?utf-8?B?UWZjejJZc210Y1pqdDdBNFVwNFNkNGhhYzRxNkRzOGlsbVViYjdKRnVvWUxz?=
+ =?utf-8?B?eGtXYVEvSnFLd01EMUVzNCtJTDllZjk3ciswTzdzT2VzODBjMHpKNmo0eW14?=
+ =?utf-8?B?OXdNZ2dScThOSFExRUZvcmNJOTdXV2w3L3FnaFYzVXZQcW9Db2pDTVltOXBp?=
+ =?utf-8?B?L2JLQ2lGRDNIU1hXcDNJLzNFZEpSTG40RUl2MVlIWW1Bck1nd2xTbEI3MmJH?=
+ =?utf-8?B?ZVh5QWJvUUhaajZTeE40b3ViUDZkSVJTdTdZM2FKSjNYWndGL3lWS0xMbEJq?=
+ =?utf-8?B?czExRjIyL2JlOTdKcHRqV2VrTlA0UzN5OVhpYlE4WlVwb1hiMDErbWE4Z21v?=
+ =?utf-8?B?ekw1Y2dIMHp0VVlNRUZYMDhTOGhLa3RuejZ0ZGwwRnovZlRHVXlJb3JnNWRU?=
+ =?utf-8?B?N01LbUV4Y3lrY2RwYmtkV3NMSFlxb0pqTmRrdHo3WVBoRW1uSkpwNGgvVGhC?=
+ =?utf-8?B?dFdwTlZTVTlob3VXSWQzNDZKaFh6TlNIWGJKdVJISnFzZDNBMjlmSVhuNGQv?=
+ =?utf-8?B?dzdSUDBqUmxUL3ErdTVWUXFmNm04TUVWMm1EcHMva3JUMEs1VFdLYS9PQjJS?=
+ =?utf-8?B?UjF3NXZGdVM1YmxPMGxLR1hmNzM4cHBuSXB5WHRTY0VaOGR6TzBEWHRMd20z?=
+ =?utf-8?B?YTNnOGNWaG9NTDlIbm42THV4WEV0djZ3VisveWY2Y0h6MUcxZGg0QU95a1Bs?=
+ =?utf-8?B?Q1BBU3R5b0lyRU5XWkwrTGhhQy93a05uOFliVHM5OEVyWG4xVUhSOG1kV3d1?=
+ =?utf-8?B?OHA2cXU5ekFVakVjL0xCT2w4N1dXS3VQeWNqZUJuNzJQeHhxVXZMbWhOUUUx?=
+ =?utf-8?B?T010QU15NUxnWUc0SGVnVTdiL2poNytDRXBTSXdrOWI5YUcraW9pTDkxRWRj?=
+ =?utf-8?B?WFRoL3BpVkxQYzgxa2RZWUxqQkJBa05sMzJaY0F5dExEY1BXQ0NFc0U1TUJC?=
+ =?utf-8?B?NTFPMTltNjJyd2tSNmVwVEtjWWdhOFV2T2Y1ajZBNzAybzljZWNDSFlub1BJ?=
+ =?utf-8?B?NldBK3BVTjE5Y0xyRWdEdi82OEVGa3F5VmNZY2wxNlRGbTJObkIxc1gvK0xC?=
+ =?utf-8?B?Q2svajBsaDQwWDg1NnlTaWV6NjRmYy9QNXgzK2dPa2tmbTEzQjZ1ODVzWXRs?=
+ =?utf-8?B?THRjdWNHdkFxSy92WWxSRGJZNTEwbnJaRi94MzRxMjlna1lHN0lLM3Z5MUE4?=
+ =?utf-8?B?MW40RXBkUEUvZFhyYkExc1BqbUhtVG9mcDJKbERyVEdmVEV1Zmphc1JuTTRU?=
+ =?utf-8?B?UWlmQm1UdENNbHFxbWVJMlEzWDU0RFcxL2YwWGdBOFhkUmJ2Q1loUUc0S3c4?=
+ =?utf-8?B?MXkzK2JjTEtjempFMXAyRnBRWGVFUnhMVFRBRFo3bEEvZFI1N3ZsekpnMWRI?=
+ =?utf-8?B?d1lnVDdSNklHdFY4cG9aTFJVNmZDYUlpTDhheUNYR0VwMlZkaDNKblBoS2Zk?=
+ =?utf-8?B?aXNsVXpUOUUxV1lDNEs5OE5uclZsblNSbEdSckZsM2QzTHVTOWQ5Zk4zNzM3?=
+ =?utf-8?B?SHlCQkdQeGhuVkxMYjhMVGExL1dwVFJtY0VETDV1Q1R0VS9hWnlnVTFlb2Fj?=
+ =?utf-8?B?aWluOWVsR3JUcnRtV0REMlo2RzlWM3hORmIvdU41ZVkvUXlZZlF6YmY2RnpY?=
+ =?utf-8?B?cUZsZ0ZuUk43TjV3dGtrbTRvOFIrNjZwTk9kTUJWUmk0WkRSbUZScXlDcmxa?=
+ =?utf-8?B?RVNHalU3Y015YjdxcmxLUWpWVFNwTml2elFKS21sZlpLcVp5cjJmdjZ4QVVv?=
+ =?utf-8?B?SzE4dTBLMzVWWE1GbmJweEZOVlNSa05nUjlPanhvRDhaS3UzQnMyUmRmQXBZ?=
+ =?utf-8?Q?1Rsm2cGXr/g=3D?=
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM6PR12MB2667.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(376014)(7416014)(7053199007);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM6PR12MB2667.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(7416014)(376014)(7053199007);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?NkpaRUVhUDFENm9QWHliZjlqVW1iM2JtRC84NjdXZlFhajRVRVhNU0R0L1dk?=
- =?utf-8?B?dkF1VzJCZkJjRXBlUVBMbEtmVjRuVVoxTSsyV3hicEt5ZUF5M01JY0VNWHZr?=
- =?utf-8?B?bm1zcFk4Mk15MEdCcDYyMG1QaDA5WitPZTlFZGp1emplY0hFZkExOW1NcjMx?=
- =?utf-8?B?eVhaWUxaemM5UDByUVU2UnpCZ1liemFYVEMxWXltN1dBcVExclp4U2VRUUow?=
- =?utf-8?B?QXJnQkRHZEt1ZlRXTHBWWFlYRVduVFBTaWxLV0o5bzZKWkYwN3ltanZ0OWh4?=
- =?utf-8?B?MDR4OU5hd2ppcG1nSnVHS3NVSXdXWGdreDB5MytFWm40cnZaeENUNDNvK1FU?=
- =?utf-8?B?RTlFMnF2M2E0Y3EvR0RhTTUxcmxrV3Z3TDNRemZWQWNjQTdLMk1KclU3QjN2?=
- =?utf-8?B?NkZQTld1KzlFQ0J0dStHUWNiV0g1T1I1aC8xNXl2REZ1V0lEbW5oM0h6S1ZZ?=
- =?utf-8?B?VVErbklzelFKOUhaREFGbXFZRitEY3JLZWI4RHkrOFRFSWdyUklySTFIUVl0?=
- =?utf-8?B?TDhDNjlNbzdmazgvRUd0T2EzSXEyV25ZTEJ1a0xXK2ErRUtWNDAxZnhWQkd2?=
- =?utf-8?B?NjVSY3JqSzZLWjFFRW52VThCVC8rN2Nld0t2bGxWUGcyRFM0WnJmQW5yWVg0?=
- =?utf-8?B?a3JPbUtBVnY0TzJobUltZ2VSY25aUURpc0xGTk9OUWRuSWtvK28xMVFiQ3hC?=
- =?utf-8?B?ZzdGcitSOGJMbUp0Yno0TVVtWmZWRm5jdU9GRlZEN1BVMjNnUE1kVFdzVE9C?=
- =?utf-8?B?U0xNbE1RN3pUeDVCOTlyOTcrem90UEgwZThrOS9CYjVtVlRMMG5lM1h0L2pN?=
- =?utf-8?B?RS8xRGpGOFcwa3ZjN0FiSGs5UlBGZnR0WnRXVUlhcGhLVmRHa0l0U2x5Lzdl?=
- =?utf-8?B?ZUt2blNMUkZZSzN4QnVXOURNWjV6RjhLL2E5WGV1V3FlZjdzY29xSWU1MDNa?=
- =?utf-8?B?aHE0WForR21HR0pxOExmVXdkdjJXUWpKNWI2TUR4Q1J4d1pKQWE2aWJScllY?=
- =?utf-8?B?TnExYzJHdjRTY3NLNTc4TkJWQ1ZXR24rYnNxV0FvMVZLdXFIVXhlTm04b2Rr?=
- =?utf-8?B?T2NkTXdDVEYvTkZzaVZEWTg3QXI1dUgzOVdRKy83ZXp3ZURqS3V5cDRJUTBM?=
- =?utf-8?B?bVBHMDRQcXlGNzJqeHZ3bkViVE9nRGVHeWVzTm5vVWg5dmk4blNab0NSR1Vt?=
- =?utf-8?B?VFh1MVNTa29KeVM2MjYzR09vZzJ5NlBFUHE2UWVEdlArQ2xLbmt5UzU2aVph?=
- =?utf-8?B?WXlmNWZOTEJEY2VnQmxGQmU3TVhnY2oxc0VJdFRWZHNqbzJrZ2pKbGQydnZJ?=
- =?utf-8?B?dUY4MUFUTHZFUHJESmg2RytuaUwyQWQ3dHJUREFkM0VzelBnL0lmR1A4VzJu?=
- =?utf-8?B?V25FTkgwU1RkZXM1Z2p0OGxpUFJDNXgxS1UrcHVuanlUdEEzVU9wUk9DZlA1?=
- =?utf-8?B?dXVrVU56NCs0WmQ0RXdMZmZLd3Y4YmxDV3JKdWFZTFZaM2ZiRnorbWJrbW9O?=
- =?utf-8?B?Y0FISTlXVEJXKzFhZThDR0FKSWtBYnVUVTduSURwT2tRbElTSjJhd3hUUStI?=
- =?utf-8?B?VlpXQVY4VnVEemVTNGJ6Ynhlb3pVTTVNclFrOWFUWkg1TDVzbWY5bS9wUVFQ?=
- =?utf-8?B?SWlaWTVLbENpaWFOWXdOMlhxakxPN2pXUmxJUE1jdW9KUjJzQ0VZMjVFbDNm?=
- =?utf-8?B?M2gvSXZseFhGMXRqdzZUNVVZaTkwUG1XeFZUd0VtMDZDMnYxdWZmcVdIV1Nh?=
- =?utf-8?B?dG5XdHlYeHM2UisxU2FlNWdkQnhUQmtUZk5CUlNJN1pPZ3IrNU1rMXJoY0p4?=
- =?utf-8?B?UGhGc1Q0YjZ3UTNVMlpRaCt3L1hId2FxWEszYmRMRmVpVGxSVkNRMHNvZGVC?=
- =?utf-8?B?QjhWV0Z4MGFJYzdHZnB1UjZGdzl3Y3dvRFRxc1RHbTRCbHlocHNmSzBQN3VH?=
- =?utf-8?B?WDV2ZkY5Y251aGtuMEQxYnJuMzJ4WEY3UFBKV3o5dk1KQXg2WGFrZElITGht?=
- =?utf-8?B?T2ZZOUQxNy80bWNjSUpsOXhVNXVSSlhzeG9xaGliZERwd2FEdFJLcUZJSkN4?=
- =?utf-8?B?MzhFY2h0R2R1QlJ5UEhNM1A4RkJYeUVtWkc1c2VuY2RhSWNwbmRmVEc5eDNi?=
- =?utf-8?Q?/CBDWhjjuh50gJyRZxh77LnM6?=
+	=?utf-8?B?VXdibkI1WEdkb3hzOThFbWZQSVZCZHhIcUltb2ZDN1JCK0xrNUNIckE3Ri9V?=
+ =?utf-8?B?K2k4MEhMTlNSZG5Xa0tXVkEzeGI4MlhPczZVRkN0ZnZVMVF5N3QzbnQvSXFv?=
+ =?utf-8?B?Q2UrSE1QTVdTWjlTUy8rNmhrbWsxYWUxcjRHNmNZdmVTREFsbk93V2R2d2VE?=
+ =?utf-8?B?eWh6TVlGTTNoYkVha2ZaVndlckdWKzNOMlBrWW42UE5zUTJhQ2hXcnhoelQ2?=
+ =?utf-8?B?aStQRi9jbjQ2c0dDc3ZiRWJ3VkpBOTBNMm44cGlrMWoyNWo4SG8zSVBNdjl4?=
+ =?utf-8?B?ZHc5cnRGZ1FoeU5STzlHOEYwaTNrTU1KOW52YlE5WGltL1FGcTVoSHk3M3Bs?=
+ =?utf-8?B?MjhNdUVERysvS1hOL1dxRGk1dU52dUNOV1hjZnFZTEVFRk1OTmNiVHhIaC9J?=
+ =?utf-8?B?Z3IrODVQeWJBU3pJa3ZwdWplS2lWc2NLNG9ITjJrc0IwTFl1WjlwSTZQZ25u?=
+ =?utf-8?B?TjNqYlU3QURyM3FIOVVJUWN3TjBCb3Z4YlBQNU9KWDFDeDdYL3I4cTk1V2Vj?=
+ =?utf-8?B?UzZWWUFLcUhFVjVWcytuTVRlVGFWcHJubERuajJ1ajk5T0hqbENqcC9nRncr?=
+ =?utf-8?B?Q2JScS8yVTl1THNBbFloMTV3ZUhxNWZuQVcySytzZkpLendlc2dEdHpCTFdV?=
+ =?utf-8?B?Nkp6Njdad0V1T25NaThEOWRKYmsySHI0UVZOdlE4aVNlb0VEN2ZRK2FpZEJK?=
+ =?utf-8?B?YnpVaGRnN1V3bWpKeUtPd3dIY2tMQUM3RDRVd3J0cWk5MG85WUpreTR4RTRj?=
+ =?utf-8?B?WkZWVHVQdVlUZW5EY0RFREsrRGY5OEFYMTNoUGluWEZmd1UwYi9ZZFA4UUVQ?=
+ =?utf-8?B?NXdTTGJIcmNMem9JZVJLbSsvdnBMUlpwNFo0VjgzR3BHelAvdnNVdGx5R2pt?=
+ =?utf-8?B?RUtzTHZldW1PeHdhODRaMmNkL2RqeFJGb2FTQmE1a0NldThlMGJqT3RrR0tV?=
+ =?utf-8?B?R0hKMlRsTjl3NVFzd3AxVldsTDRHVUcxQ082WjdJaGV6bEFxSmJCNUJOQUVo?=
+ =?utf-8?B?K25zbmdQaXZHSnYxOS90dFZ1YlNidGlocGlFdkpIeTVMQmRYRWl3WnlvL2dl?=
+ =?utf-8?B?a0phTWFhNGkvenZFWmpGdWJiV0NCSWROaUQyaEdqbHVlNGl0dlhaUUpHdGVH?=
+ =?utf-8?B?Uy9raGFLMjJDd29XSXpGTktlQTZrenJyVW5QY3p1TkZINDM1U2M0cGl5M2E5?=
+ =?utf-8?B?QnNwK3o1dU9qaGEwQ2VJWkVIRnJNdE5zaW9qb1VUYzNZaWF3N2czYmcwL25a?=
+ =?utf-8?B?ak1JYnR1MDllNTBsb3RsSjd0S2VBSnVleC83YzlNT0hZc3hMa0ovTkVSSHI3?=
+ =?utf-8?B?MzFMR0xSODd3bFUvamxObGQ3OS9yd0VCb0VybGE2bzJoOGttaEtiZ3YzRnZu?=
+ =?utf-8?B?SUo4R1FsMzBPRDZvWERSUnhTSk5wRTdnQzkyZ2MxNGhOQ2hSelRDbnJFZFIv?=
+ =?utf-8?B?cmZQK2I2aVJxRDJRdWZXVlVRV3dQVXZ2ck9ZWEREdk9ZOGtOK3Uxd0hEMEJo?=
+ =?utf-8?B?OEwzRDhrOFRTRnpJTVhVVHlVSG52OEpwWjh5bDhHRDExQ1RXaURnNytTSVFG?=
+ =?utf-8?B?d2FMSW5IQlIvenp4ZGpRb290c2ZlRkU0cElvT1ZUV1JzZnFaS0t0YnVqR1FF?=
+ =?utf-8?B?dUxqcHZ5ZmRybnJoa21Sc2ovMGhFRkFxNUFxTVBxTHAyZXVlb1hQM0JvY0ht?=
+ =?utf-8?B?K2xHdzllVCtVTUtRRE51bnloN0J0NUN2b0hYOU9UR1FVZnY3OHBVdlVHamVC?=
+ =?utf-8?B?M1VvN2tnekVZSzlKZmpvajdWT3FsU0NidlJSOFpLd1BrZWVEY0llYjQ5MnVB?=
+ =?utf-8?B?Rjd2bDJVbExyOXVaV1JWek41R1U0R2d0Tzh0eUxnQllJenZBdjRBTXZOcTMv?=
+ =?utf-8?B?QWxSU2wxRHY5VkI5ZGRQWnFUMnF6Zmpsb2tFeEtSblVFaVBsZEVLajRKRlFH?=
+ =?utf-8?B?UEgyWkVic1ZUblRWanljS3ZNMlRjb09ZVmtVZ3lKYndGSzNLeExlR1haVU01?=
+ =?utf-8?B?djVZaTlnYVg2SVNxUmQ5dzlqSmNTSmRwUFphSkF2QXBqRnpBQldRUjI0cmZt?=
+ =?utf-8?B?eTdHNTMzU1dicDdLbFJLUzBGcWpqOS9LS25QWEp5YUFGOVo1MGxhYy9OT0Jn?=
+ =?utf-8?Q?kW+vDBarYDhzZ3Rmq3jelnWO3?=
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 108e8473-125d-43f3-4725-08ddfc00456d
+X-MS-Exchange-CrossTenant-Network-Message-Id: abf98fbd-acd9-4e5a-4120-08ddfc037f8e
 X-MS-Exchange-CrossTenant-AuthSource: DM6PR12MB2667.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Sep 2025 06:53:45.3156
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Sep 2025 07:16:52.1628
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: GhAjdTyW78DuKdDFzH6TDvT/kxQlI2YOelQ+chdKfi5aVNCZRKcSqLc8kQCgUd9yHZdB2vpLN5iA4JpW+AwYIw==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR12MB6610
+X-MS-Exchange-CrossTenant-UserPrincipalName: OQUXi6O1R5vYFIIT76e+3Tq+xHOvTTYQ5m/1A/uHcpG0vm1SkqFIi7HMyvy3+XnzfJfYTXI7s4qVyL5PRaMx2A==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: LV3PR12MB9186
 
 Hi, James,
 
-On 9/10/25 13:43, James Morse wrote:
-> When CPUs come online the MSC's original configuration should be restored.
+On 9/10/25 13:42, James Morse wrote:
+> cpuhp callbacks aren't the only time the MSC configuration may need to
+> be reset. Resctrl has an API call to reset a class.
+> If an MPAM error interrupt arrives it indicates the driver has
+> misprogrammed an MSC. The safest thing to do is reset all the MSCs
+> and disable MPAM.
 >
-> Add struct mpam_config to hold the configuration. This has a bitmap of
-> features that were modified. Once the maximum partid is known, allocate
-> a configuration array for each component, and reprogram each RIS
-> configuration from this.
+> Add a helper to reset RIS via their class. Call this from mpam_disable(),
+> which can be scheduled from the error interrupt handler.
 >
-> CC: Dave Martin <Dave.Martin@arm.com>
 > Signed-off-by: James Morse <james.morse@arm.com>
 > ---
 > Changes since v1:
->   * Switched entry_rcu to srcu versions.
->
-> Changes since RFC:
->   * Added a comment about the ordering around max_partid.
->   * Allocate configurations after interrupts are registered to reduce churn.
->   * Added mpam_assert_partid_sizes_fixed();
->   * Make reset use an all-ones instead of zero config.
+>   * more complete use of _srcu helpers.
+>   * Use guard macro for srcu.
+>   * Dropped a might_sleep() - something else will bark.
 > ---
->   drivers/resctrl/mpam_devices.c  | 269 +++++++++++++++++++++++++++++---
->   drivers/resctrl/mpam_internal.h |  29 +++-
->   2 files changed, 271 insertions(+), 27 deletions(-)
+>   drivers/resctrl/mpam_devices.c | 56 ++++++++++++++++++++++++++++++++--
+>   1 file changed, 54 insertions(+), 2 deletions(-)
 >
 > diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_devices.c
-> index ec1db5f8b05c..7fd149109c75 100644
+> index e7faf453b5d7..a9d3c4b09976 100644
 > --- a/drivers/resctrl/mpam_devices.c
 > +++ b/drivers/resctrl/mpam_devices.c
-> @@ -114,6 +114,16 @@ static LLIST_HEAD(mpam_garbage);
->   /* When mpam is disabled, the printed reason to aid debugging */
->   static char *mpam_disable_reason;
->   
-> +/*
-> + * Once mpam is enabled, new requestors cannot further reduce the available
-> + * partid. Assert that the size is fixed, and new requestors will be turned
-> + * away.
-> + */
-> +static void mpam_assert_partid_sizes_fixed(void)
-> +{
-> +	WARN_ON_ONCE(!partid_max_published);
-> +}
-> +
->   static u32 __mpam_read_reg(struct mpam_msc *msc, u16 reg)
->   {
->   	WARN_ON_ONCE(!cpumask_test_cpu(smp_processor_id(), &msc->accessibility));
-> @@ -363,12 +373,16 @@ static void mpam_class_destroy(struct mpam_class *class)
->   	add_to_garbage(class);
->   }
->   
-> +static void __destroy_component_cfg(struct mpam_component *comp);
-> +
->   static void mpam_comp_destroy(struct mpam_component *comp)
->   {
->   	struct mpam_class *class = comp->class;
->   
->   	lockdep_assert_held(&mpam_list_lock);
->   
-> +	__destroy_component_cfg(comp);
-> +
->   	list_del_rcu(&comp->class_list);
->   	add_to_garbage(comp);
->   
-> @@ -833,50 +847,105 @@ static void mpam_reset_msc_bitmap(struct mpam_msc *msc, u16 reg, u16 wd)
->   	__mpam_write_reg(msc, reg, bm);
->   }
->   
-> -static void mpam_reset_ris_partid(struct mpam_msc_ris *ris, u16 partid)
-> +/* Called via IPI. Call while holding an SRCU reference */
-> +static void mpam_reprogram_ris_partid(struct mpam_msc_ris *ris, u16 partid,
-> +				      struct mpam_config *cfg)
->   {
->   	struct mpam_msc *msc = ris->vmsc->msc;
->   	struct mpam_props *rprops = &ris->props;
+> @@ -842,8 +842,6 @@ static int mpam_reset_ris(void *arg)
+>   	u16 partid, partid_max;
+>   	struct mpam_msc_ris *ris = arg;
 >   
 > -	mpam_assert_srcu_read_lock_held();
 > -
->   	mutex_lock(&msc->part_sel_lock);
->   	__mpam_part_sel(ris->ris_idx, partid, msc);
->   
-> -	if (mpam_has_feature(mpam_feat_cpor_part, rprops))
-> -		mpam_reset_msc_bitmap(msc, MPAMCFG_CPBM, rprops->cpbm_wd);
-> +	if (mpam_has_feature(mpam_feat_cpor_part, rprops) &&
-> +	    mpam_has_feature(mpam_feat_cpor_part, cfg)) {
-> +		if (cfg->reset_cpbm)
-> +			mpam_reset_msc_bitmap(msc, MPAMCFG_CPBM,
-> +					      rprops->cpbm_wd);
-> +		else
-> +			mpam_write_partsel_reg(msc, CPBM, cfg->cpbm);
-> +	}
->   
-> -	if (mpam_has_feature(mpam_feat_mbw_part, rprops))
-> -		mpam_reset_msc_bitmap(msc, MPAMCFG_MBW_PBM, rprops->mbw_pbm_bits);
-> +	if (mpam_has_feature(mpam_feat_mbw_part, rprops) &&
-> +	    mpam_has_feature(mpam_feat_mbw_part, cfg)) {
-> +		if (cfg->reset_mbw_pbm)
-> +			mpam_reset_msc_bitmap(msc, MPAMCFG_MBW_PBM,
-> +					      rprops->mbw_pbm_bits);
-> +		else
-> +			mpam_write_partsel_reg(msc, MBW_PBM, cfg->mbw_pbm);
-> +	}
->   
-> -	if (mpam_has_feature(mpam_feat_mbw_min, rprops))
-> +	if (mpam_has_feature(mpam_feat_mbw_min, rprops) &&
-> +	    mpam_has_feature(mpam_feat_mbw_min, cfg))
->   		mpam_write_partsel_reg(msc, MBW_MIN, 0);
->   
-> -	if (mpam_has_feature(mpam_feat_mbw_max, rprops))
-> -		mpam_write_partsel_reg(msc, MBW_MAX, MPAMCFG_MBW_MAX_MAX);
-> +	if (mpam_has_feature(mpam_feat_mbw_max, rprops) &&
-> +	    mpam_has_feature(mpam_feat_mbw_max, cfg))
-> +		mpam_write_partsel_reg(msc, MBW_MAX, cfg->mbw_max);
->   
-> -	if (mpam_has_feature(mpam_feat_mbw_prop, rprops))
-> +	if (mpam_has_feature(mpam_feat_mbw_prop, rprops) &&
-> +	    mpam_has_feature(mpam_feat_mbw_prop, cfg))
->   		mpam_write_partsel_reg(msc, MBW_PROP, 0);
->   	mutex_unlock(&msc->part_sel_lock);
->   }
->   
-> +struct reprogram_ris {
-> +	struct mpam_msc_ris *ris;
-> +	struct mpam_config *cfg;
-> +};
-> +
-> +/* Call with MSC lock held */
-> +static int mpam_reprogram_ris(void *_arg)
-> +{
-> +	u16 partid, partid_max;
-> +	struct reprogram_ris *arg = _arg;
-> +	struct mpam_msc_ris *ris = arg->ris;
-> +	struct mpam_config *cfg = arg->cfg;
-> +
-> +	if (ris->in_reset_state)
-> +		return 0;
-> +
-> +	spin_lock(&partid_max_lock);
-> +	partid_max = mpam_partid_max;
-> +	spin_unlock(&partid_max_lock);
-> +	for (partid = 0; partid <= partid_max; partid++)
-> +		mpam_reprogram_ris_partid(ris, partid, cfg);
-> +
-> +	return 0;
-> +}
-> +
-> +static void mpam_init_reset_cfg(struct mpam_config *reset_cfg)
-> +{
-> +	memset(reset_cfg, 0, sizeof(*reset_cfg));
-> +
-> +	reset_cfg->features = ~0;
-> +	reset_cfg->cpbm = ~0;
-> +	reset_cfg->mbw_pbm = ~0;
-> +	reset_cfg->mbw_max = MPAMCFG_MBW_MAX_MAX;
-> +
-> +	reset_cfg->reset_cpbm = true;
-> +	reset_cfg->reset_mbw_pbm = true;
-> +}
-> +
->   /*
->    * Called via smp_call_on_cpu() to prevent migration, while still being
->    * pre-emptible.
->    */
->   static int mpam_reset_ris(void *arg)
->   {
-> -	u16 partid, partid_max;
-> +	struct mpam_config reset_cfg;
->   	struct mpam_msc_ris *ris = arg;
-> +	struct reprogram_ris reprogram_arg;
->   
 >   	if (ris->in_reset_state)
 >   		return 0;
 >   
-> -	spin_lock(&partid_max_lock);
-> -	partid_max = mpam_partid_max;
-> -	spin_unlock(&partid_max_lock);
-> -	for (partid = 0; partid < partid_max; partid++)
-> -		mpam_reset_ris_partid(ris, partid);
-> +	mpam_init_reset_cfg(&reset_cfg);
-> +
-> +	reprogram_arg.ris = ris;
-> +	reprogram_arg.cfg = &reset_cfg;
-> +
-> +	mpam_reprogram_ris(&reprogram_arg);
->   
->   	return 0;
->   }
-> @@ -922,6 +991,40 @@ static void mpam_reset_msc(struct mpam_msc *msc, bool online)
->   	}
+> @@ -1340,8 +1338,56 @@ static void mpam_enable_once(void)
+>   	       mpam_partid_max + 1, mpam_pmg_max + 1);
 >   }
 >   
-> +static void mpam_reprogram_msc(struct mpam_msc *msc)
+> +static void mpam_reset_component_locked(struct mpam_component *comp)
 > +{
-> +	u16 partid;
-> +	bool reset;
-> +	struct mpam_config *cfg;
+> +	struct mpam_msc *msc;
+> +	struct mpam_vmsc *vmsc;
 > +	struct mpam_msc_ris *ris;
 > +
-> +	/*
-> +	 * No lock for mpam_partid_max as partid_max_published has been
-> +	 * set by mpam_enabled(), so the values can no longer change.
-> +	 */
-> +	mpam_assert_partid_sizes_fixed();
+> +	lockdep_assert_cpus_held();
 > +
 > +	guard(srcu)(&mpam_srcu);
-mpam_srcu is locked in caller mpam_cpu_online(). It's unnecessary to 
-call guard(srcu)(&mpam_srcu) here again for simpler logic and less overhead.
-> +	list_for_each_entry_srcu(ris, &msc->ris, msc_list,
+> +	
+
+Nested locks on mpam_srcu in this call chain:
+
+mpam_disable() -> mpam_reset_class() -> mpam_reset_class_locked() -> 
+mpam_component_locked()
+
+There are redundant locks on mpam_srcu in mpam_disabled(), 
+mpam_reset_class_locked(), and mpam_reset_component_locked().
+
+It's better to guard mpam_srcu only in the top function mpam_disable() 
+for simpler logic and lower overhead.
+
+> list_for_each_entry_srcu(vmsc, &comp->vmsc, comp_list,
 > +				 srcu_read_lock_held(&mpam_srcu)) {
-> +		if (!mpam_is_enabled() && !ris->in_reset_state) {
-> +			mpam_touch_msc(msc, &mpam_reset_ris, ris);
+> +		msc = vmsc->msc;
+> +
+> +		list_for_each_entry_srcu(ris, &vmsc->ris, vmsc_list,
+> +					 srcu_read_lock_held(&mpam_srcu)) {
+> +			if (!ris->in_reset_state)
+> +				mpam_touch_msc(msc, mpam_reset_ris, ris);
 > +			ris->in_reset_state = true;
-> +			continue;
 > +		}
-> +
-> +		reset = true;
-> +		for (partid = 0; partid <= mpam_partid_max; partid++) {
-> +			cfg = &ris->vmsc->comp->cfg[partid];
-> +			if (cfg->features)
-> +				reset = false;
-> +
-> +			mpam_reprogram_ris_partid(ris, partid, cfg);
-> +		}
-> +		ris->in_reset_state = reset;
 > +	}
 > +}
 > +
->   static void _enable_percpu_irq(void *_irq)
+> +static void mpam_reset_class_locked(struct mpam_class *class)
+> +{
+> +	struct mpam_component *comp;
+> +
+> +	lockdep_assert_cpus_held();
+> +
+> +	guard(srcu)(&mpam_srcu);
+> +	list_for_each_entry_srcu(comp, &class->components, class_list,
+> +				 srcu_read_lock_held(&mpam_srcu))
+> +		mpam_reset_component_locked(comp);
+> +}
+> +
+> +static void mpam_reset_class(struct mpam_class *class)
+> +{
+> +	cpus_read_lock();
+> +	mpam_reset_class_locked(class);
+> +	cpus_read_unlock();
+> +}
+> +
+> +/*
+> + * Called in response to an error IRQ.
+> + * All of MPAMs errors indicate a software bug, restore any modified
+> + * controls to their reset values.
+> + */
+>   void mpam_disable(struct work_struct *ignored)
 >   {
->   	int *irq = _irq;
-> @@ -944,7 +1047,7 @@ static int mpam_cpu_online(unsigned int cpu)
->   			_enable_percpu_irq(&msc->reenable_error_ppi);
+> +	int idx;
+> +	struct mpam_class *class;
+>   	struct mpam_msc *msc, *tmp;
 >   
->   		if (atomic_fetch_inc(&msc->online_refs) == 0)
-> -			mpam_reset_msc(msc, true);
-> +			mpam_reprogram_msc(msc);
+>   	mutex_lock(&mpam_cpuhp_state_lock);
+> @@ -1351,6 +1397,12 @@ void mpam_disable(struct work_struct *ignored)
 >   	}
->   	srcu_read_unlock(&mpam_srcu, idx);
-
-[SNIP]
+>   	mutex_unlock(&mpam_cpuhp_state_lock);
+>   
+> +	idx = srcu_read_lock(&mpam_srcu);
+It's better to change to guard(srcu)(&mpam_srcu);
+> +	list_for_each_entry_srcu(class, &mpam_classes, classes_list,
+> +				 srcu_read_lock_held(&mpam_srcu))
+> +		mpam_reset_class(class);
+> +	srcu_read_unlock(&mpam_srcu, idx);
+> +
+>   	mutex_lock(&mpam_list_lock);
+>   	list_for_each_entry_safe(msc, tmp, &mpam_all_msc, all_msc_list)
+>   		mpam_msc_destroy(msc);
 
 Thanks.
 
