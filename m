@@ -1,80 +1,104 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9A662F3C18;
-	Fri, 26 Sep 2025 10:32:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 48CBB2F2913;
+	Fri, 26 Sep 2025 10:38:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758882751; cv=none; b=SolSXLUZ1vcoDBWDXknKBJkfwhuEDQmlcCW84eqfjFO/G72e6nI1UddifP/h9vuodvP3+VxbToIEXZPTTV7Euc7ZuHxw4uKFDOVvzEYln4drEn4kaJNGvMTexSDb+J/Rn4bR5xpAx1DCiTrXA0bok9IbGI6nBMdNY8SpGxfGAtc=
+	t=1758883118; cv=none; b=NqxJHXJbbWTapEFGA39mPMPL84q3X6nhGN1rHU7NHVy3UME7oORdtDeoKgmAKEhRpHPC/b7fovP2HnTtB/CzS2oBzNLXVqRVcQgxsRWBicgZn6XuStk3AijrthiN5lw7g0fLUaYAohRXShF77KDsq4BAuPmnMK3LBDlokFOWR6s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758882751; c=relaxed/simple;
-	bh=Ept39HrAm04+87S86oqAzxPLU77FXrTemG5mmG5WCSw=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=B2npR7r+zP/e6rBvCTr8q1ciqbGjOnxk6HLkH46n3BpIdC1c4F59hMVxM7h8L/HD6gjnxt6iG2MXiXFJE4CsoqKi9cuoZfEDnDWLK134f3xHEfnG9my72AYZvxdiLrQnk3kwVT+O3UrWdS9vZFi/awb1g8kaJYSVorgHH7CfJOs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=oJ4CjbLm; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="oJ4CjbLm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA91BC4CEF7;
-	Fri, 26 Sep 2025 10:32:28 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1758882751;
-	bh=Ept39HrAm04+87S86oqAzxPLU77FXrTemG5mmG5WCSw=;
-	h=From:To:Cc:Subject:Date:From;
-	b=oJ4CjbLmvPzUEP8tpFYgbnae+rhdErkvudQrAzdryMjqATv+wBi/aXwHSBXRF1t4L
-	 6pSJ6AhxBF7if5sSTLrVB7E3oSg1vq+Nwsa9FA0uLpf+z03rnYdweO7eUKTIcsEMtx
-	 r29ui0Wae/k2OSRJ1PIHHUOVA6mHi3YMnrKQe/UlwMElyc53iQE827H52tnbtPHtb2
-	 kj+AspwcT01e/uA4dEgA7UViMmUHSPgsAgYqRO6aF/KsFf1MbKF2XKBwP4MQKK24wl
-	 CJ0HTn3u8iglM7v7di4xI6qGwvInhozv2XnB36CAp13JOcD1RGQQxaTvVeOr7jVuDQ
-	 HWw9dQYrGg7OA==
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-To: Linux PM <linux-pm@vger.kernel.org>
-Cc: Shawn Guo <shawnguo@kernel.org>, Qais Yousef <qyousef@layalina.io>,
- LKML <linux-kernel@vger.kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>,
- Pierre Gondois <pierre.gondois@arm.com>,
- Mario Limonciello <mario.limonciello@amd.com>,
- Linux ACPI <linux-acpi@vger.kernel.org>
-Subject: [PATCH v3 0/4] cpufreq: Fixes and cleanups related to CPUFREQ_ETERNAL
-Date: Fri, 26 Sep 2025 12:04:57 +0200
-Message-ID: <5069803.31r3eYUQgx@rafael.j.wysocki>
-Organization: Linux Kernel Development
+	s=arc-20240116; t=1758883118; c=relaxed/simple;
+	bh=YDS4s5RkJHdkLKbCqClrPdikIVhL3WpPUyoR1o2gSvo=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Lm+E6GF7HzKXxdTv0YHmKmR//6+AFYAvvxjGubc4Bok0ZqeuCFYMddQtO8pzyJTNVZpR1iuLcYIdn+0NND/I1g9dM0iRT+23s89qC+DiR3GKH1s3bvsmbw2r5Ixre03gYO8ApjsoCO42ZuGvOFUwb99dCPs1tpKCahuknTe+Dpo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 3C746168F;
+	Fri, 26 Sep 2025 03:38:27 -0700 (PDT)
+Received: from raptor (usa-sjc-mx-foss1.foss.arm.com [172.31.20.19])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id F14293F5A1;
+	Fri, 26 Sep 2025 03:38:32 -0700 (PDT)
+Date: Fri, 26 Sep 2025 11:38:30 +0100
+From: Alexandru Elisei <alexandru.elisei@arm.com>
+To: Marc Zyngier <maz@kernel.org>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>,
+	Mark Rutland <mark.rutland@arm.com>, Will Deacon <will@kernel.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Rob Herring <robh@kernel.org>,
+	Saravana Kannan <saravanak@google.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Sven Peter <sven@kernel.org>, Janne Grunau <j@jannau.net>,
+	Suzuki K Poulose <suzuki.poulose@arm.com>,
+	James Clark <james.clark@linaro.org>,
+	Jonathan Cameron <jonathan.cameron@huawei.com>
+Subject: Re: [PATCH v3 00/26] genirq: Add support for percpu_devid IRQ
+ affinity
+Message-ID: <aNZtJoFrOv8dHlkV@raptor>
+References: <20250922082833.2038905-1-maz@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250922082833.2038905-1-maz@kernel.org>
 
-Hi All,
+Hi,
 
-This is an update of
+Tested this on a rockpro64 - 4xA53 + 2xA72.
 
-https://lore.kernel.org/linux-pm/8605612.T7Z3S40VBb@rafael.j.wysocki/
+On kernel v6.17-rc5, using perf to profile iperf3 for 10 seconds, the top
+overhead symbol was _raw_spinlock_irq_restore() and the PMU wasn't using NMIs
+(checked by printing has_nmi after armpmu_request_irq()).
 
-The update is due because of some changes in the first patch (involving Rust)
-and in the second patch (function rename).  It is v3 because a v2 of the
-third patch was sent after the v1.
+With this series, same test, *irq_restore() overhead dropped to about 1% on the
+little core, below 1% on the big core, and the PMU was using NMIs.
 
-The original cover letter quoted below still applies:
+Thanks,
+Alex
 
- The first patch in this series is meant to address the failure discussed in
-
- https://lore.kernel.org/linux-pm/20250922125929.453444-1-shawnguo2@yeah.net/
-
- but in a different way than proposed by Shawn.
-
- The second one is a CPPC cpufreq driver fix preventing it from using an
- overly large transition delay in the cases when that delay cannot be
- obtained from the platform firmware.
-
- Patch [3/4] makes CPPC use a specific symbol instead of CPUFREQ_ETERNAL for
- signaling error conditions while attempting to retrieve a transition latency
- value from the platform firmware.
-
- The last patch removes CPUFREQ_ETERNAL (which has no users any more) from
- cpufreq, including all references to it in cpufreq documentation.
-
-Thanks!
-
-
-
+On Mon, Sep 22, 2025 at 09:28:07AM +0100, Marc Zyngier wrote:
+> This is the third version of this series, originally posted at [1],
+> which aims at allowing percpu_devid interrupt requests on the basis of
+> an affinity mask. See the original submission for the details of why
+> this is a desirable outcome.
+> 
+> From v2, we have some tidying up, thanks to Jonathan's review -- see
+> changelog for details.
+> 
+> FWIW, I've pushed a branch at [3].
+> 
+> * From v2 [2]:
+> 
+>   - Turned of_node_to_fwnode() usage to of_fwnode_handle() (Jonathan)
+> 
+>   - Added a patch to finally kill of_node_to_fwnode()
+> 
+>   - Tidied-up documentation, comments and formatting (Jonathan)
+> 
+>   - Collected ABs and Rbs, with thanks (Jonathan, Suzuki, Sven)
+> 
+> * From v1 [1]:
+> 
+>   - Fixed NMI handling by getting rid of the NMI-specific flow
+>     handler, which was pretty useless anyway (Will)
+> 
+>   - As a result, killed a metric buttload worth of GICv3 code
+> 
+>   - Moved irq_fwspec out of irq_fwspec_info, and passed it as a
+>     parameter to irq_get_fwspec_info(), renamed from irq_get_info(),
+>     and applied some generous sanitisation of the structure (Thomas)
+> 
+>   - Dropped the rather useless fwspec validity flag (Thomas)
+> 
+>   - Rejigged the PMU per-CPU handling to better deal with the DT/ACPI
+>     differences, and drop some now useless patches (Will)
+> 
+>   - Plenty of cosmetic rework (Raphael, Thomas)
+> 
+> [1] https://lore.kernel.org/r/20250908163127.2462948-1-maz@kernel.org
+> [2] https://lore.kernel.org/r/20250915085702.519996-1-maz@kernel.org
+> [3] git://git.kernel.org/pub/scm/linux/kernel/git/maz/arm-platforms.git irq/ppi-affinity
