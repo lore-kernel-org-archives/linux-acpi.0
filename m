@@ -1,222 +1,124 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lf1-f49.google.com (mail-lf1-f49.google.com [209.85.167.49])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0807E272814
-	for <linux-acpi@vger.kernel.org>; Fri, 26 Sep 2025 12:52:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 413412F60CA
+	for <linux-acpi@vger.kernel.org>; Fri, 26 Sep 2025 13:11:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758891149; cv=none; b=Tfqw1z2Lm05KDk/QHVrpNngFVcK/AHG+Eb4+QKqia+w1aT9+fZgt93AjDSQIzzy5sb7TyNTWdgbPpaIkZb/zuDM3bi25RhCuRIpErvmzKB3lAi8K8eUp0cAD+i99rmy7IUYD/RZHRk/lbHB9MIE+QzxezZYACynCMDiBwvYKXTQ=
+	t=1758892294; cv=none; b=mJWIuZh+X62ystPP3LO/9FiXE3TvXTA4xooGKaAYFe4k5b/mqBqdJgC56hSsraVHeW8B3DxqfjEhIYkWAmI9vm+gWFLIpbJE9JlTOrEyE/g/mt3Uw6hLANd7NE2LiQsY/4Ytl9ZU6uxSACTESE/MeiUDn6cwVDJKs4FRTcbNzec=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758891149; c=relaxed/simple;
-	bh=bgmghckL4Ny0c8O8U8NCksUJHOretkGWrQoDWo8CmCU=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=dOGrc4H1U4mJB984SjEI559sHuUWA2LTqiWJQWuwMEOKV1g/OMLMIZpwprbYJgXDsAc+JRlYhI0RYPXDtbiS3pqWNeePjPzDjZ5kU0/mWvSZY6/Xlv2Xq9SS7CXB7/Gy6vmHelAc4edOPodfkLYACvwikpAb6y9WXJT7mCQ79rY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=vHqj4+wR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758892294; c=relaxed/simple;
+	bh=fN1yQSZa9dGNYApiBN9DJ0yzGqYY3io2zaEeifTv+AY=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=oo20ruUDHxWr6IurYgbwXk4cs5yW+d49v6AVsEgx8h+OMv2A4wMqT8WJgDP90wXiJT73L3M0n585VkX0WEiqSnRhmRprhOg0kcIhb48lDWuyRbJnGPjMnCD8tsa8cspxQgRrSlefW3yy67ZeSbZPuyEY/A6fydS6N7daCvE7K60=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=fbfy3VJj; arc=none smtp.client-ip=209.85.167.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="vHqj4+wR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4EDCC113D0
-	for <linux-acpi@vger.kernel.org>; Fri, 26 Sep 2025 12:52:28 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1758891148;
-	bh=bgmghckL4Ny0c8O8U8NCksUJHOretkGWrQoDWo8CmCU=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=vHqj4+wRee6jMZl9gdXuxdOCbNcdfwxLIBJPN9qkSxXacaLbOaLoO6V1ditvke3M4
-	 E4jpL/WNPawAO4OHCE4yEb6sP8Kh6pWg4ahWQR/6RODVgcE9xpTyjkQCSTjoMKkKSB
-	 L/yEONl4GvSUNYayTbqSFw88HuXqTUAqP814loaQ8fHW+iREsqKMKyNrNsjffyblDX
-	 HRPaYSO/QzMJiapTKtCGuXUPyJvBl3mlk6l88Hl1HxswUdoV3FpUbK3YCWqLzZvLVM
-	 8k0yjZlYGVpfjAjDXnZRVjTBPkd2K61MPVU/yuIRsxQLBDpdOxaO0KHkJ9Jj9qXPu2
-	 ASWlPfep9hd9Q==
-Received: by mail-oa1-f47.google.com with SMTP id 586e51a60fabf-36ce5686d75so690590fac.3
-        for <linux-acpi@vger.kernel.org>; Fri, 26 Sep 2025 05:52:28 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCV+wHMbyuHubsDdOGEcGLUFpnJBrAGC1ohMgP/pG8nZl6Y9OiSCVWOUMSuLTw0bs0frPl8cDfWgLrWP@vger.kernel.org
-X-Gm-Message-State: AOJu0YzQm8IKWzRAmq+RmPSyLD49p6DvdkbFvmDZumbUUQAmF8CM2W9N
-	wDmv4Z1IDrYEi1PH15wsuSmlnW/WsS0n4dmrCsrOYH4KPEz4A62oLAXTNZj3y6BEpqSSvyMNDec
-	XSXILmmF/j0TlcipDRI0BMgi9pPpvMEI=
-X-Google-Smtp-Source: AGHT+IFyJsbtEL/QZxEFMzNMFhjejHmQrKAGHJ2m+Cy67pO650FZ5XV0FAPVcpNkLn5AmmxpCHNcXhCPX9zROUcktt4=
-X-Received: by 2002:a05:6871:79a3:b0:35c:cfec:df79 with SMTP id
- 586e51a60fabf-36c4698a0f9mr1307306fac.51.1758891148064; Fri, 26 Sep 2025
- 05:52:28 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="fbfy3VJj"
+Received: by mail-lf1-f49.google.com with SMTP id 2adb3069b0e04-57d8ff3944dso2221495e87.3
+        for <linux-acpi@vger.kernel.org>; Fri, 26 Sep 2025 06:11:31 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1758892290; x=1759497090; darn=vger.kernel.org;
+        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
+         :mime-version:subject:date:from:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=nuHd6eGYommvO3UskpqEqtJdP8+N3udV7UPBSp5lsjc=;
+        b=fbfy3VJjC1yaYytPKZzTYRVoy+OCnUkOEtEIUZ3x3cYqigUyyXha5Va4UzDiOILmAI
+         z/9bf24ITk1PxUsoK1WCTsDg7wY0GXAeUPCKIViGPcEP9BCiaDJ+LwEYvb6cDV8LIwkb
+         D5w2rHp5jiXapkSCe1hEBuefH3fRV5/UiEHiY=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1758892290; x=1759497090;
+        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
+         :mime-version:subject:date:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=nuHd6eGYommvO3UskpqEqtJdP8+N3udV7UPBSp5lsjc=;
+        b=OHVgbKHSDttkpcnL8xkcfmXjraMFkQphcOg+Z9+QUjOyySk0tAWL4HFmIkkT9fWGeH
+         IcQGtWmxxHCShMAXBmB5ICfY1tkQ8M9OoCrNbmPP82ab4gD3+ObiodoPjfbUfvI/3GEw
+         J20gQrQdfW8jPsrGXGe4VobvuvdMpkBF/CGd8x2U3+usIRH/LeT/HgkWyxLS69B0Tp0D
+         O4dfEiwFS5SZGCwaHt+vKlgcQWT7Gb/XcDKBQhKLPmkcGTXf8EVeMXz2+Hi14Mb2QCJH
+         KURFmyOs8l0ghQ0fmSjUTtf371iEARE+KAIMXauBhqH3+CJ8SMzRqbzIZH0B9u/fiVnq
+         C+BQ==
+X-Forwarded-Encrypted: i=1; AJvYcCWMLcj6xYpIo6c4k+Xv4GLX6gzU3hZKIlao9uLc5cEk55bLs7RlMl4EAvyzUxVK93Xz7Jl7oqkNSnBs@vger.kernel.org
+X-Gm-Message-State: AOJu0Yz6EokwvUm2B5p6w6lBqiUEkpbrsdkOziuCXh1RhqXMVrj5F8uC
+	tjVxad/+ROC5+mB0T6442M3MKcWEu+zfAPyPR3YshfdwKYrjTs/1FDjyQ3tpXZO4gQ==
+X-Gm-Gg: ASbGncvvNSV4q5zDxUJF9yAv2fjJVnOxFfmvbaRkwM8jZ2Gb2U/ccM/LApHBnkPre11
+	AGI6OF+BSlCbpfIqt+/R3/8eUpddNHg27gkbiOUChEvJsJk78il8G3hiq+LXDpWuMwIJMl5kgEq
+	AM7zIPPIGIuNmcpl7rPHCfVbiFJuvrh7nHCqpRQBE1bNh3fJsMQBSzvkqd/352ZXB+8lpN9LDzU
+	IryG37w3eRP8j0uq0WhuXz3wmjMU/8G3rHHSz7vR7ektALn9jkOLjbq0Mq0SAx0EirnpB/yb03x
+	81tihm5QO6/RwHZ6pt7okl8DuKdkRAvNNqSI2mzQsuc5B0whllJQevqIdHL+xeki+x7zPN7qnOv
+	+WUz0txyqRAzkq4uXQxgf2Uu5aQPNcisQ1FVHTvMj3tFy8FNQMxZ1UnD750SJlRwV9zLyBvonh1
+	ObDcrWtHxEaeL6UkQWV3W4qYM=
+X-Google-Smtp-Source: AGHT+IGBibbMbWnp4wsYYpcAZc4iOvKmHvOhd0/KxBOtu8sk83ypjF+oQ0w3P1LE9KQVYZ/8hnbPDg==
+X-Received: by 2002:a05:6512:61b1:b0:57c:2474:3743 with SMTP id 2adb3069b0e04-582d2f24dbfmr2344139e87.32.1758892290146;
+        Fri, 26 Sep 2025 06:11:30 -0700 (PDT)
+Received: from ribalda.c.googlers.com (64.153.228.35.bc.googleusercontent.com. [35.228.153.64])
+        by smtp.gmail.com with ESMTPSA id 2adb3069b0e04-58527c6b014sm123872e87.43.2025.09.26.06.11.29
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 26 Sep 2025 06:11:29 -0700 (PDT)
+From: Ricardo Ribalda <ribalda@chromium.org>
+Date: Fri, 26 Sep 2025 13:11:25 +0000
+Subject: [PATCH v3 01/12] media: uvcvideo: Always set default_value
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250924074602.266292-1-sakari.ailus@linux.intel.com>
- <CAJZ5v0hSy9zQd6cP9B4QPSZi-6ughmkW=VoEBV-0MbUr2xcaAQ@mail.gmail.com> <aNZ9fbh8eLiPAJzR@kekkonen.localdomain>
-In-Reply-To: <aNZ9fbh8eLiPAJzR@kekkonen.localdomain>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Fri, 26 Sep 2025 14:52:17 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0gQ9vnT+Z8zryEausp-2xX7HocoBgwmiptxg7BGiU9C8g@mail.gmail.com>
-X-Gm-Features: AS18NWDCqPA72v4-2y8V5lEmAid_UEthjaXRBCWFUzQ_Nsh-1l_6LWsoqBtdmRQ
-Message-ID: <CAJZ5v0gQ9vnT+Z8zryEausp-2xX7HocoBgwmiptxg7BGiU9C8g@mail.gmail.com>
-Subject: Re: [PATCH v2 00/16] Align availability checks on fwnode child node enumeration
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, 
-	linux-leds@vger.kernel.org, linux-media@vger.kernel.org, 
-	netdev@vger.kernel.org, linux-spi@vger.kernel.org, 
-	Len Brown <lenb@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	Danilo Krummrich <dakr@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
-	Daniel Scally <djrscally@gmail.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
-	Javier Carrasco <javier.carrasco@wolfvision.net>, 
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>, Lee Jones <lee@kernel.org>, 
-	Pavel Machek <pavel@kernel.org>, Matthias Fend <matthias.fend@emfend.at>, 
-	Chanwoo Choi <cw00.choi@samsung.com>, Krzysztof Kozlowski <krzk@kernel.org>, 
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>, 
-	Paul Elder <paul.elder@ideasonboard.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, 
-	Horatiu Vultur <horatiu.vultur@microchip.com>, UNGLinuxDriver@microchip.com, 
-	Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>, 
-	Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
-	Mark Brown <broonie@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@kernel.org>, 
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20250926-uvc-orientation-v3-1-6dc2fa5b4220@chromium.org>
+References: <20250926-uvc-orientation-v3-0-6dc2fa5b4220@chromium.org>
+In-Reply-To: <20250926-uvc-orientation-v3-0-6dc2fa5b4220@chromium.org>
+To: Hans de Goede <hansg@kernel.org>, 
+ Laurent Pinchart <laurent.pinchart@ideasonboard.com>, 
+ Mauro Carvalho Chehab <mchehab@kernel.org>, 
+ Sakari Ailus <sakari.ailus@linux.intel.com>, 
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+ Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, 
+ Conor Dooley <conor+dt@kernel.org>, 
+ Linus Walleij <linus.walleij@linaro.org>, 
+ Bartosz Golaszewski <brgl@bgdev.pl>, 
+ "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
+ Robert Moore <robert.moore@intel.com>, Hans Verkuil <hverkuil@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ linux-usb@vger.kernel.org, devicetree@vger.kernel.org, 
+ linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, 
+ acpica-devel@lists.linux.dev, Ricardo Ribalda <ribalda@chromium.org>, 
+ stable@vger.kernel.org
+X-Mailer: b4 0.14.2
 
-Hi Sakari,
+If the control does not support GET_DEF, the field default_value will be
+left uninitialized during queryctrl.
 
-On Fri, Sep 26, 2025 at 1:48=E2=80=AFPM Sakari Ailus
-<sakari.ailus@linux.intel.com> wrote:
->
-> Hi Rafael,
->
-> On Wed, Sep 24, 2025 at 12:52:12PM +0200, Rafael J. Wysocki wrote:
-> > Hi Sakari,
-> >
-> > On Wed, Sep 24, 2025 at 9:46=E2=80=AFAM Sakari Ailus
-> > <sakari.ailus@linux.intel.com> wrote:
-> > >
-> > > Hello everyone,
-> > >
-> > > Historically the fwnode property API has enumerated only available de=
-vice
-> > > nodes on OF whereas on ACPI, also nodes that haven't been present in =
-the
-> > > system have been provided. Both OF and ACPI have similar concepts of =
-node
-> > > availbility, on OF it's the "status" property present on device nodes=
- and
-> > > on ACPI the _STA object evaluates to device present, enabled and
-> > > functional bits, of which the present and functional bits are current=
-ly
-> > > being used to determine whether to enumerate a device.
-> > >
-> > > Two additional functions, fwnode_get_next_available_child_node() and
-> > > fwnode_for_each_available_child_node(), have been provided to enumera=
-te
-> > > the available nodes only on ACPI, whereas on OF the implementation ha=
-s
-> > > been the same on the non-available variants. The motivation for provi=
-ding
-> > > these has very likely been to provide fwnode variants of the similarl=
-y
-> > > named functions but the difference isn't justifiable from API consist=
-ency
-> > > viewpoint.
-> > >
-> > > This set switches the users away from the "available" fwnode API func=
-tions
-> > > and later on removes them, aligning the functionality on all fwnode
-> > > backends.
-> > >
-> > > since v1:
-> > >
-> > > - Move patch "ACPI: property: Make acpi_get_next_subnode() static" as
-> > >   first.
-> > >
-> > > - Add missing parentheses and kernel-doc Return: section in
-> > >   acpi_get_next_present_subnode() documentation and move the Return
-> > >   section: of fwnode_graph_get_endpoint_by_id() to the end of the
-> > >   documentation section (new patch for the latter).
-> > >
-> > > - Use device_get_next_child_node() instead of fwnode_get_next_child_n=
-ode()
-> > >   in flash LED driver drivers.
-> > >
-> > > - Rework iterating port nodes in acpi_graph_get_next_endpoint() as
-> > >   suggested by Andy (new patch).
-> >
-> > I think that you really have four series here, or rather two series, a
-> > collection of patches depending on them, and a follow-up cleanup.
-> >
-> > > Sakari Ailus (16):
-> > >   ACPI: property: Make acpi_get_next_subnode() static
-> > >   ACPI: property: Use ACPI functions in acpi_graph_get_next_endpoint(=
-)
-> > >     only
-> > >   ACPI: property: Rework acpi_graph_get_next_endpoint()
-> > >   ACPI: property: Return present device nodes only on fwnode interfac=
-e
-> >
-> > So the above is one series, focused on ACPI property changes.
-> >
-> > They can go in via ACPI as soon as everyone is happy with them.  I
-> > think I can push them for 6.18 if that helps to process the other
-> > patches.
->
-> If it's an option, that would be nice. But see below.
->
-> >
-> > >   property: Move Return: section of fwnode_graph_get_endpoint_by_id()
-> > >     down
-> > >   property: Drop DEVICE_DISABLED flag in
-> > >     fwnode_graph_get_endpoint_by_id()
-> > >   property: Drop DEVICE_DISABLED flag in
-> > >     fwnode_graph_get_endpoint_count()
-> >
-> > The above patches are another series that doesn't depend on the first
-> > one AFAICS and can go in via driver core.
->
-> Agreed.
->
-> >
-> > >   property: Document that fwnode API returns available nodes
-> > >   driver core: Use fwnode_for_each_child_node() instead
-> > >   net: lan966x: Use fwnode_for_each_child_node() instead
-> > >   Input: touch-overlay - Use fwnode_for_each_child_node() instead
-> > >   media: thp7312: Use fwnode_for_each_child_node() instead
-> > >   leds: Use fwnode_for_each_child_node() instead
-> > >   leds: Use fwnode_get_next_child_node() instead
-> >
-> > The above can go in via respective subsystem trees when the ACPI
-> > property series gets in (I'm not sure if/how they depend on the second
-> > series).
-> >
-> > And the following one is a follow-up cleanup getting rid of code that
-> > would be redundant going forward.
-> >
-> > >   property: Drop functions operating on "available" child nodes
-> > >   spi: cadence: Remove explicit device node availability check
-> >
-> > Does the spi change depend on the previous patch?
->
-> There's really only one dependency, apart from the direct dependency of
-> fwnode_get_next_available_child_node() /
-> fwnode_for_each_available_child_node() definitions removed in the second
-> last patch: fwnode_get_next_child_node() and fwnode_for_each_child_node()
-> may still return non-available nodes before the last of the ACPI patches =
-in
-> the set. So if the ACPI patches aren't merged but the rest are,
-> non-available nodes could be returned.
->
-> How about:
->
-> 1. Merge the ACPI patches to 6.18.
->
-> 2. Merge the rest, apart from the second last patch, for 6.19.
->
-> 3. Once everything else is in, merge the last patch. Could wait for 6.20.
+Fixes: c0efd232929c ("V4L/DVB (8145a): USB Video Class driver")
+Cc: stable@vger.kernel.org
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Hans de Goede <hansg@kernel.org>
+Signed-off-by: Ricardo Ribalda <ribalda@chromium.org>
+---
+ drivers/media/usb/uvc/uvc_ctrl.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-Sounds good.
+diff --git a/drivers/media/usb/uvc/uvc_ctrl.c b/drivers/media/usb/uvc/uvc_ctrl.c
+index 2905505c240c060e5034ea12d33b59d5702f2e1f..a869257e9b7c07eaa7d725d107bd1cb57d3c7377 100644
+--- a/drivers/media/usb/uvc/uvc_ctrl.c
++++ b/drivers/media/usb/uvc/uvc_ctrl.c
+@@ -1542,10 +1542,11 @@ static int __uvc_queryctrl_boundaries(struct uvc_video_chain *chain,
+ 			return ret;
+ 	}
+ 
+-	if (ctrl->info.flags & UVC_CTRL_FLAG_GET_DEF) {
++	if (ctrl->info.flags & UVC_CTRL_FLAG_GET_DEF)
+ 		v4l2_ctrl->default_value = uvc_mapping_get_s32(mapping,
+ 				UVC_GET_DEF, uvc_ctrl_data(ctrl, UVC_CTRL_DATA_DEF));
+-	}
++	else
++		v4l2_ctrl->default_value = 0;
+ 
+ 	switch (mapping->v4l2_type) {
+ 	case V4L2_CTRL_TYPE_MENU:
 
-> Perhaps I should split the series in three sets?
+-- 
+2.51.0.536.g15c5d4f767-goog
 
-That would help I think.
-
-> I'll send an update on the ACPI patches soon, to address a comment relate=
-d
-> to them.
-
-OK
-
-Thanks!
