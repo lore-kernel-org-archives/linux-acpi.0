@@ -1,54 +1,54 @@
 Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D936B2D0608;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF8112D0298;
 	Mon, 29 Sep 2025 09:38:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.188
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759138693; cv=none; b=h4hycMLG2rc1hfqW4DqMQaeAQv3O0sG0z+/oE/Puxjhfdop6JufSbhxHSsO9jKiYofuZKOc7pvtC7X2ko1LBcpnMu7QP6IDeMeiSX4cvxNZFjLF6A+XTPRJGyld7suuxPfjK6lYmxVN9qZg2r0ZOn31Gk07BC8yomGPPbvFxGnc=
+	t=1759138693; cv=none; b=TRAXGaAmWNb8A9eBWMPcs6QjHRmkuCbkMYsWVq4mcx7plLlmNLG3EGsU0sdW3yB2rOBYeg1V1dmh7ICQaLMe+obrnrBdiTlj+MhUfiVKLwCHTYSS6T8JhcSa2D9OYMPpXlj4etbUFT+D9Wi+21D+M6CS9tM9kUU9s6HTSsD+sMc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1759138693; c=relaxed/simple;
-	bh=zFOGrE/CYGwsYYDxIIzhVvqiouFsHkdPFeW73i51xdY=;
+	bh=nRp17g1xjbnij/LqWRt+c8wZhAnlh0RnZ1ZS2TUNZ7I=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=RxwT/qR01DCXiHy67bue6/VRmztebcmTtdl5y5ac7sTUkSdFWkYbrcpLtGObQW49i/4fvIrr8evb2NiasXuScBNAuxF0/kxWKOwJ/Q9gVaXdz1xiOq0AcBASXQHhkpY9dEmATYtNn/DIXtBL49l0xoNc23gag14tEcVN2YarUgU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=eLvwV85r; arc=none smtp.client-ip=45.249.212.188
+	 MIME-Version:Content-Type; b=FHsAxXgm91r0eOOEnmLp3id5AT+uYYFZE3e+ONh2PKISrfILeAroNy17Dvzo7B4cWLDXcQIjvLzTlvqPdBUiHAwy5S2DxMgkFW+864xo4RG+bkP6jqwVPS6obCilBTD1dhxlr3bN/y3VtR4DESLWzvBnNXzu/8sUzqZHpArt9Bw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=X3fHrRgW; arc=none smtp.client-ip=45.249.212.188
 Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=h-partners.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="eLvwV85r"
+	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="X3fHrRgW"
 Received: from canpmsgout07.his.huawei.com (unknown [172.19.92.160])
-	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4cZx1B1418ztTsd;
-	Mon, 29 Sep 2025 17:37:18 +0800 (CST)
+	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4cZx1406vxztTrb;
+	Mon, 29 Sep 2025 17:37:12 +0800 (CST)
 dkim-signature: v=1; a=rsa-sha256; d=h-partners.com; s=dkim;
 	c=relaxed/relaxed; q=dns/txt;
 	h=From;
-	bh=rxoQ4li/dhzz7C7GNyqjThebbNS6Z9DLrv4WnFBVJxE=;
-	b=eLvwV85r7/Cg3cS6yGcXSBVav1los6s18AXMlK1k5mB18LqCauQYbs2IIMm/qjJYKYnWxj+QL
-	IPkjqBrr36F8Xz2WCTR6Kzh6mksMZ24mW4cmyfCGsY3EjHdlt1q+2v6MorVh7yPmtE3VUOz5oF8
-	R0COosYACcshfdbdSA24TeY=
-Received: from mail.maildlp.com (unknown [172.19.88.163])
-	by canpmsgout07.his.huawei.com (SkyGuard) with ESMTPS id 4cZx1q2JyFzLlSk;
-	Mon, 29 Sep 2025 17:37:51 +0800 (CST)
-Received: from dggemv706-chm.china.huawei.com (unknown [10.3.19.33])
-	by mail.maildlp.com (Postfix) with ESMTPS id CE0941800D0;
-	Mon, 29 Sep 2025 17:38:01 +0800 (CST)
+	bh=RTh9uqnCsbUsYKMXste5LqujrX180HMZlmUL39niJlg=;
+	b=X3fHrRgW/ro90YYeDfZ1jNqFky1scUK8I/7N325IAnbFPhPxQ6xJIDZ2sOWb+BOS3mSsaMm1a
+	whw2wfEeMsOUjCBn/ExxX50KZ0xdAVcQ0PxsG9gUJOyPpeQEcFFOBnqNvDMDDSno0BPXB06/dux
+	a7prJtvPEu72eqwPwjC0YVk=
+Received: from mail.maildlp.com (unknown [172.19.163.17])
+	by canpmsgout07.his.huawei.com (SkyGuard) with ESMTPS id 4cZx1j36tRzLlSD;
+	Mon, 29 Sep 2025 17:37:45 +0800 (CST)
+Received: from dggemv712-chm.china.huawei.com (unknown [10.1.198.32])
+	by mail.maildlp.com (Postfix) with ESMTPS id EB26D1A0188;
+	Mon, 29 Sep 2025 17:37:55 +0800 (CST)
 Received: from kwepemn100009.china.huawei.com (7.202.194.112) by
- dggemv706-chm.china.huawei.com (10.3.19.33) with Microsoft SMTP Server
+ dggemv712-chm.china.huawei.com (10.1.198.32) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Mon, 29 Sep 2025 17:37:59 +0800
+ 15.2.1544.11; Mon, 29 Sep 2025 17:37:55 +0800
 Received: from localhost.localdomain (10.50.165.33) by
  kwepemn100009.china.huawei.com (7.202.194.112) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Mon, 29 Sep 2025 17:37:58 +0800
+ 15.2.1544.11; Mon, 29 Sep 2025 17:37:55 +0800
 From: Huisong Li <lihuisong@huawei.com>
 To: <rafael@kernel.org>, <lenb@kernel.org>
 CC: <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
 	<Sudeep.Holla@arm.com>, <linuxarm@huawei.com>, <jonathan.cameron@huawei.com>,
 	<zhanjie9@hisilicon.com>, <zhenglifeng1@huawei.com>, <yubowen8@huawei.com>,
 	<lihuisong@huawei.com>
-Subject: [PATCH v1 9/9] ACPI: processor: idle: Redefine acpi_processor_setup_cpuidle_dev to void
-Date: Mon, 29 Sep 2025 17:37:54 +0800
-Message-ID: <20250929093754.3998136-10-lihuisong@huawei.com>
+Subject: [PATCH v1 1/9] ACPI: processor: idle: raise up log level when evaluate LPI failed
+Date: Mon, 29 Sep 2025 17:37:46 +0800
+Message-ID: <20250929093754.3998136-2-lihuisong@huawei.com>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20250929093754.3998136-1-lihuisong@huawei.com>
 References: <20250929093754.3998136-1-lihuisong@huawei.com>
@@ -63,44 +63,40 @@ Content-Type: text/plain
 X-ClientProxiedBy: kwepems100001.china.huawei.com (7.221.188.238) To
  kwepemn100009.china.huawei.com (7.202.194.112)
 
-Notice that the acpi_processor_setup_cpuidle_dev() don't need to
-return any value because their callers don't check them anyway.
-So redefine the function to void.
-
-No intentional functional impact.
+According to ACPI spec, LPI package must be ACPI_TYPE_PACKAGE and
+the count of package must be greater than 4. And the count contained
+in package needs to be equal to the value of count field in LPI package.
+All are illegal and return failure. It is better for these verification
+to use error level log instead of debug so as to get detailed logs directly
+when initialization fails.
 
 Signed-off-by: Huisong Li <lihuisong@huawei.com>
 ---
- drivers/acpi/processor_idle.c | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ drivers/acpi/processor_idle.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index 9f456a6fa584..1c9f2911ef6c 100644
+index 22b051b94a86..5acf12a0441f 100644
 --- a/drivers/acpi/processor_idle.c
 +++ b/drivers/acpi/processor_idle.c
-@@ -1246,18 +1246,17 @@ static void acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
-  * @pr: the ACPI processor
-  * @dev : the cpuidle device
-  */
--static int acpi_processor_setup_cpuidle_dev(struct acpi_processor *pr,
--					    struct cpuidle_device *dev)
-+static void acpi_processor_setup_cpuidle_dev(struct acpi_processor *pr,
-+					     struct cpuidle_device *dev)
- {
- 	if (!pr->flags.power_setup_done || !pr->flags.power || !dev)
--		return -EINVAL;
-+		return;
+@@ -908,7 +908,7 @@ static int acpi_processor_evaluate_lpi(acpi_handle handle,
+ 	/* There must be at least 4 elements = 3 elements + 1 package */
+ 	if (!lpi_data || lpi_data->type != ACPI_TYPE_PACKAGE ||
+ 	    lpi_data->package.count < 4) {
+-		pr_debug("not enough elements in _LPI\n");
++		pr_err("not enough elements in _LPI\n");
+ 		ret = -ENODATA;
+ 		goto end;
+ 	}
+@@ -917,7 +917,7 @@ static int acpi_processor_evaluate_lpi(acpi_handle handle,
  
- 	dev->cpu = pr->id;
- 	if (pr->flags.has_lpi)
--		return 0;
-+		return;
- 
- 	acpi_processor_setup_cpuidle_cx(pr, dev);
--	return 0;
- }
- 
- static int acpi_processor_get_power_info(struct acpi_processor *pr)
+ 	/* Validate number of power states. */
+ 	if (pkg_count < 1 || pkg_count != lpi_data->package.count - 3) {
+-		pr_debug("count given by _LPI is not valid\n");
++		pr_err("count given by _LPI is not valid\n");
+ 		ret = -ENODATA;
+ 		goto end;
+ 	}
 -- 
 2.33.0
 
