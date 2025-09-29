@@ -1,80 +1,103 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+Received: from canpmsgout01.his.huawei.com (canpmsgout01.his.huawei.com [113.46.200.216])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33373288525;
-	Mon, 29 Sep 2025 09:38:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5B882C15BF;
+	Mon, 29 Sep 2025 09:38:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.216
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759138685; cv=none; b=ErzoJDAAnvEWq6QOyqT0AV3wUpdSBFo/pqsO+tWv4MihtmzOSbmy9WBP1FhzlWbBuDq9wG7FqM+RuWqzfte0kzgl4hMT52SUJYAyym7WFZqBKFtBIkKAjAeQV34DbkyYA6EikuiX0kLrFMsonBhMnEGAgRWDmCvbeBudSz41mcE=
+	t=1759138688; cv=none; b=SnRlNFZTKWNbWWewp4oT5rF5bkIV2zj+nxTIMpi5UPUg9LS1XQeHvj/oO3N9OTbmAUxqyna7A4WjjLf/BTpUdo1/EfeR8MBjPetG06QVOY6GfcD5pTPhfIiBz+PZ28jXP1C59Vz8I3km87EG+UdPjyuHKxRuItygtGVUiDp80ao=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759138685; c=relaxed/simple;
-	bh=bZLhHmv4XX1y/oVONGshqyRdAIyKDW3CMMZp9QPhT2A=;
-	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=hsldkSuy8HhvyfudOfTukYcUPFJdPOjCh5UtPekhz0zedHaIhHZnfD0YKK49Vx5EvAhxkwFX1WZcpGzF1g8BdlpJm/40/2gWgw/HCBh4a0vSJbBpU2VhVkjhnZhwUO5/a28elDXWMupS3gcncCkV1+zc/4MlObDEuaUc4V8+iJM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.186.216])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4cZx1p1Pnvz6L538;
-	Mon, 29 Sep 2025 17:37:50 +0800 (CST)
-Received: from dubpeml100005.china.huawei.com (unknown [7.214.146.113])
-	by mail.maildlp.com (Postfix) with ESMTPS id 99D5914038F;
-	Mon, 29 Sep 2025 17:38:00 +0800 (CST)
-Received: from localhost (10.47.64.220) by dubpeml100005.china.huawei.com
- (7.214.146.113) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Mon, 29 Sep
- 2025 10:37:58 +0100
-Date: Mon, 29 Sep 2025 10:37:57 +0100
-From: Jonathan Cameron <jonathan.cameron@huawei.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
+	s=arc-20240116; t=1759138688; c=relaxed/simple;
+	bh=PCn+2NpYXNrTtMrEmgk/+v6MC0n2XLP6X3PNqVhZut0=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=NzPeki9i03ASHi3dcbZahmjsfFfwtmKjPz404/VawDnrAdsqv9+wcrABmgbzS9nMf/OUvTLO8pr/x+yJkwo6g7LLbVH8Jsx5OLXvgCmLR9o2RxHm6xzIxNe8kLtI1gvEz5YlIcLXUTBA0EqlL/FRClLbK6kwhR3RnzRyLWFZias=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=E0KCWgMf; arc=none smtp.client-ip=113.46.200.216
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=h-partners.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="E0KCWgMf"
+dkim-signature: v=1; a=rsa-sha256; d=h-partners.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=8dVWRgn/1PPWXrvTyzsdcit7ANql16CIpeq1DEA+YKo=;
+	b=E0KCWgMfC3GiaFCah31QN2vXY6uWZDnp4VUO7MUz8SRnRUlBNvo7lmWAHZJjQNk2EmCuYekqu
+	Vkhi3H7ZCQovMl19oRRpfG0sgxJEhzmV6XliJHoGZ/9VBoIXBSgmO2HL5xLf+dSThokAgAm7GEf
+	sTZ/w/hpZ3aaLZbQva/gz1I=
+Received: from mail.maildlp.com (unknown [172.19.163.48])
+	by canpmsgout01.his.huawei.com (SkyGuard) with ESMTPS id 4cZx1W3R3lz1T4Fq;
+	Mon, 29 Sep 2025 17:37:35 +0800 (CST)
+Received: from dggemv705-chm.china.huawei.com (unknown [10.3.19.32])
+	by mail.maildlp.com (Postfix) with ESMTPS id DF5D41800B1;
+	Mon, 29 Sep 2025 17:37:57 +0800 (CST)
+Received: from kwepemn100009.china.huawei.com (7.202.194.112) by
+ dggemv705-chm.china.huawei.com (10.3.19.32) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.11; Mon, 29 Sep 2025 17:37:57 +0800
+Received: from localhost.localdomain (10.50.165.33) by
+ kwepemn100009.china.huawei.com (7.202.194.112) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.11; Mon, 29 Sep 2025 17:37:56 +0800
+From: Huisong Li <lihuisong@huawei.com>
+To: <rafael@kernel.org>, <lenb@kernel.org>
 CC: <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-input@vger.kernel.org>, <linux-leds@vger.kernel.org>,
-	<linux-media@vger.kernel.org>, <netdev@vger.kernel.org>,
-	<linux-spi@vger.kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, "Len
- Brown" <lenb@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Danilo Krummrich <dakr@kernel.org>, Andy Shevchenko
-	<andriy.shevchenko@linux.intel.com>, Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>, Javier Carrasco
-	<javier.carrasco@wolfvision.net>, Dmitry Torokhov
-	<dmitry.torokhov@gmail.com>, Lee Jones <lee@kernel.org>, Pavel Machek
-	<pavel@kernel.org>, Matthias Fend <matthias.fend@emfend.at>, Chanwoo Choi
-	<cw00.choi@samsung.com>, Krzysztof Kozlowski <krzk@kernel.org>, "Laurent
- Pinchart" <laurent.pinchart@ideasonboard.com>, Paul Elder
-	<paul.elder@ideasonboard.com>, Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Horatiu Vultur <horatiu.vultur@microchip.com>,
-	<UNGLinuxDriver@microchip.com>, Andrew Lunn <andrew+netdev@lunn.ch>, "David
- S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, "Jakub
- Kicinski" <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Mark Brown
-	<broonie@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar
-	<mingo@kernel.org>
-Subject: Re: [PATCH v2 05/16] property: Move Return: section of
- fwnode_graph_get_endpoint_by_id() down
-Message-ID: <20250929103757.00001e0a@huawei.com>
-In-Reply-To: <20250924074602.266292-6-sakari.ailus@linux.intel.com>
-References: <20250924074602.266292-1-sakari.ailus@linux.intel.com>
-	<20250924074602.266292-6-sakari.ailus@linux.intel.com>
-X-Mailer: Claws Mail 4.3.0 (GTK 3.24.42; x86_64-w64-mingw32)
+	<Sudeep.Holla@arm.com>, <linuxarm@huawei.com>, <jonathan.cameron@huawei.com>,
+	<zhanjie9@hisilicon.com>, <zhenglifeng1@huawei.com>, <yubowen8@huawei.com>,
+	<lihuisong@huawei.com>
+Subject: [PATCH v1 5/9] ACPI: processor: idle: Add the verification of processor FFH LPI state
+Date: Mon, 29 Sep 2025 17:37:50 +0800
+Message-ID: <20250929093754.3998136-6-lihuisong@huawei.com>
+X-Mailer: git-send-email 2.33.0
+In-Reply-To: <20250929093754.3998136-1-lihuisong@huawei.com>
+References: <20250929093754.3998136-1-lihuisong@huawei.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml500012.china.huawei.com (7.191.174.4) To
- dubpeml100005.china.huawei.com (7.214.146.113)
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: kwepems100001.china.huawei.com (7.221.188.238) To
+ kwepemn100009.china.huawei.com (7.202.194.112)
 
-On Wed, 24 Sep 2025 10:45:51 +0300
-Sakari Ailus <sakari.ailus@linux.intel.com> wrote:
+Both ARM64 and RISCV architecture would validate Entry Method of LPI
+state and SBI HSM or PSCI cpu suspend. Driver should return failure
+if FFH of LPI state are not ok.
 
-> Move Return: section of fwnode_graph_get_endpoint_by_id() down where it
-> habitually is located.
+Fixes: a36a7fecfe60 ("ACPI / processor_idle: Add support for Low Power Idle(LPI) states")
+Signed-off-by: Huisong Li <lihuisong@huawei.com>
+---
+ drivers/acpi/processor_idle.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-I was rather expecting the kernel-doc documentation to specify this but
-it only seems to do so by example.  Hence reasonable to describe it as
-you have.
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index 5684925338b3..b0d6b51ee363 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -1264,7 +1264,7 @@ static int acpi_processor_setup_cpuidle_dev(struct acpi_processor *pr,
+ 
+ 	dev->cpu = pr->id;
+ 	if (pr->flags.has_lpi)
+-		return acpi_processor_ffh_lpi_probe(pr->id);
++		return 0;
+ 
+ 	return acpi_processor_setup_cpuidle_cx(pr, dev);
+ }
+@@ -1275,7 +1275,13 @@ static int acpi_processor_get_power_info(struct acpi_processor *pr)
+ 
+ 	ret = acpi_processor_get_lpi_info(pr);
+ 	if (ret)
+-		ret = acpi_processor_get_cstate_info(pr);
++		return acpi_processor_get_cstate_info(pr);
++
++	if (pr->flags.has_lpi) {
++		ret = acpi_processor_ffh_lpi_probe(pr->id);
++		if (ret)
++			pr_err("Processor FFH LPI state is invalid.\n");
++	}
+ 
+ 	return ret;
+ }
+-- 
+2.33.0
 
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
