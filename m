@@ -1,51 +1,51 @@
-Received: from canpmsgout02.his.huawei.com (canpmsgout02.his.huawei.com [113.46.200.217])
+Received: from canpmsgout08.his.huawei.com (canpmsgout08.his.huawei.com [113.46.200.223])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C55BF2C21F9;
-	Mon, 29 Sep 2025 09:38:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.217
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB04A2C3272;
+	Mon, 29 Sep 2025 09:38:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.223
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759138689; cv=none; b=Ae2lQVFf7/QKgStTLKSt7Qtrxj3YJ9qIuelGF2QedhAOGXwfyEv/HHGYtJvJRFRGbYuYKKD/yvpneMQMTJw4bk9OCXcq8C1ylQsn/B5k+eHesE6AzQyQGbzTDiiRchFMufTJFBB3ZoDDPDqGS2Tm9KWFz6l54CZmzPG3dkdsuj4=
+	t=1759138692; cv=none; b=OowUTBYVjSAAdRxymaF91di9ALzx+y9b9Bn4uqFtDfoEMK9uB0dgaR7Sq+mvjcLcFQ+FwNoJe7PuxFUuBobvlDGDvBaHgx2nsTQeqL327jFnacXDOlK1dgu8DIJiLm0gdqo4tx3NY932m2aVrLjNRGVqs/al2VPOulbuRzLBYUk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759138689; c=relaxed/simple;
-	bh=zH1x339kthy7EbwSWXzqpQhEMlMBNP0qpMpcpW6PQHU=;
+	s=arc-20240116; t=1759138692; c=relaxed/simple;
+	bh=tubl72UhDrFHQVJsm/Yz9qp/H+Ga2SHiF+48nRsljmI=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=EbSQ3NDhw/EewqqxSqm1BWTzCxlxJ4V/PagJG1TGQYs16RPJMc2le49qG28AOgVyhUqxbxZat+qN+VVe96UkWqXE6XOYpZiBoU4SwJT9i9fvDa0D/yWuA3W9ouWaFBNKfW2gVOA1h/QQXlgbK7H7SN/Nr5QL4F/a3y6wwFHT/T0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=URFpKcM2; arc=none smtp.client-ip=113.46.200.217
+	 MIME-Version:Content-Type; b=f23j+h3eLirqEdagZJT/I1/xNB0Te1XDqPUlTEYzVVl+TA47vLolLlv3EWoj+HToTM0cz0ZtUm5hzQXqkxDEMOp7YuehNjmpsPB8aFFo+IkQgBQfDkWsGe4dIJtUYujesePiuxB2qG1WrA1lFE5EyFX5z2sSY2Ghii2DVuvw9U4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=G5ZzCj2y; arc=none smtp.client-ip=113.46.200.223
 Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=h-partners.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="URFpKcM2"
+	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="G5ZzCj2y"
 dkim-signature: v=1; a=rsa-sha256; d=h-partners.com; s=dkim;
 	c=relaxed/relaxed; q=dns/txt;
 	h=From;
-	bh=qTJs2ZpOerQeXEWOV9Z/f0oBIE1p3YB1jRJO+1Qveaw=;
-	b=URFpKcM2HBF7Kcqlu3jc0EEoGikZumVcOlqvoTOddgUbmZPHkvf92ElHuIWHhCqB8qXmu3oP4
-	Hpi9tcEptmp7BiLwcbnVif10hfItsYWjuayiAlQCFGy5qivfFzvsGlU4ikJV7bkZ13AZLYUQQ3w
-	lqm/8jIXtrx5ncUqeXTlS7A=
-Received: from mail.maildlp.com (unknown [172.19.163.252])
-	by canpmsgout02.his.huawei.com (SkyGuard) with ESMTPS id 4cZx1Q1vxjzcbZX;
-	Mon, 29 Sep 2025 17:37:30 +0800 (CST)
-Received: from dggemv705-chm.china.huawei.com (unknown [10.3.19.32])
-	by mail.maildlp.com (Postfix) with ESMTPS id 651DD180B5F;
-	Mon, 29 Sep 2025 17:37:59 +0800 (CST)
+	bh=tNDOWXHGWI4bT/ATvsza4bIqskro5wdK9eUa6kqQ8n4=;
+	b=G5ZzCj2yANq6y40ZHll+Q18smpMQAysWPMm6YZxIeSeZ0V5MUNdGtMFba+XibdE0OWDbkxV4u
+	VSHc1AW9mpnDzK9UJorlxSoxyOjpspDp6cET4fQJ5Ueo3RPAUFWRbONstCK2Sv4TrpaoGWAGX94
+	NHnmafIaZRKy0SMXmN/RQDg=
+Received: from mail.maildlp.com (unknown [172.19.88.163])
+	by canpmsgout08.his.huawei.com (SkyGuard) with ESMTPS id 4cZx1q2QbQzmVl6;
+	Mon, 29 Sep 2025 17:37:51 +0800 (CST)
+Received: from dggemv706-chm.china.huawei.com (unknown [10.3.19.33])
+	by mail.maildlp.com (Postfix) with ESMTPS id C76F01800CF;
+	Mon, 29 Sep 2025 17:38:01 +0800 (CST)
 Received: from kwepemn100009.china.huawei.com (7.202.194.112) by
- dggemv705-chm.china.huawei.com (10.3.19.32) with Microsoft SMTP Server
+ dggemv706-chm.china.huawei.com (10.3.19.33) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Mon, 29 Sep 2025 17:37:59 +0800
+ 15.2.1544.11; Mon, 29 Sep 2025 17:37:58 +0800
 Received: from localhost.localdomain (10.50.165.33) by
  kwepemn100009.china.huawei.com (7.202.194.112) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Mon, 29 Sep 2025 17:37:58 +0800
+ 15.2.1544.11; Mon, 29 Sep 2025 17:37:57 +0800
 From: Huisong Li <lihuisong@huawei.com>
 To: <rafael@kernel.org>, <lenb@kernel.org>
 CC: <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
 	<Sudeep.Holla@arm.com>, <linuxarm@huawei.com>, <jonathan.cameron@huawei.com>,
 	<zhanjie9@hisilicon.com>, <zhenglifeng1@huawei.com>, <yubowen8@huawei.com>,
 	<lihuisong@huawei.com>
-Subject: [PATCH v1 8/9] ACPI: processor: idle: Redefine setup idle functions to void
-Date: Mon, 29 Sep 2025 17:37:53 +0800
-Message-ID: <20250929093754.3998136-9-lihuisong@huawei.com>
+Subject: [PATCH v1 6/9] ACPI: processor: idle: Do not change power states if get power info failed
+Date: Mon, 29 Sep 2025 17:37:51 +0800
+Message-ID: <20250929093754.3998136-7-lihuisong@huawei.com>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20250929093754.3998136-1-lihuisong@huawei.com>
 References: <20250929093754.3998136-1-lihuisong@huawei.com>
@@ -60,81 +60,63 @@ Content-Type: text/plain
 X-ClientProxiedBy: kwepems100001.china.huawei.com (7.221.188.238) To
  kwepemn100009.china.huawei.com (7.202.194.112)
 
-Notice that the acpi_processor_setup_cpuidle_states() don't need to
-return any value because their callers don't check them anyway.
-In addition, acpi_processor_setup_lpi_states() wouldn't execute with
-failure. So redefine setup idle functions to void.
+Driver will update power states when processor power states have been
+changed. To prevent any other abnormal issues, here add the verification
+for the result of getting power information, don't change power states
+and one error log when get power information failed.
 
-No intentional functional impact.
-
+Fixes: f427e5f1cf75 ("ACPI / processor: Get power info before updating the C-states")
 Signed-off-by: Huisong Li <lihuisong@huawei.com>
 ---
- drivers/acpi/processor_idle.c | 17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ drivers/acpi/processor_idle.c | 15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index 2d672afc7498..9f456a6fa584 100644
+index b0d6b51ee363..92b231f5d514 100644
 --- a/drivers/acpi/processor_idle.c
 +++ b/drivers/acpi/processor_idle.c
-@@ -1183,7 +1183,7 @@ static int acpi_idle_lpi_enter(struct cpuidle_device *dev,
- 	return -EINVAL;
- }
+@@ -1315,6 +1315,7 @@ int acpi_processor_power_state_has_changed(struct acpi_processor *pr)
+ 	int cpu;
+ 	struct acpi_processor *_pr;
+ 	struct cpuidle_device *dev;
++	int ret = 0;
  
--static int acpi_processor_setup_lpi_states(struct acpi_processor *pr)
-+static void acpi_processor_setup_lpi_states(struct acpi_processor *pr)
- {
- 	int i;
- 	struct acpi_lpi_state *lpi;
-@@ -1191,7 +1191,7 @@ static int acpi_processor_setup_lpi_states(struct acpi_processor *pr)
- 	struct cpuidle_driver *drv = &acpi_idle_driver;
+ 	if (disabled_by_idle_boot_param())
+ 		return 0;
+@@ -1344,16 +1345,20 @@ int acpi_processor_power_state_has_changed(struct acpi_processor *pr)
+ 		}
  
- 	if (!pr->flags.has_lpi)
--		return -EOPNOTSUPP;
-+		return;
+ 		/* Populate Updated C-state information */
+-		acpi_processor_get_power_info(pr);
+-		acpi_processor_setup_cpuidle_states(pr);
++		ret = acpi_processor_get_power_info(pr);
++		if (ret)
++			pr_err("Get processor-%u power information failed.\n",
++			       pr->id);
++		else
++			acpi_processor_setup_cpuidle_states(pr);
  
- 	for (i = 0; i < pr->power.count && i < CPUIDLE_STATE_MAX; i++) {
- 		lpi = &pr->power.lpi_states[i];
-@@ -1209,8 +1209,6 @@ static int acpi_processor_setup_lpi_states(struct acpi_processor *pr)
+ 		/* Enable all cpuidle devices */
+ 		for_each_online_cpu(cpu) {
+ 			_pr = per_cpu(processors, cpu);
+ 			if (!_pr || !_pr->flags.power_setup_done)
+ 				continue;
+-			acpi_processor_get_power_info(_pr);
+-			if (_pr->flags.power) {
++			ret = acpi_processor_get_power_info(_pr);
++			if (!ret && _pr->flags.power) {
+ 				dev = per_cpu(acpi_cpuidle_device, cpu);
+ 				acpi_processor_setup_cpuidle_dev(_pr, dev);
+ 				cpuidle_enable_device(dev);
+@@ -1363,7 +1368,7 @@ int acpi_processor_power_state_has_changed(struct acpi_processor *pr)
+ 		cpus_read_unlock();
  	}
  
- 	drv->state_count = i;
--
 -	return 0;
++	return ret;
  }
  
- /**
-@@ -1219,13 +1217,13 @@ static int acpi_processor_setup_lpi_states(struct acpi_processor *pr)
-  *
-  * @pr: the ACPI processor
-  */
--static int acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
-+static void acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
- {
- 	int i;
- 	struct cpuidle_driver *drv = &acpi_idle_driver;
- 
- 	if (!pr->flags.power_setup_done || !pr->flags.power)
--		return -EINVAL;
-+		return;
- 
- 	drv->safe_state_index = -1;
- 	for (i = ACPI_IDLE_STATE_START; i < CPUIDLE_STATE_MAX; i++) {
-@@ -1233,11 +1231,12 @@ static int acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
- 		drv->states[i].desc[0] = '\0';
- 	}
- 
--	if (pr->flags.has_lpi)
--		return acpi_processor_setup_lpi_states(pr);
-+	if (pr->flags.has_lpi) {
-+		acpi_processor_setup_lpi_states(pr);
-+		return;
-+	}
- 
- 	acpi_processor_setup_cstates(pr);
--	return 0;
- }
- 
- /**
+ void acpi_processor_register_idle_driver(void)
 -- 
 2.33.0
 
