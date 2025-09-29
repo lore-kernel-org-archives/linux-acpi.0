@@ -1,51 +1,51 @@
-Received: from canpmsgout01.his.huawei.com (canpmsgout01.his.huawei.com [113.46.200.216])
+Received: from canpmsgout02.his.huawei.com (canpmsgout02.his.huawei.com [113.46.200.217])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5B882C15BF;
-	Mon, 29 Sep 2025 09:38:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.216
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C55BF2C21F9;
+	Mon, 29 Sep 2025 09:38:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.217
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759138688; cv=none; b=SnRlNFZTKWNbWWewp4oT5rF5bkIV2zj+nxTIMpi5UPUg9LS1XQeHvj/oO3N9OTbmAUxqyna7A4WjjLf/BTpUdo1/EfeR8MBjPetG06QVOY6GfcD5pTPhfIiBz+PZ28jXP1C59Vz8I3km87EG+UdPjyuHKxRuItygtGVUiDp80ao=
+	t=1759138689; cv=none; b=Ae2lQVFf7/QKgStTLKSt7Qtrxj3YJ9qIuelGF2QedhAOGXwfyEv/HHGYtJvJRFRGbYuYKKD/yvpneMQMTJw4bk9OCXcq8C1ylQsn/B5k+eHesE6AzQyQGbzTDiiRchFMufTJFBB3ZoDDPDqGS2Tm9KWFz6l54CZmzPG3dkdsuj4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759138688; c=relaxed/simple;
-	bh=PCn+2NpYXNrTtMrEmgk/+v6MC0n2XLP6X3PNqVhZut0=;
+	s=arc-20240116; t=1759138689; c=relaxed/simple;
+	bh=zH1x339kthy7EbwSWXzqpQhEMlMBNP0qpMpcpW6PQHU=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=NzPeki9i03ASHi3dcbZahmjsfFfwtmKjPz404/VawDnrAdsqv9+wcrABmgbzS9nMf/OUvTLO8pr/x+yJkwo6g7LLbVH8Jsx5OLXvgCmLR9o2RxHm6xzIxNe8kLtI1gvEz5YlIcLXUTBA0EqlL/FRClLbK6kwhR3RnzRyLWFZias=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=E0KCWgMf; arc=none smtp.client-ip=113.46.200.216
+	 MIME-Version:Content-Type; b=EbSQ3NDhw/EewqqxSqm1BWTzCxlxJ4V/PagJG1TGQYs16RPJMc2le49qG28AOgVyhUqxbxZat+qN+VVe96UkWqXE6XOYpZiBoU4SwJT9i9fvDa0D/yWuA3W9ouWaFBNKfW2gVOA1h/QQXlgbK7H7SN/Nr5QL4F/a3y6wwFHT/T0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=URFpKcM2; arc=none smtp.client-ip=113.46.200.217
 Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=h-partners.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="E0KCWgMf"
+	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="URFpKcM2"
 dkim-signature: v=1; a=rsa-sha256; d=h-partners.com; s=dkim;
 	c=relaxed/relaxed; q=dns/txt;
 	h=From;
-	bh=8dVWRgn/1PPWXrvTyzsdcit7ANql16CIpeq1DEA+YKo=;
-	b=E0KCWgMfC3GiaFCah31QN2vXY6uWZDnp4VUO7MUz8SRnRUlBNvo7lmWAHZJjQNk2EmCuYekqu
-	Vkhi3H7ZCQovMl19oRRpfG0sgxJEhzmV6XliJHoGZ/9VBoIXBSgmO2HL5xLf+dSThokAgAm7GEf
-	sTZ/w/hpZ3aaLZbQva/gz1I=
-Received: from mail.maildlp.com (unknown [172.19.163.48])
-	by canpmsgout01.his.huawei.com (SkyGuard) with ESMTPS id 4cZx1W3R3lz1T4Fq;
-	Mon, 29 Sep 2025 17:37:35 +0800 (CST)
+	bh=qTJs2ZpOerQeXEWOV9Z/f0oBIE1p3YB1jRJO+1Qveaw=;
+	b=URFpKcM2HBF7Kcqlu3jc0EEoGikZumVcOlqvoTOddgUbmZPHkvf92ElHuIWHhCqB8qXmu3oP4
+	Hpi9tcEptmp7BiLwcbnVif10hfItsYWjuayiAlQCFGy5qivfFzvsGlU4ikJV7bkZ13AZLYUQQ3w
+	lqm/8jIXtrx5ncUqeXTlS7A=
+Received: from mail.maildlp.com (unknown [172.19.163.252])
+	by canpmsgout02.his.huawei.com (SkyGuard) with ESMTPS id 4cZx1Q1vxjzcbZX;
+	Mon, 29 Sep 2025 17:37:30 +0800 (CST)
 Received: from dggemv705-chm.china.huawei.com (unknown [10.3.19.32])
-	by mail.maildlp.com (Postfix) with ESMTPS id DF5D41800B1;
-	Mon, 29 Sep 2025 17:37:57 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id 651DD180B5F;
+	Mon, 29 Sep 2025 17:37:59 +0800 (CST)
 Received: from kwepemn100009.china.huawei.com (7.202.194.112) by
  dggemv705-chm.china.huawei.com (10.3.19.32) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Mon, 29 Sep 2025 17:37:57 +0800
+ 15.2.1544.11; Mon, 29 Sep 2025 17:37:59 +0800
 Received: from localhost.localdomain (10.50.165.33) by
  kwepemn100009.china.huawei.com (7.202.194.112) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Mon, 29 Sep 2025 17:37:56 +0800
+ 15.2.1544.11; Mon, 29 Sep 2025 17:37:58 +0800
 From: Huisong Li <lihuisong@huawei.com>
 To: <rafael@kernel.org>, <lenb@kernel.org>
 CC: <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
 	<Sudeep.Holla@arm.com>, <linuxarm@huawei.com>, <jonathan.cameron@huawei.com>,
 	<zhanjie9@hisilicon.com>, <zhenglifeng1@huawei.com>, <yubowen8@huawei.com>,
 	<lihuisong@huawei.com>
-Subject: [PATCH v1 5/9] ACPI: processor: idle: Add the verification of processor FFH LPI state
-Date: Mon, 29 Sep 2025 17:37:50 +0800
-Message-ID: <20250929093754.3998136-6-lihuisong@huawei.com>
+Subject: [PATCH v1 8/9] ACPI: processor: idle: Redefine setup idle functions to void
+Date: Mon, 29 Sep 2025 17:37:53 +0800
+Message-ID: <20250929093754.3998136-9-lihuisong@huawei.com>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20250929093754.3998136-1-lihuisong@huawei.com>
 References: <20250929093754.3998136-1-lihuisong@huawei.com>
@@ -60,44 +60,81 @@ Content-Type: text/plain
 X-ClientProxiedBy: kwepems100001.china.huawei.com (7.221.188.238) To
  kwepemn100009.china.huawei.com (7.202.194.112)
 
-Both ARM64 and RISCV architecture would validate Entry Method of LPI
-state and SBI HSM or PSCI cpu suspend. Driver should return failure
-if FFH of LPI state are not ok.
+Notice that the acpi_processor_setup_cpuidle_states() don't need to
+return any value because their callers don't check them anyway.
+In addition, acpi_processor_setup_lpi_states() wouldn't execute with
+failure. So redefine setup idle functions to void.
 
-Fixes: a36a7fecfe60 ("ACPI / processor_idle: Add support for Low Power Idle(LPI) states")
+No intentional functional impact.
+
 Signed-off-by: Huisong Li <lihuisong@huawei.com>
 ---
- drivers/acpi/processor_idle.c | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ drivers/acpi/processor_idle.c | 17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index 5684925338b3..b0d6b51ee363 100644
+index 2d672afc7498..9f456a6fa584 100644
 --- a/drivers/acpi/processor_idle.c
 +++ b/drivers/acpi/processor_idle.c
-@@ -1264,7 +1264,7 @@ static int acpi_processor_setup_cpuidle_dev(struct acpi_processor *pr,
- 
- 	dev->cpu = pr->id;
- 	if (pr->flags.has_lpi)
--		return acpi_processor_ffh_lpi_probe(pr->id);
-+		return 0;
- 
- 	return acpi_processor_setup_cpuidle_cx(pr, dev);
+@@ -1183,7 +1183,7 @@ static int acpi_idle_lpi_enter(struct cpuidle_device *dev,
+ 	return -EINVAL;
  }
-@@ -1275,7 +1275,13 @@ static int acpi_processor_get_power_info(struct acpi_processor *pr)
  
- 	ret = acpi_processor_get_lpi_info(pr);
- 	if (ret)
--		ret = acpi_processor_get_cstate_info(pr);
-+		return acpi_processor_get_cstate_info(pr);
-+
+-static int acpi_processor_setup_lpi_states(struct acpi_processor *pr)
++static void acpi_processor_setup_lpi_states(struct acpi_processor *pr)
+ {
+ 	int i;
+ 	struct acpi_lpi_state *lpi;
+@@ -1191,7 +1191,7 @@ static int acpi_processor_setup_lpi_states(struct acpi_processor *pr)
+ 	struct cpuidle_driver *drv = &acpi_idle_driver;
+ 
+ 	if (!pr->flags.has_lpi)
+-		return -EOPNOTSUPP;
++		return;
+ 
+ 	for (i = 0; i < pr->power.count && i < CPUIDLE_STATE_MAX; i++) {
+ 		lpi = &pr->power.lpi_states[i];
+@@ -1209,8 +1209,6 @@ static int acpi_processor_setup_lpi_states(struct acpi_processor *pr)
+ 	}
+ 
+ 	drv->state_count = i;
+-
+-	return 0;
+ }
+ 
+ /**
+@@ -1219,13 +1217,13 @@ static int acpi_processor_setup_lpi_states(struct acpi_processor *pr)
+  *
+  * @pr: the ACPI processor
+  */
+-static int acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
++static void acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
+ {
+ 	int i;
+ 	struct cpuidle_driver *drv = &acpi_idle_driver;
+ 
+ 	if (!pr->flags.power_setup_done || !pr->flags.power)
+-		return -EINVAL;
++		return;
+ 
+ 	drv->safe_state_index = -1;
+ 	for (i = ACPI_IDLE_STATE_START; i < CPUIDLE_STATE_MAX; i++) {
+@@ -1233,11 +1231,12 @@ static int acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
+ 		drv->states[i].desc[0] = '\0';
+ 	}
+ 
+-	if (pr->flags.has_lpi)
+-		return acpi_processor_setup_lpi_states(pr);
 +	if (pr->flags.has_lpi) {
-+		ret = acpi_processor_ffh_lpi_probe(pr->id);
-+		if (ret)
-+			pr_err("Processor FFH LPI state is invalid.\n");
++		acpi_processor_setup_lpi_states(pr);
++		return;
 +	}
  
- 	return ret;
+ 	acpi_processor_setup_cstates(pr);
+-	return 0;
  }
+ 
+ /**
 -- 
 2.33.0
 
