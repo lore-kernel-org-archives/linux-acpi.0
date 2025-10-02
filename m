@@ -1,204 +1,135 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f74.google.com (mail-ed1-f74.google.com [209.85.208.74])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D5C22C0323;
-	Thu,  2 Oct 2025 06:09:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5B0026A0A7
+	for <linux-acpi@vger.kernel.org>; Thu,  2 Oct 2025 11:34:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.74
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759385354; cv=none; b=KA5K4u8RYaclpwfoZH5lQQuaWmkMkCSsdVcmkB6W0uf0Xp70iC3RWR6ipxI1MN6KPfJb4QblcHQwqjjA9GDDal4LBDcOn+HMhrGZn2/uYyudIuM29yt1Clh7Ah6Ie3fgvL420sy3MS8uoG6z6nRBlbv4Jknc7WptGDfc/bNww6Y=
+	t=1759404850; cv=none; b=ZjAEaoiNJ/Qmc4oIIUPoGa1AEcDUPbHjB3iTPNFRcnOrpa6MYn66bHZFYPTcrzrbi5I9vN0rgC7Tkeorh7Rn0hHenILub6Y4RDVW3DcQ7kRp/AMR1bkPSAKfJychZPqpsks1ZVERMcSpeAlA+0HoSRyj03YGAH6WM1jlUEOHQgA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759385354; c=relaxed/simple;
-	bh=fNkw/IQQtNnzuv9dQTG2ARg+cQEkgDNqlGWH06R6VpI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=hwdjvnvGG2pLaam1NZohA6v59uYHYwPLWmtOornZv6qcfGdpPdUExHbHAICeFDFVgu0z2MOjR1ncZHpFhvVAq6plQNvxcUjztqUnzto4A+NpJoaXvTHRZfbQQpPg5nCVABhRr3GcpCVqd/uCzNVIna/fjSQsjhI4Yoljayun9TA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=bu/Uw0L6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759404850; c=relaxed/simple;
+	bh=OSzoS5rtTLi/B+hMV5Q0JgIBDtwwSwS8cCrabNTJlVo=;
+	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
+	 To:Cc:Content-Type; b=UnfoK1rAS/gL75JzXM0buzElYa5X6ehjdDfsHkgcKhqAV/t2aPu6X8dxGBftWghKs7LWSzPYvr39b+pamfbyO5qpUFn/icLmg4allZtSYgkpo75qfcDH1LbLNZ6X9bjp4WR8g8ooWiY4iol3M4EH9G6LdG5Ds7rnswn11CYX0io=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--srosek.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=hLlJpLf1; arc=none smtp.client-ip=209.85.208.74
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--srosek.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="bu/Uw0L6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 736A8C4CEF4;
-	Thu,  2 Oct 2025 06:09:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1759385354;
-	bh=fNkw/IQQtNnzuv9dQTG2ARg+cQEkgDNqlGWH06R6VpI=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=bu/Uw0L6HTODWONKgI99TPB447N8TC/wYAKWwERrY+yr6pfT+dHDIHlyN55nVsQSO
-	 oiqZhrHIkLUUAldiSPwrLifSG+8qa8JKRHnFQDEFkZ3PVsw0MoTY9okHLVjbiunn2S
-	 baFBHjwlrlJAIeOwsC9I9fUF+JAStfqKBP9wL7UM=
-Date: Thu, 2 Oct 2025 08:09:11 +0200
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Chris Li <chrisl@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>, Len Brown <lenb@kernel.org>,
-	linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org,
-	linux-acpi@vger.kernel.org, David Matlack <dmatlack@google.com>,
-	Pasha Tatashin <tatashin@google.com>,
-	Jason Miu <jasonmiu@google.com>, Vipin Sharma <vipinsh@google.com>,
-	Saeed Mahameed <saeedm@nvidia.com>,
-	Adithya Jayachandran <ajayachandra@nvidia.com>,
-	Parav Pandit <parav@nvidia.com>, William Tu <witu@nvidia.com>,
-	Mike Rapoport <rppt@kernel.org>, Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH v2 06/10] PCI/LUO: Save and restore driver name
-Message-ID: <2025100225-abridge-shifty-3d50@gregkh>
-References: <20250916-luo-pci-v2-6-c494053c3c08@kernel.org>
- <20250929175704.GK2695987@ziepe.ca>
- <CAF8kJuNfCG08FU=BmLtoh6+Z4V5vPHOMew9NMyCWQxJ=2MLfxg@mail.gmail.com>
- <CA+CK2bBFZn7EGOJakvQs3SX3i-b_YiTLf5_RhW_B4pLjm2WBuw@mail.gmail.com>
- <2025093030-shrewdly-defiant-1f3e@gregkh>
- <CA+CK2bDH=7H58kbwDM1zQ37uN_k61H_Fu8np1TjuG_uEVfT1oA@mail.gmail.com>
- <2025093052-resupply-unmixable-e9bb@gregkh>
- <CA+CK2bCBFZDsaEywbfCzDJrH3oXyMmSffV-x7bOs8qC7NT7nAg@mail.gmail.com>
- <2025100147-scrubbed-untold-fc55@gregkh>
- <CA+CK2bA0acjg-CEKufERu_ov4up3E4XTkJ6kbEDCny0iASrFVQ@mail.gmail.com>
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="hLlJpLf1"
+Received: by mail-ed1-f74.google.com with SMTP id 4fb4d7f45d1cf-6232f49fc79so912113a12.2
+        for <linux-acpi@vger.kernel.org>; Thu, 02 Oct 2025 04:34:08 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1759404847; x=1760009647; darn=vger.kernel.org;
+        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
+         :date:from:to:cc:subject:date:message-id:reply-to;
+        bh=Kt82+dwcyqqy/z3wY/WnDR+0tOJqjHYe0Y3q58yXyz0=;
+        b=hLlJpLf1LBpyxi1QHdOwLXUB0LjIP5F3rOJbd4A+jwmBoL1PdHLmRBg0BYOmbykquh
+         uGDNak7CUUS1dToS5LW3PU+iNWM+twOgH7ITW6xH/AgD3qmgph8H5Gfz+WEK8dHcsECc
+         YHElEXWihUiBuPeeZQNm8CfkYMvQMzHL4bSWp6wMWMSI1Y3FgfSSQuiIRlyGFQ6lwARA
+         2v4CnCkFuDAnls5n7ehtNmB0x6XRmi+k0zHRcaWRh0ushvU6fbHdCTOLllSbbEYI3QlO
+         JF9tURnRyghVZefw6o97C4EWewyAEoQr7JphNoS5x2mohNwwdUsmx68k150O+gOenYnS
+         c8kg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1759404847; x=1760009647;
+        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
+         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=Kt82+dwcyqqy/z3wY/WnDR+0tOJqjHYe0Y3q58yXyz0=;
+        b=NzI+c4WFmpHXaS9aA41jnRUS0ULcMOblRC1L3k0CseiSs6bLZM+rvnd5lEtzIZd1Vl
+         +IyEU9qAs+O3wttYLf+GdzARjQlLw1B03z/PemE0YThqJndNQwbxgM2IrgeGW3IzXqQB
+         YHC6lEbxGi7H2hKlB2cC7k54/CYqSh5ZbH3gl32oxUGlehGKK5+lBna/4O9I0C3HvTW6
+         wY9nA/yRrvVErXF2GccEeUP01/imV1QrEipw8PxofHWoDPq22Yo0y2zsM7K1H+OSzUSf
+         T4CjRqILtbB8WEdSZMHewuqQk3MPlE38NOtcz1FTyOuXLy+JWoIp/53xQjckfVqMhbah
+         A2Bg==
+X-Forwarded-Encrypted: i=1; AJvYcCUuH0F9xVZ/p74qcqFCEmL8ZhncXCSGFAxfqONqkjgp2ff+dNuLlXCyzwXV0BWMnQB9R/hiUHIBo+dA@vger.kernel.org
+X-Gm-Message-State: AOJu0YxqCk/somxF2wW/AsK77slsK1E+3xlMAATr8ioLlZkB2on+StpN
+	Nz8rOUaJ47HPYwLKW/s5LGJbF53NIXhplj/zvPm4yzLW2iHBmvUyx/8QF/lGPY3TqfLAOVyzVwi
+	1P6jZHQ==
+X-Google-Smtp-Source: AGHT+IE+4068072UB8enIKGqreBK+V8kMqDIEgu9uXCRHP5CJrH3i0Dac1P6YuynTCl4M7Vi7LVvL4CfTWc=
+X-Received: from edsf20.prod.google.com ([2002:aa7:d854:0:b0:62f:c143:5d77])
+ (user=srosek job=prod-delivery.src-stubby-dispatcher) by 2002:aa7:c60c:0:b0:634:bc7b:440e
+ with SMTP id 4fb4d7f45d1cf-63678c9f531mr6099293a12.36.1759404847361; Thu, 02
+ Oct 2025 04:34:07 -0700 (PDT)
+Date: Thu,  2 Oct 2025 11:33:59 +0000
+In-Reply-To: <20251002113404.3117429-1-srosek@google.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CA+CK2bA0acjg-CEKufERu_ov4up3E4XTkJ6kbEDCny0iASrFVQ@mail.gmail.com>
+Mime-Version: 1.0
+References: <20251002113404.3117429-1-srosek@google.com>
+X-Mailer: git-send-email 2.51.0.618.g983fd99d29-goog
+Message-ID: <20251002113404.3117429-2-srosek@google.com>
+Subject: [PATCH v3 1/6] ACPI: DPTF: Ignore SoC DTS thermal while scanning
+From: Slawomir Rosek <srosek@google.com>
+To: "Rafael J . Wysocki" <rafael@kernel.org>, Alex Hung <alexhung@gmail.com>, 
+	Hans de Goede <hansg@kernel.org>, Ilpo Jarvinen <ilpo.jarvinen@linux.intel.com>, 
+	AceLan Kao <acelan.kao@canonical.com>, Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Zhang Rui <rui.zhang@intel.com>, 
+	Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Tomasz Nowicki <tnowicki@google.com>, 
+	Stanislaw Kardach <skardach@google.com>, Michal Krawczyk <mikrawczyk@google.com>, 
+	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, 
+	platform-driver-x86@vger.kernel.org, linux-pm@vger.kernel.org, 
+	Slawomir Rosek <srosek@google.com>
+Content-Type: text/plain; charset="UTF-8"
 
-On Wed, Oct 01, 2025 at 05:03:19PM -0400, Pasha Tatashin wrote:
-> On Wed, Oct 1, 2025 at 1:06 AM Greg Kroah-Hartman
-> > On Tue, Sep 30, 2025 at 11:56:58AM -0400, Pasha Tatashin wrote:
-> > > > > A driver that preserves state across a reboot already has an implicit
-> > > > > contract with its future self about that data's format. The GUID
-> > > > > simply makes that contract explicit and machine-checkable. It does not
-> > > > > have to be GUID, but nevertheless there has to be a specific contract.
-> > > >
-> > > > So how are you going to "version" these GUID?  I see you use "schema Vx"
-> > >
-> > > Driver developer who changes a driver to support live-update.
-> >
-> > I do not understand this response, sorry.
-> 
-> Sorry for the confusion, I misunderstood your question. I thought you
-> were asking who would add a new field to a driver. My answer was that
-> it would be the developer who is adding support for the Live Update
-> feature to that specific driver.
-> I now realize you were asking about how the GUID would be versioned.
-> Using a GUID was just one of several ideas. My main point is that we
-> need some form of versioned compatibility identifier, whether it's a
-> string or a number. This would allow the system to verify that the new
-> driver can understand the preserved data for this device from the
-> previous kernel before it binds to the device.
+The Intel SoC DTS thermal driver on Baytrail platform uses IRQ 86 for
+critical overheating notification. The IRQ 86 is described in the _CRS
+control method of INT3401 device, thus Intel SoC DTS thermal driver
+requires INT3401 device to be enumerated.
 
-Again, "versioned" identifiers will not work over time as you can never
-drop old versions, AND a driver author does not know if the underlying
-structures that are outside of the driver have changed or not, nor if
-the compiler settings have changed, or anything else that could affect
-it like that have changed.
+Since dependency on INT3401 device is unrelated to DPTF the IS_ENABLE()
+macro is removed from ACPI DPTF INT340X scan handler, instead Kconfig
+is updated to ensure proper enumeration of INT3401 device.
 
-> > > > And when can you delete an old "schema"?  This feels like you are
-> > > > forcing future developers to maintain things "for forever"...
-> > >
-> > > This won't be an issue because of how live update support is planned.
-> > > The support model will be phased and limited:
-> > >
-> > > Initially, and for a while there will be no stability guarantees
-> > > between different kernel versions.
-> > > Eventually, we will support specific, narrow upgrade paths (e.g.,
-> > > minor-to-minor, or stable-A to stable-A+1).
-> > > Downgrades and arbitrary version jumps ("any-to-any") will not be
-> > > supported upstream. Since we only ever need to handle a well-defined
-> > > forward path, the code for old, irrelevant schemas can always be
-> > > removed. There is no "forever".
-> >
-> > This is kernel code, it is always "forever", sorry.
-> 
-> I'm sorry, but I don't quite understand what you mean. There is no
-> stable internal kernel API; the upstream tree is constantly evolving
-> with features being added, improved, and removed.
+Fixes: 014d9d5d0cc1 ("ACPI/int340x_thermal: enumerate INT3401 for Intel SoC DTS thermal driver")
+Signed-off-by: Slawomir Rosek <srosek@google.com>
+---
+ drivers/acpi/dptf/int340x_thermal.c | 7 +------
+ drivers/thermal/intel/Kconfig       | 3 ++-
+ 2 files changed, 3 insertions(+), 7 deletions(-)
 
-Yes, that is very true, but you can not remove user-visible
-functionality, which is what you are saying you are going to do here.
+diff --git a/drivers/acpi/dptf/int340x_thermal.c b/drivers/acpi/dptf/int340x_thermal.c
+index a222df059a16..947fe50c2ef6 100644
+--- a/drivers/acpi/dptf/int340x_thermal.c
++++ b/drivers/acpi/dptf/int340x_thermal.c
+@@ -11,10 +11,9 @@
+ 
+ #include "../internal.h"
+ 
+-#define INT3401_DEVICE 0X01
+ static const struct acpi_device_id int340x_thermal_device_ids[] = {
+ 	{"INT3400"},
+-	{"INT3401", INT3401_DEVICE},
++	{"INT3401"},
+ 	{"INT3402"},
+ 	{"INT3403"},
+ 	{"INT3404"},
+@@ -76,10 +75,6 @@ static int int340x_thermal_handler_attach(struct acpi_device *adev,
+ {
+ 	if (IS_ENABLED(CONFIG_INT340X_THERMAL))
+ 		acpi_create_platform_device(adev, NULL);
+-	/* Intel SoC DTS thermal driver needs INT3401 to set IRQ descriptor */
+-	else if (IS_ENABLED(CONFIG_INTEL_SOC_DTS_THERMAL) &&
+-		 id->driver_data == INT3401_DEVICE)
+-		acpi_create_platform_device(adev, NULL);
+ 	return 1;
+ }
+ 
+diff --git a/drivers/thermal/intel/Kconfig b/drivers/thermal/intel/Kconfig
+index e0268fac7093..f9e275538e29 100644
+--- a/drivers/thermal/intel/Kconfig
++++ b/drivers/thermal/intel/Kconfig
+@@ -44,7 +44,8 @@ config INTEL_SOC_DTS_IOSF_CORE
+ 
+ config INTEL_SOC_DTS_THERMAL
+ 	tristate "Intel SoCs DTS thermal driver"
+-	depends on X86 && PCI && ACPI
++	depends on X86_64 && PCI && ACPI
++	select INT340X_THERMAL
+ 	select INTEL_SOC_DTS_IOSF_CORE
+ 	help
+ 	  Enable this to register Intel SoCs (e.g. Bay Trail) platform digital
+-- 
+2.51.0.618.g983fd99d29-goog
 
-> > If you want "minor to minor" update, how is that going to work given
-> > that you do not add changes only to "minor" releases (that being the
-> > 6.12.y the "y" number).
-> 
-> You are correct. Initially, our plan is to allow live updates to break
-> between any kernel version.
-
-Then there is no such thing as live updates :)
-
-> However, it is my hope that we will
-> eventually stabilize this process and only allow breakages between,
-> for example, versions 6.n and 6.n+2, and eventually from one stable
-> release to stable+2. This would create a well-defined window for
-> safely removing deprecated data formats and the code that handles them
-> from the kernel.
-
-How are you going to define this?  We can not break old users when they
-upgrade, and so you are going to have to support this "upgrade path" for
-forever.
-
-> > Remember, Linux does not use "semantic versioning" as its release
-> > numbering is older than that scheme.  It just does "this version is
-> > newer than that version" and that's it.  You can't really take anything
-> > else from the number.
-> 
-> Understood. If that's the case, we could use stable releases as the
-> basis for defining when a live update can break.
-
-So every single release?
-
-> It would take longer
-> to achieve, but it is a possibility. These are the kinds of questions
-> that will be discussed at the LPC Liveupdate MC. If you are attending
-> LPC, I encourage you to join the discussion, as your thoughts on how
-> we can frame long-term live update support would be very valuable.
-
-I will be at LPC, but can't guarantee I can make it to that MC, it all
-depends on scheduling.
-
-> > And if this isn't for "upstream" at all, then why have it?  We can't add
-> > new features and support it if we can't actually use it and it's only
-> > for out-of-tree vendor kernels.
-> 
-> Our goal is to have full support in the upstream kernel. Downstream
-> users will then need to adapt live updates to their specific needs.
-> For example, if a live update from version A to version C is broken, a
-> downstream user would either have to update incrementally from A to B
-> and then to C, or they would have to internally fix whatever is
-> causing the breakage before performing the live update.
-
-What does "internally fix" mean exactly here?
-
-> > And how will you document properly a "well defined forward path"?  That
-> > should be done first, before you have any code here that we are
-> > reviewing.
-> 
-> Currently, and for the near future, live updates will only be
-> supported within the same kernel version.
-
-Ok, then no need for any GUID at all.  Just update and pray! :)
-
-> > Please do that, get people to agree on the idea and how it will work
-> > before asking us to review code.
-> 
-> This is an industry-wide effort. We have engineers from Amazon,
-> Google, Microsoft, Nvidia, and other companies meeting bi-weekly to
-> discuss Live Update support, and sending and landing patches upstream.
-> We are also organizing an LPC Live Update Micro Conference where the
-> versioning strategy will be a topic.
-> 
-> For now, we have agreed that the live update can break between and
-> kernel versions or with any commit while the feature is under active
-> development. This approach allows us the flexibility to build the core
-> functionality while we collaboratively define the long-term versioning
-> and stability model.
-
-Just keeping a device "alive" while rebooting into the same exact kernel
-image seems odd to me given that this is almost never what people
-actually do.  They update their kernel with the weekly stable release to
-get the new bugfixes (remember we fix 13 CVEs a day), and away you go.
-You are saying that this workload would not actually be supported, so
-why do you want live update at all?  Who needs this?
-
-thanks,
-
-greg k-h
