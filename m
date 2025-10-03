@@ -1,208 +1,117 @@
-Received: from pdx-out-006.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-006.esa.us-west-2.outbound.mail-perimeter.amazon.com [52.26.1.71])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A35FD1F63CD;
-	Fri,  3 Oct 2025 09:05:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=52.26.1.71
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 494811D88D0;
+	Fri,  3 Oct 2025 09:05:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.19
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759482339; cv=none; b=tIO3MRCpgJeeZn2LmN4j0cyOUr2CvbpOmFjVgojqvbJpum/GmlhXIiS5u0spFyAmzP6IOGoARRt+96U6Tt69HVSOCE8Q76HmnfSKJIxsuCNAZgEStDHACKinx67c2KglOSlTZFNV3hjnY0DOiLuAz3Zd1dAOyGWy38OgJthn4m8=
+	t=1759482357; cv=none; b=b2Q+gjf98gg0Ah8JPmGhFL6y5+lybreEFRPksRVEUWxEvGE8/kjW8YjvD0tMpSvDULQyOlxMlWDtQ2l+CZKhwOviBIABzzaCkMGIoT6WMDsLPpLIxlVZZgRCsOCYprGfY+LO+hL+pOm+g9ogCHQ4ONdrJytaGCl26W3gc7SHAxo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759482339; c=relaxed/simple;
-	bh=slLWGxQfls1x1S/FVs4FN7heJzZTdg6FH91JCzX11E8=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=ee91qfiJ7HxeN1QYWHY7tfWwR2B6/6NnHKWOgzA4dGiZuxBhq7K4uaD2EXUlZJZxIsk9hX7PHDUOiz0BBi3RbLaipXvfLB00+1g+R5P1Uc0aN7PH6Xn+pOxVRSJZ3+nk4JUN533oiTOsneDoh2zNmU63W83pAucMbBl8+MyKYac=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.de; spf=pass smtp.mailfrom=amazon.de; dkim=pass (2048-bit key) header.d=amazon.de header.i=@amazon.de header.b=qOKnudwI; arc=none smtp.client-ip=52.26.1.71
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.de
+	s=arc-20240116; t=1759482357; c=relaxed/simple;
+	bh=gefohxcrzzZYm62J79ROCkH82ZOaQJuYWgzpKFjrufs=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=p9KSAEMW7gr4m2mTUcCuX1l5tGoLVRezplAzdXECfWUTCuz7hVUECxw3wu+MITXE0dqGdPQ3oOoXSSYoNhf3Mdgs+aJJn3xTwTKIZbrfmk/GJKcZSooozNMbO4+g1u9MMICl0XfLOwEDFdfr7qXQrOOpOFr2hyxPt5oOewP57zQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=dnzQGQut; arc=none smtp.client-ip=192.198.163.19
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=amazon.de header.i=@amazon.de header.b="qOKnudwI"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=amazon.de; i=@amazon.de; q=dns/txt; s=amazoncorp2;
-  t=1759482337; x=1791018337;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=Tn0GQRVzT5fKEu1tgXMFMDyjYjbCRfljUqvSP9velpg=;
-  b=qOKnudwIPrdDIUOAh5v4VWsBOS4Hj/o4HIZYD2ZwvvRlHVteHuaimq7Y
-   ymaJ6Ryra6kk5FPwOwcEHSpwL2orjKA3i8364sEa1au7k3JdPl+VYXX9k
-   6INyBrT2OsYafJ1kbMO+sS4+outWCuLplZHV/6xNXILPcw1yuPm8OLD9j
-   jRvDCAkpSCxT1WFs4rCdM1PeKqWF50PLtYp1GHeg8tkFc/PU2ouKkJMJR
-   Rm9fUjPPmj3rPrVSFPq4jxFcY+M6N28YrTlHYqLR6FrQhY9q+mNa6cfq7
-   UCmRVBLB3HNQwvvUdWX2odTyKPoeGaNrjw/WX/C+Wrn8NCjHholGIVWbS
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="dnzQGQut"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1759482355; x=1791018355;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=gefohxcrzzZYm62J79ROCkH82ZOaQJuYWgzpKFjrufs=;
+  b=dnzQGQutnYFySwt3sp/l3OlnPP69A5Bqk2ThX3mPcTdZljaXiUQhCSZL
+   pAYsWLu30qE/VkOcLLtBTZWUhpNYqTrsajbMcolM8RJviY4uGWhaKtsXO
+   CL52eDdZ8NbBW1Al/X15lRKmASV/pW3Tn8I5RmotRcv9HHvBfcX/H+aji
+   9t1wFlIPjG+mBJnYNKUv131ieQGmOUf96h0eWHM1Rq6baofPEGRaQPcyh
+   VZpcf/2j2Y355g3YlrCWMbUvJwGrnUcfbv6W11dqh5B6moR4K61LXWYVq
+   IahdCmY9ESOjHUHvvZ96J6Gdu7+NHjHcYdhSZzB1GjZzU2vY1AndE9Bp7
    A==;
-X-CSE-ConnectionGUID: Dtu+UvqTT5SZjS6EPSHS9g==
-X-CSE-MsgGUID: zmyYvmr+Q7KbR3Erf9NvWw==
-X-IronPort-AV: E=Sophos;i="6.18,281,1751241600"; 
-   d="scan'208";a="4212893"
-Received: from ip-10-5-9-48.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.9.48])
-  by internal-pdx-out-006.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Oct 2025 09:05:37 +0000
-Received: from EX19MTAUWC002.ant.amazon.com [10.0.7.35:44698]
- by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.25.156:2525] with esmtp (Farcaster)
- id 9215df3b-2cb7-42da-a9b3-e947d8efb987; Fri, 3 Oct 2025 09:05:37 +0000 (UTC)
-X-Farcaster-Flow-ID: 9215df3b-2cb7-42da-a9b3-e947d8efb987
-Received: from EX19D001UWA001.ant.amazon.com (10.13.138.214) by
- EX19MTAUWC002.ant.amazon.com (10.250.64.143) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.20;
- Fri, 3 Oct 2025 09:05:36 +0000
-Received: from dev-dsk-epetron-1c-1d4d9719.eu-west-1.amazon.com
- (10.253.109.105) by EX19D001UWA001.ant.amazon.com (10.13.138.214) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.20; Fri, 3 Oct 2025
- 09:05:33 +0000
-From: Evangelos Petrongonas <epetron@amazon.de>
-To: Bjorn Helgaas <bhelgaas@google.com>, Alex Williamson
-	<alex.williamson@redhat.com>, "Rafael J . Wysocki" <rafael@kernel.org>, "Len
- Brown" <lenb@kernel.org>
-CC: Evangelos Petrongonas <epetron@amazon.de>, Pasha Tatashin
-	<pasha.tatashin@soleen.com>, David Matlack <dmatlack@google.com>, "Vipin
- Sharma" <vipinsh@google.com>, Chris Li <chrisl@kernel.org>, Jason Miu
-	<jasonmiu@google.com>, Pratyush Yadav <pratyush@kernel.org>, "Stanislav
- Spassov" <stanspas@amazon.de>, <linux-pci@vger.kernel.org>,
-	<linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<nh-open-source@amazon.com>
-Subject: [RFC PATCH 10/13] pci: pcsc: Use contiguous pages for the cache data
-Date: Fri, 3 Oct 2025 09:00:46 +0000
-Message-ID: <914285f708739992f14c16fb3be336c6e8afed52.1759312886.git.epetron@amazon.de>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <cover.1759312886.git.epetron@amazon.de>
-References: <cover.1759312886.git.epetron@amazon.de>
+X-CSE-ConnectionGUID: OQRvaHHnQEO9wplcqjJYNw==
+X-CSE-MsgGUID: WSziOiixQMmmqqTfnZPDSw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11570"; a="60801143"
+X-IronPort-AV: E=Sophos;i="6.18,312,1751266800"; 
+   d="scan'208";a="60801143"
+Received: from fmviesa001.fm.intel.com ([10.60.135.141])
+  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Oct 2025 02:05:53 -0700
+X-CSE-ConnectionGUID: 26GSf5U+SGeo9v4Gz4X99g==
+X-CSE-MsgGUID: NgK0KKJgTxaTXa84cPwZrA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.18,312,1751266800"; 
+   d="scan'208";a="210227998"
+Received: from black.igk.intel.com ([10.91.253.5])
+  by fmviesa001.fm.intel.com with ESMTP; 03 Oct 2025 02:05:51 -0700
+Received: by black.igk.intel.com (Postfix, from userid 1001)
+	id 6B68395; Fri, 03 Oct 2025 11:05:50 +0200 (CEST)
+Date: Fri, 3 Oct 2025 11:05:50 +0200
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+To: Markus Probst <markus.probst@posteo.de>
+Cc: Linus Walleij <linus.walleij@linaro.org>,
+	Bartosz Golaszewski <brgl@bgdev.pl>,
+	Mika Westerberg <westeri@kernel.org>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] gpio: of: make it possible to reference gpios probed in
+ acpi in device tree
+Message-ID: <20251003090550.GC2912318@black.igk.intel.com>
+References: <20251002215759.1836706-1-markus.probst@posteo.de>
+ <20251003045431.GA2912318@black.igk.intel.com>
+ <940aad63e18a1415983a9b8f5e206f26a84c0299.camel@posteo.de>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-ClientProxiedBy: EX19D039UWB001.ant.amazon.com (10.13.138.119) To
- EX19D001UWA001.ant.amazon.com (10.13.138.214)
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <940aad63e18a1415983a9b8f5e206f26a84c0299.camel@posteo.de>
 
-This patch refactors PCSC to use a single contiguous memory block for
-all per-device data. This improves memory allocation efficiency.
+On Fri, Oct 03, 2025 at 08:44:12AM +0000, Markus Probst wrote:
+> On Fri, 2025-10-03 at 06:54 +0200, Mika Westerberg wrote:
+> > Hi,
+> > 
+> > On Thu, Oct 02, 2025 at 09:58:05PM +0000, Markus Probst wrote:
+> > > sometimes it is necessary to use both acpi and device tree to
+> > > declare
+> > > devices. Not every gpio device driver which has an acpi_match_table
+> > > has
+> > > an of_match table (e.g. amd-pinctrl). Furthermore gpio is an device
+> > > which
+> > > can't be easily disabled in acpi and then redeclared in device
+> > > tree, as
+> > > it often gets used by other devices declared in acpi (e.g. via
+> > > GpioInt or
+> > > GpioIo). Thus a disable of acpi and migration to device tree is not
+> > > always
+> > > possible or very time consuming, while acpi by itself is very
+> > > limited and
+> > > not always sufficient. This won't affect most configurations, as
+> > > most of
+> > > the time either CONFIG_ACPI or CONFIG_OF gets enabled, not both.
+> > 
+> > Can you provide a real example where this kind of mixup can happen?
+> In my specific usecase for the Synology DS923+, there are gpios for
+> powering the usb vbus on (powered down by default), also for powering
+> on sata disks. (defining a fixed-regulator for the usb vbus for
+> example)
 
-This is a preparatory step for KHO persistence support, as it is easier
-to manipulate physically continuous pages.
+Okay regulators are Power Resources in ACPI.
 
-Signed-off-by: Evangelos Petrongonas <epetron@amazon.de>
----
- drivers/pci/pcsc.c   | 28 ++++++++++++++++++++++++----
- include/linux/pcsc.h | 32 ++++++++++++++++++++++++++++++--
- 2 files changed, 54 insertions(+), 6 deletions(-)
+> > The
+> > ACPI ID PRP0001 specifically was added to allow using DT bindings in
+> > ACPI
+> > based systems.
+> Hmm, would requiring patching of the acpi tables. Not sure if it would
+> work with the fixed-regulator though, as it uses dev->of_node instead
+> of dev->fwnode. I will try to see if I can make it work this way.
 
-diff --git a/drivers/pci/pcsc.c b/drivers/pci/pcsc.c
-index 304239b7ff8a..18d508f76649 100644
---- a/drivers/pci/pcsc.c
-+++ b/drivers/pci/pcsc.c
-@@ -725,6 +725,7 @@ int pcsc_add_device(struct pci_dev *dev)
- {
- 	struct pcsc_node *node;
- 	struct pci_bus *bus;
-+	size_t data_size;
- 
- 	if (WARN_ON(!dev))
- 		return -EINVAL;
-@@ -741,12 +742,27 @@ int pcsc_add_device(struct pci_dev *dev)
- 	 * nodes for these devices, as it simplifies the code flow
- 	 */
- 	if (dev->hdr_type == PCI_HEADER_TYPE_NORMAL) {
--		dev->pcsc->cfg_space = kzalloc(PCSC_CFG_SPC_SIZE, GFP_KERNEL);
--		if (!dev->pcsc->cfg_space)
-+		/* Allocate contiguous, page aligned data block. This will be
-+		 * needed for persisting the data with KHO.
-+		 */
-+		data_size = sizeof(struct pcsc_data);
-+
-+		dev->pcsc->data =
-+			(struct pcsc_data *)__get_free_pages(
-+				GFP_KERNEL | __GFP_ZERO, get_order(data_size));
-+		if (!dev->pcsc->data)
-+
- 			goto err_free_node;
- 
-+		dev->pcsc->cachable_bitmask = dev->pcsc->data->cachable_bitmask;
-+		dev->pcsc->cached_bitmask = dev->pcsc->data->cached_bitmask;
-+		dev->pcsc->cfg_space = dev->pcsc->data->cfg_space;
-+
- 		infer_cacheability(dev);
- 	} else {
-+		dev->pcsc->data = NULL;
-+		dev->pcsc->cachable_bitmask = NULL;
-+		dev->pcsc->cached_bitmask = NULL;
- 		dev->pcsc->cfg_space = NULL;
- 	}
- 
-@@ -771,8 +787,12 @@ int pcsc_remove_device(struct pci_dev *dev)
- 
- 	atomic_dec(&num_nodes);
- 
--	if (dev->pcsc && dev->pcsc->cfg_space) {
--		kfree(dev->pcsc->cfg_space);
-+	if (dev->pcsc && dev->pcsc->data) {
-+		size_t data_size = sizeof(struct pcsc_data);
-+		size_t total_size = PAGE_ALIGN(data_size);
-+
-+		free_pages((unsigned long)dev->pcsc->data,
-+			get_order(total_size));
- 		kfree(dev->pcsc);
- 	}
- 	dev->pcsc = NULL;
-diff --git a/include/linux/pcsc.h b/include/linux/pcsc.h
-index 85471273c0a9..88894f641257 100644
---- a/include/linux/pcsc.h
-+++ b/include/linux/pcsc.h
-@@ -18,12 +18,40 @@
- #define PCSC_CFG_SPC_SIZE 256
- #endif
- 
--struct pcsc_node {
--	u8 *cfg_space;
-+/*
-+ * struct pcsc__data - Continuous data block for PCSC
-+ *
-+ * This structure contains all the PCSC data in a single continuous
-+ * memory block.
-+ *
-+ * @cfg_space: Configuration space cache
-+ * @cachable_bitmask: Bitmap of cacheable configuration space offsets
-+ * @cached_bitmask: Bitmap of cached configuration space offsets
-+ */
-+struct pcsc_data {
-+	u8 cfg_space[PCSC_CFG_SPC_SIZE];
- 	DECLARE_BITMAP(cachable_bitmask, PCSC_CFG_SPC_SIZE);
- 	DECLARE_BITMAP(cached_bitmask, PCSC_CFG_SPC_SIZE);
- };
- 
-+/*
-+ * struct pcsc_node - PCSC node structure
-+ *
-+ * This structure represents a PCSC node for a PCI device.
-+ * It contains pointers into the data block for convenient access.
-+ *
-+ * @data: Pointer to the continuous data block
-+ * @cachable_bitmask: Pointer to cachable_bitmask in data
-+ * @cached_bitmask: Pointer to cached_bitmask in data
-+ * @cfg_space: Pointer to cfg_space in data
-+ */
-+struct pcsc_node {
-+	struct pcsc_data *data; /* Pointer to continuous data block */
-+	unsigned long *cachable_bitmask; /* Convenience pointer into data */
-+	unsigned long *cached_bitmask; /* Convenience pointer into data */
-+	u8 *cfg_space; /* Convenience pointer into data */
-+};
-+
- /**
-  * pcsc_hw_config_read - Direct hardware PCI config space read
-  * @bus: PCI bus
--- 
-2.47.3
+I think you can do this by using SSDT overlays instead of patching the
+tables:
 
+https://docs.kernel.org/admin-guide/acpi/ssdt-overlays.html
 
-
-
-Amazon Web Services Development Center Germany GmbH
-Tamara-Danz-Str. 13
-10243 Berlin
-Geschaeftsfuehrung: Christian Schlaeger
-Eingetragen am Amtsgericht Charlottenburg unter HRB 257764 B
-Sitz: Berlin
-Ust-ID: DE 365 538 597
-
+There is configfs interface too.
