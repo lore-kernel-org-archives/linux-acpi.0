@@ -1,46 +1,46 @@
-Received: from mout.gmx.net (mout.gmx.net [212.227.15.19])
+Received: from mout.gmx.net (mout.gmx.net [212.227.15.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 726B725F984;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72D2525F98A;
 	Tue,  7 Oct 2025 23:42:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.15.19
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.15.15
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759880532; cv=none; b=JR4pUlJI1McH9uVSO+TOESLMssLpl+1nzbpt5HtIwxlxwWC8Ck0GbZsZHA3K48eakIBOi3ZDvqKSvN6lA98KPIeBHzJuCT4C/N7UxYE0Q6s0sajtkZRhgArd5sDbxqDjBscMQgYBOT+SJN3OHOGbUUK3EXP7hN7aWDJ84nnHPEg=
+	t=1759880532; cv=none; b=WkCs2AdPSrcGrnnu1oPDUX40wD871jcMFRTAH8IKTJMvPoKbqMFaO366iRuQ1+uRrmrnHW2HrJHHaTvdIKQ90k0sEQYOsB/8nn1+6MzJPMdywSdTGh4xBmbNi3Z7x6Z1P8Ct7MKJ4vXgNsf1zZrxU3D3SN4qSaze2Orp+telvAw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1759880532; c=relaxed/simple;
-	bh=MlHP0jd+Gi1z2ooUPOaFjRaMw+08hV/BrOOkBN8UX5w=;
+	bh=1gewzFUeozQRrp9by7G5vfkOX4mluF03Eza2u5ZlQGg=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=KS6NHja++cAkXABukFpSADdkr4EM9bNeH8BPlC9WCu8Se7rx3jt+xYANH9I5o1Ux+ZetgfEjWKo1oS1L5/16bsmOu9lGgWCFoJbZKWGw54n8pe6jHw0y7NNg8ScigpgnuBNEZ0d0ITlD+o1XECns+iTR0o1w71rs6IU+9O+NtvI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de; spf=pass smtp.mailfrom=gmx.de; dkim=pass (2048-bit key) header.d=gmx.de header.i=w_armin@gmx.de header.b=XxTAtHqP; arc=none smtp.client-ip=212.227.15.19
+	 MIME-Version; b=DsPhcCh1+FLO0FxQDDnGRyEaO5pKRgTR+ZS9fqmrxmSGZr1toAv/bi/rMJtaBfk4Lre7XJVdef5BNiwE55A9xF4vHvUKAHTnYZwmusmLx3lLvo7OV+/SJDmKjcgyTOhSZLPkp6zAPuImfLUtjuGtBrZowDFdWjvazEV1T08dpew=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de; spf=pass smtp.mailfrom=gmx.de; dkim=pass (2048-bit key) header.d=gmx.de header.i=w_armin@gmx.de header.b=s8nEu0TS; arc=none smtp.client-ip=212.227.15.15
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmx.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmx.de header.i=w_armin@gmx.de header.b="XxTAtHqP"
+	dkim=pass (2048-bit key) header.d=gmx.de header.i=w_armin@gmx.de header.b="s8nEu0TS"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmx.de;
-	s=s31663417; t=1759880524; x=1760485324; i=w_armin@gmx.de;
-	bh=bWLZsCK16J6VPDI6PSn/FWwhJiH9UOgcLVn6IdHq3lk=;
+	s=s31663417; t=1759880528; x=1760485328; i=w_armin@gmx.de;
+	bh=S4K9stc6lMr6tgMnCdQOnOEui0CIPld+7r+U6B5DDKc=;
 	h=X-UI-Sender-Class:From:To:Cc:Subject:Date:Message-Id:In-Reply-To:
 	 References:MIME-Version:Content-Transfer-Encoding:cc:
 	 content-transfer-encoding:content-type:date:from:message-id:
 	 mime-version:reply-to:subject:to;
-	b=XxTAtHqPEiZSLDv1Fq74sm75EC4zyPESkKpYydApQSLlLlle73M361MIUi49c4/R
-	 NkZaDFBylI30oulV+Bo96owKrky4w8AJUVQZ5bME7CglhAxC4+/xnZc09TzSpQJbG
-	 rQI71J6XOrnoGrWxhZjbQQghQYc1n4rH9pge/Gicj2zbjIpas0Ge01QmnupyXMdJm
-	 TrZScvWFs3P8y0KccFV3UhtWDaIG8sW250Mlg/6LBa2oISDSd520ho+gvacr5NxHd
-	 OkU/619l4AdHvxSDn2JorY88ycgoUpjcQaOqNOGuYXBGqfnR0ZwMItzD9ISBiT2nx
-	 9JhFzYoT5QdoDGLgfQ==
+	b=s8nEu0TSRQmJK95piBK1sp6uGtjq1EcmBmaIXljhR9+YmNwhZIXqNgBZrmgTaplN
+	 KHaKai4b2R5gq/aBL7NfA67p4/aqrm0bfbpsXEOsDPkr2tjnf8pYdWxSN5je8XG4o
+	 8jmDPqr5WWLjZUzi2d9xRD0ITeHvwGd8bUguE5+/Dz+S7znkWRQrowYJ0qwYPSqvQ
+	 h7DkS7GyMT+MgqO0sd0eNnBRB30E43yKQTc23SiAvufl2gqLtH9a0MKTQ4ZKLLdaN
+	 m7Pxwh2sCQ0BjWpPCFUWKdQ0uxvTpVCJ7a2MLtNGo5ueVkLaQtwuSfM/NKI7DKshb
+	 htrd2Uyq/4VildojMg==
 X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
 Received: from mx-amd-b650.fritz.box ([93.202.247.91]) by mail.gmx.net
- (mrgmx004 [212.227.17.190]) with ESMTPSA (Nemesis) id
- 1MjjCL-1uQaut1OHr-00og63; Wed, 08 Oct 2025 01:42:04 +0200
+ (mrgmx005 [212.227.17.190]) with ESMTPSA (Nemesis) id
+ 1N7QxL-1uBpBl1Mi5-012u8G; Wed, 08 Oct 2025 01:42:08 +0200
 From: Armin Wolf <W_Armin@gmx.de>
 To: rafael@kernel.org,
 	lenb@kernel.org
 Cc: linux-acpi@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH v2 3/6] ACPI: fan: Use platform device for devres-related actions
-Date: Wed,  8 Oct 2025 01:41:46 +0200
-Message-Id: <20251007234149.2769-4-W_Armin@gmx.de>
+Subject: [PATCH v2 6/6] ACPI: fan: Add support for Microsoft fan extensions
+Date: Wed,  8 Oct 2025 01:41:49 +0200
+Message-Id: <20251007234149.2769-7-W_Armin@gmx.de>
 X-Mailer: git-send-email 2.39.5
 In-Reply-To: <20251007234149.2769-1-W_Armin@gmx.de>
 References: <20251007234149.2769-1-W_Armin@gmx.de>
@@ -51,158 +51,373 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
-X-Provags-ID: V03:K1:CwqvnkJRmHarAWAcnGW1kSunDZpCEUCSkDS5bSJrEspbdNpC+rZ
- XUZWxKmvhCnkT07yDzjxFtWBQBxQ72TR7bkjzcYQyrozt2T7yuWiQk/ApQMry5lW+aGOya2
- du3+cgNuKUldhEBSPv+ie04PrbRZBpDft+0yoiSODYc9lqM0NNcG0eRJjj1BP5o0snPkyNm
- YVn1I7eaRVzKElTTmmtcg==
+X-Provags-ID: V03:K1:rZ3nuObzQogc3HGq50lw3jpGqknp51OCxMaXV1WFQx/PgYv3y/8
+ TDMxoOXfrUr7k7v2d2RIXzNM9l08vQ3SU26sAbXBrQ5JSYEwZGdeQvDg2pkUyG7ap5Dkopl
+ eacr2EL1zhnVvZoddyNuI//dkBf/vjJWAhX9lwVrniP71Wj0SL8ynXBToOo+T1KKLreIxS3
+ 4oQiBoZ5qQ5qCbUiRPpaA==
 X-Spam-Flag: NO
-UI-OutboundReport: notjunk:1;M01:P0:th76yd9AJ/U=;bYVlvmZvjrejEO/ZLKdqmqpWplO
- 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
+UI-OutboundReport: notjunk:1;M01:P0:g25Ag4wUxjA=;neuTPSj7pbWFVJYHnvCyfZ2iTho
+ 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
+ HKNmU+qz1ETgPwHEc=
 
-Device-managed resources are cleaned up when the driver unbinds from
-the underlying device. In our case this is the platform device as this
-driver is a platform driver. Registering device-managed resources on
-the associated ACPI device will thus result in a resource leak when
-this driver unbinds.
+Microsoft has designed a set of extensions for the ACPI fan device
+allowing the OS to specify a set of fan speed trip points. The
+platform firmware will then notify the ACPI fan device when one
+of the trip points is triggered.
 
-Ensure that any device-managed resources are only registered on the
-platform device to ensure that they are cleaned up during removal.
+Unfortunatly, some device manufacturers (like HP) blindly assume
+that the OS will use said extensions and thus only update the values
+returned by the _FST control method when receiving such a
+notification. As a result the ACPI fan driver is currently unusable
+on such machines, always reporting a constant value.
 
-Fixes: 35c50d853adc ("ACPI: fan: Add hwmon support")
+Fix this by adding support for the Microsoft extensions. During probe
+and when resuming from suspend the driver will attempt to trigger an
+initial notification that will update the values returned by _FST.
+Said trip points will be updated each time a notification is received
+from the platform firmware to ensure that the values returned by
+the _FST control method are updated.
+
+Closes: https://github.com/lm-sensors/lm-sensors/issues/506
 Signed-off-by: Armin Wolf <W_Armin@gmx.de>
 =2D--
- drivers/acpi/fan.h       | 4 ++--
- drivers/acpi/fan_core.c  | 2 +-
- drivers/acpi/fan_hwmon.c | 8 ++++----
- 3 files changed, 7 insertions(+), 7 deletions(-)
+ drivers/acpi/fan.h      |   2 +
+ drivers/acpi/fan_core.c | 169 +++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 169 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/acpi/fan.h b/drivers/acpi/fan.h
-index 022bc215cdbc..0d73433c3889 100644
+index dcc1ad3118ff..f85f9a0fbfcd 100644
 =2D-- a/drivers/acpi/fan.h
 +++ b/drivers/acpi/fan.h
-@@ -98,9 +98,9 @@ int acpi_fan_create_attributes(struct acpi_device *devic=
-e);
- void acpi_fan_delete_attributes(struct acpi_device *device);
-=20
+@@ -56,6 +56,8 @@ struct acpi_fan {
+ 	struct acpi_fan_fif fif;
+ 	struct acpi_fan_fps *fps;
+ 	int fps_count;
++	/* A value of 0 means that trippoint-related functions are not supported=
+ */
++	u32 fan_trip_granularity;
  #if IS_REACHABLE(CONFIG_HWMON)
--int devm_acpi_fan_create_hwmon(struct acpi_device *device);
-+int devm_acpi_fan_create_hwmon(struct device *dev);
- #else
--static inline int devm_acpi_fan_create_hwmon(struct acpi_device *device) =
-{ return 0; };
-+static inline int devm_acpi_fan_create_hwmon(struct device *dev) { return=
- 0; };
- #endif
-=20
+ 	struct device *hdev;
  #endif
 diff --git a/drivers/acpi/fan_core.c b/drivers/acpi/fan_core.c
-index ea2c646c470c..46e7fe7a506d 100644
+index 7be22c52670c..cfef767d3459 100644
 =2D-- a/drivers/acpi/fan_core.c
 +++ b/drivers/acpi/fan_core.c
-@@ -347,7 +347,7 @@ static int acpi_fan_probe(struct platform_device *pdev=
-)
+@@ -7,11 +7,16 @@
+  *  Copyright (C) 2022 Intel Corporation. All rights reserved.
+  */
+=20
++#include <linux/bits.h>
+ #include <linux/kernel.h>
++#include <linux/limits.h>
++#include <linux/math.h>
++#include <linux/math64.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/types.h>
+ #include <linux/uaccess.h>
++#include <linux/uuid.h>
+ #include <linux/thermal.h>
+ #include <linux/acpi.h>
+ #include <linux/platform_device.h>
+@@ -21,6 +26,20 @@
+=20
+ #define ACPI_FAN_NOTIFY_STATE_CHANGED	0x80
+=20
++static const guid_t acpi_fan_microsoft_guid =3D GUID_INIT(0xA7611840, 0x9=
+9FE, 0x41AE, 0xA4, 0x88,
++							0x35, 0xC7, 0x59, 0x26, 0xC8, 0xEB);
++#define ACPI_FAN_DSM_GET_TRIP_POINT_GRANULARITY 1
++#define ACPI_FAN_DSM_SET_TRIP_POINTS		2
++#define ACPI_FAN_DSM_GET_OPERATING_RANGES	3
++
++/*
++ * Ensures that fans with a very low trip point granularity
++ * do not send too many notifications.
++ */
++static uint min_trip_distance =3D 100;
++module_param(min_trip_distance, uint, 0);
++MODULE_PARM_DESC(min_trip_distance, "Minimum distance between fan speed t=
+rip points in RPM");
++
+ static const struct acpi_device_id fan_device_ids[] =3D {
+ 	ACPI_FAN_DEVICE_IDS,
+ 	{"", 0},
+@@ -310,6 +329,131 @@ static int acpi_fan_get_fps(struct acpi_device *devi=
+ce)
+ 	return status;
+ }
+=20
++static int acpi_fan_dsm_init(struct device *dev)
++{
++	union acpi_object dummy =3D {
++		.package =3D {
++			.type =3D ACPI_TYPE_PACKAGE,
++			.count =3D 0,
++			.elements =3D NULL,
++		},
++	};
++	struct acpi_fan *fan =3D dev_get_drvdata(dev);
++	union acpi_object *obj;
++	int ret =3D 0;
++
++	if (!acpi_check_dsm(fan->handle, &acpi_fan_microsoft_guid, 0,
++			    BIT(ACPI_FAN_DSM_GET_TRIP_POINT_GRANULARITY) |
++			    BIT(ACPI_FAN_DSM_SET_TRIP_POINTS)))
++		return 0;
++
++	dev_info(dev, "Using Microsoft fan extensions\n");
++
++	obj =3D acpi_evaluate_dsm_typed(fan->handle, &acpi_fan_microsoft_guid, 0=
+,
++				      ACPI_FAN_DSM_GET_TRIP_POINT_GRANULARITY, &dummy,
++				      ACPI_TYPE_INTEGER);
++	if (!obj)
++		return -EIO;
++
++	if (obj->integer.value > U32_MAX)
++		ret =3D -EOVERFLOW;
++	else
++		fan->fan_trip_granularity =3D obj->integer.value;
++
++	kfree(obj);
++
++	return ret;
++}
++
++static int acpi_fan_dsm_set_trip_points(struct device *dev, u64 upper, u6=
+4 lower)
++{
++	union acpi_object args[2] =3D {
++		{
++			.integer =3D {
++				.type =3D ACPI_TYPE_INTEGER,
++				.value =3D lower,
++			},
++		},
++		{
++			.integer =3D {
++				.type =3D ACPI_TYPE_INTEGER,
++				.value =3D upper,
++			},
++		},
++	};
++	struct acpi_fan *fan =3D dev_get_drvdata(dev);
++	union acpi_object in =3D {
++		.package =3D {
++			.type =3D ACPI_TYPE_PACKAGE,
++			.count =3D ARRAY_SIZE(args),
++			.elements =3D args,
++		},
++	};
++	union acpi_object *obj;
++
++	obj =3D acpi_evaluate_dsm(fan->handle, &acpi_fan_microsoft_guid, 0,
++				ACPI_FAN_DSM_SET_TRIP_POINTS, &in);
++	kfree(obj);
++
++	return 0;
++}
++
++static int acpi_fan_dsm_start(struct device *dev)
++{
++	struct acpi_fan *fan =3D dev_get_drvdata(dev);
++	int ret;
++
++	if (!fan->fan_trip_granularity)
++		return 0;
++
++	/*
++	 * Some firmware implementations only update the values returned by the
++	 * _FST control method when a notification is received. This usually wor=
+ks
++	 * with Microsoft Windows as setting up trip points will keep triggering
++	 * said notifications, but will cause issues when using _FST without the
++	 * Microsoft-specific trip point extension.
++	 *
++	 * Because of this we have to ensure that an initial notification is tri=
+ggered
++	 * to start the cycle of trip points updates. We achive this by setting =
+the trip
++	 * points sequencially to two separate ranges. As by the Microsoft speci=
+fication
++	 * the firmware should trigger a notification immediately if the fan spe=
+ed is outside
++	 * of the trip point range. This _should_ result in at least one notific=
+ation as both
++	 * ranges do not overlap, meaning that the current fan speed needs to be=
+ outside of
++	 * at least one range.
++	 */
++	ret =3D acpi_fan_dsm_set_trip_points(dev, fan->fan_trip_granularity, 0);
++	if (ret < 0)
++		return ret;
++
++	return acpi_fan_dsm_set_trip_points(dev, fan->fan_trip_granularity * 3,
++					    fan->fan_trip_granularity * 2);
++}
++
++static int acpi_fan_dsm_update_trips_points(struct device *dev, struct ac=
+pi_fan_fst *fst)
++{
++	struct acpi_fan *fan =3D dev_get_drvdata(dev);
++	u64 upper, lower;
++
++	if (!fan->fan_trip_granularity)
++		return 0;
++
++	if (!acpi_fan_speed_valid(fst->speed))
++		return -EINVAL;
++
++	upper =3D roundup_u64(fst->speed + min_trip_distance, fan->fan_trip_gran=
+ularity);
++	if (fst->speed <=3D min_trip_distance) {
++		lower =3D 0;
++	} else {
++		/*
++		 * Valid fan speed values cannot be larger than 32 bit, so
++		 * we can safely assume that no overflow will happen here.
++		 */
++		lower =3D rounddown((u32)fst->speed - min_trip_distance, fan->fan_trip_=
+granularity);
++	}
++
++	return acpi_fan_dsm_set_trip_points(dev, upper, lower);
++}
++
+ static void acpi_fan_notify_handler(acpi_handle handle, u32 event, void *=
+context)
+ {
+ 	struct device *dev =3D context;
+@@ -323,8 +467,13 @@ static void acpi_fan_notify_handler(acpi_handle handl=
+e, u32 event, void *context
+ 		 * receive an ACPI event indicating that the fan state has changed.
+ 		 */
+ 		ret =3D acpi_fan_get_fst(handle, &fst);
+-		if (ret < 0)
++		if (ret < 0) {
+ 			dev_err(dev, "Error retrieving current fan status: %d\n", ret);
++		} else {
++			ret =3D acpi_fan_dsm_update_trips_points(dev, &fst);
++			if (ret < 0)
++				dev_err(dev, "Failed to update trip points: %d\n", ret);
++		}
+=20
+ 		acpi_fan_notify_hwmon(dev);
+ 		acpi_bus_generate_netlink_event("fan", dev_name(dev), event, 0);
+@@ -394,6 +543,10 @@ static int acpi_fan_probe(struct platform_device *pde=
+v)
  	}
 =20
  	if (fan->has_fst) {
--		result =3D devm_acpi_fan_create_hwmon(device);
-+		result =3D devm_acpi_fan_create_hwmon(&pdev->dev);
++		result =3D acpi_fan_dsm_init(&pdev->dev);
++		if (result)
++			return result;
++
+ 		result =3D devm_acpi_fan_create_hwmon(&pdev->dev);
+ 		if (result)
+ 			return result;
+@@ -402,6 +555,12 @@ static int acpi_fan_probe(struct platform_device *pde=
+v)
  		if (result)
  			return result;
 =20
-diff --git a/drivers/acpi/fan_hwmon.c b/drivers/acpi/fan_hwmon.c
-index 5581aa6fdfa0..47a02ef5a606 100644
-=2D-- a/drivers/acpi/fan_hwmon.c
-+++ b/drivers/acpi/fan_hwmon.c
-@@ -162,12 +162,12 @@ static const struct hwmon_chip_info acpi_fan_hwmon_c=
-hip_info =3D {
- 	.info =3D acpi_fan_hwmon_info,
- };
++		result =3D acpi_fan_dsm_start(&pdev->dev);
++		if (result) {
++			dev_err(&pdev->dev, "Failed to start Microsoft fan extensions\n");
++			return result;
++		}
++
+ 		result =3D acpi_fan_create_attributes(device);
+ 		if (result)
+ 			return result;
+@@ -487,8 +646,14 @@ static int acpi_fan_suspend(struct device *dev)
 =20
--int devm_acpi_fan_create_hwmon(struct acpi_device *device)
-+int devm_acpi_fan_create_hwmon(struct device *dev)
+ static int acpi_fan_resume(struct device *dev)
  {
--	struct acpi_fan *fan =3D acpi_driver_data(device);
-+	struct acpi_fan *fan =3D dev_get_drvdata(dev);
- 	struct device *hdev;
+-	int result;
+ 	struct acpi_fan *fan =3D dev_get_drvdata(dev);
++	int result;
++
++	if (fan->has_fst) {
++		result =3D acpi_fan_dsm_start(dev);
++		if (result)
++			dev_err(dev, "Failed to start Microsoft fan extensions: %d\n", result)=
+;
++	}
 =20
--	hdev =3D devm_hwmon_device_register_with_info(&device->dev, "acpi_fan", =
-fan,
--						    &acpi_fan_hwmon_chip_info, NULL);
-+	hdev =3D devm_hwmon_device_register_with_info(dev, "acpi_fan", fan, &acp=
-i_fan_hwmon_chip_info,
-+						    NULL);
- 	return PTR_ERR_OR_ZERO(hdev);
- }
+ 	if (fan->acpi4)
+ 		return 0;
 =2D-=20
 2.39.5
 
