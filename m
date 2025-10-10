@@ -1,25 +1,25 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id F052D2FBE16;
-	Fri, 10 Oct 2025 16:54:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 9CC592FB99D;
+	Fri, 10 Oct 2025 16:54:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760115254; cv=none; b=MCqvCiFHyBauxv4+KP1CRn7OLbE6DqjcGo2PgZxID6DxpEiG+BAT95t0X/u+Q8OW4iPKqbpJ48srJY/3O6Hi7DvdHHHJ8a5fqvANaDYwAKjgzD6CtL3S1FeyuhacOz/iWFKLTcoVGAJ2t3HdO0+xKHrG+ODn9Oe63p6sHrpkC+A=
+	t=1760115276; cv=none; b=CwMKjD1SBON/FZSnQ3+QBM1WltWJ/8/hiCaYgHTjiGr89zURM3bnjmJfDD+lvsWs2wMvoZJBX7mhk3D789iwHS99Kfy6dpsvcifUgJ2SIaNbUzZFSDfapsx8lIfcoxLXZUzGpdWchYNr/464nxilL70EZglDldSOwVVTe5pEv9g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760115254; c=relaxed/simple;
-	bh=JbQRDD8cUBIkZxrk1eL9YZhlOGuS5zVv1GB2lV0cr20=;
+	s=arc-20240116; t=1760115276; c=relaxed/simple;
+	bh=6yF72+wuOjRJokJK1hGKbPF/1SHbTsmzEdv0rbRr2V4=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=S/eVss2dR0YK4InJLVJ6eMyV16wb8w8VhzJaa7BP7eZjKM1hr0Bv1VPtJ0wrxmFCID9gBw6XA0FVMpkaWuM6Te9ptYj+BMutgyqKn7qXG/c3huksXjCYrHkfuAjbYNjBgJrzcXfullJVDdND45rtke5Gqxt3tkYmzs3IlEZNhq0=
+	 In-Reply-To:Content-Type; b=aeBIdgiPRVacPrJpT/AuMrXmNIxdirPH5cxkQ/8Oaw1lnD7hRlslc1eRxzULF2REp1oHiyHSHn9ifjruvj6TqjfApNuYN2pi5GdjGkPCQWRyJ8iaKKxi7udqVhVjUCn8d8JxaR6/RsnQ8fGd2qs4/yPOu3uehqrTW2Y7S2jjfwU=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 578AF1713;
-	Fri, 10 Oct 2025 09:54:03 -0700 (PDT)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 3AEDA153B;
+	Fri, 10 Oct 2025 09:54:27 -0700 (PDT)
 Received: from [10.1.197.69] (eglon.cambridge.arm.com [10.1.197.69])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id BC2583F66E;
-	Fri, 10 Oct 2025 09:54:04 -0700 (PDT)
-Message-ID: <2d9a9291-610b-4af0-b61e-bdc03a3b39c4@arm.com>
-Date: Fri, 10 Oct 2025 17:54:01 +0100
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 2D77B3F66E;
+	Fri, 10 Oct 2025 09:54:22 -0700 (PDT)
+Message-ID: <219dff63-11ad-4eb4-8499-2c5085181339@arm.com>
+Date: Fri, 10 Oct 2025 17:54:19 +0100
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -27,11 +27,11 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 29/29] arm_mpam: Add kunit tests for props_mismatch()
-To: Jonathan Cameron <jonathan.cameron@huawei.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
- linux-acpi@vger.kernel.org,
- D Scott Phillips OS <scott@os.amperecomputing.com>,
+Subject: Re: [PATCH v2 01/29] ACPI / PPTT: Add a helper to fill a cpumask from
+ a processor container
+To: Stanimir Varbanov <svarbanov@suse.de>, linux-kernel@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org
+Cc: D Scott Phillips OS <scott@os.amperecomputing.com>,
  carl@os.amperecomputing.com, lcherian@marvell.com,
  bobo.shaobowang@huawei.com, tan.shaopeng@fujitsu.com,
  baolin.wang@linux.alibaba.com, Jamie Iles <quic_jiles@quicinc.com>,
@@ -39,116 +39,59 @@ Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
  dfustini@baylibre.com, amitsinght@marvell.com,
  David Hildenbrand <david@redhat.com>, Dave Martin <dave.martin@arm.com>,
  Koba Ko <kobak@nvidia.com>, Shanker Donthineni <sdonthineni@nvidia.com>,
- fenghuay@nvidia.com, baisheng.gao@unisoc.com, Rob Herring <robh@kernel.org>,
- Rohit Mathew <rohit.mathew@arm.com>, Rafael Wysocki <rafael@kernel.org>,
- Len Brown <lenb@kernel.org>, Lorenzo Pieralisi <lpieralisi@kernel.org>,
- Hanjun Guo <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@arm.com>,
+ fenghuay@nvidia.com, baisheng.gao@unisoc.com,
+ Jonathan Cameron <jonathan.cameron@huawei.com>, Rob Herring
+ <robh@kernel.org>, Rohit Mathew <rohit.mathew@arm.com>,
+ Rafael Wysocki <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+ Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo
+ <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@arm.com>,
  Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
  Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
  Danilo Krummrich <dakr@kernel.org>
 References: <20250910204309.20751-1-james.morse@arm.com>
- <20250910204309.20751-30-james.morse@arm.com>
- <20250912144148.00003204@huawei.com>
+ <20250910204309.20751-2-james.morse@arm.com>
+ <3d2252ef-92a2-4717-a472-3e5b275419ce@suse.de>
 Content-Language: en-GB
 From: James Morse <james.morse@arm.com>
-In-Reply-To: <20250912144148.00003204@huawei.com>
+In-Reply-To: <3d2252ef-92a2-4717-a472-3e5b275419ce@suse.de>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-Hi Jonathan,
+Hi Stan,
 
-On 12/09/2025 14:41, Jonathan Cameron wrote:
-> On Wed, 10 Sep 2025 20:43:09 +0000
-> James Morse <james.morse@arm.com> wrote:
-> 
->> When features are mismatched between MSC the way features are combined
->> to the class determines whether resctrl can support this SoC.
+On 25/09/2025 10:32, Stanimir Varbanov wrote:
+> On 9/10/25 11:42 PM, James Morse wrote:
+>> The ACPI MPAM table uses the UID of a processor container specified in
+>> the PPTT to indicate the subset of CPUs and cache topology that can
+>> access each MPAM System Component (MSC).
 >>
->> Add some tests to illustrate the sort of thing that is expected to
->> work, and those that must be removed.
+>> This information is not directly useful to the kernel. The equivalent
+>> cpumask is needed instead.
 >>
->> Signed-off-by: James Morse <james.morse@arm.com>
+>> Add a helper to find the processor container by its id, then walk
+>> the possible CPUs to fill a cpumask with the CPUs that have this
+>> processor container as a parent.
 
-> Nice in general though I didn't go through the test expected results etc.
-
-> A few comments inline.
+>> +
+>> +/**
+>> + * acpi_pptt_get_cpus_from_container() - Populate a cpumask with all CPUs in a
+>> + *                                       processor container
+>> + * @acpi_cpu_id:	The UID of the processor container.
+>> + * @cpus:		The resulting CPU mask.
+>> + *
+>> + * Find the specified Processor Container, and fill @cpus with all the cpus
+>> + * below it.
+>> + *
+>> + * Not all 'Processor' entries in the PPTT are either a CPU or a Processor
+>> + * Container, they may exist purely to describe a Private resource. CPUs
+>> + * have to be leaves, so a Processor Container is a non-leaf that has the
+>> + * 'ACPI Processor ID valid' flag set.
+>> + *
+>> + * Return: 0 for a complete walk, or an error if the mask is incomplete.
 > 
-> Thanks and looking forward to seeing this go in.
+> Leftover, drop this.
 
+Good spot - thanks,
 
->> diff --git a/drivers/resctrl/mpam_internal.h b/drivers/resctrl/mpam_internal.h
->> index 7cbcafe8294a..6119e4573187 100644
->> --- a/drivers/resctrl/mpam_internal.h
->> +++ b/drivers/resctrl/mpam_internal.h
->> @@ -189,7 +195,7 @@ struct mpam_props {
->>  	u16			dspri_wd;
->>  	u16			num_csu_mon;
->>  	u16			num_mbwu_mon;
->> -};
->> +} PACKED_FOR_KUNIT;
-> 
-> Add a comment on 'why'.
-
-| * Kunit tests use memset() to set up feature combinations that should be
-| * removed, and will false-positive if the compiler introduces padding that
-| * isn't cleared during sanitisation.
-
-
->> diff --git a/drivers/resctrl/test_mpam_devices.c b/drivers/resctrl/test_mpam_devices.c
->> index 3e7058f7601c..4eca8590c691 100644
->> --- a/drivers/resctrl/test_mpam_devices.c
->> +++ b/drivers/resctrl/test_mpam_devices.c
->> @@ -4,6 +4,325 @@
->>  
->>  #include <kunit/test.h>
->>  
->> +/*
->> + * This test catches fields that aren't being sanitised - but can't tell you
->> + * which one...
->> + */
->> +static void test__props_mismatch(struct kunit *test)
->> +{
->> +	struct mpam_props parent = { 0 };
->> +	struct mpam_props child;
->> +
->> +	memset(&child, 0xff, sizeof(child));
->> +	__props_mismatch(&parent, &child, false);
->> +
->> +	memset(&child, 0, sizeof(child));
->> +	KUNIT_EXPECT_EQ(test, memcmp(&parent, &child, sizeof(child)), 0);
->> +
->> +	memset(&child, 0xff, sizeof(child));
->> +	__props_mismatch(&parent, &child, true);
->> +
->> +	KUNIT_EXPECT_EQ(test, memcmp(&parent, &child, sizeof(child)), 0);
->> +}
->> +
->> +static struct list_head fake_classes_list;
->> +static struct mpam_class fake_class = { 0 };
->> +static struct mpam_component fake_comp1 = { 0 };
->> +static struct mpam_component fake_comp2 = { 0 };
->> +static struct mpam_vmsc fake_vmsc1 = { 0 };
->> +static struct mpam_vmsc fake_vmsc2 = { 0 };
->> +static struct mpam_msc fake_msc1 = { 0 };
->> +static struct mpam_msc fake_msc2 = { 0 };
->> +static struct mpam_msc_ris fake_ris1 = { 0 };
->> +static struct mpam_msc_ris fake_ris2 = { 0 };
->> +static struct platform_device fake_pdev = { 0 };
->> +
->> +static void test_mpam_enable_merge_features(struct kunit *test)
->> +{
->> +#define RESET_FAKE_HIEARCHY()	do {				\
->> +	INIT_LIST_HEAD(&fake_classes_list);			\
->> +								\
->> +	memset(&fake_class, 0, sizeof(fake_class));		\
-
-> Maybe just use a function?  Seems to be changing stuff that is
-> global mostly anyway so seems like it won't need large numbers
-> of parameters or anything like that.
-
-Sure - it only became global in v3.
-
-
-Thanks,
 
 James
