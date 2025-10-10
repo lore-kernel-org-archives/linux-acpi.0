@@ -1,25 +1,25 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 9CC592FB99D;
-	Fri, 10 Oct 2025 16:54:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 6331B2FB99D;
+	Fri, 10 Oct 2025 16:54:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760115276; cv=none; b=CwMKjD1SBON/FZSnQ3+QBM1WltWJ/8/hiCaYgHTjiGr89zURM3bnjmJfDD+lvsWs2wMvoZJBX7mhk3D789iwHS99Kfy6dpsvcifUgJ2SIaNbUzZFSDfapsx8lIfcoxLXZUzGpdWchYNr/464nxilL70EZglDldSOwVVTe5pEv9g=
+	t=1760115284; cv=none; b=H3YHUMXTU2Xjx2J5PmP5kuwRX6EguZllMtcdQv86Xac9BsiR8Tbl5pxTYb4ERgEWtgPpjj2/SKMs58iHrxEUVljde0ZwzJERfoh96u6uPqQtPwho+Pko4LwS9/QgdA+kKvsvIYToZ3loxWh2NRuTonU1Z4F7emLtUCxKKjrDXSQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760115276; c=relaxed/simple;
-	bh=6yF72+wuOjRJokJK1hGKbPF/1SHbTsmzEdv0rbRr2V4=;
+	s=arc-20240116; t=1760115284; c=relaxed/simple;
+	bh=Mre5NldF57v/qgCv1OBV6PcRmdgEEZG1uzhe703BsnE=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=aeBIdgiPRVacPrJpT/AuMrXmNIxdirPH5cxkQ/8Oaw1lnD7hRlslc1eRxzULF2REp1oHiyHSHn9ifjruvj6TqjfApNuYN2pi5GdjGkPCQWRyJ8iaKKxi7udqVhVjUCn8d8JxaR6/RsnQ8fGd2qs4/yPOu3uehqrTW2Y7S2jjfwU=
+	 In-Reply-To:Content-Type; b=EosWc8tzdkb4HbHUPQDTsytH5Tmf+sl5CWIW2/AgNi85me0Y/UKDu6GrRlIjx1ppGBqHtdoItTqNSf+8ACZQG+2U+oGRgcBApnEgNIaAZIe34lhsvO9lqMcWu6aaAqnJvdfNg0NEdATFFzyYiESo9HTIJlgQ+QVoTTtaA14iAqU=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 3AEDA153B;
-	Fri, 10 Oct 2025 09:54:27 -0700 (PDT)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id D20B31596;
+	Fri, 10 Oct 2025 09:54:34 -0700 (PDT)
 Received: from [10.1.197.69] (eglon.cambridge.arm.com [10.1.197.69])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 2D77B3F66E;
-	Fri, 10 Oct 2025 09:54:22 -0700 (PDT)
-Message-ID: <219dff63-11ad-4eb4-8499-2c5085181339@arm.com>
-Date: Fri, 10 Oct 2025 17:54:19 +0100
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id D3C033F66E;
+	Fri, 10 Oct 2025 09:54:35 -0700 (PDT)
+Message-ID: <ddf9b382-f760-4a9b-9f88-f215ef4b7930@arm.com>
+Date: Fri, 10 Oct 2025 17:54:05 +0100
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -27,9 +27,8 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 01/29] ACPI / PPTT: Add a helper to fill a cpumask from
- a processor container
-To: Stanimir Varbanov <svarbanov@suse.de>, linux-kernel@vger.kernel.org,
+Subject: Re: [PATCH v2 29/29] arm_mpam: Add kunit tests for props_mismatch()
+To: Ben Horgan <ben.horgan@arm.com>, linux-kernel@vger.kernel.org,
  linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org
 Cc: D Scott Phillips OS <scott@os.amperecomputing.com>,
  carl@os.amperecomputing.com, lcherian@marvell.com,
@@ -49,49 +48,32 @@ Cc: D Scott Phillips OS <scott@os.amperecomputing.com>,
  Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
  Danilo Krummrich <dakr@kernel.org>
 References: <20250910204309.20751-1-james.morse@arm.com>
- <20250910204309.20751-2-james.morse@arm.com>
- <3d2252ef-92a2-4717-a472-3e5b275419ce@suse.de>
+ <20250910204309.20751-30-james.morse@arm.com>
+ <2ed1be84-5097-488d-b8ce-7abebf5b9a7e@arm.com>
 Content-Language: en-GB
 From: James Morse <james.morse@arm.com>
-In-Reply-To: <3d2252ef-92a2-4717-a472-3e5b275419ce@suse.de>
+In-Reply-To: <2ed1be84-5097-488d-b8ce-7abebf5b9a7e@arm.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-Hi Stan,
+Hi Ben,
 
-On 25/09/2025 10:32, Stanimir Varbanov wrote:
-> On 9/10/25 11:42 PM, James Morse wrote:
->> The ACPI MPAM table uses the UID of a processor container specified in
->> the PPTT to indicate the subset of CPUs and cache topology that can
->> access each MPAM System Component (MSC).
+On 12/09/2025 17:01, Ben Horgan wrote:
+> On 9/10/25 21:43, James Morse wrote:
+>> When features are mismatched between MSC the way features are combined
+>> to the class determines whether resctrl can support this SoC.
 >>
->> This information is not directly useful to the kernel. The equivalent
->> cpumask is needed instead.
->>
->> Add a helper to find the processor container by its id, then walk
->> the possible CPUs to fill a cpumask with the CPUs that have this
->> processor container as a parent.
+>> Add some tests to illustrate the sort of thing that is expected to
+>> work, and those that must be removed.
 
->> +
->> +/**
->> + * acpi_pptt_get_cpus_from_container() - Populate a cpumask with all CPUs in a
->> + *                                       processor container
->> + * @acpi_cpu_id:	The UID of the processor container.
->> + * @cpus:		The resulting CPU mask.
->> + *
->> + * Find the specified Processor Container, and fill @cpus with all the cpus
->> + * below it.
->> + *
->> + * Not all 'Processor' entries in the PPTT are either a CPU or a Processor
->> + * Container, they may exist purely to describe a Private resource. CPUs
->> + * have to be leaves, so a Processor Container is a non-leaf that has the
->> + * 'ACPI Processor ID valid' flag set.
->> + *
->> + * Return: 0 for a complete walk, or an error if the mask is incomplete.
+
+> Looks good to me, I checked the tests for v1. I agree with Jonathan that
+> you could make RESET_FAKE_HIEARCHY() a function now that you've changed
+> to use globals.
 > 
-> Leftover, drop this.
+> Reviewed-by: Ben Horgan <ben.horgan@arm.com>
 
-Good spot - thanks,
 
+Thanks!
 
 James
