@@ -1,78 +1,139 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50D8C23F417;
-	Sat, 18 Oct 2025 16:01:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D776B16F288;
+	Sat, 18 Oct 2025 17:34:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.15
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760803307; cv=none; b=oE5+RGVpFoNDfpsM8aihP+NYiDuXOMtiioy/Bl2XmbZSoh53SUCaeBDBaTUM2YRXFfrjO789StIJsn2SaVJQGr/8IxwdCYhQN0b81/uvKDe2NkLqCNGmTeW80a1fQPye2OjtdsD1g/+yJbSFCQnDq7oX4lBR+EMeebe/m7+Og64=
+	t=1760808866; cv=none; b=pIpDUYWaRGae75grz/9SaFB1F+Mg9kw2fMBX+/Qp6X+bX9DVBlCX6ANOxniWjjZzs7o7jhVVwBtZMN+Ny8ohJvmZGXqDkgQhogML7qY565DuNpa75c1bfFI0wstFzWojg9o6ClfJSWqIXh3OJtaBxOFkHOvbHLdMoAemGcfybfQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760803307; c=relaxed/simple;
-	bh=xdGzVFaydhp9qU3Eq9iqFsHM3rixK5o6FO97hISarJU=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=StHdmBGk2IcDwo+N4nrn6X+2tdMm3gObyk2bZcfcryfjc2W7ZPrApLL5ztYU2JtAWlMgBE7unDsbYpeZWL826LfeUmTm+6UXzm3VwFpqxpONMvEbDqK04Bb8xo/acJ3bPq/HcoGS2hqpKrPqVv+lOIsml64nA/uSpUAmvx7yxVk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ivk5aZFw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1760808866; c=relaxed/simple;
+	bh=FhzneSEG98kjl4JWWkFvuNZc+PeM/SaDeI05zCVy+oo=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=MYNEDloZ8YiRHVd6jbWR7vngIxNOiDBGriBkC+k57J9elRFgbiMHKw3HMdQbS9sEM9+MRsHWnetCg5PKdrhOAJ+HtEklfu3Rck/FDIUCw0jynpJ/9wlCtGN5TPrnqpVh7DOt7qFmmA/8p+piOPHI5amV08JnjhHpZj4FyT62sw8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=dLmL5UWU; arc=none smtp.client-ip=192.198.163.15
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ivk5aZFw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA949C4CEF8;
-	Sat, 18 Oct 2025 16:01:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1760803306;
-	bh=xdGzVFaydhp9qU3Eq9iqFsHM3rixK5o6FO97hISarJU=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=Ivk5aZFwr1PqelJFYqIiLan7RNwSpRgCvimVwLWbZPPSsTaynAydgtRg34dHe4JoM
-	 0OwpoyJB7yuUIYJLSmWXNSbyyOhMIMM+afBQjI9TNZ0Kel5Ib5t9m9Gi6yAUHVZtH/
-	 ezkYhR4FTfzPvoS7yuW8naeqhECKHkctRYhNUnrmxGTTG8DzBhUgdq+aDW5yjs8C7F
-	 dZvke3PXtXRdttUu8eP5CmfNmGrSOU+Mo/K43UQ6EyEcn/1U4zJXV7pQbNARwTuVF3
-	 nr+8I/7k/xyHQj4W2ceUCFZuZZIylEYp+KtAa7xwF1aaFT+vAlwhS8HHptl7Z/iK5o
-	 nY9GmDEUs1ZEQ==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 33E1C39EFBB7;
-	Sat, 18 Oct 2025 16:01:31 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="dLmL5UWU"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1760808865; x=1792344865;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=FhzneSEG98kjl4JWWkFvuNZc+PeM/SaDeI05zCVy+oo=;
+  b=dLmL5UWUjtMInCzYL0U60/xuP6VhDl7POZ4wEQogeJ9ENf5xUIFuC/hX
+   orB3CubwPYjcxWb15nmnKDU5NloK2SBuaSfdLRLQwpuH34Ce922m+T3Pr
+   4rheiRdlNaJrSX3m5pk7nUtfGuOwLC1FvJNY4M4TSB2pR7uI/JxoXxtE2
+   mRFbLZkZUGhuQ+O63HEX1AvMg8oRhIVU+vYA16ya7uTZ8h6w2EjtxXqTW
+   LdQcGsEypO3zSACQbGiEloTipKgVr1cWv5203C0wxDcw52zSyWHOS+XWM
+   W4s0DdPa271DzOOWCbRH9qN/xtUGjk/Nh21MFbsvK2kcGqUlSsgBGaBeW
+   w==;
+X-CSE-ConnectionGUID: h36upWhOTCek/EJmO8Hihw==
+X-CSE-MsgGUID: WD6M1kD/RuimArXLw0EBvw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11586"; a="63086759"
+X-IronPort-AV: E=Sophos;i="6.19,239,1754982000"; 
+   d="scan'208";a="63086759"
+Received: from fmviesa002.fm.intel.com ([10.60.135.142])
+  by fmvoesa109.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Oct 2025 10:34:24 -0700
+X-CSE-ConnectionGUID: FLA/hIcwRUi0VrCtn9m6jA==
+X-CSE-MsgGUID: qltFQbB9SOq+tlbSxVaklw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.19,239,1754982000"; 
+   d="scan'208";a="206700908"
+Received: from pgcooper-mobl3.ger.corp.intel.com (HELO ashevche-desk.local) ([10.245.244.194])
+  by fmviesa002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Oct 2025 10:34:22 -0700
+Received: from andy by ashevche-desk with local (Exim 4.98.2)
+	(envelope-from <andriy.shevchenko@linux.intel.com>)
+	id 1v8Otb-000000002cP-0hIv;
+	Mon, 13 Oct 2025 23:11:51 +0300
+Date: Mon, 13 Oct 2025 23:11:50 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Bartosz Golaszewski <brgl@bgdev.pl>
+Cc: Linus Walleij <linus.walleij@linaro.org>,
+	Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Krzysztof Kozlowski <krzk@kernel.org>, linux-gpio@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+	Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+Subject: Re: [PATCH 3/9] software node: allow referencing firmware nodes
+Message-ID: <aO1dBgPZfDJTsPfE@smile.fi.intel.com>
+References: <20251006-reset-gpios-swnodes-v1-0-6d3325b9af42@linaro.org>
+ <20251006-reset-gpios-swnodes-v1-3-6d3325b9af42@linaro.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH] ACPI: RIMT: Fix unused function warnings when
- CONFIG_IOMMU_API is disabled
-From: patchwork-bot+linux-riscv@kernel.org
-Message-Id: 
- <176080328974.3028979.2139175941358455786.git-patchwork-notify@kernel.org>
-Date: Sat, 18 Oct 2025 16:01:29 +0000
-References: <20251013181947.261759-1-sunilvl@ventanamicro.com>
-In-Reply-To: <20251013181947.261759-1-sunilvl@ventanamicro.com>
-To: Sunil V L <sunilvl@ventanamicro.com>
-Cc: linux-riscv@lists.infradead.org, linux-acpi@vger.kernel.org,
- linux-kernel@vger.kernel.org, aou@eecs.berkeley.edu, lkp@intel.com,
- alex@ghiti.fr, rafael@kernel.org, joerg.roedel@amd.com, palmer@dabbelt.com,
- anup@brainfault.org, pjw@kernel.org, lenb@kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20251006-reset-gpios-swnodes-v1-3-6d3325b9af42@linaro.org>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-Hello:
-
-This patch was applied to riscv/linux.git (fixes)
-by Paul Walmsley <pjw@kernel.org>:
-
-On Mon, 13 Oct 2025 23:49:47 +0530 you wrote:
-> When CONFIG_IOMMU_API is disabled, some functions defined outside its
-> conditional scope become unused, triggering compiler warnings reported
-> by the kernel test robot.
+On Mon, Oct 06, 2025 at 03:00:18PM +0200, Bartosz Golaszewski wrote:
+> From: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
 > 
-> Move these function definitions inside the #ifdef CONFIG_IOMMU_API block
-> to prevent unused function warnings when the configuration is disabled.
+> At the moment software nodes can only reference other software nodes.
+> This is a limitation for devices created, for instance, on the auxiliary
+> bus with a dynamic software node attached which cannot reference devices
+> the firmware node of which is "real" (as an OF node or otherwise).
 > 
-> [...]
+> Make it possible for a software node to reference all firmware nodes in
+> addition to static software nodes. To that end: use a union of different
+> pointers in struct software_node_ref_args and add an enum indicating
+> what kind of reference given instance of it is. Rework the helper macros
+> and deprecate the existing ones whose names don't indicate the reference
+> type.
+> 
+> Software node graphs remain the same, as in: the remote endpoints still
+> have to be software nodes.
 
-Here is the summary with links:
-  - ACPI: RIMT: Fix unused function warnings when CONFIG_IOMMU_API is disabled
-    https://git.kernel.org/riscv/c/e7b969cbe302
+...
 
-You are awesome, thank you!
+> +enum software_node_ref_type {
+> +	/* References a software node. */
+> +	SOFTWARE_NODE_REF_SWNODE = 0,
+
+
+I don't see why we need an explicit value here.
+
+> +	/* References a firmware node. */
+> +	SOFTWARE_NODE_REF_FWNODE,
+> +};
+
+...
+
+>  /**
+>   * struct software_node_ref_args - Reference property with additional arguments
+> - * @node: Reference to a software node
+> + * @swnode: Reference to a software node
+> + * @fwnode: Alternative reference to a firmware node handle
+>   * @nargs: Number of elements in @args array
+>   * @args: Integer arguments
+>   */
+>  struct software_node_ref_args {
+> -	const struct software_node *node;
+> +	enum software_node_ref_type type;
+> +	union {
+> +		const struct software_node *swnode;
+> +		struct fwnode_handle *fwnode;
+> +	};
+
+Can't we always have an fwnode reference?
+
+>  	unsigned int nargs;
+>  	u64 args[NR_FWNODE_REFERENCE_ARGS];
+>  };
+
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+With Best Regards,
+Andy Shevchenko
 
 
