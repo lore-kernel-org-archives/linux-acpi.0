@@ -1,64 +1,128 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBF7B25487B;
-	Wed, 15 Oct 2025 14:05:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D389337687;
+	Wed, 15 Oct 2025 16:30:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760537129; cv=none; b=NKe/xhm0KF4NQDLw6WX9V5TKejwbn2YQGXymH960t9EN7PkZGAAfTahVRWSPsegi6DdqK9B2z48ItiPR71CuQCbp4/jp1RYX+I9+F20J+2qA68g2zbskXEHDg0/yLof1o7q+/OUPwAcPKWgDLDWX/MwcKZfC+kiCsl/kXRtbxfI=
+	t=1760545801; cv=none; b=G5CqGbIpE6YVT0Np6ORh1yHnYsCuTGrPjpDajtvc/hUusP0K2AmFHZtrnz4NSeDkftkZxCb0+t36eN7KUUyzslWVYjdjVfmTK+mdSfVwNYnrW8OrtNEa9ZqksGrOM7VaXoMBxZwNAMQuZVcjoo6q4fhVGRBzADa5NtrL0n7bT5M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760537129; c=relaxed/simple;
-	bh=vmlYb0g+8Bco2x8DuZ7wv9Yxt/D7mnkuiu2npAVRBXI=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=QrCp78GK1Td7+RWcuU1qUN0rth4EmV8nBZ11Q1+LlZZdejok7EglH6ryLuszkts5ZqU9pewdjgOyo55+QuxZer/CuYhXEbYhk0OYyRnEjl6SKcDhuuk4n8eovRdyh+BixiTm7XIK4cMv0YvvYPGE+t59kTwrfQYeUS6H0wWPTLo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ADkYFgIV; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ADkYFgIV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8642BC4CEFB;
-	Wed, 15 Oct 2025 14:05:27 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1760537129;
-	bh=vmlYb0g+8Bco2x8DuZ7wv9Yxt/D7mnkuiu2npAVRBXI=;
-	h=From:To:Cc:Subject:Date:From;
-	b=ADkYFgIVWWX1zfKViU2vKx02y/WaRMhIz4kdl937KEp/Nv8dKiU4re62ORCqcJ3lu
-	 YxRDRmIffUaPlBnCjc2KkusZAthJF4pNY3IHyXcovlLqjELAztczGD0byHcPFtG1Ap
-	 MjSeNrBcZ+ufgK1+6I/zEcIaDLxP5qmcLxc5tJa8fbbdybSNoxMvjyOCgIH7R9HegU
-	 AQ9VijTzCJLVW1QEjV2p0QN9ammE/QIjkaMWVy6gv1g2k1fqRc6TKjOeJe5tKsI7n8
-	 69bwNQ+v2NauFdCls+QwA9bnYkL5LnGYVwCMvOJno8bTMVB5HTaLcsf/VlhAxFyJVr
-	 fParbeerFKZDA==
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-To: Linux PM <linux-pm@vger.kernel.org>
-Cc: Jonathan Cameron <jonathan.cameron@huawei.com>,
- Takashi Iwai <tiwai@suse.de>, LKML <linux-kernel@vger.kernel.org>,
- Linux PCI <linux-pci@vger.kernel.org>,
- Alex Williamson <alex.williamson@redhat.com>,
- Bjorn Helgaas <helgaas@kernel.org>, Zhang Qilong <zhangqilong3@huawei.com>,
- Ulf Hansson <ulf.hansson@linaro.org>, Frank Li <Frank.Li@nxp.com>,
- Dhruva Gole <d-gole@ti.com>,
- Mika Westerberg <mika.westerberg@linux.intel.com>,
- Linux ACPI <linux-acpi@vger.kernel.org>
-Subject:
- [PATCH v1 0/3] PM: runtimePCI/ACPI: TAD: Auto-cleanup macros for runtime PM
-Date: Wed, 15 Oct 2025 15:59:48 +0200
-Message-ID: <3925484.kQq0lBPeGt@rafael.j.wysocki>
-Organization: Linux Kernel Development
+	s=arc-20240116; t=1760545801; c=relaxed/simple;
+	bh=GSXFtKanFdfOYZRoTNdsC3B5KrAnQuXQgV+M8GSSD0o=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=S22gZmgZBVRvAb1RXs14UIUnbnUttg+3xe5iYHhGd6PCiv97oLSD4Ps4xrfkf8456f3AX7COs4FyoewXpL0h6bicDBbok9ujg1qjgJmWfo0nX65zhGYJhVgT02KiFVPEOIi/P7C6k8ghdwMdPWiXqUorBMjBLCra40i5XvqExBs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2D05C4CEF8;
+	Wed, 15 Oct 2025 16:30:00 +0000 (UTC)
+From: Dave Jiang <dave.jiang@intel.com>
+To: nvdimm@lists.linux.dev,
+	linux-cxl@vger.kernel.org,
+	linux-acpi@vger.kernel.org
+Cc: dan.j.williams@intel.com,
+	vishal.l.verma@intel.com,
+	ira.weiny@intel.com,
+	rafael@kernel.org
+Subject: [PATCH v2] acpi/hmat: Fix lockdep warning for hmem_register_resource()
+Date: Wed, 15 Oct 2025 09:29:57 -0700
+Message-ID: <20251015162958.11249-1-dave.jiang@intel.com>
+X-Mailer: git-send-email 2.51.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
-Hi All,
+The following lockdep splat was observed while kernel auto-online a CXL
+memory region:
 
-This series introduces a helper macro on top of the recently added runtime PM
-usage counter guard definitions, uses it in the PCI sysfs code (patch [1/3])
-and modifies the runtime PM usage counter handling in the ACPI TAD driver
-with the help of it (patch [3/3]).  Patch [3/2] is a preparation for the
-latter.
+======================================================
+WARNING: possible circular locking dependency detected
+6.17.0djtest+ #53 Tainted: G        W
+------------------------------------------------------
+systemd-udevd/3334 is trying to acquire lock:
+ffffffff90346188 (hmem_resource_lock){+.+.}-{4:4}, at: hmem_register_resource+0x31/0x50
 
-Thanks!
+but task is already holding lock:
+ffffffff90338890 ((node_chain).rwsem){++++}-{4:4}, at: blocking_notifier_call_chain+0x2e/0x70
 
+which lock already depends on the new lock.
+[..]
+Chain exists of:
+  hmem_resource_lock --> mem_hotplug_lock --> (node_chain).rwsem
 
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  rlock((node_chain).rwsem);
+                               lock(mem_hotplug_lock);
+                               lock((node_chain).rwsem);
+  lock(hmem_resource_lock);
+
+The lock ordering can cause potential deadlock. There are instances
+where hmem_resource_lock is taken after (node_chain).rwsem, and vice
+versa.
+
+Remove registering of target devices from the hmat_callback(). By the
+time the hmat hotplug notifier is being called, there should not be
+hmem targets that still need to be registered.
+
+Fixes: cf8741ac57ed ("ACPI: NUMA: HMAT: Register "soft reserved" memory as an "hmem" device")
+Link: https://lore.kernel.org/nvdimm/68e46a09c2a07_2980100f3@dwillia2-mobl4.notmuch/
+Suggested-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+---
+v2:
+- Drop target registering in hmat_callback instead. (Dan)
+---
+ drivers/acpi/numa/hmat.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/acpi/numa/hmat.c b/drivers/acpi/numa/hmat.c
+index 5a36d57289b4..5084ae1688f6 100644
+--- a/drivers/acpi/numa/hmat.c
++++ b/drivers/acpi/numa/hmat.c
+@@ -874,7 +874,8 @@ static void hmat_register_target_devices(struct memory_target *target)
+ 	}
+ }
+ 
+-static void hmat_register_target(struct memory_target *target)
++static void hmat_register_target(struct memory_target *target,
++				 bool register_devices)
+ {
+ 	int nid = pxm_to_node(target->memory_pxm);
+ 
+@@ -882,7 +883,8 @@ static void hmat_register_target(struct memory_target *target)
+ 	 * Devices may belong to either an offline or online
+ 	 * node, so unconditionally add them.
+ 	 */
+-	hmat_register_target_devices(target);
++	if (register_devices)
++		hmat_register_target_devices(target);
+ 
+ 	/*
+ 	 * Register generic port perf numbers. The nid may not be
+@@ -921,7 +923,7 @@ static void hmat_register_targets(void)
+ 	struct memory_target *target;
+ 
+ 	list_for_each_entry(target, &targets, node)
+-		hmat_register_target(target);
++		hmat_register_target(target, true);
+ }
+ 
+ static int hmat_callback(struct notifier_block *self,
+@@ -939,7 +941,7 @@ static int hmat_callback(struct notifier_block *self,
+ 	if (!target)
+ 		return NOTIFY_OK;
+ 
+-	hmat_register_target(target);
++	hmat_register_target(target, false);
+ 	return NOTIFY_OK;
+ }
+ 
+
+base-commit: 3a8660878839faadb4f1a6dd72c3179c1df56787
+-- 
+2.51.0
 
