@@ -1,25 +1,25 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id E9BC930F53E;
-	Fri, 17 Oct 2025 18:52:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 1E99E2877C2;
+	Fri, 17 Oct 2025 18:53:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760727155; cv=none; b=brSSOoMonjcerkpCAXE+jWoSjfwBgFPlsrI/BQZpdJokUXLqFsYLNwgMZ6Nv2hCXJKzlUp3pEOJ2vrTCYuGJyJMDkSi+FdZZ+/BWwa8mTBusci6d56oXJC65sbjvw/sDCWDsXXuDwo8Brd8W/nFDiX40+2cj27QfQvcDYkKXxas=
+	t=1760727232; cv=none; b=HSRJDYOFbP2/dWBxe64elwsLXOPS+Q7jnjlK2/Go+TtpcrmPSQYgRJqtizy9LDc1gEvXf7zG5HN7EZtEPHMQiRKEdkPhCFFKf04NePkBHscrS3zdIbDFSfyIsXFQ5nGJ7rZeS/MJucFF6a2mbUKYXjaLUIUlRKpAvizCaWOctZw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760727155; c=relaxed/simple;
-	bh=V855upmwPYUGUpSQ7IC8oDzr17VUGKDU1evZBZJF+Wo=;
+	s=arc-20240116; t=1760727232; c=relaxed/simple;
+	bh=PKXdSSCA3h6c9divuIMc0sHjO0iXWA3XidbmTDbmvqk=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Ip7WV6NiHqVRR3Tm2OPv/u1cZvGemRDbjkljgbjXRPFP2zGX+AYNZJpgnIhC/dGnF0g1KC0Zcpa6q6D2b/7Da5Z/86oYzxSkv8UP/5UqDEVX6Rog1hkzlzc14D2WasN3WSyKnepGE8/b+xCE6Dea0yKqV78hx7RkdoAGPo8DSBU=
+	 In-Reply-To:Content-Type; b=QOhTolRM6mpSbgCCgF32BSOR/ZnvFUTPmIabYzht9IOS0vCPtQQ91xTi+TX0ru/m0C0/dJBPZ6dzsDIynShj48LRnPtenQ0PEjceNG8efCW7FbZtjOqEO1nMLXH5YH017aBrRmskeTmx/iMvl1YnYl8USYS/iN7DMjyxfC/Mk0g=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 4E5271515;
-	Fri, 17 Oct 2025 11:52:25 -0700 (PDT)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 99EF51515;
+	Fri, 17 Oct 2025 11:53:40 -0700 (PDT)
 Received: from [10.1.197.69] (eglon.cambridge.arm.com [10.1.197.69])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id F01333F66E;
-	Fri, 17 Oct 2025 11:51:52 -0700 (PDT)
-Message-ID: <53ea0ae3-7ae6-4759-b6f4-6249b71a5ab4@arm.com>
-Date: Fri, 17 Oct 2025 19:51:27 +0100
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 709343F66E;
+	Fri, 17 Oct 2025 11:53:43 -0700 (PDT)
+Message-ID: <ad7c715d-227b-4f49-8f8b-fe4763c1cef6@arm.com>
+Date: Fri, 17 Oct 2025 19:53:41 +0100
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -27,11 +27,12 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 08/29] arm_mpam: Add the class and component structures
- for firmware described ris
-To: Fenghua Yu <fenghuay@nvidia.com>, linux-kernel@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org
-Cc: D Scott Phillips OS <scott@os.amperecomputing.com>,
+Subject: Re: [PATCH v2 09/29] arm_mpam: Add MPAM MSC register layout
+ definitions
+To: Jonathan Cameron <jonathan.cameron@huawei.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+ linux-acpi@vger.kernel.org,
+ D Scott Phillips OS <scott@os.amperecomputing.com>,
  carl@os.amperecomputing.com, lcherian@marvell.com,
  bobo.shaobowang@huawei.com, tan.shaopeng@fujitsu.com,
  baolin.wang@linux.alibaba.com, Jamie Iles <quic_jiles@quicinc.com>,
@@ -39,179 +40,187 @@ Cc: D Scott Phillips OS <scott@os.amperecomputing.com>,
  dfustini@baylibre.com, amitsinght@marvell.com,
  David Hildenbrand <david@redhat.com>, Dave Martin <dave.martin@arm.com>,
  Koba Ko <kobak@nvidia.com>, Shanker Donthineni <sdonthineni@nvidia.com>,
- baisheng.gao@unisoc.com, Jonathan Cameron <jonathan.cameron@huawei.com>,
- Rob Herring <robh@kernel.org>, Rohit Mathew <rohit.mathew@arm.com>,
- Rafael Wysocki <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
- Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo
- <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@arm.com>,
+ fenghuay@nvidia.com, baisheng.gao@unisoc.com, Rob Herring <robh@kernel.org>,
+ Rohit Mathew <rohit.mathew@arm.com>, Rafael Wysocki <rafael@kernel.org>,
+ Len Brown <lenb@kernel.org>, Lorenzo Pieralisi <lpieralisi@kernel.org>,
+ Hanjun Guo <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@arm.com>,
  Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
  Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
  Danilo Krummrich <dakr@kernel.org>, Ben Horgan <ben.horgan@arm.com>
 References: <20250910204309.20751-1-james.morse@arm.com>
- <20250910204309.20751-9-james.morse@arm.com>
- <a0afaae6-0b7c-4a94-9b2a-b09c8016922a@nvidia.com>
+ <20250910204309.20751-10-james.morse@arm.com>
+ <20250911160031.000026c7@huawei.com>
 Content-Language: en-GB
 From: James Morse <james.morse@arm.com>
-In-Reply-To: <a0afaae6-0b7c-4a94-9b2a-b09c8016922a@nvidia.com>
+In-Reply-To: <20250911160031.000026c7@huawei.com>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 
-Hi Fenghua,
+Hi Jonathan,
 
-On 03/10/2025 17:54, Fenghua Yu wrote:
-> On 9/10/25 13:42, James Morse wrote:
->> An MSC is a container of resources, each identified by their RIS index.
->> Some RIS are described by firmware to provide their position in the system.
->> Others are discovered when the driver probes the hardware.
+On 11/09/2025 16:00, Jonathan Cameron wrote:
+> On Wed, 10 Sep 2025 20:42:49 +0000
+> James Morse <james.morse@arm.com> wrote:
+> 
+>> Memory Partitioning and Monitoring (MPAM) has memory mapped devices
+>> (MSCs) with an identity/configuration page.
 >>
->> To configure a resource it needs to be found by its class, e.g. 'L2'.
->> There are two kinds of grouping, a class is a set of components, which
->> are visible to user-space as there are likely to be multiple instances
->> of the L2 cache. (e.g. one per cluster or package)
+>> Add the definitions for these registers as offset within the page(s).
+
+> I'm not sure why some things ended up in this patch and others didn't.
+> MPAMCFG_EN for example isn't here.
+
+Things were added once I'd already written this, and I only updated it with 'new' features
+where they were actually useful for feature parity with resctrl/Intel-RDT.
+
+
+> If doing a separate 'register defines' patch I'd do the lot as of
+> the current spec.
+
+I've not done this because its a time sink for no benefit. The kernel doesn't use any of
+the 'missing' features. While I agree it would be nice if the list were up to date - it
+will become stale pretty quickly, so its not an achievable goal...
+
+
+> 
 >>
->> Add support for creating and destroying structures to allow a hierarchy
->> of resources to be created.
-
->> diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_devices.c
->> index efc4738e3b4d..c7f4981b3545 100644
->> --- a/drivers/resctrl/mpam_devices.c
->> +++ b/drivers/resctrl/mpam_devices.c
-
->> +#define add_to_garbage(x)                \
->> +do {                            \
->> +    __typeof__(x) _x = (x);                \
->> +    _x->garbage.to_free = _x;            \
->> +    llist_add(&_x->garbage.llist, &mpam_garbage);    \
->> +} while (0)
->> +static void mpam_free_garbage(void)
->> +{
->> +    struct mpam_garbage *iter, *tmp;
->> +    struct llist_node *to_free = llist_del_all(&mpam_garbage);
->> +
+>> Link: https://developer.arm.com/documentation/ihi0099/latest/
 > 
-> Should this be protected by mpam_list_lock and check if the lock is held?
+> Maybe link a specific version? I'm not sure if I'm looking at is the same one
+> as you were when you wrote this. That will become worse over time.  I'm definitely
+> seeing extra bits in a number of registers.
 > 
-> +    lockdep_assert_held(&mpam_list_lock);
+> I'm lazy enough not to go see if the cover letter calls out a version.
 > 
-> Multiple threads may add and free garbage in parallel. Please see later free_garbage() is
-> not protected by any lock.
+> Anyhow, various small things on ordering that would have made this easier to review
+> against the spec.
 
-Indeed - because its using llist instead. That is safe for concurrent use as you can only
-consume the whole list in one go with a cmpxchg(val, NULL). In the event of a race, one
-gets to own the llist and walk throught it - the other sees an empty list.
+
+
+>> diff --git a/drivers/resctrl/mpam_internal.h b/drivers/resctrl/mpam_internal.h
+>> index 02e9576ece6b..109f03df46c2 100644
+>> --- a/drivers/resctrl/mpam_internal.h
+>> +++ b/drivers/resctrl/mpam_internal.h
+>> @@ -152,4 +152,271 @@ extern struct list_head mpam_classes;
+>>  int mpam_get_cpumask_from_cache_id(unsigned long cache_id, u32 cache_level,
+>>  				   cpumask_t *affinity);
+>>  
+>> +/*
+>> + * MPAM MSCs have the following register layout. See:
+>> + * Arm Memory System Resource Partitioning and Monitoring (MPAM) System
+>> + * Component Specification.
+>> + * https://developer.arm.com/documentation/ihi0099/latest/
+> 
+> Maybe be friendly and give some section number references.
+
+Heh, linking to the 'latest' means those will change...
 
 
 > 
->> +    if (!to_free)
->> +        return;
+>> + */
+>> +#define MPAM_ARCHITECTURE_V1    0x10
 >> +
->> +    synchronize_srcu(&mpam_srcu);
->> +
->> +    llist_for_each_entry_safe(iter, tmp, to_free, llist) {
->> +        if (iter->pdev)
->> +            devm_kfree(&iter->pdev->dev, iter->to_free);
->> +        else
->> +            kfree(iter->to_free);
->> +    }
->> +}
-
->> +static int mpam_ris_create_locked(struct mpam_msc *msc, u8 ris_idx,
->> +                  enum mpam_class_types type, u8 class_id,
->> +                  int component_id)
->> +{
->> +    int err;
->> +    struct mpam_vmsc *vmsc;
->> +    struct mpam_msc_ris *ris;
->> +    struct mpam_class *class;
->> +    struct mpam_component *comp;
->> +
->> +    lockdep_assert_held(&mpam_list_lock);
->> +
->> +    if (ris_idx > MPAM_MSC_MAX_NUM_RIS)
->> +        return -EINVAL;
->> +
->> +    if (test_and_set_bit(ris_idx, &msc->ris_idxs))
->> +        return -EBUSY;
->> +
+>> +/* Memory mapped control pages: */
+>> +/* ID Register offsets in the memory mapped page */
+>> +#define MPAMF_IDR		0x0000  /* features id register */
+>> +#define MPAMF_MSMON_IDR		0x0080  /* performance monitoring features */
 > 
-> Should setting msc->ris_idxs bit be moved to the end of this function after all error
-> handling paths? The reason is this bit is better to be 0 (or recovered) if any error
-> happens. It's hard to recover it to 0 for each error handling. The easiest way is to set
-> it at the end of the function.
+> Any reason this one is out of order with respect to the addresses?
 
-This is an up front test for firmware tables that describe one RIS twice.
-No error recovery is needed as this is all this bitfield is used for.
+No - I must have been going mad!
 
 
->> +    ris = devm_kzalloc(&msc->pdev->dev, sizeof(*ris), GFP_KERNEL);
->> +    if (!ris)
->> +        return -ENOMEM;
->> +    init_garbage(ris);
->> +
->> +    class = mpam_class_get(class_id, type);
->> +    if (IS_ERR(class))
->> +        return PTR_ERR(class);
->> +
->> +    comp = mpam_component_get(class, component_id);
->> +    if (IS_ERR(comp)) {
->> +        if (list_empty(&class->components))
->> +            mpam_class_destroy(class);
->> +        return PTR_ERR(comp);
->> +    }
->> +
->> +    vmsc = mpam_vmsc_get(comp, msc);
->> +    if (IS_ERR(vmsc)) {
->> +        if (list_empty(&comp->vmsc))
->> +            mpam_comp_destroy(comp);
->> +        return PTR_ERR(vmsc);
->> +    }
->> +
->> +    err = mpam_ris_get_affinity(msc, &ris->affinity, type, class, comp);
->> +    if (err) {
->> +        if (list_empty(&vmsc->ris))
->> +            mpam_vmsc_destroy(vmsc);
->> +        return err;
->> +    }
->> +
->> +    ris->ris_idx = ris_idx;
->> +    INIT_LIST_HEAD_RCU(&ris->vmsc_list);
+>> +#define MPAMF_IMPL_IDR		0x0028  /* imp-def partitioning */
+>> +#define MPAMF_CPOR_IDR		0x0030  /* cache-portion partitioning */
+>> +#define MPAMF_CCAP_IDR		0x0038  /* cache-capacity partitioning */
+>> +#define MPAMF_MBW_IDR		0x0040  /* mem-bw partitioning */
+>> +#define MPAMF_PRI_IDR		0x0048  /* priority partitioning */
+>> +#define MPAMF_CSUMON_IDR	0x0088  /* cache-usage monitor */
+>> +#define MPAMF_MBWUMON_IDR	0x0090  /* mem-bw usage monitor */
+>> +#define MPAMF_PARTID_NRW_IDR	0x0050  /* partid-narrowing */
+>> +#define MPAMF_IIDR		0x0018  /* implementer id register */
+>> +#define MPAMF_AIDR		0x0020  /* architectural id register */
 > 
-> vmsc_list will be used but not initialized. Missing INIT_LIST_HEAD_RCU(&ris->msc_list) here?
-
-Fixed,
-
-
->> +    ris->vmsc = vmsc;
->> +
->> +    cpumask_or(&comp->affinity, &comp->affinity, &ris->affinity);
->> +    cpumask_or(&class->affinity, &class->affinity, &ris->affinity);
->> +    list_add_rcu(&ris->vmsc_list, &vmsc->ris);
->> +
-
-> Setting the msc->ris_idxs here is better to avoid to clear it in each error handling path.
-
-But misses the error it is supposed to catch...
-
-
->> +    return 0;
->> +}
->> +
->> @@ -74,10 +469,10 @@ static void mpam_msc_drv_remove(struct platform_device *pdev)
->>           return;
->>         mutex_lock(&mpam_list_lock);
->> -    platform_set_drvdata(pdev, NULL);
->> -    list_del_rcu(&msc->all_msc_list);
->> -    synchronize_srcu(&mpam_srcu);
->> +    mpam_msc_destroy(msc);
->>       mutex_unlock(&mpam_list_lock);
->> +
->> +    mpam_free_garbage();
+> These 3 as well. I'm not sure what the ordering is conveying but probably easier to just
+> to put them in address order.
 > 
-> Should mpam_free_garbage() be protected by mpam_list_lock? It may race with adding
-> garbage. I can see other adding and freeing garbage are protected by mpam_list_lock but
-> not this one.
+> There are some other cases of this below.
 
-No - it uses llist and is part of the deferred freeing, it should not need any locks.
+... I reckon the ones in funny places were the ones that the original FVP supported
+i.e. only the mandatory ones, which wasn't particularly useful.
+
+
+
+>> +/* MPAMF_IIDR - MPAM implementation ID register */
+>> +#define MPAMF_IIDR_PRODUCTID	GENMASK(31, 20)
+>> +#define MPAMF_IIDR_PRODUCTID_SHIFT	20
+>> +#define MPAMF_IIDR_VARIANT	GENMASK(19, 16)
+>> +#define MPAMF_IIDR_VARIANT_SHIFT	16
+>> +#define MPAMF_IIDR_REVISON	GENMASK(15, 12)
+>> +#define MPAMF_IIDR_REVISON_SHIFT	12
+>> +#define MPAMF_IIDR_IMPLEMENTER	GENMASK(11, 0)
+>> +#define MPAMF_IIDR_IMPLEMENTER_SHIFT	0
+
+> I'd expect to see FIELD_GET/ PREP rather than use of shifts. Can we drop the defines?
+
+Sure,
+
+> Pick an order for reg field definitions. Until here they've been low to high.
+
+I think I've got that more consistent now...
+
+
+>> +/* Error conditions in accessing memory mapped registers */
+>> +#define MPAM_ERRCODE_NONE			0
+>> +#define MPAM_ERRCODE_PARTID_SEL_RANGE		1
+>> +#define MPAM_ERRCODE_REQ_PARTID_RANGE		2
+>> +#define MPAM_ERRCODE_MSMONCFG_ID_RANGE		3
+>> +#define MPAM_ERRCODE_REQ_PMG_RANGE		4
+>> +#define MPAM_ERRCODE_MONITOR_RANGE		5
+>> +#define MPAM_ERRCODE_INTPARTID_RANGE		6
+>> +#define MPAM_ERRCODE_UNEXPECTED_INTERNAL	7
+> 
+> Seems there are more in latest spec..
+
+Yup, it the frequent game of spot-the-difference.
+I've updated that as part of your other feedback.
+
+
+>> +
+>> +/*
+>> + * MSMON_CFG_CSU_CTL - Memory system performance monitor configure cache storage
+>> + *                    usage monitor control register
+>> + * MSMON_CFG_MBWU_CTL - Memory system performance monitor configure memory
+>> + *                     bandwidth usage monitor control register
+>> + */
+>> +#define MSMON_CFG_x_CTL_TYPE			GENMASK(7, 0)
+>> +#define MSMON_CFG_MBWU_CTL_OFLOW_STATUS_L	BIT(15)
+>> +#define MSMON_CFG_x_CTL_MATCH_PARTID		BIT(16)
+>> +#define MSMON_CFG_x_CTL_MATCH_PMG		BIT(17)
+>> +#define MSMON_CFG_x_CTL_SCLEN			BIT(19)
+
+> On the spec I'm looking at this is reserved in CSU_CTL
+
+It's only defined for MSMON: "Value scaling enable",. I'll move it after the
+MSMON_CFG_MBWU_CTL_TYPE_MBWU define below.
+
+
+>> +#define MSMON_CFG_x_CTL_SUBTYPE			GENMASK(22, 20)
+>> +#define MSMON_CFG_x_CTL_OFLOW_FRZ		BIT(24)
+>> +#define MSMON_CFG_x_CTL_OFLOW_INTR		BIT(25)
+>> +#define MSMON_CFG_x_CTL_OFLOW_STATUS		BIT(26)
+>> +#define MSMON_CFG_x_CTL_CAPT_RESET		BIT(27)
+>> +#define MSMON_CFG_x_CTL_CAPT_EVNT		GENMASK(30, 28)
+>> +#define MSMON_CFG_x_CTL_EN			BIT(31)
+
+> I guess this combining of definitions will show some advante in common code
+> later but right now it seems confusing given not all bits are present in both.
+
+When I started these were the same!
+
+It is dealt with in common code, I don't think any of the bits that are different are
+used by the driver.
+
 
 
 Thanks,
