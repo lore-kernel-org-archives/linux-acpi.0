@@ -1,116 +1,188 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99A8126E710;
-	Sat, 18 Oct 2025 02:48:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.21
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 370CF354ADF;
+	Sat, 18 Oct 2025 12:24:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760755709; cv=none; b=DcU/V69K+vCD4G4T4NL7mlHkpJUABayzE1a1HY4v0s1w3OZvgSaegMNiIfsXnsifgLHGiwaQ7UN+VSlXYUXkmLNF58JOlzeUWHkpTC3IHIFkM+DwVXOSwAZlnAYrCoNnZACAvIjNrYH7EaDxnS7/y2oXyzqt7OWC38iHTZLgBd4=
+	t=1760790299; cv=none; b=lhUi5e1KMbXbPVSSX5hcnjW5A05e4GGgijShn1YF7kZ92bs3ZKgf0+QJkkWFJLS+vF/tLOgJTAu+e7xBxN8vzLHGznu3sa29NtuQ3wwQeZ3AN6opKAJPky3LnoTgzWEnb2Whh1MuS7B1SsNj2d/zivf5ljTn44IEtueGwbUdlb4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760755709; c=relaxed/simple;
-	bh=WVWtfKK+vDqGNd+hHo1rvqT82s5arm/ftAiBJiPTr+o=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=fkSa+BU5RC3n7GaiCgvVTacLakGNPwyWIZCcs+GUr30rEHha38gNxiQwHKlIvUBGMrsIqRjqZFU3Cbb01YklPsJQGmQTvUH5C9+/PfAXVHeEsdSR1/rpvNmQ7oTkNhkVVQ4WdTUVIEKys+s59Jt70vRbRwcDYe8xe9lPen6n0as=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Fj9VnqMk; arc=none smtp.client-ip=198.175.65.21
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1760790299; c=relaxed/simple;
+	bh=l/aAsZf6qoeMlNgkXSMypl1VDNVAcZQnG1zVE8VEAXc=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=fKjI47Bh+x959W0qQ240t24KGgk9o6GwbhYRuH8iW2+5TQaEFiJG2eUGe7DhsrkYmOyNAnTKKL7N5x4EGhybby+5WD9NpUGEz+vtbMUN4OXf1cVJKUhLw0BranRvKo8EkQeyK8ohhJTUE9MnD8Z2zbzWw69DPNhEcFfhcdRV4sU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Yn50TWnQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Fj9VnqMk"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1760755708; x=1792291708;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:content-transfer-encoding:in-reply-to;
-  bh=WVWtfKK+vDqGNd+hHo1rvqT82s5arm/ftAiBJiPTr+o=;
-  b=Fj9VnqMkjBgHMLMvlgVbssXDG6ZVHEoBGpuMe2cq8UwGwEeW4577lF/K
-   7dMx+oP5TFt70FBe2LsgeMBxP21UhlYsa+krM/DXLFzCCV/18Eax0vFjo
-   bCIVDKnjVEGZs6bthJzmV6tTSc9u0rKA+3bL5SQ7nho3U8H9ns2BT1qot
-   K2P/wJJxHj57QpjNMmd8lq9jgEdEqqmOqqXgbcoqBD5CnomCijv4f20yV
-   NUi8bHVEr+n9BXL1GpoQn+M6UaXJV2AtC6x+FeelDQoQKGHLT7a/LH8p8
-   9FiTRz7tyBvBm4sHaQ8Ffqk1mxDZboREeIvQXOQ9qbZSJfHG4rhGtdGYX
-   g==;
-X-CSE-ConnectionGUID: x8veFEuHRcOFEVIXcEKGFA==
-X-CSE-MsgGUID: yYrF6j1IRICAHz3krMEJjA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11531"; a="62876618"
-X-IronPort-AV: E=Sophos;i="6.17,312,1747724400"; 
-   d="scan'208";a="62876618"
-Received: from fmviesa007.fm.intel.com ([10.60.135.147])
-  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Oct 2025 19:48:25 -0700
-X-CSE-ConnectionGUID: HgsJk2K+SoekCEz+hIw0lA==
-X-CSE-MsgGUID: XIcqlnUtQnKoumUUL92cNA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.19,237,1754982000"; 
-   d="scan'208";a="182512093"
-Received: from ranerica-svr.sc.intel.com ([172.25.110.23])
-  by fmviesa007.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Oct 2025 14:02:44 -0700
-Date: Fri, 17 Oct 2025 14:10:15 -0700
-From: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: x86@kernel.org, Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>, Rob Herring <robh@kernel.org>,
-	"K. Y. Srinivasan" <kys@microsoft.com>,
-	Haiyang Zhang <haiyangz@microsoft.com>,
-	Wei Liu <wei.liu@kernel.org>, Dexuan Cui <decui@microsoft.com>,
-	Michael Kelley <mhklinux@outlook.com>,
-	Saurabh Sengar <ssengar@linux.microsoft.com>,
-	Chris Oo <cho@microsoft.com>, "Kirill A. Shutemov" <kas@kernel.org>,
-	linux-hyperv@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Ricardo Neri <ricardo.neri@intel.com>,
-	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Subject: Re: [PATCH v6 01/10] x86/acpi: Add helper functions to setup and
- access the wakeup mailbox
-Message-ID: <20251017211015.GA7078@ranerica-svr.sc.intel.com>
-References: <20251016-rneri-wakeup-mailbox-v6-0-40435fb9305e@linux.intel.com>
- <20251016-rneri-wakeup-mailbox-v6-1-40435fb9305e@linux.intel.com>
- <CAJZ5v0iB4iZFs8C6EZayLVPbLz50MJ9GEniSHfbP31-yHRg1Bw@mail.gmail.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Yn50TWnQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2EC6C4CEF8;
+	Sat, 18 Oct 2025 12:24:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1760790299;
+	bh=l/aAsZf6qoeMlNgkXSMypl1VDNVAcZQnG1zVE8VEAXc=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=Yn50TWnQ9qd+yEexh2GKNnuLDe4q8aKdbUnferwTelvEA+ZQosCY3MXb94BktNoBB
+	 koAeqWipf/U1ZZy5UByJ1plMzaeiX8P1+mT/EWOHlYD8uQhvb6cJ2sjcuMzPbDI+kg
+	 POkTJfV9h9pm3zu3AKUBfSe/NBeJn5GDvMPHDV9TSrs4vYGCvhI7xOB0zZb1xJAc0g
+	 YWuCrRi8G/PWXZ2SwK3Gdwo6wRJyh4mfNvfv2ZL6Op4e+UHefa4NV6NBlFb7ftQqKD
+	 sxor1QHhQ7BZ7UbA9ign/oMbY6Xht2oWtKbyOOhZgLLUmcZVJwZfj0B4S+P82Q7P2m
+	 3eKL3jr4a6jQQ==
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+To: Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: Linux PM <linux-pm@vger.kernel.org>,
+ Jonathan Cameron <jonathan.cameron@huawei.com>, Takashi Iwai <tiwai@suse.de>,
+ LKML <linux-kernel@vger.kernel.org>, Zhang Qilong <zhangqilong3@huawei.com>,
+ Frank Li <Frank.Li@nxp.com>, Dhruva Gole <d-gole@ti.com>,
+ Mika Westerberg <mika.westerberg@linux.intel.com>,
+ Dan Williams <dan.j.williams@intel.com>
+Subject: [PATCH v2 2/2] ACPI: TAD: Improve runtime PM using guard macros
+Date: Sat, 18 Oct 2025 14:24:42 +0200
+Message-ID: <22877917.EfDdHjke4D@rafael.j.wysocki>
+Organization: Linux Kernel Development
+In-Reply-To: <8599731.T7Z3S40VBb@rafael.j.wysocki>
+References: <8599731.T7Z3S40VBb@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAJZ5v0iB4iZFs8C6EZayLVPbLz50MJ9GEniSHfbP31-yHRg1Bw@mail.gmail.com>
-User-Agent: Mutt/1.9.4 (2018-02-28)
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
 
-On Fri, Oct 17, 2025 at 11:46:59AM +0200, Rafael J. Wysocki wrote:
-> On Fri, Oct 17, 2025 at 4:48 AM Ricardo Neri
-> <ricardo.neri-calderon@linux.intel.com> wrote:
-> >
-> > In preparation to move the functionality to wake secondary CPUs up from the
-> > ACPI code, add two helper functions.
-> >
-> > The function acpi_setup_mp_wakeup_mailbox() stores the physical address of
-> > the mailbox and updates the wakeup_secondary_cpu_64() APIC callback.
-> >
-> > There is a slight change in behavior: now the APIC callback is updated
-> > before configuring CPU hotplug offline behavior. This is fine as the APIC
-> > callback continues to be updated unconditionally, regardless of the
-> > restriction on CPU offlining.
-> >
-> > The function acpi_madt_multiproc_wakeup_mailbox() returns a pointer to the
-> > mailbox. Use this helper function only in the portions of the code for
-> > which the variable acpi_mp_wake_mailbox will be out of scope once it is
-> > relocated out of the ACPI directory.
-> >
-> > The wakeup mailbox is only supported for CONFIG_X86_64 and needed only with
-> > CONFIG_SMP=y.
-> >
-> > Reviewed-by: Dexuan Cui <decui@microsoft.com>
-> > Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> This should have been
-> 
-> Acked-by: Rafael J. Wysocki (Intel) <rafael.j.wysocki@intel.com>
-> 
-> The "(Intel)" part is missing and I omitted it when I sent the tag.
-> Sorry for the confusion.
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Thanks for the clarification Rafael. Does this clarification apply also
-patches 2 and 3?
+Use guard pm_runtime_active_try to simplify runtime PM cleanup and
+implement runtime resume error handling in multiple places.
 
-Also, if no further changes are needed in the series, can it be corrected
-when the patches are merged?
+Also use guard pm_runtime_noresume to simplify acpi_tad_remove().
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/acpi_tad.c |   57 +++++++++++++++++++++---------------------------
+ 1 file changed, 25 insertions(+), 32 deletions(-)
+
+--- a/drivers/acpi/acpi_tad.c
++++ b/drivers/acpi/acpi_tad.c
+@@ -90,12 +90,11 @@ static int acpi_tad_set_real_time(struct
+ 	args[0].buffer.pointer = (u8 *)rt;
+ 	args[0].buffer.length = sizeof(*rt);
+ 
+-	pm_runtime_get_sync(dev);
++	ACQUIRE(pm_runtime_active_try, pm)(dev);
++	if (ACQUIRE_ERR(pm_runtime_active_try, &pm))
++		return -ENXIO;
+ 
+ 	status = acpi_evaluate_integer(handle, "_SRT", &arg_list, &retval);
+-
+-	pm_runtime_put_sync(dev);
+-
+ 	if (ACPI_FAILURE(status) || retval)
+ 		return -EIO;
+ 
+@@ -111,12 +110,11 @@ static int acpi_tad_get_real_time(struct
+ 	acpi_status status;
+ 	int ret = -EIO;
+ 
+-	pm_runtime_get_sync(dev);
++	ACQUIRE(pm_runtime_active_try, pm)(dev);
++	if (ACQUIRE_ERR(pm_runtime_active_try, &pm))
++		return -ENXIO;
+ 
+ 	status = acpi_evaluate_object(handle, "_GRT", NULL, &output);
+-
+-	pm_runtime_put_sync(dev);
+-
+ 	if (ACPI_FAILURE(status))
+ 		goto out_free;
+ 
+@@ -266,12 +264,11 @@ static int acpi_tad_wake_set(struct devi
+ 	args[0].integer.value = timer_id;
+ 	args[1].integer.value = value;
+ 
+-	pm_runtime_get_sync(dev);
++	ACQUIRE(pm_runtime_active_try, pm)(dev);
++	if (ACQUIRE_ERR(pm_runtime_active_try, &pm))
++		return -ENXIO;
+ 
+ 	status = acpi_evaluate_integer(handle, method, &arg_list, &retval);
+-
+-	pm_runtime_put_sync(dev);
+-
+ 	if (ACPI_FAILURE(status) || retval)
+ 		return -EIO;
+ 
+@@ -314,12 +311,11 @@ static ssize_t acpi_tad_wake_read(struct
+ 
+ 	args[0].integer.value = timer_id;
+ 
+-	pm_runtime_get_sync(dev);
++	ACQUIRE(pm_runtime_active_try, pm)(dev);
++	if (ACQUIRE_ERR(pm_runtime_active_try, &pm))
++		return -ENXIO;
+ 
+ 	status = acpi_evaluate_integer(handle, method, &arg_list, &retval);
+-
+-	pm_runtime_put_sync(dev);
+-
+ 	if (ACPI_FAILURE(status))
+ 		return -EIO;
+ 
+@@ -370,12 +366,11 @@ static int acpi_tad_clear_status(struct
+ 
+ 	args[0].integer.value = timer_id;
+ 
+-	pm_runtime_get_sync(dev);
++	ACQUIRE(pm_runtime_active_try, pm)(dev);
++	if (ACQUIRE_ERR(pm_runtime_active_try, &pm))
++		return -ENXIO;
+ 
+ 	status = acpi_evaluate_integer(handle, "_CWS", &arg_list, &retval);
+-
+-	pm_runtime_put_sync(dev);
+-
+ 	if (ACPI_FAILURE(status) || retval)
+ 		return -EIO;
+ 
+@@ -411,12 +406,11 @@ static ssize_t acpi_tad_status_read(stru
+ 
+ 	args[0].integer.value = timer_id;
+ 
+-	pm_runtime_get_sync(dev);
++	ACQUIRE(pm_runtime_active_try, pm)(dev);
++	if (ACQUIRE_ERR(pm_runtime_active_try, &pm))
++		return -ENXIO;
+ 
+ 	status = acpi_evaluate_integer(handle, "_GWS", &arg_list, &retval);
+-
+-	pm_runtime_put_sync(dev);
+-
+ 	if (ACPI_FAILURE(status))
+ 		return -EIO;
+ 
+@@ -571,16 +565,15 @@ static void acpi_tad_remove(struct platf
+ 
+ 	sysfs_remove_group(&dev->kobj, &acpi_tad_attr_group);
+ 
+-	pm_runtime_get_noresume(dev);
+-
+-	acpi_tad_disable_timer(dev, ACPI_TAD_AC_TIMER);
+-	acpi_tad_clear_status(dev, ACPI_TAD_AC_TIMER);
+-	if (dd->capabilities & ACPI_TAD_DC_WAKE) {
+-		acpi_tad_disable_timer(dev, ACPI_TAD_DC_TIMER);
+-		acpi_tad_clear_status(dev, ACPI_TAD_DC_TIMER);
++	scoped_guard(pm_runtime_noresume, dev) {
++		acpi_tad_disable_timer(dev, ACPI_TAD_AC_TIMER);
++		acpi_tad_clear_status(dev, ACPI_TAD_AC_TIMER);
++		if (dd->capabilities & ACPI_TAD_DC_WAKE) {
++			acpi_tad_disable_timer(dev, ACPI_TAD_DC_TIMER);
++			acpi_tad_clear_status(dev, ACPI_TAD_DC_TIMER);
++		}
+ 	}
+ 
+-	pm_runtime_put_noidle(dev);
+ 	pm_runtime_suspend(dev);
+ 	pm_runtime_disable(dev);
+ 	acpi_remove_cmos_rtc_space_handler(handle);
+
+
+
