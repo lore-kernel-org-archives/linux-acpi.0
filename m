@@ -1,37 +1,37 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 893CE230996;
-	Mon, 20 Oct 2025 12:30:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E2C831B13C;
+	Mon, 20 Oct 2025 12:30:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760963412; cv=none; b=i5uGlipfKQ/WQOzHm4xBKx6KeGzgwpBvYsYOMzGl4DQWGhL0T21d1L31O/znd4HMTc85tXjutpsWyblmpgk4B+7UHf3zCwQaAhWjFW4VPrjEDeTNC5MJYRliIHpDwOK7tedoycnK9/2tHo3BTYCBpvjeHAvBOuzXDnJAR77WR1Y=
+	t=1760963413; cv=none; b=nh0izErTvX+rTRhZ3aoQtYyGMgQYzg8gfvUSR1EIbfQO+DMTg1X0vcJhiFImubJ165M5moRKNY8XywT3Q7f9y9so2szKWCmWasWurbaAmmAtreIQmaU/VNXyHI3q4ljcwH2zSZVE8xTkOgER+xI22wRoBGHpuroKl5qViV8P0xM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760963412; c=relaxed/simple;
-	bh=NdsJ0/5jFp68eUG2zA5xcbbdbGYt8W71X/7TRQqfH4E=;
+	s=arc-20240116; t=1760963413; c=relaxed/simple;
+	bh=MkMz4J0zz9h+l83iN4rN2xM+aHAO0Wv89SlEoxIRnuE=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=BYy+lYyhVitb9libk7ZTeZADaClXFrqWVJE4SbMpGrqjQcB1aJzOkgWQ0TYWH7Ex22TYxz3mQuREip7GkSkk5N6zrrU7jUPwiALZAMSj1NWA0WDgl1PKbMPmh8EeYlWOS8rImW9AHkrg2AnuPz4M+OoGAbd15bwQoKp4JRUkm3I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=k4/OrMQp; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=U9KBDCdE+fpLyNE8cJ7Pq/MwkB1N/4HCu4rrz6rpKo8rfb6suUHhW77XdNbGjnrXTu0m+txYPAVpQ2NDvyaL4o0c22eM2TiEKGrqn17a5FRzwXqSO1ZsDolggnRS2kCCkqazOSqcZhZA+CCs+WQQCjppB0uNRWLJlRuGK7qAdTw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ayl/YwCw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="k4/OrMQp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1BE0EC116D0;
-	Mon, 20 Oct 2025 12:30:12 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ayl/YwCw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 151A6C116D0;
+	Mon, 20 Oct 2025 12:30:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1760963412;
-	bh=NdsJ0/5jFp68eUG2zA5xcbbdbGYt8W71X/7TRQqfH4E=;
+	s=k20201202; t=1760963413;
+	bh=MkMz4J0zz9h+l83iN4rN2xM+aHAO0Wv89SlEoxIRnuE=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=k4/OrMQpERFhX7s9y836KmhhWWPN7VQv+4Ez7o2ar87qbEZwF2HUHJhWIKTxv8COO
-	 mORU/ULMldeBE9wyuDgHxZ5Sp3BKaLjpephmd5HB1p5n7FwgtU6vpPVPgKnnVVWpsi
-	 clfxxV4/ZRQRx6INLf7ndNIPqSmauDy1MXQFECa0xNo/BB8yWJ0aiFt/ag5ymmmy7i
-	 PgG1+gchpg5VSw8C9pBrpQ/hoSbhBclfxJj4nsfgTHMzmGDz92DU8iUZ2sTTnozBmk
-	 c7euD6vTSEUmyfhshFXjIz6EYN0SWCV1NHOCF6Ee2MZkwd347FHvO2k+gqA6G0dJUq
-	 nRe/cXUXrASAA==
+	b=Ayl/YwCwDKcnkcJr9jvXn+m46l0TwdOn3o0AKSBiPglQvaAyi8squdVUZn/9efg2U
+	 sd6tgb8WapVUif04BicpO9US+UfOglKdATdf3TNXz6uklRCUn33U7GMccEayUoDtF/
+	 /9oOUPfKTOQc64Jw/x/bGDzGvBWGiboXX5nPj4ibqyq0ZCgg0N3j+FATdmIvxutQbn
+	 lSNUtV2XO+ssrgNTW3xF+eOcFwTLqVu0NGoddVImzu5WePH6KxAzchElcynluau2ct
+	 wKXZQUGZ5FOL5gcvlmgFyNbFc6lscApEZl5Bk+Gui2fWbBUrikCEU6n4E7r+Rcec99
+	 hVsR21XXqRAEQ==
 Received: from sofa.misterjones.org ([185.219.108.64] helo=valley-girl.lan)
 	by disco-boy.misterjones.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.98.2)
 	(envelope-from <maz@kernel.org>)
-	id 1vAp1e-0000000FUu2-0zRC;
-	Mon, 20 Oct 2025 12:30:10 +0000
+	id 1vAp1f-0000000FUu2-0pYQ;
+	Mon, 20 Oct 2025 12:30:11 +0000
 From: Marc Zyngier <maz@kernel.org>
 To: linux-kernel@vger.kernel.org,
 	linux-arm-kernel@lists.infradead.org,
@@ -50,9 +50,9 @@ Cc: Thomas Gleixner <tglx@linutronix.de>,
 	Jonathan Cameron <jonathan.cameron@huawei.com>,
 	Jinjie Ruan <ruanjinjie@huawei.com>,
 	Alexandru Elisei <alexandru.elisei@arm.com>
-Subject: [PATCH v4 10/26] irqchip/gic-v3: Switch high priority PPIs over to handle_percpu_devid_irq()
-Date: Mon, 20 Oct 2025 13:29:27 +0100
-Message-ID: <20251020122944.3074811-11-maz@kernel.org>
+Subject: [PATCH v4 13/26] genirq: Factor-in percpu irqaction creation
+Date: Mon, 20 Oct 2025 13:29:30 +0100
+Message-ID: <20251020122944.3074811-14-maz@kernel.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20251020122944.3074811-1-maz@kernel.org>
 References: <20251020122944.3074811-1-maz@kernel.org>
@@ -68,118 +68,98 @@ X-SA-Exim-Rcpt-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradea
 X-SA-Exim-Mail-From: maz@kernel.org
 X-SA-Exim-Scanned: No (on disco-boy.misterjones.org); SAEximRunCond expanded to false
 
-It so appears that handle_percpu_devid_irq() is extremely similar to
-handle_percpu_devid_fasteoi_nmi(), and that the differences do no
-justify the horrid machinery we have in the GICv3 driver to handle
-the flow handler switch.
+Move the code creating a per-cpu irqaction into its own helper, so that
+future changes to this code can be kept localised.
 
-Let's stick with the standard flow handler, even for NMIs.
+At the same time, fix the documentation which appears to say the wrong
+thing when it comes to interrupts being automatically enabled
+(percpu_devid interrupts never are).
 
-Suggested-by: Will Deacon <will@kernel.org>
+Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
 Tested-by: Will Deacon <will@kernel.org>
 Signed-off-by: Marc Zyngier <maz@kernel.org>
 ---
- drivers/irqchip/irq-gic-v3.c | 54 ++----------------------------------
- 1 file changed, 2 insertions(+), 52 deletions(-)
+ kernel/irq/manage.c | 40 ++++++++++++++++++++++++----------------
+ 1 file changed, 24 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/irqchip/irq-gic-v3.c b/drivers/irqchip/irq-gic-v3.c
-index cf0ba83c6eda6..dd2d6d722fc5e 100644
---- a/drivers/irqchip/irq-gic-v3.c
-+++ b/drivers/irqchip/irq-gic-v3.c
-@@ -230,9 +230,6 @@ static void __init gic_prio_init(void)
- 		!cpus_have_group0);
+diff --git a/kernel/irq/manage.c b/kernel/irq/manage.c
+index c94837382037e..d9ddc30678b5d 100644
+--- a/kernel/irq/manage.c
++++ b/kernel/irq/manage.c
+@@ -2442,6 +2442,24 @@ int setup_percpu_irq(unsigned int irq, struct irqaction *act)
+ 	return retval;
  }
  
--/* rdist_nmi_refs[n] == number of cpus having the rdist interrupt n set as NMI */
--static refcount_t *rdist_nmi_refs;
--
- static struct gic_kvm_info gic_v3_kvm_info __initdata;
- static DEFINE_PER_CPU(bool, has_rss);
- 
-@@ -608,24 +605,6 @@ static u32 __gic_get_ppi_index(irq_hw_number_t hwirq)
- 	}
- }
- 
--static u32 __gic_get_rdist_index(irq_hw_number_t hwirq)
--{
--	switch (__get_intid_range(hwirq)) {
--	case SGI_RANGE:
--	case PPI_RANGE:
--		return hwirq;
--	case EPPI_RANGE:
--		return hwirq - EPPI_BASE_INTID + 32;
--	default:
--		unreachable();
--	}
--}
--
--static u32 gic_get_rdist_index(struct irq_data *d)
--{
--	return __gic_get_rdist_index(d->hwirq);
--}
--
- static int gic_irq_nmi_setup(struct irq_data *d)
- {
- 	struct irq_desc *desc = irq_to_desc(d->irq);
-@@ -646,20 +625,8 @@ static int gic_irq_nmi_setup(struct irq_data *d)
++static
++struct irqaction *create_percpu_irqaction(irq_handler_t handler, unsigned long flags,
++					  const char *devname, void __percpu *dev_id)
++{
++	struct irqaction *action;
++
++	action = kzalloc(sizeof(struct irqaction), GFP_KERNEL);
++	if (!action)
++		return NULL;
++
++	action->handler = handler;
++	action->flags = flags | IRQF_PERCPU | IRQF_NO_SUSPEND;
++	action->name = devname;
++	action->percpu_dev_id = dev_id;
++
++	return action;
++}
++
+ /**
+  * __request_percpu_irq - allocate a percpu interrupt line
+  * @irq:	Interrupt line to allocate
+@@ -2450,9 +2468,9 @@ int setup_percpu_irq(unsigned int irq, struct irqaction *act)
+  * @devname:	An ascii name for the claiming device
+  * @dev_id:	A percpu cookie passed back to the handler function
+  *
+- * This call allocates interrupt resources and enables the interrupt on the
+- * local CPU. If the interrupt is supposed to be enabled on other CPUs, it
+- * has to be done on each CPU using enable_percpu_irq().
++ * This call allocates interrupt resources, but doesn't enable the interrupt
++ * on any CPU, as all percpu-devid interrupts are flagged with IRQ_NOAUTOEN.
++ * It has to be done on each CPU using enable_percpu_irq().
+  *
+  * @dev_id must be globally unique. It is a per-cpu variable, and
+  * the handler gets called with the interrupted CPU's instance of
+@@ -2477,15 +2495,10 @@ int __request_percpu_irq(unsigned int irq, irq_handler_t handler,
+ 	if (flags && flags != IRQF_TIMER)
  		return -EINVAL;
  
- 	/* desc lock should already be held */
--	if (gic_irq_in_rdist(d)) {
--		u32 idx = gic_get_rdist_index(d);
+-	action = kzalloc(sizeof(struct irqaction), GFP_KERNEL);
++	action = create_percpu_irqaction(handler, flags, devname, dev_id);
+ 	if (!action)
+ 		return -ENOMEM;
+ 
+-	action->handler = handler;
+-	action->flags = flags | IRQF_PERCPU | IRQF_NO_SUSPEND;
+-	action->name = devname;
+-	action->percpu_dev_id = dev_id;
 -
--		/*
--		 * Setting up a percpu interrupt as NMI, only switch handler
--		 * for first NMI
--		 */
--		if (!refcount_inc_not_zero(&rdist_nmi_refs[idx])) {
--			refcount_set(&rdist_nmi_refs[idx], 1);
--			desc->handle_irq = handle_percpu_devid_fasteoi_nmi;
--		}
--	} else {
-+	if (!gic_irq_in_rdist(d))
- 		desc->handle_irq = handle_fasteoi_nmi;
--	}
+ 	retval = irq_chip_pm_get(&desc->irq_data);
+ 	if (retval < 0) {
+ 		kfree(action);
+@@ -2546,16 +2559,11 @@ int request_percpu_nmi(unsigned int irq, irq_handler_t handler,
+ 	if (irq_is_nmi(desc))
+ 		return -EINVAL;
  
- 	gic_irq_set_prio(d, dist_prio_nmi);
+-	action = kzalloc(sizeof(struct irqaction), GFP_KERNEL);
++	action = create_percpu_irqaction(handler, IRQF_NO_THREAD | IRQF_NOBALANCING,
++					 name, dev_id);
+ 	if (!action)
+ 		return -ENOMEM;
  
-@@ -686,15 +653,8 @@ static void gic_irq_nmi_teardown(struct irq_data *d)
- 		return;
- 
- 	/* desc lock should already be held */
--	if (gic_irq_in_rdist(d)) {
--		u32 idx = gic_get_rdist_index(d);
+-	action->handler = handler;
+-	action->flags = IRQF_PERCPU | IRQF_NO_SUSPEND | IRQF_NO_THREAD
+-		| IRQF_NOBALANCING;
+-	action->name = name;
+-	action->percpu_dev_id = dev_id;
 -
--		/* Tearing down NMI, only switch handler for last NMI */
--		if (refcount_dec_and_test(&rdist_nmi_refs[idx]))
--			desc->handle_irq = handle_percpu_devid_irq;
--	} else {
-+	if (!gic_irq_in_rdist(d))
- 		desc->handle_irq = handle_fasteoi_irq;
--	}
- 
- 	gic_irq_set_prio(d, dist_prio_irq);
- }
-@@ -2080,19 +2040,9 @@ static const struct gic_quirk gic_quirks[] = {
- 
- static void gic_enable_nmi_support(void)
- {
--	int i;
--
- 	if (!gic_prio_masking_enabled() || nmi_support_forbidden)
- 		return;
- 
--	rdist_nmi_refs = kcalloc(gic_data.ppi_nr + SGI_NR,
--				 sizeof(*rdist_nmi_refs), GFP_KERNEL);
--	if (!rdist_nmi_refs)
--		return;
--
--	for (i = 0; i < gic_data.ppi_nr + SGI_NR; i++)
--		refcount_set(&rdist_nmi_refs[i], 0);
--
- 	pr_info("Pseudo-NMIs enabled using %s ICC_PMR_EL1 synchronisation\n",
- 		gic_has_relaxed_pmr_sync() ? "relaxed" : "forced");
- 
+ 	retval = irq_chip_pm_get(&desc->irq_data);
+ 	if (retval < 0)
+ 		goto err_out;
 -- 
 2.47.3
 
