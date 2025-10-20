@@ -1,35 +1,36 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C53F2313E0A;
-	Mon, 20 Oct 2025 12:30:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BC0429E109;
+	Mon, 20 Oct 2025 12:30:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760963409; cv=none; b=tIijLkmB0mJK/qr0Eq8ab6Ed3OW+9ywKYaC4Yxq4UfCiF6J48Gve2QKWefq7M1l45sUCKr+QNbj5vA0T3dA480opYjJe8+vmD9BqfEb5F+aouSxZqEUwBzo3zmg4cSgA05LCLsovv3PDtcvHL84S9dMUfJ16MOt4O6LNQUVY5sc=
+	t=1760963410; cv=none; b=q4AfvAxyRvb0ERoZsEJqCcKq1ZNvYc5tkcQ6kLqGjuAGxkqvsL2VudQ6miLUGgccANl5L50TJEZUXSqfMyyb6SCjkXXpbg1e8/1W5+wtfMfB7rFGCYGmUnzCXsKBOWVUs0qSuTcXGfvsMPTc9OpxdRad6Za5e/jiyL4MbPLlEAQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760963409; c=relaxed/simple;
-	bh=xb/lnXZ7cyeI2Kiq/oDJcO0yuGXr40YVwbGy347cEi0=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=ExWIbYc9oOwOW0TQPFPuXhlif20jZkgglpfAaAdlIpFFHk2kRLRaSG8jZtRS2jCv+5uGA6J2ahz5CIYuC5cBh4fDYaVJBPEkoAI4o6+iur7VLipntQJaR8hiMkyi3xnTlgffFqL6bTu515JEcK3wZE8+0C+rTLnvRv0snxX1dpI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VOYeQEiH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1760963410; c=relaxed/simple;
+	bh=HST/sUWtIZNiNIOKHh+hRvomjQF/XTcjUD7JT/PX8wk=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=hj4+Uckw9l3h8uqHi1+o0oJh04UX22Nv4or1GAhPjRL4psHxFD3Sb13DL/U5pjAeC8Gc/PIymc9Ecq/B02JRi5OKz8xQtULpXt2Y+hl8A8RV4DMZ9ChROtSjS7Bq5b4ZH7UidVkO+FPhxfTPtDHfQ3QqLSpSfstC79mvGywgtSA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gsAgRyzt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VOYeQEiH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4FB9FC113D0;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gsAgRyzt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C33D7C4CEF9;
 	Mon, 20 Oct 2025 12:30:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=k20201202; t=1760963409;
-	bh=xb/lnXZ7cyeI2Kiq/oDJcO0yuGXr40YVwbGy347cEi0=;
-	h=From:To:Cc:Subject:Date:From;
-	b=VOYeQEiHx1SU+kMdzV43TDLpRb/1X2OAi6PQIFcfwGAIFzadoDTyFta0UEI4rXH4B
-	 hgYtCS6UuWatHtdKWWUu7+S4kkQiJqELiJ2w0+yM2qQ+EL2j96Vu7x8hjZL286TyRD
-	 oupHx1nr1ArXNaWDVYP96bm8K8/p7xgEJ3vy2h5Sumy0YYnz5MnKiXS+dtb4Ke/ML/
-	 Z/T303aL37zQp64TDGGeTQCM/8nU5Y62V85iuTKZeDgy0V2SIupCOjH0FzJgXBEUUf
-	 Lee3TSVSAcnNkPXozbjR20EDn5K1Xk1bE6AUn3m1G5hgbGffesvFS0yr9qvac2kOx2
-	 zkra8w+VY7joQ==
+	bh=HST/sUWtIZNiNIOKHh+hRvomjQF/XTcjUD7JT/PX8wk=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=gsAgRyztlAAjxGp8pjp1m/4q6fcsOTlph00ZZwRTKCTuHoWP0o/hp4xOtlpuOVZxp
+	 A8SYrv7Z0eT56XqSXoUO/X29JE4/Z0kaC5eDM3BBTr18H3HIbKqzRoojf5wm/G8BJD
+	 3dmQfUjogscs49GW0dwLTh0slYoFkC/f8cNg1yiS3GTPzrofDtqnL03hdQOc8Jb3pI
+	 c0vkpnLcXK5AIF7mIHfsKw3QfE/hCmxLmdPlMtdHvO556SuAhdJ4Kr7VkG8zzwWsrK
+	 1+2fBj5+3URB1gnFwqYAG5fVYKbdk/08aPzJaaOand08zJZcsI/hdqu97f1M+9LaOf
+	 a1GffeGRH0O1Q==
 Received: from sofa.misterjones.org ([185.219.108.64] helo=valley-girl.lan)
 	by disco-boy.misterjones.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.98.2)
 	(envelope-from <maz@kernel.org>)
-	id 1vAp1b-0000000FUu2-0E4m;
+	id 1vAp1b-0000000FUu2-30EN;
 	Mon, 20 Oct 2025 12:30:07 +0000
 From: Marc Zyngier <maz@kernel.org>
 To: linux-kernel@vger.kernel.org,
@@ -49,10 +50,12 @@ Cc: Thomas Gleixner <tglx@linutronix.de>,
 	Jonathan Cameron <jonathan.cameron@huawei.com>,
 	Jinjie Ruan <ruanjinjie@huawei.com>,
 	Alexandru Elisei <alexandru.elisei@arm.com>
-Subject: [PATCH v4 00/26] genirq: Add support for percpu_devid IRQ affinity
-Date: Mon, 20 Oct 2025 13:29:17 +0100
-Message-ID: <20251020122944.3074811-1-maz@kernel.org>
+Subject: [PATCH v4 02/26] ACPI: irq: Add IRQ affinity reporting interface
+Date: Mon, 20 Oct 2025 13:29:19 +0100
+Message-ID: <20251020122944.3074811-3-maz@kernel.org>
 X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20251020122944.3074811-1-maz@kernel.org>
+References: <20251020122944.3074811-1-maz@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -65,121 +68,74 @@ X-SA-Exim-Rcpt-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradea
 X-SA-Exim-Mail-From: maz@kernel.org
 X-SA-Exim-Scanned: No (on disco-boy.misterjones.org); SAEximRunCond expanded to false
 
-This is the fourth version of this series, originally posted at [1],
-which aims at allowing percpu_devid interrupt requests on the basis of
-an affinity mask. See the original submission for the details of why
-this is a desirable outcome.
+Plug the irq_populate_fwspec_info() helper into the ACPI layer
+to offer an IRQ affinity reporting function. This is currently
+only supported for the CONFIG_ACPI_GENERIC_GSI configurations,
+but could later be extended to legacy architectures if necessary.
 
-From v3, we have some additional tidying up, thanks to Jonathan's
-review, and a bunch of tags -- see changelog for details.
+Acked-by: Rafael J. Wysocki (Intel) <rafael@kernel.org>
+Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
+Tested-by: Will Deacon <will@kernel.org>
+Signed-off-by: Marc Zyngier <maz@kernel.org>
+---
+ drivers/acpi/irq.c   | 19 +++++++++++++++++++
+ include/linux/acpi.h |  7 +++++++
+ 2 files changed, 26 insertions(+)
 
-FWIW, I've pushed a branch at [0].
-
-* From v3 [3]:
-
-  - Additional cleanups in of_irq_get_affinity() (Jonathan)
-
-  - Rebased on 6.18-rc2
-
-  - Collected Abs, Rbs and Tbs, with thanks (Raphael, Jonathan,
-    Jinjie, Suzuki, Sven, Will)
-
-* From v2 [2]:
-
-  - Turned of_node_to_fwnode() usage to of_fwnode_handle() (Jonathan)
-
-  - Added a patch to finally kill of_node_to_fwnode()
-
-  - Tidied-up documentation, comments and formatting (Jonathan)
-
-  - Collected ABs and Rbs, with thanks (Jonathan, Suzuki, Sven)
-
-* From v1 [1]:
-
-  - Fixed NMI handling by getting rid of the NMI-specific flow
-    handler, which was pretty useless anyway (Will)
-
-  - As a result, killed a metric buttload worth of GICv3 code
-
-  - Moved irq_fwspec out of irq_fwspec_info, and passed it as a
-    parameter to irq_get_fwspec_info(), renamed from irq_get_info(),
-    and applied some generous sanitisation of the structure (Thomas)
-
-  - Dropped the rather useless fwspec validity flag (Thomas)
-
-  - Rejigged the PMU per-CPU handling to better deal with the DT/ACPI
-    differences, and drop some now useless patches (Will)
-
-  - Plenty of cosmetic rework (Raphael, Thomas)
-
-[0] git://git.kernel.org/pub/scm/linux/kernel/git/maz/arm-platforms.git irq/ppi-affinity
-[1] https://lore.kernel.org/r/20250908163127.2462948-1-maz@kernel.org
-[2] https://lore.kernel.org/r/20250915085702.519996-1-maz@kernel.org
-[3] https://lore.kernel.org/r/20250922082833.2038905-1-maz@kernel.org
-
-Marc Zyngier (25):
-  irqdomain: Add firmware info reporting interface
-  ACPI: irq: Add IRQ affinity reporting interface
-  of/irq: Add IRQ affinity reporting interface
-  platform: Add firmware-agnostic irq and affinity retrieval interface
-  irqchip/gic-v3: Add FW info retrieval support
-  irqchip/apple-aic: Add FW info retrieval support
-  coresight: trbe: Convert to new IRQ affinity retrieval API
-  perf: arm_pmu: Convert to new IRQ affinity retrieval API
-  perf: arm_spe_pmu: Convert to new IRQ affinity retrieval API
-  irqchip/gic-v3: Switch high priority PPIs over to
-    handle_percpu_devid_irq()
-  genirq: Kill handle_percpu_devid_fasteoi_nmi()
-  genirq: Merge irqaction::{dev_id,percpu_dev_id}
-  genirq: Factor-in percpu irqaction creation
-  genirq: Add affinity to percpu_devid interrupt requests
-  genirq: Update request_percpu_nmi() to take an affinity
-  genirq: Allow per-cpu interrupt sharing for non-overlapping affinities
-  genirq: Add request_percpu_irq_affinity() helper
-  perf: arm_spe_pmu: Request specific affinities for percpu IRQ
-  coresight: trbe: Request specific affinities for percpu IRQ
-  irqchip/gic-v3: Drop support for custom PPI partitions
-  irqchip/apple-aic: Drop support for custom PMU irq partitions
-  irqchip: Kill irq-partition-percpu
-  genirq: Kill irq_{g,s}et_percpu_devid_partition()
-  irqdomain: Kill of_node_to_fwnode() helper
-  perf: arm_pmu: Kill last use of per-CPU cpu_armpmu pointer
-
-Will Deacon (1):
-  perf: arm_pmu: Request specific affinities for percpu NMI/IRQ
-
- arch/arm64/kernel/smp.c                      |   2 +-
- drivers/acpi/irq.c                           |  19 ++
- drivers/base/platform.c                      |  60 ++++-
- drivers/hwtracing/coresight/coresight-trbe.c |   9 +-
- drivers/irqchip/Kconfig                      |   4 -
- drivers/irqchip/Makefile                     |   1 -
- drivers/irqchip/irq-apple-aic.c              |  56 +++--
- drivers/irqchip/irq-gic-v3.c                 | 224 +++++------------
- drivers/irqchip/irq-partition-percpu.c       | 241 -------------------
- drivers/of/irq.c                             |  20 ++
- drivers/perf/arm_pmu.c                       |  49 ++--
- drivers/perf/arm_pmu_acpi.c                  |   2 +-
- drivers/perf/arm_pmu_platform.c              |  20 +-
- drivers/perf/arm_pmuv3.c                     |   2 +-
- drivers/perf/arm_spe_pmu.c                   |  13 +-
- include/linux/acpi.h                         |   7 +
- include/linux/interrupt.h                    |  24 +-
- include/linux/irq.h                          |   5 -
- include/linux/irqchip/irq-partition-percpu.h |  53 ----
- include/linux/irqdesc.h                      |   1 -
- include/linux/irqdomain.h                    |  33 ++-
- include/linux/of_irq.h                       |   7 +
- include/linux/perf/arm_pmu.h                 |   6 +-
- include/linux/platform_device.h              |   2 +
- kernel/irq/chip.c                            |  33 +--
- kernel/irq/irqdesc.c                         |  24 +-
- kernel/irq/irqdomain.c                       |  32 ++-
- kernel/irq/manage.c                          | 125 +++++++---
- 28 files changed, 419 insertions(+), 655 deletions(-)
- delete mode 100644 drivers/irqchip/irq-partition-percpu.c
- delete mode 100644 include/linux/irqchip/irq-partition-percpu.h
-
+diff --git a/drivers/acpi/irq.c b/drivers/acpi/irq.c
+index 76a856c32c4d0..d1595156c86a4 100644
+--- a/drivers/acpi/irq.c
++++ b/drivers/acpi/irq.c
+@@ -300,6 +300,25 @@ int acpi_irq_get(acpi_handle handle, unsigned int index, struct resource *res)
+ }
+ EXPORT_SYMBOL_GPL(acpi_irq_get);
+ 
++const struct cpumask *acpi_irq_get_affinity(acpi_handle handle,
++					    unsigned int index)
++{
++	struct irq_fwspec_info info;
++	struct irq_fwspec fwspec;
++	unsigned long flags;
++
++	if (acpi_irq_parse_one(handle, index, &fwspec, &flags))
++		return NULL;
++
++	if (irq_populate_fwspec_info(&fwspec, &info))
++		return NULL;
++
++	if (!(info.flags & IRQ_FWSPEC_INFO_AFFINITY_VALID))
++		return NULL;
++
++	return info.affinity;
++}
++
+ /**
+  * acpi_set_irq_model - Setup the GSI irqdomain information
+  * @model: the value assigned to acpi_irq_model
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 5ff5d99f6ead5..607db773b6721 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -1509,12 +1509,19 @@ static inline int acpi_parse_spcr(bool enable_earlycon, bool enable_console)
+ 
+ #if IS_ENABLED(CONFIG_ACPI_GENERIC_GSI)
+ int acpi_irq_get(acpi_handle handle, unsigned int index, struct resource *res);
++const struct cpumask *acpi_irq_get_affinity(acpi_handle handle,
++					    unsigned int index);
+ #else
+ static inline
+ int acpi_irq_get(acpi_handle handle, unsigned int index, struct resource *res)
+ {
+ 	return -EINVAL;
+ }
++static inline const struct cpumask *acpi_irq_get_affinity(acpi_handle handle,
++							  unsigned int index)
++{
++	return NULL;
++}
+ #endif
+ 
+ #ifdef CONFIG_ACPI_LPIT
 -- 
 2.47.3
 
