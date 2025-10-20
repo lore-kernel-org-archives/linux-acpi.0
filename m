@@ -1,36 +1,36 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 296313191D7;
-	Mon, 20 Oct 2025 12:30:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 818B4319879;
+	Mon, 20 Oct 2025 12:30:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760963412; cv=none; b=CUaNf/LjEiaBJDSjFUhrYuSoKnM5gWrgSUjZrdwl+jF6kuNZPkznkh8X0kYf86Edm08vZ5X7ARXRVlEuk1zaQt1DOg3GNHipRK+TJvvjIp6uJBzlzDISTVzSOj3TpXM52XMCSeyeDUlQD1QY0BP0CRaAbVVBRO5uCYJRYCFs94c=
+	t=1760963412; cv=none; b=XQL6ehNLOvNUDe5sgByzTxJTE9fIngGRLURbZ5wwzQlHPxZuV6yzUyO0rt8bYHdfMIYvPLhoOQA4ucNp5YXc32vZ40ghZUyH/oouXY5qo2ooMnhKa405tbFAWD5bEm4vkXhO+iytbowWrav0sXRP0grylZgcfYJsHLQbF/k0vx8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1760963412; c=relaxed/simple;
-	bh=WQ1KbYH73pkv7difN/iSChS2f39lIQHsS0IK9hv/d9w=;
+	bh=kRXD1z71SrYl6iB3aM4rmsDGsHlWWsoJMtlsjrsgPVM=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=anXUqJb56mokR/4p6pVW0At4bq0+bPTn1XY71YNmh6Uy4ra9HDpbOIT+gN+QAZhnmUmRfjWJ8ZUZviX9vArJb6zF42EOh4YHRBVwLNrKvczNblwjBWdw9XcU85qpVsN81Tdz2rppxC1idvsTEN1xpBZS5+4eTrgFHvly19j2WPg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Oup1IVIo; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=gpgImUZ8GOLEIwYhtszox0gcBNtgsCFCWTFlOcEsUXwAUJAzxYtpy0Q0HC6XONALG/YRvX3ACluBsw2/tjQiMcAEQtoL2Yir5IzLJ3TtPDQR8x+07z9mEZP/jM3jmsX9AAU6W6Ww+QevbJOdIun6sTmwd7t9PAGQ9FJltLmoCu0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=u3J+ayYa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Oup1IVIo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B32A2C116B1;
-	Mon, 20 Oct 2025 12:30:11 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="u3J+ayYa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F513C2BCB1;
+	Mon, 20 Oct 2025 12:30:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1760963411;
-	bh=WQ1KbYH73pkv7difN/iSChS2f39lIQHsS0IK9hv/d9w=;
+	s=k20201202; t=1760963412;
+	bh=kRXD1z71SrYl6iB3aM4rmsDGsHlWWsoJMtlsjrsgPVM=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=Oup1IVIom8Usan9IszwBgDXvWPjVMOoABwyZ6Fg32uCyEX2c0gzWwLlh69ASMVifs
-	 yOow+zoKOocgvVTv/e8iyGsZK+FhRvS+9cFdZHW6+TEf9ZSn4eFIY/EMeGa///RM4U
-	 y7bT6wM1aOylbKHPyJqGeg1wpjuhTPCOaHxeW6lRSX5Ek9f6go16YHfgHrAm6CrQL9
-	 xgDGKLBlGo8WpcM/L4/duob7XRmGLNoc8p2zKPTbpQNIA6IN3+Rn4sMzhn1YNt0pPn
-	 OKo85Z9D0ilpSiLmICSGJHKKZU3cbTfOnwtRdLosrchQQes/8eqMgV7RFyLWz1hd8U
-	 1kznQfrSB4P9g==
+	b=u3J+ayYay2/r9RcFtwYuF7F3gc7y6DQfR+tf2EJdREgQszSL6zv9Vf2nKZbsTMrGd
+	 GpfrIoVvsPBEVfKT+u5wfXHj4kQO0M8f5Mkv649WczcABkB4eNXf5/IMqppxBBbX6n
+	 m4z1XiiQlztIoHHZgwpmRmvChfPlaXhMTvtQtyi1/9RLdUTSO68lmXlQQVNBGzjJ3g
+	 8wGO2P7lbTMalTME5Tpq60FVLZe/jx6fK3hzQKhg5630yo+VlG80Lq1KqJO/+WgK2B
+	 7mET/NebPK2jOk6OxPLRe9AnCsnJA1A4IoJyxMrhLbuOEztviDDui+lpBb6oys9kiT
+	 b/n8Gb3iwZFiw==
 Received: from sofa.misterjones.org ([185.219.108.64] helo=valley-girl.lan)
 	by disco-boy.misterjones.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.98.2)
 	(envelope-from <maz@kernel.org>)
-	id 1vAp1d-0000000FUu2-3utc;
+	id 1vAp1e-0000000FUu2-2Mbl;
 	Mon, 20 Oct 2025 12:30:10 +0000
 From: Marc Zyngier <maz@kernel.org>
 To: linux-kernel@vger.kernel.org,
@@ -50,9 +50,9 @@ Cc: Thomas Gleixner <tglx@linutronix.de>,
 	Jonathan Cameron <jonathan.cameron@huawei.com>,
 	Jinjie Ruan <ruanjinjie@huawei.com>,
 	Alexandru Elisei <alexandru.elisei@arm.com>
-Subject: [PATCH v4 09/26] perf: arm_spe_pmu: Convert to new IRQ affinity retrieval API
-Date: Mon, 20 Oct 2025 13:29:26 +0100
-Message-ID: <20251020122944.3074811-10-maz@kernel.org>
+Subject: [PATCH v4 11/26] genirq: Kill handle_percpu_devid_fasteoi_nmi()
+Date: Mon, 20 Oct 2025 13:29:28 +0100
+Message-ID: <20251020122944.3074811-12-maz@kernel.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20251020122944.3074811-1-maz@kernel.org>
 References: <20251020122944.3074811-1-maz@kernel.org>
@@ -68,45 +68,65 @@ X-SA-Exim-Rcpt-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradea
 X-SA-Exim-Mail-From: maz@kernel.org
 X-SA-Exim-Scanned: No (on disco-boy.misterjones.org); SAEximRunCond expanded to false
 
-Now that the relevant interrupt controllers are equipped with
-a callback returning the affinity of per-CPU interrupts, switch
-the ARM SPE driver over to this new method.
+There is no in-tree user of this flow handler anymore, so simply
+remove it.
 
-Reviewed-by: Jinjie Ruan <ruanjinjie@huawei.com>
+Suggested-by: Will Deacon <will@kernel.org>
 Tested-by: Will Deacon <will@kernel.org>
 Signed-off-by: Marc Zyngier <maz@kernel.org>
 ---
- drivers/perf/arm_spe_pmu.c | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ include/linux/irq.h |  1 -
+ kernel/irq/chip.c   | 25 -------------------------
+ 2 files changed, 26 deletions(-)
 
-diff --git a/drivers/perf/arm_spe_pmu.c b/drivers/perf/arm_spe_pmu.c
-index fa50645feddad..1460b02d20e8b 100644
---- a/drivers/perf/arm_spe_pmu.c
-+++ b/drivers/perf/arm_spe_pmu.c
-@@ -1287,8 +1287,10 @@ static void arm_spe_pmu_dev_teardown(struct arm_spe_pmu *spe_pmu)
- static int arm_spe_pmu_irq_probe(struct arm_spe_pmu *spe_pmu)
- {
- 	struct platform_device *pdev = spe_pmu->pdev;
--	int irq = platform_get_irq(pdev, 0);
-+	const struct cpumask *affinity;
-+	int irq;
+diff --git a/include/linux/irq.h b/include/linux/irq.h
+index c67e76fbcc077..b728c18f6ded7 100644
+--- a/include/linux/irq.h
++++ b/include/linux/irq.h
+@@ -655,7 +655,6 @@ extern void handle_bad_irq(struct irq_desc *desc);
+ extern void handle_nested_irq(unsigned int irq);
  
-+	irq = platform_get_irq_affinity(pdev, 0, &affinity);
- 	if (irq < 0)
- 		return -ENXIO;
+ extern void handle_fasteoi_nmi(struct irq_desc *desc);
+-extern void handle_percpu_devid_fasteoi_nmi(struct irq_desc *desc);
  
-@@ -1297,10 +1299,7 @@ static int arm_spe_pmu_irq_probe(struct arm_spe_pmu *spe_pmu)
- 		return -EINVAL;
- 	}
+ extern int irq_chip_compose_msi_msg(struct irq_data *data, struct msi_msg *msg);
+ extern int irq_chip_pm_get(struct irq_data *data);
+diff --git a/kernel/irq/chip.c b/kernel/irq/chip.c
+index 3ffa0d80ddd19..633e1f67bb6f4 100644
+--- a/kernel/irq/chip.c
++++ b/kernel/irq/chip.c
+@@ -929,31 +929,6 @@ void handle_percpu_devid_irq(struct irq_desc *desc)
+ 		chip->irq_eoi(&desc->irq_data);
+ }
  
--	if (irq_get_percpu_devid_partition(irq, &spe_pmu->supported_cpus)) {
--		dev_err(&pdev->dev, "failed to get PPI partition (%d)\n", irq);
--		return -EINVAL;
--	}
-+	cpumask_copy(&spe_pmu->supported_cpus, affinity);
- 
- 	spe_pmu->irq = irq;
- 	return 0;
+-/**
+- * handle_percpu_devid_fasteoi_nmi - Per CPU local NMI handler with per cpu
+- *				     dev ids
+- * @desc:	the interrupt description structure for this irq
+- *
+- * Similar to handle_fasteoi_nmi, but handling the dev_id cookie
+- * as a percpu pointer.
+- */
+-void handle_percpu_devid_fasteoi_nmi(struct irq_desc *desc)
+-{
+-	struct irq_chip *chip = irq_desc_get_chip(desc);
+-	struct irqaction *action = desc->action;
+-	unsigned int irq = irq_desc_get_irq(desc);
+-	irqreturn_t res;
+-
+-	__kstat_incr_irqs_this_cpu(desc);
+-
+-	trace_irq_handler_entry(irq, action);
+-	res = action->handler(irq, raw_cpu_ptr(action->percpu_dev_id));
+-	trace_irq_handler_exit(irq, action, res);
+-
+-	if (chip->irq_eoi)
+-		chip->irq_eoi(&desc->irq_data);
+-}
+-
+ static void
+ __irq_do_set_handler(struct irq_desc *desc, irq_flow_handler_t handle,
+ 		     int is_chained, const char *name)
 -- 
 2.47.3
 
