@@ -1,147 +1,183 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f43.google.com (mail-wr1-f43.google.com [209.85.221.43])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E17B726ED2A;
-	Wed, 22 Oct 2025 13:37:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB11E347FF0
+	for <linux-acpi@vger.kernel.org>; Wed, 22 Oct 2025 13:41:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.43
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761140242; cv=none; b=s6Sw5zMupV3fB/UHPOo/tSOfBamdOKazZCIXLtKoTr8oQM/3Kf5qMYhAee67p/o/QTh6WPAGz/vLGuMVCISBqaLYVB/FDPT5/VWM5tBkVivZqKWFRDbaZT1+jgCinboIbqTJcLmCZLtNNgjjflETUEwHf230t59QvdWMBPv9TS8=
+	t=1761140474; cv=none; b=LB4KgAHTInYR7NiyWjuNyT3u1hYzPeXtpZz5nSvOyHZLji98vEfXO5MkNzNL2pChV/HlapG3pNMZEIkzbLJRwoc9MdCm31aIAMWceA8N61GVpGRCiDPvVTLZn3fxR9WNA8Y3KOAr1uNl/NqZ8P4bzJjFr9kvYcEDn9gkvlt8ZQ0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761140242; c=relaxed/simple;
-	bh=jbC9Sb3AKdA6ZHnElBfDO40DRbp3oq6m6FxraEOQX40=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=O0gfJvjN4iGrcyLi43PLmQ5rXMfQMYw3OA6ZBH906DqbjskomSuhiNThPSPW41UDmJT4EdPMoSIEuQot3QwJxkYLVwGg/T2sTWXuhV9WLnIwY7MBFEW7pf5ps/UitVZrXGMO9u7OeJlTVDuRfO4O86PpmCeac5hAFPUrp3U1vzg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=A5Ajyn6i; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761140474; c=relaxed/simple;
+	bh=jdg2u1Ver3o8siH3fN2HjRKx1OGl/Aipe8XfPPyX9zw=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=AtP0Fvu0bpnehyidTMtF78uXPbFj6cB+A8AZaY3W8u/bJ/yjgEjkiAd84fq7iM9ha3fftr39tq4uwNpMng6yFTDCUxMQbq6gbDNYlFr3jbtxuP8iHBXRIRpIbvEYuknTPcOFBPL2liSr0dJJMEiKQrRwLaYkdLUd9JL6Mzq7Qys=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=bgdev.pl; spf=none smtp.mailfrom=bgdev.pl; dkim=pass (2048-bit key) header.d=bgdev-pl.20230601.gappssmtp.com header.i=@bgdev-pl.20230601.gappssmtp.com header.b=K91zwic3; arc=none smtp.client-ip=209.85.221.43
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=bgdev.pl
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bgdev.pl
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="A5Ajyn6i"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B6E8C4CEFF;
-	Wed, 22 Oct 2025 13:37:19 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1761140241;
-	bh=jbC9Sb3AKdA6ZHnElBfDO40DRbp3oq6m6FxraEOQX40=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=A5Ajyn6iWyJIJYkujtYJ74t7yoFj24fi7EU1MpKPhkjmxN28Zs+MpXR7zqi5v8XiL
-	 S1bvo42iRe/ZHt/eXS/4SNtq/4XUYNJf1Hbx8syyrFTUtWp9xDqVV/7Xg2gfuganaJ
-	 GFK48pAgWzxqGYwPezTwrX9rZaWTMio4hloWs5q9OpOCfNFsJbxPqx/o8jTOeOQUvA
-	 bZQWNgGn1ahuiJTUX5rGWGDBOSurvNR6PX7LmKGOmgpSaRZ+W5W1yBxPAuXxpS38w9
-	 aAhdUKTSP3tqY2IPxQaYXMKJoZ9D61JgmypQgUcnMOne8pcEY3jlKBAnSlWKBPO3E3
-	 p7wz8Jfq9pp/g==
-From: Hans de Goede <hansg@kernel.org>
-To: Mika Westerberg <mika.westerberg@linux.intel.com>,
-	Andy Shevchenko <andy@kernel.org>,
-	Bartosz Golaszewski <brgl@bgdev.pl>,
-	Linus Walleij <linus.walleij@linaro.org>
-Cc: Hans de Goede <hansg@kernel.org>,
-	linux-gpio@vger.kernel.org,
-	linux-acpi@vger.kernel.org,
-	stable@vger.kernel.org,
-	Mario Limonciello <superm1@kernel.org>
-Subject: [REGRESSION FIX resend 1/1] gpiolib: acpi: Make set debounce errors non fatal
-Date: Wed, 22 Oct 2025 15:37:15 +0200
-Message-ID: <20251022133715.331241-2-hansg@kernel.org>
-X-Mailer: git-send-email 2.51.0
-In-Reply-To: <20251022133715.331241-1-hansg@kernel.org>
-References: <20251022133715.331241-1-hansg@kernel.org>
+	dkim=pass (2048-bit key) header.d=bgdev-pl.20230601.gappssmtp.com header.i=@bgdev-pl.20230601.gappssmtp.com header.b="K91zwic3"
+Received: by mail-wr1-f43.google.com with SMTP id ffacd0b85a97d-3ed20bdfdffso6296551f8f.2
+        for <linux-acpi@vger.kernel.org>; Wed, 22 Oct 2025 06:41:11 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=bgdev-pl.20230601.gappssmtp.com; s=20230601; t=1761140470; x=1761745270; darn=vger.kernel.org;
+        h=cc:to:content-transfer-encoding:mime-version:message-id:date
+         :subject:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=HpdOXA6k+KSMhD7IhYkyYK8ydXANTtf/zoVkqChJZNQ=;
+        b=K91zwic3h5kHeGEmEX6tpUWzGcwkuu5EJ70DynX6mLjvt+BnBoTmic7SwWyhY1nYjL
+         qMpWezPQy7aAoxvQ9Ai2ERQM/8u9BQ6Mee3Wd3aBkSUN5MLl/qifmNTiM2V12/NOOGHk
+         utttE+Fs569HQQTevC6GSr+huf6Qf3PDTLHT5+QcsBw3JGhqFxejh+/v/ui9Rr00NWkG
+         HLWb4JA5Ab2ghbNOesXpJSRwljxFVeKD60ukyivhTqAqDziO+onmCBT9FTvIeAes3TWX
+         ykQCvX/21u3WBc7yei32q5oalwQCaFXs1+TWQochDeBfYtCJC7wY4v5dLUmrSj/nKA7F
+         6bQw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1761140470; x=1761745270;
+        h=cc:to:content-transfer-encoding:mime-version:message-id:date
+         :subject:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=HpdOXA6k+KSMhD7IhYkyYK8ydXANTtf/zoVkqChJZNQ=;
+        b=e9vdN96IlAg7HUwcar5jQQ0vnaDu+ykGhP5v7O4nRcV96ObFWz2cMTLtfVIOKRosT0
+         GnvldxRuuWhA4qjgmohUNSkbTRdnGEdTCsyS4y29g5v6ab06/Oei3NAvBPIyRxaa1uXd
+         Xo4gbFalRGhGERH/vEBeQOrwjWY5qTAskWP1mEhE/IFqwHh+JqVoTShgBgmKOmIPtG9m
+         EP1vsAKshzqwO2q9FOHZfjIPxsRQ6O5pzBfEHnSJLkzGXnnzfy771Ve9gADSM0l9jgLs
+         63azgyZ0P01QPOZF1lJt9wg935kM6onNBVMdh8J9aHpOHEaZse+0T3Mjqk3BlZGETnQZ
+         642w==
+X-Forwarded-Encrypted: i=1; AJvYcCXosKngwILVdYjYJAPVFCuud/bBRr5ISIXjH/UbW6781S3S2jIfEcnxtSXLYc2UHb6nJ3fNRic1xn9D@vger.kernel.org
+X-Gm-Message-State: AOJu0YySJPOg3rmNbWt87uURBP85oKsQnmBQaQt5ZAEZI1kVlSTm7jFY
+	i57mrxcI5UUWrq9qy+PyvoJEBb7mDHzOUYoafxGLvrgV5dI3bMPNQwoG5fAYw9yrgXs=
+X-Gm-Gg: ASbGnctfUg1xXJghb+Uc3oMJKfKosjAUBPnEEgQPAXtH4AM51iWB1pPTFoo4AjZ1zFN
+	MmjHwd6C1K4YSHU+53jsY2jeU9SkK47i8g4UcPxtJ2UYmW3zPIV5tnaAxJNR37yJIc3iJ7Rhn6n
+	hY52YJERhxFNU4hmMP9QCy6Q/hL/QafYoFpf39gY3tOmLnK9FE9PSCj79mx/08l6o0gfgHi0+2i
+	VCMLplOJsw9tNvYhI+KE/u61w2MoJM+Lc1Epm+1wKHLf1oV40x9hi8cekWbmeEkiPvtKsiEIj5o
+	pDUIBSjpmRFnVMELPqg6CAAiNqNe9aKswg1mrD1PC8kf7IM8uKXVLWbIMJ3tQ9BIAvQtMBO1HQz
+	g+Sd0PVTqaFeUKfayosl9UtZw0hCsnkQrmxetqmgUcAJwp0apDWUNHNqd3Tn0L5NB3E9e0tTXZr
+	HF5zcaTg==
+X-Google-Smtp-Source: AGHT+IFYLIYvRG6TOb9ebkUIWsPlNRcJ0+FBt6ib6BgLN9HQVyDMXksEkV7eo0NqEX3wuKcit4SPJw==
+X-Received: by 2002:a05:6000:258a:b0:428:4082:c8e9 with SMTP id ffacd0b85a97d-4284082cadamr10290015f8f.62.1761140469975;
+        Wed, 22 Oct 2025 06:41:09 -0700 (PDT)
+Received: from [127.0.1.1] ([2a01:cb1d:dc:7e00:69df:73af:f16a:eada])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-427f00b97f8sm24863066f8f.36.2025.10.22.06.41.08
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 22 Oct 2025 06:41:09 -0700 (PDT)
+From: Bartosz Golaszewski <brgl@bgdev.pl>
+Subject: [PATCH v2 0/9] reset: rework reset-gpios handling
+Date: Wed, 22 Oct 2025 15:40:59 +0200
+Message-Id: <20251022-reset-gpios-swnodes-v2-0-69088530291b@linaro.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAOve+GgC/22NQQ6CMBBFr0Jm7ZhSLAZX3MOwADvAJKYlMwQ1p
+ He3snb5XvLf30FJmBRuxQ5CGyvHkMGeCnjMfZgI2WcGa6wzjXUopLTitHBU1FeInhT94FxF9dU
+ 0boC8XIRGfh/Ve5d5Zl2jfI6TrfzZo1caU//tbSUarH1VWTc0/Xix7ZNDL/EcZYIupfQFacs+e
+ LcAAAA=
+X-Change-ID: 20250925-reset-gpios-swnodes-db553e67095b
+To: Linus Walleij <linus.walleij@linaro.org>, 
+ Bartosz Golaszewski <brgl@bgdev.pl>, 
+ Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
+ Daniel Scally <djrscally@gmail.com>, 
+ Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+ Sakari Ailus <sakari.ailus@linux.intel.com>, 
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+ "Rafael J. Wysocki" <rafael@kernel.org>, Danilo Krummrich <dakr@kernel.org>, 
+ Philipp Zabel <p.zabel@pengutronix.de>, 
+ Krzysztof Kozlowski <krzk@kernel.org>
+Cc: linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ linux-acpi@vger.kernel.org, 
+ Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+X-Mailer: b4 0.14.2
+X-Developer-Signature: v=1; a=openpgp-sha256; l=3638;
+ i=bartosz.golaszewski@linaro.org; h=from:subject:message-id;
+ bh=jdg2u1Ver3o8siH3fN2HjRKx1OGl/Aipe8XfPPyX9zw=;
+ b=owEBbQKS/ZANAwAKARGnLqAUcddyAcsmYgBo+N7uv3BITyR4TRWCtFMn+CU9Mx242xZACrVjD
+ 5bmBHnxwCOJAjMEAAEKAB0WIQQWnetsC8PEYBPSx58Rpy6gFHHXcgUCaPje7gAKCRARpy6gFHHX
+ chaqEACN2PrAG5OD+UTiZyzSlNbXiJ3LdNo8SlQnH/wSilDJSz+x0dXbYyr+ARY+T4/Fh44VnOe
+ JPIMzMuPqYyhQePdC/T4oVlPBCY/42jajf9QfXoP+8ET17taKwtNvx8wBaCp54ZkXEiGPA5kMaA
+ HBvwkpWmdTbjrbkCxmagByVoeAHIU6eTIapYtE5Jh3PGCKD8TXkgkBVW98s/SN14739R3FOTOUM
+ O3IUFnSlA06MsAqGWFpYxmmHJR0OyvkLHKDyGZ3rl97tsUag+Op1pLAnxaG4p7JRiaD2dYztq1/
+ QIjCvA8uTC80hKThNx8E1s4qOzl+Fcxq5BoLqMaoohUSro4RgBp7W3JcPrNTMrqiNVD7jlV4vGX
+ 4nJOjoF6v+Yeg212861GzRvH2mXufbFIWLjXpCOKNH+pgnfSoyY4G57L3SSePlq1slQcQn5qvWK
+ gCb/d6m6WIXkD16IGM7bA3ixueuH2J2OsXLIkUHXT+dBN2dXuwOGGfc9XAYwzaRsF+HR9d8TCrp
+ 5dMlwAQ+CGejXoEaHGwIDhFu520eLFSMG3IvLF/4fI90KdhkTkOoZMxyTgHlR2kVtMZkbLVrnuc
+ /bnBB7hM8PRYjPmLZiyVgB9K5aTIIDoPeUEr6RcmYRJsvVwXUwHqakhzPSt4WsSCiWoAmXXshmr
+ XXQjjlTVSYXCkrQ==
+X-Developer-Key: i=bartosz.golaszewski@linaro.org; a=openpgp;
+ fpr=169DEB6C0BC3C46013D2C79F11A72EA01471D772
 
-Commit 16c07342b542 ("gpiolib: acpi: Program debounce when finding GPIO")
-adds a gpio_set_debounce_timeout() call to acpi_find_gpio() and makes
-acpi_find_gpio() fail if this fails.
+Machine GPIO lookup is a nice, if a bit clunky, mechanism when we have
+absolutely no idea what the GPIO provider is or when it will be created.
+However in the case of reset-gpios, we not only know if the chip is
+there - we also already hold a reference to its firmware node.
 
-But gpio_set_debounce_timeout() failing is a somewhat normal occurrence,
-since not all debounce values are supported on all GPIO/pinctrl chips.
+In this case using fwnode lookup makes more sense. However, since the
+reset provider is created dynamically, it doesn't have a corresponding
+firmware node (in this case: an OF-node). That leaves us with software
+nodes which currently cannot reference other implementations of the
+fwnode API, only other struct software_node objects. This is a needless
+limitation as it's imaginable that a dynamic auxiliary device (with a
+software node attached) would want to reference a real device with an OF
+node.
 
-Making this an error for example break getting the card-detect GPIO for
-the micro-sd slot found on many Bay Trail tablets, breaking support for
-the micro-sd slot on these tablets.
+This series does three things: extends the software node implementation,
+allowing its properties to reference not only static software nodes but
+also existing firmware nodes, updates the GPIO property interface to use
+the reworked swnode macros and finally makes the reset-gpio code the
+first user by converting the GPIO lookup from machine to swnode.
 
-acpi_request_own_gpiod() already treats gpio_set_debounce_timeout()
-failures as non-fatal, just warning about them.
+Another user of the software node changes in the future could become the
+shared GPIO modules that's in the works in parallel[1].
 
-Add a acpi_gpio_set_debounce_timeout() helper which wraps
-gpio_set_debounce_timeout() and warns on failures and replace both existing
-gpio_set_debounce_timeout() calls with the helper.
+Merging strategy: the series is logically split into three parts: driver
+core, GPIO and reset respectively. However there are build-time
+dependencies between all three parts so I suggest the reset tree as the
+right one to take it upstream with an immutable branch provided to
+driver core and GPIO.
 
-Since the helper only warns on failures this fixes the card-detect issue.
+[1] https://lore.kernel.org/all/20250924-gpio-shared-v1-0-775e7efeb1a3@linaro.org/
 
-Fixes: 16c07342b542 ("gpiolib: acpi: Program debounce when finding GPIO")
-Cc: stable@vger.kernel.org
-Cc: Mario Limonciello <superm1@kernel.org>
-Signed-off-by: Hans de Goede <hansg@kernel.org>
+Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
 ---
- drivers/gpio/gpiolib-acpi-core.c | 27 +++++++++++++++------------
- 1 file changed, 15 insertions(+), 12 deletions(-)
+Changes in v2:
+- Don't use a union for different pointer types in the software node
+  reference struct
+- Use fwnode_property_read_u32() instead of
+  fwnode_property_read_u32_array() as we're only reading a single
+  integer
+- Rename reset_aux_device_release() to reset_gpio_aux_device_release()
+- Initialize the device properties instead of memsetting them
+- Fix typo in commit message
+- As discussed on the list: I didn't change patch 7/9 because most of
+  it goes away anyway in patch 9/9 and the cleanup issues will be fixed
+  in the upcoming fwnode conversion
+- Link to v1: https://lore.kernel.org/r/20251006-reset-gpios-swnodes-v1-0-6d3325b9af42@linaro.org
 
-diff --git a/drivers/gpio/gpiolib-acpi-core.c b/drivers/gpio/gpiolib-acpi-core.c
-index 284e762d92c4..67c4c38afb86 100644
---- a/drivers/gpio/gpiolib-acpi-core.c
-+++ b/drivers/gpio/gpiolib-acpi-core.c
-@@ -291,6 +291,19 @@ acpi_gpio_to_gpiod_flags(const struct acpi_resource_gpio *agpio, int polarity)
- 	return GPIOD_ASIS;
- }
- 
-+static void acpi_gpio_set_debounce_timeout(struct gpio_desc *desc,
-+					   unsigned int acpi_debounce)
-+{
-+	int ret;
-+
-+	/* ACPI uses hundredths of milliseconds units */
-+	acpi_debounce *= 10;
-+	ret = gpio_set_debounce_timeout(desc, acpi_debounce);
-+	if (ret)
-+		gpiod_warn(desc, "Failed to set debounce-timeout %u: %d\n",
-+			   acpi_debounce, ret);
-+}
-+
- static struct gpio_desc *acpi_request_own_gpiod(struct gpio_chip *chip,
- 						struct acpi_resource_gpio *agpio,
- 						unsigned int index,
-@@ -300,18 +313,12 @@ static struct gpio_desc *acpi_request_own_gpiod(struct gpio_chip *chip,
- 	enum gpiod_flags flags = acpi_gpio_to_gpiod_flags(agpio, polarity);
- 	unsigned int pin = agpio->pin_table[index];
- 	struct gpio_desc *desc;
--	int ret;
- 
- 	desc = gpiochip_request_own_desc(chip, pin, label, polarity, flags);
- 	if (IS_ERR(desc))
- 		return desc;
- 
--	/* ACPI uses hundredths of milliseconds units */
--	ret = gpio_set_debounce_timeout(desc, agpio->debounce_timeout * 10);
--	if (ret)
--		dev_warn(chip->parent,
--			 "Failed to set debounce-timeout for pin 0x%04X, err %d\n",
--			 pin, ret);
-+	acpi_gpio_set_debounce_timeout(desc, agpio->debounce_timeout);
- 
- 	return desc;
- }
-@@ -944,7 +951,6 @@ struct gpio_desc *acpi_find_gpio(struct fwnode_handle *fwnode,
- 	bool can_fallback = acpi_can_fallback_to_crs(adev, con_id);
- 	struct acpi_gpio_info info = {};
- 	struct gpio_desc *desc;
--	int ret;
- 
- 	desc = __acpi_find_gpio(fwnode, con_id, idx, can_fallback, &info);
- 	if (IS_ERR(desc))
-@@ -959,10 +965,7 @@ struct gpio_desc *acpi_find_gpio(struct fwnode_handle *fwnode,
- 	acpi_gpio_update_gpiod_flags(dflags, &info);
- 	acpi_gpio_update_gpiod_lookup_flags(lookupflags, &info);
- 
--	/* ACPI uses hundredths of milliseconds units */
--	ret = gpio_set_debounce_timeout(desc, info.debounce * 10);
--	if (ret)
--		return ERR_PTR(ret);
-+	acpi_gpio_set_debounce_timeout(desc, info.debounce);
- 
- 	return desc;
- }
+---
+Bartosz Golaszewski (9):
+      software node: read the reference args via the fwnode API
+      software node: increase the reference of the swnode by its fwnode
+      software node: allow referencing firmware nodes
+      gpio: swnode: don't use the swnode's name as the key for GPIO lookup
+      gpio: swnode: update the property definitions
+      reset: order includes alphabetically in reset/core.c
+      reset: make the provider of reset-gpios the parent of the reset device
+      reset: gpio: convert the driver to using the auxiliary bus
+      reset: gpio: use software nodes to setup the GPIO lookup
+
+ drivers/base/swnode.c         |  21 +++---
+ drivers/gpio/gpiolib-swnode.c |  16 ++---
+ drivers/reset/Kconfig         |   1 +
+ drivers/reset/core.c          | 150 ++++++++++++++++++++++++------------------
+ drivers/reset/reset-gpio.c    |  19 +++---
+ include/linux/gpio/property.h |   5 +-
+ include/linux/property.h      |  40 +++++++++--
+ 7 files changed, 155 insertions(+), 97 deletions(-)
+---
+base-commit: 5d1aa1920fd17a271dc0f136e14901d8a7e01c26
+change-id: 20250925-reset-gpios-swnodes-db553e67095b
+
+Best regards,
 -- 
-2.51.0
+Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
 
