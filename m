@@ -1,106 +1,127 @@
-Received: from szxga03-in.huawei.com (szxga03-in.huawei.com [45.249.212.189])
+Received: from metis.whiteo.stw.pengutronix.de (metis.whiteo.stw.pengutronix.de [185.203.201.7])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF03126ED20;
-	Wed, 22 Oct 2025 13:58:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.189
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE4C434845C
+	for <linux-acpi@vger.kernel.org>; Wed, 22 Oct 2025 14:45:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.203.201.7
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761141485; cv=none; b=GpyYm78O1vNxiPTG/lXysOy5+ysp44NpGXowAH6avtqfOrxTl7pjTUwjXOep2zHDldUkhITsoDYP5FP2VgXvmED7fnZVD+fyGTWIY7GjznfVUj2/i77Pxcq5pw5AZjVH0WvUMkaDdFylbEjaiHU7pKnShtLB7chXQkQeIMDDAiY=
+	t=1761144348; cv=none; b=gy3Y3oTlhSf1Uvs7cFcTtdJqelmQEvcJdeuiz5aDp0TzRqRAFMgdL/XmAy9K/j7Adub1ZTK+rvgKw0zxkF0uWoxEsRn8LnWwPAdNrk/EAOHMsT6+ShDN5iGMIog355G1RIr03J+JY/f06K2ZS9DxhQqPfGwCgzStiYUOXQN0muU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761141485; c=relaxed/simple;
-	bh=JT5aKwM0EBYZEgnaxnSZYP8/pGxWk8u1Z6pbRgS/E+0=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=CbXNaLWjQa24ygD7ezBySPGnkDTar8jh3NsA8GvCyoLH4Yr2OF5UVVkSIGK4T2OcDcBSKBpuglRd3TxtwgU/bzL8flhGkVPhgO3cHi19LLqALMk1BIm/AoSdVz81gK8WOhZ/pNPEYgJpQhoCLaV+pgVYNQ8ajJohWq1euDfeQ1w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=h-partners.com; arc=none smtp.client-ip=45.249.212.189
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=h-partners.com
-Received: from mail.maildlp.com (unknown [172.19.163.48])
-	by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4cs9BD26RTzJsbZ;
-	Wed, 22 Oct 2025 21:34:28 +0800 (CST)
-Received: from kwepemf100008.china.huawei.com (unknown [7.202.181.222])
-	by mail.maildlp.com (Postfix) with ESMTPS id CDDD018006C;
-	Wed, 22 Oct 2025 21:39:19 +0800 (CST)
-Received: from huawei.com (10.50.87.109) by kwepemf100008.china.huawei.com
- (7.202.181.222) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Wed, 22 Oct
- 2025 21:39:18 +0800
-From: Zeng Heng <zengheng4@huawei.com>
-To: <james.morse@arm.com>
-CC: <amitsinght@marvell.com>, <baisheng.gao@unisoc.com>,
-	<baolin.wang@linux.alibaba.com>, <bobo.shaobowang@huawei.com>,
-	<carl@os.amperecomputing.com>, <catalin.marinas@arm.com>, <dakr@kernel.org>,
-	<dave.martin@arm.com>, <david@redhat.com>, <dfustini@baylibre.com>,
-	<fenghuay@nvidia.com>, <gregkh@linuxfoundation.org>, <gshan@redhat.com>,
-	<guohanjun@huawei.com>, <jeremy.linton@arm.com>,
-	<jonathan.cameron@huawei.com>, <kobak@nvidia.com>, <lcherian@marvell.com>,
-	<lenb@kernel.org>, <linux-acpi@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>, <linux-kernel@vger.kernel.org>,
-	<lpieralisi@kernel.org>, <peternewman@google.com>, <quic_jiles@quicinc.com>,
-	<rafael@kernel.org>, <robh@kernel.org>, <rohit.mathew@arm.com>,
-	<scott@os.amperecomputing.com>, <sdonthineni@nvidia.com>,
-	<sudeep.holla@arm.com>, <tan.shaopeng@fujitsu.com>, <will@kernel.org>,
-	<xhao@linux.alibaba.com>, <zengheng4@huawei.com>,
-	<wangkefeng.wang@huawei.com>
-Subject: [PATCH mpam mpam/snapshot/v6.14-rc1] arm64/mpam: Fix MBWU monitor overflow handling
-Date: Wed, 22 Oct 2025 21:39:13 +0800
-Message-ID: <20251022133913.629859-1-zengheng4@huawei.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20251017185645.26604-25-james.morse@arm.com>
-References: <20251017185645.26604-25-james.morse@arm.com>
+	s=arc-20240116; t=1761144348; c=relaxed/simple;
+	bh=tSw6rQZlMQn+CQgaVhZKZ/LPnP71EM4OXUrLskqgNhI=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=r8MqvP5VZj6Z9efVbExRsaDYB3++UDeB62VO4dY9QEH6tZ1Z8yzskP4/J+Ct6cYVTrMHsxoX7U1ICIrQEV+24crYEfH5OOn6K2wkcajypuhtka8uDldplqr5lJg7LZma5B6FYVmmxMAK4vuIpxRjNDMIVu+iTGy2rYzPWJbJx44=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pengutronix.de; spf=pass smtp.mailfrom=pengutronix.de; arc=none smtp.client-ip=185.203.201.7
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pengutronix.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=pengutronix.de
+Received: from drehscheibe.grey.stw.pengutronix.de ([2a0a:edc0:0:c01:1d::a2])
+	by metis.whiteo.stw.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+	(Exim 4.92)
+	(envelope-from <p.zabel@pengutronix.de>)
+	id 1vBa5f-00088u-0v; Wed, 22 Oct 2025 16:45:27 +0200
+Received: from lupine.office.stw.pengutronix.de ([2a0a:edc0:0:900:1d::4e] helo=lupine)
+	by drehscheibe.grey.stw.pengutronix.de with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.96)
+	(envelope-from <p.zabel@pengutronix.de>)
+	id 1vBa5e-004uKx-0o;
+	Wed, 22 Oct 2025 16:45:26 +0200
+Received: from pza by lupine with local (Exim 4.98.2)
+	(envelope-from <p.zabel@pengutronix.de>)
+	id 1vBa5e-00000000BDI-0hMt;
+	Wed, 22 Oct 2025 16:45:26 +0200
+Message-ID: <939b13c69ade5e574c33777bc4f7b368f83764ff.camel@pengutronix.de>
+Subject: Re: [PATCH v2 9/9] reset: gpio: use software nodes to setup the
+ GPIO lookup
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Bartosz Golaszewski <brgl@bgdev.pl>, Linus Walleij	
+ <linus.walleij@linaro.org>, Andy Shevchenko
+ <andriy.shevchenko@linux.intel.com>,  Daniel Scally <djrscally@gmail.com>,
+ Heikki Krogerus <heikki.krogerus@linux.intel.com>, Sakari Ailus	
+ <sakari.ailus@linux.intel.com>, Greg Kroah-Hartman
+ <gregkh@linuxfoundation.org>,  "Rafael J. Wysocki"	 <rafael@kernel.org>,
+ Danilo Krummrich <dakr@kernel.org>, Krzysztof Kozlowski	 <krzk@kernel.org>
+Cc: linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-acpi@vger.kernel.org, Bartosz Golaszewski
+ <bartosz.golaszewski@linaro.org>
+Date: Wed, 22 Oct 2025 16:45:25 +0200
+In-Reply-To: <20251022-reset-gpios-swnodes-v2-9-69088530291b@linaro.org>
+References: <20251022-reset-gpios-swnodes-v2-0-69088530291b@linaro.org>
+	 <20251022-reset-gpios-swnodes-v2-9-69088530291b@linaro.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.56.1-1 
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: kwepems100001.china.huawei.com (7.221.188.238) To
- kwepemf100008.china.huawei.com (7.202.181.222)
+X-SA-Exim-Connect-IP: 2a0a:edc0:0:c01:1d::a2
+X-SA-Exim-Mail-From: p.zabel@pengutronix.de
+X-SA-Exim-Scanned: No (on metis.whiteo.stw.pengutronix.de); SAEximRunCond expanded to false
+X-PTX-Original-Recipient: linux-acpi@vger.kernel.org
 
-Bandwidth counters need to run continuously to correctly reflect the
-bandwidth. When reading the previously configured MSMON_CFG_MBWU_CTL,
-software must recognize that the MSMON_CFG_x_CTL_OFLOW_STATUS bit may
-have been set by hardware because of the counter overflow.
+On Mi, 2025-10-22 at 15:41 +0200, Bartosz Golaszewski wrote:
+> From: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+>=20
+> GPIO machine lookup is a nice mechanism for associating GPIOs with
+> consumers if we don't know what kind of device the GPIO provider is or
+> when it will become available. However in the case of the reset-gpio, we
+> are already holding a reference to the device and so can reference its
+> firmware node. Let's setup a software node that references the relevant
+> GPIO and attach it to the auxiliary device we're creating.
+>=20
+> Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+> ---
+>  drivers/reset/core.c | 131 ++++++++++++++++++++++++++++++---------------=
+------
+>  1 file changed, 77 insertions(+), 54 deletions(-)
+>=20
+> diff --git a/drivers/reset/core.c b/drivers/reset/core.c
+> index c9f13020ca3a7b9273488497a7d4240d0af762b0..20378de4b813ab79a103ea81c=
+f2cbcd2b76c0ccf 100644
+> --- a/drivers/reset/core.c
+> +++ b/drivers/reset/core.c
+[...]
+> @@ -915,11 +913,30 @@ static int __reset_add_reset_gpio_device(const stru=
+ct of_phandle_args *args)
+>  	if (args->args_count !=3D 2)
+>  		return -ENOENT;
+> =20
+> +	offset =3D args->args[0];
+> +	of_flags =3D args->args[1];
+> +
+> +	/*
+> +	 * Later we map GPIO flags between OF and Linux, however not all
+> +	 * constants from include/dt-bindings/gpio/gpio.h and
+> +	 * include/linux/gpio/machine.h match each other.
+> +	 *
+> +	 * FIXME: Find a better way of translating OF flags to GPIO lookup
+> +	 * flags.
+> +	 */
+> +	if (of_flags > GPIO_ACTIVE_LOW) {
+> +		pr_err("reset-gpio code does not support GPIO flags %u for GPIO %u\n",
+> +		       of_flags, offset);
+> +		return -EINVAL;
+> +	}
+> +
 
-The existing logic incorrectly treats this bit as an indication that the
-monitor configuration has been changed and consequently zeros the MBWU
-statistics by mistake.
+Please move this ...
 
-Also fix the handling of overflow amount calculation. There's no need to
-subtract mbwu_state->prev_val when calculating overflow_val.
+>  	struct gpio_device *gdev __free(gpio_device_put) =3D
+>  		gpio_device_find_by_fwnode(of_fwnode_handle(args->np));
+>  	if (!gdev)
+>  		return -EPROBE_DEFER;
+> =20
+> +	parent =3D gpio_device_to_device(gdev);
+> +
 
-Signed-off-by: Zeng Heng <zengheng4@huawei.com>
----
- drivers/resctrl/mpam_devices.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+... and this after the lockdep_asset_held() below.
 
-diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_devices.c
-index 0dd048279e02..06f3ec9887d2 100644
---- a/drivers/resctrl/mpam_devices.c
-+++ b/drivers/resctrl/mpam_devices.c
-@@ -1101,7 +1101,8 @@ static void __ris_msmon_read(void *arg)
- 	clean_msmon_ctl_val(&cur_ctl);
- 	gen_msmon_ctl_flt_vals(m, &ctl_val, &flt_val);
- 	config_mismatch = cur_flt != flt_val ||
--			  cur_ctl != (ctl_val | MSMON_CFG_x_CTL_EN);
-+			 (cur_ctl & ~MSMON_CFG_x_CTL_OFLOW_STATUS) !=
-+			 (ctl_val | MSMON_CFG_x_CTL_EN);
- 
- 	if (config_mismatch || reset_on_next_read)
- 		write_msmon_ctl_flt_vals(m, ctl_val, flt_val);
-@@ -1138,8 +1139,9 @@ static void __ris_msmon_read(void *arg)
- 		mbwu_state = &ris->mbwu_state[ctx->mon];
- 
- 		/* Add any pre-overflow value to the mbwu_state->val */
--		if (mbwu_state->prev_val > now)
--			overflow_val = mpam_msmon_overflow_val(m->type) - mbwu_state->prev_val;
-+		if (mbwu_state->prev_val > now &&
-+		   (cur_ctl & MSMON_CFG_x_CTL_OFLOW_STATUS))
-+			overflow_val = mpam_msmon_overflow_val(ris);
- 
- 		mbwu_state->prev_val = now;
- 		mbwu_state->correction += overflow_val;
--- 
-2.25.1
 
+With that,
+
+Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
+
+regards
+Philipp
