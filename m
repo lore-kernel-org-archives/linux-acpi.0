@@ -1,108 +1,106 @@
-Received: from mail-ed1-f49.google.com (mail-ed1-f49.google.com [209.85.208.49])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from szxga03-in.huawei.com (szxga03-in.huawei.com [45.249.212.189])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 221A934845D
-	for <linux-acpi@vger.kernel.org>; Wed, 22 Oct 2025 13:48:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF03126ED20;
+	Wed, 22 Oct 2025 13:58:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.189
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761140897; cv=none; b=Uif/crxLpDVR55iQEI55XGRzh1nxw1es9HPujbx0hWYhgolqF/gPSI44KTfEYLerffitCa0tIABVhGk04XQZ83B/9Uh37S90UkkAZuTSNPqMHak5sMliZU1aMM9kvoRfm9M9aP+Kxx2pqirARbcdAPRIjiPVjlT8Z8zYW6Y6XxY=
+	t=1761141485; cv=none; b=GpyYm78O1vNxiPTG/lXysOy5+ysp44NpGXowAH6avtqfOrxTl7pjTUwjXOep2zHDldUkhITsoDYP5FP2VgXvmED7fnZVD+fyGTWIY7GjznfVUj2/i77Pxcq5pw5AZjVH0WvUMkaDdFylbEjaiHU7pKnShtLB7chXQkQeIMDDAiY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761140897; c=relaxed/simple;
-	bh=aYT6Os1q2Rohj9KWPycuJw6XL0ogAAvatT1CGliGFF8=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=goaQROeKmsnFBzgUwQCM6NI7aDHU7CNTKvy29VsHXmCEo0mdq59NZIwXhnPpZNqVNtODiv3Q/TURpwoAkMUq2rU2umrtYQtkNYMd8Znk0LDs3/eRSJTZUZUJwWi7fPdgfdiQG1m92aJiP+FWUi4buPXKLahjlHRIYanRAph4T7A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=DHaW3NDe; arc=none smtp.client-ip=209.85.208.49
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="DHaW3NDe"
-Received: by mail-ed1-f49.google.com with SMTP id 4fb4d7f45d1cf-63e11cfb4a9so2863569a12.2
-        for <linux-acpi@vger.kernel.org>; Wed, 22 Oct 2025 06:48:13 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1761140892; x=1761745692; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=aYT6Os1q2Rohj9KWPycuJw6XL0ogAAvatT1CGliGFF8=;
-        b=DHaW3NDev1RDSphTbDxQD251qxiDChfS61xdvO0IDpC1JxWRGuCTmbqFPp7bRlTEbH
-         J0c92Q/jB1nKojacP1C/x0eyPH1ZyQaBKZUJmEJ9a7MEo2s5RWJVhw77mkAKrh5liwtV
-         PJJ+pGcGVv5y1LXkUjTPCOl1fl3FWrdghLdrW80WSGYvUqaP6kcYoevWjNXw9dtraHER
-         Z+Dmp5l+6/7jaS4xCLH9WfHPJgOQiyoIqPrzCeO5s0Ve3TBooRJBIVHS3y5kybHdA+7A
-         8L4DWh25aYfB0aoQv5HR25kGnZFsw7uPlHHj9KRRtqfVEK1E10Xh7CcZRsZYKxQ9Tcbv
-         tdMA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1761140892; x=1761745692;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=aYT6Os1q2Rohj9KWPycuJw6XL0ogAAvatT1CGliGFF8=;
-        b=RNZhS+gA8fgiP+Ahuf+B+c1v51/A33dtz7rJLYzOFxkw2xwWnh6ZvehxZBlTykBKKC
-         1monAaYn3T2/zNn59BHDAPTaPqOEeJh30dNCGCzLTJIT52Sq1FBvGTi5YIpf96+vuyAR
-         YUyU7dLjFszDoWq9pwjD9osnT1QDfQD0+MFfeiOo8VuaV9AwI7Hod0CJGMBTTZ8VrAn6
-         QjFa/ClHu+AGDrDsPsKyPgn/X7uMmXw4s63FWK4lrIupv6wp5VK5JxIEEAL743p94rXv
-         tiWo4OEgVKB1DR3+hoaJ693zK8GRoCPZac8DpOBCSDxjDM304grb6+98go/rifRdfLgK
-         2Jiw==
-X-Forwarded-Encrypted: i=1; AJvYcCVWspJCVNZ4rm9jFW0DqdsKeBD8EbxZcv0aSU6j+IsswnFemAc29dGwv8jEC6OmUFbB8mliRnRMnW6r@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz0yGkOAHNeCsSj/q9gKrjxUMGqCWX0JaiiMsXVuYAUXxpU/Ye9
-	6QD1b+miMhDW/7fHqxQxFBJJdSXaJaqlaB8/uH1s+hJe5F/fY3XzgtnKtEepoHBe+/gL3/RwM3P
-	q6WLnFg24+m1m+SH7aG9OIPMtbgT4wcs=
-X-Gm-Gg: ASbGncsEbO5eP2+1BUy60PxjzNzhlSFqwFVZEGlsP5kNomJ5BB/5KKB4wbQxgokctE3
-	vXTMwCN4F4k77YWs9D9TxeMdCXClgvcYOFHk9G7NISNKwbO0PfKwPCGiHtEzgdJnSR38Be4w35/
-	BxsfnCDO7fXEMTxYK6Fcdpthl+Az+7wkZTlwBqsAnXDi5/QJ1KOdS/CP19/JQfGBX3qSgRZcvS1
-	INQIUx801CP3tH9nOvgjNEHg1NBdvvXOByk7xccDRZoSqotWKGrPN6DO8Unkr2XhtWfyMP/
-X-Google-Smtp-Source: AGHT+IEuV7ok09UjY4sSyg8xFKgHnnOuV/JfYn1sZVkbPUVR5FFRF22mq8r+kNUqlJQt2/5X3tjoeoegXNFBatkKhxo=
-X-Received: by 2002:a17:907:72d3:b0:b3b:4e6:46e6 with SMTP id
- a640c23a62f3a-b6472c6191dmr2347267866b.1.1761140892136; Wed, 22 Oct 2025
- 06:48:12 -0700 (PDT)
+	s=arc-20240116; t=1761141485; c=relaxed/simple;
+	bh=JT5aKwM0EBYZEgnaxnSZYP8/pGxWk8u1Z6pbRgS/E+0=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=CbXNaLWjQa24ygD7ezBySPGnkDTar8jh3NsA8GvCyoLH4Yr2OF5UVVkSIGK4T2OcDcBSKBpuglRd3TxtwgU/bzL8flhGkVPhgO3cHi19LLqALMk1BIm/AoSdVz81gK8WOhZ/pNPEYgJpQhoCLaV+pgVYNQ8ajJohWq1euDfeQ1w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=h-partners.com; arc=none smtp.client-ip=45.249.212.189
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=h-partners.com
+Received: from mail.maildlp.com (unknown [172.19.163.48])
+	by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4cs9BD26RTzJsbZ;
+	Wed, 22 Oct 2025 21:34:28 +0800 (CST)
+Received: from kwepemf100008.china.huawei.com (unknown [7.202.181.222])
+	by mail.maildlp.com (Postfix) with ESMTPS id CDDD018006C;
+	Wed, 22 Oct 2025 21:39:19 +0800 (CST)
+Received: from huawei.com (10.50.87.109) by kwepemf100008.china.huawei.com
+ (7.202.181.222) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Wed, 22 Oct
+ 2025 21:39:18 +0800
+From: Zeng Heng <zengheng4@huawei.com>
+To: <james.morse@arm.com>
+CC: <amitsinght@marvell.com>, <baisheng.gao@unisoc.com>,
+	<baolin.wang@linux.alibaba.com>, <bobo.shaobowang@huawei.com>,
+	<carl@os.amperecomputing.com>, <catalin.marinas@arm.com>, <dakr@kernel.org>,
+	<dave.martin@arm.com>, <david@redhat.com>, <dfustini@baylibre.com>,
+	<fenghuay@nvidia.com>, <gregkh@linuxfoundation.org>, <gshan@redhat.com>,
+	<guohanjun@huawei.com>, <jeremy.linton@arm.com>,
+	<jonathan.cameron@huawei.com>, <kobak@nvidia.com>, <lcherian@marvell.com>,
+	<lenb@kernel.org>, <linux-acpi@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>, <linux-kernel@vger.kernel.org>,
+	<lpieralisi@kernel.org>, <peternewman@google.com>, <quic_jiles@quicinc.com>,
+	<rafael@kernel.org>, <robh@kernel.org>, <rohit.mathew@arm.com>,
+	<scott@os.amperecomputing.com>, <sdonthineni@nvidia.com>,
+	<sudeep.holla@arm.com>, <tan.shaopeng@fujitsu.com>, <will@kernel.org>,
+	<xhao@linux.alibaba.com>, <zengheng4@huawei.com>,
+	<wangkefeng.wang@huawei.com>
+Subject: [PATCH mpam mpam/snapshot/v6.14-rc1] arm64/mpam: Fix MBWU monitor overflow handling
+Date: Wed, 22 Oct 2025 21:39:13 +0800
+Message-ID: <20251022133913.629859-1-zengheng4@huawei.com>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20251017185645.26604-25-james.morse@arm.com>
+References: <20251017185645.26604-25-james.morse@arm.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20251022133715.331241-1-hansg@kernel.org> <20251022133715.331241-2-hansg@kernel.org>
-In-Reply-To: <20251022133715.331241-2-hansg@kernel.org>
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Date: Wed, 22 Oct 2025 16:47:34 +0300
-X-Gm-Features: AS18NWBj2gBYFMQcocMtRK0flD8nTDu1ZgBmGY1rHhMmb1QfH--tXoq-ijJYeDk
-Message-ID: <CAHp75VcDmafp4fiOH7LqhPqtTX5BEp1w0eA5UMk13U=2_tHsyA@mail.gmail.com>
-Subject: Re: [REGRESSION FIX resend 1/1] gpiolib: acpi: Make set debounce
- errors non fatal
-To: Hans de Goede <hansg@kernel.org>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andy@kernel.org>, 
-	Bartosz Golaszewski <brgl@bgdev.pl>, Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, 
-	linux-acpi@vger.kernel.org, stable@vger.kernel.org, 
-	Mario Limonciello <superm1@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: kwepems100001.china.huawei.com (7.221.188.238) To
+ kwepemf100008.china.huawei.com (7.202.181.222)
 
-On Wed, Oct 22, 2025 at 4:37=E2=80=AFPM Hans de Goede <hansg@kernel.org> wr=
-ote:
->
-> Commit 16c07342b542 ("gpiolib: acpi: Program debounce when finding GPIO")
-> adds a gpio_set_debounce_timeout() call to acpi_find_gpio() and makes
-> acpi_find_gpio() fail if this fails.
->
-> But gpio_set_debounce_timeout() failing is a somewhat normal occurrence,
-> since not all debounce values are supported on all GPIO/pinctrl chips.
->
-> Making this an error for example break getting the card-detect GPIO for
-> the micro-sd slot found on many Bay Trail tablets, breaking support for
-> the micro-sd slot on these tablets.
->
-> acpi_request_own_gpiod() already treats gpio_set_debounce_timeout()
-> failures as non-fatal, just warning about them.
->
-> Add a acpi_gpio_set_debounce_timeout() helper which wraps
-> gpio_set_debounce_timeout() and warns on failures and replace both existi=
-ng
-> gpio_set_debounce_timeout() calls with the helper.
->
-> Since the helper only warns on failures this fixes the card-detect issue.
+Bandwidth counters need to run continuously to correctly reflect the
+bandwidth. When reading the previously configured MSMON_CFG_MBWU_CTL,
+software must recognize that the MSMON_CFG_x_CTL_OFLOW_STATUS bit may
+have been set by hardware because of the counter overflow.
 
-Acked-by: Andy Shevchenko <andy@kernel.org>
-if Bart wants to take this directly.
+The existing logic incorrectly treats this bit as an indication that the
+monitor configuration has been changed and consequently zeros the MBWU
+statistics by mistake.
 
---=20
-With Best Regards,
-Andy Shevchenko
+Also fix the handling of overflow amount calculation. There's no need to
+subtract mbwu_state->prev_val when calculating overflow_val.
+
+Signed-off-by: Zeng Heng <zengheng4@huawei.com>
+---
+ drivers/resctrl/mpam_devices.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_devices.c
+index 0dd048279e02..06f3ec9887d2 100644
+--- a/drivers/resctrl/mpam_devices.c
++++ b/drivers/resctrl/mpam_devices.c
+@@ -1101,7 +1101,8 @@ static void __ris_msmon_read(void *arg)
+ 	clean_msmon_ctl_val(&cur_ctl);
+ 	gen_msmon_ctl_flt_vals(m, &ctl_val, &flt_val);
+ 	config_mismatch = cur_flt != flt_val ||
+-			  cur_ctl != (ctl_val | MSMON_CFG_x_CTL_EN);
++			 (cur_ctl & ~MSMON_CFG_x_CTL_OFLOW_STATUS) !=
++			 (ctl_val | MSMON_CFG_x_CTL_EN);
+ 
+ 	if (config_mismatch || reset_on_next_read)
+ 		write_msmon_ctl_flt_vals(m, ctl_val, flt_val);
+@@ -1138,8 +1139,9 @@ static void __ris_msmon_read(void *arg)
+ 		mbwu_state = &ris->mbwu_state[ctx->mon];
+ 
+ 		/* Add any pre-overflow value to the mbwu_state->val */
+-		if (mbwu_state->prev_val > now)
+-			overflow_val = mpam_msmon_overflow_val(m->type) - mbwu_state->prev_val;
++		if (mbwu_state->prev_val > now &&
++		   (cur_ctl & MSMON_CFG_x_CTL_OFLOW_STATUS))
++			overflow_val = mpam_msmon_overflow_val(ris);
+ 
+ 		mbwu_state->prev_val = now;
+ 		mbwu_state->correction += overflow_val;
+-- 
+2.25.1
+
