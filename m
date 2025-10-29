@@ -1,220 +1,197 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f53.google.com (mail-wm1-f53.google.com [209.85.128.53])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0EB4E272816;
-	Wed, 29 Oct 2025 12:19:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.12
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31A2837A3DD
+	for <linux-acpi@vger.kernel.org>; Wed, 29 Oct 2025 12:28:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.53
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761740371; cv=none; b=HfDSAPgm24UIkJX6v3BRifkhr/uvgF9JXB3V3kJP5xfRC2VtUDH/o7Gn+jvW0lMANgH6e1NAItRomgSwA2Tp7EamGHC0taimj43v7Ho0fV8yXlRu5PASsc4A43hCrmpdhK3l+RTI/qrxqSRhNT0GRVCgbsWJaeHZYT2U6lqCggw=
+	t=1761740932; cv=none; b=QL56lE0pUMn8iJ0ef0Z6bT3mRImkF/oVLD04Hs1DUyjiXODynKibo7MdlSfXy2ZL6afIVjFxohNXwN0lsuxPm5mChnXtaiKMuf0jBkT3kvrErMc/Q8Blil4t7GUoSPLxFKEJlyBtjVd60mQYV5l6Ujmi3qzZcbVMahlkuRENE0Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761740371; c=relaxed/simple;
-	bh=20JxKDMpCz6SOe1Bp+62xWTJm6sDUhy881hKtyj8pqg=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=KHIsgLTHmicMnIkDGdIjWX35lQQyJe/Ut0HVANbxO3JyjR5+gYEgps7cDDHwkStjKnpreX4QTZP3B5alZ2kIgUzp8ppr6WqP/9CinlkQ7IZGcNLeJGrktc4g4mHe+71hJXPA4bOL3ZG/SDm+oRWDconFGohZTtKtks89QN1cO3k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=j5m+IZXK; arc=none smtp.client-ip=198.175.65.12
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1761740932; c=relaxed/simple;
+	bh=+fd/3iqijZWE6ruePHbh2ZeE4Vvwsaoa6eHE5+01rLQ=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=BY7S1V0mi22dmzEJvwi/EzjWv0Ll0DBpEUWNzSgp7kN4df1LEYQS/6Gof7MsMBV/vr3+0/eUroqz7SyDfStrMElpsmrKMp5RtfvHkCZQggiVxHAqs8RmQsfzrPQTlq7/2nTe/M67eUOJFHOXrt1gb/UXE1oJ4W/Zqjf0PzQE14k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=bgdev.pl; spf=none smtp.mailfrom=bgdev.pl; dkim=pass (2048-bit key) header.d=bgdev-pl.20230601.gappssmtp.com header.i=@bgdev-pl.20230601.gappssmtp.com header.b=ULKV6xBN; arc=none smtp.client-ip=209.85.128.53
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=bgdev.pl
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bgdev.pl
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="j5m+IZXK"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1761740370; x=1793276370;
-  h=date:from:to:cc:subject:message-id;
-  bh=20JxKDMpCz6SOe1Bp+62xWTJm6sDUhy881hKtyj8pqg=;
-  b=j5m+IZXKp7ZWQaKM043yDAPl7KvwTKrledhLe4+x8Dr5XIOtlF/V2HNs
-   LnxjxyWZq25eTbRYvlc56XeXhal0TfIFymLQn1Va+jrxRbDOSDx5IdcYI
-   oATrg1V/qt09RTIjFJGeipOC4me8hjqSEnqmAC09SpYIbbN8PNVTakZsf
-   ojYdC8Bk1Fa/aHnrqcM46DhIVkzJtq70ujbzFYDG2LxSrbKnJvccVE7nV
-   VUKwyQrjIGAVndr91xGzNwdoF01NoJXN9C02Csq6LYiDkgq3ZPe57rPPH
-   7WknHoq9NH8Q6HKBuPAB5b7SSTm278JZP7TYXK1ht+2SeS3wOd4DdX4KC
-   w==;
-X-CSE-ConnectionGUID: QbMQH+g1SE6OFcBY28HfVw==
-X-CSE-MsgGUID: 7PgDB98FS5imv7IF0xFsMw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11596"; a="75307207"
-X-IronPort-AV: E=Sophos;i="6.19,263,1754982000"; 
-   d="scan'208";a="75307207"
-Received: from fmviesa001.fm.intel.com ([10.60.135.141])
-  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Oct 2025 05:19:29 -0700
-X-CSE-ConnectionGUID: p/iko70yQpOJFVN3N586lw==
-X-CSE-MsgGUID: q8hG1lXjTg6oEpRcu/ENkA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.19,263,1754982000"; 
-   d="scan'208";a="216509630"
-Received: from lkp-server02.sh.intel.com (HELO 66d7546c76b2) ([10.239.97.151])
-  by fmviesa001.fm.intel.com with ESMTP; 29 Oct 2025 05:19:27 -0700
-Received: from kbuild by 66d7546c76b2 with local (Exim 4.96)
-	(envelope-from <lkp@intel.com>)
-	id 1vE59A-000Kaf-2q;
-	Wed, 29 Oct 2025 12:19:24 +0000
-Date: Wed, 29 Oct 2025 20:18:26 +0800
-From: kernel test robot <lkp@intel.com>
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
-Subject: [rafael-pm:bleeding-edge] BUILD SUCCESS
- d6e9920588cf094d2a89409fc444878781fe4e9c
-Message-ID: <202510292020.Dc1Lueh9-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (2048-bit key) header.d=bgdev-pl.20230601.gappssmtp.com header.i=@bgdev-pl.20230601.gappssmtp.com header.b="ULKV6xBN"
+Received: by mail-wm1-f53.google.com with SMTP id 5b1f17b1804b1-47721743fd0so3488905e9.2
+        for <linux-acpi@vger.kernel.org>; Wed, 29 Oct 2025 05:28:49 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=bgdev-pl.20230601.gappssmtp.com; s=20230601; t=1761740928; x=1762345728; darn=vger.kernel.org;
+        h=cc:to:content-transfer-encoding:mime-version:message-id:date
+         :subject:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=6s1VdFdqkJWeoovDcep89eqJy/KpmVn7+tbn6n9mmZQ=;
+        b=ULKV6xBN+K83RyXQeedO5MPxzDnZ/Dzg7YGRCS0RgJgZeuZ5iaJIy8f5REUdTFaN1F
+         7NDZllCH7Uw9iPZzMw+sUDThv3Lk3OPhay9jFz2xvPD9g/aODNYjMvCB27Fz8ZMFNcLa
+         8dVEx1F/vPzz07Yw8QlAtOJuzRsDANHk72/BezCSXUYjYR3JL2CgU+p6okQOu5aFH0k0
+         ar+fimgIYRsB6lLfiWaFW3jm0jzqT1dWulCksjQKT+w5VnK7+2cS6wjoeHnsu+ineHef
+         1cuR/tEdqS8357xugpDNoe5vCrvW4dWxHFk/qIYjphvdloQpbKIzs9Y+NbfnVNO94H4V
+         5fEw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1761740928; x=1762345728;
+        h=cc:to:content-transfer-encoding:mime-version:message-id:date
+         :subject:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=6s1VdFdqkJWeoovDcep89eqJy/KpmVn7+tbn6n9mmZQ=;
+        b=VM7aSuX5vtN7qE7XY/CFl2UgKVVqvIXPwb0NZLfmga0JhVKj1M/GVzgTAM69Qkj2ph
+         4wwDVF8NJuCXScoAZRX/FdgA9rLXyKpwRen//sbAppxWfdbPj5NgIDMGxvUm7t7i3hnf
+         lMo1CX2phLBEaL5NtL09/pOceAuhXerToxbqex6e/DrGSA6FKejiMbyHYknNgaWIBVIn
+         NKgqihqD4wmoTcgliSMTLk0aqytHjVVV2ymcSTEw1GSbIWRvF10iGSlyxh8CSFoitU/u
+         S61mcKkzLk/TdELNI0E/RFSYbV2lWusZMhuuLnDLod1YS93/Hd9mMfVX/S1tcDydF/x9
+         j/fg==
+X-Forwarded-Encrypted: i=1; AJvYcCWbwYIlpJebV7BEM0i6eRx6f61aRnXDJl15P9inhS0c9JaMV9X5RrYdU/8FVee8Onv6OqM3jOCBIcXZ@vger.kernel.org
+X-Gm-Message-State: AOJu0YzBLLFLX2YbBX4ETtAXtzRIA+PWed+vwiwp8swRd1QlWQZflP9m
+	EJnT6+7UagoUkrAcpQin0FNyGCv4n9jXDdkVHsaOfUh7MC/Hggio3SEeKQKdNwpbQK8=
+X-Gm-Gg: ASbGncuwfCYYhytHAz3U4AkFX9Fte5M3NdKwiKX/Z9x5nMcMWgPvfG5rXsZTv4N3+J9
+	xTRxfwqgknKi/So/V3go3BWBlJyChNmL6X65lWNK+U2psUgOMYkedR+E2QqAyWY1o3vBnmuXGQV
+	aIxe4Bo4B0ehYUNLdoGCP2x95pA4u8A/ffGeEKKXNTUWnEA+xIjfqysmPaisoyXhwqvsEGG2qlZ
+	KdHz2frsFDIQZ7ra6hzkzuvpdpNg7T/llLrKUNS61Um03Pszer0D9fqIVd65SGJswKKKe8UZn1+
+	gUP2opGmktQJ4cPGCl8MxiGGPya4SKcJCHyfbgH01quGQdiFFVSftO+xHVYLzsfrrbbev2G3Dvq
+	qC7Wysh3a1iDYF2DcdMXVnFOOFMFqzUkCKAJxlEAgk3UZZhhltZ+MPA0RnuduzJGgHn7AYQ==
+X-Google-Smtp-Source: AGHT+IHMlM8eyAqPOulQC1tnFXIQIiiorv7v1to7ZewkoNlnAbXuTrqAt3rqd0Pt1HZLQUD17/+L6g==
+X-Received: by 2002:a05:600c:6215:b0:46d:996b:826a with SMTP id 5b1f17b1804b1-4771e24ce01mr27359885e9.36.1761740928502;
+        Wed, 29 Oct 2025 05:28:48 -0700 (PDT)
+Received: from [127.0.1.1] ([2a01:cb1d:dc:7e00:69f2:5f2d:9ffc:a805])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4771e3a88fdsm52775545e9.10.2025.10.29.05.28.47
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 29 Oct 2025 05:28:47 -0700 (PDT)
+From: Bartosz Golaszewski <brgl@bgdev.pl>
+Subject: [PATCH v3 00/10] reset: rework reset-gpios handling
+Date: Wed, 29 Oct 2025 13:28:34 +0100
+Message-Id: <20251029-reset-gpios-swnodes-v3-0-638a4cb33201@linaro.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAHMIAmkC/23NQQ7CIBCF4as0rMXAILW48h7GRZFpS2KgYRrUN
+ L27tCtNuvxfMt/MjDB5JHapZpYwe/IxlFCHij2GNvTIvSvNQIAWBjRPSDjxfvSROL1CdEjcWa0
+ V1mdhtGXlckzY+fem3u6lB09TTJ/tSZbrunlSiHrXy5ILXjulQFvTdie4Pn1oUzzG1LMVzPCDA
+ OwjsCJGNI1WAoy0f8iyLF+iHfN+/AAAAA==
+X-Change-ID: 20250925-reset-gpios-swnodes-db553e67095b
+To: Linus Walleij <linus.walleij@linaro.org>, 
+ Bartosz Golaszewski <brgl@bgdev.pl>, 
+ Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
+ Daniel Scally <djrscally@gmail.com>, 
+ Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+ Sakari Ailus <sakari.ailus@linux.intel.com>, 
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+ "Rafael J. Wysocki" <rafael@kernel.org>, Danilo Krummrich <dakr@kernel.org>, 
+ Philipp Zabel <p.zabel@pengutronix.de>, 
+ Krzysztof Kozlowski <krzk@kernel.org>
+Cc: linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ linux-acpi@vger.kernel.org, 
+ Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+X-Mailer: b4 0.14.2
+X-Developer-Signature: v=1; a=openpgp-sha256; l=4411;
+ i=bartosz.golaszewski@linaro.org; h=from:subject:message-id;
+ bh=+fd/3iqijZWE6ruePHbh2ZeE4Vvwsaoa6eHE5+01rLQ=;
+ b=owEBbQKS/ZANAwAKARGnLqAUcddyAcsmYgBpAgh4cPx3Yp6F1lBbEjREoOK0df8M+aQNPEdWm
+ Ar1aJWISt6JAjMEAAEKAB0WIQQWnetsC8PEYBPSx58Rpy6gFHHXcgUCaQIIeAAKCRARpy6gFHHX
+ cg0vEACrtTV6dfMYlP20/k7I2Ztvb6RdmNHXwYf7aqrnLHk8sfVHXRLASrT1ahc1PGAsWC9G9RB
+ Zrphn0P5YsAiANmOfG7oi6prfCkBfaybVePLXJRnoWLr5Gg/DyZvE08Fj+9Bn5NfMh/A+CgY9vd
+ FMeJa+hvB2xDqB+7CxuRB6Ih3WF0TpVPzFegeJXm/eFFPdeQXZ6CxtJ528vQivNWOts5oeC6JAp
+ zc1iwxALhfDW1eKdmJtUa/Omt0rjy2z9grimop8qlmHzebtrwJrrL4OZKA+F0V+UIYUbo5oV4rT
+ 55EaH9y9CbdhHypv2zlMKHnOk++ZGkOZbB2jYagOdec4u2YzatTTkop8fB0CDNMvB0EFqVgLmKd
+ QfJ17Avdvir0++FU1ULnuSdIa3oGLrp+0Jfh5bOxU7U4dRd/M46C5wsl7qvfMT78jVjdfQ0jlEf
+ x84PJPBLirOEEgr8QPlgg/9I/CR9J7kNyhAhWAfdoMs24qWXZjO4SaDjbR12ETj5/rkzwyR6TYh
+ BnEwsFh1DJ4ir27sc3IiCweHtblaD/dI0fglmk9A20Vec3szqYFIpNupukLZDpreRzEHlaJ9uqR
+ RPSTCsTDQ8ZjaE3i3+uYQmojVJ3PZ9AC3kZQav2M+xP4ox90fVr/Tz5Lp36+WeghEg1xA6qgdpX
+ rmx08a0k8wQtzcg==
+X-Developer-Key: i=bartosz.golaszewski@linaro.org; a=openpgp;
+ fpr=169DEB6C0BC3C46013D2C79F11A72EA01471D772
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
-branch HEAD: d6e9920588cf094d2a89409fc444878781fe4e9c  Merge branches 'acpi-battery', 'acpi-misc', 'acpi-tad' and 'acpi-fan-next' into linux-next
+Machine GPIO lookup is a nice, if a bit clunky, mechanism when we have
+absolutely no idea what the GPIO provider is or when it will be created.
+However in the case of reset-gpios, we not only know if the chip is
+there - we also already hold a reference to its firmware node.
 
-elapsed time: 1455m
+In this case using fwnode lookup makes more sense. However, since the
+reset provider is created dynamically, it doesn't have a corresponding
+firmware node (in this case: an OF-node). That leaves us with software
+nodes which currently cannot reference other implementations of the
+fwnode API, only other struct software_node objects. This is a needless
+limitation as it's imaginable that a dynamic auxiliary device (with a
+software node attached) would want to reference a real device with an OF
+node.
 
-configs tested: 143
-configs skipped: 3
+This series does three things: extends the software node implementation,
+allowing its properties to reference not only static software nodes but
+also existing firmware nodes, updates the GPIO property interface to use
+the reworked swnode macros and finally makes the reset-gpio code the
+first user by converting the GPIO lookup from machine to swnode.
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+Another user of the software node changes in the future could become the
+shared GPIO modules that's in the works in parallel[1].
 
-tested configs:
-alpha                             allnoconfig    gcc-15.1.0
-alpha                            allyesconfig    gcc-15.1.0
-arc                               allnoconfig    gcc-15.1.0
-arc                   randconfig-001-20251028    gcc-8.5.0
-arc                   randconfig-002-20251028    gcc-13.4.0
-arm                               allnoconfig    clang-22
-arm                     am200epdkit_defconfig    gcc-15.1.0
-arm                        clps711x_defconfig    clang-22
-arm                   randconfig-001-20251028    clang-22
-arm                   randconfig-002-20251028    clang-22
-arm                   randconfig-003-20251028    clang-22
-arm                   randconfig-004-20251028    gcc-8.5.0
-arm64                             allnoconfig    gcc-15.1.0
-arm64                 randconfig-001-20251028    clang-22
-arm64                 randconfig-002-20251028    clang-22
-arm64                 randconfig-003-20251028    gcc-11.5.0
-arm64                 randconfig-004-20251028    gcc-8.5.0
-csky                              allnoconfig    gcc-15.1.0
-csky                  randconfig-001-20251028    gcc-15.1.0
-csky                  randconfig-002-20251028    gcc-15.1.0
-hexagon                          allmodconfig    clang-17
-hexagon                           allnoconfig    clang-22
-hexagon                          allyesconfig    clang-22
-hexagon               randconfig-001-20251028    clang-22
-hexagon               randconfig-002-20251028    clang-17
-i386                              allnoconfig    gcc-14
-i386        buildonly-randconfig-001-20251028    gcc-14
-i386        buildonly-randconfig-002-20251028    gcc-14
-i386        buildonly-randconfig-003-20251028    gcc-14
-i386        buildonly-randconfig-004-20251028    gcc-14
-i386        buildonly-randconfig-005-20251028    gcc-14
-i386        buildonly-randconfig-006-20251028    gcc-14
-i386                  randconfig-001-20251029    gcc-14
-i386                  randconfig-002-20251029    gcc-14
-i386                  randconfig-003-20251029    clang-20
-i386                  randconfig-004-20251029    gcc-14
-i386                  randconfig-005-20251029    clang-20
-i386                  randconfig-006-20251029    gcc-14
-i386                  randconfig-007-20251029    clang-20
-i386                  randconfig-011-20251029    gcc-14
-i386                  randconfig-012-20251029    clang-20
-i386                  randconfig-013-20251029    gcc-14
-i386                  randconfig-014-20251029    gcc-14
-i386                  randconfig-015-20251029    gcc-14
-i386                  randconfig-016-20251029    gcc-14
-i386                  randconfig-017-20251029    gcc-14
-loongarch                        allmodconfig    clang-19
-loongarch                         allnoconfig    clang-22
-loongarch                           defconfig    clang-19
-loongarch             randconfig-001-20251028    gcc-12.5.0
-loongarch             randconfig-002-20251028    clang-22
-m68k                             allmodconfig    gcc-15.1.0
-m68k                              allnoconfig    gcc-15.1.0
-m68k                             allyesconfig    gcc-15.1.0
-m68k                                defconfig    gcc-15.1.0
-m68k                          hp300_defconfig    gcc-15.1.0
-microblaze                       allmodconfig    gcc-15.1.0
-microblaze                        allnoconfig    gcc-15.1.0
-microblaze                       allyesconfig    gcc-15.1.0
-microblaze                          defconfig    gcc-15.1.0
-mips                              allnoconfig    gcc-15.1.0
-nios2                             allnoconfig    gcc-11.5.0
-nios2                               defconfig    gcc-11.5.0
-nios2                 randconfig-001-20251028    gcc-8.5.0
-nios2                 randconfig-002-20251028    gcc-9.5.0
-openrisc                          allnoconfig    gcc-15.1.0
-openrisc                            defconfig    gcc-15.1.0
-parisc                            allnoconfig    gcc-15.1.0
-parisc                              defconfig    gcc-15.1.0
-parisc                randconfig-001-20251028    gcc-9.5.0
-parisc                randconfig-002-20251028    gcc-8.5.0
-parisc64                            defconfig    gcc-15.1.0
-powerpc                           allnoconfig    gcc-15.1.0
-powerpc                      katmai_defconfig    clang-22
-powerpc                     mpc83xx_defconfig    clang-22
-powerpc               randconfig-001-20251028    gcc-15.1.0
-powerpc               randconfig-002-20251028    gcc-11.5.0
-powerpc64             randconfig-001-20251028    clang-22
-powerpc64             randconfig-002-20251028    clang-22
-riscv                             allnoconfig    gcc-15.1.0
-riscv                               defconfig    clang-22
-riscv                 randconfig-001-20251029    clang-20
-riscv                 randconfig-002-20251029    clang-19
-s390                             allmodconfig    clang-18
-s390                              allnoconfig    clang-22
-s390                             allyesconfig    gcc-15.1.0
-s390                                defconfig    clang-22
-s390                  randconfig-001-20251029    gcc-11.5.0
-s390                  randconfig-002-20251029    gcc-8.5.0
-sh                               allmodconfig    gcc-15.1.0
-sh                                allnoconfig    gcc-15.1.0
-sh                               allyesconfig    gcc-15.1.0
-sh                                  defconfig    gcc-15.1.0
-sh                          landisk_defconfig    gcc-15.1.0
-sh                    randconfig-001-20251029    gcc-11.5.0
-sh                    randconfig-002-20251029    gcc-15.1.0
-sh                     sh7710voipgw_defconfig    gcc-15.1.0
-sparc                            allmodconfig    gcc-15.1.0
-sparc                             allnoconfig    gcc-15.1.0
-sparc                               defconfig    gcc-15.1.0
-sparc                 randconfig-001-20251028    gcc-8.5.0
-sparc                 randconfig-002-20251028    gcc-12.5.0
-sparc64                             defconfig    clang-20
-sparc64               randconfig-001-20251028    clang-22
-sparc64               randconfig-002-20251028    gcc-9.5.0
-um                               allmodconfig    clang-19
-um                                allnoconfig    clang-22
-um                               allyesconfig    gcc-14
-um                                  defconfig    clang-22
-um                             i386_defconfig    gcc-14
-um                    randconfig-001-20251028    gcc-14
-um                    randconfig-002-20251028    gcc-14
-um                           x86_64_defconfig    clang-22
-x86_64                            allnoconfig    clang-20
-x86_64      buildonly-randconfig-001-20251029    gcc-14
-x86_64      buildonly-randconfig-002-20251029    clang-20
-x86_64      buildonly-randconfig-003-20251029    clang-20
-x86_64      buildonly-randconfig-004-20251029    clang-20
-x86_64      buildonly-randconfig-005-20251029    clang-20
-x86_64      buildonly-randconfig-006-20251029    clang-20
-x86_64                              defconfig    gcc-14
-x86_64                randconfig-001-20251029    gcc-14
-x86_64                randconfig-002-20251029    gcc-14
-x86_64                randconfig-003-20251029    clang-20
-x86_64                randconfig-004-20251029    gcc-14
-x86_64                randconfig-005-20251029    gcc-12
-x86_64                randconfig-006-20251029    gcc-14
-x86_64                randconfig-011-20251029    clang-20
-x86_64                randconfig-012-20251029    clang-20
-x86_64                randconfig-013-20251029    gcc-14
-x86_64                randconfig-014-20251029    clang-20
-x86_64                randconfig-015-20251029    gcc-13
-x86_64                randconfig-016-20251029    gcc-13
-x86_64                randconfig-071-20251029    clang-20
-x86_64                randconfig-072-20251029    clang-20
-x86_64                randconfig-073-20251029    gcc-14
-x86_64                randconfig-074-20251029    gcc-14
-x86_64                randconfig-075-20251029    gcc-14
-x86_64                randconfig-076-20251029    clang-20
-xtensa                            allnoconfig    gcc-15.1.0
-xtensa                randconfig-001-20251028    gcc-15.1.0
-xtensa                randconfig-002-20251028    gcc-13.4.0
-xtensa                    smp_lx200_defconfig    gcc-15.1.0
+Merging strategy: the series is logically split into three parts: driver
+core, GPIO and reset respectively. However there are build-time
+dependencies between all three parts so I suggest the reset tree as the
+right one to take it upstream with an immutable branch provided to
+driver core and GPIO.
 
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+[1] https://lore.kernel.org/all/20250924-gpio-shared-v1-0-775e7efeb1a3@linaro.org/
+
+Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+---
+Changes in v3:
+- Really fix the typo in commit message in patch 7/9
+- Update the commit message in patch 3/9 after implementation changes
+- Don't remove checking the refnode for NULL and returning -ENOENT
+- Move lockdep assertion higher up in the reset code
+- Simplify patch 4/9: don't change the logic of inspecting the gpio
+  device's software node
+- Add new patch that still allows GPIO lookup from software nodes to
+  find chips associated with any firmware nodes
+- Drop the comma in reset-gpio auxiliary ID
+- Drop the no longer used type argument from software node reference
+  macros
+- Link to v2: https://lore.kernel.org/r/20251022-reset-gpios-swnodes-v2-0-69088530291b@linaro.org
+
+Changes in v2:
+- Don't use a union for different pointer types in the software node
+  reference struct
+- Use fwnode_property_read_u32() instead of
+  fwnode_property_read_u32_array() as we're only reading a single
+  integer
+- Rename reset_aux_device_release() to reset_gpio_aux_device_release()
+- Initialize the device properties instead of memsetting them
+- Fix typo in commit message
+- As discussed on the list: I didn't change patch 7/9 because most of
+  it goes away anyway in patch 9/9 and the cleanup issues will be fixed
+  in the upcoming fwnode conversion
+- Link to v1: https://lore.kernel.org/r/20251006-reset-gpios-swnodes-v1-0-6d3325b9af42@linaro.org
+
+---
+Bartosz Golaszewski (10):
+      software node: read the reference args via the fwnode API
+      software node: increase the reference of the swnode by its fwnode
+      software node: allow referencing firmware nodes
+      gpio: swnode: don't use the swnode's name as the key for GPIO lookup
+      gpio: swnode: allow referencing GPIO chips by firmware nodes
+      gpio: swnode: update the property definitions
+      reset: order includes alphabetically in reset/core.c
+      reset: make the provider of reset-gpios the parent of the reset device
+      reset: gpio: convert the driver to using the auxiliary bus
+      reset: gpio: use software nodes to setup the GPIO lookup
+
+ drivers/base/swnode.c         |  20 ++++--
+ drivers/gpio/gpiolib-swnode.c |  21 +++---
+ drivers/reset/Kconfig         |   1 +
+ drivers/reset/core.c          | 149 ++++++++++++++++++++++++------------------
+ drivers/reset/reset-gpio.c    |  19 +++---
+ include/linux/gpio/property.h |   5 +-
+ include/linux/property.h      |  38 +++++++++--
+ 7 files changed, 156 insertions(+), 97 deletions(-)
+---
+base-commit: 5218492f1eb93da3929f0d993d2995a4665ca760
+change-id: 20250925-reset-gpios-swnodes-db553e67095b
+
+Best regards,
+-- 
+Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+
