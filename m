@@ -1,64 +1,64 @@
-Received: from mail-pg1-f172.google.com (mail-pg1-f172.google.com [209.85.215.172])
+Received: from mail-pj1-f46.google.com (mail-pj1-f46.google.com [209.85.216.46])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D592833031D
-	for <linux-acpi@vger.kernel.org>; Wed, 29 Oct 2025 11:27:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.172
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC4D6333720
+	for <linux-acpi@vger.kernel.org>; Wed, 29 Oct 2025 11:27:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.46
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761737261; cv=none; b=UbY1sFoJCdXL3OXTkOJDHCm6DrMinAVXuiDSUBc1MlL7M1NAVO/7bBUqI1++MVsTw/M9Xd7Zmxfu3PJ2m9zRSh7Svj71geTOW+SDz5zSX/VPK/UGgo1uXQVor10IBNktG3gs1Ufqfb4V90u4Hse/4cy7h9QwPe7OIKZ2vztYkU4=
+	t=1761737276; cv=none; b=Ad+uXXQ+IxBw6muBaOxXcMDXYglSH6+ta8v6FoyKKrzqwRbdGHb6ZcR4Ihw3QgypmfpZRjySEHJ0vWBlPii2IJluIfRTpFaN2Jc2VYvyGu09Fh0MVPuomn1E6yrj3sGr3HVR06T7qH2aXmFueYc/58VgE5S9cYkkiuPlVhLf48k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761737261; c=relaxed/simple;
-	bh=I4TEHisHhy81GfBk4tNwlY19gPH1ru3ik8bcWj4YLHU=;
+	s=arc-20240116; t=1761737276; c=relaxed/simple;
+	bh=TilcVfmqeN4S9SQk/86dbqTu5JigqINDawfpL8vf2DE=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=WTKlSGWE+QJzfSbSv5oUdiqTsqCa/lWh2megyCz2fQcaNwpt3q+3AXQRaGjdfbIfzOWYbn67LLnmwYlOJXA/vd6Dr3FDe6ff7Mx4sxbjb7o5NvP1n3B7M4lHCrKfbFrlxT9n+2YH6mcm6Y3aIrXMv3/nhJkJXO7oauLeU8EEhfs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ventanamicro.com; spf=pass smtp.mailfrom=ventanamicro.com; dkim=pass (2048-bit key) header.d=ventanamicro.com header.i=@ventanamicro.com header.b=N5v2ul5D; arc=none smtp.client-ip=209.85.215.172
+	 MIME-Version; b=Jr4LKZQ+yxOX4Q0gKIXz0d3KgtRR6YbjhNsaFYvuuIE8TLzoGB64525FqGjDimlnsCkJjhiWWdxiQ8DtWTkrn+daOUynFB7E2hClQ6H9kh2ndsy87SMBcAzIAFtrlGeVWH6BDanoGoChc6XMSpdOL3taKl50dJpdvf01XShG/Wc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ventanamicro.com; spf=pass smtp.mailfrom=ventanamicro.com; dkim=pass (2048-bit key) header.d=ventanamicro.com header.i=@ventanamicro.com header.b=pe54++yt; arc=none smtp.client-ip=209.85.216.46
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ventanamicro.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ventanamicro.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ventanamicro.com header.i=@ventanamicro.com header.b="N5v2ul5D"
-Received: by mail-pg1-f172.google.com with SMTP id 41be03b00d2f7-b6ceba7c97eso6581655a12.0
-        for <linux-acpi@vger.kernel.org>; Wed, 29 Oct 2025 04:27:39 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=ventanamicro.com header.i=@ventanamicro.com header.b="pe54++yt"
+Received: by mail-pj1-f46.google.com with SMTP id 98e67ed59e1d1-33be037cf73so7461679a91.2
+        for <linux-acpi@vger.kernel.org>; Wed, 29 Oct 2025 04:27:50 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ventanamicro.com; s=google; t=1761737259; x=1762342059; darn=vger.kernel.org;
+        d=ventanamicro.com; s=google; t=1761737270; x=1762342070; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=Lu9PVTm9hjUdHoFQcU8g3rsnUfjy9F8yp+wWZYUCJFc=;
-        b=N5v2ul5DYuPP6BS+JMG++hnvL8J8HGcOkejRFmUkaA5x/QCOPH52WwkH/89wzElRaT
-         V4NArUDZwut/qZtnXm1M3vRUoj59DljRh7kRX/EChV2DImg27ScHSzeYjamP0vmvmg/D
-         U122zUUCcI7TaTKcUwAZg9ZTZuIeenmAU3DR8t5siol1Pa9SeuTpp6jw/mBKZ4RVxmFm
-         4OwS/1BF1UrFYkmNwDYUb+YFUpHBIQ3DFEIzVn2NNow5i2mhA9rAa6FlRdo8eYOqtCqi
-         0ArmAuYyqiBShSXPj5Cvkb66/AKISaJ86J9FCOi3DJtrCF7vlDvUusECmRLgKM3S/cnD
-         c3tw==
+        bh=Wd49FUCFXP7v439aOYgrBhlMaMpFr/VqGWFeAvQumyw=;
+        b=pe54++ytCggU8LUi7x8xTGTKHGjO3vSbxsgPKrzECz5/xwulrRYqwC6Mm4exFUbA2C
+         1Y9D3DQ5+XMTdzLSseE5XbFvdarBmLYhdycKL57E7u6ftnJISGXvT+U06JCaXWeGFAKv
+         FxT+FXDjmoIkdoQCEbhpbFLP5tf3+fDfnjNjOxMNyY8kPGcAKsnGCNqar3BOPmEZ60CU
+         cCYOez+eeRb5zoHlmRIxuhwvLpb8b0s9hJAn1frBZ3+ias5YV4lk2P5ia3sA48glunZ7
+         kx3blCT5+wamtPadOIjlscqVSCE2kjwK9ai24wB9ecdycIxNBFDv3H9QqwCrKWpp3qQ+
+         EOxg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1761737259; x=1762342059;
+        d=1e100.net; s=20230601; t=1761737270; x=1762342070;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=Lu9PVTm9hjUdHoFQcU8g3rsnUfjy9F8yp+wWZYUCJFc=;
-        b=CgOhKmk0KJmYD0x2panarD14Wfh4Ymamtd2kjiUSCWaLzsaOBPZA0MFFqbaP/sjcgj
-         dsp4myjfKSpSwBCTdzbHlpGj+v6DOin9ct4S7sYmmibNDghZDHCanOFEVA+g/IcUSSWt
-         PEwp0m8zjfXTn+ptNOoIVuguwj4wgnle77WNMaDSfsyKbuf8nQDkzSDOKcwqiGlVsxfJ
-         8mE7bxg6zt/ZNixAcO48izFA87ThAFHsIGuPIjRro7xusR8i/TMvuMN1wtbg9XUw9vnj
-         JOQC0vDCW+J1h2JfdfJZDmeHG/K7xfGOucc9MltXtyXyHghjJhzqWdyN80q/XJnHly6W
-         0P1g==
-X-Forwarded-Encrypted: i=1; AJvYcCUifAKJLS4Ei2w3qcn44KW44ZmAJy8dnW/HPhA25Ok07uf5UnOYhbq8PIwzKZRb82PL3eyFDKlmvA2j@vger.kernel.org
-X-Gm-Message-State: AOJu0YzXjTUHWwKdxWk4jxRy75qwWJAUFNvOItKExL2elDjV4lA/J53g
-	cooF4mzyLoUeio/6j3JdoRffCzRXfPS4mXEZv7fnwAfoqitxMOjVUC7vAuDAwqynbPw=
-X-Gm-Gg: ASbGncteKRKRVpoxyHAMQRxWGb2gt9ciu9W83jT89bzkQRBQDSTTbaNRNiznC8lnmM0
-	smUHEjCSb3vJtTPNg6NfA7MiA4u4E8OY7uTuPugKHkL0wUXA150xNtWeyVi50ipJIVwu6enLNm+
-	5nRGnAKjUbtSLteVBZTD9YtQvxhCLHdCan8grrI4RsUrfP0/2OUL0+Y3EOeK+VrMgJctP02AaPL
-	bVDFFxlHPngySzXKBqx3ia2/w4hECvNNcLtXdLeBmLUseoMn4iO/c+bi1WnB9lsvPZq9Twc537k
-	5tF7GfnEdYDTCDLnXhg7EPgM5dJFjb/0m0vWX1i/pGrz4086AcdZK0MpZmFqvzESw79NNYzFfRx
-	jEbC45+hROZBBnO+ihy5HTf8bZdGXQMdI725Ee5ih1RH8g9PGt6T9NUbbrEHEqsR5RBU9yDTzOG
-	uueLIsbZEdJKa75pOzSk1gHyKYNzVpdbm0hatIZHU=
-X-Google-Smtp-Source: AGHT+IEwNLyhot5qPJEYgE8ajY5jbwtZPlrijo+bkOA+9e521cPY2uChToY5FLnyugwQKON/wAVvRw==
-X-Received: by 2002:a17:903:32c6:b0:24c:7bc6:7ac7 with SMTP id d9443c01a7336-294dee20a01mr33897975ad.18.1761737259146;
-        Wed, 29 Oct 2025 04:27:39 -0700 (PDT)
+        bh=Wd49FUCFXP7v439aOYgrBhlMaMpFr/VqGWFeAvQumyw=;
+        b=SVLhZDOaflou6qRl9mkBfZpLSqHndYh8ssvnKxxFEko6tWXaY2zmNXThPO0dD0Gqnl
+         ZLBCmhVFMMFP/p4Bfj5tfVEoEMVWoN9VOelL5KqSB48VRhixmz9tsPVGZ3Oi+tePiD40
+         KM5AvoTcQNgWf6SttMZNU2KowAT3cWa9yCzuFneye0ULt+bDQiFIVE/1smEJMKwvmEJm
+         TS7KNtTWHh5m9CmbtqaeH/bRFF0Ue/Y1gVFHpXcT3e068faw8GrSIpIsgtK4Gqq9kbSR
+         eqKedTZUYMMkVLSuVlZGlKbAtGi9MFOH2myHqkAPZGZN5K6nnbGspf9rUHdpRU49Qw5G
+         he8A==
+X-Forwarded-Encrypted: i=1; AJvYcCWZ/8zjmAo2/eA+1by77icKicv1qpHW0W8OmI7WsKitsZRqzDma/YYfB6h7HuLuOVPoBATS4BMIdKFf@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxug9vZO+tucOM7Ec6loW55SCVcrO0XnD+V0aE8KTtvFFMxCZqn
+	xNZZkj1w5mr8W0IeY16lLcimZf1ER8VwoND8Fwi3KKcQkvMc1+7F/0q3N1fMI8tpeAU=
+X-Gm-Gg: ASbGncvrYGPOuTJKJpRiAaHDJgXNvgyy9IgZijeRL2ngMCcnlNSTnofMatHeJAkjGGa
+	Gqz/0EVZ5mKCb/gxjbuxGqrl7a3s1+Z0aqn/5ueO2Wc+fV2UOs4W+8E9cJ9MPimRsTNx001KJ4L
+	EZ5eB/1ALFIsX8y+C3UM0gvGYahSjny8QqVQ+OJ2yy89QI/JIUNU7J2fxdoNw0a4xkvCsHvYwFg
+	7w6sqNl0/7/z0uWbdQfKgti6iFC1lBWW55hAc49BiLA0HhR87+tuUzArbBep5fa7L034+PArrPN
+	ITYVACSWnoO2nahzQeO+eUH1DKpxFiWxelv1jjd30kOv4A0WizoikbvTf3EBti7bwy/XTmI9RcX
+	EkV+oGerA/ijPeBkSm/rxZ7AcJESLqP7DQh4C02djI50tcFh9HE4Bn9+oL7eRYdYTDwleiTr69d
+	F1frDmn64szMK9KyMrzMWr4FmY9gOK
+X-Google-Smtp-Source: AGHT+IEwpD5L2Hn2Oj9/1NiPPKl78u4FeofUgufEwNswN516sCORZuI1gux4yna6NQqFE96u6vitOQ==
+X-Received: by 2002:a17:90b:1f8a:b0:33f:eca0:47c6 with SMTP id 98e67ed59e1d1-3403a2f179cmr2624640a91.30.1761737269909;
+        Wed, 29 Oct 2025 04:27:49 -0700 (PDT)
 Received: from ventana-desktop.localhost ([2405:201:d019:c0ce:f7f5:7789:48e5:c03f])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-33fed7f6040sm15316918a91.16.2025.10.29.04.27.34
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-33fed7f6040sm15316918a91.16.2025.10.29.04.27.44
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 29 Oct 2025 04:27:38 -0700 (PDT)
+        Wed, 29 Oct 2025 04:27:49 -0700 (PDT)
 From: Himanshu Chauhan <hchauhan@ventanamicro.com>
 To: linux-riscv@lists.infradead.org,
 	linux-kernel@vger.kernel.org,
@@ -77,9 +77,9 @@ Cc: paul.walmsley@sifive.com,
 	sunilvl@ventanamicro.com,
 	apatel@ventanamicro.com,
 	Himanshu Chauhan <hchauhan@ventanamicro.com>
-Subject: [RFC PATCH v2 07/10] riscv: Add RISC-V entries in processor type and ISA strings
-Date: Wed, 29 Oct 2025 16:56:45 +0530
-Message-ID: <20251029112649.3811657-8-hchauhan@ventanamicro.com>
+Subject: [RFC PATCH v2 09/10] riscv: Select HAVE_ACPI_APEI required for RAS
+Date: Wed, 29 Oct 2025 16:56:47 +0530
+Message-ID: <20251029112649.3811657-10-hchauhan@ventanamicro.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20251029112649.3811657-1-hchauhan@ventanamicro.com>
 References: <20251029112649.3811657-1-hchauhan@ventanamicro.com>
@@ -91,35 +91,26 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add RISCV and RISCV32/64 strings in the in processor type and ISA strings
-respectively. These are defined for cper records.
+Select the HAVE_ACPI_APEI option so that APEI GHES config options
+are visible.
 
 Signed-off-by: Himanshu Chauhan <hchauhan@ventanamicro.com>
 ---
- drivers/firmware/efi/cper.c | 3 +++
- 1 file changed, 3 insertions(+)
+ arch/riscv/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/firmware/efi/cper.c b/drivers/firmware/efi/cper.c
-index 928409199a1a..ebdd92ba1e15 100644
---- a/drivers/firmware/efi/cper.c
-+++ b/drivers/firmware/efi/cper.c
-@@ -110,6 +110,7 @@ static const char * const proc_type_strs[] = {
- 	"IA32/X64",
- 	"IA64",
- 	"ARM",
-+	"RISCV",
- };
- 
- static const char * const proc_isa_strs[] = {
-@@ -118,6 +119,8 @@ static const char * const proc_isa_strs[] = {
- 	"X64",
- 	"ARM A32/T32",
- 	"ARM A64",
-+	"RISCV32",
-+	"RISCV64",
- };
- 
- const char * const cper_proc_error_type_strs[] = {
+diff --git a/arch/riscv/Kconfig b/arch/riscv/Kconfig
+index 22cda9c452d2..97aa3726e9f6 100644
+--- a/arch/riscv/Kconfig
++++ b/arch/riscv/Kconfig
+@@ -185,6 +185,7 @@ config RISCV
+ 	select HAVE_MOVE_PUD
+ 	select HAVE_PAGE_SIZE_4KB
+ 	select HAVE_PCI
++	select HAVE_ACPI_APEI if ACPI
+ 	select HAVE_PERF_EVENTS
+ 	select HAVE_PERF_REGS
+ 	select HAVE_PERF_USER_STACK_DUMP
 -- 
 2.43.0
 
