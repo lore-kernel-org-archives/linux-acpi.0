@@ -1,89 +1,184 @@
-Received: from mail.alien8.de (mail.alien8.de [65.109.113.108])
+Received: from BN1PR04CU002.outbound.protection.outlook.com (mail-eastus2azon11010062.outbound.protection.outlook.com [52.101.56.62])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A83381FDD;
-	Sun,  2 Nov 2025 12:32:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=65.109.113.108
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762086760; cv=none; b=IsdtrH1y/AYyQsIkXUTyzKqPOs5JC+a/wKN1J4sFecKwcy3mb04vvyJUyZjYfRsR+czsZDDi7T4nkSCwhdiCvHm+ooI0FdoIZjke0r4JS2p9a/XxABUT5JmZoHl4OZ1QRm5gUh6IZKOaipsB81sHZeps1wQuc4hcZeYD3KIGJ2M=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762086760; c=relaxed/simple;
-	bh=f2sVVIMBHfKOhT4D+1goGS9xBz95JWAfpWeVV+K1ReE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=FUC2Djkq4Z7efoAEYyLbLx9oeWzoYTE5RHvG1gDqapL0100h2M90kgjL5Vvg7Xyc73TYpVWb5z5OLIyVOtEZUtZhxXcn/FzLO7p5a0fd/Lq4xVRfYmjVyi2MqznuIfstOXfIdmaDSDSlDy9IiYbn8yMleIX3qSH/ge/RhPk5aZk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de; spf=pass smtp.mailfrom=alien8.de; dkim=pass (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b=TbxfNeCd; arc=none smtp.client-ip=65.109.113.108
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=alien8.de
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9AB8D322A;
+	Sun,  2 Nov 2025 18:44:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.56.62
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1762109095; cv=fail; b=nIVrgscT05A9g/5GWam5RWAxEMsTo9xsccKwjDLPBce6Um4oEoGZ3PrfL34/6x3RlwECRApFzWSzG9YiC2vVFIzJ9i/sMqSyKJ6PNLLXGB67qqZBSUUWSzx+yVHuDvKoFuEcLII+FthW7SuzqjaiuMuPoJH/QovVqmwe3VXY2Qo=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1762109095; c=relaxed/simple;
+	bh=BCrxRrypW82MvlLkCX5LNq1T/7cMYq9HyblLt95QAv8=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=qLi6dcWHoLWpoEeIBf77I2SxZhv1lwPE4SpCOZLSeT5rYKYi9zZ0wvahTLGjsj3FoDu02ZIcJZLbzUsBBEcQgbZgt0k/Nm9B8aI374BTRJLA89/iReMS1+flebwwFvHRKBxcW9Qt/CYk5nJq1gNXnVsiuQjAolAGt1J+3sswK+A=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=mTShJ5oM; arc=fail smtp.client-ip=52.101.56.62
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b="TbxfNeCd"
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with ESMTP id EF88840E00DA;
-	Sun,  2 Nov 2025 12:32:33 +0000 (UTC)
-X-Virus-Scanned: Debian amavisd-new at mail.alien8.de
-Authentication-Results: mail.alien8.de (amavisd-new); dkim=pass (4096-bit key)
-	header.d=alien8.de
-Received: from mail.alien8.de ([127.0.0.1])
-	by localhost (mail.alien8.de [127.0.0.1]) (amavisd-new, port 10026)
-	with ESMTP id oOHUlStEH83J; Sun,  2 Nov 2025 12:32:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=alien8;
-	t=1762086747; bh=8RDLjRzC6Vx8GvHTKmNC9E43ohdNrQP1eOECZohar6I=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=TbxfNeCdaKrhqI44uPSqoV9T3E3k6fDNP8NGWfdSqEeG7eElf16RE3BdZWa92KhAy
-	 6boaQBZSEgaqcdQiUP/OhggynQ6eMJF0LwI7oeVwVfvKIHl424w3DME7pK1YbsE3+7
-	 EaEgkxD7R0syh4VUspU+PbEemlhGCwKmmWawWZU3fHobjX1+IJqtpfWjyrY3NNizAL
-	 C4XI88ofY+j8srl5ZNZZfDYi9D/uUWqOVRpn/Kfk5NyAQjx4K0dCdJtthf1WxilWb2
-	 mbuemC5CLCnD/+AWXSHa8m9Pv1knISlah5na0s5daueWAkCfIe4QBnLyDsUfKLW/7y
-	 EYJqR4k9Uze9q7gdbZ3xd+zFAGiXPpdCVF8Hoc/TaD5o3S2q9W8oo6brL029Tgmirh
-	 S253Y0CiRPmi2sA3+OBkf1EEHPabInQpvEkmgbxyiyDf2bqJ9LHpSbzDYf4ufdww43
-	 QBPROhTM2RMochlF6ZLosEjC82CwiP94WlQZELZHjnQK8UGsLHyamWktk9MuzpnKrJ
-	 aPDpjnaWW9obNBcQZK8tpKID1g3mK1NzxE6TVC9u965lChCfAXLS9tiEfjT1J12bVF
-	 mY0XErexynvFevkFsp45K2/oqdgHcXTtqkUMs5pAylXQ4KS+7sXtk/0fqeTVHRhFXf
-	 uRAp4pSZ41XuCUj+9YfCXXmM=
-Received: from zn.tnic (pd9530da1.dip0.t-ipconnect.de [217.83.13.161])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (P-256) server-signature ECDSA (P-256) server-digest SHA256)
-	(No client certificate requested)
-	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with UTF8SMTPSA id 8BCE740E01A5;
-	Sun,  2 Nov 2025 12:32:15 +0000 (UTC)
-Date: Sun, 2 Nov 2025 13:32:07 +0100
-From: Borislav Petkov <bp@alien8.de>
-To: Yazen Ghannam <yazen.ghannam@amd.com>
-Cc: x86@kernel.org, Tony Luck <tony.luck@intel.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org,
-	linux-edac@vger.kernel.org, Smita.KoralahalliChannabasappa@amd.com,
-	Qiuxu Zhuo <qiuxu.zhuo@intel.com>,
-	Nikolay Borisov <nik.borisov@suse.com>,
-	Bert Karwatzki <spasswolf@web.de>, linux-acpi@vger.kernel.org
-Subject: Re: [PATCH v7 8/8] x86/mce: Save and use APEI corrected threshold
- limit
-Message-ID: <20251102123207.GNaQdPRy5uZWtz3Bfz@fat_crate.local>
-References: <20251016-wip-mca-updates-v7-0-5c139a4062cb@amd.com>
- <20251016-wip-mca-updates-v7-8-5c139a4062cb@amd.com>
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="mTShJ5oM"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=P0L9zc9SvwqfN2KJt+E4wiX3DONDIj4qeTajD+LkYG2SDTZdidz5f81T4gDTSbaUSPwULqErlAC+NXdGnWevQnGACnzpJhqZljfoS+jVyy1BTpWzOAK5O//89KUI7KL98kj+DoSCYDxsrAd+yrY0/GIH8FGISozPMdXNJKRQlgkgvyu2A2AjDgSP6rVfnqSojdFA+Kdy/fIz1hW7gqjnLjNKAG15CBRh1+IRWmZR1VwD5yCMftwSonHkWbKTl+mysIGsxVvt6oxPwo8WV8ayFW4tHEjKXApS+KGnORBNPtEV3u5IjpePlAEozLRJ8piPZ13h36ZSzZzFO/YRUAK4sw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=KNIVFlRtuevk6wMRAs3kl7QZj2pt5+QR4uhVt4OoXqQ=;
+ b=XD+8Y9QNObCMWeu4WhQX1iYmq3V8eGGsar68ezytNRWOO1/o7GsZc8LxUUiYQ68uWxQoT8b4NTzwV6WDghBnEJANybMl6bQCYmK1a+qroRK2/xX6Q7vsyLJr5nKp52xXa6iUSRlGVUfDi2AC62BPmqwBHmJpsERm+57GF9gh+bEfL7rQbxC361roGukYdS45VHXqd9ciLh6cp/tmvycfwBOLQkxkdciyz++NOTdFk6eY77kG5tkpyO2Dicam6/9rD8xyVvvGlSuGogmYpU6Rda6HchEjUQ+JD0uFAIBf/NgMEgqaZudyI3EmEVxNPv+x7uEyyiISq06QPRpAauFdTg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.117.160) smtp.rcpttodomain=intel.com smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=KNIVFlRtuevk6wMRAs3kl7QZj2pt5+QR4uhVt4OoXqQ=;
+ b=mTShJ5oMHe76l9g5/kU4NYAtZo1j8ZSWsgH3d0cZlxEUNDdgdWFyyrOTu+DpVVGpl6URA9exCqQZP8EYLsFKDoKBM/hmCSGs87BVVc9571jbVlEJqG1I5nq0g97T9a9ItnrxbSXcuv3iAEO3quFGS6wN2unN9cYBMZY2bcHuwyoqHIs0D7S6B6GGSGJnbMZ04+IrB6c7LO9cUIja8shHlt7rpQmSJuZAqC8lWY+RCstBVBcSZLG+xc7YnJxaCwcjnUG+/MMVJf3xQPlqn2llALo6hmxu885JhanF7a5YDk9Kn1sDsgltEt8j54NfwklLHXv4NkoklKzokQWhJpz1Dw==
+Received: from CH0PR03CA0050.namprd03.prod.outlook.com (2603:10b6:610:b3::25)
+ by CH2PR12MB4247.namprd12.prod.outlook.com (2603:10b6:610:7c::20) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9275.15; Sun, 2 Nov
+ 2025 18:44:47 +0000
+Received: from CH1PEPF0000AD82.namprd04.prod.outlook.com
+ (2603:10b6:610:b3:cafe::ce) by CH0PR03CA0050.outlook.office365.com
+ (2603:10b6:610:b3::25) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.9275.16 via Frontend Transport; Sun,
+ 2 Nov 2025 18:44:44 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
+ smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.160) by
+ CH1PEPF0000AD82.mail.protection.outlook.com (10.167.244.91) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.9298.6 via Frontend Transport; Sun, 2 Nov 2025 18:44:47 +0000
+Received: from rnnvmail204.nvidia.com (10.129.68.6) by mail.nvidia.com
+ (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Sun, 2 Nov
+ 2025 10:44:39 -0800
+Received: from rnnvmail202.nvidia.com (10.129.68.7) by rnnvmail204.nvidia.com
+ (10.129.68.6) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Sun, 2 Nov
+ 2025 10:44:38 -0800
+Received: from localhost.nvidia.com (10.127.8.12) by mail.nvidia.com
+ (10.129.68.7) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20 via Frontend
+ Transport; Sun, 2 Nov 2025 10:44:38 -0800
+From: <ankita@nvidia.com>
+To: <ankita@nvidia.com>, <aniketa@nvidia.com>, <vsethi@nvidia.com>,
+	<jgg@nvidia.com>, <mochs@nvidia.com>, <skolothumtho@nvidia.com>,
+	<linmiaohe@huawei.com>, <nao.horiguchi@gmail.com>,
+	<akpm@linux-foundation.org>, <david@redhat.com>,
+	<lorenzo.stoakes@oracle.com>, <Liam.Howlett@oracle.com>, <vbabka@suse.cz>,
+	<rppt@kernel.org>, <surenb@google.com>, <mhocko@suse.com>,
+	<tony.luck@intel.com>, <bp@alien8.de>, <rafael@kernel.org>,
+	<guohanjun@huawei.com>, <mchehab@kernel.org>, <lenb@kernel.org>,
+	<kevin.tian@intel.com>, <alex@shazbot.org>
+CC: <cjia@nvidia.com>, <kwankhede@nvidia.com>, <targupta@nvidia.com>,
+	<zhiw@nvidia.com>, <dnigam@nvidia.com>, <kjaju@nvidia.com>,
+	<linux-kernel@vger.kernel.org>, <linux-mm@kvack.org>,
+	<linux-edac@vger.kernel.org>, <Jonathan.Cameron@huawei.com>,
+	<ira.weiny@intel.com>, <Smita.KoralahalliChannabasappa@amd.com>,
+	<u.kleine-koenig@baylibre.com>, <peterz@infradead.org>,
+	<linux-acpi@vger.kernel.org>, <kvm@vger.kernel.org>, Shuai Xue
+	<xueshuai@linux.alibaba.com>
+Subject: [PATCH v5 1/3] mm: Change ghes code to allow poison of non-struct pfn
+Date: Sun, 2 Nov 2025 18:44:32 +0000
+Message-ID: <20251102184434.2406-2-ankita@nvidia.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20251102184434.2406-1-ankita@nvidia.com>
+References: <20251102184434.2406-1-ankita@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20251016-wip-mca-updates-v7-8-5c139a4062cb@amd.com>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-NV-OnPremToCloud: ExternallySecured
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: CH1PEPF0000AD82:EE_|CH2PR12MB4247:EE_
+X-MS-Office365-Filtering-Correlation-Id: 333c9e97-a8c5-48dd-f1af-08de1a3fe60c
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|376014|7416014|82310400026|1800799024|36860700013|921020;
+X-Microsoft-Antispam-Message-Info:
+	=?us-ascii?Q?U1FoCGEBJseNO04u1ocjhmz3ke/jxtZ4cjTYiprII8hdX2I1L2jrm+8cwIeZ?=
+ =?us-ascii?Q?/iRuc/5ZShfyMOTfFvdI8Z4jAa8bfLuRLATZSIO9a9iRy/W97Emn+EAOJRQC?=
+ =?us-ascii?Q?1PXwaqzzK8YKb80aZWYI+4i60D0obV+xSwS6QpHB3QFyi1rm9axcV5Y4KKTY?=
+ =?us-ascii?Q?iRPoK6yL6bTgdSySPhAj/mwDZOpEqCqEuqmhEhhtVp7R1uxkdI8kRbMHRCsn?=
+ =?us-ascii?Q?mCREF6UmBZKZwpigDQyct3yyIwUGWMBi5L+by7qc4uhWdGHjrMqEodkjNE57?=
+ =?us-ascii?Q?in3CHqrGhUpAQZ+tzAUR5XzRyWStUz8gJLiDFolLfgzs+SLDgSkvtfrPhxK5?=
+ =?us-ascii?Q?21zAi9E0dvWZJHZaVx75a7t5COZSS0c1o0b45J9TAjdjhsvuO9PTVjLJvHKV?=
+ =?us-ascii?Q?HciYUfEsO9cRAYFgH8xJF2B6EYBHPQRzC0+JP92trAPe/u+2i+ao7yDErn0o?=
+ =?us-ascii?Q?rLBUFeonAEtlHKanAdgwZHIrVnqAJRhrgHTMxDyiE3fsHuTROGTBoFfnEbUL?=
+ =?us-ascii?Q?g48q/R4LCN+bl3LUpI2ZbhLARYnlj5G/pf1mYqtpitN5hJoSq08UEXQY6QNG?=
+ =?us-ascii?Q?AL4h7TbO50A7YfwkAiXfh0OBrXChxETHH1wSbYNYCX+0o1MFdDefzDQVgWyj?=
+ =?us-ascii?Q?iOgBl6QY82VawQ7ThAL9/BAAHieqJPIZXMIMMGjoZ7rVj1eXvKrEnRWRi7lF?=
+ =?us-ascii?Q?rRTor9zb7xWdGCzNUBjGfvX1nKBj0vOIuyP/Np2a7ZyYCLnrgTqPciwg570V?=
+ =?us-ascii?Q?hrlGgcrWYxXD614c/y+vgH17xEd+/fFi89aCssBsSM0q7vfeNpcSiM7oNzao?=
+ =?us-ascii?Q?hBda/HuMO1dRlRtyxBGXWfdwjGyO1Mt19EeQMoHx57iAJ4+lVasivsvcaOi9?=
+ =?us-ascii?Q?tJWdWHYMsc3H5WAZ8dVmJxhjO8diNMMLVTZT7u8VPq8S0IGuX+AStjewu01i?=
+ =?us-ascii?Q?XYHhQI9zc/gbVCfY90i/y7BhcG1SpVTQnxBo4CrtyzDZ4+ddiPGZTYYef+m3?=
+ =?us-ascii?Q?bYZMUzTL5HVEKMvwwGJhFkugIDktxDshGCIAuRXanLfsBaJcWkYsiF3lYZqa?=
+ =?us-ascii?Q?hXxtGZW3JFZBuQpSwGdCOozxWbj9rKBtuZ5roTFB/QFyvG2PBsXoou+YjuPW?=
+ =?us-ascii?Q?zf96elVPE8twCYxxUjnHlCJdc1V9xIfPInC11qN4FKEjC5kpq2JjueXk2YSH?=
+ =?us-ascii?Q?YWPvWsaP5xii2dVsejFnd0DY808sQDiUwMKCWYiFlIk2GyypaFYx6blRYM8m?=
+ =?us-ascii?Q?8E0KFNxh39egjUgPIF1fb/qQdKGyRqTUvRnpPrtF6pB2VFRJRizha6rELiRm?=
+ =?us-ascii?Q?628i2y3AxlX1AAZSExbM23T8m0X4k28gGVAKNH1fAfzGuoCU4yUOOJJFzBVb?=
+ =?us-ascii?Q?XS21skx6rTRsXr/DS1nd4VE6GzaNeyf0WocBoZJ+yK0FnHbMnrk++xSRwt5L?=
+ =?us-ascii?Q?GfSESfUGMsrAZMAUGy+rKeZ8BVGWrN+qleYJ2gqQ2b9T/WCRK6I98w3KV9rQ?=
+ =?us-ascii?Q?8xgAmp5x0sYvMg31DLqsMJUAXQJISffShV2lLgaLTascssE0A9Kz1xTUcDhl?=
+ =?us-ascii?Q?McUa8f/77TWXLJP/1x+mSmmjuERIo0VZ267XxdyX?=
+X-Forefront-Antispam-Report:
+	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(376014)(7416014)(82310400026)(1800799024)(36860700013)(921020);DIR:OUT;SFP:1101;
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 02 Nov 2025 18:44:47.6686
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 333c9e97-a8c5-48dd-f1af-08de1a3fe60c
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	CH1PEPF0000AD82.namprd04.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH2PR12MB4247
 
-On Thu, Oct 16, 2025 at 04:37:53PM +0000, Yazen Ghannam wrote:
-> +void mce_save_apei_thr_limit(u32 thr_limit)
-> +{
-> +	mce_apei_thr_limit = thr_limit;
-> +	pr_info("HEST: Corrected error threshold limit = %u\n", thr_limit);
+From: Ankit Agrawal <ankita@nvidia.com>
 
-pr_info("HEST corrected error threshold limit: %u\n", thr_limit);
+The GHES code allows calling of memory_failure() on the PFNs that pass the
+pfn_valid() check. This contract is broken for the remapped PFNs which
+fails the check and ghes_do_memory_failure() returns without triggering
+memory_failure().
 
-You can send a new revision now.
+Update code to allow memory_failure() call on PFNs failing pfn_valid().
 
-Thx.
+Reviewed-by: Shuai Xue <xueshuai@linux.alibaba.com>
+Signed-off-by: Ankit Agrawal <ankita@nvidia.com>
+---
+ drivers/acpi/apei/ghes.c | 6 ------
+ 1 file changed, 6 deletions(-)
 
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index a0d54993edb3..bc4d0f2b3e9d 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -505,12 +505,6 @@ static bool ghes_do_memory_failure(u64 physical_addr, int flags)
+ 		return false;
+ 
+ 	pfn = PHYS_PFN(physical_addr);
+-	if (!pfn_valid(pfn) && !arch_is_platform_page(physical_addr)) {
+-		pr_warn_ratelimited(FW_WARN GHES_PFX
+-		"Invalid address in generic error data: %#llx\n",
+-		physical_addr);
+-		return false;
+-	}
+ 
+ 	if (flags == MF_ACTION_REQUIRED && current->mm) {
+ 		twcb = (void *)gen_pool_alloc(ghes_estatus_pool, sizeof(*twcb));
 -- 
-Regards/Gruss,
-    Boris.
+2.34.1
 
-https://people.kernel.org/tglx/notes-about-netiquette
