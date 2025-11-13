@@ -1,67 +1,100 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6D7A31BCBD;
-	Thu, 13 Nov 2025 19:36:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B974327B348
+	for <linux-acpi@vger.kernel.org>; Thu, 13 Nov 2025 20:14:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763062582; cv=none; b=IsuIc49NoxvMDcjF6NCnTW2yIUNZZcJ3f3qdRJ9XQghB8tUQ8Z55nmdHU5vCb1/2RrvIJJB0kZvlhwdmm1R5qysHCLKMrt02meYVvgdUnb4cRgSJFTQzE8dlWIwuVoVQrpnq/LbSB4/K9WBfnUx1yPRYNEIm+PoKamDetgQSfAM=
+	t=1763064860; cv=none; b=qgfyTTA1B4hTCDezs9WHpjPdCSNd2kIcVFmbcc3UT8RLeNDXTOrA5Qzkk18KaRg7Mwkq34G7eQcDQZAzZf/3CXXjnWST7VX6Td8PP1SQ2PUFCfumnP4YWViqAF5IWr9kz+5eOj1rVa3DWUNgkYHgbE7hwLIhmwrBmvLumXGkx/0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763062582; c=relaxed/simple;
-	bh=d6/wr9z7PiikiTt2BwH3154EzjBBkK66uPk6kTQ10ys=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=osuhkHkabLqJBLQ3CgDHLj//sDpIznv6fb8TkOXCwmst6kDOshvBqe0AFOneWWWg2VEp3t1F68hlB4sFKn7F+A0SPOQRwkbFwsmO9y0NjCv3inynVgrr808fk16hURgMkPpZWv8xvhsPeV9cUkbFQ2vvN8Ipn8SkTlk7WZw5GjY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DXw1Mzmg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763064860; c=relaxed/simple;
+	bh=76EvaeQI5XEPFQQiNAA3g7E01+m/sCelT9LslmIdgDM=;
+	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=EfEuIUz8ERopqYd10y7EV/GUq5es/GnykfbyMxkC96nzuHWbdeEJ6muYIz1nePoszqeJyRGgQRztDD8pr0PNYOW0+2lAxMJLrtbTlffTJaTXrZwG8hSJ+LUEQNDP4hKTct4tBdndnKwX1CuUXJT3vljZmqM8hKZ2mzMtE01Fsy8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=pHrQS+sz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DXw1Mzmg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E7D4C113D0;
-	Thu, 13 Nov 2025 19:36:19 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="pHrQS+sz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60F9EC19422
+	for <linux-acpi@vger.kernel.org>; Thu, 13 Nov 2025 20:14:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1763062582;
-	bh=d6/wr9z7PiikiTt2BwH3154EzjBBkK66uPk6kTQ10ys=;
-	h=From:To:Cc:Subject:Date:From;
-	b=DXw1MzmgfXdUe2VLx/g3bAIunmcbRCWyautyCBuIrVIiY2I/AiUK86DMpffYME8OP
-	 MrYQ2Hk7VkFxpnd4uqZFe3AQO4SE4OtjiLMOJATqDbYd8W3Wz2PjK527PrKfS9BIYv
-	 gYAz0haPVjw4vG0nVFXMwhNfGfB5jgLcP9bjDjxgfTiMTBRm0aTTnEv0oMPaCm0wrc
-	 eq1dliaISIPU3TRuokU6UmGSI5W4xxcjSjZromXvoT6e1LWJdti9Dbv8lZ/LBeSBVI
-	 fAWwNNCqSM6PiiMQ9it2vipP4ZF6sbjjD0OP7s8tubZda7E82K/7V6+0JnlMSm/iqH
-	 2yDk+LgTHlCrw==
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-To: Linux PM <linux-pm@vger.kernel.org>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>,
- Jonathan Cameron <jonathan.cameron@huawei.com>, Takashi Iwai <tiwai@suse.de>,
- LKML <linux-kernel@vger.kernel.org>, Zhang Qilong <zhangqilong3@huawei.com>,
- Frank Li <Frank.Li@nxp.com>, Dhruva Gole <d-gole@ti.com>,
- Dan Williams <dan.j.williams@intel.com>,
- Linux PCI <linux-pci@vger.kernel.org>, Bjorn Helgaas <helgaas@kernel.org>
-Subject: [PATCH v2 0/3] PM: runtime: Wrapper macros for usage counter guards
-Date: Thu, 13 Nov 2025 20:24:57 +0100
-Message-ID: <5959587.DvuYhMxLoT@rafael.j.wysocki>
-Organization: Linux Kernel Development
+	s=k20201202; t=1763064860;
+	bh=76EvaeQI5XEPFQQiNAA3g7E01+m/sCelT9LslmIdgDM=;
+	h=From:Date:Subject:To:Cc:From;
+	b=pHrQS+szacBGnfLizjPD2mmqMXSTenGwugENXteV/+vAKPGnOZ/e5g7hs8zuiK5sy
+	 rK9bFF4DNRypFFyYIgnhITPEdDZBUU1Zby1Uor2EPjwHfgAOXenMKC2PNLmsIEVHWT
+	 sMN+0ndKBmvCBmCdABsz7mh+9ZFka+Lek6ZdjL3gbcxhf9ypgBzslgSUBf5mijkvUq
+	 WCZ6QFnr8nzpiInwWp1iSTYbbG23odklR9w4DgoHj4+2fSRd6Q8tp6Ax7vYz2d091r
+	 o2PZWpvSGfx7IqVM5VzoLozm00YOWRY9RjymHLXOd1ASmzzK31Pfz8nAkMIy4Q8CNx
+	 ooTBVAyqmxjwg==
+Received: by mail-ot1-f49.google.com with SMTP id 46e09a7af769-7c52fa75cd3so983055a34.3
+        for <linux-acpi@vger.kernel.org>; Thu, 13 Nov 2025 12:14:20 -0800 (PST)
+X-Gm-Message-State: AOJu0YxPSvNECiIEck0dlgVeSlo7So7Z4217/V40GMV/JH5gIYHH0zpk
+	JROWOkbVTUZNOKxm5J5qGSKdkxGw4xYCUnBK7BQesiOyD2JU5J02xE85sC/cNMYiNorf9IA/TID
+	yWwsNAUKM7QVoDzb06uWEzVAgboOshS8=
+X-Google-Smtp-Source: AGHT+IEvaZ/Fzxot95Xje9kKzOAn5s6+MtCfOUZZiY70GMKlnN8bqrGa9rIlMPbfLcOldZIt6K5U+eAyUyHMBRBwajM=
+X-Received: by 2002:a05:6830:7185:b0:7c7:526:b1fd with SMTP id
+ 46e09a7af769-7c7443682b3mr696808a34.11.1763064859588; Thu, 13 Nov 2025
+ 12:14:19 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Thu, 13 Nov 2025 21:14:08 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0gTrsccUOjqAM4tRoYiFdpemWzsZ6kY=P+r+yDJ38Hw1g@mail.gmail.com>
+X-Gm-Features: AWmQ_bn8RSmNGuJCe_vafx9jt8ekKS39bneJpicsQp8WdOOdXGBHNrG6hGK4H54
+Message-ID: <CAJZ5v0gTrsccUOjqAM4tRoYiFdpemWzsZ6kY=P+r+yDJ38Hw1g@mail.gmail.com>
+Subject: [GIT PULL] ACPI support fixes for v6.18-rc6
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, 
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "the arch/x86 maintainers" <x86@kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 
-Hi All,
+Hi Linus,
 
-This supersedes
+Please pull from the tag
 
-https://lore.kernel.org/linux-pm/13883374.uLZWGnKmhe@rafael.j.wysocki/
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ acpi-6.18-rc6
 
-as discussed here:
+with top-most commit 7564f3543cf19b1232553ab10399c9fbf514b5f3
 
-https://lore.kernel.org/linux-pm/5068916.31r3eYUQgx@rafael.j.wysocki/
+ Merge branches 'acpi-cppc' and 'acpi-tables'
 
-It adds runtime PM wrapper macros around ACQUIRE() and ACQUIRE_ERR() involving
-the guards added recently (patch [1/3]) and then updates the code already
-using those guards (patches [2/3] and [3/3]) to make it look more
-straightforward.
+on top of commit e9a6fb0bcdd7609be6969112f3fbfcce3b1d4a7c
+
+ Linux 6.18-rc5
+
+to receive ACPI support fixes for 6.18-rc6.
+
+These fix issues in the ACPI CPPC library and in the recently added
+parser for the ACPI MRRM table:
+
+ - Limit some checks in the ACPI CPPC library to online CPUs to avoid
+   accessing uninitialized per-CPU variables when some CPUs are offline
+   to start with, like during boot with "nosmt=force" (Gautham Shenoy)
+
+ - Rework add_boot_memory_ranges() in the ACPI MRRM table parser to fix
+   memory leaks and improve error handling (Kaushlendra Kumar)
 
 Thanks!
 
 
+---------------
 
+Gautham R. Shenoy (4):
+      ACPI: CPPC: Detect preferred core availability on online CPUs
+      ACPI: CPPC: Check _CPC validity for only the online CPUs
+      ACPI: CPPC: Perform fast check switch only for online CPUs
+      ACPI: CPPC: Limit perf ctrs in PCC check only to online CPUs
+
+Kaushlendra Kumar (1):
+      ACPI: MRRM: Fix memory leaks and improve error handling
+
+---------------
+
+ arch/x86/kernel/acpi/cppc.c |  2 +-
+ drivers/acpi/acpi_mrrm.c    | 43 +++++++++++++++++++++++++++++++++----------
+ drivers/acpi/cppc_acpi.c    |  6 +++---
+ 3 files changed, 37 insertions(+), 14 deletions(-)
