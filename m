@@ -1,23 +1,23 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 944BF35772F;
-	Wed, 19 Nov 2025 12:24:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id CDA96359712;
+	Wed, 19 Nov 2025 12:24:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763555051; cv=none; b=VM608u4vO1FaxYPZxjhX/OG1lVkFsvZNKNDWxwsHxGw3itqNpSp+cKGn1D0GFjL+ufOOnjPKivDDdIuSqb3Lz9IrraGjwKhBGX3XPVjP9fwHTUfy2Yz8+pM1fJ1d6llVIVbVu5hXPJcZxybEikXJTCjJHgkdJ+UoS9FCVP954gY=
+	t=1763555054; cv=none; b=O03dT4pexydY7pwFxs6uolgHEY3LM+5OHydt6WvO8YyFie2FBlZRjDUiOPhZGt98k235+4A2MOjtfG3OwgxZi3ZlFPnvwdSDIbIblSM2fK6VZITlTZ73VX5oGv1zk9ZLBpl0kvE+TclSJhtwoTIW5NRh3AEybTBl8cdVdUpElzA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763555051; c=relaxed/simple;
-	bh=mCNevBcf26dXcikkC/aF4+W5enzhK0U99stWbQTNkxo=;
+	s=arc-20240116; t=1763555054; c=relaxed/simple;
+	bh=4JkMHr1Wa8dQrHjYQI1TaQBTAPdbVyHQ4zLJPk5KGv8=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=nOzFroYAeTp6jlf8rfu8KMiU9lQlodUJ2kRCClh5gj74aMsso4u9vIJq8cT5fhhgHUGNu0bH71ec79byvbkg9xxgWguMCti3BAsTZ5iDK+EqgHHTurNw2sCSPGQmxDKmAxjCJqtBKjvrOXSKwwPcaXSleFiAGgiN6B2MDL72PQE=
+	 MIME-Version; b=MNUZF/WCq6I/YXd6+cyHthvIKP63H2wy8ntcrAoJLZ4vE09FlDbPp1qe4GZbGwfrDlSGZLXmP8QHVTIrGg95b/LN7e6p0rzmocWgnaP7Uf7uI4QJ9OKuKKcDppA5MjwofcMgv9MHmapkU6EgTCOx/NyBrYcIhKVPg2SlieVVl/8=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 530C6176C;
-	Wed, 19 Nov 2025 04:23:59 -0800 (PST)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id C735F14BF;
+	Wed, 19 Nov 2025 04:24:04 -0800 (PST)
 Received: from e134344.cambridge.arm.com (e134344.arm.com [10.1.196.46])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id AEBAD3F740;
-	Wed, 19 Nov 2025 04:24:01 -0800 (PST)
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 2D7333F740;
+	Wed, 19 Nov 2025 04:24:07 -0800 (PST)
 From: Ben Horgan <ben.horgan@arm.com>
 To: james.morse@arm.com
 Cc: amitsinght@marvell.com,
@@ -58,9 +58,9 @@ Cc: amitsinght@marvell.com,
 	Ben Horgan <ben.horgan@arm.com>,
 	Shaopeng Tan <tan.shaopeng@jp.fujitsu.com>,
 	Zeng Heng <zengheng4@huawei.com>
-Subject: [PATCH v6 07/34] platform: Define platform_device_put cleanup handler
-Date: Wed, 19 Nov 2025 12:22:37 +0000
-Message-ID: <20251119122305.302149-8-ben.horgan@arm.com>
+Subject: [PATCH v6 08/34] ACPI: Define acpi_put_table cleanup handler and acpi_get_table_pointer() helper
+Date: Wed, 19 Nov 2025 12:22:38 +0000
+Message-ID: <20251119122305.302149-9-ben.horgan@arm.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20251119122305.302149-1-ben.horgan@arm.com>
 References: <20251119122305.302149-1-ben.horgan@arm.com>
@@ -72,17 +72,17 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Define a cleanup helper for use with __free to destroy platform devices
-automatically when the pointer goes out of scope. This is only intended to
-be used in error cases and so should be used with return_ptr() or
-no_free_ptr() directly to avoid the automatic destruction on success.
+Define a cleanup helper for use with __free to release the acpi table when
+the pointer goes out of scope. Also, introduce the helper
+acpi_get_table_pointer() to simplify a commonly used pattern involving
+acpi_get_table().
 
-A first use of this is introduced in a subsequent commit.
+These are first used in a subsequent commit.
 
 Reviewed-by: Gavin Shan <gshan@redhat.com>
 Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
-Reviewed-by: Fenghua Yu <fenghuay@nvidia.com>
 Reviewed-by: Shaopeng Tan <tan.shaopeng@jp.fujitsu.com>
+Reviewed-by: Fenghua Yu <fenghuay@nvidia.com>
 Tested-by: Fenghua Yu <fenghuay@nvidia.com>
 Tested-by: Carl Worth <carl@os.amperecomputing.com>
 Tested-by: Gavin Shan <gshan@redhat.com>
@@ -91,21 +91,42 @@ Tested-by: Shaopeng Tan <tan.shaopeng@jp.fujitsu.com>
 Tested-by: Hanjun Guo <guohanjun@huawei.com>
 Signed-off-by: Ben Horgan <ben.horgan@arm.com>
 ---
- include/linux/platform_device.h | 1 +
- 1 file changed, 1 insertion(+)
+Changes since v5:
+Rename helper to acpi_get_table_pointer
+---
+ include/linux/acpi.h | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/include/linux/platform_device.h b/include/linux/platform_device.h
-index 074754c23d33..23a30ada2d4c 100644
---- a/include/linux/platform_device.h
-+++ b/include/linux/platform_device.h
-@@ -232,6 +232,7 @@ extern int platform_device_add_data(struct platform_device *pdev,
- extern int platform_device_add(struct platform_device *pdev);
- extern void platform_device_del(struct platform_device *pdev);
- extern void platform_device_put(struct platform_device *pdev);
-+DEFINE_FREE(platform_device_put, struct platform_device *, if (_T) platform_device_put(_T))
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index a9dbacabdf89..ac8797f95236 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -8,6 +8,7 @@
+ #ifndef _LINUX_ACPI_H
+ #define _LINUX_ACPI_H
  
- struct platform_driver {
- 	int (*probe)(struct platform_device *);
++#include <linux/cleanup.h>
+ #include <linux/errno.h>
+ #include <linux/ioport.h>	/* for struct resource */
+ #include <linux/resource_ext.h>
+@@ -221,6 +222,17 @@ void acpi_reserve_initial_tables (void);
+ void acpi_table_init_complete (void);
+ int acpi_table_init (void);
+ 
++static inline struct acpi_table_header *acpi_get_table_pointer(char *signature, u32 instance)
++{
++	struct acpi_table_header *table;
++	int status = acpi_get_table(signature, instance, &table);
++
++	if (ACPI_FAILURE(status))
++		return ERR_PTR(-ENOENT);
++	return table;
++}
++DEFINE_FREE(acpi_put_table, struct acpi_table_header *, if (!IS_ERR_OR_NULL(_T)) acpi_put_table(_T))
++
+ int acpi_table_parse(char *id, acpi_tbl_table_handler handler);
+ int __init_or_acpilib acpi_table_parse_entries(char *id,
+ 		unsigned long table_size, int entry_id,
 -- 
 2.43.0
 
