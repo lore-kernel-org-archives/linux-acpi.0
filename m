@@ -1,37 +1,37 @@
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0075F78C9C;
-	Sat, 22 Nov 2025 05:18:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A31BB8248C;
+	Sat, 22 Nov 2025 05:22:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763788697; cv=none; b=bcWhLJuQhxIhO67Rn5ezzUBhyZLocVbciiZYEOxA4RKclcoCs0D5zFEz5qeYg6f78/15YDOT/Tqwhvudg4Z2+m6E1R4s2SfcyNRhf9kafrfaqD1t2zOyaVmikiSATvlVtI+I+xUrcWrtzOR3gsKOtfKO/+bKwhf4eVKsK7wvxOI=
+	t=1763788980; cv=none; b=oGYRpN3VGf7daKvoRp2owicnX107DdJ/8u02q4KJU/BwIacN1OCc555QZGddXWDF/dAy2IzSz3ZuGFyXwT7LYcRMS9FACad/f5C4oO/e1rYALOMDPNDH9o/ZoM8VI6VWQOof8hlLOQTtyWKSnsx9LPCZi2uWr92bBfs6JnZ46BM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763788697; c=relaxed/simple;
-	bh=wAT8xGw54oXyIl0D5IXkk6rDDrwI1ll9MmjwHO0ui2o=;
+	s=arc-20240116; t=1763788980; c=relaxed/simple;
+	bh=wEjAxsAYg0fns4hbL6oC/+qy5aQXSgsbyAJeWxJjerc=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=hzXa1l/D88SgwMPktctrAOwIh+0NGKICD/1nTpNhVepOW3wJaeUcied6wyxH84DysMpRy+Yhvhd16dMf/vGXrzec4BEoQ4EFatzAY7PL6mamsww/hamHWOCuUscMli5kmZxehUsxkT9ktd3dnvrryIpPpBy+vaChccNx6Eq9uX0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=SJwdLMeF; arc=none smtp.client-ip=198.137.202.133
+	 In-Reply-To:Content-Type; b=quivEXi+vdMbnuMF5oXDwN7b46FX5/BW0yAiHIiEwp412aJmnnHysRMrz7PyDsIijibO+8tdiph4YumpYTtxv4mizEwO424cliSf+WUAcEP+DTWG3ZKh2DusTuWsWqROJzqptkTpmWYf1tsJ6wd3+Urbv4hVPV00RP+HsH9BTwY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=O71ZRjK7; arc=none smtp.client-ip=198.137.202.133
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="SJwdLMeF"
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="O71ZRjK7"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
 	Content-Type:In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:
 	Message-ID:Sender:Reply-To:Content-ID:Content-Description;
-	bh=a21mFOrYW7EF2pPoO72JM91N95zDCsdN4gaOlTsjcgM=; b=SJwdLMeFBkF2KqNV6jfhdJ/TKL
-	k19kD1CgRMJvJ9174C+g2EXK/WbSoyN0Vy1aLXajePZWlWWr7uaNxBRzt8koHeZ3JQkp6wxEEjSKv
-	IEXa2504U+Zs2zGOXGzZttOK4QpBQqBX0CR9iT4ZLPe1bF3k2/TEx+U10GNEfmerqsEwheVMSuL8s
-	JY0ZAKjiKOlYWhPliWGPChHFBpEgdmRWt8xTRdQGYH0jsqnCc479ZlXe0mh89iLLvgyqBlcTyyXX7
-	4ojJYiUEKmA1fqd26Ym5WozMay98Oxus+y5hq7+ih6pabeas3AaYIGGrzIqSYiLzZFsRZhA1aMJ3w
-	FDOCIYXA==;
+	bh=ctiiXJqj43yt6JFDqmOGbkwRPsJgQSrgpqu+YQaEadw=; b=O71ZRjK77TRPcnC4NwHOF25PzM
+	QXIKzNKT5MHAYI9TGOp2dd9ftqObQfTYmmqaeudsDv+ftQNBr8lEf5215q5bHLh36kZ5KlHu+nUpY
+	oePTHC1A2TdwX92YkkNo79STpXJMmcxsDEUjETKuimRzLMtlv7Uet6XddETu2X2EslVlHPIOi8Y54
+	2ZRy/7DQWXkdKjJ2U4Ct3dDAUgN3pXND3NerPs+rDUUbb7Bj26zzf/zFxuzOOpRNbDd3WlaMGMmq8
+	h2UmE7ShTS8n/kkhvaLanI1hDi1wclKfrX7hDWjxcyofgAyAqLtUDPn0m70i7WUDS5mfoIGRRfQKe
+	XJUYTC0g==;
 Received: from [50.53.43.113] (helo=[192.168.254.34])
 	by bombadil.infradead.org with esmtpsa (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vMg0Y-00000009HED-3nNK;
-	Sat, 22 Nov 2025 05:18:02 +0000
-Message-ID: <4807417b-a8f7-47a3-b38a-94ea7bdbf775@infradead.org>
-Date: Fri, 21 Nov 2025 21:18:01 -0800
+	id 1vMg5G-00000009HOl-42QK;
+	Sat, 22 Nov 2025 05:22:55 +0000
+Message-ID: <26083ba9-1979-4d14-8465-3f54f2f96d23@infradead.org>
+Date: Fri, 21 Nov 2025 21:22:53 -0800
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -39,8 +39,7 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v13 1/2] ACPI:RAS2: Add driver for the ACPI RAS2 feature
- table
+Subject: Re: [PATCH v13 2/2] ras: mem: Add ACPI RAS2 memory driver
 To: shiju.jose@huawei.com, rafael@kernel.org, bp@alien8.de,
  akpm@linux-foundation.org, rppt@kernel.org, dferguson@amperecomputing.com,
  linux-edac@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org,
@@ -55,38 +54,91 @@ Cc: jonathan.cameron@huawei.com, linuxarm@huawei.com, rientjes@google.com,
  prime.zeng@hisilicon.com, roberto.sassu@huawei.com,
  kangkang.shen@futurewei.com, wanghuiqiang@huawei.com
 References: <20251121182825.237-1-shiju.jose@huawei.com>
- <20251121182825.237-2-shiju.jose@huawei.com>
+ <20251121182825.237-3-shiju.jose@huawei.com>
 Content-Language: en-US
 From: Randy Dunlap <rdunlap@infradead.org>
-In-Reply-To: <20251121182825.237-2-shiju.jose@huawei.com>
+In-Reply-To: <20251121182825.237-3-shiju.jose@huawei.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 
 
 On 11/21/25 10:28 AM, shiju.jose@huawei.com wrote:
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index ca00a5dbcf75..bfa9f3f4def5 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -293,6 +293,18 @@ config ACPI_CPPC_LIB
->  	  If your platform does not support CPPC in firmware,
->  	  leave this option disabled.
+> diff --git a/Documentation/edac/scrub.rst b/Documentation/edac/scrub.rst
+> index 2cfa74fa1ffd..737a10da224f 100644
+> --- a/Documentation/edac/scrub.rst
+> +++ b/Documentation/edac/scrub.rst
+> @@ -340,3 +340,61 @@ controller or platform when unexpectedly high error rates are detected.
 >  
-> +config ACPI_RAS2
-> +	bool "ACPI RAS2 driver"
-> +	select AUXILIARY_BUS
-> +	select MAILBOX
-> +	select PCC
-> +	depends on NUMA_KEEP_MEMINFO
-> +	help
-> +	  This driver adds support for RAS2 feature table provides interfaces
-> +	  for platform RAS features, for eg. HW-based memory scrubbing.
+>  Sysfs files for scrubbing are documented in
+>  `Documentation/ABI/testing/sysfs-edac-ecs`
+> +
+> +3. ACPI RAS2 Hardware-based Memory Scrubbing
+> +
+> +3.1. On demand scrubbing for a specific memory region.
+> +
+> +3.1.1. Query the status of demand scrubbing
+> +
+> +# cat /sys/bus/edac/devices/acpi_ras_mem0/scrub0/enable_demand
+> +
+> +0
+> +
+> +3.1.2. Query what is device default/current scrub cycle setting.
+> +
+> +Applicable to both demand and background scrubbing.
+> +
+> +# cat /sys/bus/edac/devices/acpi_ras_mem0/scrub0/current_cycle_duration
+> +
+> +36000
+> +
 
-	                   features, e.g., for HW-based
+What units (above)?
 
-> +	  If your platform does not support RAS2 in firmware, leave this
-> +	  option disabled.
+> +3.1.3. Query the range of device supported scrub cycle for a memory region.
+> +
+> +# cat /sys/bus/edac/devices/acpi_ras_mem0/scrub0/min_cycle_duration
+> +
+> +3600
+> +
+> +# cat /sys/bus/edac/devices/acpi_ras_mem0/scrub0/max_cycle_duration
+> +
+> +86400
+> +
+
+ditto.
+
+> +3.1.4. Program scrubbing for the memory region in RAS2 device to repeat every
+> +43200 seconds (half a day).
+> +
+> +# echo 43200 > /sys/bus/edac/devices/acpi_ras_mem0/scrub0/current_cycle_duration
+> +
+> +3.1.5. Start 'demand scrubbing'.
+> +
+> +When a demand scrub is started, any background scrub currently in progress
+> +will be stopped and then automatically restarted once the demand scrub has
+> +completed.
+
+Will it restart where it left off or at the beginning?
+
+> +
+> +# echo 1 > /sys/bus/edac/devices/acpi_ras_mem0/scrub0/enable_demand
+> +
+> +3.2. Background scrubbing the entire memory
+> +
+> +3.2.1. Query the status of background scrubbing.
+> +
+> +# cat /sys/bus/edac/devices/acpi_ras_mem0/scrub0/enable_background
+> +
+> +0
+> +
+> +3.2.2. Program background scrubbing for RAS2 device to repeat in every 21600
+> +seconds (quarter of a day).
+> +
+> +# echo 21600 > /sys/bus/edac/devices/acpi_ras_mem0/scrub0/current_cycle_duration
+> +
+> +3.2.3. Start 'background scrubbing'.
+> +
+> +# echo 1 > /sys/bus/edac/devices/acpi_ras_mem0/scrub0/enable_background
 
 -- 
 ~Randy
