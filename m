@@ -1,259 +1,124 @@
-Received: from mail-lf1-f44.google.com (mail-lf1-f44.google.com [209.85.167.44])
+Received: from mail-dl1-f65.google.com (mail-dl1-f65.google.com [74.125.82.65])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B1162F9DB8
-	for <linux-acpi@vger.kernel.org>; Mon, 24 Nov 2025 10:35:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4783524501B
+	for <linux-acpi@vger.kernel.org>; Mon, 24 Nov 2025 11:20:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.65
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763980528; cv=none; b=HSCIyETLaEhClqS+FNSDTHKvR/seQjNt4HNst4q1J15eehIyT8Db7m6ayK/uyQRMteqRcIqCfBL1lwnaWkfrg4Q51nZ4MLncBXeE6HRXzpuiRoiFcP0aINaoxPE/74FBWYMnbrpJldE0ExRRaqot3rHqTJkkyFChiBQuHNsxzHg=
+	t=1763983246; cv=none; b=b2ek/w0uOZsPOX04KsmTt9khFWbPD0XwHrRTV6e9W3QaWlbbaNqdiOYw+Tw7L+5MBCXBP2NwLYR2qnLV6CD9dvK72C7OcFKZhk416GZA3Ma6qB3FjRLXHtF8U5b1MBnd0jGNGqSzzUUkfbHqkhjY1bQjm0eDm2w42hGJkFDS+yw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763980528; c=relaxed/simple;
-	bh=MyhVfaLuUMB4FJ2DvvqxwnUvFdn4Yuvt+apgQWbex0s=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=awNu4Yu61mmde9K5lRKi0JI92ZEvlO1CdmgVdTNyqYU9VOQPNjZjedeu1JKEZmbzrPNa9tAvmZTzoUqfPmcsdF2Hw1UzMY/ViAmw/DHFhnFQVE/4Zn2EuTZoGrGT9Kp7WaxOV+WuoOChm1iC+HZW3+LBNuVuZ6XlmUTnIBl8C/M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=YI+Vy+Hk; arc=none smtp.client-ip=209.85.167.44
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1763983246; c=relaxed/simple;
+	bh=9T39oHFVYslmOezN/tg5/hXDiUXFog0BqAT4KJ57q9k=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=SfIeKTEMvq9o5W3XOcT2DsHpa1MzOTpLJF8M1gAfyMTr6SlMrPyAgrGFYQMAIJksBgS7ievEPoMKxAUJi3AMLDLhG4NJT7WwlYfhyS2Q6SuZOGQPWAKCWYeg7ui6s3y22aStm/fc3Qnoy4SqlxQWrglBS6zSESHPorPAy4hmep8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ventanamicro.com; spf=pass smtp.mailfrom=ventanamicro.com; dkim=pass (2048-bit key) header.d=ventanamicro.com header.i=@ventanamicro.com header.b=miElZuSO; arc=none smtp.client-ip=74.125.82.65
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ventanamicro.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ventanamicro.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YI+Vy+Hk"
-Received: by mail-lf1-f44.google.com with SMTP id 2adb3069b0e04-5957e017378so4263534e87.3
-        for <linux-acpi@vger.kernel.org>; Mon, 24 Nov 2025 02:35:25 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=ventanamicro.com header.i=@ventanamicro.com header.b="miElZuSO"
+Received: by mail-dl1-f65.google.com with SMTP id a92af1059eb24-11b6bc976d6so5145693c88.0
+        for <linux-acpi@vger.kernel.org>; Mon, 24 Nov 2025 03:20:45 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1763980524; x=1764585324; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=UvxeS/74nBAEFSf4nVKv65BSIxiE58qrGcTM82uuMOU=;
-        b=YI+Vy+HkMgCzsalFj/mE79j6oTEfj2O9RGUd423tov5I76cD7A2zskvsyHRsVdoUIx
-         B5cMlwgaxJ/TZwS8X8q+QuZYnO4i60BQHjlub1ORonH8fRD5NuNP+uPAd+GXofRL2q9P
-         yZOmj3337NdRiMxuyRE2JPBjTq4L89pMMcAPoak1bgZk8Joi1hgNJc9nHdPyIU1knEiF
-         zZW102rJnKBXBJHGTaBLJQFhUqAQ33hakKCa/DtFyoZs26dm0PgsxCFRY1p7mvvD5pX5
-         ayL9GQbAb2gP151lsLcdY5QMIogz6EneD1+NbmzkMU4TPmbSAHnYKA0GTczpmWMBXycJ
-         pY9w==
+        d=ventanamicro.com; s=google; t=1763983244; x=1764588044; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=QoFjh8MsYFC/IcjaiafYFUcjS29Eup0Axlu8vHGDo8g=;
+        b=miElZuSOkUKYmRECU+tiB787jP/xDsYNd3KYY4neGoWZ8nTjb5W/ksLaj1apAhHOpj
+         iVuTmEueEHIgDFGMxBJdoxDR+qDaMX1fcYhX3N5/19WQhmOfL79n9FMGyC/zln8IHhfu
+         V79nqFtpYZfGph0YdYP9LFJk5tMy1+L9vTCd/Qw0W9iFpnvVo3IX5fwsnosx8uuMMjMP
+         MTLh7wOssx124LnB6lQ2MXyi7LLvyo+cd0xWbWkOJ/pVDFkJwEXBtwdjerDRaTycqLLK
+         lghpC8LWI/WpD9DZ0ZJMcGutTOzcHcrKVNpS3ueu64x5tG9MWanmVn4eGgE9cKcRvHzA
+         xB3A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1763980524; x=1764585324;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=UvxeS/74nBAEFSf4nVKv65BSIxiE58qrGcTM82uuMOU=;
-        b=YH72ahlFjfrnmzR1po4Xinj2VsZeQAksKMrsgcFnlj9HGEmYgBW8UFhmhw4sTRSkU7
-         Uen7FgsPXp3kQfqKrIi3V8fiFAAXYhzVQNw5acHeOyLwADshHfujlG3z7F0Hiw6XDgIE
-         ZJNVMV0luILmxHTL74p0+xddtZeqYOzcawG2W3BZ9O2oRJbcnMWdBTfBYr/qZoZW4l1g
-         hM8tN/Ht3kSYGqHCp65kJJPIS6e3f5rSgPMueE0qMXeMSE35jW1bgyKcsR1vtBaoLh8k
-         bJuY518brnTw6UK115QKiRYTi5Cu+/EhvdtT+dPVHJDAiwySGt85g0PsT72+dQUeZ/Kg
-         B81w==
-X-Forwarded-Encrypted: i=1; AJvYcCXcT0gcn3mHbn+DTsJdYyBzyXBU3zRRfLNbaIh4HyUU9NxdkHnGLJlo3gHgVQE59yxTYJcb52gEqTZ2@vger.kernel.org
-X-Gm-Message-State: AOJu0YylMH7GxGor0fj1aEsj/F0Bww4iYC3fcsd6yv0JjKZatfQolnC6
-	sBfwTxkPbDkwnlWCEIS7veVbJcTpSjHczzTxIRa82hjdPovzhW3m/pciz0VUWVtp
-X-Gm-Gg: ASbGncuf/fvKQ2MzKOEELgdnsqwSGfYGvUR9LxQpKrzRp9ViIgfQcpwK96tOM6zdQSQ
-	bba4ouPmUuNh5Uv/ymjCbImltisQT/k+nP1kAK5oeH5VfcWIymX5C2aIJhUpFRX3JD2orY0Tu2l
-	ak8EbH/rIEqupDttdhN7wwDeWXrGHim4pxRYpZeMHxJbRL1r5awOrYx5MGWY72GVAQERxCwYpfV
-	v2B/zUN0BGvJLccy+4SpYtGWR2zsw2raaYsY2p0vbLP/5AkinYQKQMH+qO9PiF2EhRs4lY7lQPe
-	zCLADeFi6AxhwPIS8TJB/dpKVDSML4H3vJ3oEQ5ZqW4Zz87Y26iQXD7yilvbj6y6RKaiky6niUo
-	lMUflOLgSnfVYBCzIpUtpCOhlf6/7KG5vLkM19whAODrpDtSXXXKAKCcDH57hCP1xpD+4/z8lUU
-	1CJpuH7hkK1/l5J1DzocLHKzta
-X-Google-Smtp-Source: AGHT+IGzb+yApYHtjewkoQzx7FPWIVvgfb9lCElhP6A4EWOQNvayCoMjjLyY5L5QUpilRr8Cj3haxw==
-X-Received: by 2002:a05:6512:104a:b0:595:90ee:f476 with SMTP id 2adb3069b0e04-596a3edab46mr4292946e87.28.1763974136131;
-        Mon, 24 Nov 2025 00:48:56 -0800 (PST)
-Received: from [10.38.18.76] ([213.255.186.37])
-        by smtp.gmail.com with ESMTPSA id 2adb3069b0e04-5969dbc5c5dsm4019850e87.79.2025.11.24.00.48.55
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 24 Nov 2025 00:48:55 -0800 (PST)
-Message-ID: <6ee209b3-4d7a-45a8-bd65-6a51730d458d@gmail.com>
-Date: Mon, 24 Nov 2025 10:48:54 +0200
+        d=1e100.net; s=20230601; t=1763983244; x=1764588044;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=QoFjh8MsYFC/IcjaiafYFUcjS29Eup0Axlu8vHGDo8g=;
+        b=HZgCTSt46nLS+/EsJPuAcivvAUanvabI+XpCvNIvko7x2h84zpF+IH4ie4RHZFUmBH
+         IPeDJ8CWo79w/ldux6dkzVmPhAXIyeRsiXPu0b9TPj7KLo5S6HsfQ3eVf3E9xC8VM8Hz
+         6rAVCb9/vrNZAsirJ7T3R4s7pj85L015K4aZvCqXWI4ql/MUsvIiDZoFSTCFlji+vmAk
+         26pk2eCIVkpYnpopvnZIkkyHYoInOaUxvfK9ECHCsAmYltNPaCguBSoBpT2BZ5nNwVzM
+         Sxmn01XOYHSgSNy3Kv4TnD8eAlDd52WAWMB5fkmSVJ4KOaKJ5MwEcK2A+hHk+fOe24Wt
+         9uUA==
+X-Forwarded-Encrypted: i=1; AJvYcCWh6cHhMIJKjdYDHgmPwD4lM3007CD670QtrbSsmVrrJSuRKLKuMxMFMPbrvi2eeUf+OPrmhofSxAIk@vger.kernel.org
+X-Gm-Message-State: AOJu0YzZ8Bk6uA63gwfJX2ZhMPHBE+w++SZMsVsBM5oWuD7n93BY4bxr
+	T98RdR3GbpCZQE84kf0XX8i6XFSsNZwBBZIRgxAXZjlPNJOagyUCGhuhIr2BkjMqNSg=
+X-Gm-Gg: ASbGncvZos46+NhbGK4w6y8V3JYjbgA+S7lkRJnVB1I+YN3lMxWAFuI+w4OXRP0yxUz
+	vqRT2H6L19WLO6x56VhtR9Mey0t4sGibUj8LRAPN7wG18DzOmZF+fQP/q7hI21OFMic3IHwOa0c
+	GbXCAma8g3+AOFxQ6ycDtQrCQmnT6t9+0SkQPQWngBPdR0rD3LZhcp3k5o9Oa/tI5+JHwmZbOam
+	I76wk22ZNlQgVolt1KmuAV5VFRrClvywREW0Zp36BIurRdNK870W5f+M0UqQmKRQK+Wbws6OK/l
+	rGAkGCMnkKIS8ylkmJOdGMSLr22EB09Nz1kzYSKr+j/K1lHmK3gSLd05BVMR0s7ydwX0T29U1Af
+	1glHSijJVl3cMcI3z1HrJtuD5yhcRH3XlmIEvwxbatOlpAyGSt8E6+Zb8nuZ1u7wARrxGRgq6pz
+	6NEbQROyb4HLH+x2Etl0uprWEGSE+L1sNfyRX9JI4VDjO2ZnjB5g==
+X-Google-Smtp-Source: AGHT+IFRe5OFRcOIRvFt0difRXHFsxQbs1YTDnqVqZ5YmfXA4RNED/Ts3TyJDZwvJQ+Jv8lGcxehkg==
+X-Received: by 2002:a05:7022:fb0b:b0:119:e569:f85d with SMTP id a92af1059eb24-11c94b90cb3mr7567332c88.20.1763983244166;
+        Mon, 24 Nov 2025 03:20:44 -0800 (PST)
+Received: from anup-ubuntu-vm.localdomain ([103.97.166.196])
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-11c93e5674csm68207847c88.8.2025.11.24.03.20.37
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 24 Nov 2025 03:20:43 -0800 (PST)
+From: Anup Patel <apatel@ventanamicro.com>
+To: Sunil V L <sunilvl@ventanamicro.com>,
+	"Rafael J . Wysocki" <rafael@kernel.org>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>,
+	Paul Walmsley <paul.walmsley@sifive.com>,
+	Alexandre Ghiti <alex@ghiti.fr>,
+	Len Brown <lenb@kernel.org>,
+	Atish Patra <atish.patra@linux.dev>,
+	Andrew Jones <ajones@ventanamicro.com>,
+	Anup Patel <anup@brainfault.org>,
+	Will Deacon <will@kernel.org>,
+	Mark Rutland <mark.rutland@arm.com>,
+	linux-acpi@vger.kernel.org,
+	linux-riscv@lists.infradead.org,
+	linux-kernel@vger.kernel.org,
+	Anup Patel <apatel@ventanamicro.com>
+Subject: [PATCH v4 0/1] Common csr_read_num() and csr_write_num() for RISC-V
+Date: Mon, 24 Nov 2025 16:50:30 +0530
+Message-ID: <20251124112031.170350-1-apatel@ventanamicro.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 1/2] Revert "treewide: Fix probing of devices in DT
- overlays"
-To: Saravana Kannan <saravanak@google.com>,
- Herve Codina <herve.codina@bootlin.com>,
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- "Rafael J. Wysocki" <rafael@kernel.org>, Shawn Guo <shawnguo@kernel.org>,
- Sascha Hauer <s.hauer@pengutronix.de>,
- Pengutronix Kernel Team <kernel@pengutronix.de>,
- Fabio Estevam <festevam@gmail.com>,
- Wolfram Sang <wsa+renesas@sang-engineering.com>,
- Rob Herring <robh@kernel.org>, Mark Brown <broonie@kernel.org>,
- Len Brown <lenb@kernel.org>,
- Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
- Daniel Scally <djrscally@gmail.com>,
- Heikki Krogerus <heikki.krogerus@linux.intel.com>,
- Sakari Ailus <sakari.ailus@linux.intel.com>,
- Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: kernel-team@android.com, Wolfram Sang <wsa@kernel.org>,
- linux-kernel@vger.kernel.org, imx@lists.linux.dev,
- linux-arm-kernel@lists.infradead.org, linux-i2c@vger.kernel.org,
- devicetree@vger.kernel.org, linux-spi@vger.kernel.org,
- linux-acpi@vger.kernel.org, Matti Vaittinen <mazziesaccount@gmail.com>
-References: <20240411235623.1260061-1-saravanak@google.com>
- <20240411235623.1260061-2-saravanak@google.com>
-Content-Language: en-US
-From: Kalle Niemi <kaleposti@gmail.com>
-In-Reply-To: <20240411235623.1260061-2-saravanak@google.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-On 4/12/24 02:56, Saravana Kannan wrote:
-> This reverts commit 1a50d9403fb90cbe4dea0ec9fd0351d2ecbd8924.
-> 
-> While the commit fixed fw_devlink overlay handling for one case, it
-> broke it for another case. So revert it and redo the fix in a separate
-> patch.
-> 
-> Fixes: 1a50d9403fb9 ("treewide: Fix probing of devices in DT overlays")
-> Reported-by: Herve Codina <herve.codina@bootlin.com>
-> Closes: https://lore.kernel.org/lkml/CAMuHMdXEnSD4rRJ-o90x4OprUacN_rJgyo8x6=9F9rZ+-KzjOg@mail.gmail.com/
-> Closes: https://lore.kernel.org/all/20240221095137.616d2aaa@bootlin.com/
-> Closes: https://lore.kernel.org/lkml/20240312151835.29ef62a0@bootlin.com/
-> Signed-off-by: Saravana Kannan <saravanak@google.com>
-> ---
->   drivers/bus/imx-weim.c    | 6 ------
->   drivers/i2c/i2c-core-of.c | 5 -----
->   drivers/of/dynamic.c      | 1 -
->   drivers/of/platform.c     | 5 -----
->   drivers/spi/spi.c         | 5 -----
->   5 files changed, 22 deletions(-)
-> 
-> diff --git a/drivers/bus/imx-weim.c b/drivers/bus/imx-weim.c
-> index 837bf9d51c6e..caaf887e0ccc 100644
-> --- a/drivers/bus/imx-weim.c
-> +++ b/drivers/bus/imx-weim.c
-> @@ -331,12 +331,6 @@ static int of_weim_notify(struct notifier_block *nb, unsigned long action,
->   				 "Failed to setup timing for '%pOF'\n", rd->dn);
->   
->   		if (!of_node_check_flag(rd->dn, OF_POPULATED)) {
-> -			/*
-> -			 * Clear the flag before adding the device so that
-> -			 * fw_devlink doesn't skip adding consumers to this
-> -			 * device.
-> -			 */
-> -			rd->dn->fwnode.flags &= ~FWNODE_FLAG_NOT_DEVICE;
->   			if (!of_platform_device_create(rd->dn, NULL, &pdev->dev)) {
->   				dev_err(&pdev->dev,
->   					"Failed to create child device '%pOF'\n",
-> diff --git a/drivers/i2c/i2c-core-of.c b/drivers/i2c/i2c-core-of.c
-> index a6c407d36800..a250921bbce0 100644
-> --- a/drivers/i2c/i2c-core-of.c
-> +++ b/drivers/i2c/i2c-core-of.c
-> @@ -178,11 +178,6 @@ static int of_i2c_notify(struct notifier_block *nb, unsigned long action,
->   			return NOTIFY_OK;
->   		}
->   
-> -		/*
-> -		 * Clear the flag before adding the device so that fw_devlink
-> -		 * doesn't skip adding consumers to this device.
-> -		 */
-> -		rd->dn->fwnode.flags &= ~FWNODE_FLAG_NOT_DEVICE;
->   		client = of_i2c_register_device(adap, rd->dn);
->   		if (IS_ERR(client)) {
->   			dev_err(&adap->dev, "failed to create client for '%pOF'\n",
-> diff --git a/drivers/of/dynamic.c b/drivers/of/dynamic.c
-> index 4d57a4e34105..19a1a38554f2 100644
-> --- a/drivers/of/dynamic.c
-> +++ b/drivers/of/dynamic.c
-> @@ -224,7 +224,6 @@ static void __of_attach_node(struct device_node *np)
->   	np->sibling = np->parent->child;
->   	np->parent->child = np;
->   	of_node_clear_flag(np, OF_DETACHED);
-> -	np->fwnode.flags |= FWNODE_FLAG_NOT_DEVICE;
->   
->   	raw_spin_unlock_irqrestore(&devtree_lock, flags);
->   
-> diff --git a/drivers/of/platform.c b/drivers/of/platform.c
-> index 389d4ea6bfc1..efd861fa254f 100644
-> --- a/drivers/of/platform.c
-> +++ b/drivers/of/platform.c
-> @@ -743,11 +743,6 @@ static int of_platform_notify(struct notifier_block *nb,
->   		if (of_node_check_flag(rd->dn, OF_POPULATED))
->   			return NOTIFY_OK;
->   
-> -		/*
-> -		 * Clear the flag before adding the device so that fw_devlink
-> -		 * doesn't skip adding consumers to this device.
-> -		 */
-> -		rd->dn->fwnode.flags &= ~FWNODE_FLAG_NOT_DEVICE;
->   		/* pdev_parent may be NULL when no bus platform device */
->   		pdev_parent = of_find_device_by_node(rd->dn->parent);
->   		pdev = of_platform_device_create(rd->dn, NULL,
-> diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
-> index ff75838c1b5d..17cd417f7681 100644
-> --- a/drivers/spi/spi.c
-> +++ b/drivers/spi/spi.c
-> @@ -4761,11 +4761,6 @@ static int of_spi_notify(struct notifier_block *nb, unsigned long action,
->   			return NOTIFY_OK;
->   		}
->   
-> -		/*
-> -		 * Clear the flag before adding the device so that fw_devlink
-> -		 * doesn't skip adding consumers to this device.
-> -		 */
-> -		rd->dn->fwnode.flags &= ~FWNODE_FLAG_NOT_DEVICE;
->   		spi = of_register_spi_device(ctlr, rd->dn);
->   		put_device(&ctlr->dev);
->   
-Hello,
+Some of the RISC-V drivers (such as RISC-V PMU and ACPI CPPC) need to
+access CSR based on CSR number discovered from somewhere. Add common
+RISC-V csr_read_num() and csr_write_num() functions under arch/riscv
+for such drivers.
 
-Test system testing drivers for ROHM ICs bisected this commit to cause 
-BD71847 drivers probe to not be called.
+These patches can be found in the riscv_csr_read_num_v4 branch at:
+https://github.com/avpatel/linux.git
 
-The devicetree blob overlay describing bd71847 enables I2C1 bus on 
-BeagleBone Black aswell.
+Changes since v3:
+ - Rebased on Linux-6.18-rc7
+ - Updated commit decription of PATCH1 to reflect the fact that
+   we are removing sanity checks on CSR number which are already
+   taken care by csr_read_num() and csr_write_num().
 
-Probe is called when the driver is used with HW connected to I2C2 bus. 
-I2C2 bus is enabled before overlaying devicetree blobs.
+Changes since v2:
+ - Rebased on Linux-6.18-rc1
+ - Added reviewed-by tags
 
+Changes since v1:
+ - Make "out_err" mandatory for csr_read_num() and csr_write_num()
+   in PATCH2 as suggested by Sunil and Drew. This also helps further
+   simplify csr_read_num() and csr_write_num().
 
----- BD71847 Devicetree overlay source ----
+Anup Patel (1):
+  RISC-V: Add common csr_read_num() and csr_write_num() functions
 
-/dts-v1/;
-/plugin/;
+ arch/riscv/include/asm/csr.h |   3 +
+ arch/riscv/kernel/Makefile   |   1 +
+ arch/riscv/kernel/csr.c      | 165 +++++++++++++++++++++++++++++++++++
+ drivers/acpi/riscv/cppc.c    |  17 ++--
+ drivers/perf/riscv_pmu.c     |  54 ++----------
+ 5 files changed, 184 insertions(+), 56 deletions(-)
+ create mode 100644 arch/riscv/kernel/csr.c
 
-/{ /* this is our device tree overlay root node */
+-- 
+2.43.0
 
-	compatible = "ti,beaglebone", "ti,beaglebone-black";
-	part-number = "BBB-I2C1";
-  	version = "00A0";
-
-	fragment@0 {
-		target = <&am33xx_pinmux>; // this is a link to an already defined 
-node in the device tree, so that node is overlayed with our modification
-
-		__overlay__ {
-			i2c1_pins: pinmux_i2c1_pins {
-				pinctrl-single,pins = <
-           			0x158 0x72 /* spi0_d1.i2c1_sda */
-           			0x15C 0x72 /* spi0_cs0.i2c1_sdl */
-         			>;
-			};
-		};
-	};
-....
-....
-
-	fragment@2 {
-		target = <&i2c1>;
-
-		__overlay__ {
-			pinctrl-0 = <&i2c1_pins>;
-			clock-frequency = <100000>;
-			status = "okay";
-
-			pmic: pmic@4b { /* the "test" defined as child of the i2c1 bus */
-				compatible = "rohm,bd71847";
-				reg = <0x4b>;
-				....
-				....
-}; /* root node end */
-
----- END OF BD71847 Devicetree overlay source ----
-
-Reverting this patch from linux-next from last friday fixes the issue.
-
-BR
-Kalle Niemi
