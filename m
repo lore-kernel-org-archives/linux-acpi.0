@@ -1,153 +1,246 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f50.google.com (mail-ej1-f50.google.com [209.85.218.50])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 601DD313E37
-	for <linux-acpi@vger.kernel.org>; Mon, 24 Nov 2025 16:03:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E3F53168E1
+	for <linux-acpi@vger.kernel.org>; Mon, 24 Nov 2025 16:53:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764000195; cv=none; b=EHxcHW2AM+phgnOL9tV2ClArkpqx3gCdoBA2p3NsdLOxnTZl9tplCG1x5IUvQx+2xlo+Ped+RpMnph9arqOW5V27WAHgSrD34NXXaby58QlLaUJSP9kOiGo+w0n5CjRu69d/CwfYargYvaFXpX7xX68mDCL8amGG3XQ5eBSxmpU=
+	t=1764003217; cv=none; b=dw9u2BuAv87D+mGf80g/6zPogeJmowyi96Jkm1I3Rw6VKCDmM85PJ4R3hMwCnT2+lHjEqAH9y0enNJtAqjWOlnw1B79upQonX276OF1ZDpSDgSyhR40Gh6QgerIWNjt9B99soXVBH7AHgaM0Q7Lnu2MB+4U3PcliKBbLzKPkf/M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764000195; c=relaxed/simple;
-	bh=oMJyE0KcLUl7Eukdpbve8NlhkKZZZYFaHdrHx2+LWZw=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Zq6Hd+o/SVA99hgUFkJcwkiikO7bRoRzhDWW2juheRyH+dKgHOryqTLIpHCKXVcWXed8WvkfPfWvmI/5jMnmU9R8Vrd7I5cwxTHtObS9AAJPRH2/C6pv5Hr/Ht/VKvTxNF9ekLOQB+JA+OOaD18AAfsyZrmm0c0YBWmpI2tTrmg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TWHTmsXP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764003217; c=relaxed/simple;
+	bh=U6A+dJ20pXp86qjZBRsjEm03OXYUbqKULhGIn2BanqU=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=s90hQxG+X6PVKczY02ulYaXJozD5hqPXN2WEIB+mxDtX1fF7qcrAWFTx53tNPwlS6jb578rzHs/pOLnVPmp2ijhrFj8vDUAyBkBcrD0kZUbaLGFc7pPtEujmsinjxS+IsqFTGrkyIoAwK3n0nRMM/Jg1f4WISfVwzCUBMSyTPYA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=e00nhuYR; arc=none smtp.client-ip=209.85.218.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TWHTmsXP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A0F8C116C6
-	for <linux-acpi@vger.kernel.org>; Mon, 24 Nov 2025 16:03:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1764000195;
-	bh=oMJyE0KcLUl7Eukdpbve8NlhkKZZZYFaHdrHx2+LWZw=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=TWHTmsXPHasOtUOaf6arLJvl3epuA9wMKzVu5BzOBJmPZJwPZnY0db/hnP1rE+bvM
-	 uJkVkM56rh3QZoaQL0bn2QGpeynbiLlqibrXA2jk3zyyQL1mKkbTyHGRaHNgfGg61b
-	 CicnUNJkBH0W2i1DLkjzvPeGERDiatgbPFj43yiyQyq8Ai4ScRL9EBUmrMVMd7ICD6
-	 DuEY1DG4/UzyrPx+HLkB2sSq0LU4Hg2wtK82JCbfO2icVEHj3OdBEqdcYJBh/sYJQe
-	 ZidgJP+3nYdncbeRxshP+TDeASUM0gWP3E0DFMCmAjipoKT440YRUSkuGJUo7pEDW+
-	 PI1CK2Na/Pa7w==
-Received: by mail-ot1-f49.google.com with SMTP id 46e09a7af769-7c7503c73b4so2438441a34.3
-        for <linux-acpi@vger.kernel.org>; Mon, 24 Nov 2025 08:03:15 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AJvYcCWuX9rznFqn0+uJjLEqPgfsoSqJpoi+2UsQ5Ju/2Lj6io3AY3IDaqSJj742w5KGOW8BPb5CLvvR423c@vger.kernel.org
-X-Gm-Message-State: AOJu0YxAcS+qZId+V1qAkxKSxWDCNznyvyYhxq5Be5FLjzV9AEKS/bs/
-	Ng2rX0rlDvf+vP5Qg36mZDUgLeVAvZnYgQped8bfCIVFKNz4+OMPrrr3n1pUnZrsZ22UlATt0nm
-	WgjBFMHzEjRriYeYrs0jeVdzbNz/D+5o=
-X-Google-Smtp-Source: AGHT+IHrLLq/ft4ajQ0queolI+e2ulUfO34r2cR6VP5opAwL4VX7a8NvkWVIDc6KNSGCNk4PjZteW2X94ao5xDUqwCk=
-X-Received: by 2002:a05:6808:2386:b0:450:cc88:ecdf with SMTP id
- 5614622812f47-45115b5d282mr4177229b6e.45.1764000194555; Mon, 24 Nov 2025
- 08:03:14 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="e00nhuYR"
+Received: by mail-ej1-f50.google.com with SMTP id a640c23a62f3a-b739ef3f739so278967666b.1
+        for <linux-acpi@vger.kernel.org>; Mon, 24 Nov 2025 08:53:35 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1764003214; x=1764608014; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=gMEOFKOu3v4GJbo9FdKNZBfHGx8q7d1+trMyWhqy/A8=;
+        b=e00nhuYRJ4TUm6C4WkIDcGwKLXgjAvkpM4YXm0zK37rcdjn3LYN3AAPebtu54ZovQR
+         /56S3UttjqF5ahNaRos3W+qbfYZcIklnt2/T4FAc+CSkTwNN3lM9bj+y5rvra7SU5uNj
+         BabMmoBh051QK3dj4WNuiZjCsHRZ6K1V3wKiI9iIfo6RjZd/HjyLVDqheBSMCs9u6BzI
+         zdy9sD1MW2edryd9hcfzoyC2myri/1sfo1N1rX8Vbm9UixLX+y+v78Lrgc/ziWN/pKLC
+         COVceI2EcMHy1OOvMvYLdp7E/Dr0FSw0sNGOxX2Y3sB6KYHYVPGQZCuhx2mtdixOXKZs
+         QW3g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1764003214; x=1764608014;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=gMEOFKOu3v4GJbo9FdKNZBfHGx8q7d1+trMyWhqy/A8=;
+        b=IrQvKTdu1jcgF4e7E24UBtK8TKYmm0pEW/TkEKDhLq35RlDN4VHSr5egMX1RWVs/ca
+         JLb/JxaRRrhplilaMiEDTyTXNYqmhRcJC7QiCmJ/52OsTjZFC2xWVtGNGAF7AmNON7ow
+         X1uo/eAtX9tk72SZ6r57ZzlJCEBPzRzSSwYvrmhD0heHqtxoJOIo+ws2hlVO2vQuXa/T
+         OND32YuDjqwDtK2kXyMXIgjrZghqvz1XCJF0B/uT73ekL5w76Nt4nzLtzb1NFA6ICJez
+         1rjdFti95cwyXCnxf3tRm72D8uZSHW+Gnj1+mj2hDJwlnoZhR3XuN2n8zrwowor2oEPf
+         rKAg==
+X-Forwarded-Encrypted: i=1; AJvYcCWF3tFQgA3cLoteBQ6uHNsthkCl8vIbNJlJP25MgQLrhcwXc9b3176srzMa7thhq4w6r3mPD9AvBL0e@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw2yv3O1taEZmPsb+fG/8gJ1/Fx1wXBYicxU+51P5sKyBqlCIHC
+	CNMAIf9kMP6ok0rGgCyrPhnK4egG6tEl+A4s75Bs6huG2bghXTv2cvj4V+HgeW5Q
+X-Gm-Gg: ASbGncv04YEuCmWaGW7cG02WQTgCu9orXWjrnn7rMNKH9D6VAmC1gDjUFpm+oE0x3W9
+	e/R5pQIe0eDywD99VNDe7cOJEz6kZzjP9086wXCploOxRKp+wp/pOTpHeHQNVUViwv7RHAHR+uv
+	aWHeRoGe0ub4Rsc/Awke8Axil5uBsvD2qE1SoxMHiEmikRPUz6Sb23iVogO8wAWouDePNEDg45f
+	OpXHKk95hG9AhUlPENUPddN7OaepcZukWfJvGzmcr37bF9K7gvuuICYLKByjuUD18Zm9Ak2FN2b
+	dyZbW1zdByC/dZG3xlsU7/A2qmnIkbOp2Cl8uNSgsfE5gcfMDKzZMiUuofkBG/EwD0VpTclZCV5
+	trFX/coWTEmEi+08cPzQ7c1TS719SUwc3VS0o0rRTROnOwmsk3guMC7yF4Rew09yZEctvOFJYOL
+	HGdrGeAwWxlCGZ8yw2gf9lQp0UsdiXks8/8x5JT86ICZqjcReDazNwBRrSK1sWAAw=
+X-Google-Smtp-Source: AGHT+IG13tPufOeCe62IkziqEjMKy77jRIw/n2p1+sO/PACFs+P5/tLtartbx+qzXMxnMkmQoCTh7g==
+X-Received: by 2002:a05:6512:39d5:b0:595:9152:b921 with SMTP id 2adb3069b0e04-596a3ea79camr4199632e87.7.1763996851410;
+        Mon, 24 Nov 2025 07:07:31 -0800 (PST)
+Received: from ?IPV6:2001:14ba:437:c00::190? (2001-14ba-437-c00--190.rev.dnainternet.fi. [2001:14ba:437:c00::190])
+        by smtp.gmail.com with ESMTPSA id 2adb3069b0e04-596a0d1493bsm3863273e87.73.2025.11.24.07.07.29
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 24 Nov 2025 07:07:30 -0800 (PST)
+Message-ID: <5cf2a12a-7c66-4622-b4a9-14896c6df005@gmail.com>
+Date: Mon, 24 Nov 2025 17:07:28 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20251117-rneri-wakeup-mailbox-v7-0-4a8b82ab7c2c@linux.intel.com> <20251117-rneri-wakeup-mailbox-v7-7-4a8b82ab7c2c@linux.intel.com>
-In-Reply-To: <20251117-rneri-wakeup-mailbox-v7-7-4a8b82ab7c2c@linux.intel.com>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Mon, 24 Nov 2025 17:03:03 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0je4h8BMuwW5bCbuqSwMLdH9yQg0AczrO7ccPZXDsX3tA@mail.gmail.com>
-X-Gm-Features: AWmQ_blbdry3NZVG0MbjW02V38mj5pGYZLc03ckPmVqmTrDbtRMX22m-MGG_Jlo
-Message-ID: <CAJZ5v0je4h8BMuwW5bCbuqSwMLdH9yQg0AczrO7ccPZXDsX3tA@mail.gmail.com>
-Subject: Re: [PATCH v7 7/9] x86/acpi: Add a helper get the address of the
- wakeup mailbox
-To: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
-Cc: x86@kernel.org, Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
-	Rob Herring <robh@kernel.org>, "K. Y. Srinivasan" <kys@microsoft.com>, 
-	Haiyang Zhang <haiyangz@microsoft.com>, Wei Liu <wei.liu@kernel.org>, 
-	Dexuan Cui <decui@microsoft.com>, Michael Kelley <mhklinux@outlook.com>, 
-	"Rafael J. Wysocki" <rafael@kernel.org>, Saurabh Sengar <ssengar@linux.microsoft.com>, 
-	Chris Oo <cho@microsoft.com>, "Kirill A. Shutemov" <kas@kernel.org>, linux-hyperv@vger.kernel.org, 
-	devicetree@vger.kernel.org, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, Ricardo Neri <ricardo.neri@intel.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v4 01/29] Revert "treewide: Fix probing of devices in DT
+ overlays"
+To: Rob Herring <robh@kernel.org>
+Cc: Herve Codina <herve.codina@bootlin.com>, Andrew Lunn <andrew@lunn.ch>,
+ Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley
+ <conor+dt@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ "Rafael J. Wysocki" <rafael@kernel.org>, Danilo Krummrich <dakr@kernel.org>,
+ Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <s.hauer@pengutronix.de>,
+ Pengutronix Kernel Team <kernel@pengutronix.de>,
+ Fabio Estevam <festevam@gmail.com>,
+ Michael Turquette <mturquette@baylibre.com>, Stephen Boyd
+ <sboyd@kernel.org>, Andi Shyti <andi.shyti@kernel.org>,
+ Wolfram Sang <wsa+renesas@sang-engineering.com>,
+ Peter Rosin <peda@axentia.se>, Arnd Bergmann <arnd@arndb.de>,
+ Saravana Kannan <saravanak@google.com>, Bjorn Helgaas <bhelgaas@google.com>,
+ Charles Keepax <ckeepax@opensource.cirrus.com>,
+ Richard Fitzgerald <rf@opensource.cirrus.com>,
+ David Rhodes <david.rhodes@cirrus.com>,
+ Linus Walleij <linus.walleij@linaro.org>,
+ Ulf Hansson <ulf.hansson@linaro.org>, Mark Brown <broonie@kernel.org>,
+ Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+ Daniel Scally <djrscally@gmail.com>,
+ Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+ Sakari Ailus <sakari.ailus@linux.intel.com>, Len Brown <lenb@kernel.org>,
+ Davidlohr Bueso <dave@stgolabs.net>,
+ Jonathan Cameron <jonathan.cameron@huawei.com>,
+ Dave Jiang <dave.jiang@intel.com>,
+ Alison Schofield <alison.schofield@intel.com>,
+ Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>,
+ Dan Williams <dan.j.williams@intel.com>,
+ Geert Uytterhoeven <geert+renesas@glider.be>, Wolfram Sang <wsa@kernel.org>,
+ devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+ imx@lists.linux.dev, linux-arm-kernel@lists.infradead.org,
+ linux-clk@vger.kernel.org, linux-i2c@vger.kernel.org,
+ linux-pci@vger.kernel.org, linux-sound@vger.kernel.org,
+ patches@opensource.cirrus.com, linux-gpio@vger.kernel.org,
+ linux-pm@vger.kernel.org, linux-spi@vger.kernel.org,
+ linux-acpi@vger.kernel.org, linux-cxl@vger.kernel.org,
+ Allan Nielsen <allan.nielsen@microchip.com>,
+ Horatiu Vultur <horatiu.vultur@microchip.com>,
+ Steen Hegelund <steen.hegelund@microchip.com>,
+ Luca Ceresoli <luca.ceresoli@bootlin.com>,
+ Thomas Petazzoni <thomas.petazzoni@bootlin.com>, mazziesaccount@gmail.com
+References: <20251015071420.1173068-1-herve.codina@bootlin.com>
+ <20251015071420.1173068-2-herve.codina@bootlin.com>
+ <f74ab0a2-b74b-4b96-8469-a716c850e230@gmail.com>
+ <CAL_JsqJDOYuzutMHMeFAogd5a_OX6Hwi8Gwz1Vy7HpXgNeYKsg@mail.gmail.com>
+Content-Language: en-US
+From: Kalle Niemi <kaleposti@gmail.com>
+In-Reply-To: <CAL_JsqJDOYuzutMHMeFAogd5a_OX6Hwi8Gwz1Vy7HpXgNeYKsg@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-On Mon, Nov 17, 2025 at 6:04=E2=80=AFPM Ricardo Neri
-<ricardo.neri-calderon@linux.intel.com> wrote:
->
-> A Hyper-V VTL level 2 guest in a TDX environment needs to map the physica=
-l
-> page of the ACPI Multiprocessor Wakeup Structure as private (encrypted). =
-It
-> needs to know the physical address of this structure. Add a helper functi=
-on
-> to retrieve the address.
->
-> Suggested-by: Michael Kelley <mhklinux@outlook.com>
-> Signed-off-by: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
 
-Acked-by: Rafael J. Wysocki (Intel) <rafael@kernel.org>
+On 11/24/25 16:53, Rob Herring wrote:
+> On Mon, Nov 24, 2025 at 8:48 AM Kalle Niemi <kaleposti@gmail.com> wrote:
+>> On 10/15/25 10:13, Herve Codina wrote:
+>>> From: Saravana Kannan <saravanak@google.com>
+>>>
+>>> This reverts commit 1a50d9403fb90cbe4dea0ec9fd0351d2ecbd8924.
+>>>
+>>> While the commit fixed fw_devlink overlay handling for one case, it
+>>> broke it for another case. So revert it and redo the fix in a separate
+>>> patch.
+>>>
+>>> Fixes: 1a50d9403fb9 ("treewide: Fix probing of devices in DT overlays")
+>>> Reported-by: Herve Codina <herve.codina@bootlin.com>
+>>> Closes: https://lore.kernel.org/lkml/CAMuHMdXEnSD4rRJ-o90x4OprUacN_rJgyo8x6=9F9rZ+-KzjOg@mail.gmail.com/
+>>> Closes: https://lore.kernel.org/all/20240221095137.616d2aaa@bootlin.com/
+>>> Closes: https://lore.kernel.org/lkml/20240312151835.29ef62a0@bootlin.com/
+>>> Signed-off-by: Saravana Kannan <saravanak@google.com>
+>>> Link: https://lore.kernel.org/lkml/20240411235623.1260061-2-saravanak@google.com/
+>>> Signed-off-by: Herve Codina <herve.codina@bootlin.com>
+>>> Acked-by: Mark Brown <broonie@kernel.org>
+>>> ---
+>>>    drivers/bus/imx-weim.c    | 6 ------
+>>>    drivers/i2c/i2c-core-of.c | 5 -----
+>>>    drivers/of/dynamic.c      | 1 -
+>>>    drivers/of/platform.c     | 5 -----
+>>>    drivers/spi/spi.c         | 5 -----
+>>>    5 files changed, 22 deletions(-)
+>>>
+>>> diff --git a/drivers/bus/imx-weim.c b/drivers/bus/imx-weim.c
+>>> index 83d623d97f5f..87070155b057 100644
+>>> --- a/drivers/bus/imx-weim.c
+>>> +++ b/drivers/bus/imx-weim.c
+>>> @@ -327,12 +327,6 @@ static int of_weim_notify(struct notifier_block *nb, unsigned long action,
+>>>                                 "Failed to setup timing for '%pOF'\n", rd->dn);
+>>>
+>>>                if (!of_node_check_flag(rd->dn, OF_POPULATED)) {
+>>> -                     /*
+>>> -                      * Clear the flag before adding the device so that
+>>> -                      * fw_devlink doesn't skip adding consumers to this
+>>> -                      * device.
+>>> -                      */
+>>> -                     rd->dn->fwnode.flags &= ~FWNODE_FLAG_NOT_DEVICE;
+>>>                        if (!of_platform_device_create(rd->dn, NULL, &pdev->dev)) {
+>>>                                dev_err(&pdev->dev,
+>>>                                        "Failed to create child device '%pOF'\n",
+>>> diff --git a/drivers/i2c/i2c-core-of.c b/drivers/i2c/i2c-core-of.c
+>>> index eb7fb202355f..30b48a428c0b 100644
+>>> --- a/drivers/i2c/i2c-core-of.c
+>>> +++ b/drivers/i2c/i2c-core-of.c
+>>> @@ -176,11 +176,6 @@ static int of_i2c_notify(struct notifier_block *nb, unsigned long action,
+>>>                        return NOTIFY_OK;
+>>>                }
+>>>
+>>> -             /*
+>>> -              * Clear the flag before adding the device so that fw_devlink
+>>> -              * doesn't skip adding consumers to this device.
+>>> -              */
+>>> -             rd->dn->fwnode.flags &= ~FWNODE_FLAG_NOT_DEVICE;
+>>>                client = of_i2c_register_device(adap, rd->dn);
+>>>                if (IS_ERR(client)) {
+>>>                        dev_err(&adap->dev, "failed to create client for '%pOF'\n",
+>>> diff --git a/drivers/of/dynamic.c b/drivers/of/dynamic.c
+>>> index 2eaaddcb0ec4..b5be7484fb36 100644
+>>> --- a/drivers/of/dynamic.c
+>>> +++ b/drivers/of/dynamic.c
+>>> @@ -225,7 +225,6 @@ static void __of_attach_node(struct device_node *np)
+>>>        np->sibling = np->parent->child;
+>>>        np->parent->child = np;
+>>>        of_node_clear_flag(np, OF_DETACHED);
+>>> -     np->fwnode.flags |= FWNODE_FLAG_NOT_DEVICE;
+>>>
+>>>        raw_spin_unlock_irqrestore(&devtree_lock, flags);
+>>>
+>>> diff --git a/drivers/of/platform.c b/drivers/of/platform.c
+>>> index f77cb19973a5..ef9445ba168b 100644
+>>> --- a/drivers/of/platform.c
+>>> +++ b/drivers/of/platform.c
+>>> @@ -739,11 +739,6 @@ static int of_platform_notify(struct notifier_block *nb,
+>>>                if (of_node_check_flag(rd->dn, OF_POPULATED))
+>>>                        return NOTIFY_OK;
+>>>
+>>> -             /*
+>>> -              * Clear the flag before adding the device so that fw_devlink
+>>> -              * doesn't skip adding consumers to this device.
+>>> -              */
+>>> -             rd->dn->fwnode.flags &= ~FWNODE_FLAG_NOT_DEVICE;
+>>>                /* pdev_parent may be NULL when no bus platform device */
+>>>                pdev_parent = of_find_device_by_node(parent);
+>>>                pdev = of_platform_device_create(rd->dn, NULL,
+>>> diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
+>>> index 2e0647a06890..b22944a207c9 100644
+>>> --- a/drivers/spi/spi.c
+>>> +++ b/drivers/spi/spi.c
+>>> @@ -4791,11 +4791,6 @@ static int of_spi_notify(struct notifier_block *nb, unsigned long action,
+>>>                        return NOTIFY_OK;
+>>>                }
+>>>
+>>> -             /*
+>>> -              * Clear the flag before adding the device so that fw_devlink
+>>> -              * doesn't skip adding consumers to this device.
+>>> -              */
+>>> -             rd->dn->fwnode.flags &= ~FWNODE_FLAG_NOT_DEVICE;
+>>>                spi = of_register_spi_device(ctlr, rd->dn);
+>>>                put_device(&ctlr->dev);
+>>>
+>> Sorry, some of you will receive this message now for second time. First
+>> message was sent to older series of patches.
+>> -
+>>
+>> Hello,
+>>
+>> Test system testing drivers for ROHM ICs bisected this commit to cause
+>> BD71847 drivers probe to not be called.
+> This driver (and overlay support) is in linux-next or something out of
+> tree on top of linux-next?
+>
+> Rob
 
-> ---
-> Changes in v7:
->  - Moved the added function to arch/x86/kernel/acpi/madt_wakeup.c
->  - Dropped Reviewed-by tags from Dexuan and Michael as this patch
->    changed.
->
-> Changes in v6:
->  - Added Reviewed-by tag from Dexuan. Thanks!
->
-> Changes in v5:
->  - None
->
-> Changes in v4:
->  - Renamed function to acpi_get_mp_wakeup_mailbox_paddr().
->  - Added Reviewed-by tag from Michael. Thanks!
->
-> Changes in v3:
->  - Introduced this patch
->
-> Changes in v2:
->  - N/A
-> ---
->  arch/x86/include/asm/acpi.h        | 6 ++++++
->  arch/x86/kernel/acpi/madt_wakeup.c | 5 +++++
->  2 files changed, 11 insertions(+)
->
-> diff --git a/arch/x86/include/asm/acpi.h b/arch/x86/include/asm/acpi.h
-> index 820df375df79..c4e6459bd56b 100644
-> --- a/arch/x86/include/asm/acpi.h
-> +++ b/arch/x86/include/asm/acpi.h
-> @@ -184,6 +184,7 @@ void __iomem *x86_acpi_os_ioremap(acpi_physical_addre=
-ss phys, acpi_size size);
->
->  void acpi_setup_mp_wakeup_mailbox(u64 addr);
->  struct acpi_madt_multiproc_wakeup_mailbox *acpi_get_mp_wakeup_mailbox(vo=
-id);
-> +u64 acpi_get_mp_wakeup_mailbox_paddr(void);
->
->  #else /* !CONFIG_ACPI */
->
-> @@ -210,6 +211,11 @@ static inline struct acpi_madt_multiproc_wakeup_mail=
-box *acpi_get_mp_wakeup_mail
->         return NULL;
->  }
->
-> +static inline u64 acpi_get_mp_wakeup_mailbox_paddr(void)
-> +{
-> +       return 0;
-> +}
-> +
->  #endif /* !CONFIG_ACPI */
->
->  #define ARCH_HAS_POWER_INIT    1
-> diff --git a/arch/x86/kernel/acpi/madt_wakeup.c b/arch/x86/kernel/acpi/ma=
-dt_wakeup.c
-> index 82caf44b45e3..48734e4a6e8f 100644
-> --- a/arch/x86/kernel/acpi/madt_wakeup.c
-> +++ b/arch/x86/kernel/acpi/madt_wakeup.c
-> @@ -258,3 +258,8 @@ struct acpi_madt_multiproc_wakeup_mailbox *acpi_get_m=
-p_wakeup_mailbox(void)
->  {
->         return acpi_mp_wake_mailbox;
->  }
-> +
-> +u64 acpi_get_mp_wakeup_mailbox_paddr(void)
-> +{
-> +       return acpi_mp_wake_mailbox_paddr;
-> +}
->
-> --
-> 2.43.0
->
+Yes the driver is in mainline linux: /drivers/mfd/rohm-bd718x7.c
+
+Kalle
