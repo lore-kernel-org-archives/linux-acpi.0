@@ -1,153 +1,259 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lf1-f44.google.com (mail-lf1-f44.google.com [209.85.167.44])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7084A26B742;
-	Mon, 24 Nov 2025 10:00:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B1162F9DB8
+	for <linux-acpi@vger.kernel.org>; Mon, 24 Nov 2025 10:35:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.44
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763978418; cv=none; b=tmcIaaTnylosKdEbrUF4lJqeb/GlKD8bZPa1k/Hfrje0GDkqbTFsZSsJBsH1qRdwILdDQACQIyJHrJDcRryZhBywNpAcJNYhZ5EUt1016Zw022tIAlDqXyck9cEIgHm9+KpDc0gYzJpd21HHEeXw6yNzjKKzav16CGY4+XBaXH0=
+	t=1763980528; cv=none; b=HSCIyETLaEhClqS+FNSDTHKvR/seQjNt4HNst4q1J15eehIyT8Db7m6ayK/uyQRMteqRcIqCfBL1lwnaWkfrg4Q51nZ4MLncBXeE6HRXzpuiRoiFcP0aINaoxPE/74FBWYMnbrpJldE0ExRRaqot3rHqTJkkyFChiBQuHNsxzHg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763978418; c=relaxed/simple;
-	bh=bwk8PA2yKVbF2g//UG4+ZcDnvf9i2Q2+xtDKUf5v46M=;
-	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
-	 Content-Type:MIME-Version; b=tNN/EbLOLpKdQ/v43Lazk5dFLauNN0Nrt+/MUDIkZSJGujkZMK3mU3kaJ35sEbbnlDVktGDMJWV8c/ZSfSRJ0MOQxxCLg8fUmrfsm94a4AhLqcdVuuG8q/OIToQioWMsSvy8hWMrX+dw+qHP5gcLKfJ/cQZ7Iv9s3HFD+39ZgBs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.186.31])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTPS id 4dFLrl6KdFzJ46dd;
-	Mon, 24 Nov 2025 17:59:19 +0800 (CST)
-Received: from dubpeml500005.china.huawei.com (unknown [7.214.145.207])
-	by mail.maildlp.com (Postfix) with ESMTPS id A89871400D3;
-	Mon, 24 Nov 2025 18:00:11 +0800 (CST)
-Received: from dubpeml100008.china.huawei.com (7.214.145.227) by
- dubpeml500005.china.huawei.com (7.214.145.207) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Mon, 24 Nov 2025 10:00:11 +0000
-Received: from dubpeml100008.china.huawei.com ([7.214.145.227]) by
- dubpeml100008.china.huawei.com ([7.214.145.227]) with mapi id 15.02.1544.036;
- Mon, 24 Nov 2025 10:00:11 +0000
-From: Shiju Jose <shiju.jose@huawei.com>
-To: Randy Dunlap <rdunlap@infradead.org>, "rafael@kernel.org"
-	<rafael@kernel.org>, "bp@alien8.de" <bp@alien8.de>,
-	"akpm@linux-foundation.org" <akpm@linux-foundation.org>, "rppt@kernel.org"
-	<rppt@kernel.org>, "dferguson@amperecomputing.com"
-	<dferguson@amperecomputing.com>, "linux-edac@vger.kernel.org"
-	<linux-edac@vger.kernel.org>, "linux-acpi@vger.kernel.org"
-	<linux-acpi@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>,
-	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
-	"tony.luck@intel.com" <tony.luck@intel.com>, "lenb@kernel.org"
-	<lenb@kernel.org>, "leo.duran@amd.com" <leo.duran@amd.com>,
-	"Yazen.Ghannam@amd.com" <Yazen.Ghannam@amd.com>, "mchehab@kernel.org"
-	<mchehab@kernel.org>
-CC: Jonathan Cameron <jonathan.cameron@huawei.com>, Linuxarm
-	<linuxarm@huawei.com>, "rientjes@google.com" <rientjes@google.com>,
-	"jiaqiyan@google.com" <jiaqiyan@google.com>, "Jon.Grimm@amd.com"
-	<Jon.Grimm@amd.com>, "dave.hansen@linux.intel.com"
-	<dave.hansen@linux.intel.com>, "naoya.horiguchi@nec.com"
-	<naoya.horiguchi@nec.com>, "james.morse@arm.com" <james.morse@arm.com>,
-	"jthoughton@google.com" <jthoughton@google.com>, "somasundaram.a@hpe.com"
-	<somasundaram.a@hpe.com>, "erdemaktas@google.com" <erdemaktas@google.com>,
-	"pgonda@google.com" <pgonda@google.com>, "duenwen@google.com"
-	<duenwen@google.com>, "gthelen@google.com" <gthelen@google.com>,
-	"wschwartz@amperecomputing.com" <wschwartz@amperecomputing.com>,
-	"wbs@os.amperecomputing.com" <wbs@os.amperecomputing.com>,
-	"nifan.cxl@gmail.com" <nifan.cxl@gmail.com>, tanxiaofei
-	<tanxiaofei@huawei.com>, "Zengtao (B)" <prime.zeng@hisilicon.com>, "Roberto
- Sassu" <roberto.sassu@huawei.com>, "kangkang.shen@futurewei.com"
-	<kangkang.shen@futurewei.com>, wanghuiqiang <wanghuiqiang@huawei.com>
-Subject: RE: [PATCH v13 2/2] ras: mem: Add ACPI RAS2 memory driver
-Thread-Topic: [PATCH v13 2/2] ras: mem: Add ACPI RAS2 memory driver
-Thread-Index: AQHcWxSpDw4Z/LYIh0qhRo3faUcQr7T+KfGAgANpz1A=
-Date: Mon, 24 Nov 2025 10:00:11 +0000
-Message-ID: <78ee1bf7cfe34909bf09b429e81e63a7@huawei.com>
-References: <20251121182825.237-1-shiju.jose@huawei.com>
- <20251121182825.237-3-shiju.jose@huawei.com>
- <26083ba9-1979-4d14-8465-3f54f2f96d23@infradead.org>
-In-Reply-To: <26083ba9-1979-4d14-8465-3f54f2f96d23@infradead.org>
-Accept-Language: en-GB, en-US
-Content-Language: en-US
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+	s=arc-20240116; t=1763980528; c=relaxed/simple;
+	bh=MyhVfaLuUMB4FJ2DvvqxwnUvFdn4Yuvt+apgQWbex0s=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=awNu4Yu61mmde9K5lRKi0JI92ZEvlO1CdmgVdTNyqYU9VOQPNjZjedeu1JKEZmbzrPNa9tAvmZTzoUqfPmcsdF2Hw1UzMY/ViAmw/DHFhnFQVE/4Zn2EuTZoGrGT9Kp7WaxOV+WuoOChm1iC+HZW3+LBNuVuZ6XlmUTnIBl8C/M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=YI+Vy+Hk; arc=none smtp.client-ip=209.85.167.44
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YI+Vy+Hk"
+Received: by mail-lf1-f44.google.com with SMTP id 2adb3069b0e04-5957e017378so4263534e87.3
+        for <linux-acpi@vger.kernel.org>; Mon, 24 Nov 2025 02:35:25 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1763980524; x=1764585324; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=UvxeS/74nBAEFSf4nVKv65BSIxiE58qrGcTM82uuMOU=;
+        b=YI+Vy+HkMgCzsalFj/mE79j6oTEfj2O9RGUd423tov5I76cD7A2zskvsyHRsVdoUIx
+         B5cMlwgaxJ/TZwS8X8q+QuZYnO4i60BQHjlub1ORonH8fRD5NuNP+uPAd+GXofRL2q9P
+         yZOmj3337NdRiMxuyRE2JPBjTq4L89pMMcAPoak1bgZk8Joi1hgNJc9nHdPyIU1knEiF
+         zZW102rJnKBXBJHGTaBLJQFhUqAQ33hakKCa/DtFyoZs26dm0PgsxCFRY1p7mvvD5pX5
+         ayL9GQbAb2gP151lsLcdY5QMIogz6EneD1+NbmzkMU4TPmbSAHnYKA0GTczpmWMBXycJ
+         pY9w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1763980524; x=1764585324;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=UvxeS/74nBAEFSf4nVKv65BSIxiE58qrGcTM82uuMOU=;
+        b=YH72ahlFjfrnmzR1po4Xinj2VsZeQAksKMrsgcFnlj9HGEmYgBW8UFhmhw4sTRSkU7
+         Uen7FgsPXp3kQfqKrIi3V8fiFAAXYhzVQNw5acHeOyLwADshHfujlG3z7F0Hiw6XDgIE
+         ZJNVMV0luILmxHTL74p0+xddtZeqYOzcawG2W3BZ9O2oRJbcnMWdBTfBYr/qZoZW4l1g
+         hM8tN/Ht3kSYGqHCp65kJJPIS6e3f5rSgPMueE0qMXeMSE35jW1bgyKcsR1vtBaoLh8k
+         bJuY518brnTw6UK115QKiRYTi5Cu+/EhvdtT+dPVHJDAiwySGt85g0PsT72+dQUeZ/Kg
+         B81w==
+X-Forwarded-Encrypted: i=1; AJvYcCXcT0gcn3mHbn+DTsJdYyBzyXBU3zRRfLNbaIh4HyUU9NxdkHnGLJlo3gHgVQE59yxTYJcb52gEqTZ2@vger.kernel.org
+X-Gm-Message-State: AOJu0YylMH7GxGor0fj1aEsj/F0Bww4iYC3fcsd6yv0JjKZatfQolnC6
+	sBfwTxkPbDkwnlWCEIS7veVbJcTpSjHczzTxIRa82hjdPovzhW3m/pciz0VUWVtp
+X-Gm-Gg: ASbGncuf/fvKQ2MzKOEELgdnsqwSGfYGvUR9LxQpKrzRp9ViIgfQcpwK96tOM6zdQSQ
+	bba4ouPmUuNh5Uv/ymjCbImltisQT/k+nP1kAK5oeH5VfcWIymX5C2aIJhUpFRX3JD2orY0Tu2l
+	ak8EbH/rIEqupDttdhN7wwDeWXrGHim4pxRYpZeMHxJbRL1r5awOrYx5MGWY72GVAQERxCwYpfV
+	v2B/zUN0BGvJLccy+4SpYtGWR2zsw2raaYsY2p0vbLP/5AkinYQKQMH+qO9PiF2EhRs4lY7lQPe
+	zCLADeFi6AxhwPIS8TJB/dpKVDSML4H3vJ3oEQ5ZqW4Zz87Y26iQXD7yilvbj6y6RKaiky6niUo
+	lMUflOLgSnfVYBCzIpUtpCOhlf6/7KG5vLkM19whAODrpDtSXXXKAKCcDH57hCP1xpD+4/z8lUU
+	1CJpuH7hkK1/l5J1DzocLHKzta
+X-Google-Smtp-Source: AGHT+IGzb+yApYHtjewkoQzx7FPWIVvgfb9lCElhP6A4EWOQNvayCoMjjLyY5L5QUpilRr8Cj3haxw==
+X-Received: by 2002:a05:6512:104a:b0:595:90ee:f476 with SMTP id 2adb3069b0e04-596a3edab46mr4292946e87.28.1763974136131;
+        Mon, 24 Nov 2025 00:48:56 -0800 (PST)
+Received: from [10.38.18.76] ([213.255.186.37])
+        by smtp.gmail.com with ESMTPSA id 2adb3069b0e04-5969dbc5c5dsm4019850e87.79.2025.11.24.00.48.55
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 24 Nov 2025 00:48:55 -0800 (PST)
+Message-ID: <6ee209b3-4d7a-45a8-bd65-6a51730d458d@gmail.com>
+Date: Mon, 24 Nov 2025 10:48:54 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3 1/2] Revert "treewide: Fix probing of devices in DT
+ overlays"
+To: Saravana Kannan <saravanak@google.com>,
+ Herve Codina <herve.codina@bootlin.com>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ "Rafael J. Wysocki" <rafael@kernel.org>, Shawn Guo <shawnguo@kernel.org>,
+ Sascha Hauer <s.hauer@pengutronix.de>,
+ Pengutronix Kernel Team <kernel@pengutronix.de>,
+ Fabio Estevam <festevam@gmail.com>,
+ Wolfram Sang <wsa+renesas@sang-engineering.com>,
+ Rob Herring <robh@kernel.org>, Mark Brown <broonie@kernel.org>,
+ Len Brown <lenb@kernel.org>,
+ Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+ Daniel Scally <djrscally@gmail.com>,
+ Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+ Sakari Ailus <sakari.ailus@linux.intel.com>,
+ Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: kernel-team@android.com, Wolfram Sang <wsa@kernel.org>,
+ linux-kernel@vger.kernel.org, imx@lists.linux.dev,
+ linux-arm-kernel@lists.infradead.org, linux-i2c@vger.kernel.org,
+ devicetree@vger.kernel.org, linux-spi@vger.kernel.org,
+ linux-acpi@vger.kernel.org, Matti Vaittinen <mazziesaccount@gmail.com>
+References: <20240411235623.1260061-1-saravanak@google.com>
+ <20240411235623.1260061-2-saravanak@google.com>
+Content-Language: en-US
+From: Kalle Niemi <kaleposti@gmail.com>
+In-Reply-To: <20240411235623.1260061-2-saravanak@google.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-DQoNCj4tLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPkZyb206IFJhbmR5IER1bmxhcCA8cmR1
-bmxhcEBpbmZyYWRlYWQub3JnPg0KPlNlbnQ6IDIyIE5vdmVtYmVyIDIwMjUgMDU6MjMNCj5Ubzog
-U2hpanUgSm9zZSA8c2hpanUuam9zZUBodWF3ZWkuY29tPjsgcmFmYWVsQGtlcm5lbC5vcmc7IGJw
-QGFsaWVuOC5kZTsNCj5ha3BtQGxpbnV4LWZvdW5kYXRpb24ub3JnOyBycHB0QGtlcm5lbC5vcmc7
-DQo+ZGZlcmd1c29uQGFtcGVyZWNvbXB1dGluZy5jb207IGxpbnV4LWVkYWNAdmdlci5rZXJuZWwu
-b3JnOyBsaW51eC0NCj5hY3BpQHZnZXIua2VybmVsLm9yZzsgbGludXgtbW1Aa3ZhY2sub3JnOyBs
-aW51eC1kb2NAdmdlci5rZXJuZWwub3JnOw0KPnRvbnkubHVja0BpbnRlbC5jb207IGxlbmJAa2Vy
-bmVsLm9yZzsgbGVvLmR1cmFuQGFtZC5jb207DQo+WWF6ZW4uR2hhbm5hbUBhbWQuY29tOyBtY2hl
-aGFiQGtlcm5lbC5vcmcNCj5DYzogSm9uYXRoYW4gQ2FtZXJvbiA8am9uYXRoYW4uY2FtZXJvbkBo
-dWF3ZWkuY29tPjsgTGludXhhcm0NCj48bGludXhhcm1AaHVhd2VpLmNvbT47IHJpZW50amVzQGdv
-b2dsZS5jb207IGppYXFpeWFuQGdvb2dsZS5jb207DQo+Sm9uLkdyaW1tQGFtZC5jb207IGRhdmUu
-aGFuc2VuQGxpbnV4LmludGVsLmNvbTsNCj5uYW95YS5ob3JpZ3VjaGlAbmVjLmNvbTsgamFtZXMu
-bW9yc2VAYXJtLmNvbTsganRob3VnaHRvbkBnb29nbGUuY29tOw0KPnNvbWFzdW5kYXJhbS5hQGhw
-ZS5jb207IGVyZGVtYWt0YXNAZ29vZ2xlLmNvbTsgcGdvbmRhQGdvb2dsZS5jb207DQo+ZHVlbndl
-bkBnb29nbGUuY29tOyBndGhlbGVuQGdvb2dsZS5jb207DQo+d3NjaHdhcnR6QGFtcGVyZWNvbXB1
-dGluZy5jb207IHdic0Bvcy5hbXBlcmVjb21wdXRpbmcuY29tOw0KPm5pZmFuLmN4bEBnbWFpbC5j
-b207IHRhbnhpYW9mZWkgPHRhbnhpYW9mZWlAaHVhd2VpLmNvbT47IFplbmd0YW8gKEIpDQo+PHBy
-aW1lLnplbmdAaGlzaWxpY29uLmNvbT47IFJvYmVydG8gU2Fzc3UgPHJvYmVydG8uc2Fzc3VAaHVh
-d2VpLmNvbT47DQo+a2FuZ2thbmcuc2hlbkBmdXR1cmV3ZWkuY29tOyB3YW5naHVpcWlhbmcgPHdh
-bmdodWlxaWFuZ0BodWF3ZWkuY29tPg0KPlN1YmplY3Q6IFJlOiBbUEFUQ0ggdjEzIDIvMl0gcmFz
-OiBtZW06IEFkZCBBQ1BJIFJBUzIgbWVtb3J5IGRyaXZlcg0KPg0KPg0KPg0KPk9uIDExLzIxLzI1
-IDEwOjI4IEFNLCBzaGlqdS5qb3NlQGh1YXdlaS5jb20gd3JvdGU6DQo+PiBkaWZmIC0tZ2l0IGEv
-RG9jdW1lbnRhdGlvbi9lZGFjL3NjcnViLnJzdA0KPj4gYi9Eb2N1bWVudGF0aW9uL2VkYWMvc2Ny
-dWIucnN0IGluZGV4IDJjZmE3NGZhMWZmZC4uNzM3YTEwZGEyMjRmIDEwMDY0NA0KPj4gLS0tIGEv
-RG9jdW1lbnRhdGlvbi9lZGFjL3NjcnViLnJzdA0KPj4gKysrIGIvRG9jdW1lbnRhdGlvbi9lZGFj
-L3NjcnViLnJzdA0KPj4gQEAgLTM0MCwzICszNDAsNjEgQEAgY29udHJvbGxlciBvciBwbGF0Zm9y
-bSB3aGVuIHVuZXhwZWN0ZWRseSBoaWdoIGVycm9yDQo+cmF0ZXMgYXJlIGRldGVjdGVkLg0KPj4N
-Cj4+ICBTeXNmcyBmaWxlcyBmb3Igc2NydWJiaW5nIGFyZSBkb2N1bWVudGVkIGluDQo+PiBgRG9j
-dW1lbnRhdGlvbi9BQkkvdGVzdGluZy9zeXNmcy1lZGFjLWVjc2ANCj4+ICsNCj4+ICszLiBBQ1BJ
-IFJBUzIgSGFyZHdhcmUtYmFzZWQgTWVtb3J5IFNjcnViYmluZw0KPj4gKw0KPj4gKzMuMS4gT24g
-ZGVtYW5kIHNjcnViYmluZyBmb3IgYSBzcGVjaWZpYyBtZW1vcnkgcmVnaW9uLg0KPj4gKw0KPj4g
-KzMuMS4xLiBRdWVyeSB0aGUgc3RhdHVzIG9mIGRlbWFuZCBzY3J1YmJpbmcNCj4+ICsNCj4+ICsj
-IGNhdCAvc3lzL2J1cy9lZGFjL2RldmljZXMvYWNwaV9yYXNfbWVtMC9zY3J1YjAvZW5hYmxlX2Rl
-bWFuZA0KPj4gKw0KPj4gKzANCj4+ICsNCj4+ICszLjEuMi4gUXVlcnkgd2hhdCBpcyBkZXZpY2Ug
-ZGVmYXVsdC9jdXJyZW50IHNjcnViIGN5Y2xlIHNldHRpbmcuDQo+PiArDQo+PiArQXBwbGljYWJs
-ZSB0byBib3RoIGRlbWFuZCBhbmQgYmFja2dyb3VuZCBzY3J1YmJpbmcuDQo+PiArDQo+PiArIyBj
-YXQNCj4+ICsvc3lzL2J1cy9lZGFjL2RldmljZXMvYWNwaV9yYXNfbWVtMC9zY3J1YjAvY3VycmVu
-dF9jeWNsZV9kdXJhdGlvbg0KPj4gKw0KPj4gKzM2MDAwDQo+PiArDQo+DQo+V2hhdCB1bml0cyAo
-YWJvdmUpPw0KSW4gc2Vjb25kcy4NCg0KPg0KPj4gKzMuMS4zLiBRdWVyeSB0aGUgcmFuZ2Ugb2Yg
-ZGV2aWNlIHN1cHBvcnRlZCBzY3J1YiBjeWNsZSBmb3IgYSBtZW1vcnkgcmVnaW9uLg0KPj4gKw0K
-Pj4gKyMgY2F0IC9zeXMvYnVzL2VkYWMvZGV2aWNlcy9hY3BpX3Jhc19tZW0wL3NjcnViMC9taW5f
-Y3ljbGVfZHVyYXRpb24NCj4+ICsNCj4+ICszNjAwDQo+PiArDQo+PiArIyBjYXQgL3N5cy9idXMv
-ZWRhYy9kZXZpY2VzL2FjcGlfcmFzX21lbTAvc2NydWIwL21heF9jeWNsZV9kdXJhdGlvbg0KPj4g
-Kw0KPj4gKzg2NDAwDQo+PiArDQo+DQo+ZGl0dG8uDQpVbml0IC0gIFNlY29uZHMuDQo+DQo+PiAr
-My4xLjQuIFByb2dyYW0gc2NydWJiaW5nIGZvciB0aGUgbWVtb3J5IHJlZ2lvbiBpbiBSQVMyIGRl
-dmljZSB0bw0KPj4gK3JlcGVhdCBldmVyeQ0KPj4gKzQzMjAwIHNlY29uZHMgKGhhbGYgYSBkYXkp
-Lg0KPj4gKw0KPj4gKyMgZWNobyA0MzIwMCA+DQo+PiArL3N5cy9idXMvZWRhYy9kZXZpY2VzL2Fj
-cGlfcmFzX21lbTAvc2NydWIwL2N1cnJlbnRfY3ljbGVfZHVyYXRpb24NCj4+ICsNCj4+ICszLjEu
-NS4gU3RhcnQgJ2RlbWFuZCBzY3J1YmJpbmcnLg0KPj4gKw0KPj4gK1doZW4gYSBkZW1hbmQgc2Ny
-dWIgaXMgc3RhcnRlZCwgYW55IGJhY2tncm91bmQgc2NydWIgY3VycmVudGx5IGluDQo+PiArcHJv
-Z3Jlc3Mgd2lsbCBiZSBzdG9wcGVkIGFuZCB0aGVuIGF1dG9tYXRpY2FsbHkgcmVzdGFydGVkIG9u
-Y2UgdGhlDQo+PiArZGVtYW5kIHNjcnViIGhhcyBjb21wbGV0ZWQuDQo+DQo+V2lsbCBpdCByZXN0
-YXJ0IHdoZXJlIGl0IGxlZnQgb2ZmIG9yIGF0IHRoZSBiZWdpbm5pbmc/DQpJbiB0aGlzIGNhc2Us
-IHByZXNlbnRseSBrZXJuZWwgc2VuZCAnU1RBUlRfUEFUUk9MX1NDUlVCQkVSICcgY29tbWFuZCAg
-dG8gcmVzdGFydA0KdGhlIGJhY2tncm91bmQgc2NydWJiaW5nIGFuZCB0aHVzIHJlc3RhcnRzIGF0
-IHRoZSBiZWdpbm5pbmcgdW5sZXNzIEkgdGhpbmsgZmlybXdhcmUNCmhhcyBzb21lIGltcGxlbWVu
-dGF0aW9uIHRvIGRldGVjdCB0aGlzIGNhc2UgYW5kICAncmVzdW1lJyBiYWNrZ3JvdW5kIHNjcnVi
-YmluZw0Kd2hlcmUgaXQgaGFzIHN0b3BwZWQuIE90aGVyd2lzZSBJIHRoaW5rIFJBUzIgbWF5IGRl
-ZmluZSBzb21lIG5ldyBjb21tYW5kcyB0bw0KJ3BhdXNlJyBhbmQgJ3Jlc3VtZScgc2NydWJiaW5n
-IGlmIHRoYXQgbWFrZSBzZW5zZSBzbyB0aGF0IGtlcm5lbCBjb3VsZCBzZW5kIHRob3NlDQpjb21t
-YW5kcyB0byB0aGUgZmlybXdhcmUgZm9yIHRoaXMgY2FzZS4NCj4NCj4+ICsNCj4+ICsjIGVjaG8g
-MSA+IC9zeXMvYnVzL2VkYWMvZGV2aWNlcy9hY3BpX3Jhc19tZW0wL3NjcnViMC9lbmFibGVfZGVt
-YW5kDQo+PiArDQo+PiArMy4yLiBCYWNrZ3JvdW5kIHNjcnViYmluZyB0aGUgZW50aXJlIG1lbW9y
-eQ0KPj4gKw0KPj4gKzMuMi4xLiBRdWVyeSB0aGUgc3RhdHVzIG9mIGJhY2tncm91bmQgc2NydWJi
-aW5nLg0KPj4gKw0KPj4gKyMgY2F0IC9zeXMvYnVzL2VkYWMvZGV2aWNlcy9hY3BpX3Jhc19tZW0w
-L3NjcnViMC9lbmFibGVfYmFja2dyb3VuZA0KPj4gKw0KPj4gKzANCj4+ICsNCj4+ICszLjIuMi4g
-UHJvZ3JhbSBiYWNrZ3JvdW5kIHNjcnViYmluZyBmb3IgUkFTMiBkZXZpY2UgdG8gcmVwZWF0IGlu
-DQo+PiArZXZlcnkgMjE2MDAgc2Vjb25kcyAocXVhcnRlciBvZiBhIGRheSkuDQo+PiArDQo+PiAr
-IyBlY2hvIDIxNjAwID4NCj4+ICsvc3lzL2J1cy9lZGFjL2RldmljZXMvYWNwaV9yYXNfbWVtMC9z
-Y3J1YjAvY3VycmVudF9jeWNsZV9kdXJhdGlvbg0KPj4gKw0KPj4gKzMuMi4zLiBTdGFydCAnYmFj
-a2dyb3VuZCBzY3J1YmJpbmcnLg0KPj4gKw0KPj4gKyMgZWNobyAxID4NCj4+ICsvc3lzL2J1cy9l
-ZGFjL2RldmljZXMvYWNwaV9yYXNfbWVtMC9zY3J1YjAvZW5hYmxlX2JhY2tncm91bmQNCj4NCj4t
-LQ0KPn5SYW5keQ0KDQpUaGFua3MsDQpTaGlqdQ0KDQo=
+On 4/12/24 02:56, Saravana Kannan wrote:
+> This reverts commit 1a50d9403fb90cbe4dea0ec9fd0351d2ecbd8924.
+> 
+> While the commit fixed fw_devlink overlay handling for one case, it
+> broke it for another case. So revert it and redo the fix in a separate
+> patch.
+> 
+> Fixes: 1a50d9403fb9 ("treewide: Fix probing of devices in DT overlays")
+> Reported-by: Herve Codina <herve.codina@bootlin.com>
+> Closes: https://lore.kernel.org/lkml/CAMuHMdXEnSD4rRJ-o90x4OprUacN_rJgyo8x6=9F9rZ+-KzjOg@mail.gmail.com/
+> Closes: https://lore.kernel.org/all/20240221095137.616d2aaa@bootlin.com/
+> Closes: https://lore.kernel.org/lkml/20240312151835.29ef62a0@bootlin.com/
+> Signed-off-by: Saravana Kannan <saravanak@google.com>
+> ---
+>   drivers/bus/imx-weim.c    | 6 ------
+>   drivers/i2c/i2c-core-of.c | 5 -----
+>   drivers/of/dynamic.c      | 1 -
+>   drivers/of/platform.c     | 5 -----
+>   drivers/spi/spi.c         | 5 -----
+>   5 files changed, 22 deletions(-)
+> 
+> diff --git a/drivers/bus/imx-weim.c b/drivers/bus/imx-weim.c
+> index 837bf9d51c6e..caaf887e0ccc 100644
+> --- a/drivers/bus/imx-weim.c
+> +++ b/drivers/bus/imx-weim.c
+> @@ -331,12 +331,6 @@ static int of_weim_notify(struct notifier_block *nb, unsigned long action,
+>   				 "Failed to setup timing for '%pOF'\n", rd->dn);
+>   
+>   		if (!of_node_check_flag(rd->dn, OF_POPULATED)) {
+> -			/*
+> -			 * Clear the flag before adding the device so that
+> -			 * fw_devlink doesn't skip adding consumers to this
+> -			 * device.
+> -			 */
+> -			rd->dn->fwnode.flags &= ~FWNODE_FLAG_NOT_DEVICE;
+>   			if (!of_platform_device_create(rd->dn, NULL, &pdev->dev)) {
+>   				dev_err(&pdev->dev,
+>   					"Failed to create child device '%pOF'\n",
+> diff --git a/drivers/i2c/i2c-core-of.c b/drivers/i2c/i2c-core-of.c
+> index a6c407d36800..a250921bbce0 100644
+> --- a/drivers/i2c/i2c-core-of.c
+> +++ b/drivers/i2c/i2c-core-of.c
+> @@ -178,11 +178,6 @@ static int of_i2c_notify(struct notifier_block *nb, unsigned long action,
+>   			return NOTIFY_OK;
+>   		}
+>   
+> -		/*
+> -		 * Clear the flag before adding the device so that fw_devlink
+> -		 * doesn't skip adding consumers to this device.
+> -		 */
+> -		rd->dn->fwnode.flags &= ~FWNODE_FLAG_NOT_DEVICE;
+>   		client = of_i2c_register_device(adap, rd->dn);
+>   		if (IS_ERR(client)) {
+>   			dev_err(&adap->dev, "failed to create client for '%pOF'\n",
+> diff --git a/drivers/of/dynamic.c b/drivers/of/dynamic.c
+> index 4d57a4e34105..19a1a38554f2 100644
+> --- a/drivers/of/dynamic.c
+> +++ b/drivers/of/dynamic.c
+> @@ -224,7 +224,6 @@ static void __of_attach_node(struct device_node *np)
+>   	np->sibling = np->parent->child;
+>   	np->parent->child = np;
+>   	of_node_clear_flag(np, OF_DETACHED);
+> -	np->fwnode.flags |= FWNODE_FLAG_NOT_DEVICE;
+>   
+>   	raw_spin_unlock_irqrestore(&devtree_lock, flags);
+>   
+> diff --git a/drivers/of/platform.c b/drivers/of/platform.c
+> index 389d4ea6bfc1..efd861fa254f 100644
+> --- a/drivers/of/platform.c
+> +++ b/drivers/of/platform.c
+> @@ -743,11 +743,6 @@ static int of_platform_notify(struct notifier_block *nb,
+>   		if (of_node_check_flag(rd->dn, OF_POPULATED))
+>   			return NOTIFY_OK;
+>   
+> -		/*
+> -		 * Clear the flag before adding the device so that fw_devlink
+> -		 * doesn't skip adding consumers to this device.
+> -		 */
+> -		rd->dn->fwnode.flags &= ~FWNODE_FLAG_NOT_DEVICE;
+>   		/* pdev_parent may be NULL when no bus platform device */
+>   		pdev_parent = of_find_device_by_node(rd->dn->parent);
+>   		pdev = of_platform_device_create(rd->dn, NULL,
+> diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
+> index ff75838c1b5d..17cd417f7681 100644
+> --- a/drivers/spi/spi.c
+> +++ b/drivers/spi/spi.c
+> @@ -4761,11 +4761,6 @@ static int of_spi_notify(struct notifier_block *nb, unsigned long action,
+>   			return NOTIFY_OK;
+>   		}
+>   
+> -		/*
+> -		 * Clear the flag before adding the device so that fw_devlink
+> -		 * doesn't skip adding consumers to this device.
+> -		 */
+> -		rd->dn->fwnode.flags &= ~FWNODE_FLAG_NOT_DEVICE;
+>   		spi = of_register_spi_device(ctlr, rd->dn);
+>   		put_device(&ctlr->dev);
+>   
+Hello,
+
+Test system testing drivers for ROHM ICs bisected this commit to cause 
+BD71847 drivers probe to not be called.
+
+The devicetree blob overlay describing bd71847 enables I2C1 bus on 
+BeagleBone Black aswell.
+
+Probe is called when the driver is used with HW connected to I2C2 bus. 
+I2C2 bus is enabled before overlaying devicetree blobs.
+
+
+---- BD71847 Devicetree overlay source ----
+
+/dts-v1/;
+/plugin/;
+
+/{ /* this is our device tree overlay root node */
+
+	compatible = "ti,beaglebone", "ti,beaglebone-black";
+	part-number = "BBB-I2C1";
+  	version = "00A0";
+
+	fragment@0 {
+		target = <&am33xx_pinmux>; // this is a link to an already defined 
+node in the device tree, so that node is overlayed with our modification
+
+		__overlay__ {
+			i2c1_pins: pinmux_i2c1_pins {
+				pinctrl-single,pins = <
+           			0x158 0x72 /* spi0_d1.i2c1_sda */
+           			0x15C 0x72 /* spi0_cs0.i2c1_sdl */
+         			>;
+			};
+		};
+	};
+....
+....
+
+	fragment@2 {
+		target = <&i2c1>;
+
+		__overlay__ {
+			pinctrl-0 = <&i2c1_pins>;
+			clock-frequency = <100000>;
+			status = "okay";
+
+			pmic: pmic@4b { /* the "test" defined as child of the i2c1 bus */
+				compatible = "rohm,bd71847";
+				reg = <0x4b>;
+				....
+				....
+}; /* root node end */
+
+---- END OF BD71847 Devicetree overlay source ----
+
+Reverting this patch from linux-next from last friday fixes the issue.
+
+BR
+Kalle Niemi
