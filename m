@@ -1,54 +1,51 @@
-Received: from canpmsgout05.his.huawei.com (canpmsgout05.his.huawei.com [113.46.200.220])
+Received: from canpmsgout03.his.huawei.com (canpmsgout03.his.huawei.com [113.46.200.218])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 638B22C21C7;
-	Tue, 25 Nov 2025 06:52:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.220
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60ADC2D3A96;
+	Tue, 25 Nov 2025 07:29:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.218
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764053544; cv=none; b=PNO7dOngrXkUM8dA54GVon3oTsmDxprRcPrtp6aT6YuYMLAye0T/XbGV1FBR/FzaWuBrJGoXJ10+Pjoxyx7XRkjeleGmakktBLUi+MeusR7Rq77R9Em2bhBoLis/C4UIJ9IwgFSKrSL972LnffFc42i8VQyGni+tCam3Sa4dnSc=
+	t=1764055780; cv=none; b=qjDS2gos1TFUVeZs3X+aSglgitpuJ1IDoAO5dlpi4mWu5EkBxk3QozLDcXmXrAHoDc8f/MZ5dYYUdmmhA6o+3FUmwbvfmcO3VYDVyM878VHAKqvCWDQ5XxUfcE6/KOJVj4/UEXC5xHkhl6keg9cii6ogVl3C3KOR5P+3nMO2hxQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764053544; c=relaxed/simple;
-	bh=Y4986uSkO70VUb/bKs9P/E0H3k+yaQmVdnmPk8bBMRE=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=koiUexeCPaF/8ZIQ3xdt191ONYe8MDLGe2OqrbsjQnSuglU6/jLK6zoNWaJ4I7R1R/t19mucBT9JJuZXtGUmFLRgKKdPoDoP5WT2BKp1kLnE7Rs46cHqG00KycYb5n9qBcGl1evWkC7VGBof5xaYG3p1+SKqXHJClwlRohoRxkY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=RfPfc8Dp; arc=none smtp.client-ip=113.46.200.220
+	s=arc-20240116; t=1764055780; c=relaxed/simple;
+	bh=WmfZUF+gSZyx0qA0ADn82w7MhTV9yEj1GExbfO76dGI=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=nJrk2G2CLVT7UXwT0HvJeR2Ddqh/BxCjy1TiWxdv9dddXVVIoIPHzHLBYWM2i5tW9IfxXKWHdV+i43nKxMwbH2oOwTspgLaDvcEQ1lG/JWA0hDSNXkcnO9w4hjoTyfGlHXzGj/pLPQF6ldWYxrGOD+nKAveEIsY08PC4Fvc58MM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=Lksi9awk; arc=none smtp.client-ip=113.46.200.218
 Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=h-partners.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="RfPfc8Dp"
+	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="Lksi9awk"
 dkim-signature: v=1; a=rsa-sha256; d=h-partners.com; s=dkim;
 	c=relaxed/relaxed; q=dns/txt;
 	h=From;
-	bh=BpwmJwKgwjilnCt+D3rfzgG+NYb8ghDGEaR2ajjjLoA=;
-	b=RfPfc8Dp3WDEeBY7goMGJKL3NPsoCfdKKU3vKBRaURv9MxZmCHXuWlAxJW810gpgZrgDtkXLs
-	v+WxNrkYPd9sW20F6scNlQXLYJFIS+QCguirjT5e4533kuclgMacKt0LcmjYMcci8C1DDoriI1M
-	atPLTr/6YpcuYP99UM5YI+U=
-Received: from mail.maildlp.com (unknown [172.19.88.194])
-	by canpmsgout05.his.huawei.com (SkyGuard) with ESMTPS id 4dFtcm4jH1z12LCr;
-	Tue, 25 Nov 2025 14:50:48 +0800 (CST)
-Received: from dggemv705-chm.china.huawei.com (unknown [10.3.19.32])
-	by mail.maildlp.com (Postfix) with ESMTPS id F1B5714027A;
-	Tue, 25 Nov 2025 14:52:12 +0800 (CST)
+	bh=Dma+t1ZDclB9IiBsT5mlo9tVo8+qTq3voObFI/PMnbE=;
+	b=Lksi9awkoErv4siGA5jH4247C/JqlCboH2yX+5uuwXP6/pxU52CgYzUs0TwZNHo5OeIam3a9K
+	Z0vHv3NT6x0OZSMOT34QZjB1otOQrITSWWWmwLRCH57yFh5Ive8M95D2jtO1Q/9nXLZBlGgKKtO
+	60nSCmk8U1UvKSAtk0a8EvQ=
+Received: from mail.maildlp.com (unknown [172.19.162.254])
+	by canpmsgout03.his.huawei.com (SkyGuard) with ESMTPS id 4dFvR6007YzpSvS;
+	Tue, 25 Nov 2025 15:27:29 +0800 (CST)
+Received: from dggemv706-chm.china.huawei.com (unknown [10.3.19.33])
+	by mail.maildlp.com (Postfix) with ESMTPS id 5C6221804F9;
+	Tue, 25 Nov 2025 15:29:35 +0800 (CST)
 Received: from kwepemn100009.china.huawei.com (7.202.194.112) by
- dggemv705-chm.china.huawei.com (10.3.19.32) with Microsoft SMTP Server
+ dggemv706-chm.china.huawei.com (10.3.19.33) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Tue, 25 Nov 2025 14:52:11 +0800
+ 15.2.1544.11; Tue, 25 Nov 2025 15:29:34 +0800
 Received: from localhost.localdomain (10.50.163.32) by
  kwepemn100009.china.huawei.com (7.202.194.112) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.36; Tue, 25 Nov 2025 14:52:10 +0800
+ 15.2.1544.36; Tue, 25 Nov 2025 15:29:34 +0800
 From: Huisong Li <lihuisong@huawei.com>
 To: <rafael@kernel.org>, <lenb@kernel.org>
 CC: <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
 	<Sudeep.Holla@arm.com>, <linuxarm@huawei.com>, <jonathan.cameron@huawei.com>,
 	<zhanjie9@hisilicon.com>, <zhenglifeng1@huawei.com>, <yubowen8@huawei.com>,
 	<lihuisong@huawei.com>
-Subject: [PATCH 1/3] ACPI: processor: idle: Relocate and verify acpi_processor_ffh_lpi_probe
-Date: Tue, 25 Nov 2025 14:52:08 +0800
-Message-ID: <20251125065210.3670266-2-lihuisong@huawei.com>
+Subject: [PATCH 0/3] ACPI: processor: idle: Fix ACPI idle handling in power notify on failure
+Date: Tue, 25 Nov 2025 15:29:30 +0800
+Message-ID: <20251125072933.3706006-1-lihuisong@huawei.com>
 X-Mailer: git-send-email 2.33.0
-In-Reply-To: <20251125065210.3670266-1-lihuisong@huawei.com>
-References: <20251125065210.3670266-1-lihuisong@huawei.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -57,52 +54,30 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-ClientProxiedBy: kwepems200001.china.huawei.com (7.221.188.67) To
+X-ClientProxiedBy: kwepems500001.china.huawei.com (7.221.188.70) To
  kwepemn100009.china.huawei.com (7.202.194.112)
 
-The platform used LPI need check if the LPI support and the entry
-method is valid by the acpi_processor_ffh_lpi_probe(). But the return
-of acpi_processor_ffh_lpi_probe() in acpi_processor_setup_cpuidle_dev()
-isn't verified by any caller.
+The content in this series was initially discussed in the link [1].
+This series disable ACPI idle feature if get power information failed in
+power notify becuase the old idle states may not be usable anymore.
 
-What's more, acpi_processor_get_power_info() is a more logical place for
-verifying the validity of FFH LPI than acpi_processor_setup_cpuidle_dev().
-So move acpi_processor_ffh_lpi_probe() from the latter to the former and
-verify its return.
+In addition, keep the same logical as acpi_processor_register_idle_driver
+to get avaiable power information from all online CPUs instead of CPU0.
 
-Signed-off-by: Huisong Li <lihuisong@huawei.com>
----
- drivers/acpi/processor_idle.c | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+[1] https://lore.kernel.org/all/20251103084244.2654432-1-lihuisong@huawei.com
 
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index 5f86297c8b23..cdf86874a87a 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -1252,7 +1252,7 @@ static int acpi_processor_setup_cpuidle_dev(struct acpi_processor *pr,
- 
- 	dev->cpu = pr->id;
- 	if (pr->flags.has_lpi)
--		return acpi_processor_ffh_lpi_probe(pr->id);
-+		return 0;
- 
- 	acpi_processor_setup_cpuidle_cx(pr, dev);
- 	return 0;
-@@ -1264,7 +1264,13 @@ static int acpi_processor_get_power_info(struct acpi_processor *pr)
- 
- 	ret = acpi_processor_get_lpi_info(pr);
- 	if (ret)
--		ret = acpi_processor_get_cstate_info(pr);
-+		return acpi_processor_get_cstate_info(pr);
-+
-+	if (pr->flags.has_lpi) {
-+		ret = acpi_processor_ffh_lpi_probe(pr->id);
-+		if (ret)
-+			pr_err("Processor FFH LPI state is invalid.\n");
-+	}
- 
- 	return ret;
- }
+Huisong Li (3):
+  cpuidle: Add enable_cpuidle() interface
+  ACPI: processor: idle: Disable ACPI idle if get power information
+    failed in power notify
+  ACPI: processor: idle: Update idle states from avaiable power
+    information
+
+ drivers/acpi/processor_idle.c | 37 +++++++++++++++++++++++++++++------
+ drivers/cpuidle/cpuidle.c     |  5 ++++-
+ include/linux/cpuidle.h       |  2 ++
+ 3 files changed, 37 insertions(+), 7 deletions(-)
+
 -- 
 2.33.0
 
