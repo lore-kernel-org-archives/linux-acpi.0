@@ -1,51 +1,54 @@
 Received: from canpmsgout03.his.huawei.com (canpmsgout03.his.huawei.com [113.46.200.218])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91C3427FB34;
-	Tue, 25 Nov 2025 06:47:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 049682C15BC;
+	Tue, 25 Nov 2025 06:52:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.218
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764053235; cv=none; b=UOd6JuR7udqfp+8iqlA4829teOMXndKF+0Z5SSk9ea4UZRMsbCZ+N7SBasBy2LYRwSrHuSZjXNabIcbOxEfqvFzBFtYRtHXMCYprBLhMWIKXa7CI5jc/TVBjyqWlwHH1I0AEfeWlCgIoJ91BMH94ChAcQRzbsncoJ28J+MAEfq8=
+	t=1764053538; cv=none; b=cf+gKYZyaRVxjdzKa1MxdrYjpOCzQU9PoDGaesJ8l274WpPdptYJ+ngCh9dlmZQLge8ZvAZMRkWlz3ASpff+7uv+a3qrLQX+Z5GBMibAuQ5QX8RSrtp8R6YpOUk+8TIrJAwO7nAfNyY6NV80k7VW4/kvkISPkgDVCQ0/f/7unFc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764053235; c=relaxed/simple;
-	bh=RsH3fwfxjCJQQVVMUCsGkge1a+1nhQcs4jves+MJ9Kc=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=AV7U4tP0yczh2Mj3nIFBJ83rl/Pn3SYYv5umgq99VSs5lymLjF61IigpoaROTQxOCKAQ4C5jvNSEEI8N0HofYrTipJ12sA+xsbjoHPFFJlEvKR9sPnD1gBFlus62Zi+3wp0a9nGQBvC0VQvki3p0EookrGuZ1FqWOaAZy/s1H0I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=jFQfeKK+; arc=none smtp.client-ip=113.46.200.218
+	s=arc-20240116; t=1764053538; c=relaxed/simple;
+	bh=B7eIWZ0Vi5QPTUPLso5aARqPsgT6mO+S+j76mX/yPfQ=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=ps/ciDKIYhRLnaHYta2AiOdBH28Q8Gfe/HAf+PXqqcTuEEPq/ZoAlt9gDc9bhOPk+S15T+zv4/XKUEAUuB9/EBIhBVxPqhTlHkchsBoYuPNFOI+mJnW0QE4j0p4GSqqL6UEgvyONQZEOL0dt8mzMqFF5M3RkYrsmQwkAKhw1KKc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=mTKv4s4M; arc=none smtp.client-ip=113.46.200.218
 Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=h-partners.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="jFQfeKK+"
+	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="mTKv4s4M"
 dkim-signature: v=1; a=rsa-sha256; d=h-partners.com; s=dkim;
 	c=relaxed/relaxed; q=dns/txt;
 	h=From;
-	bh=W4a/ol4Vy/d+Oe0jO4j6VcFK7IUKujnoDkxRTyVSAwY=;
-	b=jFQfeKK+PS+pV4opp8V31RDx8qo3GH6iN+fKv+ELftAET5FsALLBKoHrEqNHyw30DZ/FFS9L0
-	QopM4mNQubxWa2FoBYRWucOuuE0rNpS6ON6IUIE/WkmLAPsS4e4MDZaHQ2BA2Ub8iD2WXf+ShkC
-	vELW6D155eje+bDhe/55aus=
-Received: from mail.maildlp.com (unknown [172.19.88.105])
-	by canpmsgout03.his.huawei.com (SkyGuard) with ESMTPS id 4dFtV20LK1zpSvS;
-	Tue, 25 Nov 2025 14:44:58 +0800 (CST)
-Received: from dggemv712-chm.china.huawei.com (unknown [10.1.198.32])
-	by mail.maildlp.com (Postfix) with ESMTPS id 5CF401402C1;
-	Tue, 25 Nov 2025 14:47:03 +0800 (CST)
+	bh=wOortYuY6DV1U7dDZftsCYS9EeGP8NK9wfPNEvENjig=;
+	b=mTKv4s4MFHi3qmwwFCjIkMSiy3wPt26C6rKgp9OIZO69XMEDOBVvXxwwo05zP0Ofi2eqSxf35
+	jji9adNStxxTtzZdmHKu2B2nh4F1LCHHesKkdc2wTszWTXz8oRHQxhK8T4IV5JxLf5joo/8tYPd
+	571pMjLoedNugdfk/D5HiK0=
+Received: from mail.maildlp.com (unknown [172.19.163.174])
+	by canpmsgout03.his.huawei.com (SkyGuard) with ESMTPS id 4dFtby6QqtzpTRf;
+	Tue, 25 Nov 2025 14:50:06 +0800 (CST)
+Received: from dggemv706-chm.china.huawei.com (unknown [10.3.19.33])
+	by mail.maildlp.com (Postfix) with ESMTPS id 3DA4F14027D;
+	Tue, 25 Nov 2025 14:52:12 +0800 (CST)
 Received: from kwepemn100009.china.huawei.com (7.202.194.112) by
- dggemv712-chm.china.huawei.com (10.1.198.32) with Microsoft SMTP Server
+ dggemv706-chm.china.huawei.com (10.3.19.33) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Tue, 25 Nov 2025 14:47:03 +0800
+ 15.2.1544.11; Tue, 25 Nov 2025 14:52:12 +0800
 Received: from localhost.localdomain (10.50.163.32) by
  kwepemn100009.china.huawei.com (7.202.194.112) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.36; Tue, 25 Nov 2025 14:47:02 +0800
+ 15.2.1544.36; Tue, 25 Nov 2025 14:52:11 +0800
 From: Huisong Li <lihuisong@huawei.com>
 To: <rafael@kernel.org>, <lenb@kernel.org>
 CC: <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
 	<Sudeep.Holla@arm.com>, <linuxarm@huawei.com>, <jonathan.cameron@huawei.com>,
 	<zhanjie9@hisilicon.com>, <zhenglifeng1@huawei.com>, <yubowen8@huawei.com>,
 	<lihuisong@huawei.com>
-Subject: [PATCH] ACPI: processor: idle: Add debug log for the state whose entry method is illegal
-Date: Tue, 25 Nov 2025 14:47:02 +0800
-Message-ID: <20251125064702.3666149-1-lihuisong@huawei.com>
+Subject: [PATCH 2/3] ACPI: processor: idle: Redefine acpi_processor_setup_cpuidle_dev to void
+Date: Tue, 25 Nov 2025 14:52:09 +0800
+Message-ID: <20251125065210.3670266-3-lihuisong@huawei.com>
 X-Mailer: git-send-email 2.33.0
+In-Reply-To: <20251125065210.3670266-1-lihuisong@huawei.com>
+References: <20251125065210.3670266-1-lihuisong@huawei.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -57,29 +60,45 @@ Content-Type: text/plain
 X-ClientProxiedBy: kwepems200001.china.huawei.com (7.221.188.67) To
  kwepemn100009.china.huawei.com (7.202.194.112)
 
-According to ACPI spec, entry method in LPI sub-package must be buffer
-or integer. Driver will disable the state whose the entry method is
-illegal by zero flags in struct acpi_lpi_state. The entry method is
-very key in cpuidle. A debug log is very useful developers.
+Notice that the acpi_processor_setup_cpuidle_dev() don't need to
+return any value because their callers don't check them anyway
+and the function doesn't fail to execute.
+So redefine the function to void.
+
+No intentional functional impact.
 
 Signed-off-by: Huisong Li <lihuisong@huawei.com>
 ---
- drivers/acpi/processor_idle.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/acpi/processor_idle.c | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index 22909fccf0b1..5f86297c8b23 100644
+index cdf86874a87a..2804fa91c1ec 100644
 --- a/drivers/acpi/processor_idle.c
 +++ b/drivers/acpi/processor_idle.c
-@@ -946,6 +946,8 @@ static int acpi_processor_evaluate_lpi(acpi_handle handle,
- 			lpi_state->entry_method = ACPI_CSTATE_INTEGER;
- 			lpi_state->address = obj->integer.value;
- 		} else {
-+			pr_debug("Entry method of state-%d is illegal, disable it.\n",
-+				 state_idx);
- 			continue;
- 		}
+@@ -1244,18 +1244,17 @@ static int acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
+  * @pr: the ACPI processor
+  * @dev : the cpuidle device
+  */
+-static int acpi_processor_setup_cpuidle_dev(struct acpi_processor *pr,
+-					    struct cpuidle_device *dev)
++static void acpi_processor_setup_cpuidle_dev(struct acpi_processor *pr,
++					     struct cpuidle_device *dev)
+ {
+ 	if (!pr->flags.power_setup_done || !pr->flags.power || !dev)
+-		return -EINVAL;
++		return;
  
+ 	dev->cpu = pr->id;
+ 	if (pr->flags.has_lpi)
+-		return 0;
++		return;
+ 
+ 	acpi_processor_setup_cpuidle_cx(pr, dev);
+-	return 0;
+ }
+ 
+ static int acpi_processor_get_power_info(struct acpi_processor *pr)
 -- 
 2.33.0
 
