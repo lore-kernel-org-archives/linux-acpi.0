@@ -1,83 +1,64 @@
-Received: from mail-pl1-f177.google.com (mail-pl1-f177.google.com [209.85.214.177])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from sender4-pp-f112.zoho.com (sender4-pp-f112.zoho.com [136.143.188.112])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6946A332ED9
-	for <linux-acpi@vger.kernel.org>; Mon,  1 Dec 2025 15:52:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.177
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764604346; cv=none; b=Ve5wtOE2hxTb1hy7RNcfiT9CCr3efAzdSPPVXad+R9lCngUVune5qaZbuz1wMxBJVhVxg6gCrAS2YHdXKjm5R+CO3oLAUZFjeVjb5BueONz39nxv9NEuEDP0lamEtfyv1pjEQ/pDdllUDo0oZgXXBLtna6LLwhnhFPE8wRt949o=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764604346; c=relaxed/simple;
-	bh=XGyeeigAK9L746tngnKMOCKOk5BQ+hWN4+EJTlSpqSk=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=IjiaAyx+UDGbIB8eMbDEGk5+zdCu2BXmFl0qP1K65pPSPT4rYaT/EZFvuKv96dIYiq+PpxfdL/d6BxEfpkV4BC+qrSSXRpS6Uz9jH+wX2S1T4nypmENcpsrY05V96Gr6+YZOgcq7dGXFYW93YWIYX1AX2ijmc17jKgf9WtPqrOE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ImMRwE8b; arc=none smtp.client-ip=209.85.214.177
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB21E26E710;
+	Tue,  2 Dec 2025 04:36:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=136.143.188.112
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1764650176; cv=pass; b=VeVTTaF92DVNHUVE0nFcWta5OnsJuhbEDUXGHWRW1kGkN4DzN/9Z7cpzQOv081/FXjHUs7nsBnZC6DDQthRQQBPqJZOAgJpx0xkecNCSQ03AieaiXcQMcARvfg0fLZsYpXkgw/zIBqS4mt9TCgxWbD+Cy45TwF1UXqvaSq6pCC4=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1764650176; c=relaxed/simple;
+	bh=4wd8+KhkCFRbBhuBPcIlkyDZ2fItdnnpD9OTtyctxQ8=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=exRoWYQpJuGlG39H9AMocPWLDg2rim75cOWYagfDyHOYdAmgAL+sTKgiE5BSFED0dP18iYwkLmc3wxVQIvI6uiQnRhEZUb1+h1tltGFIuJ3E4sdgHuPuM8qAuDXcd+nNRlcS8pQy9363DXTWyLYqLdL7eugqLNT9DSOZ+j/FdDw=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=collabora.com; spf=pass smtp.mailfrom=collabora.com; dkim=pass (1024-bit key) header.d=collabora.com header.i=dmitry.osipenko@collabora.com header.b=BkFw4aXK; arc=pass smtp.client-ip=136.143.188.112
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=collabora.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=collabora.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ImMRwE8b"
-Received: by mail-pl1-f177.google.com with SMTP id d9443c01a7336-297e982506fso56944365ad.2
-        for <linux-acpi@vger.kernel.org>; Mon, 01 Dec 2025 07:52:25 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1764604345; x=1765209145; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=pVKsqLAjHiedCsMTkQj6KU9uWiG9cI4IM21lpckerh0=;
-        b=ImMRwE8b/Fjc5hCvvFAs4/MtNwNQvIsehrcYoQ34UMRmy88hdHkudaz7hVav3ODsF0
-         +g4Bwwgn8XF0hCzld0EGWArZ3iqa1lsew9wgUzez6dRoFp4z/8BNBv0MAd0vLJ4BvAsH
-         /o5/8ChQ6MPoYk+/b57KvLOMxJKHLUq4cEygNReIukWJOoHUQoqpmWzRx3GPy3MMrrdu
-         OqhhpXUemzCDpYHlGAVjJCHyUzIXi1nNBXgKmeuEHcHMx2VhRZZwrChRUqlGNoT2GdeP
-         SM1HM+C7Tmxw76LMztzqmx5uZKIqX5ZtFNiohpc+Mw/AHos0s8VOn3ds4VarKXEzR2Ym
-         hwkA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1764604345; x=1765209145;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=pVKsqLAjHiedCsMTkQj6KU9uWiG9cI4IM21lpckerh0=;
-        b=vINlGNOGSNsHvvVJsTnHlifzvpEwZhuvywoUoevawb4v+vbPL9hl/fbcwZ3szI2qUr
-         rrPh38DdcrkXfSNVnJfa2FBehL00RspKDuWIhU1B2KcYXSqqkzEQXy8ImaNqvd8tXcic
-         0f2lu7WErLeXoZ+M9aOKQ/X/w35EeTI9TrZRIrEuNbILBCOl4GM9Z3vmPsicNXtjeYsU
-         CUckvzN6/RKZjq9btxBUXYQyimZkr8gK7kOdBGxR6JxWO91z3/R6wjaalayPjkuOOJa5
-         jLOnDICap+lK4dAP1MQxJCZLNQ8/YMXvvmkZ/NdmLmGuYquH6qx9gUVAJ7FzaH6TURm4
-         3iKA==
-X-Forwarded-Encrypted: i=1; AJvYcCXW68Cwe40UkTex+ukjnfEhSk4T7PRITw8CDsZ0ipVDltx5bhnqD6+83Ii5qwCpeqTYZHxjY5zk40yM@vger.kernel.org
-X-Gm-Message-State: AOJu0YwdK5Fmx2g+2lYndga0IhVI/LPoqhUc0pslsRtRvfIsH9kheRfk
-	/Ge9eXElM0iBQPjG1nBJ943F9Bc4Q9NRoAXOEzuXJoHfVkP5V1TpCumL
-X-Gm-Gg: ASbGncthazpgCV4LWlQnUBZ0ukJaTm+71wSg56csJJlu24uHQhrLWy3RRXFih1G39xc
-	mRwxdGBPfFFP+dR1T4e4TlHNU5fGnpRaAjW/fr0e7Eq6RstyIEQT6IP8A4prCR4zeCXHYJtR/6W
-	OT8iM8nmoVhgoDgJ4+2bhVKFNEqQfFvQX6cesVmj1Hnx4ZlbTEm2QvrnuZ9E7+TDVAaatVlEYjt
-	0iUWGMxX5oE+EKs11plI2c56nDLD8UUHL8TGYCga8aQXeyya47A5NO4nm2Y1Oktut3VJDltVNY8
-	EsbZkyU1GoOlkpUiU5YImmeCfCIEwIlz7TC3cyq6tjzvK8nh+Q8znnkxJALaBM91DWdsx7dV5qy
-	aEMxoUYvxWNG0yXPymAZnqYciTyQavvr2tLlobBjHDmvvlWZ42sz5Xf/W/xQntFJwSuudf1WTlx
-	zym9jn7L0GSmB7Pc06UOK69ZDcN4TbNK16BLkB41poe8/kioDaDlns1vje4uBxpzoS
-X-Google-Smtp-Source: AGHT+IGat4VhF83+oMq7CNZLZBFhrHJD09jfouaostnsMQaYHnfRxI2M9f052yuItSKVu6dT7hxfmw==
-X-Received: by 2002:a17:902:f641:b0:295:395c:ebf9 with SMTP id d9443c01a7336-29b6bf80942mr448394395ad.55.1764604344552;
-        Mon, 01 Dec 2025 07:52:24 -0800 (PST)
-Received: from atharv-HP-Pavilion-x360-2-in-1-Laptop-14-ek1xxx.. ([103.216.213.160])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-29bceb5442csm125777105ad.85.2025.12.01.07.52.16
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 01 Dec 2025 07:52:24 -0800 (PST)
-From: Atharv Dubey <atharvd440@gmail.com>
-To: "Rafael J . Wysocki" <rafael@kernel.org>
-Cc: Len Brown <lenb@kernel.org>,
-	Miguel Ojeda <ojeda@kernel.org>,
-	Alex Gaynor <alex.gaynor@gmail.com>,
-	Boqun Feng <boqun.feng@gmail.com>,
-	Gary Guo <gary@garyguo.net>,
-	=?UTF-8?q?Bj=C3=B6rn=20Roy=20Baron?= <bjorn3_gh@protonmail.com>,
-	Benno Lossin <lossin@kernel.org>,
-	Andreas Hindborg <a.hindborg@kernel.org>,
-	Alice Ryhl <aliceryhl@google.com>,
-	Trevor Gross <tmgross@umich.edu>,
-	Danilo Krummrich <dakr@kernel.org>,
-	linux-acpi@vger.kernel.org,
-	rust-for-linux@vger.kernel.org,
+	dkim=pass (1024-bit key) header.d=collabora.com header.i=dmitry.osipenko@collabora.com header.b="BkFw4aXK"
+ARC-Seal: i=1; a=rsa-sha256; t=1764650148; cv=none; 
+	d=zohomail.com; s=zohoarc; 
+	b=H5jrg0eYrmAkFlpjFQBTe3sbYPaBD5JNy5Y4WPgHoiZmbx6mtFWCnxiib1CGAJ0CbIwi8C/tG6f/rZcnQUfVkM13jFSNmWi5tlx6gsyDQTSZyr4EZCTx4+OKDjhj53BFqj6I+wt9niAGtHXLKpRHwUD+lDlb4JPP4bigDOLJBgk=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.com; s=zohoarc; 
+	t=1764650148; h=Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:Subject:To:To:Message-Id:Reply-To; 
+	bh=xgcSSJVn4R0t7VuhB7JeoWNb1R8DZ3L0+c7OtCkeNbs=; 
+	b=mWjfh1jtd9ykuYahLZLq2HOkQ5I9zBJM76sy63NuNzINimZXCuI3Yp1BgoUSIcMwA0WWS6wwJdlh3oml74nM5r/ZTdv8zJbHw/R7Ti7iwINKKx2PIKdBMx26HcPOGgTuVka/yhfDhIXc+RtO8Wn8Ng3s43Swze66v7yQv+3q7fg=
+ARC-Authentication-Results: i=1; mx.zohomail.com;
+	dkim=pass  header.i=collabora.com;
+	spf=pass  smtp.mailfrom=dmitry.osipenko@collabora.com;
+	dmarc=pass header.from=<dmitry.osipenko@collabora.com>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1764650148;
+	s=zohomail; d=collabora.com; i=dmitry.osipenko@collabora.com;
+	h=From:From:To:To:Cc:Cc:Subject:Subject:Date:Date:Message-ID:In-Reply-To:References:MIME-Version:Content-Transfer-Encoding:Message-Id:Reply-To;
+	bh=xgcSSJVn4R0t7VuhB7JeoWNb1R8DZ3L0+c7OtCkeNbs=;
+	b=BkFw4aXKsfyTgDCJLvZM7kEGOcCXiOttiqJ/om1NyGupahtzClqQKMf661+FNWgF
+	ofKHd0j6xL4kTfYaIxjTkv3hZzRevoX8hMb+VX8PVsh3ro4AJo1VHX8mzlbv68VHOTC
+	HFV3NNHGx31v2E6eWW7z3S/ttxg0uOFI10UjN76A=
+Received: by mx.zohomail.com with SMTPS id 17646501461601022.3476712878679;
+	Mon, 1 Dec 2025 20:35:46 -0800 (PST)
+From: Dmitry Osipenko <dmitry.osipenko@collabora.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>,
+	Mario Limonciello <superm1@kernel.org>,
+	Robert Beckett <bob.beckett@collabora.com>
+Cc: linux-acpi@vger.kernel.org,
+	kernel@collabora.com,
 	linux-kernel@vger.kernel.org,
-	Atharv Dubey <atharvd440@gmail.com>
-Subject: [PATCH v2] rust: acpi: replace manual zero-initialization with `pin_init::zeroed()`
-Date: Mon,  1 Dec 2025 21:22:10 +0530
-Message-ID: <20251201155210.22710-1-atharvd440@gmail.com>
-X-Mailer: git-send-email 2.43.0
+	Sebastian Reichel <sebastian.reichel@collabora.com>,
+	Xaver Hugl <xaver.hugl@gmail.com>,
+	Richard Hughes <richard@hughsie.com>,
+	William Jon McCann <mccann@jhu.edu>,
+	"Jaap A . Haitsma" <jaap@haitsma.org>,
+	Benjamin Canou <bookeldor@gmail.com>,
+	Bastien Nocera <hadess@hadess.net>,
+	systemd-devel@lists.freedesktop.org,
+	Lennart Poettering <lennart@poettering.net>,
+	Antheas Kapenekakis <lkml@antheas.dev>
+Subject: [RFC PATCH v1 1/1] ACPI: PM: s2idle: Add lps0_screen_off sysfs interface
+Date: Tue,  2 Dec 2025 07:34:16 +0300
+Message-ID: <20251202043416.2310677-2-dmitry.osipenko@collabora.com>
+X-Mailer: git-send-email 2.51.1
+In-Reply-To: <20251202043416.2310677-1-dmitry.osipenko@collabora.com>
+References: <20251202043416.2310677-1-dmitry.osipenko@collabora.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -85,31 +66,236 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-ZohoMailClient: External
 
-Use `pin_init::zeroed()` instead of `core::mem::zeroed()` for initializing
-`acpi_device_id`. This removes an explicit unsafe block and aligns ACPI
-initialization with the pin-init conversion used across the Rust tree.
+Add `/sys/power/lps0_screen_off` interface to allow userspace to control
+Display OFF/ON DSM notifications at runtime. Writing "1" to this file
+triggers the OFF notification, and "0" triggers the ON notification.
 
-Link: https://github.com/Rust-for-Linux/linux/issues/1189
-Signed-off-by: Atharv Dubey <atharvd440@gmail.com>
+Userspace should write "1" after turning off all physical and remote
+displays. It should write "0" before turning on any of displays.
+
+Signed-off-by: Dmitry Osipenko <dmitry.osipenko@collabora.com>
 ---
- rust/kernel/acpi.rs | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ Documentation/ABI/testing/sysfs-power |  13 +++
+ drivers/acpi/x86/s2idle.c             | 149 +++++++++++++++++++++++---
+ 2 files changed, 145 insertions(+), 17 deletions(-)
 
-diff --git a/rust/kernel/acpi.rs b/rust/kernel/acpi.rs
-index 37e1161c1298..cc98b36b90a0 100644
---- a/rust/kernel/acpi.rs
-+++ b/rust/kernel/acpi.rs
-@@ -40,8 +40,7 @@ pub const fn new(id: &'static CStr) -> Self {
-         let src = id.to_bytes_with_nul();
-         build_assert!(src.len() <= Self::ACPI_ID_LEN, "ID exceeds 16 bytes");
-         // Replace with `bindings::acpi_device_id::default()` once stabilized for `const`.
--        // SAFETY: FFI type is valid to be zero-initialized.
--        let mut acpi: bindings::acpi_device_id = unsafe { core::mem::zeroed() };
-+        let mut acpi: bindings::acpi_device_id = pin_init::zeroed();
-         let mut i = 0;
-         while i < src.len() {
-             acpi.id[i] = src[i];
+diff --git a/Documentation/ABI/testing/sysfs-power b/Documentation/ABI/testing/sysfs-power
+index d38da077905a..af7c81ae517c 100644
+--- a/Documentation/ABI/testing/sysfs-power
++++ b/Documentation/ABI/testing/sysfs-power
+@@ -470,3 +470,16 @@ Description:
+ 
+                 Minimum value: 1
+                 Default value: 3
++
++What:		/sys/power/lps0_screen_off
++Date:		November 2025
++Contact:	Dmitrii Osipenko <dmitry.osipenko@collabora.com>
++Description:
++		This file is available if the ACPI/OSPM system supports
++		Display Off/On DSM notifications. It controls state of the
++		notification.
++
++		Writing a "1" to this file invokes Display Off Notification.
++		Writing a "0" to this file invokes Display On Notification.
++
++		Notifications are only triggered on state transitions.
+diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
+index 6d4d06236f61..d5cb5e22431d 100644
+--- a/drivers/acpi/x86/s2idle.c
++++ b/drivers/acpi/x86/s2idle.c
+@@ -18,7 +18,10 @@
+ #include <linux/acpi.h>
+ #include <linux/device.h>
+ #include <linux/dmi.h>
++#include <linux/kobject.h>
++#include <linux/mutex.h>
+ #include <linux/suspend.h>
++#include <linux/sysfs.h>
+ 
+ #include "../sleep.h"
+ 
+@@ -61,6 +64,11 @@ static guid_t lps0_dsm_guid_microsoft;
+ static int lps0_dsm_func_mask_microsoft;
+ static int lps0_dsm_state;
+ 
++static DEFINE_MUTEX(lps0_dsm_screen_off_lock);
++static bool lps0_dsm_screen_state_off;
++static bool lps0_screen_off_suspended;
++static bool lps0_screen_off_sysfs_inhibit;
++
+ /* Device constraint entry structure */
+ struct lpi_device_info {
+ 	char *name;
+@@ -513,6 +521,76 @@ static struct acpi_scan_handler lps0_handler = {
+ 	.attach = lps0_device_attach,
+ };
+ 
++static bool lps0_has_screen_off_dsm(void)
++{
++	int id = acpi_s2idle_vendor_amd() ?
++		 ACPI_LPS0_SCREEN_ON_AMD : ACPI_LPS0_SCREEN_OFF;
++
++	if (lps0_dsm_func_mask_microsoft > 0 &&
++	    (lps0_dsm_func_mask & BIT(ACPI_LPS0_SCREEN_OFF)))
++		return true;
++
++	if (lps0_dsm_func_mask > 0 && (lps0_dsm_func_mask & BIT(id)))
++		return true;
++
++	return false;
++}
++
++static void lps0_dsm_screen_off(void)
++{
++	if (lps0_dsm_screen_state_off)
++		return;
++
++	if (lps0_dsm_func_mask > 0)
++		acpi_sleep_run_lps0_dsm(acpi_s2idle_vendor_amd() ?
++					ACPI_LPS0_SCREEN_OFF_AMD :
++					ACPI_LPS0_SCREEN_OFF,
++					lps0_dsm_func_mask, lps0_dsm_guid);
++
++	if (lps0_dsm_func_mask_microsoft > 0)
++		acpi_sleep_run_lps0_dsm(ACPI_LPS0_SCREEN_OFF,
++					lps0_dsm_func_mask_microsoft,
++					lps0_dsm_guid_microsoft);
++
++	lps0_dsm_screen_state_off = true;
++}
++
++static void lps0_dsm_screen_on(void)
++{
++	if (!lps0_dsm_screen_state_off)
++		return;
++
++	if (lps0_dsm_func_mask_microsoft > 0)
++		acpi_sleep_run_lps0_dsm(ACPI_LPS0_SCREEN_ON,
++					lps0_dsm_func_mask_microsoft,
++					lps0_dsm_guid_microsoft);
++
++	if (lps0_dsm_func_mask > 0)
++		acpi_sleep_run_lps0_dsm(acpi_s2idle_vendor_amd() ?
++					ACPI_LPS0_SCREEN_ON_AMD :
++					ACPI_LPS0_SCREEN_ON,
++					lps0_dsm_func_mask, lps0_dsm_guid);
++
++	lps0_dsm_screen_state_off = false;
++}
++
++static void lps0_dsm_screen_off_set(int sysfs_off, int suspended)
++{
++	mutex_lock(&lps0_dsm_screen_off_lock);
++
++	if (sysfs_off > -1)
++		lps0_screen_off_sysfs_inhibit = sysfs_off;
++	if (suspended > -1)
++		lps0_screen_off_suspended = suspended;
++
++	if (lps0_screen_off_suspended || lps0_screen_off_sysfs_inhibit)
++		lps0_dsm_screen_off();
++	else
++		lps0_dsm_screen_on();
++
++	mutex_unlock(&lps0_dsm_screen_off_lock);
++}
++
+ static int acpi_s2idle_begin_lps0(void)
+ {
+ 	if (pm_debug_messages_on && !lpi_constraints_table) {
+@@ -543,15 +621,7 @@ static int acpi_s2idle_prepare_late_lps0(void)
+ 		lpi_check_constraints();
+ 
+ 	/* Screen off */
+-	if (lps0_dsm_func_mask > 0)
+-		acpi_sleep_run_lps0_dsm(acpi_s2idle_vendor_amd() ?
+-					ACPI_LPS0_SCREEN_OFF_AMD :
+-					ACPI_LPS0_SCREEN_OFF,
+-					lps0_dsm_func_mask, lps0_dsm_guid);
+-
+-	if (lps0_dsm_func_mask_microsoft > 0)
+-		acpi_sleep_run_lps0_dsm(ACPI_LPS0_SCREEN_OFF,
+-				lps0_dsm_func_mask_microsoft, lps0_dsm_guid_microsoft);
++	lps0_dsm_screen_off_set(-1, true);
+ 
+ 	/* LPS0 entry */
+ 	if (lps0_dsm_func_mask > 0 && acpi_s2idle_vendor_amd())
+@@ -618,14 +688,7 @@ static void acpi_s2idle_restore_early_lps0(void)
+ 	}
+ 
+ 	/* Screen on */
+-	if (lps0_dsm_func_mask_microsoft > 0)
+-		acpi_sleep_run_lps0_dsm(ACPI_LPS0_SCREEN_ON,
+-				lps0_dsm_func_mask_microsoft, lps0_dsm_guid_microsoft);
+-	if (lps0_dsm_func_mask > 0)
+-		acpi_sleep_run_lps0_dsm(acpi_s2idle_vendor_amd() ?
+-					ACPI_LPS0_SCREEN_ON_AMD :
+-					ACPI_LPS0_SCREEN_ON,
+-					lps0_dsm_func_mask, lps0_dsm_guid);
++	lps0_dsm_screen_off_set(-1, false);
+ }
+ 
+ static const struct platform_s2idle_ops acpi_s2idle_ops_lps0 = {
+@@ -673,4 +736,56 @@ void acpi_unregister_lps0_dev(struct acpi_s2idle_dev_ops *arg)
+ }
+ EXPORT_SYMBOL_GPL(acpi_unregister_lps0_dev);
+ 
++static ssize_t lps0_screen_off_store(struct kobject *kobj,
++				     struct kobj_attribute *attr,
++				     const char *buf, size_t count)
++{
++	unsigned long val;
++
++	if (kstrtoul(buf, 10, &val))
++		return -EINVAL;
++
++	if (val > 1)
++		return -EINVAL;
++
++	lps0_dsm_screen_off_set(val, -1);
++
++	return count;
++}
++
++static ssize_t lps0_screen_off_show(struct kobject *kobj,
++				    struct kobj_attribute *attr,
++				    char *buf)
++{
++	return sprintf(buf, "%d\n", lps0_screen_off_sysfs_inhibit);
++}
++
++static struct kobj_attribute lps0_screen_off_attr =
++	__ATTR(lps0_screen_off, 0644,
++	       lps0_screen_off_show, lps0_screen_off_store);
++
++static struct attribute *lps0_screen_off_attrs[] = {
++	&lps0_screen_off_attr.attr,
++	NULL,
++};
++
++static struct attribute_group lps0_screen_off_attr_group = {
++	.attrs = lps0_screen_off_attrs,
++};
++
++static int lps0_dsm_screen_off_init(void)
++{
++	int ret;
++
++	if (!lps0_has_screen_off_dsm())
++		return 0;
++
++	ret = sysfs_create_group(power_kobj, &lps0_screen_off_attr_group);
++	if (ret)
++		return ret;
++
++	return 0;
++}
++late_initcall(lps0_dsm_screen_off_init);
++
+ #endif /* CONFIG_SUSPEND */
 -- 
-2.43.0
+2.51.1
 
