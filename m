@@ -1,40 +1,67 @@
-Received: from canpmsgout03.his.huawei.com (canpmsgout03.his.huawei.com [113.46.200.218])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lf1-f41.google.com (mail-lf1-f41.google.com [209.85.167.41])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EAA7422068F;
-	Wed,  3 Dec 2025 07:55:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.218
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 616762E1EE0
+	for <linux-acpi@vger.kernel.org>; Wed,  3 Dec 2025 10:11:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764748548; cv=none; b=EO+rSpkPQdUIpVQQTf/C/iUwbX3Pfc3XKJSdUl8kbgCxzLHyYEmn2g/kgGoSQOwDwJcQ3zGZ4Swm+Uz9FLvjENr/bL6wEX6a+MBo/Om6qgqEw7W5EOVRcQR4AsOwq36IsGTq0ndrAjcBet5+wqHZ9EtFN/qJi/LWC4FYY0rKGZw=
+	t=1764756711; cv=none; b=mMNkvuLni4jze0BO56+dSVlA9XAQFB8IbnczZ/KobSkYhITdcwK28A0J7LyTGnIKkU6daoGUA+aoDGmX84c6CuFAF29cUxXat6KV2DeLuPxZgLPywRjtCdvXebXhArUy+GlR/lPyNkokuUr2zEitTBdjaLv1YzwV8qpDhePgTvU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764748548; c=relaxed/simple;
-	bh=N4pyd1q66x+ZLvGWFu4p+kpjqWrVnugAsPLolRhKR+I=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=EWygrojZhKueR7bXRSVogDL8UQ4EpqEd9Yx3EEX7aDq37b7RUJ1+sebIk6+QEQHOUAYqHIoxQnGcEqLaRVodbBnRH/8N+LBvLU4raLHZVVcKS27v3AG4pgtYcdM/e3iupqo+NbkXN4aHnWwopbX1tWc2iE12keEPnm8JSceQumQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=nkEpiCkE; arc=none smtp.client-ip=113.46.200.218
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+	s=arc-20240116; t=1764756711; c=relaxed/simple;
+	bh=yy2j4Gr2kBYId3840eqEXHigGss3DzYkeqaEM7aYlHA=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=ZWPy29b9sxntAVN6GntxXziqThDuGnTez0LyOWxRuezvGnK8h4dLV0J82/7zDbunwsP2Z42LJnuWCOM9/UKxS7p0tJPSSyYcKSkMvI0j9Hj5qWsI2W8XpSqd8G5nSHaLpmiUS5POeM2+EtqSbX+X6rOrG2T9xJCuVU2PItry4+A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=CGQ3qm8f; arc=none smtp.client-ip=209.85.167.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="nkEpiCkE"
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=PoNj/LLIwhw9nuV5TFzzwrV+/p2aGFUFYEq088oFcyg=;
-	b=nkEpiCkEbQIhoIMJV6fAblP92FwHhgzsnXgsHrLTTEO/rawD6EZygaQJiKr+BhdSy+mgv1Rp0
-	qH1u8oISG4+UvDwSnP0cbFCaDnbaL2dq1+looLkSioRCVEquJmBjfkJtL90pJeTLEQz9VsMXzcQ
-	F2EKMlw0bjqfI19mzR7VSRQ=
-Received: from mail.maildlp.com (unknown [172.19.88.194])
-	by canpmsgout03.his.huawei.com (SkyGuard) with ESMTPS id 4dLqd80p4XzpSy3;
-	Wed,  3 Dec 2025 15:53:16 +0800 (CST)
-Received: from kwepemf200001.china.huawei.com (unknown [7.202.181.227])
-	by mail.maildlp.com (Postfix) with ESMTPS id 60312140864;
-	Wed,  3 Dec 2025 15:55:35 +0800 (CST)
-Received: from [10.67.121.90] (10.67.121.90) by kwepemf200001.china.huawei.com
- (7.202.181.227) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Wed, 3 Dec
- 2025 15:55:34 +0800
-Message-ID: <51dc71f8-8208-40c6-8ecd-50abd79a036a@huawei.com>
-Date: Wed, 3 Dec 2025 15:55:34 +0800
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="CGQ3qm8f"
+Received: by mail-lf1-f41.google.com with SMTP id 2adb3069b0e04-59581e32163so6627610e87.1
+        for <linux-acpi@vger.kernel.org>; Wed, 03 Dec 2025 02:11:49 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1764756707; x=1765361507; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=7hkzMjIodS1pI1goTlzUE28NNMhc2FNCH6n3nOuMBQE=;
+        b=CGQ3qm8f+FnQjwU2B6pdhx/AwemgYV6WVz3Dj7xUo4cV3I4MJgz1nWnTG6r2YQPOjf
+         fP8b+31wR1gNKe6nGF9q9e+RncRGjSWqm3UGUrUsUmPAxzh+gkAJ7quVLcI9rMrMg7vB
+         Uq0TC/2dS4oGg0gFqFJdmhF5vXYCsU+okjdR6We64fb16qwZPbwsgj6AxYG9IZAgrwah
+         tARdWVM8K9aVO6PuvFeMcAZk9zmPV6pfQJxh1anrbDS95rvuNVWG8Lrc27VSlQ9/IY0L
+         55DMxgyxALBxlRdganrQNQwaut8ICacgWsjCQgecIbz6bI07RlBRM+UX0VQC2wwTLQW+
+         owHg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1764756707; x=1765361507;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=7hkzMjIodS1pI1goTlzUE28NNMhc2FNCH6n3nOuMBQE=;
+        b=DRH7LOfiWYZOT5VQXNAVF1LEkC3A7TYvekRpOP5hgVaVJcFYHfl7oyLjZZBtv9iZBz
+         fDF46YLKoZ4PvAPNzZFjMrPdgeU0XG4TvCnbXtp0WGJAT8sb+lQdKW+7AgKB8ytdKNNg
+         4ctd+Zfe2oZHmqIoMHsr7VgwQVVMpEIez3+nlZb3Dv+T2e0/JjVNd2ad61HdpdJtNSlO
+         VD9k+FFUR+XdNtX3+N/+fd3Wir6KhcTVl0yi9RdZRaLJKTlXDOFoZGacyA29samoNHa6
+         PZadCZXd4WrUfzvnZSe98+7hhtGCdQtMY1XafghRXHoQ9LYlz4fy9SQVOQQA1uIZ5ZMz
+         9htQ==
+X-Forwarded-Encrypted: i=1; AJvYcCU40TqVpsoUYcebh4wG2UxkDnoWFFCVhXLeuzow8v10CXXC38+Z5nAkMeW+fa/67gkop2uUjaJQ7WBf@vger.kernel.org
+X-Gm-Message-State: AOJu0YzmPeMOHmHPY7BrchT/7RWdE59a9gvm1/2mQ7iXgV+buKYfE3AJ
+	SXs6Wezi5eXPS2ZlWu2LtZMsKkon6KNhmp4WROT4oGRKdkpBn4wgNWWQ
+X-Gm-Gg: ASbGncsqqJI3yUpvlfblifAT5mIb01QuohGr1HNWXmJOoyOzuHivZvwolpW/kL9rJUc
+	WJ0BAva3Xfjid4EIFHv+tSF6oz4TVDCmmkXq3vrNzvvdVjS/O3heQhLx1D0sh4CbPL3dICDjckt
+	FkoR21P4IZ4snImFBS6m9CrRXjxySTHLe16JiG9HIGC7BTLSjyCNLuwzJJlmSUtsrk1TscQI+h6
+	plFCtKFJZSXsriCsneKehYp5uZ+qE0FGqt0W2QUUUQqfQ7CnFPGe0HkiTTWpc/02x+DXOP3ayAF
+	tYPSJ68owU5xiPqjB2uRbcj34biIqdxfYgJTaThYDY3nd0OljbOCiiarfB1HL5uBxJkZhvDn+66
+	yTY3Ghi+8TqTDBXF2D3pu7lC4GR4EGoDH5FfdfwIZpLEN0+bs7ugiI0LRiVu0DWmiu7uvREuvJN
+	94hr5fG/C0GUQhaw==
+X-Google-Smtp-Source: AGHT+IGClRjrRzHtx62krt4asIMCvQHnP6xr/r5CpGOAwQrXHtwf7m7w8S9UGWZzoda9nXqVUQIx4Q==
+X-Received: by 2002:a05:6512:12c4:b0:595:7d86:f654 with SMTP id 2adb3069b0e04-597d3fb539emr853943e87.26.1764756707102;
+        Wed, 03 Dec 2025 02:11:47 -0800 (PST)
+Received: from [10.38.18.76] ([213.255.186.37])
+        by smtp.gmail.com with ESMTPSA id 2adb3069b0e04-596bf8a7b2asm5560144e87.12.2025.12.03.02.11.45
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 03 Dec 2025 02:11:46 -0800 (PST)
+Message-ID: <dc813fc2-28d2-4f2c-a2a3-08e33eec8ec7@gmail.com>
+Date: Wed, 3 Dec 2025 12:11:45 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -42,83 +69,187 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 0/3] cpufreq: CPPC: Update FIE arch_freq_scale in ticks
- for non-PCC regs
-To: Jie Zhan <zhanjie9@hisilicon.com>, <viresh.kumar@linaro.org>,
-	<rafael@kernel.org>, <ionela.voinescu@arm.com>, <beata.michalska@arm.com>,
-	<pierre.gondois@arm.com>
-CC: <linux-pm@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>, <linuxarm@huawei.com>,
-	<jonathan.cameron@huawei.com>, <prime.zeng@hisilicon.com>,
-	<yubowen8@huawei.com>, <lihuisong@huawei.com>, <zhangpengjie2@huawei.com>,
-	<wangzhi12@huawei.com>
-References: <20251203032422.3232957-1-zhanjie9@hisilicon.com>
-From: "zhenglifeng (A)" <zhenglifeng1@huawei.com>
-In-Reply-To: <20251203032422.3232957-1-zhanjie9@hisilicon.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: kwepems200001.china.huawei.com (7.221.188.67) To
- kwepemf200001.china.huawei.com (7.202.181.227)
+Subject: Re: [PATCH v4 01/29] Revert "treewide: Fix probing of devices in DT
+ overlays"
+To: Herve Codina <herve.codina@bootlin.com>, Rob Herring <robh@kernel.org>
+Cc: Matti Vaittinen <mazziesaccount@gmail.com>, Andrew Lunn <andrew@lunn.ch>,
+ Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley
+ <conor+dt@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ "Rafael J. Wysocki" <rafael@kernel.org>, Danilo Krummrich <dakr@kernel.org>,
+ Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <s.hauer@pengutronix.de>,
+ Pengutronix Kernel Team <kernel@pengutronix.de>,
+ Fabio Estevam <festevam@gmail.com>,
+ Michael Turquette <mturquette@baylibre.com>, Stephen Boyd
+ <sboyd@kernel.org>, Andi Shyti <andi.shyti@kernel.org>,
+ Wolfram Sang <wsa+renesas@sang-engineering.com>,
+ Peter Rosin <peda@axentia.se>, Arnd Bergmann <arnd@arndb.de>,
+ Saravana Kannan <saravanak@google.com>, Bjorn Helgaas <bhelgaas@google.com>,
+ Charles Keepax <ckeepax@opensource.cirrus.com>,
+ Richard Fitzgerald <rf@opensource.cirrus.com>,
+ David Rhodes <david.rhodes@cirrus.com>,
+ Linus Walleij <linus.walleij@linaro.org>,
+ Ulf Hansson <ulf.hansson@linaro.org>, Mark Brown <broonie@kernel.org>,
+ Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+ Daniel Scally <djrscally@gmail.com>,
+ Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+ Sakari Ailus <sakari.ailus@linux.intel.com>, Len Brown <lenb@kernel.org>,
+ Davidlohr Bueso <dave@stgolabs.net>,
+ Jonathan Cameron <jonathan.cameron@huawei.com>,
+ Dave Jiang <dave.jiang@intel.com>,
+ Alison Schofield <alison.schofield@intel.com>,
+ Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>,
+ Dan Williams <dan.j.williams@intel.com>,
+ Geert Uytterhoeven <geert+renesas@glider.be>, Wolfram Sang <wsa@kernel.org>,
+ devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+ imx@lists.linux.dev, linux-arm-kernel@lists.infradead.org,
+ linux-clk@vger.kernel.org, linux-i2c@vger.kernel.org,
+ linux-pci@vger.kernel.org, linux-sound@vger.kernel.org,
+ patches@opensource.cirrus.com, linux-gpio@vger.kernel.org,
+ linux-pm@vger.kernel.org, linux-spi@vger.kernel.org,
+ linux-acpi@vger.kernel.org, linux-cxl@vger.kernel.org,
+ Allan Nielsen <allan.nielsen@microchip.com>,
+ Horatiu Vultur <horatiu.vultur@microchip.com>,
+ Steen Hegelund <steen.hegelund@microchip.com>,
+ Luca Ceresoli <luca.ceresoli@bootlin.com>,
+ Thomas Petazzoni <thomas.petazzoni@bootlin.com>
+References: <20251015071420.1173068-1-herve.codina@bootlin.com>
+ <20251015071420.1173068-2-herve.codina@bootlin.com>
+ <f74ab0a2-b74b-4b96-8469-a716c850e230@gmail.com>
+ <CAL_JsqJDOYuzutMHMeFAogd5a_OX6Hwi8Gwz1Vy7HpXgNeYKsg@mail.gmail.com>
+ <5cf2a12a-7c66-4622-b4a9-14896c6df005@gmail.com>
+ <CAL_JsqJjm12LxpDg6LmpY=Ro_keHwnrWiYMLVnG=s_pSP4X2WQ@mail.gmail.com>
+ <072dde7c-a53c-4525-83ac-57ea38edc0b5@gmail.com>
+ <CAL_JsqKyG98pXGKpL=gxSc92izpzN7YCdq62ZJByhE6aFYs1fw@mail.gmail.com>
+ <55076f4b-d523-4f8c-8bd4-0645b790737e@gmail.com>
+ <20251202102619.5cd971cc@bootlin.com>
+ <088af3ff-bd04-4bc9-b304-85f6ed555f2a@gmail.com>
+ <20251202175836.747593c0@bootlin.com>
+Content-Language: en-US
+From: Kalle Niemi <kaleposti@gmail.com>
+In-Reply-To: <20251202175836.747593c0@bootlin.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-Reviewed-by: Lifeng Zheng <zhenglifeng1@huawei.com>
+On 12/2/25 18:58, Herve Codina wrote:
+> Hi Kalle, Matti,
+> 
+> On Tue, 2 Dec 2025 13:21:16 +0200
+> Kalle Niemi <kaleposti@gmail.com> wrote:
+> 
+>> On 12/2/25 11:26, Herve Codina wrote:
+>>> Hi Kalle,
+>>>
+>>> On Fri, 28 Nov 2025 10:34:57 +0200
+>>> Kalle Niemi <kaleposti@gmail.com> wrote:
+>>>
+>>> ...
+>>>>>>>>>>
+>>>>>>>>>> Hello,
+>>>>>>>>>>
+>>>>>>>>>> Test system testing drivers for ROHM ICs bisected this commit to cause
+>>>>>>>>>> BD71847 drivers probe to not be called.
+>>>>>>>>> This driver (and overlay support) is in linux-next or something out of
+>>>>>>>>> tree on top of linux-next?
+>>>>>>>>>
+>>>>>>>>> Rob
+>>>>>>>> Yes the driver is in mainline linux: /drivers/mfd/rohm-bd718x7.c
+>>>>>>> I don't see any support to apply overlays in that driver.
+>>>>>> Ah. Sorry for the confusion peeps. I asked Kalle to report this without
+>>>>>> proper consideration. 100% my bad.
+>>>>>>
+>>>>>> While the bd718x7 drive indeed is mainline (and tested), the actual
+>>>>>> 'glue-code' doing the overlay is part of the downstream test
+>>>>>> infrastructure. So yes, this is not a bug in upstream kernel - this
+>>>>>> falls in the category of an upstream change causing downstream things to
+>>>>>> break. So, feel free to say: "Go fix your code" :)
+>>>>>>
+>>>>>> Now that this is sorted, if someone is still interested in helping us to
+>>>>>> get our upstream drivers tested - the downstream piece is just taking
+>>>>>> the compiled device-tree overlay at runtime (via bin-attribute file),
+>>>>>> and applying it using the of_overlay_fdt_apply(). The approach is
+>>>>>> working for our testing purposes when the device is added to I2C/SPI
+>>>>>> node which is already enabled. However, in case where we have the I2C
+>>>>>> disabled, and enable it in the same overlay where we add the new device
+>>>>>> - then the new device does not get probed.
+>>>>>>
+>>>>>> I would be really grateful if someone had a pointer for us.
+>>>>> Seems to be fw_devlink related. I suppose if you turn it off it works?
+>>>>> There's info about the dependencies in sysfs or maybe debugfs. I don't
+>>>>> remember the details, but that should help to tell you why things
+>>>>> aren't probing.
+>>>
+>>> Rob reverted patches but I plan to continue my work on it.
+>>> On my side, I need the reverted patches but I fully understand that, on
+>>> your side, you need a working system.
+>>>
+>>> In order to move forward and find a solution for my next iteration, can you
+>>> send your overlay (dtso) used in your working and non working cases?
+>>>
+>>> Best regards,
+>>> Hervé
+>>
+>> Hello Hervé,
+>>
+>> I have attached the overlay source file: bd71847_overlay.dts
+> 
+> Thanks a lot for your overlay.
+> 
+> I did an update of the reverted patches and I didn't detect any regression
+> with the update applied on my use case but I don't have the needed code to
+> perform tests similar to your use case. Indeed, you apply the overlay using
+> an out of tree code.
+> 
+> May I ask you to perform a test of this update on your side?
+> 
+> First you can use the last linux-next kernel where reverted patches are present.
+> The next-20251127 tag is a good candidate. Indeed both patches are present:
+>    - 76841259ac092 ("of: dynamic: Fix overlayed devices not probing because of fw_devlink")
+>    - 7d67ddc5f0148 ("Revert "treewide: Fix probing of devices in DT overlays"")
+> 
+> Of course, be sure to have the issue using this kernel with your overlays.
+> 
+> Then can you add the following modification on your faulty kernel:
+> ---- 8< ----
+> diff --git a/drivers/of/overlay.c b/drivers/of/overlay.c
+> index 1528d8ad9f26..aea7bb26d9c4 100644
+> --- a/drivers/of/overlay.c
+> +++ b/drivers/of/overlay.c
+> @@ -190,6 +190,20 @@ static void overlay_fw_devlink_refresh(struct overlay_changeset *ovcs)
+>          for (int i = 0; i < ovcs->count; i++) {
+>                  struct device_node *np = ovcs->fragments[i].target;
+>   
+> +               /*
+> +                * The device related to target node itself could have been
+> +                * removed and re-added. This happens when the 'status' property
+> +                * in the target node has been changed by the overlay.
+> +                *
+> +                * In that case the parent node needs to be fixed.
+> +                *
+> +                * Before fixing the target node itself, fix its parent. To keep
+> +                * things simple, fix the parent in any case. If nothing needs
+> +                * to be fixed, fw_devlink_refresh_fwnode() acts as a no-op.
+> +                */
+> +               if (np->parent)
+> +                       fw_devlink_refresh_fwnode(of_fwnode_handle(np->parent));
+> +
+>                  fw_devlink_refresh_fwnode(of_fwnode_handle(np));
+>          }
+>   }
+> ---- 8< ----
+> 
+> My hope is that this modification will fix your issue.
+> If so, I will add it in my next iteration.
+> 
+> If you cannot perform the test on your side, can you provide me the out of
+> tree code you use to apply the overlay?
+> 
+> Best regards,
+> Hervé
+Hello Hervé,
 
-On 2025/12/3 11:24, Jie Zhan wrote:
-> Currently, the CPPC Frequency Invariance Engine (FIE) is invoked from the
-> scheduler tick but defers the update of arch_freq_scale to a separate
-> thread because cppc_get_perf_ctrs() would sleep if the CPC regs are in PCC.
-> 
-> However, this deferred update mechanism is unnecessary and introduces extra
-> overhead for non-PCC register spaces (e.g. System Memory or FFH), where
-> accessing the regs won't sleep and can be safely performed from the tick
-> context.
-> 
-> Furthermore, with the CPPC FIE registered, it throws repeated warnings of
-> "cppc_scale_freq_workfn: failed to read perf counters" on our platform with
-> the CPC regs in System Memory and a power-down idle state enabled.  That's
-> because the remote CPU can be in a power-down idle state, and reading its
-> perf counters returns 0.  Moving the FIE handling back to the scheduler
-> tick process makes the CPU handle its own perf counters, so it won't be
-> idle and the issue would be inherently solved.
-> 
-> To address the above issues, update arch_freq_scale directly in ticks for
-> non-PCC regs and keep the deferred update mechanism for PCC regs.
-> 
-> We have tested this on Kunpeng SoCs with the CPC regs both in System Memory
-> and FFH.  More tests on other platforms are welcome (typically with the
-> regs in PCC).
-> 
-> Changelog:
-> v4:
-> - Allow either non-PCC or PCC scale_freq_tick callbacks to be registered
->   for each cpufreq policy.
-> - Factor out cppc_perf_ctrs_in_pcc_cpu() and cppc_fie_kworker_init() for
->   the above change.
-> 
-> v3:
-> https://lore.kernel.org/linux-pm/20251104065039.1675549-1-zhanjie9@hisilicon.com/
-> - Stash the state of 'cppc_perf_ctrs_in_pcc' so it won't have to check the
->   CPC regs of all CPUs everywhere (Thanks to the suggestion from Beata
->   Michalska).
-> - Update the commit log, explaining more on the warning issue caused by
->   accessing perf counters on remote CPUs.
-> - Drop Patch 1 that has been accepted, and rebase Patch 2 on that.
-> 
-> v2:
-> https://lore.kernel.org/linux-pm/20250828110212.2108653-1-zhanjie9@hisilicon.com/
-> - Update the cover letter and the commit log based on v1 discussion
-> - Update FIE arch_freq_scale in ticks for non-PCC regs
-> 
-> v1:
-> https://lore.kernel.org/linux-pm/20250730032312.167062-1-yubowen8@huawei.com/
-> 
-> Jie Zhan (3):
->   ACPI: CPPC: Factor out and export per-cpu cppc_perf_ctrs_in_pcc_cpu()
->   cpufreq: CPPC: Factor out cppc_fie_kworker_init()
->   cpufreq: CPPC: Update FIE arch_freq_scale in ticks for non-PCC regs
-> 
->  drivers/acpi/cppc_acpi.c       | 45 ++++++++--------
->  drivers/cpufreq/cppc_cpufreq.c | 96 ++++++++++++++++++++++------------
->  include/acpi/cppc_acpi.h       |  5 ++
->  3 files changed, 93 insertions(+), 53 deletions(-)
-> 
+I tried this patch on next-20251127 by manually adding the added lines 
+to /drivers/of/overlay.c, and it did not solve the issue. I will 
+continue to test this.
 
+BR
+Kalle
