@@ -1,96 +1,85 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 576CE23BF9C;
-	Wed, 10 Dec 2025 14:51:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 699D621D3F2;
+	Wed, 10 Dec 2025 14:55:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765378312; cv=none; b=Yr2vjG1D/CYgbdX9lFa/OjK+l/W+Os/lR/O84QQx14PSLW2cvGwC/NbYk+SM2FjOUqJU+wfXFVGZlLfAZSrp+WcPz62iPky9BcIO/JD1CR1lYtAHxAvpD5Ft+stdLD1jt+BX/YcO8Dm9KJF9X///UPKIcL/ZEfdrf/5H8ywZ0ds=
+	t=1765378501; cv=none; b=M+V1XxvC87OZsddwxFse/7wdJGcpunAc6vIhDA7kmuEb3U4W92I4bApyUQD3bo3d9x7fDNggHLLCEkkV7DbKqhyQPZXsoYsnUpl+bXtpnwW3mCxO45+6ik2EErDzmI2Geud3GX9xLyPFpq5DlGyTxG6JrJroSmXHZx6g1q9Fqpk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765378312; c=relaxed/simple;
-	bh=izr7/LN9/bWfO6kF07G9Tmq+DLJEtc6ivbfspIC/PNs=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=hZliRnYPbHWF+WjeCn2lyBg/6/hf4ZWfx2dfm/15DvQKRDN+MqecDBEpnm73MN/aI4KPiJ8SSuq3h5Hex5R/gPWjdITWsOWynPcVzA1kfaIX0odjsp7kpe0J1GWGwerm9I1Rsi3sz0ZDg47XdUQbd1UOIz1XcQeYJXTm5Ag8XM0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=h9VihVKA; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="h9VihVKA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5BD0C116B1;
-	Wed, 10 Dec 2025 14:51:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1765378311;
-	bh=izr7/LN9/bWfO6kF07G9Tmq+DLJEtc6ivbfspIC/PNs=;
-	h=From:To:Cc:Subject:Date:From;
-	b=h9VihVKAhv+LhJjQIvD5HPa1QIupAWT4mSBhNycK1KXzYmqhi4op66Aq+9Pp3XJWL
-	 XiQw2jTFo2ze6HpUABvzCy9OP2xYIKq9Cfq22sSq0VBZV+KhM1WjuYYqfQLU/a8B0G
-	 JLxRyEQCyTRnRZr4DSdSEy/JJC44FEmtt49WcQUMWBjz30U3pF1RmEMcNO/vpUHQrV
-	 0MnHM4ozy1J09iH1yjNht5iQRfF+S6lOO+COVriaBf13TKqsmrCnqUGSIPhFCE56Ek
-	 KKxIt12aJCyqDUWa0aQBCpbaFHN3jmDRHq4/TUe73YTj2RUSHhP1xSNyVvmCEJehck
-	 wxxGBdrnStWBQ==
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-To: Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>,
- Armin Wolf <w_armin@gmx.de>, Hans de Goede <hansg@kernel.org>
-Subject:
- [PATCH v1 0/3] ACPI: video: Convert ACPI video driver to a platform one
-Date: Wed, 10 Dec 2025 15:47:34 +0100
-Message-ID: <8617910.T7Z3S40VBb@rafael.j.wysocki>
-Organization: Linux Kernel Development
+	s=arc-20240116; t=1765378501; c=relaxed/simple;
+	bh=qzf9way1qf81inuoDSxwgM9KVcolfnNm7DYakwUS+tc=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=ctOHu/iPM5q+yWidHwyT76j6jErVhrozCbX8DLN+9IFzITbpOKW/+LGHtmN3krKj82T2TH9Av2m/DLE0ufWbUjz1QFdQ6gl1/fCPcTt7T37nnm1AMts+MSX1Cso8JDRtlnSXY2GPvg1g8u9cv3KP3DDOxqNcp3R4J4md2tWFU/g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=arm.com; spf=none smtp.mailfrom=foss.arm.com; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=foss.arm.com
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 6B8C0153B;
+	Wed, 10 Dec 2025 06:54:52 -0800 (PST)
+Received: from bogus (e133711.arm.com [10.1.196.55])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 78A483F740;
+	Wed, 10 Dec 2025 06:54:57 -0800 (PST)
+Date: Wed, 10 Dec 2025 14:54:54 +0000
+From: Sudeep Holla <sudeep.holla@arm.com>
+To: Pengjie Zhang <zhangpengjie2@huawei.com>
+Cc: <rafael@kernel.org>, <lenb@kernel.org>, <lihuisong@huawei.com>,
+	<linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<zhanjie9@hisilicon.com>, <zhenglifeng1@huawei.com>,
+	<yubowen8@huawei.com>, <linhongye@h-partners.com>,
+	<linuxarm@huawei.com>, <jonathan.cameron@huawei.com>,
+	<wangzhi12@huawei.com>
+Subject: Re: [PATCH] ACPI: PCC: Fix race condition by removing static
+ qualifier
+Message-ID: <20251210-valiant-watchful-guillemot-2bb5be@sudeepholla>
+References: <20251210132634.2050033-1-zhangpengjie2@huawei.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20251210132634.2050033-1-zhangpengjie2@huawei.com>
 
-Hi All,
+On Wed, Dec 10, 2025 at 09:26:34PM +0800, Pengjie Zhang wrote:
+> The variable 'ret' in acpi_pcc_address_space_setup() is currently
+> declared with the 'static' storage specifier. This can lead to race
+> conditions in a multithreaded environment.
+> 
+> Remove the 'static' qualifier to ensure 'ret' is allocated directly
+> on the stack as a local variable.
+> 
 
-This is a continuation of
+Ah, my mistake. I’m not sure how that slipped in other than a simple typo or
+copy/paste error. Thanks for catching it. Let me know if you spotted it
+because something broke or just from reading the code.
 
-https://lore.kernel.org/linux-acpi/2339822.iZASKD2KPV@rafael.j.wysocki/
+Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
 
-specifically concerning the ACPI video (backlight) driver which is kind of
-a special case because ACPI backlight device objects it binds to are ACPI
-companions of PCI devices (GPUs).
+> Fixes: a10b1c99e2dc ("ACPI: PCC: Setup PCC Opregion handler only if platform interrupt is available")
+> Signed-off-by: Pengjie Zhang <zhangpengjie2@huawei.com>
+> ---
+>  drivers/acpi/acpi_pcc.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/acpi_pcc.c b/drivers/acpi/acpi_pcc.c
+> index 97064e943768..e3f302b9dee5 100644
+> --- a/drivers/acpi/acpi_pcc.c
+> +++ b/drivers/acpi/acpi_pcc.c
+> @@ -52,7 +52,7 @@ acpi_pcc_address_space_setup(acpi_handle region_handle, u32 function,
+>  	struct pcc_data *data;
+>  	struct acpi_pcc_info *ctx = handler_context;
+>  	struct pcc_mbox_chan *pcc_chan;
+> -	static acpi_status ret;
+> +	acpi_status ret;
+>  
+>  	data = kzalloc(sizeof(*data), GFP_KERNEL);
+>  	if (!data)
+> -- 
+> 2.33.0
+> 
 
-The general rationale is the same as for the series linked above.
-
-While binding drivers directly to struct acpi_device objects allows
-basic functionality to be provided, at least in the majority of cases,
-there are some problems with it, related to general consistency, sysfs
-layout, power management operation ordering, and code cleanliness.
-
-First of all, struct acpi_device objects represent firmware entities
-rather than hardware and in many cases they provide auxiliary information
-on devices enumerated independently (like PCI devices or CPUs).  It is
-therefore generally questionable to assign resources to them or create
-class devices and similar under them because they don't provide
-functionality associated with those entities by themselves (for example,
-they don't generate wakeup or input events).
-
-As a general rule, a struct acpi_device can only be a parent of another
-struct acpi_device.  If that's not the case, the location of the child
-device in the device hierarchy is at least confusing and it may not be
-straightforward to identify the piece of hardware corresponding to that
-device.
-
-Using system suspend and resume callbacks directly with struct acpi_device
-objects is questionable either because it may cause ordering problems to
-happen.  Namely, struct acpi_device objects are registered before any
-devices corresponded to by them and they land on the PM list before all
-of those devices.  Consequently, the execution ordering of their PM
-callbacks may be different from what is generally expected.  Moreover,
-dependencies returned by _DEP objects don't generally affect struct
-acpi_device objects themselves, only the "physical" device objects
-associated with them, which potentially is one more source of inconsistency.
-
-All of the above means that binding drivers to struct acpi_device "devices"
-should generally be avoided and so this series converts the ACPI video
-driver to a platform one.
-
-Patches [1-2/3] are preparatory and patch [3/3] is the driver conversion one.
-
-Thanks!
-
-
-
+-- 
+Regards,
+Sudeep
