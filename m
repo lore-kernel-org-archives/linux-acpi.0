@@ -1,86 +1,133 @@
-Received: from canpmsgout09.his.huawei.com (canpmsgout09.his.huawei.com [113.46.200.224])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E62A3254BA;
-	Wed, 10 Dec 2025 13:26:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.224
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02B931E3DED;
+	Wed, 10 Dec 2025 14:44:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765373207; cv=none; b=oYR88N/cAAU9rNsKG59E3EVJAaEt3MRmCQDDRIFd9vrFvlNlQ+X7ihHHUjtlU3AZTbveo6H+46GWeZmPNb4V4xDveCnKD0cyFqENg9WS/f9a94/cSnCfMznDGzHRoZF5tF1dz5Q54pQ7brPsQeOuLh48LfAm8qPtKxcjVoLU4N0=
+	t=1765377890; cv=none; b=sX5dYOeHToGUtyVjTgS+H0Ac6YAdrU2bC783DkqtL30Ums27a59aqFcuLF6ZLGB678h7FCygryc0TjF9vUZ4OaXSod0cnnNwOoXl4+3t5OBoIknPVp49BV5eJhTaBfvDPV34CJCplooUgeKq9w/EY7R/tBT0FOsvl+8fe6VXQik=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765373207; c=relaxed/simple;
-	bh=r4gsqwZeNsCvXZ0qw2hbCRPPOpbJOBBA6uOI0/B4YVM=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=uzQ9ayPri9ZWE93YaH8VZ7dRqy3O43dhEJZSfDZfM70HzfHL+4LrjE+ovpub+ZMOtkLtbY9HwSxQSxs0IW3+R6MTsp4m8YXsZTn2DgNta9hShwN7XKR5dCFH7amJmfOlAMg83+cq8YrFp8ZYNFwDVGSFd5CScZklZes8VEY9eUY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=JltCuw+I; arc=none smtp.client-ip=113.46.200.224
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+	s=arc-20240116; t=1765377890; c=relaxed/simple;
+	bh=lclP0B6ekiVqLRJJeT9rJq0I81n72hlM4fGYO32JC9w=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=ug2YB6X9Hi4ht/xZBnercf/PZNlWvOoEF3vFn1cHzgWLLfNK8B/G8ZpAeU8wtdhfQNjIu8EuT+tHCHYsg5TNzI0Qv5Nqht2R8bbp+P/Xe8ueJ+uZ6fS6DeMmZ0wuMMT0rSJLDKIRgPDbZ6vWfAdfgt9RoMOIYpUymp2kPbFX4fM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Z+1H7TRp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="JltCuw+I"
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=oWHRR2N5r76SY9DM7LcCcKhHeNPzrI/tPRfSgEXGeCo=;
-	b=JltCuw+IY8xBIj7vyNHJrZIJteHIlyMu3+n68tbv+GvwQI7+NsWjEMHChuRJFVltQRAztcYU2
-	Wedh+CaAe6t4putvqDXYY7iZa1QJ5ynKOuRGd19msABTgHpHV63gJQPpaCAE3dQj5uxZt31d7GC
-	dkR9w4K8mGasc5vywcJ9kh8=
-Received: from mail.maildlp.com (unknown [172.19.162.112])
-	by canpmsgout09.his.huawei.com (SkyGuard) with ESMTPS id 4dRGfG2wPYz1cySV;
-	Wed, 10 Dec 2025 21:24:38 +0800 (CST)
-Received: from kwepemr200004.china.huawei.com (unknown [7.202.195.241])
-	by mail.maildlp.com (Postfix) with ESMTPS id 43B65140142;
-	Wed, 10 Dec 2025 21:26:35 +0800 (CST)
-Received: from huawei.com (10.50.163.32) by kwepemr200004.china.huawei.com
- (7.202.195.241) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Wed, 10 Dec
- 2025 21:26:34 +0800
-From: Pengjie Zhang <zhangpengjie2@huawei.com>
-To: <rafael@kernel.org>
-CC: <lenb@kernel.org>, <lihuisong@huawei.com>, <sudeep.holla@arm.com>,
-	<linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<zhanjie9@hisilicon.com>, <zhenglifeng1@huawei.com>, <yubowen8@huawei.com>,
-	<linhongye@h-partners.com>, <linuxarm@huawei.com>,
-	<jonathan.cameron@huawei.com>, <zhangpengjie2@huawei.com>,
-	<wangzhi12@huawei.com>
-Subject: [PATCH] ACPI: PCC: Fix race condition by removing static qualifier
-Date: Wed, 10 Dec 2025 21:26:34 +0800
-Message-ID: <20251210132634.2050033-1-zhangpengjie2@huawei.com>
-X-Mailer: git-send-email 2.33.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Z+1H7TRp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9355DC4CEF1;
+	Wed, 10 Dec 2025 14:44:47 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1765377888;
+	bh=lclP0B6ekiVqLRJJeT9rJq0I81n72hlM4fGYO32JC9w=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=Z+1H7TRpNKqEgDbTaEoKXSUDGxSqTuEuJasRxfPqYBvNhbU52dPhDXLSAaNfmbh0D
+	 uBXsAFrxunS4QY7Xqwic1hcTDNUvGoHzd0KioOu76i1BYsbd+b46zHldSygxnVJ+5C
+	 f0T/HbjI5lj5CtOFdE9B85xIKnjziJGu/6OIz5heEEgOjKJhOSkh7QCoURZNjyBpjJ
+	 WBagxBjCKpntjS+qKe3bYQsGAKIS2l1ccw8DUUWgO2QtxPlRBWGssuU8e2jilsp/31
+	 vc+6qwDPzSZi6rcYmbK3/2oX2Y6uPKyL0DDJ+hwCEjOE1jE+T4HYox1rus8YyU5l6E
+	 XYczsfi/pzVJw==
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+To: Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>,
+ Armin Wolf <w_armin@gmx.de>, Hans de Goede <hansg@kernel.org>
+Subject:
+ [PATCH v1 4/4] ACPI: thermal: Rework system suspend and resume handling
+Date: Wed, 10 Dec 2025 15:44:30 +0100
+Message-ID: <3024049.e9J7NaK4W3@rafael.j.wysocki>
+Organization: Linux Kernel Development
+In-Reply-To: <6222428.lOV4Wx5bFT@rafael.j.wysocki>
+References: <6222428.lOV4Wx5bFT@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: kwepems200001.china.huawei.com (7.221.188.67) To
- kwepemr200004.china.huawei.com (7.202.195.241)
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
 
-The variable 'ret' in acpi_pcc_address_space_setup() is currently
-declared with the 'static' storage specifier. This can lead to race
-conditions in a multithreaded environment.
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Remove the 'static' qualifier to ensure 'ret' is allocated directly
-on the stack as a local variable.
+In the process of handling system resume, acpi_thermal_resume() attempts
+to power up active cooling devices to guarantee that they will be
+operational when the ACPI thermal check queued by it runs.  However,
+the only kind of cooling devices that can be bound to ACPI thermal zones
+is fans and they are already powered up by the ACPI fan driver resume,
+which additionally takes "ACPI 4" fans that don't need to be powered
+up into account.
 
-Fixes: a10b1c99e2dc ("ACPI: PCC: Setup PCC Opregion handler only if platform interrupt is available")
-Signed-off-by: Pengjie Zhang <zhangpengjie2@huawei.com>
+For this reason, remove the part of acpi_thermal_resume() related to
+fans and in order to ensure that it will run after powering up all fans,
+rename it to acpi_thermal_complete() and point the .complete() driver
+callback to it.  Analogously, rename acpi_thermal_suspend() to
+acpi_thermal_prepare() and point the .prepare() driver callback to it.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/acpi_pcc.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/thermal.c |   37 +++++++++++++------------------------
+ 1 file changed, 13 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/acpi/acpi_pcc.c b/drivers/acpi/acpi_pcc.c
-index 97064e943768..e3f302b9dee5 100644
---- a/drivers/acpi/acpi_pcc.c
-+++ b/drivers/acpi/acpi_pcc.c
-@@ -52,7 +52,7 @@ acpi_pcc_address_space_setup(acpi_handle region_handle, u32 function,
- 	struct pcc_data *data;
- 	struct acpi_pcc_info *ctx = handler_context;
- 	struct pcc_mbox_chan *pcc_chan;
--	static acpi_status ret;
-+	acpi_status ret;
+--- a/drivers/acpi/thermal.c
++++ b/drivers/acpi/thermal.c
+@@ -911,37 +911,26 @@ static void acpi_thermal_remove(struct p
+ }
  
- 	data = kzalloc(sizeof(*data), GFP_KERNEL);
- 	if (!data)
--- 
-2.33.0
+ #ifdef CONFIG_PM_SLEEP
+-static int acpi_thermal_suspend(struct device *dev)
++static int acpi_thermal_prepare(struct device *dev)
+ {
+ 	/* Make sure the previously queued thermal check work has been done */
+ 	flush_workqueue(acpi_thermal_pm_queue);
+ 	return 0;
+ }
+ 
+-static int acpi_thermal_resume(struct device *dev)
++static void acpi_thermal_complete(struct device *dev)
+ {
+-	struct acpi_thermal *tz = dev_get_drvdata(dev);
+-	int i, j;
+-
+-	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE; i++) {
+-		struct acpi_thermal_trip *acpi_trip = &tz->trips.active[i].trip;
+-
+-		if (!acpi_thermal_trip_valid(acpi_trip))
+-			break;
+-
+-		for (j = 0; j < acpi_trip->devices.count; j++)
+-			acpi_bus_update_power(acpi_trip->devices.handles[j], NULL);
+-	}
+-
+-	acpi_queue_thermal_check(tz);
+-
+-	return AE_OK;
++	acpi_queue_thermal_check(dev_get_drvdata(dev));
+ }
+-#else
+-#define acpi_thermal_suspend	NULL
+-#define acpi_thermal_resume	NULL
+-#endif
+-static SIMPLE_DEV_PM_OPS(acpi_thermal_pm, acpi_thermal_suspend, acpi_thermal_resume);
++
++static const struct dev_pm_ops acpi_thermal_pm_ops = {
++	.prepare = acpi_thermal_prepare,
++	.complete = acpi_thermal_complete,
++};
++#define ACPI_THERMAL_PM	&acpi_thermal_pm_ops
++#else /* !CONFIG_PM_SLEEP */
++#define ACPI_THERMAL_PM	NULL
++#endif /* CONFIG_PM_SLEEP */
+ 
+ static const struct acpi_device_id  thermal_device_ids[] = {
+ 	{ACPI_THERMAL_HID, 0},
+@@ -955,7 +944,7 @@ static struct platform_driver acpi_therm
+ 	.driver = {
+ 		.name = "acpi-thermal",
+ 		.acpi_match_table = thermal_device_ids,
+-		.pm = &acpi_thermal_pm,
++		.pm = ACPI_THERMAL_PM,
+ 	},
+ };
+ 
+
+
 
