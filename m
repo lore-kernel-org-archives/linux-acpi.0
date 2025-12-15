@@ -1,44 +1,43 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBF8C330B30;
-	Mon, 15 Dec 2025 13:37:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 681701A9FAB;
+	Mon, 15 Dec 2025 14:04:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765805834; cv=none; b=tAqSarLB0cONoWTxFMdoyzOOXs1jardMakEFhwXL6UAeauqDA26qK+00M91XC8EkhML58qm3H1g3b7JXt0Ql/3cZpd2WuZSMexNcS+eiEcdKIf5h4OzZEUKU89q+g03Hq9zYOn2yBVIrCLWZZICoOo3aZMZjvd+rS0aWksWbzJw=
+	t=1765807446; cv=none; b=kP57hw7yoTI9+a+AkUu8zYJRqWsw/W1pYxv1KNrYTOFUPk9s4KuTFleQ93INrR4lX39/zWeyOyQxh5dvA9z7rDFJqjHYzvApWKM8aDTIEMoz7mCAs9I6KrorZFYXKpJc3BYcG8+OlQ5E3A4955MT7qY+k5ImEN+uj9ifFinNvx0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765805834; c=relaxed/simple;
-	bh=1uowNVZ5iB/Udkb1TEVTzDa5CfuL/s8RRv0FRXaqzik=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=nCJWo6FR+5PS78Ea2tYdNIAkYPKqUBnBhbIO9csuUaVqWNxTg7xQoiuiKhYlu+vcwdijSpLIOJlGHpy78+P6S3VH9tAWlcM50nv80x/dVrACyY465DneqaHmrt1hwvkPLyCQeQroHyMi0t5+ow7et9V+4jfAgeHrBMt6g8B6Dtw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=oYSI7xoI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1765807446; c=relaxed/simple;
+	bh=T24WwK6VBM/bOIyojAvtkzGKrlnjSMqz6zUAApvu3Ak=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=mJ1nyHXfcMBzYtttIMuDt2flIGTzeHuRWc0MI8/vk7hr4dD8NhEW1Sw252RjbiLvvXPCgH3OpJ7k0GwdbzLjeqyA/p9rl/0912SHh6xw69PeImkOfl3JF4GSFyXrzlCHV1fd4HxrpW7JiTHntlew2hHubmfbp6ZlCHJsZBLW+Hg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kZ8/L1hx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="oYSI7xoI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6516CC4CEFB;
-	Mon, 15 Dec 2025 13:37:12 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kZ8/L1hx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8E8AC4CEF5;
+	Mon, 15 Dec 2025 14:04:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1765805834;
-	bh=1uowNVZ5iB/Udkb1TEVTzDa5CfuL/s8RRv0FRXaqzik=;
-	h=From:To:Cc:Subject:Date:From;
-	b=oYSI7xoIlDImUl1WbelttW9wvwd6oj2VA5UV3aXlTAOrwjkzZlzPIW8vm+D1+UBCj
-	 4jMeARx1CLbt2Y56ZV6GS22otFXc4dCsh/IgzMgrh3shnaVD/6iiYwB/FA+rnNZ3+5
-	 GVFQ2EJlCTDa1W3QMzacNQg08XCaLaP7cZd680+Qmy/UgLPqvCRRxysRb9zFm0Env1
-	 d7z62rnkFoGqj5z2xU8NoELFkEU5tG1fq8arF6TRNjaUs5abk6g9vjvRDSf5ge5ixw
-	 /WJJDPZoFo3hihMDbmGgJGAluPM0wrS60qwr61Waft0V7RRr2fbuxWVfRxPx0tcsTt
-	 IHHEfOAk8QIFw==
+	s=k20201202; t=1765807445;
+	bh=T24WwK6VBM/bOIyojAvtkzGKrlnjSMqz6zUAApvu3Ak=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=kZ8/L1hxQVoBcJ1zm3a0gYt2yF8ERyjdErhrekeDwmz+pNL7b3uaXH+H5ciX7PzTO
+	 RD2kMT/qPR4jILlCIcM7vtldUjv7A/02/MGPLeWKy0hOv5X+dC4n+Xqx+O0HFBvx8z
+	 Uc4ICLgSrhEVeZTIqPJPMYwvBPC5BB6HJLiepDNI976EBkmPtSBIlecYp78YsBIkVB
+	 XRri4904hllwpmnRZQQMC94sf2Y+cHflGVhZI72NcL3kPDiHR8uy0aToK9Nn8d9tOj
+	 R2u7nfRewQxOJHK87R+0ffZ0waeruPELgSpJd6a2YkrSkwcK7VH70kKdFQVCzXFkDD
+	 VcPtAH+kStq8w==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <helgaas@kernel.org>,
- Zhang Rui <rui.zhang@intel.com>, Chen Yu <yu.c.chen@intel.com>,
- Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
- Mika Westerberg <mika.westerberg@linux.intel.com>,
- Linux PCI <linux-pci@vger.kernel.org>, Alex Hung <alexhung@gmail.com>,
- Hans de Goede <hansg@kernel.org>,
- Ilpo =?ISO-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
- platform-driver-x86@vger.kernel.org, AceLan Kao <acelan.kao@canonical.com>
-Subject: [PATCH v1 0/4] ACPI: scan: Handle generic system devices directly
-Date: Mon, 15 Dec 2025 14:31:53 +0100
-Message-ID: <7888874.EvYhyI6sBW@rafael.j.wysocki>
+Cc: Hans de Goede <hdegoede@redhat.com>, LKML <linux-kernel@vger.kernel.org>,
+ Linux PM <linux-pm@vger.kernel.org>,
+ Thomas =?ISO-8859-1?Q?Wei=DFschuh?= <linux@weissschuh.net>,
+ Armin Wolf <w_armin@gmx.de>
+Subject: [PATCH v2 10/10] ACPI: battery: Convert the driver to a platform one
+Date: Mon, 15 Dec 2025 15:03:28 +0100
+Message-ID: <3187448.CbtlEUcBR6@rafael.j.wysocki>
 Organization: Linux Kernel Development
+In-Reply-To: <2685338.Lt9SDvczpP@rafael.j.wysocki>
+References: <2685338.Lt9SDvczpP@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -48,33 +47,173 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="UTF-8"
 
-Hi All,
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-As per the changelog of patch [1/4], there is a long-standing problem with ACPI
-device enumeration that if the given device has a compatible ID which is one of
-the generic system resource device IDs (PNP0C01 and PNP0C02), it will be claimed
-by the PNP scan handler and it will not be represented as a platform device, so
-it cannot be handled by a platform driver.
+While binding drivers directly to struct acpi_device objects allows
+basic functionality to be provided, at least in the majority of cases,
+there are some problems with it, related to general consistency, sysfs
+layout, power management operation ordering, and code cleanliness.
 
-Obviously, PNP0C01 and PNP0C02 need to be removed from acpi_pnp_device_ids[] to
-address this problem, but it cannot be done without making any other changes
-due to the way the legacy PNP system driver works (see the changelog of patch
-[1/4] for details) and the approach used in patch [1/4] is to reserve the
-"motherboard resources" directly in the ACPI core without creating platform
-devices for "system" devices (whose _HID is either PNP0C01 or PNP0C02).  The
-new code doing works along the lines of the PNP system driver to avoid
-regressions.
+Overall, it is better to bind drivers to platform devices than to their
+ACPI companions, so convert the ACPI battery driver to a platform one.
 
-The remaining patches in the series are simplifications that can be done on
-top of the first one.
+While this is not expected to alter functionality, it changes sysfs
+layout and so it will be visible to user space.
 
-Patches [2-3/4] remove platform device creation code from Intel HID and VBTN
-drivers that don't need to worry about _CID including PNP0C02 any more.
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
 
-Patch [4/4] drops acpi_nonpnp_device_ids[] that was added as a workaround for
-the issue at hand in the first place.
+v1 -> v2:
+   * Drop redundant driver_data removal operations.
+   * Use dev_get_drvdata() where applicable to get the driver data pointer.
 
-Thanks!
+---
+ drivers/acpi/battery.c |   61 ++++++++++++++++++++++---------------------------
+ 1 file changed, 28 insertions(+), 33 deletions(-)
+
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -17,6 +17,7 @@
+ #include <linux/list.h>
+ #include <linux/module.h>
+ #include <linux/mutex.h>
++#include <linux/platform_device.h>
+ #include <linux/slab.h>
+ #include <linux/suspend.h>
+ #include <linux/types.h>
+@@ -1208,26 +1209,26 @@ static void sysfs_battery_cleanup(struct
+ 	sysfs_remove_battery(battery);
+ }
+ 
+-static int acpi_battery_add(struct acpi_device *device)
++static int acpi_battery_probe(struct platform_device *pdev)
+ {
+-	int result = 0;
++	struct acpi_device *device = ACPI_COMPANION(&pdev->dev);
+ 	struct acpi_battery *battery;
+-
+-	if (!device)
+-		return -EINVAL;
++	int result;
+ 
+ 	if (device->dep_unmet)
+ 		return -EPROBE_DEFER;
+ 
+-	battery = devm_kzalloc(&device->dev, sizeof(*battery), GFP_KERNEL);
++	battery = devm_kzalloc(&pdev->dev, sizeof(*battery), GFP_KERNEL);
+ 	if (!battery)
+ 		return -ENOMEM;
++
++	platform_set_drvdata(pdev, battery);
++
+ 	battery->device = device;
+ 	strscpy(acpi_device_name(device), ACPI_BATTERY_DEVICE_NAME);
+ 	strscpy(acpi_device_class(device), ACPI_BATTERY_CLASS);
+-	device->driver_data = battery;
+ 
+-	result = devm_mutex_init(&device->dev, &battery->update_lock);
++	result = devm_mutex_init(&pdev->dev, &battery->update_lock);
+ 	if (result)
+ 		return result;
+ 
+@@ -1246,7 +1247,7 @@ static int acpi_battery_add(struct acpi_
+ 	if (result)
+ 		goto fail;
+ 
+-	device_init_wakeup(&device->dev, 1);
++	device_init_wakeup(&pdev->dev, true);
+ 
+ 	result = acpi_dev_install_notify_handler(device, ACPI_ALL_NOTIFY,
+ 						 acpi_battery_notify, battery);
+@@ -1256,7 +1257,7 @@ static int acpi_battery_add(struct acpi_
+ 	return 0;
+ 
+ fail_pm:
+-	device_init_wakeup(&device->dev, 0);
++	device_init_wakeup(&pdev->dev, false);
+ 	unregister_pm_notifier(&battery->pm_nb);
+ fail:
+ 	sysfs_battery_cleanup(battery);
+@@ -1264,19 +1265,18 @@ fail:
+ 	return result;
+ }
+ 
+-static void acpi_battery_remove(struct acpi_device *device)
++static void acpi_battery_remove(struct platform_device *pdev)
+ {
+-	struct acpi_battery *battery;
++	struct acpi_device *device = ACPI_COMPANION(&pdev->dev);
++	struct acpi_battery *battery = platform_get_drvdata(pdev);
+ 
+-	if (!device || !acpi_driver_data(device))
++	if (!device || !battery)
+ 		return;
+ 
+-	battery = acpi_driver_data(device);
+-
+ 	acpi_dev_remove_notify_handler(device, ACPI_ALL_NOTIFY,
+ 				       acpi_battery_notify);
+ 
+-	device_init_wakeup(&device->dev, 0);
++	device_init_wakeup(&pdev->dev, false);
+ 	unregister_pm_notifier(&battery->pm_nb);
+ 
+ 	sysfs_battery_cleanup(battery);
+@@ -1285,12 +1285,8 @@ static void acpi_battery_remove(struct a
+ /* this is needed to learn about changes made in suspended state */
+ static int acpi_battery_resume(struct device *dev)
+ {
+-	struct acpi_battery *battery;
+-
+-	if (!dev)
+-		return -EINVAL;
++	struct acpi_battery *battery = dev_get_drvdata(dev);
+ 
+-	battery = acpi_driver_data(to_acpi_device(dev));
+ 	if (!battery)
+ 		return -EINVAL;
+ 
+@@ -1304,16 +1300,15 @@ static int acpi_battery_resume(struct de
+ 
+ static DEFINE_SIMPLE_DEV_PM_OPS(acpi_battery_pm, NULL, acpi_battery_resume);
+ 
+-static struct acpi_driver acpi_battery_driver = {
+-	.name = "battery",
+-	.class = ACPI_BATTERY_CLASS,
+-	.ids = battery_device_ids,
+-	.ops = {
+-		.add = acpi_battery_add,
+-		.remove = acpi_battery_remove,
+-		},
+-	.drv.pm = pm_sleep_ptr(&acpi_battery_pm),
+-	.drv.probe_type = PROBE_PREFER_ASYNCHRONOUS,
++static struct platform_driver acpi_battery_driver = {
++	.probe = acpi_battery_probe,
++	.remove = acpi_battery_remove,
++	.driver = {
++		.name = "acpi-battery",
++		.acpi_match_table = battery_device_ids,
++		.pm = pm_sleep_ptr(&acpi_battery_pm),
++		.probe_type = PROBE_PREFER_ASYNCHRONOUS,
++	},
+ };
+ 
+ static int __init acpi_battery_init(void)
+@@ -1323,12 +1318,12 @@ static int __init acpi_battery_init(void
+ 
+ 	dmi_check_system(bat_dmi_table);
+ 
+-	return acpi_bus_register_driver(&acpi_battery_driver);
++	return platform_driver_register(&acpi_battery_driver);
+ }
+ 
+ static void __exit acpi_battery_exit(void)
+ {
+-	acpi_bus_unregister_driver(&acpi_battery_driver);
++	platform_driver_unregister(&acpi_battery_driver);
+ 	battery_hook_exit();
+ }
+ 
 
 
 
