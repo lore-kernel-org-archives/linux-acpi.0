@@ -1,91 +1,126 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B52ED364E9A;
-	Tue, 16 Dec 2025 14:03:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49891212552;
+	Tue, 16 Dec 2025 20:18:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765893784; cv=none; b=THb8dQtg/DdL+paUlUe8IMZuY5qKc7Fk0D2N69J8mPlzpMMauA/P1x+2rvjIZoTPwBhvveoB7gkxieu4500Lq+tX+4Y68rw9z2lsKcWkxO6mLznWnRSwdF5rfWPHNmzc4JIibf0mLB/N4I5mWRskr2p++t3LrV1V637OiBsJ8m4=
+	t=1765916335; cv=none; b=MKW6Uwaw229faqmAot0cQZ92Q3D9TdxwNsKmAQwY+I7PJjyZtCzurb4ds+2/V8mnG5DtxJy+RRqT/gV+mNFZHAYRkZwaR5YcoOdnyhj2Cpy3EdvIc3U2G2/W/aGzenhzBfEfI6KNuQ/jP02HBnqeB5IkXIO94PYzspTJEPRKYEY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765893784; c=relaxed/simple;
-	bh=8eMAqHQEv5jBf0/tVMARz1cgWubrUUrBinMSW8ZaF90=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=tMloVqDaOG6xNveoijpDDYZTNLAuGuISuFwHEMMRiSGTWD4zaqKeBKhvJQS0MJi1q+8cuRomCezoTm7tNJ5p7/kED9mwl/lfzXdj17T4JZYc0DFofc0et8BfEFnzW1FM0nr/BSA+6y1W//uPowhzpY6C2w54PJfkuDE2VWqOgfY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KnKgVHt5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1765916335; c=relaxed/simple;
+	bh=2s0sPyBtRnYTM5LGWzEOa2qJbCQASXMLLhvp7EDkT/g=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=mCupkIu4NBrDPCMWyRYeo+RLuWiDal0bnkeeN0uQdIPL0KhzxHAkI3+MAm2EibS0eKGrK509JyNy3CpxDRdqGjevhXdANlpTcLMFoP5cmACjP9B0JYwoH26XE7lf482hZqH8/0RpBV5SE8mwWf9IBg9iCs7Dg3BGpdvS6+eI8j0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=L/1J/EmA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KnKgVHt5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 591B6C4CEF1;
-	Tue, 16 Dec 2025 14:03:03 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="L/1J/EmA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2D11C4CEF1;
+	Tue, 16 Dec 2025 20:18:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1765893784;
-	bh=8eMAqHQEv5jBf0/tVMARz1cgWubrUUrBinMSW8ZaF90=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=KnKgVHt53CRJmMsNCVQqxrpRiYHcyHKzk94nEn5qmtvDUjmGNOZOCQUfUPVf2hSIA
-	 ioL6dP4hn1BVStwm5jGscpTKX3kWXFYn4e3xGiJN0Z/LLYb3oi4ffPASJGZ5V8UGO7
-	 ijgsya0p+utcvajVUJiOKoSF1eBXF6xaSiAGszRDXwYyoKu47AyfX0LfxN2em2qvlT
-	 6uTK42ezbrdgWkz980qaugZRdWEH7aYt/XR+IvnXlnTzZHAZWfdxjLBIfAmV7sC9hG
-	 RfUrlz7RyMtIplZ0jHUUo5Cwe08SLsp/zvXcn1QgE60lzQ8TrNP4TPqSFSFMPfLA+U
-	 BGIlqQRYIVBHA==
-Message-ID: <e019cbdb-5152-40fc-a3c8-76b360fdd6ad@kernel.org>
-Date: Tue, 16 Dec 2025 08:03:02 -0600
+	s=k20201202; t=1765916334;
+	bh=2s0sPyBtRnYTM5LGWzEOa2qJbCQASXMLLhvp7EDkT/g=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=L/1J/EmATRkWtSekpzzpVhCFQIfqFXfNxBEB4LOCK/IToRI5P3sedqM7xGjFNtnrW
+	 epUYnaY2eKJgQTEE4SipQMs2j0O//UK6IGl4XeTkOGhq5b+AhJ7iQcbyhDUn0ZH8K3
+	 Y5L/gGZoL1EhBIUmvMOKAuxctP+miS6tGqQ0P+mv9eeYooqp90KQWSyJoiFrHgrHe1
+	 QTfS2Hq8PO/Q+ee9I+ZO6tnJhISMn+PRrdGQk9OM8gghiw4tZQIgrVH4sWgePHdGwK
+	 HCZ7mMT40RKnCOGcRujDwdIlshD7Yh2fSvBEet2SsRCTTceYsq52lprB83G0vzFmrP
+	 s4iDb1jp2xUDg==
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+To: Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+ Linux PCI <linux-pci@vger.kernel.org>, Bjorn Helgaas <helgaas@kernel.org>,
+ Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+ Hans de Goede <hansg@kernel.org>,
+ Mario Limonciello <mario.limonciello@amd.com>
+Subject:
+ [PATCH v1 2/2] ACPI: bus: Adjust acpi_bus_osc_negotiate_platform_control()
+Date: Tue, 16 Dec 2025 21:18:27 +0100
+Message-ID: <4703755.LvFx2qVVIh@rafael.j.wysocki>
+Organization: Linux Kernel Development
+In-Reply-To: <12803663.O9o76ZdvQC@rafael.j.wysocki>
+References: <12803663.O9o76ZdvQC@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v1 0/4] ACPI: scan: Handle generic system devices directly
-To: "Rafael J. Wysocki" <rafael@kernel.org>,
- Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <helgaas@kernel.org>,
- Zhang Rui <rui.zhang@intel.com>, Chen Yu <yu.c.chen@intel.com>,
- Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
- Mika Westerberg <mika.westerberg@linux.intel.com>,
- Linux PCI <linux-pci@vger.kernel.org>, Alex Hung <alexhung@gmail.com>,
- Hans de Goede <hansg@kernel.org>,
- =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
- platform-driver-x86@vger.kernel.org, AceLan Kao <acelan.kao@canonical.com>
-References: <7888874.EvYhyI6sBW@rafael.j.wysocki>
-Content-Language: en-US
-From: Mario Limonciello <superm1@kernel.org>
-In-Reply-To: <7888874.EvYhyI6sBW@rafael.j.wysocki>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
 
-On 12/15/25 7:31 AM, Rafael J. Wysocki wrote:
-> Hi All,
-> 
-> As per the changelog of patch [1/4], there is a long-standing problem with ACPI
-> device enumeration that if the given device has a compatible ID which is one of
-> the generic system resource device IDs (PNP0C01 and PNP0C02), it will be claimed
-> by the PNP scan handler and it will not be represented as a platform device, so
-> it cannot be handled by a platform driver.
-> 
-> Obviously, PNP0C01 and PNP0C02 need to be removed from acpi_pnp_device_ids[] to
-> address this problem, but it cannot be done without making any other changes
-> due to the way the legacy PNP system driver works (see the changelog of patch
-> [1/4] for details) and the approach used in patch [1/4] is to reserve the
-> "motherboard resources" directly in the ACPI core without creating platform
-> devices for "system" devices (whose _HID is either PNP0C01 or PNP0C02).  The
-> new code doing works along the lines of the PNP system driver to avoid
-> regressions.
-> 
-> The remaining patches in the series are simplifications that can be done on
-> top of the first one.
-> 
-> Patches [2-3/4] remove platform device creation code from Intel HID and VBTN
-> drivers that don't need to worry about _CID including PNP0C02 any more.
-> 
-> Patch [4/4] drops acpi_nonpnp_device_ids[] that was added as a workaround for
-> the issue at hand in the first place.
-> 
-> Thanks!
-> 
-> 
-> 
-> 
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-For the series:
+Remove checks that have become redundant after a previous change from
+acpi_bus_osc_negotiate_platform_control(), add a debug statement
+regarding the negotiated support bit mask to it and add an empty
+code line to it for more clarity.
 
-Reviewed-by: Mario Limonciello (AMD) <superm1@kernel.org>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/bus.c |   28 +++++++++++-----------------
+ 1 file changed, 11 insertions(+), 17 deletions(-)
+
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -319,7 +319,7 @@ bool osc_sb_cppc2_support_acked;
+ static u8 sb_uuid_str[] = "0811B06E-4A27-44F9-8D60-3CBBC22E7B48";
+ static void acpi_bus_osc_negotiate_platform_control(void)
+ {
+-	u32 capbuf[2], *capbuf_ret;
++	u32 capbuf[2], *capbuf_ret, ret_support;
+ 	struct acpi_osc_context context = {
+ 		.uuid_str = sb_uuid_str,
+ 		.rev = 1,
+@@ -371,6 +371,7 @@ static void acpi_bus_osc_negotiate_platf
+ 
+ 	if (!ghes_disable)
+ 		capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_APEI_SUPPORT;
++
+ 	if (ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB", &handle)))
+ 		return;
+ 
+@@ -378,10 +379,9 @@ static void acpi_bus_osc_negotiate_platf
+ 		return;
+ 
+ 	capbuf_ret = context.ret.pointer;
+-	if (context.ret.length <= OSC_SUPPORT_DWORD) {
+-		kfree(context.ret.pointer);
+-		return;
+-	}
++
++	acpi_handle_debug(handle, "Negotiated _OSC mask [%04x]\n",
++			  capbuf_ret[OSC_SUPPORT_DWORD]);
+ 
+ 	/*
+ 	 * Now run _OSC again with query flag clear and with the caps
+@@ -395,20 +395,14 @@ static void acpi_bus_osc_negotiate_platf
+ 		return;
+ 
+ 	capbuf_ret = context.ret.pointer;
+-	if (context.ret.length > OSC_SUPPORT_DWORD) {
++	ret_support = capbuf_ret[OSC_SUPPORT_DWORD];
+ #ifdef CONFIG_ACPI_CPPC_LIB
+-		osc_sb_cppc2_support_acked = capbuf_ret[OSC_SUPPORT_DWORD] & OSC_SB_CPCV2_SUPPORT;
++	osc_sb_cppc2_support_acked = ret_support & OSC_SB_CPCV2_SUPPORT;
+ #endif
+-
+-		osc_sb_apei_support_acked =
+-			capbuf_ret[OSC_SUPPORT_DWORD] & OSC_SB_APEI_SUPPORT;
+-		osc_pc_lpi_support_confirmed =
+-			capbuf_ret[OSC_SUPPORT_DWORD] & OSC_SB_PCLPI_SUPPORT;
+-		osc_sb_native_usb4_support_confirmed =
+-			capbuf_ret[OSC_SUPPORT_DWORD] & OSC_SB_NATIVE_USB4_SUPPORT;
+-		osc_cpc_flexible_adr_space_confirmed =
+-			capbuf_ret[OSC_SUPPORT_DWORD] & OSC_SB_CPC_FLEXIBLE_ADR_SPACE;
+-	}
++	osc_sb_apei_support_acked = ret_support & OSC_SB_APEI_SUPPORT;
++	osc_pc_lpi_support_confirmed = ret_support & OSC_SB_PCLPI_SUPPORT;
++	osc_sb_native_usb4_support_confirmed = ret_support & OSC_SB_NATIVE_USB4_SUPPORT;
++	osc_cpc_flexible_adr_space_confirmed = ret_support & OSC_SB_CPC_FLEXIBLE_ADR_SPACE;
+ 
+ 	kfree(context.ret.pointer);
+ }
+
+
+
