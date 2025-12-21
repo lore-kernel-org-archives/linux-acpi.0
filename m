@@ -1,96 +1,186 @@
-Received: from mail.alien8.de (mail.alien8.de [65.109.113.108])
+Received: from m.foxido.dev (m.foxido.dev [81.177.217.87])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 840F31925BC;
-	Sun, 21 Dec 2025 01:36:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=65.109.113.108
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A54692FE598;
+	Sun, 21 Dec 2025 18:24:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=81.177.217.87
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766280980; cv=none; b=E9cvhcX9uWB4GCXe+PcEqd64btBR3XGh3utEJHVPapLbWb9oLQMagYzIG8x1logIZDYHIhN/L47Cj41THr81vQgZqy8b9JH78Oe7jPwuKw8s45j806GHVje4bNF2hL6UEcN3tV6I+tHsSMxAd0gLxTvif3PAvkFkDGxWDjQdpJ4=
+	t=1766341487; cv=none; b=ZftT4O/yo9rGghm6tF37G3sMcY+i/on9AzmfEPtVLxrxvutC9UJ/MM+uXvMpLp43O8iTzJjOgi1w5rWBgpy/hE8imqXKVy0UMawEHcZchxurbJEJcRur2G6UmlYV5mgJoDVMUqgd8LJ2ZUp2kMVZqp29oB97LhVC397H0oHEDzU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766280980; c=relaxed/simple;
-	bh=cTDDwgLD4HNSLH1/6xskLOhEMN3ylhPn/oZKOEJNegc=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=bhdfeFg62YAKC5D1n8yRPV0TD5FsSOj4sKanj5qlz9DleLnEHo+QGkpi9Pg9eTxTcvcI0X9k5dswL9E1hGI3B0cA1AxK6JLLbOuJs2OVLze1BFhNgyAd7Z+Sxbk+ZdR3cQdXMmLOu/ODPpvTIv0Cj7b5aXvlpWPeK9dKVOEJLmo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de; spf=pass smtp.mailfrom=alien8.de; dkim=pass (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b=XDMU0oYJ; arc=none smtp.client-ip=65.109.113.108
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=alien8.de
+	s=arc-20240116; t=1766341487; c=relaxed/simple;
+	bh=4guQZLwLk/zxWfZ72wTJRC77JUzl36ROeuOGICzIA0A=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=fqTzHjxaRvg/qIWr0UD+QYXFxkAhyGZ3ieM7/JQmtb25Q0C1Bal8Sd6B3j1nG4Z2bamXYCh9jaSr+HAAowJD6Pwv4UC7YbMJp2uCQFKEvx57k9B8UshsEF8f9TxmROS+60onHCJUTi10cuVP+qeaeDNzcAhrat1quseBydMDca4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=foxido.dev; spf=pass smtp.mailfrom=foxido.dev; dkim=pass (2048-bit key) header.d=foxido.dev header.i=@foxido.dev header.b=WBFvIfQl; dkim=permerror (0-bit key) header.d=foxido.dev header.i=@foxido.dev header.b=q4WyASaU; arc=none smtp.client-ip=81.177.217.87
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=foxido.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=foxido.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b="XDMU0oYJ"
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with ESMTP id 707F540E015A;
-	Sun, 21 Dec 2025 01:36:07 +0000 (UTC)
-X-Virus-Scanned: Debian amavisd-new at mail.alien8.de
-Authentication-Results: mail.alien8.de (amavisd-new); dkim=pass (4096-bit key)
-	header.d=alien8.de
-Received: from mail.alien8.de ([127.0.0.1])
-	by localhost (mail.alien8.de [127.0.0.1]) (amavisd-new, port 10026)
-	with ESMTP id s9plmLMQekvx; Sun, 21 Dec 2025 01:36:00 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=alien8;
-	t=1766280960; bh=u3fK9PcG+cgEjukRqBJXMkL2CRTOlA5j9EObKIvbhrc=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=XDMU0oYJVL787+ElQKmC+FBYUENoOXT7WeKGnB5oHGThYKBdTQ3AWqFIpVeSlGb78
-	 xABcw2DZyhYbf0DNMDX8LBOBBf0kUobVThFiz0BU7eY5ymF5hdIUGUhKprVH/GhZaI
-	 fBn5sdN/L5HMHYyfMb8ZjxuR403+kdLyLyEeJlHR7aRkxLncNS8o+fbtSAizQ4jnvp
-	 2NGF9Ri/iJi6JSN5v0yz4jQyOCg2F715zXcB/cGnMONRs1dfS5805agDsVOETNbl6M
-	 tEDH45KyuHHjp5xy9YeQIZVcxpOldEWRBh6IheN9QXpKdVrelSM3k+AkEN3+UkzrJp
-	 RFTpwhqlYYsVM6nAfsBgUGEdeX9ozBkIk+S3Tf15S/s787d8mkP7JyQNCgiQVYjIfG
-	 PN5yurEZQKN87fmViypq1c4kXEfE/wp9wddBIElgG5C+jMGvQNqIx2xllazc4Aa8LR
-	 rrgyvbZAfyekehmwY0pFUeLNREbwWPq+ZxqocshUnODjC1PXOzcI9Ias7cnImY994j
-	 f86pHV80AOSexaDPR82Fe2NYzMAZMDCXtfHh45c/Vv0hRfm+HebHSjmN9yh77Bko9x
-	 mVnvX2XW+6JQd1F7RetdYPxXXf6Cx97NYU22+l2rUV3lwWj1rcofWBuT4BhShnu1RP
-	 c8N+BImz9MTUY6Pj1h72mk5Q=
-Received: from rn.tnic (unknown [160.86.253.35])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (P-256) server-signature ECDSA (P-256) server-digest SHA256)
-	(No client certificate requested)
-	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with UTF8SMTPSA id 4886740E0163;
-	Sun, 21 Dec 2025 01:35:44 +0000 (UTC)
-Date: Sun, 21 Dec 2025 02:35:34 +0100
-From: Borislav Petkov <bp@alien8.de>
-To: Ahmed Tiba <ahmed.tiba@arm.com>
-Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
-	tony.luck@intel.com, robh@kernel.org, krzk+dt@kernel.org,
-	conor+dt@kernel.org, catalin.marinas@arm.com, will@kernel.org,
-	linux-arm-kernel@lists.infradead.org, rafael@kernel.org,
-	linux-doc@vger.kernel.org, Dmitry.Lamerov@arm.com,
-	Michael.Zhao2@arm.com
-Subject: Re: [PATCH 00/12] ras: share firmware-first estatus handling
-Message-ID: <20251221013534.GAaUdO5vWqMWAdbWbd@renoirsky.local>
-References: <20251217112845.1814119-1-ahmed.tiba@arm.com>
+	dkim=pass (2048-bit key) header.d=foxido.dev header.i=@foxido.dev header.b="WBFvIfQl";
+	dkim=permerror (0-bit key) header.d=foxido.dev header.i=@foxido.dev header.b="q4WyASaU"
+DKIM-Signature: v=1; a=rsa-sha256; s=202508r; d=foxido.dev; c=relaxed/relaxed;
+	h=Message-ID:Date:Subject:To:From; t=1766341438; bh=ZHlBPPcME7C6jnvNm+5ih+z
+	OvfMMvMSU3Q8a3ToZSzc=; b=WBFvIfQl6gYIp88mgLfFolN0CiZ8m6+TlYZURzMflibIXc4pXI
+	pOulkw6g8ss24HXJrj48s4lOx/u/bOqG8k+vjF0T9yWWiszLrBPwFziwdL+Nv3XJsLh6xihZVVm
+	G5WZZR8y+gyEjo4r+pJPWejtbEkjSJPcDNQbTaP5mQYctKwZQbEaKDxftz5bEVET796WkQHrqUT
+	05ArP4rGyv2ReVqOZ3j7NdAchoQraPj6/42RX9CI0x5+CFZ6Eqbf7BcAZrZzfIRc1ZFIVBUNxtt
+	LnbrjtjkttWqSB/s8jqWOE9DqNXh2U/y0LCy4vM7W950YJIyzYzY8ywU7lo6r+Cfs3w==;
+DKIM-Signature: v=1; a=ed25519-sha256; s=202508e; d=foxido.dev; c=relaxed/relaxed;
+	h=Message-ID:Date:Subject:To:From; t=1766341438; bh=ZHlBPPcME7C6jnvNm+5ih+z
+	OvfMMvMSU3Q8a3ToZSzc=; b=q4WyASaULkOjz5k9rhflsp/oqyfEtNW4/mtWduHqw/COdV9H7o
+	bpTPkVEi9k7+HTuEhGMQ8Wp/JRUvNAX8fgAg==;
+From: Gladyshev Ilya <foxido@foxido.dev>
+To: "foxido @ foxido . dev-cc= Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Len Brown <lenb@kernel.org>,
+	Miguel Ojeda <ojeda@kernel.org>,
+	Boqun Feng <boqun.feng@gmail.com>,
+	Gary Guo <gary@garyguo.net>,
+	=?UTF-8?q?Bj=C3=B6rn=20Roy=20Baron?= <bjorn3_gh@protonmail.com>,
+	Benno Lossin <lossin@kernel.org>,
+	Andreas Hindborg <a.hindborg@kernel.org>,
+	Alice Ryhl <aliceryhl@google.com>,
+	Trevor Gross <tmgross@umich.edu>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Tamir Duberstein <tamird@gmail.com>,
+	Armin Wolf <W_Armin@gmx.de>,
+	platform-driver-x86@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	rust-for-linux@vger.kernel.org,
+	linux-acpi@vger.kernel.org,
+	Gladyshev Ilya <foxido@foxido.dev>
+Subject: [RFC PATCH 1/3] rust: implement wrapper for acpi_object
+Date: Sun, 21 Dec 2025 21:22:37 +0300
+Message-ID: <a28e83201e1413091333509628274807e50ec170.1766331321.git.foxido@foxido.dev>
+X-Mailer: git-send-email 2.51.1.dirty
+In-Reply-To: <cover.1766331321.git.foxido@foxido.dev>
+References: <cover.1766331321.git.foxido@foxido.dev>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20251217112845.1814119-1-ahmed.tiba@arm.com>
+Content-Transfer-Encoding: 8bit
 
-On Wed, Dec 17, 2025 at 11:28:33AM +0000, Ahmed Tiba wrote:
-> Platforms that rely on firmware-first RAS today only get the full Linux
-> handling pipeline when the records arrive through ACPI/APEI GHES. This
-> series lifts the generic parts of GHES into a reusable estatus core, wires
+ACPI Object is represented via union on C-side. On Rust side, it's
+zero-cost type wrapper for each ACPI Type, with individual methods for
+getters and other interactions.
 
-Why is this thing called "error status"?
+Signed-off-by: Gladyshev Ilya <foxido@foxido.dev>
+---
+ rust/kernel/acpi.rs | 103 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 103 insertions(+)
 
-Why is error status so significant so that you need to call it a thing,
-much less a "core"?
-
-It looks like you basically want to dump error records from a system
-which doesn't support GHES into the common path so they get decoded?
-
-I mean, I'm only guessing because I don't get any wiser from this text.
-
-So how about you give the high-level, practical use spiel first? What's
-the use case?
-
-Then we can talk implementation details.
-
-Thx.
-
+diff --git a/rust/kernel/acpi.rs b/rust/kernel/acpi.rs
+index 9b8efa623130..0a164ca8cceb 100644
+--- a/rust/kernel/acpi.rs
++++ b/rust/kernel/acpi.rs
+@@ -63,3 +63,106 @@ macro_rules! acpi_device_table {
+         $crate::module_device_table!("acpi", $module_table_name, $table_name);
+     };
+ }
++
++/// An ACPI object.
++///
++/// This structure represents the Rust abstraction for a C [`struct acpi_object`].
++/// You probably want to convert it into actual object type.
++///
++/// # Example
++/// ```
++/// # use kernel::prelude::*
++/// use kernel::acpi::{AcpiObject};
++///
++/// fn read_first_acpi_byte(obj: &AcpiObject) -> Result<u8> {
++///     if obj.type_id() != AcpiBuffer::ACPI_TYPE {
++///         return Err(EINVAL);
++///     }
++///
++///     let obj: &AcpiBuffer = obj.try_into()?;
++///
++///     Ok(obj.payload()[0])
++/// }
++/// ```
++#[repr(transparent)]
++pub struct AcpiObject(bindings::acpi_object);
++
++impl AcpiObject {
++    /// Returns object type (see `acpitypes.h`)
++    pub fn type_id(&self) -> u32 {
++        // SAFETY: `type` field is valid in all union variants
++        unsafe { self.0.type_ }
++    }
++}
++
++/// Generate AcpiObject subtype
++///
++/// For given subtype implements
++/// - `TryFrom<&AcpiObject> for &SubType` trait
++/// - unsafe try_from_unchecked() with same semantics, but without type check
++macro_rules! acpi_object_subtype {
++    ($subtype_name:ident <- ($acpi_type:ident, $field_name:ident, $union_type:ty)) => {
++        /// Wraps `acpi_object` subtype
++        #[repr(transparent)]
++        pub struct $subtype_name($union_type);
++
++        impl TryFrom<&AcpiObject> for &$subtype_name {
++            type Error = Error;
++
++            fn try_from(value: &AcpiObject) -> core::result::Result<Self, Self::Error> {
++                // SAFETY: type_ field present in all union types and is always valid
++                let real_type = unsafe { value.0.type_ };
++
++                if (real_type != $subtype_name::ACPI_TYPE) {
++                    return Err(EINVAL);
++                }
++
++                // SAFETY: We validated union subtype
++                Ok(unsafe {
++                    ::core::mem::transmute::<&$union_type, &$subtype_name>(&value.0.$field_name)
++                })
++            }
++        }
++
++        impl $subtype_name {
++            /// This ACPI type int value (see `acpitypes.h`)
++            pub const ACPI_TYPE: u32 = bindings::$acpi_type;
++
++            /// Converts AcpiObject reference into exact ACPI type wrapper
++            ///
++            /// # Safety
++            ///
++            /// Assumes that value is correct (`Self`) subtype
++            pub unsafe fn try_from_unchecked(value: &AcpiObject) -> &Self {
++                // SAFETY: Only unsafety comes from unchecked transformation and
++                // we transfered
++                unsafe {
++                    ::core::mem::transmute::<&$union_type, &$subtype_name>(&value.0.$field_name)
++                }
++            }
++        }
++    };
++}
++
++acpi_object_subtype!(AcpiInteger
++    <- (ACPI_TYPE_INTEGER, integer, bindings::acpi_object__bindgen_ty_1));
++acpi_object_subtype!(AcpiString
++    <- (ACPI_TYPE_STRING, string, bindings::acpi_object__bindgen_ty_2));
++acpi_object_subtype!(AcpiBuffer
++    <- (ACPI_TYPE_BUFFER, buffer, bindings::acpi_object__bindgen_ty_3));
++acpi_object_subtype!(AcpiPackage
++    <- (ACPI_TYPE_PACKAGE, package, bindings::acpi_object__bindgen_ty_4));
++acpi_object_subtype!(AcpiReference
++    <- (ACPI_TYPE_LOCAL_REFERENCE, reference, bindings::acpi_object__bindgen_ty_5));
++acpi_object_subtype!(AcpiProcessor
++    <- (ACPI_TYPE_PROCESSOR, processor, bindings::acpi_object__bindgen_ty_6));
++acpi_object_subtype!(AcpiPowerResource
++    <- (ACPI_TYPE_POWER, power_resource, bindings::acpi_object__bindgen_ty_7));
++
++impl AcpiBuffer {
++    /// Get Buffer's content
++    pub fn payload(&self) -> &[u8] {
++        // SAFETY: (pointer, length) indeed represents byte slice
++        unsafe { ::core::slice::from_raw_parts(self.0.pointer, self.0.length as usize) }
++    }
++}
 -- 
-Regards/Gruss,
-    Boris.
+2.51.1.dirty
 
-https://people.kernel.org/tglx/notes-about-netiquette
