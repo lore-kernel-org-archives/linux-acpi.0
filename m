@@ -1,28 +1,29 @@
-Received: from out30-124.freemail.mail.aliyun.com (out30-124.freemail.mail.aliyun.com [115.124.30.124])
+Received: from out30-113.freemail.mail.aliyun.com (out30-113.freemail.mail.aliyun.com [115.124.30.113])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5F0C301002;
-	Mon, 22 Dec 2025 09:44:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36EEA30DEDD;
+	Mon, 22 Dec 2025 09:44:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.113
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766396648; cv=none; b=eTlsnwB/GYjyvYrl/S6CwUt3ueZWEXmbNVK7QHtwoxhy3Yy2rBwOatvt7A9a5Aj76ewdhRUowBosXUMRsiIO6R2jTxDFipNZ6OYHbfcFU1uS1xtuVJayEzUxH7GcWpct/Rao6gNbKvFQ03KbFTODRaUGHajeAUcKpqWu6c+nzkI=
+	t=1766396655; cv=none; b=u4JBCQi7mePgCRISWJUSS2N9ljrLTdk3Z3Symx1je6Kmf3I6ew81fwmVLWoW3uniFrdS54iPgMDNwaDg0Q2bsIe/94yoy/C2f+am14fAVYtV5OIzZmcTG/mIOW9a1hNaeUxgCq4wi7j2fOOtusgrrd+9rmW9HSI6XTHC0Wt6zEs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766396648; c=relaxed/simple;
-	bh=Dn9l5iAt1LX3nZMNVS9XEv5JPGsBVCxOiOZA6U+CUNI=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version:Content-Type; b=Xiid4EsBazv49dg+W1x8VIZzfuHG9cukMnQOS4Gp33wxTyuAc0KGA3zwZK8dftEo+nnXbu4AJZzr94vhOciJdiGa6DwplGYGKMEggzwXttQfm2o/Mr3t/avbCYQZuGSX4vP2uxre2Df+HO0UbPLENPHCq8Gqmx8fdlhIm7OVxdU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=wu2pCobB; arc=none smtp.client-ip=115.124.30.124
+	s=arc-20240116; t=1766396655; c=relaxed/simple;
+	bh=eAZzCI5nkOPouHu8166myOihyvraqZfihihrLhdM7tQ=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=hgKt5L3xZZPekZdRf2pDT4UaRYDZdMIWcWu+B8zhyvLgNdcGpqYgRI8xsKaKW16CC9cGvQD/FgA8Njw/liKHQq6MUSQptMv8MjwM/8hd1Od4lZ7+RwRXrvnMTmilnZdTntaWR5JTxJoW0LqcZKZh26DQvIpCmA6qYfqphmwCRMc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=qMIOdepy; arc=none smtp.client-ip=115.124.30.113
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="wu2pCobB"
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="qMIOdepy"
 DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
 	d=linux.alibaba.com; s=default;
-	t=1766396640; h=From:To:Subject:Date:Message-Id:MIME-Version:Content-Type;
-	bh=N6md+MTP/OxPWxc+hx3M3zlvBANPxgUZT+MUvmFAID0=;
-	b=wu2pCobBhzPRVKEkW+ZipmG2iLpUq8CimqExB0inaiQS9fbZL78NYRw7Is5GEPJHefIHfkHcHFxBNrFMmpBsdloT4Ev+JWi5OKO24754isNftXlL/ua6gxRo3rE1Wqf+dAmuR24/dv9F3TJxw0+nK2xRVQ9w2Q0J0wd/RcGgGx0=
-Received: from localhost(mailfrom:tianruidong@linux.alibaba.com fp:SMTPD_---0WvOT.Jw_1766396636 cluster:ay36)
+	t=1766396648; h=From:To:Subject:Date:Message-Id:MIME-Version;
+	bh=4DCUNTo5xh9M5poTUAlPWmJCzg4ftKAmvhtmbMlI8n4=;
+	b=qMIOdepyv/8nHqdk+EFBFITv27vO4Eyr5z7DY9sEogUIX7uifQI51ixKIOfzVdjOSFl9cg4lzwGczPcF+PZTW1UzPxDfg1wuxYTDMo6yO0ox7puQtuidj3rwJZCOvyte4bhOECFNWvsawZ7+/TwpCU/Wzv+A5+jx9pjgqK3oLno=
+Received: from localhost(mailfrom:tianruidong@linux.alibaba.com fp:SMTPD_---0WvOU8Rx_1766396646 cluster:ay36)
           by smtp.aliyun-inc.com;
-          Mon, 22 Dec 2025 17:43:59 +0800
+          Mon, 22 Dec 2025 17:44:08 +0800
 From: Ruidong Tian <tianruidong@linux.alibaba.com>
 To: catalin.marinas@arm.com,
 	will@kernel.org,
@@ -40,228 +41,120 @@ To: catalin.marinas@arm.com,
 	yazen.ghannam@amd.com,
 	misono.tomohiro@fujitsu.com
 Cc: tianruidong@linux.alibaba.com
-Subject: [PATCH v4 00/17] ARM Error Source Table V2 Support
-Date: Mon, 22 Dec 2025 17:43:33 +0800
-Message-Id: <20251222094351.38792-1-tianruidong@linux.alibaba.com>
+Subject: [PATCH v4 03/17] ras: AEST: support different group format
+Date: Mon, 22 Dec 2025 17:43:36 +0800
+Message-Id: <20251222094351.38792-4-tianruidong@linux.alibaba.com>
 X-Mailer: git-send-email 2.33.1
+In-Reply-To: <20251222094351.38792-1-tianruidong@linux.alibaba.com>
+References: <20251222094351.38792-1-tianruidong@linux.alibaba.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-This series introduces support for the ARM Error Source Table (AEST), aligning
-with version 2.0 of ACPI for Armv8 RAS Extensions [0].
+Support for various AEST group formats allows for flexible configuration of
+AEST node address space sizes and maximum record counts per group.
 
-AEST provides a critical mechanism for hardware to directly notify the
-operating system kernel about RAS errors via interrupts, a concept known as
-Kernel-first error handling. Compared to firmware-first error handling
-(e.g., GHES), AEST offers a more lightweight approach. This efficiency allows
-the OS to potentially report every Corrected Error (CE), enabling upper-layer
-applications to leverage CE information for error prediction[1][2].
+Signed-off-by: Ruidong Tian <tianruidong@linux.alibaba.com>
+---
+ drivers/ras/aest/aest-core.c |  6 ++++--
+ drivers/ras/aest/aest.h      | 39 +++++++++++++++++++++++++++++++++++-
+ 2 files changed, 42 insertions(+), 3 deletions(-)
 
-This series is based on Tyler Baicar's preliminary patches [3], which have not
-yet been sent to the mailing list as v2.
-
-AEST Driver Architecture
-========================
-
-The AEST driver is structured into three primary components:
-  - AEST device: Responsible for handling interrupts, managing the lifecycle
-                 of AEST nodes, and processing error records.
-  - AEST node: Corresponds directly to a RAS node in the hardware
-  - AEST record: Represents a set of RAS registers associated with a specific
-                 error source.
-
-These components are organized hierarchically as follows:
-
- ┌──────────────────────────────────────────────────┐
- │             AEST Driver Device Management        │
- │┌─────────────┐    ┌──────────┐     ┌───────────┐ │
- ││ AEST Device ├─┬─►│AEST Node ├──┬─►│AEST Record│ │
- │└─────────────┘ │  └──────────┘  │  └───────────┘ │
- │                │       .        │  ┌───────────┐ │
- │                │       .        ├─►│AEST Record│ │
- │                │       .        │  └───────────┘ │
- │                │  ┌──────────┐  │        .       │
- │                ├─►│AEST Node │  │        .       │
- │                │  └──────────┘  │        .       │
- │                │                │  ┌───────────┐ │
- │                │  ┌──────────┐  └─►│AEST Record│ │
- │                └─►│AEST Node │     └───────────┘ │
- │                   └──────────┘                   │
- └──────────────────────────────────────────────────┘
-
-AEST Interrupt Handle
-=====================
-
-Upon an AEST interrupt, the driver performs the following sequence:
-1. The AEST device iterates through all registered AEST nodes to identify the
-   specific node(s) and record(s) that reported an error.
-2. Each node typically contains two types of records:
-      - report record: Errors can be located efficiently through a bitmap
-                       in the `ERRGSR` register.
-      - poll record: The node must individually poll all records to determine
-                     if an error has occurred.
-3. process record:
-      - if error is corrected, The CE threshold is reset, and the error event
-        is logged.
-      - if error is defered, Relevant registers are dumped, and
-        `memory_failure()` is invoked.
-      - if error is uncorrected, panic, While UEs typically trigger an
-        exception rather than an interrupt, if detected, the system will panic.
-4. decode record: The AEST driver notifies other relevant drivers, such as
-   EDAC, to further decode the reported RAS register information.
-
-Address Translation
-===================
-
-As described in section 2.2 [0], error addresses reported by AEST records
-may be "node-specific Logical Addresses" rather than the "System Physical
-Addresses" (SPA) used by the kernel. Therefore, the driver needs to translate
-these Logical Addresses (LA) to SPA. This translation mechanism is conceptually
-similar to AMD's Address Translation Logic (ATL) [4], leading patch 0014 to
-introduce a common translation function for both AMD and ARM architectures.
-
-Testing
-===================
-I have tested this series on THead Yitian710 SOC with customized BIOS. Someone
-can also use QEMU[5] for preliminary driver testing.
-
-1. Boot Qemu
-
-qemu-system-aarch64 -smp 4 -m 32G \
-  -cpu host --enable-kvm -machine virt,gic-version=3 \
-  -kernel Image -initrd initrd.cpio.gz \
-  -device virtio-net-pci,netdev=t0 -netdev user,id=t0 \
-  -bios /usr/share/edk2/aarch64/QEMU_EFI.fd  \
-  -append "rdinit=/sbin/init earlycon verbose debug console=ttyAMA0 aest.dyndbg='+pt'" \
-  -nographic -d guest_errors -D qemu.log
-
-2. inject error
-devmem 0x90d0808 l 0xc4800390
-
-2.1 Memory error
-[   64.959849] AEST: {1}[Hardware Error]: Hardware error from AEST memory.90d0000
-[   64.959852] AEST: {1}[Hardware Error]:  Error from memory at SRAT proximity domain 0x0
-[   64.959855] AEST: {1}[Hardware Error]:   ERR0FR: 0x40000080044081
-[   64.959858] AEST: {1}[Hardware Error]:   ERR0CTRL: 0x108
-[   64.959859] AEST: {1}[Hardware Error]:   ERR0STATUS: 0xc4800390
-[   64.959860] AEST: {1}[Hardware Error]:   ERR0ADDR: 0x8400000043344521
-[   64.959861] AEST: {1}[Hardware Error]:   ERR0MISC0: 0x7fff00000000
-[   64.959861] AEST: {1}[Hardware Error]:   ERR0MISC1: 0x0
-[   64.959862] AEST: {1}[Hardware Error]:   ERR0MISC2: 0x0
-[   64.959863] AEST: {1}[Hardware Error]:   ERR0MISC3: 0x0
-[   64.959873] Memory failure: 0x43344: recovery action for free buddy page: Recovered
-
-2.2 CMN error
-[  132.044283] AEST: {2}[Hardware Error]: Hardware error from AEST XP
-[  132.044286] AEST: {2}[Hardware Error]:  Error from vendor hid ARMHC700 uid 0x0
-[  132.044288] AEST: {2}[Hardware Error]:   ERR0FR: 0x48a5
-[  132.044290] AEST: {2}[Hardware Error]:   ERR0CTRL: 0x108
-[  132.044292] AEST: {2}[Hardware Error]:   ERR0STATUS: 0xc4800390
-[  132.044293] AEST: {2}[Hardware Error]:   ERR0ADDR: 0x8400000043344521
-[  132.044295] AEST: {2}[Hardware Error]:   ERR0MISC0: 0x0
-[  132.044296] AEST: {2}[Hardware Error]:   ERR0MISC1: 0x0
-[  132.044298] AEST: {2}[Hardware Error]:   ERR0MISC2: 0x0
-[  132.044299] AEST: {2}[Hardware Error]:   ERR0MISC3: 0x0
-[  132.044302] Memory failure: 0x43344: recovery action for already poisoned page: Failed
-
-[0]: https://developer.arm.com/documentation/den0085/0101/
-[1]: Intel: Predicting Uncorrectable Memory Errors from the Correctable Error History
-[2]: Alibaba. Predicting DRAM-Caused Risky VMs in Large-Scale Clouds. Published in HPCA2025
-[3]: https://lore.kernel.org/all/20211124170708.3874-1-baicar@os.amperecomputing.com/
-[4]: https://lore.kernel.org/all/20240123041401.79812-2-yazen.ghannam@amd.com/
-[5]: https://github.com/winterddd/qemu/tree/error_record
-
-Change from V3:
-https://lore.kernel.org/all/20250115084228.107573-1-tianruidong@linux.alibaba.com/
-1. Add vendor AEST node framework and support CMN700
-2. Borislav Petkov
-    - Split into multiple smaller patches for easier review.
-    - refined the English in the cover letter for better flow.
-3. Accept Tomohiro Misono's comment
-
-Change from V2:
-https://lore.kernel.org/all/20240321025317.114621-1-tianruidong@linux.alibaba.com/
-1. Tomohiro Misono
-    - dump register before panic
-2. Baolin Wang & Shuai Xue: accept all comment.
-3. Support AEST V2.
-
-Change from V1:
-https://lore.kernel.org/all/20240304111517.33001-1-tianruidong@linux.alibaba.com/
-1. Marc Zyngier
-  - Use readq/writeq_relaxed instead of readq/writeq for MMIO address.
-  - Add sync for system register operation.
-  - Use irq_is_percpu_devid() helper to identify a per-CPU interrupt.
-  - Other fix.
-2. Set RAS CE threshold in AEST driver.
-3. Enable RAS interrupt explicitly in driver.
-4. UER and UEO trigger memory_failure other than panic.
-
-Ruidong Tian (17):
-  ACPI/AEST: Parse the AEST table
-  ras: AEST: Add probe/remove for AEST driver
-  ras: AEST: support different group format
-  ras: AEST: Unify the read/write interface for system and MMIO register
-  ras: AEST: Probe RAS system architecture version
-  ras: AEST: Support RAS Common Fault Injection Model Extension
-  ras: AEST: Support CE threshold of error record
-  ras: AEST: Enable and register IRQs
-  ras: AEST: Add cpuhp callback
-  ras: AEST: Introduce AEST driver sysfs interface
-  ras: AEST: Add error count tracking and debugfs interface
-  ras: AEST: Allow configuring CE threshold via debugfs
-  ras: AEST: Introduce AEST inject interface to test AEST driver
-  ras: ATL: Unify ATL interface for ARM64 and AMD
-  ras: AEST: Add framework to process AEST vendor node
-  ras: AEST: support vendor node CMN700
-  trace, ras: add ARM RAS extension trace event
-
- Documentation/ABI/testing/debugfs-aest |   98 +++
- MAINTAINERS                            |   11 +
- arch/arm64/include/asm/arm-cmn.h       |   47 ++
- arch/arm64/include/asm/ras.h           |   95 +++
- drivers/acpi/arm64/Kconfig             |   11 +
- drivers/acpi/arm64/Makefile            |    1 +
- drivers/acpi/arm64/aest.c              |  311 +++++++
- drivers/edac/amd64_edac.c              |    2 +-
- drivers/perf/arm-cmn.c                 |   37 +-
- drivers/ras/Kconfig                    |    1 +
- drivers/ras/Makefile                   |    1 +
- drivers/ras/aest/Kconfig               |   17 +
- drivers/ras/aest/Makefile              |    8 +
- drivers/ras/aest/aest-cmn.c            |  332 ++++++++
- drivers/ras/aest/aest-core.c           | 1057 ++++++++++++++++++++++++
- drivers/ras/aest/aest-inject.c         |  131 +++
- drivers/ras/aest/aest-sysfs.c          |  228 +++++
- drivers/ras/aest/aest.h                |  410 +++++++++
- drivers/ras/amd/atl/core.c             |    4 +-
- drivers/ras/amd/atl/internal.h         |    2 +-
- drivers/ras/amd/atl/umc.c              |    3 +-
- drivers/ras/ras.c                      |   27 +-
- include/linux/acpi_aest.h              |   75 ++
- include/linux/cpuhotplug.h             |    1 +
- include/linux/ras.h                    |   17 +-
- include/ras/ras_event.h                |   71 ++
- 26 files changed, 2939 insertions(+), 59 deletions(-)
- create mode 100644 Documentation/ABI/testing/debugfs-aest
- create mode 100644 arch/arm64/include/asm/arm-cmn.h
- create mode 100644 arch/arm64/include/asm/ras.h
- create mode 100644 drivers/acpi/arm64/aest.c
- create mode 100644 drivers/ras/aest/Kconfig
- create mode 100644 drivers/ras/aest/Makefile
- create mode 100644 drivers/ras/aest/aest-cmn.c
- create mode 100644 drivers/ras/aest/aest-core.c
- create mode 100644 drivers/ras/aest/aest-inject.c
- create mode 100644 drivers/ras/aest/aest-sysfs.c
- create mode 100644 drivers/ras/aest/aest.h
- create mode 100644 include/linux/acpi_aest.h
-
+diff --git a/drivers/ras/aest/aest-core.c b/drivers/ras/aest/aest-core.c
+index c7ef6c13fd44..acebb293ac75 100644
+--- a/drivers/ras/aest/aest-core.c
++++ b/drivers/ras/aest/aest-core.c
+@@ -84,7 +84,7 @@ static int aest_node_set_errgsr(struct aest_device *adev,
+ 		return 0;
+ 
+ 	if (!(anode->interface_hdr->flags & AEST_XFACE_FLAG_ERROR_GROUP)) {
+-		node->errgsr = node->base + ERXGROUP;
++		node->errgsr = node->base + node->group->errgsr_offset;
+ 		return 0;
+ 	}
+ 
+@@ -112,10 +112,12 @@ static int aest_init_node(struct aest_device *adev, struct aest_node *node,
+ 		return -ENOMEM;
+ 	node->record_implemented = anode->record_implemented;
+ 	node->status_reporting = anode->status_reporting;
++	node->group = &aest_group_config[anode->interface_hdr->group_format];
+ 
+ 	address = anode->interface_hdr->address;
+ 	if (address) {
+-		node->base = devm_ioremap(adev->dev, address, PAGE_SIZE);
++		node->base =
++			devm_ioremap(adev->dev, address, node->group->size);
+ 		if (!node->base)
+ 			return -ENOMEM;
+ 	}
+diff --git a/drivers/ras/aest/aest.h b/drivers/ras/aest/aest.h
+index d918240c3f57..3250675e99b7 100644
+--- a/drivers/ras/aest/aest.h
++++ b/drivers/ras/aest/aest.h
+@@ -37,7 +37,15 @@
+ 	dev_dbg((__record)->node->adev->dev, "%s: %s: " format, \
+ 		(__record)->node->name, (__record)->name, ##__VA_ARGS__)
+ 
+-#define ERXGROUP 0xE00
++#define ERXGROUP_4K_OFFSET 0xE00
++#define ERXGROUP_16K_OFFSET 0x3800
++#define ERXGROUP_64K_OFFSET 0xE000
++#define ERXGROUP_4K_SIZE (4 * KB)
++#define ERXGROUP_16K_SIZE (16 * KB)
++#define ERXGROUP_64K_SIZE (64 * KB)
++#define ERXGROUP_4K_ERRGSR_NUM 1
++#define ERXGROUP_16K_ERRGSR_NUM 4
++#define ERXGROUP_64K_ERRGSR_NUM 14
+ 
+ struct aest_record {
+ 	char *name;
+@@ -57,6 +65,34 @@ struct aest_record {
+ 	struct aest_node *node;
+ };
+ 
++struct aest_group {
++	int type;
++	int errgsr_num;
++	size_t size;
++	u64 errgsr_offset;
++};
++
++static const struct aest_group aest_group_config[] = {
++	[ACPI_AEST_NODE_GROUP_FORMAT_4K] = {
++		.type = ACPI_AEST_NODE_GROUP_FORMAT_4K,
++		.errgsr_num = ERXGROUP_4K_ERRGSR_NUM,
++		.size = ERXGROUP_4K_SIZE,
++		.errgsr_offset = ERXGROUP_4K_OFFSET,
++	},
++	[ACPI_AEST_NODE_GROUP_FORMAT_16K] = {
++		.type = ACPI_AEST_NODE_GROUP_FORMAT_16K,
++		.errgsr_num = ERXGROUP_16K_ERRGSR_NUM,
++		.size = ERXGROUP_16K_SIZE,
++		.errgsr_offset = ERXGROUP_16K_OFFSET,
++	},
++	[ACPI_AEST_NODE_GROUP_FORMAT_64K] = {
++		.type = ACPI_AEST_NODE_GROUP_FORMAT_64K,
++		.errgsr_num = ERXGROUP_64K_ERRGSR_NUM,
++		.size = ERXGROUP_64K_SIZE,
++		.errgsr_offset = ERXGROUP_64K_OFFSET,
++	},
++};
++
+ struct aest_node {
+ 	char *name;
+ 	u8 type;
+@@ -86,6 +122,7 @@ struct aest_node {
+ 	 */
+ 	unsigned long *status_reporting;
+ 
++	const struct aest_group *group;
+ 	struct aest_device *adev;
+ 	struct acpi_aest_node *info;
+ 
 -- 
 2.51.2.612.gdc70283dfc
 
