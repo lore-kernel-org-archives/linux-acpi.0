@@ -1,29 +1,29 @@
-Received: from out30-111.freemail.mail.aliyun.com (out30-111.freemail.mail.aliyun.com [115.124.30.111])
+Received: from out30-131.freemail.mail.aliyun.com (out30-131.freemail.mail.aliyun.com [115.124.30.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 228AF301002;
-	Mon, 22 Dec 2025 09:44:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.111
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 066AB30DD36;
+	Mon, 22 Dec 2025 09:44:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766396676; cv=none; b=nPc2b40WsENxixE/4HFJzh4x4ebKa3aF4DPOo1cYaODO/VREcG4bv/jZSWSh3YHtQM32bix7uujT6hKyyU+vf3VgQXmRSmxEwjCjKCkrrVIntxPtvvb2Iaqpm1/fqmlzKpuPn3YWBFAoRQDAZDGuCsplM1mkc2vfZB/nEsvVvwk=
+	t=1766396677; cv=none; b=bGH/dzhNV86LptlV8mhOk0yYu5u9NOV0c4ykf2USdj6AHMrU0bp2wyxImA/LVK0mxguN2oSRxvHYUmuhu9tNAeLHMPrZ4u9wf46/O/k8uhSVSD2zZPiXdI8XZWgCV14DkJVIkcy8b/bmU+3n2FDth5Bc3XP1vMw8QcUfezLWbQ0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766396676; c=relaxed/simple;
-	bh=SO0/560UPK92U6WvkHVzv1MkeC2T9tDsd9Y4GT+sl+s=;
+	s=arc-20240116; t=1766396677; c=relaxed/simple;
+	bh=/j4Kqhzw+eN/aroO4vc2Dn6e+pTWroPHTzQ/7rhp40c=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=TzIxvQWIg+iYfpTV8PYLqqHLoCCWXqLrEdvjgxyHGYwBtOugj+KEHfmDVWsxZ7sPEikzaQWY+fzpDN/zYkXfmsMQ54tM7uscaKvY8soEW7c+bmAhhpUCivZEuFTdBW7jZG1NTIrZsITLwZWQ5gbRAidm6ZwhvN6pCLnThYNVe6w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=iIA2kEZf; arc=none smtp.client-ip=115.124.30.111
+	 MIME-Version; b=uHURBZ+mD+gl3tRBchF1UgHGOPylISzoK0adzZDoRpo/cPADyQCadkoq80awwNiTdQN0ZPaDerhlyFtj6FnqlaYeINcLG9UIxWs7tXYjOTb+lrR7ecCgPKbz5/oCACMLL5Q9W0jo42tUc7IszOHwW8MRF64u436n88P+hycFRcs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=WTFGV932; arc=none smtp.client-ip=115.124.30.131
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="iIA2kEZf"
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="WTFGV932"
 DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
 	d=linux.alibaba.com; s=default;
-	t=1766396665; h=From:To:Subject:Date:Message-Id:MIME-Version;
-	bh=72cxXQagokwmA/cZnex2Pm94HvbMxhBEqjUGllZTVzo=;
-	b=iIA2kEZfqEB0N+vusbQqkBnO5BonRWHtz21fniMNqnd7PHuOdYjLTnoYYM7X2dsue7coqtgu7uJVo3N//aZA08uE5OspyPN/ENLQnyFu9tIzGptB2tTuwz612a/rRyEbI73tXs4lctwBmtgsEr83lVgzOIJ0nmbJtScjl/Kc2iY=
-Received: from localhost(mailfrom:tianruidong@linux.alibaba.com fp:SMTPD_---0WvOT.TX_1766396662 cluster:ay36)
+	t=1766396671; h=From:To:Subject:Date:Message-Id:MIME-Version;
+	bh=/oEXVsmFVs0xqk4gMISYSdlIJXvCPibEK0lRcifwNT0=;
+	b=WTFGV932ihKQfJ0f+L67QeoLmnyxeYdwc9g/T5g2oSwtZLWD/LMyJNkEq4KECZ5pXmav6fhYtA9ryIAh2/q5k+KZxHPO5SiwkrhIIJXlcxsBfvhC50sjukybIEp2h1XvAbJRr+MdXfi74EWzFONsDLC1ETq4hvQFqYzmNq3aess=
+Received: from localhost(mailfrom:tianruidong@linux.alibaba.com fp:SMTPD_---0WvOk-hQ_1766396669 cluster:ay36)
           by smtp.aliyun-inc.com;
-          Mon, 22 Dec 2025 17:44:24 +0800
+          Mon, 22 Dec 2025 17:44:30 +0800
 From: Ruidong Tian <tianruidong@linux.alibaba.com>
 To: catalin.marinas@arm.com,
 	will@kernel.org,
@@ -41,9 +41,9 @@ To: catalin.marinas@arm.com,
 	yazen.ghannam@amd.com,
 	misono.tomohiro@fujitsu.com
 Cc: tianruidong@linux.alibaba.com
-Subject: [PATCH v4 09/17] ras: AEST: Add cpuhp callback
-Date: Mon, 22 Dec 2025 17:43:42 +0800
-Message-Id: <20251222094351.38792-10-tianruidong@linux.alibaba.com>
+Subject: [PATCH v4 11/17] ras: AEST: Add error count tracking and debugfs interface
+Date: Mon, 22 Dec 2025 17:43:44 +0800
+Message-Id: <20251222094351.38792-12-tianruidong@linux.alibaba.com>
 X-Mailer: git-send-email 2.33.1
 In-Reply-To: <20251222094351.38792-1-tianruidong@linux.alibaba.com>
 References: <20251222094351.38792-1-tianruidong@linux.alibaba.com>
@@ -55,201 +55,202 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Move the configuration of interrupts and CE thresholds
-into the CPU hotplug callbacks for the per-CPU AEST node.
+This commit introduces error counting functionality for AEST records.
+Previously, error statistics were not directly available for individual
+error records or AEST nodes.
 
 Signed-off-by: Ruidong Tian <tianruidong@linux.alibaba.com>
 ---
- drivers/ras/aest/aest-core.c | 118 ++++++++++++++++++++++++++++++++++-
- drivers/ras/aest/aest.h      |   5 ++
- include/linux/cpuhotplug.h   |   1 +
- 3 files changed, 121 insertions(+), 3 deletions(-)
+ Documentation/ABI/testing/debugfs-aest | 14 ++++++
+ drivers/ras/aest/aest-core.c           | 21 +++++++++
+ drivers/ras/aest/aest-sysfs.c          | 64 ++++++++++++++++++++++++++
+ drivers/ras/aest/aest.h                | 10 ++++
+ 4 files changed, 109 insertions(+)
 
+diff --git a/Documentation/ABI/testing/debugfs-aest b/Documentation/ABI/testing/debugfs-aest
+index 1152fc83c3fc..a984fcedede2 100644
+--- a/Documentation/ABI/testing/debugfs-aest
++++ b/Documentation/ABI/testing/debugfs-aest
+@@ -23,9 +23,23 @@ Description:
+ 		See more at:
+ 			https://developer.arm.com/documentation/den0085/latest/
+ 
++What:		/sys/kernel/debug/aest/<name>.<id>/<node_name>/err_count
++Date:		Dec 2025
++KernelVersion	6.19
++Contact:	Ruidong Tian <tianruidong@linux.alibaba.com>
++Description:
++		(RO) Outputs error statistics for all error records of this node.
++
+ What:		/sys/kernel/debug/aest/<name>.<id>/<node_name>/record<index>/err_*
+ Date:		Dec 2025
+ KernelVersion	6.19
+ Contact:	Ruidong Tian <tianruidong@linux.alibaba.com>
+ Description:
+ 		(RO) Read err_* register and return val.
++
++What:		/sys/kernel/debug/aest/<name>.<id>/<node_name>/record<index>/err_count
++Date:		Dec 2025
++KernelVersion	6.19
++Contact:	Ruidong Tian <tianruidong@linux.alibaba.com>
++Description:
++		(RO) Outputs error statistics for all this records.
 diff --git a/drivers/ras/aest/aest-core.c b/drivers/ras/aest/aest-core.c
-index 5ec0ba38f51b..686dde6f2e68 100644
+index 3bcc635cf8e4..75cca98024ad 100644
 --- a/drivers/ras/aest/aest-core.c
 +++ b/drivers/ras/aest/aest-core.c
-@@ -5,6 +5,7 @@
-  * Copyright (c) 2025, Alibaba Group.
-  */
+@@ -170,6 +170,27 @@ static int aest_node_gen_pool_add(struct aest_device *adev,
+ 	init_aest_event(event, record, regs);
+ 	llist_add(&event->llnode, &adev->event_list);
  
-+#include <linux/cpu.h>
- #include <linux/interrupt.h>
- #include <linux/panic.h>
- #include <linux/platform_device.h>
-@@ -563,8 +564,6 @@ static int aest_init_record(struct aest_record *record, int i,
- 	record->addressing_mode = test_bit(i, node->info->addressing_mode);
- 	record->index = i;
- 	record->node = node;
--	aest_set_ce_threshold(record);
--	aest_enable_irq(record);
- 
- 	aest_record_dbg(record, "base: %p, index: %d, address mode: %x\n",
- 			record->regs_base, record->index,
-@@ -572,9 +571,113 @@ static int aest_init_record(struct aest_record *record, int i,
++	if (regs->err_status & ERR_STATUS_CE)
++		record->count.ce++;
++	if (regs->err_status & ERR_STATUS_DE)
++		record->count.de++;
++	if (regs->err_status & ERR_STATUS_UE) {
++		switch (regs->err_status & ERR_STATUS_UET) {
++		case ERR_STATUS_UET_UC:
++			record->count.uc++;
++			break;
++		case ERR_STATUS_UET_UEU:
++			record->count.ueu++;
++			break;
++		case ERR_STATUS_UET_UER:
++			record->count.uer++;
++			break;
++		case ERR_STATUS_UET_UEO:
++			record->count.ueo++;
++			break;
++		}
++	}
++
  	return 0;
  }
  
-+static void aest_online_record(struct aest_record *record, void *data)
+diff --git a/drivers/ras/aest/aest-sysfs.c b/drivers/ras/aest/aest-sysfs.c
+index f3b5427ff4f0..b54e879506aa 100644
+--- a/drivers/ras/aest/aest-sysfs.c
++++ b/drivers/ras/aest/aest-sysfs.c
+@@ -7,6 +7,46 @@
+ 
+ #include "aest.h"
+ 
++static void
++aest_error_count(struct aest_record *record, void *data)
 +{
-+	if (record_read(record, ERXFR) & ERR_FR_CE)
-+		aest_set_ce_threshold(record);
++	struct record_count *count = data;
 +
-+	aest_enable_irq(record);
++	count->ce += record->count.ce;
++	count->de += record->count.de;
++	count->uc += record->count.uc;
++	count->ueu += record->count.ueu;
++	count->uer += record->count.uer;
++	count->ueo += record->count.ueo;
 +}
 +
-+static void aest_online_oncore_node(struct aest_node *node)
++/*******************************************************************************
++ *
++ * Debugfs for AEST node
++ *
++ ******************************************************************************/
++
++static int aest_node_err_count_show(struct seq_file *m, void *data)
 +{
-+	int count;
-+
-+	count = aest_proc(node);
-+	aest_node_dbg(node, "Find %d error on CPU%d before AEST probe\n", count,
-+		      smp_processor_id());
-+
-+	aest_node_foreach_record(aest_online_record, node, NULL,
-+				 node->record_implemented);
-+
-+	aest_node_foreach_record(aest_online_record, node, NULL,
-+				 node->status_reporting);
-+}
-+
-+static void aest_online_oncore_dev(void *data)
-+{
-+	int fhi_irq, eri_irq, i;
-+	struct aest_device *adev = this_cpu_ptr(data);
-+
-+	for (i = 0; i < adev->node_cnt; i++)
-+		aest_online_oncore_node(&adev->nodes[i]);
-+
-+	fhi_irq = adev->irq[ACPI_AEST_NODE_FAULT_HANDLING];
-+	if (fhi_irq > 0)
-+		enable_percpu_irq(fhi_irq, IRQ_TYPE_NONE);
-+	eri_irq = adev->irq[ACPI_AEST_NODE_ERROR_RECOVERY];
-+	if (eri_irq > 0)
-+		enable_percpu_irq(eri_irq, IRQ_TYPE_NONE);
-+}
-+
-+static void aest_offline_oncore_dev(void *data)
-+{
-+	int fhi_irq, eri_irq;
-+	struct aest_device *adev = this_cpu_ptr(data);
-+
-+	fhi_irq = adev->irq[ACPI_AEST_NODE_FAULT_HANDLING];
-+	if (fhi_irq > 0)
-+		disable_percpu_irq(fhi_irq);
-+	eri_irq = adev->irq[ACPI_AEST_NODE_ERROR_RECOVERY];
-+	if (eri_irq > 0)
-+		disable_percpu_irq(eri_irq);
-+}
-+
-+static void aest_online_dev(struct aest_device *adev)
-+{
-+	int count, i;
-+	struct aest_node *node;
-+
-+	for (i = 0; i < adev->node_cnt; i++) {
-+		node = &adev->nodes[i];
-+
-+		if (!node->name)
-+			continue;
-+
-+		count = aest_proc(node);
-+		aest_node_dbg(node, "Find %d error before AEST probe\n", count);
-+
-+		aest_config_irq(node);
-+
-+		aest_node_foreach_record(aest_online_record, node, NULL,
-+					 node->record_implemented);
-+		aest_node_foreach_record(aest_online_record, node, NULL,
-+					 node->status_reporting);
-+	}
-+}
-+
-+static int aest_starting_cpu(unsigned int cpu)
-+{
-+	pr_debug("CPU%d starting\n", cpu);
-+	aest_online_oncore_dev(&percpu_adev);
-+
-+	return 0;
-+}
-+
-+static int aest_dying_cpu(unsigned int cpu)
-+{
-+	pr_debug("CPU%d dying\n", cpu);
-+	aest_offline_oncore_dev(&percpu_adev);
-+
-+	return 0;
-+}
-+
- static void aest_device_remove(struct platform_device *pdev)
- {
-+	struct aest_device *adev = platform_get_drvdata(pdev);
++	struct aest_node *node = m->private;
++	struct record_count count = { 0 };
 +	int i;
 +
- 	platform_set_drvdata(pdev, NULL);
++	for (i = 0; i < node->record_count; i++)
++		aest_error_count(&node->records[i], &count);
 +
-+	if (adev->type != ACPI_AEST_PROCESSOR_ERROR_NODE)
-+		return;
++	seq_printf(m, "CE: %llu\n"
++				"DE: %llu\n"
++				"UC: %llu\n"
++				"UEU: %llu\n"
++				"UEO: %llu\n"
++				"UER: %llu\n",
++				count.ce, count.de, count.uc, count.ueu,
++				count.uer, count.ueo);
++	return 0;
++}
++DEFINE_SHOW_ATTRIBUTE(aest_node_err_count);
 +
-+	on_each_cpu(aest_offline_oncore_dev, adev->adev_oncore, 1);
+ /*******************************************************************************
+  *
+  * Attribute for AEST record
+@@ -37,6 +77,25 @@ DEFINE_AEST_DEBUGFS_ATTR(err_misc1, ERXMISC1);
+ DEFINE_AEST_DEBUGFS_ATTR(err_misc2, ERXMISC2);
+ DEFINE_AEST_DEBUGFS_ATTR(err_misc3, ERXMISC3);
+ 
++static int aest_record_err_count_show(struct seq_file *m, void *data)
++{
++	struct aest_record *record = m->private;
++	struct record_count count = { 0 };
 +
-+	for (i = 0; i < MAX_GSI_PER_NODE; i++) {
-+		if (adev->irq[i])
-+			free_percpu_irq(adev->irq[i], adev->adev_oncore);
-+	}
++	aest_error_count(record, &count);
++
++	seq_printf(m, "CE: %llu\n"
++				"DE: %llu\n"
++				"UC: %llu\n"
++				"UEU: %llu\n"
++				"UEO: %llu\n"
++				"UER: %llu\n",
++				count.ce, count.de, count.uc, count.ueu,
++				count.uer, count.ueo);
++	return 0;
++}
++DEFINE_SHOW_ATTRIBUTE(aest_record_err_count);
++
+ static void aest_record_init_debugfs(struct aest_record *record)
+ {
+ 	debugfs_create_file("err_fr", 0600, record->debugfs, record,
+@@ -55,6 +114,8 @@ static void aest_record_init_debugfs(struct aest_record *record)
+ 								&err_misc2_ops);
+ 	debugfs_create_file("err_misc3", 0600, record->debugfs, record,
+ 								&err_misc3_ops);
++	debugfs_create_file("err_count", 0400, record->debugfs, record,
++						&aest_record_err_count_fops);
  }
  
- static char *alloc_aest_node_name(struct aest_node *node)
-@@ -682,7 +785,6 @@ static int aest_init_node(struct aest_device *adev, struct aest_node *node,
- 				return -ENOMEM;
- 		}
- 	}
--	aest_config_irq(node);
+ static void
+@@ -63,6 +124,9 @@ aest_node_init_debugfs(struct aest_node *node)
+ 	int i;
+ 	struct aest_record *record;
  
- 	ret = aest_node_set_errgsr(adev, node);
- 	if (ret)
-@@ -826,6 +928,16 @@ static int aest_device_probe(struct platform_device *pdev)
- 		aest_dev_err(adev, "register irq failed\n");
- 		return ret;
- 	}
++	debugfs_create_file("err_count", 0400, node->debugfs, node,
++					&aest_node_err_count_fops);
 +
-+	if (aest_dev_is_oncore(adev))
-+		ret = cpuhp_setup_state(CPUHP_AP_ARM_AEST_STARTING,
-+					"drivers/acpi/arm64/aest:starting",
-+					aest_starting_cpu, aest_dying_cpu);
-+	else
-+		aest_online_dev(adev);
-+	if (ret)
-+		return ret;
-+
- 	platform_set_drvdata(pdev, adev);
- 
- 	aest_dev_dbg(adev, "Node cnt: %x, id: %x\n", adev->node_cnt, adev->id);
+ 	for (i = 0; i < node->record_count; i++) {
+ 		record = &node->records[i];
+ 		if (!record->name)
 diff --git a/drivers/ras/aest/aest.h b/drivers/ras/aest/aest.h
-index a5e43b2a2e90..f85e81ff35a6 100644
+index ceb9e32bcee3..802430857dc4 100644
 --- a/drivers/ras/aest/aest.h
 +++ b/drivers/ras/aest/aest.h
-@@ -339,3 +339,8 @@ static inline void aest_sync(struct aest_node *node)
- 	if (node->type == ACPI_AEST_PROCESSOR_ERROR_NODE)
- 		isb();
- }
+@@ -116,6 +116,15 @@ struct ce_threshold {
+ 	u64 reg_val;
+ };
+ 
++struct record_count {
++	u64 ce;
++	u64 de;
++	u64 uc;
++	u64 uer;
++	u64 ueo;
++	u64 ueu;
++};
 +
-+static inline bool aest_dev_is_oncore(struct aest_device *adev)
-+{
-+	return adev->type == ACPI_AEST_PROCESSOR_ERROR_NODE;
-+}
-diff --git a/include/linux/cpuhotplug.h b/include/linux/cpuhotplug.h
-index 62cd7b35a29c..831fe9011943 100644
---- a/include/linux/cpuhotplug.h
-+++ b/include/linux/cpuhotplug.h
-@@ -179,6 +179,7 @@ enum cpuhp_state {
- 	CPUHP_AP_HYPERV_TIMER_STARTING,
- 	/* Must be the last timer callback */
- 	CPUHP_AP_DUMMY_TIMER_STARTING,
-+	CPUHP_AP_ARM_AEST_STARTING,
- 	CPUHP_AP_ARM_XEN_STARTING,
- 	CPUHP_AP_ARM_XEN_RUNSTATE_STARTING,
- 	CPUHP_AP_ARM_CORESIGHT_STARTING,
+ struct aest_record {
+ 	char *name;
+ 	int index;
+@@ -136,6 +145,7 @@ struct aest_record {
+ 
+ 	struct ce_threshold ce;
+ 	enum ras_ce_threshold threshold_type;
++	struct record_count count;
+ 	struct dentry *debugfs;
+ };
+ 
 -- 
 2.51.2.612.gdc70283dfc
 
