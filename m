@@ -1,29 +1,29 @@
-Received: from out30-113.freemail.mail.aliyun.com (out30-113.freemail.mail.aliyun.com [115.124.30.113])
+Received: from out30-131.freemail.mail.aliyun.com (out30-131.freemail.mail.aliyun.com [115.124.30.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17B283126C1;
-	Mon, 22 Dec 2025 09:44:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.113
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 939FC3128B8;
+	Mon, 22 Dec 2025 09:44:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766396678; cv=none; b=okydaJ6xhzw//EvvoCUZOTKC/1ptQwcbK7HYhLIpcJhn3ZKFr1oNGBOuc/A5yqoyEhzrI9qx0mkKRhhsi1pAT2VPAotcyp0qK228GG+OnYZczrMuluDQUvezVbY19mvCDopQzT1CNrr1n30aWII7Dknutzu13/qJrkk0CvrNERQ=
+	t=1766396683; cv=none; b=qNMZMphWmawA3QXNGj9svZbh5z2mYmcgA/ZEpeqh/4nFFNqmilDSIwp6gaVXednv1wqpo5hxdtOP14mL3t4gBZMoyypi6WnbtQDepxmvaaU0I4FpPsCYb4bjYrPN2FzBaRkTEUbuj0Qho6S3b5qwQF5lAjo2Gg0IMbed8UDALVM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766396678; c=relaxed/simple;
-	bh=RoBhdZh2mMQ2EdPvodoFkQFkBo5ObbvfC8qDfvU9TOM=;
+	s=arc-20240116; t=1766396683; c=relaxed/simple;
+	bh=xC1SOZNAbMOTNg3DPTnK04IkfoeXo/89tWhiQrdjPbU=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=UHfVmp2pHdoR82INAz2eRq+p/NajMc6Qsjez5aw6k7ppSv1gZio9OInz+MinFDdd85Xr3uW0ws+qOYdeeVQFC0aHS4Nu+UmV0IrsaCM8+mJ2pmBBvUL41U2YMhoXT9Xssncr2JDPw4NIyfHlKxEHQjENzRP0Dx48KOqsqRO3cQY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=rMF2aAbi; arc=none smtp.client-ip=115.124.30.113
+	 MIME-Version; b=kcZUU4q534a5StJNpR9wH2AZ3ReMv2U41JwfxK6wlpqY1521z/Jx3M+TuZxl+3FGOMsETY2lDV8mV8903ISB3HZW9qo2Sg7HLcwKbP2xd206fQFzfwqeirDsn5kmMU3JpWYXTrGqZHUNY5nkuQ2E2NMojB8kGf+8bd1EfqPyN6s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=ydqZ8wnY; arc=none smtp.client-ip=115.124.30.131
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="rMF2aAbi"
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="ydqZ8wnY"
 DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
 	d=linux.alibaba.com; s=default;
-	t=1766396673; h=From:To:Subject:Date:Message-Id:MIME-Version;
-	bh=DnOhC3gDzjPKL1u8Gf/D8zWgsYNDRy9TN8Idu01s0JM=;
-	b=rMF2aAbibPp3HYvGlbGj+pKiAZyi4vBsuH3sC4gdekfGbhGTfDiyA8U3fqmylOSGolkLEazsMuqL10uMhvKj0qwLWxxJFSwXo0Z7IMMY0hpTGqZjbQmSc08AvlS4D4cvyDkyARf/snQ91VmsdSN8Jl3A+KVPw3EiS7zMZfkfO4Q=
-Received: from localhost(mailfrom:tianruidong@linux.alibaba.com fp:SMTPD_---0WvOT.WZ_1766396671 cluster:ay36)
+	t=1766396678; h=From:To:Subject:Date:Message-Id:MIME-Version;
+	bh=LbcgRIezxDawY7xcu3ovX9hkaM5X1wVXgi1CFgzLbWo=;
+	b=ydqZ8wnYzU6Te4rFlWlBcLIrZfCHsuMFGjVUJQhGmFd+1To21SePwq+WgJ8f63fGhQztpQwn9olU9FRdR6wVjo941IcS7vLySO7HTZBViM4wR4hwwXIPYAX4kqJUzYpJz+GRhjhN7MqIy6M8BAs4a1Ysu1MxGBqugrq8m8p4vAc=
+Received: from localhost(mailfrom:tianruidong@linux.alibaba.com fp:SMTPD_---0WvOT.Y9_1766396676 cluster:ay36)
           by smtp.aliyun-inc.com;
-          Mon, 22 Dec 2025 17:44:33 +0800
+          Mon, 22 Dec 2025 17:44:37 +0800
 From: Ruidong Tian <tianruidong@linux.alibaba.com>
 To: catalin.marinas@arm.com,
 	will@kernel.org,
@@ -41,9 +41,9 @@ To: catalin.marinas@arm.com,
 	yazen.ghannam@amd.com,
 	misono.tomohiro@fujitsu.com
 Cc: tianruidong@linux.alibaba.com
-Subject: [PATCH v4 12/17] ras: AEST: Allow configuring CE threshold via debugfs
-Date: Mon, 22 Dec 2025 17:43:45 +0800
-Message-Id: <20251222094351.38792-13-tianruidong@linux.alibaba.com>
+Subject: [PATCH v4 14/17] ras: ATL: Unified ATL interface for ARM64 and AMD
+Date: Mon, 22 Dec 2025 17:43:47 +0800
+Message-Id: <20251222094351.38792-15-tianruidong@linux.alibaba.com>
 X-Mailer: git-send-email 2.33.1
 In-Reply-To: <20251222094351.38792-1-tianruidong@linux.alibaba.com>
 References: <20251222094351.38792-1-tianruidong@linux.alibaba.com>
@@ -55,117 +55,180 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This commit introduces the ability to configure the Corrected Error (CE)
-threshold for AEST records through debugfs. This allows administrators to
-dynamically adjust the CE threshold for error reporting.
+Translate device normalize address in AMD, also named logical address,
+to system physical address is a common interface in RAS. Provides common
+interface both for AMD and ARM.
 
 Signed-off-by: Ruidong Tian <tianruidong@linux.alibaba.com>
 ---
- Documentation/ABI/testing/debugfs-aest | 16 ++++++++++
- drivers/ras/aest/aest-sysfs.c          | 42 ++++++++++++++++++++++++++
- 2 files changed, 58 insertions(+)
+ drivers/edac/amd64_edac.c      |  2 +-
+ drivers/ras/aest/aest-core.c   |  3 +++
+ drivers/ras/amd/atl/core.c     |  4 ++--
+ drivers/ras/amd/atl/internal.h |  2 +-
+ drivers/ras/amd/atl/umc.c      |  3 ++-
+ drivers/ras/ras.c              | 24 +++++++++++-------------
+ include/linux/ras.h            |  9 ++++-----
+ 7 files changed, 24 insertions(+), 23 deletions(-)
 
-diff --git a/Documentation/ABI/testing/debugfs-aest b/Documentation/ABI/testing/debugfs-aest
-index a984fcedede2..76ba1b77b274 100644
---- a/Documentation/ABI/testing/debugfs-aest
-+++ b/Documentation/ABI/testing/debugfs-aest
-@@ -23,6 +23,14 @@ Description:
- 		See more at:
- 			https://developer.arm.com/documentation/den0085/latest/
+diff --git a/drivers/edac/amd64_edac.c b/drivers/edac/amd64_edac.c
+index 2391f3469961..478cfef37892 100644
+--- a/drivers/edac/amd64_edac.c
++++ b/drivers/edac/amd64_edac.c
+@@ -2847,7 +2847,7 @@ static void decode_umc_error(int node_id, struct mce *m)
+ 	a_err.ipid = m->ipid;
+ 	a_err.cpu  = m->extcpu;
  
-+What:		/sys/kernel/debug/aest/<name>.<id>/<node_name>/ce_threshold
-+Date:		Dec 2025
-+KernelVersion	6.19
-+Contact:	Ruidong Tian <tianruidong@linux.alibaba.com>
-+Description:
-+		(WO) Write the ce threshold to all records of this node. Failed
-+		if input exceeded the maximum threshold
+-	sys_addr = amd_convert_umc_mca_addr_to_sys_addr(&a_err);
++	sys_addr = convert_ras_la_to_spa(&a_err);
+ 	if (IS_ERR_VALUE(sys_addr)) {
+ 		err.err_code = ERR_NORM_ADDR;
+ 		goto log_error;
+diff --git a/drivers/ras/aest/aest-core.c b/drivers/ras/aest/aest-core.c
+index a290b482bf8b..052211ca3e2a 100644
+--- a/drivers/ras/aest/aest-core.c
++++ b/drivers/ras/aest/aest-core.c
+@@ -235,6 +235,9 @@ static void aest_node_pool_process(struct work_struct *work)
+ 		    (status & (ERR_STATUS_UE | ERR_STATUS_DE))) {
+ 			if (event->addressing_mode == AEST_ADDREESS_SPA)
+ 				addr = event->regs.err_addr & PHYS_MASK;
++			else
++				addr = convert_ras_la_to_spa(event);
 +
- What:		/sys/kernel/debug/aest/<name>.<id>/<node_name>/err_count
- Date:		Dec 2025
- KernelVersion	6.19
-@@ -37,6 +45,14 @@ Contact:	Ruidong Tian <tianruidong@linux.alibaba.com>
- Description:
- 		(RO) Read err_* register and return val.
+ 			aest_handle_memory_failure(addr);
+ 		}
  
-+What:		/sys/kernel/debug/aest/<name>.<id>/<node_name>/record<index>/ce_threshold
-+Date:		Dec 2025
-+KernelVersion	6.19
-+Contact:	Ruidong Tian <tianruidong@linux.alibaba.com>
-+Description:
-+		(RW) Read and write the ce threshold to this record. Failed
-+		if input exceeded the maximum threshold
-+
- What:		/sys/kernel/debug/aest/<name>.<id>/<node_name>/record<index>/err_count
- Date:		Dec 2025
- KernelVersion	6.19
-diff --git a/drivers/ras/aest/aest-sysfs.c b/drivers/ras/aest/aest-sysfs.c
-index b54e879506aa..392e7ad8328e 100644
---- a/drivers/ras/aest/aest-sysfs.c
-+++ b/drivers/ras/aest/aest-sysfs.c
-@@ -7,6 +7,25 @@
+diff --git a/drivers/ras/amd/atl/core.c b/drivers/ras/amd/atl/core.c
+index 0f7cd6dab0b0..4f44c0ce97ec 100644
+--- a/drivers/ras/amd/atl/core.c
++++ b/drivers/ras/amd/atl/core.c
+@@ -210,7 +210,7 @@ static int __init amd_atl_init(void)
  
- #include "aest.h"
+ 	/* Increment this module's recount so that it can't be easily unloaded. */
+ 	__module_get(THIS_MODULE);
+-	amd_atl_register_decoder(convert_umc_mca_addr_to_sys_addr);
++	atl_register_decoder(convert_umc_mca_addr_to_sys_addr);
  
-+static void
-+aest_store_threshold(struct aest_record *record, void *data)
-+{
-+	u64 err_misc0, *threshold = data;
-+	struct ce_threshold *ce = &record->ce;
-+
-+	if (*threshold > ce->info->max_count)
-+		return;
-+
-+	ce->threshold = *threshold;
-+	ce->count = ce->info->max_count - ce->threshold + 1;
-+
-+	err_misc0 = record_read(record, ERXMISC0);
-+	ce->reg_val = (err_misc0 & ~ce->info->mask) |
-+			(ce->count << ce->info->shift);
-+
-+	record_write(record, ERXMISC0, ce->reg_val);
-+}
-+
- static void
- aest_error_count(struct aest_record *record, void *data)
+ 	pr_info("AMD Address Translation Library initialized\n");
+ 	return 0;
+@@ -222,7 +222,7 @@ static int __init amd_atl_init(void)
+  */
+ static void __exit amd_atl_exit(void)
  {
-@@ -77,6 +96,27 @@ DEFINE_AEST_DEBUGFS_ATTR(err_misc1, ERXMISC1);
- DEFINE_AEST_DEBUGFS_ATTR(err_misc2, ERXMISC2);
- DEFINE_AEST_DEBUGFS_ATTR(err_misc3, ERXMISC3);
- 
-+static int record_ce_threshold_get(void *data, u64 *val)
-+{
-+	struct aest_record *record = data;
-+
-+	*val = record->ce.threshold;
-+	return 0;
-+}
-+
-+static int record_ce_threshold_set(void *data, u64 val)
-+{
-+	u64 threshold = val;
-+	struct aest_record *record = data;
-+
-+	aest_store_threshold(record, &threshold);
-+
-+	return 0;
-+}
-+
-+DEFINE_DEBUGFS_ATTRIBUTE(record_ce_threshold_ops, record_ce_threshold_get,
-+					record_ce_threshold_set, "%llu\n");
-+
- static int aest_record_err_count_show(struct seq_file *m, void *data)
- {
- 	struct aest_record *record = m->private;
-@@ -116,6 +156,8 @@ static void aest_record_init_debugfs(struct aest_record *record)
- 								&err_misc3_ops);
- 	debugfs_create_file("err_count", 0400, record->debugfs, record,
- 						&aest_record_err_count_fops);
-+	debugfs_create_file("ce_threshold", 0600, record->debugfs, record,
-+						&record_ce_threshold_ops);
+-	amd_atl_unregister_decoder();
++	atl_unregister_decoder();
  }
  
- static void
+ module_init(amd_atl_init);
+diff --git a/drivers/ras/amd/atl/internal.h b/drivers/ras/amd/atl/internal.h
+index 82a56d9c2be1..423a6193fdc7 100644
+--- a/drivers/ras/amd/atl/internal.h
++++ b/drivers/ras/amd/atl/internal.h
+@@ -279,7 +279,7 @@ int denormalize_address(struct addr_ctx *ctx);
+ int dehash_address(struct addr_ctx *ctx);
+ 
+ unsigned long norm_to_sys_addr(u8 socket_id, u8 die_id, u8 coh_st_inst_id, unsigned long addr);
+-unsigned long convert_umc_mca_addr_to_sys_addr(struct atl_err *err);
++unsigned long convert_umc_mca_addr_to_sys_addr(void *data);
+ 
+ u64 add_base_and_hole(struct addr_ctx *ctx, u64 addr);
+ u64 remove_base_and_hole(struct addr_ctx *ctx, u64 addr);
+diff --git a/drivers/ras/amd/atl/umc.c b/drivers/ras/amd/atl/umc.c
+index befc616d5e8a..57a78c380467 100644
+--- a/drivers/ras/amd/atl/umc.c
++++ b/drivers/ras/amd/atl/umc.c
+@@ -399,8 +399,9 @@ static u8 get_coh_st_inst_id(struct atl_err *err)
+ 	return FIELD_GET(UMC_CHANNEL_NUM, err->ipid);
+ }
+ 
+-unsigned long convert_umc_mca_addr_to_sys_addr(struct atl_err *err)
++unsigned long convert_umc_mca_addr_to_sys_addr(void *data)
+ {
++	struct atl_err *err = data;
+ 	u8 socket_id = topology_physical_package_id(err->cpu);
+ 	u8 coh_st_inst_id = get_coh_st_inst_id(err);
+ 	unsigned long addr = get_addr(err->addr);
+diff --git a/drivers/ras/ras.c b/drivers/ras/ras.c
+index 2a5b5a9fdcb3..050b49466a18 100644
+--- a/drivers/ras/ras.c
++++ b/drivers/ras/ras.c
+@@ -10,36 +10,34 @@
+ #include <linux/ras.h>
+ #include <linux/uuid.h>
+ 
+-#if IS_ENABLED(CONFIG_AMD_ATL)
+ /*
+  * Once set, this function pointer should never be unset.
+  *
+  * The library module will set this pointer if it successfully loads. The module
+  * should not be unloaded except for testing and debug purposes.
+  */
+-static unsigned long (*amd_atl_umc_na_to_spa)(struct atl_err *err);
++static unsigned long (*atl_ras_la_to_spa)(void *err);
+ 
+-void amd_atl_register_decoder(unsigned long (*f)(struct atl_err *))
++void atl_register_decoder(unsigned long (*f)(void *))
+ {
+-	amd_atl_umc_na_to_spa = f;
++	atl_ras_la_to_spa = f;
+ }
+-EXPORT_SYMBOL_GPL(amd_atl_register_decoder);
++EXPORT_SYMBOL_GPL(atl_register_decoder);
+ 
+-void amd_atl_unregister_decoder(void)
++void atl_unregister_decoder(void)
+ {
+-	amd_atl_umc_na_to_spa = NULL;
++	atl_ras_la_to_spa = NULL;
+ }
+-EXPORT_SYMBOL_GPL(amd_atl_unregister_decoder);
++EXPORT_SYMBOL_GPL(atl_unregister_decoder);
+ 
+-unsigned long amd_convert_umc_mca_addr_to_sys_addr(struct atl_err *err)
++unsigned long convert_ras_la_to_spa(void *err)
+ {
+-	if (!amd_atl_umc_na_to_spa)
++	if (!atl_ras_la_to_spa)
+ 		return -EINVAL;
+ 
+-	return amd_atl_umc_na_to_spa(err);
++	return atl_ras_la_to_spa(err);
+ }
+-EXPORT_SYMBOL_GPL(amd_convert_umc_mca_addr_to_sys_addr);
+-#endif /* CONFIG_AMD_ATL */
++EXPORT_SYMBOL_GPL(convert_ras_la_to_spa);
+ 
+ #define CREATE_TRACE_POINTS
+ #define TRACE_INCLUDE_PATH ../../include/ras
+diff --git a/include/linux/ras.h b/include/linux/ras.h
+index 05096f049dac..2270a8eb1038 100644
+--- a/include/linux/ras.h
++++ b/include/linux/ras.h
+@@ -42,14 +42,9 @@ struct atl_err {
+ };
+ 
+ #if IS_ENABLED(CONFIG_AMD_ATL)
+-void amd_atl_register_decoder(unsigned long (*f)(struct atl_err *));
+-void amd_atl_unregister_decoder(void);
+ void amd_retire_dram_row(struct atl_err *err);
+-unsigned long amd_convert_umc_mca_addr_to_sys_addr(struct atl_err *err);
+ #else
+ static inline void amd_retire_dram_row(struct atl_err *err) { }
+-static inline unsigned long
+-amd_convert_umc_mca_addr_to_sys_addr(struct atl_err *err) { return -EINVAL; }
+ #endif /* CONFIG_AMD_ATL */
+ 
+ #if defined(CONFIG_ARM) || defined(CONFIG_ARM64)
+@@ -63,6 +58,10 @@ amd_convert_umc_mca_addr_to_sys_addr(struct atl_err *err) { return -EINVAL; }
+ #define GET_LOGICAL_INDEX(mpidr) -EINVAL
+ #endif /* CONFIG_ARM || CONFIG_ARM64 */
+ 
++void atl_register_decoder(unsigned long (*f)(void *));
++void atl_unregister_decoder(void);
++unsigned long convert_ras_la_to_spa(void *err);
++
+ #if IS_ENABLED(CONFIG_AEST)
+ void aest_register_decode_chain(struct notifier_block *nb);
+ void aest_unregister_decode_chain(struct notifier_block *nb);
 -- 
 2.51.2.612.gdc70283dfc
 
