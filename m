@@ -1,189 +1,117 @@
-Received: from smtpbg151.qq.com (smtpbg151.qq.com [18.169.211.239])
+Received: from canpmsgout04.his.huawei.com (canpmsgout04.his.huawei.com [113.46.200.219])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBF4132ED59
-	for <linux-acpi@vger.kernel.org>; Tue, 23 Dec 2025 09:49:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=18.169.211.239
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F01336212B;
+	Tue, 23 Dec 2025 10:09:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.219
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766483351; cv=none; b=NKGfKZBrhwGYaSVrN5YGT+1kS1rZq9s+bjNWaiLFzVEUpP0wmWS0DnqUOiUGSTNNqP0Ry6CNZSLMdgOQ57KpNd7PNXSCd+JlDN33i6WlC0VdH2dNU+JaZO3SSSsZ0cycY8XG69D9ehpVBUq7E31Vcy0TIX0EZLVyv4QiNZfrr4c=
+	t=1766484561; cv=none; b=D4TAfGsbmsA6ShHekzS1g7BvJb7pyCqVGesoTWySzn+H/odvy7fnTa8sgGavOFEi1vERSx+rwGCGBPUTaKbSV7vTFPBFGAM8Z1tEYKYpwRVrx/iNAyDtj3EucxwfzfzigUkbBMEnNNqkj/apv7d8EmXwcWVYhAwMJF5NiSiwA2I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766483351; c=relaxed/simple;
-	bh=NSK5fKc+qwzvToyUpEv21cUeZPQdVTDmi5IyXk6yn3Y=;
-	h=From:To:Cc:References:In-Reply-To:Subject:Date:Message-ID:
-	 MIME-Version:Content-Type; b=Hd+OcxbpuJVYyMLPJMJk8XamZbZZy4k+4mOYJrgfHZNagz+tsXSEFjlmgRhuL89cPmzp71mL3KhmlF/ilUIdNjhi7iFduAaNgB1wrP5jb7V2tBa9jBF9LcZPVC8NCVXmrG25Bbc5dMY0eYvAs11Kvj1xcUVnSVjByIMhv4Pat6A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=trustnetic.com; spf=pass smtp.mailfrom=trustnetic.com; arc=none smtp.client-ip=18.169.211.239
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=trustnetic.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=trustnetic.com
-X-QQ-mid:Yeas7t1766483303t410t46878
-Received: from 3DB253DBDE8942B29385B9DFB0B7E889 (jiawenwu@trustnetic.com [36.24.96.96])
-X-QQ-SSF:0000000000000000000000000000000
-From: =?utf-8?b?Smlhd2VuIFd1?= <jiawenwu@trustnetic.com>
-X-BIZMAIL-ID: 575001686058145555
-To: "'Bartosz Golaszewski'" <brgl@kernel.org>
-Cc: "'Bartosz Golaszewski'" <bartosz.golaszewski@linaro.org>,
-	<andriy.shevchenko@linux.intel.com>,
-	<andy@kernel.org>,
-	<broonie@kernel.org>,
-	<ckeepax@opensource.cirrus.com>,
-	<dakr@kernel.org>,
-	<david.rhodes@cirrus.com>,
-	<djrscally@gmail.com>,
-	<gregkh@linuxfoundation.org>,
-	<heikki.krogerus@linux.intel.com>,
-	<krzk@kernel.org>,
-	<linus.walleij@linaro.org>,
-	<linux-acpi@vger.kernel.org>,
-	<linux-gpio@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>,
-	<linux-sound@vger.kernel.org>,
-	<linux-spi@vger.kernel.org>,
-	<mstrozek@opensource.cirrus.com>,
-	<p.zabel@pengutronix.de>,
-	<patches@opensource.cirrus.com>,
-	<rafael@kernel.org>,
-	<rf@opensource.cirrus.com>,
-	<sakari.ailus@linux.intel.com>
-References: <02fd01dc73df$3b641bf0$b22c53d0$@trustnetic.com> <CAMRc=Mf2A++CHYcMdBi0bQ0DOAGLaSatQEOmu=aAEG_YjCqEWg@mail.gmail.com> <030001dc73e8$56e38330$04aa8990$@trustnetic.com> <CAMRc=Meugd9tEDefPnYHidDMTdCP+8fptVXNvqjSi1tjXPuVRA@mail.gmail.com>
-In-Reply-To: <CAMRc=Meugd9tEDefPnYHidDMTdCP+8fptVXNvqjSi1tjXPuVRA@mail.gmail.com>
-Subject: RE: [PATCH v7 3/9] software node: allow referencing firmware nodes
-Date: Tue, 23 Dec 2025 17:48:22 +0800
-Message-ID: <030101dc73f1$46a62b40$d3f281c0$@trustnetic.com>
+	s=arc-20240116; t=1766484561; c=relaxed/simple;
+	bh=XFSrS0I1BodisGjC89RdqcVSlgGH0x1huoF5cUfm+kA=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=FXJ5wMGLTUWiSsFnNP9dA4Z3l2Na6DbUg2TfgCdmBuZCLETPmHhD2wBWjB+re6OOv+s6z73J36bdjOv2HVIWckdOj4miVJgkfYvpt7Kwm+9aZ+4Aw3nDQbhDPSOESeGWuIUGN3of8z+ey5PlUjFpjwdsWodI3oqohjlBbBJoHA8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=FYDvSOty; arc=none smtp.client-ip=113.46.200.219
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=h-partners.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="FYDvSOty"
+dkim-signature: v=1; a=rsa-sha256; d=h-partners.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=PfLkNnxEuTD+7h+X8wZSHwVEx8bvihlSpXjEeyaXht4=;
+	b=FYDvSOtyLHuuNpA3qdDREBZCQT0WUhjnim1csuCG4o0AoEYUHCvHccvjghHuf5t1bCUNzfZR4
+	6+V9OS2h4lFro/3Kr+Yc9JFlIahiBiqghh/iY9MJDQMrGmhmpL+sIrT9tsZExk/AWfaajBNoiGq
+	rWE7THuaSLdX5MytrauNVZA=
+Received: from mail.maildlp.com (unknown [172.19.162.144])
+	by canpmsgout04.his.huawei.com (SkyGuard) with ESMTPS id 4db9dD2xv9z1prMt;
+	Tue, 23 Dec 2025 18:06:08 +0800 (CST)
+Received: from dggemv706-chm.china.huawei.com (unknown [10.3.19.33])
+	by mail.maildlp.com (Postfix) with ESMTPS id CADBE40567;
+	Tue, 23 Dec 2025 18:09:16 +0800 (CST)
+Received: from kwepemn100009.china.huawei.com (7.202.194.112) by
+ dggemv706-chm.china.huawei.com (10.3.19.33) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.11; Tue, 23 Dec 2025 18:09:16 +0800
+Received: from localhost.localdomain (10.50.163.32) by
+ kwepemn100009.china.huawei.com (7.202.194.112) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.36; Tue, 23 Dec 2025 18:09:15 +0800
+From: Huisong Li <lihuisong@huawei.com>
+To: <rafael@kernel.org>, <lenb@kernel.org>, <bp@alien8.de>,
+	<AmandeepKaur.Longia@amd.com>
+CC: <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linuxarm@huawei.com>, <jonathan.cameron@huawei.com>,
+	<zhanjie9@hisilicon.com>, <zhenglifeng1@huawei.com>, <yubowen8@huawei.com>,
+	<zhangpengjie2@huawei.com>, <wangzhi12@huawei.com>,
+	<prime.zeng@hisilicon.com>, <lihuisong@huawei.com>
+Subject: [PATCH v1 2/6] ACPI: processor: Remove unused empty stubs of some functions
+Date: Tue, 23 Dec 2025 18:09:10 +0800
+Message-ID: <20251223100914.2407069-3-lihuisong@huawei.com>
+X-Mailer: git-send-email 2.33.0
+In-Reply-To: <20251223100914.2407069-1-lihuisong@huawei.com>
+References: <20251223100914.2407069-1-lihuisong@huawei.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-X-Mailer: Microsoft Outlook 16.0
-Content-Language: zh-cn
-Thread-Index: AQIzaRfJPMiwz9071uYI3gJ0t6u2qwFWX8iGAiY76pIB9a+LsLRVe7rQ
-X-QQ-SENDSIZE: 520
-Feedback-ID: Yeas:trustnetic.com:qybglogicsvrgz:qybglogicsvrgz6b-0
-X-QQ-XMAILINFO: MCiK9DnWZEXsNNNC+hir2G+99q/hgodbu/hajjS8iZotEGmn4jR3O+AF
-	rWw5a+FzD0IJZu38BHbAxoulYQGHo6WjOE8d6A6Mm2IZKyxSLbz69mYvuLN8jVDvfEHQss7
-	WrGiYM3UeLr1Cc0ScHsy9lE9HTt7eFoVZeOVwbqnj85hf03ALeqA+xuGk7FWJhtly6bktSc
-	yy2NRORIowmslk6jP3SnZBtDSEKG6+ybgWoCHmrwQmILgQWU1dqKCX0jHdhQDrT7POL4Aml
-	4NyJImHecEwDGPTXSpG5TKBWvRey4D8esQpuOTM3tyhBMsjKlrjXO728ZA1bWMfjiGw7sNl
-	jZTS4IstEjSwOUGA73mT01Nd+HgllgNnLCq8BnuWUNi2o+7zFJ9nP6i4ewaAb48epOUyfrF
-	iCrsunj+p4xA67zy/jEYaVe9921r1i/1dfXtv0esC0sRKWoqkGNwnYKnWtkiR0f+H89xdLR
-	K8t2ho9syKHKDfmUudlO2zxvX7k1Pq2syz8tvCdFauTtH5yJcTWHHq06+wsm/4EzzDckeji
-	pRtioYJkUhli0apx6yyPOHaoTRNM9WXNGLGBE83YYscATsRLSLnlFP52RhxoaArVDBqNf9A
-	UNm7ml3umeqsAlRKgnWUPPiCsG9vYgvGMK8TMBkGTdvPjzNa7YSsJLXbz5Eb74qijRX290w
-	OgtnY0/TkwUcGlgB2WyxbmRhGBjz4IHf8+razgBc9jitPWcz4CMbELrdPnXFJ/hXd8ROeJU
-	bwqzN5h3DXdkXIWp/zsZuV7aaIOiIFNunGc7Ups86gITP9x1dd+LaThwA3xjPj7cr7MvVqx
-	vWYgoOAPr/g0b6iTVsenO2CBKM5OWfFO35rC5+ZPTmWTxUtMKLJmwqeNeTEeDeD0AM1kv7g
-	NfDS1mZdECZJVHIE346D/T7OkIbAWGQHt9DrF4nyZi5/QGgLA/kid+kmyS/8/2fLp1xWp5A
-	YQeYUot2lX3xp8G/IdeW8cwT3tsP3npvfrpJ1++0wx9Ds2944EZSdDpzhpuVb0Kt2LrAvZu
-	PyqZegyNh3mux+8E7s
-X-QQ-XMRINFO: NS+P29fieYNwqS3WCnRCOn9D1NpZuCnCRA==
-X-QQ-RECHKSPAM: 0
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: kwepems500001.china.huawei.com (7.221.188.70) To
+ kwepemn100009.china.huawei.com (7.202.194.112)
 
-On Tue, Dec 23, 2025 5:37 PM, Bartosz Golaszewski wrote:
-> On Tue, Dec 23, 2025 at 9:44=E2=80=AFAM Jiawen Wu =
-<jiawenwu@trustnetic.com> wrote:
-> >
-> > On Tue, Dec 23, 2025 4:09 PM, Bartosz Golaszewski wrote:
-> > > On Tue, Dec 23, 2025 at 8:39=E2=80=AFAM Jiawen Wu =
-<jiawenwu@trustnetic.com> wrote:
-> > > >
-> > > > >
-> > > > >  #define SOFTWARE_NODE_REFERENCE(_ref_, ...)                  =
-\
-> > > > >  (const struct software_node_ref_args) {                       =
-       \
-> > > > > -     .node =3D _ref_,                                         =
- \
-> > > > > +     .swnode =3D _Generic(_ref_,                              =
- \
-> > > > > +                        const struct software_node *: _ref_, =
-\
-> > > > > +                        default: NULL),                      =
-\
-> > > > > +     .fwnode =3D _Generic(_ref_,                              =
- \
-> > > > > +                        struct fwnode_handle *: _ref_,       =
-\
-> > > > > +                        default: NULL),                      =
-\
-> > > > >       .nargs =3D COUNT_ARGS(__VA_ARGS__),                      =
- \
-> > > > >       .args =3D { __VA_ARGS__ },                               =
- \
-> > > > >  }
-> > > >
-> > > > This change seems incompatible with my driver txgbe, since the =
-software nodes
-> > > > are registered in " struct software_node * " but not " const =
-struct software_node * ".
-> > > >
-> > > > So when I pulled the net-next-6.19-rc1 that merged this patch, =
-to probe my driver.
-> > > > The error logs shows:
-> > > >
-> > > > [    5.243396] txgbe 0000:10:00.0 (unnamed net_device) =
-(uninitialized): unable to attach SFP bus: -EINVAL
-> > > > [    5.243399] txgbe 0000:10:00.0: failed to init phylink
-> > > > [    5.576008] txgbe 0000:10:00.0: probe with driver txgbe =
-failed with error -22
-> > > > [    6.109548] txgbe 0000:10:00.1 (unnamed net_device) =
-(uninitialized): unable to attach SFP bus: -EINVAL
-> > > > [    6.109551] txgbe 0000:10:00.1: failed to init phylink
-> > > > [    6.442044] txgbe 0000:10:00.1: probe with driver txgbe =
-failed with error -22
-> > > >
-> > >
-> > > This shouldn't have changed anything for existing software nodes - =
-the
-> > > pointer in struct software_node_ref_args has always been const. =
-This
-> > > would have failed at build-time if this was an issue. Have you
-> > > bisected it to this very commit? What line is the -EINVAL assigned =
-and
-> > > for what reason?
-> >
-> > The -EINVAL is assigned software_node_get_reference_args():
-> >
-> >         if (ref->swnode)
-> >                 refnode =3D software_node_fwnode(ref->swnode);
-> >         else if (ref->fwnode)
-> >                 refnode =3D ref->fwnode;
-> >         else
-> >                 return -EINVAL;
-> >
-> > I think the reason is that _Generic selection is restrictive, it =
-only accept
-> > exactly const struct software_node for software node references. So =
-the
-> > macro SOFTWARE_NODE_REFERENCE fall back to the default to set =
-.swnode =3D  NULL.
-> >
-> > And I temporarily added this line to fix it:
-> >
-> > diff --git a/include/linux/property.h b/include/linux/property.h
-> > index 272bfbdea7bf..e30ef23a9af3 100644
-> > --- a/include/linux/property.h
-> > +++ b/include/linux/property.h
-> > @@ -371,6 +371,7 @@ struct software_node_ref_args {
-> >  (const struct software_node_ref_args) {                             =
-   \
-> >         .swnode =3D _Generic(_ref_,                               \
-> >                            const struct software_node *: _ref_, \
-> > +                          struct software_node *: _ref_,       \
-> >                            default: NULL),                      \
-> >         .fwnode =3D _Generic(_ref_,                               \
-> >                            struct fwnode_handle *: _ref_,       \
-> >
->=20
-> Ah I see, we'd assign struct software_node * to const struct
-> software_node * and it used to work but with _Generic() we need the
-> exact type. I agree with this approach, do you want to send a proper
-> patch?
+Empty stubs are defined in processor.h for some functions provided by
+the ACPI processor idle driver, but those functions are only used in
+the main ACPI processor driver which requires the ACPI processor idle
+driver to be present (selecting CONFIG_ACPI_PROCESSOR causes
+CONFIG_ACPI_PROCESSOR_IDLE to be selected too automatically).
 
-It might be more appropriate for you to send the patch, and could also
-check if there are any other missed details, like for fwnode...
-I'm not very proficient in this field. :)
+This means that the empty stubs in question are not really necessary and
+if both CONFIG_ACPI_PROCESSOR and CONFIG_ACPI_PROCESSOR_IDLE are unset,
+the compiler complains that they are defined, but not used.  Drop them
+to get rid of the compiler warning.
 
+Signed-off-by: Huisong Li <lihuisong@huawei.com>
+Link: https://patch.msgid.link/20250911112408.1668431-2-lihuisong@huawei.com
+[ rjw: Subject and changelog rewrite ]
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ include/acpi/processor.h | 20 --------------------
+ 1 file changed, 20 deletions(-)
+
+diff --git a/include/acpi/processor.h b/include/acpi/processor.h
+index ff864c1cee3a..2976a6d0c54f 100644
+--- a/include/acpi/processor.h
++++ b/include/acpi/processor.h
+@@ -425,26 +425,6 @@ int acpi_processor_power_state_has_changed(struct acpi_processor *pr);
+ int acpi_processor_hotplug(struct acpi_processor *pr);
+ void acpi_processor_register_idle_driver(void);
+ void acpi_processor_unregister_idle_driver(void);
+-#else
+-static inline int acpi_processor_power_init(struct acpi_processor *pr)
+-{
+-	return -ENODEV;
+-}
+-
+-static inline int acpi_processor_power_exit(struct acpi_processor *pr)
+-{
+-	return -ENODEV;
+-}
+-
+-static inline int acpi_processor_power_state_has_changed(struct acpi_processor *pr)
+-{
+-	return -ENODEV;
+-}
+-
+-static inline int acpi_processor_hotplug(struct acpi_processor *pr)
+-{
+-	return -ENODEV;
+-}
+ #endif /* CONFIG_ACPI_PROCESSOR_IDLE */
+ 
+ /* in processor_thermal.c */
+-- 
+2.33.0
 
