@@ -1,127 +1,119 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.18])
+Received: from canpmsgout06.his.huawei.com (canpmsgout06.his.huawei.com [113.46.200.221])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94F5A186E58;
-	Tue, 23 Dec 2025 00:57:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE2C822068F;
+	Tue, 23 Dec 2025 07:23:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.221
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766451454; cv=none; b=juOJo2yQ+LxRu3IDndXhtMrhpGJpwV2z7eJscgMv1usHNId3GevQr44L5Kmfq0c4hpq3HnBLEmSxhMwmCv1zlGGcI1z3NmZNOFLE7Vpo+mqFYzbrHQHSJKVt8qbX1ac1p/K7TviJvHOCrRlm4ESd9KCxc1gPtx+OxNoaAO0PCCk=
+	t=1766474624; cv=none; b=Krnekokc7VEYFPMxSf22bsfZ7Ys7p0oTB7qNNy39Z202cQz2dyavAXraIu9mEXkhY7VJy/GLsStCIeRB6De3MD83PALctpcAI4BM1k15DWUN4U2Fjarr0496vYomt8l/d6j9yaicGd7oI9Me54VO/NbqP0/ZZpr3p9vxSlDThKs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766451454; c=relaxed/simple;
-	bh=Tzhli8fZhmydE3WtkzmFX0iuaaxe/re1tXi3k0T9e3o=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=oeaHSCnwybOVXjkJejnrzTZUCdpSiPFoMrjiTdBEr4P1yTHKGg+a8VzdXWuitj5nD+nbkwRyKupyQT2gvmp6QIwVqiXbEjCj6DriuWa4S16JSAhMyFoG2+b/EVZS/ctzWi05T7IdNVtIGG3tDEjuLQWw0prLKbHkGVjUb9ievyg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=SfsCdlu/; arc=none smtp.client-ip=198.175.65.18
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="SfsCdlu/"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1766451453; x=1797987453;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=Tzhli8fZhmydE3WtkzmFX0iuaaxe/re1tXi3k0T9e3o=;
-  b=SfsCdlu/ycQIVPofVV9gqBl5VhB6+dGqEVYYrLx44oV4U5KHpGSxsNXS
-   27lh9FOgXG7Km6ES14JFUiO8g/hTvAoczsLANpytsGefmqzZo5ye1UOsk
-   3rxTJJgEDV6oNfMdgV8IPlzILYCoHiMx4O90y7MSvVww1vvRhZSbr4znc
-   /MZSUl7dYR5U93X6k9tsFBdpE7TyWyBGkk6vRR0C++VVM64uXMHYwkdx/
-   vH5BXD3pQgDMAF/FKwtCPgBQ/yLf9IFi6d7UFamQxgAYF5PjH2u7pwfbW
-   rNKQLHSch8uG2512HcRVYwphMW8r1cJ58Ji4IOu2nvQpuyAt09qaevdNl
-   A==;
-X-CSE-ConnectionGUID: 8RvRtkKXS/2x+Km+wLutkA==
-X-CSE-MsgGUID: QfvgMCAjQbaJjn5PxFMxiQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11650"; a="68350541"
-X-IronPort-AV: E=Sophos;i="6.21,169,1763452800"; 
-   d="scan'208";a="68350541"
-Received: from fmviesa003.fm.intel.com ([10.60.135.143])
-  by orvoesa110.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Dec 2025 16:57:32 -0800
-X-CSE-ConnectionGUID: 1obue43dSTyg7GkfEywvfw==
-X-CSE-MsgGUID: rJm/Ik0hRb+dawbPI+6Clw==
-X-ExtLoop1: 1
-Received: from igk-lkp-server01.igk.intel.com (HELO 8a0c053bdd2a) ([10.211.93.152])
-  by fmviesa003.fm.intel.com with ESMTP; 22 Dec 2025 16:57:28 -0800
-Received: from kbuild by 8a0c053bdd2a with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1vXqiM-000000005gO-0t6c;
-	Tue, 23 Dec 2025 00:57:26 +0000
-Date: Tue, 23 Dec 2025 01:57:16 +0100
-From: kernel test robot <lkp@intel.com>
-To: Ruidong Tian <tianruidong@linux.alibaba.com>, catalin.marinas@arm.com,
-	will@kernel.org, lpieralisi@kernel.org, guohanjun@huawei.com,
-	sudeep.holla@arm.com, xueshuai@linux.alibaba.com,
-	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, rafael@kernel.org,
-	lenb@kernel.org, tony.luck@intel.com, bp@alien8.de,
-	yazen.ghannam@amd.com, misono.tomohiro@fujitsu.com
-Cc: oe-kbuild-all@lists.linux.dev, tianruidong@linux.alibaba.com
-Subject: Re: [PATCH v4 10/17] ras: AEST: Introduce AEST driver sysfs interface
-Message-ID: <202512230122.CfXZcF76-lkp@intel.com>
-References: <20251222094351.38792-11-tianruidong@linux.alibaba.com>
+	s=arc-20240116; t=1766474624; c=relaxed/simple;
+	bh=beX0JadXz2cxS1VmJlIMvL+HFk8vzK2c2tXE1RonJf0=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=b3YWWY/aqwBEw6ALziF8gk59eZHFQ659UvkxnTMnu6vq2wjoZ3/Iz5vExxqkOLMkvaSVZsoqZvftlYzDIf5dm+RX/ytKO2cAR2kSt/9qqscqPDIEzxl47WdVlsCAHgjwcv6db0Fq/GDI3bBV750ulL8c+JzyAMys7wZiyLZRdSQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=113.46.200.221
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
+Received: from mail.maildlp.com (unknown [172.19.162.140])
+	by canpmsgout06.his.huawei.com (SkyGuard) with ESMTPS id 4db5y92wgTzRhSY;
+	Tue, 23 Dec 2025 15:20:33 +0800 (CST)
+Received: from kwepemf200017.china.huawei.com (unknown [7.202.181.10])
+	by mail.maildlp.com (Postfix) with ESMTPS id 0A1A4201EB;
+	Tue, 23 Dec 2025 15:23:40 +0800 (CST)
+Received: from localhost.localdomain (10.90.31.46) by
+ kwepemf200017.china.huawei.com (7.202.181.10) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.11; Tue, 23 Dec 2025 15:23:39 +0800
+From: Jie Zhan <zhanjie9@hisilicon.com>
+To: <viresh.kumar@linaro.org>, <rafael@kernel.org>, <ionela.voinescu@arm.com>,
+	<beata.michalska@arm.com>, <pierre.gondois@arm.com>,
+	<zhenglifeng1@huawei.com>
+CC: <linux-pm@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>, <linuxarm@huawei.com>,
+	<zhanjie9@hisilicon.com>, <jonathan.cameron@huawei.com>,
+	<prime.zeng@hisilicon.com>, <yubowen8@huawei.com>, <lihuisong@huawei.com>,
+	<zhangpengjie2@huawei.com>, <wangzhi12@huawei.com>
+Subject: [PATCH v5 2/3] cpufreq: CPPC: Factor out cppc_fie_kworker_init()
+Date: Tue, 23 Dec 2025 15:21:18 +0800
+Message-ID: <20251223072119.3372582-3-zhanjie9@hisilicon.com>
+X-Mailer: git-send-email 2.30.0
+In-Reply-To: <20251223072119.3372582-1-zhanjie9@hisilicon.com>
+References: <20251223072119.3372582-1-zhanjie9@hisilicon.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20251222094351.38792-11-tianruidong@linux.alibaba.com>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: kwepems100002.china.huawei.com (7.221.188.206) To
+ kwepemf200017.china.huawei.com (7.202.181.10)
 
-Hi Ruidong,
+Factor out the CPPC FIE kworker init in cppc_freq_invariance_init() because
+it's a standalone procedure for use when the CPC regs are in PCC channels.
 
-kernel test robot noticed the following build warnings:
+Reviewed-by: Lifeng Zheng <zhenglifeng1@huawei.com>
+Reviewed-by: Pierre Gondois <pierre.gondois@arm.com>
+Signed-off-by: Jie Zhan <zhanjie9@hisilicon.com>
+---
+ drivers/cpufreq/cppc_cpufreq.c | 29 +++++++++++++++++------------
+ 1 file changed, 17 insertions(+), 12 deletions(-)
 
-[auto build test WARNING on rafael-pm/linux-next]
-[also build test WARNING on rafael-pm/bleeding-edge ras/edac-for-next next-20251219]
-[cannot apply to arm64/for-next/core linus/master tip/smp/core v6.16-rc1]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
-
-url:    https://github.com/intel-lab-lkp/linux/commits/Ruidong-Tian/ACPI-AEST-Parse-the-AEST-table/20251222-175211
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
-patch link:    https://lore.kernel.org/r/20251222094351.38792-11-tianruidong%40linux.alibaba.com
-patch subject: [PATCH v4 10/17] ras: AEST: Introduce AEST driver sysfs interface
-reproduce: (https://download.01.org/0day-ci/archive/20251223/202512230122.CfXZcF76-lkp@intel.com/reproduce)
-
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202512230122.CfXZcF76-lkp@intel.com/
-
-All warnings (new ones prefixed by >>):
-
-   Using alabaster theme
-   ERROR: Cannot find file ./include/linux/pci.h
-   WARNING: No kernel-doc for file ./include/linux/pci.h
-   ERROR: Cannot find file ./include/linux/mod_devicetable.h
-   WARNING: No kernel-doc for file ./include/linux/mod_devicetable.h
->> Documentation/ABI/testing/debugfs-aest:1: WARNING: Block quote ends without a blank line; unexpected unindent. [docutils]
-   ERROR: Cannot find file ./include/linux/bootconfig.h
-   WARNING: No kernel-doc for file ./include/linux/bootconfig.h
-   ERROR: Cannot find file ./include/linux/pstore_zone.h
-   ERROR: Cannot find file ./include/linux/pstore_zone.h
-   WARNING: No kernel-doc for file ./include/linux/pstore_zone.h
-
-
-vim +1 Documentation/ABI/testing/debugfs-aest
-
-   > 1	What:		/sys/kernel/debug/aest/<name>.<id>/
-     2	Date:		Dec 2025
-     3	KernelVersion	6.19
-     4	Contact:	Ruidong Tian <tianruidong@linux.alibaba.com>
-     5	Description:
-     6			Directory represented a AEST device, <name> means device type,
-     7			like:
-     8	
-     9				processor
-    10				memory
-    11				smmu
-    12				...
-    13			<id> is the unique ID for this device.
-    14	
-
+diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
+index 9eac77c4f294..947b4e2e1d4e 100644
+--- a/drivers/cpufreq/cppc_cpufreq.c
++++ b/drivers/cpufreq/cppc_cpufreq.c
+@@ -184,7 +184,7 @@ static void cppc_cpufreq_cpu_fie_exit(struct cpufreq_policy *policy)
+ 	}
+ }
+ 
+-static void __init cppc_freq_invariance_init(void)
++static void cppc_fie_kworker_init(void)
+ {
+ 	struct sched_attr attr = {
+ 		.size		= sizeof(struct sched_attr),
+@@ -201,17 +201,6 @@ static void __init cppc_freq_invariance_init(void)
+ 	};
+ 	int ret;
+ 
+-	if (fie_disabled != FIE_ENABLED && fie_disabled != FIE_DISABLED) {
+-		fie_disabled = FIE_ENABLED;
+-		if (cppc_perf_ctrs_in_pcc()) {
+-			pr_info("FIE not enabled on systems with registers in PCC\n");
+-			fie_disabled = FIE_DISABLED;
+-		}
+-	}
+-
+-	if (fie_disabled)
+-		return;
+-
+ 	kworker_fie = kthread_run_worker(0, "cppc_fie");
+ 	if (IS_ERR(kworker_fie)) {
+ 		pr_warn("%s: failed to create kworker_fie: %ld\n", __func__,
+@@ -229,6 +218,22 @@ static void __init cppc_freq_invariance_init(void)
+ 	}
+ }
+ 
++static void __init cppc_freq_invariance_init(void)
++{
++	if (fie_disabled != FIE_ENABLED && fie_disabled != FIE_DISABLED) {
++		fie_disabled = FIE_ENABLED;
++		if (cppc_perf_ctrs_in_pcc()) {
++			pr_info("FIE not enabled on systems with registers in PCC\n");
++			fie_disabled = FIE_DISABLED;
++		}
++	}
++
++	if (fie_disabled)
++		return;
++
++	cppc_fie_kworker_init();
++}
++
+ static void cppc_freq_invariance_exit(void)
+ {
+ 	if (fie_disabled)
 -- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+2.33.0
+
