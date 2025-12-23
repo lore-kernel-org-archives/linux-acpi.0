@@ -1,29 +1,28 @@
 Received: from canpmsgout06.his.huawei.com (canpmsgout06.his.huawei.com [113.46.200.221])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE2C822068F;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE2661DF755;
 	Tue, 23 Dec 2025 07:23:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.221
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766474624; cv=none; b=Krnekokc7VEYFPMxSf22bsfZ7Ys7p0oTB7qNNy39Z202cQz2dyavAXraIu9mEXkhY7VJy/GLsStCIeRB6De3MD83PALctpcAI4BM1k15DWUN4U2Fjarr0496vYomt8l/d6j9yaicGd7oI9Me54VO/NbqP0/ZZpr3p9vxSlDThKs=
+	t=1766474625; cv=none; b=DpGyys08EyngH4McAAvtH9LJH6aKK0wGobTRAC3bxeIz403+KGNO53PhL/Cg3dOhUTNr2ag9a3sqT3IucZobS/SLamDMKeA7zK2Ly7yb+dAhQcYSXlJNffZ7kBGdijTm8kdktg+M7blUzah9gK0OngtDYOvWMhfjrXUpx5AWXoY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766474624; c=relaxed/simple;
-	bh=beX0JadXz2cxS1VmJlIMvL+HFk8vzK2c2tXE1RonJf0=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=b3YWWY/aqwBEw6ALziF8gk59eZHFQ659UvkxnTMnu6vq2wjoZ3/Iz5vExxqkOLMkvaSVZsoqZvftlYzDIf5dm+RX/ytKO2cAR2kSt/9qqscqPDIEzxl47WdVlsCAHgjwcv6db0Fq/GDI3bBV750ulL8c+JzyAMys7wZiyLZRdSQ=
+	s=arc-20240116; t=1766474625; c=relaxed/simple;
+	bh=oLqq5nZ91lN8lwALdp6EaXOIgJSSXKiUCl006eQMyhg=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=ued8RUlqqsd8ByjxswfCZeS9PRNRyzpcnFvaMb35gS44RyHuZSSZ715qG+HWkPWTUNvy6QzFwemq9PJNtcBPBw4pM4KTPjzgPzku28bsZfU84NGZZrgiq4rC6znpaQwDVXyfamGu+QwFd9Ik3c+4I1t+vniUWhl/JyAb6Ek0WEw=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=113.46.200.221
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
-Received: from mail.maildlp.com (unknown [172.19.162.140])
-	by canpmsgout06.his.huawei.com (SkyGuard) with ESMTPS id 4db5y92wgTzRhSY;
-	Tue, 23 Dec 2025 15:20:33 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.19.162.144])
+	by canpmsgout06.his.huawei.com (SkyGuard) with ESMTPS id 4db5y82R4YzRhRM;
+	Tue, 23 Dec 2025 15:20:32 +0800 (CST)
 Received: from kwepemf200017.china.huawei.com (unknown [7.202.181.10])
-	by mail.maildlp.com (Postfix) with ESMTPS id 0A1A4201EB;
-	Tue, 23 Dec 2025 15:23:40 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id EF12740567;
+	Tue, 23 Dec 2025 15:23:38 +0800 (CST)
 Received: from localhost.localdomain (10.90.31.46) by
  kwepemf200017.china.huawei.com (7.202.181.10) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Tue, 23 Dec 2025 15:23:39 +0800
+ 15.2.1544.11; Tue, 23 Dec 2025 15:23:38 +0800
 From: Jie Zhan <zhanjie9@hisilicon.com>
 To: <viresh.kumar@linaro.org>, <rafael@kernel.org>, <ionela.voinescu@arm.com>,
 	<beata.michalska@arm.com>, <pierre.gondois@arm.com>,
@@ -33,12 +32,10 @@ CC: <linux-pm@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
 	<zhanjie9@hisilicon.com>, <jonathan.cameron@huawei.com>,
 	<prime.zeng@hisilicon.com>, <yubowen8@huawei.com>, <lihuisong@huawei.com>,
 	<zhangpengjie2@huawei.com>, <wangzhi12@huawei.com>
-Subject: [PATCH v5 2/3] cpufreq: CPPC: Factor out cppc_fie_kworker_init()
-Date: Tue, 23 Dec 2025 15:21:18 +0800
-Message-ID: <20251223072119.3372582-3-zhanjie9@hisilicon.com>
+Subject: [PATCH v5 0/3] cpufreq: CPPC: Update FIE arch_freq_scale in ticks for non-PCC regs
+Date: Tue, 23 Dec 2025 15:21:16 +0800
+Message-ID: <20251223072119.3372582-1-zhanjie9@hisilicon.com>
 X-Mailer: git-send-email 2.30.0
-In-Reply-To: <20251223072119.3372582-1-zhanjie9@hisilicon.com>
-References: <20251223072119.3372582-1-zhanjie9@hisilicon.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -50,70 +47,70 @@ Content-Type: text/plain
 X-ClientProxiedBy: kwepems100002.china.huawei.com (7.221.188.206) To
  kwepemf200017.china.huawei.com (7.202.181.10)
 
-Factor out the CPPC FIE kworker init in cppc_freq_invariance_init() because
-it's a standalone procedure for use when the CPC regs are in PCC channels.
+Currently, the CPPC Frequency Invariance Engine (FIE) is invoked from the
+scheduler tick but defers the update of arch_freq_scale to a separate
+thread because cppc_get_perf_ctrs() would sleep if the CPC regs are in PCC.
 
-Reviewed-by: Lifeng Zheng <zhenglifeng1@huawei.com>
-Reviewed-by: Pierre Gondois <pierre.gondois@arm.com>
-Signed-off-by: Jie Zhan <zhanjie9@hisilicon.com>
----
- drivers/cpufreq/cppc_cpufreq.c | 29 +++++++++++++++++------------
- 1 file changed, 17 insertions(+), 12 deletions(-)
+However, this deferred update mechanism is unnecessary and introduces extra
+overhead for non-PCC register spaces (e.g. System Memory or FFH), where
+accessing the regs won't sleep and can be safely performed from the tick
+context.
 
-diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
-index 9eac77c4f294..947b4e2e1d4e 100644
---- a/drivers/cpufreq/cppc_cpufreq.c
-+++ b/drivers/cpufreq/cppc_cpufreq.c
-@@ -184,7 +184,7 @@ static void cppc_cpufreq_cpu_fie_exit(struct cpufreq_policy *policy)
- 	}
- }
- 
--static void __init cppc_freq_invariance_init(void)
-+static void cppc_fie_kworker_init(void)
- {
- 	struct sched_attr attr = {
- 		.size		= sizeof(struct sched_attr),
-@@ -201,17 +201,6 @@ static void __init cppc_freq_invariance_init(void)
- 	};
- 	int ret;
- 
--	if (fie_disabled != FIE_ENABLED && fie_disabled != FIE_DISABLED) {
--		fie_disabled = FIE_ENABLED;
--		if (cppc_perf_ctrs_in_pcc()) {
--			pr_info("FIE not enabled on systems with registers in PCC\n");
--			fie_disabled = FIE_DISABLED;
--		}
--	}
--
--	if (fie_disabled)
--		return;
--
- 	kworker_fie = kthread_run_worker(0, "cppc_fie");
- 	if (IS_ERR(kworker_fie)) {
- 		pr_warn("%s: failed to create kworker_fie: %ld\n", __func__,
-@@ -229,6 +218,22 @@ static void __init cppc_freq_invariance_init(void)
- 	}
- }
- 
-+static void __init cppc_freq_invariance_init(void)
-+{
-+	if (fie_disabled != FIE_ENABLED && fie_disabled != FIE_DISABLED) {
-+		fie_disabled = FIE_ENABLED;
-+		if (cppc_perf_ctrs_in_pcc()) {
-+			pr_info("FIE not enabled on systems with registers in PCC\n");
-+			fie_disabled = FIE_DISABLED;
-+		}
-+	}
-+
-+	if (fie_disabled)
-+		return;
-+
-+	cppc_fie_kworker_init();
-+}
-+
- static void cppc_freq_invariance_exit(void)
- {
- 	if (fie_disabled)
+Furthermore, with the CPPC FIE registered, it throws repeated warnings of
+"cppc_scale_freq_workfn: failed to read perf counters" on our platform with
+the CPC regs in System Memory and a power-down idle state enabled.  That's
+because the remote CPU can be in a power-down idle state, and reading its
+perf counters returns 0.  Moving the FIE handling back to the scheduler
+tick process makes the CPU handle its own perf counters, so it won't be
+idle and the issue would be inherently solved.
+
+To address the above issues, update arch_freq_scale directly in ticks for
+non-PCC regs and keep the deferred update mechanism for PCC regs.
+
+We have tested this on Kunpeng SoCs with the CPC regs both in System Memory
+and FFH.  More tests on other platforms are welcome (typically with the
+regs in PCC).
+
+Changelog:
+v5:
+- Minor cleanup of cppc_perf_ctrs_in_pcc_cpu() (Thanks to Rafael).
+- Add a function description for cppc_perf_ctrs_in_pcc_cpu().
+- Pick up tags from Lifeng and Pierre, Thanks!
+
+v4:
+https://lore.kernel.org/all/20251203032422.3232957-1-zhanjie9@hisilicon.com/
+- Allow either non-PCC or PCC scale_freq_tick callbacks to be registered
+  for each cpufreq policy.
+- Factor out cppc_perf_ctrs_in_pcc_cpu() and cppc_fie_kworker_init() for
+  the above change.
+
+v3:
+https://lore.kernel.org/linux-pm/20251104065039.1675549-1-zhanjie9@hisilicon.com/
+- Stash the state of 'cppc_perf_ctrs_in_pcc' so it won't have to check the
+  CPC regs of all CPUs everywhere (Thanks to the suggestion from Beata
+  Michalska).
+- Update the commit log, explaining more on the warning issue caused by
+  accessing perf counters on remote CPUs.
+- Drop Patch 1 that has been accepted, and rebase Patch 2 on that.
+
+v2:
+https://lore.kernel.org/linux-pm/20250828110212.2108653-1-zhanjie9@hisilicon.com/
+- Update the cover letter and the commit log based on v1 discussion
+- Update FIE arch_freq_scale in ticks for non-PCC regs
+
+v1:
+https://lore.kernel.org/linux-pm/20250730032312.167062-1-yubowen8@huawei.com/
+
+Jie Zhan (3):
+  ACPI: CPPC: Factor out and export per-cpu cppc_perf_ctrs_in_pcc_cpu()
+  cpufreq: CPPC: Factor out cppc_fie_kworker_init()
+  cpufreq: CPPC: Update FIE arch_freq_scale in ticks for non-PCC regs
+
+ drivers/acpi/cppc_acpi.c       | 48 +++++++++--------
+ drivers/cpufreq/cppc_cpufreq.c | 96 ++++++++++++++++++++++------------
+ include/acpi/cppc_acpi.h       |  5 ++
+ 3 files changed, 96 insertions(+), 53 deletions(-)
+
 -- 
 2.33.0
 
