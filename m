@@ -1,42 +1,41 @@
 Received: from canpmsgout07.his.huawei.com (canpmsgout07.his.huawei.com [113.46.200.222])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF94036212E;
-	Tue, 23 Dec 2025 10:09:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24E963624BD;
+	Tue, 23 Dec 2025 10:09:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.222
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766484562; cv=none; b=LGfcAbRDXk0IEfTWZdg7gYVBrkToXw6KPNJAq2n51K3owUW16Dmwk9MDRLqa0guMXZrxaSxP3Mq6vMwFsZ6LAhSOoZPf9aAPSRVDvSZIKFo+KvQi0dC5QQbb7HNewNRdAqAus0wDwkuedVu2F4IotT1eElCy8yAtAiKWqWIvzw4=
+	t=1766484565; cv=none; b=fqYo4jbV0v4ht5IRLDblZSZg7nZRlwwyX7U7wXcUFiYYhYDs1v6VvGQkCR1Myrvbd5tbSR9p5jgy/gJXU0TzIPZHIjfchc/+BoDxXXCevLGqAeV/gKBuN9/0YjftI5vDTVMyF/T55T4ycvFJoAUExBLF0knAOL5BTAYaIJLkLnY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766484562; c=relaxed/simple;
-	bh=LUHDsVVld2PY978m7mnSW446hPq+y4jQ4M0oE/Drr9E=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=DpNS5BEyrztZMkk8ck7NHyyyRlB6kzvfMfPXWPfc5yjQjUYnK3EpSe/ks/x9kHZNyBTkZCo6+LCXE3RBojMscVrJkNb7zGk8Uygk/OzBq/q7hg3svMutRw6HtJjtsZ80NaBBGnjIh/kKkdOY1kkxfSjJeewtL3UEcKWSar5XGbA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=qBnxG2D8; arc=none smtp.client-ip=113.46.200.222
+	s=arc-20240116; t=1766484565; c=relaxed/simple;
+	bh=Lx/iE5h1LhEbHA2olRCH+dY7ExRpsj0fu+qMzUj0hlM=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=mGvK7DbbrbtLA/KEdG4vAhRqYHF9kQXATDoU+5Km//nrQI9La3qwWtpJORAoY/dmuagMbKbRHqLwuNr2QLzUnedBL9L/gdAwV1XhDNMPnZesV67gsHgmM3JiialZK4CboGAo06wd0RIdhT2jv30/4YnTEEIAL1fCxsz2Tm4EfFY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=flvGybIM; arc=none smtp.client-ip=113.46.200.222
 Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=h-partners.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="qBnxG2D8"
+	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="flvGybIM"
 dkim-signature: v=1; a=rsa-sha256; d=h-partners.com; s=dkim;
 	c=relaxed/relaxed; q=dns/txt;
 	h=From;
-	bh=vdRG+Js1xkq5/sO5SUPz4u2gc/Q6Jqzn8FQkwaHi1Mw=;
-	b=qBnxG2D8+F/sJlHTr8SZhEYz7aDX5ggpuISA6NSlnGs4rS7oLuU6PqBMe/CgUZOREoXi19aqq
-	ioTsEZFfjZd47nVX0x/1/hnBSs3eXtmItZ5JS2xqUPvD6HRf03W93nBC1OxvlYshgQOwA5+VD+n
-	9QHee1z7sa9jCq9MakC7shg=
-Received: from mail.maildlp.com (unknown [172.19.163.214])
-	by canpmsgout07.his.huawei.com (SkyGuard) with ESMTPS id 4db9dJ1b5KzLlVp;
-	Tue, 23 Dec 2025 18:06:12 +0800 (CST)
-Received: from dggemv705-chm.china.huawei.com (unknown [10.3.19.32])
-	by mail.maildlp.com (Postfix) with ESMTPS id E239540539;
-	Tue, 23 Dec 2025 18:09:17 +0800 (CST)
+	bh=oMOpGlJchI45Cc2Ng/Drlg7x/MH9qlevrg+5vIkR9+w=;
+	b=flvGybIMvafd7un2sJoLQO/PJvk+DbJ64gb7dSNjycsflYWn97IFDST5416WdB20Y1Fm1EGJa
+	M66YTAkTWtZmW92Kx6gsa0j9SEQbcxs/WFe3pr4n4lXvIgr6ZqeXXj/WQphzA0cYGUCifqag4zb
+	jR7W6oXmSYZUfTcoGJN0Jeo=
+Received: from mail.maildlp.com (unknown [172.19.163.15])
+	by canpmsgout07.his.huawei.com (SkyGuard) with ESMTPS id 4db9dM3WM2zLlVp;
+	Tue, 23 Dec 2025 18:06:15 +0800 (CST)
+Received: from dggemv712-chm.china.huawei.com (unknown [10.1.198.32])
+	by mail.maildlp.com (Postfix) with ESMTPS id 306FD4056C;
+	Tue, 23 Dec 2025 18:09:21 +0800 (CST)
 Received: from kwepemn100009.china.huawei.com (7.202.194.112) by
- dggemv705-chm.china.huawei.com (10.3.19.32) with Microsoft SMTP Server
+ dggemv712-chm.china.huawei.com (10.1.198.32) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Tue, 23 Dec 2025 18:09:17 +0800
+ 15.2.1544.11; Tue, 23 Dec 2025 18:09:15 +0800
 Received: from localhost.localdomain (10.50.163.32) by
  kwepemn100009.china.huawei.com (7.202.194.112) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.36; Tue, 23 Dec 2025 18:09:16 +0800
+ 15.2.1544.36; Tue, 23 Dec 2025 18:09:14 +0800
 From: Huisong Li <lihuisong@huawei.com>
 To: <rafael@kernel.org>, <lenb@kernel.org>, <bp@alien8.de>,
 	<AmandeepKaur.Longia@amd.com>
@@ -45,12 +44,10 @@ CC: <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
 	<zhanjie9@hisilicon.com>, <zhenglifeng1@huawei.com>, <yubowen8@huawei.com>,
 	<zhangpengjie2@huawei.com>, <wangzhi12@huawei.com>,
 	<prime.zeng@hisilicon.com>, <lihuisong@huawei.com>
-Subject: [PATCH v1 4/6] ACPI: processor: idle: Redefine two functions as void
-Date: Tue, 23 Dec 2025 18:09:12 +0800
-Message-ID: <20251223100914.2407069-5-lihuisong@huawei.com>
+Subject: [PATCH v1 0/6] ACPI: processor: Recovery some reverted patches
+Date: Tue, 23 Dec 2025 18:09:08 +0800
+Message-ID: <20251223100914.2407069-1-lihuisong@huawei.com>
 X-Mailer: git-send-email 2.33.0
-In-Reply-To: <20251223100914.2407069-1-lihuisong@huawei.com>
-References: <20251223100914.2407069-1-lihuisong@huawei.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -62,119 +59,56 @@ Content-Type: text/plain
 X-ClientProxiedBy: kwepems500001.china.huawei.com (7.221.188.70) To
  kwepemn100009.china.huawei.com (7.202.194.112)
 
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+This series of patches have been reverted due to the crash issue reported
+by Borislav [1] and a missing cpuidle sysfs directory reported by Amandeep.
 
-Notice that acpi_processor_power_init() and acpi_processor_power_exit()
-don't need to return any values because their callers don't check them
-anyway, so redefine those functions as void.
+The root cause was commit 7a8c994cbb2d (ACPI: processor: idle: Optimize
+ACPI idle driver registration).  Since the other patches in the series 
+depended on this commit, they were also reverted.
 
-While at it, rearrange the code in acpi_processor_power_init() to
-reduce the indentation level, get rid of a redundant local variable
-in that function, and rephrase a code comment in it.
+I have analyzed these issues and implemented the following fixes:
+Fix for the Crash:
+The crash occurred because 'max_cstate' (which defaults to 8) was not
+updated before the ACPI idle states were initialized.  As a result, the idle
+driver believed multiple C-states were available, but only the state with
+index 1 was actually initialized in the per-CPU acpi_cstate array.  When the
+cpuidle governor tried to access a C-state index greater than 1, it hit a
+NULL pointer.
+Patch 1/6 fixes this by adding acpi_processor_cstate_first_run_checks() to
+update 'max_cstate' before initialization.
 
-No intentional functional impact.
+Fix for missing /sys/devices/system/cpu/cpu*/cpuidle directory:
+The previous optimization depended on an external patch [2].  In kernel versions
+without that patch, acpi_processor_start() was being called before the ACPI idle
+driver had finished registering.  This caused the cpuidle device registration
+to fail, resulting in the missing directory.
+Patch 1/6 fixes this by moving acpi_processor_register_idle_driver() ahead of 
+the acpi_processor_driver registration.
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Reviewed-by: Mario Limonciello (AMD) <superm1@kernel.org>
----
- drivers/acpi/processor_idle.c | 41 ++++++++++++++++-------------------
- include/acpi/processor.h      |  4 ++--
- 2 files changed, 21 insertions(+), 24 deletions(-)
+Note:
+In this series, only patch 1/6 has been modified to address these bugs, more
+detail changes please see the commit.  Patches 2-6/6 remain identical to the
+versions that were previously merged.
 
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index ca7ae64def73..05425d1b3ef7 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -1391,47 +1391,45 @@ void acpi_processor_unregister_idle_driver(void)
- 	cpuidle_unregister_driver(&acpi_idle_driver);
- }
- 
--int acpi_processor_power_init(struct acpi_processor *pr)
-+void acpi_processor_power_init(struct acpi_processor *pr)
- {
--	int retval;
- 	struct cpuidle_device *dev;
- 
- 	if (disabled_by_idle_boot_param())
--		return 0;
-+		return;
- 
- 	acpi_processor_cstate_first_run_checks();
- 
- 	if (!acpi_processor_get_power_info(pr))
- 		pr->flags.power_setup_done = 1;
- 
--	if (pr->flags.power) {
--		dev = kzalloc(sizeof(*dev), GFP_KERNEL);
--		if (!dev)
--			return -ENOMEM;
--		per_cpu(acpi_cpuidle_device, pr->id) = dev;
-+	if (!pr->flags.power)
-+		return;
- 
--		acpi_processor_setup_cpuidle_dev(pr, dev);
-+	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
-+	if (!dev)
-+		return;
- 
--		/* Register per-cpu cpuidle_device. Cpuidle driver
--		 * must already be registered before registering device
--		 */
--		retval = cpuidle_register_device(dev);
--		if (retval) {
-+	per_cpu(acpi_cpuidle_device, pr->id) = dev;
- 
--			per_cpu(acpi_cpuidle_device, pr->id) = NULL;
--			kfree(dev);
--			return retval;
--		}
-+	acpi_processor_setup_cpuidle_dev(pr, dev);
-+
-+	/*
-+	 * Register a cpuidle device for this CPU.  The cpuidle driver using
-+	 * this device is expected to be registered.
-+	 */
-+	if (cpuidle_register_device(dev)) {
-+		per_cpu(acpi_cpuidle_device, pr->id) = NULL;
-+		kfree(dev);
- 	}
--	return 0;
- }
- 
--int acpi_processor_power_exit(struct acpi_processor *pr)
-+void acpi_processor_power_exit(struct acpi_processor *pr)
- {
- 	struct cpuidle_device *dev = per_cpu(acpi_cpuidle_device, pr->id);
- 
- 	if (disabled_by_idle_boot_param())
--		return 0;
-+		return;
- 
- 	if (pr->flags.power) {
- 		cpuidle_unregister_device(dev);
-@@ -1439,7 +1437,6 @@ int acpi_processor_power_exit(struct acpi_processor *pr)
- 	}
- 
- 	pr->flags.power_setup_done = 0;
--	return 0;
- }
- 
- MODULE_IMPORT_NS("ACPI_PROCESSOR_IDLE");
-diff --git a/include/acpi/processor.h b/include/acpi/processor.h
-index 2976a6d0c54f..0200aef6e754 100644
---- a/include/acpi/processor.h
-+++ b/include/acpi/processor.h
-@@ -419,8 +419,8 @@ static inline void acpi_processor_throttling_init(void) {}
- /* in processor_idle.c */
- extern struct cpuidle_driver acpi_idle_driver;
- #ifdef CONFIG_ACPI_PROCESSOR_IDLE
--int acpi_processor_power_init(struct acpi_processor *pr);
--int acpi_processor_power_exit(struct acpi_processor *pr);
-+void acpi_processor_power_init(struct acpi_processor *pr);
-+void acpi_processor_power_exit(struct acpi_processor *pr);
- int acpi_processor_power_state_has_changed(struct acpi_processor *pr);
- int acpi_processor_hotplug(struct acpi_processor *pr);
- void acpi_processor_register_idle_driver(void);
+[1] https://lore.kernel.org/lkml/20251124200019.GIaSS5U9HhsWBotrQZ@fat_crate.local/
+[2] https://lore.kernel.org/all/20240529133446.28446-2-Jonathan.Cameron@huawei.com/
+
+Huisong Li (4):
+  ACPI: processor: idle: Optimize ACPI idle driver registration
+  ACPI: processor: Remove unused empty stubs of some functions
+  ACPI: processor: idle: Rearrange declarations in header file
+  ACPI: processor: Do not expose global variable acpi_idle_driver
+
+Rafael J. Wysocki (2):
+  ACPI: processor: Update cpuidle driver check in
+    __acpi_processor_start()
+  ACPI: processor: idle: Redefine two functions as void
+
+ drivers/acpi/processor_driver.c |  13 +++-
+ drivers/acpi/processor_idle.c   | 116 +++++++++++++++++++-------------
+ include/acpi/processor.h        |  34 ++--------
+ 3 files changed, 86 insertions(+), 77 deletions(-)
+
 -- 
 2.33.0
 
