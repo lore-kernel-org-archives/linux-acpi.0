@@ -1,155 +1,130 @@
-Received: from canpmsgout03.his.huawei.com (canpmsgout03.his.huawei.com [113.46.200.218])
+Received: from smtpbgeu1.qq.com (smtpbgeu1.qq.com [52.59.177.22])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B692F309F00;
-	Tue, 23 Dec 2025 07:23:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.218
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B772D2673AA
+	for <linux-acpi@vger.kernel.org>; Tue, 23 Dec 2025 07:40:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=52.59.177.22
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766474629; cv=none; b=lVhpciqK7HM8twG2bHnCD4yhsaZ+swhhssm+CGdFV/B3yLS9/kmK2raLgabg6/Cys8HHqxf1hCkQg2ts9DqM6AOtg+0DMyeQ4iE8pAWqWpVsN5bho9ABnjGiNCQw3fUxHf93KWBZMpnfpqNLHU+jDeVkuKNucTJiXbRnwjAY0uM=
+	t=1766475612; cv=none; b=eeGb2kdKcgKDT2NmBzVjYFtlWOcIEvA3pViFaxZV+2aCdUIlQQ+Z09tgfNcs07ba8Q2C/pbL/gq/o057v6bYKsj5axwOqBrG94LKjVvuTdYTpiMTFDxzkGuLPb9O3Vl080MbYMkSprEShNiNpISeLWAvkft4vlBqcA8NMInWRWo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766474629; c=relaxed/simple;
-	bh=tAKBzYW56ZrFMJfQlH//OXo9v1JLLXnTwlw1OiGBtfo=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=ojtohsZB/+Wo3ldFmPdgUR10JQjx3iDKo+SQNsijXKsjEBIyOJUlI+iC+k9BVc4V02ZJSNf8DUryC7uWmrgpysg1ftuT1WTtnLz3eTfir9n5zDqWPWcSVVQfhUs0BROFqrMxhqe0j19/lqokppFJI0QHeEEJbdnMG9uKDu+JL0M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=113.46.200.218
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
-Received: from mail.maildlp.com (unknown [172.19.162.144])
-	by canpmsgout03.his.huawei.com (SkyGuard) with ESMTPS id 4db5yN6jGKzpStQ;
-	Tue, 23 Dec 2025 15:20:44 +0800 (CST)
-Received: from kwepemf200017.china.huawei.com (unknown [7.202.181.10])
-	by mail.maildlp.com (Postfix) with ESMTPS id 81F2340567;
-	Tue, 23 Dec 2025 15:23:39 +0800 (CST)
-Received: from localhost.localdomain (10.90.31.46) by
- kwepemf200017.china.huawei.com (7.202.181.10) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Tue, 23 Dec 2025 15:23:38 +0800
-From: Jie Zhan <zhanjie9@hisilicon.com>
-To: <viresh.kumar@linaro.org>, <rafael@kernel.org>, <ionela.voinescu@arm.com>,
-	<beata.michalska@arm.com>, <pierre.gondois@arm.com>,
-	<zhenglifeng1@huawei.com>
-CC: <linux-pm@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>, <linuxarm@huawei.com>,
-	<zhanjie9@hisilicon.com>, <jonathan.cameron@huawei.com>,
-	<prime.zeng@hisilicon.com>, <yubowen8@huawei.com>, <lihuisong@huawei.com>,
-	<zhangpengjie2@huawei.com>, <wangzhi12@huawei.com>
-Subject: [PATCH v5 1/3] ACPI: CPPC: Factor out and export per-cpu cppc_perf_ctrs_in_pcc_cpu()
-Date: Tue, 23 Dec 2025 15:21:17 +0800
-Message-ID: <20251223072119.3372582-2-zhanjie9@hisilicon.com>
-X-Mailer: git-send-email 2.30.0
-In-Reply-To: <20251223072119.3372582-1-zhanjie9@hisilicon.com>
-References: <20251223072119.3372582-1-zhanjie9@hisilicon.com>
+	s=arc-20240116; t=1766475612; c=relaxed/simple;
+	bh=pfoqXMgUJnpcsP9gtPcdsMYzkDtZpzb3ZP/d7/KUILw=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=PER7RQoNw+lHdVlkHaqHdVmZw1ZfBSvGVSCiYWbmysbksantaLm31FOCp/zf2Xj0egciWgGE6UUB1uLjMjZvqb/sUyKpXe452+zmaWNBW57HImdguhoKgdKylufR2hKlx/Oi+YY0txtfC/81XrzbSHMhZ0UydAGMCRsw/UZ/x3g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=trustnetic.com; spf=pass smtp.mailfrom=trustnetic.com; arc=none smtp.client-ip=52.59.177.22
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=trustnetic.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=trustnetic.com
+X-QQ-mid:Yeas5t1766475553t425t50352
+Received: from 3DB253DBDE8942B29385B9DFB0B7E889 (jiawenwu@trustnetic.com [36.24.96.96])
+X-QQ-SSF:0000000000000000000000000000000
+From: =?utf-8?b?Smlhd2VuIFd1?= <jiawenwu@trustnetic.com>
+X-BIZMAIL-ID: 5829142609458046819
+To: "'Bartosz Golaszewski'" <bartosz.golaszewski@linaro.org>
+Cc: <andriy.shevchenko@linux.intel.com>,
+	<andy@kernel.org>,
+	<brgl@kernel.org>,
+	<broonie@kernel.org>,
+	<ckeepax@opensource.cirrus.com>,
+	<dakr@kernel.org>,
+	<david.rhodes@cirrus.com>,
+	<djrscally@gmail.com>,
+	<gregkh@linuxfoundation.org>,
+	<heikki.krogerus@linux.intel.com>,
+	<krzk@kernel.org>,
+	<linus.walleij@linaro.org>,
+	<linux-acpi@vger.kernel.org>,
+	<linux-gpio@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>,
+	<linux-sound@vger.kernel.org>,
+	<linux-spi@vger.kernel.org>,
+	<mstrozek@opensource.cirrus.com>,
+	<p.zabel@pengutronix.de>,
+	<patches@opensource.cirrus.com>,
+	<rafael@kernel.org>,
+	<rf@opensource.cirrus.com>,
+	<sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH v7 3/9] software node: allow referencing firmware nodes
+Date: Tue, 23 Dec 2025 15:39:12 +0800
+Message-ID: <02fd01dc73df$3b641bf0$b22c53d0$@trustnetic.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: kwepems100002.china.huawei.com (7.221.188.206) To
- kwepemf200017.china.huawei.com (7.202.181.10)
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+X-Mailer: Microsoft Outlook 16.0
+Content-Language: zh-cn
+Thread-Index: Adxz28xSqTk+JEooSaWYdRA317rR+Q==
+X-QQ-SENDSIZE: 520
+Feedback-ID: Yeas:trustnetic.com:qybglogicsvrgz:qybglogicsvrgz6b-0
+X-QQ-XMAILINFO: MPI5HzS7e4/KYQY34uIOdTCWQhxW6l4XZIal2CIyRJqKLx2ZSCJW9GN+
+	e9WY4z0FAzE/gm67AVk7QOZkNXeJNlfnVTW+QPK2d24AeRlWgHYpCfiJ5PEaoJJIi8XwjY3
+	5Ev5ctwUCvmAhcak5tw9oTM1DFGs1XlbUG2VLg18lQKFRkJwt5Tj6FC01Ga1csD+3pG7SMi
+	zY/KNgTODfOTFkTHENU+HSVFgGhhNCva9bnkL5+EVgCsnKqSjBh1u7VpufQDaRA3yYtd7zu
+	g2trxIEMSsPM6oELcZo7i5x87UjR9M3DccXdiHwqb1del94Ox2ANdwQRxNnSHO22swUm5qJ
+	BXAuDvR7/LkQSI1/pZ2aaePGZgrq0pA/a8+civPOwiPGRDr9gJxySs1JXWTrelbeHiD7Mk8
+	PRmSI7yHJeeJDd7uIDc42PWM4m3rAbIdiPr0/XWLtOsyERzMtIJ2bVd2D1EjtgQnk5ivpuJ
+	irYiVqOhzO/xzH1CmD+LjoMhEyo3SMTBKEvr97V7ciVwbVrlORpGvneywbFqA1Z6pu0mfmm
+	Z6a2ofsTba1Flq7+nKgCYe3jBbRsC6BqaTq4B58BwHaYgNC3VEWdqkr7DBGq3Mk/fROIOCa
+	CxRTYsVul0MHE7XOuAf088bu+UMBgOe/Rl1uB6HPvrWKa/TmrueUXts3Q7J8VURcSWlWdur
+	Tx7vjJ7LW16cgEpMr5tmUjMctxR/UIp6VcG2WXgphzCqsKYA4UmC9hz+yw0A9Yfi3zfTtJK
+	ao64HFyBJmZFuVUVkXnh5RohPvxSzFLskIOzcROD0Mn0uau73aVPbJwVjZ5AKd1fKA/lN5h
+	nA8hVoThGGBvJGYWJnd8eX8EaZlpBPNCI2PAqX9UTcPBZ+eL8xsCJyqwrh1PkLb8pye+wLK
+	5zVTuryfVlLDZ1jEZxjxdgEaYYN5aX6K8udnN0TL8kZiK1oCV65HJaZN4B7XJsvSCUd0Vnt
+	+jJa6ynkfS5nZpQzAUrF/Tjz/ISVrP45CyvjeSltRFAI2arDp2bsvVuPFW1+S14ByZlo=
+X-QQ-XMRINFO: OD9hHCdaPRBwH5bRRRw8tsiH4UAatJqXfg==
+X-QQ-RECHKSPAM: 0
 
-Factor out cppc_perf_ctrs_in_pcc_cpu() for checking whether per-cpu CPC
-regs are defined in PCC channels, and export it out for further use.
+Hi Bartosz Golaszewski,
 
-Reviewed-by: Lifeng Zheng <zhenglifeng1@huawei.com>
-Reviewed-by: Pierre Gondois <pierre.gondois@arm.com>
-Signed-off-by: Jie Zhan <zhanjie9@hisilicon.com>
----
- drivers/acpi/cppc_acpi.c | 48 ++++++++++++++++++++++------------------
- include/acpi/cppc_acpi.h |  5 +++++
- 2 files changed, 32 insertions(+), 21 deletions(-)
+> diff --git a/include/linux/property.h b/include/linux/property.h
+> index 50b26589dd70d1..272bfbdea7bf4a 100644
+> --- a/include/linux/property.h
+> +++ b/include/linux/property.h
+> @@ -355,19 +355,26 @@ struct software_node;
+>  
+>  /**
+>   * struct software_node_ref_args - Reference property with additional arguments
+> - * @node: Reference to a software node
+> + * @swnode: Reference to a software node
+> + * @fwnode: Alternative reference to a firmware node handle
+>   * @nargs: Number of elements in @args array
+>   * @args: Integer arguments
+>   */
+>  struct software_node_ref_args {
+> -	const struct software_node *node;
+> +	const struct software_node *swnode;
+> +	struct fwnode_handle *fwnode;
+>  	unsigned int nargs;
+>  	u64 args[NR_FWNODE_REFERENCE_ARGS];
+>  };
+>  
+>  #define SOFTWARE_NODE_REFERENCE(_ref_, ...)			\
+>  (const struct software_node_ref_args) {				\
+> -	.node = _ref_,						\
+> +	.swnode = _Generic(_ref_,				\
+> +			   const struct software_node *: _ref_,	\
+> +			   default: NULL),			\
+> +	.fwnode = _Generic(_ref_,				\
+> +			   struct fwnode_handle *: _ref_,	\
+> +			   default: NULL),			\
+>  	.nargs = COUNT_ARGS(__VA_ARGS__),			\
+>  	.args = { __VA_ARGS__ },				\
+>  }
 
-diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-index e66e20d1f31b..22d7fd669a6c 100644
---- a/drivers/acpi/cppc_acpi.c
-+++ b/drivers/acpi/cppc_acpi.c
-@@ -1423,6 +1423,32 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
- }
- EXPORT_SYMBOL_GPL(cppc_get_perf_caps);
+This change seems incompatible with my driver txgbe, since the software nodes
+are registered in " struct software_node * " but not " const struct software_node * ".
+
+So when I pulled the net-next-6.19-rc1 that merged this patch, to probe my driver.
+The error logs shows:
  
-+/**
-+ * cppc_perf_ctrs_in_pcc_cpu - Check if any perf counters of a CPU are in PCC.
-+ * @cpu: CPU on which to check perf counters.
-+ *
-+ * Return: true if any of the counters are in PCC regions, false otherwise
-+ */
-+bool cppc_perf_ctrs_in_pcc_cpu(unsigned int cpu)
-+{
-+	struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpu);
-+	struct cpc_register_resource *ref_perf_reg;
-+
-+	/*
-+	 * If reference perf register is not supported then we should use the
-+	 * nominal perf value
-+	 */
-+	ref_perf_reg = &cpc_desc->cpc_regs[REFERENCE_PERF];
-+	if (!CPC_SUPPORTED(ref_perf_reg))
-+		ref_perf_reg = &cpc_desc->cpc_regs[NOMINAL_PERF];
-+
-+	return CPC_IN_PCC(&cpc_desc->cpc_regs[DELIVERED_CTR]) ||
-+		CPC_IN_PCC(&cpc_desc->cpc_regs[REFERENCE_CTR]) ||
-+		CPC_IN_PCC(&cpc_desc->cpc_regs[CTR_WRAP_TIME]) ||
-+		CPC_IN_PCC(ref_perf_reg);
-+}
-+EXPORT_SYMBOL_GPL(cppc_perf_ctrs_in_pcc_cpu);
-+
- /**
-  * cppc_perf_ctrs_in_pcc - Check if any perf counters are in a PCC region.
-  *
-@@ -1437,27 +1463,7 @@ bool cppc_perf_ctrs_in_pcc(void)
- 	int cpu;
+[    5.243396] txgbe 0000:10:00.0 (unnamed net_device) (uninitialized): unable to attach SFP bus: -EINVAL
+[    5.243399] txgbe 0000:10:00.0: failed to init phylink
+[    5.576008] txgbe 0000:10:00.0: probe with driver txgbe failed with error -22
+[    6.109548] txgbe 0000:10:00.1 (unnamed net_device) (uninitialized): unable to attach SFP bus: -EINVAL
+[    6.109551] txgbe 0000:10:00.1: failed to init phylink
+[    6.442044] txgbe 0000:10:00.1: probe with driver txgbe failed with error -22
  
- 	for_each_online_cpu(cpu) {
--		struct cpc_register_resource *ref_perf_reg;
--		struct cpc_desc *cpc_desc;
--
--		cpc_desc = per_cpu(cpc_desc_ptr, cpu);
--
--		if (CPC_IN_PCC(&cpc_desc->cpc_regs[DELIVERED_CTR]) ||
--		    CPC_IN_PCC(&cpc_desc->cpc_regs[REFERENCE_CTR]) ||
--		    CPC_IN_PCC(&cpc_desc->cpc_regs[CTR_WRAP_TIME]))
--			return true;
--
--
--		ref_perf_reg = &cpc_desc->cpc_regs[REFERENCE_PERF];
--
--		/*
--		 * If reference perf register is not supported then we should
--		 * use the nominal perf value
--		 */
--		if (!CPC_SUPPORTED(ref_perf_reg))
--			ref_perf_reg = &cpc_desc->cpc_regs[NOMINAL_PERF];
--
--		if (CPC_IN_PCC(ref_perf_reg))
-+		if (cppc_perf_ctrs_in_pcc_cpu(cpu))
- 			return true;
- 	}
- 
-diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
-index 13fa81504844..4bcdcaf8bf2c 100644
---- a/include/acpi/cppc_acpi.h
-+++ b/include/acpi/cppc_acpi.h
-@@ -154,6 +154,7 @@ extern int cppc_get_perf_ctrs(int cpu, struct cppc_perf_fb_ctrs *perf_fb_ctrs);
- extern int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls);
- extern int cppc_set_enable(int cpu, bool enable);
- extern int cppc_get_perf_caps(int cpu, struct cppc_perf_caps *caps);
-+extern bool cppc_perf_ctrs_in_pcc_cpu(unsigned int cpu);
- extern bool cppc_perf_ctrs_in_pcc(void);
- extern unsigned int cppc_perf_to_khz(struct cppc_perf_caps *caps, unsigned int perf);
- extern unsigned int cppc_khz_to_perf(struct cppc_perf_caps *caps, unsigned int freq);
-@@ -204,6 +205,10 @@ static inline int cppc_get_perf_caps(int cpu, struct cppc_perf_caps *caps)
- {
- 	return -EOPNOTSUPP;
- }
-+static inline bool cppc_perf_ctrs_in_pcc_cpu(unsigned int cpu)
-+{
-+	return false;
-+}
- static inline bool cppc_perf_ctrs_in_pcc(void)
- {
- 	return false;
--- 
-2.33.0
 
