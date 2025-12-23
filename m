@@ -1,42 +1,42 @@
-Received: from canpmsgout07.his.huawei.com (canpmsgout07.his.huawei.com [113.46.200.222])
+Received: from canpmsgout09.his.huawei.com (canpmsgout09.his.huawei.com [113.46.200.224])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D20FB362128;
-	Tue, 23 Dec 2025 10:09:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.222
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91790362122;
+	Tue, 23 Dec 2025 10:09:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.224
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766484561; cv=none; b=g+rNOSvTiDEO17P0GrdeScnvsnDXkSrlmYC/RylxgPzEo5WMFMY2uHkeJ2whEwG6dbBDVLK2d9gVCAAnk8U2wtju+YeAtswfrT0Q6POHGr5UIU/xQ+kHTFwOWw6v+KcrxtuPxG4EWw7lfgYroJLeihDYq9/8FZQ8Jmo/oM4gMUU=
+	t=1766484562; cv=none; b=aagTpIwhZYjrBPtcDEJSc/8VSbZVOTu17VmIOBclr2rtJoUYp17GHFstq1+2xhKJPBv3lfno9wng7eqglaF+S/beOPwZpZqIliWtuHJloKbttJVvt5mN44mquwghaT8+nWzRXtGiiLOxIcP7ZV+C/miX5TTBal8tcHutLWLoOLI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766484561; c=relaxed/simple;
-	bh=5iOoa6o7kPrMy3Gj5oVmhDTpUlAecYaTnK0Lk0GSeII=;
+	s=arc-20240116; t=1766484562; c=relaxed/simple;
+	bh=UcXdMzChhao/LlX3VPVi01RAXA75bEXK4EVuNR6xysI=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=XFvLsgl/hODtuoS9FtIqGRuYUjYxL/VOdVfmV8ZDmuV4j+n20i+9XlKY7TBmfjjAk2L6H7DzTxAF/m2P8y8EyRgfT9yM+MAZHQDxNdrzlL2KzL+ZLHNayTfEwmS7445wubdt/pGy9GDsl2RgTX3M2IH/JNauzUl3c26c/fHpYWI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=WsgDX2XV; arc=none smtp.client-ip=113.46.200.222
+	 MIME-Version:Content-Type; b=T+X5vZkRyDZD459obIre+TmhmytMzwzWUe1ojwqnks8cFdS3vYFzo0uuGL2o62WiRY/Gc05ef3ZDMY5zr9ryIIRM9JG/h9VJxpt4xiBYSj0/KPE2d9qQ1Kh2oF/88UU1zgYB5VNtx34bxgU9K+wB1x5iDYMi9dbOroyr43J5P3k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=nJZtzF9W; arc=none smtp.client-ip=113.46.200.224
 Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=h-partners.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="WsgDX2XV"
+	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="nJZtzF9W"
 dkim-signature: v=1; a=rsa-sha256; d=h-partners.com; s=dkim;
 	c=relaxed/relaxed; q=dns/txt;
 	h=From;
-	bh=qyo+7B1kYT/7BRg6pR5vvli089fnI96ZXjvc9VrY0+k=;
-	b=WsgDX2XVayAhBxW3VudqMX8cHufg7ralB7MUC/toxI/aABnUWnj/jsTXOvlFgirT4v6RikiVT
-	2gf4Un7Rinj5T8/5HRqMMZO11RpSJJDFQK6ANtBtHLNsUmT18lQOPG+cN/iprtrjKnHZsSqJkTo
-	JAQc6gepYqmcbs47blTsJ14=
-Received: from mail.maildlp.com (unknown [172.19.163.163])
-	by canpmsgout07.his.huawei.com (SkyGuard) with ESMTPS id 4db9dG49yjzLlTC;
-	Tue, 23 Dec 2025 18:06:10 +0800 (CST)
-Received: from dggemv705-chm.china.huawei.com (unknown [10.3.19.32])
-	by mail.maildlp.com (Postfix) with ESMTPS id 488FC40538;
-	Tue, 23 Dec 2025 18:09:16 +0800 (CST)
+	bh=mePpf6+5xaNwVOTlLG3Ynqfb7tulPW229mHuSf1VoTw=;
+	b=nJZtzF9WVVv1kgZ5C2IhYtB/g5v0SwrTAppG2fg+6P3AYqclvn+sJEY6ARxii5Q3EG4Zicgjj
+	r8rr17hCcoLqDe/lOM86NRzVUt9vQ6yaoPQRdUrjq4KXtWn68DwNAlscC3YWhdzJWdMGiE1D2TH
+	PsrGBWtBHkiQtrnfbS8v8WI=
+Received: from mail.maildlp.com (unknown [172.19.163.200])
+	by canpmsgout09.his.huawei.com (SkyGuard) with ESMTPS id 4db9dJ41flz1cySV;
+	Tue, 23 Dec 2025 18:06:12 +0800 (CST)
+Received: from dggemv706-chm.china.huawei.com (unknown [10.3.19.33])
+	by mail.maildlp.com (Postfix) with ESMTPS id 6794440086;
+	Tue, 23 Dec 2025 18:09:18 +0800 (CST)
 Received: from kwepemn100009.china.huawei.com (7.202.194.112) by
- dggemv705-chm.china.huawei.com (10.3.19.32) with Microsoft SMTP Server
+ dggemv706-chm.china.huawei.com (10.3.19.33) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Tue, 23 Dec 2025 18:09:16 +0800
+ 15.2.1544.11; Tue, 23 Dec 2025 18:09:18 +0800
 Received: from localhost.localdomain (10.50.163.32) by
  kwepemn100009.china.huawei.com (7.202.194.112) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.36; Tue, 23 Dec 2025 18:09:15 +0800
+ 15.2.1544.36; Tue, 23 Dec 2025 18:09:17 +0800
 From: Huisong Li <lihuisong@huawei.com>
 To: <rafael@kernel.org>, <lenb@kernel.org>, <bp@alien8.de>,
 	<AmandeepKaur.Longia@amd.com>
@@ -45,9 +45,9 @@ CC: <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
 	<zhanjie9@hisilicon.com>, <zhenglifeng1@huawei.com>, <yubowen8@huawei.com>,
 	<zhangpengjie2@huawei.com>, <wangzhi12@huawei.com>,
 	<prime.zeng@hisilicon.com>, <lihuisong@huawei.com>
-Subject: [PATCH v1 1/6] ACPI: processor: idle: Optimize ACPI idle driver registration
-Date: Tue, 23 Dec 2025 18:09:09 +0800
-Message-ID: <20251223100914.2407069-2-lihuisong@huawei.com>
+Subject: [PATCH v1 5/6] ACPI: processor: idle: Rearrange declarations in header file
+Date: Tue, 23 Dec 2025 18:09:13 +0800
+Message-ID: <20251223100914.2407069-6-lihuisong@huawei.com>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20251223100914.2407069-1-lihuisong@huawei.com>
 References: <20251223100914.2407069-1-lihuisong@huawei.com>
@@ -62,191 +62,45 @@ Content-Type: text/plain
 X-ClientProxiedBy: kwepems500001.china.huawei.com (7.221.188.70) To
  kwepemn100009.china.huawei.com (7.202.194.112)
 
-Currently, the ACPI idle driver is registered from within a CPU
-hotplug callback. Although this didn't cause any functional issues,
-this is questionable and confusing. And it is better to register
-the cpuidle driver when all of the CPUs have been brought up.
+Group all of the declarations of functions that belong to the ACPI
+processor idle driver together in one place in processor.h.
 
-So add a new function to initialize acpi_idle_driver based on the
-power management information of an available CPU and register cpuidle
-driver in acpi_processor_driver_init().
-
-This commit has four changes under the commit 7a8c994cbb2d (ACPI:
-processor: idle: Optimize ACPI idle driver registration):
-1) move acpi_processor_register_idle_driver() ahead of the
-   driver_register().
-2) add acpi_processor_cstate_first_run_checks() before calling
-   acpi_processor_get_power_info().
-3) squash the commit 9d68320b2bca (ACPI: processor: idle: Fix
-   function defined but not used warning) into this commit.
-4) use for_each_possible_cpu(cpu) to scan all possible cpus.
+While at it, drop the unnecessary extern modifier from the declaraions
+of two functions.
 
 Signed-off-by: Huisong Li <lihuisong@huawei.com>
-Link: https://patch.msgid.link/20250728070612.1260859-3-lihuisong@huawei.com
-[ rjw: Added missing inline modifiers ]
+Link: https://patch.msgid.link/20250911112408.1668431-3-lihuisong@huawei.com
+[ rjw: Subject and changelog rewrite ]
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/processor_driver.c | 10 ++++-
- drivers/acpi/processor_idle.c   | 66 +++++++++++++++++++++------------
- include/acpi/processor.h        |  2 +
- 3 files changed, 54 insertions(+), 24 deletions(-)
+ include/acpi/processor.h | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
-index 65e779be64ff..311863e00ffd 100644
---- a/drivers/acpi/processor_driver.c
-+++ b/drivers/acpi/processor_driver.c
-@@ -259,9 +259,11 @@ static int __init acpi_processor_driver_init(void)
- 		acpi_processor_ignore_ppc_init();
- 	}
- 
-+	acpi_processor_register_idle_driver();
-+
- 	result = driver_register(&acpi_processor_driver);
- 	if (result < 0)
--		return result;
-+		goto unregister_idle_drv;
- 
- 	result = cpuhp_setup_state(CPUHP_AP_ONLINE_DYN,
- 				   "acpi/cpu-drv:online",
-@@ -283,8 +285,13 @@ static int __init acpi_processor_driver_init(void)
- 	acpi_idle_rescan_dead_smt_siblings();
- 
- 	return 0;
-+
- err:
- 	driver_unregister(&acpi_processor_driver);
-+
-+unregister_idle_drv:
-+	acpi_processor_unregister_idle_driver();
-+
- 	return result;
- }
- 
-@@ -302,6 +309,7 @@ static void __exit acpi_processor_driver_exit(void)
- 	cpuhp_remove_state_nocalls(hp_online);
- 	cpuhp_remove_state_nocalls(CPUHP_ACPI_CPUDRV_DEAD);
- 	driver_unregister(&acpi_processor_driver);
-+	acpi_processor_unregister_idle_driver();
- }
- 
- module_init(acpi_processor_driver_init);
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index 89f2f08b2554..ca7ae64def73 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -1347,7 +1347,49 @@ int acpi_processor_power_state_has_changed(struct acpi_processor *pr)
- 	return 0;
- }
- 
--static int acpi_processor_registered;
-+void acpi_processor_register_idle_driver(void)
-+{
-+	struct acpi_processor *pr;
-+	int ret = -ENODEV;
-+	int cpu;
-+
-+	/*
-+	 * Acpi idle driver is used by all possible CPUs.
-+	 * Install the idle handler by the processor power info of one in them.
-+	 * Note that we use previously set idle handler will be used on
-+	 * platforms that only support C1.
-+	 */
-+	for_each_possible_cpu(cpu) {
-+		pr = per_cpu(processors, cpu);
-+		if (!pr)
-+			continue;
-+
-+		acpi_processor_cstate_first_run_checks();
-+		ret = acpi_processor_get_power_info(pr);
-+		if (!ret) {
-+			pr->flags.power_setup_done = 1;
-+			acpi_processor_setup_cpuidle_states(pr);
-+			break;
-+		}
-+	}
-+
-+	if (ret) {
-+		pr_debug("No ACPI power information from any CPUs.\n");
-+		return;
-+	}
-+
-+	ret = cpuidle_register_driver(&acpi_idle_driver);
-+	if (ret) {
-+		pr_debug("register %s failed.\n", acpi_idle_driver.name);
-+		return;
-+	}
-+	pr_debug("%s registered with cpuidle.\n", acpi_idle_driver.name);
-+}
-+
-+void acpi_processor_unregister_idle_driver(void)
-+{
-+	cpuidle_unregister_driver(&acpi_idle_driver);
-+}
- 
- int acpi_processor_power_init(struct acpi_processor *pr)
- {
-@@ -1362,22 +1404,7 @@ int acpi_processor_power_init(struct acpi_processor *pr)
- 	if (!acpi_processor_get_power_info(pr))
- 		pr->flags.power_setup_done = 1;
- 
--	/*
--	 * Install the idle handler if processor power management is supported.
--	 * Note that we use previously set idle handler will be used on
--	 * platforms that only support C1.
--	 */
- 	if (pr->flags.power) {
--		/* Register acpi_idle_driver if not already registered */
--		if (!acpi_processor_registered) {
--			acpi_processor_setup_cpuidle_states(pr);
--			retval = cpuidle_register_driver(&acpi_idle_driver);
--			if (retval)
--				return retval;
--			pr_debug("%s registered with cpuidle\n",
--				 acpi_idle_driver.name);
--		}
--
- 		dev = kzalloc(sizeof(*dev), GFP_KERNEL);
- 		if (!dev)
- 			return -ENOMEM;
-@@ -1390,14 +1417,11 @@ int acpi_processor_power_init(struct acpi_processor *pr)
- 		 */
- 		retval = cpuidle_register_device(dev);
- 		if (retval) {
--			if (acpi_processor_registered == 0)
--				cpuidle_unregister_driver(&acpi_idle_driver);
- 
- 			per_cpu(acpi_cpuidle_device, pr->id) = NULL;
- 			kfree(dev);
- 			return retval;
- 		}
--		acpi_processor_registered++;
- 	}
- 	return 0;
- }
-@@ -1411,10 +1435,6 @@ int acpi_processor_power_exit(struct acpi_processor *pr)
- 
- 	if (pr->flags.power) {
- 		cpuidle_unregister_device(dev);
--		acpi_processor_registered--;
--		if (acpi_processor_registered == 0)
--			cpuidle_unregister_driver(&acpi_idle_driver);
--
- 		kfree(dev);
- 	}
- 
 diff --git a/include/acpi/processor.h b/include/acpi/processor.h
-index d0eccbd920e5..ff864c1cee3a 100644
+index 0200aef6e754..24fdaa3c2899 100644
 --- a/include/acpi/processor.h
 +++ b/include/acpi/processor.h
-@@ -423,6 +423,8 @@ int acpi_processor_power_init(struct acpi_processor *pr);
- int acpi_processor_power_exit(struct acpi_processor *pr);
- int acpi_processor_power_state_has_changed(struct acpi_processor *pr);
+@@ -425,6 +425,8 @@ int acpi_processor_power_state_has_changed(struct acpi_processor *pr);
  int acpi_processor_hotplug(struct acpi_processor *pr);
-+void acpi_processor_register_idle_driver(void);
-+void acpi_processor_unregister_idle_driver(void);
- #else
- static inline int acpi_processor_power_init(struct acpi_processor *pr)
- {
+ void acpi_processor_register_idle_driver(void);
+ void acpi_processor_unregister_idle_driver(void);
++int acpi_processor_ffh_lpi_probe(unsigned int cpu);
++int acpi_processor_ffh_lpi_enter(struct acpi_lpi_state *lpi);
+ #endif /* CONFIG_ACPI_PROCESSOR_IDLE */
+ 
+ /* in processor_thermal.c */
+@@ -447,11 +449,6 @@ static inline void acpi_thermal_cpufreq_exit(struct cpufreq_policy *policy)
+ }
+ #endif	/* CONFIG_CPU_FREQ */
+ 
+-#ifdef CONFIG_ACPI_PROCESSOR_IDLE
+-extern int acpi_processor_ffh_lpi_probe(unsigned int cpu);
+-extern int acpi_processor_ffh_lpi_enter(struct acpi_lpi_state *lpi);
+-#endif
+-
+ void acpi_processor_init_invariance_cppc(void);
+ 
+ #endif
 -- 
 2.33.0
 
