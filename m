@@ -1,42 +1,41 @@
 Received: from relay12.grserver.gr (relay12.grserver.gr [88.99.38.195])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80DE3316907;
-	Fri, 26 Dec 2025 10:27:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B9C98479;
+	Fri, 26 Dec 2025 10:32:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=88.99.38.195
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766744878; cv=none; b=dTOIu9iqns5mInHbP04kkonob9rQEuefwIndvl2N6a65wBqBIvlqyx3kTAzRsxHSmc4o39sETVljLrn9JZAQHGUcQN92dvFCKFIlZ+PcKJi0jhMMHwuiLWQaPVJ0cQNRZHCBHSaiYPDiVCQsZv29C316X06CHD+vbuOG6chGI4E=
+	t=1766745179; cv=none; b=MF7RwbD9wHmfadbAUS+glS2fYnXVBif8x48ai0+3xebrgoLpkGEfI6wQkiOCqCmxC1WuULCobmQwglRksl2+BFcmOxGXtJ0KuBeO2tv24zGodMiinqLm3/csIxDWTFj2x99t1BscV8cUd/XGOayzaG9JBaChIkzPhCigOlAH6sc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766744878; c=relaxed/simple;
-	bh=GN5FkH2/IWa3xOeAAgG18W6llFXZ1m3UcJYJb7HlAc8=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=n0RuRxvfSfUerr8QhfRW7Wbj9rgRsNOpYV8LLjCLEb/bzv/+1dsfUTeDoFuv0qVrj60hemd0L4uk6XjtZ6S0s7411th97KPVbkXYBbrhPZtuF2rHUYnNjiRtgsPxGdPL4fPtao1jsj4kBMfdhWC+jHQifMw9OjNziqUvP9rPTUM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=antheas.dev; spf=pass smtp.mailfrom=antheas.dev; dkim=pass (2048-bit key) header.d=antheas.dev header.i=@antheas.dev header.b=I9d0Fo5w; arc=none smtp.client-ip=88.99.38.195
+	s=arc-20240116; t=1766745179; c=relaxed/simple;
+	bh=jJkEt+JI0dTrED/qRcrATo3hSLn6bJyVRHyp+n3DZXc=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=eR7Pr01RAMfq9axgHG1r+QqRISHT3xFx+cTNImRNf/9coiLhA2ChyyV8IvvKLyHfGfXz2uT/IjhIGzBPCs0q0ANzaGJcKnLegRY1UtBco9XIAgC4qe/5yR0Vjku3GPBt1yiEF11LhvwIQXWJ6vnSTiNFJLC7eO0CmM1uki+O1FE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=antheas.dev; spf=pass smtp.mailfrom=antheas.dev; dkim=pass (2048-bit key) header.d=antheas.dev header.i=@antheas.dev header.b=YhvyPOMa; arc=none smtp.client-ip=88.99.38.195
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=antheas.dev
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=antheas.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=antheas.dev header.i=@antheas.dev header.b="I9d0Fo5w"
+	dkim=pass (2048-bit key) header.d=antheas.dev header.i=@antheas.dev header.b="YhvyPOMa"
 Received: from relay12 (localhost [127.0.0.1])
-	by relay12.grserver.gr (Proxmox) with ESMTP id DAC9BBDA4F;
-	Fri, 26 Dec 2025 12:27:54 +0200 (EET)
+	by relay12.grserver.gr (Proxmox) with ESMTP id 1AAB8BDA4B;
+	Fri, 26 Dec 2025 12:27:40 +0200 (EET)
 Received: from linux3247.grserver.gr (linux3247.grserver.gr [213.158.90.240])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by relay12.grserver.gr (Proxmox) with ESMTPS id 4C88FBC770;
-	Fri, 26 Dec 2025 12:27:54 +0200 (EET)
+	by relay12.grserver.gr (Proxmox) with ESMTPS id 3E3B2BD9DB;
+	Fri, 26 Dec 2025 12:27:39 +0200 (EET)
 Received: from antheas-z13 (unknown [IPv6:2a02:2149:8a28:c200:ffd7:3bf6:9efd:b472])
-	by linux3247.grserver.gr (Postfix) with ESMTPSA id 5EA99200D44;
-	Fri, 26 Dec 2025 12:27:52 +0200 (EET)
+	by linux3247.grserver.gr (Postfix) with ESMTPSA id 417381FEEA0;
+	Fri, 26 Dec 2025 12:27:37 +0200 (EET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=antheas.dev;
-	s=default; t=1766744874;
-	bh=94tJEPb5R4/RMYGeb/XvgeZRhmptqhLSfjBLob/O9UU=; h=From:To:Subject;
-	b=I9d0Fo5wUYP2pfVOKr96fFGDjZ8tDfFspm2Z+2C/iNWe/7uAB6YdTQ+AfbmdPF+hc
-	 vbzseoWtKPpXWjtiTCwamUaeeboaFJ7LNNdmu/vQ93BFbKrvz6Y7k9Yiw6pid9pPbA
-	 UpFtHJujfxXLedP7dnjwIjSIsDnAVj3u6wm3eEvSDW1q189YckCjXjmDLk3sXc3D0G
-	 E6WwHDzu3pzs/fmf5+N8eRIVhkISA1W0PiHKXE/QXSJVsjAnYSRTjtKHMwuGKWh+VX
-	 /+iIKsrqtZq/LEf4ZqAur+rSX7idBr/8NXU7KrJRGYRt1PU/1wP4CzzTSl61MJtqCs
-	 qIdsYyHySS9tw==
+	s=default; t=1766744858;
+	bh=JJSnIibN6K9IQDpOOY/Ta4c0i8T0M1hkQKidrwA0gvA=; h=From:To:Subject;
+	b=YhvyPOMaywUtsEBFyjOr0z7B6aE77O+yAI0EcSW/cANC/xtr+0I9i8Bhiu0h3t6CN
+	 KVEVY7iGAW59Idx6nE3nOdsPOCeyYGl2ENxFySkVgQim3sAA5t73+jw2K7PrnoqCar
+	 e2fxKEfurXOGK8Xp/RNuotlliUKnl2td8p3urJuwybipU1AqdUpMOpM0yfoqcgGP2j
+	 wiYFBi69KFB9BdIqb4Tqah1lxchECqTGg/Ux0JqeknT91H2OptrV4+bC8iUu1+TZ9H
+	 HGIDKdjsrnRPasp/WNLzKmdirNeFDw19u31te+3bCMh4q2EXX+YBjrQ0v9YtRnfLLS
+	 ZhKlzmqolb4ig==
 Authentication-Results: linux3247.grserver.gr;
 	spf=pass (sender IP is 2a02:2149:8a28:c200:ffd7:3bf6:9efd:b472) smtp.mailfrom=lkml@antheas.dev smtp.helo=antheas-z13
 Received-SPF: pass (linux3247.grserver.gr: connection is authenticated)
@@ -58,13 +57,11 @@ Cc: bob.beckett@collabora.com,
 	superm1@kernel.org,
 	systemd-devel@lists.freedesktop.org,
 	xaver.hugl@gmail.com
-Subject: [RFC v1 8/8] PM: standby: Add sysfs attribute for runtime standby
- transitions
-Date: Fri, 26 Dec 2025 12:26:46 +0200
-Message-ID: <20251226102656.6296-9-lkml@antheas.dev>
+Subject: [RFC v1 0/8] acpi/x86: s2idle: Introduce and implement runtime
+ standby ABI for ACPI s0ix platforms
+Date: Fri, 26 Dec 2025 12:26:38 +0200
+Message-ID: <20251226102656.6296-1-lkml@antheas.dev>
 X-Mailer: git-send-email 2.52.0
-In-Reply-To: <20251226102656.6296-1-lkml@antheas.dev>
-References: <20251226102656.6296-1-lkml@antheas.dev>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -73,136 +70,85 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-PPP-Message-ID: 
- <176674487387.2608731.11021375007848229427@linux3247.grserver.gr>
+ <176674485873.2608178.5862922189409135880@linux3247.grserver.gr>
 X-PPP-Vhost: antheas.dev
 X-Virus-Scanned: clamav-milter 1.4.3 at linux3247.grserver.gr
 X-Virus-Status: Clean
 
-Add a sysfs attribute to allow informing the kernel about the current
-standby state of the device depending on user involvement, those being:
-"active", "inactive", "sleep", and "resume" (in "sleep" but preparing
-for presenting to the user faster).
+This series introduces a new runtime standby ABI to allow firing Modern
+Standby firmware notifications that modify hardware appearance from userspace
+without suspending the kernel. This allows userspace to set the inactivity
+state of the device so that it looks like it is asleep (e.g., flashing the
+power button) while still being able to perform basic computations.
 
-Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
----
- kernel/power/main.c  | 84 ++++++++++++++++++++++++++++++++++++++++++++
- kernel/power/power.h |  1 +
- 2 files changed, 85 insertions(+)
+It is a more fleshed out implementation of [1] and a rewritten version of [2]
 
-diff --git a/kernel/power/main.c b/kernel/power/main.c
-index 03b2c5495c77..30494be41557 100644
---- a/kernel/power/main.c
-+++ b/kernel/power/main.c
-@@ -830,6 +830,89 @@ static ssize_t state_store(struct kobject *kobj, struct kobj_attribute *attr,
- 
- power_attr(state);
- 
-+#ifdef CONFIG_SUSPEND
-+/*
-+ * standby - control system s2idle standby state.
-+ *
-+ * show() returns available standby states, which may be "active", "screen_off",
-+ * "sleep" and "resume" (still in sleep but preparing to present to user).
-+ * See Documentation/admin-guide/pm/standby-states.rst for a description of
-+ * what they mean.
-+ *
-+ * store() accepts one of those strings and initiates a transition to that
-+ * standby state.
-+ *
-+ * For backwards compatibility, when the system suspends, it first enters the
-+ * state "sleep", regardless of what was written into store() and then during
-+ * resume restores the previous value.
-+ */
-+static ssize_t standby_show(struct kobject *kobj, struct kobj_attribute *attr,
-+			    char *buf)
-+{
-+	unsigned int sleep_flags;
-+	standby_state_t i, curr;
-+	char *s = buf;
-+
-+	sleep_flags = lock_system_sleep();
-+	pm_standby_refresh_states();
-+	curr = pm_standby_get_state();
-+	unlock_system_sleep(sleep_flags);
-+
-+	if (curr < 0)
-+		return -EBUSY;
-+
-+	for (i = PM_STANDBY_MIN; i < PM_STANDBY_MAX; i++)
-+		if (standby_states[i])
-+			s += sprintf(s, curr == i ? "[%s] " : "%s ", standby_states[i]);
-+
-+	if (s != buf)
-+		/* convert the last space to a newline */
-+		*(s - 1) = '\n';
-+	return (s - buf);
-+}
-+
-+static standby_state_t decode_standby_state(const char *buf, size_t n)
-+{
-+	standby_state_t state;
-+	char *p;
-+	int len;
-+
-+	p = memchr(buf, '\n', n);
-+	len = p ? p - buf : n;
-+
-+	for (state = PM_STANDBY_MIN; state < PM_STANDBY_MAX; state++) {
-+		const char *label = standby_states[state];
-+
-+		if (label && len == strlen(label) && !strncmp(buf, label, len))
-+			return state;
-+	}
-+
-+	return PM_STANDBY_MAX;
-+}
-+
-+static ssize_t standby_store(struct kobject *kobj, struct kobj_attribute *attr,
-+			     const char *buf, size_t n)
-+{
-+	unsigned int sleep_flags;
-+	standby_state_t state;
-+	int error;
-+
-+	sleep_flags = lock_system_sleep();
-+	pm_standby_refresh_states();
-+	state = decode_standby_state(buf, n);
-+
-+	if (state >= PM_STANDBY_MAX)
-+		return -EINVAL;
-+
-+	error = pm_standby_transition(state);
-+	unlock_system_sleep(sleep_flags);
-+
-+	return error ? error : n;
-+}
-+
-+power_attr(standby);
-+#endif
-+
- #ifdef CONFIG_PM_SLEEP
- /*
-  * The 'wakeup_count' attribute, along with the functions defined in
-@@ -1084,6 +1167,7 @@ static struct attribute * g[] = {
- #ifdef CONFIG_SUSPEND
- 	&mem_sleep_attr.attr,
- 	&sync_on_suspend_attr.attr,
-+	&standby_attr.attr,
- #endif
- #ifdef CONFIG_PM_AUTOSLEEP
- 	&autosleep_attr.attr,
-diff --git a/kernel/power/power.h b/kernel/power/power.h
-index 75b63843886e..2327a1ce2b05 100644
---- a/kernel/power/power.h
-+++ b/kernel/power/power.h
-@@ -216,6 +216,7 @@ extern void swsusp_show_speed(ktime_t, ktime_t, unsigned int, char *);
- extern const char * const pm_labels[];
- extern const char *pm_states[];
- extern const char *mem_sleep_states[];
-+extern const char *standby_states[];
- 
- extern int suspend_devices_and_enter(suspend_state_t state);
- #else /* !CONFIG_SUSPEND */
+The first part of this series implements the plumbing that moves the existing
+DSMs from being called at the end of the suspend sequence to the beginning,
+where they are called through a transition function. Then, the last patch
+exposes this transition function through /sys/power/standby to allow userspace
+to interact with it.
+
+In this way, the core series can be tested while not exposing the new ABI
+to userspace until ensured to be stable.
+
+For more information, see the first patch in this series with documentation.
+
+Because this series is a major rewrite, I have not tested it much and there
+might be minor logic issues. In addition, due to confusion with the
+"screen off" terminology, I opted to rename the "screen off" state to
+"inactive". This way, it is applicable to devices that do not have screens.
+
+To test this series, it is recommended to enable logs with:
+
+sudo bash -c "cat > /sys/kernel/debug/dynamic_debug/control" << EOF
+file drivers/acpi/x86/s2idle.c +p
+file kernel/power/suspend.c +p
+EOF
+echo 1 | sudo tee /sys/power/pm_debug_messages
+
+Here are some commands afterwards:
+
+echo "active" | sudo tee /sys/power/standby; cat /sys/power/standby
+echo "inactive" | sudo tee /sys/power/standby; cat /sys/power/standby
+echo "sleep" | sudo tee /sys/power/standby; cat /sys/power/standby
+
+Merry Christmas
+
+PS. this series is made on v6.19-rc2, but you should probably test it on 6.18.
+My Wifi does not work, and neither does booting with a dock connected. Do not
+test it on an ROG Ally, let's get the basics first right :) The shims in
+asus-wmi/hid-asus should be removed once this series is merged otherwise they
+will conflict.
+
+[1] https://lore.kernel.org/lkml/20251202043416.2310677-1-dmitry.osipenko@collabora.com/
+[2] https://lore.kernel.org/all/20241121172239.119590-1-lkml@antheas.dev/
+
+Antheas Kapenekakis (8):
+  Documentation: PM: Add documentation for Runtime Standby States
+  acpi/x86: s2idle: Rename LPS0 constants so they mirror their function
+  acpi/x86: s2idle: add runtime standby transition function
+  acpi/x86: s2idle: add support for querying runtime standby state
+    support
+  acpi/x86: s2idle: move DSM notifications to do_notification callback
+  acpi/x86: s2idle: implement turn on display DSM as resume notification
+  PM: hibernate: Enter s2idle sleep state before hibernation
+  PM: standby: Add sysfs attribute for runtime standby transitions
+
+ Documentation/ABI/testing/sysfs-power         |  20 ++
+ .../admin-guide/pm/standby-states.rst         | 100 ++++++++++
+ Documentation/admin-guide/pm/system-wide.rst  |   1 +
+ drivers/acpi/x86/s2idle.c                     | 176 ++++++++++++------
+ include/linux/suspend.h                       |  26 +++
+ kernel/power/hibernate.c                      |  29 ++-
+ kernel/power/main.c                           |  84 +++++++++
+ kernel/power/power.h                          |   1 +
+ kernel/power/suspend.c                        | 153 +++++++++++++++
+ 9 files changed, 532 insertions(+), 58 deletions(-)
+ create mode 100644 Documentation/admin-guide/pm/standby-states.rst
+
+
+base-commit: 9448598b22c50c8a5bb77a9103e2d49f134c9578
 -- 
 2.52.0
 
