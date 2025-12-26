@@ -1,267 +1,226 @@
-Received: from canpmsgout11.his.huawei.com (canpmsgout11.his.huawei.com [113.46.200.226])
+Received: from relay11.grserver.gr (relay11.grserver.gr [78.46.171.57])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B94663148C8;
-	Fri, 26 Dec 2025 08:03:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.226
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F5A8314D0F;
+	Fri, 26 Dec 2025 10:27:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=78.46.171.57
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766736231; cv=none; b=LLMsF8sD1FCO9wkfEhRdq7mt+7QKBgBdSg+eWUB+48HHL7v6mEp35rZSvBg+oiP0gw44wTaJLuH74awksh0Lyx087jAZLRGtN6/TYi231okmqS25PkZAmnLy4YiCnFjcMC3qaPcNUdQlPX+vPpgRkpjvqIPeqYhHFkDYNtoa4fg=
+	t=1766744873; cv=none; b=LOhIz+q5vEUNa//3tuo4KzjHf2h59hC1cmiChqaY+40CPf7DuTLdQjQ7IQAmmP3SsDOpWjZP+AWQ22KAghZmABtZoxF1ZImn3gTxU3bMGxKwl2cKNqeKJzVjT3ArtGxWgEcXtxGfu5/dvZTzHZDE3jzUvEkevW32BHE1dYGqA+A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766736231; c=relaxed/simple;
-	bh=NNtcSaymVfb+eeXD+ID6HdTKYpdAZqMMojsf1gOSp5g=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=PxMqhrUKf0g1dBdnrXt208AYMnNuShTPpwxkSdbNafkh920DvNFSscLUQucbGvRFLaWSsND2mNPUMTVMp39CvD29fhpkSL73CT4zsh88fnYqi9AwqxY6cZ49e4X375qJzxjY583zWm/0BwJ0NBPYrJK2dkIxWfJx528IWorkA80=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=eX5igWEe; arc=none smtp.client-ip=113.46.200.226
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+	s=arc-20240116; t=1766744873; c=relaxed/simple;
+	bh=4hqf5rS2bfwFvwbCJlmmrloIZ4v2ItiJpg+F3qHUwXI=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=jE+Dco7zQibirPemLwxN/U7lfOscwC6ZwQyu+gWxYCxJJ1mnSjfEqejgddc3I/oOEIp1e9WfOWqSPJnTXWHSocBapuaQr5Brk2ybJmOUKvtIqXaZmWDi2cI+e6Ivd/okNr4UGQ3z7d5vOTf0LpWYVgs9aToDJr6UsITJoagQRwg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=antheas.dev; spf=pass smtp.mailfrom=antheas.dev; dkim=pass (2048-bit key) header.d=antheas.dev header.i=@antheas.dev header.b=F9X19xtv; arc=none smtp.client-ip=78.46.171.57
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=antheas.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=antheas.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="eX5igWEe"
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=yr33QlKfyzpoEI3opWrGPCwz6K45y5MtWloabdDJsYs=;
-	b=eX5igWEe88qSEW5scW/+bRuLCxXMSVK2HTq+/1I05IQxh55LC56HxfXLLpOXS27G95zZHZkOS
-	r7Igd+y6GGS+H4PslOzrdL7qGsLTlPEjpSSRzTih0FKpnN7nq6gAIHCHKtRe/poeaIEcxCST6eL
-	8cERpNX+JvlyYhzZI1WB0JI=
-Received: from mail.maildlp.com (unknown [172.19.163.214])
-	by canpmsgout11.his.huawei.com (SkyGuard) with ESMTPS id 4dcyht0FrbzKm6H;
-	Fri, 26 Dec 2025 16:00:30 +0800 (CST)
-Received: from kwepemf200001.china.huawei.com (unknown [7.202.181.227])
-	by mail.maildlp.com (Postfix) with ESMTPS id C983E40539;
-	Fri, 26 Dec 2025 16:03:38 +0800 (CST)
-Received: from [10.67.121.90] (10.67.121.90) by kwepemf200001.china.huawei.com
- (7.202.181.227) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Fri, 26 Dec
- 2025 16:03:37 +0800
-Message-ID: <3887747b-214e-45e5-9f85-d4e20a5e2e68@huawei.com>
-Date: Fri, 26 Dec 2025 16:03:37 +0800
+	dkim=pass (2048-bit key) header.d=antheas.dev header.i=@antheas.dev header.b="F9X19xtv"
+Received: from relay11 (localhost.localdomain [127.0.0.1])
+	by relay11.grserver.gr (Proxmox) with ESMTP id 6FE8CC2472;
+	Fri, 26 Dec 2025 12:27:43 +0200 (EET)
+Received: from linux3247.grserver.gr (linux3247.grserver.gr [213.158.90.240])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by relay11.grserver.gr (Proxmox) with ESMTPS id BC2CFC1921;
+	Fri, 26 Dec 2025 12:27:42 +0200 (EET)
+Received: from antheas-z13 (unknown [IPv6:2a02:2149:8a28:c200:ffd7:3bf6:9efd:b472])
+	by linux3247.grserver.gr (Postfix) with ESMTPSA id E965D200D44;
+	Fri, 26 Dec 2025 12:27:40 +0200 (EET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=antheas.dev;
+	s=default; t=1766744862;
+	bh=LiOshHGRwJ9kf6zmx7ZpAhOgcdHT3lRX/PPYtrOsoyI=; h=From:To:Subject;
+	b=F9X19xtvhUEsVGLEremhLCyijTX7GEIEm7eihJOyFT1PUiZrwUDLuwTbFJDjSBOY0
+	 9C1OU/89QE7Gu0WiyRwuoD9nrdfrhOWC55QTBWDPkrE7vwBE3wxmA63Xs2nVuuNeG1
+	 SR3q84fTjf8A35YbTUwunJF3VuJVvNowLtUYEISL8VjoLeEdPcNw0OQ9C7qMhmsCyA
+	 6GaETnJ7IbSHuBGOjvaDA0qYwUXacGSutO+T6P9jI5/zv1Wm9F8uBQJVKo6JgDax1X
+	 bBLUQABwFyLIgE+HWCY48Nc54+l3kaZcyoUhZh2jtpzTYCwvyUL58tkpPHHwqx7H/o
+	 +2ltuvDAvpDHA==
+Authentication-Results: linux3247.grserver.gr;
+	spf=pass (sender IP is 2a02:2149:8a28:c200:ffd7:3bf6:9efd:b472) smtp.mailfrom=lkml@antheas.dev smtp.helo=antheas-z13
+Received-SPF: pass (linux3247.grserver.gr: connection is authenticated)
+From: Antheas Kapenekakis <lkml@antheas.dev>
+To: dmitry.osipenko@collabora.com
+Cc: bob.beckett@collabora.com,
+	bookeldor@gmail.com,
+	hadess@hadess.net,
+	jaap@haitsma.org,
+	kernel@collabora.com,
+	lennart@poettering.net,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	lkml@antheas.dev,
+	mccann@jhu.edu,
+	rafael@kernel.org,
+	richard@hughsie.com,
+	sebastian.reichel@collabora.com,
+	superm1@kernel.org,
+	systemd-devel@lists.freedesktop.org,
+	xaver.hugl@gmail.com
+Subject: [RFC v1 2/8] acpi/x86: s2idle: Rename LPS0 constants so they mirror
+ their function
+Date: Fri, 26 Dec 2025 12:26:40 +0200
+Message-ID: <20251226102656.6296-3-lkml@antheas.dev>
+X-Mailer: git-send-email 2.52.0
+In-Reply-To: <20251226102656.6296-1-lkml@antheas.dev>
+References: <20251226102656.6296-1-lkml@antheas.dev>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v5 11/11] cpufreq: CPPC: add autonomous mode boot
- parameter support
-To: Sumit Gupta <sumitg@nvidia.com>, <rafael@kernel.org>,
-	<viresh.kumar@linaro.org>, <lenb@kernel.org>, <robert.moore@intel.com>,
-	<corbet@lwn.net>, <pierre.gondois@arm.com>, <rdunlap@infradead.org>,
-	<ray.huang@amd.com>, <gautham.shenoy@amd.com>, <mario.limonciello@amd.com>,
-	<perry.yuan@amd.com>, <ionela.voinescu@arm.com>, <zhanjie9@hisilicon.com>,
-	<linux-pm@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
-	<linux-doc@vger.kernel.org>, <acpica-devel@lists.linux.dev>,
-	<linux-kernel@vger.kernel.org>
-CC: <linux-tegra@vger.kernel.org>, <treding@nvidia.com>,
-	<jonathanh@nvidia.com>, <vsethi@nvidia.com>, <ksitaraman@nvidia.com>,
-	<sanjayc@nvidia.com>, <nhartman@nvidia.com>, <bbasu@nvidia.com>
-References: <20251223121307.711773-1-sumitg@nvidia.com>
- <20251223121307.711773-12-sumitg@nvidia.com>
-From: "zhenglifeng (A)" <zhenglifeng1@huawei.com>
-In-Reply-To: <20251223121307.711773-12-sumitg@nvidia.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: kwepems500002.china.huawei.com (7.221.188.17) To
- kwepemf200001.china.huawei.com (7.202.181.227)
+Content-Transfer-Encoding: 8bit
+X-PPP-Message-ID: 
+ <176674486237.2608281.13875257044813946897@linux3247.grserver.gr>
+X-PPP-Vhost: antheas.dev
+X-Virus-Scanned: clamav-milter 1.4.3 at linux3247.grserver.gr
+X-Virus-Status: Clean
 
-On 2025/12/23 20:13, Sumit Gupta wrote:
-> Add kernel boot parameter 'cppc_cpufreq.auto_sel_mode' to enable CPPC
-> autonomous performance selection on all CPUs at system startup without
-> requiring runtime sysfs manipulation. When autonomous mode is enabled,
-> the hardware automatically adjusts CPU performance based on workload
-> demands using Energy Performance Preference (EPP) hints.
-> 
-> When auto_sel_mode=1:
-> - All CPUs are configured for autonomous operation during init
-> - EPP is set to performance preference (0x0) by default
-> - Min/max performance bounds use defaults or already set values
-> - CPU frequency scaling is handled by hardware instead of OS governor
-> 
-> The boot parameter is applied only during first policy initialization.
-> User's runtime sysfs configuration is preserved across hotplug.
-> 
-> For Documentation/:
-> Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
-> Signed-off-by: Sumit Gupta <sumitg@nvidia.com>
-> ---
->  .../admin-guide/kernel-parameters.txt         | 13 +++
->  drivers/cpufreq/cppc_cpufreq.c                | 85 +++++++++++++++++--
->  2 files changed, 90 insertions(+), 8 deletions(-)
-> 
-> diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
-> index aab72efa1acd..450f0b0225dc 100644
-> --- a/Documentation/admin-guide/kernel-parameters.txt
-> +++ b/Documentation/admin-guide/kernel-parameters.txt
-> @@ -1035,6 +1035,19 @@ Kernel parameters
->  			Format:
->  			<first_slot>,<last_slot>,<port>,<enum_bit>[,<debug>]
->  
-> +	cppc_cpufreq.auto_sel_mode=
-> +			[CPU_FREQ] Enable ACPI CPPC autonomous performance
-> +			selection. When enabled, hardware automatically adjusts
-> +			CPU frequency on all CPUs based on workload demands.
-> +			In Autonomous mode, Energy Performance Preference (EPP)
-> +			hints guide hardware toward performance (0x0) or energy
-> +			efficiency (0xff).
-> +			Requires ACPI CPPC autonomous selection register support.
-> +			Format: <bool>
-> +			Default: 0 (disabled)
-> +			0: use cpufreq governors
-> +			1: enable if supported by hardware
-> +
->  	cpuidle.off=1	[CPU_IDLE]
->  			disable the cpuidle sub-system
->  
-> diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
-> index b3da263c18b0..8c6869e68504 100644
-> --- a/drivers/cpufreq/cppc_cpufreq.c
-> +++ b/drivers/cpufreq/cppc_cpufreq.c
-> @@ -30,6 +30,9 @@ static struct cpufreq_driver cppc_cpufreq_driver;
->  
->  static DEFINE_MUTEX(cppc_cpufreq_update_autosel_config_lock);
->  
-> +/* Autonomous Selection boot parameter */
-> +static bool auto_sel_mode;
-> +
->  #ifdef CONFIG_ACPI_CPPC_CPUFREQ_FIE
->  static enum {
->  	FIE_UNSET = -1,
-> @@ -643,11 +646,16 @@ static int cppc_cpufreq_set_mperf_limit(struct cpufreq_policy *policy, u64 val,
->   * cppc_cpufreq_update_autosel_config - Update autonomous selection config
->   * @policy: cpufreq policy
->   * @is_auto_sel: enable/disable autonomous selection
-> + * @epp_val: EPP value (used only if update_epp true)
-> + * @update_epp: whether to update EPP register
-> + * @update_policy: whether to update policy constraints
->   *
->   * Return: 0 on success, negative error code on failure
->   */
->  static int cppc_cpufreq_update_autosel_config(struct cpufreq_policy *policy,
-> -					      bool is_auto_sel)
-> +					      bool is_auto_sel, u32 epp_val,
-> +					      bool update_epp,
-> +					      bool update_policy)
+The LPS0 3/4 constants are part of a firmware notification called
+"Display on/off", in which the device enters a "Screen Off" state.
+The LPS0 7/8 constants are part of a firmware notification in which
+a Windows modern standby computer enters a "sleep" state where the
+CPU may still be active and maintain the radios.
 
-cppc_cpufreq_set_mperf_limit() and cppc_cpufreq_update_autosel_config()
-have too much bool input param. Just break them down into several separate
-functions and call them only when needed. These two functions are now too
-hard to read.
+However, currently, the values are named as "Screen on/off" and "MS
+entry/exit", where Modern Standby is abbreviated as "MS". Therefore,
+perform a minor rename so that the values match their function. Then,
+fix the debug message to say that it executes notifications instead of
+entering states as it is otherwise confusing.
 
->  {
->  	struct cppc_cpudata *cpu_data = policy->driver_data;
->  	struct cppc_perf_caps *caps = &cpu_data->perf_caps;
-> @@ -655,7 +663,6 @@ static int cppc_cpufreq_update_autosel_config(struct cpufreq_policy *policy,
->  	u64 max_perf = caps->nominal_perf;
->  	unsigned int cpu = policy->cpu;
->  	bool update_reg = is_auto_sel;
-> -	bool update_policy = true;
->  	int ret;
->  
->  	guard(mutex)(&cppc_cpufreq_update_autosel_config_lock);
-> @@ -685,6 +692,17 @@ static int cppc_cpufreq_update_autosel_config(struct cpufreq_policy *policy,
->  	if (ret && ret != -EOPNOTSUPP)
->  		return ret;
->  
-> +	/* Update EPP register */
-> +	if (update_epp) {
-> +		ret = cppc_set_epp(cpu, epp_val);
-> +		if (ret && ret != -EOPNOTSUPP) {
-> +			pr_warn("Failed to set EPP for CPU%d (%d)\n", cpu, ret);
-> +			return ret;
-> +		}
-> +		if (!ret)
-> +			cpu_data->perf_ctrls.energy_perf = epp_val;
-> +	}
-> +
->  	/* Update auto_sel register */
->  	ret = cppc_set_auto_sel(cpu, is_auto_sel);
->  	if (ret && ret != -EOPNOTSUPP) {
-> @@ -816,11 +834,54 @@ static int cppc_cpufreq_cpu_init(struct cpufreq_policy *policy)
->  	policy->cur = cppc_perf_to_khz(caps, caps->highest_perf);
->  	cpu_data->perf_ctrls.desired_perf =  caps->highest_perf;
->  
-> -	ret = cppc_set_perf(cpu, &cpu_data->perf_ctrls);
-> -	if (ret) {
-> -		pr_debug("Err setting perf value:%d on CPU:%d. ret:%d\n",
-> -			 caps->highest_perf, cpu, ret);
-> -		goto out;
-> +	/*
-> +	 * Enable autonomous mode on first init if boot param is set.
-> +	 * Check last_governor to detect first init and skip if auto_sel
-> +	 * is already enabled.
-> +	 */
-> +	if (auto_sel_mode && policy->last_governor[0] == '\0' &&
-> +	    !cpu_data->perf_ctrls.auto_sel) {
-> +		/* Enable CPPC - optional register, some platforms need it */
-> +		ret = cppc_set_enable(cpu, true);
-> +		if (ret) {
-> +			if (ret == -EOPNOTSUPP)
-> +				pr_debug("CPPC enable not supported CPU%d\n",
-> +					 cpu);
-> +			else
-> +				pr_warn("Failed enable CPPC CPU%d (%d)\n",
-> +					cpu, ret);
-> +		}
-> +
-> +		/*
-> +		 * Enable autonomous mode; Pass false for update_policy to avoid
-> +		 * updating policy limits prematurely as they are not yet fully setup.
-> +		 */
-> +		ret = cppc_cpufreq_update_autosel_config(policy,
-> +							 true,  /* is_auto_sel */
-> +							 CPPC_EPP_PERFORMANCE_PREF,
-> +							 true,  /* update_epp */
-> +							 false); /* update_policy */
-> +		if (ret)
-> +			pr_warn("Failed autonomous config CPU%d (%d)\n",
-> +				cpu, ret);
-> +	}
-> +
-> +	/* If auto mode is enabled, sync policy limits with HW registers */
-> +	if (cpu_data->perf_ctrls.auto_sel) {
-> +		policy->min = cppc_perf_to_khz(caps,
-> +					       cpu_data->perf_ctrls.min_perf ?:
-> +					       caps->lowest_nonlinear_perf);
-> +		policy->max = cppc_perf_to_khz(caps,
-> +					       cpu_data->perf_ctrls.max_perf ?:
-> +					       caps->nominal_perf);
-> +	} else {
-> +		/* Standard mode: governors control frequency */
-> +		ret = cppc_set_perf(cpu, &cpu_data->perf_ctrls);
-> +		if (ret) {
-> +			pr_debug("Err setting perf value:%d CPU:%d ret:%d\n",
-> +				 caps->highest_perf, cpu, ret);
-> +			goto out;
-> +		}
->  	}
->  
->  	cppc_cpufreq_cpu_fie_init(policy);
-> @@ -991,7 +1052,7 @@ static ssize_t store_auto_select(struct cpufreq_policy *policy,
->  	if (ret)
->  		return ret;
->  
-> -	ret = cppc_cpufreq_update_autosel_config(policy, val);
-> +	ret = cppc_cpufreq_update_autosel_config(policy, val, 0, false, true);
->  	if (ret)
->  		return ret;
->  
-> @@ -1253,10 +1314,18 @@ static int __init cppc_cpufreq_init(void)
->  
->  static void __exit cppc_cpufreq_exit(void)
->  {
-> +	unsigned int cpu;
-> +
-> +	for_each_present_cpu(cpu)
-> +		cppc_set_auto_sel(cpu, false);
-> +
->  	cpufreq_unregister_driver(&cppc_cpufreq_driver);
->  	cppc_freq_invariance_exit();
->  }
->  
-> +module_param(auto_sel_mode, bool, 0000);
-> +MODULE_PARM_DESC(auto_sel_mode, "Enable Autonomous Performance Level Selection");
-> +
->  module_exit(cppc_cpufreq_exit);
->  MODULE_AUTHOR("Ashwin Chaugule");
->  MODULE_DESCRIPTION("CPUFreq driver based on the ACPI CPPC v5.0+ spec");
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/acpi/x86/s2idle.c | 54 +++++++++++++++++++--------------------
+ 1 file changed, 27 insertions(+), 27 deletions(-)
+
+diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
+index 6d4d06236f61..1f13c8b0ef83 100644
+--- a/drivers/acpi/x86/s2idle.c
++++ b/drivers/acpi/x86/s2idle.c
+@@ -39,19 +39,19 @@ static const struct acpi_device_id lps0_device_ids[] = {
+ #define ACPI_LPS0_DSM_UUID	"c4eb40a0-6cd2-11e2-bcfd-0800200c9a66"
+ 
+ #define ACPI_LPS0_GET_DEVICE_CONSTRAINTS	1
+-#define ACPI_LPS0_SCREEN_OFF	3
+-#define ACPI_LPS0_SCREEN_ON	4
++#define ACPI_LPS0_DISPLAY_OFF	3
++#define ACPI_LPS0_DISPLAY_ON	4
+ #define ACPI_LPS0_ENTRY		5
+ #define ACPI_LPS0_EXIT		6
+-#define ACPI_LPS0_MS_ENTRY      7
+-#define ACPI_LPS0_MS_EXIT       8
++#define ACPI_LPS0_SLEEP_ENTRY	7
++#define ACPI_LPS0_SLEEP_EXIT	8
+ 
+ /* AMD */
+ #define ACPI_LPS0_DSM_UUID_AMD      "e3f32452-febc-43ce-9039-932122d37721"
+ #define ACPI_LPS0_ENTRY_AMD         2
+ #define ACPI_LPS0_EXIT_AMD          3
+-#define ACPI_LPS0_SCREEN_OFF_AMD    4
+-#define ACPI_LPS0_SCREEN_ON_AMD     5
++#define ACPI_LPS0_DISPLAY_OFF_AMD   4
++#define ACPI_LPS0_DISPLAY_ON_AMD    5
+ 
+ static acpi_handle lps0_device_handle;
+ static guid_t lps0_dsm_guid;
+@@ -340,25 +340,25 @@ static const char *acpi_sleep_dsm_state_to_str(unsigned int state)
+ {
+ 	if (lps0_dsm_func_mask_microsoft || !acpi_s2idle_vendor_amd()) {
+ 		switch (state) {
+-		case ACPI_LPS0_SCREEN_OFF:
+-			return "screen off";
+-		case ACPI_LPS0_SCREEN_ON:
+-			return "screen on";
++		case ACPI_LPS0_DISPLAY_OFF:
++			return "display off";
++		case ACPI_LPS0_DISPLAY_ON:
++			return "display on";
+ 		case ACPI_LPS0_ENTRY:
+ 			return "lps0 entry";
+ 		case ACPI_LPS0_EXIT:
+ 			return "lps0 exit";
+-		case ACPI_LPS0_MS_ENTRY:
+-			return "lps0 ms entry";
+-		case ACPI_LPS0_MS_EXIT:
+-			return "lps0 ms exit";
++		case ACPI_LPS0_SLEEP_ENTRY:
++			return "sleep entry";
++		case ACPI_LPS0_SLEEP_EXIT:
++			return "sleep exit";
+ 		}
+ 	} else {
+ 		switch (state) {
+-		case ACPI_LPS0_SCREEN_ON_AMD:
+-			return "screen on";
+-		case ACPI_LPS0_SCREEN_OFF_AMD:
+-			return "screen off";
++		case ACPI_LPS0_DISPLAY_ON_AMD:
++			return "display on";
++		case ACPI_LPS0_DISPLAY_OFF_AMD:
++			return "display off";
+ 		case ACPI_LPS0_ENTRY_AMD:
+ 			return "lps0 entry";
+ 		case ACPI_LPS0_EXIT_AMD:
+@@ -383,7 +383,7 @@ static void acpi_sleep_run_lps0_dsm(unsigned int func, unsigned int func_mask, g
+ 	lps0_dsm_state = func;
+ 	if (pm_debug_messages_on) {
+ 		acpi_handle_info(lps0_device_handle,
+-				"%s transitioned to state %s\n",
++				"%s executed notification %s\n",
+ 				 out_obj ? "Successfully" : "Failed to",
+ 				 acpi_sleep_dsm_state_to_str(lps0_dsm_state));
+ 	}
+@@ -545,12 +545,12 @@ static int acpi_s2idle_prepare_late_lps0(void)
+ 	/* Screen off */
+ 	if (lps0_dsm_func_mask > 0)
+ 		acpi_sleep_run_lps0_dsm(acpi_s2idle_vendor_amd() ?
+-					ACPI_LPS0_SCREEN_OFF_AMD :
+-					ACPI_LPS0_SCREEN_OFF,
++					ACPI_LPS0_DISPLAY_OFF_AMD :
++					ACPI_LPS0_DISPLAY_OFF,
+ 					lps0_dsm_func_mask, lps0_dsm_guid);
+ 
+ 	if (lps0_dsm_func_mask_microsoft > 0)
+-		acpi_sleep_run_lps0_dsm(ACPI_LPS0_SCREEN_OFF,
++		acpi_sleep_run_lps0_dsm(ACPI_LPS0_DISPLAY_OFF,
+ 				lps0_dsm_func_mask_microsoft, lps0_dsm_guid_microsoft);
+ 
+ 	/* LPS0 entry */
+@@ -560,7 +560,7 @@ static int acpi_s2idle_prepare_late_lps0(void)
+ 
+ 	if (lps0_dsm_func_mask_microsoft > 0) {
+ 		/* Modern Standby entry */
+-		acpi_sleep_run_lps0_dsm(ACPI_LPS0_MS_ENTRY,
++		acpi_sleep_run_lps0_dsm(ACPI_LPS0_SLEEP_ENTRY,
+ 				lps0_dsm_func_mask_microsoft, lps0_dsm_guid_microsoft);
+ 		acpi_sleep_run_lps0_dsm(ACPI_LPS0_ENTRY,
+ 				lps0_dsm_func_mask_microsoft, lps0_dsm_guid_microsoft);
+@@ -613,18 +613,18 @@ static void acpi_s2idle_restore_early_lps0(void)
+ 		acpi_sleep_run_lps0_dsm(ACPI_LPS0_EXIT,
+ 				lps0_dsm_func_mask_microsoft, lps0_dsm_guid_microsoft);
+ 		/* Modern Standby exit */
+-		acpi_sleep_run_lps0_dsm(ACPI_LPS0_MS_EXIT,
++		acpi_sleep_run_lps0_dsm(ACPI_LPS0_SLEEP_EXIT,
+ 				lps0_dsm_func_mask_microsoft, lps0_dsm_guid_microsoft);
+ 	}
+ 
+ 	/* Screen on */
+ 	if (lps0_dsm_func_mask_microsoft > 0)
+-		acpi_sleep_run_lps0_dsm(ACPI_LPS0_SCREEN_ON,
++		acpi_sleep_run_lps0_dsm(ACPI_LPS0_DISPLAY_ON,
+ 				lps0_dsm_func_mask_microsoft, lps0_dsm_guid_microsoft);
+ 	if (lps0_dsm_func_mask > 0)
+ 		acpi_sleep_run_lps0_dsm(acpi_s2idle_vendor_amd() ?
+-					ACPI_LPS0_SCREEN_ON_AMD :
+-					ACPI_LPS0_SCREEN_ON,
++					ACPI_LPS0_DISPLAY_ON_AMD :
++					ACPI_LPS0_DISPLAY_ON,
+ 					lps0_dsm_func_mask, lps0_dsm_guid);
+ }
+ 
+-- 
+2.52.0
+
 
