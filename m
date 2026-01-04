@@ -1,29 +1,29 @@
-Received: from out30-111.freemail.mail.aliyun.com (out30-111.freemail.mail.aliyun.com [115.124.30.111])
+Received: from out30-112.freemail.mail.aliyun.com (out30-112.freemail.mail.aliyun.com [115.124.30.112])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9BBA28CF5F;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9C2A28D8DB;
 	Sun,  4 Jan 2026 12:04:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.111
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.112
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767528262; cv=none; b=q48BjxbfepQikx+nxytszNdGOrv1G5HV2zR4Q3AbZ8C+L8G64vd3aEFdvF6HZtHeDLtDy9gp6AuU2okzVLjZe6Tvhvor2Ob5VBXxRs7w7QIrtCrBn5bJctnVjXW+08yh0PWdurNAE34An/14OWr5w1obkOPUsEGRRSUVAKHsBT0=
+	t=1767528262; cv=none; b=O3mqphIJK0M1CxHPqAvaBA8Z+F2qs0l/3AGOwroS5ZrHA5DsuD2lmH4A/xdnsCkR88joj/N/DJQY3QuifzEZy669Fhz9Dw+TMNly5f8758SpIUK0EAP8UwEdO5wd159Z+TnzKfc4AvTLkfZHrIuMv6k70uDRSxssR9ogLYMwigU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1767528262; c=relaxed/simple;
-	bh=in0mvJHIM9/eic/0l2QwtjyPIFoH9qjDq0fUhHc9bJI=;
+	bh=+yG4ASuQ3wFAiT5Wn8HaJDjCY4lydCVFPIKNxc4A43w=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=hhG8vwIjyygygif8GmOqRsoxdfEvXqK0tyTtDElyc06M5MGCWHgKM1SOImVIsZx/TB2VJKNLBEJc2NEXwA7AE7MuZYQxJu4m657EtoHIVjhQj59DdPJrXIRHS1T9uxuMuVCNWkTNZcv7p5m3JDImf94jVyaugSATcByDtpO0Vgw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=TxAkOMTd; arc=none smtp.client-ip=115.124.30.111
+	 MIME-Version; b=fp4BOS6W1/LBJQ7AYO7sn1Y724lf2ZPq2znTONzbDtH5PlexNTVa7+rC4aJ2KZCYqUtjrECN8O0h1lOl4b1g1qxMGH6BKvJPI9lsKhzPtC16Oq+jLHzaYK/rmyMgxtcqrqKazvRzh/Pdq0yx1d1D+rbguOsImgBdorHYYt2OZek=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=FIOXNJKE; arc=none smtp.client-ip=115.124.30.112
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="TxAkOMTd"
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="FIOXNJKE"
 DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
 	d=linux.alibaba.com; s=default;
-	t=1767528252; h=From:To:Subject:Date:Message-Id:MIME-Version;
-	bh=u5obvNzNcLvGjs8qb6pMUxs8aoyCDyMM1pDJbd4Q3W8=;
-	b=TxAkOMTdgcRbdO9qcdT0TBsU50NcHayTpKKgpetb4gxszQB1QeHn92KDB8rV/294OKLZMyOiEOXQIhO8xReLRZQUby2+PI9+7NZCc+H0CrxORADxQJ8QEQd4rSJD9knYhwtJZ+YDWmamyuzfP1za72GmRiAm/78wO/lsSgUU3tQ=
-Received: from localhost.localdomain(mailfrom:xueshuai@linux.alibaba.com fp:SMTPD_---0WwEgE4g_1767528250 cluster:ay36)
+	t=1767528251; h=From:To:Subject:Date:Message-Id:MIME-Version;
+	bh=rA/+4xI3RvOZjVwQ64dz/oUbsz3ktsyt8aBgFuftpK4=;
+	b=FIOXNJKETIHA4hWew7q7ucQK3c5ujOWqHAi57rX2RA7lH1UHo/Oa/Q5O0rIT2mkF6uRMebJ+exO02ZBS7c80lB8kBpA7UtJzDBlfSMOteCxMq1hTF/TBjyLXb5nHI91wdI3LiH/ZFY7oXUWIiv/Xh3mTaqi6P3viT26tT1MYSsA=
+Received: from localhost.localdomain(mailfrom:xueshuai@linux.alibaba.com fp:SMTPD_---0WwEgE3T_1767528249 cluster:ay36)
           by smtp.aliyun-inc.com;
-          Sun, 04 Jan 2026 20:04:11 +0800
+          Sun, 04 Jan 2026 20:04:10 +0800
 From: Shuai Xue <xueshuai@linux.alibaba.com>
 To: tony.luck@intel.com,
 	guohanjun@huawei.com,
@@ -44,9 +44,9 @@ Cc: dave.jiang@intel.com,
 	linux-kernel@vger.kernel.org,
 	rafael@kernel.org,
 	zhuo.song@linux.alibaba.com
-Subject: [PATCH v2 3/3] ACPI: APEI: GHES: Improve ghes_notify_sea() status check
-Date: Sun,  4 Jan 2026 20:04:05 +0800
-Message-Id: <20260104120405.51555-4-xueshuai@linux.alibaba.com>
+Subject: [PATCH v2 2/3] ACPI: APEI: GHES: Extract helper functions for error status handling
+Date: Sun,  4 Jan 2026 20:04:04 +0800
+Message-Id: <20260104120405.51555-3-xueshuai@linux.alibaba.com>
 X-Mailer: git-send-email 2.39.5 (Apple Git-154)
 In-Reply-To: <20260104120405.51555-1-xueshuai@linux.alibaba.com>
 References: <20260104120405.51555-1-xueshuai@linux.alibaba.com>
@@ -58,81 +58,158 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Performance testing on ARMv8 systems shows significant overhead in error
-status handling in SEA error handling.
+Refactors the GHES driver by extracting common functionality into
+reusable helper functions:
 
-- ghes_peek_estatus(): 8,138.3 ns (21,160 cycles).
-- ghes_clear_estatus(): 2,038.3 ns (5,300 cycles).
+1. ghes_has_active_errors() - Checks if any error sources in a given list
+   have active errors
+2. ghes_map_error_status() - Maps error status address to virtual address
+3. ghes_unmap_error_status() - Unmaps error status virtual address
 
-Apply the same optimization used in ghes_notify_nmi() to
-ghes_notify_sea() by checking for active errors before processing,
+These helpers eliminate code duplication in the NMI path and prepare for
+similar usage in the SEA path in a subsequent patch.
+
+No functional change intended.
 
 Tested-by: Tony Luck <tony.luck@intel.com>
 Reviewed-by: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Shuai Xue <xueshuai@linux.alibaba.com>
 ---
- drivers/acpi/apei/ghes.c | 20 +++++++++++++++++---
- 1 file changed, 17 insertions(+), 3 deletions(-)
+ drivers/acpi/apei/ghes.c | 93 +++++++++++++++++++++++++++++++---------
+ 1 file changed, 72 insertions(+), 21 deletions(-)
 
 diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 7600063fe263..54a6461d277a 100644
+index 0e97d50b0240..7600063fe263 100644
 --- a/drivers/acpi/apei/ghes.c
 +++ b/drivers/acpi/apei/ghes.c
-@@ -1487,6 +1487,9 @@ int ghes_notify_sea(void)
- 	static DEFINE_RAW_SPINLOCK(ghes_notify_lock_sea);
- 	int rv;
- 
-+	if (!ghes_has_active_errors(&ghes_sea))
-+		return -ENOENT;
-+
- 	raw_spin_lock(&ghes_notify_lock_sea);
- 	rv = ghes_in_nmi_spool_from_list(&ghes_sea, FIX_APEI_GHES_SEA);
- 	raw_spin_unlock(&ghes_notify_lock_sea);
-@@ -1494,11 +1497,19 @@ int ghes_notify_sea(void)
- 	return rv;
+@@ -1406,6 +1406,75 @@ static int ghes_in_nmi_spool_from_list(struct list_head *rcu_list,
+ 	return ret;
  }
  
--static void ghes_sea_add(struct ghes *ghes)
-+static int ghes_sea_add(struct ghes *ghes)
- {
++/**
++ * ghes_has_active_errors - Check if there are active errors in error sources
++ * @ghes_list: List of GHES entries to check for active errors
++ *
++ * This function iterates through all GHES entries in the given list and
++ * checks if any of them has active error status by reading the error
++ * status register.
++ *
++ * Return: true if at least one source has active error, false otherwise.
++ */
++static bool __maybe_unused ghes_has_active_errors(struct list_head *ghes_list)
++{
++	bool active_error = false;
++	struct ghes *ghes;
++
++	rcu_read_lock();
++	list_for_each_entry_rcu(ghes, ghes_list, list) {
++		if (ghes->error_status_vaddr &&
++		    readl(ghes->error_status_vaddr)) {
++			active_error = true;
++			break;
++		}
++	}
++	rcu_read_unlock();
++
++	return active_error;
++}
++
++/**
++ * ghes_map_error_status - Map error status address to virtual address
++ * @ghes: pointer to GHES structure
++ *
++ * Reads the error status address from ACPI HEST table and maps it to a virtual
++ * address that can be accessed by the kernel.
++ *
++ * Return: 0 on success, error code on failure.
++ */
++static int __maybe_unused ghes_map_error_status(struct ghes *ghes)
++{
++	struct acpi_hest_generic *g = ghes->generic;
++	u64 paddr;
 +	int rc;
 +
-+	rc = ghes_map_error_status(ghes);
++	rc = apei_read(&paddr, &g->error_status_address);
 +	if (rc)
 +		return rc;
 +
- 	mutex_lock(&ghes_list_mutex);
- 	list_add_rcu(&ghes->list, &ghes_sea);
- 	mutex_unlock(&ghes_list_mutex);
++	ghes->error_status_vaddr =
++		acpi_os_ioremap(paddr, sizeof(ghes->estatus->block_status));
++	if (!ghes->error_status_vaddr)
++		return -EINVAL;
 +
 +	return 0;
- }
++}
++
++/**
++ * ghes_unmap_error_status - Unmap error status virtual address
++ * @ghes: pointer to GHES structure
++ *
++ * Unmaps the error status address if it was previously mapped.
++ */
++static void __maybe_unused ghes_unmap_error_status(struct ghes *ghes)
++{
++	if (ghes->error_status_vaddr) {
++		iounmap(ghes->error_status_vaddr);
++		ghes->error_status_vaddr = NULL;
++	}
++}
++
+ #ifdef CONFIG_ACPI_APEI_SEA
+ static LIST_HEAD(ghes_sea);
  
- static void ghes_sea_remove(struct ghes *ghes)
-@@ -1506,10 +1517,11 @@ static void ghes_sea_remove(struct ghes *ghes)
+@@ -1456,20 +1525,9 @@ static LIST_HEAD(ghes_nmi);
+ static int ghes_notify_nmi(unsigned int cmd, struct pt_regs *regs)
+ {
+ 	static DEFINE_RAW_SPINLOCK(ghes_notify_lock_nmi);
+-	bool active_error = false;
+ 	int ret = NMI_DONE;
+-	struct ghes *ghes;
+-
+-	rcu_read_lock();
+-	list_for_each_entry_rcu(ghes, &ghes_nmi, list) {
+-		if (ghes->error_status_vaddr && readl(ghes->error_status_vaddr)) {
+-			active_error = true;
+-			break;
+-		}
+-	}
+-	rcu_read_unlock();
+ 
+-	if (!active_error)
++	if (!ghes_has_active_errors(&ghes_nmi))
+ 		return ret;
+ 
+ 	if (!atomic_add_unless(&ghes_in_nmi, 1, 1))
+@@ -1486,18 +1544,12 @@ static int ghes_notify_nmi(unsigned int cmd, struct pt_regs *regs)
+ 
+ static int ghes_nmi_add(struct ghes *ghes)
+ {
+-	struct acpi_hest_generic *g = ghes->generic;
+-	u64 paddr;
+ 	int rc;
+ 
+-	rc = apei_read(&paddr, &g->error_status_address);
++	rc = ghes_map_error_status(ghes);
+ 	if (rc)
+ 		return rc;
+ 
+-	ghes->error_status_vaddr = acpi_os_ioremap(paddr, sizeof(ghes->estatus->block_status));
+-	if (!ghes->error_status_vaddr)
+-		return -EINVAL;
+-
  	mutex_lock(&ghes_list_mutex);
- 	list_del_rcu(&ghes->list);
+ 	if (list_empty(&ghes_nmi))
+ 		register_nmi_handler(NMI_LOCAL, ghes_notify_nmi, 0, "ghes");
+@@ -1515,8 +1567,7 @@ static void ghes_nmi_remove(struct ghes *ghes)
+ 		unregister_nmi_handler(NMI_LOCAL, "ghes");
  	mutex_unlock(&ghes_list_mutex);
+ 
+-	if (ghes->error_status_vaddr)
+-		iounmap(ghes->error_status_vaddr);
 +	ghes_unmap_error_status(ghes);
- 	synchronize_rcu();
- }
- #else /* CONFIG_ACPI_APEI_SEA */
--static inline void ghes_sea_add(struct ghes *ghes) { }
-+static inline int ghes_sea_add(struct ghes *ghes) { return -EINVAL; }
- static inline void ghes_sea_remove(struct ghes *ghes) { }
- #endif /* CONFIG_ACPI_APEI_SEA */
  
-@@ -1741,7 +1753,9 @@ static int ghes_probe(struct platform_device *ghes_dev)
- 		break;
- 
- 	case ACPI_HEST_NOTIFY_SEA:
--		ghes_sea_add(ghes);
-+		rc = ghes_sea_add(ghes);
-+		if (rc)
-+			goto err;
- 		break;
- 	case ACPI_HEST_NOTIFY_NMI:
- 		rc = ghes_nmi_add(ghes);
+ 	/*
+ 	 * To synchronize with NMI handler, ghes can only be
 -- 
 2.39.3
 
