@@ -1,397 +1,141 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9B2233E353;
-	Mon,  5 Jan 2026 13:24:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2FB128135D;
+	Mon,  5 Jan 2026 13:47:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767619471; cv=none; b=UCSnVhGNGRbtxuttTIRq+wO56gt9jqRdCBAq/5zit8RNw7LkAi9i0zLv+aVl0BnJeioyPoi0sKOk2MvNXhJh9sYurC7+uJwOdWDmnlr7ey1pRdF5n68GDEK9NRES10S6o7CiybrdamsRjNk/+iMq1l626zG3b1WhyB9brb0ETJE=
+	t=1767620854; cv=none; b=CNpW2fVKbfYRU1q1uExJRECGoRnQzTx1zkkGNW9PTSrt7X8ttzeOY2kB/5/h1zFU7E+J41Ip75CdBXLQ7CeKjFYsMq+CrPDdenHuU0u2wGJR85msB2LRMQDqAuncpYm7A4zOiDs/VhBeAl5CZgFsFb6iYaIz2th3LlB5FDxV5YM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767619471; c=relaxed/simple;
-	bh=PTAj3g9squ85AsVidFVxPqceYpamCHOO64AYDhwTOB8=;
-	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=MymOOsMOUx5DCkH+p6kYUZZm3TcRVLKspiVLTqkQIpzunAVR5SIWTp4hrBqBgrcnVQGHQUWLbo3k9l+6IJ1xiTJNUTUJrAI8RL3ke1ZnJhT32PxA3YeWg1nQvaia3g7JFhobaOPCWFk35abNyLiDYKO1Jf/gMFX680YiJO1SThY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.224.83])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTPS id 4dlFPz3KBCzHnGjc;
-	Mon,  5 Jan 2026 21:24:23 +0800 (CST)
-Received: from dubpeml100005.china.huawei.com (unknown [7.214.146.113])
-	by mail.maildlp.com (Postfix) with ESMTPS id B4D0340569;
-	Mon,  5 Jan 2026 21:24:25 +0800 (CST)
-Received: from localhost (10.48.147.217) by dubpeml100005.china.huawei.com
- (7.214.146.113) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.36; Mon, 5 Jan
- 2026 13:24:24 +0000
-Date: Mon, 5 Jan 2026 13:24:21 +0000
-From: Jonathan Cameron <jonathan.cameron@huawei.com>
-To: Lorenzo Pieralisi <lpieralisi@kernel.org>
-CC: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
-	Robert Moore <robert.moore@intel.com>, Thomas Gleixner <tglx@linutronix.de>,
-	Hanjun Guo <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@arm.com>, Marc
- Zyngier <maz@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>,
-	<linux-acpi@vger.kernel.org>, <acpica-devel@lists.linux.dev>,
-	<linux-kernel@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
-	<linux-pci@vger.kernel.org>
-Subject: Re: [PATCH v2 5/7] irqchip/gic-v5: Add ACPI IRS probing
-Message-ID: <20260105132421.00000213@huawei.com>
-In-Reply-To: <20251218-gicv5-host-acpi-v2-5-eec76cd1d40b@kernel.org>
-References: <20251218-gicv5-host-acpi-v2-0-eec76cd1d40b@kernel.org>
-	<20251218-gicv5-host-acpi-v2-5-eec76cd1d40b@kernel.org>
-X-Mailer: Claws Mail 4.3.0 (GTK 3.24.42; x86_64-w64-mingw32)
+	s=arc-20240116; t=1767620854; c=relaxed/simple;
+	bh=WSOCjjD2DBq0Cb2Rn+veRBCmNUrRwIQn/Krzmz9lGOI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=JfTM4/nmvH8XHwpIB46zPokBJxy5wmhq2pFqIJSCQq7xH++ulqF0W6Xi6LGAAnPgPFnULSjIR/KSJXUUQssi4khfxdipycaJ8mUQymlidoir7tZvQCysrAv+LY2aBcvgN18gGhRh5893cEERb5fAz9+sLdHHuUbjHTn+ZHGoaYU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=UHVCKfKJ; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="UHVCKfKJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20030C116D0;
+	Mon,  5 Jan 2026 13:47:32 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
+	s=korg; t=1767620853;
+	bh=WSOCjjD2DBq0Cb2Rn+veRBCmNUrRwIQn/Krzmz9lGOI=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=UHVCKfKJkqg7z/wkGDQGvzk8D1rC5DzLMDhGMrJiwYcARXd49ljj9Rd7Z7EC85sdh
+	 xKwH6ZPVBiJ/CX0qr1SZwvlHFNpsqIIU6Ak0h7HxKzjFLoiGTmcXGrQp4fQnl8S0KY
+	 hjxaC1T6FUzmlGytELuBxWE5mxHdV2V885pKMCkg=
+Date: Mon, 5 Jan 2026 14:47:30 +0100
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Bjorn Helgaas <helgaas@kernel.org>,
+	Hans de Goede <hansg@kernel.org>,
+	Linux Documentation <linux-doc@vger.kernel.org>,
+	Mika Westerberg <mika.westerberg@linux.intel.com>,
+	Zhang Rui <rui.zhang@intel.com>, Armin Wolf <w_armin@gmx.de>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Ilpo Jarvinen <ilpo.jarvinen@linux.intel.com>
+Subject: Re: [PATCH v1] ACPI: Documentation: driver-api: Disapprove of using
+ ACPI drivers
+Message-ID: <2026010553-capable-chip-88d7@gregkh>
+References: <5977355.DvuYhMxLoT@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml100012.china.huawei.com (7.191.174.184) To
- dubpeml100005.china.huawei.com (7.214.146.113)
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5977355.DvuYhMxLoT@rafael.j.wysocki>
 
-On Thu, 18 Dec 2025 11:14:31 +0100
-Lorenzo Pieralisi <lpieralisi@kernel.org> wrote:
-
-> On ARM64 ACPI systems GICv5 IRSes are described in MADT sub-entries.
+On Mon, Jan 05, 2026 at 12:25:04PM +0100, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > 
-> Add the required plumbing to parse MADT IRS firmware table entries and
-> probe the IRS components in ACPI.
+> Sadly, there is quite a bit of technical debt related to the
+> kernel's ACPI support subsystem and one of the most significant
+> pieces of it is the existence and use of ACPI drivers represented
+> by struct acpi_driver objects.
 > 
-> Refactor the OF based probe so that common code paths can be reused for
-> ACPI as well in the process.
+> Those drivers are bound directly to struct acpi_device objects, also
+> referred to as "ACPI device nodes", representing device objects in the
+> ACPI namespace defined as:
 > 
-> Augment the irqdomain_ops.translate() for PPI and SPI IRQs in order to
-> provide support for their ACPI based firmware translation.
+>  A hierarchical tree structure in OS-controlled memory that contains
+>  named objects. These objects may be data objects, control method
+>  objects, bus/device package objects, and so on.
 > 
-> Implement an irqchip ACPI based callback to initialize the global GSI
-> domain upon an MADT IRS detection.
+> according to the ACPI specification [1].
 > 
-> The IRQCHIP_ACPI_DECLARE() entry in the top level GICv5 driver is only used
-> to trigger the IRS probing (ie the global GSI domain is initialized once on
-> the first call on multi-IRS systems); IRS probing takes place by calling
-> acpi_table_parse_madt() in the IRS sub-driver, that probes all IRSes
-> in sequence.
+> The above definition implies, although rather indirectly, that the
+> objects in question don't really represent hardware.  They are just
+> "device package objects" containing some information on the devices
+> present in the given platform that is known to the platform firmware.
 > 
-> Add a new ACPI interrupt model so that it can be detected at runtime and
-> distinguished from previous GIC architecture models.
+> Although the platform firmware can be the only source of information on
+> some devices, the information provided by it alone may be insufficient
+> for device enumeration in general.  If that is the case, bindig a driver
+> directly to a given ACPI device node clearly doesn't make sense.  If
+> the device in question is enumerated through a hardware interface, it
+> will be represented by a device object matching that interface, like
+> a struct pci_dev, and the ACPI device node corresponding to it will be
+> treated as its "ACPI companions" whose role is to amend the "native"
+> enumeration mechanism.
 > 
-> Signed-off-by: Lorenzo Pieralisi <lpieralisi@kernel.org>
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-> Cc: Marc Zyngier <maz@kernel.org>
-Just a few minor comments inline.
+> For the sake of consistency and confusion avoidance, it is better to
+> treat ACPI device nodes in general as ACPI companions of other device
+> objects representing hardware.  In some cases though it appeared easier
+> to take a shortcut and use an ACPI driver binding directly to an ACPI
+> device node.  Moreover, there were corner cases in which that was the
+> only choice, but they all have been addressed now.
+> 
+> In all cases in which an ACPI driver might be used, the ACPI device
+> node it might bind to is an ACPI companion of another device object
+> representing a piece of hardware.  It is thus better to use a driver
+> binding to the latter than to use an ACPI driver and leave the other
+> device object alone, not just because doing so is more consistent and
+> less confusing, but also because using ACPI drivers may lead to
+> potential functional deficiencies, like possible ordering issues
+> related to power management.
+> 
+> Unfortunately, there are quite a few ACPI drivers in use and, as a rule,
+> they bind to ACPI device nodes that are ACPI companions of platform
+> devices, so in fact they play the role of platform drivers although in
+> a kind of convoluted way.  An effort has been under way to replace them
+> with platform drivers, which is relatively straightforward in the vast
+> majority of cases, but it has not been pursued very aggressively so far,
+> mostly due to the existence of the corner cases mentioned above.
+> However, since those corner cases are gone now, it makes sense to spend
+> more time on driver conversions with the ultimate goal to get rid of
+> struct acpi_driver and the related code from the kernel.
+> 
+> To that end, add a document explaining why using ACPI drivers is not
+> a good idea, so it need not be explained from scratch on every attempt
+> to convert an ACPI driver to a platform one.
+> 
+> Link: https://uefi.org/specs/ACPI/6.6/02_Definition_of_Terms.html#term-ACPI-Namespace [1]
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+> 
+> Although this patch can be applied independently, it actually depends on
+> some ACPI changes in linux-next and on
+> 
+> https://lore.kernel.org/linux-acpi/12824456.O9o76ZdvQC@rafael.j.wysocki/
+> 
+> so it is better to handle it along with that material.
+> 
+> ---
+>  Documentation/driver-api/acpi/acpi-drivers.rst |   80 +++++++++++++++++++++++++
+>  Documentation/driver-api/acpi/index.rst        |    1 
+>  2 files changed, 81 insertions(+)
 
-> diff --git a/drivers/irqchip/irq-gic-v5-irs.c b/drivers/irqchip/irq-gic-v5-irs.c
-> index ce2732d649a3..07c3df5692af 100644
-> --- a/drivers/irqchip/irq-gic-v5-irs.c
-> +++ b/drivers/irqchip/irq-gic-v5-irs.c
-> @@ -5,6 +5,7 @@
->  
->  #define pr_fmt(fmt)	"GICv5 IRS: " fmt
->  
-> +#include <linux/acpi.h>
->  #include <linux/kmemleak.h>
->  #include <linux/log2.h>
->  #include <linux/of.h>
-> @@ -545,15 +546,15 @@ int gicv5_irs_register_cpu(int cpuid)
->  
->  static void __init gicv5_irs_init_bases(struct gicv5_irs_chip_data *irs_data,
->  					void __iomem *irs_base,
-> -					struct fwnode_handle *handle)
-> +					struct fwnode_handle *handle,
-> +					bool noncoherent)
->  {
-> -	struct device_node *np = to_of_node(handle);
->  	u32 cr0, cr1;
->  
->  	irs_data->fwnode = handle;
+Documenting this is fine, but really, just moving all of the existing
+drivers to not use this and deleting the api entirely might be simplest.
+Looks like the only "new" acpi drivers that show up are in the
+platform/x86/ subsystem, so just tell the maintainers there not to take
+any new ones?
 
-Looking this again as you are touching it.
+thanks,
 
-This feels a tiny bit out of place, as not obvious to me why the fwnode being
-set is related to initializing bases.  Perhaps that belongs at the caller?
- 
->  	irs_data->irs_base = irs_base;
->  
-> -	if (of_property_read_bool(np, "dma-noncoherent")) {
-> +	if (noncoherent) {
->  		/*
->  		 * A non-coherent IRS implies that some cache levels cannot be
->  		 * used coherently by the cores and GIC. Our only option is to mark
-> @@ -678,49 +679,13 @@ static void irs_setup_pri_bits(u32 idr1)
->  	}
->  }
->  
-
-...
-
-> +static int __init gicv5_irs_of_init(struct device_node *node)
-> +{
-
-Not sure whether it would be worth it by inclination would have been
-a noop refactor patch, then the ACPI support. I'd have found it a little
-bit easier to review.
-
-> +	struct gicv5_irs_chip_data *irs_data;
-> +	void __iomem *irs_base;
-> +	u8 iaffid_bits;
-> +	u32 idr;
-> +	int ret;
-> +
-> +	irs_data = kzalloc(sizeof(*irs_data), GFP_KERNEL);
-> +	if (!irs_data)
-> +		return -ENOMEM;
-> +
-> +	raw_spin_lock_init(&irs_data->spi_config_lock);
-> +
-> +	ret = of_property_match_string(node, "reg-names", "ns-config");
-> +	if (ret < 0) {
-> +		pr_err("%pOF: ns-config reg-name not present\n", node);
-> +		goto out_err;
-
-Obviously comes form original code, but this label could give some indication
-of where we are going and why. out_free_data maybe?
-
-Perhaps I'm just being fussy as I had to open the code up to check given
-it didn't end up in the context.
-
-> +	}
-> +
-...
-
-> +static int __init gic_acpi_parse_iaffid(union acpi_subtable_headers *header,
-> +					const unsigned long end)
-> +{
-> +	struct acpi_madt_generic_interrupt *gicc = (struct acpi_madt_generic_interrupt *)header;
-> +	int cpu;
-> +
-> +	if (!(gicc->flags & (ACPI_MADT_ENABLED | ACPI_MADT_GICC_ONLINE_CAPABLE)))
-> +		return 0;
-> +
-> +	if (gicc->irs_id == current_irsid) {
-Unless this is going to get more complex I'd flip the log for an early return on
-'not this one'
-	if (gicc->irs_id != current_irsid)
-		return 0;
-
-mostly to save on long lines where they aren't needed.
-
-> +		cpu = get_logical_index(gicc->arm_mpidr);
-> +
-> +		if (gicc->iaffid & ~GENMASK(current_iaffid_bits - 1, 0)) {
-> +			pr_warn("CPU %d iaffid 0x%x exceeds IRS iaffid bits\n", cpu, gicc->iaffid);
-> +			return 0;
-> +		}
-> +
-> +		// Bind the IAFFID and the CPU
-> +		per_cpu(cpu_iaffid, cpu).iaffid = gicc->iaffid;
-> +		per_cpu(cpu_iaffid, cpu).valid = true;
-> +		pr_debug("Processed IAFFID %u for CPU%d", per_cpu(cpu_iaffid, cpu).iaffid, cpu);
-> +
-> +		// We also know that the CPU is connected to this IRS
-> +		per_cpu(per_cpu_irs_data, cpu) = current_irs_data;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int __init gicv5_irs_acpi_init_affinity(u32 irsid, struct gicv5_irs_chip_data *irs_data)
-> +{
-> +	u32 idr;
-> +
-> +	current_irsid = irsid;
-> +	current_irs_data = irs_data;
-> +
-> +	idr = irs_readl_relaxed(irs_data, GICV5_IRS_IDR1);
-> +	current_iaffid_bits = FIELD_GET(GICV5_IRS_IDR1_IAFFID_BITS, idr) + 1;
-> +
-> +	acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_INTERRUPT, gic_acpi_parse_iaffid, 0);
-> +
-> +	return 0;
-> +}
-
-> +
-> +static int __init gic_acpi_parse_madt_irs(union acpi_subtable_headers *header,
-> +					  const unsigned long end)
-> +{
-> +	struct acpi_madt_gicv5_irs *irs = (struct acpi_madt_gicv5_irs *)header;
-> +	struct gicv5_irs_chip_data *irs_data;
-> +	void __iomem *irs_base;
-> +	struct resource *r;
-> +	int ret;
-> +
-> +	// Per-IRS data structure
-
-It's your code to look after, so I don't care that strongly but this does
-seem to be inconsistent wrt to local style and use of C style
-single line comments.  I'd stick to /* */ throughout.
-
-
-> +	irs_data = kzalloc(sizeof(*irs_data), GFP_KERNEL);
-> +	if (!irs_data)
-> +		return -ENOMEM;
-> +
-> +	// This spinlock is used for SPI config changes
-> +	raw_spin_lock_init(&irs_data->spi_config_lock);
-> +
-> +	irs_base = ioremap(irs->config_base_address, ACPI_GICV5_IRS_MEM_SIZE);
-> +	if (!irs_base) {
-> +		pr_err("Unable to map GIC IRS registers\n");
-> +		ret = -ENOMEM;
-> +		goto out_free;
-> +	}
-> +
-> +	r = gic_request_region(irs->config_base_address, ACPI_GICV5_IRS_MEM_SIZE, "GICv5 IRS");
-
-Really minor but I wonder if this should follow the same ordering as
-of_io_request_and_map() which does the request_mem_region() before
-trying to ioremap()?
-
-Nice to have the same ordering though that would then put you at odds iwth the
-gicv3 redist code that does it in this order.  Guess can't win them all and
-an ephemeral mapping that is then torn down on error of the second call
-doesn't really matter.  
-
-> +	if (!r) {
-> +		ret = -EBUSY;
-> +		goto out_map;
-> +	}
-> +
-> +	gicv5_irs_init_bases(irs_data, irs_base, NULL, irs->flags & ACPI_MADT_IRS_NON_COHERENT);
-> +
-> +	gicv5_irs_acpi_init_affinity(irs->irs_id, irs_data);
-> +
-> +	ret = gicv5_irs_init(irs_data);
-> +	if (ret)
-> +		goto out_release;
-> +
-> +	if (irs_data->spi_range) {
-> +		pr_info("%s @%llx detected SPI range [%u-%u]\n", "IRS", irs->config_base_address,
-> +									irs_data->spi_min,
-> +									irs_data->spi_min +
-> +									irs_data->spi_range - 1);
-> +	}
-> +
-> +	return 0;
-> +
-> +out_release:
-> +	release_mem_region(r->start, resource_size(r));
-> +out_map:
-> +	iounmap(irs_base);
-> +out_free:
-> +	kfree(irs_data);
-> +	return ret;
-> +}
-
-> diff --git a/drivers/irqchip/irq-gic-v5.c b/drivers/irqchip/irq-gic-v5.c
-> index 41ef286c4d78..23fd551c4347 100644
-> --- a/drivers/irqchip/irq-gic-v5.c
-> +++ b/drivers/irqchip/irq-gic-v5.c
-> @@ -579,16 +579,36 @@ static __always_inline int gicv5_irq_domain_translate(struct irq_domain *d,
->  						      unsigned int *type,
->  						      const u8 hwirq_type)
->  {
-> -	if (!is_of_node(fwspec->fwnode))
-> -		return -EINVAL;
-> +	unsigned int hwirq_trigger;
-> +	u8 fwspec_irq_type;
->  
-> -	if (fwspec->param_count < 3)
-> -		return -EINVAL;
-> +	if (is_of_node(fwspec->fwnode)) {
->  
-> -	if (fwspec->param[0] != hwirq_type)
-> -		return -EINVAL;
-> +		if (fwspec->param_count < 3)
-> +			return -EINVAL;
->  
-> -	*hwirq = fwspec->param[1];
-> +		fwspec_irq_type = fwspec->param[0];
-> +
-> +		if (fwspec->param[0] != hwirq_type)
-> +			return -EINVAL;
-> +
-> +		*hwirq = fwspec->param[1];
-> +		hwirq_trigger = fwspec->param[2];
-> +	}
-> +
-> +	if (is_fwnode_irqchip(fwspec->fwnode)) {
-> +
-> +		if (fwspec->param_count != 2)
-> +			return -EINVAL;
-> +
-> +		fwspec_irq_type = FIELD_GET(GICV5_HWIRQ_TYPE, fwspec->param[0]);
-> +
-> +		if (fwspec_irq_type != hwirq_type)
-> +			return -EINVAL;
-> +
-> +		*hwirq = FIELD_GET(GICV5_HWIRQ_ID, fwspec->param[0]);
-> +		hwirq_trigger = fwspec->param[1];
-> +	}
->  
->  	switch (hwirq_type) {
->  	case GICV5_HWIRQ_TYPE_PPI:
-> @@ -600,7 +620,7 @@ static __always_inline int gicv5_irq_domain_translate(struct irq_domain *d,
->  							 IRQ_TYPE_EDGE_RISING;
->  		break;
->  	case GICV5_HWIRQ_TYPE_SPI:
-> -		*type = fwspec->param[2] & IRQ_TYPE_SENSE_MASK;
-> +		*type = hwirq_trigger & IRQ_TYPE_SENSE_MASK;
->  		break;
->  	default:
->  		BUILD_BUG_ON(1);
-> @@ -660,10 +680,18 @@ static void gicv5_irq_domain_free(struct irq_domain *domain, unsigned int virq,
->  static int gicv5_irq_ppi_domain_select(struct irq_domain *d, struct irq_fwspec *fwspec,
->  				       enum irq_domain_bus_token bus_token)
->  {
-> +	u32 hwirq_type;
-> +
->  	if (fwspec->fwnode != d->fwnode)
->  		return 0;
->  
-> -	if (fwspec->param[0] != GICV5_HWIRQ_TYPE_PPI)
-> +	if (is_of_node(fwspec->fwnode))
-> +		hwirq_type = fwspec->param[0];
-> +
-> +	if (is_fwnode_irqchip(fwspec->fwnode))
-> +		hwirq_type = FIELD_GET(GICV5_HWIRQ_TYPE, fwspec->param[0]);
-
-Bit borderline but maybe worth a helper for getting the irq type from
-the fwspec? Or a more generic helper that optionally gets that and the other
-stuff you need in gicv5_irq_domain_translate()
-
-> +
-> +	if (hwirq_type != GICV5_HWIRQ_TYPE_PPI)
->  		return 0;
->  
->  	return (d == gicv5_global_data.ppi_domain);
-> @@ -718,10 +746,18 @@ static int gicv5_irq_spi_domain_alloc(struct irq_domain *domain, unsigned int vi
->  static int gicv5_irq_spi_domain_select(struct irq_domain *d, struct irq_fwspec *fwspec,
->  				       enum irq_domain_bus_token bus_token)
->  {
-> +	u32 hwirq_type;
-> +
->  	if (fwspec->fwnode != d->fwnode)
->  		return 0;
->  
-> -	if (fwspec->param[0] != GICV5_HWIRQ_TYPE_SPI)
-> +	if (is_of_node(fwspec->fwnode))
-> +		hwirq_type = fwspec->param[0];
-> +
-> +	if (is_fwnode_irqchip(fwspec->fwnode))
-> +		hwirq_type = FIELD_GET(GICV5_HWIRQ_TYPE, fwspec->param[0]);
-> +
-> +	if (hwirq_type != GICV5_HWIRQ_TYPE_SPI)
->  		return 0;
->  
->  	return (d == gicv5_global_data.spi_domain);
-> @@ -1082,16 +1118,12 @@ static inline void __init gic_of_setup_kvm_info(struct device_node *node)
->  }
->  #endif // CONFIG_KVM
-
-Thanks,
-
-Jonathan
-
+greg k-h
