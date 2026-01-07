@@ -1,138 +1,108 @@
-Received: from mail-wr1-f44.google.com (mail-wr1-f44.google.com [209.85.221.44])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6A3B3A89A9
-	for <linux-acpi@vger.kernel.org>; Wed,  7 Jan 2026 15:40:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12087337B86;
+	Wed,  7 Jan 2026 15:48:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.8
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767800419; cv=none; b=qTzfC2gwGp0CT8Ot6llcZL1lzjYDUmtpB16shltHuqom7e48DNm0Tai0bZYC9YJVtgJa9w9B7NL9cdz1eyCr0aFzeKQty5cgXblte4PaGfvaMj0mCqDIf/Lu+KkTcUdwFanCR7pGQYAo4vSnNF5Sv8rNnwPsUcyAFGBV/MB58ns=
+	t=1767800885; cv=none; b=m2a2TbAT771HndAmi4SOIDdWaRaycxBMblUU/4QGdlUzcv6NNzJvRkyzRTs3e8NliGXrdzLezxhnTsilTxQEl9Kxjvn/D1cKBI5Q5NBG39NOZMNNM2/qGOS24ZFfhXPxmep8Xbn1gSxAfFZTxcKcW4a8Os/wgcnvqUAiqK2jPtg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767800419; c=relaxed/simple;
-	bh=8NylTbAKkO0l/KF1BMUiE4edWBqzJMxu+bSiJDX+mBI=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=PyR6vFFg7wdSL+VoPCV2Fu3Q85XmzFJf145Xs5WLoKV8NsoT92EsuuN7/SSpZA936gzAnlD4hX4aRLf3+OokIpHl0c06j3NWHMZr/UxGlH8WrOTVSXl9X53ExVkBxMviZDodE7dLJareVSE88cXKTHv9Ttl7RwsTlV80NkyM5OE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=darMaO/M; arc=none smtp.client-ip=209.85.221.44
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1767800885; c=relaxed/simple;
+	bh=juYm917GdCBqANd0VbtPMKzjb1p8E9CtfP6gnnWnkPI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=BtbGYbK4b8tkjmQxHG5gNKF5JU1Er48aSaBKCZtbwxHR1lof8gQ4gYQ6dB8D91NIKPCcVKcOT3U5Y4YGKoP0h3d3Oa4fIGRS2sSCz5urp0gN6MdMks4K22lF4M5s9r3LLU9sEN8HveSjgG91GIhxPdd7hfCt/2daxHXZBUZKWps=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=BgqKDNGz; arc=none smtp.client-ip=192.198.163.8
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="darMaO/M"
-Received: by mail-wr1-f44.google.com with SMTP id ffacd0b85a97d-430f57cd471so1165220f8f.0
-        for <linux-acpi@vger.kernel.org>; Wed, 07 Jan 2026 07:40:16 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1767800415; x=1768405215; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=LnKRy0r9W4pXmpxTnitCMSMrxA5/RNH5gipwHUBu7h0=;
-        b=darMaO/MCfZstB4Jvddnu8pXDEyhn/N7BeHaXifuNlYQDbXVQTngCn9LXbzgizDLQX
-         CU/pEePdUKjA5EwLI7W42AW5SOqxaGcRCHr/vjAedDoYaGAf8bVuNZtpXWjUT18LhUAw
-         wS0pBLSgZm2yBSIBHzndA2JPCcMfjfKBLHrtshLLo9UvqzMTmBmv2siM/sl5e9h42zDP
-         AQRGzZGqXJuNgQEpFtw/eNls/RLVpN/+1H2aiQc/kjLpZZjNsQ0BTeyvY19XZwjZHYXq
-         0Oxd2j2e5V7HjmV2gqtpbuulx52Pp+SseNud6W0cDlexKNYGUveTQ+Bh4q2jA/fcPuA8
-         6JNw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1767800415; x=1768405215;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=LnKRy0r9W4pXmpxTnitCMSMrxA5/RNH5gipwHUBu7h0=;
-        b=GeqGfLXk4rWgZyPD/wLQMxRUl1qlhOgLokBy/VWY1RJLx11qik4ZGD98Jp7Gbr640n
-         MQ+7RSV/pHL8cuj/m3y5zDkym7vlupQpR7pJG/Wlq39rX/TwHBzB9DBRRj5D6ajlWqmK
-         Wl/vtKrrSBYy1U22OUOsaO94jrcOo+QMZy7I4eN30UZuclI1p3Hs39JQgt1zJula0iHa
-         2yRn/jPkqFdFw6yfu3FT9faVw8fMD+U2V3efy1ReZ8n2VuC9otQ0eA0VjbdyNAdddtzX
-         3cLnb2ipiqvkBETct4MsJlMBg/kWX7g4WkE++4dtxxTRvqCTRKvjiMmzf+hYjvKD2wo7
-         6V4A==
-X-Gm-Message-State: AOJu0YwSQ1JiLnsgYomkx0voqB6VN0uFF+IKWKMfQVw7L7DOQ+TcUtdl
-	O0ZxaVdKeKJ74wCjoDqApYZzllegy0HHmjdWrR/yaPc1lQGn7HcQ/Rou
-X-Gm-Gg: AY/fxX752p8q87KYZJvWJrq2JAlUwWmu34uhajWda5l80vrDj8Q6JWfgIiZZK2lK/z9
-	nhWKdZZXfCR7SkTNN9J0Hp8d/ep4HiqMHon5Z+F46Dw+JmHY1D/ZRlAWIaIQI7ylvF1DiIHGoN/
-	mKoKH5OJAbN4ZVeFB20dMpiFHw2uj5HtXYue4KA0hiL2Pal0BoCw5HJd+4xp68GnYP5JDDlTUSR
-	CL/DJQj/ud8Os0zP5cQ94C+2CDsFTQnOUGnPwA6a6Hs34l2ZWeHbFcfwJgoaiDtlxyoOB99i3r/
-	ebd9Ki7cwmYxPtyNNYK6+ZhjT1c3UKIPgoxc8k8/vCwbNIoqCt4IqAT2pEr9leIZSQhiuHG3+yj
-	1Gcm+7nF0QV55JF2Etmf1tSZJ1iFU+t1Wj2sYKIMdP1xx274hCWZerHytmeu6GGgJiGBMN6jMH0
-	DMsnve3Gciz7Ai33wrZ3INbxwFwJCcmEDinqkZWLpct40Xs0CLnAqb5foIiLlCVYQ0wVtMehw=
-X-Google-Smtp-Source: AGHT+IFhFh3T0uRqlfiQlVX5OqrzXHZtllu89mEJORSKo6LkQq8PeB5+E8fZ+Tl98LJAkRUhIT6SOg==
-X-Received: by 2002:a5d:64e7:0:b0:431:7a0:dbbe with SMTP id ffacd0b85a97d-432c374ffaamr4032308f8f.32.1767800414774;
-        Wed, 07 Jan 2026 07:40:14 -0800 (PST)
-Received: from jakob-laptop.d.ethz.ch (2001-67c-10ec-574c-8000--36.net6.ethz.ch. [2001:67c:10ec:574c:8000::36])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-432bd0e199bsm11037422f8f.16.2026.01.07.07.40.14
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 07 Jan 2026 07:40:14 -0800 (PST)
-From: Jakob Riemenschneider <riemenschneiderjakob@gmail.com>
-X-Google-Original-From: Jakob Riemenschneider <jriemenschne@student.ethz.ch>
-To: rafael@kernel.org,
-	lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] ACPI: x86: s2idle: Invoke Microsoft _DSM Function 9 (Turn On Display)
-Date: Wed,  7 Jan 2026 16:40:15 +0100
-Message-ID: <20260107154015.322698-1-jriemenschne@student.ethz.ch>
-X-Mailer: git-send-email 2.52.0
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="BgqKDNGz"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1767800883; x=1799336883;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=juYm917GdCBqANd0VbtPMKzjb1p8E9CtfP6gnnWnkPI=;
+  b=BgqKDNGz21xOQsaSRHh6AXn69GlrwloLGJXj44xtelnWbQit0EUAgyJJ
+   L4nHuykWM27NWEjNp9ho9cktjZ65Lj1K453g2P7Wqv7Uz/l2aXNBTo5IY
+   brNDwhv9P5lR8MasTxFfo1393Mz6uieh/PDg/buCDzn+g+mbn6cemhC+L
+   mcnmRKOpGALEZ0oCYeZJujgY3vPUffy26jkfz8WGtq//YJubyIfuaCWtd
+   qNNYOHaedJdg1GFhEMlfuej0KgJ83ncdMFDF4p9bNzvDwhaFGC2AT7j8d
+   VUxwcmaoHCv3+mhTjO34EEvWej0sn8upYC8TAdW16dOwlZacACC5MMTHZ
+   Q==;
+X-CSE-ConnectionGUID: 27G60p3HS6+9yvHFd3o7Zg==
+X-CSE-MsgGUID: o/0YQRPaTJGhiexbdJW6qw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11664"; a="86760981"
+X-IronPort-AV: E=Sophos;i="6.21,208,1763452800"; 
+   d="scan'208";a="86760981"
+Received: from fmviesa008.fm.intel.com ([10.60.135.148])
+  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Jan 2026 07:48:02 -0800
+X-CSE-ConnectionGUID: 5z/AbqnNSjaXIxwI0/Pkgg==
+X-CSE-MsgGUID: MdSKQLO2T86ysYTOX1Txgg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.21,208,1763452800"; 
+   d="scan'208";a="203217231"
+Received: from egrumbac-mobl6.ger.corp.intel.com (HELO localhost) ([10.245.245.168])
+  by fmviesa008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Jan 2026 07:47:59 -0800
+Date: Wed, 7 Jan 2026 17:47:57 +0200
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Kartik Rajput <kkartik@nvidia.com>
+Cc: lenb@kernel.org, sakari.ailus@linux.intel.com,
+	mika.westerberg@linux.intel.com, thierry.reding@gmail.com,
+	jonathanh@nvidia.com, linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Subject: Re: [PATCH v2] ACPI: bus: Use OF match data for PRP0001 matched
+ devices
+Message-ID: <aV6ALdPCjaAYHM7-@smile.fi.intel.com>
+References: <20260107120318.13130-1-kkartik@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260107120318.13130-1-kkartik@nvidia.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-Windows 11, version 22H2 introduced a new function index (Function 9) to
-the Microsoft LPS0 _DSM, titled "Turn On Display Notification".
+On Wed, Jan 07, 2026 at 05:33:18PM +0530, Kartik Rajput wrote:
+> When a device is matched via PRP0001, the driver's OF (DT) match table
+> must be used to obtain the device match data. If a driver provides both
+> an acpi_match_table and an of_match_table, the current
+> acpi_device_get_match_data() path consults the driver's acpi_match_table
+> and returns NULL (no ACPI ID matches).
 
-According to Microsoft documentation, this function signals to the system
-firmware that the OS intends to turn on the display when exiting Modern
-Standby. This allows the firmware to release Power Limits (PLx) earlier,
-improving resume latency on supported OEM designs. Without this call,
-some devices may remain in a throttled power state longer than necessary
-during resume.
+Since we have both tables, why the actual ACPI HID of the device in question
+(actually which one?) can't be used?
 
-This patch defines the new function index (ACPI_LPS0_MS_DISPLAY_ON) and
-invokes it in acpi_s2idle_restore_early_lps0() immediately after the
-screen-on notification, provided the firmware supports the function in
-its mask.
+> Explicitly detect PRP0001 and fetch match data from the driver's
+> of_match_table via acpi_of_device_get_match_data().
 
-Link: https://learn.microsoft.com/en-us/windows-hardware/design/device-experiences/modern-standby-firmware-notifications#turn-on-display-notification-function-9
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=220505
-Signed-off-by: Jakob Riemenschneider <jriemenschne@student.ethz.ch>
----
- drivers/acpi/x86/s2idle.c | 10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+In principle we can go this way, but can you tell a bit more of a story?
+Why the device in question can't use existed or a newly allocated ACPI HID for
+that?
 
-diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
-index 6d4d06236..4ce4cc8a0 100644
---- a/drivers/acpi/x86/s2idle.c
-+++ b/drivers/acpi/x86/s2idle.c
-@@ -45,6 +45,7 @@ static const struct acpi_device_id lps0_device_ids[] = {
- #define ACPI_LPS0_EXIT		6
- #define ACPI_LPS0_MS_ENTRY      7
- #define ACPI_LPS0_MS_EXIT       8
-+#define ACPI_LPS0_MS_DISPLAY_ON 9
- 
- /* AMD */
- #define ACPI_LPS0_DSM_UUID_AMD      "e3f32452-febc-43ce-9039-932122d37721"
-@@ -352,6 +353,8 @@ static const char *acpi_sleep_dsm_state_to_str(unsigned int state)
- 			return "lps0 ms entry";
- 		case ACPI_LPS0_MS_EXIT:
- 			return "lps0 ms exit";
-+		case ACPI_LPS0_MS_DISPLAY_ON:
-+			return "lps0 ms display on";
- 		}
- 	} else {
- 		switch (state) {
-@@ -618,9 +621,14 @@ static void acpi_s2idle_restore_early_lps0(void)
- 	}
- 
- 	/* Screen on */
--	if (lps0_dsm_func_mask_microsoft > 0)
-+	if (lps0_dsm_func_mask_microsoft > 0) {
- 		acpi_sleep_run_lps0_dsm(ACPI_LPS0_SCREEN_ON,
- 				lps0_dsm_func_mask_microsoft, lps0_dsm_guid_microsoft);
-+				/* Modern Turn Display On */
-+		acpi_sleep_run_lps0_dsm(ACPI_LPS0_MS_DISPLAY_ON,
-+				lps0_dsm_func_mask_microsoft, lps0_dsm_guid_microsoft);
-+	}
-+
- 	if (lps0_dsm_func_mask > 0)
- 		acpi_sleep_run_lps0_dsm(acpi_s2idle_vendor_amd() ?
- 					ACPI_LPS0_SCREEN_ON_AMD :
+...
+
+> @@ -1031,8 +1031,9 @@ const void *acpi_device_get_match_data(const struct device *dev)
+>  {
+>  	const struct acpi_device_id *acpi_ids = dev->driver->acpi_match_table;
+>  	const struct acpi_device_id *match;
+> +	struct acpi_device *adev = ACPI_COMPANION(dev);
+
+Please, keep it in reversed xmas tree order.
+
+> -	if (!acpi_ids)
+> +	if (!strcmp(ACPI_DT_NAMESPACE_HID, acpi_device_hid(adev)))
+
+
+>  		return acpi_of_device_get_match_data(dev);
+>  
+>  	match = acpi_match_device(acpi_ids, dev);
+
 -- 
-2.52.0
+With Best Regards,
+Andy Shevchenko
+
 
