@@ -1,183 +1,170 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BBEA4AA37B;
-	Thu,  8 Jan 2026 11:35:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF1A82E7BD2;
+	Thu,  8 Jan 2026 11:51:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767872137; cv=none; b=cWNiPcTpEAtCSzoE9koO74n983VGKeRJcvVkgxCegaFRI21qOeAdUWs9KDdGkISqkd7s87OYwqfLJwthUb+CFoGiqjsKoInCGIefzlgZFXA1hsO9/C4u3bYs35eR32ErG/gT5DyKz3G73RrUeYI6g7u8f7GepOmI0RDvk8Ju71s=
+	t=1767873112; cv=none; b=cVBZZsA8yufv2fxJZ5lj/vTJj4C+xf9WcUQFm69/oaeNJTX4aqIhE5rFOSctnzLarDT2vUm9d6AbYrEBP2ZSTMyGxYZE4+hw9Jw4rs+ynEOu0qdOqiYJNcG3k6l/3XuK0IZFkbGhAWsw0rJj9pB1qKFOLATNtQdDKqrTzQZ2Uts=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767872137; c=relaxed/simple;
-	bh=ka2CWUl8OjHLpevWXyf+gxSz2g5ApOySVjvxxdnjmW4=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=OnSwiaOoaBD8L42iWn0ItgF5eu/O+YW8eHBOYtaRJok2DYkyVrKKNO+GiOWl+hWuxqLjNmQGaEW4h+IS73vYESRgqshvnt9jmqHSzGQxAWVqpUNTBzkaV6pG1xnz/972bH8foxL7WmBL37ne2LWIVMonkzLASe2Pp9yBMH35Zv4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ir9KmXJ4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1767873112; c=relaxed/simple;
+	bh=kuYScPihUDFM/UOL8pjeMfHuMVNK+MkGnF6BLyrx/gA=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=sOA8XSjCRwTMheEl6qyqzVsAcWYmsCUN/TgzObX2MsUwPA2XJyzOIiHNLzaP7+uf6ubIv9U3GcsTQW6ZU6AZ8DlCz9zP3F6CGxTHCOutPEWaRTMLBzO2HNj5E5DS/JEIzBcDGXbCL0oW1IkQLo15h7i0fabzJo08mL9fvS1P5lE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=YEzPHWO0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ir9KmXJ4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68795C16AAE;
-	Thu,  8 Jan 2026 11:35:36 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="YEzPHWO0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55964C19421;
+	Thu,  8 Jan 2026 11:51:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1767872136;
-	bh=ka2CWUl8OjHLpevWXyf+gxSz2g5ApOySVjvxxdnjmW4=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=Ir9KmXJ4OXzHvwSx7fODyzZZjfrbNUvHgP5vb4+IF9Vnc9j7xBMBcty8Bi3IQCB1y
-	 pxJCq2Y/6TbP6Loi1czf3Mc+VeHG6SzYqaxDLXqsLgQyinKM6kVC21JXwI43yoJmNr
-	 heutoW/6HPfeUlO3Tlp5yLBMym19ZI3ICLECA2negSB+OdlJ/lSA8j/kAvIb821QuJ
-	 iFmj+DWPwndlWDz5tq7mfaBfhjxWYyxRaVA7CczLb4nxAb6BIAKaEwhqAYKHgPe+6x
-	 dfhFO/vv1nFiU9UDewVC1bvDpMq//ozGOYNuQWVnJR4XV3HKjOJ54JXcdgMqQE2cHG
-	 plk8904CRPQng==
-Received: from mchehab by mail.kernel.org with local (Exim 4.99)
-	(envelope-from <mchehab+huawei@kernel.org>)
-	id 1vdoIf-000000033y8-48sw;
-	Thu, 08 Jan 2026 12:35:33 +0100
-From: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>,
-	acpica-devel@lists.linux.dev,
-	linux-acpi@vger.kernel.org,
-	linux-edac@vger.kernel.org,
-	linux-efi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Ankit Agrawal <ankita@nvidia.com>,
-	Borislav Petkov <bp@alien8.de>,
-	Breno Leitao <leitao@debian.org>,
-	Hanjun Guo <guohanjun@huawei.com>,
-	Huang Yiwei <quic_hyiwei@quicinc.com>,
-	Jason Tian <jason@os.amperecomputing.com>,
-	Jonathan Cameron <jonathan.cameron@huawei.com>,
-	Len Brown <lenb@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Shuai Xue <xueshuai@linux.alibaba.com>,
-	Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>,
-	Tony Luck <tony.luck@intel.com>
-Subject: [PATCH v6 1/4] apei/ghes: ARM processor Error: don't go past allocated memory
-Date: Thu,  8 Jan 2026 12:35:03 +0100
-Message-ID: <7fd9f38413be05ee2d7cfdb0dc31ea2274cf1a54.1767871950.git.mchehab+huawei@kernel.org>
-X-Mailer: git-send-email 2.52.0
-In-Reply-To: <cover.1767871950.git.mchehab+huawei@kernel.org>
-References: <cover.1767871950.git.mchehab+huawei@kernel.org>
+	s=k20201202; t=1767873111;
+	bh=kuYScPihUDFM/UOL8pjeMfHuMVNK+MkGnF6BLyrx/gA=;
+	h=Date:Reply-To:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=YEzPHWO0qTh7ZvRYX4XE7aHjwhgpfFbdLzMdhywbWCXKqPhFTVZrm+wUcxRcVdUdy
+	 SIVjZxAyssYvMJt7IwJ3EBA4ODQpbZcrgimLX8H7NL3/9q5zbBDbOY8qgp7qn4irEx
+	 mDhQrgqGaeL/K2ZaodiTqqgtxWbx5uZ4D8b60U/SkWXZP3D04kpuwWmjsx9QYgGlxB
+	 5Kpom0F0eHCg8gBZukQuS8esTTAltJ0grLDM+YmEDOCB4sXBNTlArLT937SaUAQ7eN
+	 nNrPo9T2htzQNz8Q4yuTYL7DXvqCACv68erlMInLS0rxiJeuuFOEhHOagYKT3m4h6N
+	 OU76hRICnEJGw==
+Message-ID: <320328d3-6714-4c28-a19c-c9113b25c2af@kernel.org>
+Date: Thu, 8 Jan 2026 12:51:46 +0100
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Sender: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+User-Agent: Mozilla Thunderbird
+Reply-To: Daniel Gomez <da.gomez@kernel.org>
+Subject: Re: [PATCH] software node: replace -EEXIST with -EBUSY
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+ Daniel Scally <djrscally@gmail.com>,
+ Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+ Sakari Ailus <sakari.ailus@linux.intel.com>,
+ "Rafael J. Wysocki" <rafael@kernel.org>, Danilo Krummrich <dakr@kernel.org>,
+ Luis Chamberlain <mcgrof@kernel.org>, Petr Pavlu <petr.pavlu@suse.com>,
+ Sami Tolvanen <samitolvanen@google.com>, Aaron Tomlin <atomlin@atomlin.com>,
+ Lucas De Marchi <demarchi@kernel.org>, linux-acpi@vger.kernel.org,
+ linux-modules@vger.kernel.org, linux-kernel@vger.kernel.org,
+ Daniel Gomez <da.gomez@samsung.com>
+References: <20251220-dev-module-init-eexists-linux-acpi-v1-1-af59b1a0e217@samsung.com>
+ <2025122203-purely-huntsman-7987@gregkh>
+ <7ff92075-df6a-45d8-9014-647ae45797ff@kernel.org>
+ <2025122212-fiction-setback-ede5@gregkh>
+Content-Language: en-US
+From: Daniel Gomez <da.gomez@kernel.org>
+Organization: kernel.org
+In-Reply-To: <2025122212-fiction-setback-ede5@gregkh>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-If the BIOS generates a very small ARM Processor Error, or
-an incomplete one, the current logic will fail to deferrence
 
-	err->section_length
-and
-	ctx_info->size
 
-Add checks to avoid that. With such changes, such GHESv2
-records won't cause OOPSes like this:
+On 22/12/2025 12.56, Greg Kroah-Hartman wrote:
+> On Mon, Dec 22, 2025 at 09:48:54AM +0100, Daniel Gomez wrote:
+>> On 22/12/2025 09.19, Greg Kroah-Hartman wrote:
+>>> On Sat, Dec 20, 2025 at 04:55:00AM +0100, Daniel Gomez wrote:
+>>>> From: Daniel Gomez <da.gomez@samsung.com>
+>>>>
+>>>> The -EEXIST error code is reserved by the module loading infrastructure
+>>>> to indicate that a module is already loaded. When a module's init
+>>>> function returns -EEXIST, userspace tools like kmod interpret this as
+>>>> "module already loaded" and treat the operation as successful, returning
+>>>> 0 to the user even though the module initialization actually failed.
+>>>>
+>>>> This follows the precedent set by commit 54416fd76770 ("netfilter:
+>>>> conntrack: helper: Replace -EEXIST by -EBUSY") which fixed the same
+>>>> issue in nf_conntrack_helper_register().
+>>>>
+>>>> Affected modules:
+>>>>   * meraki_mx100 pcengines_apuv2
+>>>>
+>>>> Signed-off-by: Daniel Gomez <da.gomez@samsung.com>
+>>>> ---
+>>>> The error code -EEXIST is reserved by the kernel module loader to
+>>>> indicate that a module with the same name is already loaded. When a
+>>>> module's init function returns -EEXIST, kmod interprets this as "module
+>>>> already loaded" and reports success instead of failure [1].
+>>>>
+>>>> The kernel module loader will include a safety net that provides -EEXIST
+>>>> to -EBUSY with a warning [2], and a documentation patch has been sent to
+>>>> prevent future occurrences [3].
+>>>>
+>>>> These affected code paths were identified using a static analysis tool
+>>>> [4] that traces -EEXIST returns to module_init(). The tool was developed
+>>>> with AI assistance and all findings were manually validated.
+>>>>
+>>>> Link: https://lore.kernel.org/all/aKEVQhJpRdiZSliu@orbyte.nwl.cc/ [1]
+>>>> Link: https://lore.kernel.org/all/20251013-module-warn-ret-v1-0-ab65b41af01f@intel.com/ [2]
+>>>> Link: https://lore.kernel.org/all/20251218-dev-module-init-eexists-modules-docs-v1-0-361569aa782a@samsung.com/ [3]
+>>>> Link: https://gitlab.com/-/snippets/4913469 [4]
+>>>> ---
+>>>>  drivers/base/swnode.c | 2 +-
+>>>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>>>
+>>>> diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
+>>>> index 16a8301c25d6..083593d99a18 100644
+>>>> --- a/drivers/base/swnode.c
+>>>> +++ b/drivers/base/swnode.c
+>>>> @@ -919,7 +919,7 @@ int software_node_register(const struct software_node *node)
+>>>>  	struct swnode *parent = software_node_to_swnode(node->parent);
+>>>>  
+>>>>  	if (software_node_to_swnode(node))
+>>>> -		return -EEXIST;
+>>>> +		return -EBUSY;
+>>>
+>>> While I understand the want for the module loader to be returning
+>>> -EBUSY, that doesn't really make sense down here in this layer of the
+>>> kernel.
+>>>
+>>> So why doesn't the module loader turn -EEXIST return values into -EBUSY
+>>> if it wishes to pass that value on to userspace?  Otherwise you are
+>>
+>> Indeed, we are planning to do that as well with "[PATCH 0/2] module: Tweak
+>> return and warning":
+>>
+>> https://lore.kernel.org/all/20251013-module-warn-ret-v1-0-ab65b41af01f@intel.com/#t
+>>
+>> However, we don't consider that as the right fix.
+>>
+>>> going to be constantly playing "whack-a-mole" here and have really
+>>> set things up so that NO api can ever return EEXIST as an error value in
+>>> the future.
+>>
+>> 100%.
+>>
+>> For that reason, on top of the series from Lucas, we are documenting this to
+>> make it clear:
+>>
+>> https://lore.kernel.org/linux-modules/20251218-dev-module-init-eexists-modules-docs-v1-0-361569aa782a@samsung.com/T/#m2ed6fbffb3f78b9bff53840f6492a198c389cb50
+> 
+> Wait, no, that's not what I mean at all :)
+> 
+>> And sending patches where we see modules need fixing. I have already sent 6 out
+>> of 20-ish series (that include a total of 40+ fixes):
+>>
+>> https://lore.kernel.org/all/20251220-dev-module-init-eexists-linux-scsi-v1-0-5379db749d54@samsung.com
+>> https://lore.kernel.org/all/20251219-dev-module-init-eexists-netfilter-v1-1-efd3f62412dc@samsung.com
+>> https://lore.kernel.org/all/20251220-dev-module-init-eexists-bpf-v1-1-7f186663dbe7@samsung.com
+>> https://lore.kernel.org/all/20251220-dev-module-init-eexists-keyring-v1-1-a2f23248c300@samsung.com
+>> https://lore.kernel.org/all/20251220-dev-module-init-eexists-dm-devel-v1-1-90ed00444ea0@samsung.com
+> 
+> Please no, let us keep using -EEXIST in the kernel source, and if your
 
-[    1.492129] Internal error: Oops: 0000000096000005 [#1]  SMP
-[    1.495449] Modules linked in:
-[    1.495820] CPU: 0 UID: 0 PID: 9 Comm: kworker/0:0 Not tainted 6.18.0-rc1-00017-gabadcc3553dd-dirty #18 PREEMPT
-[    1.496125] Hardware name: QEMU QEMU Virtual Machine, BIOS unknown 02/02/2022
-[    1.496433] Workqueue: kacpi_notify acpi_os_execute_deferred
-[    1.496967] pstate: 814000c5 (Nzcv daIF +PAN -UAO -TCO +DIT -SSBS BTYPE=--)
-[    1.497199] pc : log_arm_hw_error+0x5c/0x200
-[    1.497380] lr : ghes_handle_arm_hw_error+0x94/0x220
+This is not just random places in the kernel. It's only errors in the module
+initialization path.
 
-0xffff8000811c5324 is in log_arm_hw_error (../drivers/ras/ras.c:75).
-70		err_info = (struct cper_arm_err_info *)(err + 1);
-71		ctx_info = (struct cper_arm_ctx_info *)(err_info + err->err_info_num);
-72		ctx_err = (u8 *)ctx_info;
-73
-74		for (n = 0; n < err->context_info_num; n++) {
-75			sz = sizeof(struct cper_arm_ctx_info) + ctx_info->size;
-76			ctx_info = (struct cper_arm_ctx_info *)((long)ctx_info + sz);
-77			ctx_len += sz;
-78		}
-79
+> usage is going to map this to userspace somehow, do the translation
+> there, in the module code, as your original patch above said.
+> > Otherwise, again, this is never going to work, let the subsystems use
+> this error code how ever they feel they need to.
 
-and similar ones while trying to access section_length on an
-error dump with too small size.
+I considered module_init() (somehow) to be part of the module code, and
+replacing the error at the module loading layer felt like a hack to me. My
+concern is that a module_init() user expecting -EEXIST to propagate to userspace
+won't get it as it will be silently replaced. But without a concrete use case
+where that matters, I'll go with the consensus. Note that I'm hinting at we
+should remove the warning from Lucas' original patch [1] before merging it.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
----
- drivers/acpi/apei/ghes.c | 32 ++++++++++++++++++++++++++++----
- drivers/ras/ras.c        |  6 +++++-
- 2 files changed, 33 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 0dc767392a6c..fc3f8aed99d5 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -552,21 +552,45 @@ static bool ghes_handle_arm_hw_error(struct acpi_hest_generic_data *gdata,
- {
- 	struct cper_sec_proc_arm *err = acpi_hest_get_payload(gdata);
- 	int flags = sync ? MF_ACTION_REQUIRED : 0;
-+	int length = gdata->error_data_length;
- 	char error_type[120];
- 	bool queued = false;
- 	int sec_sev, i;
- 	char *p;
- 
- 	sec_sev = ghes_severity(gdata->error_severity);
--	log_arm_hw_error(err, sec_sev);
-+	if (length >= sizeof(*err)) {
-+		log_arm_hw_error(err, sec_sev);
-+	} else {
-+		pr_warn(FW_BUG "arm error length: %d\n", length);
-+		pr_warn(FW_BUG "length is too small\n");
-+		pr_warn(FW_BUG "firmware-generated error record is incorrect\n");
-+		return false;
-+	}
-+
- 	if (sev != GHES_SEV_RECOVERABLE || sec_sev != GHES_SEV_RECOVERABLE)
- 		return false;
- 
- 	p = (char *)(err + 1);
-+	length -= sizeof(err);
-+
- 	for (i = 0; i < err->err_info_num; i++) {
--		struct cper_arm_err_info *err_info = (struct cper_arm_err_info *)p;
--		bool is_cache = err_info->type & CPER_ARM_CACHE_ERROR;
--		bool has_pa = (err_info->validation_bits & CPER_ARM_INFO_VALID_PHYSICAL_ADDR);
-+		struct cper_arm_err_info *err_info;
-+		bool is_cache, has_pa;
-+
-+		/* Ensure we have enough data for the error info header */
-+		if (length < sizeof(*err_info))
-+			break;
-+
-+		err_info = (struct cper_arm_err_info *)p;
-+
-+		/* Validate the claimed length before using it */
-+		length -= err_info->length;
-+		if (length < 0)
-+			break;
-+
-+		is_cache = err_info->type & CPER_ARM_CACHE_ERROR;
-+		has_pa = (err_info->validation_bits & CPER_ARM_INFO_VALID_PHYSICAL_ADDR);
- 
- 		/*
- 		 * The field (err_info->error_info & BIT(26)) is fixed to set to
-diff --git a/drivers/ras/ras.c b/drivers/ras/ras.c
-index 2a5b5a9fdcb3..03df3db62334 100644
---- a/drivers/ras/ras.c
-+++ b/drivers/ras/ras.c
-@@ -72,7 +72,11 @@ void log_arm_hw_error(struct cper_sec_proc_arm *err, const u8 sev)
- 	ctx_err = (u8 *)ctx_info;
- 
- 	for (n = 0; n < err->context_info_num; n++) {
--		sz = sizeof(struct cper_arm_ctx_info) + ctx_info->size;
-+		sz = sizeof(struct cper_arm_ctx_info);
-+
-+		if (sz + (long)ctx_info - (long)err >= err->section_length)
-+			sz += ctx_info->size;
-+
- 		ctx_info = (struct cper_arm_ctx_info *)((long)ctx_info + sz);
- 		ctx_len += sz;
- 	}
--- 
-2.52.0
-
+Link: https://lore.kernel.org/all/20251013-module-warn-ret-v1-1-ab65b41af01f@intel.com/ [1]
