@@ -1,163 +1,112 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6683A46525B;
-	Thu,  8 Jan 2026 11:58:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DA9E4984A6
+	for <linux-acpi@vger.kernel.org>; Thu,  8 Jan 2026 12:09:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767873488; cv=none; b=jWkDyloKqDT5h74CtTJJ7A9t+BKeC9YpwIJtGcem3S+e9TpXIZpx5plCGbmDJZ36b8/9mwUmdm507eM6JYNyC7IBLNYQn2n6pamlLhOG5ttIQC4q+MLEIUPSf0qRbA+09Vu7vbUW6c8r2FkU8ZGUTpROAZrAnbFMvBEqetgIYeE=
+	t=1767874150; cv=none; b=E3UoSBWM7/k5SISHi03lAsfrgFEjmuoYCTqvqpmr8ZuBux7H0f0glgZFka972tT2pyllaPxGCbZmq6wtjhViAtpsBD5KQSvfOFESoQt208vugkE7fKnl38UgYFkzUcYsAt4/n/QUSeZmzX0pCv8cv8p4xOUOCuOE0+6O+SYmZ04=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767873488; c=relaxed/simple;
-	bh=cqUGJOvShBP5LvBn2fcsJpTGeLpHpgVSCEVt9LxGvB0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=b2X/a59N52weHTF5dMg2cmYLdoMhsNuKruCh00UQeECLHxkbReTApysH9WI4AFly/78J0SO0GTCvn1MFR0okMdGLFydBelQU8Z8nLHmrriiHAXcfGgRgMeyPBDzxQRjBEvAgNV3LNInqaVNbtwsXTRYU5yHtDY0Bf6B1gjzmNOg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=jGxtbYOB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1767874150; c=relaxed/simple;
+	bh=IlkapupCVg4ayKuGBWjBIEEBZdPH2VQahkQRg+CWzI4=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=bHFxrFnHv25/ZhNNY+i3FVCxKlh/Ccuk5GMyVuhoONj6ZaB1yQxyyd8fEdkCyZPmnqSGKeosS/UxHj0eEz1DYtwqJ6KTOzHF6/bpjOr4J0ocGGXoD/Oa5WIgin655oT5pJqRij0iHY6/zKL8tVBuJFO2GtNWapkKym6xgonUKBU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bZ5Uf2k3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="jGxtbYOB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24526C116C6;
-	Thu,  8 Jan 2026 11:58:04 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1767873484;
-	bh=cqUGJOvShBP5LvBn2fcsJpTGeLpHpgVSCEVt9LxGvB0=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=jGxtbYOByauMyg0zRIek5Hsd5P9OPPlVTi2thX9JKj+R7OoyHw52ZId8ZIKu6NLRs
-	 USynP4q1gT5AiYO/1vH3STFXvaMllPvkUEotI0NpDaPQEyiU6CRc+3ks8NgVbaNCYn
-	 VO2nNdaiuife4laWm/mHGNuwFe6tt3qgvpqZmBB4=
-Date: Thu, 8 Jan 2026 12:58:01 +0100
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: Daniel Gomez <da.gomez@kernel.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>,
-	Luis Chamberlain <mcgrof@kernel.org>,
-	Petr Pavlu <petr.pavlu@suse.com>,
-	Sami Tolvanen <samitolvanen@google.com>,
-	Aaron Tomlin <atomlin@atomlin.com>,
-	Lucas De Marchi <demarchi@kernel.org>, linux-acpi@vger.kernel.org,
-	linux-modules@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Daniel Gomez <da.gomez@samsung.com>
-Subject: Re: [PATCH] software node: replace -EEXIST with -EBUSY
-Message-ID: <2026010846-drippy-ferment-065f@gregkh>
-References: <20251220-dev-module-init-eexists-linux-acpi-v1-1-af59b1a0e217@samsung.com>
- <2025122203-purely-huntsman-7987@gregkh>
- <7ff92075-df6a-45d8-9014-647ae45797ff@kernel.org>
- <2025122212-fiction-setback-ede5@gregkh>
- <320328d3-6714-4c28-a19c-c9113b25c2af@kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bZ5Uf2k3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C22AEC2BCAF
+	for <linux-acpi@vger.kernel.org>; Thu,  8 Jan 2026 12:09:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1767874148;
+	bh=IlkapupCVg4ayKuGBWjBIEEBZdPH2VQahkQRg+CWzI4=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=bZ5Uf2k3b8UYtpsuzZr4FSp/8RtCV/2IH5RWV1y5/9//PtpZcgW9lONjONR3WDgwm
+	 rsyw1018nRwu6KQxhapQzjne0xmLCJNajmj06/6X/raaDrcGo1HoAxY8A/uvROqG50
+	 yAF+AMabZwa0v1M6pBAkTjGl64ocEJA+tDQUt3FUbf1uAQgaDUD8Rzi3/I7yk7DDP3
+	 ZPH8YLcj0UFwwA9AQQr0waw/0/IL5nQ6ylEDGu9N4o4UV4Je9cuH6RPhmNRPkx9Ida
+	 kOHwDydjQZXzCOPOeOiohya1UtUK7DIFCdAFzwJmwdKSZW2cWjKqkaHTOIXwRYbEdT
+	 5UY4t2G5tUQdw==
+Received: by mail-pj1-f53.google.com with SMTP id 98e67ed59e1d1-34c2f52585fso2078216a91.1
+        for <linux-acpi@vger.kernel.org>; Thu, 08 Jan 2026 04:09:08 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AJvYcCVAflfkyCuA3i9yvEtsbUsnGF6Aq4dNvg+iS5Yuz2GLAw5Yzfoj1Q2+KrALQJL8X2V0wTUfUriYxBLu@vger.kernel.org
+X-Gm-Message-State: AOJu0Yyt0/sY4CTZbzA8cxYJcfa3OIaogQCT4mTspAX4drGj3VlOco0l
+	2jm9JstA7hf9Vb8nZE1A+jdyq2b0BjtAM2G4KzyW0HvZfiKUNB7izoGkAPyODyQXLPAEwPWdK6A
+	qYbgSrww6exm6xjvFAn+NGEk9uOYBLKE=
+X-Google-Smtp-Source: AGHT+IGX57hgeb2ZVSLwuDKQlmQUj2AYa0d42FefuZ+RRW6xX4ED47oShHaUK0b79KTNvwCW3/IAwSkNxAOZT9ITLtE=
+X-Received: by 2002:a17:90a:ec8b:b0:34a:4a8d:2e2e with SMTP id
+ 98e67ed59e1d1-34f68c912a3mr6191078a91.17.1767874148227; Thu, 08 Jan 2026
+ 04:09:08 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <320328d3-6714-4c28-a19c-c9113b25c2af@kernel.org>
+References: <cover.1767871950.git.mchehab+huawei@kernel.org>
+In-Reply-To: <cover.1767871950.git.mchehab+huawei@kernel.org>
+From: Ard Biesheuvel <ardb@kernel.org>
+Date: Thu, 8 Jan 2026 13:08:55 +0100
+X-Gmail-Original-Message-ID: <CAMj1kXGxcOAEVQUUkFDtwqGojDrNNghthcys8qQynK==jbJ9eg@mail.gmail.com>
+X-Gm-Features: AQt7F2oQ8CsSm2hrMLNcdbX_AytGzyTL2fR5DeQNbJcSRRylJ48LlKDj6r2-1BM
+Message-ID: <CAMj1kXGxcOAEVQUUkFDtwqGojDrNNghthcys8qQynK==jbJ9eg@mail.gmail.com>
+Subject: Re: [PATCH v6 0/4] apei/ghes: don't OOPS with bad ARM error CPER records
+To: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Robert Moore <robert.moore@intel.com>, 
+	acpica-devel@lists.linux.dev, linux-acpi@vger.kernel.org, 
+	linux-edac@vger.kernel.org, linux-efi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, Ankit Agrawal <ankita@nvidia.com>, 
+	Borislav Petkov <bp@alien8.de>, Breno Leitao <leitao@debian.org>, 
+	Dan Williams <dan.j.williams@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Hanjun Guo <guohanjun@huawei.com>, Huang Yiwei <quic_hyiwei@quicinc.com>, 
+	Ira Weiny <ira.weiny@intel.com>, Jason Tian <jason@os.amperecomputing.com>, 
+	Jonathan Cameron <jonathan.cameron@huawei.com>, Len Brown <lenb@kernel.org>, 
+	Mauro Carvalho Chehab <mchehab@kernel.org>, Shuai Xue <xueshuai@linux.alibaba.com>, 
+	Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>, Tony Luck <tony.luck@intel.com>
+Content-Type: text/plain; charset="UTF-8"
 
-On Thu, Jan 08, 2026 at 12:51:46PM +0100, Daniel Gomez wrote:
-> 
-> 
-> On 22/12/2025 12.56, Greg Kroah-Hartman wrote:
-> > On Mon, Dec 22, 2025 at 09:48:54AM +0100, Daniel Gomez wrote:
-> >> On 22/12/2025 09.19, Greg Kroah-Hartman wrote:
-> >>> On Sat, Dec 20, 2025 at 04:55:00AM +0100, Daniel Gomez wrote:
-> >>>> From: Daniel Gomez <da.gomez@samsung.com>
-> >>>>
-> >>>> The -EEXIST error code is reserved by the module loading infrastructure
-> >>>> to indicate that a module is already loaded. When a module's init
-> >>>> function returns -EEXIST, userspace tools like kmod interpret this as
-> >>>> "module already loaded" and treat the operation as successful, returning
-> >>>> 0 to the user even though the module initialization actually failed.
-> >>>>
-> >>>> This follows the precedent set by commit 54416fd76770 ("netfilter:
-> >>>> conntrack: helper: Replace -EEXIST by -EBUSY") which fixed the same
-> >>>> issue in nf_conntrack_helper_register().
-> >>>>
-> >>>> Affected modules:
-> >>>>   * meraki_mx100 pcengines_apuv2
-> >>>>
-> >>>> Signed-off-by: Daniel Gomez <da.gomez@samsung.com>
-> >>>> ---
-> >>>> The error code -EEXIST is reserved by the kernel module loader to
-> >>>> indicate that a module with the same name is already loaded. When a
-> >>>> module's init function returns -EEXIST, kmod interprets this as "module
-> >>>> already loaded" and reports success instead of failure [1].
-> >>>>
-> >>>> The kernel module loader will include a safety net that provides -EEXIST
-> >>>> to -EBUSY with a warning [2], and a documentation patch has been sent to
-> >>>> prevent future occurrences [3].
-> >>>>
-> >>>> These affected code paths were identified using a static analysis tool
-> >>>> [4] that traces -EEXIST returns to module_init(). The tool was developed
-> >>>> with AI assistance and all findings were manually validated.
-> >>>>
-> >>>> Link: https://lore.kernel.org/all/aKEVQhJpRdiZSliu@orbyte.nwl.cc/ [1]
-> >>>> Link: https://lore.kernel.org/all/20251013-module-warn-ret-v1-0-ab65b41af01f@intel.com/ [2]
-> >>>> Link: https://lore.kernel.org/all/20251218-dev-module-init-eexists-modules-docs-v1-0-361569aa782a@samsung.com/ [3]
-> >>>> Link: https://gitlab.com/-/snippets/4913469 [4]
-> >>>> ---
-> >>>>  drivers/base/swnode.c | 2 +-
-> >>>>  1 file changed, 1 insertion(+), 1 deletion(-)
-> >>>>
-> >>>> diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
-> >>>> index 16a8301c25d6..083593d99a18 100644
-> >>>> --- a/drivers/base/swnode.c
-> >>>> +++ b/drivers/base/swnode.c
-> >>>> @@ -919,7 +919,7 @@ int software_node_register(const struct software_node *node)
-> >>>>  	struct swnode *parent = software_node_to_swnode(node->parent);
-> >>>>  
-> >>>>  	if (software_node_to_swnode(node))
-> >>>> -		return -EEXIST;
-> >>>> +		return -EBUSY;
-> >>>
-> >>> While I understand the want for the module loader to be returning
-> >>> -EBUSY, that doesn't really make sense down here in this layer of the
-> >>> kernel.
-> >>>
-> >>> So why doesn't the module loader turn -EEXIST return values into -EBUSY
-> >>> if it wishes to pass that value on to userspace?  Otherwise you are
-> >>
-> >> Indeed, we are planning to do that as well with "[PATCH 0/2] module: Tweak
-> >> return and warning":
-> >>
-> >> https://lore.kernel.org/all/20251013-module-warn-ret-v1-0-ab65b41af01f@intel.com/#t
-> >>
-> >> However, we don't consider that as the right fix.
-> >>
-> >>> going to be constantly playing "whack-a-mole" here and have really
-> >>> set things up so that NO api can ever return EEXIST as an error value in
-> >>> the future.
-> >>
-> >> 100%.
-> >>
-> >> For that reason, on top of the series from Lucas, we are documenting this to
-> >> make it clear:
-> >>
-> >> https://lore.kernel.org/linux-modules/20251218-dev-module-init-eexists-modules-docs-v1-0-361569aa782a@samsung.com/T/#m2ed6fbffb3f78b9bff53840f6492a198c389cb50
-> > 
-> > Wait, no, that's not what I mean at all :)
-> > 
-> >> And sending patches where we see modules need fixing. I have already sent 6 out
-> >> of 20-ish series (that include a total of 40+ fixes):
-> >>
-> >> https://lore.kernel.org/all/20251220-dev-module-init-eexists-linux-scsi-v1-0-5379db749d54@samsung.com
-> >> https://lore.kernel.org/all/20251219-dev-module-init-eexists-netfilter-v1-1-efd3f62412dc@samsung.com
-> >> https://lore.kernel.org/all/20251220-dev-module-init-eexists-bpf-v1-1-7f186663dbe7@samsung.com
-> >> https://lore.kernel.org/all/20251220-dev-module-init-eexists-keyring-v1-1-a2f23248c300@samsung.com
-> >> https://lore.kernel.org/all/20251220-dev-module-init-eexists-dm-devel-v1-1-90ed00444ea0@samsung.com
-> > 
-> > Please no, let us keep using -EEXIST in the kernel source, and if your
-> 
-> This is not just random places in the kernel. It's only errors in the module
-> initialization path.
+On Thu, 8 Jan 2026 at 12:35, Mauro Carvalho Chehab
+<mchehab+huawei@kernel.org> wrote:
+>
+> Rafael,
+>
+> Current parsing logic at apei/ghes for ARM Processor Error
+> assumes that the record sizes are correct. Yet, a bad BIOS
+> might produce malformed GHES reports.
+>
+> Worse than that, it may end exposing data from other memory
+> addresses, as the logic may end dumping large portions of
+> the memory.
+>
+> Avoid that by checking the buffer sizes where needed.
+>
+> ---
+>
+> v6:
+>  - No code changes, just a cosmetic change at patch 3 description
+>  - Added Jonathan's review on all patches
+>
+> v5:
+>  - Changed the name of a var as requested by Jonathan
+>
+> v4:
+>  - addressed Jonathan comments;
+>  - added two extra patches to prevent other OOM issues.
+>
+> v3:
+>   - addressed Shuai feedback;
+>   - moved all ghes code to one patch;
+>   - fixed a typo and a bad indent;
+>   - cleanup the size check logic at ghes.c.
+>
+> Mauro Carvalho Chehab (4):
+>   apei/ghes: ARM processor Error: don't go past allocated memory
+>   efi/cper: don't go past the ARM processor CPER record buffer
+>   apei/ghes: ensure that won't go past CPER allocated record
+>   efi/cper: don't dump the entire memory region
+>
 
-The "module initialization path" is deep.  really really deep.  Look at
-the "probe" path for many drivers, that can be quite intensive and deep,
-so attempting to audit all EEXIST errors for all of those paths is going
-to be rough, if impossible.
+I've skimmed over this and it all looks reasonable to me
 
-thanks,
+Acked-by: Ard Biesheuvel <ardb@kernel.org>
 
-greg k-h
+Thanks for cleaning this up.
