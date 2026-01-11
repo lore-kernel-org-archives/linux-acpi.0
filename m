@@ -1,140 +1,186 @@
-Received: from mail-dy1-f177.google.com (mail-dy1-f177.google.com [74.125.82.177])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from m.foxido.dev (m.foxido.dev [81.177.217.87])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F267E34CFB6
-	for <linux-acpi@vger.kernel.org>; Sun, 11 Jan 2026 17:57:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.177
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5528B34F486;
+	Sun, 11 Jan 2026 18:31:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=81.177.217.87
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768154260; cv=none; b=RSOd/yS1A2rntCX9J0tx/khbKz2Yc9ihUDvil7kNzpt7ofE6e6k8jCrFTk9UQBqtxJz/jQmlmOUW65bDPYiMmGI1GFHDMaJOAxii/ZEMp0A/43x77jYhUJUQ6SlrLe0gHTIZXlCpN/XovC/GIEU2oECV4zJ1yr7FDG3nDfJubMM=
+	t=1768156322; cv=none; b=igZMy/j224SLYZuZYAdQLVfXyMgkmpz1StKsuGtZbrPGEN1ea1NwVJRbiHNBVhHqk9B9FWQW836u/yZdvuUc4Kxi2TotElVOrJdAJF8QY92oJCIKwC55tdG96C/Utq0GmUmXyyT8rn22VfeLutIjtfihU2XAxQ1dTdYTKWgpfPg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768154260; c=relaxed/simple;
-	bh=fbJK7xOI/xq6Tar8qezI6hVv8dspBtPq2Jhl4huh3nY=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=jcbtxslvo3zoLZGEoVeBcp/TNd+TTts1MULo4jxJVwbXEdBiWoZ18ip3shPBHgocOUMcpbd87fDsCPxDWYzBocRpQAEZeDv3biwqWdjRN09C5tnqZzkM7S9Zy5Fx3a28h9ENsA96yuemmttzyIw6DsFM2Mk4ZbvUzZMRaxLNjr4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=mxuE3rHf; arc=none smtp.client-ip=74.125.82.177
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1768156322; c=relaxed/simple;
+	bh=bV4EWz/BTK+Xq0GJsnKA8hk4RPz8zyxpx91FWog7v0c=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=WBqwkLjdN3Ghta+P57F47cJ4GMVF8kFkRU8elU4er3qA13KNLVfdnet7dfF7+ED++bw9EaVS3BRuACPLa+DxGz1tOIUH0aZc5ZU5sN6JkDAlOxJ7rR+uDKb65qEflT2qyKEbyWSEuKH1vsNwIc6qtKZ03R+nAOAfDsPWmRmNkl8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=foxido.dev; spf=pass smtp.mailfrom=foxido.dev; dkim=pass (2048-bit key) header.d=foxido.dev header.i=@foxido.dev header.b=TLqQOnHP; dkim=permerror (0-bit key) header.d=foxido.dev header.i=@foxido.dev header.b=Ws2sGOfg; arc=none smtp.client-ip=81.177.217.87
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=foxido.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=foxido.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mxuE3rHf"
-Received: by mail-dy1-f177.google.com with SMTP id 5a478bee46e88-2b1769fda0eso141117eec.3
-        for <linux-acpi@vger.kernel.org>; Sun, 11 Jan 2026 09:57:38 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1768154258; x=1768759058; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=fbJK7xOI/xq6Tar8qezI6hVv8dspBtPq2Jhl4huh3nY=;
-        b=mxuE3rHf/Gdpqbss+uKujK4jg/ftTr7Aw1KdFKgW5ryvOT9GdvcAR5rqHFoIt43CtJ
-         QZe23wYie35xSFIXf/ds91Fn0KUyOiIwMALy+Ifpgu1k7QTz3yGgpYbf+vqZJzlpk1TJ
-         e/lp1LWqtmnxMfGH0VHJLea6Ou230ZRKqlZwM7si+ltca/1TwgPJpZvoupYycrkDm3XH
-         XmpIqD4rRe7AFTm7khy48+Sl9PHaUQF4/Sxzj8JJX+qhQNozDttPbJ+r2c+I3FG/YWuM
-         jQKaPM/iXzh0ZbQt6kA/czIwi/y0OREq91O2rbjloGOg+o0arJo5F2Y03u2gP6yac6uv
-         5y8A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1768154258; x=1768759058;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=fbJK7xOI/xq6Tar8qezI6hVv8dspBtPq2Jhl4huh3nY=;
-        b=Z+Wh552XSSm4fiO8vSYs/8OCOlXYD/SKWFA6/89gluafcpkZDG+mzE7ArjRZ/w7SM+
-         voYQp01zuRkFjDlaIztzMCepjo0jT8sxiG+Ur3T1JIblFYx8eqDR9gNjL8gU77WqVfgo
-         oSQdTcGBvjQUPFXVT8enZK8vLbSYHZnBljsaU5n3GJ/gCNBr8XVyqN2LslxOYa7HaGp9
-         grF6rd27p+Fs51BwWHFJ+fvfL102QfYoHuWfR4VgTLtkE+uddQDeC6L95cnagEc3lOXP
-         39pcT9xIx1AoibwGpn8Si+5Qyos40ofjW7Y1lewj/KsKOsOchIvopA93L47tZ/aaEqtk
-         mvJw==
-X-Forwarded-Encrypted: i=1; AJvYcCWxv/MvA4Ypg4Ye+3KAHLZ4S8H8tHHsBI9jnDtvcjyNfVzCrE3AUvQ9nCuLvh9QFZQoKuj2wfkE7wRm@vger.kernel.org
-X-Gm-Message-State: AOJu0YyKWgQe9jp9FqmtszByHj6HtyCKPIYSJQhZoVPscySN7RqqQOFy
-	kovNv5/IcTzWXRalWVxmUPehrxv4Ddudvv4WXZ2B7jcAzpY3mjfZ8EFBLP9bnfNEo6sRAZuXn3X
-	VZG+HsbrDphuIEFR58lP/7OHTUp4MvU8=
-X-Gm-Gg: AY/fxX44Dfc0V6LNah9iyEE3LtO8LyMYMlH5KCODsRW2CbgXnADOS0huWTEm4eomv8y
-	Al1yzeBaQumFT5EBdqk5MrcRKmaGAjWLvMZ7AomVdov9VWSQNJw6sYHfwdhyTlkZk5SMw9Pa44J
-	lGWa2qdGA8xU0E32HvRR6Dim2XXDxmAfO4Mtgg57aBYqoAWqS4Uxv0znwWG8M2TRvfIdx5V/1It
-	M/I2hGaChqAozw3L0dDLWr6LXrP7DC8FFXGU8pMktbi9V4XzmzzjlMww9A+SCwAO0yyshdbfStW
-	FYeO5DaZH4LYSVaXCMAhBJGfmAw2MQkiabDcRb4g4MhVyPrefUYSM6Qxeaqk0JbY5xr98MzFlUc
-	2kXTn2wSK9UJP
-X-Google-Smtp-Source: AGHT+IHsUNDTkZWXPnDKsokQQfGSgLB5pLSBd31BRF2afyEHDMLGxpLMw7U1an74C6nf4v5M3uxlrayIC4FhizbbcvI=
-X-Received: by 2002:a05:7301:fa0f:b0:2a4:3592:cf8b with SMTP id
- 5a478bee46e88-2b17d23fd01mr8560661eec.2.1768154257822; Sun, 11 Jan 2026
- 09:57:37 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=foxido.dev header.i=@foxido.dev header.b="TLqQOnHP";
+	dkim=permerror (0-bit key) header.d=foxido.dev header.i=@foxido.dev header.b="Ws2sGOfg"
+DKIM-Signature: v=1; a=rsa-sha256; s=202508r; d=foxido.dev; c=relaxed/relaxed;
+	h=Message-ID:Date:Subject:To:From; t=1768156306; bh=Xf4l59yTGNgTpiVOoO0eqv6
+	lrW07UkUBCfzLt473RJc=; b=TLqQOnHPpgfksRyq6fV8azxq+Oy9ChJMM6u8nbBjgkZagorXmb
+	uCvmBdWLNPfOaRPgsAu9ZwjuI8e7XMFFH+AkFwU5sFGWw/06q/ArXGvfKtAHfJpspaozYzuYL1G
+	2a+sQnhZYKzw7fceP9dtykVi5gtXW7DfpSMr3Hbaux3QA7xh+RGgZ0u3skzUq+KF5CpjT0hgx09
+	HR/xQttrul6toSNbkGT0J51dNsynS5R8Z3RK7pUU/KVcfLC6vfnBhRptCy642XdueMn1kHmtGBK
+	h5mPfNCTkgm/3xp3TrVJXD3kmRslPtrL+tRM7Qmf9kTorsDqjAVcihhH5DKX2FvjnCA==;
+DKIM-Signature: v=1; a=ed25519-sha256; s=202508e; d=foxido.dev; c=relaxed/relaxed;
+	h=Message-ID:Date:Subject:To:From; t=1768156306; bh=Xf4l59yTGNgTpiVOoO0eqv6
+	lrW07UkUBCfzLt473RJc=; b=Ws2sGOfgJNNoSD2DwsIKX2saC+h+mXtm8t5lgE1vOKIp+i52jz
+	UNLBRTQs3ZLBKculqX4XX/j3Lpic1emjjxCQ==;
+From: Gladyshev Ilya <foxido@foxido.dev>
+To: foxido@foxido.dev
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>,
+	Miguel Ojeda <ojeda@kernel.org>,
+	Boqun Feng <boqun.feng@gmail.com>,
+	Gary Guo <gary@garyguo.net>,
+	Benno Lossin <lossin@kernel.org>,
+	Andreas Hindborg <a.hindborg@kernel.org>,
+	Alice Ryhl <aliceryhl@google.com>,
+	Trevor Gross <tmgross@umich.edu>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Tamir Duberstein <tamird@gmail.com>,
+	Armin Wolf <W_Armin@gmx.de>,
+	platform-driver-x86@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	rust-for-linux@vger.kernel.org,
+	linux-acpi@vger.kernel.org
+Subject: [PATCH v2 1/2] rust: implement wrapper for acpi_object
+Date: Sun, 11 Jan 2026 21:31:25 +0300
+Message-ID: <a4bf01ed94406605e12df6b6d1676ea0bd6cd17e.1768153572.git.foxido@foxido.dev>
+X-Mailer: git-send-email 2.52.0
+In-Reply-To: <cover.1768153572.git.foxido@foxido.dev>
+References: <cover.1768153572.git.foxido@foxido.dev>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <cover.1767818037.git.foxido@foxido.dev> <05261e88ac8503e2af59d703389d94cc15f4450d.1767818037.git.foxido@foxido.dev>
- <20260108132141.6cce4827.gary@garyguo.net> <7b8130de-8096-4fcb-be84-c13209638b25@foxido.dev>
- <CANiq72=TAXwjjxFiKiiwh9m_rRK_yUVS4b+2st=QJWErz5qTpQ@mail.gmail.com> <b8e2c3ed-7db1-48ca-8dc8-64dfa437c595@foxido.dev>
-In-Reply-To: <b8e2c3ed-7db1-48ca-8dc8-64dfa437c595@foxido.dev>
-From: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
-Date: Sun, 11 Jan 2026 18:57:24 +0100
-X-Gm-Features: AZwV_QjkEeEeUhKFkM_68O4DnxLwqPiN_AxlqeD2e8VEqMZVrLimsVfRWFtZI4Q
-Message-ID: <CANiq72n27gF0e3r_pZ_6ZD7EBhwCLghFkQtLwfApEGCQo6gcnQ@mail.gmail.com>
-Subject: Re: [PATCH 2/3] rust: implement wrapper for acpi_object
-To: Gladyshev Ilya <foxido@foxido.dev>
-Cc: Gary Guo <gary@garyguo.net>, "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
-	Miguel Ojeda <ojeda@kernel.org>, Boqun Feng <boqun.feng@gmail.com>, 
-	Benno Lossin <lossin@kernel.org>, Andreas Hindborg <a.hindborg@kernel.org>, 
-	Alice Ryhl <aliceryhl@google.com>, Trevor Gross <tmgross@umich.edu>, 
-	Danilo Krummrich <dakr@kernel.org>, Tamir Duberstein <tamird@gmail.com>, Armin Wolf <W_Armin@gmx.de>, 
-	platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	rust-for-linux@vger.kernel.org, linux-acpi@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Fri, Jan 9, 2026 at 11:57=E2=80=AFAM Gladyshev Ilya <foxido@foxido.dev> =
-wrote:
->
-> If I understand correctly, acpi_object is something untrusted in general
-> and broken hardware can provide arbitrary _type value. So ergonomics of
-> enum solution would be kinda strange:
->
-> ```
-> type_id() -> Result<Enum> // Result because it can be invalid
->
-> // ...
->
-> // '?' here makes it look like non-trivial operation
-> if x.type_id()? =3D=3D Enum::Buffer
-> ```
+ACPI Object is represented via union on C-side. On Rust side, this union
+is transparently wrapped for each ACPI Type, with individual methods and
+Defer implementation to represented type (integer, string, buffer, etc).
 
-Yeah, I was mentioning the `bindgen` bit because returning
-`Result<Enum>` is essentially what we asked for the generated code,
-i.e. we generate a panicking `From` impl, a fallible `TryFrom` impl
-and an unsafe conversion method too.
+Signed-off-by: Gladyshev Ilya <foxido@foxido.dev>
+---
+ rust/kernel/acpi.rs | 97 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 97 insertions(+)
 
-Whether that may add overhead or not, it depends, of course. Sometimes
-the result (i.e. the enum) may need to be used later on in several
-places, and knowing statically that the value is in-bounds means there
-is no need to recheck anymore for that reason.
+diff --git a/rust/kernel/acpi.rs b/rust/kernel/acpi.rs
+index 9b8efa623130..c730c12d3979 100644
+--- a/rust/kernel/acpi.rs
++++ b/rust/kernel/acpi.rs
+@@ -2,6 +2,11 @@
+ 
+ //! Advanced Configuration and Power Interface abstractions.
+ 
++use core::{
++    marker::PhantomData,
++    ops::Deref, //
++};
++
+ use crate::{
+     bindings,
+     device_id::{RawDeviceId, RawDeviceIdIndex},
+@@ -63,3 +68,95 @@ macro_rules! acpi_device_table {
+         $crate::module_device_table!("acpi", $module_table_name, $table_name);
+     };
+ }
++
++/// An ACPI object.
++///
++/// This structure represents the Rust abstraction for a C [`struct acpi_object`].
++/// You probably want to convert it into actual object type (e.g [`AcpiBuffer`]).
++///
++/// # Example
++/// ```
++/// # use kernel::prelude::*;
++/// use kernel::acpi::{AcpiObject, AcpiBuffer};
++///
++/// fn read_first_acpi_byte(obj: &AcpiObject) -> Result<u8> {
++///     let buf: &AcpiBuffer = obj.try_into()?;
++///
++///     Ok(buf[0])
++/// }
++/// ```
++///
++/// [`struct acpi_object`]: srctree/include/acpi/actypes.h
++#[repr(transparent)]
++pub struct AcpiObject<'a> {
++    inner: bindings::acpi_object,
++    _p: PhantomData<&'a bindings::acpi_object>,
++}
++
++impl AcpiObject<'_> {
++    /// Returns object type id (see [`actypes.h`](srctree/include/acpi/actypes.h)).
++    pub fn type_id(&self) -> u32 {
++        // SAFETY: `type` field is valid in all union variants.
++        unsafe { self.inner.type_ }
++    }
++}
++
++/// Generate wrapper type for AcpiObject subtype.
++///
++/// For given subtype implements
++/// - `#[repr(transparent)]` type wrapper,
++/// - `TryFrom<&AcpiObject> for &SubType` trait,
++/// - unsafe from_unchecked() for 'trusted' conversion.
++macro_rules! acpi_object_subtype {
++    ($subtype_name:ident <- ($acpi_type:ident, $field_name:ident, $union_type:ty)) => {
++        /// Wraps `acpi_object` subtype.
++        #[repr(transparent)]
++        pub struct $subtype_name($union_type);
++
++        impl<'a> TryFrom<&'a AcpiObject<'a>> for &'a $subtype_name {
++            type Error = Error;
++
++            fn try_from(value: &'a AcpiObject<'a>) -> core::result::Result<Self, Self::Error> {
++                if (value.type_id() != $subtype_name::ACPI_TYPE) {
++                    return Err(EINVAL);
++                }
++
++                // SAFETY: Requested cast is valid because we validated type_id
++                Ok(unsafe { $subtype_name::from_unchecked(&value) })
++            }
++        }
++
++        impl $subtype_name {
++            /// Int value, representing this ACPI type (see [`acpitypes.h`]).
++            ///
++            /// [`acpitypes.h`]: srctree/include/linux/acpitypes.h
++            pub const ACPI_TYPE: u32 = bindings::$acpi_type;
++
++            /// Converts opaque AcpiObject reference into exact ACPI type reference.
++            ///
++            /// # Safety
++            ///
++            /// - Requested cast should be valid (value.type_id() is `Self::ACPI_TYPE`).
++            pub unsafe fn from_unchecked<'a>(value: &'a AcpiObject<'a>) -> &'a Self {
++                // SAFETY:
++                // - $field_name is currently active union's field due to external safety contract,
++                // - Transmuting to `repr(transparent)` wrapper is safe.
++                unsafe {
++                    ::core::mem::transmute::<&$union_type, &$subtype_name>(&value.inner.$field_name)
++                }
++            }
++        }
++    };
++}
++
++acpi_object_subtype!(AcpiBuffer
++    <- (ACPI_TYPE_BUFFER, buffer, bindings::acpi_object__bindgen_ty_3));
++
++impl Deref for AcpiBuffer {
++    type Target = [u8];
++
++    fn deref(&self) -> &Self::Target {
++        // SAFETY: (pointer, length) indeed represents byte slice.
++        unsafe { ::core::slice::from_raw_parts(self.0.pointer, self.0.length as usize) }
++    }
++}
+-- 
+2.52.0
 
-That can actually mean reducing overhead (e.g. if checks exist in
-several APIs, possibly defensively) or at least reduce the mistakes
-that may be made tracking whether the value is valid or not.
-
-But, of course, if the value is not used for anything on the Rust
-side, and is just passed along, and the consumer of the value in the C
-side do not have UB if it is out of range, and you generally don't
-expect that to change, then checking validity upfront may indeed not
-add much value like you say. From what you say (I don't know), it
-seems that is the case and thus a newtype may be simpler and best.
-
-But if those conditions change, e.g. you later start to want to
-manipulate the value on the Rust side for any reason, then it will
-likely be a different story. In such a case, then we shouldn't be
-scared of the ergonomics of conversions, i.e. it is fine and expected
-to have to do that, which is why we want to generate all that
-boilerplate in `bindgen` eventually.
-
-Or perhaps you may need both options, i.e. the newtype, and the other
-one, depending on what you are doing with the value.
-
-Regarding `ACPI_TYPE_INVALID`, yeah, it would depend on what is used
-for. If nobody should be calling a given API with such a value, then
-that API should return `Err`. But if it gets used as a useful marker
-value somewhere, then it may need to be a valid value and thus return
-`Ok`. If both cases are true, then perhaps again two ways may be
-needed to model those.
-
-Cheers,
-Miguel
