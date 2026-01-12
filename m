@@ -1,123 +1,151 @@
-Received: from mail.alien8.de (mail.alien8.de [65.109.113.108])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37C1620010C;
-	Mon, 12 Jan 2026 15:06:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=65.109.113.108
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 342A6306B12;
+	Mon, 12 Jan 2026 16:28:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768230405; cv=none; b=hp8oAlYUhjmunWXUfbGGiNwv9OPv8KQqP4iRI1K40RqLdVqt8FiQQ/qrSwkA7BXC+0fdjP9Q0eeLFs74+NIJX0ldSt2WlMgAr/KPVRgkTX50gTU07LFRFZ99H9FR+G/9jV1RsZVOKxaKYiYpVRSgW0WhyJcwGqbcZeCczJGdd+E=
+	t=1768235313; cv=none; b=F8hVcokTJEAUK/f6jIHpq/Arsz6SEON0car4aAZ1N88GOsieVUGsyOcWoDeTMkBvGekAd3uIwqwYVOpj/YCAKzZ6cIF/uzBb4Rs7IuzWs4fMmJY1FUfBI3aL6PHsemLCCnhAnJb0gcQCbpV/LwNSeYojAON+6jY9exX+mHqAP3U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768230405; c=relaxed/simple;
-	bh=6ikETmnXVhfDfBU5WDpUDeodKoDandB1zGwKZAPM5/8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=C/nMCNqFqAmjiJaKTyYvKKJW++6FkNVqnOKvWuDQRuVUKqf9W/h3B7sKAeCgqKBJqPrjhk3KlFGSmdnIcDWP+p7+BHV6QtoSaLRAEOdCuTQihZHOS5FBeKprC9Q0nGowF+++teFXZnGjIhYug58eunM1knlPQHDIPl0qhxxd3eU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de; spf=pass smtp.mailfrom=alien8.de; dkim=pass (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b=NedIBfr5; arc=none smtp.client-ip=65.109.113.108
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=alien8.de
+	s=arc-20240116; t=1768235313; c=relaxed/simple;
+	bh=GlJ71tujJcltgFnDfKrfK0RHu+muqUMEqgwXCraygEc=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=WPe0jGXBjEqXepV8yV59nLelKQPqUA97ya2SQ+hSXPF1Q1UvX03M3LFvd51SrZzII4C/pglEmjV7fJkQTBTIdIHTdQcXYRPOHh+GMmdH8HWe2ZbHH7HHjAs1T/7Wv2uXk5pSXv1O2YlqstUajXP/VVPjRTKN2nOOnmy7JZw/rwg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PaUH/J9R; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b="NedIBfr5"
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with ESMTP id 4357840E01BB;
-	Mon, 12 Jan 2026 15:06:40 +0000 (UTC)
-X-Virus-Scanned: Debian amavisd-new at mail.alien8.de
-Authentication-Results: mail.alien8.de (amavisd-new); dkim=pass (4096-bit key)
-	header.d=alien8.de
-Received: from mail.alien8.de ([127.0.0.1])
-	by localhost (mail.alien8.de [127.0.0.1]) (amavisd-new, port 10026)
-	with ESMTP id yTa45AN18amQ; Mon, 12 Jan 2026 15:06:36 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=alien8;
-	t=1768230395; bh=YaxxTxdQgjkNPEauwlTyuzVixI2qIhO1JHV0bjc5j1Y=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=NedIBfr5xF/e/gTC09SP7G4e+R/fuASPskksbdhVSkWH9heL3VoDABQGgFyLfp19F
-	 wuCmqy2pL8yzxhKATai16K/86vJ1+LwmWz7FDyDZ3bW9B/w27BMmNvmbMj0D6Vm7cD
-	 ppKQLwTAX5aNROUqSxce9hwQPvlxbd8u+Z+IxkPOU4G3Xxg0pByMBR0j8eInXYl+aA
-	 pkNs97VwDtV65e+V1dgXpP96oxGgy5fZXDr+MemLkg0vRaPPXKGmUu2JpR1DENCxsc
-	 dSSoEenJuTqHVhJ608iZYsNqy24PxP2lpX1J55Z4AJOiN7SlLssPxYPVci36W8DscK
-	 9dEgevp8r8cXA51vgWNs/x2gETRmiL0SSNZUXt9LtLpvt382doyWGD+dcR3QL8Tgtk
-	 YVBBROcEyBWE+FkJH7rvz24B2MoQF6FcenuUClpwWLrAZ4GZnb94yUn5GGRMfH5CMr
-	 MYOr7DKnsQbsHBEEhn1YbH1a/Q/TNVbYWzC9KLcAbYGoCsfUbCuJjIvwbJkKMos5Ct
-	 xVighy+lOCy13YSoRERVOUBegzr7VXEQ3GEBcB3UKfjaz+dl7Qvr9Yaj/WkpO/xm8w
-	 8w5D0qdBsGwlRGesnnamyrp3RFV8pWcA/KM0coj4yKaGxMlXgkxmuKT/og/AKVUhaC
-	 bLERDi05T9nRIuVUc7zx7LEQ=
-Received: from zn.tnic (pd953023b.dip0.t-ipconnect.de [217.83.2.59])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (P-256) server-signature ECDSA (P-256) server-digest SHA256)
-	(No client certificate requested)
-	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with UTF8SMTPSA id 16ED240E00DE;
-	Mon, 12 Jan 2026 15:05:59 +0000 (UTC)
-Date: Mon, 12 Jan 2026 16:05:52 +0100
-From: Borislav Petkov <bp@alien8.de>
-To: shiju.jose@huawei.com
-Cc: rafael@kernel.org, akpm@linux-foundation.org, rppt@kernel.org,
-	dferguson@amperecomputing.com, linux-edac@vger.kernel.org,
-	linux-acpi@vger.kernel.org, linux-mm@kvack.org,
-	linux-doc@vger.kernel.org, tony.luck@intel.com, lenb@kernel.org,
-	leo.duran@amd.com, Yazen.Ghannam@amd.com, mchehab@kernel.org,
-	jonathan.cameron@huawei.com, linuxarm@huawei.com,
-	rientjes@google.com, jiaqiyan@google.com, Jon.Grimm@amd.com,
-	dave.hansen@linux.intel.com, naoya.horiguchi@nec.com,
-	james.morse@arm.com, jthoughton@google.com, somasundaram.a@hpe.com,
-	erdemaktas@google.com, pgonda@google.com, duenwen@google.com,
-	gthelen@google.com, wschwartz@amperecomputing.com,
-	wbs@os.amperecomputing.com, nifan.cxl@gmail.com,
-	tanxiaofei@huawei.com, prime.zeng@hisilicon.com,
-	roberto.sassu@huawei.com, kangkang.shen@futurewei.com,
-	wanghuiqiang@huawei.com
-Subject: Re: [PATCH v14 1/2] ACPI:RAS2: Add driver for the ACPI RAS2 feature
- table
-Message-ID: <20260112150552.GGaWUN0Ex8KgfqEEi5@fat_crate.local>
-References: <20251209145742.297-1-shiju.jose@huawei.com>
- <20251209145742.297-2-shiju.jose@huawei.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PaUH/J9R"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 07FE9C16AAE;
+	Mon, 12 Jan 2026 16:28:33 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1768235313;
+	bh=GlJ71tujJcltgFnDfKrfK0RHu+muqUMEqgwXCraygEc=;
+	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
+	b=PaUH/J9RPZmbIvHp2Fn+kT5AYtWmn23AwVRzXo0vhaxyzQifOAi0+znz4sLkMxQBa
+	 J6Pwj+gwDTJM5TxkiOEdSus301MZUeGZrvvS/joQgoGBPtPGmOBxTrGyspe+UCXmKf
+	 yXmFHxTXh1dRZWSfBcSvHeDvRkaewgB1o9hWxuI7SJTFfMkj2Mv87QBVPAKgosUJGR
+	 wVt2XxGpd/twxXNR51uvuqK9/kUYRwVlocXpd7IAtq1/t0BkJI0K/GdzBf8l5b0oRE
+	 fBLp1A9+rjuVWxEsbB7mi3G8yXVMLDXO3ah01prMR0DpYlJA1BTFQZq9UR7XwBFesV
+	 nirHgWt74kmgA==
+Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3306D25041;
+	Mon, 12 Jan 2026 16:28:32 +0000 (UTC)
+From: Manivannan Sadhasivam via B4 Relay <devnull+manivannan.sadhasivam.oss.qualcomm.com@kernel.org>
+Date: Mon, 12 Jan 2026 21:56:00 +0530
+Subject: [PATCH v4 1/9] serdev: Convert to_serdev_*() helpers to macros and
+ use container_of_const()
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20251209145742.297-2-shiju.jose@huawei.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Message-Id: <20260112-pci-m2-e-v4-1-eff84d2c6d26@oss.qualcomm.com>
+References: <20260112-pci-m2-e-v4-0-eff84d2c6d26@oss.qualcomm.com>
+In-Reply-To: <20260112-pci-m2-e-v4-0-eff84d2c6d26@oss.qualcomm.com>
+To: Rob Herring <robh@kernel.org>, 
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+ Jiri Slaby <jirislaby@kernel.org>, Nathan Chancellor <nathan@kernel.org>, 
+ Nicolas Schier <nicolas.schier@linux.dev>, Hans de Goede <hansg@kernel.org>, 
+ =?utf-8?q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, 
+ Mark Pearson <mpearson-lenovo@squebb.ca>, 
+ "Derek J. Clark" <derekjohn.clark@gmail.com>, 
+ Manivannan Sadhasivam <mani@kernel.org>, 
+ Krzysztof Kozlowski <krzk+dt@kernel.org>, 
+ Conor Dooley <conor+dt@kernel.org>, Marcel Holtmann <marcel@holtmann.org>, 
+ Luiz Augusto von Dentz <luiz.dentz@gmail.com>, 
+ Bartosz Golaszewski <brgl@bgdev.pl>, 
+ Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
+ Bartosz Golaszewski <brgl@kernel.org>
+Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ linux-kbuild@vger.kernel.org, platform-driver-x86@vger.kernel.org, 
+ linux-pci@vger.kernel.org, devicetree@vger.kernel.org, 
+ linux-arm-msm@vger.kernel.org, linux-bluetooth@vger.kernel.org, 
+ linux-pm@vger.kernel.org, Stephan Gerhold <stephan.gerhold@linaro.org>, 
+ Dmitry Baryshkov <dmitry.baryshkov@oss.qualcomm.com>, 
+ linux-acpi@vger.kernel.org, 
+ Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>, 
+ Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+X-Mailer: b4 0.14.3
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2192;
+ i=manivannan.sadhasivam@oss.qualcomm.com; h=from:subject:message-id;
+ bh=07vK9ciXXRPSn3N/nNhnkZAEN4PO5YKuZEczKGyjzQ4=;
+ b=owEBbQGS/pANAwAKAVWfEeb+kc71AcsmYgBpZSEtLU1+T/SQ8muTj88PMLYAc1JIDUMVESqYm
+ PJvutm3t5WJATMEAAEKAB0WIQRnpUMqgUjL2KRYJ5dVnxHm/pHO9QUCaWUhLQAKCRBVnxHm/pHO
+ 9ZvgCACOa5aYDJDQeVpU6yq+fCGtKV9Xz1BGEatNRuENRILo7sSUAPtGbyGfxzQ/0vcy4Gb+3tW
+ jcnVrjZLjEZ+dCXlNXAFyy6VwIckMC8ZO8GOlS67JL5iOmWHfQ/aFzmBY9Uz79eiPwI6BCQTliK
+ 1hhKWLBCLzlvHxyooeqQs1gksE36iewETbO1uczvYdH5m2JtG9K6jY89FC7YE756kTcdmskU6B4
+ CKcv2Zojofh08iFJ1rz0zid+PoQTNbqCffd6F7xPEkCRAl31mzXhHRzRKNItT5fgOdkhPKgCVC7
+ YRafq06sSCerUESzjyX7I3cqm12BXILp3NiBAcA8WQ3w/Pxo
+X-Developer-Key: i=manivannan.sadhasivam@oss.qualcomm.com; a=openpgp;
+ fpr=C668AEC3C3188E4C611465E7488550E901166008
+X-Endpoint-Received: by B4 Relay for
+ manivannan.sadhasivam@oss.qualcomm.com/default with auth_id=461
+X-Original-From: Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>
+Reply-To: manivannan.sadhasivam@oss.qualcomm.com
 
-On Tue, Dec 09, 2025 at 02:57:40PM +0000, shiju.jose@huawei.com wrote:
-> From: Shiju Jose <shiju.jose@huawei.com>
-> 
-> ACPI 6.5 Specification, section 5.2.21, defined RAS2 feature table (RAS2).
-> Driver adds support for RAS2 feature table, which provides interfaces for
-> platform RAS features, e.g., for HW-based memory scrubbing, and logical to
-> PA translation service. RAS2 uses PCC channel subspace for communicating
-> with the ACPI compliant HW platform.
-> 
-> Co-developed-by: A Somasundaram <somasundaram.a@hpe.com>
-> Signed-off-by: A Somasundaram <somasundaram.a@hpe.com>
-> Co-developed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-> Signed-off-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-> Tested-by: Daniel Ferguson <danielf@os.amperecomputing.com>
-> Signed-off-by: Shiju Jose <shiju.jose@huawei.com>
-> ---
->  drivers/acpi/Kconfig  |  10 ++
->  drivers/acpi/Makefile |   1 +
->  drivers/acpi/bus.c    |   3 +
->  drivers/acpi/ras2.c   | 409 ++++++++++++++++++++++++++++++++++++++++++
->  include/acpi/ras2.h   |  57 ++++++
->  5 files changed, 480 insertions(+)
->  create mode 100644 drivers/acpi/ras2.c
->  create mode 100644 include/acpi/ras2.h
+From: Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>
 
-Please go over all my review comments from here:
+If these helpers receive the 'const struct device' pointer, then the const
+qualifier will get dropped, leading to below warning:
 
-https://lore.kernel.org/r/20251125073627.GLaSVce7hBqGH1a3ni@fat_crate.local
+ warning: passing argument 1 of ‘to_serdev_device_driver’ discards 'const'
+ qualifier from pointer target type [-Wdiscarded-qualifiers]
 
-and either incorporate them or say why you don't agree.
+This is not an issue as of now, but with the future commits adding serdev
+device based driver matching, this warning will get triggered. Hence,
+convert these helpers to macros so that the qualifier get preserved and
+also use container_of_const() as container_of() is deprecated.
 
-Ignoring them is NOT something you should do because this goes both ways.
+Reviewed-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+Signed-off-by: Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>
+---
+ include/linux/serdev.h | 15 +++------------
+ 1 file changed, 3 insertions(+), 12 deletions(-)
 
-Ignoring this submission now.
-
-Thx.
+diff --git a/include/linux/serdev.h b/include/linux/serdev.h
+index 34562eb99931..ecde0ad3e248 100644
+--- a/include/linux/serdev.h
++++ b/include/linux/serdev.h
+@@ -49,10 +49,7 @@ struct serdev_device {
+ 	struct mutex write_lock;
+ };
+ 
+-static inline struct serdev_device *to_serdev_device(struct device *d)
+-{
+-	return container_of(d, struct serdev_device, dev);
+-}
++#define to_serdev_device(d) container_of_const(d, struct serdev_device, dev)
+ 
+ /**
+  * struct serdev_device_driver - serdev slave device driver
+@@ -67,10 +64,7 @@ struct serdev_device_driver {
+ 	void	(*remove)(struct serdev_device *);
+ };
+ 
+-static inline struct serdev_device_driver *to_serdev_device_driver(struct device_driver *d)
+-{
+-	return container_of(d, struct serdev_device_driver, driver);
+-}
++#define to_serdev_device_driver(d) container_of_const(d, struct serdev_device_driver, driver)
+ 
+ enum serdev_parity {
+ 	SERDEV_PARITY_NONE,
+@@ -111,10 +105,7 @@ struct serdev_controller {
+ 	const struct serdev_controller_ops *ops;
+ };
+ 
+-static inline struct serdev_controller *to_serdev_controller(struct device *d)
+-{
+-	return container_of(d, struct serdev_controller, dev);
+-}
++#define to_serdev_controller(d) container_of_const(d, struct serdev_controller, dev)
+ 
+ static inline void *serdev_device_get_drvdata(const struct serdev_device *serdev)
+ {
 
 -- 
-Regards/Gruss,
-    Boris.
+2.48.1
 
 
-https://people.kernel.org/tglx/notes-about-netiquette
