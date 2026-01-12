@@ -1,29 +1,28 @@
-Received: from out30-118.freemail.mail.aliyun.com (out30-118.freemail.mail.aliyun.com [115.124.30.118])
+Received: from out30-111.freemail.mail.aliyun.com (out30-111.freemail.mail.aliyun.com [115.124.30.111])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AE4B23BCEE;
-	Mon, 12 Jan 2026 03:23:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.118
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D52A630B533;
+	Mon, 12 Jan 2026 03:23:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.111
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768188190; cv=none; b=IMEKrBJQR/B3vjAvkZI9jORE5odKUjlUuUfYIguLCo/+TrTrJOVR1hh37NW7rUSpoT1UehdSNDJEtcMT+q4D7dBJ/iGj5kq0nXxVKslSWBN/lu9pedm3plprJJGktcOj/aqXgFEzX9Xn1e7W5W0JuWSldShYRDWnU7Jb5WjTA8E=
+	t=1768188190; cv=none; b=Q751sTOdPZkkL8zg9txaaNTYys7hMk3YM02k/X9Apeb6nGxglIIjy6tL4mry4XIqKU4CYuR69LajrgHdQl5ZRC2ZWAamq9j35nbZxGix9HnSESj81JrpDKh9efuJTowY4LXvSQSVaRAYDwfKuHIuUCB1JCMuYUHa9yFVcvVkPoE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1768188190; c=relaxed/simple;
-	bh=64dISNUVY5AP8WHKRJI69pS8A1/wPTnJm0IR14v3Y58=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=N1zIYoYaVavBsrPIfhDG/yTR08+YVHSM/ysDAV543dRyQdfLlADCoui85LTrBdtQtjr3sDn6DkUz5Zg+hr5yscCFDwtK/p7u/45EuFAVUd0lXdrSm2vgHqpEGyMPcIp357tmJaRS1SY3shMM+HAj9Xt/UYEP2/rLMW/4BzNJgxg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=uild/EbX; arc=none smtp.client-ip=115.124.30.118
+	bh=plRpsNWTo9A+H2k5qw6JdE0E1N2nBwjsVQD6EszROJw=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=GsH1EBDWpGoULcEUjfuTsTyWQPFPQ4guwwteaPjQxg1b2jHx9xA4cpElMGuNEbKmEfkKfslRF9kzflVB+CSzgmEUJeK0AO3LmpzQDwxH1SHnLMFA8QXSE3MO9Ztll9jj69FDV77ZhEFhMy708UrIiurCoBTPAN5TgOHgZbKEnTY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=eoyjeByx; arc=none smtp.client-ip=115.124.30.111
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="uild/EbX"
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="eoyjeByx"
 DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
 	d=linux.alibaba.com; s=default;
-	t=1768188185; h=From:To:Subject:Date:Message-Id:MIME-Version;
-	bh=YEWcD1FMFTtewMN40wiMkThOAR4BNo7qfiDreB/YjfU=;
-	b=uild/EbXWKMqwfW1D5rpvVSCloKGTGCSulWEEuLtxOlW3Cy0oDuL9QbWh1QHwJni21SVKb1rIzdxQcWEKGZr/C8/QwBpJuL6JSlxTii5YCp+yQz1Bh1+uWkbudz3G+cSxmqL3HMC0zZ2/11QtpNQcLF2dxgZBCHBMkRYrtwVQLU=
-Received: from localhost.localdomain(mailfrom:xueshuai@linux.alibaba.com fp:SMTPD_---0WwntGDq_1768188183 cluster:ay36)
+	t=1768188180; h=From:To:Subject:Date:Message-Id:MIME-Version;
+	bh=9JmuHLzsQWEipLbvxlenF82WTk6hUkcotvlLaNFMMow=;
+	b=eoyjeByxYPbgO1nu2wUefKdK5fPmuEFEjvpSt97vzeGhhibX9SbyOSU9SXu4wdrFEBIN3VXE4cq13DQD/BJapRFIHRS65NsjEEHSiQCX5GQXX/Eo8HQosW1vFKK6gZMdCA7hVqOZ/RI/bcTVfT1cZtIZygktjyBTvNbh6kT7CGo=
+Received: from localhost.localdomain(mailfrom:xueshuai@linux.alibaba.com fp:SMTPD_---0WwntFxH_1768188163 cluster:ay36)
           by smtp.aliyun-inc.com;
-          Mon, 12 Jan 2026 11:23:04 +0800
+          Mon, 12 Jan 2026 11:22:59 +0800
 From: Shuai Xue <xueshuai@linux.alibaba.com>
 To: tony.luck@intel.com,
 	guohanjun@huawei.com,
@@ -45,12 +44,10 @@ Cc: dave.jiang@intel.com,
 	linux-acpi@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	zhuo.song@linux.alibaba.com
-Subject: [PATCH v3 3/3] ACPI: APEI: GHES: Improve ghes_notify_sea() status check
-Date: Mon, 12 Jan 2026 11:22:39 +0800
-Message-Id: <20260112032239.30023-4-xueshuai@linux.alibaba.com>
+Subject: [PATCH v3 0/3] ACPI: APEI: GHES: Performance improvements for error notification handlers
+Date: Mon, 12 Jan 2026 11:22:36 +0800
+Message-Id: <20260112032239.30023-1-xueshuai@linux.alibaba.com>
 X-Mailer: git-send-email 2.39.5 (Apple Git-154)
-In-Reply-To: <20260112032239.30023-1-xueshuai@linux.alibaba.com>
-References: <20260112032239.30023-1-xueshuai@linux.alibaba.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -59,81 +56,59 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Performance testing on ARMv8 systems shows significant overhead in error
-status handling in SEA error handling.
+changes since v2:
+- Use `guard(rcu)()` instead of explicit `rcu_read_lock()`/`rcu_read_unlock()` per Donglin Peng
 
-- ghes_peek_estatus(): 8,138.3 ns (21,160 cycles).
-- ghes_clear_estatus(): 2,038.3 ns (5,300 cycles).
+changes since v1:
+- add Tested-by and Reviewed-by tags from Tony
+- change return value from AE_BAD_ADDRESS to -EINVAL ghes_map_error_status per Hanjun
+- remove unnecessary blank lines per Hanjun
 
-Apply the same optimization used in ghes_notify_nmi() to
-ghes_notify_sea() by checking for active errors before processing,
+This patch series improves the performance of GHES error notification handlers
+(NMI and SEA) by optimizing how they check for active error conditions.
 
-Tested-by: Tony Luck <tony.luck@intel.com>
-Reviewed-by: Tony Luck <tony.luck@intel.com>
-Signed-off-by: Shuai Xue <xueshuai@linux.alibaba.com>
----
- drivers/acpi/apei/ghes.c | 20 +++++++++++++++++---
- 1 file changed, 17 insertions(+), 3 deletions(-)
+Currently, both ghes_notify_nmi() and ghes_notify_sea() perform expensive
+operations on each invocation to determine if there are actual error records
+to process. This includes mapping/unmapping physical addresses and accessing
+hardware registers, which causes significant overhead especially on systems
+with many cores.
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index b2f06bb96450..8b85af6e2868 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -1483,6 +1483,9 @@ int ghes_notify_sea(void)
- 	static DEFINE_RAW_SPINLOCK(ghes_notify_lock_sea);
- 	int rv;
- 
-+	if (!ghes_has_active_errors(&ghes_sea))
-+		return -ENOENT;
-+
- 	raw_spin_lock(&ghes_notify_lock_sea);
- 	rv = ghes_in_nmi_spool_from_list(&ghes_sea, FIX_APEI_GHES_SEA);
- 	raw_spin_unlock(&ghes_notify_lock_sea);
-@@ -1490,11 +1493,19 @@ int ghes_notify_sea(void)
- 	return rv;
- }
- 
--static void ghes_sea_add(struct ghes *ghes)
-+static int ghes_sea_add(struct ghes *ghes)
- {
-+	int rc;
-+
-+	rc = ghes_map_error_status(ghes);
-+	if (rc)
-+		return rc;
-+
- 	mutex_lock(&ghes_list_mutex);
- 	list_add_rcu(&ghes->list, &ghes_sea);
- 	mutex_unlock(&ghes_list_mutex);
-+
-+	return 0;
- }
- 
- static void ghes_sea_remove(struct ghes *ghes)
-@@ -1502,10 +1513,11 @@ static void ghes_sea_remove(struct ghes *ghes)
- 	mutex_lock(&ghes_list_mutex);
- 	list_del_rcu(&ghes->list);
- 	mutex_unlock(&ghes_list_mutex);
-+	ghes_unmap_error_status(ghes);
- 	synchronize_rcu();
- }
- #else /* CONFIG_ACPI_APEI_SEA */
--static inline void ghes_sea_add(struct ghes *ghes) { }
-+static inline int ghes_sea_add(struct ghes *ghes) { return -EINVAL; }
- static inline void ghes_sea_remove(struct ghes *ghes) { }
- #endif /* CONFIG_ACPI_APEI_SEA */
- 
-@@ -1737,7 +1749,9 @@ static int ghes_probe(struct platform_device *ghes_dev)
- 		break;
- 
- 	case ACPI_HEST_NOTIFY_SEA:
--		ghes_sea_add(ghes);
-+		rc = ghes_sea_add(ghes);
-+		if (rc)
-+			goto err;
- 		break;
- 	case ACPI_HEST_NOTIFY_NMI:
- 		rc = ghes_nmi_add(ghes);
+The optimizations introduced in this series:
+1. Pre-map error status registers during initialization
+2. Directly check for active errors using mapped virtual addresses
+3. Extract common functionality into reusable helper functions
+4. Apply the same optimization to both NMI and SEA handlers
+
+These changes significantly reduce the overhead of error checking:
+- NMI handler: From ~15,000 TSC cycles to ~900 cycles
+- SEA handler: From 8,138.3 ns to a much faster check
+
+The initial idea for this optimization came from Tony Luck [1], who identified
+and implemented the approach for the NMI handler. This series extends the
+same concept to the SEA handler and refactors common code into shared helpers.
+
+Patch 1 (Tony Luck): Improves ghes_notify_nmi() status check by pre-mapping
+                     error status registers and avoiding repeated mappings.
+
+Patch 2 (Shuai Xue): Extracts common helper functions for error status handling
+                     to eliminate code duplication.
+
+Patch 3 (Shuai Xue): Applies the same optimization to ghes_notify_sea() to improve
+                     ARMv8 system performance.
+
+https://lore.kernel.org/lkml/20251103230547.8715-1-tony.luck@intel.com/
+
+Shuai Xue (2):
+  ACPI: APEI: GHES: Extract helper functions for error status handling
+  ACPI: APEI: GHES: Improve ghes_notify_sea() status check
+
+Tony Luck (1):
+  ACPI: APEI: GHES: Improve ghes_notify_nmi() status check
+
+ drivers/acpi/apei/ghes.c | 107 ++++++++++++++++++++++++++++++++++++---
+ include/acpi/ghes.h      |   1 +
+ 2 files changed, 102 insertions(+), 6 deletions(-)
+
 -- 
 2.39.3
 
