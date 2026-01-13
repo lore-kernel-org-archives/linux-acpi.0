@@ -1,69 +1,105 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mail.alien8.de (mail.alien8.de [65.109.113.108])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B70313806B8;
-	Tue, 13 Jan 2026 09:37:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EB9232E6BE;
+	Tue, 13 Jan 2026 09:42:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=65.109.113.108
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768297044; cv=none; b=D0aJLALJcP8DO/W243mAWTAcbUkRTuCogEmFeU1LtFbMiREQI47ArkXFTHgfERJ7D6ysTQ0Y7vC1KdsLDu8YReVKnWiTHjGTMqv4ZcAluc5CUehmBrTLLgWynHq4WSTOJBwkSfWXlj0r2ObcVZihia9+uaUZ8n9CLK/ozUBnr2U=
+	t=1768297364; cv=none; b=uBlqKawVmKjKJ9pWpRFzKHPEwbEvvZ6zG5PjjHl3ubg+y0oZgOtP0I0G8hhMcdkw3tWCVmtStv4Ih6DHtWgSMED3rJS9WHCdxPNNBBZjAn7LWN9dgDvcAsDNVMsS0ejeJ1KBIez056n2N4VN2bUhRJQs3lKNCJ5LUwKfQn7b8v4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768297044; c=relaxed/simple;
-	bh=MQpO1he/TA2OH7HM+Qp6ShsyJLTSwamdYNi4C0k7rmQ=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=D9xlp63w9sOSIXVGGmYguYOEBkzWlo6L4QzneHzphBlQowk7FTnWf5bq8qRYWmiQJb4ZbI18zy81FOWX2i4C1NZ4jdmgnrKknxBKqV7UMYl7oPD3VWhQlLY2jbfXyMrAENKLZYvtCQoCRTLIy5xnPLeocMJnvJzB9u2sAKKQ+io=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=oANqp7Gf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768297364; c=relaxed/simple;
+	bh=kXlHIa5MB7Z9vZDduzjFwJUxyOQuJOgWQIhFHUoTXX4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=nZZzZV1qRbdNQCKym4XVm0/m9z4HE8nvWyL3YdIc1RXjztBi11DtuTd9ecYqoKO2Jg/uf3lznC9bnMTzVUrh0Wyx3Y/b2aJCeWqv47CdPhZlWL7EXfxatMxSTBeixvKMt0dvP43XcYEIGAsdmJT6cTpvI9Ch2nypzjJ1W49Hvhk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de; spf=pass smtp.mailfrom=alien8.de; dkim=pass (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b=X+tPcfdi; arc=none smtp.client-ip=65.109.113.108
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=alien8.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="oANqp7Gf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 854ABC2BC86;
-	Tue, 13 Jan 2026 09:37:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1768297044;
-	bh=MQpO1he/TA2OH7HM+Qp6ShsyJLTSwamdYNi4C0k7rmQ=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
-	b=oANqp7GffSJApYVClv+vGIE3m7dVxTrPczfQFtJDDYC7lx2Y+9H0ZtJomWFkZo7qM
-	 4LKVu8r3th0VU6hTHMrYhLx4x64X9VSV6L5N3b3RFNUpmJG8zFZvQ4/K9MLcYUOtIP
-	 nAas/yVakBU4LcSlcxYHYOo0uv/tQssuFJK0EEiBsifHhQwisr+eEOYdBrZDtyBjLl
-	 sGefnbwi/9tpKzHaZylzmP3s3C8CbGCOIZW+Q8OG+LMpqbLUJVn/XOrMYnwCoKMluv
-	 1eX9d2PP3XQEkN1yTIUiajXuWETT+5uKrJ1Zk0YeXSotW83kzu8riuMoLpqhi3CS0j
-	 tFB7wndU8JvYg==
-From: Thomas Gleixner <tglx@kernel.org>
-To: Lorenzo Pieralisi <lpieralisi@kernel.org>, Jonathan Cameron
- <jonathan.cameron@huawei.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
- Robert Moore <robert.moore@intel.com>, Hanjun Guo <guohanjun@huawei.com>,
- Sudeep Holla <sudeep.holla@arm.com>, Marc Zyngier <maz@kernel.org>, Bjorn
- Helgaas <bhelgaas@google.com>, linux-acpi@vger.kernel.org,
- acpica-devel@lists.linux.dev, linux-kernel@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, linux-pci@vger.kernel.org
-Subject: Re: [PATCH v2 3/7] irqdomain: Add parent field to struct irqchip_fwid
-In-Reply-To: <aV6Yi+N+lCEekshX@lpieralisi>
-References: <20251218-gicv5-host-acpi-v2-0-eec76cd1d40b@kernel.org>
- <20251218-gicv5-host-acpi-v2-3-eec76cd1d40b@kernel.org>
- <20260105120108.00002016@huawei.com> <aV4gH/yHaOmOtK0J@lpieralisi>
- <20260107100452.00004b6f@huawei.com> <aV6Yi+N+lCEekshX@lpieralisi>
-Date: Tue, 13 Jan 2026 10:37:20 +0100
-Message-ID: <87sec9etv3.ffs@tglx>
+	dkim=pass (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b="X+tPcfdi"
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with ESMTP id 4492C40E0028;
+	Tue, 13 Jan 2026 09:42:37 +0000 (UTC)
+X-Virus-Scanned: Debian amavisd-new at mail.alien8.de
+Authentication-Results: mail.alien8.de (amavisd-new); dkim=pass (4096-bit key)
+	header.d=alien8.de
+Received: from mail.alien8.de ([127.0.0.1])
+	by localhost (mail.alien8.de [127.0.0.1]) (amavisd-new, port 10026)
+	with ESMTP id 1WBtjryyNfLT; Tue, 13 Jan 2026 09:42:32 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=alien8;
+	t=1768297352; bh=qXnkmMg2/oAZnCbNIiqow5nAIHLg3mz3Z2alr4+kgjQ=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=X+tPcfdi8SlgWzUBumbgcHC+XGGU/e/u6BRcvik/G6x+zRHm8kciPgsZ46Q9aBZn+
+	 7oI+BJNxA6Fr9vUVFtuho0N1WAQWsuebDB7c4QbdLh9mc9INqXv0zdXZv7LWBPTwZz
+	 KcdJKo5l79MO71Q+kktxdJgfmCpQ3+havlLC0/P9c9TP1mwjddKsHN0djndoezW5Q6
+	 q5VsNOHVaeIfN0C1sYhMG7XllJwXsN6BSiUTdhj/q0V56VNw+Du33ChbbmppKZBuFV
+	 DKKuSKTVPgPi+Yy/YiSXJR6Wpub+Tz0hGTLQriLmrlVcCffclU72MXGQ48x2xQeLWz
+	 UTcuZ06rr/dVIMKoWB7lLTJGpnjZMTegPIhhd34SkQ/+q71CshIjnXW2uEx/mIvwB9
+	 iOuQyEfpfLqrAX334JyfyzGsHicQ1tgLtKpatzU120rymSQibs5e2653+9FOh40Afa
+	 6r0lr0d5Zaf9sPBpHaV04Nmdzfqvs8MegB4D1ghPxCgwUWzADlz3f4q9fhE5zSHFy1
+	 gz92Rg9U32PtH5Zf6Kj3gwIwyRNSDRSyatkOURjAq8aTsy8rrgjuLpPpjVQFwKlKuB
+	 +UhG6Subb7EVbop17MXvFvtoqXGW+CKT0yCMaamnNmuEKqIhYCYhwIQFdI7SRtfiO+
+	 rcD4o1ZgfNE1SLPkP6lncAHs=
+Received: from zn.tnic (pd953023b.dip0.t-ipconnect.de [217.83.2.59])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (P-256) server-signature ECDSA (P-256) server-digest SHA256)
+	(No client certificate requested)
+	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with UTF8SMTPSA id 37DF140E0194;
+	Tue, 13 Jan 2026 09:41:56 +0000 (UTC)
+Date: Tue, 13 Jan 2026 10:41:49 +0100
+From: Borislav Petkov <bp@alien8.de>
+To: shiju.jose@huawei.com
+Cc: rafael@kernel.org, akpm@linux-foundation.org, rppt@kernel.org,
+	dferguson@amperecomputing.com, linux-edac@vger.kernel.org,
+	linux-acpi@vger.kernel.org, linux-mm@kvack.org,
+	linux-doc@vger.kernel.org, tony.luck@intel.com, lenb@kernel.org,
+	leo.duran@amd.com, Yazen.Ghannam@amd.com, mchehab@kernel.org,
+	jonathan.cameron@huawei.com, linuxarm@huawei.com,
+	rientjes@google.com, jiaqiyan@google.com, Jon.Grimm@amd.com,
+	dave.hansen@linux.intel.com, naoya.horiguchi@nec.com,
+	james.morse@arm.com, jthoughton@google.com, somasundaram.a@hpe.com,
+	erdemaktas@google.com, pgonda@google.com, duenwen@google.com,
+	gthelen@google.com, wschwartz@amperecomputing.com,
+	wbs@os.amperecomputing.com, nifan.cxl@gmail.com,
+	tanxiaofei@huawei.com, prime.zeng@hisilicon.com,
+	roberto.sassu@huawei.com, kangkang.shen@futurewei.com,
+	wanghuiqiang@huawei.com
+Subject: Re: [PATCH v14 1/2] ACPI:RAS2: Add driver for the ACPI RAS2 feature
+ table
+Message-ID: <20260113094149.GAaWYTXf6qH4zleOOQ@fat_crate.local>
+References: <20251209145742.297-1-shiju.jose@huawei.com>
+ <20251209145742.297-2-shiju.jose@huawei.com>
+ <20260112150552.GGaWUN0Ex8KgfqEEi5@fat_crate.local>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20260112150552.GGaWUN0Ex8KgfqEEi5@fat_crate.local>
 
-On Wed, Jan 07 2026 at 18:31, Lorenzo Pieralisi wrote:
-> On Wed, Jan 07, 2026 at 10:04:52AM +0000, Jonathan Cameron wrote:
->> Agreed. Let's see what Thomas prefers (i.e. make the decision his problem ;)
->
-> Thomas do you have any preference on the matter please ? It is not a big deal
-> either way I'd just like to respin promptly (provided the rest of the series
-> does not require further changes other than the ones Jon suggested and I
-> addressed) if possible please.
+On Mon, Jan 12, 2026 at 04:05:52PM +0100, Borislav Petkov wrote:
+> Please go over all my review comments from here:
+> 
+> https://lore.kernel.org/r/20251125073627.GLaSVce7hBqGH1a3ni@fat_crate.local
+> 
+> and either incorporate them or say why you don't agree.
+> 
+> Ignoring them is NOT something you should do because this goes both ways.
+> 
+> Ignoring this submission now.
 
-Hiding the NULL parameters in helpers is perfectly fine. I agree with
-Jonathan to make the name of the new helper more intuitive, but other
-than that this looks sane.
+I take that back - I forgot that there was an in-flight review when you sent
+your v14. Sorry.
 
-Thanks,
+So please incorporate *all* feedback and send a new version so that I can take
+a look.
 
-        tglx
+Thx.
+
+-- 
+Regards/Gruss,
+    Boris.
+
+https://people.kernel.org/tglx/notes-about-netiquette
