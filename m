@@ -1,127 +1,131 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.17])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFFE72EA147
-	for <linux-acpi@vger.kernel.org>; Tue, 13 Jan 2026 16:21:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 020452EC084;
+	Tue, 13 Jan 2026 16:31:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.17
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768321279; cv=none; b=qipow8bE4nd+hnghUQraQUwer4zCwTaSCdp4rNdaxNjkRbosPZyr3KuRGRqtM8sP8V/agL8/FEsWqnuvx9t+gfI4xIkih4poZQwQH0qtn+1/Dh7U64zMBjsXJ3XTTMeeS9gyN36BJieaJ71JNSExpg6m6oJK5ZWzOGiDZBnOwvQ=
+	t=1768321921; cv=none; b=rVjStsItXaNDH4mLDzYIcdrlRMVVDdtgKbehI0R+XsoTeEnnpzo/QPkCBFY8Ctvfce/vTvAmyy9seJiHiNnKVqB7To+ezKMEPAJ49PCrOSbORnTGWJN/TX1eShZZKJ5B6fe5dSGbM+s8SH/umoLs46HvSXrYDIpukIRr63WkbcE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768321279; c=relaxed/simple;
-	bh=D8Og+TnqxWTARrxXIhMaCnl8G/jCeh7dT5FUokkKgKw=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=f21HUo8lLLdGxVfODtG3mwF6acMG08ac22QzZ8sQmx1g1Y7+SMMTO9knPx19cXkhUzbOnK1aS1Ia5BWRonmFzMmmjnxMRcQcSx3T9tjfB9JoFVpA64d5cJgXSW7MU0GczuuA9ILkNG9+ObrIlnrcLXJt0WtItWnrvdgiG9Epwak=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KD/GBQRa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768321921; c=relaxed/simple;
+	bh=elOL5vf13bvux5sGmCgBwMWCcvFXHP/z36pbMRr677I=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=eKfRiVmiErhbe5QxQj/f2U6leN6dhcHsWm1JBah1lnCcJotWkUXBljSsNWIq9XmI+gqT+XARk6ruQKkZPlFHFD3Yqsz48jGDKDWiYKD/U4vQVkpyaEFzjyS0fFlJ6ufAyXE+70OJzKlhhgATBkFpMnc0suGGHW0kUz3zihDjMW4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=hT2yjFUY; arc=none smtp.client-ip=192.198.163.17
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KD/GBQRa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C78AC2BC86
-	for <linux-acpi@vger.kernel.org>; Tue, 13 Jan 2026 16:21:19 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1768321279;
-	bh=D8Og+TnqxWTARrxXIhMaCnl8G/jCeh7dT5FUokkKgKw=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=KD/GBQRafnqR67qiez37Yk2q4I8b9ruD6D8bhkGgjNB9oKEiqskh6v5fMDtlS5SIZ
-	 +lYGhZ+CpYfq/JviG/IcT2nkKv3R+1TDtRMrDqyOZfeonrRPAtNEbQrb5yj96R1ooQ
-	 ty52s2CmTiHBRFI6QGSZSWGXIjAsA71QEuBYvGsDOcMN5swxmh8NPInxSgpI+N9JWn
-	 rWEBlN2eJZxblg+4nqceW6MechuIvd/86ApODS5pY0rpjayPhgkfP0eF+Ipx0Yb51y
-	 +lvY6NAvmdKb6ol4AK10OSkgugc6yVbmQ2IYqZK7F/8fRqbEoxcYEAHmIybvK/DDUr
-	 zASBP2b2SNnig==
-Received: by mail-ot1-f44.google.com with SMTP id 46e09a7af769-7c76d855ddbso2537880a34.3
-        for <linux-acpi@vger.kernel.org>; Tue, 13 Jan 2026 08:21:19 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AJvYcCUjSYrq9fGOAcMQxCiDruZlbIw94bdZqpRCpH4e4Bbrg12VMXCaEgdxRTZsHMt8ULO7nD4kVp7/Wg52@vger.kernel.org
-X-Gm-Message-State: AOJu0YwGvyICkh0PwhPODfy58EnhncgmOEK87wb0zTTZDJaJ8PQfc4Gd
-	BafhEpiPYBNG0Mlua7AE4LgsVV32Ud0ccIMXWI247xIZFb6ypKppzLUoesmFn0KPWPk2fyV4V6M
-	39GBCKDIEcbO9PzqJIQFMvaQ1vOv7Fsw=
-X-Google-Smtp-Source: AGHT+IFRWKJGnCA715gcajWCIlYonkszNpc3ayEtzV2C4Lt3AILnB1bTvuzzQK82HN6KvKBOt9hXOx1Z3mj9VkHRE7g=
-X-Received: by 2002:a4a:dc47:0:b0:65f:2baf:4ad with SMTP id
- 006d021491bc7-65f54ef5eebmr7236592eaf.30.1768321278346; Tue, 13 Jan 2026
- 08:21:18 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="hT2yjFUY"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1768321919; x=1799857919;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=elOL5vf13bvux5sGmCgBwMWCcvFXHP/z36pbMRr677I=;
+  b=hT2yjFUY1uRwZUvvXmyAZlq34aqjdjP20FqOirVFBR3Q9J7IOJTuEbR6
+   lCvsMbkQtfzav9IOXeEQbZrMs6MtzCJ887IdjNw1SHwIRZq/JbVowYfcr
+   8p55Mr+cfmtGKds4UQhsND7THJ1fxqeWt7dZ+MFbOppF/eZbydWbMCI7d
+   F8VEvZBexdLi+RYeBC7MLMCV/qo11R8gYGlIlRkUQd+kRWVrMztr/pPaX
+   wogWseka67sWn+6+bkk0Gz/zmI4TBFmnw+4SDnb8tWH4go1mavKdRlo8U
+   FsOO6/TJlPB5auUVzPD9Z++sovU+OYMWIX+Pn+LzEViAjAHSm9Mh9E9lo
+   w==;
+X-CSE-ConnectionGUID: L4R73Q4TSR6PgZzExic4RQ==
+X-CSE-MsgGUID: JzYd0QlwSn2fuh/m2OkV+g==
+X-IronPort-AV: E=McAfee;i="6800,10657,11670"; a="69520981"
+X-IronPort-AV: E=Sophos;i="6.21,222,1763452800"; 
+   d="scan'208";a="69520981"
+Received: from fmviesa007.fm.intel.com ([10.60.135.147])
+  by fmvoesa111.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Jan 2026 08:31:58 -0800
+X-CSE-ConnectionGUID: DAOd7/YiRayTyK8TA8RxQg==
+X-CSE-MsgGUID: ci9wyHnURjSS6rWQ0y12ig==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.21,222,1763452800"; 
+   d="scan'208";a="204060102"
+Received: from bnilawar-desk2.iind.intel.com ([10.190.239.41])
+  by fmviesa007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Jan 2026 08:31:54 -0800
+From: Badal Nilawar <badal.nilawar@intel.com>
+To: intel-xe@lists.freedesktop.org,
+	linux-acpi@vger.kernel.org,
+	linux-pci@vger.kernel.org
+Cc: anshuman.gupta@intel.com,
+	rafael@kernel.org,
+	lenb@kernel.org,
+	bhelgaas@google.com,
+	ilpo.jarvinen@linux.intel.com,
+	rodrigo.vivi@intel.com,
+	varun.gupta@intel.com,
+	ville.syrjala@linux.intel.com,
+	uma.shankar@intel.com,
+	karthik.poosa@intel.com,
+	matthew.auld@intel.com,
+	sk.anirban@intel.com,
+	raag.jadav@intel.com
+Subject: [PATCH v6 00/12] VRAM Self Refresh 
+Date: Tue, 13 Jan 2026 22:12:01 +0530
+Message-ID: <20260113164200.1151788-14-badal.nilawar@intel.com>
+X-Mailer: git-send-email 2.52.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20251231104909.80362-1-feng.tang@linux.alibaba.com> <aWUpQ04uNcXtp0wR@bogus>
-In-Reply-To: <aWUpQ04uNcXtp0wR@bogus>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Tue, 13 Jan 2026 17:21:07 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0gXMAFRCH8sn7OSb8Dc8XCf0wgi-CGre8i76KXAZ8tc-Q@mail.gmail.com>
-X-Gm-Features: AZwV_Qj3DG4eR3nH1g7Lggz9AsecgA1MyKWTqyQIRjdIUzS2Ijreo5GhIKB2-PI
-Message-ID: <CAJZ5v0gXMAFRCH8sn7OSb8Dc8XCf0wgi-CGre8i76KXAZ8tc-Q@mail.gmail.com>
-Subject: Re: [PATCH v2] ACPI: PPTT: Dump PPTT table when error detected
-To: Sudeep Holla <sudeep.holla@arm.com>
-Cc: Feng Tang <feng.tang@linux.alibaba.com>, "Rafael J . Wysocki" <rafael@kernel.org>, 
-	Len Brown <lenb@kernel.org>, Jeremy Linton <jeremy.linton@arm.com>, 
-	Hanjun Guo <guohanjun@huawei.com>, James Morse <james.morse@arm.com>, 
-	Joanthan Cameron <Jonathan.Cameron@huawei.com>, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-On Mon, Jan 12, 2026 at 6:03=E2=80=AFPM Sudeep Holla <sudeep.holla@arm.com>=
- wrote:
->
-> On Wed, Dec 31, 2025 at 06:49:09PM +0800, Feng Tang wrote:
-> > There was warning message about PPTT table:
-> >
-> >       "ACPI PPTT: PPTT table found, but unable to locate core 1 (1)",
-> >
-> > and it in turn caused scheduler warnings when building up the system.
-> > It took a while to root cause the problem be related a broken PPTT
-> > table which has wrong cache information.
-> >
-> > To speedup debugging similar issues, dump the PPTT table, which makes
-> > the warning more noticeable and helps bug hunting.
-> >
-> > The dumped info format on a ARM server is like:
-> >
-> >     ACPI PPTT: Processors:
-> >     P[  0][0x0024]: parent=3D0x0000 acpi_proc_id=3D  0 num_res=3D1 flag=
-s=3D0x11(package)
-> >     P[  1][0x005a]: parent=3D0x0024 acpi_proc_id=3D  0 num_res=3D1 flag=
-s=3D0x12()
-> >     P[  2][0x008a]: parent=3D0x005a acpi_proc_id=3D  0 num_res=3D3 flag=
-s=3D0x1a(leaf)
-> >     P[  3][0x00f2]: parent=3D0x005a acpi_proc_id=3D  1 num_res=3D3 flag=
-s=3D0x1a(leaf)
-> >     P[  4][0x015a]: parent=3D0x005a acpi_proc_id=3D  2 num_res=3D3 flag=
-s=3D0x1a(leaf)
-> >     ...
-> >     ACPI PPTT: Caches:
-> >     C[   0][0x0072]: flags=3D0x7f next_level=3D0x0000 size=3D0x4000000 =
- sets=3D65536  way=3D16 attribute=3D0xa  line_size=3D64
-> >     C[   1][0x00aa]: flags=3D0x7f next_level=3D0x00da size=3D0x10000   =
- sets=3D256    way=3D4  attribute=3D0x4  line_size=3D64
-> >     C[   2][0x00c2]: flags=3D0x7f next_level=3D0x00da size=3D0x10000   =
- sets=3D256    way=3D4  attribute=3D0x2  line_size=3D64
-> >     C[   3][0x00da]: flags=3D0x7f next_level=3D0x0000 size=3D0x100000  =
- sets=3D2048   way=3D8  attribute=3D0xa  line_size=3D64
-> >     ...
-> >
-> > It provides a global and straightforward view of the hierarchy of the
-> > processor and caches info of the platform, and from the offset info
-> > (the 3rd column), the child-parent relation could be checked.
-> >
-> > With this, the root cause of the original issue was pretty obvious,
-> > that there were some caches items missing which caused the issue when
-> > building up scheduler domain.
-> >
->
-> While this may sound like a good idea, it deviates from how errors in oth=
-er
-> table-parsing code are handled. Instead of dumping the entire table, it w=
-ould
-> be preferable to report the specific issue encountered during parsing.
->
-> I do not have a strong objection if Rafael is comfortable with this appro=
-ach;
+Changes in v6:
+  - Addressed review comments from Rafael J. Wysocki.
+  - Added now patch to refactor PM Sleep Ops
 
-I'm not a big fan of it TBH.
+Changes in v5:
+  - Added Co-developed by, whereever necessary
+  - Addressed review comments 
+  - Added new patch to handle vrsr in s2idle
+    drm/xe/pm/s2idle: Don't evict user BOs for D3hot and D3cold-VRSR state  
 
-> however, it does differ from the established pattern used by similar code=
-.
-> Dumping the entire table in a custom manner is not the standard way of
-> handling parsing errors. Just my opinion.
+Changes in v4:
+  - Resolved build warnings
 
-I agree.
+Changes in v3:
+ PCIe ACPI Patches:
+  - dropped the notifier block code and added patch to allow only one Aux
+    power limit request per root port (Rafael J. Wysocki)
+  - Addressed Review comments (Rafael J. Wysocki, Bjorn Helgaas)
+
+ Xe Pacthes:
+  - Addressed Review comments (Bjorn Helgaas)
+
+Anshuman Gupta (6):
+  PCI/ACPI: Add D3cold Aux Power Limit_DSM method
+  PCI/ACPI: Add PERST# Assertion Delay _DSM method
+  drm/xe/vrsr: Detect VRSR Capability
+  drm/xe/vrsr: Refactor d3cold.allowed to a enum
+  drm/xe/pm: D3cold target state
+  drm/xe/vrsr: Enable VRSR
+
+Badal Nilawar (6):
+  drm/xe/vrsr: Introduce flag has_vrsr
+  drm/xe/vrsr: Initialize VRSR feature
+  drm/xe/vrsr: Enable VRSR on default VGA boot device
+  drm/xe/pm: Refactor PM Sleep Ops
+  drm/xe/pm/s2idle: Don't evict user BOs D3cold-VRSR state
+  drm/xe/vrsr: Introduce a debugfs node named vrsr_capable
+
+ drivers/gpu/drm/i915/display/intel_display.c |  22 ++
+ drivers/gpu/drm/i915/display/intel_display.h |   1 +
+ drivers/gpu/drm/xe/display/xe_display.c      |  11 +-
+ drivers/gpu/drm/xe/display/xe_display.h      |   2 +
+ drivers/gpu/drm/xe/regs/xe_regs.h            |   3 +
+ drivers/gpu/drm/xe/xe_debugfs.c              |   2 +
+ drivers/gpu/drm/xe/xe_device_types.h         |  12 +-
+ drivers/gpu/drm/xe/xe_pci.c                  |  76 +++++-
+ drivers/gpu/drm/xe/xe_pci_types.h            |   1 +
+ drivers/gpu/drm/xe/xe_pcode_api.h            |   7 +
+ drivers/gpu/drm/xe/xe_pm.c                   | 244 ++++++++++++++++---
+ drivers/gpu/drm/xe/xe_pm.h                   |  14 +-
+ drivers/pci/pci-acpi.c                       | 196 +++++++++++++++
+ include/linux/pci-acpi.h                     |  18 +-
+ 14 files changed, 564 insertions(+), 45 deletions(-)
+
+-- 
+2.52.0
+
