@@ -1,40 +1,40 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4800C399A79;
-	Wed, 14 Jan 2026 12:41:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DEAE399A7B;
+	Wed, 14 Jan 2026 12:42:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768394517; cv=none; b=l/iCu1pI+q+GHstkoUYVNcrgv+6Rdagp8BahQCPWwfgA4nwqPAU9e1D/uobU4RmksC+9Zpbc/G5cLWzxZKP6I14atNhmu0wUc25c6U/JH6orDyaluwJteehEHfehVSvV9bIajyjAKB+7Rg+m3JKqJt0fWoPa4CiketSfeMc4cIg=
+	t=1768394521; cv=none; b=SFJtA0foZje/I+ICDyeHNVuDNhdas/iN2MJPrfA4qydcOqXaJe9z7k02cI3mW0k5Y9TWtoVl8Hu3TkKifjne8+ABu/f5A2gLVp27y9AgzYAa6/YVI/q8Hd6rN3L8FkYrJN6SEP/KTbukOn7IO3a16lNjgMSytc/yYtRz6UUQy8s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768394517; c=relaxed/simple;
-	bh=6tYFTvvd9kjBEwnncEds/jH92vDYWXEgPZCwJESo4j8=;
+	s=arc-20240116; t=1768394521; c=relaxed/simple;
+	bh=fjY2fj4x6v1JC4RCH1Wr4co07aVVa6LXg6P1IDohxvo=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=B+GmM/ZV5uTXzaF1t6gxAe4ekOJZ7cuT7WbLuzk+YRKa5BPYMpDLQaFYD27sPGFtszPWZiywt8L9F9EalZkE9p1w8W+mqQzoq+tCWNZDdoFEhJiwUFqTPJ8WdLWXFYDgzw2s6//k83c+BQzRBw3QlJIcRcTETZv3RyXbcNpyfeA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=I+33kC8C; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=G5gMr115vIk/Ct99UWnC3qEmkpXdYw1s1nHL4Ch27v7pUMN2RDvf51ye+gAnpxSLVMar4JZ86rQuAMHla0CYyZWm+RgGa5at7x8xSrkZ/Z5h/MKyYzFzDrXHvRrSmwzJW8agmQ2QZy1rOb+qBKOtbe/LTug7Et9PbIiKxLJWRDw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gFvlX9uM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="I+33kC8C"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3101FC16AAE;
-	Wed, 14 Jan 2026 12:41:55 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gFvlX9uM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E899C4CEF7;
+	Wed, 14 Jan 2026 12:41:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1768394517;
-	bh=6tYFTvvd9kjBEwnncEds/jH92vDYWXEgPZCwJESo4j8=;
+	s=k20201202; t=1768394520;
+	bh=fjY2fj4x6v1JC4RCH1Wr4co07aVVa6LXg6P1IDohxvo=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=I+33kC8CngrLvNxhPAe2a9LaAHf6JEa+KQyDzYRucZPhSuWRsdZa2vt3Pxn15mARl
-	 F9hZOCiXuvfQfB54ooKp/ab+7FWgAnMKxI3d9D9AHXmqUfxQlJGCYyefFi+6Y0e+WY
-	 9eYAGc1IwZ3Gwn4yvmy05zjNx50KmQ8h0oFY1vrM2NfxT6djoiWf/dEVJX00XVjOrd
-	 0AhIXrtNALAXbeb4wIuNSP04VUj0uIJQ1GWOs88TPh07omgS5wDL/Tc2djElcFlwRe
-	 2jPIqjejLizSiAA/3vGhGTXphpuzQLDy3QvZ2IC5R2ETTwSPH9SmHkF3pxMSVKWJ/A
-	 M122PKgLeMjzA==
+	b=gFvlX9uMaRlEk/bQg+AgrvpBdWNE0WdPx4XzlnvTSBVdbCbsLL4drvzhpO94rgZKg
+	 g++MNQGHfGKOLaScpThTlsupPOYyj4M5T82XgTRWXZE/vFNgt3BeqO0j6QuKjOfkhg
+	 U/SqUwzEW9tPOCV5fdFWuoQj407fTWifiJ2SrU2RkcpsXkC+Zpux3SYzp6CQAVdPW9
+	 n4Y/IBCMBtPLx6gKdNOs9dV7r4awag2AoWAseGNZQxerAw7Y9xtZkT1orNqg1/U1Nm
+	 j+02VQdz0icsw99bca6+080GcMykIkR2yv7qRQDN0jliXK51jgdfExOSJEU919qf/r
+	 8D4RSGTtSKYHw==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>,
  "Dumbre, Saket" <saket.dumbre@intel.com>
 Subject:
- [PATCH v1 17/26] ACPICA: actbl3.h: ACPI 6.6: SRAT: New flag in Memory
- Affinity Structure
-Date: Wed, 14 Jan 2026 13:31:59 +0100
-Message-ID: <3868802.MHq7AAxBmi@rafael.j.wysocki>
+ [PATCH v1 16/26] ACPICA: actbl2.h: ACPI 6.6: RAS2: Update Parameter Block
+ structure
+Date: Wed, 14 Jan 2026 13:31:06 +0100
+Message-ID: <2263284.Mh6RI2rZIc@rafael.j.wysocki>
 Organization: Linux Kernel Development
 In-Reply-To: <12822121.O9o76ZdvQC@rafael.j.wysocki>
 References: <12822121.O9o76ZdvQC@rafael.j.wysocki>
@@ -49,27 +49,30 @@ Content-Type: text/plain; charset="UTF-8"
 
 From: Pawel Chmielewski <pawel.chmielewski@intel.com>
 
-ACPI 6.6 introduces Specific-Purpose flag to Memory Affinity structure.
+ACPI 6.6 introduces RAS2 enhancements for patrol scrub functionality,
+adding new fields to the Parameter Block structure. These fields are
+applicable only in the response to the GET_PATROL_PARAMETERS command.
 
-Link: https://github.com/acpica/acpica/commit/cfce3b689b5e
+Link: https://github.com/acpica/acpica/commit/062842024000
 Signed-off-by: Pawel Chmielewski <pawel.chmielewski@intel.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- include/acpi/actbl3.h | 1 +
- 1 file changed, 1 insertion(+)
+ include/acpi/actbl2.h | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/include/acpi/actbl3.h b/include/acpi/actbl3.h
-index 79d3aa5a4bad..7ca456e88377 100644
---- a/include/acpi/actbl3.h
-+++ b/include/acpi/actbl3.h
-@@ -238,6 +238,7 @@ struct acpi_srat_mem_affinity {
- #define ACPI_SRAT_MEM_ENABLED       (1)	/* 00: Use affinity structure */
- #define ACPI_SRAT_MEM_HOT_PLUGGABLE (1<<1)	/* 01: Memory region is hot pluggable */
- #define ACPI_SRAT_MEM_NON_VOLATILE  (1<<2)	/* 02: Memory region is non-volatile */
-+#define ACPI_SRAT_MEM_SPEC_PURPOSE  (1<<3)	/* 03: Memory is intended for specific-purpose usage */
+diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
+index 01dc35e4b60a..5c0b55e7b3e4 100644
+--- a/include/acpi/actbl2.h
++++ b/include/acpi/actbl2.h
+@@ -3249,6 +3249,8 @@ struct acpi_ras2_patrol_scrub_param {
+ 	u32 flags;
+ 	u32 scrub_params_out;
+ 	u32 scrub_params_in;
++	u32 ext_scrub_params;
++	u8 scrub_rate_desc[256];
+ };
  
- /* 2: Processor Local X2_APIC Affinity (ACPI 4.0) */
- 
+ /* Masks for Flags field above */
 -- 
 2.51.0
 
