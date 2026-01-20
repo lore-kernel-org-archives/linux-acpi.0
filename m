@@ -1,54 +1,49 @@
-Received: from canpmsgout09.his.huawei.com (canpmsgout09.his.huawei.com [113.46.200.224])
+Received: from canpmsgout10.his.huawei.com (canpmsgout10.his.huawei.com [113.46.200.225])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63E8E423147;
-	Tue, 20 Jan 2026 11:23:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.224
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47E33421F0A;
+	Tue, 20 Jan 2026 11:33:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.225
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768908192; cv=none; b=pN4oFfBUHGgoawluCrZG4H8qpo8aOZmpggiE5rznneu30seddnPigi5Co2xpTNCsJHBp1/0C3HrOdslUb+/FsD5I+wCWongUKFpPMdOfEruUIw4QFyYSSsSUpscYXIhZzhGDw32q3VY3ieVRCM4y8eOlt9J4eVmQGZ/kXfWJht0=
+	t=1768908808; cv=none; b=R9jar1O7pkLiEECfRlpY8hANrREcqBhqDFZBIbpZ/pgOhzeohjYXu/wU1+T+edbiCwb7VMGBWiidQyCcLuHu4LGelfjAdi5NvKwzAephG/Ymts6QhbGtuXZOyuD7/rKTq8pal0j5dojM2Gwk+XgtuTZiREesCewMr1v/29gWs1g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768908192; c=relaxed/simple;
-	bh=PzT+QO0kJ9zYvI5hNi18tO9yvBDSw0oQQ2MtF4UCYdg=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=Dp+SnLtcBdEl7GI241dGqHVpKpV1Pdsd4kvx1YAsliHnYPFnjOqsMLAfmr3oLNytBGeh5Lyy6bJceY20g3/YqV/a6KGI8A2dqOwfHioQ22GN9TX3dWcC3Zy45Umdodbfm0sO/KIzgqtSjW715qB+6N10g0CmDF1Y3HZ2nDYQYv0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=GwdeRM5O; arc=none smtp.client-ip=113.46.200.224
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=h-partners.com
+	s=arc-20240116; t=1768908808; c=relaxed/simple;
+	bh=y0W0n0Lw3gczIXlTj8dAoL/B1n8sTL641ifUA7CJEEs=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=Oh8u0uzzGSkBiNKb23hdqtEWqiNYCFQ8nNhfoA+kxnh0FwA3wF8au1TF2F2gFZu0jaLN/YxTLGHibRnqSkSkgv8nIiu1GaHbyltYwAJA5EdVBu/uWUlXRwTUOXSp2AS/WHSVbmRTb2BYJSNSBSLUj/CZbV9ea6vtwm0soQLHir8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=E5P9yd56; arc=none smtp.client-ip=113.46.200.225
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="GwdeRM5O"
-dkim-signature: v=1; a=rsa-sha256; d=h-partners.com; s=dkim;
+	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="E5P9yd56"
+dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
 	c=relaxed/relaxed; q=dns/txt;
 	h=From;
-	bh=3s7cqoF1GXsTSogLy+zL5S3zwezjc3g5MkRqQadZ/so=;
-	b=GwdeRM5O3+EPiYKOYHoK+yMBTHDJwQ/1Md+gDYzJ0sPAGPLmNpSnKA3CcSwEF4AmGDrDT0qin
-	4FdHlXrsY/I5kieGgZrN7Zjxp8NatVMYT/J48TqCf9Esbl7m12b+iWXbVYzrbncFebp8UrlnLD4
-	Fn3TnvdvU7DBH9UA0pcHD+4=
-Received: from mail.maildlp.com (unknown [172.19.163.15])
-	by canpmsgout09.his.huawei.com (SkyGuard) with ESMTPS id 4dwPx615qvz1cySb;
-	Tue, 20 Jan 2026 19:19:38 +0800 (CST)
-Received: from dggemv706-chm.china.huawei.com (unknown [10.3.19.33])
-	by mail.maildlp.com (Postfix) with ESMTPS id DD52C40539;
-	Tue, 20 Jan 2026 19:23:00 +0800 (CST)
-Received: from kwepemn100009.china.huawei.com (7.202.194.112) by
- dggemv706-chm.china.huawei.com (10.3.19.33) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Tue, 20 Jan 2026 19:23:00 +0800
+	bh=DyOLv7w7OXgCFtESbOrDmyGVRZ50go1fYG4fT1pS1Ys=;
+	b=E5P9yd56brvp5ibX3ywidpWKWOJRASJWxp/wqbQ63sjHvYsNAlLJ+kDOAGb2MFRtnpBMg6Uu5
+	m62NMrSMWosXybiZ6QfWJWD1zDCEYdmasmGpPhwB8PX35caTtChVbjpKekphcmVmqxq9sFoD6I3
+	s5Uyw3YA6IsvZhslYQzzS3A=
+Received: from mail.maildlp.com (unknown [172.19.163.214])
+	by canpmsgout10.his.huawei.com (SkyGuard) with ESMTPS id 4dwQ8z2X3vz1K96j;
+	Tue, 20 Jan 2026 19:29:55 +0800 (CST)
+Received: from kwepemf200001.china.huawei.com (unknown [7.202.181.227])
+	by mail.maildlp.com (Postfix) with ESMTPS id 838F240539;
+	Tue, 20 Jan 2026 19:33:16 +0800 (CST)
 Received: from localhost.localdomain (10.50.163.32) by
- kwepemn100009.china.huawei.com (7.202.194.112) with Microsoft SMTP Server
+ kwepemf200001.china.huawei.com (7.202.181.227) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.36; Tue, 20 Jan 2026 19:23:00 +0800
-From: Huisong Li <lihuisong@huawei.com>
-To: <rafael@kernel.org>, <lenb@kernel.org>
+ 15.2.1544.11; Tue, 20 Jan 2026 19:33:15 +0800
+From: Lifeng Zheng <zhenglifeng1@huawei.com>
+To: <rafael@kernel.org>, <catalin.marinas@arm.com>,
+	<Jonathan.Cameron@huawei.com>, <lenb@kernel.org>
 CC: <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linuxarm@huawei.com>, <jonathan.cameron@huawei.com>,
-	<zhanjie9@hisilicon.com>, <zhenglifeng1@huawei.com>, <yubowen8@huawei.com>,
-	<wangzhi12@huawei.com>, <zhangpengjie2@huawei.com>, <lihuisong@huawei.com>
-Subject: [PATCH v2 3/3] ACPI: processor: idle: Relocate and verify acpi_processor_ffh_lpi_probe
-Date: Tue, 20 Jan 2026 19:22:58 +0800
-Message-ID: <20260120112258.1595164-4-lihuisong@huawei.com>
+	<linuxarm@huawei.com>, <gshan@redhat.com>, <miguel.luis@oracle.com>,
+	<guohanjun@huawei.com>, <zhanjie9@hisilicon.com>, <lihuisong@huawei.com>,
+	<yubowen8@huawei.com>, <zhangpengjie2@huawei.com>, <wangzhi12@huawei.com>,
+	<linhongye@h-partners.com>, <zhenglifeng1@huawei.com>
+Subject: [PATCH] ACPI: processor: Add acpi_processor_start() back to parse _CPC tables before CPU online
+Date: Tue, 20 Jan 2026 19:32:42 +0800
+Message-ID: <20260120113242.3843463-1-zhenglifeng1@huawei.com>
 X-Mailer: git-send-email 2.33.0
-In-Reply-To: <20260120112258.1595164-1-lihuisong@huawei.com>
-References: <20260120112258.1595164-1-lihuisong@huawei.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -58,66 +53,91 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
 X-ClientProxiedBy: kwepems500002.china.huawei.com (7.221.188.17) To
- kwepemn100009.china.huawei.com (7.202.194.112)
+ kwepemf200001.china.huawei.com (7.202.181.227)
 
-The platform used LPI need check if the LPI support and the entry
-method is valid by the acpi_processor_ffh_lpi_probe(). But the return
-of acpi_processor_ffh_lpi_probe() in acpi_processor_setup_cpuidle_dev()
-isn't verified by any caller.
+Currently, if boot with maxcpus less than NR_CPUS, the cppc_cpufreq driver
+will fail to register. Because it requires the domain information of all
+possible CPUs to construct shared_cpu_map, which shows the CPUs that share
+the same domain.
 
-What's more, acpi_processor_get_power_info() is a more logical place for
-verifying the validity of FFH LPI than acpi_processor_setup_cpuidle_dev().
-So move acpi_processor_ffh_lpi_probe() from the latter to the former and
-verify its return.
+Commit c1385c1f0ba3 ("ACPI: processor: Simplify initial onlining to use
+same path for cold and hotplug") removes probe() of acpi_processor_driver
+and makes acpi_cppc_processor_probe() only being called the first time CPU
+goes online. This means that CPUs that haven't yet gone online will not
+have pre-parsed _CPC objects and causes cppc_cpufreq driver register fail.
 
-Signed-off-by: Huisong Li <lihuisong@huawei.com>
+Add acpi_processor_start() back as the probe() callback of
+acpi_processor_driver and call acpi_cppc_processor_probe() in it to make
+sure all _CPC tables will be parsed when acpi_processor_driver registered.
+
+Fixes: c1385c1f0ba3 ("ACPI: processor: Simplify initial onlining to use same path for cold and hotplug")
+Signed-off-by: Lifeng Zheng <zhenglifeng1@huawei.com>
 ---
- drivers/acpi/processor_idle.c | 18 ++++++++++--------
- 1 file changed, 10 insertions(+), 8 deletions(-)
+ drivers/acpi/processor_driver.c | 30 ++++++++++++++++++++++++++----
+ 1 file changed, 26 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index ba4cde028b0e..4b2c740da86f 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -1237,7 +1237,7 @@ static void acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
- }
+diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+index 65e779be64ff..c8b4daf580b0 100644
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -33,6 +33,7 @@ MODULE_AUTHOR("Paul Diefenbaugh");
+ MODULE_DESCRIPTION("ACPI Processor Driver");
+ MODULE_LICENSE("GPL");
  
- /**
-- * acpi_processor_setup_cpuidle_dev - prepares and configures CPUIDLE
-+ * acpi_processor_setup_cpuidle_dev - configures CPUIDLE
-  * device i.e. per-cpu data
-  *
-  * @pr: the ACPI processor
-@@ -1250,12 +1250,8 @@ static void acpi_processor_setup_cpuidle_dev(struct acpi_processor *pr,
- 		return;
++static int acpi_processor_start(struct device *dev);
+ static int acpi_processor_stop(struct device *dev);
  
- 	dev->cpu = pr->id;
--	if (pr->flags.has_lpi) {
--		acpi_processor_ffh_lpi_probe(pr->id);
--		return;
--	}
+ static const struct acpi_device_id processor_device_ids[] = {
+@@ -46,6 +47,7 @@ static struct device_driver acpi_processor_driver = {
+ 	.name = "processor",
+ 	.bus = &cpu_subsys,
+ 	.acpi_match_table = processor_device_ids,
++	.probe = acpi_processor_start,
+ 	.remove = acpi_processor_stop,
+ };
+ 
+@@ -162,10 +164,6 @@ static int __acpi_processor_start(struct acpi_device *device)
+ 	if (!pr)
+ 		return -ENODEV;
+ 
+-	result = acpi_cppc_processor_probe(pr);
+-	if (result && !IS_ENABLED(CONFIG_ACPI_CPU_FREQ_PSS))
+-		dev_dbg(&device->dev, "CPPC data invalid or not present\n");
 -
--	acpi_processor_setup_cpuidle_cx(pr, dev);
-+	if (!pr->flags.has_lpi)
-+		acpi_processor_setup_cpuidle_cx(pr, dev);
+ 	if (!cpuidle_get_driver() || cpuidle_get_driver() == &acpi_idle_driver)
+ 		acpi_processor_power_init(pr);
+ 
+@@ -192,6 +190,30 @@ static int __acpi_processor_start(struct acpi_device *device)
+ 	return result;
  }
  
- static int acpi_processor_get_power_info(struct acpi_processor *pr)
-@@ -1264,7 +1260,13 @@ static int acpi_processor_get_power_info(struct acpi_processor *pr)
- 
- 	ret = acpi_processor_get_lpi_info(pr);
- 	if (ret)
--		ret = acpi_processor_get_cstate_info(pr);
-+		return acpi_processor_get_cstate_info(pr);
++static int acpi_processor_start(struct device *dev)
++{
++	struct acpi_device *device = ACPI_COMPANION(dev);
++	struct acpi_processor *pr;
++	int result;
 +
-+	if (pr->flags.has_lpi) {
-+		ret = acpi_processor_ffh_lpi_probe(pr->id);
-+		if (ret)
-+			pr_err("Processor FFH LPI state is invalid.\n");
-+	}
- 
- 	return ret;
- }
++	if (!device)
++		return -ENODEV;
++
++	pr = acpi_driver_data(device);
++	if (!pr)
++		return -ENODEV;
++
++	/* Protect against concurrent CPU hotplug operations */
++	cpu_hotplug_disable();
++	result = acpi_cppc_processor_probe(pr);
++	cpu_hotplug_enable();
++
++	if (result && !IS_ENABLED(CONFIG_ACPI_CPU_FREQ_PSS))
++		dev_dbg(&device->dev, "CPPC data invalid or not present\n");
++
++	return 0;
++}
++
+ static int acpi_processor_stop(struct device *dev)
+ {
+ 	struct acpi_device *device = ACPI_COMPANION(dev);
 -- 
 2.33.0
 
