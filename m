@@ -1,143 +1,171 @@
-Received: from canpmsgout10.his.huawei.com (canpmsgout10.his.huawei.com [113.46.200.225])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47E33421F0A;
-	Tue, 20 Jan 2026 11:33:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.225
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE295345CB0
+	for <linux-acpi@vger.kernel.org>; Tue, 20 Jan 2026 12:31:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768908808; cv=none; b=R9jar1O7pkLiEECfRlpY8hANrREcqBhqDFZBIbpZ/pgOhzeohjYXu/wU1+T+edbiCwb7VMGBWiidQyCcLuHu4LGelfjAdi5NvKwzAephG/Ymts6QhbGtuXZOyuD7/rKTq8pal0j5dojM2Gwk+XgtuTZiREesCewMr1v/29gWs1g=
+	t=1768912271; cv=none; b=BZIeWnZVNLx4soLhgRe4cSkp65UKt6VTE7cjt3mBpXWQNQ0g1iSZGHqlk2FVGGT9rn6rZ2sEoOgr5lsira2xLeaNiAe3dGwfo5SKSbCVvucphaacbNVapTi1A6Q7htpY90+LPcnF8ILFGHa5Eg1poQvYmCRADlqnsbjz0yTiFyI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768908808; c=relaxed/simple;
-	bh=y0W0n0Lw3gczIXlTj8dAoL/B1n8sTL641ifUA7CJEEs=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=Oh8u0uzzGSkBiNKb23hdqtEWqiNYCFQ8nNhfoA+kxnh0FwA3wF8au1TF2F2gFZu0jaLN/YxTLGHibRnqSkSkgv8nIiu1GaHbyltYwAJA5EdVBu/uWUlXRwTUOXSp2AS/WHSVbmRTb2BYJSNSBSLUj/CZbV9ea6vtwm0soQLHir8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=E5P9yd56; arc=none smtp.client-ip=113.46.200.225
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+	s=arc-20240116; t=1768912271; c=relaxed/simple;
+	bh=zClkBIBbDbWJMB0XwsO5MC5IgYxJfRWUWnK7vEFoz+0=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=KfEXkHRxgJb5PMvxzqGGIcxtoPdYR9X1tzQIkZXgRZlXq7gFtUxyvqwFZRL80EjxSj4RBRcWxSOe8XTlUFKT2+u862WSmDpOUemglcMZyHuMqR42hDfuZvDUl7eAMxTxNaHYPES/1Psx9Geih6HrNKGZDXJiyQeaOFpZnjULO8Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=syNsEsYp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="E5P9yd56"
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=DyOLv7w7OXgCFtESbOrDmyGVRZ50go1fYG4fT1pS1Ys=;
-	b=E5P9yd56brvp5ibX3ywidpWKWOJRASJWxp/wqbQ63sjHvYsNAlLJ+kDOAGb2MFRtnpBMg6Uu5
-	m62NMrSMWosXybiZ6QfWJWD1zDCEYdmasmGpPhwB8PX35caTtChVbjpKekphcmVmqxq9sFoD6I3
-	s5Uyw3YA6IsvZhslYQzzS3A=
-Received: from mail.maildlp.com (unknown [172.19.163.214])
-	by canpmsgout10.his.huawei.com (SkyGuard) with ESMTPS id 4dwQ8z2X3vz1K96j;
-	Tue, 20 Jan 2026 19:29:55 +0800 (CST)
-Received: from kwepemf200001.china.huawei.com (unknown [7.202.181.227])
-	by mail.maildlp.com (Postfix) with ESMTPS id 838F240539;
-	Tue, 20 Jan 2026 19:33:16 +0800 (CST)
-Received: from localhost.localdomain (10.50.163.32) by
- kwepemf200001.china.huawei.com (7.202.181.227) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Tue, 20 Jan 2026 19:33:15 +0800
-From: Lifeng Zheng <zhenglifeng1@huawei.com>
-To: <rafael@kernel.org>, <catalin.marinas@arm.com>,
-	<Jonathan.Cameron@huawei.com>, <lenb@kernel.org>
-CC: <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linuxarm@huawei.com>, <gshan@redhat.com>, <miguel.luis@oracle.com>,
-	<guohanjun@huawei.com>, <zhanjie9@hisilicon.com>, <lihuisong@huawei.com>,
-	<yubowen8@huawei.com>, <zhangpengjie2@huawei.com>, <wangzhi12@huawei.com>,
-	<linhongye@h-partners.com>, <zhenglifeng1@huawei.com>
-Subject: [PATCH] ACPI: processor: Add acpi_processor_start() back to parse _CPC tables before CPU online
-Date: Tue, 20 Jan 2026 19:32:42 +0800
-Message-ID: <20260120113242.3843463-1-zhenglifeng1@huawei.com>
-X-Mailer: git-send-email 2.33.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="syNsEsYp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9ECFFC19422
+	for <linux-acpi@vger.kernel.org>; Tue, 20 Jan 2026 12:31:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1768912271;
+	bh=zClkBIBbDbWJMB0XwsO5MC5IgYxJfRWUWnK7vEFoz+0=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=syNsEsYpjRd4GhF2D3Gu9vGeZAVKfBfFAHj4nfKqsL2HNtsnXYm0j12A7C2GnHcmG
+	 ZsZTVly83HwG7Z1iizYMBCvn7FASTeiJzdyQywbRmW22erAqTQAZVVfLdr9Z+JbG/n
+	 OmuuEBfB8MSiWS2/rtt/hKhTeNx1GpMyxFGWVlJlSgCQsiHSFyYg1pHoIbii+lh9Dc
+	 SHgz8SJXvX/OLQnfqrd+wpvBqC5HSXSektpMRDRQyaTx30zDYoj34J6e6JAmn30ifF
+	 S5HWAcIQw8oO+oFJI04pF0f28rtnGT4n3ZsvmdTltIAiVTCJ+yLwgCgyo54GE1a/QZ
+	 JI7ISP/L6xrYA==
+Received: by mail-oo1-f51.google.com with SMTP id 006d021491bc7-6610b241d19so2586409eaf.0
+        for <linux-acpi@vger.kernel.org>; Tue, 20 Jan 2026 04:31:11 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AJvYcCUNRqmSHm+o8U4qhVGqPoZpPhi7Cy9enhL4tHAX4GwB8RrurSpCm43hJzJnegFBavDtQsReh4uK6Cr0@vger.kernel.org
+X-Gm-Message-State: AOJu0YzFA44xkLnRbq4CombNT0FaGL1Wa/z0YtlbPSP+JJL4VRdaFVAK
+	9RmuLdgPqWVtRzXDINeW9icJ//6mJTVd/9KcV/4pbESltPc6/DzQuFB/OSQtoctG+mfMi1/lO1b
+	QzBLiBaZyx4nATIxEhyaLr0O1TrnvRfc=
+X-Received: by 2002:a05:6820:2219:b0:65c:fe5b:9f4d with SMTP id
+ 006d021491bc7-662b00a4a88mr570911eaf.47.1768912270702; Tue, 20 Jan 2026
+ 04:31:10 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: kwepems500002.china.huawei.com (7.221.188.17) To
- kwepemf200001.china.huawei.com (7.202.181.227)
+References: <6debcd61-c60e-4436-8e31-c3210528b755@redhat.com>
+ <aW5mn9pXYOU-3djd@smile.fi.intel.com> <a7b9b269-94a2-436d-b51a-cc2ffc98ea69@lunn.ch>
+ <aW5umnz8RdQiIzoi@smile.fi.intel.com> <97cd04f6-827b-41b6-aab6-b5850c443dbe@redhat.com>
+ <aW6JNDr0ZoBjHMeS@smile.fi.intel.com> <00bc45f8-8847-4f64-b140-790a2567e6bc@redhat.com>
+ <aW6UBBvFHP_gEg-V@smile.fi.intel.com> <CAD++jLkD3QX4CgEaDsS=4yMzc632Hk3DjYrSangoEbCrcV9JBg@mail.gmail.com>
+ <9861f9da-5f5e-4b2a-ab3f-6ac1a3faebdd@redhat.com> <aW8sAyChG3hpycwp@smile.fi.intel.com>
+In-Reply-To: <aW8sAyChG3hpycwp@smile.fi.intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Tue, 20 Jan 2026 13:30:57 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0j7hHgs_XEmNm=RKU8d09DMumN+nycfK+xDu-cNVZZOjQ@mail.gmail.com>
+X-Gm-Features: AZwV_QgfyiQ3zKt27xcWCOkkITCJYhzDIgScK-HwaE39yU55GwNzJI65iNFSrVU
+Message-ID: <CAJZ5v0j7hHgs_XEmNm=RKU8d09DMumN+nycfK+xDu-cNVZZOjQ@mail.gmail.com>
+Subject: Re: [Question] Best practice for ACPI representation of DPLL/Ethernet
+ dependencies (SyncE)
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Ivan Vecera <ivecera@redhat.com>, Linus Walleij <linusw@kernel.org>, Andrew Lunn <andrew@lunn.ch>, 
+	"Rafael J. Wysocki" <rafael@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, 
+	Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk@kernel.org>, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Currently, if boot with maxcpus less than NR_CPUS, the cppc_cpufreq driver
-will fail to register. Because it requires the domain information of all
-possible CPUs to construct shared_cpu_map, which shows the CPUs that share
-the same domain.
+On Tue, Jan 20, 2026 at 8:17=E2=80=AFAM Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
+>
+> On Tue, Jan 20, 2026 at 06:39:31AM +0100, Ivan Vecera wrote:
+> > On 1/20/26 12:34 AM, Linus Walleij wrote:
+> > > On Mon, Jan 19, 2026 at 9:28=E2=80=AFPM Andy Shevchenko
+> > > <andriy.shevchenko@linux.intel.com> wrote:
+>
+> (...)
+>
+> > > > > > > Based on [1] example this clock relationship can be represent=
+ed by _DSD.
+> > > > > > > Is it correct?
+> > > > > >
+> > > > > > I didn't really get, is this a clock provider-consumer relation=
+s or pin
+> > > > > > connections? If this is a pin connections, why there is no pin =
+mux driver
+> > > > > > for it?
+> > > > >
+> > > > > In fact this should be dpll provider-consumer schema. Consumer (e=
+.g.
+> > > > > net device, phy...) uses (consumes) DPLL service (frequency
+> > > > > synchronization, ...) and DPLL device provides such service.
+> > > > >
+> > > > > Note that the pin in this context is DPLL pin not pin related to =
+pinctrl
+> > > > > or so...
+> > > >
+> > > > Right, so these are pins with special functions, which are not GPIO=
+ like.
+> > > > But pin mux is not only about GPIO, that's the nice part of it.
+> > > >
+> > > > +Cc: Linus for his view on this issue.
+> > >
+> > > In theory a pin controller can be instantiated in any random driver t=
+hat
+> > > controls a few pins of its own to the outside world, just like we hav=
+e a few
+> > > few-pin GPIO chips here and there such as for USB serial adapters.
+> > >
+> > > In practice nobody does this, they have some driver-local way of hand=
+ling
+> > > pins and mux them around for their special use case.
+> > >
+> > > Graphic cards or audio would be an example. Much custom muxing
+> > > happening there I think.
+> > >
+> > > I have no strong opinion on the subject, it's up to the driver author=
+ I think.
+> > >
+> > > ACPI aspects I can't talk about because I don't understand them...
+> > >
+> > > Hope this helps!
+> >
+> > I think we might be getting sidetracked by the specific subsystems
+> > (pinctrl/GPIO/Clock).
+>
+> Yes, and this happens due to the DT point of view as far as I understood =
+their
+> preferences. If it's modeled as clock inputs and outputs we should consid=
+er the
+> same in ACPI, otherwise it will be custom hack on top of the (agreed) way=
+ of
+> solving the issue.
+>
+> Nature of the connection (and hence the responsible subsystem in the soft=
+ware)
+> is the key here. Until we fully understand what's this, we can't properly=
+ model
+> it.
+>
+> > The core problem I am trying to solve is modeling the linkage between
+> > the two devices. The NIC acts as a consumer that needs to "know" about
+> > the DPLL (the supplier) in the ACPI table.
+> >
+> > We need a way to tell the NIC driver: "Here is a handle to the DPLL
+>
+> "handle to device" in ACPI assumes the Device() object somewhere in
+> the namespace. This is what you have in the ASL example.
+>
+> > device you are connected to, and here are the specific resource IDs
+> > (pins) you are wired to. So a user (userspace) can monitor/configure
+> > such DPLL inputs and outputs using DPLL Netlink API."
+> >
+> > Regardless of whether the underlying signal is a clock or a logic level=
+,
+> > the immediate requirement is simply resolving this cross-device depende=
+ncy
+> > so the NIC can identify these resources and report their IDs into users=
+pace.
+>
+> Yes, but "simply" not always means "the best" in the long-term. As I said=
+,
+> your proposed idea doesn't contradict ACPI concepts, the problem is that
+> it may lead to custom solution for the specific hardware and next one wil=
+l
+> create their own N + 1 way of solving the same issue.
 
-Commit c1385c1f0ba3 ("ACPI: processor: Simplify initial onlining to use
-same path for cold and hotplug") removes probe() of acpi_processor_driver
-and makes acpi_cppc_processor_probe() only being called the first time CPU
-goes online. This means that CPUs that haven't yet gone online will not
-have pre-parsed _CPC objects and causes cppc_cpufreq driver register fail.
+And no one will ship the requisite data in the firmware.
 
-Add acpi_processor_start() back as the probe() callback of
-acpi_processor_driver and call acpi_cppc_processor_probe() in it to make
-sure all _CPC tables will be parsed when acpi_processor_driver registered.
+> One note nevertheless, instead of "reg" property the ACPI has concept of =
+_ADR
+> method. We even have acpi_get_local_address() helper for that.
 
-Fixes: c1385c1f0ba3 ("ACPI: processor: Simplify initial onlining to use same path for cold and hotplug")
-Signed-off-by: Lifeng Zheng <zhenglifeng1@huawei.com>
----
- drivers/acpi/processor_driver.c | 30 ++++++++++++++++++++++++++----
- 1 file changed, 26 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
-index 65e779be64ff..c8b4daf580b0 100644
---- a/drivers/acpi/processor_driver.c
-+++ b/drivers/acpi/processor_driver.c
-@@ -33,6 +33,7 @@ MODULE_AUTHOR("Paul Diefenbaugh");
- MODULE_DESCRIPTION("ACPI Processor Driver");
- MODULE_LICENSE("GPL");
- 
-+static int acpi_processor_start(struct device *dev);
- static int acpi_processor_stop(struct device *dev);
- 
- static const struct acpi_device_id processor_device_ids[] = {
-@@ -46,6 +47,7 @@ static struct device_driver acpi_processor_driver = {
- 	.name = "processor",
- 	.bus = &cpu_subsys,
- 	.acpi_match_table = processor_device_ids,
-+	.probe = acpi_processor_start,
- 	.remove = acpi_processor_stop,
- };
- 
-@@ -162,10 +164,6 @@ static int __acpi_processor_start(struct acpi_device *device)
- 	if (!pr)
- 		return -ENODEV;
- 
--	result = acpi_cppc_processor_probe(pr);
--	if (result && !IS_ENABLED(CONFIG_ACPI_CPU_FREQ_PSS))
--		dev_dbg(&device->dev, "CPPC data invalid or not present\n");
--
- 	if (!cpuidle_get_driver() || cpuidle_get_driver() == &acpi_idle_driver)
- 		acpi_processor_power_init(pr);
- 
-@@ -192,6 +190,30 @@ static int __acpi_processor_start(struct acpi_device *device)
- 	return result;
- }
- 
-+static int acpi_processor_start(struct device *dev)
-+{
-+	struct acpi_device *device = ACPI_COMPANION(dev);
-+	struct acpi_processor *pr;
-+	int result;
-+
-+	if (!device)
-+		return -ENODEV;
-+
-+	pr = acpi_driver_data(device);
-+	if (!pr)
-+		return -ENODEV;
-+
-+	/* Protect against concurrent CPU hotplug operations */
-+	cpu_hotplug_disable();
-+	result = acpi_cppc_processor_probe(pr);
-+	cpu_hotplug_enable();
-+
-+	if (result && !IS_ENABLED(CONFIG_ACPI_CPU_FREQ_PSS))
-+		dev_dbg(&device->dev, "CPPC data invalid or not present\n");
-+
-+	return 0;
-+}
-+
- static int acpi_processor_stop(struct device *dev)
- {
- 	struct acpi_device *device = ACPI_COMPANION(dev);
--- 
-2.33.0
-
+It's not exactly that.  _ADR is for device lookup on self-enumerable
+buses, and I'm not sure if that's the use case here.
