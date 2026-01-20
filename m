@@ -1,33 +1,33 @@
-Received: from canpmsgout03.his.huawei.com (canpmsgout03.his.huawei.com [113.46.200.218])
+Received: from canpmsgout09.his.huawei.com (canpmsgout09.his.huawei.com [113.46.200.224])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C69E1423141;
-	Tue, 20 Jan 2026 11:23:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.218
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63E8E423147;
+	Tue, 20 Jan 2026 11:23:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.224
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768908191; cv=none; b=b/wx5r9snv7sESgq6Esii03xp/N+Yovfcp3b3FdkuVWi1kxF8iK+rdKrIWHqYAyqqHwBGWj7N1mB9VXs2LiuAa2RbdgmFwOMV9TxMyYAr94Je6bYJukXPKjkN3nEwsAdDYkTBJSx9ZsbksyTwQY6yh7k/H8JjwJJTxd6XBS/7/0=
+	t=1768908192; cv=none; b=pN4oFfBUHGgoawluCrZG4H8qpo8aOZmpggiE5rznneu30seddnPigi5Co2xpTNCsJHBp1/0C3HrOdslUb+/FsD5I+wCWongUKFpPMdOfEruUIw4QFyYSSsSUpscYXIhZzhGDw32q3VY3ieVRCM4y8eOlt9J4eVmQGZ/kXfWJht0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768908191; c=relaxed/simple;
-	bh=FC801hB3/xwHT+vKzk2DxkHsypj4WxcNSE5wWSkFXc8=;
+	s=arc-20240116; t=1768908192; c=relaxed/simple;
+	bh=PzT+QO0kJ9zYvI5hNi18tO9yvBDSw0oQQ2MtF4UCYdg=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=W9mQmE877cKoF0ah9ss60GhAI5Iw+pLayAKHOMEFY4fEO4poFIf1o/qTUthURa2P1vnH0YkXGPEAaOJPjFi1XKqIK4FAAHJiVDQfMSfDTk2nQOPxiaEPmxCiWKSppKWSInQnziwih7CpOkydkI1kJxOc97E/NhuKYEIuoFFmDrg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=Zxa8t9LI; arc=none smtp.client-ip=113.46.200.218
+	 MIME-Version:Content-Type; b=Dp+SnLtcBdEl7GI241dGqHVpKpV1Pdsd4kvx1YAsliHnYPFnjOqsMLAfmr3oLNytBGeh5Lyy6bJceY20g3/YqV/a6KGI8A2dqOwfHioQ22GN9TX3dWcC3Zy45Umdodbfm0sO/KIzgqtSjW715qB+6N10g0CmDF1Y3HZ2nDYQYv0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=GwdeRM5O; arc=none smtp.client-ip=113.46.200.224
 Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=h-partners.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="Zxa8t9LI"
+	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="GwdeRM5O"
 dkim-signature: v=1; a=rsa-sha256; d=h-partners.com; s=dkim;
 	c=relaxed/relaxed; q=dns/txt;
 	h=From;
-	bh=W/RL44c6sFsxU3xn2hcNRlraqlKHQiWNaLOGQqBV88Q=;
-	b=Zxa8t9LIVX5cC7iuUxYZjqDn4s8QJAUEpAk8OB6f3zAclM9FwjMHUaLvfZb78aYBcpiXtkwhf
-	e9iHvWyc1Y9cq4Vqs9zidv1FCxw1Ub+9K97O+de6pprp3OZQ5hIWcqKd/Lipzd7ZaSmfa9rzYho
-	zL4/C1v6y6hWhhQz4Srsfko=
-Received: from mail.maildlp.com (unknown [172.19.163.104])
-	by canpmsgout03.his.huawei.com (SkyGuard) with ESMTPS id 4dwPwh3JTPzpSt7;
-	Tue, 20 Jan 2026 19:19:16 +0800 (CST)
+	bh=3s7cqoF1GXsTSogLy+zL5S3zwezjc3g5MkRqQadZ/so=;
+	b=GwdeRM5O3+EPiYKOYHoK+yMBTHDJwQ/1Md+gDYzJ0sPAGPLmNpSnKA3CcSwEF4AmGDrDT0qin
+	4FdHlXrsY/I5kieGgZrN7Zjxp8NatVMYT/J48TqCf9Esbl7m12b+iWXbVYzrbncFebp8UrlnLD4
+	Fn3TnvdvU7DBH9UA0pcHD+4=
+Received: from mail.maildlp.com (unknown [172.19.163.15])
+	by canpmsgout09.his.huawei.com (SkyGuard) with ESMTPS id 4dwPx615qvz1cySb;
+	Tue, 20 Jan 2026 19:19:38 +0800 (CST)
 Received: from dggemv706-chm.china.huawei.com (unknown [10.3.19.33])
-	by mail.maildlp.com (Postfix) with ESMTPS id BA1464056D;
+	by mail.maildlp.com (Postfix) with ESMTPS id DD52C40539;
 	Tue, 20 Jan 2026 19:23:00 +0800 (CST)
 Received: from kwepemn100009.china.huawei.com (7.202.194.112) by
  dggemv706-chm.china.huawei.com (10.3.19.33) with Microsoft SMTP Server
@@ -36,16 +36,16 @@ Received: from kwepemn100009.china.huawei.com (7.202.194.112) by
 Received: from localhost.localdomain (10.50.163.32) by
  kwepemn100009.china.huawei.com (7.202.194.112) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.36; Tue, 20 Jan 2026 19:22:59 +0800
+ 15.2.1544.36; Tue, 20 Jan 2026 19:23:00 +0800
 From: Huisong Li <lihuisong@huawei.com>
 To: <rafael@kernel.org>, <lenb@kernel.org>
 CC: <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
 	<linuxarm@huawei.com>, <jonathan.cameron@huawei.com>,
 	<zhanjie9@hisilicon.com>, <zhenglifeng1@huawei.com>, <yubowen8@huawei.com>,
 	<wangzhi12@huawei.com>, <zhangpengjie2@huawei.com>, <lihuisong@huawei.com>
-Subject: [PATCH v2 2/3] ACPI: processor: idle: Redefine acpi_processor_setup_cpuidle_dev to void
-Date: Tue, 20 Jan 2026 19:22:57 +0800
-Message-ID: <20260120112258.1595164-3-lihuisong@huawei.com>
+Subject: [PATCH v2 3/3] ACPI: processor: idle: Relocate and verify acpi_processor_ffh_lpi_probe
+Date: Tue, 20 Jan 2026 19:22:58 +0800
+Message-ID: <20260120112258.1595164-4-lihuisong@huawei.com>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20260120112258.1595164-1-lihuisong@huawei.com>
 References: <20260120112258.1595164-1-lihuisong@huawei.com>
@@ -60,46 +60,64 @@ Content-Type: text/plain
 X-ClientProxiedBy: kwepems500002.china.huawei.com (7.221.188.17) To
  kwepemn100009.china.huawei.com (7.202.194.112)
 
-The callers of acpi_processor_setup_cpuidle_dev() ignore its return value.
-This function can be redefined to a void function.
+The platform used LPI need check if the LPI support and the entry
+method is valid by the acpi_processor_ffh_lpi_probe(). But the return
+of acpi_processor_ffh_lpi_probe() in acpi_processor_setup_cpuidle_dev()
+isn't verified by any caller.
 
-No intentional functional impact.
+What's more, acpi_processor_get_power_info() is a more logical place for
+verifying the validity of FFH LPI than acpi_processor_setup_cpuidle_dev().
+So move acpi_processor_ffh_lpi_probe() from the latter to the former and
+verify its return.
 
 Signed-off-by: Huisong Li <lihuisong@huawei.com>
 ---
- drivers/acpi/processor_idle.c | 13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ drivers/acpi/processor_idle.c | 18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index d055dbae36c8..ba4cde028b0e 100644
+index ba4cde028b0e..4b2c740da86f 100644
 --- a/drivers/acpi/processor_idle.c
 +++ b/drivers/acpi/processor_idle.c
-@@ -1243,18 +1243,19 @@ static void acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
+@@ -1237,7 +1237,7 @@ static void acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
+ }
+ 
+ /**
+- * acpi_processor_setup_cpuidle_dev - prepares and configures CPUIDLE
++ * acpi_processor_setup_cpuidle_dev - configures CPUIDLE
+  * device i.e. per-cpu data
+  *
   * @pr: the ACPI processor
-  * @dev : the cpuidle device
-  */
--static int acpi_processor_setup_cpuidle_dev(struct acpi_processor *pr,
--					    struct cpuidle_device *dev)
-+static void acpi_processor_setup_cpuidle_dev(struct acpi_processor *pr,
-+					     struct cpuidle_device *dev)
- {
- 	if (!pr->flags.power_setup_done || !pr->flags.power || !dev)
--		return -EINVAL;
-+		return;
+@@ -1250,12 +1250,8 @@ static void acpi_processor_setup_cpuidle_dev(struct acpi_processor *pr,
+ 		return;
  
  	dev->cpu = pr->id;
--	if (pr->flags.has_lpi)
--		return acpi_processor_ffh_lpi_probe(pr->id);
-+	if (pr->flags.has_lpi) {
-+		acpi_processor_ffh_lpi_probe(pr->id);
-+		return;
-+	}
- 
- 	acpi_processor_setup_cpuidle_cx(pr, dev);
--	return 0;
+-	if (pr->flags.has_lpi) {
+-		acpi_processor_ffh_lpi_probe(pr->id);
+-		return;
+-	}
+-
+-	acpi_processor_setup_cpuidle_cx(pr, dev);
++	if (!pr->flags.has_lpi)
++		acpi_processor_setup_cpuidle_cx(pr, dev);
  }
  
  static int acpi_processor_get_power_info(struct acpi_processor *pr)
+@@ -1264,7 +1260,13 @@ static int acpi_processor_get_power_info(struct acpi_processor *pr)
+ 
+ 	ret = acpi_processor_get_lpi_info(pr);
+ 	if (ret)
+-		ret = acpi_processor_get_cstate_info(pr);
++		return acpi_processor_get_cstate_info(pr);
++
++	if (pr->flags.has_lpi) {
++		ret = acpi_processor_ffh_lpi_probe(pr->id);
++		if (ret)
++			pr_err("Processor FFH LPI state is invalid.\n");
++	}
+ 
+ 	return ret;
+ }
 -- 
 2.33.0
 
