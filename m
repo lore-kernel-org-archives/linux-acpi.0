@@ -1,98 +1,90 @@
-Received: from sg-1-30.ptr.blmpb.com (sg-1-30.ptr.blmpb.com [118.26.132.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.13])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3EF232512F5
-	for <linux-acpi@vger.kernel.org>; Thu, 22 Jan 2026 07:35:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=118.26.132.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FF9E329E53;
+	Thu, 22 Jan 2026 07:58:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.13
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769067315; cv=none; b=HY7J6o+Ma5UrjI9RuEkhFoXd1O8qTkm6vHt2lvexYC30axWYYgCwMUie4zADICgnSbT9weQYHPH/GXLlrvtkWUIRz9Rw/8mkfWFa3VCi81wwaNGpnAxjzsGsdlIZA702GDTrmXHIV3ENJqjMbZ8Oo+afsVIOqhGPPdshjInkpCU=
+	t=1769068738; cv=none; b=C+Yi+vZne60OFI/0Q0/K1ifZre6vDEZ7/YhSccOjWJqrEDRzgqAtMxRyaWg7+1VprKq9RtyeQG+ZECvwo/m2KNUndxhf75Z6UXdjckaqIp/Rc7SJ4fwI/kxO1FnREqJNYcOIVbeEGsa4m+QGwchihPk2EoEWLcB0F5IB/alc/Rc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769067315; c=relaxed/simple;
-	bh=Zg4V6RJ5CX9TkQlNvozgJSw3th6d9YeG4f0THZUNWK4=;
-	h=Date:In-Reply-To:To:Cc:Mime-Version:From:Subject:References:
-	 Message-Id:Content-Type; b=mENkOXf6xQoti6uvKLIFVsx/++egbCg0nb3Y58El9jVC8pqOPgv90nh9gmNXIff2dLGbdODp0WXTjKb0Uwe/neopjtQdauV/JjprIMrZ0h3hzguajiGLTVvTfoJcr/3EkTA4jSZmi9ylli9MtoPhgfOD4dKBmz1cd69POajBSYU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=picoheart.com; spf=pass smtp.mailfrom=picoheart.com; dkim=pass (2048-bit key) header.d=picoheart-com.20200927.dkim.feishu.cn header.i=@picoheart-com.20200927.dkim.feishu.cn header.b=wNQzGcVg; arc=none smtp.client-ip=118.26.132.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=picoheart.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=picoheart.com
+	s=arc-20240116; t=1769068738; c=relaxed/simple;
+	bh=7+vsgUSihk/yhbID350DXscn0/De5XxWPMepOpJ2ZwU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=d+KBtRqrVCNlFF/sUIhIQiBjmsEW3eH0VdlQR1f4QrAhzu0iILe5hnoqat+yOF42BHl1OOYfExLnJtD0CE1K7R9fQ3mP6SpYLvD/G9GewYAtCHhnQLPAibhdCpOcsi1PR6Y5kDRxng9bmk8qjdKPOobLnoU0WUUaFiFm7d69494=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=DO835geD; arc=none smtp.client-ip=198.175.65.13
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=picoheart-com.20200927.dkim.feishu.cn header.i=@picoheart-com.20200927.dkim.feishu.cn header.b="wNQzGcVg"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
- s=s1; d=picoheart-com.20200927.dkim.feishu.cn; t=1769067297;
-  h=from:subject:mime-version:from:date:message-id:subject:to:cc:
- reply-to:content-type:mime-version:in-reply-to:message-id;
- bh=+g/3tjO+rV9WYb2Jh/rm5GHV4Veu7YSdogQYF3BcWcg=;
- b=wNQzGcVgLadD5kvUkSUhWc45cDCxqGNGk6kd/+Wz0BUSIemBHHh9+csbwE5Lol9hTFdnSx
- lnDZNlRR+79edruORKpTgTilX5NN3Df7nP4eDQjYgLTtpB2k7e+A3mO3k35LX2QkuYGqfq
- +HYh0Z6Mj8kSsz4CygQGQGIsuN/U9Jfa/UqKNGfb3YLrzCZgboO/lo9jqP4qz/u0vMPzIu
- dEM0lIys8QnUps1Lcltctl6o2i2Yrt0O5QcBr33LcrzqoQdqA2ur8uLOgJKS2xrcOBJ4vl
- QC1TbrPduy45WUvBIN30u0XxrjloAjEMU8p58mzFrI29VsImUHE+9/Z5vYaoSg==
-Date: Thu, 22 Jan 2026 15:34:46 +0800
-In-Reply-To: <20260122073446.45628-1-yang.yicong@picoheart.com>
-Content-Transfer-Encoding: 7bit
-X-Original-From: Yicong Yang <yang.yicong@picoheart.com>
-X-Lms-Return-Path: <lba+26971d31f+b5db0e+vger.kernel.org+yang.yicong@picoheart.com>
-To: <rafael@kernel.org>, <lenb@kernel.org>, <tglx@kernel.org>, 
-	<gregkh@linuxfoundation.org>, <dakr@kernel.org>
-Cc: <akpm@linux-foundation.org>, <apatel@ventanamicro.com>, <pjw@kernel.org>, 
-	<palmer@dabbelt.com>, <aou@eecs.berkeley.edu>, <alex@ghiti.fr>, 
-	<geshijian@picoheart.com>, <weidong.wd@picoheart.com>, 
-	<yang.yicong@picoheart.com>, <linux-acpi@vger.kernel.org>, 
-	<linux-kernel@vger.kernel.org>, <linux-riscv@lists.infradead.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="DO835geD"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1769068736; x=1800604736;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=7+vsgUSihk/yhbID350DXscn0/De5XxWPMepOpJ2ZwU=;
+  b=DO835geD4SN9lgD8HfsUAAuYmoOLaLlloE0vMTtYpCUQShCNxX/i5rFa
+   U/xWf4giT0hA5T/GzJmTSHyhze3YsEIZp2OyaMs9AVp7Bl81hTU9OJ5lB
+   /jHJa/1ZOIzvSnwYAHoCfwPneabL+BCfpCs7z447/qYtqG1pqlGCvntSs
+   QJr6O77fPGgmKM0wtA4eThLbkFe59ZHEBQOReZ2OauLwv3AKFblDBABh0
+   d1ICuw/Scqwr0t3m3C+a2WG+uHGs/qkHOU8WEje0LuO7C3ROeLaQ68sfq
+   iGiHM35rJq22kTDVj4Wv4AJJwJbJ3puMFws3fxCv42UbyShwqmY2pxP6w
+   Q==;
+X-CSE-ConnectionGUID: q9culMttScSoFvvtyL8DpA==
+X-CSE-MsgGUID: PiV1knWqRxG0KDMaGDtv/Q==
+X-IronPort-AV: E=McAfee;i="6800,10657,11678"; a="81415976"
+X-IronPort-AV: E=Sophos;i="6.21,245,1763452800"; 
+   d="scan'208";a="81415976"
+Received: from orviesa007.jf.intel.com ([10.64.159.147])
+  by orvoesa105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Jan 2026 23:58:55 -0800
+X-CSE-ConnectionGUID: 7tPKBUo3TXWphkzQQGm0jQ==
+X-CSE-MsgGUID: 1hMEMq5LTgm1f2aU06o68Q==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.21,245,1763452800"; 
+   d="scan'208";a="206713793"
+Received: from smoticic-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.245.225])
+  by orviesa007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Jan 2026 23:58:53 -0800
+Date: Thu, 22 Jan 2026 09:58:51 +0200
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH v2 1/1] ACPI: PCI: simplify code with
+ acpi_get_local_u64_address()
+Message-ID: <aXHYuwPiC1KAceZm@smile.fi.intel.com>
+References: <20260121085105.2282380-1-andriy.shevchenko@linux.intel.com>
+ <20260121231520.GA1221379@bhelgaas>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-From: "Yicong Yang" <yang.yicong@picoheart.com>
-Subject: [PATCH 2/2] init: Move console_on_rootfs after async_synchronize_full
-Received: from G9WYR9K0VW ([58.250.122.114]) by smtp.feishu.cn with ESMTPS; Thu, 22 Jan 2026 15:34:54 +0800
-X-Mailer: git-send-email 2.50.1
-References: <20260122073446.45628-1-yang.yicong@picoheart.com>
-Message-Id: <20260122073446.45628-3-yang.yicong@picoheart.com>
-Content-Type: text/plain; charset=UTF-8
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260121231520.GA1221379@bhelgaas>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-Currently the console_on_rootfs() is called before
-async_synchronize_full(), the console initialization
-could be still in process in theory due to async
-probe, etc. Make it after the async_synchronize_full()
-to make sure the initialization work is done.
+On Wed, Jan 21, 2026 at 05:15:20PM -0600, Bjorn Helgaas wrote:
+> On Wed, Jan 21, 2026 at 09:50:49AM +0100, Andy Shevchenko wrote:
+> > Now we have a helper so there's no need to open-code.
+> > 
+> > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> 
+> Reviewed-by: Bjorn Helgaas <bhelgaas@google.com>
 
-Log the error code as well if we failed to open the console.
+Thank you!
 
-Signed-off-by: Yicong Yang <yang.yicong@picoheart.com>
----
- init/main.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+> Looks like most drivers/acpi commits capitalize the subject line,
+> e.g., s/simplify/Simplify/
 
-diff --git a/init/main.c b/init/main.c
-index b84818ad9685..c37ba5f89b96 100644
---- a/init/main.c
-+++ b/init/main.c
-@@ -1578,6 +1578,7 @@ static int __ref kernel_init(void *unused)
- 	kernel_init_freeable();
- 	/* need to finish all async __init code before freeing the memory */
- 	async_synchronize_full();
-+	console_on_rootfs();
- 
- 	system_state = SYSTEM_FREEING_INITMEM;
- 	kprobe_free_init_mem();
-@@ -1647,7 +1648,7 @@ void __init console_on_rootfs(void)
- 	struct file *file = filp_open("/dev/console", O_RDWR, 0);
- 
- 	if (IS_ERR(file)) {
--		pr_err("Warning: unable to open an initial console.\n");
-+		pr_err("Warning: unable to open an initial console, err = %ld\n", PTR_ERR(file));
- 		return;
- 	}
- 	init_dup(file);
-@@ -1690,7 +1691,6 @@ static noinline void __init kernel_init_freeable(void)
- 	kunit_run_all_tests();
- 
- 	wait_for_initramfs();
--	console_on_rootfs();
- 
- 	/*
- 	 * check if there is an early userspace init.  If yes, let it do all
+Unless Rafael wants this to be done I would leave it for now as is,
+but I will try to remember this for the future contributions, thanks!
+
 -- 
-2.34.1
+With Best Regards,
+Andy Shevchenko
+
+
