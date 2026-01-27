@@ -1,143 +1,170 @@
-Received: from mail-dy1-f175.google.com (mail-dy1-f175.google.com [74.125.82.175])
+Received: from mail-vs1-f41.google.com (mail-vs1-f41.google.com [209.85.217.41])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3570A350D6E
-	for <linux-acpi@vger.kernel.org>; Tue, 27 Jan 2026 16:13:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.175
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13929315D53
+	for <linux-acpi@vger.kernel.org>; Tue, 27 Jan 2026 16:15:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.217.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769530429; cv=none; b=ZZrNPnuqr2GEq51LQqqKLdcy8r7e659uM+G7/YiYIwJOOmHAv1lm8nsOt81flAj4gprruAntltzzGxbxcPNznydP3ZpxT1nzF0OHTUR2YRvnkb9RpLDAM05Z+c0e2h0l5SRZOFWCi8FnB9axJlvN5pSZIdG7HG5tSw5lto4jtR4=
+	t=1769530530; cv=none; b=b239rLTg23yjGpNuNd9NujdzFkYmYTxav421dc4AESnYd/mJHHYCsp88qn+cLy8IlQJRuBOSrOhWwydSNDzUgmq6N3a64Cs8tDI+lX/ciQ6CFYFrO54dWRmnQ2TtXER9LhLrkpVkpIRY4qgZoJSkkSFzOYoUpBCITlkmF2fdo/c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769530429; c=relaxed/simple;
-	bh=y8v5V+tYIM6n3wnDXvrdbFANd4Jq/4/oDnIJmLqx420=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=G+QtL2W9EK3E/5sIbhoEE2A/7f5g27Sz8ITDlRPxiV7Zsw5bfPvVWqn7CDY1LEaZrteM961dkeSv81pXAsDPHx3LupH3+GT23DJmW+if/qqLhOYV1BnEUAOKVL71jP7XXqxrJJ9GbxVLdPB9lxCKNoiBz7bl9VM5VrOfBj/w6aE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=roeck-us.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=TyhKpQ58; arc=none smtp.client-ip=74.125.82.175
+	s=arc-20240116; t=1769530530; c=relaxed/simple;
+	bh=fJLO8mgR7MxzQJPxJHeEwCXhX/hLZZN104VEgWIUYMM=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=LhrxwSJb/ppLATtVzvyiKi4cUycIDIdnmC20or9kFmBe2ujwuWGVyKlRhDyTY8uZjZhjkSFulO+xbBVxMlFJolg1pEOKjkPqtlSvA+hEv2niE/6CEOqA31KrVdR1VYwNAoqm6G0aREUsfNR0DQj9olcZqPMP1351kt6OpT8VFzw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=roeck-us.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=V482qUjk; arc=none smtp.client-ip=209.85.217.41
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=roeck-us.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TyhKpQ58"
-Received: by mail-dy1-f175.google.com with SMTP id 5a478bee46e88-2b73112ab62so4922293eec.1
-        for <linux-acpi@vger.kernel.org>; Tue, 27 Jan 2026 08:13:48 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="V482qUjk"
+Received: by mail-vs1-f41.google.com with SMTP id ada2fe7eead31-5f548b7ab61so2765694137.3
+        for <linux-acpi@vger.kernel.org>; Tue, 27 Jan 2026 08:15:28 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1769530427; x=1770135227; darn=vger.kernel.org;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date:sender
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=foZbL69h+8hDXLGAkMe9gWFOExWjvLu/2tjx7FoVudk=;
-        b=TyhKpQ58YZbSQd6ipu7/XJocYKNnSrfQ2NZuLhjl+c2hSyz0P4bwmZrSe/Sqb3C997
-         a7VXSgtg2PAElc3/HDMBDe+uPU5VTh8F1v1RxLLTZk672ya9beXO7PBkpJwMKBJjBjhX
-         QwGoTftN9Miko+F4JSEYBNH3poDJCZAQZHQmlFNaySMgf85IZCZO0Tnf4HqJg30sST2x
-         wS2rzvP92zW2ZEgDAxY87w4fMuX2nVhW+o7WvW3t635tXvKgUZZ2MIjWjnplPUQBRXwK
-         vfJusUTnowKnuSMI6XYWTphyhQw69xKQqSzMpc02QxVyZJaw6CTHNA3v/G8eamm/zpG1
-         FN/A==
+        d=gmail.com; s=20230601; t=1769530528; x=1770135328; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:autocrypt:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:sender:from:to:cc:subject:date:message-id:reply-to;
+        bh=glwth67pMNa1uo+tDZsuuxF/rVPpQOEYq0+JJJ0P8F0=;
+        b=V482qUjkKdjY/fZMlZrl3p6OaOmu4/kSziExYnT+gWn6OWB+RzqdZBjInwU6IS+tnX
+         HLoIHgdYqqo27qom23E74LjaO0axjt/3afxei1KZgRTNdILeXy0YrJ2ecLKvvEgEhGKu
+         2egmQ7MqRh2LzpE3TLeeLOyDlyF6ofVDyybAKXAhRshuBILTlUxuxv+zPPgRFeI1hNSb
+         pMbO1fdFJFKbr6CXOL7pGwMlS8UPDpPtziUSZrGMIdyRqsA9f14/rSCSlQNtcgV7FZ6R
+         1QFdTUavlOGR06O1YCaBNKUR6O9k3BtqfFNt5uN8ZJ6IKLxZZOZqM2BaQWgp1L5Boew0
+         tTcQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1769530427; x=1770135227;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date:sender
-         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=foZbL69h+8hDXLGAkMe9gWFOExWjvLu/2tjx7FoVudk=;
-        b=LDOauOtP56b/YuiD2Y271Ra6Nl1F0NWEBvKVV0hnAnQW7xBxLwWm4Kgqed7vpW3pqP
-         9t/i9HHz8J2I6aWjZHolOxUO6dDmfX9HdlWXplBu1Ouzm/GDzetZBnbAClOpg5BOgJkX
-         Qjf6FuU93OIhlmeba3veHhS9Z32u8B9M4DORkU16fj6D27svkW5J4rBLK5wRHOHKQWfQ
-         CKrFsw+R+QCExkNRQTzvWagOHuOrEhsUhyjZ7vpwcXXRNpqr+UBI99XHkpvPR2bK2eNx
-         V78+Lgf0b74YQJb99ox/rFyW3nIhrbknNa6wZfzyzmVccmsnrkqriL6aooZk5XTp687X
-         1oiw==
-X-Forwarded-Encrypted: i=1; AJvYcCV9OZ9sps3B6MoNyrbLgDBDiqxs0bU+4HQ2WCCHqzfGOYu/kwU76xuVfCKgVFye3TDb5Hq2XNVSsaH2@vger.kernel.org
-X-Gm-Message-State: AOJu0YyyuneozaWJPyqjm+MxlO/bl6rGWHJrsmCVuarejsL+3IjDEDKJ
-	Q3NLmkoH5KIg7eDPuGuNczkg6r+Gg8F8mKV2LsQktxkMo3mAn40ztYFd
-X-Gm-Gg: AZuq6aKo8vu4YXt7gWnW8spc10R46oy8dnDmuUzgKaS9+hnbji6F+yF+k39Bz643EhB
-	N9S0peeXL1coFGUU2HkkXEsesEONhfpmVhL9srQHdG/qVcdKdMIZ1Q6EX00UBTFhwaDPd2Cnddx
-	dN17UJdeXgcBwMml1hkRaNzLqSR1VFcz4A2UX8KEn/lk69r2LO4Z5RLoIJjAQHPn1hObtm3pdtz
-	IB04DNhH7NrLDmqk1gr0G/8/igmOGJbxPC3AOpmt1KO426vmEhbAb2LIPvBJh+Lbh+zP+4ruFH2
-	3TgArSAJsbe5nJzmwf4sNaxIiT7TALGAX3sjIIsQIA6CiOQqRDR4PFHwwPRj3VkezpyjqikCYbN
-	yXmDbQInkm/9RCquZL5mdds65J33F1kL9vuO/weot01a8PjMgtWnTCrk/9K6g4htZ2inMl9FiVD
-	gSrTipxo4439lsgcHiRjTaaxF6
-X-Received: by 2002:a05:693c:3017:b0:2b7:1d38:3596 with SMTP id 5a478bee46e88-2b78d8cc6e9mr1589269eec.4.1769530427130;
-        Tue, 27 Jan 2026 08:13:47 -0800 (PST)
-Received: from server.roeck-us.net ([2600:1700:e321:62f0:da43:aeff:fecc:bfd5])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2b73a9e1b39sm17459343eec.21.2026.01.27.08.13.45
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 27 Jan 2026 08:13:46 -0800 (PST)
+        d=1e100.net; s=20230601; t=1769530528; x=1770135328;
+        h=content-transfer-encoding:in-reply-to:autocrypt:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:sender:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=glwth67pMNa1uo+tDZsuuxF/rVPpQOEYq0+JJJ0P8F0=;
+        b=J59JkLqdGNPrunKYHKe9JH1LHqavtMIV0tg7IP8wKi1i3G3nWJcORnkOR2whYnGtEI
+         p2XLhzXYbk+lcLkpg/4NolgPlcm/yoSvHQqfOPBr9SAQ8DKxiOjAPPH1Bu6fRuUffiNe
+         FCs6f7i9RHpa+ceLZjTfIUdkXeX/FQlx8bSx2i6mHbRgiOX6p0W4Ob+UtM36ztt0+nhc
+         ZYoHFrFBsGJrzB8RQMHvTyEhpgC9tHTShWzjOw2tNHywH06rnoE5JJ33YuoufkQ95Gm1
+         ikKb0/Bsl1hgf3M5hr9J8Gz3RFM+eidL6glyYsrR56dEl6TTTXgYXUJD/YEleb/krV6I
+         G3RA==
+X-Forwarded-Encrypted: i=1; AJvYcCXCoXyld0ryTlezO6/i8YN3nVcI2e9rAQWIw0rl7fTyD3brTZ+R5LLS+bpQ4UDSrVoRLCBEm5vFCVyp@vger.kernel.org
+X-Gm-Message-State: AOJu0YzlARgOrEi8o4Mek5f7b/98KypOuVcTjCHFywDM3Cz/xwCMkjrV
+	tr0nY9O//bQPJ0UXcB83cpx3dei3pIjM+ZKhsSzq+thZllE8rbfosmCLuvLZlk1x
+X-Gm-Gg: AZuq6aLlpVYgCHlf/HOrpgt0QOU4b6Kh4qg9tQEdcU9TyFgq+/V0wI3DUokJhtGh+Wh
+	9sbJEbAg3oSEA3ADdqeqTOx2O/AaU/EclpjJuOhLi9ttce1SwI0zD2l8o6pEMLZY7F34+XOq3MS
+	SJfczvyvdT8pBmC0AOT7ilwdPwoiow91tLL7QB/UoNW3uNv+/K1zJ0RAojO28DC/SR5Ls0jZwMP
+	XKhj1CiVwkchQIajSUAldtbyZl9XoW/YMtQp1wGYq/bftHc/7rFdG+FkMZmsCL28W+zJKkBUjkM
+	TUMQjpbq156Z0mXq1GdOKW9b/b3PUuBc/aAPzTZ9RWrTMe4Kr4V70OfAUTSbzqFr0EzG6irWu/I
+	I/pvRtP1zif/Q5LLGx12kRE5Z6xV+B5QMXLID9srQ5ZWt+gBigGUzvLN5ts/RvUmKChBKLNcoqq
+	lLjaSP1Kh8sBsqwr7L6QkTBOfK0iTe+4GUDHxQBGeltPFuytEChkBmFoni6tTG
+X-Received: by 2002:a17:902:ccc2:b0:295:59ef:809e with SMTP id d9443c01a7336-2a870d9a24amr18044895ad.24.1769523850026;
+        Tue, 27 Jan 2026 06:24:10 -0800 (PST)
+Received: from ?IPV6:2600:1700:e321:62f0:da43:aeff:fecc:bfd5? ([2600:1700:e321:62f0:da43:aeff:fecc:bfd5])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2a802f9762esm120834775ad.55.2026.01.27.06.24.08
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 27 Jan 2026 06:24:09 -0800 (PST)
 Sender: Guenter Roeck <groeck7@gmail.com>
-Date: Tue, 27 Jan 2026 08:13:44 -0800
-From: Guenter Roeck <linux@roeck-us.net>
-To: "lihuisong (C)" <lihuisong@huawei.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>,
-	Jaroslav Pulchart <jaroslav.pulchart@gooddata.com>,
-	linux-acpi@vger.kernel.org, linux-hwmon@vger.kernel.org,
-	Igor Raits <igor@gooddata.com>,
-	Daniel Secik <daniel.secik@gooddata.com>,
-	Zdenek Pesek <zdenek.pesek@gooddata.com>,
-	Jiri Jurica <jiri.jurica@gooddata.com>
-Subject: Re: acpi_power_meter: power*_average sysfs read hangs, mutex
- deadlock in hwmon_attr_show since v6.18.y
-Message-ID: <69665f53-a3ef-4129-afd5-5f7622f70e6b@roeck-us.net>
-References: <CAK8fFZ58fidGUCHi5WFX0uoTPzveUUDzT=k=AAm4yWo3bAuCFg@mail.gmail.com>
- <CAJZ5v0jSbGtRYkjqeuYaT3LXbeZ-xk_Gc0dbCpTZPc6nBD8eCQ@mail.gmail.com>
- <e03c8b69-e667-45b8-b82c-2cd4f1c96bdf@roeck-us.net>
- <CAJZ5v0hvKzKTWA8jFYVDHttd+hDv1juu87vgyhf2udOGbqrQdg@mail.gmail.com>
- <483f36e1-4ddc-4c22-aaba-c78156ebc0e2@huawei.com>
+Message-ID: <fff54ec8-496e-4c26-b652-358dc4de0de0@roeck-us.net>
+Date: Tue, 27 Jan 2026 06:24:08 -0800
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <483f36e1-4ddc-4c22-aaba-c78156ebc0e2@huawei.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: acpi_power_meter: power*_average sysfs read hangs, mutex deadlock
+ in hwmon_attr_show since v6.18.y
+To: Jaroslav Pulchart <jaroslav.pulchart@gooddata.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org,
+ linux-hwmon@vger.kernel.org, Igor Raits <igor@gooddata.com>,
+ Daniel Secik <daniel.secik@gooddata.com>,
+ Zdenek Pesek <zdenek.pesek@gooddata.com>,
+ Jiri Jurica <jiri.jurica@gooddata.com>, Huisong Li <lihuisong@huawei.com>
+References: <CAK8fFZ58fidGUCHi5WFX0uoTPzveUUDzT=k=AAm4yWo3bAuCFg@mail.gmail.com>
+ <CAJZ5v0jSbGtRYkjqeuYaT3LXbeZ-xk_Gc0dbCpTZPc6nBD8eCQ@mail.gmail.com>
+ <e03c8b69-e667-45b8-b82c-2cd4f1c96bdf@roeck-us.net>
+ <CAJZ5v0hvKzKTWA8jFYVDHttd+hDv1juu87vgyhf2udOGbqrQdg@mail.gmail.com>
+ <d7f34e0f-e258-4fef-93eb-1ef0a3123d95@roeck-us.net>
+ <CAK8fFZ4izdX_HDtGN60CZ3Ta61nqkUg7ncViM=mGgxKki_5FoQ@mail.gmail.com>
+ <a7334568-13ce-4600-8650-607273e67976@roeck-us.net>
+ <CAK8fFZ6gKs7s2rJ=f7bt24f+_cY-jGU33TvX3UP=U58uK-1KaQ@mail.gmail.com>
+Content-Language: en-US
+From: Guenter Roeck <linux@roeck-us.net>
+Autocrypt: addr=linux@roeck-us.net; keydata=
+ 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
+ np3900V20aS7eD9K8GTU0TGC1pyz6IVJwIE=
+In-Reply-To: <CAK8fFZ6gKs7s2rJ=f7bt24f+_cY-jGU33TvX3UP=U58uK-1KaQ@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Fri, Jan 23, 2026 at 10:53:02AM +0800, lihuisong (C) wrote:
+On 1/27/26 03:58, Jaroslav Pulchart wrote:
+...
+>>> Hello,
+>>>
+>>> Thank you for the analysis and insights.
+>>>
+>>> To add some context from our side: we observe this issue shortly after
+>>> a server reinstall or fw updates followed by a reboot, typically when
+>>> hwmon sensors are accessed for the first time (e.g. by monitoring during
+>>> early system initialization). We have not seen it trigger during normal
+>>> operation, such as a simple reboot or on long-running systems.
+>>>
+>>> Given this behavior, it is possible that the issue is related to
+>>> hwmon_device_unregister() being triggered early during system
+>>> initialization, but I do not have concrete evidence at this point.
+>>>
+>>> As a workaround, we will exclude the ACPI power meter from hwmon monitoring
+>>> (Grafana Alloy) until the mentioned refactoring or a fix becomes available.
+>>>
+>>
+>> Would it be possible for you to test the patch series I just sent out ?
 > 
-> On 1/23/2026 4:42 AM, Rafael J. Wysocki wrote:
-> > On Thu, Jan 22, 2026 at 8:51 PM Guenter Roeck <linux@roeck-us.net> wrote:
-> > > On 1/22/26 10:55, Rafael J. Wysocki wrote:
-> > > > On Thu, Jan 22, 2026 at 7:21 PM Jaroslav Pulchart
-> > > > <jaroslav.pulchart@gooddata.com> wrote:
-> > > > > Hello,
-> > > > > 
-> > > > > after upgrading from kernel 6.17.y to 6.18.y we started to observe a regression
-> > > > > in the ACPI power meter hwmon interface. Reading power*_average sysfs
-> > > > > attributes blocks indefinitely and causes tasks to enter uninterruptible
-> > > > > sleep (D state).
-> > > > The most recent change in the acpi_power_meter driver was made in
-> > > > 6.15, so this is not a regression in that driver.
-> > > > 
-> > > > Also, nothing suspicious is done in power1_average_min_show() and
-> > > > power1_average_min_store() AFAICS.
-> > > > 
-> > > I suspect a circular locking problem between the hwmon lock and the
-> > > resource lock. Unfortunately I don't immediately see it.
-> > > 
-> > > Would it be possible to test this with a kernel which has lock debugging
-> > > enabled ? I'd test it myself but I don't have a system available
-> > > that supports the acpi power meter.
-> > One problem I found in acpi_power_meter through code inspection is
-> > calling hwmon_device_unregister() under resource->lock in
-> > acpi_power_meter_notify(), which may be responsible for the observed
-> > symptoms, but then I'm not sure why it started to be visible after
-> > 6.18.
-> The hwmon_attr_show first hold hwdev->lock and then hold resource->lock in
-> acpi_power_meter driver.
-> Although driver call hwmon_device_unregister under resource->lock in
-> acpi_power_meter_notify(),
-> hwmon_device_unregister does't hold hwdev->lock.
-> So this may not be the root cause of this problem.
+> I suppose these 5 patches from
+> https://lore.kernel.org/lkml/20260123182208.2229670-1-linux@roeck-us.net/
+>   ?
 
-It might be if userspace has one or more open attribute file(s). That might
-be the case since other code in the driver calls sysfs_notify(), suggesting
-that files are expected to remain open. Of course, that would mean that
-userspace is all messed up because having an open file descriptor on a
-since unregistered hwmon device doesn't really help much - worse, if a read
-is executed after unregistering the hwmon driver, using a _different_
-instance of the hwmon lock but the same resource lock would really mess
-things up.
+Correct.
 
-We'd need some active debugging to figure out if that is the problem.
-Either case, re-registering the hwmon driver from acpi_power_meter_notify()
-is conceptually wrong, so I am a bit surprised that this ever worked in the
-first place.
+> I will try them and let you know.
+> 
+Thanks !
 
 Guenter
+
