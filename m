@@ -1,170 +1,204 @@
-Received: from mail-vs1-f41.google.com (mail-vs1-f41.google.com [209.85.217.41])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13929315D53
-	for <linux-acpi@vger.kernel.org>; Tue, 27 Jan 2026 16:15:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.217.41
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4534222A7E4
+	for <linux-acpi@vger.kernel.org>; Tue, 27 Jan 2026 16:24:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769530530; cv=none; b=b239rLTg23yjGpNuNd9NujdzFkYmYTxav421dc4AESnYd/mJHHYCsp88qn+cLy8IlQJRuBOSrOhWwydSNDzUgmq6N3a64Cs8tDI+lX/ciQ6CFYFrO54dWRmnQ2TtXER9LhLrkpVkpIRY4qgZoJSkkSFzOYoUpBCITlkmF2fdo/c=
+	t=1769531089; cv=none; b=g1m5C3su/wAgDtPmkCD4x/fBUa/wNYixB2D/ye/UdWG5kHVycGpjhhIIqgC9T3H/9kaqlyoFdXwuaMMdzYove2MJd6M1+ayWZYdHcH2UzdXgacmiCLD7dbRi0yfa1frJTrCVBbNE43U/jcSg7FA0AHhHFaRro03rFvmIEILv0Bo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769530530; c=relaxed/simple;
-	bh=fJLO8mgR7MxzQJPxJHeEwCXhX/hLZZN104VEgWIUYMM=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=LhrxwSJb/ppLATtVzvyiKi4cUycIDIdnmC20or9kFmBe2ujwuWGVyKlRhDyTY8uZjZhjkSFulO+xbBVxMlFJolg1pEOKjkPqtlSvA+hEv2niE/6CEOqA31KrVdR1VYwNAoqm6G0aREUsfNR0DQj9olcZqPMP1351kt6OpT8VFzw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=roeck-us.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=V482qUjk; arc=none smtp.client-ip=209.85.217.41
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=roeck-us.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1769531089; c=relaxed/simple;
+	bh=Mm7PNHjxKBBGvZCLiHpXhTyu74qmhr7ObXdQIYvFD28=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=cMXCOW15qPdlfjJZxPf6ABwGnawgmXhnK/BghQyypndO1NcoZ31v1V/xDNeOcPVfIiZeRqBjZjS7AtTeZcS5cackGrmUgMJeWFgAQsFx4LD19wFJHmROBNhCBAqHnI+a9i2w+bAf9+V/hNpWHB2+p61xAXKhgfLb0fu96qPHZB4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=O+3TCoob; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="V482qUjk"
-Received: by mail-vs1-f41.google.com with SMTP id ada2fe7eead31-5f548b7ab61so2765694137.3
-        for <linux-acpi@vger.kernel.org>; Tue, 27 Jan 2026 08:15:28 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1769530528; x=1770135328; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:autocrypt:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:sender:from:to:cc:subject:date:message-id:reply-to;
-        bh=glwth67pMNa1uo+tDZsuuxF/rVPpQOEYq0+JJJ0P8F0=;
-        b=V482qUjkKdjY/fZMlZrl3p6OaOmu4/kSziExYnT+gWn6OWB+RzqdZBjInwU6IS+tnX
-         HLoIHgdYqqo27qom23E74LjaO0axjt/3afxei1KZgRTNdILeXy0YrJ2ecLKvvEgEhGKu
-         2egmQ7MqRh2LzpE3TLeeLOyDlyF6ofVDyybAKXAhRshuBILTlUxuxv+zPPgRFeI1hNSb
-         pMbO1fdFJFKbr6CXOL7pGwMlS8UPDpPtziUSZrGMIdyRqsA9f14/rSCSlQNtcgV7FZ6R
-         1QFdTUavlOGR06O1YCaBNKUR6O9k3BtqfFNt5uN8ZJ6IKLxZZOZqM2BaQWgp1L5Boew0
-         tTcQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1769530528; x=1770135328;
-        h=content-transfer-encoding:in-reply-to:autocrypt:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:sender:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=glwth67pMNa1uo+tDZsuuxF/rVPpQOEYq0+JJJ0P8F0=;
-        b=J59JkLqdGNPrunKYHKe9JH1LHqavtMIV0tg7IP8wKi1i3G3nWJcORnkOR2whYnGtEI
-         p2XLhzXYbk+lcLkpg/4NolgPlcm/yoSvHQqfOPBr9SAQ8DKxiOjAPPH1Bu6fRuUffiNe
-         FCs6f7i9RHpa+ceLZjTfIUdkXeX/FQlx8bSx2i6mHbRgiOX6p0W4Ob+UtM36ztt0+nhc
-         ZYoHFrFBsGJrzB8RQMHvTyEhpgC9tHTShWzjOw2tNHywH06rnoE5JJ33YuoufkQ95Gm1
-         ikKb0/Bsl1hgf3M5hr9J8Gz3RFM+eidL6glyYsrR56dEl6TTTXgYXUJD/YEleb/krV6I
-         G3RA==
-X-Forwarded-Encrypted: i=1; AJvYcCXCoXyld0ryTlezO6/i8YN3nVcI2e9rAQWIw0rl7fTyD3brTZ+R5LLS+bpQ4UDSrVoRLCBEm5vFCVyp@vger.kernel.org
-X-Gm-Message-State: AOJu0YzlARgOrEi8o4Mek5f7b/98KypOuVcTjCHFywDM3Cz/xwCMkjrV
-	tr0nY9O//bQPJ0UXcB83cpx3dei3pIjM+ZKhsSzq+thZllE8rbfosmCLuvLZlk1x
-X-Gm-Gg: AZuq6aLlpVYgCHlf/HOrpgt0QOU4b6Kh4qg9tQEdcU9TyFgq+/V0wI3DUokJhtGh+Wh
-	9sbJEbAg3oSEA3ADdqeqTOx2O/AaU/EclpjJuOhLi9ttce1SwI0zD2l8o6pEMLZY7F34+XOq3MS
-	SJfczvyvdT8pBmC0AOT7ilwdPwoiow91tLL7QB/UoNW3uNv+/K1zJ0RAojO28DC/SR5Ls0jZwMP
-	XKhj1CiVwkchQIajSUAldtbyZl9XoW/YMtQp1wGYq/bftHc/7rFdG+FkMZmsCL28W+zJKkBUjkM
-	TUMQjpbq156Z0mXq1GdOKW9b/b3PUuBc/aAPzTZ9RWrTMe4Kr4V70OfAUTSbzqFr0EzG6irWu/I
-	I/pvRtP1zif/Q5LLGx12kRE5Z6xV+B5QMXLID9srQ5ZWt+gBigGUzvLN5ts/RvUmKChBKLNcoqq
-	lLjaSP1Kh8sBsqwr7L6QkTBOfK0iTe+4GUDHxQBGeltPFuytEChkBmFoni6tTG
-X-Received: by 2002:a17:902:ccc2:b0:295:59ef:809e with SMTP id d9443c01a7336-2a870d9a24amr18044895ad.24.1769523850026;
-        Tue, 27 Jan 2026 06:24:10 -0800 (PST)
-Received: from ?IPV6:2600:1700:e321:62f0:da43:aeff:fecc:bfd5? ([2600:1700:e321:62f0:da43:aeff:fecc:bfd5])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2a802f9762esm120834775ad.55.2026.01.27.06.24.08
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 27 Jan 2026 06:24:09 -0800 (PST)
-Sender: Guenter Roeck <groeck7@gmail.com>
-Message-ID: <fff54ec8-496e-4c26-b652-358dc4de0de0@roeck-us.net>
-Date: Tue, 27 Jan 2026 06:24:08 -0800
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="O+3TCoob"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7622C116C6
+	for <linux-acpi@vger.kernel.org>; Tue, 27 Jan 2026 16:24:48 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1769531088;
+	bh=Mm7PNHjxKBBGvZCLiHpXhTyu74qmhr7ObXdQIYvFD28=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=O+3TCoobbGE5lbquJWvD412uX+Lo4HRrbcOe9f1+mwoTljht28W33rWU3wk9vAEk3
+	 cBXngJ0WcQzZhbvWxQs2sejKrEooRb9OMfDyw8qVzsTmPUhsdNLkT/7hqYwcLKPRxh
+	 URHDlFinNh+a3fGZZvkMg0RM07YLenDu92v2EXSox/v+EQfguYdFvUldHeksp6el/E
+	 R5rU+qV1LnJXMnbmAwno/Fx/+SeHlV4oT/Lnes4e3QMtlIFHteZTg/waNc3SZo3OzS
+	 5P1AiEbAQ6Fs2vRxQhQAylqj6fhCeWZiK+EhGkp/2wdOIjtfpNYwJLlKU6mBrLIYcm
+	 yABDjHjjIIlDg==
+Received: by mail-oi1-f170.google.com with SMTP id 5614622812f47-45effa36208so184411b6e.1
+        for <linux-acpi@vger.kernel.org>; Tue, 27 Jan 2026 08:24:48 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AJvYcCVlt27dEhjOEKKiKD5L+KGY3WlQ4vjLFqExupuDE6ro6lAy4NrXByOMLLe2ob6ueOJZAmjb/oQ/KeHy@vger.kernel.org
+X-Gm-Message-State: AOJu0Ywr4KQAcSs6l/uEfUGHD4espHj2UpRIpJEFF6XJQUax1M0nwFUV
+	Lx5VXaXSYx5OVrawarbvSZFzFId3Ovw2FI4+La3KSABEmy85snjE2RA05gKeKMd/iDzSHfWNo2/
+	vJQHqAyALXgW4tpcA8WASMTNqH5Uzi/Q=
+X-Received: by 2002:a05:6808:1904:b0:450:ccef:c01f with SMTP id
+ 5614622812f47-45efc65eef8mr1065605b6e.34.1769531087995; Tue, 27 Jan 2026
+ 08:24:47 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: acpi_power_meter: power*_average sysfs read hangs, mutex deadlock
- in hwmon_attr_show since v6.18.y
-To: Jaroslav Pulchart <jaroslav.pulchart@gooddata.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org,
- linux-hwmon@vger.kernel.org, Igor Raits <igor@gooddata.com>,
- Daniel Secik <daniel.secik@gooddata.com>,
- Zdenek Pesek <zdenek.pesek@gooddata.com>,
- Jiri Jurica <jiri.jurica@gooddata.com>, Huisong Li <lihuisong@huawei.com>
-References: <CAK8fFZ58fidGUCHi5WFX0uoTPzveUUDzT=k=AAm4yWo3bAuCFg@mail.gmail.com>
- <CAJZ5v0jSbGtRYkjqeuYaT3LXbeZ-xk_Gc0dbCpTZPc6nBD8eCQ@mail.gmail.com>
- <e03c8b69-e667-45b8-b82c-2cd4f1c96bdf@roeck-us.net>
- <CAJZ5v0hvKzKTWA8jFYVDHttd+hDv1juu87vgyhf2udOGbqrQdg@mail.gmail.com>
- <d7f34e0f-e258-4fef-93eb-1ef0a3123d95@roeck-us.net>
- <CAK8fFZ4izdX_HDtGN60CZ3Ta61nqkUg7ncViM=mGgxKki_5FoQ@mail.gmail.com>
- <a7334568-13ce-4600-8650-607273e67976@roeck-us.net>
- <CAK8fFZ6gKs7s2rJ=f7bt24f+_cY-jGU33TvX3UP=U58uK-1KaQ@mail.gmail.com>
-Content-Language: en-US
-From: Guenter Roeck <linux@roeck-us.net>
-Autocrypt: addr=linux@roeck-us.net; keydata=
- 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
- np3900V20aS7eD9K8GTU0TGC1pyz6IVJwIE=
-In-Reply-To: <CAK8fFZ6gKs7s2rJ=f7bt24f+_cY-jGU33TvX3UP=U58uK-1KaQ@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+References: <20260120145623.2959636-1-sumitg@nvidia.com> <20260120145623.2959636-2-sumitg@nvidia.com>
+In-Reply-To: <20260120145623.2959636-2-sumitg@nvidia.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Tue, 27 Jan 2026 17:24:36 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0ipgGt7tetY6p0CW0jyOh9TVeWxgXpFzveTa2CaGB8ZpA@mail.gmail.com>
+X-Gm-Features: AZwV_Qg_oEiNndB5ZDCW_5HqO2fNprSPJkksUv7HA7IrMkSsJk1zm9cMtY4Gyck
+Message-ID: <CAJZ5v0ipgGt7tetY6p0CW0jyOh9TVeWxgXpFzveTa2CaGB8ZpA@mail.gmail.com>
+Subject: Re: [PATCH v6 1/9] cpufreq: CPPC: Add generic helpers for sysfs show/store
+To: Sumit Gupta <sumitg@nvidia.com>
+Cc: rafael@kernel.org, viresh.kumar@linaro.org, pierre.gondois@arm.com, 
+	zhenglifeng1@huawei.com, ionela.voinescu@arm.com, lenb@kernel.org, 
+	robert.moore@intel.com, corbet@lwn.net, rdunlap@infradead.org, 
+	ray.huang@amd.com, gautham.shenoy@amd.com, mario.limonciello@amd.com, 
+	perry.yuan@amd.com, zhanjie9@hisilicon.com, linux-pm@vger.kernel.org, 
+	linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org, 
+	acpica-devel@lists.linux.dev, linux-kernel@vger.kernel.org, 
+	linux-tegra@vger.kernel.org, treding@nvidia.com, jonathanh@nvidia.com, 
+	vsethi@nvidia.com, ksitaraman@nvidia.com, sanjayc@nvidia.com, 
+	nhartman@nvidia.com, bbasu@nvidia.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 1/27/26 03:58, Jaroslav Pulchart wrote:
-...
->>> Hello,
->>>
->>> Thank you for the analysis and insights.
->>>
->>> To add some context from our side: we observe this issue shortly after
->>> a server reinstall or fw updates followed by a reboot, typically when
->>> hwmon sensors are accessed for the first time (e.g. by monitoring during
->>> early system initialization). We have not seen it trigger during normal
->>> operation, such as a simple reboot or on long-running systems.
->>>
->>> Given this behavior, it is possible that the issue is related to
->>> hwmon_device_unregister() being triggered early during system
->>> initialization, but I do not have concrete evidence at this point.
->>>
->>> As a workaround, we will exclude the ACPI power meter from hwmon monitoring
->>> (Grafana Alloy) until the mentioned refactoring or a fix becomes available.
->>>
->>
->> Would it be possible for you to test the patch series I just sent out ?
-> 
-> I suppose these 5 patches from
-> https://lore.kernel.org/lkml/20260123182208.2229670-1-linux@roeck-us.net/
->   ?
+On Tue, Jan 20, 2026 at 3:57=E2=80=AFPM Sumit Gupta <sumitg@nvidia.com> wro=
+te:
+>
+> Add generic helper functions for u64 sysfs attributes that follow the
+> common pattern of calling CPPC get/set APIs:
+> - cppc_cpufreq_sysfs_show_u64(): reads value and handles -EOPNOTSUPP
+> - cppc_cpufreq_sysfs_store_u64(): parses input and calls set function
+>
+> Add CPPC_CPUFREQ_ATTR_RW_U64() macro to generate show/store functions
+> using these helpers, reducing boilerplate for simple attributes.
+>
+> Convert auto_act_window and energy_performance_preference_val to use
+> the new macro.
+>
+> No functional changes.
+>
+> Signed-off-by: Sumit Gupta <sumitg@nvidia.com>
+> ---
+>  drivers/cpufreq/cppc_cpufreq.c | 69 ++++++++++++----------------------
+>  1 file changed, 25 insertions(+), 44 deletions(-)
+>
+> diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufre=
+q.c
+> index 36e8a75a37f1..c95dcd7719c3 100644
+> --- a/drivers/cpufreq/cppc_cpufreq.c
+> +++ b/drivers/cpufreq/cppc_cpufreq.c
+> @@ -863,73 +863,54 @@ static ssize_t store_auto_select(struct cpufreq_pol=
+icy *policy,
+>         return count;
+>  }
+>
+> -static ssize_t show_auto_act_window(struct cpufreq_policy *policy, char =
+*buf)
+> +static ssize_t cppc_cpufreq_sysfs_show_u64(unsigned int cpu,
+> +                                          int (*get_func)(int, u64 *),
+> +                                          char *buf)
+>  {
+>         u64 val;
+> -       int ret;
+> -
+> -       ret =3D cppc_get_auto_act_window(policy->cpu, &val);
+> +       int ret =3D get_func((int)cpu, &val);
+>
+> -       /* show "<unsupported>" when this register is not supported by cp=
+c */
+>         if (ret =3D=3D -EOPNOTSUPP)
+>                 return sysfs_emit(buf, "<unsupported>\n");
+> -
+>         if (ret)
+>                 return ret;
+>
+>         return sysfs_emit(buf, "%llu\n", val);
+>  }
+>
+> -static ssize_t store_auto_act_window(struct cpufreq_policy *policy,
+> -                                    const char *buf, size_t count)
+> +static ssize_t cppc_cpufreq_sysfs_store_u64(unsigned int cpu,
+> +                                           int (*set_func)(int, u64),
+> +                                           const char *buf, size_t count=
+)
+>  {
+> -       u64 usec;
+> +       u64 val;
+>         int ret;
+>
+> -       ret =3D kstrtou64(buf, 0, &usec);
+> +       ret =3D kstrtou64(buf, 0, &val);
+>         if (ret)
+>                 return ret;
+>
+> -       ret =3D cppc_set_auto_act_window(policy->cpu, usec);
+> -       if (ret)
+> -               return ret;
+> +       ret =3D set_func((int)cpu, val);
+>
+> -       return count;
+> +       return ret ? ret : count;
+>  }
+>
+> -static ssize_t show_energy_performance_preference_val(struct cpufreq_pol=
+icy *policy, char *buf)
+> -{
+> -       u64 val;
+> -       int ret;
+> -
+> -       ret =3D cppc_get_epp_perf(policy->cpu, &val);
+> -
+> -       /* show "<unsupported>" when this register is not supported by cp=
+c */
+> -       if (ret =3D=3D -EOPNOTSUPP)
+> -               return sysfs_emit(buf, "<unsupported>\n");
+> -
+> -       if (ret)
+> -               return ret;
+> -
+> -       return sysfs_emit(buf, "%llu\n", val);
+> +#define CPPC_CPUFREQ_ATTR_RW_U64(_name, _get_func, _set_func)          \
+> +static ssize_t show_##_name(struct cpufreq_policy *policy, char *buf)  \
+> +{                                                                      \
+> +       return cppc_cpufreq_sysfs_show_u64(policy->cpu, _get_func, buf);\
+> +}                                                                      \
+> +static ssize_t store_##_name(struct cpufreq_policy *policy,            \
+> +                            const char *buf, size_t count)             \
+> +{                                                                      \
+> +       return cppc_cpufreq_sysfs_store_u64(policy->cpu, _set_func,     \
+> +                                           buf, count);                \
+>  }
+>
+> -static ssize_t store_energy_performance_preference_val(struct cpufreq_po=
+licy *policy,
+> -                                                      const char *buf, s=
+ize_t count)
+> -{
+> -       u64 val;
+> -       int ret;
+> +CPPC_CPUFREQ_ATTR_RW_U64(auto_act_window, cppc_get_auto_act_window,
+> +                        cppc_set_auto_act_window)
+>
+> -       ret =3D kstrtou64(buf, 0, &val);
+> -       if (ret)
+> -               return ret;
+> -
+> -       ret =3D cppc_set_epp(policy->cpu, val);
+> -       if (ret)
+> -               return ret;
+> -
+> -       return count;
+> -}
+> +CPPC_CPUFREQ_ATTR_RW_U64(energy_performance_preference_val,
+> +                        cppc_get_epp_perf, cppc_set_epp)
+>
+>  cpufreq_freq_attr_ro(freqdomain_cpus);
+>  cpufreq_freq_attr_rw(auto_select);
+> --
 
-Correct.
+It looks like this patch could be applied independently of the other
+patches in the series.
 
-> I will try them and let you know.
-> 
-Thanks !
-
-Guenter
-
+Do you want me to do so?
