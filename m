@@ -1,161 +1,83 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4477024A078
-	for <linux-acpi@vger.kernel.org>; Tue, 27 Jan 2026 07:30:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1DC821A447;
+	Tue, 27 Jan 2026 08:08:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.12
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769499037; cv=none; b=J7V/amuBYFBoeYUhZbQ46f9tdgm8G2E8Z7svNkGGv1TADtCZnSFA5geQ86BMUQXUQjflxNwk1J/7yC2mHDt7fY3rBqeN3ib1N+lKeqIwfMh0QJB5RQjCaTtYmo4GYZszySlQXEKmlJRKOECnhnpNJDVFtJwrS7csl727B87ngnw=
+	t=1769501286; cv=none; b=g6GkoQDtDEU1aTgfSu0YKUUq9yJmsGewpVbaZ8PmZkEppFxqLhAZEv7dKD9BAomD7Bhk7UC6zGxGRagV8qGDw3yPJHTV0seteybNNZO4ftdDv/UPPhkD283hP785mZZ3gmB4TcvW8tQt3HJzjHCV1IphlvUtluBoiPgSH9Yllos=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769499037; c=relaxed/simple;
-	bh=/tlF0qpjxkjcAo75X8yPk1jutjNRUNTQzbswh7afmqI=;
-	h=Date:Message-ID:From:To:Cc:Subject:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=L/YLHZBF5tBrizq7XzlFyZ1K34bizw963IBfcGyXuhEgx04xCz5nqZHeAA8XG6rpAxUABQE0zvVZljose51JWmrRQD7Vvg/yRQMHt1FUJ9PYpiw5u9rdAHarVZq57UvBPR40uk/1Z4IHjEnSyGT2/9AuKEBdc/EyqhU1/B9r7zA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=zSCBeS4D; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=Vpd6tUbX; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=zSCBeS4D; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=Vpd6tUbX; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1769501286; c=relaxed/simple;
+	bh=oF3IoeobJxMEeLSxYINywFJrFZWabtnbb3YnMtFwqhE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=SXZ6NG8ereabiywtUxeqi3aJUy7uo+oMdyat1dewq78CJ7oKoq/UopKoBWZuEeGBYKjZVEG4ttp+igD65nfb5Bq1ZXaWFMU1paAbpIy1tHZ6jCVjgbwguhZPHIfQC9LioNkOR3frCqm7LhrBdN9eksxNaxrYk3QM966TZLw2wUs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=VkhWaeRI; arc=none smtp.client-ip=198.175.65.12
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="zSCBeS4D";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="Vpd6tUbX";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="zSCBeS4D";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="Vpd6tUbX"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 9400833769;
-	Tue, 27 Jan 2026 07:30:34 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1769499034; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=QPYKzOnVrupxhzXKWPZL7mjv2UMNPeqUIY4E5ULDHLI=;
-	b=zSCBeS4DDmZfLPHK/5pqsgBKRVqx52nvcuA5F2SDLaE/HV4IOgDSeJ68QaBgDCXHLFzCT8
-	gB9+hzevRUSjijFnKQrwSaUgbCneWjsJxOrHxazWQtdQvFq4hdH1no+Me+r6COTLKd5ErL
-	br4ff/NUNrD3HZYYZHmmWkXrHjpHThQ=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1769499034;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=QPYKzOnVrupxhzXKWPZL7mjv2UMNPeqUIY4E5ULDHLI=;
-	b=Vpd6tUbXV7tTOAP4lq4PXYq8lhNGp9Zjbv4jher7SaBuiddWO8kMIHIE+asgswcl9XsR+C
-	0jhxS6wdO0D6E6DQ==
-Authentication-Results: smtp-out1.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1769499034; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=QPYKzOnVrupxhzXKWPZL7mjv2UMNPeqUIY4E5ULDHLI=;
-	b=zSCBeS4DDmZfLPHK/5pqsgBKRVqx52nvcuA5F2SDLaE/HV4IOgDSeJ68QaBgDCXHLFzCT8
-	gB9+hzevRUSjijFnKQrwSaUgbCneWjsJxOrHxazWQtdQvFq4hdH1no+Me+r6COTLKd5ErL
-	br4ff/NUNrD3HZYYZHmmWkXrHjpHThQ=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1769499034;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=QPYKzOnVrupxhzXKWPZL7mjv2UMNPeqUIY4E5ULDHLI=;
-	b=Vpd6tUbXV7tTOAP4lq4PXYq8lhNGp9Zjbv4jher7SaBuiddWO8kMIHIE+asgswcl9XsR+C
-	0jhxS6wdO0D6E6DQ==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 3170913712;
-	Tue, 27 Jan 2026 07:30:34 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id WHO5CpppeGlmawAAD6G6ig
-	(envelope-from <tiwai@suse.de>); Tue, 27 Jan 2026 07:30:34 +0000
-Date: Tue, 27 Jan 2026 08:30:33 +0100
-Message-ID: <87h5s7pl5y.wl-tiwai@suse.de>
-From: Takashi Iwai <tiwai@suse.de>
-To: gongqi <550230171hxy@gmail.com>
-Cc: rafael@kernel.org,
-	dmitry.torokhov@gmail.com,
-	Shyam-sundar.S-k@amd.com,
-	hansg@kernel.org,
-	ilpo.jarvinen@linux.intel.com,
-	perex@perex.cz,
-	tiwai@suse.com,
-	linux-acpi@vger.kernel.org,
-	linux-input@vger.kernel.org,
-	platform-driver-x86@vger.kernel.org,
-	linux-sound@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 4/4] ALSA: hda/conexant: Add headset mic fix for MECHREVO Wujie 15X Pro
-In-Reply-To: <20260122155501.376199-5-550230171hxy@gmail.com>
-References: <20260122155501.376199-1-550230171hxy@gmail.com>
-	<20260122155501.376199-5-550230171hxy@gmail.com>
-User-Agent: Wanderlust/2.15.9 (Almost Unreal) Emacs/30.2 Mule/6.0
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="VkhWaeRI"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1769501285; x=1801037285;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=oF3IoeobJxMEeLSxYINywFJrFZWabtnbb3YnMtFwqhE=;
+  b=VkhWaeRI4JxIn2ChWhahw1oud7MxOdqul7qrEmTEG2gw+pvp+3pjAkEd
+   seMnkCwxI1lQPJ6KIigqC3MLxqwqw6eiiJscQNntd0t2YX24xSxQgXINI
+   aGkw6dF0I/g02n+b4BC/E9zDzBMtAO4D01X/4hO3NjXC9hJS3mVVcw0qB
+   HsbdklrQjI33WN/ORiiQyJN39tVk3IU1aU3DJB4fLxEcgylOprYdJSkeg
+   8aP6szOXpwcovjGsjTJUmzTAze7LNwkxYlm2HcXJ79oNjwr1lGkwP0HvA
+   PwuU3Gd1OdnUiRpG6mLxB3vaoz390kDaA9FvLtlM0RrPeGpkNGD5OLmPH
+   w==;
+X-CSE-ConnectionGUID: /odgnCvdSmquKtV30eXxGw==
+X-CSE-MsgGUID: Ul6gbpDfRuKr1pzWeRf2Wg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11683"; a="82117801"
+X-IronPort-AV: E=Sophos;i="6.21,256,1763452800"; 
+   d="scan'208";a="82117801"
+Received: from fmviesa002.fm.intel.com ([10.60.135.142])
+  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Jan 2026 00:08:04 -0800
+X-CSE-ConnectionGUID: BphpS31ZQyqrifjhAXNbKQ==
+X-CSE-MsgGUID: fpCgC6kKRb6GUDFTHblp5Q==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.21,256,1763452800"; 
+   d="scan'208";a="230862365"
+Received: from black.igk.intel.com ([10.91.253.5])
+  by fmviesa002.fm.intel.com with ESMTP; 27 Jan 2026 00:08:01 -0800
+Received: by black.igk.intel.com (Postfix, from userid 1001)
+	id BC4E998; Tue, 27 Jan 2026 09:07:59 +0100 (CET)
+Date: Tue, 27 Jan 2026 09:07:59 +0100
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+To: Denis Sergeev <denserg.edu@gmail.com>
+Cc: westeri@kernel.org, andriy.shevchenko@linux.intel.com,
+	linusw@kernel.org, brgl@kernel.org, linux-gpio@vger.kernel.org,
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+	lvc-project@linuxtesting.org
+Subject: Re: [PATCH] gpiolib: acpi: use BIT_ULL() for u64 mask in address
+ space handler
+Message-ID: <20260127080759.GY2275908@black.igk.intel.com>
+References: <20260126035914.16586-1-denserg.edu@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0 (generated by SEMI-EPG 1.14.7 - "Harue")
-Content-Type: text/plain; charset=US-ASCII
-X-Spamd-Result: default: False [-1.80 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	SUSPICIOUS_RECIPS(1.50)[];
-	MID_CONTAINS_FROM(1.00)[];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	RCVD_TLS_ALL(0.00)[];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	FREEMAIL_ENVRCPT(0.00)[gmail.com];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	ARC_NA(0.00)[];
-	RCPT_COUNT_TWELVE(0.00)[13];
-	TAGGED_RCPT(0.00)[];
-	FREEMAIL_TO(0.00)[gmail.com];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FROM_HAS_DN(0.00)[];
-	FREEMAIL_CC(0.00)[kernel.org,gmail.com,amd.com,linux.intel.com,perex.cz,suse.com,vger.kernel.org];
-	TO_DN_SOME(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:mid,imap1.dmz-prg2.suse.org:helo]
-X-Spam-Flag: NO
-X-Spam-Score: -1.80
-X-Spam-Level: 
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20260126035914.16586-1-denserg.edu@gmail.com>
 
-On Thu, 22 Jan 2026 16:55:01 +0100,
-gongqi wrote:
+On Mon, Jan 26, 2026 at 06:59:14AM +0300, Denis Sergeev wrote:
+> The BIT() macro uses unsigned long, which is 32 bits on 32-bit
+> architectures. When iterating over GPIO pins with index >= 32,
+> the expression (*value & BIT(i)) causes undefined behavior due
+> to shifting by a value >= type width.
 > 
-> The headset microphone on the MECHREVO Wujie 15X Pro requires the
-> CXT_FIXUP_HEADSET_MIC quirk to function properly. Add the PCI SSID
-> (0x1d05:0x3012) to the quirk table.
+> Since 'value' is a pointer to u64, use BIT_ULL() to ensure correct
+> 64-bit mask on all architectures.
 > 
-> Signed-off-by: gongqi <550230171hxy@gmail.com>
-
-Applied to for-next branch of sound.git tree.  Thanks.
-
-
-Takashi
-
-
-> ---
->  sound/hda/codecs/conexant.c | 1 +
->  1 file changed, 1 insertion(+)
+> Found by Linux Verification Center (linuxtesting.org) with Svace.
 > 
-> diff --git a/sound/hda/codecs/conexant.c b/sound/hda/codecs/conexant.c
-> index 5fcbc1312c697..2384e64eada36 100644
-> --- a/sound/hda/codecs/conexant.c
-> +++ b/sound/hda/codecs/conexant.c
-> @@ -1123,6 +1123,7 @@ static const struct hda_quirk cxt5066_fixups[] = {
->  	SND_PCI_QUIRK_VENDOR(0x17aa, "Thinkpad/Ideapad", CXT_FIXUP_LENOVO_XPAD_ACPI),
->  	SND_PCI_QUIRK(0x1c06, 0x2011, "Lemote A1004", CXT_PINCFG_LEMOTE_A1004),
->  	SND_PCI_QUIRK(0x1c06, 0x2012, "Lemote A1205", CXT_PINCFG_LEMOTE_A1205),
-> +	SND_PCI_QUIRK(0x1d05, 0x3012, "MECHREVO Wujie 15X Pro", CXT_FIXUP_HEADSET_MIC),
->  	HDA_CODEC_QUIRK(0x2782, 0x12c3, "Sirius Gen1", CXT_PINCFG_TOP_SPEAKER),
->  	HDA_CODEC_QUIRK(0x2782, 0x12c5, "Sirius Gen2", CXT_PINCFG_TOP_SPEAKER),
->  	{}
-> -- 
-> 2.43.0
-> 
+> Fixes: 2c4d00cb8fc5 ("gpiolib: acpi: Use BIT() macro to increase readability")
+> Signed-off-by: Denis Sergeev <denserg.edu@gmail.com>
+
+Reviewed-by: Mika Westerberg <westeri@kernel.org>
