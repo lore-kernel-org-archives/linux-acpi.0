@@ -1,62 +1,96 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68AFF1E5B70;
-	Wed, 28 Jan 2026 12:48:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D12071F19A;
+	Wed, 28 Jan 2026 12:57:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.10
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769604488; cv=none; b=oi3g/lQkzZg+h2NXBIR0YKJv5HnGtKMaUQLGBA5EWBWnCXnEtiR4DHQI7pJlZI5IuKEoXQd6PFn+S7UBJzKIPaDt79yKgW2bg7RpEHRAEEvDOex0AZ98prVgHxkP7LSI+Vzp2ycytaVQAzFqdvizVAv5CLgY6Urmo1o5nMpMMrU=
+	t=1769605074; cv=none; b=MlXze9hmFerIgC4p7tn3vVh5bPSI7UQFMOLO7AWZVttBNW83gnr1WfFETrqU6X7pszvi9rKuvitbR+0vrRIlIYAbjhuBCB6sjFTNwGMpO+S15N7eaBqTTElq7bCPbv74wPmAt3RxexQr17KlSVXA2Dqpi2SajW4JzPBp1dNaex0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769604488; c=relaxed/simple;
-	bh=cYO6crenLBEK2opbHoNH4cg+Jq0cJyPTTPSva7fZ8nA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=L8xZ4b1B1qeZpalf4dDWez4Ja60MzIetWWoV1LLhIcCiVPTXQoOrhmgyhPxrsP8Kq+JL9lCWmXRMI6nRIeqaaf8a7WJSnPQNHSTW5EW360k5ZumcLNDKy+YiXcAiS8IQo0RapR9P4OsvxS6dsnmRqTsxmhoaSJ+cy+rijqwbyK0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QrNUFQfm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769605074; c=relaxed/simple;
+	bh=qbf35OlwUkZOyPAcdORYU57DxrgU4Du9gKzdljfWqjs=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=BObswx2Gs7AIDuncU8nyOJTi13YkqpLw/YdYxUU1ACK+YGPcFanj/9s5MqQEdheR80F8bWo9wZT1UeNPbrQtMRoDA9Jx8plyW4EmV0OHOx9VCxGSGlauSCh7B/+Q225KyBjgFb7lcdkkMu1eCVihEWuOmfQnUrYVqoqfDjD/ZaI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Djq36+xO; arc=none smtp.client-ip=192.198.163.10
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QrNUFQfm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85AADC4CEF1;
-	Wed, 28 Jan 2026 12:48:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1769604488;
-	bh=cYO6crenLBEK2opbHoNH4cg+Jq0cJyPTTPSva7fZ8nA=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=QrNUFQfm7R4xG/m8UYnPHNznqAECvb6T53ZKhH3cZ4bcxiQZZ7OMc/bH/rh9nN+C0
-	 ++REgKN0F4neIB8i66JX4R40Uk56c86p1QSSkz8pez4nIYsrkEZbyFuyBy+/VdU1zL
-	 0nSA0YBFbqcf9RCr3TeMLgUDJjVRU/qwF8mCN/awpZRWpg3LHtmFxzoeXpxD7vPf1G
-	 379qPLdE5Jcc2s0Ow3ePrkfONXB60rrmDPi7KRk6xc7kYOWPYUtw5u1GVwLZlNTgKF
-	 iL/q9A0Ao9/8J+L/nzHZkUreIl5sV3tneisthCTgjFgqs7ZT0WdfHsMC9Fvh5dm6te
-	 Rji9MKItIVJQw==
-Date: Wed, 28 Jan 2026 12:48:04 +0000
-From: Sudeep Holla <sudeep.holla@kernel.org>
-To: "Peng Fan (OSS)" <peng.fan@oss.nxp.com>
-Cc: Jassi Brar <jassisinghbrar@gmail.com>, Beleswar Padhi <b-padhi@ti.com>,
-	Andrew Davis <afd@ti.com>, Yuntao Dai <d1581209858@live.com>,
-	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-	mailbox@lists.linux.dev, Peng Fan <peng.fan@nxp.com>
-Subject: Re: [PATCH v2] mailbox: Remove mailbox_client.h from controller
- drivers
-Message-ID: <aXoFhMUKIvsP-DVd@bogus>
-References: <20260128-mailbox-v1-v2-1-54936bb08f15@nxp.com>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Djq36+xO"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1769605073; x=1801141073;
+  h=from:to:cc:in-reply-to:references:subject:message-id:
+   date:mime-version:content-transfer-encoding;
+  bh=qbf35OlwUkZOyPAcdORYU57DxrgU4Du9gKzdljfWqjs=;
+  b=Djq36+xO6ZEW51LAmiy1aVJzNtiYpzeTFakcY676rTK3tLHAeURQ0Cer
+   LgQBOEFMsvvIL2kj8Tb6bYRRhCS1zLxDiR2Hk6KX/sfn9uwryNCsNRC2l
+   UyZkVRkueZRyEKBwkQJbM2BNqxkkAbb4plEZ3ZGU/+xQH62sgOXFSeg44
+   K92rJUgh78e1s8iLUruUpK83UpC5g4aBCJPz6boE7YBoJtrth+yZzJnPN
+   pZW5TyUpT+QUlA5Vy18X67FiA1hANW269AZ+GuCHkI1yoMBrE8CoBZLsp
+   NP4omNpjrOpDntoJzvNzP/V5v6ywk0DMRK1Oq8Y5UfY95iol5eO6AY5rg
+   A==;
+X-CSE-ConnectionGUID: 62IgcWlbRQqCfGsfk3XATQ==
+X-CSE-MsgGUID: 3yMmiem/RVufgEcpQC8N3w==
+X-IronPort-AV: E=McAfee;i="6800,10657,11684"; a="82182510"
+X-IronPort-AV: E=Sophos;i="6.21,258,1763452800"; 
+   d="scan'208";a="82182510"
+Received: from orviesa008.jf.intel.com ([10.64.159.148])
+  by fmvoesa104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Jan 2026 04:57:52 -0800
+X-CSE-ConnectionGUID: yoLXo3oKRl+N5S2rOA9BKA==
+X-CSE-MsgGUID: iGZyOTAqSvuRjxE6+sRVng==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.21,258,1763452800"; 
+   d="scan'208";a="208277236"
+Received: from ijarvine-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.245.14])
+  by orviesa008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Jan 2026 04:57:49 -0800
+From: =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
+To: Hans de Goede <hansg@kernel.org>, 
+ "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, 
+ Linux ACPI <linux-acpi@vger.kernel.org>, 
+ platform-driver-x86@vger.kernel.org, 
+ Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+In-Reply-To: <12825381.O9o76ZdvQC@rafael.j.wysocki>
+References: <12825381.O9o76ZdvQC@rafael.j.wysocki>
+Subject: Re: [PATCH v1] platform/x86: classmate-laptop: Add missing NULL
+ pointer checks
+Message-Id: <176960506373.3435.18235456408554056722.b4-ty@linux.intel.com>
+Date: Wed, 28 Jan 2026 14:57:43 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260128-mailbox-v1-v2-1-54936bb08f15@nxp.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.13.0
 
-On Wed, Jan 28, 2026 at 08:32:10PM +0800, Peng Fan (OSS) wrote:
-> From: Peng Fan <peng.fan@nxp.com>
+On Mon, 26 Jan 2026 21:02:40 +0100, Rafael J. Wysocki wrote:
+
+> In a few places in the Classmate laptop driver, code using the accel
+> object may run before that object's address is stored in the driver
+> data of the input device using it.
 > 
-> mailbox_client.h should be used by mailbox consumer drivers, not mailbox
-> controller (provider) drivers. The affected drivers do not use any mailbox
-> client APIs, so the include can be safely removed.
->
+> For example, cmpc_accel_sensitivity_store_v4() is the "show" method
+> of cmpc_accel_sensitivity_attr_v4 which is added in cmpc_accel_add_v4(),
+> before calling dev_set_drvdata() for inputdev->dev.  If the sysfs
+> attribute is accessed prematurely, the dev_get_drvdata(&inputdev->dev)
+> call in in cmpc_accel_sensitivity_store_v4() returns NULL which
+> leads to a NULL pointer dereference going forward.
+> 
+> [...]
 
-Reviewed-by: Sudeep Holla <sudeep.holla@kernel.org>
 
--- 
-Regards,
-Sudeep
+Thank you for your contribution, it has been applied to my local
+review-ilpo-fixes branch. Note it will show up in the public
+platform-drivers-x86/review-ilpo-fixes branch only once I've pushed my
+local branch there, which might take a while.
+
+The list of commits applied:
+[1/1] platform/x86: classmate-laptop: Add missing NULL pointer checks
+      commit: fe747d7112283f47169e9c16e751179a9b38611e
+
+--
+ i.
+
