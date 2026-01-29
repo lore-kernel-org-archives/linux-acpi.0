@@ -1,38 +1,38 @@
-Received: from canpmsgout07.his.huawei.com (canpmsgout07.his.huawei.com [113.46.200.222])
+Received: from canpmsgout05.his.huawei.com (canpmsgout05.his.huawei.com [113.46.200.220])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6716E7478;
-	Thu, 29 Jan 2026 04:14:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.222
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC79B2C15A0;
+	Thu, 29 Jan 2026 04:14:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.220
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769660080; cv=none; b=FtJWZQ8wazkfLjkWlLKy0cOIu+GDJYWRwefeRGn7aoDKLwviBuciTT5C5Cqw5hvcWFe/suOUtkBDRPsVbbteHrvbcta/z23Fa+jUXTz8Tfh1+q/nIrjS4vvrgpaRUtuBLeBpQkI6lRSiGChg8lJ9nbXsZw3ycFzrjo5JmhDUkuc=
+	t=1769660087; cv=none; b=E+0e9FjnErOccGXqRbBOv4geujCMuxLo1PlzngepskudJlTD8g5ujHUg88FqBtr4LSFkr+cFq+SDJV71Qfzg7Jsgkk7nuMWyR5JMzsPE32RqZgCsB+OIaw1R0vxnhqSiGBeeh56GW/k5GWnxWU+yFYM+54eAQ2v8AtGOpRvwYno=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769660080; c=relaxed/simple;
-	bh=E6q2/VrZ9ELAnn5GuCJm5IUTLz7o1aAFQFjxdzw5usI=;
+	s=arc-20240116; t=1769660087; c=relaxed/simple;
+	bh=frWWlfqTkFBqcVJmA7sIvGoSuLa1TYzljRZKHxjTUV4=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=Xa9PYjFY5Z+vTsAbhl/CYL0QhIPs8UxBVBrQQSKWO+s0HMmb1nySCqomPkEiB8TfTIvY/pXLjaGeVAU63RynXQYbkOi4xf8ETGWQy1v1e5eZYwC/EU0ArfOXCaqtIQ8qfraGIguZ8RUaFEhI9hY3c6sSH1Ndpldt1gj9Ylv0xEk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=Y2WTxmyJ; arc=none smtp.client-ip=113.46.200.222
+	 MIME-Version:Content-Type; b=HatZ6hFYanJ+ohSUe5PSB2mVyc7wxu01p7eZIFEeHWloFiESNhL8i0QCUpTTszxHb8g+9CG0viYSdIKZYBB2loAQucE+Gd9WoeXiEOcQ7lpOBdDq1NovYm0yurxAmyNr1gd67wXkQrWegKX56SczOfOGZM89SdzrghRfrV1sZls=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=nteRaeOV; arc=none smtp.client-ip=113.46.200.220
 Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=h-partners.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="Y2WTxmyJ"
+	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="nteRaeOV"
 dkim-signature: v=1; a=rsa-sha256; d=h-partners.com; s=dkim;
 	c=relaxed/relaxed; q=dns/txt;
 	h=From;
-	bh=ktQ1ErrXJLweZ2VUDJa/pKteFm448tMGx38WMYAYBKs=;
-	b=Y2WTxmyJKeKJsRJtykoefInTdHg5HLNx1x+cP55C/Z5PLfSXyc0gsf3ojk1K0tPYm/rF1vcoz
-	CrMkl7A4a7PKyJG6aiehl+Ge3WFbX7W8HMB16GDeG0991XKlT34FeiNIhypQtk3ay06fObK990U
-	A22bOddnRmugJhV0q4eR7lI=
-Received: from mail.maildlp.com (unknown [172.19.163.214])
-	by canpmsgout07.his.huawei.com (SkyGuard) with ESMTPS id 4f1m0W3pGFzLlSZ;
-	Thu, 29 Jan 2026 12:11:07 +0800 (CST)
-Received: from dggemv706-chm.china.huawei.com (unknown [10.3.19.33])
-	by mail.maildlp.com (Postfix) with ESMTPS id 55D5B40561;
-	Thu, 29 Jan 2026 12:14:35 +0800 (CST)
+	bh=uEZciVNglLPo/NJy8njNxpJowXxoedjz4Gzym97YaDA=;
+	b=nteRaeOVEgXoNRiDjb50tI1/DBlcZw84BajJGuFpLaqNF4qA0oaJSQtyWbhGnhdI5/zPhZWyv
+	xqlmjqy3xwWPsAO6IiIu+2OrNjNIlwcmHUMO2G0Wx7f0HFkeDflAtmtMYwC6pjfKOA5bgJJCE7n
+	yqtD6E3Rx8PN07JLryP8REM=
+Received: from mail.maildlp.com (unknown [172.19.162.197])
+	by canpmsgout05.his.huawei.com (SkyGuard) with ESMTPS id 4f1m010c2wz12Lc6;
+	Thu, 29 Jan 2026 12:10:41 +0800 (CST)
+Received: from dggemv705-chm.china.huawei.com (unknown [10.3.19.32])
+	by mail.maildlp.com (Postfix) with ESMTPS id DF06940363;
+	Thu, 29 Jan 2026 12:14:34 +0800 (CST)
 Received: from kwepemn100009.china.huawei.com (7.202.194.112) by
- dggemv706-chm.china.huawei.com (10.3.19.33) with Microsoft SMTP Server
+ dggemv705-chm.china.huawei.com (10.3.19.32) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Thu, 29 Jan 2026 12:14:35 +0800
+ 15.2.1544.11; Thu, 29 Jan 2026 12:14:34 +0800
 Received: from localhost.localdomain (10.50.163.32) by
  kwepemn100009.china.huawei.com (7.202.194.112) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
@@ -43,9 +43,9 @@ CC: <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
 	<linuxarm@huawei.com>, <jonathan.cameron@huawei.com>,
 	<zhanjie9@hisilicon.com>, <zhenglifeng1@huawei.com>, <yubowen8@huawei.com>,
 	<zhangpengjie2@huawei.com>, <wangzhi12@huawei.com>, <lihuisong@huawei.com>
-Subject: [PATCH 2/2] ACPI: processor: Remove redundant static variable and rename cstate check function
-Date: Thu, 29 Jan 2026 12:14:33 +0800
-Message-ID: <20260129041433.3458902-3-lihuisong@huawei.com>
+Subject: [PATCH 1/2] ACPI: processor: Remove redundant cstate check in power init
+Date: Thu, 29 Jan 2026 12:14:32 +0800
+Message-ID: <20260129041433.3458902-2-lihuisong@huawei.com>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20260129041433.3458902-1-lihuisong@huawei.com>
 References: <20260129041433.3458902-1-lihuisong@huawei.com>
@@ -60,62 +60,31 @@ Content-Type: text/plain
 X-ClientProxiedBy: kwepems500001.china.huawei.com (7.221.188.70) To
  kwepemn100009.china.huawei.com (7.202.194.112)
 
-The function acpi_processor_cstate_first_run_checks() is currently called
-only once during initialization in acpi_processor_register_idle_driver().
-Because its execution is already limited by the caller's lifecycle, the
-internal static 'first_run' variable is redundant and can be safely
-removed.  Additionally, the current function name is no longer descriptive
-of its behavior.  Rename the function to acpi_processor_update_max_cstate()
-to better reflect its actual purpose.
+The function acpi_processor_cstate_first_run_checks() is responsible
+for updating max_cstate and performing initial hardware validation.
+Currently, this function is invoked within acpi_processor_power_init().
+However, the initialization flow already ensures this is called during
+acpi_processor_register_idle_driver().  Therefore, the call in
+acpi_processor_power_init() is redundant and effectively performs no work.
 
 Signed-off-by: Huisong Li <lihuisong@huawei.com>
 ---
- drivers/acpi/processor_idle.c | 12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+ drivers/acpi/processor_idle.c | 2 --
+ 1 file changed, 2 deletions(-)
 
 diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index 083f85c0d530..35b55081bc10 100644
+index 1f6d4060c1f2..083f85c0d530 100644
 --- a/drivers/acpi/processor_idle.c
 +++ b/drivers/acpi/processor_idle.c
-@@ -819,19 +819,13 @@ static void acpi_processor_setup_cstates(struct acpi_processor *pr)
- 	drv->state_count = count;
- }
- 
--static inline void acpi_processor_cstate_first_run_checks(void)
-+static inline void acpi_processor_update_max_cstate(void)
- {
--	static int first_run;
--
--	if (first_run)
--		return;
- 	dmi_check_system(processor_power_dmi_table);
- 	max_cstate = acpi_processor_cstate_check(max_cstate);
- 	if (max_cstate < ACPI_C_STATES_MAX)
- 		pr_notice("processor limited to max C-state %d\n", max_cstate);
- 
--	first_run++;
--
- 	if (nocst)
+@@ -1432,8 +1432,6 @@ void acpi_processor_power_init(struct acpi_processor *pr)
+ 	if (disabled_by_idle_boot_param())
  		return;
  
-@@ -840,7 +834,7 @@ static inline void acpi_processor_cstate_first_run_checks(void)
- #else
+-	acpi_processor_cstate_first_run_checks();
+-
+ 	if (!acpi_processor_get_power_info(pr))
+ 		pr->flags.power_setup_done = 1;
  
- static inline int disabled_by_idle_boot_param(void) { return 0; }
--static inline void acpi_processor_cstate_first_run_checks(void) { }
-+static inline void acpi_processor_update_max_cstate(void) { }
- static int acpi_processor_get_cstate_info(struct acpi_processor *pr)
- {
- 	return -ENODEV;
-@@ -1391,7 +1385,7 @@ void acpi_processor_register_idle_driver(void)
- 		if (!pr)
- 			continue;
- 
--		acpi_processor_cstate_first_run_checks();
-+		acpi_processor_update_max_cstate();
- 		ret = acpi_processor_get_power_info(pr);
- 		if (!ret) {
- 			pr->flags.power_setup_done = 1;
 -- 
 2.33.0
 
