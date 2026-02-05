@@ -1,234 +1,168 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from DU2PR03CU002.outbound.protection.outlook.com (mail-northeuropeazolkn19011030.outbound.protection.outlook.com [52.103.32.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA8791F3D56
-	for <linux-acpi@vger.kernel.org>; Thu,  5 Feb 2026 19:42:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770320557; cv=none; b=HdkFPiOud5FrIyB6fINzTuzHQeIPqAzAwyRkJQ34jJeWx6S4MERde/vWbCysTW4zcKyDb28oQLmFUwQiUy3Iw5b+c7R0Ci5mlh6SL9HBQe3HzSeuFYaYdGT6J3MEF1SAXbcbGQUSpHsTeUB/QQf5drJAEOmfAl+ClxAwuuKH7ZI=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770320557; c=relaxed/simple;
-	bh=5WVz5Jep1PszBcH0ttRMBL3JFtE4hrI25hoBStHHHps=;
-	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=VFUy0D1kquOBcV6DGMKu9rIpPKWpTBXpjCT6BsL/TbgRNUCJHgJeQTrZdXIZaycPO2HCYF73wj2JgiXjaHJdlmWvACxwjpAqjACdNoCZAUPsZwWY3DBgQ9Tqq7KaxFnqrFaXI1uVdZrhmWqUmJaW1K3O3lj8A6V6a4k2cRtw+BU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=M9qSoCP5; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E41A31AA8E;
+	Thu,  5 Feb 2026 22:06:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.103.32.30
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1770329193; cv=fail; b=Q/kszN6zOZ4yijXKpqYCKq/6mcFbHO34Fb1VKgUy3RfZsUWEYbdOKmoQ9d9o/2rwW9B4h+w+FHg5rlI2v0au8K5TrPELTbgZERCWGKeVi3EAxZuYnfBI62CWOu/ONSVJHUtOjq7dB4NgKIv3o0DDJkZ/3EpuJrc+40YYqJbDlws=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1770329193; c=relaxed/simple;
+	bh=d84A7ZfqDT+RVg1UZBksysJPoGn6HgmPuF2svyI1RhA=;
+	h=From:To:Cc:Subject:Date:Message-ID:Content-Type:MIME-Version; b=DgCfGoPhKV04iNWIa5SAWDl/Sqjh9Ayqi18M5SWaW9Kd2Rkak6LxqpnuyMhZjnsJogD2A4TGZZeNkYLY7ottUZmt9a2ZjyZm9TivX2ooAUlYuLZe/7+gQF9xYwVXE6TAorOUo23LveuxO03yV2CQIQ/6reTOh04Ff4wKshx1doA=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=outlook.com; spf=pass smtp.mailfrom=outlook.com; dkim=pass (2048-bit key) header.d=outlook.com header.i=@outlook.com header.b=Qq2y+pzD; arc=fail smtp.client-ip=52.103.32.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=outlook.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=outlook.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="M9qSoCP5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F966C116D0
-	for <linux-acpi@vger.kernel.org>; Thu,  5 Feb 2026 19:42:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1770320557;
-	bh=5WVz5Jep1PszBcH0ttRMBL3JFtE4hrI25hoBStHHHps=;
-	h=From:Date:Subject:To:Cc:From;
-	b=M9qSoCP571hzo5db60JZFke7Mn+dTd07PA6uIlHwVYiNZlhAA0KPAUdwdP0vJeJhr
-	 U1BCr/TYMbwWLptem2AR0kKDYjnTo+2iyDwgqW7YooCm7awbyFPd/MYylDfifrZ4yi
-	 7BPOBQpfLuP1864SOtPGTBtWl+/1wFfQ/RbPYAEbWaIu3r/XqyAcspg4sd6pddO9H3
-	 1bwd04r41s76KIsUMgA1oQbiEwphhyb6Y4Ssz6/Toip2MX6Ymkl4uRzwfkoHMDqr07
-	 3MKoCZVJCEmj2gmz3HpvODlZgIc1uVBkc+RTeo3IjQFQ0HD6Mx/XGiu5yyzZBA+kJK
-	 PJ9QWbe055UqA==
-Received: by mail-oo1-f43.google.com with SMTP id 006d021491bc7-662f485e58aso621607eaf.0
-        for <linux-acpi@vger.kernel.org>; Thu, 05 Feb 2026 11:42:37 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AJvYcCXrJVve2L84pXl5hWUUagwZmOPZeqBzdVfsbJvEDKFqLZQdTL6kV87NcbC5BE/coI6/W+D3oLKMYESU@vger.kernel.org
-X-Gm-Message-State: AOJu0YyWgUZj/hF2Kgssw/4efJBzVY939NF36nebmKb+fk/F4TUbkjyu
-	AfuZYSqIpVprN2A2PMrrHPa60ab6qQBrWyoFy4ktNrfX4pts5l4jovNtTNxptehcU954aIOEuUQ
-	yAaapQyAcYtHmXTVXtRd93T/hJkp6OMg=
-X-Received: by 2002:a05:6820:1c98:b0:662:f746:5728 with SMTP id
- 006d021491bc7-66d0c6666aamr214835eaf.60.1770320556461; Thu, 05 Feb 2026
- 11:42:36 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=outlook.com header.i=@outlook.com header.b="Qq2y+pzD"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=Gs1MtYmpt4NVh5/XE2SOpI41AY2ON2GYUASQpgjekB5Iiubnlf7HZi8Z2Uv7dpFFoRnG5MYVUnxhoBSZHZfxUXjQMyDaVs4IjBJSbf2cJCwjyBTCBaZuBJCGXzBK/1gl9cxlF8O0xHh7/8EbEljepbdegEftcfzJeY0NXch3Kl8HcuF+EO2sGi6yM02khKyCzpFBOdF/aey+AR574N2ezaqoq+DQmMYh1RdNntZp0F0xcZXH6KyQy9frzatKnfiQxV5sYI/IHB0n5LPhxYicvwIAxl16T26m3+ncFQ4nB3KQkTjNJHgrlev6HQmqE+TKFYP0teJph3MUGMn1jyMmHg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=cMN0zrR3o8Qs8e+WeXvV9TTqS5TlaMbUDmwj4mbMfdU=;
+ b=yD/p343Xgxncjxtj1lQQA0HxiVvDlVDzgAUeXdMYGSX811jP2ynY8sFNKtZXu1MHmeoF0uOpAaRrixnm7pwJ0IzYzbRPj7D6meErSS04ekjL6aggQNkigZdU5A2ddZoFZpC5bKRYzBNUGIb+QcL8gHrag+V9rqzgV6wIOaFz2mIDAmzuU7FrJKdpnGggcCUdnXfuVqs8rnOumlu77aj+GMZ7yXKrHBahWU2lyp8CGBWu4nALuXFXwVusFhYSH1/t6x/PvFN8ecrsM1ZOoY6xLfN4xE8HqMHcTfdTjhbtrk9291IV7Va3bPriRzOLwF16AVrxampM/60a1vRH3806Sw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=none; dmarc=none;
+ dkim=none; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=outlook.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=cMN0zrR3o8Qs8e+WeXvV9TTqS5TlaMbUDmwj4mbMfdU=;
+ b=Qq2y+pzDKwhwaPNcovZOo70txGKUEQMyfk2Y81cjjZSdxWMoipEbisyAn4EtqXs6jdTJ0WXZrDjS2te5CCHJn1yUkdB69oPYxz1DgMlmioalDxdb6l1dQmbSLwnG6qskypyIiimc1GWY74vvHoVfM3Amfcz+9BW/t7kOomjVc0SdagUfae4loRayN2o972/E3Yl9fBXaT7IERtbDmu03g9shLMSuEhzvnEBv5j4vr3bwg751Y6cDZhOwW+E5SkpKMhuEtdT1IPwjzXAbceQNiwEtXE3C9ToGjCAiupqKhMDpFIa32lYAOXA9ZPV9U0p6YfXxj6HNQoUN8+MhIk92KQ==
+Received: from GV2PPF3CD5B63CC.EURP251.PROD.OUTLOOK.COM
+ (2603:10a6:158:401::b50) by PRAP251MB0420.EURP251.PROD.OUTLOOK.COM
+ (2603:10a6:102:279::6) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9587.12; Thu, 5 Feb
+ 2026 22:06:30 +0000
+Received: from GV2PPF3CD5B63CC.EURP251.PROD.OUTLOOK.COM
+ ([fe80::4b7a:2c31:c2ad:b636]) by GV2PPF3CD5B63CC.EURP251.PROD.OUTLOOK.COM
+ ([fe80::4b7a:2c31:c2ad:b636%4]) with mapi id 15.20.9587.010; Thu, 5 Feb 2026
+ 22:06:26 +0000
+From: Piotr Mazek <pmazek@outlook.com>
+To: "Rafael J . Wysocki" <rafael@kernel.org>
+Cc: Len Brown <lenb@kernel.org>,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Piotr <pmazek@outlook.com>
+Subject: [PATCH] ACPI: save NVS memory for Lenovo G70-35
+Date: Thu,  5 Feb 2026 23:05:02 +0100
+Message-ID:
+ <GV2PPF3CD5B63CC2442EE3F76F8443EAD90D499A@GV2PPF3CD5B63CC.EURP251.PROD.OUTLOOK.COM>
+X-Mailer: git-send-email 2.52.0
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: WA2P291CA0011.POLP291.PROD.OUTLOOK.COM
+ (2603:10a6:1d0:1e::23) To GV2PPF3CD5B63CC.EURP251.PROD.OUTLOOK.COM
+ (2603:10a6:158:401::b50)
+X-Microsoft-Original-Message-ID: <20260205220502.65152-1-pmazek@outlook.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Thu, 5 Feb 2026 20:42:25 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0hOUCPEPeE1bN3BkgRnM3ouDX301f5qnK53BTD+oU5=rw@mail.gmail.com>
-X-Gm-Features: AZwV_Qg_PBKt0KwCcVNFUErnqpTpkdFpjZMCnzZ55TUbg-y2VOCD2raFwlY1wKk
-Message-ID: <CAJZ5v0hOUCPEPeE1bN3BkgRnM3ouDX301f5qnK53BTD+oU5=rw@mail.gmail.com>
-Subject: [GIT PULL] Thermal control updates for v6.20-rc1/v7.0-rc1
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Linux PM <linux-pm@vger.kernel.org>, 
-	ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>
-Content-Type: text/plain; charset="UTF-8"
+X-MS-Exchange-MessageSentRepresentingType: 1
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: GV2PPF3CD5B63CC:EE_|PRAP251MB0420:EE_
+X-MS-Office365-Filtering-Correlation-Id: 3c216eb5-929c-4f16-8f80-08de6502ce9a
+X-MS-Exchange-SLBlob-MailProps:
+	Cq7lScuPrnr9cOglUl1urTSFBsjx1OD0gmpihVO5n1r98+fn/znu5pntpyIXN+oCzDpuZiZRT3zijNT5ImGeTJvk/oUgUB+KiK4sLhE4876Jw6gOJTAuQgm6SHYKqzbEWpBx5GrSoTDnUXqLb6DT/NDC1Ubg+ZAXB8x2aqyWHKpRIhhxsa/trOJEznoOM+aBDTfbwkPmMvv30MELUIA0leZxIC8YomqJ0JAzV2ejfX9c/HNIfpsRywc5wjQzoDMb2MXuoFQgUvlHnyBrKqhrY9zgkuNAMLA0QW9cA07hGF+50kAReiLC4mif9Jni3QUpeV4aI3zlOBTtg/r0bwzGl6tWUtDnwBENfpn5tdG+gGwI4cFTkW/ouH7QkQS8pxmwDyvuT8n76VqBKru1U5ExkG4RLAvWep0o4EY16tSEDtyKox8GBOktqXi9lip7y3qO9zXu67pxFd879IZsK+6toeFyWuew0ugah1pZtL/32LTciqyjc/RmFYmCpN5LLedceOJT1l+NDWU8Ro1IUdNgcr5ZKkFYUGJcUFGzwWP0ssFzTgtEGxAV8tw8mW2SGIUuM4VReatFpmpipCb+ZgVbokGApEfQ6AB/I7tp3XV3hgI5Uk2BRpr3lEC+Da/riAk23dv5yDlYigGaiQd3NOgzk2ZkCfyAG/pfVRxTSY21uJuSEjtF2UbupqEXaVok2jtq/QWcIhpRDKKEbVYYkkMGafgybaYUzZlbEypkD8sYfCdYDmoqTSslfuZ3G2MQdYzRSJ+FePVUvYA=
+X-Microsoft-Antispam:
+	BCL:0;ARA:14566002|461199028|15080799012|5072599009|5062599005|8060799015|23021999003|39105399006|19110799012|440099028|3412199025|40105399003|12091999003|30101999003|11031999003|1710799026;
+X-Microsoft-Antispam-Message-Info:
+	=?us-ascii?Q?FyKXiWcl/cnlmbzJGpDCLHs4xv6gWw1hQ6/8WmQgppzFfIssYUohBwWGfRe3?=
+ =?us-ascii?Q?Hsc3spi7wzqshRlbxpjpMvJCfmWKKVW52cIcfnWUz555uzZErk3JuoxQX9Rs?=
+ =?us-ascii?Q?mPAiTbTkUYTEIgHxdhfzIyV3chTMnQweNPlecAjcVoGFBPZlQJyZ3a+8YJsN?=
+ =?us-ascii?Q?Eo9ZG1iNqd0kJj9z+G9uZIDYibjkap8GxehZmyv0o+AuF9SxBZIL1YmOyO4n?=
+ =?us-ascii?Q?esAOWR0MBDPEarmtGBR29ppD/1iLiTmYFxyOZfUE+7yrI7KEm8+MEtLZkVD5?=
+ =?us-ascii?Q?UOoD1cdKClBeValycmWAw73xfhSCd8z23AgIOMcDcDrjAKTN75A8GiMHH6cm?=
+ =?us-ascii?Q?t5ctW15L5Z/LaRhOQXSA5pM6SCrUCAer86d+lW3CJvICpg3JugW51Vw423a1?=
+ =?us-ascii?Q?npSMXLqHPOHjbfGwG0xLPkABEthXqFEtKn1EqqIF+Kgyq6y54zInQudzjcMx?=
+ =?us-ascii?Q?100vEl+ehah9CH5anW2nM8O44Bk5VDkq6XR1w84yVRx7KriEqDI9NS/VGlSs?=
+ =?us-ascii?Q?yQ4LJuJHpergjzH3is8Ugd9lpsv0BE59HHi+tNlDR3zyt85mEmHw6urCldOu?=
+ =?us-ascii?Q?TXg7wY2jqLK7PhDUyq8NyVhQGySVVRYd99VBMPW3YU1KkO9xXfnvSnKqkftO?=
+ =?us-ascii?Q?MEp8S8cQ9fQDnPYbeANLfHw9WJoCbep4HCkScC6ujg/0Mz+FYogozPlh/1cY?=
+ =?us-ascii?Q?3zy2ol7JtJyFDe6sDwfAeI6E8ZKyn+M02eE6mHBlJYdy3IjwsKEbfRq6OlLJ?=
+ =?us-ascii?Q?FxKfss85sEleQ0lxmgBFHrd5siYQ6A5eUnIObzWf/qWinYwfnukx8F1hOuB7?=
+ =?us-ascii?Q?JTwHPwipdwYbMON5gtHZRYiB+x9NR6JCThJB/QmTE8L8Ade2E9FmyRIxX+56?=
+ =?us-ascii?Q?M7Neb3oLpOuo0NtN20bRPZZ2S8FderVybyoJBRBsDFiPjBr4f0wQ9f+Jsx8T?=
+ =?us-ascii?Q?ppB5r+FflPuobajIzbACC4kC1FEXdcbyoEvZJiM2aIDhb25VsOlxm8pTXjEQ?=
+ =?us-ascii?Q?66mUYP6o/9Zyw/Apd91B9kaFcFLsfBAJNtsw85I/+Bo0gv1DQiSEAn/l+npD?=
+ =?us-ascii?Q?IgGz8rpNj8cWUe/kbIq7ooq1peVQfv7CEVDYM+YHG3E4mRyx/L4y/UWzubA0?=
+ =?us-ascii?Q?33HtFQbH7Y+So/FGNn4ldZwHHnM0v+/DAtsbxC+jOHgfIYoKTJtWfdJtuycl?=
+ =?us-ascii?Q?1ahMl4pLZkFW78Z1O7yZA37d/qfwSo8GynHqXiVuJLbd4JOQ4MjyO9Le9LCy?=
+ =?us-ascii?Q?rrjvySQbOGJKi09fPrqQ7xfBEqqc4nK3s0I7WQSKuSAAl24uJock+uHp66ha?=
+ =?us-ascii?Q?BODFbRU7EetbK4d3Am/cqstTZaj1W+zGaO7g70qPjzMF5A=3D=3D?=
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?8aXlxWi/BJSxCGgn9/A2YD8a2Exct2HIgsXd7U3vEUpXFddMbZLhOTr8uC26?=
+ =?us-ascii?Q?pG2rfSuB3GgfTIDAJfLAE3puN/ASQtV2EG1L+7BtvOFPbYjwrpR9w7ZSOgUL?=
+ =?us-ascii?Q?RumDS5HLfGXLf7h4SuzyyxXALQJZWlbYlfZOsvStb6jxfTdnJJFcO5MCWoOn?=
+ =?us-ascii?Q?VafqvEVsx3jXdV1KRougJ3HQmslUsgeQYC5z87Bb2WsL95hyKE+f8DOKmX6S?=
+ =?us-ascii?Q?s7KiNBhGhP1EPPCg3J/xLuxLXPWF+3lbBNwYCDErtWZnoZHzFNKaliXqnOex?=
+ =?us-ascii?Q?VOaGkhJhXxB5oPWJOnt5VuZIGiQkTkn9lYKvXMZ800T8EQMyCpatIMXHNqh9?=
+ =?us-ascii?Q?fmE2s7xhncIVLMDrnDCx2QFXMl6Bq9rU009fepeEgRoeDNOf3yyJekXQFFPS?=
+ =?us-ascii?Q?l4RUokojEtx6Iqf8zQTmu7VvJeZLt3RpQJOvYcD9WVJe3eOJop7mHVfta25K?=
+ =?us-ascii?Q?FcaIV+VAEdIDanPiq5aj5YRiEGCRyHQrkRYig+C7j9AZ2aTlE2stpIi3zRvj?=
+ =?us-ascii?Q?kWAnOz6CCMNGHQwMa2Rip+9MUE3QygluZq1GzKxmt9YMfeky0M7KihMuzAU2?=
+ =?us-ascii?Q?86z1s50zFslSdvBUbrrFWRD+bxJwPPJblXfeEC9yLeguZv/A9AWy1qJW0smW?=
+ =?us-ascii?Q?UPv6KzAW5oiRHcebvMfpaP3WkXIjlZxFBELzLhV8HM85ozWnpBmC4nkSxDJp?=
+ =?us-ascii?Q?bu6Q5Pf58bC39ngmHrV8iCl2bvcpysRgAuNGPVeslvSc6YeIt631cD58WViU?=
+ =?us-ascii?Q?m9VjwO+3Hy+is6xrZXzxVAgKr3ddlEDCfLapzKO5Z7kiBceuErJq1kJBySgx?=
+ =?us-ascii?Q?s4mA/KXX+9a1rnE809/53gb57KqVulBZ43DWLhcwveQU6TJhSLL6jUW7KvWX?=
+ =?us-ascii?Q?bSoJdf/VkIrNK64pyOutNHqiNnNk9A1nFGSQYOFp/XrUi0pEUjrCLr/Tc3uz?=
+ =?us-ascii?Q?wWTRCkeYOmABmW/WFjLE/2hhlzPQESd+11G1aqQl47FFdzkVAtdaSSkwvNRh?=
+ =?us-ascii?Q?RgjCwPQ2WsT6kNxgpqkbB/OMhqJE8fxV6tHATlDHjY35sukxDtf/kSghvIm5?=
+ =?us-ascii?Q?uAqOn2zFp9ZSx89hvldR2SR62eHV5PttHxQNRpYlS270HInJ9xMXSR+7N0nz?=
+ =?us-ascii?Q?eIn2y2ADDdcIK3j87QpLThM3GS6Ed4xv1ie/El/o8D84DRvWD2haJwnUn2eH?=
+ =?us-ascii?Q?DXeTVZ2y98hV9WwRqBx4Q3K3ZTk5KcbH2BdztNprhg9ng9i8K4ejf9qnO2At?=
+ =?us-ascii?Q?gmb1GiU+PMzuPkgAY0neGLOuWGf17XuoHFvCyHkAvMbLpxyRKnPbrC81u++V?=
+ =?us-ascii?Q?nIV4DdipimBcU8272up4ftie6ommEYCdso2HssjF8T37fbZ2ndVQTz9seySe?=
+ =?us-ascii?Q?Y+aeoyCjqDVsVKBLQ2AYfT+8TKUu?=
+X-OriginatorOrg: outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 3c216eb5-929c-4f16-8f80-08de6502ce9a
+X-MS-Exchange-CrossTenant-AuthSource: GV2PPF3CD5B63CC.EURP251.PROD.OUTLOOK.COM
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 Feb 2026 22:06:26.5493
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 84df9e7f-e9f6-40af-b435-aaaaaaaaaaaa
+X-MS-Exchange-CrossTenant-RMS-PersistedConsumerOrg:
+	00000000-0000-0000-0000-000000000000
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PRAP251MB0420
 
-Hi Linus,
+From: Piotr <pmazek@outlook.com>
 
-This goes a bit early, but it's ready.
+[821d6f0359b0614792ab8e2fb93b503e25a65079] prevented machines
+produced later than 2012 from saving NVS region to accelerate S3.
 
-Please pull from the tag
+Despite being made after 2012, Lenovo G70-35 still needs
+NVS memory saving during S3. A quirk is introduced for this platform.
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- thermal-6.20-rc1
+Signed-off-by: Piotr Mazek <pmazek@outlook.com>
+---
+ drivers/acpi/sleep.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-with top-most commit 8035d70cf85e86f36f5eb1e07b243f300a936b8b
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index 66ec81e306d4..132a9df98471 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -386,6 +386,14 @@ static const struct dmi_system_id acpisleep_dmi_table[] __initconst = {
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "80E1"),
+ 		},
+ 	},
++	{
++	.callback = init_nvs_save_s3,
++	.ident = "Lenovo G70-35",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "80Q5"),
++		},
++	},
+ 	/*
+ 	 * ThinkPad X1 Tablet(2016) cannot do suspend-to-idle using
+ 	 * the Low Power S0 Idle firmware interface (see
+-- 
+2.52.0
 
- Merge branch 'thermal-intel'
-
-on top of commit 9ace4753a5202b02191d54e9fdf7f9e3d02b85eb
-
- Linux 6.19-rc4
-
-to receive thermal control updates for 6.20-rc1/7.0-rc1 (whichever it
-turns out to be).
-
-These add support for "slow" (long-term trend) workload type hints
-to the Intel int340x thermal driver and selftests (and enable it for
-Panther Lake), add support for MT8196 along with DT bindings and for
-MT7987 to the Mediatek LVTS thermal driver, add support for RZ/T2H and
-RZ/N2H along with DT bindings to the Renesas rzg3e thermal driver,
-add support for the Panther Lake, Wildcat Lake and Nova Lake processors
-to the intel_tcc_cooling driver, fix bugs, make some cosmetic changes
-including code cleanups and library function substitutions, and update
-documentation.
-
-Specifics:
-
- - Add Panther Lake, Wildcat Lake and Nova Lake processor IDs to the
-   list of supported processors in the intel_tcc_cooling thermal
-   driver (Srinivas Pandruvada)
-
- - Drop unnecessary explicit driver data clearing on removal from the
-   intel_pch_thermal driver (Kaushlendra Kumar)
-
- - Add support for "slow" workload type hints to the int340x
-   processor_thermal driver and enable it on the Panther Lake
-   platform (Srinivas Pandruvada)
-
- - Use sysfs_emit{_at}() in sysfs show functions in Intel thermal
-   drivers (Thorsten Blum)
-
- - Update the x86_pkg_temp_thermal driver to handle THERMAL_TEMP_INVALID
-   that can be passed to it via sysfs as expected (Rafael Wysocki)
-
- - Drop a redundant local variable from the intel_tcc_cooling thermal
-   driver and fix a kerneldoc comment typo in the TCC library (Sumeet
-   Pawnikar)
-
- - Fix CFLAGS and LDFLAGS in the pkg-config libthermal template (Romain
-   Gantois)
-
- - Support multiple temp to raw conversion functions in the Mediatek
-   LVTS thermal driver and add MT8196 and MT6991 support to it (Laura
-   Nao)
-
- - Add Mediatek LVTS driver support for MT7987 (Frank Wunderlich)
-
- - Use the existing HZ_PER_MHZ macro on STM32 (Andy Shevchenko)
-
- - Use the existing clamp() macro on BCM2835 (Thorsten Blum)
-
- - Make the reset line optional in order to support new Renesas SoCs
-   where it is not available and add support for RZ/T2H and RZ/N2H
-   to the rzg3e thermal driver (Cosmin Tanislav)
-
- - Document RZ/V2N TSU in the r9a09g047-tsu DT bindings (Ovidiu
-   Panait)
-
- - Fix all kernel-doc warnings in the internal thermal core header
-   file (Randy Dunlap)
-
- - Fix a device node reference leak in thermal_of_cm_lookup() (Felix Gu)
-
- - Replace some old-style library function calls with ones that are
-   currently recommended in several places in the thermal core and
-   debugfs code (Sumeet Pawnikar, Thorsten Blum)
-
-Thanks!
-
-
----------------
-
-Andy Shevchenko (1):
-      thermal/drivers/stm32: Use predefined HZ_PER_MHZ instead of a custom one
-
-Cosmin Tanislav (5):
-      thermal: renesas: rzg3e: make reset optional
-      thermal: renesas: rzg3e: make min and max temperature per-chip
-      thermal: renesas: rzg3e: make calibration value retrieval per-chip
-      dt-bindings: thermal: r9a09g047-tsu: document RZ/T2H and RZ/N2H
-      thermal: renesas: rzg3e: add support for RZ/T2H and RZ/N2H
-
-Felix Gu (1):
-      thermal/of: Fix reference leak in thermal_of_cm_lookup()
-
-Frank Wunderlich (2):
-      dt-bindings: thermal: mediatek: Add LVTS thermal controller
-definition for MT7987
-      thermal/drivers/mediatek/lvts_thermal: Add mt7987 support
-
-Kaushlendra Kumar (1):
-      thermal: intel: intel_pch_thermal: Drop explicit driver data clearing
-
-Laura Nao (8):
-      dt-bindings: thermal: mediatek: Add LVTS thermal controller
-support for MT8196
-      thermal/drivers/mediatek/lvts: Make number of calibration
-offsets configurable
-      thermal/drivers/mediatek/lvts: Add platform ops to support
-alternative conversion logic
-      thermal/drivers/mediatek/lvts: Add lvts_temp_to_raw variant
-      thermal/drivers/mediatek/lvts: Add support for ATP mode
-      thermal/drivers/mediatek/lvts: Support MSR offset for 16-bit
-calibration data
-      thermal/drivers/mediatek/lvts_thermal: Add MT8196 support
-      dt-bindings: nvmem: mediatek: efuse: Add support for MT8196
-
-Ovidiu Panait (1):
-      dt-bindings: thermal: r9a09g047-tsu: Document RZ/V2N TSU
-
-Rafael J. Wysocki (1):
-      thermal: intel: x86_pkg_temp_thermal: Handle invalid temperature
-
-Randy Dunlap (1):
-      thermal: core: thermal_core.h: fix all kernel-doc warnings
-
-Romain Gantois (1):
-      tools: lib: thermal: Correct CFLAGS and LDFLAGS in pkg-config template
-
-Srinivas Pandruvada (3):
-      thermal: intel: intel_tcc_cooling: Add CPU models in the support list
-      thermal: int340x: processor_thermal: Enable slow workload type hints
-      thermal: intel: selftests: workload_hint: Support slow workload hints
-
-Sumeet Pawnikar (4):
-      thermal: Replace sprintf() with sysfs_emit() for sysfs show functions
-      thermal: debugfs: Use seq_puts() for constant string output
-      thermal: intel: fix typo "nagative" in comment for cpu argument
-      drivers: thermal: intel: tcc_cooling: Drop redundant local variable
-
-Thorsten Blum (5):
-      thermal: core: Use strnlen() in thermal_zone_device_register_with_trips()
-      thermal: intel: int340x: Use sysfs_emit{_at}() in sysfs show functions
-      thermal: sysfs: Replace snprintf() with strscpy() in policy_store()
-      thermal: intel: Use sysfs_emit() in a sysfs show function
-      thermal/drivers/broadcom: Use clamp to simplify bcm2835_thermal_temp2adc
-
----------------
-
- .../devicetree/bindings/nvmem/mediatek,efuse.yaml  |   1 +
- .../bindings/thermal/mediatek,lvts-thermal.yaml    |   3 +
- .../bindings/thermal/renesas,r9a09g047-tsu.yaml    |  34 +-
- Documentation/driver-api/thermal/intel_dptf.rst    |   3 +
- drivers/thermal/broadcom/bcm2835_thermal.c         |   8 +-
- .../int340x_thermal/processor_thermal_device.c     |   5 +-
- .../intel/int340x_thermal/processor_thermal_rfim.c |   9 +-
- .../int340x_thermal/processor_thermal_wt_hint.c    |  57 +++-
- .../int340x_thermal/processor_thermal_wt_req.c     |   7 +-
- drivers/thermal/intel/intel_pch_thermal.c          |   1 -
- drivers/thermal/intel/intel_tcc.c                  |   8 +-
- drivers/thermal/intel/intel_tcc_cooling.c          |  13 +-
- drivers/thermal/intel/therm_throt.c                |   5 +-
- drivers/thermal/intel/x86_pkg_temp_thermal.c       |   3 +
- drivers/thermal/mediatek/lvts_thermal.c            | 362 +++++++++++++++++++--
- drivers/thermal/renesas/rzg3e_thermal.c            | 123 ++++---
- drivers/thermal/st/stm_thermal.c                   |   4 +-
- drivers/thermal/thermal_core.c                     |   8 +-
- drivers/thermal/thermal_core.h                     |   7 +-
- drivers/thermal/thermal_debugfs.c                  |   2 +-
- drivers/thermal/thermal_hwmon.c                    |   4 +-
- drivers/thermal/thermal_of.c                       |   4 +-
- drivers/thermal/thermal_sysfs.c                    |  38 +--
- .../dt-bindings/thermal/mediatek,lvts-thermal.h    |  29 ++
- tools/lib/thermal/libthermal.pc.template           |   4 +-
- .../intel/workload_hint/workload_hint_test.c       |  74 +++--
- 26 files changed, 651 insertions(+), 165 deletions(-)
