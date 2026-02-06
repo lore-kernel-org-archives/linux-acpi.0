@@ -1,272 +1,332 @@
-Received: from mail-qk1-f170.google.com (mail-qk1-f170.google.com [209.85.222.170])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.17])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F21A526AF4
-	for <linux-acpi@vger.kernel.org>; Thu,  5 Feb 2026 22:41:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.170
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4877B30F95B;
+	Fri,  6 Feb 2026 07:31:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.17
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770331278; cv=none; b=KJBiw3IZ0jTKOqb3g3vQGqyIVyIERfTwWuRCqKzo9sYmcBSRVd++KmtoThQQ3ILoLJQDu/ReVoCGm98qz51EKgjWKvAFoqPq0hMwDJIsdCburdB8EI64y66DDfVxnwSWBWm1Da+l5ypzYVXHaCdj3OcAX5WVO3O464YWxvVjhDY=
+	t=1770363112; cv=none; b=Rm/46Ls4GjKkMx1DRxP+adoieso6kr+AJIDN6lJgVTPpRlNvVBeWRkT9qEychVn5ndTsafp9kF7xVUwHGX6B7eQ2PzRt1LblT6K76+VQul7Uu7Ej/L06QC1Ikbek4nxdYcU8MDDfIi5teHuygsOpqFrv6LYbRcvz4XwUrPmHxx8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770331278; c=relaxed/simple;
-	bh=Juj1bsdRU0I+IrAom3HInXgDgXdJO/+1D0a5t61HPPE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=cthbOinSXZUOj38pQCLAiRqe5DPGGflV08+gG59lEBLePjA9vxLcMZQo4rH84wtXkX0RaYeNJ+vNOXVPfuJsfKAQvj4NB4Dil7e9Nk7HhDEO1BHg14M6PRwHLFaPBi3kqdSnvY9KFWlT6lmfJfhseok63WS3giup6mm94lHsCf0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=roeck-us.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=neJMixHJ; arc=none smtp.client-ip=209.85.222.170
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=roeck-us.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1770363112; c=relaxed/simple;
+	bh=33PIRn5WHfIZxzA12McqHPUCooE66ei6yt/D5Gcfy2w=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=YmVEwU+PwVVP1TE8BzL54t/iuddQO86wj7D+C7DucTmOr2ryC0jjEWIY8/FLDamT9Y3MSfWDZEDtGUCvZSVmlniemECApbMM3JPLCZKfKFoJkxzFUpTF/CDBLfV81VSdagZMuWfMDUTO3BRbRZxz0rqVg5t7BbDqWFzGS6z++kA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=ixUvnWG7; arc=none smtp.client-ip=198.175.65.17
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="neJMixHJ"
-Received: by mail-qk1-f170.google.com with SMTP id af79cd13be357-8ca01dc7d40so149555885a.1
-        for <linux-acpi@vger.kernel.org>; Thu, 05 Feb 2026 14:41:17 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1770331277; x=1770936077; darn=vger.kernel.org;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date:sender
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=RSUkyn5i2wEO3zAje7Mo7JuGzOwqmCv+J4WE0D+9tcU=;
-        b=neJMixHJQBlDQkrbq7u+XcHURhEuvuKpyLKJ65Isz2pR4vkNLhJ9FoWRbCHxPicupz
-         hHskvm9OqAt6fJK7UhKqSyXpzK1LhRDKcZPO7utvCGtzA9fMOrJfaxhLhLYzNoQ0+YUy
-         FRifW3vyf4x6i4saMAvTryw305SpryBGesP/8lVYHtRlqn/DztNT/KGbv1XxyEdxJj4o
-         1WoKhat0+TXBS93LVqNEHaVMsHarw8SBvCL8/dZDTshVGmPamz2kOQZjC4A4lfBomWlH
-         FzFe571+XgHawosDi1KByNPhA+u4K7cqkH6gOrkaK7fU67MY8yC2Uh/xrPwy8cD66vt8
-         aTcg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1770331277; x=1770936077;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date:sender
-         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=RSUkyn5i2wEO3zAje7Mo7JuGzOwqmCv+J4WE0D+9tcU=;
-        b=sIgsqOsFzdU+TC7f53t+a/lppgh9YWBQDWL5k9OsY8OCUpbOXkfxeMlBMvLtBGxnx9
-         GfXJuctKIk4d4dkVssG7lqyeBUMQtV4hXW5fHjGwor+f9kkcs1dHk77I0Xha/dPc9F+P
-         z6NqxgP5P+SY73c5q/ZW0nzyYn+liXvhtvdmPi59y+52i3PJrvkrqNTTbGXeU7AbyshU
-         TEsrJcSxqmUZrVIhIo0GTLycNxVuF8YV/FKxjfU6pdgsUcUTxY0MNoXigHJU6lxdqHe2
-         xh5q8oAEjpOzUT8IBh1t22+/1vjfoT6ny1hP4X5NwrLBZfR5m86v+Bbyx48TUXKjd8Ss
-         HIGg==
-X-Forwarded-Encrypted: i=1; AJvYcCXFhmEXECKUriG46WpvpSdw4eouPcwxpPLcKDlBYqo9+9LxSJ8HGTGESMfOUGMh/NTijlaowFTmc5bF@vger.kernel.org
-X-Gm-Message-State: AOJu0YzmrDFA8u6PCoi2znWVA//6Az/cyuCaUqUH0PCHMr5EvVZqemlB
-	m1dfHSrRM10+rwnzdhJwQBT+F9mG0JtFrRE+cfvrqiv/+gPxGYdGbZYRXfTOTfLY
-X-Gm-Gg: AZuq6aL3vwH13W+R9pabo25d1qWmuEXHg4+gbKpsWzZA8n0tCh39Vme6cXQJVenxXX5
-	nycqi52JP24o9jAusLCCGwxRAumFldFPLmA7tAb5GX4CWWRb7bVeGBv7H2APK4hlJdDt7EiUoWd
-	HupHSEBi9smUWrcxC3JahIREbw7i2kLcgAI5iojb4f8LLl2hVKAmhoNYJb3JwT5UgLIp+dcgnEw
-	04gpWhp7VovETGMIFxERxXeajX3E7xo31WrAoGcXqyyFOLH3h5ood1w54JQnEm7QhyiVLM6J/vj
-	OmOQcW0hzwGw8q6fT3xPWngOwAwur2x4bUJerFDYs51+ZykDJwD1rqhwN85YFAbSu4+gcS2lHON
-	4AnGJlGYuk2+YKf6ng/Yte6unqDe9kRmz7C/fAgV47xF+7C2YLIOpM1784EgpOa7+k8mdAgoNzK
-	nrZ3/oxk/ZXcT5J0OH8EMcBjvO
-X-Received: by 2002:a05:7022:b9b:b0:11b:9386:8271 with SMTP id a92af1059eb24-1270407446dmr233143c88.46.1770325047565;
-        Thu, 05 Feb 2026 12:57:27 -0800 (PST)
-Received: from server.roeck-us.net ([2600:1700:e321:62f0:da43:aeff:fecc:bfd5])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-1270414f28bsm360512c88.0.2026.02.05.12.57.26
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 05 Feb 2026 12:57:26 -0800 (PST)
-Sender: Guenter Roeck <groeck7@gmail.com>
-Date: Thu, 5 Feb 2026 12:57:25 -0800
-From: Guenter Roeck <linux@roeck-us.net>
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Igor Raits <igor@gooddata.com>,
-	Jaroslav Pulchart <jaroslav.pulchart@gooddata.com>,
-	linux-acpi@vger.kernel.org, linux-hwmon@vger.kernel.org,
-	Daniel Secik <daniel.secik@gooddata.com>,
-	Zdenek Pesek <zdenek.pesek@gooddata.com>,
-	Jiri Jurica <jiri.jurica@gooddata.com>,
-	Huisong Li <lihuisong@huawei.com>,
-	Corey Minyard <corey@minyard.net>
-Subject: Re: [BISECTED - impi related]: acpi_power_meter: power*_average
- sysfs read hangs, mutex deadlock in hwmon_attr_show since v6.18.y
-Message-ID: <1642aec8-e8c1-4ad4-a5b7-556feeedfd93@roeck-us.net>
-References: <CAK8fFZ43wrQ8A_bO_g+rKN9O31sxULtqA0hUieZSzEH5KqeW1Q@mail.gmail.com>
- <CAJZ5v0hEu_io2BAzp9weUDHwHngorjZ37GRUK=ngSXNjtp38qw@mail.gmail.com>
- <CAK8fFZ65Vro5nQqJq_cvsY93hgDbfTdibWnNr5b0Bixzc-ESfg@mail.gmail.com>
- <CAK8fFZ6Vi4xayvdKh-_eLi-nDNMLuEoMsvwEnb33QqnwS7o4BA@mail.gmail.com>
- <1c8f748a-5c5d-4234-ae86-7bb12045a373@roeck-us.net>
- <CA+9S74i+BC3=E0opOPMff0cuC1OPYSecii0C8fVZ+NM7bptNcQ@mail.gmail.com>
- <fee01c19-2711-487e-91e9-d57f9be04b98@roeck-us.net>
- <CA+9S74jR9jRRE-DNMxNg=6Uv2uDAUar2n-RkVDJqzkDfNu3eog@mail.gmail.com>
- <39100538-a1f3-48dc-82d6-5e3314a43b4d@roeck-us.net>
- <CAJZ5v0jo4CV__AoUfqxuhVgkw6hA=hM_fBU+W=pTzqDLmNmytw@mail.gmail.com>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="ixUvnWG7"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1770363111; x=1801899111;
+  h=date:from:to:cc:subject:message-id;
+  bh=33PIRn5WHfIZxzA12McqHPUCooE66ei6yt/D5Gcfy2w=;
+  b=ixUvnWG7TBxU5Gl1qyroVgl+c/TR5k1vHtABxvIaPHhgMO++E/VWmtoq
+   QqqCsd3qLltYaM94rLNnxHFRbp5eK+RVNl+Qmr9eCDeF3c99jnjLw4J0P
+   dYS+16qnc4xO5Y9HT9RtyCe14lls7QkvWgctYJNGscwzOFjHXv1KfHG/u
+   1PRjqlqhmWuzyHhmFCeeufgTArmJbF17kTsk61aP/daF8WmuszNgeoRJR
+   vkoSmghYezSLJUiy6bXU7y9pvbaQyKNWpBFrhH5v03Gp4WbfTaFvZCHFe
+   asziB3sHFtx24sLebOszF3dAC0cWxw0MvbssDMd9y9gZg5miq2Huoymrv
+   g==;
+X-CSE-ConnectionGUID: 9bSNd0fiR2SJi+jMcJTJ2g==
+X-CSE-MsgGUID: 57V5JFh3RfyAUGrnkNK7oA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11692"; a="71561458"
+X-IronPort-AV: E=Sophos;i="6.21,276,1763452800"; 
+   d="scan'208";a="71561458"
+Received: from fmviesa001.fm.intel.com ([10.60.135.141])
+  by orvoesa109.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Feb 2026 23:31:50 -0800
+X-CSE-ConnectionGUID: pUQUuQteTUKA+sZPRKF9Dg==
+X-CSE-MsgGUID: sXq0JteTRKC34v8CUw/0Cg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.21,276,1763452800"; 
+   d="scan'208";a="241293819"
+Received: from lkp-server01.sh.intel.com (HELO 765f4a05e27f) ([10.239.97.150])
+  by fmviesa001.fm.intel.com with ESMTP; 05 Feb 2026 23:31:48 -0800
+Received: from kbuild by 765f4a05e27f with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1voGJe-00000000kXg-0Cgt;
+	Fri, 06 Feb 2026 07:31:46 +0000
+Date: Fri, 06 Feb 2026 15:31:24 +0800
+From: kernel test robot <lkp@intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+Subject: [rafael-pm:bleeding-edge] BUILD SUCCESS
+ cd15be4828c5585c8423b66d1ab9fb2d7b2db778
+Message-ID: <202602061516.UJ5ICMTF-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAJZ5v0jo4CV__AoUfqxuhVgkw6hA=hM_fBU+W=pTzqDLmNmytw@mail.gmail.com>
 
-On Thu, Feb 05, 2026 at 08:04:12PM +0100, Rafael J. Wysocki wrote:
-> Cc: Corey
-> 
-> On Thu, Feb 5, 2026 at 6:51 PM Guenter Roeck <linux@roeck-us.net> wrote:
-> >
-> > On Thu, Feb 05, 2026 at 08:25:57AM +0100, Igor Raits wrote:
-> > > On Wed, Feb 4, 2026 at 11:49 PM Guenter Roeck <linux@roeck-us.net> wrote:
-> > > >
-> > > > On 2/4/26 11:54, Igor Raits wrote:
-> > > > > I have written a patch with the help of AI and it fixes the problem. Attached.
-> > > > >
-> > > >
-> > > > "No MIME, no links, no compression, no attachments.  Just plain text"
-> > >
-> > > Sorry for that, I had assumed that attaching the file would make it in-line.
-> > >
-> > > > ... which means I can not provide inline feedback, which is the whole
-> > > > point of the above.
-> > > >
-> > > > Your patch crosses subsystems, so it will need to be split in two
-> > > > (assuming the ACPI side is even needed). Also, references to iDRAC
-> > > > in common code seem inappropriate.
-> > >
-> > > Yes, this I believe was the essential part (it was the last piece in
-> > > my testing which fixed the hanging):
-> > >
-> >
-> > Then I'll need to ask differently: What happens if you drop the IPMI code,
-> > and just keep the wait_for_completion -> wait_for_completion_timeout
-> > change ? Would that be sufficient to solve the problem ?
-> 
-> I'd rather say "Would that be sufficient to make the symptoms go
-> away?" as it most likely papers over the real problem.
-> 
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
+branch HEAD: cd15be4828c5585c8423b66d1ab9fb2d7b2db778  Merge branch 'pm-runtime-cleanup' into bleeding-edge
 
-Good point. Worse, it may result in UAF or memory leaks.
+elapsed time: 984m
 
-> > Either case, the need for this change suggests that the ipmi change
-> > may not be complete, since it should send a completion with an error.
-> 
-> I think that reverting commit bc3a9d217755 ("ipmi:si: Gracefully
-> handle if the BMC is non-functional") should also be considered as a
-> possible way forward because it clearly did not improve things as
-> expected, at least in this particular case.
-> 
+configs tested: 255
+configs skipped: 3
 
-I tend to agree. I ran a number of AI code reviews over the patch, and
-each time it finds new (and different) problems. The fact that the acpi
-patch is still needed even after applying the ipmi changes suggests that
-something is still missing in the ipmi code.
+The following configs have been built successfully.
+More configs may be tested in the coming days.
 
-> It evidently did something that confuses things quite a bit.  Either
-> it is returning IPMI_BUS_ERR instead of IPMI_ERR_UNSPECIFIED, or it is
-> the "hosed" state and refusing to accept messages.
-> 
+tested configs:
+alpha                             allnoconfig    gcc-15.2.0
+alpha                            allyesconfig    gcc-15.2.0
+alpha                               defconfig    gcc-15.2.0
+arc                              allmodconfig    clang-16
+arc                              allmodconfig    gcc-15.2.0
+arc                               allnoconfig    gcc-15.2.0
+arc                              allyesconfig    clang-22
+arc                              allyesconfig    gcc-15.2.0
+arc                                 defconfig    gcc-15.2.0
+arc                   randconfig-001-20260206    gcc-8.5.0
+arc                   randconfig-002-20260206    gcc-8.5.0
+arm                               allnoconfig    clang-22
+arm                               allnoconfig    gcc-15.2.0
+arm                              allyesconfig    clang-16
+arm                              allyesconfig    gcc-15.2.0
+arm                         at91_dt_defconfig    clang-22
+arm                         axm55xx_defconfig    gcc-15.2.0
+arm                                 defconfig    clang-22
+arm                                 defconfig    gcc-15.2.0
+arm                          ep93xx_defconfig    clang-22
+arm                          exynos_defconfig    clang-22
+arm                       multi_v4t_defconfig    clang-22
+arm                        mvebu_v7_defconfig    clang-22
+arm                   randconfig-001-20260206    gcc-8.5.0
+arm                   randconfig-002-20260206    gcc-8.5.0
+arm                   randconfig-003-20260206    gcc-8.5.0
+arm                   randconfig-004-20260206    gcc-8.5.0
+arm                           sunxi_defconfig    clang-22
+arm64                            allmodconfig    clang-19
+arm64                            allmodconfig    clang-22
+arm64                             allnoconfig    gcc-15.2.0
+arm64                               defconfig    gcc-15.2.0
+arm64                 randconfig-001-20260206    gcc-13.4.0
+arm64                 randconfig-001-20260206    gcc-14.3.0
+arm64                 randconfig-002-20260206    clang-18
+arm64                 randconfig-002-20260206    gcc-13.4.0
+arm64                 randconfig-003-20260206    clang-22
+arm64                 randconfig-003-20260206    gcc-13.4.0
+arm64                 randconfig-004-20260206    gcc-13.4.0
+arm64                 randconfig-004-20260206    gcc-9.5.0
+csky                             allmodconfig    gcc-15.2.0
+csky                              allnoconfig    gcc-15.2.0
+csky                                defconfig    gcc-15.2.0
+csky                  randconfig-001-20260206    gcc-13.4.0
+csky                  randconfig-001-20260206    gcc-15.2.0
+csky                  randconfig-002-20260206    gcc-13.4.0
+hexagon                          allmodconfig    clang-17
+hexagon                          allmodconfig    gcc-15.2.0
+hexagon                           allnoconfig    clang-22
+hexagon                           allnoconfig    gcc-15.2.0
+hexagon                             defconfig    clang-22
+hexagon                             defconfig    gcc-15.2.0
+hexagon               randconfig-001-20260206    clang-22
+hexagon               randconfig-002-20260206    clang-22
+i386                             alldefconfig    clang-22
+i386                             allmodconfig    clang-20
+i386                             allmodconfig    gcc-14
+i386                              allnoconfig    gcc-14
+i386                              allnoconfig    gcc-15.2.0
+i386                             allyesconfig    clang-20
+i386                             allyesconfig    gcc-14
+i386        buildonly-randconfig-001-20260206    clang-20
+i386        buildonly-randconfig-002-20260206    clang-20
+i386        buildonly-randconfig-003-20260206    clang-20
+i386        buildonly-randconfig-004-20260206    clang-20
+i386        buildonly-randconfig-005-20260206    clang-20
+i386        buildonly-randconfig-006-20260206    clang-20
+i386                                defconfig    clang-20
+i386                                defconfig    gcc-15.2.0
+i386                  randconfig-001-20260206    gcc-14
+i386                  randconfig-002-20260206    gcc-12
+i386                  randconfig-002-20260206    gcc-14
+i386                  randconfig-003-20260206    gcc-14
+i386                  randconfig-004-20260206    gcc-14
+i386                  randconfig-005-20260206    gcc-14
+i386                  randconfig-006-20260206    gcc-14
+i386                  randconfig-007-20260206    gcc-14
+i386                  randconfig-011-20260206    clang-20
+i386                  randconfig-012-20260206    clang-20
+i386                  randconfig-012-20260206    gcc-14
+i386                  randconfig-013-20260206    clang-20
+i386                  randconfig-013-20260206    gcc-14
+i386                  randconfig-014-20260206    clang-20
+i386                  randconfig-015-20260206    clang-20
+i386                  randconfig-016-20260206    clang-20
+i386                  randconfig-017-20260206    clang-20
+loongarch                        allmodconfig    clang-19
+loongarch                        allmodconfig    clang-22
+loongarch                         allnoconfig    clang-22
+loongarch                         allnoconfig    gcc-15.2.0
+loongarch                           defconfig    clang-19
+loongarch             randconfig-001-20260206    clang-22
+loongarch             randconfig-002-20260206    clang-22
+m68k                             allmodconfig    gcc-15.2.0
+m68k                              allnoconfig    gcc-15.2.0
+m68k                             allyesconfig    clang-16
+m68k                             allyesconfig    gcc-15.2.0
+m68k                                defconfig    clang-19
+microblaze                        allnoconfig    gcc-15.2.0
+microblaze                       allyesconfig    gcc-15.2.0
+microblaze                          defconfig    clang-19
+mips                             allmodconfig    gcc-15.2.0
+mips                              allnoconfig    gcc-15.2.0
+mips                             allyesconfig    gcc-15.2.0
+mips                  cavium_octeon_defconfig    clang-22
+mips                  decstation_64_defconfig    clang-22
+mips                           ip28_defconfig    gcc-15.2.0
+mips                      maltasmvp_defconfig    gcc-15.2.0
+mips                        vocore2_defconfig    gcc-15.2.0
+nios2                            allmodconfig    clang-22
+nios2                            allmodconfig    gcc-11.5.0
+nios2                             allnoconfig    clang-22
+nios2                             allnoconfig    gcc-11.5.0
+nios2                               defconfig    clang-19
+nios2                 randconfig-001-20260206    clang-22
+nios2                 randconfig-002-20260206    clang-22
+openrisc                         allmodconfig    clang-22
+openrisc                         allmodconfig    gcc-15.2.0
+openrisc                          allnoconfig    clang-22
+openrisc                          allnoconfig    gcc-15.2.0
+openrisc                            defconfig    gcc-15.2.0
+parisc                           alldefconfig    clang-22
+parisc                           allmodconfig    gcc-15.2.0
+parisc                            allnoconfig    clang-22
+parisc                            allnoconfig    gcc-15.2.0
+parisc                           allyesconfig    clang-19
+parisc                           allyesconfig    gcc-15.2.0
+parisc                              defconfig    gcc-15.2.0
+parisc                randconfig-001-20260206    gcc-8.5.0
+parisc                randconfig-002-20260206    gcc-12.5.0
+parisc                randconfig-002-20260206    gcc-8.5.0
+parisc64                            defconfig    clang-19
+powerpc                          allmodconfig    gcc-15.2.0
+powerpc                           allnoconfig    clang-22
+powerpc                           allnoconfig    gcc-15.2.0
+powerpc                 canyonlands_defconfig    clang-22
+powerpc                 canyonlands_defconfig    gcc-15.2.0
+powerpc                      cm5200_defconfig    clang-22
+powerpc                    gamecube_defconfig    clang-22
+powerpc                  iss476-smp_defconfig    clang-22
+powerpc                   lite5200b_defconfig    gcc-15.2.0
+powerpc                 mpc832x_rdb_defconfig    clang-22
+powerpc                 mpc836x_rdk_defconfig    clang-22
+powerpc                  mpc866_ads_defconfig    gcc-15.2.0
+powerpc                      pmac32_defconfig    clang-22
+powerpc               randconfig-001-20260206    gcc-8.5.0
+powerpc               randconfig-002-20260206    clang-20
+powerpc               randconfig-002-20260206    gcc-8.5.0
+powerpc64             randconfig-001-20260206    clang-22
+powerpc64             randconfig-001-20260206    gcc-8.5.0
+powerpc64             randconfig-002-20260206    gcc-10.5.0
+powerpc64             randconfig-002-20260206    gcc-8.5.0
+riscv                            allmodconfig    clang-22
+riscv                             allnoconfig    clang-22
+riscv                             allnoconfig    gcc-15.2.0
+riscv                            allyesconfig    clang-16
+riscv                               defconfig    gcc-15.2.0
+riscv                 randconfig-001-20260206    clang-22
+riscv                 randconfig-002-20260206    clang-22
+s390                             allmodconfig    clang-18
+s390                             allmodconfig    clang-19
+s390                              allnoconfig    clang-22
+s390                             allyesconfig    gcc-15.2.0
+s390                                defconfig    gcc-15.2.0
+s390                  randconfig-001-20260206    clang-22
+s390                  randconfig-002-20260206    clang-22
+sh                               allmodconfig    gcc-15.2.0
+sh                                allnoconfig    clang-22
+sh                                allnoconfig    gcc-15.2.0
+sh                               allyesconfig    clang-19
+sh                               allyesconfig    gcc-15.2.0
+sh                         ap325rxa_defconfig    gcc-15.2.0
+sh                                  defconfig    gcc-14
+sh                            hp6xx_defconfig    gcc-15.2.0
+sh                    randconfig-001-20260206    clang-22
+sh                    randconfig-002-20260206    clang-22
+sh                           se7712_defconfig    gcc-15.2.0
+sh                           se7724_defconfig    gcc-15.2.0
+sh                   sh7724_generic_defconfig    gcc-15.2.0
+sh                        sh7785lcr_defconfig    gcc-15.2.0
+sparc                             allnoconfig    clang-22
+sparc                             allnoconfig    gcc-15.2.0
+sparc                               defconfig    gcc-15.2.0
+sparc                 randconfig-001-20260206    gcc-12.5.0
+sparc                 randconfig-001-20260206    gcc-8.5.0
+sparc                 randconfig-002-20260206    gcc-12.5.0
+sparc64                          allmodconfig    clang-22
+sparc64                             defconfig    gcc-14
+sparc64               randconfig-001-20260206    gcc-10.5.0
+sparc64               randconfig-001-20260206    gcc-12.5.0
+sparc64               randconfig-002-20260206    clang-20
+sparc64               randconfig-002-20260206    gcc-12.5.0
+um                               allmodconfig    clang-19
+um                                allnoconfig    clang-22
+um                               allyesconfig    gcc-14
+um                               allyesconfig    gcc-15.2.0
+um                                  defconfig    gcc-14
+um                             i386_defconfig    gcc-14
+um                    randconfig-001-20260206    clang-22
+um                    randconfig-001-20260206    gcc-12.5.0
+um                    randconfig-002-20260206    gcc-12.5.0
+um                    randconfig-002-20260206    gcc-14
+um                           x86_64_defconfig    gcc-14
+x86_64                           allmodconfig    clang-20
+x86_64                            allnoconfig    clang-20
+x86_64                            allnoconfig    clang-22
+x86_64                           allyesconfig    clang-20
+x86_64      buildonly-randconfig-001-20260206    gcc-14
+x86_64      buildonly-randconfig-002-20260206    gcc-14
+x86_64      buildonly-randconfig-003-20260206    gcc-14
+x86_64      buildonly-randconfig-004-20260206    gcc-14
+x86_64      buildonly-randconfig-005-20260206    gcc-14
+x86_64      buildonly-randconfig-006-20260206    gcc-14
+x86_64                              defconfig    gcc-14
+x86_64                                  kexec    clang-20
+x86_64                randconfig-001-20260206    clang-20
+x86_64                randconfig-001-20260206    gcc-14
+x86_64                randconfig-002-20260206    gcc-14
+x86_64                randconfig-003-20260206    gcc-14
+x86_64                randconfig-004-20260206    clang-20
+x86_64                randconfig-004-20260206    gcc-14
+x86_64                randconfig-005-20260206    gcc-14
+x86_64                randconfig-006-20260206    clang-20
+x86_64                randconfig-006-20260206    gcc-14
+x86_64                randconfig-011-20260206    gcc-14
+x86_64                randconfig-012-20260206    clang-20
+x86_64                randconfig-012-20260206    gcc-14
+x86_64                randconfig-013-20260206    gcc-14
+x86_64                randconfig-014-20260206    gcc-14
+x86_64                randconfig-015-20260206    gcc-14
+x86_64                randconfig-016-20260206    clang-20
+x86_64                randconfig-016-20260206    gcc-14
+x86_64                randconfig-071-20260206    gcc-14
+x86_64                randconfig-072-20260206    clang-20
+x86_64                randconfig-072-20260206    gcc-14
+x86_64                randconfig-073-20260206    gcc-14
+x86_64                randconfig-074-20260206    gcc-14
+x86_64                randconfig-075-20260206    clang-20
+x86_64                randconfig-075-20260206    gcc-14
+x86_64                randconfig-076-20260206    gcc-14
+x86_64                               rhel-9.4    clang-20
+x86_64                           rhel-9.4-bpf    gcc-14
+x86_64                          rhel-9.4-func    clang-20
+x86_64                    rhel-9.4-kselftests    clang-20
+x86_64                         rhel-9.4-kunit    gcc-14
+x86_64                           rhel-9.4-ltp    gcc-14
+x86_64                          rhel-9.4-rust    clang-20
+xtensa                            allnoconfig    clang-22
+xtensa                            allnoconfig    gcc-15.2.0
+xtensa                           allyesconfig    clang-22
+xtensa                  cadence_csp_defconfig    clang-22
+xtensa                randconfig-001-20260206    gcc-12.5.0
+xtensa                randconfig-001-20260206    gcc-9.5.0
+xtensa                randconfig-002-20260206    gcc-10.5.0
+xtensa                randconfig-002-20260206    gcc-12.5.0
 
-More than that. My latest AI results are below, just for reference
-(using Gemini 3 with Chris Mason's debug prompts). The prompt I used
-for this run is:
-
-"
-The top commit in the linux/ directory results in hung tasks if the BMC
-stops responding. Using @review-prompts/kernel/debugging.md analyze the
-patch, identify the reason for the hung task problem, suggest and implement
-a fix. Note that there may be more than one problem in the patch, so analyze
-the complete patch and do not stop after fiding the first regression.
-"
-
-I think that catches most of the problem, but not all of it.
-
-Guenter
-
----
-
-Summary of crash or warning:
-Hung task detected in ipmi_si driver when BMC becomes non-functional.
-Processes waiting for IPMI responses (e.g. ipmitool, monitoring agents) enter D state and never recover.
-
-Kernel version if available:
-Top of tree (commit bc3a9d217755f65c137f145600f23bf1d6c31ea9)
-
-Machine type if available:
-Generic Server with BMC
-
-Cleaned up copy of oops or stack trace:
-[  120.123456] INFO: task ipmitool:1234 blocked for more than 120 seconds.
-[  120.123457]       Not tainted 6.14.0-rc1 #1
-[  120.123458] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
-[  120.123459] task:ipmitool        state:D stack:    0 pid: 1234 ppid:  100 flags:0x00000000
-[  120.123460] Call Trace:
-[  120.123461]  <TASK>
-[  120.123462]  __schedule+0x123/0x456
-[  120.123463]  schedule+0x45/0x78
-[  120.123464]  schedule_timeout+0x9a/0xbc
-[  120.123465]  wait_for_completion+0xde/0xf0
-[  120.123466]  ipmi_request_settime+0x123/0x145
-[  120.123467]  ...
-[  120.123468]  </TASK>
-
-Any other kernel messages you found relevant:
-N/A
-
-Explanation of the problem:
-1. Hung Task:
-The patch "ipmi:si: Gracefully handle if the BMC is non-functional" introduces a new state `SI_HOSED` to handle BMC failures. When the driver detects that the BMC is not responding, it transitions to `SI_HOSED` and fails the currently processing message (`curr_msg`). However, if a new message is queued via `sender()` (populating `waiting_msg`) during a recovery probe (state `SI_GETTING_FLAGS`), and that probe subsequently fails, the state machine transitions back to `SI_HOSED`. In this transition, the driver checks and fails `curr_msg`, but it neglects to check or fail `waiting_msg`. As a result, the `waiting_msg` remains in the queue indefinitely, causing the waiting process to hang.
-
-2. Excessive Polling (Timer Overwrite):
-In `smi_timeout()`, the timer is unconditionally reset to a short timeout (e.g., 10ms) at the end of the function, unless the state machine is IDLE. When the state machine returns `SI_SM_HOSED`, `smi_event_handler()` correctly sets the timer to a long backoff (1 second). However, `smi_timeout()` subsequently overwrites this with the short timeout. This causes the driver to poll the hosed BMC every 10ms instead of backing off for 1 second, resulting in unnecessary CPU overhead.
-
-Functions, snippets and call traces of code related to the problem:
-
-drivers/char/ipmi/ipmi_si_intf.c: smi_event_handler()
-
-	} else if (si_sm_result == SI_SM_HOSED) {
-		/* ... */
-		smi_info->si_state = SI_HOSED;
-		if (smi_info->curr_msg != NULL) {
-			return_hosed_msg(smi_info, IPMI_BUS_ERR);
-		}
-		/* BUG 1: waiting_msg is NOT checked here! */
-
-		smi_mod_timer(smi_info, jiffies + SI_TIMEOUT_HOSED); /* Sets 1s timeout */
-		goto out;
-	}
-
-drivers/char/ipmi/ipmi_si_intf.c: smi_timeout()
-
-	smi_result = smi_event_handler(smi_info, time_diff);
-	/* ... */
-	if (smi_result != SI_SM_IDLE)
-		smi_mod_timer(smi_info, timeout); /* BUG 2: Overwrites 1s timeout with ~10ms */
-
-List of potential commits related to the problem:
-bc3a9d217755f65c137f145600f23bf1d6c31ea9 ipmi:si: Gracefully handle if the BMC is non-functional
-
-Suggested fix:
-1. When entering `SI_HOSED` state in `smi_event_handler`, check for and fail any pending `waiting_msg` in addition to `curr_msg`.
-2. In `smi_timeout`, do not reset the timer if the state is `SI_HOSED`, preserving the backoff timeout set by `smi_event_handler`.
-
----
-Suggested diffs from that run:
-
-diff --git a/drivers/char/ipmi/ipmi_si_intf.c b/drivers/char/ipmi/ipmi_si_intf.c
-index 1c65275906b4..023b0e819f91 100644
---- a/drivers/char/ipmi/ipmi_si_intf.c
-+++ b/drivers/char/ipmi/ipmi_si_intf.c
-@@ -810,6 +810,11 @@ static enum si_sm_result smi_event_handler(struct smi_info *smi_info,
- 			 */
- 			return_hosed_msg(smi_info, IPMI_BUS_ERR);
- 		}
-+		if (smi_info->waiting_msg != NULL) {
-+			smi_info->curr_msg = smi_info->waiting_msg;
-+			smi_info->waiting_msg = NULL;
-+			return_hosed_msg(smi_info, IPMI_BUS_ERR);
-+		}
- 		smi_mod_timer(smi_info, jiffies + SI_TIMEOUT_HOSED);
- 		goto out;
- 	}
-@@ -1130,10 +1135,12 @@ static void smi_timeout(struct timer_list *t)
- 		timeout = jiffies + SI_TIMEOUT_JIFFIES;
- 	}
- 
--	if (smi_result != SI_SM_IDLE)
--		smi_mod_timer(smi_info, timeout);
--	else
-+	if (smi_result != SI_SM_IDLE) {
-+		if (smi_info->si_state != SI_HOSED)
-+			smi_mod_timer(smi_info, timeout);
-+	} else {
- 		smi_info->timer_running = false;
-+	}
- 	spin_unlock_irqrestore(&(smi_info->si_lock), flags);
- }
- 
-
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
