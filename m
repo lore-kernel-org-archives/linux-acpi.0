@@ -1,112 +1,102 @@
-Received: from mail-lj1-f172.google.com (mail-lj1-f172.google.com [209.85.208.172])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFE4C2E62C4
-	for <linux-acpi@vger.kernel.org>; Mon,  9 Feb 2026 17:38:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.172
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68AC8385535
+	for <linux-acpi@vger.kernel.org>; Mon,  9 Feb 2026 17:57:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770658716; cv=none; b=nrd7mMw/X0N5O4idfGJy4I+EbP1mwFdAv5IqMG2/1LsfU9WpTBZMk1iCxVdH11aF/xXmYMDhF4+tq3A0B01kvGJTO72td1F6+vLdSdQkm9UNtYFFUp6fU7coQ1N8bOB9u82ouUv6yadp/Sj3DzN+wv1eAfpCMCGRAPlE1AOMPhs=
+	t=1770659852; cv=none; b=eLE8lia/H7N696PraeYtqhmTd1F12NZShcKngCcVSZviAAvvhnyS77VfWT82Z+mmhr2Y/g4FgarIP0rvz5e46t8K5Cd8ZoIiKQPD5E0j7VYWBv+hNc68i2WqrQT8qOiYbw/lh8Vi+3Q3UZ+vmHO5xHB3HwAmNGnoJ0k94LeBrRk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770658716; c=relaxed/simple;
-	bh=m/i1X2lXiKcn07FMp6qZlT9erwk+ht7cleXRIb7SBZM=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=gAg96F0EcVQqHoizGmCYoy4R6jOSXE46FV4uGF6HC0kJ2tmSxq/FUKSRw19azT8lrzGtAPSVG3aonboQyb9ybwa1xKhmW4mF09KlnD3de8ePoAOsaRw8tCbrTjeYvSnyyn05pcYBvm2YUUdhAgcXU3lU1L8qXr5y3fme53NL2BE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=DSMMIrDa; arc=none smtp.client-ip=209.85.208.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1770659852; c=relaxed/simple;
+	bh=un5y1+8gDxSWg+WtEts3vaKtMUgcg6VA+H27hy0DtRQ=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=pNOAiApG4DC8qkg/PIF7o2GcTeyfl0JfIL0OznT8qrqeGHq5Z6k43CxsP0jV+2rQjl65wCnJ2nxAf1xsFfd3IEePpzk5TiHudsqLioq4bXjoQigy25cdxJ68aQqLQFQ2j0QiOyvalRml/oFDvdvF7THpc0+zSK11IiBjiOCMFkg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cL1t653U; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="DSMMIrDa"
-Received: by mail-lj1-f172.google.com with SMTP id 38308e7fff4ca-382fb275271so32905421fa.0
-        for <linux-acpi@vger.kernel.org>; Mon, 09 Feb 2026 09:38:35 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1770658714; x=1771263514; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=wJ1qvlMmC9r0M+r6ivGBZ3k3nGz8gfz87Oob6k8D3IQ=;
-        b=DSMMIrDaZMANDwYalNiCbeYvavfvB3VzGv7KDnUbjFOpTRLoU519pYalgRZMuKil3w
-         W6J9T6trk7A5990RIaxgdVV4ZcqbTiPhxSWIevDWQO+a38YReLbKsoMX3Nb37DNMMYy+
-         mJNPfV3H4guZWrS2BcU7l+oEkCfGSHrYvHkHX6P58bIZjl4GIlfqgNsVO8lByePiBRAc
-         xVWx0T0OqgLv6w/HLFx+ahyMeBm3DasObvpirLjeb8ToYQ+saFq1qkZAhtXPgRzAEZH/
-         JZlKPcEW9phHtrMkaaBGdqKVADrRx1OdBUuSn9K8VDhcNSiypICxGMvJytds1PdhtOiO
-         evZA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1770658714; x=1771263514;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=wJ1qvlMmC9r0M+r6ivGBZ3k3nGz8gfz87Oob6k8D3IQ=;
-        b=lf/swEKXNzEBtflSY/wnCp0TGeLK/ipwrwQwTk/94HII8DezixJ1pQQ0bKiiHv/W/L
-         T8rHn4gutASF/oFyCiT30ACqf29qsdNKvbKOVHvsvMygcwOan7t40nlWW54sEBOXMmtY
-         87xAlxCun3QRx8A6HSzanRC/60lRo7DGHNZHQUDU1AvjQ9bxSTzBuLIUZ6y89Ht0ndiT
-         u+prQeYo8WmTeSsHsoG+dVUmo6RpnfitW63zEqs0cadhDp9WFfGirIuBf6iF8KBaDsbs
-         Ot383hKZtaGxM3QjqeSAHZa0ZrZj7V2rglTcKr9FeBgADKiZMPKqDfH+jqtUNXuLacPy
-         FZZQ==
-X-Forwarded-Encrypted: i=1; AJvYcCVN4s07q9L8afN3aJ7TUJGU5/2YWwYA7nt7fJ9yKnifang2Ut88I6HdseOZGz7BoPPiGF9Nvw9M8987@vger.kernel.org
-X-Gm-Message-State: AOJu0YwrPma74F7p3sE9HROT7a0/4KaFJdgqVAsKbZUlD22xf3qj8ePs
-	0gA8bNjWBtkkBhYo/1kw0qrYA5iDDKgqqqFrQVexO49Gl37UQxv9DJvt
-X-Gm-Gg: AZuq6aLMh/IipOBK16y8fdYTXasxXS5/4s0CrKmP3OG3STVUbSx2mZP2fFwtPXg7GcD
-	iSy99+AAo1BrKv8/rskTO01vJGr98FSFTkpR88zmfQTsv7ekq2NeaUYaNK2kQN9me88WdfTuVaf
-	L9h0Qs6TKHhAclyBR1wcZNkTE5TYeVs3mv4DJhqVXsjh9SujxLDoSdT+7Dh39O3vtwpd6ldyioz
-	CeFQNNH8KpSlo3grqJ0PZkAnaQMbZdyvSsSgOijwOQE+lg10bTCQJ8gMqpkqOPMQFDWv+9iVyzb
-	Ti8pvuTf7H5tnyw3WaDAiD8vEMWPvAiYjvm+xSQrHZhCw+0aiR9HSowpJPIErVp4PQ8bhGlX/4t
-	/3x73MGFwleuyKt8+CN6FnifC+j5SyAiT+JrSdGphuGRjICQFsu7J0Y2cq2OFxnANlfH9NrXjUF
-	yvf4K5EPnIqDHGhAY2hbT735vffdegKGjUCY9uiZnnsrNa46srV2+oHiYQr69YTBHodEepAvZ8h
-	dpXbiFtVTHkL4IzqRxwUIyzKg==
-X-Received: by 2002:a2e:be91:0:b0:37c:cf34:536c with SMTP id 38308e7fff4ca-386b4e92401mr37765091fa.3.1770658713610;
-        Mon, 09 Feb 2026 09:38:33 -0800 (PST)
-Received: from localhost.localdomain ([176.33.64.73])
-        by smtp.gmail.com with ESMTPSA id 38308e7fff4ca-386b62363a9sm26282541fa.9.2026.02.09.09.38.32
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 09 Feb 2026 09:38:33 -0800 (PST)
-From: Alper Ak <alperyasinak1@gmail.com>
-To: rafael@kernel.org
-Cc: lenb@kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Alper Ak <alperyasinak1@gmail.com>
-Subject: [PATCH] ACPI: battery: Avoid dereferencing battery before NULL check
-Date: Mon,  9 Feb 2026 20:38:27 +0300
-Message-ID: <20260209173827.87744-1-alperyasinak1@gmail.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cL1t653U"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D305C4AF09
+	for <linux-acpi@vger.kernel.org>; Mon,  9 Feb 2026 17:57:32 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1770659852;
+	bh=un5y1+8gDxSWg+WtEts3vaKtMUgcg6VA+H27hy0DtRQ=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=cL1t653UE9ZdHPe4zAqY75ZQ55gcdtBC1QbeMnbgmsODM5nOUBcGFWtt2OxTdIgGJ
+	 MPcPCRMPE5VdNOWlPIiKxr3lcMeZnnWYOezs6zLp1UA9ev8M4LvzWZG6hzcCrAcS3I
+	 r2oAYW5J+z/yvXvcxSwesH+znjqVTwAn2V3Hi1JpdKr2KhTb9bSpdG9qfev3QChSUZ
+	 VysYQmg8caORaksZ4kOjZFDm269NqHY4aAjt5cSbZKo3auxZKeGuq2PQyibKy2tCBB
+	 OHj2P2vUv93MfbROIP3TW9cknvq+AS3vGQEAWYgyi5T5j3L/ro+uwHzqpxGiwWGNHW
+	 AOPqvGEyul8nQ==
+Received: by mail-oa1-f53.google.com with SMTP id 586e51a60fabf-4042f55de3aso3700108fac.1
+        for <linux-acpi@vger.kernel.org>; Mon, 09 Feb 2026 09:57:31 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AJvYcCU1DQV5nILOiYAW07xdXxBZLIMKS4ecqxdCRh2ImcqD9JtvrzduwpXwrDn0eZl0hHwjhlpgu1rVffwB@vger.kernel.org
+X-Gm-Message-State: AOJu0YzSluaL+bBmFDCy3gwpHsnq0YLKJeCZPSyAYq8tebGUtKlz0UCH
+	TzX0j75HAlqcnig6hwZmMgpp3d+Mw8sGLBJ3FSC14HSBeANSQkKo0+ee3AdMgw/7g9LWcT4UVXI
+	9NjejvAHQeemo99h3ItA7JYD/gjNFRYo=
+X-Received: by 2002:a05:6870:e08f:b0:404:2e44:18b6 with SMTP id
+ 586e51a60fabf-40c10f9327amr156284fac.16.1770659851079; Mon, 09 Feb 2026
+ 09:57:31 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20260209173827.87744-1-alperyasinak1@gmail.com>
+In-Reply-To: <20260209173827.87744-1-alperyasinak1@gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Mon, 9 Feb 2026 18:57:20 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0hnWigDAgAsd6moc6qaK2Hn2MfU7PunrgukOAPCvt8dHQ@mail.gmail.com>
+X-Gm-Features: AZwV_QjDiM1aqNo6onM7RvoEOlL3lFSPen-qARDztMkvX4noNdBFfAbkCf987qw
+Message-ID: <CAJZ5v0hnWigDAgAsd6moc6qaK2Hn2MfU7PunrgukOAPCvt8dHQ@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: battery: Avoid dereferencing battery before NULL check
+To: Alper Ak <alperyasinak1@gmail.com>
+Cc: rafael@kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-acpi_battery_notify() dereferences the battery pointer before checking
-for NULL. Reorder the check to ensure the pointer is validated before
-use.
+On Mon, Feb 9, 2026 at 6:38=E2=80=AFPM Alper Ak <alperyasinak1@gmail.com> w=
+rote:
+>
+> acpi_battery_notify() dereferences the battery pointer before checking
+> for NULL. Reorder the check to ensure the pointer is validated before
+> use.
 
-This issue was reported by the Smatch static analyzer.
+The check is redundant, please see:
 
-Fixes: 08b54fd57782 ("ACPI: battery: Adjust event notification routine")
-Signed-off-by: Alper Ak <alperyasinak1@gmail.com>
----
- drivers/acpi/battery.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+https://lore.kernel.org/linux-acpi/5981321.DvuYhMxLoT@rafael.j.wysocki/
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index 3bbddd6f622c..abc82be69215 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -1063,12 +1063,14 @@ static void acpi_battery_refresh(struct acpi_battery *battery)
- static void acpi_battery_notify(acpi_handle handle, u32 event, void *data)
- {
- 	struct acpi_battery *battery = data;
--	struct acpi_device *device = battery->device;
-+	struct acpi_device *device;
- 	struct power_supply *old;
- 
- 	if (!battery)
- 		return;
- 
-+	device = battery->device;
-+
- 	guard(mutex)(&battery->update_lock);
- 
- 	old = battery->bat;
--- 
-2.43.0
-
+> This issue was reported by the Smatch static analyzer.
+>
+> Fixes: 08b54fd57782 ("ACPI: battery: Adjust event notification routine")
+> Signed-off-by: Alper Ak <alperyasinak1@gmail.com>
+> ---
+>  drivers/acpi/battery.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+> index 3bbddd6f622c..abc82be69215 100644
+> --- a/drivers/acpi/battery.c
+> +++ b/drivers/acpi/battery.c
+> @@ -1063,12 +1063,14 @@ static void acpi_battery_refresh(struct acpi_batt=
+ery *battery)
+>  static void acpi_battery_notify(acpi_handle handle, u32 event, void *dat=
+a)
+>  {
+>         struct acpi_battery *battery =3D data;
+> -       struct acpi_device *device =3D battery->device;
+> +       struct acpi_device *device;
+>         struct power_supply *old;
+>
+>         if (!battery)
+>                 return;
+>
+> +       device =3D battery->device;
+> +
+>         guard(mutex)(&battery->update_lock);
+>
+>         old =3D battery->bat;
+> --
+> 2.43.0
+>
+>
