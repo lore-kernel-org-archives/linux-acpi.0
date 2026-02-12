@@ -1,111 +1,101 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2E58346A0C
-	for <linux-acpi@vger.kernel.org>; Thu, 12 Feb 2026 11:44:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B79102DAFBD
+	for <linux-acpi@vger.kernel.org>; Thu, 12 Feb 2026 11:44:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770896668; cv=none; b=HocsjRqiTn+oWObXDxoBbrJzvvzUZwXGTiKWh4Uy6R3qrf5frCeqD9ytseGXjSbletK2H6TIOI65sBe+UCWgvzMm0tj8iD1RIdAxWXtxCZ1ShsS/N7xNa9Gms2g6PyhJ9UubzvevYW46Ogr+KXSpBQvie3bVaIaNhfvyohZxK9o=
+	t=1770896694; cv=none; b=Al/JWm69pPcOzhQB0fy6giY8TSt+eOjPwy3pZRDGlB1mcg8vsxkSsoSUmEvFOv8VeME1AoIp6pwuuAK85Qjs226MKX0KAe0UGAQ6lEpqtvkvxp0Po4od2+nPhc9RHM4FflsWdAZ7mgU+uRUA/Hq7ZVUm8so3pTEEvg95RqMK7Lo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770896668; c=relaxed/simple;
-	bh=GusY+He8Bnnz0voVLpglddBc9mcy0CTXXscPoLQR2EU=;
+	s=arc-20240116; t=1770896694; c=relaxed/simple;
+	bh=tpdj+zuFt2n98g3229+7PupGPWLqPWUQhEFmRjVDOjc=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=FI65nwySZY4JK+llDs3bUY10zSCOfFvlgvqjzQPVqnFbk/ODDiLRKrd7wp0ILhhNYzIBKNHBoEHhfhQx1Rp0m5gVBvjzspFgIu5UdviHrU10DcfvGTeRb0dtCw1WU/SE9MTZfN9E35DNVsqXIwI9R1qZpPynjvydLwmOPzLtLaI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=qm3tCpRW; arc=none smtp.client-ip=10.30.226.201
+	 To:Cc:Content-Type; b=sYwnuFloeyfgs0UGNtcqv8BFuib5rwVT3AJ7spkK9go8ZIPBngqSdmOd9nk8KIMqiXMuldyOttoukK1ozJMqRm3Rzth1L9yKBrJs1GeWjIcRvE3Mmt0GvnMpQvEubqLvplNycQzht68gRSnlBHhx5hyhzj167gm87JeX/vDuMBM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VUjkD+nS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="qm3tCpRW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59303C2BCAF
-	for <linux-acpi@vger.kernel.org>; Thu, 12 Feb 2026 11:44:27 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VUjkD+nS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92885C19425
+	for <linux-acpi@vger.kernel.org>; Thu, 12 Feb 2026 11:44:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1770896667;
-	bh=GusY+He8Bnnz0voVLpglddBc9mcy0CTXXscPoLQR2EU=;
+	s=k20201202; t=1770896694;
+	bh=tpdj+zuFt2n98g3229+7PupGPWLqPWUQhEFmRjVDOjc=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=qm3tCpRWfGdArPwdfm6ZBRiVNapnnblVBY0xhqG2KoW4ELcnT/6ouxAbm55szkTI0
-	 YGfSqbF/I5v2t4WdLxOHxSI3G50zoqxMsHZru8zTfzGmwYE803U4uGT3VSLEzU6l5Y
-	 k2mmRlaZDZFouzND5uPQ1c9V0L7bdk8uzyblBBQLCjY17DtqMC0aSsm3vUi9LcFGUW
-	 H7lLucN+NPBAtMkbcWZtue0yu5dA+Uh8tl4YEqj3m46LWD6dr+bOrewjHn6MBWJ2fi
-	 +wD4yWI+KIs1QcIch11q/uAzYH2xLeGgcL1HTR4hxuASXHP61yoqPgcHWcWouN8tyW
-	 /2xxEtiHoHNIg==
-Received: by mail-ot1-f53.google.com with SMTP id 46e09a7af769-7d15b8feca3so2995606a34.3
-        for <linux-acpi@vger.kernel.org>; Thu, 12 Feb 2026 03:44:27 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AJvYcCUXyiW8e0tT07NGbr3pCudMx8O1Xb0pK52L1gCw1nde5KlDo/N96tFAZhbqYm/qaNy56/eXo0eek9E6@vger.kernel.org
-X-Gm-Message-State: AOJu0Yxz/C6EGdNqFQiy6aBzVulRXjLPwLALwbZC7KxVWoUSgzFdjEhF
-	ZJYEy2FiBSwFTA0YWJO9l9+ViNrtc7wfyXS+s7kzO3TaeGh1hEBe4R88LbfP0U/Rnfk0nQOU2gB
-	UvxweuTTW0M+YYIQeswB+N3caO5AbknQ=
-X-Received: by 2002:a4a:b2cb:0:b0:676:7cea:7910 with SMTP id
- 006d021491bc7-6767cea7e9fmr122521eaf.62.1770896666347; Thu, 12 Feb 2026
- 03:44:26 -0800 (PST)
+	b=VUjkD+nS6eAi1BrNWUaVVZd1FVLFsX1kB3AlZNlVK7SPHQenTnIi0YnfI113dmGZV
+	 O8ceqmGS0K05ywCDrkJdU6yc9orGxUui0rjhhhAYokysBuDLtkpV+zrTtmtYXcrU02
+	 +qmZvBZrUSs/0vYgo/wUZWb97ZCUtLf5URhAStzHTaaUfkkGVtpplNTS3h0WspgSp7
+	 WAjnUba/dI+ee5reh/2WgXqYO42iTrWFP4H3Q9zGVDeFxYaSUwlw4anricctdcURMQ
+	 CPDF2Jmzbmu+R4uK5Yr9GDJprmgsFAYjmxNnBAQudfUZVlZAO68ltpLQpV2WwUV4aa
+	 m45a0DH0oaRgQ==
+Received: by mail-oi1-f175.google.com with SMTP id 5614622812f47-45f126d47b8so3908949b6e.2
+        for <linux-acpi@vger.kernel.org>; Thu, 12 Feb 2026 03:44:54 -0800 (PST)
+X-Gm-Message-State: AOJu0YwJc0XgTLK1QEVTXMuaOJZ14XXkc/Ij6jA1SrqUpvK544B2gfll
+	lEi0lKtGWWCiENBbPuvbd+C91H3KLOKzTT5Vs3fhQ81OWuEj8h58jziL3Ga6xOl9pNjdt7bbf75
+	sh+kvMTLJXG7tLfaREl5CwlqCyFZQLaI=
+X-Received: by 2002:a05:6820:4913:b0:662:f837:e6bf with SMTP id
+ 006d021491bc7-67598941f08mr967097eaf.21.1770896693736; Thu, 12 Feb 2026
+ 03:44:53 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260211212254.30190-1-skelley@nvidia.com>
-In-Reply-To: <20260211212254.30190-1-skelley@nvidia.com>
+References: <20260211222242.4101162-1-jekhor@gmail.com>
+In-Reply-To: <20260211222242.4101162-1-jekhor@gmail.com>
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Thu, 12 Feb 2026 12:44:15 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0iJq6PLcaX2yXszt+PndiOQPYWtai1DZ=dz+o6treH9GQ@mail.gmail.com>
-X-Gm-Features: AZwV_Qi1upQNkyl4i8SKycwfg_DbF8NPDlJjlvq71BshTuuQRGo7c3LIZD1a2F4
-Message-ID: <CAJZ5v0iJq6PLcaX2yXszt+PndiOQPYWtai1DZ=dz+o6treH9GQ@mail.gmail.com>
-Subject: Re: [PATCH v2] ACPI: CPPC: Fix remaining for_each_possible_cpu() to
- use online CPUs
-To: Sean V Kelley <skelley@nvidia.com>
-Cc: rafael@kernel.org, lenb@kernel.org, pprakash@codeaurora.org, 
-	gautham.shenoy@amd.com, jamien@nvidia.com, mochs@nvidia.com, 
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Date: Thu, 12 Feb 2026 12:44:42 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0jEy_D3nGpQYufmcxmV+Uwgsy4U-VydKEfJhj_BxL-KPw@mail.gmail.com>
+X-Gm-Features: AZwV_Qi6Zdjk-bhgCUATVDNQtrkN2e_NZFNUWkfXciC_WYll3Kyq7iUKlmj-N4c
+Message-ID: <CAJZ5v0jEy_D3nGpQYufmcxmV+Uwgsy4U-VydKEfJhj_BxL-KPw@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: x86: Force enabling of PWM2 on the Yogabook YB1-X90
+To: Yauhen Kharuzhy <jekhor@gmail.com>
+Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Len Brown <lenb@kernel.org>, Hans de Goede <hansg@kernel.org>, linux-kernel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Feb 11, 2026 at 10:23=E2=80=AFPM Sean V Kelley <skelley@nvidia.com>=
+On Wed, Feb 11, 2026 at 11:22=E2=80=AFPM Yauhen Kharuzhy <jekhor@gmail.com>=
  wrote:
 >
-> per_cpu(cpc_desc_ptr, cpu) object is initialized for only the online
-> CPUs via acpi_soft_cpu_online() --> __acpi_processor_start() -->
-> acpi_cppc_processor_probe().
+> The PWM2 on YB1-X90 tablets is used for keyboard backlight control but
+> it is disabled in the ACPI DSDT table. Add it to the override_status_ids
+> list to allow keyboard function control driver
+> (drivers/platform/x86/lenovo/yogabook.c) to use it.
 >
-> However send_pcc_cmd() and acpi_get_psd_map() still iterate over all
-> possible CPUs. In acpi_get_psd_map(), encountering an offline CPU
-> returns -EFAULT, causing cppc_cpufreq initialization to fail.
->
-> This breaks systems booted with "nosmt" or "nosmt=3Dforce".
->
-> Fix by using for_each_online_cpu() in both functions.
->
-> Fixes: 80b8286aeec0 ("ACPI / CPPC: support for batching CPPC requests")
-> Signed-off-by: Sean V Kelley <skelley@nvidia.com>
+> Signed-off-by: Yauhen Kharuzhy <jekhor@gmail.com>
 > ---
+>  drivers/acpi/x86/utils.c | 12 ++++++++++++
+>  1 file changed, 12 insertions(+)
 >
-> Notes:
->     v2: Also fix for_each_possible_cpu() in send_pcc_cmd() (Rafael)
+> diff --git a/drivers/acpi/x86/utils.c b/drivers/acpi/x86/utils.c
+> index 4ee30c2897a2..418951639f51 100644
+> --- a/drivers/acpi/x86/utils.c
+> +++ b/drivers/acpi/x86/utils.c
+> @@ -81,6 +81,18 @@ static const struct override_status_id override_status=
+_ids[] =3D {
+>                 DMI_MATCH(DMI_PRODUCT_NAME, "Mipad2"),
+>               }),
 >
->  drivers/acpi/cppc_acpi.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-> index a09bdabaa804..0e6ffb188fe7 100644
-> --- a/drivers/acpi/cppc_acpi.c
-> +++ b/drivers/acpi/cppc_acpi.c
-> @@ -362,7 +362,7 @@ static int send_pcc_cmd(int pcc_ss_id, u16 cmd)
->  end:
->         if (cmd =3D=3D CMD_WRITE) {
->                 if (unlikely(ret)) {
-> -                       for_each_possible_cpu(i) {
-> +                       for_each_online_cpu(i) {
->                                 struct cpc_desc *desc =3D per_cpu(cpc_des=
-c_ptr, i);
->
->                                 if (!desc)
-> @@ -524,7 +524,7 @@ int acpi_get_psd_map(unsigned int cpu, struct cppc_cp=
-udata *cpu_data)
->         else if (pdomain->coord_type =3D=3D DOMAIN_COORD_TYPE_SW_ANY)
->                 cpu_data->shared_type =3D CPUFREQ_SHARED_TYPE_ANY;
->
-> -       for_each_possible_cpu(i) {
-> +       for_each_online_cpu(i) {
->                 if (i =3D=3D cpu)
->                         continue;
->
+> +       /*
+> +        * Lenovo Yoga Book uses PWM2 for touch keyboard backlight contro=
+l.
+> +        * It needs to be enabled only for the Android device version (YB=
+1-X90*
+> +        * aka YETI-11); the Windows version (YB1-X91*) uses ACPI control
+> +        * methods.
+> +        */
+> +       PRESENT_ENTRY_HID("80862289", "2", INTEL_ATOM_AIRMONT, {
+> +               DMI_EXACT_MATCH(DMI_SYS_VENDOR, "Intel Corporation"),
+> +               DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "CHERRYVIEW D1 PLATFORM=
+"),
+> +               DMI_EXACT_MATCH(DMI_PRODUCT_VERSION, "YETI-11"),
+> +             }),
+> +
+>         /*
+>          * The INT0002 device is necessary to clear wakeup interrupt sour=
+ces
+>          * on Cherry Trail devices, without it we get nobody cared IRQ ms=
+gs.
 > --
 
 Applied as 7.0-rc material, thanks!
