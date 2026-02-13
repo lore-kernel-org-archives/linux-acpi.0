@@ -1,65 +1,65 @@
-Received: from mail-ot1-f43.google.com (mail-ot1-f43.google.com [209.85.210.43])
+Received: from mail-oi1-f174.google.com (mail-oi1-f174.google.com [209.85.167.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AFDF2DB78D
-	for <linux-acpi@vger.kernel.org>; Thu, 12 Feb 2026 22:06:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.43
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB8A1261B8A
+	for <linux-acpi@vger.kernel.org>; Fri, 13 Feb 2026 06:55:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770933983; cv=none; b=OBeN9ethJ/ywUucnNQkrFd14fKSQFZHcGsFtYewt1T6Y5nU1ulO6Fb4L4BeV/7OaLWjdWqckV4nDqA2qGSEk7aIZpGYo09DadwAs2eVHu0sW913sTkvxupeP8//TLCgq5FkzeBYJty/pDE7hqjmg2BJ4BjbYVtrvd6IwMwPxIdU=
+	t=1770965735; cv=none; b=nKIt4M0r/jCQqwQx5UUyvpFkMlbn6rnpwg1mb4/ix1R/RzEVFHIVok/ZhQcnn/yrlUxTkSwsB1N3C0M4wT7T1WY3PDEzqifgZu7JTNrvvL85dfpy3scG/QDHlDHyJlZIbNQBihqnsIA6t8A3dNBzmKvL49cBbL4cFdGjSTvjuLY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770933983; c=relaxed/simple;
-	bh=FA9Sa4ZScDMsKUsdS5zZWNPvFD772JVJVeWxvkxf5L8=;
+	s=arc-20240116; t=1770965735; c=relaxed/simple;
+	bh=3f9GZhs53JjFf7w/T46dEHUkViopYFQYeFiwEdCKr0w=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=qQgpn1OPxVRMUt36RqiFTwRUwFEmJSNjwBYd7jP64hP3F0O/N6A+ERnRdpVDSEW2zLJIwH2RUC/LODMcF0YI6k3sLb5N8Hfmet4QXFinExgcz281Fq4tsTMGaQpvnZJTDvBwaO8FKBzyP6RfgzDwXm8yUT8kQEQ2vcILWbj1aug=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=minyard.net; spf=pass smtp.mailfrom=minyard.net; dkim=pass (2048-bit key) header.d=minyard.net header.i=@minyard.net header.b=b0N7+eXP; arc=none smtp.client-ip=209.85.210.43
+	 Content-Type:Content-Disposition:In-Reply-To; b=YlhCjbcw4lrHPYXit2dsMablsRRa/SmfAbz8phE/RxXqiWKhRGwZI2o1avsANINMkDSBx5023w1W0y1DK3rw0MJOeGhnDZGnzHBU3av5X/X1LYnkSxkjdWwnyhPhLiJlbW9XuVyYGVZpZdAPbKs8XOs7PxmlC1wo5ZuWoe/7EPQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=minyard.net; spf=pass smtp.mailfrom=minyard.net; dkim=pass (2048-bit key) header.d=minyard.net header.i=@minyard.net header.b=UCA+qTFV; arc=none smtp.client-ip=209.85.167.174
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=minyard.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=minyard.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=minyard.net header.i=@minyard.net header.b="b0N7+eXP"
-Received: by mail-ot1-f43.google.com with SMTP id 46e09a7af769-7d4be7c4ebeso159306a34.1
-        for <linux-acpi@vger.kernel.org>; Thu, 12 Feb 2026 14:06:21 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=minyard.net header.i=@minyard.net header.b="UCA+qTFV"
+Received: by mail-oi1-f174.google.com with SMTP id 5614622812f47-45efd53148eso221640b6e.0
+        for <linux-acpi@vger.kernel.org>; Thu, 12 Feb 2026 22:55:32 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=minyard.net; s=google; t=1770933980; x=1771538780; darn=vger.kernel.org;
+        d=minyard.net; s=google; t=1770965731; x=1771570531; darn=vger.kernel.org;
         h=in-reply-to:content-disposition:mime-version:references:reply-to
          :message-id:subject:cc:to:from:date:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=VMZsU008s1b0NUMycPyjWaPsbDd+SQs/nQ6naksV2T0=;
-        b=b0N7+eXPxbbc6CMCgSFoNtXgxvjQsTPAGyCJVp+KcYR6Jr/GabuWhn3PoYTCa9qJJ2
-         kMQ2cWwdbWhOkl0qI2YAOcLT/EOY3f8A6dv3hfCMki34MEKTMC/dEDpM1GZkXWw/Magn
-         i6HAdXsqWaR50lVtsDtZGaE52MkR/T2f/3KOGKEgVLgJrOOtOHgZy1AeLrBXN2g83Hgt
-         L23rDHHcEUAd/TxtZDuGXitE1/fiLAwYz+PYTh6oLCgFJHzxHqxzO8H0N2NDh23aPq0r
-         JEmWc2sJQX7xnm8Q+J3kYmuCaQu5TrgXaYz8E3Kt3f4V5FqibLUQB+TNFuBFr8I4xVsZ
-         ZFag==
+        bh=n4e7jAbKNE4bD+vS1RSy4Qf8lUvN6hPjXtNCjaFIu1w=;
+        b=UCA+qTFVBydZgkYJgznMmD1i7xYiaxuqGrR7dIZFt/yvsl4dp3xh7DGO3HSQbiRNIQ
+         V65lLe8M63SplU8I0fJoYQ8Ihctffs5OJi9ujtWPe+BcWAhrDffCmpv00tUgDZTs8iN+
+         8d5U1nfg940gfv0tTYJJ+RMszQVDW5dXdpZ0BwJ+3VF/mZfI3WrXesGzXjvsQfLjaVVe
+         rYPhWewlJLiszp9EyvY/nD4eH5zOsvCyM1esq69rLN8Ik2Hy2zyX7nIjvQajD5BIx6IW
+         GkCjtCfKAjPLkHKm2KEtzCe92bDOhKBiHVA7D9l5i19tCvQLyp5dbHKlSOdARtD7GYTW
+         7zvA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1770933980; x=1771538780;
+        d=1e100.net; s=20230601; t=1770965731; x=1771570531;
         h=in-reply-to:content-disposition:mime-version:references:reply-to
          :message-id:subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=VMZsU008s1b0NUMycPyjWaPsbDd+SQs/nQ6naksV2T0=;
-        b=biTgpLKooVMt87dUkkrozxlgN+yJAxVXr17c4UfNuP5H7ibFCPhJDyXPBh7w5G3KJI
-         iDUzAOJlxapX6TfaL7zr1eopTIfgaee36R9HY6JI38YY/EsRIXQsiR+ECCUH9Dz7xBS8
-         4P7OH+MMaRL+U5sxv029gCcFfMV4Kf7upHk+zJdZV7UuqcIX+i2MvcAcjMqYXtixvW5a
-         fFvaA7g1Yab3/xXSn54RBAxDkLC36hibDDozM9i8MUF7co/CmNv8rAU19yzjOcUUEorw
-         79cAadF8UgIaXdXYcQA6af9xJ92DV3pmzYP9EBEzYRmr7iQkGfH6HB9FZ+cwXFFA2SPQ
-         cJIg==
-X-Forwarded-Encrypted: i=1; AJvYcCVb0qRZckZOCV4jS1JHoXiB9Tt/q5pESYFv/wMr7qLLcWTJ3ZknVa72yO8I8aC0Q5O2vhmGdEKwVzvt@vger.kernel.org
-X-Gm-Message-State: AOJu0YyMCijlBL9OFbO0CVgjcou8iF+R4k0neYAIROG7aIJR97nWnDTx
-	idZwXEl2vDJFP5as7RwTZ5bnxsHgUvWqKh6oySsNIb/xkJHWHNiJQEGpQWc4Y4+LQ8Q=
-X-Gm-Gg: AZuq6aIC5AQlxuIAL0wMPjIqeSe+sQosSKkPIj5YuoRX7MIc9RY3ZkDeKJ4KAENu96m
-	mgY11PArNn4wFSjObDFUX99lrxgxeIPMjqlpt7r0gC6StrIQjL4rvWxDZ6bT/PRYaJ+TKlVb90P
-	sf5nh/ncUYzWg3WnyCFK4CMrG1PJAn06Q07SpyiU8SqkvP4LNg5B2ED9BXgTkHRDYR8xtZ/c91o
-	DEUlwcT4t222FkM7zh+4CEIff849bcTAsQePgP1LJHzM/WPCberrgWlF9ZaljKNeM/lJenUvM3I
-	ETT/3GCe2sQB0XgNKsxCcZ7GR/FquQT93QD/2dEO++z88/BRBxwKzUD+7Zy5qTvmLKibcQ356Su
-	5Eo7+GfCfyry7EE8f7ODp3tAmzwDQ2R0onRl9APOTt/NSnoczmXjZwGphpFxcvRAPfsNLW2NMU1
-	glMckv6TDG27YFSXqwIcXiCXlvEKMsscTNXpyM0KGH/sCm0zOBDYRqC7wtMrK/kpytdMX2/kbkH
-	V4HokY+ac9d7G4=
-X-Received: by 2002:a05:6830:7313:b0:7c7:4f2:e15d with SMTP id 46e09a7af769-7d4c3028d5bmr316756a34.16.1770933980193;
-        Thu, 12 Feb 2026 14:06:20 -0800 (PST)
+        bh=n4e7jAbKNE4bD+vS1RSy4Qf8lUvN6hPjXtNCjaFIu1w=;
+        b=rLTOAH1ZaY95/WRydC63xdA0qV/TuvsyPDSvxl8bncnf7ez50m5XB3oFHujTohw2wM
+         27mUU6+sEHk/Ogm7WWdwkY5cpE/r7gXPIzCRoW4u3Z1MKcX0pF2qGBxKnb53sIQma6fW
+         3o0ulNBYceldmTtDrpGC9i6/6YJmjzgoYwtG33s/Kq8xZuBe7rQVxoh2z2RSegKIongC
+         SoHH/X52E53hfMjcrVah3c8/qxC10Qy+9wslPSxmH3Rx1CL8GjFvo5KXixdjIN4BzWD+
+         S2oGX8kkUFD/8/Se+6+RwvF3PCG3LAEygCiwUw7JqPRSkYnJtel2QcUDHhk/tT78rNlB
+         haFw==
+X-Forwarded-Encrypted: i=1; AJvYcCUsesV+aU8a/qRYvn89P+fxLMe8Z9qflwmU6EmIdRdSFeB/zDAz/vBfVJIxD4sHbs+cHHnSzgm2yfe6@vger.kernel.org
+X-Gm-Message-State: AOJu0YzJV67ct5p7OpnEeNwJtR5wwS0YMT08lAvHzYTi8MFfPxkEt8Eb
+	1zCheI/JlGv8ThFiLAsKqSgA0GADfbYQIceIIx97N7a+dljQEL0MN29cBlGO+GNNRTE=
+X-Gm-Gg: AZuq6aLCWrLuc4oU6INJnkl7FQp++pPH8oJHd1dVjn/iqh16JD3744RoNZvqV1tD0Z3
+	Slx7PpJrzvvwbJLhAdlgHFv3Y0BUdYU0Yx3qacP9kB9PjxG4LdJRcsFdCliFYpHSpUI54Q5yZO1
+	OCpaZgK+CMxMz7AcS3si/mK5JC2zuct2vfZrgewYmfcE40z5PflC43TPtDX7QaMqquZgceA1H6J
+	wwdZDwNAoT3PQgoENrRgcRxDJcVPu5Y67YF8DCYgkXDRWagW8cmNNB34py8gFoMqn39eX7uzPCR
+	wgQKalJiwPdK1Fh4oZI1n1HGi3OMcLQr6KgoGmVYqkao7Wt/g/BIdpAhzzh49jLtwDfPU5+jJ9w
+	LQffd9t70D1GSWdToi+U02Jl8BZWYOp32zcH9N+DBzq5Do7F0FSV1CrLWdZ/2sXwqb2ZFXWD6XZ
+	L8nZKJMuye35Q/X3S2p9VtwuRE9XpHji15iJH0knKFmTmSFY0oBEoV5zJCKUgMLLa/x9u3oRkJw
+	SaK7ZV2MiL/NJ4=
+X-Received: by 2002:a05:6808:ecb:b0:45e:dbc8:7b18 with SMTP id 5614622812f47-4639ef073b7mr528976b6e.13.1770965731453;
+        Thu, 12 Feb 2026 22:55:31 -0800 (PST)
 Received: from mail.minyard.net ([2001:470:b8f6:1b:a3ab:7352:1dc1:6b46])
-        by smtp.gmail.com with ESMTPSA id 46e09a7af769-7d4a76df04dsm4998416a34.15.2026.02.12.14.06.19
+        by smtp.gmail.com with ESMTPSA id 46e09a7af769-7d4a754b162sm5404924a34.12.2026.02.12.22.55.28
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 12 Feb 2026 14:06:19 -0800 (PST)
-Date: Thu, 12 Feb 2026 16:06:15 -0600
+        Thu, 12 Feb 2026 22:55:29 -0800 (PST)
+Date: Fri, 13 Feb 2026 00:55:25 -0600
 From: Corey Minyard <corey@minyard.net>
 To: "Rafael J. Wysocki" <rafael@kernel.org>
 Cc: Jaroslav Pulchart <jaroslav.pulchart@gooddata.com>,
@@ -71,7 +71,7 @@ Cc: Jaroslav Pulchart <jaroslav.pulchart@gooddata.com>,
 	Huisong Li <lihuisong@huawei.com>
 Subject: Re: [BISECTED - impi related]: acpi_power_meter: power*_average
  sysfs read hangs, mutex deadlock in hwmon_attr_show since v6.18.y
-Message-ID: <aY5O1z6SbrGSDaDs@mail.minyard.net>
+Message-ID: <aY7K3cHE3dgnEC4L@mail.minyard.net>
 Reply-To: corey@minyard.net
 References: <1642aec8-e8c1-4ad4-a5b7-556feeedfd93@roeck-us.net>
  <CAJZ5v0i_BmeGROzQFpUCyF5MkA7sFkP3y8jjqH0mD2r2Wqj_xA@mail.gmail.com>
@@ -308,10 +308,15 @@ On Thu, Feb 12, 2026 at 10:33:15PM +0100, Rafael J. Wysocki wrote:
 > value and maybe return it to the caller so i_ipmi_request() can return
 > an error if it fails.
 
-Yes, I think you might be right.  I've just gotten qemu to a point where
-I can test this.
+This was indeed an issue, and had to be handled correctly in a lot of
+places.  And there were other issues.  I tested a lot of different
+scenarios.
 
-Until that code was added handlers->sender() never returned an error.
-Hopefully I can figure this out soon.
+Patches are currently in my next tree
+https://github.com/cminyard/linux-ipmi.git for-next
+and I'll send emails with them, too.
+
+I was able to reproduce the issue with qemu.  Assuming this works, next
+step is to automate the tests.
 
 -corey
