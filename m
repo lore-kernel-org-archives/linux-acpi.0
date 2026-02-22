@@ -1,38 +1,38 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 848D826ACC;
-	Sun, 22 Feb 2026 14:21:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0EE225DB0D;
+	Sun, 22 Feb 2026 14:21:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771770069; cv=none; b=RXniErPvhFv0fiFslBlvHD6y9ODDY4+2FEkn2XfV2K42Yw2nYc2gQ6F7JN2I77Ruv78u01cpQBU92T6ZtGTMNWSIbdH5RyJqrnZ60+YjDjunCVplaF1j+ALBbGA6wteHJqy8jjBBqiJAzeLc1jGD7qCT85Yx8ll7I1XQTNFWsuk=
+	t=1771770072; cv=none; b=pkMnPb3fBbyVbH2FfTULH9KQNBuJb+HO2EbtiM4cXhqlj+P2MJ6W+Nc7EVwJsJXgTUas147udZ4ZKyYRV6GfyoofvzD+drFpD6jhMwtNYDJTsI1faEuKtYaCsBpZ09QsRAf1mwwBygHJO3H3bkebYqEfWN4SqWDsvNOBJszhre0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771770069; c=relaxed/simple;
-	bh=u5w8JFVQh9V063Ayn3LoWkO1eI87LCfsVRka5iu9rx0=;
+	s=arc-20240116; t=1771770072; c=relaxed/simple;
+	bh=Wnb2YfEU6i9cMmpYwUDtZ2E3EJ4153psC3JNN7Xlfy4=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=TzVoZ+Ex3xPIHw35yA8nrml/2KILp494U5qbuQnTXFZ/ee64gI4xiyfedyxDhSxfFB0IBkhJgFXHSD15aFq0v86mBQ6rAFI5SfCBfW//GrKPRzDewK0ELs3fNlXfGQAvOYyOMA6qyo4+ueVXetRy7JtoBsEsPRlqPrwFj3oNlgI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ERw1+vC0; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=GVjs+Ue+4Sw9oy/n3aNa9WPnem28PznyRRs7bwo9/wG79UfqYm4+OghCqCv6PviCJFQMwsO3d3vGlb/c4oGt1s1AUqqj2Ay0O9fVmK63H88BPeJf1hhh9Du0jCYpFcVx5FHc0ezhViGi7EsDP+lO2mABa7J8HnnhtUL7chn29Lc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KT357Ebs; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ERw1+vC0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3402EC116D0;
-	Sun, 22 Feb 2026 14:21:08 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KT357Ebs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53E13C19424;
+	Sun, 22 Feb 2026 14:21:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1771770069;
-	bh=u5w8JFVQh9V063Ayn3LoWkO1eI87LCfsVRka5iu9rx0=;
+	s=k20201202; t=1771770072;
+	bh=Wnb2YfEU6i9cMmpYwUDtZ2E3EJ4153psC3JNN7Xlfy4=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=ERw1+vC0mU2gnfCHHkhvgwF+0QJyaNhACTEyI+J4TstNtoRzI1UEDqYurqDDljy+N
-	 tukbJ7vANQuaqmq9yGdcDI+CHTLwNP5nl8Jl75oK+6GJfRPljzH8T4mHvTkuCs3wsQ
-	 W6rDNh+FimlF+Q+0XZ5rGS+H/MIIffZZWw2pZdQpQ2gnFCHt/fFv4GT7n/DnJIg225
-	 QU130WrfwLwRDZWAfPshCRr//czapVsEloDUqh3C7gT1xPFQ+MrPpHYUKhz4UA3lIf
-	 /iYAkiaMl2mRgJBtoMhPYnVXcnIeSsushXKf1w5m64gWgDBGQ8tKTO8olGUxaJ0Mk/
-	 OIWX6ZRq1sIJw==
+	b=KT357EbsehDE+ZP2M84LHEn7wjTf4cGRn6FIs+96mzpQAl0tYdiSiuDXQYRHT3kU7
+	 hnAdxIE7rwCyBSlmY4a0wyMsbswPynl9T2Aa/rxFbh1jDMvVM/M52c5waJE4lF89DZ
+	 BVjxGV6XObU4kgVpA3gjKLekRwf4cuTfPQPxfUpL0inqnHaYJ+1uyr3TvcuYkGwSf1
+	 qv4njut8ac/hP+w/d9YnoguPm1o+1Uq9f/I6y2gNEtRg7u5znLwFf8QPefN5uTm1d0
+	 Q1uKZClRToSfXdwzClA0teScOxqZLWRsq/9eCYmLqtONJEoCFx4jb9dalYXSUraGo1
+	 BuoQ9X14W1arw==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: Alexandre Belloni <alexandre.belloni@bootlin.com>,
  Danilo Krummrich <dakr@kernel.org>, LKML <linux-kernel@vger.kernel.org>
-Subject: [PATCH v0 6/6] ACPI: TAD: Update the driver description comment
-Date: Sun, 22 Feb 2026 15:19:48 +0100
-Message-ID: <2042722.PYKUYFuaPT@rafael.j.wysocki>
+Subject: [PATCH v0 5/6] ACPI: TAD: Add RTC class device interface
+Date: Sun, 22 Feb 2026 15:18:29 +0100
+Message-ID: <10819001.nUPlyArG6x@rafael.j.wysocki>
 Organization: Linux Kernel Development
 In-Reply-To: <4727679.LvFx2qVVIh@rafael.j.wysocki>
 References: <4727679.LvFx2qVVIh@rafael.j.wysocki>
@@ -47,54 +47,138 @@ Content-Type: text/plain; charset="UTF-8"
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Update the preamble comment describing the driver to match the code
-after previous changes along with the copyright information.
-
-No functional impact.
+Add an RTC class device interface allowing to read and set the real time
+value and providing a procfs callback to the ACPI TAD driver.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/acpi_tad.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ drivers/acpi/acpi_tad.c |   85 ++++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 83 insertions(+), 2 deletions(-)
 
 --- a/drivers/acpi/acpi_tad.c
 +++ b/drivers/acpi/acpi_tad.c
-@@ -2,12 +2,10 @@
- /*
-  * ACPI Time and Alarm (TAD) Device Driver
-  *
-- * Copyright (C) 2018 Intel Corporation
-+ * Copyright (C) 2018 - 2026 Intel Corporation
-  * Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-  *
-- * This driver is based on Section 9.18 of the ACPI 6.2 specification revision.
-- *
-- * It only supports the system wakeup capabilities of the TAD.
-+ * This driver is based on ACPI 6.6, Section 9.17.
-  *
-  * Provided are sysfs attributes, available under the TAD platform device,
-  * allowing user space to manage the AC and DC wakeup timers of the TAD:
-@@ -18,6 +16,11 @@
-  *
-  * The wakeup events handling and power management of the TAD is expected to
-  * be taken care of by the ACPI PM domain attached to its platform device.
-+ *
-+ * If the TAD supports the get/set real time features, as indicated by the
-+ * capability mask returned by _GCP under the TAD object, additional sysfs
-+ * attributes are created allowing the real time to be set and read and an RTC
-+ * class device is registered under the TAD platform device.
-  */
+@@ -25,6 +25,7 @@
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
++#include <linux/rtc.h>
+ #include <linux/suspend.h>
  
- #include <linux/acpi.h>
-@@ -32,7 +35,7 @@ MODULE_DESCRIPTION("ACPI Time and Alarm
- MODULE_LICENSE("GPL v2");
- MODULE_AUTHOR("Rafael J. Wysocki");
+ MODULE_DESCRIPTION("ACPI Time and Alarm (TAD) Device Driver");
+@@ -51,6 +52,7 @@ MODULE_AUTHOR("Rafael J. Wysocki");
  
--/* ACPI TAD capability flags (ACPI 6.2, Section 9.18.2) */
-+/* ACPI TAD capability flags (ACPI 6.6, Section 9.17.2) */
- #define ACPI_TAD_AC_WAKE	BIT(0)
- #define ACPI_TAD_DC_WAKE	BIT(1)
- #define ACPI_TAD_RT		BIT(2)
+ /* ACPI TAD RTC */
+ #define ACPI_TAD_TZ_UNSPEC	2047
++#define ACPI_TAD_TIME_ISDST	3
+ 
+ struct acpi_tad_driver_data {
+ 	u32 capabilities;
+@@ -164,6 +166,8 @@ static int acpi_tad_get_real_time(struct
+ 	return 0;
+ }
+ 
++/* sysfs interface */
++
+ static char *acpi_tad_rt_next_field(char *s, int *val)
+ {
+ 	char *p;
+@@ -579,6 +583,77 @@ static const struct attribute_group acpi
+ 	.is_visible = acpi_tad_attr_is_visible,
+ };
+ 
++/* RTC class device interface */
++
++static int acpi_tad_rtc_set_time(struct device *dev, struct rtc_time *tm)
++{
++	struct acpi_tad_rt rt;
++
++	rt.year = tm->tm_year + 1900;
++	rt.month = tm->tm_mon + 1;
++	rt.day = tm->tm_mday;
++	rt.hour = tm->tm_hour;
++	rt.minute = tm->tm_min;
++	rt.second = tm->tm_sec;
++	rt.tz = ACPI_TAD_TZ_UNSPEC;
++	rt.daylight = ACPI_TAD_TIME_ISDST * !!tm->tm_isdst;
++
++	return acpi_tad_set_real_time(dev, &rt);
++}
++
++static int acpi_tad_rtc_read_time(struct device *dev, struct rtc_time *tm)
++{
++	struct acpi_tad_rt rt;
++	int ret;
++
++	ret = acpi_tad_get_real_time(dev, &rt);
++	if (ret)
++		return ret;
++
++	tm->tm_year = rt.year - 1900;
++	tm->tm_mon = rt.month - 1;
++	tm->tm_mday = rt.day;
++	tm->tm_hour = rt.hour;
++	tm->tm_min = rt.minute;
++	tm->tm_sec = rt.second;
++	tm->tm_isdst = rt.daylight == ACPI_TAD_TIME_ISDST;
++
++	return 0;
++}
++
++static int acpi_tad_rtc_procfs(struct device *dev, struct seq_file *seq)
++{
++	struct acpi_tad_rt rt;
++	int ret;
++
++	ret = acpi_tad_get_real_time(dev, &rt);
++	if (ret)
++		return ret;
++
++	seq_printf(seq,
++		   "Time\t\t: %u:%u:%u\n"
++		   "Date\t\t: %u-%u-%u\n"
++		   "Daylight\t: %s\n",
++		   rt.hour, rt.minute, rt.second,
++		   rt.year, rt.month, rt.day,
++		   str_yes_no(rt.daylight == ACPI_TAD_TIME_ISDST));
++
++	if (rt.tz == ACPI_TAD_TZ_UNSPEC)
++		seq_puts(seq, "Timezone\t: unspecified\n");
++	else
++		seq_printf(seq, "Timezone\t: %d\n", rt.tz);
++
++	return 0;
++}
++
++static const struct rtc_class_ops acpi_tad_rtc_ops = {
++	.read_time = acpi_tad_rtc_read_time,
++	.set_time = acpi_tad_rtc_set_time,
++	.proc = acpi_tad_rtc_procfs,
++};
++
++/* Platform driver interface */
++
+ static int acpi_tad_disable_timer(struct device *dev, u32 timer_id)
+ {
+ 	return acpi_tad_wake_set(dev, "_STV", timer_id, ACPI_TAD_WAKE_DISABLED);
+@@ -655,10 +730,16 @@ static int acpi_tad_probe(struct platfor
+ 	pm_runtime_suspend(dev);
+ 
+ 	ret = sysfs_create_group(&dev->kobj, &acpi_tad_attr_group);
+-	if (ret)
++	if (ret) {
+ 		acpi_tad_remove(pdev);
++		return ret;
++	}
+ 
+-	return ret;
++	if (caps & ACPI_TAD_RT)
++		devm_rtc_device_register(dev, "acpi-tad-rtc", &acpi_tad_rtc_ops,
++					 THIS_MODULE);
++
++	return 0;
+ }
+ 
+ static const struct acpi_device_id acpi_tad_ids[] = {
 
 
 
