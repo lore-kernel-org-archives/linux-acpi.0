@@ -1,150 +1,101 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.19])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81B8036F43D;
-	Mon, 23 Feb 2026 20:24:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.19
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E9C7369979
+	for <linux-acpi@vger.kernel.org>; Mon, 23 Feb 2026 20:33:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.8
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771878263; cv=none; b=dLI9gXvjIm0vCPcE8l4Rztmjq32w1t6eejcJk/qfIQ/isrO5h7QMQ01zUEWx6wDa+ZsB5hE/NC1+676viFtOGIAcfACD22HMBqtsrQsPRy4/shgZnBeKEOUPoXT5dCt+M8eteTcJjy///fASqf3MjhEacXwulXL3A1ma++X2oMc=
+	t=1771878814; cv=none; b=lhzOnXmZ7VRjGlsRrhB8lHd6hFE/OgnQRf/siPicArXrJ8uoClqiUMYYTvWPsCSG54ME9H/nWFZwnOzMt/1kzix54jVBi9qa26zmD+9AM+RciLoMepdWzjFX4ub2Z6SJ2LP9FlZvHJh0vAQIN7xKHwwITz8yJsdgLJCWapLUOjI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771878263; c=relaxed/simple;
-	bh=UG4Ae2B1bf+fYvg+n7r+yfZdgjJr+7l0NYPIOp4X3q8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=LXvetALXP9pb5IP/k5s2D9mjYzFIwelMj97HGUZ7CsnANzUowctqyYMrvlDMPececfjyD2ExfxvHjwM6/fOX2xp5rDZZvY+NfU9Yk/nm6bOrc8NtOZhxTgKJc6PVid4oDCb85BMsyqoM+Ksz6tdweTeCqCYyQcFt2lQzkGC2bGs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=M3lFWuqe; arc=none smtp.client-ip=192.198.163.19
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1771878814; c=relaxed/simple;
+	bh=ESvyMVF+dYACKaZd3BgG8cX6TSnmtZvG/Oqd/0HHweU=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=IEnsz5SWDRi0E+h8oc7krzKNBsngMv7p1x92Cvte0qQXW8ZhyNMjKUXUN9VfOXS87+BLuZ9arW7kLDP3EGeY4duCbntm6gjQNGr6sfLFwKtTxWx+NgHSfVA48LC9kqcB+fGxY1h5ZDuxokoBEMY6QIJvR6BpAhX3OitVdpCfdKo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=a+64DF2B; arc=none smtp.client-ip=192.198.163.8
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="M3lFWuqe"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="a+64DF2B"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1771878262; x=1803414262;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:content-transfer-encoding:in-reply-to;
-  bh=UG4Ae2B1bf+fYvg+n7r+yfZdgjJr+7l0NYPIOp4X3q8=;
-  b=M3lFWuqekQSLYpVrI9zjJURH/fhjvVSx1uszl0rc8AFrQ4M9531D5WFK
-   IoI1kO5+EIlUNl9s07mxGCT2JKxyENw24E0b85QrUrIhhnXMBJsgglhWL
-   SOWPWmPKOa5HPHkXQymobCaBv6MlZoafb0WVSyUKJ4EhmioUZmwGT1lKP
-   EReBIwvgoTcW/9r6R+455bsnht9ZLrEgmmpboY5fdeJdvNMastMlUdlCj
-   PzCYWuXhBNS8y+K42Fiw8W0UJ2/lMKofdGJJg4piuFt4MgQiXCFOnJywo
-   rrscV5zCHobp5vF0Ier99N55NSd6BoSTnen+n6lgcqLeyuDQGszrq2Pj4
-   Q==;
-X-CSE-ConnectionGUID: YB/QxLz0Rx+qZAUKXBQlRA==
-X-CSE-MsgGUID: 6ypsp40zTQCnIY21/sWweg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11710"; a="71912461"
+  t=1771878813; x=1803414813;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=ESvyMVF+dYACKaZd3BgG8cX6TSnmtZvG/Oqd/0HHweU=;
+  b=a+64DF2BDyUPXsJnJtEl+zhij6Vql9MIo36VgExlSm5K8YH8dENwL1vF
+   nkBZHMRGb0KtbNvQtfpOO56hHt486+uIF9xQK70Vxy4y/I7e9Mq7IcDvE
+   zlWuAPh2ESJymQ3i88d5XqHwLDA9CNUDo35xd3pz+vlIdcuEnwxiv0OsH
+   cpYGEWG2p9JGFvjV8y8NVKV0cwymFw+xoA83ODs6vq7jPX5t+eRh0b0HP
+   CUwCIR2Q+/bzAGXeg/U5YJ28xeuYTsrt3XsMP5AQ0krbrQb/ZVxjR4mbi
+   gwGeqJPfeIescXBuh/Z7TfT4lwH+sjBEoLnM0qBOA7MP2UqcktHJ1IQxv
+   A==;
+X-CSE-ConnectionGUID: sCP6a0eZSHaYdN/PdRHl/A==
+X-CSE-MsgGUID: fm9LaExhRR+pbNw1td0dVw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11710"; a="90467253"
 X-IronPort-AV: E=Sophos;i="6.21,307,1763452800"; 
-   d="scan'208";a="71912461"
-Received: from orviesa006.jf.intel.com ([10.64.159.146])
-  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Feb 2026 12:24:21 -0800
-X-CSE-ConnectionGUID: pkaYP0i0TWeItj3eeahs/Q==
-X-CSE-MsgGUID: kmSDxVkkQpSq0BHmkuT8+w==
+   d="scan'208";a="90467253"
+Received: from fmviesa010.fm.intel.com ([10.60.135.150])
+  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Feb 2026 12:33:33 -0800
+X-CSE-ConnectionGUID: dZSSgVerSTmU0I/oI/AvdA==
+X-CSE-MsgGUID: J3Ia0JU8T9+hgS/7mDMJgA==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.21,307,1763452800"; 
-   d="scan'208";a="214747266"
-Received: from abityuts-desk.ger.corp.intel.com (HELO localhost) ([10.245.245.222])
-  by orviesa006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Feb 2026 12:24:17 -0800
-Date: Mon, 23 Feb 2026 22:24:14 +0200
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Bartosz Golaszewski <brgl@kernel.org>,
-	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Danilo Krummrich <dakr@kernel.org>,
-	Linus Walleij <linusw@kernel.org>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Len Brown <lenb@kernel.org>, driver-core@lists.linux.dev,
-	linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
-	linux-acpi@vger.kernel.org
-Subject: Re: [PATCH v2 1/2] driver core: make fwnode_is_primary() public
-Message-ID: <aZy3bu-W2KkFbJHO@smile.fi.intel.com>
-References: <20260223-device-match-secondary-fwnode-v2-0-966c00c9eeeb@oss.qualcomm.com>
- <20260223-device-match-secondary-fwnode-v2-1-966c00c9eeeb@oss.qualcomm.com>
- <aZyUY3ZsmrwHw4X_@smile.fi.intel.com>
- <CAMRc=MfpzgOPf4pkHd_tNQ4wBNMhfUBOh=ptajhhZwDpFUPGBQ@mail.gmail.com>
- <aZyrVWYQKT-JUYR3@smile.fi.intel.com>
- <CAJZ5v0ivGazojW0BfSh7HzWyu+1ij6p=KbpwsmZPJ5YuTSahDw@mail.gmail.com>
+   d="scan'208";a="213988161"
+Received: from nldesimo-desk.amr.corp.intel.com ([10.53.80.57])
+  by fmviesa010-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Feb 2026 12:33:32 -0800
+From: Nate DeSimone <nathaniel.l.desimone@intel.com>
+To: tony.luck@intel.com
+Cc: lenb@kernel.org,
+	linux-acpi@vger.kernel.org,
+	nathaniel.l.desimone@intel.com,
+	rafael@kernel.org
+Subject: Re: [PATCH v1] ACPI: FPDT: expose FBPT and S3PT subtables via sysfs
+Date: Mon, 23 Feb 2026 12:32:58 -0800
+Message-ID: <20260223203258.2877-1-nathaniel.l.desimone@intel.com>
+X-Mailer: git-send-email 2.51.2.windows.1
+In-Reply-To: <SJ1PR11MB6083ECBFD999F240987EBDE1FC77A@SJ1PR11MB6083.namprd11.prod.outlook.com>
+References: <SJ1PR11MB6083ECBFD999F240987EBDE1FC77A@SJ1PR11MB6083.namprd11.prod.outlook.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAJZ5v0ivGazojW0BfSh7HzWyu+1ij6p=KbpwsmZPJ5YuTSahDw@mail.gmail.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On Mon, Feb 23, 2026 at 08:45:42PM +0100, Rafael J. Wysocki wrote:
-> On Mon, Feb 23, 2026 at 8:32 PM Andy Shevchenko
-> <andriy.shevchenko@linux.intel.com> wrote:
-> > On Mon, Feb 23, 2026 at 07:28:48PM +0100, Bartosz Golaszewski wrote:
-> > > On Mon, Feb 23, 2026 at 6:54 PM Andy Shevchenko
-> > > <andriy.shevchenko@linux.intel.com> wrote:
-> > > > On Mon, Feb 23, 2026 at 04:40:52PM +0100, Bartosz Golaszewski wrote:
-> > > > > Export fwnode_is_primary() in fwnode.h for use in driver code.
+> > Add sysfs attributes at /sys/firmware/acpi/fpdt/tables/FBPT and
+> > /sys/firmware/acpi/fpdt/tables/S3PT that expose the raw contents of the
+> > FPDT subtables. Note that /sys/firmware/acpi/tables/FPDT only provides
+> > the top level table, not the subtables. Adding access to the subtables
+> > enables a usage model similar to /sys/firmware/dmi/tables/DMI, allowing
+> > userspace tools to interpret newer record types (e.g. String Event
+> > Records, Microcontroller Boot Performance Data Records, etc.) defined
+> > in recent ACPI specifications[1] without requiring kernel changes.
+>
+> Is the existing (for BERT) /sys/firmware/acpi/tables/data directory a more
+> appropriate spot for these? Naming the new subdirectory "tables" seems
+> misleading as there aren't a top-level ACPI "FBPT" or "S3PT" tables?
 
-...
+I'm not experienced with the organizational semantics of sysfs. I made a
+best-guess when choosing /sys/firmware/acpi/fpdt/tables/FBPT. Should I do
+something like /sys/firmware/acpi/tables/data/fpdt/FBPT? That way the data
+source is explicit and there won't be name collisions with other data in the
+future?
 
-> > > > > --- a/include/linux/fwnode.h
-> > > > > +++ b/include/linux/fwnode.h
-> > > > > @@ -230,4 +230,9 @@ void fwnode_links_purge(struct fwnode_handle *fwnode);
-> > > > >  void fw_devlink_purge_absent_suppliers(struct fwnode_handle *fwnode);
-> > > > >  bool fw_devlink_is_strict(void);
-> > > > >
-> > > > > +static inline bool fwnode_is_primary(struct fwnode_handle *fwnode)
-> > > > > +{
-> > > > > +     return fwnode && !IS_ERR(fwnode->secondary);
-> > > > > +}
-> > > >
-> > > > This is inconsistent. Please, split out fwnode stuff from device.h to
-> > > > device/fwnode.h and share it there.
-> > > >
-> > > > This reminds me to look what I have locally in development...
-> > > >
-> > > > (With your patch it will be in device.h and fwnode.h and in the latter
-> > > >  it's even not properly grouped with other non-fwdevlink related stuff.)
-> > >
-> > > Please rephrase the entire email because I have no idea what you mean. :(
-> >
-> > The primary/secondary and other device-fwnode related stuff is currently
-> > exposed via include/linux/device.h. The problem is that device.h is overloaded
-> > and starves for more splitting, which I'm doing (very slowly, though).
-> > The idea is to have all device-fwnode  (and maybe of_node) stuff to be gathered in
-> > include/linux/device/fwnode.h
-> 
-> I don't see "struct device" anywhere in fwnode_is_primary().  This
-> check is only about whether or not the given fwnode has a valid
-> secondary fwnode.
+Wherever the kernel maintainers think is the best place to put these new sysfs
+attributes I'm completely on-board with. Please let me know where in the
+filesystem they should go and I'll get a v2 patch implemented!
 
-I am talking about splitting device-fwnode related API to
-include/linux/device/fwnode.h. The idea of primary/secondary comes from the
-upper layer (device) as struct fwnode_handle just defines a 'secondary' member
-for a single linked list. It doesn't seem to limit anyhow the list.
+> Once naming is resolved, needs update to Documentation/ABI/testing/sysfs-fi=
+> rmware-acpi
+> for whatever names are chosed for the new files.
 
-My understanding is that the fwnode_is_primary() belongs to the device layer more
-than to fwnode one. fwnode layer doesn't (clearly?) define the use cases
-and in my opinion should not, fwnode_handle is more abstract and shouldn't
-be limited to primary/secondary division that is currently related to the
-device. Maybe I am missing something obvious... but to me spreading these
-APIs into fwnode.h sounds like layering violation (especially if we think
-of the future decoupling fwnode from struct device and making it a separate
-entity).
+I will happily add that as well in a v2 patch series.
 
-> > You, guys, missed the keyword 'device' in the pathname for the proposed
-> > [include/linux/device/]fwnode.h.
-> 
-> Why do you think we missed it?
+>
+> Code looks good.
+>
+> -Tony
 
-Because of the previous comment that suggest that I wanted to move the code to
-fwnode.h, but I was talking about device/fwnode.h (which is currently absent).
-
--- 
-With Best Regards,
-Andy Shevchenko
-
-
+Thank You!
+-Nate
