@@ -1,69 +1,101 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-vs1-f48.google.com (mail-vs1-f48.google.com [209.85.217.48])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14793221D89;
-	Sun, 22 Feb 2026 23:19:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AD1A3195EF
+	for <linux-acpi@vger.kernel.org>; Mon, 23 Feb 2026 03:00:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.217.48
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771802366; cv=none; b=Iw3jze6gOPWrj7HJE0LMBC/H96YMkJ9l6rK/OBIf4+0S3SSTy5aX12r0GpPvdmabNI3O2O39DNT/BsODTzn1OWkPwwM4jAos7eKwk5JIDZCwlawxup/pF972TDtyJbXDIHgYog4i/V9YeUKOKZCk/8dGyKpMvrAhhlPODg4/fQ4=
+	t=1771815613; cv=none; b=tV1X4iEJBLJ/RbBYKlQl4EMJzoCGo9fYPYvjATxj/qu9Jx3U9luYE9Szl9CBi1QnsqTDvigHaiApnYLSOicCtp8tGMD7gByNa5i6jsckgGrxoVnxp/qstFLyX3J/MNNto/DnPsp9em+dm0OsN/qP/P6uQQlXs45UujJqQLfiW7Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771802366; c=relaxed/simple;
-	bh=1Jr2UFYlqfUbVcRlaHdvfopn8D6VYXN8wRPR+OoZSDY=;
-	h=Mime-Version:Content-Type:Date:Message-Id:From:Subject:Cc:To:
-	 References:In-Reply-To; b=PurRzkbbuBmssOkXItpkC9X2df8xqAS1K3Cgbc/srPhjM5fqaSXFuN8eIV4FOuHdlSnyADPdWcj8TY8oLBTbsELMgxL5xhKHgIw5lf8cOHip31/TMLG++Y5F9SHh1bN25fOgN86LyrHNs2827qrG5u3RmwgLOcKtqGZCNDDJeDw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=moFamt4L; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="moFamt4L"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B7FCC116D0;
-	Sun, 22 Feb 2026 23:19:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1771802365;
-	bh=1Jr2UFYlqfUbVcRlaHdvfopn8D6VYXN8wRPR+OoZSDY=;
-	h=Date:From:Subject:Cc:To:References:In-Reply-To:From;
-	b=moFamt4LVHii95rcJwIond6Bv6oxAYIMUstt1M01IICrGmNdAahQIU6nMdQeEpxRy
-	 9qCFrqX1p273BZ4O2039IwLn0osoHQOphZB2bFUqbk0ylUANlNS237t7kP+aWhy+Zk
-	 V1fs3xaSGDG8TaNSBsU3yL8B/O0Y50vSERomdHBM2zN5JGLBo411Y0R/toiU8pg1Kj
-	 EQT7ZzeBbvuxrOBkIlMzycBzt7hjq2pEL3DUaDS8s7NbVGHZgRMKVa7KaapZj3cA7q
-	 180zUDR78dOOna5w4X3GxwIMgMYIsWT9YIIhtqKbPmaVapiXhVfEtC5zCcECwOMfC1
-	 z5xjMbhwNC8Cw==
+	s=arc-20240116; t=1771815613; c=relaxed/simple;
+	bh=TcPNtRb5A1yeA4Zt9SmEvC6AzD9oGYQCKWzbcU6iGfo=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=b9WYG5SzFAs3FsECddn//WEI2nkuCjNxPnLRx3tDaEsJrxsnbjGGyyzC1IOhDy/+Mdwvjzi+eKDY/egkSIVe64X+kfCqM7xZC6zoXw/HJTVd1Z7U2Pv8xomY6frCRM+c6PtM8cWRd9215tcCujKE1llLO7kV/BWKn7V7GXoUljE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=schn.dev; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.217.48
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=schn.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Received: by mail-vs1-f48.google.com with SMTP id ada2fe7eead31-5fc66c49d03so2003602137.0
+        for <linux-acpi@vger.kernel.org>; Sun, 22 Feb 2026 19:00:12 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1771815611; x=1772420411;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=ZWMw43NcxNljR5M74M/NPTGXoUVL43oQx/hWfbaifB4=;
+        b=LPhTItwmgyzznvR69HMmRc8CYGz+YW4EZrlqr5LgoKAWPq9SEg7amJSme02vBJY/wQ
+         ixd+2oxiKZJyuRvXXKiY/+rlDgW6wP0NqS7s+gvsjNri4tsvEC2ESRyRYht/RodCMKvB
+         jIDie4+qPD9nBj+Pw47ZDLJHlFIWbzeXJOPS0vTGjgSPmWCDA/vsW+Nlh6P91/4+IXzb
+         YfaGgArfgHtmjaYtRBs1Pd363UEW8eQibaUmql8yZILaRMA0AMgCYhbSzsNzZlaNjEOF
+         jqpnHl9XQa+wTyzgXGEWgmf3YOBZQr98rwwrRG5X0zBYrjjo7uCiu9wqRaUmOZfBltKV
+         7qQg==
+X-Forwarded-Encrypted: i=1; AJvYcCUbFGP0iSvuPK91gNn5fV14H8mdDQ92+11WKEoasujtEm0x3WG0Xp9Gk5KLZFCg3wMN7/o5Dc0+yOYV@vger.kernel.org
+X-Gm-Message-State: AOJu0YzMLaJ7uC4aL19DbwbtMPf0jXkjP2EXYOxp7CB4RLOuUNBiQGe1
+	6G8hl3l/V4+hwlBMKVfgpnreW408zeLMheRK0rHMRPzXqd1FkZIVIFl5
+X-Gm-Gg: AZuq6aLiZDi662rBBz4cgC0yO+CT0dO0dgD7KV0Vup6tatRLu8bw1LOvPr+UL2y9e5Y
+	u5cs2X/mkQs7xC8S+xtamAvrkgIpGihny8Id9YDuX+kM/470VhsQh0rR/equC39iHFP+IoggjN6
+	th8YpHwchk9yjDq1JyG9LdQPYfFSZKKEXb0KhZl22TLJv1MWcnEqa4weaNJY0mculna2P1jxkP5
+	HqgU0TCT0p73FxAEYqMJC21Q402ApthhhJblrt4agAuH/TildQzxjup7V4y+YFxVOl9HPUu3WzC
+	OsvWkWm5NViIEbMq/eJuIaVcJb6GbrD7TJdgkCXuTDmH935uVqX9mesbyZC8em5Scg3blYc0FBJ
+	okonNYdT+VdurkMpkKqw1bQ2DUN47Y7OrPPR0V5WDKiTGfBMExqv9nks2Y7lN6b4sWybi9WnTc8
+	JwSZcgBWjyh/QHSaNiHQtZLfbIE+bwgR31lnzp3OQBRW2n67OhIrV6KP/JZr+B98zH
+X-Received: by 2002:a05:6102:a4f:b0:5f5:256d:c0cd with SMTP id ada2fe7eead31-5feb31340a8mr3713768137.34.1771815611483;
+        Sun, 22 Feb 2026 19:00:11 -0800 (PST)
+Received: from desktop-sofia ([2804:14d:ba4e:824c:1d87:d278:461d:1a0e])
+        by smtp.gmail.com with ESMTPSA id ada2fe7eead31-5feb61fde14sm6534388137.3.2026.02.22.19.00.09
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 22 Feb 2026 19:00:11 -0800 (PST)
+From: Sofia Schneider <sofia@schn.dev>
+To: rafael@kernel.org
+Cc: lenb@kernel.org,
+	linux-acpi@vger.kernel.org,
+	Sofia Schneider <sofia@schn.dev>
+Subject: [PATCH] ACPI: OSI: Add DMI quirk for Acer Aspire One D255
+Date: Sun, 22 Feb 2026 23:52:40 -0300
+Message-ID: <20260223025240.518509-1-sofia@schn.dev>
+X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset=UTF-8
-Date: Mon, 23 Feb 2026 00:19:21 +0100
-Message-Id: <DGLVIO9YF9PK.1WM118M9OSS0N@kernel.org>
-From: "Danilo Krummrich" <dakr@kernel.org>
-Subject: Re: [PATCH v1 1/1] device property: Allow secondary lookup in
- fwnode_get_next_child_node()
-Cc: <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>, "Daniel
- Scally" <djrscally@gmail.com>, "Heikki Krogerus"
- <heikki.krogerus@linux.intel.com>, "Sakari Ailus"
- <sakari.ailus@linux.intel.com>, "Greg Kroah-Hartman"
- <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>,
- <stable@vger.kernel.org>
-To: "Andy Shevchenko" <andriy.shevchenko@linux.intel.com>
-References: <20260210135822.47335-1-andriy.shevchenko@linux.intel.com>
-In-Reply-To: <20260210135822.47335-1-andriy.shevchenko@linux.intel.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-On Tue Feb 10, 2026 at 2:58 PM CET, Andy Shevchenko wrote:
-> When device_get_child_node_count() got split to the fwnode and device
-> respective APIs, the fwnode didn't inherit the ability to traverse over
-> the secondary fwnode. Hence any user, that switches from device to fwnode
-> API misses this feature. In particular, this was revealed by the commit
-> 1490cbb9dbfd ("device property: Split fwnode_get_child_node_count()")
-> that effectively broke the GPIO enumeration on Intel Galileo boards.
-> Fix this by moving the secondary lookup from device to fwnode API.
->
-> Note, in general no device_*() API should go into the depth of the fwnode
-> implementation.
->
-> Fixes: 114dbb4fa7c4 ("drivers property: When no children in primary, try =
-secondary")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+The screen backlight turns off during boot (specifically during udev device
+initialization) when returning true for _OSI("Windows 2009").
 
-Applied to driver-core-linus, thanks!
+Analyzing the device's DSDT reveals that the firmware takes a different
+code path when Windows 7 is reported, which leads to the backlight shutoff.
+Add a DMI quirk to invoke dmi_disable_osi_win7 for this model.
+
+Signed-off-by: Sofia Schneider <sofia@schn.dev>
+---
+ drivers/acpi/osi.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/drivers/acpi/osi.c b/drivers/acpi/osi.c
+index f2c943b934be..9470f1830ff5 100644
+--- a/drivers/acpi/osi.c
++++ b/drivers/acpi/osi.c
+@@ -389,6 +389,19 @@ static const struct dmi_system_id acpi_osi_dmi_table[] __initconst = {
+ 		},
+ 	},
+ 
++	/*
++	 * The screen backlight turns off during udev device creation
++	 * when returning true for _OSI("Windows 2009")
++	 */
++	{
++	.callback = dmi_disable_osi_win7,
++	.ident = "Acer Aspire One D255",
++	.matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
++		     DMI_MATCH(DMI_PRODUCT_NAME, "AOD255"),
++		},
++	},
++
+ 	/*
+ 	 * The wireless hotkey does not work on those machines when
+ 	 * returning true for _OSI("Windows 2012")
+-- 
+2.53.0
+
