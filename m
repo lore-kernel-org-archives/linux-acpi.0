@@ -1,120 +1,152 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBC7F226CFE;
-	Tue, 24 Feb 2026 00:33:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C47961917F1;
+	Tue, 24 Feb 2026 05:30:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771893203; cv=none; b=Z4UmsNDBhjpXKDGNUVo+OIEqnZNpaNo2qoyUM57a7fErrdh2S0Q5ltiXBSPfd1vbNu9XGxNWO0kEzfuF9qTwLj4277y6dSY+hlcuHO0QiQL0PrDjuIW2cuQTz6CldhnqevsDZ24UpV5ka2+SpNbIa7aXAuZ47pywZ5sVagTQLUM=
+	t=1771911052; cv=none; b=EB/7iTdUvY7RqC1sOXHw3wF2JNiIZFgKMlA3YFI+0mH8EOqVYQS94b1ZDGs/rwDKQp06rLe484cEsVTnA/+7FiY47IgoEDpTf6UaJP2P2QeZ4CiS9ys4qKkP8q6hJVsovH+ojIa6vd/9DszCgSNjRmb/URh5dzGwnUZW/6U8i4g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771893203; c=relaxed/simple;
-	bh=8LAjFwluR8WNxqcDxtrU9nLb7Eues+PFs2wZ0u6676Y=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=D8X0FAg+JRGnCPTOO4NF4xa5lHnvUdWT2V0Aaw8kFDt3Nk7Xbr80+9aqgTplS7X0q9JwP0sHGegyvZGqaVOygURDz7BOtZm1uyLMLx5nTTtG1mNh1nbC9sxzPk/q3hpQ+U2fgPLc5/213O8fxfT8i1/0PmOog0R21kgJjopEvsM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=MG/SzwAd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1771911052; c=relaxed/simple;
+	bh=vHdj4hh+S9toSEoaqsyFG1+YlfiQ88QjpMwJdxwcVKw=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=EHukVlOvLLYtVQJ3bpdmd3qZ8RqhrUeT0LwRyge9LEqlk9Aj/qOLxmVQps/OwABa2LQlGiUJtILMu+cOe3VNGFxiwipnzSPp4jkvVbjwbojnFzhL5yOPCDCAnYRD+L+Oh3LLarYDRLJoPSLJnRR/JNE6kf7t5W3iWqNKHK3lMZk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=L+tKSlMM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="MG/SzwAd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 88DA1C116C6;
-	Tue, 24 Feb 2026 00:33:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1771893203;
-	bh=8LAjFwluR8WNxqcDxtrU9nLb7Eues+PFs2wZ0u6676Y=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=MG/SzwAdbZSDWUv8ZQC51UudK2nUmf0Rvps6WS3HkG7vdqvzKDQxaFm/cayjdkI5f
-	 /hkEcnJ4kXiFGuAjaGIyhIKtXA+26p8Fl3EKv3Uvmbp3T4MLEkQnC+1WzPw39lBZLw
-	 HilsnqSag86Yrt5oT17A+I1OpOLP4rJbNf84iV3E=
-Date: Tue, 24 Feb 2026 01:33:21 +0100
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Zijun Hu <zijun.hu@oss.qualcomm.com>, linux-kernel@vger.kernel.org,
-	driver-core@lists.linux.dev, linux-acpi@vger.kernel.org,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>, Len Brown <lenb@kernel.org>,
-	Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH v1 3/3] driver core: Split device related fwnode API to
- device/fwnode.h
-Message-ID: <2026022443-cornmeal-overstock-cd70@gregkh>
-References: <20260223204412.3298508-1-andriy.shevchenko@linux.intel.com>
- <20260223204412.3298508-4-andriy.shevchenko@linux.intel.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="L+tKSlMM"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 86FC2C2BCB0;
+	Tue, 24 Feb 2026 05:30:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1771911052;
+	bh=vHdj4hh+S9toSEoaqsyFG1+YlfiQ88QjpMwJdxwcVKw=;
+	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
+	b=L+tKSlMMT5r6dc2EMjgCGCq9a59fjbudd7g4l1yW3qtkpGcf01ND92z1k8iKKH7T9
+	 mJWL9OD4gaDEJaTABJ0hI9KdKN2PDVkxpxoSS1q3KBNosXQkSrhJGjfyn/BQyFN7nk
+	 a3HR8WewK58BhSJGJqkvJsTTLyCFGHjZAE0dhLaNdZ2wAw1PGTt/RgKZ9gBlUbo3u+
+	 bKnFROsYxjv2adEu8kalrWHmKyztOYBUxepBo1q/1d2LdQ22nxGckgB7WXKakxf9oS
+	 87C0iVnS62nNRJ/WvgFSOfIwzgamQhFkPuHZr29NfESE/yZZrP6I9YDai8LSoRcBl7
+	 hSCT4UhtMxcqQ==
+Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78160EFB7FF;
+	Tue, 24 Feb 2026 05:30:52 +0000 (UTC)
+From: Manivannan Sadhasivam via B4 Relay <devnull+manivannan.sadhasivam.oss.qualcomm.com@kernel.org>
+Date: Tue, 24 Feb 2026 11:00:48 +0530
+Subject: [PATCH v5 2/9] serdev: Add an API to find the serdev controller
+ associated with the devicetree node
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260223204412.3298508-4-andriy.shevchenko@linux.intel.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20260224-pci-m2-e-v5-2-dd9b9501d33c@oss.qualcomm.com>
+References: <20260224-pci-m2-e-v5-0-dd9b9501d33c@oss.qualcomm.com>
+In-Reply-To: <20260224-pci-m2-e-v5-0-dd9b9501d33c@oss.qualcomm.com>
+To: Rob Herring <robh@kernel.org>, 
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+ Jiri Slaby <jirislaby@kernel.org>, Nathan Chancellor <nathan@kernel.org>, 
+ Nicolas Schier <nicolas.schier@linux.dev>, Hans de Goede <hansg@kernel.org>, 
+ =?utf-8?q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, 
+ Mark Pearson <mpearson-lenovo@squebb.ca>, 
+ "Derek J. Clark" <derekjohn.clark@gmail.com>, 
+ Manivannan Sadhasivam <mani@kernel.org>, 
+ Krzysztof Kozlowski <krzk+dt@kernel.org>, 
+ Conor Dooley <conor+dt@kernel.org>, Marcel Holtmann <marcel@holtmann.org>, 
+ Luiz Augusto von Dentz <luiz.dentz@gmail.com>, 
+ Bartosz Golaszewski <brgl@bgdev.pl>, 
+ Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
+ Bartosz Golaszewski <brgl@kernel.org>
+Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ linux-kbuild@vger.kernel.org, platform-driver-x86@vger.kernel.org, 
+ linux-pci@vger.kernel.org, devicetree@vger.kernel.org, 
+ linux-arm-msm@vger.kernel.org, linux-bluetooth@vger.kernel.org, 
+ linux-pm@vger.kernel.org, Stephan Gerhold <stephan.gerhold@linaro.org>, 
+ Dmitry Baryshkov <dmitry.baryshkov@oss.qualcomm.com>, 
+ linux-acpi@vger.kernel.org, 
+ Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>, 
+ Hans de Goede <johannes.goede@oss.qualcomm.com>
+X-Mailer: b4 0.14.3
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2175;
+ i=manivannan.sadhasivam@oss.qualcomm.com; h=from:subject:message-id;
+ bh=ZvwvgoFlf4z/ag5/olaI5ILEIEPSFo6zg+vO7wuanOo=;
+ b=owEBbQGS/pANAwAKAVWfEeb+kc71AcsmYgBpnTeIa56ffrPgmNucV18RPYqRHO94dF3VIWvvp
+ Zp7yqucqEWJATMEAAEKAB0WIQRnpUMqgUjL2KRYJ5dVnxHm/pHO9QUCaZ03iAAKCRBVnxHm/pHO
+ 9QihB/4pXR5cfUc1yznfMiQgbOZgzBXVtinCek2mr0WZVDia+3o/PbEyb03v5G1SyzX7+yxoOKA
+ UNAe/ugQlDvJuSaXmmKeZ2dnbghjwiqQpVGdTH6He1icNr0ieEQLGk/kk0g2R8SsIiP6DfF6bdd
+ aIF71gAd45wbJE5TTyrtEzID7oTSxBeBxBq45T1pSxXD+gATuUn8RC8BJ3i74DL4xg0Oz1dUkGi
+ 5KHBd3mSW7rwzoBPSseevM7nCO4+l9fw/LN2hiVA17m9J1mA9gA4qxX4AMGPM0hogrrkE6GO9gw
+ gwle1YNRoxaCtGCSnMvsfLTYLHl+pX58DEkQFkEnANIR9Kws
+X-Developer-Key: i=manivannan.sadhasivam@oss.qualcomm.com; a=openpgp;
+ fpr=C668AEC3C3188E4C611465E7488550E901166008
+X-Endpoint-Received: by B4 Relay for
+ manivannan.sadhasivam@oss.qualcomm.com/default with auth_id=461
+X-Original-From: Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>
+Reply-To: manivannan.sadhasivam@oss.qualcomm.com
 
-On Mon, Feb 23, 2026 at 09:30:32PM +0100, Andy Shevchenko wrote:
-> device.h is a huge header which is hard to follow and easy to miss
-> something. Improve that by splitting device related fwnode API
-> to device/fwnode.h.
-> 
-> In particular this helps to speedup the build of the code that includes
-> device.h solely for a device related fwnode API.
-> 
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> ---
->  include/linux/device.h        | 17 +----------------
->  include/linux/device/fwnode.h | 28 ++++++++++++++++++++++++++++
->  2 files changed, 29 insertions(+), 16 deletions(-)
->  create mode 100644 include/linux/device/fwnode.h
-> 
-> diff --git a/include/linux/device.h b/include/linux/device.h
-> index 4ba6ae72ddf6..d2e2745243ea 100644
-> --- a/include/linux/device.h
-> +++ b/include/linux/device.h
-> @@ -31,6 +31,7 @@
->  #include <linux/device/devlink.h>
->  #include <linux/device/devres.h>
->  #include <linux/device/driver.h>
-> +#include <linux/device/fwnode.h>
->  #include <linux/device/types.h>
->  #include <linux/cleanup.h>
->  
-> @@ -38,8 +39,6 @@ struct device_driver;
->  struct module;
->  struct class;
->  struct subsys_private;
-> -struct device_node;
-> -struct fwnode_handle;
->  
->  /**
->   * struct subsys_interface - interfaces to device functions
-> @@ -603,20 +602,6 @@ int lock_device_hotplug_sysfs(void);
->  int device_offline(struct device *dev);
->  int device_online(struct device *dev);
->  
-> -void set_primary_fwnode(struct device *dev, struct fwnode_handle *fwnode);
-> -void set_secondary_fwnode(struct device *dev, struct fwnode_handle *fwnode);
-> -void device_set_node(struct device *dev, struct fwnode_handle *fwnode);
-> -int device_add_of_node(struct device *dev, struct device_node *of_node);
-> -void device_remove_of_node(struct device *dev);
-> -void device_set_of_node_from_dev(struct device *dev, const struct device *dev2);
-> -
-> -static inline struct device_node *dev_of_node(struct device *dev)
-> -{
-> -	if (!IS_ENABLED(CONFIG_OF) || !dev)
-> -		return NULL;
-> -	return dev->of_node;
-> -}
-> -
->  static inline int dev_num_vf(struct device *dev)
->  {
->  	if (dev->bus && dev->bus->num_vf)
-> diff --git a/include/linux/device/fwnode.h b/include/linux/device/fwnode.h
-> new file mode 100644
-> index 000000000000..4fe6107191a6
-> --- /dev/null
-> +++ b/include/linux/device/fwnode.h
-> @@ -0,0 +1,28 @@
-> +/* SPDX-License-Identifier: GPL-2.0 */
-> +#ifndef _DEVICE_FWNODE_H_
-> +#define _DEVICE_FWNODE_H_
+From: Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>
 
-You lost the copyright notice.  While not really needed from a legal
-point of view, it's not all that nice from a developer point of view :(
+Add of_find_serdev_controller_by_node() API to find the serdev controller
+device associated with the devicetree node.
+
+Tested-by: Hans de Goede <johannes.goede@oss.qualcomm.com> # ThinkPad T14s gen6 (arm64)
+Signed-off-by: Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>
+---
+ drivers/tty/serdev/core.c | 19 +++++++++++++++++++
+ include/linux/serdev.h    |  9 +++++++++
+ 2 files changed, 28 insertions(+)
+
+diff --git a/drivers/tty/serdev/core.c b/drivers/tty/serdev/core.c
+index 8f25510f89b6..bf88b95f7458 100644
+--- a/drivers/tty/serdev/core.c
++++ b/drivers/tty/serdev/core.c
+@@ -514,6 +514,25 @@ struct serdev_controller *serdev_controller_alloc(struct device *host,
+ }
+ EXPORT_SYMBOL_GPL(serdev_controller_alloc);
+ 
++#ifdef CONFIG_OF
++/**
++ * of_find_serdev_controller_by_node() - Find the serdev controller associated
++ *					 with the devicetree node
++ * @node:	Devicetree node
++ *
++ * Return: Pointer to the serdev controller associated with the node. NULL if
++ * the controller is not found. Caller is responsible for calling
++ * serdev_controller_put() to drop the reference.
++ */
++struct serdev_controller *of_find_serdev_controller_by_node(struct device_node *node)
++{
++	struct device *dev = bus_find_device_by_of_node(&serdev_bus_type, node);
++
++	return (dev && dev->type == &serdev_ctrl_type) ? to_serdev_controller(dev) : NULL;
++}
++EXPORT_SYMBOL_GPL(of_find_serdev_controller_by_node);
++#endif
++
+ static int of_serdev_register_devices(struct serdev_controller *ctrl)
+ {
+ 	struct device_node *node;
+diff --git a/include/linux/serdev.h b/include/linux/serdev.h
+index 0c7d3c27d1f8..188c0ba62d50 100644
+--- a/include/linux/serdev.h
++++ b/include/linux/serdev.h
+@@ -334,4 +334,13 @@ static inline bool serdev_acpi_get_uart_resource(struct acpi_resource *ares,
+ }
+ #endif /* CONFIG_ACPI */
+ 
++#ifdef CONFIG_OF
++struct serdev_controller *of_find_serdev_controller_by_node(struct device_node *node);
++#else
++static inline struct serdev_controller *of_find_serdev_controller_by_node(struct device_node *node)
++{
++	return NULL;
++}
++#endif /* CONFIG_OF */
++
+ #endif /*_LINUX_SERDEV_H */
+
+-- 
+2.51.0
+
 
