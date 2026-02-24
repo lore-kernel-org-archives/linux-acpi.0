@@ -1,103 +1,134 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.11])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93685366DD9
-	for <linux-acpi@vger.kernel.org>; Tue, 24 Feb 2026 08:48:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B457369209;
+	Tue, 24 Feb 2026 08:55:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.11
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771922891; cv=none; b=PeBGdU4PW+uaMt3D2IJXs90N4TiYDkAs7iMNMbG877iyJJOUZ9ANgzCGUswm4hkMlpB8jnXDBBA0KnGUDFDS4bKQT/Nqmoj+EYCyENli2rX1TBJSKc6LC7dmkfS1Olny/GQJasyX/cohxTbE+UbiyKqs02y3XOKVJj+fQ9e21vo=
+	t=1771923356; cv=none; b=AiySLV0bnkoSetQgk0nsvKwuZRT+BTvwmH9WzOEgwFNznpi2f/UJaRvI0cFdBUNtO96JSzbszp/QpUaf84PvtYk5FLwPcOFsxhtY4eBqpHdweHYGVmdR8jgl2PRv+QXOaQsy/tu+h2JHhWsEWXJ4/INmkGJ9fxiqKtd80/O/7rA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771922891; c=relaxed/simple;
-	bh=4PBxKCmgxvK6WwZLmo+9PGexMT6DsJoaoUauCu/9suA=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=M0Sm7V3ZQzadWIzQvkZgyQs4PzHA0bCM5/xhFbGWm+sreDR//V6nKPEDjyicfXiIVXkW1Mtr/yrV+NxE3YJTaExQD/gNM1VWXl0Rh9zBzLahDmIHsEsLIQ5EtyxhaR3pI+k5Go1xUH87vsSPTotMigOuv1DTrHE9jNF1x8WfRXk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=g0PoJMfa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1771923356; c=relaxed/simple;
+	bh=Dojfc4lY1jGJgubjie+JVgOABa0MLrHT4L0P9hEX72A=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=ECI6Q32UTb9p4Wtil7//IHVNgsV+Y4yGdlyT1Dbb12FO5qwhGGCaC7+u7fpQChzBAaEIezq1w3EdfDqoi89Kby+BIJDoxNrn5ru570vTRXWVdxtP+y9tsrb6DZ0At50X86Qmmwyet11VDawGLOfxLd3wF2Rk12/HlbKKrtnSwV0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=iOwwjwnp; arc=none smtp.client-ip=192.198.163.11
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="g0PoJMfa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47980C2BC86
-	for <linux-acpi@vger.kernel.org>; Tue, 24 Feb 2026 08:48:11 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1771922891;
-	bh=4PBxKCmgxvK6WwZLmo+9PGexMT6DsJoaoUauCu/9suA=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=g0PoJMfagTwDUKv0g694fSX2JVR5/C1a445QMSU0KOYZZj4sEl9tx3HfComF/bBVV
-	 VKthXQl7PzynYFdRxBM/mHRPoIeB+lLGgRcnv5G5RYBWQuvAkAyNVyalMsIWy0Dz0T
-	 JPustmhKfVuDKNgo3J+4QJS8YEQryVRgauYWwoeobUlhiUFWF9Cr9IiVoJI1cyHivz
-	 /BfkSYTnwQa8BDP2Dn9MICeF4Z3xD66YHcKEoq04z6U9rQLZuVgU6AR4VAa5JMv3p7
-	 Eu26gMAhDJOm8aKQ99FrzOW3ebCjx0k3fyPfV4R25zzFkPKMLj225kE//B/Sm+p8/I
-	 FfKnmU24KufSA==
-Received: by mail-lj1-f174.google.com with SMTP id 38308e7fff4ca-385d9fb297dso56332091fa.2
-        for <linux-acpi@vger.kernel.org>; Tue, 24 Feb 2026 00:48:11 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AJvYcCXK0kLppObg2M2PsA/nYrCZ6o98mfcU/EaExZwdTX11TI76HH9EpTqSkg7WKxsoj/r/p5UP2IdMZDVC@vger.kernel.org
-X-Gm-Message-State: AOJu0YyEKCv/bGBCU/k1rsUQB9Z2841DBMTKuzZTYZssYnOYIp5vGJxf
-	7WdavsOHKdstjeciSxpqREEo9l4WX7Ucwh82wrRhBG2todJy0ycIovJFx98AIEoRtSumRPEgasM
-	UPv0goulWB17cui5A3OkQa+1HzT2PAevVZsQxuXdmSA==
-X-Received: by 2002:a05:651c:2116:b0:37b:b140:e512 with SMTP id
- 38308e7fff4ca-389a5cb4560mr30753211fa.10.1771922889950; Tue, 24 Feb 2026
- 00:48:09 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="iOwwjwnp"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1771923355; x=1803459355;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:content-transfer-encoding:in-reply-to;
+  bh=Dojfc4lY1jGJgubjie+JVgOABa0MLrHT4L0P9hEX72A=;
+  b=iOwwjwnpJD1VX60y8BMX18uwW/3o2WFqpAsvFLIvyevsbo4DHy7QCkWa
+   wnBUgWpXua83HIXrb5X/Qx4B5+iCyWsUTcBkLcU6XJUDDIIiuiineBB2r
+   Q+Of2qY0zWqkiDihhJD74gUoSUK1mpmoeShTEA5uCg69uXa7iXTepnrQ3
+   /qKeZV9zEDaDRF1NmDNF+jz1ZeL7uT6UnAykTv5Y3bZFl4JXjCSkq1Eka
+   mlIDDkwH3z8c6oVh0dLx0oKxBaULefjp1mM6FQFnExvmV8jOMZRVZHJMT
+   F+0NpCHC6WPqXSMgQZ1Iy/WOJ1PgJAJxZRP/70kCoxQeR6Nbr+jshDRuh
+   w==;
+X-CSE-ConnectionGUID: 8oqkLqIOSXGeEOPgtLyOTw==
+X-CSE-MsgGUID: bLvHi9oxRT2yuBzDNWTeSw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11710"; a="83554803"
+X-IronPort-AV: E=Sophos;i="6.21,308,1763452800"; 
+   d="scan'208";a="83554803"
+Received: from orviesa004.jf.intel.com ([10.64.159.144])
+  by fmvoesa105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Feb 2026 00:55:54 -0800
+X-CSE-ConnectionGUID: p5CrduGGR3uxnZCWCZAOIw==
+X-CSE-MsgGUID: 9EuYBeM8SH2gzKnEupuo9w==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.21,308,1763452800"; 
+   d="scan'208";a="220359469"
+Received: from egrumbac-mobl6.ger.corp.intel.com (HELO kekkonen.fi.intel.com) ([10.245.244.104])
+  by orviesa004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Feb 2026 00:55:51 -0800
+Received: from kekkonen.localdomain (localhost [IPv6:::1])
+	by kekkonen.fi.intel.com (Postfix) with ESMTP id 4770611F70F;
+	Tue, 24 Feb 2026 10:56:16 +0200 (EET)
+Date: Tue, 24 Feb 2026 10:56:16 +0200
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6 krs, Bertel Jungin Aukio 5, 02600 Espoo
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Bartosz Golaszewski <brgl@kernel.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Linus Walleij <linusw@kernel.org>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Len Brown <lenb@kernel.org>, driver-core@lists.linux.dev,
+	linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
+	linux-acpi@vger.kernel.org
+Subject: Re: [PATCH v2 2/2] gpiolib: match secondary fwnode too in
+ gpio_device_find_by_fwnode()
+Message-ID: <aZ1nsPX36Y5DuDpr@kekkonen.localdomain>
+References: <20260223-device-match-secondary-fwnode-v2-0-966c00c9eeeb@oss.qualcomm.com>
+ <20260223-device-match-secondary-fwnode-v2-2-966c00c9eeeb@oss.qualcomm.com>
+ <aZyNErXB_acR3yYq@kekkonen.localdomain>
+ <CAJZ5v0ibXKiUNf5Fvj=q=f9JbHT=w3j3h=33ri_awzEHm_dBng@mail.gmail.com>
+ <aZzPqbXH79Q6GvEn@kekkonen.localdomain>
+ <CAMRc=MeSbRySCe9wuEUifhOxzX2PydsjnttAJ_n=Nr1NdU6W5w@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260223-device-match-secondary-fwnode-v2-0-966c00c9eeeb@oss.qualcomm.com>
- <20260223-device-match-secondary-fwnode-v2-2-966c00c9eeeb@oss.qualcomm.com>
- <aZyNErXB_acR3yYq@kekkonen.localdomain> <CAJZ5v0ibXKiUNf5Fvj=q=f9JbHT=w3j3h=33ri_awzEHm_dBng@mail.gmail.com>
- <aZzPqbXH79Q6GvEn@kekkonen.localdomain>
-In-Reply-To: <aZzPqbXH79Q6GvEn@kekkonen.localdomain>
-From: Bartosz Golaszewski <brgl@kernel.org>
-Date: Tue, 24 Feb 2026 09:47:57 +0100
-X-Gmail-Original-Message-ID: <CAMRc=MeSbRySCe9wuEUifhOxzX2PydsjnttAJ_n=Nr1NdU6W5w@mail.gmail.com>
-X-Gm-Features: AaiRm50D_7LwkjWsKnNOowMphZqsmUfE0WwbpZEcKLUQ8S5X9UmeYY6QEuyxM28
-Message-ID: <CAMRc=MeSbRySCe9wuEUifhOxzX2PydsjnttAJ_n=Nr1NdU6W5w@mail.gmail.com>
-Subject: Re: [PATCH v2 2/2] gpiolib: match secondary fwnode too in gpio_device_find_by_fwnode()
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
-	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Danilo Krummrich <dakr@kernel.org>, 
-	Linus Walleij <linusw@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, 
-	Daniel Scally <djrscally@gmail.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
-	Len Brown <lenb@kernel.org>, driver-core@lists.linux.dev, linux-kernel@vger.kernel.org, 
-	linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAMRc=MeSbRySCe9wuEUifhOxzX2PydsjnttAJ_n=Nr1NdU6W5w@mail.gmail.com>
 
-On Mon, Feb 23, 2026 at 11:07=E2=80=AFPM Sakari Ailus
-<sakari.ailus@linux.intel.com> wrote:
->
-> > > >
-> > > >  static int gpio_chip_match_by_fwnode(struct gpio_chip *gc, const v=
-oid *fwnode)
-> > > >  {
-> > > > -     return device_match_fwnode(&gc->gpiodev->dev, fwnode);
-> > > > +     struct device *dev =3D &gc->gpiodev->dev;
-> > > > +     struct fwnode_handle *node =3D dev_fwnode(dev);
-> > > > +
-> > > > +     if (IS_ERR(fwnode))
-> > > > +             return 0;
-> > > > +
-> > > > +     if (device_match_fwnode(dev, fwnode))
-> > >
-> > > Could device_match_fwnode() match secondary fwnode as well?
+Hi Bartosz,
+
+On Tue, Feb 24, 2026 at 09:47:57AM +0100, Bartosz Golaszewski wrote:
+> On Mon, Feb 23, 2026 at 11:07 PM Sakari Ailus
+> <sakari.ailus@linux.intel.com> wrote:
 > >
-> > In the previous discussion on this, Andy was against doing that due to
-> > the concern that it might introduce subtle bugs, which I agree with.
->
-> Could you elaborate or provide an example?
->
-> The function has some 27 users although few are individual drivers.
->
-> My understanding is that we only have the secondary fwnode for being able
-> to attach objects from different backend to the same node. The fwnode API
-> in the meantime generally tries to hide the existence of the secondary
-> fwnode; a rewrite (which ideally would have happened perhaps a few years
-> ago?) would probably make the fwnode a linked list instead so we'd lose
-> that secondary pointer in the process.
->
+> > > > >
+> > > > >  static int gpio_chip_match_by_fwnode(struct gpio_chip *gc, const void *fwnode)
+> > > > >  {
+> > > > > -     return device_match_fwnode(&gc->gpiodev->dev, fwnode);
+> > > > > +     struct device *dev = &gc->gpiodev->dev;
+> > > > > +     struct fwnode_handle *node = dev_fwnode(dev);
+> > > > > +
+> > > > > +     if (IS_ERR(fwnode))
+> > > > > +             return 0;
+> > > > > +
+> > > > > +     if (device_match_fwnode(dev, fwnode))
+> > > >
+> > > > Could device_match_fwnode() match secondary fwnode as well?
+> > >
+> > > In the previous discussion on this, Andy was against doing that due to
+> > > the concern that it might introduce subtle bugs, which I agree with.
+> >
+> > Could you elaborate or provide an example?
+> >
+> > The function has some 27 users although few are individual drivers.
+> >
+> > My understanding is that we only have the secondary fwnode for being able
+> > to attach objects from different backend to the same node. The fwnode API
+> > in the meantime generally tries to hide the existence of the secondary
+> > fwnode; a rewrite (which ideally would have happened perhaps a few years
+> > ago?) would probably make the fwnode a linked list instead so we'd lose
+> > that secondary pointer in the process.
+> >
+> 
+> It already is a (singly) linked list. Ideally it would be a
 
-It already is a (singly) linked list. Ideally it would be a
-doubly-linked list moved into struct device with struct fwnode_handle
-having no concept of primary and secondary nodes.
+With two entries at most.
 
-Bartosz
+> doubly-linked list moved into struct device with struct fwnode_handle
+> having no concept of primary and secondary nodes.
+
+I'd think we had that list in struct fwnode_handle, which will still
+represent nodes. But let's see the details when someone gets to implement
+it. :-)
+
+-- 
+Kind regards,
+
+Sakari Ailus
