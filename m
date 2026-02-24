@@ -1,108 +1,101 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4DF5537D11B;
-	Tue, 24 Feb 2026 14:34:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F4941F8755
+	for <linux-acpi@vger.kernel.org>; Tue, 24 Feb 2026 14:47:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771943650; cv=none; b=Rgp1jukLq36tCUBQj2VyWvl1RfcwC58U1hz4n9YsPa9Pqls0cuvu3YBB7rUg+hDb34bZ73u/AVGHNu8yjj622vCBa0s3W40S4+f/zw4H5zDrcS7jZngg8c/bq/sX7R685Z9R9xbd0hJX7EWjnGkBTrtz4AWp5B+jePmCDEQhaJE=
+	t=1771944437; cv=none; b=oBXJhJyi6GM2IYeve/D0ndprvpuDKEWz4Fqkk7sPbOP+VJ5bP6GApxWXbsz0V5OMJhe3erioz7hZDc4kGJuFoPPB8fJVNGrRklJfjXOpoLKxe6WOPrGurw65rgw/qQ75MlBSwMs8ylU65rrjQIfJNKNmtdZU+pinv95YWhZkdcM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771943650; c=relaxed/simple;
-	bh=5F+vnZ1VuD84J+7VSx1ZY8xK3RKCBrptOXXP0CN9TWA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=TYxieVPnTMycec8yRtnYTWI9JZnrpO7HNKSMfpHOGkNDjqhUxCai8S4oudk8gVq2Pm3TV55XtTq1YuRGkQir6NGeGvxMGG06SuZT5TcjpumnJId3I4Jt9zjGDZwus1lLQN8BLjsX5uU8AF4XwlkJx1EuaiLzAdtiphscC/UHVDQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=M3QnLlmB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1771944437; c=relaxed/simple;
+	bh=HR6SwXIYzbLzdbD9bXS+UDt2zwZGO3QXIOeK1VrlTWE=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=V76GQ3sTfcjlOc9Z+StrKBJ48sJpwohcyfKwV7Jbnx/eRgpZihDmmoDM6WvzjFiknp8iW7J9zTVB9uMG8fQAkgHbDUpZPCnsvQYiyxW20AG1MFwBMOxyixY5Y86Yixwf6kxM2IIzg5vMwY3q9OWtOqJzUqVTcjLeEMw9Q5WMUwA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KlhvpUWK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="M3QnLlmB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B72B8C116D0;
-	Tue, 24 Feb 2026 14:34:09 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1771943649;
-	bh=5F+vnZ1VuD84J+7VSx1ZY8xK3RKCBrptOXXP0CN9TWA=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=M3QnLlmBsmChL4tZVWU92z2BRSwWYinYvF14ObFwR1L6ODEHWAqeQnokAP0GZpJbQ
-	 610Sho/QoWZRCqEayrnuPD95WlRhkTEjtD1qDvXwq+8LCGffo9ueHHIeoN4PSiU5kv
-	 wBP5DpT8qhp9+p+wtfY6yBR+vzwCoi41MjRBj/yY=
-Date: Tue, 24 Feb 2026 06:34:05 -0800
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>,
-	Zijun Hu <zijun.hu@oss.qualcomm.com>, linux-kernel@vger.kernel.org,
-	driver-core@lists.linux.dev, linux-acpi@vger.kernel.org,
-	Danilo Krummrich <dakr@kernel.org>, Len Brown <lenb@kernel.org>,
-	Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH v1 1/3] driver core: Split device data types to
- device/types.h
-Message-ID: <2026022414-splashy-reburial-fae6@gregkh>
-References: <20260223204412.3298508-1-andriy.shevchenko@linux.intel.com>
- <20260223204412.3298508-2-andriy.shevchenko@linux.intel.com>
- <CAJZ5v0gS6kyCOmwL-9JYiaxCDVubtBoK6Rb5NSgHD1GwkGoCRA@mail.gmail.com>
- <aZ1p4lgioFlxhFr_@smile.fi.intel.com>
- <CAJZ5v0hUwCFKH3f6pCW1idquyJ-93wtXzO70tq6D+ruU17+oGw@mail.gmail.com>
- <aZ2vQm3cQtBrmqMO@smile.fi.intel.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KlhvpUWK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E56F4C2BC86
+	for <linux-acpi@vger.kernel.org>; Tue, 24 Feb 2026 14:47:16 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1771944436;
+	bh=HR6SwXIYzbLzdbD9bXS+UDt2zwZGO3QXIOeK1VrlTWE=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=KlhvpUWK7tWpIwRJ33TPlXbLJe6shM1b23z4YEXdijxTTammvOUejMyZfb5PVHtTp
+	 EUpBioJaqbRS81KmKoe6t0mULF2u+95T8IqPprQxBmK3UPs9XPVTwb+A/zw0PGwBZf
+	 vbR8II/pz2X8q9BX6kQXHFnjrYMkLaxyrpA63DzjXYNk3CLaxl8yKbXO6FouMZ2/Y0
+	 pvf1t4G9XDicY9UMkmEPC5LiN1jPuNUQLew0unEqnYJahl6/wEtfOaBfjO5L0TIW61
+	 eqDBdFYa7dt3ehlW9smA5UkH5eAnwdSN09E1SHEFdWsPI5RB/etv+TcOiJo9rkhWQQ
+	 VNoWfj7tcxXwQ==
+Received: by mail-ot1-f50.google.com with SMTP id 46e09a7af769-7d4c12ff3d5so5162040a34.2
+        for <linux-acpi@vger.kernel.org>; Tue, 24 Feb 2026 06:47:16 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AJvYcCWDa35V+R5cMKg1TCpAGSslH6/pv/6xpen1+QofU4CzHACoB8K5kEAOIAQ0s3SxNfClkIlvlp1a30+a@vger.kernel.org
+X-Gm-Message-State: AOJu0Yz6nMdmr6uqwmV5VTEQ9ZVYDWB9v86K4LXj93ewOdshbpSP0avw
+	HHbEsF8GJHYeoT0R2vqJ+pLmp2em+5fSgZJDItV3Jv4a9gohNdo42gE4VLR1eLtCglUI1uwIcdI
+	BUGUrESCttLUWLdJ1Dee1C6y6dhv+Ycc=
+X-Received: by 2002:a05:6820:160a:b0:662:facc:529f with SMTP id
+ 006d021491bc7-679c446f068mr6761829eaf.28.1771944436022; Tue, 24 Feb 2026
+ 06:47:16 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <aZ2vQm3cQtBrmqMO@smile.fi.intel.com>
+References: <20260223025240.518509-1-sofia@schn.dev>
+In-Reply-To: <20260223025240.518509-1-sofia@schn.dev>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Tue, 24 Feb 2026 15:47:04 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0i3bWhzdzmBmw=cB14ogP6hBa=eppwA_Q03mHLZDk6ngA@mail.gmail.com>
+X-Gm-Features: AaiRm53RfiD_OD85m-Cb9M3P2gjWxAA5c8IhuDEQ8socH_w29VTVvTPv5wj_b3U
+Message-ID: <CAJZ5v0i3bWhzdzmBmw=cB14ogP6hBa=eppwA_Q03mHLZDk6ngA@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: OSI: Add DMI quirk for Acer Aspire One D255
+To: sofia@schn.dev
+Cc: rafael@kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, Feb 24, 2026 at 04:01:38PM +0200, Andy Shevchenko wrote:
-> On Tue, Feb 24, 2026 at 01:21:10PM +0100, Rafael J. Wysocki wrote:
-> > On Tue, Feb 24, 2026 at 10:05 AM Andy Shevchenko
-> > <andriy.shevchenko@linux.intel.com> wrote:
-> > > On Mon, Feb 23, 2026 at 09:53:17PM +0100, Rafael J. Wysocki wrote:
-> > > > On Mon, Feb 23, 2026 at 9:44 PM Andy Shevchenko
-> > > > <andriy.shevchenko@linux.intel.com> wrote:
-> > > > >
-> > > > > device.h is a huge header which is hard to follow and easy to miss
-> > > > > something. Improve that by splitting device data types to device/types.h.
-> > > > >
-> > > > > In particular this helps to speedup the build of the code that includes
-> > > > > device.h solely for a device data types.
-> > > > >
-> > > > > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> > > >
-> > > > But why do you want to move the struct device definition out of device.h?
-> > >
-> > > Because it's a data type, and we have many drivers that may require it
-> > > (embed the struct device), but no device.h API is called directly —
-> > > only via a certain framework).
-> > >
-> > > device.h also includes many unrelated headers in such a case.
-> > 
-> > Why is this a problem?
-> > 
-> > Could those headers be moved to different header files instead?
-> > 
-> > device.h is mostly about the struct device definition and the other
-> > stuff in it is more or less additional.  Why do you want to make it
-> > the other way around?
-> 
-> It's a common trend in the kernel to split out _types.h and _api.h
-> (among possibly others). I follow this trend with a correction on
-> the folder versus prefix. That's why device/types.h.
-> 
-> $ git diff $A..$B --diff-filter=A --name-only -- include/ | grep _types.h
-> 
-> In v6.19:
-> include/linux/fs/super_types.h
-> include/linux/irq_work_types.h
-> include/linux/ns/ns_common_types.h
-> include/linux/ns/nstree_types.h
-> include/linux/rseq_types.h
+On Mon, Feb 23, 2026 at 4:00=E2=80=AFAM Sofia Schneider <sofia@schn.dev> wr=
+ote:
+>
+> The screen backlight turns off during boot (specifically during udev devi=
+ce
+> initialization) when returning true for _OSI("Windows 2009").
+>
+> Analyzing the device's DSDT reveals that the firmware takes a different
+> code path when Windows 7 is reported, which leads to the backlight shutof=
+f.
+> Add a DMI quirk to invoke dmi_disable_osi_win7 for this model.
+>
+> Signed-off-by: Sofia Schneider <sofia@schn.dev>
+> ---
+>  drivers/acpi/osi.c | 13 +++++++++++++
+>  1 file changed, 13 insertions(+)
+>
+> diff --git a/drivers/acpi/osi.c b/drivers/acpi/osi.c
+> index f2c943b934be..9470f1830ff5 100644
+> --- a/drivers/acpi/osi.c
+> +++ b/drivers/acpi/osi.c
+> @@ -389,6 +389,19 @@ static const struct dmi_system_id acpi_osi_dmi_table=
+[] __initconst =3D {
+>                 },
+>         },
+>
+> +       /*
+> +        * The screen backlight turns off during udev device creation
+> +        * when returning true for _OSI("Windows 2009")
+> +        */
+> +       {
+> +       .callback =3D dmi_disable_osi_win7,
+> +       .ident =3D "Acer Aspire One D255",
+> +       .matches =3D {
+> +                    DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
+> +                    DMI_MATCH(DMI_PRODUCT_NAME, "AOD255"),
+> +               },
+> +       },
+> +
+>         /*
+>          * The wireless hotkey does not work on those machines when
+>          * returning true for _OSI("Windows 2012")
+> --
 
-Please no, let's keep things simple.  I only split up device.h because
-it made sense for the class/bus stuff to be out of it.  Let's not just
-try to make things even more fine-grained for no good reason (speed of
-builds, size, etc.), which I do not see justified here at all.
-
-thanks,
-
-greg k-h
+Applied as 7.0-rc material, thanks!
