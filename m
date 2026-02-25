@@ -1,81 +1,77 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 705DA2949E0;
-	Wed, 25 Feb 2026 20:57:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B695313E31
+	for <linux-acpi@vger.kernel.org>; Wed, 25 Feb 2026 21:28:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772053075; cv=none; b=hHSp1FwPVQdVaZdGfs8AJmiXaq6UaEr6HxlLoiLTRZp9pJ/LNEAuGXwDGjNioVPnaCOOUpQG4mSMiqVTf1c4iZBtimnbRqL/l09rgwYAaI+qsVyO5G4xyhtcKkc4VhhM8NtjT3kUH8CTYzk4V7gTctqIqKmQ8tsx0CCsI0qiWJw=
+	t=1772054906; cv=none; b=fDP6VPdXuwu6Ej47dQwJYsXsKX7gVyLGgCjN2K8x6nwK+1hlrng70IySmD/Z/5XYwht3pSZIWYww06kpj1dG6b6z5TIrIRYC/JEcmR5q94YXIE8uo9dSRjYBUWM7fEemSB6mMqjcpo4qhu4bC0RxXbGy2q16NNkd/TAtPmCb4yg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772053075; c=relaxed/simple;
-	bh=TKkUQyYe2s0rxotk+FJ/106vYELsLEwovz7QhLfHc34=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=FHmwvctuiaBohbEYWYnmFyB3X+1x940RkIg3Teq4LsNA84EM/ReENa7Xv26Bls1/PNd3iR6FxchNN4LQu2coysBSoui4+nIBw+hNZs6q8s1jUq2GNpMaBIqn4CL9uFJZOaNaBklgfwH9uv/dJsK23XosPoqlmZAdn3I5Dr142II=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CEp8hdRG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772054906; c=relaxed/simple;
+	bh=WgVE1N38Q0IJ0mq4OkP4/CC2659nsW2oNrHn/t5bmBM=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=iGBWwLB97vasI3G45u48kPiWjtfS6vTAf7ye3IjC0fTM2HGA2L5TYWDlqCzJaqBpipayQP5opwW4V2VJI7s9HUkPmF9FbyDWwx9IopThOoEtZz8wYfWnPPrq7GtvwQ7O4aJfW5Abj98SrLpDUhVNknu8ZS7YQFTKXrUIgJGuHtE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iETtShfk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CEp8hdRG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B435FC19423;
-	Wed, 25 Feb 2026 20:57:53 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iETtShfk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22DECC116D0
+	for <linux-acpi@vger.kernel.org>; Wed, 25 Feb 2026 21:28:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1772053075;
-	bh=TKkUQyYe2s0rxotk+FJ/106vYELsLEwovz7QhLfHc34=;
-	h=From:To:Cc:Subject:Date:From;
-	b=CEp8hdRGsdslq0USgMo/bjmpG97bHvEyNQeIHGRNAQpOLxwyh76wJ9TYmxCpFSGt9
-	 0xd7xb8y1oyZUukw1GbXIrBTrGZQ7ru23SkHAegPtp+7Ks3eU74NWvhkQsPpdU9NhO
-	 5eRHN1MM8RY+2rsvdyRdreX248HhdGDNIReoYb7QbfD0NHy4kW1Z2NwD32Lps8VY/g
-	 khvrUhKAiEPudkEp1qLIlNsqUJOLrSRNhI5ADUkioNy1FZXD9gPhGa9zf7ASgSLxIx
-	 gKfpV3KFB31UAQkzrgA7vU3jqCrfqjp6KXPkYZNmYushPMRpIsn5/WrIyuHpxTVIpj
-	 8vhqGu7fNSIkQ==
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-To: Ilpo =?ISO-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>
-Cc: Robert Gerlach <khnz@gmx.de>, Hans de Goede <hansg@kernel.org>,
- LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>,
- platform-driver-x86@vger.kernel.org, Jonathan Woithe <jwoithe@just42.net>
-Subject:
- [PATCH v1 0/5] platform/x86: fujitsu: Bind drivers to platform devices
- instead of ACPI ones
-Date: Wed, 25 Feb 2026 21:41:09 +0100
-Message-ID: <1968442.tdWV9SEqCh@rafael.j.wysocki>
-Organization: Linux Kernel Development
+	s=k20201202; t=1772054906;
+	bh=WgVE1N38Q0IJ0mq4OkP4/CC2659nsW2oNrHn/t5bmBM=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=iETtShfkw3DD8GnCnoOBsq15ZSV9kR5w0abFL8UijC8vuZaG5SZzW79Dah2/ne3gX
+	 w6lGWskaxF+GzsW0jtMo8cCqYZkJJ7Wk2+rArASEbo2xEgpSd6FoWDUVcUALoeYgIY
+	 Ybn4WVuiBLJakv4g5f2PK18HraP1vJ1HWKUvFHrjowCMYQ92yoLeEW+aqIP0NM2KKD
+	 mKhRxuTPnaqLplEeTc6NvsxTw2BQxFHKa2RA50CZUCF0YUunxSug9hsh5KbIiKW8j4
+	 YU3KCdV0JANBGa54k9tmjetJF4owl5+O3w29eNlfsqcvTaTnbH+9OcvmJ+XLVJv36T
+	 iyITAUdjbydyQ==
+Received: by mail-ot1-f52.google.com with SMTP id 46e09a7af769-7d4bd4db87aso33947a34.2
+        for <linux-acpi@vger.kernel.org>; Wed, 25 Feb 2026 13:28:26 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AJvYcCU7PX9PYXfxInEF2YOEqvWwZolNvWN0gRfNvK4ZsoVi1tuDNuv3mVlXSoW1RDKn5yKIt3KGOKDxS1zJ@vger.kernel.org
+X-Gm-Message-State: AOJu0YyxZ0VjB2cHtrlseZ2vPMrgO7svRS+cpz4pNtCJzeor+UJGxZBS
+	gLpbhdUY8r0f0AcXS+NiDR1qNXkHl6fyQan+QeylcanqWrd8f6wDzKkPs9zNnEFl2RALPaowRAc
+	Ia4gQSi7Fx3+16yiuWZl9C8XIQWQR69w=
+X-Received: by 2002:a4a:ee83:0:b0:678:1305:bf2e with SMTP id
+ 006d021491bc7-679c44c20d0mr9056961eaf.38.1772054905207; Wed, 25 Feb 2026
+ 13:28:25 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
+References: <20260204212931.3860-1-W_Armin@gmx.de> <c5d23d8a-8f58-48c3-90ca-5d1a46964280@gmx.de>
+In-Reply-To: <c5d23d8a-8f58-48c3-90ca-5d1a46964280@gmx.de>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Wed, 25 Feb 2026 22:28:13 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0g6w_2+4oUytzxHtAhsJczK9pe84ZfXPeOcjKqU0k_GkQ@mail.gmail.com>
+X-Gm-Features: AaiRm51OuF29b5A9KFKStZFiwB1PeK3lhJvrMty2Psu1IsvLLS3suytT0_LTM3w
+Message-ID: <CAJZ5v0g6w_2+4oUytzxHtAhsJczK9pe84ZfXPeOcjKqU0k_GkQ@mail.gmail.com>
+Subject: Re: [PATCH v3] ACPI: OSL: Poweroff when encountering a fatal ACPI error
+To: Armin Wolf <W_Armin@gmx.de>
+Cc: rafael@kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi All,
+On Wed, Feb 25, 2026 at 12:06=E2=80=AFAM Armin Wolf <W_Armin@gmx.de> wrote:
+>
+> Am 04.02.26 um 22:29 schrieb Armin Wolf:
+>
+> > The ACPI spec states that the operating system should respond
+> > to a fatal ACPI error by "performing a controlled OS shutdown in
+> > a timely fashion". Comply with the ACPI specification by powering
+> > off the system when ACPICA signals a fatal ACPI error. Users can
+> > still disable this behavior by using the acpi.poweroff_on_fatal
+> > kernel option to work around firmware bugs.
+>
+> Any updates on this?
 
-This series is part of a larger effort to switch over all drivers using
-the struct acpi_driver interface to the more common struct platform_driver
-interface and eliminate the former.  The background is explained in
-Documentation/driver-api/acpi/acpi-drivers.rst and in the changelog of
-the patch that introduced the above document:
+I was about to apply it, but then I thought that I was not sure about
+the Kconfig option.
 
-https://lore.kernel.org/all/2396510.ElGaqSPkdT@rafael.j.wysocki/
-
-The bottom line is that the kernel would be better off without struct
-acpi_driver and so it is better to get rid of it.
-
-This series carries out driver conversions of the platform x86 drivers
-for Fujitsu platforms.
-
-Patch [1/5] converts the fujitsu-tablet to a proper platform one based
-on the struct platform_driver interface.
-
-Patch [2/5] rearranges the code in the fujitsu-laptop driver to avoid
-introducing forward declarations of some functions in the subsequent
-patches.
-
-Patch [3/5] updates the fujitsu-laptop driver to install ACPI notify
-handlers by itself instead of using .notify() callbacks from struct
-acpi_driver, which is requisite for the driver conversion.
-
-Patches [4-5/5] replaces two instances of the struct acpi_driver
-interface in the fujitsu-laptop driver with struct platform_driver.
+ I don't see much value in it TBH.  If you agree, I'll just apply the
+patch without that part.
 
 Thanks!
-
-
-
