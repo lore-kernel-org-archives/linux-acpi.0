@@ -1,86 +1,101 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from cnc.isely.net (cnc.isely.net [192.69.181.175])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F9DB2EAD15
-	for <linux-acpi@vger.kernel.org>; Wed, 25 Feb 2026 18:10:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31734314A6B;
+	Wed, 25 Feb 2026 18:59:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.69.181.175
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772043042; cv=none; b=m7ISljJtfqJVqW+skrxrULajD7/0SmHVf4GpJQfBDES533nt5wTvPkGT7WpZAiBPGEPk44We+qUAKopr3VndThl7DEP+2ASD24GJJ2M3ZL0bhAirVOIezxih2ETMiyyNun7ZSZAgRiCC7HUhAGLTeOoZRn61sHHDd/MlUXToRqc=
+	t=1772045999; cv=none; b=HdqqgqsEnHGtUwBfWfFI/YcKMZz+J3fG+p9A9eB9ibmWAhzhzj4d3KxtY+J3HvV8dRGW7ohiY3JpuOixt8S/aedmN0KRlnYSu94mapXIhoZKRwCBFBvBNcmv1mklcKeWAzexoAvSrNt0oHF/Kx41I+8VDFaQpWG6b6pCM9gHYqw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772043042; c=relaxed/simple;
-	bh=YNTwvo/Pda57gkHbqBvSuOxAQKDUGF2V0zFCz7zr0/c=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=KJ6ZcvLKXoaBgXETNeyFFJnn2QjExw617qYz+7U4pKnDLpi5lfLXk/9s8ZkvbGKylE0gb+/qxEBqM5YY+PzUdShchpydrlzbMHTS1xAl9GqfjffKf4ThvyF98dkZmxtlMz/kLztcxGb9HeAEy9KaliH8VE9hcx/5dbm++hzztec=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ef3mosPO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772045999; c=relaxed/simple;
+	bh=gmq/mJR9NAqzg6aC99pwKhL5SvMEOOdfgrmsvy7hN74=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 Mime-Version:Content-Type; b=GLp9xjC+9SBW7g83DwZA9ReJcE4kV4x99nvZB4mL2k7IS7OLeJcg+PF0prI8uHrnRPUu/TqdTSukLokD/UJ5sW84RRnqxP1+56rg5JjpBsihdDFNSnBIDc0UEMAOnBmAIoqXB1QnVMVcgNNwHbc7ap5qfp6iTkMQBQjzg7G3OJU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=isely.net; spf=pass smtp.mailfrom=isely.net; dkim=pass (1152-bit key) header.d=isely.net header.i=@isely.net header.b=BDh4bcLS; arc=none smtp.client-ip=192.69.181.175
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=isely.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=isely.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ef3mosPO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0368C116D0
-	for <linux-acpi@vger.kernel.org>; Wed, 25 Feb 2026 18:10:41 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1772043042;
-	bh=YNTwvo/Pda57gkHbqBvSuOxAQKDUGF2V0zFCz7zr0/c=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=ef3mosPOQu8mfIISLKfEJ27f8kWxtRuUsdK8YD8yumzxgcX5SK18OWBAa9+rkv3c+
-	 1CpjwF7wwW2uW0Sw4Qr088SbJ1l/hoXbnG3bv1WbjOONNlgQN+nj5eyAh1E/R7sq3P
-	 EZJRFZ5HNeOIuA+el3fKeqxhqzRl4WJZvWWto+Wmal2zDXPcC/eZeZjlb3GB8zsm8i
-	 fhYrE93qmKIbx/mnlAxLo+xmq5ugPEBYdt5L4VuWXqVJ0t/4jU1EjQ9Velry1UgPLr
-	 W063QVvE2AIydrW9zxslygbFEXbmeTo9+qkGAXfZqaHaJSgDPXa6NkGI7lP92unjl/
-	 yByxDTmln8B0A==
-Received: by mail-oo1-f46.google.com with SMTP id 006d021491bc7-66f3e7d9eccso42854eaf.1
-        for <linux-acpi@vger.kernel.org>; Wed, 25 Feb 2026 10:10:41 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AJvYcCV+4eWr1RoIxcS47EGyyKzuDRGaLm3MrokNmVFXbk8KytyvgXjdWFihP7FkWpvmpkqaL43v5+nPweua@vger.kernel.org
-X-Gm-Message-State: AOJu0YzzzA2diawjTLuQsup2zL+ryBpnNoQPD1UKXpfRWYx6Mvi/bgf+
-	75c2jUByKIMGDk/jyxF9ryuA1JFRVrRWNbe6UevdwXhch7cmEhYST2zZWnKaxBaNRPMuGM3guur
-	2pxrOBORoeL2QTeQBmVxyt5+voxkcUBc=
-X-Received: by 2002:a05:6820:4888:b0:675:a193:b9ab with SMTP id
- 006d021491bc7-679c40a0216mr6506809eaf.0.1772043041055; Wed, 25 Feb 2026
- 10:10:41 -0800 (PST)
+	dkim=pass (1152-bit key) header.d=isely.net header.i=@isely.net header.b="BDh4bcLS"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=isely.net; s=deb;
+	t=1772045996; bh=V/5weU9sjTXr3Lql1/npeTKaNef+eDg6wmZ0VGEadGE=;
+	h=Date:From:Reply-To:To:cc:Subject:In-Reply-To:References;
+	b=BDh4bcLSy/JgQFt0/zBLvbXj5y/qFHH97027/Mb5Vhv1GCiEJEAjC/kjBl4stZU2d
+	 h/vwvalY+Khp7P5GFxnNEXpQjYZGq25EeGsgTod9Kj4nF1OCGZ1uD7zGYnofk8S0I9
+	 mI7dGpec7Sq/O4X5OOqk2wdDzvPdjqQQQF6dALqDK1laswWuXr2fYQt7Al/9o
+Original-Reply-To: Mike Isely at pobox <isely@pobox.com>
+Original-Subject: Re: [PATCH 0/1] software node: Use-after-free fix in
+ drivers/base/swnode.c
+Author: Mike Isely <isely@isely.net>
+Original-cc: mike.isely@cobaltdigital.com,
+  Daniel Scally <djrscally@gmail.com>,
+  Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+  Sakari Ailus <sakari.ailus@linux.intel.com>,
+  linux-acpi@vger.kernel.org,
+  Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+  Mike Isely at pobox <isely@pobox.com>
+Received: from ts4-dock4.isely.net (ts4-dock4.isely.net [::ffff:192.168.23.121])
+  (AUTH: PLAIN isely, TLS: TLS1.3,256bits,ECDHE_RSA_AES_256_GCM_SHA384)
+  by cnc.isely.net with ESMTPSA
+  id 00000000000A0005.00000000699F46AC.000068BE; Wed, 25 Feb 2026 12:59:56 -0600
+Date: Wed, 25 Feb 2026 12:59:56 -0600 (CST)
+From: Mike Isely <isely@isely.net>
+Reply-To: Mike Isely at pobox <isely@pobox.com>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+cc: mike.isely@cobaltdigital.com,
+  Daniel Scally <djrscally@gmail.com>,
+  Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+  Sakari Ailus <sakari.ailus@linux.intel.com>,
+  linux-acpi@vger.kernel.org,
+  Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+  Mike Isely at pobox <isely@pobox.com>
+Subject: Re: [PATCH 0/1] software node: Use-after-free fix in
+ drivers/base/swnode.c
+In-Reply-To: <aZ7E7q6vdUHW_Wj6@smile.fi.intel.com>
+Message-ID: <04eebe7b-0f88-2122-eeef-568117bb8235@isely.net>
+References: <20260224191922.2972974-1-mike.isely@cobaltdigital.com> <aZ7E7q6vdUHW_Wj6@smile.fi.intel.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <5983325.DvuYhMxLoT@rafael.j.wysocki> <8660687.T7Z3S40VBb@rafael.j.wysocki>
- <6b751b23-ded2-4343-bf29-103f4a7ab6ba@intel.com>
-In-Reply-To: <6b751b23-ded2-4343-bf29-103f4a7ab6ba@intel.com>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Wed, 25 Feb 2026 19:10:30 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0iydudmE_HQVKCrMVtnUK0YKOd_XiqJwnR8Y9W3OL6CLw@mail.gmail.com>
-X-Gm-Features: AaiRm51rEBLt3EUFbi7RLHoBLLxSr6ongn-NfwzYafPxsNBFpjS3KQ9hZSgGHZk
-Message-ID: <CAJZ5v0iydudmE_HQVKCrMVtnUK0YKOd_XiqJwnR8Y9W3OL6CLw@mail.gmail.com>
-Subject: Re: [PATCH v1 6/8] x86: rtc: Drop PNP device check
-To: Dave Hansen <dave.hansen@intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, 
-	LKML <linux-kernel@vger.kernel.org>, x86 Maintainers <x86@kernel.org>, linux-rtc@vger.kernel.org, 
-	Alexandre Belloni <alexandre.belloni@bootlin.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-On Wed, Feb 25, 2026 at 7:01=E2=80=AFPM Dave Hansen <dave.hansen@intel.com>=
- wrote:
->
-> On 2/23/26 07:31, Rafael J. Wysocki wrote:
-> > Previous changes effectively prevented PNP devices from being created
-> > for the CMOS RTC on x86 with ACPI.
-> >
-> > Although in principle a CMOS RTC PNP device may exist on an x86 system
-> > without ACPI (that is, an x86 system where there is no ACPI at all, not
-> > one booted with ACPI disabled), such systems were there in the field ~3=
-0
-> > years ago and most likely they would not be able to run a contemporary
-> > Linux kernel.
-> >
-> > For the above reasons, drop the PNP device check from add_rtc_cmos().
->
-> If someone had one of these devices, what would they see after applying
-> this? Would they just not be able to detect the RTC any longer?
+On Wed, 25 Feb 2026, Andy Shevchenko wrote:
 
-No, add_rtc_cmos() would just create a fallback platform device for
-the CMOS RTC AFAICS and the driver would pick up that one.
+> On Tue, Feb 24, 2026 at 01:19:21PM -0600, mike.isely@cobaltdigital.com wrote:
+> 
+> > Correct issue in drivers/base/swnode.c that can lead to use-after-free
+> > due to kobject reference counting error, which itself is due to
+> > incorrect behavior with the "managed" struct swnode flag in
+> > circumstances involving child struct device instances where the parent
+> > struct device is managing a struct swnode.
+> > 
+> > Use-after-free in this case led to an Oops and a subsequent kernel
+> > memory leak, but realistically it's kernel heap corruption, so any
+> > manner of chaos can result, if left unaddressed.
+> > 
+> > This was detected in kernel 6.12, verified also in kernel 6.6.  Visual
+> > inspection in 6.19.3 source (the latest as of right now) shows the
+> 
+> The latest is v7.0-rc1 as of time of the topic message.
 
-> In any case, this does seem obscure enough to not worry about any more:
->
-> Acked-by: Dave Hansen <dave.hansen@linux.intel.com> # x86
+I actually meant the latest release.  Guess I should have checked the 
+latest release candidate on the off-chance that it might have been 
+addressed.
 
-Thanks!
+> 
+> > same issue.  The nearly trivial fix was verified in 6.12.  While this
+> > patches against 6.19.3, IMHO this is a candidate for all LTS kernels.
+> 
+> Thanks for the contribution, usually for a single patch there is no need
+> in cover letter. The comment block can handle this (the place after cutter
+> '---' line in the message with a patch).
+
+Yeah, a separate cover letter is overkill, but I was just following a 
+process here.
+
+  -Mike
+   isely@pobox.com
+
