@@ -1,251 +1,623 @@
-Received: from cnc.isely.net (cnc.isely.net [192.69.181.175])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3C452D249E;
-	Wed, 25 Feb 2026 20:16:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.69.181.175
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E2F32836A6;
+	Wed, 25 Feb 2026 20:57:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772050602; cv=none; b=DXsRyr2Lp5lAPdv7A7eSmD5SNAlLlAOwkkNd9KqtUk/mbqiD7FAIQWhFQGrvS7zfz/aNEXKs95/05ZNcABpkSW1cJReXxVwCCqLw3nINZ+8t+K/5kabQSMsrURkMhqDFvq9wkHRkeLGvUvLjh3QxYDCEmFHUEuksFAkV7puN2ec=
+	t=1772053055; cv=none; b=p9//BGLirG5/uJV8DKRuSkEs0fYzzzf0Jx2BuzXzCD3dFVv4wESA3mquCTXilQzZdJf86fWPNoiWx014SppJC9lmsmSHgdNuNOJ6BdPPrEqjZouJ6aYJsesjuD86Qo1dtMrJo2yj58sA1cuYSX8ZkTRgon5zRLpdWDI+mJyeKs4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772050602; c=relaxed/simple;
-	bh=u0q+OhOsSgIVZQ+k+DGwVtTjaN/kYes3yTOoY9QYrD4=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 Mime-Version:Content-Type; b=DumodNChN18/lZYFl+4xkt3njhoH2MMrNgWnowbCD6WwQpPTs7PcsB8t1+lbJQLiVxLEBjAWGJimfizAgWAqt8uor2Dxw72z3Onv58HH43ASI/6VKNA6EX5X3J3F5f1r3vNxiLKoESIrY9kHONjiaOM9JYRaaPbL8C7AaPX62wc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=isely.net; spf=pass smtp.mailfrom=isely.net; dkim=pass (1152-bit key) header.d=isely.net header.i=@isely.net header.b=BKkwLv13; arc=none smtp.client-ip=192.69.181.175
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=isely.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=isely.net
+	s=arc-20240116; t=1772053055; c=relaxed/simple;
+	bh=yk95I1BgORZd+9At8Zhm6Z7/v6OTH55Po98k0b6OKaI=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=qRVoLNHpLn5i2DBN9LDo/V/kwbXfMGaS+fOKmEC5iUfmU7nsjcvr6OlZMllREXB8gzOEOt6NSkcbKW+l24MC/1R7cAyX1aEyZUhP1ECHNF5AJ6019SLmc2P7qwr81aNXl7CP7FlOa9sA+3YkW4dYmn40cuoT/On3+VjT9oUBg3E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=g4eSa8kH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1152-bit key) header.d=isely.net header.i=@isely.net header.b="BKkwLv13"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=isely.net; s=deb;
-	t=1772050599; bh=6zalYpwy1qUW0hE75t2j3/yDJ6YhhDyGYd5CNWxmKtY=;
-	h=Date:From:Reply-To:To:cc:Subject:In-Reply-To:References;
-	b=BKkwLv13VAUqTKcD4cGtysLm0bEE3c2jqGX9GwLRcgF4i2ILErs4554kpx69KWmXr
-	 69M3RUp5zVLPLzByGnk/YvrHnYTTShdL+TMtfkTHL8M3M5dRwCMdmhMsEfYvR35r3R
-	 GAbwnGjPp+mYp1na8vH/mp5REhZjrVbBdUH77YCLRyP4ZCYIn4+QXYFdQDFfz
-Original-Reply-To: Mike Isely at pobox <isely@pobox.com>
-Original-Subject: Re: [PATCH 1/1] sofware node: Only the managing device can unreference
- managed software node
-Author: Mike Isely <isely@isely.net>
-Original-cc: mike.isely@cobaltdigital.com,
-  Daniel Scally <djrscally@gmail.com>,
-  Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-  Sakari Ailus <sakari.ailus@linux.intel.com>,
-  linux-acpi@vger.kernel.org,
-  Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-  Mike Isely at pobox <isely@pobox.com>
-Received: from ts4-dock4.isely.net (ts4-dock4.isely.net [::ffff:192.168.23.121])
-  (AUTH: PLAIN isely, TLS: TLS1.3,256bits,ECDHE_RSA_AES_256_GCM_SHA384)
-  by cnc.isely.net with ESMTPSA
-  id 00000000000A0007.00000000699F58A7.000076FB; Wed, 25 Feb 2026 14:16:39 -0600
-Date: Wed, 25 Feb 2026 14:16:39 -0600 (CST)
-From: Mike Isely <isely@isely.net>
-Reply-To: Mike Isely at pobox <isely@pobox.com>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-cc: mike.isely@cobaltdigital.com,
-  Daniel Scally <djrscally@gmail.com>,
-  Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-  Sakari Ailus <sakari.ailus@linux.intel.com>,
-  linux-acpi@vger.kernel.org,
-  Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-  Mike Isely at pobox <isely@pobox.com>
-Subject: Re: [PATCH 1/1] sofware node: Only the managing device can unreference
- managed software node
-In-Reply-To: <aZ9VHXwReXdWZHz8@smile.fi.intel.com>
-Message-ID: <5c5f39f4-9797-4d84-eaf2-3fb7a830cbbf@isely.net>
-References: <20260224191922.2972974-1-mike.isely@cobaltdigital.com> <20260224191922.2972974-2-mike.isely@cobaltdigital.com> <aZ7bX4SIoxKTPtoi@smile.fi.intel.com> <3951478d-43d6-1c9b-de5e-8affc5937472@isely.net> <aZ9VHXwReXdWZHz8@smile.fi.intel.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="g4eSa8kH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70B3AC116D0;
+	Wed, 25 Feb 2026 20:57:33 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1772053055;
+	bh=yk95I1BgORZd+9At8Zhm6Z7/v6OTH55Po98k0b6OKaI=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=g4eSa8kHL6NPJFrnycxW1lmuz2zgCI4W8BSf1OjoVA4tl3Fa/bb+2zGPcrtydo0Gy
+	 Wdv2jbosJU0hv69I0Z3Q60BBhSuhfpRY5+rmUu7gqSs34l0fW83n/q2H7wcp5Ds2rS
+	 RmaV2ja0eOFQBbitQ/6AM/2ObtkY2QlEKSKtRdasogZc91cp4t/sWm/o3goC7Q9v6n
+	 Y3ZXnICB7WSCFAejppbx6eblrb8Apg2R0p/P2HvSi93aSTpyc1pc9X4Sqi/s2J1Fix
+	 pPKn0a+BqO7FkbdLn4ZSvK+Yqemwtybkw+/9K6jwqDDtWA4CXRvZT5Z0S3u7ACqlaH
+	 Elka4YkbzoYlg==
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+To: Ilpo =?ISO-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>
+Cc: Robert Gerlach <khnz@gmx.de>, Hans de Goede <hansg@kernel.org>,
+ LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>,
+ platform-driver-x86@vger.kernel.org, Jonathan Woithe <jwoithe@just42.net>
+Subject:
+ [PATCH v1 5/5] platform/x86: fujitsu: Convert laptop driver to a platform one
+Date: Wed, 25 Feb 2026 21:57:09 +0100
+Message-ID: <3699728.iIbC2pHGDl@rafael.j.wysocki>
+Organization: Linux Kernel Development
+In-Reply-To: <1968442.tdWV9SEqCh@rafael.j.wysocki>
+References: <1968442.tdWV9SEqCh@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
 
-On Wed, 25 Feb 2026, Andy Shevchenko wrote:
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-> On Wed, Feb 25, 2026 at 01:42:30PM -0600, Mike Isely wrote:
-> > On Wed, 25 Feb 2026, Andy Shevchenko wrote:
-> > > On Tue, Feb 24, 2026 at 01:19:22PM -0600, mike.isely@cobaltdigital.com wrote:
-> 
-> ...
-> 
-> > > > A scenario exists where device_create_managed_software_node() is used
-> > > > to create an swnode instance that will be implicitly shared to a child
-> > > > device despite best intentions not to permit such sharing (per the
-> > > > comment in device_create_managed_software_node()).  I encountered this
-> > > > with the sfp kernel module when it was instantiated with properties
-> > > 
-> > > SFP? Or is it the name of the actual module in the kernel?
-> > 
-> > Actual kernel module name, sfp.ko, CONFIG_SFP in .config, named after 
-> > the piece of hardware it works with, an SFP cage.  This is logic which 
-> > monitors SFP cages for hotplug appearance / removal of SFP transceivers.  
-> > When a transceiver appears, the sfp kernel module will create a child 
-> > hwmon device instance to monitor various bits of metadata from the 
-> > transceiver.  When that transceiver goes away, the sfp kernel module 
-> > will tear down that child hwmon device instance.
-> > 
-> > The sfp kernel module needs resources configured to know where to 
-> > monitor; in our case that is set up dynamically by another locally 
-> > written kernel module (which iteracts with an FPGA we have where the SFP 
-> > hardware elements reside), and that kernel module will combine 
-> 
-> > devicetree information with some run-time information to generate the 
-> > properties handed off to the sfp kernel module instantiation.
-> 
-> What runtime information? Why this can't be done via DT overlay as others do?
+In all cases in which a struct acpi_driver is used for binding a driver
+to an ACPI device object, a corresponding platform device is created by
+the ACPI core and that device is regarded as a proper representation of
+underlying hardware.  Accordingly, a struct platform_driver should be
+used by driver code to bind to that device.  There are multiple reasons
+why drivers should not bind directly to ACPI device objects [1].
 
-I don't recall the specifics.  It might be calculation of a unit name.  
-The connectivity in this case is I2C so that should be a constant.  We 
-have some variants where the FPGA is PCIE-connected to the host and so 
-the memory map is a run-time calculation.  We have other drivers that 
-have to be instantiated with run-time computed properties.  So we handle 
-this as a general case.
+Overall, it is better to bind drivers to platform devices than to their
+ACPI companions, so convert the main part of the Fujitsu laptop driver
+from an ACPI driver to a platform one.
+
+After this change, the subordinate LED and input devices will be
+registered under the platform device used for driver binding instead of
+its ACPI companion.
+
+While this is not expected to alter functionality, it changes sysfs
+layout and so it will be visible to user space.
+
+Link: https://lore.kernel.org/all/2396510.ElGaqSPkdT@rafael.j.wysocki/ [1]
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/platform/x86/fujitsu-laptop.c | 200 +++++++++++++-------------
+ 1 file changed, 96 insertions(+), 104 deletions(-)
+
+diff --git a/drivers/platform/x86/fujitsu-laptop.c b/drivers/platform/x86/fujitsu-laptop.c
+index d4550309ac13..27621e06067b 100644
+--- a/drivers/platform/x86/fujitsu-laptop.c
++++ b/drivers/platform/x86/fujitsu-laptop.c
+@@ -144,11 +144,11 @@ struct fujitsu_laptop {
+ 	bool charge_control_supported;
+ };
+ 
+-static struct acpi_device *fext;
++static struct device *fext;
+ 
+ /* Fujitsu ACPI interface function */
+ 
+-static int call_fext_func(struct acpi_device *device,
++static int call_fext_func(struct device *dev,
+ 			  int func, int op, int feature, int state)
+ {
+ 	union acpi_object params[4] = {
+@@ -158,18 +158,17 @@ static int call_fext_func(struct acpi_device *device,
+ 		{ .integer.type = ACPI_TYPE_INTEGER, .integer.value = state }
+ 	};
+ 	struct acpi_object_list arg_list = { 4, params };
++	acpi_handle handle = ACPI_HANDLE(dev);
+ 	unsigned long long value;
+ 	acpi_status status;
+ 
+-	status = acpi_evaluate_integer(device->handle, "FUNC", &arg_list,
+-				       &value);
++	status = acpi_evaluate_integer(handle, "FUNC", &arg_list, &value);
+ 	if (ACPI_FAILURE(status)) {
+-		acpi_handle_err(device->handle, "Failed to evaluate FUNC\n");
++		acpi_handle_err(handle, "Failed to evaluate FUNC\n");
+ 		return -ENODEV;
+ 	}
+ 
+-	acpi_handle_debug(device->handle,
+-			  "FUNC 0x%x (args 0x%x, 0x%x, 0x%x) returned 0x%x\n",
++	acpi_handle_debug(handle, "FUNC 0x%x (args 0x%x, 0x%x, 0x%x) returned 0x%x\n",
+ 			  func, op, feature, state, (int)value);
+ 	return value;
+ }
+@@ -251,9 +250,9 @@ static struct acpi_battery_hook battery_hook = {
+  * These functions are intended to be called from acpi_fujitsu_laptop_add and
+  * acpi_fujitsu_laptop_remove.
+  */
+-static int fujitsu_battery_charge_control_add(struct acpi_device *device)
++static int fujitsu_battery_charge_control_add(struct device *dev)
+ {
+-	struct fujitsu_laptop *priv = acpi_driver_data(device);
++	struct fujitsu_laptop *priv = dev_get_drvdata(dev);
+ 	int s006_cc_return;
+ 
+ 	priv->charge_control_supported = false;
+@@ -274,9 +273,9 @@ static int fujitsu_battery_charge_control_add(struct acpi_device *device)
+ 	return 0;
+ }
+ 
+-static void fujitsu_battery_charge_control_remove(struct acpi_device *device)
++static void fujitsu_battery_charge_control_remove(struct device *dev)
+ {
+-	struct fujitsu_laptop *priv = acpi_driver_data(device);
++	struct fujitsu_laptop *priv = dev_get_drvdata(dev);
+ 
+ 	if (priv->charge_control_supported)
+ 		battery_hook_unregister(&battery_hook);
+@@ -665,12 +664,13 @@ static const struct dmi_system_id fujitsu_laptop_dmi_table[] = {
+ 	{}
+ };
+ 
+-static int acpi_fujitsu_laptop_input_setup(struct acpi_device *device)
++static int acpi_fujitsu_laptop_input_setup(struct device *dev)
+ {
+-	struct fujitsu_laptop *priv = acpi_driver_data(device);
++	struct fujitsu_laptop *priv = dev_get_drvdata(dev);
++	struct acpi_device *device = ACPI_COMPANION(dev);
+ 	int ret;
+ 
+-	priv->input = devm_input_allocate_device(&device->dev);
++	priv->input = devm_input_allocate_device(dev);
+ 	if (!priv->input)
+ 		return -ENOMEM;
+ 
+@@ -689,9 +689,9 @@ static int acpi_fujitsu_laptop_input_setup(struct acpi_device *device)
+ 	return input_register_device(priv->input);
+ }
+ 
+-static int fujitsu_laptop_platform_add(struct acpi_device *device)
++static int fujitsu_laptop_platform_add(struct device *dev)
+ {
+-	struct fujitsu_laptop *priv = acpi_driver_data(device);
++	struct fujitsu_laptop *priv = dev_get_drvdata(dev);
+ 	int ret;
+ 
+ 	priv->pf_device = platform_device_alloc("fujitsu-laptop", PLATFORM_DEVID_NONE);
+@@ -719,9 +719,9 @@ static int fujitsu_laptop_platform_add(struct acpi_device *device)
+ 	return ret;
+ }
+ 
+-static void fujitsu_laptop_platform_remove(struct acpi_device *device)
++static void fujitsu_laptop_platform_remove(struct device *dev)
+ {
+-	struct fujitsu_laptop *priv = acpi_driver_data(device);
++	struct fujitsu_laptop *priv = dev_get_drvdata(dev);
+ 
+ 	sysfs_remove_group(&priv->pf_device->dev.kobj,
+ 			   &fujitsu_pf_attribute_group);
+@@ -731,7 +731,7 @@ static void fujitsu_laptop_platform_remove(struct acpi_device *device)
+ static int logolamp_set(struct led_classdev *cdev,
+ 			enum led_brightness brightness)
+ {
+-	struct acpi_device *device = to_acpi_device(cdev->dev->parent);
++	struct device *parent = cdev->dev->parent;
+ 	int poweron = FUNC_LED_ON, always = FUNC_LED_ON;
+ 	int ret;
+ 
+@@ -741,23 +741,23 @@ static int logolamp_set(struct led_classdev *cdev,
+ 	if (brightness < LED_FULL)
+ 		always = FUNC_LED_OFF;
+ 
+-	ret = call_fext_func(device, FUNC_LEDS, 0x1, LOGOLAMP_POWERON, poweron);
++	ret = call_fext_func(parent, FUNC_LEDS, 0x1, LOGOLAMP_POWERON, poweron);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	return call_fext_func(device, FUNC_LEDS, 0x1, LOGOLAMP_ALWAYS, always);
++	return call_fext_func(parent, FUNC_LEDS, 0x1, LOGOLAMP_ALWAYS, always);
+ }
+ 
+ static enum led_brightness logolamp_get(struct led_classdev *cdev)
+ {
+-	struct acpi_device *device = to_acpi_device(cdev->dev->parent);
++	struct device *parent = cdev->dev->parent;
+ 	int ret;
+ 
+-	ret = call_fext_func(device, FUNC_LEDS, 0x2, LOGOLAMP_ALWAYS, 0x0);
++	ret = call_fext_func(parent, FUNC_LEDS, 0x2, LOGOLAMP_ALWAYS, 0x0);
+ 	if (ret == FUNC_LED_ON)
+ 		return LED_FULL;
+ 
+-	ret = call_fext_func(device, FUNC_LEDS, 0x2, LOGOLAMP_POWERON, 0x0);
++	ret = call_fext_func(parent, FUNC_LEDS, 0x2, LOGOLAMP_POWERON, 0x0);
+ 	if (ret == FUNC_LED_ON)
+ 		return LED_HALF;
+ 
+@@ -767,22 +767,21 @@ static enum led_brightness logolamp_get(struct led_classdev *cdev)
+ static int kblamps_set(struct led_classdev *cdev,
+ 		       enum led_brightness brightness)
+ {
+-	struct acpi_device *device = to_acpi_device(cdev->dev->parent);
++	struct device *parent = cdev->dev->parent;
+ 
+ 	if (brightness >= LED_FULL)
+-		return call_fext_func(device, FUNC_LEDS, 0x1, KEYBOARD_LAMPS,
++		return call_fext_func(parent, FUNC_LEDS, 0x1, KEYBOARD_LAMPS,
+ 				      FUNC_LED_ON);
+ 	else
+-		return call_fext_func(device, FUNC_LEDS, 0x1, KEYBOARD_LAMPS,
++		return call_fext_func(parent, FUNC_LEDS, 0x1, KEYBOARD_LAMPS,
+ 				      FUNC_LED_OFF);
+ }
+ 
+ static enum led_brightness kblamps_get(struct led_classdev *cdev)
+ {
+-	struct acpi_device *device = to_acpi_device(cdev->dev->parent);
+ 	enum led_brightness brightness = LED_OFF;
+ 
+-	if (call_fext_func(device,
++	if (call_fext_func(cdev->dev->parent,
+ 			   FUNC_LEDS, 0x2, KEYBOARD_LAMPS, 0x0) == FUNC_LED_ON)
+ 		brightness = LED_FULL;
+ 
+@@ -792,22 +791,22 @@ static enum led_brightness kblamps_get(struct led_classdev *cdev)
+ static int radio_led_set(struct led_classdev *cdev,
+ 			 enum led_brightness brightness)
+ {
+-	struct acpi_device *device = to_acpi_device(cdev->dev->parent);
++	struct device *parent = cdev->dev->parent;
+ 
+ 	if (brightness >= LED_FULL)
+-		return call_fext_func(device, FUNC_FLAGS, 0x5, RADIO_LED_ON,
++		return call_fext_func(parent, FUNC_FLAGS, 0x5, RADIO_LED_ON,
+ 				      RADIO_LED_ON);
+ 	else
+-		return call_fext_func(device, FUNC_FLAGS, 0x5, RADIO_LED_ON,
++		return call_fext_func(parent, FUNC_FLAGS, 0x5, RADIO_LED_ON,
+ 				      0x0);
+ }
+ 
+ static enum led_brightness radio_led_get(struct led_classdev *cdev)
+ {
+-	struct acpi_device *device = to_acpi_device(cdev->dev->parent);
++	struct device *parent = cdev->dev->parent;
+ 	enum led_brightness brightness = LED_OFF;
+ 
+-	if (call_fext_func(device, FUNC_FLAGS, 0x4, 0x0, 0x0) & RADIO_LED_ON)
++	if (call_fext_func(parent, FUNC_FLAGS, 0x4, 0x0, 0x0) & RADIO_LED_ON)
+ 		brightness = LED_FULL;
+ 
+ 	return brightness;
+@@ -816,60 +815,58 @@ static enum led_brightness radio_led_get(struct led_classdev *cdev)
+ static int eco_led_set(struct led_classdev *cdev,
+ 		       enum led_brightness brightness)
+ {
+-	struct acpi_device *device = to_acpi_device(cdev->dev->parent);
++	struct device *parent = cdev->dev->parent;
+ 	int curr;
+ 
+-	curr = call_fext_func(device, FUNC_LEDS, 0x2, ECO_LED, 0x0);
++	curr = call_fext_func(parent, FUNC_LEDS, 0x2, ECO_LED, 0x0);
+ 	if (brightness >= LED_FULL)
+-		return call_fext_func(device, FUNC_LEDS, 0x1, ECO_LED,
++		return call_fext_func(parent, FUNC_LEDS, 0x1, ECO_LED,
+ 				      curr | ECO_LED_ON);
+ 	else
+-		return call_fext_func(device, FUNC_LEDS, 0x1, ECO_LED,
++		return call_fext_func(parent, FUNC_LEDS, 0x1, ECO_LED,
+ 				      curr & ~ECO_LED_ON);
+ }
+ 
+ static enum led_brightness eco_led_get(struct led_classdev *cdev)
+ {
+-	struct acpi_device *device = to_acpi_device(cdev->dev->parent);
++	struct device *parent = cdev->dev->parent;
+ 	enum led_brightness brightness = LED_OFF;
+ 
+-	if (call_fext_func(device, FUNC_LEDS, 0x2, ECO_LED, 0x0) & ECO_LED_ON)
++	if (call_fext_func(parent, FUNC_LEDS, 0x2, ECO_LED, 0x0) & ECO_LED_ON)
+ 		brightness = LED_FULL;
+ 
+ 	return brightness;
+ }
+ 
+-static int acpi_fujitsu_laptop_leds_register(struct acpi_device *device)
++static int acpi_fujitsu_laptop_leds_register(struct device *dev)
+ {
+-	struct fujitsu_laptop *priv = acpi_driver_data(device);
++	struct fujitsu_laptop *priv = dev_get_drvdata(dev);
+ 	struct led_classdev *led;
+ 	int ret;
+ 
+-	if (call_fext_func(device,
+-			   FUNC_LEDS, 0x0, 0x0, 0x0) & LOGOLAMP_POWERON) {
+-		led = devm_kzalloc(&device->dev, sizeof(*led), GFP_KERNEL);
++	if (call_fext_func(dev, FUNC_LEDS, 0x0, 0x0, 0x0) & LOGOLAMP_POWERON) {
++		led = devm_kzalloc(dev, sizeof(*led), GFP_KERNEL);
+ 		if (!led)
+ 			return -ENOMEM;
+ 
+ 		led->name = "fujitsu::logolamp";
+ 		led->brightness_set_blocking = logolamp_set;
+ 		led->brightness_get = logolamp_get;
+-		ret = devm_led_classdev_register(&device->dev, led);
++		ret = devm_led_classdev_register(dev, led);
+ 		if (ret)
+ 			return ret;
+ 	}
+ 
+-	if ((call_fext_func(device,
+-			    FUNC_LEDS, 0x0, 0x0, 0x0) & KEYBOARD_LAMPS) &&
+-	    (call_fext_func(device, FUNC_BUTTONS, 0x0, 0x0, 0x0) == 0x0)) {
+-		led = devm_kzalloc(&device->dev, sizeof(*led), GFP_KERNEL);
++	if ((call_fext_func(dev, FUNC_LEDS, 0x0, 0x0, 0x0) & KEYBOARD_LAMPS) &&
++	    (call_fext_func(dev, FUNC_BUTTONS, 0x0, 0x0, 0x0) == 0x0)) {
++		led = devm_kzalloc(dev, sizeof(*led), GFP_KERNEL);
+ 		if (!led)
+ 			return -ENOMEM;
+ 
+ 		led->name = "fujitsu::kblamps";
+ 		led->brightness_set_blocking = kblamps_set;
+ 		led->brightness_get = kblamps_get;
+-		ret = devm_led_classdev_register(&device->dev, led);
++		ret = devm_led_classdev_register(dev, led);
+ 		if (ret)
+ 			return ret;
+ 	}
+@@ -884,7 +881,7 @@ static int acpi_fujitsu_laptop_leds_register(struct acpi_device *device)
+ 	 * whether given model has a radio toggle button.
+ 	 */
+ 	if (priv->flags_supported & BIT(17)) {
+-		led = devm_kzalloc(&device->dev, sizeof(*led), GFP_KERNEL);
++		led = devm_kzalloc(dev, sizeof(*led), GFP_KERNEL);
+ 		if (!led)
+ 			return -ENOMEM;
+ 
+@@ -892,7 +889,7 @@ static int acpi_fujitsu_laptop_leds_register(struct acpi_device *device)
+ 		led->brightness_set_blocking = radio_led_set;
+ 		led->brightness_get = radio_led_get;
+ 		led->default_trigger = "rfkill-any";
+-		ret = devm_led_classdev_register(&device->dev, led);
++		ret = devm_led_classdev_register(dev, led);
+ 		if (ret)
+ 			return ret;
+ 	}
+@@ -902,17 +899,16 @@ static int acpi_fujitsu_laptop_leds_register(struct acpi_device *device)
+ 	 * bit 14 seems to indicate presence of said led as well.
+ 	 * Confirm by testing the status.
+ 	 */
+-	if ((call_fext_func(device, FUNC_LEDS, 0x0, 0x0, 0x0) & BIT(14)) &&
+-	    (call_fext_func(device,
+-			    FUNC_LEDS, 0x2, ECO_LED, 0x0) != UNSUPPORTED_CMD)) {
+-		led = devm_kzalloc(&device->dev, sizeof(*led), GFP_KERNEL);
++	if ((call_fext_func(dev, FUNC_LEDS, 0x0, 0x0, 0x0) & BIT(14)) &&
++	    (call_fext_func(dev, FUNC_LEDS, 0x2, ECO_LED, 0x0) != UNSUPPORTED_CMD)) {
++		led = devm_kzalloc(dev, sizeof(*led), GFP_KERNEL);
+ 		if (!led)
+ 			return -ENOMEM;
+ 
+ 		led->name = "fujitsu::eco_led";
+ 		led->brightness_set_blocking = eco_led_set;
+ 		led->brightness_get = eco_led_get;
+-		ret = devm_led_classdev_register(&device->dev, led);
++		ret = devm_led_classdev_register(dev, led);
+ 		if (ret)
+ 			return ret;
+ 	}
+@@ -920,9 +916,9 @@ static int acpi_fujitsu_laptop_leds_register(struct acpi_device *device)
+ 	return 0;
+ }
+ 
+-static void acpi_fujitsu_laptop_press(struct acpi_device *device, int scancode)
++static void acpi_fujitsu_laptop_press(struct device *dev, int scancode)
+ {
+-	struct fujitsu_laptop *priv = acpi_driver_data(device);
++	struct fujitsu_laptop *priv = dev_get_drvdata(dev);
+ 	int ret;
+ 
+ 	ret = kfifo_in_locked(&priv->fifo, (unsigned char *)&scancode,
+@@ -937,9 +933,9 @@ static void acpi_fujitsu_laptop_press(struct acpi_device *device, int scancode)
+ 		scancode);
+ }
+ 
+-static void acpi_fujitsu_laptop_release(struct acpi_device *device)
++static void acpi_fujitsu_laptop_release(struct device *dev)
+ {
+-	struct fujitsu_laptop *priv = acpi_driver_data(device);
++	struct fujitsu_laptop *priv = dev_get_drvdata(dev);
+ 	int scancode, ret;
+ 
+ 	while (true) {
+@@ -955,34 +951,30 @@ static void acpi_fujitsu_laptop_release(struct acpi_device *device)
+ 
+ static void acpi_fujitsu_laptop_notify(acpi_handle handle, u32 event, void *data)
+ {
+-	struct acpi_device *device = data;
+-	struct fujitsu_laptop *priv = acpi_driver_data(device);
++	struct device *dev = data;
++	struct fujitsu_laptop *priv = dev_get_drvdata(dev);
+ 	unsigned long flags;
+ 	int scancode, i = 0;
+ 	unsigned int irb;
+ 
+ 	if (event != ACPI_FUJITSU_NOTIFY_CODE) {
+-		acpi_handle_info(device->handle, "Unsupported event [0x%x]\n",
+-				 event);
++		acpi_handle_info(handle, "Unsupported event [0x%x]\n", event);
+ 		sparse_keymap_report_event(priv->input, -1, 1, true);
+ 		return;
+ 	}
+ 
+ 	if (priv->flags_supported)
+-		priv->flags_state = call_fext_func(device, FUNC_FLAGS, 0x4, 0x0,
+-						   0x0);
++		priv->flags_state = call_fext_func(dev, FUNC_FLAGS, 0x4, 0x0, 0x0);
+ 
+-	while ((irb = call_fext_func(device,
+-				     FUNC_BUTTONS, 0x1, 0x0, 0x0)) != 0 &&
++	while ((irb = call_fext_func(dev, FUNC_BUTTONS, 0x1, 0x0, 0x0)) != 0 &&
+ 	       i++ < MAX_HOTKEY_RINGBUFFER_SIZE) {
+ 		scancode = irb & 0x4ff;
+ 		if (sparse_keymap_entry_from_scancode(priv->input, scancode))
+-			acpi_fujitsu_laptop_press(device, scancode);
++			acpi_fujitsu_laptop_press(dev, scancode);
+ 		else if (scancode == 0)
+-			acpi_fujitsu_laptop_release(device);
++			acpi_fujitsu_laptop_release(dev);
+ 		else
+-			acpi_handle_info(device->handle,
+-					 "Unknown GIRB result [%x]\n", irb);
++			acpi_handle_info(handle, "Unknown GIRB result [%x]\n", irb);
+ 	}
+ 
+ 	/*
+@@ -992,28 +984,30 @@ static void acpi_fujitsu_laptop_notify(acpi_handle handle, u32 event, void *data
+ 	 * status flags queried using FUNC_FLAGS.
+ 	 */
+ 	if (priv->flags_supported & (FLAG_SOFTKEYS)) {
+-		flags = call_fext_func(device, FUNC_FLAGS, 0x1, 0x0, 0x0);
++		flags = call_fext_func(dev, FUNC_FLAGS, 0x1, 0x0, 0x0);
+ 		flags &= (FLAG_SOFTKEYS);
+ 		for_each_set_bit(i, &flags, BITS_PER_LONG)
+ 			sparse_keymap_report_event(priv->input, BIT(i), 1, true);
+ 	}
+ }
+ 
+-static int acpi_fujitsu_laptop_add(struct acpi_device *device)
++static int acpi_fujitsu_laptop_probe(struct platform_device *pdev)
+ {
++	struct acpi_device *device = ACPI_COMPANION(&pdev->dev);
+ 	struct fujitsu_laptop *priv;
+ 	int ret, i = 0;
+ 
+-	priv = devm_kzalloc(&device->dev, sizeof(*priv), GFP_KERNEL);
++	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
+ 	if (!priv)
+ 		return -ENOMEM;
+ 
+ 	WARN_ONCE(fext, "More than one FUJ02E3 ACPI device was found.  Driver may not work as intended.");
+-	fext = device;
++	fext = &pdev->dev;
+ 
+ 	strscpy(acpi_device_name(device), ACPI_FUJITSU_LAPTOP_DEVICE_NAME);
+ 	strscpy(acpi_device_class(device), ACPI_FUJITSU_CLASS);
+-	device->driver_data = priv;
++
++	platform_set_drvdata(pdev, priv);
+ 
+ 	/* kfifo */
+ 	spin_lock_init(&priv->fifo_lock);
+@@ -1025,14 +1019,13 @@ static int acpi_fujitsu_laptop_add(struct acpi_device *device)
+ 	pr_info("ACPI: %s [%s]\n",
+ 		acpi_device_name(device), acpi_device_bid(device));
+ 
+-	while (call_fext_func(device, FUNC_BUTTONS, 0x1, 0x0, 0x0) != 0 &&
++	while (call_fext_func(fext, FUNC_BUTTONS, 0x1, 0x0, 0x0) != 0 &&
+ 	       i++ < MAX_HOTKEY_RINGBUFFER_SIZE)
+ 		; /* No action, result is discarded */
+ 	acpi_handle_debug(device->handle, "Discarded %i ringbuffer entries\n",
+ 			  i);
+ 
+-	priv->flags_supported = call_fext_func(device, FUNC_FLAGS, 0x0, 0x0,
+-					       0x0);
++	priv->flags_supported = call_fext_func(fext, FUNC_FLAGS, 0x0, 0x0, 0x0);
+ 
+ 	/* Make sure our bitmask of supported functions is cleared if the
+ 	   RFKILL function block is not implemented, like on the S7020. */
+@@ -1040,12 +1033,12 @@ static int acpi_fujitsu_laptop_add(struct acpi_device *device)
+ 		priv->flags_supported = 0;
+ 
+ 	if (priv->flags_supported)
+-		priv->flags_state = call_fext_func(device, FUNC_FLAGS, 0x4, 0x0,
++		priv->flags_state = call_fext_func(fext, FUNC_FLAGS, 0x4, 0x0,
+ 						   0x0);
+ 
+ 	/* Suspect this is a keymap of the application panel, print it */
+ 	acpi_handle_info(device->handle, "BTNI: [0x%x]\n",
+-			 call_fext_func(device, FUNC_BUTTONS, 0x0, 0x0, 0x0));
++			 call_fext_func(fext, FUNC_BUTTONS, 0x0, 0x0, 0x0));
+ 
+ 	/* Sync backlight power status */
+ 	if (fujitsu_bl && fujitsu_bl->bl_device &&
+@@ -1057,24 +1050,24 @@ static int acpi_fujitsu_laptop_add(struct acpi_device *device)
+ 			fujitsu_bl->bl_device->props.power = BACKLIGHT_POWER_ON;
+ 	}
+ 
+-	ret = acpi_fujitsu_laptop_input_setup(device);
++	ret = acpi_fujitsu_laptop_input_setup(fext);
+ 	if (ret)
+ 		goto err_free_fifo;
+ 
+-	ret = acpi_fujitsu_laptop_leds_register(device);
++	ret = acpi_fujitsu_laptop_leds_register(fext);
+ 	if (ret)
+ 		goto err_free_fifo;
+ 
+-	ret = fujitsu_laptop_platform_add(device);
++	ret = fujitsu_laptop_platform_add(fext);
+ 	if (ret)
+ 		goto err_free_fifo;
+ 
+ 	ret = acpi_dev_install_notify_handler(device, ACPI_DEVICE_NOTIFY,
+-					      acpi_fujitsu_laptop_notify, device);
++					      acpi_fujitsu_laptop_notify, fext);
+ 	if (ret)
+ 		goto err_free_fifo;
+ 
+-	ret = fujitsu_battery_charge_control_add(device);
++	ret = fujitsu_battery_charge_control_add(fext);
+ 	if (ret < 0)
+ 		pr_warn("Unable to register battery charge control: %d\n", ret);
+ 
+@@ -1086,16 +1079,16 @@ static int acpi_fujitsu_laptop_add(struct acpi_device *device)
+ 	return ret;
+ }
+ 
+-static void acpi_fujitsu_laptop_remove(struct acpi_device *device)
++static void acpi_fujitsu_laptop_remove(struct platform_device *pdev)
+ {
+-	struct fujitsu_laptop *priv = acpi_driver_data(device);
++	struct fujitsu_laptop *priv = platform_get_drvdata(pdev);
+ 
+-	fujitsu_battery_charge_control_remove(device);
++	fujitsu_battery_charge_control_remove(&pdev->dev);
+ 
+-	acpi_dev_remove_notify_handler(device, ACPI_DEVICE_NOTIFY,
++	acpi_dev_remove_notify_handler(ACPI_COMPANION(&pdev->dev), ACPI_DEVICE_NOTIFY,
+ 				       acpi_fujitsu_laptop_notify);
+ 
+-	fujitsu_laptop_platform_remove(device);
++	fujitsu_laptop_platform_remove(&pdev->dev);
+ 
+ 	kfifo_free(&priv->fifo);
+ }
+@@ -1121,14 +1114,13 @@ static const struct acpi_device_id fujitsu_laptop_device_ids[] = {
+ 	{"", 0},
+ };
+ 
+-static struct acpi_driver acpi_fujitsu_laptop_driver = {
+-	.name = ACPI_FUJITSU_LAPTOP_DRIVER_NAME,
+-	.class = ACPI_FUJITSU_CLASS,
+-	.ids = fujitsu_laptop_device_ids,
+-	.ops = {
+-		.add = acpi_fujitsu_laptop_add,
+-		.remove = acpi_fujitsu_laptop_remove,
+-		},
++static struct platform_driver acpi_fujitsu_laptop_driver = {
++	.probe = acpi_fujitsu_laptop_probe,
++	.remove = acpi_fujitsu_laptop_remove,
++	.driver = {
++		.name = ACPI_FUJITSU_LAPTOP_DRIVER_NAME,
++		.acpi_match_table = fujitsu_laptop_device_ids,
++	},
+ };
+ 
+ static const struct acpi_device_id fujitsu_ids[] __used = {
+@@ -1154,7 +1146,7 @@ static int __init fujitsu_init(void)
+ 
+ 	/* Register laptop driver */
+ 
+-	ret = acpi_bus_register_driver(&acpi_fujitsu_laptop_driver);
++	ret = platform_driver_register(&acpi_fujitsu_laptop_driver);
+ 	if (ret)
+ 		goto err_unregister_platform_driver;
+ 
+@@ -1172,7 +1164,7 @@ static int __init fujitsu_init(void)
+ 
+ static void __exit fujitsu_cleanup(void)
+ {
+-	acpi_bus_unregister_driver(&acpi_fujitsu_laptop_driver);
++	platform_driver_unregister(&acpi_fujitsu_laptop_driver);
+ 
+ 	platform_driver_unregister(&fujitsu_pf_driver);
+ 
+-- 
+2.51.0
 
 
-> 
-> > We use platform_device_register_full() to instantiate it, and that in turn 
-> > causes the swnode instance to be created.  The hwmon child instance 
-> > later created by the sfp module ends up inheriting those resources, 
-> > including the swnode instance, from the sfp parent device, and when the 
-> > hwmon instance is later torn down, we end up with the use-after-free 
-> > problem due to the swnode instance's reference count being incorrectly 
-> > decremented by that child device due to the managed flag being set.
-> > 
-> > If the term SFP is unfamiliar, an explanation can be found here:
-> > 
-> > https://en.wikipedia.org/wiki/Small_Form-factor_Pluggable
-> > 
-> > > > via a call to platform_device_register_full() - it will create hwmon
-> > > > child devices which get all property references.  Unfortunately with
-> > > > just a "managed" boolean in struct swnode handling this, then
-> > > > kobject_put() gets called for the managed aspect when the child device
-> > > > goes away instead of the parent.  This leads to premature freeing of
-> > > > the swnode structure, followed by use-after-free problems, heap
-> > > > corruption, and generally chaos / crashes / misbehavior in the kernel.
-> > > > 
-> > > > This commit changes that boolean into a pointer to the actual managing
-> > > > struct device, which is then checked against the struct device
-> > > > instance that is actually going away (via the usual call back into
-> > > > software_node_notify_remove()).  Thus the child device removal is
-> > > > ignored as it should, and we only do the kobject_put() when the actual
-> > > > managing struct device instance goes away.  We effectively carry a
-> > > > little bit more information now so that we can be sure to clean up
-> > > > only when the correct struct device instance is actually going away.
-> > > > 
-> > > > Note that while we are now keeping a pointer to a struct device here,
-> > > > this is safe to do because the pointer itself only stays in use while
-> > > > the pointed-to device remains valid.  (So no need to be concerned
-> > > > about additional reference counting.)
-> > > 
-> > > The term is called "object lifetime".
-> > 
-> > Meh
-> > 
-> > > > Signed-off-by: Mike Isely <isely@pobox.com>
-> > > 
-> > > ...submitter's addresses are different. Either it should be send from the
-> > > mentioned address, or you should have
-> > > 
-> > >   From: Author <...>
-> > >   ...
-> > > 
-> > >   SoB: Author <...>
-> > >   SoB: Submitter <...>
-> > > 
-> > > ...
-> > 
-> > This isn't the first time I've submitted patches.
-> > 
-> > The reason for SoB being isely@pobox.com is because that is my primary 
-> > email address for which I've been known by in the kernel community.  
-> > It's an address that is stable and has been associated with me since 
-> > 1996.  This address has a history and is associated with patches in the 
-> > past going back a long ways.
-> > 
-> > The from-address of mike.isely@cobaltdigital.com is my current work 
-> > email, which is associated with the reason for the patch.  My employment 
-> > with Cobalt Digital goes back just a few years but my history with the 
-> > Linux kernel goes back significantly further.
-> > 
-> > It's actually been a while since I sent in a patch.  Last time I did, 
-> > this is how I did it and it wasn't a problem then.
-> 
-> This is standard check in Linux Next, missed SoB by submitter (same
-> exists with committer). It's all documented and I'm surprised nobody
-> told you that before.
-> 
-> > I don't recall 
-> > seeing anything that required the from-address to equate to the SoB.  
-> 
-> From goes to Author field into Git, Author must provide a DCO. This all
-> is being required from day 1.
-> 
-> > Seems like a SoB associated with a long-term known stable email is 
-> > better than something more ephemeral.  If a requirement of equating the 
-> > two is the case now, then I apologize.
-> 
-> Documentation/process/submitting-patches.rst:
-> 
-> "Note, the From: tag is optional when the From: author is also the person (and
-> email) listed in the From: line of the email header."
-> 
-> There are also examples
-> 
-> """
->         From: From Author <from@author.example.org>
-> 
->         <changelog>
-> 
->         Co-developed-by: Random Co-Author <random@coauthor.example.org>
->         Signed-off-by: Random Co-Author <random@coauthor.example.org>
->         Signed-off-by: From Author <from@author.example.org>
->         Co-developed-by: Submitting Co-Author <sub@coauthor.example.org>
->         Signed-off-by: Submitting Co-Author <sub@coauthor.example.org>
-> """
-> 
-> Does it help?
-
-Would SoB lines by *both* addresses (even though it's the same person) 
-clear that hurdle?
-
-So noted.
 
 
-> 
-> > > What about the use case (don't know if it's pure theoretical or practical)
-> > > when there is a parent and a few children and the managed swnode appears
-> > > in one of the children? With some other dependencies between children
-> > > it might affect how swnode is get cleaned up. Simple and regular approach
-> > > is to cleanup children in the reversed order, but I can't say that it's
-> > > always the case. Some children in some corner cases might have their own
-> > > dependencies (I saw some strange devices or device drivers where the HW
-> > > is a bit complicated and driver is written without much care).
-> > 
-> > Though I don't think that's practical, it should not be an issue either.  
-> > Bottom line, swnode instances are reference-counted by virtue of 
-> > containing a kobject instance within.  So even if a managing child goes 
-> > away first, the reference count is still non-zero due to the reference 
-> > from the parent.  So no risk of dangling pointers / use-after-free.  
-> > Note also that management of object lifetime via reference counting here 
-> > provides a fair amount of resilience against potential cleanup ordering 
-> > issues.
-> > 
-> > An earlier attempt at a solution I had tried was to simply dispense with 
-> > the notion of "managed" here since the reference counting is already 
-> > going to ensure cleanup when the device goes away.  "Managed" in the 
-> > context of struct device are for resources that need automatic cleanup 
-> > which otherwise wouldn't already happen.  So it shouldn't be strictly 
-> > even needed here.  However that didn't work due to a practical 
-> > constraint: The swnode instance is created before the "managing" device 
-> > instance is ready to establish a reference to the swnode instance.  
-> > Turns out that the solution I ultimately hit upon is trivial.
-> > 
-> > From a standpoint of design hygiene, it makes logical sense that the 
-> > entity which asserts "management" over something should be the same 
-> > entity that deasserts it.  That's really all that this patch does.
-> 
-> OK. Thanks for elaboration.
-> 
-> 
