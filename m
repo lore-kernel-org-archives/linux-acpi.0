@@ -1,31 +1,30 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A87E647886C;
-	Sat, 28 Feb 2026 15:23:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C44A9478879;
+	Sat, 28 Feb 2026 15:23:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772292200; cv=none; b=aLsXiF9pDTTY+kGLphSe45kHHDlqK50qdzT7m2qiIAkUT5UJvUZVPvzteNJdazFu9oOCZfC/utDl5MfdhbPjd/RyWYPEmkhtGi+6FtSUIpjCF20QM/AkLx8fRHxqqgL/SNhLVrCep/x5YP/c5x67PJnL25OD2DMFYEZxaMrroqQ=
+	t=1772292204; cv=none; b=sVCJKQLSBqJ4rvh47BS7pbTXWeapNH/1toDMUYYp1mzONRZMuq5kCEfrEgphbCDih2TBcC1vzET3kO4DurSaZM5yV7Yh+RNfudfmRF0kyK5mLp9CmAbGZfJbN+0Ur1PUAdGYs7N4vi+b1SxEg2MubxHPc9wbx5TVe7fEoyIyCVA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772292200; c=relaxed/simple;
-	bh=MJXWblM739RYRpdFmI1gK9MFn9b2EdZcgFEaiSl27W4=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=rgKWi+oLqPItwJLbo6IN0RCGisqsX4LrfD8Pc4s6YS1ctWFKaSXqGqlPU539T78j+x9UXunUiGexlug4Y+J2saVi8RgulvZc46xVGAIvMD9gFcNuTE5JqE4gcujycXbCHwQcHbY8wltW0GmeQguXw9gSROQlSo5Yp6v+9VQnIFw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PpmC7SWv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772292204; c=relaxed/simple;
+	bh=NAo3gqYBmHdld4EswaUCvURmw367+eERnJq58448l9M=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=rrIQvLKTnxQtSgzJPl5uRZjR38DyNEGu4enA45R2gnL7ysaNSstcr/UKD9T+01I7UKhr6cm2OLNMWs3gZ/5ZtxMkgN6f8lEK3cjUTvh0ixouYhWgRM3nAIPKEXZo7UHHEgaLeihvQD3+ljpk1IoR+aUaLqGMtJn6mhmAZlFRJCk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=djxrA5pr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PpmC7SWv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7078DC19421;
-	Sat, 28 Feb 2026 15:23:18 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="djxrA5pr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE77AC116D0;
+	Sat, 28 Feb 2026 15:23:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1772292200;
-	bh=MJXWblM739RYRpdFmI1gK9MFn9b2EdZcgFEaiSl27W4=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=PpmC7SWv6T9c2qZQ8GdXG43x0M0G7lMYs7d48gx1jPdfAb/oPo1uyyvDNHGiWP5YD
-	 o6DOauX/V1QHBzsH2ED4qCwI6PxrgCJai/f5U/zagyUcaozxai6KvGLsp/Zdgaca2m
-	 BrgUofkyGao8OlgVR/MfP75fAFSAUZjTtnljxo5f0GixnPiOrW9mGrLVz02tlDGQ7X
-	 bznf4H0JCiNcsNX9aelyROgegrp2pV4zVuSTO34hdSAnm1MNjhmKOUUEam2K6NyL5X
-	 GJtRUkZuSJV/z9kfi0fdaeXoB5QJQIMNFotPll49PRpP9MMN4hokA82FedEA5So2ED
-	 m6f/khdnfj2vQ==
+	s=k20201202; t=1772292204;
+	bh=NAo3gqYBmHdld4EswaUCvURmw367+eERnJq58448l9M=;
+	h=From:To:Cc:Subject:Date:From;
+	b=djxrA5prWmTI1NDlmSW26shelNNheqzIJCkoNZmH0F2No3dxBHXPmmzmMzyoiCPxL
+	 vUMV9WBx86Nj0uHxqGjHq4+zRBZicq+40MZebCHvvX451BufzE15glKxmsJHjTgrXY
+	 KBqQqKy/xWmvGEcz63QGhUCH0a9MRZaqi81OetL/t4CQZbelLAjOYB02Q4ZpR7BLVY
+	 mLfyzBFg1lzo/ZMiv3lX5BfSc/u8sd56hR3Aszl6V2TTphVJh+81XMD4ald+J8/WDk
+	 wszDEu0ev0O+mgpTILLEF0/H1GmFQfYCD0vtN0foxStz6vWdkOuO7CblBB4qMbOZvw
+	 xmUZ5xwfzVdRQ==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Ilpo =?ISO-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>
 Cc: Hans de Goede <hansg@kernel.org>, LKML <linux-kernel@vger.kernel.org>,
@@ -33,13 +32,11 @@ Cc: Hans de Goede <hansg@kernel.org>, LKML <linux-kernel@vger.kernel.org>,
  Corentin Chary <corentin.chary@gmail.com>, "Luke D. Jones" <luke@ljones.dev>,
  Denis Benato <benato.denis96@gmail.com>
 Subject:
- [PATCH v1 1/2] platform/x86: eeepc-laptop: Register ACPI notify handler
- directly
-Date: Sat, 28 Feb 2026 16:22:08 +0100
-Message-ID: <3681264.iIbC2pHGDl@rafael.j.wysocki>
+ [PATCH v1 0/2] platform/x86: eeepc-laptop: Bind to a platform device instead
+ of an ACPI one
+Date: Sat, 28 Feb 2026 16:21:17 +0100
+Message-ID: <7916328.EvYhyI6sBW@rafael.j.wysocki>
 Organization: Linux Kernel Development
-In-Reply-To: <7916328.EvYhyI6sBW@rafael.j.wysocki>
-References: <7916328.EvYhyI6sBW@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -49,76 +46,30 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="UTF-8"
 
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Hi All,
 
-To facilitate subsequent conversion of the driver to a platform one,
-make it install an ACPI notify handler directly instead of using
-a .notify() callback in struct acpi_driver.
+This series is part of a larger effort to switch over all drivers using
+the struct acpi_driver interface to the more common struct platform_driver
+interface and eliminate the former.  The background is explained in
+Documentation/driver-api/acpi/acpi-drivers.rst and in the changelog of
+the patch that introduced the above document:
 
-No intentional functional impact.
+https://lore.kernel.org/all/2396510.ElGaqSPkdT@rafael.j.wysocki/
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/platform/x86/eeepc-laptop.c | 15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+The bottom line is that the kernel would be better off without struct
+acpi_driver and so it is better to get rid of it.
 
-diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-index 974f55e0b36f..626a99a71fce 100644
---- a/drivers/platform/x86/eeepc-laptop.c
-+++ b/drivers/platform/x86/eeepc-laptop.c
-@@ -1204,9 +1204,10 @@ static void eeepc_input_notify(struct eeepc_laptop *eeepc, int event)
- 		pr_info("Unknown key %x pressed\n", event);
- }
- 
--static void eeepc_acpi_notify(struct acpi_device *device, u32 event)
-+static void eeepc_acpi_notify(acpi_handle handle, u32 event, void *data)
- {
--	struct eeepc_laptop *eeepc = acpi_driver_data(device);
-+	struct eeepc_laptop *eeepc = data;
-+	struct acpi_device *device = eeepc->device;
- 	int old_brightness, new_brightness;
- 	u16 count;
- 
-@@ -1422,9 +1423,16 @@ static int eeepc_acpi_add(struct acpi_device *device)
- 	if (result)
- 		goto fail_rfkill;
- 
-+	result = acpi_dev_install_notify_handler(device, ACPI_ALL_NOTIFY,
-+						 eeepc_acpi_notify, eeepc);
-+	if (result)
-+		goto fail_acpi_notifier;
-+
- 	eeepc_device_present = true;
- 	return 0;
- 
-+fail_acpi_notifier:
-+	eeepc_rfkill_exit(eeepc);
- fail_rfkill:
- 	eeepc_led_exit(eeepc);
- fail_led:
-@@ -1444,6 +1452,7 @@ static void eeepc_acpi_remove(struct acpi_device *device)
- {
- 	struct eeepc_laptop *eeepc = acpi_driver_data(device);
- 
-+	acpi_dev_remove_notify_handler(device, ACPI_ALL_NOTIFY, eeepc_acpi_notify);
- 	eeepc_backlight_exit(eeepc);
- 	eeepc_rfkill_exit(eeepc);
- 	eeepc_input_exit(eeepc);
-@@ -1464,11 +1473,9 @@ static struct acpi_driver eeepc_acpi_driver = {
- 	.name = EEEPC_LAPTOP_NAME,
- 	.class = EEEPC_ACPI_CLASS,
- 	.ids = eeepc_device_ids,
--	.flags = ACPI_DRIVER_ALL_NOTIFY_EVENTS,
- 	.ops = {
- 		.add = eeepc_acpi_add,
- 		.remove = eeepc_acpi_remove,
--		.notify = eeepc_acpi_notify,
- 	},
- };
- 
--- 
-2.51.0
+This series carries out driver conversion of the platform x86 eeepc-laptop
+driver.
 
+Patch [1/2] updates the driver to install an ACPI notify handler by itself
+instead of using the .notify() callback from struct acpi_driver, which is
+requisite for the driver conversion.
+
+Patch [2/2] converts the driver to using struct platform_driver for device
+binding.
+
+Thanks!
 
 
 
