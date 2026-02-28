@@ -1,121 +1,182 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C5101F09AD
-	for <linux-acpi@vger.kernel.org>; Sat, 28 Feb 2026 13:59:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96F5F2D6E55;
+	Sat, 28 Feb 2026 15:13:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772287148; cv=none; b=l5Sq2B/2fvQP52IEMHTsJ4zuPufxH7fOQgZCX3hxATpeTJL954Zr4Zjkjw8XNMTlyNQy4feUvOch7ZPpn+Em7StoOD7e/D7xWXB62wnHPFq3HiJmnZhtJM0t1I/ir2STcl+ETOGk93Z5V1AXDNJd9Pzx29Q+t9YNhpFswEleWoI=
+	t=1772291591; cv=none; b=n1s/neR88e7btd7Ek22XHV/HeS+D07TFoufUdTolzJpuQ0tNAJej1U3PJB6nhTHJH27eFvPjONB2RHh28MXRX4qJiFEoTjRzT/Eu8+JHIGOaq4AvJFuPbbEuuX8Ixdyxj83yo596kgq8T/bh9axZcHJDrBM/DlRkNMEO4XkvscQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772287148; c=relaxed/simple;
-	bh=CgYxaFd0j0KjQQzwplpehLkSWDnbDoHAYGRLfV9XgFI=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=hjB7EP/EsJ9JCwz1adDHufLrfMTVxUyr3VSfti247XcED+1M4IrnMyTnk3S0CucIJLDGX1OYYJvpEgfFsyIATAULeLEEadCWhL3+bfa9aDveSa7PP1XkWqUycsZ1Z2/txM/hQa/4cyQZ+MOJ+3oUOgjQLk/DTWJJe/qa11w6tKk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=rqmthjp+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772291591; c=relaxed/simple;
+	bh=aoeMEMRii655SwLJrzFvfKxjQCC/8fuBn8cmCM6K81s=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=eFZLuuwCkOxf9Fd5HmdO5FtJpw8HcW+jXexvKMd4nI9+yvrHzg52kFv8fDFXZ+h2/2o4ByHr5prHMM1+qa9d6xEqnX/LMHj8ip7TrPBuYsAj0LeuEBaXH71flWeRsqsATx+5H9Dv1W2T9sPTgi2co9oUg/YEomQZOyI3QgsTJXY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Cj+GcvzJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="rqmthjp+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A130C2BCB1
-	for <linux-acpi@vger.kernel.org>; Sat, 28 Feb 2026 13:59:08 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Cj+GcvzJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D347C116D0;
+	Sat, 28 Feb 2026 15:13:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1772287148;
-	bh=CgYxaFd0j0KjQQzwplpehLkSWDnbDoHAYGRLfV9XgFI=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=rqmthjp+5GpVbfJyvM9nb/uqlg/BkIM4rf0XHqHtrfyn6aJlgHfZyWyW6ReYXWqeL
-	 QvN2AzlWxiYTf3hizU+X+RK51SABtX8AWbDVadDIC1W14lg92ETjB79/UXa4JZWR7N
-	 T+5DGec52UjiQcei4hlkjexu9Wk+V//HA50IMw5XGbODSAymXedgNtGn0nFtpLa9Yv
-	 qRHOxlWelg9a99o4kzy3q1CPqEz8rTYZ7QBf3Z2OysWVW+hLSn7bs7p5wSMPF8tVYe
-	 jXDIL75ESXbw2Xj06L2Bmxii5VUs7uF8XAF5M7WuIvYv8AYNilq69mWvkvV/R8j9cb
-	 av3lIiXYJhwAA==
-Received: by mail-oo1-f54.google.com with SMTP id 006d021491bc7-67a02dcc450so693525eaf.2
-        for <linux-acpi@vger.kernel.org>; Sat, 28 Feb 2026 05:59:08 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AJvYcCV5vXI5Vri7pkyrInaSBJOXpDC61S0LBuUXvHUk/zC1j6GYUwTWDTrh0IdJfuj7jJnEIru6jg/XM+t7@vger.kernel.org
-X-Gm-Message-State: AOJu0YyBjXGsg66x0NYif+uCwSjsdaGlX5f/ZyoPEFDlyoZAqYjnU7bO
-	rzYE1Sh/73TDRBl1+NgEfNPknNS7LOV+aeE7OLL02+80IOWVFQSS/MYOsb8qMVrNwhCvM5v+fzH
-	O5F+25xTKmWxGPgEp1RUJwSAKWLFAGwQ=
-X-Received: by 2002:a05:6820:1b10:b0:672:9d81:a781 with SMTP id
- 006d021491bc7-679fade6b7cmr4535879eaf.14.1772287147182; Sat, 28 Feb 2026
- 05:59:07 -0800 (PST)
+	s=k20201202; t=1772291591;
+	bh=aoeMEMRii655SwLJrzFvfKxjQCC/8fuBn8cmCM6K81s=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=Cj+GcvzJZKWvKsH3RtLJ8fqTxV5NuJqGlx2sbkDawVuzpu/rQQiZrpI3El01oXHdm
+	 MUIw3c9eyKbTv7xNkX9XIDorS+2dKgoxbeu6yeu6PrA5Q8vuB9SFYLJGtO/kDG758x
+	 Sudmb2dyESw9pjgn4MtukrPRnSBBOrz8YJ+0j36E3HmKOZScAAqu7rLLoI7vUy/qcP
+	 sxvq3UohoOyCoLqyTU0qi9NF4XGUGgkPjyFIbEgcuyqkneTmTQ0VXX+Px16VKTeBat
+	 he8uVcwOnsxCiX1FWIxU41VHDPt6h2NjWEyxIxtVaOkjGhrDN1bX1QRCeZKoZfxY5v
+	 NZv48lBhFLGTQ==
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+To: Ilpo =?ISO-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>
+Cc: Hans de Goede <hansg@kernel.org>, LKML <linux-kernel@vger.kernel.org>,
+ Linux ACPI <linux-acpi@vger.kernel.org>, platform-driver-x86@vger.kernel.org,
+ Corentin Chary <corentin.chary@gmail.com>, "Luke D. Jones" <luke@ljones.dev>,
+ Denis Benato <benato.denis96@gmail.com>,
+ =?ISO-8859-1?Q?Jo=E3o?= Paulo Rechi Vita <jprvita@gmail.com>
+Subject:
+ [PATCH v1 4/4] platform/x86: asus-wireless: Convert ACPI driver to a platform
+ one
+Date: Sat, 28 Feb 2026 16:12:48 +0100
+Message-ID: <13959361.uLZWGnKmhe@rafael.j.wysocki>
+Organization: Linux Kernel Development
+In-Reply-To: <5971620.DvuYhMxLoT@rafael.j.wysocki>
+References: <5971620.DvuYhMxLoT@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <aW3d4B3xMwe-pyzJwFnM7q4q5WjOjAajU2c6gk65arrBx5-soWv9AAZPzZHxAiX1XOxILELauRQdnxGxMectmmW76xfxyQyErVEH8nR_iyw=@protonmail.com>
- <CAJZ5v0gL1=m6j5r3ZAp61nmwBb+wd2Y9zPSv=a=NQem5XiZMCg@mail.gmail.com>
-In-Reply-To: <CAJZ5v0gL1=m6j5r3ZAp61nmwBb+wd2Y9zPSv=a=NQem5XiZMCg@mail.gmail.com>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Sat, 28 Feb 2026 14:58:54 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0iTJ78cR-Nub7aEvPr=9WDx_DebD0+Co9weYO99oDWTzg@mail.gmail.com>
-X-Gm-Features: AaiRm51cnsS1vZ2amOQ9iZw_akWPsUJ6FMbv8XvREi-kkcwr5qZaCSxFjC0hIss
-Message-ID: <CAJZ5v0iTJ78cR-Nub7aEvPr=9WDx_DebD0+Co9weYO99oDWTzg@mail.gmail.com>
-Subject: Re: [REGRESSION] Suspend broken on 6.19.4
-To: Athul Krishna <athul.krishna.kr@protonmail.com>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sasha Levin <sashal@kernel.org>
-Cc: "rafael.j.wysocki@intel.com" <rafael.j.wysocki@intel.com>, "superm1@kernel.org" <superm1@kernel.org>, 
-	"bp@alien8.de" <bp@alien8.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, 
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="UTF-8"
 
-On Sat, Feb 28, 2026 at 2:51=E2=80=AFPM Rafael J. Wysocki <rafael@kernel.or=
-g> wrote:
->
-> On Sat, Feb 28, 2026 at 1:40=E2=80=AFPM Athul Krishna
-> <athul.krishna.kr@protonmail.com> wrote:
-> >
-> > Device: Asus Zephyrus G14 (GA402RJ)
-> > CPU: Ryzen 7 6700H
-> > iGPU: Radeon 680M
-> >
-> > Problem: Suspend broken on 6.19.4. On closing the lid or systemctl susp=
-end, screen turns off but device does not fully power down.
-> > No obvious errors in dmesg except:
-> > [  219.151441] amd_pmc AMDI0007:00: Last suspend didn't reach deepest s=
-tate
-> > [  219.164301] ACPI: EC: interrupt unblocked
-> >
-> > Bisected:
-> > commit 6cfed39c2ce64ac024bbde458a9727105e0b8c66
-> > Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > Date:   Tue Dec 23 18:09:11 2025 +0800
-> >
-> >     ACPI: processor: Update cpuidle driver check in __acpi_processor_st=
-art()
-> >
-> >     [ Upstream commit 0089ce1c056aee547115bdc25c223f8f88c08498 ]
-> >
-> >     Commit 7a8c994cbb2d ("ACPI: processor: idle: Optimize ACPI idle
-> >     driver registration") moved the ACPI idle driver registration to
-> >     acpi_processor_driver_init() and acpi_processor_power_init() does
-> >     not register an idle driver any more.
-> >
-> >     Accordingly, the cpuidle driver check in __acpi_processor_start() n=
-eeds
-> >     to be updated to avoid calling acpi_processor_power_init() without =
-a
-> >     cpuidle driver, in which case the registration of the cpuidle devic=
-e
-> >     in that function would lead to a NULL pointer dereference in
-> >     __cpuidle_register_device().
-> >
-> >     Fixes: 7a8c994cbb2d ("ACPI: processor: idle: Optimize ACPI idle dri=
-ver registration")
-> >     Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >     Reviewed-by: Mario Limonciello (AMD) <superm1@kernel.org>
-> >     Tested-by: Borislav Petkov (AMD) <bp@alien8.de>
-> >     Link: https://patch.msgid.link/20251223100914.2407069-4-lihuisong@h=
-uawei.com
-> >     Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >     Signed-off-by: Sasha Levin <sashal@kernel.org>
-> >
-> > Reverting the commit or downgrading to 6.19.3 resolves the issue.
-> > Attached dmesg and lspci.
->
-> Is this problem also present in 7.0-rc1?
+=46rom: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-To my eyes, this commit shouldn't have been backported to 6.19.y
-because the one fixed by it was reverted in the meantime and only
-re-added in 7.0-rc1.
+In all cases in which a struct acpi_driver is used for binding a driver
+to an ACPI device object, a corresponding platform device is created by
+the ACPI core and that device is regarded as a proper representation of
+underlying hardware.  Accordingly, a struct platform_driver should be
+used by driver code to bind to that device.  There are multiple reasons
+why drivers should not bind directly to ACPI device objects [1].
 
-Sasha, Greg, how do I request dropping this one from -stable?
+Overall, it is better to bind drivers to platform devices than to their
+ACPI companions, so convert the Asus wireless ACPI driver to a platform
+one.
+
+After this change, the subordinate input and LED devices will be
+registered under the platform device used for driver binding instead of
+its ACPI companion.
+
+While this is not expected to alter functionality, it changes sysfs
+layout and so it will be visible to user space.
+
+Link: https://lore.kernel.org/all/2396510.ElGaqSPkdT@rafael.j.wysocki/ [1]
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+=2D--
+ drivers/platform/x86/asus-wireless.c | 39 +++++++++++++++-------------
+ 1 file changed, 21 insertions(+), 18 deletions(-)
+
+diff --git a/drivers/platform/x86/asus-wireless.c b/drivers/platform/x86/as=
+us-wireless.c
+index 45d41875c515..2b494bf3cba8 100644
+=2D-- a/drivers/platform/x86/asus-wireless.c
++++ b/drivers/platform/x86/asus-wireless.c
+@@ -12,6 +12,7 @@
+ #include <linux/acpi.h>
+ #include <linux/input.h>
+ #include <linux/pci_ids.h>
++#include <linux/platform_device.h>
+ #include <linux/leds.h>
+=20
+ struct hswc_params {
+@@ -124,19 +125,22 @@ static void asus_wireless_notify(acpi_handle handle, =
+u32 event, void *context)
+ 	input_sync(data->idev);
+ }
+=20
+=2Dstatic int asus_wireless_add(struct acpi_device *adev)
++static int asus_wireless_probe(struct platform_device *pdev)
+ {
++	struct acpi_device *adev =3D ACPI_COMPANION(&pdev->dev);
+ 	struct asus_wireless_data *data;
+ 	const struct acpi_device_id *id;
+ 	int err;
+=20
+=2D	data =3D devm_kzalloc(&adev->dev, sizeof(*data), GFP_KERNEL);
++	data =3D devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
+ 	if (!data)
+ 		return -ENOMEM;
+=2D	adev->driver_data =3D data;
++
++	platform_set_drvdata(pdev, data);
++
+ 	data->adev =3D adev;
+=20
+=2D	data->idev =3D devm_input_allocate_device(&adev->dev);
++	data->idev =3D devm_input_allocate_device(&pdev->dev);
+ 	if (!data->idev)
+ 		return -ENOMEM;
+ 	data->idev->name =3D "Asus Wireless Radio Control";
+@@ -165,14 +169,14 @@ static int asus_wireless_add(struct acpi_device *adev)
+ 	data->led.flags =3D LED_CORE_SUSPENDRESUME;
+ 	data->led.max_brightness =3D 1;
+ 	data->led.default_trigger =3D "rfkill-none";
+=2D	err =3D devm_led_classdev_register(&adev->dev, &data->led);
++	err =3D devm_led_classdev_register(&pdev->dev, &data->led);
+ 	if (err)
+ 		goto err;
+=20
+ 	err =3D acpi_dev_install_notify_handler(adev, ACPI_DEVICE_NOTIFY,
+ 					      asus_wireless_notify, data);
+ 	if (err) {
+=2D		devm_led_classdev_unregister(&adev->dev, &data->led);
++		devm_led_classdev_unregister(&pdev->dev, &data->led);
+ 		goto err;
+ 	}
+ 	return 0;
+@@ -182,28 +186,27 @@ static int asus_wireless_add(struct acpi_device *adev)
+ 	return err;
+ }
+=20
+=2Dstatic void asus_wireless_remove(struct acpi_device *adev)
++static void asus_wireless_remove(struct platform_device *pdev)
+ {
+=2D	struct asus_wireless_data *data =3D acpi_driver_data(adev);
++	struct asus_wireless_data *data =3D platform_get_drvdata(pdev);
+=20
+=2D	acpi_dev_remove_notify_handler(adev, ACPI_DEVICE_NOTIFY,
++	acpi_dev_remove_notify_handler(data->adev, ACPI_DEVICE_NOTIFY,
+ 				       asus_wireless_notify);
+ 	if (data->wq) {
+=2D		devm_led_classdev_unregister(&adev->dev, &data->led);
++		devm_led_classdev_unregister(&pdev->dev, &data->led);
+ 		destroy_workqueue(data->wq);
+ 	}
+ }
+=20
+=2Dstatic struct acpi_driver asus_wireless_driver =3D {
+=2D	.name =3D "Asus Wireless Radio Control Driver",
+=2D	.class =3D "hotkey",
+=2D	.ids =3D device_ids,
+=2D	.ops =3D {
+=2D		.add =3D asus_wireless_add,
+=2D		.remove =3D asus_wireless_remove,
++static struct platform_driver asus_wireless_driver =3D {
++	.probe =3D asus_wireless_probe,
++	.remove =3D asus_wireless_remove,
++	.driver =3D {
++		.name =3D "Asus Wireless Radio Control Driver",
++		.acpi_match_table =3D device_ids,
+ 	},
+ };
+=2Dmodule_acpi_driver(asus_wireless_driver);
++module_platform_driver(asus_wireless_driver);
+=20
+ MODULE_DESCRIPTION("Asus Wireless Radio Control Driver");
+ MODULE_AUTHOR("Jo=C3=A3o Paulo Rechi Vita <jprvita@gmail.com>");
+=2D-=20
+2.51.0
+
+
+
+
