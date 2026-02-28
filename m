@@ -1,40 +1,40 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D586123C4F4;
-	Sat, 28 Feb 2026 15:19:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A078523C4F4;
+	Sat, 28 Feb 2026 15:19:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772291943; cv=none; b=YauURE7TduZJ4+ThDAipXaEkkFCRp+PxYKOfknhXdkGwuNdgD8MzH89LNOU1Mosd153tq4f0uA4+UO/LmwFmy5TMEtT1za/PhuQfrctI9B9LjR+IVfZfvSQMzImvrIuZssz34MNW84bv+8m6R8nCGYuynXvwBJFKBgRHXmvnk3s=
+	t=1772291947; cv=none; b=mSoZ3UgCe5MEwUetzGrGzILgtl4FU+s4CeEobPpwVam7dcUTEfynXGr7/T5glF+QvnW71Ic2V7TnMc0iV/rMKsSAtxkrLKkwE/0fYH5sdsrGASKJ1/oUZ1XwmxHT4hw05m80ndiWenAJ6cyi8NMYihIp++MZxIKCLf2lVBOyeEs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772291943; c=relaxed/simple;
-	bh=Rr5TD5NdhUYjcoYr2ImaVRMfC03mmktXUBf4TRjvCp0=;
+	s=arc-20240116; t=1772291947; c=relaxed/simple;
+	bh=9wA4sRrXKbhVVReddrP2BkvqgRHsoKLiXsiay2GkiII=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=HK/wZht2PKs1GBhsynCUXTQdYVjLwYilJyyaUbKPuLyTHZMmTOBFzDyJXoFnMMuOdDmZWSLfulW65yLQ1AKYjI8KOxa4m3Lw2XkcLwBOmom5JH5F6uUBMbtQguZlcnAGrYGmsDBQinTZZGF85ej5S5ea/mmIqd5BvoJY16yR2N8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=pO3MQTA2; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=bvie0/mnOke0sELrtFgX9nuaNY38EnBmPTvaIMgVGtRXMEo59SoeWMRXdbbqBnPDxaSFHcJ+6Z5kcELh7ig3i4ou5WAAtkAANB/9vJWz6uwbG7rB2+D3JHCfKuAh/qRdTrEO7NAZ/3G4H49ySVI034Ks31kgDUbN9+h/Pwc/bO8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jECYw2Hn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="pO3MQTA2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 893CAC2BC86;
-	Sat, 28 Feb 2026 15:19:02 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jECYw2Hn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 239F4C116D0;
+	Sat, 28 Feb 2026 15:19:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1772291943;
-	bh=Rr5TD5NdhUYjcoYr2ImaVRMfC03mmktXUBf4TRjvCp0=;
+	s=k20201202; t=1772291947;
+	bh=9wA4sRrXKbhVVReddrP2BkvqgRHsoKLiXsiay2GkiII=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=pO3MQTA2ySwcnylR0pNsGm93L5F8XVh1HRDZeIArpf0zPGtgQgF9h/gZmpiMcUcuH
-	 edou1xLEYlbBSCmPMu2VeuB6F/tJZyFNIX+qyiBmuV8DmPyB8ZCBjX1wmkKG6bqvZQ
-	 qtXa8AKm2/6yiIZD0mk80dn327AgHjptr0lQK1gx40VcsI7x1oxa/V7DCILyAOfEHw
-	 JfPYt4ayE741G2iMOkPw0fFP+UlJJnaGcyrO6TaPuZgX5d4PTFT5mLsD3Jz/LEQPSq
-	 W3X+TGwgjAMTfFrEWSeAlTs29CHyHuZRuEbi+juap98iwjkwzUVwXiHKx9eW2w76CQ
-	 kK05lTU0YPh2Q==
+	b=jECYw2HnzLTA5rgBYAYq8uDTZIT2UlawV0oyhsDL7BZNZTw4/NlcsdxU6B9R4aIrp
+	 TCupaFQr0bgX9OKJJ7Me6Hc+YTWmnUCtIGU3L5wD1bZ2BjxvMdYYdvJwyx93lPuLVu
+	 bp8IL+eouRL4/KbWG5y8CVtF/i6mqzX2ricBMEQj+fsSSQ/dJ6aIyT12GSCXY8fCrE
+	 QY6A4kyZJX2d49bF3eEaiCowqwmYvIFDdnFxmARBM5882DYolyq+TqXoyl87GJqz9t
+	 zGXIqgX7AyLNf5iCsEc6jOCJLm7dIv1P+wnJPoeWhlRY1GwBYmWlQ7QcBVu6EeP9rP
+	 ZN7Vy4ojfF2KA==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Ilpo =?ISO-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>
 Cc: Hans de Goede <hansg@kernel.org>, LKML <linux-kernel@vger.kernel.org>,
  Linux ACPI <linux-acpi@vger.kernel.org>, platform-driver-x86@vger.kernel.org
 Subject:
- [PATCH v1 2/2] platform/x86: acer-wireless: Convert ACPI driver to a platform
- one
-Date: Sat, 28 Feb 2026 16:18:52 +0100
-Message-ID: <2032103.PYKUYFuaPT@rafael.j.wysocki>
+ [PATCH v1 1/2] platform/x86: acer-wireless: Register ACPI notify handler
+ directly
+Date: Sat, 28 Feb 2026 16:18:01 +0100
+Message-ID: <10810967.nUPlyArG6x@rafael.j.wysocki>
 Organization: Linux Kernel Development
 In-Reply-To: <3406021.44csPzL39Z@rafael.j.wysocki>
 References: <3406021.44csPzL39Z@rafael.j.wysocki>
@@ -49,120 +49,69 @@ Content-Type: text/plain; charset="UTF-8"
 
 From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-In all cases in which a struct acpi_driver is used for binding a driver
-to an ACPI device object, a corresponding platform device is created by
-the ACPI core and that device is regarded as a proper representation of
-underlying hardware.  Accordingly, a struct platform_driver should be
-used by driver code to bind to that device.  There are multiple reasons
-why drivers should not bind directly to ACPI device objects [1].
+To facilitate subsequent conversion of the driver to a platform one,
+make it install an ACPI notify handler directly instead of using
+a .notify() callback in struct acpi_driver.
 
-Overall, it is better to bind drivers to platform devices than to their
-ACPI companions, so convert the Acer wireless ACPI driver to a platform
-one.
+No intentional functional impact.
 
-After this change, the subordinate input device will be registered
-under the platform device used for driver binding instead of its ACPI
-companion.
-
-While this is not expected to alter functionality, it changes sysfs
-layout and so it will be visible to user space.
-
-Link: https://lore.kernel.org/all/2396510.ElGaqSPkdT@rafael.j.wysocki/ [1]
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/platform/x86/acer-wireless.c | 41 +++++++++++++++-------------
- 1 file changed, 22 insertions(+), 19 deletions(-)
+ drivers/platform/x86/acer-wireless.c | 19 ++++++++++++++++---
+ 1 file changed, 16 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/platform/x86/acer-wireless.c b/drivers/platform/x86/acer-wireless.c
-index f44d65d97023..f464b13a58af 100644
+index 1b5d935d085a..f44d65d97023 100644
 --- a/drivers/platform/x86/acer-wireless.c
 +++ b/drivers/platform/x86/acer-wireless.c
-@@ -10,6 +10,7 @@
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/pci_ids.h>
-+#include <linux/platform_device.h>
- #include <linux/types.h>
+@@ -18,8 +18,9 @@ static const struct acpi_device_id acer_wireless_acpi_ids[] = {
+ };
+ MODULE_DEVICE_TABLE(acpi, acer_wireless_acpi_ids);
  
- static const struct acpi_device_id acer_wireless_acpi_ids[] = {
-@@ -20,12 +21,12 @@ MODULE_DEVICE_TABLE(acpi, acer_wireless_acpi_ids);
- 
- static void acer_wireless_notify(acpi_handle handle, u32 event, void *data)
+-static void acer_wireless_notify(struct acpi_device *adev, u32 event)
++static void acer_wireless_notify(acpi_handle handle, u32 event, void *data)
  {
--	struct acpi_device *adev = data;
--	struct input_dev *idev = acpi_driver_data(adev);
-+	struct device *dev = data;
-+	struct input_dev *idev = dev_get_drvdata(dev);
++	struct acpi_device *adev = data;
+ 	struct input_dev *idev = acpi_driver_data(adev);
  
--	dev_dbg(&adev->dev, "event=%#x\n", event);
-+	dev_dbg(dev, "event=%#x\n", event);
- 	if (event != 0x80) {
--		dev_notice(&adev->dev, "Unknown SMKB event: %#x\n", event);
-+		dev_notice(dev, "Unknown SMKB event: %#x\n", event);
- 		return;
- 	}
- 	input_report_key(idev, KEY_RFKILL, 1);
-@@ -34,16 +35,16 @@ static void acer_wireless_notify(acpi_handle handle, u32 event, void *data)
- 	input_sync(idev);
- }
- 
--static int acer_wireless_add(struct acpi_device *adev)
-+static int acer_wireless_probe(struct platform_device *pdev)
+ 	dev_dbg(&adev->dev, "event=%#x\n", event);
+@@ -36,6 +37,7 @@ static void acer_wireless_notify(struct acpi_device *adev, u32 event)
+ static int acer_wireless_add(struct acpi_device *adev)
  {
  	struct input_dev *idev;
- 	int ret;
++	int ret;
  
--	idev = devm_input_allocate_device(&adev->dev);
-+	idev = devm_input_allocate_device(&pdev->dev);
+ 	idev = devm_input_allocate_device(&adev->dev);
  	if (!idev)
- 		return -ENOMEM;
+@@ -50,7 +52,18 @@ static int acer_wireless_add(struct acpi_device *adev)
+ 	set_bit(EV_KEY, idev->evbit);
+ 	set_bit(KEY_RFKILL, idev->keybit);
  
--	adev->driver_data = idev;
-+	platform_set_drvdata(pdev, idev);
- 	idev->name = "Acer Wireless Radio Control";
- 	idev->phys = "acer-wireless/input0";
- 	idev->id.bustype = BUS_HOST;
-@@ -56,26 +57,28 @@ static int acer_wireless_add(struct acpi_device *adev)
- 	if (ret)
- 		return ret;
- 
--	return acpi_dev_install_notify_handler(adev, ACPI_DEVICE_NOTIFY,
--					       acer_wireless_notify, adev);
-+	return acpi_dev_install_notify_handler(ACPI_COMPANION(&pdev->dev),
-+					       ACPI_DEVICE_NOTIFY,
-+					       acer_wireless_notify,
-+					       &pdev->dev);
+-	return input_register_device(idev);
++	ret = input_register_device(idev);
++	if (ret)
++		return ret;
++
++	return acpi_dev_install_notify_handler(adev, ACPI_DEVICE_NOTIFY,
++					       acer_wireless_notify, adev);
++}
++
++static void acer_wireless_remove(struct acpi_device *adev)
++{
++	acpi_dev_remove_notify_handler(adev, ACPI_DEVICE_NOTIFY,
++				       acer_wireless_notify);
  }
  
--static void acer_wireless_remove(struct acpi_device *adev)
-+static void acer_wireless_remove(struct platform_device *pdev)
- {
--	acpi_dev_remove_notify_handler(adev, ACPI_DEVICE_NOTIFY,
-+	acpi_dev_remove_notify_handler(ACPI_COMPANION(&pdev->dev),
-+				       ACPI_DEVICE_NOTIFY,
- 				       acer_wireless_notify);
- }
- 
--static struct acpi_driver acer_wireless_driver = {
--	.name = "Acer Wireless Radio Control Driver",
--	.class = "hotkey",
--	.ids = acer_wireless_acpi_ids,
--	.ops = {
--		.add = acer_wireless_add,
--		.remove = acer_wireless_remove,
-+static struct platform_driver acer_wireless_driver = {
-+	.probe = acer_wireless_probe,
-+	.remove = acer_wireless_remove,
-+	.driver = {
-+		.name = "Acer Wireless Radio Control Driver",
-+		.acpi_match_table = acer_wireless_acpi_ids,
+ static struct acpi_driver acer_wireless_driver = {
+@@ -59,7 +72,7 @@ static struct acpi_driver acer_wireless_driver = {
+ 	.ids = acer_wireless_acpi_ids,
+ 	.ops = {
+ 		.add = acer_wireless_add,
+-		.notify = acer_wireless_notify,
++		.remove = acer_wireless_remove,
  	},
  };
--module_acpi_driver(acer_wireless_driver);
-+module_platform_driver(acer_wireless_driver);
- 
- MODULE_DESCRIPTION("Acer Wireless Radio Control Driver");
- MODULE_AUTHOR("Chris Chiu <chiu@gmail.com>");
+ module_acpi_driver(acer_wireless_driver);
 -- 
 2.51.0
 
