@@ -1,205 +1,284 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 653A72517AC
-	for <linux-acpi@vger.kernel.org>; Sun,  1 Mar 2026 13:08:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2F621EA7CE;
+	Sun,  1 Mar 2026 13:19:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772370517; cv=none; b=DLPWwNyrte3R1Ni/cGp9QT1uP6TjhdxaWHChWcNjaoQVodZuZn0fRnk+WB2a629wAAtUTNVwGlVtWUveGUG7eTxknK9ohuvxAFniaNGMJRY3Tp+Po4oRgX/HRLAD9oDvYJ+A+lAsj3WvRTZU0Qi9IqPmdgG39xBD82SPlA7TGLU=
+	t=1772371160; cv=none; b=F5qMFC13HS3k3J2GYMpc8jfgTYb4rq++wInTNmhDJ6vlX0MbFJiSy29LSHjFDoEt9JMCU13zlq1PKzX6cVJITLxfg0ruLvFzj0kFOQLUYEIYLPKW+WA7sTxoJtM/q9HDAHEOaKKQMFPffQ2Tj9NzjyhyHfqT4FJI0xEt5moVPzw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772370517; c=relaxed/simple;
-	bh=BpmbXH4qYlEnLSdaHrN56B/2bF+uEc8ONGwaCG5rAwE=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=gJmSB6ESFzm9ExVlQY1S7UaID388ABDXDFPuyAcVe0ty4a79GoY6Xzgxovi7cQl7gjy4lWw3vl8xRFW5Q6xCWC2MRj46R/XdigjLPiRWcZwx4qVvljp1uiwXg7yYCBEfp6zCV0+h2xE+cV4itk/xI8yM58re9eWn2fY+VWFqGjI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fE2CeKLf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772371160; c=relaxed/simple;
+	bh=QGCpsAa0CN0HrBsbqA9dj65xm4K4Kso4Z89urqXEalA=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=SLZTOnVNZmSBlclGJxys4zNKRYYoU/5zbw43TqQXLKsyCB1Jb22SQ4yRbLDcFL2Qe7uh7VqykdeHdked3zzNC3ZkPM4aHi9k3p/VtcI/L4MlSprGwd664xBHP6nk61VD/E8V4FQNWvBQvxs67RcKwfmGAAP83O4t1R1/f0JAfZ4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=e9M3Hewd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fE2CeKLf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C5D2C2BCB5
-	for <linux-acpi@vger.kernel.org>; Sun,  1 Mar 2026 13:08:37 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="e9M3Hewd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52595C116C6;
+	Sun,  1 Mar 2026 13:19:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1772370517;
-	bh=BpmbXH4qYlEnLSdaHrN56B/2bF+uEc8ONGwaCG5rAwE=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=fE2CeKLfYK4zxDAZKHxzQ00vZWIX4YNk1++Fq6Sv2Y+Q+iOGoscIO4CdwjJqGFcIZ
-	 kYYM+dkBaK3XOLMAG42kmbqjf/YwfUQ2VhZ+ZCV913yJ4p0a1se+5ixpQQZrzl6uc/
-	 MXTRja7Sre+H3ClQbiDLbj3yhjn47jmj2ebTR+9k6QUMp9ev/j4SuXtKfkDvbPkhf7
-	 6xpF5R7SbEKaytGAAIliAZDVxz7FzBJtew0JxkQQPZuRVbXiqiMuVoG+dsO57f44Tj
-	 XVHPPa96vuyMTeX+6qipHVCsNS66F2kMgeFrRT9ThpNbvjVrwkt2I0jNEMo+DVu3vK
-	 lQzRFSP3iilTw==
-Received: by mail-oi1-f178.google.com with SMTP id 5614622812f47-46394090d2fso1287160b6e.3
-        for <linux-acpi@vger.kernel.org>; Sun, 01 Mar 2026 05:08:37 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AJvYcCVRt4ammJCb04iOglq9P85ituFoQGluMZ1WGCBlopD9a5f66eBqzThPl57l+N4YdY7u592UmniKwfZF@vger.kernel.org
-X-Gm-Message-State: AOJu0YwbKfpNeg8wgrP430t2GwRdq3fvHeFQNU7yTMkL+BJ1aRg8PwUA
-	f5Nb0M8PQImAR9onKJTCXEaCqUFlWzmVNcneteQxXyJeOkCfFHDFi7yIIV+gV4sjiX339z3yR7K
-	oSPnpX+KR1ECaqbvwp9K5ovAeO1fOvsA=
-X-Received: by 2002:a05:6808:4f23:b0:45e:a592:5903 with SMTP id
- 5614622812f47-464beea8a3amr4677465b6e.32.1772370516163; Sun, 01 Mar 2026
- 05:08:36 -0800 (PST)
+	s=k20201202; t=1772371160;
+	bh=QGCpsAa0CN0HrBsbqA9dj65xm4K4Kso4Z89urqXEalA=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=e9M3Hewd5/mUpzxH6KJeI9ogtqwNmYHnY0bJqWkf75d6oU4nkINwnuOYYwpo5JCZr
+	 vCbn5gUZCG96gQcJsKq65H54j16S54Qq/q1LumX6X/f9oybunwdKvjM581tBudSk2p
+	 rv3nipgHnGey7cGLmMGwqK9MbfHF/ypJ9OKPc/ymjBQTninHSpQMQf9KArHT4aMnTw
+	 fYiVZWS5cd+mejuEUmGbqA3W+yDZL6/qnIWVHEYMHR99h6A6TK51DDALLtGPMo0Z/K
+	 QqQLnSAzNM0nUfoTF/S+bB50xAj7wDctpW7c2LAJaVgOHgKWslT8oWee4bfAh8qwMK
+	 WoXaHbhJWJq3Q==
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+To: Guenter Roeck <linux@roeck-us.net>,
+ Jaroslav Pulchart <jaroslav.pulchart@gooddata.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+ Linux ACPI <linux-acpi@vger.kernel.org>, linux-hwmon@vger.kernel.org
+Subject:
+ [PATCH v1 3/3] hwmon: (acpi_power_meter) Convert ACPI driver to a platform
+ one
+Date: Sun, 01 Mar 2026 14:18:49 +0100
+Message-ID: <1952740.tdWV9SEqCh@rafael.j.wysocki>
+Organization: Linux Kernel Development
+In-Reply-To: <5974797.DvuYhMxLoT@rafael.j.wysocki>
+References: <5974797.DvuYhMxLoT@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <5971620.DvuYhMxLoT@rafael.j.wysocki> <2402539.ElGaqSPkdT@rafael.j.wysocki>
- <c9697592-c70b-4ef8-864f-213b5ea4782d@linux.dev>
-In-Reply-To: <c9697592-c70b-4ef8-864f-213b5ea4782d@linux.dev>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Sun, 1 Mar 2026 14:08:25 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0j7PdCG3oi8tKHkdQ7SvfL0r6DL7J-iKrr2aoDRufnBbQ@mail.gmail.com>
-X-Gm-Features: AaiRm53APnLbCnYkEj8OOyuCyqwJIj-wOFzzdkFbpRIt_92bXALORXGiiWUdTYY
-Message-ID: <CAJZ5v0j7PdCG3oi8tKHkdQ7SvfL0r6DL7J-iKrr2aoDRufnBbQ@mail.gmail.com>
-Subject: Re: [PATCH v1 2/4] platform/x86: asus-laptop: Convert ACPI driver to
- a platform one
-To: Denis Benato <denis.benato@linux.dev>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, 
-	Hans de Goede <hansg@kernel.org>, LKML <linux-kernel@vger.kernel.org>, 
-	Linux ACPI <linux-acpi@vger.kernel.org>, platform-driver-x86@vger.kernel.org, 
-	Corentin Chary <corentin.chary@gmail.com>, "Luke D. Jones" <luke@ljones.dev>, 
-	=?UTF-8?Q?Jo=C3=A3o_Paulo_Rechi_Vita?= <jprvita@gmail.com>
+Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Sat, Feb 28, 2026 at 6:02=E2=80=AFPM Denis Benato <denis.benato@linux.de=
-v> wrote:
->
->
-> On 2/28/26 16:11, Rafael J. Wysocki wrote:
-> > From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-> >
-> > In all cases in which a struct acpi_driver is used for binding a driver
-> > to an ACPI device object, a corresponding platform device is created by
-> > the ACPI core and that device is regarded as a proper representation of
-> > underlying hardware.  Accordingly, a struct platform_driver should be
-> > used by driver code to bind to that device.  There are multiple reasons
-> > why drivers should not bind directly to ACPI device objects [1].
-> >
-> > Overall, it is better to bind drivers to platform devices than to their
-> > ACPI companions, so convert the Asus laptop ACPI driver to a platform
-> > one.
-> >
-> > While this is not expected to alter functionality, it changes sysfs
-> > layout and so it will be visible to user space.
->
-> Alright I will take a look if asus-linux software is affected and act acc=
-ordingly.
-> How much time do I have?
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-It really depends on Ilpo, but there's no rush as far as I'm concerned.
+In all cases in which a struct acpi_driver is used for binding a driver
+to an ACPI device object, a corresponding platform device is created by
+the ACPI core and that device is regarded as a proper representation of
+underlying hardware.  Accordingly, a struct platform_driver should be
+used by driver code to bind to that device.  There are multiple reasons
+why drivers should not bind directly to ACPI device objects [1].
 
-> Thanks.
-> > Link: https://lore.kernel.org/all/2396510.ElGaqSPkdT@rafael.j.wysocki/ =
-[1]
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Reviewed-by: Denis Benato <denis.benato@linux.dev>
+Overall, it is better to bind drivers to platform devices than to their
+ACPI companions, so convert the hwmon ACPI power meter driver to a
+platform one.
 
-Thanks for all of the reviews!
+After this change, the subordinate hwmon device will be registered
+under the platform device representing the ACPI power meter, sysfs
+notifications will trigger on that device, and diagnostic messages
+will be printed relative to it instead of its ACPI companion.
 
-> > ---
-> >  drivers/platform/x86/asus-laptop.c | 35 +++++++++++++++---------------
-> >  1 file changed, 18 insertions(+), 17 deletions(-)
-> >
-> > diff --git a/drivers/platform/x86/asus-laptop.c b/drivers/platform/x86/=
-asus-laptop.c
-> > index c927665dfa96..dbbb6292cd11 100644
-> > --- a/drivers/platform/x86/asus-laptop.c
-> > +++ b/drivers/platform/x86/asus-laptop.c
-> > @@ -1824,8 +1824,9 @@ static void asus_dmi_check(void)
-> >
-> >  static bool asus_device_present;
-> >
-> > -static int asus_acpi_add(struct acpi_device *device)
-> > +static int asus_acpi_probe(struct platform_device *pdev)
-> >  {
-> > +     struct acpi_device *device =3D ACPI_COMPANION(&pdev->dev);
-> >       struct asus_laptop *asus;
-> >       int result;
-> >
-> > @@ -1837,7 +1838,6 @@ static int asus_acpi_add(struct acpi_device *devi=
-ce)
-> >       asus->handle =3D device->handle;
-> >       strscpy(acpi_device_name(device), ASUS_LAPTOP_DEVICE_NAME);
-> >       strscpy(acpi_device_class(device), ASUS_LAPTOP_CLASS);
-> > -     device->driver_data =3D asus;
-> >       asus->device =3D device;
-> >
-> >       asus_dmi_check();
-> > @@ -1846,6 +1846,8 @@ static int asus_acpi_add(struct acpi_device *devi=
-ce)
-> >       if (result)
-> >               goto fail_platform;
-> >
-> > +     platform_set_drvdata(pdev, asus);
-> > +
-> >       /*
-> >        * Need platform type detection first, then the platform
-> >        * device.  It is used as a parent for the sub-devices below.
-> > @@ -1907,11 +1909,12 @@ static int asus_acpi_add(struct acpi_device *de=
-vice)
-> >       return result;
-> >  }
-> >
-> > -static void asus_acpi_remove(struct acpi_device *device)
-> > +static void asus_acpi_remove(struct platform_device *pdev)
-> >  {
-> > -     struct asus_laptop *asus =3D acpi_driver_data(device);
-> > +     struct asus_laptop *asus =3D platform_get_drvdata(pdev);
-> >
-> > -     acpi_dev_remove_notify_handler(device, ACPI_DEVICE_NOTIFY, asus_a=
-cpi_notify);
-> > +     acpi_dev_remove_notify_handler(asus->device, ACPI_DEVICE_NOTIFY,
-> > +                                    asus_acpi_notify);
-> >       asus_backlight_exit(asus);
-> >       asus_rfkill_exit(asus);
-> >       asus_led_exit(asus);
-> > @@ -1930,15 +1933,13 @@ static const struct acpi_device_id asus_device_=
-ids[] =3D {
-> >  };
-> >  MODULE_DEVICE_TABLE(acpi, asus_device_ids);
-> >
-> > -static struct acpi_driver asus_acpi_driver =3D {
-> > -     .name =3D ASUS_LAPTOP_NAME,
-> > -     .class =3D ASUS_LAPTOP_CLASS,
-> > -     .ids =3D asus_device_ids,
-> > -     .flags =3D ACPI_DRIVER_ALL_NOTIFY_EVENTS,
-> > -     .ops =3D {
-> > -             .add =3D asus_acpi_add,
-> > -             .remove =3D asus_acpi_remove,
-> > -             },
-> > +static struct platform_driver asus_acpi_driver =3D {
-> > +     .probe =3D asus_acpi_probe,
-> > +     .remove =3D asus_acpi_remove,
-> > +     .driver =3D {
-> > +             .name =3D ASUS_LAPTOP_NAME,
-> > +             .acpi_match_table =3D asus_device_ids,
-> > +     },
-> >  };
-> >
-> >  static int __init asus_laptop_init(void)
-> > @@ -1949,7 +1950,7 @@ static int __init asus_laptop_init(void)
-> >       if (result < 0)
-> >               return result;
-> >
-> > -     result =3D acpi_bus_register_driver(&asus_acpi_driver);
-> > +     result =3D platform_driver_register(&asus_acpi_driver);
-> >       if (result < 0)
-> >               goto fail_acpi_driver;
-> >       if (!asus_device_present) {
-> > @@ -1959,7 +1960,7 @@ static int __init asus_laptop_init(void)
-> >       return 0;
-> >
-> >  fail_no_device:
-> > -     acpi_bus_unregister_driver(&asus_acpi_driver);
-> > +     platform_driver_unregister(&asus_acpi_driver);
-> >  fail_acpi_driver:
-> >       platform_driver_unregister(&platform_driver);
-> >       return result;
-> > @@ -1967,7 +1968,7 @@ static int __init asus_laptop_init(void)
-> >
-> >  static void __exit asus_laptop_exit(void)
-> >  {
-> > -     acpi_bus_unregister_driver(&asus_acpi_driver);
-> > +     platform_driver_unregister(&asus_acpi_driver);
-> >       platform_driver_unregister(&platform_driver);
-> >  }
-> >
+Link: https://lore.kernel.org/all/2396510.ElGaqSPkdT@rafael.j.wysocki/ [1]
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/hwmon/acpi_power_meter.c | 76 ++++++++++++++++----------------
+ 1 file changed, 37 insertions(+), 39 deletions(-)
+
+diff --git a/drivers/hwmon/acpi_power_meter.c b/drivers/hwmon/acpi_power_meter.c
+index c010f55f7c7b..be7f702dcde9 100644
+--- a/drivers/hwmon/acpi_power_meter.c
++++ b/drivers/hwmon/acpi_power_meter.c
+@@ -18,6 +18,7 @@
+ #include <linux/time.h>
+ #include <linux/err.h>
+ #include <linux/acpi.h>
++#include <linux/platform_device.h>
+ 
+ #define ACPI_POWER_METER_NAME		"power_meter"
+ #define ACPI_POWER_METER_DEVICE_NAME	"Power Meter"
+@@ -816,8 +817,8 @@ static int read_capabilities(struct acpi_power_meter_resource *resource)
+ /* Handle ACPI event notifications */
+ static void acpi_power_meter_notify(acpi_handle handle, u32 event, void *data)
+ {
+-	struct acpi_device *device = data;
+-	struct acpi_power_meter_resource *resource = acpi_driver_data(device);
++	struct device *dev = data;
++	struct acpi_power_meter_resource *resource = dev_get_drvdata(dev);
+ 	int res;
+ 
+ 	guard(mutex)(&acpi_notify_lock);
+@@ -833,43 +834,43 @@ static void acpi_power_meter_notify(acpi_handle handle, u32 event, void *data)
+ 		remove_domain_devices(resource);
+ 		res = read_capabilities(resource);
+ 		if (res)
+-			dev_err_once(&device->dev, "read capabilities failed.\n");
++			dev_err_once(dev, "read capabilities failed.\n");
+ 		res = read_domain_devices(resource);
+ 		if (res && res != -ENODEV)
+-			dev_err_once(&device->dev, "read domain devices failed.\n");
++			dev_err_once(dev, "read domain devices failed.\n");
+ 
+ 		mutex_unlock(&resource->lock);
+ 
+ 		resource->hwmon_dev =
+-			hwmon_device_register_with_info(&device->dev,
++			hwmon_device_register_with_info(dev,
+ 							ACPI_POWER_METER_NAME,
+ 							resource,
+ 							&power_meter_chip_info,
+ 							power_extra_groups);
+ 		if (IS_ERR(resource->hwmon_dev))
+-			dev_err_once(&device->dev, "register hwmon device failed.\n");
++			dev_err_once(dev, "register hwmon device failed.\n");
+ 
+ 		break;
+ 	case METER_NOTIFY_TRIP:
+-		sysfs_notify(&device->dev.kobj, NULL, POWER_AVERAGE_NAME);
++		sysfs_notify(&dev->kobj, NULL, POWER_AVERAGE_NAME);
+ 		break;
+ 	case METER_NOTIFY_CAP:
+ 		mutex_lock(&resource->lock);
+ 		res = update_cap(resource);
+ 		if (res)
+-			dev_err_once(&device->dev, "update cap failed when capping value is changed.\n");
++			dev_err_once(dev, "update cap failed when capping value is changed.\n");
+ 		mutex_unlock(&resource->lock);
+-		sysfs_notify(&device->dev.kobj, NULL, POWER_CAP_NAME);
++		sysfs_notify(&dev->kobj, NULL, POWER_CAP_NAME);
+ 		break;
+ 	case METER_NOTIFY_INTERVAL:
+-		sysfs_notify(&device->dev.kobj, NULL, POWER_AVG_INTERVAL_NAME);
++		sysfs_notify(&dev->kobj, NULL, POWER_AVG_INTERVAL_NAME);
+ 		break;
+ 	case METER_NOTIFY_CAPPING:
+ 		mutex_lock(&resource->lock);
+ 		resource->power_alarm = true;
+ 		mutex_unlock(&resource->lock);
+-		sysfs_notify(&device->dev.kobj, NULL, POWER_ALARM_NAME);
+-		dev_info(&device->dev, "Capping in progress.\n");
++		sysfs_notify(&dev->kobj, NULL, POWER_ALARM_NAME);
++		dev_info(dev, "Capping in progress.\n");
+ 		break;
+ 	default:
+ 		WARN(1, "Unexpected event %d\n", event);
+@@ -877,16 +878,15 @@ static void acpi_power_meter_notify(acpi_handle handle, u32 event, void *data)
+ 	}
+ 
+ 	acpi_bus_generate_netlink_event(ACPI_POWER_METER_CLASS,
+-					dev_name(&device->dev), event, 0);
++					dev_name(&resource->acpi_dev->dev),
++					event, 0);
+ }
+ 
+-static int acpi_power_meter_add(struct acpi_device *device)
++static int acpi_power_meter_probe(struct platform_device *pdev)
+ {
+-	int res;
++	struct acpi_device *device = ACPI_COMPANION(&pdev->dev);
+ 	struct acpi_power_meter_resource *resource;
+-
+-	if (!device)
+-		return -EINVAL;
++	int res;
+ 
+ 	resource = kzalloc_obj(*resource);
+ 	if (!resource)
+@@ -897,7 +897,8 @@ static int acpi_power_meter_add(struct acpi_device *device)
+ 	mutex_init(&resource->lock);
+ 	strscpy(acpi_device_name(device), ACPI_POWER_METER_DEVICE_NAME);
+ 	strscpy(acpi_device_class(device), ACPI_POWER_METER_CLASS);
+-	device->driver_data = resource;
++
++	platform_set_drvdata(pdev, resource);
+ 
+ #if IS_REACHABLE(CONFIG_ACPI_IPMI)
+ 	/*
+@@ -910,7 +911,7 @@ static int acpi_power_meter_add(struct acpi_device *device)
+ 		struct acpi_device *ipi_device = acpi_dev_get_first_match_dev("IPI0001", NULL, -1);
+ 
+ 		if (ipi_device && acpi_wait_for_acpi_ipmi())
+-			dev_warn(&device->dev, "Waiting for ACPI IPMI timeout");
++			dev_warn(&pdev->dev, "Waiting for ACPI IPMI timeout");
+ 		acpi_dev_put(ipi_device);
+ 	}
+ #endif
+@@ -928,7 +929,7 @@ static int acpi_power_meter_add(struct acpi_device *device)
+ 		goto exit_free_capability;
+ 
+ 	resource->hwmon_dev =
+-		hwmon_device_register_with_info(&device->dev,
++		hwmon_device_register_with_info(&pdev->dev,
+ 						ACPI_POWER_METER_NAME, resource,
+ 						&power_meter_chip_info,
+ 						power_extra_groups);
+@@ -938,7 +939,7 @@ static int acpi_power_meter_add(struct acpi_device *device)
+ 	}
+ 
+ 	res = acpi_dev_install_notify_handler(device, ACPI_DEVICE_NOTIFY,
+-					      acpi_power_meter_notify, device);
++					      acpi_power_meter_notify, &pdev->dev);
+ 	if (res)
+ 		goto exit_hwmon;
+ 
+@@ -957,11 +958,11 @@ static int acpi_power_meter_add(struct acpi_device *device)
+ 	return res;
+ }
+ 
+-static void acpi_power_meter_remove(struct acpi_device *device)
++static void acpi_power_meter_remove(struct platform_device *pdev)
+ {
+-	struct acpi_power_meter_resource *resource = acpi_driver_data(device);
++	struct acpi_power_meter_resource *resource = platform_get_drvdata(pdev);
+ 
+-	acpi_dev_remove_notify_handler(device, ACPI_DEVICE_NOTIFY,
++	acpi_dev_remove_notify_handler(resource->acpi_dev, ACPI_DEVICE_NOTIFY,
+ 				       acpi_power_meter_notify);
+ 
+ 	if (!IS_ERR(resource->hwmon_dev))
+@@ -975,9 +976,7 @@ static void acpi_power_meter_remove(struct acpi_device *device)
+ 
+ static int acpi_power_meter_resume(struct device *dev)
+ {
+-	struct acpi_power_meter_resource *resource;
+-
+-	resource = acpi_driver_data(to_acpi_device(dev));
++	struct acpi_power_meter_resource *resource = dev_get_drvdata(dev);
+ 
+ 	free_capabilities(resource);
+ 	read_capabilities(resource);
+@@ -988,15 +987,14 @@ static int acpi_power_meter_resume(struct device *dev)
+ static DEFINE_SIMPLE_DEV_PM_OPS(acpi_power_meter_pm, NULL,
+ 				acpi_power_meter_resume);
+ 
+-static struct acpi_driver acpi_power_meter_driver = {
+-	.name = "power_meter",
+-	.class = ACPI_POWER_METER_CLASS,
+-	.ids = power_meter_ids,
+-	.ops = {
+-		.add = acpi_power_meter_add,
+-		.remove = acpi_power_meter_remove,
+-		},
+-	.drv.pm = pm_sleep_ptr(&acpi_power_meter_pm),
++static struct platform_driver acpi_power_meter_driver = {
++	.probe = acpi_power_meter_probe,
++	.remove = acpi_power_meter_remove,
++	.driver = {
++		.name = "acpi-power-meter",
++		.acpi_match_table = power_meter_ids,
++		.pm = &acpi_power_meter_pm,
++	},
+ };
+ 
+ /* Module init/exit routines */
+@@ -1025,7 +1023,7 @@ static int __init acpi_power_meter_init(void)
+ 
+ 	dmi_check_system(pm_dmi_table);
+ 
+-	result = acpi_bus_register_driver(&acpi_power_meter_driver);
++	result = platform_driver_register(&acpi_power_meter_driver);
+ 	if (result < 0)
+ 		return result;
+ 
+@@ -1034,7 +1032,7 @@ static int __init acpi_power_meter_init(void)
+ 
+ static void __exit acpi_power_meter_exit(void)
+ {
+-	acpi_bus_unregister_driver(&acpi_power_meter_driver);
++	platform_driver_unregister(&acpi_power_meter_driver);
+ }
+ 
+ MODULE_AUTHOR("Darrick J. Wong <darrick.wong@oracle.com>");
+-- 
+2.51.0
+
+
+
+
