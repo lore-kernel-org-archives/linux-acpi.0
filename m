@@ -1,107 +1,101 @@
-Received: from mail-qk1-f176.google.com (mail-qk1-f176.google.com [209.85.222.176])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94C49377568
-	for <linux-acpi@vger.kernel.org>; Wed,  4 Mar 2026 17:16:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 914E91EDA32;
+	Wed,  4 Mar 2026 18:17:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772644566; cv=none; b=PtPN+tXtj8i7USEHDM/UIkyXFxoWCLknBra/PJOVMT9D+2LatWIBDadOfeAStsmmMbSFzygMKfeKaBlGUSX474qj4m8LpDRO2vAfSCAMkTRqKyojCx4vNKX2k0TH1zua1Re4NNMVbOYxjBocRb4KLkv8pp+pDTJFu8xm4KIRCk0=
+	t=1772648222; cv=none; b=Y/o/ilzd+MZg2L47shXs+hLRd36rdlYggHl2xtpooTb1AtGUJTPncLDVjUr3HcyVbNdLWpVuJk6Sq/bWWiHDetjFVq2tGNkQuPyGK/67FsABhZkNgL3unlQX9kOS9j7pLcTVrh7ytvB0vH81zuhvrqHX+Nl+eOtLmXSSnEEEuqs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772644566; c=relaxed/simple;
-	bh=tcgxSU38eCGKe9JKypqd0oWkYktTm4f5HZFniG2DFiM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=W1Ie6RwklxVQnfkBzITVWo7otNVLTHbwbwN8DaP8AQo0ck3HsR6K7TvEXKDcIhXZpugsomMFpm02ub/XdgIZgKitYLKvfLCG9QWnIX3udjt5+WZgbdiISAs4ZsTSqaEG0wngMjbzkaZmG3dpJomK1sZikP6qk/drZh9EL13KWAA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=g7jcjjMW; arc=none smtp.client-ip=209.85.222.176
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
+	s=arc-20240116; t=1772648222; c=relaxed/simple;
+	bh=u5w8JFVQh9V063Ayn3LoWkO1eI87LCfsVRka5iu9rx0=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=sIx9UadUxm68cNvyxLEgoWUIYM6C3tuje0X5vWMP7PEDBkpy7o7c5YWoSDBmXrBd3b/bZuxPRe/ebi2GgCtSbLFWE15mNlj9Icmam7evKgHfnRzmWdPXknm8w0dcJ9idICOzEC4YNTHQoVG2JzpIc6/JUGGZZLHnzBRBAwnWD74=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DmQn7JL6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="g7jcjjMW"
-Received: by mail-qk1-f176.google.com with SMTP id af79cd13be357-8cb40277a8bso741560785a.1
-        for <linux-acpi@vger.kernel.org>; Wed, 04 Mar 2026 09:16:04 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gourry.net; s=google; t=1772644563; x=1773249363; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=tgdgDV2UNN/IZvvLYsVpz8+nq13Nj0KqwySIzPBQZ1Y=;
-        b=g7jcjjMWKF3oD/ALftkhlaLG0ZGsLUXezJ7C+Z2hfmOxu2XD4wraFktqQgheD2xD3H
-         b1HZe6fFQW8niJiBY2PjWXMiKb9sPnfsbMHk9VOEcmtwiXRL9Hq0n4oOlGuWmNvu2c8r
-         HukbQPec0cDCWM/rTtxyoEupYWB6YZXCvzfTNK/JI3yExUax0Zs+RKkKyLS7kck3Xz4x
-         m+cmrwPybgyeLuhjvWhwLhq3YA/l/g4eWkdQXKelZ7MUETxeKJLp15rzh9iiNlf+2dt1
-         9bFsG6cS1XZZxkLCm2WVHugiQZUBNjCI+gHKNYrjVVzCDQVxCzDEtwVo+MrN/3r4VLoC
-         tmZQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1772644563; x=1773249363;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=tgdgDV2UNN/IZvvLYsVpz8+nq13Nj0KqwySIzPBQZ1Y=;
-        b=owyeBujDY2hSYeZhicE416eQZu7ID4UUygvw8WRP8xeQuEHiuE9aamD2HpGi9omx+4
-         wJluDtN+xKsBMP07u2eeWGVJQV7AjaPtgj1rjSLZr8X/KIRFNpOaEbtmzHMm4ovXzDhu
-         LzH1X0uh7UgG8KtMoEhFB3HnlgKSmZ5FKEOz+Td/npTrQVQwECQnW773ljI718DduwDi
-         AbafHXdgc3sTY3iMSArfsr3OD+BQRpB4S5s9niYpatNLl/o251SGH7WBthqunvz7Od/C
-         75Fbm6WUYrn22JylbDsupKVg8TylAOcq+81RAn4V8xLwx8gnENxjODmdVbfhOQnMRMgW
-         1CFg==
-X-Forwarded-Encrypted: i=1; AJvYcCUdQfsyBqoSZD/kJiSDGJZBXe+Z/BDnQ70mtyeNQKo4Lrmxaw+u4+7PpKvOCCl69HKBANEjmCXsU1Dm@vger.kernel.org
-X-Gm-Message-State: AOJu0YyaxRTyNalU+WN9TWY2ePhJWWfahNNO5gnJ1bs9lUHcJ9ICT1eE
-	WnyfLnXjO+kLhO9SDb15GGoZ+xzljceK0uDjMDFqj+whp2D9r8YF4t6B6l+woYkM1sg=
-X-Gm-Gg: ATEYQzwrvA+1u5K7x08PW7gvzAMNpJq5GVkzlwgjVxb/yNdFOd04/Ib2hVh4gzpi/GN
-	0PkRI1MGfs5Fqx5pel0iLdgzVy7NxApOOeJEeOZh8XK6W88DrEV7NcTAE19P8MLJI6uGXG2edoS
-	KR1BC/FpAbL1QJ91KPhG0mtiUQ4YYEE+ZG/zxpVLSzNRNBAur62lrraKE3bW9o9cTw7oFAGzqlV
-	qvrHsEqkUH+VAm3AL04KsNbGwN5cv4bZf5MDYH+XSI3P3ChV+nA9uzp0pLuBYbolmb5aozQVsD1
-	4rk53BDTVNnMbb9Byr6XFw0Sq4y35tkzgopxHRQuhiWzVtoq/l1qjP/Iw0QuOZbQ/7qt6PvKRgl
-	76MVvTLP2MOxEIQC7WsoZ/1JkWp9fN76lOb70e8m5UD8L2A/WLP7SR9nLIkUkzvfu+fJmBPqgjS
-	ep/Tztgain/E6nr2YbJkqw4DxxrmC1KquSgUm05co0bE+ity8Fp6ncs0i09N0ljindtysGXBmMc
-	4fA/lbjag==
-X-Received: by 2002:a05:620a:3195:b0:8c9:fb0e:ca43 with SMTP id af79cd13be357-8cd5af1a395mr339023785a.24.1772644563186;
-        Wed, 04 Mar 2026 09:16:03 -0800 (PST)
-Received: from gourry-fedora-PF4VCD3F (pool-96-255-20-138.washdc.ftas.verizon.net. [96.255.20.138])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-8cbbf678156sm1865798585a.18.2026.03.04.09.16.02
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 04 Mar 2026 09:16:02 -0800 (PST)
-Date: Wed, 4 Mar 2026 12:16:00 -0500
-From: Gregory Price <gourry@gourry.net>
-To: Haifeng Xu <haifeng.xu@shopee.com>
-Cc: rafael@kernel.org, lenb@kernel.org, dan.j.williams@intel.com,
-	jonathan.cameron@huawei.com, dave@stgolabs.net,
-	dave.jiang@intel.com, alison.schofield@intel.com,
-	vishal.l.verma@intel.com, ira.weiny@intel.com,
-	linux-cxl@vger.kernel.org, linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] ACPI: add a boot parameter to disable parsing CFMWS
- during NUMA init
-Message-ID: <aaho0IyQ0WAjcRMM@gourry-fedora-PF4VCD3F>
-References: <20260304080647.169434-1-haifeng.xu@shopee.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DmQn7JL6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E44EDC4CEF7;
+	Wed,  4 Mar 2026 18:17:00 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1772648222;
+	bh=u5w8JFVQh9V063Ayn3LoWkO1eI87LCfsVRka5iu9rx0=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=DmQn7JL6Eu/+0RmDoHMDzYFbdBP3JiJZgE/qxYJJkMe+PS5Mvmw9yalL5oA36+l/B
+	 uYzOyxxDlkDFz0cfpga186fW/p6TlKFmi5k2YqhbjrQxfP860D5L5v+fYiQyPq2G2w
+	 vfSvGztpVh0Y4f6Q83+JiMMoocY5FPdNrt47z6Dk4zsCtvoNaVLp6ExFo3TTBuMmLQ
+	 ZQuJgqnR9IVPKolQABj+jaG77iSSMEWisxNeSyx2Pf9Kkt5RUdMIOXhdDklIWnQRJ8
+	 p9ojUdfqi96bGA4393kdQMHqqHJmQyR7b8sI5Xbf3WcvuliENYR81YwU/HlcI5hO+m
+	 93EiyjTWcxdpA==
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+To: Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: Alexandre Belloni <alexandre.belloni@bootlin.com>,
+ LKML <linux-kernel@vger.kernel.org>, linux-rtc@vger.kernel.org,
+ Linux PM <linux-pm@vger.kernel.org>
+Subject: [PATCH v1 7/7] ACPI: TAD: Update the driver description comment
+Date: Wed, 04 Mar 2026 19:16:48 +0100
+Message-ID: <23034847.EfDdHjke4D@rafael.j.wysocki>
+Organization: Linux Kernel Development
+In-Reply-To: <5092662.31r3eYUQgx@rafael.j.wysocki>
+References: <5092662.31r3eYUQgx@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260304080647.169434-1-haifeng.xu@shopee.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
 
-On Wed, Mar 04, 2026 at 04:06:47PM +0800, Haifeng Xu wrote:
-> For the machine Intel(R) Xeon(R) 6746E that supports CXL memory,
-> the possible nodes are 20 (0-19). However, only two numa nodes (0-1)
-> have memory and the rest nodes (2-19) detected by CEDT are memoryless.
-> 
-> The problems is that when creating many pods, the shrinker map size
-> needs to be expanded for all memory cgroups in expand_shrinker_info().
-> If the number of possible nodes is too large, the holding time of
-> shrinker lock grows significantly.
-> 
-> In this case, there is no CXL memory inserted in the machine, those
-> memoryless nodes are useless for us, so there is no need to set them
-> in 'numa_nodes_parsed'. After disabling parsing CFMWS, the pod creation
-> time is reduced from over 10 minutes to approximately 150 seconds in
-> our internal test.
-> 
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-This seems like the wrong scope to fix the underlying problem - which is
-the shrinker lock holding scope.
+Update the preamble comment describing the driver to match the code
+after previous changes along with the copyright information.
 
-If you're not actually using CXL, can't you just disable CXL in the
-BIOS?  Then you shouldn't even emit CFMWS at all.
+No functional impact.
 
-~Gregory
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/acpi_tad.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
+
+--- a/drivers/acpi/acpi_tad.c
++++ b/drivers/acpi/acpi_tad.c
+@@ -2,12 +2,10 @@
+ /*
+  * ACPI Time and Alarm (TAD) Device Driver
+  *
+- * Copyright (C) 2018 Intel Corporation
++ * Copyright (C) 2018 - 2026 Intel Corporation
+  * Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+  *
+- * This driver is based on Section 9.18 of the ACPI 6.2 specification revision.
+- *
+- * It only supports the system wakeup capabilities of the TAD.
++ * This driver is based on ACPI 6.6, Section 9.17.
+  *
+  * Provided are sysfs attributes, available under the TAD platform device,
+  * allowing user space to manage the AC and DC wakeup timers of the TAD:
+@@ -18,6 +16,11 @@
+  *
+  * The wakeup events handling and power management of the TAD is expected to
+  * be taken care of by the ACPI PM domain attached to its platform device.
++ *
++ * If the TAD supports the get/set real time features, as indicated by the
++ * capability mask returned by _GCP under the TAD object, additional sysfs
++ * attributes are created allowing the real time to be set and read and an RTC
++ * class device is registered under the TAD platform device.
+  */
+ 
+ #include <linux/acpi.h>
+@@ -32,7 +35,7 @@ MODULE_DESCRIPTION("ACPI Time and Alarm
+ MODULE_LICENSE("GPL v2");
+ MODULE_AUTHOR("Rafael J. Wysocki");
+ 
+-/* ACPI TAD capability flags (ACPI 6.2, Section 9.18.2) */
++/* ACPI TAD capability flags (ACPI 6.6, Section 9.17.2) */
+ #define ACPI_TAD_AC_WAKE	BIT(0)
+ #define ACPI_TAD_DC_WAKE	BIT(1)
+ #define ACPI_TAD_RT		BIT(2)
+
+
+
