@@ -1,101 +1,123 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1436A73463;
-	Wed,  4 Mar 2026 12:55:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 099792848A0;
+	Wed,  4 Mar 2026 13:50:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.19
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772628949; cv=none; b=l/s3XlGykjJDYFLB+eUcZ8igStwfRlo2Lb8/JgbKjzcJ7f5eEtvuEc7QhEMyK3RrAxhakHVeNsDpolYdyVs7/l03xgf7pujQ5Ux0tpp9otpLn+FXVMr/db1GAbNbatD0IvRUx+BFNOHRkRjq0pXU8wyhvJuPJXG76jvmJsBST3c=
+	t=1772632237; cv=none; b=Q4I5GR5AkJVz5mDl1eNdJOsX0cQoWsGjmdT419PkdCFlCLvSmyDzOxIpA/hA+2Bxt15VxfmeMmPhzCAb/1x/wc+YJcZiUxmX3WgEQ45nyv1j6Gm5aYn+m264wGlNN6R/sCO1K2ktAuF2x2AN4bk1BnqOCNsrXs+hnBFPzM++3pc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772628949; c=relaxed/simple;
-	bh=LLgqkgDiaPgn6snhIalKa89fIsH0nKVR5i3m1HJp24I=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=m4xSDqvSk5Z0bGwACIUnSx+UarmK7RbJ+vMBi32lJzcqCwohJIYfTjNnKj/0F7PvjQJq/BwXC818duaDqzR+KrJTPmKUq810KRfjID86Evh9g36rBmm3o/bwFUsGK8V19n//PtsjMKx4sY6L7vjus9dBsLytly3xvspHgQU18UM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TSXKrDYF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772632237; c=relaxed/simple;
+	bh=VPIbwl7qvJoAZJvI2vTr8h/by7c54vjlTr/7L55yv/k=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=dHBJkhwoV5VXnzEftrOR426oVwz2v4D2teuG3OiiFqNQ6uxODSsX4UvJi3G9ISGk4rU9gNoOSgyHmqQ909K3EYESHRj+AVXK28y2ZKfmhFCTETi9pRUvrOOfHD6LbXI0uMlqmakMEh8kHFpRjujwQl5BTUwai0piJH/HI7F2po8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=cTQetd8D; arc=none smtp.client-ip=192.198.163.19
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TSXKrDYF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53D5CC19423;
-	Wed,  4 Mar 2026 12:55:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1772628948;
-	bh=LLgqkgDiaPgn6snhIalKa89fIsH0nKVR5i3m1HJp24I=;
-	h=From:To:Cc:Subject:Date:From;
-	b=TSXKrDYF99PjUStTAwMfcjbBtry1ntRp/1OSGJ+yHRTtpqCjJ7Sjcu36UoLY8+6kC
-	 sVp7+w52JwEbtn3ryZwDRSM/Y8q1ytxwfIG62iTswOFyWutGndWu5p8Lp84nyipHeX
-	 Oj3DV7ktDTTvQyHh56YTAFBBsxjObnAtp+3naoRQkWfsWBJ/o+iLdQh5EEwhA+ruk1
-	 Zv4wuIo6XT5g/JqOn7Hbu2mDg+N5+kXKX4dEnLOa4wQnO40aBnU2WES5InIkcIb8Nx
-	 zM2fUrGtN3MqecyiP4eosdtx45uyQ25AHRXLkC9dw/K0QIDuC5PmCwVFhU3dCWELv2
-	 pn4wumo1sLXAA==
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-To: Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
- Nathan Chancellor <nathan@kernel.org>,
- Alexandre Belloni <alexandre.belloni@bootlin.com>, linux-rtc@vger.kernel.org
-Subject:
- [PATCH v2] rtc: cmos: Use platform_get_irq_optional() in
- cmos_platform_probe()
-Date: Wed, 04 Mar 2026 13:55:43 +0100
-Message-ID: <12857714.O9o76ZdvQC@rafael.j.wysocki>
-Organization: Linux Kernel Development
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="cTQetd8D"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1772632236; x=1804168236;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=VPIbwl7qvJoAZJvI2vTr8h/by7c54vjlTr/7L55yv/k=;
+  b=cTQetd8Dy6rnOxQFpvWa3aoTrOD2TeFmZOWreSDXvf31MbdFrzQ0Udaz
+   Cs00Zz/9qADwpa6BT6x4DBe6VKe9gbbMHPbf1uQctf03NeHCaLPDgOgK0
+   fnGdF4+HbqnUyq4La6xI0tRzU39lZS21YnxJrv5NB8/gBwDyMpnqWTyQ6
+   ciFutJc2Dts2KXYjaEa/bXqUaIaYaNNdROV6Z4O6ekB7HKFxwQP9TsbFG
+   0CCbZQV1SpyMCoh0jWQFxcY/o9qOZRl6c93mAI8VcSuZyBsfk9SU2v545
+   pE/jnUxDBkUDxeCfkJsU+7hmBmaZlvIvtlfNW8x/hdFH7sCCyBsje4+S/
+   g==;
+X-CSE-ConnectionGUID: ZfVBw0aTQteKHEoli5CmXA==
+X-CSE-MsgGUID: jEnteu+wS3usO9RYm4jysA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11719"; a="72716445"
+X-IronPort-AV: E=Sophos;i="6.21,324,1763452800"; 
+   d="scan'208";a="72716445"
+Received: from orviesa006.jf.intel.com ([10.64.159.146])
+  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Mar 2026 05:50:33 -0800
+X-CSE-ConnectionGUID: IQyLqEp1QnC3Gzcds3GumQ==
+X-CSE-MsgGUID: 6O0J0BxeQHqLkHzS6cSrEw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.21,324,1763452800"; 
+   d="scan'208";a="217502196"
+Received: from igk-lkp-server01.igk.intel.com (HELO 9958d990ccf2) ([10.211.93.152])
+  by orviesa006.jf.intel.com with ESMTP; 04 Mar 2026 05:50:31 -0800
+Received: from kbuild by 9958d990ccf2 with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1vxmcN-000000001iP-2nrn;
+	Wed, 04 Mar 2026 13:50:27 +0000
+Date: Wed, 4 Mar 2026 14:50:08 +0100
+From: kernel test robot <lkp@intel.com>
+To: Chengwen Feng <fengchengwen@huawei.com>, linux-pci@vger.kernel.org,
+	bhelgaas@google.com
+Cc: oe-kbuild-all@lists.linux.dev, linux-acpi@vger.kernel.org,
+	rafael@kernel.org, lenb@kernel.org, wei.huang2@amd.com,
+	Eric.VanTassell@amd.com, jonathan.cameron@huawei.com,
+	wangzhou1@hisilicon.com, wanghuiqiang@huawei.com,
+	liuyonglong@huawei.com, Chengwen Feng <fengchengwen@huawei.com>,
+	stable@vger.kernel.org
+Subject: Re: [PATCH] PCI/TPH: Fix get cpu steer-tag fail on ARM64 platform
+Message-ID: <202603041459.Mw33vD7S-lkp@intel.com>
+References: <20260303003625.39035-1-fengchengwen@huawei.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260303003625.39035-1-fengchengwen@huawei.com>
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Hi Chengwen,
 
-The rtc-cmos driver can live without an IRQ and returning an error
-code from platform_get_irq() is not a problem for it in general, so
-make it call platform_get_irq_optional() in cmos_platform_probe()
-instead of platform_get_irq() to avoid a confusing error message
-printed by the latter if an IRQ cannot be found for index 0, which
-is possible on x86 platforms.
+kernel test robot noticed the following build errors:
 
-Additionally, on x86, if the IRQ is not defined and the system has
-a legacy PIC, hardcode it to RTC_IRQ, which should be safe then (and
-which is what the dropped PNP code did).
+[auto build test ERROR on pci/next]
+[also build test ERROR on pci/for-linus rafael-pm/linux-next rafael-pm/bleeding-edge linus/master v7.0-rc2 next-20260303]
+[If your patch is applied to the wrong git tree, kindly drop us a note.
+And when submitting patch, we suggest to use '--base' as documented in
+https://git-scm.com/docs/git-format-patch#_base_tree_information]
 
-Fixes: d15f1c2e413e ("ACPI: PNP: Drop CMOS RTC PNP device support")
-Reported-by: Nathan Chancellor <nathan@kernel.org>
-Closes: https://lore.kernel.org/linux-acpi/20260303060752.GA2749263@ax162/
-Tested-by: Nathan Chancellor <nathan@kernel.org>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
+url:    https://github.com/intel-lab-lkp/linux/commits/Chengwen-Feng/PCI-TPH-Fix-get-cpu-steer-tag-fail-on-ARM64-platform/20260303-084305
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/pci/pci.git next
+patch link:    https://lore.kernel.org/r/20260303003625.39035-1-fengchengwen%40huawei.com
+patch subject: [PATCH] PCI/TPH: Fix get cpu steer-tag fail on ARM64 platform
+config: i386-randconfig-2006-20250804 (https://download.01.org/0day-ci/archive/20260304/202603041459.Mw33vD7S-lkp@intel.com/config)
+compiler: gcc-14 (Debian 14.2.0-19) 14.2.0
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260304/202603041459.Mw33vD7S-lkp@intel.com/reproduce)
 
-v1 -> v2: Added tags, edited changelog
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202603041459.Mw33vD7S-lkp@intel.com/
 
-This is linux-next material.
+All errors (new ones prefixed by >>):
 
----
- drivers/rtc/rtc-cmos.c |   13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
-
---- a/drivers/rtc/rtc-cmos.c
-+++ b/drivers/rtc/rtc-cmos.c
-@@ -1423,9 +1423,18 @@ static int __init cmos_platform_probe(st
- 		resource = platform_get_resource(pdev, IORESOURCE_IO, 0);
- 	else
- 		resource = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	irq = platform_get_irq(pdev, 0);
--	if (irq < 0)
-+	irq = platform_get_irq_optional(pdev, 0);
-+	if (irq < 0) {
- 		irq = -1;
-+#ifdef CONFIG_X86
-+		/*
-+		 * On some x86 systems, the IRQ is not defined, but it should
-+		 * always be safe to hardcode it on systems with a legacy PIC.
-+		 */
-+		if (nr_legacy_irqs())
-+			irq = RTC_IRQ;
-+#endif
-+	}
- 
- 	return cmos_do_probe(&pdev->dev, resource, irq);
- }
+   drivers/acpi/processor_core.c: In function 'acpi_get_cpu_acpi_id':
+>> drivers/acpi/processor_core.c:344:16: error: implicit declaration of function 'cpu_acpi_id' [-Wimplicit-function-declaration]
+     344 |         return cpu_acpi_id(cpu);
+         |                ^~~~~~~~~~~
 
 
+vim +/cpu_acpi_id +344 drivers/acpi/processor_core.c
 
+   337	
+   338	#ifdef CONFIG_ARCH_HAS_GET_CPU_ACPI_ID_API
+   339	unsigned int acpi_get_cpu_acpi_id(unsigned int cpu)
+   340	{
+   341		if (cpu >= nr_cpu_ids)
+   342			return 0;
+   343	#ifdef CONFIG_X86
+ > 344		return cpu_acpi_id(cpu);
+   345	#elif CONFIG_ARM64
+   346		return get_acpi_id_for_cpu(cpu);
+   347	#endif
+   348	}
+   349	#endif /* CONFIG_ARCH_HAS_GET_CPU_ACPI_ID_API */
+   350	
+
+-- 
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
