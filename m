@@ -1,44 +1,41 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 996243D75B1;
-	Wed,  4 Mar 2026 18:55:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8BBA3DA5B0;
+	Wed,  4 Mar 2026 18:55:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772650549; cv=none; b=U++4MXsUCtozOcUBt8pIjY9CByio1pmb7uraIgVwVLoIOYNijWW4+eg5sUkeqTCz8yVmLnOfXdiVvMwgDDJJbxib/+3702DBeXtOsndOjeddjQRp38Dv8wM199jKu9NwK7Jb7WOeU8IFHOUa6neH8nCvU/HGqgKmntuR+LDTkfY=
+	t=1772650553; cv=none; b=LCWXDPgXvcrUpUtEpl9VQ4V4GNZsChw+mRvfeXaqcDRojLSbiP554rO8gzSjuUSW3w6ZufMOEUkarKLgEal+6/CAPG45/c9EaRfsPhp2vPeAs8fyfgJURRdkLqAP0aPJOk1CQQ0Nele79xQKAhk24cUCvE57Jp8TJMR7WfVr3Aw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772650549; c=relaxed/simple;
-	bh=keQN4MQzfFmdymT+KQmMToZOdNzJU47UOF5Dz8Xbz8o=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=IT+7WuS1XQkGGT+njWV7NxoEC7OFYUmhNUSbPaVjeQ6KKVLHMJGE48VFWj8BFGMIySWwcvcyLqGUZIFBFQKG9OWM/sb3RoMqrPFbxsJUbUC9pdxchMRlapK73nDUnNvhxlY/EYDzif3niwChtBkn331BQ/jmhlZEOtt5M2oTnzg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jBvC38mE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772650553; c=relaxed/simple;
+	bh=Al62TdymjzPb85apT20XaFb3FDGpi7ZZpgnUuu8131A=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=YiZ5dG0xuprHwp1O6LyoNzkONJijBYnmzdKts7u8ixV8qgAzj80+jObNeFBuGaqHph4c15YMTn4DCUiWHUs+YfXv19geLQfMIFqIbbBh/xqCX0WyaPbBiqQfvsg+yYon5UqW5Pfl28/nCnfzlCVZz4Ql4g0SGRDN9UDbql/2Q2E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=pkkSdw8G; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jBvC38mE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 29BBAC19425;
-	Wed,  4 Mar 2026 18:55:46 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="pkkSdw8G"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE30EC2BCB0;
+	Wed,  4 Mar 2026 18:55:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1772650549;
-	bh=keQN4MQzfFmdymT+KQmMToZOdNzJU47UOF5Dz8Xbz8o=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=jBvC38mEZditdFLPm5MoXIg7fWrn2Ra1s9CBVcTzji29zHrhZLWPRJW8+kcXmCD2w
-	 cqfVIuoQhyXJltGBMrGf5IDEawGZHcNvS0vNKDC074IL7oqALoZqhuhUr1e1gj0n5n
-	 GSARVcydMxTu+J6ar2M9+sua8GuEoVP+CUI2dRFF997Sp0tdLsywzU50QiMgye9+Qt
-	 fGKU1OdynQChHGTv+2xe5Q73PwQoJE01/9Yzwdnl1rJLzxkYQ4XNROqeG0FWLKSNXR
-	 ADJ+0haNiXvCJJ8Vz+UqrdfUr9/YpYOSBcbQkYeB8U+gJYmTRGWxjylCJsmZhaYGid
-	 5NaznL9X8Hajg==
+	s=k20201202; t=1772650553;
+	bh=Al62TdymjzPb85apT20XaFb3FDGpi7ZZpgnUuu8131A=;
+	h=From:To:Cc:Subject:Date:From;
+	b=pkkSdw8GRaRyPfAZihkn/e31NtlfyOFXZSEZ+WABTBEOAXNhW8OxEn/1qzmc+UWQJ
+	 Wt1Hv/WRgqEPhRfS2SaVdZxIE/zcitB0xZALFkkno0Nu/PCLJlcq11N/MnIQQFWBHb
+	 G2xQx3Wso21o823ricw+GTDsMoLvfnmBHMCe1iFfQKmy0CHTh7TI2qUiFfUgyXY8Jm
+	 /PPG1Ywf1GeChRSGpvdCuSPfKAdPP2lTLhixy1LmloCkGi3OV6reYkd6yd87QpHmO9
+	 WX/cFo3Z9Av6Uc+gqY+vMQhh/7Yn/hwEow7UnCtNMUdIPTqzDMu6SjcSI58AVYjWuW
+	 qFIyi1KRaBqUg==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Ilpo =?ISO-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>
 Cc: LKML <linux-kernel@vger.kernel.org>,
  Linux ACPI <linux-acpi@vger.kernel.org>, Hans de Goede <hansg@kernel.org>,
  Maximilian Luz <luzmaximilian@gmail.com>, platform-driver-x86@vger.kernel.org
 Subject:
- [PATCH v1 1/3] platform/surface: surfacepro3_button: Drop wakeup source on
- remove
-Date: Wed, 04 Mar 2026 19:54:08 +0100
-Message-ID: <4368848.1IzOArtZ34@rafael.j.wysocki>
+ [PATCH v1 0/3] platform/surface: surfacepro3_button: Use platform device for
+ driver binding
+Date: Wed, 04 Mar 2026 19:53:24 +0100
+Message-ID: <2909929.BEx9A2HvPv@rafael.j.wysocki>
 Organization: Linux Kernel Development
-In-Reply-To: <2909929.BEx9A2HvPv@rafael.j.wysocki>
-References: <2909929.BEx9A2HvPv@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -48,33 +45,32 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="UTF-8"
 
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Hi All,
 
-The wakeup source added by device_init_wakeup() in surface_button_add()
-needs to be dropped during driver removal, so update the driver to do
-that.
+This series is part of a larger effort to switch over all drivers using
+the struct acpi_driver interface to the more common struct platform_driver
+interface and eliminate the former.  The background is explained in
+Documentation/driver-api/acpi/acpi-drivers.rst and in the changelog of
+the patch that introduced the above document:
 
-Fixes: 19351f340765 ("platform/x86: surfacepro3: Support for wakeup from suspend-to-idle")
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/platform/surface/surfacepro3_button.c | 1 +
- 1 file changed, 1 insertion(+)
+https://lore.kernel.org/all/2396510.ElGaqSPkdT@rafael.j.wysocki/
 
-diff --git a/drivers/platform/surface/surfacepro3_button.c b/drivers/platform/surface/surfacepro3_button.c
-index 9bd39f09c7db..a6c9d4d370be 100644
---- a/drivers/platform/surface/surfacepro3_button.c
-+++ b/drivers/platform/surface/surfacepro3_button.c
-@@ -242,6 +242,7 @@ static void surface_button_remove(struct acpi_device *device)
- {
- 	struct surface_button *button = acpi_driver_data(device);
- 
-+	device_init_wakeup(&device->dev, false);
- 	input_unregister_device(button->input);
- 	kfree(button);
- }
--- 
-2.51.0
+The bottom line is that the kernel would be better off without struct
+acpi_driver and so it is better to get rid of it.
 
+This series carries out driver conversion of the Surface Pro3 button
+driver.
+
+Patch [1/3] Fixes a wakeup source leak on driver removal.
+
+Patch [2/3] updates the driver to install an ACPI notify handler by itself
+instead of using the .notify() callback from struct acpi_driver, which is
+requisite for the driver conversion.
+
+Patch [3/3] converts the driver to using struct platform_driver for device
+binding.
+
+Thanks!
 
 
 
