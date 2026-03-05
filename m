@@ -1,120 +1,148 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.12])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3853B32D7FB;
-	Thu,  5 Mar 2026 20:20:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.12
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C48DB33893D;
+	Thu,  5 Mar 2026 20:29:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772742007; cv=none; b=C5XjvDe0+r85A1Oq4KaEYxkoXMbaxCQRVgi5jmlKiku+jlNLWpMO9h83GgDNA05PAwP7ZkJSz3gVOsmCBH7oY8Ktl0Y8GLbok4NitP6zlQ9aYrtfTcYzmQtWIEDM0jD6OHCf/s7vUJ5PQ/16jKDaoSsIQVCkuvoWCQkerjou+Vs=
+	t=1772742554; cv=none; b=T7uGMSQfyC06USlpOK9VAc2H1tXRHeGNCDpadKt4e7+zDbpsW5QAsV9VUUB06nWEI6pd/oKPfyrURCooUYQQVoYVIuVarkEdkLicQqAw+ISBEs8z9+Gfwh43xEI6Gj2dvNGnWDBHtLsUAs6uB9VvO27509yjbPZ/DKUd4yxzIGY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772742007; c=relaxed/simple;
-	bh=b/aA0R2rkxsvdEpn9luZz6MliKLYCgptFmRmP/LpAyE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ucsuco0LZ4GUEx0ww2pc04VMEJNdUldLnb2XUTsQAd/Cba8RLutL+l3v1B5kkwJmGIgciU3O8GgQZ4p9+TJUoX145rgs8J6lHAz73SKg0k4JIS237gSNG6syZpWtgHwrFSz8L2n12qDBRgi9qhhQHXyXKyMvvNSenog4G4oJZgw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=oGNlDZ0V; arc=none smtp.client-ip=192.198.163.12
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1772742554; c=relaxed/simple;
+	bh=8U6oCaz2fszjX0uJDiK5nFm+1kN/ZxnPUg0Hj9h2Qyg=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=KeNGLaECNPDPqPy0SJemsWUwBgcPEFz4cVdY6QwM7T1ubA2u/u2KNYZ6WYwt5lXCbBgFg+XTzSbG1Z6giv6yJkbJo9dEfK0Pezty9XOh/8z501Av/YyaQVh6ulSfttjiFVlO8o/K8T2Ah+HMZ5yRjUyczOg9FK6CWMLMcL1xR5s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=t8NX1EBR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="oGNlDZ0V"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1772742005; x=1804278005;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=b/aA0R2rkxsvdEpn9luZz6MliKLYCgptFmRmP/LpAyE=;
-  b=oGNlDZ0VZ6ExuyRYK/jOCUuOiE30iZBHGU62TkxbpNirbDjdLjfC1vRX
-   XcAMwb8JMrr2g3EGreBunnUT6d30SuY2BCxhizWXm5c8IO6lagAo2Wtht
-   BPogSNljyF1dwlmSDZUFa0JXRF+PcYZcI55ufoQfW6QfunidVDQM+iCRC
-   ucCQFYkrEhfT898j/1+ABQe0aVwj6Unaem3ll0qNCi3TDKYuGGxFzy8jm
-   oJE5hkURgB0mzuHeJexw8kh1ZhRqKkgjaWHUBdNsyZFK3DBVhiBXftHBl
-   Bh8hzS/LR+LOnvmwUcpMGH3asEP3fsQRhVBs0RyX5hMLJ9Pwa7z5jwtSg
-   Q==;
-X-CSE-ConnectionGUID: OH/OeSmgQBmxFx8p2VWZFA==
-X-CSE-MsgGUID: TC44z7LuRoGuSHyG2bQBVA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11720"; a="77714596"
-X-IronPort-AV: E=Sophos;i="6.23,103,1770624000"; 
-   d="scan'208";a="77714596"
-Received: from orviesa008.jf.intel.com ([10.64.159.148])
-  by fmvoesa106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Mar 2026 12:20:04 -0800
-X-CSE-ConnectionGUID: bC/qC8JjSe6l4ckthTlsNA==
-X-CSE-MsgGUID: rwuba9+YRKeSqiYME3ysFg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.23,103,1770624000"; 
-   d="scan'208";a="218776277"
-Received: from lkp-server01.sh.intel.com (HELO cadc4577a874) ([10.239.97.150])
-  by orviesa008.jf.intel.com with ESMTP; 05 Mar 2026 12:20:01 -0800
-Received: from kbuild by cadc4577a874 with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1vyFAr-000000001Bu-1fKc;
-	Thu, 05 Mar 2026 20:19:57 +0000
-Date: Fri, 6 Mar 2026 04:19:09 +0800
-From: kernel test robot <lkp@intel.com>
-To: Haifeng Xu <haifeng.xu@shopee.com>, rafael@kernel.org, lenb@kernel.org,
-	dan.j.williams@intel.com, jonathan.cameron@huawei.com
-Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev, dave@stgolabs.net,
-	dave.jiang@intel.com, alison.schofield@intel.com,
-	vishal.l.verma@intel.com, ira.weiny@intel.com,
-	linux-cxl@vger.kernel.org, linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Haifeng Xu <haifeng.xu@shopee.com>
-Subject: Re: [PATCH] ACPI: add a boot parameter to disable parsing CFMWS
- during NUMA init
-Message-ID: <202603060405.6xBosunB-lkp@intel.com>
-References: <20260304080647.169434-1-haifeng.xu@shopee.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="t8NX1EBR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F3C4C19425;
+	Thu,  5 Mar 2026 20:29:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1772742554;
+	bh=8U6oCaz2fszjX0uJDiK5nFm+1kN/ZxnPUg0Hj9h2Qyg=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=t8NX1EBRD0hxHnXP1yJDXKiGll76O/NmVv1jMSuxTgVMFb5THrHWoMXkbYoJi7Voz
+	 MTKJLiz9I4953q3e7NCKqtyPMmrznRi8g4PKkqxslR3f+6JsEcENA247ugvKV9+IAX
+	 WRUMpdrIL5ACuP7/V1DvWPWUDlJZiLwlBdePPYd+ZwjKkhiSvI+DXGyUTEFILcTusg
+	 L+Tn58+6H2YHxuoifRQqprri9xI+eiNNBrrOUy84g1dlEztT2SDRSaqYwUqPIqIFR5
+	 oJt1SF74UG9ErymwY1JKf3RXqEI2enl3v+dA6sBzo6/VwwZDhQ4AWbFS6L6GKGsvW0
+	 BI5Vosv3/KpMA==
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+To: Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Hans de Goede <hansg@kernel.org>,
+ Ilpo =?ISO-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+ platform-driver-x86@vger.kernel.org, amd-gfx@lists.freedesktop.org,
+ Alex Deucher <alexander.deucher@amd.com>,
+ Christian =?ISO-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>
+Subject: [PATCH v1 9/9] ACPI: AC: Define ACPI_AC_CLASS in one place
+Date: Thu, 05 Mar 2026 21:27:28 +0100
+Message-ID: <2787819.X9hSmTKtgW@rafael.j.wysocki>
+Organization: Linux Kernel Development
+In-Reply-To: <4505861.ejJDZkT8p0@rafael.j.wysocki>
+References: <4505861.ejJDZkT8p0@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260304080647.169434-1-haifeng.xu@shopee.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
 
-Hi Haifeng,
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-kernel test robot noticed the following build warnings:
+The ACPI_AC_CLASS symbol is defined in several places in the same way
+which is rather unfortunate.
 
-[auto build test WARNING on rafael-pm/linux-next]
-[also build test WARNING on rafael-pm/bleeding-edge cxl/next tip/x86/mm linus/master v7.0-rc2 next-20260305]
-[cannot apply to cxl/pending]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
+Instead, define it in one common header file (acpi_bus.h) that is
+already included by all of its users.
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Haifeng-Xu/ACPI-add-a-boot-parameter-to-disable-parsing-CFMWS-during-NUMA-init/20260304-160933
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
-patch link:    https://lore.kernel.org/r/20260304080647.169434-1-haifeng.xu%40shopee.com
-patch subject: [PATCH] ACPI: add a boot parameter to disable parsing CFMWS during NUMA init
-config: x86_64-kexec (https://download.01.org/0day-ci/archive/20260306/202603060405.6xBosunB-lkp@intel.com/config)
-compiler: clang version 20.1.8 (https://github.com/llvm/llvm-project 87f0227cb60147a26a1eeb4fb06e3b505e9c7261)
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260306/202603060405.6xBosunB-lkp@intel.com/reproduce)
+No intentional functional impact.
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202603060405.6xBosunB-lkp@intel.com/
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/ac.c                         |    1 -
+ drivers/acpi/sbs.c                        |    1 -
+ drivers/gpu/drm/amd/include/amd_acpi.h    |    2 --
+ drivers/gpu/drm/radeon/radeon_acpi.c      |    2 --
+ drivers/platform/x86/hp/hp-wmi.c          |    2 --
+ drivers/platform/x86/lenovo/wmi-capdata.c |    1 -
+ include/acpi/acpi_bus.h                   |    2 ++
+ 7 files changed, 2 insertions(+), 9 deletions(-)
 
-All warnings (new ones prefixed by >>):
+--- a/drivers/acpi/ac.c
++++ b/drivers/acpi/ac.c
+@@ -21,7 +21,6 @@
+ #include <linux/acpi.h>
+ #include <acpi/battery.h>
+ 
+-#define ACPI_AC_CLASS			"ac_adapter"
+ #define ACPI_AC_FILE_STATE		"state"
+ #define ACPI_AC_NOTIFY_STATUS		0x80
+ #define ACPI_AC_STATUS_OFFLINE		0x00
+--- a/drivers/acpi/sbs.c
++++ b/drivers/acpi/sbs.c
+@@ -26,7 +26,6 @@
+ 
+ #include "sbshc.h"
+ 
+-#define ACPI_AC_CLASS			"ac_adapter"
+ #define ACPI_SBS_DEVICE_NAME		"Smart Battery System"
+ #define ACPI_BATTERY_DIR_NAME		"BAT%i"
+ #define ACPI_AC_DIR_NAME		"AC0"
+--- a/drivers/gpu/drm/amd/include/amd_acpi.h
++++ b/drivers/gpu/drm/amd/include/amd_acpi.h
+@@ -26,8 +26,6 @@
+ 
+ #include <linux/types.h>
+ 
+-#define ACPI_AC_CLASS           "ac_adapter"
+-
+ struct atif_verify_interface {
+ 	u16 size;		/* structure size in bytes (includes size field) */
+ 	u16 version;		/* version */
+--- a/drivers/gpu/drm/radeon/radeon_acpi.c
++++ b/drivers/gpu/drm/radeon/radeon_acpi.c
+@@ -44,8 +44,6 @@ bool radeon_atpx_dgpu_req_power_for_disp
+ static inline bool radeon_atpx_dgpu_req_power_for_displays(void) { return false; }
+ #endif
+ 
+-#define ACPI_AC_CLASS           "ac_adapter"
+-
+ struct atif_verify_interface {
+ 	u16 size;		/* structure size in bytes (includes size field) */
+ 	u16 version;		/* version */
+--- a/drivers/platform/x86/hp/hp-wmi.c
++++ b/drivers/platform/x86/hp/hp-wmi.c
+@@ -58,8 +58,6 @@ enum hp_ec_offsets {
+ #define HP_POWER_LIMIT_DEFAULT	 0x00
+ #define HP_POWER_LIMIT_NO_CHANGE 0xFF
+ 
+-#define ACPI_AC_CLASS "ac_adapter"
+-
+ #define zero_if_sup(tmp) (zero_insize_support?0:sizeof(tmp)) // use when zero insize is required
+ 
+ enum hp_thermal_profile_omen_v0 {
+--- a/drivers/platform/x86/lenovo/wmi-capdata.c
++++ b/drivers/platform/x86/lenovo/wmi-capdata.c
+@@ -53,7 +53,6 @@
+ #define LENOVO_CAPABILITY_DATA_01_GUID "7A8F5407-CB67-4D6E-B547-39B3BE018154"
+ #define LENOVO_FAN_TEST_DATA_GUID "B642801B-3D21-45DE-90AE-6E86F164FB21"
+ 
+-#define ACPI_AC_CLASS "ac_adapter"
+ #define ACPI_AC_NOTIFY_STATUS 0x80
+ 
+ #define LWMI_FEATURE_ID_FAN_TEST 0x05
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -613,6 +613,8 @@ struct acpi_bus_event {
+ 	u32 data;
+ };
+ 
++#define ACPI_AC_CLASS	"ac_adapter"
++
+ extern struct kobject *acpi_kobj;
+ extern int acpi_bus_generate_netlink_event(const char*, const char*, u8, int);
+ void acpi_bus_private_data_handler(acpi_handle, void *);
 
->> drivers/acpi/numa/srat.c:323:12: warning: no previous prototype for function 'cfmws_disabled' [-Wmissing-prototypes]
-     323 | int __init cfmws_disabled(void)
-         |            ^
-   drivers/acpi/numa/srat.c:323:1: note: declare 'static' if the function is not intended to be used outside of this translation unit
-     323 | int __init cfmws_disabled(void)
-         | ^
-         | static 
-   1 warning generated.
 
 
-vim +/cfmws_disabled +323 drivers/acpi/numa/srat.c
-
-   322	
- > 323	int __init cfmws_disabled(void)
-   324	{
-   325		return cfmws_numa < 0;
-   326	}
-   327	
-
--- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
