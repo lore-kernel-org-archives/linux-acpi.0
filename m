@@ -1,31 +1,30 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 203241FBCA7;
-	Thu,  5 Mar 2026 19:48:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B99D43D5674;
+	Thu,  5 Mar 2026 19:48:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772740104; cv=none; b=C2ikiNMD9m+qBs8n6WsKsP/s3Mi3JDNoWxImn1xv5GShepkbSNh2TfLQuC5/yv5sDVpNcheGHggKBKMMOXMMLuVFryweuaIoM55saPbEu/+24hiy58v1XI8HYeqVTgyqBA50q5ItszOoNmaXMCRkjbAzVhVfa5lw1nogawrzSHo=
+	t=1772740107; cv=none; b=j+XIJPR42z2TPpw5XTvXzlYRp4hfkYdFNtNCtwN3MTkCcRdTKDVutmZDxL9H3vY6YHOwWAfpQHyiwrOXHIuhUtdpV932+mH6QizhRF59VaTYI3Vtn7+4fvfowSaGY4F6+vxO6dfQUPK68vJLVeIlSVXZvBEEkESm9qQ03iQyMrs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772740104; c=relaxed/simple;
-	bh=ArBEjEEehMlFNLpth2XtCfGINxTQbnR6YRcCNjwC3KQ=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=AlsG0mAZmLGysm6s6gUjRhszSTSFZNFG3x6M+02s4CIcfJ3hjGirO3MGtGoExCgc9LiZDvGwkBSXefwViqMzpfMtTzxsHI4ymNCkKRgpKomJ1E4YMasYW4rMqAurdqtEQBoJw6x+bw9Nm3JtvMQwu5RpTdbbZPP4L7UXniLYgiY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TNta+q2z; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772740107; c=relaxed/simple;
+	bh=Q6ykonlFe2mgyaKN7sWNkRX7x30AtH4qyp5TZe1QvhQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=eTlKIeJObe9KG5i+LvQcvPcV+a9GIAogICtzBQyB8cdaEAF3jKndLDXoQPxojZJ34pCP3TzKVPBrFvJ7X01KeLEcxnt/BmirqsG3Wdreb0J5PEx/fyg+LPX+/YlqqNBZPT3dPuckvdK52SinZ3Ysd+cKzg2GRbsSdCA/sjVwn0s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=plcPweRy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TNta+q2z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7F05C19422;
-	Thu,  5 Mar 2026 19:48:21 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="plcPweRy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0D94C116C6;
+	Thu,  5 Mar 2026 19:48:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1772740103;
-	bh=ArBEjEEehMlFNLpth2XtCfGINxTQbnR6YRcCNjwC3KQ=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=TNta+q2zL8jzsX8hPgYBS3VLfKhWRwpp+tQzdsdLXftUZdiLZjWQNsAb1R6v9TufA
-	 zyDo8mRwL8rQXEeGaIhlPW+clySTAnpJVUSbD8ns95eaFmDC1TEQyVrUJULqEKQXXI
-	 pfBxaR2gDZcmCeJM2lmFnEBGwB95QEVBtvnYoa6VeyWebb/FfCsnCI+jLVeqtw8YX+
-	 4QcSWerm5fwltz3P+m+ovZjrgtdQy1rPuTVz5336Xm5QR4IiR7b+2x1dtxawnBUwlb
-	 CB4margG6aPMMwmZUBAY3ekc9hgbmuG9t07Fl75HNLOp66a3p8iI6IpTjftty4+Szy
-	 9FzjsSfwYpurA==
+	s=k20201202; t=1772740107;
+	bh=Q6ykonlFe2mgyaKN7sWNkRX7x30AtH4qyp5TZe1QvhQ=;
+	h=From:To:Cc:Subject:Date:From;
+	b=plcPweRyF2WVTBktlFd4LpsDSQgPNRsA4h+05M2DSTZyg8J4v2zRYcFbyrmvlNYeh
+	 fkyOLRAmt0n0s8zHffZ5d4VBFzqT2e3mv9rUw6ym9UiSVx2zorBn/u46haKTt2eY9Y
+	 qtoKoSDnuSvbFoCRvvSp7b5sJC7UFw+Bo/7t74rWnvrm+jJOBVZPifz32J4rg7Revs
+	 f7FsKHT8S+sAdkiI1oX90uX86HDsNIDUJ+ovoPj6OxATi/9E+LcsjcGqp+zejJm5Rs
+	 KaDtJqk0oweUXg5LBvTsNFuVLncc66K2uOEp62b2ESYQyhP8ysi4jzIEXKcch20H6p
+	 zfg20Xz1EjwVg==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Tzung-Bi Shih <tzungbi@kernel.org>
 Cc: chrome-platform@lists.linux.dev, LKML <linux-kernel@vger.kernel.org>,
@@ -33,13 +32,11 @@ Cc: chrome-platform@lists.linux.dev, LKML <linux-kernel@vger.kernel.org>,
  Enric Balletbo i Serra <eballetbo@kernel.org>,
  Ravi Chandra Sadineni <ravisadineni@chromium.org>
 Subject:
- [PATCH v2 1/6] platform/chrome: Convert ChromeOS privacy-screen driver to
- platform
-Date: Thu, 05 Mar 2026 20:37:54 +0100
-Message-ID: <1963835.tdWV9SEqCh@rafael.j.wysocki>
+ [PATCH v2 0/6] platform/chrome: Bind drivers to platform devices instead of
+ ACPI ones
+Date: Thu, 05 Mar 2026 20:34:58 +0100
+Message-ID: <6259948.lOV4Wx5bFT@rafael.j.wysocki>
 Organization: Linux Kernel Development
-In-Reply-To: <6259948.lOV4Wx5bFT@rafael.j.wysocki>
-References: <6259948.lOV4Wx5bFT@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -49,137 +46,50 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="UTF-8"
 
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Hi All,
 
-In all cases in which a struct acpi_driver is used for binding a driver
-to an ACPI device object, a corresponding platform device is created by
-the ACPI core and that device is regarded as a proper representation of
-underlying hardware.  Accordingly, a struct platform_driver should be
-used by driver code to bind to that device.  There are multiple reasons
-why drivers should not bind directly to ACPI device objects [1].
+This is a v2 of
 
-Overall, it is better to bind drivers to platform devices than to their
-ACPI companions, so convert the ChromeOS privacy-screen ACPI driver
-to a platform one.
+https://lore.kernel.org/linux-acpi/2274474.Mh6RI2rZIc@rafael.j.wysocki/
 
-While this is not expected to alter functionality, it changes sysfs
-layout and so it will be visible to user space.
+addressing review comments on patches [2/6] and [4/6].
 
-Link: https://lore.kernel.org/all/2396510.ElGaqSPkdT@rafael.j.wysocki/ [1]
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
+The series description below still applies.
 
-v1 -> v2: No changes
+This series is part of a larger effort to switch over all drivers using
+the struct acpi_driver interface to the more common struct platform_driver
+interface and eliminate the former.  The background is explained in
+Documentation/driver-api/acpi/acpi-drivers.rst and in the changelog of
+the patch that introduced the above document:
 
----
- .../platform/chrome/chromeos_privacy_screen.c | 41 ++++++++-----------
- 1 file changed, 18 insertions(+), 23 deletions(-)
+https://lore.kernel.org/all/2396510.ElGaqSPkdT@rafael.j.wysocki/
 
-diff --git a/drivers/platform/chrome/chromeos_privacy_screen.c b/drivers/platform/chrome/chromeos_privacy_screen.c
-index bb74ddf9af4a..abc5d189a389 100644
---- a/drivers/platform/chrome/chromeos_privacy_screen.c
-+++ b/drivers/platform/chrome/chromeos_privacy_screen.c
-@@ -12,6 +12,7 @@
-  */
- 
- #include <linux/acpi.h>
-+#include <linux/platform_device.h>
- #include <drm/drm_privacy_screen_driver.h>
- 
- /*
-@@ -32,11 +33,10 @@ chromeos_privacy_screen_get_hw_state(struct drm_privacy_screen
- 				     *drm_privacy_screen)
- {
- 	union acpi_object *obj;
--	acpi_handle handle;
- 	struct device *privacy_screen =
- 		drm_privacy_screen_get_drvdata(drm_privacy_screen);
-+	acpi_handle handle = ACPI_HANDLE(privacy_screen);
- 
--	handle = acpi_device_handle(to_acpi_device(privacy_screen));
- 	obj = acpi_evaluate_dsm(handle, &chromeos_privacy_screen_dsm_guid,
- 				PRIV_SCRN_DSM_REVID,
- 				PRIV_SCRN_DSM_FN_GET_STATUS, NULL);
-@@ -65,11 +65,9 @@ chromeos_privacy_screen_set_sw_state(struct drm_privacy_screen
- 				     enum drm_privacy_screen_status state)
- {
- 	union acpi_object *obj = NULL;
--	acpi_handle handle;
- 	struct device *privacy_screen =
- 		drm_privacy_screen_get_drvdata(drm_privacy_screen);
--
--	handle = acpi_device_handle(to_acpi_device(privacy_screen));
-+	acpi_handle handle = ACPI_HANDLE(privacy_screen);
- 
- 	if (state == PRIVACY_SCREEN_DISABLED) {
- 		obj = acpi_evaluate_dsm(handle,
-@@ -104,30 +102,28 @@ static const struct drm_privacy_screen_ops chromeos_privacy_screen_ops = {
- 	.set_sw_state = chromeos_privacy_screen_set_sw_state,
- };
- 
--static int chromeos_privacy_screen_add(struct acpi_device *adev)
-+static int chromeos_privacy_screen_probe(struct platform_device *pdev)
- {
- 	struct drm_privacy_screen *drm_privacy_screen =
--		drm_privacy_screen_register(&adev->dev,
-+		drm_privacy_screen_register(&pdev->dev,
- 					    &chromeos_privacy_screen_ops,
--					    &adev->dev);
-+					    &pdev->dev);
- 
- 	if (IS_ERR(drm_privacy_screen)) {
--		dev_err(&adev->dev, "Error registering privacy-screen\n");
-+		dev_err(&pdev->dev, "Error registering privacy-screen\n");
- 		return PTR_ERR(drm_privacy_screen);
- 	}
- 
--	adev->driver_data = drm_privacy_screen;
--	dev_info(&adev->dev, "registered privacy-screen '%s'\n",
-+	platform_set_drvdata(pdev, drm_privacy_screen);
-+	dev_info(&pdev->dev, "registered privacy-screen '%s'\n",
- 		 dev_name(&drm_privacy_screen->dev));
- 
- 	return 0;
- }
- 
--static void chromeos_privacy_screen_remove(struct acpi_device *adev)
-+static void chromeos_privacy_screen_remove(struct platform_device *pdev)
- {
--	struct drm_privacy_screen *drm_privacy_screen =	acpi_driver_data(adev);
--
--	drm_privacy_screen_unregister(drm_privacy_screen);
-+	drm_privacy_screen_unregister(platform_get_drvdata(pdev));
- }
- 
- static const struct acpi_device_id chromeos_privacy_screen_device_ids[] = {
-@@ -136,17 +132,16 @@ static const struct acpi_device_id chromeos_privacy_screen_device_ids[] = {
- };
- MODULE_DEVICE_TABLE(acpi, chromeos_privacy_screen_device_ids);
- 
--static struct acpi_driver chromeos_privacy_screen_driver = {
--	.name = "chromeos_privacy_screen_driver",
--	.class = "ChromeOS",
--	.ids = chromeos_privacy_screen_device_ids,
--	.ops = {
--		.add = chromeos_privacy_screen_add,
--		.remove = chromeos_privacy_screen_remove,
-+static struct platform_driver chromeos_privacy_screen_driver = {
-+	.probe = chromeos_privacy_screen_probe,
-+	.remove = chromeos_privacy_screen_remove,
-+	.driver = {
-+		.name = "chromeos_privacy_screen_driver",
-+		.acpi_match_table = chromeos_privacy_screen_device_ids,
- 	},
- };
- 
--module_acpi_driver(chromeos_privacy_screen_driver);
-+module_platform_driver(chromeos_privacy_screen_driver);
- MODULE_LICENSE("GPL v2");
- MODULE_DESCRIPTION("ChromeOS ACPI Privacy Screen driver");
- MODULE_AUTHOR("Rajat Jain <rajatja@google.com>");
--- 
-2.51.0
+The bottom line is that the kernel would be better off without struct
+acpi_driver and so it is better to get rid of it.
 
+This series carries out driver conversions of Chrome platform drivers.
+
+Patche [1/6] converts the ChromeOS privacy screen driver to using struct
+platform_driver for device binding.
+
+Patche [2/6] fixes a wakeup source object leak on remove in the
+chromeos_tbmc driver.
+
+Patch [3/6] updates the chromeos_tbmc driver to install an ACPI notify
+handler by itself instead of using the .notify() callback from struct
+acpi_driver, which is requisite for the driver conversion.
+
+Patche [4/6] converts the chromeos_tbmc driver to using struct platform_driver
+for device binding.
+
+Patch [5/6] updates the wilco_ec-event driver to install an ACPI notify
+handler by itself instead of using the .notify() callback from struct
+acpi_driver, which is requisite for the driver conversion.
+
+Patche [6/6] converts the wilco_ec-event driver to using struct platform_driver
+for device binding.
+
+Thanks!
 
 
 
