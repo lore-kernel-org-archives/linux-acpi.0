@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3352287257;
-	Thu,  5 Mar 2026 19:48:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBE443A7F4F;
+	Thu,  5 Mar 2026 19:48:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772740092; cv=none; b=m6MXoB+yCT4zA7E4BCKrcjRC8yv390vEt1zAd3HZbLltxLdLekTAre9WtKGj3+EwXhuy3p+GF0Ve3G0Bht7F6l4FKatpad0ZP5+Jtv4hY6nBNoKCPglNZ/rT8f1l+P7fvYJALLgxsCN173zZOChPYf4FGAmT+dZkFWncciWrZpw=
+	t=1772740096; cv=none; b=QYywvdLovRcnZ9T2N77i8QhW96yTY9Um81AHg9K8dTXxn21DqXDX5bC0onwLDJbiUYx1xO98Hx7gzIh8DVwz4FurzhZGfc/hSoyE1PxSizoQnc+w+aninFwG23yRF3ga8GnJhDLspZYjkO4/PuBCeJyJWUYNzaXXdWjIHb0O8jU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772740092; c=relaxed/simple;
-	bh=yawNC3/TxNcH+OB5pG83WCAh7HJ5dwYdwe7kKNkMnHg=;
+	s=arc-20240116; t=1772740096; c=relaxed/simple;
+	bh=9yJer96MzJXuZvdxv6mJybxoA3s/Seq/8IaWNJOiWZY=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=WI0iTi+z38hBGYVgMoknC5p2CUGUZZzD75GdYR7F31T3oc4mXI3SZIgkOuql42D1XMKaX45DLWfnV8295N4vwUS3Il6sW4/1FKX/YEHOT89OxhasdsIPXcEWgqOZX7fj/NedTABmaRVCYI0t5Slk/7UrU/9bylmtSm4Cow4bJzA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=B2gQWeK/; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=ZYOt4c59mL5P9YDCjfEjL54Hjt+C629VdwX28ifWDe6pdA96F7BK9x185Bmedo+rsmMtIeGBXbMHeScrG94uflKn2L3UZ6G41zz0GrLFzWj42DDxJGA+YA2J3IpwNPRErimK5UGDkMk+E6aqXZjlLh3SDjHYt7nwCOYdR2WSr7E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NbelGDBp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="B2gQWeK/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 476A6C116C6;
-	Thu,  5 Mar 2026 19:48:10 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NbelGDBp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0F6BC2BC9E;
+	Thu,  5 Mar 2026 19:48:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1772740091;
-	bh=yawNC3/TxNcH+OB5pG83WCAh7HJ5dwYdwe7kKNkMnHg=;
+	s=k20201202; t=1772740095;
+	bh=9yJer96MzJXuZvdxv6mJybxoA3s/Seq/8IaWNJOiWZY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=B2gQWeK/YxvQLY+ypXqzCLQO8gAzDmT72p4teuVRmGyw3RWriocml+AS3/s62v3ht
-	 ols8cNDUkf9By9fBf0sV5LHMJ8BKIBY4kBTgWMUvLy9XiLfKyJRd6DUs2/Hp3+J5/A
-	 bzEuapQkhy+z068TgJ4VoOkcQfs2+xpBrKI+OSSPQ0AtTV9DXnqXXq32edIWhOq+sV
-	 +HZu2qns05di6nKmRp5xt/0L8HgbdOMEKrHFMaXGze0QWTPIghIgPZaihBhEnIVfKF
-	 4WI4FbP50MnyzvyDeAXXidag+PAMqsbNcLrl/Oyq8R8TkO9hru8tVgX88OmaWe0gOz
-	 wXWS9sX2u+tTg==
+	b=NbelGDBp3wkzHB3rzx8aJe4OKMR54PPB267ejld2fr6/Hq9mD2OSCq9qFOsthSjzF
+	 lrdaJ1yV4XPDOc9W/bHIZdcc03l9l2ArfgsEFVbe9xTnKObXi574LdkmI1pcJAJRc1
+	 HTKfBgAaJwONrGDBNpQvPDVgQ0+Dq0LfEJGUWe9VC3rW0RZ3hkujVwN6G65qnlzTZx
+	 FjzLA9miFdGIo6FchoVOOgsUui3Q2SgVOVfLcMfel5Ecgt3SkQhqJpXDaFRdUcPMVp
+	 E4E25/di3sSMHBGX6/52wpC0gC02QG277qytx7izDDE99kq4FX+0qY+feyVodh7lEI
+	 W2oZENK/UfRCA==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Tzung-Bi Shih <tzungbi@kernel.org>
 Cc: chrome-platform@lists.linux.dev, LKML <linux-kernel@vger.kernel.org>,
@@ -33,9 +33,9 @@ Cc: chrome-platform@lists.linux.dev, LKML <linux-kernel@vger.kernel.org>,
  Enric Balletbo i Serra <eballetbo@kernel.org>,
  Ravi Chandra Sadineni <ravisadineni@chromium.org>
 Subject:
- [PATCH v2 5/6] platform/chrome: wilco_ec: event: Register ACPI notify handler
-Date: Thu, 05 Mar 2026 20:43:59 +0100
-Message-ID: <7931926.EvYhyI6sBW@rafael.j.wysocki>
+ [PATCH v2 4/6] platform/chrome: chromeos_tbmc: Convert to a platform driver
+Date: Thu, 05 Mar 2026 20:42:25 +0100
+Message-ID: <10827297.nUPlyArG6x@rafael.j.wysocki>
 Organization: Linux Kernel Development
 In-Reply-To: <6259948.lOV4Wx5bFT@rafael.j.wysocki>
 References: <6259948.lOV4Wx5bFT@rafael.j.wysocki>
@@ -50,78 +50,152 @@ Content-Type: text/plain; charset="UTF-8"
 
 From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-To facilitate subsequent conversion of the driver to a platform one,
-make it install an ACPI notify handler directly instead of using
-a .notify() callback in struct acpi_driver.
+In all cases in which a struct acpi_driver is used for binding a driver
+to an ACPI device object, a corresponding platform device is created by
+the ACPI core and that device is regarded as a proper representation of
+underlying hardware.  Accordingly, a struct platform_driver should be
+used by driver code to bind to that device.  There are multiple reasons
+why drivers should not bind directly to ACPI device objects [1].
 
-No intentional functional impact.
+Overall, it is better to bind drivers to platform devices than to their
+ACPI companions, so convert the ChromeOS tablet mode change (TBMC) ACPI
+driver to a platform one.
 
+After this change, the subordinate input device and wakeup source class
+device will be registered under the platform device used for driver
+binding instead of its ACPI companion.
+
+While this is not expected to alter functionality, it changes sysfs
+layout and so it will be visible to user space.
+
+Link: https://lore.kernel.org/all/2396510.ElGaqSPkdT@rafael.j.wysocki/ [1]
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
 
-v1 -> v2: No changes
+v1 -> v2:
+   * Pass dev to acpi_pm_wakeup_event() in chromeos_tbmc_notify() (Tzung-Bi Shih)
+   * Pass ACPI_COMPANION(dev) directly to chromeos_tbmc_query_switch in
+     chromeos_tbmc_notify()
 
 ---
- drivers/platform/chrome/wilco_ec/event.c | 17 ++++++++++++++---
- 1 file changed, 14 insertions(+), 3 deletions(-)
+ drivers/platform/chrome/chromeos_tbmc.c | 47 ++++++++++++-------------
+ 1 file changed, 23 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/platform/chrome/wilco_ec/event.c b/drivers/platform/chrome/wilco_ec/event.c
-index 743cd4839bff..f4500dd05f93 100644
---- a/drivers/platform/chrome/wilco_ec/event.c
-+++ b/drivers/platform/chrome/wilco_ec/event.c
-@@ -253,14 +253,16 @@ static int enqueue_events(struct acpi_device *adev, const u8 *buf, u32 length)
+diff --git a/drivers/platform/chrome/chromeos_tbmc.c b/drivers/platform/chrome/chromeos_tbmc.c
+index 9c988e697d09..5133806b2d95 100644
+--- a/drivers/platform/chrome/chromeos_tbmc.c
++++ b/drivers/platform/chrome/chromeos_tbmc.c
+@@ -16,6 +16,7 @@
+ #include <linux/input.h>
+ #include <linux/io.h>
+ #include <linux/module.h>
++#include <linux/platform_device.h>
+ #include <linux/printk.h>
  
- /**
-  * event_device_notify() - Callback when EC generates an event over ACPI.
-- * @adev: The device that the event is coming from.
-+ * @handle: ACPI handle of the device that the event is coming from.
-  * @value: Value passed to Notify() in ACPI.
-+ * @data: Notify handler data.
-  *
-  * This function will read the events from the device and enqueue them.
-  */
--static void event_device_notify(struct acpi_device *adev, u32 value)
-+static void event_device_notify(acpi_handle handle, u32 value, void *data)
+ #define DRV_NAME "chromeos_tbmc"
+@@ -40,22 +41,20 @@ static int chromeos_tbmc_query_switch(struct acpi_device *adev,
+ 
+ static __maybe_unused int chromeos_tbmc_resume(struct device *dev)
  {
- 	struct acpi_buffer event_buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-+	struct acpi_device *adev = data;
- 	union acpi_object *obj;
- 	acpi_status status;
+-	struct acpi_device *adev = to_acpi_device(dev);
+-
+-	return chromeos_tbmc_query_switch(adev, adev->driver_data);
++	return chromeos_tbmc_query_switch(ACPI_COMPANION(dev), dev_get_drvdata(dev));
+ }
  
-@@ -489,8 +491,16 @@ static int event_device_add(struct acpi_device *adev)
- 	if (error)
- 		goto free_dev_data;
+ static void chromeos_tbmc_notify(acpi_handle handle, u32 event, void *data)
+ {
+-	struct acpi_device *adev = data;
++	struct device *dev = data;
  
-+	/* Install an ACPI notify handler. */
-+	error = acpi_dev_install_notify_handler(adev, ACPI_DEVICE_NOTIFY,
-+						event_device_notify, adev);
-+	if (error)
-+		goto free_cdev;
-+
+-	acpi_pm_wakeup_event(&adev->dev);
++	acpi_pm_wakeup_event(dev);
+ 	switch (event) {
+ 	case 0x80:
+-		chromeos_tbmc_query_switch(adev, adev->driver_data);
++		chromeos_tbmc_query_switch(ACPI_COMPANION(dev), dev_get_drvdata(dev));
+ 		break;
+ 	default:
+-		dev_err(&adev->dev, "Unexpected event: 0x%08X\n", event);
++		dev_err(dev, "Unexpected event: 0x%08X\n", event);
+ 	}
+ }
+ 
+@@ -66,10 +65,11 @@ static int chromeos_tbmc_open(struct input_dev *idev)
+ 	return chromeos_tbmc_query_switch(adev, idev);
+ }
+ 
+-static int chromeos_tbmc_add(struct acpi_device *adev)
++static int chromeos_tbmc_probe(struct platform_device *pdev)
+ {
+ 	struct input_dev *idev;
+-	struct device *dev = &adev->dev;
++	struct device *dev = &pdev->dev;
++	struct acpi_device *adev = ACPI_COMPANION(dev);
+ 	int ret;
+ 
+ 	idev = devm_input_allocate_device(dev);
+@@ -85,7 +85,7 @@ static int chromeos_tbmc_add(struct acpi_device *adev)
+ 	idev->open = chromeos_tbmc_open;
+ 
+ 	input_set_drvdata(idev, adev);
+-	adev->driver_data = idev;
++	platform_set_drvdata(pdev, idev);
+ 
+ 	input_set_capability(idev, EV_SW, SW_TABLET_MODE);
+ 	ret = input_register_device(idev);
+@@ -96,7 +96,7 @@ static int chromeos_tbmc_add(struct acpi_device *adev)
+ 	device_init_wakeup(dev, true);
+ 
+ 	ret = acpi_dev_install_notify_handler(adev, ACPI_DEVICE_NOTIFY,
+-					      chromeos_tbmc_notify, adev);
++					      chromeos_tbmc_notify, dev);
+ 	if (ret) {
+ 		dev_err(dev, "cannot install ACPI notify handler\n");
+ 		device_init_wakeup(dev, false);
+@@ -106,11 +106,11 @@ static int chromeos_tbmc_add(struct acpi_device *adev)
  	return 0;
+ }
  
-+free_cdev:
-+	cdev_device_del(&dev_data->cdev, &dev_data->dev);
- free_dev_data:
- 	hangup_device(dev_data);
- free_minor:
-@@ -502,6 +512,8 @@ static void event_device_remove(struct acpi_device *adev)
+-static void chromeos_tbmc_remove(struct acpi_device *adev)
++static void chromeos_tbmc_remove(struct platform_device *pdev)
  {
- 	struct event_device_data *dev_data = adev->driver_data;
+-	acpi_dev_remove_notify_handler(adev, ACPI_DEVICE_NOTIFY,
+-				       chromeos_tbmc_notify);
+-	device_init_wakeup(&adev->dev, false);
++	acpi_dev_remove_notify_handler(ACPI_COMPANION(&pdev->dev),
++				       ACPI_DEVICE_NOTIFY, chromeos_tbmc_notify);
++	device_init_wakeup(&pdev->dev, false);
+ }
  
-+	acpi_dev_remove_notify_handler(adev, ACPI_DEVICE_NOTIFY,
-+				       event_device_notify);
- 	cdev_device_del(&dev_data->cdev, &dev_data->dev);
- 	ida_free(&event_ida, MINOR(dev_data->dev.devt));
- 	hangup_device(dev_data);
-@@ -519,7 +531,6 @@ static struct acpi_driver event_driver = {
- 	.ids = event_acpi_ids,
- 	.ops = {
- 		.add = event_device_add,
--		.notify = event_device_notify,
- 		.remove = event_device_remove,
+ static const struct acpi_device_id chromeos_tbmc_acpi_device_ids[] = {
+@@ -122,18 +122,17 @@ MODULE_DEVICE_TABLE(acpi, chromeos_tbmc_acpi_device_ids);
+ static SIMPLE_DEV_PM_OPS(chromeos_tbmc_pm_ops, NULL,
+ 		chromeos_tbmc_resume);
+ 
+-static struct acpi_driver chromeos_tbmc_driver = {
+-	.name = DRV_NAME,
+-	.class = DRV_NAME,
+-	.ids = chromeos_tbmc_acpi_device_ids,
+-	.ops = {
+-		.add = chromeos_tbmc_add,
+-		.remove = chromeos_tbmc_remove,
++static struct platform_driver chromeos_tbmc_driver = {
++	.probe = chromeos_tbmc_probe,
++	.remove = chromeos_tbmc_remove,
++	.driver = {
++		.name = DRV_NAME,
++		.acpi_match_table = chromeos_tbmc_acpi_device_ids,
++		.pm = &chromeos_tbmc_pm_ops,
  	},
+-	.drv.pm = &chromeos_tbmc_pm_ops,
  };
+ 
+-module_acpi_driver(chromeos_tbmc_driver);
++module_platform_driver(chromeos_tbmc_driver);
+ 
+ MODULE_LICENSE("GPL v2");
+ MODULE_DESCRIPTION("ChromeOS ACPI tablet switch driver");
 -- 
 2.51.0
 
