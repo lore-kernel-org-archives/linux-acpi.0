@@ -1,166 +1,299 @@
-Received: from mail-ed1-f46.google.com (mail-ed1-f46.google.com [209.85.208.46])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1BA530CD81
-	for <linux-acpi@vger.kernel.org>; Tue, 10 Mar 2026 15:14:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.46
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 3BB32221FDE;
+	Tue, 10 Mar 2026 15:59:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773155648; cv=none; b=g+yMmUt2nAjKObz6PPDITkihDosmjT9w8qhm21TU3W1K6U65FOEXmc/aQkRzjg0uk3i0KnTxOcF8BnAvMz60taBnhYRzUARadHtzrwceA1caUgKjxrDqDbKHiIsmxmc00kcvYtCGdjZdxWEyGlMBZmoCVDKedW0+l7ObyxXNhz4=
+	t=1773158343; cv=none; b=VPw2CsX+WICGfmwK2Qapfief6u3o34/zGb4itaVsjtIUP11Z5lkyNEj/etIZ3hiBPaCuyLfR/IIeQ3IClHaPXoJ5F//mClq5JaGQYWEwuW8dQW05LnN/7L0LMazlE4NgvVLDzTpYNz+JmfJdHDVhboR3pXGc0e5H+pp3xGz8eME=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773155648; c=relaxed/simple;
-	bh=l66roiogcZuRuWdg/BN7GAGFpuk8qIZkWg5A5bU5kEI=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=UpQJhWAQxXz+CcHv41HU33KuEK9mj5NWtxlITy7QoJtF3e6hnsP9E64gxN/4vT5NDUBhsnD90Mhzcc9Ss45gC+Qdg0d3iK/+MHSTvBsfUoHy+m1sldP2FAZfISNMApwJhAOO4JJPW7+dp8icS5WUDHIhG8t+0AIjP1lA1Mff+Ao=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=nId8UIa5; arc=none smtp.client-ip=209.85.208.46
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="nId8UIa5"
-Received: by mail-ed1-f46.google.com with SMTP id 4fb4d7f45d1cf-6611e4aefdcso10534540a12.3
-        for <linux-acpi@vger.kernel.org>; Tue, 10 Mar 2026 08:14:06 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1773155645; x=1773760445; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=ZrhwHJgKfQunIbqKLgGEw/Kos9vy+e6R49GEIQjjeck=;
-        b=nId8UIa5R11Pp9py1+B/qkAUATgqgsb1/rN3ytyvIXIc65Oww+poZVDL0ZvetkZCq+
-         4ZMBNLwPZVSR6146dklFoCofnQD3xPhgmyVzU0e22vvoT/jib22Lcy5rkLOb5oK9SJoT
-         CAHbhtMWRKgiKieJUEj9Mk7As9F5zYPAuo+Oo=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1773155645; x=1773760445;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=ZrhwHJgKfQunIbqKLgGEw/Kos9vy+e6R49GEIQjjeck=;
-        b=J3Opl1DzBLzdsZoadwkRUP5XRkA6XCNWqRj/YvC2cxysy7x+ndIaEaV1V2bJcNe1Lz
-         ldaL5Ajh4FN54Z2WO2Nl01Me6YdrznW8lQoQWJiwtyIaLiPGC88Djb4Cf2PsLv4DozEn
-         rzFqCujPU9O1zMUaWP7QmqlBH1ZzlEsB0QUn6q3qnOdzmDlwF91432Wo9L/At5fOKg+X
-         Bd31jO524gSSYW/mQRsKcLUGubBdetlP2WEBqanj4j2QaqSXcHqDRUTkWiUxr++k4iVN
-         81dpDQAUp5MMvRNmmGYCKmZRX2LGD+y7V8G9/UbJEP2pKxcEImndRV3Ercb5iu8a8HkA
-         dJDA==
-X-Forwarded-Encrypted: i=1; AJvYcCW9qGl+mdP2WU/tEnwRtd43DQ6iAFqf/RVW5saZtHKOTOc3KV+ao3OIazJPRhrkjv3gM/Ey0jfwMXSA@vger.kernel.org
-X-Gm-Message-State: AOJu0Yypv2+jtmyZkvLRJfL6SesZD3RLAdyAS6KscqFq9ZIEHElNAUS4
-	blROCHnm7Bfj7c8FNede9Lft4tqUJA13qYlxKY34q4OeZWfjWHV1El4b0I0pha7X945PMMjHQxq
-	/4/J5d9f/
-X-Gm-Gg: ATEYQzzUG42JYOu4403oJkhyHNysXJ6u3O+GqL21LU+Wkx0StV3xQL9YYl0nmwQ0Rf0
-	vxDJnIXHrVdumFaSSO5aruO6UGJGZUAbcJExrfQok/cjSnAlVcdX3FHjtcxOGBTC5sx7C1+4awl
-	tiDqQ52BI00rMjob5h2DWn6ioKsWdiRetHFVazu4OP/g4rz/nrBS40advRVEE5He+DliQoQ/lFg
-	gcwE0nJmZfagLGxwFAsQ+XGQbU/CsEiu16ROHjZ8t7vJwtohl6u99yM0fT/6KD4CAn83gbxo+L8
-	qMq//1DQEsyepa9z5fLO20Dli8BAzqVqXmvo/e87NYvnmVTXsbdBve8nVOj+BrAyZ74dKN1Cxh+
-	cG1ojxiG+u+pDoNn9PMjx6V6TS+y9QpzLEoxLiEbe4NnYqJbfNB4xppsqB0zmyh0KB6vZwyqQ6O
-	buLj3tDkwUvHzM/bhC69HENPg6ZbUVcdzOYIj5DLOXvuUw8JEzdJR0zIKQKx/prV3hSjS+AeR9
-X-Received: by 2002:a17:907:728e:b0:b94:2648:4672 with SMTP id a640c23a62f3a-b942e029155mr1009310166b.41.1773155644865;
-        Tue, 10 Mar 2026 08:14:04 -0700 (PDT)
-Received: from mail-ed1-f49.google.com (mail-ed1-f49.google.com. [209.85.208.49])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-b942f15c23fsm501096666b.49.2026.03.10.08.14.04
-        for <linux-acpi@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 10 Mar 2026 08:14:04 -0700 (PDT)
-Received: by mail-ed1-f49.google.com with SMTP id 4fb4d7f45d1cf-660dcafc85aso11991591a12.0
-        for <linux-acpi@vger.kernel.org>; Tue, 10 Mar 2026 08:14:04 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCVmyUKyjNpzGonbeeLVz/NJiXzxUSg1TmvdqLSL3tq9doNuqQnpSMGt3yynMvz6ksK1cxWkZfZLBO8Z@vger.kernel.org
-X-Received: by 2002:a05:600c:1d04:b0:47e:e7e5:ff32 with SMTP id
- 5b1f17b1804b1-48526983292mr236479455e9.34.1773155329681; Tue, 10 Mar 2026
- 08:08:49 -0700 (PDT)
+	s=arc-20240116; t=1773158343; c=relaxed/simple;
+	bh=1f75QKlaJC4uLCn5EEQAau2Bc8Hq5UZtFKTkM5R01rs=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=JRF6M4h7cyescgVwgFKcS6NdFLcpZlCBCCsCiWlmxDiOlNthH4akQbsaOoNNYp9WoSjh5/fqKYXikL3VStSH4jAiBfBCb9uTCu9eIIUgX6ID4qwr6wBzLXaP3rxex9iu7sjQGk+bCz3mZQuTdghAKi/VBbBO1wl6Co/beJV95/c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 72FB7169C;
+	Tue, 10 Mar 2026 08:58:54 -0700 (PDT)
+Received: from [192.168.20.93] (usa-sjc-mx-foss1.foss.arm.com [172.31.20.19])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 384493F7BD;
+	Tue, 10 Mar 2026 08:58:53 -0700 (PDT)
+Message-ID: <657142d1-1632-4a3e-8800-ee1dd5763d78@arm.com>
+Date: Tue, 10 Mar 2026 10:58:49 -0500
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260216181002.3475421-1-dianders@chromium.org>
- <20260216100943.v3.1.I600d04c0553f5c5ba39c2f92201da313aedfe746@changeid> <CABb+yY2RKJgyNQ6789ua6s8C4tuOvhWqdcS16_4yU3AHjAiv_A@mail.gmail.com>
-In-Reply-To: <CABb+yY2RKJgyNQ6789ua6s8C4tuOvhWqdcS16_4yU3AHjAiv_A@mail.gmail.com>
-From: Doug Anderson <dianders@chromium.org>
-Date: Tue, 10 Mar 2026 08:08:38 -0700
-X-Gmail-Original-Message-ID: <CAD=FV=U4te2V7MaOrQ8kSibLazqUy_Kv3ZcJyAAaCAiGWOY1Gw@mail.gmail.com>
-X-Gm-Features: AaiRm51YHmAMmjPRIWQTSvpfsMBkAMaTT684zHe2XNjk21TEkEMaZPx6RHcKG9o
-Message-ID: <CAD=FV=U4te2V7MaOrQ8kSibLazqUy_Kv3ZcJyAAaCAiGWOY1Gw@mail.gmail.com>
-Subject: Re: [PATCH v3 01/15] mailbox: Deprecate NULL mbox messages; Introduce mbox_ring_doorbell()
-To: Jassi Brar <jassisinghbrar@gmail.com>
-Cc: Bjorn Andersson <andersson@kernel.org>, Frank.Li@nxp.com, arm-scmi@vger.kernel.org, 
-	cristian.marussi@arm.com, festevam@gmail.com, imx@lists.linux.dev, 
-	jay.buddhabhatti@amd.com, jonathanh@nvidia.com, kernel@pengutronix.de, 
-	konradybcio@kernel.org, krzk@kernel.org, lenb@kernel.org, 
-	linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
-	linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-remoteproc@vger.kernel.org, linux-tegra@vger.kernel.org, 
-	lucaswei@google.com, mathieu.poirier@linaro.org, michal.simek@amd.com, 
-	nm@ti.com, rafael@kernel.org, robh@kernel.org, s.hauer@pengutronix.de, 
-	shawn.guo@linaro.org, ssantosh@kernel.org, sudeep.holla@kernel.org, 
-	tglx@kernel.org, thierry.reding@gmail.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v5 2/2] PCI/TPH: Fix get cpu steer-tag fail on ARM64
+ platform
+To: Chengwen Feng <fengchengwen@huawei.com>,
+ Bjorn Helgaas <bhelgaas@google.com>,
+ Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
+ "Rafael J . Wysocki" <rafael@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>,
+ Huacai Chen <chenhuacai@kernel.org>, WANG Xuerui <kernel@xen0n.name>,
+ Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>,
+ Albert Ou <aou@eecs.berkeley.edu>, Alexandre Ghiti <alex@ghiti.fr>,
+ Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
+ Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>,
+ x86@kernel.org, "H . Peter Anvin" <hpa@zytor.com>,
+ Juergen Gross <jgross@suse.com>, Boris Ostrovsky
+ <boris.ostrovsky@oracle.com>, Len Brown <lenb@kernel.org>,
+ Sunil V L <sunilvl@ventanamicro.com>, Mark Rutland <mark.rutland@arm.com>,
+ Jonathan Cameron <jonathan.cameron@huawei.com>, Kees Cook <kees@kernel.org>,
+ Yanteng Si <si.yanteng@linux.dev>, Sean Christopherson <seanjc@google.com>,
+ Kai Huang <kai.huang@intel.com>, Tom Lendacky <thomas.lendacky@amd.com>,
+ Thomas Huth <thuth@redhat.com>, Thorsten Blum <thorsten.blum@linux.dev>,
+ Kevin Loughlin <kevinloughlin@google.com>, Zheyun Shen
+ <szy0127@sjtu.edu.cn>, Peter Zijlstra <peterz@infradead.org>,
+ Pawan Gupta <pawan.kumar.gupta@linux.intel.com>, Xin Li <xin@zytor.com>,
+ "Ahmed S . Darwish" <darwi@linutronix.de>,
+ Sohil Mehta <sohil.mehta@intel.com>,
+ Ilkka Koskinen <ilkka@os.amperecomputing.com>,
+ Robin Murphy <robin.murphy@arm.com>, James Clark <james.clark@linaro.org>,
+ Besar Wicaksono <bwicaksono@nvidia.com>, Ma Ke <make24@iscas.ac.cn>,
+ Ajit Khaparde <ajit.khaparde@broadcom.com>, Wei Huang <wei.huang2@amd.com>,
+ Andy Gospodarek <andrew.gospodarek@broadcom.com>,
+ Somnath Kotur <somnath.kotur@broadcom.com>, wangzhou1@hisilicon.com,
+ wanghuiqiang@huawei.com, liuyonglong@huawei.com, linux-pci@vger.kernel.org,
+ linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, loongarch@lists.linux.dev,
+ linux-riscv@lists.infradead.org, xen-devel@lists.xenproject.org,
+ linux-acpi@vger.kernel.org, linux-perf-users@vger.kernel.org,
+ stable@vger.kernel.org, Wathsala Vithanage <wathsala.vithanage@arm.com>
+References: <20260310032049.25387-1-fengchengwen@huawei.com>
+ <20260310032049.25387-3-fengchengwen@huawei.com>
+Content-Language: en-US
+From: Jeremy Linton <jeremy.linton@arm.com>
+In-Reply-To: <20260310032049.25387-3-fengchengwen@huawei.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
 Hi,
 
-On Mon, Mar 9, 2026 at 8:24=E2=80=AFPM Jassi Brar <jassisinghbrar@gmail.com=
-> wrote:
->
-> Hi Doug,
->
-> On Mon, Feb 16, 2026 at 12:11=E2=80=AFPM Douglas Anderson <dianders@chrom=
-ium.org> wrote:
-> > @@ -249,6 +255,28 @@ int mbox_send_message(struct mbox_chan *chan, void=
- *mssg)
-> >         if (!chan || !chan->cl)
-> >                 return -EINVAL;
-> >
-> > +       /*
-> > +        * The mailbox core gets confused when mbox_send_message() is c=
-alled
-> > +        * with NULL messages since the code directly stores messages i=
-n
-> > +        * `active_req` and assumes that a NULL `active_req` means no r=
-equest
-> > +        * is active. This causes the core to call the mailbox controll=
-er a
-> > +        * second time even if the previous message hasn't finished and=
- also
-> > +        * means the client's tx_done() callback will never be called. =
-However,
-> > +        * clients historically passed NULL anyway. Deprecate passing N=
-ULL
-> > +        * here by adding a warning.
-> > +        *
-> > +        * Clients who don't have a message should switch to using
-> > +        * mbox_ring_doorbell(), which explicitly documents the immedia=
-te
-> > +        * sending of doorbells, the lack of txdone, and what happens i=
-f you
-> > +        * mix doorbells and normal messages.
-> > +        *
-> > +        * TODO: when it's certain that all clients have transitioned, =
-consider
-> > +        * changing this to return -EINVAL.
-> > +        */
-> > +       if (!mssg)
-> > +               dev_warn_once(chan->mbox->dev,
-> > +                             "NULL mbox messages are deprecated; use m=
-box_ring_doorbell\n");
-> > +
-> Does this patchset leave some such clients out?  If not, should we
-> drop this block and return -EINVAL already?
++Wathsala who has been looking at TPH too.
 
-This patchset series got all the clients that were in mainline at the
-time I last checked. However, it was unclear to me if all the patches
-would all go through your tree or not, since they don't touch mailbox
-drivers but the somewhat widespread places that were clients of
-mailbox.
+On 3/9/26 10:20 PM, Chengwen Feng wrote:
+> pcie_tph_get_cpu_st() is broken on ARM64:
+> 1. pcie_tph_get_cpu_st() passes cpu_uid to the PCI ACPI DSM method.
+>     cpu_uid should be the ACPI Processor UID [1].
+> 2. In BNXT, pcie_tph_get_cpu_st() is passed a cpu_uid obtained via
+>     cpumask_first(irq->cpu_mask) - the logical CPU ID of a CPU core,
+>     generated and managed by kernel (e.g., [0,255] for a system  with 256
+>     logical CPU cores).
+> 3. On ARM64 platforms, ACPI assigns Processor UID to cores listed in the
+>     MADT table, and this UID may not match the kernel's logical CPU ID.
+>     When this occurs, the mismatch results in the wrong CPU steer-tag.
+> 4. On AMD x86 the logical CPU ID is identical to the ACPI Processor UID
+>     so the mismatch is not seen.
+> 
+> Resolution:
+> 1. Implement acpi_get_cpu_acpi_id() for x86, which replaces
+>     cpu_acpi_id(). All ACPI platforms now have an implementation.
+> 2. Use acpi_get_cpu_acpi_id() in pcie_tph_get_cpu_st() to translate from
+>     logical CPU ID to ACPI Processor UID needed for the DSM call.
+> 3. Rename pcie_tpu_get_cpu_st() parameter from cpu_uid to cpu to
+>     reflect that it is a logical CPU_ID.
+> 
+> [1] According to ECN_TPH-ST_Revision_20200924
+>      (https://members.pcisig.com/wg/PCI-SIG/document/15470), the input
+>      is defined as: "If the target is a processor, then this field
+>      represents the ACPI Processor UID of the processor as specified in
+>      the MADT. If the target is a processor container, then this field
+>      represents the ACPI Processor UID of the processor container as
+>      specified in the PPTT."
 
-If all the patches aren't going through your tree, we'll need to keep
-it like this until we can confirm all of the clients have been
-updated. If all the patcheds are going through your tree, then we
-could make it return -EINVAL right away, but it we'd have to do that
-as a last patch in the series. I think it would still make sense for
-the first patch (which adds the mbox_ring_doorbell() call) to have a
-warning like this and then a final patch to switch to -EINVAL. That
-keeps things bisectable.
+The bit about "processor containers" is not supported by linux yet, and 
+is potentially a problem worth considering.
 
-What do you think?
+The original rename comments from the previous patch versions are on 
+point, but since they have grown large, i'm going to suggest the x86 
+rename/shuffle here is also in its own patch seperate from the TPH 
+specific changes like the arm ones now are.
 
-I'm happy to post a patch atop my series that switches it to -EINVAL
-and you can land it whenever you see fit. Would that work?
+Thanks for looking after this.
 
--Doug
+> 
+> Fixes: d2e8a34876ce ("PCI/TPH: Add Steering Tag support")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Chengwen Feng <fengchengwen@huawei.com>
+> Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
+> ---
+>   Documentation/PCI/tph.rst    |  4 ++--
+>   arch/x86/include/asm/acpi.h  |  2 ++
+>   arch/x86/include/asm/cpu.h   |  1 -
+>   arch/x86/include/asm/smp.h   |  1 -
+>   arch/x86/kernel/cpu/common.c | 12 ++++++++++++
+>   arch/x86/xen/enlighten_hvm.c |  4 ++--
+>   drivers/pci/tph.c            | 11 ++++++-----
+>   include/linux/pci-tph.h      |  4 ++--
+>   8 files changed, 26 insertions(+), 13 deletions(-)
+> 
+> diff --git a/Documentation/PCI/tph.rst b/Documentation/PCI/tph.rst
+> index e8993be64fd6..b6cf22b9bd90 100644
+> --- a/Documentation/PCI/tph.rst
+> +++ b/Documentation/PCI/tph.rst
+> @@ -79,10 +79,10 @@ To retrieve a Steering Tag for a target memory associated with a specific
+>   CPU, use the following function::
+>   
+>     int pcie_tph_get_cpu_st(struct pci_dev *pdev, enum tph_mem_type type,
+> -                          unsigned int cpu_uid, u16 *tag);
+> +                          unsigned int cpu, u16 *tag);
+>   
+>   The `type` argument is used to specify the memory type, either volatile
+> -or persistent, of the target memory. The `cpu_uid` argument specifies the
+> +or persistent, of the target memory. The `cpu` argument specifies the
+>   CPU where the memory is associated to.
+>   
+>   After the ST value is retrieved, the device driver can use the following
+> diff --git a/arch/x86/include/asm/acpi.h b/arch/x86/include/asm/acpi.h
+> index a03aa6f999d1..b968369715c1 100644
+> --- a/arch/x86/include/asm/acpi.h
+> +++ b/arch/x86/include/asm/acpi.h
+> @@ -157,6 +157,8 @@ static inline bool acpi_has_cpu_in_madt(void)
+>   	return !!acpi_lapic;
+>   }
+>   
+> +u32 acpi_get_cpu_acpi_id(unsigned int cpu);
+> +
+>   #define ACPI_HAVE_ARCH_SET_ROOT_POINTER
+>   static __always_inline void acpi_arch_set_root_pointer(u64 addr)
+>   {
+> diff --git a/arch/x86/include/asm/cpu.h b/arch/x86/include/asm/cpu.h
+> index ad235dda1ded..57a0786dfd75 100644
+> --- a/arch/x86/include/asm/cpu.h
+> +++ b/arch/x86/include/asm/cpu.h
+> @@ -11,7 +11,6 @@
+>   
+>   #ifndef CONFIG_SMP
+>   #define cpu_physical_id(cpu)			boot_cpu_physical_apicid
+> -#define cpu_acpi_id(cpu)			0
+>   #endif /* CONFIG_SMP */
+>   
+>   #ifdef CONFIG_HOTPLUG_CPU
+> diff --git a/arch/x86/include/asm/smp.h b/arch/x86/include/asm/smp.h
+> index 84951572ab81..05d1d479b4cf 100644
+> --- a/arch/x86/include/asm/smp.h
+> +++ b/arch/x86/include/asm/smp.h
+> @@ -130,7 +130,6 @@ __visible void smp_call_function_interrupt(struct pt_regs *regs);
+>   __visible void smp_call_function_single_interrupt(struct pt_regs *r);
+>   
+>   #define cpu_physical_id(cpu)	per_cpu(x86_cpu_to_apicid, cpu)
+> -#define cpu_acpi_id(cpu)	per_cpu(x86_cpu_to_acpiid, cpu)
+>   
+>   /*
+>    * This function is needed by all SMP systems. It must _always_ be valid
+> diff --git a/arch/x86/kernel/cpu/common.c b/arch/x86/kernel/cpu/common.c
+> index 1c3261cae40c..93f4f3283c81 100644
+> --- a/arch/x86/kernel/cpu/common.c
+> +++ b/arch/x86/kernel/cpu/common.c
+> @@ -29,6 +29,7 @@
+>   #include <linux/utsname.h>
+>   #include <linux/efi.h>
+>   
+> +#include <asm/acpi.h>
+>   #include <asm/alternative.h>
+>   #include <asm/cmdline.h>
+>   #include <asm/cpuid/api.h>
+> @@ -57,6 +58,7 @@
+>   #include <asm/asm.h>
+>   #include <asm/bugs.h>
+>   #include <asm/cpu.h>
+> +#include <asm/smp.h>
+>   #include <asm/mce.h>
+>   #include <asm/msr.h>
+>   #include <asm/cacheinfo.h>
+> @@ -2643,3 +2645,13 @@ void __init arch_cpu_finalize_init(void)
+>   	 */
+>   	mem_encrypt_init();
+>   }
+> +
+> +u32 acpi_get_cpu_acpi_id(unsigned int cpu)
+> +{
+> +#ifndef CONFIG_SMP
+> +	return 0;
+> +#else
+> +	return per_cpu(x86_cpu_to_acpiid, cpu);
+> +#endif
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_get_cpu_acpi_id);
+> diff --git a/arch/x86/xen/enlighten_hvm.c b/arch/x86/xen/enlighten_hvm.c
+> index fe57ff85d004..0a5cde7865b2 100644
+> --- a/arch/x86/xen/enlighten_hvm.c
+> +++ b/arch/x86/xen/enlighten_hvm.c
+> @@ -161,8 +161,8 @@ static int xen_cpu_up_prepare_hvm(unsigned int cpu)
+>   	 */
+>   	xen_uninit_lock_cpu(cpu);
+>   
+> -	if (cpu_acpi_id(cpu) != CPU_ACPIID_INVALID)
+> -		per_cpu(xen_vcpu_id, cpu) = cpu_acpi_id(cpu);
+> +	if (acpi_get_cpu_acpi_id(cpu) != CPU_ACPIID_INVALID)
+> +		per_cpu(xen_vcpu_id, cpu) = acpi_get_cpu_acpi_id(cpu);
+>   	else
+>   		per_cpu(xen_vcpu_id, cpu) = cpu;
+>   	xen_vcpu_setup(cpu);
+> diff --git a/drivers/pci/tph.c b/drivers/pci/tph.c
+> index ca4f97be7538..c1bd60637b5a 100644
+> --- a/drivers/pci/tph.c
+> +++ b/drivers/pci/tph.c
+> @@ -236,18 +236,19 @@ static int write_tag_to_st_table(struct pci_dev *pdev, int index, u16 tag)
+>    * with a specific CPU
+>    * @pdev: PCI device
+>    * @mem_type: target memory type (volatile or persistent RAM)
+> - * @cpu_uid: associated CPU id
+> + * @cpu: associated CPU id
+>    * @tag: Steering Tag to be returned
+>    *
+>    * Return the Steering Tag for a target memory that is associated with a
+> - * specific CPU as indicated by cpu_uid.
+> + * specific CPU as indicated by cpu.
+>    *
+>    * Return: 0 if success, otherwise negative value (-errno)
+>    */
+>   int pcie_tph_get_cpu_st(struct pci_dev *pdev, enum tph_mem_type mem_type,
+> -			unsigned int cpu_uid, u16 *tag)
+> +			unsigned int cpu, u16 *tag)
+>   {
+>   #ifdef CONFIG_ACPI
+> +	u32 cpu_uid = acpi_get_cpu_acpi_id(cpu);
+>   	struct pci_dev *rp;
+>   	acpi_handle rp_acpi_handle;
+>   	union st_info info;
+> @@ -265,9 +266,9 @@ int pcie_tph_get_cpu_st(struct pci_dev *pdev, enum tph_mem_type mem_type,
+>   
+>   	*tag = tph_extract_tag(mem_type, pdev->tph_req_type, &info);
+>   
+> -	pci_dbg(pdev, "get steering tag: mem_type=%s, cpu_uid=%d, tag=%#04x\n",
+> +	pci_dbg(pdev, "get steering tag: mem_type=%s, cpu=%d, tag=%#04x\n",
+>   		(mem_type == TPH_MEM_TYPE_VM) ? "volatile" : "persistent",
+> -		cpu_uid, *tag);
+> +		cpu, *tag);
+>   
+>   	return 0;
+>   #else
+> diff --git a/include/linux/pci-tph.h b/include/linux/pci-tph.h
+> index ba28140ce670..be68cd17f2f8 100644
+> --- a/include/linux/pci-tph.h
+> +++ b/include/linux/pci-tph.h
+> @@ -25,7 +25,7 @@ int pcie_tph_set_st_entry(struct pci_dev *pdev,
+>   			  unsigned int index, u16 tag);
+>   int pcie_tph_get_cpu_st(struct pci_dev *dev,
+>   			enum tph_mem_type mem_type,
+> -			unsigned int cpu_uid, u16 *tag);
+> +			unsigned int cpu, u16 *tag);
+>   void pcie_disable_tph(struct pci_dev *pdev);
+>   int pcie_enable_tph(struct pci_dev *pdev, int mode);
+>   u16 pcie_tph_get_st_table_size(struct pci_dev *pdev);
+> @@ -36,7 +36,7 @@ static inline int pcie_tph_set_st_entry(struct pci_dev *pdev,
+>   { return -EINVAL; }
+>   static inline int pcie_tph_get_cpu_st(struct pci_dev *dev,
+>   				      enum tph_mem_type mem_type,
+> -				      unsigned int cpu_uid, u16 *tag)
+> +				      unsigned int cpu, u16 *tag)
+>   { return -EINVAL; }
+>   static inline void pcie_disable_tph(struct pci_dev *pdev) { }
+>   static inline int pcie_enable_tph(struct pci_dev *pdev, int mode)
+
