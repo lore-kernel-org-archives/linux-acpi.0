@@ -1,150 +1,136 @@
-Received: from mail-oa1-f50.google.com (mail-oa1-f50.google.com [209.85.160.50])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from canpmsgout05.his.huawei.com (canpmsgout05.his.huawei.com [113.46.200.220])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A74A3A872B
-	for <linux-acpi@vger.kernel.org>; Tue, 10 Mar 2026 03:24:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.160.50
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773113048; cv=pass; b=rK4LECDXRVWlqRUyDNpcDRsTm8JORKSqmXmLajYtComX2jIRDwrV45IWy82Tg2NXnQS9d1PByUpRBqkQgEfshe/gbforOjSa58YP+Q43X8A8r9ERUyOOJ6Cs+lQXti/ov4v07NY6HY2yV7gwW8aF+Ml6A5myGc9iuJDFLgfugr8=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773113048; c=relaxed/simple;
-	bh=Lcr5dVXyCC6NuA15tJ5l/HwAKYVsMmOxotK4MXcexts=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=ixE4jjMLNpEQNKTWxBmNr8SY/mc2bB0A0N6omJmB2Pe4EIFGgxsyrbMVrSKFtSeKjwUDMJRhJFKQ1+shh1nhq5EAUiWX6QstN3akE+gR5XKn1NPeJ/b8RryB7/aBgfhBa0acnuYoZF3c+UZ0wrTTxCiS+d7B/pAOVp110gPUkdg=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=jBSWzME5; arc=pass smtp.client-ip=209.85.160.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 457E33B95EB;
+	Tue, 10 Mar 2026 03:27:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.220
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1773113224; cv=none; b=FTrmk9adOFFAEHVgNnJgVcf52IIe7/XjLAKLQcGiLLwrcbMgBOB3RhGrRCuKb+83Xsgj0lOZyWmGsHCbSCVjy97YqevLB8RXsDnKHSEkdkpb5829l2ruatRdy+5xw5zB5FzvtvEtrKDqY98vrpuzQ+lTuGJBWP0/ITqZoXdKlgI=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1773113224; c=relaxed/simple;
+	bh=yW90WBE5vHlQ0ILflkKA0EzAkVqqkahdkxfWXAVXiOY=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=gUWyioLxx9qpmzGoGP96zv0nYXC2HpJE8g14MkByYhV4rYL/V8Jh8cH3fnKMO+LOyYHdDPNXU0bAGaaT97L0fsqBRFjaXaKba9rBHN55/R3a5AD1mC56WCdalGSgd0xBF7yw1wDacrZRSAIdhCLXSJC17Q9XFISmbwKk2+TPyiQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=JMGQzxtp; arc=none smtp.client-ip=113.46.200.220
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jBSWzME5"
-Received: by mail-oa1-f50.google.com with SMTP id 586e51a60fabf-41706b23543so1793802fac.1
-        for <linux-acpi@vger.kernel.org>; Mon, 09 Mar 2026 20:24:06 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1773113046; cv=none;
-        d=google.com; s=arc-20240605;
-        b=O3oB9BrxrkNVHnRMya3rSQYNqkxhCYi7Mo1eDDF72qapj6ZWDPOChH9oXyCaYHyW2Z
-         Pu7RVnZeUwxVdwuj0/AS5uQG44UalPzElm5jieIoxgPxfgHerDx0JvTHrAYlj2T9weH+
-         5N95upkKAJUyvOiUu9o56UuGZJKaUVGZ0Jo5bohtDcZmEGkrt7I7fySRmjBWPQ5lQAAW
-         K+XaDCwBTWZG4y9QPkNvdFPJVU4CxxhP1EPGpsX/ayVk4Wn4AgQBy5PMBYyLafMLZSz7
-         kOaLKI+swk5bUoDHcGokoP+jgav+6znhKhIs9rAxIaVhOMzuWa7O7RPYARjpu7xeqlhA
-         /ggw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=a9IUAxs7VdJbIzLXaHTJJ0fopPqXXR7atfJlc6YXf10=;
-        fh=11NkfmGlMYqzgSiJoz2LZbBCuvvjbdARNBOpVj9Swo0=;
-        b=KjlpX1Oh/YsSkPZd5ZxMdxuwidVMVgPltbksN7b42s2KcpTiYxfSVfzBpSqzNdAtxk
-         NXDGTEuaK0dli+qTl/2X7zTUifDVW+wZhXTHWwTfBxf1JgRiBxVd39RsMfA47WNiLqua
-         f8W8Fcq9hblFDHrMIUowM0bcs/i6X91d3HZ8SSoEYd3i8lYjtNf8cnBQdC7aD95n3Qoa
-         bBjpckfzl9/fJ/7P4qcvXNo1IpN1OYQm5apyGLkFGN4hJCdbLytiExgCNbEVOjvvgHlm
-         HyBgnItycHY5t5ElyQX0oSWyyjPalpY27a6MMsHsP3lBQn4LSssoaU8Kc66uOPY8t1rI
-         MRMg==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1773113046; x=1773717846; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=a9IUAxs7VdJbIzLXaHTJJ0fopPqXXR7atfJlc6YXf10=;
-        b=jBSWzME5mmDt+P73t+DCqn3BR9/LRYmvJLwD3COsdTW7jJAeGeMD7vWegQm0kO1jnb
-         eposRxG/wfW+/sbnaM4TG9QD1wZBVQPsBzT0GUBOmLWmj7BVZmKAu41tyRm0eZ8d9dvE
-         c4mknSfMgR6NUzyqe/8wJnqLpWmRshN7I9+LX0AHpop3O3zEvE9hH6cZL7XoGSlgfgx6
-         aOlisPIL1Gnilx7ZE+GObnfzLuLz4q7C+gcPuOhjjwpMyHnX+Ns995kFh30BvgeonYDy
-         SXhEHm9/ml0cG6yEFdQpyAmV4NOSrM1kvI2NFWmJN90zz54ahqvjYjMMbBVrl6CyqGq5
-         4m5w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1773113046; x=1773717846;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=a9IUAxs7VdJbIzLXaHTJJ0fopPqXXR7atfJlc6YXf10=;
-        b=O4pM3prSFN/QTeRX9FbpMNRNpCaU9cJKJBAoNLlwWOyaZKB8fukoymtELafhT8rrOW
-         gWNuHpIhMie+vEuE6kMHls2DTvYflMx3K7D28fj0w+QpG6A8bJ21xR+24Pg0uySb5xEc
-         rhOxyVNsuU9weijIZLkZ1roS4Tvszum+r/lX3Mh/3uL9UBJn+DfltX9WQ1T2sZkBTqlN
-         QQ3dMXDczEPz3dx5FUVzW2JVHMyn3Q3OJw34fumWSHSiHceRpAfqyiV+MwRT8KHqSAre
-         cfsBOFiJ7r6+qltvXr3fwI1Nns1RPT2mGsE9jKR03/6qTIDnRw0UlJAKkhXNFUC6osMK
-         xySQ==
-X-Forwarded-Encrypted: i=1; AJvYcCWlHYoM1OuhQhOdzOcOGxmI/ecl2+6GTVR5bX/TrlXYWrYpc3Lc9CcnTl2WUNhT6z6WQsnpMt/y1ldT@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz5EhAXatZbccw7GXqXK8IYp1WihOkCiaE9Duc5DbljM1oUzMPb
-	pj5oBm4pBttU/SrspKTUiPOlBRrubxl6x3HcOZVIHoy96W02Ba/d5N1/84B+eUh1RI/ylUwp1UK
-	fwJBgYTfEx7dRr+eVf5wvxq5khW/FSSQ=
-X-Gm-Gg: ATEYQzyZfuS9jpzBYxli3oBBTlFMyLWj5fkC1e53ZwhFXqqnjuqgRikQa2Fg8qZ5iDx
-	vR1kr537jm+ERwi72BtNOMo7gqCjz52lWBxQ2WjudPUjwRNFQllsKjQO1/W5XmEPDEa69YvRzvQ
-	YYWlXdw5D5seW2NPoDRV0+Ke46btY97XMufaIyKx3VlRKN1cQgh9wQQyDOoYhFyiHrVw702egKS
-	Y92+UFAeuVfApVV29N8fkZYphyEbnY/yc+2pWKKrywhNYsYjhtXtLIo3Fokq32p+wN2WhqS+wS6
-	QWM1tEQD
-X-Received: by 2002:a05:6870:a0b1:b0:416:42f9:8d86 with SMTP id
- 586e51a60fabf-417568d4325mr1271236fac.10.1773113045873; Mon, 09 Mar 2026
- 20:24:05 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="JMGQzxtp"
+dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=NKl0BL5gWneRy8oIc5rSW3swGX1sxqPqZIAu8m6vIHM=;
+	b=JMGQzxtpI9ePIXzWXzTcLVJ8WSm8gzVHohQ7nVAsmJYNnlqGlbBNIzIP4if/tct67FLFXmq4s
+	7x9HWkKBcIo0SxFLA/Kofp5K/NDpWOmjJkrafmsqF0f2aOvcS9D5PymjzeE2Ri247hLkh8UJfuJ
+	OfjvEF+n7jcvjLsUPd+3rzc=
+Received: from mail.maildlp.com (unknown [172.19.163.104])
+	by canpmsgout05.his.huawei.com (SkyGuard) with ESMTPS id 4fVK0g6k9nz12LCw;
+	Tue, 10 Mar 2026 11:21:23 +0800 (CST)
+Received: from kwepemk500009.china.huawei.com (unknown [7.202.194.94])
+	by mail.maildlp.com (Postfix) with ESMTPS id 1CB1B404AD;
+	Tue, 10 Mar 2026 11:27:00 +0800 (CST)
+Received: from [10.67.121.161] (10.67.121.161) by
+ kwepemk500009.china.huawei.com (7.202.194.94) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.11; Tue, 10 Mar 2026 11:26:59 +0800
+Message-ID: <3e5d9fd9-af73-4f58-88ac-0c5c75bec14c@huawei.com>
+Date: Tue, 10 Mar 2026 11:26:58 +0800
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260216181002.3475421-1-dianders@chromium.org> <20260216100943.v3.1.I600d04c0553f5c5ba39c2f92201da313aedfe746@changeid>
-In-Reply-To: <20260216100943.v3.1.I600d04c0553f5c5ba39c2f92201da313aedfe746@changeid>
-From: Jassi Brar <jassisinghbrar@gmail.com>
-Date: Mon, 9 Mar 2026 22:23:54 -0500
-X-Gm-Features: AaiRm53275_H0CT6bFAmFiNzU5-bzNSMm5pKGBVqlCEoP2LLCsiLm-21V_J1GP8
-Message-ID: <CABb+yY2RKJgyNQ6789ua6s8C4tuOvhWqdcS16_4yU3AHjAiv_A@mail.gmail.com>
-Subject: Re: [PATCH v3 01/15] mailbox: Deprecate NULL mbox messages; Introduce mbox_ring_doorbell()
-To: Douglas Anderson <dianders@chromium.org>
-Cc: Bjorn Andersson <andersson@kernel.org>, Frank.Li@nxp.com, arm-scmi@vger.kernel.org, 
-	cristian.marussi@arm.com, festevam@gmail.com, imx@lists.linux.dev, 
-	jay.buddhabhatti@amd.com, jonathanh@nvidia.com, kernel@pengutronix.de, 
-	konradybcio@kernel.org, krzk@kernel.org, lenb@kernel.org, 
-	linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
-	linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-remoteproc@vger.kernel.org, linux-tegra@vger.kernel.org, 
-	lucaswei@google.com, mathieu.poirier@linaro.org, michal.simek@amd.com, 
-	nm@ti.com, rafael@kernel.org, robh@kernel.org, s.hauer@pengutronix.de, 
-	shawn.guo@linaro.org, ssantosh@kernel.org, sudeep.holla@kernel.org, 
-	tglx@kernel.org, thierry.reding@gmail.com
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v4 0/2] Fix get cpu steer-tag fail on ARM64 platform
+To: Jonathan Cameron <jonathan.cameron@huawei.com>
+CC: <linux-pci@vger.kernel.org>, <bhelgaas@google.com>, Paul Walmsley
+	<pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, Albert Ou
+	<aou@eecs.berkeley.edu>, Alexandre Ghiti <alex@ghiti.fr>,
+	<linux-acpi@vger.kernel.org>, <rafael@kernel.org>, <lenb@kernel.org>,
+	<wei.huang2@amd.com>, <Eric.VanTassell@amd.com>, <wangzhou1@hisilicon.com>,
+	<wanghuiqiang@huawei.com>, <liuyonglong@huawei.com>,
+	<stable@vger.kernel.org>, <jeremy.linton@arm.com>,
+	<sunilvl@ventanamicro.com>, <sunilvl@oss.qualcomm.com>,
+	<chenhuacai@loongson.cn>, <wangliupu@loongson.cn>,
+	<linux-riscv@lists.infradead.org>
+References: <20260303003625.39035-1-fengchengwen@huawei.com>
+ <20260309041659.18815-1-fengchengwen@huawei.com>
+ <20260309102835.000037ad@huawei.com>
+Content-Language: en-US
+From: fengchengwen <fengchengwen@huawei.com>
+In-Reply-To: <20260309102835.000037ad@huawei.com>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: kwepems200001.china.huawei.com (7.221.188.67) To
+ kwepemk500009.china.huawei.com (7.202.194.94)
 
-Hi Doug,
+On 3/9/2026 6:28 PM, Jonathan Cameron wrote:
+> On Mon, 9 Mar 2026 12:16:56 +0800
+> Chengwen Feng <fengchengwen@huawei.com> wrote:
+> 
+>> This patchset addresses the issue where retrieving the CPU steer-tag
+>> fails on ARM64 platforms. The first commit is a pure renaming of the
+>> ACPI CPU ID retrieval interface (no functional changes), which serves
+>> as preparation for the second commit that implements the core fix for
+>> the steer-tag retrieval logic.
+> 
+> Hi,
+> 
+> For future reference, please keep same lists +CC on every patch
+> (for a small series, send everything to everyone who gets any patch).
+> For me at least, that led to my filter putting patch 1 in a totally different
+> place from the rest and some confusion.
+> 
+> Also, don't send in reply to a previous version. Just start a new email
+> thread.  That both avoids deep nesting in email clients and generally
+> ensures your series ends up in the right place if people are sorting
+> by time of sending.
 
-On Mon, Feb 16, 2026 at 12:11=E2=80=AFPM Douglas Anderson <dianders@chromiu=
-m.org> wrote:
-> @@ -249,6 +255,28 @@ int mbox_send_message(struct mbox_chan *chan, void *=
-mssg)
->         if (!chan || !chan->cl)
->                 return -EINVAL;
->
-> +       /*
-> +        * The mailbox core gets confused when mbox_send_message() is cal=
-led
-> +        * with NULL messages since the code directly stores messages in
-> +        * `active_req` and assumes that a NULL `active_req` means no req=
-uest
-> +        * is active. This causes the core to call the mailbox controller=
- a
-> +        * second time even if the previous message hasn't finished and a=
-lso
-> +        * means the client's tx_done() callback will never be called. Ho=
-wever,
-> +        * clients historically passed NULL anyway. Deprecate passing NUL=
-L
-> +        * here by adding a warning.
-> +        *
-> +        * Clients who don't have a message should switch to using
-> +        * mbox_ring_doorbell(), which explicitly documents the immediate
-> +        * sending of doorbells, the lack of txdone, and what happens if =
-you
-> +        * mix doorbells and normal messages.
-> +        *
-> +        * TODO: when it's certain that all clients have transitioned, co=
-nsider
-> +        * changing this to return -EINVAL.
-> +        */
-> +       if (!mssg)
-> +               dev_warn_once(chan->mbox->dev,
-> +                             "NULL mbox messages are deprecated; use mbo=
-x_ring_doorbell\n");
-> +
-Does this patchset leave some such clients out?  If not, should we
-drop this block and return -EINVAL already?
+Thanks Jonathan for the reminder, v5 has been sent with all of your comments.
 
-Thanks,
-Jassi
+Thanks again
+
+> 
+> No need to resend this time unless others ask for it. 
+> 
+> Thanks,
+> 
+> Jonathan
+> 
+>>
+>> ---
+>> Changes in v4:
+>> - Split the rename into a separate commit.
+>>
+>> Changes in v3:
+>> - Rename existing get_acpi_id_for_cpu() to acpi_get_cpu_acpi_id() other
+>>   than add one new API.
+>>
+>> Changes in v2:
+>> - Add ECN _DSM reference doc name and its URL.
+>> - Separate implement acpi_get_cpu_acpi_id() in each arch which supports
+>>   ACPI.
+>> - Refine commit-log.
+>>
+>> Chengwen Feng (2):
+>>   ACPI: Rename get_acpi_id_for_cpu() to acpi_get_cpu_acpi_id() on
+>>     non-x86
+>>   PCI/TPH: Fix get cpu steer-tag fail on ARM64 platform
+>>
+>>  Documentation/PCI/tph.rst          |  4 ++--
+>>  arch/arm64/include/asm/acpi.h      |  4 ++--
+>>  arch/loongarch/include/asm/acpi.h  |  2 +-
+>>  arch/riscv/include/asm/acpi.h      |  2 +-
+>>  arch/riscv/kernel/acpi_numa.c      |  2 +-
+>>  arch/x86/include/asm/acpi.h        |  2 ++
+>>  arch/x86/kernel/cpu/common.c       |  8 ++++++++
+>>  drivers/acpi/pptt.c                | 16 ++++++++--------
+>>  drivers/acpi/riscv/rhct.c          |  2 +-
+>>  drivers/pci/tph.c                  | 11 ++++++-----
+>>  drivers/perf/arm_cspmu/arm_cspmu.c |  2 +-
+>>  include/linux/pci-tph.h            |  4 ++--
+>>  12 files changed, 35 insertions(+), 24 deletions(-)
+>>
+> 
+
