@@ -1,67 +1,67 @@
-Received: from mail-pl1-f180.google.com (mail-pl1-f180.google.com [209.85.214.180])
+Received: from mail-pl1-f174.google.com (mail-pl1-f174.google.com [209.85.214.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60B26355F57
-	for <linux-acpi@vger.kernel.org>; Tue, 10 Mar 2026 19:34:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.180
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 570E52D8760
+	for <linux-acpi@vger.kernel.org>; Tue, 10 Mar 2026 19:41:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773171249; cv=none; b=uqnr/DGWfMaxs9QmRdTdOwJsMDT2jFf2R1W/Dadu+eaY8vQjR5iKxBzj0ME+hWq1dgW8t4oUcLLKnKA2U7F1c9DCUDbUpjfmXPSv8O8AD5U8w7Zsh1SILMTpGrit2Jp4k2W4xvMuWy2PngIqmb2oXdwO7yjVsrwhtf+OG26agAg=
+	t=1773171665; cv=none; b=soWpcM3PpF0K/t/MpJfvlLIFU7QfCbmH7SpeUn0G431ssGT6XiugRT2Q6LHw6U0UjcPbKtPyvy5Tkm/tN4/dofk6XG7804LoxW7b3/nHqzO80YIBjN0F/rqkYgAacU2F4JzVL0RtEZjr/+kGW7arm7Gmg7q4XwLTeF1AHng19CA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773171249; c=relaxed/simple;
-	bh=L12BluinyjkXyqIU2kYvAjopMSiSYL6fkPARo8pB4dk=;
+	s=arc-20240116; t=1773171665; c=relaxed/simple;
+	bh=z/fFABH/LSxyYxaRcuJi/CZHyJnomjsXZwC51ucCpW4=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=GnKsVJury4LDVoliyZkhRywNMB1szMsfkVbtx3++ern8pH3EIV1mJSAr95ghl+/7NpE6rFrzaLDiW2a3DEXFdoe3IwUz5UPvKWbHQuJnUkiQcVQYIuXOfCaD9ymtmwzuAQQ8vJ740rSMia9bGLGVYWiTOt+mA2SsG3KomsApi88=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=sUMjQXCi; arc=none smtp.client-ip=209.85.214.180
+	 Content-Type:Content-Disposition:In-Reply-To; b=erubjPITQBN0PfFWQ9moI9kllJEFW2iLZEFsXB22D5Yo75vCB+7UfZQzfJgfUYyqMfERHEOMYfOsxWaiwSH1gKiIWgslAElLER9jU9d6IUIwOas3w+LxjvytT6X0a8HigAohp+kXeSH2+flKovELXQEqScyXh2wHaPJTpkcinxI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=wh3Y8P/x; arc=none smtp.client-ip=209.85.214.174
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="sUMjQXCi"
-Received: by mail-pl1-f180.google.com with SMTP id d9443c01a7336-2aea4ebb048so2425ad.1
-        for <linux-acpi@vger.kernel.org>; Tue, 10 Mar 2026 12:34:08 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="wh3Y8P/x"
+Received: by mail-pl1-f174.google.com with SMTP id d9443c01a7336-2aeab6ff148so6205ad.1
+        for <linux-acpi@vger.kernel.org>; Tue, 10 Mar 2026 12:41:04 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1773171248; x=1773776048; darn=vger.kernel.org;
+        d=google.com; s=20230601; t=1773171664; x=1773776464; darn=vger.kernel.org;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=uXGSMdyPLPak8eP7BVwmVxBskx1z5iRhXJhm2M1XFP4=;
-        b=sUMjQXCiFWPQ5tlDPRqpNkwz1K2jpMHfpkK4EwM4RZBQJPgxgv6Zxkh99vXccgplk1
-         aF/u5WoZmbrEqevcIESXDoPzYFOslxzoL4jAaOwzA9wSDC2q+yVfKLDqvnUMVtxWkMF0
-         eJXvjINw5i/1WgpjhWLyibo6j1DNkGrrNr4xiAz53AcquSAhpcEm1eUyvteoxBZqTPFt
-         p8n0e27ljaRnN9NlUt45D4WeMYqQ3RARNGHm5SHhWrn6w/ieTDKe+ya31oVFJOU/mPaA
-         LCJXSlMHh6dzLo/RaxlJ0ilJJsNarqh9tmiQ95yerrATzHCy+dOaF87J2bqwt9zsoOls
-         AqEA==
+        bh=D7vY2UrB9SGH6OvdmDiCHyzJiFowvOHfRjqE+9AkweY=;
+        b=wh3Y8P/xDvnE7gJaZNpSBS3fcetxBRzXDMslBBdt0STM1rq4ll2JAAWMFvWVcwZvB1
+         upBLEBLfKUxQnWb5VBpxk1UKnVTeKd2nKKs4j9/kPLcYexQJEwB2XK8Ri40wi0JkIL6+
+         wfaH1sfy6uiYu/EaTvb+PMVrwo+K6e5eV1QnV2lNI/19kG19eLK7jUdS3kIMohDWyYUo
+         8Zw3wcf+V+sTlWXGXXczF0oPHnGTvCE93fMYChNQffPMu0eK+5xhbJQOD3AnmBnPi7rB
+         i9NwzCbVXrgADPbAfwB+59zVWTKJGRCToYBpijIUL65rDBJYC9BAVO37VV8+YSIu7kbu
+         a9Bw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1773171248; x=1773776048;
+        d=1e100.net; s=20230601; t=1773171664; x=1773776464;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=uXGSMdyPLPak8eP7BVwmVxBskx1z5iRhXJhm2M1XFP4=;
-        b=R03fvvUEjKdFxzvmEthbyBroY90S51/jeiaaAYZvgl99I0+wz+UeZj5E2ErX6gp6Ve
-         TVfSz7bourVCFydOQOMEpkvt/J5QRrVQ9rG8nVnJ1r++MoAt37DLsCLUihHgLsmC4HWT
-         AR3xcIMyfq+6fbApgkM9J/g665lRInT2n7rIg1/6YEdrlMEZXC1kx6VgBMs4+Qz3F0rS
-         c96vZVQLlPM9cg5U3Rs/9AADR4W5COirrjMbtdJtQW8oHyCVYLLTZ2WpB6czOB3bfi1O
-         9NRbtMDhTdq98iwOC1ziIaozsszQ0oDLGe5Kkq7d42iHJjajRZ++v6YwOKmIEvJwsrnJ
-         m6eg==
-X-Forwarded-Encrypted: i=1; AJvYcCVqRgz40Vofw0jHhMDgeGNLWYjWvprxFBfarajvaNJbiS37102U99G4yMD7iu6xxby0tQz+8WYclVgq@vger.kernel.org
-X-Gm-Message-State: AOJu0Yxed1s/vdgsZTt5gT93nq/9g9u+HMTSAylEm+peeByuhNAuoOA0
-	bl6/L+2UMNZIzGRstvSeqoonwNLqkGQqErdxk5bfjafSjYyR+OoLbi+546yLhAGU0A==
-X-Gm-Gg: ATEYQzzuOEMyneeQKj+f7hX3OfxKjRRUr7cqq2pDdjJ53ZMbE4E5fh98oom3yZMf7N9
-	lZxMJI4MVOEYO3JMQECLdTelkvT4spZ6yPDbP5OZmJL2UY4xdJlDL+FKuzJeEzH8OUYKZ4ouuGn
-	ZnIIhGE9T9seUj908ibYggOWtt22/JNKXYiHqblOBHcnuQh/IFPg/lR/PQOYHvY57kD/k5U4KlF
-	mylAUfq5h8QVoWILDCekLsB7dJby7MVUMdC+t1R+3dVl49h0FX+WHYdjeFTej+ARiK1jSlM9A7o
-	bMuv1GlZE6mZFKW9fOnLHzI094oogcjlOSW9B4yw/XNTere9S1MaGE4FaAmP97PZiFlixtwDvT7
-	2c0fSHA0EKcmLwjTLsrsHpCY0HpgJWet0rIcimvVQzQIIgagLXzpbOzbP6kp7PsUf7O+WWngzpZ
-	2y4jzktC6cmZST5w8wptWUznIl9C82zbukURDkfn4RuRlqBja4wJTXVi4L3w==
-X-Received: by 2002:a17:902:f710:b0:2ae:4e8e:954e with SMTP id d9443c01a7336-2aeae7082d4mr4705ad.5.1773171247142;
-        Tue, 10 Mar 2026 12:34:07 -0700 (PDT)
+        bh=D7vY2UrB9SGH6OvdmDiCHyzJiFowvOHfRjqE+9AkweY=;
+        b=Q6Jl0xT7zq8Z8+I5VsIPQ4ag51vx6BCxKZ99maDbQBB3Lbvzj2YCZJgxUaH7AplO7B
+         4feKehjyRkAVfsIpiqE7qseT3c2kwTzFQsHrqXGo+qHF5lsK9WHu7i3pJF0u+VAcm/7L
+         6zx4MWUjBzX0/0652PQdNpd5rpfH0qqV80dtKZKxnb0G9oOiC4HAct4+rrGpTAWhFAYz
+         qMQ4MC1TPe5nLCVgrmz0o9xs35GYd5/Nf1b7AzdhBoK5XBGAb7XhQZLE5kFCBBW0+RdS
+         CtQV3HMTDKEF8p611obcFbSfa+O6d0XUZa95eKMhvzlYC+fnOGe+yxRTtRUTUSKSbXKU
+         zdOg==
+X-Forwarded-Encrypted: i=1; AJvYcCVq2WZIcS6tf5FlOaAdaAxRPeeboOfj8fVg7cDNzmXXN7eY+luWeQEZhjaOdfK0hzMAL3K2AhkG3lxr@vger.kernel.org
+X-Gm-Message-State: AOJu0YxhbVu0N8XPO8srSbrG0o70rt8eCQIeq8FhII4M/PCQee9l/63z
+	BlRmlj6UfBudXwoZrP0Hp+APYkva9xri2TMiYRLiLGJ+pdEj9k6sQ4474Pxjh4P6OQ==
+X-Gm-Gg: ATEYQzwFM5nFQOjD2hwTyk+YGMUzVR8nK1jXIGbOfi/v+2EWcCL3vdDEWBLy4B9uGGF
+	GB75d0Ew6U04IVbXQtNTubeY5khVqIfnaDWEu0kp7JcNEQhTmAZhYqSK57GFOQyZxfbHzuT3kCj
+	J/4656XcL3FcsSpFQRJ6zyJNdjTFycHmA+il50If+zVAUISAdfSTxKfcJ1AxiWXJ0L9Uy2ES6VF
+	6wI57305x2LMrSumMbWnAR37skiw83QJd82M08d8Z4+z9dLwmnIYC/xteWpnDZMNtO+iBR0TJIV
+	+P0Qe2Kbi0vcC6EONJOQABODiSjqVIxdblipxDT5jwavsbCKYKfXOlKQC8inTdTHmQtO/yXMU+x
+	IpacXUB6JaPXibGucM2/f4j77Nh6rCTwnTJSTEjWjXQDxWkm1Ve+nQRfL/UToj4jyrbyFcnO3qd
+	H33ZrYB/gV1TaQGAxSkA8gsx1P6vH1MKsO44gdrd03hO0H8MnbmaPlsyarsA==
+X-Received: by 2002:a17:903:191:b0:2ae:44ff:5f42 with SMTP id d9443c01a7336-2aead3e3606mr687905ad.20.1773171663319;
+        Tue, 10 Mar 2026 12:41:03 -0700 (PDT)
 Received: from google.com (10.129.124.34.bc.googleusercontent.com. [34.124.129.10])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2aeae34d873sm382665ad.42.2026.03.10.12.34.03
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-359f05edd69sm3807665a91.1.2026.03.10.12.40.58
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 10 Mar 2026 12:34:06 -0700 (PDT)
-Date: Tue, 10 Mar 2026 19:34:00 +0000
+        Tue, 10 Mar 2026 12:41:02 -0700 (PDT)
+Date: Tue, 10 Mar 2026 19:40:56 +0000
 From: Pranjal Shrivastava <praan@google.com>
 To: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Robin Murphy <robin.murphy@arm.com>, Nicolin Chen <nicolinc@nvidia.com>,
-	will@kernel.org, joro@8bytes.org, bhelgaas@google.com,
+Cc: Nicolin Chen <nicolinc@nvidia.com>, will@kernel.org,
+	robin.murphy@arm.com, joro@8bytes.org, bhelgaas@google.com,
 	rafael@kernel.org, lenb@kernel.org, kees@kernel.org,
 	baolu.lu@linux.intel.com, smostafa@google.com,
 	Alexander.Grest@microsoft.com, kevin.tian@intel.com,
@@ -70,14 +70,16 @@ Cc: Robin Murphy <robin.murphy@arm.com>, Nicolin Chen <nicolinc@nvidia.com>,
 	linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org,
 	vsethi@nvidia.com
 Subject: Re: [PATCH v1 2/2] iommu/arm-smmu-v3: Recover ATC invalidate timeouts
-Message-ID: <abByKCl4xZlgF74z@google.com>
+Message-ID: <abBzyKNZRzRykRV5@google.com>
 References: <cover.1772686998.git.nicolinc@nvidia.com>
  <ca7ab934bf0f433b62a5c15d42241632c4cb9366.1772686998.git.nicolinc@nvidia.com>
- <a5ff7a43-ea52-462d-a316-d3a6c08410e0@arm.com>
- <aanwTQtMMplXY3du@Asurada-Nvidia>
- <20260305235252.GC1651202@nvidia.com>
- <03461707-783e-403a-86fa-ae7a5107fa30@arm.com>
- <20260306155646.GI1651202@nvidia.com>
+ <20260305153911.GT972761@nvidia.com>
+ <aanygWWZLA1htDdQ@Asurada-Nvidia>
+ <20260305234158.GB1651202@nvidia.com>
+ <aaot8uRsli5jNPzH@Asurada-Nvidia>
+ <20260306013347.GD1651202@nvidia.com>
+ <aapgyXadT1TEz29u@Asurada-Nvidia>
+ <20260306130202.GG1651202@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -86,63 +88,45 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260306155646.GI1651202@nvidia.com>
+In-Reply-To: <20260306130202.GG1651202@nvidia.com>
 
-On Fri, Mar 06, 2026 at 11:56:46AM -0400, Jason Gunthorpe wrote:
-> On Fri, Mar 06, 2026 at 03:24:20PM +0000, Robin Murphy wrote:
-> > On 2026-03-05 11:52 pm, Jason Gunthorpe wrote:
-> > > On Thu, Mar 05, 2026 at 01:06:21PM -0800, Nicolin Chen wrote:
-> > > > That sounds like the IOPF implementation. Maybe inventing another
-> > > > IOMMU_FAULT_ATC_TIMEOUT to reuse the existing infrastructure would
-> > > > make things cleaner.
+On Fri, Mar 06, 2026 at 09:02:02AM -0400, Jason Gunthorpe wrote:
+> On Thu, Mar 05, 2026 at 09:06:17PM -0800, Nicolin Chen wrote:
+> > On Thu, Mar 05, 2026 at 09:33:47PM -0400, Jason Gunthorpe wrote:
+> > > On Thu, Mar 05, 2026 at 05:29:22PM -0800, Nicolin Chen wrote:
 > > > 
-> > > I think the routing is quite different, IOPF wants to route an event
-> > > the domain creator, here you want to route an event to the IOMMU core
-> > > then the PCIe RAS callbacks.
+> > > > But arm_smmu_cmdq_issue_cmdlist() doesn't know when to push another
+> > > > CMD. In my case where ATC_INV irq occurs, the return value from the
+> > > > arm_smmu_cmdq_poll_until_sync() in the Step 5 is 0, and prods/cons
+> > > > are also matched. Actually, at this point that NOP ISR has already
+> > > > finished.
 > > > 
-> > > IDK if there is much to be reused there, especially since IOPF
-> > > requires a memory allocation and ideally we should not be allocating
-> > > memory to resolve this critical error condition.
+> > > Yes, you'd need a sneaky way to convay the error from the ISR to the
+> > > cmdlist code that didn't harm performance. Maybe we could come up with
+> > > something, but if it works replacing the NOP with flush sounds fairly
+> > > appealing - though can you do a single WORD edit to the STE that will
+> > > block translated requests? Zero EATS?
 > > 
-> > Yeah, sorry, for a moment there I somehow forgot that we can expect to use
-> > ATS without PRI, so indeed tying this to IOPF wouldn't be appropriate. And
-> > given the general difficulty of trying to infer what went wrong and what to
-> > do from the CMDQ contents alone, I do like your idea of trying to return a
-> > new kind of sync failure back to arm_smmu_atc_inv_{master,domain}() so that
-> > we can take any defensive action from there, with all the information to
-> > hand. We'd just have to ensure that if a large set of ATCI commands needs to
-> > span multiple batches, every batch must contain its own sync (since if some
-> > other batch of unrelated commands could get interleaved in the middle and
-> > issue a sync that then fails due to someone else's ATC timeout, everything's
-> > likely to get confused and go wrong).
+> > Yea. I can give that a try.
 > 
-> Yeah, that all makes sense to me.
+> This also really needs to go after the invalidation changes because it
+> is feasible to also edit the lockless RCU invalidation list from the
+> ISR and disable the ATC for the failed device too.
 > 
-> The batching issue is scary, we definately can't allow an ATC
-> invalidation to be pushed without a SYNC that localizes any failure to
-> this specific thread, or we can't properly disambiguate the failures
-> anymore.
+> > > Also, will the SMMU start spamming with blocked translation events or
+> > > something that will need suppression too?
+> > 
+> > CD.R=0 can suppress fault records, but we would need to override
+> > that in every CD of the device.
 > 
-> My feeling is when the sync "fails", it can bubble up the error and we
-> can get back to the invalidation list processor which can then see it
-> failed to process an ATC batch and take an appropriate action.
+> That's too much to do from ISR, but maybe we can do it from a WQ..
 > 
 
-+1 just saw this thread (replied something similar)
+(Skimming through these, apologies if I'm losing context), shouldn't we
+do all that (marking it as an inv STE / abort STE, suppressing the
+faults) in the worker instead of trying to reset/recover the device?
 
-> > The fiddly thing then is that we might also have to be prepared to "handle"
-> > CMD_SYNC timeout by manually checking for GERRORs, in case the whole
-> > invalidation is in the context of an dma_unmap within some other device's
-> > IRQ handler, which happens to be on the same CPU where the GERROR IRQ is now
-> > pending, but can't be taken until we can complete the inv and return out of
-> > the current IRQ :/
-> 
-> IIRC didn't the PM patches propose to add this anyhow?
+> Jason
 
-If this is regarding the runtime pm patches, I've tried to address the
-Gerror issue (pointed out by you in v4) in the v5 [1]
-
-Thanks,
+Thanks
 Praan
-
-[1] https://lore.kernel.org/all/20260126151157.3418145-9-praan@google.com/
