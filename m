@@ -1,87 +1,140 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-vs1-f41.google.com (mail-vs1-f41.google.com [209.85.217.41])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42DEF43E48A;
-	Tue, 10 Mar 2026 10:13:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.13
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62BFC3033F6
+	for <linux-acpi@vger.kernel.org>; Tue, 10 Mar 2026 15:04:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.217.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773137585; cv=none; b=QCZ/pdWwRXFBuZXgpmzTnVXQukwGXrfnw6VZcHhCGh5piNqn88QbqpCFeiQVgGllPhadwQ87ERfiOqX7ItA1NfRn+xmfERQq5a3RpNiLKLBgar1cArlp0gV7ldkCVI4/h5giAkJT3755+AnJ5/VlywIYtnRyTvXgITF72Jdsjf0=
+	t=1773155048; cv=none; b=pfaNk+3CqfViB/b469+4CFu+C605kI8IbEAbnO2nanKLTorEbgRCnkEh0L/kFmvYxMuVUV1hnzL+PzNND0XAGHoc7rddmtMW0GHmtF3pbqE2yQvG1lnEA0KfKfHsNzhFLRmcsK04vGICWILVXYtm3AtKX+N8kyda8xoawjTtaSQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773137585; c=relaxed/simple;
-	bh=kGl1AiP2y4nJT1Ekz+dqxJlitvGyd3vY/7cfmzQLFs4=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=pPd7Ah/5PaUr7Js2BOd+FGIqY6grF6Qp7HCWdxi63kbbDC46P7EqRMOlr8ihxkUX95O1TVzcEut7oUsxN2H28bqcq/mfEnk6g+slfLzPDHL7fKAqKY2bMaFDegKlBODRs57BNDo81kDlahCF+ch8ppjolbcNnr+PxvPbuikUIEQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=AHvDJ3mE; arc=none smtp.client-ip=192.198.163.13
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="AHvDJ3mE"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1773137583; x=1804673583;
-  h=date:from:to:cc:subject:message-id;
-  bh=kGl1AiP2y4nJT1Ekz+dqxJlitvGyd3vY/7cfmzQLFs4=;
-  b=AHvDJ3mE2h6nArPqjxEZGKlnrJklPJ9f5kTYPJJG5EW9rWpDolQ60Asr
-   XxupEx178UgFcmu+07KNw/trPb1/tZEleZX7LfSitvGtVC6GeKRPgcHqk
-   w2/EUuZFP/pihNzpy4X9MX6+Kk6FnXR4LRSy+WWZMtTjWDgRUxAb5e9BP
-   FI2EmAKMVcE9vUhmzJM6lSk2jzzRlKNA6AUXv3zSzDn9DYYimikYLbRt1
-   fHFuNJYPdAyMWKgeP59z6jUveOZ60FCKTG5bKnud5EEfpaATdX7q62Qhq
-   a9VC6dbm3xnIvIZQ6ulUqeti6pKAPE25R9BVNHsmsaJ3NdyvPf5VqmICJ
-   g==;
-X-CSE-ConnectionGUID: D6R75ibUSQmgVXtyqd1y5A==
-X-CSE-MsgGUID: JbFmJesRQL66fluNpvUD+Q==
-X-IronPort-AV: E=McAfee;i="6800,10657,11724"; a="76787711"
-X-IronPort-AV: E=Sophos;i="6.23,112,1770624000"; 
-   d="scan'208";a="76787711"
-Received: from fmviesa010.fm.intel.com ([10.60.135.150])
-  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Mar 2026 03:13:02 -0700
-X-CSE-ConnectionGUID: TXWG15DFRJ6D30KbDn3Urg==
-X-CSE-MsgGUID: ic6QgQWuQSGPXvuipuo+Tw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.23,112,1770624000"; 
-   d="scan'208";a="216864156"
-Received: from lkp-server01.sh.intel.com (HELO 434e41ea3c86) ([10.239.97.150])
-  by fmviesa010.fm.intel.com with ESMTP; 10 Mar 2026 03:13:01 -0700
-Received: from kbuild by 434e41ea3c86 with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1vzu5C-000000001i2-2T0O;
-	Tue, 10 Mar 2026 10:12:58 +0000
-Date: Tue, 10 Mar 2026 18:12:28 +0800
-From: kernel test robot <lkp@intel.com>
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
- linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
-Subject: [rafael-pm:bleeding-edge 140/141] ld.lld: error: undefined
- symbol: auxiliary_device_init
-Message-ID: <202603101801.WkDiQ5K0-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	s=arc-20240116; t=1773155048; c=relaxed/simple;
+	bh=QEW3lhhJANPdrCVBmAIqH1dXUDPD23689ylzZ5dnJco=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=qHFknIdwXmsk3lWdYmR/pBX5IQhpNzTgGWZPX2fG1U00bKC5hKo2pXTEr7fviBTpsTNoSV8LvB3aqLjEhqjp5gj4cfnM2dLLdZawTX7ctY7RxPweY7KvkRbEU+HYW77KIyLqjsTPK+oup8ZDuZspaLgj9O6La6sekcOMbez5yKg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.217.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Received: by mail-vs1-f41.google.com with SMTP id ada2fe7eead31-5ffd57b6fc6so1134361137.1
+        for <linux-acpi@vger.kernel.org>; Tue, 10 Mar 2026 08:04:07 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1773155046; x=1773759846;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=Ru18n38/qbgrYN5XhGLEd0K3IukQ/mw6D37X8x0z/qo=;
+        b=YWoG5Y+6+e3DEblL4dJyAZLLx0JcqMAEFErGezZKriUST8QdEBA/hPsRMxpO00IN2t
+         OkrlVQ1LqPnwpg6GWTSjZtSBnVY3t9JauX/MICB+iZrThk1ALQwCPRrx5gy9IOOtVS7f
+         FTszdBD94e6CWGTCUXRRX7X02gVST6YNlWTFoOMAs8fGg4oKz5zhoRcZgPT09FMIiI44
+         2sBCA1/s2PdRdeLBKBmhAUcZcIFo3sPSzQ3iFXWfN+m1doRgmnmvHRT3LY76b8a6voIl
+         Rc0Z2oHjucnkxq3NXEhzhqUlHUVTOnwJMzifbmEdHT8MxKVnwxqcuCSaVp5hymgRmzy3
+         yd5Q==
+X-Forwarded-Encrypted: i=1; AJvYcCX1ZfaVsyZByIIwYxgX6TjCi87nKpyjLBYkbLsMc5ydMzdwmEwucAyyQdIGVqwUpru3WS9aGApUmDrG@vger.kernel.org
+X-Gm-Message-State: AOJu0YynwxqHUDiUqPkuGCEf7ld/gO0j06notTnbHAzTjl22157Kbgmr
+	8np/yapXamHrr/ABpCIapY7ht12TXhnBNmqr22ZWktx5vuUZi46dhpnYDQCQqMeN
+X-Gm-Gg: ATEYQzywahNylmFSeXLVDKS/Z3OJdy26ST28GmoWLJOmy3ZsiFXldEOpNp9/6WjtSLo
+	JmBL09gIrukHE6zTuj37lhXQBXZSK0efuCRuCvyLJquKAZ9rHNDlKKIWj04ShU/rLhD2gSa+Pyj
+	Uz9aMxyidgP9kwcsqfa2xj3oaZiN946hnq+QMsyZMTGfztRcORfanvcOTT3VtseAPU5E8b3WVkc
+	BnZsMPR3uRCP6KO04XAiFLozhx46DOJEg2/wGaWyWWHXis64j/ZH5VCAT8vxEWufYFbtXwLSH4+
+	UKUsb7+JMXCZRCuQxwfHBG/6omGfrfRpZu95QMV/UlagaEIljM9q/ia7S/NdKhKLtC9pfggzTX6
+	+0ORz8tLNuLzltbN0N702VNNQRdi+v0WHjdrTlBj5I5bZEWLlc4Mb2uE9WciOHGADtMNTHmrmt8
+	SZJs0FHXO5eo0CQvk+HG5etilEiY+5e856I1oZR0Kk5Rj+sEmngj/eUerej6z5
+X-Received: by 2002:a05:6102:40d8:10b0:5ff:f4ae:a17b with SMTP id ada2fe7eead31-5fff4aeb84cmr3139865137.7.1773155035633;
+        Tue, 10 Mar 2026 08:03:55 -0700 (PDT)
+Received: from mail-vs1-f49.google.com (mail-vs1-f49.google.com. [209.85.217.49])
+        by smtp.gmail.com with ESMTPSA id ada2fe7eead31-5ffe88a55fesm10092116137.1.2026.03.10.08.03.54
+        for <linux-acpi@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 10 Mar 2026 08:03:55 -0700 (PDT)
+Received: by mail-vs1-f49.google.com with SMTP id ada2fe7eead31-5ffd57b6fc6so1134089137.1
+        for <linux-acpi@vger.kernel.org>; Tue, 10 Mar 2026 08:03:54 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCW9r50xCaLtCz6lZJ2dxrX0ecgMg38dKpKkYWMzi9z24RcCjtfr9swiQf1JFOb3R1pIVUF0ZrcoUzpD@vger.kernel.org
+X-Received: by 2002:a05:6102:c8f:b0:5f1:70fe:3027 with SMTP id
+ ada2fe7eead31-5ffe6121c90mr5181206137.24.1773155033187; Tue, 10 Mar 2026
+ 08:03:53 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+References: <20260227135428.783983-1-herve.codina@bootlin.com> <20260227135428.783983-3-herve.codina@bootlin.com>
+In-Reply-To: <20260227135428.783983-3-herve.codina@bootlin.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Tue, 10 Mar 2026 16:03:42 +0100
+X-Gmail-Original-Message-ID: <CAMuHMdVVsEB-xb8Jz4ujBam2NxtxAOb7byYa3VR_eHsbTD5rXw@mail.gmail.com>
+X-Gm-Features: AaiRm53b7liJL7XJhyMA-JPl81LkjhC0Orfn04kAcG7__Cf3-wDY5cIOlphhcC4
+Message-ID: <CAMuHMdVVsEB-xb8Jz4ujBam2NxtxAOb7byYa3VR_eHsbTD5rXw@mail.gmail.com>
+Subject: Re: [PATCH v5 02/28] driver core: Rename get_dev_from_fwnode()
+ wrapper to get_device_from_fwnode()
+To: Herve Codina <herve.codina@bootlin.com>
+Cc: Andrew Lunn <andrew@lunn.ch>, Rob Herring <robh@kernel.org>, 
+	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
+	Kalle Niemi <kaleposti@gmail.com>, Matti Vaittinen <mazziesaccount@gmail.com>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Danilo Krummrich <dakr@kernel.org>, Frank Li <Frank.Li@nxp.com>, 
+	Sascha Hauer <s.hauer@pengutronix.de>, Pengutronix Kernel Team <kernel@pengutronix.de>, 
+	Fabio Estevam <festevam@gmail.com>, Michael Turquette <mturquette@baylibre.com>, 
+	Stephen Boyd <sboyd@kernel.org>, Andi Shyti <andi.shyti@kernel.org>, 
+	Wolfram Sang <wsa+renesas@sang-engineering.com>, Peter Rosin <peda@axentia.se>, 
+	Arnd Bergmann <arnd@arndb.de>, Saravana Kannan <saravanak@kernel.org>, 
+	Bjorn Helgaas <bhelgaas@google.com>, Charles Keepax <ckeepax@opensource.cirrus.com>, 
+	Richard Fitzgerald <rf@opensource.cirrus.com>, David Rhodes <david.rhodes@cirrus.com>, 
+	Linus Walleij <linusw@kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, 
+	Mark Brown <broonie@kernel.org>, Len Brown <lenb@kernel.org>, 
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Daniel Scally <djrscally@gmail.com>, 
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, Davidlohr Bueso <dave@stgolabs.net>, 
+	Jonathan Cameron <jonathan.cameron@huawei.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Alison Schofield <alison.schofield@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, 
+	Ira Weiny <ira.weiny@intel.com>, Dan Williams <dan.j.williams@intel.com>, 
+	Shawn Guo <shawnguo@kernel.org>, Wolfram Sang <wsa@kernel.org>, linux-kernel@vger.kernel.org, 
+	driver-core@lists.linux.dev, imx@lists.linux.dev, 
+	linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, 
+	linux-i2c@vger.kernel.org, devicetree@vger.kernel.org, 
+	linux-pci@vger.kernel.org, linux-sound@vger.kernel.org, 
+	patches@opensource.cirrus.com, linux-gpio@vger.kernel.org, 
+	linux-pm@vger.kernel.org, linux-spi@vger.kernel.org, 
+	linux-acpi@vger.kernel.org, linux-cxl@vger.kernel.org, 
+	Allan Nielsen <allan.nielsen@microchip.com>, Horatiu Vultur <horatiu.vultur@microchip.com>, 
+	Steen Hegelund <steen.hegelund@microchip.com>, Luca Ceresoli <luca.ceresoli@bootlin.com>, 
+	Thomas Petazzoni <thomas.petazzoni@bootlin.com>, Saravana Kannan <saravanak@google.com>, 
+	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
-head:   4ebf43399f2d20075ab4ab03c0270169af62ba36
-commit: cc2b80418f5a9958cc550deeea9a65d598afe514 [140/141] ACPI: video: Switch over to auxiliary bus type
-config: loongarch-allnoconfig (https://download.01.org/0day-ci/archive/20260310/202603101801.WkDiQ5K0-lkp@intel.com/config)
-compiler: clang version 23.0.0git (https://github.com/llvm/llvm-project c32caeec8158d634bb71ab8911a6031248b9fc47)
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260310/202603101801.WkDiQ5K0-lkp@intel.com/reproduce)
+Hi Herv=C3=A9,
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202603101801.WkDiQ5K0-lkp@intel.com/
+On Fri, 27 Feb 2026 at 14:55, Herve Codina <herve.codina@bootlin.com> wrote=
+:
+> get_dev_from_fwnode() calls get_device() and so it acquires a reference
+> on the device returned.
+>
+> In order to be more obvious that this wrapper is a get_device() variant,
+> rename it to get_device_from_fwnode().
+>
+> Suggested-by: Mark Brown <broonie@kernel.org>
+> Link: https://lore.kernel.org/lkml/CAGETcx97QjnjVR8Z5g0ndLHpK96hLd4aYSV=
+=3DiEkKPNbNOccYmA@mail.gmail.com/
+> Signed-off-by: Herve Codina <herve.codina@bootlin.com>
+> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> Reviewed-by: Saravana Kannan <saravanak@google.com>
+> Reviewed-by: Luca Ceresoli <luca.ceresoli@bootlin.com>
+> Acked-by: Ulf Hansson <ulf.hansson@linaro.org>
 
-All errors (new ones prefixed by >>):
+FTR, one more user of get_dev_from_fwnode() appeared in commit
+9035073d0ef1de81 ("reset: convert reset core to using firmware nodes")
+in reset/next.
 
->> ld.lld: error: undefined symbol: auxiliary_device_init
-   >>> referenced by scan.c
-   >>>               drivers/acpi/scan.o:(acpi_default_enumeration) in archive vmlinux.a
---
->> ld.lld: error: undefined symbol: __auxiliary_device_add
-   >>> referenced by scan.c
-   >>>               drivers/acpi/scan.o:(acpi_default_enumeration) in archive vmlinux.a
+Gr{oetje,eeting}s,
 
--- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+                        Geert
+
+--=20
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k=
+.org
+
+In personal conversations with technical people, I call myself a hacker. Bu=
+t
+when I'm talking to journalists I just say "programmer" or something like t=
+hat.
+                                -- Linus Torvalds
