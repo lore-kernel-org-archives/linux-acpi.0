@@ -1,140 +1,166 @@
-Received: from mail-vs1-f41.google.com (mail-vs1-f41.google.com [209.85.217.41])
+Received: from mail-ed1-f46.google.com (mail-ed1-f46.google.com [209.85.208.46])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62BFC3033F6
-	for <linux-acpi@vger.kernel.org>; Tue, 10 Mar 2026 15:04:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.217.41
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1BA530CD81
+	for <linux-acpi@vger.kernel.org>; Tue, 10 Mar 2026 15:14:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.46
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773155048; cv=none; b=pfaNk+3CqfViB/b469+4CFu+C605kI8IbEAbnO2nanKLTorEbgRCnkEh0L/kFmvYxMuVUV1hnzL+PzNND0XAGHoc7rddmtMW0GHmtF3pbqE2yQvG1lnEA0KfKfHsNzhFLRmcsK04vGICWILVXYtm3AtKX+N8kyda8xoawjTtaSQ=
+	t=1773155648; cv=none; b=g+yMmUt2nAjKObz6PPDITkihDosmjT9w8qhm21TU3W1K6U65FOEXmc/aQkRzjg0uk3i0KnTxOcF8BnAvMz60taBnhYRzUARadHtzrwceA1caUgKjxrDqDbKHiIsmxmc00kcvYtCGdjZdxWEyGlMBZmoCVDKedW0+l7ObyxXNhz4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773155048; c=relaxed/simple;
-	bh=QEW3lhhJANPdrCVBmAIqH1dXUDPD23689ylzZ5dnJco=;
+	s=arc-20240116; t=1773155648; c=relaxed/simple;
+	bh=l66roiogcZuRuWdg/BN7GAGFpuk8qIZkWg5A5bU5kEI=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=qHFknIdwXmsk3lWdYmR/pBX5IQhpNzTgGWZPX2fG1U00bKC5hKo2pXTEr7fviBTpsTNoSV8LvB3aqLjEhqjp5gj4cfnM2dLLdZawTX7ctY7RxPweY7KvkRbEU+HYW77KIyLqjsTPK+oup8ZDuZspaLgj9O6La6sekcOMbez5yKg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.217.41
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-vs1-f41.google.com with SMTP id ada2fe7eead31-5ffd57b6fc6so1134361137.1
-        for <linux-acpi@vger.kernel.org>; Tue, 10 Mar 2026 08:04:07 -0700 (PDT)
+	 To:Cc:Content-Type; b=UpQJhWAQxXz+CcHv41HU33KuEK9mj5NWtxlITy7QoJtF3e6hnsP9E64gxN/4vT5NDUBhsnD90Mhzcc9Ss45gC+Qdg0d3iK/+MHSTvBsfUoHy+m1sldP2FAZfISNMApwJhAOO4JJPW7+dp8icS5WUDHIhG8t+0AIjP1lA1Mff+Ao=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=nId8UIa5; arc=none smtp.client-ip=209.85.208.46
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="nId8UIa5"
+Received: by mail-ed1-f46.google.com with SMTP id 4fb4d7f45d1cf-6611e4aefdcso10534540a12.3
+        for <linux-acpi@vger.kernel.org>; Tue, 10 Mar 2026 08:14:06 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1773155645; x=1773760445; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=ZrhwHJgKfQunIbqKLgGEw/Kos9vy+e6R49GEIQjjeck=;
+        b=nId8UIa5R11Pp9py1+B/qkAUATgqgsb1/rN3ytyvIXIc65Oww+poZVDL0ZvetkZCq+
+         4ZMBNLwPZVSR6146dklFoCofnQD3xPhgmyVzU0e22vvoT/jib22Lcy5rkLOb5oK9SJoT
+         CAHbhtMWRKgiKieJUEj9Mk7As9F5zYPAuo+Oo=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1773155046; x=1773759846;
+        d=1e100.net; s=20230601; t=1773155645; x=1773760445;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=Ru18n38/qbgrYN5XhGLEd0K3IukQ/mw6D37X8x0z/qo=;
-        b=YWoG5Y+6+e3DEblL4dJyAZLLx0JcqMAEFErGezZKriUST8QdEBA/hPsRMxpO00IN2t
-         OkrlVQ1LqPnwpg6GWTSjZtSBnVY3t9JauX/MICB+iZrThk1ALQwCPRrx5gy9IOOtVS7f
-         FTszdBD94e6CWGTCUXRRX7X02gVST6YNlWTFoOMAs8fGg4oKz5zhoRcZgPT09FMIiI44
-         2sBCA1/s2PdRdeLBKBmhAUcZcIFo3sPSzQ3iFXWfN+m1doRgmnmvHRT3LY76b8a6voIl
-         Rc0Z2oHjucnkxq3NXEhzhqUlHUVTOnwJMzifbmEdHT8MxKVnwxqcuCSaVp5hymgRmzy3
-         yd5Q==
-X-Forwarded-Encrypted: i=1; AJvYcCX1ZfaVsyZByIIwYxgX6TjCi87nKpyjLBYkbLsMc5ydMzdwmEwucAyyQdIGVqwUpru3WS9aGApUmDrG@vger.kernel.org
-X-Gm-Message-State: AOJu0YynwxqHUDiUqPkuGCEf7ld/gO0j06notTnbHAzTjl22157Kbgmr
-	8np/yapXamHrr/ABpCIapY7ht12TXhnBNmqr22ZWktx5vuUZi46dhpnYDQCQqMeN
-X-Gm-Gg: ATEYQzywahNylmFSeXLVDKS/Z3OJdy26ST28GmoWLJOmy3ZsiFXldEOpNp9/6WjtSLo
-	JmBL09gIrukHE6zTuj37lhXQBXZSK0efuCRuCvyLJquKAZ9rHNDlKKIWj04ShU/rLhD2gSa+Pyj
-	Uz9aMxyidgP9kwcsqfa2xj3oaZiN946hnq+QMsyZMTGfztRcORfanvcOTT3VtseAPU5E8b3WVkc
-	BnZsMPR3uRCP6KO04XAiFLozhx46DOJEg2/wGaWyWWHXis64j/ZH5VCAT8vxEWufYFbtXwLSH4+
-	UKUsb7+JMXCZRCuQxwfHBG/6omGfrfRpZu95QMV/UlagaEIljM9q/ia7S/NdKhKLtC9pfggzTX6
-	+0ORz8tLNuLzltbN0N702VNNQRdi+v0WHjdrTlBj5I5bZEWLlc4Mb2uE9WciOHGADtMNTHmrmt8
-	SZJs0FHXO5eo0CQvk+HG5etilEiY+5e856I1oZR0Kk5Rj+sEmngj/eUerej6z5
-X-Received: by 2002:a05:6102:40d8:10b0:5ff:f4ae:a17b with SMTP id ada2fe7eead31-5fff4aeb84cmr3139865137.7.1773155035633;
-        Tue, 10 Mar 2026 08:03:55 -0700 (PDT)
-Received: from mail-vs1-f49.google.com (mail-vs1-f49.google.com. [209.85.217.49])
-        by smtp.gmail.com with ESMTPSA id ada2fe7eead31-5ffe88a55fesm10092116137.1.2026.03.10.08.03.54
+        bh=ZrhwHJgKfQunIbqKLgGEw/Kos9vy+e6R49GEIQjjeck=;
+        b=J3Opl1DzBLzdsZoadwkRUP5XRkA6XCNWqRj/YvC2cxysy7x+ndIaEaV1V2bJcNe1Lz
+         ldaL5Ajh4FN54Z2WO2Nl01Me6YdrznW8lQoQWJiwtyIaLiPGC88Djb4Cf2PsLv4DozEn
+         rzFqCujPU9O1zMUaWP7QmqlBH1ZzlEsB0QUn6q3qnOdzmDlwF91432Wo9L/At5fOKg+X
+         Bd31jO524gSSYW/mQRsKcLUGubBdetlP2WEBqanj4j2QaqSXcHqDRUTkWiUxr++k4iVN
+         81dpDQAUp5MMvRNmmGYCKmZRX2LGD+y7V8G9/UbJEP2pKxcEImndRV3Ercb5iu8a8HkA
+         dJDA==
+X-Forwarded-Encrypted: i=1; AJvYcCW9qGl+mdP2WU/tEnwRtd43DQ6iAFqf/RVW5saZtHKOTOc3KV+ao3OIazJPRhrkjv3gM/Ey0jfwMXSA@vger.kernel.org
+X-Gm-Message-State: AOJu0Yypv2+jtmyZkvLRJfL6SesZD3RLAdyAS6KscqFq9ZIEHElNAUS4
+	blROCHnm7Bfj7c8FNede9Lft4tqUJA13qYlxKY34q4OeZWfjWHV1El4b0I0pha7X945PMMjHQxq
+	/4/J5d9f/
+X-Gm-Gg: ATEYQzzUG42JYOu4403oJkhyHNysXJ6u3O+GqL21LU+Wkx0StV3xQL9YYl0nmwQ0Rf0
+	vxDJnIXHrVdumFaSSO5aruO6UGJGZUAbcJExrfQok/cjSnAlVcdX3FHjtcxOGBTC5sx7C1+4awl
+	tiDqQ52BI00rMjob5h2DWn6ioKsWdiRetHFVazu4OP/g4rz/nrBS40advRVEE5He+DliQoQ/lFg
+	gcwE0nJmZfagLGxwFAsQ+XGQbU/CsEiu16ROHjZ8t7vJwtohl6u99yM0fT/6KD4CAn83gbxo+L8
+	qMq//1DQEsyepa9z5fLO20Dli8BAzqVqXmvo/e87NYvnmVTXsbdBve8nVOj+BrAyZ74dKN1Cxh+
+	cG1ojxiG+u+pDoNn9PMjx6V6TS+y9QpzLEoxLiEbe4NnYqJbfNB4xppsqB0zmyh0KB6vZwyqQ6O
+	buLj3tDkwUvHzM/bhC69HENPg6ZbUVcdzOYIj5DLOXvuUw8JEzdJR0zIKQKx/prV3hSjS+AeR9
+X-Received: by 2002:a17:907:728e:b0:b94:2648:4672 with SMTP id a640c23a62f3a-b942e029155mr1009310166b.41.1773155644865;
+        Tue, 10 Mar 2026 08:14:04 -0700 (PDT)
+Received: from mail-ed1-f49.google.com (mail-ed1-f49.google.com. [209.85.208.49])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-b942f15c23fsm501096666b.49.2026.03.10.08.14.04
         for <linux-acpi@vger.kernel.org>
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 10 Mar 2026 08:03:55 -0700 (PDT)
-Received: by mail-vs1-f49.google.com with SMTP id ada2fe7eead31-5ffd57b6fc6so1134089137.1
-        for <linux-acpi@vger.kernel.org>; Tue, 10 Mar 2026 08:03:54 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCW9r50xCaLtCz6lZJ2dxrX0ecgMg38dKpKkYWMzi9z24RcCjtfr9swiQf1JFOb3R1pIVUF0ZrcoUzpD@vger.kernel.org
-X-Received: by 2002:a05:6102:c8f:b0:5f1:70fe:3027 with SMTP id
- ada2fe7eead31-5ffe6121c90mr5181206137.24.1773155033187; Tue, 10 Mar 2026
- 08:03:53 -0700 (PDT)
+        Tue, 10 Mar 2026 08:14:04 -0700 (PDT)
+Received: by mail-ed1-f49.google.com with SMTP id 4fb4d7f45d1cf-660dcafc85aso11991591a12.0
+        for <linux-acpi@vger.kernel.org>; Tue, 10 Mar 2026 08:14:04 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCVmyUKyjNpzGonbeeLVz/NJiXzxUSg1TmvdqLSL3tq9doNuqQnpSMGt3yynMvz6ksK1cxWkZfZLBO8Z@vger.kernel.org
+X-Received: by 2002:a05:600c:1d04:b0:47e:e7e5:ff32 with SMTP id
+ 5b1f17b1804b1-48526983292mr236479455e9.34.1773155329681; Tue, 10 Mar 2026
+ 08:08:49 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260227135428.783983-1-herve.codina@bootlin.com> <20260227135428.783983-3-herve.codina@bootlin.com>
-In-Reply-To: <20260227135428.783983-3-herve.codina@bootlin.com>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Tue, 10 Mar 2026 16:03:42 +0100
-X-Gmail-Original-Message-ID: <CAMuHMdVVsEB-xb8Jz4ujBam2NxtxAOb7byYa3VR_eHsbTD5rXw@mail.gmail.com>
-X-Gm-Features: AaiRm53b7liJL7XJhyMA-JPl81LkjhC0Orfn04kAcG7__Cf3-wDY5cIOlphhcC4
-Message-ID: <CAMuHMdVVsEB-xb8Jz4ujBam2NxtxAOb7byYa3VR_eHsbTD5rXw@mail.gmail.com>
-Subject: Re: [PATCH v5 02/28] driver core: Rename get_dev_from_fwnode()
- wrapper to get_device_from_fwnode()
-To: Herve Codina <herve.codina@bootlin.com>
-Cc: Andrew Lunn <andrew@lunn.ch>, Rob Herring <robh@kernel.org>, 
-	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
-	Kalle Niemi <kaleposti@gmail.com>, Matti Vaittinen <mazziesaccount@gmail.com>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
-	Danilo Krummrich <dakr@kernel.org>, Frank Li <Frank.Li@nxp.com>, 
-	Sascha Hauer <s.hauer@pengutronix.de>, Pengutronix Kernel Team <kernel@pengutronix.de>, 
-	Fabio Estevam <festevam@gmail.com>, Michael Turquette <mturquette@baylibre.com>, 
-	Stephen Boyd <sboyd@kernel.org>, Andi Shyti <andi.shyti@kernel.org>, 
-	Wolfram Sang <wsa+renesas@sang-engineering.com>, Peter Rosin <peda@axentia.se>, 
-	Arnd Bergmann <arnd@arndb.de>, Saravana Kannan <saravanak@kernel.org>, 
-	Bjorn Helgaas <bhelgaas@google.com>, Charles Keepax <ckeepax@opensource.cirrus.com>, 
-	Richard Fitzgerald <rf@opensource.cirrus.com>, David Rhodes <david.rhodes@cirrus.com>, 
-	Linus Walleij <linusw@kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, 
-	Mark Brown <broonie@kernel.org>, Len Brown <lenb@kernel.org>, 
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Daniel Scally <djrscally@gmail.com>, 
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
-	Sakari Ailus <sakari.ailus@linux.intel.com>, Davidlohr Bueso <dave@stgolabs.net>, 
-	Jonathan Cameron <jonathan.cameron@huawei.com>, Dave Jiang <dave.jiang@intel.com>, 
-	Alison Schofield <alison.schofield@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Ira Weiny <ira.weiny@intel.com>, Dan Williams <dan.j.williams@intel.com>, 
-	Shawn Guo <shawnguo@kernel.org>, Wolfram Sang <wsa@kernel.org>, linux-kernel@vger.kernel.org, 
-	driver-core@lists.linux.dev, imx@lists.linux.dev, 
-	linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, 
-	linux-i2c@vger.kernel.org, devicetree@vger.kernel.org, 
-	linux-pci@vger.kernel.org, linux-sound@vger.kernel.org, 
-	patches@opensource.cirrus.com, linux-gpio@vger.kernel.org, 
-	linux-pm@vger.kernel.org, linux-spi@vger.kernel.org, 
-	linux-acpi@vger.kernel.org, linux-cxl@vger.kernel.org, 
-	Allan Nielsen <allan.nielsen@microchip.com>, Horatiu Vultur <horatiu.vultur@microchip.com>, 
-	Steen Hegelund <steen.hegelund@microchip.com>, Luca Ceresoli <luca.ceresoli@bootlin.com>, 
-	Thomas Petazzoni <thomas.petazzoni@bootlin.com>, Saravana Kannan <saravanak@google.com>, 
-	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+References: <20260216181002.3475421-1-dianders@chromium.org>
+ <20260216100943.v3.1.I600d04c0553f5c5ba39c2f92201da313aedfe746@changeid> <CABb+yY2RKJgyNQ6789ua6s8C4tuOvhWqdcS16_4yU3AHjAiv_A@mail.gmail.com>
+In-Reply-To: <CABb+yY2RKJgyNQ6789ua6s8C4tuOvhWqdcS16_4yU3AHjAiv_A@mail.gmail.com>
+From: Doug Anderson <dianders@chromium.org>
+Date: Tue, 10 Mar 2026 08:08:38 -0700
+X-Gmail-Original-Message-ID: <CAD=FV=U4te2V7MaOrQ8kSibLazqUy_Kv3ZcJyAAaCAiGWOY1Gw@mail.gmail.com>
+X-Gm-Features: AaiRm51YHmAMmjPRIWQTSvpfsMBkAMaTT684zHe2XNjk21TEkEMaZPx6RHcKG9o
+Message-ID: <CAD=FV=U4te2V7MaOrQ8kSibLazqUy_Kv3ZcJyAAaCAiGWOY1Gw@mail.gmail.com>
+Subject: Re: [PATCH v3 01/15] mailbox: Deprecate NULL mbox messages; Introduce mbox_ring_doorbell()
+To: Jassi Brar <jassisinghbrar@gmail.com>
+Cc: Bjorn Andersson <andersson@kernel.org>, Frank.Li@nxp.com, arm-scmi@vger.kernel.org, 
+	cristian.marussi@arm.com, festevam@gmail.com, imx@lists.linux.dev, 
+	jay.buddhabhatti@amd.com, jonathanh@nvidia.com, kernel@pengutronix.de, 
+	konradybcio@kernel.org, krzk@kernel.org, lenb@kernel.org, 
+	linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+	linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-remoteproc@vger.kernel.org, linux-tegra@vger.kernel.org, 
+	lucaswei@google.com, mathieu.poirier@linaro.org, michal.simek@amd.com, 
+	nm@ti.com, rafael@kernel.org, robh@kernel.org, s.hauer@pengutronix.de, 
+	shawn.guo@linaro.org, ssantosh@kernel.org, sudeep.holla@kernel.org, 
+	tglx@kernel.org, thierry.reding@gmail.com
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-Hi Herv=C3=A9,
+Hi,
 
-On Fri, 27 Feb 2026 at 14:55, Herve Codina <herve.codina@bootlin.com> wrote=
-:
-> get_dev_from_fwnode() calls get_device() and so it acquires a reference
-> on the device returned.
+On Mon, Mar 9, 2026 at 8:24=E2=80=AFPM Jassi Brar <jassisinghbrar@gmail.com=
+> wrote:
 >
-> In order to be more obvious that this wrapper is a get_device() variant,
-> rename it to get_device_from_fwnode().
+> Hi Doug,
 >
-> Suggested-by: Mark Brown <broonie@kernel.org>
-> Link: https://lore.kernel.org/lkml/CAGETcx97QjnjVR8Z5g0ndLHpK96hLd4aYSV=
-=3DiEkKPNbNOccYmA@mail.gmail.com/
-> Signed-off-by: Herve Codina <herve.codina@bootlin.com>
-> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Reviewed-by: Saravana Kannan <saravanak@google.com>
-> Reviewed-by: Luca Ceresoli <luca.ceresoli@bootlin.com>
-> Acked-by: Ulf Hansson <ulf.hansson@linaro.org>
+> On Mon, Feb 16, 2026 at 12:11=E2=80=AFPM Douglas Anderson <dianders@chrom=
+ium.org> wrote:
+> > @@ -249,6 +255,28 @@ int mbox_send_message(struct mbox_chan *chan, void=
+ *mssg)
+> >         if (!chan || !chan->cl)
+> >                 return -EINVAL;
+> >
+> > +       /*
+> > +        * The mailbox core gets confused when mbox_send_message() is c=
+alled
+> > +        * with NULL messages since the code directly stores messages i=
+n
+> > +        * `active_req` and assumes that a NULL `active_req` means no r=
+equest
+> > +        * is active. This causes the core to call the mailbox controll=
+er a
+> > +        * second time even if the previous message hasn't finished and=
+ also
+> > +        * means the client's tx_done() callback will never be called. =
+However,
+> > +        * clients historically passed NULL anyway. Deprecate passing N=
+ULL
+> > +        * here by adding a warning.
+> > +        *
+> > +        * Clients who don't have a message should switch to using
+> > +        * mbox_ring_doorbell(), which explicitly documents the immedia=
+te
+> > +        * sending of doorbells, the lack of txdone, and what happens i=
+f you
+> > +        * mix doorbells and normal messages.
+> > +        *
+> > +        * TODO: when it's certain that all clients have transitioned, =
+consider
+> > +        * changing this to return -EINVAL.
+> > +        */
+> > +       if (!mssg)
+> > +               dev_warn_once(chan->mbox->dev,
+> > +                             "NULL mbox messages are deprecated; use m=
+box_ring_doorbell\n");
+> > +
+> Does this patchset leave some such clients out?  If not, should we
+> drop this block and return -EINVAL already?
 
-FTR, one more user of get_dev_from_fwnode() appeared in commit
-9035073d0ef1de81 ("reset: convert reset core to using firmware nodes")
-in reset/next.
+This patchset series got all the clients that were in mainline at the
+time I last checked. However, it was unclear to me if all the patches
+would all go through your tree or not, since they don't touch mailbox
+drivers but the somewhat widespread places that were clients of
+mailbox.
 
-Gr{oetje,eeting}s,
+If all the patches aren't going through your tree, we'll need to keep
+it like this until we can confirm all of the clients have been
+updated. If all the patcheds are going through your tree, then we
+could make it return -EINVAL right away, but it we'd have to do that
+as a last patch in the series. I think it would still make sense for
+the first patch (which adds the mbox_ring_doorbell() call) to have a
+warning like this and then a final patch to switch to -EINVAL. That
+keeps things bisectable.
 
-                        Geert
+What do you think?
 
---=20
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k=
-.org
+I'm happy to post a patch atop my series that switches it to -EINVAL
+and you can land it whenever you see fit. Would that work?
 
-In personal conversations with technical people, I call myself a hacker. Bu=
-t
-when I'm talking to journalists I just say "programmer" or something like t=
-hat.
-                                -- Linus Torvalds
+-Doug
