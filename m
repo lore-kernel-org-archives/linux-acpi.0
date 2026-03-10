@@ -1,77 +1,83 @@
-Received: from mail-pl1-f181.google.com (mail-pl1-f181.google.com [209.85.214.181])
+Received: from mail-pl1-f180.google.com (mail-pl1-f180.google.com [209.85.214.180])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76351342CA9
-	for <linux-acpi@vger.kernel.org>; Tue, 10 Mar 2026 19:16:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.181
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60B26355F57
+	for <linux-acpi@vger.kernel.org>; Tue, 10 Mar 2026 19:34:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.180
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773170172; cv=none; b=gr0wQBOHGht6PXP5zMhBvKkda9xP/2dpqaNHBVwYvzqMT6YfuWQbDYBJEh10ciXfjtX0fgGLJG0hU0dRnmmRHzfXL0QUaYNfSfmdzAm8R7rQE+sZ7uDIxl8CpE35CTLbKWqnBQKZph7vT6Xq3UL0YYRz9c+Onxpk1BAVvRO3EDs=
+	t=1773171249; cv=none; b=uqnr/DGWfMaxs9QmRdTdOwJsMDT2jFf2R1W/Dadu+eaY8vQjR5iKxBzj0ME+hWq1dgW8t4oUcLLKnKA2U7F1c9DCUDbUpjfmXPSv8O8AD5U8w7Zsh1SILMTpGrit2Jp4k2W4xvMuWy2PngIqmb2oXdwO7yjVsrwhtf+OG26agAg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773170172; c=relaxed/simple;
-	bh=9GIY+T26bzqPshiMF0YfDMQu/te7jTtPa94i7QPnMmc=;
+	s=arc-20240116; t=1773171249; c=relaxed/simple;
+	bh=L12BluinyjkXyqIU2kYvAjopMSiSYL6fkPARo8pB4dk=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=WqKIAd0e1y6WGV8R9+n/ip9jC+YsJdRrh5bZwrLQ9nyMRX8f9YryhHqmyLHKlIrOfCpAZ9yWWBok+SRrpfP7cbRqmP5NDgDuMRs8kHaPCbTn25Pk2d2ynfPOyNvkLFxuGMDPYIW1cNVKKtIqaXDcOjClugAa60ay9bnCrsFhavs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=OAEK/vOE; arc=none smtp.client-ip=209.85.214.181
+	 Content-Type:Content-Disposition:In-Reply-To; b=GnKsVJury4LDVoliyZkhRywNMB1szMsfkVbtx3++ern8pH3EIV1mJSAr95ghl+/7NpE6rFrzaLDiW2a3DEXFdoe3IwUz5UPvKWbHQuJnUkiQcVQYIuXOfCaD9ymtmwzuAQQ8vJ740rSMia9bGLGVYWiTOt+mA2SsG3KomsApi88=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=sUMjQXCi; arc=none smtp.client-ip=209.85.214.180
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="OAEK/vOE"
-Received: by mail-pl1-f181.google.com with SMTP id d9443c01a7336-2ae3f822163so23085ad.0
-        for <linux-acpi@vger.kernel.org>; Tue, 10 Mar 2026 12:16:10 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="sUMjQXCi"
+Received: by mail-pl1-f180.google.com with SMTP id d9443c01a7336-2aea4ebb048so2425ad.1
+        for <linux-acpi@vger.kernel.org>; Tue, 10 Mar 2026 12:34:08 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1773170170; x=1773774970; darn=vger.kernel.org;
+        d=google.com; s=20230601; t=1773171248; x=1773776048; darn=vger.kernel.org;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=aN0nyrbMsrt5Hg63KWcZhSsf/H9up2uegNl8k8ebr10=;
-        b=OAEK/vOEPTFaS+50skwup5VdW1SKtGi02otM7Yv3dDv6wMt/xKkNecnzjfLDaBcAxi
-         1Lp706q0xOJ7GRC5uYQu3kf4ar8wh2Ey4LQJfbcMF9HX8UcRSv2cArX+FZ+OKUk8Wbzh
-         tRFHH8A0ZGm7kuVzoUHoSx3BxQJdQ4Z1/NcP22+pm8KwfVtw9SWZCcB+ZI/QS+3xWEJg
-         6KrK1AhA1gcNctJ8tr98wCt02Kgm5LtIq99tagP2t36qpL8KbiFqHMhM7XUorcBg5QV/
-         QbLLTX8HD/lB6sGgmcdwdpsUwVFkO58OBTuOY870WKp9DP5qNubu9JwE96zpQvAuXyFF
-         HfnQ==
+        bh=uXGSMdyPLPak8eP7BVwmVxBskx1z5iRhXJhm2M1XFP4=;
+        b=sUMjQXCiFWPQ5tlDPRqpNkwz1K2jpMHfpkK4EwM4RZBQJPgxgv6Zxkh99vXccgplk1
+         aF/u5WoZmbrEqevcIESXDoPzYFOslxzoL4jAaOwzA9wSDC2q+yVfKLDqvnUMVtxWkMF0
+         eJXvjINw5i/1WgpjhWLyibo6j1DNkGrrNr4xiAz53AcquSAhpcEm1eUyvteoxBZqTPFt
+         p8n0e27ljaRnN9NlUt45D4WeMYqQ3RARNGHm5SHhWrn6w/ieTDKe+ya31oVFJOU/mPaA
+         LCJXSlMHh6dzLo/RaxlJ0ilJJsNarqh9tmiQ95yerrATzHCy+dOaF87J2bqwt9zsoOls
+         AqEA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1773170170; x=1773774970;
+        d=1e100.net; s=20230601; t=1773171248; x=1773776048;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=aN0nyrbMsrt5Hg63KWcZhSsf/H9up2uegNl8k8ebr10=;
-        b=nIXLsXnpgL6UdtD22pj84JHnn59egrExZ23XHLxQ2ApNZazYCFTw2Ul0MsIyz37gwO
-         zTg0CXCzSjenz+3U4Al48K5eTNvOI4J3ThxSfPR+yZsRbyIPr6J5omi0y73MnDNydxO9
-         3Y5H34Z/O5Q35qAqg8sWNwy5jkLD6bJogtKRVIGFotQN1Hd6LS58EPiZ72blDfJ3c7zB
-         /UsIcvb7G148+A5bi/Q/uQE/QrP+lfvRNuPYk6F5VSL8XJb/hx/wRAyLfmWaYkoR/1ca
-         73WjCqRdYSR8M71Wy6+ezF9RWhKwi5DqYKEde9WTCkpAOOB5wqCa+ju0j9MMcCECGfrR
-         4djg==
-X-Forwarded-Encrypted: i=1; AJvYcCVLJxxCf0a6xBdYGdfpyTgBUrcZfJ5ZiMqxHz70k/jexOtTpTPJelnCxRfrQSvf+FXKDmLCg/l0YMWD@vger.kernel.org
-X-Gm-Message-State: AOJu0YxFNaR/x0L/kuVawwQHfR7qpPHDdg4vSkaY8iI2lTkLrPyf06TY
-	soYUIY6GIcweZ/bZm6IkshAz6Ry/kSX8l2WGgQpxqJ4gbEkVASUSFTQEAzx1sh2f0w==
-X-Gm-Gg: ATEYQzyx1W5IAoPpqtT9SDXoPDVYs2jrMu8yq/Zg9c8RgOH6wueQk57W5A5gziE7UCv
-	wCBsopo6b/86eUPztzvVx1umdtemBgfAmHsjqx+aIAeQBc5+2aQT4eLYTwHgOEkQKMrN0E3ABsB
-	J+7ie2LHAiOgwVJ2hyChbm6i63ZqsFAmYI83kS38Pu2AAH3EK7FoWF9SCVNrcsLILecBtbCZkpc
-	CjP6CvqelHVfJ4fK/+q+kOj1zMuSMNhS2wBHFBoRZwC1ElBgHAUIL/Msy2n/wilpsSETs1FBP0E
-	dbR6KEr1gMpwMRtxbKIdKFK8/IYkMSJGwqoND86dII/06JvUlHQFOs1/8NlGL+DDoQrorqs6Vfk
-	djH45EcognOMoi57xKpcijV8/xF65mC769m//9Jb5CC+Kf5Gd2Buy0xzwVdhwt+XbF4Wy/zqsi7
-	H6qpsDcdeVk+erc2lH7DVZbdQ4SqL1BXjyry4b58VmEEsngmkPKD2xMyCZkw==
-X-Received: by 2002:a17:903:3d10:b0:2a7:6fd3:c11e with SMTP id d9443c01a7336-2aead3dbf39mr503375ad.18.1773170169056;
-        Tue, 10 Mar 2026 12:16:09 -0700 (PDT)
+        bh=uXGSMdyPLPak8eP7BVwmVxBskx1z5iRhXJhm2M1XFP4=;
+        b=R03fvvUEjKdFxzvmEthbyBroY90S51/jeiaaAYZvgl99I0+wz+UeZj5E2ErX6gp6Ve
+         TVfSz7bourVCFydOQOMEpkvt/J5QRrVQ9rG8nVnJ1r++MoAt37DLsCLUihHgLsmC4HWT
+         AR3xcIMyfq+6fbApgkM9J/g665lRInT2n7rIg1/6YEdrlMEZXC1kx6VgBMs4+Qz3F0rS
+         c96vZVQLlPM9cg5U3Rs/9AADR4W5COirrjMbtdJtQW8oHyCVYLLTZ2WpB6czOB3bfi1O
+         9NRbtMDhTdq98iwOC1ziIaozsszQ0oDLGe5Kkq7d42iHJjajRZ++v6YwOKmIEvJwsrnJ
+         m6eg==
+X-Forwarded-Encrypted: i=1; AJvYcCVqRgz40Vofw0jHhMDgeGNLWYjWvprxFBfarajvaNJbiS37102U99G4yMD7iu6xxby0tQz+8WYclVgq@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxed1s/vdgsZTt5gT93nq/9g9u+HMTSAylEm+peeByuhNAuoOA0
+	bl6/L+2UMNZIzGRstvSeqoonwNLqkGQqErdxk5bfjafSjYyR+OoLbi+546yLhAGU0A==
+X-Gm-Gg: ATEYQzzuOEMyneeQKj+f7hX3OfxKjRRUr7cqq2pDdjJ53ZMbE4E5fh98oom3yZMf7N9
+	lZxMJI4MVOEYO3JMQECLdTelkvT4spZ6yPDbP5OZmJL2UY4xdJlDL+FKuzJeEzH8OUYKZ4ouuGn
+	ZnIIhGE9T9seUj908ibYggOWtt22/JNKXYiHqblOBHcnuQh/IFPg/lR/PQOYHvY57kD/k5U4KlF
+	mylAUfq5h8QVoWILDCekLsB7dJby7MVUMdC+t1R+3dVl49h0FX+WHYdjeFTej+ARiK1jSlM9A7o
+	bMuv1GlZE6mZFKW9fOnLHzI094oogcjlOSW9B4yw/XNTere9S1MaGE4FaAmP97PZiFlixtwDvT7
+	2c0fSHA0EKcmLwjTLsrsHpCY0HpgJWet0rIcimvVQzQIIgagLXzpbOzbP6kp7PsUf7O+WWngzpZ
+	2y4jzktC6cmZST5w8wptWUznIl9C82zbukURDkfn4RuRlqBja4wJTXVi4L3w==
+X-Received: by 2002:a17:902:f710:b0:2ae:4e8e:954e with SMTP id d9443c01a7336-2aeae7082d4mr4705ad.5.1773171247142;
+        Tue, 10 Mar 2026 12:34:07 -0700 (PDT)
 Received: from google.com (10.129.124.34.bc.googleusercontent.com. [34.124.129.10])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-829f70396cbsm15505b3a.58.2026.03.10.12.16.04
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2aeae34d873sm382665ad.42.2026.03.10.12.34.03
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 10 Mar 2026 12:16:08 -0700 (PDT)
-Date: Tue, 10 Mar 2026 19:16:02 +0000
+        Tue, 10 Mar 2026 12:34:06 -0700 (PDT)
+Date: Tue, 10 Mar 2026 19:34:00 +0000
 From: Pranjal Shrivastava <praan@google.com>
-To: Nicolin Chen <nicolinc@nvidia.com>
-Cc: will@kernel.org, robin.murphy@arm.com, joro@8bytes.org,
-	bhelgaas@google.com, jgg@nvidia.com, rafael@kernel.org,
-	lenb@kernel.org, kees@kernel.org, baolu.lu@linux.intel.com,
-	smostafa@google.com, Alexander.Grest@microsoft.com,
-	kevin.tian@intel.com, miko.lenczewski@arm.com,
-	linux-arm-kernel@lists.infradead.org, iommu@lists.linux.dev,
-	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-	linux-pci@vger.kernel.org, vsethi@nvidia.com
+To: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Robin Murphy <robin.murphy@arm.com>, Nicolin Chen <nicolinc@nvidia.com>,
+	will@kernel.org, joro@8bytes.org, bhelgaas@google.com,
+	rafael@kernel.org, lenb@kernel.org, kees@kernel.org,
+	baolu.lu@linux.intel.com, smostafa@google.com,
+	Alexander.Grest@microsoft.com, kevin.tian@intel.com,
+	miko.lenczewski@arm.com, linux-arm-kernel@lists.infradead.org,
+	iommu@lists.linux.dev, linux-kernel@vger.kernel.org,
+	linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org,
+	vsethi@nvidia.com
 Subject: Re: [PATCH v1 2/2] iommu/arm-smmu-v3: Recover ATC invalidate timeouts
-Message-ID: <abBt8qj8QpkG-Fwh@google.com>
+Message-ID: <abByKCl4xZlgF74z@google.com>
 References: <cover.1772686998.git.nicolinc@nvidia.com>
  <ca7ab934bf0f433b62a5c15d42241632c4cb9366.1772686998.git.nicolinc@nvidia.com>
+ <a5ff7a43-ea52-462d-a316-d3a6c08410e0@arm.com>
+ <aanwTQtMMplXY3du@Asurada-Nvidia>
+ <20260305235252.GC1651202@nvidia.com>
+ <03461707-783e-403a-86fa-ae7a5107fa30@arm.com>
+ <20260306155646.GI1651202@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -80,270 +86,63 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <ca7ab934bf0f433b62a5c15d42241632c4cb9366.1772686998.git.nicolinc@nvidia.com>
+In-Reply-To: <20260306155646.GI1651202@nvidia.com>
 
-On Wed, Mar 04, 2026 at 09:21:42PM -0800, Nicolin Chen wrote:
-> Currently, when GERROR_CMDQ_ERR occurs, the arm_smmu_cmdq_skip_err() won't
-> do anything for the CMDQ_ERR_CERROR_ATC_INV_IDX.
+On Fri, Mar 06, 2026 at 11:56:46AM -0400, Jason Gunthorpe wrote:
+> On Fri, Mar 06, 2026 at 03:24:20PM +0000, Robin Murphy wrote:
+> > On 2026-03-05 11:52 pm, Jason Gunthorpe wrote:
+> > > On Thu, Mar 05, 2026 at 01:06:21PM -0800, Nicolin Chen wrote:
+> > > > That sounds like the IOPF implementation. Maybe inventing another
+> > > > IOMMU_FAULT_ATC_TIMEOUT to reuse the existing infrastructure would
+> > > > make things cleaner.
+> > > 
+> > > I think the routing is quite different, IOPF wants to route an event
+> > > the domain creator, here you want to route an event to the IOMMU core
+> > > then the PCIe RAS callbacks.
+> > > 
+> > > IDK if there is much to be reused there, especially since IOPF
+> > > requires a memory allocation and ideally we should not be allocating
+> > > memory to resolve this critical error condition.
+> > 
+> > Yeah, sorry, for a moment there I somehow forgot that we can expect to use
+> > ATS without PRI, so indeed tying this to IOPF wouldn't be appropriate. And
+> > given the general difficulty of trying to infer what went wrong and what to
+> > do from the CMDQ contents alone, I do like your idea of trying to return a
+> > new kind of sync failure back to arm_smmu_atc_inv_{master,domain}() so that
+> > we can take any defensive action from there, with all the information to
+> > hand. We'd just have to ensure that if a large set of ATCI commands needs to
+> > span multiple batches, every batch must contain its own sync (since if some
+> > other batch of unrelated commands could get interleaved in the middle and
+> > issue a sync that then fails due to someone else's ATC timeout, everything's
+> > likely to get confused and go wrong).
 > 
-> When a device wasn't responsive to an ATC invalidation request, this often
-> results in constant CMDQ errors:
->   unexpected global error reported (0x00000001), this could be serious
->   CMDQ error (cons 0x0302bb84): ATC invalidate timeout
->   unexpected global error reported (0x00000001), this could be serious
->   CMDQ error (cons 0x0302bb88): ATC invalidate timeout
->   unexpected global error reported (0x00000001), this could be serious
->   CMDQ error (cons 0x0302bb8c): ATC invalidate timeout
->   ...
+> Yeah, that all makes sense to me.
 > 
-> An ATC invalidation timeout indicates that the device failed to respond to
-> a protocol-critical coherency request, which means that device's internal
-> ATS state is desynchronized from the SMMU.
+> The batching issue is scary, we definately can't allow an ATC
+> invalidation to be pushed without a SYNC that localizes any failure to
+> this specific thread, or we can't properly disambiguate the failures
+> anymore.
 > 
-> Furthermore, ignoring the timeout leaves the system in an unsafe state, as
-> the device cache may retain stale ATC entries for memory pages that the OS
-> has already reclaimed and reassigned. This might lead to data corruption.
+> My feeling is when the sync "fails", it can bubble up the error and we
+> can get back to the invalidation list processor which can then see it
+> failed to process an ATC batch and take an appropriate action.
 > 
-> The only safe recovery action is to issue a PCI reset, which guarantees to
-> flush all internal device caches and recover the device.
+
++1 just saw this thread (replied something similar)
+
+> > The fiddly thing then is that we might also have to be prepared to "handle"
+> > CMD_SYNC timeout by manually checking for GERRORs, in case the whole
+> > invalidation is in the context of an dma_unmap within some other device's
+> > IRQ handler, which happens to be on the same CPU where the GERROR IRQ is now
+> > pending, but can't be taken until we can complete the inv and return out of
+> > the current IRQ :/
 > 
-> Read the ATC_INV command that led to the timeouts, and schedule a recovery
-> worker to reset the device corresponding to the Stream ID. If reset fails,
-> keep the device in the resetting/blocking domain to avoid data corruption.
-> 
-> Though it'd be ideal to block it immediately in the ISR, it cannot be done
-> because an STE update would require another CFIG_STE command that couldn't
+> IIRC didn't the PM patches propose to add this anyhow?
 
-Nit: s/CFIG_STE/CFGI_STE
-
-> finish in the context of an ISR handling a CMDQ error.
-> 
-> Signed-off-by: Nicolin Chen <nicolinc@nvidia.com>
-> ---
->  drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.h |   5 +
->  drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c | 131 +++++++++++++++++++-
->  2 files changed, 132 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.h b/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.h
-> index 3c6d65d36164f..8789cf8294504 100644
-> --- a/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.h
-> +++ b/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.h
-> @@ -803,6 +803,11 @@ struct arm_smmu_device {
->  
->  	struct rb_root			streams;
->  	struct mutex			streams_mutex;
-> +
-> +	struct {
-> +		struct list_head	list;
-> +		spinlock_t		lock; /* Lock the list */
-> +	} atc_recovery;
->  };
->  
->  struct arm_smmu_stream {
-> diff --git a/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c b/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c
-> index 4d00d796f0783..de182c27c77c4 100644
-> --- a/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c
-> +++ b/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c
-> @@ -106,6 +106,8 @@ static const char * const event_class_str[] = {
->  	[3] = "Reserved",
->  };
->  
-> +static struct arm_smmu_master *
-> +arm_smmu_find_master(struct arm_smmu_device *smmu, u32 sid);
->  static int arm_smmu_alloc_cd_tables(struct arm_smmu_master *master);
->  
->  static void parse_driver_options(struct arm_smmu_device *smmu)
-> @@ -174,6 +176,13 @@ static void queue_inc_cons(struct arm_smmu_ll_queue *q)
->  	q->cons = Q_OVF(q->cons) | Q_WRP(q, cons) | Q_IDX(q, cons);
->  }
->  
-> +static u32 queue_prev_cons(struct arm_smmu_ll_queue *q, u32 cons)
-> +{
-> +	u32 idx_wrp = (Q_WRP(q, cons) | Q_IDX(q, cons)) - 1;
-> +
-> +	return Q_OVF(cons) | Q_WRP(q, idx_wrp) | Q_IDX(q, idx_wrp);
-> +}
-> +
->  static void queue_sync_cons_ovf(struct arm_smmu_queue *q)
->  {
->  	struct arm_smmu_ll_queue *llq = &q->llq;
-> @@ -410,6 +419,97 @@ static void arm_smmu_cmdq_build_sync_cmd(u64 *cmd, struct arm_smmu_device *smmu,
->  		u64p_replace_bits(cmd, CMDQ_SYNC_0_CS_NONE, CMDQ_SYNC_0_CS);
->  }
->  
-> +/* ATC recovery upon ATC invalidation timeout */
-> +struct arm_smmu_atc_recovery_param {
-> +	struct arm_smmu_device *smmu;
-> +	struct pci_dev *pdev;
-> +	u32 sid;
-> +
-> +	struct work_struct work;
-> +	struct list_head node;
-> +};
-> +
-> +static void arm_smmu_atc_recovery_worker(struct work_struct *work)
-> +{
-> +	struct arm_smmu_atc_recovery_param *param =
-> +		container_of(work, struct arm_smmu_atc_recovery_param, work);
-> +	struct pci_dev *pdev;
-> +
-> +	scoped_guard(mutex, &param->smmu->streams_mutex) {
-> +		struct arm_smmu_master *master;
-> +
-> +		master = arm_smmu_find_master(param->smmu, param->sid);
-> +		if (!master || WARN_ON(!dev_is_pci(master->dev)))
-> +			goto free_param;
-> +		pdev = to_pci_dev(master->dev);
-> +		pci_dev_get(pdev);
-> +	}
-> +
-> +	scoped_guard(spinlock_irqsave, &param->smmu->atc_recovery.lock) {
-> +		struct arm_smmu_atc_recovery_param *e;
-> +
-> +		list_for_each_entry(e, &param->smmu->atc_recovery.list, node) {
-> +			/* Device is already being recovered */
-> +			if (e->pdev == pdev)
-> +				goto put_pdev;
-> +		}
-> +		param->pdev = pdev;
-> +		list_add(&param->node, &param->smmu->atc_recovery.list);
-> +	}
-> +
-> +	/*
-> +	 * Stop DMA (PCI) and block ATS (IOMMU) immediately, to prevent memory
-> +	 * corruption. This must take pci_dev_lock to prevent any racy unplug.
-> +	 *
-> +	 * If pci_dev_reset_iommu_prepare() fails, pci_reset_function will call
-> +	 * it again internally.
-> +	 */
-> +	pci_dev_lock(pdev);
-> +	pci_clear_master(pdev);
-> +	if (pci_dev_reset_iommu_prepare(pdev))
-> +		pci_err(pdev, "failed to block ATS!\n");
-> +	pci_dev_unlock(pdev);
-> +
-> +	/*
-> +	 * ATC timeout indicates the device has stopped responding to coherence
-> +	 * protocol requests. The only safe recovery is a reset to flush stale
-> +	 * cached translations. Note that pci_reset_function() internally calls
-> +	 * pci_dev_reset_iommu_prepare/done() as well and ensures to block ATS
-> +	 * if PCI-level reset fails.
-> +	 */
-> +	if (!pci_reset_function(pdev)) {
-
-I'm a little uncomfortable with this, why is an IOMMU driver poking into
-the PCI mechanics? I agree that a reset might be the right thing to do
-here but we wouldn't want the IOMMU driver to trigger it.. Ideally, we'd
-need a mechanism that bubbles up fatal IOMMU faults to the PCI core and
-let it decide/perform the reset. Maybe this could mean adding another op
-to struct pci_error_handlers or something like that?
-
-> +		/*
-> +		 * If reset succeeds, set BME back. Otherwise, fence the system
-> +		 * from a faulty device, in which case user will have to replug
-> +		 * the device to invoke pci_set_master().
-> +		 */
-> +		pci_dev_lock(pdev);
-
-Why are we using spinlock_irqsave across the worker? Also, why does
-atc_recovery.lock have to be a spinlock? The workers run in process
-context, and I also don't see anyone else take the atc_recovery.lock?
-Why does it need to be irq-safe? If this can somehow run in irq context,
-we also seem to be using pci_dev_lock and streams_mutex across the
-worker? Mixing mutexes with spinlocks is brittle and invites 
-"sleep-while-atomic" bugs in future refactors..
-
-> +		pci_set_master(pdev);
-> +		pci_dev_unlock(pdev);
-> +	}
-> +	scoped_guard(spinlock_irqsave, &param->smmu->atc_recovery.lock)
-> +		list_del(&param->node);
-> +put_pdev:
-> +	pci_dev_put(pdev);
-> +free_param:
-> +	kfree(param);
-> +}
-> +
-> +static int arm_smmu_sched_atc_recovery(struct arm_smmu_device *smmu, u32 sid)
-> +{
-> +	struct arm_smmu_atc_recovery_param *param;
-> +
-> +	param = kzalloc_obj(*param, GFP_ATOMIC);
-> +	if (!param)
-> +		return -ENOMEM;
-> +	param->smmu = smmu;
-> +	param->sid = sid;
-> +
-> +	INIT_WORK(&param->work, arm_smmu_atc_recovery_worker);
-> +	queue_work(system_unbound_wq, &param->work);
-> +	return 0;
-> +}
-> +
->  void __arm_smmu_cmdq_skip_err(struct arm_smmu_device *smmu,
->  			      struct arm_smmu_cmdq *cmdq)
->  {
-> @@ -441,11 +541,10 @@ void __arm_smmu_cmdq_skip_err(struct arm_smmu_device *smmu,
->  	case CMDQ_ERR_CERROR_ATC_INV_IDX:
->  		/*
->  		 * ATC Invalidation Completion timeout. CONS is still pointing
-> -		 * at the CMD_SYNC. Attempt to complete other pending commands
-> -		 * by repeating the CMD_SYNC, though we might well end up back
-> -		 * here since the ATC invalidation may still be pending.
-> +		 * at the CMD_SYNC. Rewind it to read the ATC_INV command.
->  		 */
-> -		return;
-> +		cons = queue_prev_cons(&q->llq, cons);
-
-What about batched commands? We might never know which command caused
-the timeout? This just fetches the "previous" command and we might end
-up resetting the wrong device if the invalidations were batched?
-
-> +		fallthrough;
->  	case CMDQ_ERR_CERROR_ILL_IDX:
->  	default:
->  		break;
-> @@ -456,6 +555,27 @@ void __arm_smmu_cmdq_skip_err(struct arm_smmu_device *smmu,
->  	 * not to touch any of the shadow cmdq state.
->  	 */
->  	queue_read(cmd, Q_ENT(q, cons), q->ent_dwords);
-> +
-> +	if (idx == CMDQ_ERR_CERROR_ATC_INV_IDX) {
-> +		/*
-> +		 * Since commands can be issued in batch making it difficult to
-> +		 * identify which CMDQ_OP_ATC_INV actually timed out, the driver
-> +		 * must ensure only CMDQ_OP_ATC_INV commands for the same device
-> +		 * can be batched.
-> +		 */
-> +		WARN_ON(FIELD_GET(CMDQ_0_OP, cmd[0]) != CMDQ_OP_ATC_INV);
-> +
-> +		/*
-> +		 * If we failed to schedule a recovery worker, we would well end
-> +		 * up back here since the ATC invalidation may still be pending.
-> +		 * This gives us another chance to reschedule a recovery worker.
-> +		 */
-> +		arm_smmu_sched_atc_recovery(smmu,
-> +					    FIELD_GET(CMDQ_ATC_0_SID, cmd[0]));
-
-I guess instead of attempting recovery, could we have the worker
-attempt to mark the STE invalid / ABORT. Once we Ack the Gerror, we
-should be able to issue a CFGI_STE?
-
-> +		return;
-> +	}
-> +
-> +	/* idx == CMDQ_ERR_CERROR_ILL_IDX */
->  	dev_err(smmu->dev, "skipping command in error state:\n");
->  	for (i = 0; i < ARRAY_SIZE(cmd); ++i)
->  		dev_err(smmu->dev, "\t0x%016llx\n", (unsigned long long)cmd[i]);
-> @@ -3942,6 +4062,9 @@ static int arm_smmu_init_structures(struct arm_smmu_device *smmu)
->  {
->  	int ret;
->  
-> +	INIT_LIST_HEAD(&smmu->atc_recovery.list);
-> +	spin_lock_init(&smmu->atc_recovery.lock);
-> +
->  	mutex_init(&smmu->streams_mutex);
->  	smmu->streams = RB_ROOT;
+If this is regarding the runtime pm patches, I've tried to address the
+Gerror issue (pointed out by you in v4) in the v5 [1]
 
 Thanks,
 Praan
+
+[1] https://lore.kernel.org/all/20260126151157.3418145-9-praan@google.com/
