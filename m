@@ -1,269 +1,261 @@
-Received: from DU2PR03CU002.outbound.protection.outlook.com (mail-northeuropeazon11011028.outbound.protection.outlook.com [52.101.65.28])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC2F22E4257;
-	Wed, 11 Mar 2026 13:42:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.65.28
-ARC-Seal:i=3; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773236565; cv=fail; b=KVwflBChFx6jP5LSM9TLBpPeUB0tVFmEApPOfUzSVGgU1MzOgK5+8tC2DMuYuHOpwzXeyueulKvgfXhlv7LHccD7nrTYG8y8bktpZmzcwsoy59mccdydZksIoqKF7DQsHMRqSjwl09uJsixM3Aa0J39GrH5QKP3KBb2tL/XeC68=
-ARC-Message-Signature:i=3; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773236565; c=relaxed/simple;
-	bh=GChVai2WoBVzCEYHA2Ztw7/9SMk9lMqv9L82N97eMiI=;
-	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=nmq2NST8QrzMug9CiLveq/ndTWpzLTepsxpTKti2VrDIv5qQ9iwIynTscprhpi5TruimO+CdaNHeiLKxoPmkCFiVrUB2S979/2+NKmJ1JPFPX93uHCvedzwFoyBsW7VZlJ/1q6kmAV2eH0xb7vhTYLl8mArctyMFOFzZZiRkytI=
-ARC-Authentication-Results:i=3; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=Tz9yk4hB; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=Tz9yk4hB; arc=fail smtp.client-ip=52.101.65.28
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="Tz9yk4hB";
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="Tz9yk4hB"
-ARC-Seal: i=2; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=pass;
- b=JaJj/vJJ/4DUIQ4tFLTiJ/iSByk7loj9eOOvgK7wMMy9aiAAqjjGoEgVBP9qlRxKLpH6L+h8aC0JxMliS2foCOexUltDKzd1q54PjMAYHERbfRUDFMzS6equjTtiw31GjQy1Gf7f+Ja4dB42H2JNDQ0IjskH8qYx14oV8djBhbgwgZ7O3k2tz8uZCF1gfPXVEwikUNUsFFpeonkdEyP8xtjl1hSqzgbcClHPa0b4EI+Fngu4I2a12ofCSr1pHvHiFbtdmpU4eKZGIn1ON51EtEbJR8vW1u7nu7ML+jFxMJQreBgy60Ku400qj1RoJ9DjxJVFTUeRltwntAU5nV49zg==
-ARC-Message-Signature: i=2; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=0+HoSVKjxFIqFjlRtaAPGrWAFkJPI9iwGYPeIW6az5w=;
- b=n4xJYYYhFwFnTYmCMmDhBkbUA+KRLZFkrzKnDn/oEPYLRK7q0wx4VcWVflt9zClh/8eBM8fSVf8M8sDsGMxnBhkNglWapZvv25USlu6sSn13LHW5aWnQAvAXfiUgR3KoxXA+I0IMXvDy0ADSgPHTyAx8lAB/Na/FR+4gMlsXILDqjHdz8KTMjFqmMjH43qZjxjZndqPj10n9S/Zz4I0kOLb08yoi7Q75+IJCmk2oJbz3d7b1YlS4XwiVTbpcWNp/0aPbxAcaYNRHEnhEl9sC45ZodO8Pn9fIWUecUyxb6nyGU7ET1mo1oou7DNpUUhrUJrjOc5aNQAP/QugIutheSA==
-ARC-Authentication-Results: i=2; mx.microsoft.com 1; spf=pass (sender ip is
- 4.158.2.129) smtp.rcpttodomain=oss.qualcomm.com smtp.mailfrom=arm.com;
- dmarc=pass (p=none sp=none pct=100) action=none header.from=arm.com;
- dkim=pass (signature was verified) header.d=arm.com; arc=pass (0 oda=1 ltdi=1
- spf=[1,1,smtp.mailfrom=arm.com] dkim=[1,1,header.d=arm.com]
- dmarc=[1,1,header.from=arm.com])
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arm.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=0+HoSVKjxFIqFjlRtaAPGrWAFkJPI9iwGYPeIW6az5w=;
- b=Tz9yk4hBrJ5xRoiCHPoGW8CRB/SaT9DcNn16bluHyLkJCs7RYRsU2H/2k0cmmNTTH/xaPM5DWIUek12hDZwNQb7gydQDHA3NLgZVKiqDhXCa0oC9HWlhNSmJXH5N0R7SRZnIOh115X7hY0T7XrnJTKL4UCoxEMa0qSIkazuaSMw=
-Received: from AM9P193CA0030.EURP193.PROD.OUTLOOK.COM (2603:10a6:20b:21e::35)
- by DU0PR08MB9106.eurprd08.prod.outlook.com (2603:10a6:10:470::12) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9678.25; Wed, 11 Mar
- 2026 13:42:38 +0000
-Received: from AMS0EPF000001A5.eurprd05.prod.outlook.com
- (2603:10a6:20b:21e:cafe::bf) by AM9P193CA0030.outlook.office365.com
- (2603:10a6:20b:21e::35) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.9678.25 via Frontend Transport; Wed,
- 11 Mar 2026 13:42:33 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 4.158.2.129)
- smtp.mailfrom=arm.com; dkim=pass (signature was verified)
- header.d=arm.com;dmarc=pass action=none header.from=arm.com;
-Received-SPF: Pass (protection.outlook.com: domain of arm.com designates
- 4.158.2.129 as permitted sender) receiver=protection.outlook.com;
- client-ip=4.158.2.129; helo=outbound-uk1.az.dlp.m.darktrace.com; pr=C
-Received: from outbound-uk1.az.dlp.m.darktrace.com (4.158.2.129) by
- AMS0EPF000001A5.mail.protection.outlook.com (10.167.16.232) with Microsoft
- SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.9678.18
- via Frontend Transport; Wed, 11 Mar 2026 13:42:37 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=xnYz+AnpiZNnGwfoaKGpwqkr3fYEF48GcQlXz8cU/Y934CQvZjN1FXQN3XL07V6qh41lKdXBdGmtB/LCPA5d8vKFYFW9ZAmHpr3Sieu0AS/yt7FPXvZ0nYekY32XnX+7YaLfzOUH5rxt9JzckOX5dudJ8ZPNIT65MVfSA8Y9bg2m5qCE5uwi6IZhPdRbJPFOaIXcbPhzGScUXQHBt4d+p8vzENsNiSqAMckI0PXg8+h/WHcLcX+k71S3viLCDidi50aOKNqOhwvJP2mSaFH2nn1PIT495+c4juDN9kN6RxuZoR/yKvlDPhXbOBCEQANxXnstls5yYY3d5hPmF18ZRw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=0+HoSVKjxFIqFjlRtaAPGrWAFkJPI9iwGYPeIW6az5w=;
- b=RWBWzZYOHJ11lVCTpzAZH1LMSO/zh/Qn89QrKfK5icIc4WKXTKU0g1iwdWyf4jXcqf3gz12MrCR1i5RgQYfrBBAZcbuD79noLxw0nCWL/Qju5wlY4ELOnzvG2R1xpw43F2xYQqeAH6ah9vJuTEAhqVU63JlwPD5VwPQyiTydb6ZyaAuIZmue3g2/yxG3pf9ttKn6Gk/6BxSsqlP5290VBiFQCKW5VOuRaRywzeX8LJJRWvlOvpz48QlND4B6i0efLuC3egC/uaeiY4kZW1OZbyqhov2f+AYftNdG5QI0Y2ORxhmnOMhZZuXWq0HBtrI+TgdMZBcIFZi4a3n5dJ6YSQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=arm.com; dmarc=pass action=none header.from=arm.com; dkim=pass
- header.d=arm.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arm.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=0+HoSVKjxFIqFjlRtaAPGrWAFkJPI9iwGYPeIW6az5w=;
- b=Tz9yk4hBrJ5xRoiCHPoGW8CRB/SaT9DcNn16bluHyLkJCs7RYRsU2H/2k0cmmNTTH/xaPM5DWIUek12hDZwNQb7gydQDHA3NLgZVKiqDhXCa0oC9HWlhNSmJXH5N0R7SRZnIOh115X7hY0T7XrnJTKL4UCoxEMa0qSIkazuaSMw=
-Authentication-Results-Original: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=arm.com;
-Received: from VI0PR08MB11823.eurprd08.prod.outlook.com (2603:10a6:800:324::5)
- by PAWPR08MB11300.eurprd08.prod.outlook.com (2603:10a6:102:511::6) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9700.11; Wed, 11 Mar
- 2026 13:41:35 +0000
-Received: from VI0PR08MB11823.eurprd08.prod.outlook.com
- ([fe80::694c:3790:be1a:8ddd]) by VI0PR08MB11823.eurprd08.prod.outlook.com
- ([fe80::694c:3790:be1a:8ddd%5]) with mapi id 15.20.9700.010; Wed, 11 Mar 2026
- 13:41:35 +0000
-Message-ID: <16a5363d-6b34-4853-aa3a-e4b3023fb81a@arm.com>
-Date: Wed, 11 Mar 2026 13:41:07 +0000
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 10/11] dt-bindings: firmware: add arm,ras-ffh
-Content-Language: en-GB
-To: Himanshu Chauhan <himanshu.chauhan@oss.qualcomm.com>
-Cc: devicetree@vger.kernel.org, linux-acpi@vger.kernel.org,
- Dmitry.Lamerov@arm.com, catalin.marinas@arm.com, bp@alien8.de,
- robh@kernel.org, rafael@kernel.org, will@kernel.org, conor@kernel.org,
- linux-arm-kernel@lists.infradead.org, linux-doc@vger.kernel.org,
- krzk+dt@kernel.org, Michael.Zhao2@arm.com, tony.luck@intel.com
-References: <20260220-topics-ahmtib01-ras_ffh_arm_internal_review-v2-0-347fa2d7351b@arm.com>
- <20260220-topics-ahmtib01-ras_ffh_arm_internal_review-v2-10-347fa2d7351b@arm.com>
- <CA+Ht8=ZSUGF9KQqy=yZ56kEDwsv3TvS6rLcMD85iwDxwOr3rpQ@mail.gmail.com>
-From: Ahmed Tiba <ahmed.tiba@arm.com>
-In-Reply-To: <CA+Ht8=ZSUGF9KQqy=yZ56kEDwsv3TvS6rLcMD85iwDxwOr3rpQ@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: LO6P265CA0019.GBRP265.PROD.OUTLOOK.COM
- (2603:10a6:600:2ff::10) To VI0PR08MB11823.eurprd08.prod.outlook.com
- (2603:10a6:800:324::5)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43BC54A33;
+	Wed, 11 Mar 2026 15:55:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1773244544; cv=none; b=TeH4j1QCWf1U+BKqyOd1YdV7l2hJuxzR78S1tjXRxiQW1PbH45Yrkw7uZr710VvkazLBAk1nBgi/zX4ZEx9m97VYcsVt531uFUAlLUJcK6p6JyLHaG1sB3xNm33TdTa80rSDRHL0rIcZi/rVLpy+LtG9epqY8fuimFN6bziBCyQ=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1773244544; c=relaxed/simple;
+	bh=xiyXOz1tGJAvUr/Hi2/iZqwiJRKTReXrAreWjAT4aW0=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=DJ5H6/nJzs2nXkXr4OPNeLLRg2YXLxVvyIWlurIxPCDQUnQDz6canwc4ycHkkdg2YcI68Dx1lG2RIBsUZzw+YO9kLYKZgKskEQSfFmkUM26KYIhfbWFjkNrvFIIrRKmfxRFFOoqPn29apkt3x1VrS0HtOJFS6c73cAYsz7aLCa4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.18.224.150])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTPS id 4fWFhL1RlkzHnGgW;
+	Wed, 11 Mar 2026 23:55:30 +0800 (CST)
+Received: from dubpeml500008.china.huawei.com (unknown [7.214.146.94])
+	by mail.maildlp.com (Postfix) with ESMTPS id 2575B4056E;
+	Wed, 11 Mar 2026 23:55:38 +0800 (CST)
+Received: from P_UKIT01-A7bmah.china.huawei.com (10.48.149.67) by
+ dubpeml500008.china.huawei.com (7.214.146.94) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.11; Wed, 11 Mar 2026 15:55:36 +0000
+From: <shiju.jose@huawei.com>
+To: <rafael@kernel.org>, <bp@alien8.de>, <akpm@linux-foundation.org>,
+	<rppt@kernel.org>, <dferguson@amperecomputing.com>,
+	<linux-edac@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
+	<linux-mm@kvack.org>, <linux-doc@vger.kernel.org>, <tony.luck@intel.com>,
+	<lenb@kernel.org>, <leo.duran@amd.com>, <Yazen.Ghannam@amd.com>,
+	<mchehab@kernel.org>
+CC: <jonathan.cameron@huawei.com>, <linuxarm@huawei.com>,
+	<rientjes@google.com>, <jiaqiyan@google.com>, <Jon.Grimm@amd.com>,
+	<dave.hansen@linux.intel.com>, <naoya.horiguchi@nec.com>,
+	<james.morse@arm.com>, <jthoughton@google.com>, <somasundaram.a@hpe.com>,
+	<erdemaktas@google.com>, <pgonda@google.com>, <duenwen@google.com>,
+	<gthelen@google.com>, <wschwartz@amperecomputing.com>,
+	<wbs@os.amperecomputing.com>, <nifan.cxl@gmail.com>, <tanxiaofei@huawei.com>,
+	<prime.zeng@hisilicon.com>, <roberto.sassu@huawei.com>,
+	<kangkang.shen@futurewei.com>, <wanghuiqiang@huawei.com>,
+	<shiju.jose@huawei.com>
+Subject: [PATCH v17 0/2] ACPI: Add support for ACPI RAS2 feature table
+Date: Wed, 11 Mar 2026 15:55:15 +0000
+Message-ID: <20260311155518.1000-1-shiju.jose@huawei.com>
+X-Mailer: git-send-email 2.43.0.windows.1
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-TrafficTypeDiagnostic:
-	VI0PR08MB11823:EE_|PAWPR08MB11300:EE_|AMS0EPF000001A5:EE_|DU0PR08MB9106:EE_
-X-MS-Office365-Filtering-Correlation-Id: 2ce50051-4fce-43b1-d3f6-08de7f740ee2
-x-checkrecipientrouted: true
-NoDisclaimer: true
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam-Untrusted:
- BCL:0;ARA:13230040|1800799024|376014|7416014|366016|56012099003|22082099003|18002099003;
-X-Microsoft-Antispam-Message-Info-Original:
- CtJHfLFgt1YVylULgfuYDSvUtr1anHgEeKCrdSlEDNXTJkemFVeyl7lnpmxU9D7aniBEwbsYBDEgF1JtOD5B0f0ZG34A7QFVQycsGb2Fv5pslNI6PwImAX+xeNag5crmCB//n0dZGFJ2dOLDQvADVsLqpG3Ri32cfpRZUkowhfylbZ9vC6LbjOlgISeRUW+od3vK/vKS6O1esxYTo5+7CzMwHvfwAg091vMhz1bbzD0sKJWb9JiWNr4pV4S08/rxqjqC9aoRedMQ0lN9c9Op1Lmf57zEfUykStS4J1HmTOeraOCVZ5A29srI6p/BnVMjaufFdWhR2VQb/k1FrNP+XP0RTpAYH5YKOdSU9Rzbhl/55jts6uCtYw7mx8RRpldBFOepvKp+PYMe3a7QtstNaqRbCQeLdVxgDMIzbj0pod9Lmk7O76vwwfV+IFWfj1g+1bp+MHS60fMcgHQ2xxaAWGsTYJzKtmmyAaDpvUIf4WxaDus+ul+z2jTQrRhCKzcaY8aiHjsG3J7S6tLoHP58WdfWCcw6LBgY/Fa//o8QDHj3UziaMbkXzJFr1eAd7ELy74bXPRN50OqK8utOjm7MwXNinYCpftMjXKolSPBcH8LpxNrZWiPOdW8WLLOM5UQyr4ODDjVe2g5KvhDD2XgLp26Oh86dZ7ADUe9zrfQWD1XP43cZp4UhdrFSYJedCBO2
-X-Forefront-Antispam-Report-Untrusted:
- CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:VI0PR08MB11823.eurprd08.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(376014)(7416014)(366016)(56012099003)(22082099003)(18002099003);DIR:OUT;SFP:1101;
-X-Exchange-RoutingPolicyChecked:
- VFqdrvGAYh2bpEgKh9DG6ev89ucHlY6IYHWGJrBdzb9pEhS9bXo5NcWFHlV11Vtwt+qJhjm/wEgbvwe2AS3Rj9zgOylxBSpBslWfS38Q7sqrugi5AlkOY2huGRqmuiT7bdOlT3y8R5CAmBZguU6cCNdISAOILFrEAIhTUtuYUEnGplt77ouJdFwddczOYz303zLHesY+3U/WawgeW8DCCiiahLYub7ZV7yXFSr50T8jnraLWlMST4MRl2FTjWbujZi0CtfaFD1nQQID34DutaVyC04fAm2zwAbDWCjTG9hzuNyPXvwEQtbZ6Flvng7QQLNKox7qbQ+0F4/+I4Tbbqw==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PAWPR08MB11300
-X-EOPAttributedMessage: 0
-X-MS-Exchange-Transport-CrossTenantHeadersStripped:
- AMS0EPF000001A5.eurprd05.prod.outlook.com
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id-Prvs:
-	62a8a403-a5ee-45e7-549b-08de7f73e986
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|14060799003|1800799024|36860700016|35042699022|7416014|376014|82310400026|13003099007|56012099003|22082099003|18002099003;
-X-Microsoft-Antispam-Message-Info:
-	wm2XXCs1JlB8C4OwEaH2a6NRei58+rXVt1EMcw4BWV1ELe0+NsGHHVQKSBOAzmUjoqHQ7RW3ifykM1PHt9BvAARmb1Lwz6qUkkh9Uc4EYfrMrRC6CGGNluKooYAun2b8dQLqrP0P5LWtdhZgvfLcF3zY3vdmiUfYwOm/cSWGeUX04NyKRm1WEPy3QGec5GIhQacpqOSoO6Pql6LlbIGoOuDcjXqoQWo3HMVBxzGmttHPLFZuxBI7Mk41cb8UtRGilPnVpHdif5HxFkGIfmPT80q1KQh1Q7FppyYsBNxQa2IO+FDPYrmhacUAt/2KUX1Cp9dTyiZgH/JVP/XFy3umlqaG0zdK2FiEoJZi/RvkxpZ0Aeey8nMjgLUbvk2s84ffsqcykvlte9+yrDxEn2t3A4MZr2bIH5rEWwENeaWbgMMKDkT3K2xyomGWzFa93hz0ExzCProKKuPomFreGXwdJhpcpaJkE3Vgjc4s6VAZ0XzsalU8qjXsbhMg1mJmLxQG9gnBh/knE4+NgHs7TzTnsavmfwcRBW2S8HhUFaWTRzZalsXb/F6Wic5zoh0OvEx2laRXecpzWSxeChJhwF8m8O/wDpLASmZ/q0jcHbN9rq/0OopKUkXZ5QCV3TmIr5HnVm7TEOvwgMDkD+s36jh60DurrWI6R7uMsyWXML4ysDFS6k3H4VTTb9Ck7GU6jYLXUix8L0gx9vY9bGRuwVl9iiPccd4cATS2jt7eztKDvBE=
-X-Forefront-Antispam-Report:
-	CIP:4.158.2.129;CTRY:GB;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:outbound-uk1.az.dlp.m.darktrace.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(14060799003)(1800799024)(36860700016)(35042699022)(7416014)(376014)(82310400026)(13003099007)(56012099003)(22082099003)(18002099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	U5AxYTYfnBxRz9od0hyAdN3gW8SH/V9pCALyJLxJK+3FS9IYatVz8b3C9hQNT3gPWXa8EpVx8OusEVSyk+q0Mc4jOSy9Dajb7ydoQaoXZJhp4jENBNUKxs238VLyHO/sGERqEqhvYOcOlPVO/wVb9ap6lQXn4f+8J1kLPXu5KlgRoPN2aqPLEHnYA3Gcr5jvCTZj6rpdfcxTK0otxEc+yt7zEcvZyeC+P0pxY7/qfx7VLk7N/MBxZdbye3zKzWVr3kvJPKIC8clfX4UcDztZLgfsvUFFMJYicylsB8/1MtBZgyuzYK0Pln78qofg7ZbtlvO2KdQXFYs3fpMsTWe3FPxU7u/emZps7Lt4DfuPz/r2W3+o0vRHyCNA6Hpc+SdgrnI6AOWSency6iCA2Wcy2WZ2uOoPPB+6Trj9WSgCQW7b0+NU8Dpi7FhMyqeZVFSV
-X-OriginatorOrg: arm.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 Mar 2026 13:42:37.4900
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 2ce50051-4fce-43b1-d3f6-08de7f740ee2
-X-MS-Exchange-CrossTenant-Id: f34e5979-57d9-4aaa-ad4d-b122a662184d
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=f34e5979-57d9-4aaa-ad4d-b122a662184d;Ip=[4.158.2.129];Helo=[outbound-uk1.az.dlp.m.darktrace.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	AMS0EPF000001A5.eurprd05.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DU0PR08MB9106
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: lhrpeml100010.china.huawei.com (7.191.174.197) To
+ dubpeml500008.china.huawei.com (7.214.146.94)
 
-On 26/02/2026 07:03, Himanshu Chauhan wrote:
-> On Fri, Feb 20, 2026 at 7:15 PM Ahmed Tiba <ahmed.tiba@arm.com> wrote:
->>
->> Describe the DeviceTree node that exposes the Arm firmware-first handler
->> CPER provider and hook the file into MAINTAINERS so the binding has an
->> owner.
->>
->> Signed-off-by: Ahmed Tiba <ahmed.tiba@arm.com>
->> ---
->>   .../devicetree/bindings/firmware/arm,ras-ffh.yaml  | 71 ++++++++++++++++++++++
->>   MAINTAINERS                                        |  5 ++
->>   2 files changed, 76 insertions(+)
->>
->> diff --git a/Documentation/devicetree/bindings/firmware/arm,ras-ffh.yaml b/Documentation/devicetree/bindings/firmware/arm,ras-ffh.yaml
->> new file mode 100644
->> index 000000000000..eccbaaf45885
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/firmware/arm,ras-ffh.yaml
->> @@ -0,0 +1,71 @@
->> +# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
->> +%YAML 1.2
->> +---
->> +$id: http://devicetree.org/schemas/firmware/arm,ras-ffh.yaml#
->> +$schema: http://devicetree.org/meta-schemas/core.yaml#
->> +
->> +title: Arm Firmware-First Handler (FFH) CPER provider
-> 
-> Please don't called it FFH. FFH stands for Fixed Feature Hardware and
-> ACPI uses it at multiple places. It is causing confusion.
+From: Shiju Jose <shiju.jose@huawei.com>
 
-Agreed. I can drop "ffh" and rename it to "arm,ras-cper".
+Add support for ACPI RAS2 feature table (RAS2) defined in the
+ACPI 6.5 specification, section 5.2.21 and RAS2 HW based memory
+scrubbing feature.
 
->> +
->> +maintainers:
->> +  - Ahmed Tiba <ahmed.tiba@arm.com>
->> +
->> +description: |
->> +  Arm Reliability, Availability and Serviceability (RAS) firmware can expose
->> +  a firmware-first handler (FFH) that provides UEFI CPER Generic Error Status
->> +  blocks directly via DeviceTree. The firmware owns the CPER buffer
->> +  and notifies the OS through an interrupt.
->> +
->> +properties:
->> +  compatible:
->> +    const: arm,ras-ffh
->> +
->> +  reg:
->> +    minItems: 1
->> +    items:
->> +      - description:
->> +          CPER Generic Error Status block exposed by firmware
->> +      - description:
->> +          Optional 32- or 64-bit doorbell register used on platforms
->> +          where firmware needs an explicit "ack" handshake before overwriting
->> +          the CPER buffer. Firmware watches bit 0 and expects the OS to set it
->> +          once the current status block has been consumed.
->> +
->> +  interrupts:
->> +    maxItems: 1
->> +    description:
->> +      Interrupt used to signal that a new status record is ready.
->> +
->> +  memory-region:
->> +    $ref: /schemas/types.yaml#/definitions/phandle
->> +    description:
->> +      Optional phandle to the reserved-memory entry that backs the status
->> +      buffer so firmware and the OS use the same carved-out region.
->> +
->> +required:
->> +  - compatible
->> +  - reg
->> +  - interrupts
->> +
->> +additionalProperties: false
->> +
->> +examples:
->> +  - |
->> +    #include <dt-bindings/interrupt-controller/arm-gic.h>
->> +
->> +    reserved-memory {
->> +      #address-cells = <2>;
->> +      #size-cells = <2>;
->> +      ras_cper_buffer: cper@fe800000 {
->> +        reg = <0x0 0xfe800000 0x0 0x1000>;
->> +        no-map;
->> +      };
->> +    };
->> +
->> +    error-handler@fe800000 {
->> +      compatible = "arm,ras-ffh";
->> +      reg = <0xfe800000 0x1000>,
->> +            <0xfe810000 0x4>;
->> +      memory-region = <&ras_cper_buffer>;
->> +      interrupts = <GIC_SPI 32 IRQ_TYPE_LEVEL_HIGH>;
->> +    };
->> +...
->> diff --git a/MAINTAINERS b/MAINTAINERS
->> index b8d8a5c41597..47db7877b485 100644
->> --- a/MAINTAINERS
->> +++ b/MAINTAINERS
->> @@ -22027,6 +22027,11 @@ M:     Alexandre Bounine <alex.bou9@gmail.com>
->>   S:     Maintained
->>   F:     drivers/rapidio/
->>
->> +RAS ERROR STATUS
->> +M:     Ahmed Tiba <ahmed.tiba@arm.com>
->> +S:     Maintained
->> +F:     Documentation/devicetree/bindings/firmware/arm,ras-ffh.yaml
->> +
->>   RAS INFRASTRUCTURE
->>   M:     Tony Luck <tony.luck@intel.com>
->>   M:     Borislav Petkov <bp@alien8.de>
->>
->> --
->> 2.43.0
->>
->>
+ACPI RAS2 patches were part of the EDAC series [1].
+
+The code is based on linux.git v7.0-rc3 [2].
+
+1. https://lore.kernel.org/linux-cxl/20250212143654.1893-1-shiju.jose@huawei.com/
+2. https://github.com/torvalds/linux.git
+
+Changes
+=======
+v16 -> v17:
+1. Merged all changes suggested by Borislav.
+https://lore.kernel.org/all/20260126171552.GJaXehSJp33nFnpvVd@fat_crate.local/
+2. Changes for Borislav's feedback "Add remove_aux_device() which unwinds everything
+   add_aux_device() does for all those devices".
+
+v15 -> v16:
+Attempt to modify throughout the code and logs for the below comments from Borislav.
+Thanks for the comments.
+https://lore.kernel.org/all/20251125073627.GLaSVce7hBqGH1a3ni@fat_crate.local/
+https://lore.kernel.org/all/20251231131512.GBaVUh4NSWqvr2xhbM@fat_crate.local/
+https://lore.kernel.org/all/20260119111701.GBaW4Sres045xnfkpz@fat_crate.local/
+
+v14 -> v15:
+1. Incorporated new changes suggested by Borislav on v13.
+   https://lore.kernel.org/all/20251231131512.GBaVUh4NSWqvr2xhbM@fat_crate.local/
+   
+2. Rebase to v6.19-rc5.
+
+v13 -> v14:
+1. Modifications for changes wanted by Borislav.
+   https://lore.kernel.org/all/20251125073627.GLaSVce7hBqGH1a3ni@fat_crate.local/
+
+2. Changes for the comments from Randy Dunlap 
+   https://lore.kernel.org/all/4807417b-a8f7-47a3-b38a-94ea7bdbf775@infradead.org/
+   https://lore.kernel.org/all/af7b6cdc-c0a7-4896-ba6b-6bb933898d37@infradead.org/
+   https://lore.kernel.org/all/26083ba9-1979-4d14-8465-3f54f2f96d23@infradead.org/
+   
+v12 -> v13:
+1. Fixed some bugs reported and changes wanted by Borislav.
+   https://lore.kernel.org/all/20250910192707.GAaMHRCxWx37XitN3t@fat_crate.local/ 
+
+2. Tried modifying the patch header as commented by Borislav.
+
+3. Fixed a bug reported by Yazen.
+   https://lore.kernel.org/all/20250909162434.GB11602@yaz-khff2.amd.com/
+
+4. Changed setting 'Requested Address Range' for GET_PATROL_PARAMETERS
+   command to meet the requirements from Daniel for Ampere Computing
+   platform. 
+   https://lore.kernel.org/all/7a211c5c-174c-438b-9a98-fd47b057ea4a@os.amperecomputing.com/
+
+5. In RAS2 driver, removed support for scrub control attributes 'addr' and
+   'size' for the time being with the expectation that a firmware will do
+   the full node demand scrubbing and may enable these attributes in the
+   future.
+   
+6. Add 'enable_demand' attribute to the EDAC scrub interface to start/stop
+   the demand scrub, which is used for the RAS2 demand scrub control.
+
+v11 -> v12:
+1. Modified logic for finding the lowest contiguous phy memory addr range for
+NUMA domain using node_start_pfn() and node_spanned_pages() according to the
+feedback from Mike Rapoport in v11.
+https://lore.kernel.org/all/aKsIlFTkBsAF5sqD@kernel.org/
+
+2. Rebase to 6.17-rc4.
+
+v10 -> v11:
+1. Simplified code by removing workarounds previously added to support
+   non-compliant case of single PCC channel shared across all proximity
+   domains (which is no longer required). 
+   https://lore.kernel.org/all/f5b28977-0b80-4c39-929b-cf02ab1efb97@os.amperecomputing.com/
+
+2. Fix for the comments from Borislav (Thanks).
+   https://lore.kernel.org/all/20250811152805.GQaJoMBecC4DSDtTAu@fat_crate.local/
+
+3. Rebase to 6.17-rc1.
+
+v9 -> v10:
+1. Use pcc_chan->shmem instead of 
+   acpi_os_ioremap(pcc_chan->shmem_base_addr,...) as it was
+   acpi_os_ioremap internally by the PCC driver to pcc_chan->shmem.
+   
+2. Changes required for the Ampere Computing system where uses a single
+   PCC channel for RAS2 memory features across all NUMA domains. Based on the
+   requirements from by Daniel on V9
+   https://lore.kernel.org/all/547ed8fb-d6b7-4b6b-a38b-bf13223971b1@os.amperecomputing.com/
+   and discussion with Jonathan.
+2.1 Add node_to_range lookup facility to numa_memblks. This is to retrieve the lowest
+    physical continuous memory range of the memory associated with a NUMA domain.
+2.2. Set requested addr range to the memory region's base addr and size
+   while send RAS2 cmd GET_PATROL_PARAMETER 
+   in functions ras2_update_patrol_scrub_params_cache() &
+   ras2_get_patrol_scrub_running().
+2.3. Split struct ras2_mem_ctx into struct ras2_mem_ctx_hdr and struct ras2_pxm_domain
+   to support cases, uses a single PCC channel for RAS2 scrubbers across all NUMA
+   domains and PCC channel per RAS2 scrub instance. Provided ACPI spec define single
+   memory scrub per NUMA domain.
+2.4. EDAC feature sysfs folder for RAS2 changed from "acpi_ras_memX" to  "acpi_ras_mem_idX"
+   because memory scrub instances across all NUMA domains would present under
+   "acpi_ras_mem_id0" when a system uses a single PCC channel for RAS2 scrubbers across
+   all NUMA domains etc.
+2.5. Removed Acked-by: Rafael from patch [2], because of the several above changes from v9.
+
+v8 -> v9:
+1. Added following changes for feedback from Yazen.
+ 1.1 In ras2_check_pcc_chan(..) function
+    - u32 variables moved to the same line.
+    - Updated error log for readw_relaxed_poll_timeout()
+    - Added error log for if (status & PCC_STATUS_ERROR), error condition.
+    - Removed an impossible condition check.
+  1.2. Added guard for ras2_pc_list_lock in ras2_get_pcc_subspace().
+        
+2. Rebased to linux.git v6.16-rc2 [2].
+
+v7 -> v8:
+1. Rebased to linux.git v6.16-rc1 [2].
+
+v6 -> v7:
+1. Fix for the issue reported by Daniel,
+   In ras2_check_pcc_chan(), add read, clear and check RAS2 set_cap_status outside
+   if (status & PCC_STATUS_ERROR) check. 
+   https://lore.kernel.org/all/51bcb52c-4132-4daf-8903-29b121c485a1@os.amperecomputing.com/
+
+v5 -> v6:
+1. Fix for the issue reported by Daniel, in start scrubbing with correct addr and size
+   after firmware return INVALID DATA error for scrub request with invalid addr or size.
+   https://lore.kernel.org/all/8cdf7885-31b3-4308-8a7c-f4e427486429@os.amperecomputing.com/
+   
+v4 -> v5:
+1. Fix for the build warnings reported by kernel test robot.
+   https://patchwork.kernel.org/project/linux-edac/patch/20250423163511.1412-3-shiju.jose@huawei.com/
+2. Removed patch "ACPI: ACPI 6.5: RAS2: Rename RAS2 table structure and field names"
+   from the series as the patch was merged to linux-pm.git : branch linux-next
+3. Rebased to ras.git: edac-for-next branch merged with linux-pm.git : linux-next branch.
+      
+v3 -> v4:
+1.  Changes for feedbacks from Yazen on v3.
+    https://lore.kernel.org/all/20250415210504.GA854098@yaz-khff2.amd.com/
+
+v2 -> v3:
+1. Rename RAS2 table structure and field names in 
+   include/acpi/actbl2.h limited to only necessary
+   for RAS2 scrub feature.
+2. Changes for feedbacks from Jonathan on v2.
+3. Daniel reported a known behaviour: when readback 'size' attribute after
+   setting in, returns 0 before starting scrubbing via 'addr' attribute.
+   Changes added to fix this.
+4. Daniel reported that firmware cannot update status of demand scrubbing
+   via the 'Actual Address Range (OUTPUT)', thus add workaround in the
+   kernel to update sysfs 'addr' attribute with the status of demand
+   scrubbing.
+5. Optimized logic in ras2_check_pcc_chan() function
+   (patch - ACPI:RAS2: Add ACPI RAS2 driver).
+6. Add PCC channel lock to struct ras2_pcc_subspace and change
+   lock in ras2_mem_ctx as a pointer to pcc channel lock to make sure
+   writing to PCC subspace shared memory is protected from race conditions.
+   
+v1 -> v2:
+1.  Changes for feedbacks from Borislav.
+    - Shorten ACPI RAS2 structures and variables names.
+    - Shorten some of the other variables in the RAS2 drivers.
+    - Fixed few CamelCases.
+
+2.  Changes for feedbacks from Yazen.
+    - Added newline after number of '}' and return statements.
+    - Changed return type for "ras2_add_aux_device() to 'int'.
+    - Deleted a duplication of acpi_get_table("RAS2",...) in the ras2_acpi_parse_table().
+    - Add "FW_WARN" to few error logs in the ras2_acpi_parse_table().
+    - Rename ras2_acpi_init() to acpi_ras2_init() and modified to call acpi_ras2_init()
+      function from the acpi_init().
+    - Moved scrub related variables from the struct ras2_mem_ctx from  patch
+      "ACPI:RAS2: Add ACPI RAS2 driver" to "ras: mem: Add memory ACPI RAS2 driver".
+
+Shiju Jose (2):
+  ACPI:RAS2: Add driver for the ACPI RAS2 feature table
+  ras: mem: Add ACPI RAS2 memory driver
+
+ Documentation/ABI/testing/sysfs-edac-scrub |  13 +-
+ Documentation/edac/scrub.rst               |  60 +++
+ drivers/acpi/Kconfig                       |  11 +
+ drivers/acpi/Makefile                      |   1 +
+ drivers/acpi/bus.c                         |   3 +
+ drivers/acpi/ras2.c                        | 433 +++++++++++++++++++++
+ drivers/edac/scrub.c                       |  12 +
+ drivers/ras/Kconfig                        |  13 +
+ drivers/ras/Makefile                       |   1 +
+ drivers/ras/acpi_ras2.c                    | 403 +++++++++++++++++++
+ include/acpi/ras2.h                        |  74 ++++
+ include/linux/edac.h                       |   4 +
+ 12 files changed, 1023 insertions(+), 5 deletions(-)
+ create mode 100644 drivers/acpi/ras2.c
+ create mode 100644 drivers/ras/acpi_ras2.c
+ create mode 100644 include/acpi/ras2.h
+
+-- 
+2.43.0
 
