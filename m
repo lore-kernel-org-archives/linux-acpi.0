@@ -1,186 +1,141 @@
-Received: from BL2PR02CU003.outbound.protection.outlook.com (mail-eastusazon11011067.outbound.protection.outlook.com [52.101.52.67])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f42.google.com (mail-ej1-f42.google.com [209.85.218.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E37493B27F7;
-	Tue, 10 Mar 2026 22:40:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.52.67
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773182405; cv=fail; b=ejTiijOFY3lo5jMg3PxREQDsrKL7qkaml4r7jYtGKBbB5sivi0nmQuTVBJAdUWkyoQ57mtCk/kU9708fSVkkIxlJkVTyOVU1juSX+OP/xlo2KumqQIcNNAmjZDAhf/hQyQ2/KZS0yECZQdefXtM9WASl4kBI1n1mgRVzxDNHqLI=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773182405; c=relaxed/simple;
-	bh=HnrCLdj6RygG0EoO9wwK9H/c8JLj1gr6ZH/6MSUtKeQ=;
-	h=Message-ID:Date:Cc:Subject:To:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=MHWxZ0XLcUqz4u9UHqWsPIWhHJG891X9NwQ/VoJLE0D5NrnT8ANjB8DIz0YUTM2lnHeSPgHBTWUhEfQQi29udlBJofJYYIkrKGmnjnJQCJh3LLhmLb3jc5z6VLpHYRuexxVwHkN78sP/fACnYBlb9+6+ywXESt4U2VKR/EyNHxc=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=citrix.com; spf=pass smtp.mailfrom=citrix.com; dkim=pass (1024-bit key) header.d=citrix.com header.i=@citrix.com header.b=OLh0befG; arc=fail smtp.client-ip=52.101.52.67
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=citrix.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=citrix.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10B1E33F59C
+	for <linux-acpi@vger.kernel.org>; Wed, 11 Mar 2026 00:23:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.42
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1773188607; cv=none; b=FAt7VmPjAEq0YMbk00cZasVKKLKsw1U3hp0USTIPQgDoM/qLxtMjSXXiBymxg3dD4Q+a5ckFBNFN/FcgxHKkbnfRAspgmERUodq3mwmVOghvVQA7gJ2GIUdjqNlmnvZiPci6dS34N7pJtYaMX3OAlallJLuNQHG9hcVRAXBsA2U=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1773188607; c=relaxed/simple;
+	bh=RkQr/oJ5AVva8ppnZ/QxljiNwt7nDUcsbBiCUPkROPA=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=mTm4pPra7z2/ySkt54ZJgMOo2gE6E2UIMCP0rIr/KoEBN5wDLN+3sRNAv+CCaf1mo8WfTIZ5phfz1fFjNylTXC0gmbc76WvUz1kGb6UNZECU7QP0hjZ1Iw9DHwmipO5koQMUBphJanEUgwzjR7vahGhIjVu2OWAfae9d2zUShr0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=asCQ2O4i; arc=none smtp.client-ip=209.85.218.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=citrix.com header.i=@citrix.com header.b="OLh0befG"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=a6FuBQTZVkw6lglQZbZt/z1EmdG/mFVt4TKI9z33VTEjNqO5EZhTJJ9QD3G7M8u862dh2j3Nr685tmvPF4E4RSS2JIucppG/0d4AIFMrSJ1bXxTu8MQ+nbAY3qnL+sjihiZol/Zu1W9pGAcfDiyB/S6P5DLf/oXGJMrKBCsCKW55jYUk+p99gZEISD1Y7Dhqfr8eOA9igocwL8EE8rvRtTL03YW0H0zx2OQh5PBBU5AQ6CqrI1/Cq/a20F6MLQigB97YfgoqGRrcJG6nH5N2m2vSA1q6zPRRULksDQw1luEURVtT61jamdF6p3JL2d3+aYSojiMlJpbGscp4AHSWaQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=T5ya/14xemD/FSVbl/3h5BjXqa8QljYPw+uZsXlmhvw=;
- b=CeyqxuDd9d2EwajTtPP7/i2FyWwTlaa3rhz0vp9Y4Z2AuCqgoQSIHxAQgq4uH+lvh26ic0eVjrKEdBUhwYAVfLKITe9VNB2RNrOksWoYHn2QeoYCTBxqjNwea0a65Xt7GzwW1rnF0IVqqeHSfjLeeVO9IKbNBeAYTswo2o2URVkVI7fyLwxDAlGDBwK8Wy6JMa9LWJ+n7cfjolLdLqmszeOBtXfraY67/BDT0MLMxg35NfZo3zvuOtuGuI70IwTkwUGJzfhfe+UmExbpwVIlFdc56hT0UUeQLzO30YhRWls1uIzBOgLevgAIojwhlNuVMhWDuLuIHxoxxwO3qsRn/g==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=citrix.com; dmarc=pass action=none header.from=citrix.com;
- dkim=pass header.d=citrix.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=citrix.com;
- s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=T5ya/14xemD/FSVbl/3h5BjXqa8QljYPw+uZsXlmhvw=;
- b=OLh0befGjmqooOT15+f6FYL3ssxtC8tCGnpIE/bGkf3niQsZWm68QvF385ug3uFfVMNALkBovNip2OiFvErwOWvTvixRQz80wSdHmxEHDRlcnS+BUMS2g/NrdM/RZEVrU8is3v9cwnarRyg/4fIVwpsLzYj9ub6jXHDa2WeNqMg=
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=citrix.com;
-Received: from CH8PR03MB8275.namprd03.prod.outlook.com (2603:10b6:610:2b9::7)
- by SJ0PR03MB5518.namprd03.prod.outlook.com (2603:10b6:a03:289::5) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9700.11; Tue, 10 Mar
- 2026 22:39:54 +0000
-Received: from CH8PR03MB8275.namprd03.prod.outlook.com
- ([fe80::a70d:dc32:bba8:ce37]) by CH8PR03MB8275.namprd03.prod.outlook.com
- ([fe80::a70d:dc32:bba8:ce37%6]) with mapi id 15.20.9700.010; Tue, 10 Mar 2026
- 22:39:58 +0000
-Message-ID: <89f34cfe-7b77-4f66-b3ed-8104c5b50eaf@citrix.com>
-Date: Tue, 10 Mar 2026 22:39:48 +0000
-User-Agent: Mozilla Thunderbird
-Cc: Andrew Cooper <andrew.cooper3@citrix.com>,
- Bjorn Helgaas <bhelgaas@google.com>,
- Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
- "Rafael J . Wysocki" <rafael@kernel.org>, Jonathan Corbet <corbet@lwn.net>,
- Shuah Khan <skhan@linuxfoundation.org>, Huacai Chen <chenhuacai@kernel.org>,
- WANG Xuerui <kernel@xen0n.name>, Paul Walmsley <pjw@kernel.org>,
- Palmer Dabbelt <palmer@dabbelt.com>, Albert Ou <aou@eecs.berkeley.edu>,
- Alexandre Ghiti <alex@ghiti.fr>, Thomas Gleixner <tglx@kernel.org>,
- Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
- Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
- "H . Peter Anvin" <hpa@zytor.com>, Juergen Gross <jgross@suse.com>,
- Boris Ostrovsky <boris.ostrovsky@oracle.com>, Len Brown <lenb@kernel.org>,
- Sunil V L <sunilvl@ventanamicro.com>, Mark Rutland <mark.rutland@arm.com>,
- Jonathan Cameron <jonathan.cameron@huawei.com>, Kees Cook <kees@kernel.org>,
- Yanteng Si <si.yanteng@linux.dev>, Sean Christopherson <seanjc@google.com>,
- Kai Huang <kai.huang@intel.com>, Tom Lendacky <thomas.lendacky@amd.com>,
- Thomas Huth <thuth@redhat.com>, Thorsten Blum <thorsten.blum@linux.dev>,
- Kevin Loughlin <kevinloughlin@google.com>, Zheyun Shen
- <szy0127@sjtu.edu.cn>, Peter Zijlstra <peterz@infradead.org>,
- Pawan Gupta <pawan.kumar.gupta@linux.intel.com>, Xin Li <xin@zytor.com>,
- "Ahmed S . Darwish" <darwi@linutronix.de>,
- Sohil Mehta <sohil.mehta@intel.com>,
- Ilkka Koskinen <ilkka@os.amperecomputing.com>,
- Robin Murphy <robin.murphy@arm.com>, James Clark <james.clark@linaro.org>,
- Besar Wicaksono <bwicaksono@nvidia.com>, Ma Ke <make24@iscas.ac.cn>,
- Ajit Khaparde <ajit.khaparde@broadcom.com>, Wei Huang <wei.huang2@amd.com>,
- Andy Gospodarek <andrew.gospodarek@broadcom.com>,
- Somnath Kotur <somnath.kotur@broadcom.com>, wangzhou1@hisilicon.com,
- wanghuiqiang@huawei.com, liuyonglong@huawei.com, linux-pci@vger.kernel.org,
- linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, loongarch@lists.linux.dev,
- linux-riscv@lists.infradead.org, xen-devel@lists.xenproject.org,
- linux-acpi@vger.kernel.org, linux-perf-users@vger.kernel.org,
- stable@vger.kernel.org
-Subject: Re: [PATCH v5 1/2] ACPI: Rename get_acpi_id_for_cpu() to
- acpi_get_cpu_acpi_id() on non-x86
-To: Bjorn Helgaas <helgaas@kernel.org>,
- Chengwen Feng <fengchengwen@huawei.com>
-References: <20260310175305.GA730372@bhelgaas>
-Content-Language: en-GB
-From: Andrew Cooper <andrew.cooper3@citrix.com>
-In-Reply-To: <20260310175305.GA730372@bhelgaas>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: LO2P265CA0131.GBRP265.PROD.OUTLOOK.COM
- (2603:10a6:600:9f::23) To CH8PR03MB8275.namprd03.prod.outlook.com
- (2603:10b6:610:2b9::7)
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="asCQ2O4i"
+Received: by mail-ej1-f42.google.com with SMTP id a640c23a62f3a-b9358bc9c50so1540026366b.1
+        for <linux-acpi@vger.kernel.org>; Tue, 10 Mar 2026 17:23:24 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1773188603; x=1773793403; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=RkQr/oJ5AVva8ppnZ/QxljiNwt7nDUcsbBiCUPkROPA=;
+        b=asCQ2O4ilE0sxTbVK+BD7TVhfaImrCUCEAHdOI72X0H7QQq9NwbY91EKjD1QaeSkzy
+         nANoE7V8KysGAiejIBN8Im4u5Lkn+VrOU/1KDvNqC4c/KI/KkuQ1C4uyPi0Tx3A86UNp
+         BNbZ3A1WXUyNWSmvbKYyP/iLf0R1xmVAHnqDU=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1773188603; x=1773793403;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=RkQr/oJ5AVva8ppnZ/QxljiNwt7nDUcsbBiCUPkROPA=;
+        b=PrBOw2Njubl5+T6OmPLCEXS2W2gBEO9eL3H8o7OsMVXQ20PDFsYMrPbP0doILoZ654
+         cz/txHVqeRczj4dTgjnKpd5GlsYk/SfYaqwXf+ov9F/v69UOCt0CSDY+uCWoL/W4P+AU
+         gyn9/U12ZZS3FBx2XZO6W8s9so420DhG/3QyIjtheB/iqHpsj1nzHx92pD6X5yhNcNKY
+         eiJMhQsPF5hnGr6FrenRlot6ppo09LMkLJodE73/4CC4M+sm+ZmyBYCRxOsLfOnqoGmT
+         MEnpMcNDsvL0i0Rx/dwgXU4ywNtQefqmt1sz/YouPZnkBe4/XO1mj3H1yKkfNfjiaX+Q
+         WDNw==
+X-Forwarded-Encrypted: i=1; AJvYcCU9EXWVkbb9HX14fvNdCmnHTinREVdvwRfLj/Ar3xcfi6Q9+fXF9iGx+r9LroSnjDF2vFBmoo4N1R5n@vger.kernel.org
+X-Gm-Message-State: AOJu0YybkDIppybvFeLsaP9q2O3J6iR2dpbHolp9VoGpohelihnTdawL
+	dRbiOhd9MHgb8MZYSVQf7EpKGoAp0B0JHIRXsYZJ36Cme4YpwuzI+DFYpNrtJG+qK/QV91KsWGl
+	5pgZNdieD
+X-Gm-Gg: ATEYQzzhioWSgkFkHuDgELoRSq6CE19QvLChr0lqMutyOXUNsYyDr40S4hz79s/R/Uh
+	DTBtVu426/gwrJXoF/ke5b8crb9qlYzeUepsz1TR8YVKtvKIiQDx4J3ly2LGWPGNJBHcTK8czSW
+	Ar+Bhlh5NElkkRZFUZwwmrCOJIvRDCXZJN0siOWuPPpAnJTHG3HJrEpECrB3M00bFlvzA3zNrOh
+	HZLL03q75iEM6MXijDW1Qv6J8VyJTwbs6Cpkr+24zWVhQrsDC1s6lTwUkk60MQUztkAosETFy6Q
+	ZUoJyLqaDO12ApahNrVx4ZZMtUzYUMx0Ao2aNnF0KN/7cjmvnH92utrzn/0Jppq2ljpkYzznqWU
+	R0Hj19cTIN1AO24QdTgb7NlBpfTw4vFagy6xcb8LuDNxD6VpjqVnboNidjK6QUW9rFhuOHFUBgK
+	TFA1Do0ocUELVjg4Enc/Yx7QDvv42IkdfuGjJIDHmrkOHlmpjlQx6FsvVpTl71yA==
+X-Received: by 2002:a17:906:6a26:b0:b97:3db:c7cb with SMTP id a640c23a62f3a-b972e638c5dmr22252966b.46.1773188602864;
+        Tue, 10 Mar 2026 17:23:22 -0700 (PDT)
+Received: from mail-wr1-f54.google.com (mail-wr1-f54.google.com. [209.85.221.54])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-b972de08c96sm14331366b.7.2026.03.10.17.23.22
+        for <linux-acpi@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 10 Mar 2026 17:23:22 -0700 (PDT)
+Received: by mail-wr1-f54.google.com with SMTP id ffacd0b85a97d-439c56e822eso8003273f8f.2
+        for <linux-acpi@vger.kernel.org>; Tue, 10 Mar 2026 17:23:22 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCVeKXhhLQyQ/+flsU9hmuIeJSXkY3mDT3fSk9jcFS2k4aqSON6b4Rn9mAAMj5p0UWIGFy9dY3HKPWx2@vger.kernel.org
+X-Received: by 2002:a05:6000:2913:b0:439:b3d2:3768 with SMTP id
+ ffacd0b85a97d-439f81c8cc0mr1467675f8f.21.1773188179252; Tue, 10 Mar 2026
+ 17:16:19 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CH8PR03MB8275:EE_|SJ0PR03MB5518:EE_
-X-MS-Office365-Filtering-Correlation-Id: 6ec7f3b8-a59e-49fc-4842-08de7ef5f52f
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|366016|7416014|1800799024|376014|22082099003|56012099003|18002099003;
-X-Microsoft-Antispam-Message-Info:
-	0uGaJBptse/dAAqoo9odz6TEboL6x1eofnu0U5I34ebOa2ydcGqAcURoHxeqKeO3q62Mk5AIsz1uGpcRUD51NtKqNO+im0qexd9ilZKJZwf/sVWbvl9FkuGXGlAR406DyLp52UojePLAqEJKSJJpfuOlxgOnt0mVBkxJN6z+adZXzeuwWlSNTcE2sm5+Mcbo8rlNnBVBK6m2P7UzW2lI03Yai/YAtCivMkx7lshvcpmyQU6beOumt/PhWTn9VavQB6dxRkuFDRldT2anaLSy05shimis65lY/86L7Ph65C0dcQnAikX35j9vq3YffbG+ewMZatuwAvx+VS5mkXNpysipAZE0tCOIsJzprkl2htuAgKHB26cB8Iphxp8mgqHxR/pPpGtfkwbzfEm3umXlA6fyULummSFXzgYr0RBrckPf1CMtH3ML09mhbi9mhxjQUH34bLVxRTXGehvJAOmtHAO6RfZpxctAwHNM7zamEqCkqE8aE/PJuIGvCCiPOImsLdYDetUwzZ0rJHdApQ7O06VJcFegGh3y7W+1o+C0nnQmgSL9PsHd47dg7WEAMnQnNAAWK2NFmnJSgh0YtqnNlIPSgpV3/MKdVTRjoYv+CLIJEvylvZsytoZVU1dHgXCtt+w4UbfdU4HvNSO7E6+tC4V2GQzuo7Q8QClKdx2hbNmPlsDsaLWFnXZqMhwKxEvLMBFb6gQv2PJC14pljFl2sByALSYynly2akYCUwJFGmc=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CH8PR03MB8275.namprd03.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(7416014)(1800799024)(376014)(22082099003)(56012099003)(18002099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?Yk5PbGRvSzVOcnFMOTR0c3hjbVZuNnZ4emp0MTJXcldGRDRRc2JyN0U2R25n?=
- =?utf-8?B?RXQ0Qng2QlppaWt3N1Nhckt2WS9TRHNkWkJYMVcxQWpzeVNCV2lkanhUajVv?=
- =?utf-8?B?eWpIbEF4Y1FPMzMvVDUvZFRia0I3M2crMTlEbGplR3VLUml1Ti94aVlyY2NU?=
- =?utf-8?B?b1MvdnJ6Uzc5S05uUmZPbi9NMzlQYkRuMkpSbTRCK25kMkwzQ3A4ekFmb1ky?=
- =?utf-8?B?NGJROTNkY05lZnZETVVqOW5tMlYzVk5HWnNQc3VrUkZ2K0xaRkwyVGpmQkl6?=
- =?utf-8?B?V0RjU2NtN2svclpta3FJa1Y1WGVyN01tQVVFelgrbENrcDdad0lLaUExbnNn?=
- =?utf-8?B?cUpCUnpVN3BCQ0kvRGdUYlhXa053aFlFVWVyVk5KejR1cWp6bmxNT0h1WXRE?=
- =?utf-8?B?QjV1L0FNdGhKNlR5QWVZdEZObHliK3czeTFlMUFUbVk5eHZXLzlyZHJYbTly?=
- =?utf-8?B?UFVtbU1PUVZNU2w1RjFUY0UybjRvbVFFSHl2L1BkTlUwKzlhakoySzI5aFR4?=
- =?utf-8?B?SHNySnJTNXZ1TDNLbDU2K3hjdFFpeldidUNFaCtGRFc0RkxvMEV1M2lHbjRx?=
- =?utf-8?B?aWx6d0ZpSVNudDdNUEk5amI3blo3cy9XNzNFZ3BTU0hkK01XTUJ2MUlabk10?=
- =?utf-8?B?N2x5b0VoZUh1WHhLV3o5dW1LZ2Jtb0RvOW94a1J5a1BBODhKNWpZRnZ4S2xH?=
- =?utf-8?B?WjlvdEdteWUxRG5ZZnVnbmUvYmE1bHBEciswOW1VbFREbzFlWksvbUJZRno5?=
- =?utf-8?B?UzFBU0YrVjROdTN0NnkrSXRtUFNuSFhNSE1KOXRTbXc3VUVoNUtWeEViclNa?=
- =?utf-8?B?d0FRemNqMGhERnZVaTAvMzQ3cFozNWtlczE2UVN5Sk4xNklPZkZkYTAzL2Mw?=
- =?utf-8?B?YjVxbXNTVjdBdTZSYVprQys4U1pZeUxlVmZ5dXY4S3N3U1VaL1FBazJHZ1Zl?=
- =?utf-8?B?R0ErTi84MHdlSFh0bENQS1d4d1NMbWdaci9SSkRPcDI1NDM3QlZZc0I2b1g5?=
- =?utf-8?B?UjFxbTRKVnI5S1dIclZXNVpMdVdnVHdQTDlreXlQRTdIcDQ3NGFwL1diY1kv?=
- =?utf-8?B?eHR4eWNOd09aNldnMUdaT09BOWhIQmYzM2VYTFVsQU8rcFRQdGdsYkloZkVR?=
- =?utf-8?B?NU9qRWlCYllPSmkydXFJZTlITHdKcDBFR1VTT3VUcVovcXJ1RnlCYVlNMlJy?=
- =?utf-8?B?V1RwMXNTblltZHZ3bzFnSmhRMEF1Q2JoM0RESjhYNHoxclVXYkFYZUd6R3oz?=
- =?utf-8?B?QkQzK0FoQndBRHIyVzl0dHJBRFByWUxZTXdpdURzSVNReXlXQ1BmZTBWVW9L?=
- =?utf-8?B?WmdwcEpXaU1KektuMFR2ZUlDRVNQelBPbDMvK0xRMTFtRzNHeXA3eEhQSm4r?=
- =?utf-8?B?WFNGaHVWQktaVTBzRmpmUngvMWQ0R1hGOVlnRjJ4Uk9Qb1o3Uzd0Yk9SUjlr?=
- =?utf-8?B?VGw4QzBKelF1c05LYnMydEg3ZE1odjczR21WWllIdFJjc3p4M0ZNMEN6MFNK?=
- =?utf-8?B?N1lrVXRrK3JvVzdVRUcvSlRMWVhFVFpiZDJ3UW1Ob2dkaktvL24zeUFKME8r?=
- =?utf-8?B?aW83N0dMWmhhUlIxMHRoZWY2UzlYdGd5L0ZHajNFaGh4ckpnblBVdFhJR3VB?=
- =?utf-8?B?TGx3djJITzJlblJXM1hBRFAvYjFjZWU4VTFQNThzbXBzSjBpMzErNkdCa25Q?=
- =?utf-8?B?V2Qxc1BPRDdBQkptbGxDaG9YSktVL09DNmV0VEhCTjh5MUMzS2dxV0pFVkpI?=
- =?utf-8?B?TXJTbGc2K3Mxbm5WWFFvV1JJdU55ZHl1bVg5aVlmQWkxUTdqL29Ra3Eya1Ny?=
- =?utf-8?B?eVlZZHN2ZWxabXZsdXFkSExFcUFYK0ZqQ2w2MFZ2eW85VGk5bjJ5bWNYZWhR?=
- =?utf-8?B?Z3FFV200Y1paTm5LV00xRnc2SnVCT0IrMDRkNlYwQkNkSnRlTEZmZXNWNVBK?=
- =?utf-8?B?NFdGdDIvRlEyZWlsWXVyd3lmeG5VQ3NERDlucndkaHd0a1lQMVpaTEJ5Q1Fl?=
- =?utf-8?B?by9QUThVdG83a0dPTWdKb081c1BQczBEdlJoU3dKcmVCZFJCZnZicTB4MlJ0?=
- =?utf-8?B?cUpwU2lTaWJxaDRNVFpUVTR4NHd3TnZXZEFoM0VJaDlPaE9PdDRQR3pRcUkz?=
- =?utf-8?B?T0s1bW1pem5uSkV2SnBaZ2N1TldjU212N2Z3YW0rNGsvSVJhTVFOcHRqYmVJ?=
- =?utf-8?B?VHpZK0tZMEZFbDRYbVdKYThoVDY1aXJYTlgraXk3UkdLMVY5RnhmL2RNUXZm?=
- =?utf-8?B?endqSUs3UWhRbG5mbWQ5NUh4MVh4QzlRT1NSclNJUnRTQXNWNkVQT1hLWlJQ?=
- =?utf-8?B?ajlPN0t2R2lSVUJwbXpLQTgvVDRDMmhRMkVEa0JYanBWREpRcmNmdz09?=
-X-OriginatorOrg: citrix.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 6ec7f3b8-a59e-49fc-4842-08de7ef5f52f
-X-MS-Exchange-CrossTenant-AuthSource: CH8PR03MB8275.namprd03.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 Mar 2026 22:39:58.0577
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 335836de-42ef-43a2-b145-348c2ee9ca5b
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: w1CHoC9U+cpBf9KaJCKXbaFHOUzVk/9lCW28q1CpouRGxDPSK3i9wKvtNhtfeZBolw2H3VZagHko59xaJlcwT2gvUMZSFHWjbUx6esRQymE=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ0PR03MB5518
+References: <20260216181002.3475421-1-dianders@chromium.org>
+In-Reply-To: <20260216181002.3475421-1-dianders@chromium.org>
+From: Doug Anderson <dianders@chromium.org>
+Date: Tue, 10 Mar 2026 17:16:08 -0700
+X-Gmail-Original-Message-ID: <CAD=FV=VUUNDgcOMjhA3Tiptwm3-s+LiUNeObAoV4tTQbkg0mPQ@mail.gmail.com>
+X-Gm-Features: AaiRm50L1dSQfXqKqL2lF5VIOHGsndPMM8bpxj2iTcUPN8asbNOQBrAMfnlkmEo
+Message-ID: <CAD=FV=VUUNDgcOMjhA3Tiptwm3-s+LiUNeObAoV4tTQbkg0mPQ@mail.gmail.com>
+Subject: Re: [PATCH v3 00/15] mailbox: Stop sending NULL mailbox messages
+To: jassisinghbrar@gmail.com
+Cc: Frank.Li@nxp.com, Santosh Shilimkar <ssantosh@kernel.org>, 
+	Sascha Hauer <s.hauer@pengutronix.de>, andersson@kernel.org, arm-scmi@vger.kernel.org, 
+	cristian.marussi@arm.com, daniel.baluta@nxp.com, festevam@gmail.com, 
+	imx@lists.linux.dev, jay.buddhabhatti@amd.com, jonathanh@nvidia.com, 
+	kernel@pengutronix.de, konradybcio@kernel.org, krzk@kernel.org, 
+	lenb@kernel.org, linux-acpi@vger.kernel.org, 
+	linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-remoteproc@vger.kernel.org, 
+	linux-tegra@vger.kernel.org, lucaswei@google.com, marco.crivellari@suse.com, 
+	mathieu.poirier@linaro.org, michal.simek@amd.com, nm@ti.com, 
+	rafael@kernel.org, robh@kernel.org, shawn.guo@linaro.org, 
+	sudeep.holla@kernel.org, tglx@kernel.org, thierry.reding@gmail.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 10/03/2026 5:53 pm, Bjorn Helgaas wrote:
->   - Split the x86 part to a separate patch and maybe (a tangent, but
->     looks dubious to me) figure out whether/why xen needs xen_vcpu_id
->     to be ACPI CPU IDs
+Hi,
 
-This is an unfortunate mess made decades ago with no good solution. 
-It's to do with how Xen and dom0 share responsibility for the system.
+On Mon, Feb 16, 2026 at 10:11=E2=80=AFAM Douglas Anderson <dianders@chromiu=
+m.org> wrote:
+>
+> As talked about in the first patch in this series, passing NULL as the
+> 'mssg' argument to mbox_send_message() ends up causing confusion and
+> quirky behavior inside the mailbox core. Despite this, there are a
+> number of drivers that pass NULL.
+>
+> It is plausible that some of the drivers passing NULL may have been
+> taking advantage of the quirks of the mailbox core. Specifically, they
+> may have been taking advantage that calling "tx_done" wasn't truly
+> necessary for NULL messages (it was a noop) or that NULL messages were
+> passed onto the mailbox controller right away without queuing.
+>
+> This series introduces a new API call: mbox_ring_doorbell(). The new
+> API call tries to mimic the specific quirks that were helpful in the
+> old behavior and it's expected to be a nearly drop-in replacement.
+>
+> There are some subtle differences between the new call and the old
+> behavior, but it's expected that all of these differences are only for
+> cases where the old behavior made little sense. The description of the
+> first patch details these differences.
+>
+> The series attempts to convert all in-tree users to stop passing NULL
+> for mssg. As per above, there are some slight differences in behavior.
+> If any of the patches are causing problems, they can safely be
+> reverted while debugging the problems. Eventually, all code should be
+> converted over to stop passing NULL mssg.
+>
+> Changes in v3:
+> - Suggest mbox_ring_doorbell in the warning message
+> - Updated patch description based on Cristian's response.
+>
+> Changes in v2:
+> - Instead of just documenting NULL, introduce a new function
 
-Xen PV dom0 (only, but still widely in use; ring-deprivileging and
-predates hardware virt) is OSPM for the whole system, seeing the real
-ACPI tables but with a number of vCPUs generally less than the whole system.
+In case any mailbox client API users want to comment, Jassi has
+proposed an alternative to this series:
 
-This causes Linux to have a split idea of what CPUs are, held together
-by hope and duct tape.
+https://lore.kernel.org/r/20260310234616.334498-1-jassisinghbrar@gmail.com/
 
-Xen PVH dom0 (hardware virt) is OSPM, but has an MADT matching it's vCPU
-layout.  It still sees the system DSDT/etc, so while this is better from
-Linux's point of view, it's still not great.
+Feel free to join the conversation over there. :-)
 
-Regular unprivileged VMs get a fully coherent set of CPUID + ACPI tables.
-
-~Andrew
+-Doug
