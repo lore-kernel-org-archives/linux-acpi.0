@@ -1,44 +1,41 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C25A2D97B7;
-	Thu, 12 Mar 2026 14:34:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 326332D97B7;
+	Thu, 12 Mar 2026 14:34:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773326084; cv=none; b=lDxcQan5axDB6GFlN32GowcoKLBTXgnfZ8vVuEA5QuuXDCPzsiP6BAmiPVv2H8YfMFjD5T0cSn7AGFRqkd/HeHLRtQeKnEFsOEwii7oGxKLrSA2R9ZyUcCGtcY0lA0M2c20aPXagNnkY206F2yl/TjXx8QXwtKiBFcX6QCcgJl4=
+	t=1773326088; cv=none; b=Xy24TeYhInYxL0dblU/qmS8A7Hqk4zlTll5uo7isnQh9+Q7OBx1VqWbWrzWiIAyQZMS5NOHsUj2CY5yqWW8cguSFXh6SFE9MbNu/Sw0d0cgO6Fmub3XmGgu2aVmGQjoTUnXCsdxfAHhHBh1hy41Fpw9fiMif1GDxaDbVEIrN4fI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773326084; c=relaxed/simple;
-	bh=ZHKHJ6EDimttyPUUTBD0APBfpx4rVO/JOG/dJKuqfgo=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=PLtLFmziwTba/hAcsrY2uMUQ8Cyrjfispaf/T0aIHzb+6XA8GaDsDU7zzRnxovjvZn29Q1VdzSMqDaU9yDTMjl0J8farMjVbHQRXC19dCv8Qc0S/ftckHRyve6hkqRkPX8ly7JWL4ogp+7zLa/5EEyBircl5n9jyykOUo3fIH2s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=oYul3Z+m; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773326088; c=relaxed/simple;
+	bh=sQIT+TdKp9fRyI1aY2xxIQB0uwiZ3BQ+3vvJRd1Mg4c=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=RGgDA98+SuIglzyWezD9CFSlC1yrb/5PR0wDr/5B7V0D6HjtBqAnYxmV6CQ/OMuDfkS6OuUQj6grkaCP9aSMi8jvY9PBHwgKhUNyXwHG9AOZ/t6inuKDqXj8SttnFLKWaMFUUVMeUSWWImuSE+X7CQqzMKHKsk01vZUDVe0g+o0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=rII1Zxbl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="oYul3Z+m"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 613B9C2BC86;
-	Thu, 12 Mar 2026 14:34:42 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="rII1Zxbl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C926C2BC86;
+	Thu, 12 Mar 2026 14:34:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773326084;
-	bh=ZHKHJ6EDimttyPUUTBD0APBfpx4rVO/JOG/dJKuqfgo=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=oYul3Z+muOj2mQ7wZkGK/JDg2F/7uisn+Yk+xd4WVSHvb01q0pFKJMb/llC1lxjQ8
-	 XtGPQ+O7CeW6so562j3N9R7hZ7dhNDYpXq4TD2Ji1JYOv4OXanEcYCJNdwjbqGTBo1
-	 gBrKZPVwj1i0mWakrHMGGy8VfM54hQppSmuIzM68yHx3Zluh3H4MyhNk5Sd6QIiQ/e
-	 IlvMGs+iHcWn0g4kNcaGBscWaimhTN6XmFpIZmw2f1IMlTiVOXLGIZmoFVkrwJTVD2
-	 HIKT5gderKwmhrZ5WozNXtH+kPwJ1ikIRosMaS4JJ+TadRsXSbG4ZQ/1FwZP7GnvRx
-	 MKGQiUPeEqD7w==
+	s=k20201202; t=1773326087;
+	bh=sQIT+TdKp9fRyI1aY2xxIQB0uwiZ3BQ+3vvJRd1Mg4c=;
+	h=From:To:Cc:Subject:Date:From;
+	b=rII1ZxblGS8bsTeUwzHA4BpIfBhc8aVQnm8RB1XVA027diZX5V+zm34RCRIOU9pHo
+	 uZLzvU43aMybk/tyl5PT4kLhqFDuxJdOi0XS01pY57Ww+2eLNDx7OpSkfYpgouN4P9
+	 ictj2g5s/by8nrUiuW1KbJoWGtSsimGI02IyVGpUqb6ckHWGkq64UEE3AYXNOu3piZ
+	 dpHnXgO/FghbDlb1h0c4/+3lOk0ol2g+AUlvNtbXUqqrdZBuoGjqDo+lzdHCyuEIWp
+	 nF93WnOCyUWrLljPMAy5XZi07lQuQLX8ZbWTMzdukFUSpTMYXgbMc8ZT0zlaJuiJf3
+	 OMATq/dX6b3cA==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Ilpo =?ISO-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>
 Cc: Hans de Goede <hansg@kernel.org>, LKML <linux-kernel@vger.kernel.org>,
  Linux ACPI <linux-acpi@vger.kernel.org>, platform-driver-x86@vger.kernel.org,
  Herton Ronaldo Krzesinski <herton@canonical.com>
 Subject:
- [PATCH v1 1/2] platform/x86: topstar-laptop: Register ACPI notify handler
- directly
-Date: Thu, 12 Mar 2026 15:32:36 +0100
-Message-ID: <3425557.44csPzL39Z@rafael.j.wysocki>
+ [PATCH v1 0/2] platform/x86: topstar-laptop: Bind to a platform device
+ instead of an ACPI one
+Date: Thu, 12 Mar 2026 15:31:16 +0100
+Message-ID: <3053187.e9J7NaK4W3@rafael.j.wysocki>
 Organization: Linux Kernel Development
-In-Reply-To: <3053187.e9J7NaK4W3@rafael.j.wysocki>
-References: <3053187.e9J7NaK4W3@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -48,77 +45,30 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="UTF-8"
 
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Hi All,
 
-To facilitate subsequent conversion of the driver to a platform one,
-make it install an ACPI notify handler directly instead of using
-a .notify() callback in struct acpi_driver.
+This series is part of a larger effort to switch over all drivers using
+the struct acpi_driver interface to the more common struct platform_driver
+interface and eliminate the former.  The background is explained in
+Documentation/driver-api/acpi/acpi-drivers.rst and in the changelog of
+the patch that introduced the above document:
 
-No intentional functional impact.
+https://lore.kernel.org/all/2396510.ElGaqSPkdT@rafael.j.wysocki/
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/platform/x86/topstar-laptop.c | 15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+The bottom line is that the kernel would be better off without struct
+acpi_driver and so it is better to get rid of it.
 
-diff --git a/drivers/platform/x86/topstar-laptop.c b/drivers/platform/x86/topstar-laptop.c
-index a7b4b6c8e549..695ec1d25bcd 100644
---- a/drivers/platform/x86/topstar-laptop.c
-+++ b/drivers/platform/x86/topstar-laptop.c
-@@ -232,9 +232,9 @@ static int topstar_acpi_fncx_switch(struct acpi_device *device, bool state)
- 	return 0;
- }
- 
--static void topstar_acpi_notify(struct acpi_device *device, u32 event)
-+static void topstar_acpi_notify(acpi_handle handle, u32 event, void *data)
- {
--	struct topstar_laptop *topstar = acpi_driver_data(device);
-+	struct topstar_laptop *topstar = data;
- 	static bool dup_evnt[2];
- 	bool *dup;
- 
-@@ -313,14 +313,21 @@ static int topstar_acpi_add(struct acpi_device *device)
- 	if (err)
- 		goto err_platform_exit;
- 
-+	err = acpi_dev_install_notify_handler(device, ACPI_DEVICE_NOTIFY,
-+					      topstar_acpi_notify, topstar);
-+	if (err)
-+		goto err_input_exit;
-+
- 	if (led_workaround) {
- 		err = topstar_led_init(topstar);
- 		if (err)
--			goto err_input_exit;
-+			goto err_notify_handler_exit;
- 	}
- 
- 	return 0;
- 
-+err_notify_handler_exit:
-+	acpi_dev_remove_notify_handler(device, ACPI_DEVICE_NOTIFY, topstar_acpi_notify);
- err_input_exit:
- 	topstar_input_exit(topstar);
- err_platform_exit:
-@@ -339,6 +346,7 @@ static void topstar_acpi_remove(struct acpi_device *device)
- 	if (led_workaround)
- 		topstar_led_exit(topstar);
- 
-+	acpi_dev_remove_notify_handler(device, ACPI_DEVICE_NOTIFY, topstar_acpi_notify);
- 	topstar_input_exit(topstar);
- 	topstar_platform_exit(topstar);
- 	topstar_acpi_exit(topstar);
-@@ -360,7 +368,6 @@ static struct acpi_driver topstar_acpi_driver = {
- 	.ops = {
- 		.add = topstar_acpi_add,
- 		.remove = topstar_acpi_remove,
--		.notify = topstar_acpi_notify,
- 	},
- };
- 
--- 
-2.51.0
+This series carries out driver conversion of the platform x86 Topstar
+Laptop ACPI Extras driver.
 
+Patch [1/2] updates the driver to install an ACPI notify handler by itself
+instead of using the .notify() callback from struct acpi_driver, which is
+requisite for the driver conversion.
+
+Patch [2/2] converts the driver to using struct platform_driver for device
+binding.
+
+Thanks!
 
 
 
