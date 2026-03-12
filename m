@@ -1,106 +1,74 @@
-Received: from fhigh-b5-smtp.messagingengine.com (fhigh-b5-smtp.messagingengine.com [202.12.124.156])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88FCB3603E0;
-	Thu, 12 Mar 2026 16:09:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.156
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57C363F7E98
+	for <linux-acpi@vger.kernel.org>; Thu, 12 Mar 2026 16:29:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773331773; cv=none; b=PmfXLLZ1tR+md4xY7VDn+Tjm9K+uKaXRLMx3+1QDRCFFRqhj0AsxmJEuNInY/657aAdTM22+gE8epDT0wi6cGXjnBbjeVPG7e8kwAYt2INEB2iG3jEnu3jWBukzCqxk52n28a1I53IKF1+2Byvj9qa9fvqAQcZsQ2nZI9wxhepc=
+	t=1773332963; cv=none; b=Dl1TSS125JxYWr6FnGMXckP7uYsMv4ol3+6ekvDBvdH+mVfdmhNiv4+C3kn3vak8ZQoKiixWnTOV0xZXYt4+JHA5Ovh10kOpwd6KPBSy+xfdNNho+72hdvDv8u44jpJST5vWi+0gMm8mWKho2s9w2fRUyTz+rORZrgUYdG9OBVk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773331773; c=relaxed/simple;
-	bh=F6ar+rWQgS3G61fxiElS+OzAVhybDwKcKMteNP1wGxI=;
-	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
-	 Subject:Content-Type; b=vFTFL9jNeowBPlYnMY0XDpwRf/3Ea5JCDkkEQpROzDdrOv+xnES3D5kEDcjmM+6ZqPRa7nh2PvJiLR+6xizFP3XoFQ9GM07fF90QFqxd/Zh8AGM/iBrcEre+z9y2e3o4mrFJgNBD6qZuixJ3Et/GHQWRVzXVCrDVhZemGOtsto4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=system76.com; spf=pass smtp.mailfrom=system76.com; dkim=pass (2048-bit key) header.d=system76.com header.i=@system76.com header.b=c1+Nw0WS; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=pcOlrNRw; arc=none smtp.client-ip=202.12.124.156
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=system76.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=system76.com
+	s=arc-20240116; t=1773332963; c=relaxed/simple;
+	bh=9Mg/PzeYwdsiMQmSjWFJiVOq8wvv32+lQLFjLWnE6lo=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=LKzgqATI2yEJ3T82ryEAvDSB9otZCAmrw7w0lGGgPebywxmM1gD/dnpkBUFheGjr3KwUp9zq1qu/opFSbTGFWGApomRVg6Z0Hsp+X1/nRujz3JorTLx0EZUC8wCns/bcDGiCn87gN9kb8HbqlUxfz1vnXGdQWzOD6vzmraIzvHM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VqE1bzIU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=system76.com header.i=@system76.com header.b="c1+Nw0WS";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="pcOlrNRw"
-Received: from phl-compute-08.internal (phl-compute-08.internal [10.202.2.48])
-	by mailfhigh.stl.internal (Postfix) with ESMTP id 85E297A014B;
-	Thu, 12 Mar 2026 12:09:30 -0400 (EDT)
-Received: from phl-imap-14 ([10.202.2.87])
-  by phl-compute-08.internal (MEProxy); Thu, 12 Mar 2026 12:09:31 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=system76.com; h=
-	cc:cc:content-transfer-encoding:content-type:content-type:date
-	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to; s=fm1; t=1773331770;
-	 x=1773418170; bh=F6ar+rWQgS3G61fxiElS+OzAVhybDwKcKMteNP1wGxI=; b=
-	c1+Nw0WSs9Wvyq2F5aGIjnMq73LAPQY1WbxNn602UHSS85sgPoWhmH/tOWLKM7dH
-	dxDKA/NPzf3TO9PCS+vtdb3hwfr/BbJlFoe723MH9x/oFbsoSC8D0NRHyUCll10y
-	IVTSD2LDhf6pvVpyWTcHh1dpZtUWMTb59NfeBWdWF79uy5bGjxkETaikugHLUE0p
-	LxRpdaY6Kbi6A5ceKsSitgoS8Zh+1BAZ9nIVHJkEG0+0Bfm1U4eT6HI8izjeF5V+
-	ol55vZqfrX6LUME5zMRmTHYSgyLoPAg+jBJVOUbeKvVi4uB0vLG+C8NUE9h4OI0V
-	NPwAJljYQ6ddfis7o+iNKg==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:content-type:date:date:feedback-id:feedback-id
-	:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm1; t=1773331770; x=
-	1773418170; bh=F6ar+rWQgS3G61fxiElS+OzAVhybDwKcKMteNP1wGxI=; b=p
-	cOlrNRwiGMLdjNoCplTJZpRUuQj02xVB85uFtTcVveC0HIz7kZAo7jdg1lUet2ty
-	zn4tuGKNh6U0XpOV4CFMBTWjIQOaZU6ebxfltVvYXfJj8cy6dJm/vKsZG/oPXvvu
-	kbrOsJUS6oHFaq5pCzcT5qng+orJZa0Jr6lRmImDUVbjolrd66uTK9QgZ5KCtEep
-	aIaBL8NXH3mNNaVD3OmjPY0HadgBtoxGqEDObBTsntBuVVIicSmTMOY58auIZ3oj
-	1etMbknLkgEq2YpqQwjDQsWjKWgrhFesniBYKrhCPuPraDE7Vt08+9oyoXsj6Kcr
-	7Ky3Wx++f4fEkptkegVGg==
-X-ME-Sender: <xms:OeWyaRlXW2MdAeLw29qWlK2QVCCL0dLwi66aoF3T8HW9L4JQLL1k3A>
-    <xme:OeWyaXpfvzI39I1oMCjmbBttQZFfWGXYOd62TG7TO-NUUqnwi9AdtE_-hwrMfuN-4
-    uPwpb-ORfMIwwEnhl9ESvarbccEFi2tbyz0zOa05XfooHdfCw4U>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefgedrtddtgddvkeejvddvucetufdoteggodetrf
-    dotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfurfetoffkrfgpnffqhgenuceu
-    rghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujf
-    gurhepofggfffhvfevkfgjfhfutgfgsehtjeertdertddtnecuhfhrohhmpedflfgvrhgv
-    mhihucfuohhllhgvrhdfuceojhgvrhgvmhihsehshihsthgvmhejiedrtghomheqnecugg
-    ftrfgrthhtvghrnheptdefueffkeetfedvhfeileehveejgedvieekgeduieetfeduteev
-    hfetieejudefnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrh
-    homhepjhgvrhgvmhihsehshihsthgvmhejiedrtghomhdpnhgspghrtghpthhtohepjedp
-    mhhouggvpehsmhhtphhouhhtpdhrtghpthhtohephhgrnhhsgheskhgvrhhnvghlrdhorh
-    hgpdhrtghpthhtoheprhgrfhgrvghlsehkvghrnhgvlhdrohhrghdprhgtphhtthhopehi
-    lhhpohdrjhgrrhhvihhnvghnsehlihhnuhigrdhinhhtvghlrdgtohhmpdhrtghpthhtoh
-    epphhrohguuhgtthguvghvsehshihsthgvmhejiedrtghomhdprhgtphhtthhopehlihhn
-    uhigqdgrtghpihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuh
-    igqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehplhgr
-    thhfohhrmhdqughrihhvvghrqdigkeeisehvghgvrhdrkhgvrhhnvghlrdhorhhg
-X-ME-Proxy: <xmx:OeWyaY5m88R_wRv3Y3aVftB8pwLx82O9khrDSF3ybznzypZMB_Fodg>
-    <xmx:OeWyaT5cl61L-XNDoJxDXC4WIHRzeXLkqkGRwfoTFhWrt3GmAR67Lg>
-    <xmx:OeWyaeGIuNsm_GzEWHgJuIAAi-cNx70vEPbIVIgmngyB-3inSiMzCw>
-    <xmx:OeWyabVrsIbTo56Pyt_uPkExoJTKcCQ1vkg6dQPTYD5gJ3qx6CphcA>
-    <xmx:OuWyadPoG1pz3cqrWAuOYJ0p03vveAmNiMtTKdp7jqWarQt75PZLD5kl>
-Feedback-ID: ic629427b:Fastmail
-Received: by mailuser.phl.internal (Postfix, from userid 501)
-	id 872DCC4006F; Thu, 12 Mar 2026 12:09:29 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VqE1bzIU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDB2BC2BCAF
+	for <linux-acpi@vger.kernel.org>; Thu, 12 Mar 2026 16:29:22 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1773332962;
+	bh=9Mg/PzeYwdsiMQmSjWFJiVOq8wvv32+lQLFjLWnE6lo=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=VqE1bzIU/fTi8W4KVwhV60Y/K/46dSICnbhAVMu8LrCeZAiYguawTiLoWkVk+ZrOO
+	 Zc0VSv1SOzAQgEUu/ejkzTrbL7DO7MXPSTGcCg3J1uE0jzVG7y3+SmU7EU4ztrIkaA
+	 1DwdvgPKCfuLcK5d/zA3C5O3DdCK0fRt2+mdjXZ18KsmmZ7b8wUQmRogr9o6rW2xXj
+	 S0Me7NamFQ0ZFUpOQuIvDurCC6TxKLeOc14CNZ2ZR0IDeR4nNQ4F+7H70+D968Al4b
+	 a/Xb9xfAn6blHOacpbvjlYJ6aFQUCVD7OodRYakVUp+VFC3/TkEOTAvwz9tAgZC5Ld
+	 q49Hyt996Ihtg==
+Received: by mail-oo1-f54.google.com with SMTP id 006d021491bc7-67bb5e4cf7eso670750eaf.2
+        for <linux-acpi@vger.kernel.org>; Thu, 12 Mar 2026 09:29:22 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCXuEj4qkElXDBTneoO/NM0ezv7fUPOCjd6qJrtUYVE5RwDn2NrGA+nJXP71cCNCIpCrpezc26bpOw/v@vger.kernel.org
+X-Gm-Message-State: AOJu0YwQGX+cBpP2EFHVk9NZsXCmslJFyZVxjJISHtWCFjKJAt6RcBXv
+	X1hsg9tDWXEj0tyeCQEaAGmtkfj9b8jYBTxrDyCa3WUYWiLK2wwNHe+6XyZLf9+F0No4DxTJsJl
+	iGN7t0BitOCZUemKoV0TavClRM6IA4F8=
+X-Received: by 2002:a05:6820:2222:b0:67b:c4cf:9cc4 with SMTP id
+ 006d021491bc7-67bdaa384f0mr1385eaf.48.1773332961992; Thu, 12 Mar 2026
+ 09:29:21 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-ThreadId: Al-L5pM10uxg
-Date: Thu, 12 Mar 2026 10:09:08 -0600
-From: "Jeremy Soller" <jeremy@system76.com>
-To: "Rafael J. Wysocki" <rafael@kernel.org>,
- =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
-Cc: "Hans de Goede" <hansg@kernel.org>, LKML <linux-kernel@vger.kernel.org>,
- "Linux ACPI" <linux-acpi@vger.kernel.org>,
- platform-driver-x86@vger.kernel.org,
- "System76 Product Development" <productdev@system76.com>
-Message-Id: <eaa78acf-7baf-4c46-9f7b-70ccd62a188b@app.fastmail.com>
-In-Reply-To: <1968431.tdWV9SEqCh@rafael.j.wysocki>
-References: <2841136.mvXUDI8C0e@rafael.j.wysocki>
- <1968431.tdWV9SEqCh@rafael.j.wysocki>
-Subject: Re: [PATCH v1 2/2] platform/x86: system76: Convert ACPI driver to a platform
- one
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+References: <2841136.mvXUDI8C0e@rafael.j.wysocki> <1968431.tdWV9SEqCh@rafael.j.wysocki>
+ <eaa78acf-7baf-4c46-9f7b-70ccd62a188b@app.fastmail.com>
+In-Reply-To: <eaa78acf-7baf-4c46-9f7b-70ccd62a188b@app.fastmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Thu, 12 Mar 2026 17:29:10 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0g7GPe0k7+JWKSnUaEVqEyAUBdT_gDWtfhTWO_39PN+GA@mail.gmail.com>
+X-Gm-Features: AaiRm538w35-z1ORpZ1v8EROKhuZqGvHBkun9y8dPlRqb-yJXGFj0tIrHrfcASY
+Message-ID: <CAJZ5v0g7GPe0k7+JWKSnUaEVqEyAUBdT_gDWtfhTWO_39PN+GA@mail.gmail.com>
+Subject: Re: [PATCH v1 2/2] platform/x86: system76: Convert ACPI driver to a
+ platform one
+To: Jeremy Soller <jeremy@system76.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, 
+	Hans de Goede <hansg@kernel.org>, LKML <linux-kernel@vger.kernel.org>, 
+	Linux ACPI <linux-acpi@vger.kernel.org>, platform-driver-x86@vger.kernel.org, 
+	System76 Product Development <productdev@system76.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hello Rafael,
+Hi,
 
-This change looks good to me, is there anything else you need from me as the module author?
+On Thu, Mar 12, 2026 at 5:09=E2=80=AFPM Jeremy Soller <jeremy@system76.com>=
+ wrote:
+>
+> Hello Rafael,
+>
+> This change looks good to me, is there anything else you need from me as =
+the module author?
 
-Thanks,
+No, I don't think so.
 
-Jeremy
+Thank you!
