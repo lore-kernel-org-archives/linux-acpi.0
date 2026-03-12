@@ -1,224 +1,250 @@
-Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.7])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF2083AE19F;
-	Thu, 12 Mar 2026 07:23:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.187
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ECBFB37DE84;
+	Thu, 12 Mar 2026 08:46:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.7
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773300230; cv=none; b=kHGm+zZ7tGoazFsFzgXNyKiMKhOYiQqaJAbvmFKmh8bEkStZMuYUtc6CXUVI+FcXYkZh4qopIdReq0NqON7qEBzFFRZeYOh57jUk5Xz7cpNH6Lwc2uektLVSId8YndVmnFDhzGyngeP/OmpQJvf6rRuWsiBSWgxg/TNIX6+nbXk=
+	t=1773305220; cv=none; b=h8XbZeEwd9txBA4qCdgkepWpfK9DRi/aJ7spn2SpXeyFwcvutlwG9bHNrngeUAh6XqbGHt+y9lJt2D3p4KBlWlwQlY7N0dyGUHBXaaAPMQgyFyNfWrTuquEXI1I0Hhy42D3aYJHtgKHCf29QFEujxBDmiCnnLA56qAPpU3sfqWs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773300230; c=relaxed/simple;
-	bh=EuhZy48yALkU2uXpjXzpoJkzXeJ0h6S3zt+FwQaV38c=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=iiGo4KT0G2IAKaHoVe27QycdKvIb0d8Ro0yM+mUuUc6ZopRsWEXhxWqLY/PwuYKdq94kkZ3yaGT70w8SMkmwLQqeLb0fK7JI6nGVnd07vH1IP6attmbgiZ8lJylPYelp4gkV8VM5iLD/oLWlGRXY+7ikE4U72GD7E1cTlPDD7Vo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=kKHyA/oB; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=kKHyA/oB; arc=none smtp.client-ip=45.249.212.187
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+	s=arc-20240116; t=1773305220; c=relaxed/simple;
+	bh=Nt3pZG7re/DuX+hDZXmkHhcZpCqEP/mwkjz2749QpR0=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=d4qd4nMNKqJZrf9v5iagRrVz3/L1hVhjDOyBw7xYMtLvXR9LyCJfeE6LK2NKikq7aXaBrSN/ZwXoQc3WnpmId3Qvo25ROczPN5aSXC3vjcpa74tXBVkwVRmtrxehhAuNPIvFOr4pZPj66YWgHTR8DFmcWBQI+R82i6pehVjzLkM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=N+bniV6j; arc=none smtp.client-ip=192.198.163.7
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="kKHyA/oB";
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="kKHyA/oB"
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=yK49JnkLKpYBZOqDDiJ5tuFkHdnhSIg09tqBvQIMd28=;
-	b=kKHyA/oBTEDBLkGyt6IF5Mfl/9NSCdKjuLiy/HF08xBMphI4nGy1HFAwxMG51XNjBjkBo5mE1
-	yjJ8Kunab1b6+Q35VPZpdNjHq9uHYBsa/8T6vWVzXsQpo9LPA6UF2V4Yh93oUHRXBNRvgd2kM7T
-	N9D++v+eloU19GgyjqKPnrA=
-Received: from canpmsgout03.his.huawei.com (unknown [172.19.92.159])
-	by szxga01-in.huawei.com (SkyGuard) with ESMTPS id 4fWfGR0f0Gz1BG5t;
-	Thu, 12 Mar 2026 15:22:55 +0800 (CST)
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=yK49JnkLKpYBZOqDDiJ5tuFkHdnhSIg09tqBvQIMd28=;
-	b=kKHyA/oBTEDBLkGyt6IF5Mfl/9NSCdKjuLiy/HF08xBMphI4nGy1HFAwxMG51XNjBjkBo5mE1
-	yjJ8Kunab1b6+Q35VPZpdNjHq9uHYBsa/8T6vWVzXsQpo9LPA6UF2V4Yh93oUHRXBNRvgd2kM7T
-	N9D++v+eloU19GgyjqKPnrA=
-Received: from mail.maildlp.com (unknown [172.19.162.144])
-	by canpmsgout03.his.huawei.com (SkyGuard) with ESMTPS id 4fWf9453GZzpTJc;
-	Thu, 12 Mar 2026 15:18:16 +0800 (CST)
-Received: from kwepemk500009.china.huawei.com (unknown [7.202.194.94])
-	by mail.maildlp.com (Postfix) with ESMTPS id CAD7B40567;
-	Thu, 12 Mar 2026 15:23:29 +0800 (CST)
-Received: from localhost.localdomain (10.50.163.32) by
- kwepemk500009.china.huawei.com (7.202.194.94) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Thu, 12 Mar 2026 15:23:27 +0800
-From: Chengwen Feng <fengchengwen@huawei.com>
-To: Bjorn Helgaas <bhelgaas@google.com>, Catalin Marinas
-	<catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, "Rafael J .
- Wysocki" <rafael@kernel.org>
-CC: Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>,
-	Huacai Chen <chenhuacai@kernel.org>, WANG Xuerui <kernel@xen0n.name>, Paul
- Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, Albert Ou
-	<aou@eecs.berkeley.edu>, Alexandre Ghiti <alex@ghiti.fr>, Thomas Gleixner
-	<tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov
-	<bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>, <x86@kernel.org>,
-	"H . Peter Anvin" <hpa@zytor.com>, Juergen Gross <jgross@suse.com>, Boris
- Ostrovsky <boris.ostrovsky@oracle.com>, Len Brown <lenb@kernel.org>, Sunil V
- L <sunilvl@ventanamicro.com>, Mark Rutland <mark.rutland@arm.com>, Jonathan
- Cameron <jonathan.cameron@huawei.com>, Kees Cook <kees@kernel.org>, Yanteng
- Si <si.yanteng@linux.dev>, Sean Christopherson <seanjc@google.com>, Kai Huang
-	<kai.huang@intel.com>, Tom Lendacky <thomas.lendacky@amd.com>, Thomas Huth
-	<thuth@redhat.com>, Thorsten Blum <thorsten.blum@linux.dev>, Kevin Loughlin
-	<kevinloughlin@google.com>, Zheyun Shen <szy0127@sjtu.edu.cn>, Peter Zijlstra
-	<peterz@infradead.org>, Pawan Gupta <pawan.kumar.gupta@linux.intel.com>, Xin
- Li <xin@zytor.com>, "Ahmed S . Darwish" <darwi@linutronix.de>, Sohil Mehta
-	<sohil.mehta@intel.com>, Ilkka Koskinen <ilkka@os.amperecomputing.com>, Robin
- Murphy <robin.murphy@arm.com>, James Clark <james.clark@linaro.org>, Besar
- Wicaksono <bwicaksono@nvidia.com>, Ma Ke <make24@iscas.ac.cn>, Wei Huang
-	<wei.huang2@amd.com>, Andy Gospodarek <andrew.gospodarek@broadcom.com>,
-	Somnath Kotur <somnath.kotur@broadcom.com>, <punit.agrawal@oss.qualcomm.com>,
-	<guohanjun@huawei.com>, <suzuki.poulose@arm.com>, <ryan.roberts@arm.com>,
-	<chenl311@chinatelecom.cn>, <masahiroy@kernel.org>,
-	<wangyuquan1236@phytium.com.cn>, <anshuman.khandual@arm.com>,
-	<heinrich.schuchardt@canonical.com>, <Eric.VanTassell@amd.com>,
-	<wangzhou1@hisilicon.com>, <wanghuiqiang@huawei.com>,
-	<liuyonglong@huawei.com>, <linux-pci@vger.kernel.org>,
-	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>, <loongarch@lists.linux.dev>,
-	<linux-riscv@lists.infradead.org>, <xen-devel@lists.xenproject.org>,
-	<linux-acpi@vger.kernel.org>, <linux-perf-users@vger.kernel.org>,
-	<stable@vger.kernel.org>
-Subject: [PATCH v6 3/3] PCI/TPH: Fix get cpu steer-tag fail on ARM64 platform
-Date: Thu, 12 Mar 2026 15:23:16 +0800
-Message-ID: <20260312072316.4806-4-fengchengwen@huawei.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20260312072316.4806-1-fengchengwen@huawei.com>
-References: <20260312072316.4806-1-fengchengwen@huawei.com>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="N+bniV6j"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1773305219; x=1804841219;
+  h=date:from:to:cc:subject:message-id;
+  bh=Nt3pZG7re/DuX+hDZXmkHhcZpCqEP/mwkjz2749QpR0=;
+  b=N+bniV6jwOGXeYyTz4/cBvdEVhwrxKz7O3VT7rvtgLHB89XPPhYQRjga
+   in0AQ4OnU3P0Bdm11TM3ejopDhfF3vQpiwDucNPlxP/GySS7iF5lErGnE
+   hwIRjxqaAVAv63pES6sOWP48gboJBew2jqaGnJl/WjW6JSHZHLD5X1yJT
+   /BtrQWJBBnSJyocZIeKcvOvbK3n0rJbIAu0X97FYXzAwtGfwwHUMmmOpz
+   Tvokq8lKqC8pXg6EresgbYup5AXkh6RWU1I2kJEpB8r6Lqf+bKRPP/Wbc
+   GCk/fckRPN3Ezy3OQrBjw/birkp7WahKmnzP3QPA0Ilg2HglrR6Mkuqvd
+   g==;
+X-CSE-ConnectionGUID: 4k/3bNyCTO6cWBNJ/tZXYQ==
+X-CSE-MsgGUID: ZPAJu75JTBO8H7VEd4orwQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11726"; a="99854098"
+X-IronPort-AV: E=Sophos;i="6.23,116,1770624000"; 
+   d="scan'208";a="99854098"
+Received: from orviesa003.jf.intel.com ([10.64.159.143])
+  by fmvoesa101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Mar 2026 01:46:57 -0700
+X-CSE-ConnectionGUID: NYYWQ/9EQgaEz8Yg3rgFcw==
+X-CSE-MsgGUID: PY3HXa3KSMWQqgu9XXgSog==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,116,1770624000"; 
+   d="scan'208";a="224898908"
+Received: from lkp-server01.sh.intel.com (HELO 418530b1a366) ([10.239.97.150])
+  by orviesa003.jf.intel.com with ESMTP; 12 Mar 2026 01:46:53 -0700
+Received: from kbuild by 418530b1a366 with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1w0bgy-000000002Gn-3a5D;
+	Thu, 12 Mar 2026 08:46:52 +0000
+Date: Thu, 12 Mar 2026 16:45:55 +0800
+From: kernel test robot <lkp@intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+Subject: [rafael-pm:bleeding-edge] BUILD SUCCESS
+ 8e353c93e3983142d01c4a46facb330d5c256b92
+Message-ID: <202603121648.sZSBLSfi-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain
-X-ClientProxiedBy: kwepems200001.china.huawei.com (7.221.188.67) To
- kwepemk500009.china.huawei.com (7.202.194.94)
 
-pcie_tph_get_cpu_st() is broken on ARM64:
-1. pcie_tph_get_cpu_st() passes cpu_uid to the PCI ACPI DSM method.
-   cpu_uid should be the ACPI Processor UID [1].
-2. In BNXT, pcie_tph_get_cpu_st() is passed a cpu_uid obtained via
-   cpumask_first(irq->cpu_mask) - the logical CPU ID of a CPU core,
-   generated and managed by kernel (e.g., [0,255] for a system  with 256
-   logical CPU cores).
-3. On ARM64 platforms, ACPI assigns Processor UID to cores listed in the
-   MADT table, and this UID may not match the kernel's logical CPU ID.
-   When this occurs, the mismatch results in the wrong CPU steer-tag.
-4. On AMD x86 the logical CPU ID is identical to the ACPI Processor UID
-   so the mismatch is not seen.
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
+branch HEAD: 8e353c93e3983142d01c4a46facb330d5c256b92  Merge branches 'acpi-tad' and 'acpi-processor' into bleeding-edge
 
-Resolution:
-1. Use acpi_get_cpu_uid() in pcie_tph_get_cpu_st() to translate from
-   logical CPU ID to ACPI Processor UID needed for the DSM call.
-2. Rename pcie_tpu_get_cpu_st() parameter from cpu_uid to cpu to
-   reflect that it is a logical CPU_ID.
+elapsed time: 722m
 
-[1] According to ECN_TPH-ST_Revision_20200924
-    (https://members.pcisig.com/wg/PCI-SIG/document/15470), the input
-    is defined as: "If the target is a processor, then this field
-    represents the ACPI Processor UID of the processor as specified in
-    the MADT. If the target is a processor container, then this field
-    represents the ACPI Processor UID of the processor container as
-    specified in the PPTT."
+configs tested: 173
+configs skipped: 2
 
-Fixes: d2e8a34876ce ("PCI/TPH: Add Steering Tag support")
-Cc: stable@vger.kernel.org
-Signed-off-by: Chengwen Feng <fengchengwen@huawei.com>
-Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
----
- Documentation/PCI/tph.rst |  4 ++--
- drivers/pci/tph.c         | 16 +++++++++++-----
- include/linux/pci-tph.h   |  4 ++--
- 3 files changed, 15 insertions(+), 9 deletions(-)
+The following configs have been built successfully.
+More configs may be tested in the coming days.
 
-diff --git a/Documentation/PCI/tph.rst b/Documentation/PCI/tph.rst
-index e8993be64fd6..b6cf22b9bd90 100644
---- a/Documentation/PCI/tph.rst
-+++ b/Documentation/PCI/tph.rst
-@@ -79,10 +79,10 @@ To retrieve a Steering Tag for a target memory associated with a specific
- CPU, use the following function::
- 
-   int pcie_tph_get_cpu_st(struct pci_dev *pdev, enum tph_mem_type type,
--                          unsigned int cpu_uid, u16 *tag);
-+                          unsigned int cpu, u16 *tag);
- 
- The `type` argument is used to specify the memory type, either volatile
--or persistent, of the target memory. The `cpu_uid` argument specifies the
-+or persistent, of the target memory. The `cpu` argument specifies the
- CPU where the memory is associated to.
- 
- After the ST value is retrieved, the device driver can use the following
-diff --git a/drivers/pci/tph.c b/drivers/pci/tph.c
-index ca4f97be7538..b67c9ad14bda 100644
---- a/drivers/pci/tph.c
-+++ b/drivers/pci/tph.c
-@@ -236,21 +236,27 @@ static int write_tag_to_st_table(struct pci_dev *pdev, int index, u16 tag)
-  * with a specific CPU
-  * @pdev: PCI device
-  * @mem_type: target memory type (volatile or persistent RAM)
-- * @cpu_uid: associated CPU id
-+ * @cpu: associated CPU id
-  * @tag: Steering Tag to be returned
-  *
-  * Return the Steering Tag for a target memory that is associated with a
-- * specific CPU as indicated by cpu_uid.
-+ * specific CPU as indicated by cpu.
-  *
-  * Return: 0 if success, otherwise negative value (-errno)
-  */
- int pcie_tph_get_cpu_st(struct pci_dev *pdev, enum tph_mem_type mem_type,
--			unsigned int cpu_uid, u16 *tag)
-+			unsigned int cpu, u16 *tag)
- {
- #ifdef CONFIG_ACPI
- 	struct pci_dev *rp;
- 	acpi_handle rp_acpi_handle;
- 	union st_info info;
-+	u32 cpu_uid;
-+	int ret;
-+
-+	ret = acpi_get_cpu_uid(cpu, &cpu_uid);
-+	if (ret != 0)
-+		return ret;
- 
- 	rp = pcie_find_root_port(pdev);
- 	if (!rp || !rp->bus || !rp->bus->bridge)
-@@ -265,9 +271,9 @@ int pcie_tph_get_cpu_st(struct pci_dev *pdev, enum tph_mem_type mem_type,
- 
- 	*tag = tph_extract_tag(mem_type, pdev->tph_req_type, &info);
- 
--	pci_dbg(pdev, "get steering tag: mem_type=%s, cpu_uid=%d, tag=%#04x\n",
-+	pci_dbg(pdev, "get steering tag: mem_type=%s, cpu=%d, tag=%#04x\n",
- 		(mem_type == TPH_MEM_TYPE_VM) ? "volatile" : "persistent",
--		cpu_uid, *tag);
-+		cpu, *tag);
- 
- 	return 0;
- #else
-diff --git a/include/linux/pci-tph.h b/include/linux/pci-tph.h
-index ba28140ce670..be68cd17f2f8 100644
---- a/include/linux/pci-tph.h
-+++ b/include/linux/pci-tph.h
-@@ -25,7 +25,7 @@ int pcie_tph_set_st_entry(struct pci_dev *pdev,
- 			  unsigned int index, u16 tag);
- int pcie_tph_get_cpu_st(struct pci_dev *dev,
- 			enum tph_mem_type mem_type,
--			unsigned int cpu_uid, u16 *tag);
-+			unsigned int cpu, u16 *tag);
- void pcie_disable_tph(struct pci_dev *pdev);
- int pcie_enable_tph(struct pci_dev *pdev, int mode);
- u16 pcie_tph_get_st_table_size(struct pci_dev *pdev);
-@@ -36,7 +36,7 @@ static inline int pcie_tph_set_st_entry(struct pci_dev *pdev,
- { return -EINVAL; }
- static inline int pcie_tph_get_cpu_st(struct pci_dev *dev,
- 				      enum tph_mem_type mem_type,
--				      unsigned int cpu_uid, u16 *tag)
-+				      unsigned int cpu, u16 *tag)
- { return -EINVAL; }
- static inline void pcie_disable_tph(struct pci_dev *pdev) { }
- static inline int pcie_enable_tph(struct pci_dev *pdev, int mode)
--- 
-2.17.1
+tested configs:
+alpha                             allnoconfig    gcc-15.2.0
+alpha                            allyesconfig    gcc-15.2.0
+alpha                               defconfig    gcc-15.2.0
+arc                              allmodconfig    clang-16
+arc                               allnoconfig    gcc-15.2.0
+arc                              allyesconfig    clang-23
+arc                                 defconfig    gcc-15.2.0
+arc                   randconfig-001-20260312    gcc-8.5.0
+arc                   randconfig-002-20260312    gcc-8.5.0
+arm                               allnoconfig    clang-23
+arm                               allnoconfig    gcc-15.2.0
+arm                              allyesconfig    clang-16
+arm                                 defconfig    gcc-15.2.0
+arm                   randconfig-001-20260312    gcc-8.5.0
+arm                   randconfig-002-20260312    gcc-8.5.0
+arm                   randconfig-003-20260312    gcc-8.5.0
+arm                   randconfig-004-20260312    gcc-8.5.0
+arm64                            allmodconfig    clang-23
+arm64                             allnoconfig    gcc-15.2.0
+arm64                               defconfig    gcc-15.2.0
+arm64                 randconfig-001-20260312    clang-18
+arm64                 randconfig-002-20260312    clang-18
+arm64                 randconfig-003-20260312    clang-18
+arm64                 randconfig-004-20260312    clang-18
+csky                             allmodconfig    gcc-15.2.0
+csky                              allnoconfig    gcc-15.2.0
+csky                                defconfig    gcc-15.2.0
+csky                  randconfig-001-20260312    clang-18
+csky                  randconfig-002-20260312    clang-18
+hexagon                          allmodconfig    gcc-15.2.0
+hexagon                           allnoconfig    clang-23
+hexagon                           allnoconfig    gcc-15.2.0
+hexagon                             defconfig    gcc-15.2.0
+hexagon               randconfig-001-20260312    gcc-11.5.0
+hexagon               randconfig-002-20260312    gcc-11.5.0
+i386                             allmodconfig    clang-20
+i386                              allnoconfig    gcc-14
+i386                              allnoconfig    gcc-15.2.0
+i386                             allyesconfig    clang-20
+i386        buildonly-randconfig-001-20260312    gcc-14
+i386        buildonly-randconfig-002-20260312    gcc-14
+i386        buildonly-randconfig-003-20260312    gcc-14
+i386        buildonly-randconfig-004-20260312    gcc-14
+i386        buildonly-randconfig-005-20260312    gcc-14
+i386        buildonly-randconfig-006-20260312    gcc-14
+i386                                defconfig    gcc-15.2.0
+i386                  randconfig-001-20260312    gcc-14
+i386                  randconfig-002-20260312    gcc-14
+i386                  randconfig-003-20260312    gcc-14
+i386                  randconfig-004-20260312    gcc-14
+i386                  randconfig-005-20260312    gcc-14
+i386                  randconfig-006-20260312    gcc-14
+i386                  randconfig-007-20260312    gcc-14
+i386                  randconfig-011-20260312    clang-20
+i386                  randconfig-012-20260312    clang-20
+i386                  randconfig-013-20260312    clang-20
+i386                  randconfig-014-20260312    clang-20
+i386                  randconfig-015-20260312    clang-20
+i386                  randconfig-016-20260312    clang-20
+i386                  randconfig-017-20260312    clang-20
+loongarch                        allmodconfig    clang-23
+loongarch                         allnoconfig    clang-23
+loongarch                         allnoconfig    gcc-15.2.0
+loongarch                           defconfig    clang-19
+loongarch             randconfig-001-20260312    gcc-11.5.0
+loongarch             randconfig-002-20260312    gcc-11.5.0
+m68k                             allmodconfig    gcc-15.2.0
+m68k                              allnoconfig    gcc-15.2.0
+m68k                             allyesconfig    clang-16
+m68k                                defconfig    clang-19
+microblaze                        allnoconfig    gcc-15.2.0
+microblaze                       allyesconfig    gcc-15.2.0
+microblaze                          defconfig    clang-19
+mips                             allmodconfig    gcc-15.2.0
+mips                              allnoconfig    gcc-15.2.0
+mips                             allyesconfig    gcc-15.2.0
+nios2                            allmodconfig    clang-23
+nios2                             allnoconfig    clang-23
+nios2                               defconfig    clang-19
+nios2                 randconfig-001-20260312    gcc-11.5.0
+nios2                 randconfig-002-20260312    gcc-11.5.0
+openrisc                         allmodconfig    clang-23
+openrisc                          allnoconfig    clang-23
+openrisc                            defconfig    gcc-15.2.0
+parisc                           allmodconfig    gcc-15.2.0
+parisc                            allnoconfig    clang-23
+parisc                           allyesconfig    clang-19
+parisc                              defconfig    gcc-15.2.0
+parisc                randconfig-001-20260312    clang-23
+parisc                randconfig-002-20260312    clang-23
+parisc64                            defconfig    clang-19
+powerpc                          allmodconfig    gcc-15.2.0
+powerpc                           allnoconfig    clang-23
+powerpc                     kmeter1_defconfig    gcc-15.2.0
+powerpc               randconfig-001-20260312    clang-23
+powerpc               randconfig-002-20260312    clang-23
+powerpc64             randconfig-001-20260312    clang-23
+powerpc64             randconfig-002-20260312    clang-23
+riscv                            allmodconfig    clang-23
+riscv                             allnoconfig    clang-23
+riscv                            allyesconfig    clang-16
+riscv                               defconfig    gcc-15.2.0
+riscv                 randconfig-001-20260312    gcc-13.4.0
+riscv                 randconfig-002-20260312    gcc-13.4.0
+s390                             allmodconfig    clang-19
+s390                              allnoconfig    clang-23
+s390                             allyesconfig    gcc-15.2.0
+s390                                defconfig    gcc-15.2.0
+s390                  randconfig-001-20260312    gcc-13.4.0
+s390                  randconfig-002-20260312    gcc-13.4.0
+sh                               allmodconfig    gcc-15.2.0
+sh                                allnoconfig    clang-23
+sh                               allyesconfig    clang-19
+sh                                  defconfig    gcc-14
+sh                    randconfig-001-20260312    gcc-13.4.0
+sh                    randconfig-002-20260312    gcc-13.4.0
+sh                          rsk7201_defconfig    gcc-15.2.0
+sparc                             allnoconfig    clang-23
+sparc                               defconfig    gcc-15.2.0
+sparc                 randconfig-001-20260312    gcc-15.2.0
+sparc                 randconfig-002-20260312    gcc-15.2.0
+sparc64                          allmodconfig    clang-23
+sparc64                             defconfig    gcc-14
+sparc64               randconfig-001-20260312    gcc-15.2.0
+sparc64               randconfig-002-20260312    gcc-15.2.0
+um                               allmodconfig    clang-19
+um                                allnoconfig    clang-23
+um                               allyesconfig    gcc-15.2.0
+um                                  defconfig    gcc-14
+um                             i386_defconfig    gcc-14
+um                    randconfig-001-20260312    gcc-15.2.0
+um                    randconfig-002-20260312    gcc-15.2.0
+um                           x86_64_defconfig    gcc-14
+x86_64                           allmodconfig    clang-20
+x86_64                            allnoconfig    clang-23
+x86_64                           allyesconfig    clang-20
+x86_64      buildonly-randconfig-001-20260312    gcc-14
+x86_64      buildonly-randconfig-002-20260312    gcc-14
+x86_64      buildonly-randconfig-003-20260312    gcc-14
+x86_64      buildonly-randconfig-004-20260312    gcc-14
+x86_64      buildonly-randconfig-005-20260312    gcc-14
+x86_64      buildonly-randconfig-006-20260312    gcc-14
+x86_64                              defconfig    gcc-14
+x86_64                                  kexec    clang-20
+x86_64                randconfig-001-20260312    clang-20
+x86_64                randconfig-002-20260312    clang-20
+x86_64                randconfig-003-20260312    clang-20
+x86_64                randconfig-004-20260312    clang-20
+x86_64                randconfig-005-20260312    clang-20
+x86_64                randconfig-006-20260312    clang-20
+x86_64                randconfig-011-20260312    clang-20
+x86_64                randconfig-012-20260312    clang-20
+x86_64                randconfig-013-20260312    clang-20
+x86_64                randconfig-014-20260312    clang-20
+x86_64                randconfig-015-20260312    clang-20
+x86_64                randconfig-016-20260312    clang-20
+x86_64                randconfig-071-20260312    gcc-14
+x86_64                randconfig-072-20260312    gcc-14
+x86_64                randconfig-073-20260312    gcc-14
+x86_64                randconfig-074-20260312    gcc-14
+x86_64                randconfig-075-20260312    gcc-14
+x86_64                randconfig-076-20260312    gcc-14
+x86_64                               rhel-9.4    clang-20
+x86_64                           rhel-9.4-bpf    gcc-14
+x86_64                          rhel-9.4-func    clang-20
+x86_64                    rhel-9.4-kselftests    clang-20
+x86_64                         rhel-9.4-kunit    gcc-14
+x86_64                           rhel-9.4-ltp    gcc-14
+x86_64                          rhel-9.4-rust    clang-20
+xtensa                            allnoconfig    clang-23
+xtensa                           allyesconfig    clang-23
+xtensa                randconfig-001-20260312    gcc-15.2.0
+xtensa                randconfig-002-20260312    gcc-15.2.0
 
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
