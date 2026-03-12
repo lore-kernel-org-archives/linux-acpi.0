@@ -1,202 +1,395 @@
-Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7BD4831197B;
-	Thu, 12 Mar 2026 11:02:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=90.155.50.34
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FB962D3225;
+	Thu, 12 Mar 2026 11:06:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773313353; cv=none; b=saFs87MIOxzxibDDFh3DLL8DSvOchx6zEy/JwiCsMxP9kxcwDaxxSv04SxZ3iDF9rzRJfJ851q8aoXYhVrYaeXMxxIU+Y0D2CYYLpkw1F/hake3hp4O260aZFoF9eF4naCjr0zvTRV/IpG89xNaJW2kObp2M9bfR+M7gRQcSJh4=
+	t=1773313573; cv=none; b=mTvYoTS4MQ6qPTL09wkB0mxu8GsVLY1+nDcM7QYtgLuD65e2eXlmwma2+NeufqmiRkvVFLLzKYdJtW5MYjkfmt6KEOhShF0EXs4emI44dCy/jC5QZAdt+r2qhVrzl3JfMSM22fgshyW0Od+uZqE/65K701wTMXTvayrohZfhOAI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773313353; c=relaxed/simple;
-	bh=6J5SDcO5DMKytvtsx36wcU0BxOxT41bThTx/x7rN40A=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=STu/k8JsFuXRTxS46Vl7xmYHy7AghX1B+chg/i0BNbsy90JLqqsTA4QClfg4ZmEkAURtKeWOwDTHf3+Wmjp5dpd639EZ1ITztH2Fo+n3CgIZoSEAMI29OEdy8ehzAlt4cjPcnAzlLKqUuZXoOqc9jddjvRhHU+47oPbU0b0uuxM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=an8qvmMR; arc=none smtp.client-ip=90.155.50.34
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
+	s=arc-20240116; t=1773313573; c=relaxed/simple;
+	bh=b0Mh4ewbTJJileHDaNe1epZKDNHJn6T8z1blCzC1uro=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=qbElx4vpBHIn/Mz24ELOe6jG/FLV2By370al+h8DhPxHwkvNH18FGdrqO+l8E9gyaicIIepdvpDL9yixEANvCN1hoXIREL5TRf+uqqJ/0Mppcliv5NgiRvXiFp0BpAxrOV+LQaxYZPiF5S7BIVkhsPSikq15TqtILK2NUhYPG/w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PRXWB5aO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="an8qvmMR"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=TKIEX/tTmZZzj6V6Q9LOzPYb6+bhVRh9N9evN1bqSfc=; b=an8qvmMRT6e0/uIgvv6SvD7SLo
-	4m+UvPB5+18GpbDiaL9IxO3UA1h4nyJ0FZtTMBA4+J8t9buo20vz5+l2obe0Hhuhm03AWzFimVp4D
-	YtHlF5LCr5cNGTsUr/nANJN0G/ar8NTW96doAb79xogVjlFtfvWv3tS4G8vgrwid1zRyuKnnoOtRg
-	cRE6fVkUPmEULPsE/mtiFGjwxhTv0E57tOdjLrOaPqcviA5Hx/nImdKNCvkkIHyFLP9mr/wm0JSMb
-	0Thh4CDgCwqZ4HpWOjjPbbgfQIiKl0MIq4avo+r94PhokRILHHajLVnNT16BcpXuKO/m4C7RcJSQ1
-	afukQ/VQ==;
-Received: from 77-249-17-252.cable.dynamic.v4.ziggo.nl ([77.249.17.252] helo=noisy.programming.kicks-ass.net)
-	by casper.infradead.org with esmtpsa (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1w0dnq-0000000BDV6-3EQ0;
-	Thu, 12 Mar 2026 11:02:06 +0000
-Received: by noisy.programming.kicks-ass.net (Postfix, from userid 1000)
-	id AC3B5300462; Thu, 12 Mar 2026 12:02:05 +0100 (CET)
-Date: Thu, 12 Mar 2026 12:02:05 +0100
-From: Peter Zijlstra <peterz@infradead.org>
-To: Chengwen Feng <fengchengwen@huawei.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will@kernel.org>,
-	"Rafael J . Wysocki" <rafael@kernel.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shuah Khan <skhan@linuxfoundation.org>,
-	Huacai Chen <chenhuacai@kernel.org>,
-	WANG Xuerui <kernel@xen0n.name>, Paul Walmsley <pjw@kernel.org>,
-	Palmer Dabbelt <palmer@dabbelt.com>,
-	Albert Ou <aou@eecs.berkeley.edu>, Alexandre Ghiti <alex@ghiti.fr>,
-	Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
-	Borislav Petkov <bp@alien8.de>,
-	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
-	"H . Peter Anvin" <hpa@zytor.com>, Juergen Gross <jgross@suse.com>,
-	Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-	Len Brown <lenb@kernel.org>, Sunil V L <sunilvl@ventanamicro.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Jonathan Cameron <jonathan.cameron@huawei.com>,
-	Kees Cook <kees@kernel.org>, Yanteng Si <si.yanteng@linux.dev>,
-	Sean Christopherson <seanjc@google.com>,
-	Kai Huang <kai.huang@intel.com>,
-	Tom Lendacky <thomas.lendacky@amd.com>,
-	Thomas Huth <thuth@redhat.com>,
-	Thorsten Blum <thorsten.blum@linux.dev>,
-	Kevin Loughlin <kevinloughlin@google.com>,
-	Zheyun Shen <szy0127@sjtu.edu.cn>,
-	Pawan Gupta <pawan.kumar.gupta@linux.intel.com>,
-	Xin Li <xin@zytor.com>, "Ahmed S . Darwish" <darwi@linutronix.de>,
-	Sohil Mehta <sohil.mehta@intel.com>,
-	Ilkka Koskinen <ilkka@os.amperecomputing.com>,
-	Robin Murphy <robin.murphy@arm.com>,
-	James Clark <james.clark@linaro.org>,
-	Besar Wicaksono <bwicaksono@nvidia.com>, Ma Ke <make24@iscas.ac.cn>,
-	Wei Huang <wei.huang2@amd.com>,
-	Andy Gospodarek <andrew.gospodarek@broadcom.com>,
-	Somnath Kotur <somnath.kotur@broadcom.com>,
-	punit.agrawal@oss.qualcomm.com, guohanjun@huawei.com,
-	suzuki.poulose@arm.com, ryan.roberts@arm.com,
-	chenl311@chinatelecom.cn, masahiroy@kernel.org,
-	wangyuquan1236@phytium.com.cn, anshuman.khandual@arm.com,
-	heinrich.schuchardt@canonical.com, Eric.VanTassell@amd.com,
-	wangzhou1@hisilicon.com, wanghuiqiang@huawei.com,
-	liuyonglong@huawei.com, linux-pci@vger.kernel.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, loongarch@lists.linux.dev,
-	linux-riscv@lists.infradead.org, xen-devel@lists.xenproject.org,
-	linux-acpi@vger.kernel.org, linux-perf-users@vger.kernel.org,
-	stable@vger.kernel.org
-Subject: Re: [PATCH v6 2/3] x86: Implement acpi_get_cpu_uid()
-Message-ID: <20260312110205.GG606826@noisy.programming.kicks-ass.net>
-References: <20260312072316.4806-1-fengchengwen@huawei.com>
- <20260312072316.4806-3-fengchengwen@huawei.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PRXWB5aO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74C35C4CEF7;
+	Thu, 12 Mar 2026 11:06:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1773313572;
+	bh=b0Mh4ewbTJJileHDaNe1epZKDNHJn6T8z1blCzC1uro=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=PRXWB5aOy2UwEUbFNsalsRyxaOso8t4DHFPB0db02BcGthsdQ/2dGdB90VVmJrRek
+	 tMhIMxafzg9s+fDR0kjEm3PDW+RAqFsnJuxF+EohjuHTGtlv2VVc4juS4NEzBAoAQ2
+	 QzezKdqSYW25W4C2X3G0enW08cGvJYqLoX5D0XoQqYME6su9CLYQnWf0LbVCLX7tK9
+	 0Hl11fUDozV2faEG7B3sCT6a7e13tEXneZbCCmbfrimaheQeEv9XVocFbI5qdEm3N9
+	 KdiFeIUy/jqEIhyKe1Avh/p6JUHZ6N43oqY7AttlVlGErNQW5AfDPAx4vvrimH6+U/
+	 UwbBdMz3I1fng==
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+To: Ilpo =?ISO-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>
+Cc: Hans de Goede <hansg@kernel.org>, LKML <linux-kernel@vger.kernel.org>,
+ Linux ACPI <linux-acpi@vger.kernel.org>, platform-driver-x86@vger.kernel.org,
+ Pali =?ISO-8859-1?Q?Roh=E1r?= <pali@kernel.org>
+Subject:
+ [PATCH v1 2/2] platform/x86: dell/dell-rbtn: Convert ACPI driver to a
+ platform one
+Date: Thu, 12 Mar 2026 12:05:52 +0100
+Message-ID: <3416389.aeNJFYEL58@rafael.j.wysocki>
+Organization: Linux Kernel Development
+In-Reply-To: <5071411.GXAFRqVoOG@rafael.j.wysocki>
+References: <5071411.GXAFRqVoOG@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260312072316.4806-3-fengchengwen@huawei.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
 
-On Thu, Mar 12, 2026 at 03:23:15PM +0800, Chengwen Feng wrote:
-> Add acpi_get_cpu_uid() implementation for x86, replacing the existing
-> cpu_acpi_id() function. This completes the unified ACPI Processor UID
-> retrieval interface across all ACPI-enabled architectures.
-> 
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Chengwen Feng <fengchengwen@huawei.com>
-> ---
->  arch/x86/include/asm/cpu.h   |  1 -
->  arch/x86/include/asm/smp.h   |  1 -
->  arch/x86/kernel/cpu/common.c | 15 +++++++++++++++
->  arch/x86/xen/enlighten_hvm.c |  5 +++--
->  include/linux/acpi.h         |  2 --
->  5 files changed, 18 insertions(+), 6 deletions(-)
-> 
-> diff --git a/arch/x86/include/asm/cpu.h b/arch/x86/include/asm/cpu.h
-> index ad235dda1ded..57a0786dfd75 100644
-> --- a/arch/x86/include/asm/cpu.h
-> +++ b/arch/x86/include/asm/cpu.h
-> @@ -11,7 +11,6 @@
->  
->  #ifndef CONFIG_SMP
->  #define cpu_physical_id(cpu)			boot_cpu_physical_apicid
-> -#define cpu_acpi_id(cpu)			0
->  #endif /* CONFIG_SMP */
->  
->  #ifdef CONFIG_HOTPLUG_CPU
-> diff --git a/arch/x86/include/asm/smp.h b/arch/x86/include/asm/smp.h
-> index 84951572ab81..05d1d479b4cf 100644
-> --- a/arch/x86/include/asm/smp.h
-> +++ b/arch/x86/include/asm/smp.h
-> @@ -130,7 +130,6 @@ __visible void smp_call_function_interrupt(struct pt_regs *regs);
->  __visible void smp_call_function_single_interrupt(struct pt_regs *r);
->  
->  #define cpu_physical_id(cpu)	per_cpu(x86_cpu_to_apicid, cpu)
-> -#define cpu_acpi_id(cpu)	per_cpu(x86_cpu_to_acpiid, cpu)
->  
->  /*
->   * This function is needed by all SMP systems. It must _always_ be valid
-> diff --git a/arch/x86/kernel/cpu/common.c b/arch/x86/kernel/cpu/common.c
-> index 1c3261cae40c..3081557542c7 100644
-> --- a/arch/x86/kernel/cpu/common.c
-> +++ b/arch/x86/kernel/cpu/common.c
-> @@ -28,6 +28,7 @@
->  #include <linux/stackprotector.h>
->  #include <linux/utsname.h>
->  #include <linux/efi.h>
-> +#include <linux/acpi.h>
->  
->  #include <asm/alternative.h>
->  #include <asm/cmdline.h>
-> @@ -57,6 +58,7 @@
->  #include <asm/asm.h>
->  #include <asm/bugs.h>
->  #include <asm/cpu.h>
-> +#include <asm/smp.h>
->  #include <asm/mce.h>
->  #include <asm/msr.h>
->  #include <asm/cacheinfo.h>
-> @@ -2643,3 +2645,16 @@ void __init arch_cpu_finalize_init(void)
->  	 */
->  	mem_encrypt_init();
->  }
-> +
-> +int acpi_get_cpu_uid(unsigned int cpu, u32 *uid)
-> +{
-> +	if (cpu >= nr_cpu_ids)
-> +		return -EINVAL;
-> +#ifndef CONFIG_SMP
-> +	*uid = 0;
-> +#else
-> +	*uid = per_cpu(x86_cpu_to_acpiid, cpu);
-> +#endif
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(acpi_get_cpu_uid);
-> diff --git a/arch/x86/xen/enlighten_hvm.c b/arch/x86/xen/enlighten_hvm.c
-> index fe57ff85d004..2f9fa27e5a3c 100644
-> --- a/arch/x86/xen/enlighten_hvm.c
-> +++ b/arch/x86/xen/enlighten_hvm.c
-> @@ -151,6 +151,7 @@ static void xen_hvm_crash_shutdown(struct pt_regs *regs)
->  
->  static int xen_cpu_up_prepare_hvm(unsigned int cpu)
->  {
-> +	u32 cpu_uid;
->  	int rc = 0;
->  
->  	/*
-> @@ -161,8 +162,8 @@ static int xen_cpu_up_prepare_hvm(unsigned int cpu)
->  	 */
->  	xen_uninit_lock_cpu(cpu);
->  
-> -	if (cpu_acpi_id(cpu) != CPU_ACPIID_INVALID)
-> -		per_cpu(xen_vcpu_id, cpu) = cpu_acpi_id(cpu);
-> +	if (acpi_get_cpu_uid(cpu, &cpu_uid) == 0)
-> +		per_cpu(xen_vcpu_id, cpu) = cpu_uid;
->  	else
->  		per_cpu(xen_vcpu_id, cpu) = cpu;
->  	xen_vcpu_setup(cpu);
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-This doesn't look right, it will now set CPU_ACPIID_INVALID, while
-previously it would not.
+In all cases in which a struct acpi_driver is used for binding a driver
+to an ACPI device object, a corresponding platform device is created by
+the ACPI core and that device is regarded as a proper representation of
+underlying hardware.  Accordingly, a struct platform_driver should be
+used by driver code to bind to that device.  There are multiple reasons
+why drivers should not bind directly to ACPI device objects [1].
+
+Overall, it is better to bind drivers to platform devices than to their
+ACPI companions, so convert the Dell Airplane Mode Switch (rbtn) ACPI
+driver to a platform one.
+
+After this change, the subordinate rfkill device will be registered
+under the platform device used for driver binding instead of its ACPI
+companion.
+
+While this is not expected to alter functionality, it changes sysfs
+layout and so it will be visible to user space.
+
+Link: https://lore.kernel.org/all/2396510.ElGaqSPkdT@rafael.j.wysocki/ [1]
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/platform/x86/dell/dell-rbtn.c | 108 +++++++++++++-------------
+ 1 file changed, 52 insertions(+), 56 deletions(-)
+
+diff --git a/drivers/platform/x86/dell/dell-rbtn.c b/drivers/platform/x86/dell/dell-rbtn.c
+index 9271b27abb46..6e294b612488 100644
+--- a/drivers/platform/x86/dell/dell-rbtn.c
++++ b/drivers/platform/x86/dell/dell-rbtn.c
+@@ -9,6 +9,7 @@
+ #include <linux/acpi.h>
+ #include <linux/rfkill.h>
+ #include <linux/input.h>
++#include <linux/platform_device.h>
+ 
+ #include "dell-rbtn.h"
+ 
+@@ -109,9 +110,9 @@ static const struct rfkill_ops rbtn_ops = {
+ 	.set_block = rbtn_rfkill_set_block,
+ };
+ 
+-static int rbtn_rfkill_init(struct acpi_device *device)
++static int rbtn_rfkill_init(struct device *dev)
+ {
+-	struct rbtn_data *rbtn_data = device->driver_data;
++	struct rbtn_data *rbtn_data = dev_get_drvdata(dev);
+ 	int ret;
+ 
+ 	if (rbtn_data->rfkill)
+@@ -122,8 +123,8 @@ static int rbtn_rfkill_init(struct acpi_device *device)
+ 	 *       but rfkill interface does not support "ANY" type
+ 	 *       so "WLAN" type is used
+ 	 */
+-	rbtn_data->rfkill = rfkill_alloc("dell-rbtn", &device->dev,
+-					 RFKILL_TYPE_WLAN, &rbtn_ops, device);
++	rbtn_data->rfkill = rfkill_alloc("dell-rbtn", dev, RFKILL_TYPE_WLAN,
++					 &rbtn_ops, ACPI_COMPANION(dev));
+ 	if (!rbtn_data->rfkill)
+ 		return -ENOMEM;
+ 
+@@ -137,9 +138,9 @@ static int rbtn_rfkill_init(struct acpi_device *device)
+ 	return 0;
+ }
+ 
+-static void rbtn_rfkill_exit(struct acpi_device *device)
++static void rbtn_rfkill_exit(struct device *dev)
+ {
+-	struct rbtn_data *rbtn_data = device->driver_data;
++	struct rbtn_data *rbtn_data = dev_get_drvdata(dev);
+ 
+ 	if (!rbtn_data->rfkill)
+ 		return;
+@@ -149,12 +150,12 @@ static void rbtn_rfkill_exit(struct acpi_device *device)
+ 	rbtn_data->rfkill = NULL;
+ }
+ 
+-static void rbtn_rfkill_event(struct acpi_device *device)
++static void rbtn_rfkill_event(struct device *dev)
+ {
+-	struct rbtn_data *rbtn_data = device->driver_data;
++	struct rbtn_data *rbtn_data = dev_get_drvdata(dev);
+ 
+ 	if (rbtn_data->rfkill)
+-		rbtn_rfkill_query(rbtn_data->rfkill, device);
++		rbtn_rfkill_query(rbtn_data->rfkill, ACPI_COMPANION(dev));
+ }
+ 
+ 
+@@ -205,8 +206,8 @@ static void rbtn_input_event(struct rbtn_data *rbtn_data)
+  * acpi driver
+  */
+ 
+-static int rbtn_add(struct acpi_device *device);
+-static void rbtn_remove(struct acpi_device *device);
++static int rbtn_probe(struct platform_device *pdev);
++static void rbtn_remove(struct platform_device *pdev);
+ static void rbtn_notify(acpi_handle handle, u32 event, void *data);
+ 
+ static const struct acpi_device_id rbtn_ids[] = {
+@@ -251,8 +252,7 @@ static void ACPI_SYSTEM_XFACE rbtn_clear_suspended_flag(void *context)
+ 
+ static int rbtn_suspend(struct device *dev)
+ {
+-	struct acpi_device *device = to_acpi_device(dev);
+-	struct rbtn_data *rbtn_data = acpi_driver_data(device);
++	struct rbtn_data *rbtn_data = dev_get_drvdata(dev);
+ 
+ 	rbtn_data->suspended = true;
+ 
+@@ -261,8 +261,7 @@ static int rbtn_suspend(struct device *dev)
+ 
+ static int rbtn_resume(struct device *dev)
+ {
+-	struct acpi_device *device = to_acpi_device(dev);
+-	struct rbtn_data *rbtn_data = acpi_driver_data(device);
++	struct rbtn_data *rbtn_data = dev_get_drvdata(dev);
+ 	acpi_status status;
+ 
+ 	/*
+@@ -286,13 +285,13 @@ static int rbtn_resume(struct device *dev)
+ 
+ static SIMPLE_DEV_PM_OPS(rbtn_pm_ops, rbtn_suspend, rbtn_resume);
+ 
+-static struct acpi_driver rbtn_driver = {
+-	.name = "dell-rbtn",
+-	.ids = rbtn_ids,
+-	.drv.pm = &rbtn_pm_ops,
+-	.ops = {
+-		.add = rbtn_add,
+-		.remove = rbtn_remove,
++static struct platform_driver rbtn_driver = {
++	.probe = rbtn_probe,
++	.remove = rbtn_remove,
++	.driver = {
++		.name = "dell-rbtn",
++		.acpi_match_table = rbtn_ids,
++		.pm = &rbtn_pm_ops,
+ 	},
+ };
+ 
+@@ -307,8 +306,7 @@ static ATOMIC_NOTIFIER_HEAD(rbtn_chain_head);
+ 
+ static int rbtn_inc_count(struct device *dev, void *data)
+ {
+-	struct acpi_device *device = to_acpi_device(dev);
+-	struct rbtn_data *rbtn_data = device->driver_data;
++	struct rbtn_data *rbtn_data = dev_get_drvdata(dev);
+ 	int *count = data;
+ 
+ 	if (rbtn_data->type == RBTN_SLIDER)
+@@ -319,17 +317,16 @@ static int rbtn_inc_count(struct device *dev, void *data)
+ 
+ static int rbtn_switch_dev(struct device *dev, void *data)
+ {
+-	struct acpi_device *device = to_acpi_device(dev);
+-	struct rbtn_data *rbtn_data = device->driver_data;
++	struct rbtn_data *rbtn_data = dev_get_drvdata(dev);
+ 	bool enable = data;
+ 
+ 	if (rbtn_data->type != RBTN_SLIDER)
+ 		return 0;
+ 
+ 	if (enable)
+-		rbtn_rfkill_init(device);
++		rbtn_rfkill_init(dev);
+ 	else
+-		rbtn_rfkill_exit(device);
++		rbtn_rfkill_exit(dev);
+ 
+ 	return 0;
+ }
+@@ -341,7 +338,7 @@ int dell_rbtn_notifier_register(struct notifier_block *nb)
+ 	int ret;
+ 
+ 	count = 0;
+-	ret = driver_for_each_device(&rbtn_driver.drv, NULL, &count,
++	ret = driver_for_each_device(&rbtn_driver.driver, NULL, &count,
+ 				     rbtn_inc_count);
+ 	if (ret || count == 0)
+ 		return -ENODEV;
+@@ -353,7 +350,7 @@ int dell_rbtn_notifier_register(struct notifier_block *nb)
+ 		return ret;
+ 
+ 	if (auto_remove_rfkill && first)
+-		ret = driver_for_each_device(&rbtn_driver.drv, NULL,
++		ret = driver_for_each_device(&rbtn_driver.driver, NULL,
+ 					     (void *)false, rbtn_switch_dev);
+ 
+ 	return ret;
+@@ -369,7 +366,7 @@ int dell_rbtn_notifier_unregister(struct notifier_block *nb)
+ 		return ret;
+ 
+ 	if (auto_remove_rfkill && !rbtn_chain_head.head)
+-		ret = driver_for_each_device(&rbtn_driver.drv, NULL,
++		ret = driver_for_each_device(&rbtn_driver.driver, NULL,
+ 					     (void *)true, rbtn_switch_dev);
+ 
+ 	return ret;
+@@ -381,46 +378,48 @@ EXPORT_SYMBOL_GPL(dell_rbtn_notifier_unregister);
+  * acpi driver functions
+  */
+ 
+-static void rbtn_cleanup(struct acpi_device *device)
++static void rbtn_cleanup(struct device *dev)
+ {
+-	struct rbtn_data *rbtn_data = device->driver_data;
++	struct rbtn_data *rbtn_data = dev_get_drvdata(dev);
+ 
+ 	switch (rbtn_data->type) {
+ 	case RBTN_TOGGLE:
+ 		rbtn_input_exit(rbtn_data);
+ 		break;
+ 	case RBTN_SLIDER:
+-		rbtn_rfkill_exit(device);
++		rbtn_rfkill_exit(dev);
+ 		break;
+ 	default:
+ 		break;
+ 	}
+ }
+ 
+-static int rbtn_add(struct acpi_device *device)
++static int rbtn_probe(struct platform_device *pdev)
+ {
++	struct acpi_device *device = ACPI_COMPANION(&pdev->dev);
+ 	struct rbtn_data *rbtn_data;
+ 	enum rbtn_type type;
+ 	int ret = 0;
+ 
+ 	type = rbtn_check(device);
+ 	if (type == RBTN_UNKNOWN) {
+-		dev_info(&device->dev, "Unknown device type\n");
++		dev_info(&pdev->dev, "Unknown device type\n");
+ 		return -EINVAL;
+ 	}
+ 
+-	rbtn_data = devm_kzalloc(&device->dev, sizeof(*rbtn_data), GFP_KERNEL);
++	rbtn_data = devm_kzalloc(&pdev->dev, sizeof(*rbtn_data), GFP_KERNEL);
+ 	if (!rbtn_data)
+ 		return -ENOMEM;
+ 
+ 	ret = rbtn_acquire(device, true);
+ 	if (ret < 0) {
+-		dev_err(&device->dev, "Cannot enable device\n");
++		dev_err(&pdev->dev, "Cannot enable device\n");
+ 		return ret;
+ 	}
+ 
++	platform_set_drvdata(pdev, rbtn_data);
++
+ 	rbtn_data->type = type;
+-	device->driver_data = rbtn_data;
+ 
+ 	switch (rbtn_data->type) {
+ 	case RBTN_TOGGLE:
+@@ -430,7 +429,7 @@ static int rbtn_add(struct acpi_device *device)
+ 		if (auto_remove_rfkill && rbtn_chain_head.head)
+ 			ret = 0;
+ 		else
+-			ret = rbtn_rfkill_init(device);
++			ret = rbtn_rfkill_init(&pdev->dev);
+ 		break;
+ 	default:
+ 		ret = -EINVAL;
+@@ -440,9 +439,9 @@ static int rbtn_add(struct acpi_device *device)
+ 		goto err;
+ 
+ 	ret = acpi_dev_install_notify_handler(device, ACPI_DEVICE_NOTIFY,
+-					      rbtn_notify, device);
++					      rbtn_notify, &pdev->dev);
+ 	if (ret) {
+-		rbtn_cleanup(device);
++		rbtn_cleanup(&pdev->dev);
+ 		goto err;
+ 	}
+ 
+@@ -453,29 +452,31 @@ static int rbtn_add(struct acpi_device *device)
+ 	return ret;
+ }
+ 
+-static void rbtn_remove(struct acpi_device *device)
++static void rbtn_remove(struct platform_device *pdev)
+ {
++	struct acpi_device *device = ACPI_COMPANION(&pdev->dev);
++
+ 	acpi_dev_remove_notify_handler(device, ACPI_DEVICE_NOTIFY, rbtn_notify);
+-	rbtn_cleanup(device);
++	rbtn_cleanup(&pdev->dev);
+ 	rbtn_acquire(device, false);
+ }
+ 
+ static void rbtn_notify(acpi_handle handle, u32 event, void *data)
+ {
+-	struct acpi_device *device = data;
+-	struct rbtn_data *rbtn_data = device->driver_data;
++	struct device *dev = data;
++	struct rbtn_data *rbtn_data = dev_get_drvdata(dev);
+ 
+ 	/*
+ 	 * Some BIOSes send a notification at resume.
+ 	 * Ignore it to prevent unwanted input events.
+ 	 */
+ 	if (rbtn_data->suspended) {
+-		dev_dbg(&device->dev, "ACPI notification ignored\n");
++		dev_dbg(dev, "ACPI notification ignored\n");
+ 		return;
+ 	}
+ 
+ 	if (event != 0x80) {
+-		dev_info(&device->dev, "Received unknown event (0x%x)\n",
++		dev_info(dev, "Received unknown event (0x%x)\n",
+ 			 event);
+ 		return;
+ 	}
+@@ -485,20 +486,15 @@ static void rbtn_notify(acpi_handle handle, u32 event, void *data)
+ 		rbtn_input_event(rbtn_data);
+ 		break;
+ 	case RBTN_SLIDER:
+-		rbtn_rfkill_event(device);
+-		atomic_notifier_call_chain(&rbtn_chain_head, event, device);
++		rbtn_rfkill_event(dev);
++		atomic_notifier_call_chain(&rbtn_chain_head, event, NULL);
+ 		break;
+ 	default:
+ 		break;
+ 	}
+ }
+ 
+-
+-/*
+- * module functions
+- */
+-
+-module_acpi_driver(rbtn_driver);
++module_platform_driver(rbtn_driver);
+ 
+ module_param(auto_remove_rfkill, bool, 0444);
+ 
+-- 
+2.51.0
+
+
+
 
