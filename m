@@ -1,40 +1,40 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4314B38F62A;
-	Thu, 12 Mar 2026 11:14:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F47739D6D6;
+	Thu, 12 Mar 2026 11:15:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773314099; cv=none; b=RSC39dLbxlpArCaZ2OQXCIh8gAIy2nOdXnHXZXii5sVXILK3uuAapPqqrF1LuVkPHcOC/fkz5ju4FqqPdKGzHYK1Ubxob1qRVds5zzEOhSwLxHhcLCP/tJmdGupU5230bgmhZB6ZpZvcSWYEL7SA7BwY/UUPLh3iBOsmrBEl9wM=
+	t=1773314103; cv=none; b=EQKkQDZEQwq0U31tPEq+DtAuCObKJ/cLbDOubg1h7psvwdjXs9crWU1z1uja5pz/w1Tksv8lxTS34T3Szb/lQg5mZOyqZKC+SqghxvyaP+6rS8oWDDPIONKL2zJIfQpiOIJa3DoPFG8xf0rhBXRZQsRZGyaBof6XmGmuTDtDXBM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773314099; c=relaxed/simple;
-	bh=RLrEVnlpjgZjN1YXR5sqd847zlm3KfJoLgJ57yBsbFs=;
+	s=arc-20240116; t=1773314103; c=relaxed/simple;
+	bh=0ocFQGzupR1Pt72yrHYv8EadpqNhrGEJprW3yrA5z7c=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=UCWLo85uWH0HeJbPKUbbWHJ1JgKqCxwRpByDqyV0KCIeb+3ZFtb/NWCHikVWnG6HXWP3psm80v3NG8tnE8FLCzwB7fKRpk8JA0g0rY/3Y4rB/tiP2YBN5VNHoeW7VMHbG2ONzMG28Ych90XL+qA7IJpFLQmluedIPtI2dQir9QU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=f+nsK245; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=ITfIdJL9Rf6ofyoYG9ef5aebODsGDux2TbT5m/TuijGzPODxlcdRnfIgt4yGc2rje3sWlGBThMViRX7cU3z3O+Ub9TP3158S3bP+fLJomQJoHzR9SY5ABsuZYJupBTuCYJxmuq8lVektEcJNYhLd0gZB/SnIELy5eZBKxitC5JM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iHDW8U7x; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="f+nsK245"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7DCF6C4CEF7;
-	Thu, 12 Mar 2026 11:14:57 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iHDW8U7x"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C06DC4CEF7;
+	Thu, 12 Mar 2026 11:15:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773314098;
-	bh=RLrEVnlpjgZjN1YXR5sqd847zlm3KfJoLgJ57yBsbFs=;
+	s=k20201202; t=1773314102;
+	bh=0ocFQGzupR1Pt72yrHYv8EadpqNhrGEJprW3yrA5z7c=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=f+nsK245W9unxq7sytkxjsJzZmvgglw0QSQUgk1zW90p1HNjNYQyjIijgd5PEMbO8
-	 4EzQEqa+OoHkXCpQZvOZf6UvgOaPW+Kts9mzdNWNsrev8amVjn+74DtOME1kBK5UH1
-	 Kpm85iv4zDq8kPJqsMk0ZRVoWU0o85ujS7tqFCy7dvZfRBkdfoF5o6NVbAJX804ID6
-	 bjDZDU7D9BT7dPwo6fIgi1/MLoXQnyiEW4DvpxkCpAqoxukQn4fKW91Y22sapr8F1K
-	 MqnMZHBv0EXMOcI3j4kQTaWsipqV1Ct95rW8clFmUED/vLF9ynDUpngHT3Juj1sb+Z
-	 q3VisMHAq2CTQ==
+	b=iHDW8U7xf22C97c0hZms/YITkFs57bhXK1QxYRMWG91+ClBtNdCyMQ008cB5pdCVO
+	 pZ5gLUfOVO+lNm6vMtxj8QwMLGzBBoSckMEkra1LaEMJ+AZuYU4yvxBxJw0XJ3PrD2
+	 sfzCgvRZVmSheRsEZck5k5W5fWmGgULFwYnHqeXrAuncB70cZ1tE0ZcFFPC2OsOwHh
+	 LIiXC2LJFoNEt6GzELLCkx9M6vVQERvuvSeNPiddmFpYcPMPB0mcO+qL4WnpGcQIcH
+	 YOkjTukmwmFjO0+FF5fcwvV/G7Hbv264fSrL0wYQsw9IJyYiZvPYtMDT5whQRE1Kjw
+	 zSml/N7WtDvnw==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Ilpo =?ISO-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>
 Cc: Hans de Goede <hansg@kernel.org>, LKML <linux-kernel@vger.kernel.org>,
  Linux ACPI <linux-acpi@vger.kernel.org>, platform-driver-x86@vger.kernel.org,
  Matan Ziv-Av <matan@svgalib.org>
 Subject:
- [PATCH v1 2/2] platform/x86: lg-laptop: Convert ACPI driver to a platform one
-Date: Thu, 12 Mar 2026 12:14:47 +0100
-Message-ID: <1868365.VLH7GnMWUR@rafael.j.wysocki>
+ [PATCH v1 1/2] platform/x86: lg-laptop: Drop debug-only ACPI notify handler
+Date: Thu, 12 Mar 2026 12:14:03 +0100
+Message-ID: <3346280.5fSG56mABF@rafael.j.wysocki>
 Organization: Linux Kernel Development
 In-Reply-To: <3698311.iIbC2pHGDl@rafael.j.wysocki>
 References: <3698311.iIbC2pHGDl@rafael.j.wysocki>
@@ -49,106 +49,41 @@ Content-Type: text/plain; charset="UTF-8"
 
 From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-In all cases in which a struct acpi_driver is used for binding a driver
-to an ACPI device object, a corresponding platform device is created by
-the ACPI core and that device is regarded as a proper representation of
-underlying hardware.  Accordingly, a struct platform_driver should be
-used by driver code to bind to that device.  There are multiple reasons
-why drivers should not bind directly to ACPI device objects [1].
+To facilitate subsequent conversion of the driver to using struct
+platform_driver instead of struct acpi_driver, drop the debug-only
+notify handler method from the driver.
 
-Overall, it is better to bind drivers to platform devices than to their
-ACPI companions, so convert the LG Gram ACPI features and hotkeys driver
-from an ACPI driver to a platform one.
+No intentional functional impact beyond debug.
 
-While this is not expected to alter functionality, it changes sysfs
-layout and so it will be visible to user space.
-
-Link: https://lore.kernel.org/all/2396510.ElGaqSPkdT@rafael.j.wysocki/ [1]
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/platform/x86/lg-laptop.c | 45 +++++++++-----------------------
- 1 file changed, 13 insertions(+), 32 deletions(-)
+ drivers/platform/x86/lg-laptop.c | 6 ------
+ 1 file changed, 6 deletions(-)
 
 diff --git a/drivers/platform/x86/lg-laptop.c b/drivers/platform/x86/lg-laptop.c
-index 7122d96abf86..9681412d694b 100644
+index 61ef7a218a80..7122d96abf86 100644
 --- a/drivers/platform/x86/lg-laptop.c
 +++ b/drivers/platform/x86/lg-laptop.c
-@@ -759,8 +759,9 @@ static void lg_laptop_remove_address_space_handler(void *data)
- 					  &lg_laptop_address_space_handler);
+@@ -271,11 +271,6 @@ static void wmi_input_setup(void)
+ 	}
  }
  
--static int acpi_add(struct acpi_device *device)
-+static int acpi_probe(struct platform_device *pdev)
- {
-+	struct acpi_device *device = ACPI_COMPANION(&pdev->dev);
- 	struct platform_device_info pdev_info = {
- 		.fwnode = acpi_fwnode_handle(device),
- 		.name = PLATFORM_NAME,
-@@ -776,11 +777,11 @@ static int acpi_add(struct acpi_device *device)
- 
- 	status = acpi_install_address_space_handler(device->handle, LG_ADDRESS_SPACE_ID,
- 						    &lg_laptop_address_space_handler,
--						    NULL, &device->dev);
-+						    NULL, &pdev->dev);
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
- 
--	ret = devm_add_action_or_reset(&device->dev, lg_laptop_remove_address_space_handler,
-+	ret = devm_add_action_or_reset(&pdev->dev, lg_laptop_remove_address_space_handler,
- 				       device);
- 	if (ret < 0)
- 		return ret;
-@@ -874,7 +875,7 @@ static int acpi_add(struct acpi_device *device)
- 	return ret;
- }
- 
--static void acpi_remove(struct acpi_device *device)
-+static void acpi_remove(struct platform_device *pdev)
- {
- 	sysfs_remove_group(&pf_device->dev.kobj, &dev_attribute_group);
- 
-@@ -894,33 +895,13 @@ static const struct acpi_device_id device_ids[] = {
- };
- MODULE_DEVICE_TABLE(acpi, device_ids);
- 
--static struct acpi_driver acpi_driver = {
--	.name = "LG Gram Laptop Support",
--	.class = "lg-laptop",
--	.ids = device_ids,
--	.ops = {
--		.add = acpi_add,
--		.remove = acpi_remove,
--		},
-+static struct platform_driver acpi_driver = {
-+	.probe = acpi_probe,
-+	.remove = acpi_remove,
-+	.driver = {
-+		.name = "LG Gram Laptop Support",
-+		.acpi_match_table = device_ids,
-+	},
- };
- 
--static int __init acpi_init(void)
+-static void acpi_notify(struct acpi_device *device, u32 event)
 -{
--	int result;
--
--	result = acpi_bus_register_driver(&acpi_driver);
--	if (result < 0) {
--		pr_debug("Error registering driver\n");
--		return -ENODEV;
--	}
--
--	return 0;
+-	acpi_handle_debug(device->handle, "notify: %d\n", event);
 -}
 -
--static void __exit acpi_exit(void)
--{
--	acpi_bus_unregister_driver(&acpi_driver);
--}
--
--module_init(acpi_init);
--module_exit(acpi_exit);
-+module_platform_driver(acpi_driver);
+ static ssize_t fan_mode_store(struct device *dev,
+ 			      struct device_attribute *attr,
+ 			      const char *buffer, size_t count)
+@@ -906,7 +901,6 @@ static struct acpi_driver acpi_driver = {
+ 	.ops = {
+ 		.add = acpi_add,
+ 		.remove = acpi_remove,
+-		.notify = acpi_notify,
+ 		},
+ };
+ 
 -- 
 2.51.0
 
