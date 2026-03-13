@@ -1,63 +1,150 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from canpmsgout03.his.huawei.com (canpmsgout03.his.huawei.com [113.46.200.218])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94FF33603EB;
-	Thu, 12 Mar 2026 20:13:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48AE8227B94;
+	Fri, 13 Mar 2026 02:21:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.218
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773346432; cv=none; b=gNVxDGSIyfBTYXer1nZRIg/utJ32nj4nJ2NcKBoGGh/hGTUw8MO8fHFRGsiL8PGRLFLvXA1VYO3tx955AAOU/BuuBndXHwIgDV7egKT/FB5JQgeSI7rGJMibO++8X4QjO5t2ZV/C0ymW+5H2ES6ixgBSXXX3D6vHVaq5Ii9YhLk=
+	t=1773368516; cv=none; b=KXLAxii3OpOBP3TOj4PRVL+N5QHy4pJr8u+OCCMIShF8NLV/BqVXPcpIb6NwzoN7d4r6GKgxpfR+GEpCN+CWC3S1KuywTwZrWaqNvwn22HtrhE3VjjcGYs3I2O8ojuWnTMlRF3b2mhKrh/WK+BGxRh2Bc6D4bx0shDIKLmTZsUQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773346432; c=relaxed/simple;
-	bh=TJWPSk+QNLu6FI76miSWpjS/A9VDT/ExmVfN17JNSm4=;
-	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=RgpQzyO78TtoQbecTBiSPYccllEG4Gt4kZCTdr+B6vGMxejv7eLzkKv6mixpF5VMfP3Q0004/DonphdKl2CtGrs5g8v0LO0/4QvYTw+joTrIbhEYDn8dqga5p0IkhFM3BDrgofYc+QcIkcjqPrQztHYUnk31ApTYR1YNyMNCPsk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KLJRx8/S; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773368516; c=relaxed/simple;
+	bh=C8FH3g7QQHs/jbvPrgWRUijURB3c8zk5RpSybl32ieg=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=i3yeqaj4kCaqogpevAHIF6hm6YnsBCqvD1p0dZcrUev9LTWVIIC06D0uh//hkr4ApuQhAh0Hq1Alj9NGSQ3hdS/PcTjPuzOWBTJUoseWG1CwMaciGLD0YEL4iS3bAdgz8jw2ZUe/I2z2rMj4/hydg3ZzAbuCkLhkUvG2XjCBTjg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=k2FbFqJD; arc=none smtp.client-ip=113.46.200.218
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KLJRx8/S"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 718DCC19425;
-	Thu, 12 Mar 2026 20:13:52 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773346432;
-	bh=TJWPSk+QNLu6FI76miSWpjS/A9VDT/ExmVfN17JNSm4=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-	b=KLJRx8/S3d8ZAQVJdJeSHfEru9BbgU4ZhjzzFODvhaIZQIL3M5JAGGxqXkJXSELRr
-	 cWy1j+wy55tlTc1XB9fZxlMw5tRJ0v1TGadnyOv3nV9c7IJTxTt+33M61cLuXm99ep
-	 7tbxKOjK/Vq4YkS30JGnKQOVRzJs2641dHnt9rOGRvvVL/3fvyNRadeLIYjeDZ1AQX
-	 kautvmktJUxRhjuKr3ZdBeQmLRymtNn4mdnyecrnVhCnS1GYua3MXSSmLVfzAs81VR
-	 lAq+ut+5FRwJu1By4dQTdyWlmmRvJb/dI6hfXBDuyjG2QgYzh6ThPHQZ1NkFVpWUAp
-	 i/tb2LArnqKLA==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 02E2F3808200;
-	Thu, 12 Mar 2026 20:13:49 +0000 (UTC)
-Subject: Re: [GIT PULL] ACPI support fixes for v7.0-rc4
-From: pr-tracker-bot@kernel.org
-In-Reply-To: <CAJZ5v0jJzsUrrtnwh2-zya7qrEZdQx1YzNO__G_ptcv4UEiHEA@mail.gmail.com>
-References: <CAJZ5v0jJzsUrrtnwh2-zya7qrEZdQx1YzNO__G_ptcv4UEiHEA@mail.gmail.com>
-X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <CAJZ5v0jJzsUrrtnwh2-zya7qrEZdQx1YzNO__G_ptcv4UEiHEA@mail.gmail.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-7.0-rc4
-X-PR-Tracked-Commit-Id: 97d9960f355cca99960eb44cd1bba1d7ba1073ee
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 61c0b2ae734fc9d33ede9cbf7d3cad67a7b0ce28
-Message-Id: <177334642744.540061.11960118116308486841.pr-tracker-bot@kernel.org>
-Date: Thu, 12 Mar 2026 20:13:47 +0000
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="k2FbFqJD"
+dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=2rcpAa1TtZWLDIvssxD1LEn5AvFd7LlqWNSfVu4tX3w=;
+	b=k2FbFqJDheDFD8ZQ1TIKD7MLAMU7NtAmyzZS79wyrByImlG/9Oz+7Ht/PCD+SNciSCiVeFaBq
+	3VV/zPoCsVqgcC+m0j9DJ69/4Lo6oVqnv6AFub2EAZnQ3hPUkQ+J/R+M/YieceCx1b3KO4HESDm
+	4ZRimNSFXHPkX5qqZZQWUsU=
+Received: from mail.maildlp.com (unknown [172.19.162.140])
+	by canpmsgout03.his.huawei.com (SkyGuard) with ESMTPS id 4fX7QX0pcgzpTJ7;
+	Fri, 13 Mar 2026 10:16:36 +0800 (CST)
+Received: from kwepemk500009.china.huawei.com (unknown [7.202.194.94])
+	by mail.maildlp.com (Postfix) with ESMTPS id 9A98E2022B;
+	Fri, 13 Mar 2026 10:21:50 +0800 (CST)
+Received: from localhost.localdomain (10.50.163.32) by
+ kwepemk500009.china.huawei.com (7.202.194.94) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.11; Fri, 13 Mar 2026 10:21:49 +0800
+From: Chengwen Feng <fengchengwen@huawei.com>
+To: Bjorn Helgaas <bhelgaas@google.com>, Catalin Marinas
+	<catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, "Rafael J .
+ Wysocki" <rafael@kernel.org>
+CC: Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>,
+	Huacai Chen <chenhuacai@kernel.org>, WANG Xuerui <kernel@xen0n.name>, Paul
+ Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, Albert Ou
+	<aou@eecs.berkeley.edu>, Alexandre Ghiti <alex@ghiti.fr>, Thomas Gleixner
+	<tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov
+	<bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>, <x86@kernel.org>,
+	"H . Peter Anvin" <hpa@zytor.com>, Juergen Gross <jgross@suse.com>, Sohil
+ Mehta <sohil.mehta@intel.com>, Ilkka Koskinen <ilkka@os.amperecomputing.com>,
+	Robin Murphy <robin.murphy@arm.com>, James Clark <james.clark@linaro.org>,
+	Besar Wicaksono <bwicaksono@nvidia.com>, Ma Ke <make24@iscas.ac.cn>, Wei
+ Huang <wei.huang2@amd.com>, Andy Gospodarek <andrew.gospodarek@broadcom.com>,
+	Somnath Kotur <somnath.kotur@broadcom.com>, <kees@kernel.org>,
+	<punit.agrawal@oss.qualcomm.com>, <guohanjun@huawei.com>,
+	<suzuki.poulose@arm.com>, <ryan.roberts@arm.com>, <chenl311@chinatelecom.cn>,
+	<masahiroy@kernel.org>, <wangyuquan1236@phytium.com.cn>,
+	<anshuman.khandual@arm.com>, <heinrich.schuchardt@canonical.com>,
+	<Eric.VanTassell@amd.com>, <jonathan.cameron@huawei.com>,
+	<wangzhou1@hisilicon.com>, <wanghuiqiang@huawei.com>,
+	<liuyonglong@huawei.com>, <fengchengwen@huawei.com>,
+	<linux-pci@vger.kernel.org>, <linux-doc@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
+	<loongarch@lists.linux.dev>, <linux-riscv@lists.infradead.org>,
+	<xen-devel@lists.xenproject.org>, <linux-acpi@vger.kernel.org>,
+	<linux-perf-users@vger.kernel.org>, <stable@vger.kernel.org>
+Subject: [PATCH v7 0/3] Fix get cpu steer-tag fail on ARM64 platform
+Date: Fri, 13 Mar 2026 10:21:41 +0800
+Message-ID: <20260313022144.40942-1-fengchengwen@huawei.com>
+X-Mailer: git-send-email 2.17.1
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain
+X-ClientProxiedBy: kwepems100001.china.huawei.com (7.221.188.238) To
+ kwepemk500009.china.huawei.com (7.202.194.94)
 
-The pull request you sent on Thu, 12 Mar 2026 19:18:12 +0100:
+This patchset fixes the failure of CPU steer tag retrieval on ARM64
+platforms. The series is structured as follows:
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-7.0-rc4
+1. First commit: Refactor the ACPI Processor UID retrieval interface
+   (no functional changes when input valid) to align naming conventions
+   across arm64/riscv/loongarch architectures;
+2. Second commit: Implement acpi_get_cpu_uid() for the x86 platform to
+   complete the unified ACPI Processor UID interface across all
+   ACPI-enabled architectures;
+3. Third commit: Implement the core fix for the CPU steer tag retrieval
+   logic on ARM64 (the root cause of the retrieval failure).
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/61c0b2ae734fc9d33ede9cbf7d3cad67a7b0ce28
+The refactor and x86 implementation lay the groundwork for the unified
+ACPI interface required by the ARM64 steer tag fix, ensuring consistent
+CPU UID retrieval across architectures before addressing the functional
+bug.
 
-Thank you!
+---
+Changes in v7:
+- Refine first commit which address Jonathan's reviews
+- Fix x86 implement bug (not consider INVALID-ID) which address Peter's
+  review
+- Fix CI error of x86 implement by moving function to acpi/boot.c
+
+Changes in v6:
+- Rename existing get_acpi_id_for_cpu() to acpi_get_cpu_uid()
+- Split x86's modify as one commit
+
+Changes in v5:
+- Refine commit-log of commit 2/2
+- Replace cpu_acpi_id() by acpi_get_cpu_acpi_id() on x86
+
+Changes in v4:
+- Split the rename into a separate commit.
+
+Changes in v3:
+- Rename existing get_acpi_id_for_cpu() to acpi_get_cpu_acpi_id() other
+  than add one new API.
+
+Changes in v2:
+- Add ECN _DSM reference doc name and its URL.
+- Separate implement acpi_get_cpu_acpi_id() in each arch which supports
+  ACPI.
+- Refine commit-log
+
+Chengwen Feng (3):
+  ACPI: Refactor get_acpi_id_for_cpu() to acpi_get_cpu_uid() on non-x86
+  x86: Implement acpi_get_cpu_uid()
+  PCI/TPH: Fix get cpu steer-tag fail on ARM64 platform
+
+ Documentation/PCI/tph.rst          |  4 +--
+ arch/arm64/include/asm/acpi.h      | 16 +---------
+ arch/arm64/kernel/acpi.c           | 16 ++++++++++
+ arch/arm64/kernel/acpi_numa.c      | 14 +++++++++
+ arch/loongarch/include/asm/acpi.h  |  5 ---
+ arch/loongarch/kernel/acpi.c       |  9 ++++++
+ arch/riscv/include/asm/acpi.h      |  4 ---
+ arch/riscv/kernel/acpi.c           | 16 ++++++++++
+ arch/riscv/kernel/acpi_numa.c      |  9 ++++--
+ arch/x86/include/asm/cpu.h         |  1 -
+ arch/x86/include/asm/smp.h         |  1 -
+ arch/x86/kernel/acpi/boot.c        | 20 ++++++++++++
+ arch/x86/xen/enlighten_hvm.c       |  5 +--
+ drivers/acpi/pptt.c                | 50 ++++++++++++++++++++++--------
+ drivers/acpi/riscv/rhct.c          |  7 ++++-
+ drivers/pci/tph.c                  | 16 +++++++---
+ drivers/perf/arm_cspmu/arm_cspmu.c |  6 ++--
+ include/linux/acpi.h               | 11 +++++++
+ include/linux/pci-tph.h            |  4 +--
+ 19 files changed, 158 insertions(+), 56 deletions(-)
 
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+2.17.1
+
