@@ -1,129 +1,316 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC5D33E0229;
-	Fri, 13 Mar 2026 19:37:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A5723CCA1A
+	for <linux-acpi@vger.kernel.org>; Fri, 13 Mar 2026 20:08:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773430639; cv=none; b=g8jN14CjsGx28FeFQKHY4TwfJ57fuEri/dOKVKysDyoWCC+01O1E0SHfsmrD9Vmy+qBbag3KtDo+21Op7fIBBK729ZQejb/3sSbhLzFuE53xLRZhL7TbXDjhfn8Fa7zRJOA+Q8bvV+z4ueluVP4vYJIaU0ZLV3fORk+cBT/xEUU=
+	t=1773432490; cv=none; b=X06dHVSiR961qlmyRJpHGuUXcFdMxIMvSOo0v5hJOySzc7RK0mD8ewei/IZFO+WBzkXllLqod6bP6INIZz2cq7URkfhjI2MJhBW/PbkDOyDK2rklDQIiuQnflA1IQy4oBEmU5Y+7nJvvRhjqrSlMyxLEk1gnhezeKhOT38A4WdY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773430639; c=relaxed/simple;
-	bh=WznwLvYdU11g4y8td+Nvi6jHEzEjJdiaDhHhON9Z/5k=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=PE4IfLB77+ECBZuHnTsifEhXaBdqrzktsPFPBrEVNfkzRS4z9NOPoY2Fyh17OTK8uw+dcIvoc9ILr5mnbZEVE5if1IuZjSMlRHF8HXnDY6eBDjmcnZnFO1d4JVinM/vbTyn3jnHQqWXmhNYF6BLUJ2mei3ScXqHpuTsupFBzfJA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=AfO9/ZMv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773432490; c=relaxed/simple;
+	bh=LQwUnypcwB5TpcIStvsk/uttr3yYU5WOZ/7+CL7AFEM=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=T8Jcp+EvjWivhTfQlrqTXhSVEZdUSetLNxM/vifMgbjcGbmjLMnduBZaQ4lGnu9kjYBg+Pnm3zb92wJhJe89pkr39sXtKXh2kmt2l30BUPzqQJnDIokYX5p0qefUmVTcjsgtZpQJeXs4cpj0TG62BE3Uye1f7P6Tm1V/TINQPbg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fvK8GCAb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="AfO9/ZMv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 022B0C19421;
-	Fri, 13 Mar 2026 19:37:11 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fvK8GCAb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0DCFCC2BCB3
+	for <linux-acpi@vger.kernel.org>; Fri, 13 Mar 2026 20:08:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773430639;
-	bh=WznwLvYdU11g4y8td+Nvi6jHEzEjJdiaDhHhON9Z/5k=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=AfO9/ZMvMrnuPKTii2g1KKGb0jzOA2ue9D3Njy+A2pi6zgraSmRPEYmE0Cc3bHnRs
-	 TBYKgPjzyGAmIlZD6AzGyXTwWw3CJLSwPIgfPBWaGzt5x4OjG7EtNfGKavnXaK4Z07
-	 3iAE5fqc/HE4w83x/MoTQxUKUVpOiOVjAuCoIabvUamUO4UApUD+L7b9rlHj8mxZ/d
-	 ci2zZGZma8LCyrH2GaccSsTBZAPcPNTRvJinL9vEb9WJkpeSAzWEhpTMndNaxX2ac1
-	 qPOux46Bt1tvy3z3jRuUEGd3hYHSc4IDe9Bp++YsopnTSLbWw+4tlWNuMpO+1RCn2f
-	 o0oRECUzDhjEw==
-Message-ID: <02e0772d-ba65-4eb8-8453-e0b3eaa4af96@kernel.org>
-Date: Fri, 13 Mar 2026 20:37:09 +0100
+	s=k20201202; t=1773432490;
+	bh=LQwUnypcwB5TpcIStvsk/uttr3yYU5WOZ/7+CL7AFEM=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=fvK8GCAb5UJ65h2gjqrmOlMS7pBtOiA1/SvHdDENMoDz0V+0EknF1V1Lw9nUIs7wq
+	 z3MhqobQmUYnofMZeMMOPfumRaECXBEQp0VEkbUrMTB8+u5M9SYEqLMePhLQESnh4k
+	 a3NT9FENTMJnjpsoV9TdTUmGUlBg/28W+GJk1/nGT/h44PPs8QuA0x+YeRyyFg/DTS
+	 incwkQPuyTkW6OdcKn5nvjTRjsyTI2T3vwdabs8imZCoBZqOudvOPzYIvuusl3kl5y
+	 wKww0oqanAhshAg8Sh/Rs0OBjRZ1QAqz20g4DRodFgc1+ouzjDZxVoJVHaqdNwrkln
+	 vpWK9TShMyEMw==
+Received: by mail-ot1-f50.google.com with SMTP id 46e09a7af769-7d75e74f5adso2605320a34.3
+        for <linux-acpi@vger.kernel.org>; Fri, 13 Mar 2026 13:08:10 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCXm3lKcJwwuiPjcCh9np9ZtEBX7A4krMMTk9xTcTmi+YosOJF1HucHOkQbbGLUdk78/MJ23FzL/girh@vger.kernel.org
+X-Gm-Message-State: AOJu0Ywhe4T38/egdjvFQmDAzTx10IMYM3q9+M69mTwEUSBCH/qL3+ln
+	WgBORsWYxhiqE1w/k6j4USu246XM/G4cK01tjbcIFyW6McSz5Uk000bgjvDtKCnymcKur6UEQhB
+	HKERABYm0Doo452OIwj4WhgFNUm65Aa4=
+X-Received: by 2002:a05:6820:616:b0:676:83f9:c8ef with SMTP id
+ 006d021491bc7-67bdaa809a8mr2892172eaf.65.1773432488920; Fri, 13 Mar 2026
+ 13:08:08 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 5/7] dt-bindings: mfd: Add synology,microp device
-To: markus.probst@posteo.de, Lee Jones <lee@kernel.org>,
- Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>,
- Conor Dooley <conor+dt@kernel.org>,
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- Miguel Ojeda <ojeda@kernel.org>, Boqun Feng <boqun@kernel.org>,
- Gary Guo <gary@garyguo.net>, =?UTF-8?Q?Bj=C3=B6rn_Roy_Baron?=
- <bjorn3_gh@protonmail.com>, Benno Lossin <lossin@kernel.org>,
- Andreas Hindborg <a.hindborg@kernel.org>, Alice Ryhl <aliceryhl@google.com>,
- Trevor Gross <tmgross@umich.edu>, Danilo Krummrich <dakr@kernel.org>,
- "Rafael J. Wysocki" <rafael@kernel.org>,
- Igor Korotin <igor.korotin.linux@gmail.com>,
- Daniel Almeida <daniel.almeida@collabora.com>,
- Bjorn Helgaas <bhelgaas@google.com>,
- =?UTF-8?Q?Krzysztof_Wilczy=C5=84ski?= <kwilczynski@kernel.org>,
- Pavel Machek <pavel@kernel.org>, Len Brown <lenb@kernel.org>,
- Robert Moore <robert.moore@intel.com>
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
- rust-for-linux@vger.kernel.org, driver-core@lists.linux.dev,
- linux-pci@vger.kernel.org, linux-leds@vger.kernel.org,
- linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev
-References: <20260313-synology_microp_initial-v3-0-ad6ac463a201@posteo.de>
- <20260313-synology_microp_initial-v3-5-ad6ac463a201@posteo.de>
-From: Krzysztof Kozlowski <krzk@kernel.org>
-Content-Language: en-US
-Autocrypt: addr=krzk@kernel.org; keydata=
- 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 a/A=
-In-Reply-To: <20260313-synology_microp_initial-v3-5-ad6ac463a201@posteo.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+References: <20251226102656.6296-1-lkml@antheas.dev> <20251226102656.6296-2-lkml@antheas.dev>
+In-Reply-To: <20251226102656.6296-2-lkml@antheas.dev>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Fri, 13 Mar 2026 21:07:58 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0iPt6uFskHjO=Zj-vyExioM2Vypp05sTLQ-6QZeQi4ibQ@mail.gmail.com>
+X-Gm-Features: AaiRm52nsUO5wpAuMVTCXlDT9rJm7RpRBMZd65XjVyq_fo0Lu4H7RgMSXklK5Mc
+Message-ID: <CAJZ5v0iPt6uFskHjO=Zj-vyExioM2Vypp05sTLQ-6QZeQi4ibQ@mail.gmail.com>
+Subject: Re: [RFC v1 1/8] Documentation: PM: Add documentation for Runtime
+ Standby States
+To: Antheas Kapenekakis <lkml@antheas.dev>
+Cc: dmitry.osipenko@collabora.com, bob.beckett@collabora.com, 
+	bookeldor@gmail.com, hadess@hadess.net, jaap@haitsma.org, 
+	kernel@collabora.com, lennart@poettering.net, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, mccann@jhu.edu, rafael@kernel.org, 
+	richard@hughsie.com, sebastian.reichel@collabora.com, superm1@kernel.org, 
+	systemd-devel@lists.freedesktop.org, xaver.hugl@gmail.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 13/03/2026 20:03, Markus Probst via B4 Relay wrote:
-> From: Markus Probst <markus.probst@posteo.de>
-> 
-> Add the Synology Microp devicetree bindings. Those devices are
-> microcontrollers found on Synology NAS devices. They are connected to a
-> serial port on the host device.
-> 
-> Those devices are used to control certain LEDs, fan speeds, a beeper, to
-> handle buttons, fan failures and to properly shutdown and reboot the
-> device.
-> 
-> Signed-off-by: Markus Probst <markus.probst@posteo.de>
+On Fri, Dec 26, 2025 at 11:27=E2=80=AFAM Antheas Kapenekakis <lkml@antheas.=
+dev> wrote:
+>
+> Introduce the runtime standby state ABI, which allows for firing the
+> Modern Standby firmware notifications found in Windows during runtime.
+> These notifications allow to make systems that support them look
+> suspended.
+
+The "look suspended" thing is misguided IMV.
+
+I'd rather say something like
+
+ This will allow "dark mode" indicating the lack of system activity
+related to running user workloads.
+
+> Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 > ---
+>  Documentation/ABI/testing/sysfs-power         |  20 ++++
+>  .../admin-guide/pm/standby-states.rst         | 100 ++++++++++++++++++
+>  Documentation/admin-guide/pm/system-wide.rst  |   1 +
+>  3 files changed, 121 insertions(+)
+>  create mode 100644 Documentation/admin-guide/pm/standby-states.rst
+>
+> diff --git a/Documentation/ABI/testing/sysfs-power b/Documentation/ABI/te=
+sting/sysfs-power
+> index d38da077905a..16378be2dc13 100644
+> --- a/Documentation/ABI/testing/sysfs-power
+> +++ b/Documentation/ABI/testing/sysfs-power
+> @@ -39,6 +39,26 @@ Description:
+>                 See Documentation/admin-guide/pm/sleep-states.rst for mor=
+e
+>                 information.
+>
+> +What:          /sys/power/standby
 
-You keep sending the same without responding to review.
+I've already commented on this in my reply to the cover letter.
 
-NAK
+> +Date:          February 2026
+> +Contact:       Antheas Kapenekakis <lkml@antheas.dev>
+> +Description:
+> +               The /sys/power/standby file allows userspace to inform th=
+e
+> +               kernel of the current runtime standby mode depending on u=
+ser
+> +               activity. The options are "active", "inactive", "sleep",
+> +               and "resume". Only the ones supported by the platform wil=
+l be
+> +               available. Depending on the mode, the appearance of the d=
+evice
+> +               will change (e.g., keyboard backlight will turn off as pa=
+rt of
+> +               "inactive"), and its thermal envelope might be affected.
+> +
+> +               Reading from this file returns the available standby mode=
+s,
+> +               with the current one enclosed in square brackets. Writing=
+ one
+> +               of the above strings to this file causes the kernel to
+> +               transition to it.
+> +
+> +               See Documentation/admin-guide/pm/standby-states.rst for m=
+ore
+> +               information.
+> +
+>  What:          /sys/power/disk
+>  Date:          September 2006
+>  Contact:       Rafael J. Wysocki <rafael@kernel.org>
+> diff --git a/Documentation/admin-guide/pm/standby-states.rst b/Documentat=
+ion/admin-guide/pm/standby-states.rst
+> new file mode 100644
+> index 000000000000..af7f32721d1c
+> --- /dev/null
+> +++ b/Documentation/admin-guide/pm/standby-states.rst
+> @@ -0,0 +1,100 @@
+> +.. SPDX-License-Identifier: GPL-2.0
+> +.. include:: <isonum.txt>
+> +
+> +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> +Runtime Standby States
+> +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> +
+> +:Copyright: |copy| 2026 Antheas Kapenekakis
+> +
+> +:Author: Antheas Kapenekakis <lkml@antheas.dev>
+> +
+> +This document describes the runtime standby states ABI available in the =
+Linux
+> +kernel, which is designed as a generic superset of the s0ix/Modern Stand=
+by
+> +firmware notifications. Devices with these notifications support hardwar=
+e states
+> +where they look like they are asleep, while still performing basic compu=
+tation.
+> +Specifically, those are "Sleep", "Inactive", and "Active" states, with a=
+n
+> +additional state "Resume". Transitioning between these states follows th=
+e
+> +flowchart below.
+> +
+> +Runtime Standby States
+> +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> +The following runtime standby are supported::
+> +
+> +    <S2idle> =E2=86=94 <Sleep> =E2=86=94 <Inactive> =E2=86=94 <Active>
+> +        =E2=86=92       =E2=86=92  <Resume>  =E2=86=91
+> +
+> +.. _s2idle_drips:
+> +
+> +
+> +.. _s2idle_active:
+> +
+> +Active
+> +------
+> +
+> +The "Active" state is the default state of the system and the one it has=
+ when
+> +it is turned on. It is the state where the device is on, and the user is
+> +interacting with it.
+> +
+> +.. _s2idle_screen_off:
+> +
+> +Inactive
+> +----------
+> +
+> +The "Inactive" state is a state in which users have stopped interacting =
+with
+> +the device, e.g., 5 seconds after the displays have turned off due to in=
+activity
+> +or due to the user pressing the power button. It is the responsibility o=
+f
+> +userspace to keep track of user interaction so it can inform the kernel =
+to
+> +transition to this state. The response to this state for devices that su=
+pport
+> +is to turn off their keyboard backlight, and some might pulse their powe=
+r light.
+> +
+> +.. _s2idle_sleep:
+> +
+> +Sleep
 
-Best regards,
-Krzysztof
+The term "sleep" has already been allocated (sorry about that) and it
+means any non-working states of the system, that may include ACPI S3,
+ACPI S4 (hibernation), suspend-to-idle etc.
+
+Some other name needs to be used here to avoid confusion with the
+existing terminology.
+
+> +-----
+> +
+> +In the sleep state, certain devices will limit their thermal envelope so=
+ it is
+> +safe for them to be put into a bag and still perform basic computation s=
+uch as
+> +fetching email. Then, some devices will pulse their power light. Userspa=
+ce can
+> +use this state to perform basic tasks such as wake-up checks while maint=
+aining
+> +the appearance the device is asleep.
+> +
+> +.. _s2idle_resume:
+> +
+> +Resume
+> +------
+> +
+> +The resume state is a transient state that may only be entered from the =
+sleep
+> +state. It can be used to notify hardware that the device should boost it=
+s
+> +thermal envelope as preparation for the user interacting with it. As in,=
+ it
+> +undoes the thermal envelope effects of the "sleep" state while keeping i=
+ts
+> +appearance.
+> +
+> +S2idle
+> +-----
+> +
+> +The "S2idle" state in the diagram corresponds to suspending normally by =
+writing
+> +``mem`` to ``/sys/power/state``. Userspace is fully frozen, and the kern=
+el parks
+> +the CPUs and turns off most devices. It is shown in the graph as a refer=
+ence.
+> +If the runtime standby state is not "sleep" when entering s2idle, the ke=
+rnel
+> +will first transition to "sleep" before entering s2idle.
+
+Overall, I personally don't like the terminology used above too much.
+
+You seem to be talking about a state machine, but there really isn't
+one.  The state of the system after evaluating PNP0D80 _DSM function 3
+(screen off) need not be different from its preceding state, and even
+so the difference may be relatively small.
+
+I would rather describe all of this in terms of indicating certain
+conditions to the user.  For instance, "inactive" is written to
+/sysfs/attribute/to/be/determined to indicate to the user that there's
+no activity in the system related to running user workloads.
+
+It's almost like selecting "work profiles" for the platform.
+
+> +
+> +Basic ``sysfs`` Interface for runtime standby transitions
+> +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> +
+> +The file :file:`/sys/power/standby` can be used to transition the system=
+ between
+> +the different standby states.
+
+I'm not sure if the effects of using this interface (or its future
+replacement) can be referred to as "transitions".  Some devices will
+be affected, but the general state of the system will not be changed
+as a result of using them.
+
+> The file accepts the following values: ``active``,
+> +``inactive``, ``sleep``, and ``resume``. File writes will block until th=
+e
+> +transition completes. The system will cross all states shown in the flow=
+chart
+> +above to reach the desired state. It will return ``-EINVAL`` when asking=
+ for an
+> +unsupported state or, e.g., requesting ``resume`` when not in the ``slee=
+p``
+> +state. If there is an error during the transition, the transition will p=
+ause on
+> +the last error-free state and return an error.
+> +
+> +The file can be read to retrieve the current state (and potential ones) =
+with the
+> +following format: ``[active] inactive sleep resume``. Only supported sta=
+tes
+> +will be shown.
+> +
+> +Userspace may transition between all supported states including s2idle
+> +arbitrarily, except for the ``resume`` state which may only be requested=
+ from
+> +the ``sleep`` state.
+> \ No newline at end of file
+> diff --git a/Documentation/admin-guide/pm/system-wide.rst b/Documentation=
+/admin-guide/pm/system-wide.rst
+> index 1a1924d71006..411775fae4ac 100644
+> --- a/Documentation/admin-guide/pm/system-wide.rst
+> +++ b/Documentation/admin-guide/pm/system-wide.rst
+> @@ -8,4 +8,5 @@ System-Wide Power Management
+>     :maxdepth: 2
+>
+>     sleep-states
+> +   standby-states
+>     suspend-flows
+> --
