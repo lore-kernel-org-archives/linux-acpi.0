@@ -1,37 +1,38 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6C461F151C;
-	Fri, 13 Mar 2026 13:04:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED6641B4156;
+	Fri, 13 Mar 2026 13:04:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773407056; cv=none; b=UblKaFm2jqq956stEJ01IiB4Hl9ctJ6tmJHuoU4d6O9ldibEdCUXnDMFNFUfkr3WYQnX4ExyLL5ldZRTHip4Zwxv5sxQzwUw2jbK2LfiGWhjr1oBG4e1Z2a+UtCRegFGqRcIHhlpNc+inlklkP7i3NznIEEqA4MO8i/K7I8XcUk=
+	t=1773407060; cv=none; b=OT67uZUlBkvxyBTX1oiHFFr8+Ov5DMQ3iQrCdI7IHeiEuIg2a0niG0J93H15x0EcUMlgs1BloA4FQHc2ovniP1qYUoJ26W8DBMUj6aelOng0noWSdXCpRAHxwt8ifQEogdu4YBtlJF05Fn3QNP75nauuJZR6WdipFF3TPlHv/R4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773407056; c=relaxed/simple;
-	bh=c9J3HT2/8QuaJhSUGByPNlpOdRCdUnaEc3qxTuozTFA=;
+	s=arc-20240116; t=1773407060; c=relaxed/simple;
+	bh=QL8omcTIi7ufN3toaEjYxUNYpka4lBOGlBGiT6TVB9U=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=C7af4IeHQ0JzQYZgzQBxC0FegeFxOrq3193TKTid8C1FuKTazj8s08Cd+J/hcXAqAq++BkN4iUyU2b1xEbQU569ophCa5HfrVo3NfEKpzt3FDtIn9OAFDCrcMvWwL5Dk6Mwz1gDZ0EH92NHrvvUCTndenAB24nKxUeTqhflaY/Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=FEOkn5Y6; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=GZEGTLr2oO+jLC0zjJooAPuDSQZLhEkB91zbCCvXorV7YCoGwstFtm99ItVPTMmjPFtWu/iwnmYyB8BBE2ppcX5uIEFUO90vZhFUO2gmbaiWItC3JZ+cgZ4fPuEf8De8dr7vlvBS2YggqXPrrYtXm1imUOpO5tGD0qY8KYYOzfM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UnfZjbe8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="FEOkn5Y6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98645C19421;
-	Fri, 13 Mar 2026 13:04:15 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UnfZjbe8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C39F1C19425;
+	Fri, 13 Mar 2026 13:04:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773407056;
-	bh=c9J3HT2/8QuaJhSUGByPNlpOdRCdUnaEc3qxTuozTFA=;
+	s=k20201202; t=1773407059;
+	bh=QL8omcTIi7ufN3toaEjYxUNYpka4lBOGlBGiT6TVB9U=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=FEOkn5Y643C66PAX3kZOhRcr+bqvjqBEF/sF9zAOY1+EdOTjhC9btCHOtReUnZ8RD
-	 GM6QuZ2nwfR/lttr7fCKjdVfSDq2LwZAohFGMsVxNtziiDWHxO+fzbwtTBpzinoUkz
-	 lQRV+RSr/KZfUUMs23z7oS7CaeZyZTvRCkTaIuT7TYFZbw3fLH3FBQY6TGJW3dwYpx
-	 2wQ/fhTAODN04+MJboWcjQ4T2GIseEY2V72pNZV0jNxQNC03edPvewFXwRMWb70Pmi
-	 lifo/MrzaTlv/DiuiYJIxEjKcJPJoJcG8nFxmDBU3bBVdQdJacj0jUxH2sm1RaWw+l
-	 tFlKPxW9Poc2A==
+	b=UnfZjbe8iDXpCC8N/jiPpm97WIBMEVmffO0dI+sJqybiLF/WQ/TQbOo0Ce5JloV2H
+	 /6SWD5eUHurB6PgM1tQYDhcSJoVrX68W2cBTZq8xloVqW4p23QKt9Ak6kbeKERYJ64
+	 yVCAyQLAIk3BRBlFhZL3G4OL6C9NLK946nWN0rqwKC1RXxRFyr3kA9eNw0WP9nryYU
+	 wp7o/qJe2/wwk4ak/XPimdGyaT6RKS2QEWuDPLPH9QCf2atfIwL/2q6ZlJXHfPoDtb
+	 wdze7KqAUXDtzB3azQHIDc7sY9RfCg58t2wgtd8C78HhcqA7obWcT2jRtsXhcQdCcZ
+	 009+bFph+30rA==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>, Hans de Goede <hansg@kernel.org>
-Subject: [PATCH v2 8/8] ACPI: AC: Define ACPI_AC_CLASS in one place
-Date: Fri, 13 Mar 2026 14:03:46 +0100
-Message-ID: <6163384.MhkbZ0Pkbq@rafael.j.wysocki>
+Subject:
+ [PATCH v2 7/8] ACPI: driver: Do not set acpi_device_class() unnecessarily
+Date: Fri, 13 Mar 2026 14:00:41 +0100
+Message-ID: <3706295.iIbC2pHGDl@rafael.j.wysocki>
 Organization: Linux Kernel Development
 In-Reply-To: <6271415.lOV4Wx5bFT@rafael.j.wysocki>
 References: <6271415.lOV4Wx5bFT@rafael.j.wysocki>
@@ -41,115 +42,296 @@ List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="UTF-8"
 
-=46rom: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-The ACPI_AC_CLASS symbol is defined in several places in the same way
-which is rather unfortunate.
+Several core ACPI device drivers set acpi_device_class() for the given
+struct acpi_device to whatever they like, but that value is never used
+unless the driver itself uses it and, sadly, they neglect to clear it on
+remove.  Since the only one of them still using acpi_device_class()
+after previous changes is the button driver, update the others to stop
+setting it in vain.  Also drop the related device class sybmols that
+become redundant.
 
-Instead, define it in one common header file (acpi_bus.h) so that it is
-accessible to all of its users.
+Since the ACPI button driver continues to use acpi_device_class(), make
+it clear the struct field represented by acpi_device_class() in its
+remove callback.
 
 No intentional functional impact.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Reviewed-by: Ilpo J=C3=A4rvinen <ilpo.jarvinen@linux.intel.com>
-=2D--
+---
+ drivers/acpi/ac.c               |    1 -
+ drivers/acpi/acpi_memhotplug.c  |    2 --
+ drivers/acpi/acpi_pad.c         |    5 +----
+ drivers/acpi/acpi_processor.c   |    1 -
+ drivers/acpi/acpi_video.c       |    3 ---
+ drivers/acpi/battery.c          |    1 -
+ drivers/acpi/button.c           |    2 ++
+ drivers/acpi/ec.c               |    4 ----
+ drivers/acpi/pci_link.c         |    2 --
+ drivers/acpi/pci_root.c         |    2 --
+ drivers/acpi/power.c            |    2 --
+ drivers/acpi/processor_driver.c |    4 ++--
+ drivers/acpi/sbs.c              |    2 --
+ drivers/acpi/sbshc.c            |    4 ----
+ drivers/acpi/thermal.c          |    1 -
+ include/acpi/processor.h        |    1 -
+ 16 files changed, 5 insertions(+), 32 deletions(-)
 
-v1 -> v2:
-   * Rephrase the second paragraph in the changelog (Ilpo)
-   * Add R-by from Ilpo
-
-=2D--
- drivers/acpi/ac.c                         |    1 -
- drivers/acpi/sbs.c                        |    1 -
- drivers/gpu/drm/amd/include/amd_acpi.h    |    2 --
- drivers/gpu/drm/radeon/radeon_acpi.c      |    2 --
- drivers/platform/x86/hp/hp-wmi.c          |    2 --
- drivers/platform/x86/lenovo/wmi-capdata.c |    1 -
- include/acpi/acpi_bus.h                   |    2 ++
- 7 files changed, 2 insertions(+), 9 deletions(-)
-
-=2D-- a/drivers/acpi/ac.c
+--- a/drivers/acpi/ac.c
 +++ b/drivers/acpi/ac.c
-@@ -21,7 +21,6 @@
- #include <linux/acpi.h>
- #include <acpi/battery.h>
-=20
-=2D#define ACPI_AC_CLASS			"ac_adapter"
- #define ACPI_AC_FILE_STATE		"state"
- #define ACPI_AC_NOTIFY_STATUS		0x80
- #define ACPI_AC_STATUS_OFFLINE		0x00
-=2D-- a/drivers/acpi/sbs.c
+@@ -203,7 +203,6 @@ static int acpi_ac_probe(struct platform
+ 		return -ENOMEM;
+ 
+ 	ac->device = adev;
+-	strscpy(acpi_device_class(adev), ACPI_AC_CLASS);
+ 
+ 	platform_set_drvdata(pdev, ac);
+ 
+--- a/drivers/acpi/acpi_memhotplug.c
++++ b/drivers/acpi/acpi_memhotplug.c
+@@ -18,7 +18,6 @@
+ 
+ #include "internal.h"
+ 
+-#define ACPI_MEMORY_DEVICE_CLASS		"memory"
+ #define ACPI_MEMORY_DEVICE_HID			"PNP0C80"
+ 
+ static const struct acpi_device_id memory_device_ids[] = {
+@@ -296,7 +295,6 @@ static int acpi_memory_device_add(struct
+ 	INIT_LIST_HEAD(&mem_device->res_list);
+ 	mem_device->device = device;
+ 	mem_device->mgid = -1;
+-	sprintf(acpi_device_class(device), "%s", ACPI_MEMORY_DEVICE_CLASS);
+ 	device->driver_data = mem_device;
+ 
+ 	/* Get the range from the _CRS */
+--- a/drivers/acpi/acpi_pad.c
++++ b/drivers/acpi/acpi_pad.c
+@@ -23,7 +23,6 @@
+ #include <asm/mwait.h>
+ #include <xen/xen.h>
+ 
+-#define ACPI_PROCESSOR_AGGREGATOR_CLASS	"acpi_pad"
+ #define ACPI_PROCESSOR_AGGREGATOR_NOTIFY 0x80
+ 
+ #define ACPI_PROCESSOR_AGGREGATOR_STATUS_SUCCESS	0
+@@ -413,7 +412,7 @@ static void acpi_pad_notify(acpi_handle
+ 	switch (event) {
+ 	case ACPI_PROCESSOR_AGGREGATOR_NOTIFY:
+ 		acpi_pad_handle_notify(handle);
+-		acpi_bus_generate_netlink_event(ACPI_PROCESSOR_AGGREGATOR_CLASS,
++		acpi_bus_generate_netlink_event("acpi_pad",
+ 						dev_name(&adev->dev), event, 0);
+ 		break;
+ 	default:
+@@ -426,8 +425,6 @@ static int acpi_pad_probe(struct platfor
+ {
+ 	struct acpi_device *adev = ACPI_COMPANION(&pdev->dev);
+ 
+-	strscpy(acpi_device_class(adev), ACPI_PROCESSOR_AGGREGATOR_CLASS);
+-
+ 	return acpi_dev_install_notify_handler(adev, ACPI_DEVICE_NOTIFY,
+ 					       acpi_pad_notify, adev);
+ }
+--- a/drivers/acpi/acpi_processor.c
++++ b/drivers/acpi/acpi_processor.c
+@@ -438,7 +438,6 @@ static int acpi_processor_add(struct acp
+ 	}
+ 
+ 	pr->handle = device->handle;
+-	strscpy(acpi_device_class(device), ACPI_PROCESSOR_CLASS);
+ 	device->driver_data = pr;
+ 
+ 	result = acpi_processor_get_info(device);
+--- a/drivers/acpi/acpi_video.c
++++ b/drivers/acpi/acpi_video.c
+@@ -1141,8 +1141,6 @@ static int acpi_video_bus_get_one_device
+ 		return -ENOMEM;
+ 	}
+ 
+-	strscpy(acpi_device_class(device), ACPI_VIDEO_CLASS);
+-
+ 	data->device_id = device_id;
+ 	data->video = video;
+ 	data->dev = device;
+@@ -2018,7 +2016,6 @@ static int acpi_video_bus_probe(struct a
+ 	auxiliary_set_drvdata(aux_dev, video);
+ 
+ 	video->device = device;
+-	strscpy(acpi_device_class(device), ACPI_VIDEO_CLASS);
+ 	device->driver_data = video;
+ 
+ 	acpi_video_bus_find_cap(video);
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -1228,7 +1228,6 @@ static int acpi_battery_probe(struct pla
+ 	platform_set_drvdata(pdev, battery);
+ 
+ 	battery->device = device;
+-	strscpy(acpi_device_class(device), ACPI_BATTERY_CLASS);
+ 
+ 	result = devm_mutex_init(&pdev->dev, &battery->update_lock);
+ 	if (result)
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -697,6 +697,8 @@ static void acpi_button_remove(struct pl
+ 	acpi_button_remove_fs(button);
+ 	input_unregister_device(button->input);
+ 	kfree(button);
++
++	memset(acpi_device_class(adev), 0, sizeof(acpi_device_class));
+ }
+ 
+ static int param_set_lid_init_state(const char *val,
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -35,8 +35,6 @@
+ 
+ #include "internal.h"
+ 
+-#define ACPI_EC_CLASS			"embedded_controller"
+-
+ /* EC status register */
+ #define ACPI_EC_FLAG_OBF	0x01	/* Output buffer full */
+ #define ACPI_EC_FLAG_IBF	0x02	/* Input buffer full */
+@@ -1680,8 +1678,6 @@ static int acpi_ec_probe(struct platform
+ 	struct acpi_ec *ec;
+ 	int ret;
+ 
+-	strscpy(acpi_device_class(device), ACPI_EC_CLASS);
+-
+ 	if (boot_ec && (boot_ec->handle == device->handle ||
+ 	    !strcmp(acpi_device_hid(device), ACPI_ECDT_HID))) {
+ 		/* Fast path: this device corresponds to the boot EC. */
+--- a/drivers/acpi/pci_link.c
++++ b/drivers/acpi/pci_link.c
+@@ -29,7 +29,6 @@
+ 
+ #include "internal.h"
+ 
+-#define ACPI_PCI_LINK_CLASS		"pci_irq_routing"
+ #define ACPI_PCI_LINK_MAX_POSSIBLE	16
+ 
+ static int acpi_pci_link_add(struct acpi_device *device,
+@@ -724,7 +723,6 @@ static int acpi_pci_link_add(struct acpi
+ 		return -ENOMEM;
+ 
+ 	link->device = device;
+-	strscpy(acpi_device_class(device), ACPI_PCI_LINK_CLASS);
+ 	device->driver_data = link;
+ 
+ 	mutex_lock(&acpi_link_lock);
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -24,7 +24,6 @@
+ #include <linux/platform_data/x86/apple.h>
+ #include "internal.h"
+ 
+-#define ACPI_PCI_ROOT_CLASS		"pci_bridge"
+ static int acpi_pci_root_add(struct acpi_device *device,
+ 			     const struct acpi_device_id *not_used);
+ static void acpi_pci_root_remove(struct acpi_device *device);
+@@ -688,7 +687,6 @@ static int acpi_pci_root_add(struct acpi
+ 
+ 	root->device = device;
+ 	root->segment = segment & 0xFFFF;
+-	strscpy(acpi_device_class(device), ACPI_PCI_ROOT_CLASS);
+ 	device->driver_data = root;
+ 
+ 	if (hotadd && dmar_device_add(handle)) {
+--- a/drivers/acpi/power.c
++++ b/drivers/acpi/power.c
+@@ -37,7 +37,6 @@
+ #include "sleep.h"
+ #include "internal.h"
+ 
+-#define ACPI_POWER_CLASS		"power_resource"
+ #define ACPI_POWER_RESOURCE_STATE_OFF	0x00
+ #define ACPI_POWER_RESOURCE_STATE_ON	0x01
+ #define ACPI_POWER_RESOURCE_STATE_UNKNOWN 0xFF
+@@ -954,7 +953,6 @@ struct acpi_device *acpi_add_power_resou
+ 	mutex_init(&resource->resource_lock);
+ 	INIT_LIST_HEAD(&resource->list_node);
+ 	INIT_LIST_HEAD(&resource->dependents);
+-	strscpy(acpi_device_class(device), ACPI_POWER_CLASS);
+ 	device->power.state = ACPI_STATE_UNKNOWN;
+ 	device->flags.match_driver = true;
+ 
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -85,8 +85,8 @@ static void acpi_processor_notify(acpi_h
+ 		return;
+ 	}
+ 
+-	acpi_bus_generate_netlink_event(ACPI_PROCESSOR_CLASS,
+-					dev_name(&device->dev), event, ev_data);
++	acpi_bus_generate_netlink_event("processor", dev_name(&device->dev),
++					event, ev_data);
+ }
+ 
+ static int __acpi_processor_start(struct acpi_device *device);
+--- a/drivers/acpi/sbs.c
 +++ b/drivers/acpi/sbs.c
 @@ -26,7 +26,6 @@
-=20
+ 
  #include "sbshc.h"
-=20
-=2D#define ACPI_AC_CLASS			"ac_adapter"
+ 
+-#define ACPI_SBS_CLASS			"sbs"
+ #define ACPI_AC_CLASS			"ac_adapter"
  #define ACPI_SBS_DEVICE_NAME		"Smart Battery System"
  #define ACPI_BATTERY_DIR_NAME		"BAT%i"
- #define ACPI_AC_DIR_NAME		"AC0"
-=2D-- a/drivers/gpu/drm/amd/include/amd_acpi.h
-+++ b/drivers/gpu/drm/amd/include/amd_acpi.h
-@@ -26,8 +26,6 @@
-=20
- #include <linux/types.h>
-=20
-=2D#define ACPI_AC_CLASS           "ac_adapter"
-=2D
- struct atif_verify_interface {
- 	u16 size;		/* structure size in bytes (includes size field) */
- 	u16 version;		/* version */
-=2D-- a/drivers/gpu/drm/radeon/radeon_acpi.c
-+++ b/drivers/gpu/drm/radeon/radeon_acpi.c
-@@ -44,8 +44,6 @@ bool radeon_atpx_dgpu_req_power_for_disp
- static inline bool radeon_atpx_dgpu_req_power_for_displays(void) { return =
-false; }
- #endif
-=20
-=2D#define ACPI_AC_CLASS           "ac_adapter"
-=2D
- struct atif_verify_interface {
- 	u16 size;		/* structure size in bytes (includes size field) */
- 	u16 version;		/* version */
-=2D-- a/drivers/platform/x86/hp/hp-wmi.c
-+++ b/drivers/platform/x86/hp/hp-wmi.c
-@@ -58,8 +58,6 @@ enum hp_ec_offsets {
- #define HP_POWER_LIMIT_DEFAULT	 0x00
- #define HP_POWER_LIMIT_NO_CHANGE 0xFF
-=20
-=2D#define ACPI_AC_CLASS "ac_adapter"
-=2D
- #define zero_if_sup(tmp) (zero_insize_support?0:sizeof(tmp)) // use when z=
-ero insize is required
-=20
- enum hp_thermal_profile_omen_v0 {
-=2D-- a/drivers/platform/x86/lenovo/wmi-capdata.c
-+++ b/drivers/platform/x86/lenovo/wmi-capdata.c
-@@ -53,7 +53,6 @@
- #define LENOVO_CAPABILITY_DATA_01_GUID "7A8F5407-CB67-4D6E-B547-39B3BE0181=
-54"
- #define LENOVO_FAN_TEST_DATA_GUID "B642801B-3D21-45DE-90AE-6E86F164FB21"
-=20
-=2D#define ACPI_AC_CLASS "ac_adapter"
- #define ACPI_AC_NOTIFY_STATUS 0x80
-=20
- #define LWMI_FEATURE_ID_FAN_TEST 0x05
-=2D-- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -613,6 +613,8 @@ struct acpi_bus_event {
- 	u32 data;
- };
-=20
-+#define ACPI_AC_CLASS	"ac_adapter"
-+
- extern struct kobject *acpi_kobj;
- extern int acpi_bus_generate_netlink_event(const char*, const char*, u8, i=
-nt);
- void acpi_bus_private_data_handler(acpi_handle, void *);
+@@ -648,7 +647,6 @@ static int acpi_sbs_probe(struct platfor
+ 
+ 	sbs->hc = dev_get_drvdata(pdev->dev.parent);
+ 	sbs->device = device;
+-	strscpy(acpi_device_class(device), ACPI_SBS_CLASS);
+ 
+ 	result = acpi_charger_add(sbs);
+ 	if (result && result != -ENODEV)
+--- a/drivers/acpi/sbshc.c
++++ b/drivers/acpi/sbshc.c
+@@ -18,8 +18,6 @@
+ #include "sbshc.h"
+ #include "internal.h"
+ 
+-#define ACPI_SMB_HC_CLASS	"smbus_host_ctl"
+-
+ struct acpi_smb_hc {
+ 	struct acpi_ec *ec;
+ 	struct mutex lock;
+@@ -250,8 +248,6 @@ static int acpi_smbus_hc_probe(struct pl
+ 		return -EIO;
+ 	}
+ 
+-	strscpy(acpi_device_class(device), ACPI_SMB_HC_CLASS);
+-
+ 	hc = kzalloc_obj(struct acpi_smb_hc);
+ 	if (!hc)
+ 		return -ENOMEM;
+--- a/drivers/acpi/thermal.c
++++ b/drivers/acpi/thermal.c
+@@ -799,7 +799,6 @@ static int acpi_thermal_probe(struct pla
+ 
+ 	tz->device = device;
+ 	strscpy(tz->name, device->pnp.bus_id);
+-	strscpy(acpi_device_class(device), ACPI_THERMAL_CLASS);
+ 
+ 	acpi_thermal_aml_dependency_fix(tz);
+ 
+--- a/include/acpi/processor.h
++++ b/include/acpi/processor.h
+@@ -14,7 +14,6 @@
+ 
+ #include <asm/acpi.h>
+ 
+-#define ACPI_PROCESSOR_CLASS		"processor"
+ #define ACPI_PROCESSOR_DEVICE_HID	"ACPI0007"
+ #define ACPI_PROCESSOR_CONTAINER_HID	"ACPI0010"
+ 
 
 
 
