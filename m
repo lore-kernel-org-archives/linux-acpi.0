@@ -1,101 +1,87 @@
-Received: from mail.alien8.de (mail.alien8.de [65.109.113.108])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5928A3932D5;
-	Fri, 13 Mar 2026 12:29:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=65.109.113.108
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BF0F394797
+	for <linux-acpi@vger.kernel.org>; Fri, 13 Mar 2026 12:31:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773404948; cv=none; b=eSem6RCb76VI3d4+6CZNiC62KJL97YRIgok+a3Yz59CbEXITDOX+kpi4OeeFe/dLr+Lfi/6+x2NC7ILfjnK2osula0bnNcsBfefZShkFKbUfzaaX5i968VVDaCB6DsSfDGsFq8LFzxr8pnuQkqB7c3aUTLLRJnHEfyx4oS2N6fM=
+	t=1773405098; cv=none; b=ZE76jlvG/FqA1cotB79Uqh5+PZDhjmAHgy8kmDGy9mOwbNowaCx4IK/X6IrHHnqKA/pNazK42+wkktw+TAVbvIHoWDz8XT/UwwekBgkovzPEnuGm48Bpe9XoJ7fKNoHcJBXkOr0RKQO+1B6fSX5XbEcCWZ0McTENwivuNrolSo8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773404948; c=relaxed/simple;
-	bh=NsHC0kNrAHdfS7pNUXaLvX1NpNaUrbNIEH2naPbfATA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=nCGrl0Iv05TWUgWoWKF9Vwr9fzVIOmBz9AGv3zd6stE+krkJpbTOSR9z3NAX9jlswrGuL10FLpCGw64t0gzZLTfDUaP8v7zBqgva1wKFBpgdeDrIEJBp9AxGSNKqA3dthj+nqXdLiiEfSRcmnCl1LcEWc6D+alDAxYruURd11k0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de; spf=pass smtp.mailfrom=alien8.de; dkim=fail (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b=BV51aAh7 reason="signature verification failed"; arc=none smtp.client-ip=65.109.113.108
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=alien8.de
+	s=arc-20240116; t=1773405098; c=relaxed/simple;
+	bh=psnkMBQgvZHqWgbcP86HlnNA4fjdC9QrAhMtXjey0jk=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=ENwUg4dwfNyEBC2nIO+ajZoSTo79w/vE8rJd41glhP2haOYsD1uqe/t2htXyHNrISwc8f+GiA95ZGXe1qWHoaumV8omDuB69QTs6ww0xYx/IcQCVIWjvZQ0zwhpenfxtA+d62ytLY4DoOMefTuy8c0cLHFBmKpqQb3jPumVN0VE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Grh0Bze+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="signature verification failed" (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b="BV51aAh7"
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with ESMTP id 6BDF140E01DB;
-	Fri, 13 Mar 2026 12:29:04 +0000 (UTC)
-X-Virus-Scanned: Debian amavisd-new at mail.alien8.de
-Authentication-Results: mail.alien8.de (amavisd-new); dkim=fail (4096-bit key)
-	reason="fail (body has been altered)" header.d=alien8.de
-Received: from mail.alien8.de ([127.0.0.1])
-	by localhost (mail.alien8.de [127.0.0.1]) (amavisd-new, port 10026)
-	with ESMTP id zujmNSO9K58C; Fri, 13 Mar 2026 12:29:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=alien8;
-	t=1773404940; bh=XGInUvHstf/WRRJfGqlHPmb5HuivTBWzScQVQD4wc6g=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=BV51aAh7DJl6lZdoc2T7gcetMenDZhHQ5YAnmAPzRkz611zOqUB6sodHXviFaCHBy
-	 KPMk37G4izD6TeymC8j0nql9F2Fdt3kIZj0EVLyd+CcgdNrZ43oTOX47aq5O/wzUbK
-	 a7RJOeKQe+FwfL4xJrsPeYgLvjL/z1JWYiTWBqu5fNd57rtnSzuwHH326Qtor4RrCb
-	 d/E1EJ+2m4by4FEtqKVklxwgqObEvjbED9aM0LgfGXFkauMK6iNr1gvAA2ey6iFXzy
-	 iRYnRXGPTCYQToltvu6OxboxPzp6JpP4Ci2hdeXrHFpHH0M8rozWE+fl97yBwvTL67
-	 9YbZtZr+2SnndxSLUjmrquTfUXG3j6EJvliYOtczEVVkxOElzQIupjuuJLCmnbiOxF
-	 W0PDy98Dzv/crx0D41RVj1Oe56m1oTkiHBVVAuE7haWvIhV9Rt3VrCOyOM2MaDAt31
-	 /z0c3C99vsEKVtTN9r7wpebeiDMMDcmXGRrbTRY/XU9UBFHREtDjbIljy6oEHmF6Sv
-	 w2a1YubmkS7NaK2KaxFxCDyRT9YEY7iZ+vuPtdA/mCpsjVulGFE2wZ5LrQFNJ8AMmu
-	 /PyS69jMDhAeiVDASNP9hkYefVUmKu5RB54fdiSke7SwkGgIcsD/fiBvnbqHqvnnNA
-	 A4MaG569JuByJhIJCLzxh4Ps=
-Received: from zn.tnic (p5de8e020.dip0.t-ipconnect.de [93.232.224.32])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (P-256) server-signature ECDSA (P-256) server-digest SHA256)
-	(No client certificate requested)
-	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with UTF8SMTPSA id 0A61640E00DE;
-	Fri, 13 Mar 2026 12:28:44 +0000 (UTC)
-Date: Fri, 13 Mar 2026 13:28:44 +0100
-From: Borislav Petkov <bp@alien8.de>
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Hou Wenlong <houwenlong.hwl@antgroup.com>, linux-kernel@vger.kernel.org,
-	Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
-	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
-	"H. Peter Anvin" <hpa@zytor.com>, Len Brown <lenb@kernel.org>,
-	Kees Cook <kees@kernel.org>, Nikolay Borisov <nik.borisov@suse.com>,
-	"Peter Zijlstra (Intel)" <peterz@infradead.org>,
-	Sohil Mehta <sohil.mehta@intel.com>,
-	Randy Dunlap <rdunlap@infradead.org>, linux-acpi@vger.kernel.org
-Subject: Re: [PATCH 2/2] ACPI, x86/boot: Remove {set|get}_root_pointer() ACPI
- callbacks
-Message-ID: <20260313122844.GBabQC_L7iROuslPNd@fat_crate.local>
-References: <76675c4d49d3a8f72252076812ef8f22276230c2.1772282441.git.houwenlong.hwl@antgroup.com>
- <b5d7f0734005eb08f31e7b9b72e253efcd2614ab.1772282441.git.houwenlong.hwl@antgroup.com>
- <CAJZ5v0ibAwNi95giT5tF-7UvZ4SijneHkOtOB1d83SbjYLv4MA@mail.gmail.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Grh0Bze+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A30EDC2BCB8
+	for <linux-acpi@vger.kernel.org>; Fri, 13 Mar 2026 12:31:37 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1773405097;
+	bh=psnkMBQgvZHqWgbcP86HlnNA4fjdC9QrAhMtXjey0jk=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=Grh0Bze+h4xtvO8Bjdlnn1rOX0gEGigQS/CWsIx0Jkcq14fr2Gd7TJ/skXM+mnb+i
+	 gBcymId2zPDi5m7l2wxws5ep9zwY/VeH8clVx6QTgSS/97rmc0kRUSHsSGZXgxgxzR
+	 R83f/lCYh/iYcROi4S/pV+ms1jrxrbz320YsBXEPlsF2t1oMcnR7Iw2omNRKF1Z9Ae
+	 ll2EiNohwZejkEGW7VY5ET3EBoJrR5wKO5Uhc0CRXqDPwi7N1A69ijG3Yk57OkEIo/
+	 QHXGzmzjiiGuxOt3fDu94YdFh9tOQShJThF3DQWT3d4rPe52qJxGkVA2AcWxU26wy2
+	 eSwi3k8cMPGyw==
+Received: by mail-oi1-f171.google.com with SMTP id 5614622812f47-466ed3bc95eso773518b6e.2
+        for <linux-acpi@vger.kernel.org>; Fri, 13 Mar 2026 05:31:37 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCXcjcvcOTs7WzsljiHmcLJWMyxsbaBFPXY5Ivc91woRBTpQ1mU4+S++p5RwDezcoacCvmwIwPLp1u5v@vger.kernel.org
+X-Gm-Message-State: AOJu0YxY+xCktbmdMkmeGNViYtnuF8Tu3TgSsNCZTJ+kNzouMcKrnVlS
+	2iDD/2RqfHN50v/0D4NSS+KIVbxNnmOOZ3suQrjE5e5HWcRGPowIAJohjpdmH9uma1L929vrEIh
+	ZKVD5jDVo8k+Cij6wsIikg4B/RE+nkdI=
+X-Received: by 2002:a05:6808:6717:b0:467:462b:ab0 with SMTP id
+ 5614622812f47-46757050cfbmr1430065b6e.2.1773405096637; Fri, 13 Mar 2026
+ 05:31:36 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0ibAwNi95giT5tF-7UvZ4SijneHkOtOB1d83SbjYLv4MA@mail.gmail.com>
+References: <76675c4d49d3a8f72252076812ef8f22276230c2.1772282441.git.houwenlong.hwl@antgroup.com>
+ <b5d7f0734005eb08f31e7b9b72e253efcd2614ab.1772282441.git.houwenlong.hwl@antgroup.com>
+ <CAJZ5v0ibAwNi95giT5tF-7UvZ4SijneHkOtOB1d83SbjYLv4MA@mail.gmail.com> <20260313122844.GBabQC_L7iROuslPNd@fat_crate.local>
+In-Reply-To: <20260313122844.GBabQC_L7iROuslPNd@fat_crate.local>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Fri, 13 Mar 2026 13:31:24 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0j_chGXMdyK8FGeK=PFs=R=cE5ukx-1u-5J4nEVrpesLQ@mail.gmail.com>
+X-Gm-Features: AaiRm537ttHJhSLSoazUbRYArnwU8s430NGE5PpH--IPy5YfTUPvM2KB6_tmR0A
+Message-ID: <CAJZ5v0j_chGXMdyK8FGeK=PFs=R=cE5ukx-1u-5J4nEVrpesLQ@mail.gmail.com>
+Subject: Re: [PATCH 2/2] ACPI, x86/boot: Remove {set|get}_root_pointer() ACPI callbacks
+To: Borislav Petkov <bp@alien8.de>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Hou Wenlong <houwenlong.hwl@antgroup.com>, 
+	linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@kernel.org>, 
+	Ingo Molnar <mingo@redhat.com>, Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, 
+	"H. Peter Anvin" <hpa@zytor.com>, Len Brown <lenb@kernel.org>, Kees Cook <kees@kernel.org>, 
+	Nikolay Borisov <nik.borisov@suse.com>, "Peter Zijlstra (Intel)" <peterz@infradead.org>, 
+	Sohil Mehta <sohil.mehta@intel.com>, Randy Dunlap <rdunlap@infradead.org>, 
+	linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Mar 05, 2026 at 01:20:53PM +0100, Rafael J. Wysocki wrote:
-> On Sun, Mar 1, 2026 at 6:05=E2=80=AFAM Hou Wenlong <houwenlong.hwl@antg=
+On Fri, Mar 13, 2026 at 1:29=E2=80=AFPM Borislav Petkov <bp@alien8.de> wrot=
+e:
+>
+> On Thu, Mar 05, 2026 at 01:20:53PM +0100, Rafael J. Wysocki wrote:
+> > On Sun, Mar 1, 2026 at 6:05=E2=80=AFAM Hou Wenlong <houwenlong.hwl@antg=
 roup.com> wrote:
-> >
-> > After removing pvh_get_root_pointer(), the only get_root_pointer() AC=
+> > >
+> > > After removing pvh_get_root_pointer(), the only get_root_pointer() AC=
 PI
-> > callback is x86_default_get_root_pointer(). Move the implementation
-> > directly into acpi_arch_get_root_pointer() and remove the
-> > get_root_pointer() ACPI callback. Since the set_root_pointer() ACPI
-> > callback is also only x86_default_set_root_pointer(), remove it as we=
+> > > callback is x86_default_get_root_pointer(). Move the implementation
+> > > directly into acpi_arch_get_root_pointer() and remove the
+> > > get_root_pointer() ACPI callback. Since the set_root_pointer() ACPI
+> > > callback is also only x86_default_set_root_pointer(), remove it as we=
 ll.
+> > >
+> > > Signed-off-by: Hou Wenlong <houwenlong.hwl@antgroup.com>
 > >
-> > Signed-off-by: Hou Wenlong <houwenlong.hwl@antgroup.com>
->=20
-> Acked-by: Rafael J. Wysocki (Intel) <rafael@kernel.org>
-
-I'm assuming this means I should take this set through tip ... eventually=
+> > Acked-by: Rafael J. Wysocki (Intel) <rafael@kernel.org>
+>
+> I'm assuming this means I should take this set through tip ... eventually=
 ?
 
-:-)
-
---=20
-Regards/Gruss,
-    Boris.
-
-https://people.kernel.org/tglx/notes-about-netiquette
+Yes, please (and you can append " # ACPI" to the tag).
