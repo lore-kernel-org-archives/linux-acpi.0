@@ -1,43 +1,38 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F8A2272E56;
-	Fri, 13 Mar 2026 13:04:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E63D3272E56;
+	Fri, 13 Mar 2026 13:04:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773407079; cv=none; b=on92CPeA8JlBgX7LpL9HSCUFfU+M+urp50yWyDpqhqMDe+sh4Qs/TS92WRGOa7yNNKhN4isfx8V3cHxI25Nmu/8c142zPPOVmPmlxrWxkdaNmZHqR3a42eLhA2O3/ea0gAecT309r6p+1fFi+7gfsn065Ky0fMkhKBnY3UGcgnI=
+	t=1773407083; cv=none; b=siO5jUXdiD/Fg0d5I9dMMYGabWS19fUsn0ZSGpw4BpNZzElI46D2IYE3WTRLwchJAoe6TolfT95GyFcU0ckoTFpYB/EXW3tZlrS/dP68re472LKsmjLPZjc+92hKBPAGynhpVaxsmdKVCbl1HFCp8NnosADkwJelcBn4Tto3l/M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773407079; c=relaxed/simple;
-	bh=C3Ic2bjaZP+Oml7vLA57zqG396WSoFwe59qAqPPunlE=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=JoWLB2qLjyi6JH30Yyschs264qTrqA+zIqY7pSJruUIJUrz36etWYZHsX/7XNur4cSCyteq/DK5ZeTwJ6XXOckrMvT3CohrYOA+Jxlis/aYkw5iNetWzN97xFzsftITCtK46vLTDvdmK64CThKbcqs77/ic8sM2Hl/2/nyhyUXw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=LQeQjwQI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773407083; c=relaxed/simple;
+	bh=5MFOUPqzLB86odgXpteJJ2wTDPocYBMr4++5kyHrsKo=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=UJmm71N2+j70e/6btELZnB46bMhwH741BCNxoIKSCbUDsFNyfX49Y5k4QWfUutnoJq0lrY/J3sgoybJOrNjrR0IJVV0NJdbgDodA5fi3mWY4O07dA89t38WouFG0xVVx6KUcawSe71WsA/wNLg3i+LFCXj5clu2/cJhB29zjPPY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RLgKLGCM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LQeQjwQI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3246CC19425;
-	Fri, 13 Mar 2026 13:04:38 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RLgKLGCM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4B7EC2BC86;
+	Fri, 13 Mar 2026 13:04:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773407079;
-	bh=C3Ic2bjaZP+Oml7vLA57zqG396WSoFwe59qAqPPunlE=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=LQeQjwQI7CsY7sZaF9Kjg0LfOQkNsopzqNt+qf0GBdnYN2Fm8oH4GAznjYYHdYgeb
-	 kAg10/mvbsZWgUs0JLhLh4gnP6RamCWySBPnw3K4+WSIrutxvU7kHO8Lx4OfKVSJM0
-	 Tujx/rJG4jqabzKKZIILWFbEuOaGXgUx+ao0y+lWG8KBQqDhkqJVH9YvK91WLzJWww
-	 zR0Un2wOS+zyNR+onTecBPAmtdxw+vg7wSGhYgYPiJ8vLvYPZosa8zKumG9BCDX4ec
-	 d2GJGr3U8tcF6IRZR0eIOMTZ49si+GuGDEBRbSsSbr1yxMy0B4vFVvqTWHsDvbSs8f
-	 pFoUrJz3Ss8ig==
+	s=k20201202; t=1773407082;
+	bh=5MFOUPqzLB86odgXpteJJ2wTDPocYBMr4++5kyHrsKo=;
+	h=From:To:Cc:Subject:Date:From;
+	b=RLgKLGCMN+Fl74FymDC0Hd1lYc0RzPn2fBVBe1R4NZoQhzIDM+wYuZ41HZoPxEOg5
+	 Wo7ZE0ppDSrcGHxNOzuIkI+22Fk5BvpbUpo34jCcKbwO0tQXA9hgPN/A/743rEGpcU
+	 42XAHxvA9iSMUlxXLbQmiCNznch1esdUYnMl0yhgkYf1Va0BduV/eweItliVCyw+mQ
+	 q6hGQ9F3vq1Qzcsm92soiX99aHFUTavkDXfsDsTvX1/OWewlyiGq42bUnohf4IW7MK
+	 0/tw7ebyfyY8cuWwAYoGPvpHfHmF7Rbcz/uSVTveC7tTJ7LRXrOBFOkBMzDyGWKOK2
+	 iQYk3AfFIW7jA==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Hans de Goede <hansg@kernel.org>,
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- Danilo Krummrich <dakr@kernel.org>, driver-core@lists.linux.dev
-Subject:
- [PATCH v2 1/8] driver core: auxiliary bus: Introduce dev_is_auxiliary()
-Date: Fri, 13 Mar 2026 13:53:03 +0100
-Message-ID: <5079467.GXAFRqVoOG@rafael.j.wysocki>
+Cc: LKML <linux-kernel@vger.kernel.org>, Hans de Goede <hansg@kernel.org>
+Subject: [PATCH v2 0/8] ACPI: driver: Cleanups and fixes,
+ mostly related to acpi_device_name/class()
+Date: Fri, 13 Mar 2026 13:47:38 +0100
+Message-ID: <6271415.lOV4Wx5bFT@rafael.j.wysocki>
 Organization: Linux Kernel Development
-In-Reply-To: <6271415.lOV4Wx5bFT@rafael.j.wysocki>
-References: <6271415.lOV4Wx5bFT@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -47,55 +42,35 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="UTF-8"
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Hi All,
 
-Introduce dev_is_auxiliary() in analogy with dev_is_platform() to
-facilitate subsequent changes.
+This is an update of
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
+https://lore.kernel.org/linux-acpi/4505861.ejJDZkT8p0@rafael.j.wysocki/
 
-Danilo, Greg, please let me know if you have objections or concerns
-regarding this one.
+which is posted mostly because the first two patches from the v1 have been
+applied and next two ones have had to be rebased on top of a fix that went
+into the mainline yesterday.
 
-The new function is used in the next patch to limit the scope of the
-search when looking for duplicates of the device being probed.
+There is one new patch in this set (patch [1/8]), two patches have been
+rebased and reordered with respect to each other (patches [2-3/8]), and
+the changelog of the last patch has been updated. There are no substantial
+changes relative to the v1 in the other patches.
 
----
- drivers/base/auxiliary.c      |   10 ++++++++++
- include/linux/auxiliary_bus.h |    2 ++
- 2 files changed, 12 insertions(+)
+This series 
 
---- a/drivers/base/auxiliary.c
-+++ b/drivers/base/auxiliary.c
-@@ -502,6 +502,16 @@ struct auxiliary_device *__devm_auxiliar
- }
- EXPORT_SYMBOL_GPL(__devm_auxiliary_device_create);
- 
-+/**
-+ * dev_is_auxiliary - check if the device is an auxiliary one
-+ * @dev: device to check
-+ */
-+bool dev_is_auxiliary(struct device *dev)
-+{
-+	return dev->bus == &auxiliary_bus_type;
-+}
-+EXPORT_SYMBOL_GPL(dev_is_auxiliary);
-+
- void __init auxiliary_bus_init(void)
- {
- 	WARN_ON(bus_register(&auxiliary_bus_type));
---- a/include/linux/auxiliary_bus.h
-+++ b/include/linux/auxiliary_bus.h
-@@ -271,6 +271,8 @@ struct auxiliary_device *__devm_auxiliar
- 	__devm_auxiliary_device_create(dev, KBUILD_MODNAME, devname,  \
- 				       platform_data, 0)
- 
-+bool dev_is_auxiliary(struct device *dev);
-+
- /**
-  * module_auxiliary_driver() - Helper macro for registering an auxiliary driver
-  * @__auxiliary_driver: auxiliary driver struct
+ * Cleans up a couple of wonky things in the ACPI video bus driver (patches
+   [1-3/8])
+ * Updates several drivers to stop setting acpi_device_name() which is not
+   used anywhere later (patch [4/8])
+ * Adjusts notification APIs to be more consistent and in preparation for
+   the next change (patch [5-6/8])
+ * Updates several drivers to stop setting acpi_device_class(), which is not
+   used anywhere later, and one driver still using it (button) to clear it
+   on remove (patch [7/8])
+ * Consolidates the ACPI_AC_CLASS definitions (patch [8/8]).
+
+Thanks!
 
 
 
