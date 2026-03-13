@@ -1,39 +1,37 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FCEF230270;
-	Fri, 13 Mar 2026 13:04:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEFE2257843;
+	Fri, 13 Mar 2026 13:04:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773407063; cv=none; b=LayzvbBTCFdz7uKYE071yOF7zW8pBT+329BKUtTCSqnrVXSzJ03E0uhL9sMihurT1VnJ9Ga2fW5YI6z/QmZ6lhs9MtVt8KzQgn66hAxUX5S51xTUoeJsbA4uSHqyjTZZ2NAczf646pNCSc4GvPM2g3cNPmFX+4KTVOwvSOiKLaQ=
+	t=1773407065; cv=none; b=bosxSHLZqWJ06GFONw8zyp2Lyhd1jp5W7peHnYqVMNcw6WlxcG7LHJVBcmY2rZNoJ+aHqjsQAhzAjxBiAWEZ63XSqPWUmSPPyGQ9pkQi5pUTSGqrUP5KVmpqdfATpUAPPT3noBxx6YP0ydjzTt1E5cBtMtAl5Skr2aBLEZIbmFQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773407063; c=relaxed/simple;
-	bh=ernrdKhesQzKSW4P8/b20dhtKj8kfX3mUWKJafyi044=;
+	s=arc-20240116; t=1773407065; c=relaxed/simple;
+	bh=pxYkOcxPbmqk71KzpcBiQQjg1yzVdLr2W8OQtuAonmA=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=H1HPpqEmTPjIJi+PhG3UY0PnG2QHuVuk6kN+Yc/hMrQLVLU8WHJP5xgASmMxOmjm3kgmd1fGdk9oOePEarkNjrpIb7gUXAIyXUbNjwJQ3TxKYBZMGeNmtBwzzNleBCPgf5n3rEncEsdLklpo6JQvs1AqriXD/Hwnk33W+jpUWks=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=LJUP3+dJ; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=N6GJ/mutlHsbV+ts20bACT5KQfAsA7stWdGRrL8d5mw05LFXrv54xc7hxnAwcGN/VcA+7QvGlc+BZduX/0wBjtZe7ueHxYgzbDvqy9kRGFB85V35/zrwIvYN4U94FRmG/9Oudbnux4H7hMtCUBROWE15gjXWtN8xMOvu1ZZxZh4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RgsSIxFc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LJUP3+dJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4DEEC2BC87;
-	Fri, 13 Mar 2026 13:04:21 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RgsSIxFc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E701EC2BC87;
+	Fri, 13 Mar 2026 13:04:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773407062;
-	bh=ernrdKhesQzKSW4P8/b20dhtKj8kfX3mUWKJafyi044=;
+	s=k20201202; t=1773407065;
+	bh=pxYkOcxPbmqk71KzpcBiQQjg1yzVdLr2W8OQtuAonmA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=LJUP3+dJF3zpEK+qHx8mGs/vrkwJibJqtzpQSiL3LfA+ASEJBKffvCJvqfVTU3BLO
-	 mrHkreGmHva6qU5lUbt8MMIH82vk5SqadSa2dFRDpMmglwkjEo4RJ97WFkBFjRSMjg
-	 ANV0XPPaqtXjUZhbVcLCT8Qqe4imCdRxUwcgP818qLU2w2zi5LgGeP+oqQx7GnAPfY
-	 +gbhhEqefy8YGY7nv2KAT+fsz6QxeaSt5jVKmqJdrJAStKQUrWcxlUwAzJnC9DMB64
-	 RHXBUeFl3Mdz3jv4q9RzgJ6j9+yJAAdx9AoOLMORyFrEiyOoolwL7JYuljLuYYVzQC
-	 uhZfAOe4cnXEg==
+	b=RgsSIxFcVcbVIUufYpAERUSkWzV/Yb1fdfYuuG+a3N0wPC03PDrUgy1N7E5jhWG0z
+	 A444KjXyEk53na2KLbKVuggYVcx1U6vMxnDRXrTVNnZa3BJpxxU/rKlg065xjgDEIf
+	 PDETzZiRkt2USsG6SXqac9fKLfW8y8FKxB1luHZDw1/pDUX31+vQ/FL8DXSZ0tc94q
+	 eg65B3yycckx6kW6rgCybQ8DYkii57CfIci03J7Ie3Kjpi62Jy8GOJGfRhyfzzocmT
+	 G48fQqtGGISFTYrqKQDQBYFNy/Pr6AD1iKlzfBpQTcKzClLWK9XRqkE7kr9aLFJaTC
+	 BrC06kWqNmhXw==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>, Hans de Goede <hansg@kernel.org>
-Subject:
- [PATCH v2 6/8] ACPI: driver: Avoid using pnp.device_class for netlink
- handling
-Date: Fri, 13 Mar 2026 13:59:58 +0100
-Message-ID: <7944022.EvYhyI6sBW@rafael.j.wysocki>
+Subject: [PATCH v2 5/8] ACPI: event: Redefine acpi_notifier_call_chain()
+Date: Fri, 13 Mar 2026 13:59:17 +0100
+Message-ID: <2056097.PYKUYFuaPT@rafael.j.wysocki>
 Organization: Linux Kernel Development
 In-Reply-To: <6271415.lOV4Wx5bFT@rafael.j.wysocki>
 References: <6271415.lOV4Wx5bFT@rafael.j.wysocki>
@@ -48,160 +46,116 @@ Content-Type: text/plain; charset="UTF-8"
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Update several core ACPI device drivers that use
-acpi_bus_generate_netlink_event() for generating netlink messages to
-pass a string literal as its first argument instead of a pointer to
-pnp.device_class in a given struct acpi_device, which will allow them
-to avoid initializing the pnp.device_class field in the future.
+Notice that acpi_notifier_call_chain() only uses its device argument
+to retrieve the pnp.device_class and pnp.bus_id values from there, so
+it can be redefined to take pointers to those two strings as parameters
+istead of a struct acpi_device pointer.
 
-The ACPI button driver that uses different acpi_device_class()
-values for different button types will still pass it to
-acpi_bus_generate_netlink_event(), but update it to use the
-acpi_device_class() macro instead of open coding the pointer
-access path.
+That allows all of its callers to pass a string literal as its first
+argument, so they won't need to initialize pnp.device_class in
+struct acpi_device objects operated by them any more, and its
+signature becomes more similar to acpi_bus_generate_netlink_event()
+then.
+
+Update the code as per the above.
 
 No intentional functional impact.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/ac.c               |    6 +++---
- drivers/acpi/acpi_pad.c         |    4 ++--
- drivers/acpi/battery.c          |    2 +-
- drivers/acpi/button.c           |    2 +-
- drivers/acpi/processor_driver.c |   22 ++++++++--------------
- drivers/acpi/thermal.c          |    6 +++---
- 6 files changed, 18 insertions(+), 24 deletions(-)
+ drivers/acpi/ac.c         |    3 ++-
+ drivers/acpi/acpi_video.c |    9 ++++++---
+ drivers/acpi/battery.c    |    3 ++-
+ drivers/acpi/event.c      |    7 ++++---
+ include/acpi/acpi_bus.h   |    3 ++-
+ 5 files changed, 16 insertions(+), 9 deletions(-)
 
 --- a/drivers/acpi/ac.c
 +++ b/drivers/acpi/ac.c
-@@ -130,9 +130,9 @@ static void acpi_ac_notify(acpi_handle h
- 			msleep(ac_sleep_before_get_state_ms);
- 
- 		acpi_ac_get_state(ac);
--		acpi_bus_generate_netlink_event(adev->pnp.device_class,
--						  dev_name(&adev->dev), event,
--						  (u32) ac->state);
-+		acpi_bus_generate_netlink_event(ACPI_AC_CLASS,
-+						dev_name(&adev->dev), event,
-+						ac->state);
- 		acpi_notifier_call_chain(ACPI_AC_CLASS, acpi_device_bid(adev),
- 					 event, ac->state);
+@@ -133,7 +133,8 @@ static void acpi_ac_notify(acpi_handle h
+ 		acpi_bus_generate_netlink_event(adev->pnp.device_class,
+ 						  dev_name(&adev->dev), event,
+ 						  (u32) ac->state);
+-		acpi_notifier_call_chain(adev, event, (u32) ac->state);
++		acpi_notifier_call_chain(ACPI_AC_CLASS, acpi_device_bid(adev),
++					 event, ac->state);
  		power_supply_changed(ac->charger);
---- a/drivers/acpi/acpi_pad.c
-+++ b/drivers/acpi/acpi_pad.c
-@@ -413,8 +413,8 @@ static void acpi_pad_notify(acpi_handle
- 	switch (event) {
- 	case ACPI_PROCESSOR_AGGREGATOR_NOTIFY:
- 		acpi_pad_handle_notify(handle);
--		acpi_bus_generate_netlink_event(adev->pnp.device_class,
--			dev_name(&adev->dev), event, 0);
-+		acpi_bus_generate_netlink_event(ACPI_PROCESSOR_AGGREGATOR_CLASS,
-+						dev_name(&adev->dev), event, 0);
- 		break;
- 	default:
- 		pr_warn("Unsupported event [0x%x]\n", event);
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -1078,7 +1078,7 @@ static void acpi_battery_notify(acpi_han
- 	if (event == ACPI_BATTERY_NOTIFY_INFO)
- 		acpi_battery_refresh(battery);
- 	acpi_battery_update(battery, false);
--	acpi_bus_generate_netlink_event(device->pnp.device_class,
-+	acpi_bus_generate_netlink_event(ACPI_BATTERY_CLASS,
- 					dev_name(&device->dev), event,
- 					acpi_battery_present(battery));
- 	acpi_notifier_call_chain(ACPI_BATTERY_CLASS, acpi_device_bid(device),
---- a/drivers/acpi/button.c
-+++ b/drivers/acpi/button.c
-@@ -468,7 +468,7 @@ static void acpi_button_notify(acpi_hand
- 	input_report_key(input, keycode, 0);
- 	input_sync(input);
- 
--	acpi_bus_generate_netlink_event(device->pnp.device_class,
-+	acpi_bus_generate_netlink_event(acpi_device_class(device),
- 					dev_name(&device->dev),
- 					event, ++button->pushed);
+ 	}
  }
---- a/drivers/acpi/processor_driver.c
-+++ b/drivers/acpi/processor_driver.c
-@@ -53,7 +53,7 @@ static void acpi_processor_notify(acpi_h
- {
- 	struct acpi_device *device = data;
- 	struct acpi_processor *pr;
--	int saved;
-+	int saved, ev_data = 0;
- 
- 	if (device->handle != handle)
- 		return;
-@@ -66,33 +66,27 @@ static void acpi_processor_notify(acpi_h
- 	case ACPI_PROCESSOR_NOTIFY_PERFORMANCE:
- 		saved = pr->performance_platform_limit;
- 		acpi_processor_ppc_has_changed(pr, 1);
--		if (saved == pr->performance_platform_limit)
--			break;
--		acpi_bus_generate_netlink_event(device->pnp.device_class,
--						  dev_name(&device->dev), event,
--						  pr->performance_platform_limit);
-+		ev_data = pr->performance_platform_limit;
-+		if (saved == ev_data)
-+			return;
-+
+--- a/drivers/acpi/acpi_video.c
++++ b/drivers/acpi/acpi_video.c
+@@ -1566,7 +1566,8 @@ static void acpi_video_bus_notify(acpi_h
  		break;
- 	case ACPI_PROCESSOR_NOTIFY_POWER:
- 		acpi_processor_power_state_has_changed(pr);
--		acpi_bus_generate_netlink_event(device->pnp.device_class,
--						  dev_name(&device->dev), event, 0);
- 		break;
- 	case ACPI_PROCESSOR_NOTIFY_THROTTLING:
- 		acpi_processor_tstate_has_changed(pr);
--		acpi_bus_generate_netlink_event(device->pnp.device_class,
--						  dev_name(&device->dev), event, 0);
- 		break;
- 	case ACPI_PROCESSOR_NOTIFY_HIGEST_PERF_CHANGED:
- 		cpufreq_update_limits(pr->id);
--		acpi_bus_generate_netlink_event(device->pnp.device_class,
--						  dev_name(&device->dev), event, 0);
- 		break;
- 	default:
- 		acpi_handle_debug(handle, "Unsupported event [0x%x]\n", event);
--		break;
-+		return;
  	}
  
--	return;
-+	acpi_bus_generate_netlink_event(ACPI_PROCESSOR_CLASS,
-+					dev_name(&device->dev), event, ev_data);
- }
+-	if (acpi_notifier_call_chain(device, event, 0))
++	if (acpi_notifier_call_chain(ACPI_VIDEO_CLASS, acpi_device_bid(device),
++				     event, 0))
+ 		/* Something vetoed the keypress. */
+ 		keycode = 0;
  
- static int __acpi_processor_start(struct acpi_device *device);
---- a/drivers/acpi/thermal.c
-+++ b/drivers/acpi/thermal.c
-@@ -340,7 +340,7 @@ static void acpi_thermal_trips_update(st
- 	thermal_zone_for_each_trip(tz->thermal_zone,
- 				   acpi_thermal_adjust_trip, &atd);
- 	acpi_queue_thermal_check(tz);
--	acpi_bus_generate_netlink_event(adev->pnp.device_class,
-+	acpi_bus_generate_netlink_event(ACPI_THERMAL_CLASS,
- 					dev_name(&adev->dev), event, 0);
- }
+@@ -1607,7 +1608,8 @@ static void acpi_video_device_notify(acp
+ 		if (video_device->backlight)
+ 			backlight_force_update(video_device->backlight,
+ 					       BACKLIGHT_UPDATE_HOTKEY);
+-		acpi_notifier_call_chain(device, event, 0);
++		acpi_notifier_call_chain(ACPI_VIDEO_CLASS, acpi_device_bid(device),
++					 event, 0);
+ 		return;
+ 	}
  
-@@ -542,7 +542,7 @@ static void acpi_thermal_zone_device_hot
+@@ -1640,7 +1642,8 @@ static void acpi_video_device_notify(acp
+ 	if (keycode)
+ 		may_report_brightness_keys = true;
+ 
+-	acpi_notifier_call_chain(device, event, 0);
++	acpi_notifier_call_chain(ACPI_VIDEO_CLASS, acpi_device_bid(device),
++				 event, 0);
+ 
+ 	if (keycode && (report_key_events & REPORT_BRIGHTNESS_KEY_EVENTS)) {
+ 		input_report_key(input, keycode, 1);
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -1081,7 +1081,8 @@ static void acpi_battery_notify(acpi_han
+ 	acpi_bus_generate_netlink_event(device->pnp.device_class,
+ 					dev_name(&device->dev), event,
+ 					acpi_battery_present(battery));
+-	acpi_notifier_call_chain(device, event, acpi_battery_present(battery));
++	acpi_notifier_call_chain(ACPI_BATTERY_CLASS, acpi_device_bid(device),
++				 event, acpi_battery_present(battery));
+ 	/* acpi_battery_update could remove power_supply object */
+ 	if (old && battery->bat)
+ 		power_supply_changed(battery->bat);
+--- a/drivers/acpi/event.c
++++ b/drivers/acpi/event.c
+@@ -24,12 +24,13 @@
+ /* ACPI notifier chain */
+ static BLOCKING_NOTIFIER_HEAD(acpi_chain_head);
+ 
+-int acpi_notifier_call_chain(struct acpi_device *dev, u32 type, u32 data)
++int acpi_notifier_call_chain(const char *device_class,
++			     const char *bus_id, u32 type, u32 data)
  {
- 	struct acpi_thermal *tz = thermal_zone_device_priv(thermal);
+ 	struct acpi_bus_event event;
  
--	acpi_bus_generate_netlink_event(tz->device->pnp.device_class,
-+	acpi_bus_generate_netlink_event(ACPI_THERMAL_CLASS,
- 					dev_name(&tz->device->dev),
- 					ACPI_THERMAL_NOTIFY_HOT, 1);
- }
-@@ -551,7 +551,7 @@ static void acpi_thermal_zone_device_cri
- {
- 	struct acpi_thermal *tz = thermal_zone_device_priv(thermal);
- 
--	acpi_bus_generate_netlink_event(tz->device->pnp.device_class,
-+	acpi_bus_generate_netlink_event(ACPI_THERMAL_CLASS,
- 					dev_name(&tz->device->dev),
- 					ACPI_THERMAL_NOTIFY_CRITICAL, 1);
+-	strscpy(event.device_class, dev->pnp.device_class);
+-	strscpy(event.bus_id, dev->pnp.bus_id);
++	strscpy(event.device_class, device_class);
++	strscpy(event.bus_id, bus_id);
+ 	event.type = type;
+ 	event.data = data;
+ 	return (blocking_notifier_call_chain(&acpi_chain_head, 0, (void *)&event)
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -625,7 +625,8 @@ int acpi_dev_install_notify_handler(stru
+ void acpi_dev_remove_notify_handler(struct acpi_device *adev,
+ 				    u32 handler_type,
+ 				    acpi_notify_handler handler);
+-extern int acpi_notifier_call_chain(struct acpi_device *, u32, u32);
++extern int acpi_notifier_call_chain(const char *device_class,
++				    const char *bus_id, u32 type, u32 data);
+ extern int register_acpi_notifier(struct notifier_block *);
+ extern int unregister_acpi_notifier(struct notifier_block *);
  
 
 
