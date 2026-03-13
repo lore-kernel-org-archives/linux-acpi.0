@@ -1,41 +1,40 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 467E5230270;
-	Fri, 13 Mar 2026 13:04:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F8A2272E56;
+	Fri, 13 Mar 2026 13:04:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773407076; cv=none; b=Nu3pqG5JX5HZRvj/iLZFwyF5kYTvgfZ5aiDjanRN/HcNT1QNw5kJFn9RznO2WO25930UrErQQ7t19BxIchPtitKP9hGZwd88CTYvA4IXQvGDfJM43NuIkFC7gc85ZIgD5f8tWqhN0B/2yWlfNm5HtKPFXxP/Jgjv/WBcNaj/akQ=
+	t=1773407079; cv=none; b=on92CPeA8JlBgX7LpL9HSCUFfU+M+urp50yWyDpqhqMDe+sh4Qs/TS92WRGOa7yNNKhN4isfx8V3cHxI25Nmu/8c142zPPOVmPmlxrWxkdaNmZHqR3a42eLhA2O3/ea0gAecT309r6p+1fFi+7gfsn065Ky0fMkhKBnY3UGcgnI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773407076; c=relaxed/simple;
-	bh=tolF/JM2b0dllU7yzwcKdXka0D22HWa21wnEPnBPfDs=;
+	s=arc-20240116; t=1773407079; c=relaxed/simple;
+	bh=C3Ic2bjaZP+Oml7vLA57zqG396WSoFwe59qAqPPunlE=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=BY5ynvwAouvmk40xRemHHlvxGPbC7n7Q73CvvRNeZd/IUEdKwNVf6FUQxJlXnDiN0IkyYCFJsTxetnRxMLFqQcL9mWrozJIAFV2b0JeFdYUpqr7pRIIPflFIe0b8m0Sp1OYQAYXKnzE7fjT9kWv2QonIdzAy/G2JDyAhwoUDZFw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=uF0uJ8Ce; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=JoWLB2qLjyi6JH30Yyschs264qTrqA+zIqY7pSJruUIJUrz36etWYZHsX/7XNur4cSCyteq/DK5ZeTwJ6XXOckrMvT3CohrYOA+Jxlis/aYkw5iNetWzN97xFzsftITCtK46vLTDvdmK64CThKbcqs77/ic8sM2Hl/2/nyhyUXw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=LQeQjwQI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="uF0uJ8Ce"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 729DFC19421;
-	Fri, 13 Mar 2026 13:04:34 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LQeQjwQI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3246CC19425;
+	Fri, 13 Mar 2026 13:04:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773407075;
-	bh=tolF/JM2b0dllU7yzwcKdXka0D22HWa21wnEPnBPfDs=;
+	s=k20201202; t=1773407079;
+	bh=C3Ic2bjaZP+Oml7vLA57zqG396WSoFwe59qAqPPunlE=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=uF0uJ8CeQLYvaIUM5RdW3NyhtvjyTByDegx/PfUQm4CXN1Tk1RI946kSDksMQcX61
-	 DhS/8OSJa51f69dfFVveSayfV1B+hiGGzvmXT0m/A+YveV29SzNYeRDUnjR2b/qdZN
-	 PBzBCTp94JkWshCJnRXB7TffoAt3PjbJoaTBRUs+MzwBl52NTgigYPNG2HQhHQe63b
-	 EhYR9v6fw4fRBtocf35sozK09VeK+63pmZ3prLL8oRsKYVLCk9Dry7owT+fKNtTUvh
-	 zmKOaIuEj6yFjDA7aI34KEuQ6yxUFZzzbt1mykxJFsmDrh+YoFBQP7hwOapLGnkDR/
-	 uQaKRUty9bSiw==
+	b=LQeQjwQI7CsY7sZaF9Kjg0LfOQkNsopzqNt+qf0GBdnYN2Fm8oH4GAznjYYHdYgeb
+	 kAg10/mvbsZWgUs0JLhLh4gnP6RamCWySBPnw3K4+WSIrutxvU7kHO8Lx4OfKVSJM0
+	 Tujx/rJG4jqabzKKZIILWFbEuOaGXgUx+ao0y+lWG8KBQqDhkqJVH9YvK91WLzJWww
+	 zR0Un2wOS+zyNR+onTecBPAmtdxw+vg7wSGhYgYPiJ8vLvYPZosa8zKumG9BCDX4ec
+	 d2GJGr3U8tcF6IRZR0eIOMTZ49si+GuGDEBRbSsSbr1yxMy0B4vFVvqTWHsDvbSs8f
+	 pFoUrJz3Ss8ig==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>, Hans de Goede <hansg@kernel.org>,
- Danilo Krummrich <dakr@kernel.org>,
  Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- Linux Driver Core Development <driver-core@lists.linux.dev>
+ Danilo Krummrich <dakr@kernel.org>, driver-core@lists.linux.dev
 Subject:
- [PATCH v2 2/8] ACPI: video: Rework checking for duplicate video bus devices
-Date: Fri, 13 Mar 2026 13:56:19 +0100
-Message-ID: <3058492.e9J7NaK4W3@rafael.j.wysocki>
+ [PATCH v2 1/8] driver core: auxiliary bus: Introduce dev_is_auxiliary()
+Date: Fri, 13 Mar 2026 13:53:03 +0100
+Message-ID: <5079467.GXAFRqVoOG@rafael.j.wysocki>
 Organization: Linux Kernel Development
 In-Reply-To: <6271415.lOV4Wx5bFT@rafael.j.wysocki>
 References: <6271415.lOV4Wx5bFT@rafael.j.wysocki>
@@ -50,121 +49,53 @@ Content-Type: text/plain; charset="UTF-8"
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-The current way of checking for duplicate video bus devices in
-acpi_video_bus_probe() is based on walking the ACPI namespace which is
-not necessary after recent driver conversions.  It is also susceptible
-to race conditions (for example, if two video bus devices are probed at
-the same time) and ordering issues.
-
-Instead of doing it the old way, inspect the children of the parent of
-the device being probed, excluding the latter and the children that are
-not auxiliary devices.  For each of the remaining children, check if any
-of the entries in the video_bus_head list is equal to its driver data
-which can only happen if the given child has been processed by
-acpi_video_bus_probe() successfully and so it is a duplicate of the
-one being probed.
-
-Moreover, to prevent acpi_video_bus_probe() from processing two devices
-concurrently, which might defeat the above check, use a new internal
-mutex in it.
-
-Also, print the FW_BUG message only if allow_duplicates is unset which
-allows the entire duplicates check to be skipped in that case (doing
-it just to print the message about the case that is going to be
-ignored anyway is kind of pointless).
+Introduce dev_is_auxiliary() in analogy with dev_is_platform() to
+facilitate subsequent changes.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/acpi_video.c |   56 +++++++++++++++++++++++-----------------------
- 1 file changed, 28 insertions(+), 28 deletions(-)
 
---- a/drivers/acpi/acpi_video.c
-+++ b/drivers/acpi/acpi_video.c
-@@ -1681,26 +1681,6 @@ static int acpi_video_resume(struct noti
- 	return NOTIFY_DONE;
+Danilo, Greg, please let me know if you have objections or concerns
+regarding this one.
+
+The new function is used in the next patch to limit the scope of the
+search when looking for duplicates of the device being probed.
+
+---
+ drivers/base/auxiliary.c      |   10 ++++++++++
+ include/linux/auxiliary_bus.h |    2 ++
+ 2 files changed, 12 insertions(+)
+
+--- a/drivers/base/auxiliary.c
++++ b/drivers/base/auxiliary.c
+@@ -502,6 +502,16 @@ struct auxiliary_device *__devm_auxiliar
  }
+ EXPORT_SYMBOL_GPL(__devm_auxiliary_device_create);
  
--static acpi_status
--acpi_video_bus_match(acpi_handle handle, u32 level, void *context,
--			void **return_value)
--{
--	struct acpi_device *device = context;
--	struct acpi_device *sibling;
--
--	if (handle == device->handle)
--		return AE_CTRL_TERMINATE;
--
--	sibling = acpi_fetch_acpi_dev(handle);
--	if (!sibling)
--		return AE_OK;
--
--	if (!strcmp(acpi_device_name(sibling), ACPI_VIDEO_BUS_NAME))
--			return AE_ALREADY_EXISTS;
--
--	return AE_OK;
--}
--
- static void acpi_video_dev_register_backlight(struct acpi_video_device *device)
- {
- 	struct backlight_properties props;
-@@ -1976,29 +1956,49 @@ static int acpi_video_bus_put_devices(st
- 	return 0;
- }
- 
-+static int duplicate_dev_check(struct device *sibling, void *data)
++/**
++ * dev_is_auxiliary - check if the device is an auxiliary one
++ * @dev: device to check
++ */
++bool dev_is_auxiliary(struct device *dev)
 +{
-+	struct acpi_video_bus *video;
-+
-+	if (sibling == data || !dev_is_auxiliary(sibling))
-+		return 0;
-+
-+	guard(mutex)(&video_list_lock);
-+
-+	list_for_each_entry(video, &video_bus_head, entry) {
-+		if (video == dev_get_drvdata(sibling))
-+			return -EEXIST;
-+	}
-+
-+	return 0;
++	return dev->bus == &auxiliary_bus_type;
 +}
++EXPORT_SYMBOL_GPL(dev_is_auxiliary);
 +
-+static bool acpi_video_bus_dev_is_duplicate(struct device *dev)
-+{
-+	return device_for_each_child(dev->parent, dev, duplicate_dev_check);
-+}
-+
- static int instance;
- 
- static int acpi_video_bus_probe(struct auxiliary_device *aux_dev,
- 				const struct auxiliary_device_id *id_unused)
+ void __init auxiliary_bus_init(void)
  {
- 	struct acpi_device *device = ACPI_COMPANION(&aux_dev->dev);
-+	static DEFINE_MUTEX(probe_lock);
- 	struct acpi_video_bus *video;
- 	bool auto_detect;
- 	int error;
--	acpi_status status;
+ 	WARN_ON(bus_register(&auxiliary_bus_type));
+--- a/include/linux/auxiliary_bus.h
++++ b/include/linux/auxiliary_bus.h
+@@ -271,6 +271,8 @@ struct auxiliary_device *__devm_auxiliar
+ 	__devm_auxiliary_device_create(dev, KBUILD_MODNAME, devname,  \
+ 				       platform_data, 0)
  
--	status = acpi_walk_namespace(ACPI_TYPE_DEVICE,
--				acpi_dev_parent(device)->handle, 1,
--				acpi_video_bus_match, NULL,
--				device, NULL);
--	if (status == AE_ALREADY_EXISTS) {
-+	/* Probe one video bus device at a time in case there are duplicates. */
-+	guard(mutex)(&probe_lock);
++bool dev_is_auxiliary(struct device *dev);
 +
-+	if (!allow_duplicates && acpi_video_bus_dev_is_duplicate(&aux_dev->dev)) {
- 		pr_info(FW_BUG
- 			"Duplicate ACPI video bus devices for the"
- 			" same VGA controller, please try module "
- 			"parameter \"video.allow_duplicates=1\""
- 			"if the current driver doesn't work.\n");
--		if (!allow_duplicates)
--			return -ENODEV;
-+		return -ENODEV;
- 	}
- 
- 	video = kzalloc_obj(struct acpi_video_bus);
+ /**
+  * module_auxiliary_driver() - Helper macro for registering an auxiliary driver
+  * @__auxiliary_driver: auxiliary driver struct
 
 
 
