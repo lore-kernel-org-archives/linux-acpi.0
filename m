@@ -1,168 +1,153 @@
-Received: from mout01.posteo.de (mout01.posteo.de [185.67.36.65])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBF5A375F78
-	for <linux-acpi@vger.kernel.org>; Fri, 13 Mar 2026 20:32:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.67.36.65
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0C07377013
+	for <linux-acpi@vger.kernel.org>; Fri, 13 Mar 2026 20:33:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773433949; cv=none; b=iMACsL2UQLXNZ2YW7Pl9YUnoCZ15BMXlQl0V6zi6Z8PHigxE3DvI/EmfmwFSMCjAYM0OdGmJ+dTobP2ZgRvTu9DrimOoeNbTJJcrLNQE3vofTILxWmzkilucbVCzyRQJiKU2BodLlNCIEKWJSkZ1fBsSKCEn9DNryCmgY/IA2aM=
+	t=1773434018; cv=none; b=njKKbpXAX+1JzD4wFt/LkpyKuF9zeFAqNHWVNi9KlImLl6pIcqlM5v8PgYSCHEyWpSlp83h5CHv3grsD1+vhNFU721OmJbKq17WQZ/LvWHWVQx7HQD+zNiM74WYo/sYrEKHf/ubxSP+IcJ2j8rogr2QRYtvqhHZecvgMJuvv7DA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773433949; c=relaxed/simple;
-	bh=zUKmnAJJ5iJOiT/3ZJrLs5Hjcv3qUJTQaRNVnFGFl1g=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=MCcWs/0l5hB+l2AEAfzAGFeXyWUh6NXqmtkZ5tzNMUz3KrmTdL2vc093TdrKrL0H52V23lzjsjSH4hqiGtoWXEZDxsK+WRTNPocZJATP4US2aqfVOy7OlMZ+hsAVERzXwadeLSBgL7vxYD0EAb4AMPw3vdxVa3gdi6cErOV7Pm8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de; spf=pass smtp.mailfrom=posteo.de; dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b=HEQRJ33W; arc=none smtp.client-ip=185.67.36.65
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=posteo.de
+	s=arc-20240116; t=1773434018; c=relaxed/simple;
+	bh=m3+M5+OULAFeHCpSmp11b7WVM+mtpz0VGLew+P/Flas=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=kh2JrMNj+kDmrsLax5oSesamPptpQgJykqJX0NOsFXDfNGliMX4n8vBhYSEMRFdAO5ZTEqVYwP5P0JX1hbUCtQRcfZj4hnBpH5L9ISJcwL5BMfd/EbGDd86uxCtGRuyTcP2S2j67nhCjuJFS/L/HZAeNMncq6NbHesqtEiOwgGw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=qMIAisHG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b="HEQRJ33W"
-Received: from submission (posteo.de [185.67.36.169]) 
-	by mout01.posteo.de (Postfix) with ESMTPS id 3712F240027
-	for <linux-acpi@vger.kernel.org>; Fri, 13 Mar 2026 21:32:23 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=posteo.de; s=2017;
-	t=1773433943; bh=zUKmnAJJ5iJOiT/3ZJrLs5Hjcv3qUJTQaRNVnFGFl1g=;
-	h=Message-ID:Subject:From:To:Cc:Date:Autocrypt:Content-Type:
-	 MIME-Version:OpenPGP:From;
-	b=HEQRJ33WdiXIJ14pCtwmwL5LRPdXuKfjQnqbQB7W+RgmHBRvy+gZcSOZ461n6t5yp
-	 rWjaCbYH7Z+ZRS0+Oq1iwCLaLydUhxCCuR8+Qxx5SsprYP7tNrtAPogMwAEwEvB7pj
-	 Q4JBovRuh9rRxwckSrc223nKDdcgKNsexX+Y9ZpS3e/OGXkzTZ3cSp7HRplNFsOXvj
-	 kEoT21qD0EgasU3zySlp5uTyjECUJkhROA9iiiIxTzUznTRmwJgnVp/XE8KYjT9u+C
-	 JBwZeJ0Ll8LcTBOQsLrtpRgLZ8BoZLiv9aWIAn4LSmJlk+NH2wGMW8h7yeBi6OIdM2
-	 dZAZrImPag5gA==
-Received: from customer (localhost [127.0.0.1])
-	by submission (posteo.de) with ESMTPSA id 4fXbkr3PS9z6twG;
-	Fri, 13 Mar 2026 21:32:20 +0100 (CET)
-Message-ID: <3fa06cd43d81d9f10f65d2bcec15f67bfffb45a6.camel@posteo.de>
-Subject: Re: [PATCH v3 3/7] acpi: add acpi_of_match_device_ids
-From: Markus Probst <markus.probst@posteo.de>
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Lee Jones <lee@kernel.org>, Rob Herring <robh@kernel.org>, Krzysztof
- Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, Greg
- Kroah-Hartman	 <gregkh@linuxfoundation.org>, Miguel Ojeda
- <ojeda@kernel.org>, Boqun Feng	 <boqun@kernel.org>, Gary Guo
- <gary@garyguo.net>, =?ISO-8859-1?Q?Bj=F6rn?= Roy Baron
- <bjorn3_gh@protonmail.com>, Benno Lossin <lossin@kernel.org>, Andreas
- Hindborg	 <a.hindborg@kernel.org>, Alice Ryhl <aliceryhl@google.com>,
- Trevor Gross	 <tmgross@umich.edu>, Danilo Krummrich <dakr@kernel.org>, Igor
- Korotin	 <igor.korotin.linux@gmail.com>, Daniel Almeida
- <daniel.almeida@collabora.com>,  Bjorn Helgaas <bhelgaas@google.com>,
- Krzysztof =?UTF-8?Q?Wilczy=C5=84ski?= <kwilczynski@kernel.org>, Pavel
- Machek <pavel@kernel.org>, Len Brown <lenb@kernel.org>, Robert Moore
- <robert.moore@intel.com>, 	devicetree@vger.kernel.org,
- linux-kernel@vger.kernel.org, 	rust-for-linux@vger.kernel.org,
- driver-core@lists.linux.dev, 	linux-pci@vger.kernel.org,
- linux-leds@vger.kernel.org, 	linux-acpi@vger.kernel.org,
- acpica-devel@lists.linux.dev
-Date: Fri, 13 Mar 2026 20:32:22 +0000
-In-Reply-To: <CAJZ5v0hYcSDKid4cbz8ZVZG+vLSHvzPB2UryevEpE15W1w7G3g@mail.gmail.com>
-References: <20260313-synology_microp_initial-v3-0-16941debd8a0@posteo.de>
-	 <20260313-synology_microp_initial-v3-3-16941debd8a0@posteo.de>
-	 <CAJZ5v0hYcSDKid4cbz8ZVZG+vLSHvzPB2UryevEpE15W1w7G3g@mail.gmail.com>
-Autocrypt: addr=markus.probst@posteo.de; prefer-encrypt=mutual;
- keydata=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
- jfGillcaQOqFZ3WwVqyzG1BUfTow==
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-new+ZnvpPewWLWV6wMQM"
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="qMIAisHG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53A89C2BCB5
+	for <linux-acpi@vger.kernel.org>; Fri, 13 Mar 2026 20:33:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1773434018;
+	bh=m3+M5+OULAFeHCpSmp11b7WVM+mtpz0VGLew+P/Flas=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=qMIAisHGQuw7h30IKezVN6BWsWdjn3btU91iif4JlgPXlDc+kPl9b53jxsG9lzk3F
+	 OHSubBf2OLcXGGuO8UON2G6vfijOdoxXnhNy/AiAg20pGHorDKgKUwy74RrEtrctBR
+	 QRMZsLaHSRUwfyi+ZvQyI2WaPM9+f561tmwMfb5XsGRHtXbGUSqxTxGuRsxNmr8Rn6
+	 YhfRWDF5ZMOQs3AgSW/bESk+1ttYTGiOd4tx5fGhrtnBkqHl9UjQh0NpWMxv07bg/L
+	 IRo2OcsxFKZnj6xi+vL9uliV+DC69pdhGID4RP+qLrHZtmpcG4jMQQtzLZX2rE4QTd
+	 x9tb4ids20ELg==
+Received: by mail-ot1-f54.google.com with SMTP id 46e09a7af769-7d744d9acbeso1052628a34.1
+        for <linux-acpi@vger.kernel.org>; Fri, 13 Mar 2026 13:33:38 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCWB59n2YQqanC+pl1rtVWTr4xXSZRbI/eBB0pRvzspvzkA5hyCtxAujJ/s4TljSFtyGjSQb4wkHzKzI@vger.kernel.org
+X-Gm-Message-State: AOJu0Yx2Z6Ad4nOKw6FzAB73nVbO3KcX+3SDkv1ubCjDYDtiJk4xs0nG
+	AxeayVpiT52RsSqwUp/l/hlsyIuF1a8D6GqBZDBXkH3ktCHio67iKKNWTfcKzw3JtfwNX7Ak5wl
+	qoSyroM8H4CODHEnVJTyE86D/lRvtcgE=
+X-Received: by 2002:a05:6820:151b:b0:67b:e203:6ca7 with SMTP id
+ 006d021491bc7-67be2037159mr1543017eaf.55.1773434017251; Fri, 13 Mar 2026
+ 13:33:37 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-OpenPGP: url=https://posteo.de/keys/markus.probst@posteo.de.asc; preference=encrypt
-
-
---=-new+ZnvpPewWLWV6wMQM
+References: <20251226102656.6296-1-lkml@antheas.dev> <20251226102656.6296-8-lkml@antheas.dev>
+In-Reply-To: <20251226102656.6296-8-lkml@antheas.dev>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Fri, 13 Mar 2026 21:33:26 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0h=RtkgfWXiWwG3w5xEY4VRrpP=TDmfJ5=UtKd_x_nTZw@mail.gmail.com>
+X-Gm-Features: AaiRm51J4yHZCH3CB-xR2diBFWq0_GSaxuwwIcGe4clcgHeFuXOStvlNi9WRdw4
+Message-ID: <CAJZ5v0h=RtkgfWXiWwG3w5xEY4VRrpP=TDmfJ5=UtKd_x_nTZw@mail.gmail.com>
+Subject: Re: [RFC v1 7/8] PM: hibernate: Enter s2idle sleep state before hibernation
+To: Antheas Kapenekakis <lkml@antheas.dev>
+Cc: dmitry.osipenko@collabora.com, bob.beckett@collabora.com, 
+	bookeldor@gmail.com, hadess@hadess.net, jaap@haitsma.org, 
+	kernel@collabora.com, lennart@poettering.net, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, mccann@jhu.edu, rafael@kernel.org, 
+	richard@hughsie.com, sebastian.reichel@collabora.com, superm1@kernel.org, 
+	systemd-devel@lists.freedesktop.org, xaver.hugl@gmail.com
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, 2026-03-13 at 19:57 +0100, Rafael J. Wysocki wrote:
-> On Fri, Mar 13, 2026 at 7:48=E2=80=AFPM Markus Probst <markus.probst@post=
-eo.de> wrote:
-> >=20
-> > Add a function to match acpi devices against of_device_ids. This will b=
-e
-> > used in the following commit ("mfd: match acpi devices against PRP0001"=
-)
-> > to match mfd sub-devices against a of compatible string.
->=20
-> Not until I can see how this is going to be used.
-This is used directly in the following patch. Only half of the patch
-series has been sent by b4, because of a limit of my email provider
-(which I didn't know existed until now). I am sorry for the
-inconvenience.
+On Fri, Dec 26, 2025 at 11:27=E2=80=AFAM Antheas Kapenekakis <lkml@antheas.=
+dev> wrote:
+>
+> Implement the standby states as part of hibernation. Specifically,
+> ensure we are in the inactive state before hibernation entry, and
+> sync the state as active after hibernation resume. In case of a failed
+> hibernation, restore the previous standby state.
 
-The patch series has been resent via the b4 relay.
-You can take a look at [1] to see how it is used.
+We've not mixed up "modern standby" _DSM calls with hibernation so
+far, so this change is potentially risky.
 
-[1]
-https://lore.kernel.org/rust-for-linux/20260313-synology_microp_initial-v3-=
-4-ad6ac463a201@posteo.de/T/#u
-
-Thanks
-- Markus Probst
-
---=-new+ZnvpPewWLWV6wMQM
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-
-iQJPBAABCAA5FiEEgnQYxPSsWOdyMMRzNHYf+OetQ9IFAmm0dFEbFIAAAAAABAAO
-bWFudTIsMi41KzEuMTEsMiwyAAoJEDR2H/jnrUPSpicQAL94zv1vs4Mj1Lj2RK8J
-icVNOUN/lVB1j01acPYts0KApvQEPQQkIy3N5TzPUX3NM6iExfLrLTBiH966yJw/
-HghJK37YwkvO69r46Mz5QBKzNG/CAWKsN8dvIrQCuKZrlbYBHYBYm5hRqQjIzvkg
-ykqFxjgEbypVc5WuJF2YFoN/7+XfUfEqAHxWIXFIX9gCtRNedKar5fxs+OsPqWze
-osjdlkRN+7sRpvcEgovulXapCwkZcJizpqiQ+74aWrju4vgyE2xhj4Tgd6OEkSJV
-LinZ2DYK2Afb/tm4b+lGOcPgQCXQTLhYPBrPhi+RiotXH0wMOI/fExMir653SY9V
-UQW0u2Usd5buuxybUUef/naaZ7AgibDxzGu5DdK7cxndbaq9gCvX9NW4YlAScADX
-Quv96acbwB1LI92PHWArdwuj2DGIGG6J/JxXY3y6lZmhTNaMO5EE8D/PfauDL9nS
-MC/4kmE8PyC3l7DvFWOg7UB95zIQLPAWI6qHaVUq/sIGEdhBvDN8M/OEyxQuK0+/
-D7yFgKOJDG0ETlqThWiyKL5c9n7y9csbzij//AzDdwoPoKsOu2UytAisch/e4Ir6
-Vgo2om5ZXc2y2P1S1mVrLK9BBUOcyBYKv2gyjVosDfCd/qfzlFP+nW3TQbW4sm+o
-rrX5rRqhN6FwZ7274oP+97aY
-=JyG6
------END PGP SIGNATURE-----
-
---=-new+ZnvpPewWLWV6wMQM--
+> Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+> ---
+>  kernel/power/hibernate.c | 29 +++++++++++++++++++++++++++--
+>  1 file changed, 27 insertions(+), 2 deletions(-)
+>
+> diff --git a/kernel/power/hibernate.c b/kernel/power/hibernate.c
+> index af8d07bafe02..85a5ca8f6537 100644
+> --- a/kernel/power/hibernate.c
+> +++ b/kernel/power/hibernate.c
+> @@ -787,7 +787,11 @@ static int load_image_and_restore(void)
+>   */
+>  int hibernate(void)
+>  {
+> +#ifdef CONFIG_SUSPEND
+> +       standby_state_t previous_standby;
+> +#endif
+>         bool snapshot_test =3D false;
+> +       bool powered_down =3D false;
+>         unsigned int sleep_flags;
+>         int error;
+>
+> @@ -815,6 +819,13 @@ int hibernate(void)
+>         }
+>
+>         pr_info("hibernation entry\n");
+> +
+> +#if CONFIG_SUSPEND
+> +       /* Enter the standby screen off state in case userspace has not. =
+*/
+> +       previous_standby =3D pm_standby_get_state();
+> +       pm_standby_transition(PM_STANDBY_INACTIVE);
+> +#endif
+> +
+>         pm_prepare_console();
+>         error =3D pm_notifier_call_chain_robust(PM_HIBERNATION_PREPARE, P=
+M_POST_HIBERNATION);
+>         if (error)
+> @@ -867,10 +878,12 @@ int hibernate(void)
+>                 error =3D swsusp_write(flags);
+>                 swsusp_free();
+>                 if (!error) {
+> -                       if (hibernation_mode =3D=3D HIBERNATION_TEST_RESU=
+ME)
+> +                       if (hibernation_mode =3D=3D HIBERNATION_TEST_RESU=
+ME) {
+>                                 snapshot_test =3D true;
+> -                       else
+> +                       } else {
+> +                               powered_down =3D true;
+>                                 power_down();
+> +                       }
+>                 }
+>                 in_suspend =3D 0;
+>                 pm_restore_gfp_mask();
+> @@ -897,6 +910,18 @@ int hibernate(void)
+>   Notify:
+>         pm_notifier_call_chain(PM_POST_HIBERNATION);
+>   Restore:
+> +#if CONFIG_SUSPEND
+> +       /*
+> +        * If we resumed from S5, we are in the active standby state. How=
+ever,
+> +        * the kernel restored a stale value. Sync it. Otherwise, in e.g.=
+, the
+> +        * case of a failed hibernation, transition to the previous value=
+.
+> +        */
+> +       if (powered_down)
+> +               pm_standby_set_state(PM_STANDBY_ACTIVE);
+> +       else
+> +               pm_standby_transition(previous_standby);
+> +#endif
+> +
+>         pm_restore_console();
+>         hibernate_release();
+>   Unlock:
+> --
+> 2.52.0
+>
+>
+>
