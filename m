@@ -1,919 +1,151 @@
-Received: from out30-111.freemail.mail.aliyun.com (out30-111.freemail.mail.aliyun.com [115.124.30.111])
+Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84E3530596D;
-	Fri, 13 Mar 2026 09:49:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.111
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F8AC38F245;
+	Fri, 13 Mar 2026 11:21:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.84.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773395382; cv=none; b=sglo+YfikXb/EjMsFbhs8fngyyyzU2Vd3dA+sbvq+zy+yQ72045QJAflFwE+pRg1YPrl8s1aGhnqvS1vY31j//t19/gykKqr8Rw9qa9yDBGhNt9Fj0NIjG0HHHp5M74ubzcjpfXujmJzxwxOAcW905gpbc51abV8wbEyCpARrOM=
+	t=1773400867; cv=none; b=l180lgtodE+8+4INPYVSPy1Ggp0ye/37edzMWpK/VuHxKtKHJq1WFjimqmxmauYuSRiKj9/aSzJx4Sg/qVMINKenFD5ZclpRIdrra0TOUpJL1dSjTsEppe5p1egNOR08tea3ygGJIcv2JSSTk66xGlXATAcGLePPhm9vjgUclaA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773395382; c=relaxed/simple;
-	bh=NLwfThUHQneH09vFov2tlehpBZ6yfxDMXEbxxEpvAdk=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=BGFutPElhpk3xNt4EP9nDvwSI67z4gNqhjT1vBpat/uUqhFFDyafSH5i3puo9ot3zjJmPf0Z3KMkdRtvBzbLBqKioIKjDvmhAnVyjJC7VfRFMmPCc4NUbqbmJaXLm2CFmhhbaBbQr+LVxy4K7Db8lEglVicDtUfLqd9zlH/QWTY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=j1g+yHxH; arc=none smtp.client-ip=115.124.30.111
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+	s=arc-20240116; t=1773400867; c=relaxed/simple;
+	bh=iThDtlWFRXyqELPZgOTDTFG9GPUgz6TLe2DwswpTBng=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=leuDkaTHsIo9GHbKLg1E+cVcplyidfmDRfj9aXamVuU8wHr8WaFe6UlbjRppsnWK/d7oFMBAqF15YGLM4RlbmTkux/f0jXkQH8fzD/dWfzNOWGbAUrD9yaFBtlgtf8vyfCW9SXUqxmI+4WiVwH+Evm2NMUjJce5l7n6TczalvJg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=Do+K6n/K; arc=none smtp.client-ip=185.246.84.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="j1g+yHxH"
-DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux.alibaba.com; s=default;
-	t=1773395374; h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type;
-	bh=kEcwQDm8KHZfCK0WKvMnpD8v4R4S8xQgi0tpibbJsVk=;
-	b=j1g+yHxHuLT+nIxJL5ADfv0hAf0IeErI1b7WZtztEWzTtalt7B5ynkwPBvcMGCSLCAOA3Z8yK0bYRvklNXIbaorb73vp+hGyGiSwKeRfHolrEUiW2xMqgnQ8T3v7jIkfpSVefRpbc4J+OQFXYpg+ZMHCfYnMU334AmBDhIVyUKk=
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R151e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033032089153;MF=tianruidong@linux.alibaba.com;NM=1;PH=DS;RN=22;SR=0;TI=SMTPD_---0X-rxwnw_1773395372;
-Received: from 30.221.149.97(mailfrom:tianruidong@linux.alibaba.com fp:SMTPD_---0X-rxwnw_1773395372 cluster:ay36)
-          by smtp.aliyun-inc.com;
-          Fri, 13 Mar 2026 17:49:33 +0800
-Message-ID: <344708d6-2bd8-470b-a1cd-4ca311f62134@linux.alibaba.com>
-Date: Fri, 13 Mar 2026 17:49:31 +0800
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="Do+K6n/K"
+Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
+	by smtpout-02.galae.net (Postfix) with ESMTPS id C71B41A2E1C;
+	Fri, 13 Mar 2026 11:20:58 +0000 (UTC)
+Received: from mail.galae.net (mail.galae.net [212.83.136.155])
+	by smtpout-01.galae.net (Postfix) with ESMTPS id 91EB46002C;
+	Fri, 13 Mar 2026 11:20:58 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 0812210369E37;
+	Fri, 13 Mar 2026 12:20:29 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
+	t=1773400854; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 content-transfer-encoding:in-reply-to:references;
+	bh=TViEBJxH/6t08moT1Cupd+GoZoxMid++9M6KSZfI+c8=;
+	b=Do+K6n/KnMT6sRzJjxkeDTXj5gTe6Hx27Z4GI42adJKl10t0UbUB71h1hkyXitEwWH6T2i
+	ltPrtpPGlMRvMhlKdD86qjGAeIZiwe4BSbPsxfLCAtDLLn+QW5HhBnSacBq7w+rkUIZ0J1
+	BNvT7C0jWhklauOjM3AmXTLanlZcFUFy0LLfL80GGk3rI4FrO46yzHOgH6gOlCPWimIWuu
+	bnfxU3ILpTwq5ezxehZ4D3Vzr3CkDosx+2OTafb29osULMFwoJZ2G901V6rpsJr7Jh4Xeb
+	Bvtu0CHib7D6D9nhSPgx5/0hloz3s/0DI814tsG5pLaTxNMnMFKKCQ+0Ohk+mg==
+Date: Fri, 13 Mar 2026 12:20:27 +0100
+From: Herve Codina <herve.codina@bootlin.com>
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Geert Uytterhoeven
+ <geert@linux-m68k.org>, Andrew Lunn <andrew@lunn.ch>, Rob Herring
+ <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley
+ <conor+dt@kernel.org>, Kalle Niemi <kaleposti@gmail.com>, Matti Vaittinen
+ <mazziesaccount@gmail.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Danilo
+ Krummrich <dakr@kernel.org>, Frank Li <Frank.Li@nxp.com>, Sascha Hauer
+ <s.hauer@pengutronix.de>, Pengutronix Kernel Team <kernel@pengutronix.de>,
+ Fabio Estevam <festevam@gmail.com>, Michael Turquette
+ <mturquette@baylibre.com>, Stephen Boyd <sboyd@kernel.org>, Andi Shyti
+ <andi.shyti@kernel.org>, Wolfram Sang <wsa+renesas@sang-engineering.com>,
+ Peter Rosin <peda@axentia.se>, Arnd Bergmann <arnd@arndb.de>, Saravana
+ Kannan <saravanak@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Charles
+ Keepax <ckeepax@opensource.cirrus.com>, Richard Fitzgerald
+ <rf@opensource.cirrus.com>, David Rhodes <david.rhodes@cirrus.com>, Linus
+ Walleij <linusw@kernel.org>, Mark Brown <broonie@kernel.org>, Len Brown
+ <lenb@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+ Daniel Scally <djrscally@gmail.com>, Heikki Krogerus
+ <heikki.krogerus@linux.intel.com>, Sakari Ailus
+ <sakari.ailus@linux.intel.com>, Davidlohr Bueso <dave@stgolabs.net>,
+ Jonathan Cameron <jonathan.cameron@huawei.com>, Dave Jiang
+ <dave.jiang@intel.com>, Alison Schofield <alison.schofield@intel.com>,
+ Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>,
+ Dan Williams <dan.j.williams@intel.com>, Shawn Guo <shawnguo@kernel.org>,
+ Wolfram Sang <wsa@kernel.org>, linux-kernel@vger.kernel.org,
+ driver-core@lists.linux.dev, imx@lists.linux.dev,
+ linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org,
+ linux-i2c@vger.kernel.org, devicetree@vger.kernel.org,
+ linux-pci@vger.kernel.org, linux-sound@vger.kernel.org,
+ patches@opensource.cirrus.com, linux-gpio@vger.kernel.org,
+ linux-pm@vger.kernel.org, linux-spi@vger.kernel.org,
+ linux-acpi@vger.kernel.org, linux-cxl@vger.kernel.org, Allan Nielsen
+ <allan.nielsen@microchip.com>, Horatiu Vultur
+ <horatiu.vultur@microchip.com>, Steen Hegelund
+ <steen.hegelund@microchip.com>, Luca Ceresoli <luca.ceresoli@bootlin.com>,
+ Thomas Petazzoni <thomas.petazzoni@bootlin.com>, Saravana Kannan
+ <saravanak@google.com>, Bartosz Golaszewski
+ <bartosz.golaszewski@oss.qualcomm.com>
+Subject: Re: [PATCH v5 02/28] driver core: Rename get_dev_from_fwnode()
+ wrapper to get_device_from_fwnode()
+Message-ID: <20260313122027.498ff15f@bootlin.com>
+In-Reply-To: <CAPDyKFpX3A3r4s72PNjBz5QaZUsq1xaGhn5vXwegue7Tyh_Zew@mail.gmail.com>
+References: <20260227135428.783983-1-herve.codina@bootlin.com>
+	<20260227135428.783983-3-herve.codina@bootlin.com>
+	<CAMuHMdVVsEB-xb8Jz4ujBam2NxtxAOb7byYa3VR_eHsbTD5rXw@mail.gmail.com>
+	<2026031242-debug-aviation-19b8@gregkh>
+	<CAPDyKFpX3A3r4s72PNjBz5QaZUsq1xaGhn5vXwegue7Tyh_Zew@mail.gmail.com>
+Organization: Bootlin
+X-Mailer: Claws Mail 4.3.1 (GTK 3.24.49; x86_64-redhat-linux-gnu)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v6 15/16] ras: AEST: support vendor node CMN700
-To: Robin Murphy <robin.murphy@arm.com>
-Cc: lenb@kernel.org, linux-kernel@vger.kernel.org, catalin.marinas@arm.com,
- linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org,
- linux-perf-users@vger.kernel.org, bp@alien8.de, peterz@infradead.org,
- tony.luck@intel.com, mark.rutland@arm.com, rafael@kernel.org,
- sudeep.holla@arm.com, linux-edac@vger.kernel.org, tglx@linutronix.de,
- guohanjun@huawei.com, mchehab@kernel.org, xueshuai@linux.alibaba.com,
- zhuo.song@linux.alibaba.com, oliver.yang@linux.alibaba.com, will@kernel.org,
- lpieralisi@kernel.org
-References: <20260122094656.73399-1-tianruidong@linux.alibaba.com>
- <20260122094656.73399-16-tianruidong@linux.alibaba.com>
- <16782c8d-ab55-4ac0-bd4d-56d440e43d33@arm.com>
-From: Ruidong Tian <tianruidong@linux.alibaba.com>
-In-Reply-To: <16782c8d-ab55-4ac0-bd4d-56d440e43d33@arm.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
+X-Last-TLS-Session-Version: TLSv1.3
 
-Hi, Murphy:
+Hi Greg, Ulf,
 
-Thank you very much for the reply. I really appreciate it.
+On Fri, 13 Mar 2026 10:43:33 +0100
+Ulf Hansson <ulf.hansson@linaro.org> wrote:
 
-在 2026/3/10 03:21, Robin Murphy 写道:
-> On 22/01/2026 9:46 am, Ruidong Tian wrote:
->> The CMN (Coherent Mesh Network) architecture incorporates five distinct
->> device types. Each device type is associated with an error group register
->> set. The struct aest_cmn_700 models a single CMN instance, while struct
->> aest_cmn_700_child represents an individual CMN device.
->>
->> CMN's error records utilize a memory-mapped single error record view [1].
->> Critically, one error record corresponds to one AEST node, implying that
->> a single CMN instance can generate hundreds of AEST nodes. To manage this
->> scale, this driver introduces a virtual AEST node, which represents an
->> entire CMN device, such as an HNI or HNF. This allows an HNF AEST node,
->> for instance, to leverage its errgsr register to pinpoint which specific
->> error record has reported an error.
->>
->> During the AEST probe phase, the CMN AEST driver identifies the CMN node
->> type using the cmn_node_info register. It then reorganizes all AEST nodes
->> belonging to the same CMN node type into a cohesive CMN AEST node
->> structure. To locate the relevant CMN register addresses, the CMN's
->> presence in the DSDT is required, along with the CMN node offset
->> specified in the AEST vendor specification data [1].
+> On Thu, 12 Mar 2026 at 16:27, Greg Kroah-Hartman
+> <gregkh@linuxfoundation.org> wrote:
+> >
+> > On Tue, Mar 10, 2026 at 04:03:42PM +0100, Geert Uytterhoeven wrote:  
+> > > Hi Hervé,
+> > >
+> > > On Fri, 27 Feb 2026 at 14:55, Herve Codina <herve.codina@bootlin.com> wrote:  
+> > > > get_dev_from_fwnode() calls get_device() and so it acquires a reference
+> > > > on the device returned.
+> > > >
+> > > > In order to be more obvious that this wrapper is a get_device() variant,
+> > > > rename it to get_device_from_fwnode().
+> > > >
+> > > > Suggested-by: Mark Brown <broonie@kernel.org>
+> > > > Link: https://lore.kernel.org/lkml/CAGETcx97QjnjVR8Z5g0ndLHpK96hLd4aYSV=iEkKPNbNOccYmA@mail.gmail.com/
+> > > > Signed-off-by: Herve Codina <herve.codina@bootlin.com>
+> > > > Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> > > > Reviewed-by: Saravana Kannan <saravanak@google.com>
+> > > > Reviewed-by: Luca Ceresoli <luca.ceresoli@bootlin.com>
+> > > > Acked-by: Ulf Hansson <ulf.hansson@linaro.org>  
+> > >
+> > > FTR, one more user of get_dev_from_fwnode() appeared in commit
+> > > 9035073d0ef1de81 ("reset: convert reset core to using firmware nodes")
+> > > in reset/next.  
+> >
+> > Ick, that's going to make this hard to land anywhere.  This is a rough
+> > series, perhaps it should be split up to make it easier somehow?
+> >
+> > thanks,
+> >
+> > greg k-h  
 > 
-> That sounds wrong - IIRC, each AEST interface entry should point to the 
-> node's RAS register block directly (i.e. the ERRFR address), then the 
-> vendor-specific data indicates the relative offset such that a consumer 
-> could work backwards from there to other CMN registers if it really 
-> needs to. There should not be any dependency on DSDT for discovery.
-
-Thanks for pointing this out. You are absolutely right. In CMN, the 
-ERRFR offset within the register block is fixed (0x3100), while the 
-register block offset itself is provided in the vendor-specific data. 
-That means we can derive PERIPHBASE directly from AEST as:
-
-PERIPHBASE = (errfr_addr - errfr_offset) - register_block_offset
-
-I was planning to obtain PERIPHBASE from the DSDT because of the note in 
-section 2.6.33: “the PERIPHBASE is encoded in the _CRS object of the CMN 
-ACPI DSDT device.” But your approach is clearly better: we can derive 
-PERIPHBASE from AEST alone and avoid any dependency on DSDT. I'll fix 
-this in the next version. Thanks for the correction.
-
+> I fully agree with the above. Renaming the function isn't necessary
+> for the $subject series.
 > 
-> For reference, the missing link to that spec is:
+> I suggest we simply drop this patch from the series - and if the
+> renaming really makes sense in the end, we can deal with that
+> separately later on.
 > 
-> https://developer.arm.com/documentation/den0093/latest/
+> So withdrawing my ack from this one.
 > 
-> and what it actually says is not at all what this patch has implemented.
+> Kind regards
+> Uffe
 
-There are indeed several issues here. I'll fix them all in the next 
-version. Thanks for pointing them out.
+Also agree on my side. I will fully remove this function renaming part from
+this series in its next iteration.
 
-> 
->> [1]: https://developer.arm.com/documentation/102308/latest/
->>
->> Signed-off-by: Ruidong Tian <tianruidong@linux.alibaba.com>
->> ---
->>   arch/arm64/include/asm/arm-cmn.h |  47 +++++
->>   drivers/perf/arm-cmn.c           |  37 +---
->>   drivers/ras/aest/Makefile        |   1 +
->>   drivers/ras/aest/aest-cmn.c      | 330 +++++++++++++++++++++++++++++++
->>   drivers/ras/aest/aest-core.c     |  42 ++--
->>   drivers/ras/aest/aest.h          |  39 ++++
->>   6 files changed, 444 insertions(+), 52 deletions(-)
->>   create mode 100644 arch/arm64/include/asm/arm-cmn.h
->>   create mode 100644 drivers/ras/aest/aest-cmn.c
->>
->> diff --git a/arch/arm64/include/asm/arm-cmn.h b/arch/arm64/include/ 
->> asm/arm-cmn.h
->> new file mode 100644
->> index 000000000000..1b9f50679794
->> --- /dev/null
->> +++ b/arch/arm64/include/asm/arm-cmn.h
->> @@ -0,0 +1,47 @@
->> +/* SPDX-License-Identifier: GPL-2.0-only */
->> +/*
->> + * Copyright (C) 2015 ARM Ltd.
->> + */
->> +#ifndef __ASM_ARM_CMN_H
->> +#define __ASM_ARM_CMN_H
->> +
->> +#include <asm/sysreg.h>
-> 
-> That is not relevant to CMN...
-
-You're right, asm/sysreg.h is not needed here. I'll drop it in the next 
-revision.
-
-> 
->> +/* Common register stuff */
->> +#define CMN_NODE_INFO            0x0000
->> +#define CMN_NI_NODE_TYPE        GENMASK_ULL(15, 0)
->> +#define CMN_NI_NODE_ID            GENMASK_ULL(31, 16)
->> +#define CMN_NI_LOGICAL_ID        GENMASK_ULL(47, 32)
->> +
->> +enum cmn_node_type {
->> +    CMN_TYPE_INVALID,
->> +    CMN_TYPE_DVM,
->> +    CMN_TYPE_CFG,
->> +    CMN_TYPE_DTC,
->> +    CMN_TYPE_HNI,
->> +    CMN_TYPE_HNF,
->> +    CMN_TYPE_XP,
->> +    CMN_TYPE_SBSX,
->> +    CMN_TYPE_MPAM_S,
->> +    CMN_TYPE_MPAM_NS,
->> +    CMN_TYPE_RNI,
->> +    CMN_TYPE_RND = 0xd,
->> +    CMN_TYPE_RNSAM = 0xf,
->> +    CMN_TYPE_MTSX,
->> +    CMN_TYPE_HNP,
->> +    CMN_TYPE_CXRA = 0x100,
->> +    CMN_TYPE_CXHA,
->> +    CMN_TYPE_CXLA,
->> +    CMN_TYPE_CCRA,
->> +    CMN_TYPE_CCHA,
->> +    CMN_TYPE_CCLA,
->> +    CMN_TYPE_CCLA_RNI,
->> +    CMN_TYPE_HNS = 0x200,
->> +    CMN_TYPE_HNS_MPAM_S,
->> +    CMN_TYPE_HNS_MPAM_NS,
->> +    CMN_TYPE_APB = 0x1000,
->> +    /* Not a real node type */
->> +    CMN_TYPE_WP = 0x7770
->> +};
-> 
-> ...and the majority of this is irrelevant to the RAS feature, not to 
-> mention that at least some of it being purely internal implementation 
-> detail of the PMU driver which has no business being exposed outside the 
-> PMU driver at all.
-
-The RAS driver only needs a few of these definitions (HN-I, HN-F, 
-CXHA/CCG, SBSX and XP), not all of them. I was trying to avoid 
-duplicating them between the RAS and PMU drivers by using a shared header.
-
-If you would rather keep only the required subset local to the RAS 
-driver, I can do that instead. I do not have a strong preference, so I 
-am happy to follow your suggestion.
-
-> 
->> +
->> +#endif /* __ASM_ARM_CMN_H */
->> diff --git a/drivers/perf/arm-cmn.c b/drivers/perf/arm-cmn.c
->> index 23245352a3fc..989482096dfb 100644
->> --- a/drivers/perf/arm-cmn.c
->> +++ b/drivers/perf/arm-cmn.c
->> @@ -2,6 +2,7 @@
->>   // Copyright (C) 2016-2020 Arm Limited
->>   // ARM CMN/CI interconnect PMU driver
->> +#include <asm/arm-cmn.h>
-> 
-> And to top it all off, this would break COMPILE_TEST for other 
-> architectures.
-> 
-> Honestly, for the couple of node type values that matter for RAS, just 
-> give the RAS driver its own appropriate definitions.
-
-Understood. I'll drop the shared header approach and define only the 
-small subset of node type values needed by the RAS driver locally.
-
-> 
->>   #include <linux/acpi.h>
->>   #include <linux/bitfield.h>
->>   #include <linux/bitops.h>
->> @@ -19,11 +20,6 @@
->>   #include <linux/sort.h>
->>   /* Common register stuff */
->> -#define CMN_NODE_INFO            0x0000
->> -#define CMN_NI_NODE_TYPE        GENMASK_ULL(15, 0)
->> -#define CMN_NI_NODE_ID            GENMASK_ULL(31, 16)
->> -#define CMN_NI_LOGICAL_ID        GENMASK_ULL(47, 32)
->> -
->>   #define CMN_CHILD_INFO            0x0080
->>   #define CMN_CI_CHILD_COUNT        GENMASK_ULL(15, 0)
->>   #define CMN_CI_CHILD_PTR_OFFSET        GENMASK_ULL(31, 16)
->> @@ -241,37 +237,6 @@ enum cmn_revision {
->>       REV_CI700_R2P0,
->>   };
->> -enum cmn_node_type {
->> -    CMN_TYPE_INVALID,
->> -    CMN_TYPE_DVM,
->> -    CMN_TYPE_CFG,
->> -    CMN_TYPE_DTC,
->> -    CMN_TYPE_HNI,
->> -    CMN_TYPE_HNF,
->> -    CMN_TYPE_XP,
->> -    CMN_TYPE_SBSX,
->> -    CMN_TYPE_MPAM_S,
->> -    CMN_TYPE_MPAM_NS,
->> -    CMN_TYPE_RNI,
->> -    CMN_TYPE_RND = 0xd,
->> -    CMN_TYPE_RNSAM = 0xf,
->> -    CMN_TYPE_MTSX,
->> -    CMN_TYPE_HNP,
->> -    CMN_TYPE_CXRA = 0x100,
->> -    CMN_TYPE_CXHA,
->> -    CMN_TYPE_CXLA,
->> -    CMN_TYPE_CCRA,
->> -    CMN_TYPE_CCHA,
->> -    CMN_TYPE_CCLA,
->> -    CMN_TYPE_CCLA_RNI,
->> -    CMN_TYPE_HNS = 0x200,
->> -    CMN_TYPE_HNS_MPAM_S,
->> -    CMN_TYPE_HNS_MPAM_NS,
->> -    CMN_TYPE_APB = 0x1000,
->> -    /* Not a real node type */
->> -    CMN_TYPE_WP = 0x7770
->> -};
->> -
->>   enum cmn_filter_select {
->>       SEL_NONE = -1,
->>       SEL_OCCUP1ID,
->> diff --git a/drivers/ras/aest/Makefile b/drivers/ras/aest/Makefile
->> index 5ee10fc8b2e9..e5a45fde6d36 100644
->> --- a/drivers/ras/aest/Makefile
->> +++ b/drivers/ras/aest/Makefile
->> @@ -5,3 +5,4 @@ obj-$(CONFIG_AEST)     += aest.o
->>   aest-y        := aest-core.o
->>   aest-y        += aest-sysfs.o
->>   aest-y        += aest-inject.o
->> +aest-y        += aest-cmn.o
->> diff --git a/drivers/ras/aest/aest-cmn.c b/drivers/ras/aest/aest-cmn.c
->> new file mode 100644
->> index 000000000000..ad82ed163a8c
->> --- /dev/null
->> +++ b/drivers/ras/aest/aest-cmn.c
->> @@ -0,0 +1,330 @@
->> +// SPDX-License-Identifier: GPL-2.0
->> +/*
->> + * ARM Error Source Table CMN700 Support
->> + *
->> + * Copyright (c) 2025, Alibaba Inc
->> + */
->> +
->> +#include <asm/arm-cmn.h>
->> +
->> +#include "aest.h"
->> +
->> +/*
->> + * CMN include 5 device types, each device type has an error group 
->> register set
->> + * which contains a set of error records. The struct aest_cmn_700 
->> represents
->> + * one CMN Instance, and the struct aest_cmn_700_child represent one 
->> CMN device.
->> + * The error record of CMN use memory-mapped single error record 
->> view, so one
->> + * record is correspond to one AEST node, it means there will be 
->> hundreds of
->> + * AEST node of CMN. As described in chapters 2.6.3.4 of Arm ACPI 
->> Spec[1], we
->> + * use vendor define data to recognize the device type of an AEST 
->> node. So AEST
->> + * driver can enumerate all CMN AEST node to initialize struct 
->> aest_cmn_700 and
->> + * aest_cmn_700_child with HID, UID and other CMN info described in 
->> AEST or CMN
->> + * register.
->> + *
->> + * Each CMN Instance has their own error interrupt and the struct 
->> aest_cmn_700
->> + * is passed to interrupt context. OS check error group register set 
->> to locate
->> + * record which report error. All procedure is similar with chapters 
->> 3.8 in
->> + * Arm CMN Spec[2].
->> + *
->> + * The CMN RAS architecture is showed as follow:
->> + *
->> + *                     +----+
->> + *                  -->|XP  |     ......
->> + *                  |  +----+
->> + *                  |
->> + *                  |  +----+     ......
->> + *                  |  |HNI |     +----------------+
->> + *                  |  +----+   ->|record/AEST node|
->> + *                  |           | +----------------+
->> + *  +------------+  |  +----+   |    .
->> + *  |CMN Instance|--|  |HNF |---|    .
->> + *  +------------+  |  +----+   |    .
->> + *                  |           | +----------------+
->> + *                  |  +----+   ->|record/AEST node|
->> + *                  |  |SBSX|     +----------------+
->> + *                  |  +----+     ......
->> + *                  |
->> + *                  |  +----+
->> + *                  -->|CCG |     ......
->> + *                     +----+
->> + *
->> + * [1]: https://developer.arm.com/documentation/den0093/latest
->> + * [2]: https://developer.arm.com/documentation/102308/latest
->> + */
->> +
->> +#define CMN_RAS_DEV_NUM 6
->> +#define CMN700_ERRGSR_NUM 8
->> +#define CMN_MAX_UID 8
-> 
-> What's that based on?
-
-According to section 4.2.5 of the CMN-700 specification, 
-6(CMN_RAS_DEV_NUM) device types have ERRGSR registers. Each ERRGSR 
-effectively consists of 8(CMN700_ERRGSR_NUM) 64-bit registers, numbered 
-0 through 7. CMN_MAX_UID therefore does not seem appropriate here; 
-CMN_RAS_DEV_NUM should be sufficient.
-
-> 
->> +#define CMN_ERRDEVARCH 0x3FB8
->> +#define CMN_ERRDEVARCH_REV GENMASK(19, 16)
->> +#define CMN_ERRGSR_OFFSET 0x3000
->> +
->> +struct cmn_vendor_data {
->> +    int node_type;
->> +    int node_id;
->> +    int logic_id;
->> +};
->> +
->> +struct cmn_config {
->> +    int errgsr_num;
->> +    int dev_num;
->> +    int ras_ver;
->> +    const int *node_id_map;
->> +    const char *const *node_name;
->> +    int (*errgsr_mapping)(int errgsr_bit);
->> +    u64 (*errgsr_offset)(u64 hnd_ofset, int node_idx);
->> +};
->> +
->> +static const char *const cmn700_node_name[] = {
->> +    [CMN_TYPE_HNI] = "HNI",     [CMN_TYPE_HNF] = "HNF",
->> +    [CMN_TYPE_XP] = "XP",     [CMN_TYPE_SBSX] = "SBSX",
->> +    [CMN_TYPE_CXRA] = "RND", [CMN_TYPE_MTSX] = "MTSX",
->> +};
->> +
->> +static const int cmn700_node_id_map[] = {
->> +    [CMN_TYPE_HNI] = 1,  [CMN_TYPE_HNF] = 2,  [CMN_TYPE_XP] = 0,
->> +    [CMN_TYPE_SBSX] = 3, [CMN_TYPE_CXRA] = 4, [CMN_TYPE_MTSX] = 5,
->> +};
->> +
->> +static u64 cmn_dev_array[CMN_MAX_UID];
->> +static struct cmn_config *cmn_config;
->> +
->> +static u64 cmn700_errgsr_offset(u64 hnd_offset, int node_idx)
->> +{
->> +    return hnd_offset + CMN_ERRGSR_OFFSET +
->> +           (node_idx * 2) * CMN700_ERRGSR_NUM * 8;
->> +}
-> 
-> I would say it's not worth bothering with the ERRGSRs at all - more than 
-> just being confusingly different from the RAS architecture concept of 
-> the same name, they're also at least 50% totally broken and useless (see 
-> erratum #2732981). Thus if we have to treat HN-I, HN-S and SBSX RAS 
-> nodes as just a bunch of independent single records which happen to 
-> share an IRQ, we may as well just do that for everything.
-
-Thanks for the pointer. I checked the erratum, which states that "the 
-registers are not updated correctly for the HN-S, HN-I and SBSX device 
-groups". Your approach would certainly simplify things, but I am a bit 
-concerned about the efficiency of treating all nodes as independent 
-single-record entries on a shared IRQ.
-
-For a 64-core SoC, the CMN could expose a fairly large number of AEST 
-nodes (for example, 64 HN-F + 64 XP + 8 CCG). In that case, the IRQ 
-handler would need to iterate over all of them and check ERR_STATUS.V on 
-every interrupt. If corrected errors become noisy(like cmcistorm on 
-x86), this may end up being quite expensive.
-
-One possible approach I was considering is to use the AEST "Error 
-group-based status reporting supported" field to mark HN-S, HN-I and 
-SBSX as not supporting ERRGSR, and fall back to polling for those nodes 
-only, while still using ERRGSR for the remaining node types. This is 
-only a small change and is fully compliant with the AEST specification.
-
-> 
->> +static struct cmn_config cmn700_config = {
->> +    .errgsr_num = CMN700_ERRGSR_NUM,
->> +    .dev_num = CMN_RAS_DEV_NUM,
->> +    .ras_ver = 1,
->> +    .node_name = cmn700_node_name,
->> +    .node_id_map = cmn700_node_id_map,
->> +    .errgsr_mapping = cmn700_errgsr_mapping,
->> +    .errgsr_offset = cmn700_errgsr_offset,
->> +};
->> +
->> +static acpi_status aest_cmn_700_resource_ioremap(struct acpi_resource 
->> *res,
->> +                         void *data)
->> +{
->> +    struct acpi_resource_address64 addr64;
->> +    u32 *uid = data;
->> +    acpi_status status;
->> +
->> +    status = acpi_resource_to_address64(res, &addr64);
->> +    if (ACPI_FAILURE(status) || (addr64.resource_type != 
->> ACPI_MEMORY_RANGE))
->> +        return AE_OK;
->> +
->> +    cmn_dev_array[*uid] = (u64)ioremap(addr64.address.minimum,
->> +                       addr64.address.address_length);
->> +
->> +    pr_debug("CMN device resource [%llx-%llx] ioremap to %llx\n",
->> +         addr64.address.minimum, addr64.address.maximum,
->> +         cmn_dev_array[*uid]);
->> +
->> +    return AE_CTRL_TERMINATE;
->> +}
->> +
->> +static acpi_status aest_cmn_get_dev_by_uid(acpi_handle handle, u32 
->> level,
->> +                       void *data, void **return_value)
->> +{
->> +    u32 *match_uid = data;
->> +    acpi_status status;
->> +    unsigned long long uid;
->> +
->> +    status = acpi_evaluate_integer(handle, METHOD_NAME__UID, NULL, 
->> &uid);
-> 
-> Who says CMN _UIDs cant be arbitrary Strings? The binding doesn't (it 
-> merely happens to use Integers in its examples).
-
-I'll remove the DSDT-related code in the next revision.
-
-> 
->> +    if (ACPI_FAILURE(status)) {
->> +        pr_err("Do not find devive\n");
->> +        return_ACPI_STATUS(status);
->> +    }
->> +
->> +    if (uid != *match_uid)
->> +        return AE_OK;
->> +
->> +    pr_debug("CMN device instance %llx, walk through resource\n", uid);
->> +
->> +    status = acpi_walk_resources(handle, METHOD_NAME__CRS,
->> +                     aest_cmn_700_resource_ioremap, data);
->> +
->> +    if (ACPI_FAILURE(status)) {
->> +        pr_err("Device do not have resource\n");
->> +        return_ACPI_STATUS(status);
->> +    }
->> +
->> +    return AE_CTRL_TERMINATE;
->> +}
-> 
-> Again, poking through some other device's resources is nonsense, but I 
-> don't see that we really need anything outside the invididual node 
-> registers anyway, since as well as ERRGSR...
-
-Yes, exactly. Even the ERRGSR can be derived from the information 
-already provided by AEST, so there is no need to depend on DSDT.
-
-> 
->> +
->> +static inline int aest_cmn_node_ver(void *base)
->> +{
->> +    return FIELD_GET(CMN_ERRDEVARCH_REV,
->> +             readl_relaxed(base + CMN_ERRDEVARCH));
-> 
-> ...ERRDEVARCH is also of dubious value here, given that the register 
-> layout alone is quite blatantly not that of the RAS system architecture 
-> v1.0 (as the register value boldly claims), nor indeed any other 
-> version. Even at best, this isn't saying any more than the hard-coded 
-> ".ras_ver = 1" above already does.
-
-".ras_ver = 1" should already be sufficient. I'll consider dropping 
-aest_cmn_node_ver() in the next revision.
-> 
->> +}
->> +
->> +static int aest_cmn_init_node(struct aest_device *adev,
->> +                  struct aest_node *cmn_node,
->> +                  struct acpi_aest_node *anode, u64 type,
->> +                  u64 errgsr_addr)
->> +{
->> +    cmn_node->info = anode;
->> +    cmn_node->name = devm_kasprintf(adev->dev, GFP_KERNEL, "%s",
->> +                    cmn_config->node_name[type]);
->> +    if (!cmn_node->name)
->> +        return -ENOMEM;
->> +    cmn_node->errgsr = (void *)errgsr_addr;
->> +    cmn_node->type = anode->type;
->> +    cmn_node->adev = adev;
->> +    cmn_node->version = cmn_config->ras_ver;
->> +    cmn_node->errgsr_num = cmn_config->errgsr_num;
->> +    cmn_node->errgsr_mapping = cmn_config->errgsr_mapping;
->> +    cmn_node->record_count = cmn_node->errgsr_num * BITS_PER_LONG / 2;
->> +    cmn_node->record_implemented = devm_bitmap_zalloc(
->> +        adev->dev, cmn_node->record_count, GFP_KERNEL);
->> +    if (!cmn_node->record_implemented)
->> +        return -ENOMEM;
->> +    bitmap_set(cmn_node->record_implemented, 0, cmn_node->record_count);
->> +
->> +    cmn_node->status_reporting = devm_bitmap_zalloc(
->> +        adev->dev, cmn_node->record_count, GFP_KERNEL);
->> +    if (!cmn_node->status_reporting)
->> +        return -ENOMEM;
->> +    bitmap_set(cmn_node->status_reporting, 0, cmn_node->record_count);
->> +
->> +    cmn_node->records = devm_kcalloc(adev->dev, cmn_node->record_count,
->> +                     sizeof(struct aest_record),
->> +                     GFP_KERNEL);
->> +    if (!cmn_node->records)
->> +        return -ENOMEM;
->> +
->> +    aest_node_dbg(cmn_node, "Node init with errgsr %llx\n", 
->> errgsr_addr);
->> +
->> +    return 0;
->> +}
->> +
->> +static int aest_cmn_reorgnize_node(struct aest_device *adev,
->> +                   struct acpi_aest_node *anode, u64 base)
->> +{
->> +    struct aest_node *cmn_node;
->> +    u64 hnd_offset, cmn_node_offset, reg, logic_id, type, node_id;
->> +    u64 errgsr_addr, hnd_base;
->> +    struct aest_record *record;
->> +    int ret, node_index;
->> +    struct cmn_vendor_data *vendor_data;
->> +
->> +    if (anode->interface_hdr->type !=
->> +        ACPI_AEST_NODE_SINGLE_RECORD_MEMORY_MAPPED) {
->> +        aest_dev_err(adev, "CMN just use single memory mapping\n");
->> +        return -ENODEV;
->> +    }
->> +
->> +    hnd_offset = *((u64 *)anode->vendor->vendor_specific_data);
->> +    cmn_node_offset = *((u64 *)&anode->vendor->vendor_specific_data[8]);
->> +
->> +    reg = readq_relaxed((void *)base + cmn_node_offset + CMN_NODE_INFO);
->> +
->> +    logic_id = FIELD_GET(CMN_NI_LOGICAL_ID, reg);
->> +    type = FIELD_GET(CMN_NI_NODE_TYPE, reg);
->> +    node_id = FIELD_GET(CMN_NI_NODE_ID, reg);
->> +
->> +    hnd_base = base + hnd_offset;
->> +    node_index = cmn_config->node_id_map[type];
->> +    errgsr_addr = base + cmn_config->errgsr_offset(hnd_offset, 
->> node_index);
->> +
->> +    // node not register, create it
->> +    cmn_node = &adev->nodes[node_index];
->> +    if (!cmn_node->errgsr) {
->> +        ret = aest_cmn_init_node(adev, cmn_node, anode, type,
->> +                     errgsr_addr);
->> +        if (ret)
->> +            return -ENOMEM;
->> +    }
->> +
->> +    aest_dev_dbg(adev, "node type %llx, id %llx, offset %llx\n", type,
->> +             logic_id, cmn_node_offset);
->> +
->> +    if (!test_bit(0, anode->record_implemented))
->> +        clear_bit(logic_id, cmn_node->record_implemented);
->> +
->> +    if (!test_bit(0, anode->status_reporting))
->> +        clear_bit(logic_id, cmn_node->status_reporting);
->> +
->> +    record = &cmn_node->records[logic_id];
->> +    record->name =
->> +        devm_kasprintf(adev->dev, GFP_KERNEL, "record%lld", logic_id);
->> +    if (!record->name)
->> +        return -ENOMEM;
->> +    record->regs_base = devm_ioremap(
->> +        adev->dev, (resource_size_t)anode->interface_hdr->address,
->> +        sizeof(struct ras_ext_regs));
->> +    if (!record->regs_base)
->> +        return -ENOMEM;
->> +    record->addressing_mode = test_bit(0, anode->addressing_mode);
->> +    record->node = cmn_node;
->> +    record->index = logic_id;
->> +    record->access = &aest_access[anode->interface_hdr->type];
->> +
->> +    vendor_data = devm_kzalloc(adev->dev, sizeof(struct 
->> cmn_vendor_data),
->> +                   GFP_KERNEL);
->> +    vendor_data->node_type = type;
->> +    vendor_data->node_id = node_id;
->> +    vendor_data->logic_id = logic_id;
->> +
->> +    record->vendor_data = vendor_data;
->> +    record->vendor_data_size = sizeof(struct cmn_vendor_data);
->> +
->> +    aest_record_dbg(record, "base %llx\n", anode->interface_hdr- 
->> >address);
->> +
->> +    return 0;
->> +}
->> +
->> +// reorgnize cmn node
->> +static int aest_cmn_probe(struct aest_device *adev, struct aest_hnode 
->> *ahnode)
->> +{
->> +    acpi_status status;
->> +    u64 base;
->> +    int ret = 0;
->> +    struct acpi_aest_node *anode;
->> +    char name[9];
->> +
->> +    anode = list_first_entry(&ahnode->list, struct acpi_aest_node, 
->> list);
->> +    if (!anode)
->> +        return -ENODEV;
->> +
->> +    if (!cmn_dev_array[anode->vendor->acpi_uid]) {
->> +        snprintf(name, 9, "%s", anode->vendor->acpi_hid);
->> +        status = acpi_get_devices(name, aest_cmn_get_dev_by_uid,
->> +                      &anode->vendor->acpi_uid, NULL);
->> +        if (ACPI_FAILURE(status)) {
->> +            aest_dev_err(adev, "Can not find base\n");
->> +            return_ACPI_STATUS(status);
->> +        }
->> +    }
->> +    base = cmn_dev_array[anode->vendor->acpi_uid];
->> +    if (!base) {
->> +        aest_dev_err(adev, "Device base invalid\n");
->> +        return -ENODEV;
->> +    }
->> +
->> +    adev->type = anode->type;
->> +    adev->node_cnt = cmn_config->dev_num;
->> +    adev->nodes = devm_kcalloc(adev->dev, adev->node_cnt,
->> +                   sizeof(struct aest_node), GFP_KERNEL);
->> +    if (!adev->nodes)
->> +        return -ENOMEM;
->> +    aest_set_name(adev, ahnode);
->> +
->> +    list_for_each_entry(anode, &ahnode->list, list) {
->> +        ret = aest_cmn_reorgnize_node(adev, anode, base);
->> +        if (ret)
->> +            return ret;
->> +    }
->> +
->> +    return 0;
->> +}
->> +
->> +int aest_cmn700_probe(struct aest_device *adev, struct aest_hnode 
->> *ahnode)
->> +{
->> +    cmn_config = &cmn700_config;
->> +
->> +    return aest_cmn_probe(adev, ahnode);
->> +}
->> diff --git a/drivers/ras/aest/aest-core.c b/drivers/ras/aest/aest-core.c
->> index 047c9a8cffe4..bbf8b1142be7 100644
->> --- a/drivers/ras/aest/aest-core.c
->> +++ b/drivers/ras/aest/aest-core.c
->> @@ -152,6 +152,8 @@ static void init_aest_event(struct aest_event *event,
->>       memcpy(&event->regs, regs, sizeof(*regs));
->>       event->index = record->index;
->>       event->addressing_mode = record->addressing_mode;
->> +    event->vendor_data_size = record->vendor_data_size;
->> +    event->vendor_data = record->vendor_data;
->>   }
->>   static int aest_node_gen_pool_add(struct aest_device *adev,
->> @@ -341,10 +343,9 @@ void aest_proc_record(struct aest_record *record, 
->> void *data, bool fake)
->>       record_write(record, ERXSTATUS, regs.err_status);
->>   }
->> -static void aest_node_foreach_record(void (*func)(struct aest_record 
->> *, void *,
->> -                          bool),
->> -                     struct aest_node *node, void *data,
->> -                     unsigned long *bitmap)
->> +void aest_node_foreach_record(void (*func)(struct aest_record *, void 
->> *, bool),
->> +                  struct aest_node *node, void *data,
->> +                  unsigned long *bitmap)
-> 
-> This change doesn't seem to be needed, or at least doesn't belong to 
-> this patch.
-
-You're right, this does not seem necessary here. I'll remove it from 
-this patch in the next revision.
-> 
->>   {
->>       int i;
->> @@ -359,7 +360,7 @@ static void aest_node_foreach_record(void (*func) 
->> (struct aest_record *, void *,
->>   static int aest_proc(struct aest_node *node)
->>   {
->> -    int count = 0, i, j, size = node->record_count;
->> +    int count = 0, i, j, size = node->record_count, record_idx;
->>       u64 err_group = 0;
->>       aest_node_dbg(node, "Poll bitmap %*pb\n", size,
->> @@ -374,19 +375,21 @@ static int aest_proc(struct aest_node *node)
->>                 node->status_reporting);
->>       for (i = 0; i < BITS_TO_U64(size); i++) {
->>           err_group = readq_relaxed((void *)node->errgsr + i * 8);
->> -        aest_node_dbg(node, "errgsr[%d]: 0x%llx\n", i, err_group);
->> -
->>           for_each_set_bit(j, (unsigned long *)&err_group,
->>                    BITS_PER_LONG) {
->> +            record_idx =
->> +                node->errgsr_mapping(i * BITS_PER_LONG + j);
->> +            aest_node_dbg(node, "errgsr[%d]: bit %d occur error\n",
->> +                      i, record_idx);
->>               /*
->>                * Error group base is only valid in Memory Map node,
->>                * so driver do not need to write select register and
->>                * sync.
->>                */
->> -            if (test_bit(i * BITS_PER_LONG + j,
->> -                     node->status_reporting))
->> +            if (test_bit(record_idx, node->status_reporting))
->>                   continue;
->> -            aest_proc_record(&node->records[j], &count, false);
->> +            aest_proc_record(&node->records[record_idx], &count,
->> +                     false);
->>           }
->>       }
->> @@ -398,8 +401,11 @@ static irqreturn_t aest_irq_func(int irq, void 
->> *input)
->>       struct aest_device *adev = input;
->>       int i;
->> -    for (i = 0; i < adev->node_cnt; i++)
->> +    for (i = 0; i < adev->node_cnt; i++) {
->> +        if (!adev->nodes[i].record_count)
->> +            continue;
->>           aest_proc(&adev->nodes[i]);
->> +    }
->>       return IRQ_HANDLED;
->>   }
->> @@ -776,6 +782,7 @@ static int aest_init_node(struct aest_device 
->> *adev, struct aest_node *node,
->>       node->info = anode;
->>       node->type = anode->type;
->>       node->version = get_aest_node_ver(node);
->> +    node->errgsr_mapping = default_errgsr_mapping;
->>       node->name = alloc_aest_node_name(node);
->>       if (!node->name)
->>           return -ENOMEM;
->> @@ -828,6 +835,7 @@ static int aest_init_node(struct aest_device 
->> *adev, struct aest_node *node,
->>       if (!node->records)
->>           return -ENOMEM;
->> +    node->errgsr_num = DIV_ROUND_UP(node->record_count, BITS_PER_LONG);
->>       for (i = 0; i < node->record_count; i++) {
->>           ret = aest_init_record(&node->records[i], i, node);
->>           if (ret)
->> @@ -923,11 +931,12 @@ static int aest_setup_irq(struct platform_device 
->> *pdev,
->>   }
->>   static struct aest_vendor_match vendor_match[] = {
->> -    {  },
->> +    { "ARMHC700", &aest_cmn700_probe },
-> 
-> The RAS identifier for CMN-700 is ARMCH701, and that is what should be 
-> in the AEST entry. ARMHC700 is only for the PMU. A RAS driver should 
-> probe off AEST entries, it should not depend on both the PMU happening 
-> to be advertised to the OS *and* the AEST being wrong.
-
-Sorry, this is a mistake. I'll fix it in the next revision.
-
-> 
-> Thanks,
-> Robin.
->
-
-Thanks,
-Ruidong.
-
->> +    {},
->>   };
->> -static int
->> -aest_vendor_probe(struct aest_device *adev, struct aest_hnode *ahnode)
->> +static int aest_vendor_probe(struct aest_device *adev,
->> +                 struct aest_hnode *ahnode)
->>   {
->>       int i;
->>       struct acpi_aest_node *anode;
->> @@ -936,13 +945,14 @@ aest_vendor_probe(struct aest_device *adev, 
->> struct aest_hnode *ahnode)
->>       if (!anode)
->>           return -ENODEV;
->> -    aest_dev_dbg(adev, "Try to probe vendor node %s\n", anode- 
->> >vendor->acpi_hid);
->> +    aest_dev_dbg(adev, "Try to probe vendor node %s\n",
->> +             anode->vendor->acpi_hid);
->>       for (i = 0; i < ARRAY_SIZE(vendor_match); i++) {
->>           if (!strncmp(vendor_match[i].hid, anode->vendor->acpi_hid, 8))
->>               return vendor_match[i].probe(adev, ahnode);
->>       }
->> -    return -ENODEV;
->> +    return 0;
->>   }
->>   static int aest_device_probe(struct platform_device *pdev)
->> diff --git a/drivers/ras/aest/aest.h b/drivers/ras/aest/aest.h
->> index 304c03839d31..9d67d79eb4a2 100644
->> --- a/drivers/ras/aest/aest.h
->> +++ b/drivers/ras/aest/aest.h
->> @@ -94,8 +94,16 @@ struct aest_event {
->>       /* Vendor node    : hardware ID. */
->>       char *hid;
->>       u32 index;
->> +    u64 ce_threshold;
->>       int addressing_mode;
->>       struct ras_ext_regs regs;
->> +
->> +    /*
->> +     * This field is used to store vendor specific data for decoding 
->> error
->> +     * record by EDAC driver.
->> +     */
->> +    void *vendor_data;
->> +    size_t vendor_data_size;
->>   };
->>   struct aest_access {
->> @@ -147,6 +155,9 @@ struct aest_record {
->>       enum ras_ce_threshold threshold_type;
->>       struct record_count count;
->>       struct dentry *debugfs;
->> +
->> +    void *vendor_data;
->> +    size_t vendor_data_size;
->>   };
->>   struct aest_group {
->> @@ -208,6 +219,19 @@ struct aest_node {
->>        */
->>       unsigned long *status_reporting;
->>       int version;
->> +    /*
->> +     * Usually bit[n] in errgsr indicates [n]th error record within this
->> +     * error node report error. But some compoent may have different 
->> rules.
->> +     * For example, CMN700 TRM 4.3.5.12 say:
->> +     *    ``` Error occurs when the index is even and Fault
->> +     *        occurs when the index is odd. ```
->> +     *    Bit[n]: record[n] report ERROR.
->> +     *    Bit[n + 1]: record[n] report FAULT.
->> +     * errgsr_mapping function is used to map errgsr bit to record index
->> +     * for various components.
->> +     */
->> +    int (*errgsr_mapping)(int errgsr_bit);
->> +    int errgsr_num;
->>       const struct aest_group *group;
->>       struct aest_device *adev;
->> @@ -366,6 +390,21 @@ static inline bool aest_dev_is_oncore(struct 
->> aest_device *adev)
->>       return adev->type == ACPI_AEST_PROCESSOR_ERROR_NODE;
->>   }
->> +static inline int default_errgsr_mapping(int errgsr_bit)
->> +{
->> +    return errgsr_bit;
->> +}
->> +
->> +static inline int cmn700_errgsr_mapping(int errgsr_bit)
->> +{
->> +    return errgsr_bit / 2;
->> +}
->> +
->>   void aest_dev_init_debugfs(struct aest_device *adev);
->>   void aest_inject_init_debugfs(struct aest_record *record);
->>   void aest_proc_record(struct aest_record *record, void *data, bool 
->> fake);
->> +void aest_node_foreach_record(void (*func)(struct aest_record *, void 
->> *, bool),
->> +                  struct aest_node *node, void *data,
->> +                  unsigned long *bitmap);
->> +
->> +int aest_cmn700_probe(struct aest_device *adev, struct aest_hnode 
->> *ahnode);
+Best regards,
+Hervé
 
