@@ -1,203 +1,175 @@
-Received: from canpmsgout06.his.huawei.com (canpmsgout06.his.huawei.com [113.46.200.221])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lf1-f52.google.com (mail-lf1-f52.google.com [209.85.167.52])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A47D340298;
-	Fri, 13 Mar 2026 02:32:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.221
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773369160; cv=none; b=qDFDsm5uCrMPss8bC4RCzcokk5qmxC0snTdLl8uf/M/SZpwp0FUV3AuTFYmoEy57Koo0b6AmAzWRI6wixc7hsvvzijkqLRdgZ7wshHdEf4Y/9+A6fAQoCgKL0tSenSjUTWL4TSIV9eAJZThciQL0JhLGhhqPV8tZjGQn6srNTPo=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773369160; c=relaxed/simple;
-	bh=LExNlQiCZUjsXaPNmcgYrwD6RjjtJjnzxerVrDGlSOI=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=UwyVBmaJYzbX5sQmRWxL/F0+asZnKtvFquYxvSU6/P8KN3UEqvaZLy8IYdWym+EADGVc38c/LnzhAjkUjV0Zco4ILXwXlWZzVlnPv6DOaE4AhYxIOZlSZeNB4010B+qw25XmiBoQ2uWwGLwnm9vgMRFgHY3f8JBE64urqCCQ2JU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=kwa1qp22; arc=none smtp.client-ip=113.46.200.221
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7B9637B031
+	for <linux-acpi@vger.kernel.org>; Fri, 13 Mar 2026 09:44:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.167.52
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1773395054; cv=pass; b=CwQ1ksQoPuLDeuaNHy756U+NDv9BbsYw6JGYb6bUXUcEpCnUa9hbRwVSYa+QAm5WqPxdCAwVVS5sxtTSNkCz8Tr4Tq3TrSXrwkWOavoc7nkaE50o5eC+NnTPNLTVnosxxs59CAar4tm+lUE6lGrN8Pp9/Al3PNyHYcc5ILJ9lfU=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1773395054; c=relaxed/simple;
+	bh=a4PkyDJIX7KyCPscZwhkhXLXTwGONJMI97/AnswuOLU=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=WJwRIsodF7yAI3IQW36KAecCVC0jwdbp02uEtSJdZshuqLIcxsE9JMiMgRuynCayi1JYW8EjMCuFZsj2znWc+kOai6Nhg/ahx6MLzLkfEo/ku9pvK9rnBneIg82zMJcomLnc8qA0VEd9d2tVc2SfPnKJ2cUsnNHFMJiVZrV34R4=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org; spf=pass smtp.mailfrom=linaro.org; dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b=CVJB0EpM; arc=pass smtp.client-ip=209.85.167.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="kwa1qp22"
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=droVX0NUC4A+GNH3y57ZGeXheGPpw9m67aw4WCFjXtI=;
-	b=kwa1qp22L/gdJGPkqfbGAAXcu+LyOqhrEw20HKvhNdqzvoQKMdK9OzPtPhARsHhl6j2D6P+Zr
-	j6GC+HeoE9kX8IxSB+U4y21CjsurYvoSHiov38HwUlAKYHAcTB7jnvqfYq4tyu+pAfwUx7PDu7P
-	JI+N0ZgVvFlAzWAcsIeXyiI=
-Received: from mail.maildlp.com (unknown [172.19.162.223])
-	by canpmsgout06.his.huawei.com (SkyGuard) with ESMTPS id 4fX7gG3N0zzRhQS;
-	Fri, 13 Mar 2026 10:27:38 +0800 (CST)
-Received: from kwepemk500009.china.huawei.com (unknown [7.202.194.94])
-	by mail.maildlp.com (Postfix) with ESMTPS id 0A2E040569;
-	Fri, 13 Mar 2026 10:32:34 +0800 (CST)
-Received: from [10.67.121.161] (10.67.121.161) by
- kwepemk500009.china.huawei.com (7.202.194.94) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Fri, 13 Mar 2026 10:32:31 +0800
-Message-ID: <90505ea3-d842-4092-9743-6ed58c59ca55@huawei.com>
-Date: Fri, 13 Mar 2026 10:32:31 +0800
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="CVJB0EpM"
+Received: by mail-lf1-f52.google.com with SMTP id 2adb3069b0e04-5a13f6bcbf4so3002616e87.1
+        for <linux-acpi@vger.kernel.org>; Fri, 13 Mar 2026 02:44:12 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1773395051; cv=none;
+        d=google.com; s=arc-20240605;
+        b=gqMRqLPKZb/VrUysxUKCDErimREQ5aMt1VPeskDbe1jyXY3ftZAf9XYnFuf0KvZJOw
+         HnIMxDycFcRCZ5zmodnB5jab+tb6l9jsPb0fONPi/HLLrhmOFAnHiXJHprn+FTwu+MFS
+         VkWTiZXENtWHPUYE5k1X5HyVR7oBY7IVCn3KvWb83oZFQ9ppr37ebyIf8lyuB2CcCvG/
+         PEFKz95w0zVYAnspgPBwfHnrUGcEopFiocQblpPel+D0ZbR3Gn8MXiDAueaEx8nwK4vh
+         jdiYWnJF2+LiGo9J4R7A0KS1jptJUxsEoGxs+X9D4J1TFVJBx5ckyiprdJauTz6jvA0v
+         Y2jQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=zhNoTkJIeGg7k6SX7++UNulbkoe8PKd3t4WsYSulIm0=;
+        fh=vr9PXw3P/0jlbAJV4u8bLdwWU4oUJTneyGwQIP/z/Ek=;
+        b=AwIZx0tXwy84F/YYN9uVarrJlY9dx/92Vdjypl8TrumEcfWTdev0suvo0vV8a8C84X
+         PbrOw1jB/iTuEir4Kmhh+kNHqoEjXPt5GPptdejN1ao1JRxDAdj3Pxj5tJqyr93tFQc0
+         BYjvjZjy0FD2VkVLm6YDar8ot4rPcL9uJVS5FmdW6+ZwQ6YO+mf0HpQ/kahzQ+rbKl8f
+         kb0oSXFFwUlMJ7ZKY+78GXbqsqs65ueC2MveNba0QAxDe7RnQ6Di3PNESg7NbWw8fTq0
+         U3L3yW1ldc8v2Avr3lpAfBIg0Jfoq0FAHcVdsAqOrf926mNJar6LM468LnaagPlbtunK
+         tDhw==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google; t=1773395051; x=1773999851; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=zhNoTkJIeGg7k6SX7++UNulbkoe8PKd3t4WsYSulIm0=;
+        b=CVJB0EpMEVa6sLzbpbpZgC6oxzg2jOtTdosOr5xZNtsl8bsqrxagaYbJB1fdwaFsDi
+         MU38WYuy9AWHvdgCpCuHaIpr0k74xYGQOeELdWDSwcfyzs8cqYkIXiRIRrqyxiibpEVP
+         wMrz3HxyzbyPSSjmSzWbKbBJgizyZo+BgjwH4r+2CXA44MTS6E41EE0YnfUJRp2yUitr
+         rl9LQ9jslbZWwEoeHXtCnBIpFBQl7bMUoyyvJJ1DVrzW8G12l73vTupZQjGfuJkAAf20
+         jQIIgy05OQGFnn5ib4SoM+EKD7qPNjwSuIvoucoWtcAxJOQaShYcNfKbcoRIEG60ZMKr
+         agpw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1773395051; x=1773999851;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=zhNoTkJIeGg7k6SX7++UNulbkoe8PKd3t4WsYSulIm0=;
+        b=pi2VRjh6pBCRpr4wcSqBUwYHZZenmZaQM1Fi4wZ4GOZnP5p84gtrPDXspGQDxuXiQ7
+         umZ8a/H56XzmY1QxpMS0WaVoU/8cPyc7E4JsvhHhh10SGWmYCdm5PVaUVMs5M/H+gbgf
+         aaEQFCfYLcyChE5bRyCcMdmIh6G00uyqnz1/o7AnsXbDShmt7+743knvF0iilMAmmUjt
+         X9C4AxTEnJpDrdDSSJ80E5k/kvy04uBKX/jCSNRoZJPZSw1adCKE1mxZDYWxFhoKtAe0
+         T7ApFwZT8G84y6p/5wTiFwALwfKh1JXGgdssjdcmVnDnwAfdXFFf94EaqC7H0/uGpzm4
+         S0DQ==
+X-Forwarded-Encrypted: i=1; AJvYcCXSiLSy1Yk7wjPWJjObhzjVl7L8zg/I4PH+oxlaKLYgF7pNtI25WGemRy9FUj0e7gCBpAwMV20BwIt2@vger.kernel.org
+X-Gm-Message-State: AOJu0Yz9IHzsbNFNbtT9Z9hptNGfqcPE/HCJAT48/ikwLeyA1QqD40Ak
+	x5lkr/pMRasBFjjM6L171WUyyM1/R1JnWhlCOxNRP6mHqjKQusgpPDQteokJbIk9tASgc0YQWLa
+	poXGfyD/RdiHdLB3+zpkzWod8QsyXzAu+rgstHpAS2g==
+X-Gm-Gg: ATEYQzx0z5f1vNXJI1JvYjhBrUKZG7sZZIJRZ6nrc3D35fDXun8XyGDoH+Y/soAYtdJ
+	tlNhJiUGJyKGKU7xI/TfX6SueLreuuL2zrdDHGQPRQv8A7FGM0tQXEDpPTrdhSe5IgiAJ26MYZ8
+	9ZxIroqIw9PBiBCtXFnNudxst3cjr6/RotcFOgiWPap/T/MEhG8YgFZWeTbbGIFQRysMKcEUW4l
+	/AWc9kFAX02DcbX/MSgmZ/Jf8z7yRujE67+OkBEgHjxVKBqgSJfxmR0ef1chRW7QuOwzetyQ/sN
+	EwFIi4GO
+X-Received: by 2002:a05:6512:1589:b0:5a1:381b:fae2 with SMTP id
+ 2adb3069b0e04-5a162b0d32fmr863539e87.33.1773395050576; Fri, 13 Mar 2026
+ 02:44:10 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v6 2/3] x86: Implement acpi_get_cpu_uid()
-To: Peter Zijlstra <peterz@infradead.org>
-CC: Bjorn Helgaas <bhelgaas@google.com>, Catalin Marinas
-	<catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, "Rafael J .
- Wysocki" <rafael@kernel.org>, Jonathan Corbet <corbet@lwn.net>, Shuah Khan
-	<skhan@linuxfoundation.org>, Huacai Chen <chenhuacai@kernel.org>, WANG Xuerui
-	<kernel@xen0n.name>, Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt
-	<palmer@dabbelt.com>, Albert Ou <aou@eecs.berkeley.edu>, Alexandre Ghiti
-	<alex@ghiti.fr>, Thomas Gleixner <tglx@kernel.org>, Ingo Molnar
-	<mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Dave Hansen
-	<dave.hansen@linux.intel.com>, <x86@kernel.org>, "H . Peter Anvin"
-	<hpa@zytor.com>, Juergen Gross <jgross@suse.com>, Boris Ostrovsky
-	<boris.ostrovsky@oracle.com>, Len Brown <lenb@kernel.org>, Sunil V L
-	<sunilvl@ventanamicro.com>, Mark Rutland <mark.rutland@arm.com>, Jonathan
- Cameron <jonathan.cameron@huawei.com>, Kees Cook <kees@kernel.org>, Yanteng
- Si <si.yanteng@linux.dev>, Sean Christopherson <seanjc@google.com>, Kai Huang
-	<kai.huang@intel.com>, Tom Lendacky <thomas.lendacky@amd.com>, Thomas Huth
-	<thuth@redhat.com>, Thorsten Blum <thorsten.blum@linux.dev>, Kevin Loughlin
-	<kevinloughlin@google.com>, Zheyun Shen <szy0127@sjtu.edu.cn>, Pawan Gupta
-	<pawan.kumar.gupta@linux.intel.com>, Xin Li <xin@zytor.com>, "Ahmed S .
- Darwish" <darwi@linutronix.de>, Sohil Mehta <sohil.mehta@intel.com>, Ilkka
- Koskinen <ilkka@os.amperecomputing.com>, Robin Murphy <robin.murphy@arm.com>,
-	James Clark <james.clark@linaro.org>, Besar Wicaksono
-	<bwicaksono@nvidia.com>, Ma Ke <make24@iscas.ac.cn>, Wei Huang
-	<wei.huang2@amd.com>, Andy Gospodarek <andrew.gospodarek@broadcom.com>,
-	Somnath Kotur <somnath.kotur@broadcom.com>, <punit.agrawal@oss.qualcomm.com>,
-	<guohanjun@huawei.com>, <suzuki.poulose@arm.com>, <ryan.roberts@arm.com>,
-	<chenl311@chinatelecom.cn>, <masahiroy@kernel.org>,
-	<wangyuquan1236@phytium.com.cn>, <anshuman.khandual@arm.com>,
-	<heinrich.schuchardt@canonical.com>, <Eric.VanTassell@amd.com>,
-	<wangzhou1@hisilicon.com>, <wanghuiqiang@huawei.com>,
-	<liuyonglong@huawei.com>, <linux-pci@vger.kernel.org>,
-	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>, <loongarch@lists.linux.dev>,
-	<linux-riscv@lists.infradead.org>, <xen-devel@lists.xenproject.org>,
-	<linux-acpi@vger.kernel.org>, <linux-perf-users@vger.kernel.org>,
-	<stable@vger.kernel.org>
-References: <20260312072316.4806-1-fengchengwen@huawei.com>
- <20260312072316.4806-3-fengchengwen@huawei.com>
- <20260312110205.GG606826@noisy.programming.kicks-ass.net>
-Content-Language: en-US
-From: fengchengwen <fengchengwen@huawei.com>
-In-Reply-To: <20260312110205.GG606826@noisy.programming.kicks-ass.net>
+References: <20260227135428.783983-1-herve.codina@bootlin.com>
+ <20260227135428.783983-3-herve.codina@bootlin.com> <CAMuHMdVVsEB-xb8Jz4ujBam2NxtxAOb7byYa3VR_eHsbTD5rXw@mail.gmail.com>
+ <2026031242-debug-aviation-19b8@gregkh>
+In-Reply-To: <2026031242-debug-aviation-19b8@gregkh>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Date: Fri, 13 Mar 2026 10:43:33 +0100
+X-Gm-Features: AaiRm535RzzFrlMRqNsLHd1XM8yzn674dd-38MKB2CsmserIvJfHsK0fUYGtRYw
+Message-ID: <CAPDyKFpX3A3r4s72PNjBz5QaZUsq1xaGhn5vXwegue7Tyh_Zew@mail.gmail.com>
+Subject: Re: [PATCH v5 02/28] driver core: Rename get_dev_from_fwnode()
+ wrapper to get_device_from_fwnode()
+To: Herve Codina <herve.codina@bootlin.com>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>, Andrew Lunn <andrew@lunn.ch>, Rob Herring <robh@kernel.org>, 
+	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
+	Kalle Niemi <kaleposti@gmail.com>, Matti Vaittinen <mazziesaccount@gmail.com>, 
+	"Rafael J. Wysocki" <rafael@kernel.org>, Danilo Krummrich <dakr@kernel.org>, Frank Li <Frank.Li@nxp.com>, 
+	Sascha Hauer <s.hauer@pengutronix.de>, Pengutronix Kernel Team <kernel@pengutronix.de>, 
+	Fabio Estevam <festevam@gmail.com>, Michael Turquette <mturquette@baylibre.com>, 
+	Stephen Boyd <sboyd@kernel.org>, Andi Shyti <andi.shyti@kernel.org>, 
+	Wolfram Sang <wsa+renesas@sang-engineering.com>, Peter Rosin <peda@axentia.se>, 
+	Arnd Bergmann <arnd@arndb.de>, Saravana Kannan <saravanak@kernel.org>, 
+	Bjorn Helgaas <bhelgaas@google.com>, Charles Keepax <ckeepax@opensource.cirrus.com>, 
+	Richard Fitzgerald <rf@opensource.cirrus.com>, David Rhodes <david.rhodes@cirrus.com>, 
+	Linus Walleij <linusw@kernel.org>, Mark Brown <broonie@kernel.org>, Len Brown <lenb@kernel.org>, 
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Daniel Scally <djrscally@gmail.com>, 
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, Davidlohr Bueso <dave@stgolabs.net>, 
+	Jonathan Cameron <jonathan.cameron@huawei.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Alison Schofield <alison.schofield@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, 
+	Ira Weiny <ira.weiny@intel.com>, Dan Williams <dan.j.williams@intel.com>, 
+	Shawn Guo <shawnguo@kernel.org>, Wolfram Sang <wsa@kernel.org>, linux-kernel@vger.kernel.org, 
+	driver-core@lists.linux.dev, imx@lists.linux.dev, 
+	linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, 
+	linux-i2c@vger.kernel.org, devicetree@vger.kernel.org, 
+	linux-pci@vger.kernel.org, linux-sound@vger.kernel.org, 
+	patches@opensource.cirrus.com, linux-gpio@vger.kernel.org, 
+	linux-pm@vger.kernel.org, linux-spi@vger.kernel.org, 
+	linux-acpi@vger.kernel.org, linux-cxl@vger.kernel.org, 
+	Allan Nielsen <allan.nielsen@microchip.com>, Horatiu Vultur <horatiu.vultur@microchip.com>, 
+	Steen Hegelund <steen.hegelund@microchip.com>, Luca Ceresoli <luca.ceresoli@bootlin.com>, 
+	Thomas Petazzoni <thomas.petazzoni@bootlin.com>, Saravana Kannan <saravanak@google.com>, 
+	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: kwepems500001.china.huawei.com (7.221.188.70) To
- kwepemk500009.china.huawei.com (7.202.194.94)
+Content-Transfer-Encoding: quoted-printable
 
-On 3/12/2026 7:02 PM, Peter Zijlstra wrote:
-> On Thu, Mar 12, 2026 at 03:23:15PM +0800, Chengwen Feng wrote:
->> Add acpi_get_cpu_uid() implementation for x86, replacing the existing
->> cpu_acpi_id() function. This completes the unified ACPI Processor UID
->> retrieval interface across all ACPI-enabled architectures.
->>
->> Cc: stable@vger.kernel.org
->> Signed-off-by: Chengwen Feng <fengchengwen@huawei.com>
->> ---
->>  arch/x86/include/asm/cpu.h   |  1 -
->>  arch/x86/include/asm/smp.h   |  1 -
->>  arch/x86/kernel/cpu/common.c | 15 +++++++++++++++
->>  arch/x86/xen/enlighten_hvm.c |  5 +++--
->>  include/linux/acpi.h         |  2 --
->>  5 files changed, 18 insertions(+), 6 deletions(-)
->>
->> diff --git a/arch/x86/include/asm/cpu.h b/arch/x86/include/asm/cpu.h
->> index ad235dda1ded..57a0786dfd75 100644
->> --- a/arch/x86/include/asm/cpu.h
->> +++ b/arch/x86/include/asm/cpu.h
->> @@ -11,7 +11,6 @@
->>  
->>  #ifndef CONFIG_SMP
->>  #define cpu_physical_id(cpu)			boot_cpu_physical_apicid
->> -#define cpu_acpi_id(cpu)			0
->>  #endif /* CONFIG_SMP */
->>  
->>  #ifdef CONFIG_HOTPLUG_CPU
->> diff --git a/arch/x86/include/asm/smp.h b/arch/x86/include/asm/smp.h
->> index 84951572ab81..05d1d479b4cf 100644
->> --- a/arch/x86/include/asm/smp.h
->> +++ b/arch/x86/include/asm/smp.h
->> @@ -130,7 +130,6 @@ __visible void smp_call_function_interrupt(struct pt_regs *regs);
->>  __visible void smp_call_function_single_interrupt(struct pt_regs *r);
->>  
->>  #define cpu_physical_id(cpu)	per_cpu(x86_cpu_to_apicid, cpu)
->> -#define cpu_acpi_id(cpu)	per_cpu(x86_cpu_to_acpiid, cpu)
->>  
->>  /*
->>   * This function is needed by all SMP systems. It must _always_ be valid
->> diff --git a/arch/x86/kernel/cpu/common.c b/arch/x86/kernel/cpu/common.c
->> index 1c3261cae40c..3081557542c7 100644
->> --- a/arch/x86/kernel/cpu/common.c
->> +++ b/arch/x86/kernel/cpu/common.c
->> @@ -28,6 +28,7 @@
->>  #include <linux/stackprotector.h>
->>  #include <linux/utsname.h>
->>  #include <linux/efi.h>
->> +#include <linux/acpi.h>
->>  
->>  #include <asm/alternative.h>
->>  #include <asm/cmdline.h>
->> @@ -57,6 +58,7 @@
->>  #include <asm/asm.h>
->>  #include <asm/bugs.h>
->>  #include <asm/cpu.h>
->> +#include <asm/smp.h>
->>  #include <asm/mce.h>
->>  #include <asm/msr.h>
->>  #include <asm/cacheinfo.h>
->> @@ -2643,3 +2645,16 @@ void __init arch_cpu_finalize_init(void)
->>  	 */
->>  	mem_encrypt_init();
->>  }
->> +
->> +int acpi_get_cpu_uid(unsigned int cpu, u32 *uid)
->> +{
->> +	if (cpu >= nr_cpu_ids)
->> +		return -EINVAL;
->> +#ifndef CONFIG_SMP
->> +	*uid = 0;
->> +#else
->> +	*uid = per_cpu(x86_cpu_to_acpiid, cpu);
->> +#endif
->> +	return 0;
->> +}
->> +EXPORT_SYMBOL_GPL(acpi_get_cpu_uid);
->> diff --git a/arch/x86/xen/enlighten_hvm.c b/arch/x86/xen/enlighten_hvm.c
->> index fe57ff85d004..2f9fa27e5a3c 100644
->> --- a/arch/x86/xen/enlighten_hvm.c
->> +++ b/arch/x86/xen/enlighten_hvm.c
->> @@ -151,6 +151,7 @@ static void xen_hvm_crash_shutdown(struct pt_regs *regs)
->>  
->>  static int xen_cpu_up_prepare_hvm(unsigned int cpu)
->>  {
->> +	u32 cpu_uid;
->>  	int rc = 0;
->>  
->>  	/*
->> @@ -161,8 +162,8 @@ static int xen_cpu_up_prepare_hvm(unsigned int cpu)
->>  	 */
->>  	xen_uninit_lock_cpu(cpu);
->>  
->> -	if (cpu_acpi_id(cpu) != CPU_ACPIID_INVALID)
->> -		per_cpu(xen_vcpu_id, cpu) = cpu_acpi_id(cpu);
->> +	if (acpi_get_cpu_uid(cpu, &cpu_uid) == 0)
->> +		per_cpu(xen_vcpu_id, cpu) = cpu_uid;
->>  	else
->>  		per_cpu(xen_vcpu_id, cpu) = cpu;
->>  	xen_vcpu_setup(cpu);
-> 
-> This doesn't look right, it will now set CPU_ACPIID_INVALID, while
-> previously it would not.
+On Thu, 12 Mar 2026 at 16:27, Greg Kroah-Hartman
+<gregkh@linuxfoundation.org> wrote:
+>
+> On Tue, Mar 10, 2026 at 04:03:42PM +0100, Geert Uytterhoeven wrote:
+> > Hi Herv=C3=A9,
+> >
+> > On Fri, 27 Feb 2026 at 14:55, Herve Codina <herve.codina@bootlin.com> w=
+rote:
+> > > get_dev_from_fwnode() calls get_device() and so it acquires a referen=
+ce
+> > > on the device returned.
+> > >
+> > > In order to be more obvious that this wrapper is a get_device() varia=
+nt,
+> > > rename it to get_device_from_fwnode().
+> > >
+> > > Suggested-by: Mark Brown <broonie@kernel.org>
+> > > Link: https://lore.kernel.org/lkml/CAGETcx97QjnjVR8Z5g0ndLHpK96hLd4aY=
+SV=3DiEkKPNbNOccYmA@mail.gmail.com/
+> > > Signed-off-by: Herve Codina <herve.codina@bootlin.com>
+> > > Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> > > Reviewed-by: Saravana Kannan <saravanak@google.com>
+> > > Reviewed-by: Luca Ceresoli <luca.ceresoli@bootlin.com>
+> > > Acked-by: Ulf Hansson <ulf.hansson@linaro.org>
+> >
+> > FTR, one more user of get_dev_from_fwnode() appeared in commit
+> > 9035073d0ef1de81 ("reset: convert reset core to using firmware nodes")
+> > in reset/next.
+>
+> Ick, that's going to make this hard to land anywhere.  This is a rough
+> series, perhaps it should be split up to make it easier somehow?
+>
+> thanks,
+>
+> greg k-h
 
-This is indeed an issue, it has been fixed in v7 (by treating CPU_ACPIID_INVALID as an error).
+I fully agree with the above. Renaming the function isn't necessary
+for the $subject series.
 
-Thanks
+I suggest we simply drop this patch from the series - and if the
+renaming really makes sense in the end, we can deal with that
+separately later on.
 
-> 
-> 
+So withdrawing my ack from this one.
 
+Kind regards
+Uffe
