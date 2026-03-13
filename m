@@ -1,391 +1,168 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mout01.posteo.de (mout01.posteo.de [185.67.36.65])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F23C3D9028
-	for <linux-acpi@vger.kernel.org>; Fri, 13 Mar 2026 20:29:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBF5A375F78
+	for <linux-acpi@vger.kernel.org>; Fri, 13 Mar 2026 20:32:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.67.36.65
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773433773; cv=none; b=Y2/PNfLWSi+HJiDGrrk5bD13zSWOuCMGt1iErDZI7OE6jY7Q6MDbRiv2GN/wntgEtmZ8D6kMt5DxrR5yqbPLJoDoU5flBLUcpYqkIMAOocDRjZuRWj/6kWVEFd4Qh4mhi21fzCvaXdCbwozkkDwRm2CDFSXqdqoZychkx7Tmx8k=
+	t=1773433949; cv=none; b=iMACsL2UQLXNZ2YW7Pl9YUnoCZ15BMXlQl0V6zi6Z8PHigxE3DvI/EmfmwFSMCjAYM0OdGmJ+dTobP2ZgRvTu9DrimOoeNbTJJcrLNQE3vofTILxWmzkilucbVCzyRQJiKU2BodLlNCIEKWJSkZ1fBsSKCEn9DNryCmgY/IA2aM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773433773; c=relaxed/simple;
-	bh=NqQv5lEDXEsBc40vuY6iqjRVxnwv8tjnUEZ8PWXAw7M=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=WPUz6FCcJQG7Ahu18DYt8fycj7Hjd0pohT315fKjsZezIo5l9P0qaEunawW8B+EKsXSWcF/Wspo4XzOMltyHUaEa3yWSMSBmMaKOUxx0ooWSs0AraZwc6fXZzk2gCDcwITVrXgH3XYYF1xRExn5UNHXCbwJtd3voPVdGPvNl+B4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MByMczDN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773433949; c=relaxed/simple;
+	bh=zUKmnAJJ5iJOiT/3ZJrLs5Hjcv3qUJTQaRNVnFGFl1g=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=MCcWs/0l5hB+l2AEAfzAGFeXyWUh6NXqmtkZ5tzNMUz3KrmTdL2vc093TdrKrL0H52V23lzjsjSH4hqiGtoWXEZDxsK+WRTNPocZJATP4US2aqfVOy7OlMZ+hsAVERzXwadeLSBgL7vxYD0EAb4AMPw3vdxVa3gdi6cErOV7Pm8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de; spf=pass smtp.mailfrom=posteo.de; dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b=HEQRJ33W; arc=none smtp.client-ip=185.67.36.65
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=posteo.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MByMczDN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC1CAC2BCB8
-	for <linux-acpi@vger.kernel.org>; Fri, 13 Mar 2026 20:29:32 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773433773;
-	bh=NqQv5lEDXEsBc40vuY6iqjRVxnwv8tjnUEZ8PWXAw7M=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=MByMczDNVE+RcXXn0V6Us5qhZ70QT+4RgynTrGVB2dRhV6rq2f2BqiKoRvpO2CMnH
-	 s91Dzped75ZowKmFf8E5dMLH+FyA7SptO0hF7Mt7GF1xO0C1tqagf/SKQyjwGiJk1S
-	 pLTZm1oSK49A753b5M2x1/8r0IkVJcUSl+9goFgrdU4R4Y1U8Ovl/lX2ZLy+efh39i
-	 9MvuFoM0ImcCJE5anD9tLLNtqCePr0iNwoXgCxWiV6eZUZ/zuNreao1F8ppL+Nh7Dz
-	 xsLSQCUBw8RmW7t3YDMwlwWN88eN2JCTb8WYjQTM46ryPJFX41afVL76sphJ7T0xWW
-	 5gHfSgh7l+CUQ==
-Received: by mail-oi1-f175.google.com with SMTP id 5614622812f47-464bba3a9easo1786772b6e.0
-        for <linux-acpi@vger.kernel.org>; Fri, 13 Mar 2026 13:29:32 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCWVWjHNd1YCul+DKJr0fnrHdDRmScAESChuIs+Dk5JUXkPs9AZKqnDtZipUE8vwJYmrbOvxfQ7Mff+2@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw7cFzTyO7UOD/K076JnceFNnDIAZO3FhQH/Oo+rErPgLgaiY3W
-	TSl+stHapxduvNwhvh8OwevASMX3zwkEHvVxvowgO1imqSF1rXCWcctCbHIwZD99Yejtcm8VEvc
-	DSfRgSwagDqLkHNOk6ghRHjy5LdCSpWs=
-X-Received: by 2002:a05:6808:c1f9:b0:45e:6697:f983 with SMTP id
- 5614622812f47-467570a1fe3mr2780180b6e.5.1773433771867; Fri, 13 Mar 2026
- 13:29:31 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b="HEQRJ33W"
+Received: from submission (posteo.de [185.67.36.169]) 
+	by mout01.posteo.de (Postfix) with ESMTPS id 3712F240027
+	for <linux-acpi@vger.kernel.org>; Fri, 13 Mar 2026 21:32:23 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=posteo.de; s=2017;
+	t=1773433943; bh=zUKmnAJJ5iJOiT/3ZJrLs5Hjcv3qUJTQaRNVnFGFl1g=;
+	h=Message-ID:Subject:From:To:Cc:Date:Autocrypt:Content-Type:
+	 MIME-Version:OpenPGP:From;
+	b=HEQRJ33WdiXIJ14pCtwmwL5LRPdXuKfjQnqbQB7W+RgmHBRvy+gZcSOZ461n6t5yp
+	 rWjaCbYH7Z+ZRS0+Oq1iwCLaLydUhxCCuR8+Qxx5SsprYP7tNrtAPogMwAEwEvB7pj
+	 Q4JBovRuh9rRxwckSrc223nKDdcgKNsexX+Y9ZpS3e/OGXkzTZ3cSp7HRplNFsOXvj
+	 kEoT21qD0EgasU3zySlp5uTyjECUJkhROA9iiiIxTzUznTRmwJgnVp/XE8KYjT9u+C
+	 JBwZeJ0Ll8LcTBOQsLrtpRgLZ8BoZLiv9aWIAn4LSmJlk+NH2wGMW8h7yeBi6OIdM2
+	 dZAZrImPag5gA==
+Received: from customer (localhost [127.0.0.1])
+	by submission (posteo.de) with ESMTPSA id 4fXbkr3PS9z6twG;
+	Fri, 13 Mar 2026 21:32:20 +0100 (CET)
+Message-ID: <3fa06cd43d81d9f10f65d2bcec15f67bfffb45a6.camel@posteo.de>
+Subject: Re: [PATCH v3 3/7] acpi: add acpi_of_match_device_ids
+From: Markus Probst <markus.probst@posteo.de>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Lee Jones <lee@kernel.org>, Rob Herring <robh@kernel.org>, Krzysztof
+ Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, Greg
+ Kroah-Hartman	 <gregkh@linuxfoundation.org>, Miguel Ojeda
+ <ojeda@kernel.org>, Boqun Feng	 <boqun@kernel.org>, Gary Guo
+ <gary@garyguo.net>, =?ISO-8859-1?Q?Bj=F6rn?= Roy Baron
+ <bjorn3_gh@protonmail.com>, Benno Lossin <lossin@kernel.org>, Andreas
+ Hindborg	 <a.hindborg@kernel.org>, Alice Ryhl <aliceryhl@google.com>,
+ Trevor Gross	 <tmgross@umich.edu>, Danilo Krummrich <dakr@kernel.org>, Igor
+ Korotin	 <igor.korotin.linux@gmail.com>, Daniel Almeida
+ <daniel.almeida@collabora.com>,  Bjorn Helgaas <bhelgaas@google.com>,
+ Krzysztof =?UTF-8?Q?Wilczy=C5=84ski?= <kwilczynski@kernel.org>, Pavel
+ Machek <pavel@kernel.org>, Len Brown <lenb@kernel.org>, Robert Moore
+ <robert.moore@intel.com>, 	devicetree@vger.kernel.org,
+ linux-kernel@vger.kernel.org, 	rust-for-linux@vger.kernel.org,
+ driver-core@lists.linux.dev, 	linux-pci@vger.kernel.org,
+ linux-leds@vger.kernel.org, 	linux-acpi@vger.kernel.org,
+ acpica-devel@lists.linux.dev
+Date: Fri, 13 Mar 2026 20:32:22 +0000
+In-Reply-To: <CAJZ5v0hYcSDKid4cbz8ZVZG+vLSHvzPB2UryevEpE15W1w7G3g@mail.gmail.com>
+References: <20260313-synology_microp_initial-v3-0-16941debd8a0@posteo.de>
+	 <20260313-synology_microp_initial-v3-3-16941debd8a0@posteo.de>
+	 <CAJZ5v0hYcSDKid4cbz8ZVZG+vLSHvzPB2UryevEpE15W1w7G3g@mail.gmail.com>
+Autocrypt: addr=markus.probst@posteo.de; prefer-encrypt=mutual;
+ keydata=mQINBGiDvXgBEADAXUceKafpl46S35UmDh2wRvvx+UfZbcTjeQOlSwKP7YVJ4JOZrVs93
+ qReNLkOWguIqPBxR9blQ4nyYrqSCV+MMw/3ifyXIm6Pw2YRUDg+WTEOjTixRCoWDgUj1nOsvJ9tVA
+ m76Ww+/pAnepVRafMID0rqEfD9oGv1YrfpeFJhyE2zUw3SyyNLIKWD6QeLRhKQRbSnsXhGLFBXCqt
+ 9k5JARhgQof9zvztcCVlT5KVvuyfC4H+HzeGmu9201BVyihJwKdcKPq+n/aY5FUVxNTgtI9f8wIbm
+ fAjaoT1pjXSp+dszakA98fhONM98pOq723o/1ZGMZukyXFfsDGtA3BB79HoopHKujLGWAGskzClwT
+ jRQxBqxh/U/lL1pc+0xPWikTNCmtziCOvv0KA0arDOMQlyFvImzX6oGVgE4ksKQYbMZ3Ikw6L1Rv1
+ J+FvN0aNwOKgL2ztBRYscUGcQvA0Zo1fGCAn/BLEJvQYShWKeKqjyncVGoXFsz2AcuFKe1pwETSsN
+ 6OZncjy32e4ktgs07cWBfx0v62b8md36jau+B6RVnnodaA8++oXl3FRwiEW8XfXWIjy4umIv93tb8
+ 8ekYsfOfWkTSewZYXGoqe4RtK80ulMHb/dh2FZQIFyRdN4HOmB4FYO5sEYFr9YjHLmDkrUgNodJCX
+ CeMe4BO4iaxUQARAQABtCdNYXJrdXMgUHJvYnN0IDxtYXJrdXMucHJvYnN0QHBvc3Rlby5kZT6JAl
+ QEEwEIAD4CGwMFCwkIBwICIgIGFQoJCAsCBBYCAwECHgcCF4AWIQSCdBjE9KxY53IwxHM0dh/4561
+ D0gUCaIZ9HQIZAQAKCRA0dh/4561D0pKmD/92zsCfbD+SrvBpNWtbit7J9wFBNr9qSFFm2n/65qen
+ NNWKDrCzDsjRbALMHSO8nigMWzjofbVjj8Nf7SDcdapRjrMCnidS0DuW3pZBo6W0sZqV/fLx+AzgQ
+ 7PAr6jtBbUoKW/GCGHLLtb6Hv+zjL17KGVO0DdQeoHEXMa48mJh8rS7VlUzVtpbxsWbb1wRZJTD88
+ ALDOLTWGqMbCTFDKFfGcqBLdUT13vx706Q29wrDiogmQhLGYKc6fQzpHhCLNhHTl8ZVLuKVY3wTT+
+ f9TzW1BDzFTAe3ZXsKhrzF+ud7vr6ff9p1Zl+Nujz94EDYHi/5Yrtp//+N/ZjDGDmqZOEA86/Gybu
+ 6XE/v4S85ls0cAe37WTqsMCJjVRMP52r7Y1AuOONJDe3sIsDge++XFhwfGPbZwBnwd4gEVcdrKhnO
+ ntuP9TvBMFWeTvtLqlWJUt7n8f/ELCcGoO5acai1iZ59GC81GLl2izObOLNjyv3G6hia/w50Mw9MU
+ dAdZQ2MxM6k+x4L5XeysdcR/2AydVLtu2LGFOrKyEe0M9XmlE6OvziWXvVVwomvTN3LaNUmaINhr7
+ pHTFwDiZCSWKnwnvD2+jA1trKq1xKUQY1uGW9XgSj98pKyixHWoeEpydr+alSTB43c3m0351/9rYT
+ TTi4KSk73wtapPKtaoIR3rOFHLQXbWFya3VzLnByb2JzdEBwb3N0ZW8uZGWJAlEEEwEIADsWIQSCd
+ BjE9KxY53IwxHM0dh/4561D0gUCaIO9eAIbAwULCQgHAgIiAgYVCgkICwIEFgIDAQIeBwIXgAAKCR
+ A0dh/4561D0oHZEACEmk5Ng9+OXoVxJJ+c9slBI2lYxyBO84qkWjoJ/0GpwoHk1IpyL+i+kF1Bb7y
+ Hx9Tiz8ENYX7xIPTZzS8hXs1ksuo76FQUyD6onA/69xZIrYZ0NSA5HUo62qzzMSZL7od5e12R6OPR
+ lR0PIuc4ecOGCEq3BLRPfZSYrL54tiase8HubXsvb6EBQ8jPI8ZUlr96ZqFEwrQZF/3ihyV6LILLk
+ geExgwlTzo5Wv3piOXPTITBuzuFhBJqEnT25q2j8OumGQ+ri8oVeAzx24g1kc11pwpR0sowfa5MvZ
+ WrrBcaIL7uJfR/ig7FyGnTQ1nS3btf3p0v8A3fc4eUu/K2No3l2huJp3+LHhCmpmeykOhSB63Mj3s
+ 3Q87LD0HE0HBkTEMwp+sD97ZRpO67H5shzJRanUaDTb/mREfzpJmRT1uuec0X2zItL7a6itgMJvYI
+ KG29aJLX3fTzzVzFGPgzVZYEdhu4y53p0qEGrrC1JtKR6DRPE1hb/OdWOkjmJ75+PPLD9U5IuRd6y
+ sHJWsEBR1F0wkMPkEofWsvMYJzWXx/rvTWO8N4D6HigTgBXAXNgbc3IHpHlkvKoBJptv6DRVRtIrz
+ 0G0cfBY0Sm7he4N2IYDWWdGnPBZ3rlLSdj5EiBU2YWgIgtLrb8ZNJ3ZlhYluGnBJDGRqy2jC9s1jY
+ 66sLA9rQZMHhJTzMyIDwweGlvMzJAcG9zdGVvLmV1PokCbQQTAQgAVxYhBIJ0GMT0rFjncjDEczR2
+ H/jnrUPSBQJpa71VGxSAAAAAAAQADm1hbnUyLDIuNSsxLjExLDIsMgIbAwULCQgHAgIiAgYVCgkIC
+ wIEFgIDAQIeBwIXgAAKCRA0dh/4561D0gKJD/9uOQKYlsDoQX65Gd0LiMT0C+5vXgr3VI0PHDOwcv
+ 51fJ3A1vNyPZRFPGrz8+mDEXUQOF/INfnz5Tu1QHwf+iYcWcTGAN/FHgVR6ET6VBNU2hJaKhu+Ggo
+ kjYyJTOvyX+3yNRUfSny0GjTjIPuPTErjqmHF+BtjXslpgwqnNMznf3lRIuUjRORupos6p3k1DndE
+ 5vzUTmXSvMyXyOD2KhBl/kL76k0bHYyAQytZPag12pltrtFbA/r2phDGN2si8PooDT99bSTJjaM45
+ MTAAHbHKJfvgfK41bNFD5mMtpWpL195XRtS0Nrxdg3PaYBxN5gtTG0RyZfpYRlkdEhm+jj/8RxuSG
+ i/qdhRdbiI7K2IELWeQVHSNDi9JabR/UzlR4NSnhfAjRIVlRM+eFbUl8XwxwVrAkojF5IraH2qRvg
+ VCmuFsHUW07FUlrDrzpjXsD73cKppoFGDCdDR0BHJepXbFLS9+AqkT+guRJlnCTg2p+TQtnbwPgKp
+ Vj98JixovCl99zRYTsL2bRNU5+q8iET65VMJ1ydyNanvLd5vI/NqDkXhlXLsGmdaDTtu4R21PkToX
+ dQNGrZ91M9nlIBKw8Y7c7xZ4098qX2b8JX/CxD+gC1r4C8vuA3GkhFLx+KlkON7LyiJPkrePp6Qky
+ jfGillcaQOqFZ3WwVqyzG1BUfTow==
+Content-Type: multipart/signed; micalg="pgp-sha256";
+	protocol="application/pgp-signature"; boundary="=-new+ZnvpPewWLWV6wMQM"
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20251226102656.6296-1-lkml@antheas.dev> <20251226102656.6296-4-lkml@antheas.dev>
-In-Reply-To: <20251226102656.6296-4-lkml@antheas.dev>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Fri, 13 Mar 2026 21:29:20 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0jXg9LdAD9xSc=270r2W+imjzTmtM5a2rq-EfTVpxd+fw@mail.gmail.com>
-X-Gm-Features: AaiRm51nBbhd2VSMc_CvxeV1RAEGlkvLGTCQN8UJ-fWkX_0zW_8ryUeCZgBOMOE
-Message-ID: <CAJZ5v0jXg9LdAD9xSc=270r2W+imjzTmtM5a2rq-EfTVpxd+fw@mail.gmail.com>
-Subject: Re: [RFC v1 3/8] acpi/x86: s2idle: add runtime standby transition function
-To: Antheas Kapenekakis <lkml@antheas.dev>
-Cc: dmitry.osipenko@collabora.com, bob.beckett@collabora.com, 
-	bookeldor@gmail.com, hadess@hadess.net, jaap@haitsma.org, 
-	kernel@collabora.com, lennart@poettering.net, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, mccann@jhu.edu, rafael@kernel.org, 
-	richard@hughsie.com, sebastian.reichel@collabora.com, superm1@kernel.org, 
-	systemd-devel@lists.freedesktop.org, xaver.hugl@gmail.com
+OpenPGP: url=https://posteo.de/keys/markus.probst@posteo.de.asc; preference=encrypt
+
+
+--=-new+ZnvpPewWLWV6wMQM
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Dec 26, 2025 at 11:27=E2=80=AFAM Antheas Kapenekakis <lkml@antheas.=
-dev> wrote:
->
-> Add pm_standby_transition() to allow transitioning between standby
-> states during runtime and implement it as part of the s2idle suspend
-> sequence. Update the platform_s2idle_ops structure to include a function
-> to perform firmware notifications and a function to get supported states
->
-> Standby states are a way for userspace to indicate the interactivity of
-> the system at the current moment. Active means that the user is
-> interacting with the device, inactive that a user is not actively
-> interacting with the device, and sleep that the system should appear as
-> if it is suspended to the user, but may still perform small
-> background tasks.
->
-> For modern ACPI s0ix laptops, the inactive state turns off the
-> backlight and the sleep state may limit the thermal envelope of the
-> device. Either may pulse the power light. This patch introduces an ACPI
-> agnostic structure to handle these transitions, so they may implemented
-> by other platforms, and does not implement them for ACPI.
+On Fri, 2026-03-13 at 19:57 +0100, Rafael J. Wysocki wrote:
+> On Fri, Mar 13, 2026 at 7:48=E2=80=AFPM Markus Probst <markus.probst@post=
+eo.de> wrote:
+> >=20
+> > Add a function to match acpi devices against of_device_ids. This will b=
+e
+> > used in the following commit ("mfd: match acpi devices against PRP0001"=
+)
+> > to match mfd sub-devices against a of compatible string.
+>=20
+> Not until I can see how this is going to be used.
+This is used directly in the following patch. Only half of the patch
+series has been sent by b4, because of a limit of my email provider
+(which I didn't know existed until now). I am sorry for the
+inconvenience.
 
-As already stated multiple times, the state-based terminology is not
-particularly useful in my view.
+The patch series has been resent via the b4 relay.
+You can take a look at [1] to see how it is used.
 
-I would prefer switching over to condition-indication-based terminology, li=
-ke
+[1]
+https://lore.kernel.org/rust-for-linux/20260313-synology_microp_initial-v3-=
+4-ad6ac463a201@posteo.de/T/#u
 
-inactive - indicate to the user that there's no activity related to
-running user workloads in the system
-snooze - indicate to the user that <the above> and the thermal
-envelope may have changed
-active - the system is active
+Thanks
+- Markus Probst
 
-> Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
-> ---
->  include/linux/suspend.h |  26 +++++++
->  kernel/power/suspend.c  | 153 ++++++++++++++++++++++++++++++++++++++++
->  2 files changed, 179 insertions(+)
->
-> diff --git a/include/linux/suspend.h b/include/linux/suspend.h
-> index b02876f1ae38..916dee124758 100644
-> --- a/include/linux/suspend.h
-> +++ b/include/linux/suspend.h
-> @@ -40,6 +40,25 @@ typedef int __bitwise suspend_state_t;
->  #define PM_SUSPEND_MIN         PM_SUSPEND_TO_IDLE
->  #define PM_SUSPEND_MAX         ((__force suspend_state_t) 4)
->
-> +typedef int __bitwise standby_state_t;
-> +
-> +#define PM_STANDBY_ACTIVE      ((__force standby_state_t) 0)
-> +#define PM_STANDBY_INACTIVE    ((__force standby_state_t) 1)
-> +#define PM_STANDBY_SLEEP       ((__force standby_state_t) 2)
-> +#define PM_STANDBY_RESUME      ((__force standby_state_t) 3)
-> +#define PM_STANDBY_MIN         PM_STANDBY_ACTIVE
-> +#define PM_STANDBY_MAX         ((__force standby_state_t) 4)
-> +
-> +typedef int __bitwise standby_notification_t;
-> +
-> +#define PM_SN_INACTIVE_ENTRY   ((__force standby_notification_t) 0)
-> +#define PM_SN_INACTIVE_EXIT    ((__force standby_notification_t) 1)
-> +#define PM_SN_SLEEP_ENTRY      ((__force standby_notification_t) 2)
-> +#define PM_SN_SLEEP_EXIT       ((__force standby_notification_t) 3)
-> +#define PM_SN_RESUME           ((__force standby_notification_t) 4)
-> +#define PM_SN_MIN              PM_STANDBY_DISPLAY_OFF
-> +#define PM_SN_MAX              ((__force standby_notification_t) 5)
-> +
->  /**
->   * struct platform_suspend_ops - Callbacks for managing platform depende=
-nt
->   *     system sleep states.
-> @@ -132,6 +151,8 @@ struct platform_suspend_ops {
->  };
->
->  struct platform_s2idle_ops {
-> +       u8 (*get_standby_states)(void);
-> +       int (*do_notification)(standby_notification_t state);
+--=-new+ZnvpPewWLWV6wMQM
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
 
-No, this needs to be separate from platform_s2idle_ops and maybe less ad-ho=
-c.
+-----BEGIN PGP SIGNATURE-----
 
->         int (*begin)(void);
->         int (*prepare)(void);
->         int (*prepare_late)(void);
-> @@ -276,6 +297,11 @@ extern void arch_suspend_enable_irqs(void);
->
->  extern int pm_suspend(suspend_state_t state);
->  extern bool sync_on_suspend_enabled;
-> +
-> +extern void pm_standby_refresh_states(void);
-> +extern int pm_standby_transition(standby_state_t state);
-> +extern void pm_standby_set_state(standby_state_t state);
-> +extern int pm_standby_get_state(void);
->  #else /* !CONFIG_SUSPEND */
->  #define suspend_valid_only_mem NULL
->
-> diff --git a/kernel/power/suspend.c b/kernel/power/suspend.c
-> index 2da4482bb6eb..ede1ba483fa5 100644
-> --- a/kernel/power/suspend.c
-> +++ b/kernel/power/suspend.c
-> @@ -46,12 +46,21 @@ static const char * const mem_sleep_labels[] =3D {
->         [PM_SUSPEND_MEM] =3D "deep",
->  };
->  const char *mem_sleep_states[PM_SUSPEND_MAX];
-> +static const char * const standby_labels[] =3D {
-> +       [PM_STANDBY_ACTIVE] =3D "active",
-> +       [PM_STANDBY_INACTIVE] =3D "inactive",
-> +       [PM_STANDBY_SLEEP] =3D "sleep",
-> +       [PM_STANDBY_RESUME] =3D "resume",
-> +};
-> +const char *standby_states[PM_STANDBY_MAX];
->
->  suspend_state_t mem_sleep_current =3D PM_SUSPEND_TO_IDLE;
->  suspend_state_t mem_sleep_default =3D PM_SUSPEND_MAX;
->  suspend_state_t pm_suspend_target_state;
->  EXPORT_SYMBOL_GPL(pm_suspend_target_state);
->
-> +standby_state_t standby_current =3D PM_STANDBY_ACTIVE;
-> +
->  unsigned int pm_suspend_global_flags;
->  EXPORT_SYMBOL_GPL(pm_suspend_global_flags);
->
-> @@ -195,6 +204,9 @@ void __init pm_states_init(void)
->          * initialize mem_sleep_states[] accordingly here.
->          */
->         mem_sleep_states[PM_SUSPEND_TO_IDLE] =3D mem_sleep_labels[PM_SUSP=
-END_TO_IDLE];
-> +
-> +       /* Always support the active runtime standby state. */
-> +       standby_states[PM_STANDBY_ACTIVE] =3D standby_labels[PM_STANDBY_A=
-CTIVE];
->  }
->
->  static int __init mem_sleep_default_setup(char *str)
-> @@ -334,6 +346,141 @@ static bool platform_suspend_again(suspend_state_t =
-state)
->                 suspend_ops->suspend_again() : false;
->  }
->
-> +static int platform_standby_notify(standby_notification_t state)
-> +{
-> +       return s2idle_ops && s2idle_ops->do_notification ?
-> +                      s2idle_ops->do_notification(state) :
-> +                      0;
-> +}
-> +
-> +/**
-> + * pm_standby_refresh_states - Refresh the supported runtime standby sta=
-tes
-> + */
-> +void pm_standby_refresh_states(void)
-> +{
-> +       u8 standby_support =3D s2idle_ops && s2idle_ops->get_standby_stat=
-es ?
-> +                                    s2idle_ops->get_standby_states() :
-> +                                    0;
-> +
-> +       standby_states[PM_STANDBY_INACTIVE] =3D
-> +               standby_support & BIT(PM_STANDBY_INACTIVE) ?
-> +                       standby_labels[PM_STANDBY_INACTIVE] :
-> +                       NULL;
-> +       standby_states[PM_STANDBY_SLEEP] =3D
-> +               standby_support & BIT(PM_STANDBY_SLEEP) ?
-> +                       standby_labels[PM_STANDBY_SLEEP] :
-> +                       NULL;
-> +       standby_states[PM_STANDBY_RESUME] =3D
-> +               standby_support & BIT(PM_STANDBY_RESUME) ?
-> +                       standby_labels[PM_STANDBY_RESUME] :
-> +                       NULL;
-> +}
-> +EXPORT_SYMBOL_GPL(pm_standby_refresh_states);
-> +
-> +/**
-> + * pm_standby_transition - Transition between standby states
-> + *
-> + * Configure the runtime standby state of the system. Entering these sta=
-tes
-> + * may change the appearance of the system (e.g., keyboard backlight) or=
- limit
-> + * the thermal envelope of the system (e.g., PLx to 5W).
-> + *
-> + * Returns an error if the transition fails. The function does not rollb=
-ack.
-> + */
-> +int pm_standby_transition(standby_state_t state)
-> +{
-> +       int error;
-> +
-> +       if (state =3D=3D standby_current)
-> +               return 0;
-> +       if (state > PM_STANDBY_MAX)
-> +               return -EINVAL;
-> +
-> +       pm_standby_refresh_states();
-> +
-> +       pm_pr_dbg("Transitioning from standby state %s to %s\n",
-> +                 standby_states[standby_current], standby_states[state])=
-;
-> +
-> +       /* Resume can only be entered if we are on the sleep state. */
-> +       if (state =3D=3D PM_STANDBY_RESUME) {
-> +               if (standby_current !=3D PM_STANDBY_SLEEP)
-> +                       return -EINVAL;
-> +               standby_current =3D PM_STANDBY_RESUME;
-> +               return platform_standby_notify(PM_SN_RESUME);
-> +       }
-> +
-> +       /*
-> +        * The system should not be able to re-enter Sleep from resume as=
- it
-> +        * is undefined behavior. As part of setting the state to "Resume=
-",
-> +        * userspace promised a transition to "Inactive" or "Active".
-> +        */
-> +       if (standby_current =3D=3D PM_STANDBY_RESUME && state =3D=3D PM_S=
-TANDBY_SLEEP)
-> +               return -EINVAL;
-> +
-> +       /* Resume is the Sleep state logic-wise. */
-> +       if (standby_current =3D=3D PM_STANDBY_RESUME)
-> +               standby_current =3D PM_STANDBY_SLEEP;
-> +
-> +       if (standby_current < state) {
-> +               for (; standby_current < state; standby_current++) {
-> +                       switch (standby_current + 1) {
-> +                       case PM_STANDBY_INACTIVE:
-> +                               error =3D platform_standby_notify(PM_SN_I=
-NACTIVE_ENTRY);
-> +                               break;
-> +                       case PM_STANDBY_SLEEP:
-> +                               error =3D platform_standby_notify(PM_SN_S=
-LEEP_ENTRY);
-> +                               break;
-> +                       }
-> +
-> +                       if (error) {
-> +                               /* Rollback to previous valid state */
-> +                               while (standby_current > PM_STANDBY_ACTIV=
-E &&
-> +                                      !standby_states[standby_current])
-> +                                       standby_current--;
-> +                               return error;
-> +                       }
-> +               }
-> +       } else if (standby_current > state) {
-> +               for (; standby_current > state; standby_current--) {
-> +                       switch (standby_current) {
-> +                       case PM_STANDBY_SLEEP:
-> +                               error =3D platform_standby_notify(PM_SN_S=
-LEEP_EXIT);
-> +                               break;
-> +                       case PM_STANDBY_INACTIVE:
-> +                               error =3D platform_standby_notify(PM_SN_I=
-NACTIVE_EXIT);
-> +                               break;
-> +                       }
-> +
-> +                       if (error) {
-> +                               /* Rollback to previous valid state */
-> +                               while (standby_current < PM_STANDBY_SLEEP=
- &&
-> +                                      !standby_states[standby_current])
-> +                                       standby_current++;
-> +                               return error;
-> +                       }
-> +               }
-> +       }
-> +
-> +       return 0;
-> +}
-> +
-> +/**
-> + * pm_standby_set_state - Set the current standby state and skip the tra=
-nsition
-> + */
-> +void pm_standby_set_state(standby_state_t state)
-> +{
-> +       standby_current =3D state;
-> +}
-> +EXPORT_SYMBOL_GPL(pm_standby_set_state);
-> +
-> +/**
-> + * pm_standby_get_state - Returns the current standby state
-> + */
-> +int pm_standby_get_state(void)
-> +{
-> +       return standby_current;
-> +}
-> +EXPORT_SYMBOL_GPL(pm_standby_get_state);
-> +
->  #ifdef CONFIG_PM_DEBUG
->  static unsigned int pm_test_delay =3D 5;
->  module_param(pm_test_delay, uint, 0644);
-> @@ -572,6 +719,7 @@ static void suspend_finish(void)
->   */
->  static int enter_state(suspend_state_t state)
->  {
-> +       standby_state_t standby_prior;
->         int error;
->
->         trace_suspend_resume(TPS("suspend_enter"), state, true);
-> @@ -588,6 +736,9 @@ static int enter_state(suspend_state_t state)
->         if (!mutex_trylock(&system_transition_mutex))
->                 return -EBUSY;
->
-> +       standby_prior =3D standby_current;
-> +       pm_standby_transition(PM_STANDBY_SLEEP);
+iQJPBAABCAA5FiEEgnQYxPSsWOdyMMRzNHYf+OetQ9IFAmm0dFEbFIAAAAAABAAO
+bWFudTIsMi41KzEuMTEsMiwyAAoJEDR2H/jnrUPSpicQAL94zv1vs4Mj1Lj2RK8J
+icVNOUN/lVB1j01acPYts0KApvQEPQQkIy3N5TzPUX3NM6iExfLrLTBiH966yJw/
+HghJK37YwkvO69r46Mz5QBKzNG/CAWKsN8dvIrQCuKZrlbYBHYBYm5hRqQjIzvkg
+ykqFxjgEbypVc5WuJF2YFoN/7+XfUfEqAHxWIXFIX9gCtRNedKar5fxs+OsPqWze
+osjdlkRN+7sRpvcEgovulXapCwkZcJizpqiQ+74aWrju4vgyE2xhj4Tgd6OEkSJV
+LinZ2DYK2Afb/tm4b+lGOcPgQCXQTLhYPBrPhi+RiotXH0wMOI/fExMir653SY9V
+UQW0u2Usd5buuxybUUef/naaZ7AgibDxzGu5DdK7cxndbaq9gCvX9NW4YlAScADX
+Quv96acbwB1LI92PHWArdwuj2DGIGG6J/JxXY3y6lZmhTNaMO5EE8D/PfauDL9nS
+MC/4kmE8PyC3l7DvFWOg7UB95zIQLPAWI6qHaVUq/sIGEdhBvDN8M/OEyxQuK0+/
+D7yFgKOJDG0ETlqThWiyKL5c9n7y9csbzij//AzDdwoPoKsOu2UytAisch/e4Ir6
+Vgo2om5ZXc2y2P1S1mVrLK9BBUOcyBYKv2gyjVosDfCd/qfzlFP+nW3TQbW4sm+o
+rrX5rRqhN6FwZ7274oP+97aY
+=JyG6
+-----END PGP SIGNATURE-----
 
-I'm not sure if it is actually safe to evaluate PNP0D80 _DSM function
-7 (sleep entry notification) at this point because of possible
-ordering constraints.
-
-As I said once before in another thread, I would like the platform
-notifications to be moved to the places in which you want them to take
-place before making any other changes and only once this is proven to
-work, further changes can be made.
-
-> +
->         if (state =3D=3D PM_SUSPEND_TO_IDLE)
->                 s2idle_begin();
->
-> @@ -619,6 +770,8 @@ static int enter_state(suspend_state_t state)
->         pm_pr_dbg("Finishing wakeup.\n");
->         suspend_finish();
->   Unlock:
-> +       pm_standby_transition(standby_prior);
-> +
->         mutex_unlock(&system_transition_mutex);
->         return error;
->  }
-> --
+--=-new+ZnvpPewWLWV6wMQM--
