@@ -1,37 +1,38 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6160217DE36;
-	Sat, 14 Mar 2026 11:55:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76182273F9;
+	Sat, 14 Mar 2026 11:57:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773489305; cv=none; b=nOjTQzjqhs0ZNZzl8rnRRF8lXzi2n0Lv0R204Lep0Njnz+tfTE8/NHBXws4vaSJXlSEgWdsFMAQTSMMZNZ0QGMMUYO4MTaKCFPcYuXynWDzMSrbGwjSnl+qCJiqej3OPBTO2CQ/9zAxNRNZo+ElFaExxQoUauK//ntvkVvD+/rM=
+	t=1773489447; cv=none; b=TqZP2z6mIp+o/m5jLeCWGOAOrYgvVzAj+T+RW3Fg4xaR21oSrmBYuTU6VspZFh5dEb8i10HBDojsNWbs+VlHWGqkw1QHMWVSloTXBBNBQLxDkoIFVbx+I6zaNw2J+Q+cftYgKb4CZCuT5htzitYWm8zIv/Up7qaWnK9NOMgvW/Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773489305; c=relaxed/simple;
-	bh=pJOgOKhqYkMyCu3jpWPb5CRX7PU/edD4vnnMkvMLZDc=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=MgZHlpi6IWYEbeDqYqJicf4wZvlxlwcKu91oy7lKYG8LMa/cq1zABfxiUan9tMLG2Ht3EGUICd649KwgoBqfgX7m7aStOjzx+x01NwSXTr9i4XWWjcspX8C/GacX9oh5yE6CMTTDXCx4T2Iist5N6XUIIQOUC4fRYAJL5OiY/KY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iJUeW6pn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773489447; c=relaxed/simple;
+	bh=EsHwFVcOQ4Wxdsc84ge5jVHkcdmVeRF8NmEV5Gg+6aM=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=GGvemxzlr42KFVkvqpAxn07t5Qtc52xMFeUkwgo3aExbXKHZ8ED5xYtb8miyCKrfsmmA994dp4H8ww84IaCdwEjxT0+yZSDycxrfJI8539rchpYurtEHBS9/ZjyGOhyt0U1IfcU720cuaLboWnPictZKcjUCp/S8dFVG6qmM/xk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=aW7ABgsk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iJUeW6pn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83E02C116C6;
-	Sat, 14 Mar 2026 11:55:02 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="aW7ABgsk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A6D2C116C6;
+	Sat, 14 Mar 2026 11:57:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773489305;
-	bh=pJOgOKhqYkMyCu3jpWPb5CRX7PU/edD4vnnMkvMLZDc=;
+	s=k20201202; t=1773489447;
+	bh=EsHwFVcOQ4Wxdsc84ge5jVHkcdmVeRF8NmEV5Gg+6aM=;
 	h=From:To:Cc:Subject:Date:From;
-	b=iJUeW6pnknR925xaWcYFMKyPsxK2IhmMP3ZML7KUz9n2Grc/tc0f6D3Ztm2j4PJWO
-	 aEz0Hh8fgBwihZYG1Cuor6zF80QTm5z1jH3iJzCUgTYyAVmuWKfycoeJloZjQfOe3f
-	 kcK7wKXUzuyEmXdFyNj/1UvxfmoUV1xVY2hD2YrzjB372OHpnU6g8CQUe9iIQV+bUG
-	 xgTnYhxP0yFgfaSLzAYaQ5UTWgw3eRrC+NCQ7IHNR3L/2dA/w6rF4/d91fcjOO4iuo
-	 8rx7DxZkvhXn1yLrUU+D40yEGwGXyXur47xNjahmIS5lFy+CRCH5GC2Q0XNAW0EjjW
-	 8I3pfmEiGt7GA==
+	b=aW7ABgskz2oAgNzm8fnf8LB55FmzAiNcm0elrONcrIDR65uTXre2ggvfMmsoYUXfh
+	 WrGrLkeMycyXDSf9ueVWkC8h6OXcx4Czntq/O4k2TbobKR8YZPCRdtPFkLBNomGyv4
+	 C79II8XwT/wG3jjNmwuOrjy1ziw7LfSkffV8Qx4lG/BOcy3FEPwjs7HenWS3BEzCiA
+	 th1ddIjewuvG8P8Q4em6kv1XMb+L0MzSHFOaQNrCF5yOeHNXYDFwNFX5tMmosXzPFB
+	 MPUjFexIuRqT7WlzAtH2lxSHxWOioGIDhOfpe3uofJr/zVc01uHyS0tRhG5y/Th42N
+	 aVBHbjGd5XN2w==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
- Linux ACPI <linux-acpi@vger.kernel.org>, linux-input@vger.kernel.org
-Subject: [PATCH v1] Input: atlas - convert ACPI driver to a platform one
-Date: Sat, 14 Mar 2026 12:54:58 +0100
-Message-ID: <3429591.aeNJFYEL58@rafael.j.wysocki>
+To: Linux ACPI <linux-acpi@vger.kernel.org>, xen-devel@lists.xenproject.org
+Cc: LKML <linux-kernel@vger.kernel.org>, Juergen Gross <jgross@suse.com>,
+ Stefano Stabellini <sstabellini@kernel.org>,
+ Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
+Subject: [PATCH v1] ACPI: PAD: xen: Convert to a platform driver
+Date: Sat, 14 Mar 2026 12:57:23 +0100
+Message-ID: <8683270.T7Z3S40VBb@rafael.j.wysocki>
 Organization: Linux Kernel Development
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
@@ -52,8 +53,8 @@ used by driver code to bind to that device.  There are multiple reasons
 why drivers should not bind directly to ACPI device objects [1].
 
 Overall, it is better to bind drivers to platform devices than to their
-ACPI companions, so convert the ACPI Atlas button driver to a platform
-one.
+ACPI companions, so convert the Xen ACPI processor aggregator device
+(PAD) driver to a platform one.
 
 While this is not expected to alter functionality, it changes sysfs
 layout and so it will be visible to user space.
@@ -61,67 +62,81 @@ layout and so it will be visible to user space.
 Link: https://lore.kernel.org/all/2396510.ElGaqSPkdT@rafael.j.wysocki/ [1]
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/input/misc/atlas_btns.c | 22 ++++++++++++----------
- 1 file changed, 12 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/input/misc/atlas_btns.c b/drivers/input/misc/atlas_btns.c
-index 5b9be2957746..47b31725e850 100644
---- a/drivers/input/misc/atlas_btns.c
-+++ b/drivers/input/misc/atlas_btns.c
-@@ -14,6 +14,7 @@
- #include <linux/input.h>
+Note that the original ACPI PAD driver has been a platform driver for
+quite some time already.
+
+---
+ drivers/xen/xen-acpi-pad.c | 23 ++++++++++++-----------
+ 1 file changed, 12 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/xen/xen-acpi-pad.c b/drivers/xen/xen-acpi-pad.c
+index ede69a5278d3..75a39862c1df 100644
+--- a/drivers/xen/xen-acpi-pad.c
++++ b/drivers/xen/xen-acpi-pad.c
+@@ -11,6 +11,7 @@
+ #include <linux/kernel.h>
  #include <linux/types.h>
  #include <linux/acpi.h>
 +#include <linux/platform_device.h>
- #include <linux/uaccess.h>
- 
- #define ACPI_ATLAS_NAME		"Atlas ACPI"
-@@ -57,8 +58,9 @@ static acpi_status acpi_atlas_button_handler(u32 function,
- 	return status;
+ #include <xen/xen.h>
+ #include <xen/interface/version.h>
+ #include <xen/xen-ops.h>
+@@ -107,8 +108,9 @@ static void acpi_pad_notify(acpi_handle handle, u32 event,
+ 	}
  }
  
--static int atlas_acpi_button_add(struct acpi_device *device)
-+static int atlas_acpi_button_probe(struct platform_device *pdev)
- {
-+	struct acpi_device *device = ACPI_COMPANION(&pdev->dev);
- 	acpi_status status;
- 	int i;
- 	int err;
-@@ -106,8 +108,9 @@ static int atlas_acpi_button_add(struct acpi_device *device)
- 	return err;
- }
- 
--static void atlas_acpi_button_remove(struct acpi_device *device)
-+static void atlas_acpi_button_remove(struct platform_device *pdev)
+-static int acpi_pad_add(struct acpi_device *device)
++static int acpi_pad_probe(struct platform_device *pdev)
  {
 +	struct acpi_device *device = ACPI_COMPANION(&pdev->dev);
  	acpi_status status;
  
- 	status = acpi_remove_address_space_handler(device->handle,
-@@ -124,16 +127,15 @@ static const struct acpi_device_id atlas_device_ids[] = {
+ 	strcpy(acpi_device_name(device), ACPI_PROCESSOR_AGGREGATOR_DEVICE_NAME);
+@@ -122,13 +124,13 @@ static int acpi_pad_add(struct acpi_device *device)
+ 	return 0;
+ }
+ 
+-static void acpi_pad_remove(struct acpi_device *device)
++static void acpi_pad_remove(struct platform_device *pdev)
+ {
+ 	mutex_lock(&xen_cpu_lock);
+ 	xen_acpi_pad_idle_cpus(0);
+ 	mutex_unlock(&xen_cpu_lock);
+ 
+-	acpi_remove_notify_handler(device->handle,
++	acpi_remove_notify_handler(ACPI_HANDLE(&pdev->dev),
+ 		ACPI_DEVICE_NOTIFY, acpi_pad_notify);
+ }
+ 
+@@ -137,13 +139,12 @@ static const struct acpi_device_id pad_device_ids[] = {
+ 	{"", 0},
  };
- MODULE_DEVICE_TABLE(acpi, atlas_device_ids);
  
--static struct acpi_driver atlas_acpi_driver = {
--	.name	= ACPI_ATLAS_NAME,
--	.class	= ACPI_ATLAS_CLASS,
--	.ids	= atlas_device_ids,
--	.ops	= {
--		.add	= atlas_acpi_button_add,
--		.remove	= atlas_acpi_button_remove,
-+static struct platform_driver atlas_acpi_driver = {
-+	.probe = atlas_acpi_button_probe,
-+	.remove = atlas_acpi_button_remove,
+-static struct acpi_driver acpi_pad_driver = {
+-	.name = "processor_aggregator",
+-	.class = ACPI_PROCESSOR_AGGREGATOR_CLASS,
+-	.ids = pad_device_ids,
+-	.ops = {
+-		.add = acpi_pad_add,
+-		.remove = acpi_pad_remove,
++static struct platform_driver acpi_pad_driver = {
++	.probe = acpi_pad_probe,
++	.remove = acpi_pad_remove,
 +	.driver = {
-+		.name = ACPI_ATLAS_NAME,
-+		.acpi_match_table = atlas_device_ids,
++		.name = "acpi_processor_aggregator",
++		.acpi_match_table = pad_device_ids,
  	},
  };
--module_acpi_driver(atlas_acpi_driver);
-+module_platform_driver(atlas_acpi_driver);
  
- MODULE_AUTHOR("Jaya Kumar");
- MODULE_LICENSE("GPL");
+@@ -157,6 +158,6 @@ static int __init xen_acpi_pad_init(void)
+ 	if (!xen_running_on_version_or_later(4, 2))
+ 		return -ENODEV;
+ 
+-	return acpi_bus_register_driver(&acpi_pad_driver);
++	return platform_driver_register(&acpi_pad_driver);
+ }
+ subsys_initcall(xen_acpi_pad_init);
 -- 
 2.51.0
 
