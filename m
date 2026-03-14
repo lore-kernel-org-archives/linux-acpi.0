@@ -1,435 +1,151 @@
-Received: from mail-wr1-f48.google.com (mail-wr1-f48.google.com [209.85.221.48])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE63C1E5B64
-	for <linux-acpi@vger.kernel.org>; Sat, 14 Mar 2026 01:32:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1DA627082D;
+	Sat, 14 Mar 2026 08:49:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773451935; cv=none; b=nIK019B7QtMa5Z+FCbnuBo3Pk5lNIxxf71b9UQ1Mb4fzg6SSc9vWu67w58ILIM6hqSDHuaYFmjl40hpcrAjmRepX7mpmirUyuBDC0nkgvWRJagExP481G0Ku1TqkjHten7zOxFQsF5zZBfv9o9jj2cids0tND00IXqEgh6E84vk=
+	t=1773478200; cv=none; b=Op2y/nXDwK01UxJrtyZQm19did44QKgXwIGZ8UWpr8Kom5QJSZedtslFIcZ0dUMuKoaPjyvW38Bosf4ZC4OLf38Lkei2qFU99SfmXYhUEzq7p2uG4HKlxOxb2oUFflYlP9ULReV9JdrY7yPOb4aOlbsIDPY+Tky1QZPUmIJd1H4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773451935; c=relaxed/simple;
-	bh=p8T4E7480ILfoOrSFfqVs8pQWFIFxD+u2YFQz9fnNxo=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=jbK7YqbMEOOIKm2SNSihCmktA+warWIw5YaVeTtieJFb1JQGwivILv6H3w5WnsS3o77auvU5UzybZncM1xTjH0f2gD32Je5TS4clyjyIdj1LOVhu5ffMrkLJYVIgOLLSx1Baq/o5TqaEdinD29AFdMmRFt48xfRIrXWlkg/0dUs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=FA1DBfzM; arc=none smtp.client-ip=209.85.221.48
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1773478200; c=relaxed/simple;
+	bh=vXZYHzFnBeRy7S1yQMG+LEicyLSek5vHhy/TpvGC43Y=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=D1egRF26pxCJ7RQtGqkJBNafRr6TdK6ermb4z6Q3IVupEST6R10NBGEKug7pkOTa0+dW7BinyM1J8tQbVTV4DgXM+p3jQJ9tYOV96II0EBC1Rqbch68FDv5SXEVEqoznoRJJ2TLb15rhNy+EjEmo/hChSduHNSolP6LDE8X7Zdg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=uZrSRJ1w; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FA1DBfzM"
-Received: by mail-wr1-f48.google.com with SMTP id ffacd0b85a97d-439c56e822eso2938570f8f.2
-        for <linux-acpi@vger.kernel.org>; Fri, 13 Mar 2026 18:32:13 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1773451932; x=1774056732; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=jvDWBNZNK1PJ+DFXrEgOI7FkazNpTVvzpyU4Do+y01s=;
-        b=FA1DBfzMSq9HUDJmjQ3PFv0cBwqahnZsxgMIu0G0GzM9t6J8+vpwuLdf3H1hP2Ir6n
-         JeG1Fh2uMIg41kydTFU5zELzenDn5EQF//AOx9pp3yQkbjGAeLoCwCW5hxig61Q32TvD
-         rftXzBTk7l8KuiM5401ZPhgTbqxvr++ku/UI80rEmpcrQ1ssdXJPTbJnp+5haD3CxGOf
-         addpHiWxKbICG7DRtIkvnic1r/aBEM98F8nfFVo89+ZgdEs3eHLFcXdMga4A+bzKbWwL
-         xRIgBUWaAJ3fpmDELudj2L+g7SjNTrdj/tf+j0CgHpycE7uHEE/0M7Bsuhg8iGvMv/U5
-         6KlA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1773451932; x=1774056732;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=jvDWBNZNK1PJ+DFXrEgOI7FkazNpTVvzpyU4Do+y01s=;
-        b=aUQWKw2mvSgsasmvgfwJLhTUn38YcKlu0B2M+LRn73TwlCYnEvZsgDLKOGoulg8TnS
-         LYNNtErlRjolAwuQuaBUpyo863nITekFmTKJ6b4gXonjKQtszdZDex6jPcVdxV+fbhsO
-         lzW5c8ddEykLH7j3ZtuBM1yztxTIaa25+tLYgMS/V2apO6vBfIhAeJQ6zVYNGMG5BFGq
-         qX/Ztp0paC3vYlQmgI5nQEDmxphZvubPq27qagjNqJKIwgLu1jLTWIv5pEG1bYKJK3ll
-         IqJiquyxGnFWtH98HMgRW/fQCG76IP2pe+odUoPqEM+fo7hitpUiREmyiGirwDwsxwin
-         c3yQ==
-X-Forwarded-Encrypted: i=1; AJvYcCWzpq9gsaK/fVB7xvkvkHpEHlWGIMTEtVDmpQrbnnbdEAY+eHPhVvCO5M0z06PruUT0TgsJFFLpHwot@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx4/ZzFTRJ06K04y3PiXS18V8Hf5ylytu3aPgp8+FWQA3sNsZ7C
-	c28Lr1prkbkDYtIMJ9fP4BUXymvSHLtEjoOpH0ais5BbjzJb2okEQyls
-X-Gm-Gg: ATEYQzy2ZEnI9WDgbk96MRnV/SvpXpJYoZtFfdMflpJOeFN1oaP+Z+Bo78zZ0W86vz2
-	kUKQHNRONK48/VfTsrsU+HX7z7YX29UHxTHDD+lmB9czmEtrNh8VahmpDt9Jau39WxKbqVkn+VY
-	0YjbeFvKZKlT8UTQN/Rt2Vn4q4mcXroK147/BXTpOw3Wbj6y0YXyW7pvWMgiQoLTMy8cePVFWD8
-	1NtQL4KD1CRGZ+CETtnuN+X2IwfQe1CjJx6wKIfTJO5T1IIOJhujxhCg/DDGYz3BK0cIjiR6naX
-	ZXwtC+8hWzgT/yuBi37NBQPgzTsk5VyYxShdsSbArLopclYWrKGzIk/6IvEBiDAKm+HGi/xngzH
-	osHCWdlMEyu/aHfx5OzyhU5qD2bdEU56/MK9BrR6eGwQFWqYypu4Lq15XrmrUovRPjc6R1+Q8GM
-	lJ+QQ1pYHN7wq76fcfyP6xheqPuQ3qikcLhENHYbqyvTJBLd/3rLyzZVarEgnTC5nCkYtkogVB7
-	3FlVc093MBtsgbC2pLLN4diwEU61hnrmrIpAKWM08mka2m3Tv5bj+n8zTP1q1gA75BqW5XCg8ZC
-	FfV+q5KNjeQ=
-X-Received: by 2002:a05:6000:1787:b0:439:c677:5145 with SMTP id ffacd0b85a97d-43a04d880e8mr9903496f8f.22.1773451932107;
-        Fri, 13 Mar 2026 18:32:12 -0700 (PDT)
-Received: from scambox.localdomain (5-198-68-184.static.kc.net.uk. [5.198.68.184])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-439fe22529csm21876575f8f.31.2026.03.13.18.32.11
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 13 Mar 2026 18:32:11 -0700 (PDT)
-From: Edward Blair <edward.blair@gmail.com>
-To: linux-i2c@vger.kernel.org,
-	linux-usb@vger.kernel.org
-Cc: heikki.krogerus@linux.intel.com,
-	gregkh@linuxfoundation.org,
-	wsa+renesas@sang-engineering.com,
-	westeri@kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Edward Blair <edward.blair@gmail.com>
-Subject: [PATCH 2/2] usb: typec: ucsi: add ITE885x I2C transport driver
-Date: Sat, 14 Mar 2026 01:31:56 +0000
-Message-ID: <20260314013157.7181-3-edward.blair@gmail.com>
-X-Mailer: git-send-email 2.53.0
-In-Reply-To: <20260314013157.7181-1-edward.blair@gmail.com>
-References: <20260314013157.7181-1-edward.blair@gmail.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="uZrSRJ1w"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E081C116C6;
+	Sat, 14 Mar 2026 08:49:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1773478199;
+	bh=vXZYHzFnBeRy7S1yQMG+LEicyLSek5vHhy/TpvGC43Y=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=uZrSRJ1w28zJV2cr8yWmITJcsM2N8oAUzGxXzAmhixJKml7zsHgWX2t+CgbBLFm2D
+	 A8ELTWPXtLGRVK0hOIdDDc+RB8c9ZgMu92z2hYwVD5wh8vIv6ww+BoUO3hGGUXG1zs
+	 4ATzawsNWsBzJAS92Ndq2R3+EFCLkqjynDr1oYDQOdIkChVfsHagiZ4fYU6F5/X4wX
+	 FCfnO48YsxZ+GfYZvnrj2CVFJtM96UQrzlVDzD3W/SK2ECRUWirGQwrpS2ey0ws2Vx
+	 79jYlUbW4HwIOPIzpmo5Aw+6hoptf5NpM6HYFRstM+qTD2BYgcydKwowDf03YMq0jF
+	 HVV1TezacQ/TQ==
+Message-ID: <336523bb-615b-451b-8681-c965bf579203@kernel.org>
+Date: Sat, 14 Mar 2026 09:49:51 +0100
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3 5/7] dt-bindings: mfd: Add synology,microp device
+To: Markus Probst <markus.probst@posteo.de>, Lee Jones <lee@kernel.org>,
+ Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>,
+ Conor Dooley <conor+dt@kernel.org>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ Miguel Ojeda <ojeda@kernel.org>, Boqun Feng <boqun@kernel.org>,
+ Gary Guo <gary@garyguo.net>, =?UTF-8?Q?Bj=C3=B6rn_Roy_Baron?=
+ <bjorn3_gh@protonmail.com>, Benno Lossin <lossin@kernel.org>,
+ Andreas Hindborg <a.hindborg@kernel.org>, Alice Ryhl <aliceryhl@google.com>,
+ Trevor Gross <tmgross@umich.edu>, Danilo Krummrich <dakr@kernel.org>,
+ "Rafael J. Wysocki" <rafael@kernel.org>,
+ Igor Korotin <igor.korotin.linux@gmail.com>,
+ Daniel Almeida <daniel.almeida@collabora.com>,
+ Bjorn Helgaas <bhelgaas@google.com>,
+ =?UTF-8?Q?Krzysztof_Wilczy=C5=84ski?= <kwilczynski@kernel.org>,
+ Pavel Machek <pavel@kernel.org>, Len Brown <lenb@kernel.org>,
+ Robert Moore <robert.moore@intel.com>
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+ rust-for-linux@vger.kernel.org, driver-core@lists.linux.dev,
+ linux-pci@vger.kernel.org, linux-leds@vger.kernel.org,
+ linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev
+References: <20260313-synology_microp_initial-v3-0-ad6ac463a201@posteo.de>
+ <20260313-synology_microp_initial-v3-5-ad6ac463a201@posteo.de>
+ <02e0772d-ba65-4eb8-8453-e0b3eaa4af96@kernel.org>
+ <6f2298f3298dc81e6e2ed34ca43424fc39ce3518.camel@posteo.de>
+From: Krzysztof Kozlowski <krzk@kernel.org>
+Content-Language: en-US
+Autocrypt: addr=krzk@kernel.org; keydata=
+ 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 a/A=
+In-Reply-To: <6f2298f3298dc81e6e2ed34ca43424fc39ce3518.camel@posteo.de>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 
-Add a UCSI transport driver for ITE8853/ITE8800-ITE8805 USB Type-C
-controllers, commonly found on ASUS Z690/Z790/X670E motherboards.
+On 13/03/2026 21:29, Markus Probst wrote:
+> 
+>> This is not an "MFD" device.
+> It now uses the MFD APIs. By the definiton of @Lee (assuming I
+> understood it correctly), this device should now qualify as "MFD"
+> device.
 
-These controllers implement the UCSI protocol over I2C with
-ITE-proprietary register offsets and dedicated interrupt registers:
+No. Using Linux framework does not make this device MFD, since there is
+no such term of hardware as MFD. Otherwise please explain or link to
+verifiable external source describing what sort of device class is MFD,
+because for sure this is not MFD how Wikipedia defines it.
 
-  - CCI at 0x84, MESSAGE_IN at 0x88, CONTROL at 0x98
-  - INT_STATUS at 0xBD, INT_ACK at 0xBC
-  - GPIO interrupt (level-triggered, active-low)
+> 
+>>> +
+>>> +    mcu {
+>>
+>> Please read previous comments.
+> 
+> You are likly trying to refer to this comment from you:
+>> Depending what this is. MCU is generic purpose unit where you load
+> your
+>> different FW for different purposes and you have here specific - to
+>> handle certain aspects of this entire machine. This looks like EC, so
+>> should be called embedded-controller and placed in that directory.
+> Synology uses Microchip PIC for this purpose. On a Synology DS215j, it
+> uses a "Microchip PIC16F1829". At least to me, this looks like a
 
-The ITE8853 does not accept PPM_RESET over I2C (the Windows driver
-handles it internally), so the driver intercepts this command and
-returns a synthetic reset-complete response.
+It does not matter what chip is used. Every component uses some sort of
+chip.
 
-Tested on ASUS ROG Strix Z790-E Gaming WiFi with ITE8853 at I2C
-address 0x40 on the DesignWare I2C controller.
+> general purpose microcontroller with firmware from synology flashed
+> onto it. Therefore it is a MCU.
 
-Signed-off-by: Edward Blair <edward.blair@gmail.com>
----
- drivers/usb/typec/ucsi/Kconfig    |  11 ++
- drivers/usb/typec/ucsi/Makefile   |   1 +
- drivers/usb/typec/ucsi/ucsi_ite.c | 285 ++++++++++++++++++++++++++++++
- 3 files changed, 297 insertions(+)
- create mode 100644 drivers/usb/typec/ucsi/ucsi_ite.c
+Every chip is then an MCU with such logic. Every PMIC, every EC.
 
-diff --git a/drivers/usb/typec/ucsi/Kconfig b/drivers/usb/typec/ucsi/Kconfig
-index 87dd992a4..455272b5a 100644
---- a/drivers/usb/typec/ucsi/Kconfig
-+++ b/drivers/usb/typec/ucsi/Kconfig
-@@ -104,4 +104,15 @@ config UCSI_HUAWEI_GAOKUN
- 	  To compile the driver as a module, choose M here: the module will be
- 	  called ucsi_huawei_gaokun.
- 
-+config UCSI_ITE
-+	tristate "UCSI Interface Driver for ITE885x"
-+	depends on I2C
-+	help
-+	  This driver enables UCSI support on platforms that expose an ITE8853
-+	  or ITE8800-ITE8805 USB Type-C controller over I2C, commonly found
-+	  on ASUS Z690/Z790/X670E motherboards.
-+
-+	  To compile the driver as a module, choose M here: the module will be
-+	  called ucsi_ite.
-+
- endif
-diff --git a/drivers/usb/typec/ucsi/Makefile b/drivers/usb/typec/ucsi/Makefile
-index c7e38bf01..9bc1d6bbb 100644
---- a/drivers/usb/typec/ucsi/Makefile
-+++ b/drivers/usb/typec/ucsi/Makefile
-@@ -28,3 +28,4 @@ obj-$(CONFIG_UCSI_PMIC_GLINK)		+= ucsi_glink.o
- obj-$(CONFIG_CROS_EC_UCSI)		+= cros_ec_ucsi.o
- obj-$(CONFIG_UCSI_LENOVO_YOGA_C630)	+= ucsi_yoga_c630.o
- obj-$(CONFIG_UCSI_HUAWEI_GAOKUN)	+= ucsi_huawei_gaokun.o
-+obj-$(CONFIG_UCSI_ITE)			+= ucsi_ite.o
-diff --git a/drivers/usb/typec/ucsi/ucsi_ite.c b/drivers/usb/typec/ucsi/ucsi_ite.c
-new file mode 100644
-index 000000000..400b844a1
---- /dev/null
-+++ b/drivers/usb/typec/ucsi/ucsi_ite.c
-@@ -0,0 +1,285 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * UCSI I2C transport driver for ITE885x USB-C controllers
-+ *
-+ * ITE8853/ITE8800-ITE8805 are UCSI-compliant USB-C controllers found on
-+ * ASUS Z690/Z790/X670E motherboards. They communicate via I2C with
-+ * ITE-proprietary register offsets and interrupt registers.
-+ *
-+ * Note: Some BIOS implementations declare both MSFT8000 (generic UCSI) and
-+ * ITE8853 (vendor-specific) ACPI devices at the same I2C address. The i2c
-+ * core skips the generic device when a vendor-specific sibling exists,
-+ * allowing this driver to bind to the ITE8853 client with proper IRQ.
-+ */
-+
-+#include <linux/acpi.h>
-+#include <linux/i2c.h>
-+#include <linux/interrupt.h>
-+#include <linux/module.h>
-+
-+#include "ucsi.h"
-+
-+/* ITE-specific I2C register offsets */
-+#define ITE_REG_CCI		0x84
-+#define ITE_REG_MESSAGE_IN	0x88
-+#define ITE_REG_CONTROL		0x98
-+#define ITE_REG_INT_ACK		0xbc
-+#define ITE_REG_INT_STATUS	0xbd
-+
-+/* INT_STATUS register bits */
-+#define ITE_INT_VENDOR_ALERT	BIT(0)
-+#define ITE_INT_CCI		BIT(1)
-+
-+/* INT_ACK register values */
-+#define ITE_ACK_VENDOR		0x01
-+#define ITE_ACK_CCI		0x02
-+
-+struct ucsi_ite {
-+	struct device *dev;
-+	struct i2c_client *client;
-+	struct ucsi *ucsi;
-+};
-+
-+static int ucsi_ite_read(struct ucsi_ite *ite, u8 reg, void *val, size_t len)
-+{
-+	struct i2c_msg msgs[] = {
-+		{
-+			.addr = ite->client->addr,
-+			.flags = 0,
-+			.len = 1,
-+			.buf = &reg,
-+		},
-+		{
-+			.addr = ite->client->addr,
-+			.flags = I2C_M_RD,
-+			.len = len,
-+			.buf = val,
-+		},
-+	};
-+	int ret;
-+
-+	ret = i2c_transfer(ite->client->adapter, msgs, ARRAY_SIZE(msgs));
-+	if (ret != ARRAY_SIZE(msgs)) {
-+		dev_err(ite->dev, "i2c read 0x%02x failed: %d\n", reg, ret);
-+		return ret < 0 ? ret : -EIO;
-+	}
-+
-+	return 0;
-+}
-+
-+static int ucsi_ite_write(struct ucsi_ite *ite, u8 reg, const void *val,
-+			  size_t len)
-+{
-+	struct i2c_msg msg = {
-+		.addr = ite->client->addr,
-+		.flags = 0,
-+	};
-+	u8 *buf;
-+	int ret;
-+
-+	buf = kmalloc(len + 1, GFP_KERNEL);
-+	if (!buf)
-+		return -ENOMEM;
-+
-+	buf[0] = reg;
-+	memcpy(&buf[1], val, len);
-+	msg.len = len + 1;
-+	msg.buf = buf;
-+
-+	ret = i2c_transfer(ite->client->adapter, &msg, 1);
-+	kfree(buf);
-+	if (ret != 1) {
-+		dev_err(ite->dev, "i2c write 0x%02x failed: %d\n", reg, ret);
-+		return ret < 0 ? ret : -EIO;
-+	}
-+
-+	return 0;
-+}
-+
-+static int ucsi_ite_read_version(struct ucsi *ucsi, u16 *version)
-+{
-+	/*
-+	 * The ITE8853 does not expose a UCSI VERSION register over I2C.
-+	 * The Windows driver never reads it. Report UCSI 1.0.
-+	 */
-+	*version = UCSI_VERSION_1_0;
-+	return 0;
-+}
-+
-+static int ucsi_ite_read_cci(struct ucsi *ucsi, u32 *cci)
-+{
-+	struct ucsi_ite *ite = ucsi_get_drvdata(ucsi);
-+
-+	return ucsi_ite_read(ite, ITE_REG_CCI, cci, sizeof(*cci));
-+}
-+
-+static int ucsi_ite_read_message_in(struct ucsi *ucsi, void *val, size_t len)
-+{
-+	struct ucsi_ite *ite = ucsi_get_drvdata(ucsi);
-+
-+	return ucsi_ite_read(ite, ITE_REG_MESSAGE_IN, val, len);
-+}
-+
-+static int ucsi_ite_async_control(struct ucsi *ucsi, u64 command)
-+{
-+	struct ucsi_ite *ite = ucsi_get_drvdata(ucsi);
-+
-+	return ucsi_ite_write(ite, ITE_REG_CONTROL, &command, sizeof(command));
-+}
-+
-+static int ucsi_ite_sync_control(struct ucsi *ucsi, u64 command, u32 *cci,
-+				 void *data, size_t size)
-+{
-+	/*
-+	 * The ITE8853 handles PPM_RESET internally and does not accept it
-+	 * over I2C — the Windows driver never sends it. Fake a successful
-+	 * reset so the UCSI core can proceed with initialization.
-+	 */
-+	if ((command & 0xff) == UCSI_PPM_RESET) {
-+		if (cci)
-+			*cci = UCSI_CCI_RESET_COMPLETE;
-+		return 0;
-+	}
-+
-+	return ucsi_sync_control_common(ucsi, command, cci, data, size);
-+}
-+
-+static const struct ucsi_operations ucsi_ite_ops = {
-+	.read_version = ucsi_ite_read_version,
-+	.read_cci = ucsi_ite_read_cci,
-+	.poll_cci = ucsi_ite_read_cci,
-+	.read_message_in = ucsi_ite_read_message_in,
-+	.sync_control = ucsi_ite_sync_control,
-+	.async_control = ucsi_ite_async_control,
-+};
-+
-+static irqreturn_t ucsi_ite_irq(int irq, void *data)
-+{
-+	struct ucsi_ite *ite = data;
-+	u8 status;
-+	u32 cci;
-+	u8 ack;
-+	int ret;
-+
-+	ret = ucsi_ite_read(ite, ITE_REG_INT_STATUS, &status, sizeof(status));
-+	if (ret)
-+		return IRQ_NONE;
-+
-+	if (!(status & (ITE_INT_CCI | ITE_INT_VENDOR_ALERT)))
-+		return IRQ_NONE;
-+
-+	if (status & ITE_INT_CCI) {
-+		ack = ITE_ACK_CCI;
-+		ucsi_ite_write(ite, ITE_REG_INT_ACK, &ack, sizeof(ack));
-+
-+		ret = ucsi_ite_read(ite, ITE_REG_CCI, &cci, sizeof(cci));
-+		if (!ret)
-+			ucsi_notify_common(ite->ucsi, cci);
-+	}
-+
-+	if (status & ITE_INT_VENDOR_ALERT) {
-+		ack = ITE_ACK_VENDOR;
-+		ucsi_ite_write(ite, ITE_REG_INT_ACK, &ack, sizeof(ack));
-+	}
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static int ucsi_ite_probe(struct i2c_client *client)
-+{
-+	struct device *dev = &client->dev;
-+	struct ucsi_ite *ite;
-+	int ret;
-+
-+	ite = devm_kzalloc(dev, sizeof(*ite), GFP_KERNEL);
-+	if (!ite)
-+		return -ENOMEM;
-+
-+	ite->dev = dev;
-+	ite->client = client;
-+	i2c_set_clientdata(client, ite);
-+
-+	ite->ucsi = ucsi_create(dev, &ucsi_ite_ops);
-+	if (IS_ERR(ite->ucsi))
-+		return PTR_ERR(ite->ucsi);
-+
-+	ucsi_set_drvdata(ite->ucsi, ite);
-+
-+	ret = request_threaded_irq(client->irq, NULL, ucsi_ite_irq,
-+				   IRQF_ONESHOT, dev_name(dev), ite);
-+	if (ret) {
-+		dev_err(dev, "failed to request IRQ: %d\n", ret);
-+		goto err_destroy;
-+	}
-+
-+	ret = ucsi_register(ite->ucsi);
-+	if (ret) {
-+		dev_err(dev, "failed to register UCSI: %d\n", ret);
-+		goto err_free_irq;
-+	}
-+
-+	return 0;
-+
-+err_free_irq:
-+	free_irq(client->irq, ite);
-+err_destroy:
-+	ucsi_destroy(ite->ucsi);
-+	return ret;
-+}
-+
-+static void ucsi_ite_remove(struct i2c_client *client)
-+{
-+	struct ucsi_ite *ite = i2c_get_clientdata(client);
-+
-+	ucsi_unregister(ite->ucsi);
-+	free_irq(client->irq, ite);
-+	ucsi_destroy(ite->ucsi);
-+}
-+
-+static int ucsi_ite_suspend(struct device *dev)
-+{
-+	struct ucsi_ite *ite = dev_get_drvdata(dev);
-+
-+	disable_irq(ite->client->irq);
-+
-+	return 0;
-+}
-+
-+static int ucsi_ite_resume(struct device *dev)
-+{
-+	struct ucsi_ite *ite = dev_get_drvdata(dev);
-+
-+	enable_irq(ite->client->irq);
-+
-+	return ucsi_resume(ite->ucsi);
-+}
-+
-+static DEFINE_SIMPLE_DEV_PM_OPS(ucsi_ite_pm, ucsi_ite_suspend,
-+				ucsi_ite_resume);
-+
-+static const struct acpi_device_id ucsi_ite_acpi_ids[] = {
-+	{ "ITE8853" },
-+	{ "ITE8800" },
-+	{ "ITE8801" },
-+	{ "ITE8802" },
-+	{ "ITE8803" },
-+	{ "ITE8804" },
-+	{ "ITE8805" },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(acpi, ucsi_ite_acpi_ids);
-+
-+static struct i2c_driver ucsi_ite_driver = {
-+	.driver = {
-+		.name = "ucsi_ite",
-+		.acpi_match_table = ucsi_ite_acpi_ids,
-+		.pm = pm_sleep_ptr(&ucsi_ite_pm),
-+	},
-+	.probe = ucsi_ite_probe,
-+	.remove = ucsi_ite_remove,
-+};
-+module_i2c_driver(ucsi_ite_driver);
-+
-+MODULE_AUTHOR("Edward Blair <edward.blair@gmail.com>");
-+MODULE_DESCRIPTION("UCSI I2C transport driver for ITE885x USB-C controllers");
-+MODULE_LICENSE("GPL");
--- 
-2.53.0
+This is for me clearly embedded controller and that's where this should
+be placed and called.
 
+Best regards,
+Krzysztof
