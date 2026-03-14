@@ -1,39 +1,43 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76182273F9;
-	Sat, 14 Mar 2026 11:57:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A7A517BA2;
+	Sat, 14 Mar 2026 12:12:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773489447; cv=none; b=TqZP2z6mIp+o/m5jLeCWGOAOrYgvVzAj+T+RW3Fg4xaR21oSrmBYuTU6VspZFh5dEb8i10HBDojsNWbs+VlHWGqkw1QHMWVSloTXBBNBQLxDkoIFVbx+I6zaNw2J+Q+cftYgKb4CZCuT5htzitYWm8zIv/Up7qaWnK9NOMgvW/Y=
+	t=1773490377; cv=none; b=YZDO/dl64+TOMV9ktQz4ek/yXc+ZlcaMG086C2gW8DYIT9xivxTBQ7YTmViU7jAUdNsks5i6bCP6Ijc46swKG69B4haAxxSygq18Gc3TS+4J1tVD03R8I73bBXIf3AnfFPygWpcoOBAon6yLbwVUa0glTbb9n6/iY+aCTdq9LcE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773489447; c=relaxed/simple;
-	bh=EsHwFVcOQ4Wxdsc84ge5jVHkcdmVeRF8NmEV5Gg+6aM=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=GGvemxzlr42KFVkvqpAxn07t5Qtc52xMFeUkwgo3aExbXKHZ8ED5xYtb8miyCKrfsmmA994dp4H8ww84IaCdwEjxT0+yZSDycxrfJI8539rchpYurtEHBS9/ZjyGOhyt0U1IfcU720cuaLboWnPictZKcjUCp/S8dFVG6qmM/xk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=aW7ABgsk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773490377; c=relaxed/simple;
+	bh=MgnzSi2O40TkVkf3IA+ouB7bdnyDgrYLAeBVXp+Ohh0=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=fHTTelueckYG8gRZWmSp1V6bIj3IwvxyTy4wCgydgfrltN3joHjAi36eYyiK9JWUsuvfYlX2CGTDD2pfkSClQHi3F/xMO8c1cqtqiEj56HgOg38aZRwHji/ypWd3DogdVXVdU76vbrlbNL1qK/drCuwWJM6IcpZoC8OL3gYDICs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DEUKhBWd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="aW7ABgsk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A6D2C116C6;
-	Sat, 14 Mar 2026 11:57:25 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DEUKhBWd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A7B9C116C6;
+	Sat, 14 Mar 2026 12:12:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773489447;
-	bh=EsHwFVcOQ4Wxdsc84ge5jVHkcdmVeRF8NmEV5Gg+6aM=;
-	h=From:To:Cc:Subject:Date:From;
-	b=aW7ABgskz2oAgNzm8fnf8LB55FmzAiNcm0elrONcrIDR65uTXre2ggvfMmsoYUXfh
-	 WrGrLkeMycyXDSf9ueVWkC8h6OXcx4Czntq/O4k2TbobKR8YZPCRdtPFkLBNomGyv4
-	 C79II8XwT/wG3jjNmwuOrjy1ziw7LfSkffV8Qx4lG/BOcy3FEPwjs7HenWS3BEzCiA
-	 th1ddIjewuvG8P8Q4em6kv1XMb+L0MzSHFOaQNrCF5yOeHNXYDFwNFX5tMmosXzPFB
-	 MPUjFexIuRqT7WlzAtH2lxSHxWOioGIDhOfpe3uofJr/zVc01uHyS0tRhG5y/Th42N
-	 aVBHbjGd5XN2w==
+	s=k20201202; t=1773490376;
+	bh=MgnzSi2O40TkVkf3IA+ouB7bdnyDgrYLAeBVXp+Ohh0=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=DEUKhBWdSyu1Equ25k1GBsl6QKUrFOLahjeM9orTtoSxyACEjiOATXGE8s0Y+2uTA
+	 obaZ/Z+5wfC2jxH+bSaF/8LOeHE0vK1qFsHjtnrI7SmrR+MXH+NlsvxumwmQJESTMT
+	 6SBYc27HXYDrlCoDtUKwlRNf4Ly2UQZzh/HeCoYXCTU+WtUOLf8xC+GQ/FYmUTxQc7
+	 /C5JztQO7ezyEbGFsOjq2MXvXxeJqpo4H5FcyQLF5sRPuCVbE5ozj84E+d6ANlkRWV
+	 tZOBAmrAtri91fOy+6KXPzaMjJasqjbEF38gCZJj3xlsOW46KxBXKFXsrAXrddFiB8
+	 jM1gmvba8OphQ==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-To: Linux ACPI <linux-acpi@vger.kernel.org>, xen-devel@lists.xenproject.org
-Cc: LKML <linux-kernel@vger.kernel.org>, Juergen Gross <jgross@suse.com>,
- Stefano Stabellini <sstabellini@kernel.org>,
- Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
-Subject: [PATCH v1] ACPI: PAD: xen: Convert to a platform driver
-Date: Sat, 14 Mar 2026 12:57:23 +0100
-Message-ID: <8683270.T7Z3S40VBb@rafael.j.wysocki>
+To: linux-rtc@vger.kernel.org
+Cc: LKML <linux-kernel@vger.kernel.org>,
+ Linux ACPI <linux-acpi@vger.kernel.org>,
+ Alexandre Belloni <alexandre.belloni@bootlin.com>,
+ Mario Limonciello <mario.limonciello@amd.com>
+Subject: [PATCH v1 2/2] rtc: cmos: Do not require IRQ if ACPI alarm is used
+Date: Sat, 14 Mar 2026 13:12:44 +0100
+Message-ID: <6168746.MhkbZ0Pkbq@rafael.j.wysocki>
 Organization: Linux Kernel Development
+In-Reply-To: <3964452.kQq0lBPeGt@rafael.j.wysocki>
+References: <3964452.kQq0lBPeGt@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -43,103 +47,76 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="UTF-8"
 
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-In all cases in which a struct acpi_driver is used for binding a driver
-to an ACPI device object, a corresponding platform device is created by
-the ACPI core and that device is regarded as a proper representation of
-underlying hardware.  Accordingly, a struct platform_driver should be
-used by driver code to bind to that device.  There are multiple reasons
-why drivers should not bind directly to ACPI device objects [1].
+If the ACPI RTC fixed event is used, a dedicated IRQ is not required
+for the CMOS RTC alarm to work, so allow the driver to use the alarm
+without a valid IRQ in that case.
 
-Overall, it is better to bind drivers to platform devices than to their
-ACPI companions, so convert the Xen ACPI processor aggregator device
-(PAD) driver to a platform one.
-
-While this is not expected to alter functionality, it changes sysfs
-layout and so it will be visible to user space.
-
-Link: https://lore.kernel.org/all/2396510.ElGaqSPkdT@rafael.j.wysocki/ [1]
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
+ drivers/rtc/rtc-cmos.c |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-Note that the original ACPI PAD driver has been a platform driver for
-quite some time already.
-
----
- drivers/xen/xen-acpi-pad.c | 23 ++++++++++++-----------
- 1 file changed, 12 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/xen/xen-acpi-pad.c b/drivers/xen/xen-acpi-pad.c
-index ede69a5278d3..75a39862c1df 100644
---- a/drivers/xen/xen-acpi-pad.c
-+++ b/drivers/xen/xen-acpi-pad.c
-@@ -11,6 +11,7 @@
- #include <linux/kernel.h>
- #include <linux/types.h>
- #include <linux/acpi.h>
-+#include <linux/platform_device.h>
- #include <xen/xen.h>
- #include <xen/interface/version.h>
- #include <xen/xen-ops.h>
-@@ -107,8 +108,9 @@ static void acpi_pad_notify(acpi_handle handle, u32 event,
+--- a/drivers/rtc/rtc-cmos.c
++++ b/drivers/rtc/rtc-cmos.c
+@@ -216,6 +216,11 @@ static inline void cmos_write_bank2(unsi
+ 
+ /*----------------------------------------------------------------*/
+ 
++static bool cmos_no_alarm(struct cmos_rtc *cmos)
++{
++	return !is_valid_irq(cmos->irq) && !cmos_use_acpi_alarm();
++}
++
+ static int cmos_read_time(struct device *dev, struct rtc_time *t)
+ {
+ 	int ret;
+@@ -287,7 +292,7 @@ static int cmos_read_alarm(struct device
+ 	};
+ 
+ 	/* This not only a rtc_op, but also called directly */
+-	if (!is_valid_irq(cmos->irq))
++	if (cmos_no_alarm(cmos))
+ 		return -ETIMEDOUT;
+ 
+ 	/* Basic alarms only support hour, minute, and seconds fields.
+@@ -520,7 +525,7 @@ static int cmos_set_alarm(struct device
+ 	int ret;
+ 
+ 	/* This not only a rtc_op, but also called directly */
+-	if (!is_valid_irq(cmos->irq))
++	if (cmos_no_alarm(cmos))
+ 		return -EIO;
+ 
+ 	ret = cmos_validate_alarm(dev, t);
+@@ -1096,7 +1101,7 @@ cmos_do_probe(struct device *dev, struct
+ 			dev_dbg(dev, "IRQ %d is already in use\n", rtc_irq);
+ 			goto cleanup1;
+ 		}
+-	} else {
++	} else if (!cmos_use_acpi_alarm()) {
+ 		clear_bit(RTC_FEATURE_ALARM, cmos_rtc.rtc->features);
  	}
- }
  
--static int acpi_pad_add(struct acpi_device *device)
-+static int acpi_pad_probe(struct platform_device *pdev)
+@@ -1121,7 +1126,7 @@ cmos_do_probe(struct device *dev, struct
+ 		acpi_rtc_event_setup(dev);
+ 
+ 	dev_info(dev, "%s%s, %d bytes nvram%s\n",
+-		 !is_valid_irq(rtc_irq) ? "no alarms" :
++		 cmos_no_alarm(&cmos_rtc) ? "no alarms" :
+ 		 cmos_rtc.mon_alrm ? "alarms up to one year" :
+ 		 cmos_rtc.day_alrm ? "alarms up to one month" :
+ 		 "alarms up to one day",
+@@ -1147,7 +1152,7 @@ cleanup0:
+ static void cmos_do_shutdown(int rtc_irq)
  {
-+	struct acpi_device *device = ACPI_COMPANION(&pdev->dev);
- 	acpi_status status;
- 
- 	strcpy(acpi_device_name(device), ACPI_PROCESSOR_AGGREGATOR_DEVICE_NAME);
-@@ -122,13 +124,13 @@ static int acpi_pad_add(struct acpi_device *device)
- 	return 0;
+ 	spin_lock_irq(&rtc_lock);
+-	if (is_valid_irq(rtc_irq))
++	if (!cmos_no_alarm(&cmos_rtc))
+ 		cmos_irq_disable(&cmos_rtc, RTC_IRQMASK);
+ 	spin_unlock_irq(&rtc_lock);
  }
- 
--static void acpi_pad_remove(struct acpi_device *device)
-+static void acpi_pad_remove(struct platform_device *pdev)
- {
- 	mutex_lock(&xen_cpu_lock);
- 	xen_acpi_pad_idle_cpus(0);
- 	mutex_unlock(&xen_cpu_lock);
- 
--	acpi_remove_notify_handler(device->handle,
-+	acpi_remove_notify_handler(ACPI_HANDLE(&pdev->dev),
- 		ACPI_DEVICE_NOTIFY, acpi_pad_notify);
- }
- 
-@@ -137,13 +139,12 @@ static const struct acpi_device_id pad_device_ids[] = {
- 	{"", 0},
- };
- 
--static struct acpi_driver acpi_pad_driver = {
--	.name = "processor_aggregator",
--	.class = ACPI_PROCESSOR_AGGREGATOR_CLASS,
--	.ids = pad_device_ids,
--	.ops = {
--		.add = acpi_pad_add,
--		.remove = acpi_pad_remove,
-+static struct platform_driver acpi_pad_driver = {
-+	.probe = acpi_pad_probe,
-+	.remove = acpi_pad_remove,
-+	.driver = {
-+		.name = "acpi_processor_aggregator",
-+		.acpi_match_table = pad_device_ids,
- 	},
- };
- 
-@@ -157,6 +158,6 @@ static int __init xen_acpi_pad_init(void)
- 	if (!xen_running_on_version_or_later(4, 2))
- 		return -ENODEV;
- 
--	return acpi_bus_register_driver(&acpi_pad_driver);
-+	return platform_driver_register(&acpi_pad_driver);
- }
- subsys_initcall(xen_acpi_pad_init);
--- 
-2.51.0
-
 
 
 
