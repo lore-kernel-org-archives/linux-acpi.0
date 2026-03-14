@@ -1,40 +1,38 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DAA7259CB9;
-	Sat, 14 Mar 2026 11:50:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA569258EE0;
+	Sat, 14 Mar 2026 11:53:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773489019; cv=none; b=Dq4IHxNx52kgxEhgfDLHex9mN2Zj8ygpVUfqs/SX/wqU+mmINFdQpzZ54ajboH2Cww3uXLUOQZkhrmligUR9RKdVPy/FfNZfLP1wY8GrBhkPjNqk1Vkn5FREgOaZKoRkwuX1iAHt3B+YIO6687iwzj0TDkk1PzCIpr5li73knvE=
+	t=1773489187; cv=none; b=fuT1RXLzRMMAfAOzGJd4w4TgMNrwNM+AP+URvMGMJGGykjyIw59xne3BfCPJzoWnYKzN7MihpMP2D2lF2270iDSH9dy4FQNj1THZa1kn+x0bLTJcSrWFYIH9BQsmXhnWBFQyetvscT6nb0SnxIuhuHrAjEAjzKHK5WrLTd5GL+4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773489019; c=relaxed/simple;
-	bh=9UfI7XEScUD1an9AAbJxgOc8Hl9VC7ZE8OBKZJGt0d0=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=l0f6tLsfPCQbUhaFv42FZaTeXXBi9hrvViq79Zo4WK9b9w5t4PWNNfHbnntppZhi409aM/YkbGH8lFXhrgKu/ACclom+nNXG1GuN1RrbkRs0Ob1D7K2lXhrWBxe2Eo8A30znK3Wi5Zcfx/hwmfTlx+jdVI5vPvr6FwORPTlh5kY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=b0hUuzZg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773489187; c=relaxed/simple;
+	bh=lyGbHpgdvoj/84R2wKCywhu1s+TBW0sYyEGzYTp4UV4=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=OGfrVIPcMLvEQ14mXcO8jGOYzWHWK7m/o1qriMBurz6181/M+xgk8fUsWMMSXm0vQF7+Eunx/YM96uNf3QdCRVoBgLX8Rm6/3dt/h198fHjdD4HB+HmLRs/4Z3GOjUHRuU1DwGVZDGnTpDr8W/n5ABLgs4EDTtIJFwGdCXHVAkA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=H9GUOW7G; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="b0hUuzZg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA6CFC19424;
-	Sat, 14 Mar 2026 11:50:14 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="H9GUOW7G"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47983C116C6;
+	Sat, 14 Mar 2026 11:53:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773489019;
-	bh=9UfI7XEScUD1an9AAbJxgOc8Hl9VC7ZE8OBKZJGt0d0=;
+	s=k20201202; t=1773489187;
+	bh=lyGbHpgdvoj/84R2wKCywhu1s+TBW0sYyEGzYTp4UV4=;
 	h=From:To:Cc:Subject:Date:From;
-	b=b0hUuzZg0mhG6gmdBzBk4Bt3tu38HnHPdhMP8Ytwm4Rja8VG27IlvoCAH+Wl6LwLJ
-	 pnHKSwPJuYnE2Mfx3eT/WGkKVmaD0KdAw8gOPk7ztu3aMyTL7oLpD2Vt6N/vg9SpRM
-	 dRB79KxPN/F/f8r6GtToUmYmglh4IeratX2Ht7OWC7/LQbE9+jJyIv/DVweqz4zVqT
-	 b0UmLT6XAb45xBPGpQW+s8oKgGgRX5CcXRbxZV92bDhZfBknWxyA5WrnPptKdllOKX
-	 GKA9+VZL5rX3jXjKVoggj4cgcRCcNJzJHH5c/F3I2xQ1ibn7zwxfuVOlX+UK+DXPIN
-	 uuzeB9Ia0LyTw==
+	b=H9GUOW7GdncUZZx0oiTbOSdgixxTCNVK0JD3TrMw7mfNQAtpwnn7zvnQ+yyikdWLq
+	 buDD4hUexRaFiWYoeimZve5TBk0bNdsMTGChqXxlMOpqV9brqnKlEjDEzgTHN2KhJ8
+	 30kclckYfKEbYI09WTSk5u1gkudYkBe+2qJfTucVkYaNYBPYtg4hk+p1Ei842aFt9E
+	 rJvrrkxLTUyTSsHfrc1KyE36Bnl3YsNvIaXb+V5taS9QtsDr1YttntA+VFbsuO24yn
+	 LeoNcFKhA7w0ILStDlNOoDGqRf3nLocUHhfVDAH51mlMgxH6WoCQfvozhl1WaVAhwx
+	 FuVk4Z7Dqu9+w==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-To: Lee Jones <lee@kernel.org>
+To: linux-watchdog@vger.kernel.org
 Cc: LKML <linux-kernel@vger.kernel.org>,
  Linux ACPI <linux-acpi@vger.kernel.org>,
- Daniel Thompson <danielt@kernel.org>, Jingoo Han <jingoohan1@gmail.com>,
- Helge Deller <deller@gmx.de>, dri-devel@lists.freedesktop.org,
- linux-fbdev@vger.kernel.org
-Subject: [PATCH v1] backlight: apple_bl: Convert to a platform driver
-Date: Sat, 14 Mar 2026 12:50:11 +0100
-Message-ID: <5084777.GXAFRqVoOG@rafael.j.wysocki>
+ Wim Van Sebroeck <wim@linux-watchdog.org>, Guenter Roeck <linux@roeck-us.net>
+Subject: [PATCH v1] watchdog: ni903x_wdt: Convert to a platform driver
+Date: Sat, 14 Mar 2026 12:53:01 +0100
+Message-ID: <13996583.uLZWGnKmhe@rafael.j.wysocki>
 Organization: Linux Kernel Development
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
@@ -54,83 +52,102 @@ underlying hardware.  Accordingly, a struct platform_driver should be
 used by driver code to bind to that device.  There are multiple reasons
 why drivers should not bind directly to ACPI device objects [1].
 
+In particular, registering a watchdog device under a struct acpi_device
+is questionable because it causes the watchdog to be hidden in the ACPI
+bus sysfs hierarchy and it goes against the general rule that a struct
+acpi_device can only be a parent of another struct acpi_device.
+
 Overall, it is better to bind drivers to platform devices than to their
-ACPI companions, so convert the Apple Backlight ACPI driver to a
+ACPI companions, so convert the ni903x_wdt watchdog ACPI driver to a
 platform one.
 
 While this is not expected to alter functionality, it changes sysfs
 layout and so it will be visible to user space.
 
+Note that after this change it actually makes sense to look for
+the "timeout-sec" property via device_property_read_u32() under the
+device passed to watchdog_init_timeout() because it has an fwnode
+handle (unlike a struct acpi_device which is an fwnode itself).
+
 Link: https://lore.kernel.org/all/2396510.ElGaqSPkdT@rafael.j.wysocki/ [1]
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/video/backlight/apple_bl.c | 21 +++++++++++----------
- 1 file changed, 11 insertions(+), 10 deletions(-)
+ drivers/watchdog/ni903x_wdt.c | 27 ++++++++++++++-------------
+ 1 file changed, 14 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/video/backlight/apple_bl.c b/drivers/video/backlight/apple_bl.c
-index aaa824437a2a..423513d68b5b 100644
---- a/drivers/video/backlight/apple_bl.c
-+++ b/drivers/video/backlight/apple_bl.c
-@@ -24,6 +24,7 @@
- #include <linux/pci.h>
- #include <linux/acpi.h>
- #include <linux/atomic.h>
+diff --git a/drivers/watchdog/ni903x_wdt.c b/drivers/watchdog/ni903x_wdt.c
+index 045bb72d9a43..8b1b9baa914e 100644
+--- a/drivers/watchdog/ni903x_wdt.c
++++ b/drivers/watchdog/ni903x_wdt.c
+@@ -8,6 +8,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/io.h>
+ #include <linux/module.h>
 +#include <linux/platform_device.h>
- #include <acpi/video.h>
+ #include <linux/watchdog.h>
  
- static struct backlight_device *apple_backlight_device;
-@@ -134,7 +135,7 @@ static const struct hw_data nvidia_chipset_data = {
- 	.set_brightness = nvidia_chipset_set_brightness,
+ #define NIWD_CONTROL	0x01
+@@ -177,9 +178,9 @@ static const struct watchdog_ops ni903x_wdd_ops = {
+ 	.get_timeleft = ni903x_wdd_get_timeleft,
  };
  
--static int apple_bl_add(struct acpi_device *dev)
-+static int apple_bl_probe(struct platform_device *pdev)
+-static int ni903x_acpi_add(struct acpi_device *device)
++static int ni903x_acpi_probe(struct platform_device *pdev)
  {
- 	struct backlight_properties props;
- 	struct pci_dev *host;
-@@ -193,7 +194,7 @@ static int apple_bl_add(struct acpi_device *dev)
+-	struct device *dev = &device->dev;
++	struct device *dev = &pdev->dev;
+ 	struct watchdog_device *wdd;
+ 	struct ni903x_wdt *wdt;
+ 	acpi_status status;
+@@ -189,10 +190,10 @@ static int ni903x_acpi_add(struct acpi_device *device)
+ 	if (!wdt)
+ 		return -ENOMEM;
+ 
+-	device->driver_data = wdt;
++	platform_set_drvdata(pdev, wdt);
+ 	wdt->dev = dev;
+ 
+-	status = acpi_walk_resources(device->handle, METHOD_NAME__CRS,
++	status = acpi_walk_resources(ACPI_HANDLE(dev), METHOD_NAME__CRS,
+ 				     ni903x_resources, wdt);
+ 	if (ACPI_FAILURE(status) || wdt->io_base == 0) {
+ 		dev_err(dev, "failed to get resources\n");
+@@ -224,9 +225,9 @@ static int ni903x_acpi_add(struct acpi_device *device)
  	return 0;
  }
  
--static void apple_bl_remove(struct acpi_device *dev)
-+static void apple_bl_remove(struct platform_device *pdev)
+-static void ni903x_acpi_remove(struct acpi_device *device)
++static void ni903x_acpi_remove(struct platform_device *pdev)
  {
- 	backlight_device_unregister(apple_backlight_device);
+-	struct ni903x_wdt *wdt = acpi_driver_data(device);
++	struct ni903x_wdt *wdt = platform_get_drvdata(pdev);
  
-@@ -206,12 +207,12 @@ static const struct acpi_device_id apple_bl_ids[] = {
- 	{"", 0},
+ 	ni903x_wdd_stop(&wdt->wdd);
+ 	watchdog_unregister_device(&wdt->wdd);
+@@ -238,16 +239,16 @@ static const struct acpi_device_id ni903x_device_ids[] = {
  };
+ MODULE_DEVICE_TABLE(acpi, ni903x_device_ids);
  
--static struct acpi_driver apple_bl_driver = {
--	.name = "Apple backlight",
--	.ids = apple_bl_ids,
+-static struct acpi_driver ni903x_acpi_driver = {
+-	.name = NIWD_NAME,
+-	.ids = ni903x_device_ids,
 -	.ops = {
--		.add = apple_bl_add,
--		.remove = apple_bl_remove,
-+static struct platform_driver apple_bl_driver = {
-+	.probe = apple_bl_probe,
-+	.remove = apple_bl_remove,
+-		.add = ni903x_acpi_add,
+-		.remove = ni903x_acpi_remove,
++static struct platform_driver ni903x_acpi_driver = {
++	.probe = ni903x_acpi_probe,
++	.remove = ni903x_acpi_remove,
 +	.driver = {
-+		.name = "Apple backlight",
-+		.acpi_match_table = apple_bl_ids,
++		.name = NIWD_NAME,
++		.acpi_match_table = ni903x_device_ids,
  	},
  };
  
-@@ -224,12 +225,12 @@ static int __init apple_bl_init(void)
- 	if (acpi_video_get_backlight_type() != acpi_backlight_vendor)
- 		return -ENODEV;
+-module_acpi_driver(ni903x_acpi_driver);
++module_platform_driver(ni903x_acpi_driver);
  
--	return acpi_bus_register_driver(&apple_bl_driver);
-+	return platform_driver_register(&apple_bl_driver);
- }
- 
- static void __exit apple_bl_exit(void)
- {
--	acpi_bus_unregister_driver(&apple_bl_driver);
-+	platform_driver_unregister(&apple_bl_driver);
- }
- 
- module_init(apple_bl_init);
+ MODULE_DESCRIPTION("NI 903x Watchdog");
+ MODULE_AUTHOR("Jeff Westfahl <jeff.westfahl@ni.com>");
 -- 
 2.51.0
 
