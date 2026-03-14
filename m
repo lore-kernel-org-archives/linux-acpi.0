@@ -1,41 +1,39 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1E24205E25;
-	Sat, 14 Mar 2026 11:43:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DD7814B977;
+	Sat, 14 Mar 2026 11:47:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773488625; cv=none; b=lROClJAEmCHrq1/IY/tor/sJQ37JK9ujCdwB6Ycfrdg6N2zsLxoKJpsdh207p8DbjIIfdoBxOIdkpuQ7/5CQQzO/wOAngwxnp+n0ynid4dggU5j13epe8sh21kuzjCzx7C5kyDJzZA1Jlqy44bPODRwa1DCfXVbXFQSFP9cypNA=
+	t=1773488844; cv=none; b=uSPgUG0oNGY5bic/9sKN5Prh7txl/zaYmOEw+Kwqc0OZm1t0LcHFEnoIbKimVqHo4TduvRw4A8Ru+TGcUV4b4R2I3tcz9GhgZPraRloi95tA1p7+ENS6wqfR7SaU3A+xak7JbQFhSNKaCcAw2bj9NDnQ2zLi7ETn/5gxzd/DQ3g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773488625; c=relaxed/simple;
-	bh=S3XN8pEzrzuZhx8bUg4Xm6iP8lFBGXhEWx2FunlA+qs=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=aTTw7nYn6My+iAYsFFgJSgAL7cYgC+borgF6UhSxj3va3Fmhn7mm+GotlLI8YkIadSYAQLbv3MyRgvV7RgmyVuNU3ECsFq4/uuW8zboKPujZkInwTni3X9PdRTi2HENUnyzTe1Rfjqxr4ZKzilqyncIwdU3IGMrvOFtDDopzzjI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Pb+LelyH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773488844; c=relaxed/simple;
+	bh=V4sspJjbvtYP68UCvQ5Y+GCiJzCXLJ1aStg8UnujOy4=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=HkaL7hO9xb3npARbviZpSShSL9PHe4L0+n9EqT8BJ8KJ5YePg3G4kaKS3/+OoeBz/qm2uokQD34VoFU8kwWOWZiLIrQrHEuio2t32jBHdyngB0Q7HhgxueHANuwKX9Qh5f4k4j0G6Cf0vGhpXQAnjM52RrN4mezJ/ADGfv5Zafg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XXRR4pYA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Pb+LelyH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01D60C116C6;
-	Sat, 14 Mar 2026 11:43:37 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XXRR4pYA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0670CC116C6;
+	Sat, 14 Mar 2026 11:47:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773488625;
-	bh=S3XN8pEzrzuZhx8bUg4Xm6iP8lFBGXhEWx2FunlA+qs=;
+	s=k20201202; t=1773488843;
+	bh=V4sspJjbvtYP68UCvQ5Y+GCiJzCXLJ1aStg8UnujOy4=;
 	h=From:To:Cc:Subject:Date:From;
-	b=Pb+LelyHxvo4U+XAyR6SGjxzzk64s4DSCG3gf9TMK8IqEGyGikU60/bSRzPRR5iS7
-	 9LbCw5csQOTE9Ama4vDh3MMt775glLAt8wwZngImtDku8d5iXiQ7E3e5XeODOEfRXe
-	 PiTi+7GSYpX2WNXxkVOz8kLnIWRkMxDDhi6r5z4vzSngJNP/52FI23lVCN1zRzWglQ
-	 SoX/VM1cyennKmwz1+4nFjULYTiuJCNscstPZ9N6bt9KD2KVWqH1/PEEnSGnDOFET2
-	 0chN2xieijy7mUMNL8hbPaAhp3N/Zh99qOOP/nvAWmQZgaY7fCZZmV8FeU7SkSxWke
-	 OxYnFTE4R92hw==
+	b=XXRR4pYA52mQ7V0w8Y0BziEuQ1Nh/DCCiMarBMR7PTl4wACOhj2yra8+X3qErHhMk
+	 7hiQHfoLhghAwlTwLFhFJZrVZPHVfnEBh7FV5vf50g1zgt1fDmkM8cr6aKRlSKeWyO
+	 eO4Kz7cL+ZfZO2NvKauQk2G9PEObrCnot09GdwegAhRO3UC4ubzf11wBL2XCTVhDSR
+	 UjvwgIuanLV3o3W35MM9H5BU5d3fnBBfGRTs6pnoYLa23Hujp8W1Hq68tMnELDYcUb
+	 fiFnqK8PkwjQ7xF6M/fgNBqs3SvCzbLZaeCEo2uVyywJADTf/cL5gKz4tbsizK/px7
+	 xmSCxdgi7XHfg==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: netdev@vger.kernel.org
 Cc: LKML <linux-kernel@vger.kernel.org>,
- Linux ACPI <linux-acpi@vger.kernel.org>,
- Richard Cochran <richardcochran@gmail.com>,
- Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>,
- Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
- Paolo Abeni <pabeni@redhat.com>
-Subject: [PATCH v1] ptp: vmw: Convert to a platform driver
-Date: Sat, 14 Mar 2026 12:43:33 +0100
-Message-ID: <12883468.O9o76ZdvQC@rafael.j.wysocki>
+ Linux ACPI <linux-acpi@vger.kernel.org>, Andrew Lunn <andrew+netdev@lunn.ch>,
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>
+Subject: [PATCH v1] net: fjes: Drop fjes_acpi_driver and rework initialization
+Date: Sat, 14 Mar 2026 12:47:09 +0100
+Message-ID: <5113731.31r3eYUQgx@rafael.j.wysocki>
 Organization: Linux Kernel Development
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
@@ -48,16 +46,23 @@ Content-Type: text/plain; charset="UTF-8"
 
 From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-In all cases in which a struct acpi_driver is used for binding a driver
-to an ACPI device object, a corresponding platform device is created by
-the ACPI core and that device is regarded as a proper representation of
-underlying hardware.  Accordingly, a struct platform_driver should be
-used by driver code to bind to that device.  There are multiple reasons
-why drivers should not bind directly to ACPI device objects [1].
+The ACPI driver interface used by the Fujitsu Extended Socket (fjes)
+Network Device driver is redundant because its only role is to create
+a platform device the fjes platform driver can bind to, which can be
+done already at the module initialization time.
 
-Overall, it is better to bind drivers to platform devices than to their
-ACPI companions, so convert the PTP VMware ACPI driver to a platform
-one.
+Namely, acpi_find_extended_socket_device() looks for the requisite ACPI
+device object anyway and it may as well check its resources, and the
+platform device can be created when the ACPI object in question
+has been found (and it can be freed when the module is unloaded).
+
+Moreover, as a rule, it is better to avoid binding drivers directly to
+ACPI device objects [1].
+
+Accordingly, drop fjes_acpi_driver, adjust the module initialization
+and exit code as per the above and set the fwnode for the fjes platform
+device to point to the corresponding ACPI device object as its ACPI
+companion.
 
 While this is not expected to alter functionality, it changes sysfs
 layout and so it will be visible to user space.
@@ -65,78 +70,190 @@ layout and so it will be visible to user space.
 Link: https://lore.kernel.org/all/2396510.ElGaqSPkdT@rafael.j.wysocki/ [1]
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/ptp/ptp_vmw.c | 23 ++++++++++++-----------
- 1 file changed, 12 insertions(+), 11 deletions(-)
+ drivers/net/fjes/fjes_main.c | 119 +++++++++++++++--------------------
+ 1 file changed, 49 insertions(+), 70 deletions(-)
 
-diff --git a/drivers/ptp/ptp_vmw.c b/drivers/ptp/ptp_vmw.c
-index 20ab05c4daa8..8510121d79d1 100644
---- a/drivers/ptp/ptp_vmw.c
-+++ b/drivers/ptp/ptp_vmw.c
-@@ -10,6 +10,7 @@
- #include <linux/acpi.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
-+#include <linux/platform_device.h>
- #include <linux/ptp_clock_kernel.h>
- #include <asm/hypervisor.h>
- #include <asm/vmware.h>
-@@ -83,7 +84,7 @@ static struct ptp_clock_info ptp_vmw_clock_info = {
-  * ACPI driver ops for VMware "precision clock" virtual device.
-  */
- 
--static int ptp_vmw_acpi_add(struct acpi_device *device)
-+static int ptp_vmw_acpi_probe(struct platform_device *pdev)
- {
- 	ptp_vmw_clock = ptp_clock_register(&ptp_vmw_clock_info, NULL);
- 	if (IS_ERR(ptp_vmw_clock)) {
-@@ -91,11 +92,11 @@ static int ptp_vmw_acpi_add(struct acpi_device *device)
- 		return PTR_ERR(ptp_vmw_clock);
- 	}
- 
--	ptp_vmw_acpi_device = device;
-+	ptp_vmw_acpi_device = ACPI_COMPANION(&pdev->dev);
- 	return 0;
+diff --git a/drivers/net/fjes/fjes_main.c b/drivers/net/fjes/fjes_main.c
+index b63965d9a1ba..efb399eb15e0 100644
+--- a/drivers/net/fjes/fjes_main.c
++++ b/drivers/net/fjes/fjes_main.c
+@@ -111,56 +111,6 @@ fjes_get_acpi_resource(struct acpi_resource *acpi_res, void *data)
+ 	return AE_OK;
  }
  
--static void ptp_vmw_acpi_remove(struct acpi_device *device)
-+static void ptp_vmw_acpi_remove(struct platform_device *pdev)
- {
- 	ptp_clock_unregister(ptp_vmw_clock);
- }
-@@ -107,12 +108,12 @@ static const struct acpi_device_id ptp_vmw_acpi_device_ids[] = {
- 
- MODULE_DEVICE_TABLE(acpi, ptp_vmw_acpi_device_ids);
- 
--static struct acpi_driver ptp_vmw_acpi_driver = {
--	.name = "ptp_vmw",
--	.ids = ptp_vmw_acpi_device_ids,
+-static struct resource fjes_resource[] = {
+-	DEFINE_RES_MEM(0, 1),
+-	DEFINE_RES_IRQ(0)
+-};
+-
+-static int fjes_acpi_add(struct acpi_device *device)
+-{
+-	struct platform_device *plat_dev;
+-	acpi_status status;
+-
+-	if (!is_extended_socket_device(device))
+-		return -ENODEV;
+-
+-	if (acpi_check_extended_socket_status(device))
+-		return -ENODEV;
+-
+-	status = acpi_walk_resources(device->handle, METHOD_NAME__CRS,
+-				     fjes_get_acpi_resource, fjes_resource);
+-	if (ACPI_FAILURE(status))
+-		return -ENODEV;
+-
+-	/* create platform_device */
+-	plat_dev = platform_device_register_simple(DRV_NAME, 0, fjes_resource,
+-						   ARRAY_SIZE(fjes_resource));
+-	if (IS_ERR(plat_dev))
+-		return PTR_ERR(plat_dev);
+-
+-	device->driver_data = plat_dev;
+-
+-	return 0;
+-}
+-
+-static void fjes_acpi_remove(struct acpi_device *device)
+-{
+-	struct platform_device *plat_dev;
+-
+-	plat_dev = (struct platform_device *)acpi_driver_data(device);
+-	platform_device_unregister(plat_dev);
+-}
+-
+-static struct acpi_driver fjes_acpi_driver = {
+-	.name = DRV_NAME,
+-	.class = DRV_NAME,
+-	.ids = fjes_acpi_ids,
 -	.ops = {
--		.add = ptp_vmw_acpi_add,
--		.remove	= ptp_vmw_acpi_remove
-+static struct platform_driver ptp_vmw_acpi_driver = {
-+	.probe = ptp_vmw_acpi_probe,
-+	.remove = ptp_vmw_acpi_remove,
-+	.driver = {
-+		.name = "ptp_vmw_acpi",
-+		.acpi_match_table = ptp_vmw_acpi_device_ids,
- 	},
+-		.add = fjes_acpi_add,
+-		.remove = fjes_acpi_remove,
+-	},
+-};
+-
+ static int fjes_setup_resources(struct fjes_adapter *adapter)
+ {
+ 	struct net_device *netdev = adapter->netdev;
+@@ -1470,43 +1420,81 @@ static struct platform_driver fjes_driver = {
+ 	.remove = fjes_remove,
  };
  
-@@ -120,12 +121,12 @@ static int __init ptp_vmw_init(void)
++struct fjes_acpi_walk_context {
++	struct acpi_device *adev;
++	struct resource resources[2];
++};
++
+ static acpi_status
+ acpi_find_extended_socket_device(acpi_handle obj_handle, u32 level,
+ 				 void *context, void **return_value)
  {
- 	if (x86_hyper_type != X86_HYPER_VMWARE)
- 		return -1;
--	return acpi_bus_register_driver(&ptp_vmw_acpi_driver);
-+	return platform_driver_register(&ptp_vmw_acpi_driver);
++	struct fjes_acpi_walk_context *fjes_context = context;
+ 	struct acpi_device *device;
+-	bool *found = context;
++	acpi_status status;
+ 
+-	device = acpi_fetch_acpi_dev(obj_handle);
++	device = acpi_get_acpi_dev(obj_handle);
+ 	if (!device)
+ 		return AE_OK;
+ 
+ 	if (strcmp(acpi_device_hid(device), ACPI_MOTHERBOARD_RESOURCE_HID))
+-		return AE_OK;
++		goto skip;
+ 
+ 	if (!is_extended_socket_device(device))
+-		return AE_OK;
++		goto skip;
+ 
+ 	if (acpi_check_extended_socket_status(device))
+-		return AE_OK;
++		goto skip;
++
++	status = acpi_walk_resources(obj_handle, METHOD_NAME__CRS,
++				     fjes_get_acpi_resource, fjes_context->resources);
++	if (ACPI_FAILURE(status))
++		goto skip;
++
++	fjes_context->adev = device;
+ 
+-	*found = true;
+ 	return AE_CTRL_TERMINATE;
++
++skip:
++	acpi_dev_put(device);
++	return AE_OK;
  }
  
- static void __exit ptp_vmw_exit(void)
++static struct platform_device *fjes_plat_dev;
++
+ /* fjes_init_module - Driver Registration Routine */
+ static int __init fjes_init_module(void)
  {
--	acpi_bus_unregister_driver(&ptp_vmw_acpi_driver);
-+	platform_driver_unregister(&ptp_vmw_acpi_driver);
+-	bool found = false;
++	struct fjes_acpi_walk_context fjes_context = {
++		.adev = NULL,
++		.resources = {
++			DEFINE_RES_MEM(0, 1),
++			DEFINE_RES_IRQ(0)
++		}
++	};
++	struct platform_device_info pdevinfo;
+ 	int result;
+ 
+ 	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT, ACPI_UINT32_MAX,
+-			    acpi_find_extended_socket_device, NULL, &found,
++			    acpi_find_extended_socket_device, NULL, &fjes_context,
+ 			    NULL);
+-
+-	if (!found)
++	if (!fjes_context.adev)
+ 		return -ENODEV;
+ 
++	memset(&pdevinfo, 0, sizeof(pdevinfo));
++
++	pdevinfo.name = DRV_NAME;
++	pdevinfo.res = fjes_context.resources;
++	pdevinfo.num_res = ARRAY_SIZE(fjes_context.resources);
++	pdevinfo.fwnode = acpi_fwnode_handle(fjes_context.adev);
++
++	fjes_plat_dev = platform_device_register_full(&pdevinfo);
++
++	acpi_dev_put(fjes_context.adev);
++
++	if (IS_ERR(fjes_plat_dev))
++		return PTR_ERR(fjes_plat_dev);
++
+ 	pr_info("%s - version %s - %s\n",
+ 		fjes_driver_string, fjes_driver_version, fjes_copyright);
+ 
+@@ -1518,16 +1506,7 @@ static int __init fjes_init_module(void)
+ 		return result;
+ 	}
+ 
+-	result = acpi_bus_register_driver(&fjes_acpi_driver);
+-	if (result < 0)
+-		goto fail_acpi_driver;
+-
+ 	return 0;
+-
+-fail_acpi_driver:
+-	platform_driver_unregister(&fjes_driver);
+-	fjes_dbg_exit();
+-	return result;
  }
  
- module_init(ptp_vmw_init);
+ module_init(fjes_init_module);
+@@ -1535,9 +1514,9 @@ module_init(fjes_init_module);
+ /* fjes_exit_module - Driver Exit Cleanup Routine */
+ static void __exit fjes_exit_module(void)
+ {
+-	acpi_bus_unregister_driver(&fjes_acpi_driver);
+ 	platform_driver_unregister(&fjes_driver);
+ 	fjes_dbg_exit();
++	platform_device_unregister(fjes_plat_dev);
+ }
+ 
+ module_exit(fjes_exit_module);
 -- 
 2.51.0
 
