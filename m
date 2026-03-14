@@ -1,59 +1,61 @@
-Received: from mail-wr1-f43.google.com (mail-wr1-f43.google.com [209.85.221.43])
+Received: from mail-wr1-f48.google.com (mail-wr1-f48.google.com [209.85.221.48])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EDC15B1EB
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D6281A0B15
 	for <linux-acpi@vger.kernel.org>; Sat, 14 Mar 2026 01:32:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.43
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.48
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773451933; cv=none; b=TLQTjqmlpq9xUGUsaIVEcQl0TJh0HaaIko7q3IPLdKGHXUSInU1V0z95DhgtSpDX0WPDfTlvfh/j71SRBQaSq6YSa3G2jVTK8prC/ctP8dPG/NA/05ULPKST5A9zDOVsoVRsQVSNBHdkE32Ao/N5irZfn6IGBImM6mmbg7E3Di4=
+	t=1773451934; cv=none; b=eOB4qGy4uiNXytlo1Amz9y7INE7cNDt/qc5hs3VUG6zkzrR7xNyGcpbnUbli/HRbULEyeDe7Ps2wsSjeZxQHNUi1Zt74jQO6Otbw+ANM8fFXIGLw/AhSEOW4Rcz6rp0NAkEoy+uyAI9pOsPKcTz2sadDAnAjXiGx3lAGPZQx43c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773451933; c=relaxed/simple;
-	bh=dNJvwOvtKkuRy5CJp7kfu5V0sbcA8LMVkK7KgeS0AaI=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=n9uo0k3frMFOZaJjcYW6vCbQA5s76xXq22sTcsRjoz5az1Rlqtk2f1JwbE3cRtcNd8dKKxEKzkjHRiyqEp288WQmgB8Bdiogo+i+HySG3mZT7dtN4WCCC25X7leIakFHENc6EBYFMyl4vnTwEBTD8W6usY9IRX2IxnH98u1Lqd4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=T3y/RC0Q; arc=none smtp.client-ip=209.85.221.43
+	s=arc-20240116; t=1773451934; c=relaxed/simple;
+	bh=mUxCPP/m7AMSSH1pxHzOmtIKNsUap3vsjNULA0fzP4Q=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=rSHsvNydBdw5ZpVbjJQqgr838Ts7XOGyRgqv39VrP1r/HmRqB6xcxzBudTpvFX7Di0Fwk/4a5g5M0ngMkb/UePqez5xf1wzrGKd7KVFCTyh+mf+gzPz0hFot4RbeDK5+QOASlUu3W5z0Mk7DexYcQ+0mtw33wD13nocrJUKl8mQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Pf7Ujhb8; arc=none smtp.client-ip=209.85.221.48
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="T3y/RC0Q"
-Received: by mail-wr1-f43.google.com with SMTP id ffacd0b85a97d-439d8df7620so2028917f8f.0
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Pf7Ujhb8"
+Received: by mail-wr1-f48.google.com with SMTP id ffacd0b85a97d-439a89b6fd0so2728053f8f.2
         for <linux-acpi@vger.kernel.org>; Fri, 13 Mar 2026 18:32:12 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20230601; t=1773451931; x=1774056731; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=+3d+vA9WOD1aIXWABPX3fea+gZYGZsE6ZaKFwHPcp3I=;
-        b=T3y/RC0QSiLCNAODcJPUDco8nXt0Ps2Hv4BoFX9ZvOp8xtZvax0GV6+eYvmfoKFylr
-         M294aq0xTu9devijqN5tNUkq05k3ZIZRZj4cMvxq7cMlAZ18qOeua47x6c+77CKaNHVr
-         VyNF3QzD82MxmP+wkM43h3bXJgSyYC2jfCurzCLpmQZUTjSHH3/ZRpc9EO+KEV04Gkt3
-         MY+07o/3QJmlJcesemijSQB9SUqzyOt51XV9EnCyW8xU135nL6cHJWi3qq13AXceoljz
-         xWzcJqI6N7GMdM7VkNxkg8a3xSB2ySJmwJR+zPXnRjF3L4y4o6rXXu7FGo5YG8lotakD
-         4CmQ==
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=iR0JNXye1PQ32tEpIdRTYUVyYik8LC1u1H+imbfX1oQ=;
+        b=Pf7Ujhb8dtVkmMW1sYsmFyRiaTAg+CNq/Kje8X6lJgZTbaMtsSpsd/xOmfxnbOfpfd
+         xRlwOCJDaZz+Btk8wQCnls32+3PTli+M2NwqaNOeeAnshzswbZFcablBSyQxjnUky86Q
+         9xPCWjQ8GPb080Ab2bucOWYip66HCaVd0LYfNiEuMxzwb7hNYI4yZdzgxVukpCDd0pYk
+         0wLajObpNsEup5MfL6bBHe2E+ch2DJkCph9hKhYheH1p2KONv2M1m2FgdBNPo/5oCSxk
+         hRfExYrFYL1ymx/qmT/Eni/lKEuweArN1EPxIX7pb1+B87/09RD8F4M05Yp92UPlSjiW
+         UJIw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20251104; t=1773451931; x=1774056731;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=+3d+vA9WOD1aIXWABPX3fea+gZYGZsE6ZaKFwHPcp3I=;
-        b=lH+ulUWeF/Visek48saKKpWMzVPHMztJwvo7530THDwE86GerXTtabnIxWxF2GFrKi
-         nc2INC8Z2P5MnhNBGdSw7eeRVZFiNkWSKGeSwmbyAtb4wFtSM1tmlZJWq8NcvP/CisV2
-         1ViHxCDYEldPtAcQrjSw4fvXpJqaFIbUqE7aZZR2eLvw+E69NU/T0CZmelB0LbxpK03e
-         VybyQ5au2a3IVBxK+2Om1lSDUlrRfy2kHqDfSHIEaZcw8Q7wvRaRICf5cDIU4JsBoRUY
-         1Xy882RS74dHPKkLJQGLojJcipaUEyGsPo3BblgCi/GgCyQG5x/9euaVVHIbX9sHkkQr
-         5bmw==
-X-Forwarded-Encrypted: i=1; AJvYcCUnP3q25AxYgmPLQSBLRye2Ix7DGrptcfNlMiismlaBKptyIrFn3N/OUXcXgXPYcj1flgHAgatVYERX@vger.kernel.org
-X-Gm-Message-State: AOJu0YxdfdLrxY+JTwhTnes5KgbFZLE7rmMq1jqE9FTAsnumecFyTl4F
-	ukswnzP+KURelfWidKaa7+/ruqZHQHtuO5syoTiqO3vkWbSFKSCFnbBR6AD2fSYuku4=
-X-Gm-Gg: ATEYQzxZ11B8feZRgETVmhjzNlxxYgoc8KZV8DtPzK6FR1Vui2geBpwaqhqM4ulgRsK
-	jC8J1ewE8gkYSjs1IUS/zT3e4y9M60wwE1jIrru0mUYrVG8SqKGq1yf0m5HwUZ3aYFq2UQkXGP7
-	hbsTSZiCTyiLI0RYGJXqJT2Ho5Z/XL4p6b5gjsyinodgrL/HWu7rhpj9St6MD3wtJlwHyTLe8lh
-	Y9jeksb7W42p8VQXWJgzquc2Ug6HNgQCjM9JjgTC3YOBLL0iDPex3x8fuD5uumDJQ8Y3aljMCpf
-	HmK/e/UKjKdHEqSMevBnIC6plpEZnT8Ql+YoZO9w3/5j1HwWo/cGI8R+tMiuigDwL1z6wN02J9O
-	hD3jFLhi17jUvcELvdbz4hbEt0f92kkiLOHvLk4utIoSxaYgYsITMK3L0g2BFUIJsiszh66o9tc
-	g/wJ5MREJEqKA02WCTEwks1+srGpzEPDWSpo4Dx6gzvNoGn0nZP4Qc6E6e1VS6Btw+F2C3Vryvv
-	Pn6xexuyutJZxvD7Xsa7ptwxD+/iPK+tPXCaXVsJhK0weRdc7L9CSL/edGsaja//0cxpbIZMe+w
-	EWOX54pirIQ=
-X-Received: by 2002:a05:600c:3b14:b0:485:17a7:b9c7 with SMTP id 5b1f17b1804b1-485566d5178mr83204885e9.10.1773451930625;
-        Fri, 13 Mar 2026 18:32:10 -0700 (PDT)
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=iR0JNXye1PQ32tEpIdRTYUVyYik8LC1u1H+imbfX1oQ=;
+        b=AmoFhvybKixOba3vkE1YclUxB0m4MWMgHLBT7kafVbPjxsY88rn6zAbveizG8Y8l4Y
+         zh7BWdc/vZM0ATHXErPe2vQwmaHBjT7PevmRafjpKBINvroA0DsO/juOo+kq36sCb4Iq
+         3dOy4ep3M38e5Fs0MnkLzS8+AKtYPaYrwWDfMGTnHVosxczSt4nfzzERccXV3KPNNgbk
+         dcOAspewp2sO1G7UDVMuz83vEc8vGOI6+wKc6cQyAKWWUUHqDxR2KubW0yojUzucrZcz
+         w2LemjD0A67j6mAybZQgXeRGZKlxkGMmxNL/RRpC6st7fn5irzUiG0nhOWuk5tKjb+N6
+         Z7MA==
+X-Forwarded-Encrypted: i=1; AJvYcCWACExawgdZHkOmfSaWpeE7Xj5SiybZ16m3vKVzl1aO84VLd97tNLtRXZixjJbu9k7RhBZp1+kQXqAk@vger.kernel.org
+X-Gm-Message-State: AOJu0YyJRcP/zXUsaI7oPXMzGEn4f9nLk+hxrgox7KB1yiPvtram2gV0
+	vK303PZ1wmxPrNVk/+oTWaJzAfMaiQhPSq8ImHlFQ+St6YaoeW6eXmxE2RKAanVxmK4=
+X-Gm-Gg: ATEYQzzpv4UUa0kUgvR6EXd5IASyWRMzqD9VSITBcITdxT81+HCIWtBUoQHf4ImoHnm
+	wgS+W/xCqQTzqNLFJcRyhe6rC2W4gKVzRqnDSwW35mNHUqtTt1t2ujO9cckUTM9gtWXGwBwEJWZ
+	855Y/NvXKx0w4kAOADMdOykxGfeLlsS4M2fLAM3aW39VNQN6gA9ck7ByVs0mx1XWPUgud5cFMzv
+	8AFcWg7wPoYWIzfLD5Un2EAEaI/UlZCWPq+YSLyfLGQoblP28W3NdQh7jdhSQVlEy7DHJZaWKHR
+	QjJbatbTlo30ec38AmRDPdLfZnNXnBymun5c9M/c0o6Z9xDsc0PchGNBFp/oWRnK5gH1Zxenhg6
+	jebf9HaI0KeqiyxaZ7op1ksa3jZxGWR3nMeDlu6/XV3r4bt+UzQCsFr7PN0Lc+v1yapKSm/u70V
+	pr/7o8FksfK82nFxQxZ8WcSKQrRwK9C8rBw7srfPUigCfCORJNcWrMDFWbgW+wXMcUu8DzaEEeL
+	cW2PIU0stqQKcZIRCMAqEXMp0ulwcJyvu3U3abx1l8LEiz4eBNmW4q217SDD+ebg4CQwR/+z7/0
+	WmMRKNx675M=
+X-Received: by 2002:a05:6000:2501:b0:439:ba4d:bf40 with SMTP id ffacd0b85a97d-43a04dc831fmr10711463f8f.43.1773451931220;
+        Fri, 13 Mar 2026 18:32:11 -0700 (PDT)
 Received: from scambox.localdomain (5-198-68-184.static.kc.net.uk. [5.198.68.184])
         by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-439fe22529csm21876575f8f.31.2026.03.13.18.32.10
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
@@ -68,10 +70,12 @@ Cc: heikki.krogerus@linux.intel.com,
 	linux-acpi@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Edward Blair <edward.blair@gmail.com>
-Subject: [PATCH 0/2] Add UCSI I2C transport driver for ITE885x USB-C controllers
-Date: Sat, 14 Mar 2026 01:31:54 +0000
-Message-ID: <20260314013157.7181-1-edward.blair@gmail.com>
+Subject: [PATCH 1/2] i2c: acpi: skip generic I2C device when vendor-specific sibling exists
+Date: Sat, 14 Mar 2026 01:31:55 +0000
+Message-ID: <20260314013157.7181-2-edward.blair@gmail.com>
 X-Mailer: git-send-email 2.53.0
+In-Reply-To: <20260314013157.7181-1-edward.blair@gmail.com>
+References: <20260314013157.7181-1-edward.blair@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -80,49 +84,140 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-ASUS Z690/Z790/X670E motherboards use ITE8853 (and related ITE8800-ITE8805)
-USB Type-C controllers that implement UCSI over I2C. These are currently
-unsupported in Linux, causing a boot error:
+Some BIOS implementations (notably ASUS Z690/Z790/X670E motherboards)
+declare both a generic UCSI device (MSFT8000) and a vendor-specific
+device (e.g., ITE8853) as ACPI children of the same I2C controller,
+both referencing the same I2C slave address.
 
-  i2c i2c-1: Failed to register i2c client ITE8853:00 at 0x40 (-16)
+During ACPI I2C enumeration, whichever device is walked first claims
+the address, causing the second to fail with -EBUSY. When the generic
+MSFT8000 device registers first, the vendor-specific driver cannot
+bind, losing access to device-specific features like GPIO interrupt
+resources that are only declared on the vendor-specific ACPI device.
 
-The BIOS on these boards declares two ACPI devices for the same physical
-hardware at the same I2C address: a generic UCSI device (MSFT8000) and a
-vendor-specific device (ITE8853). The generic device registers first during
-ACPI enumeration, blocking the vendor-specific one with -EBUSY. The ITE8853
-ACPI device carries the GPIO interrupt resource needed for proper operation,
-while MSFT8000 does not.
+Fix this by checking, before registering a known generic I2C device,
+whether a sibling ACPI device exists at the same address on the same
+adapter. If so, skip the generic device to let the vendor-specific
+one register instead.
 
-Patch 1 fixes the i2c ACPI enumeration to skip known generic devices when a
-vendor-specific sibling exists at the same address. This is a general fix
-that could benefit other platforms with the same BIOS pattern.
+Signed-off-by: Edward Blair <edward.blair@gmail.com>
+---
+ drivers/i2c/i2c-core-acpi.c | 88 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 88 insertions(+)
 
-Patch 2 adds the ITE885x UCSI transport driver, modeled after ucsi_stm32g0.c.
-The only device-specific quirk is that PPM_RESET is handled internally by the
-ITE8853 and must not be sent over I2C.
-
-Tested on ASUS ROG Strix Z790-E Gaming WiFi:
-  - Boot error eliminated
-  - /sys/class/typec/port0 registered successfully
-  - UCSI commands complete within one polling cycle (~50ms)
-  - USB-C device attach/detach detected with partner enumeration
-  - USB Power Delivery negotiation functional
-  - SuperSpeed Plus Gen 2x1 devices operational through UCSI-managed port
-
-No MAINTAINERS entry is added as the driver falls under the existing
-USB TYPEC UCSI section. Happy to add one if preferred.
-
-Edward Blair (2):
-  i2c: acpi: skip generic I2C device when vendor-specific sibling exists
-  usb: typec: ucsi: add ITE885x I2C transport driver
-
- drivers/i2c/i2c-core-acpi.c       |  88 +++++++++
- drivers/usb/typec/ucsi/Kconfig    |  11 ++
- drivers/usb/typec/ucsi/Makefile   |   1 +
- drivers/usb/typec/ucsi/ucsi_ite.c | 285 ++++++++++++++++++++++++++++++
- 4 files changed, 385 insertions(+)
- create mode 100644 drivers/usb/typec/ucsi/ucsi_ite.c
-
+diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
+index 2cbd31f77..87582eac7 100644
+--- a/drivers/i2c/i2c-core-acpi.c
++++ b/drivers/i2c/i2c-core-acpi.c
+@@ -137,6 +137,17 @@ static const struct acpi_device_id i2c_acpi_ignored_device_ids[] = {
+ 	{}
+ };
+ 
++/*
++ * Generic I2C device IDs that may be duplicated by vendor-specific devices.
++ * When a vendor-specific sibling exists at the same address, the generic
++ * device is skipped to avoid -EBUSY address conflicts.
++ */
++static const struct acpi_device_id i2c_acpi_generic_device_ids[] = {
++	/* Microsoft UCSI - often paired with vendor-specific UCSI device */
++	{ "MSFT8000" },
++	{}
++};
++
+ struct i2c_acpi_irq_context {
+ 	int irq;
+ 	bool wake_capable;
+@@ -274,6 +285,76 @@ static int i2c_acpi_get_info(struct acpi_device *adev,
+ 	return 0;
+ }
+ 
++struct i2c_acpi_sibling_check {
++	struct acpi_device *self;
++	struct i2c_adapter *adapter;
++	unsigned short addr;
++	bool found;
++};
++
++static int i2c_acpi_check_sibling_addr(struct acpi_device *adev, void *data)
++{
++	struct i2c_acpi_sibling_check *check = data;
++	struct i2c_acpi_lookup lookup;
++	struct i2c_board_info info;
++
++	if (adev == check->self)
++		return 0;
++
++	/* Only yield to vendor-specific devices, not other generic ones */
++	if (!acpi_match_device_ids(adev, i2c_acpi_generic_device_ids))
++		return 0;
++
++	memset(&lookup, 0, sizeof(lookup));
++	lookup.info = &info;
++	lookup.index = -1;
++
++	if (i2c_acpi_do_lookup(adev, &lookup))
++		return 0;
++
++	if (!device_match_acpi_handle(&check->adapter->dev,
++				      lookup.adapter_handle))
++		return 0;
++
++	if (info.addr == check->addr) {
++		check->found = true;
++		return 1;
++	}
++
++	return 0;
++}
++
++/*
++ * Check whether this generic ACPI device has a vendor-specific sibling at the
++ * same I2C address. Some BIOS implementations (e.g., ASUS Z690/Z790/X670E)
++ * declare both a generic UCSI device (MSFT8000) and a vendor-specific device
++ * (e.g., ITE8853) at the same address. Skip the generic one so the vendor
++ * driver can bind with proper interrupt and device-specific resources.
++ */
++static bool i2c_acpi_has_vendor_sibling(struct acpi_device *adev,
++					struct i2c_adapter *adapter,
++					struct i2c_board_info *info)
++{
++	struct acpi_device *parent;
++	struct i2c_acpi_sibling_check check;
++
++	if (acpi_match_device_ids(adev, i2c_acpi_generic_device_ids))
++		return false;
++
++	parent = acpi_dev_parent(adev);
++	if (!parent)
++		return false;
++
++	check.self = adev;
++	check.adapter = adapter;
++	check.addr = info->addr;
++	check.found = false;
++
++	acpi_dev_for_each_child(parent, i2c_acpi_check_sibling_addr, &check);
++
++	return check.found;
++}
++
+ static void i2c_acpi_register_device(struct i2c_adapter *adapter,
+ 				     struct acpi_device *adev,
+ 				     struct i2c_board_info *info)
+@@ -302,6 +383,13 @@ static acpi_status i2c_acpi_add_device(acpi_handle handle, u32 level,
+ 	if (!adev || i2c_acpi_get_info(adev, &info, adapter, NULL))
+ 		return AE_OK;
+ 
++	if (i2c_acpi_has_vendor_sibling(adev, adapter, &info)) {
++		dev_info(&adapter->dev,
++			 "skipping %s in favor of vendor-specific device at 0x%02x\n",
++			 dev_name(&adev->dev), info.addr);
++		return AE_OK;
++	}
++
+ 	i2c_acpi_register_device(adapter, adev, &info);
+ 
+ 	return AE_OK;
 -- 
 2.53.0
 
