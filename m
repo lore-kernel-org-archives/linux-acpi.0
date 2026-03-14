@@ -1,39 +1,40 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DD7814B977;
-	Sat, 14 Mar 2026 11:47:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DAA7259CB9;
+	Sat, 14 Mar 2026 11:50:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773488844; cv=none; b=uSPgUG0oNGY5bic/9sKN5Prh7txl/zaYmOEw+Kwqc0OZm1t0LcHFEnoIbKimVqHo4TduvRw4A8Ru+TGcUV4b4R2I3tcz9GhgZPraRloi95tA1p7+ENS6wqfR7SaU3A+xak7JbQFhSNKaCcAw2bj9NDnQ2zLi7ETn/5gxzd/DQ3g=
+	t=1773489019; cv=none; b=Dq4IHxNx52kgxEhgfDLHex9mN2Zj8ygpVUfqs/SX/wqU+mmINFdQpzZ54ajboH2Cww3uXLUOQZkhrmligUR9RKdVPy/FfNZfLP1wY8GrBhkPjNqk1Vkn5FREgOaZKoRkwuX1iAHt3B+YIO6687iwzj0TDkk1PzCIpr5li73knvE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773488844; c=relaxed/simple;
-	bh=V4sspJjbvtYP68UCvQ5Y+GCiJzCXLJ1aStg8UnujOy4=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=HkaL7hO9xb3npARbviZpSShSL9PHe4L0+n9EqT8BJ8KJ5YePg3G4kaKS3/+OoeBz/qm2uokQD34VoFU8kwWOWZiLIrQrHEuio2t32jBHdyngB0Q7HhgxueHANuwKX9Qh5f4k4j0G6Cf0vGhpXQAnjM52RrN4mezJ/ADGfv5Zafg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XXRR4pYA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773489019; c=relaxed/simple;
+	bh=9UfI7XEScUD1an9AAbJxgOc8Hl9VC7ZE8OBKZJGt0d0=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=l0f6tLsfPCQbUhaFv42FZaTeXXBi9hrvViq79Zo4WK9b9w5t4PWNNfHbnntppZhi409aM/YkbGH8lFXhrgKu/ACclom+nNXG1GuN1RrbkRs0Ob1D7K2lXhrWBxe2Eo8A30znK3Wi5Zcfx/hwmfTlx+jdVI5vPvr6FwORPTlh5kY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=b0hUuzZg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XXRR4pYA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0670CC116C6;
-	Sat, 14 Mar 2026 11:47:19 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="b0hUuzZg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA6CFC19424;
+	Sat, 14 Mar 2026 11:50:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773488843;
-	bh=V4sspJjbvtYP68UCvQ5Y+GCiJzCXLJ1aStg8UnujOy4=;
+	s=k20201202; t=1773489019;
+	bh=9UfI7XEScUD1an9AAbJxgOc8Hl9VC7ZE8OBKZJGt0d0=;
 	h=From:To:Cc:Subject:Date:From;
-	b=XXRR4pYA52mQ7V0w8Y0BziEuQ1Nh/DCCiMarBMR7PTl4wACOhj2yra8+X3qErHhMk
-	 7hiQHfoLhghAwlTwLFhFJZrVZPHVfnEBh7FV5vf50g1zgt1fDmkM8cr6aKRlSKeWyO
-	 eO4Kz7cL+ZfZO2NvKauQk2G9PEObrCnot09GdwegAhRO3UC4ubzf11wBL2XCTVhDSR
-	 UjvwgIuanLV3o3W35MM9H5BU5d3fnBBfGRTs6pnoYLa23Hujp8W1Hq68tMnELDYcUb
-	 fiFnqK8PkwjQ7xF6M/fgNBqs3SvCzbLZaeCEo2uVyywJADTf/cL5gKz4tbsizK/px7
-	 xmSCxdgi7XHfg==
+	b=b0hUuzZg0mhG6gmdBzBk4Bt3tu38HnHPdhMP8Ytwm4Rja8VG27IlvoCAH+Wl6LwLJ
+	 pnHKSwPJuYnE2Mfx3eT/WGkKVmaD0KdAw8gOPk7ztu3aMyTL7oLpD2Vt6N/vg9SpRM
+	 dRB79KxPN/F/f8r6GtToUmYmglh4IeratX2Ht7OWC7/LQbE9+jJyIv/DVweqz4zVqT
+	 b0UmLT6XAb45xBPGpQW+s8oKgGgRX5CcXRbxZV92bDhZfBknWxyA5WrnPptKdllOKX
+	 GKA9+VZL5rX3jXjKVoggj4cgcRCcNJzJHH5c/F3I2xQ1ibn7zwxfuVOlX+UK+DXPIN
+	 uuzeB9Ia0LyTw==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-To: netdev@vger.kernel.org
+To: Lee Jones <lee@kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>,
- Linux ACPI <linux-acpi@vger.kernel.org>, Andrew Lunn <andrew+netdev@lunn.ch>,
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>
-Subject: [PATCH v1] net: fjes: Drop fjes_acpi_driver and rework initialization
-Date: Sat, 14 Mar 2026 12:47:09 +0100
-Message-ID: <5113731.31r3eYUQgx@rafael.j.wysocki>
+ Linux ACPI <linux-acpi@vger.kernel.org>,
+ Daniel Thompson <danielt@kernel.org>, Jingoo Han <jingoohan1@gmail.com>,
+ Helge Deller <deller@gmx.de>, dri-devel@lists.freedesktop.org,
+ linux-fbdev@vger.kernel.org
+Subject: [PATCH v1] backlight: apple_bl: Convert to a platform driver
+Date: Sat, 14 Mar 2026 12:50:11 +0100
+Message-ID: <5084777.GXAFRqVoOG@rafael.j.wysocki>
 Organization: Linux Kernel Development
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
@@ -46,23 +47,16 @@ Content-Type: text/plain; charset="UTF-8"
 
 From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-The ACPI driver interface used by the Fujitsu Extended Socket (fjes)
-Network Device driver is redundant because its only role is to create
-a platform device the fjes platform driver can bind to, which can be
-done already at the module initialization time.
+In all cases in which a struct acpi_driver is used for binding a driver
+to an ACPI device object, a corresponding platform device is created by
+the ACPI core and that device is regarded as a proper representation of
+underlying hardware.  Accordingly, a struct platform_driver should be
+used by driver code to bind to that device.  There are multiple reasons
+why drivers should not bind directly to ACPI device objects [1].
 
-Namely, acpi_find_extended_socket_device() looks for the requisite ACPI
-device object anyway and it may as well check its resources, and the
-platform device can be created when the ACPI object in question
-has been found (and it can be freed when the module is unloaded).
-
-Moreover, as a rule, it is better to avoid binding drivers directly to
-ACPI device objects [1].
-
-Accordingly, drop fjes_acpi_driver, adjust the module initialization
-and exit code as per the above and set the fwnode for the fjes platform
-device to point to the corresponding ACPI device object as its ACPI
-companion.
+Overall, it is better to bind drivers to platform devices than to their
+ACPI companions, so convert the Apple Backlight ACPI driver to a
+platform one.
 
 While this is not expected to alter functionality, it changes sysfs
 layout and so it will be visible to user space.
@@ -70,190 +64,73 @@ layout and so it will be visible to user space.
 Link: https://lore.kernel.org/all/2396510.ElGaqSPkdT@rafael.j.wysocki/ [1]
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/net/fjes/fjes_main.c | 119 +++++++++++++++--------------------
- 1 file changed, 49 insertions(+), 70 deletions(-)
+ drivers/video/backlight/apple_bl.c | 21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/net/fjes/fjes_main.c b/drivers/net/fjes/fjes_main.c
-index b63965d9a1ba..efb399eb15e0 100644
---- a/drivers/net/fjes/fjes_main.c
-+++ b/drivers/net/fjes/fjes_main.c
-@@ -111,56 +111,6 @@ fjes_get_acpi_resource(struct acpi_resource *acpi_res, void *data)
- 	return AE_OK;
- }
+diff --git a/drivers/video/backlight/apple_bl.c b/drivers/video/backlight/apple_bl.c
+index aaa824437a2a..423513d68b5b 100644
+--- a/drivers/video/backlight/apple_bl.c
++++ b/drivers/video/backlight/apple_bl.c
+@@ -24,6 +24,7 @@
+ #include <linux/pci.h>
+ #include <linux/acpi.h>
+ #include <linux/atomic.h>
++#include <linux/platform_device.h>
+ #include <acpi/video.h>
  
--static struct resource fjes_resource[] = {
--	DEFINE_RES_MEM(0, 1),
--	DEFINE_RES_IRQ(0)
--};
--
--static int fjes_acpi_add(struct acpi_device *device)
--{
--	struct platform_device *plat_dev;
--	acpi_status status;
--
--	if (!is_extended_socket_device(device))
--		return -ENODEV;
--
--	if (acpi_check_extended_socket_status(device))
--		return -ENODEV;
--
--	status = acpi_walk_resources(device->handle, METHOD_NAME__CRS,
--				     fjes_get_acpi_resource, fjes_resource);
--	if (ACPI_FAILURE(status))
--		return -ENODEV;
--
--	/* create platform_device */
--	plat_dev = platform_device_register_simple(DRV_NAME, 0, fjes_resource,
--						   ARRAY_SIZE(fjes_resource));
--	if (IS_ERR(plat_dev))
--		return PTR_ERR(plat_dev);
--
--	device->driver_data = plat_dev;
--
--	return 0;
--}
--
--static void fjes_acpi_remove(struct acpi_device *device)
--{
--	struct platform_device *plat_dev;
--
--	plat_dev = (struct platform_device *)acpi_driver_data(device);
--	platform_device_unregister(plat_dev);
--}
--
--static struct acpi_driver fjes_acpi_driver = {
--	.name = DRV_NAME,
--	.class = DRV_NAME,
--	.ids = fjes_acpi_ids,
--	.ops = {
--		.add = fjes_acpi_add,
--		.remove = fjes_acpi_remove,
--	},
--};
--
- static int fjes_setup_resources(struct fjes_adapter *adapter)
- {
- 	struct net_device *netdev = adapter->netdev;
-@@ -1470,43 +1420,81 @@ static struct platform_driver fjes_driver = {
- 	.remove = fjes_remove,
+ static struct backlight_device *apple_backlight_device;
+@@ -134,7 +135,7 @@ static const struct hw_data nvidia_chipset_data = {
+ 	.set_brightness = nvidia_chipset_set_brightness,
  };
  
-+struct fjes_acpi_walk_context {
-+	struct acpi_device *adev;
-+	struct resource resources[2];
-+};
-+
- static acpi_status
- acpi_find_extended_socket_device(acpi_handle obj_handle, u32 level,
- 				 void *context, void **return_value)
+-static int apple_bl_add(struct acpi_device *dev)
++static int apple_bl_probe(struct platform_device *pdev)
  {
-+	struct fjes_acpi_walk_context *fjes_context = context;
- 	struct acpi_device *device;
--	bool *found = context;
-+	acpi_status status;
- 
--	device = acpi_fetch_acpi_dev(obj_handle);
-+	device = acpi_get_acpi_dev(obj_handle);
- 	if (!device)
- 		return AE_OK;
- 
- 	if (strcmp(acpi_device_hid(device), ACPI_MOTHERBOARD_RESOURCE_HID))
--		return AE_OK;
-+		goto skip;
- 
- 	if (!is_extended_socket_device(device))
--		return AE_OK;
-+		goto skip;
- 
- 	if (acpi_check_extended_socket_status(device))
--		return AE_OK;
-+		goto skip;
-+
-+	status = acpi_walk_resources(obj_handle, METHOD_NAME__CRS,
-+				     fjes_get_acpi_resource, fjes_context->resources);
-+	if (ACPI_FAILURE(status))
-+		goto skip;
-+
-+	fjes_context->adev = device;
- 
--	*found = true;
- 	return AE_CTRL_TERMINATE;
-+
-+skip:
-+	acpi_dev_put(device);
-+	return AE_OK;
+ 	struct backlight_properties props;
+ 	struct pci_dev *host;
+@@ -193,7 +194,7 @@ static int apple_bl_add(struct acpi_device *dev)
+ 	return 0;
  }
  
-+static struct platform_device *fjes_plat_dev;
-+
- /* fjes_init_module - Driver Registration Routine */
- static int __init fjes_init_module(void)
+-static void apple_bl_remove(struct acpi_device *dev)
++static void apple_bl_remove(struct platform_device *pdev)
  {
--	bool found = false;
-+	struct fjes_acpi_walk_context fjes_context = {
-+		.adev = NULL,
-+		.resources = {
-+			DEFINE_RES_MEM(0, 1),
-+			DEFINE_RES_IRQ(0)
-+		}
-+	};
-+	struct platform_device_info pdevinfo;
- 	int result;
+ 	backlight_device_unregister(apple_backlight_device);
  
- 	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT, ACPI_UINT32_MAX,
--			    acpi_find_extended_socket_device, NULL, &found,
-+			    acpi_find_extended_socket_device, NULL, &fjes_context,
- 			    NULL);
--
--	if (!found)
-+	if (!fjes_context.adev)
+@@ -206,12 +207,12 @@ static const struct acpi_device_id apple_bl_ids[] = {
+ 	{"", 0},
+ };
+ 
+-static struct acpi_driver apple_bl_driver = {
+-	.name = "Apple backlight",
+-	.ids = apple_bl_ids,
+-	.ops = {
+-		.add = apple_bl_add,
+-		.remove = apple_bl_remove,
++static struct platform_driver apple_bl_driver = {
++	.probe = apple_bl_probe,
++	.remove = apple_bl_remove,
++	.driver = {
++		.name = "Apple backlight",
++		.acpi_match_table = apple_bl_ids,
+ 	},
+ };
+ 
+@@ -224,12 +225,12 @@ static int __init apple_bl_init(void)
+ 	if (acpi_video_get_backlight_type() != acpi_backlight_vendor)
  		return -ENODEV;
  
-+	memset(&pdevinfo, 0, sizeof(pdevinfo));
-+
-+	pdevinfo.name = DRV_NAME;
-+	pdevinfo.res = fjes_context.resources;
-+	pdevinfo.num_res = ARRAY_SIZE(fjes_context.resources);
-+	pdevinfo.fwnode = acpi_fwnode_handle(fjes_context.adev);
-+
-+	fjes_plat_dev = platform_device_register_full(&pdevinfo);
-+
-+	acpi_dev_put(fjes_context.adev);
-+
-+	if (IS_ERR(fjes_plat_dev))
-+		return PTR_ERR(fjes_plat_dev);
-+
- 	pr_info("%s - version %s - %s\n",
- 		fjes_driver_string, fjes_driver_version, fjes_copyright);
- 
-@@ -1518,16 +1506,7 @@ static int __init fjes_init_module(void)
- 		return result;
- 	}
- 
--	result = acpi_bus_register_driver(&fjes_acpi_driver);
--	if (result < 0)
--		goto fail_acpi_driver;
--
- 	return 0;
--
--fail_acpi_driver:
--	platform_driver_unregister(&fjes_driver);
--	fjes_dbg_exit();
--	return result;
+-	return acpi_bus_register_driver(&apple_bl_driver);
++	return platform_driver_register(&apple_bl_driver);
  }
  
- module_init(fjes_init_module);
-@@ -1535,9 +1514,9 @@ module_init(fjes_init_module);
- /* fjes_exit_module - Driver Exit Cleanup Routine */
- static void __exit fjes_exit_module(void)
+ static void __exit apple_bl_exit(void)
  {
--	acpi_bus_unregister_driver(&fjes_acpi_driver);
- 	platform_driver_unregister(&fjes_driver);
- 	fjes_dbg_exit();
-+	platform_device_unregister(fjes_plat_dev);
+-	acpi_bus_unregister_driver(&apple_bl_driver);
++	platform_driver_unregister(&apple_bl_driver);
  }
  
- module_exit(fjes_exit_module);
+ module_init(apple_bl_init);
 -- 
 2.51.0
 
