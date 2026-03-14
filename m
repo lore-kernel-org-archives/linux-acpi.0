@@ -1,66 +1,226 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mout02.posteo.de (mout02.posteo.de [185.67.36.66])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B598217BA2;
-	Sat, 14 Mar 2026 12:13:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79E0F1DEFE9
+	for <linux-acpi@vger.kernel.org>; Sat, 14 Mar 2026 12:31:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.67.36.66
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773490384; cv=none; b=OT1nExdDMwwvjRCFLbaux3ryhgynLgaC+dSr8Q6jSA+4OurUPDBqIyCNn8QTvaa9c5HcnE1Iwd3EwBRegxEqXYrgSjTOemIKc6oReWgOWJFKw5lWODKeH7V9CU26KblmpgvhOehmSRbaN8gFeAmnkNySz6aiLjh1jp72q4JZCEQ=
+	t=1773491509; cv=none; b=g//YPw7uMylItWxhnHOOhWSg8l2KeezuNCnKx5J8h1H0+ApzKvfsaN7sBa8wZqUFeLmamhGJ6wddpg9dyuve4EmSKeopVreM8hU4LAzHGHhIS0Xq9z19zLXsKvRq3e2upjB3cFGO4ay4x7LHngZ+1/dg4QlUwy4l5OswxrbhOOk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773490384; c=relaxed/simple;
-	bh=exp/QyUP4fvmfORMpkkf1BnTMB6aMqlA822wWMTgyUE=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=cP7qEUxaaSWXna/TwuOHO93hE+RrAj6yHbuhQUmWLZjzcBGdLLuczEaRe47/CzxGbFwPGm961SiKuzC+pMqoKAeGojqmsy8AZa6Z+chmgvOqaIheJVhvKT7PjDxOh0di3fte61A62fji+2r6huA6XUtc+l5mwfl1mlgx0iV/FVo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Q8rJ3+o0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773491509; c=relaxed/simple;
+	bh=ymnt/NWDGkNqoUIBq0vbjXm6EpNS9Aqr8moYdTzESqM=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=WYtuSRnwsc527d5PsEcTtqD8U1zV6rxlDy0yeGhgE/+uPSkFvQriHmqx/H55JnkYfsRQbJTkuqpYVUfwr9Q2crMLxORq00uGtPT/bgNgaeqXLwgAXLpHacjaBYKzkQAkKy6QpbZIikoHuixLs5njdTmT4oHIQqvuvV+KokMW608=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de; spf=pass smtp.mailfrom=posteo.de; dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b=onQdP31J; arc=none smtp.client-ip=185.67.36.66
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=posteo.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Q8rJ3+o0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89C60C19425;
-	Sat, 14 Mar 2026 12:13:02 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773490384;
-	bh=exp/QyUP4fvmfORMpkkf1BnTMB6aMqlA822wWMTgyUE=;
-	h=From:To:Cc:Subject:Date:From;
-	b=Q8rJ3+o0E2ej1ahsZOCrw0TfzPyRcQjsgI0nr7OUHEBDIoPCvlOaP/x77PXSOGF+I
-	 9WFUUAZOfV2o8KfPvYY1MGPeTDtYG3iIgSrHs3r4xhMapffO2MVw4o0vVW3fIDwkyl
-	 OxFGO7U2IeiTN2pSQMps0gYYmzn8RkSSfqqrXw1kbQESBUArBfuYwpZJ+W/4yanm4l
-	 eFK8mV1qDcjRIejadBwhn8qD9MHnzsX/V8c/jzhiSlUVc5BYA/G4UzJyrJfLve0i0n
-	 QSPM5dOHKV1wpmajXs0mixQLjbnCJG0ytulitGaw/STcP32l2HvJYlI9q9HJr8DNU4
-	 QDZmbwXcxy1dQ==
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-To: linux-rtc@vger.kernel.org
-Cc: LKML <linux-kernel@vger.kernel.org>,
- Linux ACPI <linux-acpi@vger.kernel.org>,
- Alexandre Belloni <alexandre.belloni@bootlin.com>,
- Mario Limonciello <mario.limonciello@amd.com>
-Subject: [PATCH v1 0/2] rtc: cmos: Do not require IRQ if ACPI alarm is used
-Date: Sat, 14 Mar 2026 13:09:21 +0100
-Message-ID: <3964452.kQq0lBPeGt@rafael.j.wysocki>
-Organization: Linux Kernel Development
+	dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b="onQdP31J"
+Received: from submission (posteo.de [185.67.36.169]) 
+	by mout02.posteo.de (Postfix) with ESMTPS id E269D24010B
+	for <linux-acpi@vger.kernel.org>; Sat, 14 Mar 2026 13:31:44 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=posteo.de; s=2017;
+	t=1773491504; bh=q2dLmprXXF4mEzJHnhT896dDscoHqOY/k5KCoI0lfzg=;
+	h=Message-ID:Subject:From:To:Cc:Date:Autocrypt:Content-Type:
+	 MIME-Version:OpenPGP:From;
+	b=onQdP31JL9kQH55J170ITPp7yb4J/ZB9hKj7Xiz7y9dvLjvn5HFSLfD94zEVLg6wt
+	 zG2vn40X5mwpvc2N84aS7AaamycGVAdQR5oaHuM4VGwbbHiLr2HFrIrc1M57IpDeR8
+	 +kTJ2NVeeJUCx6A8Teg3FmNAn6d/Zj+jJ/cc00lq8vSK2MJCx+AiwVUc6rFsJh1R5s
+	 X39yoNRDK9OU0caxgE+VeU9+w+2BY8SFSA5JepJwkg8LxgcTgr4Qs0dhx/XMpo1Aek
+	 /sFJieBB4Vt65LzfAbirVxxyUfsvXSbGjt9RKQ9lvP/6vJ0gh4m9ejBW5JuMCr5Wm+
+	 3eBgt71mQbNSA==
+Received: from customer (localhost [127.0.0.1])
+	by submission (posteo.de) with ESMTPSA id 4fY11l3nCGz9rxS;
+	Sat, 14 Mar 2026 13:31:39 +0100 (CET)
+Message-ID: <97c64ee64734debae475716b4d588dee59889f70.camel@posteo.de>
+Subject: Re: [PATCH v3 5/7] dt-bindings: mfd: Add synology,microp device
+From: Markus Probst <markus.probst@posteo.de>
+To: Krzysztof Kozlowski <krzk@kernel.org>, Lee Jones <lee@kernel.org>, Rob
+ Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor
+ Dooley	 <conor+dt@kernel.org>, Greg Kroah-Hartman
+ <gregkh@linuxfoundation.org>,  Miguel Ojeda <ojeda@kernel.org>, Boqun Feng
+ <boqun@kernel.org>, Gary Guo <gary@garyguo.net>,  =?ISO-8859-1?Q?Bj=F6rn?=
+ Roy Baron	 <bjorn3_gh@protonmail.com>, Benno Lossin <lossin@kernel.org>,
+ Andreas Hindborg	 <a.hindborg@kernel.org>, Alice Ryhl
+ <aliceryhl@google.com>, Trevor Gross	 <tmgross@umich.edu>, Danilo Krummrich
+ <dakr@kernel.org>, "Rafael J. Wysocki"	 <rafael@kernel.org>, Igor Korotin
+ <igor.korotin.linux@gmail.com>, Daniel Almeida
+ <daniel.almeida@collabora.com>, Bjorn Helgaas <bhelgaas@google.com>,
+ Krzysztof =?UTF-8?Q?Wilczy=C5=84ski?=	 <kwilczynski@kernel.org>, Pavel
+ Machek <pavel@kernel.org>, Len Brown	 <lenb@kernel.org>, Robert Moore
+ <robert.moore@intel.com>
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	rust-for-linux@vger.kernel.org, driver-core@lists.linux.dev, 
+	linux-pci@vger.kernel.org, linux-leds@vger.kernel.org, 
+	linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev
+Date: Sat, 14 Mar 2026 12:31:43 +0000
+In-Reply-To: <336523bb-615b-451b-8681-c965bf579203@kernel.org>
+References: <20260313-synology_microp_initial-v3-0-ad6ac463a201@posteo.de>
+	 <20260313-synology_microp_initial-v3-5-ad6ac463a201@posteo.de>
+	 <02e0772d-ba65-4eb8-8453-e0b3eaa4af96@kernel.org>
+	 <6f2298f3298dc81e6e2ed34ca43424fc39ce3518.camel@posteo.de>
+	 <336523bb-615b-451b-8681-c965bf579203@kernel.org>
+Autocrypt: addr=markus.probst@posteo.de; prefer-encrypt=mutual;
+ keydata=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
+ jfGillcaQOqFZ3WwVqyzG1BUfTow==
+Content-Type: multipart/signed; micalg="pgp-sha256";
+	protocol="application/pgp-signature"; boundary="=-QgeV7XmAqUUPZhNVaoPn"
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
+OpenPGP: url=https://posteo.de/keys/markus.probst@posteo.de.asc; preference=encrypt
+
+
+--=-QgeV7XmAqUUPZhNVaoPn
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi All,
+On Sat, 2026-03-14 at 09:49 +0100, Krzysztof Kozlowski wrote:
+> On 13/03/2026 21:29, Markus Probst wrote:
+> >=20
+> > > This is not an "MFD" device.
+> > It now uses the MFD APIs. By the definiton of @Lee (assuming I
+> > understood it correctly), this device should now qualify as "MFD"
+> > device.
+>=20
+> No. Using Linux framework does not make this device MFD, since there is
+> no such term of hardware as MFD. Otherwise please explain or link to
+> verifiable external source describing what sort of device class is MFD
+I assumed these comments would also apply for the dt bindings:
+-
+https://lore.kernel.org/rust-for-linux/DGYAFNSJ7576.1E0JZ2W499ZQ7@kernel.or=
+g/
+-
+https://lore.kernel.org/rust-for-linux/20260309151555.GU183676@google.com/
 
-This series of patches allows the CMOS RTC alarm to be used on x86
-systems that don't include a functional HPET and may not configure
-an IRQ for the CMOS RTC, but have a functional ACPI RTC fixed event.
+given that using linux MFD APIs also changes the structure of the dt
+bindings with added sub-devices.
 
-The first patch allows the ACPI RTC fixed event to be used on systems
-without functional HPET because there is no fundamental dependency
-between HPET and the ACPI RTC fixed event being hooked up to the CMOS
-RTC.
+But it seems no?
 
-The second patch changes the driver to stop requiring an IRQ to be
-configured for the alarm functionality if the ACPI RTC fixed event
-is use for signaling events because it require a separate IRQ to
-be requested (the ACPI SCI is used for event signaling in that case).
+> because for sure this is not MFD how Wikipedia defines it.
 
-Thanks!
+Wikipedia defines it as a synonym for a "multi-function
+product/printer/peripheral"
+https://en.wikipedia.org/wiki/Multifunction_device
 
+>=20
+> >=20
+> > > > +
+> > > > +    mcu {
+> > >=20
+> > > Please read previous comments.
+> >=20
+> > You are likly trying to refer to this comment from you:
+> > > Depending what this is. MCU is generic purpose unit where you load
+> > your
+> > > different FW for different purposes and you have here specific - to
+> > > handle certain aspects of this entire machine. This looks like EC, so
+> > > should be called embedded-controller and placed in that directory.
+> > Synology uses Microchip PIC for this purpose. On a Synology DS215j, it
+> > uses a "Microchip PIC16F1829". At least to me, this looks like a
+>=20
+> It does not matter what chip is used. Every component uses some sort of
+> chip.
+I would be interested in what does matter then.
 
+I did not actually find an exact definition for what
+Documentation/devicetree/bindings/mfd
+and
+Documentation/devicetree/bindings/embedded-controller
+is for in the kernel tree or in the devicetree spec.
 
+>=20
+> > general purpose microcontroller with firmware from synology flashed
+> > onto it. Therefore it is a MCU.
+>=20
+> Every chip is then an MCU with such logic. Every PMIC, every EC.
+>=20
+> This is for me clearly embedded controller and that's where this should
+> be placed and called.
+In that case I will move it to
+Documentation/devicetree/bindings/embedded-controller and update the
+node name used in the example.
+
+I will wait a bit for the other patches to be reviewed before sending a
+next revision.
+
+But I wonder how
+Documentation/devicetree/bindings/mfd/qnap,ts433-mcu.yaml
+got in there then, given it is pretty similar to this device in the
+functionality it provides.
+
+>=20
+> Best regards,
+> Krzysztof
+
+Thanks
+- Markus Probst
+
+--=-QgeV7XmAqUUPZhNVaoPn
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+
+iQJPBAABCAA5FiEEgnQYxPSsWOdyMMRzNHYf+OetQ9IFAmm1VSgbFIAAAAAABAAO
+bWFudTIsMi41KzEuMTEsMiwyAAoJEDR2H/jnrUPSP+MP/1/VBG/dQxtLR1lRfGjP
+p2JzDwOfaO93qw6mJsn7rNMLFDHKQmJO81dItaEXl9jyILcrE/Cy7UcoMtpeH04r
+jcQyDORLNPVXzcc+rHIJ/sUt3Qy2G079Wf9qC6RgkVy4LVkCOcjH/s9JdxoAAFih
+yIXwkhnCUE3S73WfzwuxSVnuCO+V7/IIzahYG2kDV2kdpIvGF41Aq9SyUB+4E3u7
+g+mfg7R2TJVtENuQQJScHBXEoqos8bUegjMCegORqAhKCTtyHwdzCgGwH+ZZK2Oh
+utEcaGUQRE7KUkUbH24aPyk67FTGhBiwH4NJxJFW+XXJpwue+SO7xGYP9XOXtAcd
+MBPzmXkwYC0miMgDnadnYyZfbQ/eUcSzYE3N6n/Cur+mDW5kokdDOdiFInDH9yfH
+Q9PHATWyP29w7XD+AWA5K2w0iUZugvLozHTYm1G/gIcEYKByA588v0Z8VQb2LwQP
+GMQMXTWv6drWpHCMRSUZOgjRsH57kfKexCkZPfSLyZVxvPP7Ii19aOTMH/8kQRW5
+8IL4gvnYHWGoktz5S80CUT2CzzqI11L+RAYWE3v/f6ITZC+WByfxI5ohJj9e3mxj
+12Swd/r6R4CyySCeIPyfH4eqd24S7cGwRyBWe0ujFVKWoY17PZyfZc/Wu+BIsICq
+BAGtgYZCiTCFd8ajt9i1+TGT
+=TVne
+-----END PGP SIGNATURE-----
+
+--=-QgeV7XmAqUUPZhNVaoPn--
