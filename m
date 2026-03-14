@@ -1,38 +1,37 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA569258EE0;
-	Sat, 14 Mar 2026 11:53:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6160217DE36;
+	Sat, 14 Mar 2026 11:55:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773489187; cv=none; b=fuT1RXLzRMMAfAOzGJd4w4TgMNrwNM+AP+URvMGMJGGykjyIw59xne3BfCPJzoWnYKzN7MihpMP2D2lF2270iDSH9dy4FQNj1THZa1kn+x0bLTJcSrWFYIH9BQsmXhnWBFQyetvscT6nb0SnxIuhuHrAjEAjzKHK5WrLTd5GL+4=
+	t=1773489305; cv=none; b=nOjTQzjqhs0ZNZzl8rnRRF8lXzi2n0Lv0R204Lep0Njnz+tfTE8/NHBXws4vaSJXlSEgWdsFMAQTSMMZNZ0QGMMUYO4MTaKCFPcYuXynWDzMSrbGwjSnl+qCJiqej3OPBTO2CQ/9zAxNRNZo+ElFaExxQoUauK//ntvkVvD+/rM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773489187; c=relaxed/simple;
-	bh=lyGbHpgdvoj/84R2wKCywhu1s+TBW0sYyEGzYTp4UV4=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=OGfrVIPcMLvEQ14mXcO8jGOYzWHWK7m/o1qriMBurz6181/M+xgk8fUsWMMSXm0vQF7+Eunx/YM96uNf3QdCRVoBgLX8Rm6/3dt/h198fHjdD4HB+HmLRs/4Z3GOjUHRuU1DwGVZDGnTpDr8W/n5ABLgs4EDTtIJFwGdCXHVAkA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=H9GUOW7G; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773489305; c=relaxed/simple;
+	bh=pJOgOKhqYkMyCu3jpWPb5CRX7PU/edD4vnnMkvMLZDc=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=MgZHlpi6IWYEbeDqYqJicf4wZvlxlwcKu91oy7lKYG8LMa/cq1zABfxiUan9tMLG2Ht3EGUICd649KwgoBqfgX7m7aStOjzx+x01NwSXTr9i4XWWjcspX8C/GacX9oh5yE6CMTTDXCx4T2Iist5N6XUIIQOUC4fRYAJL5OiY/KY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iJUeW6pn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="H9GUOW7G"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47983C116C6;
-	Sat, 14 Mar 2026 11:53:04 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iJUeW6pn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83E02C116C6;
+	Sat, 14 Mar 2026 11:55:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773489187;
-	bh=lyGbHpgdvoj/84R2wKCywhu1s+TBW0sYyEGzYTp4UV4=;
+	s=k20201202; t=1773489305;
+	bh=pJOgOKhqYkMyCu3jpWPb5CRX7PU/edD4vnnMkvMLZDc=;
 	h=From:To:Cc:Subject:Date:From;
-	b=H9GUOW7GdncUZZx0oiTbOSdgixxTCNVK0JD3TrMw7mfNQAtpwnn7zvnQ+yyikdWLq
-	 buDD4hUexRaFiWYoeimZve5TBk0bNdsMTGChqXxlMOpqV9brqnKlEjDEzgTHN2KhJ8
-	 30kclckYfKEbYI09WTSk5u1gkudYkBe+2qJfTucVkYaNYBPYtg4hk+p1Ei842aFt9E
-	 rJvrrkxLTUyTSsHfrc1KyE36Bnl3YsNvIaXb+V5taS9QtsDr1YttntA+VFbsuO24yn
-	 LeoNcFKhA7w0ILStDlNOoDGqRf3nLocUHhfVDAH51mlMgxH6WoCQfvozhl1WaVAhwx
-	 FuVk4Z7Dqu9+w==
+	b=iJUeW6pnknR925xaWcYFMKyPsxK2IhmMP3ZML7KUz9n2Grc/tc0f6D3Ztm2j4PJWO
+	 aEz0Hh8fgBwihZYG1Cuor6zF80QTm5z1jH3iJzCUgTYyAVmuWKfycoeJloZjQfOe3f
+	 kcK7wKXUzuyEmXdFyNj/1UvxfmoUV1xVY2hD2YrzjB372OHpnU6g8CQUe9iIQV+bUG
+	 xgTnYhxP0yFgfaSLzAYaQ5UTWgw3eRrC+NCQ7IHNR3L/2dA/w6rF4/d91fcjOO4iuo
+	 8rx7DxZkvhXn1yLrUU+D40yEGwGXyXur47xNjahmIS5lFy+CRCH5GC2Q0XNAW0EjjW
+	 8I3pfmEiGt7GA==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-To: linux-watchdog@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Cc: LKML <linux-kernel@vger.kernel.org>,
- Linux ACPI <linux-acpi@vger.kernel.org>,
- Wim Van Sebroeck <wim@linux-watchdog.org>, Guenter Roeck <linux@roeck-us.net>
-Subject: [PATCH v1] watchdog: ni903x_wdt: Convert to a platform driver
-Date: Sat, 14 Mar 2026 12:53:01 +0100
-Message-ID: <13996583.uLZWGnKmhe@rafael.j.wysocki>
+ Linux ACPI <linux-acpi@vger.kernel.org>, linux-input@vger.kernel.org
+Subject: [PATCH v1] Input: atlas - convert ACPI driver to a platform one
+Date: Sat, 14 Mar 2026 12:54:58 +0100
+Message-ID: <3429591.aeNJFYEL58@rafael.j.wysocki>
 Organization: Linux Kernel Development
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
@@ -52,102 +51,77 @@ underlying hardware.  Accordingly, a struct platform_driver should be
 used by driver code to bind to that device.  There are multiple reasons
 why drivers should not bind directly to ACPI device objects [1].
 
-In particular, registering a watchdog device under a struct acpi_device
-is questionable because it causes the watchdog to be hidden in the ACPI
-bus sysfs hierarchy and it goes against the general rule that a struct
-acpi_device can only be a parent of another struct acpi_device.
-
 Overall, it is better to bind drivers to platform devices than to their
-ACPI companions, so convert the ni903x_wdt watchdog ACPI driver to a
-platform one.
+ACPI companions, so convert the ACPI Atlas button driver to a platform
+one.
 
 While this is not expected to alter functionality, it changes sysfs
 layout and so it will be visible to user space.
 
-Note that after this change it actually makes sense to look for
-the "timeout-sec" property via device_property_read_u32() under the
-device passed to watchdog_init_timeout() because it has an fwnode
-handle (unlike a struct acpi_device which is an fwnode itself).
-
 Link: https://lore.kernel.org/all/2396510.ElGaqSPkdT@rafael.j.wysocki/ [1]
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/watchdog/ni903x_wdt.c | 27 ++++++++++++++-------------
- 1 file changed, 14 insertions(+), 13 deletions(-)
+ drivers/input/misc/atlas_btns.c | 22 ++++++++++++----------
+ 1 file changed, 12 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/watchdog/ni903x_wdt.c b/drivers/watchdog/ni903x_wdt.c
-index 045bb72d9a43..8b1b9baa914e 100644
---- a/drivers/watchdog/ni903x_wdt.c
-+++ b/drivers/watchdog/ni903x_wdt.c
-@@ -8,6 +8,7 @@
- #include <linux/interrupt.h>
- #include <linux/io.h>
- #include <linux/module.h>
+diff --git a/drivers/input/misc/atlas_btns.c b/drivers/input/misc/atlas_btns.c
+index 5b9be2957746..47b31725e850 100644
+--- a/drivers/input/misc/atlas_btns.c
++++ b/drivers/input/misc/atlas_btns.c
+@@ -14,6 +14,7 @@
+ #include <linux/input.h>
+ #include <linux/types.h>
+ #include <linux/acpi.h>
 +#include <linux/platform_device.h>
- #include <linux/watchdog.h>
+ #include <linux/uaccess.h>
  
- #define NIWD_CONTROL	0x01
-@@ -177,9 +178,9 @@ static const struct watchdog_ops ni903x_wdd_ops = {
- 	.get_timeleft = ni903x_wdd_get_timeleft,
- };
- 
--static int ni903x_acpi_add(struct acpi_device *device)
-+static int ni903x_acpi_probe(struct platform_device *pdev)
- {
--	struct device *dev = &device->dev;
-+	struct device *dev = &pdev->dev;
- 	struct watchdog_device *wdd;
- 	struct ni903x_wdt *wdt;
- 	acpi_status status;
-@@ -189,10 +190,10 @@ static int ni903x_acpi_add(struct acpi_device *device)
- 	if (!wdt)
- 		return -ENOMEM;
- 
--	device->driver_data = wdt;
-+	platform_set_drvdata(pdev, wdt);
- 	wdt->dev = dev;
- 
--	status = acpi_walk_resources(device->handle, METHOD_NAME__CRS,
-+	status = acpi_walk_resources(ACPI_HANDLE(dev), METHOD_NAME__CRS,
- 				     ni903x_resources, wdt);
- 	if (ACPI_FAILURE(status) || wdt->io_base == 0) {
- 		dev_err(dev, "failed to get resources\n");
-@@ -224,9 +225,9 @@ static int ni903x_acpi_add(struct acpi_device *device)
- 	return 0;
+ #define ACPI_ATLAS_NAME		"Atlas ACPI"
+@@ -57,8 +58,9 @@ static acpi_status acpi_atlas_button_handler(u32 function,
+ 	return status;
  }
  
--static void ni903x_acpi_remove(struct acpi_device *device)
-+static void ni903x_acpi_remove(struct platform_device *pdev)
+-static int atlas_acpi_button_add(struct acpi_device *device)
++static int atlas_acpi_button_probe(struct platform_device *pdev)
  {
--	struct ni903x_wdt *wdt = acpi_driver_data(device);
-+	struct ni903x_wdt *wdt = platform_get_drvdata(pdev);
++	struct acpi_device *device = ACPI_COMPANION(&pdev->dev);
+ 	acpi_status status;
+ 	int i;
+ 	int err;
+@@ -106,8 +108,9 @@ static int atlas_acpi_button_add(struct acpi_device *device)
+ 	return err;
+ }
  
- 	ni903x_wdd_stop(&wdt->wdd);
- 	watchdog_unregister_device(&wdt->wdd);
-@@ -238,16 +239,16 @@ static const struct acpi_device_id ni903x_device_ids[] = {
+-static void atlas_acpi_button_remove(struct acpi_device *device)
++static void atlas_acpi_button_remove(struct platform_device *pdev)
+ {
++	struct acpi_device *device = ACPI_COMPANION(&pdev->dev);
+ 	acpi_status status;
+ 
+ 	status = acpi_remove_address_space_handler(device->handle,
+@@ -124,16 +127,15 @@ static const struct acpi_device_id atlas_device_ids[] = {
  };
- MODULE_DEVICE_TABLE(acpi, ni903x_device_ids);
+ MODULE_DEVICE_TABLE(acpi, atlas_device_ids);
  
--static struct acpi_driver ni903x_acpi_driver = {
--	.name = NIWD_NAME,
--	.ids = ni903x_device_ids,
--	.ops = {
--		.add = ni903x_acpi_add,
--		.remove = ni903x_acpi_remove,
-+static struct platform_driver ni903x_acpi_driver = {
-+	.probe = ni903x_acpi_probe,
-+	.remove = ni903x_acpi_remove,
+-static struct acpi_driver atlas_acpi_driver = {
+-	.name	= ACPI_ATLAS_NAME,
+-	.class	= ACPI_ATLAS_CLASS,
+-	.ids	= atlas_device_ids,
+-	.ops	= {
+-		.add	= atlas_acpi_button_add,
+-		.remove	= atlas_acpi_button_remove,
++static struct platform_driver atlas_acpi_driver = {
++	.probe = atlas_acpi_button_probe,
++	.remove = atlas_acpi_button_remove,
 +	.driver = {
-+		.name = NIWD_NAME,
-+		.acpi_match_table = ni903x_device_ids,
++		.name = ACPI_ATLAS_NAME,
++		.acpi_match_table = atlas_device_ids,
  	},
  };
+-module_acpi_driver(atlas_acpi_driver);
++module_platform_driver(atlas_acpi_driver);
  
--module_acpi_driver(ni903x_acpi_driver);
-+module_platform_driver(ni903x_acpi_driver);
- 
- MODULE_DESCRIPTION("NI 903x Watchdog");
- MODULE_AUTHOR("Jeff Westfahl <jeff.westfahl@ni.com>");
+ MODULE_AUTHOR("Jaya Kumar");
+ MODULE_LICENSE("GPL");
 -- 
 2.51.0
 
