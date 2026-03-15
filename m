@@ -1,279 +1,238 @@
-Received: from mout01.posteo.de (mout01.posteo.de [185.67.36.65])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f42.google.com (mail-wm1-f42.google.com [209.85.128.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D08E837A496
-	for <linux-acpi@vger.kernel.org>; Sat, 14 Mar 2026 14:54:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.67.36.65
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20E38336EC0
+	for <linux-acpi@vger.kernel.org>; Sun, 15 Mar 2026 11:55:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773500080; cv=none; b=jF6f8i02dQ4qehGl1DIT09g/VsIcCsd8sVyb2ciP9ZXbyc3HJrSoVdpz/brudAeDJ+iE62S1aOeXuta9wa8rYZvyMXLHnEi2J2hBmLbOdDt+8DSy3EeV3ded2zHHcgVjV1FhJKxvQ/FiC7MELL0Dw7blyDZDLcNSsDyTflvyJOg=
+	t=1773575711; cv=none; b=ioyciV1Vks7fgKcdtKGnKxRgAFdyuRkgrpyCPWD1cChKgPTE6omrRQBvUjMi68JJDPTnPcvRIuoUofnh/ZLeKdEKfwq7yBqFJ93eu2dfGs+GAcCrgCstzbjr9bInDFj+b7Cei0YudyURNAC/pSflu3w343rsEfHJfXpk7BN6Pic=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773500080; c=relaxed/simple;
-	bh=nWQ4iF7/s/o03eYJ/7OuMPspkBb+SsFghcFHcgyEvpU=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=TRcbefw+RIKmZQs/XFPNese022YBeesOX2KHrioaM4XbrSt/3gIVn2raK5V/eNq106nM4YV5b6Cl9kxxBF1MKyF90n6WCKATLBAdd5tSqFdEgyrM3Rwm1V+/dom0EsZp0us6h4f/m9C8HiapHrdWn1C+glUUjFjXNlC+Pddw0s0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de; spf=pass smtp.mailfrom=posteo.de; dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b=CdGmOQE8; arc=none smtp.client-ip=185.67.36.65
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=posteo.de
+	s=arc-20240116; t=1773575711; c=relaxed/simple;
+	bh=bcZKlzzXwwY0EJtmDoUOqgBEwQ5NCQTilsLXeIa/wss=;
+	h=From:Content-Type:Mime-Version:Subject:Message-Id:Date:Cc:To; b=e50JtZ8M7BZHqyWnPxidqt8gdFC4EdD9jnQEcIGWK5dGGUUVv6AmkqpNHraVof1uSGucmVDf0oRtKpqEK1IU+S3URubpst/wIwQ/p+hCR0OGl1y4WRhYBEP2ApMix5P9wtF+ZSuNHd4x9CejJVmb00mr97yp505FaAfk1Zf+Wyo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=T5ti6TGw; arc=none smtp.client-ip=209.85.128.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b="CdGmOQE8"
-Received: from submission (posteo.de [185.67.36.169]) 
-	by mout01.posteo.de (Postfix) with ESMTPS id 57A7B240027
-	for <linux-acpi@vger.kernel.org>; Sat, 14 Mar 2026 15:54:37 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=posteo.de; s=2017;
-	t=1773500077; bh=VvvBVmAhBK+BfYL4RCixfcFOqntOkNLVZGklQlrRSr8=;
-	h=Message-ID:Subject:From:To:Cc:Date:Autocrypt:Content-Type:
-	 MIME-Version:OpenPGP:From;
-	b=CdGmOQE8vVyJfEgCouyxm5p3JbAdnr2kKuqpRnTAl8MJzzRIO0TGczHiomxkYAJjk
-	 G/wEjgHlJz1x7BNlMAazCNR8jnVce7Bkk4BsytMYBdst9+HNaJ2lDW1B6DX4ACwbLW
-	 /HSGTKCUSXAgp0BlaaVViIJWb0lEoDlZ+NpdCKXORJDklal+EuZL31kS2BA/YsI77q
-	 YKNDMFi4+jAYB61FNnInW075/1B1kDnvU3uMpzmreWwLAwlO01hztp7ey5qrjuxT8T
-	 9D2dSMzWOJ1rueTZ5rgIFWnwkEEMOhGWFnaAhPj+X2AbXL2sA7pvclvKWh3kMp4ime
-	 n5ksJlBdhd63A==
-Received: from customer (localhost [127.0.0.1])
-	by submission (posteo.de) with ESMTPSA id 4fY4Bf1jRsz6tvk;
-	Sat, 14 Mar 2026 15:54:34 +0100 (CET)
-Message-ID: <0e133c383374e73990be0d402b6b908e8050e5ae.camel@posteo.de>
-Subject: Re: [PATCH v3 5/7] dt-bindings: mfd: Add synology,microp device
-From: Markus Probst <markus.probst@posteo.de>
-To: Krzysztof Kozlowski <krzk@kernel.org>, Lee Jones <lee@kernel.org>, Rob
- Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor
- Dooley	 <conor+dt@kernel.org>, Greg Kroah-Hartman
- <gregkh@linuxfoundation.org>,  Miguel Ojeda <ojeda@kernel.org>, Boqun Feng
- <boqun@kernel.org>, Gary Guo <gary@garyguo.net>,  =?ISO-8859-1?Q?Bj=F6rn?=
- Roy Baron	 <bjorn3_gh@protonmail.com>, Benno Lossin <lossin@kernel.org>,
- Andreas Hindborg	 <a.hindborg@kernel.org>, Alice Ryhl
- <aliceryhl@google.com>, Trevor Gross	 <tmgross@umich.edu>, Danilo Krummrich
- <dakr@kernel.org>, "Rafael J. Wysocki"	 <rafael@kernel.org>, Igor Korotin
- <igor.korotin.linux@gmail.com>, Daniel Almeida
- <daniel.almeida@collabora.com>, Bjorn Helgaas <bhelgaas@google.com>,
- Krzysztof =?UTF-8?Q?Wilczy=C5=84ski?=	 <kwilczynski@kernel.org>, Pavel
- Machek <pavel@kernel.org>, Len Brown	 <lenb@kernel.org>, Robert Moore
- <robert.moore@intel.com>
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	rust-for-linux@vger.kernel.org, driver-core@lists.linux.dev, 
-	linux-pci@vger.kernel.org, linux-leds@vger.kernel.org, 
-	linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev
-Date: Sat, 14 Mar 2026 14:54:36 +0000
-In-Reply-To: <88f53ef1-5c3c-44d7-a749-a03b9563a552@kernel.org>
-References: <20260313-synology_microp_initial-v3-0-ad6ac463a201@posteo.de>
-	 <20260313-synology_microp_initial-v3-5-ad6ac463a201@posteo.de>
-	 <02e0772d-ba65-4eb8-8453-e0b3eaa4af96@kernel.org>
-	 <6f2298f3298dc81e6e2ed34ca43424fc39ce3518.camel@posteo.de>
-	 <336523bb-615b-451b-8681-c965bf579203@kernel.org>
-	 <97c64ee64734debae475716b4d588dee59889f70.camel@posteo.de>
-	 <88f53ef1-5c3c-44d7-a749-a03b9563a552@kernel.org>
-Autocrypt: addr=markus.probst@posteo.de; prefer-encrypt=mutual;
- keydata=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
- jfGillcaQOqFZ3WwVqyzG1BUfTow==
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-jah4XBQMXauDN9UbTzR7"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="T5ti6TGw"
+Received: by mail-wm1-f42.google.com with SMTP id 5b1f17b1804b1-4852c9b4158so31520145e9.0
+        for <linux-acpi@vger.kernel.org>; Sun, 15 Mar 2026 04:55:09 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1773575708; x=1774180508; darn=vger.kernel.org;
+        h=to:cc:date:message-id:subject:mime-version
+         :content-transfer-encoding:from:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=vDKnJT0wYCQGOysz22h2bC3jeqtbf0HHcGTBrmEn6hA=;
+        b=T5ti6TGwXmE0br6mUCi0AQzzW4rR97FKomaAbVRY7LXeHGN7/FJd/qz6QIc9WSV43t
+         W+uLyzV4OQTUDPFqw0miRAZPMjEaUBHpfrJLKew7Xq7bCJbxG5L687SC/gg9+nVWW/Tc
+         5sCCP0g1NBZ9DPXL9XVtlmnRcvEpQB+ym2KbEQ1quycOxztnZrJHXNhNnFuAq+uNpWed
+         KPnuKq5B1kzzcdwcDgm62xEWdFEt8HzmbLCVHCjB7lwiN5yDnijyhLon+bj6aoyH6xfJ
+         oZun+wWwmN2NJzg7qgfV1FrVbYwG4IbjldzjMNpgWpe+nxWlNaR2ukrGjxz6cPKUBHOK
+         481Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1773575708; x=1774180508;
+        h=to:cc:date:message-id:subject:mime-version
+         :content-transfer-encoding:from:x-gm-gg:x-gm-message-state:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=vDKnJT0wYCQGOysz22h2bC3jeqtbf0HHcGTBrmEn6hA=;
+        b=jiDMqDDpFUyRvQJF2HYmpWup2jryprHZ11vktNdYs0Z6JH9F86xf5/qjB5pUW3fF0Q
+         AnZwmuiZanNtsMxvTzF5dsijGiEyZIpAP3k+wpOiI14yDLLaYtxr1YdkNE6eYBTc90RM
+         UVhEkKTTR3BJ3eAPMIcWwJQh0vG+uaTQLw2H7vpPfmAgykn63hig8pwaH8HEq1PHRdoU
+         Zot0ow3+ZgbJHC2LeidPplpOha0Ei4VxC/u+qvJ84vcI94xOcM7e+FLsc6iVZeegGA5L
+         TkDq7BlLT1d9D1gdpcbl+77njmRv56tOoNlTIguTpo/ubnqgiC88I63xXvF30fFTmLSI
+         u/rg==
+X-Forwarded-Encrypted: i=1; AJvYcCXs1U2SqFv4Xj6aIoi7MPDfEK0/HXfAbKc99lZL0dZ6pUKGv0obvgHFjC2UzgKpFQB+qAS1JeVPIBjI@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxqz0QcHF2uGf6wmhvLwL+2Kea+H5xE2KdsjGx7yoGU9uKqaT8M
+	F9xFnttiA/r5w1pu6OSFPginroi3veomQSqM0BIgB91F6z8mfDJ8KWj3
+X-Gm-Gg: ATEYQzzMBfVqH6nMXlnX3pGNXKxpqvaIj58OMjYR4ZSWmVLRz2TrHdny1D0/RknBnHy
+	Bz/jYTAnJanx/sZfNQ7FGiV4MNGNKnZYYk83E0zgIeijsLFwPY7o/LVYmrxfPq9MVrEYEO0DysJ
+	/UUCHyz4J6ZREYVTu2z/p4kOPu4MthdACGIxn00/oAUhbu1XN/CfyoElDu779AFJ/4SymTMmt76
+	xYKjsi5Coku3VAxGdFgpMuXvf/5GGssaC+gUQHmO05iPX3Z6dvevyNTSNkNVdwADb7k0UXf/CgP
+	aEYw7U8GVUgKmqP8dEOWRwNDJccO/Kl7V5tFc3ZoyAF8ebW/Y5Dcm7rWT9O4ginmqvenKG3+o5u
+	+ffx4Xumsq1W2Q5y1r9Ldibn8L0WEr8pO8eFdfP7qSd2NV9CNX2hKbghofNdi2mnDcd6CoSyIbd
+	Q9LhivXeO/oH3cnXClf/jFQTMODKBWuKI9TL7VAUfmXNk8how89CI99L+Cd7tCLKNn4zgxtKc/5
+	jo0srQYSwq83qw1CJKMzYqPNHUgBkyHCdxxg1WYjEWex7e+h+okA1hF
+X-Received: by 2002:a05:600c:1388:b0:485:3a03:cee1 with SMTP id 5b1f17b1804b1-48556711f7fmr153392075e9.33.1773575708365;
+        Sun, 15 Mar 2026 04:55:08 -0700 (PDT)
+Received: from smtpclient.apple (dynamic-2a00-1028-83a2-5386-5c13-9ccd-a54b-eed2.ipv6.o2.cz. [2a00:1028:83a2:5386:5c13:9ccd:a54b:eed2])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4854b6756e4sm401505845e9.15.2026.03.15.04.55.07
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Sun, 15 Mar 2026 04:55:08 -0700 (PDT)
+From: =?utf-8?Q?Michal_Babi=C4=8Dka?= <michal.babka@gmail.com>
+Content-Type: text/plain;
+	charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-OpenPGP: url=https://posteo.de/keys/markus.probst@posteo.de.asc; preference=encrypt
+Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3864.400.21\))
+Subject: [BUG] Apple Mac mini 2018 + Thunderbolt 3 eGPU: PCI bridge window /
+ BAR allocation failure prevents NVIDIA and AMD GPUs from initializing 
+Message-Id: <FCEB17D3-3DC5-49C8-8C56-8051C875E2F9@gmail.com>
+Date: Sun, 15 Mar 2026 12:54:56 +0100
+Cc: linux-usb@vger.kernel.org,
+ linux-acpi@vger.kernel.org,
+ regressions@lists.linux.dev,
+ linux-kernel@vger.kernel.org
+To: linux-pci@vger.kernel.org
+X-Mailer: Apple Mail (2.3864.400.21)
 
+Subject: Apple Mac mini 2018 + Thunderbolt 3 eGPU: PCI bridge window / =
+BAR allocation failure prevents NVIDIA and AMD GPUs from initializing
 
---=-jah4XBQMXauDN9UbTzR7
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Hardware / platform:
+- Host: Apple Mac mini 2018
+- Connection: Thunderbolt 3
+- eGPU enclosure: Razer Core X Chroma
+- Tested GPUs:
+  - NVIDIA Quadro P400
+  - NVIDIA Quadro P4000
+  - AMD Radeon Vega 64
 
-On Sat, 2026-03-14 at 14:59 +0100, Krzysztof Kozlowski wrote:
-> On 14/03/2026 13:31, Markus Probst wrote:
-> > On Sat, 2026-03-14 at 09:49 +0100, Krzysztof Kozlowski wrote:
-> > > On 13/03/2026 21:29, Markus Probst wrote:
-> > > >=20
-> > > > > This is not an "MFD" device.
-> > > > It now uses the MFD APIs. By the definiton of @Lee (assuming I
-> > > > understood it correctly), this device should now qualify as "MFD"
-> > > > device.
-> > >=20
-> > > No. Using Linux framework does not make this device MFD, since there =
-is
-> > > no such term of hardware as MFD. Otherwise please explain or link to
-> > > verifiable external source describing what sort of device class is MF=
-D
-> > I assumed these comments would also apply for the dt bindings:
-> > -
-> > https://lore.kernel.org/rust-for-linux/DGYAFNSJ7576.1E0JZ2W499ZQ7@kerne=
-l.org/
-> > -
-> > https://lore.kernel.org/rust-for-linux/20260309151555.GU183676@google.c=
-om/
->=20
-> I don't understand your question. We talk here about bindings, so why do
-> you ask if the comments are about bindings?
->=20
-> >=20
-> > given that using linux MFD APIs also changes the structure of the dt
-> > bindings with added sub-devices.
-> >=20
-> > But it seems no?
->=20
-> >=20
-> > > because for sure this is not MFD how Wikipedia defines it.
-> >=20
-> > Wikipedia defines it as a synonym for a "multi-function
-> > product/printer/peripheral"
-> > https://en.wikipedia.org/wiki/Multifunction_device
->=20
-> I know, not need to state obvious. And this is not a printer.
->=20
->=20
->=20
-> >=20
-> > >=20
-> > > >=20
-> > > > > > +
-> > > > > > +    mcu {
-> > > > >=20
-> > > > > Please read previous comments.
-> > > >=20
-> > > > You are likly trying to refer to this comment from you:
-> > > > > Depending what this is. MCU is generic purpose unit where you loa=
-d
-> > > > your
-> > > > > different FW for different purposes and you have here specific - =
-to
-> > > > > handle certain aspects of this entire machine. This looks like EC=
-, so
-> > > > > should be called embedded-controller and placed in that directory=
-.
-> > > > Synology uses Microchip PIC for this purpose. On a Synology DS215j,=
- it
-> > > > uses a "Microchip PIC16F1829". At least to me, this looks like a
-> > >=20
-> > > It does not matter what chip is used. Every component uses some sort =
-of
-> > > chip.
-> > I would be interested in what does matter then.
-> >=20
-> > I did not actually find an exact definition for what
-> > Documentation/devicetree/bindings/mfd
->=20
-> Because there is no such hardware as MFD.
->=20
-> > and
-> > Documentation/devicetree/bindings/embedded-controller
-> > is for in the kernel tree or in the devicetree spec.
->=20
-> Commit msg moving several devices there explained, no?
-yes.
+Linux distributions / kernels tested:
+- Ubuntu-based systems
+- Zorin OS 18 Pro
+- Multiple kernels tested, including 6.12.x and 6.17.x
 
->=20
->=20
-> >=20
-> > >=20
-> > > > general purpose microcontroller with firmware from synology flashed
-> > > > onto it. Therefore it is a MCU.
-> > >=20
-> > > Every chip is then an MCU with such logic. Every PMIC, every EC.
-> > >=20
-> > > This is for me clearly embedded controller and that's where this shou=
-ld
-> > > be placed and called.
-> > In that case I will move it to
-> > Documentation/devicetree/bindings/embedded-controller and update the
-> > node name used in the example.
-> >=20
-> > I will wait a bit for the other patches to be reviewed before sending a
-> > next revision.
-> >=20
-> > But I wonder how
-> > Documentation/devicetree/bindings/mfd/qnap,ts433-mcu.yaml
-> > got in there then, given it is pretty similar to this device in the
-> > functionality it provides.
->=20
-> Great question. How do any bugs, mistakes, different judgments or
-> imperfectness got merged?  How is it possible that code for example is
-> reviewed but has a bug? Don't ever use arguments that something
-> somewhere happened, so you can do the same.
-I was not trying to use this as an argument. As you can see above I
-already agreed to put it into embedded-controller.
+Problem summary:
+On Apple Mac mini 2018, an external GPU connected through Thunderbolt 3 =
+in a Razer Core X Chroma enclosure is detected and enumerates on the PCI =
+bus, but GPU initialization fails because PCI bridge windows / BAR =
+resources are not assigned correctly.
 
-I was interested in knowing, if there was a difference between the two
-devices I did not know of, as the bindings for this device go into
-another directory despite the similarity (no need to answer it anymore,
-see below).
+This is reproducible across different Linux installations and with GPUs =
+from different vendors, which strongly suggests a =
+platform/topology-level PCIe resource allocation problem rather than a =
+bug in one specific GPU driver.
 
-But I see why that hasn't been clear.
+Observed behavior:
+- The Thunderbolt enclosure is detected correctly.
+- boltctl shows the enclosure as connected / authorized.
+- The GPU appears in lspci.
+- The kernel loads the vendor driver module.
+- GPU initialization then fails.
 
->=20
-> Not mentioning that if you even question this, you could at least look
-> at the history which would tell you if "embedded-controller" directory
-> existed that time or not.
-yes, that would have made my question entirely obsolete.
+For NVIDIA, nvidia-smi reports:
+  "NVIDIA-SMI has failed because it couldn't communicate with the NVIDIA =
+driver."
 
->=20
-> Best regards,
-> Krzysztof
+Relevant NVIDIA kernel messages include:
+- "BAR 1 [mem size 0x10000000 64bit pref]: can't assign; no space"
+- "BAR 3 [mem size 0x02000000 64bit pref]: can't assign; no space"
+- "This PCI I/O region assigned to your NVIDIA device is invalid"
+- "BAR1 is 0M @ 0x0"
+- "RmInitAdapter failed"
+- in some attempts also:
+  "fallen off the bus and is not responding to commands"
 
-Thanks
-- Markus Probst
+With NVIDIA Quadro P4000, the same general failure pattern was observed:
+- the GPU is detected on the PCI bus,
+- the NVIDIA kernel module loads,
+- initialization fails,
+- and the logs again point to invalid / missing BAR assignments and =
+resource allocation problems behind the Thunderbolt PCIe bridge =
+hierarchy.
 
---=-jah4XBQMXauDN9UbTzR7
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
+For nouveau, the failure is visible as BAR/resource allocation failure =
+as well, for example:
+- "bar: one-time init failed, -12"
+- "init failed with -12"
+- "Device allocation failed: -12"
 
------BEGIN PGP SIGNATURE-----
+With AMD Radeon Vega 64 installed in the same enclosure on the same =
+host, the same fundamental problem occurs:
+- the enclosure is detected,
+- the GPU enumerates,
+- initialization fails,
+- and the overall behavior indicates the same lower-level PCI resource / =
+bridge window allocation issue.
 
-iQJPBAABCAA5FiEEgnQYxPSsWOdyMMRzNHYf+OetQ9IFAmm1dqYbFIAAAAAABAAO
-bWFudTIsMi41KzEuMTEsMiwyAAoJEDR2H/jnrUPSJjwQAJEB9jDWsxrdZroEiEit
-SPqHXkXhYz4X9Z4xtgAX34xBDU1VjP3meDZgw/Xbejljw71XY2p0JDPUKWbpE0/q
-wPIAOE2afEr7fK3PLw8b0wKe+jmZVHMqKq984gRFlM34cqrZy+Ny5YiG4xIeWPnu
-xvq6KKuWGYQs76wzaw5GsxrhkTtzUB3cuIS1ExFRh8VeITFwnjtFoVnAk0zLWKIn
-ZynZEf5mDnlzNgBCeaPyIZtvO6a+oQtmyBPO7taNEuy7zUyUZZNHIQrlXbaxo9MP
-7F9WL8cb7ARvwJTk08nwUhA6pWE2RDbza8qdDOMXRr/nsEGnWiWIMgOWI5srBLcb
-wq9B0P07M+XafkcZWUMk+kjVrTU6m/CJtX++ESNUVo/hUPmeEfvQ4VhDS7uyLY9+
-5XvMb4YgmF8rbWBZzAebwqYji4k2t9gWhqsK/PpISbfGtJy2uC5XIrEYJlNBg5rJ
-FNjKVW8AE+EtDTH884Z7mPM+nkDIMmVPnBdCUuVQIyu6KN/g38pAn5hjmBzzIAhL
-SgVLx7DOjHGOOL0V0K9EJGoNUaIyGqUuFtOr8Cyv9QLunevMpusMd46hjDTeAAq+
-JWc+lHzS6VAbJheceeQbO9KSSiLUc/qytYEfufDRYGj1B1MEVYZoXqT/UdlPcNIM
-uyetEx6zv4L8GqhrxzHLXu3+
-=At9Y
------END PGP SIGNATURE-----
+This strongly suggests the issue is not NVIDIA-specific.
 
---=-jah4XBQMXauDN9UbTzR7--
+Thunderbolt state:
+boltctl reports the Razer Core X Chroma enclosure as =
+connected/authorized correctly, for example:
+- type: peripheral
+- generation: Thunderbolt 3
+- status: authorized
+- rx speed: 40 Gb/s
+- tx speed: 40 Gb/s
+
+Important conclusion:
+Thunderbolt authorization itself appears to work.
+PCI enumeration also works.
+The failure happens later, at PCI resource assignment / bridge window =
+sizing / BAR allocation time.
+
+Key dmesg patterns observed:
+- multiple "can't assign; no space" messages for PCI bridges and BARs
+- BAR1 / BAR3 of the GPU not assigned
+- bridge windows under the Thunderbolt hierarchy not large enough
+- reassignment attempts that still leave required windows unassigned or =
+invalid
+- vendor driver subsequently failing device initialization
+
+Examples of affected topology in logs:
+- 0000:00:01.1
+- 0000:05:00.0
+- 0000:06:01.0
+- 0000:0b:00.0
+- in other boots, the same problem may appear under a different BDF =
+address after Thunderbolt re-enumeration
+
+Representative log excerpts:
+- pci 0000:0b:00.0: BAR 1 [mem size 0x10000000 64bit pref]: can't =
+assign; no space
+- pci 0000:0b:00.0: BAR 3 [mem size 0x02000000 64bit pref]: can't =
+assign; no space
+- pci 0000:06:01.0: bridge window [mem size 0x10000000]: can't assign; =
+no space
+- pci 0000:05:00.0: bridge window [mem size 0x20200000]: can't assign; =
+no space
+- NVRM: BAR1 is 0M @ 0x0
+- NVRM: RmInitAdapter failed
+- NVRM: The NVIDIA GPU ... has fallen off the bus and is not responding =
+to commands
+- nouveau ... Device allocation failed: -12
+
+Kernel command line options already tested:
+The following boot parameters were tested in various combinations:
+- pci=3Drealloc=3Don
+- pci=3Dhpbussize=3D0x33,hpmemsize=3D256M,hpiosize=3D2M
+- pcie_aspm=3Doff
+- pci=3Dnommconf
+- pci=3Dnoaer
+
+These mitigations did not resolve the issue.
+
+Why this looks platform/topology specific:
+- The same Thunderbolt eGPU enclosure is recognized correctly.
+- The same failure pattern appears with NVIDIA Quadro P400, NVIDIA =
+Quadro P4000, and AMD Radeon Vega 64.
+- The common denominator is Apple Mac mini 2018 + Thunderbolt PCIe =
+topology under Linux.
+- The failure mode is centered around PCI bridge window sizing / BAR =
+placement, not around one vendor-specific driver alone.
+
+Expected behavior:
+The Thunderbolt eGPU should receive valid PCI bridge windows and valid =
+BAR assignments so that the GPU driver can initialize the device =
+successfully.
+
+Actual behavior:
+The GPU is visible on the bus, but bridge windows and BAR resources are =
+not fully assigned, which leaves the device unusable and prevents the =
+driver from completing initialization.
+
+Request:
+Please investigate PCI resource allocation / bridge window sizing for =
+Thunderbolt eGPU topologies on Apple Mac mini 2018 under Linux, =
+especially where large GPU BARs must be assigned behind multiple =
+Thunderbolt / PCIe bridges.
+
+Cross-vendor reproducibility on the same enclosure and same host =
+strongly suggests that the root cause is in PCIe/Thunderbolt resource =
+allocation on this platform rather than in a specific NVIDIA or AMD =
+driver.=
