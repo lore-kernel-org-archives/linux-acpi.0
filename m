@@ -1,63 +1,62 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.16])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32788382F39;
-	Mon, 16 Mar 2026 13:58:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A1DE6FC5;
+	Mon, 16 Mar 2026 14:07:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.16
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773669507; cv=none; b=grGjnNcJJ4+7hWWGJdd8XHZNfqt/eVOfe04CsU0Ra0aRbjjoJkvvmzYfAGOa6RUFKS6xKG30e+7uaOQABRrklfluyXGew9gHodiB0PBJu/KF0d64kqFyLdTqNmRLrpzRWxwzvkYc1rGgGvo4PYdSWSnluI5MlAGGsNTBKKBxdLY=
+	t=1773670066; cv=none; b=LgLcUww8zyKzvAKiAFbNaJiE3xwJQezT8xL8nGiXv4706F6mJCrJV1s7mFBaf9VUQE0ikNRcd0UQlnMz8LNCm6bMretjnssTObCD67pbOk7rj99Oc5Y/ITU9GvKHecTARhQi6nU+Krm+71YumeRGD4j5l0ZmbFU+2ImyCnQbi8k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773669507; c=relaxed/simple;
-	bh=O3/GG12QpLO1UZgLug9usf1QzvRky6kw6Ji7zydi8gU=;
+	s=arc-20240116; t=1773670066; c=relaxed/simple;
+	bh=Y+V9+zbKfrDyL4a5iacNwH2u07h1sCoC3a1ixh5Uhs0=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=pxHcr6ff0dRpHFatiIcI+lygZNPilXUJeSBqkVjIrmqUI9R65E3tWJMiepdjIHpk1i3QVi1PXvVsf9FiRed2Vd35GvZ+iCM5j8vfUwwHAjoOnqPpSSIQI/tKFFqfa3AvfgdgJMJbYF4ExKrciZyXvV/XJ9mHMhkkbgs8YBK+ark=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=M9ic3BVM; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=oiLCIjsjAd+SrMZa5x/TUHX7wDKZ3z5IzAUzcLAp6OGmHBZKAs1sles008v4b4lTllpTedjAf4v6K7rHW3ijeLgY5Ke/yKP4GsrpZhzUUGh1b7byRyra4bvNYRYIleqwRzN8wULJg9HQmdI/y92mzbvchnuCkj60uTUC9xNq1dA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=lMn3Yi4d; arc=none smtp.client-ip=192.198.163.16
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="M9ic3BVM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 287BEC19421;
-	Mon, 16 Mar 2026 13:58:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1773669506;
-	bh=O3/GG12QpLO1UZgLug9usf1QzvRky6kw6Ji7zydi8gU=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=M9ic3BVMtkejqZnGD/X589zYsSaNYNIFpqWnXN0K4rpu7xcbEijzAZQIM+9JkB07p
-	 FZhGw4+v3ETjruTkeo0JTZ+b2KgEKnWha59HpfOZVifCFy5SNauZ4Ca5zauENxZJnR
-	 YBnRNIrwc4MpPqEfMsi3FJg901LsmKffMc4UrwQc=
-Date: Mon, 16 Mar 2026 14:58:22 +0100
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: Markus Probst <markus.probst@posteo.de>
-Cc: Danilo Krummrich <dakr@kernel.org>,
-	Markus Probst via B4 Relay <devnull+markus.probst.posteo.de@kernel.org>,
-	Lee Jones <lee@kernel.org>, Rob Herring <robh@kernel.org>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>, Miguel Ojeda <ojeda@kernel.org>,
-	Boqun Feng <boqun@kernel.org>, Gary Guo <gary@garyguo.net>,
-	=?iso-8859-1?Q?Bj=F6rn?= Roy Baron <bjorn3_gh@protonmail.com>,
-	Benno Lossin <lossin@kernel.org>,
-	Andreas Hindborg <a.hindborg@kernel.org>,
-	Alice Ryhl <aliceryhl@google.com>, Trevor Gross <tmgross@umich.edu>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Igor Korotin <igor.korotin.linux@gmail.com>,
-	Daniel Almeida <daniel.almeida@collabora.com>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Krzysztof =?utf-8?Q?Wilczy=C5=84ski?= <kwilczynski@kernel.org>,
-	Pavel Machek <pavel@kernel.org>, Len Brown <lenb@kernel.org>,
-	Robert Moore <robert.moore@intel.com>, devicetree@vger.kernel.org,
-	linux-kernel@vger.kernel.org, rust-for-linux@vger.kernel.org,
-	driver-core@lists.linux.dev, linux-pci@vger.kernel.org,
-	linux-leds@vger.kernel.org, linux-acpi@vger.kernel.org,
-	acpica-devel@lists.linux.dev
-Subject: Re: [PATCH v3 7/7] leds: add synology microp led driver
-Message-ID: <2026031602-drove-timothy-1bb1@gregkh>
-References: <20260313-synology_microp_initial-v3-0-ad6ac463a201@posteo.de>
- <20260313-synology_microp_initial-v3-7-ad6ac463a201@posteo.de>
- <DH1YH0GO75H8.18YSW2VMKRB3C@kernel.org>
- <39f1c9bb0dbde9f1b60785f8e838289c888ffdb0.camel@posteo.de>
- <DH3KAWWLECYW.3VBH7PIE7ZE20@kernel.org>
- <eb2f7498c5f3247265effc47b3445a04ac71956e.camel@posteo.de>
- <DH3M1023PCBI.1HYYZU93NS1JX@kernel.org>
- <2026031645-unplowed-purist-9c4b@gregkh>
- <a4fb56d5eea790b51aa3623044e5d774a6bab47f.camel@posteo.de>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="lMn3Yi4d"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1773670065; x=1805206065;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=Y+V9+zbKfrDyL4a5iacNwH2u07h1sCoC3a1ixh5Uhs0=;
+  b=lMn3Yi4dn2JLt8UnjjjktV9e71POPloauT3ekA5deU5o/QvkgdgqAIqM
+   bsFO3PzVA0TKJBtaWeC00NmNKpAwabW3CtBkPcCjOsKTwAiFAyt6YebDa
+   UmBlqDRWSDQ/df49xz+gTZfV1luHbaXJ4imIFn17uGehiDKkywwuZ1UGx
+   Widf47cWaB+sO1eXTe8sQCqdyMYfLosL8Yzr7C5Z4xFU6pU5m1lrFdAV0
+   or/tK6lbr4WF4V8s6JoJZzyZhrV0Tm3b2G3rhqZxqFJQ2QW33xc28QuBy
+   H9Xrn+e2WuxuGbI7EDjFBMx8O2sY7qXyshn+io68K8/JodL1YNjaC4IZb
+   w==;
+X-CSE-ConnectionGUID: oy1GVYcOS+KTcl0FVvbFvw==
+X-CSE-MsgGUID: YenDiutjSOSEqg7eTZhHUg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11731"; a="62252946"
+X-IronPort-AV: E=Sophos;i="6.23,124,1770624000"; 
+   d="scan'208";a="62252946"
+Received: from fmviesa008.fm.intel.com ([10.60.135.148])
+  by fmvoesa110.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Mar 2026 07:07:44 -0700
+X-CSE-ConnectionGUID: l6Le8XKQQAWDfVYOcMSIeA==
+X-CSE-MsgGUID: LOf5DD+oSOOa3rF5kObdtA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,124,1770624000"; 
+   d="scan'208";a="219502454"
+Received: from black.igk.intel.com ([10.91.253.5])
+  by fmviesa008.fm.intel.com with ESMTP; 16 Mar 2026 07:07:43 -0700
+Received: by black.igk.intel.com (Postfix, from userid 1008)
+	id B2CC798; Mon, 16 Mar 2026 15:07:41 +0100 (CET)
+Date: Mon, 16 Mar 2026 16:07:00 +0200
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+To: Edward Blair <edward.blair@gmail.com>
+Cc: linux-i2c@vger.kernel.org, linux-usb@vger.kernel.org,
+	gregkh@linuxfoundation.org, wsa+renesas@sang-engineering.com,
+	westeri@kernel.org, linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/2] i2c: acpi: skip generic I2C device when
+ vendor-specific sibling exists
+Message-ID: <abgOhNVOKMaeAGSx@kuha>
+References: <20260314013157.7181-1-edward.blair@gmail.com>
+ <20260314013157.7181-2-edward.blair@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -66,94 +65,58 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <a4fb56d5eea790b51aa3623044e5d774a6bab47f.camel@posteo.de>
+In-Reply-To: <20260314013157.7181-2-edward.blair@gmail.com>
 
-On Mon, Mar 16, 2026 at 01:43:44PM +0000, Markus Probst wrote:
-> On Mon, 2026-03-16 at 07:33 +0100, Greg Kroah-Hartman wrote:
-> > On Sun, Mar 15, 2026 at 08:41:06PM +0100, Danilo Krummrich wrote:
-> > > I.e. if we can't (easily) use mfd cells and would need a custom API, then why
-> > > even split it up at all, given that splitting it up would probably the most
-> > > complicated part of the whole driver.
-> > > 
-> > > Greg, what do you think?
-> > 
-> > I think this has yet to be proven to be a kernel driver at all at this
-> > point, and not just a userspace daemon that listens to the serial port
-> > and then does what is needed from there :)
-> > 
-> > Or, if someone can prove that the operations on this serial data stream
-> > actually do require it to be in the kernel (which I have yet to see a
-> > list of what this connection does, did I miss it?) then a single driver,
-> > under the drivers/platform section of the kernel tree makes sense.
-> The sysoff component is strictly necessary for poweroff and reboot.
+Sat, Mar 14, 2026 at 01:31:55AM +0000, Edward Blair wrote:
+> Some BIOS implementations (notably ASUS Z690/Z790/X670E motherboards)
+> declare both a generic UCSI device (MSFT8000) and a vendor-specific
+> device (e.g., ITE8853) as ACPI children of the same I2C controller,
+> both referencing the same I2C slave address.
 > 
-> On ARM64 Synology NAS devices it is needed so the device actually
-> powers off after calling
-> `syscall(SYS_reboot, LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2,
-> LINUX_REBOOT_CMD_POWER_OFF, NULL);`
-> . Otherwise it would stay on.
-> Same applies to reboot.
-
-So that means a write of a set of bytes to the serial port will cause
-the machine to reboot or shutdown?
-
-> On x86 it isn't clearly documented what sending the poweroff and reboot
-> command to the microp device exactly does, so this is based on
-> observations. It should be sent before issuing a poweroff or reboot via
-> ACPI Sleep. On reboot it resets various device states, so fan speeds go
-> to default, leds turn off etc., so it behaves like a coldboot.
-> On poweroff it will mark it as graceful shutdown (i. e. the device
-> won't turn automatically on, because it thinks a power-loss happend).
+> During ACPI I2C enumeration, whichever device is walked first claims
+> the address, causing the second to fail with -EBUSY. When the generic
+> MSFT8000 device registers first, the vendor-specific driver cannot
+> bind, losing access to device-specific features like GPIO interrupt
+> resources that are only declared on the vendor-specific ACPI device.
 > 
-> For the other components:
-> - leds
-> - hwmon
-> - input
-
-For "input" what exactly does the input device show up as?  A power
-button?  Something else?
-
-For hwmon, that makes sense to have a kernel driver.
-
-For leds, that depends on what you want to do with the led, as in the
-end you are just controlling it from userspace anyway :)
-
-> It could theoratically be implemented in userspace. A userspace daemon
-> could theoratically control the fan speeds directly, issue a systemd
-> shutdown on power button press, control the leds directly etc.
+> Fix this by checking, before registering a known generic I2C device,
+> whether a sibling ACPI device exists at the same address on the same
+> adapter. If so, skip the generic device to let the vendor-specific
+> one register instead.
 > 
-> But honestly, I don't understand why this is an argument.
-> With that argument drivers/leds, drivers/hwmon and drivers/input would
-> not even exist, because everything could be implemented in userspace
-> via
-> - I2C: /dev/i2c-* (drivers/i2c/i2c-dev.c)
-> - MMIO: /dev/ioport and /dev/mem (drivers/char/mem.c)
-> - GPIO: /sys/class/gpio (drivers/gpio/gpiolib-sysfs.c)
-> - SPI: /dev/spidev* (drivers/spi/spidev.c)
-> - PCI: /sys/class/pci_bus/ (drivers/pci/pci-sysfs.c)
-> - Serial: /dev/ttyS*
-> and likely almost any other bus device too.
+> Signed-off-by: Edward Blair <edward.blair@gmail.com>
+> ---
+>  drivers/i2c/i2c-core-acpi.c | 88 +++++++++++++++++++++++++++++++++++++
+>  1 file changed, 88 insertions(+)
 > 
-> Generally speaking, the kernel and its drivers is the layer between
-> hardware and software. It provides the hardware abstractions as
-> userspace interfaces. So any software on the same cpu architecture can
-> work with any hardware, as long as there is a kernel driver.
+> diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
+> index 2cbd31f77..87582eac7 100644
+> --- a/drivers/i2c/i2c-core-acpi.c
+> +++ b/drivers/i2c/i2c-core-acpi.c
+> @@ -137,6 +137,17 @@ static const struct acpi_device_id i2c_acpi_ignored_device_ids[] = {
+>  	{}
+>  };
+>  
+> +/*
+> + * Generic I2C device IDs that may be duplicated by vendor-specific devices.
+> + * When a vendor-specific sibling exists at the same address, the generic
+> + * device is skipped to avoid -EBUSY address conflicts.
+> + */
+> +static const struct acpi_device_id i2c_acpi_generic_device_ids[] = {
+> +	/* Microsoft UCSI - often paired with vendor-specific UCSI device */
+> +	{ "MSFT8000" },
+> +	{}
+> +};
 
-Yes, I kind of know what drivers and classes do and why they are needed,
-that's not the point here. :)
+That's not a generic UCSI device. That's the "RhProxy" device unless
+I'm completely mistaken, and it's meant to be used in Windows to give
+the user mode access to GPIOs, SPI, I2C and UART:
+https://learn.microsoft.com/en-us/windows/uwp/devices-sensors/enable-usermode-access
 
-> In the case of this driver, it means
-> - *any* led daemon can control the leds
-> - *any* fan control daemon can control the fan speed and frequency
-> - *any* monitoring software can view the provided sensors
-> - *any* init system can react to the power button
-> - *any* process can request a reboot or shutdown
-> .
-> I think this is the expected behaviour.
-
-Ok great, then make a single driver that handles all of this, like other
-drivers/platform/ drivers do today, and all should be fine.
+I think we need to handle that one in drivers/acpi/x86/utils.c like
+Mika said.
 
 thanks,
 
-greg k-h
+-- 
+heikki
