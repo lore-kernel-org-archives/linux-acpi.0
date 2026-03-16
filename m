@@ -1,129 +1,272 @@
-Received: from mail-dy1-f170.google.com (mail-dy1-f170.google.com [74.125.82.170])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mout02.posteo.de (mout02.posteo.de [185.67.36.66])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 189023242D8
-	for <linux-acpi@vger.kernel.org>; Mon, 16 Mar 2026 17:46:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.170
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B870B33FE33
+	for <linux-acpi@vger.kernel.org>; Mon, 16 Mar 2026 18:06:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.67.36.66
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773683180; cv=none; b=c2ZNuHRtkMxSFKo7QwpX+P/E2G46Ce+WctDCA226mkPyJXnVmlGuM45n4wWtpUr8zGIeqy9nUCJpg+aSd9guuoz9gbv/vb4AGUczabxNTLFbX+bYJ3xbJJWElxfjzegBSZf2bPNtGZngu2NLbAT/eF1v10R7stTXEbYCOl9NY8o=
+	t=1773684397; cv=none; b=lKLq0GGsrLAzDf0xitML7aFmpPl3yWkdJYkMdZeMAJXxTmFmI2CdTvQHNcgAJh33cxosPMZHJPP/m+bMM/McPNewoj1A0M2vssSVEYTFoZdIBrt2TPr1SVzCZF08EDe8yN4V3RyI3pf9WH3E+JFligTyUTLHgNh8Fy+jLOZ/vc0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773683180; c=relaxed/simple;
-	bh=Fw1cbySh1egxleCzXRJ6Ic8rJblCTXWdzDTr8/1fiTQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=PIaeT0qAKLOaGS2r36Pn9dKCWYNGQ43+uZSpktGJ7crvZcJcDkvao2us4x2HZElfNmD7YBQi3ieyNQLTvOar35yxtotYA5ULEvaUvbN60XlDfrllZA598YUXGnXrn1+TRbpd8111irTMER/6ik7pc9wcfyGWTEUkTArD/qoOseI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=roeck-us.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Gz+19wq6; arc=none smtp.client-ip=74.125.82.170
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=roeck-us.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1773684397; c=relaxed/simple;
+	bh=vsCerXvNI66p0WQN4f2HWtkZDjbz/hrQ/GAa3UbU95M=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=WUZHcZbGJnEUVCY98MRATOOS/9uOgPqLF9DCe+1dG3J8KAEyCUGAD6/v4h+8MEza2FZ793C49bh28QXVh/jpNxXQZdz0RelJXvfeze4dlAQ2WxM9Ek8VA2UvYNJoburyqfOCBi5iIHfInE6GY6mv7ojDDB7sbAo+fOg8lbCsX5c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de; spf=pass smtp.mailfrom=posteo.de; dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b=qO6Lk7rT; arc=none smtp.client-ip=185.67.36.66
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=posteo.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Gz+19wq6"
-Received: by mail-dy1-f170.google.com with SMTP id 5a478bee46e88-2c0cf039a45so1186793eec.0
-        for <linux-acpi@vger.kernel.org>; Mon, 16 Mar 2026 10:46:18 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1773683178; x=1774287978; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:sender:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=FfsMC73FbjdBhiPsgRz6AJiY36W81X7vESrJAOPQgi8=;
-        b=Gz+19wq6WXhZfApYXhK8+RuVnGTBrkiJp5ITsXiOwv9ZQdTjdOVnCp/uW48jJpisKS
-         EW5xsQIDn+33NGEF5U80Dk8nPo71Xap4ItNsGQBt1/FtsuXhD4jIV+SC9rXWXlXJRbaH
-         s09HLpcbQcE2IUC139ohWrU5wCsg6gJLNdvIIOYBG/hR0O5kuaL6+J0KygzdX/H2Nsdw
-         nwcjmcZUrZVL68q07ktr874F7bfMzQJi93jjfi1lo8ZGa0JMTlv8KhIO7pVy7CBha2VJ
-         jcbo2N28y2L5MjLEZ2SLkCKsoAKuRmsG8YearJlyIl/0fIUptitMDDjvXiQnj/J37O6z
-         RA+w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1773683178; x=1774287978;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:sender:x-gm-gg:x-gm-message-state:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=FfsMC73FbjdBhiPsgRz6AJiY36W81X7vESrJAOPQgi8=;
-        b=TaFFexBGP6f6/6BnKYSiTF+95wnTzutsB+AQ5TaUNHUJ4O6/1Qm+4XPFGW2ZPJpcKK
-         N98iptIceeScft6RAhCEryrwfES4/X7/oTP8mCtN3S1MQF5dQyuAN45U/7Kqz1UpBjT8
-         JEVymest0IsxfSfldbhs1fCpQnuMyqQuClxNa3LxPcZG0kCiqmsPOlF8QRK7LOxslztk
-         u/mOiIoWDzjRn08QXr+VWP16ih7O9pVjlQQ+H6ViJ3c3uE9B6kRXXRgSYEXuHL76cuya
-         2ibPFV5vb5BM59yA8dzFFUqmDIwOvPlFBPmcOmgAet2ySLrd5xwvn4mxrR+3wB4fbrLP
-         7E8A==
-X-Gm-Message-State: AOJu0Yw0zE3AnWX2xJcXWLKvZsEVunhkgvNfrsaEDH9Vv20+1JR8bC5x
-	X4nn+zE9VkZI17nYGdGn1SkiEMsewy6mQeWCLnQ0M5CJ1R2RDpnds3CAX9E7Tw==
-X-Gm-Gg: ATEYQzyh/UTpLbEE0XIXR4stuKCQtrrP46q/N/sMPUefaIsxfjAhHEB6uXRw/BiwTTs
-	X4mq+m36pM0X0WKMgv/M2ht+yC0zIxpl3bGRz39W6kXBYEJZGASHkdmiJY3fxHBgfoFFeRWmOiQ
-	GaYmlzX+7wkJ07pcEQ178w/4d+ASMAA/FkVHmLasevb+OLm6bt8hSdkBBenBQMlDfuC3NHuFvia
-	YlN8RMUAqoJsNAghmHz2M3L1udxzclfuUJ3jbetpIt/e+CIUpsbUodlm49JK3MEIa12PaSh5yFV
-	mWLaCXZxPwWlaA8F4SiN9j+XvLTUP/r31igmUbh6M/QdvyoOvlAreeoEqn+mE3WSAtWwZFtBlqT
-	K+VqWwIiczunnaNJyBqTO3pW5fkHoqqMWxY9mTRzpu4Hw9g7yvFLid7V8vXHJbguROSwsFIbOf7
-	uXNYOeqTRKkrE34k668xvx5KmrXZMnPfVrlsKw
-X-Received: by 2002:a05:7301:3d0d:b0:2bd:e153:68bc with SMTP id 5a478bee46e88-2bea5559bc3mr6542555eec.25.1773683177973;
-        Mon, 16 Mar 2026 10:46:17 -0700 (PDT)
-Received: from server.roeck-us.net ([2600:1700:e321:62f0:da43:aeff:fecc:bfd5])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2beab3a1117sm18567628eec.3.2026.03.16.10.46.16
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 16 Mar 2026 10:46:17 -0700 (PDT)
-Sender: Guenter Roeck <groeck7@gmail.com>
-Date: Mon, 16 Mar 2026 10:46:16 -0700
-From: Guenter Roeck <linux@roeck-us.net>
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Dumbre, Saket" <saket.dumbre@intel.com>
-Subject: Re: [PATCH v1 05/26] ACPICA: Fix NULL pointer dereference in
- acpi_ev_address_space_dispatch()
-Message-ID: <a0ef8b7a-ced8-4384-9d88-e98629596a3b@roeck-us.net>
-References: <12822121.O9o76ZdvQC@rafael.j.wysocki>
- <3030574.e9J7NaK4W3@rafael.j.wysocki>
+	dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b="qO6Lk7rT"
+Received: from submission (posteo.de [185.67.36.169]) 
+	by mout02.posteo.de (Postfix) with ESMTPS id 29CA8240105
+	for <linux-acpi@vger.kernel.org>; Mon, 16 Mar 2026 19:06:25 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=posteo.de; s=2017;
+	t=1773684385; bh=w4aMMeXH0b7JgTSQ3j7crI/pRlF2UNUuOM0hPyY2020=;
+	h=Message-ID:Subject:From:To:Cc:Date:Autocrypt:Content-Type:
+	 MIME-Version:OpenPGP:From;
+	b=qO6Lk7rTUW3H0fPPJfL0YGhRHR1XTS90SrfRDYE8pBk9gt5ZhKNsQAfy69KXzCiao
+	 pjGRF3NZJtST7bhPpXSAMH/DrAAvN1ENGG+ZNaaGay7YhOoKiODycXsj6QWCqG2yRa
+	 dSkp3WxoDzxayQaYAEe362SdqM2jxkoD5sxPxIKzlD9QwZtGB6XxK/3yQz0o7OS975
+	 r2fFLZ1DvGEli+vPgFyP/m+GQwIBDjYIWpY+p8Z6G3IKZTJaxBq+AIoWoNzua6OdDc
+	 blIqYZ7il8b7kff3JP3SQ5CH8dNeALlsb4bUa7Xt+AniyB/FVn66MRVd3HE5JMBA0g
+	 miEXkT04RIr6Q==
+Received: from customer (localhost [127.0.0.1])
+	by submission (posteo.de) with ESMTPSA id 4fZNM142Ltz9rxF;
+	Mon, 16 Mar 2026 19:06:21 +0100 (CET)
+Message-ID: <3ca65f7d0b00c93c91563bc29198f18d5a30eeae.camel@posteo.de>
+Subject: Re: [PATCH v3 7/7] leds: add synology microp led driver
+From: Markus Probst <markus.probst@posteo.de>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Danilo Krummrich <dakr@kernel.org>, Markus Probst via B4 Relay	
+ <devnull+markus.probst.posteo.de@kernel.org>, Lee Jones <lee@kernel.org>, 
+ Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>,
+ Conor Dooley <conor+dt@kernel.org>,  Miguel Ojeda <ojeda@kernel.org>, Boqun
+ Feng <boqun@kernel.org>, Gary Guo <gary@garyguo.net>, 
+ =?ISO-8859-1?Q?Bj=F6rn?= Roy Baron	 <bjorn3_gh@protonmail.com>, Benno
+ Lossin <lossin@kernel.org>, Andreas Hindborg	 <a.hindborg@kernel.org>,
+ Alice Ryhl <aliceryhl@google.com>, Trevor Gross	 <tmgross@umich.edu>,
+ "Rafael J. Wysocki" <rafael@kernel.org>, Igor Korotin	
+ <igor.korotin.linux@gmail.com>, Daniel Almeida
+ <daniel.almeida@collabora.com>,  Bjorn Helgaas <bhelgaas@google.com>,
+ Krzysztof =?UTF-8?Q?Wilczy=C5=84ski?= <kwilczynski@kernel.org>, Pavel
+ Machek <pavel@kernel.org>, Len Brown <lenb@kernel.org>, Robert Moore
+ <robert.moore@intel.com>, 	devicetree@vger.kernel.org,
+ linux-kernel@vger.kernel.org, 	rust-for-linux@vger.kernel.org,
+ driver-core@lists.linux.dev, 	linux-pci@vger.kernel.org,
+ linux-leds@vger.kernel.org, 	linux-acpi@vger.kernel.org,
+ acpica-devel@lists.linux.dev
+Date: Mon, 16 Mar 2026 18:06:23 +0000
+In-Reply-To: <2026031602-drove-timothy-1bb1@gregkh>
+References: <20260313-synology_microp_initial-v3-0-ad6ac463a201@posteo.de>
+	 <20260313-synology_microp_initial-v3-7-ad6ac463a201@posteo.de>
+	 <DH1YH0GO75H8.18YSW2VMKRB3C@kernel.org>
+	 <39f1c9bb0dbde9f1b60785f8e838289c888ffdb0.camel@posteo.de>
+	 <DH3KAWWLECYW.3VBH7PIE7ZE20@kernel.org>
+	 <eb2f7498c5f3247265effc47b3445a04ac71956e.camel@posteo.de>
+	 <DH3M1023PCBI.1HYYZU93NS1JX@kernel.org>
+	 <2026031645-unplowed-purist-9c4b@gregkh>
+	 <a4fb56d5eea790b51aa3623044e5d774a6bab47f.camel@posteo.de>
+	 <2026031602-drove-timothy-1bb1@gregkh>
+Autocrypt: addr=markus.probst@posteo.de; prefer-encrypt=mutual;
+ keydata=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
+ jfGillcaQOqFZ3WwVqyzG1BUfTow==
+Content-Type: multipart/signed; micalg="pgp-sha256";
+	protocol="application/pgp-signature"; boundary="=-akERDsl+g92JaDyAMR+U"
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <3030574.e9J7NaK4W3@rafael.j.wysocki>
+OpenPGP: url=https://posteo.de/keys/markus.probst@posteo.de.asc; preference=encrypt
 
-Hi,
 
-On Wed, Jan 14, 2026 at 01:20:17PM +0100, Rafael J. Wysocki wrote:
-> From: Alexey Simakov <bigalex934@gmail.com>
-> 
-> Cover a missed execution path with a new check.
-> 
-> Fixes: 0acf24ad7e10 ("ACPICA: Add support for PCC Opregion special context data")
-> Link: https://github.com/acpica/acpica/commit/f421dd9dd897
-> Signed-off-by: Alexey Simakov <bigalex934@gmail.com>
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->  drivers/acpi/acpica/evregion.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/acpica/evregion.c b/drivers/acpi/acpica/evregion.c
-> index fa3475da7ea9..b6198f73c81d 100644
-> --- a/drivers/acpi/acpica/evregion.c
-> +++ b/drivers/acpi/acpica/evregion.c
-> @@ -163,7 +163,9 @@ acpi_ev_address_space_dispatch(union acpi_operand_object *region_obj,
->  			return_ACPI_STATUS(AE_NOT_EXIST);
->  		}
->  
-> -		if (region_obj->region.space_id == ACPI_ADR_SPACE_PLATFORM_COMM) {
-> +		if (field_obj
-> +		    && region_obj->region.space_id ==
-> +		    ACPI_ADR_SPACE_PLATFORM_COMM) {
->  			struct acpi_pcc_info *ctx =
->  			    handler_desc->address_space.context;
->  
-Google's experimental AI review agent provided the following feedback:
+--=-akERDsl+g92JaDyAMR+U
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
- If this setup block is executed with a NULL `field_obj`, it will skip
- initializing `ctx->length` and `ctx->subspace_id` even though they do not
- depend on `field_obj`.
+On Mon, 2026-03-16 at 14:58 +0100, Greg Kroah-Hartman wrote:
+> On Mon, Mar 16, 2026 at 01:43:44PM +0000, Markus Probst wrote:
+> > On Mon, 2026-03-16 at 07:33 +0100, Greg Kroah-Hartman wrote:
+> > > On Sun, Mar 15, 2026 at 08:41:06PM +0100, Danilo Krummrich wrote:
+> > > > I.e. if we can't (easily) use mfd cells and would need a custom API=
+, then why
+> > > > even split it up at all, given that splitting it up would probably =
+the most
+> > > > complicated part of the whole driver.
+> > > >=20
+> > > > Greg, what do you think?
+> > >=20
+> > > I think this has yet to be proven to be a kernel driver at all at thi=
+s
+> > > point, and not just a userspace daemon that listens to the serial por=
+t
+> > > and then does what is needed from there :)
+> > >=20
+> > > Or, if someone can prove that the operations on this serial data stre=
+am
+> > > actually do require it to be in the kernel (which I have yet to see a
+> > > list of what this connection does, did I miss it?) then a single driv=
+er,
+> > > under the drivers/platform section of the kernel tree makes sense.
+> > The sysoff component is strictly necessary for poweroff and reboot.
+> >=20
+> > On ARM64 Synology NAS devices it is needed so the device actually
+> > powers off after calling
+> > `syscall(SYS_reboot, LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2,
+> > LINUX_REBOOT_CMD_POWER_OFF, NULL);`
+> > . Otherwise it would stay on.
+> > Same applies to reboot.
+>=20
+> So that means a write of a set of bytes to the serial port will cause
+> the machine to reboot or shutdown?
+Yes.
+>=20
+> > On x86 it isn't clearly documented what sending the poweroff and reboot
+> > command to the microp device exactly does, so this is based on
+> > observations. It should be sent before issuing a poweroff or reboot via
+> > ACPI Sleep. On reboot it resets various device states, so fan speeds go
+> > to default, leds turn off etc., so it behaves like a coldboot.
+> > On poweroff it will mark it as graceful shutdown (i. e. the device
+> > won't turn automatically on, because it thinks a power-loss happend).
+> >=20
+> > For the other components:
+> > - leds
+> > - hwmon
+> > - input
+>=20
+> For "input" what exactly does the input device show up as?  A power
+> button?  Something else?
 
- Additionally, because this initialization is part of the
- `!(region_obj->region.flags & AOPOBJ_SETUP_COMPLETE)` block, the setup flag
- will be set shortly after this. Does this mean that if the first call has a
- NULL `field_obj`, the region will be marked as setup complete, and a
- subsequent call with a valid `field_obj` will never initialize
- `ctx->internal_buffer`? Should the `field_obj` check only guard the
- assignment of `ctx->internal_buffer`?
+Well there are a few other things besides a power button:
 
-Please let me know if this is a real concern or not to help improve the agent.
+- beeper (short and long variant)
+- factory reset button
+- "USB Copy" button. Not present on all devices (including not present
+on my testing device). It is meant for copying data from or to a usb
+stick.
 
-Thanks,
-Guenter
+Both of these buttons don't have a keycode in include/uapi/linux/input-
+event-codes.h, which is suprising given how many devices have a factory
+reset button. So I am not sure if I can handle them in this driver.
+
+=46rom what I can tell, there isn't actually a input device type I could
+specify on registering a input device. But it would be considered a
+misc input device.
+
+>=20
+> For hwmon, that makes sense to have a kernel driver.
+>=20
+> For leds, that depends on what you want to do with the led, as in the
+> end you are just controlling it from userspace anyway :)
+
+
+>=20
+> > It could theoratically be implemented in userspace. A userspace daemon
+> > could theoratically control the fan speeds directly, issue a systemd
+> > shutdown on power button press, control the leds directly etc.
+> >=20
+> > But honestly, I don't understand why this is an argument.
+> > With that argument drivers/leds, drivers/hwmon and drivers/input would
+> > not even exist, because everything could be implemented in userspace
+> > via
+> > - I2C: /dev/i2c-* (drivers/i2c/i2c-dev.c)
+> > - MMIO: /dev/ioport and /dev/mem (drivers/char/mem.c)
+> > - GPIO: /sys/class/gpio (drivers/gpio/gpiolib-sysfs.c)
+> > - SPI: /dev/spidev* (drivers/spi/spidev.c)
+> > - PCI: /sys/class/pci_bus/ (drivers/pci/pci-sysfs.c)
+> > - Serial: /dev/ttyS*
+> > and likely almost any other bus device too.
+> >=20
+> > Generally speaking, the kernel and its drivers is the layer between
+> > hardware and software. It provides the hardware abstractions as
+> > userspace interfaces. So any software on the same cpu architecture can
+> > work with any hardware, as long as there is a kernel driver.
+>=20
+> Yes, I kind of know what drivers and classes do and why they are needed,
+> that's not the point here. :)
+>=20
+> > In the case of this driver, it means
+> > - *any* led daemon can control the leds
+> > - *any* fan control daemon can control the fan speed and frequency
+> > - *any* monitoring software can view the provided sensors
+> > - *any* init system can react to the power button
+> > - *any* process can request a reboot or shutdown
+> > .
+> > I think this is the expected behaviour.
+>=20
+> Ok great, then make a single driver that handles all of this, like other
+> drivers/platform/ drivers do today, and all should be fine.
+Great, I will.
+
+Thanks
+- Markus Probst
+
+>=20
+> thanks,
+>=20
+> greg k-h
+
+--=-akERDsl+g92JaDyAMR+U
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+
+iQJPBAABCAA5FiEEgnQYxPSsWOdyMMRzNHYf+OetQ9IFAmm4RoobFIAAAAAABAAO
+bWFudTIsMi41KzEuMTEsMiwyAAoJEDR2H/jnrUPSsUIQAJeCzIeF7FxfVLPKwAJv
+sYO9ZXh6FWfGwq+zzAzAXqlhJQWtoptqBFhmWtrGiAEUYFDMlEG2jO9t4zE9cQiR
+O+QVCX1qWxERY0X4gbrT0GEcHuZpB7eqDRpHqQ1edsZrrbjD0LJl2GwrR+juH3p+
+J0H6qYNP0BP5I2Ox7pt3Wjw942RE8yV99ReJX15i7IseMtToK170J0yfLhV9EYdD
+ti/CzYvzqLndEhHRCVDrJhqRkUY7ffDrb/xir2FRqRmEnMw8Tyyy05eBccafoX4K
+bhb+cld/DtCZYR2BL2wyj6PVV6EYOjInchNDRa9T1txQ/yAd/s0yx2znesXtj2Kt
+xGn4A82oT4q84JtGyz4SCTvhAFMtle+23zmYHGgsJGjWLV2rAFLrTplZErqZWtCo
+UYNRzDvzksVnGSp05DeVmM1qZp8PZtfG/UlIfEYCbkkQVT8LZVb6/2BAzGdbmjMk
+LBI9lI95d17uCyxp9+1Pb1fls+XD25b0v1Qv6U5/YJPAwbyGAW3JtGsVhb0vhpdI
+hxTeJKlM1qq9voRoRWSDq+CSYGbNtQCvpjderejTY5otR9Ip1h+HAhTa8326QFmp
+OxOfwBf0ZcvmnxG4bIHDiySMdXLMSNzgAyGlZfcfI0rhEWazQktxJncKWn7D7VWP
+ojdLA9L7y+sXPTSIujFHYCZA
+=q1ya
+-----END PGP SIGNATURE-----
+
+--=-akERDsl+g92JaDyAMR+U--
