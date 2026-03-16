@@ -1,151 +1,104 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.17])
+Received: from sender-of-o58.zoho.eu (sender-of-o58.zoho.eu [136.143.169.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAEF218DF80;
-	Mon, 16 Mar 2026 18:11:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.17
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773684684; cv=none; b=PcvDXsNnhMlTEkmylJDIZ3+a6nVcfqJa6iKxLayz3cAIW1TCUu3SbKzTTmmiXIBNWLzEU7g4lXverku7lY+/fKRAuV8u2bOtJsOIs+oSRavOQ2XRM6qniZDryWWEJrp/t63D1RldOzNris73GnF/rfNHN0j4M7NnAunvsvO+3dM=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773684684; c=relaxed/simple;
-	bh=8+44uTrQ/29p3/qLO8+PYa00EGkhNU+tpwb+3NXcZkY=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=P0H/O1Rp7HVYGgpkVjWVaWpBEVDouigsFyx0yLpjs5kzk7wyG858OZ8Xi8GrPoJrxvoS5vWklMmmNjN5yTJNmQolt+SUMx9YV8vuWvQKQmYABJO8UjD4VdW3Vxun2MGZpB2pPHV0VYizGsRyKhrFBNZz0r93F/a8d00UGGTsEAw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=BDQezc0I; arc=none smtp.client-ip=198.175.65.17
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44F673E1CE9;
+	Mon, 16 Mar 2026 18:44:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=136.143.169.58
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1773686667; cv=pass; b=W090+/Dqi2g2zKr/CzKIlLH/o5ZbNfHF6ndOvbZW4RA98oUxxGa06FcKaeY7VGlgaeZJ5s7JqGsnJbYIoEbhU7rVreMe7Et2l9RUdOrPFLljTEnb7g911Qsnszxptbbd07ZVrg34TU6bGelhzmBrZk1SxyOonGEz5VJfw02CXfg=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1773686667; c=relaxed/simple;
+	bh=GtFrz9KbKIKh0IkZziorROObu/Y/fy8Mvzhol31nVeA=;
+	h=Date:From:To:CC:Subject:In-Reply-To:References:Message-ID:
+	 MIME-Version:Content-Type; b=Ii7bClOxLUKGGM6MSyHS+ZdJylwEKWo2xxeJ4ya8dR/cLBbYNkHZky01vDId9RLRNXINYtFb2FPthJGnW04ilLCeTRmTkkUbh8F4YqWYGYXqNrWu0AVLOlRRMKYxWFF9wISeN2OnLGr+X89GewIclhbP6ZUYyuo2jaQsMRa9fSA=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=objecting.org; spf=pass smtp.mailfrom=objecting.org; dkim=pass (1024-bit key) header.d=objecting.org header.i=objecting@objecting.org header.b=oMmG8LaK; arc=pass smtp.client-ip=136.143.169.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=objecting.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=objecting.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="BDQezc0I"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1773684683; x=1805220683;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=8+44uTrQ/29p3/qLO8+PYa00EGkhNU+tpwb+3NXcZkY=;
-  b=BDQezc0IOwp9tAUG6jtf7pj3UwOOZ4sT8E/wCG74FtamDy3V2ycYHnJE
-   Www5vRiFj2mM70SkxWLo8vrFrLxHc6vi0aHoDv4mUj/voI5B3VED7nrtq
-   gVF1+tZSvkKVGlmBXR0rw1YAVjx3imp4PcwiBQSoB2ACmDDALtMdXEQ2j
-   iUQDihQNPd2rYx23GBQCfLJvTPAhwX9GQZKvsLIXg1XedfKysCb+4poSN
-   q/6iylIltVxWVoIQu9+P9+M4Nm5XEM48l6jKShh1p5khWXCbzSIs+fVai
-   i5U+AiR95k3SH99EkToupHjjagU0wWMXL4I1AstWgutnnOuAyfDgAQMXA
-   A==;
-X-CSE-ConnectionGUID: BzpMdsMtTSqG8OpWHEWYbw==
-X-CSE-MsgGUID: mSx0DWCWQS+adACH4shH8Q==
-X-IronPort-AV: E=McAfee;i="6800,10657,11731"; a="74682284"
-X-IronPort-AV: E=Sophos;i="6.23,124,1770624000"; 
-   d="scan'208";a="74682284"
-Received: from fmviesa003.fm.intel.com ([10.60.135.143])
-  by orvoesa109.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Mar 2026 11:11:22 -0700
-X-CSE-ConnectionGUID: jDrCcEmZSQ+dhyKK0eIG2w==
-X-CSE-MsgGUID: pOUoKrK+SRefxNck8RT8+A==
-X-ExtLoop1: 1
-Received: from lstrano-mobl6.amr.corp.intel.com (HELO [10.124.223.96]) ([10.124.223.96])
-  by fmviesa003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Mar 2026 11:11:21 -0700
-Message-ID: <9f941964-446b-4563-957b-7cc5f69a004b@intel.com>
-Date: Mon, 16 Mar 2026 11:11:20 -0700
+	dkim=pass (1024-bit key) header.d=objecting.org header.i=objecting@objecting.org header.b="oMmG8LaK"
+ARC-Seal: i=1; a=rsa-sha256; t=1773686641; cv=none; 
+	d=zohomail.eu; s=zohoarc; 
+	b=Mkpu/oO/VHsCPqbOjzj9e6rvi0TRYZnQ1YNaADqgMPhokZejsZqSicZP6/fFfnHJVjBuQwskhuhN1J9eYxQE/g1uu/X516ZyQiCz1uAvlYydJAMRSodM2aTdeBVY/jXGOI3AKNPdH+YGleVSyvpptLZCLhWmmQnPAodwt6NqvNo=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.eu; s=zohoarc; 
+	t=1773686641; h=Content-Type:Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:Subject:To:To:Message-Id:Reply-To; 
+	bh=ek+/9mNBrNkpaZ3zR4u9yejVy5ZC/V0+MIIe2CHgd+o=; 
+	b=hd+JLiAmb90wJAMeVVT94o4SXw6zMo4YwwTXZCCBlrTXR6jue5MbB7ILA7IuSDN0K1xQWK79t1EkpK4pDe9wSA54je91nX1tcOCXHzZf2IgnpQz474osqfibFrN4cZHovTiszOMu3TX/9Kh0ZotT0igdna1kXFMzoDEIexUv+uk=
+ARC-Authentication-Results: i=1; mx.zohomail.eu;
+	dkim=pass  header.i=objecting.org;
+	spf=pass  smtp.mailfrom=objecting@objecting.org;
+	dmarc=pass header.from=<objecting@objecting.org>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1773686641;
+	s=zmail; d=objecting.org; i=objecting@objecting.org;
+	h=Date:Date:From:From:To:To:CC:Subject:Subject:In-Reply-To:References:Message-ID:MIME-Version:Content-Type:Content-Transfer-Encoding:Message-Id:Reply-To:Cc;
+	bh=ek+/9mNBrNkpaZ3zR4u9yejVy5ZC/V0+MIIe2CHgd+o=;
+	b=oMmG8LaKspBeHtZotYr+NoOI+CME9/SwzTAF1aBLeCsjOGOU0ruGNZUAbVBHngW2
+	WhWdcRRCAzoZ36wApvbXAkHb86lnpg7kCww4OYnb9h0vjoXsIAKIRzI2TqSPG7HgMP9
+	DsQMtC1h+Jkf3/MqYwEeM3hw7M/nNOkJ2NWl06h0=
+Received: by mx.zoho.eu with SMTPS id 177368663776653.66512137874156;
+	Mon, 16 Mar 2026 19:43:57 +0100 (CET)
+Date: Mon, 16 Mar 2026 18:43:58 +0000
+From: Josh Law <objecting@objecting.org>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+ "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+CC: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+ kees@kernel.org, linux-hardening@vger.kernel.org
+Subject: =?US-ASCII?Q?Re=3A_=5BPATCH_v1_1/1=5D_ACPI=3A_processor=3A_idle=3A?=
+ =?US-ASCII?Q?_Replace_strlcat=28=29_with_better_alternative?=
+User-Agent: Thunderbird for Android
+In-Reply-To: <20260316170158.1596857-1-andriy.shevchenko@linux.intel.com>
+References: <20260316170158.1596857-1-andriy.shevchenko@linux.intel.com>
+Message-ID: <4FC4DDD1-E170-46A9-888A-41D2CD6D97F3@objecting.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2] ACPI: NUMA: Only parse CFMWS at boot when CXL_ACPI is
- on
-To: Kai Huang <kai.huang@intel.com>, rafael@kernel.org, lenb@kernel.org,
- dan.j.williams@intel.com, alison.schofield@intel.com
-Cc: akpm@linux-foundation.org, nunodasneves@linux.microsoft.com,
- xueshuai@linux.alibaba.com, thorsten.blum@linux.dev, gourry@gourry.net,
- wangyuquan1236@phytium.com.cn, linux-acpi@vger.kernel.org,
- linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20260308222313.14014-1-kai.huang@intel.com>
-Content-Language: en-US
-From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <20260308222313.14014-1-kai.huang@intel.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+ charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+X-ZohoMailClient: External
 
 
 
-On 3/8/26 3:23 PM, Kai Huang wrote:
-> On CXL platforms, the Static Resource Affinity Table (SRAT) may not
-> cover memory affinity information for all the CXL memory regions.  Since
-> each CXL memory region is enumerated via a CXL Fixed Memory Window
-> Structure (CFMWS), during early boot the kernel parses the CFMWS tables
-> to find all CXL memory regions and sets a NUMA node for each of them.
-> This memory affinity information of CXL memory regions is later used by
-> the CXL ACPI driver.
-> 
-> The CFMWS table doesn't provide the memory affinity information either.
-> Currently the kernel assigns a 'faked' NUMA node for each CXL memory
-> region, starting from the next node of the highest node that is
-> enumerated via the SRAT.  This can potentially increase the maximum NUMA
-> node ID of the platform ('nr_node_ids') a lot.  E.g., on a GNR platform
-> with 4 NUMA nodes and 18 CFMWS tables, this bumps the 'nr_node_ids' to
-> 22.
-> 
-> Increasing the 'nr_node_ids' has side effects.  For instance, it is
-> widely used by the kernel for "highest possible NUMA node" based memory
-> allocations.  It also impacts userspace ABIs, e.g., some NUMA memory
-> related system calls such as 'get_mempolicy' which requires 'maxnode'
-> not being smaller than the 'nr_node_ids'.
-> 
-> Currently parsing CFMWS tables and assigning faked NUMA node at boot is
-> done unconditionally.  However, if the CXL ACPI driver is not enabled,
-> there will be no user of such memory affinity information of CXL memory
-> regions.
-> 
-> Change to only parsing the CFMWS tables at boot when CXL_ACPI is enabled
-> in Kconfig to avoid the unnecessary cost of bumping up 'nr_node_ids'.
-> 
-> E.g., on the aforementioned GNR platform, the "Slab" in /proc/meminfo is
-> reduced with this change (when CXL_ACPI is off):
-> 
-> 	w/ this change		w/o
-> 
-> Slab	900488 kB		923660 kB
-> 
-> Signed-off-by: Kai Huang <kai.huang@intel.com>
+On 16 March 2026 17:01:58 GMT, Andy Shevchenko <andriy=2Eshevchenko@linux=
+=2Eintel=2Ecom> wrote:
+>strlcpy() and strlcat() are confusing APIs and the former one already gon=
+e
+>from the kernel=2E In preparation to kill strlcat() replace it with the b=
+etter
+>alternative=2E
+>
+>Signed-off-by: Andy Shevchenko <andriy=2Eshevchenko@linux=2Eintel=2Ecom>
+>---
+> drivers/acpi/processor_idle=2Ec | 4 +---
+> 1 file changed, 1 insertion(+), 3 deletions(-)
+>
+>diff --git a/drivers/acpi/processor_idle=2Ec b/drivers/acpi/processor_idl=
+e=2Ec
+>index 45b5d17443cf=2E=2E498d88f5d5c9 100644
+>--- a/drivers/acpi/processor_idle=2Ec
+>+++ b/drivers/acpi/processor_idle=2Ec
+>@@ -1010,9 +1010,7 @@ static bool combine_lpi_states(struct acpi_lpi_stat=
+e *local,
+> 	result->arch_flags =3D parent->arch_flags;
+> 	result->index =3D parent->index;
+>=20
+>-	strscpy(result->desc, local->desc, ACPI_CX_DESC_LEN);
+>-	strlcat(result->desc, "+", ACPI_CX_DESC_LEN);
+>-	strlcat(result->desc, parent->desc, ACPI_CX_DESC_LEN);
+>+	snprintf(result->desc, ACPI_CX_DESC_LEN, "%s+%s", local->desc, parent->=
+desc);
+> 	return true;
+> }
+>=20
 
-Applied to cxl/next
-1e1cd49ded59 ("ACPI: NUMA: Only parse CFMWS at boot when CXL_ACPI is on")
 
-> ---
-> 
-> v1 -> v2:
-> 
->  - Use Dan's suggestion to simplify the diff:
-> 
->  https://lore.kernel.org/linux-cxl/69a8dc7ca72c2_2f4a10026@dwillia2-mobl4.notmuch/
-> 
-> Hi Alison, Gregory,
-> 
-> I didn't add your RB since the code now is different from that you
-> reviewed.  Appreciate if you can take a look again and provide the tag
-> if the patch looks good to you.
-> 
-> ---
->  drivers/acpi/numa/srat.c | 7 +++++--
->  1 file changed, 5 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/acpi/numa/srat.c b/drivers/acpi/numa/srat.c
-> index aa87ee1583a4..62d4a8df0b8c 100644
-> --- a/drivers/acpi/numa/srat.c
-> +++ b/drivers/acpi/numa/srat.c
-> @@ -654,8 +654,11 @@ int __init acpi_numa_init(void)
->  	}
->  	last_real_pxm = fake_pxm;
->  	fake_pxm++;
-> -	acpi_table_parse_cedt(ACPI_CEDT_TYPE_CFMWS, acpi_parse_cfmws,
-> -			      &fake_pxm);
-> +
-> +	/* No need to expand numa nodes if CXL is disabled */
-> +	if (IS_ENABLED(CONFIG_CXL_ACPI))
-> +		acpi_table_parse_cedt(ACPI_CEDT_TYPE_CFMWS, acpi_parse_cfmws,
-> +				      &fake_pxm);
->  
->  	if (cnt < 0)
->  		return cnt;
-> 
-> base-commit: 084f843093bee5563b179fd4b630122ba820e0c7
+Is this patch in relation to my string=2Ec patch? You would have to do thi=
+s for about 120~ files=2E
 
+V/R
+
+
+Josh Law
