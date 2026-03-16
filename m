@@ -1,114 +1,226 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
+Received: from mout01.posteo.de (mout01.posteo.de [185.67.36.65])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB55A382362;
-	Mon, 16 Mar 2026 13:12:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.9
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 135B939A070
+	for <linux-acpi@vger.kernel.org>; Mon, 16 Mar 2026 13:43:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.67.36.65
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773666744; cv=none; b=MlODgqJ8D1E2af7Q1GNAwRFMWOhk8IPiGSZpTBmcJ9z0rFDnnnqxRMhc4ZTwPVc3Vu4M0hwcqv2HmWA8C46leKoXkmflxZPakl+ZMRcJupsRBjaUQ1g1QSdNCdMW4DFuBVZy1cNDNaKZDhyxsmuZGtaus6r/E+cYbCvniMjdrPk=
+	t=1773668634; cv=none; b=ezilrjBQUJeco3Y/pQo7H2L8eG5OdHVsoaslvyjTByUQR5MM5qUVVmCT0U8CV5WhyWm5zQkyFgx5Rps5ThWSIpEXtunHOwAv8hAGu6jtS2sxdPwVGYpbY5O6KYvO5ZV0WLMo2BQt5MBerLSv0meqz/nI/fp0jUJo4iAInBT9O7M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773666744; c=relaxed/simple;
-	bh=lTabpCjBeJaGNQ4Rm4dBCUuNvEcTFzKMAs3b6NmGIFE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=KQyBQ13idvVgq7/zjS/DrwksJrf/PdRvsr0hP9oFDRb0AbuNLGtsqJy6F3u13mlkhMND2TAignOSqbBjn8V5p/ub5sMOMuUJD31nN/fD5QGjG1L4871xwCAxEw1OynAai/2Ri/v5NjPIF4j8er0Z13hM190CG+glr3DOhjq0XLY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=MGV8Q87a; arc=none smtp.client-ip=198.175.65.9
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1773668634; c=relaxed/simple;
+	bh=33EWCAnwOB6xKo+pw6RKCbvpx6CoHDnFTrTzayEwYk8=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=VqooJ+gkR9u0Rl8ZeqaIh3GoXgsJaqfTgrXEU+UIQ4ndVJZ5hWI8hYZpZT6Lqs4137+/48tPKPFMBYArkXb7xiK+uV9D3Kvr6Z7stKrXR6Im3PKRdJEypPh2wXg1Bq3W+ZAfPEkWX/BGBvp0TQG6xGau+fwma7tTM/mwodjyDb0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de; spf=pass smtp.mailfrom=posteo.de; dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b=jb8ZJO47; arc=none smtp.client-ip=185.67.36.65
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=posteo.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="MGV8Q87a"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1773666743; x=1805202743;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=lTabpCjBeJaGNQ4Rm4dBCUuNvEcTFzKMAs3b6NmGIFE=;
-  b=MGV8Q87a9gVN3iGWL8U7m9ocdJ547t+1CJt7MVfTw06FX3BB0qIGXWcA
-   FglcCvsfRD5OX3zTmEpFT4gouXt0nY4QH2iK6btzRL7vUAwTlY+4+g7nQ
-   WXcNjTUWYkTYl7arZUY4mSa5ttODqLpAXUKZ8+8lKfEa06B3gzduOhXEA
-   RJaCoqAY0XBL/s3Csvb9EoVXJqqdPG6bf8EJ3zhesEK7PVgwH5T+SEhQb
-   Cnr9MLTNcBppdid765A2x2UeSIeX1T/ynuc9DBZYwtN7DryGeFITIvaSt
-   HzmA+cpcJaqfTXibxFpxk2lhCBbgayYJo9I+BKV9yPT7qleLMG45ufujn
-   A==;
-X-CSE-ConnectionGUID: VVQ+XAvMTvqB+3I79q0++A==
-X-CSE-MsgGUID: 4zOxRV+sRben+5G5O3PP0A==
-X-IronPort-AV: E=McAfee;i="6800,10657,11731"; a="97289838"
-X-IronPort-AV: E=Sophos;i="6.23,124,1770624000"; 
-   d="scan'208";a="97289838"
-Received: from orviesa004.jf.intel.com ([10.64.159.144])
-  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Mar 2026 06:12:22 -0700
-X-CSE-ConnectionGUID: RdEDXrOGSIuEDuaXQjLJOw==
-X-CSE-MsgGUID: G+IyBQQyRImK9X1PBtyWEQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.23,124,1770624000"; 
-   d="scan'208";a="226372232"
-Received: from black.igk.intel.com ([10.91.253.5])
-  by orviesa004.jf.intel.com with ESMTP; 16 Mar 2026 06:12:21 -0700
-Received: by black.igk.intel.com (Postfix, from userid 1001)
-	id 1CD2F95; Mon, 16 Mar 2026 14:12:19 +0100 (CET)
-Date: Mon, 16 Mar 2026 14:12:19 +0100
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-To: Edward Blair <edward.blair@gmail.com>
-Cc: linux-i2c@vger.kernel.org, linux-usb@vger.kernel.org,
-	heikki.krogerus@linux.intel.com, gregkh@linuxfoundation.org,
-	wsa+renesas@sang-engineering.com, westeri@kernel.org,
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 1/2] i2c: acpi: skip generic I2C device when
- vendor-specific sibling exists
-Message-ID: <20260316131219.GD2275908@black.igk.intel.com>
-References: <20260314013157.7181-1-edward.blair@gmail.com>
- <20260314013157.7181-2-edward.blair@gmail.com>
+	dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b="jb8ZJO47"
+Received: from submission (posteo.de [185.67.36.169]) 
+	by mout01.posteo.de (Postfix) with ESMTPS id BD534240027
+	for <linux-acpi@vger.kernel.org>; Mon, 16 Mar 2026 14:43:45 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=posteo.de; s=2017;
+	t=1773668625; bh=33EWCAnwOB6xKo+pw6RKCbvpx6CoHDnFTrTzayEwYk8=;
+	h=Message-ID:Subject:From:To:Cc:Date:Autocrypt:Content-Type:
+	 MIME-Version:OpenPGP:From;
+	b=jb8ZJO47ps0mLZ7GSqxJ47Cq7KK4s306/jVdGpM/yeyu5sjcp4U/HLYoBz1VA/XjC
+	 nY5t2uP2KtrdPopJ3LRQSguhTgBLqNRm1XfMmMzr5gjy4yJyJumMsnN/z8GhkQ3qSy
+	 PJ6I6OLkCQE25OPq25tFXRU/o6gv8GwWXUvt4gW3kLd5mALOURQOdr9nv87pqCzNhH
+	 e+8PjnHfWEMbACtWyGOrDdGTukPzDnhrRs0b1bzzF2vs8fX31bgfyj0EzklIZlMhh0
+	 zpkaIMpBF+aj0cszEsM6ILKQ2WW5vLr01vKAP04x8sq8AfbNbBmD7iHCCQHDpnz3DF
+	 QN2JatI0kSolA==
+Received: from customer (localhost [127.0.0.1])
+	by submission (posteo.de) with ESMTPSA id 4fZGWw0cHkz6tvk;
+	Mon, 16 Mar 2026 14:43:40 +0100 (CET)
+Message-ID: <a4fb56d5eea790b51aa3623044e5d774a6bab47f.camel@posteo.de>
+Subject: Re: [PATCH v3 7/7] leds: add synology microp led driver
+From: Markus Probst <markus.probst@posteo.de>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Danilo Krummrich
+	 <dakr@kernel.org>
+Cc: Markus Probst via B4 Relay <devnull+markus.probst.posteo.de@kernel.org>,
+  Lee Jones <lee@kernel.org>, Rob Herring <robh@kernel.org>, Krzysztof
+ Kozlowski <krzk+dt@kernel.org>,  Conor Dooley <conor+dt@kernel.org>, Miguel
+ Ojeda <ojeda@kernel.org>, Boqun Feng <boqun@kernel.org>, Gary Guo	
+ <gary@garyguo.net>, =?ISO-8859-1?Q?Bj=F6rn?= Roy Baron	
+ <bjorn3_gh@protonmail.com>, Benno Lossin <lossin@kernel.org>, Andreas
+ Hindborg	 <a.hindborg@kernel.org>, Alice Ryhl <aliceryhl@google.com>,
+ Trevor Gross	 <tmgross@umich.edu>, "Rafael J. Wysocki" <rafael@kernel.org>,
+ Igor Korotin	 <igor.korotin.linux@gmail.com>, Daniel Almeida
+ <daniel.almeida@collabora.com>,  Bjorn Helgaas <bhelgaas@google.com>,
+ Krzysztof =?UTF-8?Q?Wilczy=C5=84ski?= <kwilczynski@kernel.org>, Pavel
+ Machek <pavel@kernel.org>, Len Brown <lenb@kernel.org>, Robert Moore
+ <robert.moore@intel.com>, 	devicetree@vger.kernel.org,
+ linux-kernel@vger.kernel.org, 	rust-for-linux@vger.kernel.org,
+ driver-core@lists.linux.dev, 	linux-pci@vger.kernel.org,
+ linux-leds@vger.kernel.org, 	linux-acpi@vger.kernel.org,
+ acpica-devel@lists.linux.dev
+Date: Mon, 16 Mar 2026 13:43:44 +0000
+In-Reply-To: <2026031645-unplowed-purist-9c4b@gregkh>
+References: <20260313-synology_microp_initial-v3-0-ad6ac463a201@posteo.de>
+	 <20260313-synology_microp_initial-v3-7-ad6ac463a201@posteo.de>
+	 <DH1YH0GO75H8.18YSW2VMKRB3C@kernel.org>
+	 <39f1c9bb0dbde9f1b60785f8e838289c888ffdb0.camel@posteo.de>
+	 <DH3KAWWLECYW.3VBH7PIE7ZE20@kernel.org>
+	 <eb2f7498c5f3247265effc47b3445a04ac71956e.camel@posteo.de>
+	 <DH3M1023PCBI.1HYYZU93NS1JX@kernel.org>
+	 <2026031645-unplowed-purist-9c4b@gregkh>
+Autocrypt: addr=markus.probst@posteo.de; prefer-encrypt=mutual;
+ keydata=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
+ jfGillcaQOqFZ3WwVqyzG1BUfTow==
+Content-Type: multipart/signed; micalg="pgp-sha256";
+	protocol="application/pgp-signature"; boundary="=-+sZKitfK3M04UKxrVQbo"
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20260314013157.7181-2-edward.blair@gmail.com>
+OpenPGP: url=https://posteo.de/keys/markus.probst@posteo.de.asc; preference=encrypt
 
-On Sat, Mar 14, 2026 at 01:31:55AM +0000, Edward Blair wrote:
-> Some BIOS implementations (notably ASUS Z690/Z790/X670E motherboards)
-> declare both a generic UCSI device (MSFT8000) and a vendor-specific
-> device (e.g., ITE8853) as ACPI children of the same I2C controller,
-> both referencing the same I2C slave address.
-> 
-> During ACPI I2C enumeration, whichever device is walked first claims
-> the address, causing the second to fail with -EBUSY. When the generic
-> MSFT8000 device registers first, the vendor-specific driver cannot
-> bind, losing access to device-specific features like GPIO interrupt
-> resources that are only declared on the vendor-specific ACPI device.
-> 
-> Fix this by checking, before registering a known generic I2C device,
-> whether a sibling ACPI device exists at the same address on the same
-> adapter. If so, skip the generic device to let the vendor-specific
-> one register instead.
-> 
-> Signed-off-by: Edward Blair <edward.blair@gmail.com>
-> ---
->  drivers/i2c/i2c-core-acpi.c | 88 +++++++++++++++++++++++++++++++++++++
->  1 file changed, 88 insertions(+)
-> 
-> diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
-> index 2cbd31f77..87582eac7 100644
-> --- a/drivers/i2c/i2c-core-acpi.c
-> +++ b/drivers/i2c/i2c-core-acpi.c
-> @@ -137,6 +137,17 @@ static const struct acpi_device_id i2c_acpi_ignored_device_ids[] = {
->  	{}
->  };
->  
-> +/*
-> + * Generic I2C device IDs that may be duplicated by vendor-specific devices.
-> + * When a vendor-specific sibling exists at the same address, the generic
-> + * device is skipped to avoid -EBUSY address conflicts.
-> + */
-> +static const struct acpi_device_id i2c_acpi_generic_device_ids[] = {
-> +	/* Microsoft UCSI - often paired with vendor-specific UCSI device */
-> +	{ "MSFT8000" },
-> +	{}
-> +};
 
-Are they both "present"? I mean their _STA() returns 0xF for both?
+--=-+sZKitfK3M04UKxrVQbo
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-We have a quirk table already in drivers/acpi/x86/utils.c that I think could
-be used to mark the other one being not present.
+On Mon, 2026-03-16 at 07:33 +0100, Greg Kroah-Hartman wrote:
+> On Sun, Mar 15, 2026 at 08:41:06PM +0100, Danilo Krummrich wrote:
+> > I.e. if we can't (easily) use mfd cells and would need a custom API, th=
+en why
+> > even split it up at all, given that splitting it up would probably the =
+most
+> > complicated part of the whole driver.
+> >=20
+> > Greg, what do you think?
+>=20
+> I think this has yet to be proven to be a kernel driver at all at this
+> point, and not just a userspace daemon that listens to the serial port
+> and then does what is needed from there :)
+>=20
+> Or, if someone can prove that the operations on this serial data stream
+> actually do require it to be in the kernel (which I have yet to see a
+> list of what this connection does, did I miss it?) then a single driver,
+> under the drivers/platform section of the kernel tree makes sense.
+The sysoff component is strictly necessary for poweroff and reboot.
+
+On ARM64 Synology NAS devices it is needed so the device actually
+powers off after calling
+`syscall(SYS_reboot, LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2,
+LINUX_REBOOT_CMD_POWER_OFF, NULL);`
+. Otherwise it would stay on.
+Same applies to reboot.
+
+On x86 it isn't clearly documented what sending the poweroff and reboot
+command to the microp device exactly does, so this is based on
+observations. It should be sent before issuing a poweroff or reboot via
+ACPI Sleep. On reboot it resets various device states, so fan speeds go
+to default, leds turn off etc., so it behaves like a coldboot.
+On poweroff it will mark it as graceful shutdown (i. e. the device
+won't turn automatically on, because it thinks a power-loss happend).
+
+For the other components:
+- leds
+- hwmon
+- input
+
+It could theoratically be implemented in userspace. A userspace daemon
+could theoratically control the fan speeds directly, issue a systemd
+shutdown on power button press, control the leds directly etc.
+
+But honestly, I don't understand why this is an argument.
+With that argument drivers/leds, drivers/hwmon and drivers/input would
+not even exist, because everything could be implemented in userspace
+via
+- I2C: /dev/i2c-* (drivers/i2c/i2c-dev.c)
+- MMIO: /dev/ioport and /dev/mem (drivers/char/mem.c)
+- GPIO: /sys/class/gpio (drivers/gpio/gpiolib-sysfs.c)
+- SPI: /dev/spidev* (drivers/spi/spidev.c)
+- PCI: /sys/class/pci_bus/ (drivers/pci/pci-sysfs.c)
+- Serial: /dev/ttyS*
+and likely almost any other bus device too.
+
+Generally speaking, the kernel and its drivers is the layer between
+hardware and software. It provides the hardware abstractions as
+userspace interfaces. So any software on the same cpu architecture can
+work with any hardware, as long as there is a kernel driver.
+
+In the case of this driver, it means
+- *any* led daemon can control the leds
+- *any* fan control daemon can control the fan speed and frequency
+- *any* monitoring software can view the provided sensors
+- *any* init system can react to the power button
+- *any* process can request a reboot or shutdown
+.
+I think this is the expected behaviour.
+
+Thanks
+- Markus Probst
+
+>=20
+> thanks,
+>=20
+> greg k-h
+
+--=-+sZKitfK3M04UKxrVQbo
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+
+iQJPBAABCAA5FiEEgnQYxPSsWOdyMMRzNHYf+OetQ9IFAmm4CPobFIAAAAAABAAO
+bWFudTIsMi41KzEuMTEsMiwyAAoJEDR2H/jnrUPS2FYQAJbEWn2H8OkHzf+2BJpI
+pQZhD0WOg3sDWU3oXYUoPQF+HXYeiTf7FMo6MJZpOaH2m+CPlToM3k9isyqsUdb0
+gK6fpgcTZFJNG7jtbw88I/kGDx9Av5ulGhQqCvqHCnqjX38jE7LmHT7O2QC6GFwf
+p4x0ZjEBFmDLLxilBbKvyq3UMX4qCWPXOf4mLPsPRECG3a4c0v7If1zI/7VXaOZL
+npwZNm5KhWVHxBURJlmsYwLSEiJeOSqc4DYMRJiccpzFMAxCFIWHZ8htO99BtUOo
+pL8NLR9sKs1pBYGZ8B5kZ3sZWlGp7vNMLU3hD3q/LLVHi2SUN1en2ksRnN083nYy
+AO43hL9hb0jBEW2D5wXWahy/GSPZu3fQcRda5ztdCn8ZQg4tRwPczB3td+RitdAW
+h4zqc0gk9+O0RxtCSssTs9ekByTGFEJgeCKGiOBZ+gSp9B9zeTWqEkt78L/JM38Q
+KmiKZ57jUdRqnF0eQewj3/2TQ3M9P+PNay3uJ4eG3U+Hl/ULHD/40F24Abgo6cdq
+0PVAUInTgXsVjYFyeE5E5JFw6Ehn6pJPSHVRimZRSR88/AKLqTOgdRleGm/aU7D4
+9rNuaWQAUmH80clONCey6pJm3hwi93Wj7ybd2y5E3Hs6LkGu7p79hcqQ7l0kL3HA
+CT9lZKm9jbdEWf7vvaW3UYm8
+=rU/e
+-----END PGP SIGNATURE-----
+
+--=-+sZKitfK3M04UKxrVQbo--
