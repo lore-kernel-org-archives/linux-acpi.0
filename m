@@ -1,272 +1,151 @@
-Received: from mout02.posteo.de (mout02.posteo.de [185.67.36.66])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.17])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B870B33FE33
-	for <linux-acpi@vger.kernel.org>; Mon, 16 Mar 2026 18:06:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.67.36.66
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAEF218DF80;
+	Mon, 16 Mar 2026 18:11:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.17
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773684397; cv=none; b=lKLq0GGsrLAzDf0xitML7aFmpPl3yWkdJYkMdZeMAJXxTmFmI2CdTvQHNcgAJh33cxosPMZHJPP/m+bMM/McPNewoj1A0M2vssSVEYTFoZdIBrt2TPr1SVzCZF08EDe8yN4V3RyI3pf9WH3E+JFligTyUTLHgNh8Fy+jLOZ/vc0=
+	t=1773684684; cv=none; b=PcvDXsNnhMlTEkmylJDIZ3+a6nVcfqJa6iKxLayz3cAIW1TCUu3SbKzTTmmiXIBNWLzEU7g4lXverku7lY+/fKRAuV8u2bOtJsOIs+oSRavOQ2XRM6qniZDryWWEJrp/t63D1RldOzNris73GnF/rfNHN0j4M7NnAunvsvO+3dM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773684397; c=relaxed/simple;
-	bh=vsCerXvNI66p0WQN4f2HWtkZDjbz/hrQ/GAa3UbU95M=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=WUZHcZbGJnEUVCY98MRATOOS/9uOgPqLF9DCe+1dG3J8KAEyCUGAD6/v4h+8MEza2FZ793C49bh28QXVh/jpNxXQZdz0RelJXvfeze4dlAQ2WxM9Ek8VA2UvYNJoburyqfOCBi5iIHfInE6GY6mv7ojDDB7sbAo+fOg8lbCsX5c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de; spf=pass smtp.mailfrom=posteo.de; dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b=qO6Lk7rT; arc=none smtp.client-ip=185.67.36.66
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=posteo.de
+	s=arc-20240116; t=1773684684; c=relaxed/simple;
+	bh=8+44uTrQ/29p3/qLO8+PYa00EGkhNU+tpwb+3NXcZkY=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=P0H/O1Rp7HVYGgpkVjWVaWpBEVDouigsFyx0yLpjs5kzk7wyG858OZ8Xi8GrPoJrxvoS5vWklMmmNjN5yTJNmQolt+SUMx9YV8vuWvQKQmYABJO8UjD4VdW3Vxun2MGZpB2pPHV0VYizGsRyKhrFBNZz0r93F/a8d00UGGTsEAw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=BDQezc0I; arc=none smtp.client-ip=198.175.65.17
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b="qO6Lk7rT"
-Received: from submission (posteo.de [185.67.36.169]) 
-	by mout02.posteo.de (Postfix) with ESMTPS id 29CA8240105
-	for <linux-acpi@vger.kernel.org>; Mon, 16 Mar 2026 19:06:25 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=posteo.de; s=2017;
-	t=1773684385; bh=w4aMMeXH0b7JgTSQ3j7crI/pRlF2UNUuOM0hPyY2020=;
-	h=Message-ID:Subject:From:To:Cc:Date:Autocrypt:Content-Type:
-	 MIME-Version:OpenPGP:From;
-	b=qO6Lk7rTUW3H0fPPJfL0YGhRHR1XTS90SrfRDYE8pBk9gt5ZhKNsQAfy69KXzCiao
-	 pjGRF3NZJtST7bhPpXSAMH/DrAAvN1ENGG+ZNaaGay7YhOoKiODycXsj6QWCqG2yRa
-	 dSkp3WxoDzxayQaYAEe362SdqM2jxkoD5sxPxIKzlD9QwZtGB6XxK/3yQz0o7OS975
-	 r2fFLZ1DvGEli+vPgFyP/m+GQwIBDjYIWpY+p8Z6G3IKZTJaxBq+AIoWoNzua6OdDc
-	 blIqYZ7il8b7kff3JP3SQ5CH8dNeALlsb4bUa7Xt+AniyB/FVn66MRVd3HE5JMBA0g
-	 miEXkT04RIr6Q==
-Received: from customer (localhost [127.0.0.1])
-	by submission (posteo.de) with ESMTPSA id 4fZNM142Ltz9rxF;
-	Mon, 16 Mar 2026 19:06:21 +0100 (CET)
-Message-ID: <3ca65f7d0b00c93c91563bc29198f18d5a30eeae.camel@posteo.de>
-Subject: Re: [PATCH v3 7/7] leds: add synology microp led driver
-From: Markus Probst <markus.probst@posteo.de>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Danilo Krummrich <dakr@kernel.org>, Markus Probst via B4 Relay	
- <devnull+markus.probst.posteo.de@kernel.org>, Lee Jones <lee@kernel.org>, 
- Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>,
- Conor Dooley <conor+dt@kernel.org>,  Miguel Ojeda <ojeda@kernel.org>, Boqun
- Feng <boqun@kernel.org>, Gary Guo <gary@garyguo.net>, 
- =?ISO-8859-1?Q?Bj=F6rn?= Roy Baron	 <bjorn3_gh@protonmail.com>, Benno
- Lossin <lossin@kernel.org>, Andreas Hindborg	 <a.hindborg@kernel.org>,
- Alice Ryhl <aliceryhl@google.com>, Trevor Gross	 <tmgross@umich.edu>,
- "Rafael J. Wysocki" <rafael@kernel.org>, Igor Korotin	
- <igor.korotin.linux@gmail.com>, Daniel Almeida
- <daniel.almeida@collabora.com>,  Bjorn Helgaas <bhelgaas@google.com>,
- Krzysztof =?UTF-8?Q?Wilczy=C5=84ski?= <kwilczynski@kernel.org>, Pavel
- Machek <pavel@kernel.org>, Len Brown <lenb@kernel.org>, Robert Moore
- <robert.moore@intel.com>, 	devicetree@vger.kernel.org,
- linux-kernel@vger.kernel.org, 	rust-for-linux@vger.kernel.org,
- driver-core@lists.linux.dev, 	linux-pci@vger.kernel.org,
- linux-leds@vger.kernel.org, 	linux-acpi@vger.kernel.org,
- acpica-devel@lists.linux.dev
-Date: Mon, 16 Mar 2026 18:06:23 +0000
-In-Reply-To: <2026031602-drove-timothy-1bb1@gregkh>
-References: <20260313-synology_microp_initial-v3-0-ad6ac463a201@posteo.de>
-	 <20260313-synology_microp_initial-v3-7-ad6ac463a201@posteo.de>
-	 <DH1YH0GO75H8.18YSW2VMKRB3C@kernel.org>
-	 <39f1c9bb0dbde9f1b60785f8e838289c888ffdb0.camel@posteo.de>
-	 <DH3KAWWLECYW.3VBH7PIE7ZE20@kernel.org>
-	 <eb2f7498c5f3247265effc47b3445a04ac71956e.camel@posteo.de>
-	 <DH3M1023PCBI.1HYYZU93NS1JX@kernel.org>
-	 <2026031645-unplowed-purist-9c4b@gregkh>
-	 <a4fb56d5eea790b51aa3623044e5d774a6bab47f.camel@posteo.de>
-	 <2026031602-drove-timothy-1bb1@gregkh>
-Autocrypt: addr=markus.probst@posteo.de; prefer-encrypt=mutual;
- keydata=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
- jfGillcaQOqFZ3WwVqyzG1BUfTow==
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-akERDsl+g92JaDyAMR+U"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="BDQezc0I"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1773684683; x=1805220683;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=8+44uTrQ/29p3/qLO8+PYa00EGkhNU+tpwb+3NXcZkY=;
+  b=BDQezc0IOwp9tAUG6jtf7pj3UwOOZ4sT8E/wCG74FtamDy3V2ycYHnJE
+   Www5vRiFj2mM70SkxWLo8vrFrLxHc6vi0aHoDv4mUj/voI5B3VED7nrtq
+   gVF1+tZSvkKVGlmBXR0rw1YAVjx3imp4PcwiBQSoB2ACmDDALtMdXEQ2j
+   iUQDihQNPd2rYx23GBQCfLJvTPAhwX9GQZKvsLIXg1XedfKysCb+4poSN
+   q/6iylIltVxWVoIQu9+P9+M4Nm5XEM48l6jKShh1p5khWXCbzSIs+fVai
+   i5U+AiR95k3SH99EkToupHjjagU0wWMXL4I1AstWgutnnOuAyfDgAQMXA
+   A==;
+X-CSE-ConnectionGUID: BzpMdsMtTSqG8OpWHEWYbw==
+X-CSE-MsgGUID: mSx0DWCWQS+adACH4shH8Q==
+X-IronPort-AV: E=McAfee;i="6800,10657,11731"; a="74682284"
+X-IronPort-AV: E=Sophos;i="6.23,124,1770624000"; 
+   d="scan'208";a="74682284"
+Received: from fmviesa003.fm.intel.com ([10.60.135.143])
+  by orvoesa109.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Mar 2026 11:11:22 -0700
+X-CSE-ConnectionGUID: jDrCcEmZSQ+dhyKK0eIG2w==
+X-CSE-MsgGUID: pOUoKrK+SRefxNck8RT8+A==
+X-ExtLoop1: 1
+Received: from lstrano-mobl6.amr.corp.intel.com (HELO [10.124.223.96]) ([10.124.223.96])
+  by fmviesa003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Mar 2026 11:11:21 -0700
+Message-ID: <9f941964-446b-4563-957b-7cc5f69a004b@intel.com>
+Date: Mon, 16 Mar 2026 11:11:20 -0700
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-OpenPGP: url=https://posteo.de/keys/markus.probst@posteo.de.asc; preference=encrypt
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2] ACPI: NUMA: Only parse CFMWS at boot when CXL_ACPI is
+ on
+To: Kai Huang <kai.huang@intel.com>, rafael@kernel.org, lenb@kernel.org,
+ dan.j.williams@intel.com, alison.schofield@intel.com
+Cc: akpm@linux-foundation.org, nunodasneves@linux.microsoft.com,
+ xueshuai@linux.alibaba.com, thorsten.blum@linux.dev, gourry@gourry.net,
+ wangyuquan1236@phytium.com.cn, linux-acpi@vger.kernel.org,
+ linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20260308222313.14014-1-kai.huang@intel.com>
+Content-Language: en-US
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <20260308222313.14014-1-kai.huang@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
 
---=-akERDsl+g92JaDyAMR+U
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Mon, 2026-03-16 at 14:58 +0100, Greg Kroah-Hartman wrote:
-> On Mon, Mar 16, 2026 at 01:43:44PM +0000, Markus Probst wrote:
-> > On Mon, 2026-03-16 at 07:33 +0100, Greg Kroah-Hartman wrote:
-> > > On Sun, Mar 15, 2026 at 08:41:06PM +0100, Danilo Krummrich wrote:
-> > > > I.e. if we can't (easily) use mfd cells and would need a custom API=
-, then why
-> > > > even split it up at all, given that splitting it up would probably =
-the most
-> > > > complicated part of the whole driver.
-> > > >=20
-> > > > Greg, what do you think?
-> > >=20
-> > > I think this has yet to be proven to be a kernel driver at all at thi=
-s
-> > > point, and not just a userspace daemon that listens to the serial por=
-t
-> > > and then does what is needed from there :)
-> > >=20
-> > > Or, if someone can prove that the operations on this serial data stre=
-am
-> > > actually do require it to be in the kernel (which I have yet to see a
-> > > list of what this connection does, did I miss it?) then a single driv=
-er,
-> > > under the drivers/platform section of the kernel tree makes sense.
-> > The sysoff component is strictly necessary for poweroff and reboot.
-> >=20
-> > On ARM64 Synology NAS devices it is needed so the device actually
-> > powers off after calling
-> > `syscall(SYS_reboot, LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2,
-> > LINUX_REBOOT_CMD_POWER_OFF, NULL);`
-> > . Otherwise it would stay on.
-> > Same applies to reboot.
->=20
-> So that means a write of a set of bytes to the serial port will cause
-> the machine to reboot or shutdown?
-Yes.
->=20
-> > On x86 it isn't clearly documented what sending the poweroff and reboot
-> > command to the microp device exactly does, so this is based on
-> > observations. It should be sent before issuing a poweroff or reboot via
-> > ACPI Sleep. On reboot it resets various device states, so fan speeds go
-> > to default, leds turn off etc., so it behaves like a coldboot.
-> > On poweroff it will mark it as graceful shutdown (i. e. the device
-> > won't turn automatically on, because it thinks a power-loss happend).
-> >=20
-> > For the other components:
-> > - leds
-> > - hwmon
-> > - input
->=20
-> For "input" what exactly does the input device show up as?  A power
-> button?  Something else?
+On 3/8/26 3:23 PM, Kai Huang wrote:
+> On CXL platforms, the Static Resource Affinity Table (SRAT) may not
+> cover memory affinity information for all the CXL memory regions.  Since
+> each CXL memory region is enumerated via a CXL Fixed Memory Window
+> Structure (CFMWS), during early boot the kernel parses the CFMWS tables
+> to find all CXL memory regions and sets a NUMA node for each of them.
+> This memory affinity information of CXL memory regions is later used by
+> the CXL ACPI driver.
+> 
+> The CFMWS table doesn't provide the memory affinity information either.
+> Currently the kernel assigns a 'faked' NUMA node for each CXL memory
+> region, starting from the next node of the highest node that is
+> enumerated via the SRAT.  This can potentially increase the maximum NUMA
+> node ID of the platform ('nr_node_ids') a lot.  E.g., on a GNR platform
+> with 4 NUMA nodes and 18 CFMWS tables, this bumps the 'nr_node_ids' to
+> 22.
+> 
+> Increasing the 'nr_node_ids' has side effects.  For instance, it is
+> widely used by the kernel for "highest possible NUMA node" based memory
+> allocations.  It also impacts userspace ABIs, e.g., some NUMA memory
+> related system calls such as 'get_mempolicy' which requires 'maxnode'
+> not being smaller than the 'nr_node_ids'.
+> 
+> Currently parsing CFMWS tables and assigning faked NUMA node at boot is
+> done unconditionally.  However, if the CXL ACPI driver is not enabled,
+> there will be no user of such memory affinity information of CXL memory
+> regions.
+> 
+> Change to only parsing the CFMWS tables at boot when CXL_ACPI is enabled
+> in Kconfig to avoid the unnecessary cost of bumping up 'nr_node_ids'.
+> 
+> E.g., on the aforementioned GNR platform, the "Slab" in /proc/meminfo is
+> reduced with this change (when CXL_ACPI is off):
+> 
+> 	w/ this change		w/o
+> 
+> Slab	900488 kB		923660 kB
+> 
+> Signed-off-by: Kai Huang <kai.huang@intel.com>
 
-Well there are a few other things besides a power button:
+Applied to cxl/next
+1e1cd49ded59 ("ACPI: NUMA: Only parse CFMWS at boot when CXL_ACPI is on")
 
-- beeper (short and long variant)
-- factory reset button
-- "USB Copy" button. Not present on all devices (including not present
-on my testing device). It is meant for copying data from or to a usb
-stick.
+> ---
+> 
+> v1 -> v2:
+> 
+>  - Use Dan's suggestion to simplify the diff:
+> 
+>  https://lore.kernel.org/linux-cxl/69a8dc7ca72c2_2f4a10026@dwillia2-mobl4.notmuch/
+> 
+> Hi Alison, Gregory,
+> 
+> I didn't add your RB since the code now is different from that you
+> reviewed.  Appreciate if you can take a look again and provide the tag
+> if the patch looks good to you.
+> 
+> ---
+>  drivers/acpi/numa/srat.c | 7 +++++--
+>  1 file changed, 5 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/acpi/numa/srat.c b/drivers/acpi/numa/srat.c
+> index aa87ee1583a4..62d4a8df0b8c 100644
+> --- a/drivers/acpi/numa/srat.c
+> +++ b/drivers/acpi/numa/srat.c
+> @@ -654,8 +654,11 @@ int __init acpi_numa_init(void)
+>  	}
+>  	last_real_pxm = fake_pxm;
+>  	fake_pxm++;
+> -	acpi_table_parse_cedt(ACPI_CEDT_TYPE_CFMWS, acpi_parse_cfmws,
+> -			      &fake_pxm);
+> +
+> +	/* No need to expand numa nodes if CXL is disabled */
+> +	if (IS_ENABLED(CONFIG_CXL_ACPI))
+> +		acpi_table_parse_cedt(ACPI_CEDT_TYPE_CFMWS, acpi_parse_cfmws,
+> +				      &fake_pxm);
+>  
+>  	if (cnt < 0)
+>  		return cnt;
+> 
+> base-commit: 084f843093bee5563b179fd4b630122ba820e0c7
 
-Both of these buttons don't have a keycode in include/uapi/linux/input-
-event-codes.h, which is suprising given how many devices have a factory
-reset button. So I am not sure if I can handle them in this driver.
-
-=46rom what I can tell, there isn't actually a input device type I could
-specify on registering a input device. But it would be considered a
-misc input device.
-
->=20
-> For hwmon, that makes sense to have a kernel driver.
->=20
-> For leds, that depends on what you want to do with the led, as in the
-> end you are just controlling it from userspace anyway :)
-
-
->=20
-> > It could theoratically be implemented in userspace. A userspace daemon
-> > could theoratically control the fan speeds directly, issue a systemd
-> > shutdown on power button press, control the leds directly etc.
-> >=20
-> > But honestly, I don't understand why this is an argument.
-> > With that argument drivers/leds, drivers/hwmon and drivers/input would
-> > not even exist, because everything could be implemented in userspace
-> > via
-> > - I2C: /dev/i2c-* (drivers/i2c/i2c-dev.c)
-> > - MMIO: /dev/ioport and /dev/mem (drivers/char/mem.c)
-> > - GPIO: /sys/class/gpio (drivers/gpio/gpiolib-sysfs.c)
-> > - SPI: /dev/spidev* (drivers/spi/spidev.c)
-> > - PCI: /sys/class/pci_bus/ (drivers/pci/pci-sysfs.c)
-> > - Serial: /dev/ttyS*
-> > and likely almost any other bus device too.
-> >=20
-> > Generally speaking, the kernel and its drivers is the layer between
-> > hardware and software. It provides the hardware abstractions as
-> > userspace interfaces. So any software on the same cpu architecture can
-> > work with any hardware, as long as there is a kernel driver.
->=20
-> Yes, I kind of know what drivers and classes do and why they are needed,
-> that's not the point here. :)
->=20
-> > In the case of this driver, it means
-> > - *any* led daemon can control the leds
-> > - *any* fan control daemon can control the fan speed and frequency
-> > - *any* monitoring software can view the provided sensors
-> > - *any* init system can react to the power button
-> > - *any* process can request a reboot or shutdown
-> > .
-> > I think this is the expected behaviour.
->=20
-> Ok great, then make a single driver that handles all of this, like other
-> drivers/platform/ drivers do today, and all should be fine.
-Great, I will.
-
-Thanks
-- Markus Probst
-
->=20
-> thanks,
->=20
-> greg k-h
-
---=-akERDsl+g92JaDyAMR+U
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-
-iQJPBAABCAA5FiEEgnQYxPSsWOdyMMRzNHYf+OetQ9IFAmm4RoobFIAAAAAABAAO
-bWFudTIsMi41KzEuMTEsMiwyAAoJEDR2H/jnrUPSsUIQAJeCzIeF7FxfVLPKwAJv
-sYO9ZXh6FWfGwq+zzAzAXqlhJQWtoptqBFhmWtrGiAEUYFDMlEG2jO9t4zE9cQiR
-O+QVCX1qWxERY0X4gbrT0GEcHuZpB7eqDRpHqQ1edsZrrbjD0LJl2GwrR+juH3p+
-J0H6qYNP0BP5I2Ox7pt3Wjw942RE8yV99ReJX15i7IseMtToK170J0yfLhV9EYdD
-ti/CzYvzqLndEhHRCVDrJhqRkUY7ffDrb/xir2FRqRmEnMw8Tyyy05eBccafoX4K
-bhb+cld/DtCZYR2BL2wyj6PVV6EYOjInchNDRa9T1txQ/yAd/s0yx2znesXtj2Kt
-xGn4A82oT4q84JtGyz4SCTvhAFMtle+23zmYHGgsJGjWLV2rAFLrTplZErqZWtCo
-UYNRzDvzksVnGSp05DeVmM1qZp8PZtfG/UlIfEYCbkkQVT8LZVb6/2BAzGdbmjMk
-LBI9lI95d17uCyxp9+1Pb1fls+XD25b0v1Qv6U5/YJPAwbyGAW3JtGsVhb0vhpdI
-hxTeJKlM1qq9voRoRWSDq+CSYGbNtQCvpjderejTY5otR9Ip1h+HAhTa8326QFmp
-OxOfwBf0ZcvmnxG4bIHDiySMdXLMSNzgAyGlZfcfI0rhEWazQktxJncKWn7D7VWP
-ojdLA9L7y+sXPTSIujFHYCZA
-=q1ya
------END PGP SIGNATURE-----
-
---=-akERDsl+g92JaDyAMR+U--
