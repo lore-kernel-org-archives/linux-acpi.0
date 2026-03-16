@@ -1,58 +1,58 @@
-Received: from relay11.grserver.gr (relay11.grserver.gr [78.46.171.57])
+Received: from relay14.grserver.gr (relay14.grserver.gr [157.180.73.62])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BCB33E929D
-	for <linux-acpi@vger.kernel.org>; Mon, 16 Mar 2026 19:55:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=78.46.171.57
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62B5422D792
+	for <linux-acpi@vger.kernel.org>; Mon, 16 Mar 2026 20:01:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=157.180.73.62
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773690910; cv=none; b=BMWccE4BJq+iUsBhXzuZX+yz+V7IWXuv+xVBNwqTUF+Co7kWcOY7GUTKg6f/PUpBtbsDel/PFrQcnTq5wfwrXGwCcPnf7KITdX1VQwV63YoQ5iAAOO4CqubERDSMme71MzjwCDHzxP1cDMTgJ7ezV0W/oB8D43bT13MvQ/xhL/M=
+	t=1773691286; cv=none; b=l8T1K/8+B9jzsg0aXuF2pQqTapa/7H1KulT0Nf9oAyKL8D/OQknE115ZovRdH3LcUq8hFLv16EVHlWe98Y8QaB6ugzdVwC5/BZGHGv7NJdNfbDoWSYzJXyxUAg8eLbHyyh4/W47kodM79kbwb/21xVJu3e/OspmgDKsoXiF7XOc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773690910; c=relaxed/simple;
-	bh=xEmsQEx0iA6JVbcSG31ujUihFLICeJ2tCPW4bAloo3w=;
+	s=arc-20240116; t=1773691286; c=relaxed/simple;
+	bh=TWxd1ygPiD7JZpBdR/umANEYsRkJVz36tSHX5qfVkyE=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=TlCqNzKEVJiA56UwWZtvpL/K1MIzreG9pYTKVo6yLMdbeUn91XTbOfEYhaj3CfzEnELQfkAwmd2MfUwIDqtM1NtchZHzFQ7dwMNK3wxJX+ENETeBSLqGQH1yUVkYD3arJCxUv17FBRdBD2AwLaJTWk72EC9Lu0OOfHYEaONUK/w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=antheas.dev; spf=pass smtp.mailfrom=antheas.dev; dkim=pass (2048-bit key) header.d=antheas.dev header.i=@antheas.dev header.b=YzIHMU9S; arc=none smtp.client-ip=78.46.171.57
+	 To:Cc:Content-Type; b=MMlEaY0yqcnquG7GWSF0SSMLVPCE1ivIDy3js7oEHn2bJsfJbE1SYbvqNM5ZYkHpxZCY76iHVHMFbB760Lzl48dAzyG7PukMnL2aYOD3lyL0Ohbn5JyuOWBfyCWMrVkDCWBPt3l9DZT2BTSIdcXITnYVsT56100rEmbiyJ/bdN8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=antheas.dev; spf=pass smtp.mailfrom=antheas.dev; dkim=pass (2048-bit key) header.d=antheas.dev header.i=@antheas.dev header.b=J+MXdZJX; arc=none smtp.client-ip=157.180.73.62
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=antheas.dev
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=antheas.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=antheas.dev header.i=@antheas.dev header.b="YzIHMU9S"
-Received: from relay11 (localhost.localdomain [127.0.0.1])
-	by relay11.grserver.gr (Proxmox) with ESMTP id 9988DC7E19
-	for <linux-acpi@vger.kernel.org>; Mon, 16 Mar 2026 21:55:07 +0200 (EET)
+	dkim=pass (2048-bit key) header.d=antheas.dev header.i=@antheas.dev header.b="J+MXdZJX"
+Received: from relay14 (localhost [127.0.0.1])
+	by relay14.grserver.gr (Proxmox) with ESMTP id C04F4409C8
+	for <linux-acpi@vger.kernel.org>; Mon, 16 Mar 2026 20:01:23 +0000 (UTC)
 Received: from linux3247.grserver.gr (linux3247.grserver.gr [213.158.90.240])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by relay11.grserver.gr (Proxmox) with ESMTPS id A46F1C7E15
-	for <linux-acpi@vger.kernel.org>; Mon, 16 Mar 2026 21:55:06 +0200 (EET)
-Received: from mail-pf1-f172.google.com (mail-pf1-f172.google.com [209.85.210.172])
-	by linux3247.grserver.gr (Postfix) with ESMTPSA id 9AC6E1FEF26
-	for <linux-acpi@vger.kernel.org>; Mon, 16 Mar 2026 21:55:04 +0200 (EET)
+	by relay14.grserver.gr (Proxmox) with ESMTPS id D59F24077A
+	for <linux-acpi@vger.kernel.org>; Mon, 16 Mar 2026 20:01:22 +0000 (UTC)
+Received: from mail-pj1-f49.google.com (mail-pj1-f49.google.com [209.85.216.49])
+	by linux3247.grserver.gr (Postfix) with ESMTPSA id 0DC2A1FDACD
+	for <linux-acpi@vger.kernel.org>; Mon, 16 Mar 2026 22:01:22 +0200 (EET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=antheas.dev;
-	s=default; t=1773690906;
-	bh=obmUc3yvfxFFYCBj3OG4KsBuKmlpApJ5RC7HVFQhwVg=;
+	s=default; t=1773691282;
+	bh=IMHG5OEpqvm3B8552RXXvuRdrvKNQcB6yxv3LH3Azpw=;
 	h=Received:From:Subject:To;
-	b=YzIHMU9SHJOwXTtnEAAmG6twdDHj2c1Ga/jd8v23JTEegNXk+O2+JEXTlk5o8Ly/3
-	 bIdI+HIaD8IykQau6ogcZ2JHO/twJqOHYekSU/Jpb02cXybg5JsxUbVNGXwiDHvR74
-	 fm+AQLSNSP4KwOEZ1UCTdNYBf3L9OhcjC/bcCc6njOYjLH3Y/PKKYI+OECQfnrEFFH
-	 7KlpWijPCDSurhfRuK5GCbWQQyHxx7AL2jWdIdfXiyKfW59+0MwzHIZbhpxkAsjlZS
-	 BFVGDQ/UlCF7NDx4LIbLOs6gMW5yqkTXErX8lf34+3CW5pNrVO0wMZyV9kCMrntOoP
-	 TZLJ+2OAvgydA==
+	b=J+MXdZJX4mYUrYuBViIMEPoVw0ydHMoovfbcZYs/9BnVXOptmyYrR5aJ3pBL9LcfD
+	 eobjVo5xYB3UQAcU53ToUqH5rL5zdqO/ZUTbGcV1U3wE48vlgcWbEcI22lYtQ0dWLP
+	 6ceykYaVBCHAgyGiQfqOIc8fpE2aOGaHZtqu/ax9sBA6fi9LDjq6Lj/VTcjJVCvn+Y
+	 XtoRUjvCB7UL0F6+xz9fCacjpKtVOlTVY7riXaTTV+9adIhdLPRA0Jk8tB12qELKBI
+	 L1nxjAb+alPFne2qFf/NI1u9HrVQfWZkb21SVjV8zsX4L1iRTIV+ef2G02tJzOc0ys
+	 MbVx9Lcb6X19Q==
 Authentication-Results: linux3247.grserver.gr;
-        spf=pass (sender IP is 209.85.210.172) smtp.mailfrom=lkml@antheas.dev smtp.helo=mail-pf1-f172.google.com
+        spf=pass (sender IP is 209.85.216.49) smtp.mailfrom=lkml@antheas.dev smtp.helo=mail-pj1-f49.google.com
 Received-SPF: pass (linux3247.grserver.gr: connection is authenticated)
-Received: by mail-pf1-f172.google.com with SMTP id
- d2e1a72fcca58-829759ca646so3045102b3a.2
+Received: by mail-pj1-f49.google.com with SMTP id
+ 98e67ed59e1d1-35a09e0dd63so5472708a91.3
         for <linux-acpi@vger.kernel.org>;
- Mon, 16 Mar 2026 12:55:04 -0700 (PDT)
+ Mon, 16 Mar 2026 13:01:21 -0700 (PDT)
 X-Forwarded-Encrypted: i=1;
- AJvYcCUI8wSXEGdqcMztR1D9HfIC4LkjIOFzj/ye7gNbxzrjgIWzSHMTAslZU4A/1sEpfOfzzU9eB2+QM1tC@vger.kernel.org
-X-Gm-Message-State: AOJu0Yxj9dy6WAVWjdIaz/9rdA7WhEtFEi0JYiDIrVAQlg8m3zX0GK+M
-	cq3efk0YDpxf2dsZ9dI65WF3ibM5HBzIKednoIOMs39P50O4FpkxcJasn8GSeBh2QUqtbNjoATF
-	FP3W4x4U2shEbP0YCAQne48NQeFaOQqQ=
-X-Received: by 2002:a05:6a20:431f:b0:398:7036:7378 with SMTP id
- adf61e73a8af0-398ece00a17mr13324072637.66.1773690903255; Mon, 16 Mar 2026
- 12:55:03 -0700 (PDT)
+ AJvYcCUNPg+HWgeIkbRdbiqdDfKnsfT2ENAvjBPI1Vrq9QREEBDjKXX0tfKmaNKMrq4K12V6TNpXqCwAE/fC@vger.kernel.org
+X-Gm-Message-State: AOJu0YyhnCEQwHpm6XQ1pDZiNTVmLojU9Yn1veFhyYtZ6VKLylVQcb20
+	OAJK9SGSE15vspVRCUw0C8MogORuXQX+KOygAprgofeseBLJaeTI6uSOJFt1VVPNvl09F4yl+bn
+	NXAaV1I0yTHqmOee3Bv1omXFni49T7EA=
+X-Received: by 2002:a17:90b:314e:b0:35b:977f:f843 with SMTP id
+ 98e67ed59e1d1-35b977ffc49mr5644603a91.33.1773691280903; Mon, 16 Mar 2026
+ 13:01:20 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -60,19 +60,19 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 References: <20251226102656.6296-1-lkml@antheas.dev>
- <20251226102656.6296-2-lkml@antheas.dev>
- <CAJZ5v0iPt6uFskHjO=Zj-vyExioM2Vypp05sTLQ-6QZeQi4ibQ@mail.gmail.com>
+ <20251226102656.6296-3-lkml@antheas.dev>
+ <CAJZ5v0hnP1cJqGN9gLyAgtz5pmRO0xsF6O8ZtnQ+ktRjSSOkyA@mail.gmail.com>
 In-Reply-To: 
- <CAJZ5v0iPt6uFskHjO=Zj-vyExioM2Vypp05sTLQ-6QZeQi4ibQ@mail.gmail.com>
+ <CAJZ5v0hnP1cJqGN9gLyAgtz5pmRO0xsF6O8ZtnQ+ktRjSSOkyA@mail.gmail.com>
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Mon, 16 Mar 2026 20:54:52 +0100
+Date: Mon, 16 Mar 2026 21:01:09 +0100
 X-Gmail-Original-Message-ID: 
- <CAGwozwE6ZoiXdn-eqY+fn9DKVq5obuNv_WBZeuX3Mxz4xH4NRg@mail.gmail.com>
-X-Gm-Features: AaiRm51Fgo0HMrvlSQlUWYaUz9OwMG_yAZKG3RKslJYK0ki-fO7rNOIseSyabmQ
+ <CAGwozwE_QbiNk53+kTjwELtWhK31LCrBm5fgx2b46sZa_5wjaA@mail.gmail.com>
+X-Gm-Features: AaiRm518a8b_PmPk7Kp1PQAXKs4Y7jn0iCjvXOpTX0L5eWISmTVIjV6VOcE_IJM
 Message-ID: 
- <CAGwozwE6ZoiXdn-eqY+fn9DKVq5obuNv_WBZeuX3Mxz4xH4NRg@mail.gmail.com>
-Subject: Re: [RFC v1 1/8] Documentation: PM: Add documentation for Runtime
- Standby States
+ <CAGwozwE_QbiNk53+kTjwELtWhK31LCrBm5fgx2b46sZa_5wjaA@mail.gmail.com>
+Subject: Re: [RFC v1 2/8] acpi/x86: s2idle: Rename LPS0 constants so they
+ mirror their function
 To: "Rafael J. Wysocki" <rafael@kernel.org>
 Cc: dmitry.osipenko@collabora.com, bob.beckett@collabora.com,
 	bookeldor@gmail.com, hadess@hadess.net, jaap@haitsma.org,
@@ -83,277 +83,205 @@ Cc: dmitry.osipenko@collabora.com, bob.beckett@collabora.com,
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 X-PPP-Message-ID: 
- <177369090563.3172783.14696786763249851198@linux3247.grserver.gr>
+ <177369128230.3206168.8496588666833579478@linux3247.grserver.gr>
 X-PPP-Vhost: antheas.dev
 X-Virus-Scanned: clamav-milter 1.4.3 at linux3247.grserver.gr
 X-Virus-Status: Clean
 
-On Fri, 13 Mar 2026 at 21:08, Rafael J. Wysocki <rafael@kernel.org> wrote:
+On Fri, 13 Mar 2026 at 21:13, Rafael J. Wysocki <rafael@kernel.org> wrote:
 >
 > On Fri, Dec 26, 2025 at 11:27=E2=80=AFAM Antheas Kapenekakis <lkml@anthea=
 s.dev> wrote:
 > >
-> > Introduce the runtime standby state ABI, which allows for firing the
-> > Modern Standby firmware notifications found in Windows during runtime.
-> > These notifications allow to make systems that support them look
-> > suspended.
+> > The LPS0 3/4 constants are part of a firmware notification called
+> > "Display on/off", in which the device enters a "Screen Off" state.
+> > The LPS0 7/8 constants are part of a firmware notification in which
+> > a Windows modern standby computer enters a "sleep" state where the
+> > CPU may still be active and maintain the radios.
+> >
+> > However, currently, the values are named as "Screen on/off"
 >
-> The "look suspended" thing is misguided IMV.
+> This is based on the Intel documentation:
+> https://uefi.org/sites/default/files/resources/Intel_ACPI_Low_Power_S0_Id=
+le.pdf
+
+The intel document affirms the rename, the state is referred to as
+"Screen Off" with the callbacks being named "Display On/Off".
+
+> > and "MS entry/exit", where Modern Standby is abbreviated as "MS". There=
+fore,
+> > perform a minor rename so that the values match their function.
 >
-> I'd rather say something like
->
->  This will allow "dark mode" indicating the lack of system activity
-> related to running user workloads.
->
+> I'm not sure about the first two at least.
+
+Sleep DSMs are a bit more complicated. They are only defined in the
+Microsoft UUID. However, the Windows suspend flow uses both DSM sets
+distinctly. LPS0 entry/exit are used the same way in the Microsoft
+UUID. The MS_ pair is used for an intermediary sleep state where the
+CPU is still active. As the MS_ prefix causes confusion, I would tend
+towards keeping this patch.
+
+> > Then, fix the debug message to say that it executes notifications inste=
+ad of
+> > entering states as it is otherwise confusing.
+> >
 > > Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 > > ---
-> >  Documentation/ABI/testing/sysfs-power         |  20 ++++
-> >  .../admin-guide/pm/standby-states.rst         | 100 ++++++++++++++++++
-> >  Documentation/admin-guide/pm/system-wide.rst  |   1 +
-> >  3 files changed, 121 insertions(+)
-> >  create mode 100644 Documentation/admin-guide/pm/standby-states.rst
+> >  drivers/acpi/x86/s2idle.c | 54 +++++++++++++++++++--------------------
+> >  1 file changed, 27 insertions(+), 27 deletions(-)
 > >
-> > diff --git a/Documentation/ABI/testing/sysfs-power b/Documentation/ABI/=
-testing/sysfs-power
-> > index d38da077905a..16378be2dc13 100644
-> > --- a/Documentation/ABI/testing/sysfs-power
-> > +++ b/Documentation/ABI/testing/sysfs-power
-> > @@ -39,6 +39,26 @@ Description:
-> >                 See Documentation/admin-guide/pm/sleep-states.rst for m=
-ore
-> >                 information.
+> > diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
+> > index 6d4d06236f61..1f13c8b0ef83 100644
+> > --- a/drivers/acpi/x86/s2idle.c
+> > +++ b/drivers/acpi/x86/s2idle.c
+> > @@ -39,19 +39,19 @@ static const struct acpi_device_id lps0_device_ids[=
+] =3D {
+> >  #define ACPI_LPS0_DSM_UUID     "c4eb40a0-6cd2-11e2-bcfd-0800200c9a66"
 > >
-> > +What:          /sys/power/standby
+> >  #define ACPI_LPS0_GET_DEVICE_CONSTRAINTS       1
+> > -#define ACPI_LPS0_SCREEN_OFF   3
+> > -#define ACPI_LPS0_SCREEN_ON    4
+> > +#define ACPI_LPS0_DISPLAY_OFF  3
+> > +#define ACPI_LPS0_DISPLAY_ON   4
+> >  #define ACPI_LPS0_ENTRY                5
+> >  #define ACPI_LPS0_EXIT         6
+> > -#define ACPI_LPS0_MS_ENTRY      7
+> > -#define ACPI_LPS0_MS_EXIT       8
+> > +#define ACPI_LPS0_SLEEP_ENTRY  7
+> > +#define ACPI_LPS0_SLEEP_EXIT   8
 >
-> I've already commented on this in my reply to the cover letter.
->
-> > +Date:          February 2026
-> > +Contact:       Antheas Kapenekakis <lkml@antheas.dev>
-> > +Description:
-> > +               The /sys/power/standby file allows userspace to inform =
-the
-> > +               kernel of the current runtime standby mode depending on=
- user
-> > +               activity. The options are "active", "inactive", "sleep"=
+> These two renames are fine with me, although I'm not sure if they are
+> worth the hassle.
+
+As you mentioned, sleep is reserved, but as this is the canonical name
+in internal code (much like display/screen that will not be exposed in
+the ABI) it should be appropriate to keep here.
+
+> >
+> >  /* AMD */
+> >  #define ACPI_LPS0_DSM_UUID_AMD      "e3f32452-febc-43ce-9039-932122d37=
+721"
+> >  #define ACPI_LPS0_ENTRY_AMD         2
+> >  #define ACPI_LPS0_EXIT_AMD          3
+> > -#define ACPI_LPS0_SCREEN_OFF_AMD    4
+> > -#define ACPI_LPS0_SCREEN_ON_AMD     5
+> > +#define ACPI_LPS0_DISPLAY_OFF_AMD   4
+> > +#define ACPI_LPS0_DISPLAY_ON_AMD    5
+> >
+> >  static acpi_handle lps0_device_handle;
+> >  static guid_t lps0_dsm_guid;
+> > @@ -340,25 +340,25 @@ static const char *acpi_sleep_dsm_state_to_str(un=
+signed int state)
+> >  {
+> >         if (lps0_dsm_func_mask_microsoft || !acpi_s2idle_vendor_amd()) =
+{
+> >                 switch (state) {
+> > -               case ACPI_LPS0_SCREEN_OFF:
+> > -                       return "screen off";
+> > -               case ACPI_LPS0_SCREEN_ON:
+> > -                       return "screen on";
+> > +               case ACPI_LPS0_DISPLAY_OFF:
+> > +                       return "display off";
+> > +               case ACPI_LPS0_DISPLAY_ON:
+> > +                       return "display on";
+> >                 case ACPI_LPS0_ENTRY:
+> >                         return "lps0 entry";
+> >                 case ACPI_LPS0_EXIT:
+> >                         return "lps0 exit";
+> > -               case ACPI_LPS0_MS_ENTRY:
+> > -                       return "lps0 ms entry";
+> > -               case ACPI_LPS0_MS_EXIT:
+> > -                       return "lps0 ms exit";
+> > +               case ACPI_LPS0_SLEEP_ENTRY:
+> > +                       return "sleep entry";
+> > +               case ACPI_LPS0_SLEEP_EXIT:
+> > +                       return "sleep exit";
+> >                 }
+> >         } else {
+> >                 switch (state) {
+> > -               case ACPI_LPS0_SCREEN_ON_AMD:
+> > -                       return "screen on";
+> > -               case ACPI_LPS0_SCREEN_OFF_AMD:
+> > -                       return "screen off";
+> > +               case ACPI_LPS0_DISPLAY_ON_AMD:
+> > +                       return "display on";
+> > +               case ACPI_LPS0_DISPLAY_OFF_AMD:
+> > +                       return "display off";
+> >                 case ACPI_LPS0_ENTRY_AMD:
+> >                         return "lps0 entry";
+> >                 case ACPI_LPS0_EXIT_AMD:
+> > @@ -383,7 +383,7 @@ static void acpi_sleep_run_lps0_dsm(unsigned int fu=
+nc, unsigned int func_mask, g
+> >         lps0_dsm_state =3D func;
+> >         if (pm_debug_messages_on) {
+> >                 acpi_handle_info(lps0_device_handle,
+> > -                               "%s transitioned to state %s\n",
+> > +                               "%s executed notification %s\n",
+> >                                  out_obj ? "Successfully" : "Failed to"=
 ,
-> > +               and "resume". Only the ones supported by the platform w=
-ill be
-> > +               available. Depending on the mode, the appearance of the=
- device
-> > +               will change (e.g., keyboard backlight will turn off as =
-part of
-> > +               "inactive"), and its thermal envelope might be affected=
-.
-> > +
-> > +               Reading from this file returns the available standby mo=
-des,
-> > +               with the current one enclosed in square brackets. Writi=
-ng one
-> > +               of the above strings to this file causes the kernel to
-> > +               transition to it.
-> > +
-> > +               See Documentation/admin-guide/pm/standby-states.rst for=
- more
-> > +               information.
-> > +
-> >  What:          /sys/power/disk
-> >  Date:          September 2006
-> >  Contact:       Rafael J. Wysocki <rafael@kernel.org>
-> > diff --git a/Documentation/admin-guide/pm/standby-states.rst b/Document=
-ation/admin-guide/pm/standby-states.rst
-> > new file mode 100644
-> > index 000000000000..af7f32721d1c
-> > --- /dev/null
-> > +++ b/Documentation/admin-guide/pm/standby-states.rst
-> > @@ -0,0 +1,100 @@
-> > +.. SPDX-License-Identifier: GPL-2.0
-> > +.. include:: <isonum.txt>
-> > +
-> > +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > +Runtime Standby States
-> > +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > +
-> > +:Copyright: |copy| 2026 Antheas Kapenekakis
-> > +
-> > +:Author: Antheas Kapenekakis <lkml@antheas.dev>
-> > +
-> > +This document describes the runtime standby states ABI available in th=
-e Linux
-> > +kernel, which is designed as a generic superset of the s0ix/Modern Sta=
-ndby
-> > +firmware notifications. Devices with these notifications support hardw=
-are states
-> > +where they look like they are asleep, while still performing basic com=
-putation.
-> > +Specifically, those are "Sleep", "Inactive", and "Active" states, with=
- an
-> > +additional state "Resume". Transitioning between these states follows =
-the
-> > +flowchart below.
-> > +
-> > +Runtime Standby States
-> > +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > +The following runtime standby are supported::
-> > +
-> > +    <S2idle> =E2=86=94 <Sleep> =E2=86=94 <Inactive> =E2=86=94 <Active>
-> > +        =E2=86=92       =E2=86=92  <Resume>  =E2=86=91
-> > +
-> > +.. _s2idle_drips:
-> > +
-> > +
-> > +.. _s2idle_active:
-> > +
-> > +Active
-> > +------
-> > +
-> > +The "Active" state is the default state of the system and the one it h=
-as when
-> > +it is turned on. It is the state where the device is on, and the user =
-is
-> > +interacting with it.
-> > +
-> > +.. _s2idle_screen_off:
-> > +
-> > +Inactive
-> > +----------
-> > +
-> > +The "Inactive" state is a state in which users have stopped interactin=
-g with
-> > +the device, e.g., 5 seconds after the displays have turned off due to =
-inactivity
-> > +or due to the user pressing the power button. It is the responsibility=
- of
-> > +userspace to keep track of user interaction so it can inform the kerne=
-l to
-> > +transition to this state. The response to this state for devices that =
-support
-> > +is to turn off their keyboard backlight, and some might pulse their po=
-wer light.
-> > +
-> > +.. _s2idle_sleep:
-> > +
-> > +Sleep
->
-> The term "sleep" has already been allocated (sorry about that) and it
-> means any non-working states of the system, that may include ACPI S3,
-> ACPI S4 (hibernation), suspend-to-idle etc.
->
-> Some other name needs to be used here to avoid confusion with the
-> existing terminology.
->
-> > +-----
-> > +
-> > +In the sleep state, certain devices will limit their thermal envelope =
-so it is
-> > +safe for them to be put into a bag and still perform basic computation=
- such as
-> > +fetching email. Then, some devices will pulse their power light. Users=
-pace can
-> > +use this state to perform basic tasks such as wake-up checks while mai=
-ntaining
-> > +the appearance the device is asleep.
-> > +
-> > +.. _s2idle_resume:
-> > +
-> > +Resume
-> > +------
-> > +
-> > +The resume state is a transient state that may only be entered from th=
-e sleep
-> > +state. It can be used to notify hardware that the device should boost =
-its
-> > +thermal envelope as preparation for the user interacting with it. As i=
-n, it
-> > +undoes the thermal envelope effects of the "sleep" state while keeping=
- its
-> > +appearance.
-> > +
-> > +S2idle
-> > +-----
-> > +
-> > +The "S2idle" state in the diagram corresponds to suspending normally b=
-y writing
-> > +``mem`` to ``/sys/power/state``. Userspace is fully frozen, and the ke=
-rnel parks
-> > +the CPUs and turns off most devices. It is shown in the graph as a ref=
-erence.
-> > +If the runtime standby state is not "sleep" when entering s2idle, the =
-kernel
-> > +will first transition to "sleep" before entering s2idle.
->
-> Overall, I personally don't like the terminology used above too much.
->
-> You seem to be talking about a state machine, but there really isn't
-> one.  The state of the system after evaluating PNP0D80 _DSM function 3
-> (screen off) need not be different from its preceding state, and even
-> so the difference may be relatively small.
->
-> I would rather describe all of this in terms of indicating certain
-> conditions to the user.  For instance, "inactive" is written to
-> /sysfs/attribute/to/be/determined to indicate to the user that there's
-> no activity in the system related to running user workloads.
->
-> It's almost like selecting "work profiles" for the platform.
-
-The current code implementation is as a state machine. Of course, this
-is an implementation detail and need not be exposed to docs.
-
-I will try to reword.
-
-> > +
-> > +Basic ``sysfs`` Interface for runtime standby transitions
-> > +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > +
-> > +The file :file:`/sys/power/standby` can be used to transition the syst=
-em between
-> > +the different standby states.
->
-> I'm not sure if the effects of using this interface (or its future
-> replacement) can be referred to as "transitions".  Some devices will
-> be affected, but the general state of the system will not be changed
-> as a result of using them.
-
-As said above, the implementation uses transition logic. This is not
-needed to be reflected in the documentation.
-
-> > The file accepts the following values: ``active``,
-> > +``inactive``, ``sleep``, and ``resume``. File writes will block until =
-the
-> > +transition completes. The system will cross all states shown in the fl=
-owchart
-> > +above to reach the desired state. It will return ``-EINVAL`` when aski=
-ng for an
-> > +unsupported state or, e.g., requesting ``resume`` when not in the ``sl=
-eep``
-> > +state. If there is an error during the transition, the transition will=
- pause on
-> > +the last error-free state and return an error.
-> > +
-> > +The file can be read to retrieve the current state (and potential ones=
-) with the
-> > +following format: ``[active] inactive sleep resume``. Only supported s=
-tates
-> > +will be shown.
-> > +
-> > +Userspace may transition between all supported states including s2idle
-> > +arbitrarily, except for the ``resume`` state which may only be request=
-ed from
-> > +the ``sleep`` state.
-> > \ No newline at end of file
-> > diff --git a/Documentation/admin-guide/pm/system-wide.rst b/Documentati=
-on/admin-guide/pm/system-wide.rst
-> > index 1a1924d71006..411775fae4ac 100644
-> > --- a/Documentation/admin-guide/pm/system-wide.rst
-> > +++ b/Documentation/admin-guide/pm/system-wide.rst
-> > @@ -8,4 +8,5 @@ System-Wide Power Management
-> >     :maxdepth: 2
+> >                                  acpi_sleep_dsm_state_to_str(lps0_dsm_s=
+tate));
+> >         }
+> > @@ -545,12 +545,12 @@ static int acpi_s2idle_prepare_late_lps0(void)
+> >         /* Screen off */
+> >         if (lps0_dsm_func_mask > 0)
+> >                 acpi_sleep_run_lps0_dsm(acpi_s2idle_vendor_amd() ?
+> > -                                       ACPI_LPS0_SCREEN_OFF_AMD :
+> > -                                       ACPI_LPS0_SCREEN_OFF,
+> > +                                       ACPI_LPS0_DISPLAY_OFF_AMD :
+> > +                                       ACPI_LPS0_DISPLAY_OFF,
+> >                                         lps0_dsm_func_mask, lps0_dsm_gu=
+id);
 > >
-> >     sleep-states
-> > +   standby-states
-> >     suspend-flows
+> >         if (lps0_dsm_func_mask_microsoft > 0)
+> > -               acpi_sleep_run_lps0_dsm(ACPI_LPS0_SCREEN_OFF,
+> > +               acpi_sleep_run_lps0_dsm(ACPI_LPS0_DISPLAY_OFF,
+> >                                 lps0_dsm_func_mask_microsoft, lps0_dsm_=
+guid_microsoft);
+> >
+> >         /* LPS0 entry */
+> > @@ -560,7 +560,7 @@ static int acpi_s2idle_prepare_late_lps0(void)
+> >
+> >         if (lps0_dsm_func_mask_microsoft > 0) {
+> >                 /* Modern Standby entry */
+> > -               acpi_sleep_run_lps0_dsm(ACPI_LPS0_MS_ENTRY,
+> > +               acpi_sleep_run_lps0_dsm(ACPI_LPS0_SLEEP_ENTRY,
+> >                                 lps0_dsm_func_mask_microsoft, lps0_dsm_=
+guid_microsoft);
+> >                 acpi_sleep_run_lps0_dsm(ACPI_LPS0_ENTRY,
+> >                                 lps0_dsm_func_mask_microsoft, lps0_dsm_=
+guid_microsoft);
+> > @@ -613,18 +613,18 @@ static void acpi_s2idle_restore_early_lps0(void)
+> >                 acpi_sleep_run_lps0_dsm(ACPI_LPS0_EXIT,
+> >                                 lps0_dsm_func_mask_microsoft, lps0_dsm_=
+guid_microsoft);
+> >                 /* Modern Standby exit */
+> > -               acpi_sleep_run_lps0_dsm(ACPI_LPS0_MS_EXIT,
+> > +               acpi_sleep_run_lps0_dsm(ACPI_LPS0_SLEEP_EXIT,
+> >                                 lps0_dsm_func_mask_microsoft, lps0_dsm_=
+guid_microsoft);
+> >         }
+> >
+> >         /* Screen on */
+> >         if (lps0_dsm_func_mask_microsoft > 0)
+> > -               acpi_sleep_run_lps0_dsm(ACPI_LPS0_SCREEN_ON,
+> > +               acpi_sleep_run_lps0_dsm(ACPI_LPS0_DISPLAY_ON,
+> >                                 lps0_dsm_func_mask_microsoft, lps0_dsm_=
+guid_microsoft);
+> >         if (lps0_dsm_func_mask > 0)
+> >                 acpi_sleep_run_lps0_dsm(acpi_s2idle_vendor_amd() ?
+> > -                                       ACPI_LPS0_SCREEN_ON_AMD :
+> > -                                       ACPI_LPS0_SCREEN_ON,
+> > +                                       ACPI_LPS0_DISPLAY_ON_AMD :
+> > +                                       ACPI_LPS0_DISPLAY_ON,
+> >                                         lps0_dsm_func_mask, lps0_dsm_gu=
+id);
+> >  }
+> >
 > > --
+> > 2.52.0
+> >
+> >
+> >
 >
 
