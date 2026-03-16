@@ -1,87 +1,171 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 098FC13635C;
-	Mon, 16 Mar 2026 06:33:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 575CD34B186
+	for <linux-acpi@vger.kernel.org>; Mon, 16 Mar 2026 09:11:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.168.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773642827; cv=none; b=rW3qvpHpWBhyGH+WnhsCla1xTgW+wq/ag/lcERJ+piC6oirQ6rk8RhAZU1V2xtpv2z3wgwzvN0xR5O9SqHWlNGDHYBEBmSm0fXt2iLRCxRCR1U5CeDy7Bcqu3Gl/+//kbgK7RDyDQTxlIasrGQ/APoKXmdwcp4nzxvXFrUcFdzI=
+	t=1773652297; cv=none; b=sz+061CxLLDv2BqmAbTIuG1lltxx7rOsXX2tdSvn1wpwf5ZQYgkBmva7yaV5ZzYKfarg22N6ua5CUEpxVa5DV9PxX5Mq5pu/ZuJE/YQ7ZXu0groW/R21tqy/qItOKryw1+tuRXQOyffSwAno4VAQdwpfk7A0SnUQ0HB7WRXca/E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773642827; c=relaxed/simple;
-	bh=Dkywfmgei82k5odcdPZZ4qCI+IO8bBIHlMkgGEm1yaM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=PGiaIbkLmFvTcOM/tRjvmUONmkUKFf9avfES0LBkF/bRFUm/8KyAQxdUmuCwuv+P8r1ehwFsivjLeekHTFMf7+NbTCOSbqNNOzwFl3Ur3OAxUBFh39s+XQYrR0pS1y4c3jm3XCcxT2WZmiwAdbbay6ONwKbG/3ryfK7ZxFci4o0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=u/1E1zCu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773652297; c=relaxed/simple;
+	bh=+eC8eAmFeq/qr1/xTtK9cYJ8MQ18m1zZJmA0ouJVonE=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=vCdJQqho3hkKUVFY+W+u6XGRTQ3dwh5/Xg1QAoKNGR8iWMEsCQQiuZFEzJT6BLB8BLUbBoOvYJE6eRFGWkSIuhPNOYwscChp8wcY+1m3dokf5sWDGZkGBdybtnfuzIWxs6MPVPwhmv4Ts90r7O8wtRmx6kFDdshmRx2h4ksTPtI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=CWfJIxdn; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=eNMH7iAN; arc=none smtp.client-ip=205.220.168.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="u/1E1zCu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01E4AC19421;
-	Mon, 16 Mar 2026 06:33:45 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1773642826;
-	bh=Dkywfmgei82k5odcdPZZ4qCI+IO8bBIHlMkgGEm1yaM=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=u/1E1zCuDFBmUxj6jlulcq5x7vGGg1pSKluyGzbaTq1hNC0vjLMjjjBFGmjy7dRSp
-	 bqzdhrUsgTO2wOBTyffXfmmz18F8O1QHBopO3c+i2IaFw/KsN8ItO4FRaI8jiBVKtw
-	 ltEmDCgBGBdfUlISTQ4sVc8lEqChh7wNXZhyj+8g=
-Date: Mon, 16 Mar 2026 07:33:28 +0100
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: Danilo Krummrich <dakr@kernel.org>
-Cc: Markus Probst <markus.probst@posteo.de>,
-	Markus Probst via B4 Relay <devnull+markus.probst.posteo.de@kernel.org>,
-	Lee Jones <lee@kernel.org>, Rob Herring <robh@kernel.org>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>, Miguel Ojeda <ojeda@kernel.org>,
-	Boqun Feng <boqun@kernel.org>, Gary Guo <gary@garyguo.net>,
-	=?iso-8859-1?Q?Bj=F6rn?= Roy Baron <bjorn3_gh@protonmail.com>,
-	Benno Lossin <lossin@kernel.org>,
-	Andreas Hindborg <a.hindborg@kernel.org>,
-	Alice Ryhl <aliceryhl@google.com>, Trevor Gross <tmgross@umich.edu>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Igor Korotin <igor.korotin.linux@gmail.com>,
-	Daniel Almeida <daniel.almeida@collabora.com>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Krzysztof =?utf-8?Q?Wilczy=C5=84ski?= <kwilczynski@kernel.org>,
-	Pavel Machek <pavel@kernel.org>, Len Brown <lenb@kernel.org>,
-	Robert Moore <robert.moore@intel.com>, devicetree@vger.kernel.org,
-	linux-kernel@vger.kernel.org, rust-for-linux@vger.kernel.org,
-	driver-core@lists.linux.dev, linux-pci@vger.kernel.org,
-	linux-leds@vger.kernel.org, linux-acpi@vger.kernel.org,
-	acpica-devel@lists.linux.dev
-Subject: Re: [PATCH v3 7/7] leds: add synology microp led driver
-Message-ID: <2026031645-unplowed-purist-9c4b@gregkh>
-References: <20260313-synology_microp_initial-v3-0-ad6ac463a201@posteo.de>
- <20260313-synology_microp_initial-v3-7-ad6ac463a201@posteo.de>
- <DH1YH0GO75H8.18YSW2VMKRB3C@kernel.org>
- <39f1c9bb0dbde9f1b60785f8e838289c888ffdb0.camel@posteo.de>
- <DH3KAWWLECYW.3VBH7PIE7ZE20@kernel.org>
- <eb2f7498c5f3247265effc47b3445a04ac71956e.camel@posteo.de>
- <DH3M1023PCBI.1HYYZU93NS1JX@kernel.org>
+	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="CWfJIxdn";
+	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="eNMH7iAN"
+Received: from pps.filterd (m0279862.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 62G64iXc2583406
+	for <linux-acpi@vger.kernel.org>; Mon, 16 Mar 2026 09:11:35 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
+	i72EfdgJ7doLImzDWatjm2GnnkPEZNv7sHePPRX+J+A=; b=CWfJIxdn7icUCxum
+	1Uo1mlsWgJOsUfxnavJTE9oKSTrDTMVTrSI5u8SPiPfdZrXVOdsvcJ59HAH8WSQg
+	y4gvt86Dt6P7LBcZsdu0ojBD+8Ik6jPpTjEF5JMWHiV7tx26E7zaUDSbVpvbmFvO
+	J7niurtpXHJ3VuTeOdz4v+jSY02CPsPKRhCYAtvBo+YEyE8vJaMQvbKVPkSNrxnL
+	W7l7ROrpAc2qeO3W3hpqqbkDej0UnDO7yXDygEQWCwsFtTCEYEqgLZnMjEqTnRQD
+	Owmxo0+Fu5KuaYCmPWFVVrJRFkh7JYSGjdf4GOop6mBqQK/Zul9lPsW2Q2yF9Drv
+	7vIdaQ==
+Received: from mail-qk1-f199.google.com (mail-qk1-f199.google.com [209.85.222.199])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4cw0eccvhx-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <linux-acpi@vger.kernel.org>; Mon, 16 Mar 2026 09:11:35 +0000 (GMT)
+Received: by mail-qk1-f199.google.com with SMTP id af79cd13be357-8cb706313beso595051685a.3
+        for <linux-acpi@vger.kernel.org>; Mon, 16 Mar 2026 02:11:35 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=oss.qualcomm.com; s=google; t=1773652294; x=1774257094; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=i72EfdgJ7doLImzDWatjm2GnnkPEZNv7sHePPRX+J+A=;
+        b=eNMH7iAN+ZfcOg4NxZR4jDeAqW9aU16cHFKH2gx1IMjGtPWkjLzvcXrF20MPdmwTtc
+         ekOnIwdxIBKRg4sQmyJ6F5I7aCw5AJ8yTMtaCtSxQZThjVHTWD46ImmDtAAxqYaNCRVT
+         bv22BDAiK4G+/MA5P/TCT51lGhLF8gJj9jG1PrmHNuwppoTtsDaXI2VdbTv+1pldupRz
+         AV/W/nXvaQ7dvIxwldcce611iojbI9lyhY6DQ7p7i0GXKmmhQ6U3FjeaExbebaRdsiF+
+         xbE5EEtZJ2Z3zGnVusi0BT6qf7/pVBTDIw7OD0yrT0C4qRp3qdHeb0LWGi4RpEi3IHCd
+         cO8A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1773652294; x=1774257094;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=i72EfdgJ7doLImzDWatjm2GnnkPEZNv7sHePPRX+J+A=;
+        b=I6TofrkCyaLwrygDwqmn3rsIl9KIikEm2CCaUkNfCVf/YDUTXhd6QiL08/TKqmU2Gn
+         akf2sHOfr/IU6lSiIwBL8+lH7nJ4erHj4Y31XPdhuFB6AnJ80+0OiJDdRvDTlCc+UT+m
+         OlN9G8EL1FIqTjvmq0kHRQIXNa6GMPFvddn4vZRcWw/b3MG+yJ/GHyTjy7s7r7JF82QD
+         Vwuba7BrseXsPdNraeOVS3Q0aVv2KYNbU5vqoyvrXGodtqaMOT8NNyui0YoxEjufTUH7
+         L+NHTRfTRpiXByMlApRJzCEitSP1+3HMZvE8B0R0wwAQ7DRuHrQFgwssHx5Mmnsh8Rv0
+         Z2qw==
+X-Forwarded-Encrypted: i=1; AJvYcCVMwO6sMGkQfmOHJuiYw/VK3ZIaCNIUYIdj5tkpGV46CAYI4+ausFWcNb6zr/nNWEmOn/exS81EoTNa@vger.kernel.org
+X-Gm-Message-State: AOJu0YzmzJfRvBs0cX1onB+s3d3U3sTYPmAO5D9XRnblJlIrcBlyt2O0
+	2EyhRepQ/oe/eamJ/Cy1Zd2eXxRx9JjP2zTJtCym2KTHPnM/Zm+2oFc3Hq6/48+y4nOAjB8K7Fx
+	ViEXsvoIVw53u9+gkU+hLA1e6WKX1kShGiASHPWBDzzQoNh5KJthB/fY0aPKWW+KJ
+X-Gm-Gg: ATEYQzyXNoiyy4Wc9rfb6Yf9GGnaGzQuh1z/zSQ2psmOg9bA+SqcoUFUzXmuF1rj8rU
+	gc7kBygvAeadvsSo5spS+zYG9bkdgO09+Q+nyVp9c2WQuoQX9C1oGIlnUMHVrSbCAltVaYaaMci
+	gdNwzyE5tT7B5soy1tjSpzCFX5RsIWgyMp39O5TsC97Tcym0Y8Z4JT+Varf3Hzl+M6RV/wKL6bj
+	BsIQ7aVJB3c3ObfjKeSoM0fqR6aXS37m3uQVbdIyMDX26bsCn/019Mec3igReFIbHT1hPZHCemM
+	686xg9mcusZbc7rk3T3JHSYfKTlYj7yIGz4guIepqtxXNyl/eXhn2W3H5GLJMcxjSkvnPohFPhM
+	i5SRsc+Jpl/B+lUoRVnPIVJDz7oqwVr9JEyLb69DM9AltR16uRjI=
+X-Received: by 2002:a05:620a:44ca:b0:8cd:79f2:dc50 with SMTP id af79cd13be357-8cdb57aa4a8mr1434709485a.0.1773652294352;
+        Mon, 16 Mar 2026 02:11:34 -0700 (PDT)
+X-Received: by 2002:a05:620a:44ca:b0:8cd:79f2:dc50 with SMTP id af79cd13be357-8cdb57aa4a8mr1434705685a.0.1773652293841;
+        Mon, 16 Mar 2026 02:11:33 -0700 (PDT)
+Received: from brgl-qcom.home ([2a01:cb1d:dc:7e00:ba9e:e504:fb0b:f1f3])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-43b468cf785sm2932198f8f.12.2026.03.16.02.11.31
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 16 Mar 2026 02:11:33 -0700 (PDT)
+From: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+To: Linus Walleij <linusw@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Frank Rowand <frowand.list@gmail.com>,
+        Mika Westerberg <westeri@kernel.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Aaro Koskinen <aaro.koskinen@iki.fi>,
+        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
+        Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Shuah Khan <skhan@linuxfoundation.org>,
+        Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Cc: linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-omap@vger.kernel.org, linux-doc@vger.kernel.org,
+        stable@vger.kernel.org,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Kevin Hilman <khilman@baylibre.com>
+Subject: Re: [PATCH v2 0/6] gpiolib: unify gpio-hog code
+Date: Mon, 16 Mar 2026 10:11:20 +0100
+Message-ID: <177365228183.54363.13735316568548509348.b4-ty@oss.qualcomm.com>
+X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20260309-gpio-hog-fwnode-v2-0-4e61f3dbf06a@oss.qualcomm.com>
+References: <20260309-gpio-hog-fwnode-v2-0-4e61f3dbf06a@oss.qualcomm.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <DH3M1023PCBI.1HYYZU93NS1JX@kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+X-Proofpoint-GUID: GswSNn9ODve_O0Prh1b_Hklpl2q3Uw9G
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwMzE2MDA3MCBTYWx0ZWRfXwvCKhqOegTR4
+ ezWyCs9BGWkXmLRoeeCAA2cw++c6DM0okB7idiobHP9hutcEMKGHjvTl9u76mBe0oCGRalYzsFU
+ 5p3xq1vize/hlSEXcBDnHX1prwt9sJnj+meSg5uzs/Vn88/pfWF0d6x4FPf2AFeQSSTWkgTaBci
+ 1PFgbwKUDClQft5Zxt9sypi1z8SIT9uEV9tI/CsMBbGcpHkVZgLUtPUU/OrYRv48s9xPC9L8s3I
+ k57Q0m4ciqHwsRen4xJhgbmGmxI0J+JOlCP+7LkK+dbJzIQAFwE50sVWvOKWv1KDhvFAdUy7nzP
+ GWYVqO35QDOcWClY1IKp0uWxfyLwOjGZoxIjfVgI7WnYd9PrjcKMl9cmkpBLApD+wo8ZoL/oMZO
+ ASHHSC0L8ye1Aa+Q8c2z6cZOXAskk3FZRsOS3TTdaVBfBh3S+wXNB6cnjHe0V3yha7iK1vH3zb7
+ OWJVgFDGDAedOPINlsg==
+X-Proofpoint-ORIG-GUID: GswSNn9ODve_O0Prh1b_Hklpl2q3Uw9G
+X-Authority-Analysis: v=2.4 cv=BqqQAIX5 c=1 sm=1 tr=0 ts=69b7c947 cx=c_pps
+ a=HLyN3IcIa5EE8TELMZ618Q==:117 a=xqWC_Br6kY4A:10 a=IkcTkHD0fZMA:10
+ a=Yq5XynenixoA:10 a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=u7WPNUs3qKkmUXheDGA7:22 a=_K5XuSEh1TEqbUxoQ0s3:22 a=VwQbUJbxAAAA:8
+ a=EUspDBNiAAAA:8 a=jtPpctr3BKvZZnv9HkwA:9 a=QEXdDO2ut3YA:10
+ a=bTQJ7kPSJx9SKPbeHEYW:22
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.51,FMLib:17.12.100.49
+ definitions=2026-03-16_03,2026-03-13_01,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ priorityscore=1501 lowpriorityscore=0 adultscore=0 clxscore=1015 spamscore=0
+ phishscore=0 bulkscore=0 malwarescore=0 impostorscore=0 suspectscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2603050001 definitions=main-2603160070
 
-On Sun, Mar 15, 2026 at 08:41:06PM +0100, Danilo Krummrich wrote:
-> I.e. if we can't (easily) use mfd cells and would need a custom API, then why
-> even split it up at all, given that splitting it up would probably the most
-> complicated part of the whole driver.
+
+On Mon, 09 Mar 2026 13:42:36 +0100, Bartosz Golaszewski wrote:
+> GPIO hogs are handled separately in three places: for OF, ACPI and
+> machine lookup. In addition hogs cannot be set up using software nodes.
+> A lot of that code is actually redundant and - except for some special
+> handling of OF nodes - can be unified in one place.
 > 
-> Greg, what do you think?
+> This series moves hogging into GPIO core and bases it on fwnode API
+> (with a single helper from OF to translate devicetree properties into
+> lookup flags), converts the two remaining users of machine hogs to using
+> software node approach and removes machine hog support entirely. In
+> addition, there's a patch extending the configurability of gpio-sim now
+> that it uses software nodes for hogs.
+> 
+> [...]
 
-I think this has yet to be proven to be a kernel driver at all at this
-point, and not just a userspace daemon that listens to the serial port
-and then does what is needed from there :)
+Applied, thanks!
 
-Or, if someone can prove that the operations on this serial data stream
-actually do require it to be in the kernel (which I have yet to see a
-list of what this connection does, did I miss it?) then a single driver,
-under the drivers/platform section of the kernel tree makes sense.
+[1/6] gpio: of: clear OF_POPULATED on hog nodes in remove path
+      https://git.kernel.org/brgl/c/bbee90e750262bfb406d66dc65c46d616d2b6673
+[2/6] gpio: move hogs into GPIO core
+      https://git.kernel.org/brgl/c/d1d564ec4992945db853303dc2978256bce8c0b4
+[3/6] gpio: sim: use fwnode-based GPIO hogs
+      https://git.kernel.org/brgl/c/5cfbd0eb784f19436b5d5a9a7e0dca862619739a
+[4/6] ARM: omap1: ams-delta: convert GPIO hogs to using firmware nodes
+      https://git.kernel.org/brgl/c/e627fc9fad93d59765dd16adac1b2a9bf68d7523
+[5/6] gpio: remove machine hogs
+      https://git.kernel.org/brgl/c/dea046e7f46f2357124a465e058c92cac3e351c5
+[6/6] gpio: sim: allow to define the active-low setting of a simulated hog
+      https://git.kernel.org/brgl/c/696e9ba9a3da3d919d08a1abf05c9288311858f1
 
-thanks,
-
-greg k-h
+Best regards,
+-- 
+Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
