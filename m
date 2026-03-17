@@ -1,108 +1,73 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8632A3115BD
-	for <linux-acpi@vger.kernel.org>; Tue, 17 Mar 2026 16:23:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56DBD377572;
+	Tue, 17 Mar 2026 16:32:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773764583; cv=none; b=I8RlZAfmiYIWceh8sG2nv0BBLxIvPiXC3PI1EQ39EXzSCowh1MWt+buedsBKRQ+s4WiSMHOsinUdF6pKBv0Gy1Oy67UnLOpc5bkhEbfxr2ngazCpmAeJIYXdD3R7e2X2Od3G5i/9WZLT8trd2mM/JrFuoc+D9AEVj+Nk6gco4m8=
+	t=1773765140; cv=none; b=hq4PjIIaPh/D35Y+9MUKbjLJrE9mSlrVYB107k73HUWVW4yLJMKAw8ilOc33CSYrCrnRh5pY1drpMQSDOqPFyt9G4T6EDDfdmcvGJTfoxpcmaBRsH+d2M4Gg3rtvOYHCCQ69/tMb3FyfxIkb2JffEvHPRPGL2wJnc/JiMIpoMv4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773764583; c=relaxed/simple;
-	bh=A8Zxzj2VIVs7gCjiuA/V62IbfaThIn3OZXBZScVzyTk=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Lp3B3+fVtcLmPJCzN6QPGE7aev5WZkK1Dofv0tIM8tsJALyKuGXCyaetqqg4Gtfo/GUj3hPGDyGagcg3HkwgRYGOXGmx+PRH3RhH02x8X/WnSfn3Ml7reOc6ExmMSCNW9g5tnm6gInAS1Pmr22394hZaWWS0fk06kOTttnER1wQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=n1oilQ2R; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773765140; c=relaxed/simple;
+	bh=8NOEMxfPkcH9K8TEbGismoeO9TvyxCj+fwHnNVOBfM0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=a6GHlAQor1T+yELmfvVAFlp/1Vm7584bU6DD3biGj2nk04YCvNazURcdLBlFPXpn0D8AhleR/vMiFj25GDOxNgRcVEuUYS6B0igw7htp/sdfSNTQOW0egm7r+qDzi/NseqKVMSSllJ/VGZAEj7MedMdSjdROjmqEYvU2gswiY68=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UNVMmiLc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="n1oilQ2R"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38A9EC2BCAF
-	for <linux-acpi@vger.kernel.org>; Tue, 17 Mar 2026 16:23:03 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UNVMmiLc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 053EDC4CEF7;
+	Tue, 17 Mar 2026 16:32:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773764583;
-	bh=A8Zxzj2VIVs7gCjiuA/V62IbfaThIn3OZXBZScVzyTk=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=n1oilQ2RfVsehzR1BSrE6fgxSTW2dQE0AuT+mhDnN3iMPS7tR7GIDgbhArz+7fqvG
-	 quPXg4MNIyX+jzqJMQ/zZ10LQdr3OW/hCkQaQfzNUYR70OY+rAvq6fjPDGjpnID8FR
-	 +MXH/8dlIhFagd1PipESy5lYWjQ7+JgOUr2GSqGYHZFow+psiatdybX0vFMfjVDElb
-	 Pgy0wr5jqe6ZJS0n6bdg/LXTuVRWnDC5u1qRwNite/yAfUPdRcEvrLK1Y88G8sorn0
-	 FedHOExohhq+JDObmMdQKPI2AOtqH4tkdVrUfYTFaNqBm6Ox2Zz9Kp0GZfCykNZe8L
-	 FsRc6Yd9UXlpQ==
-Received: by mail-oo1-f43.google.com with SMTP id 006d021491bc7-67bb3a6c6f3so27998eaf.1
-        for <linux-acpi@vger.kernel.org>; Tue, 17 Mar 2026 09:23:03 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCUp/1azvBkC12jDtHsFheS0dcAIPOG+Sse4H7+h5S6NTpq9KzZa/vdVsgSY3wNdgpotsdeXKkH4H7kT@vger.kernel.org
-X-Gm-Message-State: AOJu0YyGtKxXMbQSj0y63Q4hiWysyC2YV2jxQ4rYvGC37KBBeFExDnb+
-	L9GgWWQ5ndrg4vAp6LsgJIyJj6L+IR8FEiM1YHM765bpnv/IqLW6+tlYbqPOpr5+zVc+0mPnsiR
-	1U5yIQ9WQ5CnrDgIc9BteuDRctfocNcg=
-X-Received: by 2002:a05:6820:2902:b0:67b:af16:488a with SMTP id
- 006d021491bc7-67c0cfd4c10mr142151eaf.13.1773764582291; Tue, 17 Mar 2026
- 09:23:02 -0700 (PDT)
+	s=k20201202; t=1773765140;
+	bh=8NOEMxfPkcH9K8TEbGismoeO9TvyxCj+fwHnNVOBfM0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=UNVMmiLcYsv+j82Aqf8MncjQLuPjNA703tmZmA7r0O8/nUE1SAdWoznpgywiH6BMH
+	 2Ho7hl8WMV6TXAnXVIEZ1F+eu+B8Qs97Beg6bxkSb7PAc21PfcuGwP9q44Tz9V+pwf
+	 aTqbbZiIrXRAAX9X7c3x7pazr4ocpkj66/kqfIYsCdm0CKwzNxR5wD09YgUTdGKnoA
+	 9aY3bFKCUPaCqfl5R0ZtayFq53TnBQXli8dhokw9gIptNMnWvMjQ+nRmUV3RRdpM9S
+	 DtgvOsEeC0aOzuzv/pzACyhScv8m5ZYSAB/7MjVTGqqMcBHHKrXY+s1rsfxangcPh5
+	 HDVEhsXZ8E3IA==
+Date: Tue, 17 Mar 2026 16:32:15 +0000
+From: Simon Horman <horms@kernel.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: netdev@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	Linux ACPI <linux-acpi@vger.kernel.org>,
+	Richard Cochran <richardcochran@gmail.com>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>
+Subject: Re: [PATCH v1] ptp: vmw: Convert to a platform driver
+Message-ID: <20260317163215.GA1753385@horms.kernel.org>
+References: <12883468.O9o76ZdvQC@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260317090112.v2.1.I0a4d03104ecd5103df3d76f66c8d21b1d15a2e38@changeid>
- <CAJZ5v0hwO16=mP_vB=wi7x8CjROAw_Nd_Tq-hEohrDW3C58RbA@mail.gmail.com> <0f92ab73-5996-4977-9ada-e8a26957110c@kernel.org>
-In-Reply-To: <0f92ab73-5996-4977-9ada-e8a26957110c@kernel.org>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Tue, 17 Mar 2026 17:22:50 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0iw3aaboh83wdOyYpGK9LkNafbmdU3zhLXtxrbSQU9-_g@mail.gmail.com>
-X-Gm-Features: AaiRm50hNFkNvSW2ZboUnTv_v1gMXj6WJgZAzhbsC1wLCWGL90Y_OtahDKKfqu8
-Message-ID: <CAJZ5v0iw3aaboh83wdOyYpGK9LkNafbmdU3zhLXtxrbSQU9-_g@mail.gmail.com>
-Subject: Re: [PATCH v2] device property: Make modifications of fwnode "flags"
- thread safe
-To: Danilo Krummrich <dakr@kernel.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Douglas Anderson <dianders@chromium.org>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, 
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mark Brown <broonie@kernel.org>, 
-	Wolfram Sang <wsa+renesas@sang-engineering.com>, Andrew Lunn <andrew@lunn.ch>, 
-	Daniel Scally <djrscally@gmail.com>, "David S. Miller" <davem@davemloft.net>, 
-	Eric Dumazet <edumazet@google.com>, Fabio Estevam <festevam@gmail.com>, Frank Li <Frank.Li@nxp.com>, 
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>, Heiner Kallweit <hkallweit1@gmail.com>, 
-	Jakub Kicinski <kuba@kernel.org>, Len Brown <lenb@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
-	Pengutronix Kernel Team <kernel@pengutronix.de>, Rob Herring <robh@kernel.org>, 
-	Russell King <linux@armlinux.org.uk>, Sakari Ailus <sakari.ailus@linux.intel.com>, 
-	Saravana Kannan <saravanak@kernel.org>, Sascha Hauer <s.hauer@pengutronix.de>, 
-	devicetree@vger.kernel.org, driver-core@lists.linux.dev, imx@lists.linux.dev, 
-	linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
-	linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-spi@vger.kernel.org, netdev@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <12883468.O9o76ZdvQC@rafael.j.wysocki>
 
-On Tue, Mar 17, 2026 at 5:20=E2=80=AFPM Danilo Krummrich <dakr@kernel.org> =
-wrote:
->
-> On 3/17/2026 5:11 PM, Rafael J. Wysocki wrote:
-> > On Tue, Mar 17, 2026 at 5:04=E2=80=AFPM Douglas Anderson <dianders@chro=
-mium.org> wrote:
-> >>
-> >> In various places in the kernel, we modify the fwnode "flags" member
-> >> by doing either:
-> >>   fwnode->flags |=3D SOME_FLAG;
-> >>   fwnode->flags &=3D ~SOME_FLAG;
-> >>
-> >> This type of modification is not thread-safe. If two threads are both
-> >> mucking with the flags at the same time then one can clobber the
-> >> other.
-> >>
-> >> While flags are often modified while under the "fwnode_link_lock",
-> >> this is not universally true.
-> >>
-> >> Create some accessor functions for setting, clearing, and testing the
-> >> FWNODE flags and move all users to these accessor functions. New
-> >> accessor functions use set_bit() and clear_bit(), which are
-> >> thread-safe.
-> >>
-> >> Cc: stable@vger.kernel.org
-> >> Fixes: c2c724c868c4 ("driver core: Add fw_devlink_parse_fwtree()")
-> >> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> >> Acked-by: Mark Brown <broonie@kernel.org>
-> >> Reviewed-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
-> >> Signed-off-by: Douglas Anderson <dianders@chromium.org>
-> >
-> > Rafael J. Wysocki (Intel) <rafael@kernel.org>
->
-> ACK or RB?
+On Sat, Mar 14, 2026 at 12:43:33PM +0100, Rafael J. Wysocki wrote:
+> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+> 
+> In all cases in which a struct acpi_driver is used for binding a driver
+> to an ACPI device object, a corresponding platform device is created by
+> the ACPI core and that device is regarded as a proper representation of
+> underlying hardware.  Accordingly, a struct platform_driver should be
+> used by driver code to bind to that device.  There are multiple reasons
+> why drivers should not bind directly to ACPI device objects [1].
+> 
+> Overall, it is better to bind drivers to platform devices than to their
+> ACPI companions, so convert the PTP VMware ACPI driver to a platform
+> one.
+> 
+> While this is not expected to alter functionality, it changes sysfs
+> layout and so it will be visible to user space.
+> 
+> Link: https://lore.kernel.org/all/2396510.ElGaqSPkdT@rafael.j.wysocki/ [1]
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-RB, sorry.
+Reviewed-by: Simon Horman <horms@kernel.org>
+
