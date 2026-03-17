@@ -1,88 +1,229 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from sender4-pp-f112.zoho.com (sender4-pp-f112.zoho.com [136.143.188.112])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 173163A7595
-	for <linux-acpi@vger.kernel.org>; Tue, 17 Mar 2026 10:44:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773744270; cv=none; b=Xy3bHpcw0xgRA4FRlS2MciD0lNXZ2z7q7I0krx0UnrqOUdG/IEOZGrqj71bI89MwucIjaI5ylAjbhQ2/NS8r4fINWJAv3d0FypS/cSrbq7N/ovhCbBUqStVNzLstl7qYAsG3KDbdyhdLUa3ncB+9iz20cUy5MGQCKlSqmQd+CFY=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773744270; c=relaxed/simple;
-	bh=UQyonz/fROOd+E5ux5wnd2FwnDxCTcUUFUb5qdccPbk=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=kfYajtAupdjc2+iQVSUcv72KR7fducIjYW6qFfqMPNMHgIV4T9PzZd+F6Yohj7113XpEjVH3fPjnJIBB9m+bj49z4Q+sSk6TuvMX4p3f1K3qVCwSWyfhuO/zdzGKrATMRg2NFkR2uvz4cs9A0a2VYmYwlr7s/dVhbnPF5qMdp74=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=A+mRoSiX; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 781063A6EE6;
+	Tue, 17 Mar 2026 11:05:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=136.143.188.112
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1773745523; cv=pass; b=mxSliVPSIJPhZCsejkBv1rjUGehxFIO8OHTNV5P9F3C5nEZlZhecmaYBs36G5R124wqR/fl0bHDP7YCgnpPss2iYMOONTSv3DyscCf/JlUswtKjGUzp7JVjukQ90Tq0hj4PQ7qS4X/qzedrFR8Obk5PXu6jZH9vNTw79Hb+6/vg=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1773745523; c=relaxed/simple;
+	bh=yCMuZvL6t1ocigB/QjALDn2W5l34DCwbB8lbzx7Lvys=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Kp7jxJx7cSS1TgDcPKLFHhwFopGHHgBo9b1Kq6yzi/wt/RmxDs4QNdO9RzjNiwXxMeRlGOByzw7dsaPF5biBZkKarRDlDXJgv0x9kRBrNI09PP/mMb/pK0gYIhcGHIEbmtBvtby6EbRX55rulBnQQggU2CFlGvjkP2um1DIYtGc=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=collabora.com; spf=pass smtp.mailfrom=collabora.com; dkim=pass (1024-bit key) header.d=collabora.com header.i=dmitry.osipenko@collabora.com header.b=A5yicB6j; arc=pass smtp.client-ip=136.143.188.112
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=collabora.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=collabora.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="A+mRoSiX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A53DBC2BCF5
-	for <linux-acpi@vger.kernel.org>; Tue, 17 Mar 2026 10:44:29 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773744269;
-	bh=UQyonz/fROOd+E5ux5wnd2FwnDxCTcUUFUb5qdccPbk=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=A+mRoSiXRnP0rpmp94IIjRt+NqHylOr8sISWSQVsw6FsnP9W4Gy1oFyPwBK0+kEuq
-	 YfLXzK/+3b1dFclBnrbc2ImOIsXdkanWgEHrSTR11nomzEdwbZ2MsrKnz7L0qjTSVw
-	 PyQWSqVlidOEPJwz1i8qLiBH3MOkd1512mPLL7fdIyQ+0uombK85JScW2GEnHLEXq1
-	 ii/+gSwQ7AZdwIxfJaD2EebjNRUlYfVnUmrBr5fCQAGacIXTgVxS9TELk6L6l2pg6K
-	 F9OzwUfvdSlqSRKO0bcQ3m8PyQo3ZvX5dzdqs0+spfSqu35ViQI1qzscOxz9lkf0bc
-	 GWJmm9fFt5Qdw==
-Received: by mail-oi1-f172.google.com with SMTP id 5614622812f47-464bba3a9easo3532391b6e.0
-        for <linux-acpi@vger.kernel.org>; Tue, 17 Mar 2026 03:44:29 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCVL7REQEIZd33J1UQOMfmhgs5t5y5mkA7lwTylTCq7grbNq/o4Its1aK+I5W2yi7dNzBkRI0VEu1oHb@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx4C8AVQzhkAbkaIYLEf4m7zm25SAPkyEtVIZ0VXTBoFStNaN/y
-	US5Cmt1mqrDr6izNMWyBK5vlpjP0UMvwlH4cc05gSMGv3spGyYCIicXZfgDI1nsJIMHSSkNoCpq
-	QTIhRFksmghAfGicMcFnc+K2QFBt+z1Y=
-X-Received: by 2002:a05:6808:66c1:b0:464:a1ee:c412 with SMTP id
- 5614622812f47-4675754332emr7723340b6e.31.1773744268614; Tue, 17 Mar 2026
- 03:44:28 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=collabora.com header.i=dmitry.osipenko@collabora.com header.b="A5yicB6j"
+ARC-Seal: i=1; a=rsa-sha256; t=1773745487; cv=none; 
+	d=zohomail.com; s=zohoarc; 
+	b=cIz+4/Kh12zeCMyOm0/EvAtkmR77WfHwvEW8EDwNY3KqjbXEiTTrFyXJCiqkuu6jCeVYYUoP/jH+q2JfPI+szfrqSxOVfpepHfws4OlkCEX3JPtj4i950hhNGletMvmasJ24siqUiGjwdd6JxbH8TDqSiObqxN404e+VrMDeUkk=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.com; s=zohoarc; 
+	t=1773745487; h=Content-Type:Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:Subject:To:To:Message-Id:Reply-To; 
+	bh=h+lPwTt9TYls4GWt4L3R8P1GyolYyxlZPncJvU3XAoA=; 
+	b=Eg6vZ9Im5SWIJW44XvASgAwFzYBMb4RTuaAtcXdmEbPRyZljZkdVEiP1XOyPBbs2cgr31dcIxZ4kSpr628d8ntmllHD2nq94NRL8BTYGtzUggnU/sg+iUg7TDorzxEp9tIptPtPGgZmwGqHVZw7hJIB9xXgaFwRQF29eER8Jf+w=
+ARC-Authentication-Results: i=1; mx.zohomail.com;
+	dkim=pass  header.i=collabora.com;
+	spf=pass  smtp.mailfrom=dmitry.osipenko@collabora.com;
+	dmarc=pass header.from=<dmitry.osipenko@collabora.com>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1773745487;
+	s=zohomail; d=collabora.com; i=dmitry.osipenko@collabora.com;
+	h=Message-ID:Date:Date:MIME-Version:Subject:Subject:To:To:Cc:Cc:References:From:From:In-Reply-To:Content-Type:Content-Transfer-Encoding:Message-Id:Reply-To;
+	bh=h+lPwTt9TYls4GWt4L3R8P1GyolYyxlZPncJvU3XAoA=;
+	b=A5yicB6j7+FBP/ND7ppgnddB9jSGQoLpA7TFATcBYLWAKgbrtZPFCdbJaJO/G5NM
+	CcseQfuncXo9b7XnCUSTrYbSH8dq8xMKKjzMJN4c1erCAJ7GGX7iTvMazT9SPME/eYw
+	4wOcxjf4gohhgocMDmXy2ClUGKES0l2vn6z/EYLI=
+Received: by mx.zohomail.com with SMTPS id 1773745485136532.2452248580718;
+	Tue, 17 Mar 2026 04:04:45 -0700 (PDT)
+Message-ID: <9603d545-9def-498d-bf05-c15b855b3d3b@collabora.com>
+Date: Tue, 17 Mar 2026 14:04:39 +0300
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260316154159.1.I0a4d03104ecd5103df3d76f66c8d21b1d15a2e38@changeid>
- <abkCPU3rxHI49N4_@shikoro> <abkD-VLprcbbEbB1@ashevche-desk.local>
- <abkF0GO01sMcOhvb@shikoro> <abkLEgrZbdb03VWg@ashevche-desk.local>
- <abkLY4AAQuFlTRC7@ashevche-desk.local> <abkT_jpjIki6pvX1@shikoro>
- <abkqEni3phP8dqqw@ashevche-desk.local> <abkuNpwmYGa6qJPZ@shikoro>
-In-Reply-To: <abkuNpwmYGa6qJPZ@shikoro>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Tue, 17 Mar 2026 11:44:16 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0g=_HW7i8-emNdTtw_0Kjqri8qTehHvms52u-w7jqG6bQ@mail.gmail.com>
-X-Gm-Features: AaiRm51cRor4ZZDDr_mxj0wmImR4wUCy3F3N-SYcdW3xJYMr5MLA4gbqvDIFXzk
-Message-ID: <CAJZ5v0g=_HW7i8-emNdTtw_0Kjqri8qTehHvms52u-w7jqG6bQ@mail.gmail.com>
-Subject: Re: [PATCH] device property: Make modifications of fwnode "flags"
- thread safe
-To: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
-	Douglas Anderson <dianders@chromium.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	"Rafael J . Wysocki" <rafael@kernel.org>, Danilo Krummrich <dakr@kernel.org>, stable@vger.kernel.org, 
-	Andrew Lunn <andrew@lunn.ch>, Daniel Scally <djrscally@gmail.com>, 
-	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
-	Fabio Estevam <festevam@gmail.com>, Frank Li <Frank.Li@nxp.com>, 
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>, Heiner Kallweit <hkallweit1@gmail.com>, 
-	Jakub Kicinski <kuba@kernel.org>, Len Brown <lenb@kernel.org>, Mark Brown <broonie@kernel.org>, 
-	Paolo Abeni <pabeni@redhat.com>, Pengutronix Kernel Team <kernel@pengutronix.de>, Rob Herring <robh@kernel.org>, 
-	Russell King <linux@armlinux.org.uk>, Sakari Ailus <sakari.ailus@linux.intel.com>, 
-	Saravana Kannan <saravanak@kernel.org>, Sascha Hauer <s.hauer@pengutronix.de>, 
-	devicetree@vger.kernel.org, driver-core@lists.linux.dev, imx@lists.linux.dev, 
-	linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
-	linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-spi@vger.kernel.org, netdev@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC v1 0/8] acpi/x86: s2idle: Introduce and implement runtime
+ standby ABI for ACPI s0ix platforms
+To: Antheas Kapenekakis <lkml@antheas.dev>
+Cc: bob.beckett@collabora.com, bookeldor@gmail.com, hadess@hadess.net,
+ jaap@haitsma.org, kernel@collabora.com, lennart@poettering.net,
+ linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, mccann@jhu.edu,
+ rafael@kernel.org, richard@hughsie.com, sebastian.reichel@collabora.com,
+ superm1@kernel.org, systemd-devel@lists.freedesktop.org,
+ xaver.hugl@gmail.com, John Schoenick <johns@valvesoftware.com>
+References: <20251226102656.6296-1-lkml@antheas.dev>
+ <CAGwozwF5wsb8pYmHj5G0uTfr+3vx+HhrfOR9t-pEGPw-jjvbHg@mail.gmail.com>
+ <3ca00958-13e5-4732-b500-aa9673a4c965@collabora.com>
+ <CAGwozwHLkL5xAXzaKoTyLCGzNjjHUf+bNu8qo+-Tpex7NK6=GA@mail.gmail.com>
+ <ab4d90d8-3212-4571-9f92-ac4facd3aa33@collabora.com>
+ <CAGwozwF7aVapmRYczm+=rPfVDXH0i6UArQtg1TRgc7Vi6+XYxA@mail.gmail.com>
+ <5202766b-0bc2-4d0a-90af-977dcb81e66f@collabora.com>
+ <CAGwozwGc0YsU_aW4Yk7g3B8LCGvXPoXg=NVkJPXxfPekxq7p1A@mail.gmail.com>
+ <CAGwozwE2F53Kz71-1Sub9RuDc=df9KPAo-i63hZ6sO4=C0tDpg@mail.gmail.com>
+From: Dmitry Osipenko <dmitry.osipenko@collabora.com>
+Content-Language: en-US
+In-Reply-To: <CAGwozwE2F53Kz71-1Sub9RuDc=df9KPAo-i63hZ6sO4=C0tDpg@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-ZohoMailClient: External
 
-On Tue, Mar 17, 2026 at 11:34=E2=80=AFAM Wolfram Sang
-<wsa+renesas@sang-engineering.com> wrote:
->
->
-> > Like Danilo I am also not sure what lock protects fwnode accesses.
->
-> This is basically the question I asked to Doug. If he also don't see
-> one, let's take this patch as is.
+On 3/16/26 22:36, Antheas Kapenekakis wrote:
+> On Mon, 16 Mar 2026 at 20:33, Antheas Kapenekakis <lkml@antheas.dev> wrote:
+>>
+>> On Mon, 16 Mar 2026 at 20:03, Dmitry Osipenko
+>> <dmitry.osipenko@collabora.com> wrote:
+>>>
+>>> Hi Antheas,
+>>>
+>>> On 1/15/26 10:49, Antheas Kapenekakis wrote:
+>>>> On Thu, 15 Jan 2026 at 01:07, Dmitry Osipenko
+>>>> <dmitry.osipenko@collabora.com> wrote:
+>>>>>
+>>>>> On 1/13/26 13:11, Antheas Kapenekakis wrote:
+>>>>>> <snip>
+>>>>
+>>>> Hi Dmitry,
+>>>> let me go inline.
+>>>>
+>>>>> The primary goal is to support screen-off DSM for a power-efficient
+>>>>> background games downloading [1] and further resume-to-dark on Steam
+>>>>> Deck and other handhelds. There is no strict timeline, usual "sooner the
+>>>>> better". Downstreams will use customized WIP solution till upstream will
+>>>>> get necessary generic interfaces.
+>>>>>
+>>>>> [1] https://store.steampowered.com/news/app/1675200/view/771930569635267984
+>>>>
+>>>> Ok, this makes things clearer. I had done some testing to see the
+>>>> viability of such approach.
+>>>>
+>>>> One big problem [1] had was that the compression algorithm that Steam
+>>>> used was very CPU intensive. However, it was announced that that
+>>>> changed, which makes low power downloads more viable.
+>>>>
+>>>> However, even so, I do not think the sleep DSM is designed for
+>>>> prolonged background use and certain devices might overheat.
+>>>> Specifically, I think the Go S disables its fan while in that DSM.
+>>>> Looking back to what Windows does, it only uses the Sleep state to do
+>>>> periodic polling, and if there are updates it transitions to display
+>>>> off.
+>>>>
+>>>> This is a fair approach for [1]. For example, device wakes up every
+>>>> two hours while connected to a charger, stays on sleep state, checks
+>>>> for updates, and if there are any and conditions are met, transitions
+>>>> to display off and starts downloading.
+>>>>
+>>>> However, this means you do not get a smaller tdp limit. Given you
+>>>> control the unfrozen userspace in that state though, such a limit does
+>>>> not help either. The device will use what it needs to for downloads.
+>>>> This makes the SD 5W low power mode puzzling, as it means downloads
+>>>> will potentially take longer and I would be punished as a user for
+>>>> using that mode. Instead, Steam should be optimized to use less than
+>>>> 5W or perhaps 10W when downloading from gigabit in some way.
+>>>>
+>>>> Two more considerations in this case are that a lot of devices will
+>>>> turn off their controllers when entering display off. And the rest
+>>>> when entering sleep. This is good because when you are in dark resume,
+>>>> the RGB of the device has turned off. But for [1] it is problematic
+>>>> because it assumes the controller works and is what is used to wake
+>>>> the device so the mode is broken. For Legion, Sleep is used to turn
+>>>> off the controller, and for other devices Sleep Entry/Exit. New in ROG
+>>>> Xbox Ally devices is that the controller no longer turns off, but it
+>>>> is muted.
+>>>>
+>>>> The other consideration is that three additional patches are needed
+>>>> for ROG Ally devices to work correctly with this series, 2 cleanup
+>>>> commits and 1 small delay. But after that it should be drop in. I
+>>>> cannot comment on the new hid drivers for Asus and Legion that are
+>>>> currently being developed. Particularly, hid-legion-go(?) has a
+>>>> reset_resume() cb where it should have used resume? Or not anything?
+>>>> The legion controllers save os mode until they disconnect, which they
+>>>> do with this series, so the driver would always re-initialize on
+>>>> wake-up.
+>>>
+>>> My rough understanding that a firmware/BIOS update may be needed for
+>>> some devices to leverage DSM in regards to power consumption
+>>> improvement. Could be true that practically it may not improve much,
+>>> will see. Even if not all current devices will benefit from the
+>>> screen-off DSM, it may differ for a later generations.
+>>
+>> Hi Dmitry,
+>> sorry, I have been busy the past few days. I read through Rafael's
+>> comments, I will respond to them in the next 2-3 days.
+>>
+>> Your understanding is correct. You will see 0 performance difference
+>> with the screen off DSM. It is not supposed to affect the thermal
+>> envelope. Turning off the screens of your laptop due to inactivity is
+>> not supposed to affect the thermal envelope.
+>>
+>> For devices that use the DSM to turn off their controller (~60%),
+>> there might be a marginal <.5W improvement. The rest use the sleep
+>> DSMs for that. Those do affect the thermal envelope. However, they are
+>> not designed for prolonged CPU intensive tasks such as a SteamOS
+>> download mode. This is the bigger concern. From my experience, I
+>> expect the Go S to overheat.
+>>
+>> The improvement because of turning off the controllers / RGB is
+>> something that is needed for download mode in any case. And as my
+>> previous comment suggests, lowering the thermal limit may not be
+>> required / advantageous.
+> 
+> Here, the sleep dsms are also important, because of their broad
+> effects to power light / thermal envelope. As they can be used for
+> brief wake / update checks. For battery powered devices, perhaps these
+> are not important (excl. hibernation checks), but for desktop consoles
+> it is expected functionality.
+> 
+>>>>> A common approach for upstreaming is to divide problem into smaller
+>>>>> manageable parts. That's what I'm planning to focus on now to see if we
+>>>>> can start easy with a minimal changes.
+>>>>
+>>>> Sure. One potential approach for this is this series, where the first
+>>>> part does the plumbing and the second part the exposing. They can be
+>>>> merged independently.
+>>>>
+>>>> I also made sure to address Rafael's comments, so the ABI of this
+>>>> series is completely independent of ACPI, S0ix or whether the device
+>>>> has a display. I also removed all references to Intel, AMD specific
+>>>> power envelope terminology. Moreover, most of the logic now resides in
+>>>> suspend.c and the hooks are in platform_ calls, so it can be
+>>>> implemented for other platforms easily.
+>>>>
+>>>> However, the first part of this series does some refactorings which
+>>>> assume a favorable outcome. If we do not want to assume that, a
+>>>> simpler initial series would just move the MS/display on/off DSMs to
+>>>> .begin() in s2idle.c. If you think that would be easier to merge, you
+>>>> are welcome to start with that. Then this series would be refactored
+>>>> on top and merged as a single unit. Keep in mind the ROG Ally conflict
+>>>> would also arise in this case as well.
+>>>>
+>>>>> Please don't worry about the credit. You did a significant ground work
+>>>>> that is well recognized by now. Thanks a lot for your efforts and help.
+>>>>> Starting from scratch of course won't be a good approach with all the
+>>>>> broad testing you've done.
+>>>>
+>>>> Great. Sounds good to me.
+>>>
+>>> I'm taking latest version of your patches and will update them in
+>>> accordance to the review from Rafael.
+>>
+>> Rafael raised some good questions I need to respond to. Specifically,
+>> the ABI is not yet decided, so the comments are not ready to address
+>> yet.
+>>
+>> Nonetheless, this series is ready to test with the current ABI.
+>>
+>> Moreover, Rafael suggests for upstreaming to follow essentially what I
+>> outlined. An initial series should move the DSMs to the beginning of
+>> the suspend sequence, and the follow-up would implement the ABI.
+>>
+>> I was planning to work on the first sub-series as a non-RFC after
+>> responding to Rafael's comments. Let me know how you plan to proceed.
 
-I don't recall using any lock for this purpose.
+Please go on and make a v2. This version works well with my testing. Thanks!
 
-IIRC, the original assumption was that device fwnodes wouldn't be
-updated once set.
+-- 
+Best regards,
+Dmitry
