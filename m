@@ -1,231 +1,182 @@
-Received: from mail-dl1-f50.google.com (mail-dl1-f50.google.com [74.125.82.50])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.14])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E5351ACEDE
-	for <linux-acpi@vger.kernel.org>; Tue, 17 Mar 2026 17:14:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A8211A9B58;
+	Tue, 17 Mar 2026 17:17:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.14
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773767670; cv=none; b=itOq79AA+pa1W8trk3JHZmVFMpiMLizssusz/IAg8vyVAXja8zBMe5w+LDjsAgaY+fYnkRVgsRQ3DCkREcwq8tQPGqvdIX9WxCnyPs5AMKRtkbmJsiPQHelCJgmgoiS6uHmtEte0OI5Lp/8UOUt4wKJwQYsuIidCJmTIinkGXJs=
+	t=1773767851; cv=none; b=UDjeLC+DZRZLKOpFgW7MADuQFDU495+JotyONUo3mfSHgMR4eezqLKcZr78JTrm21UwQhOfmFtYzMIeTVGTQ1tjjh5Yem/r3qjHQtC+CaN4QS/hFsRkYjzv4WLsJfBKrYsM0fb0PFf4v3GIWR2H8iYWOITUo85NyI9uqGBcG2Yo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773767670; c=relaxed/simple;
-	bh=SgMZNTr7eiDdRK0c6nHHbt9yANr1xsIuSarJONAu7V4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=MytBIbNJ6/o9Qv6PuvPWVxkxOe9gY4fK7zGFncrTHHQnDQHCiF02JFx1PcYsroSVaNrIROe+3/bVphpxVhedgf946pjeFmlHtR8LrGZM/P+K6bJ4kOlTP/zHa/yWsoXElt/+ECBjdJK+2tu3hVdH8gizrwO7X1XA7QC6J1v92a8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=roeck-us.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=M/SrFkhE; arc=none smtp.client-ip=74.125.82.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=roeck-us.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1773767851; c=relaxed/simple;
+	bh=7CdePlcUoRtDeiYY/pi0uqAiUogggSQtKKvAjnMXy/A=;
+	h=From:Date:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=LwAxfB1tPxdEF9lnRZ1FQJmUQ76fF/z3PthqKWA+x6CoQNA/aY5jFxoMTInsD+BeX9sOw0LzDr1Rq01nTRlI7QymF1FA6gx+xN6M/nyvvZCnv7rrJgrOjRLSVMz4CRbiZV035saI9tZvdVoVwztyGjA7By18vJkamdNOmPfBVkk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=NdCAlOI+; arc=none smtp.client-ip=198.175.65.14
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="M/SrFkhE"
-Received: by mail-dl1-f50.google.com with SMTP id a92af1059eb24-1279eced0b9so8343934c88.0
-        for <linux-acpi@vger.kernel.org>; Tue, 17 Mar 2026 10:14:28 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1773767668; x=1774372468; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:sender:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=7fZGlThRHKOZEcqCV8UkZyE5CKR9QF/JZoCrQJeiv38=;
-        b=M/SrFkhEeT1NzcF7fejqGxblFhqej5lE6d8Xdfznod1EhIGGJ62Ew08nEgfML7UzMo
-         Cpapg4nYb9izUsYdIaDVj7TSGJLsFy+yKrPL40sCtsfiV9F6rRfLFNExbBeKmgEEtYas
-         rWgccsSQMC9eRi2q4rdSojLexsPA2IsC7utAovu5IM2FOU//BgUHNI/glRT+wI0vi3pk
-         WJpt4/x+Gv7PKI2BWM7R1H6gyCMFj6OlUDtsD4wqMcFFiMc1Nk7vGV1GHBhh7eiroyce
-         EHhGNqOov4MeX82lpuyMcfSxCY9ufPOZIgiGoYjqCi53OhMgew6dNMTm8WgdLiBSg2Fx
-         KPkQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1773767668; x=1774372468;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:sender:x-gm-gg:x-gm-message-state:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=7fZGlThRHKOZEcqCV8UkZyE5CKR9QF/JZoCrQJeiv38=;
-        b=WH/1m5C3MRsDRgA4fqzbwJSeMI26dGC4RZDI/7PDYufeUlgE7+7ciH35NJA1OdCys+
-         QzvUQHloAx2r56IOkGTTyoI+scDwwLXWj/PkOgQzJ+rfBPNJxXmKIn16BySwE8V4OEPE
-         ozLsJ8w/rLbmdhAfAEgANpP/bjts3tmqliHqD07cJ41Zi/Dnk640f5JNan7YI283/bha
-         aN+7e3FVSdfCimfMahVVqtI37fjRQP8hO6XbXkMsYQhayjWI/EyWhLfC1/+4RWXwfTFt
-         QjtIupQR6FlpmwSgiFIQbOq6izWyqUDrDDoRisENbxrMINLX/fLHjPoIyD8/e21QJr2V
-         d8EQ==
-X-Forwarded-Encrypted: i=1; AJvYcCWTy/d8nfMQFFrJ8SY00kcNAMUq0m50XX/JmT5JJOczkF5NKMBzXgjsgzowYAmyxRuSWEoF9xSCKhSk@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz4KdwEm0YIVCASEfuBivMIzi43mUgetH5i96k8sgVbNv1nnSvD
-	nw1J3Bw9W3UTmbnEFdh4Hb5nu9GIwxHKGUriEqQhISPu5q2NEV28Or4n
-X-Gm-Gg: ATEYQzxq80dF+tdPpLinyxd3aMdKaN4m574Tj8lOsVHszHd2M8exwGXT5oIQbavGA0E
-	KfofYfAfD0Id+zMEZxQ4tnrQcxLA+yMh9d4eB3Uw2RYjoqswKGdqfrOFmTaos+E7hEEr4MgOlEF
-	NsKUXrj7A8M1W+WfSDjs1MFrHTnTQW6+e7GiLWvs1y7fYDHOc/roreYHLnG1/MUSPEOeOS2C9th
-	ZVu8sT0PnVelWrwauQk77QGEp6UzwddLbz8I5mqouKbj2//SjEsPdn3DRnTcLNiRmE/Lqp+1oBK
-	5DgS3VeFg/tp7zo8pHAlXUuhFAHnCyfy/xbkfcd+MIVDdqgsPFQLtMrtYcgm74CI42zTaNrfTgl
-	FBJa1JiwyJxZiT8tPoSbKUufmd4vrvm4Ctuo8QKpl7VUMS9UmXDU5X3clTnv9AMMx1lQeal+91E
-	mJCNh+xveEsWiTRA3i2ALa3Rf5JqjI/zUQLf5a
-X-Received: by 2002:a05:7022:60a2:b0:128:d20a:2f40 with SMTP id a92af1059eb24-1299baa02e9mr144968c88.8.1773767667391;
-        Tue, 17 Mar 2026 10:14:27 -0700 (PDT)
-Received: from server.roeck-us.net ([2600:1700:e321:62f0:da43:aeff:fecc:bfd5])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-129b41289e7sm174147c88.10.2026.03.17.10.14.26
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 17 Mar 2026 10:14:26 -0700 (PDT)
-Sender: Guenter Roeck <groeck7@gmail.com>
-Date: Tue, 17 Mar 2026 10:14:25 -0700
-From: Guenter Roeck <linux@roeck-us.net>
-To: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, acpica-devel@lists.linux.dev,
-	linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org,
-	linux-efi@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Ankit Agrawal <ankita@nvidia.com>, Borislav Petkov <bp@alien8.de>,
-	Breno Leitao <leitao@debian.org>, Hanjun Guo <guohanjun@huawei.com>,
-	Huang Yiwei <quic_hyiwei@quicinc.com>,
-	Jason Tian <jason@os.amperecomputing.com>,
-	Jonathan Cameron <jonathan.cameron@huawei.com>,
-	Len Brown <lenb@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Shuai Xue <xueshuai@linux.alibaba.com>,
-	Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>,
-	Tony Luck <tony.luck@intel.com>
-Subject: Re: [PATCH v6 1/4] apei/ghes: ARM processor Error: don't go past
- allocated memory
-Message-ID: <1f87994f-22cb-44b8-9878-7ff375325a43@roeck-us.net>
-References: <cover.1767871950.git.mchehab+huawei@kernel.org>
- <7fd9f38413be05ee2d7cfdb0dc31ea2274cf1a54.1767871950.git.mchehab+huawei@kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="NdCAlOI+"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1773767850; x=1805303850;
+  h=from:date:to:cc:subject:in-reply-to:message-id:
+   references:mime-version;
+  bh=7CdePlcUoRtDeiYY/pi0uqAiUogggSQtKKvAjnMXy/A=;
+  b=NdCAlOI+XiQJ/xd+tzZmOlJuwLB6TGJDs5HI0ZxGt/rwuNShXUmdkBFY
+   nBbbLN0nwAGiarXV7TNWGiq3W22CGXEcgmwI1o14IkCkt4xJQXKE+jT1+
+   59CiZcYaS5DLXWRnY7p1DOo1o5qlprSVEQb8ahEtpF/R1pqj/JD7OEP+T
+   Be4L0ZSRos3ywbHyCiWVijGeXgRCzzDmZxC68ZqrINRnd7bhrUy4Upyt9
+   yWHqMu0FB4gxbpHdzouo3UFNKhS7UmH2UWp0Q8CCOg5MIHPAYBtGtiyCd
+   uvLRxgRwAbnpjFPjDyHKPjHzbDTXClbPj2dQ5zs76VneQ5S4cxsIy/afu
+   w==;
+X-CSE-ConnectionGUID: oYPV8J/VQ/iXfKzFHG7wKg==
+X-CSE-MsgGUID: ixCZQ2Z4SO6PlTxt/MoZwg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11732"; a="78662879"
+X-IronPort-AV: E=Sophos;i="6.23,126,1770624000"; 
+   d="scan'208";a="78662879"
+Received: from orviesa006.jf.intel.com ([10.64.159.146])
+  by orvoesa106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Mar 2026 10:17:29 -0700
+X-CSE-ConnectionGUID: wLH2OvYUS8GPbB2sjZfrwg==
+X-CSE-MsgGUID: pijydR3SR0a0h73v8Q6blQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,126,1770624000"; 
+   d="scan'208";a="221396364"
+Received: from ijarvine-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.245.161])
+  by orviesa006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Mar 2026 10:17:27 -0700
+From: =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
+Date: Tue, 17 Mar 2026 19:17:23 +0200 (EET)
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+cc: Hans de Goede <hansg@kernel.org>, LKML <linux-kernel@vger.kernel.org>, 
+    Linux ACPI <linux-acpi@vger.kernel.org>, 
+    platform-driver-x86@vger.kernel.org, 
+    =?ISO-8859-15?Q?Pali_Roh=E1r?= <pali@kernel.org>
+Subject: Re: [PATCH v1 1/2] platform/x86: dell/dell-rbtn: Register ACPI notify
+ handler directly
+In-Reply-To: <2272494.irdbgypaU6@rafael.j.wysocki>
+Message-ID: <678891a6-854f-8dbd-d488-ac06f27fca61@linux.intel.com>
+References: <5071411.GXAFRqVoOG@rafael.j.wysocki> <2272494.irdbgypaU6@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <7fd9f38413be05ee2d7cfdb0dc31ea2274cf1a54.1767871950.git.mchehab+huawei@kernel.org>
+Content-Type: text/plain; charset=US-ASCII
 
-Hi,
+On Thu, 12 Mar 2026, Rafael J. Wysocki wrote:
 
-On Thu, Jan 08, 2026 at 12:35:03PM +0100, Mauro Carvalho Chehab wrote:
-> If the BIOS generates a very small ARM Processor Error, or
-> an incomplete one, the current logic will fail to deferrence
+> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 > 
-> 	err->section_length
-> and
-> 	ctx_info->size
+> To facilitate subsequent conversion of the driver to a platform one,
+> make it install an ACPI notify handler directly instead of using
+> a .notify() callback in struct acpi_driver.
 > 
-> Add checks to avoid that. With such changes, such GHESv2
-> records won't cause OOPSes like this:
+> No intentional functional impact.
 > 
-> [    1.492129] Internal error: Oops: 0000000096000005 [#1]  SMP
-> [    1.495449] Modules linked in:
-> [    1.495820] CPU: 0 UID: 0 PID: 9 Comm: kworker/0:0 Not tainted 6.18.0-rc1-00017-gabadcc3553dd-dirty #18 PREEMPT
-> [    1.496125] Hardware name: QEMU QEMU Virtual Machine, BIOS unknown 02/02/2022
-> [    1.496433] Workqueue: kacpi_notify acpi_os_execute_deferred
-> [    1.496967] pstate: 814000c5 (Nzcv daIF +PAN -UAO -TCO +DIT -SSBS BTYPE=--)
-> [    1.497199] pc : log_arm_hw_error+0x5c/0x200
-> [    1.497380] lr : ghes_handle_arm_hw_error+0x94/0x220
-> 
-> 0xffff8000811c5324 is in log_arm_hw_error (../drivers/ras/ras.c:75).
-> 70		err_info = (struct cper_arm_err_info *)(err + 1);
-> 71		ctx_info = (struct cper_arm_ctx_info *)(err_info + err->err_info_num);
-> 72		ctx_err = (u8 *)ctx_info;
-> 73
-> 74		for (n = 0; n < err->context_info_num; n++) {
-> 75			sz = sizeof(struct cper_arm_ctx_info) + ctx_info->size;
-> 76			ctx_info = (struct cper_arm_ctx_info *)((long)ctx_info + sz);
-> 77			ctx_len += sz;
-> 78		}
-> 79
-> 
-> and similar ones while trying to access section_length on an
-> error dump with too small size.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-> Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
-
-AI code review feedback inline. I don't claim to understand the code or
-its purpose, but it does seem to have a point. Please have a look.
-
-Thanks,
-Guenter
-
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > ---
->  drivers/acpi/apei/ghes.c | 32 ++++++++++++++++++++++++++++----
->  drivers/ras/ras.c        |  6 +++++-
->  2 files changed, 33 insertions(+), 5 deletions(-)
+>  drivers/platform/x86/dell/dell-rbtn.c | 50 ++++++++++++++++++---------
+>  1 file changed, 33 insertions(+), 17 deletions(-)
 > 
-> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-> index 0dc767392a6c..fc3f8aed99d5 100644
-> --- a/drivers/acpi/apei/ghes.c
-> +++ b/drivers/acpi/apei/ghes.c
-> @@ -552,21 +552,45 @@ static bool ghes_handle_arm_hw_error(struct acpi_hest_generic_data *gdata,
->  {
->  	struct cper_sec_proc_arm *err = acpi_hest_get_payload(gdata);
->  	int flags = sync ? MF_ACTION_REQUIRED : 0;
-> +	int length = gdata->error_data_length;
->  	char error_type[120];
->  	bool queued = false;
->  	int sec_sev, i;
->  	char *p;
+> diff --git a/drivers/platform/x86/dell/dell-rbtn.c b/drivers/platform/x86/dell/dell-rbtn.c
+> index a415c432d4c3..9271b27abb46 100644
+> --- a/drivers/platform/x86/dell/dell-rbtn.c
+> +++ b/drivers/platform/x86/dell/dell-rbtn.c
+> @@ -207,7 +207,7 @@ static void rbtn_input_event(struct rbtn_data *rbtn_data)
 >  
->  	sec_sev = ghes_severity(gdata->error_severity);
-> -	log_arm_hw_error(err, sec_sev);
-> +	if (length >= sizeof(*err)) {
-> +		log_arm_hw_error(err, sec_sev);
-> +	} else {
-> +		pr_warn(FW_BUG "arm error length: %d\n", length);
-> +		pr_warn(FW_BUG "length is too small\n");
-> +		pr_warn(FW_BUG "firmware-generated error record is incorrect\n");
-> +		return false;
+>  static int rbtn_add(struct acpi_device *device);
+>  static void rbtn_remove(struct acpi_device *device);
+> -static void rbtn_notify(struct acpi_device *device, u32 event);
+> +static void rbtn_notify(acpi_handle handle, u32 event, void *data);
+>  
+>  static const struct acpi_device_id rbtn_ids[] = {
+>  	{ "DELRBTN", 0 },
+> @@ -293,7 +293,6 @@ static struct acpi_driver rbtn_driver = {
+>  	.ops = {
+>  		.add = rbtn_add,
+>  		.remove = rbtn_remove,
+> -		.notify = rbtn_notify,
+>  	},
+>  };
+>  
+> @@ -382,6 +381,22 @@ EXPORT_SYMBOL_GPL(dell_rbtn_notifier_unregister);
+>   * acpi driver functions
+>   */
+>  
+> +static void rbtn_cleanup(struct acpi_device *device)
+> +{
+> +	struct rbtn_data *rbtn_data = device->driver_data;
+> +
+> +	switch (rbtn_data->type) {
+> +	case RBTN_TOGGLE:
+> +		rbtn_input_exit(rbtn_data);
+> +		break;
+> +	case RBTN_SLIDER:
+> +		rbtn_rfkill_exit(device);
+> +		break;
+> +	default:
+> +		break;
 > +	}
+> +}
 > +
->  	if (sev != GHES_SEV_RECOVERABLE || sec_sev != GHES_SEV_RECOVERABLE)
->  		return false;
->  
->  	p = (char *)(err + 1);
-> +	length -= sizeof(err);
-> +
-
-Does this code subtract the size of the pointer instead of the size of the
-structure? It looks like length will be larger than the remaining buffer,
-which could allow out-of-bounds accesses in the loop below.
-
->  	for (i = 0; i < err->err_info_num; i++) {
-> -		struct cper_arm_err_info *err_info = (struct cper_arm_err_info *)p;
-> -		bool is_cache = err_info->type & CPER_ARM_CACHE_ERROR;
-> -		bool has_pa = (err_info->validation_bits & CPER_ARM_INFO_VALID_PHYSICAL_ADDR);
-> +		struct cper_arm_err_info *err_info;
-> +		bool is_cache, has_pa;
-> +
-> +		/* Ensure we have enough data for the error info header */
-> +		if (length < sizeof(*err_info))
-> +			break;
-> +
-> +		err_info = (struct cper_arm_err_info *)p;
-> +
-> +		/* Validate the claimed length before using it */
-> +		length -= err_info->length;
-> +		if (length < 0)
-> +			break;
-> +
-> +		is_cache = err_info->type & CPER_ARM_CACHE_ERROR;
-> +		has_pa = (err_info->validation_bits & CPER_ARM_INFO_VALID_PHYSICAL_ADDR);
->  
->  		/*
->  		 * The field (err_info->error_info & BIT(26)) is fixed to set to
-> diff --git a/drivers/ras/ras.c b/drivers/ras/ras.c
-> index 2a5b5a9fdcb3..03df3db62334 100644
-> --- a/drivers/ras/ras.c
-> +++ b/drivers/ras/ras.c
-> @@ -72,7 +72,11 @@ void log_arm_hw_error(struct cper_sec_proc_arm *err, const u8 sev)
->  	ctx_err = (u8 *)ctx_info;
->  
->  	for (n = 0; n < err->context_info_num; n++) {
-> -		sz = sizeof(struct cper_arm_ctx_info) + ctx_info->size;
-> +		sz = sizeof(struct cper_arm_ctx_info);
-> +
-> +		if (sz + (long)ctx_info - (long)err >= err->section_length)
-> +			sz += ctx_info->size;
-> +
-
-Is this condition inverted? It looks like we add ctx_info->size to sz only if
-the context info header is already out of bounds. This might cause us to read
-ctx_info->size from unallocated memory.
-
-Also, if the header is completely within bounds, sz does not include
-ctx_info->size. Could this cause the loop to parse the register context array
-as the next cper_arm_ctx_info header?
-
->  		ctx_info = (struct cper_arm_ctx_info *)((long)ctx_info + sz);
->  		ctx_len += sz;
+>  static int rbtn_add(struct acpi_device *device)
+>  {
+>  	struct rbtn_data *rbtn_data;
+> @@ -422,31 +437,32 @@ static int rbtn_add(struct acpi_device *device)
+>  		break;
 >  	}
-> -- 
-> 2.52.0
+>  	if (ret)
+> -		rbtn_acquire(device, false);
+> +		goto err;
+> +
+> +	ret = acpi_dev_install_notify_handler(device, ACPI_DEVICE_NOTIFY,
+> +					      rbtn_notify, device);
+> +	if (ret) {
+> +		rbtn_cleanup(device);
+
+If you add(/have) a rollback path, please put all rollbacks there unless 
+there is a good reason not to (making a setup call that makes the rollback 
+non-linear).
+
+-- 
+ i.
+
+
+> +		goto err;
+> +	}
+>  
+> +	return 0;
+> +
+> +err:
+> +	rbtn_acquire(device, false);
+>  	return ret;
+>  }
+>  
+>  static void rbtn_remove(struct acpi_device *device)
+>  {
+> -	struct rbtn_data *rbtn_data = device->driver_data;
+> -
+> -	switch (rbtn_data->type) {
+> -	case RBTN_TOGGLE:
+> -		rbtn_input_exit(rbtn_data);
+> -		break;
+> -	case RBTN_SLIDER:
+> -		rbtn_rfkill_exit(device);
+> -		break;
+> -	default:
+> -		break;
+> -	}
+> -
+> +	acpi_dev_remove_notify_handler(device, ACPI_DEVICE_NOTIFY, rbtn_notify);
+> +	rbtn_cleanup(device);
+>  	rbtn_acquire(device, false);
+>  }
+>  
+> -static void rbtn_notify(struct acpi_device *device, u32 event)
+> +static void rbtn_notify(acpi_handle handle, u32 event, void *data)
+>  {
+> +	struct acpi_device *device = data;
+>  	struct rbtn_data *rbtn_data = device->driver_data;
+>  
+>  	/*
 > 
