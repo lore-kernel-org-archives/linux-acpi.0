@@ -1,59 +1,60 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.14])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.14])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 647CE37F8B9;
-	Tue, 17 Mar 2026 18:08:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.14
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED4C43EC2EE;
+	Tue, 17 Mar 2026 18:08:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.14
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773770919; cv=none; b=ZH6zbdbdN0mpTxMIiACYTm83TbEE6LqyEsYT54sTUXDph7EH08VpYjNBUzCIj0OsZUJVlejxJaWJXA1BCwO7TRyaZJRL4rDpFbQZxCRzJGV6KHQMNapUbkNZiTimXCz0ZaZVyV2P7bmrAfz2AsXha3oWpkuvvintVXxQjBRrwm0=
+	t=1773770927; cv=none; b=gGuvg/QE4EvDuDV5vTL90yo8CjZpAC7ugrIdGo14B3vNrJz0n931Aj4uYmC00GXdyi/oNWXYsvMj45imMccskouOIUrN5lm+Fblf9k1b+elcogTvACsL3t90+bmZ09ErFtqcw+McgVBNKOoEBhTyqJlDTVQSRDDDwzHuYWFe7+A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773770919; c=relaxed/simple;
-	bh=N7eXIi4qPeumwq95sxgHSE2G1aKUbxOdVIDjGTP7Etw=;
+	s=arc-20240116; t=1773770927; c=relaxed/simple;
+	bh=phau2/cNnOlyS/cPL2NTsKwQUeWAxXUGO/zTSwaFN6c=;
 	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=jKF6qbLQCMXFAXYvVD7MQ3PY5Bo/qbCth+ni0dPx1Zh58L3dt1j4CSukgLgKMenGenwnxH8hAmqrZdh8r1/Jl826PSkMRdHwIfAP0qui14o66JaxiYRQiTxP51M/9/9fXXo+wqtWhMCXkIcNMrglHyVdHA6f0BsEQ0D+M0Ly6Pc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=adqeyC9J; arc=none smtp.client-ip=192.198.163.14
+	 MIME-Version:Content-Type; b=M7ztrcniUwU8JLobW6BwqlU4OiAkGInlETNVbiXEEF2peHhmydz7zd41DPMyM6AksYgVCxIhEi69FBQl+LfryBiNIx12pXcaWIihs+y87HVtoVL+PFujG1OjuHtTwHxEfvu3pHEqg7wECtBkpuJWtszo0FTSVbuj+b4OdeyqVsg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Jo52aTOr; arc=none smtp.client-ip=198.175.65.14
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="adqeyC9J"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Jo52aTOr"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1773770917; x=1805306917;
+  t=1773770927; x=1805306927;
   h=from:to:cc:in-reply-to:references:subject:message-id:
    date:mime-version:content-transfer-encoding;
-  bh=N7eXIi4qPeumwq95sxgHSE2G1aKUbxOdVIDjGTP7Etw=;
-  b=adqeyC9JfAbP3Q3FAsLN20oTRL0k4ZeXP1w8n7FKeQO/RAkg0hIttd+a
-   tcD8paOH+3UikteUSPiz2u1WDLDa5w7LqPOjKyLvU7cKf8xG1Rh2XtXFr
-   VcO6uxIrniUO/F8C4Z9xcozHvTou1aisoLT8bgwfjaIcN60OSRRamwx0D
-   p7xH9Vx2YPI95bC7u6Xir6+JxT3sHtO3isc20irBzCi9+kcCC9K/YEHaN
-   ViMx/zPTu/79EzbsTTRrxXtRczEUG2s+KIk8gH6xgw+s4+FTbKk6iUcmD
-   cEErsf3psoKULt8zf+7SRM2jZAhHy25KEgthiBjLW+VFywg26MLDh7Hsb
-   Q==;
-X-CSE-ConnectionGUID: LABl6B9wQCidxzCEmPAD6w==
-X-CSE-MsgGUID: YJ//rllGSZiwq+MDQgBN6g==
-X-IronPort-AV: E=McAfee;i="6800,10657,11732"; a="74892859"
+  bh=phau2/cNnOlyS/cPL2NTsKwQUeWAxXUGO/zTSwaFN6c=;
+  b=Jo52aTOrcG9IiHmulX7TeUAfMN96F0FzyEe8Ajr7oD1nYqXno+xxX5UB
+   W0NPsB5gwyXRvGm3pymeHZ0/Ef9OpdKT/NvcwEkZ3TUI/BBQgOH2GIc/f
+   Cbrg85zCjCBLb5D0zkgMJRj0eKsokGYL6eqsSCTtzLPINCfmuXtVMLQgd
+   NopntRaDl0FdYMqlbBltBfjSqfZqJLsehB1ZNBJq/lchMnPOWfCtKi/8f
+   k1zVuxvWG12Nw/x62QxD6dYtC5HY0Hv85PUV+8Lwa5TDL+LLjH3qvvbfs
+   MbxpAf2orn+lR9HupFSkpiexSHLcn/NxjTRx2SsHyoDcdYXmXFl0in1sG
+   g==;
+X-CSE-ConnectionGUID: eVNnFWvxSaWVH+e4NSsZUg==
+X-CSE-MsgGUID: B2046wwPSD6QJ9Mgb51sSg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11732"; a="78667695"
 X-IronPort-AV: E=Sophos;i="6.23,126,1770624000"; 
-   d="scan'208";a="74892859"
-Received: from fmviesa005.fm.intel.com ([10.60.135.145])
-  by fmvoesa108.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Mar 2026 11:08:36 -0700
-X-CSE-ConnectionGUID: EsAQVPUOQJWDCKTHPNybmw==
-X-CSE-MsgGUID: r95VHqWhSH+AfGjrFTPZpQ==
+   d="scan'208";a="78667695"
+Received: from orviesa004.jf.intel.com ([10.64.159.144])
+  by orvoesa106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Mar 2026 11:08:46 -0700
+X-CSE-ConnectionGUID: 1M734QpRSFilOipkSY33pw==
+X-CSE-MsgGUID: 5tbnLIklS2+I1rwzCx01GQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.23,126,1770624000"; 
-   d="scan'208";a="227027306"
+   d="scan'208";a="226812536"
 Received: from ijarvine-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.245.161])
-  by fmviesa005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Mar 2026 11:08:35 -0700
+  by orviesa004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Mar 2026 11:08:43 -0700
 From: =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
 To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, 
- Linux ACPI <linux-acpi@vger.kernel.org>, Hans de Goede <hansg@kernel.org>, 
- platform-driver-x86@vger.kernel.org, Mattia Dongili <malattia@linux.it>
-In-Reply-To: <2284006.Icojqenx9y@rafael.j.wysocki>
-References: <2284006.Icojqenx9y@rafael.j.wysocki>
-Subject: Re: [PATCH v1 0/3] platform/x86: sony-laptop: Bind to a platform
- device instead of an ACPI one
-Message-Id: <177377091081.21289.4085930421189781618.b4-ty@linux.intel.com>
-Date: Tue, 17 Mar 2026 20:08:30 +0200
+Cc: Hans de Goede <hansg@kernel.org>, LKML <linux-kernel@vger.kernel.org>, 
+ Linux ACPI <linux-acpi@vger.kernel.org>, 
+ platform-driver-x86@vger.kernel.org, 
+ Herton Ronaldo Krzesinski <herton@canonical.com>
+In-Reply-To: <3053187.e9J7NaK4W3@rafael.j.wysocki>
+References: <3053187.e9J7NaK4W3@rafael.j.wysocki>
+Subject: Re: [PATCH v1 0/2] platform/x86: topstar-laptop: Bind to a
+ platform device instead of an ACPI one
+Message-Id: <177377091838.21289.17695615695494856022.b4-ty@linux.intel.com>
+Date: Tue, 17 Mar 2026 20:08:38 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -64,7 +65,7 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 X-Mailer: b4 0.13.0
 
-On Thu, 12 Mar 2026 12:28:06 +0100, Rafael J. Wysocki wrote:
+On Thu, 12 Mar 2026 15:31:16 +0100, Rafael J. Wysocki wrote:
 
 > This series is part of a larger effort to switch over all drivers using
 > the struct acpi_driver interface to the more common struct platform_driver
@@ -83,12 +84,10 @@ platform-drivers-x86/review-ilpo-next branch only once I've pushed my
 local branch there, which might take a while.
 
 The list of commits applied:
-[1/3] platform/x86: sony-laptop: Register ACPI notify handler directly
-      commit: 0f2ca62fdfbcada9568fbc7e27e94e4b3bffbf7a
-[2/3] platform/x86: sony-laptop: Convert NC driver to a platform one
-      commit: 14004dd31caae2e49791d1ecc8f9ba87478df023
-[3/3] platform/x86: sony-laptop: Convert PIC driver to a platform one
-      commit: 138db7ee58c0c0911fc4f79ccd7c5846f7b9408b
+[1/2] platform/x86: topstar-laptop: Register ACPI notify handler directly
+      commit: a15d1839c77884ad08b72fe2e18d8df7b32c5c0f
+[2/2] platform/x86: topstar-laptop: Convert ACPI driver to a platform one
+      commit: 3471415c8186f952b805c441d905d7033c23304a
 
 --
  i.
