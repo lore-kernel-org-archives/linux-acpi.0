@@ -1,246 +1,190 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from DM5PR21CU001.outbound.protection.outlook.com (mail-centralusazon11011026.outbound.protection.outlook.com [52.101.62.26])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B2A22C234A
-	for <linux-acpi@vger.kernel.org>; Tue, 17 Mar 2026 19:04:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773774285; cv=none; b=PpXVix6OJr+IRJlOGnFc9Rr6TTocYCmAA6DcaARfRY+pLorgF5xc9tpdMM8XZoMIvh/QREl9WeGceccLkrRUPf62mtN2lTjcjM8lYuMJgNgd5H2XNwC1+rRxjv03/WwvtX2JBI2kLqtIW+isX78lHeZQ/mgp7o0yrhjG0pfMI28=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773774285; c=relaxed/simple;
-	bh=OW+S3HWLRnSCCq1bjodpLHutJNbipAf8Fx+wUhqNyNI=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=JhCH+ERYoV5Gas3BODPvsDszoOqzPEsHXrlMD6MSTZUzoDjpG01ndbO/8LA6ZWiaoOjczlsezgFdD49r+V9cRPcJsuFuoHoxypj8BEPSrjrSZ6exQ4ohG0MW+w2psyBB20SzYp98J8EffP/XtoN2R8+qdluoz54LWjtVrvm7Pfo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HuL0gAnx; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A6DA1DFF0;
+	Tue, 17 Mar 2026 19:16:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.62.26
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1773774994; cv=fail; b=dJI2/Mnqsy3VEjT0wzzQLBQQnfXmy5gU6SYyMyCkAvB8Fl+bQjjsmyWP1o3UyBk3fuqeZ/Gq5cH7Yh3Por9OQp9yuIhOtSA4rcCNcYTyWo8V0zBLhFUD7Z0VoNKz5D/W7y+Qcwme4wYn9krDUW2VDbKaTVFcSudX9bs3f4vUskk=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1773774994; c=relaxed/simple;
+	bh=sqUQjrfNPboWbj5x37tjuYJ/wZ6EtFZOo9ajamp4rWk=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=RY3YLnSsMAJKya+Ha5hgsyMmW9VnTEWbI97W4Qtke3UVi79yQHjnOR5fvSPUmueFnMcBe3rsgrfz3+ZPmIwkQkg1ZLaVrQQteGL/VChFg6E9toBCDWlvp6PbNp7FSYzYIFHYpVTC+MBm+CPi9zKrC7ZfyQTdNKBK6F8zdtzV29o=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=i3eYn1F5; arc=fail smtp.client-ip=52.101.62.26
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HuL0gAnx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41DA0C2BC9E
-	for <linux-acpi@vger.kernel.org>; Tue, 17 Mar 2026 19:04:45 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773774285;
-	bh=OW+S3HWLRnSCCq1bjodpLHutJNbipAf8Fx+wUhqNyNI=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=HuL0gAnxk/gnRGrPxUOAq40tA3t36gLYMo3XDdGExia24NWZRv/+rS/uYuq8LvP8Z
-	 eFv/pPKlaiyex4KsvSqcodxE1hJLnMkAwYHSsyOUJ/BuNCtw2wQT6uxOw0oe6d4ykT
-	 ZPm6jBuOBOFxEyUKYHTLzP45Ld4/FdIDaRgv2CwKJdWlFcF0nUC4t/WMD2zu7RgsMI
-	 prif/cvO1qmJhdGqP3Qbt+137tw8XIY325Ed+LMRYTLCyclprdKrwGtN/C/RAyfLhm
-	 z+4TVScRTknlRLdQbrI0XyBsPf4kSPJFLjdouyYBi6A3RA7oISu+TKuSpKvZhXcWl7
-	 CMtzY84s3G/LA==
-Received: by mail-ot1-f52.google.com with SMTP id 46e09a7af769-7d7422b4ff1so2665332a34.3
-        for <linux-acpi@vger.kernel.org>; Tue, 17 Mar 2026 12:04:45 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCWwk/oXekzdKg503woTYkED70fd2rMsaW6rLh+oR9R70NbPzg6Ew3Yvd67KZNkgoxN9vWEZyCFfXIYu@vger.kernel.org
-X-Gm-Message-State: AOJu0Yxr19Z9rvQ6AqPdR8kavzE125jYPmNkPI9QEubVdZHovRXE2ugJ
-	kF0S0s9H2sWqgASyr0+U04ISHL9yLqT9jD7p/eRXixsmMsBkkF5YQsFs+4CrQ5OIojtbL6O+Rf/
-	epwtCrBztgoEXTZqNS9niQLDqWQnWJ7k=
-X-Received: by 2002:a05:6820:1ca9:b0:67b:a645:94c9 with SMTP id
- 006d021491bc7-67c0dace061mr311490eaf.32.1773774284297; Tue, 17 Mar 2026
- 12:04:44 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="i3eYn1F5"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=dGMV15ci0/zwlUnxsb055xkAwNA3N9ygibMgsoarS3gzk46BlDl5GGkyz9VUrB0ikdUD4go1fg84buRUTwljmcLkdvyqRVeS//31PFaaO8x1qZ2fGswEkWiAEMdJz5bfQ+05lj2SaHXJAuZ5L1Uyj0R7kuOFxjNCiEG5SwM3OtxNeiEevAv/6jYNhwBoewLqTAcTqdqNlzj1S2eu2O3cpskVBRY9vH1a1D3I2Zhdj1s1N4Wkm/TavVXscunbLaC3ly07Q4R1MNDt44z0jXUO+3J0EU2mgFLflHYUa5vmc3KqxcA5/Q/s56Z4UKEaikh7TqmhU7MlyOLU80l8kFm5IA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=U4FYxGkAJnIDl4QvTiwNtJgQQp4HvathpQlMeKw8VyI=;
+ b=gn57/t7+uyWuIF+OUk87V8O+OO/IQjiwgILLaImqr2AfWPG2EXrISPGY8rkrrVhayHMjeBUAUHCpJpRSlIwNNcBGo/EOe4vYBvNeenaUCOjVwzslDXpCjqtOEA/bVOc7cH9/gjIHaYaJgorKACaRlddU3BvHsi7N2VQ75EbVsmna2PskMIMFdjETnY6JQ4/2jKpSQaDoYT3teaOIs96MW//i5Q8mm54PI/GXLET4gIbDNk0d1pzkRW/sNq8RrSRc0b/9nkzCOV3UIy9xc0JWflEEXN2bTCiqFeo4BIzInGgc7SmjVo0bsdR7shTXuB7mdzBJTbWsI7MjClJhr4wSjw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.117.161) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=U4FYxGkAJnIDl4QvTiwNtJgQQp4HvathpQlMeKw8VyI=;
+ b=i3eYn1F5GlhU4/zAahlBzNXLKMgGXtRDxQ2SXPfuBRCzuduvj/5kGUTOYgpzudO1mX9B1FibQsx7+j2vFFneujkFT4eiNo1lDRglnXkzziLUbSdRblvAINtxhpezjtbXNTdJRATRS8RXXzmoyQlv8lcQWpd0qmGnVvSBkvPPVY4YVYJSrGa/FniGoacvuN5z1WoqTQ9oAvwcHH4StcM3F4pYklGHTWvxaSRdKBhdbd1dKirxUrGO6mTht3g+OsaH3LYQhGM/wHZ3wJlmFJGB6CpuhVYBr2uLiDIps2L/7LXcRim2LSqfDETzS1MU0Re3YjF3fEjanXa1WoDVr64VLQ==
+Received: from PH0PR07CA0099.namprd07.prod.outlook.com (2603:10b6:510:4::14)
+ by BN7PPFB3F5C406F.namprd12.prod.outlook.com (2603:10b6:40f:fc02::6e0) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9723.16; Tue, 17 Mar
+ 2026 19:16:26 +0000
+Received: from MWH0EPF000A6735.namprd04.prod.outlook.com
+ (2603:10b6:510:4:cafe::c7) by PH0PR07CA0099.outlook.office365.com
+ (2603:10b6:510:4::14) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.9700.24 via Frontend Transport; Tue,
+ 17 Mar 2026 19:16:20 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.161)
+ smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.161) by
+ MWH0EPF000A6735.mail.protection.outlook.com (10.167.249.27) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.9700.17 via Frontend Transport; Tue, 17 Mar 2026 19:16:26 +0000
+Received: from rnnvmail203.nvidia.com (10.129.68.9) by mail.nvidia.com
+ (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Tue, 17 Mar
+ 2026 12:16:02 -0700
+Received: from rnnvmail204.nvidia.com (10.129.68.6) by rnnvmail203.nvidia.com
+ (10.129.68.9) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Tue, 17 Mar
+ 2026 12:16:01 -0700
+Received: from Asurada-Nvidia.nvidia.com (10.127.8.9) by mail.nvidia.com
+ (10.129.68.6) with Microsoft SMTP Server id 15.2.2562.20 via Frontend
+ Transport; Tue, 17 Mar 2026 12:16:01 -0700
+From: Nicolin Chen <nicolinc@nvidia.com>
+To: <will@kernel.org>, <robin.murphy@arm.com>, <joro@8bytes.org>,
+	<bhelgaas@google.com>, <jgg@nvidia.com>
+CC: <rafael@kernel.org>, <lenb@kernel.org>, <praan@google.com>,
+	<baolu.lu@linux.intel.com>, <xueshuai@linux.alibaba.com>,
+	<kevin.tian@intel.com>, <linux-arm-kernel@lists.infradead.org>,
+	<iommu@lists.linux.dev>, <linux-kernel@vger.kernel.org>,
+	<linux-acpi@vger.kernel.org>, <linux-pci@vger.kernel.org>,
+	<vsethi@nvidia.com>
+Subject: [PATCH v2 0/7] iommu/arm-smmu-v3: Quarantine device upon ATC invalidation timeout
+Date: Tue, 17 Mar 2026 12:15:33 -0700
+Message-ID: <cover.1773774441.git.nicolinc@nvidia.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <2841136.mvXUDI8C0e@rafael.j.wysocki> <1968431.tdWV9SEqCh@rafael.j.wysocki>
- <e8b58f60-2741-c259-9882-78a9d3c8f50b@linux.intel.com>
-In-Reply-To: <e8b58f60-2741-c259-9882-78a9d3c8f50b@linux.intel.com>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Tue, 17 Mar 2026 20:04:32 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0h4w1=1LGHR6J5=yu7MjV_z27e3GXOBq8yjH2uNSBxmBQ@mail.gmail.com>
-X-Gm-Features: AaiRm53ozabEmJVT5IG1gJmd9Wk-iC7HO7aJaI3x7nhcDS4por8PeVcOziotlbU
-Message-ID: <CAJZ5v0h4w1=1LGHR6J5=yu7MjV_z27e3GXOBq8yjH2uNSBxmBQ@mail.gmail.com>
-Subject: Re: [PATCH v1 2/2] platform/x86: system76: Convert ACPI driver to a
- platform one
-To: =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Hans de Goede <hansg@kernel.org>, 
-	LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, 
-	platform-driver-x86@vger.kernel.org, Jeremy Soller <jeremy@system76.com>, 
-	System76 Product Development <productdev@system76.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-NV-OnPremToCloud: ExternallySecured
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: MWH0EPF000A6735:EE_|BN7PPFB3F5C406F:EE_
+X-MS-Office365-Filtering-Correlation-Id: 016c69af-cc5c-4386-c08c-08de8459af6c
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|36860700016|1800799024|82310400026|7416014|376014|18002099003|56012099003;
+X-Microsoft-Antispam-Message-Info:
+	dqo19M/H2n8OKFy6sTRpiTFQYiIw+SqHGXjrxc1JbBUUU+xSvbZBdtlHXufuq5jJTTem1AX+X9Lvl31YiAPCVNu+SaBzBMSUwZwukp+CfupnUygaA7o0epEKp60hkcAJ32M8nC6wuIh5Aey52zd0A8C3K5TRcfrml623m3YsSMhljrH6BrHfzjvj8UUjhut09nQyISaFYVxB+96+gdwn+kdGUA9bVeyXeTfJ5D9SCZfzRH3d+76mU03ScDh+vMYm3J6Hn/So9hYmLIWN7n5oYybT7zHJN74AH717tlts2fK0YLnGTNs7Jn79cxI+pCCE3JMpqqg5ocZmJDUXrVmPxtntzdke967konYRrrPt5ToTKomNZQ+0Am0r3GB8IFedgbeeg+uwlE/DTZVgujfF/s7N3nn16vffWW+sbf+TvOfFAV+rM0/21Yd5qHSaGIb7urA+g+jUmb6hlThiNbX3WdCpXAszn9J2gJksyFkb4Yab0XwlzZaiK/pb4Tszv7mEUhZKLKenhIij+n5+aL3jYQkAw4rh1X5q5m59rnTD7LVt5n95tX5k4BIqHEUzYr2JO3ceuC9e2I3oRXSCc+8grlzC312UoC4ZNYhf5lFmHncC3HrfJkEgLwITeQVJiJ7oI4fAIgUgNSKPCMPA15yNXmN7Wvfiyj/skW7G1lEhXnXwZQbbKrLITCSZZTh0sMWfuUBHu12Syz+SCk+7SQfJRwZsFdmbFpPQlajYx4kDixtfNRNesoxhbLaSLeKxCXOl3QFT5r/7/P3ig3DDje0dUA==
+X-Forefront-Antispam-Report:
+	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(36860700016)(1800799024)(82310400026)(7416014)(376014)(18002099003)(56012099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	qUiOocft7EKYt5rvLbeC4FI6ufQ0o8S/+xmKEab8TvsEDB5nWuapq0BHSeNZnhJ3mvTv2GFXiwqjbxtu1mTMVb4CQrmvBbMiUtxwWGWFaySFb7F9CSI5L8CZysx/aZJAYRDKGRk7pBbzjkgB9UbJ6nHa+yUHoSZODdCxUxdH4OpPXy0DaxkAD8D03gOmmToklyAsMwN2RYZqIQU+MG9iRX7GdgZOqOw/D9P3fzbVtaB2Xs+uYUG8CEFk8pqLYloYzNzfYTHeJUUv4u6Tel4qWDlOr0HUwc2GkVDG1sIhRvVz4lvsRHCN8U92dg8Wfe9jPPdW11dPVm3dtkgFPLe3VHAuFhxd56vsYm9/JrCIuOH5RT2BoYCZ2ajK72Nl+Pt4dHzKVkc2OnIXvPkA/SGHvW0R5tnDjKRVWWAcB+jgAlxOnn+JlqXhLZeJuyJnly9n
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 17 Mar 2026 19:16:26.2906
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 016c69af-cc5c-4386-c08c-08de8459af6c
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	MWH0EPF000A6735.namprd04.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BN7PPFB3F5C406F
 
-On Tue, Mar 17, 2026 at 6:48=E2=80=AFPM Ilpo J=C3=A4rvinen
-<ilpo.jarvinen@linux.intel.com> wrote:
->
-> On Thu, 12 Mar 2026, Rafael J. Wysocki wrote:
->
-> > From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-> >
-> > In all cases in which a struct acpi_driver is used for binding a driver
-> > to an ACPI device object, a corresponding platform device is created by
-> > the ACPI core and that device is regarded as a proper representation of
-> > underlying hardware.  Accordingly, a struct platform_driver should be
-> > used by driver code to bind to that device.  There are multiple reasons
-> > why drivers should not bind directly to ACPI device objects [1].
-> >
-> > Overall, it is better to bind drivers to platform devices than to their
-> > ACPI companions, so convert the System76 ACPI driver to a platform one.
-> >
-> > After this change, the subordinate hwmon, input and LED class devices
-> > will be registered under the platform device used for driver binding
-> > instead of its ACPI companion.
-> >
-> > While this is not expected to alter functionality, it changes sysfs
-> > layout and so it will be visible to user space.
-> >
-> > Link: https://lore.kernel.org/all/2396510.ElGaqSPkdT@rafael.j.wysocki/ =
-[1]
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > ---
-> >  drivers/platform/x86/system76_acpi.c | 52 +++++++++++++++-------------
-> >  1 file changed, 27 insertions(+), 25 deletions(-)
-> >
-> > diff --git a/drivers/platform/x86/system76_acpi.c b/drivers/platform/x8=
-6/system76_acpi.c
-> > index 35e294a55fa3..b3a4254156ae 100644
-> > --- a/drivers/platform/x86/system76_acpi.c
-> > +++ b/drivers/platform/x86/system76_acpi.c
-> > @@ -18,6 +18,7 @@
-> >  #include <linux/leds.h>
-> >  #include <linux/module.h>
-> >  #include <linux/pci_ids.h>
-> > +#include <linux/platform_device.h>
-> >  #include <linux/power_supply.h>
-> >  #include <linux/sysfs.h>
-> >  #include <linux/types.h>
-> > @@ -670,16 +671,19 @@ static void system76_notify(acpi_handle handle, u=
-32 event, void *context)
-> >       }
-> >  }
-> >
-> > -// Add a System76 ACPI device
-> > -static int system76_add(struct acpi_device *acpi_dev)
-> > +// Probe a System76 platform device
-> > +static int system76_probe(struct platform_device *pdev)
-> >  {
-> > +     struct acpi_device *acpi_dev =3D ACPI_COMPANION(&pdev->dev);
-> >       struct system76_data *data;
-> >       int err;
-> >
-> > -     data =3D devm_kzalloc(&acpi_dev->dev, sizeof(*data), GFP_KERNEL);
-> > +     data =3D devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
-> >       if (!data)
-> >               return -ENOMEM;
-> > -     acpi_dev->driver_data =3D data;
-> > +
-> > +     platform_set_drvdata(pdev, data);
-> > +
-> >       data->acpi_dev =3D acpi_dev;
-> >
-> >       // Some models do not run open EC firmware. Check for an ACPI met=
-hod
-> > @@ -695,7 +699,7 @@ static int system76_add(struct acpi_device *acpi_de=
-v)
-> >       data->ap_led.brightness_set_blocking =3D ap_led_set;
-> >       data->ap_led.max_brightness =3D 1;
-> >       data->ap_led.default_trigger =3D "rfkill-none";
-> > -     err =3D devm_led_classdev_register(&acpi_dev->dev, &data->ap_led)=
-;
-> > +     err =3D devm_led_classdev_register(&pdev->dev, &data->ap_led);
-> >       if (err)
-> >               return err;
-> >
-> > @@ -739,19 +743,19 @@ static int system76_add(struct acpi_device *acpi_=
-dev)
-> >       }
-> >
-> >       if (data->kbled_type !=3D KBLED_NONE) {
-> > -             err =3D devm_led_classdev_register(&acpi_dev->dev, &data-=
->kb_led);
-> > +             err =3D devm_led_classdev_register(&pdev->dev, &data->kb_=
-led);
-> >               if (err)
-> >                       return err;
-> >       }
-> >
-> > -     data->input =3D devm_input_allocate_device(&acpi_dev->dev);
-> > +     data->input =3D devm_input_allocate_device(&pdev->dev);
-> >       if (!data->input)
-> >               return -ENOMEM;
-> >
-> >       data->input->name =3D "System76 ACPI Hotkeys";
-> >       data->input->phys =3D "system76_acpi/input0";
-> >       data->input->id.bustype =3D BUS_HOST;
-> > -     data->input->dev.parent =3D &acpi_dev->dev;
-> > +     data->input->dev.parent =3D &pdev->dev;
-> >       input_set_capability(data->input, EV_KEY, KEY_SCREENLOCK);
-> >
-> >       err =3D input_register_device(data->input);
-> > @@ -767,7 +771,7 @@ static int system76_add(struct acpi_device *acpi_de=
-v)
-> >               if (err)
-> >                       goto error;
-> >
-> > -             data->therm =3D devm_hwmon_device_register_with_info(&acp=
-i_dev->dev,
-> > +             data->therm =3D devm_hwmon_device_register_with_info(&pde=
-v->dev,
-> >                       "system76_acpi", data, &thermal_chip_info, NULL);
-> >               err =3D PTR_ERR_OR_ZERO(data->therm);
-> >               if (err)
-> > @@ -795,14 +799,13 @@ static int system76_add(struct acpi_device *acpi_=
-dev)
-> >       return err;
-> >  }
-> >
-> > -// Remove a System76 ACPI device
-> > -static void system76_remove(struct acpi_device *acpi_dev)
-> > +// Remove a System76 platform device
-> > +static void system76_remove(struct platform_device *pdev)
-> >  {
-> > -     struct system76_data *data;
-> > -
-> > -     acpi_dev_remove_notify_handler(acpi_dev, ACPI_DEVICE_NOTIFY, syst=
-em76_notify);
-> > +     struct system76_data *data =3D platform_get_drvdata(pdev);
-> >
-> > -     data =3D acpi_driver_data(acpi_dev);
-> > +     acpi_dev_remove_notify_handler(ACPI_COMPANION(&pdev->dev),
-> > +                                    ACPI_DEVICE_NOTIFY, system76_notif=
-y);
-> >
-> >       if (data->has_open_ec) {
-> >               system76_battery_exit();
-> > @@ -810,22 +813,21 @@ static void system76_remove(struct acpi_device *a=
-cpi_dev)
-> >               kfree(data->ntmp);
-> >       }
-> >
-> > -     devm_led_classdev_unregister(&acpi_dev->dev, &data->ap_led);
-> > -     devm_led_classdev_unregister(&acpi_dev->dev, &data->kb_led);
-> > +     devm_led_classdev_unregister(&pdev->dev, &data->ap_led);
-> > +     devm_led_classdev_unregister(&pdev->dev, &data->kb_led);
->
-> With devm_* being used, why are these needed?
+Hi all,
 
-I just preserved the existing pattern.  I can remove it, but that
-would be a separate patch, wouldn't it?
+This series addresses a critical vulnerability and stability issue where an
+unresponsive PCIe device failing to process ATC (Address Translation Cache)
+invalidation requests leads to silent data corruption and continuous SMMU
+CMDQ error spam.
 
-> >       system76_get(data, "FINI");
-> >  }
-> >
-> > -static struct acpi_driver system76_driver =3D {
-> > -     .name =3D "System76 ACPI Driver",
-> > -     .class =3D "hotkey",
-> > -     .ids =3D device_ids,
-> > -     .ops =3D {
-> > -             .add =3D system76_add,
-> > -             .remove =3D system76_remove,
-> > +static struct platform_driver system76_driver =3D {
-> > +     .probe =3D system76_probe,
-> > +     .remove =3D system76_remove,
-> > +     .driver =3D {
-> > +             .name =3D "System76 ACPI Driver",
-> > +             .acpi_match_table =3D device_ids,
-> >       },
-> >  };
-> > -module_acpi_driver(system76_driver);
-> > +module_platform_driver(system76_driver);
-> >
-> >  MODULE_DESCRIPTION("System76 ACPI Driver");
-> >  MODULE_AUTHOR("Jeremy Soller <jeremy@system76.com>");
-> >
->
-> --
->  i.
->
+Currently, when an ATC invalidation times out, the SMMUv3 driver skips the
+CMDQ_ERR_CERROR_ATC_INV_IDX error. This leaves the device's ATS cache state
+desynchronized from the SMMU: the device cache may retain stale ATC entries
+for memory pages that the OS has already reclaimed and reassigned, creating
+a direct vector for data corruption. Furthermore, the driver might continue
+issuing ATC_INV commands, resulting in constant CMDQ errors:
+    unexpected global error reported (0x00000001), this could be serious
+    CMDQ error (cons 0x0302bb84): ATC invalidate timeout
+    unexpected global error reported (0x00000001), this could be serious
+    CMDQ error (cons 0x0302bb88): ATC invalidate timeout
+    unexpected global error reported (0x00000001), this could be serious
+    CMDQ error (cons 0x0302bb8c): ATC invalidate timeout
+    ...
+
+To resolve this, introduce a mechanism to quarantine a broken device in the
+SMMUv3 driver and the IOMMU core. To achive this, some preparatory changes:
+ - Tighten the semantics of pci_dev_reset_iommu_done() that is now strictly
+   called only upon a successful hardware reset
+ - Introduce a reset_device_done op, allowing the core to signal the driver
+   when the physical hardware has been cleanly recovered (e.g., via AER or
+   a manual reset) so the quarantine can be lifted
+ - Utilize a per-iommu_group WQ via an iommu_report_device_broken() helper
+   Note that this implementation only supports single-device iommu_groups.
+
+On the SMMUv3 driver side, introduce the bisection logic to identify which
+device caused a batched ATC_INV timeout via an atc_sync_timeouts tracker.
+Perform a surgical STE update and flag the ATS as broken to reject further
+ATS/ATC requests at the hardware level and suppress further timeout spam.
+
+This is on Github:
+https://github.com/nicolinc/iommufd/commits/smmuv3_atc_timeout-v2
+
+Changelog
+v2:
+ * Rebase on arm_smmu_invs-v13 series [0]
+ * Bisect batched atc invalidation commands
+ * Drop the direct pci_reset_function() call
+ * Move the work queue from SMMUv3 to the core
+ * Proceed a surgical STE update to disable EATS
+ * Wait for pci_dev_reset_iommu_done() to signal a recovery
+v1:
+ https://lore.kernel.org/all/cover.1772686998.git.nicolinc@nvidia.com/
+
+[0] https://lore.kernel.org/all/cover.1773733797.git.nicolinc@nvidia.com/
+
+Thanks
+Nicolin
+
+Nicolin Chen (7):
+  iommu: Do not call pci_dev_reset_iommu_done() unless reset succeeds
+  iommu: Add reset_device_done callback for hardware fault recovery
+  iommu: Add iommu_report_device_broken() to quarantine a broken device
+  iommu/arm-smmu-v3: Mark ATC invalidate timeouts via lockless bitmap
+  iommu/arm-smmu-v3: Replace smmu with master in arm_smmu_inv
+  iommu/arm-smmu-v3: Introduce master->ats_broken flag
+  iommu/arm-smmu-v3: Block ATS upon an ATC invalidation timeout
+
+ drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.h   |   4 +-
+ include/linux/iommu.h                         |   4 +
+ .../iommu/arm/arm-smmu-v3/arm-smmu-v3-test.c  |  34 ++--
+ drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c   | 165 ++++++++++++++++--
+ drivers/iommu/iommu.c                         |  87 ++++++++-
+ drivers/pci/pci-acpi.c                        |  11 +-
+ drivers/pci/pci.c                             |  50 +++++-
+ drivers/pci/quirks.c                          |  11 +-
+ 8 files changed, 322 insertions(+), 44 deletions(-)
+
+-- 
+2.43.0
+
