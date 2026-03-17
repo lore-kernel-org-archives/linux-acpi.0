@@ -1,41 +1,41 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8521F381AED;
-	Tue, 17 Mar 2026 19:45:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE2B73803D9;
+	Tue, 17 Mar 2026 19:45:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773776711; cv=none; b=Edz/BVC+NjKjO1gf5Jh+3c+SVmroBO0Ysb+WZIVg9/uZCycL0jW8xJu4detjJVgdRmnvvG2BX2/ixQHFUPYbdy2wMIbPN4k3ip39lp1LWrh6EFaY+GzHSaMKo+vXi6C4o3MZQKvvyQVZXZg27rc3IfUDzaAahCSpWI5PEKZf78k=
+	t=1773776715; cv=none; b=XG2eTtSrXU6A7vM046+ccZgJFT0B2pRgBwhoZHcOsxUriJ9QN5wK7OzDY0Nh8RPAKMBR4AuhViLT4G1bLjy9eXvVvbZOUN76fhOvBOZr4iWonWhKFYm0Hyalhmp0Bqgpn67/nxPE8r2gbOpLzOWurO424v7dZBwBYEIBnymLYbM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773776711; c=relaxed/simple;
-	bh=DraGRYCgVkXSiF2Vs+EW70tknAGkeftWiEK4y2PPsgk=;
+	s=arc-20240116; t=1773776715; c=relaxed/simple;
+	bh=frRiu3aK9HzEGIyV/6ViwpxHuCBhCOqkxFZTmoekibE=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=fFirl5JppKPfDcOFP+pta41DO/KuTRIQZE7VwHMXWuXQhVf985Lhe49MdZdOAgUUBU0n3aetKcBlmZf6NOuNYiEcMUcf7YkJ2lMaUyzVrmBbDmNeZFyFShZ5AM93rW4R2Dle9gw3tC7KyFsuzbNjv1+PxjxckGbTCRV05VAn0r8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iz0H5BBx; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=uIR5rOZ3VrfdhX8BwgHyQuOfHJzam557pcZ9LfEVt5khzdO0i1y9rv335ehVYiNprnTuXP9YVuKlfdUOCdHuDejlAq+2ZW7MvfGhr1iZzh3SLUAyQsafJQCPhyWW0a44yNdKybhQKM0xTkjsjZ5bVCDbPLNETbFAgdyKEKnwuFc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=R2DKSPr+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iz0H5BBx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65265C2BCAF;
-	Tue, 17 Mar 2026 19:45:09 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="R2DKSPr+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96193C4CEF7;
+	Tue, 17 Mar 2026 19:45:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773776711;
-	bh=DraGRYCgVkXSiF2Vs+EW70tknAGkeftWiEK4y2PPsgk=;
+	s=k20201202; t=1773776715;
+	bh=frRiu3aK9HzEGIyV/6ViwpxHuCBhCOqkxFZTmoekibE=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=iz0H5BBxvG8227pcr30aDgHN/WW8XI+5YCCvcu/jM526cylb7QHK5zUDVryn2sVXC
-	 zdzfCbLwfffj279QNCo0Xec8OPrSLD76r0GMDLtDtTttZo/zOEHG+8+KK7zwbkyt16
-	 haMc51lZnpXQYLnxmDGLLGAkbkHLpVEu+2+2EOm8Htcwxj7wFqWUCQox/igBTrUvki
-	 9yZDLAQdPXLTWOodUHa+/mhXHSdGNuwJUlz/iASDBLE//ctvQtyLM3FEAVpzU+n+F3
-	 2BtZfwi/sX3KxzsgqNWEDfNWv7dL6dBA9aipjIHprVnQ9VXnM0cvJljfBzTB43EY1U
-	 ps83AbtDZCiTw==
+	b=R2DKSPr+nIRb6qANTgOC3JLpS57aN3Ug+IyYDD9IBauX8AYQ2Y1uJXIH+GkztStE8
+	 g/ZX6ZdKh4f5lOwSgBPdIw4FHd1yzVyYeFXIJuLSNkw9CFZXYaLyfp4xMB4khcERlJ
+	 SMxo5LXTkDdS9C3FsYCXI142uMBeQ2Ojg5PRuSdzRvPmoYnlbQn8wEJ+eUjfRm+fkU
+	 QKYdC0vvwqJcBGRWxg5/QPM84ZcpAp6ywy56qgIk3KQ2lGqi77CXsk+VpHAepkH1Vu
+	 IbM5BepHQA5Qp+66FfPs7eE2V/KxCV/T913mAP06uHfzopt4I/tqw9XNKptVVzzK7q
+	 OpZpF9DlLWxKA==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Ilpo =?ISO-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>
 Cc: Robert Gerlach <khnz@gmx.de>, Hans de Goede <hansg@kernel.org>,
  LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>,
  platform-driver-x86@vger.kernel.org, Jonathan Woithe <jwoithe@just42.net>
 Subject:
- [PATCH v3 2/5] platform/x86: fujitsu: Reorder code to avoid forward
- declarations
-Date: Tue, 17 Mar 2026 20:40:02 +0100
-Message-ID: <1950259.tdWV9SEqCh@rafael.j.wysocki>
+ [PATCH v3 1/5] platform/x86: fujitsu-tablet: Convert ACPI driver to a
+ platform one
+Date: Tue, 17 Mar 2026 20:39:07 +0100
+Message-ID: <2403432.ElGaqSPkdT@rafael.j.wysocki>
 Organization: Linux Kernel Development
 In-Reply-To: <5085647.31r3eYUQgx@rafael.j.wysocki>
 References: <5085647.31r3eYUQgx@rafael.j.wysocki>
@@ -50,14 +50,24 @@ Content-Type: text/plain; charset="UTF-8"
 
 From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-Move the definitions of acpi_fujitsu_bl_notify() and
-acpi_fujitsu_laptop_notify() along with some helpers above
-the definitions of the functions that will refer to them
-after subsequent changes, to avoid having to add forward
-declarations of them.
+In all cases in which a struct acpi_driver is used for binding a driver
+to an ACPI device object, a corresponding platform device is created by
+the ACPI core and that device is regarded as a proper representation of
+underlying hardware.  Accordingly, a struct platform_driver should be
+used by driver code to bind to that device.  There are multiple reasons
+why drivers should not bind directly to ACPI device objects [1].
 
-No intentional functional impact.
+Overall, it is better to bind drivers to platform devices than to their
+ACPI companions, so convert the fujitsu-tablet ACPI driver to a platform
+one.
 
+After this change, the subordinate input device will be registered under
+the platform device used for driver binding instead of its ACPI companion.
+
+While this is not expected to alter functionality, it changes sysfs
+layout and so it will be visible to user space.
+
+Link: https://lore.kernel.org/all/2396510.ElGaqSPkdT@rafael.j.wysocki/ [1]
 Acked-by: Jonathan Woithe <jwoithe@just42.net>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
@@ -65,257 +75,97 @@ Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 v1 -> v3: No changes
 
 ---
- drivers/platform/x86/fujitsu-laptop.c | 216 +++++++++++++-------------
- 1 file changed, 108 insertions(+), 108 deletions(-)
+ drivers/platform/x86/fujitsu-tablet.c | 30 +++++++++++++--------------
+ 1 file changed, 14 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/platform/x86/fujitsu-laptop.c b/drivers/platform/x86/fujitsu-laptop.c
-index 931fbcdd21b8..1adce90ae3e6 100644
---- a/drivers/platform/x86/fujitsu-laptop.c
-+++ b/drivers/platform/x86/fujitsu-laptop.c
-@@ -500,6 +500,36 @@ static int fujitsu_backlight_register(struct acpi_device *device)
+diff --git a/drivers/platform/x86/fujitsu-tablet.c b/drivers/platform/x86/fujitsu-tablet.c
+index 17f08ce7552d..8319df28e9b8 100644
+--- a/drivers/platform/x86/fujitsu-tablet.c
++++ b/drivers/platform/x86/fujitsu-tablet.c
+@@ -18,6 +18,7 @@
+ #include <linux/input.h>
+ #include <linux/delay.h>
+ #include <linux/dmi.h>
++#include <linux/platform_device.h>
+ 
+ #define MODULENAME "fujitsu-tablet"
+ 
+@@ -442,14 +443,12 @@ static acpi_status fujitsu_walk_resources(struct acpi_resource *res, void *data)
+ 	}
+ }
+ 
+-static int acpi_fujitsu_add(struct acpi_device *adev)
++static int acpi_fujitsu_probe(struct platform_device *pdev)
+ {
++	struct acpi_device *adev = ACPI_COMPANION(&pdev->dev);
+ 	acpi_status status;
+ 	int error;
+ 
+-	if (!adev)
+-		return -EINVAL;
+-
+ 	status = acpi_walk_resources(adev->handle, METHOD_NAME__CRS,
+ 			fujitsu_walk_resources, NULL);
+ 	if (ACPI_FAILURE(status) || !fujitsu.irq || !fujitsu.io_base)
+@@ -461,7 +460,7 @@ static int acpi_fujitsu_add(struct acpi_device *adev)
+ 	snprintf(fujitsu.phys, sizeof(fujitsu.phys),
+ 			"%s/input0", acpi_device_hid(adev));
+ 
+-	error = input_fujitsu_setup(&adev->dev,
++	error = input_fujitsu_setup(&pdev->dev,
+ 		acpi_device_name(adev), fujitsu.phys);
+ 	if (error)
+ 		return error;
+@@ -484,7 +483,7 @@ static int acpi_fujitsu_add(struct acpi_device *adev)
  	return 0;
  }
  
-+/* Brightness notify */
-+
-+static void acpi_fujitsu_bl_notify(struct acpi_device *device, u32 event)
-+{
-+	struct fujitsu_bl *priv = acpi_driver_data(device);
-+	int oldb, newb;
-+
-+	if (event != ACPI_FUJITSU_NOTIFY_CODE) {
-+		acpi_handle_info(device->handle, "unsupported event [0x%x]\n",
-+				 event);
-+		sparse_keymap_report_event(priv->input, -1, 1, true);
-+		return;
-+	}
-+
-+	oldb = priv->brightness_level;
-+	get_lcd_level(device);
-+	newb = priv->brightness_level;
-+
-+	acpi_handle_debug(device->handle,
-+			  "brightness button event [%i -> %i]\n", oldb, newb);
-+
-+	if (oldb == newb)
-+		return;
-+
-+	if (!disable_brightness_adjust)
-+		set_lcd_level(device, newb);
-+
-+	sparse_keymap_report_event(priv->input, oldb < newb, 1, true);
-+}
-+
- static int acpi_fujitsu_bl_add(struct acpi_device *device)
+-static void acpi_fujitsu_remove(struct acpi_device *adev)
++static void acpi_fujitsu_remove(struct platform_device *pdev)
  {
- 	struct fujitsu_bl *priv;
-@@ -531,36 +561,6 @@ static int acpi_fujitsu_bl_add(struct acpi_device *device)
- 	return fujitsu_backlight_register(device);
- }
+ 	free_irq(fujitsu.irq, fujitsu_interrupt);
+ 	release_region(fujitsu.io_base, fujitsu.io_length);
+@@ -501,15 +500,14 @@ static int acpi_fujitsu_resume(struct device *dev)
  
--/* Brightness notify */
--
--static void acpi_fujitsu_bl_notify(struct acpi_device *device, u32 event)
--{
--	struct fujitsu_bl *priv = acpi_driver_data(device);
--	int oldb, newb;
--
--	if (event != ACPI_FUJITSU_NOTIFY_CODE) {
--		acpi_handle_info(device->handle, "unsupported event [0x%x]\n",
--				 event);
--		sparse_keymap_report_event(priv->input, -1, 1, true);
--		return;
--	}
--
--	oldb = priv->brightness_level;
--	get_lcd_level(device);
--	newb = priv->brightness_level;
--
--	acpi_handle_debug(device->handle,
--			  "brightness button event [%i -> %i]\n", oldb, newb);
--
--	if (oldb == newb)
--		return;
--
--	if (!disable_brightness_adjust)
--		set_lcd_level(device, newb);
--
--	sparse_keymap_report_event(priv->input, oldb < newb, 1, true);
--}
--
- /* ACPI device for hotkey handling */
+ static SIMPLE_DEV_PM_OPS(acpi_fujitsu_pm, NULL, acpi_fujitsu_resume);
  
- static const struct key_entry keymap_default[] = {
-@@ -908,6 +908,84 @@ static int acpi_fujitsu_laptop_leds_register(struct acpi_device *device)
- 	return 0;
- }
+-static struct acpi_driver acpi_fujitsu_driver = {
+-	.name  = MODULENAME,
+-	.class = "hotkey",
+-	.ids   = fujitsu_ids,
+-	.ops   = {
+-		.add    = acpi_fujitsu_add,
+-		.remove	= acpi_fujitsu_remove,
++static struct platform_driver acpi_fujitsu_driver = {
++	.probe = acpi_fujitsu_probe,
++	.remove = acpi_fujitsu_remove,
++	.driver = {
++		.name = MODULENAME,
++		.acpi_match_table = fujitsu_ids,
++		.pm = &acpi_fujitsu_pm,
+ 	},
+-	.drv.pm = &acpi_fujitsu_pm,
+ };
  
-+static void acpi_fujitsu_laptop_press(struct acpi_device *device, int scancode)
-+{
-+	struct fujitsu_laptop *priv = acpi_driver_data(device);
-+	int ret;
-+
-+	ret = kfifo_in_locked(&priv->fifo, (unsigned char *)&scancode,
-+			      sizeof(scancode), &priv->fifo_lock);
-+	if (ret != sizeof(scancode)) {
-+		dev_info(&priv->input->dev, "Could not push scancode [0x%x]\n",
-+			 scancode);
-+		return;
-+	}
-+	sparse_keymap_report_event(priv->input, scancode, 1, false);
-+	dev_dbg(&priv->input->dev, "Push scancode into ringbuffer [0x%x]\n",
-+		scancode);
-+}
-+
-+static void acpi_fujitsu_laptop_release(struct acpi_device *device)
-+{
-+	struct fujitsu_laptop *priv = acpi_driver_data(device);
-+	int scancode, ret;
-+
-+	while (true) {
-+		ret = kfifo_out_locked(&priv->fifo, (unsigned char *)&scancode,
-+				       sizeof(scancode), &priv->fifo_lock);
-+		if (ret != sizeof(scancode))
-+			return;
-+		sparse_keymap_report_event(priv->input, scancode, 0, false);
-+		dev_dbg(&priv->input->dev,
-+			"Pop scancode from ringbuffer [0x%x]\n", scancode);
-+	}
-+}
-+
-+static void acpi_fujitsu_laptop_notify(struct acpi_device *device, u32 event)
-+{
-+	struct fujitsu_laptop *priv = acpi_driver_data(device);
-+	unsigned long flags;
-+	int scancode, i = 0;
-+	unsigned int irb;
-+
-+	if (event != ACPI_FUJITSU_NOTIFY_CODE) {
-+		acpi_handle_info(device->handle, "Unsupported event [0x%x]\n",
-+				 event);
-+		sparse_keymap_report_event(priv->input, -1, 1, true);
-+		return;
-+	}
-+
-+	if (priv->flags_supported)
-+		priv->flags_state = call_fext_func(device, FUNC_FLAGS, 0x4, 0x0,
-+						   0x0);
-+
-+	while ((irb = call_fext_func(device,
-+				     FUNC_BUTTONS, 0x1, 0x0, 0x0)) != 0 &&
-+	       i++ < MAX_HOTKEY_RINGBUFFER_SIZE) {
-+		scancode = irb & 0x4ff;
-+		if (sparse_keymap_entry_from_scancode(priv->input, scancode))
-+			acpi_fujitsu_laptop_press(device, scancode);
-+		else if (scancode == 0)
-+			acpi_fujitsu_laptop_release(device);
-+		else
-+			acpi_handle_info(device->handle,
-+					 "Unknown GIRB result [%x]\n", irb);
-+	}
-+
-+	/*
-+	 * First seen on the Skylake-based Lifebook E736/E746/E756), the
-+	 * touchpad toggle hotkey (Fn+F4) is handled in software. Other models
-+	 * have since added additional "soft keys". These are reported in the
-+	 * status flags queried using FUNC_FLAGS.
-+	 */
-+	if (priv->flags_supported & (FLAG_SOFTKEYS)) {
-+		flags = call_fext_func(device, FUNC_FLAGS, 0x1, 0x0, 0x0);
-+		flags &= (FLAG_SOFTKEYS);
-+		for_each_set_bit(i, &flags, BITS_PER_LONG)
-+			sparse_keymap_report_event(priv->input, BIT(i), 1, true);
-+	}
-+}
-+
- static int acpi_fujitsu_laptop_add(struct acpi_device *device)
+ static int __init fujitsu_module_init(void)
+@@ -518,7 +516,7 @@ static int __init fujitsu_module_init(void)
+ 
+ 	dmi_check_system(dmi_ids);
+ 
+-	error = acpi_bus_register_driver(&acpi_fujitsu_driver);
++	error = platform_driver_register(&acpi_fujitsu_driver);
+ 	if (error)
+ 		return error;
+ 
+@@ -527,7 +525,7 @@ static int __init fujitsu_module_init(void)
+ 
+ static void __exit fujitsu_module_exit(void)
  {
- 	struct fujitsu_laptop *priv;
-@@ -1001,84 +1079,6 @@ static void acpi_fujitsu_laptop_remove(struct acpi_device *device)
- 	kfifo_free(&priv->fifo);
+-	acpi_bus_unregister_driver(&acpi_fujitsu_driver);
++	platform_driver_unregister(&acpi_fujitsu_driver);
  }
  
--static void acpi_fujitsu_laptop_press(struct acpi_device *device, int scancode)
--{
--	struct fujitsu_laptop *priv = acpi_driver_data(device);
--	int ret;
--
--	ret = kfifo_in_locked(&priv->fifo, (unsigned char *)&scancode,
--			      sizeof(scancode), &priv->fifo_lock);
--	if (ret != sizeof(scancode)) {
--		dev_info(&priv->input->dev, "Could not push scancode [0x%x]\n",
--			 scancode);
--		return;
--	}
--	sparse_keymap_report_event(priv->input, scancode, 1, false);
--	dev_dbg(&priv->input->dev, "Push scancode into ringbuffer [0x%x]\n",
--		scancode);
--}
--
--static void acpi_fujitsu_laptop_release(struct acpi_device *device)
--{
--	struct fujitsu_laptop *priv = acpi_driver_data(device);
--	int scancode, ret;
--
--	while (true) {
--		ret = kfifo_out_locked(&priv->fifo, (unsigned char *)&scancode,
--				       sizeof(scancode), &priv->fifo_lock);
--		if (ret != sizeof(scancode))
--			return;
--		sparse_keymap_report_event(priv->input, scancode, 0, false);
--		dev_dbg(&priv->input->dev,
--			"Pop scancode from ringbuffer [0x%x]\n", scancode);
--	}
--}
--
--static void acpi_fujitsu_laptop_notify(struct acpi_device *device, u32 event)
--{
--	struct fujitsu_laptop *priv = acpi_driver_data(device);
--	unsigned long flags;
--	int scancode, i = 0;
--	unsigned int irb;
--
--	if (event != ACPI_FUJITSU_NOTIFY_CODE) {
--		acpi_handle_info(device->handle, "Unsupported event [0x%x]\n",
--				 event);
--		sparse_keymap_report_event(priv->input, -1, 1, true);
--		return;
--	}
--
--	if (priv->flags_supported)
--		priv->flags_state = call_fext_func(device, FUNC_FLAGS, 0x4, 0x0,
--						   0x0);
--
--	while ((irb = call_fext_func(device,
--				     FUNC_BUTTONS, 0x1, 0x0, 0x0)) != 0 &&
--	       i++ < MAX_HOTKEY_RINGBUFFER_SIZE) {
--		scancode = irb & 0x4ff;
--		if (sparse_keymap_entry_from_scancode(priv->input, scancode))
--			acpi_fujitsu_laptop_press(device, scancode);
--		else if (scancode == 0)
--			acpi_fujitsu_laptop_release(device);
--		else
--			acpi_handle_info(device->handle,
--					 "Unknown GIRB result [%x]\n", irb);
--	}
--
--	/*
--	 * First seen on the Skylake-based Lifebook E736/E746/E756), the
--	 * touchpad toggle hotkey (Fn+F4) is handled in software. Other models
--	 * have since added additional "soft keys". These are reported in the
--	 * status flags queried using FUNC_FLAGS.
--	 */
--	if (priv->flags_supported & (FLAG_SOFTKEYS)) {
--		flags = call_fext_func(device, FUNC_FLAGS, 0x1, 0x0, 0x0);
--		flags &= (FLAG_SOFTKEYS);
--		for_each_set_bit(i, &flags, BITS_PER_LONG)
--			sparse_keymap_report_event(priv->input, BIT(i), 1, true);
--	}
--}
--
- /* Initialization */
- 
- static const struct acpi_device_id fujitsu_bl_device_ids[] = {
+ module_init(fujitsu_module_init);
 -- 
 2.51.0
 
