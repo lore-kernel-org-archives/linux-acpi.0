@@ -1,237 +1,199 @@
-Received: from mail-dl1-f43.google.com (mail-dl1-f43.google.com [74.125.82.43])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from PH7PR06CU001.outbound.protection.outlook.com (mail-westus3azon11010023.outbound.protection.outlook.com [52.101.201.23])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 449DC3E92B2
-	for <linux-acpi@vger.kernel.org>; Tue, 17 Mar 2026 15:13:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.43
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773760386; cv=none; b=b84udTSNE5b1a9NZp7IZDVRAENuUS/j5N7mtN8y32InBleiMw0os7JvYPXYW8v8qFVo/D+hYNKYbkiLt33U7aUZel7H96CBYaSeYCaDnNQyzRjGEVV6sD7aZyn1Eqb8xIyIktdO/+dV3kEO2fRge1i7I/xEspj7trniDcSqzv1M=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773760386; c=relaxed/simple;
-	bh=VGRJAgcHYFUT842aOltJumuFGMsP3ePD1gLSvxiESKU=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=I8L0odtONO02XWxayZTO+U/OuuB6qjyJUjCeY8uk5hi9D9QB4y5J5UzODCfGayL7l3MDo1poe0V8AZ90iM5OLDiOAu6BFLEfWlYPUO0n9PBovCMRll2r0zHs+TslM1EzgqAzQcgI76cwEAUxfPp71I3jJ7XRHnun/DP58YR0muw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=roeck-us.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=bOHruMEA; arc=none smtp.client-ip=74.125.82.43
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=roeck-us.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDFFE3DCD9B;
+	Tue, 17 Mar 2026 15:13:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.201.23
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1773760422; cv=fail; b=cNBe1+H3bZeoF8Jz5smA3TJwNwDbDCf2Ecrqno3CfLAHNUiPDh644EysgI4xmsMil3LPF4I+TZQLC7jSNp75M5JOLZsN+2lp6KX0cT+JcaXcEYqnBU58JpyKAIzfZSbWgcW0Vti8MkXEWpFEVj2SErpslyD9o6rbsep9aobiMqc=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1773760422; c=relaxed/simple;
+	bh=wNAz7wEGpTH1eMgDZNcGifYjzcLSEC3ywg57QhJpFd8=;
+	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=t6JGiVTY9vT/u8+lKzm9zibMS9Ex9kOv5sq98sAZuuHLEHufWkiUJR+nmEtMO6Hl8HVFknYpaT3fcTuv7NLtZyKvJZJyNlPBEs/2xmItXn/Tcq52FfThrCJo+b1b3ie/T9MuMOaCeNbGIOwCzMBobuI2+bbN7z82LX5qQrdrDhA=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=R5Xsq1gR; arc=fail smtp.client-ip=52.101.201.23
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="bOHruMEA"
-Received: by mail-dl1-f43.google.com with SMTP id a92af1059eb24-126ea4e9694so168484c88.1
-        for <linux-acpi@vger.kernel.org>; Tue, 17 Mar 2026 08:13:05 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1773760384; x=1774365184; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:autocrypt:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:sender:from:to:cc:subject:date:message-id:reply-to;
-        bh=DTUIDlVZgG+FukAGH8YDShJmvechRFPdqthLgNdv2m8=;
-        b=bOHruMEAfWmBc6P+JJEyd/oWIYWIpVxe69S5+qEZj7nv/KngiWD19crPfjTHGSepFr
-         ofJPDV5GcANFuPt++RFETWDwGmpvLJc0ithNXoozbBMiC/LcpwccfBg/+X/QVMIonGjM
-         rj6VcmtIyeXCCZFjiSJIBymYhiDyCTE4+STTKzj5at0fz7pTEtr6UYNtZvU40LCy5PRX
-         tA9ZWkYN0jfQKzeoSW/eQCEPQnczbwdhijiOfI1zGwx3f3CYbUrlE8FqR85EVvrDoCI9
-         ZXpvVbh2B2x1gDMOP6bxmFd1HcxZkJKChe54+KLHcL2m1I4cohr4DB9xZWf+VO/eNFtN
-         k9+Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1773760384; x=1774365184;
-        h=content-transfer-encoding:in-reply-to:autocrypt:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:sender:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=DTUIDlVZgG+FukAGH8YDShJmvechRFPdqthLgNdv2m8=;
-        b=Lvw9KsxeLtpWOCUAWajIIdUGkkFHHNBTGXmi4YcJwcjmWQWV7ywJ+tYo/6JpNRgq3h
-         IbfBZQPOdbi13O+0lmG70KgiD8gQG1KncMMTwDUEsIkr1MHImzPbjPYbhTC1RsXawzss
-         r7a6zR8hL1ZNHiz4Vw2OYLI+k6H26EqGBwdGN6E+bAVsTD2a4xWc2GABermxE/AY8Vbp
-         XO2UlfmfKiAm3Q+wMvwNXxOo6nGbHJV0LILWuUKNqFKn+Ua1hK3kIBqQQPLR/XEN6DBO
-         5SDZ/B8vix/jHK11CRRBgEBhZUsv7EywN3pomJuLbbwEgzSWcf8ltCtXCdCWMBVwHfBS
-         VXTw==
-X-Forwarded-Encrypted: i=1; AJvYcCXn/m0Ta7Ehnhm0tKVyNcmTXIvUpFRBIDiTFA/r5tS+zZxWlFx4ROWU8evh+kJudnHva18n3FvZ2BLT@vger.kernel.org
-X-Gm-Message-State: AOJu0YyM5TD1HlrrfuiyhULxbr+7jrlM5AwHCcU30WVZA/LhaP3mzOxS
-	oReaUBEuuxshEIGRAQ/94bcLeu44oEijB2pjlOTXFZUht58O9ggWin7I
-X-Gm-Gg: ATEYQzyzzvSd0yyrhpyF8BT/crXgSHut8L+gEwHpiOP4OdSUySCP75m2bjUVIjLMmbW
-	4xb+WyUl/KwXGDYE1jhmP5/xotKmkmNA1C9TTmEYqr0WFgsXB0EINxTE6vujqmhDIwo2BFf5mW7
-	pIXfTGfQgXP1MYJFfE5lDOofNmnoQ/Kb96yzh3jXbpRwGO6E0mlFMKOY6slB8p+Y3ZFQmmjMGIX
-	P4aY/HBdcPvKx7Fdg3TNwgjQC9k3Gl9P/1WpNAP3rP6MPGP1MJVJWgWbwT/EM+xJkhVhnyn9OLO
-	j8jp/t+tYGmyXLlJQiT2kwnRaB3LyuI4girdC2HYz2MtuSze0LaDpBWz9DlspDUJhmn+0An4TEl
-	XmSH/XRKZqrAF63OTrxaSk9AE7rHy3k9Eas79apGVcVo6vOXN7J2UrWdQ/1EC3q6W9/gbnSHh5t
-	s9axJBBgyN24sQJp/w8bJn0TkvcWGNakljummHClFA6RWchO5L+n9L4whkcTcEGObfS54IusKNd
-	YZms42H5+0=
-X-Received: by 2002:a05:7022:3a04:b0:129:ea3:8d64 with SMTP id a92af1059eb24-1290ea3b091mr3629025c88.41.1773760383971;
-        Tue, 17 Mar 2026 08:13:03 -0700 (PDT)
-Received: from ?IPV6:2600:1700:e321:62f0:da43:aeff:fecc:bfd5? ([2600:1700:e321:62f0:da43:aeff:fecc:bfd5])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-128f62b2100sm15333034c88.8.2026.03.17.08.13.03
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 17 Mar 2026 08:13:03 -0700 (PDT)
-Sender: Guenter Roeck <groeck7@gmail.com>
-Message-ID: <b8c1319a-4920-42b8-b98d-248e419cb87f@roeck-us.net>
-Date: Tue, 17 Mar 2026 08:13:02 -0700
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="R5Xsq1gR"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=G7nrCURTyjCWRQOoFdMr//Ol6HlbHXasL9veARXmBKEEdmviaSBqGYdiz4XB7nOr7+WVWN710m3CnJaoVtONFM8O+igPzzN5QZ477+2eTlyQ2IPf7htWeuhMcQADNXzTuoNaUZVxhI0vnIo+BR8GfEPiA7LW6EtBAp0kxzhA8hk8rbCZJESeX++aU/twA2fiUZ+8ec2XC4+pPuI4QRrvdPXlqdgLSZkvWwhtDxfKFwH2WLGJip0m7UlzIT9cOCtf5/nw0t0Sq1qqU8T/+GZbMn/2CmG9GgIUolmq8Y0r0Xp0Gr6U+J08NzOJdNA4cS3Y/86fLlas0aq7+xM0XJPnLQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=DHl5v+JQiUYDpHCBtKnffo7RDHiqCGD/QSbS/ckMexE=;
+ b=cFC6J5qh5IFzuDFAGgkynXqOQoAa1Juoj9iVFV63szvKdqw/6GPl2hpr+9bJyu3tDp4R7otm3A8SCWRtQ0rtWogWA6y1kk+nU+RYdHrhvnNQCAL/BtVkev6B9+aHvh3JPWIsA9LdQG3QssH7zTupN/PUNr8J2L3wjMtXNcBjdyNEYemcKSHz1+Dl4+JeNSjHr3aLh3OV/6fCsK0Z1nMsYMQFzK9iya6qOYO3Kw0m1mn3e6koqElZ6UWqzGLJMPQH8dQmCLLzFVElY6/zbeHnjf0LLyn41uqJcDR4gxtSbG/CgN6f/px+PNbuS+Ww+nHzgV6Cig+WPWVLNWEXI0j2NQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
+ header.d=amd.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=DHl5v+JQiUYDpHCBtKnffo7RDHiqCGD/QSbS/ckMexE=;
+ b=R5Xsq1gRFJwOu+UF66PMFc+MmvpqzOPuZEk4g3wWDIY2f9TsrlTU/OAQfRjBfBJoJYImhyrI1xKaB6raCo6zcJnc1uQDetaM1r0GMqTAc0s0H2A1FuEoEvmld2Zy7I9BD6BOPLsZYvz4tuJHgl8XBY7SFBHAvrNPhcbb9C7tS2I=
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=amd.com;
+Received: from SA0PR12MB4557.namprd12.prod.outlook.com (2603:10b6:806:9d::10)
+ by IA1PR12MB6283.namprd12.prod.outlook.com (2603:10b6:208:3e5::9) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9723.19; Tue, 17 Mar
+ 2026 15:13:34 +0000
+Received: from SA0PR12MB4557.namprd12.prod.outlook.com
+ ([fe80::885a:79b3:8288:287]) by SA0PR12MB4557.namprd12.prod.outlook.com
+ ([fe80::885a:79b3:8288:287%5]) with mapi id 15.20.9723.018; Tue, 17 Mar 2026
+ 15:13:34 +0000
+Message-ID: <35f773ff-6514-413c-988b-765bf2d0d293@amd.com>
+Date: Tue, 17 Mar 2026 10:13:31 -0500
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC v1 0/8] acpi/x86: s2idle: Introduce and implement runtime
+ standby ABI for ACPI s0ix platforms
+To: "Rafael J. Wysocki" <rafael@kernel.org>,
+ Dmitry Osipenko <dmitry.osipenko@collabora.com>
+Cc: Antheas Kapenekakis <lkml@antheas.dev>, bob.beckett@collabora.com,
+ bookeldor@gmail.com, hadess@hadess.net, jaap@haitsma.org,
+ kernel@collabora.com, lennart@poettering.net, linux-acpi@vger.kernel.org,
+ linux-kernel@vger.kernel.org, mccann@jhu.edu, richard@hughsie.com,
+ sebastian.reichel@collabora.com, superm1@kernel.org,
+ systemd-devel@lists.freedesktop.org, xaver.hugl@gmail.com
+References: <20251226102656.6296-1-lkml@antheas.dev>
+ <CAJZ5v0iG-SPmqMYJExeOUGo301tL=+qyi2479QkXoR5Dq0d9bA@mail.gmail.com>
+ <CAGwozwGEgLpjFTCF4kinR9+-_Wt=bYw19dcbVOswYe998z8Ykw@mail.gmail.com>
+ <030c38aa-353e-4387-a006-42e641b3ac6a@collabora.com>
+ <CAJZ5v0jbDqs=adBX-o-MDyNX+=Q6UAkw1=gh2y_9cAMMi+gi_g@mail.gmail.com>
+Content-Language: en-US
+From: Mario Limonciello <mario.limonciello@amd.com>
+In-Reply-To: <CAJZ5v0jbDqs=adBX-o-MDyNX+=Q6UAkw1=gh2y_9cAMMi+gi_g@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: CH0P221CA0043.NAMP221.PROD.OUTLOOK.COM
+ (2603:10b6:610:11d::23) To SA0PR12MB4557.namprd12.prod.outlook.com
+ (2603:10b6:806:9d::10)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v1] watchdog: ni903x_wdt: Convert to a platform driver
-To: "Rafael J. Wysocki" <rafael@kernel.org>, linux-watchdog@vger.kernel.org
-Cc: LKML <linux-kernel@vger.kernel.org>,
- Linux ACPI <linux-acpi@vger.kernel.org>,
- Wim Van Sebroeck <wim@linux-watchdog.org>
-References: <13996583.uLZWGnKmhe@rafael.j.wysocki>
-Content-Language: en-US
-From: Guenter Roeck <linux@roeck-us.net>
-Autocrypt: addr=linux@roeck-us.net; keydata=
- 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
- np3900V20aS7eD9K8GTU0TGC1pyz6IVJwIE=
-In-Reply-To: <13996583.uLZWGnKmhe@rafael.j.wysocki>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SA0PR12MB4557:EE_|IA1PR12MB6283:EE_
+X-MS-Office365-Filtering-Correlation-Id: f43cccc5-d72b-4451-999b-08de8437c190
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|366016|1800799024|376014|7416014|56012099003|18002099003|22082099003;
+X-Microsoft-Antispam-Message-Info:
+	ZhkH06A4GpBPsvotGR29yc3C0/PeKJoY4INgkEs7cGUHwglxaI3uhXC9RKJj2ommXsGs2brM1A7qeTkExRS2IvRH3h3pdRc8HiBpXfSfdxxKhYRnLb0jVqOCoqCiza5DqMD2TNzXrflE7rXxhpKwnyWjHniJVnl6wZFR/Zf6F+r5y1sLCWVU3tffWfEyuCyV7FPIzo74faAA6t2Cocd+TFefKOxWWfRsmxdjkjocu2ysaz4aXa5dd7iE95PLXaKq84vTJEgDCahYxZNSBJfH16jgFaGlPfvKmxHDPnJe2yn45rRT9sZ/jkPP7c9ziwIIpGKcSJu2sQtrGFzUB0JL84VFKjTltLZn/rLx2KliaIt6gJ/KZnFeSG4nVjpyA5vqS3QUzAJm0RZMDbBONmryAthfTorj3zEnERxEkjAmOFrRKWj45jgUjl7FutrVqR9frI8KvmkrYSrch//d7u1AVnVOmUkoeVOwrP5F8IgvNNSqKsvxMEAHIXLeiWnAWbRjYQsj/9SCp5L6Pb2XrSx9WuN/z/YIL3P2xTkMEltb75wwIlKPc7uDJiN+UWrWCBrbQNClFm0NdJe4CCO3kDHcBOWatkVGZn2sNPmuxOqsGUhh+9cIJXvzbUuIbOpU0KUtso7cq9NXJEVdTkEWWFZ25O584RcOv9LWHUTeKV7GR1jTAiDAW8tmO9kawN2JLkaPyPx7MLxahKNrpBlP+KDH3ceS8oUEfZatEXr6NWdwH94=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA0PR12MB4557.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(376014)(7416014)(56012099003)(18002099003)(22082099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?RWo2TnpCZ2dvWE42UVJLY0V6TGoyRFRWV0FuVDlUU1ZtdFdibS9CaEpUd2VW?=
+ =?utf-8?B?Mm0ycGVhbWJmWjlqa3NES0RCMU1QWDdWQWNGMnZkcE1kaFNsUTRQWUNOOXZO?=
+ =?utf-8?B?NzBNazlUMjVJenJ2ZzJYME5zQVBSVHRKUk05azV5dWxENDIzY2RDbGdpMTFp?=
+ =?utf-8?B?c2RmN2lhdlZVY01GVE5FWUN6NW9TZTR6VjV5bFdQNkxtYjNrWHlNekdzalV2?=
+ =?utf-8?B?SzlZSlR2eHlyOGlMdmFCR0Y1eE9Xakl1b0QzQW10RlZhb0s1K2duRVF1N2tl?=
+ =?utf-8?B?ek4wa0t5YzQ4WDVZYXVVSmxQSzFETWZHYlZrVWFaYStlR1ptWk9QM204SjJl?=
+ =?utf-8?B?MHZVaFRha1c1eTZwL0Jwa3o5VmhGdzJCYkNwKzdobkdpdnl1dm5uYzFNUW9Y?=
+ =?utf-8?B?VVU3RHczTkViaGVvaHBLbjNNRnNRSlFWSmI0N0RFbW9hdTdIbzFReXVwMnkv?=
+ =?utf-8?B?eVdoVXJnYmRPYzIxRk9MZXdBa1p2NjRVMUF2N3B4WVluU21DTU92UU9KOXhl?=
+ =?utf-8?B?USszRGd1Z3FXcTZmNnFCZkM2a2hQcHAzc2wzZkFsZ0ZmdFY0eVhnYUJnREI2?=
+ =?utf-8?B?eHN2UG8vTWRNYXdORkpLeUpFUXRUVGNEbEJvalo5NWVrYmJyVmJJeElwSytD?=
+ =?utf-8?B?K2dWb0krYXBGTjBRS1oyWWxRb24yOUM1bDYyOElrKzRjVEtKcHZWZWFibUdT?=
+ =?utf-8?B?NUM2b1AwQ1dlcVlOeWtwTW1jeHlraWZMRmU3bGZjVzJPbjFCOWpmYWU0Vlhz?=
+ =?utf-8?B?Tm04eWg1KzhJL0oxaVBkMTBqZm9HM2FpMGpEbDdJZmN5Si90MXNvaGtVdzBN?=
+ =?utf-8?B?YmV1VXRNMk1ob2RVakhHZE1kQjJhS3Y1bGIyR2k1bThtY3crQ0JNRmxpcUx5?=
+ =?utf-8?B?MlF6azJXTHRCQ05KNDZoS0ZSUVpPZUJuOVMza2dRdXVQN2dnSTNzcHJGUUhy?=
+ =?utf-8?B?UWwwSk9FVFRxL2JoNEUrN1dYTjBOc3F3S2ZpSStBbEl2M2hOQmNFSGdENHcr?=
+ =?utf-8?B?RDloeWg2bFlXWC92Y2hTMnpCMnlaUWsvM0VPQ2pVYy9uckt1VUJ3cmcwc1F0?=
+ =?utf-8?B?emZqODRscXpxYm5LTi91d2lsV2h1SldkTkczUEt1bjZBb3JRZkdQK1dVbHM3?=
+ =?utf-8?B?U21iSm5FNkVwemFpSXJjVlR6aUhhdjZSZDdZOFNFaHp0YTJKbXB2dmhFeUNV?=
+ =?utf-8?B?U1VQVHhQUFdPMmNFTSs1cmxrcGV6YkpWR1NQenhTUUVURklUUDZGRkx6S2dZ?=
+ =?utf-8?B?SHZkL3pxVzRLZDZkQ04zNzVUMjlqRnNyQjU3aEZGSlh1cFdKa2VEdlF3U0U0?=
+ =?utf-8?B?Mk1RSmw3S0R5ekJnNDIrbHE4d1ZuRFdNYy9Qc1ZJNlE5OTJXdHoxTUd2d29L?=
+ =?utf-8?B?V0o2WXJhZERrbkdZQWpZbzM0emlseDFHQSt1eWdHWnNnWDkrUVovdVpWSits?=
+ =?utf-8?B?cHM2WFF6cjJBcy9QVzMvVUFEQ2tRdXMwRUhPbWJkMVVud3EvZzNLczJSOGRP?=
+ =?utf-8?B?VFZWTXZtZVBySnRwMUxIVWVzUThTdzRLUGI2SDZpd1JuS2J2MHlMVktPUFJK?=
+ =?utf-8?B?NkRGaENrUkUrNnRmcFN1UGdGSC9ORHBKK3pOYm0xZnV4UEJUQS9jWjZhS0lm?=
+ =?utf-8?B?cW9TSEJGekVuLzh2dkY0Qm5KQ2Q1eFh3TG5sZ09uNkUxdjRkUUpvMmZGNndQ?=
+ =?utf-8?B?ODV2eWdHaXRWMGd1dkxZNlhCU29TK1VtNzg1NXNNb1ROS3MvL3diRFZMVHQv?=
+ =?utf-8?B?WHJqWkNxQXNBQnV2RnBZdTlSZzNxby9JRHhVYldrTzRHYXVXaEwvYlBFTTd4?=
+ =?utf-8?B?QzQySkx6OTFnK1dKOVZrbGd1UjRRaml1R3JTZDlmaVVvZFNLdHF3TkpHVElm?=
+ =?utf-8?B?b3Q3cUNiM3NTN2N4OGFTQnIyTmhGTjI1ODkrVEVvOS9lZm11NDBCSEwvYzVr?=
+ =?utf-8?B?dmJZMjNURnNOSjA3M3ZCMHExRk9LN2hPS0c1YnVrWmE3OVNCTHQzU1JUd3Fo?=
+ =?utf-8?B?aDNzUi9rNnF5bHhUTEV1cjIvQVVRcnFGOVB2UFV3MmEwOTdLSDEvc05ldGY2?=
+ =?utf-8?B?d2hwdm96SHBlRjdEcFhXcXZYMUxxaUJUOEgxNlpaOFZQNENablFCTnNWbWtP?=
+ =?utf-8?B?Y3Y2dG40WVBxVHIrdlliT1VYSk1NYVV1bFN0WnRyZDk5UnNYN3hqR0x0MUV0?=
+ =?utf-8?B?UnJJU1FIMkhxWUhqV216NU1XbE5HMDd1K210TTByTGZZRy93dkpoQWhSaU5y?=
+ =?utf-8?B?bm1sRVNtVHh2MFJLeWpIeXQ5cjJSSjFFMkZ0UnRFOEtqZ0FBTjZJbURrQXRV?=
+ =?utf-8?B?SmQ4VUR6OXZEVEZNRmh6UVZlbFFod3V5MkhKTWxTWEhEKzRlNlZWUT09?=
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: f43cccc5-d72b-4451-999b-08de8437c190
+X-MS-Exchange-CrossTenant-AuthSource: SA0PR12MB4557.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 17 Mar 2026 15:13:34.2004
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: BHBdZ46zo1Lkecx7gYXx2iJevKi9qRmpCFhqBjgpBVRLzEO+s5u12rAPdgUgW0iNpp/TrURelBP+Ya8MsB3Axw==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR12MB6283
 
-On 3/14/26 04:53, Rafael J. Wysocki wrote:
-> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-> 
-> In all cases in which a struct acpi_driver is used for binding a driver
-> to an ACPI device object, a corresponding platform device is created by
-> the ACPI core and that device is regarded as a proper representation of
-> underlying hardware.  Accordingly, a struct platform_driver should be
-> used by driver code to bind to that device.  There are multiple reasons
-> why drivers should not bind directly to ACPI device objects [1].
-> 
-> In particular, registering a watchdog device under a struct acpi_device
-> is questionable because it causes the watchdog to be hidden in the ACPI
-> bus sysfs hierarchy and it goes against the general rule that a struct
-> acpi_device can only be a parent of another struct acpi_device.
-> 
-> Overall, it is better to bind drivers to platform devices than to their
-> ACPI companions, so convert the ni903x_wdt watchdog ACPI driver to a
-> platform one.
-> 
-> While this is not expected to alter functionality, it changes sysfs
-> layout and so it will be visible to user space.
-> 
-> Note that after this change it actually makes sense to look for
-> the "timeout-sec" property via device_property_read_u32() under the
-> device passed to watchdog_init_timeout() because it has an fwnode
-> handle (unlike a struct acpi_device which is an fwnode itself).
-> 
-> Link: https://lore.kernel.org/all/2396510.ElGaqSPkdT@rafael.j.wysocki/ [1]
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Reviewed-by: Guenter Roeck <linux@roeck-us.net>
 
-> ---
->   drivers/watchdog/ni903x_wdt.c | 27 ++++++++++++++-------------
->   1 file changed, 14 insertions(+), 13 deletions(-)
+On 3/17/26 07:09, Rafael J. Wysocki wrote:
+> On Tue, Mar 17, 2026 at 12:57 PM Dmitry Osipenko
+> <dmitry.osipenko@collabora.com> wrote:
+>>
+>> On 3/16/26 22:52, Antheas Kapenekakis wrote:
+>>>> So in accordance with the above, /sys/power/standby is not a very
+>>>> fortunate choice of the name of this interface and I'm totally
+>>>> unconvinced that it belongs to sys/power because its role is not
+>>>> really power management (and it is ACPI-only for the time being).
+>>> Hm, most of the changes / implementation resides in the pm subsystem
+>>> and it is related to the s2idle suspend flow.
+>>>
+>>> I assume that when it stops being ACPI only provided we reach a design
+>>> that allows for that, the related callbacks would also nest in pm ops.
+>>>
+>>> Where could a more appropriate directory in sysfs be? I would still
+>>> tend towards /sys/power
+>>
+>> Question is whether anyone outside of ACPI will ever need the generic
+>> interface. Making it generic based on guesswork could be a wasted effort
+>> that Rafael and others will have to maintain. The mode file could go
+>> under /sys/firmware/acpi if interface is made ACPI-specific.
 > 
-> diff --git a/drivers/watchdog/ni903x_wdt.c b/drivers/watchdog/ni903x_wdt.c
-> index 045bb72d9a43..8b1b9baa914e 100644
-> --- a/drivers/watchdog/ni903x_wdt.c
-> +++ b/drivers/watchdog/ni903x_wdt.c
-> @@ -8,6 +8,7 @@
->   #include <linux/interrupt.h>
->   #include <linux/io.h>
->   #include <linux/module.h>
-> +#include <linux/platform_device.h>
->   #include <linux/watchdog.h>
->   
->   #define NIWD_CONTROL	0x01
-> @@ -177,9 +178,9 @@ static const struct watchdog_ops ni903x_wdd_ops = {
->   	.get_timeleft = ni903x_wdd_get_timeleft,
->   };
->   
-> -static int ni903x_acpi_add(struct acpi_device *device)
-> +static int ni903x_acpi_probe(struct platform_device *pdev)
->   {
-> -	struct device *dev = &device->dev;
-> +	struct device *dev = &pdev->dev;
->   	struct watchdog_device *wdd;
->   	struct ni903x_wdt *wdt;
->   	acpi_status status;
-> @@ -189,10 +190,10 @@ static int ni903x_acpi_add(struct acpi_device *device)
->   	if (!wdt)
->   		return -ENOMEM;
->   
-> -	device->driver_data = wdt;
-> +	platform_set_drvdata(pdev, wdt);
->   	wdt->dev = dev;
->   
-> -	status = acpi_walk_resources(device->handle, METHOD_NAME__CRS,
-> +	status = acpi_walk_resources(ACPI_HANDLE(dev), METHOD_NAME__CRS,
->   				     ni903x_resources, wdt);
->   	if (ACPI_FAILURE(status) || wdt->io_base == 0) {
->   		dev_err(dev, "failed to get resources\n");
-> @@ -224,9 +225,9 @@ static int ni903x_acpi_add(struct acpi_device *device)
->   	return 0;
->   }
->   
-> -static void ni903x_acpi_remove(struct acpi_device *device)
-> +static void ni903x_acpi_remove(struct platform_device *pdev)
->   {
-> -	struct ni903x_wdt *wdt = acpi_driver_data(device);
-> +	struct ni903x_wdt *wdt = platform_get_drvdata(pdev);
->   
->   	ni903x_wdd_stop(&wdt->wdd);
->   	watchdog_unregister_device(&wdt->wdd);
-> @@ -238,16 +239,16 @@ static const struct acpi_device_id ni903x_device_ids[] = {
->   };
->   MODULE_DEVICE_TABLE(acpi, ni903x_device_ids);
->   
-> -static struct acpi_driver ni903x_acpi_driver = {
-> -	.name = NIWD_NAME,
-> -	.ids = ni903x_device_ids,
-> -	.ops = {
-> -		.add = ni903x_acpi_add,
-> -		.remove = ni903x_acpi_remove,
-> +static struct platform_driver ni903x_acpi_driver = {
-> +	.probe = ni903x_acpi_probe,
-> +	.remove = ni903x_acpi_remove,
-> +	.driver = {
-> +		.name = NIWD_NAME,
-> +		.acpi_match_table = ni903x_device_ids,
->   	},
->   };
->   
-> -module_acpi_driver(ni903x_acpi_driver);
-> +module_platform_driver(ni903x_acpi_driver);
->   
->   MODULE_DESCRIPTION("NI 903x Watchdog");
->   MODULE_AUTHOR("Jeff Westfahl <jeff.westfahl@ni.com>");
+> Well, experience shows that it may end up the other way around.
+> 
+> People once thought that the platform profile interface would be
+> ACPI-specific and we ended up having to extend it via
+> platform_profile_class.
+> 
+> I'm thinking that something similar may take place in this case.
+> Platforms that don't use ACPI may also want to define platform
+> triggers to somehow adjust platform settings and those may be
+> different from "inactive" or "snooze".
+> 
+
+At which point you would almost wonder if this should be super general 
+like "foreground_workload_type".
+
+Then this could be expanded for other uses later such as full screen 
+video playback or full screen gaming.
+
+There could be hooks for scheduler too in the future from this hint too 
+then.
+
+>> Will be good if you could demonstrate a need in making interface
+>> generic, if there are any devices on your mind that could make use of it
+>> right away. Old interface can be deprecated if a better new appears.
+>>
+>> Either way is okay to me, but Rafael is the PM expert and I'd do as he
+>> wants it to be.
+> 
+> Thanks, much appreciated.
+> 
+> I just want to make one thing clear.  Linux does not implement
+> anything like modern standby and that's for a reason, so I don't want
+> this thing to be advertised as "Linux modern standby" in any shape or
+> form.
 
