@@ -1,195 +1,214 @@
-Received: from canpmsgout01.his.huawei.com (canpmsgout01.his.huawei.com [113.46.200.216])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.11])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE4AD3624D3;
-	Wed, 18 Mar 2026 06:02:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.216
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7E87313E2B;
+	Wed, 18 Mar 2026 06:14:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.11
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773813732; cv=none; b=jrRzfakl61ocy8UsID1SWvZTUpHZLyEmtIOT2J5iHAGMWP9xTCHYGTjpQ0SH0XOEri/pP6IDhFKYeQhb6PWxeAT8UGmNfXBjhnF6z398VckHb6rpkY+0WOC6hfZEzzSLS2BbtkosRQtYYJZBCznwe+gt2V2LShkppbxtQYhwv1g=
+	t=1773814457; cv=none; b=aZ5wDsJh+g4gM2akTUpa4YGp76DffqISajec0RkiLd35LgFs3ZpeWLuM7naO02lm6lXjlKsN5bTGqYtROf9bCE5aPzxi9tQ2z6yjRKe1xyc4mxsUD5ehtF5JSA0ke4Mq9v4+0YUHb5bAr2q192b1El8j15v+t/7Ro3QKmr4KrKU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773813732; c=relaxed/simple;
-	bh=WRCCUwmTChYlrdA5NgBAWHNHs7HBwksCQY9PXLu3poo=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=KNhicCWAT+IjsrkAuvqlOkkVVPVmP+J5APCI9LSBqCvDuTzt0Vg1+UTG/2KoVqd1gKPm5XI2wFT+QQ6zCP5Sw/ARmE25UHTcOaIaKIiDSLe/+e+NS5KgySTaL2gOtwmYKwLk1Ev88AQKxdWMD2JN9fxrZ3FSV0yZcvMxBafeLFs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=DpIEqq/C; arc=none smtp.client-ip=113.46.200.216
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+	s=arc-20240116; t=1773814457; c=relaxed/simple;
+	bh=DkHUnEo/Buc1iI8h0hzSm7QzwytPckEV+C7X+Kypm6E=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Rc8a/m4licOD893u1tB7dd4dkKV39CDGr5XcRlKleGBeFVetbs2CIhDTIAxLiWfwSleJGZwbrtCe0jACslJOn+v1i32UX6fgxbflJoP2grnKfdH9W+PuTBscXetoVcT/gQPcwv8vKEpQL4LvmFWpo7V85m20SJ2TvLD+J2FfDpI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=ThU7rf/f; arc=none smtp.client-ip=192.198.163.11
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="DpIEqq/C"
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=JidVbBwVWveb8Q2cCRvXnGJEce6/x2QeOrZ9sxuCXM4=;
-	b=DpIEqq/CrkmJmL6LwCkEqHToQvDHHqUkv8mgheeY48ustZyxQm4BMOWiV2XfvPN2Dd8om+p9b
-	BEJfQQ0MewxBLdkRV249slzpfq+sdlXsm0e88Er/IjZQ59ICTIEb+b40XL6ZKBJufecu6Y2mK9R
-	FZhvGCrURkH6S3xH8txS9qA=
-Received: from mail.maildlp.com (unknown [172.19.162.223])
-	by canpmsgout01.his.huawei.com (SkyGuard) with ESMTPS id 4fbJ480tSwz1T4g5;
-	Wed, 18 Mar 2026 13:56:40 +0800 (CST)
-Received: from kwepemk500009.china.huawei.com (unknown [7.202.194.94])
-	by mail.maildlp.com (Postfix) with ESMTPS id 2521240569;
-	Wed, 18 Mar 2026 14:02:01 +0800 (CST)
-Received: from localhost.localdomain (10.50.163.32) by
- kwepemk500009.china.huawei.com (7.202.194.94) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Wed, 18 Mar 2026 14:01:59 +0800
-From: Chengwen Feng <fengchengwen@huawei.com>
-To: Bjorn Helgaas <bhelgaas@google.com>, Catalin Marinas
-	<catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, "Rafael J .
- Wysocki" <rafael@kernel.org>
-CC: Jonathan Corbet <corbet@lwn.net>, Ingo Molnar <mingo@redhat.com>, Juergen
- Gross <jgross@suse.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Len
- Brown <lenb@kernel.org>, Sunil V L <sunilvl@ventanamicro.com>, Mark Rutland
-	<mark.rutland@arm.com>, Jonathan Cameron <jonathan.cameron@huawei.com>, Kees
- Cook <kees@kernel.org>, Yanteng Si <si.yanteng@linux.dev>, Sean
- Christopherson <seanjc@google.com>, Kai Huang <kai.huang@intel.com>, Tom
- Lendacky <thomas.lendacky@amd.com>, Thomas Huth <thuth@redhat.com>, Thorsten
- Blum <thorsten.blum@linux.dev>, Kevin Loughlin <kevinloughlin@google.com>,
-	Zheyun Shen <szy0127@sjtu.edu.cn>, Peter Zijlstra <peterz@infradead.org>,
-	Pawan Gupta <pawan.kumar.gupta@linux.intel.com>, Xin Li <xin@zytor.com>,
-	"Ahmed S . Darwish" <darwi@linutronix.de>, Sohil Mehta
-	<sohil.mehta@intel.com>, Ilkka Koskinen <ilkka@os.amperecomputing.com>, Robin
- Murphy <robin.murphy@arm.com>, James Clark <james.clark@linaro.org>, Besar
- Wicaksono <bwicaksono@nvidia.com>, Ma Ke <make24@iscas.ac.cn>, Wei Huang
-	<wei.huang2@amd.com>, Andy Gospodarek <andrew.gospodarek@broadcom.com>,
-	Somnath Kotur <somnath.kotur@broadcom.com>, <punit.agrawal@oss.qualcomm.com>,
-	<guohanjun@huawei.com>, <suzuki.poulose@arm.com>, <ryan.roberts@arm.com>,
-	<chenl311@chinatelecom.cn>, <masahiroy@kernel.org>,
-	<wangyuquan1236@phytium.com.cn>, <anshuman.khandual@arm.com>,
-	<heinrich.schuchardt@canonical.com>, <Eric.VanTassell@amd.com>,
-	<wangzhou1@hisilicon.com>, <wanghuiqiang@huawei.com>,
-	<liuyonglong@huawei.com>, <fengchengwen@huawei.com>,
-	<linux-pci@vger.kernel.org>, <linux-doc@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
-	<loongarch@lists.linux.dev>, <linux-riscv@lists.infradead.org>,
-	<xen-devel@lists.xenproject.org>, <linux-acpi@vger.kernel.org>,
-	<linux-perf-users@vger.kernel.org>, <stable@vger.kernel.org>
-Subject: [PATCH v8 2/3] x86: Implement acpi_get_cpu_uid()
-Date: Wed, 18 Mar 2026 14:01:50 +0800
-Message-ID: <20260318060151.29438-3-fengchengwen@huawei.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20260318060151.29438-1-fengchengwen@huawei.com>
-References: <20260318060151.29438-1-fengchengwen@huawei.com>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="ThU7rf/f"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1773814456; x=1805350456;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=DkHUnEo/Buc1iI8h0hzSm7QzwytPckEV+C7X+Kypm6E=;
+  b=ThU7rf/f2bbXa3igaTn3wXXepU7XKFXrsrhXxtl9Uz3btRe1TMF9S/zM
+   o+jKxEbKKf1VhIGkBtlBM5vpVuOoLiYRF0uaGG4WpI1FW1dgayx92/KQx
+   bPyzHwtMsjaDvLWYelrcwK53CLAsavpcM4RXTgHp24o+//VwcakPsqv0X
+   YHDJviOQ/Nv+ZvMco81+6iO0S2VLViXNTaLm1kk/gKB2Y/iKE39BIJP8M
+   H1r9+mn+VO4HsH4frKefcI3tOikzTVCIdYbYx1bv+SHRBsuCKKweEXrrS
+   l+5s0pJjTCf/6cgM94TgwO7CSnWUzm6LHfGnJ1Z/+3Y9wbDto751UVbvp
+   w==;
+X-CSE-ConnectionGUID: MTkhzz5ZQmS6pLbQ64+mcQ==
+X-CSE-MsgGUID: UA87a2JcQjm6A0pBwUlcaQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11732"; a="85494663"
+X-IronPort-AV: E=Sophos;i="6.23,127,1770624000"; 
+   d="scan'208";a="85494663"
+Received: from orviesa008.jf.intel.com ([10.64.159.148])
+  by fmvoesa105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Mar 2026 23:14:15 -0700
+X-CSE-ConnectionGUID: Z1FGCetaTSGF++XIxaxXEg==
+X-CSE-MsgGUID: iCZ0jeD2TnyuQZO6sIHcrg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,127,1770624000"; 
+   d="scan'208";a="222567515"
+Received: from allen-sbox.sh.intel.com (HELO [10.239.159.30]) ([10.239.159.30])
+  by orviesa008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Mar 2026 23:14:11 -0700
+Message-ID: <791a46c7-3129-4438-86bd-b7677e01332a@linux.intel.com>
+Date: Wed, 18 Mar 2026 14:13:09 +0800
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-ClientProxiedBy: kwepems100001.china.huawei.com (7.221.188.238) To
- kwepemk500009.china.huawei.com (7.202.194.94)
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2 3/7] iommu: Add iommu_report_device_broken() to
+ quarantine a broken device
+To: Nicolin Chen <nicolinc@nvidia.com>, will@kernel.org,
+ robin.murphy@arm.com, joro@8bytes.org, bhelgaas@google.com, jgg@nvidia.com
+Cc: rafael@kernel.org, lenb@kernel.org, praan@google.com,
+ xueshuai@linux.alibaba.com, kevin.tian@intel.com,
+ linux-arm-kernel@lists.infradead.org, iommu@lists.linux.dev,
+ linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+ linux-pci@vger.kernel.org, vsethi@nvidia.com
+References: <cover.1773774441.git.nicolinc@nvidia.com>
+ <c5390aeaeccfa86a1c79f26d2c0ff5df380940a4.1773774441.git.nicolinc@nvidia.com>
+Content-Language: en-US
+From: Baolu Lu <baolu.lu@linux.intel.com>
+In-Reply-To: <c5390aeaeccfa86a1c79f26d2c0ff5df380940a4.1773774441.git.nicolinc@nvidia.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Add acpi_get_cpu_uid() implementation for x86, replacing the existing
-cpu_acpi_id() function. This completes the unified ACPI Processor UID
-retrieval interface across all ACPI-enabled architectures.
+On 3/18/26 03:15, Nicolin Chen wrote:
+> When an IOMMU hardware detects an error due to a faulty device (e.g. an ATS
+> invalidation timeout), IOMMU drivers may quarantine the device by disabling
+> specific hardware features or dropping translation capabilities.
+> 
+> However, the core-level states of the faulty device are out of sync, as the
+> device can be still attached to a translation domain or even potentially be
+> moved to a new domain that might overwrite the driver-level quarantine.
+> 
+> Given that such an error can be likely an ISR, introduce a broken_work per
+> iommu_group, and add a helper function to allow driver to report the broken
+> device, so as to completely quarantine it in the core.
+> 
+> Use the existing pci_dev_reset_iommu_prepare() function to shift the device
+> to its resetting_domain/blocking_domain. A later pci_dev_reset_iommu_done()
+> call will clear it and move it out of the quarantine.
+> 
+> Signed-off-by: Nicolin Chen <nicolinc@nvidia.com>
+> ---
+>   include/linux/iommu.h |  2 ++
+>   drivers/iommu/iommu.c | 59 +++++++++++++++++++++++++++++++++++++++++++
+>   2 files changed, 61 insertions(+)
+> 
+> diff --git a/include/linux/iommu.h b/include/linux/iommu.h
+> index 9ba12b2164724..9b5f94e566ff9 100644
+> --- a/include/linux/iommu.h
+> +++ b/include/linux/iommu.h
+> @@ -891,6 +891,8 @@ static inline struct iommu_device *__iommu_get_iommu_dev(struct device *dev)
+>   #define iommu_get_iommu_dev(dev, type, member) \
+>   	container_of(__iommu_get_iommu_dev(dev), type, member)
+>   
+> +void iommu_report_device_broken(struct device *dev);
+> +
+>   static inline void iommu_iotlb_gather_init(struct iommu_iotlb_gather *gather)
+>   {
+>   	*gather = (struct iommu_iotlb_gather) {
+> diff --git a/drivers/iommu/iommu.c b/drivers/iommu/iommu.c
+> index fcd2902d9e8db..2f297f689a3a3 100644
+> --- a/drivers/iommu/iommu.c
+> +++ b/drivers/iommu/iommu.c
+> @@ -55,6 +55,8 @@ struct iommu_group {
+>   	struct list_head devices;
+>   	struct xarray pasid_array;
+>   	struct mutex mutex;
+> +	struct work_struct broken_work;
+> +	bool requires_reset;
+>   	void *iommu_data;
+>   	void (*iommu_data_release)(void *iommu_data);
+>   	char *name;
+> @@ -146,6 +148,7 @@ static struct group_device *iommu_group_alloc_device(struct iommu_group *group,
+>   						     struct device *dev);
+>   static void __iommu_group_free_device(struct iommu_group *group,
+>   				      struct group_device *grp_dev);
+> +static void iommu_group_broken_worker(struct work_struct *work);
+>   static void iommu_domain_init(struct iommu_domain *domain, unsigned int type,
+>   			      const struct iommu_ops *ops);
+>   
+> @@ -1057,6 +1060,7 @@ struct iommu_group *iommu_group_alloc(void)
+>   	if (!group)
+>   		return ERR_PTR(-ENOMEM);
+>   
+> +	INIT_WORK(&group->broken_work, iommu_group_broken_worker);
+>   	group->kobj.kset = iommu_group_kset;
+>   	mutex_init(&group->mutex);
+>   	INIT_LIST_HEAD(&group->devices);
+> @@ -4031,6 +4035,7 @@ void pci_dev_reset_iommu_done(struct pci_dev *pdev)
+>   	if (WARN_ON(!group->blocking_domain))
+>   		return;
+>   
+> +	WRITE_ONCE(group->requires_reset, false);
+>   	/*
+>   	 * A PCI device might have been in an error state, so the IOMMU driver
+>   	 * had to quarantine the device by disabling specific hardware feature
+> @@ -4062,6 +4067,60 @@ void pci_dev_reset_iommu_done(struct pci_dev *pdev)
+>   }
+>   EXPORT_SYMBOL_GPL(pci_dev_reset_iommu_done);
+>   
+> +static void iommu_group_broken_worker(struct work_struct *work)
+> +{
+> +	struct iommu_group *group =
+> +		container_of(work, struct iommu_group, broken_work);
+> +	struct pci_dev *pdev = NULL;
+> +	struct device *dev;
+> +
+> +	scoped_guard(mutex, &group->mutex) {
+> +		/* Do not block the device again if it has been recovered */
+> +		if (!READ_ONCE(group->requires_reset))
+> +			goto out_put;
+> +		if (list_is_singular(&group->devices)) {
+> +			/* Note: only support group with a single device */
+> +			dev = iommu_group_first_dev(group);
+> +			if (dev_is_pci(dev)) {
+> +				pdev = to_pci_dev(dev);
+> +				pci_dev_get(pdev);
+> +			}
+> +		}
 
-Cc: stable@vger.kernel.org
-Signed-off-by: Chengwen Feng <fengchengwen@huawei.com>
-Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
----
- arch/x86/include/asm/cpu.h   |  1 -
- arch/x86/include/asm/smp.h   |  1 -
- arch/x86/kernel/acpi/boot.c  | 20 ++++++++++++++++++++
- arch/x86/xen/enlighten_hvm.c |  5 +++--
- include/linux/acpi.h         |  2 --
- 5 files changed, 23 insertions(+), 6 deletions(-)
+The current mechanism is designed only for the PCIe devices within
+singleton iommu groups. How about moving the above check to
+iommu_report_device_broken() and emitting a message if it is called for
+unsupported devices?
 
-diff --git a/arch/x86/include/asm/cpu.h b/arch/x86/include/asm/cpu.h
-index ad235dda1ded..57a0786dfd75 100644
---- a/arch/x86/include/asm/cpu.h
-+++ b/arch/x86/include/asm/cpu.h
-@@ -11,7 +11,6 @@
- 
- #ifndef CONFIG_SMP
- #define cpu_physical_id(cpu)			boot_cpu_physical_apicid
--#define cpu_acpi_id(cpu)			0
- #endif /* CONFIG_SMP */
- 
- #ifdef CONFIG_HOTPLUG_CPU
-diff --git a/arch/x86/include/asm/smp.h b/arch/x86/include/asm/smp.h
-index 84951572ab81..05d1d479b4cf 100644
---- a/arch/x86/include/asm/smp.h
-+++ b/arch/x86/include/asm/smp.h
-@@ -130,7 +130,6 @@ __visible void smp_call_function_interrupt(struct pt_regs *regs);
- __visible void smp_call_function_single_interrupt(struct pt_regs *r);
- 
- #define cpu_physical_id(cpu)	per_cpu(x86_cpu_to_apicid, cpu)
--#define cpu_acpi_id(cpu)	per_cpu(x86_cpu_to_acpiid, cpu)
- 
- /*
-  * This function is needed by all SMP systems. It must _always_ be valid
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index a3f2fb1fea1b..ceba24f65ae3 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -1848,3 +1848,23 @@ void __iomem * (*acpi_os_ioremap)(acpi_physical_address phys, acpi_size size) =
- 	x86_acpi_os_ioremap;
- EXPORT_SYMBOL_GPL(acpi_os_ioremap);
- #endif
-+
-+int acpi_get_cpu_uid(unsigned int cpu, u32 *uid)
-+{
-+	u32 acpi_id;
-+
-+	if (cpu >= nr_cpu_ids)
-+		return -EINVAL;
-+
-+#ifdef CONFIG_SMP
-+	acpi_id = per_cpu(x86_cpu_to_acpiid, cpu);
-+	if (acpi_id == CPU_ACPIID_INVALID)
-+		return -ENODEV;
-+#else
-+	acpi_id = 0;
-+#endif
-+
-+	*uid = acpi_id;
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(acpi_get_cpu_uid);
-diff --git a/arch/x86/xen/enlighten_hvm.c b/arch/x86/xen/enlighten_hvm.c
-index fe57ff85d004..2f9fa27e5a3c 100644
---- a/arch/x86/xen/enlighten_hvm.c
-+++ b/arch/x86/xen/enlighten_hvm.c
-@@ -151,6 +151,7 @@ static void xen_hvm_crash_shutdown(struct pt_regs *regs)
- 
- static int xen_cpu_up_prepare_hvm(unsigned int cpu)
- {
-+	u32 cpu_uid;
- 	int rc = 0;
- 
- 	/*
-@@ -161,8 +162,8 @@ static int xen_cpu_up_prepare_hvm(unsigned int cpu)
- 	 */
- 	xen_uninit_lock_cpu(cpu);
- 
--	if (cpu_acpi_id(cpu) != CPU_ACPIID_INVALID)
--		per_cpu(xen_vcpu_id, cpu) = cpu_acpi_id(cpu);
-+	if (acpi_get_cpu_uid(cpu, &cpu_uid) == 0)
-+		per_cpu(xen_vcpu_id, cpu) = cpu_uid;
- 	else
- 		per_cpu(xen_vcpu_id, cpu) = cpu;
- 	xen_vcpu_setup(cpu);
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 035094a55f18..90a1fdcb7eb9 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -324,7 +324,6 @@ int acpi_unmap_cpu(int cpu);
- 
- acpi_handle acpi_get_processor_handle(int cpu);
- 
--#ifndef CONFIG_X86
- /*
-  * acpi_get_cpu_uid() - Get ACPI Processor UID of a specified CPU from MADT table
-  * @cpu: Logical CPU number (0-based)
-@@ -335,7 +334,6 @@ acpi_handle acpi_get_processor_handle(int cpu);
-  *         -ENODEV if the ACPI Processor UID for the specified CPU is not found.
-  */
- int acpi_get_cpu_uid(unsigned int cpu, u32 *uid);
--#endif
- 
- #ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
- int acpi_get_ioapic_id(acpi_handle handle, u32 gsi_base, u64 *phys_addr);
--- 
-2.17.1
+> +	}
+> +
+> +	if (pdev) {
+> +		/*
+> +		 * Quarantine the device completely. This will be cleared upon
+> +		 * a pci_dev_reset_iommu_done() call indicating the recovery.
+> +		 */
+> +		pci_dev_lock(pdev);
+> +		pci_dev_reset_iommu_prepare(pdev);
+> +		pci_dev_unlock(pdev);
+> +		pci_dev_put(pdev);
+> +	}
+> +out_put:
+> +	iommu_group_put(group);
+> +}
+> +
+> +void iommu_report_device_broken(struct device *dev)
+> +{
+> +	struct iommu_group *group = iommu_group_get(dev);
+> +
+> +	if (!group)
+> +		return;
+> +
+> +	if (READ_ONCE(group->requires_reset)) {
+> +		iommu_group_put(group);
+> +		return;
+> +	}
+> +	WRITE_ONCE(group->requires_reset, true);
+> +
+> +	/* Put the group now or later in iommu_group_broken_worker() */
+> +	if (!schedule_work(&group->broken_work))
+> +		iommu_group_put(group);
+> +}
+> +EXPORT_SYMBOL_GPL(iommu_report_device_broken);
+> +
+>   #if IS_ENABLED(CONFIG_IRQ_MSI_IOMMU)
+>   /**
+>    * iommu_dma_prepare_msi() - Map the MSI page in the IOMMU domain
 
+Thanks,
+baolu
