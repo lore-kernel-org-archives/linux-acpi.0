@@ -1,161 +1,94 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
+Received: from out30-119.freemail.mail.aliyun.com (out30-119.freemail.mail.aliyun.com [115.124.30.119])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25C553BED29;
-	Wed, 18 Mar 2026 11:26:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.8
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1F143D170F;
+	Wed, 18 Mar 2026 11:45:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.119
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773833200; cv=none; b=XaC0suUObypgz6ft4JgZdZHwrPhgUe6S88B9/CqVx3MD25kNZwVVl3QiXRsQTgqd3AhZqfz5Xs05cQA70V3BcuLV5MwpyjEDlXCwthLYWI66DbRuAUPkF+APYdZUBtBKgpqBpYnKAMeaGtc8l4T5EMTVwgh1BTNVoiyZq0VgvPU=
+	t=1773834319; cv=none; b=iGj59UHVng8cL8fkQREsFwy5dJTcyP3xHrCCNnf8p9bQcVuK9Ldk1RbAc/LQXcwimHGtR4gyOKRMv90lE2I/qia/z/Ts6sm+2hzxqBfvFMwjFdSNPxo919TabFUY28K594buFkkrGeujvMe3D3oVW70zmVxRzJU2rMTeCEWh1mw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773833200; c=relaxed/simple;
-	bh=H+cIWJZ4Q1o7oz07cHAFjDrffGaOkfmaEx1mEYad3TM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RbFM3U6sWWSuYRWhZa/Tdg9V9wDov5c7223Bj5tEZDqfnGsjRGHXvhRrZwqglDHKZmIsuF+e7AA9yiiKXK+Gd2sTE1Xu56m7SLG2AojjZnUOBtm+DcGIFvuCnmEo9Z0WPlPR8HWzt7c9FPgVgp2VcQY3bo1O8KRexgzkNo0IxY8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=UuF55fp/; arc=none smtp.client-ip=192.198.163.8
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1773834319; c=relaxed/simple;
+	bh=7HTUqEgNoxYYlJYCimlmPf/6F++wW/C+VtXyvOM1RSU=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=CX8A/6htzbhbpi9y9naO95f6rRGZCZvNk2i0cHy2nYoBb4vOJQ3eJ3mwmmw20/tZff3oPoA26IQdjix+HNBkuLxu4gBNnHZx615Kpi6klrVMj0us92rTprHxQK9MWe9car3l44yF5s4IFL4m15aBc7DIS6BIFtkhcFSJXDhqMEY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=aGw88IfI; arc=none smtp.client-ip=115.124.30.119
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="UuF55fp/"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1773833195; x=1805369195;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=H+cIWJZ4Q1o7oz07cHAFjDrffGaOkfmaEx1mEYad3TM=;
-  b=UuF55fp/cRAA8ogR+E2W380RYiFWaWG403PbYcXNAsQwk9FjmXwFAZxM
-   KddujbZSP/QfXt40gLhirxTo7Hyvxqk0VlvgnR/3i02ZfDYJiUMjH0dB3
-   chyoWzfCOVdUrTBZ6nkrY4eJqH/U8fmum+VHBXliWBAhIdcxaQTcF3xvS
-   mq5nlzfjtdW6VCB2VTIOR7m4/jy1SY89w+mRxGRgG3FYRMYZLk4RdUNVq
-   9gDnh6gOzZXnK5Jfe52hc6hCrmODQX1WwjFbHhCLfNzu5JRUKGlqelyBc
-   OwFOo26NeWFkbOPCXG50fGE8RkcptEs/nx/j59VaWCkMgLarkeaT38xmO
-   A==;
-X-CSE-ConnectionGUID: wRF/GWFlR6SjecycxID0Vw==
-X-CSE-MsgGUID: qut8y3ZcT+eEV6EfjkKkbQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11732"; a="92453307"
-X-IronPort-AV: E=Sophos;i="6.23,127,1770624000"; 
-   d="scan'208";a="92453307"
-Received: from orviesa008.jf.intel.com ([10.64.159.148])
-  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Mar 2026 04:26:34 -0700
-X-CSE-ConnectionGUID: E0Yq5WTnRZKLW5njq9G0lg==
-X-CSE-MsgGUID: 1Pkk9imrRmKh2IyWt3WYCA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.23,127,1770624000"; 
-   d="scan'208";a="222655371"
-Received: from rvuia-mobl.ger.corp.intel.com (HELO kekkonen.fi.intel.com) ([10.245.245.243])
-  by orviesa008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Mar 2026 04:26:32 -0700
-Received: from kekkonen.localdomain (localhost [IPv6:::1])
-	by kekkonen.fi.intel.com (Postfix) with SMTP id E291B11FCDF;
-	Wed, 18 Mar 2026 13:26:28 +0200 (EET)
-Date: Wed, 18 Mar 2026 13:26:28 +0200
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6 krs, Bertel Jungin Aukio 5, 02600 Espoo
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, driver-core@lists.linux.dev,
-	linux-kernel@vger.kernel.org, Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Guenter Roeck <linux@roeck-us.net>
-Subject: Re: [PATCH v1 1/1] device property: Document how to check for the
- property presence
-Message-ID: <abqL5PnqGNQ-6Zhc@kekkonen.localdomain>
-References: <20260317210828.2117631-1-andriy.shevchenko@linux.intel.com>
- <abnVTODs9fOqF9eV@kekkonen.localdomain>
- <abpcT5Yqfi5_SjKR@ashevche-desk.local>
- <abpsGfkitsXuWKb4@kekkonen.localdomain>
- <abpzZfYBPdM4AzLP@ashevche-desk.local>
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="aGw88IfI"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1773834311; h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type;
+	bh=E2NdF1QMWjUu0qtpBR8177AKP0EmQ3nxJJ4E1dUpmQs=;
+	b=aGw88IfIe8VPw9tuZd1F+YdyJo7CLzhsjof6kyfCQVPqT1UsUrVswXiM9wHhKr9DnyRivJR3ZQQ0xknNr9Ngcu4UNBXu5HyXZB3SlHe+HzokLz1BWWyK0+sWdYrt/BZl9g2e+c98J2uJW8VInJrUsU3Y4gbblPemO9yvR2ZKQJs=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R111e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033032089153;MF=xueshuai@linux.alibaba.com;NM=1;PH=DS;RN=17;SR=0;TI=SMTPD_---0X.EJ6bT_1773834309;
+Received: from 30.246.163.250(mailfrom:xueshuai@linux.alibaba.com fp:SMTPD_---0X.EJ6bT_1773834309 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Wed, 18 Mar 2026 19:45:10 +0800
+Message-ID: <b4085354-93e4-4484-8744-d8c7e7718c57@linux.alibaba.com>
+Date: Wed, 18 Mar 2026 19:45:19 +0800
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <abpzZfYBPdM4AzLP@ashevche-desk.local>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2 3/7] iommu: Add iommu_report_device_broken() to
+ quarantine a broken device
+To: Nicolin Chen <nicolinc@nvidia.com>, will@kernel.org,
+ robin.murphy@arm.com, joro@8bytes.org, bhelgaas@google.com, jgg@nvidia.com
+Cc: rafael@kernel.org, lenb@kernel.org, praan@google.com,
+ baolu.lu@linux.intel.com, kevin.tian@intel.com,
+ linux-arm-kernel@lists.infradead.org, iommu@lists.linux.dev,
+ linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+ linux-pci@vger.kernel.org, vsethi@nvidia.com
+References: <cover.1773774441.git.nicolinc@nvidia.com>
+ <c5390aeaeccfa86a1c79f26d2c0ff5df380940a4.1773774441.git.nicolinc@nvidia.com>
+From: Shuai Xue <xueshuai@linux.alibaba.com>
+In-Reply-To: <c5390aeaeccfa86a1c79f26d2c0ff5df380940a4.1773774441.git.nicolinc@nvidia.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Wed, Mar 18, 2026 at 11:41:57AM +0200, Andy Shevchenko wrote:
-> On Wed, Mar 18, 2026 at 11:10:49AM +0200, Sakari Ailus wrote:
-> > On Wed, Mar 18, 2026 at 10:03:27AM +0200, Andy Shevchenko wrote:
-> > > On Wed, Mar 18, 2026 at 12:27:24AM +0200, Sakari Ailus wrote:
-> > > > On Tue, Mar 17, 2026 at 10:08:28PM +0100, Andy Shevchenko wrote:
+
+
+On 3/18/26 3:15 AM, Nicolin Chen wrote:
+> When an IOMMU hardware detects an error due to a faulty device (e.g. an ATS
+> invalidation timeout), IOMMU drivers may quarantine the device by disabling
+> specific hardware features or dropping translation capabilities.
 > 
-> ...
+> However, the core-level states of the faulty device are out of sync, as the
+> device can be still attached to a translation domain or even potentially be
+> moved to a new domain that might overwrite the driver-level quarantine.
 > 
-> > > > > + * In order to check for the property presence, use device_property_present().
-> > > > 
-> > > > Do you really think we should add this clause for each of these functions?
-> > > 
-> > > Yes, as Guenter pointed out that this has to be documented clearly.
-> > > 
-> > > > I don't think it belongs here.
-> > > 
-> > > And? What should we do then (taking into account my below comments)?
-> > > 
-> > > > The error code list doesn't document what is returned if a property doesn't
-> > > > exist (-EINVAL) and it'd be helpful to add this.
-> > > 
-> > > No, this change is exactly against this. Because using an error code that may
-> > > cover not only that case is at bare minimum fragile and layering violation.
-> > > APIs that require to know the implementation details are not good APIs.
-> > 
-> > I have to say I disagree with that,
+> Given that such an error can be likely an ISR, introduce a broken_work per
+> iommu_group, and add a helper function to allow driver to report the broken
+> device, so as to completely quarantine it in the core.
 > 
-> And I definitely disagree with tribal knowledge based (implementation details
-> as it's not properly documented and can't, because -EINVAL is overloaded) and
-> confusing approach that is in use and may be amended.
-
-In general it's a good idea to document API functions' return values. It
-certainly won't add to confusion, will it?
-
+> Use the existing pci_dev_reset_iommu_prepare() function to shift the device
+> to its resetting_domain/blocking_domain. A later pci_dev_reset_iommu_done()
+> call will clear it and move it out of the quarantine.
 > 
-> > there's nothing wrong with checking
-> > error codes if you need to.
+> Signed-off-by: Nicolin Chen <nicolinc@nvidia.com>
+> ---
+>   include/linux/iommu.h |  2 ++
+>   drivers/iommu/iommu.c | 59 +++++++++++++++++++++++++++++++++++++++++++
+>   2 files changed, 61 insertions(+)
 > 
-> If that error code defines the case. Here we have not a such.
-> 
-> The wrong parameter to the function will lead to the same error code
-> which is simply wrong.
-> 
-> > Either way, I checked the original patch. If you really think you need to
-> > check for property presence and use default in the case the property isn't
-> > found and error out on other errors, add helper functions for the purpose
-> > instead of open-coding it all.
-> 
-> You mean adding 20+ helpers (at least 5 for arrays, 5 for single element,
-> and doubled for device_/fwnode_) ?! This sounds like way over verbose
-> approach.
+> diff --git a/include/linux/iommu.h b/include/linux/iommu.h
+> index 9ba12b2164724..9b5f94e566ff9 100644
+> --- a/include/linux/iommu.h
+> +++ b/include/linux/iommu.h
+> @@ -891,6 +891,8 @@ static inline struct iommu_device *__iommu_get_iommu_dev(struct device *dev)
+>   #define iommu_get_iommu_dev(dev, type, member) \
+>   	container_of(__iommu_get_iommu_dev(dev), type, member)
+>   
+> +void iommu_report_device_broken(struct device *dev);
+> +
 
-It's still better than open coding this where differentiating behaviour is
-desired. You'd probably need a few macros to generate the functions for
-each type needed.
-
-> 
-> > > > It would have been best to have a separate error code for this albeit
-> > > > changing this now might not be that troublesome either: very, very few
-> > > > callers depend on receiving such an error code but there are still many
-> > > > callers.
-> > > 
-> > > I'm against this because we have already a dedicated API to check for property
-> > > presence, why do we need to have another (confusing!) way of doing the same?
-> > > 
-> > > Having a dedicated code may help to debug, but shouldn't be used as a main
-> > > feature in my opinion.
-> 
-> I will send a next version of this patch touching only the present/bool functions.
-
-Sounds good.
-
-I'd also drop this from the patch
-
-+ * This function is the correct way to check that given property is present    
-+ * in the firmware node description.                                           
-
-as redundant.
-
--- 
-Regards,
-
-Sakari Ailus
+This declaration is inside the #ifdef CONFIG_IOMMU_API section, but
+there's no corresponding stub in the #else block. While current
+callers (arm-smmu-v3) always have CONFIG_IOMMU_API, for API
+completeness, please add a stub.
+Thanks.
+Shuai
