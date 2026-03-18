@@ -1,41 +1,41 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3FCE3F54A1;
-	Wed, 18 Mar 2026 19:41:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D20213F23D1;
+	Wed, 18 Mar 2026 19:41:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773862913; cv=none; b=WLWZVsJWP9th0ZstPhvGvsd3qBHcJx0UVgksTh2veuTbmIn3RUEo718QK//PDm/2Vofkj93QXIRvTS+2LyckA7eK6pkyrHX9aUYCAOhs1uiMEe5uiP/nXhw4S8h+wLMB3444aGQ2s1APWp3HUrsV7vlh6ySfmJ+GO7Wb7hTtWFk=
+	t=1773862917; cv=none; b=oavry7UE1W69a8A8LY4N6idSvzApBMAjoUbYFvU9KLTvGU1gqSlyG5exG0aYx56TGDTwow12fY3IKkU2Rcy0n+MScTQ8Of25OREVfum2j5iyJIrxSoiSuEx3aYbxW7RWq5Fg+kiafd5Ym5XIYvsU6Q7LR+qACE19dbv8wXLqlWY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773862913; c=relaxed/simple;
-	bh=WdFpObdX3K+SrahdSN6Thlpa17PD7bpIQCO5+p1yFhs=;
+	s=arc-20240116; t=1773862917; c=relaxed/simple;
+	bh=A3//JCulLF4tpwwOTdTkC9xjIupLUCp2RwPFdEA4aGo=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=TuVHKve3oOKt9PjiMgz7RSBrbYJ0Guo7DsFQNQjiqbzQ7Kn4+PetsUb9r+fVKIr+dAD80q1MFbNIo9gQfTkgTDt1dNDtOx8f+Z6WZkzweXLEgpGhEggbbsUMEaOnF37FUtDsd8ApQ45lDXHf4WleLZujmaYQDNRD7DjDn48KeZc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HsTaoxc7; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=DLpZYb9rdgxUy5Ly5kFXW3YoGMJGMDqVBznuRavVAE+z/zslq2IcJ9j1bz6aDV3LFUKB9z4BORpfoe46gmLLc8pVx63f8aYP4VA3rZh0Mq2ZuGlUSTeMH5hqQ91DM7WCKYVsX+jvQgv7bdHeHGDP2rcLhmMf1xRXA0nxlcDwIXU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KDMKVQiv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HsTaoxc7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1873DC2BC9E;
-	Wed, 18 Mar 2026 19:41:51 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KDMKVQiv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11A11C19421;
+	Wed, 18 Mar 2026 19:41:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773862913;
-	bh=WdFpObdX3K+SrahdSN6Thlpa17PD7bpIQCO5+p1yFhs=;
+	s=k20201202; t=1773862917;
+	bh=A3//JCulLF4tpwwOTdTkC9xjIupLUCp2RwPFdEA4aGo=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=HsTaoxc7NCCnfoouxv+zKWoF43mxhMWWRMc1Dt5Q2rAl3L65Z4wTSP0mJN/bILPpx
-	 juB2Il/rMSulqbrxeu2VBQgX+MO/Ah55VcHS6V6CYjC/y5fAnmaWSQ9tDxmWAiVmwB
-	 yYCyBe464jWZNgFOpVEooRlHDJzN+1Y4OsX1lTJ2PK03bDz4s9qqI1sWJ6a4Ene3Dk
-	 QQLOeXMr3m7XEM6eSG5b37q3GSvvfuWJDmU6Dd52THzlkcERrue7E3QDgog4095x2U
-	 6JNjImAykYfA05w7G+6za9GqsoTWRsRFog2Dru/8lE+gpkMsTis4Ab/ZFXnXXjE6TH
-	 VdCXfk+qPKTzQ==
+	b=KDMKVQivrgvjJlseOVNwzwOtkMItWhEHsjlyJmLehdQzTHTtm5oSzBzOS1Nyauyit
+	 tJoYRE/b4fN6Lf6t36IXO8EsyF2pyYq/Ts1W///nlpwUhsnIFF7/RMPpKVjb9tE8M8
+	 pqT6D/sWj5/hkQ61E3VokyPViKkBvCuJO7Ycj2YhhwFNg2R1lr5pbv3nJE/EZ15boZ
+	 x95xw34+/KqdxrYxVd70mavfwH4uAzhU45m3X6pziTua6tlF342vRSzpI0NtaNvSZV
+	 laakWLr8xFZPcp7ShAV9+Eq1Nx7BWqvFyJU7ebwDXHaLEq1kdiAp6+66KwUw2NzF3S
+	 ifsKf/2QvXV+g==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Ilpo =?ISO-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>
 Cc: LKML <linux-kernel@vger.kernel.org>,
  Linux ACPI <linux-acpi@vger.kernel.org>, Hans de Goede <hansg@kernel.org>,
  platform-driver-x86@vger.kernel.org, Kenneth Chan <kenneth.t.chan@gmail.com>
 Subject:
- [PATCH v2 3/4] platform/x86: panasonic-laptop: Register ACPI notify handler
- directly
-Date: Wed, 18 Mar 2026 20:40:13 +0100
-Message-ID: <3039115.e9J7NaK4W3@rafael.j.wysocki>
+ [PATCH v2 2/4] platform/x86: panasonic-laptop: Remove redundant checks from 3
+ functions
+Date: Wed, 18 Mar 2026 20:38:11 +0100
+Message-ID: <2260826.irdbgypaU6@rafael.j.wysocki>
 Organization: Linux Kernel Development
 In-Reply-To: <5979471.DvuYhMxLoT@rafael.j.wysocki>
 References: <5979471.DvuYhMxLoT@rafael.j.wysocki>
@@ -50,95 +50,70 @@ Content-Type: text/plain; charset="UTF-8"
 
 From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-To facilitate subsequent conversion of the driver to a platform one,
-make it install an ACPI notify handler directly instead of using
-a .notify() callback in struct acpi_driver.
+The device pointer cannot be NULL in acpi_pcc_hotkey_add() and
+acpi_pcc_hotkey_remove() because these functions are ACPI driver
+callbacks and NULL is never passed to any of them as an argument.
 
-No intentional functional impact.
+Likewise, acpi_pcc_hotkey_resume() is a resume callback of a
+device driver and NULL is never passed to it as an argument, so
+the dev pointer in it cannot be NULL.
+
+Moreover, since acpi_pcc_hotkey_remove() and acpi_pcc_hotkey_resume()
+can only run after acpi_pcc_hotkey_add() has completed successfully,
+the acpi_driver_data() of the device object used by them cannot be
+NULL when they run.
+
+Drop all of the redundant NULL checks of the pointers mentioned above.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
 
-v1 -> v2: Adjust remove code ordering to match probe rollback code
-   ordering (Ilpo)
+v1 -> v2: No changes
 
 ---
- drivers/platform/x86/panasonic-laptop.c | 20 +++++++++++++++-----
- 1 file changed, 15 insertions(+), 5 deletions(-)
+ drivers/platform/x86/panasonic-laptop.c | 15 +--------------
+ 1 file changed, 1 insertion(+), 14 deletions(-)
 
 diff --git a/drivers/platform/x86/panasonic-laptop.c b/drivers/platform/x86/panasonic-laptop.c
-index 8825142ea9de..6d776bb1c5d1 100644
+index debab5916782..8825142ea9de 100644
 --- a/drivers/platform/x86/panasonic-laptop.c
 +++ b/drivers/platform/x86/panasonic-laptop.c
-@@ -185,7 +185,7 @@ enum SINF_BITS { SINF_NUM_BATTERIES = 0,
- 
- static int acpi_pcc_hotkey_add(struct acpi_device *device);
- static void acpi_pcc_hotkey_remove(struct acpi_device *device);
--static void acpi_pcc_hotkey_notify(struct acpi_device *device, u32 event);
-+static void acpi_pcc_hotkey_notify(acpi_handle handle, u32 event, void *data);
- 
- static const struct acpi_device_id pcc_device_ids[] = {
- 	{ "MAT0012", 0},
-@@ -208,7 +208,6 @@ static struct acpi_driver acpi_pcc_driver = {
- 	.ops =		{
- 				.add =		acpi_pcc_hotkey_add,
- 				.remove =	acpi_pcc_hotkey_remove,
--				.notify =	acpi_pcc_hotkey_notify,
- 			},
- 	.drv.pm =	&acpi_pcc_hotkey_pm,
- };
-@@ -869,9 +868,9 @@ static void acpi_pcc_generate_keyinput(struct pcc_acpi *pcc)
- 		pr_err("Unknown hotkey event: 0x%04llx\n", result);
- }
- 
--static void acpi_pcc_hotkey_notify(struct acpi_device *device, u32 event)
-+static void acpi_pcc_hotkey_notify(acpi_handle handle, u32 event, void *data)
+@@ -968,14 +968,7 @@ static int acpi_pcc_init_input(struct pcc_acpi *pcc)
+ #ifdef CONFIG_PM_SLEEP
+ static int acpi_pcc_hotkey_resume(struct device *dev)
  {
--	struct pcc_acpi *pcc = acpi_driver_data(device);
-+	struct pcc_acpi *pcc = data;
+-	struct pcc_acpi *pcc;
+-
+-	if (!dev)
+-		return -EINVAL;
+-
+-	pcc = acpi_driver_data(to_acpi_device(dev));
+-	if (!pcc)
+-		return -EINVAL;
++	struct pcc_acpi *pcc = acpi_driver_data(to_acpi_device(dev));
  
- 	switch (event) {
- 	case HKEY_NOTIFY:
-@@ -1073,13 +1072,18 @@ static int acpi_pcc_hotkey_add(struct acpi_device *device)
- 	if (result)
- 		goto out_backlight;
+ 	if (pcc->num_sifr > SINF_MUTE)
+ 		acpi_pcc_write_sset(pcc, SINF_MUTE, pcc->mute);
+@@ -997,9 +990,6 @@ static int acpi_pcc_hotkey_add(struct acpi_device *device)
+ 	struct pcc_acpi *pcc;
+ 	int num_sifr, result;
  
-+	result = acpi_dev_install_notify_handler(device, ACPI_DEVICE_NOTIFY,
-+						 acpi_pcc_hotkey_notify, pcc);
-+	if (result)
-+		goto out_sysfs;
-+
- 	/* optical drive initialization */
- 	if (ACPI_SUCCESS(check_optd_present())) {
- 		pcc->platform = platform_device_register_simple("panasonic",
- 			PLATFORM_DEVID_NONE, NULL, 0);
- 		if (IS_ERR(pcc->platform)) {
- 			result = PTR_ERR(pcc->platform);
--			goto out_sysfs;
-+			goto out_notify_handler;
- 		}
- 		result = device_create_file(&pcc->platform->dev,
- 			&dev_attr_cdpower);
-@@ -1100,6 +1104,9 @@ static int acpi_pcc_hotkey_add(struct acpi_device *device)
- 	device_remove_file(&pcc->platform->dev, &dev_attr_cdpower);
- out_platform:
- 	platform_device_unregister(pcc->platform);
-+out_notify_handler:
-+	acpi_dev_remove_notify_handler(device, ACPI_DEVICE_NOTIFY,
-+				       acpi_pcc_hotkey_notify);
- out_sysfs:
- 	sysfs_remove_group(&device->dev.kobj, &pcc_attr_group);
- out_backlight:
-@@ -1126,6 +1133,9 @@ static void acpi_pcc_hotkey_remove(struct acpi_device *device)
- 		platform_device_unregister(pcc->platform);
- 	}
+-	if (!device)
+-		return -EINVAL;
+-
+ 	num_sifr = acpi_pcc_get_sqty(device);
  
-+	acpi_dev_remove_notify_handler(device, ACPI_DEVICE_NOTIFY,
-+				       acpi_pcc_hotkey_notify);
-+
- 	sysfs_remove_group(&device->dev.kobj, &pcc_attr_group);
+ 	/*
+@@ -1128,9 +1118,6 @@ static void acpi_pcc_hotkey_remove(struct acpi_device *device)
+ {
+ 	struct pcc_acpi *pcc = acpi_driver_data(device);
  
- 	backlight_device_unregister(pcc->backlight);
+-	if (!device || !pcc)
+-		return;
+-
+ 	i8042_remove_filter(panasonic_i8042_filter);
+ 
+ 	if (pcc->platform) {
 -- 
 2.51.0
 
