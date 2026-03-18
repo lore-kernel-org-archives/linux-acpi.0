@@ -1,44 +1,41 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96DB43F54AC;
-	Wed, 18 Mar 2026 19:42:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 790D13F2107;
+	Wed, 18 Mar 2026 19:42:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773862921; cv=none; b=NF472L81XlLYy69F3+qgZS6OH1EpDDuCIRLh5D0pHTGoXW1bBXbjdPVteHia90MAOIvtC5XPXPfrit8wRFwReQ/D6K6vqspQoEhgIOuzsK06FPqCRsB+dIcYXzh3B87AIiuwVM5GyayQbVf0Q2QBvvs7+h4dV3w5rp0zh5lk+jI=
+	t=1773862925; cv=none; b=rwLEowMKXjQog3PY6UCQGbYcLFTeE09qMCHLmRQqTlT7H3bsFN48U5z47RvvoRjZTwXlkaDhNxcRiysbFDf0BO2wOUu+JVo91pXWqkRTcgUUHmjoUJD+LY8GzLuW891JbIwnPWKGGoAkdc2qYLjemOA520kv2qx9RbH0HkKCUYg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773862921; c=relaxed/simple;
-	bh=n7aRXJZVRRxUggb5UrCK4MGfQHNPv/piDBdksKbVGII=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=D9Px6AI/QPbfWjfc8/rjfUBRWLSi4ydESBxAnrZWfyouO9Kaj4PtYDO//JIoKIQts1qTYyczvYXCNvzCiS6plW1uxXh0HaOTmgC1LPY7YzXi20T/eKl2zRwux6W1ovklBdfcmGDBvdAzR4jQpAzAflmCQ9Q2dxTTBMwH5r89r3E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=rSmRs1xp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773862925; c=relaxed/simple;
+	bh=HXCYjnNmWNLffvrghRShw/mNCBqk1SRIyT8c8XR4iXM=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=XnWi8fOu1Mv0HmPfsBB8U5it0bgHK2XuMeU9/LzRMQLBBcA+jvi4uZGF6r71eU6YmP4AZZfsWMiP8f4Cev4NzEqe3Kn//lXo3JIb+SKvbl8scmzNL9VVg6sVhR388xGTAF7oq1m41r6C0jTmBGIsvx3vt9KqUP6W7/78dENCWMM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=n4mqNgAn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="rSmRs1xp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5DCBC19421;
-	Wed, 18 Mar 2026 19:41:59 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="n4mqNgAn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1795C19421;
+	Wed, 18 Mar 2026 19:42:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773862921;
-	bh=n7aRXJZVRRxUggb5UrCK4MGfQHNPv/piDBdksKbVGII=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=rSmRs1xpmJnZyddnI4DkNkuFw9bCQ96KRMC9VxvjfYnsWbpIIAy5N1xmjPQZjM9YW
-	 uOMMs1qX+dXh7SiKp925/BoE9ZaZvqq435M2t4QjKNMMH6molpw5WjimmOLTAmS9pS
-	 9PxhyUQEW9Ld7mR8xhg9Nh7i5DHroFvIYC6dZPb0Rn/IaHNlk8sVpArmq26a8CmsTg
-	 reE0m/S8egwlzeeiTl2Q0a4nA8Qorz5QKXQ/KpgMllI9MbCUA9KxJbP6YBjt376+BS
-	 oJCgsWuxDvcx/pUEWD1OBpHYBFKDlE4M3dLCSPcrEHNfsZ7sFUf5klPSqqBHMgZneE
-	 TNfGCL8PG10bA==
+	s=k20201202; t=1773862925;
+	bh=HXCYjnNmWNLffvrghRShw/mNCBqk1SRIyT8c8XR4iXM=;
+	h=From:To:Cc:Subject:Date:From;
+	b=n4mqNgAnA3HP7iqN6wIxrv1fp86qb89uaFKI1yzbc24YTledvkinVJuTsRiOkWgVm
+	 +raDj0DWgtCD9+zhPq9rfEQ4NSt5AW2cn6LJMKr9ZXDrsUaUp6rZSfBz70Ex4U2lOm
+	 y/f8s6R5FcSaQiN02aJAh68bAABnLN/8TSn6JN01UYb3YECF2Z8WuJf5I6FkWGiRFR
+	 5PmImE7lVS/TMIWt3voqqzY9EA7bCI1GsSRbvM/wqGW4RpkU0oaa03T72ueq6F+EYl
+	 BRcPjkiDOdSV7bV8hVG3nLQt+wHVMt9ZR+TuSFkY5+4iZ37hr5s6Rl5aPOLE2/oShk
+	 aESwWxc1gIMHw==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Ilpo =?ISO-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>
 Cc: LKML <linux-kernel@vger.kernel.org>,
  Linux ACPI <linux-acpi@vger.kernel.org>, Hans de Goede <hansg@kernel.org>,
  platform-driver-x86@vger.kernel.org, Kenneth Chan <kenneth.t.chan@gmail.com>
 Subject:
- [PATCH v2 1/4] platform/x86: panasonic-laptop: Fix rollback path in
- acpi_pcc_hotkey_add()
-Date: Wed, 18 Mar 2026 20:37:20 +0100
-Message-ID: <5060610.GXAFRqVoOG@rafael.j.wysocki>
+ [PATCH v2 0/4] platform/x86: panasonic-laptop: Bind to a platform device
+ instead of an ACPI one
+Date: Wed, 18 Mar 2026 20:32:58 +0100
+Message-ID: <5979471.DvuYhMxLoT@rafael.j.wysocki>
 Organization: Linux Kernel Development
-In-Reply-To: <5979471.DvuYhMxLoT@rafael.j.wysocki>
-References: <5979471.DvuYhMxLoT@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -48,100 +45,42 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="UTF-8"
 
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Hi All,
 
-The rollback ordering in acpi_pcc_hotkey_add() is different from the
-cleanup ordering in acpi_pcc_hotkey_remove().  Moreover, the latter
-calls pcc_unregister_optd_notifier() unconditionally while the former
-never calls it and the OPTD notifier is only registered if pcc->platform
-is not NULL.
+This is an update of
 
-Address that by:
- * moving the pcc_register_optd_notifier() call after the device_create_file()
-   return value check,
- * adding a new label to the acpi_pcc_hotkey_add() rollback code for
-   pcc_register_optd_notifier() error handling,
- * moving the pcc_unregister_optd_notifier() call in acpi_pcc_hotkey_remove()
-   before the removal of the cdpower sysfs attribute.
+https://lore.kernel.org/linux-acpi/3616223.QJadu78ljV@rafael.j.wysocki/
 
-Also update pcc_register_optd_notifier() to return an error when
-acpi_install_notify_handler() fails.
+adding one patch and updating one patch to fix the driver removal
+code ordering.
 
-Fixes: d5a81d8e864b ("platform/x86: panasonic-laptop: Add support for optical driver power in Y and W series")
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
+This series is part of a larger effort to switch over all drivers using
+the struct acpi_driver interface to the more common struct platform_driver
+interface and eliminate the former.  The background is explained in
+Documentation/driver-api/acpi/acpi-drivers.rst and in the changelog of
+the patch that introduced the above document:
 
-v1 -> v2: New patch
+https://lore.kernel.org/all/2396510.ElGaqSPkdT@rafael.j.wysocki/
 
----
- drivers/platform/x86/panasonic-laptop.c | 23 ++++++++++++++---------
- 1 file changed, 14 insertions(+), 9 deletions(-)
+The bottom line is that the kernel would be better off without struct
+acpi_driver and so it is better to get rid of it.
 
-diff --git a/drivers/platform/x86/panasonic-laptop.c b/drivers/platform/x86/panasonic-laptop.c
-index d923ddaa4849..debab5916782 100644
---- a/drivers/platform/x86/panasonic-laptop.c
-+++ b/drivers/platform/x86/panasonic-laptop.c
-@@ -897,15 +897,15 @@ static int pcc_register_optd_notifier(struct pcc_acpi *pcc, char *node)
- 	acpi_handle handle;
- 
- 	status = acpi_get_handle(NULL, node, &handle);
-+	if (ACPI_FAILURE(status))
-+		return -ENODEV;
- 
--	if (ACPI_SUCCESS(status)) {
--		status = acpi_install_notify_handler(handle,
--				ACPI_SYSTEM_NOTIFY,
--				pcc_optd_notify, pcc);
--		if (ACPI_FAILURE(status))
--			pr_err("Failed to register notify on %s\n", node);
--	} else
-+	status = acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
-+					     pcc_optd_notify, pcc);
-+	if (ACPI_FAILURE(status)) {
-+		pr_err("Failed to register notify on %s\n", node);
- 		return -ENODEV;
-+	}
- 
- 	return 0;
- }
-@@ -1093,9 +1093,12 @@ static int acpi_pcc_hotkey_add(struct acpi_device *device)
- 		}
- 		result = device_create_file(&pcc->platform->dev,
- 			&dev_attr_cdpower);
--		pcc_register_optd_notifier(pcc, "\\_SB.PCI0.EHCI.ERHB.OPTD");
- 		if (result)
- 			goto out_platform;
-+
-+		result = pcc_register_optd_notifier(pcc, "\\_SB.PCI0.EHCI.ERHB.OPTD");
-+		if (result)
-+			goto out_cdpower;
- 	} else {
- 		pcc->platform = NULL;
- 	}
-@@ -1103,6 +1106,8 @@ static int acpi_pcc_hotkey_add(struct acpi_device *device)
- 	i8042_install_filter(panasonic_i8042_filter, NULL);
- 	return 0;
- 
-+out_cdpower:
-+	device_remove_file(&pcc->platform->dev, &dev_attr_cdpower);
- out_platform:
- 	platform_device_unregister(pcc->platform);
- out_sysfs:
-@@ -1129,10 +1134,10 @@ static void acpi_pcc_hotkey_remove(struct acpi_device *device)
- 	i8042_remove_filter(panasonic_i8042_filter);
- 
- 	if (pcc->platform) {
-+		pcc_unregister_optd_notifier(pcc, "\\_SB.PCI0.EHCI.ERHB.OPTD");
- 		device_remove_file(&pcc->platform->dev, &dev_attr_cdpower);
- 		platform_device_unregister(pcc->platform);
- 	}
--	pcc_unregister_optd_notifier(pcc, "\\_SB.PCI0.EHCI.ERHB.OPTD");
- 
- 	sysfs_remove_group(&device->dev.kobj, &pcc_attr_group);
- 
--- 
-2.51.0
+This series carries out driver conversion of the platform x86 Panasonic
+hotkey and LCD brightness control driver.
 
+Patch [1/4] fixes the rollback path in acpi_pcc_hotkey_add() and rearranges
+the driver removal code ordering to match it.
+
+Patch [2/4] removes some redundant checks from the driver.
+
+Patch [3/4] updates the driver to install an ACPI notify handler by itself
+instead of using the .notify() callback from struct acpi_driver, which is
+requisite for the driver conversion.
+
+Patch [4/4] converts the driver to using struct platform_driver for device
+binding.
+
+Thanks!
 
 
 
