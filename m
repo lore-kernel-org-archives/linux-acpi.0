@@ -1,207 +1,258 @@
-Received: from canpmsgout01.his.huawei.com (canpmsgout01.his.huawei.com [113.46.200.216])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-dl1-f41.google.com (mail-dl1-f41.google.com [74.125.82.41])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8777219F135;
-	Wed, 18 Mar 2026 02:02:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.216
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773799379; cv=none; b=I7bs/SHlEZuwDf+BbLawFoHI456ESqG9F4zFyWnBN/KQi5wnmjv1OR31yvpMwgYuq9NyEJVdSdwfJzEJZkTTYwFB1Tm7ESwgSrRymGyCvByICjm+Ej3ieMn+qrFTA61/uqPuCizwJhPq7B/kRE57+3+i0j7GqGJ4HY3GUy3jbkc=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773799379; c=relaxed/simple;
-	bh=1aY8itGwueXfUym7kqMXhD3Bd0X8oZZRMQubLbTix9o=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=Rj8nxGNN5wW5KTu5N7ThvbEcqaecR6V4ttxkGYAjLlxgrvX7nyyQ0muH6L4tuLcFuoxszuN/K0qIVroyVmh2x79R86D3QG2NHuIyEWzq6luIj1WClniau/7ZeuTKbGKmZpReov6wjxoNlYvDxA0xtlVhTDzM706BYjixHXEczAs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=aCEWYkJ5; arc=none smtp.client-ip=113.46.200.216
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 988AC253932
+	for <linux-acpi@vger.kernel.org>; Wed, 18 Mar 2026 02:24:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.82.41
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1773800667; cv=pass; b=Hea4268svmwoiE9UTPT4YViq4Z/88x5Ue267UY7R7xA6QUBHVjojJMm+H7myc1vI8xs9GudXmrQNoDEUDT03vDLSZ2e3w3TZqNHVdNJnmfy+ha0KVDaHUH4SHvZFw9NgPyYcBGSGXR1OaZhyMkYy44LQYUwtedKcrFBTB/LA1us=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1773800667; c=relaxed/simple;
+	bh=FaSgqPgpLs2Ef5gPT0AOoZGzKimFlhTpsUifJjQBByM=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=mOLHD+gnzLpMdDSbsBsfNOSqQqDWU+kTgIb7iOWw76yoc/9VwyZ5sBdRaC/Q7iGhgj2oNaYSiAgPi+Rxrk/5LQhgkYELUV0wb2akjSY7/piDkMvp4xgRAfNqa7fZTZ6hKoD5HVY2ge24F5fFVAgQlWgG4cgrm+FDecb7RoK7vWo=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=mTJCbXjP; arc=pass smtp.client-ip=74.125.82.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="aCEWYkJ5"
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=tZ0YkW6QzHvviEShl9PgGlFvkR04UgvTgl/eoJfCubk=;
-	b=aCEWYkJ57RU+jYD6xeuAmQT6QWYhWukuC1lqL25B1ZrxDqI0Vs3NTfKvJ5AlwQLdM8pehEYQe
-	55n1qFUEZVHwC/PnTOrkKqsbc9EydqwCPUchnbkZH2IVuBilQdsFrdI/yQDCCC98dkWUvhAxjOH
-	sHTmJrb+EsIdeC3eKd+Ehz4=
-Received: from mail.maildlp.com (unknown [172.19.162.144])
-	by canpmsgout01.his.huawei.com (SkyGuard) with ESMTPS id 4fbBmC73pYz1T4Gh;
-	Wed, 18 Mar 2026 09:57:31 +0800 (CST)
-Received: from kwepemk500009.china.huawei.com (unknown [7.202.194.94])
-	by mail.maildlp.com (Postfix) with ESMTPS id C20BD40538;
-	Wed, 18 Mar 2026 10:02:52 +0800 (CST)
-Received: from [10.67.121.161] (10.67.121.161) by
- kwepemk500009.china.huawei.com (7.202.194.94) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Wed, 18 Mar 2026 10:02:51 +0800
-Message-ID: <c9eb7f53-db46-4229-b9ef-8faa1138aca7@huawei.com>
-Date: Wed, 18 Mar 2026 10:02:51 +0800
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mTJCbXjP"
+Received: by mail-dl1-f41.google.com with SMTP id a92af1059eb24-12732165d1eso8538233c88.1
+        for <linux-acpi@vger.kernel.org>; Tue, 17 Mar 2026 19:24:26 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1773800665; cv=none;
+        d=google.com; s=arc-20240605;
+        b=KOL5C5W+Bwcpo9uOYJD/JqhKIz3SBQpgCJYHQYwpOseXoK0yldpLJZX4XUWOiDt6uM
+         M6naD6hUFRVshoxaPCfbLE1PE4QOZOSJ9jdUTdS0KyE+B7seTWkpf44PTp26nmpUJ8eL
+         FgM5kuUoNYgNg3S1ZFV2OEezeAUR+R7PFHLNAJYSpcWL3MQzjVGUhZS+C3/UWcxJzP7g
+         QWaKdPpIYiEZHLzGOvQvXzWiEu05iuarcubzSLBR4rRSQLDX99vPbI1sRgmiqGiW/0Lp
+         PIUSi8b5bx7Ufg63m2GMyL6cWUy8odNNqZwZCLLC1oKTsQfeL/vFADcKJVrnmaiBESP2
+         g55A==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=viojiY2S+ucyqJjwH7zfRoMUsuul0m89jhJPIm/18a8=;
+        fh=MUnqRRVX1nN1TMTuNBNjvpENMmDvY4GujWBRJOGpSu0=;
+        b=AIbe60jkOp7ZTcOow4mnCSY9xhLmZdwNlmkoNY742EMouw9bNyFEKZFLi0YyayJjoF
+         0gS2/nWEa/kSvhXXbjbA/hWnPvBgQH8ZF5ogWwH5LhzXkrI4OgxWgvwBSLyv375tr6Yg
+         93BubYQmsjSi3RwNZ4L4yVbeacFLRWnyjvwDbCRKywgdGkrxsQ0uPwfHLJ7zqriRpAbq
+         8hgiq9UZietXOi1WyYX6mPwZe3NUwlv5UsPb/+om5mpUkYjd9sbx+8FFo6CpnV0z1pi1
+         LZl0NCy1IVk9F/iHotS6d4GvN/8l8nPdrIwR6Bx3nxwSj64bCRjud+flHHxRc6K5Zv8L
+         LsnA==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1773800665; x=1774405465; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=viojiY2S+ucyqJjwH7zfRoMUsuul0m89jhJPIm/18a8=;
+        b=mTJCbXjPbTHpRkeWoxkZMZiQx2LTdq4eQ9vZRGGgN0zGpehdicL7mOmjcwwxRi2PEW
+         +Mk1hSIUbSc4UDNFJAqQDavqldZ6DuhHNMYYcUedwNF7SsEcDRfM42rLYbCpbAi1qpbf
+         4vJQ3ytYpB4pFGB6R5teXHanIabxy7pFmc/AM7WTwQPvNLMjURnFedgdNfJ8f62pMb8o
+         IoEM/bkCpAotoHfJ2rBAdTZwj63VV1/tKMRxFZVKLFKL4q6S/XHYynMMcbVabMGHPxvI
+         mHxtpRYPkGnzCuy9N4q/g1AkCDaBCokrjsj4F7xtPWhk+MdUQw78y1MPC/cgJQ40m43o
+         wERQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1773800665; x=1774405465;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=viojiY2S+ucyqJjwH7zfRoMUsuul0m89jhJPIm/18a8=;
+        b=qCsIlpdQZXlr3KEc15yHG8v45r4WbEY/E6zzaHUdz+3wjyeP6czKTUTbg7s6x/LYtz
+         5WH2fqfEZ08UGYi0FNy2TrvqawifvL+jarRIFZa8X0DkmKH+J/jc0PoZSK6THn4cLse9
+         gR/M5jqZ5eaWhRiORlNiqOH9MOmD8Da3Y5GkZBM9jztHSTP1yelIOXtkH/nsAhisgLkE
+         1MxEl2LS62rMH7f7Whps6xAv4u1W/cTzdP4fUH+XtXCLoH/Qrl6y41rgauqGot89vv4E
+         OsXoIGzyAUAb0sha5LVoZinruDtXlSCcJ6j/ukpMHdHFbaOnlNZGFzMGWOJHge0I0t7a
+         3Ntw==
+X-Forwarded-Encrypted: i=1; AJvYcCULlQmsxERL40c3duPqyu3R9rwqaTmrU+LVPFJy9wfwiHpxuddODWOJ5/X5F63gdjzOV4LUIUr9HIEQ@vger.kernel.org
+X-Gm-Message-State: AOJu0Yx18dMv5oF6s94vY8bIPjo75hHbWDE86BqatAv2HcAMMRnh8w9s
+	25D8hPR4Qs/1xl2XQwEEjP8yIUNcWRRBf3r8wTbbLu3+dk7B886b+zeHtYOh10NoVpIdbEZC2V3
+	qMppM2cGn+uy3QLFNL2h3zHmF2x2J6hY=
+X-Gm-Gg: ATEYQzw1g6bi5DolCbSwz3n9rv3MfGL4NWPIpKlhm5o2KwX3m55PHp7kwZ69IbFpxc4
+	x/xMOrqIVhvdQYFeRFvAdUkzhX+MnuBJKq9r8CvXvcRPbEuK28A019Lur5psSB8/AhECrfHVt69
+	/xG6GFdaMoqH0SwofSsMx0mblsms1x61kQUcMPGbz9lK5yoooFzAvTdKHjqoQ8eGNZq+OJxdDMd
+	wRPP/QYuHBf1WDeTP0eXunFNB4nzcKzkqnnNs64CyvQ1QaABQv64rTUw5w6Mtzai4rw+CAQgQnK
+	bdeR/QrgG09SLloXbE8=
+X-Received: by 2002:a05:7022:692:b0:11b:9386:826c with SMTP id
+ a92af1059eb24-129a715a6b9mr978477c88.41.1773800665385; Tue, 17 Mar 2026
+ 19:24:25 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v7 1/3] ACPI: Refactor get_acpi_id_for_cpu() to
- acpi_get_cpu_uid() on non-x86
-To: Jeremy Linton <jeremy.linton@arm.com>, Bjorn Helgaas
-	<bhelgaas@google.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon
-	<will@kernel.org>, "Rafael J . Wysocki" <rafael@kernel.org>
-CC: <punit.agrawal@oss.qualcomm.com>, <guohanjun@huawei.com>,
-	<suzuki.poulose@arm.com>, <ryan.roberts@arm.com>, <chenl311@chinatelecom.cn>,
-	<masahiroy@kernel.org>, <wangyuquan1236@phytium.com.cn>,
-	<anshuman.khandual@arm.com>, <heinrich.schuchardt@canonical.com>,
-	<Eric.VanTassell@amd.com>, <jonathan.cameron@huawei.com>,
-	<wangzhou1@hisilicon.com>, <wanghuiqiang@huawei.com>,
-	<liuyonglong@huawei.com>, <linux-pci@vger.kernel.org>,
-	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>, <loongarch@lists.linux.dev>,
-	<linux-riscv@lists.infradead.org>, <xen-devel@lists.xenproject.org>,
-	<linux-acpi@vger.kernel.org>, <linux-perf-users@vger.kernel.org>,
-	<stable@vger.kernel.org>
-References: <20260313022144.40942-1-fengchengwen@huawei.com>
- <20260313022144.40942-2-fengchengwen@huawei.com>
- <e4b0aefa-7108-47b4-ad5d-d62d385b8f33@arm.com>
-Content-Language: en-US
-From: fengchengwen <fengchengwen@huawei.com>
-In-Reply-To: <e4b0aefa-7108-47b4-ad5d-d62d385b8f33@arm.com>
+References: <20260111163214.202262-1-islituo@gmail.com> <938e2206-def5-4b7a-9b2c-d1fd37681d8a@roeck-us.net>
+In-Reply-To: <938e2206-def5-4b7a-9b2c-d1fd37681d8a@roeck-us.net>
+From: Tuo Li <islituo@gmail.com>
+Date: Wed, 18 Mar 2026 10:23:35 +0800
+X-Gm-Features: AaiRm51U_JuIclZnayN8ai-xrcV4F1Iqh32uu_8nQqz-Dgr0rn7p-xNyyWFMOEg
+Message-ID: <CADm8TemhLAd27PK+G-Pmn+Yqg92xuDRFYjAOOM2y9ZuENH+SdQ@mail.gmail.com>
+Subject: Re: [PATCH v3] ACPI: processor: Fix a possible null-pointer
+ dereference in acpi_processor_errata_piix4() when debug messages are enabled
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: rafael@kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: kwepems200001.china.huawei.com (7.221.188.67) To
- kwepemk500009.china.huawei.com (7.202.194.94)
+Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On 3/18/2026 5:38 AM, Jeremy Linton wrote:
+
+On Wed, Mar 18, 2026 at 1:27=E2=80=AFAM Guenter Roeck <linux@roeck-us.net> =
+wrote:
+>
 > Hi,
-> 
-> Lets try this again, since the last one looks like it got caught in the moderation system and wasn't quite right anyway.
-> 
-> On 3/12/26 9:21 PM, Chengwen Feng wrote:
->> Unify CPU ACPI ID retrieval interface across architectures by
->> refactoring get_acpi_id_for_cpu() to acpi_get_cpu_uid() on
->> arm64/riscv/loongarch:
->> - Add input parameter validation
->> - Adjust interface to int acpi_get_cpu_uid(unsigned int cpu, u32 *uid)
->>    (old: u32 get_acpi_id_for_cpu(unsigned int cpu), no input check)
->>
->> This refactoring (not a pure rename) enhances interface robustness while
->> preparing for consistent ACPI Processor UID retrieval across all
->> ACPI-enabled platforms. Valid inputs retain original behavior.
->>
->> Note: Move the ARM64-specific get_cpu_for_acpi_id() implementation to
->>        arch/arm64/kernel/acpi_numa.c to fix compilation errors from
->>        circular header dependencies introduced by the rename.
->>
->> Cc: stable@vger.kernel.org
->> Signed-off-by: Chengwen Feng <fengchengwen@huawei.com>
->> Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
->> ---
->>   arch/arm64/include/asm/acpi.h      | 16 +---------
->>   arch/arm64/kernel/acpi.c           | 16 ++++++++++
->>   arch/arm64/kernel/acpi_numa.c      | 14 +++++++++
->>   arch/loongarch/include/asm/acpi.h  |  5 ---
->>   arch/loongarch/kernel/acpi.c       |  9 ++++++
->>   arch/riscv/include/asm/acpi.h      |  4 ---
->>   arch/riscv/kernel/acpi.c           | 16 ++++++++++
->>   arch/riscv/kernel/acpi_numa.c      |  9 ++++--
->>   drivers/acpi/pptt.c                | 50 ++++++++++++++++++++++--------
->>   drivers/acpi/riscv/rhct.c          |  7 ++++-
->>   drivers/perf/arm_cspmu/arm_cspmu.c |  6 ++--
->>   include/linux/acpi.h               | 13 ++++++++
->>   12 files changed, 122 insertions(+), 43 deletions(-)
->>
->> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
->> index c07a58b96329..106a08556cbf 100644
->> --- a/arch/arm64/include/asm/acpi.h
->> +++ b/arch/arm64/include/asm/acpi.h
->> @@ -114,22 +114,8 @@ static inline bool acpi_has_cpu_in_madt(void)
->>   }
->>     struct acpi_madt_generic_interrupt *acpi_cpu_get_madt_gicc(int cpu);
->> -static inline u32 get_acpi_id_for_cpu(unsigned int cpu)
->> -{
->> -    return    acpi_cpu_get_madt_gicc(cpu)->uid;
->> -}
->> -
->> -static inline int get_cpu_for_acpi_id(u32 uid)
->> -{
->> -    int cpu;
->> -
->> -    for (cpu = 0; cpu < nr_cpu_ids; cpu++)
->> -        if (acpi_cpu_get_madt_gicc(cpu) &&
->> -            uid == get_acpi_id_for_cpu(cpu))
->> -            return cpu;
->>   -    return -EINVAL;
->> -}
->> +int get_cpu_for_acpi_id(u32 uid);
->>     static inline void arch_fix_phys_package_id(int num, u32 slot) { }
->>   void __init acpi_init_cpus(void);
->> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
->> index af90128cfed5..f3866606fc46 100644
->> --- a/arch/arm64/kernel/acpi.c
->> +++ b/arch/arm64/kernel/acpi.c
->> @@ -458,3 +458,19 @@ int acpi_unmap_cpu(int cpu)
->>   }
->>   EXPORT_SYMBOL(acpi_unmap_cpu);
->>   #endif /* CONFIG_ACPI_HOTPLUG_CPU */
->> +
->> +int acpi_get_cpu_uid(unsigned int cpu, u32 *uid)
->> +{
->> +    struct acpi_madt_generic_interrupt *gicc;
->> +
->> +    if (cpu >= nr_cpu_ids)
->> +        return -EINVAL;
-> If this actually happens, its probably useful to know it with a pr_warn/pr_warn_once.> +
+>
+> On Mon, Jan 12, 2026 at 12:32:14AM +0800, Tuo Li wrote:
+> > In acpi_processor_errata_piix4(), the pointer dev is first assigned an =
+IDE
+> > device and then reassigned an ISA device:
+> >
+> >   dev =3D pci_get_subsys(..., PCI_DEVICE_ID_INTEL_82371AB, ...);
+> >   dev =3D pci_get_subsys(..., PCI_DEVICE_ID_INTEL_82371AB_0, ...);
+> >
+> > If the first lookup succeeds but the second fails, dev becomes NULL. Th=
+is
+> > leads to a potential null-pointer dereference when dev_dbg() is called:
+> >
+> >   if (errata.piix4.bmisx)
+> >     dev_dbg(&dev->dev, ...);
+> >
+> > To prevent this, use two temporary pointers and retrieve each device
+> > independently, avoiding overwriting dev with a possible NULL value.
+> >
+> >
+> > Signed-off-by: Tuo Li <islituo@gmail.com>
+>
+> AI review feedback inline below.
+>
+> I don't know if the device lifetime issue is real, but the now unconditio=
+nal
+> debug message is definitely a functional change and potentially misleadin=
+g.
+>
+> Either case, why not just move the debug messages into the code setting
+> errata.piix4.bmisx and errata.piix4.fdma ?
+>
+> Thanks,
+> Guenter
+>
+> > ---
+> > v3:
+> > * Initialize the new variables to NULL and drop redundant checks.
+> >   Thanks Rafael J. Wysocki for helpful advice.
+> > v2:
+> > * Add checks for ide_dev and isa_dev before dev_dbg()
+> >   Thanks Rafael J. Wysocki for helpful advice.
+> > ---
+> >  drivers/acpi/acpi_processor.c | 27 ++++++++++++++-------------
+> >  1 file changed, 14 insertions(+), 13 deletions(-)
+> >
+> > diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processo=
+r.c
+> > index 7ec1dc04fd11..de256e3adeed 100644
+> > --- a/drivers/acpi/acpi_processor.c
+> > +++ b/drivers/acpi/acpi_processor.c
+> > @@ -50,6 +50,7 @@ static int acpi_processor_errata_piix4(struct pci_dev=
+ *dev)
+> >  {
+> >       u8 value1 =3D 0;
+> >       u8 value2 =3D 0;
+> > +     struct pci_dev *ide_dev =3D NULL, *isa_dev =3D NULL;
+> >
+> >
+> >       if (!dev)
+> > @@ -107,12 +108,12 @@ static int acpi_processor_errata_piix4(struct pci=
+_dev *dev)
+> >                * each IDE controller's DMA status to make sure we catch=
+ all
+> >                * DMA activity.
+> >                */
+> > -             dev =3D pci_get_subsys(PCI_VENDOR_ID_INTEL,
+> > +             ide_dev =3D pci_get_subsys(PCI_VENDOR_ID_INTEL,
+> >                                    PCI_DEVICE_ID_INTEL_82371AB,
+> >                                    PCI_ANY_ID, PCI_ANY_ID, NULL);
+> > -             if (dev) {
+> > -                     errata.piix4.bmisx =3D pci_resource_start(dev, 4)=
+;
+> > -                     pci_dev_put(dev);
+> > +             if (ide_dev) {
+> > +                     errata.piix4.bmisx =3D pci_resource_start(ide_dev=
+, 4);
+> > +                     pci_dev_put(ide_dev);
+> >               }
+> >
+> >               /*
+> > @@ -124,24 +125,24 @@ static int acpi_processor_errata_piix4(struct pci=
+_dev *dev)
+> >                * disable C3 support if this is enabled, as some legacy
+> >                * devices won't operate well if fast DMA is disabled.
+> >                */
+> > -             dev =3D pci_get_subsys(PCI_VENDOR_ID_INTEL,
+> > +             isa_dev =3D pci_get_subsys(PCI_VENDOR_ID_INTEL,
+> >                                    PCI_DEVICE_ID_INTEL_82371AB_0,
+> >                                    PCI_ANY_ID, PCI_ANY_ID, NULL);
+> > -             if (dev) {
+> > -                     pci_read_config_byte(dev, 0x76, &value1);
+> > -                     pci_read_config_byte(dev, 0x77, &value2);
+> > +             if (isa_dev) {
+> > +                     pci_read_config_byte(isa_dev, 0x76, &value1);
+> > +                     pci_read_config_byte(isa_dev, 0x77, &value2);
+> >                       if ((value1 & 0x80) || (value2 & 0x80))
+> >                               errata.piix4.fdma =3D 1;
+> > -                     pci_dev_put(dev);
+> > +                     pci_dev_put(isa_dev);
+> >               }
+> >
+> >               break;
+> >       }
+> >
+> > -     if (errata.piix4.bmisx)
+> > -             dev_dbg(&dev->dev, "Bus master activity detection (BM-IDE=
+) erratum enabled\n");
+> > -     if (errata.piix4.fdma)
+> > -             dev_dbg(&dev->dev, "Type-F DMA livelock erratum (C3 disab=
+led)\n");
+> > +     if (ide_dev)
+> > +             dev_dbg(&ide_dev->dev, "Bus master activity detection (BM=
+-IDE) erratum enabled\n");
+>
+> Is it safe to dereference ide_dev here? It looks like pci_dev_put(ide_dev=
+)
+> was already called above, which drops the reference and might lead to a
+> use-after-free.
+>
+> Also, does this change the logging behavior? The original code checked
+> errata.piix4.bmisx before logging, but now it logs as long as ide_dev
+> was found, even if the erratum is not actually enabled.
+>
+> > +     if (isa_dev)
+> > +             dev_dbg(&isa_dev->dev, "Type-F DMA livelock erratum (C3 d=
+isabled)\n");
+>
+> Similarly, could this cause a use-after-free on isa_dev after
+> pci_dev_put(isa_dev) was called?
+>
+> Additionally, does this unconditionally print the "Type-F DMA livelock"
+> message if the ISA controller is present, skipping the original check
+> for errata.piix4.fdma?
+>
+> Since the original `dev` parameter is no longer reassigned, would it be
+> better to keep using `&dev->dev` and the original errata checks here to l=
+og
+> against the original PIIX4 ACPI controller?
+>
+> >
+> >       return 0;
+> >  }
+> > --
+> > 2.43.0
+> >
 
-The function maybe called from userspace which on later roadmap, so I prefer not add
-warning or error here.
-BTW: the function will return -EINVAL, so caller could know the case.
+Thanks for pointing this out, and I am sorry for the oversight.
 
->> +    gicc = acpi_cpu_get_madt_gicc(cpu);
->> +    if (!gicc)
-> I think this check is redundant because we can't have logical cpu's that aren't in the cpu_possible() list, which on arm64 doesn't AFAIK have holes. In the past this might have made sense if we weren't maintaining a copy of the gicc structure from the MADT for each core.> +        return -ENODEV;
+I think these issues are being fixed in a follow-up patch:
+https://lore.kernel.org/5975693.DvuYhMxLoT@rafael.j.wysocki/
 
-This commit will backport to stable branch at least 6.6. So I think it's OK to keep it.
-
->> +
->> +    *uid = gicc->uid;
->> +    return 0;
->> +}
->> +EXPORT_SYMBOL_GPL(acpi_get_cpu_uid);
->> diff --git a/arch/arm64/kernel/acpi_numa.c b/arch/arm64/kernel/acpi_numa.c
->> index 2465f291c7e1..41d1e46a4338 100644
->> --- a/arch/arm64/kernel/acpi_numa.c
->> +++ b/arch/arm64/kernel/acpi_numa.c
->> @@ -34,6 +34,20 @@ int __init acpi_numa_get_nid(unsigned int cpu)
->>       return acpi_early_node_map[cpu];
->>   }
->>   +int get_cpu_for_acpi_id(u32 uid)
->> +{
->> +    u32 cpu_uid;
->> +    int ret;
->> +
->> +    for (int cpu = 0; cpu < nr_cpu_ids; cpu++) {
->> +        ret = acpi_get_cpu_uid(cpu, &cpu_uid);
-> This might have been a simplification, but since we are basically doing a for_each_possible_cpu(cpu) and every possible cpu will have a GICC entry before it becomes 'possible' there will be a UID, so all the error checking AFAIK, is impossible here.> +        if (ret == 0 && uid == cpu_uid)
-
-I prefer to keep the current impl, as it may catch future error.
-
->> +            return cpu;
->> +    }
->> +
->> +    return -EINVAL;
->> +}
->> +
-> I also moved this below acpi_get_cpu_uid() in acpi.c and I don't see the a forward error issue you mentioned. It seems to me that they should be kept close to each other since they are basically inverses of each other.
-
-As long as you ensure that it is not placed in asm/acpi.h, that's fine.
-So it's OK to move this function to acpi.c
-
-But I just checked the callers of this function again and found that there are
-all in acpi_numa.c, so I will now add the static keyword to this function and
-make it an internal function.
-
-Thanks
-
-> 
-
+Thanks,
+Tuo
