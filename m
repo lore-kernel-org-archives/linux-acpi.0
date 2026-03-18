@@ -1,131 +1,231 @@
-Received: from PH7PR06CU001.outbound.protection.outlook.com (mail-westus3azon11010067.outbound.protection.outlook.com [52.101.201.67])
+Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03D4713635E;
-	Wed, 18 Mar 2026 03:50:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.201.67
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773805842; cv=fail; b=D8Xk5zz1fC23r9sBOzHangx7P4oX5EImWDuvJy9oHbMgkzyzmpc6oIbz4pJ4OSEo/3s2NmzEkaTRTTb2NKsE76cE3dRyuTH5b3igBy6AMuQ2Ai8MgnRHFCCG/pT9nc28wljxsWxZZuXBldZZZ3/pM5kByEUnXeemG+d5dd9NkTw=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773805842; c=relaxed/simple;
-	bh=rX91nvyUMkJwOpsFCOawPaaTZh43vqJ/aarCje9DRYY=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=oAWKS6dgTDAdbMeKRh8q29VrL6+9daOT+tgl6zF26xB5VqZdcJeZFgAbaUupgSWiYfykyoH0DOz2ac5zPGg9ujsfS2gAeHFZQ3lePSRsmXyHDgSvamP8AjaDvji2M5mVFFiQygbVXzBzJfO+Qe80o5zL6ikGKFGigCPSUG0V6Bc=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=NDlHD0+p; arc=fail smtp.client-ip=52.101.201.67
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FE2D262FDC;
+	Wed, 18 Mar 2026 04:04:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.187
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1773806665; cv=none; b=siEnGK+Ha+gD3mHAz5sOKl/zRNO806ojBW4JtkkaW9T1v89zWdy1UpbxPOVexCiNQByeloWlxdvanI9snrJWO1rMKrtV4M3orQ5Wq+4GsIAPw893B6AAd8PAeW9Z60P2wXjsHJSdq/e+Yp9b5HHd8O1IOzlisqxbmvNKUulAmXY=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1773806665; c=relaxed/simple;
+	bh=Dt5Oam7a8ddqq3BfktyQN9kIOpoRHtuXRpWswvc3GAs=;
+	h=Message-ID:Date:MIME-Version:Subject:From:To:CC:References:
+	 In-Reply-To:Content-Type; b=X2k0uAeGVyuUi0l1u69p2NJifwuEjybK8ALixmANy91hyaOW3q1lJVpXaKV+Z2WFP08f6dNwfwhhSiL/c7UNa7g9wm1j7KyWzUQXscYcrRBzkafktmg8Ehwd0wOlJR5oQpIKq+zQQdhUzvGQq05HN09slF9goks6XN5bV/JGHV4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=tgKSLKH3; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=tgKSLKH3; arc=none smtp.client-ip=45.249.212.187
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="NDlHD0+p"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=ItAlywAm6cNIOMOnLf/wseNO24KL71UhXC7XgRf6FTdSpPl51GCIPxjJH9OqYlHuLo7udISBKE/wAdQ7/hJmEHWC1UlyecIpkQTTl6NUzXWV/cwCzSjo/4/HSczypPNsQ1g70uD79BqWVjPBnxT069q34tSCvqW11wlrK5JkLoXb8oOWCbmpaQoVPwYs2I0+CIzaeS9FH9GnbKphuCGz1R6lzS6TXnVK3ZbcZXfP83efA5RPAtLKTfBfssylWbwZbmf1U6+HtpVImNx07CG4ou4QLEKUQHbtduDZDZXfEe71vzyVV9xBLwb1QYvW292xhMKFOuOL6o1e4yyHZSS7rQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=KM+9HkXYfrzszsIPbQQVxa6QbrTOxovP35UqfCQzXv8=;
- b=ivgsdTvUOT+4rviWf3ZEDRO57mYzBocoRMh9uptR0axHrY8EGzUZ+LplcriURP7nn1pt4dGHwcSOeJwlaMy8qF5Oi28UN2V4c4jpszu9yECzOzNDl5z6LVwTuDGGHNul5jKCVGCegaxNUBAN80aUPZDVNAdKZOZnFvL8UWEiLEatgi4KJsuNlruSiQeNSAa8V3LFZ4w3zPV3e8MTGIolKnG20gCPn/fltY/uKPkeXm/rhneh42Lw2RxjoPCozLdJrV3tQBZWdIPNAcyPBNSo8AZLmqyjpGrrrQhTGZml/Cc0ABqnZo3Wrtb/6iSRW5SSBMjJ9y822YOalAnxKBPcvA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 165.204.84.17) smtp.rcpttodomain=kernel.org smtp.mailfrom=amd.com; dmarc=pass
- (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=KM+9HkXYfrzszsIPbQQVxa6QbrTOxovP35UqfCQzXv8=;
- b=NDlHD0+pjvyCpoeDHpb7HvTI94wwLpzrqA08V9If3Y0eBalpGvt5CPiiVUcP0MCf2UB63caahGLEaZK2a+Pr9T84v6ouSd7JNizIk7+FC1q7iwoy2cNRlX/HDTR8AvNJiw480z6rPBaqu/GiGOh2UphyUMxgCH+yedM9gUONvqk=
-Received: from MN2PR17CA0018.namprd17.prod.outlook.com (2603:10b6:208:15e::31)
- by SA5PPF9D25F0C6D.namprd12.prod.outlook.com (2603:10b6:80f:fc04::8d9) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9723.19; Wed, 18 Mar
- 2026 03:49:16 +0000
-Received: from BL02EPF0001A108.namprd05.prod.outlook.com
- (2603:10b6:208:15e:cafe::22) by MN2PR17CA0018.outlook.office365.com
- (2603:10b6:208:15e::31) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.9700.27 via Frontend Transport; Wed,
- 18 Mar 2026 03:49:14 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
- smtp.mailfrom=amd.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=amd.com;
-Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
- 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
- client-ip=165.204.84.17; helo=satlexmb07.amd.com; pr=C
-Received: from satlexmb07.amd.com (165.204.84.17) by
- BL02EPF0001A108.mail.protection.outlook.com (10.167.241.138) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9700.17 via Frontend Transport; Wed, 18 Mar 2026 03:49:16 +0000
-Received: from STXH3-MAPLE-10.amd.com (10.180.168.240) by satlexmb07.amd.com
- (10.181.42.216) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.17; Tue, 17 Mar
- 2026 22:49:15 -0500
-From: Pratap Nirujogi <pratap.nirujogi@amd.com>
-To: <rafael@kernel.org>, <lenb@kernel.org>, <mlimonci@amd.com>,
-	<bin.du@amd.com>, <alexander.deucher@amd.com>
-CC: <benjamin.chan@amd.com>, <king.li@amd.com>, <linux-acpi@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, Pratap Nirujogi <pratap.nirujogi@amd.com>
-Subject: [PATCH v1] ACPI: bus: Fix MFD child automatic modprobe issue
-Date: Tue, 17 Mar 2026 23:47:57 -0400
-Message-ID: <20260318034842.1216536-1-pratap.nirujogi@amd.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="tgKSLKH3";
+	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="tgKSLKH3"
+dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=XZKg5HSzqw961TE78Y1nHw4DDOpQ3KVITP3+xW3FZMU=;
+	b=tgKSLKH3FRXeuZflU+YmXS6o6Nivgvm0hUbiV+64ojQwdlRuj748sRRNImMTKVJ0zSqQ4mFD9
+	vyWfROqFApjH8PJl/yObRR3ZUwmsw9hG0AiTaunIlNM5kOdnbqS/nXO8pxQZ0gDOyc2ERqq/FSD
+	tUkS7f1ubwBj8AMZrIXLpUM=
+Received: from canpmsgout03.his.huawei.com (unknown [172.19.92.159])
+	by szxga01-in.huawei.com (SkyGuard) with ESMTPS id 4fbFYS5SRyz1BFwf;
+	Wed, 18 Mar 2026 12:03:24 +0800 (CST)
+dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=XZKg5HSzqw961TE78Y1nHw4DDOpQ3KVITP3+xW3FZMU=;
+	b=tgKSLKH3FRXeuZflU+YmXS6o6Nivgvm0hUbiV+64ojQwdlRuj748sRRNImMTKVJ0zSqQ4mFD9
+	vyWfROqFApjH8PJl/yObRR3ZUwmsw9hG0AiTaunIlNM5kOdnbqS/nXO8pxQZ0gDOyc2ERqq/FSD
+	tUkS7f1ubwBj8AMZrIXLpUM=
+Received: from mail.maildlp.com (unknown [172.19.162.197])
+	by canpmsgout03.his.huawei.com (SkyGuard) with ESMTPS id 4fbFSC5sDgzpTMG;
+	Wed, 18 Mar 2026 11:58:51 +0800 (CST)
+Received: from kwepemk500009.china.huawei.com (unknown [7.202.194.94])
+	by mail.maildlp.com (Postfix) with ESMTPS id 19BFD40569;
+	Wed, 18 Mar 2026 12:04:15 +0800 (CST)
+Received: from [10.67.121.161] (10.67.121.161) by
+ kwepemk500009.china.huawei.com (7.202.194.94) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.11; Wed, 18 Mar 2026 12:04:14 +0800
+Message-ID: <0744ee77-78ee-4e3d-9f0d-e8fe44be1c28@huawei.com>
+Date: Wed, 18 Mar 2026 12:04:13 +0800
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v7 1/3] ACPI: Refactor get_acpi_id_for_cpu() to
+ acpi_get_cpu_uid() on non-x86
+From: fengchengwen <fengchengwen@huawei.com>
+To: Jeremy Linton <jeremy.linton@arm.com>, Bjorn Helgaas
+	<bhelgaas@google.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon
+	<will@kernel.org>, "Rafael J . Wysocki" <rafael@kernel.org>
+CC: <punit.agrawal@oss.qualcomm.com>, <guohanjun@huawei.com>,
+	<suzuki.poulose@arm.com>, <ryan.roberts@arm.com>, <chenl311@chinatelecom.cn>,
+	<masahiroy@kernel.org>, <wangyuquan1236@phytium.com.cn>,
+	<anshuman.khandual@arm.com>, <heinrich.schuchardt@canonical.com>,
+	<Eric.VanTassell@amd.com>, <jonathan.cameron@huawei.com>,
+	<wangzhou1@hisilicon.com>, <wanghuiqiang@huawei.com>,
+	<liuyonglong@huawei.com>, <linux-pci@vger.kernel.org>,
+	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>, <loongarch@lists.linux.dev>,
+	<linux-riscv@lists.infradead.org>, <xen-devel@lists.xenproject.org>,
+	<linux-acpi@vger.kernel.org>, <linux-perf-users@vger.kernel.org>,
+	<stable@vger.kernel.org>
+References: <20260313022144.40942-1-fengchengwen@huawei.com>
+ <20260313022144.40942-2-fengchengwen@huawei.com>
+ <e4b0aefa-7108-47b4-ad5d-d62d385b8f33@arm.com>
+ <c9eb7f53-db46-4229-b9ef-8faa1138aca7@huawei.com>
+Content-Language: en-US
+In-Reply-To: <c9eb7f53-db46-4229-b9ef-8faa1138aca7@huawei.com>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: satlexmb07.amd.com (10.181.42.216) To satlexmb07.amd.com
- (10.181.42.216)
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BL02EPF0001A108:EE_|SA5PPF9D25F0C6D:EE_
-X-MS-Office365-Filtering-Correlation-Id: 4961767b-cb7e-4a86-5fef-08de84a153af
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|82310400026|1800799024|36860700016|18002099003|56012099003;
-X-Microsoft-Antispam-Message-Info:
-	FmYUtlxCR653uoRCHnd08Sztp5bxndcncqUAHXOe12syYJtRX/XduQX8qR/0LBb+3PH1ud6O0J1q/gbHnK0SViZWLtqJXMl8GRXeR/TIHjvCCTq2QTCsxycij6a8dpHJMGgG87ojL4rArn3LZURiTQOJR9USCpd1PHipdHzFVPvexzVH7nUCxnsOl7SMaYph7KTXXBlNDDgNiG+CpNUWtQhr1lGcp5rGhn7mGkTgKbCbzqTw1PqXHLNGoJhEDhjM2DJaQA0zYRg9MawpG2zbukalNs2xyaVcgGzBeOQod9OhRbyXM+0ZyRiByqY8uAkyTY7twi8toUffdOE9obmJY0R1myXvTLOVXKOiFyTUcf4T4rYOHlOiVay3hJZ1tNfN5ZKfPet8lFvsOpgxNvhTAP91F/Eso9ABvS8JLpjFTdPQ50fMb9q5B8g+uU5t/HxeoNx4GdIZXPN3PdFJK/wusHO2nVaktPeYC9MTia6UskkVR1Wbswdbk0Tw6aInAeEQL/a9wyDowKt2RECs/L3La+LcqE0BDILy1q3B0IRVcFki3pQmZ8f7K57tKMap72NAK+lAuRL62dl/S355S2gPvsBH0OLsheYvKTsEa3e81mjPrvZDzChayl5o5Wpc3SxUzM7zSr/KjCc3C1fkTmObSnpGAYqUEWQlG2To6hM3oReY04e4HIrA4qbjvKQeFOKqxBO/XTlJM8i8hCRursDT3cUlhlIp6VbVCLKba9Sic/sKGwMQFv21qhotulrDsqB8fxp+hi383zPa1h7wcZcwHg==
-X-Forefront-Antispam-Report:
-	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(376014)(82310400026)(1800799024)(36860700016)(18002099003)(56012099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	CzmfEwZZzYu2WmH5MR8MLPkbs+CdqRAX7TwvAvHe03/HFZdgEeQ0LxGACN15zJ/5sZYCdeletaRu7iNF5WfanX1rQ5c2cXIriUTW/8+lBnULFC2o410c0gS5DPXvxsL0GMnHkAwPeEN5LSOCkUM0vATAP8bP2SoWi+dl17dUH33Yma8Vf8sAxOOhVQq6Ig1hvIF+pmqSKTjYZ1uGD2EqADNUq/Y+bXJ+e8hcUMuTuM9JndjU04S1YpLb+otYCjY0q9ufvxb8hHuRCZG4kKO2mAwX31OI7T+vbWeMBqxzmYQUIk1sbJ/6fo6wpERsDAAwahsRTRdJi1h7DAN1sr+rU3Yaj3NIu3cC+91Y5+8TVaQF+tBSFKs3p9ZJ+OoXGCwRPHmU8tzg78peQ9S5VBqrzylhzWF+4WLtupk/PzhWzajURzk1x1T2i85iGOxfsquJ
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 18 Mar 2026 03:49:16.1352
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 4961767b-cb7e-4a86-5fef-08de84a153af
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb07.amd.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	BL02EPF0001A108.namprd05.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA5PPF9D25F0C6D
+X-ClientProxiedBy: kwepems100002.china.huawei.com (7.221.188.206) To
+ kwepemk500009.china.huawei.com (7.202.194.94)
 
-MFD child devices sharing parent's ACPI Companion fails to probe as
-acpi_companion_match() returns incompatible ACPI Companion handle for
-binding with the check for pnp.type.backlight added recently. Remove this
-pnp.type.backlight check in acpi_companion_match() to fix the automatic
-modprobe issue.
+Sorry to self-reply
 
-Fixes: 7a7a7ed5f8bdb ("ACPI: scan: Register platform devices for backlight device objects")
-Signed-off-by: Pratap Nirujogi <pratap.nirujogi@amd.com>
----
- drivers/acpi/bus.c | 3 ---
- 1 file changed, 3 deletions(-)
+On 3/18/2026 10:02 AM, fengchengwen wrote:
+> Hi,
+> 
+> On 3/18/2026 5:38 AM, Jeremy Linton wrote:
+>> Hi,
+>>
+>> Lets try this again, since the last one looks like it got caught in the moderation system and wasn't quite right anyway.
+>>
+>> On 3/12/26 9:21 PM, Chengwen Feng wrote:
+>>> Unify CPU ACPI ID retrieval interface across architectures by
+>>> refactoring get_acpi_id_for_cpu() to acpi_get_cpu_uid() on
+>>> arm64/riscv/loongarch:
+>>> - Add input parameter validation
+>>> - Adjust interface to int acpi_get_cpu_uid(unsigned int cpu, u32 *uid)
+>>>    (old: u32 get_acpi_id_for_cpu(unsigned int cpu), no input check)
+>>>
+>>> This refactoring (not a pure rename) enhances interface robustness while
+>>> preparing for consistent ACPI Processor UID retrieval across all
+>>> ACPI-enabled platforms. Valid inputs retain original behavior.
+>>>
+>>> Note: Move the ARM64-specific get_cpu_for_acpi_id() implementation to
+>>>        arch/arm64/kernel/acpi_numa.c to fix compilation errors from
+>>>        circular header dependencies introduced by the rename.
+>>>
+>>> Cc: stable@vger.kernel.org
+>>> Signed-off-by: Chengwen Feng <fengchengwen@huawei.com>
+>>> Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
+>>> ---
+>>>   arch/arm64/include/asm/acpi.h      | 16 +---------
+>>>   arch/arm64/kernel/acpi.c           | 16 ++++++++++
+>>>   arch/arm64/kernel/acpi_numa.c      | 14 +++++++++
+>>>   arch/loongarch/include/asm/acpi.h  |  5 ---
+>>>   arch/loongarch/kernel/acpi.c       |  9 ++++++
+>>>   arch/riscv/include/asm/acpi.h      |  4 ---
+>>>   arch/riscv/kernel/acpi.c           | 16 ++++++++++
+>>>   arch/riscv/kernel/acpi_numa.c      |  9 ++++--
+>>>   drivers/acpi/pptt.c                | 50 ++++++++++++++++++++++--------
+>>>   drivers/acpi/riscv/rhct.c          |  7 ++++-
+>>>   drivers/perf/arm_cspmu/arm_cspmu.c |  6 ++--
+>>>   include/linux/acpi.h               | 13 ++++++++
+>>>   12 files changed, 122 insertions(+), 43 deletions(-)
+>>>
+>>> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+>>> index c07a58b96329..106a08556cbf 100644
+>>> --- a/arch/arm64/include/asm/acpi.h
+>>> +++ b/arch/arm64/include/asm/acpi.h
+>>> @@ -114,22 +114,8 @@ static inline bool acpi_has_cpu_in_madt(void)
+>>>   }
+>>>     struct acpi_madt_generic_interrupt *acpi_cpu_get_madt_gicc(int cpu);
+>>> -static inline u32 get_acpi_id_for_cpu(unsigned int cpu)
+>>> -{
+>>> -    return    acpi_cpu_get_madt_gicc(cpu)->uid;
+>>> -}
+>>> -
+>>> -static inline int get_cpu_for_acpi_id(u32 uid)
+>>> -{
+>>> -    int cpu;
+>>> -
+>>> -    for (cpu = 0; cpu < nr_cpu_ids; cpu++)
+>>> -        if (acpi_cpu_get_madt_gicc(cpu) &&
+>>> -            uid == get_acpi_id_for_cpu(cpu))
+>>> -            return cpu;
+>>>   -    return -EINVAL;
+>>> -}
+>>> +int get_cpu_for_acpi_id(u32 uid);
+>>>     static inline void arch_fix_phys_package_id(int num, u32 slot) { }
+>>>   void __init acpi_init_cpus(void);
+>>> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+>>> index af90128cfed5..f3866606fc46 100644
+>>> --- a/arch/arm64/kernel/acpi.c
+>>> +++ b/arch/arm64/kernel/acpi.c
+>>> @@ -458,3 +458,19 @@ int acpi_unmap_cpu(int cpu)
+>>>   }
+>>>   EXPORT_SYMBOL(acpi_unmap_cpu);
+>>>   #endif /* CONFIG_ACPI_HOTPLUG_CPU */
+>>> +
+>>> +int acpi_get_cpu_uid(unsigned int cpu, u32 *uid)
+>>> +{
+>>> +    struct acpi_madt_generic_interrupt *gicc;
+>>> +
+>>> +    if (cpu >= nr_cpu_ids)
+>>> +        return -EINVAL;
+>> If this actually happens, its probably useful to know it with a pr_warn/pr_warn_once.> +
+> 
+> The function maybe called from userspace which on later roadmap, so I prefer not add
+> warning or error here.
+> BTW: the function will return -EINVAL, so caller could know the case.
+> 
+>>> +    gicc = acpi_cpu_get_madt_gicc(cpu);
+>>> +    if (!gicc)
+>> I think this check is redundant because we can't have logical cpu's that aren't in the cpu_possible() list, which on arm64 doesn't AFAIK have holes. In the past this might have made sense if we weren't maintaining a copy of the gicc structure from the MADT for each core.> +        return -ENODEV;
+> 
+> This commit will backport to stable branch at least 6.6. So I think it's OK to keep it.
+> 
+>>> +
+>>> +    *uid = gicc->uid;
+>>> +    return 0;
+>>> +}
+>>> +EXPORT_SYMBOL_GPL(acpi_get_cpu_uid);
+>>> diff --git a/arch/arm64/kernel/acpi_numa.c b/arch/arm64/kernel/acpi_numa.c
+>>> index 2465f291c7e1..41d1e46a4338 100644
+>>> --- a/arch/arm64/kernel/acpi_numa.c
+>>> +++ b/arch/arm64/kernel/acpi_numa.c
+>>> @@ -34,6 +34,20 @@ int __init acpi_numa_get_nid(unsigned int cpu)
+>>>       return acpi_early_node_map[cpu];
+>>>   }
+>>>   +int get_cpu_for_acpi_id(u32 uid)
+>>> +{
+>>> +    u32 cpu_uid;
+>>> +    int ret;
+>>> +
+>>> +    for (int cpu = 0; cpu < nr_cpu_ids; cpu++) {
+>>> +        ret = acpi_get_cpu_uid(cpu, &cpu_uid);
+>> This might have been a simplification, but since we are basically doing a for_each_possible_cpu(cpu) and every possible cpu will have a GICC entry before it becomes 'possible' there will be a UID, so all the error checking AFAIK, is impossible here.> +        if (ret == 0 && uid == cpu_uid)
+> 
+> I prefer to keep the current impl, as it may catch future error.
+> 
+>>> +            return cpu;
+>>> +    }
+>>> +
+>>> +    return -EINVAL;
+>>> +}
+>>> +
+>> I also moved this below acpi_get_cpu_uid() in acpi.c and I don't see the a forward error issue you mentioned. It seems to me that they should be kept close to each other since they are basically inverses of each other.
+> 
+> As long as you ensure that it is not placed in asm/acpi.h, that's fine.
+> So it's OK to move this function to acpi.c
+> 
+> But I just checked the callers of this function again and found that there are
+> all in acpi_numa.c, so I will now add the static keyword to this function and
+> make it an internal function.
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index f6707325f5821..2ec095e2009e4 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -818,9 +818,6 @@ const struct acpi_device *acpi_companion_match(const struct device *dev)
- 	if (list_empty(&adev->pnp.ids))
- 		return NULL;
- 
--	if (adev->pnp.type.backlight)
--		return adev;
--
- 	return acpi_primary_dev_companion(adev, dev);
- }
- 
--- 
-2.43.0
+I just found drivers/irqchip/irq-gic-v3.c has a call for get_cpu_for_acpi_id,
+so We should not marking as static.
+
+According to your advise, I moved it in acpi.c in v8.
+
+Thanks
+
+> 
+> Thanks
+> 
+>>
+> 
 
