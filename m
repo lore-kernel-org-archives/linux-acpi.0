@@ -1,36 +1,42 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C2BE263C8C;
-	Wed, 18 Mar 2026 17:31:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F6813CA48B
+	for <linux-acpi@vger.kernel.org>; Wed, 18 Mar 2026 18:19:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.84.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773855117; cv=none; b=sWKnc+rUr7L/PcSVdDeYFIlL8BhVgqdvMxW8tFcPZSdPKvPWRK9oh8AI4SDc0kfx+c3+NI9enUOx5pjO/DrtnRmY9ltkDz4ck9lZY+MTVsA1mLFaZf6Kn6azpoQHdSY0y4k/yh9X2oBQjfENM6VuM4Sy0v2XSHIgrt9beUmWwQo=
+	t=1773857989; cv=none; b=Vq+fIeicYcCZuWB8Vb0sGClmUTUyrsxUXfN2mrDEzpiSN93ppSi2ict90k9Jk+y4Nqx44KtYb9cTK7qQIs9ahIPJR2EfQuuh6IgIQVFW/3m1RLdhC2B8fA+z264eZYqMvm83SQtiOa4OJrmvFIu1tKKuCBfWJE4TG6eFSad+X4Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773855117; c=relaxed/simple;
-	bh=HhmffGUp9Y91NzAt05HzDzuECj5jUzcfd9L5WeMVgRE=;
+	s=arc-20240116; t=1773857989; c=relaxed/simple;
+	bh=vj7tS7uIMvZSXYU425dVU9YT132ngTU9jfQFxZte628=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=G47cp0d/JJMBeKMRAbYuV2iGkBwpeeOSiqR2JdE/YXrWkETGs5cFqR3jXZ7Yjmm815p40BwnJDNtQuI92vZQfspch6YEWiOrQoAWxQXGEt6/k3opDCBazrkQmiXNkhO4rH+j2zOtgdauMP6MFc3k2xHorLrucekeueRce7UqGu0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fOhJ7num; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=kW8bGS7dOfAkfPe3YeYKFR5no97e6R3P7HAQ70W91FHS/ZkI1W6csiLhBXoSIMRPDJiCFAKjfEpQpBwOpGosZIiIFQr5eVm7SYqbM7kMQCg2XsexTeLXuXxq818Jh8skNBTrAeUewfYerhrWnLL/5dPbl97nNwufVbsKfnkHiw8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=wC05hgGu; arc=none smtp.client-ip=185.246.84.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fOhJ7num"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB0E4C19421;
-	Wed, 18 Mar 2026 17:31:52 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773855117;
-	bh=HhmffGUp9Y91NzAt05HzDzuECj5jUzcfd9L5WeMVgRE=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=fOhJ7numKOTyFBGnbu6sjnslIaPgCJ6YJoNRlo6wqbaJaq+9rC7PSaCpwXncYgTUX
-	 9MqJ59SRYVHNytkkWTAwz0gzeu7m+MXqf/eEDMBtZGVSYSGpXzXWULVV77yqfflHDq
-	 ilse5DP9qMKG9asn0/dUsMEMzuh6B5OU3L3zdoJ91s9Ic/2y0asVQMle9Mf7X2uBGU
-	 q3sRJWhRMSGUytZmVNHhxbl+jQFHQUILMBBTBQvOjsU5EaI+uKOsD6GZVZ31IxG4ya
-	 wn0OvCp5ve3TA23cpFHAZ+Qc2cfH7s65Vrvt9Axuv2SufIQ0b+JY6op8DbG3hqOVol
-	 1tZ8ip/vfNkYQ==
-Date: Wed, 18 Mar 2026 17:31:50 +0000
-From: Conor Dooley <conor@kernel.org>
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="wC05hgGu"
+Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
+	by smtpout-02.galae.net (Postfix) with ESMTPS id 3374C1A2EAF;
+	Wed, 18 Mar 2026 18:19:44 +0000 (UTC)
+Received: from mail.galae.net (mail.galae.net [212.83.136.155])
+	by smtpout-01.galae.net (Postfix) with ESMTPS id E1C1D6004F;
+	Wed, 18 Mar 2026 18:19:43 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 2878510450431;
+	Wed, 18 Mar 2026 19:19:36 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
+	t=1773857982; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 content-transfer-encoding:in-reply-to:references;
+	bh=GFiGghzPl6g8oEQeQrcO9TafT5x7gCN92iALR8Yy2dM=;
+	b=wC05hgGuVfa+8EvwpROQS7dqjARjeKaWIU113kVPpWKO9oJMZR7+p4+5qakt+7dNOXwT4Y
+	5DnoW5/51sYHsUt67qtSiLOELpz0LbWYtNq1eu4fVCpGKQ6H/1t0Is4PMy5YWyuE783a7j
+	LQ6shnjEo6aAPupfW+6MPI4Xq1QbP1evicCA6W18jltj/xHBBkMs8k1sxpMPX5/LhR0jDu
+	YRrNoRzGBVtsGscmtlEpz9wGUVJD0neM+6vaOnJkRaC396auEzOO/ADgY2/2MlyIYZD2B1
+	WYQ4YdXSQXv1ymLaqL15eMTElJc49798VPeRb9dxn+z1nWK5ClpPEz56vJ5JFA==
+Date: Wed, 18 Mar 2026 19:19:36 +0100
+From: Alexandre Belloni <alexandre.belloni@bootlin.com>
 To: Akhil R <akhilrajeev@nvidia.com>
-Cc: Alexandre Belloni <alexandre.belloni@bootlin.com>,
-	Frank Li <Frank.Li@nxp.com>, Rob Herring <robh@kernel.org>,
+Cc: Frank Li <Frank.Li@nxp.com>, Rob Herring <robh@kernel.org>,
 	Krzysztof Kozlowski <krzk+dt@kernel.org>,
 	Conor Dooley <conor+dt@kernel.org>,
 	"Rafael J . Wysocki" <rafael@kernel.org>,
@@ -47,132 +53,157 @@ Cc: Alexandre Belloni <alexandre.belloni@bootlin.com>,
 	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
 	linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev,
 	linux-hwmon@vger.kernel.org
-Subject: Re: [PATCH 01/12] dt-bindings: i3c: Add mipi-i3c-static-method to
- support SETAASA
-Message-ID: <20260318-tweed-herbicide-eb924ef056b8@spud>
+Subject: Re: [PATCH 11/12] hwmon: spd5118: Add I3C support
+Message-ID: <202603181819360a32c641@mail.local>
 References: <20260318172820.13771-1-akhilrajeev@nvidia.com>
- <20260318172820.13771-2-akhilrajeev@nvidia.com>
+ <20260318172820.13771-12-akhilrajeev@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="EmK0zunkW5CWMMpV"
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <20260318172820.13771-2-akhilrajeev@nvidia.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20260318172820.13771-12-akhilrajeev@nvidia.com>
+X-Last-TLS-Session-Version: TLSv1.3
 
-
---EmK0zunkW5CWMMpV
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Wed, Mar 18, 2026 at 10:57:14PM +0530, Akhil R wrote:
-> Add the 'mipi-i3c-static-method' property mentioned in the MIPI I3C
-> Discovery and Configuration Specification [1] to specify which discovery
-> method an I3C device supports during bus initialization. The property is
-> a bitmap, where a bit value of 1 indicates support for that method, and 0
-> indicates lack of support.
-> Bit 0: SETDASA CCC (Direct)
-> Bit 1: SETAASA CCC (Broadcast)
-> Bit 2: Other CCC (vendor / standards extension)
-> All other bits are reserved.
->=20
-> It is specifically needed when an I3C device requires SETAASA for the
-> address assignment. SETDASA will be supported by default if this property
-> is absent - which means for now the property just serves as a flag to
-> enable SETAASA, but keep the property as a bitmap to align with the
-> specifications.
->=20
-> [1] https://www.mipi.org/specifications/disco
->=20
+On 18/03/2026 22:57:24+0530, Akhil R wrote:
+> Add a regmap config and a probe function to support for I3C based
+> communication to SPD5118 devices.
+> 
+> On an I3C bus, SPD5118 are enumerated via SETAASA and always require an
+> ACPI or device tree entry. The device matching is hence through the OF
+> match tables only and do not need an I3C class match table. The device
+> identity is verified in the type registers before proceeding to the
+> common probe function.
+> 
 > Signed-off-by: Akhil R <akhilrajeev@nvidia.com>
 > ---
->  .../devicetree/bindings/i3c/i3c.yaml          | 30 ++++++++++++++++---
->  1 file changed, 26 insertions(+), 4 deletions(-)
->=20
-> diff --git a/Documentation/devicetree/bindings/i3c/i3c.yaml b/Documentati=
-on/devicetree/bindings/i3c/i3c.yaml
-> index e25fa72fd785..1705d90d4d79 100644
-> --- a/Documentation/devicetree/bindings/i3c/i3c.yaml
-> +++ b/Documentation/devicetree/bindings/i3c/i3c.yaml
-> @@ -31,10 +31,12 @@ properties:
->        described in the device tree, which in turn means we have to descr=
-ibe
->        I3C devices.
-> =20
-> -      Another use case for describing an I3C device in the device tree i=
-s when
-> -      this I3C device has a static I2C address and we want to assign it a
-> -      specific I3C dynamic address before the DAA takes place (so that o=
-ther
-> -      devices on the bus can't take this dynamic address).
-> +      Other use-cases for describing an I3C device in the device tree ar=
-e:
-> +      - When the I3C device has a static I2C address and we want to assi=
-gn
-> +        it a specific I3C dynamic address before the DAA takes place (so
-> +        that other devices on the bus can't take this dynamic address).
-> +      - When the I3C device requires SETAASA for its discovery and uses a
-> +        pre-defined static address.
-> =20
->    "#size-cells":
->      const: 0
-> @@ -147,6 +149,26 @@ patternProperties:
->            through SETDASA. If static address is not present, this addres=
-s is assigned
->            through SETNEWDA after assigning a temporary address via ENTDA=
-A.
-> =20
-> +      mipi-i3c-static-method:
-> +        $ref: /schemas/types.yaml#/definitions/uint32
-> +        minimum: 0x1
-> +        maximum: 0xff
-> +        default: 1
-> +        description: |
-> +          Bitmap describing which methods of Dynamic Address Assignment =
-=66rom a
-> +          static address are supported by this I3C Target. A bit value o=
-f 1
-> +          indicates support for that method, and 0 indicates lack of sup=
-port.
+>  drivers/hwmon/Kconfig   |  7 +++--
+>  drivers/hwmon/spd5118.c | 66 ++++++++++++++++++++++++++++++++++++++++-
+>  2 files changed, 70 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+> index 8af80e17d25e..23604c05ad22 100644
+> --- a/drivers/hwmon/Kconfig
+> +++ b/drivers/hwmon/Kconfig
+> @@ -2300,10 +2300,13 @@ config SENSORS_SPD5118
+>  	tristate "SPD5118 Compliant Temperature Sensors"
+>  	depends on I2C
 
-I really am not keen on properties that are bitmaps, why can't we just
-use the strings "setdasa", "setaasa" etc?
+Please use I3C_OR_I2C here
 
-> +          Bit 0: SETDASA CCC (Direct)
-> +          Bit 1: SETAASA CCC (Broadcast)
-> +          Bit 2: Other CCC (vendor / standards extension)
-> +          All other bits are reserved.
+>  	select REGMAP_I2C
+> +	select REGMAP_I3C if I3C
+>  	help
+>  	  If you say yes here you get support for SPD5118 (JEDEC JESD300)
+> -	  compliant temperature sensors. Such sensors are found on DDR5 memory
+> -	  modules.
+> +	  compliant temperature sensors using I2C or I3C bus interface.
+> +	  Such sensors are found on DDR5 memory modules.
 > +
-> +          This property follows the MIPI I3C specification. The primary =
-use
-> +          of this property is to indicate support for SETAASA, i.e Bit 1=
-, but
-> +          will allow all values so that it is aligned with the specifica=
-tions.
-> +          SETDASA will remain as the default method even if this propert=
-y is
-> +          not present.
+> +	  This driver supports both I2C and I3C interfaces.
+>  
+>  	  This driver can also be built as a module. If so, the module
+>  	  will be called spd5118.
+> diff --git a/drivers/hwmon/spd5118.c b/drivers/hwmon/spd5118.c
+> index 5da44571b6a0..d70123e10616 100644
+> --- a/drivers/hwmon/spd5118.c
+> +++ b/drivers/hwmon/spd5118.c
+> @@ -18,6 +18,7 @@
+>  #include <linux/bits.h>
+>  #include <linux/err.h>
+>  #include <linux/i2c.h>
+> +#include <linux/i3c/device.h>
+>  #include <linux/hwmon.h>
+>  #include <linux/module.h>
+>  #include <linux/mutex.h>
+> @@ -482,6 +483,25 @@ static const struct regmap_config spd5118_regmap16_config = {
+>  	.cache_type = REGCACHE_MAPLE,
+>  };
+>  
+> +/*
+> + * I3C uses 2-byte register addressing -
+> + *   Byte 1: MemReg | BlkAddr[0] | Address[5:0]
+> + *   Byte 2: 0000   | BlkAddr[4:1]
+> + *
+> + * The low byte carries the register/NVM address and the high byte carries the
+> + * upper block address bits, so little-endian format is required. No range
+> + * config is needed since I3C does not use MR11 page switching.
+> + */
+> +static const struct regmap_config spd5118_regmap_i3c_config = {
+> +	.reg_bits = 16,
+> +	.val_bits = 8,
+> +	.max_register = 0x7ff,
+> +	.reg_format_endian = REGMAP_ENDIAN_LITTLE,
+> +	.writeable_reg = spd5118_writeable_reg,
+> +	.volatile_reg = spd5118_volatile_reg,
+> +	.cache_type = REGCACHE_MAPLE,
+> +};
 > +
->      required:
->        - reg
-> =20
-> --=20
+>  static int spd5118_suspend(struct device *dev)
+>  {
+>  	struct spd5118_data *data = dev_get_drvdata(dev);
+> @@ -770,7 +790,51 @@ static struct i2c_driver spd5118_i2c_driver = {
+>  	.address_list	= IS_ENABLED(CONFIG_SENSORS_SPD5118_DETECT) ? normal_i2c : NULL,
+>  };
+>  
+> -module_i2c_driver(spd5118_i2c_driver);
+> +/* I3C */
+> +
+> +static int spd5118_i3c_probe(struct i3c_device *i3cdev)
+> +{
+> +	struct device *dev = i3cdev_to_dev(i3cdev);
+> +	struct regmap *regmap;
+> +	unsigned int regval;
+> +	int err;
+> +
+> +	regmap = devm_regmap_init_i3c(i3cdev, &spd5118_regmap_i3c_config);
+> +	if (IS_ERR(regmap))
+> +		return dev_err_probe(dev, PTR_ERR(regmap), "regmap init failed\n");
+> +
+> +	/* Verify this is a SPD5118 device */
+> +	err = regmap_read(regmap, SPD5118_REG_TYPE, &regval);
+> +	if (err)
+> +		return err;
+> +
+> +	if (regval != 0x51) {
+> +		dev_err(dev, "unexpected device type 0x%02x, expected 0x51\n", regval);
+> +		return -ENODEV;
+> +	}
+> +
+> +	err = regmap_read(regmap, SPD5118_REG_TYPE + 1, &regval);
+> +	if (err)
+> +		return err;
+> +
+> +	if (regval != 0x18) {
+> +		dev_err(dev, "unexpected device type 0x%02x, expected 0x18\n", regval);
+> +		return -ENODEV;
+> +	}
+> +
+> +	return spd5118_common_probe(dev, regmap, false);
+> +}
+> +
+> +static struct i3c_driver spd5118_i3c_driver = {
+> +	.driver = {
+> +		.name	= "spd5118_i3c",
+> +		.of_match_table = spd5118_of_ids,
+> +		.pm = pm_sleep_ptr(&spd5118_pm_ops),
+> +	},
+> +	.probe		= spd5118_i3c_probe,
+> +};
+> +
+> +module_i3c_i2c_driver(spd5118_i3c_driver, &spd5118_i2c_driver);
+>  
+>  MODULE_AUTHOR("René Rebe <rene@exactcode.de>");
+>  MODULE_AUTHOR("Guenter Roeck <linux@roeck-us.net>");
+> -- 
 > 2.50.1
->=20
+> 
 
---EmK0zunkW5CWMMpV
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYKAB0WIQRh246EGq/8RLhDjO14tDGHoIJi0gUCabrhhgAKCRB4tDGHoIJi
-0kMwAP9M6TXwaUc/BKHm+0Rt/FM5DM33/g7JjBxK1p/4dzSpUAD/Qrggu6aS3gqn
-FhlL6llczwN+H7jlvZoHMk1JsE+xJgc=
-=/Hz0
------END PGP SIGNATURE-----
-
---EmK0zunkW5CWMMpV--
+-- 
+Alexandre Belloni, co-owner and COO, Bootlin
+Embedded Linux and Kernel engineering
+https://bootlin.com
