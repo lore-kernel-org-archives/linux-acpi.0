@@ -1,480 +1,518 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 3235015B998;
-	Wed, 18 Mar 2026 20:49:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B67DE2459E5;
+	Wed, 18 Mar 2026 21:34:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773866974; cv=none; b=ESI6rcqc72OiJ5iXghgplHw66/4/o9d+4wzIeuyzjfuv/+dkUqwo9aEtdJiLeZF2XAowyhZXLSvcP0Cwk8zWJleOuKH8/cpE6H+UVviJJE9PNKTYv1XH/SRDwAnF7Mx9iWrwrAAxgURWY7slrTuPV+vqkdmNZWR4/Ml4/SuVEP8=
+	t=1773869699; cv=none; b=AXU1FGGyIyUOfD62bGOSKJnkRyfdW4aH2N/RLvL6zbOesLd5XygNTXclgCj7xF6DyOrEHtVHznQYRbM6YHYfZ7xXK5fC4lVMl45kYH6h/IcpcnbSaRVCpSe9tKY6m7hUieaQDZX+WkJ0JzMRLLuwvYVGdcEd/OAFwaku0/y8G68=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773866974; c=relaxed/simple;
-	bh=LjcMc9LSHuiGcgxjPGNQzty3WY+CFykBJXDQtNgOAaQ=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=fb2hqUD+CNOIgbqD2n9AqmhZueovVeyurqTwKavrOOupeBI6kkSfZVPhHR5YoNH+ZDCToemUZKLwl6v6GJATkef3Wi5ZNos1gOdk2ukjuyrXZ9Q4gjQ+Wq4P9jK/p9M/MfmcAupXXV9orFy2PrFjyVWgg2RN0zSFzPqHaYHoOZU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 9339A1C00;
-	Wed, 18 Mar 2026 13:49:26 -0700 (PDT)
-Received: from e134710.arm.com (e134710.arm.com [10.33.10.82])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 874393F7BD;
-	Wed, 18 Mar 2026 13:49:30 -0700 (PDT)
-From: Ahmed Tiba <ahmed.tiba@arm.com>
-Date: Wed, 18 Mar 2026 20:48:07 +0000
-Subject: [PATCH v3 10/10] RAS: add firmware-first CPER provider
+	s=arc-20240116; t=1773869699; c=relaxed/simple;
+	bh=Z0sKaJzTVL625RHeAqUXkWbk+PwyTXe6rgvq5zdqspk=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To; b=i79fnK4TUyoOo2ETLBkwyanAGfI9/NHJVJ5JTu9I3XH9EQrIxlT4O2JIpFQcaaz668olJzHBUxr0MYp69NxFfXqMCtP5aNEfA6keAXWXnsDE2iJlQeNQPcKRf/TmYDotShTf3kRzMWntt20MMI47lGzu+ivl6X0+zQct4igmvf8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=enhKUZI1; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="enhKUZI1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 426C5C19421;
+	Wed, 18 Mar 2026 21:34:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1773869699;
+	bh=Z0sKaJzTVL625RHeAqUXkWbk+PwyTXe6rgvq5zdqspk=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:From;
+	b=enhKUZI1jj3ieMY8eJQdZfts0UzqIVpSvb7BNpwyEo6cCVUZVq3lzrQXsNun9R5Xp
+	 zd1CJufEu7ggTl02IPQL02vxNO8ijzyn4l07satVwgFMF1cs1W5f73zso2t4w92x37
+	 nW9Kzojr52ITf2ngCjyoU4hz3kfWo+O19Dc0ZQK0o8gIVL13XBhMcjbxkgr0GHNqIu
+	 hEJuTBn5+/ESMFoAFZ6lP1pdiNYZWtgiw9hZDF+BjOitYdv5OaH9l66Jisr4d8N69E
+	 931It9dGXXcbbh64ru+9TYZtZ9D7WNdsZ1R2sNYyXF+JT++5BxxX6xv1zaHGAsLqPN
+	 Qgvd979U3ojbw==
+Date: Wed, 18 Mar 2026 16:34:58 -0500
+From: Bjorn Helgaas <helgaas@kernel.org>
+To: Chengwen Feng <fengchengwen@huawei.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>,
+	"Rafael J . Wysocki" <rafael@kernel.org>,
+	Jonathan Corbet <corbet@lwn.net>, Ingo Molnar <mingo@redhat.com>,
+	Juergen Gross <jgross@suse.com>,
+	Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+	Len Brown <lenb@kernel.org>, Sunil V L <sunilvl@ventanamicro.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Jonathan Cameron <jonathan.cameron@huawei.com>,
+	Kees Cook <kees@kernel.org>, Yanteng Si <si.yanteng@linux.dev>,
+	Sean Christopherson <seanjc@google.com>,
+	Kai Huang <kai.huang@intel.com>,
+	Tom Lendacky <thomas.lendacky@amd.com>,
+	Thomas Huth <thuth@redhat.com>,
+	Thorsten Blum <thorsten.blum@linux.dev>,
+	Kevin Loughlin <kevinloughlin@google.com>,
+	Zheyun Shen <szy0127@sjtu.edu.cn>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Pawan Gupta <pawan.kumar.gupta@linux.intel.com>,
+	Xin Li <xin@zytor.com>, "Ahmed S . Darwish" <darwi@linutronix.de>,
+	Sohil Mehta <sohil.mehta@intel.com>,
+	Ilkka Koskinen <ilkka@os.amperecomputing.com>,
+	Robin Murphy <robin.murphy@arm.com>,
+	James Clark <james.clark@linaro.org>,
+	Besar Wicaksono <bwicaksono@nvidia.com>, Ma Ke <make24@iscas.ac.cn>,
+	Wei Huang <wei.huang2@amd.com>,
+	Andy Gospodarek <andrew.gospodarek@broadcom.com>,
+	Somnath Kotur <somnath.kotur@broadcom.com>,
+	punit.agrawal@oss.qualcomm.com, guohanjun@huawei.com,
+	suzuki.poulose@arm.com, ryan.roberts@arm.com,
+	chenl311@chinatelecom.cn, masahiroy@kernel.org,
+	wangyuquan1236@phytium.com.cn, anshuman.khandual@arm.com,
+	heinrich.schuchardt@canonical.com, Eric.VanTassell@amd.com,
+	wangzhou1@hisilicon.com, wanghuiqiang@huawei.com,
+	liuyonglong@huawei.com, linux-pci@vger.kernel.org,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, loongarch@lists.linux.dev,
+	linux-riscv@lists.infradead.org, xen-devel@lists.xenproject.org,
+	linux-acpi@vger.kernel.org, linux-perf-users@vger.kernel.org,
+	stable@vger.kernel.org
+Subject: Re: [PATCH v8 1/3] ACPI: Refactor get_acpi_id_for_cpu() to
+ acpi_get_cpu_uid() on non-x86
+Message-ID: <20260318213458.GA474040@bhelgaas>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20260318-topics-ahmtib01-ras_ffh_arm_internal_review-v3-10-48e6a1c249ef@arm.com>
-References: <20260318-topics-ahmtib01-ras_ffh_arm_internal_review-v3-0-48e6a1c249ef@arm.com>
-In-Reply-To: <20260318-topics-ahmtib01-ras_ffh_arm_internal_review-v3-0-48e6a1c249ef@arm.com>
-To: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, 
- linux-cxl@vger.kernel.org
-Cc: Ahmed Tiba <ahmed.tiba@arm.com>, Michael.Zhao2@arm.com, robh@kernel.org, 
- linux-arm-kernel@lists.infradead.org, Dmitry.Lamerov@arm.com, 
- rafael@kernel.org, conor@kernel.org, will@kernel.org, bp@alien8.de, 
- catalin.marinas@arm.com, krzk+dt@kernel.org, linux-doc@vger.kernel.org, 
- mchehab+huawei@kernel.org, tony.luck@intel.com
-X-Mailer: b4 0.13.0
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1773866948; l=12767;
- i=ahmed.tiba@arm.com; s=20260219; h=from:subject:message-id;
- bh=LjcMc9LSHuiGcgxjPGNQzty3WY+CFykBJXDQtNgOAaQ=;
- b=rFHUTc4AbFOFD68FMC/Dxdt7+kiUKPz9fM6iXRBXTSKts8qOfB+glKLCa8TfCOwGRjpumDu35
- ALiMaPe4PhiCeadPTRElTHyjI65bautyDOUIp7q2hYrH8YfO485gXLD
-X-Developer-Key: i=ahmed.tiba@arm.com; a=ed25519;
- pk=xVOtd+Qklh/4tuM3tB+BEZD4jj5a6W59C3KCNX6v7OE=
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260318060151.29438-2-fengchengwen@huawei.com>
 
-Add a firmware-first CPER provider that reuses the shared
-GHES helpers, wire it into the RAS Kconfig/Makefile and
-document it in the admin guide.
+On Wed, Mar 18, 2026 at 02:01:49PM +0800, Chengwen Feng wrote:
+> Unify CPU ACPI ID retrieval interface across architectures by
+> refactoring get_acpi_id_for_cpu() to acpi_get_cpu_uid() on
+> arm64/riscv/loongarch:
+> - Add input parameter validation
+> - Adjust interface to int acpi_get_cpu_uid(unsigned int cpu, u32 *uid)
+>   (old: u32 get_acpi_id_for_cpu(unsigned int cpu), no input check)
+> 
+> This refactoring (not a pure rename) enhances interface robustness while
+> preparing for consistent ACPI Processor UID retrieval across all
+> ACPI-enabled platforms. Valid inputs retain original behavior.
+> 
+> Note: Move the ARM64-specific get_cpu_for_acpi_id() implementation to
+>       arch/arm64/kernel/acpi.c to fix compilation errors from circular
+>       header dependencies introduced by the rename.
+> 
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Chengwen Feng <fengchengwen@huawei.com>
+> Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
+> ---
+>  arch/arm64/include/asm/acpi.h      | 16 +---------
+>  arch/arm64/kernel/acpi.c           | 30 ++++++++++++++++++
+>  arch/loongarch/include/asm/acpi.h  |  5 ---
+>  arch/loongarch/kernel/acpi.c       |  9 ++++++
+>  arch/riscv/include/asm/acpi.h      |  4 ---
+>  arch/riscv/kernel/acpi.c           | 16 ++++++++++
+>  arch/riscv/kernel/acpi_numa.c      |  9 ++++--
+>  drivers/acpi/pptt.c                | 50 ++++++++++++++++++++++--------
+>  drivers/acpi/riscv/rhct.c          |  7 ++++-
+>  drivers/perf/arm_cspmu/arm_cspmu.c |  6 ++--
+>  include/linux/acpi.h               | 13 ++++++++
+>  11 files changed, 122 insertions(+), 43 deletions(-)
 
-Update MAINTAINERS now that the driver exists.
+There's a lot going on in this single patch, which makes it hard to
+review.  I think this might make more sense as several patches:
 
-Signed-off-by: Ahmed Tiba <ahmed.tiba@arm.com>
----
- Documentation/admin-guide/RAS/main.rst |  18 +++
- MAINTAINERS                            |   1 +
- drivers/acpi/apei/apei-internal.h      |  10 +-
- drivers/acpi/apei/ghes_cper.c          |   2 +
- drivers/ras/Kconfig                    |  11 ++
- drivers/ras/Makefile                   |   1 +
- drivers/ras/cper-esource.c             | 257 +++++++++++++++++++++++++++++++++
- include/acpi/ghes_cper.h               |  10 ++
- 8 files changed, 301 insertions(+), 9 deletions(-)
+  - arm64: declare acpi_get_cpu_uid() in arch/arm64/include, implement
+    it, and use in drivers/perf/arm_cspmu/arm_cspmu.c
 
-diff --git a/Documentation/admin-guide/RAS/main.rst b/Documentation/admin-guide/RAS/main.rst
-index 5a45db32c49b..84219d25a072 100644
---- a/Documentation/admin-guide/RAS/main.rst
-+++ b/Documentation/admin-guide/RAS/main.rst
-@@ -205,6 +205,24 @@ Architecture (MCA)\ [#f3]_.
- .. [#f3] For more details about the Machine Check Architecture (MCA),
-   please read Documentation/arch/x86/x86_64/machinecheck.rst at the Kernel tree.
- 
-+Firmware-first CPER providers
-+-----------------------------
-+
-+Some systems expose Common Platform Error Record (CPER) data
-+through platform firmware instead of ACPI HEST tables.
-+Enable ``CONFIG_RAS_CPER_ESOURCE`` to build the ``drivers/ras/cper-esource.c``
-+driver. The current in-tree firmware description uses the
-+``Documentation/devicetree/bindings/firmware/arm,ras-cper.yaml`` binding.
-+The driver reuses the GHES CPER helper object in
-+``drivers/acpi/apei/ghes_cper.c`` so the logging, notifier chains, and
-+memory failure handling match the ACPI GHES behaviour even when
-+ACPI is disabled.
-+
-+Once a platform describes a firmware-first provider, both ACPI GHES and the
-+firmware-described driver reuse the same code paths. This keeps the
-+behaviour consistent regardless of whether the error source is described
-+by ACPI tables or another firmware description.
-+
- EDAC - Error Detection And Correction
- *************************************
- 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 69756fb61a98..7a2df54872bf 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -22013,6 +22013,7 @@ RAS ERROR STATUS
- M:	Ahmed Tiba <ahmed.tiba@arm.com>
- S:	Maintained
- F:	Documentation/devicetree/bindings/firmware/arm,ras-cper.yaml
-+F:	drivers/ras/cper-esource.c
- 
- RAS INFRASTRUCTURE
- M:	Tony Luck <tony.luck@intel.com>
-diff --git a/drivers/acpi/apei/apei-internal.h b/drivers/acpi/apei/apei-internal.h
-index 77c10a7a7a9f..c16ac541f15b 100644
---- a/drivers/acpi/apei/apei-internal.h
-+++ b/drivers/acpi/apei/apei-internal.h
-@@ -8,6 +8,7 @@
- #define APEI_INTERNAL_H
- 
- #include <linux/acpi.h>
-+#include <acpi/ghes_cper.h>
- 
- struct apei_exec_context;
- 
-@@ -120,15 +121,6 @@ int apei_exec_collect_resources(struct apei_exec_context *ctx,
- struct dentry;
- struct dentry *apei_get_debugfs_dir(void);
- 
--static inline u32 cper_estatus_len(struct acpi_hest_generic_status *estatus)
--{
--	if (estatus->raw_data_length)
--		return estatus->raw_data_offset + \
--			estatus->raw_data_length;
--	else
--		return sizeof(*estatus) + estatus->data_length;
--}
--
- int apei_osc_setup(void);
- 
- int einj_get_available_error_type(u32 *type, int einj_action);
-diff --git a/drivers/acpi/apei/ghes_cper.c b/drivers/acpi/apei/ghes_cper.c
-index bd172b769953..f7326ddc056b 100644
---- a/drivers/acpi/apei/ghes_cper.c
-+++ b/drivers/acpi/apei/ghes_cper.c
-@@ -46,7 +46,9 @@
- #include <asm/fixmap.h>
- #include <asm/tlbflush.h>
- 
-+#ifdef CONFIG_ACPI_APEI
- #include "apei-internal.h"
-+#endif
- 
- ATOMIC_NOTIFIER_HEAD(ghes_report_chain);
- 
-diff --git a/drivers/ras/Kconfig b/drivers/ras/Kconfig
-index fc4f4bb94a4c..3c1c63b2fefc 100644
---- a/drivers/ras/Kconfig
-+++ b/drivers/ras/Kconfig
-@@ -34,6 +34,17 @@ if RAS
- source "arch/x86/ras/Kconfig"
- source "drivers/ras/amd/atl/Kconfig"
- 
-+config RAS_CPER_ESOURCE
-+	bool "Firmware-first CPER error source block provider"
-+	select GHES_CPER_HELPERS
-+	help
-+	  Enable support for firmware-first Common Platform Error Record
-+	  (CPER) error source block providers. The current in-tree user is
-+	  described by the arm,ras-cper DeviceTree binding. The driver
-+	  reuses the existing GHES CPER helpers so the error processing
-+	  matches the ACPI code paths, but it can be built even when ACPI is
-+	  disabled.
-+
- config RAS_FMPM
- 	tristate "FRU Memory Poison Manager"
- 	default m
-diff --git a/drivers/ras/Makefile b/drivers/ras/Makefile
-index 11f95d59d397..0de069557f31 100644
---- a/drivers/ras/Makefile
-+++ b/drivers/ras/Makefile
-@@ -2,6 +2,7 @@
- obj-$(CONFIG_RAS)	+= ras.o
- obj-$(CONFIG_DEBUG_FS)	+= debugfs.o
- obj-$(CONFIG_RAS_CEC)	+= cec.o
-+obj-$(CONFIG_RAS_CPER_ESOURCE)	+= cper-esource.o
- 
- obj-$(CONFIG_RAS_FMPM)	+= amd/fmpm.o
- obj-y			+= amd/atl/
-diff --git a/drivers/ras/cper-esource.c b/drivers/ras/cper-esource.c
-new file mode 100644
-index 000000000000..83f7a910e50a
---- /dev/null
-+++ b/drivers/ras/cper-esource.c
-@@ -0,0 +1,257 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * Firmware-first CPER error source provider.
-+ *
-+ * This driver shares the GHES CPER helpers so we keep the reporting and
-+ * notifier behaviour identical to ACPI GHES.
-+ *
-+ * Copyright (C) 2026 ARM Ltd.
-+ * Author: Ahmed Tiba <ahmed.tiba@arm.com>
-+ */
-+
-+#include <linux/bitops.h>
-+#include <linux/cleanup.h>
-+#include <linux/idr.h>
-+#include <linux/interrupt.h>
-+#include <linux/io.h>
-+#include <linux/mod_devicetable.h>
-+#include <linux/module.h>
-+#include <linux/panic.h>
-+#include <linux/platform_device.h>
-+#include <linux/property.h>
-+#include <linux/slab.h>
-+#include <linux/spinlock.h>
-+
-+#include <acpi/ghes.h>
-+#include <acpi/ghes_cper.h>
-+
-+static DEFINE_IDA(cper_esource_source_ids);
-+
-+struct cper_esource_ack {
-+	void __iomem *addr;
-+	u64 preserve;
-+	u64 set;
-+	u8 width;
-+	bool present;
-+};
-+
-+struct cper_esource {
-+	struct device *dev;
-+	void __iomem *status;
-+	size_t status_len;
-+
-+	struct cper_esource_ack ack;
-+
-+	struct acpi_hest_generic *generic;
-+	struct acpi_hest_generic_status *estatus;
-+
-+	bool sync;
-+	int irq;
-+
-+	/* Serializes access while firmware and the OS share the status buffer. */
-+	spinlock_t lock;
-+};
-+
-+static void cper_esource_release_source_id(void *data)
-+{
-+	struct acpi_hest_generic *generic = data;
-+
-+	ida_free(&cper_esource_source_ids, generic->header.source_id);
-+}
-+
-+static int cper_esource_init_pool(void)
-+{
-+	if (ghes_estatus_pool)
-+		return 0;
-+
-+	return ghes_estatus_pool_init(1);
-+}
-+
-+static int cper_esource_copy_status(struct cper_esource *ctx)
-+{
-+	memcpy_fromio(ctx->estatus, ctx->status, ctx->status_len);
-+	return 0;
-+}
-+
-+static void cper_esource_ack(struct cper_esource *ctx)
-+{
-+	u64 val;
-+
-+	if (!ctx->ack.present)
-+		return;
-+
-+	if (ctx->ack.width == 64) {
-+		val = readq(ctx->ack.addr);
-+		val &= ctx->ack.preserve;
-+		val |= ctx->ack.set;
-+		writeq(val, ctx->ack.addr);
-+	} else {
-+		val = readl(ctx->ack.addr);
-+		val &= (u32)ctx->ack.preserve;
-+		val |= (u32)ctx->ack.set;
-+		writel(val, ctx->ack.addr);
-+	}
-+}
-+
-+static void cper_esource_fatal(struct cper_esource *ctx)
-+{
-+	__ghes_print_estatus(KERN_EMERG, ctx->generic, ctx->estatus);
-+	add_taint(TAINT_MACHINE_CHECK, LOCKDEP_STILL_OK);
-+	panic("GHES: fatal firmware-first CPER record from %s\n",
-+	      dev_name(ctx->dev));
-+}
-+
-+static void cper_esource_process(struct cper_esource *ctx)
-+{
-+	int sev;
-+
-+	guard(spinlock_irqsave)(&ctx->lock);
-+
-+	if (cper_esource_copy_status(ctx))
-+		return;
-+
-+	sev = ghes_severity(ctx->estatus->error_severity);
-+	if (sev >= GHES_SEV_PANIC)
-+		cper_esource_fatal(ctx);
-+
-+	if (!ghes_estatus_cached(ctx->estatus) &&
-+	    ghes_print_estatus(NULL, ctx->generic, ctx->estatus))
-+		ghes_estatus_cache_add(ctx->generic, ctx->estatus);
-+
-+	ghes_cper_handle_status(ctx->dev, ctx->generic, ctx->estatus, ctx->sync);
-+	cper_esource_ack(ctx);
-+}
-+
-+static irqreturn_t cper_esource_irq(int irq, void *data)
-+{
-+	struct cper_esource *ctx = data;
-+
-+	cper_esource_process(ctx);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static int cper_esource_init_ack(struct platform_device *pdev,
-+				 struct cper_esource *ctx)
-+{
-+	struct device *dev = &pdev->dev;
-+	struct resource *res;
-+	size_t size;
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-+	if (!res)
-+		return 0;
-+
-+	ctx->ack.addr = devm_platform_get_and_ioremap_resource(pdev, 1, &res);
-+	if (IS_ERR(ctx->ack.addr))
-+		return PTR_ERR(ctx->ack.addr);
-+
-+	size = resource_size(res);
-+	switch (size) {
-+	case 4:
-+		ctx->ack.width = 32;
-+		ctx->ack.preserve = ~0U;
-+		break;
-+	case 8:
-+		ctx->ack.width = 64;
-+		ctx->ack.preserve = ~0ULL;
-+		break;
-+	default:
-+		return dev_err_probe(dev, -EINVAL,
-+				     "unsupported ack resource size %zu\n", size);
-+	}
-+
-+	ctx->ack.set = BIT_ULL(0);
-+	ctx->ack.present = true;
-+	return 0;
-+}
-+
-+static int cper_esource_probe(struct platform_device *pdev)
-+{
-+	struct device *dev = &pdev->dev;
-+	struct cper_esource *ctx;
-+	struct resource *res;
-+	int source_id;
-+	int rc;
-+
-+	ctx = devm_kzalloc(dev, sizeof(*ctx), GFP_KERNEL);
-+	if (!ctx)
-+		return -ENOMEM;
-+
-+	spin_lock_init(&ctx->lock);
-+	ctx->dev = dev;
-+	ctx->sync = device_property_read_bool(dev, "arm,sea-notify");
-+
-+	ctx->status = devm_platform_get_and_ioremap_resource(pdev, 0, &res);
-+	if (IS_ERR(ctx->status))
-+		return dev_err_probe(dev, PTR_ERR(ctx->status),
-+				     "failed to map status region\n");
-+
-+	ctx->status_len = resource_size(res);
-+	if (!ctx->status_len)
-+		return dev_err_probe(dev, -EINVAL, "status region has zero length\n");
-+
-+	rc = cper_esource_init_ack(pdev, ctx);
-+	if (rc)
-+		return rc;
-+
-+	rc = cper_esource_init_pool();
-+	if (rc)
-+		return rc;
-+
-+	ctx->estatus = devm_kzalloc(dev, ctx->status_len, GFP_KERNEL);
-+	if (!ctx->estatus)
-+		return -ENOMEM;
-+
-+	ctx->generic = devm_kzalloc(dev, sizeof(*ctx->generic), GFP_KERNEL);
-+	if (!ctx->generic)
-+		return -ENOMEM;
-+
-+	source_id = ida_alloc_min(&cper_esource_source_ids, 1, GFP_KERNEL);
-+	if (source_id < 0)
-+		return source_id;
-+
-+	ctx->generic->header.type = ACPI_HEST_TYPE_GENERIC_ERROR;
-+	ctx->generic->header.source_id = source_id;
-+
-+	rc = devm_add_action_or_reset(dev, cper_esource_release_source_id,
-+				      ctx->generic);
-+	if (rc)
-+		return rc;
-+
-+	ctx->generic->notify.type = ctx->sync ?
-+		ACPI_HEST_NOTIFY_SEA : ACPI_HEST_NOTIFY_EXTERNAL;
-+	ctx->generic->error_block_length = ctx->status_len;
-+
-+	ctx->irq = platform_get_irq(pdev, 0);
-+	if (ctx->irq < 0)
-+		return ctx->irq;
-+
-+	rc = devm_request_threaded_irq(dev, ctx->irq, NULL, cper_esource_irq,
-+				       IRQF_ONESHOT,
-+				       dev_name(dev), ctx);
-+	if (rc)
-+		return dev_err_probe(dev, rc, "failed to request interrupt\n");
-+
-+	return 0;
-+}
-+
-+static const struct of_device_id cper_esource_of_match[] = {
-+	{ .compatible = "arm,ras-cper" },
-+	{ /* sentinel */ }
-+};
-+MODULE_DEVICE_TABLE(of, cper_esource_of_match);
-+
-+static struct platform_driver cper_esource_driver = {
-+	.driver = {
-+		.name = "cper-esource",
-+		.of_match_table = cper_esource_of_match,
-+	},
-+	.probe = cper_esource_probe,
-+};
-+
-+module_platform_driver(cper_esource_driver);
-+
-+MODULE_AUTHOR("Ahmed Tiba <ahmed.tiba@arm.com>");
-+MODULE_DESCRIPTION("Firmware-first CPER provider");
-+MODULE_LICENSE("GPL");
-diff --git a/include/acpi/ghes_cper.h b/include/acpi/ghes_cper.h
-index d7fe71bd67bb..be383653e42b 100644
---- a/include/acpi/ghes_cper.h
-+++ b/include/acpi/ghes_cper.h
-@@ -83,6 +83,14 @@ static inline bool is_hest_sync_notify(struct ghes *ghes)
- 	return notify_type == ACPI_HEST_NOTIFY_SEA;
- }
- 
-+static inline u32 cper_estatus_len(struct acpi_hest_generic_status *estatus)
-+{
-+	if (estatus->raw_data_length)
-+		return estatus->raw_data_offset + estatus->raw_data_length;
-+	else
-+		return sizeof(*estatus) + estatus->data_length;
-+}
-+
- struct ghes_vendor_record_entry {
- 	struct work_struct work;
- 	int error_severity;
-@@ -109,6 +117,8 @@ int __ghes_read_estatus(struct acpi_hest_generic_status *estatus,
- int ghes_estatus_cached(struct acpi_hest_generic_status *estatus);
- void ghes_estatus_cache_add(struct acpi_hest_generic *generic,
- 			    struct acpi_hest_generic_status *estatus);
-+int ghes_register_vendor_record_notifier(struct notifier_block *nb);
-+void ghes_unregister_vendor_record_notifier(struct notifier_block *nb);
- void ghes_defer_non_standard_event(struct acpi_hest_generic_data *gdata,
- 				   int sev);
- int ghes_severity(int severity);
+  - loongarch: declare acpi_get_cpu_uid() in arch/loongarch/include
+    and implement
 
--- 
-2.43.0
+  - riscv: declare acpi_get_cpu_uid() in arch/riscv/include, implement
+    it, and use in rhct.c, riscv/kernel/acpi_numa.c
 
+  - x86: declare acpi_get_cpu_uid() in arch/x86/include, implement it,
+    and use in xen
+
+  - declare acpi_get_cpu_uid() in include/linux/acpi.h, remove
+    declarations from arm64, loongarch, riscv, x86
+
+  - convert acpi/pptt.c to use acpi_get_cpu_uid(), remove unused
+    get_acpi_id_for_cpu() from arm64, loongarch, riscv
+
+  - use acpi_get_cpu_uid() in tph.c
+
+Doc nit below.
+
+> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+> index c07a58b96329..106a08556cbf 100644
+> --- a/arch/arm64/include/asm/acpi.h
+> +++ b/arch/arm64/include/asm/acpi.h
+> @@ -114,22 +114,8 @@ static inline bool acpi_has_cpu_in_madt(void)
+>  }
+>  
+>  struct acpi_madt_generic_interrupt *acpi_cpu_get_madt_gicc(int cpu);
+> -static inline u32 get_acpi_id_for_cpu(unsigned int cpu)
+> -{
+> -	return	acpi_cpu_get_madt_gicc(cpu)->uid;
+> -}
+> -
+> -static inline int get_cpu_for_acpi_id(u32 uid)
+> -{
+> -	int cpu;
+> -
+> -	for (cpu = 0; cpu < nr_cpu_ids; cpu++)
+> -		if (acpi_cpu_get_madt_gicc(cpu) &&
+> -		    uid == get_acpi_id_for_cpu(cpu))
+> -			return cpu;
+>  
+> -	return -EINVAL;
+> -}
+> +int get_cpu_for_acpi_id(u32 uid);
+>  
+>  static inline void arch_fix_phys_package_id(int num, u32 slot) { }
+>  void __init acpi_init_cpus(void);
+> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+> index af90128cfed5..24b9d934be54 100644
+> --- a/arch/arm64/kernel/acpi.c
+> +++ b/arch/arm64/kernel/acpi.c
+> @@ -458,3 +458,33 @@ int acpi_unmap_cpu(int cpu)
+>  }
+>  EXPORT_SYMBOL(acpi_unmap_cpu);
+>  #endif /* CONFIG_ACPI_HOTPLUG_CPU */
+> +
+> +int acpi_get_cpu_uid(unsigned int cpu, u32 *uid)
+> +{
+> +	struct acpi_madt_generic_interrupt *gicc;
+> +
+> +	if (cpu >= nr_cpu_ids)
+> +		return -EINVAL;
+> +
+> +	gicc = acpi_cpu_get_madt_gicc(cpu);
+> +	if (!gicc)
+> +		return -ENODEV;
+> +
+> +	*uid = gicc->uid;
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_get_cpu_uid);
+> +
+> +int get_cpu_for_acpi_id(u32 uid)
+> +{
+> +	u32 cpu_uid;
+> +	int ret;
+> +
+> +	for (int cpu = 0; cpu < nr_cpu_ids; cpu++) {
+> +		ret = acpi_get_cpu_uid(cpu, &cpu_uid);
+> +		if (ret == 0 && uid == cpu_uid)
+> +			return cpu;
+> +	}
+> +
+> +	return -EINVAL;
+> +}
+> diff --git a/arch/loongarch/include/asm/acpi.h b/arch/loongarch/include/asm/acpi.h
+> index 7376840fa9f7..eda9d4d0a493 100644
+> --- a/arch/loongarch/include/asm/acpi.h
+> +++ b/arch/loongarch/include/asm/acpi.h
+> @@ -40,11 +40,6 @@ extern struct acpi_madt_core_pic acpi_core_pic[MAX_CORE_PIC];
+>  
+>  extern int __init parse_acpi_topology(void);
+>  
+> -static inline u32 get_acpi_id_for_cpu(unsigned int cpu)
+> -{
+> -	return acpi_core_pic[cpu_logical_map(cpu)].processor_id;
+> -}
+> -
+>  #endif /* !CONFIG_ACPI */
+>  
+>  #define ACPI_TABLE_UPGRADE_MAX_PHYS ARCH_LOW_ADDRESS_LIMIT
+> diff --git a/arch/loongarch/kernel/acpi.c b/arch/loongarch/kernel/acpi.c
+> index 1367ca759468..058f0dbe8e8f 100644
+> --- a/arch/loongarch/kernel/acpi.c
+> +++ b/arch/loongarch/kernel/acpi.c
+> @@ -385,3 +385,12 @@ int acpi_unmap_cpu(int cpu)
+>  EXPORT_SYMBOL(acpi_unmap_cpu);
+>  
+>  #endif /* CONFIG_ACPI_HOTPLUG_CPU */
+> +
+> +int acpi_get_cpu_uid(unsigned int cpu, u32 *uid)
+> +{
+> +	if (cpu >= nr_cpu_ids)
+> +		return -EINVAL;
+> +	*uid = acpi_core_pic[cpu_logical_map(cpu)].processor_id;
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_get_cpu_uid);
+> diff --git a/arch/riscv/include/asm/acpi.h b/arch/riscv/include/asm/acpi.h
+> index 6e13695120bc..26ab37c171bc 100644
+> --- a/arch/riscv/include/asm/acpi.h
+> +++ b/arch/riscv/include/asm/acpi.h
+> @@ -61,10 +61,6 @@ static inline void arch_fix_phys_package_id(int num, u32 slot) { }
+>  
+>  void acpi_init_rintc_map(void);
+>  struct acpi_madt_rintc *acpi_cpu_get_madt_rintc(int cpu);
+> -static inline u32 get_acpi_id_for_cpu(int cpu)
+> -{
+> -	return acpi_cpu_get_madt_rintc(cpu)->uid;
+> -}
+>  
+>  int acpi_get_riscv_isa(struct acpi_table_header *table,
+>  		       unsigned int cpu, const char **isa);
+> diff --git a/arch/riscv/kernel/acpi.c b/arch/riscv/kernel/acpi.c
+> index 71698ee11621..322ea92aa39f 100644
+> --- a/arch/riscv/kernel/acpi.c
+> +++ b/arch/riscv/kernel/acpi.c
+> @@ -337,3 +337,19 @@ int raw_pci_write(unsigned int domain, unsigned int bus,
+>  }
+>  
+>  #endif	/* CONFIG_PCI */
+> +
+> +int acpi_get_cpu_uid(unsigned int cpu, u32 *uid)
+> +{
+> +	struct acpi_madt_rintc *rintc;
+> +
+> +	if (cpu >= nr_cpu_ids)
+> +		return -EINVAL;
+> +
+> +	rintc = acpi_cpu_get_madt_rintc(cpu);
+> +	if (!rintc)
+> +		return -ENODEV;
+> +
+> +	*uid = rintc->uid;
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_get_cpu_uid);
+> diff --git a/arch/riscv/kernel/acpi_numa.c b/arch/riscv/kernel/acpi_numa.c
+> index 130769e3a99c..6a2d4289f806 100644
+> --- a/arch/riscv/kernel/acpi_numa.c
+> +++ b/arch/riscv/kernel/acpi_numa.c
+> @@ -37,11 +37,14 @@ static int __init acpi_numa_get_nid(unsigned int cpu)
+>  
+>  static inline int get_cpu_for_acpi_id(u32 uid)
+>  {
+> -	int cpu;
+> +	u32 cpu_uid;
+> +	int ret;
+>  
+> -	for (cpu = 0; cpu < nr_cpu_ids; cpu++)
+> -		if (uid == get_acpi_id_for_cpu(cpu))
+> +	for (int cpu = 0; cpu < nr_cpu_ids; cpu++) {
+> +		ret = acpi_get_cpu_uid(cpu, &cpu_uid);
+> +		if (ret == 0 && uid == cpu_uid)
+>  			return cpu;
+> +	}
+>  
+>  	return -EINVAL;
+>  }
+> diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
+> index de5f8c018333..7bd5bc1f225a 100644
+> --- a/drivers/acpi/pptt.c
+> +++ b/drivers/acpi/pptt.c
+> @@ -459,11 +459,14 @@ static void cache_setup_acpi_cpu(struct acpi_table_header *table,
+>  {
+>  	struct acpi_pptt_cache *found_cache;
+>  	struct cpu_cacheinfo *this_cpu_ci = get_cpu_cacheinfo(cpu);
+> -	u32 acpi_cpu_id = get_acpi_id_for_cpu(cpu);
+> +	u32 acpi_cpu_id;
+>  	struct cacheinfo *this_leaf;
+>  	unsigned int index = 0;
+>  	struct acpi_pptt_processor *cpu_node = NULL;
+>  
+> +	if (acpi_get_cpu_uid(cpu, &acpi_cpu_id) != 0)
+> +		return;
+> +
+>  	while (index < get_cpu_cacheinfo(cpu)->num_leaves) {
+>  		this_leaf = this_cpu_ci->info_list + index;
+>  		found_cache = acpi_find_cache_node(table, acpi_cpu_id,
+> @@ -546,7 +549,10 @@ static int topology_get_acpi_cpu_tag(struct acpi_table_header *table,
+>  				     unsigned int cpu, int level, int flag)
+>  {
+>  	struct acpi_pptt_processor *cpu_node;
+> -	u32 acpi_cpu_id = get_acpi_id_for_cpu(cpu);
+> +	u32 acpi_cpu_id;
+> +
+> +	if (acpi_get_cpu_uid(cpu, &acpi_cpu_id) != 0)
+> +		return -ENOENT;
+>  
+>  	cpu_node = acpi_find_processor_node(table, acpi_cpu_id);
+>  	if (cpu_node) {
+> @@ -614,18 +620,22 @@ static int find_acpi_cpu_topology_tag(unsigned int cpu, int level, int flag)
+>   *
+>   * Check the node representing a CPU for a given flag.
+>   *
+> - * Return: -ENOENT if the PPTT doesn't exist, the CPU cannot be found or
+> - *	   the table revision isn't new enough.
+> + * Return: -ENOENT if can't get CPU's ACPI Processor UID, the PPTT doesn't
+> + *	   exist, the CPU cannot be found or the table revision isn't new
+> + *	   enough.
+>   *	   1, any passed flag set
+>   *	   0, flag unset
+>   */
+>  static int check_acpi_cpu_flag(unsigned int cpu, int rev, u32 flag)
+>  {
+>  	struct acpi_table_header *table;
+> -	u32 acpi_cpu_id = get_acpi_id_for_cpu(cpu);
+> +	u32 acpi_cpu_id;
+>  	struct acpi_pptt_processor *cpu_node = NULL;
+>  	int ret = -ENOENT;
+>  
+> +	if (acpi_get_cpu_uid(cpu, &acpi_cpu_id) != 0)
+> +		return -ENOENT;
+> +
+>  	table = acpi_get_pptt();
+>  	if (!table)
+>  		return -ENOENT;
+> @@ -651,7 +661,8 @@ static int check_acpi_cpu_flag(unsigned int cpu, int rev, u32 flag)
+>   * in the PPTT. Errors caused by lack of a PPTT table, or otherwise, return 0
+>   * indicating we didn't find any cache levels.
+>   *
+> - * Return: -ENOENT if no PPTT table or no PPTT processor struct found.
+> + * Return: -ENOENT if no PPTT table, can't get CPU's ACPI Process UID or no PPTT
+> + *	   processor struct found.
+>   *	   0 on success.
+>   */
+>  int acpi_get_cache_info(unsigned int cpu, unsigned int *levels,
+> @@ -671,7 +682,9 @@ int acpi_get_cache_info(unsigned int cpu, unsigned int *levels,
+>  
+>  	pr_debug("Cache Setup: find cache levels for CPU=%d\n", cpu);
+>  
+> -	acpi_cpu_id = get_acpi_id_for_cpu(cpu);
+> +	if (acpi_get_cpu_uid(cpu, &acpi_cpu_id))
+> +		return -ENOENT;
+> +
+>  	cpu_node = acpi_find_processor_node(table, acpi_cpu_id);
+>  	if (!cpu_node)
+>  		return -ENOENT;
+> @@ -780,8 +793,9 @@ int find_acpi_cpu_topology_package(unsigned int cpu)
+>   * It may not exist in single CPU systems. In simple multi-CPU systems,
+>   * it may be equal to the package topology level.
+>   *
+> - * Return: -ENOENT if the PPTT doesn't exist, the CPU cannot be found
+> - * or there is no toplogy level above the CPU..
+> + * Return: -ENOENT if the PPTT doesn't exist, can't get CPU's ACPI
+> + * Processor UID, the CPU cannot be found or there is no toplogy level
+> + * above the CPU.
+>   * Otherwise returns a value which represents the package for this CPU.
+>   */
+>  
+> @@ -797,7 +811,9 @@ int find_acpi_cpu_topology_cluster(unsigned int cpu)
+>  	if (!table)
+>  		return -ENOENT;
+>  
+> -	acpi_cpu_id = get_acpi_id_for_cpu(cpu);
+> +	if (acpi_get_cpu_uid(cpu, &acpi_cpu_id) != 0)
+> +		return -ENOENT;
+> +
+>  	cpu_node = acpi_find_processor_node(table, acpi_cpu_id);
+>  	if (!cpu_node || !cpu_node->parent)
+>  		return -ENOENT;
+> @@ -872,7 +888,9 @@ static void acpi_pptt_get_child_cpus(struct acpi_table_header *table_hdr,
+>  	cpumask_clear(cpus);
+>  
+>  	for_each_possible_cpu(cpu) {
+> -		acpi_id = get_acpi_id_for_cpu(cpu);
+> +		if (acpi_get_cpu_uid(cpu, &acpi_id) != 0)
+> +			continue;
+> +
+>  		cpu_node = acpi_find_processor_node(table_hdr, acpi_id);
+>  
+>  		while (cpu_node) {
+> @@ -966,10 +984,13 @@ int find_acpi_cache_level_from_id(u32 cache_id)
+>  	for_each_possible_cpu(cpu) {
+>  		bool empty;
+>  		int level = 1;
+> -		u32 acpi_cpu_id = get_acpi_id_for_cpu(cpu);
+> +		u32 acpi_cpu_id;
+>  		struct acpi_pptt_cache *cache;
+>  		struct acpi_pptt_processor *cpu_node;
+>  
+> +		if (acpi_get_cpu_uid(cpu, &acpi_cpu_id) != 0)
+> +			continue;
+> +
+>  		cpu_node = acpi_find_processor_node(table, acpi_cpu_id);
+>  		if (!cpu_node)
+>  			continue;
+> @@ -1030,10 +1051,13 @@ int acpi_pptt_get_cpumask_from_cache_id(u32 cache_id, cpumask_t *cpus)
+>  	for_each_possible_cpu(cpu) {
+>  		bool empty;
+>  		int level = 1;
+> -		u32 acpi_cpu_id = get_acpi_id_for_cpu(cpu);
+> +		u32 acpi_cpu_id;
+>  		struct acpi_pptt_cache *cache;
+>  		struct acpi_pptt_processor *cpu_node;
+>  
+> +		if (acpi_get_cpu_uid(cpu, &acpi_cpu_id) != 0)
+> +			continue;
+> +
+>  		cpu_node = acpi_find_processor_node(table, acpi_cpu_id);
+>  		if (!cpu_node)
+>  			continue;
+> diff --git a/drivers/acpi/riscv/rhct.c b/drivers/acpi/riscv/rhct.c
+> index caa2c16e1697..8f3f38c64a88 100644
+> --- a/drivers/acpi/riscv/rhct.c
+> +++ b/drivers/acpi/riscv/rhct.c
+> @@ -44,10 +44,15 @@ int acpi_get_riscv_isa(struct acpi_table_header *table, unsigned int cpu, const
+>  	struct acpi_rhct_isa_string *isa_node;
+>  	struct acpi_table_rhct *rhct;
+>  	u32 *hart_info_node_offset;
+> -	u32 acpi_cpu_id = get_acpi_id_for_cpu(cpu);
+> +	u32 acpi_cpu_id;
+> +	int ret;
+>  
+>  	BUG_ON(acpi_disabled);
+>  
+> +	ret = acpi_get_cpu_uid(cpu, &acpi_cpu_id);
+> +	if (ret != 0)
+> +		return ret;
+> +
+>  	if (!table) {
+>  		rhct = acpi_get_rhct();
+>  		if (!rhct)
+> diff --git a/drivers/perf/arm_cspmu/arm_cspmu.c b/drivers/perf/arm_cspmu/arm_cspmu.c
+> index 34430b68f602..ed72c3d1f796 100644
+> --- a/drivers/perf/arm_cspmu/arm_cspmu.c
+> +++ b/drivers/perf/arm_cspmu/arm_cspmu.c
+> @@ -1107,15 +1107,17 @@ static int arm_cspmu_acpi_get_cpus(struct arm_cspmu *cspmu)
+>  {
+>  	struct acpi_apmt_node *apmt_node;
+>  	int affinity_flag;
+> +	u32 cpu_uid;
+>  	int cpu;
+> +	int ret;
+>  
+>  	apmt_node = arm_cspmu_apmt_node(cspmu->dev);
+>  	affinity_flag = apmt_node->flags & ACPI_APMT_FLAGS_AFFINITY;
+>  
+>  	if (affinity_flag == ACPI_APMT_FLAGS_AFFINITY_PROC) {
+>  		for_each_possible_cpu(cpu) {
+> -			if (apmt_node->proc_affinity ==
+> -			    get_acpi_id_for_cpu(cpu)) {
+> +			ret = acpi_get_cpu_uid(cpu, &cpu_uid);
+> +			if (ret == 0 && apmt_node->proc_affinity == cpu_uid) {
+>  				cpumask_set_cpu(cpu, &cspmu->associated_cpus);
+>  				break;
+>  			}
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 4d2f0bed7a06..035094a55f18 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -324,6 +324,19 @@ int acpi_unmap_cpu(int cpu);
+>  
+>  acpi_handle acpi_get_processor_handle(int cpu);
+>  
+> +#ifndef CONFIG_X86
+> +/*
+> + * acpi_get_cpu_uid() - Get ACPI Processor UID of a specified CPU from MADT table
+> + * @cpu: Logical CPU number (0-based)
+> + * @uid: Pointer to store the ACPI Processor UID (valid only on successful return)
+
+This would normally go at the implementation, but it probably does
+make sense here because each arch has its own implementation.
+
+Should start with "/**" to make it kernel-doc though.
+
+Wrap to fit in 78 columns, like other comments in this file.
+
+> + * Return: 0 on successful retrieval (the ACPI Processor ID is stored in *uid);
+> + *         -EINVAL if the CPU number is invalid or out of range;
+> + *         -ENODEV if the ACPI Processor UID for the specified CPU is not found.
+> + */
+> +int acpi_get_cpu_uid(unsigned int cpu, u32 *uid);
+> +#endif
