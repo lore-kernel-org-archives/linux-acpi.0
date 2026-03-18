@@ -1,140 +1,127 @@
-Received: from BL0PR03CU003.outbound.protection.outlook.com (mail-eastusazon11012059.outbound.protection.outlook.com [52.101.53.59])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66B74344DBE;
-	Wed, 18 Mar 2026 20:30:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.53.59
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773865821; cv=fail; b=XvyPmNGf7XN/ZI0Qa/VpIThWa1DS5yeqjuiS9o55fxOvBFaawhz5KttnRTHQKcM/SmU2sXIRj8KmkZEdBFPQMddf8L7vGWfRpsn/+7KuSowgGNQ/y6ODoTRxVEPHN8z+fwuDTNwKy9X4QKqSQjpluAe+8M0q+ap4c+TRsY6INyE=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773865821; c=relaxed/simple;
-	bh=0OYZQqcTcCem5fFY0JQwnAhseHX6nAJEalDQTOSEOaQ=;
-	h=Date:From:To:CC:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=PrWzeDuG6kncJAq7LPh1Onh7Ay9rT+Xu6aKBPJjI/m4maHaE6BAuXhHghogQRsR/uwzgGvgb/FFu9znIPq6rrOqqpr0QTr8EeEN2FA0NU1gbEYir4WVbnspnzB0xabbpfKCT/6pBT6dIlAXLGwd+p16RCYDybSWcdoOk4TrkWaE=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=tQXdY19a; arc=fail smtp.client-ip=52.101.53.59
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="tQXdY19a"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=uqrVwwI8gc48TcCHKt+iROJu0AtHHKLj7XrfeSZCi/II7tJ/eUikJjcSu26T53UUNTWFTwHG8izVDxvHdJnKP8+aCm2Z/Nkf6keoT1AixU4jNJLZKi5LHZeRmcBzVYLDCgyKY7nATRONVQocE+pMkpfLSI1ukAeveWHHWnrZSthKuhxw5eMsQqUbq+HSagnh17tUlkGRPzAvx7n7OwAupJuLem4tX9OaWTEkc+fupRheAJqelyxFFOnKURtEshjTrCqxx21iNJOeFvJ0+0FIqlMpVLeK6MYCkTf5wJupp3Q85a62tOaq+KLBQA9Bc6yoauOCUuod+VD6gnDGWlyeZA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=f3fDHkI2qPB1DUqkyaQvkR3G/pgMN8f5h5Oy7NmCvmo=;
- b=XJSJqtLKvtNwnd95rizYXO6zz+mRbuDgpr6b6Q68BofQif5f74506bdLN/HBrjopaQwpPRE4vdZkP72s72TW5DWNEOaSdJ8vm1TlOguR6HQb+oFO3P9Q1qaJi5aoGmgwh7akiMppYouN3t13YJ21oCg1nHyCQ5FVMyf6w8qmbpdBFncFnTheOi7xSSNCPHKJX4WmJCQakknv8GAbVuE+JzdxzS/MGTT+vSAXj+gszcK/e/eJW6TLo09wMNhCfosJ8QTmw0FrAhO8Xin1NIBfFP+Ot7NXgUif6qqzWbyiMhhMgPPQTiunzODUyT79lvmoXApr6+r1MGabuA98gJTjHQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.118.233) smtp.rcpttodomain=linux.alibaba.com
- smtp.mailfrom=nvidia.com; dmarc=pass (p=reject sp=reject pct=100) action=none
- header.from=nvidia.com; dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=f3fDHkI2qPB1DUqkyaQvkR3G/pgMN8f5h5Oy7NmCvmo=;
- b=tQXdY19anuyZvQAUmKp8uLMEgAtYg5ucbRweYU6VIwSf7gzmSxbqDMRrD/CBViABktTPyke0437NPNrOya9yc9U0lQhq4GDC9oRGSn2D9iAO5MVB65LBoPkFwKeY5U+RFhif6sJbtyCDA6lcg1nr6a4c9vqpxRNk4iBMKpKeDTPiVaWKRC7diYbVCWIkHuNv3a0UrRHTk9FeJtJVjmXVTVf8C5Lzzi83biEAK0pyq9NtvHAvS9tLMZB2J5UCmR2mGxEpAlxz6wU4IX7btkU+AJ0Aolieqjb3vHfddxpJQXYnawPt7zlZ68hqZ4tfMjwb14B01l7cPOwsfJK2uKwCtQ==
-Received: from SJ0PR03CA0367.namprd03.prod.outlook.com (2603:10b6:a03:3a1::12)
- by IA0PPF12042BF6F.namprd12.prod.outlook.com (2603:10b6:20f:fc04::bc8) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9723.8; Wed, 18 Mar
- 2026 20:30:01 +0000
-Received: from MWH0EPF000C6194.namprd02.prod.outlook.com
- (2603:10b6:a03:3a1:cafe::90) by SJ0PR03CA0367.outlook.office365.com
- (2603:10b6:a03:3a1::12) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.9700.27 via Frontend Transport; Wed,
- 18 Mar 2026 20:29:34 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.233)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.118.233 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.118.233; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.118.233) by
- MWH0EPF000C6194.mail.protection.outlook.com (10.167.249.104) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9723.19 via Frontend Transport; Wed, 18 Mar 2026 20:30:00 +0000
-Received: from drhqmail201.nvidia.com (10.126.190.180) by mail.nvidia.com
- (10.127.129.6) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Wed, 18 Mar
- 2026 13:29:40 -0700
-Received: from drhqmail203.nvidia.com (10.126.190.182) by
- drhqmail201.nvidia.com (10.126.190.180) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.20; Wed, 18 Mar 2026 13:29:40 -0700
-Received: from Asurada-Nvidia (10.127.8.9) by mail.nvidia.com (10.126.190.182)
- with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20 via Frontend
- Transport; Wed, 18 Mar 2026 13:29:39 -0700
-Date: Wed, 18 Mar 2026 13:29:38 -0700
-From: Nicolin Chen <nicolinc@nvidia.com>
-To: Shuai Xue <xueshuai@linux.alibaba.com>
-CC: <will@kernel.org>, <robin.murphy@arm.com>, <joro@8bytes.org>,
-	<bhelgaas@google.com>, <jgg@nvidia.com>, <rafael@kernel.org>,
-	<lenb@kernel.org>, <praan@google.com>, <baolu.lu@linux.intel.com>,
-	<kevin.tian@intel.com>, <linux-arm-kernel@lists.infradead.org>,
-	<iommu@lists.linux.dev>, <linux-kernel@vger.kernel.org>,
-	<linux-acpi@vger.kernel.org>, <linux-pci@vger.kernel.org>,
-	<vsethi@nvidia.com>
-Subject: Re: [PATCH v2 3/7] iommu: Add iommu_report_device_broken() to
- quarantine a broken device
-Message-ID: <absLMm//pcete6+D@Asurada-Nvidia>
-References: <cover.1773774441.git.nicolinc@nvidia.com>
- <c5390aeaeccfa86a1c79f26d2c0ff5df380940a4.1773774441.git.nicolinc@nvidia.com>
- <b4085354-93e4-4484-8744-d8c7e7718c57@linux.alibaba.com>
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id A881D15B998;
+	Wed, 18 Mar 2026 20:49:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1773866954; cv=none; b=M3rvWCyfmSoWAQlB76xlwo4cjMq+RcZSNjAPQ68dvYyyrbpcwcoohpKDFufhCtVoYZdOYMz0P7872hgay/Oklp1SY4jtKTwabbpuroVbKWN3jQVdr11IyZCDJNoeHSuIX2dezpox2wm/LkUudFNt7+Oyrac2oClOl6w5E9RGYpw=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1773866954; c=relaxed/simple;
+	bh=8H96j8MpMDHKAiWBBFwEZfm8yfzmLh+gZJABXNxhdnE=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=ZzG/ymYNODi8jwrtDLlA29FzcB5mf2dS+8yc5+pxIPjkoKRAruI5tmalKxKD5GlukUA6/90R1MfL+y06SV1e0Pajo8kPjP0f1TAnJdTrTdw8nPGuyl4X65ObasQpeWBYQoH4CQaTZrgyQPzOh95myHyxBg10YyGS5wUuOEOlmt8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 982BE1BF7;
+	Wed, 18 Mar 2026 13:49:04 -0700 (PDT)
+Received: from e134710.arm.com (e134710.arm.com [10.33.10.82])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id BB1413F7BD;
+	Wed, 18 Mar 2026 13:49:08 -0700 (PDT)
+From: Ahmed Tiba <ahmed.tiba@arm.com>
+Subject: [PATCH v3 00/10] cover: ACPI: APEI: share GHES CPER helpers and
+ add DT FFH provider
+Date: Wed, 18 Mar 2026 20:47:57 +0000
+Message-Id: <20260318-topics-ahmtib01-ras_ffh_arm_internal_review-v3-0-48e6a1c249ef@arm.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <b4085354-93e4-4484-8744-d8c7e7718c57@linux.alibaba.com>
-X-NV-OnPremToCloud: ExternallySecured
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MWH0EPF000C6194:EE_|IA0PPF12042BF6F:EE_
-X-MS-Office365-Filtering-Correlation-Id: c7cd655d-99d7-4cab-0851-08de852d2105
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|7416014|376014|36860700016|82310400026|56012099003|22082099003|18002099003;
-X-Microsoft-Antispam-Message-Info:
-	PFVBmLSnmCrxagtIRbMsOTkHF6Z+caTN/3idJfVuM0g5bKHAFnDRa4w8xKqC/7Oa5HnV9mEE1e/7/HT3ww1KkHaevm1d5KzdT7pp5iH8YHGHCWENbpHP5nhBJtOj4I1Y5e/b+EzWqyqwR6uyuMWNFpiSR8UsqLxQOBRYhr1PZHqp1NpmBoPE8jnEwMIdoXK/WWBRJHn9HedkGKg/lEL6s8ZGF9sFheXe+1ad6pqwUF1T5QutOOliXCOysKoq/uKwO9Ogg3Q2YU5xCqYnny4teXa4LbOBLyXw59B2yh2N0jJLThS2uMeFrDFRCkwMwoA3cIfWXigJrgo6okjkIEA/1o0vHRvl7ctMxmBUraMkZhNVfoKalDvLnTYrFSaYLWw+GPXJ1XE/usPGBNsAQfEVo6AOU43EXALx1rkHm14A9uixlHgyk5zBCQ5t2nQfOS2AV+C0k6sprFJimuCBhzg/riqT1yFijaOK5gsb0Kwql65c3hZLPaIzsnAT08yM/MIaFORGNtlD2RLgmP4vKfSg8ZNzW/oswXgyx1Lfe6ilIgrx85zoai/z80KJL8V/c/8nA32C2IPr6Wkes3BR4Q6CCBvsO0XsxlITUuK3Gh7gzRcxeUl2swPK+TW1eQ+IAPw/QYfaSXRS2XeWqd4dR7V4ux/Y+4udjIFEto2H6R0oXZqV194YdogBUSqgE2ERSooeYPmzETqZU7XZAUnVnOc6g4+0suWgo5GpKA+KqZcl5jh1AQQQVnFiaH50ZLgMG4K8hEbmFfhDtxVPVXr/1fEfxg==
-X-Forefront-Antispam-Report:
-	CIP:216.228.118.233;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge2.nvidia.com;CAT:NONE;SFS:(13230040)(1800799024)(7416014)(376014)(36860700016)(82310400026)(56012099003)(22082099003)(18002099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	PSn6biYdu2wxWtm3knfzc/cJs3VGHCrnI+2JcNv5cqkAD4zWqpt/XSVJ8d5L+TkYeP4mHgraEGFy9YyJ958fL6/5K5RmlOeHXWEJtFGdcPV07h55HGilzAtLmEpwlnL60bsEYLm1xLm5gI5oxqKRqY/utVyVlntXlwhizkb9fGxoSao1Mia1W8OjBBI5WxAv2gBrE8hnra0Rq3jgnbfE8c5mG2hNdJHDkUBbtTEH3O6C/zB2/i1xEuLOMNnrUpCj0qD4eLCnBmnrFD21D1q6WlDazW12xksdhGqWzXPnqWPSuaBQvM2Do3FAUPWEx3ELT8QMbO7NDrKs2EQDP9+pBU6fwd4S8NCnQ4oGd0pnLxX7cHt5tkRTSFMOYeaNLlU6mJ+rY8JCd1xXutOTw0BPtnoiX2n5MRnm3904MjGraVPEpritfjm36UzPn2DKjaLU
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 18 Mar 2026 20:30:00.6038
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: c7cd655d-99d7-4cab-0851-08de852d2105
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.233];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	MWH0EPF000C6194.namprd02.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA0PPF12042BF6F
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAH4Pu2kC/5WOywrCMBBFf6VkbUpm2prqyv8QKWkedsA+SEpVS
+ v/dpCCuXZ4Lc86sLFhPNrBztjJvFwo0DhGKQ8Z0p4a75WQiMxR4FIiCz+NEOnDV9TO1ArhXoXG
+ ua5TvGxpm6wf1aJLJPnnrjNHSaalVy6Jx8tbRa69db5E7CvPo33t8gbSmTgUIEgDrssqhhhLgx
+ CEFrcljU11iKtdjz5Jiwe/Z/+8tyAUvSukUGllU0P7M27Z9AHYh56MbAQAA
+To: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, 
+ linux-cxl@vger.kernel.org
+Cc: Ahmed Tiba <ahmed.tiba@arm.com>, Michael.Zhao2@arm.com, robh@kernel.org, 
+ linux-arm-kernel@lists.infradead.org, Dmitry.Lamerov@arm.com, 
+ rafael@kernel.org, conor@kernel.org, will@kernel.org, bp@alien8.de, 
+ catalin.marinas@arm.com, krzk+dt@kernel.org, linux-doc@vger.kernel.org, 
+ mchehab+huawei@kernel.org, tony.luck@intel.com
+X-Mailer: b4 0.13.0
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1773866948; l=3635;
+ i=ahmed.tiba@arm.com; s=20260219; h=from:subject:message-id;
+ bh=8H96j8MpMDHKAiWBBFwEZfm8yfzmLh+gZJABXNxhdnE=;
+ b=JTCNw0u4VK3lWeh3j7wcnlPeknCrSNSYJngPUYMeCsJEGtFYOHF/AarjvAxbMEKDU/3mBtRbo
+ RbZ0vaNAnciCABFEvLigpypWIk7EeOiJNW/mqZw9zNvhejqZi1HLOmm
+X-Developer-Key: i=ahmed.tiba@arm.com; a=ed25519;
+ pk=xVOtd+Qklh/4tuM3tB+BEZD4jj5a6W59C3KCNX6v7OE=
 
-On Wed, Mar 18, 2026 at 07:45:19PM +0800, Shuai Xue wrote:
-> On 3/18/26 3:15 AM, Nicolin Chen wrote:
-> > diff --git a/include/linux/iommu.h b/include/linux/iommu.h
-> > index 9ba12b2164724..9b5f94e566ff9 100644
-> > --- a/include/linux/iommu.h
-> > +++ b/include/linux/iommu.h
-> > @@ -891,6 +891,8 @@ static inline struct iommu_device *__iommu_get_iommu_dev(struct device *dev)
-> >   #define iommu_get_iommu_dev(dev, type, member) \
-> >   	container_of(__iommu_get_iommu_dev(dev), type, member)
-> > +void iommu_report_device_broken(struct device *dev);
-> > +
-> 
-> This declaration is inside the #ifdef CONFIG_IOMMU_API section, but
-> there's no corresponding stub in the #else block. While current
-> callers (arm-smmu-v3) always have CONFIG_IOMMU_API, for API
-> completeness, please add a stub.
+This is v3 of the GHES refactor series. The goal is to split the GHES
+CPER handling into shared helpers so the same firmware-first CPER flow
+can be reused by a DT-based provider, while keeping the early patches as
+mechanical moves and addressing the review comments on naming, driver
+integration, and build coverage.
 
-Yes. That's a miss.
+Signed-off-by: Ahmed Tiba <ahmed.tiba@arm.com>
+---
+Changes in v3:
+- Fixed the new ghes_cper.h header comment and kept the original
+  copyrights.
+- Added <linux/bitfield.h> to fix the kernel test robot build failure.
+- Renamed the binding/compatible and DT-side naming to ras-cper.
+- Switched the DT provider to generic firmware property accessors.
+- Replaced atomic source IDs with IDA.
+- Updated IRQ/error/resource handling as suggested in review
+  (platform_get_irq(), dev_err_probe(), devm platform ioremap
+  helpers).
+- Removed the ARM64 dependency and fixed Kconfig/build coverage.
+- Clarified comments and kept the early move patches mechanical.
+- Link to v2: https://lore.kernel.org/r/20260220-topics-ahmtib01-ras_ffh_arm_internal_review-v2-0-347fa2d7351b@arm.com
 
-Thanks
-Nicolin
+Changes in v2:
+- Dropped the proposed "estatus core" and kept GHES naming/flow intact
+  (per Borislav Petkov).
+- Re-sliced the series into smaller mechanical steps (per Mauro Carvalho Chehab).
+- Minor DT binding fixes based on Krzysztof Kozlowski's feedback.
+- Removed fixmap slot usage from the DT FFH driver (per Will Deacon).
+
+Series structure:
+- Patches 1-8 are mechanical moves only and do not change behavior.
+- Patch 9 wires the shared helpers back into GHES.
+- The DT firmware-first CPER buffer provider is added in the final patches.
+- "ACPI: APEI: introduce GHES helper" is internal build glue only
+  and does not introduce a new user-visible configuration option.
+
+- Link to v1: https://lore.kernel.org/r/20251217112845.1814119-1-ahmed.tiba@arm.com
+
+---
+Ahmed Tiba (10):
+      ACPI: APEI: GHES: share macros via a private header
+      ACPI: APEI: GHES: move CPER read helpers
+      ACPI: APEI: GHES: move GHESv2 ack and alloc helpers
+      ACPI: APEI: GHES: move estatus cache helpers
+      ACPI: APEI: GHES: move vendor record helpers
+      ACPI: APEI: GHES: move CXL CPER helpers
+      ACPI: APEI: introduce GHES helper
+      ACPI: APEI: share GHES CPER helpers
+      dt-bindings: firmware: add arm,ras-cper
+      RAS: add firmware-first CPER provider
+
+ Documentation/admin-guide/RAS/main.rst             |   18 +
+ .../devicetree/bindings/firmware/arm,ras-cper.yaml |   71 ++
+ MAINTAINERS                                        |    6 +
+ drivers/Makefile                                   |    1 +
+ drivers/acpi/Kconfig                               |    4 +
+ drivers/acpi/apei/Kconfig                          |    1 +
+ drivers/acpi/apei/apei-internal.h                  |   10 +-
+ drivers/acpi/apei/ghes.c                           | 1024 +------------------
+ drivers/acpi/apei/ghes_cper.c                      | 1027 ++++++++++++++++++++
+ drivers/ras/Kconfig                                |   11 +
+ drivers/ras/Makefile                               |    1 +
+ drivers/ras/cper-esource.c                         |  257 +++++
+ include/acpi/ghes.h                                |   10 +-
+ include/acpi/ghes_cper.h                           |  152 +++
+ include/cxl/event.h                                |    2 +-
+ 15 files changed, 1560 insertions(+), 1035 deletions(-)
+---
+base-commit: 2d1373e4246da3b58e1df058374ed6b101804e07
+change-id: 20260220-topics-ahmtib01-ras_ffh_arm_internal_review-bfddc7fc7cab
+
+Best regards,
+-- 
+Ahmed Tiba <ahmed.tiba@arm.com>
+
