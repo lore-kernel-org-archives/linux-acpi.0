@@ -1,153 +1,170 @@
-Received: from SN4PR2101CU001.outbound.protection.outlook.com (mail-southcentralusazon11012064.outbound.protection.outlook.com [40.93.195.64])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4489A345751;
-	Wed, 18 Mar 2026 19:26:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.195.64
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773862017; cv=fail; b=XBXxQL0MLmyBSN9He+gZ3qyPcxvsyE1sr/nh/BGDxzq39M2HUhqRllI7waAKOpSSQLkAVuWs50/MuDhqqmxSBtU+cO8N2egRqB9cJwMuSclY0bqUkdT7sYpFUvXJcK1QJQ9F1XIqoPKe5upcRBnK/enLK9Lx/qtmJrWH4drZuys=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773862017; c=relaxed/simple;
-	bh=lpM4Z/vOyTpUw84N9FD9LM/8BrfGf5PLTjTVlVoUlDk=;
-	h=Date:From:To:CC:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=nFo8+7rL06e48mvQQP4lfeonxG8AR2EZndFaRa2Qf1UC6RWbSqP+kRVrghXtiarFDg0affv+QvBWukUYYJjpt1JAsDlqf84mIMFWfrKJshrSrMvsIsXFoUIumKqIpr1IsCMgdbDuy1uvonYesW29I5A8dUaaUdcsHtcm2ADr2HU=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=lv806NN8; arc=fail smtp.client-ip=40.93.195.64
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01FCD3F1666;
+	Wed, 18 Mar 2026 19:41:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1773862910; cv=none; b=sYZGfaE6nLov/6mmIKr8WAZ2Zk47vLdwdqCobky2FFS7bzl3fGsz0yA/pLtBEOk4nRcokJUICHePDk5ZO+5Bv2pD2CdnTkTfuAyhdMRgvCtiLOJZewkDSUJrr9KU6mNw7qj5v9Yt1i1jaWlPkfrxBcdOo5Cpc5SZDqWZorRHSLw=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1773862910; c=relaxed/simple;
+	bh=oaL8LkMVkgLxAeKvQJjWFnLweoy7OalS9Kqouua6ZAI=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=dnGf/MynFcIngHCveU8/uq8mvJ97ngwbzo/KId2p0FZ3Y4q097xGXTQWuq8xjkzEjPLBlII1pNvEANsB/tEjIO4Zzo/26XgKf8QlZqwSwWeoCQ1gz6LOWc/9GB6q1EJRNzsCdOjLRSejJk2PCf35mVOjheUsbc1O+ZAAGY490HQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mc13mQL4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="lv806NN8"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=kTjKAs1V22LBeWtWBgk7/9ExWDHe8CuWxhuCKKjJOM7VXN27vzwuHUm8KZPHtsxVKSYgvgCMru9Z2FHTIFQFiuwz1zKQ5CT8p//7hierGOPA5jCUfgkzsi/CNqi6h85G3duvoVoJ1JYkS4MwnppB/HnfA+q7hHBLoapUfJvaQDsKBxwme58CMcA3D5VDN0LmuZmGPZmhWvFMrFoBvoXO9S6r4nUbQ9iTAa5ISJiiq6P8JU6Fxmuvow9EPD5zRxV/dB3YDOw7fJPGOA6ySKXqvnIM8ZFTZXDqXEU2TEdpQ0CUg687epN3SbuuHAKqV1SH2YMp5dKWU1F82yrbFbKoLg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=Lg5GbH3n2Vmnnt6PhKArTvR2qXfFTlX8WywQsdyUHJ0=;
- b=sR3lNSO+h6+2ZWkkC1hB0MX3upPwWNmHMo/m1Rcc8IB2rqGrBDH5Pw/FFIzU+w10stw+/Ced0LaJ0KK1houjNIj+Ht6ofhRgfVjjdq92WES5qskc3Gfgz3hdD23Bbj7LqXo7/dUFbsudrvwdoQw0YQVkr1eg1RVhi62+gS5OtneMDQkkfr6IzTLKcTSyfu/krwwjWERgsfd12G2wzcR3emn6VbaVE5aXoL+epSr/YH13xKNaUJPExNg5uafNJQ3G3AGxKUYENI4Lct2VoH0EpmOMkyh+vvqx42fqxQCDCsoBf/WoE6eS5BjptUG2Eb5QlByoyzrhgq4MZx/rvTHGhw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.118.232) smtp.rcpttodomain=intel.com smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=Lg5GbH3n2Vmnnt6PhKArTvR2qXfFTlX8WywQsdyUHJ0=;
- b=lv806NN8SQtoJEYIAsrvUn9cyaAnj7Kl15n5uXlUjeVP6syJGzvZrjtROVB5YfcKGiW06IH5buqF+yTrQXaoHJ74kGvX++cF6ObCNeDfjW511nEgaO8oRfIhpE0/lyvy6gqBhZLd2YYZ48/NUuItCajnvnOsJhpLyBFMe5GT9MUuEAIU1f1dltKbegWaNUQivv8nbqZg6bGoCoc2oK8xp5+79ZvNkMh6ZyriM6aHKB+YMAoGnS9D2YoN44RfRG7mItXHKOV41SIjmdYt014hJzmgmira2udOBVSIZWahns9JJbWEC8CHF3rv/fHL+DJ4CMPQpcylkJyS0XjRu1NflQ==
-Received: from BYAPR07CA0068.namprd07.prod.outlook.com (2603:10b6:a03:60::45)
- by SN7PR12MB7348.namprd12.prod.outlook.com (2603:10b6:806:29b::11) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9723.19; Wed, 18 Mar
- 2026 19:26:50 +0000
-Received: from SJ5PEPF000001F0.namprd05.prod.outlook.com
- (2603:10b6:a03:60:cafe::4d) by BYAPR07CA0068.outlook.office365.com
- (2603:10b6:a03:60::45) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.9700.27 via Frontend Transport; Wed,
- 18 Mar 2026 19:26:46 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.232)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.118.232 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.118.232; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.118.232) by
- SJ5PEPF000001F0.mail.protection.outlook.com (10.167.242.68) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9723.19 via Frontend Transport; Wed, 18 Mar 2026 19:26:49 +0000
-Received: from drhqmail202.nvidia.com (10.126.190.181) by mail.nvidia.com
- (10.127.129.5) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Wed, 18 Mar
- 2026 12:26:36 -0700
-Received: from drhqmail203.nvidia.com (10.126.190.182) by
- drhqmail202.nvidia.com (10.126.190.181) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.20; Wed, 18 Mar 2026 12:26:35 -0700
-Received: from Asurada-Nvidia (10.127.8.9) by mail.nvidia.com (10.126.190.182)
- with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20 via Frontend
- Transport; Wed, 18 Mar 2026 12:26:34 -0700
-Date: Wed, 18 Mar 2026 12:26:33 -0700
-From: Nicolin Chen <nicolinc@nvidia.com>
-To: "Tian, Kevin" <kevin.tian@intel.com>
-CC: "will@kernel.org" <will@kernel.org>, "robin.murphy@arm.com"
-	<robin.murphy@arm.com>, "joro@8bytes.org" <joro@8bytes.org>,
-	"bhelgaas@google.com" <bhelgaas@google.com>, "jgg@nvidia.com"
-	<jgg@nvidia.com>, "rafael@kernel.org" <rafael@kernel.org>, "lenb@kernel.org"
-	<lenb@kernel.org>, "praan@google.com" <praan@google.com>,
-	"baolu.lu@linux.intel.com" <baolu.lu@linux.intel.com>,
-	"xueshuai@linux.alibaba.com" <xueshuai@linux.alibaba.com>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>, "iommu@lists.linux.dev"
-	<iommu@lists.linux.dev>, "linux-kernel@vger.kernel.org"
-	<linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org"
-	<linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org"
-	<linux-pci@vger.kernel.org>, Vikram Sethi <vsethi@nvidia.com>
-Subject: Re: [PATCH v2 4/7] iommu/arm-smmu-v3: Mark ATC invalidate timeouts
- via lockless bitmap
-Message-ID: <abr8aS/MDU9aeKu9@Asurada-Nvidia>
-References: <cover.1773774441.git.nicolinc@nvidia.com>
- <0c5525367cc67ccc84a675544d1d9f8462704065.1773774441.git.nicolinc@nvidia.com>
- <BN9PR11MB52763AB181F5213FAAB4F4F08C4EA@BN9PR11MB5276.namprd11.prod.outlook.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mc13mQL4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31029C19421;
+	Wed, 18 Mar 2026 19:41:47 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1773862909;
+	bh=oaL8LkMVkgLxAeKvQJjWFnLweoy7OalS9Kqouua6ZAI=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=mc13mQL4l2pAOciPeaolQbfE+oC3WRBAH9PGoF1n6KyTpCz9c/WXue/V813PelQb4
+	 qjANac9xPAqyAoPBWsvODMOsL6UmfuB4UBh5rAQPvLnUaupmnoaAozNaH4IfjzqoXI
+	 M2oO/ZB/LCfryv91ePkGYNDPP8CH/LsvCxpbU9EzQ+g0lScjP/EmWlpvKR9j9i843+
+	 7LHn1s9yNBcu/uFc+sJ3zTrpLnvTEzR8y4GR9/lIBsFSQ/VaALp6Gg9bg4nmjFk8Ye
+	 FbYyJcEdvsneZYXkqpw8nVfvwRJYbNTa/RHVfgT4Nv6XXP8zh0iCm06rf6ir/j6XEd
+	 66NPsHfG/ACVQ==
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+To: Ilpo =?ISO-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+ Linux ACPI <linux-acpi@vger.kernel.org>, Hans de Goede <hansg@kernel.org>,
+ platform-driver-x86@vger.kernel.org, Kenneth Chan <kenneth.t.chan@gmail.com>
+Subject:
+ [PATCH v2 4/4] platform/x86: panasonic-laptop: Convert ACPI driver to a
+ platform one
+Date: Wed, 18 Mar 2026 20:41:30 +0100
+Message-ID: <3411598.44csPzL39Z@rafael.j.wysocki>
+Organization: Linux Kernel Development
+In-Reply-To: <5979471.DvuYhMxLoT@rafael.j.wysocki>
+References: <5979471.DvuYhMxLoT@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <BN9PR11MB52763AB181F5213FAAB4F4F08C4EA@BN9PR11MB5276.namprd11.prod.outlook.com>
-X-NV-OnPremToCloud: ExternallySecured
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SJ5PEPF000001F0:EE_|SN7PR12MB7348:EE_
-X-MS-Office365-Filtering-Correlation-Id: 9e883f9f-3ee2-4691-b448-08de85244d8f
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|7416014|376014|36860700016|82310400026|1800799024|18002099003|56012099003|22082099003;
-X-Microsoft-Antispam-Message-Info:
-	kxpN4jvbP1F1FdEsTM+pvhF4zB8AY6CJHwbIQ+cEX2MBykdV4L8MPeHH9iBD7amj0T+l75ru1YsnO9HlndQgJFgEsg7rHb1xUj6XlLAVk+oHodrjjPIwz6cN2HvJaOJf6I8q8+vu81CCAe9oO+uFtlhJ5+u0RLxRL1YmCOzwOzUkHQqHmGd2cTqdh1HLBYBcftl8/g/A1SoaLFhxcm3VtCM/C3Y6ZLP4UvQaVJn0VRZ/W8gHfEhNyNDC16cxaAa6QvUVvjP0BTtfV84NESOa9w9O/8RE9ntkrXsChBAT3UmvKHePdcmkdtu8HIbcO533W6AimTyuGZZjv7VMAwWYPCbppKatlJtOt9Igb1tWHDLAhqedy8cph/VSDKIWtWXg3ukK8ZBmh5sqWMTmUkgSo0mM72ovwqNFzpf76h1st83tBC/oRV0B56QmM2St+MqBEeYXBlr6cohAbX0yBoKlnJgy4UMLEuF34PSVW/T8hjWrWsdZoIetoINbllDlZFzAIOD88lNWKiq9FOBTXaWuaO7pQMfcrq5Ujrz/SziQPZHFCsMMcQKoZkaKq5kkmP7cZX+rvNafzEBJd7ek2o/xQ0cGCNOv1KW4ADQHWxDGQ6WWdMh7LuHW4c42iY8ZjK7DwxQNie4W6S0HqBiw34f6qYZIKBa9R2fANmN9rQiKj2ty0zFpFd/v3L0i24DPKWCp0a6DzmNKccechR4IOw5S6+7l9ZwWkI32tT++Dx64skjauzbUG3SeOoMgEEsH4GmOoAMgiSGVq7PRJhZMt9tSsw==
-X-Forefront-Antispam-Report:
-	CIP:216.228.118.232;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge1.nvidia.com;CAT:NONE;SFS:(13230040)(7416014)(376014)(36860700016)(82310400026)(1800799024)(18002099003)(56012099003)(22082099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	YYlLSu6Ay2AZCfHdpZjmCPd1LRUdoerWDCwvm7yMnHXz8YM7yECpr0ABychwB1LO9HZBoHPmp/7557T6jNVT9di+LHO2/Fr8xqaHXv528CAmg0AV3HeaCz/AtPpfMBarSrRs0+8jsMazmfUu4l5jufe4fub1GqlUFprmehdNzaRNJkaOnv7ef8D9C/HYQzZ1xUCCk1XLKdUfPB8YruRtgHDp2FAd39jc785e5Mqq4ZvI8AHG3jGFFm6M858tlifsouCl9B4ikzNcEMnEucLNo/ToM1wzuydBfhuNmDokQPC555twsAgVjP1V/ny2HVsZrmLtMlGG4FnxVp2u7cg3ZmrnDj2eH4Pba91ZoYShfx9kA3073o8GYbV/4MBeg7IMYV9lFSBCJhTjEum9wsrNXQHpS+4W2jjscAqfNffIsB05oV0LuwxFd2Tc+/hY8HyO
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 18 Mar 2026 19:26:49.9538
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 9e883f9f-3ee2-4691-b448-08de85244d8f
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.232];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	SJ5PEPF000001F0.namprd05.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN7PR12MB7348
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
 
-On Wed, Mar 18, 2026 at 07:36:20AM +0000, Tian, Kevin wrote:
-> > From: Nicolin Chen <nicolinc@nvidia.com>
-> > Sent: Wednesday, March 18, 2026 3:16 AM
-> > 
-> > An ATC invalidation timeout is a fatal error. While the SMMUv3 hardware is
-> > aware of the timeout via a GERROR interrupt, the driver thread issuing the
-> > commands lacks a direct mechanism to verify whether its specific batch was
-> > the cause or not, as polling the CMD_SYNC status doesn't natively return a
-> > failure code, making it very difficult to coordinate per-device recovery.
-> > 
-> > Introduce an atc_sync_timeouts bitmap in the cmdq structure to bridge this
-> > gap. When the ISR detects an ATC timeout, set the bit corresponding to the
-> > physical CMDQ index of the faulting CMD_SYNC command.
-> > 
-> 
-> It's nice to see the ability of allowing sw to identify the faulting sync command
-> upon an ATC timeout! On VT-d it's not feasible when multiple wait descriptors
-> (similar to CMD_SYNC) are in-fly... :/
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-Actually SMMU doesn't know which device is faulting when CMD_SYNC
-follows ATC_INV commands for multiple devices. The commit message
-in PATCH-7 describes this in the end. So Jason suggested to retry
-those ATC_INV commands by bisecting them per-device, which allows
-us to pinpoint which device.
+In all cases in which a struct acpi_driver is used for binding a driver
+to an ACPI device object, a corresponding platform device is created by
+the ACPI core and that device is regarded as a proper representation of
+underlying hardware.  Accordingly, a struct platform_driver should be
+used by driver code to bind to that device.  There are multiple reasons
+why drivers should not bind directly to ACPI device objects [1].
 
-Could VT-d do the same?
+Overall, it is better to bind drivers to platform devices than to their
+ACPI companions, so convert the Panasonic laptop ACPI driver to a platform
+one.
 
-Nicolin
+While this is not expected to alter functionality, it changes sysfs
+layout and so it will be visible to user space.
+
+To maintain backwards compatibility with possibly existing user space,
+the sysfs attributes created by the driver under the ACPI device object
+used by it are not relocated.  Accordingly, the driver will continue to
+use the driver_data pointer in struct acpi_device which needs to be
+cleared on driver removal.
+
+Link: https://lore.kernel.org/all/2396510.ElGaqSPkdT@rafael.j.wysocki/ [1]
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+
+v1 -> v2: No changes
+
+---
+ drivers/platform/x86/panasonic-laptop.c | 33 ++++++++++++++-----------
+ 1 file changed, 18 insertions(+), 15 deletions(-)
+
+diff --git a/drivers/platform/x86/panasonic-laptop.c b/drivers/platform/x86/panasonic-laptop.c
+index 6d776bb1c5d1..e745cea340c0 100644
+--- a/drivers/platform/x86/panasonic-laptop.c
++++ b/drivers/platform/x86/panasonic-laptop.c
+@@ -183,8 +183,8 @@ enum SINF_BITS { SINF_NUM_BATTERIES = 0,
+ 	};
+ /* R1 handles SINF_AC_CUR_BRIGHT as SINF_CUR_BRIGHT, doesn't know AC state */
+ 
+-static int acpi_pcc_hotkey_add(struct acpi_device *device);
+-static void acpi_pcc_hotkey_remove(struct acpi_device *device);
++static int acpi_pcc_hotkey_probe(struct platform_device *pdev);
++static void acpi_pcc_hotkey_remove(struct platform_device *pdev);
+ static void acpi_pcc_hotkey_notify(acpi_handle handle, u32 event, void *data);
+ 
+ static const struct acpi_device_id pcc_device_ids[] = {
+@@ -201,15 +201,14 @@ static int acpi_pcc_hotkey_resume(struct device *dev);
+ #endif
+ static SIMPLE_DEV_PM_OPS(acpi_pcc_hotkey_pm, NULL, acpi_pcc_hotkey_resume);
+ 
+-static struct acpi_driver acpi_pcc_driver = {
+-	.name =		ACPI_PCC_DRIVER_NAME,
+-	.class =	ACPI_PCC_CLASS,
+-	.ids =		pcc_device_ids,
+-	.ops =		{
+-				.add =		acpi_pcc_hotkey_add,
+-				.remove =	acpi_pcc_hotkey_remove,
+-			},
+-	.drv.pm =	&acpi_pcc_hotkey_pm,
++static struct platform_driver acpi_pcc_driver = {
++	.probe = acpi_pcc_hotkey_probe,
++	.remove = acpi_pcc_hotkey_remove,
++	.driver = {
++		.name = ACPI_PCC_DRIVER_NAME,
++		.acpi_match_table = pcc_device_ids,
++		.pm = &acpi_pcc_hotkey_pm,
++	},
+ };
+ 
+ static const struct key_entry panasonic_keymap[] = {
+@@ -967,7 +966,7 @@ static int acpi_pcc_init_input(struct pcc_acpi *pcc)
+ #ifdef CONFIG_PM_SLEEP
+ static int acpi_pcc_hotkey_resume(struct device *dev)
+ {
+-	struct pcc_acpi *pcc = acpi_driver_data(to_acpi_device(dev));
++	struct pcc_acpi *pcc = acpi_driver_data(ACPI_COMPANION(dev));
+ 
+ 	if (pcc->num_sifr > SINF_MUTE)
+ 		acpi_pcc_write_sset(pcc, SINF_MUTE, pcc->mute);
+@@ -983,8 +982,9 @@ static int acpi_pcc_hotkey_resume(struct device *dev)
+ }
+ #endif
+ 
+-static int acpi_pcc_hotkey_add(struct acpi_device *device)
++static int acpi_pcc_hotkey_probe(struct platform_device *pdev)
+ {
++	struct acpi_device *device = ACPI_COMPANION(&pdev->dev);
+ 	struct backlight_properties props;
+ 	struct pcc_acpi *pcc;
+ 	int num_sifr, result;
+@@ -1121,8 +1121,9 @@ static int acpi_pcc_hotkey_add(struct acpi_device *device)
+ 	return result;
+ }
+ 
+-static void acpi_pcc_hotkey_remove(struct acpi_device *device)
++static void acpi_pcc_hotkey_remove(struct platform_device *pdev)
+ {
++	struct acpi_device *device = ACPI_COMPANION(&pdev->dev);
+ 	struct pcc_acpi *pcc = acpi_driver_data(device);
+ 
+ 	i8042_remove_filter(panasonic_i8042_filter);
+@@ -1142,8 +1143,10 @@ static void acpi_pcc_hotkey_remove(struct acpi_device *device)
+ 
+ 	input_unregister_device(pcc->input_dev);
+ 
++	device->driver_data = NULL;
++
+ 	kfree(pcc->sinf);
+ 	kfree(pcc);
+ }
+ 
+-module_acpi_driver(acpi_pcc_driver);
++module_platform_driver(acpi_pcc_driver);
+-- 
+2.51.0
+
+
+
+
