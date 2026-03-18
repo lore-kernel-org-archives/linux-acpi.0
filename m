@@ -1,180 +1,131 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 356F93B3BFA
-	for <linux-acpi@vger.kernel.org>; Wed, 18 Mar 2026 12:53:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 173883D75D9
+	for <linux-acpi@vger.kernel.org>; Wed, 18 Mar 2026 13:00:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773838429; cv=none; b=k+lv3rlKnjBJWFJ61v47MCw8rmzISaatt6l7RNDsBYunKmOl+RwXKFg6rdHTPXhmiediTuuYzQFQ9LJJXtQqiNqNIWvFywguUWt0xYXfBbEGZqfAw0JNE4ELNiILFfLyBATAsz7UEqBxVhwaOuQTstEQneH9Dg5yadHwiXtelrM=
+	t=1773838813; cv=none; b=ZBjSjTFgyE7OLH83HjEaLQBH5/vRYCISujQTK6472ngHYwk3nqpWqgOEL3XzSIKL1URFlO+FJSIrMjshLJZXXDRr88iHB0EB64pfQ3UTYHnopwStzPVden+Ba0+Ia/FkEfHjTTwZbbiw8rMrvNVvD8L6CvyNe0pRX1pmGWfdfOU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773838429; c=relaxed/simple;
-	bh=fpI8s6BMIIBn66z1Yt8/N7uhsCdDwhagyCfQJ8Nzc5U=;
+	s=arc-20240116; t=1773838813; c=relaxed/simple;
+	bh=53y5Rybl/OajfsYtPp/FlPAeGf32v6tVDyjPu7HO1qo=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=sBBe9jl3241C59MfSNDuVFb/noluSxksVKCKrpVbIymdodT3rMP4EMIbLRbD1/egcZYi0QkTyjXci0QZMKV4xbZ6rweEB9CPQmBYzDXc4KanLmSbmkWz7ku586PYa1JUQO4P6ydAoWTNTp54BZ3+OKjFo1659LhB0DJs/AlIbd0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XTZgRZzl; arc=none smtp.client-ip=10.30.226.201
+	 To:Cc:Content-Type; b=YkJ/KjEhv6qsYPXmAkWVySQRM2vp/FTm+D8cLCkHpqrGM5VkoYATkLrXo6AAl7d/fNvkqDka8OOFelZiwDGflaRmNrjQyXX02JsXhr6LgZzz1NWr0Q3hLTt2HdkLkV4pUeezBMc0YpJ3Si3umBMMgfk4j0oDOSW5arJmEjYEtC0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=qXJg26cf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XTZgRZzl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CAC07C2BCAF
-	for <linux-acpi@vger.kernel.org>; Wed, 18 Mar 2026 12:53:48 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="qXJg26cf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4C8EC2BCB5
+	for <linux-acpi@vger.kernel.org>; Wed, 18 Mar 2026 13:00:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773838428;
-	bh=fpI8s6BMIIBn66z1Yt8/N7uhsCdDwhagyCfQJ8Nzc5U=;
+	s=k20201202; t=1773838812;
+	bh=53y5Rybl/OajfsYtPp/FlPAeGf32v6tVDyjPu7HO1qo=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=XTZgRZzlw0NSOIjJGzHW1K+0LpUlU/6vcU66Fwy6pCneBUJUR0x0JBDlO99ZoNvUe
-	 nAKY7ASY5zoUVQ+sDydPp+lH0J3T9C/ltfc0cPpZwSXc2J8uU4g2zH3A8WAZSOi2eL
-	 ObfPCvIrOBlGWKARrAUc5XLjcmDw1vWp2fdVXommrZ9Fnxlxq1KJFsCmWk0DYC6gXh
-	 xR3Fw9ZGsg6n5TXsEkIGuXbvYXm8AUQtszwJ5RNvjgSA1Q3gmTuW8Ff4BGyD0ea77n
-	 BSc3hS8COK+IenLPNy3FnNsoLtCMm0moo40XzaP5Uu2YvrFgDSe1XDFwrdA7eYATVF
-	 cuRCG79UjQ+uw==
-Received: by mail-oo1-f47.google.com with SMTP id 006d021491bc7-67baf20e8c2so2176399eaf.3
-        for <linux-acpi@vger.kernel.org>; Wed, 18 Mar 2026 05:53:48 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCVFQ8CtE31AGeFeOjfH/ig5/ik5op49FgNGxuIVnM99i0wZ4/mIlcljkrxzlJbbCN/ypeWo1CajaFly@vger.kernel.org
-X-Gm-Message-State: AOJu0YygBL07xpNTPldqdlut1xkOpD7bTbxVvL2WXI2wXbrtrq9OrR/s
-	niWz19IVX2XTx9s3Uf2Cu50MX1quEAnh9Y8RbZn0dxRuimU0rHMgo2ZfX1zr6xfQOq/fvY9afaL
-	2oGfG6rd+/ztQPbMco3kek551QWdCeQc=
-X-Received: by 2002:a05:6820:4513:b0:67b:f775:e5fe with SMTP id
- 006d021491bc7-67c0db33831mr1779513eaf.65.1773838427822; Wed, 18 Mar 2026
- 05:53:47 -0700 (PDT)
+	b=qXJg26cfnHDUFe9/WmsMDToav67efuyh2gc8Ow3lf/1IJwzteaHe+J+e+1zlMfb9w
+	 KX3LK9H8KYL7xGoNeFt70QApITIKzwneWAN1nzTn47EHigR1i0rb/RJ53uJhSOWwYe
+	 mp9SDWqrhtdBgoTQKiWxSVwRFtasYgKVt043R5xbwVIthxEa2hG1l/nGecE0sid7FA
+	 tE35d5D+i/Ehi+tY01zCWwKMASlp9hkd0w2cAY//PUR/OnvtZsGOmd2KzptgQsDTUJ
+	 03PWgmp8K5c5pGLE5bdBq4Cojz9qtyGioacnkGhGD+xOSrFFLNif/rxPT5NUi1Zqc9
+	 9/jr4vvfxdq5Q==
+Received: by mail-oa1-f54.google.com with SMTP id 586e51a60fabf-40f1ffba6a0so4092040fac.0
+        for <linux-acpi@vger.kernel.org>; Wed, 18 Mar 2026 06:00:12 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCX26hEAFe886H6jd7OvI0lr3RPnkIGUO95l6zZxwxLXlxQ+86ED7IXGbgC556/aBGznV4bFGA401jlC@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxt0+pNgD+y0rJTVaBOM0XUmeqAdLk4LXLNPIFXiUOS4Rfu/7Xm
+	vMpF5G4SL1WxjFt7b+VNMdoP6QeXfV5InW/z0sunvpZY6BFW0GRHsxuW3rUxUAO9i1qNN83myzc
+	3c+qhfziw+3NDXx3jab3mQPoXB2f60B4=
+X-Received: by 2002:a05:6870:a550:b0:417:349c:dbb with SMTP id
+ 586e51a60fabf-41bd418b938mr2039961fac.34.1773838811632; Wed, 18 Mar 2026
+ 06:00:11 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <3616223.QJadu78ljV@rafael.j.wysocki> <4508640.ejJDZkT8p0@rafael.j.wysocki>
- <eb4ccb62-58fc-0d1b-7f74-2b1532448056@linux.intel.com>
-In-Reply-To: <eb4ccb62-58fc-0d1b-7f74-2b1532448056@linux.intel.com>
+References: <5113731.31r3eYUQgx@rafael.j.wysocki> <20260317164215.1766861-1-horms@kernel.org>
+In-Reply-To: <20260317164215.1766861-1-horms@kernel.org>
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Wed, 18 Mar 2026 13:53:36 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0gFpqG7+6v_zu+mo3GVP6MZfp+1QANj8y3=Tgx0WWnrfQ@mail.gmail.com>
-X-Gm-Features: AaiRm52vU7DS_lqLR0_tLDdq76IAK5B2x8EVwdqcdS6DPPolDuMGIpKErwEuE9A
-Message-ID: <CAJZ5v0gFpqG7+6v_zu+mo3GVP6MZfp+1QANj8y3=Tgx0WWnrfQ@mail.gmail.com>
-Subject: Re: [PATCH v1 2/3] platform/x86: panasonic-laptop: Register ACPI
- notify handler directly
-To: =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, LKML <linux-kernel@vger.kernel.org>, 
-	Linux ACPI <linux-acpi@vger.kernel.org>, Hans de Goede <hansg@kernel.org>, 
-	platform-driver-x86@vger.kernel.org, Kenneth Chan <kenneth.t.chan@gmail.com>
+Date: Wed, 18 Mar 2026 14:00:00 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0g9BinHfQDS6hUvVHdLxDPvbv7ck=m1Bqa=+C3iE+vgxw@mail.gmail.com>
+X-Gm-Features: AaiRm53NFD2R_-cERAXuUPAfz4g6VNAuEopKXOM-nBixvIxViuy0UGW1hWEzFN8
+Message-ID: <CAJZ5v0g9BinHfQDS6hUvVHdLxDPvbv7ck=m1Bqa=+C3iE+vgxw@mail.gmail.com>
+Subject: Re: [v1] net: fjes: Drop fjes_acpi_driver and rework initialization
+To: Simon Horman <horms@kernel.org>
+Cc: rafael@kernel.org, linux-acpi@vger.kernel.org, netdev@vger.kernel.org, 
+	pabeni@redhat.com, kuba@kernel.org, edumazet@google.com, 
+	andrew+netdev@lunn.ch, linux-kernel@vger.kernel.org, davem@davemloft.net
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Mar 17, 2026 at 6:35=E2=80=AFPM Ilpo J=C3=A4rvinen
-<ilpo.jarvinen@linux.intel.com> wrote:
+On Tue, Mar 17, 2026 at 5:43=E2=80=AFPM Simon Horman <horms@kernel.org> wro=
+te:
 >
-> On Thu, 12 Mar 2026, Rafael J. Wysocki wrote:
+> This is an AI-generated review of your patch. The human sending this
+> email has considered the AI review valid, or at least plausible.
 >
-> > From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+> For local reproduction steps see https://netdev-ai.bots.linux.dev/ai-loca=
+l.html
+> ---
+> net: fjes: Drop fjes_acpi_driver and rework initialization
+>
+> This commit reworks the Fujitsu Extended Socket (fjes) Network Device
+> driver initialization by removing the ACPI driver interface and
+> creating the platform device directly during module initialization.
+>
+> Link: https://lore.kernel.org/all/2396510.ElGaqSPkdT@rafael.j.wysocki/ [1=
+]
+>
+> > diff --git a/drivers/net/fjes/fjes_main.c b/drivers/net/fjes/fjes_main.=
+c
+> > index b63965d9a1ba..efb399eb15e0 100644
+> > --- a/drivers/net/fjes/fjes_main.c
+> > +++ b/drivers/net/fjes/fjes_main.c
+>
+> [ ... ]
+>
+> > @@ -1518,16 +1506,7 @@ static int __init fjes_init_module(void)
+> >               return result;
+> >       }
 > >
-> > To facilitate subsequent conversion of the driver to a platform one,
-> > make it install an ACPI notify handler directly instead of using
-> > a .notify() callback in struct acpi_driver.
-> >
-> > No intentional functional impact.
-> >
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > ---
-> >  drivers/platform/x86/panasonic-laptop.c | 20 +++++++++++++++-----
-> >  1 file changed, 15 insertions(+), 5 deletions(-)
-> >
-> > diff --git a/drivers/platform/x86/panasonic-laptop.c b/drivers/platform=
-/x86/panasonic-laptop.c
-> > index 64195ff0f40e..4bd83b987761 100644
-> > --- a/drivers/platform/x86/panasonic-laptop.c
-> > +++ b/drivers/platform/x86/panasonic-laptop.c
-> > @@ -185,7 +185,7 @@ enum SINF_BITS { SINF_NUM_BATTERIES =3D 0,
-> >
-> >  static int acpi_pcc_hotkey_add(struct acpi_device *device);
-> >  static void acpi_pcc_hotkey_remove(struct acpi_device *device);
-> > -static void acpi_pcc_hotkey_notify(struct acpi_device *device, u32 eve=
-nt);
-> > +static void acpi_pcc_hotkey_notify(acpi_handle handle, u32 event, void=
- *data);
-> >
-> >  static const struct acpi_device_id pcc_device_ids[] =3D {
-> >       { "MAT0012", 0},
-> > @@ -208,7 +208,6 @@ static struct acpi_driver acpi_pcc_driver =3D {
-> >       .ops =3D          {
-> >                               .add =3D          acpi_pcc_hotkey_add,
-> >                               .remove =3D       acpi_pcc_hotkey_remove,
-> > -                             .notify =3D       acpi_pcc_hotkey_notify,
-> >                       },
-> >       .drv.pm =3D       &acpi_pcc_hotkey_pm,
-> >  };
-> > @@ -869,9 +868,9 @@ static void acpi_pcc_generate_keyinput(struct pcc_a=
-cpi *pcc)
-> >               pr_err("Unknown hotkey event: 0x%04llx\n", result);
+> > -     result =3D acpi_bus_register_driver(&fjes_acpi_driver);
+> > -     if (result < 0)
+> > -             goto fail_acpi_driver;
+> > -
+> >       return 0;
+> > -
+> > -fail_acpi_driver:
+> > -     platform_driver_unregister(&fjes_driver);
+> > -     fjes_dbg_exit();
+> > -     return result;
 > >  }
-> >
-> > -static void acpi_pcc_hotkey_notify(struct acpi_device *device, u32 eve=
-nt)
-> > +static void acpi_pcc_hotkey_notify(acpi_handle handle, u32 event, void=
- *data)
-> >  {
-> > -     struct pcc_acpi *pcc =3D acpi_driver_data(device);
-> > +     struct pcc_acpi *pcc =3D data;
-> >
-> >       switch (event) {
-> >       case HKEY_NOTIFY:
-> > @@ -1073,13 +1072,18 @@ static int acpi_pcc_hotkey_add(struct acpi_devi=
-ce *device)
-> >       if (result)
-> >               goto out_backlight;
-> >
-> > +     result =3D acpi_dev_install_notify_handler(device, ACPI_DEVICE_NO=
-TIFY,
-> > +                                              acpi_pcc_hotkey_notify, =
-pcc);
-> > +     if (result)
-> > +             goto out_sysfs;
-> > +
-> >       /* optical drive initialization */
-> >       if (ACPI_SUCCESS(check_optd_present())) {
-> >               pcc->platform =3D platform_device_register_simple("panaso=
-nic",
-> >                       PLATFORM_DEVID_NONE, NULL, 0);
-> >               if (IS_ERR(pcc->platform)) {
-> >                       result =3D PTR_ERR(pcc->platform);
-> > -                     goto out_sysfs;
-> > +                     goto out_notify_handler;
-> >               }
-> >               result =3D device_create_file(&pcc->platform->dev,
-> >                       &dev_attr_cdpower);
-> > @@ -1095,6 +1099,9 @@ static int acpi_pcc_hotkey_add(struct acpi_device=
- *device)
-> >
-> >  out_platform:
-> >       platform_device_unregister(pcc->platform);
-> > +out_notify_handler:
-> > +     acpi_dev_remove_notify_handler(device, ACPI_DEVICE_NOTIFY,
-> > +                                    acpi_pcc_hotkey_notify);
-> >  out_sysfs:
-> >       sysfs_remove_group(&device->dev.kobj, &pcc_attr_group);
-> >  out_backlight:
-> > @@ -1123,6 +1130,9 @@ static void acpi_pcc_hotkey_remove(struct acpi_de=
-vice *device)
-> >
-> >       sysfs_remove_group(&device->dev.kobj, &pcc_attr_group);
-> >
-> > +     acpi_dev_remove_notify_handler(device, ACPI_DEVICE_NOTIFY,
-> > +                                    acpi_pcc_hotkey_notify);
-> > +
 >
-> This diverges from the setup order. Is that intentional? (I can see the
-> current order is not exactly reverse of the setup order but it still
-> looks it's possible to place the added remove call better than here.)
+> In fjes_init_module(), if platform_driver_register() fails, does this
+> leak the platform device?
 >
-> This driver also likely has pre-existing rollback problems related to
-> pcc_register_optd_notifier/pcc_unregister_optd_notifier().
+> Looking at the new code, the platform device is successfully registered
+> earlier in the function:
+>
+>         fjes_plat_dev =3D platform_device_register_full(&pdevinfo);
+>         ...
+>         if (IS_ERR(fjes_plat_dev))
+>                 return PTR_ERR(fjes_plat_dev);
+>
+>         ...
+>         result =3D platform_driver_register(&fjes_driver);
+>
+> But when platform_driver_register() fails, the error path only calls
+> fjes_dbg_exit() and returns:
+>
+>         result =3D platform_driver_register(&fjes_driver);
+>         if (result < 0) {
+>                 fjes_dbg_exit();
+>                 return result;
+>         }
+>
+> Since the module init fails, fjes_exit_module() will never run, so
+> the platform_device_unregister() call there won't happen either. Should
+> the error path call platform_device_unregister(fjes_plat_dev) before
+> returning?
 
-So it would be good to fix them while at it.
+Yes, it should.
 
-OK, I'll have a look.
-
-> >       backlight_device_unregister(pcc->backlight);
-> >
-> >       input_unregister_device(pcc->input_dev);
-> >
->
-> --
->  i.
->
+I'll send a v2, thanks!
