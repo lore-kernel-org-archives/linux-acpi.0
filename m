@@ -1,80 +1,69 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.20])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4808F3806D9;
-	Wed, 18 Mar 2026 09:06:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.20
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63D64378D68;
+	Wed, 18 Mar 2026 09:10:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.21
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773824814; cv=none; b=WiHAnvIZuhqlEgWJWw40e15wIlpjcIE+t6d9Ye9NH/tpIfQ+IwDGb+coSvQtu4sTNTi5oM6X0wM1XZ5MJ4uVyhBqxDMVBBXC8p/dbZlWtDjRIj35ftzV/Bi57l3ZKB/Vv1qWJITADFGITw/c4A3f2B4XZPgolp4nMPAEm316wLg=
+	t=1773825055; cv=none; b=Z5FXxKhfwxcGCefcf9Qb4f5kiipzCwz1CKPKM8JWNlcEahoulGHsb4dQrNDzD+yHA8ScxwTAfi+g/Kd5Wzbg17TONgRDLkHZRUjBjPoVlyDnACh5DQB/fXmdrLNbdCCUOeH4Mx2JKHzwKFLfTn6JBkS9rgGyb5z1vCCqoOwqJh0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773824814; c=relaxed/simple;
-	bh=OOpz2QLVOMmh9KY2GRGxQ6h+0tnAzCc8jxynqR/fL8c=;
+	s=arc-20240116; t=1773825055; c=relaxed/simple;
+	bh=GZebvHnV6bKQuxD9ODAdxhQzyPBqkYUTroV1QQoz7pk=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Rf4bEBjizwgm8EdOcW3auquIs8OkwfzXAOrXJ2LE94C53ZO64cj1ie2Vrh4/ry1uxGb7Q8xAlL0sgHfCfYSv9uUaVJFr8QHDl12nQTurJUwUcGmuJSvHpWsbqF8RlxhM+eFe3osVfj6A+9qr3n5zdxyEZ814q8OTxJ8tTSPvdNE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=VLY1dV3s; arc=none smtp.client-ip=198.175.65.20
+	 Content-Type:Content-Disposition:In-Reply-To; b=alXJ39QNZrUf3oaz6fy52b3+7e9klofJU4ohprXJmjhzbrutgmXO9EVcPfbLQxIGuGy4K/R4j1f5i/EVlQC9HQIhcD610JYqmBHr4LeMKoOhGxre/J/InLjzNWg+EU0MCE4wwRNj2gFATiwVVMKzuyehRQ4a4ZS0Imf2jDaSX5A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=cxHJ+rMV; arc=none smtp.client-ip=198.175.65.21
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="VLY1dV3s"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="cxHJ+rMV"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1773824813; x=1805360813;
+  t=1773825055; x=1805361055;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=OOpz2QLVOMmh9KY2GRGxQ6h+0tnAzCc8jxynqR/fL8c=;
-  b=VLY1dV3sVmWq3gJTWrFSVViPbCnFtyc2GcbLiLD3QqGf5w9n7Tn/sjAg
-   BUbeOdkvfd6Nx8zNp/gLZ/ImnLRD4i3DZNp6sbg6Y5Vn8FOemBvk/Cz1v
-   yDswofBEh6LvGKlVOtV0BDHue5yd++YjKZcJtsbiDXfBM34gEPZ5oIrTU
-   xHRdH3xVbQkIb+rtH3Z5H0xW/qFTyz9pI1QrW77YMNvAzXUZOnoL/IDjk
-   tajQ2tEK0V26vaghBKQ6bbw+koMb9we5D5EswiVCrWldwRgVjI7IIDYIh
-   AJBuEGs7lrQkl+LhOQ0sUQNUes8mPZI84tEvgFWrSeL9BpM57/Mh4WGgh
+  bh=GZebvHnV6bKQuxD9ODAdxhQzyPBqkYUTroV1QQoz7pk=;
+  b=cxHJ+rMVXlt/emfJdHmUc+YvdiPJ8wPLUH+NxA+8VaABEj/5tqp390yN
+   LqPYv/w1aBdV0TF9JA/LpaMIkQKBqB55kMz/8EiMyvCgb1B3ml2o/OGy4
+   bqdwk9Kw1TROhrVMaiiPAs5B2d5QxDCUYdkDMg8aSgVbIuIgwKmIxvhq6
+   FIqul+NMdOu1RSjDk5U2rC0XntxJsZWDceeUZUB4XMY8rH5j24VpGVIyc
+   9YitSU3VWbHlE2m0Vk1k4igh+T/afvHdBeD+euTdrV1Jz6QgNIQHUC+/v
+   lk0NIm2aESnRfrFeS/gt/QEMmcvlWwEcKaoIUJe0zZukl5WsP4EjAWnyA
    A==;
-X-CSE-ConnectionGUID: R4xC4tmMTU28wQFRZ0zGew==
-X-CSE-MsgGUID: IqpuriG9S2yAIoES04+teA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11732"; a="74573983"
+X-CSE-ConnectionGUID: 5RGvkxXMSEe6L2FpehFlQw==
+X-CSE-MsgGUID: CMmw1qCSSUu55B7NFVNQ9g==
+X-IronPort-AV: E=McAfee;i="6800,10657,11732"; a="74761055"
 X-IronPort-AV: E=Sophos;i="6.23,127,1770624000"; 
-   d="scan'208";a="74573983"
-Received: from orviesa002.jf.intel.com ([10.64.159.142])
-  by orvoesa112.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Mar 2026 02:06:53 -0700
-X-CSE-ConnectionGUID: bGaVs8xpTUCoR2u709K5aQ==
-X-CSE-MsgGUID: hk9DpRDxSG2N5wW8ulwWpw==
+   d="scan'208";a="74761055"
+Received: from orviesa009.jf.intel.com ([10.64.159.149])
+  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Mar 2026 02:10:54 -0700
+X-CSE-ConnectionGUID: NqXufR+ITkecUfHjPs8a+Q==
+X-CSE-MsgGUID: ogVqzuMZT1WGHukMnkcuTw==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.23,127,1770624000"; 
-   d="scan'208";a="253045856"
-Received: from pgcooper-mobl3.ger.corp.intel.com (HELO localhost) ([10.245.245.240])
-  by orviesa002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Mar 2026 02:06:44 -0700
-Date: Wed, 18 Mar 2026 11:06:41 +0200
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>,
-	Douglas Anderson <dianders@chromium.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J . Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>, stable@vger.kernel.org,
-	Andrew Lunn <andrew@lunn.ch>, Daniel Scally <djrscally@gmail.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Fabio Estevam <festevam@gmail.com>, Frank Li <Frank.Li@nxp.com>,
+   d="scan'208";a="222541913"
+Received: from rvuia-mobl.ger.corp.intel.com (HELO kekkonen.fi.intel.com) ([10.245.245.243])
+  by orviesa009-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Mar 2026 02:10:51 -0700
+Received: from kekkonen.localdomain (localhost [IPv6:::1])
+	by kekkonen.fi.intel.com (Postfix) with SMTP id 34D8A11F8A0;
+	Wed, 18 Mar 2026 11:10:49 +0200 (EET)
+Date: Wed, 18 Mar 2026 11:10:49 +0200
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6 krs, Bertel Jungin Aukio 5, 02600 Espoo
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, driver-core@lists.linux.dev,
+	linux-kernel@vger.kernel.org, Daniel Scally <djrscally@gmail.com>,
 	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Heiner Kallweit <hkallweit1@gmail.com>,
-	Jakub Kicinski <kuba@kernel.org>, Len Brown <lenb@kernel.org>,
-	Mark Brown <broonie@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Pengutronix Kernel Team <kernel@pengutronix.de>,
-	Rob Herring <robh@kernel.org>, Russell King <linux@armlinux.org.uk>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Saravana Kannan <saravanak@kernel.org>,
-	Sascha Hauer <s.hauer@pengutronix.de>, devicetree@vger.kernel.org,
-	driver-core@lists.linux.dev, imx@lists.linux.dev,
-	linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-spi@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH] device property: Make modifications of fwnode "flags"
- thread safe
-Message-ID: <abprIZ4_LUScJrSd@ashevche-desk.local>
-References: <20260316154159.1.I0a4d03104ecd5103df3d76f66c8d21b1d15a2e38@changeid>
- <abkCPU3rxHI49N4_@shikoro>
- <abkD-VLprcbbEbB1@ashevche-desk.local>
- <CAMuHMdVX4tfko8iv-EdwO-bBcwCd+cPkb9aP8qJbcM1F4zdz4g@mail.gmail.com>
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Guenter Roeck <linux@roeck-us.net>
+Subject: Re: [PATCH v1 1/1] device property: Document how to check for the
+ property presence
+Message-ID: <abpsGfkitsXuWKb4@kekkonen.localdomain>
+References: <20260317210828.2117631-1-andriy.shevchenko@linux.intel.com>
+ <abnVTODs9fOqF9eV@kekkonen.localdomain>
+ <abpcT5Yqfi5_SjKR@ashevche-desk.local>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -83,59 +72,54 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAMuHMdVX4tfko8iv-EdwO-bBcwCd+cPkb9aP8qJbcM1F4zdz4g@mail.gmail.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+In-Reply-To: <abpcT5Yqfi5_SjKR@ashevche-desk.local>
 
-On Wed, Mar 18, 2026 at 09:41:44AM +0100, Geert Uytterhoeven wrote:
-> On Tue, 17 Mar 2026 at 08:34, Andy Shevchenko
-> <andriy.shevchenko@linux.intel.com> wrote:
-> > On Tue, Mar 17, 2026 at 08:26:53AM +0100, Wolfram Sang wrote:
+Hi Andy,
 
-...
-
-> > > Thanks for tackling this issue! I agree it should be fixed, just
-> > > wondered about one thing:
-> > >
-> > > > While flags are often modified while under the "fwnode_link_lock",
-> > > > this is not universally true.
-> > >
-> > > Is it a possibility to use the lock in all code paths instead?
-> > > Because...
-> > >
-> > > >     struct list_head consumers;
-> > > > -   u8 flags;
-> > > > +   unsigned long flags;
-> > >
-> > > ... this change costs some memory on every system. Maybe it can be
-> > > avoided?
-> >
-> > How much memory does it cost? On most 64-bit architectures is +4 bytes,
-> > rarely +0 bytes, on m68k it might be +2bytes. On 32-bit it most likely
-> > +0 bytes. I expect that 64-bit machines will cope with this bump.
+On Wed, Mar 18, 2026 at 10:03:27AM +0200, Andy Shevchenko wrote:
+> On Wed, Mar 18, 2026 at 12:27:24AM +0200, Sakari Ailus wrote:
+> > On Tue, Mar 17, 2026 at 10:08:28PM +0100, Andy Shevchenko wrote:
 > 
-> On all architectures with natural alignment of pointers and longs,
-> it won't cost a thing: struct list_head contains pointers, so the
-> struct must be padded to a multiple of 4 or 8 bytes anyway.
-> On m68k[*],  it will cost 2 bytes, as the existing padding is just a
-> single byte.
+> ...
 > 
-> [*] Iff m68k ever switches to 32-bit alignment, there won't be an
->     additional cost due to the change of flags here, but of course
->     there would be a cost all over the place.
+> > > + * In order to check for the property presence, use device_property_present().
+> > 
+> > Do you really think we should add this clause for each of these functions?
+> 
+> Yes, as Guenter pointed out that this has to be documented clearly.
+> 
+> > I don't think it belongs here.
+> 
+> And? What should we do then (taking into account my below comments)?
+> 
+> > The error code list doesn't document what is returned if a property doesn't
+> > exist (-EINVAL) and it'd be helpful to add this.
+> 
+> No, this change is exactly against this. Because using an error code that may
+> cover not only that case is at bare minimum fragile and layering violation.
+> APIs that require to know the implementation details are not good APIs.
 
-Thanks!
+I have to say I disagree with that, there's nothing wrong with checking
+error codes if you need to.
 
-Yes, the worst case is 64-bit architecture with 4-byte alignment. This
-will cost +4 bytes.
+Either way, I checked the original patch. If you really think you need to
+check for property presence and use default in the case the property isn't
+found and error out on other errors, add helper functions for the purpose
+instead of open-coding it all.
 
-But I think we are really wasting time on this part of the discussion
-(and any similar) as long as nobody targets struct device or any other
-BIG FAT data type, that will bring much more benefit than saving 4 bytes
-in some struct fwnode_handle.
+> 
+> > It would have been best to have a separate error code for this albeit
+> > changing this now might not be that troublesome either: very, very few
+> > callers depend on receiving such an error code but there are still many
+> > callers.
+> 
+> I'm against this because we have already a dedicated API to check for property
+> presence, why do we need to have another (confusing!) way of doing the same?
+> 
+> Having a dedicated code may help to debug, but shouldn't be used as a main
+> feature in my opinion.
 
 -- 
-With Best Regards,
-Andy Shevchenko
+Regards,
 
-
+Sakari Ailus
