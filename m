@@ -1,174 +1,141 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.18])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.9])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16F833DA5A2;
-	Wed, 18 Mar 2026 14:16:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25BF73C5DDF;
+	Wed, 18 Mar 2026 14:24:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.9
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773843371; cv=none; b=lLA6iQfOk1NcYvCdQUEhQqS2bShBAguSfIQbYi4UdYS7MJwEE0cR25SC+Q0Ph86EV4zIUJ+qIgB5yd7yAQm2vMbiHvkLu9S1erCP2wVFAp4GTYQ9J/3IZ9BHeuiw1LF+JswZV2c8B39dLZBWSWbNAfigKVLtsgdO3StmKIOHWb8=
+	t=1773843854; cv=none; b=b0dkVipPb1X9yRRWw6T/o1LzxG4C7LLljoJNW6WfCTAang8/k8xb/6cFrd70QiIbndCgPK0Jb4eUIggHXSLEZIkmJmAGPaSPBlQ8qU/DDaK1f4yNLtAOKTZ7rujsBpW2ENOx5CelmqnIlSqB7Yy8E4ls2N6sphA02CY1919Dl5A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773843371; c=relaxed/simple;
-	bh=c5Uce+pPSJFdL8hXtYdk2wMgWKHB2CNrPLxAl3FMHik=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Y7ImG3nV6PC9herUOZb3T0wCgn8yNgT+eT+EJSQVj0jQriUkThiwUtRY9iInHGFSCCPWARi4sClvlzvBrWsnQrM3Mqlle315AMdlfB/+km6kW9F5+eeFTZ3Yfm5hT8HJnq17sNyKvqz1Hj417RDc4WitgVYA0Jx7Zn8uXX/Wo6M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=fE0sDGvf; arc=none smtp.client-ip=198.175.65.18
+	s=arc-20240116; t=1773843854; c=relaxed/simple;
+	bh=pugTX89iJRjbHjTU0WAVgbPEN3I3RiY1egvayprlrg8=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=tOcJbv0uTY5IggzokFMOvjKvkZaQvpI2jZOrwDHH0yk1wK5GRvarqfCVIfUTGFXTto890huEGLe1u1Q57faPhbUy7/PwSUmdlwoCVb8EHm+zftLEq3gMy8LvJry87hsHCqlJUOZ0Oql3idEshqPcu4FtJI5yE0fLOfqjFqbuNWg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=jb41noOa; arc=none smtp.client-ip=192.198.163.9
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="fE0sDGvf"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="jb41noOa"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1773843371; x=1805379371;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=c5Uce+pPSJFdL8hXtYdk2wMgWKHB2CNrPLxAl3FMHik=;
-  b=fE0sDGvfos7Rnx+fj8XvPEWh/ERzihbIr3Numj92bTGD7AsFRfVRen9C
-   +7vXVAHTRaqPZuhLntQkzNGMLN750Y3sE1DbcDf8+dI6cob3kxv7FBBS1
-   QXMhv9cD+gBhgv65S3hnAW31+nqp7O5aUri6rrh4wNsYKJaDgZ4DK262A
-   BcdtbgFZu1VVzHyw/oow8cOoFpyALD3dMF8yExyOGObw2HkBXvOS13wz4
-   7je5zE4T5ilAWgvCRXF+7TsSn+aNQk4+GMFX510MNPEY118KBnTDHl+81
-   It5RtECSMd0zux7j5ZmxOQeLycbQboWFGk4Sn2K4F/nXSNS1XD1hD7PJo
-   A==;
-X-CSE-ConnectionGUID: ThZwkcC6SNiC5+69OW01SQ==
-X-CSE-MsgGUID: lJ5qeVfnSjyemP1oWsnqIA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11733"; a="74928906"
+  t=1773843852; x=1805379852;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=pugTX89iJRjbHjTU0WAVgbPEN3I3RiY1egvayprlrg8=;
+  b=jb41noOaPzVl1zkvjwflVjHctzzpxD96f/Vg2mrcLCDO/928ZmEMruT/
+   h5pm4zYnnzCqfGaK6kLLw3WNMSAkUC8jSHkxawZ945Ms02S4xOIH8eT/6
+   FVvrgoIiFkZ6bI3xqLjkQD9SeH66yZplLLS3SOLceAYiFkNL+4S3cCdLu
+   8obByBl9w3FUog30OiSGA44PunkJ1+7ALSk4B3Vn0vkxdOrAgLoITj2u4
+   R2ykzAw360Y70qQplvdXvYGE+d1np+PTPOZo+RbRVhcvgGlzuDvX4bago
+   zDsjcKmZcXxNthrdKrZ13CwILbPYI9lwIwrhMqTYyNcVdRJQ6kR5Y8TLt
+   w==;
+X-CSE-ConnectionGUID: FwSj5o9cSQ+FPo98gY+/dA==
+X-CSE-MsgGUID: Bws4KGnFReOteW4e9azlqA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11733"; a="85598053"
 X-IronPort-AV: E=Sophos;i="6.23,127,1770624000"; 
-   d="scan'208";a="74928906"
-Received: from orviesa008.jf.intel.com ([10.64.159.148])
-  by orvoesa110.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Mar 2026 07:16:10 -0700
-X-CSE-ConnectionGUID: frawAoCnRYq9MjJwCT2OvQ==
-X-CSE-MsgGUID: LrnsiYcATOOle57CLAZDKQ==
+   d="scan'208";a="85598053"
+Received: from orviesa001.jf.intel.com ([10.64.159.141])
+  by fmvoesa103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Mar 2026 07:24:12 -0700
+X-CSE-ConnectionGUID: s7V3ewFLS5a4q7ReC+aijQ==
+X-CSE-MsgGUID: T/wVz5kvR/28R1O2vSV/HQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.23,127,1770624000"; 
-   d="scan'208";a="222699304"
-Received: from pgcooper-mobl3.ger.corp.intel.com (HELO localhost) ([10.245.245.240])
-  by orviesa008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Mar 2026 07:16:07 -0700
-Date: Wed, 18 Mar 2026 16:16:04 +0200
+   d="scan'208";a="260544997"
+Received: from black.igk.intel.com ([10.91.253.5])
+  by orviesa001.jf.intel.com with ESMTP; 18 Mar 2026 07:24:08 -0700
+Received: by black.igk.intel.com (Postfix, from userid 1003)
+	id 6B4CD99; Wed, 18 Mar 2026 15:24:07 +0100 (CET)
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, driver-core@lists.linux.dev,
-	linux-kernel@vger.kernel.org, Daniel Scally <djrscally@gmail.com>,
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	linux-acpi@vger.kernel.org,
+	driver-core@lists.linux.dev,
+	linux-kernel@vger.kernel.org
+Cc: Daniel Scally <djrscally@gmail.com>,
 	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
 	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
 	"Rafael J. Wysocki" <rafael@kernel.org>,
 	Danilo Krummrich <dakr@kernel.org>,
 	Geert Uytterhoeven <geert@linux-m68k.org>,
+	devicetree@vger.kernel.org,
 	Guenter Roeck <linux@roeck-us.net>
-Subject: Re: [PATCH v1 1/1] device property: Document how to check for the
- property presence
-Message-ID: <abqzpC4hAhdWUa0b@ashevche-desk.local>
-References: <20260317210828.2117631-1-andriy.shevchenko@linux.intel.com>
- <abnVTODs9fOqF9eV@kekkonen.localdomain>
- <abpcT5Yqfi5_SjKR@ashevche-desk.local>
- <abpsGfkitsXuWKb4@kekkonen.localdomain>
- <abpzZfYBPdM4AzLP@ashevche-desk.local>
- <abqL5PnqGNQ-6Zhc@kekkonen.localdomain>
+Subject: [PATCH v2 1/1] device property: Document how to check for the property presence
+Date: Wed, 18 Mar 2026 15:21:40 +0100
+Message-ID: <20260318142404.2526642-1-andriy.shevchenko@linux.intel.com>
+X-Mailer: git-send-email 2.50.1
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <abqL5PnqGNQ-6Zhc@kekkonen.localdomain>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+Content-Transfer-Encoding: 8bit
 
-On Wed, Mar 18, 2026 at 01:26:28PM +0200, Sakari Ailus wrote:
-> On Wed, Mar 18, 2026 at 11:41:57AM +0200, Andy Shevchenko wrote:
-> > On Wed, Mar 18, 2026 at 11:10:49AM +0200, Sakari Ailus wrote:
-> > > On Wed, Mar 18, 2026 at 10:03:27AM +0200, Andy Shevchenko wrote:
-> > > > On Wed, Mar 18, 2026 at 12:27:24AM +0200, Sakari Ailus wrote:
-> > > > > On Tue, Mar 17, 2026 at 10:08:28PM +0100, Andy Shevchenko wrote:
+Currently it's unclear if one may or may not rely on the error codes
+returned from the property getters to check for the property presence.
+Clarify this by updating kernel-doc for fwnode_property_*() and
+device_property_*() where it's applicable.
 
-...
+Reported-by: Guenter Roeck <linux@roeck-us.net>
+Closes: https://lore.kernel.org/r/4b24f1f4-b395-467a-81b7-1334a2d48845@roeck-us.net
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
 
-> > > > > > + * In order to check for the property presence, use device_property_present().
-> > > > > 
-> > > > > Do you really think we should add this clause for each of these functions?
-> > > > 
-> > > > Yes, as Guenter pointed out that this has to be documented clearly.
-> > > > 
-> > > > > I don't think it belongs here.
-> > > > 
-> > > > And? What should we do then (taking into account my below comments)?
-> > > > 
-> > > > > The error code list doesn't document what is returned if a property doesn't
-> > > > > exist (-EINVAL) and it'd be helpful to add this.
-> > > > 
-> > > > No, this change is exactly against this. Because using an error code that may
-> > > > cover not only that case is at bare minimum fragile and layering violation.
-> > > > APIs that require to know the implementation details are not good APIs.
-> > > 
-> > > I have to say I disagree with that,
-> > 
-> > And I definitely disagree with tribal knowledge based (implementation details
-> > as it's not properly documented and can't, because -EINVAL is overloaded) and
-> > confusing approach that is in use and may be amended.
-> 
-> In general it's a good idea to document API functions' return values. It
-> certainly won't add to confusion, will it?
+In v2:
+- dropped "In order to ..." in *_property_read_*() docs (Sakari)
+- replaced 'correct' with 'unambiguous' in the doc for *_property_present()
+- fixed Closes link (Geert)
+- Cc'ed to DT (Geert)
 
-No, but it's already documented. -EINVAL is for "invalid parameters". Of course
-one may describe that it's not only that, but also property not present and
-possibly other cases hidden deeper in the stack of the backend functions. This
-will just show my point, that -EINVAL is not guaranteed to be unique for the
-purpose.
+ drivers/base/property.c | 14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
 
-> > > there's nothing wrong with checking
-> > > error codes if you need to.
-> > 
-> > If that error code defines the case. Here we have not a such.
-> > 
-> > The wrong parameter to the function will lead to the same error code
-> > which is simply wrong.
-> > 
-> > > Either way, I checked the original patch. If you really think you need to
-> > > check for property presence and use default in the case the property isn't
-> > > found and error out on other errors, add helper functions for the purpose
-> > > instead of open-coding it all.
-> > 
-> > You mean adding 20+ helpers (at least 5 for arrays, 5 for single element,
-> > and doubled for device_/fwnode_) ?! This sounds like way over verbose
-> > approach.
-> 
-> It's still better than open coding this where differentiating behaviour is
-> desired. You'd probably need a few macros to generate the functions for
-> each type needed.
-
-There are not so many cases, and actually in some of them open coded variant
-suits very well. I do not see enough justification in adding those helpers.
-
-> > > > > It would have been best to have a separate error code for this albeit
-> > > > > changing this now might not be that troublesome either: very, very few
-> > > > > callers depend on receiving such an error code but there are still many
-> > > > > callers.
-> > > > 
-> > > > I'm against this because we have already a dedicated API to check for property
-> > > > presence, why do we need to have another (confusing!) way of doing the same?
-> > > > 
-> > > > Having a dedicated code may help to debug, but shouldn't be used as a main
-> > > > feature in my opinion.
-> > 
-> > I will send a next version of this patch touching only the present/bool functions.
-> 
-> Sounds good.
-> 
-> I'd also drop this from the patch
-> 
-> + * This function is the correct way to check that given property is present
-> + * in the firmware node description.
-> 
-> as redundant.
-
-Then it will be no sense in the patch, will it be? The whole point is to clarify
-how one should use API when the desire is to detect if property is present or not.
-
-So, I send my v2 as I see it useful. Then you can NAK it at your wish.
-
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index 8d9a34be57fb..d16e9c5f1921 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -38,6 +38,8 @@ EXPORT_SYMBOL_GPL(__dev_fwnode_const);
+  * @propname: Name of the property
+  *
+  * Check if property @propname is present in the device firmware description.
++ * This function is the unambiguous way to check that given property is present
++ * in the device firmware description.
+  *
+  * Return: true if property @propname is present. Otherwise, returns false.
+  */
+@@ -52,6 +54,10 @@ EXPORT_SYMBOL_GPL(device_property_present);
+  * @fwnode: Firmware node whose property to check
+  * @propname: Name of the property
+  *
++ * Check if property @propname is present in the firmware node description.
++ * This function is the unambiguous way to check that given property is present
++ * in the firmware node description.
++ *
+  * Return: true if property @propname is present. Otherwise, returns false.
+  */
+ bool fwnode_property_present(const struct fwnode_handle *fwnode,
+@@ -75,9 +81,9 @@ EXPORT_SYMBOL_GPL(fwnode_property_present);
+  * @dev: Device whose property is being checked
+  * @propname: Name of the property
+  *
+- * Return if property @propname is true or false in the device firmware description.
++ * Use device_property_present() to check for the property presence.
+  *
+- * Return: true if property @propname is present. Otherwise, returns false.
++ * Return: if property @propname is true or false in the device firmware description.
+  */
+ bool device_property_read_bool(const struct device *dev, const char *propname)
+ {
+@@ -90,7 +96,9 @@ EXPORT_SYMBOL_GPL(device_property_read_bool);
+  * @fwnode: Firmware node whose property to check
+  * @propname: Name of the property
+  *
+- * Return if property @propname is true or false in the firmware description.
++ * Use fwnode_property_present() to check for the property presence.
++ *
++ * Return: if property @propname is true or false in the firmware node description.
+  */
+ bool fwnode_property_read_bool(const struct fwnode_handle *fwnode,
+ 			     const char *propname)
 -- 
-With Best Regards,
-Andy Shevchenko
-
+2.50.1
 
