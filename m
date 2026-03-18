@@ -1,347 +1,131 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from PH7PR06CU001.outbound.protection.outlook.com (mail-westus3azon11010067.outbound.protection.outlook.com [52.101.201.67])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80D792AEF5;
-	Wed, 18 Mar 2026 03:34:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773804877; cv=none; b=Q4IuCanYJv1fHlHyoycZY08YL6Lb/q22aFSFz0c+INMb1eAniGT7s5wMml1yLvrl4ory0jey5vrvbOu/pMTpdRmM6CQAdIgdltf3QDJaiyhgwbVSysywByPloRr0PETISyaZkXCwmZ6qaOdoBQO4fT1fGIVBoAyifZWpTp//q5g=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773804877; c=relaxed/simple;
-	bh=/2/SBIzIdR3PZ4M8jjOi91iS4jaETueAP3+eBIV8ysM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=JcbO2COTLABQRCkXEJuedXwrjaVt4d6ijSwayESkiRcxc7tbEHaEGqGbRwbBHrAawq03GQYE+ZrMvtxzp0pBQGoo64TTxUqsa+cwx2A1y0/c+mIAeb7IIIt3h+mVQT7Z2t1jq/E68+sToDJGcejsqpx/EP/+YoCi8j+NvqLNq74=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZB9Q99Ul; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03D4713635E;
+	Wed, 18 Mar 2026 03:50:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.201.67
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1773805842; cv=fail; b=D8Xk5zz1fC23r9sBOzHangx7P4oX5EImWDuvJy9oHbMgkzyzmpc6oIbz4pJ4OSEo/3s2NmzEkaTRTTb2NKsE76cE3dRyuTH5b3igBy6AMuQ2Ai8MgnRHFCCG/pT9nc28wljxsWxZZuXBldZZZ3/pM5kByEUnXeemG+d5dd9NkTw=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1773805842; c=relaxed/simple;
+	bh=rX91nvyUMkJwOpsFCOawPaaTZh43vqJ/aarCje9DRYY=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=oAWKS6dgTDAdbMeKRh8q29VrL6+9daOT+tgl6zF26xB5VqZdcJeZFgAbaUupgSWiYfykyoH0DOz2ac5zPGg9ujsfS2gAeHFZQ3lePSRsmXyHDgSvamP8AjaDvji2M5mVFFiQygbVXzBzJfO+Qe80o5zL6ikGKFGigCPSUG0V6Bc=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=NDlHD0+p; arc=fail smtp.client-ip=52.101.201.67
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZB9Q99Ul"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C11DCC19421;
-	Wed, 18 Mar 2026 03:34:28 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773804877;
-	bh=/2/SBIzIdR3PZ4M8jjOi91iS4jaETueAP3+eBIV8ysM=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=ZB9Q99UlzL+AgiMYGkaJQYJc6Tsqk4VzkVmWkpanuHFytqx63D6uHxRXQjNk2r1fe
-	 o158Y+icpZPAk1WWAPebopTfXaDSl13TGoENld0PK4AIZUi8FhfyoMXD6FwsVCKXyt
-	 dJySRTaX8v19FFXj6K0TrRKI44LPalAwwAYnWJXdBjjhvKFugnfFm3uylVPgwXAB0/
-	 D5UHgDUpML1ykLNmD4tC2FrVIoJDMwBGJq87ad4y73t6ZYpMESdds2yYwUi8ivFFAx
-	 7zCkq4I+OgM5MpxT0MVjoEYItXK/wbxnb4bBHrPM3mPsLKF4basmwFjf5fDJkoVn4Q
-	 Fp67c+axrxPEA==
-Date: Wed, 18 Mar 2026 09:04:24 +0530
-From: Manivannan Sadhasivam <mani@kernel.org>
-To: Bartosz Golaszewski <brgl@kernel.org>
-Cc: manivannan.sadhasivam@oss.qualcomm.com, 
-	Manivannan Sadhasivam via B4 Relay <devnull+manivannan.sadhasivam.oss.qualcomm.com@kernel.org>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-kbuild@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-pci@vger.kernel.org, 
-	devicetree@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-bluetooth@vger.kernel.org, 
-	linux-pm@vger.kernel.org, Stephan Gerhold <stephan.gerhold@linaro.org>, 
-	Dmitry Baryshkov <dmitry.baryshkov@oss.qualcomm.com>, linux-acpi@vger.kernel.org, 
-	Hans de Goede <johannes.goede@oss.qualcomm.com>, Rob Herring <robh@kernel.org>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jirislaby@kernel.org>, 
-	Nathan Chancellor <nathan@kernel.org>, Nicolas Schier <nicolas.schier@linux.dev>, 
-	Hans de Goede <hansg@kernel.org>, Ilpo =?utf-8?B?SsOkcnZpbmVu?= <ilpo.jarvinen@linux.intel.com>, 
-	Mark Pearson <mpearson-lenovo@squebb.ca>, "Derek J. Clark" <derekjohn.clark@gmail.com>, 
-	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
-	Marcel Holtmann <marcel@holtmann.org>, Luiz Augusto von Dentz <luiz.dentz@gmail.com>, 
-	Bartosz Golaszewski <brgl@bgdev.pl>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v6 9/9] power: sequencing: pcie-m2: Create serdev device
- for WCN7850 bluetooth
-Message-ID: <aikoyhpzukxgiupdche55er4iddtdckc44kxkrqrzqid6hcptl@qtjbtg7drgpb>
-References: <20260317-pci-m2-e-v6-0-9c898f108d3d@oss.qualcomm.com>
- <20260317-pci-m2-e-v6-9-9c898f108d3d@oss.qualcomm.com>
- <CAMRc=MeNZGr=zDVQYd1YgeUNdaenpbDEgmT6h7CuU89sHQuMcA@mail.gmail.com>
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="NDlHD0+p"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=ItAlywAm6cNIOMOnLf/wseNO24KL71UhXC7XgRf6FTdSpPl51GCIPxjJH9OqYlHuLo7udISBKE/wAdQ7/hJmEHWC1UlyecIpkQTTl6NUzXWV/cwCzSjo/4/HSczypPNsQ1g70uD79BqWVjPBnxT069q34tSCvqW11wlrK5JkLoXb8oOWCbmpaQoVPwYs2I0+CIzaeS9FH9GnbKphuCGz1R6lzS6TXnVK3ZbcZXfP83efA5RPAtLKTfBfssylWbwZbmf1U6+HtpVImNx07CG4ou4QLEKUQHbtduDZDZXfEe71vzyVV9xBLwb1QYvW292xhMKFOuOL6o1e4yyHZSS7rQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=KM+9HkXYfrzszsIPbQQVxa6QbrTOxovP35UqfCQzXv8=;
+ b=ivgsdTvUOT+4rviWf3ZEDRO57mYzBocoRMh9uptR0axHrY8EGzUZ+LplcriURP7nn1pt4dGHwcSOeJwlaMy8qF5Oi28UN2V4c4jpszu9yECzOzNDl5z6LVwTuDGGHNul5jKCVGCegaxNUBAN80aUPZDVNAdKZOZnFvL8UWEiLEatgi4KJsuNlruSiQeNSAa8V3LFZ4w3zPV3e8MTGIolKnG20gCPn/fltY/uKPkeXm/rhneh42Lw2RxjoPCozLdJrV3tQBZWdIPNAcyPBNSo8AZLmqyjpGrrrQhTGZml/Cc0ABqnZo3Wrtb/6iSRW5SSBMjJ9y822YOalAnxKBPcvA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 165.204.84.17) smtp.rcpttodomain=kernel.org smtp.mailfrom=amd.com; dmarc=pass
+ (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=KM+9HkXYfrzszsIPbQQVxa6QbrTOxovP35UqfCQzXv8=;
+ b=NDlHD0+pjvyCpoeDHpb7HvTI94wwLpzrqA08V9If3Y0eBalpGvt5CPiiVUcP0MCf2UB63caahGLEaZK2a+Pr9T84v6ouSd7JNizIk7+FC1q7iwoy2cNRlX/HDTR8AvNJiw480z6rPBaqu/GiGOh2UphyUMxgCH+yedM9gUONvqk=
+Received: from MN2PR17CA0018.namprd17.prod.outlook.com (2603:10b6:208:15e::31)
+ by SA5PPF9D25F0C6D.namprd12.prod.outlook.com (2603:10b6:80f:fc04::8d9) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9723.19; Wed, 18 Mar
+ 2026 03:49:16 +0000
+Received: from BL02EPF0001A108.namprd05.prod.outlook.com
+ (2603:10b6:208:15e:cafe::22) by MN2PR17CA0018.outlook.office365.com
+ (2603:10b6:208:15e::31) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.9700.27 via Frontend Transport; Wed,
+ 18 Mar 2026 03:49:14 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
+ smtp.mailfrom=amd.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=amd.com;
+Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
+ 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
+ client-ip=165.204.84.17; helo=satlexmb07.amd.com; pr=C
+Received: from satlexmb07.amd.com (165.204.84.17) by
+ BL02EPF0001A108.mail.protection.outlook.com (10.167.241.138) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.9700.17 via Frontend Transport; Wed, 18 Mar 2026 03:49:16 +0000
+Received: from STXH3-MAPLE-10.amd.com (10.180.168.240) by satlexmb07.amd.com
+ (10.181.42.216) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.17; Tue, 17 Mar
+ 2026 22:49:15 -0500
+From: Pratap Nirujogi <pratap.nirujogi@amd.com>
+To: <rafael@kernel.org>, <lenb@kernel.org>, <mlimonci@amd.com>,
+	<bin.du@amd.com>, <alexander.deucher@amd.com>
+CC: <benjamin.chan@amd.com>, <king.li@amd.com>, <linux-acpi@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, Pratap Nirujogi <pratap.nirujogi@amd.com>
+Subject: [PATCH v1] ACPI: bus: Fix MFD child automatic modprobe issue
+Date: Tue, 17 Mar 2026 23:47:57 -0400
+Message-ID: <20260318034842.1216536-1-pratap.nirujogi@amd.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAMRc=MeNZGr=zDVQYd1YgeUNdaenpbDEgmT6h7CuU89sHQuMcA@mail.gmail.com>
+Content-Type: text/plain
+X-ClientProxiedBy: satlexmb07.amd.com (10.181.42.216) To satlexmb07.amd.com
+ (10.181.42.216)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BL02EPF0001A108:EE_|SA5PPF9D25F0C6D:EE_
+X-MS-Office365-Filtering-Correlation-Id: 4961767b-cb7e-4a86-5fef-08de84a153af
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|376014|82310400026|1800799024|36860700016|18002099003|56012099003;
+X-Microsoft-Antispam-Message-Info:
+	FmYUtlxCR653uoRCHnd08Sztp5bxndcncqUAHXOe12syYJtRX/XduQX8qR/0LBb+3PH1ud6O0J1q/gbHnK0SViZWLtqJXMl8GRXeR/TIHjvCCTq2QTCsxycij6a8dpHJMGgG87ojL4rArn3LZURiTQOJR9USCpd1PHipdHzFVPvexzVH7nUCxnsOl7SMaYph7KTXXBlNDDgNiG+CpNUWtQhr1lGcp5rGhn7mGkTgKbCbzqTw1PqXHLNGoJhEDhjM2DJaQA0zYRg9MawpG2zbukalNs2xyaVcgGzBeOQod9OhRbyXM+0ZyRiByqY8uAkyTY7twi8toUffdOE9obmJY0R1myXvTLOVXKOiFyTUcf4T4rYOHlOiVay3hJZ1tNfN5ZKfPet8lFvsOpgxNvhTAP91F/Eso9ABvS8JLpjFTdPQ50fMb9q5B8g+uU5t/HxeoNx4GdIZXPN3PdFJK/wusHO2nVaktPeYC9MTia6UskkVR1Wbswdbk0Tw6aInAeEQL/a9wyDowKt2RECs/L3La+LcqE0BDILy1q3B0IRVcFki3pQmZ8f7K57tKMap72NAK+lAuRL62dl/S355S2gPvsBH0OLsheYvKTsEa3e81mjPrvZDzChayl5o5Wpc3SxUzM7zSr/KjCc3C1fkTmObSnpGAYqUEWQlG2To6hM3oReY04e4HIrA4qbjvKQeFOKqxBO/XTlJM8i8hCRursDT3cUlhlIp6VbVCLKba9Sic/sKGwMQFv21qhotulrDsqB8fxp+hi383zPa1h7wcZcwHg==
+X-Forefront-Antispam-Report:
+	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(376014)(82310400026)(1800799024)(36860700016)(18002099003)(56012099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	CzmfEwZZzYu2WmH5MR8MLPkbs+CdqRAX7TwvAvHe03/HFZdgEeQ0LxGACN15zJ/5sZYCdeletaRu7iNF5WfanX1rQ5c2cXIriUTW/8+lBnULFC2o410c0gS5DPXvxsL0GMnHkAwPeEN5LSOCkUM0vATAP8bP2SoWi+dl17dUH33Yma8Vf8sAxOOhVQq6Ig1hvIF+pmqSKTjYZ1uGD2EqADNUq/Y+bXJ+e8hcUMuTuM9JndjU04S1YpLb+otYCjY0q9ufvxb8hHuRCZG4kKO2mAwX31OI7T+vbWeMBqxzmYQUIk1sbJ/6fo6wpERsDAAwahsRTRdJi1h7DAN1sr+rU3Yaj3NIu3cC+91Y5+8TVaQF+tBSFKs3p9ZJ+OoXGCwRPHmU8tzg78peQ9S5VBqrzylhzWF+4WLtupk/PzhWzajURzk1x1T2i85iGOxfsquJ
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 18 Mar 2026 03:49:16.1352
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 4961767b-cb7e-4a86-5fef-08de84a153af
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb07.amd.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	BL02EPF0001A108.namprd05.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA5PPF9D25F0C6D
 
-On Tue, Mar 17, 2026 at 09:06:20AM -0400, Bartosz Golaszewski wrote:
-> On Tue, 17 Mar 2026 05:29:59 +0100, Manivannan Sadhasivam via B4 Relay
-> <devnull+manivannan.sadhasivam.oss.qualcomm.com@kernel.org> said:
-> > From: Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>
-> >
-> > For supporting bluetooth over the non-discoverable UART interface of
-> > WCN7850, create the serdev device after enumerating the PCIe interface.
-> > This is mandatory since the device ID is only known after the PCIe
-> > enumeration and the ID is used for creating the serdev device.
-> >
-> > Since by default there is no OF or ACPI node for the created serdev,
-> > create a dynamic OF 'bluetooth' node with the 'compatible' property and
-> > attach it to the serdev device. This will allow the serdev device to bind
-> > to the existing bluetooth driver.
-> >
-> > Tested-by: Hans de Goede <johannes.goede@oss.qualcomm.com> # ThinkPad T14s gen6 (arm64)
-> > Signed-off-by: Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>
-> > ---
-> >  drivers/power/sequencing/Kconfig          |   3 +-
-> >  drivers/power/sequencing/pwrseq-pcie-m2.c | 178 +++++++++++++++++++++++++++++-
-> >  2 files changed, 177 insertions(+), 4 deletions(-)
-> >
-> > diff --git a/drivers/power/sequencing/Kconfig b/drivers/power/sequencing/Kconfig
-> > index f5fff84566ba..55aeef125e6f 100644
-> > --- a/drivers/power/sequencing/Kconfig
-> > +++ b/drivers/power/sequencing/Kconfig
-> > @@ -37,7 +37,8 @@ config POWER_SEQUENCING_TH1520_GPU
-> >
-> >  config POWER_SEQUENCING_PCIE_M2
-> >  	tristate "PCIe M.2 connector power sequencing driver"
-> > -	depends on OF || COMPILE_TEST
-> > +	depends on (PCI && OF) || COMPILE_TEST
-> > +	select OF_DYNAMIC
-> >  	help
-> >  	  Say Y here to enable the power sequencing driver for PCIe M.2
-> >  	  connectors. This driver handles the power sequencing for the M.2
-> > diff --git a/drivers/power/sequencing/pwrseq-pcie-m2.c b/drivers/power/sequencing/pwrseq-pcie-m2.c
-> > index 3507cdcb1e7b..77357439ba81 100644
-> > --- a/drivers/power/sequencing/pwrseq-pcie-m2.c
-> > +++ b/drivers/power/sequencing/pwrseq-pcie-m2.c
-> > @@ -12,9 +12,11 @@
-> >  #include <linux/of.h>
-> >  #include <linux/of_graph.h>
-> >  #include <linux/of_platform.h>
-> > +#include <linux/pci.h>
-> >  #include <linux/platform_device.h>
-> >  #include <linux/pwrseq/provider.h>
-> >  #include <linux/regulator/consumer.h>
-> > +#include <linux/serdev.h>
-> >  #include <linux/slab.h>
-> >
-> >  struct pwrseq_pcie_m2_pdata {
-> > @@ -30,6 +32,9 @@ struct pwrseq_pcie_m2_ctx {
-> >  	struct notifier_block nb;
-> >  	struct gpio_desc *w_disable1_gpio;
-> >  	struct gpio_desc *w_disable2_gpio;
-> > +	struct serdev_device *serdev;
-> > +	struct of_changeset *ocs;
-> > +	struct device *dev;
-> >  };
-> >
-> >  static int pwrseq_pcie_m2_vregs_enable(struct pwrseq_device *pwrseq)
-> > @@ -172,13 +177,176 @@ static int pwrseq_pcie_m2_match(struct pwrseq_device *pwrseq,
-> >  	return PWRSEQ_NO_MATCH;
-> >  }
-> >
-> > -static void pwrseq_pcie_m2_free_regulators(void *data)
-> > +static void pwrseq_pcie_m2_free_resources(void *data)
-> >  {
-> >  	struct pwrseq_pcie_m2_ctx *ctx = data;
-> >
-> > +	serdev_device_remove(ctx->serdev);
-> > +	bus_unregister_notifier(&pci_bus_type, &ctx->nb);
-> > +	of_changeset_revert(ctx->ocs);
-> > +	of_changeset_destroy(ctx->ocs);
-> >  	regulator_bulk_free(ctx->num_vregs, ctx->regs);
-> >  }
-> >
-> > +static int pwrseq_m2_pcie_create_bt_node(struct pwrseq_pcie_m2_ctx *ctx,
-> > +					struct device_node *parent)
-> > +{
-> > +	struct device *dev = ctx->dev;
-> > +	struct device_node *np;
-> > +	int ret;
-> > +
-> > +	ctx->ocs = devm_kzalloc(dev, sizeof(*ctx->ocs), GFP_KERNEL);
-> > +	if (!ctx->ocs)
-> > +		return -ENOMEM;
-> > +
-> > +	of_changeset_init(ctx->ocs);
-> > +
-> > +	np = of_changeset_create_node(ctx->ocs, parent, "bluetooth");
-> > +	if (!np) {
-> > +		dev_err(dev, "Failed to create bluetooth node\n");
-> > +		ret = -ENODEV;
-> > +		goto err_destroy_changeset;
-> > +	}
-> > +
-> > +	ret = of_changeset_add_prop_string(ctx->ocs, np, "compatible", "qcom,wcn7850-bt");
-> > +	if (ret) {
-> > +		dev_err(dev, "Failed to add bluetooth compatible: %d\n", ret);
-> > +		goto err_destroy_changeset;
-> > +	}
-> > +
-> > +	ret = of_changeset_apply(ctx->ocs);
-> > +	if (ret) {
-> > +		dev_err(dev, "Failed to apply changeset: %d\n", ret);
-> > +		goto err_destroy_changeset;
-> > +	}
-> > +
-> > +	ret = device_add_of_node(&ctx->serdev->dev, np);
-> > +	if (ret) {
-> > +		dev_err(dev, "Failed to add OF node: %d\n", ret);
-> > +		goto err_revert_changeset;
-> > +	}
-> > +
-> > +	return 0;
-> > +
-> > +err_revert_changeset:
-> > +	of_changeset_revert(ctx->ocs);
-> > +err_destroy_changeset:
-> > +	of_changeset_destroy(ctx->ocs);
-> > +
-> > +	return ret;
-> > +}
-> > +
-> > +static int pwrseq_m2_pcie_notify(struct notifier_block *nb, unsigned long action,
-> > +			      void *data)
-> > +{
-> > +	struct pwrseq_pcie_m2_ctx *ctx = container_of(nb, struct pwrseq_pcie_m2_ctx, nb);
-> > +	struct pci_dev *pdev = to_pci_dev(data);
-> > +	struct serdev_controller *serdev_ctrl;
-> > +	struct device *dev = ctx->dev;
-> > +	int ret;
-> > +
-> > +	/*
-> > +	 * Check whether the PCI device is associated with this M.2 connector or
-> > +	 * not, by comparing the OF node of the PCI device parent and the Port 0
-> > +	 * (PCIe) remote node parent OF node.
-> > +	 */
-> > +	struct device_node *pci_parent __free(device_node) =
-> > +			of_graph_get_remote_node(dev_of_node(ctx->dev), 0, 0);
-> > +	if (!pci_parent || (pci_parent != pdev->dev.parent->of_node))
-> > +		return NOTIFY_DONE;
-> > +
-> > +	switch (action) {
-> > +	case BUS_NOTIFY_ADD_DEVICE:
-> > +		/* Create serdev device for WCN7850 */
-> > +		if (pdev->vendor == PCI_VENDOR_ID_QCOM && pdev->device == 0x1107) {
-> > +			struct device_node *serdev_parent __free(device_node) =
-> > +				of_graph_get_remote_node(dev_of_node(ctx->dev), 1, 1);
-> > +			if (!serdev_parent)
-> > +				return NOTIFY_DONE;
-> > +
-> > +			serdev_ctrl = of_find_serdev_controller_by_node(serdev_parent);
-> > +			if (!serdev_ctrl)
-> > +				return NOTIFY_DONE;
-> > +
-> > +			/*
-> > +			 * Bail out if the device was already attached to this
-> > +			 * controller.
-> > +			 */
-> > +			if (serdev_ctrl->serdev)
-> > +				return NOTIFY_DONE;
-> > +
-> > +			ctx->serdev = serdev_device_alloc(serdev_ctrl);
-> > +			if (!ctx->serdev)
-> > +				return NOTIFY_BAD;
-> 
-> If you bail out here, on driver unbind you'll call serdev_device_remove() which
-> uncoditionally dereferences the serdev pointer.
-> 
-> > +
-> > +			ret = pwrseq_m2_pcie_create_bt_node(ctx, serdev_parent);
-> 
-> If this doesn't succeed, ctx->ocs remains set to NULL (correct me if I'm wrong)
-> and you end up calling of_changeset_revert() which will unconditionally
-> dereference the of_changeset pointer in __of_changeset_entry_invert().
-> 
-> > +			if (ret) {
-> > +				serdev_device_put(ctx->serdev);
-> > +				return notifier_from_errno(ret);
-> > +			}
-> > +
-> > +			ret = serdev_device_add(ctx->serdev);
-> > +			if (ret) {
-> > +				dev_err(dev, "Failed to add serdev for WCN7850: %d\n", ret);
-> > +				of_changeset_revert(ctx->ocs);
-> > +				of_changeset_destroy(ctx->ocs);
-> > +				serdev_device_put(ctx->serdev);
-> > +				return notifier_from_errno(ret);
-> > +			}
-> > +		}
-> > +		break;
-> > +	case BUS_NOTIFY_REMOVED_DEVICE:
-> > +		/* Destroy serdev device for WCN7850 */
-> > +		if (pdev->vendor == PCI_VENDOR_ID_QCOM && pdev->device == 0x1107) {
-> > +			serdev_device_remove(ctx->serdev);
-> > +			of_changeset_revert(ctx->ocs);
-> > +			of_changeset_destroy(ctx->ocs);
-> > +		}
-> > +		break;
-> > +	}
-> > +
-> > +	return NOTIFY_OK;
-> > +}
-> > +
-> > +static bool pwrseq_pcie_m2_check_remote_node(struct device *dev, u8 port, u8 endpoint,
-> > +					     const char *node)
-> > +{
-> > +	struct device_node *remote __free(device_node) =
-> > +			of_graph_get_remote_node(dev_of_node(dev), port, endpoint);
-> > +
-> > +	if (remote && of_node_name_eq(remote, node))
-> > +		return true;
-> > +
-> > +	return false;
-> > +}
-> > +
-> > +/*
-> > + * If the connector exposes a non-discoverable bus like UART, the respective
-> > + * protocol device needs to be created manually with the help of the notifier
-> > + * of the discoverable bus like PCIe.
-> > + */
-> > +static int pwrseq_pcie_m2_register_notifier(struct pwrseq_pcie_m2_ctx *ctx, struct device *dev)
-> > +{
-> > +	int ret;
-> > +
-> > +	/*
-> > +	 * Register a PCI notifier for Key E connector that has PCIe as Port
-> > +	 * 0/Endpoint 0 interface and Serial as Port 3/Endpoint 0 interface.
-> > +	 */
-> > +	if (pwrseq_pcie_m2_check_remote_node(dev, 3, 0, "serial")) {
-> > +		if (pwrseq_pcie_m2_check_remote_node(dev, 0, 0, "pcie")) {
-> > +			ctx->dev = dev;
-> > +			ctx->nb.notifier_call = pwrseq_m2_pcie_notify;
-> > +			ret = bus_register_notifier(&pci_bus_type, &ctx->nb);
-> > +			if (ret)
-> > +				return dev_err_probe(dev, ret,
-> > +						     "Failed to register notifier for serdev\n");
-> > +		}
-> > +	}
-> > +
-> > +	return 0;
-> > +}
-> > +
-> >  static int pwrseq_pcie_m2_probe(struct platform_device *pdev)
-> >  {
-> >  	struct device *dev = &pdev->dev;
-> > @@ -218,7 +386,7 @@ static int pwrseq_pcie_m2_probe(struct platform_device *pdev)
-> >
-> >  	ctx->num_vregs = ret;
-> >
-> > -	ret = devm_add_action_or_reset(dev, pwrseq_pcie_m2_free_regulators, ctx);
-> > +	ret = devm_add_action_or_reset(dev, pwrseq_pcie_m2_free_resources, ctx);
-> >  	if (ret)
-> >  		return ret;
-> >
-> > @@ -233,7 +401,11 @@ static int pwrseq_pcie_m2_probe(struct platform_device *pdev)
-> >  		return dev_err_probe(dev, PTR_ERR(ctx->pwrseq),
-> >  				     "Failed to register the power sequencer\n");
-> 
-> If you bail out here, you will call bus_unregister_notifier() before your
-> registered it. Kernel docs are not clear on whether that's a bug but it still
-> looks fishy to me.
-> 
-> Am I not seeing something or is the error path broken? I'm doubting myself
-> here. :)
-> 
+MFD child devices sharing parent's ACPI Companion fails to probe as
+acpi_companion_match() returns incompatible ACPI Companion handle for
+binding with the check for pnp.type.backlight added recently. Remove this
+pnp.type.backlight check in acpi_companion_match() to fix the automatic
+modprobe issue.
 
-No, it was me who has gone bonkers with the error path. I was so delusional to
-assume that these APIs handle NULL ptrs :/
+Fixes: 7a7a7ed5f8bdb ("ACPI: scan: Register platform devices for backlight device objects")
+Signed-off-by: Pratap Nirujogi <pratap.nirujogi@amd.com>
+---
+ drivers/acpi/bus.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
-> This is why I advised to split pwrseq_pcie_m2_free_resources() and only schedule
-> individual devres actions after their allocation succeeds.
-> 
-> As it is now, you're better off providing a remove() callback with NULL checks.
-> 
-
-Makes sense. I'll fix them all in next version.
-
-- Mani
-
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index f6707325f5821..2ec095e2009e4 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -818,9 +818,6 @@ const struct acpi_device *acpi_companion_match(const struct device *dev)
+ 	if (list_empty(&adev->pnp.ids))
+ 		return NULL;
+ 
+-	if (adev->pnp.type.backlight)
+-		return adev;
+-
+ 	return acpi_primary_dev_companion(adev, dev);
+ }
+ 
 -- 
-மணிவண்ணன் சதாசிவம்
+2.43.0
+
