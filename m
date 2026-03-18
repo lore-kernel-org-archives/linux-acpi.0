@@ -1,40 +1,44 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39B743D8917;
-	Wed, 18 Mar 2026 13:44:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 845D83D5254;
+	Wed, 18 Mar 2026 13:57:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773841443; cv=none; b=h7qh4PhQx2i1LCGViu8JcbuqCKvMhzyfJMBel7rCLoAmWAbPQeSEBWN2kvKHp/tudB4UKrlA4rRrKfd78w0iwwGo9Q4fw5/NoquwKIjCDesSsTyb1Cr66Mxqn4n4eh1WoLDkarUD7K6Pff8jbPKgVyOWSNDMz9T2qa/jwGCYoSY=
+	t=1773842240; cv=none; b=IOao7ms0CyH265TLGDVkCsVkRFs4LxoSfXA6owFVs8Zhj9gvWQ8BdpOIPXFpNxZ2xRhhivTo1dc1apSnllVeDXq5UbGosy8IPx863LKV1cL2U6FxrqbJEquIKZWeS1EF5nisccJIJpkxiZow7iwhXJTcoy9V98DxWz+WlG8L4qA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773841443; c=relaxed/simple;
-	bh=trAQf7hV5ZPnfdrp8wqAugv9ikSXYxyDoELp///NIuo=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=YeneeD+lyyEmiW9/P3giVDvWmvKly7J1129JtLOKxCUFg5NUrQdWCEnemoDMGjCau1zQtEJTHkPbiCITSS59/RGh0nDuX4kvz1UqQp3soZqfgBRBKxIOyggcdloeKrQ9m4umTZ7x7Q5GVdeAOT6Agvm6mtqTl1UK1D25G33tnfg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ieHyQs7G; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773842240; c=relaxed/simple;
+	bh=OGSzkPDTrsLqaDFDAqTsRYy4F9/t+0a9NghXVnMTJUs=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=ac9+OaksAAufWdW+2CbQobHrZJOvvDQW2AJJz0NP/2A/f+p4ct2DthGyAGu68lZL5NvqZciE8h0COPo2qu005Gw8eKfFmYBoaKDImAwWICOnlXqVAvt9LslzGfpRHIa+YJlW9bip5NKX/l99LrCkulziunL5y4HAMDpbzTHVFk8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=AwyFnOZ7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ieHyQs7G"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7098EC2BC87;
-	Wed, 18 Mar 2026 13:43:59 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="AwyFnOZ7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B021C19421;
+	Wed, 18 Mar 2026 13:57:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773841442;
-	bh=trAQf7hV5ZPnfdrp8wqAugv9ikSXYxyDoELp///NIuo=;
-	h=From:To:Cc:Subject:Date:From;
-	b=ieHyQs7Gq2+ijMerPe1beSREqAGDUgv8P6J71kjErAkx7Bcd+tB6DAkUDqaHJNYfS
-	 MUjfdW1ZiyEtQ7Db9PtZAv4fS5W2W/0NTmEbw45985kBDzRfdvG4Jgm/PYeY066LPM
-	 7MZ8hFOKC3rh31OgDSEFRWNCsU49TaQg1bLi4e2lOCIPiYdC65wzGMWKGqXkSt5MTz
-	 ObUejPQ6mb045O/mMc29hcdx+FJ64G9GuKXDY4wcjxPVPi+r7jiF8h5/6W79MxcpBm
-	 ltn+M+KYtzFEVlb8Km22Mx3ubzrnaWXv3J/GK/LfMvyann1RJBbhZ81zLbFmzgn2pV
-	 pQiIB+3DxJ87A==
+	s=k20201202; t=1773842240;
+	bh=OGSzkPDTrsLqaDFDAqTsRYy4F9/t+0a9NghXVnMTJUs=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=AwyFnOZ7ykJudLKusPznZ8fq9YO6oEyqPjr8VGkdYB8W8Io909+3tlqhKJZCmvmjl
+	 +Cc/NtBwZSz2U9JQtiQSzI+/Jo+Y2Y57m33brLRbeP5H4NtGF/QfPgNz33fyNSsb+N
+	 xn8Cva4CO9jRBfQrUj4oH19lcxXbEMrDrIEmbr+nKASzcKJJsxefKlioE6Hvdb15By
+	 /paTUYVIG0BA/+ASG5cpzR7l2xTn/gMhzV1ThqI4ecnKMwQ0a0GK2uNcZpxZvvZCmh
+	 BV2hH34Kpux73y85ds7ZyWP49UOmZU5m066wXtNdDoR4jA6/14g/M+mxPM7+V3OtQg
+	 T4hNs5tyGg0Xw==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-To: netdev@vger.kernel.org
-Cc: LKML <linux-kernel@vger.kernel.org>,
- Linux ACPI <linux-acpi@vger.kernel.org>, Andrew Lunn <andrew+netdev@lunn.ch>,
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>
-Subject: [PATCH v2] net: fjes: Drop fjes_acpi_driver and rework initialization
-Date: Wed, 18 Mar 2026 14:43:55 +0100
-Message-ID: <12857407.O9o76ZdvQC@rafael.j.wysocki>
+To: Ilpo =?ISO-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>
+Cc: Hans de Goede <hansg@kernel.org>, LKML <linux-kernel@vger.kernel.org>,
+ Linux ACPI <linux-acpi@vger.kernel.org>, platform-driver-x86@vger.kernel.org,
+ Jeremy Soller <jeremy@system76.com>,
+ System76 Product Development <productdev@system76.com>
+Subject:
+ [PATCH v2 3/3] platform/x86: system76: Convert ACPI driver to a platform one
+Date: Wed, 18 Mar 2026 14:54:45 +0100
+Message-ID: <3401648.aeNJFYEL58@rafael.j.wysocki>
 Organization: Linux Kernel Development
+In-Reply-To: <4721148.LvFx2qVVIh@rafael.j.wysocki>
+References: <4721148.LvFx2qVVIh@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -46,23 +50,19 @@ Content-Type: text/plain; charset="UTF-8"
 
 From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-The ACPI driver interface used by the Fujitsu Extended Socket (fjes)
-Network Device driver is redundant because its only role is to create
-a platform device the fjes platform driver can bind to, which can be
-done already at the module initialization time.
+In all cases in which a struct acpi_driver is used for binding a driver
+to an ACPI device object, a corresponding platform device is created by
+the ACPI core and that device is regarded as a proper representation of
+underlying hardware.  Accordingly, a struct platform_driver should be
+used by driver code to bind to that device.  There are multiple reasons
+why drivers should not bind directly to ACPI device objects [1].
 
-Namely, acpi_find_extended_socket_device() looks for the requisite ACPI
-device object anyway and it may as well check its resources, and the
-platform device can be created when the ACPI object in question
-has been found (and it can be freed when the module is unloaded).
+Overall, it is better to bind drivers to platform devices than to their
+ACPI companions, so convert the System76 ACPI driver to a platform one.
 
-Moreover, as a rule, it is better to avoid binding drivers directly to
-ACPI device objects [1].
-
-Accordingly, drop fjes_acpi_driver, adjust the module initialization
-and exit code as per the above and set the fwnode for the fjes platform
-device to point to the corresponding ACPI device object as its ACPI
-companion.
+After this change, the subordinate hwmon, input and LED class devices
+will be registered under the platform device used for driver binding
+instead of its ACPI companion.
 
 While this is not expected to alter functionality, it changes sysfs
 layout and so it will be visible to user space.
@@ -71,199 +71,136 @@ Link: https://lore.kernel.org/all/2396510.ElGaqSPkdT@rafael.j.wysocki/ [1]
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
 
-v1 -> v2: Add platform device unregistration to the rollback path in
-   fjes_init_module, as per
-https://lore.kernel.org/linux-acpi/CAJZ5v0g9BinHfQDS6hUvVHdLxDPvbv7ck=m1Bqa=+C3iE+vgxw@mail.gmail.com/
+v1 -> v2: Rebase on top of the new [1/3] and the updated [2/3].
 
 ---
- drivers/net/fjes/fjes_main.c | 120 +++++++++++++++--------------------
- 1 file changed, 50 insertions(+), 70 deletions(-)
+ drivers/platform/x86/system76_acpi.c | 48 +++++++++++++++-------------
+ 1 file changed, 25 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/net/fjes/fjes_main.c b/drivers/net/fjes/fjes_main.c
-index b63965d9a1ba..1f0f38980549 100644
---- a/drivers/net/fjes/fjes_main.c
-+++ b/drivers/net/fjes/fjes_main.c
-@@ -111,56 +111,6 @@ fjes_get_acpi_resource(struct acpi_resource *acpi_res, void *data)
- 	return AE_OK;
+diff --git a/drivers/platform/x86/system76_acpi.c b/drivers/platform/x86/system76_acpi.c
+index fc11427c36a5..693cbb461382 100644
+--- a/drivers/platform/x86/system76_acpi.c
++++ b/drivers/platform/x86/system76_acpi.c
+@@ -18,6 +18,7 @@
+ #include <linux/leds.h>
+ #include <linux/module.h>
+ #include <linux/pci_ids.h>
++#include <linux/platform_device.h>
+ #include <linux/power_supply.h>
+ #include <linux/sysfs.h>
+ #include <linux/types.h>
+@@ -670,16 +671,19 @@ static void system76_notify(acpi_handle handle, u32 event, void *context)
+ 	}
  }
  
--static struct resource fjes_resource[] = {
--	DEFINE_RES_MEM(0, 1),
--	DEFINE_RES_IRQ(0)
--};
--
--static int fjes_acpi_add(struct acpi_device *device)
--{
--	struct platform_device *plat_dev;
--	acpi_status status;
--
--	if (!is_extended_socket_device(device))
--		return -ENODEV;
--
--	if (acpi_check_extended_socket_status(device))
--		return -ENODEV;
--
--	status = acpi_walk_resources(device->handle, METHOD_NAME__CRS,
--				     fjes_get_acpi_resource, fjes_resource);
--	if (ACPI_FAILURE(status))
--		return -ENODEV;
--
--	/* create platform_device */
--	plat_dev = platform_device_register_simple(DRV_NAME, 0, fjes_resource,
--						   ARRAY_SIZE(fjes_resource));
--	if (IS_ERR(plat_dev))
--		return PTR_ERR(plat_dev);
--
--	device->driver_data = plat_dev;
--
--	return 0;
--}
--
--static void fjes_acpi_remove(struct acpi_device *device)
--{
--	struct platform_device *plat_dev;
--
--	plat_dev = (struct platform_device *)acpi_driver_data(device);
--	platform_device_unregister(plat_dev);
--}
--
--static struct acpi_driver fjes_acpi_driver = {
--	.name = DRV_NAME,
--	.class = DRV_NAME,
--	.ids = fjes_acpi_ids,
--	.ops = {
--		.add = fjes_acpi_add,
--		.remove = fjes_acpi_remove,
--	},
--};
--
- static int fjes_setup_resources(struct fjes_adapter *adapter)
+-// Add a System76 ACPI device
+-static int system76_add(struct acpi_device *acpi_dev)
++// Probe a System76 platform device
++static int system76_probe(struct platform_device *pdev)
  {
- 	struct net_device *netdev = adapter->netdev;
-@@ -1470,43 +1420,81 @@ static struct platform_driver fjes_driver = {
- 	.remove = fjes_remove,
- };
++	struct acpi_device *acpi_dev = ACPI_COMPANION(&pdev->dev);
+ 	struct system76_data *data;
+ 	int err;
  
-+struct fjes_acpi_walk_context {
-+	struct acpi_device *adev;
-+	struct resource resources[2];
-+};
+-	data = devm_kzalloc(&acpi_dev->dev, sizeof(*data), GFP_KERNEL);
++	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
+ 	if (!data)
+ 		return -ENOMEM;
+-	acpi_dev->driver_data = data;
 +
- static acpi_status
- acpi_find_extended_socket_device(acpi_handle obj_handle, u32 level,
- 				 void *context, void **return_value)
- {
-+	struct fjes_acpi_walk_context *fjes_context = context;
- 	struct acpi_device *device;
--	bool *found = context;
-+	acpi_status status;
++	platform_set_drvdata(pdev, data);
++
+ 	data->acpi_dev = acpi_dev;
  
--	device = acpi_fetch_acpi_dev(obj_handle);
-+	device = acpi_get_acpi_dev(obj_handle);
- 	if (!device)
- 		return AE_OK;
+ 	// Some models do not run open EC firmware. Check for an ACPI method
+@@ -695,7 +699,7 @@ static int system76_add(struct acpi_device *acpi_dev)
+ 	data->ap_led.brightness_set_blocking = ap_led_set;
+ 	data->ap_led.max_brightness = 1;
+ 	data->ap_led.default_trigger = "rfkill-none";
+-	err = devm_led_classdev_register(&acpi_dev->dev, &data->ap_led);
++	err = devm_led_classdev_register(&pdev->dev, &data->ap_led);
+ 	if (err)
+ 		return err;
  
- 	if (strcmp(acpi_device_hid(device), ACPI_MOTHERBOARD_RESOURCE_HID))
--		return AE_OK;
-+		goto skip;
- 
- 	if (!is_extended_socket_device(device))
--		return AE_OK;
-+		goto skip;
- 
- 	if (acpi_check_extended_socket_status(device))
--		return AE_OK;
-+		goto skip;
-+
-+	status = acpi_walk_resources(obj_handle, METHOD_NAME__CRS,
-+				     fjes_get_acpi_resource, fjes_context->resources);
-+	if (ACPI_FAILURE(status))
-+		goto skip;
-+
-+	fjes_context->adev = device;
- 
--	*found = true;
- 	return AE_CTRL_TERMINATE;
-+
-+skip:
-+	acpi_dev_put(device);
-+	return AE_OK;
- }
- 
-+static struct platform_device *fjes_plat_dev;
-+
- /* fjes_init_module - Driver Registration Routine */
- static int __init fjes_init_module(void)
- {
--	bool found = false;
-+	struct fjes_acpi_walk_context fjes_context = {
-+		.adev = NULL,
-+		.resources = {
-+			DEFINE_RES_MEM(0, 1),
-+			DEFINE_RES_IRQ(0)
-+		}
-+	};
-+	struct platform_device_info pdevinfo;
- 	int result;
- 
- 	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT, ACPI_UINT32_MAX,
--			    acpi_find_extended_socket_device, NULL, &found,
-+			    acpi_find_extended_socket_device, NULL, &fjes_context,
- 			    NULL);
--
--	if (!found)
-+	if (!fjes_context.adev)
- 		return -ENODEV;
- 
-+	memset(&pdevinfo, 0, sizeof(pdevinfo));
-+
-+	pdevinfo.name = DRV_NAME;
-+	pdevinfo.res = fjes_context.resources;
-+	pdevinfo.num_res = ARRAY_SIZE(fjes_context.resources);
-+	pdevinfo.fwnode = acpi_fwnode_handle(fjes_context.adev);
-+
-+	fjes_plat_dev = platform_device_register_full(&pdevinfo);
-+
-+	acpi_dev_put(fjes_context.adev);
-+
-+	if (IS_ERR(fjes_plat_dev))
-+		return PTR_ERR(fjes_plat_dev);
-+
- 	pr_info("%s - version %s - %s\n",
- 		fjes_driver_string, fjes_driver_version, fjes_copyright);
- 
-@@ -1515,19 +1503,11 @@ static int __init fjes_init_module(void)
- 	result = platform_driver_register(&fjes_driver);
- 	if (result < 0) {
- 		fjes_dbg_exit();
-+		platform_device_unregister(fjes_plat_dev);
- 		return result;
+@@ -739,19 +743,19 @@ static int system76_add(struct acpi_device *acpi_dev)
  	}
  
--	result = acpi_bus_register_driver(&fjes_acpi_driver);
--	if (result < 0)
--		goto fail_acpi_driver;
--
- 	return 0;
--
--fail_acpi_driver:
--	platform_driver_unregister(&fjes_driver);
--	fjes_dbg_exit();
--	return result;
+ 	if (data->kbled_type != KBLED_NONE) {
+-		err = devm_led_classdev_register(&acpi_dev->dev, &data->kb_led);
++		err = devm_led_classdev_register(&pdev->dev, &data->kb_led);
+ 		if (err)
+ 			return err;
+ 	}
+ 
+-	data->input = devm_input_allocate_device(&acpi_dev->dev);
++	data->input = devm_input_allocate_device(&pdev->dev);
+ 	if (!data->input)
+ 		return -ENOMEM;
+ 
+ 	data->input->name = "System76 ACPI Hotkeys";
+ 	data->input->phys = "system76_acpi/input0";
+ 	data->input->id.bustype = BUS_HOST;
+-	data->input->dev.parent = &acpi_dev->dev;
++	data->input->dev.parent = &pdev->dev;
+ 	input_set_capability(data->input, EV_KEY, KEY_SCREENLOCK);
+ 
+ 	err = input_register_device(data->input);
+@@ -772,7 +776,7 @@ static int system76_add(struct acpi_device *acpi_dev)
+ 		if (err)
+ 			goto error;
+ 
+-		data->therm = devm_hwmon_device_register_with_info(&acpi_dev->dev,
++		data->therm = devm_hwmon_device_register_with_info(&pdev->dev,
+ 			"system76_acpi", data, &thermal_chip_info, NULL);
+ 		err = PTR_ERR_OR_ZERO(data->therm);
+ 		if (err)
+@@ -792,12 +796,10 @@ static int system76_add(struct acpi_device *acpi_dev)
+ 	return err;
  }
  
- module_init(fjes_init_module);
-@@ -1535,9 +1515,9 @@ module_init(fjes_init_module);
- /* fjes_exit_module - Driver Exit Cleanup Routine */
- static void __exit fjes_exit_module(void)
+-// Remove a System76 ACPI device
+-static void system76_remove(struct acpi_device *acpi_dev)
++// Remove a System76 platform device
++static void system76_remove(struct platform_device *pdev)
  {
--	acpi_bus_unregister_driver(&fjes_acpi_driver);
- 	platform_driver_unregister(&fjes_driver);
- 	fjes_dbg_exit();
-+	platform_device_unregister(fjes_plat_dev);
+-	struct system76_data *data;
+-
+-	data = acpi_driver_data(acpi_dev);
++	struct system76_data *data = platform_get_drvdata(pdev);
+ 
+ 	if (data->has_open_ec) {
+ 		system76_battery_exit();
+@@ -805,21 +807,21 @@ static void system76_remove(struct acpi_device *acpi_dev)
+ 		kfree(data->ntmp);
+ 	}
+ 
+-	acpi_dev_remove_notify_handler(acpi_dev, ACPI_DEVICE_NOTIFY, system76_notify);
++	acpi_dev_remove_notify_handler(ACPI_COMPANION(&pdev->dev),
++				       ACPI_DEVICE_NOTIFY, system76_notify);
+ 
+ 	system76_get(data, "FINI");
  }
  
- module_exit(fjes_exit_module);
+-static struct acpi_driver system76_driver = {
+-	.name = "System76 ACPI Driver",
+-	.class = "hotkey",
+-	.ids = device_ids,
+-	.ops = {
+-		.add = system76_add,
+-		.remove = system76_remove,
++static struct platform_driver system76_driver = {
++	.probe = system76_probe,
++	.remove = system76_remove,
++	.driver = {
++		.name = "System76 ACPI Driver",
++		.acpi_match_table = device_ids,
+ 	},
+ };
+-module_acpi_driver(system76_driver);
++module_platform_driver(system76_driver);
+ 
+ MODULE_DESCRIPTION("System76 ACPI Driver");
+ MODULE_AUTHOR("Jeremy Soller <jeremy@system76.com>");
 -- 
 2.51.0
 
