@@ -1,186 +1,287 @@
-Received: from SA9PR02CU001.outbound.protection.outlook.com (mail-southcentralusazon11013022.outbound.protection.outlook.com [40.93.196.22])
+Received: from MW6PR02CU001.outbound.protection.outlook.com (mail-westus2azon11012031.outbound.protection.outlook.com [52.101.48.31])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92EC723EAB3;
-	Thu, 19 Mar 2026 03:27:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.196.22
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C889E3126B9;
+	Thu, 19 Mar 2026 04:36:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.48.31
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773890823; cv=fail; b=ILPqb1WblJYAgQ+ZpnIN+7QYjYbzgZQkHTGoN9yjit0JIzKDydn/IROppQRwOovkdZPkR0tYX9Qa2nuAXaVZqbp3ngfx6ef0WtfZYGrXCYBuL/p8WlK3ZLZJAoURwRrWWkLAo2FwPblrUNP5ZTm+PBI4igqBD486Iq1RBnrEPDA=
+	t=1773894968; cv=fail; b=VHQXVqhRMnMiyS4ewcNB0PmYczlOGEsp2Z4sqQJbCN231F88pqNNsPALZtJ/3ZKNBvY98HLAMBGoSWWtr42IlweRh6pFMm8MeoEnPXr90LzEqnt8ledz6mO8EkUWqUhLybqwtccUh5H9uhh6XLzYEyqgPMbrDA3fOFP8XhTm3tY=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773890823; c=relaxed/simple;
-	bh=GVvcemwtXHechD67e7qXuBaukYEIIgnDGn4J/ulASYk=;
-	h=Date:From:To:CC:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=BrfTPYE8AB/G609+MKzqRAdLYdmJfGYZYt1hWUXkCcrojUNdZ8sw8TsZLPBm3rAjhEwJ2Z9ShinUBsaLiH5KLnKGgDZGTrx+RcizoM0IUt99Y1ikYqFzyZetEq3IArbynHGj3j2kVgmVXcQMmXJpsVKvMC3wUUoOkGSCvH9xfkM=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=SyJWikjz; arc=fail smtp.client-ip=40.93.196.22
+	s=arc-20240116; t=1773894968; c=relaxed/simple;
+	bh=6J9pCKWQHkKJweLzEa6FrciVOabUaMLnCn1JicctWAA=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=hfMN19EixKgr/E2Qcldyxlt9JDrXb6ai/sa/HwzYee5QE0ZoegTc1gBnxcNlmU/ggVclVtC+Svdb4vmOuESOZ0Fzdxsy5TdfmPBO9nsaiIORt1mFfN3tLL7XIIq6qmtwSrfv5jB8XhyU7yh0dqKzhWp4WqMNEVYjEwZm3Dox8mo=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=biYa/zaP; arc=fail smtp.client-ip=52.101.48.31
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="SyJWikjz"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="biYa/zaP"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=j/it1w0p8vIPRcFWk0dcB5JYWmbPU3DLdU2MggB5pJhFzR+Bl2xOClt+jOi6wXeYhXwoygUNS+81F3ilIyqn6072g9zRxHrQEojNOIaSkhNoi0U7pjUb+dBpJjT5s/jka3ercBW6SnTpAQfhzotmgC8TYc0NsHlj0whPQ/r/OTrM+g2CAzf1X0Y6KDTLGbIXFH9Z2T5pCwcMS66oyh8fpOJd9tHkZnNcutOahvhLaYFpBYmdG+JSyxXDun7SGEtP7f7H63OVdlTPdQC7LPtf2VPb2nDXoyN8OPPhXdtXHEx1vvSYCQfzd+1WkpLmmsPo7q6r2L6jgsQ7lAJaVPyxOQ==
+ b=Xvo3zMbw/bWZ2LIs4iV+CEtkGBmnd4B1hTixhRdzZO8Zcl89R8AQgAwf+PmdjSCCru/upXsRWsh1pA72+f0QlbeorXj6aLJhgshQuIPUXmhlm3zXOfVLfUHdiLuqHNMEKLP9WhCJc7dUY5FOM1Ni/83u6Pdv3Xfq22qt5k7mT6Mmfe8jZtB8vl5Z5q+ntN/BWnxbq1KrODi4zkj4mJCzh7LOGEsQL4mN4lXoLj4WzMgsf2W5SIJ30LQW17RaU2jBwXAJbd67hgv7XNTI9ABWBClkfWOPac0JGlB4wHoUeWjZR2pAOQ7RgKY0Y15Nxo94az1aUi9evFZ/tjHNgyBuAw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=YCY+dC96kLDn5udxsuzs0YzOT7RNsPRTu53zkk2Ye9A=;
- b=DCLULtqjL5z7P5lAk1PlOPLNa6upVSbn77LOHTdjMFhc8Aoe0uxMt8b2xrvDhCROIdnulH9uu1qPYWZbp8DVX6xmEEfyiqzEyT5koatLl8cwppxlaHRCHY8JDfYwofMa7e7dpbBVSi8jVbiOTxwhf4pgkPw3/lzvFHJecRVBDqre2yiSsepSmmp/b/9jKccaSTYdIzHXPu+Wllu2YS/s62GZqXs/8C3gKxl+d550IBrRLcQLkMnalhY5sZnckmqSLXEFPzVs+N7iaOPjfWLNMkYipCsC/jPSJP2YOsprCgEPVYkFMHHueyErnZmeM34OkQPuJLGiVb4Beq8OSqdFlw==
+ bh=XNE6NY5Xhus889svthFz8/HqstUbR3i4p9lK6t1F6N8=;
+ b=ZAHeYNEu1K0vibmpKMYciXF6/qM7kixmFNxrt6wu96UYSYL0Iz0FfKfMQvCuz+l0KWz4jTqtAYlLp1Z3CKVwDotxf8cd08uqbAaPUKG/rGuHauKHv6XhFI+PGORBlgmDEdQsyuyiRSyI4R7lDwXDVfNPSHNckvZZbbPoY+vY1S+Ew1y91NNkKc1LhvMFXCCgWX4iC02fr3EeaeOrb+6/oZVpr2UeYolaI/AeuHN5fTwi2rSyKeBu8l0I7XX1HHUhlsbONf56jxWb7oYsPcpge2LJ++OxApkPqL6b/JQJXr2rqps7jJxq6WMvMEgg6LnQqkc2qALZGmMDGH//KTVcoA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.118.232) smtp.rcpttodomain=linux.alibaba.com
- smtp.mailfrom=nvidia.com; dmarc=pass (p=reject sp=reject pct=100) action=none
- header.from=nvidia.com; dkim=none (message not signed); arc=none (0)
+ 216.228.117.160) smtp.rcpttodomain=roeck-us.net smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=YCY+dC96kLDn5udxsuzs0YzOT7RNsPRTu53zkk2Ye9A=;
- b=SyJWikjzc9yxyWQcYS9KbNUoCArxc8RWcODilsHPsazu0MJnJf3Ve1qRLrbOd045XmXsIRErH/Jd62bVmrdYFL9A0E+W785oz/s/ECcbcSWlC0YmThA+fnQL0U1ipk5PbM0rOXTColFAAHyK/XlkxjOM2Uf31BCIeaP9XibUX9K/4F8bDQhOsCtYJGpCsJaGj1tWiu3d1yIgARBEeG7H5SHMhi8c1i19fL065qM2b/EXoehs1VpPG/0Mg4OPpGEFapBmg1fyNjJ89yGKWkEVhX50MQQr7TIqOIczzxypIqJs4xToA8YBeZyayslejYqvaOEsIPatHrb5y+OBxjQBLA==
-Received: from MN2PR05CA0057.namprd05.prod.outlook.com (2603:10b6:208:236::26)
- by DSSPR12MB999237.namprd12.prod.outlook.com (2603:10b6:8:377::6) with
+ bh=XNE6NY5Xhus889svthFz8/HqstUbR3i4p9lK6t1F6N8=;
+ b=biYa/zaPivADa91/EGN36m4o9qk7aDKiNeg5AIc59mU5Oyqw/auEnn3H+u5cB3fcoVRq4blVNxCfVI6wbY00Jp+4Vx/yTjjDzOdcjZiWqyt+rM3SnC540zth4TH/VLk5A95iXSE7qIwmoEoar07g9nUBooSIZgM1wt++2gXfEFZQrehocLDtulfP+jyqg+QyaZJttHM5xmTfMwIiocmQQ3yIsJItmcMnKNucne1wWIaIiod5YzSPPe2skdGKED155my0wbGQ/3by8G3TWOzlCSTg0lBX7LDTMlF/f+Zow259/ImBzn274b56VksXqLg6+0FAcsUqjf0J/wueir+viw==
+Received: from BN9PR03CA0515.namprd03.prod.outlook.com (2603:10b6:408:131::10)
+ by DM4PR12MB7597.namprd12.prod.outlook.com (2603:10b6:8:10b::16) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9745.9; Thu, 19 Mar
- 2026 03:26:58 +0000
-Received: from BL6PEPF0001AB76.namprd02.prod.outlook.com
- (2603:10b6:208:236:cafe::61) by MN2PR05CA0057.outlook.office365.com
- (2603:10b6:208:236::26) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.9723.19 via Frontend Transport; Thu,
- 19 Mar 2026 03:26:53 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.232)
+ 2026 04:35:59 +0000
+Received: from BN1PEPF00005FFD.namprd05.prod.outlook.com
+ (2603:10b6:408:131:cafe::82) by BN9PR03CA0515.outlook.office365.com
+ (2603:10b6:408:131::10) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.9700.27 via Frontend Transport; Thu,
+ 19 Mar 2026 04:35:43 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
  smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
 Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.118.232 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.118.232; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.118.232) by
- BL6PEPF0001AB76.mail.protection.outlook.com (10.167.242.169) with Microsoft
+ 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.160) by
+ BN1PEPF00005FFD.mail.protection.outlook.com (10.167.243.229) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9700.17 via Frontend Transport; Thu, 19 Mar 2026 03:26:57 +0000
-Received: from drhqmail201.nvidia.com (10.126.190.180) by mail.nvidia.com
- (10.127.129.5) with Microsoft SMTP Server (version=TLS1_2,
+ 15.20.9723.19 via Frontend Transport; Thu, 19 Mar 2026 04:35:59 +0000
+Received: from rnnvmail203.nvidia.com (10.129.68.9) by mail.nvidia.com
+ (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Wed, 18 Mar
- 2026 20:26:45 -0700
-Received: from drhqmail201.nvidia.com (10.126.190.180) by
- drhqmail201.nvidia.com (10.126.190.180) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.20; Wed, 18 Mar 2026 20:26:44 -0700
-Received: from Asurada-Nvidia (10.127.8.9) by mail.nvidia.com (10.126.190.180)
- with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20 via Frontend
- Transport; Wed, 18 Mar 2026 20:26:43 -0700
-Date: Wed, 18 Mar 2026 20:26:42 -0700
-From: Nicolin Chen <nicolinc@nvidia.com>
-To: Shuai Xue <xueshuai@linux.alibaba.com>
-CC: <will@kernel.org>, <robin.murphy@arm.com>, <joro@8bytes.org>,
-	<bhelgaas@google.com>, <jgg@nvidia.com>, <rafael@kernel.org>,
-	<lenb@kernel.org>, <praan@google.com>, <baolu.lu@linux.intel.com>,
-	<kevin.tian@intel.com>, <linux-arm-kernel@lists.infradead.org>,
-	<iommu@lists.linux.dev>, <linux-kernel@vger.kernel.org>,
-	<linux-acpi@vger.kernel.org>, <linux-pci@vger.kernel.org>,
-	<vsethi@nvidia.com>
-Subject: Re: [PATCH v2 7/7] iommu/arm-smmu-v3: Block ATS upon an ATC
- invalidation timeout
-Message-ID: <abts8l0UPvGuzrzF@Asurada-Nvidia>
-References: <cover.1773774441.git.nicolinc@nvidia.com>
- <7e21e14faddeb0e3af692356f4fefbae2dfbebda.1773774441.git.nicolinc@nvidia.com>
- <eeee122f-54e2-4fe9-82a6-724c3f80a499@linux.alibaba.com>
+ 2026 21:35:48 -0700
+Received: from rnnvmail204.nvidia.com (10.129.68.6) by rnnvmail203.nvidia.com
+ (10.129.68.9) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Wed, 18 Mar
+ 2026 21:35:48 -0700
+Received: from BUILDSERVER-IO-L4T.nvidia.com (10.127.8.9) by mail.nvidia.com
+ (10.129.68.6) with Microsoft SMTP Server id 15.2.2562.20 via Frontend
+ Transport; Wed, 18 Mar 2026 21:35:41 -0700
+From: Akhil R <akhilrajeev@nvidia.com>
+To: <linux@roeck-us.net>
+CC: <Frank.Li@nxp.com>, <acpica-devel@lists.linux.dev>,
+	<akhilrajeev@nvidia.com>, <alexandre.belloni@bootlin.com>,
+	<conor+dt@kernel.org>, <devicetree@vger.kernel.org>, <ebiggers@kernel.org>,
+	<fredrik.markstrom@est.tech>, <jonathanh@nvidia.com>, <krzk+dt@kernel.org>,
+	<lenb@kernel.org>, <linux-acpi@vger.kernel.org>,
+	<linux-hwmon@vger.kernel.org>, <linux-i3c@lists.infradead.org>,
+	<linux-kernel@vger.kernel.org>, <linux-tegra@vger.kernel.org>,
+	<miquel.raynal@bootlin.com>, <p.zabel@pengutronix.de>, <rafael@kernel.org>,
+	<robert.moore@intel.com>, <robh@kernel.org>, <smangipudi@nvidia.com>,
+	<thierry.reding@kernel.org>
+Subject: Re: [PATCH 11/12] hwmon: spd5118: Add I3C support
+Date: Thu, 19 Mar 2026 10:05:27 +0530
+Message-ID: <20260319043541.39291-1-akhilrajeev@nvidia.com>
+X-Mailer: git-send-email 2.50.1
+In-Reply-To: <df8086b1-8834-4bf2-ac4b-cb921beb8471@roeck-us.net>
+References: <df8086b1-8834-4bf2-ac4b-cb921beb8471@roeck-us.net>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Disposition: inline
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <eeee122f-54e2-4fe9-82a6-724c3f80a499@linux.alibaba.com>
 X-NV-OnPremToCloud: ExternallySecured
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BL6PEPF0001AB76:EE_|DSSPR12MB999237:EE_
-X-MS-Office365-Filtering-Correlation-Id: ab049936-5fbf-4654-2302-08de8567603a
+X-MS-TrafficTypeDiagnostic: BN1PEPF00005FFD:EE_|DM4PR12MB7597:EE_
+X-MS-Office365-Filtering-Correlation-Id: a20db97d-8e90-4193-26bc-08de85710500
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|82310400026|1800799024|7416014|376014|36860700016|56012099003|22082099003|18002099003;
+	BCL:0;ARA:13230040|36860700016|376014|7416014|1800799024|82310400026|13003099007|7053199007|56012099003|22082099003|18002099003;
 X-Microsoft-Antispam-Message-Info:
-	fjfjFg9ZmP7XZfDxqkqSJ1aBHsKgyv3v4lPQ0zU7ibmLbqxUIUFiDJLAOEN3wVynVZ3xY6Oz3itNZYS3X1pOOnUey8m50rxLCpAyKI1GXNr1Lgju1pA2yLzkF250cPlKInf0Lhl+PbR6VNjzwfkIjkEgR4kEG2wv3NGdJbldcGu2h7KZf26Z60zoDyCpU780do1899IKI5ZRkfki4prLWNdr0TeDtsLOfeqkzBNDDZjhoswiqSNieizPhrp38yBMr1m3NJ/9KDLwHzqBvsdX07PAhnqllwu0l3bQqJJBza07KhsEcCrtuuN/fhEWB6DGaFqAGMPPOhyUMfSdYm8owul5mlD8Vl3NlgZPZgybBVg5BcFmTtunRD6tl/vP1+WwEdA39b/Zu+r2/4YB3YFwR+hqea9K/hMX9xtUJFaiE3/nSVWS6UvwIPbie94alZpO98a4yk5IIb/WXnuTkf+45/Nlj3JMeVH9r64BHAokiohASrldjgnKjbZbqsmHJJD6MgIwM/mdEYB2091s60LiAIIFUJTDsewh8sPgDjjn7khqRXhygac7S2sO0KnFMO3l4cuVykUexGh1+Etb/UpfPIzBzwij/QQ5qDO8OodhqmwSmwMYAhsCo5u2X9OObwqLpeqHWUAR62Q+W8ku6xOUkw8aQpuFWfZ7aXUuoSvLEO3xzk0tYGKvfeEnYfUq2kd24U0i4MDbWq74eldfYjGkorvPjOfhQvgYxVcOVdBSx3Vyk1yB4aozP4iTd5f2/mcJEDfzUKmTxQKJYGp5Yeo6uA==
+	O2miK5d4BXvnZnO+WFdUieFdOlcwPJlkGfkrdEbY8qVw7HCCJ07yqFABWX3Rl6s8j/8gbsSZFGt74k9Yrg70FP4UNB4ZppE9qns5Q55zcTe3nM/I89EHT+qcDB/yLe5dt/9PMzb2ZZBuOxzy5idDIQlIIstbkrxObDTgFw2Esxik5ipNoboLeCB4TSbZVcu4JjxuvnAJCAJ2fJl4U8POnrA8o4WP01ZquikO6tsF6d40BtJgkQINyowfEzYGNjg70dz7jVmHpUKTKGYP0eIEUljDRW90t6TEIAv2DJHJz8Dr2QmUhhKYVzckrOQQiFwWBJN53FRJw5f8f8S/k5rikHi/5VwCoyZkXzObMYVkxj2WcvRn8BuPV3kIG2D72oLuINpvOC12pa74+C5r12npErHDHZlqa4E+VUHCK79X3szyP0i7J/k42MsreJHG57GX1fyhaPmktMLyHqfcr9RYqtAlIGMcuSwvkAT4YdBF0grQB1BQxL5Uhm9atvjuXRclZKEdD+Fe+ghkoSYBHuLsxgdUS5NCG0yr03uMToDfB+gKLwWajYqC0Jf7nHicRrx2RQ8pe+VAU6vwbgFbQGoYVXeFhcJIP08Tr2EHqJfCUpEC9Oea0WNrgiP9A/Lcz3QAPwNr823QzMFH6LB47+8QjQYciCCqYjTWF4I99in8giFrqzOACLPcGXNyYw/xP5Q0IZz7kjp7cXA0VgcJzxChNVjvFqoVI9nm8ozCVfz/u1oUmx0zF22nNQ9KH7mCRAhxpU2psSL4XKMYcEo6vdrdBw==
 X-Forefront-Antispam-Report:
-	CIP:216.228.118.232;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge1.nvidia.com;CAT:NONE;SFS:(13230040)(82310400026)(1800799024)(7416014)(376014)(36860700016)(56012099003)(22082099003)(18002099003);DIR:OUT;SFP:1101;
+	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(36860700016)(376014)(7416014)(1800799024)(82310400026)(13003099007)(7053199007)(56012099003)(22082099003)(18002099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	syELex8kHnT7rYCsZc4ig/cVWfUth/taQXPoIWPsmafdLMq8Nh3v/SaSGJ6lCIhIW8qXOSHZsGjHEh2aNIGzvMiUDmYU0U8br5SWf5AtPfN5PZVEiSs+swO4shXbZrbz0ZP9P+SHBSITQFe35L/3uS0fYanc7wPVzrS2/9DnVKP4P2WizPift1TyfuEF6wrMettNR75tH6BbUdZFCwHDXMJa3bp1RIt9Bi5AP0GdJ7Few3iStZuUCog4sQrZpEK7RAGVO8fXEK9zNPcZKXDsk3yzb0jpAYeRzlwS0NcK2F2EtTsKE6U0hHeDQ5HW8jUhpkNF5QNrxXTwhWGDPPsCyoZQoPYhpa622InGq0ClS3UCwF+b30X6kutTfFN1HKJ9nhWrlsA2iQ5Xx8AujlXPAoycNKcTKcZEXburZQkf3/fjttynorIpL64rXo2SaJJh
+	wNVoqq8FTK406k2TomdP2svlmuWYNAN+YBfmOfG/WvOfN+kDTJiILlCYjqWe0aZOH1uvWq49Et+iNpGKVWgR0RT6UUiWFUfiUDZseBjwH+voZ3x3bIjBRQ9fVMjCmjE4IC22u4HFMRsF6ZnJYmvwvyJsrRBIIlo9xOX1s/g2VljHtKJJ/hCKDc4i6Co8jar1vyQsexjEUnwd3nwg+WDd73WhzFkQC2ctnPzcyxinu5X8bBHNyKRsCMw7uSJbKAkWL6JIueBxNJwxFsdLaAFa+m2V9XgNhQiUyN7LuaX610CqXkrt/UdHtrVfdoZzu8ppSf3rUMurAuSOBF/3p2vMhszJwcaE/Ky4L57hAuRvyjuWlgCexhTQmgVnC2EUnxm5RNN3a4yvZk9wb0LjqyjIRSIWjGYrR47TluK8K1gvhnyboVUoHDX5sUyF97625USp
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 19 Mar 2026 03:26:57.4000
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 19 Mar 2026 04:35:59.2993
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: ab049936-5fbf-4654-2302-08de8567603a
+X-MS-Exchange-CrossTenant-Network-Message-Id: a20db97d-8e90-4193-26bc-08de85710500
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.232];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	BL6PEPF0001AB76.namprd02.prod.outlook.com
+	BN1PEPF00005FFD.namprd05.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DSSPR12MB999237
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM4PR12MB7597
 
-On Thu, Mar 19, 2026 at 10:56:43AM +0800, Shuai Xue wrote:
-> On 3/18/26 3:15 AM, Nicolin Chen wrote:
-> > For batched ATC_INV commands, SMMU hardware only reports a timeout at the
-> > CMD_SYNC, which could follow the batch issued for multiple devices. So, it
-> > isn't straightforward to identify which command in a batch resulted in the
-> > timeout. Fortunately, the invs array has a sorted list of ATC entries. So,
-> > the issued batch must be sorted as well. This makes it possible to bisect
-> > the batch to retry the command per Stream ID and identify the master.
+On Wed, 18 Mar 2026 11:53:49 -0700, Guenter Roeck wrote:
+> On 3/18/26 10:27, Akhil R wrote:
+>> Add a regmap config and a probe function to support for I3C based
+>> communication to SPD5118 devices.
+>> 
+>> On an I3C bus, SPD5118 are enumerated via SETAASA and always require an
+>> ACPI or device tree entry. The device matching is hence through the OF
+>> match tables only and do not need an I3C class match table. The device
+>> identity is verified in the type registers before proceeding to the
+>> common probe function.
+>> 
+>> Signed-off-by: Akhil R <akhilrajeev@nvidia.com>
+>> ---
+>>   drivers/hwmon/Kconfig   |  7 +++--
+>>   drivers/hwmon/spd5118.c | 66 ++++++++++++++++++++++++++++++++++++++++-
+>>   2 files changed, 70 insertions(+), 3 deletions(-)
+>> 
+>> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+>> index 8af80e17d25e..23604c05ad22 100644
+>> --- a/drivers/hwmon/Kconfig
+>> +++ b/drivers/hwmon/Kconfig
+>> @@ -2300,10 +2300,13 @@ config SENSORS_SPD5118
+>>   	tristate "SPD5118 Compliant Temperature Sensors"
+>>   	depends on I2C
+>>   	select REGMAP_I2C
 > 
-> Nit: The implementation is a linear per-SID retry, not a binary
-> search / bisection. Suggest rewording to:
+> I also had
+> 	depends on I3C || I3C=n
+> in my version at
 > 
->   "retry the ATC_INV command for each unique Stream ID in the batch
->    to identify the unresponsive master"
+> https://patchwork.kernel.org/project/linux-hwmon/patch/20250419161356.2528986-6-linux@roeck-us.net/
+> 
+> which I guess matches the more recent "depends on I3C_OR_I2C".
 
-You are right. And that sounds OK.
+Ack. Will update.
 
-> > +	step = arm_smmu_get_step_for_sid(smmu, sid);
-> > +	WRITE_ONCE(step->data[1],
-> > +		   READ_ONCE(step->data[1]) & cpu_to_le64(~STRTAB_STE_1_EATS));
 > 
+>> +	select REGMAP_I3C if I3C
+>>   	help
+>>   	  If you say yes here you get support for SPD5118 (JEDEC JESD300)
+>> -	  compliant temperature sensors. Such sensors are found on DDR5 memory
+>> -	  modules.
+>> +	  compliant temperature sensors using I2C or I3C bus interface.
+>> +	  Such sensors are found on DDR5 memory modules.
+>> +
+>> +	  This driver supports both I2C and I3C interfaces.
+>>   
+>>   	  This driver can also be built as a module. If so, the module
+>>   	  will be called spd5118.
+>> diff --git a/drivers/hwmon/spd5118.c b/drivers/hwmon/spd5118.c
+>> index 5da44571b6a0..d70123e10616 100644
+>> --- a/drivers/hwmon/spd5118.c
+>> +++ b/drivers/hwmon/spd5118.c
+>> @@ -18,6 +18,7 @@
+>>   #include <linux/bits.h>
+>>   #include <linux/err.h>
+>>   #include <linux/i2c.h>
+>> +#include <linux/i3c/device.h>
+>>   #include <linux/hwmon.h>
+>>   #include <linux/module.h>
+>>   #include <linux/mutex.h>
+>> @@ -482,6 +483,25 @@ static const struct regmap_config spd5118_regmap16_config = {
+>>   	.cache_type = REGCACHE_MAPLE,
+>>   };
+>>   
+>> +/*
+>> + * I3C uses 2-byte register addressing -
+>> + *   Byte 1: MemReg | BlkAddr[0] | Address[5:0]
+>> + *   Byte 2: 0000   | BlkAddr[4:1]
+>> + *
+>> + * The low byte carries the register/NVM address and the high byte carries the
+>> + * upper block address bits, so little-endian format is required. No range
+>> + * config is needed since I3C does not use MR11 page switching.
+>> + */
+>> +static const struct regmap_config spd5118_regmap_i3c_config = {
+>> +	.reg_bits = 16,
+>> +	.val_bits = 8,
+>> +	.max_register = 0x7ff,
+>> +	.reg_format_endian = REGMAP_ENDIAN_LITTLE,
 > 
-> This non-atomic read-modify-write on step->data[1] can race with the
-> normal STE installation path (arm_smmu_write_entry → entry_set →
-> WRITE_ONCE).
-> 
-> The error path runs from:
-> 
->   __arm_smmu_domain_inv_range()  (data path, no group->mutex)
->     → arm_smmu_cmdq_batch_retry()
->       → arm_smmu_master_disable_ats()
->         → arm_smmu_disable_eats_for_sid()   ← NO locks on STE
-> 
-> The normal STE path runs from:
-> 
->   iommu_attach_device()
->     → mutex_lock(&group->mutex)
->       → arm_smmu_attach_dev()
->         → mutex_lock(&arm_smmu_asid_lock)
->           → arm_smmu_install_ste_for_dev()
->             → arm_smmu_write_entry()        ← holds both mutexes
-> 
-> Since the error path holds neither group->mutex nor arm_smmu_asid_lock,
-> the following race is possible:
+> Should this be added to spd5118_regmap16_config instead, or is there reason
+> to assume that I2C 16-bit addressing differs from I3C addressing ?
 
-Because invalidations can be in atomic context so we can't hold
-those mutex locks.
+I did not see any difference for I2C in the specification, but I assumed the
+existing format would have been working and I thought not to change them.
+Changing the I2C format would also require a change in the is_16bit nvmem_read
+formula.
 
->   CPU A (error path):             CPU B (attach path):
->   READ data[1] = X
->                                   WRITE data[1] = Y (new STE config)
->   WRITE data[1] = X & ~EATS
->                                   // Y is lost
 > 
-> This could clobber a concurrent STE update from the attach path.
+>> +	.writeable_reg = spd5118_writeable_reg,
+>> +	.volatile_reg = spd5118_volatile_reg,
+>> +	.cache_type = REGCACHE_MAPLE,
+>> +};
+>> +
+>>   static int spd5118_suspend(struct device *dev)
+>>   {
+>>   	struct spd5118_data *data = dev_get_drvdata(dev);
+>> @@ -770,7 +790,51 @@ static struct i2c_driver spd5118_i2c_driver = {
+>>   	.address_list	= IS_ENABLED(CONFIG_SENSORS_SPD5118_DETECT) ? normal_i2c : NULL,
+>>   };
+>>   
+>> -module_i2c_driver(spd5118_i2c_driver);
+>> +/* I3C */
+>> +
+>> +static int spd5118_i3c_probe(struct i3c_device *i3cdev)
+>> +{
+>> +	struct device *dev = i3cdev_to_dev(i3cdev);
+>> +	struct regmap *regmap;
+>> +	unsigned int regval;
+>> +	int err;
+>> +
+>> +	regmap = devm_regmap_init_i3c(i3cdev, &spd5118_regmap_i3c_config);
+>> +	if (IS_ERR(regmap))
+>> +		return dev_err_probe(dev, PTR_ERR(regmap), "regmap init failed\n");
+>> +
+>> +	/* Verify this is a SPD5118 device */
+>> +	err = regmap_read(regmap, SPD5118_REG_TYPE, &regval);
+>> +	if (err)
+>> +		return err;
+>> +
+>> +	if (regval != 0x51) {
+>> +		dev_err(dev, "unexpected device type 0x%02x, expected 0x51\n", regval);
+>> +		return -ENODEV;
+>> +	}
+>> +
+>> +	err = regmap_read(regmap, SPD5118_REG_TYPE + 1, &regval);
+>> +	if (err)
+>> +		return err;
+>> +
+>> +	if (regval != 0x18) {
+>> +		dev_err(dev, "unexpected device type 0x%02x, expected 0x18\n", regval);
+>> +		return -ENODEV;
+>> +	}
+>> +
+> 
+> I don't think this should dump error messages. Also, it might be desirable
+> to use a single regmap operation to read both values.
 
-Oh, that's true. Maybe this:
-	__le64 new, old = READ_ONCE(step->data[1]);
-	[...]
-	do {
-		new = old & cpu_to_le64(~STRTAB_STE_1_EATS);
-	} while (!try_cmpxchg64(&step->data[1], &old, new));
-?
+Ack. Will use regmap_bulk_read() and will remove the error dump.
 
-Thanks!
-Nicolin
+> 
+>> +	return spd5118_common_probe(dev, regmap, false);
+> 
+> Why is_16bit=false ?
+
+We don't need the encoding formula for the nvmem address with I3C. Since it
+uses little-endian, (page * 0x100 + SPD5118_EEPROM_BASE) translates to the
+correct address. Or did I overlook something?
+
+> 
+>> +}
+>> +
+>> +static struct i3c_driver spd5118_i3c_driver = {
+>> +	.driver = {
+>> +		.name	= "spd5118_i3c",
+>> +		.of_match_table = spd5118_of_ids,
+>> +		.pm = pm_sleep_ptr(&spd5118_pm_ops),
+>> +	},
+>> +	.probe		= spd5118_i3c_probe,
+>> +};
+>> +
+>> +module_i3c_i2c_driver(spd5118_i3c_driver, &spd5118_i2c_driver);
+>>   
+>>   MODULE_AUTHOR("René Rebe <rene@exactcode.de>");
+>>   MODULE_AUTHOR("Guenter Roeck <linux@roeck-us.net>");
+
+Best Regards,
+Akhil
