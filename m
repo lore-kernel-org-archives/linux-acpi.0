@@ -1,205 +1,245 @@
-Received: from CH1PR05CU001.outbound.protection.outlook.com (mail-northcentralusazon11010071.outbound.protection.outlook.com [52.101.193.71])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 341DF35837B;
-	Thu, 19 Mar 2026 08:47:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.193.71
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773910039; cv=fail; b=KHlhDE9m8iG5/4uIpZVgxd5okkU49zRYMYrW8kIMjto/qeGsa1SYloenodV49Tgd5tOoabWU4pcA2xX/a43BIwqfDe1W2Ume98/x0ctW/vkPtjrpPNLUyhI3YaXDdvhwgUQxEaut5naBkCzfh2eXIdkqU4hlbegoxXjXjflfSlU=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773910039; c=relaxed/simple;
-	bh=b3PZ3nszum98d4XZv3RZracFjYaqsUaPDmxgLw/U/i0=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=TVbxR7mqkB0P0RWBRfNHBIeBKr8ncpmdtDMt3SyB1cLPmAgbj5tQmNzh72UTBa4YkDjgCeFsQ9eNz+y1tRlA0Pmf41zfya0Lsa/58773mcMkvv8cttaf1cuc6GKCT9lI6jdeng4Q7bDB/Xm4izUwgwaeUmTk2iCbDO7gg2F6BzA=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=owUEmC+m; arc=fail smtp.client-ip=52.101.193.71
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2A183B3BEA;
+	Thu, 19 Mar 2026 09:27:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.19
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1773912445; cv=none; b=Yp+jPd/pFseIUSUxCk28CK5ls8183KUY4YD9Zd7o5FxaTMAwbXL5Y6azO3jfssk/tJ/1THXUaNolbt/6TGdjLOjh7e2xZprsZs+yUjfYqW6G+cQRq9oELRH8N5vUl7dcs8YLMpgKpxEIEXMakaB/EbUiPgIhxQRyPm2YoEzEmOA=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1773912445; c=relaxed/simple;
+	bh=SwQMr68qDGZqRIQvgirOtiJn5Cgsl2jYBkdLS+p6c+o=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=IiArRm5MpzJj0OpVKDDA7IsR/FeUI7BBsaCljV3t3eIaZxW3aG3+pV4gF+CYskIr7zu8sDc2rQBLs8gHpp8q3oFgLGn6Z1LPY2xxchmHbWoKI1vvJN67vvAovmkx6Mw1TXOEJJ80zMB9k0v3SFMWHeytxadKAB5bVa1fFAVEc9I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Aj71A4P4; arc=none smtp.client-ip=198.175.65.19
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="owUEmC+m"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=BbI5mi1P8XyvvcaHkLOvIjjzopJ0dQa5FfSu31FyegXqglWgpZ22Koz2+55a6x2G4yDIKYJ9XqAOP0fG7ZwSotmEA3SuCvQXjd9Y1rMKrI/KBDFct3tQjdALOIWMeD3BBDSx6m8PssAxaKuslENQmY9XR90gPc+O4neSRApCumrCp5WbLAeH0JMmoGIFXqcECs5ekdyrsWjv45wk99nuUWtsmDmwhSgdvod8SFLI4wn51YokhisR8V1uh4KNeMzwavGs5V78Ay6ZFhV3fChUd219Nx51hHOEqCwNwINhIrV1QmtVxVcv98P5o9tIQEgVfrebhUiMVrDvIILLc2H51g==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=hyX1PGEh5Fmb3+9LJsAql7p93k6+7CRPemknitksSsM=;
- b=NRyU4i5a0w7Pt065QzZ4D1zD4FrVpxbgxBnvMiAI/L8hXjMguNq0X6hR/BIUQYGBpTG0wao7dB84lv9tjWuWq+0D1AWVb13b2OteNBWF18vJyktlXfkAeRsNQC55P6rCtKRNBofg0mFi1iHlJRzsBJGaurD5u7dgr0qTfPbPdWGe026oBsKa5bBpg6+JAzSUB32H/HrsCA5eAQWOuhThfq3v2eSKfNqv4lbTg61usZnGCd8jHVsObxc7IzrsnHXBuLzzqpMxdUNxKo7a8T71Waws4BSwXHKjXdH6wCgSlYdG1jbzoU77/NJGRU8vbzvFp/BJFPEz/fB7LpkuPk++QA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.161) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=hyX1PGEh5Fmb3+9LJsAql7p93k6+7CRPemknitksSsM=;
- b=owUEmC+m9cwtdq8hkRP3SpCd31R/flGUZl71y9jqlK3cEfgD2dlBczad0Sab8vbq4VRZFGmbmh17M6Ijt+0QXor3AWQy/fAjfHtvOi52CIwNdXuAsJdQ6mdW+FCff7sNRa/SyN2x4wDl/si39+YtWWgC3F8S5ymRrffNUnosf+bRfVNErb2b5u9TXm/i6q1qwnUUg8DU8kRef3rp6l2Ktfxheq+/Q9LFzE87Cksv6PKNXigKeXB50LomTxt+TlkovcWu4CQxrPYC+/NRtjGIKT0g0Xnd5fI0KKknvJYKNqOU27mb8SOMJNR2m3PFmjOKQgzIh92gpmTfx7ZpRQZ3dA==
-Received: from DS7PR03CA0182.namprd03.prod.outlook.com (2603:10b6:5:3b6::7) by
- IA1PR12MB6556.namprd12.prod.outlook.com (2603:10b6:208:3a0::14) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9745.9; Thu, 19 Mar
- 2026 08:47:06 +0000
-Received: from CH3PEPF00000012.namprd21.prod.outlook.com
- (2603:10b6:5:3b6:cafe::ed) by DS7PR03CA0182.outlook.office365.com
- (2603:10b6:5:3b6::7) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.9700.27 via Frontend Transport; Thu,
- 19 Mar 2026 08:47:05 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.161)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.161) by
- CH3PEPF00000012.mail.protection.outlook.com (10.167.244.117) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9745.0 via Frontend Transport; Thu, 19 Mar 2026 08:47:05 +0000
-Received: from rnnvmail202.nvidia.com (10.129.68.7) by mail.nvidia.com
- (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Thu, 19 Mar
- 2026 01:46:49 -0700
-Received: from rnnvmail205.nvidia.com (10.129.68.10) by rnnvmail202.nvidia.com
- (10.129.68.7) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Thu, 19 Mar
- 2026 01:46:49 -0700
-Received: from BUILDSERVER-IO-L4T.nvidia.com (10.127.8.9) by mail.nvidia.com
- (10.129.68.10) with Microsoft SMTP Server id 15.2.2562.20 via Frontend
- Transport; Thu, 19 Mar 2026 01:46:42 -0700
-From: Akhil R <akhilrajeev@nvidia.com>
-To: <conor@kernel.org>
-CC: <Frank.Li@nxp.com>, <acpica-devel@lists.linux.dev>,
-	<akhilrajeev@nvidia.com>, <alexandre.belloni@bootlin.com>,
-	<conor+dt@kernel.org>, <devicetree@vger.kernel.org>, <ebiggers@kernel.org>,
-	<fredrik.markstrom@est.tech>, <jonathanh@nvidia.com>, <krzk+dt@kernel.org>,
-	<lenb@kernel.org>, <linux-acpi@vger.kernel.org>,
-	<linux-hwmon@vger.kernel.org>, <linux-i3c@lists.infradead.org>,
-	<linux-kernel@vger.kernel.org>, <linux-tegra@vger.kernel.org>,
-	<linux@roeck-us.net>, <miquel.raynal@bootlin.com>, <p.zabel@pengutronix.de>,
-	<rafael@kernel.org>, <robert.moore@intel.com>, <robh@kernel.org>,
-	<smangipudi@nvidia.com>, <thierry.reding@kernel.org>
-Subject: Re: [PATCH 01/12] dt-bindings: i3c: Add mipi-i3c-static-method to support SETAASA
-Date: Thu, 19 Mar 2026 14:16:41 +0530
-Message-ID: <20260319084641.57672-1-akhilrajeev@nvidia.com>
-X-Mailer: git-send-email 2.50.1
-In-Reply-To: <20260318-tweed-herbicide-eb924ef056b8@spud>
-References: <20260318-tweed-herbicide-eb924ef056b8@spud>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Aj71A4P4"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1773912444; x=1805448444;
+  h=date:from:to:cc:subject:message-id;
+  bh=SwQMr68qDGZqRIQvgirOtiJn5Cgsl2jYBkdLS+p6c+o=;
+  b=Aj71A4P40AC9ineCNwZZdjaz1XUWIWc/rnaTts6rF51SRwa1ZC6ASX/Y
+   EDj+o11OrkDLAHcwfWlaqpFZpNVPApnouBqDzJtC1kJQInEV9ZdxkEOad
+   oa4LTvf9qc1DMWnd5ZN3xMMxTcqC0j6exBd8KcTX0Db2JuFWcV6scyJIJ
+   HDA5Tw4jUnc416nTcNvHFW7jxB7CUpXhs0Lxlju0/icwTx0FQhCJy7Fc4
+   bv+T67ZqkcJhJA6FJHssZNPqJc63FSnaM/rORBrgtaMruJlTj0A/mhYvf
+   QTYnq3Kr8/45keCnxf3WBV4J7AzIOAYUUL5u+7HJdzeXp5l877x0DQUEb
+   Q==;
+X-CSE-ConnectionGUID: 3dl7PQ5XQOSpZ0dCIs6L/A==
+X-CSE-MsgGUID: 4xORiqcLSIiU+6wirxUy3w==
+X-IronPort-AV: E=McAfee;i="6800,10657,11733"; a="74864150"
+X-IronPort-AV: E=Sophos;i="6.23,129,1770624000"; 
+   d="scan'208";a="74864150"
+Received: from orviesa006.jf.intel.com ([10.64.159.146])
+  by orvoesa111.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Mar 2026 02:27:23 -0700
+X-CSE-ConnectionGUID: CfZe5+2QQ260M0DiByR8HQ==
+X-CSE-MsgGUID: YEFWAS6ATpiB7X3IdIaPcQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,129,1770624000"; 
+   d="scan'208";a="222007542"
+Received: from lkp-server02.sh.intel.com (HELO a51c2a36b9df) ([10.239.97.151])
+  by orviesa006.jf.intel.com with ESMTP; 19 Mar 2026 02:27:21 -0700
+Received: from kbuild by a51c2a36b9df with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1w39ew-000000000fB-0PCM;
+	Thu, 19 Mar 2026 09:27:18 +0000
+Date: Thu, 19 Mar 2026 17:25:07 +0800
+From: kernel test robot <lkp@intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+Subject: [rafael-pm:fixes] BUILD SUCCESS
+ 989846451544c0330ee498cfdfc0183a4baf4270
+Message-ID: <202603191701.6MkuIMm5-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-NV-OnPremToCloud: ExternallySecured
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CH3PEPF00000012:EE_|IA1PR12MB6556:EE_
-X-MS-Office365-Filtering-Correlation-Id: 60fce4d6-bff6-4ee8-82af-08de8594192e
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|376014|7416014|36860700016|82310400026|13003099007|18002099003|22082099003|56012099003;
-X-Microsoft-Antispam-Message-Info:
-	2DDDrwlVz+GzI9iq3LtH1kRgfVkRhGL9uHQOqnY7Z1mhzRspHtjryZpVov9VJiBHyi63s8mgKX0yE524MHnY5/zQim7m4dkcdgl/s1XIGmNAMXE6mMi9WrisdYg/n/y+rgQhklCSfAVhDfGnJsDjcNrlt9wKMRhA0IGmRwUcxHxUCYjVyIm0y80sPBy19hvudnQQ6JmiVLAdISwCVMgIXQsNJ25lDXndoR/2XbN/i3Bk2+wA3vDtAm6hKVm5oXadXMSOztdMkg0nA3yZ5sii2HTrlDKApORI2FEMhI656Ofcebhzr9lxkSoMWDOVkMpkYEIFKhr6q+YGBdV7ca+Ry5aGfagMW5Td0bNoJYWvOUPr96yWAneFJfQpDjm9VzCUzEGhHWn0fbjhKkFCMYmNDxLflKsq3gnjTDG4QM0yt/o1Wv9WZiUzY+8VF24/psVeraYXuX1J4f3VdNfYK8C04XJXmkHw91tHiSJuOQwHP6P7OQAQLc+9UsVZC9MdBWy///NJEumpC5VEDj6NoS1lRIQ1w+iPHAvLa6SAe1bXmDQdlUVuja/SYMTtZGkjX5mKHSZngo2ZTWUfqsSrv8KhfghqvNy4Iw8xB8EKEwu6mwhPUCGNe5zbqCdUqq/zylrDzLV0K0EGk5YXJ4P01gv5tERr2rk6B4fUj8khKvyt9bW6186qmvmiGlgFZmzUohEe7WfO0DtqUI3zsBwFxcD1p566ZHU+iKLa6h600C1318wLNKy54RtKUWBoLqUxYb8Cw3XC3Y4DU6Ykd+NGQfch9g==
-X-Forefront-Antispam-Report:
-	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(1800799024)(376014)(7416014)(36860700016)(82310400026)(13003099007)(18002099003)(22082099003)(56012099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	fhEVPWLuM/Uj1hXThH3kIJG3xvYqoyZOqKWkv4oUHfSyt33T/77KnNhZ7/g52nchZ6m4+1fI3GZniaKcB0y/S8HxxSQ+ANz2c75V1WOP0ZLMAP2zjBhxHvX47MBNjj8kRXBK9LXV+Z5WfoC2F04O3KyUV+JSSmwDQHhRsrfOBCdQmEyGeUaTwbKPFC7CuPHABAju01Cnr5J3vQyZclA3NgK+5SSiHdOFO3MwKcSKcPv4pJ7N1oRn4OM8TqwT/u+ZsY5zTQEEP0vBnyvTY7EATQVNjPZLWkGz27FUD2Rz3WmxFWuqsjUa65iqRjvHvQlCWr9wj6BdnRKnIechdGK71uh0tqRklzgRmlYfxiL3xJHD9pd6kH/MPEIA53SO5P8RhLBuDXRNZun0eOFTfJ3JZbaTNd4gmwsfChLedMVuVlAvBXyRy0E8OoKs0sy4xY4L
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 19 Mar 2026 08:47:05.5733
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 60fce4d6-bff6-4ee8-82af-08de8594192e
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	CH3PEPF00000012.namprd21.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR12MB6556
 
-On Wed, 18 Mar 2026 17:31:50 +0000, Conor Dooley wrote:
-> On Wed, Mar 18, 2026 at 10:57:14PM +0530, Akhil R wrote:
->> Add the 'mipi-i3c-static-method' property mentioned in the MIPI I3C
->> Discovery and Configuration Specification [1] to specify which discovery
->> method an I3C device supports during bus initialization. The property is
->> a bitmap, where a bit value of 1 indicates support for that method, and 0
->> indicates lack of support.
->> Bit 0: SETDASA CCC (Direct)
->> Bit 1: SETAASA CCC (Broadcast)
->> Bit 2: Other CCC (vendor / standards extension)
->> All other bits are reserved.
->> 
->> It is specifically needed when an I3C device requires SETAASA for the
->> address assignment. SETDASA will be supported by default if this property
->> is absent - which means for now the property just serves as a flag to
->> enable SETAASA, but keep the property as a bitmap to align with the
->> specifications.
->> 
->> [1] https://www.mipi.org/specifications/disco
->> 
->> Signed-off-by: Akhil R <akhilrajeev@nvidia.com>
->> ---
->>  .../devicetree/bindings/i3c/i3c.yaml          | 30 ++++++++++++++++---
->>  1 file changed, 26 insertions(+), 4 deletions(-)
->> 
->> diff --git a/Documentation/devicetree/bindings/i3c/i3c.yaml b/Documentation/devicetree/bindings/i3c/i3c.yaml
->> index e25fa72fd785..1705d90d4d79 100644
->> --- a/Documentation/devicetree/bindings/i3c/i3c.yaml
->> +++ b/Documentation/devicetree/bindings/i3c/i3c.yaml
->> @@ -31,10 +31,12 @@ properties:
->>        described in the device tree, which in turn means we have to describe
->>        I3C devices.
->>  
->> -      Another use case for describing an I3C device in the device tree is when
->> -      this I3C device has a static I2C address and we want to assign it a
->> -      specific I3C dynamic address before the DAA takes place (so that other
->> -      devices on the bus can't take this dynamic address).
->> +      Other use-cases for describing an I3C device in the device tree are:
->> +      - When the I3C device has a static I2C address and we want to assign
->> +        it a specific I3C dynamic address before the DAA takes place (so
->> +        that other devices on the bus can't take this dynamic address).
->> +      - When the I3C device requires SETAASA for its discovery and uses a
->> +        pre-defined static address.
->>  
->>    "#size-cells":
->>      const: 0
->> @@ -147,6 +149,26 @@ patternProperties:
->>            through SETDASA. If static address is not present, this address is assigned
->>            through SETNEWDA after assigning a temporary address via ENTDAA.
->>  
->> +      mipi-i3c-static-method:
->> +        $ref: /schemas/types.yaml#/definitions/uint32
->> +        minimum: 0x1
->> +        maximum: 0xff
->> +        default: 1
->> +        description: |
->> +          Bitmap describing which methods of Dynamic Address Assignment from a
->> +          static address are supported by this I3C Target. A bit value of 1
->> +          indicates support for that method, and 0 indicates lack of support.
-> 
-> I really am not keen on properties that are bitmaps, why can't we just
-> use the strings "setdasa", "setaasa" etc?
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git fixes
+branch HEAD: 989846451544c0330ee498cfdfc0183a4baf4270  Merge branch 'acpi-bus' into fixes
 
-The intention was to mirror the property described in the specification. Using
-strings would not allow to use a combination of methods when a device supports
-more than one method. It also cannot represent the vendor extensions (Bit 2)
-cleanly. Would this be better if we use macros instead of raw numbers?
-Please let me know your thoughts.
+elapsed time: 1038m
 
-> 
->> +          Bit 0: SETDASA CCC (Direct)
->> +          Bit 1: SETAASA CCC (Broadcast)
->> +          Bit 2: Other CCC (vendor / standards extension)
->> +          All other bits are reserved.
->> +
->> +          This property follows the MIPI I3C specification. The primary use
->> +          of this property is to indicate support for SETAASA, i.e Bit 1, but
->> +          will allow all values so that it is aligned with the specifications.
->> +          SETDASA will remain as the default method even if this property is
->> +          not present.
->> +
->>      required:
->>        - reg
+configs tested: 168
+configs skipped: 3
 
-Best Regards,
-Akhil
+The following configs have been built successfully.
+More configs may be tested in the coming days.
+
+tested configs:
+alpha                             allnoconfig    gcc-15.2.0
+alpha                            allyesconfig    gcc-15.2.0
+alpha                               defconfig    gcc-15.2.0
+arc                              allmodconfig    clang-16
+arc                               allnoconfig    gcc-15.2.0
+arc                              allyesconfig    clang-23
+arc                                 defconfig    gcc-15.2.0
+arc                   randconfig-001-20260319    gcc-11.5.0
+arc                   randconfig-002-20260319    gcc-11.5.0
+arm                               allnoconfig    gcc-15.2.0
+arm                              allyesconfig    clang-16
+arm                                 defconfig    gcc-15.2.0
+arm                   randconfig-001-20260319    gcc-11.5.0
+arm                   randconfig-002-20260319    gcc-11.5.0
+arm                   randconfig-003-20260319    gcc-11.5.0
+arm                   randconfig-004-20260319    gcc-11.5.0
+arm64                            allmodconfig    clang-23
+arm64                             allnoconfig    gcc-15.2.0
+arm64                               defconfig    gcc-15.2.0
+arm64                 randconfig-001-20260319    gcc-15.2.0
+arm64                 randconfig-002-20260319    gcc-15.2.0
+arm64                 randconfig-003-20260319    gcc-15.2.0
+arm64                 randconfig-004-20260319    gcc-15.2.0
+csky                             allmodconfig    gcc-15.2.0
+csky                              allnoconfig    gcc-15.2.0
+csky                                defconfig    gcc-15.2.0
+csky                  randconfig-001-20260319    gcc-15.2.0
+csky                  randconfig-002-20260319    gcc-15.2.0
+hexagon                          allmodconfig    gcc-15.2.0
+hexagon                           allnoconfig    gcc-15.2.0
+hexagon                             defconfig    gcc-15.2.0
+hexagon               randconfig-001-20260319    gcc-11.5.0
+hexagon               randconfig-002-20260319    gcc-11.5.0
+i386                             allmodconfig    clang-20
+i386                              allnoconfig    gcc-15.2.0
+i386                             allyesconfig    clang-20
+i386        buildonly-randconfig-001-20260319    gcc-14
+i386        buildonly-randconfig-002-20260319    gcc-14
+i386        buildonly-randconfig-003-20260319    gcc-14
+i386        buildonly-randconfig-004-20260319    gcc-14
+i386        buildonly-randconfig-005-20260319    gcc-14
+i386        buildonly-randconfig-006-20260319    gcc-14
+i386                                defconfig    gcc-15.2.0
+i386                  randconfig-001-20260319    gcc-14
+i386                  randconfig-002-20260319    gcc-14
+i386                  randconfig-003-20260319    gcc-14
+i386                  randconfig-004-20260319    gcc-14
+i386                  randconfig-005-20260319    gcc-14
+i386                  randconfig-006-20260319    gcc-14
+i386                  randconfig-007-20260319    gcc-14
+i386                  randconfig-011-20260319    clang-20
+i386                  randconfig-012-20260319    clang-20
+i386                  randconfig-013-20260319    clang-20
+i386                  randconfig-014-20260319    clang-20
+i386                  randconfig-015-20260319    clang-20
+i386                  randconfig-016-20260319    clang-20
+i386                  randconfig-017-20260319    clang-20
+loongarch                        allmodconfig    clang-23
+loongarch                         allnoconfig    gcc-15.2.0
+loongarch                           defconfig    clang-19
+loongarch             randconfig-001-20260319    gcc-11.5.0
+loongarch             randconfig-002-20260319    gcc-11.5.0
+m68k                             allmodconfig    gcc-15.2.0
+m68k                              allnoconfig    gcc-15.2.0
+m68k                             allyesconfig    clang-16
+m68k                                defconfig    clang-19
+m68k                          sun3x_defconfig    gcc-15.2.0
+microblaze                        allnoconfig    gcc-15.2.0
+microblaze                       allyesconfig    gcc-15.2.0
+microblaze                          defconfig    clang-19
+mips                             allmodconfig    gcc-15.2.0
+mips                              allnoconfig    gcc-15.2.0
+mips                             allyesconfig    gcc-15.2.0
+nios2                            allmodconfig    clang-23
+nios2                             allnoconfig    clang-23
+nios2                               defconfig    clang-19
+nios2                 randconfig-001-20260319    gcc-11.5.0
+nios2                 randconfig-002-20260319    gcc-11.5.0
+openrisc                         allmodconfig    clang-23
+openrisc                          allnoconfig    clang-23
+openrisc                            defconfig    gcc-15.2.0
+parisc                           allmodconfig    gcc-15.2.0
+parisc                            allnoconfig    clang-23
+parisc                           allyesconfig    clang-19
+parisc                              defconfig    gcc-15.2.0
+parisc                randconfig-001-20260319    clang-19
+parisc                randconfig-002-20260319    clang-19
+parisc64                            defconfig    clang-19
+powerpc                          allmodconfig    gcc-15.2.0
+powerpc                           allnoconfig    clang-23
+powerpc                      chrp32_defconfig    clang-19
+powerpc               randconfig-001-20260319    clang-19
+powerpc               randconfig-002-20260319    clang-19
+powerpc64             randconfig-001-20260319    clang-19
+powerpc64             randconfig-002-20260319    clang-19
+riscv                            allmodconfig    clang-23
+riscv                             allnoconfig    clang-23
+riscv                            allyesconfig    clang-16
+riscv                               defconfig    gcc-15.2.0
+riscv                 randconfig-001-20260319    gcc-10.5.0
+s390                             allmodconfig    clang-19
+s390                              allnoconfig    clang-23
+s390                             allyesconfig    gcc-15.2.0
+s390                                defconfig    gcc-15.2.0
+s390                  randconfig-001-20260319    gcc-10.5.0
+s390                  randconfig-002-20260319    gcc-10.5.0
+sh                               allmodconfig    gcc-15.2.0
+sh                                allnoconfig    clang-23
+sh                               allyesconfig    clang-19
+sh                                  defconfig    gcc-14
+sh                    randconfig-001-20260319    gcc-10.5.0
+sh                    randconfig-002-20260319    gcc-10.5.0
+sparc                             allnoconfig    clang-23
+sparc                               defconfig    gcc-15.2.0
+sparc                 randconfig-001-20260319    gcc-8.5.0
+sparc                 randconfig-002-20260319    gcc-8.5.0
+sparc64                          allmodconfig    clang-23
+sparc64                             defconfig    gcc-14
+sparc64               randconfig-001-20260319    gcc-8.5.0
+sparc64               randconfig-002-20260319    gcc-8.5.0
+um                               allmodconfig    clang-19
+um                                allnoconfig    clang-23
+um                               allyesconfig    gcc-15.2.0
+um                                  defconfig    gcc-14
+um                             i386_defconfig    gcc-14
+um                    randconfig-001-20260319    gcc-8.5.0
+um                    randconfig-002-20260319    gcc-8.5.0
+um                           x86_64_defconfig    gcc-14
+x86_64                           allmodconfig    clang-20
+x86_64                            allnoconfig    clang-23
+x86_64                           allyesconfig    clang-20
+x86_64      buildonly-randconfig-001-20260319    clang-20
+x86_64      buildonly-randconfig-002-20260319    clang-20
+x86_64      buildonly-randconfig-003-20260319    clang-20
+x86_64      buildonly-randconfig-004-20260319    clang-20
+x86_64      buildonly-randconfig-005-20260319    clang-20
+x86_64      buildonly-randconfig-006-20260319    clang-20
+x86_64                              defconfig    gcc-14
+x86_64                                  kexec    clang-20
+x86_64                randconfig-001-20260319    gcc-14
+x86_64                randconfig-002-20260319    gcc-14
+x86_64                randconfig-003-20260319    gcc-14
+x86_64                randconfig-004-20260319    gcc-14
+x86_64                randconfig-005-20260319    gcc-14
+x86_64                randconfig-006-20260319    gcc-14
+x86_64                randconfig-011-20260319    gcc-13
+x86_64                randconfig-012-20260319    gcc-13
+x86_64                randconfig-013-20260319    gcc-13
+x86_64                randconfig-014-20260319    gcc-13
+x86_64                randconfig-015-20260319    gcc-13
+x86_64                randconfig-016-20260319    gcc-13
+x86_64                randconfig-071-20260319    clang-20
+x86_64                randconfig-072-20260319    clang-20
+x86_64                randconfig-073-20260319    clang-20
+x86_64                randconfig-074-20260319    clang-20
+x86_64                randconfig-075-20260319    clang-20
+x86_64                randconfig-076-20260319    clang-20
+x86_64                               rhel-9.4    clang-20
+x86_64                           rhel-9.4-bpf    gcc-14
+x86_64                          rhel-9.4-func    clang-20
+x86_64                    rhel-9.4-kselftests    clang-20
+x86_64                         rhel-9.4-kunit    gcc-14
+x86_64                           rhel-9.4-ltp    gcc-14
+x86_64                          rhel-9.4-rust    clang-20
+xtensa                            allnoconfig    clang-23
+xtensa                           allyesconfig    clang-23
+xtensa                randconfig-001-20260319    gcc-8.5.0
+xtensa                randconfig-002-20260319    gcc-8.5.0
+
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
