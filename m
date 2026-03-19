@@ -1,44 +1,41 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0A9B38F95E;
-	Thu, 19 Mar 2026 11:33:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E271A370D51;
+	Thu, 19 Mar 2026 11:33:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773920025; cv=none; b=ZqwwU3tgxhxUr1zFerJyBDAIuHEHS+FCeOv2V0IocQCRSupseDTILPqwwpn4mtPe8tOIlmG6e06w3yZKd02NPZHHXkn43QU5TyjfyR3kxU2HCSXcqYrFmlSagF2ryJznfAiYlyTk5bTVKQ1xagb4t25oqqx7WVuTZyUUpe6xDrI=
+	t=1773920029; cv=none; b=H+aLJxkA9oLrZIG8pM/RDchcVEwbqEgUE36hW5vY9knBtRuMbGgzCLd8CwdlKdSMRRmmo77YCFHvPK/lpORocYeEOOpLlyGbQxslZCnpSM4r0qA7tYN3MoPUBU02gy/K4/yJRITdB9zl2PHRjfANYIq1Ha5t/SG7TUf1RXVtef0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773920025; c=relaxed/simple;
-	bh=fSgbQzUnV0PvKHUbgo84A/Lbjhd6xf8Nd4B3SHXZAjU=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=hZmJ48VKwLCVJkmrc5loLdKdMR2tXVo4YtkiV82uFvJai5onYMk6x26RSOuwwvfluTxkpCol8jRYSp6tRbFQHUxKw2VLB1JKYHtM27fOc/H2T1btVKkKJ/5TifvBjeYbHh3O+DYBZnD7vSoepHxEBtfXAuA18YNG620MuIWcSWs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Rp7zhn3z; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773920029; c=relaxed/simple;
+	bh=bahAOU76Nprh8RdGJqEXDVlnQKGPbJJFFOMuh/ShlmE=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=AI/nZAtfGIWANiYrp4gVN/rz+quEV04jst6eRycZ66wMz80VmErPn7Myd+mYdSn05MuHYRwHahZGfPYQMb6EBFEUbE4H0Zw8JqDPA+ETERwptswHzFg6FIIaq2oKy/XS2e1kKnEuKKySD+s9Lv5qQoV7+BHDQwUmI7DI3cQlHrA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IBa5lcWN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Rp7zhn3z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1486C2BC87;
-	Thu, 19 Mar 2026 11:33:43 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IBa5lcWN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C261C2BC87;
+	Thu, 19 Mar 2026 11:33:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773920025;
-	bh=fSgbQzUnV0PvKHUbgo84A/Lbjhd6xf8Nd4B3SHXZAjU=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=Rp7zhn3zHvyhveUjKwTVb2EzQVGWVAxry2svNsww1VFeLSWJKuduZjKus2qwXgTMz
-	 IujBjAJzgKdDdA31YFfqAk4wGqo1ep2rUFEh50DhL1ex4LO1SnNCzPLf4IZl9tst7U
-	 vkTbvnUgRAE5mJoKySPItZYOSf5CUqtXpMHL2mNNbRZ3qqocxMXsP0OhIaFJukcVJy
-	 0fnPqJbIFk1FtsgYbnWlNB/fNlh4asglEDrdWjiZVhqRQDhyQojS2myiO3HNKWlbqp
-	 mjYmqRq7P1NPDkzadmhp+d/Y5ERvG4NijROpKpxTu6FMAF2nJebJ/N2y4kFfRC1HiZ
-	 BSB0snLMSW61Q==
+	s=k20201202; t=1773920028;
+	bh=bahAOU76Nprh8RdGJqEXDVlnQKGPbJJFFOMuh/ShlmE=;
+	h=From:To:Cc:Subject:Date:From;
+	b=IBa5lcWNrFOO2T/wHdltJKRpgQDYR1cadiDc/51EoJjbbNILo0gZstp2hnIWxLuSW
+	 sdDirYQ8Z9ygMS6jHXH1mheGCfAxKAFIB/MNJclWE07aiT5w04QycUqRTONdx59dd/
+	 HW4yFaham4pV7a+Tu2RFXVA4b/gtFtAvbUpUGTnZy9D5mFxsSpwX0xAypFbOxX5PDi
+	 Z/uis8OvBTv3vtaa1acvywTAhe4fJQFjVdMdfZ4mZPPz3CbopAWdmbnw3Xu/PalimN
+	 3bLhk36l6GfrqinS9C7cb5LeBFT1zlv1Da4DaYEwMRu+G0tjXCnfM38VEa2zlD5mYS
+	 V5A2BICerMQXw==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Ilpo =?ISO-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>
 Cc: LKML <linux-kernel@vger.kernel.org>,
  Linux ACPI <linux-acpi@vger.kernel.org>, Hans de Goede <hansg@kernel.org>,
  platform-driver-x86@vger.kernel.org, Kenneth Chan <kenneth.t.chan@gmail.com>
 Subject:
- [PATCH v3 1/5] platform/x86: panasonic-laptop: Make
- pcc_register_optd_notifier() void
-Date: Thu, 19 Mar 2026 12:25:29 +0100
-Message-ID: <2409190.ElGaqSPkdT@rafael.j.wysocki>
+ [PATCH v3 0/5] platform/x86: panasonic-laptop: Bind to a platform device
+ instead of an ACPI one
+Date: Thu, 19 Mar 2026 12:23:24 +0100
+Message-ID: <12863246.O9o76ZdvQC@rafael.j.wysocki>
 Organization: Linux Kernel Development
-In-Reply-To: <12863246.O9o76ZdvQC@rafael.j.wysocki>
-References: <12863246.O9o76ZdvQC@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -48,50 +45,45 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="UTF-8"
 
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Hi All,
 
-Convert pcc_register_optd_notifier() whose return value is never used to
-a void function.
+This is an update of
 
-No intentional functional impact.
+https://lore.kernel.org/linux-acpi/5979471.DvuYhMxLoT@rafael.j.wysocki/
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
+adding one patch and modifying the initial patch in v2 to retain the
+current behavior when the registration of an ACPI notify handler for
+OPTD fails.
 
-v2 -> v3: New patch
+This series is part of a larger effort to switch over all drivers using
+the struct acpi_driver interface to the more common struct platform_driver
+interface and eliminate the former.  The background is explained in
+Documentation/driver-api/acpi/acpi-drivers.rst and in the changelog of
+the patch that introduced the above document:
 
----
- drivers/platform/x86/panasonic-laptop.c | 7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+https://lore.kernel.org/all/2396510.ElGaqSPkdT@rafael.j.wysocki/
 
-diff --git a/drivers/platform/x86/panasonic-laptop.c b/drivers/platform/x86/panasonic-laptop.c
-index d923ddaa4849..a481f2602ce3 100644
---- a/drivers/platform/x86/panasonic-laptop.c
-+++ b/drivers/platform/x86/panasonic-laptop.c
-@@ -891,7 +891,7 @@ static void pcc_optd_notify(acpi_handle handle, u32 event, void *data)
- 	set_optd_power_state(0);
- }
- 
--static int pcc_register_optd_notifier(struct pcc_acpi *pcc, char *node)
-+static void pcc_register_optd_notifier(struct pcc_acpi *pcc, char *node)
- {
- 	acpi_status status;
- 	acpi_handle handle;
-@@ -904,10 +904,7 @@ static int pcc_register_optd_notifier(struct pcc_acpi *pcc, char *node)
- 				pcc_optd_notify, pcc);
- 		if (ACPI_FAILURE(status))
- 			pr_err("Failed to register notify on %s\n", node);
--	} else
--		return -ENODEV;
--
--	return 0;
-+	}
- }
- 
- static void pcc_unregister_optd_notifier(struct pcc_acpi *pcc, char *node)
--- 
-2.51.0
+The bottom line is that the kernel would be better off without struct
+acpi_driver and so it is better to get rid of it.
 
+This series carries out driver conversion of the platform x86 Panasonic
+hotkey and LCD brightness control driver.
+
+Patch [1/5] changes one function return type to void.
+
+Patch [2/5] fixes the rollback path in acpi_pcc_hotkey_add() and rearranges
+the driver removal code ordering to match it.
+
+Patch [3/5] removes some redundant checks from the driver.
+
+Patch [4/5] updates the driver to install an ACPI notify handler by itself
+instead of using the .notify() callback from struct acpi_driver, which is
+requisite for the driver conversion.
+
+Patch [5/5] converts the driver to using struct platform_driver for device
+binding.
+
+Thanks!
 
 
 
