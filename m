@@ -1,65 +1,65 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.13])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77D7B2E8B82;
-	Thu, 19 Mar 2026 19:52:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.13
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D76B3BC687;
+	Thu, 19 Mar 2026 22:30:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.13
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773949925; cv=none; b=pL2oXuACW2ZFG6BHYTWRajCrh2058qv086/of/UPgfSdhp2+a0KO/FNzYhzZ1gZbXenADnzdaMfBFswUU7Bs1h690XScpD5f4xB+3NyrMO/JG2LeDnT67ZobCS0Aqf6AEGNv/4H7WT7RB9XTnlyThr/xGazJ48dN8UDrdk3/WmU=
+	t=1773959439; cv=none; b=K7L/8NCSkLWhQ73yOxuvq+bS0cYCDODUJrCWGTMLj+jcndh9r91fGiyVbDg7eLE6uFDFnIgWdzNO1Wfh/q6XoUWbYipC6TMyUrUMQjjsFTTb+Ax+84bGuqR+X60VSs1TXt6SOdozQoJXKCfaWeycwJ80oPtehgKPYfHWtfgXmx4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773949925; c=relaxed/simple;
-	bh=qs3MDYOmJNxqPiaOylmC/7JTWLNZLoYJUn+b+IyOadk=;
+	s=arc-20240116; t=1773959439; c=relaxed/simple;
+	bh=GSmh01TI+tUxEiixWhIp+rzE37rCWixe1ShKAvCI1n0=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=IJcIymMNXdvMN7vqY2MW3bxi10IuDjdCaqb2n38QAf27JnnrolLnuYC7fezYR1jygPaLlm5+fomGS6dSnSy39pNbeiP+wlrelVDTtV67SuETZEc7k/Zyyti3AxGEqUeCJyyqc6mXS3fSmrc6AUH7JjyU8TZmmW5pKZHPZxhuI24=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Y9KSTumr; arc=none smtp.client-ip=198.175.65.13
+	 Content-Type:Content-Disposition:In-Reply-To; b=foTeZJdl3rYvdUun5qg5KLy3j6wcY4FIsvJS4PKu6t4RMiBfn7p1bU9lYsl2HkLwybH7R2W5ysPOSSD1AvefBwvhk2IpTAfQ/TkekN6DF14CYbACIrHH79NvKCM2d/NbMzl7EOhDOc+LS5Xv+JKbDnakH1rlLuzjSB7ryYUpWOk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=HKNZ/F9r; arc=none smtp.client-ip=192.198.163.13
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Y9KSTumr"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="HKNZ/F9r"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1773949925; x=1805485925;
+  t=1773959438; x=1805495438;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=qs3MDYOmJNxqPiaOylmC/7JTWLNZLoYJUn+b+IyOadk=;
-  b=Y9KSTumrgfq6u7VmuAudz45Bml0AGR/yORRvhHhfQxVI743khCIbgImk
-   uPYx+sW7qV8Ml/6aotWQ+7fkz6jRJh+oU7yiOdSPCLxMVbEQYtnk4rhx5
-   ON9VcZnZrMas8pNWGTxnYtrFqT3n0tEz1RqsbRDYBUredOElcubpiuZWQ
-   3eHdoexXR3wklkvMcx5mFl4VnwVuDeaimVkiigDc5PJdL73A4BFLIF05r
-   soCz3PwidKg9+3Yu27iQ8R3cMnN1t6FKm7/HVy0wbD6f0gjCQY3/J3u1T
-   iTXHoSNZWFuOO6EtDNt1DPUAI3zcya+Pz89pyZtfby2uVXDekLwuuDomq
+  bh=GSmh01TI+tUxEiixWhIp+rzE37rCWixe1ShKAvCI1n0=;
+  b=HKNZ/F9roeOV0ScHu520FmT7ZRzErzMq7lSV+zed1nQRZ4b7ofcmy1XU
+   9oAld7tbiVOMIqEiMd3/wgySvOxP5O4s4njubPRzwSC+GwitiMdSpMV7k
+   bRJGkolCkVYQKooV9YCI1Gf2Fh1TfwD0EMrtCHdA6Dzm8GKOs+1v/3n/O
+   kirYP2spDsC1jc5iUu6K3YoDq6z9Bhpiz42F84TrLrYXK/qKNwU+s5tjy
+   BeKnzS1jD52RL9dFZEAZslUXS8iRt7gKaYa+VZrTxrW+Qyjf7/ATqhlhd
+   ZrMC6CABnqMrleUtfh4RUirpQdy2vW8T1BNQsCnxHFW4GT2y/0ZpLxT03
    Q==;
-X-CSE-ConnectionGUID: fbR68mXrRLy3J5HOGGNufA==
-X-CSE-MsgGUID: v1kki7bUS+28GDIya7GrDQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11734"; a="86111598"
-X-IronPort-AV: E=Sophos;i="6.23,129,1770624000"; 
-   d="scan'208";a="86111598"
-Received: from fmviesa006.fm.intel.com ([10.60.135.146])
-  by orvoesa105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Mar 2026 12:52:04 -0700
-X-CSE-ConnectionGUID: X5xofAJnQ96x7XBDvhbv4Q==
-X-CSE-MsgGUID: ZkI01nfTTJW3PFJ/3lUbJw==
+X-CSE-ConnectionGUID: chnVPTvDR/qii1UFfYeXvg==
+X-CSE-MsgGUID: apmvh04iSfysOh/3358K8g==
+X-IronPort-AV: E=McAfee;i="6800,10657,11734"; a="77651152"
+X-IronPort-AV: E=Sophos;i="6.23,130,1770624000"; 
+   d="scan'208";a="77651152"
+Received: from fmviesa002.fm.intel.com ([10.60.135.142])
+  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Mar 2026 15:30:38 -0700
+X-CSE-ConnectionGUID: 6kxmqmWCQDqS4yjIhwQwsw==
+X-CSE-MsgGUID: oUdKaFgURGeW7LGphmxZQQ==
 X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.23,129,1770624000"; 
-   d="scan'208";a="218488427"
+X-IronPort-AV: E=Sophos;i="6.23,130,1770624000"; 
+   d="scan'208";a="246129160"
 Received: from lkp-server02.sh.intel.com (HELO a51c2a36b9df) ([10.239.97.151])
-  by fmviesa006.fm.intel.com with ESMTP; 19 Mar 2026 12:51:59 -0700
+  by fmviesa002.fm.intel.com with ESMTP; 19 Mar 2026 15:30:33 -0700
 Received: from kbuild by a51c2a36b9df with local (Exim 4.98.2)
 	(envelope-from <lkp@intel.com>)
-	id 1w3JPN-000000001bV-35vz;
-	Thu, 19 Mar 2026 19:51:53 +0000
-Date: Fri, 20 Mar 2026 03:49:57 +0800
+	id 1w3LsB-000000001jN-24aY;
+	Thu, 19 Mar 2026 22:29:54 +0000
+Date: Fri, 20 Mar 2026 06:28:21 +0800
 From: kernel test robot <lkp@intel.com>
 To: Ahmed Tiba <ahmed.tiba@arm.com>, linux-acpi@vger.kernel.org,
 	devicetree@vger.kernel.org, linux-cxl@vger.kernel.org
-Cc: oe-kbuild-all@lists.linux.dev, Ahmed Tiba <ahmed.tiba@arm.com>,
-	Michael.Zhao2@arm.com, robh@kernel.org,
-	linux-arm-kernel@lists.infradead.org, Dmitry.Lamerov@arm.com,
-	rafael@kernel.org, conor@kernel.org, will@kernel.org, bp@alien8.de,
-	catalin.marinas@arm.com, krzk+dt@kernel.org,
-	linux-doc@vger.kernel.org, mchehab+huawei@kernel.org,
-	tony.luck@intel.com
+Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
+	Ahmed Tiba <ahmed.tiba@arm.com>, Michael.Zhao2@arm.com,
+	robh@kernel.org, linux-arm-kernel@lists.infradead.org,
+	Dmitry.Lamerov@arm.com, rafael@kernel.org, conor@kernel.org,
+	will@kernel.org, bp@alien8.de, catalin.marinas@arm.com,
+	krzk+dt@kernel.org, linux-doc@vger.kernel.org,
+	mchehab+huawei@kernel.org, tony.luck@intel.com
 Subject: Re: [PATCH v3 10/10] RAS: add firmware-first CPER provider
-Message-ID: <202603200337.hRVhVYpU-lkp@intel.com>
+Message-ID: <202603200642.s4i4HaHu-lkp@intel.com>
 References: <20260318-topics-ahmtib01-ras_ffh_arm_internal_review-v3-10-48e6a1c249ef@arm.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
@@ -81,40 +81,31 @@ url:    https://github.com/intel-lab-lkp/linux/commits/Ahmed-Tiba/ACPI-APEI-GHES
 base:   2d1373e4246da3b58e1df058374ed6b101804e07
 patch link:    https://lore.kernel.org/r/20260318-topics-ahmtib01-ras_ffh_arm_internal_review-v3-10-48e6a1c249ef%40arm.com
 patch subject: [PATCH v3 10/10] RAS: add firmware-first CPER provider
-config: nios2-allmodconfig (https://download.01.org/0day-ci/archive/20260320/202603200337.hRVhVYpU-lkp@intel.com/config)
-compiler: nios2-linux-gcc (GCC) 11.5.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260320/202603200337.hRVhVYpU-lkp@intel.com/reproduce)
+config: riscv-randconfig-002-20260320 (https://download.01.org/0day-ci/archive/20260320/202603200642.s4i4HaHu-lkp@intel.com/config)
+compiler: clang version 23.0.0git (https://github.com/llvm/llvm-project 4abb927bacf37f18f6359a41639a6d1b3bffffb5)
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260320/202603200642.s4i4HaHu-lkp@intel.com/reproduce)
 
 If you fix the issue in a separate patch/commit (i.e. not just a new version of
 the same patch/commit), kindly add following tags
 | Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202603200337.hRVhVYpU-lkp@intel.com/
+| Closes: https://lore.kernel.org/oe-kbuild-all/202603200642.s4i4HaHu-lkp@intel.com/
 
 All warnings (new ones prefixed by >>):
 
-   In file included from drivers/ras/cper-esource.c:26:
->> include/acpi/ghes_cper.h:105:44: warning: 'enum fixed_addresses' declared inside parameter list will not be visible outside of this definition or declaration
+   In file included from drivers/acpi/apei/ghes_cper.c:44:
+>> include/acpi/ghes_cper.h:105:30: warning: declaration of 'enum fixed_addresses' will not be visible outside of this function [-Wvisibility]
      105 |                       u64 *buf_paddr, enum fixed_addresses fixmap_idx);
-         |                                            ^~~~~~~~~~~~~~~
-   include/acpi/ghes_cper.h:108:45: warning: 'enum fixed_addresses' declared inside parameter list will not be visible outside of this definition or declaration
+         |                                            ^
+   include/acpi/ghes_cper.h:108:24: warning: declaration of 'enum fixed_addresses' will not be visible outside of this function [-Wvisibility]
      108 |                         u64 buf_paddr, enum fixed_addresses fixmap_idx);
-         |                                             ^~~~~~~~~~~~~~~
-   include/acpi/ghes_cper.h:111:46: warning: 'enum fixed_addresses' declared inside parameter list will not be visible outside of this definition or declaration
+         |                                             ^
+   include/acpi/ghes_cper.h:111:25: warning: declaration of 'enum fixed_addresses' will not be visible outside of this function [-Wvisibility]
      111 |                         u64 *buf_paddr, enum fixed_addresses fixmap_idx);
-         |                                              ^~~~~~~~~~~~~~~
-   include/acpi/ghes_cper.h:115:45: warning: 'enum fixed_addresses' declared inside parameter list will not be visible outside of this definition or declaration
+         |                                              ^
+   include/acpi/ghes_cper.h:115:24: warning: declaration of 'enum fixed_addresses' will not be visible outside of this function [-Wvisibility]
      115 |                         u64 buf_paddr, enum fixed_addresses fixmap_idx,
-         |                                             ^~~~~~~~~~~~~~~
-   drivers/ras/cper-esource.c: In function 'cper_esource_ack':
-   drivers/ras/cper-esource.c:84:23: error: implicit declaration of function 'readq'; did you mean 'readl'? [-Werror=implicit-function-declaration]
-      84 |                 val = readq(ctx->ack.addr);
-         |                       ^~~~~
-         |                       readl
-   drivers/ras/cper-esource.c:87:17: error: implicit declaration of function 'writeq'; did you mean 'writel'? [-Werror=implicit-function-declaration]
-      87 |                 writeq(val, ctx->ack.addr);
-         |                 ^~~~~~
-         |                 writel
-   cc1: some warnings being treated as errors
+         |                                             ^
+   4 warnings generated.
 
 
 vim +105 include/acpi/ghes_cper.h
