@@ -1,307 +1,251 @@
-Received: from mail-pl1-f175.google.com (mail-pl1-f175.google.com [209.85.214.175])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21AD53ED12E
-	for <linux-acpi@vger.kernel.org>; Thu, 19 Mar 2026 18:18:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.175
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A38C194C98;
+	Thu, 19 Mar 2026 18:32:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773944302; cv=none; b=gjlaHT2NI6UhPAg2D4MVLAaxYrVpHWtalzV46vWZbzc3Vgns1dEOIQEWUEpIeo8FUDTb35f2qGuGW4pj1QRREgIVEahC6euvLAGre8ItonUXvgjfBvjmhrSxGDALUiZvyB9OiFRA+eW9oD0OmYpANWdz8MDVuuPGnoVhnMcDD0M=
+	t=1773945141; cv=none; b=pJXdx/zB0Cs0adxkzfnSozTslUX0TrDbxEoGszbwGE31yozbFIiWeR1x6BbdaNYEGz+jl7g+vZxvhHamhGoVCh3ZLXrx5/VSUzU3MwYqcdMlRVrg2n6X7gC90VHMlrDvpVCnzFsf+nOl5qJEHAVMaxhepIFGTg2XfprdvJb9i/Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773944302; c=relaxed/simple;
-	bh=+P62lCyslziHirakPNqXdOPn6Fjwa7PkX2vn0IPAZ80=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Ci7zbaeBXKMEYwxiG/PXRy5mM2FEYBnfFup1T5jOxYcrd2zqpPiUP6SCYyT7w3fPVbDr8cb1nak09db8qegVoPMS6WZoC8ehDVYWagmrNSnujBmYr/uXCq/gM2m4/xM/OrL1OUWN9SUIi4yrf+R3qi2N1cylfSdx9SvPUsQvFC0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=roeck-us.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=l4DGVGsF; arc=none smtp.client-ip=209.85.214.175
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=roeck-us.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1773945141; c=relaxed/simple;
+	bh=q/AIFKBlYrlqgaIU+R+X2Kbm55lVUhw1nLQSCLmd6ew=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To; b=EDWApP9FvLKDUyrbYkP0fXgMKLFP0p6bzhJnM1KtjsOx2K2vNn6/AqZh38yE5Hkl5ELMgyTy+3RdqSOEBUg/l96I44AMj5PW8tf7q4pAwsRv7r9Lp3hVOpu1Yy4YEeqO5rKx5cCvzxwB8uhNXAr9J0RJe/ztEmfhYVF8GuOS8Nw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=SLfxJBQH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="l4DGVGsF"
-Received: by mail-pl1-f175.google.com with SMTP id d9443c01a7336-2b0484a6de4so5387265ad.3
-        for <linux-acpi@vger.kernel.org>; Thu, 19 Mar 2026 11:18:20 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1773944299; x=1774549099; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:autocrypt:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:sender:from:to:cc:subject:date:message-id:reply-to;
-        bh=1vPUKgYITPtV5efaod4XQSqJVTqQ2Kq4WAF8AXorjoc=;
-        b=l4DGVGsF2CzVVzFvdI8h8zU9M37UF7b8ln0YS5Co6u3pYu74cLgmcG0MIQIvfTpnLq
-         aP7JROkN12lMP29/XI4pjoGSeL4MIlb97wGdTNifx4g6NpqF7mhB0Ydzr9F2suwse0vZ
-         7msClH3TeEImNssm7Bt/ipX/mMMfNrYFc8JMrBD9wk2yoVvCfsSTFVOjkpBnwGN64m5/
-         myltr8646AiiYfdOrUrF5e1PAtK9v78F8r3zVoLsf7ft0JaLhSoc25naXMH1HSIiSC4p
-         yETA6oqj321UO7KEZK+agr8CRWhxVe2uFvmspwOb1mcBCR5YqHGVhdKs/eSGDseggMeA
-         JsBA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1773944299; x=1774549099;
-        h=content-transfer-encoding:in-reply-to:autocrypt:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:sender:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=1vPUKgYITPtV5efaod4XQSqJVTqQ2Kq4WAF8AXorjoc=;
-        b=n+RRXHkPLovvOp5i+En7CqEy71fUMjz2J/S66WnYbZzliQ6xkv+KN3mZ6WD3oQB8Em
-         oGhi+s85HECNzcnVUoDQtfFmv8ckrhcdHMea9btKdJjXM43jcHmjgPkJx/5jEbYh9G/Z
-         jI3G+NKAQLtafyi5gYDKQLjHyhLaA6sXqqFLhWVeSOVReauDwD/GAcvigjmqZZ5Hvtjq
-         rsMuCZ/5GqJmJq1zRvoCwh+rszFHeAjuuBP2xWFBjVMHUt8FDFcIrK3F/8EpRdgz4iPI
-         v8PzovITxiT1pKLRxZPwwDY6OzQkt+Qd90GutRJ0bbHFdQmZWnLiTUS5RgMWNossCU+X
-         ipAg==
-X-Forwarded-Encrypted: i=1; AJvYcCXxlhGWqUhVZ8yL0udeC5H3PVH9ierQawdAZS6MI2HRSdLjWJ3wLzx2SvlCsE7JVoPwf2zEffa/GX13@vger.kernel.org
-X-Gm-Message-State: AOJu0Yzv42wm/h/fjQKf246N3TvLwBjVQhPMRGaqWJQUNmyFhg4Xxr9O
-	6foQJgAE+wT+6JWnRqtgJ1oacHlwVMhQphkoH0FRhgvvLDy8cO9dJU8v
-X-Gm-Gg: ATEYQzyYqYI1qvQkEF6SK52xz1KrL+CTQ75X16vLJTiJNoOjlHykLAYfWt+YXWJ+xuj
-	KyEKRiqShTgT/xMEwEmR5hmoiEpsx8tIw3q6UGfTf+oYg07FzKoLImkShS8sxj42fuAN15g3E1B
-	GJRnJ4GcAZts56JcY4/r4q9oLFtYvLo5hXAa4IV28zdMbxkx35S9TqaVA70kazmXqIihZhhBaxR
-	JzijpWlb6g626EQGI1Oz3V+qauVf3799kx9KYIXNpOdL2w8SDwwepZQo433pln/JSUUWSTPzmFZ
-	DNcC9JdH6gp1wSAc4tWaqOo83fWLw1Fo1ZW+JtQzXVW4J0jmiTMiO1a5lgpqsJf7Qg0EUbsF+75
-	OuAyTOjtmNxvkCUuNtmHu8A1eM5nqp+wJ3zqxz8UjfT6p0IKcUrSBQP9ylWzwr5ZyakcZfAWUUB
-	bz3sQrRGjFTo8mGT8yEuM/iwFPNE7DcZuudQ+AHrIHzriKsBQmfJ3X8GwebaMpvPKbWZVhD6wI9
-	v5L70hTtdA=
-X-Received: by 2002:a17:902:da8b:b0:2b0:7a50:887c with SMTP id d9443c01a7336-2b082819356mr2189405ad.50.1773944299366;
-        Thu, 19 Mar 2026 11:18:19 -0700 (PDT)
-Received: from ?IPV6:2600:1700:e321:62f0:da43:aeff:fecc:bfd5? ([2600:1700:e321:62f0:da43:aeff:fecc:bfd5])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2b06e61119bsm62450855ad.64.2026.03.19.11.18.17
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 19 Mar 2026 11:18:18 -0700 (PDT)
-Sender: Guenter Roeck <groeck7@gmail.com>
-Message-ID: <ae1bba2a-5015-480f-9610-d1be5a6d7211@roeck-us.net>
-Date: Thu, 19 Mar 2026 11:18:16 -0700
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="SLfxJBQH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2336C19424;
+	Thu, 19 Mar 2026 18:32:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1773945141;
+	bh=q/AIFKBlYrlqgaIU+R+X2Kbm55lVUhw1nLQSCLmd6ew=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:From;
+	b=SLfxJBQH3ZBwLVeaWFuXtr69z+ue66UBDBXapfmCGZU/5sePR0jM8ttItsExbkxXd
+	 fat6HASgQmW8lTt+q9Fv/u0XJTf3d3wZAiJLqrgzYHG5GWO4lK+JttBOqJXt5pwhQF
+	 w+6FlJPTdi3oKlG3m7NbTFgXf1aiA6jp7uCbZskZpkhz+sWDidVqJYVEsczF3/Cr0q
+	 5HIA6+fCuzX4SwGeOuI+h7S9iLuLC57oeWrh6xVKPtDKceG2qv5E5rx2twVSmjZBNQ
+	 hX57e6N1IjMEwU/bgDkP0m8XkKB2jG/ioYVncpqZsFKATtztVHzIe50BPghhEOmL2B
+	 /aAbuSjpDjtvg==
+Date: Thu, 19 Mar 2026 13:32:19 -0500
+From: Bjorn Helgaas <helgaas@kernel.org>
+To: Chengwen Feng <fengchengwen@huawei.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>,
+	"Rafael J . Wysocki" <rafael@kernel.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shuah Khan <skhan@linuxfoundation.org>,
+	Huacai Chen <chenhuacai@kernel.org>,
+	WANG Xuerui <kernel@xen0n.name>, Paul Walmsley <pjw@kernel.org>,
+	Palmer Dabbelt <palmer@dabbelt.com>,
+	Albert Ou <aou@eecs.berkeley.edu>, Alexandre Ghiti <alex@ghiti.fr>,
+	Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
+	Borislav Petkov <bp@alien8.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+	"H . Peter Anvin" <hpa@zytor.com>, Juergen Gross <jgross@suse.com>,
+	Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+	Len Brown <lenb@kernel.org>, Sunil V L <sunilvl@ventanamicro.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Jonathan Cameron <jonathan.cameron@huawei.com>,
+	Kees Cook <kees@kernel.org>, Yanteng Si <si.yanteng@linux.dev>,
+	Sean Christopherson <seanjc@google.com>,
+	Kai Huang <kai.huang@intel.com>,
+	Tom Lendacky <thomas.lendacky@amd.com>,
+	Thomas Huth <thuth@redhat.com>,
+	Thorsten Blum <thorsten.blum@linux.dev>,
+	Kevin Loughlin <kevinloughlin@google.com>,
+	Zheyun Shen <szy0127@sjtu.edu.cn>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Pawan Gupta <pawan.kumar.gupta@linux.intel.com>,
+	Xin Li <xin@zytor.com>, "Ahmed S . Darwish" <darwi@linutronix.de>,
+	Sohil Mehta <sohil.mehta@intel.com>,
+	Ilkka Koskinen <ilkka@os.amperecomputing.com>,
+	Robin Murphy <robin.murphy@arm.com>,
+	James Clark <james.clark@linaro.org>,
+	Besar Wicaksono <bwicaksono@nvidia.com>, Ma Ke <make24@iscas.ac.cn>,
+	Wei Huang <wei.huang2@amd.com>,
+	Andy Gospodarek <andrew.gospodarek@broadcom.com>,
+	Somnath Kotur <somnath.kotur@broadcom.com>,
+	punit.agrawal@oss.qualcomm.com, guohanjun@huawei.com,
+	suzuki.poulose@arm.com, ryan.roberts@arm.com,
+	chenl311@chinatelecom.cn, masahiroy@kernel.org,
+	wangyuquan1236@phytium.com.cn, anshuman.khandual@arm.com,
+	heinrich.schuchardt@canonical.com, Eric.VanTassell@amd.com,
+	wangzhou1@hisilicon.com, wanghuiqiang@huawei.com,
+	liuyonglong@huawei.com, linux-pci@vger.kernel.org,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, loongarch@lists.linux.dev,
+	linux-riscv@lists.infradead.org, xen-devel@lists.xenproject.org,
+	linux-acpi@vger.kernel.org, linux-perf-users@vger.kernel.org,
+	stable@vger.kernel.org
+Subject: Re: [PATCH v9 7/7] PCI/TPH: Fix get cpu steer-tag fail on ARM64
+ platform
+Message-ID: <20260319183219.GA519221@bhelgaas>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 11/12] hwmon: spd5118: Add I3C support
-To: Akhil R <akhilrajeev@nvidia.com>
-Cc: Frank.Li@nxp.com, acpica-devel@lists.linux.dev,
- alexandre.belloni@bootlin.com, conor+dt@kernel.org,
- devicetree@vger.kernel.org, ebiggers@kernel.org, fredrik.markstrom@est.tech,
- jonathanh@nvidia.com, krzk+dt@kernel.org, lenb@kernel.org,
- linux-acpi@vger.kernel.org, linux-hwmon@vger.kernel.org,
- linux-i3c@lists.infradead.org, linux-kernel@vger.kernel.org,
- linux-tegra@vger.kernel.org, miquel.raynal@bootlin.com,
- p.zabel@pengutronix.de, rafael@kernel.org, robert.moore@intel.com,
- robh@kernel.org, smangipudi@nvidia.com, thierry.reding@kernel.org
-References: <7cc8ab1f-6c9a-4e3f-a1bc-266e020d8179@roeck-us.net>
- <20260319175533.19480-1-akhilrajeev@nvidia.com>
-Content-Language: en-US
-From: Guenter Roeck <linux@roeck-us.net>
-Autocrypt: addr=linux@roeck-us.net; keydata=
- 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
- np3900V20aS7eD9K8GTU0TGC1pyz6IVJwIE=
-In-Reply-To: <20260319175533.19480-1-akhilrajeev@nvidia.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260319065735.45954-8-fengchengwen@huawei.com>
 
-On 3/19/26 10:55, Akhil R wrote:
-> On Thu, 19 Mar 2026 07:34:18 -0700, Guenter Roeck wrote:
->> On 3/18/26 21:35, Akhil R wrote:
->>> On Wed, 18 Mar 2026 11:53:49 -0700, Guenter Roeck wrote:
->>>> On 3/18/26 10:27, Akhil R wrote:
->>>>> Add a regmap config and a probe function to support for I3C based
->>>>> communication to SPD5118 devices.
->>>>>
->>>>> On an I3C bus, SPD5118 are enumerated via SETAASA and always require an
->>>>> ACPI or device tree entry. The device matching is hence through the OF
->>>>> match tables only and do not need an I3C class match table. The device
->>>>> identity is verified in the type registers before proceeding to the
->>>>> common probe function.
->>>>>
->>>>> Signed-off-by: Akhil R <akhilrajeev@nvidia.com>
->>>>> ---
->>>>>     drivers/hwmon/Kconfig   |  7 +++--
->>>>>     drivers/hwmon/spd5118.c | 66 ++++++++++++++++++++++++++++++++++++++++-
->>>>>     2 files changed, 70 insertions(+), 3 deletions(-)
->>>>>
->>>>> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
->>>>> index 8af80e17d25e..23604c05ad22 100644
->>>>> --- a/drivers/hwmon/Kconfig
->>>>> +++ b/drivers/hwmon/Kconfig
->>>>> @@ -2300,10 +2300,13 @@ config SENSORS_SPD5118
->>>>>     	tristate "SPD5118 Compliant Temperature Sensors"
->>>>>     	depends on I2C
->>>>>     	select REGMAP_I2C
->>>>
->>>> I also had
->>>> 	depends on I3C || I3C=n
->>>> in my version at
->>>>
->>>> https://patchwork.kernel.org/project/linux-hwmon/patch/20250419161356.2528986-6-linux@roeck-us.net/
->>>>
->>>> which I guess matches the more recent "depends on I3C_OR_I2C".
->>>
->>> Ack. Will update.
->>>
->>>>
->>>>> +	select REGMAP_I3C if I3C
->>>>>     	help
->>>>>     	  If you say yes here you get support for SPD5118 (JEDEC JESD300)
->>>>> -	  compliant temperature sensors. Such sensors are found on DDR5 memory
->>>>> -	  modules.
->>>>> +	  compliant temperature sensors using I2C or I3C bus interface.
->>>>> +	  Such sensors are found on DDR5 memory modules.
->>>>> +
->>>>> +	  This driver supports both I2C and I3C interfaces.
->>>>>     
->>>>>     	  This driver can also be built as a module. If so, the module
->>>>>     	  will be called spd5118.
->>>>> diff --git a/drivers/hwmon/spd5118.c b/drivers/hwmon/spd5118.c
->>>>> index 5da44571b6a0..d70123e10616 100644
->>>>> --- a/drivers/hwmon/spd5118.c
->>>>> +++ b/drivers/hwmon/spd5118.c
->>>>> @@ -18,6 +18,7 @@
->>>>>     #include <linux/bits.h>
->>>>>     #include <linux/err.h>
->>>>>     #include <linux/i2c.h>
->>>>> +#include <linux/i3c/device.h>
->>>>>     #include <linux/hwmon.h>
->>>>>     #include <linux/module.h>
->>>>>     #include <linux/mutex.h>
->>>>> @@ -482,6 +483,25 @@ static const struct regmap_config spd5118_regmap16_config = {
->>>>>     	.cache_type = REGCACHE_MAPLE,
->>>>>     };
->>>>>     
->>>>> +/*
->>>>> + * I3C uses 2-byte register addressing -
->>>>> + *   Byte 1: MemReg | BlkAddr[0] | Address[5:0]
->>>>> + *   Byte 2: 0000   | BlkAddr[4:1]
->>>>> + *
->>>>> + * The low byte carries the register/NVM address and the high byte carries the
->>>>> + * upper block address bits, so little-endian format is required. No range
->>>>> + * config is needed since I3C does not use MR11 page switching.
->>>>> + */
->>>>> +static const struct regmap_config spd5118_regmap_i3c_config = {
->>>>> +	.reg_bits = 16,
->>>>> +	.val_bits = 8,
->>>>> +	.max_register = 0x7ff,
->>>>> +	.reg_format_endian = REGMAP_ENDIAN_LITTLE,
->>>>
->>>> Should this be added to spd5118_regmap16_config instead, or is there reason
->>>> to assume that I2C 16-bit addressing differs from I3C addressing ?
->>>
->>> I did not see any difference for I2C in the specification, but I assumed the
->>> existing format would have been working and I thought not to change them.
->>> Changing the I2C format would also require a change in the is_16bit nvmem_read
->>> formula.
->>>
->>>>
->>>>> +	.writeable_reg = spd5118_writeable_reg,
->>>>> +	.volatile_reg = spd5118_volatile_reg,
->>>>> +	.cache_type = REGCACHE_MAPLE,
->>>>> +};
->>>>> +
->>>>>     static int spd5118_suspend(struct device *dev)
->>>>>     {
->>>>>     	struct spd5118_data *data = dev_get_drvdata(dev);
->>>>> @@ -770,7 +790,51 @@ static struct i2c_driver spd5118_i2c_driver = {
->>>>>     	.address_list	= IS_ENABLED(CONFIG_SENSORS_SPD5118_DETECT) ? normal_i2c : NULL,
->>>>>     };
->>>>>     
->>>>> -module_i2c_driver(spd5118_i2c_driver);
->>>>> +/* I3C */
->>>>> +
->>>>> +static int spd5118_i3c_probe(struct i3c_device *i3cdev)
->>>>> +{
->>>>> +	struct device *dev = i3cdev_to_dev(i3cdev);
->>>>> +	struct regmap *regmap;
->>>>> +	unsigned int regval;
->>>>> +	int err;
->>>>> +
->>>>> +	regmap = devm_regmap_init_i3c(i3cdev, &spd5118_regmap_i3c_config);
->>>>> +	if (IS_ERR(regmap))
->>>>> +		return dev_err_probe(dev, PTR_ERR(regmap), "regmap init failed\n");
->>>>> +
->>>>> +	/* Verify this is a SPD5118 device */
->>>>> +	err = regmap_read(regmap, SPD5118_REG_TYPE, &regval);
->>>>> +	if (err)
->>>>> +		return err;
->>>>> +
->>>>> +	if (regval != 0x51) {
->>>>> +		dev_err(dev, "unexpected device type 0x%02x, expected 0x51\n", regval);
->>>>> +		return -ENODEV;
->>>>> +	}
->>>>> +
->>>>> +	err = regmap_read(regmap, SPD5118_REG_TYPE + 1, &regval);
->>>>> +	if (err)
->>>>> +		return err;
->>>>> +
->>>>> +	if (regval != 0x18) {
->>>>> +		dev_err(dev, "unexpected device type 0x%02x, expected 0x18\n", regval);
->>>>> +		return -ENODEV;
->>>>> +	}
->>>>> +
->>>>
->>>> I don't think this should dump error messages. Also, it might be desirable
->>>> to use a single regmap operation to read both values.
->>>
->>> Ack. Will use regmap_bulk_read() and will remove the error dump.
->>>
->>>>
->>>>> +	return spd5118_common_probe(dev, regmap, false);
->>>>
->>>> Why is_16bit=false ?
->>>
->>> We don't need the encoding formula for the nvmem address with I3C. Since it
->>> uses little-endian, (page * 0x100 + SPD5118_EEPROM_BASE) translates to the
->>> correct address. Or did I overlook something?
->>>
->>
->> Testing of the 16-bit code was limited: I had to set the SPD on a system
->> manually to 16-bit mode to get it working, and that only worked until the system
->> was reset. Its whole point was to prepare for I3C mode. If that fails, the entire
->> 16-bit code in the driver is potentially wrong and should be pulled out before
->> adding I3C code. It can be added back later if/when a system actually utilizing
->> it is found.
+Let's make the subject a little more specific, e.g.,
+
+  PCI/TPH: Pass ACPI Processor UID to Cache Locality _DSM
+
+On Thu, Mar 19, 2026 at 02:57:35PM +0800, Chengwen Feng wrote:
+> pcie_tph_get_cpu_st() is broken on ARM64:
+> 1. pcie_tph_get_cpu_st() passes cpu_uid to the PCI ACPI DSM method.
+>    cpu_uid should be the ACPI Processor UID [1].
+> 2. In BNXT, pcie_tph_get_cpu_st() is passed a cpu_uid obtained via
+>    cpumask_first(irq->cpu_mask) - the logical CPU ID of a CPU core,
+>    generated and managed by kernel (e.g., [0,255] for a system  with 256
+>    logical CPU cores).
+> 3. On ARM64 platforms, ACPI assigns Processor UID to cores listed in the
+>    MADT table, and this UID may not match the kernel's logical CPU ID.
+>    When this occurs, the mismatch results in the wrong CPU steer-tag.
+> 4. On AMD x86 the logical CPU ID is identical to the ACPI Processor UID
+>    so the mismatch is not seen.
 > 
-> Thanks for letting me know. I will add a patch to remove the I2C 16-bit sections in
-> the next revision as a prerequistie to this patch. Hope that sounds good.
+> Resolution:
+> 1. Use acpi_get_cpu_uid() in pcie_tph_get_cpu_st() to translate from
+>    logical CPU ID to ACPI Processor UID needed for the DSM call.
+> 2. Rename pcie_tpu_get_cpu_st() parameter from cpu_uid to cpu to
+>    reflect that it is a logical CPU_ID.
+
+And simplify this, e.g.,
+
+  pcie_tph_get_cpu_st() uses the Query Cache Locality Features _DSM
+  [1] to retrieve the TPH Steering Tag for memory associated with the
+  CPU identified by its "cpu_uid" parameter, a Linux logical CPU ID.
+
+  The _DSM requires a ACPI Processor UID, which pcie_tph_get_cpu_st()
+  previously assumed was the same as the Linux logical CPU ID.  This
+  is true on x86 but not on arm64, so pcie_tph_get_cpu_st() failed on
+  arm64.
+
+  Convert the Linux logical CPU ID to the ACPI Processor UID with
+  acpi_get_cpu_uid() before passing it to the _DSM.
+
+If there's a specific error message from BNXT or similar that is a
+symptom of this problem, it'd be nice to include that.  Or if the
+problem was just poor performance because the _DSM returned the wrong
+Steering Tag, you could say something like:
+
+  ... so pcie_tph_get_cpu_st() returned the wrong Steering Tag,
+  resulting in poor network performance.
+
+> [1] According to ECN_TPH-ST_Revision_20200924
+>     (https://members.pcisig.com/wg/PCI-SIG/document/15470), the input
+>     is defined as: "If the target is a processor, then this field
+>     represents the ACPI Processor UID of the processor as specified in
+>     the MADT. If the target is a processor container, then this field
+>     represents the ACPI Processor UID of the processor container as
+>     specified in the PPTT."
 > 
+> Fixes: d2e8a34876ce ("PCI/TPH: Add Steering Tag support")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Chengwen Feng <fengchengwen@huawei.com>
+> Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
 
-Please do.
+The patch looks good to me.  Thanks for all your work on this!
 
-Thanks,
-Guenter
+Reviewed-by: Bjorn Helgaas <bhelgaas@google.com>
 
-
-> Best Regards,
-> Akhil
-
+> ---
+>  Documentation/PCI/tph.rst |  4 ++--
+>  drivers/pci/tph.c         | 16 +++++++++++-----
+>  include/linux/pci-tph.h   |  4 ++--
+>  3 files changed, 15 insertions(+), 9 deletions(-)
+> 
+> diff --git a/Documentation/PCI/tph.rst b/Documentation/PCI/tph.rst
+> index e8993be64fd6..b6cf22b9bd90 100644
+> --- a/Documentation/PCI/tph.rst
+> +++ b/Documentation/PCI/tph.rst
+> @@ -79,10 +79,10 @@ To retrieve a Steering Tag for a target memory associated with a specific
+>  CPU, use the following function::
+>  
+>    int pcie_tph_get_cpu_st(struct pci_dev *pdev, enum tph_mem_type type,
+> -                          unsigned int cpu_uid, u16 *tag);
+> +                          unsigned int cpu, u16 *tag);
+>  
+>  The `type` argument is used to specify the memory type, either volatile
+> -or persistent, of the target memory. The `cpu_uid` argument specifies the
+> +or persistent, of the target memory. The `cpu` argument specifies the
+>  CPU where the memory is associated to.
+>  
+>  After the ST value is retrieved, the device driver can use the following
+> diff --git a/drivers/pci/tph.c b/drivers/pci/tph.c
+> index ca4f97be7538..b67c9ad14bda 100644
+> --- a/drivers/pci/tph.c
+> +++ b/drivers/pci/tph.c
+> @@ -236,21 +236,27 @@ static int write_tag_to_st_table(struct pci_dev *pdev, int index, u16 tag)
+>   * with a specific CPU
+>   * @pdev: PCI device
+>   * @mem_type: target memory type (volatile or persistent RAM)
+> - * @cpu_uid: associated CPU id
+> + * @cpu: associated CPU id
+>   * @tag: Steering Tag to be returned
+>   *
+>   * Return the Steering Tag for a target memory that is associated with a
+> - * specific CPU as indicated by cpu_uid.
+> + * specific CPU as indicated by cpu.
+>   *
+>   * Return: 0 if success, otherwise negative value (-errno)
+>   */
+>  int pcie_tph_get_cpu_st(struct pci_dev *pdev, enum tph_mem_type mem_type,
+> -			unsigned int cpu_uid, u16 *tag)
+> +			unsigned int cpu, u16 *tag)
+>  {
+>  #ifdef CONFIG_ACPI
+>  	struct pci_dev *rp;
+>  	acpi_handle rp_acpi_handle;
+>  	union st_info info;
+> +	u32 cpu_uid;
+> +	int ret;
+> +
+> +	ret = acpi_get_cpu_uid(cpu, &cpu_uid);
+> +	if (ret != 0)
+> +		return ret;
+>  
+>  	rp = pcie_find_root_port(pdev);
+>  	if (!rp || !rp->bus || !rp->bus->bridge)
+> @@ -265,9 +271,9 @@ int pcie_tph_get_cpu_st(struct pci_dev *pdev, enum tph_mem_type mem_type,
+>  
+>  	*tag = tph_extract_tag(mem_type, pdev->tph_req_type, &info);
+>  
+> -	pci_dbg(pdev, "get steering tag: mem_type=%s, cpu_uid=%d, tag=%#04x\n",
+> +	pci_dbg(pdev, "get steering tag: mem_type=%s, cpu=%d, tag=%#04x\n",
+>  		(mem_type == TPH_MEM_TYPE_VM) ? "volatile" : "persistent",
+> -		cpu_uid, *tag);
+> +		cpu, *tag);
+>  
+>  	return 0;
+>  #else
+> diff --git a/include/linux/pci-tph.h b/include/linux/pci-tph.h
+> index ba28140ce670..be68cd17f2f8 100644
+> --- a/include/linux/pci-tph.h
+> +++ b/include/linux/pci-tph.h
+> @@ -25,7 +25,7 @@ int pcie_tph_set_st_entry(struct pci_dev *pdev,
+>  			  unsigned int index, u16 tag);
+>  int pcie_tph_get_cpu_st(struct pci_dev *dev,
+>  			enum tph_mem_type mem_type,
+> -			unsigned int cpu_uid, u16 *tag);
+> +			unsigned int cpu, u16 *tag);
+>  void pcie_disable_tph(struct pci_dev *pdev);
+>  int pcie_enable_tph(struct pci_dev *pdev, int mode);
+>  u16 pcie_tph_get_st_table_size(struct pci_dev *pdev);
+> @@ -36,7 +36,7 @@ static inline int pcie_tph_set_st_entry(struct pci_dev *pdev,
+>  { return -EINVAL; }
+>  static inline int pcie_tph_get_cpu_st(struct pci_dev *dev,
+>  				      enum tph_mem_type mem_type,
+> -				      unsigned int cpu_uid, u16 *tag)
+> +				      unsigned int cpu, u16 *tag)
+>  { return -EINVAL; }
+>  static inline void pcie_disable_tph(struct pci_dev *pdev) { }
+>  static inline int pcie_enable_tph(struct pci_dev *pdev, int mode)
+> -- 
+> 2.17.1
+> 
