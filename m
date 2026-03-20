@@ -1,66 +1,70 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.7])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C4A2248886;
-	Fri, 20 Mar 2026 06:24:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.7
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99BA13346A0;
+	Fri, 20 Mar 2026 07:36:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.19
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773987895; cv=none; b=LHfSijv7wwmtghyMAAYE3oJsEthUDTXG+fRFHBOouj1JSm1LetoictXIl6GWARRn18upqIyxSJTaeBDWq95AKfVTt+8IaVGCTBN80dTQ+n3MQoWDhHCnBlt4LpsZ/wYKtbGFz67avwNqP1DAklDtOX7aIBKVyMfUNolNZwrO+Fg=
+	t=1773992193; cv=none; b=NBOVyfyVvjdhVvlYucUpQwjKh6ndNLfGVe5IFDOK4hrTLNGh5Ond2dXECczSQ7phhnBREdkjvmU5qyaOZNGjOHRlTsolJrKjZtw2Fq6LK8otnz6BBJ4E7dpYLwn8gEZf9Qnm2d3B7AC6VfgSuWfFQVcCa2shkUFfccLwIq8JQxk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773987895; c=relaxed/simple;
-	bh=0vgzhEI33fyynNHIHp2T6/dOm22GR1qOZib6VKCjuRc=;
+	s=arc-20240116; t=1773992193; c=relaxed/simple;
+	bh=aVjU9vB3deYFYEQRjHDO84MBFFxZKuFsTsm53223WNA=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=eoAU3wHBkw7OPDiVZZLeM2vqDlLoH2ZPilkaYx+L/vOjujLiwPR3Cd/PzGrgKsMiUYm+s5d2kMjwUrMPMAP2jiOjsPFSFg51witdjsO2q8sqEqfzbEHzRiVPTQq1LeahVpyB+sH5pi+4jheS9NhVSC64GZ5Xurd7a6ttjwxZ7C0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=RdU8U0U/; arc=none smtp.client-ip=192.198.163.7
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=Rf7+vU6YrG8CtYe+u3wVlqxxvQj0CTZkxk/v8Div9wiwAMnduwtoZbDqFxBh5k2xXnGxLdhMEfQEZ5BjQLpeZ/qr8D+hp5O2V4gvB73aYENAngVKUxCs6yW/KvShPg5152B1GX2aptFsvoUvTmnbb7GRYZbPgOdpixsC+CVMkV4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=dhmq5CEC; arc=none smtp.client-ip=192.198.163.19
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="RdU8U0U/"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="dhmq5CEC"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1773987893; x=1805523893;
+  t=1773992192; x=1805528192;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=0vgzhEI33fyynNHIHp2T6/dOm22GR1qOZib6VKCjuRc=;
-  b=RdU8U0U/9oaZlKvAixDZxMGz4KjlgaIjXW3zHmc0R2fL2433aG8BwvvK
-   f7EPjwaaXKuRqnOkcUJEM7cn7SLRb/v4h1G/qy2w3vM/6d7n78RUdOa60
-   tzO/Wi6kpEViqF1AyeFTVkAX2fKS9gDBb90xfjvK5dNmQUpsxIIy+FSyN
-   NyfA44dtJUozOGAyI98UAG7Raumas3GT77wSoVxqzZEzoaBzGAGNSqLCL
-   FbvIwmvjHlOZ6r8WIuBdrmphF0FlGQo3v7rI43r59l4InoU/pIpPuPnHn
-   f3O3Fuvthufepyf89N4DFJO5v85duy5+OjTx5W0sbIBdclrb2PHgQ/CGR
-   g==;
-X-CSE-ConnectionGUID: WW65QJYpQwO3j0kGvDHQpA==
-X-CSE-MsgGUID: 1cRkvnsqTMi48UGm56qJVw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11734"; a="100526657"
+  bh=aVjU9vB3deYFYEQRjHDO84MBFFxZKuFsTsm53223WNA=;
+  b=dhmq5CECdkNpALjdO83vnn6RNZ+OklnryFtJxElzOWCrUeVkd5ojR0C9
+   0OAWFYT9O9Xnrn3BCn+IOT5Os6u+XxP4zjuk8Xu3HCz43WTEf57YvF1D6
+   VVuttKFYVxpdSkYEp3bhXrSVxebq8WHoqiXZQaLdXdXeqA7Bupu5e+yb+
+   JnczT3tIgap81ASRKeuIA9+zNgV211dtkgpJYZlarCjI21vudiwOx2UP8
+   MU63jBebL5b4U340HhQhQ4s3dVx/YCQJ+CUIclsq1CHOtRqD4lOtQEgB7
+   VH72i9BWWM2r3tE6YRDqcLwM8Skfx0Fi2Gd2A0743+s3DCaDNxHtLGl/q
+   A==;
+X-CSE-ConnectionGUID: zMWtvRx+STWndnLBrI+oeA==
+X-CSE-MsgGUID: qaVc0LAQTvWIIaPqdER/oQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11734"; a="74088782"
 X-IronPort-AV: E=Sophos;i="6.23,130,1770624000"; 
-   d="scan'208";a="100526657"
-Received: from fmviesa010.fm.intel.com ([10.60.135.150])
-  by fmvoesa101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Mar 2026 23:24:53 -0700
-X-CSE-ConnectionGUID: z+0j/YTkRES49580rEmOGw==
-X-CSE-MsgGUID: XEtK4EqCQnGlCLqXZqzRTA==
+   d="scan'208";a="74088782"
+Received: from fmviesa006.fm.intel.com ([10.60.135.146])
+  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Mar 2026 00:36:32 -0700
+X-CSE-ConnectionGUID: 246dr+i8QaGlyKrDOOi8Ng==
+X-CSE-MsgGUID: QY4qFbXSSC6smiTJxZajVQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.23,130,1770624000"; 
-   d="scan'208";a="219032758"
-Received: from lkp-server02.sh.intel.com (HELO a51c2a36b9df) ([10.239.97.151])
-  by fmviesa010.fm.intel.com with ESMTP; 19 Mar 2026 23:24:48 -0700
-Received: from kbuild by a51c2a36b9df with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1w3THX-0000000023j-2m3T;
-	Fri, 20 Mar 2026 06:24:31 +0000
-Date: Fri, 20 Mar 2026 14:23:52 +0800
-From: kernel test robot <lkp@intel.com>
-To: Ahmed Tiba <ahmed.tiba@arm.com>, linux-acpi@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-cxl@vger.kernel.org
-Cc: oe-kbuild-all@lists.linux.dev, Ahmed Tiba <ahmed.tiba@arm.com>,
-	Michael.Zhao2@arm.com, robh@kernel.org,
-	linux-arm-kernel@lists.infradead.org, Dmitry.Lamerov@arm.com,
-	rafael@kernel.org, conor@kernel.org, will@kernel.org, bp@alien8.de,
-	catalin.marinas@arm.com, krzk+dt@kernel.org,
-	linux-doc@vger.kernel.org, mchehab+huawei@kernel.org,
-	tony.luck@intel.com
-Subject: Re: [PATCH v3 06/10] ACPI: APEI: GHES: move CXL CPER helpers
-Message-ID: <202603201429.rbHMPOvC-lkp@intel.com>
-References: <20260318-topics-ahmtib01-ras_ffh_arm_internal_review-v3-6-48e6a1c249ef@arm.com>
+   d="scan'208";a="218590930"
+Received: from egrumbac-mobl6.ger.corp.intel.com (HELO localhost) ([10.245.245.40])
+  by fmviesa006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Mar 2026 00:36:28 -0700
+Date: Fri, 20 Mar 2026 09:36:26 +0200
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Cc: Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Mika Westerberg <mika.westerberg@linux.intel.com>,
+	Andy Shevchenko <andy@kernel.org>,
+	Linus Walleij <linusw@kernel.org>, Hans de Goede <hansg@kernel.org>,
+	Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	linux-acpi@vger.kernel.org, driver-core@lists.linux.dev,
+	linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
+	platform-driver-x86@vger.kernel.org
+Subject: Re: [PATCH 1/4] software node: support automatic secondary fwnode
+ assignment
+Message-ID: <abz4-iKFBsPIJb7F@ashevche-desk.local>
+References: <20260319-baytrail-real-swnode-v1-0-75f2264ae49f@oss.qualcomm.com>
+ <20260319-baytrail-real-swnode-v1-1-75f2264ae49f@oss.qualcomm.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -69,39 +73,72 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260318-topics-ahmtib01-ras_ffh_arm_internal_review-v3-6-48e6a1c249ef@arm.com>
+In-Reply-To: <20260319-baytrail-real-swnode-v1-1-75f2264ae49f@oss.qualcomm.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-Hi Ahmed,
+On Thu, Mar 19, 2026 at 05:10:54PM +0100, Bartosz Golaszewski wrote:
+> Provide a structure and a set of functions allowing to set up automatic
+> secondary firmware node assignment for platform devices. It uses
+> a behind-the-scenes bus notifier for a group of named software nodes. It
+> will wait for bus events and when a device is added, it will check its
+> name against the software node's name and - on match - assign the
+> software node as the secondary firmware node of the device's *real*
+> firmware node.
 
-kernel test robot noticed the following build warnings:
+...
 
-[auto build test WARNING on 2d1373e4246da3b58e1df058374ed6b101804e07]
+> +/**
+> + * software_node_register_auto_secondary() - set up automatic assignment of
+> + *                                           secondary firmware nodes
+> + * @auto_sec: Context data to use.
+> + *
+> + * NOTE: All software nodes passed in @auto_sec must be named.
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Ahmed-Tiba/ACPI-APEI-GHES-share-macros-via-a-private-header/20260319-115432
-base:   2d1373e4246da3b58e1df058374ed6b101804e07
-patch link:    https://lore.kernel.org/r/20260318-topics-ahmtib01-ras_ffh_arm_internal_review-v3-6-48e6a1c249ef%40arm.com
-patch subject: [PATCH v3 06/10] ACPI: APEI: GHES: move CXL CPER helpers
-config: x86_64-randconfig-122-20260320 (https://download.01.org/0day-ci/archive/20260320/202603201429.rbHMPOvC-lkp@intel.com/config)
-compiler: gcc-14 (Debian 14.2.0-19) 14.2.0
-sparse: v0.6.5-rc1
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260320/202603201429.rbHMPOvC-lkp@intel.com/reproduce)
+> + * Returns:
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202603201429.rbHMPOvC-lkp@intel.com/
+Is it with 's' in other kernel-doc? The official is "Return", the 's' variant
+is supported, but not documented.
 
-sparse warnings: (new ones prefixed by >>)
->> drivers/acpi/apei/ghes_cper.c:391:1: sparse: sparse: symbol 'cxl_cper_fifo' was not declared. Should it be static?
+> + * 0 on success, negative error number on failure.
 
-vim +/cxl_cper_fifo +391 drivers/acpi/apei/ghes_cper.c
+The Return section must be last in the kernel-doc description. This is documented.
 
-   388	
-   389	/* Room for 8 entries for each of the 4 event log queues */
-   390	#define CXL_CPER_FIFO_DEPTH 32
- > 391	DEFINE_KFIFO(cxl_cper_fifo, struct cxl_cper_work_data, CXL_CPER_FIFO_DEPTH);
-   392	
+> + * This registers the software node group passed in @auto_sec and sets up
+> + * automatic assignment of them as secondary firmware nodes of real nodes
+> + * attached to appropriate devices on the bus specified in @auto_sec. The
+> + * software nodes must be named and their names must be the same as the
+> + * devices they should reference. The assignment happens when the device is
+> + * first added to the bus.
+> + */
+
+...
+
+> +/**
+> + * struct software_node_auto_secondary - context data for automatic secondary
+> + *                                       fwnode assignment
+> + * @nb: Private bus notifier data - don't use
+
+Mark it with __private then.
+
+> + * @node_group: NULL-terminated array of software node addresses
+> + * @bus: Bus on which to wait for devices
+
+If bus is not compiled into kernel, this optionally has to support NULL
+in the code (I haven't checked the code, though).
+
+> + */
+> +struct software_node_auto_secondary {
+> +	struct notifier_block nb;
+
+	struct notifier_block __private nb;
+
+> +	const struct software_node * const *node_group;
+> +	const struct bus_type *bus;
+> +};
 
 -- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+With Best Regards,
+Andy Shevchenko
+
+
