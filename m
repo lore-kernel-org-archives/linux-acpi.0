@@ -1,71 +1,85 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66683301704;
-	Fri, 20 Mar 2026 15:13:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B263D37FF7A
+	for <linux-acpi@vger.kernel.org>; Fri, 20 Mar 2026 15:56:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774019588; cv=none; b=G4VCzC2a9K3hcNGzrw21bPreT0Goqy6MjF31q5u63O5cxTLAdjcUPlWknJI6vvgoFgkIhVLsHBLAZqf825jT5ideMooCbWthTykG98WfbAxld7e0upMGhD4NCvxPrCy1YgyaiUQHyPyo+z+5lKBUL6aS93dq9ejAwF9h2Mvx734=
+	t=1774022192; cv=none; b=S5DIiTi2KvXnWMZ7MwPHin8M7DfJKJJ2NA0XFihfIke+75EnT1yuR0PmLqBroZH/pBmAAJMO0MhAzFQPIAU62SfbJtVoOxeWggc0DVFFTcPBt7rzQmVsJ25Uo6BsH6nxCsbEP92n2Vo2ou7gyKVKbFpCLl1hIT3IszXHHUd1Rqc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774019588; c=relaxed/simple;
-	bh=F5NjMNf1IADhR68ibfZoDTBsvxmUxLw8Sk4u+6nNt4A=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=MMinI9933v6GipFmyXUCHiAKEDBl1Zhqcgw94qJdQbNwZpRRERe/6Ia502xz4XHIQ2xds7h6to5SLeHUp3B+1ytEGBZJEf8W2+eILV8YCjdy90kCBrVbprok7gVog0mnszVZR8EO2dJ3xHxaCIFQdJh8mJAaqaEJMH8tDzTl3JQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=srZtmN3X; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774022192; c=relaxed/simple;
+	bh=IOffjzYj/NZvL+u6/Fq6bJ9hOtQCLHt8aWP8NB7jcKY=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=GwN360GQ3H8clU3ovxxDUNV5TvyiiJVmln72kE2K2EB9cV0Kjll9lNw+sfhGVaQX/WemtAyHlJK6gPMmGjSHGjknNB7Bq5HdVsBfQoryHCA6ER/akS7qwwhMAu8ZZol3p1Fc17DSHYUPWK0gRqjLPVRWIEtgmsEtmqGR4nLNMzw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=qwQyYV7O; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="srZtmN3X"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D48AEC4CEF7;
-	Fri, 20 Mar 2026 15:13:07 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="qwQyYV7O"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96E96C2BCB0
+	for <linux-acpi@vger.kernel.org>; Fri, 20 Mar 2026 15:56:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774019588;
-	bh=F5NjMNf1IADhR68ibfZoDTBsvxmUxLw8Sk4u+6nNt4A=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=srZtmN3Xv/5XPXDsgLNiI+RnCnbvcP0muAY+MLRhpvuaZ3yf04BJvoQBYiZ5tPHW7
-	 j/XLgQgrIHVEWaAbyOm7QjhCnEQd4GUi0vLt2k4iW8Bz9LI9fPPC9eWz3mdwUzmptj
-	 GSQ6D7tkOn8RfnjGw/lPboGG89iOmQQTk8w7fqy7CrPRD6f+fEAyg0Z04YipHbRl6v
-	 /BuAwlkh7Do66OSaz87kJpz+471XYUptlljs9KVikrbzYNPrt59I12vCaX3zpNraBP
-	 kMDMkvBcG8xvLv4vru3pll3c6IrT9KcLo+n/UmuzIZsYzzE1VD4g2VxXc4PlKWTcKW
-	 x6w2qYErMtVEA==
-Date: Fri, 20 Mar 2026 10:13:06 -0500
-From: Bjorn Helgaas <helgaas@kernel.org>
-To: Kai-Heng Feng <kaihengf@nvidia.com>
-Cc: rafael@kernel.org, Jonathan Cameron <jonathan.cameron@huawei.com>,
-	Shiju Jose <shiju.jose@huawei.com>, Tony Luck <tony.luck@intel.com>,
-	Borislav Petkov <bp@alien8.de>, Hanjun Guo <guohanjun@huawei.com>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Shuai Xue <xueshuai@linux.alibaba.com>, Len Brown <lenb@kernel.org>,
-	Kees Cook <kees@kernel.org>,
-	"Gustavo A. R. Silva" <gustavoars@kernel.org>,
-	Will Deacon <will@kernel.org>,
-	Huang Yiwei <quic_hyiwei@quicinc.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Nathan Chancellor <nathan@kernel.org>,
-	"Fabio M. De Francesco" <fabio.m.de.francesco@linux.intel.com>,
-	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-	linux-hardening@vger.kernel.org
-Subject: Re: [PATCH v2 3/3] acpi/apei: Add NVIDIA GHES vendor CPER record
- handler
-Message-ID: <20260320151306.GC699200@bhelgaas>
-References: <20260319111315.87624-1-kaihengf@nvidia.com>
- <20260319111315.87624-3-kaihengf@nvidia.com>
- <20260320145254.GB699200@bhelgaas>
+	s=k20201202; t=1774022192;
+	bh=IOffjzYj/NZvL+u6/Fq6bJ9hOtQCLHt8aWP8NB7jcKY=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=qwQyYV7ObH37jHPqMPYxeFbpVODB7JkSAk5+4hjktDbeK7CHsQUCB6gDfdMgrX7gz
+	 vV5ihpgsPukhy+A7GjbugAPrM8ughxelya7Sfk3gHYw8t+29jWY0Q8moT32K6ZFhaV
+	 BhyTKnUv9+fDxMNRGsEDswjmX61e21vt0pRzPvlscCO8Kcw/uTqFOMZCh+Bdie9oFn
+	 RQSkFUSns8f3fQrH27Nwu0wqA8IKvPUr9+9J5EhHn0urXT18dZAzG/HykjsmMPNTHf
+	 OOyo3iTmNcFYi3ycNXPhethHgieX5Qahwkl3Fy4zncsXZ2KJGglNvjBw06axwWBt5w
+	 yV2r/R8gsq8GA==
+Received: by mail-oi1-f173.google.com with SMTP id 5614622812f47-464bba3a9easo1196704b6e.0
+        for <linux-acpi@vger.kernel.org>; Fri, 20 Mar 2026 08:56:32 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCX/oT1Gq5F2wTYazE4ULanQFXYYYU/Cj87beBFkXuu/85/UhHrtNh9RwvQQoqY6TMy2+7AdPMY2aKHm@vger.kernel.org
+X-Gm-Message-State: AOJu0YzOcDK0nY+atnetKJ+2JwlLSH1LHOgGJQyoJyROPLcCxx5J0np7
+	zrobLtHvM29xfCB9ySkEe+4EpxYvJ53dZ+dWlfh/NK+MWoGlZIaA8Q79WDFbSuHMFzY4l5z1qS6
+	lBA2/NzNF6bNNhdPWhLUXUtKEIw6YsFc=
+X-Received: by 2002:a05:6808:1491:b0:467:36f:181c with SMTP id
+ 5614622812f47-467e60044eemr1747063b6e.51.1774022191668; Fri, 20 Mar 2026
+ 08:56:31 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260320145254.GB699200@bhelgaas>
+References: <3964452.kQq0lBPeGt@rafael.j.wysocki>
+In-Reply-To: <3964452.kQq0lBPeGt@rafael.j.wysocki>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Fri, 20 Mar 2026 16:56:20 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0gx8ihgMB6Nrod1pxEeWAQRTuMcB_xqJ-yzuibr2eF3RA@mail.gmail.com>
+X-Gm-Features: AaiRm53hF-ilZxrd7VP1F6m-Fwm2cCEMEOyelgSFAQ06eZe2VddWunHi89qUW5c
+Message-ID: <CAJZ5v0gx8ihgMB6Nrod1pxEeWAQRTuMcB_xqJ-yzuibr2eF3RA@mail.gmail.com>
+Subject: Re: [PATCH v1 0/2] rtc: cmos: Do not require IRQ if ACPI alarm is used
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: linux-rtc@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, 
+	Linux ACPI <linux-acpi@vger.kernel.org>, 
+	Alexandre Belloni <alexandre.belloni@bootlin.com>, 
+	Mario Limonciello <mario.limonciello@amd.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Fri, Mar 20, 2026 at 09:52:54AM -0500, Bjorn Helgaas wrote:
-> On Thu, Mar 19, 2026 at 07:13:09PM +0800, Kai-Heng Feng wrote:
-> > Add support for decoding NVIDIA-specific CPER sections delivered via
-> ...
+On Sat, Mar 14, 2026 at 1:13=E2=80=AFPM Rafael J. Wysocki <rafael@kernel.or=
+g> wrote:
+>
+> Hi All,
+>
+> This series of patches allows the CMOS RTC alarm to be used on x86
+> systems that don't include a functional HPET and may not configure
+> an IRQ for the CMOS RTC, but have a functional ACPI RTC fixed event.
+>
+> The first patch allows the ACPI RTC fixed event to be used on systems
+> without functional HPET because there is no fundamental dependency
+> between HPET and the ACPI RTC fixed event being hooked up to the CMOS
+> RTC.
+>
+> The second patch changes the driver to stop requiring an IRQ to be
+> configured for the alarm functionality if the ACPI RTC fixed event
+> is use for signaling events because it require a separate IRQ to
+> be requested (the ACPI SCI is used for event signaling in that case).
 
-> Wrap commit logs to fit in 75 columns.  When indented by "git log", all of
-> these overflow 80 columns by just a few characters.
+If anyone has any objections or concerns regarding these patches,
+please let me know.
 
-I'm so sorry, I had accidentally resized my window narrower.  These are all
-fine; please ignore this and the similar Kconfig comment.
+In the absence of any, I'll queue them up for 7.1 on top of the
+previous CMOS RTC driver changes.
+
+Thanks!
