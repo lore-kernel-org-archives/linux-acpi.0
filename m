@@ -1,144 +1,139 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.19])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99BA13346A0;
-	Fri, 20 Mar 2026 07:36:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.19
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 820CE3803CC;
+	Fri, 20 Mar 2026 09:55:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773992193; cv=none; b=NBOVyfyVvjdhVvlYucUpQwjKh6ndNLfGVe5IFDOK4hrTLNGh5Ond2dXECczSQ7phhnBREdkjvmU5qyaOZNGjOHRlTsolJrKjZtw2Fq6LK8otnz6BBJ4E7dpYLwn8gEZf9Qnm2d3B7AC6VfgSuWfFQVcCa2shkUFfccLwIq8JQxk=
+	t=1774000522; cv=none; b=V2Nq6iH/SB7VOWXJ3iZf2tyr0Ls95bFugjxGU2NzXekNQ6h/91yLlUFrThbjMi0CFvM2wZiDvVEXe1yVuffgGjlh0wGpgTvrsMW8mcbN+8cWtBhnEiz9eSf1MkmdAjhRtaROJU7/OxrFbh3kPjDyu8ETJza+MgoVbq/bevSbASQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773992193; c=relaxed/simple;
-	bh=aVjU9vB3deYFYEQRjHDO84MBFFxZKuFsTsm53223WNA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Rf7+vU6YrG8CtYe+u3wVlqxxvQj0CTZkxk/v8Div9wiwAMnduwtoZbDqFxBh5k2xXnGxLdhMEfQEZ5BjQLpeZ/qr8D+hp5O2V4gvB73aYENAngVKUxCs6yW/KvShPg5152B1GX2aptFsvoUvTmnbb7GRYZbPgOdpixsC+CVMkV4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=dhmq5CEC; arc=none smtp.client-ip=192.198.163.19
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="dhmq5CEC"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1773992192; x=1805528192;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=aVjU9vB3deYFYEQRjHDO84MBFFxZKuFsTsm53223WNA=;
-  b=dhmq5CECdkNpALjdO83vnn6RNZ+OklnryFtJxElzOWCrUeVkd5ojR0C9
-   0OAWFYT9O9Xnrn3BCn+IOT5Os6u+XxP4zjuk8Xu3HCz43WTEf57YvF1D6
-   VVuttKFYVxpdSkYEp3bhXrSVxebq8WHoqiXZQaLdXdXeqA7Bupu5e+yb+
-   JnczT3tIgap81ASRKeuIA9+zNgV211dtkgpJYZlarCjI21vudiwOx2UP8
-   MU63jBebL5b4U340HhQhQ4s3dVx/YCQJ+CUIclsq1CHOtRqD4lOtQEgB7
-   VH72i9BWWM2r3tE6YRDqcLwM8Skfx0Fi2Gd2A0743+s3DCaDNxHtLGl/q
-   A==;
-X-CSE-ConnectionGUID: zMWtvRx+STWndnLBrI+oeA==
-X-CSE-MsgGUID: qaVc0LAQTvWIIaPqdER/oQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11734"; a="74088782"
-X-IronPort-AV: E=Sophos;i="6.23,130,1770624000"; 
-   d="scan'208";a="74088782"
-Received: from fmviesa006.fm.intel.com ([10.60.135.146])
-  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Mar 2026 00:36:32 -0700
-X-CSE-ConnectionGUID: 246dr+i8QaGlyKrDOOi8Ng==
-X-CSE-MsgGUID: QY4qFbXSSC6smiTJxZajVQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.23,130,1770624000"; 
-   d="scan'208";a="218590930"
-Received: from egrumbac-mobl6.ger.corp.intel.com (HELO localhost) ([10.245.245.40])
-  by fmviesa006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Mar 2026 00:36:28 -0700
-Date: Fri, 20 Mar 2026 09:36:26 +0200
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Cc: Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>,
-	Mika Westerberg <mika.westerberg@linux.intel.com>,
-	Andy Shevchenko <andy@kernel.org>,
-	Linus Walleij <linusw@kernel.org>, Hans de Goede <hansg@kernel.org>,
-	Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	linux-acpi@vger.kernel.org, driver-core@lists.linux.dev,
-	linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
-	platform-driver-x86@vger.kernel.org
-Subject: Re: [PATCH 1/4] software node: support automatic secondary fwnode
- assignment
-Message-ID: <abz4-iKFBsPIJb7F@ashevche-desk.local>
-References: <20260319-baytrail-real-swnode-v1-0-75f2264ae49f@oss.qualcomm.com>
- <20260319-baytrail-real-swnode-v1-1-75f2264ae49f@oss.qualcomm.com>
+	s=arc-20240116; t=1774000522; c=relaxed/simple;
+	bh=6Wg/Rw59qfqBD/NX4KINQRRR9R7/o5qx+VND2rIglxs=;
+	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=MyECV2lA04Y9sPp1BLYMoJ8p3+GylfmkppzxDrpAFB98iwU25xmPkIBAn42UJhBBrs8YLmTIYJmj7ENn/M6CM0g02yJ90G20JQrV1gttxdhk/57nDKd+dRmTtBdgXVE5zmOpibDWtfuEHhvilevga1C9BE3cyLHdgnv6Rl2LfK8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.18.224.107])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTPS id 4fcdG25xxbzHnH7p;
+	Fri, 20 Mar 2026 17:54:50 +0800 (CST)
+Received: from dubpeml500005.china.huawei.com (unknown [7.214.145.207])
+	by mail.maildlp.com (Postfix) with ESMTPS id 1446D40584;
+	Fri, 20 Mar 2026 17:55:16 +0800 (CST)
+Received: from localhost (10.203.177.15) by dubpeml500005.china.huawei.com
+ (7.214.145.207) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Fri, 20 Mar
+ 2026 09:55:15 +0000
+Date: Fri, 20 Mar 2026 09:55:13 +0000
+From: Jonathan Cameron <jonathan.cameron@huawei.com>
+To: Kai-Heng Feng <kaihengf@nvidia.com>
+CC: <rafael@kernel.org>, Tony Luck <tony.luck@intel.com>, Borislav Petkov
+	<bp@alien8.de>, Hanjun Guo <guohanjun@huawei.com>, Mauro Carvalho Chehab
+	<mchehab@kernel.org>, Shuai Xue <xueshuai@linux.alibaba.com>, Len Brown
+	<lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Ard Biesheuvel
+	<ardb@kernel.org>, Breno Leitao <leitao@debian.org>, "Fabio M. De Francesco"
+	<fabio.m.de.francesco@linux.intel.com>, Jason Tian
+	<jason@os.amperecomputing.com>, <linux-acpi@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, <acpica-devel@lists.linux.dev>
+Subject: Re: [PATCH v2 1/3] acpi/apei: Add
+ devm_ghes_register_vendor_record_notifier()
+Message-ID: <20260320095513.00007636@huawei.com>
+In-Reply-To: <20260319111315.87624-1-kaihengf@nvidia.com>
+References: <20260319111315.87624-1-kaihengf@nvidia.com>
+X-Mailer: Claws Mail 4.3.0 (GTK 3.24.42; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260319-baytrail-real-swnode-v1-1-75f2264ae49f@oss.qualcomm.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: lhrpeml100012.china.huawei.com (7.191.174.184) To
+ dubpeml500005.china.huawei.com (7.214.145.207)
 
-On Thu, Mar 19, 2026 at 05:10:54PM +0100, Bartosz Golaszewski wrote:
-> Provide a structure and a set of functions allowing to set up automatic
-> secondary firmware node assignment for platform devices. It uses
-> a behind-the-scenes bus notifier for a group of named software nodes. It
-> will wait for bus events and when a device is added, it will check its
-> name against the software node's name and - on match - assign the
-> software node as the secondary firmware node of the device's *real*
-> firmware node.
+On Thu, 19 Mar 2026 19:13:07 +0800
+Kai-Heng Feng <kaihengf@nvidia.com> wrote:
 
-...
+> Add a device-managed wrapper around ghes_register_vendor_record_notifier()
+> so drivers can avoid manual cleanup on device removal or probe failure.
+> 
+> Cc: Jonathan Cameron <jonathan.cameron@huawei.com>
+> Signed-off-by: Kai-Heng Feng <kaihengf@nvidia.com>
+Hi,
 
+My only comment is about following local style. I think that
+means moving the docs to the header.  Unfortunately whether things
+are in the header or the c file is a subsystem specific thing.
+
+My preference is in the c file, but local style overrides that!
+Better to have all the docs in the same place.
+
+Jonathan
+
+> ---
+> v2:
+>  - New patch.
+> 
+>  drivers/acpi/apei/ghes.c | 25 +++++++++++++++++++++++++
+>  include/acpi/ghes.h      |  3 +++
+>  2 files changed, 28 insertions(+)
+> 
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index 8acd2742bb27..d31a70a05538 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/
+> @@ -689,6 +689,31 @@ void ghes_unregister_vendor_record_notifier(struct notifier_block *nb)
+>  }
+>  EXPORT_SYMBOL_GPL(ghes_unregister_vendor_record_notifier);
+>  
+> +static void ghes_vendor_record_notifier_destroy(void *nb)
+> +{
+> +	ghes_unregister_vendor_record_notifier(nb);
+> +}
+> +
 > +/**
-> + * software_node_register_auto_secondary() - set up automatic assignment of
-> + *                                           secondary firmware nodes
-> + * @auto_sec: Context data to use.
+> + * devm_ghes_register_vendor_record_notifier - device-managed vendor record notifier registration
+
+There is also quite a bit of kernel doc in header.  So I guess
+local convention is put it there not in the C code?
+
+Hence I would move the docs there.
+
+
+> + * @dev: device that owns the notifier lifetime
+> + * @nb: pointer to the notifier_block structure of the vendor record handler
 > + *
-> + * NOTE: All software nodes passed in @auto_sec must be named.
-
-> + * Returns:
-
-Is it with 's' in other kernel-doc? The official is "Return", the 's' variant
-is supported, but not documented.
-
-> + * 0 on success, negative error number on failure.
-
-The Return section must be last in the kernel-doc description. This is documented.
-
-> + * This registers the software node group passed in @auto_sec and sets up
-> + * automatic assignment of them as secondary firmware nodes of real nodes
-> + * attached to appropriate devices on the bus specified in @auto_sec. The
-> + * software nodes must be named and their names must be the same as the
-> + * devices they should reference. The assignment happens when the device is
-> + * first added to the bus.
+> + * Return: 0 on success, negative errno on failure.
 > + */
-
-...
-
-> +/**
-> + * struct software_node_auto_secondary - context data for automatic secondary
-> + *                                       fwnode assignment
-> + * @nb: Private bus notifier data - don't use
-
-Mark it with __private then.
-
-> + * @node_group: NULL-terminated array of software node addresses
-> + * @bus: Bus on which to wait for devices
-
-If bus is not compiled into kernel, this optionally has to support NULL
-in the code (I haven't checked the code, though).
-
-> + */
-> +struct software_node_auto_secondary {
-> +	struct notifier_block nb;
-
-	struct notifier_block __private nb;
-
-> +	const struct software_node * const *node_group;
-> +	const struct bus_type *bus;
-> +};
-
--- 
-With Best Regards,
-Andy Shevchenko
-
+> +int devm_ghes_register_vendor_record_notifier(struct device *ev,
+> +					      struct notifier_block *nb)
+> +{
+> +	int ret;
+> +
+> +	ret = ghes_register_vendor_record_notifier(nb);
+> +	if (ret)
+> +		return ret;
+> +
+> +	return devm_add_action_or_reset(dev, ghes_vendor_record_notifier_destroy, nb);
+> +}
+> +EXPORT_SYMBOL_GPL(devm_ghes_register_vendor_record_notifier);
+> +
+>  static void ghes_vendor_record_work_func(struct work_struct *work)
+>  {
+>  	struct ghes_vendor_record_entry *entry;
+> diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
+> index 7bea522c0657..ca3ace828c1c 100644
+> --- a/include/acpi/ghes.h
+> +++ b/include/acpi/ghes.h
+> @@ -71,6 +71,9 @@ int ghes_register_vendor_record_notifier(struct notifier_block *nb);
+>   */
+>  void ghes_unregister_vendor_record_notifier(struct notifier_block *nb);
+>  
+> +int devm_ghes_register_vendor_record_notifier(struct device *dev,
+> +					      struct notifier_block *nb);
+> +
+>  struct list_head *ghes_get_devices(void);
+>  
+>  void ghes_estatus_pool_region_free(unsigned long addr, u32 size);
 
