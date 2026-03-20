@@ -1,203 +1,180 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BD0336165D;
-	Fri, 20 Mar 2026 10:13:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 330EB2C08AD;
+	Fri, 20 Mar 2026 10:36:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774001622; cv=none; b=D9NpEsNFr9wfK1xhS9mz2QlZAkyMQoqKs+mF+8otrSBy16ScBOYfcbGxfwcQBOsONYRA8YWHnCXzVuINdhqCL/ihusPxNe/4M7aZGscw9KffI5oGnxbFCBI4o9wbokiDH+QcWBg/pJCM1KIfGZxyQmEe7IE9ZoxSGPft25RggVk=
+	t=1774002994; cv=none; b=NmeQi7Ca8jdpY95XIDciZ87sEWJZxJPw2ZBxGoAmOW205S0XVOiZOnKPntogiHhhQQzXLZrvovqEsM15CeYpMu5dxA4hBi6LMqimx0NflHCtZffQ5UMxMrKYKSXqlJnuZniUv480w/RFXNxGTaRqu5UhjIX+Q2QD5XKa47vL/4E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774001622; c=relaxed/simple;
-	bh=iESlretG5HIAa3y+PLiVDqAohM7DlrdQBntZV1byCro=;
-	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=HCCe1VDfd8Qws4hH/C9xfndqq9KFIzWQmd2HjRewaGfMeKKjUPizKGMZuCz01VLjK7v8J0f0Oh9DThrYnfuYW/NKoBLaC4xW1KkpP0RnTVFnaeqX4cKzgQ7mi2T8i2yq1qBSekzzc19BSnGzB7pYkZIU1ZUnLX//D+rXGg83g6Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.224.150])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTPS id 4fcdfX36RwzJ468L;
-	Fri, 20 Mar 2026 18:12:36 +0800 (CST)
-Received: from dubpeml500005.china.huawei.com (unknown [7.214.145.207])
-	by mail.maildlp.com (Postfix) with ESMTPS id 4739A4056A;
-	Fri, 20 Mar 2026 18:13:37 +0800 (CST)
-Received: from localhost (10.203.177.15) by dubpeml500005.china.huawei.com
- (7.214.145.207) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Fri, 20 Mar
- 2026 10:13:36 +0000
-Date: Fri, 20 Mar 2026 10:13:35 +0000
-From: Jonathan Cameron <jonathan.cameron@huawei.com>
-To: Kai-Heng Feng <kaihengf@nvidia.com>
-CC: <rafael@kernel.org>, Shiju Jose <shiju.jose@huawei.com>, Tony Luck
-	<tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, Hanjun Guo
-	<guohanjun@huawei.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, "Shuai
- Xue" <xueshuai@linux.alibaba.com>, Len Brown <lenb@kernel.org>, Kees Cook
-	<kees@kernel.org>, "Gustavo A. R. Silva" <gustavoars@kernel.org>, "Will
- Deacon" <will@kernel.org>, Huang Yiwei <quic_hyiwei@quicinc.com>, Dave Jiang
-	<dave.jiang@intel.com>, Nathan Chancellor <nathan@kernel.org>, "Fabio M. De
- Francesco" <fabio.m.de.francesco@linux.intel.com>,
-	<linux-kernel@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
-	<linux-hardening@vger.kernel.org>
-Subject: Re: [PATCH v2 3/3] acpi/apei: Add NVIDIA GHES vendor CPER record
- handler
-Message-ID: <20260320101335.00004026@huawei.com>
-In-Reply-To: <20260319111315.87624-3-kaihengf@nvidia.com>
-References: <20260319111315.87624-1-kaihengf@nvidia.com>
-	<20260319111315.87624-3-kaihengf@nvidia.com>
-X-Mailer: Claws Mail 4.3.0 (GTK 3.24.42; x86_64-w64-mingw32)
+	s=arc-20240116; t=1774002994; c=relaxed/simple;
+	bh=51T1Y85kq2tY1wWu4pWqfkhO2W6py4pr5YHSxW+Yap4=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=Z23VXjmyoUW9LRwiFD/TCDFUFirwf/gFgKCwe+GYpuipQPnujrceWYaSdEchDdm0y6f3l44hsVcM+VFwqIPS6z+CqrytjU6R5CS0kgBch4o+zA+0epVtBFFsqy9V56pqirdSv43CNFZijQH1jkqHKqRbGeVt2EqG76F0vgVjeQc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fKKlDbgH; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fKKlDbgH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 445B2C4CEF7;
+	Fri, 20 Mar 2026 10:36:31 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1774002993;
+	bh=51T1Y85kq2tY1wWu4pWqfkhO2W6py4pr5YHSxW+Yap4=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=fKKlDbgHbL2lO/bQu4536dXP69htqvVxDli7svlju5tPtnwn59NuPT/KRhTzBSLop
+	 VmIXVysfjO8RSwabFuFTfUbSxc/G9xb4aFe331f1h//5Zhgt7uH91VujGcKHJBCzc+
+	 EvM61/BhLOmFCWHs6XgxNRpD4RTq0dgPTxJHnBJva6am2p/RsHng/FYN8XCSYaQlhZ
+	 /BKCZaiYOBtavdu/KN5QiX1mQTdRtxx25sxp/ezDuwXM+hxuBTGGmQIe+r8fw0DlHg
+	 gEE4qWAAj4Unmpmu7qK92AzOXSqMR1X4RmK/wf6llHyz7IQ14ywTdV0++U1z6/f5Du
+	 fa47BVff4P95g==
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+To: Ilpo =?ISO-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+ Linux ACPI <linux-acpi@vger.kernel.org>, Hans de Goede <hansg@kernel.org>,
+ platform-driver-x86@vger.kernel.org, Kenneth Chan <kenneth.t.chan@gmail.com>
+Subject:
+ [PATCH v4 5/5] platform/x86: panasonic-laptop: Convert ACPI driver to a
+ platform one
+Date: Fri, 20 Mar 2026 11:35:54 +0100
+Message-ID: <8664183.T7Z3S40VBb@rafael.j.wysocki>
+Organization: Linux Kernel Development
+In-Reply-To: <5983583.DvuYhMxLoT@rafael.j.wysocki>
+References: <5983583.DvuYhMxLoT@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml500010.china.huawei.com (7.191.174.240) To
- dubpeml500005.china.huawei.com (7.214.145.207)
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
 
-On Thu, 19 Mar 2026 19:13:09 +0800
-Kai-Heng Feng <kaihengf@nvidia.com> wrote:
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-> Add support for decoding NVIDIA-specific CPER sections delivered via
-> the APEI GHES vendor record notifier chain. NVIDIA hardware generates
-> vendor-specific CPER sections containing error signatures and diagnostic
-> register dumps. This implementation registers a notifier_block with the
-> GHES vendor record notifier and decodes these sections, printing error
-> details via dev_info().
-> 
-> The driver binds to ACPI device NVDA2012, present on NVIDIA server
-> platforms. The NVIDIA CPER section contains a fixed header with error
-> metadata (signature, error type, severity, socket) followed by
-> variable-length register address-value pairs for hardware diagnostics.
-> 
-> This work is based on libcper [0].
-> 
-> Example output:
-> nvidia-ghes NVDA2012:00: NVIDIA CPER section, error_data_length: 544
-> nvidia-ghes NVDA2012:00: signature: CMET-INFO
-> nvidia-ghes NVDA2012:00: error_type: 0
-> nvidia-ghes NVDA2012:00: error_instance: 0
-> nvidia-ghes NVDA2012:00: severity: 3
-> nvidia-ghes NVDA2012:00: socket: 0
-> nvidia-ghes NVDA2012:00: number_regs: 32
-> nvidia-ghes NVDA2012:00: instance_base: 0x0000000000000000
-> nvidia-ghes NVDA2012:00: register[0]: address=0x8000000100000000 value=0x0000000100000000
-> 
-> [0] https://github.com/openbmc/libcper/commit/683e055061ce
-> Cc: Jonathan Cameron <jonathan.cameron@huawei.com>
-> Cc: Shiju Jose <shiju.jose@huawei.com>
-> Signed-off-by: Kai-Heng Feng <kaihengf@nvidia.com>
-Only significant thing is around use of dev_err_probe().
+In all cases in which a struct acpi_driver is used for binding a driver
+to an ACPI device object, a corresponding platform device is created by
+the ACPI core and that device is regarded as a proper representation of
+underlying hardware.  Accordingly, a struct platform_driver should be
+used by driver code to bind to that device.  There are multiple reasons
+why drivers should not bind directly to ACPI device objects [1].
 
-I'm surprised that didn't give you error messages in the log even on success.
+Overall, it is better to bind drivers to platform devices than to their
+ACPI companions, so convert the Panasonic laptop ACPI driver to a platform
+one.
 
-With that fixed (other stuff is all up to you).
-Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
+While this is not expected to alter functionality, it changes sysfs
+layout and so it will be visible to user space.
+
+To maintain backwards compatibility with possibly existing user space,
+the sysfs attributes created by the driver under the ACPI device object
+used by it are not relocated.  Accordingly, the driver will continue to
+use the driver_data pointer in struct acpi_device which needs to be
+cleared on driver removal.
+
+Link: https://lore.kernel.org/all/2396510.ElGaqSPkdT@rafael.j.wysocki/ [1]
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+
+v3 -> v4: Clear device->driver_data in the probe rollback path
+
+v1 -> v3: No changes
+
+---
+ drivers/platform/x86/panasonic-laptop.c | 34 ++++++++++++++-----------
+ 1 file changed, 19 insertions(+), 15 deletions(-)
+
+diff --git a/drivers/platform/x86/panasonic-laptop.c b/drivers/platform/x86/panasonic-laptop.c
+index e563298a6672..1337f7c49805 100644
+--- a/drivers/platform/x86/panasonic-laptop.c
++++ b/drivers/platform/x86/panasonic-laptop.c
+@@ -183,8 +183,8 @@ enum SINF_BITS { SINF_NUM_BATTERIES = 0,
+ 	};
+ /* R1 handles SINF_AC_CUR_BRIGHT as SINF_CUR_BRIGHT, doesn't know AC state */
+ 
+-static int acpi_pcc_hotkey_add(struct acpi_device *device);
+-static void acpi_pcc_hotkey_remove(struct acpi_device *device);
++static int acpi_pcc_hotkey_probe(struct platform_device *pdev);
++static void acpi_pcc_hotkey_remove(struct platform_device *pdev);
+ static void acpi_pcc_hotkey_notify(acpi_handle handle, u32 event, void *data);
+ 
+ static const struct acpi_device_id pcc_device_ids[] = {
+@@ -201,15 +201,14 @@ static int acpi_pcc_hotkey_resume(struct device *dev);
+ #endif
+ static SIMPLE_DEV_PM_OPS(acpi_pcc_hotkey_pm, NULL, acpi_pcc_hotkey_resume);
+ 
+-static struct acpi_driver acpi_pcc_driver = {
+-	.name =		ACPI_PCC_DRIVER_NAME,
+-	.class =	ACPI_PCC_CLASS,
+-	.ids =		pcc_device_ids,
+-	.ops =		{
+-				.add =		acpi_pcc_hotkey_add,
+-				.remove =	acpi_pcc_hotkey_remove,
+-			},
+-	.drv.pm =	&acpi_pcc_hotkey_pm,
++static struct platform_driver acpi_pcc_driver = {
++	.probe = acpi_pcc_hotkey_probe,
++	.remove = acpi_pcc_hotkey_remove,
++	.driver = {
++		.name = ACPI_PCC_DRIVER_NAME,
++		.acpi_match_table = pcc_device_ids,
++		.pm = &acpi_pcc_hotkey_pm,
++	},
+ };
+ 
+ static const struct key_entry panasonic_keymap[] = {
+@@ -964,7 +963,7 @@ static int acpi_pcc_init_input(struct pcc_acpi *pcc)
+ #ifdef CONFIG_PM_SLEEP
+ static int acpi_pcc_hotkey_resume(struct device *dev)
+ {
+-	struct pcc_acpi *pcc = acpi_driver_data(to_acpi_device(dev));
++	struct pcc_acpi *pcc = acpi_driver_data(ACPI_COMPANION(dev));
+ 
+ 	if (pcc->num_sifr > SINF_MUTE)
+ 		acpi_pcc_write_sset(pcc, SINF_MUTE, pcc->mute);
+@@ -980,8 +979,9 @@ static int acpi_pcc_hotkey_resume(struct device *dev)
+ }
+ #endif
+ 
+-static int acpi_pcc_hotkey_add(struct acpi_device *device)
++static int acpi_pcc_hotkey_probe(struct platform_device *pdev)
+ {
++	struct acpi_device *device = ACPI_COMPANION(&pdev->dev);
+ 	struct backlight_properties props;
+ 	struct pcc_acpi *pcc;
+ 	int num_sifr, result;
+@@ -1107,6 +1107,7 @@ static int acpi_pcc_hotkey_add(struct acpi_device *device)
+ out_input:
+ 	input_unregister_device(pcc->input_dev);
+ out_sinf:
++	device->driver_data = NULL;
+ 	kfree(pcc->sinf);
+ out_hotkey:
+ 	kfree(pcc);
+@@ -1114,8 +1115,9 @@ static int acpi_pcc_hotkey_add(struct acpi_device *device)
+ 	return result;
+ }
+ 
+-static void acpi_pcc_hotkey_remove(struct acpi_device *device)
++static void acpi_pcc_hotkey_remove(struct platform_device *pdev)
+ {
++	struct acpi_device *device = ACPI_COMPANION(&pdev->dev);
+ 	struct pcc_acpi *pcc = acpi_driver_data(device);
+ 
+ 	i8042_remove_filter(panasonic_i8042_filter);
+@@ -1135,8 +1137,10 @@ static void acpi_pcc_hotkey_remove(struct acpi_device *device)
+ 
+ 	input_unregister_device(pcc->input_dev);
+ 
++	device->driver_data = NULL;
++
+ 	kfree(pcc->sinf);
+ 	kfree(pcc);
+ }
+ 
+-module_acpi_driver(acpi_pcc_driver);
++module_platform_driver(acpi_pcc_driver);
+-- 
+2.51.0
 
 
->  apei-y := apei-base.o hest.o erst.o bert.o
-> diff --git a/drivers/acpi/apei/nvidia-ghes.c b/drivers/acpi/apei/nvidia-ghes.c
-> new file mode 100644
-> index 000000000000..aa2e3a387b49
-> --- /dev/null
-> +++ b/drivers/acpi/apei/nvidia-ghes.c
 
-> +static void nvidia_ghes_print_error(struct device *dev,
-> +				    const struct cper_sec_nvidia *nvidia_err,
-> +				    size_t error_data_length, bool fatal)
-> +{
-> +	const char *level = fatal ? KERN_ERR : KERN_INFO;
-> +	size_t min_size;
-> +	int i;
-...
-
-
-> +	 * Validate that all registers fit within error_data_length.
-> +	 * Each register pair is two little-endian u64s.
-> +	 */
-> +	min_size = struct_size(nvidia_err, regs, nvidia_err->number_regs);
-> +	if (error_data_length < min_size) {
-> +		dev_err(dev, "Invalid number_regs %u (section size %zu, need %zu)\n",
-> +			nvidia_err->number_regs, error_data_length, min_size);
-> +		return;
-> +	}
-> +
-> +	for (i = 0; i < nvidia_err->number_regs; i++)
-
-Trivial but I'd take advantage of it now being acceptable (in general) to do
-	for (int i = 0; i < ....)
-
-> +		dev_printk(level, dev, "register[%d]: address=0x%016llx value=0x%016llx\n",
-> +			   i, le64_to_cpu(nvidia_err->regs[i].addr),
-> +			   le64_to_cpu(nvidia_err->regs[i].val));
-> +}
-
-> +static int nvidia_ghes_probe(struct platform_device *pdev)
-> +{
-> +	struct nvidia_ghes_private *priv;
-> +
-> +	priv = devm_kmalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
-> +	if (!priv)
-> +		return -ENOMEM;
-> +
-> +	*priv = (struct nvidia_ghes_private) {
-> +		.nb.notifier_call = nvidia_ghes_notify,
-> +		.dev = &pdev->dev,
-> +	};
-> +
-> +	return dev_err_probe(&pdev->dev,
-> +			     devm_ghes_register_vendor_record_notifier(&pdev->dev, &priv->nb),
-That's too not great for readability and dev_err_probe() should only be called on errors
-I'm fairly sure it doesn't have special handling for 0 so will call dev_err() or dev_warn()
-and print some stuff before saying 'no error'.
-
-	int ret;
-	...
-
-	ret = devm_ghes_register_vendor_record_notifier(&pdev->dev, &priv->nb);
-	if (ret)
-		return dev_err_probe(&pdev->dev,
-				      "Failed to register NVIDIA GHES vendor record notifier\n");
-
-	return 0;
-
-
-
-> +			     "Failed to register NVIDIA GHES vendor record notifier\n");
-> +}
-> +
-> +static const struct acpi_device_id nvidia_ghes_acpi_match[] = {
-> +	{ "NVDA2012" },
-
-London Olympics :)
-
-> +	{ }
-> +};
-> +MODULE_DEVICE_TABLE(acpi, nvidia_ghes_acpi_match);
-> +
-> +static struct platform_driver nvidia_ghes_driver = {
-> +	.driver = {
-> +		.name		= "nvidia-ghes",
-> +		.acpi_match_table = nvidia_ghes_acpi_match,
-> +	},
-> +	.probe	= nvidia_ghes_probe,
-
-I'd just not attempt to align the = 
-static struct platform_driver nvidia_ghes_driver = {
-	.driver = {
-		.name = "nvidia-ghes",
-		.acpi_match_table = nvidia_ghes_acpi_match,
-	},
-	.probe = nvidia_ghes_probe,
-
-There aren't enough of them to make it much of a readability improvement
-and doing this often results in unnecessary churn as a driver evolves.
-Also it's already broken!
-
-> +};
-> +module_platform_driver(nvidia_ghes_driver);
-> +
-> +MODULE_AUTHOR("Kai-Heng Feng <kaihengf@nvidia.com>");
-> +MODULE_DESCRIPTION("NVIDIA GHES vendor CPER record handler");
-> +MODULE_LICENSE("GPL");
 
