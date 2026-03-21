@@ -1,264 +1,236 @@
-Received: from mail-dy1-f179.google.com (mail-dy1-f179.google.com [74.125.82.179])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from relay10.grserver.gr (relay10.grserver.gr [37.27.248.198])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4ADB84A23
-	for <linux-acpi@vger.kernel.org>; Sat, 21 Mar 2026 07:01:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.179
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E36C2D97B7
+	for <linux-acpi@vger.kernel.org>; Sat, 21 Mar 2026 13:52:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=37.27.248.198
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774076497; cv=none; b=faiF20rI9LDHvAvzLSwKvt5DhdIK3SjmJGYuTxLue2ZmscCAiiO6QEG9op0IMKd3WAmhHURlQwGWh9iDUsvOI5JAcC3JAhV0T69mmJGCcf/YldwiaiMRV6lyBAPUgpncB75U6kGJGPQDTGKBiwd2OkoHzyXOsgu4ETiWmJMAIMU=
+	t=1774101175; cv=none; b=oHsVIEelnPzGj5mnoMHh15AuKNlfHO4Lgu0BUZ1kxI3/TcZ3W+C4ridoMaFTYtc6wzftkNQRuHwJSr5FEczUw0YksPbLIG3AzLNlA6y2Rzz0qCqrYpKsyV6jOa7HRjY+QIPgQ5IJxMpDdK7iYda5S+V9L4f6BjDFT16+tAmKbhY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774076497; c=relaxed/simple;
-	bh=nccF5SellD3jrgeb45QpRhAPgHb/WG7fl3nuIZoLBwA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Ck2NbOzkRJwTIxQhQ25eWz4eZUdujJBZExQ/iTKgdCV68JIBN2U8hyVogcIodDhSmocH4KIrEqvXCAG0/3LxRSbf92+mMihQGGpD0pIn08C9anNPS4h4sU7prEscBctQyJoOEnxjYsmOXoXaNlL/TBl8cxrl5PRIa5wLXEUS83Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=nb+hvH1z; arc=none smtp.client-ip=74.125.82.179
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1774101175; c=relaxed/simple;
+	bh=pSrQFISHoKXyHQIUhkXCFpCbMCzj4RjzSqm6/i2mg7c=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=sBeFVQgXf2D1eEa3zu6SUBBJC5D5Q2/wwfLf8XseWYN874AbP0s5ZjJS4cdS5bEBXeJNoLv8PujXraWO83KJbYyYS2ZjzCnQH1SHmZCzn8gGOdGkRqGkUgX/fidD0vda00lrbtA0F3hk13GtNbbIl2YUuuXYssMmWhudtO5Dum0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=antheas.dev; spf=pass smtp.mailfrom=antheas.dev; dkim=pass (2048-bit key) header.d=antheas.dev header.i=@antheas.dev header.b=AC8gJofD; arc=none smtp.client-ip=37.27.248.198
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=antheas.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=antheas.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="nb+hvH1z"
-Received: by mail-dy1-f179.google.com with SMTP id 5a478bee46e88-2ba895adfeaso3077077eec.0
-        for <linux-acpi@vger.kernel.org>; Sat, 21 Mar 2026 00:01:36 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1774076495; x=1774681295; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=WW/Es4BMtk/hQWwGJpeAz0GKoIYwIQk7tyAslfgFI7Y=;
-        b=nb+hvH1z+loBpRELxR3QnRNNyIn3En4Fu+am1fbhQufTGE5L5nN6Aodb1pDlZpRjKH
-         fAKL7RNz1wLlDHzpm9sEw02mMceIm5WUp7ZT5fvRjK6H4BYkx2tT3Krt4lJYdgHYCez2
-         8VgJQFibribjs9pO5Rf7pp/lmWlLkzd+WDNhus5Y38C6TND1C9VIvoEnX7k5a5xCM8UF
-         EBzhTGeG5+bDZ2EZB62GG+HiciZvqCBbmiM+OdLGK9w/4CcXo+ZlqGMB3i4xrirNreYP
-         BE575F8aWLN2fgN3sdyNJG0FuUpPfKSI2OalhWLgx+BZWskxIlIN/lQQUnpKqYIwjd2R
-         fLPg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1774076495; x=1774681295;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=WW/Es4BMtk/hQWwGJpeAz0GKoIYwIQk7tyAslfgFI7Y=;
-        b=P97DnuUCFM5YaSRmt87++dJUCNAoA2b+fmLGUEMHr5gyxRbGG7U/s8Zw4ljVhAlZH/
-         LBmP7t34AqcZjHXyWNYv0FrxDXpOG564g+OM8ICDoSQz+MJ8b694ekLrRJ/4UBPmJqp+
-         5nv7o8LRYUfOKCfJWmQjioxJ7xoJhyAMtmV6UcrPOzjeKEA6rQIvPYhLzHpEKqChE6dk
-         oZJloHP2Rc/aUQoWekngEwinz6ilhy4sHmc1Wfu7ZpPAlpFx6269iK2qwFUacWIJLU3Z
-         0Us2o/u9OJVVUa2LWPVC/pFaudK69oFwc8EKxsk7DpYPvk8RsZNHfi/vy+QjXwVxz60E
-         OTLg==
-X-Forwarded-Encrypted: i=1; AJvYcCWYyuVQwUif3d4QNPmTpEBtVXzhQuy1jsgwldeQfbOydPY+8T/CXSQeAR/lFpP4olaTVxVoRovNCI8r@vger.kernel.org
-X-Gm-Message-State: AOJu0YwjI/+VGnzLXfMtb0hAcMIZgdeGuqRYsPN3gxwZKNm33xV7SP3R
-	WWjVbNhD5qRc596Uoczr29dnkswXPpRsquO7zDzg0EZPtvFdAQcoMb3Y
-X-Gm-Gg: ATEYQzzLC7ebR1vngSBLY3Jusun+Jm37jz9eJJ2voODYb3Ml8cQwvCb3arOvzFfgUhx
-	CcmG9nb3664rdAf0wlG8Q9d8oYVLGu+noxF5YOElHNw8aZOeB1ucQsAFywKEWf1I0x1VCQvrxzU
-	HXi6dWUm6NqZVTuqSMZwn2Y2b0W5P8FUFuj0FuuSnXlIyn6ib2UjsuVHVK2AERagrX62BRsoNT1
-	xQVQIKFRsIY/mZAjv6yypGFBWA1U9ExVESBUKVc/8jfwBrM2FhwdDN8SeVTCIKQvKYO4ZRYCCYQ
-	oAjvP1Sm9NTr0dls1KuFo6pW+WbZee0ZRexj0dPbNDb5H1k2yXec8ew4L69nSnCXF3zSiebVY8F
-	SoWoqjd1D/XZc2JispF2SGSc07n2+K5Rzx2vLsxeeW92/SQZjk+KWnHuGDJmeTVo1l1fjuG4/qy
-	r2xSYOJIjwDqEpHjA307h0C6WgcpF1Cj+cOnWA66l3Ia9OG8ngZZLGaifeae9rNNIR
-X-Received: by 2002:a05:7300:4342:b0:2ae:5e93:b69 with SMTP id 5a478bee46e88-2c1097a59f3mr3100399eec.29.1774076495235;
-        Sat, 21 Mar 2026 00:01:35 -0700 (PDT)
-Received: from google.com ([2a00:79e0:2ebe:8:9f7e:6d98:a88f:a990])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2c10b2ce04asm6376554eec.21.2026.03.21.00.01.32
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 21 Mar 2026 00:01:34 -0700 (PDT)
-Date: Sat, 21 Mar 2026 00:01:30 -0700
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Bartosz Golaszewski <brgl@kernel.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
-	Daniel Scally <djrscally@gmail.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
-	Sakari Ailus <sakari.ailus@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	"Rafael J. Wysocki" <rafael@kernel.org>, Danilo Krummrich <dakr@kernel.org>, 
-	Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andy@kernel.org>, 
-	Linus Walleij <linusw@kernel.org>, Hans de Goede <hansg@kernel.org>, 
-	Ilpo =?utf-8?B?SsOkcnZpbmVu?= <ilpo.jarvinen@linux.intel.com>, linux-acpi@vger.kernel.org, driver-core@lists.linux.dev, 
-	linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, platform-driver-x86@vger.kernel.org, 
-	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Subject: Re: [PATCH 0/4] platform/x86: x86-android-tablets: use real firmware
- node references with intel drivers
-Message-ID: <ab47QXIYCo3vNI8J@google.com>
-References: <20260319-baytrail-real-swnode-v1-0-75f2264ae49f@oss.qualcomm.com>
- <abyje0mhIOtDZbxO@google.com>
- <CAMRc=McPQq6QxJ48zk7kxA+kwc=Em8dsFfyECJXg0asY-+pRiw@mail.gmail.com>
+	dkim=pass (2048-bit key) header.d=antheas.dev header.i=@antheas.dev header.b="AC8gJofD"
+Received: from relay10 (localhost.localdomain [127.0.0.1])
+	by relay10.grserver.gr (Proxmox) with ESMTP id D5E2341941
+	for <linux-acpi@vger.kernel.org>; Sat, 21 Mar 2026 15:52:51 +0200 (EET)
+Received: from linux3247.grserver.gr (linux3247.grserver.gr [213.158.90.240])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by relay10.grserver.gr (Proxmox) with ESMTPS id 190CB40146
+	for <linux-acpi@vger.kernel.org>; Sat, 21 Mar 2026 15:52:51 +0200 (EET)
+Received: from mail-pj1-f41.google.com (mail-pj1-f41.google.com [209.85.216.41])
+	by linux3247.grserver.gr (Postfix) with ESMTPSA id 474451FD7D1
+	for <linux-acpi@vger.kernel.org>; Sat, 21 Mar 2026 15:52:50 +0200 (EET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=antheas.dev;
+	s=default; t=1774101170;
+	bh=N2YHQTOMNOQ3BeqYGL1sESopPGERRsjPH2ErqyMNqJI=;
+	h=Received:From:Subject:To;
+	b=AC8gJofDS0PldvaxsPjM2MC/UTyl4lhavQQ75GAGmXBMXe5Ai6LmXm3ODelyqe/zV
+	 lyTEgpKj2Q66NrJ0LAlnoJfnpNTFOpo4cxC7aZmQCUCL4Ap2bEpzmQcwpVLhKt5Ci5
+	 gTZXnJUrKg4KE5eWVRf7OviNzEFC8M2IR2/vEaaVQRsVUM+sDwIQGq4HylVJd34vwa
+	 ss9tp3IeZs/oqqURYk1wtTHK6J1WR7pJnKiE1aWbdTj9kxNiCWShur3YTFHVwhTSh3
+	 27A7WyEZJWavQSF1cgUIp34gNMxtN6Dr7kd9kloL0K0+cEzpm0sPiC4V8SvvRJAHSm
+	 PsAO2MU3NdzvQ==
+Authentication-Results: linux3247.grserver.gr;
+        spf=pass (sender IP is 209.85.216.41) smtp.mailfrom=lkml@antheas.dev smtp.helo=mail-pj1-f41.google.com
+Received-SPF: pass (linux3247.grserver.gr: connection is authenticated)
+Received: by mail-pj1-f41.google.com with SMTP id
+ 98e67ed59e1d1-35b9d29480aso1212040a91.1
+        for <linux-acpi@vger.kernel.org>;
+ Sat, 21 Mar 2026 06:52:50 -0700 (PDT)
+X-Forwarded-Encrypted: i=1;
+ AJvYcCX+/6RFgQsltIIcjnxnwf6b3/ywgb8cnQ9wBgFX/LcWTYhub7EfuMg+8NIqQh3eG6ApTH9ri0cSMv5M@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy2QnQ6eNLt2Dyz24IwXS4Wgl7QT/WUK+2WsCNReW4K1fQrO61b
+	QtE7/5G8UK2WAGVlvbkck8a35a06Vc+VTIkvPyFdqe18L5FIKvhQ24RfCODcmXGZpjuIrKq+eVt
+	LvP/ZVfdX9HkIxwnlQ8cdDTljfQJqF84=
+X-Received: by 2002:a17:90b:35d0:b0:358:f0d0:1a19 with SMTP id
+ 98e67ed59e1d1-35bd2c62be7mr6105082a91.12.1774101169125; Sat, 21 Mar 2026
+ 06:52:49 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAMRc=McPQq6QxJ48zk7kxA+kwc=Em8dsFfyECJXg0asY-+pRiw@mail.gmail.com>
+References: <20251226102656.6296-1-lkml@antheas.dev>
+ <CAJZ5v0iG-SPmqMYJExeOUGo301tL=+qyi2479QkXoR5Dq0d9bA@mail.gmail.com>
+ <CAGwozwGEgLpjFTCF4kinR9+-_Wt=bYw19dcbVOswYe998z8Ykw@mail.gmail.com>
+ <030c38aa-353e-4387-a006-42e641b3ac6a@collabora.com>
+ <CAJZ5v0jbDqs=adBX-o-MDyNX+=Q6UAkw1=gh2y_9cAMMi+gi_g@mail.gmail.com>
+ <35f773ff-6514-413c-988b-765bf2d0d293@amd.com>
+ <CAGwozwGpzzBC6Zh9NTskqZ1V1Sth3fHKVr3LALpRkrpaWcorjg@mail.gmail.com>
+ <4526e323-0c33-4e38-a46a-78ccd9548fa2@kernel.org>
+ <CAGwozwFN4wED6TgJgrKAtNFxY4TCJgnUVOcmb39Bchj8gGXvZg@mail.gmail.com>
+In-Reply-To: 
+ <CAGwozwFN4wED6TgJgrKAtNFxY4TCJgnUVOcmb39Bchj8gGXvZg@mail.gmail.com>
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Sat, 21 Mar 2026 14:52:37 +0100
+X-Gmail-Original-Message-ID: 
+ <CAGwozwHPizKuAvN+dxHYPt45OTKKgfCg62a9gv+Cn_EpAtgfgw@mail.gmail.com>
+X-Gm-Features: AaiRm51UPd3-efXZLk-I0C4J9RfbowQIlGsfgkB8F1F3ZlUP_xWTP2hvi7nX2S4
+Message-ID: 
+ <CAGwozwHPizKuAvN+dxHYPt45OTKKgfCg62a9gv+Cn_EpAtgfgw@mail.gmail.com>
+Subject: Re: [RFC v1 0/8] acpi/x86: s2idle: Introduce and implement runtime
+ standby ABI for ACPI s0ix platforms
+To: "Mario Limonciello (AMD) (kernel.org)" <superm1@kernel.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>,
+ Dmitry Osipenko <dmitry.osipenko@collabora.com>,
+	bob.beckett@collabora.com, bookeldor@gmail.com, hadess@hadess.net,
+	jaap@haitsma.org, kernel@collabora.com, lennart@poettering.net,
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, mccann@jhu.edu,
+	richard@hughsie.com, sebastian.reichel@collabora.com,
+	systemd-devel@lists.freedesktop.org, xaver.hugl@gmail.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+X-PPP-Message-ID: 
+ <177410117051.2306865.4394648876429558031@linux3247.grserver.gr>
+X-PPP-Vhost: antheas.dev
+X-Virus-Scanned: clamav-milter 1.4.3 at linux3247.grserver.gr
+X-Virus-Status: Clean
 
-On Fri, Mar 20, 2026 at 01:33:06PM -0700, Bartosz Golaszewski wrote:
-> On Fri, 20 Mar 2026 02:49:02 +0100, Dmitry Torokhov
-> <dmitry.torokhov@gmail.com> said:
-> > Hi Bartosz,
+On Sat, 21 Mar 2026 at 14:46, Antheas Kapenekakis <lkml@antheas.dev> wrote:
+>
+> On Fri, 20 Mar 2026 at 21:41, Mario Limonciello (AMD) (kernel.org)
+> <superm1@kernel.org> wrote:
 > >
-> > On Thu, Mar 19, 2026 at 05:10:53PM +0100, Bartosz Golaszewski wrote:
-> >>
-> >> This series proposes a solution in the form of automatic secondary
-> >> software node assignment (I'm open to better naming ideas). We extend
-> >> the swnode API with functions allowing to set up a behind-the-scenes bus
-> >> notifier for a group of named software nodes. It will wait for bus
-> >> events and when a device is added, it will check its name against the
-> >> software node's name and - on match - assign the software node as the
-> >> secondary firmware node of the device's *real* firmware node.
 > >
-> > The more I think about the current approaches with strict identity
-> > matching the less I like them, and the reason is that strict identity
-> > matching establishes rigid links between consumers and producers of
-> > GPIOS/swnodes, and puts us into link order hell. For example, I believe
-> > if andoird tablets drivers were in drivers/android vs
-> > drivers/platform/... the current scheme would break since the nodes
-> > would not be registered and GPIO lookups would fail with -ENOENT vs
-> > -EPROBE_DEFER.
 > >
-> 
-> Why would they not get registered? They get attached when the target devices
-> are added in modules this module depends on. They are exported symbols so the
-> prerequisite modules will get loaded before and the module's init function
-> will have run by the time the software nodes are referred to by the fwnode
-> interface at which point they will have been registered with the swnode
-> framework.
-
-I mentioned link order, which implies no modules are involved. When code
-is built into the kernel initialization follows link order, which is
-typically alphabetical. To ensure the order you require you either need
-to move targets inside makefiles or change some drivers from
-module_init() to <some other>_initcall(). This is known as "link order
-hell" that was very common before deferred probing was introduced.
-
-> 
-> > Given that this series somewhat re-introduces the name matching, I
-> > wonder if we can not do something like the following (the rough draft):
+> > On 3/19/2026 7:35 AM, Antheas Kapenekakis wrote:
+> > > On Tue, 17 Mar 2026 at 16:13, Mario Limonciello
+> > > <mario.limonciello@amd.com> wrote:
+> > >>
+> > >>
+> > >>
+> > >> On 3/17/26 07:09, Rafael J. Wysocki wrote:
+> > >>> On Tue, Mar 17, 2026 at 12:57=E2=80=AFPM Dmitry Osipenko
+> > >>> <dmitry.osipenko@collabora.com> wrote:
+> > >>>>
+> > >>>> On 3/16/26 22:52, Antheas Kapenekakis wrote:
+> > >>>>>> So in accordance with the above, /sys/power/standby is not a ver=
+y
+> > >>>>>> fortunate choice of the name of this interface and I'm totally
+> > >>>>>> unconvinced that it belongs to sys/power because its role is not
+> > >>>>>> really power management (and it is ACPI-only for the time being)=
+.
+> > >>>>> Hm, most of the changes / implementation resides in the pm subsys=
+tem
+> > >>>>> and it is related to the s2idle suspend flow.
+> > >>>>>
+> > >>>>> I assume that when it stops being ACPI only provided we reach a d=
+esign
+> > >>>>> that allows for that, the related callbacks would also nest in pm=
+ ops.
+> > >>>>>
+> > >>>>> Where could a more appropriate directory in sysfs be? I would sti=
+ll
+> > >>>>> tend towards /sys/power
+> > >>>>
+> > >>>> Question is whether anyone outside of ACPI will ever need the gene=
+ric
+> > >>>> interface. Making it generic based on guesswork could be a wasted =
+effort
+> > >>>> that Rafael and others will have to maintain. The mode file could =
+go
+> > >>>> under /sys/firmware/acpi if interface is made ACPI-specific.
+> > >>>
+> > >>> Well, experience shows that it may end up the other way around.
+> > >>>
+> > >>> People once thought that the platform profile interface would be
+> > >>> ACPI-specific and we ended up having to extend it via
+> > >>> platform_profile_class.
+> > >>>
+> > >>> I'm thinking that something similar may take place in this case.
+> > >>> Platforms that don't use ACPI may also want to define platform
+> > >>> triggers to somehow adjust platform settings and those may be
+> > >>> different from "inactive" or "snooze".
+> > >>>
+> > >>
+> > >> At which point you would almost wonder if this should be super gener=
+al
+> > >> like "foreground_workload_type".
+> > >>
+> > >> Then this could be expanded for other uses later such as full screen
+> > >> video playback or full screen gaming.
+> > >
+> > > Mmm. This reminds me of AMD drm pp_power_profile_mode {BOOTUP_DEFAULT=
+,
+> > > 3D_FULL_SCREEN, POWER_SAVING, VIDEO, VR, COMPUTE, CUSTOM, WINDOW_3D,
+> > > CAPPED, UNCAPPED}. I'm not sure anyone used it. I'd rather avoid the
+> > > complexity.
 > >
-> 
-> I'm open to better ideas and possibly multiple matching mechanisms but this
-> just fit in this particular case. I'm not overly attached to name matching. We
-> may as well use whatever properties ACPI provides to identify the devices and
-> assign them their swnodes.
-
-What ACPI has to do with this? Oftentimes we are dealing with non x86
-systems.
-
-> 
-> > diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
-> > index 51320837f3a9..b0e8923a092c 100644
-> > --- a/drivers/base/swnode.c
-> > +++ b/drivers/base/swnode.c
-> > @@ -509,6 +509,7 @@ software_node_get_reference_args(const struct fwnode_handle *fwnode,
-> >  	struct swnode *swnode = to_swnode(fwnode);
-> >  	const struct software_node_ref_args *ref_array;
-> >  	const struct software_node_ref_args *ref;
-> > +	const struct software_node *ref_swnode;
-> >  	const struct property_entry *prop;
-> >  	struct fwnode_handle *refnode;
-> >  	u32 nargs_prop_val;
-> > @@ -550,7 +551,10 @@ software_node_get_reference_args(const struct fwnode_handle *fwnode,
-> >  		refnode = software_node_fwnode(ref->swnode);
-> >  	else if (ref->fwnode)
-> >  		refnode = ref->fwnode;
-> > -	else
-> > +	else if (ref->swnode_name) {
-> > +		ref_swnode = software_node_find_by_name(NULL, ref->swnode_name);
-> > +		refnode = ref_swnode ? software_node_fwnode(ref_swnode) : NULL;
-> > +	} else
-> >  		return -EINVAL;
+> > There are certainly people using it, but it's more common in embedded
+> > applications than traditional desktop distros.
 > >
-> >  	if (!refnode)
-> > diff --git a/include/linux/property.h b/include/linux/property.h
-> > index e30ef23a9af3..44e96ee47272 100644
-> > --- a/include/linux/property.h
-> > +++ b/include/linux/property.h
-> > @@ -363,6 +363,7 @@ struct software_node;
-> >  struct software_node_ref_args {
-> >  	const struct software_node *swnode;
-> >  	struct fwnode_handle *fwnode;
-> > +	const char *swnode_name;
-> >  	unsigned int nargs;
-> >  	u64 args[NR_FWNODE_REFERENCE_ARGS];
-> >  };
-> > @@ -373,6 +374,9 @@ struct software_node_ref_args {
-> >  			   const struct software_node *: _ref_,	\
-> >  			   struct software_node *: _ref_,	\
-> >  			   default: NULL),			\
-> > +	.swnode_name = _Generic(_ref_,				\
-> > +				const char *: _ref_,		\
-> > +				default: NULL),			\
-> >  	.fwnode = _Generic(_ref_,				\
-> >  			   struct fwnode_handle *: _ref_,	\
-> >  			   default: NULL),			\
+> > It is not a perfect match to this concept, but definitely some parallel=
+s
+> > can be drawn.
 > >
-> > This will allow consumers specify top-level software node name instead
-> > of software node structure, and it will get resolved to concrete
-> > firmware node. GPIOLIB can continue matching on node identity.
+> > There are general things that might make sense if you know what the
+> > foreground workload is or the display is off.
+>
+> Hm, yeah I guess so. I could see this ABI being also useful for
+> embedded devices to control their appearance. There's precedent with
+> e.g., charging_behaviour having dozens of device specific values,
+> where standard and longevity are the only ones used in laptops.
+>
+> > >
+> > >> There could be hooks for scheduler too in the future from this hint =
+too
+> > >> then.
+> > >
+> > > Wouldn't it be better to defer to userspace? I'm not sure this would
+> > > have a meaningful difference in any case.
 > >
-> > WDYT?
-> >
-> 
-> I think it's bad design and even bigger abuse of the software node concept.
-> What you're proposing is effectively allowing to use struct software_node as
-> a misleading string wrapper. You wouldn't use it to pass any properties to
-> the device you're pointing to - because how if there's no link between them -
-> you would just store an arbitrary string in a structure that serves
-> a completely different purpose.
+> > I don't know one way or the other.  It would need to be prototyped to
+> > see what it actually looked like.  In the line of thinking Rafael
+> > mentioned that platform profile was ACPI and grew to a class I would
+> > generally just keep the design from pigeon holing too much on display
+> > off.  That's why I thought maybe foreground workload could potentially
+> > work well.
+>
+> To go back to Rafael's suggestion of not using transitions for the
+> ABI, it would be possible to push the transition logic down to the
+> s2idle code and introduce a generic handler for it. SInce arbitrary
+> transitions are possible under this spec, the top-level ABI
+> implementation need not consider it.
+>
+> Since it is very similar to platform_profiles, it could also be
+> potentially added there as activity_hint to the current
+> platform_profiles implementation and mirror its conventions. This
+> would avoid introducing new scaffolding.
+>
+> Then s2idle would register a platform profile handler without
+> profiles, and instead only implement activity hint. Existing x86
+> platform drivers could also trivially implement support for it as
+> well. Although for WMI, the existing hooks for s2idle for Windows
+> would handle most current drivers.
+>
+> An implementation for this would consist of two stages. First, the
+> callbacks would be moved to the beginning so they can be tested
+> independently. Then, platform_profile would be extended to support
+> activity_hint with states {snooze, resuming, inactive, active}, and
+> finally, s2idle would implement the handler with transition logic to
+> make sure the callbacks get called correctly always, including when
+> userspace ignores the file, where the full transition would occur in
+> begin() and end().
+>
+> The legacy /sys/firmware/acpi/{activity_hint, activity_hint_choices}
+> would mirror the current conventions, perhaps with a custom value as
+> well.
+>
+> How does this approach sound?
 
-I think you completely misunderstood the proposal. We are not using
-software node as a string wrapper, we give an opportunity to use
-software node name to resolve to the real software node at the time we
-try to resolve the reference. The software node is still expected to be
-bound to the target device (unlike the original approach that has a
-dangling software node which name expected to match gpiochip label).
+Perhaps re-using platform_profiles is not wise, after all the
+boilerplate would be small and bolting on new hooks would be around
+the same amount of code. New implementation would be better. How would
+that approach sound like.
 
-I think this actually a very good approach: it severs the tight coupling
-while still maintains the spirit of firmware nodes being attached to
-devices. The only difference we are using object's name and not its
-address as starting point. Similarly how you use name derived from
-device name to locate and assign secondary node in this patch series.
+> Antheas
 
-> 
-> Which is BTW exactly what was done in GPIO and - while there's no denying that
-> I signed-off on these patches - it goes to show just how misleading this design
-> is - I was aware of this development and queued the patches but only really
-> understood what was going on when it was too late and this pattern was
-> copy-pasted all over the kernel.
-> 
-> Software nodes are just an implementation of firmware nodes and as such should
-> follow the same principles. If a software node describes a device, it should be
-> attached to it
-
-Yes, and the patch above solves this.
-
-> so that references can be resolved by checking the address of
-> the underlying firmware node handle and not by string matching. I will die on
-> that hill. :)
-
-I would like to understand why. I outlined the problems with this
-approach (too tight coupling, needing to export nodes, include
-additional headers, and deal with the link order issues, along with
-potential changes to the system initialization/probe order). What are
-the drawbacks of name matching as long as we do not create
-dangling/shadow nodes?
-
-You are saying that you want resolve strictly by address, but have you
-looked at how OF references are resolved? Hint: phandle is not a raw
-address. It's actually a 32 bit integer! Look at ACPI. It also does not
-simply have a pointer to another ACPI node there, the data structure is
-much more complex.
-
-So why are you trying to make software nodes different from all the
-other firmware nodes?
-
-> 
-> If you want to match string, use GPIO lookup tables. I remember your point about
-> wanting to use PROPERTY_ENTRY_REF() for consistency and fully support it, but
-> please do use *references* because otherwise it's just a lookup table with extra
-> steps.
-> 
-> Just think about it: what if we try to generalize fw_devlink to software nodes?
-> It would be completely broken for the offending GPIO users because there's no
-> real link between the software nodes supposedly pointing to the GPIO
-> controllers and the controllers themselves.
-
-There is, you just misunderstood the proposal I'm afraid.
-
-Thanks.
-
--- 
-Dmitry
