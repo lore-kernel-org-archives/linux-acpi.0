@@ -1,145 +1,296 @@
-Received: from mail-pj1-f42.google.com (mail-pj1-f42.google.com [209.85.216.42])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.16])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86F5440DFCE
-	for <linux-acpi@vger.kernel.org>; Sun, 22 Mar 2026 15:36:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DC721B7F4;
+	Sun, 22 Mar 2026 16:56:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.16
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774193781; cv=none; b=uTkrPS6V4JwIVQRxYE81Ye4zbuW/cefCEadCoW8U+TXl6MMuN8rhRKYXbdlS/5MiJWu7+tvEyHKY/jmNzXLC2iE1g9/rUiSQWZeM3Cnr+yUqdbE0CP2RJSHAfilAInkiQiU9hndZLfxqSqYFHzADfIm8Onm2iOwBYFd90FwHNfI=
+	t=1774198606; cv=none; b=cDI+d/WLyNECKrE4+ID87lnd12XPR/QAurUrQ7Wd8g8Mf/dDZo3aZnUTJAAJn0J5JMOHAx0apLtTozIdGWgq1CH1J10RFvPth1H6xWLiwyOWmxfC7M2zf5jnl6piZ+xlaoaCAQV9fGtvRpU9eGKUTuS/sc2KdvZPobyjYKfplbc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774193781; c=relaxed/simple;
-	bh=yOhi6aKiUR4eoyYlcX4c+fiyhV6dey/Bi2f/oYdMhDM=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Nz1oIISTxZDsDSlft2g7HGEM86N+wYYx+YCAtK5/5yxT8tAPVe6/+GuMXl4rXDDQoZYrlq5TEaAfvW7v6BBj0msiJbNyOo78IxiMhJFCm5Crtabsq8j51i772ZhL31aZT48ZEOgCgBt3J/VxJZAWJNv5nDyx9gBUuOQrtBmXwrE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=il4smo7F; arc=none smtp.client-ip=209.85.216.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1774198606; c=relaxed/simple;
+	bh=2Om8Sh6EzFq8cdWMV2yg/VmRtANxX5brcu8b8T0bpJM=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=N5KH93ba+aq6Z/6Rr1r8Uua7mI/yPAwW/MSH7fj//zBJKZi23cJmvQXHL8DrgLV3b7WEFDmrAFa3K12jAlwYTAb4Bd0Fi2eVGTDrRL/nY0qTznoB2i/eWmtVhzm4UyLo0H2wIqBVitoOqUADjRXcjcB8hnHMNGdc/IqrfELMUZM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=m8ybOsZt; arc=none smtp.client-ip=192.198.163.16
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="il4smo7F"
-Received: by mail-pj1-f42.google.com with SMTP id 98e67ed59e1d1-35a211df8e3so2440086a91.2
-        for <linux-acpi@vger.kernel.org>; Sun, 22 Mar 2026 08:36:19 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1774193779; x=1774798579; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=5WiiyveVbIeJMUarYCtN7n9x1v7YYVzdYgWfcDHMQmg=;
-        b=il4smo7FQR0fX7QULkF8QeclxTjpHELS5FnFcvr8YpOyP1igV2JFrFfskW1hiFUqo7
-         hhi5bub8atBx4KwCattad3skcE58qkiFPj6SqGBcy6sU8KOak9xlX7/qaDcSaJmwkTHE
-         9caS8iqcmEAVvplaY8fyqug48Xe+acA/XbLdvSFhptGtJMO3wEL5q3codxxkip+lrt9X
-         5xZp34KKQV+gXzMHM55nE5mJHVkpigWjDH7kRJHbtzvVKdJmQUDcEIsMgzOzqoOYg5kH
-         z//QRWlVFTnvT4qsHVIGFGWaoblAjfX8EjdyNUR1d63L/bDgaL+nZo7o+9UqstiICQfl
-         d4+w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1774193779; x=1774798579;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=5WiiyveVbIeJMUarYCtN7n9x1v7YYVzdYgWfcDHMQmg=;
-        b=WBw4kAVi4bLWEIRE6C/r2VHShHWlP3YeajSR7Zw/OGzoLGhae7n2contDn+acxru/S
-         Spk9MYcawX35BEPLMRUEa13XITI8qZ9OdpNM5DREQ6O0sl23BC8j7NYVL/24wfRj7Lvm
-         GwIM3vk9ei4D147E/QHa3muLeQQ8UlG6OSQtq+0lR2bJuld6R4vNxwv7Veds5jFFj268
-         jo273DN1MhCF7vetCOmy6czHuDurykF/u+2QQYNqjEM8Hbth3SjDuRhej6y1RCkgvi7k
-         CYNjOUd+Aw3SOEn9dpACI9ViGvmxBLqs+MhF2WRGeosENTPp0mGpC5sQSaiLHigvGATA
-         FJdQ==
-X-Forwarded-Encrypted: i=1; AJvYcCXuoNi7PFrWf9BqfWycSA6ZYdhyZ3eXWltWE1YkmADdG4hljysQ176hHW88QusNWyTlhjOTPFoYv3we@vger.kernel.org
-X-Gm-Message-State: AOJu0YyaVlXdLfLfiBg28a8RCPr3d1q7o2VL7edoGCK9QKIags9nett0
-	VJGJai8eu5bYImy8w47RFJXMryK/aiool4XhknI77xClsjeHxGVBoTlc
-X-Gm-Gg: ATEYQzwes1cG5iOjjPtkR9VmNHb/BgkOWj55Mt1BsD4UuF3q5KzYL6ORnPGKGxbubE7
-	mgksBU2Fxw/gjEAeUeMtRy6geVzUMaIxlqnUDKF9fUqAUXdacAnLdgjxxGybgkRLLRCyTtl0zJh
-	CZwYS2Xw1DfxiODFWnjRph/VOAfW39sUcIX+d0tmDapcsPwkK/xmW2POBzSMo+6hYLHlY7IHqlR
-	sQoz2efFMEAukfymPMSLv8FOIHFj3pF5X+5l2xci4uUEKwLzC0+CnjMrrjbdL4uxqq3F6EzQKFR
-	Bj8yDENj8sDMVfS3Lati5QBGxPpUV2Wpyo6JvNtu7VpybMfmTXCVuJ+L/rJ/cw+yHCdMyq3iRpV
-	6ZO3q9yNUvE6hJN8vcc7mQabByrEUMzvZgSqKDo5ztwxtF7CZzn4xev73XAewm9zEpwfnv5l1+v
-	r47roIu4cfP8bA4MKzFCHxxG2CVrZi71ryW4yQlRcL90MF4lHoLDa7RIKk0r+38hWq7mN0O0O4r
-	9OZRuV0kP0=
-X-Received: by 2002:a17:90b:380c:b0:35b:b537:b03b with SMTP id 98e67ed59e1d1-35bd2bd57c7mr7961148a91.2.1774193778922;
-        Sun, 22 Mar 2026 08:36:18 -0700 (PDT)
-Received: from SLSGDTSWING002.tail0ac356.ts.net ([129.126.109.177])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-35bd2665e2bsm3166405a91.2.2026.03.22.08.36.16
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 22 Mar 2026 08:36:18 -0700 (PDT)
-From: Weiming Shi <bestswngs@gmail.com>
-To: "Rafael J . Wysocki" <rafael@kernel.org>,
-	Robert Moore <robert.moore@intel.com>
-Cc: Len Brown <lenb@kernel.org>,
-	linux-acpi@vger.kernel.org,
-	acpica-devel@lists.linux.dev,
-	Xiang Mei <xmei5@asu.edu>,
-	Weiming Shi <bestswngs@gmail.com>
-Subject: [PATCH] ACPICA: fix NULL pointer dereference in acpi_ns_custom_package()
-Date: Sun, 22 Mar 2026 23:35:31 +0800
-Message-ID: <20260322153529.3325784-3-bestswngs@gmail.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="m8ybOsZt"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1774198605; x=1805734605;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=2Om8Sh6EzFq8cdWMV2yg/VmRtANxX5brcu8b8T0bpJM=;
+  b=m8ybOsZtg0W/6X8OE7SQ0i5W+RbQk3npk8oKWZr2aYKw6qZW6IuuKOwV
+   bw0P1zV+47WMfQIiCl8xN7trfVOBviGV/fcooJu+wUcd474o55qfCZx7y
+   oGAX7ZtoxQtC7X+bptPDl3j7iEpNDpo/Wrho7pZE2SF2Wn7taoaispjx9
+   3XZnCpkb2HR21C9/5uu+hRrCz/pLuhP0GDZP0ZHPmHUlbKUqD2KvjYuv/
+   ocWu2uTgupN+ZGfqlVwTBb8aCPNC8m76xOBL6/G008WCcFiCSGV4iQgLl
+   zrWhTNFMcTXqkH741K3EUFFf8gawUEbZwvQHAqRWigCfVq+diQ7JHozcl
+   g==;
+X-CSE-ConnectionGUID: +2oVaqcwRxKiUx5OP597eQ==
+X-CSE-MsgGUID: EEuUp3MMQbatCoqML8keEA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11737"; a="62771305"
+X-IronPort-AV: E=Sophos;i="6.23,135,1770624000"; 
+   d="scan'208";a="62771305"
+Received: from fmviesa008.fm.intel.com ([10.60.135.148])
+  by fmvoesa110.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Mar 2026 09:56:44 -0700
+X-CSE-ConnectionGUID: kskDwVYgRAmOKoWKLWv+rA==
+X-CSE-MsgGUID: cEQ8NYITQa+qKe9qXBtf9A==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,135,1770624000"; 
+   d="scan'208";a="221030586"
+Received: from lkp-server02.sh.intel.com (HELO d7fefbca0d04) ([10.239.97.151])
+  by fmviesa008.fm.intel.com with ESMTP; 22 Mar 2026 09:56:38 -0700
+Received: from kbuild by d7fefbca0d04 with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1w4M6J-000000002QH-2gLA;
+	Sun, 22 Mar 2026 16:56:32 +0000
+Date: Mon, 23 Mar 2026 00:55:11 +0800
+From: kernel test robot <lkp@intel.com>
+To: Akhil R <akhilrajeev@nvidia.com>,
+	Alexandre Belloni <alexandre.belloni@bootlin.com>,
+	Frank Li <Frank.Li@nxp.com>, Rob Herring <robh@kernel.org>,
+	Krzysztof Kozlowski <krzk@kernel.org>,
+	Conor Dooley <conor+dt@kernel.org>,
+	"Rafael J . Wysocki" <rafael@kernel.org>,
+	Robert Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Eric Biggers <ebiggers@kernel.org>,
+	Fredrik Markstrom <fredrik.markstrom@est.tech>,
+	Miquel Raynal <miquel.raynal@bootlin.com>,
+	Thierry Reding <thierry.reding@kernel.org>,
+	Jon Hunter <jonathanh@nvidia.com>,
+	Suresh Mangipudi <smangipudi@nvidia.com>,
+	linux-tegra@vger.kernel.org, linux-i3c@lists.infradead.org,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev,
+	linux-hwmon@vger.kernel.org
+Cc: oe-kbuild-all@lists.linux.dev, Akhil R <akhilrajeev@nvidia.com>
+Subject: Re: [PATCH 04/12] i3c: master: Support ACPI enumeration
+Message-ID: <202603230007.WOMwklQ6-lkp@intel.com>
+References: <20260318172820.13771-5-akhilrajeev@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260318172820.13771-5-akhilrajeev@nvidia.com>
 
-acpi_ns_custom_package() unconditionally dereferences the first element
-of the package to read the _BIX version number, without checking for
-NULL:
+Hi Akhil,
 
-  if ((*elements)->common.type != ACPI_TYPE_INTEGER)
+kernel test robot noticed the following build errors:
 
-When firmware returns a _BIX package whose first element is an
-unresolvable reference, ACPICA evaluates that entry to NULL.
-acpi_ns_remove_null_elements() does not strip NULL entries for
-ACPI_PTYPE_CUSTOM packages (fixed-position format would break if
-elements were shifted), so acpi_ns_custom_package() sees the NULL
-and panics.
+[auto build test ERROR on next-20260320]
+[also build test ERROR on linus/master v7.0-rc4]
+[cannot apply to i3c/i3c/next rafael-pm/linux-next rafael-pm/bleeding-edge groeck-staging/hwmon-next v7.0-rc4 v7.0-rc3 v7.0-rc2]
+[If your patch is applied to the wrong git tree, kindly drop us a note.
+And when submitting patch, we suggest to use '--base' as documented in
+https://git-scm.com/docs/git-format-patch#_base_tree_information]
 
- general protection fault, probably for non-canonical address
- 0xdffffc0000000001: 0000 [#1] SMP KASAN NOPTI
- KASAN: null-ptr-deref in range
- [0x0000000000000008-0x000000000000000f]
- RIP: acpi_ns_check_package
- (drivers/acpi/acpica/nsprepkg.c:634
-  drivers/acpi/acpica/nsprepkg.c:110)
- Call Trace:
-  <TASK>
-  acpi_ns_check_return_value (nspredef.c:136)
-  acpi_ns_evaluate (nseval.c:266)
-  acpi_evaluate_object (nsxfeval.c:360)
-  acpi_battery_get_info (battery.c:537)
-  acpi_battery_update (battery.c:1007)
-  acpi_battery_add (battery.c:1237)
-  acpi_device_probe (bus.c:1076)
-  really_probe (dd.c:659)
-  </TASK>
+url:    https://github.com/intel-lab-lkp/linux/commits/Akhil-R/dt-bindings-i3c-Add-mipi-i3c-static-method-to-support-SETAASA/20260322-174037
+base:   next-20260320
+patch link:    https://lore.kernel.org/r/20260318172820.13771-5-akhilrajeev%40nvidia.com
+patch subject: [PATCH 04/12] i3c: master: Support ACPI enumeration
+config: sparc-randconfig-002-20260322 (https://download.01.org/0day-ci/archive/20260323/202603230007.WOMwklQ6-lkp@intel.com/config)
+compiler: sparc-linux-gcc (GCC) 15.2.0
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260323/202603230007.WOMwklQ6-lkp@intel.com/reproduce)
 
-Add a NULL check for the first element (version field) before
-dereferencing it. The battery probe then fails gracefully with
-AE_AML_OPERAND_TYPE instead of crashing the kernel.
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202603230007.WOMwklQ6-lkp@intel.com/
 
-Required CONFIG: CONFIG_ACPI_BATTERY=y
+All errors (new ones prefixed by >>):
 
-Fixes: 7952d40240855932 ("ACPICA: ACPI 6.0: Update _BIX support for new package element")
-Reported-by: Xiang Mei <xmei5@asu.edu>
-Signed-off-by: Weiming Shi <bestswngs@gmail.com>
----
- drivers/acpi/acpica/nsprepkg.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+   drivers/i3c/master.c: In function 'i3c_master_add_i2c_boardinfo':
+>> drivers/i3c/master.c:2449:23: error: implicit declaration of function 'acpi_dev_get_resources'; did you mean 'acpi_get_event_resources'? [-Wimplicit-function-declaration]
+    2449 |                 ret = acpi_dev_get_resources(adev, &resources,
+         |                       ^~~~~~~~~~~~~~~~~~~~~~
+         |                       acpi_get_event_resources
+>> drivers/i3c/master.c:2455:17: error: implicit declaration of function 'acpi_dev_free_resource_list' [-Wimplicit-function-declaration]
+    2455 |                 acpi_dev_free_resource_list(&resources);
+         |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+   drivers/i3c/master.c: In function 'i3c_master_add_acpi_dev':
+>> drivers/i3c/master.c:2556:9: error: unknown type name 'acpi_bus_address'; did you mean 'acpi_io_address'?
+    2556 |         acpi_bus_address adr;
+         |         ^~~~~~~~~~~~~~~~
+         |         acpi_io_address
+>> drivers/i3c/master.c:2563:14: error: implicit declaration of function 'acpi_has_method'; did you mean 'acpi_has_watchdog'? [-Wimplicit-function-declaration]
+    2563 |         if (!acpi_has_method(adev->handle, "_ADR"))
+         |              ^~~~~~~~~~~~~~~
+         |              acpi_has_watchdog
+>> drivers/i3c/master.c:2563:34: error: invalid use of undefined type 'struct acpi_device'
+    2563 |         if (!acpi_has_method(adev->handle, "_ADR"))
+         |                                  ^~
+>> drivers/i3c/master.c:2566:15: error: implicit declaration of function 'acpi_device_adr'; did you mean 'acpi_device_handle'? [-Wimplicit-function-declaration]
+    2566 |         adr = acpi_device_adr(adev);
+         |               ^~~~~~~~~~~~~~~
+         |               acpi_device_handle
 
-diff --git a/drivers/acpi/acpica/nsprepkg.c b/drivers/acpi/acpica/nsprepkg.c
-index ca137ce5674f..c32770570120 100644
---- a/drivers/acpi/acpica/nsprepkg.c
-+++ b/drivers/acpi/acpica/nsprepkg.c
-@@ -631,6 +631,13 @@ acpi_ns_custom_package(struct acpi_evaluate_info *info,
- 
- 	/* Get version number, must be Integer */
- 
-+	if (!(*elements)) {
-+		ACPI_WARN_PREDEFINED((AE_INFO, info->full_pathname,
-+				      info->node_flags,
-+				      "Return Package has a NULL version element"));
-+		return_ACPI_STATUS(AE_AML_OPERAND_TYPE);
-+	}
-+
- 	if ((*elements)->common.type != ACPI_TYPE_INTEGER) {
- 		ACPI_WARN_PREDEFINED((AE_INFO, info->full_pathname,
- 				      info->node_flags,
+
+vim +2449 drivers/i3c/master.c
+
+  2423	
+  2424	static int
+  2425	i3c_master_add_i2c_boardinfo(struct i3c_master_controller *master,
+  2426				     struct fwnode_handle *fwnode, u32 *reg)
+  2427	{
+  2428		struct i2c_dev_boardinfo *boardinfo;
+  2429		struct device *dev = &master->dev;
+  2430		struct acpi_device *adev;
+  2431		LIST_HEAD(resources);
+  2432		int ret;
+  2433	
+  2434		boardinfo = devm_kzalloc(dev, sizeof(*boardinfo), GFP_KERNEL);
+  2435		if (!boardinfo)
+  2436			return -ENOMEM;
+  2437	
+  2438		if (is_of_node(fwnode)) {
+  2439			ret = of_i2c_get_board_info(dev, to_of_node(fwnode), &boardinfo->base);
+  2440			if (ret)
+  2441				return ret;
+  2442	
+  2443			/* LVR is encoded in reg[2] for Device Tree. */
+  2444			boardinfo->lvr = reg[2];
+  2445		} else if (is_acpi_device_node(fwnode)) {
+  2446			adev = to_acpi_device_node(fwnode);
+  2447			boardinfo->base.fwnode = acpi_fwnode_handle(adev);
+  2448	
+> 2449			ret = acpi_dev_get_resources(adev, &resources,
+  2450						     i3c_acpi_get_i2c_resource, boardinfo);
+  2451	
+  2452			if (ret < 0)
+  2453				return ret;
+  2454	
+> 2455			acpi_dev_free_resource_list(&resources);
+  2456	
+  2457			if (!boardinfo->base.addr)
+  2458				return -ENODEV;
+  2459		} else {
+  2460			return -EINVAL;
+  2461		}
+  2462	
+  2463		/*
+  2464		 * The I3C Specification does not clearly say I2C devices with 10-bit
+  2465		 * address are supported. These devices can't be passed properly through
+  2466		 * DEFSLVS command.
+  2467		 */
+  2468		if (boardinfo->base.flags & I2C_CLIENT_TEN) {
+  2469			dev_err(dev, "I2C device with 10 bit address not supported.");
+  2470			return -EOPNOTSUPP;
+  2471		}
+  2472	
+  2473		list_add_tail(&boardinfo->node, &master->boardinfo.i2c);
+  2474		fwnode_handle_get(fwnode);
+  2475	
+  2476		return 0;
+  2477	}
+  2478	
+  2479	static int
+  2480	i3c_master_add_i3c_boardinfo(struct i3c_master_controller *master,
+  2481				     struct fwnode_handle *fwnode, u32 *reg)
+  2482	{
+  2483		struct i3c_dev_boardinfo *boardinfo;
+  2484		struct device *dev = &master->dev;
+  2485		enum i3c_addr_slot_status addrstatus;
+  2486		u32 init_dyn_addr = 0;
+  2487	
+  2488		boardinfo = devm_kzalloc(dev, sizeof(*boardinfo), GFP_KERNEL);
+  2489		if (!boardinfo)
+  2490			return -ENOMEM;
+  2491	
+  2492		if (reg[0]) {
+  2493			if (reg[0] > I3C_MAX_ADDR)
+  2494				return -EINVAL;
+  2495	
+  2496			addrstatus = i3c_bus_get_addr_slot_status(&master->bus,
+  2497								  reg[0]);
+  2498			if (addrstatus != I3C_ADDR_SLOT_FREE)
+  2499				return -EINVAL;
+  2500		}
+  2501	
+  2502		boardinfo->static_addr = reg[0];
+  2503	
+  2504		if (!fwnode_property_read_u32(fwnode, "assigned-address", &init_dyn_addr)) {
+  2505			if (init_dyn_addr > I3C_MAX_ADDR)
+  2506				return -EINVAL;
+  2507	
+  2508			addrstatus = i3c_bus_get_addr_slot_status(&master->bus,
+  2509								  init_dyn_addr);
+  2510			if (addrstatus != I3C_ADDR_SLOT_FREE)
+  2511				return -EINVAL;
+  2512		}
+  2513	
+  2514		boardinfo->pid = ((u64)reg[1] << 32) | reg[2];
+  2515	
+  2516		if ((boardinfo->pid & GENMASK_ULL(63, 48)) ||
+  2517		    I3C_PID_RND_LOWER_32BITS(boardinfo->pid))
+  2518			return -EINVAL;
+  2519	
+  2520		boardinfo->init_dyn_addr = init_dyn_addr;
+  2521		boardinfo->fwnode = fwnode_handle_get(fwnode);
+  2522		list_add_tail(&boardinfo->node, &master->boardinfo.i3c);
+  2523	
+  2524		return 0;
+  2525	}
+  2526	
+  2527	static int i3c_master_add_of_dev(struct i3c_master_controller *master,
+  2528					 struct fwnode_handle *fwnode)
+  2529	{
+  2530		u32 reg[3];
+  2531		int ret;
+  2532	
+  2533		if (!master)
+  2534			return -EINVAL;
+  2535	
+  2536		ret = fwnode_property_read_u32_array(fwnode, "reg", reg, ARRAY_SIZE(reg));
+  2537		if (ret)
+  2538			return ret;
+  2539	
+  2540		/*
+  2541		 * The manufacturer ID can't be 0. If reg[1] == 0 that means we're
+  2542		 * dealing with an I2C device.
+  2543		 */
+  2544		if (!reg[1])
+  2545			ret = i3c_master_add_i2c_boardinfo(master, fwnode, reg);
+  2546		else
+  2547			ret = i3c_master_add_i3c_boardinfo(master, fwnode, reg);
+  2548	
+  2549		return ret;
+  2550	}
+  2551	
+  2552	static int i3c_master_add_acpi_dev(struct i3c_master_controller *master,
+  2553					   struct fwnode_handle *fwnode)
+  2554	{
+  2555		struct acpi_device *adev = to_acpi_device_node(fwnode);
+> 2556		acpi_bus_address adr;
+  2557		u32 reg[3] = { 0 };
+  2558	
+  2559		/*
+  2560		 * If the ACPI table entry does not have _ADR method, it's an I2C device
+  2561		 * If the ACPI table entry has _ADR method, it's an I3C device
+  2562		 */
+> 2563		if (!acpi_has_method(adev->handle, "_ADR"))
+  2564			return i3c_master_add_i2c_boardinfo(master, fwnode, reg);
+  2565	
+> 2566		adr = acpi_device_adr(adev);
+  2567	
+  2568		/* For I3C devices, _ADR will have the 48 bit PID of the device  */
+  2569		reg[1] = upper_32_bits(adr);
+  2570		reg[2] = lower_32_bits(adr);
+  2571	
+  2572		fwnode_property_read_u32(fwnode, "mipi-i3c-static-address", &reg[0]);
+  2573	
+  2574		return i3c_master_add_i3c_boardinfo(master, fwnode, reg);
+  2575	}
+  2576	
+
 -- 
-2.43.0
-
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
