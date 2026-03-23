@@ -1,226 +1,107 @@
-Received: from flow-b2-smtp.messagingengine.com (flow-b2-smtp.messagingengine.com [202.12.124.137])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA59A3C73CA;
-	Mon, 23 Mar 2026 17:23:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.137
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 516DE3C73E5;
+	Mon, 23 Mar 2026 17:24:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774286614; cv=none; b=Z0/ddQ3qr4EjY976BgpBfF0s/pQnuSsVIsubjf+r0yvEEu04+g/v06vLldOoi19mftr998MvQ1tpAdb/jIpXfBYooNewJOTsodSSXMk1KdsFybrFOVKOWVLTrlbal4wc+bfhMKL4h4/Fmv+AS7R6GXqlBg73+IwY/sozNtzR5/s=
+	t=1774286696; cv=none; b=NPsMmv6LGhTIW+/9LU2mVHVAuW5NDc0kaiYwmlUs3J72Vb9bMr3ZfWiawxGyBNZmXwdvwY08vAW2N6qN55fg/T8PLGTKLU0CO375MMhnP6JQYVL548KV4VewrWOwLGNO01I0+/y+bF+90c6TTBYnb/ENJqaWpIeZUTmRFg6wWko=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774286614; c=relaxed/simple;
-	bh=8F5DHzbZOkiE60z+INX/R3wfwDAeDzgLhwAv/Br77fM=;
-	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
-	 Subject:Content-Type; b=slFg596lTpC1nIF2BSH/RRGoQFVDwioNpCm1owGA8nvqo8bJEpKJe5/Furdz7JwcPox1nWt+0wz/PiXjWUeX7Ur4b9F1F1qwqhZGqNTmfnQmms3pdjXJz/6WiOlBnaTxd/aPAYV4lyy+JIxskmX5plDVLW0DMyFZfmyQaUohkGo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=squebb.ca; spf=pass smtp.mailfrom=squebb.ca; dkim=pass (2048-bit key) header.d=squebb.ca header.i=@squebb.ca header.b=d0w2WMuA; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=T39gwOEy; arc=none smtp.client-ip=202.12.124.137
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=squebb.ca
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=squebb.ca
+	s=arc-20240116; t=1774286696; c=relaxed/simple;
+	bh=xYKa5g2CWUevgDPo8Y0Ncl5z1xFaGsm0/Xv0Zy+doaI=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version:Content-Type; b=hb3VHHh2Rf54CTWIgLQTi078tLFGy3yPhBTEHHZN8WaGpOd/i81triUAYenwe1BBOUxQ98EdSYJdTjFLQ+1XopjSEAHucZuZHYiIsOvd3DFcjJlmejHiciTR0giJHmfEknU3rgnYs6q5goRRCHbh57+5hOoYohsdAhYtdft2s7k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=l4fjlTG9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=squebb.ca header.i=@squebb.ca header.b="d0w2WMuA";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="T39gwOEy"
-Received: from phl-compute-02.internal (phl-compute-02.internal [10.202.2.42])
-	by mailflow.stl.internal (Postfix) with ESMTP id AEAE71300250;
-	Mon, 23 Mar 2026 13:23:29 -0400 (EDT)
-Received: from phl-imap-08 ([10.202.2.84])
-  by phl-compute-02.internal (MEProxy); Mon, 23 Mar 2026 13:23:30 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=squebb.ca; h=cc
-	:cc:content-transfer-encoding:content-type:content-type:date
-	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to; s=fm2; t=1774286609;
-	 x=1774293809; bh=8F5DHzbZOkiE60z+INX/R3wfwDAeDzgLhwAv/Br77fM=; b=
-	d0w2WMuASvhIHc8a3ZfS0bSovZpUguTxsV12SkJzLl/HgFTO96E8OsN6d6PFrRYr
-	XHyKTm84Vlu7Tme/FZTaw0VGpuJ8bd9SIFnBq7bZWD1TgSXMwEt+Ap2P5Cr5y5rb
-	kh48eiYnLAe4C36R9y9XZ5Zg6lxDvpLGPh8KJGh1qX4WXsw8iq3GoopxXo0wdcIy
-	SKgjzMBKuf2OLoWajsbw2F4ld+LPm1ydhX7IWHymLKSmvFTHk5G5DuniFfqplcMy
-	65xiZdyuVFv3n4Cp6M4NViPWZR5xC134H6qqy1/2RPbWvmUWLHoufcPqtdKvun5t
-	+UoyEGPxVxwM8podnx9RfQ==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:content-type:date:date:feedback-id:feedback-id
-	:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm1; t=1774286609; x=
-	1774293809; bh=8F5DHzbZOkiE60z+INX/R3wfwDAeDzgLhwAv/Br77fM=; b=T
-	39gwOEyRtCyYoMOGxdB1aekPredjoXFLaW3m6i6BbkmcD3TENUY+rGnLBscpaGLD
-	pl/gY6Wad3V5npcJa+8/w3KHGhFEusITcXXc49+4OiqXWkkWqj7GgJH8XTM5yjo+
-	jKGeMvnm+u6AMx2msR1uFbO17rxuPrmWriiZvC9roJIKLpAsGlrFIxypDrEAkvQE
-	F6iQHUCna5dGO3+Oq4eQOTcYpv/U7VYXNNXsjILB4Q+VfMN88xaCKhgGUbalORTP
-	SesNWUyY8BIA+Br7/XSafGCp3A8lFxKcYM8/VZdx2BHUUeCTZCFBxS+/3nO3hbbr
-	+ysYeMBoP68cYbvX3Krdg==
-X-ME-Sender: <xms:EHfBaaVOuDeremT5Xu0AuWObJubLqQ2Wnl5vZlfNhouYJf7BwlCLnQ>
-    <xme:EHfBaRaOzMH4ETuoxDhEO01_PK1EegNYbN5kOqpTOp4DbfEiYa3UCxuGHG8QuabyD
-    S4ouWK2fowUUjV5WyYISt_lOKBh6aIkxJ0nstyLSSjysmnUY8SnNDg>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefgedrtddtgdefudelfedtucetufdoteggodetrf
-    dotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfurfetoffkrfgpnffqhgenuceu
-    rghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujf
-    gurhepofggfffhvfevkfgjfhfutgfgsehtqhertdertdejnecuhfhrohhmpedfofgrrhhk
-    ucfrvggrrhhsohhnfdcuoehmphgvrghrshhonhdqlhgvnhhovhhosehsqhhuvggssgdrtg
-    grqeenucggtffrrghtthgvrhhnpefhveekjeeuueekfefhleeljeehuedugfetffdvteek
-    ffejudelffdvjeekfeehvdenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmh
-    grihhlfhhrohhmpehmphgvrghrshhonhdqlhgvnhhovhhosehsqhhuvggssgdrtggrpdhn
-    sggprhgtphhtthhopedvledpmhhouggvpehsmhhtphhouhhtpdhrtghpthhtohepsghrgh
-    hlsegsghguvghvrdhplhdprhgtphhtthhopeguvghrvghkjhhohhhnrdgtlhgrrhhksehg
-    mhgrihhlrdgtohhmpdhrtghpthhtoheplhhuihiirdguvghnthiisehgmhgrihhlrdgtoh
-    hmpdhrtghpthhtohepmhgrrhgtvghlsehhohhlthhmrghnnhdrohhrghdprhgtphhtthho
-    pegsrhhglheskhgvrhhnvghlrdhorhhgpdhrtghpthhtoheptghonhhorhdoughtsehkvg
-    hrnhgvlhdrohhrghdprhgtphhtthhopehhrghnshhgsehkvghrnhgvlhdrohhrghdprhgt
-    phhtthhopehjihhrihhslhgrsgihsehkvghrnhgvlhdrohhrghdprhgtphhtthhopehkrh
-    iikhdoughtsehkvghrnhgvlhdrohhrgh
-X-ME-Proxy: <xmx:EHfBaSqJKl4O8U5DXXnUHJ4ARuuLtgpyod5Zu0bYenGxtsS85upgIQ>
-    <xmx:EHfBaS_HCcsciKk7yEWlaATTUB0CHoip4D6Rvf83VxqBWMmapLm_VQ>
-    <xmx:EHfBaV5mRbon4XVx5UyVqJ7B0Up2zUVFC-vVEljM-RiIxKDNHEp84g>
-    <xmx:EHfBae0fWgVJV-sLFsw6aUUf4UNq6Juf-hZdi3M7ZrPWNpzYulPmdw>
-    <xmx:EXfBaaZiou-wWxJxEAUqaRa4s0NByc4B1hm1naWmg3Gc55SFVLDUw_Ug>
-Feedback-ID: ibe194615:Fastmail
-Received: by mailuser.phl.internal (Postfix, from userid 501)
-	id 94F912CE0078; Mon, 23 Mar 2026 13:23:28 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="l4fjlTG9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F32A2C4CEF7;
+	Mon, 23 Mar 2026 17:24:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1774286696;
+	bh=xYKa5g2CWUevgDPo8Y0Ncl5z1xFaGsm0/Xv0Zy+doaI=;
+	h=From:To:Cc:Subject:Date:From;
+	b=l4fjlTG91uwOHiRBXMGOV3uwdJlj3VuttXHew/8wiaoYOa0psMrKSido/AIUtFxrc
+	 a1gvgjMjvqVdlNgdBFpRgq8JDF34Y7+XNs4HuCIciSbRv4fe67t34Jag1As+NqG2iQ
+	 jjGd4aFLmMfxK/5BlmLqBKdVW24IhKdFnGBIX2z962e7GV0djdfnj47j+Q1WXmckZZ
+	 07ehNjXi6X2xxPcB6ryJpKLvfhNl0rxcXd8sS1Xt6m9D0s1nA3fuweXIjYhyNApyEc
+	 DKidNnQ0k4pteL+LsmuiSCmmo9B7p9tNylvNRGlFiD/lS4QIytiS3e0s07gjLN0HSs
+	 Ku7QyLdhHdfYA==
+From: Kees Cook <kees@kernel.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Kees Cook <kees@kernel.org>,
+	Robert Moore <robert.moore@intel.com>,
+	Len Brown <lenb@kernel.org>,
+	linux-kernel@vger.kernel.org,
+	linux-acpi@vger.kernel.org,
+	acpica-devel@lists.linux.dev,
+	linux-hardening@vger.kernel.org
+Subject: [PATCH] ACPICA: Replace strncpy() with strscpy_pad() in acpi_ut_safe_strncpy()
+Date: Mon, 23 Mar 2026 10:24:52 -0700
+Message-Id: <20260323172451.work.079-kees@kernel.org>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-ThreadId: AJPKs3BxgghB
-Date: Mon, 23 Mar 2026 13:23:07 -0400
-From: "Mark Pearson" <mpearson-lenovo@squebb.ca>
-To: "Manivannan Sadhasivam" <mani@kernel.org>,
- "Dmitry Baryshkov" <dmitry.baryshkov@oss.qualcomm.com>
-Cc: "Rob Herring" <robh@kernel.org>,
- "Manivannan Sadhasivam" <manivannan.sadhasivam@oss.qualcomm.com>,
- "Greg KH" <gregkh@linuxfoundation.org>,
- "Jiri Slaby" <jirislaby@kernel.org>,
- "Nathan Chancellor" <nathan@kernel.org>,
- "Nicolas Schier" <nicolas.schier@linux.dev>,
- "Hans de Goede" <hansg@kernel.org>,
- =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
- "Derek J . Clark" <derekjohn.clark@gmail.com>,
- "Krzysztof Kozlowski" <krzk+dt@kernel.org>,
- "Conor Dooley" <conor+dt@kernel.org>,
- "Marcel Holtmann" <marcel@holtmann.org>,
- "Luiz Augusto von Dentz" <luiz.dentz@gmail.com>,
- "Bartosz Golaszewski" <brgl@bgdev.pl>,
- "Andy Shevchenko" <andriy.shevchenko@linux.intel.com>,
- "Bartosz Golaszewski" <brgl@kernel.org>, linux-serial@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-kbuild@vger.kernel.org,
- "platform-driver-x86@vger.kernel.org"
- <platform-driver-x86@vger.kernel.org>, linux-pci@vger.kernel.org,
- devicetree@vger.kernel.org, linux-arm-msm@vger.kernel.org,
- linux-bluetooth@vger.kernel.org, linux-pm@vger.kernel.org,
- "Stephan Gerhold" <stephan.gerhold@linaro.org>,
- "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Message-Id: <3faffec9-dc9d-4eec-a652-a84d30d85c96@app.fastmail.com>
-In-Reply-To: 
- <m44mupdmg7kgco62n4evcviagqo7wwgyt3gybugbxwesd4ekjz@o24r6v4tpezc>
-References: <20260317-pci-m2-e-v6-0-9c898f108d3d@oss.qualcomm.com>
- <20260317-pci-m2-e-v6-6-9c898f108d3d@oss.qualcomm.com>
- <20260322233713.GA98177-robh@kernel.org>
- <to2mrizprc3hjufqbiplpqyek7f4uutqtn4hx4gkmdgv2rykbc@ybwwjhdec4nm>
- <CAL_JsqJXrHCJt770bJkMmAUhirSF3kHjYwSzkG7cXp7-eys8Rg@mail.gmail.com>
- <6aef3xxjjd4nbgrfx6jc6jt6rpqmttoui6hil5zqgdpas2j6gj@ie6j72orenou>
- <fsvmmgoe5wslmxebhrrwmdg2ldcmhzvj53gjkdfnfg2m2rz2lw@dcfboaakz7ae>
- <bguhzabwryayyqkv4ilzwr3ixwv6bzxncblo3ircz2wm3fs52k@66zvcrfcb4oe>
- <blhm4csjyw6r667cleljgzd6rpwagttjo5rau7wjrlnjakq2qm@ekyhc4jvwmwf>
- <m44mupdmg7kgco62n4evcviagqo7wwgyt3gybugbxwesd4ekjz@o24r6v4tpezc>
-Subject: Re: [PATCH v6 6/9] dt-bindings: connector: m2: Add M.2 1620 LGA soldered down
- connector
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2340; i=kees@kernel.org; h=from:subject:message-id; bh=xYKa5g2CWUevgDPo8Y0Ncl5z1xFaGsm0/Xv0Zy+doaI=; b=owGbwMvMwCVmps19z/KJym7G02pJDJkHy1M+XHo0cdXHJ9//lxY5uj7uEtB87X8s8GfbOZcsY 7d+3Y22HaUsDGJcDLJiiixBdu5xLh5v28Pd5yrCzGFlAhnCwMUpABNZ8JKR4Xrovo55EXyh9n/4 pk4xefk9X8jOlv/1/icSp8PTdyftf83wT6cl/NNsr6zn/nUTXscvkkwRLdR65B3LWitXePXNifR b7AA=
+X-Developer-Key: i=kees@kernel.org; a=openpgp; fpr=A5C3F68F229DD60F723E6E138972F4DFDC6DC026
+Content-Transfer-Encoding: 8bit
 
+Replace the deprecated[1] strncpy() with strscpy_pad() in
+acpi_ut_safe_strncpy().
 
+The function is a "safe strncpy" wrapper that does
+strncpy(dest, source, dest_size) followed by manual NUL-termination
+at dest[dest_size - 1]. strscpy_pad() is a direct replacement: it
+NUL-terminates, zero-pads the remainder, and the manual termination
+is no longer needed.
 
-On Mon, Mar 23, 2026, at 12:52 PM, Manivannan Sadhasivam wrote:
-> On Mon, Mar 23, 2026 at 06:45:15PM +0200, Dmitry Baryshkov wrote:
->> On Mon, Mar 23, 2026 at 09:26:04PM +0530, Manivannan Sadhasivam wrote:
->> > On Mon, Mar 23, 2026 at 05:14:30PM +0200, Dmitry Baryshkov wrote:
->> > > On Mon, Mar 23, 2026 at 07:14:25PM +0530, Manivannan Sadhasivam w=
-rote:
->> > > > On Mon, Mar 23, 2026 at 08:39:55AM -0500, Rob Herring wrote:
->> > > > > On Mon, Mar 23, 2026 at 7:16=E2=80=AFAM Manivannan Sadhasivam=
- <mani@kernel.org> wrote:
->> > > > > >
->> > > > > > On Sun, Mar 22, 2026 at 06:37:13PM -0500, Rob Herring wrote:
->> > > > > > > On Tue, Mar 17, 2026 at 09:59:56AM +0530, Manivannan Sadh=
-asivam wrote:
->> > > > > > > > Lenovo Thinkpad T14s is found to have a soldered down v=
-ersion of M.2 1620
->> > > > > > > > LGA connector. Though, there is no 1620 LGA form factor=
- defined in the M.2
->> > > > > > > > spec, it looks very similar to the M.2 Key E connector.=
- So add the
->> > > > > > > > "pcie-m2-1620-lga-connector" compatible with "pcie-m2-e=
--connector" fallback
->> > > > > > > > to reuse the Key E binding.
->> > > > > > >
->> > > > > > > What is LGA?
->> > > > > > >
->> > > > > >
->> > > > > > Land Grid Array
->> > > > > >
->> > > > > > > If not in the spec, is it really something generic?
->> > > > > > >
->> > > > > >
->> > > > > > Good question. Yes and No! LGA is not something that Lenovo=
- only uses. Other
->> > > > > > vendors may also use this form factor. PCIe connectors are =
-full of innovation as
->> > > > > > the spec gives room for hardware designers to be as innovat=
-ive as possible to
->> > > > > > save the BOM cost.
->> > > > >=20
->> > > > > innovation =3D=3D incompatible changes
->> > > > >=20
->> > > >=20
->> > > > Yes, I was trying to sound nice :)
->> > > >=20
->> > > > > > This is why I do not want to make it Lenovo specific. But i=
-f you prefer that, I
->> > > > > > can name it as "lenovo,pcie-m2-1620-lga-connector".
->> > > > >=20
->> > > > > Depends if you think that s/w needs to know the differences. =
-Hard to
->> > > > > say with a sample size of 1.
->> > > > >=20
->> > > >=20
->> > > > Sure. Will add the 'lenovo' prefix then.
->> > >=20
->> > > Is it really Lenovo? Or is it some other module vendor, whose LGA=
-s are
->> > > being used by Lenovo?
->> > >=20
->> > > I remember that DB820c also used some kind of a module for the Wi=
-Fi card
->> > > (which might be M.2 compatible or might not, I can't find exact d=
-ocs at
->> > > this point).
->> > >=20
->> >=20
->> > I don't know. These kind of designs might be reused by several vend=
-ors. But
->> > considering that we should not make it generic, I'd go with Lenovo =
-as that's
->> > the only vendor we know as of now.
->>=20
->> ... and later we learn that other vendors use the same idea /pinout,
->> then nothing stops us from still telling that it's a
->> "lenovo,pcie-m2-something-lga".=20
->>=20
->
-> How do you possibly know whether a single vendor has introduced this f=
-orm factor
-> or reused by multiple ones? Atleast, I don't have access to such a sou=
-rce to
-> confirm.
->
-I've not really been following this thread/patchset in detail; but want =
-me to try and check with the T14s platform team if this device is specif=
-ically made for us (Lenovo) or not?
-I doubt it is - we just don't do that usually, but I can go and ask the =
-question if it will help resolve this (with the caveat that it could hol=
-d up the review for a bit and I may not be able to get a straight answer)
+All callers pass NUL-terminated source strings (C string literals,
+__FILE__ via ACPI_MODULE_NAME, or user-provided filenames that have
+already been validated). The destinations are fixed-size char arrays
+in ACPICA internal structures (allocation->module, aml_op_name,
+acpi_gbl_db_debug_filename), all consumed as C strings.
 
-My vote (for what little it's worth) would be to make it non-Lenovo spec=
-ific. Then when the same part causes issues on another vendors platform =
-I won't get asked questions about why Lenovo is breaking <other vendor> =
-:)
+No behavioral change: strscpy_pad() produces identical output to
+strncpy() + manual NUL-termination for NUL-terminated sources that
+are shorter than dest_size. For sources longer than dest_size,
+strncpy() wrote dest_size non-NUL bytes then the manual termination
+overwrote the last byte with NUL; strscpy_pad() writes dest_size-1
+bytes plus NUL: same result.
 
-Mark
+Link: https://github.com/KSPP/linux/issues/90 [1]
+Signed-off-by: Kees Cook <kees@kernel.org>
+---
+This touches the ACPICA component shared with the upstream ACPICA
+project (https://github.com/acpica/acpica), where the function
+is named AcpiUtSafeStrncpy(). The upstream codebase uses its own
+platform abstraction layer (acenv.h/acgcc.h) where I've mapped various
+kernel APIs before like ACPI_FLEX_ARRAY and similar helpers. However,
+acpi_ut_safe_strncpy() is an explicit function implementation rather
+than a macro mapping, so the approach for upstreaming this change to
+ACPICA is not clear. What's the best way to land this?
+
+(This is one of the last users of strncpy in the kernel.)
+---
+ drivers/acpi/acpica/utnonansi.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/acpica/utnonansi.c b/drivers/acpi/acpica/utnonansi.c
+index ff0802ace19b..3a7952be6545 100644
+--- a/drivers/acpi/acpica/utnonansi.c
++++ b/drivers/acpi/acpica/utnonansi.c
+@@ -168,8 +168,7 @@ void acpi_ut_safe_strncpy(char *dest, char *source, acpi_size dest_size)
+ {
+ 	/* Always terminate destination string */
+ 
+-	strncpy(dest, source, dest_size);
+-	dest[dest_size - 1] = 0;
++	strscpy_pad(dest, source, dest_size);
+ }
+ 
+ #endif
+-- 
+2.34.1
+
