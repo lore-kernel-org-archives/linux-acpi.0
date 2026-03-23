@@ -1,138 +1,87 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 395F0280CD2
-	for <linux-acpi@vger.kernel.org>; Mon, 23 Mar 2026 15:23:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58D78387599;
+	Mon, 23 Mar 2026 15:26:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774279430; cv=none; b=avehhnBBeHsvblN2ajI80JPzVSQp5bC9qXKQC+sn7abc8WJCnhOHOhzSHIF40E85CVzcF4qUGSbz/HSfJ6ybg6anyRfjvOCLMM4fTRe946cWNRIHYBxawwJTsrsS7QtPlXINNAnOUqJA3LSvUa5gvjR/LOXakk4z/UBWBvxozcg=
+	t=1774279600; cv=none; b=eNICdPGrRBYNo0k1qxUdPwW+UKKjAd8Du88gnX/9VYiwa68RwM8V+TdjHmjxsrFhCO/5+egRFgCHiIK1eWLRmNVxdPbHeaRCNSpUuSYz741wvH99scErCjYxmchhg++ht9g5lOppMIDVC1KZclychdTYcZSU1NXyP7QQTpyr8FI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774279430; c=relaxed/simple;
-	bh=v1fDbmrhGB/KQRvZCzdGtCJo9z7E0IsvXMUDNGcbEuI=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=tv1btGpcLTQm9X3V6GeQgjoOPfKkuFjT4nA8qXs1ywON0OxkvKGIoJQvc/W7zM7NBNF9FbPFQ/YJNXVfwkOAwupP90eOkyO628ZWCryrSK2etHJ0Q5zC6mMP/blJiD07aDQ4rTEhZ05lBd1prv4PK/QkxQ3w580UlwDsJPrKNW8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=EtZuqN9a; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774279600; c=relaxed/simple;
+	bh=5CCLsJGYrljS+3ewrvTmrj7wEQ5+vWRBvOujOUyCBBA=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=MhVDJlrnyeutl+uAi5ucpkVh7T4GKV4mnQNNg6v1+rpyRcz9SAZLLF/Iy+fMoobeC0Jyaz56hvuCYjU5csP07WCWFLwxe4lV10wM9oTF5V6cFeTsoIOBnOpaAyzGJoadDoIbwrQp9uYwZDUMbVG1bPDMtpd/9xAXMSxg1Rp3bA0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=uBIjBSoi; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="EtZuqN9a"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C7B2C2BCB9
-	for <linux-acpi@vger.kernel.org>; Mon, 23 Mar 2026 15:23:50 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="uBIjBSoi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56053C4CEF7;
+	Mon, 23 Mar 2026 15:26:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774279430;
-	bh=v1fDbmrhGB/KQRvZCzdGtCJo9z7E0IsvXMUDNGcbEuI=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=EtZuqN9a7DTCB32dXZU79UXuE9BlMEzrI+Akiq3IS3QZY1IpLsqWrZdZERK2uqKxS
-	 QEaAYPb7FKNgdV79q554tNxx40SKQVIgNOlCOQagN77FCOXLPd7yYUDIPE54G6JEU8
-	 fxG0fvot461bCIBkIr+p2kvvArL6yh+mJ6EryaywjHzAYeAojkIJ0UdxKPVukhieJx
-	 14X1ILlSnBgUObuFbFGvt32gYeD2RyGVN1oxcyNgq5hWwhOiBWzmGJubGrfMJyIRzW
-	 YRLVypY4pZrSNTnHDYdpL0wJRMHmbtJBJjVyTSHJ2sapEWyiN/FnJIUB1J6V5MFW55
-	 H6GkQlDyCswMw==
-Received: by mail-lf1-f53.google.com with SMTP id 2adb3069b0e04-59de8155501so4252899e87.3
-        for <linux-acpi@vger.kernel.org>; Mon, 23 Mar 2026 08:23:50 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCUXwzNuTbSprsnndmEvQ4KFYNykMeHaYorZ2osGmqUjKHjGQFbin8APRSu+0/Q5/SBgK7d8JLGB70s2@vger.kernel.org
-X-Gm-Message-State: AOJu0Yydg5LDvTlmM0qVcZNovHStNe+GCsHl21uaHhgXDlsiGucz8PtR
-	JPyxPMLxKYgsvEhkEZDx1H5XUg2nNjQwWkiUPFZ1FfoW3npDtdQgiZ2GSDF+3KWKjXEIW4gZm9h
-	sE0jEgsbpeig5pkgmOEHoskZYa3Ye3oDpvfLTxYWHOg==
-X-Received: by 2002:a05:6512:3da2:b0:5a2:7c67:4b3 with SMTP id
- 2adb3069b0e04-5a285af54b9mr4230973e87.2.1774279428666; Mon, 23 Mar 2026
- 08:23:48 -0700 (PDT)
+	s=k20201202; t=1774279600;
+	bh=5CCLsJGYrljS+3ewrvTmrj7wEQ5+vWRBvOujOUyCBBA=;
+	h=From:To:Cc:Subject:Date:From;
+	b=uBIjBSoih2ETKO1fhzHlhoLT87mHxXtJLENV0tK6JohcRE4l6yjzo3jWhlohH4DWt
+	 uKyCWXRU6Q8dtlcoRLz07OqpzEfeGPSEJLrjJiTh8Ksxh3BApnRRFExXnX6JSO12Ay
+	 9oBLX+62mADQqBy/XKpSoAonZgdKVkkBIHSMBXjmGAc+Wz1SzUsVpk9EtpSQ210s97
+	 t1+z/6GeP2Y9T/LuDB84wmo+B+MUVca+gKFvKMhPfZ9qvPsd6HTRs+2z1RNHFlc9ti
+	 s+Kg6DQIaEfWD2ItNVFDwt87b3Ybg6XdxIZiexC3sEJ0kWyxMknTnRXcq1irt3xF/7
+	 uvDEnqU3Yy95w==
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+To: Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>
+Subject: [PATCH v1] ACPI: TAD: Use DC wakeup only if AC wakeup is supported
+Date: Mon, 23 Mar 2026 16:26:37 +0100
+Message-ID: <2833494.mvXUDI8C0e@rafael.j.wysocki>
+Organization: Linux Kernel Development
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260319-baytrail-real-swnode-v1-0-75f2264ae49f@oss.qualcomm.com>
- <20260319-baytrail-real-swnode-v1-1-75f2264ae49f@oss.qualcomm.com> <abz4-iKFBsPIJb7F@ashevche-desk.local>
-In-Reply-To: <abz4-iKFBsPIJb7F@ashevche-desk.local>
-From: Bartosz Golaszewski <brgl@kernel.org>
-Date: Mon, 23 Mar 2026 16:23:36 +0100
-X-Gmail-Original-Message-ID: <CAMRc=Mee6Jdku8n0xSPJkjJGZefzs9OJscnA8Tpn41G9hXKg5A@mail.gmail.com>
-X-Gm-Features: AaiRm51K9AlGK_wY7XjZ-ErYfJVKWSHbGMymY34rMutrWSHNVzmMpb2pSbPy_9c
-Message-ID: <CAMRc=Mee6Jdku8n0xSPJkjJGZefzs9OJscnA8Tpn41G9hXKg5A@mail.gmail.com>
-Subject: Re: [PATCH 1/4] software node: support automatic secondary fwnode assignment
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>, 
-	Daniel Scally <djrscally@gmail.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
-	Sakari Ailus <sakari.ailus@linux.intel.com>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
-	Danilo Krummrich <dakr@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, 
-	Andy Shevchenko <andy@kernel.org>, Linus Walleij <linusw@kernel.org>, Hans de Goede <hansg@kernel.org>, 
-	=?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, 
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-acpi@vger.kernel.org, 
-	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org, 
-	linux-gpio@vger.kernel.org, platform-driver-x86@vger.kernel.org
+Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Fri, Mar 20, 2026 at 8:39=E2=80=AFAM Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
->
-> On Thu, Mar 19, 2026 at 05:10:54PM +0100, Bartosz Golaszewski wrote:
-> > Provide a structure and a set of functions allowing to set up automatic
-> > secondary firmware node assignment for platform devices. It uses
-> > a behind-the-scenes bus notifier for a group of named software nodes. I=
-t
-> > will wait for bus events and when a device is added, it will check its
-> > name against the software node's name and - on match - assign the
-> > software node as the secondary firmware node of the device's *real*
-> > firmware node.
->
-> ...
->
-> > +/**
-> > + * software_node_register_auto_secondary() - set up automatic assignme=
-nt of
-> > + *                                           secondary firmware nodes
-> > + * @auto_sec: Context data to use.
-> > + *
-> > + * NOTE: All software nodes passed in @auto_sec must be named.
->
-> > + * Returns:
->
-> Is it with 's' in other kernel-doc? The official is "Return", the 's' var=
-iant
-> is supported, but not documented.
->
-> > + * 0 on success, negative error number on failure.
->
-> The Return section must be last in the kernel-doc description. This is do=
-cumented.
->
-> > + * This registers the software node group passed in @auto_sec and sets=
- up
-> > + * automatic assignment of them as secondary firmware nodes of real no=
-des
-> > + * attached to appropriate devices on the bus specified in @auto_sec. =
-The
-> > + * software nodes must be named and their names must be the same as th=
-e
-> > + * devices they should reference. The assignment happens when the devi=
-ce is
-> > + * first added to the bus.
-> > + */
->
-> ...
->
-> > +/**
-> > + * struct software_node_auto_secondary - context data for automatic se=
-condary
-> > + *                                       fwnode assignment
-> > + * @nb: Private bus notifier data - don't use
->
-> Mark it with __private then.
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Ok for this and the ones above.
+According to Section 9.17.2 of ACPI 6.6 [1], setting ACPI_TAD_DC_WAKE in
+the capabilities without setting ACPI_TAD_AC_WAKE is invalid, so don't
+support wakeup if that's the case.
 
->
-> > + * @node_group: NULL-terminated array of software node addresses
-> > + * @bus: Bus on which to wait for devices
->
-> If bus is not compiled into kernel, this optionally has to support NULL
-> in the code (I haven't checked the code, though).
->
+Moreover, it is sufficient to check ACPI_TAD_AC_WAKE alone to determine
+if wakeup is supported at all, so use this observation to simplify one
+check.
 
-The bus type object for given bus is typically defined in whatever
-compilation unit contains the implementation of that bus. It's not
-possible to access its address if it's not enabled.
+Link: https://uefi.org/specs/ACPI/6.6/09_ACPI_Defined_Devices_and_Device_Specific_Objects.html#gcp-get-capability [1]
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
 
-Bart
+This change is on top of linux-next.
+
+---
+ drivers/acpi/acpi_tad.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+--- a/drivers/acpi/acpi_tad.c
++++ b/drivers/acpi/acpi_tad.c
+@@ -706,6 +706,9 @@ static int acpi_tad_probe(struct platfor
+ 		caps &= ~(ACPI_TAD_AC_WAKE | ACPI_TAD_DC_WAKE);
+ 	}
+ 
++	if (!(caps & ACPI_TAD_AC_WAKE))
++		caps &= ~ACPI_TAD_DC_WAKE;
++
+ 	dd = devm_kzalloc(dev, sizeof(*dd), GFP_KERNEL);
+ 	if (!dd)
+ 		return -ENOMEM;
+@@ -719,7 +722,7 @@ static int acpi_tad_probe(struct platfor
+ 	 * runtime suspend.  Everything else should be taken care of by the ACPI
+ 	 * PM domain callbacks.
+ 	 */
+-	if (ACPI_TAD_AC_WAKE | ACPI_TAD_DC_WAKE) {
++	if (ACPI_TAD_AC_WAKE) {
+ 		device_init_wakeup(dev, true);
+ 		dev_pm_set_driver_flags(dev, DPM_FLAG_SMART_SUSPEND |
+ 					     DPM_FLAG_MAY_SKIP_RESUME);
+
+
+
