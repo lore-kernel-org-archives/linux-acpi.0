@@ -1,539 +1,229 @@
-Received: from mailgw.kylinos.cn (mailgw.kylinos.cn [124.126.103.232])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8DB52F851;
-	Mon, 23 Mar 2026 01:06:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=124.126.103.232
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C1A340DFB7;
+	Mon, 23 Mar 2026 04:14:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.13
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774227993; cv=none; b=b5ouwasoNrpZhZhG8g77aux5PcN4vsBbk6fD+/o90P6FtEoPHDTo2Bc5V2rfffqGjEKKwc15F+6y+bSpSn/fgf4oGQh38PNBOC4nxLgdQVZeF7gvSrEZ+tkPVe1CeY9nNsdmUSeud2tArspoZGF+172rxZPmdJ530XjPqrlblaY=
+	t=1774239248; cv=none; b=h2Qh81CU9Jy2CQgYmpYb2+xRNnHSIUBw3Et8AQ6COcH27qV08zysPY9qanwjfM7QZhe2qqiLRPazS0tEiylBnxpNWTRCX5ldZMgB4mfRhDs9KhSNfTSPNJrZeA33mMNvKSeXDaP/sCOEG/FL09T0zj+llwEtrnHQVzZcZutIyr4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774227993; c=relaxed/simple;
-	bh=bCvgNYH1e66ALB/gY+Mye2mbiPZZaLY4FrX7UdkSoH8=;
-	h=Message-ID:Date:MIME-Version:To:Cc:From:Subject:Content-Type; b=c936dJGkhvr3BX6YHscMIFd1MUKW4w5SxS+Br9DBD7X8IInEZajSHis7g/lYhVkHsxUdsVPdkZ/QZJY2WokLNR5288jRkUNscO5f1o9oENlzFAmKAbQGLayXx2upIMOfdWBn6WYVA/PSi2dAqbNwhlpMELItFLkb6rYw0YuPXPY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn; spf=pass smtp.mailfrom=kylinos.cn; arc=none smtp.client-ip=124.126.103.232
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kylinos.cn
-X-UUID: 7ee6cc10265411f1a21c59e7364eecb8-20260323
-X-CID-P-RULE: Release_Ham
-X-CID-O-INFO: VERSION:1.3.11,REQID:af31ea84-fec6-4365-88d1-86aa94a4fbf8,IP:0,U
-	RL:0,TC:0,Content:0,EDM:0,RT:0,SF:0,FILE:0,BULK:0,RULE:Release_Ham,ACTION:
-	release,TS:0
-X-CID-META: VersionHash:89c9d04,CLOUDID:507fd8dc89919cb622c16eede932f069,BulkI
-	D:nil,BulkQuantity:0,Recheck:0,SF:80|83|102|817|898,TC:nil,Content:-10|-8|
-	-5|14|50,EDM:-3,IP:nil,URL:0,File:nil,RT:nil,Bulk:nil,QS:nil,BEC:nil,COL:0
-	,OSI:0,OSA:0,AV:0,LES:1,SPR:NO,DKR:0,DKP:0,BRR:0,BRE:0,ARC:0
-X-CID-BVR: 2,SSN|SDN
-X-CID-BAS: 2,SSN|SDN,0,_
-X-CID-FACTOR: TF_CID_SPAM_SNR
-X-CID-RHF: D41D8CD98F00B204E9800998ECF8427E
-X-UUID: 7ee6cc10265411f1a21c59e7364eecb8-20260323
-X-User: tianyaxiong@kylinos.cn
-Received: from [10.42.13.21] [(10.44.16.150)] by mailgw.kylinos.cn
-	(envelope-from <tianyaxiong@kylinos.cn>)
-	(Generic MTA with TLSv1.3 TLS_AES_128_GCM_SHA256 128/128)
-	with ESMTP id 1625085429; Mon, 23 Mar 2026 09:06:17 +0800
-Message-ID: <3a142e40-c3f0-4fea-84dd-371400b4125d@kylinos.cn>
-Date: Mon, 23 Mar 2026 09:06:14 +0800
+	s=arc-20240116; t=1774239248; c=relaxed/simple;
+	bh=D6pA8MunkA3Wrq8YZFZzzO8WrJn99+IQHm+pMxzkIHI=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=SZ1DWPw24pGLESUPa0f4Q1cHgefaANT3Aei4Xbxn0zajTmh3CoK9vLo0Z+q04j4X5/0FHL5F/vPovb7gilo+ETKFf7fkb6pVCLXwxXasUXUMVXiauSGYgYRbF55F96Y0Lr536HQD8bt1VqUOVM8cfUQwGdYe4BcoYBMT/GafHFA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=P149346p; arc=none smtp.client-ip=192.198.163.13
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="P149346p"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1774239246; x=1805775246;
+  h=date:from:to:cc:subject:message-id;
+  bh=D6pA8MunkA3Wrq8YZFZzzO8WrJn99+IQHm+pMxzkIHI=;
+  b=P149346pFnFfI0sBkk40gigm7s7p3ZH8fagchyOGu0/jI7d3c9jmitd2
+   DdeYO/Q4uwjD790jKdMBpDQwmvTr0R2p0fu8zxP8r8swovMMIWFhcI3Kw
+   8JQyCgIBWZB5R0T9pIC/xClhG4XHOJNwUBHGflq9mVagh3PJp/DwHT5r7
+   LhT9/JPfBUSOgJY8hjhBvE+8zYu8J8qzU/N4BRYG3+wK8FyXJgg1xDmTJ
+   nH+z2Rh5GbwWWY4zBnPTfPJlFpcNFF91UMRg7VcXQCqtwQP9JJkFh9444
+   ghdL1Ratnif5thUy0jNN7vVsE2G7zKqvUYpHPrGvA3+vp6WICGHjei2w8
+   A==;
+X-CSE-ConnectionGUID: JbGXo7hSR+y+ZqnjEhtcjg==
+X-CSE-MsgGUID: xZp3ukdTT9ui4k/xC/R98g==
+X-IronPort-AV: E=McAfee;i="6800,10657,11737"; a="77844201"
+X-IronPort-AV: E=Sophos;i="6.23,136,1770624000"; 
+   d="scan'208";a="77844201"
+Received: from fmviesa005.fm.intel.com ([10.60.135.145])
+  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Mar 2026 21:14:05 -0700
+X-CSE-ConnectionGUID: XivdVWfJSvyT1Xlhc12PmA==
+X-CSE-MsgGUID: 9EXetnWKQyKuSh1Vor0BYw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,136,1770624000"; 
+   d="scan'208";a="228623116"
+Received: from lkp-server01.sh.intel.com (HELO 7ce7cd20ec32) ([10.239.97.150])
+  by fmviesa005.fm.intel.com with ESMTP; 22 Mar 2026 21:14:04 -0700
+Received: from kbuild by 7ce7cd20ec32 with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1w4Wfx-0000000003Z-3NNx;
+	Mon, 23 Mar 2026 04:14:01 +0000
+Date: Mon, 23 Mar 2026 12:13:59 +0800
+From: kernel test robot <lkp@intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+Subject: [rafael-pm:bleeding-edge] BUILD SUCCESS
+ e9d8abf829f59947b749a761a62b7146acee31e8
+Message-ID: <202603231251.UXaw9aNk-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-To: luriwen@kylinos.cn
-Content-Language: en-US
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, lenb@kernel.org,
- "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
- linux-acpi@vger.kernel.org
-From: Yaxiong Tian <tianyaxiong@kylinos.cn>
-Subject: Re: [PATCH v3] ACPI: PM: Introduce CONFIG_ACPI_S2IDLE for
- platform-independent S2Idle support
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
 
- >The ACPI S2Idle (suspend-to-idle) code is currently located in sleep.c
- >and guarded by CONFIG_ACPI_SYSTEM_POWER_STATES_SUPPORT. This config is
- >historically tied to x86/ia64 sleep states (S3/S4), which prevents
- >ACPI-based platforms like ARM64 from using the OS-centric s2idle
- >framework and its associated wakeup event handling (e.g., from ACPI
- >buttons or the lid).
- >
- >Since S2Idle is a software-driven low-power state that does not rely on
- >firmware sleep states (S3/S4), it should be available to all
- >ACPI-enabled platforms.
- >
- >To achieve this, introduce a new, independent Kconfig option,
- >CONFIG_ACPI_S2IDLE. It is selected by ACPI_SYSTEM_POWER_STATES_SUPPORT
- >for backward compatibility, but can now also be enabled separately by
- >other platforms.
- >
- >Move all s2idle-specific code into a dedicated file,
- >drivers/acpi/s2idle.c. This creates a clear and independent ACPI s2idle
- >framework, centered around a default acpi_s2idle_ops and a weakly
- >defined acpi_s2idle_setup() hook.
- >
- >The change allows all ACPI platforms to use this common s2idle
- >infrastructure. Platforms with unique requirements can override the
- >defaults via the weak function, while others (like ARM64) can now simply
- >enable the config to obtain functional s2idle support with standard ACPI
- >wakeup handling.
- >
- >Signed-off-by: Riwen Lu <luriwen@kylinos.cn>
- >
- >---
- >v1 -> v2:
- > - Fix acpi_s2idle_setup() declaration error when SUSPEND disabled in x86.
- >
- >v2 -> v3:
- > - Select ACPI_S2IDLE if SUSPEND enabled for 
-ACPI_SYSTEM_POWER_STATES_SUPPORT.
- >---
- > drivers/acpi/Kconfig    |  14 ++++
- > drivers/acpi/Makefile   |   2 +
- > drivers/acpi/bus.c      |   3 +
- > drivers/acpi/internal.h |  10 ++-
- > drivers/acpi/s2idle.c   | 167 ++++++++++++++++++++++++++++++++++++++++
- > drivers/acpi/sleep.c    | 145 ----------------------------------
- > 6 files changed, 194 insertions(+), 147 deletions(-)
- > create mode 100644 drivers/acpi/s2idle.c
- >
- >diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
- >index ca00a5dbcf75..fa982b784c57 100644
- >--- a/drivers/acpi/Kconfig
- >+++ b/drivers/acpi/Kconfig
- >@@ -54,6 +54,7 @@ config ACPI_GENERIC_GSI
- >
- > config ACPI_SYSTEM_POWER_STATES_SUPPORT
- >     bool
- >+    select ACPI_S2IDLE if SUSPEND
- >
- > config ACPI_CCA_REQUIRED
- >     bool
- >@@ -112,6 +113,19 @@ config ACPI_SLEEP
- >     depends on ACPI_SYSTEM_POWER_STATES_SUPPORT
- >     default y
- >
- >+config ACPI_S2IDLE
- >+    bool "ACPI suspend-to-idle support"
- >+    depends on SUSPEND
- >+    help
- >+      This option enables the core ACPI framework for the suspend-to-idle
- >+      (S2Idle) power state. This state is software-driven and does not
- >+      require platform firmware sleep states (S3/S4).
- >+
- >+      It is automatically selected by platforms with
- >+      CONFIG_ACPI_SYSTEM_POWER_STATES_SUPPORT (like x86), but can also
- >+      be enabled independently by other ACPI platforms (e.g., ARM64) to
- >+      gain support for low-power idle and ACPI wakeup events.
- >+
- > config ACPI_REV_OVERRIDE_POSSIBLE
- >     bool "Allow supported ACPI revision to be overridden"
- >     depends on X86
- >diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
- >index d1b0affb844f..821afc165197 100644
- >--- a/drivers/acpi/Makefile
- >+++ b/drivers/acpi/Makefile
- >@@ -35,6 +35,8 @@ acpi-$(CONFIG_ACPI_SYSTEM_POWER_STATES_SUPPORT) += 
-sleep.o
- > acpi-y                += device_sysfs.o device_pm.o
- > acpi-$(CONFIG_ACPI_SLEEP)    += proc.o
- >
- >+acpi-$(CONFIG_ACPI_S2IDLE)    += s2idle.o
- >+
- >
- > #
- > # ACPI Bus and Device Drivers
- >diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
- >index a984ccd4a2a0..f355fc3c201b 100644
- >--- a/drivers/acpi/bus.c
- >+++ b/drivers/acpi/bus.c
- >@@ -1398,6 +1398,9 @@ static int __init acpi_bus_init(void)
- >     /* Initialize sleep structures */
- >     acpi_sleep_init();
- >
- >+    /* Initialize default acpi s2idle ops */
- >+    acpi_s2idle_init();
- >+
- >     /*
- >      * Get the system interrupt model and evaluate \_PIC.
- >      */
- >diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
- >index 40f875b265a9..7f314acd7148 100644
- >--- a/drivers/acpi/internal.h
- >+++ b/drivers/acpi/internal.h
- >@@ -267,13 +267,19 @@ static inline bool acpi_ec_dispatch_gpe(void)
- >                                   Suspend/Resume
- > 
--------------------------------------------------------------------------- 
-*/
- > #ifdef CONFIG_ACPI_SYSTEM_POWER_STATES_SUPPORT
- >-extern bool acpi_s2idle_wakeup(void);
- > extern int acpi_sleep_init(void);
- > #else
- >-static inline bool acpi_s2idle_wakeup(void) { return false; }
- > static inline int acpi_sleep_init(void) { return -ENXIO; }
- > #endif
- >
- >+#ifdef CONFIG_ACPI_S2IDLE
- >+extern bool acpi_s2idle_wakeup(void);
- >+extern int acpi_s2idle_init(void);
- >+#else
- >+static inline bool acpi_s2idle_wakeup(void) { return false; }
- >+static inline int acpi_s2idle_init(void) { return -ENXIO; }
- >+#endif
- >+
- > #ifdef CONFIG_ACPI_SLEEP
- > void acpi_sleep_proc_init(void);
- > int suspend_nvs_alloc(void);
- >diff --git a/drivers/acpi/s2idle.c b/drivers/acpi/s2idle.c
- >new file mode 100644
- >index 000000000000..0c783b0e1a9b
- >--- /dev/null
- >+++ b/drivers/acpi/s2idle.c
- >@@ -0,0 +1,167 @@
- >+// SPDX-License-Identifier: GPL-2.0
- >+/*
- >+ * s2idle.c - ACPI suspend-to-idle support.
- >+ *
- >+ */
- >+
- >+#include <linux/acpi.h>
- >+#include <linux/device.h>
- >+#include <linux/suspend.h>
- >+#include <linux/irq.h>
- >+
- >+#include "internal.h"
- >+#include "sleep.h"
- >+
- >+#ifdef CONFIG_SUSPEND
- >+static bool s2idle_wakeup;
- >+
- >+int acpi_s2idle_begin(void)
- >+{
- >+    acpi_scan_lock_acquire();
- >+    return 0;
- >+}
- >+
- >+int acpi_s2idle_prepare(void)
- >+{
- >+    if (acpi_sci_irq_valid()) {
- >+        int error;
- >+
- >+        error = enable_irq_wake(acpi_sci_irq);
- >+        if (error)
- >+            pr_warn("Warning: Failed to enable wakeup from IRQ %d: %d\n",
- >+                acpi_sci_irq, error);
- >+
- >+        acpi_ec_set_gpe_wake_mask(ACPI_GPE_ENABLE);
- >+    }
- >+
- >+    acpi_enable_wakeup_devices(ACPI_STATE_S0);
- >+
- >+    /* Change the configuration of GPEs to avoid spurious wakeup. */
- >+    acpi_enable_all_wakeup_gpes();
- >+    acpi_os_wait_events_complete();
- >+
- >+    s2idle_wakeup = true;
- >+    return 0;
- >+}
- >+
- >+bool acpi_s2idle_wake(void)
- >+{
- >+    if (!acpi_sci_irq_valid())
- >+        return pm_wakeup_pending();
- >+
- >+    while (pm_wakeup_pending()) {
- >+        /*
- >+         * If IRQD_WAKEUP_ARMED is set for the SCI at this point, the
- >+         * SCI has not triggered while suspended, so bail out (the
- >+         * wakeup is pending anyway and the SCI is not the source of
- >+         * it).
- >+         */
- >+        if (irqd_is_wakeup_armed(irq_get_irq_data(acpi_sci_irq))) {
- >+            pm_pr_dbg("Wakeup unrelated to ACPI SCI\n");
- >+            return true;
- >+        }
- >+
- >+        /*
- >+         * If the status bit of any enabled fixed event is set, the
- >+         * wakeup is regarded as valid.
- >+         */
- >+        if (acpi_any_fixed_event_status_set()) {
- >+            pm_pr_dbg("ACPI fixed event wakeup\n");
- >+            return true;
- >+        }
- >+
- >+        /* Check wakeups from drivers sharing the SCI. */
- >+        if (acpi_check_wakeup_handlers()) {
- >+            pm_pr_dbg("ACPI custom handler wakeup\n");
- >+            return true;
- >+        }
- >+
- >+        /*
- >+         * Check non-EC GPE wakeups and if there are none, cancel the
- >+         * SCI-related wakeup and dispatch the EC GPE.
- >+         */
- >+        if (acpi_ec_dispatch_gpe()) {
- >+            pm_pr_dbg("ACPI non-EC GPE wakeup\n");
- >+            return true;
- >+        }
- >+
- >+        acpi_os_wait_events_complete();
- >+
- >+        /*
- >+         * The SCI is in the "suspended" state now and it cannot produce
- >+         * new wakeup events till the rearming below, so if any of them
- >+         * are pending here, they must be resulting from the processing
- >+         * of EC events above or coming from somewhere else.
- >+         */
- >+        if (pm_wakeup_pending()) {
- >+            pm_pr_dbg("Wakeup after ACPI Notify sync\n");
- >+            return true;
- >+        }
- >+
- >+        pm_pr_dbg("Rearming ACPI SCI for wakeup\n");
- >+
- >+        pm_wakeup_clear(acpi_sci_irq);
- >+        rearm_wake_irq(acpi_sci_irq);
- >+    }
- >+
- >+    return false;
- >+}
- >+
- >+void acpi_s2idle_restore(void)
- >+{
- >+    /*
- >+     * Drain pending events before restoring the working-state 
-configuration
- >+     * of GPEs.
- >+     */
- >+    acpi_os_wait_events_complete(); /* synchronize GPE processing */
- >+    acpi_ec_flush_work(); /* flush the EC driver's workqueues */
- >+    acpi_os_wait_events_complete(); /* synchronize Notify handling */
- >+
- >+    s2idle_wakeup = false;
- >+
- >+    acpi_enable_all_runtime_gpes();
- >+
- >+    acpi_disable_wakeup_devices(ACPI_STATE_S0);
- >+
- >+    if (acpi_sci_irq_valid()) {
- >+        acpi_ec_set_gpe_wake_mask(ACPI_GPE_DISABLE);
- >+        disable_irq_wake(acpi_sci_irq);
- >+    }
- >+}
- >+
- >+void acpi_s2idle_end(void)
- >+{
- >+    acpi_scan_lock_release();
- >+}
- >+
- >+static const struct platform_s2idle_ops acpi_s2idle_ops = {
- >+    .begin = acpi_s2idle_begin,
- >+    .prepare = acpi_s2idle_prepare,
- >+    .wake = acpi_s2idle_wake,
- >+    .restore = acpi_s2idle_restore,
- >+    .end = acpi_s2idle_end,
- >+};
- >+
- >+void __weak acpi_s2idle_setup(void)
- >+{
- >+    if (acpi_gbl_FADT.flags & ACPI_FADT_LOW_POWER_S0)
- >+        pr_info("Efficient low-power S0 idle declared\n");
- >+
- >+    s2idle_set_ops(&acpi_s2idle_ops);
- >+}
- >+
- >+#else /* !CONFIG_SUSPEND */
- >+#define s2idle_wakeup        (false)
- >+void acpi_s2idle_setup(void) {}
- >+#endif /* !CONFIG_SUSPEND */
- >+
- >+bool acpi_s2idle_wakeup(void)
- >+{
- >+    return s2idle_wakeup;
- >+}
- >+
- >+int __init acpi_s2idle_init(void)
- >+{
- >+    acpi_s2idle_setup();
- >+    return 0;
- >+}
- >diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
- >index 66ec81e306d4..3dd8eebd7efd 100644
- >--- a/drivers/acpi/sleep.c
- >+++ b/drivers/acpi/sleep.c
- >@@ -716,143 +716,6 @@ static const struct platform_suspend_ops 
-acpi_suspend_ops_old = {
- >     .recover = acpi_pm_finish,
- > };
- >
- >-static bool s2idle_wakeup;
- >-
- >-int acpi_s2idle_begin(void)
- >-{
- >-    acpi_scan_lock_acquire();
- >-    return 0;
- >-}
- >-
- >-int acpi_s2idle_prepare(void)
- >-{
- >-    if (acpi_sci_irq_valid()) {
- >-        int error;
- >-
- >-        error = enable_irq_wake(acpi_sci_irq);
- >-        if (error)
- >-            pr_warn("Warning: Failed to enable wakeup from IRQ %d: %d\n",
- >-                acpi_sci_irq, error);
- >-
- >-        acpi_ec_set_gpe_wake_mask(ACPI_GPE_ENABLE);
- >-    }
- >-
- >-    acpi_enable_wakeup_devices(ACPI_STATE_S0);
- >-
- >-    /* Change the configuration of GPEs to avoid spurious wakeup. */
- >-    acpi_enable_all_wakeup_gpes();
- >-    acpi_os_wait_events_complete();
- >-
- >-    s2idle_wakeup = true;
- >-    return 0;
- >-}
- >-
- >-bool acpi_s2idle_wake(void)
- >-{
- >-    if (!acpi_sci_irq_valid())
- >-        return pm_wakeup_pending();
- >-
- >-    while (pm_wakeup_pending()) {
- >-        /*
- >-         * If IRQD_WAKEUP_ARMED is set for the SCI at this point, the
- >-         * SCI has not triggered while suspended, so bail out (the
- >-         * wakeup is pending anyway and the SCI is not the source of
- >-         * it).
- >-         */
- >-        if (irqd_is_wakeup_armed(irq_get_irq_data(acpi_sci_irq))) {
- >-            pm_pr_dbg("Wakeup unrelated to ACPI SCI\n");
- >-            return true;
- >-        }
- >-
- >-        /*
- >-         * If the status bit of any enabled fixed event is set, the
- >-         * wakeup is regarded as valid.
- >-         */
- >-        if (acpi_any_fixed_event_status_set()) {
- >-            pm_pr_dbg("ACPI fixed event wakeup\n");
- >-            return true;
- >-        }
- >-
- >-        /* Check wakeups from drivers sharing the SCI. */
- >-        if (acpi_check_wakeup_handlers()) {
- >-            pm_pr_dbg("ACPI custom handler wakeup\n");
- >-            return true;
- >-        }
- >-
- >-        /*
- >-         * Check non-EC GPE wakeups and if there are none, cancel the
- >-         * SCI-related wakeup and dispatch the EC GPE.
- >-         */
- >-        if (acpi_ec_dispatch_gpe()) {
- >-            pm_pr_dbg("ACPI non-EC GPE wakeup\n");
- >-            return true;
- >-        }
- >-
- >-        acpi_os_wait_events_complete();
- >-
- >-        /*
- >-         * The SCI is in the "suspended" state now and it cannot produce
- >-         * new wakeup events till the rearming below, so if any of them
- >-         * are pending here, they must be resulting from the processing
- >-         * of EC events above or coming from somewhere else.
- >-         */
- >-        if (pm_wakeup_pending()) {
- >-            pm_pr_dbg("Wakeup after ACPI Notify sync\n");
- >-            return true;
- >-        }
- >-
- >-        pm_pr_dbg("Rearming ACPI SCI for wakeup\n");
- >-
- >-        pm_wakeup_clear(acpi_sci_irq);
- >-        rearm_wake_irq(acpi_sci_irq);
- >-    }
- >-
- >-    return false;
- >-}
- >-
- >-void acpi_s2idle_restore(void)
- >-{
- >-    /*
- >-     * Drain pending events before restoring the working-state 
-configuration
- >-     * of GPEs.
- >-     */
- >-    acpi_os_wait_events_complete(); /* synchronize GPE processing */
- >-    acpi_ec_flush_work(); /* flush the EC driver's workqueues */
- >-    acpi_os_wait_events_complete(); /* synchronize Notify handling */
- >-
- >-    s2idle_wakeup = false;
- >-
- >-    acpi_enable_all_runtime_gpes();
- >-
- >-    acpi_disable_wakeup_devices(ACPI_STATE_S0);
- >-
- >-    if (acpi_sci_irq_valid()) {
- >-        acpi_ec_set_gpe_wake_mask(ACPI_GPE_DISABLE);
- >-        disable_irq_wake(acpi_sci_irq);
- >-    }
- >-}
- >-
- >-void acpi_s2idle_end(void)
- >-{
- >-    acpi_scan_lock_release();
- >-}
- >-
- >-static const struct platform_s2idle_ops acpi_s2idle_ops = {
- >-    .begin = acpi_s2idle_begin,
- >-    .prepare = acpi_s2idle_prepare,
- >-    .wake = acpi_s2idle_wake,
- >-    .restore = acpi_s2idle_restore,
- >-    .end = acpi_s2idle_end,
- >-};
- >-
- >-void __weak acpi_s2idle_setup(void)
- >-{
- >-    if (acpi_gbl_FADT.flags & ACPI_FADT_LOW_POWER_S0)
- >-        pr_info("Efficient low-power S0 idle declared\n");
- >-
- >-    s2idle_set_ops(&acpi_s2idle_ops);
- >-}
- >-
- > static void __init acpi_sleep_suspend_setup(void)
- > {
- >     bool suspend_ops_needed = false;
- >@@ -867,20 +730,12 @@ static void __init acpi_sleep_suspend_setup(void)
- >     if (suspend_ops_needed)
- >         suspend_set_ops(old_suspend_ordering ?
- >                 &acpi_suspend_ops_old : &acpi_suspend_ops);
- >-
- >-    acpi_s2idle_setup();
- > }
- >
- > #else /* !CONFIG_SUSPEND */
- >-#define s2idle_wakeup        (false)
- > static inline void acpi_sleep_suspend_setup(void) {}
- > #endif /* !CONFIG_SUSPEND */
- >
- >-bool acpi_s2idle_wakeup(void)
- >-{
- >-    return s2idle_wakeup;
- >-}
- >-
- > #ifdef CONFIG_PM_SLEEP
- > static u32 saved_bm_rld;
- >
- >--
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
+branch HEAD: e9d8abf829f59947b749a761a62b7146acee31e8  Merge branch 'acpi-cmos-rtc' into bleeding-edge
 
- >2.25.1
+elapsed time: 757m
 
-Reviewed-by: Yaxiong Tian  <tianyaxiong@kylinos.cn>
+configs tested: 152
+configs skipped: 3
 
+The following configs have been built successfully.
+More configs may be tested in the coming days.
+
+tested configs:
+alpha                             allnoconfig    gcc-15.2.0
+alpha                            allyesconfig    gcc-15.2.0
+alpha                               defconfig    gcc-15.2.0
+arc                              allmodconfig    gcc-15.2.0
+arc                               allnoconfig    gcc-15.2.0
+arc                              allyesconfig    gcc-15.2.0
+arc                                 defconfig    gcc-15.2.0
+arc                   randconfig-001-20260323    gcc-8.5.0
+arc                   randconfig-002-20260323    gcc-8.5.0
+arm                               allnoconfig    clang-23
+arm                              allyesconfig    gcc-15.2.0
+arm                                 defconfig    clang-23
+arm                   randconfig-001-20260323    clang-23
+arm                   randconfig-002-20260323    clang-23
+arm                   randconfig-003-20260323    gcc-14.3.0
+arm                   randconfig-004-20260323    gcc-10.5.0
+arm64                            allmodconfig    clang-19
+arm64                             allnoconfig    gcc-15.2.0
+arm64                               defconfig    gcc-15.2.0
+arm64                 randconfig-001-20260323    gcc-10.5.0
+arm64                 randconfig-002-20260323    gcc-11.5.0
+arm64                 randconfig-003-20260323    clang-23
+arm64                 randconfig-004-20260323    gcc-12.5.0
+csky                             allmodconfig    gcc-15.2.0
+csky                              allnoconfig    gcc-15.2.0
+csky                                defconfig    gcc-15.2.0
+csky                  randconfig-001-20260323    gcc-11.5.0
+csky                  randconfig-002-20260323    gcc-15.2.0
+hexagon                          allmodconfig    clang-17
+hexagon                           allnoconfig    clang-23
+hexagon                             defconfig    clang-23
+hexagon               randconfig-001-20260323    clang-23
+hexagon               randconfig-002-20260323    clang-17
+i386                             allmodconfig    gcc-14
+i386                              allnoconfig    gcc-14
+i386                             allyesconfig    gcc-14
+i386        buildonly-randconfig-001-20260323    clang-20
+i386        buildonly-randconfig-002-20260323    gcc-14
+i386        buildonly-randconfig-003-20260323    clang-20
+i386        buildonly-randconfig-004-20260323    clang-20
+i386        buildonly-randconfig-005-20260323    clang-20
+i386                                defconfig    clang-20
+i386                  randconfig-011-20260323    clang-20
+i386                  randconfig-012-20260323    clang-20
+i386                  randconfig-013-20260323    clang-20
+i386                  randconfig-014-20260323    gcc-14
+i386                  randconfig-015-20260323    clang-20
+i386                  randconfig-016-20260323    clang-20
+i386                  randconfig-017-20260323    clang-20
+loongarch                        allmodconfig    clang-19
+loongarch                         allnoconfig    clang-23
+loongarch                           defconfig    clang-19
+loongarch             randconfig-001-20260323    clang-18
+loongarch             randconfig-002-20260323    clang-23
+m68k                             allmodconfig    gcc-15.2.0
+m68k                              allnoconfig    gcc-15.2.0
+m68k                             allyesconfig    gcc-15.2.0
+m68k                                defconfig    gcc-15.2.0
+microblaze                        allnoconfig    gcc-15.2.0
+microblaze                       allyesconfig    gcc-15.2.0
+microblaze                          defconfig    gcc-15.2.0
+mips                             allmodconfig    gcc-15.2.0
+mips                              allnoconfig    gcc-15.2.0
+mips                             allyesconfig    gcc-15.2.0
+nios2                            allmodconfig    gcc-11.5.0
+nios2                             allnoconfig    gcc-11.5.0
+nios2                               defconfig    gcc-11.5.0
+nios2                 randconfig-001-20260323    gcc-8.5.0
+nios2                 randconfig-002-20260323    gcc-8.5.0
+openrisc                         allmodconfig    gcc-15.2.0
+openrisc                          allnoconfig    gcc-15.2.0
+openrisc                            defconfig    gcc-15.2.0
+parisc                           allmodconfig    gcc-15.2.0
+parisc                            allnoconfig    gcc-15.2.0
+parisc                           allyesconfig    gcc-15.2.0
+parisc                              defconfig    gcc-15.2.0
+parisc                randconfig-001-20260323    gcc-8.5.0
+parisc                randconfig-002-20260323    gcc-13.4.0
+parisc64                            defconfig    gcc-15.2.0
+powerpc                          allmodconfig    gcc-15.2.0
+powerpc                           allnoconfig    gcc-15.2.0
+powerpc               randconfig-001-20260323    clang-19
+powerpc               randconfig-002-20260323    gcc-13.4.0
+powerpc64             randconfig-001-20260323    clang-23
+powerpc64             randconfig-002-20260323    gcc-10.5.0
+riscv                            allmodconfig    clang-23
+riscv                             allnoconfig    gcc-15.2.0
+riscv                            allyesconfig    clang-16
+riscv                               defconfig    clang-23
+riscv                 randconfig-001-20260323    gcc-14.3.0
+riscv                 randconfig-002-20260323    clang-23
+s390                             allmodconfig    clang-18
+s390                              allnoconfig    clang-23
+s390                             allyesconfig    gcc-15.2.0
+s390                                defconfig    clang-23
+s390                  randconfig-001-20260323    gcc-8.5.0
+s390                  randconfig-002-20260323    gcc-8.5.0
+sh                               allmodconfig    gcc-15.2.0
+sh                                allnoconfig    gcc-15.2.0
+sh                               allyesconfig    gcc-15.2.0
+sh                                  defconfig    gcc-15.2.0
+sh                    randconfig-001-20260323    gcc-15.2.0
+sh                    randconfig-002-20260323    gcc-15.2.0
+sparc                             allnoconfig    gcc-15.2.0
+sparc                               defconfig    gcc-15.2.0
+sparc                 randconfig-001-20260323    gcc-8.5.0
+sparc                 randconfig-002-20260323    gcc-13.4.0
+sparc64                          allmodconfig    clang-23
+sparc64                             defconfig    clang-20
+sparc64               randconfig-001-20260323    gcc-8.5.0
+sparc64               randconfig-002-20260323    clang-20
+um                               allmodconfig    clang-19
+um                                allnoconfig    clang-23
+um                               allyesconfig    gcc-14
+um                                  defconfig    clang-23
+um                             i386_defconfig    gcc-14
+um                    randconfig-001-20260323    clang-23
+um                    randconfig-002-20260323    clang-23
+um                           x86_64_defconfig    clang-23
+x86_64                           allmodconfig    clang-20
+x86_64                            allnoconfig    clang-20
+x86_64                           allyesconfig    clang-20
+x86_64      buildonly-randconfig-001-20260323    clang-20
+x86_64      buildonly-randconfig-002-20260323    clang-20
+x86_64      buildonly-randconfig-003-20260323    gcc-14
+x86_64      buildonly-randconfig-004-20260323    clang-20
+x86_64      buildonly-randconfig-005-20260323    clang-20
+x86_64      buildonly-randconfig-006-20260323    gcc-14
+x86_64                              defconfig    gcc-14
+x86_64                randconfig-001-20260323    clang-20
+x86_64                randconfig-002-20260323    gcc-14
+x86_64                randconfig-003-20260323    gcc-14
+x86_64                randconfig-004-20260323    clang-20
+x86_64                randconfig-005-20260323    gcc-14
+x86_64                randconfig-006-20260323    clang-20
+x86_64                randconfig-011-20260323    gcc-13
+x86_64                randconfig-012-20260323    gcc-14
+x86_64                randconfig-013-20260323    gcc-14
+x86_64                randconfig-014-20260323    clang-20
+x86_64                randconfig-015-20260323    clang-20
+x86_64                randconfig-016-20260323    clang-20
+x86_64                randconfig-071-20260323    clang-20
+x86_64                randconfig-072-20260323    clang-20
+x86_64                randconfig-073-20260323    clang-20
+x86_64                randconfig-074-20260323    gcc-13
+x86_64                randconfig-075-20260323    clang-20
+x86_64                randconfig-076-20260323    gcc-14
+x86_64                          rhel-9.4-rust    clang-20
+xtensa                            allnoconfig    gcc-15.2.0
+xtensa                           allyesconfig    gcc-15.2.0
+xtensa                randconfig-001-20260323    gcc-13.4.0
+xtensa                randconfig-002-20260323    gcc-13.4.0
+
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
