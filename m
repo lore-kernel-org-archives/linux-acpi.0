@@ -1,72 +1,99 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.17])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFEAA38837A;
-	Mon, 23 Mar 2026 09:57:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D47C4390999;
+	Mon, 23 Mar 2026 10:46:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.17
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774259844; cv=none; b=sRY41W1Z164rIVM/j3d7qGerzO/GU7M6jB5blRaSNgYGI2gICYolX4gQk+e4EZBQocNfFWQTgXA4YOO2Tlbn22kYIz50gyMtbYfHY57BH9rOaBc08r+WfvOpSHQT0mkj0DmIbyIlZ/cKXYtY8El3tDUTvwnfgyNAxx4/HJvkRu8=
+	t=1774262799; cv=none; b=pAiXNMyPNASRmbZli6zJvo0jjym8RzX1l9EHRMYqY0Vnf3EjvBOGSXULO0SKuVDTYwyeOW8mU29y1UtxMZjH9HWEGB7J7t3TrpPl54+QXJcSOd6HBmWIq3lUlgRKPNj7RWSZgFTrGFw21ByopfOmlVViVu+CYo2lIGvigguRaDM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774259844; c=relaxed/simple;
-	bh=gRh5APmEZoL+PCyEZvnv2xN1B3en8Ns9D/n0z8iaxBw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=sPUPYH4rHOvH0dBP4lztO7Spk9poJw81KdDySCeMSxyTB3you9DLry2w0kU//QTOZqSodgOSYJTc4Xt4I/UdeBW7cdMl4ump02RhPxVF/ylRXBuX4E2SnhPkfUsqRxz9er7+FioY3Ns6cdDlB+IaW9lT9bSKnU5pc0OVTKA9dJo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=g4R0izOF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774262799; c=relaxed/simple;
+	bh=MporbxhHtp79tG8SQcBr7biQCODJN7ATT7++lCKV0rE=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=ARX5wOMoDG0E3Vjt9IjaKNNKS5LBzeeWChS1DLDRUIjDTsFCCm35PR53LnnrG4uFcDvL8DYJ/yr8fHZtbgHb5H+5DbsjbqlIqqAICtj2F0YqaXcuB3kWSz8fdGRoToRFtB5FiZ8QEGaNrKjtdVav2YXc2DCbI0bz/5Gx3GAlQRo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=aBPqeJ6a; arc=none smtp.client-ip=198.175.65.17
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="g4R0izOF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83BB4C4CEF7;
-	Mon, 23 Mar 2026 09:57:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774259844;
-	bh=gRh5APmEZoL+PCyEZvnv2xN1B3en8Ns9D/n0z8iaxBw=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=g4R0izOFJoLr+RY7wW6q6gHNB7yQudIc04pJgXeAIwJ239kqv/JbRYRpU5JH+iUAv
-	 JupXG4sO7npwob97zlSwBJW8vYP9+qAPTQ5RK7aT5ZO7tueXiBsQGxtcbkeyU9wj5S
-	 Qo/JSFcbGOf83jTPZsXwi7JyePUxC/32UrQfXUNdRRO7ziRgQcSDns54jkSUUL99YP
-	 W/tflhveyuTEIrhtcKgT1u757xG2aBFRhafGEVM5FqqWib075dpzVdmzut0hO6BMkX
-	 KqTBw8JAf3AgkPT/3/L7mvJxLn5KYCWrfAvPv/vNVkm+3cokYm5jhueSZjggTy5QV4
-	 WD2kCDP+tbEKQ==
-Date: Mon, 23 Mar 2026 09:57:19 +0000
-From: Daniel Thompson <danielt@kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="aBPqeJ6a"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1774262799; x=1805798799;
+  h=from:to:cc:in-reply-to:references:subject:message-id:
+   date:mime-version:content-transfer-encoding;
+  bh=MporbxhHtp79tG8SQcBr7biQCODJN7ATT7++lCKV0rE=;
+  b=aBPqeJ6aX7DKqfBSmiY6rsfkjQWcZLH7LOv86e49ZthXUJNLZlbgyL8C
+   39gTdwR1G5pEUQSYyQv7/aErKUl9cOHzYDvrHFHJ51J33ohhnnll3Hdyk
+   xR1msXISBh4ELe5aGRP7QV4lAZhsGnSUC4aSv29f35Xh1Uygb4TsbRtXM
+   TY0BlcHS3egSNsJj99Lssd3TNqUluuRJQpkk3l8yNLPQhQQgPJqC1Z5qF
+   +RtNmwZqrvK/xWwZUlwktgxX3kCtULA/yczVGi/5TQazKiCJIfKzyXqeF
+   7ABQywvSj54v3QKJmNtxcTBLii96oEEOm5IkMVNtGxf5KcF7QmcRtvLYa
+   g==;
+X-CSE-ConnectionGUID: 0VgXsFi5T+C8HGu8iOGk+g==
+X-CSE-MsgGUID: rKIvcMpkR86zTbzSgPPVGg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11737"; a="75226695"
+X-IronPort-AV: E=Sophos;i="6.23,137,1770624000"; 
+   d="scan'208";a="75226695"
+Received: from orviesa001.jf.intel.com ([10.64.159.141])
+  by orvoesa109.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Mar 2026 03:46:29 -0700
+X-CSE-ConnectionGUID: 8SGX+4o1TOecjMHacIyfHw==
+X-CSE-MsgGUID: TvuaNbktRH+Vz3B1j/bVMw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,137,1770624000"; 
+   d="scan'208";a="261901727"
+Received: from ijarvine-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.244.49])
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Mar 2026 03:46:27 -0700
+From: =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
 To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Lee Jones <lee@kernel.org>, LKML <linux-kernel@vger.kernel.org>,
-	Linux ACPI <linux-acpi@vger.kernel.org>,
-	Jingoo Han <jingoohan1@gmail.com>, Helge Deller <deller@gmx.de>,
-	dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org
-Subject: Re: [PATCH v1] backlight: apple_bl: Convert to a platform driver
-Message-ID: <acEOf2pI_NpfA4EP@aspen.lan>
-References: <5084777.GXAFRqVoOG@rafael.j.wysocki>
+Cc: LKML <linux-kernel@vger.kernel.org>, 
+ Linux ACPI <linux-acpi@vger.kernel.org>, Hans de Goede <hansg@kernel.org>, 
+ platform-driver-x86@vger.kernel.org, 
+ Kenneth Chan <kenneth.t.chan@gmail.com>
+In-Reply-To: <5983583.DvuYhMxLoT@rafael.j.wysocki>
+References: <5983583.DvuYhMxLoT@rafael.j.wysocki>
+Subject: Re: [PATCH v4 0/5] platform/x86: panasonic-laptop: Bind to a
+ platform device instead of an ACPI one
+Message-Id: <177426278123.8512.11646057098581105846.b4-ty@linux.intel.com>
+Date: Mon, 23 Mar 2026 12:46:21 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5084777.GXAFRqVoOG@rafael.j.wysocki>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.13.0
 
-On Sat, Mar 14, 2026 at 12:50:11PM +0100, Rafael J. Wysocki wrote:
-> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
->
-> In all cases in which a struct acpi_driver is used for binding a driver
-> to an ACPI device object, a corresponding platform device is created by
-> the ACPI core and that device is regarded as a proper representation of
-> underlying hardware.  Accordingly, a struct platform_driver should be
-> used by driver code to bind to that device.  There are multiple reasons
-> why drivers should not bind directly to ACPI device objects [1].
->
-> Overall, it is better to bind drivers to platform devices than to their
-> ACPI companions, so convert the Apple Backlight ACPI driver to a
-> platform one.
->
-> While this is not expected to alter functionality, it changes sysfs
-> layout and so it will be visible to user space.
->
-> Link: https://lore.kernel.org/all/2396510.ElGaqSPkdT@rafael.j.wysocki/ [1]
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Fri, 20 Mar 2026 11:29:16 +0100, Rafael J. Wysocki wrote:
 
-Reviewed-by: Daniel Thompson (RISCstar) <danielt@kernel.org>
+> This is an update of
+> 
+> https://lore.kernel.org/linux-acpi/12863246.O9o76ZdvQC@rafael.j.wysocki/
+> 
+> addressing a driver_data pointer leak in the last patch.  The other patches
+> in the series remain unchanged.
+> 
+> [...]
 
 
-Daniel.
+Thank you for your contribution, it has been applied to my local
+review-ilpo-next branch. Note it will show up in the public
+platform-drivers-x86/review-ilpo-next branch only once I've pushed my
+local branch there, which might take a while.
+
+The list of commits applied:
+[1/5] platform/x86: panasonic-laptop: Make pcc_register_optd_notifier() void
+      commit: e2b0cd5c265f01977ed4e7f04bd989cdb0b9eaed
+[2/5] platform/x86: panasonic-laptop: Fix OPTD notifier registration and cleanup
+      commit: 8baeff2c1d33dad8572216c6ad3a7425852507d4
+[3/5] platform/x86: panasonic-laptop: Remove redundant checks from 3 functions
+      commit: a347e11252c60bfce1bf15f2f86484cdb9bf6468
+[4/5] platform/x86: panasonic-laptop: Register ACPI notify handler directly
+      commit: 0381b6a65716dae778fb4b5ee4ee42aca62402e9
+[5/5] platform/x86: panasonic-laptop: Convert ACPI driver to a platform one
+      commit: de6837243af00dc22b5117f45a35ec20adbf62c5
+
+--
+ i.
+
