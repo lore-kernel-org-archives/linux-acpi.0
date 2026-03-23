@@ -1,133 +1,113 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B30929AB02
-	for <linux-acpi@vger.kernel.org>; Mon, 23 Mar 2026 12:51:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2F151EBFE0
+	for <linux-acpi@vger.kernel.org>; Mon, 23 Mar 2026 13:40:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774270301; cv=none; b=qDDufwpNdR5N7Rhr3GJ5QTYNLHhdNIec7y7Xa3gHxTSBS7XS+62FaP06kH5nM/INlFN8UYin+mFIQNrFI3jF1rG3uc042+9867XLbPDJDtDQriz5OW3ejefwuk2tJo+v+dgJHEMbMeNoEnTCbdW2UzniMdjJW2LRNLMNw8NQoaU=
+	t=1774273209; cv=none; b=TtOxn7idZFsbUYdewzUd+z/fAJnlvOCS/TWkhEzGQ2ymm/hUSPq6Y3n2kFpdZIlgFz8dk/lwLeOG+1cPca5w/FReRyEDpAMyrDUEpEf8/9Xj9zy1Bow6B2dgJjV4IWtpYUUHasbDuO3ByEE4/CB+qHBuT1k56fy81SjLRGNNzPM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774270301; c=relaxed/simple;
-	bh=ezhpRLIBzp4mQ8CMr8bCkXIvjw0TfjiVM1Q2QAas6nw=;
+	s=arc-20240116; t=1774273209; c=relaxed/simple;
+	bh=TgusCMhIubLEZ4bInu3ubqktLQjOyVgr6o/0viqL3VA=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=AOox6+3Qvjyue55tZe0Mj7AznUmXHLCWjDllibUoBDYlm6ggzMEZPcRs2c5Yv0/jdXrb2aLctof8wGgkrAUJmUx8YqdAEfS3e5lyWGmqvnPJAZeodYQknDEb/OCjDBIcqP/zNTSaMclj5zOVdji9ed0uVdju4MA91LLd921YSp8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MpFlw1Dc; arc=none smtp.client-ip=10.30.226.201
+	 To:Cc:Content-Type; b=G+S6zo/XR8d7MqNjKJi/qH24GvVjCRXCYpZFFc6ivSxrLEz5GELpj3An3XzhT3X+vW21Je73YEKUL3ubuFW/6GXxvK9SUbczhZEOlvNacXarePAO9wiK4E7GKRo2HORM2ZFSlK/B324i4dOK7G50cZ7xafRISDOtQAPN48ihKFY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RlczTnfo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MpFlw1Dc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16F75C2BCB4
-	for <linux-acpi@vger.kernel.org>; Mon, 23 Mar 2026 12:51:41 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RlczTnfo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4CCBC4AF0C
+	for <linux-acpi@vger.kernel.org>; Mon, 23 Mar 2026 13:40:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774270301;
-	bh=ezhpRLIBzp4mQ8CMr8bCkXIvjw0TfjiVM1Q2QAas6nw=;
+	s=k20201202; t=1774273208;
+	bh=TgusCMhIubLEZ4bInu3ubqktLQjOyVgr6o/0viqL3VA=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=MpFlw1DcKCZXnTGKHrbqRSlqg51Ghgf849Qe8MyDpmwUXEOVKksAWQocs//GL/6+H
-	 tfWvP/gCJyxiEX+9uO2QIkOzlgAI9l5C1WZW/w6osS8vFTQUmTzww0qWQyRRo4UYc0
-	 ByNrq0larqrEcD3qvUirsMjoCg2oQtNfovl5Es5ZAVdj3VmDMSD86pz6iyX26fOy0H
-	 j4K7/3kexveDNcbWUyg3pPojM3CecjxviYCWpLUlrRL75tPDiaVbLRIkt0Mxwfp5Ql
-	 MMk3qhGwZt6QC4+Oad1+Pfu6wFQwvMWqN+uaV7i95AvJvzN0e3GE2AytQPJSmk4UNo
-	 T/iXPpFrTkGwQ==
-Received: by mail-ot1-f42.google.com with SMTP id 46e09a7af769-7d86eb7c854so837237a34.3
-        for <linux-acpi@vger.kernel.org>; Mon, 23 Mar 2026 05:51:41 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCWG80XZQ+NE3Ob7S9ynlthiHUXXhY+OYdDL4QqfQTv0dekPHAT26DhccYqh1ZDZhNX+XqytcsNxuilV@vger.kernel.org
-X-Gm-Message-State: AOJu0YyFUaNswosky7BfnVkyrhRZy6X+v4YBoe6Grl7MGPAgp/wOPHWV
-	CKK17u1qB4XQD1X9u1KsE6Q7Y+NvLgXbA23pM6XQlVN2Bjykn03G+D8rJDuF6Maji1SFnGg4xxK
-	ank/JVQfpL+T8NhvvNYPsYxWo3hSWyZQ=
-X-Received: by 2002:a05:6830:8384:b0:7d7:d702:401c with SMTP id
- 46e09a7af769-7d7eb0baf03mr8231419a34.32.1774270300147; Mon, 23 Mar 2026
- 05:51:40 -0700 (PDT)
+	b=RlczTnfotNfcU+QJhEUnTHwooLl+r6GPFRozX17lmA2w3LUUbqRj7Z857DPqOHNWG
+	 /6tB9l8k2luPFcl5iaJQ1UfjTuUNqG3fuezMoN6srW8zxqb78e+SahV4iPN08PvEya
+	 63/gs/fksVj7PTF4nYIl6+HT7TGyAROoE//z7EhXFWesZtYjCvXbkQfWAsx378Oscd
+	 8L6acgGMRhnW62+aW8xl3/E3NNGb1V7RfyuR4q1OdXVog0Gr5757B770FTP4WQAXZu
+	 QlNhs91lxj0g/HkM3LJPoxoJnJ22/2CTRtADfOfORwMzPhojnSiK6snULEqx2gThfb
+	 QSrQdTNdQ5vnQ==
+Received: by mail-ej1-f46.google.com with SMTP id a640c23a62f3a-b936331786dso453460466b.3
+        for <linux-acpi@vger.kernel.org>; Mon, 23 Mar 2026 06:40:08 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCWMjf05LrQroLz4YZ+LpIADZVTY1Y09qucNIecIhfw2VZ64WepTHgrfwtWs+XqtZePqCYh+keHI1ufA@vger.kernel.org
+X-Gm-Message-State: AOJu0YwV0koTje9saNdEIqMA62qO5rfwWd7msxlwE8ZNHuUcVx5a3fzu
+	CQg/E3+nvk+bNfDUHN0O3BcplEHgLcVLgoJVRl0EuMoLi6XVNdWAbzbC8Xf2YNaKcdCbZsTnD0S
+	lIbyHTxRHtuhahgX9LC4EijYBKBrAvQ==
+X-Received: by 2002:a17:907:c903:b0:b96:e593:fd1e with SMTP id
+ a640c23a62f3a-b982ee996a0mr595223266b.0.1774273207192; Mon, 23 Mar 2026
+ 06:40:07 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260322153529.3325784-3-bestswngs@gmail.com>
-In-Reply-To: <20260322153529.3325784-3-bestswngs@gmail.com>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Mon, 23 Mar 2026 13:51:24 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0gFizazkso9TXc1eu46=g6ht77z1Q00Aps-z9RKAnOZew@mail.gmail.com>
-X-Gm-Features: AQROBzDDpfejb6Cb8oXB0TJLJtwSvveKl1DP1qokQVpi-Dw4BRQI7hyG15KqNW0
-Message-ID: <CAJZ5v0gFizazkso9TXc1eu46=g6ht77z1Q00Aps-z9RKAnOZew@mail.gmail.com>
-Subject: Re: [PATCH] ACPICA: fix NULL pointer dereference in acpi_ns_custom_package()
-To: Weiming Shi <bestswngs@gmail.com>
-Cc: "Rafael J . Wysocki" <rafael@kernel.org>, Robert Moore <robert.moore@intel.com>, 
-	Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev, 
-	Xiang Mei <xmei5@asu.edu>
+References: <20260317-pci-m2-e-v6-0-9c898f108d3d@oss.qualcomm.com>
+ <20260317-pci-m2-e-v6-6-9c898f108d3d@oss.qualcomm.com> <20260322233713.GA98177-robh@kernel.org>
+ <to2mrizprc3hjufqbiplpqyek7f4uutqtn4hx4gkmdgv2rykbc@ybwwjhdec4nm>
+In-Reply-To: <to2mrizprc3hjufqbiplpqyek7f4uutqtn4hx4gkmdgv2rykbc@ybwwjhdec4nm>
+From: Rob Herring <robh@kernel.org>
+Date: Mon, 23 Mar 2026 08:39:55 -0500
+X-Gmail-Original-Message-ID: <CAL_JsqJXrHCJt770bJkMmAUhirSF3kHjYwSzkG7cXp7-eys8Rg@mail.gmail.com>
+X-Gm-Features: AQROBzAm6V-IOC6VZZazNPJsxXSuw0kWV9dy9s5cLniOPgl3uSPi4q_Ka8yPibQ
+Message-ID: <CAL_JsqJXrHCJt770bJkMmAUhirSF3kHjYwSzkG7cXp7-eys8Rg@mail.gmail.com>
+Subject: Re: [PATCH v6 6/9] dt-bindings: connector: m2: Add M.2 1620 LGA
+ soldered down connector
+To: Manivannan Sadhasivam <mani@kernel.org>
+Cc: Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jirislaby@kernel.org>, 
+	Nathan Chancellor <nathan@kernel.org>, Nicolas Schier <nicolas.schier@linux.dev>, 
+	Hans de Goede <hansg@kernel.org>, =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, 
+	Mark Pearson <mpearson-lenovo@squebb.ca>, "Derek J. Clark" <derekjohn.clark@gmail.com>, 
+	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
+	Marcel Holtmann <marcel@holtmann.org>, Luiz Augusto von Dentz <luiz.dentz@gmail.com>, 
+	Bartosz Golaszewski <brgl@bgdev.pl>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
+	Bartosz Golaszewski <brgl@kernel.org>, linux-serial@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-kbuild@vger.kernel.org, 
+	platform-driver-x86@vger.kernel.org, linux-pci@vger.kernel.org, 
+	devicetree@vger.kernel.org, linux-arm-msm@vger.kernel.org, 
+	linux-bluetooth@vger.kernel.org, linux-pm@vger.kernel.org, 
+	Stephan Gerhold <stephan.gerhold@linaro.org>, 
+	Dmitry Baryshkov <dmitry.baryshkov@oss.qualcomm.com>, linux-acpi@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, Mar 22, 2026 at 4:36=E2=80=AFPM Weiming Shi <bestswngs@gmail.com> w=
-rote:
+On Mon, Mar 23, 2026 at 7:16=E2=80=AFAM Manivannan Sadhasivam <mani@kernel.=
+org> wrote:
 >
-> acpi_ns_custom_package() unconditionally dereferences the first element
-> of the package to read the _BIX version number, without checking for
-> NULL:
+> On Sun, Mar 22, 2026 at 06:37:13PM -0500, Rob Herring wrote:
+> > On Tue, Mar 17, 2026 at 09:59:56AM +0530, Manivannan Sadhasivam wrote:
+> > > Lenovo Thinkpad T14s is found to have a soldered down version of M.2 =
+1620
+> > > LGA connector. Though, there is no 1620 LGA form factor defined in th=
+e M.2
+> > > spec, it looks very similar to the M.2 Key E connector. So add the
+> > > "pcie-m2-1620-lga-connector" compatible with "pcie-m2-e-connector" fa=
+llback
+> > > to reuse the Key E binding.
+> >
+> > What is LGA?
+> >
 >
->   if ((*elements)->common.type !=3D ACPI_TYPE_INTEGER)
+> Land Grid Array
 >
-> When firmware returns a _BIX package whose first element is an
-> unresolvable reference, ACPICA evaluates that entry to NULL.
-> acpi_ns_remove_null_elements() does not strip NULL entries for
-> ACPI_PTYPE_CUSTOM packages (fixed-position format would break if
-> elements were shifted), so acpi_ns_custom_package() sees the NULL
-> and panics.
+> > If not in the spec, is it really something generic?
+> >
 >
->  general protection fault, probably for non-canonical address
->  0xdffffc0000000001: 0000 [#1] SMP KASAN NOPTI
->  KASAN: null-ptr-deref in range
->  [0x0000000000000008-0x000000000000000f]
->  RIP: acpi_ns_check_package
->  (drivers/acpi/acpica/nsprepkg.c:634
->   drivers/acpi/acpica/nsprepkg.c:110)
->  Call Trace:
->   <TASK>
->   acpi_ns_check_return_value (nspredef.c:136)
->   acpi_ns_evaluate (nseval.c:266)
->   acpi_evaluate_object (nsxfeval.c:360)
->   acpi_battery_get_info (battery.c:537)
->   acpi_battery_update (battery.c:1007)
->   acpi_battery_add (battery.c:1237)
->   acpi_device_probe (bus.c:1076)
->   really_probe (dd.c:659)
->   </TASK>
->
-> Add a NULL check for the first element (version field) before
-> dereferencing it. The battery probe then fails gracefully with
-> AE_AML_OPERAND_TYPE instead of crashing the kernel.
->
-> Required CONFIG: CONFIG_ACPI_BATTERY=3Dy
->
-> Fixes: 7952d40240855932 ("ACPICA: ACPI 6.0: Update _BIX support for new p=
-ackage element")
-> Reported-by: Xiang Mei <xmei5@asu.edu>
-> Signed-off-by: Weiming Shi <bestswngs@gmail.com>
-> ---
->  drivers/acpi/acpica/nsprepkg.c | 7 +++++++
->  1 file changed, 7 insertions(+)
->
-> diff --git a/drivers/acpi/acpica/nsprepkg.c b/drivers/acpi/acpica/nsprepk=
-g.c
-> index ca137ce5674f..c32770570120 100644
-> --- a/drivers/acpi/acpica/nsprepkg.c
-> +++ b/drivers/acpi/acpica/nsprepkg.c
-> @@ -631,6 +631,13 @@ acpi_ns_custom_package(struct acpi_evaluate_info *in=
-fo,
->
->         /* Get version number, must be Integer */
->
-> +       if (!(*elements)) {
-> +               ACPI_WARN_PREDEFINED((AE_INFO, info->full_pathname,
-> +                                     info->node_flags,
-> +                                     "Return Package has a NULL version =
-element"));
-> +               return_ACPI_STATUS(AE_AML_OPERAND_TYPE);
-> +       }
-> +
->         if ((*elements)->common.type !=3D ACPI_TYPE_INTEGER) {
->                 ACPI_WARN_PREDEFINED((AE_INFO, info->full_pathname,
->                                       info->node_flags,
-> --
+> Good question. Yes and No! LGA is not something that Lenovo only uses. Ot=
+her
+> vendors may also use this form factor. PCIe connectors are full of innova=
+tion as
+> the spec gives room for hardware designers to be as innovative as possibl=
+e to
+> save the BOM cost.
 
-ACPICA changes need to be routed via upstream ACPICA project on GitHub.
+innovation =3D=3D incompatible changes
 
-Please see Documentation/driver-api/acpi/linuxized-acpica.rst
+> This is why I do not want to make it Lenovo specific. But if you prefer t=
+hat, I
+> can name it as "lenovo,pcie-m2-1620-lga-connector".
+
+Depends if you think that s/w needs to know the differences. Hard to
+say with a sample size of 1.
+
+Rob
