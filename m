@@ -1,301 +1,120 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F55739768D
-	for <linux-acpi@vger.kernel.org>; Mon, 23 Mar 2026 11:40:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F397C398919;
+	Mon, 23 Mar 2026 12:16:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774266014; cv=none; b=NR6rdQo4nRLuwYhUNegO34NS2uKojuATPDnKsf21X6xR1cNyuElmKEKjX01ZW/keHHIKjM6x9OLxoIqHA024KOttYDzwB8Q853rMek9CnFTeDi0/D1+JPzivUqVlLd/BO7u3r85iB9u1PmG/cSeqWDTX9mY1aeMDrzBrnhxONKM=
+	t=1774268216; cv=none; b=cuMcy5IxqMgb6OszvJn0jPbdQNBjt3i4vFEuT2bHhKzRjgBDiSk1VGZBGEn6/lA4u8e5xjSLsjKgartkUVY/lZu4zzB0fxYHlf4yKoI9agGpEZa9rIhSR1c81LBNAyw37t3vuMSeaHS0L3lc+gCLbuGiwvmd3myfmMIYZD/x3Ro=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774266014; c=relaxed/simple;
-	bh=xBPbm2psL2E1gEqh2Far/32tTK00tXUWPBenA/iZQWA=;
-	h=From:In-Reply-To:MIME-Version:References:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=AMKS2J1SJEtVw4H9ZSfhMHGOG1l5D+FtkW/soVHiSicYidSYMgzgCJ7RHg5gLHbIrl7a0p7Te53PzkP1Lz/ENdylLM0SbNY53pUnqzdnD64srbdCoqG2mlop3lHckU6sKy+J9dnmaJMGK6FzQMI9O1dweSMa2NM39TqMbou3zqE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mqr96Lol; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774268216; c=relaxed/simple;
+	bh=Ddisl8eA6K38RQGs2aAcAY683SyQnKLb6K5fJiuGCmw=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=aT+FBnjqFuRBMTfU7eB+Awtxv9X65e4x89qRdXRcYSvhZGZCUjYT4kaCa9+6AmfL0hOYYHs3rFEW18D6cvvsz7GxNcy4Rw0PL/wdX5LgiG/IM1qvKlHWPHw4G3X15asq+5oJXIYvxZR0+BCdIwy0Opn2YkuVIiE+yrWTLcpxFUk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RcjLLSgh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mqr96Lol"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0DD6CC2BCC6
-	for <linux-acpi@vger.kernel.org>; Mon, 23 Mar 2026 11:40:14 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RcjLLSgh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23AFEC2BC9E;
+	Mon, 23 Mar 2026 12:16:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774266014;
-	bh=xBPbm2psL2E1gEqh2Far/32tTK00tXUWPBenA/iZQWA=;
-	h=From:In-Reply-To:References:Date:Subject:To:Cc:From;
-	b=mqr96LolKdqiKOCLHzaUKK0CFgbDJ0UryPgFgCvIIh6tkvzgZ0yrzNVLAwS8f3uVV
-	 7CnlHhNUBtJYkN2ExeMh0qGogEXotRNa0b9EQ3E+T6qrxecTG/xAJ9fJuwIPjcIl8M
-	 2EUCMAfggOgASMkpDzNRTIKaP/QuRfGRNMPnmBwL6H1dYdAMVUNKueD4UAFpPbu1w/
-	 EhaqjVSSuhzhgX41JeQpCeIdDZ73MtRnBUyg+quRBRJeap1CuNZCzTXxWRucGvWQc6
-	 0WiB7DnYEmeCNKZmr/khI1g5c7Ol04qxTT1U0ekZQqj4IKFb1bgfUILFbLgsYqTRgC
-	 nT9Y2SFMMpOSQ==
-Received: by mail-lf1-f41.google.com with SMTP id 2adb3069b0e04-5a27b5ad832so3888258e87.2
-        for <linux-acpi@vger.kernel.org>; Mon, 23 Mar 2026 04:40:13 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCXFNUE2Y4bkGOm74tqNP9J1kXqZvAILgc8E3HsPUTiF7eBo8GsNhmQaR6LN6SCzYPBPdIbuO3dWNh99@vger.kernel.org
-X-Gm-Message-State: AOJu0YxogFbOGTwtU5XDdiO1aiqtYY2xT3B+x2Nq/WxljJM9KMfmcIFA
-	fMhGVP5aqjfgdyg3o7FhOtIWm3aqxS9g2s0YnjSUsNvNVQzn2+Ch9ZOAtXz+QEeSg/lIfrZzKD+
-	KHjPeGLbTajNWXAnuZtu/DrBT/WtKza1AiNTpiHEn8g==
-X-Received: by 2002:a05:6512:308c:b0:5a2:78f8:60aa with SMTP id
- 2adb3069b0e04-5a285b5aab5mr4842573e87.37.1774266012393; Mon, 23 Mar 2026
- 04:40:12 -0700 (PDT)
-Received: from 969154062570 named unknown by gmailapi.google.com with
- HTTPREST; Mon, 23 Mar 2026 04:40:11 -0700
-Received: from 969154062570 named unknown by gmailapi.google.com with
- HTTPREST; Mon, 23 Mar 2026 04:40:11 -0700
-From: Bartosz Golaszewski <brgl@kernel.org>
-In-Reply-To: <ab47QXIYCo3vNI8J@google.com>
+	s=k20201202; t=1774268215;
+	bh=Ddisl8eA6K38RQGs2aAcAY683SyQnKLb6K5fJiuGCmw=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=RcjLLSghn833nF0KLQr3XjLnS0REP7tklA1Qcs93KHDQwWYbVzTMAkfCAbKbUTPw1
+	 Xuwaj/pBAPWGuPnGMERvoBx3+2DuRSOzzuoEe5vN7cK/WTxrvA/DOFi/aP3xYQUmHd
+	 nukcEF5WqR2HNjei6dITzJWSXpgdc52sbqkjhllAml5pkpGtY6TAo/Fg7AosfAXzLj
+	 u/fFy2ag8KPiP56f/BqNKA0EpoRf9HtweCuGRvdqC2a5wYHSuZ+nB4Uvg0dFcFXNgB
+	 R0qNLfuU/HdGtfEf9arr5sDKurwt86OuCpRTn6gNuPjdCN9HoCKcrf6Q18Ut7QlzPw
+	 C2YXYFxWUW0ZQ==
+Date: Mon, 23 Mar 2026 17:46:38 +0530
+From: Manivannan Sadhasivam <mani@kernel.org>
+To: Rob Herring <robh@kernel.org>
+Cc: Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jirislaby@kernel.org>, 
+	Nathan Chancellor <nathan@kernel.org>, Nicolas Schier <nicolas.schier@linux.dev>, 
+	Hans de Goede <hansg@kernel.org>, Ilpo =?utf-8?B?SsOkcnZpbmVu?= <ilpo.jarvinen@linux.intel.com>, 
+	Mark Pearson <mpearson-lenovo@squebb.ca>, "Derek J. Clark" <derekjohn.clark@gmail.com>, 
+	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
+	Marcel Holtmann <marcel@holtmann.org>, Luiz Augusto von Dentz <luiz.dentz@gmail.com>, 
+	Bartosz Golaszewski <brgl@bgdev.pl>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
+	Bartosz Golaszewski <brgl@kernel.org>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-kbuild@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-pci@vger.kernel.org, 
+	devicetree@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-bluetooth@vger.kernel.org, 
+	linux-pm@vger.kernel.org, Stephan Gerhold <stephan.gerhold@linaro.org>, 
+	Dmitry Baryshkov <dmitry.baryshkov@oss.qualcomm.com>, linux-acpi@vger.kernel.org
+Subject: Re: [PATCH v6 6/9] dt-bindings: connector: m2: Add M.2 1620 LGA
+ soldered down connector
+Message-ID: <to2mrizprc3hjufqbiplpqyek7f4uutqtn4hx4gkmdgv2rykbc@ybwwjhdec4nm>
+References: <20260317-pci-m2-e-v6-0-9c898f108d3d@oss.qualcomm.com>
+ <20260317-pci-m2-e-v6-6-9c898f108d3d@oss.qualcomm.com>
+ <20260322233713.GA98177-robh@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260319-baytrail-real-swnode-v1-0-75f2264ae49f@oss.qualcomm.com>
- <abyje0mhIOtDZbxO@google.com> <CAMRc=McPQq6QxJ48zk7kxA+kwc=Em8dsFfyECJXg0asY-+pRiw@mail.gmail.com>
- <ab47QXIYCo3vNI8J@google.com>
-Date: Mon, 23 Mar 2026 04:40:11 -0700
-X-Gmail-Original-Message-ID: <CAMRc=MdmuOS-5mHGYtsr3jz654rA9moH4Po_rAFdaPBq-5KCZA@mail.gmail.com>
-X-Gm-Features: AaiRm50xYuGbGJMWR-La7zfZgOhQynHddWFdS_RuSs-HPX9Rf22AdalqjZ092cY
-Message-ID: <CAMRc=MdmuOS-5mHGYtsr3jz654rA9moH4Po_rAFdaPBq-5KCZA@mail.gmail.com>
-Subject: Re: [PATCH 0/4] platform/x86: x86-android-tablets: use real firmware
- node references with intel drivers
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Daniel Scally <djrscally@gmail.com>, 
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
-	Sakari Ailus <sakari.ailus@linux.intel.com>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
-	Danilo Krummrich <dakr@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, 
-	Andy Shevchenko <andy@kernel.org>, Linus Walleij <linusw@kernel.org>, Hans de Goede <hansg@kernel.org>, 
-	=?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, 
-	linux-acpi@vger.kernel.org, driver-core@lists.linux.dev, 
-	linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, 
-	platform-driver-x86@vger.kernel.org, 
-	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>, 
-	Bartosz Golaszewski <brgl@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20260322233713.GA98177-robh@kernel.org>
 
-On Sat, 21 Mar 2026 08:01:30 +0100, Dmitry Torokhov
-<dmitry.torokhov@gmail.com> said:
-> On Fri, Mar 20, 2026 at 01:33:06PM -0700, Bartosz Golaszewski wrote:
->> On Fri, 20 Mar 2026 02:49:02 +0100, Dmitry Torokhov
->> <dmitry.torokhov@gmail.com> said:
->> > Hi Bartosz,
->> >
->> > On Thu, Mar 19, 2026 at 05:10:53PM +0100, Bartosz Golaszewski wrote:
->> >>
->> >> This series proposes a solution in the form of automatic secondary
->> >> software node assignment (I'm open to better naming ideas). We extend
->> >> the swnode API with functions allowing to set up a behind-the-scenes bus
->> >> notifier for a group of named software nodes. It will wait for bus
->> >> events and when a device is added, it will check its name against the
->> >> software node's name and - on match - assign the software node as the
->> >> secondary firmware node of the device's *real* firmware node.
->> >
->> > The more I think about the current approaches with strict identity
->> > matching the less I like them, and the reason is that strict identity
->> > matching establishes rigid links between consumers and producers of
->> > GPIOS/swnodes, and puts us into link order hell. For example, I believe
->> > if andoird tablets drivers were in drivers/android vs
->> > drivers/platform/... the current scheme would break since the nodes
->> > would not be registered and GPIO lookups would fail with -ENOENT vs
->> > -EPROBE_DEFER.
->> >
->>
->> Why would they not get registered? They get attached when the target devices
->> are added in modules this module depends on. They are exported symbols so the
->> prerequisite modules will get loaded before and the module's init function
->> will have run by the time the software nodes are referred to by the fwnode
->> interface at which point they will have been registered with the swnode
->> framework.
->
-> I mentioned link order, which implies no modules are involved. When code
-> is built into the kernel initialization follows link order, which is
-> typically alphabetical. To ensure the order you require you either need
-> to move targets inside makefiles or change some drivers from
-> module_init() to <some other>_initcall(). This is known as "link order
-> hell" that was very common before deferred probing was introduced.
->
+On Sun, Mar 22, 2026 at 06:37:13PM -0500, Rob Herring wrote:
+> On Tue, Mar 17, 2026 at 09:59:56AM +0530, Manivannan Sadhasivam wrote:
+> > Lenovo Thinkpad T14s is found to have a soldered down version of M.2 1620
+> > LGA connector. Though, there is no 1620 LGA form factor defined in the M.2
+> > spec, it looks very similar to the M.2 Key E connector. So add the
+> > "pcie-m2-1620-lga-connector" compatible with "pcie-m2-e-connector" fallback
+> > to reuse the Key E binding.
+> 
+> What is LGA?
+> 
 
-Maybe we should return -EPROBE_DEFER in GPIO swnode lookup when
-fwnode_property_get_reference_args() returns -ENOENT because if there's a
-software node that's not yet been registered as a firmware node, it's not much
-different from there being a firmware node not bound to a device yet - which
-is grounds for probe deferral.
+Land Grid Array
 
->>
->> > Given that this series somewhat re-introduces the name matching, I
->> > wonder if we can not do something like the following (the rough draft):
->> >
->>
->> I'm open to better ideas and possibly multiple matching mechanisms but this
->> just fit in this particular case. I'm not overly attached to name matching. We
->> may as well use whatever properties ACPI provides to identify the devices and
->> assign them their swnodes.
->
-> What ACPI has to do with this? Oftentimes we are dealing with non x86
-> systems.
->
+> If not in the spec, is it really something generic?
+> 
 
-What I meant is: name matching is only one method of assigning software nodes
-to devices. Here I went with waiting for devices but with DT we may as well
-look up a node by compatible depending on the driver. For ACPI we may probably
-use some mechanism that matches the devices to the software node in a more
-specific way. That's just hypothetical, I don't know if there even is one.
+Good question. Yes and No! LGA is not something that Lenovo only uses. Other
+vendors may also use this form factor. PCIe connectors are full of innovation as
+the spec gives room for hardware designers to be as innovative as possible to
+save the BOM cost.
 
-IOW: device-name-to-software-node name matching is only one of possible methods.
+This is why I do not want to make it Lenovo specific. But if you prefer that, I
+can name it as "lenovo,pcie-m2-1620-lga-connector".
 
->>
->> > diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
->> > index 51320837f3a9..b0e8923a092c 100644
->> > --- a/drivers/base/swnode.c
->> > +++ b/drivers/base/swnode.c
->> > @@ -509,6 +509,7 @@ software_node_get_reference_args(const struct fwnode_handle *fwnode,
->> >  	struct swnode *swnode = to_swnode(fwnode);
->> >  	const struct software_node_ref_args *ref_array;
->> >  	const struct software_node_ref_args *ref;
->> > +	const struct software_node *ref_swnode;
->> >  	const struct property_entry *prop;
->> >  	struct fwnode_handle *refnode;
->> >  	u32 nargs_prop_val;
->> > @@ -550,7 +551,10 @@ software_node_get_reference_args(const struct fwnode_handle *fwnode,
->> >  		refnode = software_node_fwnode(ref->swnode);
->> >  	else if (ref->fwnode)
->> >  		refnode = ref->fwnode;
->> > -	else
->> > +	else if (ref->swnode_name) {
->> > +		ref_swnode = software_node_find_by_name(NULL, ref->swnode_name);
->> > +		refnode = ref_swnode ? software_node_fwnode(ref_swnode) : NULL;
->> > +	} else
->> >  		return -EINVAL;
->> >
->> >  	if (!refnode)
->> > diff --git a/include/linux/property.h b/include/linux/property.h
->> > index e30ef23a9af3..44e96ee47272 100644
->> > --- a/include/linux/property.h
->> > +++ b/include/linux/property.h
->> > @@ -363,6 +363,7 @@ struct software_node;
->> >  struct software_node_ref_args {
->> >  	const struct software_node *swnode;
->> >  	struct fwnode_handle *fwnode;
->> > +	const char *swnode_name;
->> >  	unsigned int nargs;
->> >  	u64 args[NR_FWNODE_REFERENCE_ARGS];
->> >  };
->> > @@ -373,6 +374,9 @@ struct software_node_ref_args {
->> >  			   const struct software_node *: _ref_,	\
->> >  			   struct software_node *: _ref_,	\
->> >  			   default: NULL),			\
->> > +	.swnode_name = _Generic(_ref_,				\
->> > +				const char *: _ref_,		\
->> > +				default: NULL),			\
->> >  	.fwnode = _Generic(_ref_,				\
->> >  			   struct fwnode_handle *: _ref_,	\
->> >  			   default: NULL),			\
->> >
->> > This will allow consumers specify top-level software node name instead
->> > of software node structure, and it will get resolved to concrete
->> > firmware node. GPIOLIB can continue matching on node identity.
->> >
->> > WDYT?
->> >
->>
->> I think it's bad design and even bigger abuse of the software node concept.
->> What you're proposing is effectively allowing to use struct software_node as
->> a misleading string wrapper. You wouldn't use it to pass any properties to
->> the device you're pointing to - because how if there's no link between them -
->> you would just store an arbitrary string in a structure that serves
->> a completely different purpose.
->
-> I think you completely misunderstood the proposal. We are not using
+- Mani
 
-Ok, I didn't fully get that part, I was OoO on Friday and should have probably
-not rushed a late evening answer. :)
+> > 
+> > Signed-off-by: Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>
+> > ---
+> >  .../devicetree/bindings/connector/pcie-m2-e-connector.yaml       | 9 ++++++++-
+> >  1 file changed, 8 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/Documentation/devicetree/bindings/connector/pcie-m2-e-connector.yaml b/Documentation/devicetree/bindings/connector/pcie-m2-e-connector.yaml
+> > index f7859aa9b634..d8cf9a9ec7d0 100644
+> > --- a/Documentation/devicetree/bindings/connector/pcie-m2-e-connector.yaml
+> > +++ b/Documentation/devicetree/bindings/connector/pcie-m2-e-connector.yaml
+> > @@ -17,7 +17,14 @@ description:
+> >  
+> >  properties:
+> >    compatible:
+> > -    const: pcie-m2-e-connector
+> > +    oneOf:
+> > +      - items:
+> > +          - enum:
+> > +              - pcie-m2-1620-lga-connector
+> > +          - const: pcie-m2-e-connector
+> > +      - items:
+> > +          - enum:
+> > +              - pcie-m2-e-connector
+> >  
+> >    vpcie3v3-supply:
+> >      description: A phandle to the regulator for 3.3v supply.
+> > 
+> > -- 
+> > 2.51.0
+> > 
 
-> software node as a string wrapper, we give an opportunity to use
-> software node name to resolve to the real software node at the time we
-> try to resolve the reference. The software node is still expected to be
-> bound to the target device (unlike the original approach that has a
-> dangling software node which name expected to match gpiochip label).
->
-> I think this actually a very good approach: it severs the tight coupling
-> while still maintains the spirit of firmware nodes being attached to
-> devices. The only difference we are using object's name and not its
-> address as starting point. Similarly how you use name derived from
-> device name to locate and assign secondary node in this patch series.
->
-
-I still don't like it. It forces us to use names for the remote software nodes,
-which are after all C structures that we could identify by addresses alone.
-Even this series could be reworked to drop the names from the GPIO software
-nodes.
-
-software_node_find_by_name() only goes through the list of registered software
-nodes so we'd still end up returning -ENOENT for nodes which have not been
-registered yet and wouldn't be able to tell this situation apart from a case
-where there's no such software node at all.
-
-The consumer driver still needs to know the remote device by an arbitrary
-string.
-
-I think you're exaggarating the possible problems with link order. I believe
-that issue could be fixed by returning EPROBE_DEFER when a software node is
-not yet known by an fwnode handle but we know it is there so it's just a matter
-of it getting registered.
-
-That being said, I would like to hear from driver core maintainers in general
-and from software node maintainers in particular.
-
->>
->> Which is BTW exactly what was done in GPIO and - while there's no denying that
->> I signed-off on these patches - it goes to show just how misleading this design
->> is - I was aware of this development and queued the patches but only really
->> understood what was going on when it was too late and this pattern was
->> copy-pasted all over the kernel.
->>
->> Software nodes are just an implementation of firmware nodes and as such should
->> follow the same principles. If a software node describes a device, it should be
->> attached to it
->
-> Yes, and the patch above solves this.
->
-
-I would say it just pushes the string matching deeper.
-
->> so that references can be resolved by checking the address of
->> the underlying firmware node handle and not by string matching. I will die on
->> that hill. :)
->
-> I would like to understand why. I outlined the problems with this
-> approach (too tight coupling, needing to export nodes, include
-> additional headers, and deal with the link order issues, along with
-> potential changes to the system initialization/probe order). What are
-> the drawbacks of name matching as long as we do not create
-> dangling/shadow nodes?
->
-> You are saying that you want resolve strictly by address, but have you
-> looked at how OF references are resolved? Hint: phandle is not a raw
-> address. It's actually a 32 bit integer! Look at ACPI. It also does not
-> simply have a pointer to another ACPI node there, the data structure is
-> much more complex.
->
-
-That's dictated by the binary format of devicetree where:
-
-	prop = <&foo>;
-
-Is translated to:
-
-	foo {
-		phandle = <0x123>;
-	};
-
-	prop = <0x123>;
-
-And I suppose this could be translated into addresses of respective struct
-device_node objects already at the tree unflattening stage - just like is
-done for parent-child relationships.
-
-However, this is very much hidden from users and someone who deals with DT
-sources always sees a proper reference to a node (by path, label or otherwise).
-
-Here we're talking about referring to firmware nodes by name which does happen
-but is typically reserved for some special cases and well-known nodes.
-
-Bartosz
+-- 
+மணிவண்ணன் சதாசிவம்
