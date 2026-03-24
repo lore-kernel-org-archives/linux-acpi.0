@@ -1,88 +1,87 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 164E6241665
-	for <linux-acpi@vger.kernel.org>; Tue, 24 Mar 2026 12:47:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3630A402B8B;
+	Tue, 24 Mar 2026 15:03:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774356450; cv=none; b=hOVH0VFIqAjGbf3X2TSpNrBG1yZj5R3JmZKKdi5pZ36KHuVAtBpU2T4Xve/LrinYLHLVTWsDfiGm4rXxQfOboQBeuAamBBs3tatetLJS7rnCoR3A0kLCcr0ctPgQhBfT78KlDGVFa0fgbhpk2v6/0Yz51c1xWyCmOuCTy72rUTU=
+	t=1774364621; cv=none; b=QwC6h9WQ/a0rYK7IHYw/GgURtWqzIhxQt14xXgDXjGQExf4tLsl+HzEcuhEnlhtC3GWiacUhyh00hsMLhNN6zFAIU7r0M8wnIw/OL7qTGr0bHm6x/lAvQlSS9uHSm1EhgZWfLTJUICJQK2DBBzXSrC0U+bJtgJWH1MyNvqvkOL8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774356450; c=relaxed/simple;
-	bh=zaNQlDH/IYpkir6Zh1G82dzyVoUtO9YPkNS5RZ6NPAk=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=GeF+xeT4MKn9gWxevkzsaABNVEqIWcGqPgTJSbIw2ixXmPBtuVdgj4FVmk7BujMpEyWOJ1NfAF9waaefYCKuFgaY/LYd23RSa0KndHvrUUlApBVK+ugczMB/KtupcRTBU7N6KvvUAcpW3xqGYvGp9lAou6EAp0fDzfhyd9/6EsY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TyKcqltR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774364621; c=relaxed/simple;
+	bh=bSVMovbLuqaeoj7Ubp0zwn6i9A99iQBP0uuV/uQEZwM=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=e1NLTBZpvN2FHWzQjFKX4pJgWkSaumYKPqMIQaHG1iigvDMhshG8sTxaNWHwcahDJZ3hHgG5rY50IVNcqZQuuiGb0qKWTr100PcpXgEp8dRIorcPZWT2sSRrRbBvNvfiy4vBOgxuyaUeQQ+6UQZTVqLjH5RxgqcI3+YL0kZzw+4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=g9ko0FWQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TyKcqltR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0C8BC2BCB6
-	for <linux-acpi@vger.kernel.org>; Tue, 24 Mar 2026 12:47:29 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="g9ko0FWQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E806C19424;
+	Tue, 24 Mar 2026 15:03:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774356449;
-	bh=zaNQlDH/IYpkir6Zh1G82dzyVoUtO9YPkNS5RZ6NPAk=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=TyKcqltR5sHRXGtJsm9mYbzaDJc/5b8g3bzAUpDnKVK2CfrX6o0+0R0OrUvRr6Ore
-	 u12du/9dDjZdg4zezRspx9k7uPF7pvuxFeT/kq/RfJsWdk5L76Ds0wzP6/E2XalvlL
-	 eyovR+zQ6KJf3BNVpmzn0Is7c04Y/N2ob22S3VdlHB0CqZ+hU/i9omAtt6csKGXOn4
-	 38mhP/RLPS+wxVWrPypa/WT+HpLZRvocdUWZnHLTlRMtNDeX+lW28Jr0HaHGUSDZMv
-	 U07ldCScEZzNkZa9f9RCSAwQ6zX65e5Ecss40NhN/062u0bJoyZ7Bf6nWHlqkUx/vP
-	 ghxR2+D9YWc2w==
-Received: by mail-oa1-f52.google.com with SMTP id 586e51a60fabf-40f1a1f77a6so3693765fac.2
-        for <linux-acpi@vger.kernel.org>; Tue, 24 Mar 2026 05:47:29 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCXHnEDuK3K0kveoD0qHQBPL6weuAWWsYv3WC0ssiGL2TdtuXiEpc5aiw7+d7bRq2Xag/GtJUZeVtE33@vger.kernel.org
-X-Gm-Message-State: AOJu0YyHyXB6JrGtwMjjyqBpvfw/X3NPy8I4rc1z8APq2EL88xwS564D
-	PwNDYICa7dwFCaQkcFFHvy+R2RvCr4yPRoA9tDGk7zxMXpiUBClAk0I7U1i42Sft6h5UKipkIvX
-	yuyOVmjNHdWVuNXoIk/Y8wP5jSz8kjLw=
-X-Received: by 2002:a05:6870:f150:b0:417:c116:ea79 with SMTP id
- 586e51a60fabf-41c10ff9ddcmr9412403fac.12.1774356448889; Tue, 24 Mar 2026
- 05:47:28 -0700 (PDT)
+	s=k20201202; t=1774364620;
+	bh=bSVMovbLuqaeoj7Ubp0zwn6i9A99iQBP0uuV/uQEZwM=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=g9ko0FWQ/ckfWTdGSV7BTtIzcTfjCXmHyo0Pe+fOud2vlEM5uvi0rkOda06uVu1qi
+	 NFt5nhGQRgjb8LSo19nSx8EKCO8XPqIoHbyODKZLMdL5LBxsckX8cGRiKwcBVASTFw
+	 RjzGV0irm7GKKZYNPvwCqhBBGEBWMNZ45aD20hg+wrvO7GTI+TCZZBsv83rY7rxh3R
+	 nTnM/ayIcZrykrw4mpiho7NvC2RZqukHE+lJf+G3S7Nfspks2uBartwyH8tMMaanMa
+	 kiGbpN+7Bn95FDkX714u84OR41IgDQEULxDal6Hv3WnaMU4BWoBICP1K5nbA17S8HV
+	 6lQbg0LARa6tg==
+Date: Tue, 24 Mar 2026 15:03:39 +0000
+From: Wei Liu <wei.liu@kernel.org>
+To: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
+Cc: Wei Liu <wei.liu@kernel.org>, x86@kernel.org,
+	Krzysztof Kozlowski <krzk+dt@kernel.org>,
+	Conor Dooley <conor+dt@kernel.org>, Rob Herring <robh@kernel.org>,
+	"K. Y. Srinivasan" <kys@microsoft.com>,
+	Haiyang Zhang <haiyangz@microsoft.com>,
+	Dexuan Cui <decui@microsoft.com>,
+	Michael Kelley <mhklinux@outlook.com>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Saurabh Sengar <ssengar@linux.microsoft.com>,
+	Chris Oo <cho@microsoft.com>, "Kirill A. Shutemov" <kas@kernel.org>,
+	linux-hyperv@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Ricardo Neri <ricardo.neri@intel.com>,
+	Yunhong Jiang <yunhong.jiang@linux.intel.com>
+Subject: Re: [PATCH v8 09/10] x86/hyperv/vtl: Mark the wakeup mailbox page as
+ private
+Message-ID: <20260324150339.GA1701749@liuwe-devbox-debian-v2.local>
+References: <20260107-rneri-wakeup-mailbox-v8-0-2f5b6785f2f5@linux.intel.com>
+ <20260107-rneri-wakeup-mailbox-v8-9-2f5b6785f2f5@linux.intel.com>
+ <20260309175733.GA3083831@liuwe-devbox-debian-v2.local>
+ <20260320230147.GA31320@ranerica-svr.sc.intel.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <5084777.GXAFRqVoOG@rafael.j.wysocki> <acEOf2pI_NpfA4EP@aspen.lan>
-In-Reply-To: <acEOf2pI_NpfA4EP@aspen.lan>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Tue, 24 Mar 2026 13:47:18 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0itCrbwM2k4_3F0kQwTfAwKXFQ5G4gcn=bM65Y2NU9YjQ@mail.gmail.com>
-X-Gm-Features: AaiRm53t3o66QI9GTm-Ambf1zwPR2-4cMmUQM8M9mJmuxwinEHxg5u9awX495MI
-Message-ID: <CAJZ5v0itCrbwM2k4_3F0kQwTfAwKXFQ5G4gcn=bM65Y2NU9YjQ@mail.gmail.com>
-Subject: Re: [PATCH v1] backlight: apple_bl: Convert to a platform driver
-To: Daniel Thompson <danielt@kernel.org>, dri-devel@lists.freedesktop.org
-Cc: Lee Jones <lee@kernel.org>, LKML <linux-kernel@vger.kernel.org>, 
-	Linux ACPI <linux-acpi@vger.kernel.org>, Jingoo Han <jingoohan1@gmail.com>, 
-	Helge Deller <deller@gmx.de>, linux-fbdev@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260320230147.GA31320@ranerica-svr.sc.intel.com>
 
-On Mon, Mar 23, 2026 at 10:57=E2=80=AFAM Daniel Thompson <danielt@kernel.or=
-g> wrote:
->
-> On Sat, Mar 14, 2026 at 12:50:11PM +0100, Rafael J. Wysocki wrote:
-> > From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-> >
-> > In all cases in which a struct acpi_driver is used for binding a driver
-> > to an ACPI device object, a corresponding platform device is created by
-> > the ACPI core and that device is regarded as a proper representation of
-> > underlying hardware.  Accordingly, a struct platform_driver should be
-> > used by driver code to bind to that device.  There are multiple reasons
-> > why drivers should not bind directly to ACPI device objects [1].
-> >
-> > Overall, it is better to bind drivers to platform devices than to their
-> > ACPI companions, so convert the Apple Backlight ACPI driver to a
-> > platform one.
-> >
-> > While this is not expected to alter functionality, it changes sysfs
-> > layout and so it will be visible to user space.
-> >
-> > Link: https://lore.kernel.org/all/2396510.ElGaqSPkdT@rafael.j.wysocki/ =
-[1]
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->
-> Reviewed-by: Daniel Thompson (RISCstar) <danielt@kernel.org>
+On Fri, Mar 20, 2026 at 04:01:47PM -0700, Ricardo Neri wrote:
+> On Mon, Mar 09, 2026 at 05:57:33PM +0000, Wei Liu wrote:
+> > Dexuan, are you happy with the patch? You can also delegate to Saurabh
+> > if you think it's more appropriate. Thanks!
+> 
+> Hi Wei,
+> 
+> I just realized you replied to an older version of the patch. Here is the
+> most recent version:
+> 
+> https://lore.kernel.org/all/20260304-rneri-wakeup-mailbox-v9-9-a5c6845e6251@linux.intel.com/
+> 
+> The whole series:
+> 
+> https://lore.kernel.org/all/20260304-rneri-wakeup-mailbox-v9-0-a5c6845e6251@linux.intel.com/
+> 
 
-Thanks!
+No worries. I saw the new series after that reply.
 
-Unless anyone has any objections or concerns (in which case please let
-me know), I'm going to queue up this one for 7.1.
+Wei
+
+> Thanks and BR,
+> Ricardo
+> 
+> 
