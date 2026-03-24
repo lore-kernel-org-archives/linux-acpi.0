@@ -1,49 +1,49 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.13])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 084493F9F28;
-	Tue, 24 Mar 2026 12:31:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.13
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90D663FB7D8;
+	Tue, 24 Mar 2026 12:33:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.20
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774355462; cv=none; b=sNF9O0JH0Gl3HDmm8VNG32lYR+NujL02oEzJC0/I9+IhemfSOc5Be8g9yj9gNiUxcq2MWjC8E1/RMqT8wd0SLxiPY7J+NJePu8m0Zf+b13EVS2RSOEcXCb2f7AJTbheo0ICtDZ8c7dwxGFys8mph/KdilzDggLCsvupPmLv9lOw=
+	t=1774355621; cv=none; b=rlzSDxT4qV1tBSnWeYwK9g7CecT3aPQjWK111tgJMhv3BqiGvhUm2hELsPJjNf3ndoh1oUkeEho3zLx0KdULi0woFlCUkOgEAUkWxfp7ZWIKpe6Amc4BOEDi+npNmiHmN+4bHDRrvxl3tEEa9YXRGnSqwF+2DCGAYyFwDQ7sEyY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774355462; c=relaxed/simple;
-	bh=zMO1+9mbs7EoV8l2A6BMnY27sQegLkbm4+N4wUJDzIQ=;
+	s=arc-20240116; t=1774355621; c=relaxed/simple;
+	bh=L56j7PXLTT7wUGCOyfBaKiVleWDHS7aRZVwscznomDA=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=abEfMUuCuCd3XQT6Wa0FY02qLS4TyfxMlSC86lgHjc13NHnirODd6tZkluH/xrF5AcyHE3QvUd0jPz7E43PDcQy+OsStkMedn+kMbQ8tF75arpIIUXeThyAdFfVdqbsq+6501cQrHlcfI+SnCPX/FgQJ9NRpXEu73uNg0FtMu10=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=P4ESjIiG; arc=none smtp.client-ip=198.175.65.13
+	 Content-Type:Content-Disposition:In-Reply-To; b=qwTeJkeDQ8x1f0D6mSIvO7nawWJ2QNa6ntulGrfASgCmy5bFrG8HKd5LSXMhokUPmETl5p0dJdKVTWidcZj+Fn6RdhFlspZI8aUUBFomeDz92pniEGU1qL5AtsQUWQdd24Qy8Lw3EWljfWGMi8tcpVyMh09Ftsbr0m4kaCI9iiE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=HBlDP4KI; arc=none smtp.client-ip=198.175.65.20
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="P4ESjIiG"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="HBlDP4KI"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1774355461; x=1805891461;
+  t=1774355619; x=1805891619;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=zMO1+9mbs7EoV8l2A6BMnY27sQegLkbm4+N4wUJDzIQ=;
-  b=P4ESjIiGl6OcMNig0ue4h3nztAJDr9DJyVC9V/dMxQbXwfxiyQvmdrV2
-   GVIf+42ypk+e3ekApHESHmPOltHiTGVDPOsIscYkEEARxQoWsT556xiCq
-   ijRtpcl+gzf2yk2w8BMu/t6ouT/2qEDMvha7yK7i1GfPFEV+VPqnPzq9E
-   +x7mCMHfdOwzswyZEskLNz2+EwDQ3E2mxOP0k7ScudXe2n3Hb5viVw+4U
-   YcptJefUMw8dcwpy76Of5XWRhZCNe5L9eT9KpD4W6x6EvPcuDgv0XOmNp
-   6nwdnLY7+m/rAdKedowcvk9TPc5Wlk1os5/5Hi4dhUtd8tBpofz81Seu+
-   g==;
-X-CSE-ConnectionGUID: bHF0Ix38R+if2gBToR2vrA==
-X-CSE-MsgGUID: quDZS1UrSyWQjcybofOIZQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11738"; a="86443199"
+  bh=L56j7PXLTT7wUGCOyfBaKiVleWDHS7aRZVwscznomDA=;
+  b=HBlDP4KI7HzhO2w9np8+dLxV2qdjhwynaZTlKxRO3gp+fYxneEMIoNOD
+   mBmmH/Fvb3X8XWIMitmKQMp9vpgSF1r9Amz4LrHRtlbrGr2cJDONToRcY
+   Rg6J0L5sJfxuY2Bv2biUsBfm+rRgGcesZUD95CvTxJ+uKOHyQsNyQoxWi
+   0RjN5ZXWGUIuRSr1nhjNv0hTlG8NUyTV4eG5LEIhqIewt2GZ+qvN1ICzS
+   p7lUNEWGgdMrx1hHzKKJaOgDV1PFP80ATJpAayakFMwFK+eJ6OmOH7X99
+   lemEHt0QLK/1NVVv27Mo5CdWdJ7WN4q1FBgYXKcf5K05eK8uq9KjbkE5W
+   A==;
+X-CSE-ConnectionGUID: NhuioASURoa7lJ24uZ4+lw==
+X-CSE-MsgGUID: PoobEMMISN++vIp+V69uYQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11738"; a="75083029"
 X-IronPort-AV: E=Sophos;i="6.23,138,1770624000"; 
-   d="scan'208";a="86443199"
-Received: from orviesa008.jf.intel.com ([10.64.159.148])
-  by orvoesa105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Mar 2026 05:31:00 -0700
-X-CSE-ConnectionGUID: XJ3MSu5bRki0X3r5PcHnbg==
-X-CSE-MsgGUID: 1uynBQlAQSGKSdEW4lsSyw==
+   d="scan'208";a="75083029"
+Received: from fmviesa005.fm.intel.com ([10.60.135.145])
+  by orvoesa112.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Mar 2026 05:33:38 -0700
+X-CSE-ConnectionGUID: JVpKOgWETn6acYytpQAF+w==
+X-CSE-MsgGUID: 4PxSOVKTQvCCS794dvJFbg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.23,138,1770624000"; 
-   d="scan'208";a="224340401"
+   d="scan'208";a="229089411"
 Received: from abityuts-desk.ger.corp.intel.com (HELO localhost) ([10.245.244.214])
-  by orviesa008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Mar 2026 05:30:57 -0700
-Date: Tue, 24 Mar 2026 14:30:54 +0200
+  by fmviesa005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Mar 2026 05:33:34 -0700
+Date: Tue, 24 Mar 2026 14:33:31 +0200
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Cc: Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
@@ -58,11 +58,11 @@ Cc: Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
 	Sakari Ailus <sakari.ailus@linux.intel.com>,
 	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
 	driver-core@lists.linux.dev
-Subject: Re: [PATCH 2/4] software node: allow passing reference args to
- PROPERTY_ENTRY_REF
-Message-ID: <acKD_vzk_8bX17ZT@ashevche-desk.local>
+Subject: Re: [PATCH 3/4] software node: verify that property data is not on
+ stack
+Message-ID: <acKEm4EiZBqJ67nM@ashevche-desk.local>
 References: <20260323-property-gpio-fix-v1-0-9cb46e5fe7df@gmail.com>
- <20260323-property-gpio-fix-v1-2-9cb46e5fe7df@gmail.com>
+ <20260323-property-gpio-fix-v1-3-9cb46e5fe7df@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -71,24 +71,32 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260323-property-gpio-fix-v1-2-9cb46e5fe7df@gmail.com>
+In-Reply-To: <20260323-property-gpio-fix-v1-3-9cb46e5fe7df@gmail.com>
 Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
  krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On Mon, Mar 23, 2026 at 05:39:38PM -0700, Dmitry Torokhov wrote:
-> When dynamically creating software nodes and properties for subsequent
-> use with software_node_register() current implementation of
-> PROPERTY_ENTRY_REF is not suitable because it creates a temporary
-> instance of struct software_node_ref_args on stack which will later
-> disappear, and software_node_register() only does shallow copy of
-> properties.
+On Mon, Mar 23, 2026 at 05:39:39PM -0700, Dmitry Torokhov wrote:
+> When registering a software node, ensure that the property data is not
+> located on the stack, as it is expected to persist for the lifetime of
+> the node.
 
-Isn't that the problem and we should take into account how to dup the reference
-inside property core?
+...
 
-> Fix this by allowing to pass address of reference arguments structure
-> directly into PROPERTY_ENTRY_REF(), so that caller can manage lifetime
-> of the object properly.
+> +#include <linux/sched/task_stack.h>
+
+Looking at this name the use of it here doesn't sound right...
+
+...
+
+> +	for (prop = node->properties; prop && prop->name; prop++) {
+> +		if (!prop->is_inline && object_is_on_stack(prop->pointer)) {
+> +			pr_err("%s: property data can't be on stack\n", __func__);
+> +			return -EINVAL;
+> +		}
+> +	}
+
+And again same question, why we can't simply dup them as we do for (string)
+arrays?
 
 -- 
 With Best Regards,
