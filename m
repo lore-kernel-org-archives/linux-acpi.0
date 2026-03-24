@@ -1,235 +1,208 @@
-Received: from SEYPR02CU001.outbound.protection.outlook.com (mail-koreacentralazon11023086.outbound.protection.outlook.com [40.107.44.86])
+Received: from PH7PR06CU001.outbound.protection.outlook.com (mail-westus3azon11010041.outbound.protection.outlook.com [52.101.201.41])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9152C3DB63A;
-	Tue, 24 Mar 2026 09:11:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.44.86
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 126F53C9424;
+	Tue, 24 Mar 2026 09:33:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.201.41
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774343475; cv=fail; b=kx88UaKO1TBh6ERRf6ZZ3d4uGLd3Uiv+SosxCHxQQngOhXmd3ffDuVl8Zm3oaUNElFLn7hZ0xQvJ2g4XqghJzp8AE2APamJ+Xpz1nbiDKYoqcWSdcYBUaX4UFJ9RjdVtSihdzRgqO+A+AdenCCtBzc2NArl7h6ng8c1BTc40u9E=
+	t=1774344799; cv=fail; b=kpz8R+1VMrEymHWTZZhE3rCi23RdmvVuewV828/bUs4fGhC+tGuDICygLN0jwaY07DXU1flwiGf4+Y6PkfY370Jvor1KfQbE04cqsVvlTtFPBa0sEDoUuT2t9VAJo6jYhKFfMzLMFDls9PwZw9y42TtMFsYBBcFhsPZjQCdPrqk=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774343475; c=relaxed/simple;
-	bh=xgATc/WPXo53DbFalpCjRSrGMTJTi9rmDp2mFgv3vVY=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=eQ7ZFiwNs8c7/fPdt8TnM3gdwmVdzbSQfvufsOV1pWlw5kYhWwksgKuEzqzIYxA2kwU0dJaiu+0YFW8A3mcCmoyZHZUJvL+tuxEsO/7bLU8vGvng8Sm8tbWZJeMux+okhwTHD/63/ut+29J6j1Q4carLJPTFfNP0kx43mye+RY0=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=qnap.com; spf=pass smtp.mailfrom=qnap.com; dkim=pass (2048-bit key) header.d=qnap.com header.i=@qnap.com header.b=b5QnRBUJ; arc=fail smtp.client-ip=40.107.44.86
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=qnap.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=qnap.com
+	s=arc-20240116; t=1774344799; c=relaxed/simple;
+	bh=5p24lGmFZNQEPLj/uJqzWcR2EScfO/crGkU4iBJnx1Q=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=mEQFws2o0I1Ql86gN5P3eSTbC6PmWzRHf/9I1vmVGVGiT1QjjWIFTVsBOs+QhDu/MpMQLLhGau53bcxGs86DupbfYld2NCIIfdGsv1DqoF9zQa40vpNhlW3VJ+Z5guoDsTcuuzrAUkoPlZQQdxcgCx2v6J9xj5rPilO8hK1lSlQ=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=rXEeuRwX; arc=fail smtp.client-ip=52.101.201.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=qnap.com header.i=@qnap.com header.b="b5QnRBUJ"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="rXEeuRwX"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=Jtqz8jCd+AXyRAlRvQslDG3916Rwf3b6S7D1ZmhFFWQCxr6OoqgFs2jlLE7keu/sJhKzRomBNsWvryxhSk46GpLs1rtjb5dNVir4wdcS1a+fHWgY1kdL9u16xDmlwXQDK/2wl/snEM2x4qxxAIb9aHquJ5bfsKWumfbEHa18QU3kmFFmKdlspNs7iYFNOFHvw63PUIIEAYwQjTh3QbYumGHOvo+lQ0Ou+b5EmBbrX1tYT4XnH9VnJz0qyzXfaC8FwV5X23ouN/z9TB1EFMwcuGF1vlhFmvHCBIHvK+/mxe1w259mFeNhCfaG2SWCBZTLkfMmIeGgHLS/XSiZBaAeMw==
+ b=AyYwOeXOV/ps0WUeIMDNjg6ajBihArUswcC9fNCCcWy4M5F+ZihHbGvyZHz/SvNdP/7aky0G4NR02DGRrt2SRnrnD4irxVeraVXeKPa7DMSgp0JdkxNERpIUUZrDurjYfUv21sQr+p89fU3v8RkfRmxVpENxNvgtjkxTVAXcZOvJ7luDWHlpQRmufvhf+w4AMlnOepcLnlmUbvwxGN7NtrO0juZn/+oHJidMk7/G/ZrNi5YuZAb2+ngpIQ8HawEsLsgPriBdtxAHqi9s1nqPS2TvnrvlHCFQCAZ97mGEMdQmaE3q4e1KLa75AEQlu5WjwHuAdjxkz4crx+/Btp3mog==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=RDPITf1rIsNCukMW9/F0pVyuRVbxckr59pHEOxvQLbQ=;
- b=aThzFsVTJ6powcJ2PKE0ZU9VUNA+bwQuIuCc6Yk3TsFhKGtCQ433ge7ddEMobujp3Jj+yZJDXQnDaodmRhAMWrGh1IfcPK+8WVLcpLHvU2PE3IHFYxBJrLrObewzMZ7QQGE3ebnWyZ79bsJ1cU/VvzLQKtgfW9TYkkvAe71HfpIrlfEIz5CY0gDl29+BYmnaG+w156+GG/rLFjPa7k7y51nbiDNBWQYJmRbjKVb9KfJLLRAfRzWykmaOu0BX83EZsXSSIWtcuG/1/kWCskja0T82qOp6QtfMF0wkzfHWenS2s6yAZkipxZQc2hOg0t12dsOKCX9rEie5Vt87m8PpdQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=fail (sender ip is
- 122.147.219.42) smtp.rcpttodomain=kernel.org smtp.mailfrom=qnap.com;
- dmarc=fail (p=quarantine sp=quarantine pct=100) action=quarantine
- header.from=qnap.com; dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qnap.com; s=selector1;
+ bh=0Jn1rxIMqtrVY3VP4T+i8sj/pQJQHg8ZWnKn799NX1k=;
+ b=baxG1NZCA6fn2krMbM1gDezQ31ydsWl+v5hKd7kU8NUedko+w/5aFdHeq/ovIdItdAjPyzAhe8HHEM1GTRxEWYxKUUUMSAfeOkMfvL46wk48vfaugDod/e70Tv5Z10YZdpBQdofqma0zndzjU6OyYEXFaCcwR70HG87BlC9S5Rl+GW7nCb1vMvZZfoFY+LMjSZYkI0RdyRnrSM0JTdVtKWsjeneQXWEt97L4OppYac023jYmW9a8RTpKMm9Wp3U848rmb/B/uxko7643k4rP3V5p1Y0UiF7U2JfGcVZQf/s1vB8x228PczKnjESVjGgxEHXyiRUiN0AUFSoh9anHFQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=RDPITf1rIsNCukMW9/F0pVyuRVbxckr59pHEOxvQLbQ=;
- b=b5QnRBUJ7MrFxNGNtNI4e7MGSDvNppEa8gJWC7IVMpwGB+axePUQlEMvTmU6ojYwU4tPUHNC9W8Bb1aKdwjcAscW9s2O033ZArjKueqwgCKOP1CSKjDcuRfgB5jhkXdQnC7MmpiJKujEhRXMAGxxiTstb8YOjWGvt56PWEQCXoq36Mro0ZYm0oQWoLQX735wScKC/G0Bw++9E50y7Cqnxq1Rz1J2Mr7dS3yfR7ZzVfXzvl5ynKKLuLcA6f2icYi1L7GtE3wlyBlc3mHSkwurpIibZhRhE3vKpr98+1FR5vKI3u4N7iE2seRD3fdEuEWr4xbl90m8xjgJ6CIqCzOPEg==
-Received: from SG2PR03CA0103.apcprd03.prod.outlook.com (2603:1096:4:7c::31) by
- SI6PR04MB8344.apcprd04.prod.outlook.com (2603:1096:4:232::12) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9723.31; Tue, 24 Mar 2026 09:11:06 +0000
-Received: from SG2PEPF000B66D0.apcprd03.prod.outlook.com
- (2603:1096:4:7c:cafe::75) by SG2PR03CA0103.outlook.office365.com
- (2603:1096:4:7c::31) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.9723.31 via Frontend Transport; Tue,
- 24 Mar 2026 09:11:06 +0000
-X-MS-Exchange-Authentication-Results: spf=fail (sender IP is 122.147.219.42)
- smtp.mailfrom=qnap.com; dkim=none (message not signed)
- header.d=none;dmarc=fail action=quarantine header.from=qnap.com;
-Received-SPF: Fail (protection.outlook.com: domain of qnap.com does not
- designate 122.147.219.42 as permitted sender)
- receiver=protection.outlook.com; client-ip=122.147.219.42;
- helo=mail19.qnap.com;
-Received: from mail19.qnap.com (122.147.219.42) by
- SG2PEPF000B66D0.mail.protection.outlook.com (10.167.240.26) with Microsoft
- SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.9723.19
- via Frontend Transport; Tue, 24 Mar 2026 09:11:06 +0000
-Received: from localhost (unknown [172.17.22.18])
-	by mail19.qnap.com (Postfix) with ESMTP id 181EC2AD;
-	Tue, 24 Mar 2026 17:11:06 +0800 (CST)
-From: Henry Tseng <henrytseng@qnap.com>
-To: "Rafael J. Wysocki" <rafael@kernel.org>,
-	Viresh Kumar <viresh.kumar@linaro.org>
-Cc: Len Brown <lenb@kernel.org>,
-	linux-pm@vger.kernel.org,
-	linux-acpi@vger.kernel.org,
-	SW Chen <swchen@qnap.com>,
-	Kevin Ko <kevinko@qnap.com>,
-	Henry Tseng <henrytseng@qnap.com>
-Subject: [PATCH v2] cpufreq: acpi-cpufreq: use DMI max speed when CPPC is unavailable
-Date: Tue, 24 Mar 2026 17:09:48 +0800
-Message-ID: <20260324090948.1667340-1-henrytseng@qnap.com>
-X-Mailer: git-send-email 2.43.0
+ bh=0Jn1rxIMqtrVY3VP4T+i8sj/pQJQHg8ZWnKn799NX1k=;
+ b=rXEeuRwXNCf/c9/f31fNs8xkgtpj32t3AFbRMOP2vgHiURoFtjoNQ/CoE7BNYe1fsV5QztXfSvxZoPYMCWOuCWAWCH2+3z/UUZ8oCURSWy8CiVnkReSzhyv/h7ti2nN85zUBe7DjQnvg2PvhfBLAPhn3uENFU9Oectpz28VlXOGmuO8aVK7jq8G8IHzrhwSXoWjYnw+WXRQ9S1tQecsWGjg5ZE32d5EUAKggeiutxJz9B8WHqpxKA5Vm2NzNx8g9pprcn2t7f/O8AmlSWytu7WY7yJ4nnoscdZGqp9MiImwDEazwKBPIJpjsraOFiUKp5YMEqoS7bcBuCSYX/hyJTQ==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from PH7PR12MB7914.namprd12.prod.outlook.com (2603:10b6:510:27d::13)
+ by SN7PR12MB6789.namprd12.prod.outlook.com (2603:10b6:806:26b::22) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9745.20; Tue, 24 Mar
+ 2026 09:33:13 +0000
+Received: from PH7PR12MB7914.namprd12.prod.outlook.com
+ ([fe80::d390:582:5536:40ad]) by PH7PR12MB7914.namprd12.prod.outlook.com
+ ([fe80::d390:582:5536:40ad%5]) with mapi id 15.20.9723.013; Tue, 24 Mar 2026
+ 09:33:13 +0000
+Date: Tue, 24 Mar 2026 17:33:06 +0800
+From: Kai-Heng Feng <kaihengf@nvidia.com>
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: rafael@kernel.org, Jonathan Cameron <jonathan.cameron@huawei.com>, 
+	Shiju Jose <shiju.jose@huawei.com>, Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, 
+	Hanjun Guo <guohanjun@huawei.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, 
+	Shuai Xue <xueshuai@linux.alibaba.com>, Len Brown <lenb@kernel.org>, Kees Cook <kees@kernel.org>, 
+	"Gustavo A. R. Silva" <gustavoars@kernel.org>, Will Deacon <will@kernel.org>, 
+	Huang Yiwei <quic_hyiwei@quicinc.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Nathan Chancellor <nathan@kernel.org>, "Fabio M. De Francesco" <fabio.m.de.francesco@linux.intel.com>, 
+	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-hardening@vger.kernel.org
+Subject: Re: [PATCH v2 3/3] acpi/apei: Add NVIDIA GHES vendor CPER record
+ handler
+Message-ID: <acJYJlm2JZn_W7yO@M5403NF6WD>
+References: <20260319111315.87624-1-kaihengf@nvidia.com>
+ <20260319111315.87624-3-kaihengf@nvidia.com>
+ <20260320145254.GB699200@bhelgaas>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260320145254.GB699200@bhelgaas>
+X-ClientProxiedBy: TP0P295CA0009.TWNP295.PROD.OUTLOOK.COM
+ (2603:1096:910:2::19) To PH7PR12MB7914.namprd12.prod.outlook.com
+ (2603:10b6:510:27d::13)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SG2PEPF000B66D0:EE_|SI6PR04MB8344:EE_
-Content-Type: text/plain
-X-MS-Office365-Filtering-Correlation-Id: 4031e0b7-aa69-4f6c-0f1c-08de8985482c
-X-MS-Exchange-AtpMessageProperties: SA
+X-MS-TrafficTypeDiagnostic: PH7PR12MB7914:EE_|SN7PR12MB6789:EE_
+X-MS-Office365-Filtering-Correlation-Id: 43af3ce0-a9d2-4bef-5ddb-08de89885edc
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|82310400026|1800799024|36860700016|13003099007|56012099003|18002099003|55112099003;
+	BCL:0;ARA:13230040|1800799024|366016|376014|7416014|18002099003|22082099003|56012099003;
 X-Microsoft-Antispam-Message-Info:
-	XKjHgwdURzK6waW25BNkDfYb1HgooMJ1s0cWDfLsmj1gq0glZc3r741lLge9nWM8Ee6NN+0RZuK3AwCeUlHHQHMsc0Ts6jLGDDGQ1nyNBuwMXx3l0d7PdF/xoLWJh3tMdKRU/MHWBphhcQseoGY6aZxm35mflVQm/cIOGZ2NRZPaxOYkUFe2YZNTbRELVIw54pV9h/GrVbwCVURoUZxUr+bth0ndVNKFJJ7Yr/5ZK8pAlTM+8vcNjhcdg9vAQJ8GwG5EEnzJbeMA/RHWuU/1Vqrvu1vnZ9KnVijWrzp5UqeoV7YLl7+1/8aTQC2n8fcBCUQNRIxRUPw8Do+nZ1JVD9Rz1Ujna40IImdep3qIvd7Vkfiry9qeY1zRaZ8kq/xfsenrBIXw2hA2o442CiCHF88OTyg1Z5aZDTXsnNtfV35EcfyJvG7K2u6jiiPyYa7zCROuyAMtfnUG6U+iXFNhEp89IAIJEiSYh8v9iPpVk+uPJzNEo9ISXT8uSk0ktkXilGd+oXPaef8eEytntWx0TZuFn7qg733OgrewhdBFRwstomVvGTJTYFtb8dtPE1hwhpA11/QUJ3baTVY4T2kEsqeptE/+cSTNsJifXhRxeoegPRvG8vJZqRXG2xJzfQ8bKuGnB6+4PHsWrcODMWm9JOPXRAaq60+yPJHpS01xyCUm9RGpVQjvhwhX1oQ7ukfp+LO2kePvXLdbfKID/i23SQLC2I/+JYXfcqRG/yVFJ20ThV3ZvM2pEfD2wZXupbosoofno9L7HJKamzV/D5My9Q==
+	txBaLoxKUvduNZ0ABrP9/7O0p3C0eoMoNn2+MYmRv0cxWcZX/nt8aylVlSpdS40RDURGtj4a6K1Lrl3VCMsBEdn0tEWONn1hliekb82Ohvci08hQbufaxpploS+f0MwWKM7GzpW/tdLvLL9XJuzsIF4rrLTtWGU3ROmf/5pQI9t/sekMWiNHaUAUU+ngZpejlGPBrvqSpc+bHsjzmdu79PikrTGhGsf3nzaoQD/UBSauM9pZUin9QUEOtDxd9/HCvojc3CNHU+SXQyvXBe50aHC2WT9LgTLYYDoN5OTf3GZY+QY84DZ9POFwCFx6b9VIOcIB72SPsqL21RX2chntlio85UqKkZMB8ZFp1b9it2szBc/GfFCgX22RgPbSauQBRRt6mT5ybaQV1igVFjyshGlaMzL8jyM84jFGg2gbaCNe+lOah6xVjvHKBc1yp26pZb+YB4RHk6QDWdtEVmRl6K1p0U+IMDTDLIROqiMWWtrAtponcSuabTWlw6kUaVqFde91CP5jB6F+EsuSUwrAmTGjIglsZvJKjtrwhWZ/N2oqkeKZcY+00BTKESF4ctLaptcbvAXib4TELu9liLugN/R0chD3P2fA+g61tQq0ylJ86eYn5Wm11WI5fNQhx/66lh3/mazJlsP2DXfZFGZ8evFXDkZUXLseQARWddCSX3PEUF7lvc6W4NYh/ptQI9Z5qcPuK9ty4u4bbi+IQWjewTiGXRpqMBDKzpzN2ncGfHU=
 X-Forefront-Antispam-Report:
-	CIP:122.147.219.42;CTRY:TW;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail19.qnap.com;PTR:122-147-219-42.static.sparqnet.net;CAT:NONE;SFS:(13230040)(376014)(82310400026)(1800799024)(36860700016)(13003099007)(56012099003)(18002099003)(55112099003);DIR:OUT;SFP:1102;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH7PR12MB7914.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(376014)(7416014)(18002099003)(22082099003)(56012099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	wf1xS+HiM8T0Se9z00pBbImOAZ3c9z+4Lk+be95JqxoxYFcvEWSOHlZ02fkkdwSWupggP8Gu2fvcXJa8YmAdhrdV2KtnRV00XSEaoueQKC1BaFDYEFFSOuuxd+X/zYxsCr7AuAwLgt9Wq9FC7zcI+r+J5pX18aiHO5CHrGT5aN05/BJgYewIfftaT15t48UnahnqEEZzio7OoKOFH8aUyaVYjw5fARBfbm1FxvPhrM+ClnMVAXE6BLmn8COlYc90ifBfty3qRD+onmSrUapVOgZKmhZC6XT3uh9EcEdxZMLCrvXeBXSVY0uOJytPn9cjxgBl8FYN/b3/2W0eZHqUpK6Qz1cgN+rF7o95lhMIJUEHHhkQmgLaPQHL3uxoZ0oLe1PVYFzn6acajymmTsRH8TjVgWTai+ZCq6KxFKeSFd8ilApz1HAn1M07erHP5Tu0
-X-OriginatorOrg: qnap.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 24 Mar 2026 09:11:06.6276
+	=?us-ascii?Q?NVujh+Gdo8owZea7dD932PpFKu91kBZIGvl0THdORSScfKiX06qV/khOWEB6?=
+ =?us-ascii?Q?Mfl0OkWr98rNajy0OVttXsFnUErR8rHoDxCt6Rptlt6nO1ZgoCvLm7MnIpIT?=
+ =?us-ascii?Q?fGhVwiZv8FI+Kxf+BN+7NFEYFcBXKdIjJSlOTrwrLKz7J1T2CBA4hgqyDDec?=
+ =?us-ascii?Q?+pwbAn+IcdL488plkV9f2dQBfa1nlmidr2s7dcoo3e+7BQK4RqitYi219TiQ?=
+ =?us-ascii?Q?4ABGv6e3YQYB4rLOpAgjYCEtye1WxVptzKvQHmpT8gsYETSqTisP/8YO5cT8?=
+ =?us-ascii?Q?TeppZIylpa4zrDIgm/z9W8AqDnW0bHdi/0boc+qynY9pAXxOc9DbdjctnSFp?=
+ =?us-ascii?Q?17ZXn827yRVGrDEY9J79kQGUAiFAvKsM3ca7sXBL4PDZ44ljqqcDvX5jcROi?=
+ =?us-ascii?Q?4v5+uUcm1TO/fy6OcbtsB1cKLVoIlJnQTwsSVT5HCmMq+WJXx0RU9PsykEO6?=
+ =?us-ascii?Q?GmyW28VfPdOByYluI1B9T17XWQbqpvFqsyFmQ4q2QRS0voLp8x6XBb4NzuFW?=
+ =?us-ascii?Q?3oIrX5Uy3y0Q62eHHcd1uahImol3B4BZFig6VMIuV6ZHaVKk1O8EJh+J2hFB?=
+ =?us-ascii?Q?etOuqNXcKiVZoP+NQU4ZpIel8+D6CXkwnlAvzK8N/FJKPR/MDq0fsoGS7zGe?=
+ =?us-ascii?Q?sZ6amRjHadQ4uU8SUepBDpjjfFBzIqLkZs7DJnDcuDYrVTs2swQlAYoUo8Da?=
+ =?us-ascii?Q?5Or4cS5y+ujqtrcvs02qWpBAqpUTH/7C3hHzTwBrDfS/2og21SsSLNoXfyM2?=
+ =?us-ascii?Q?go4nw/iEnuqPWFfWeoKPGX2XNblPw3/HQviCY6UAuwZWzrUOVUoW2H162PQb?=
+ =?us-ascii?Q?q/QtzmbJHj+Vniyf2G4uEt3VUhci5L5jpr2NRj2qG5jAN3fBYu78MUS/2uq/?=
+ =?us-ascii?Q?Pzb/lmI3ksOC4cjb/36bAYx5x7ZSz63pbEhFuGoDHY+inC/FEb/sfthyaGi2?=
+ =?us-ascii?Q?niK6LUFF7ZN1OelKgY/RC+Pq1a32WaNbMq5EiDqreO/rR0l781IlN+sf6485?=
+ =?us-ascii?Q?YzRUdFpTLrGB1pf8ceCKLJPvFBmTPKkJqAm/Xh2gvXsUZ2qHB4wghuYz4dHP?=
+ =?us-ascii?Q?uMKo1npbpszKuD8T3121KNdAZTXx8VUz3XnHwH0UB2mvNrK62AyZwwJk/yRB?=
+ =?us-ascii?Q?aeAiH/TKn4qoLQEe2XIFHd7fuxYj++bHr1Q6NQxd627+R8zVlWYfpCQNTAFL?=
+ =?us-ascii?Q?ZEuRjanbnDWPF3qrRDkaMImv0j+/5dtApEFxk0aj2PptLGriXUobB9wYRSaV?=
+ =?us-ascii?Q?ZyY9fX7dM4gYimA/zt/TH2d450+uQQ9vmwyaoENHVu2ChkqN5hZ2pVp5NhnX?=
+ =?us-ascii?Q?O8ZWNTOUBZHVFfJ/f0c9c4defgLIOIsUs2xJw2F1Duz7Q7wGDKn7gH8ulLee?=
+ =?us-ascii?Q?/j9H1se/qIjVcBRZH/AZgA7V88vOm2VmtWQm6kkHEOoKB8uvQfFY340yLQDW?=
+ =?us-ascii?Q?u0ofVC5oYrjJOGeLfeuSRrz8kVeeK10bE28P6UqxDX/+3R29p0gw36J97iwU?=
+ =?us-ascii?Q?a9ryyaBuO0mHJ/OErt27REabvVPbYrpllncje7OS8YLUEcyepoQSzUZkuvcv?=
+ =?us-ascii?Q?zXDYvkM7nvEWLG/kCL5JkV57TzukFeeP5pRgQd3bxvK248+FeiBKtEuZFoN7?=
+ =?us-ascii?Q?6jFaUIEHGBR3oMvwD6wyAYasKgd9aMAw8MWU+XomdkQSkFZZ+X7FfQaFgbRz?=
+ =?us-ascii?Q?ABKj0pV0U2R3fkbjvfjSbRc3BVBbRquWkbJAV/T8bv+6XVwWVAcqbdExLpKj?=
+ =?us-ascii?Q?h9L1yupdpQ=3D=3D?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 43af3ce0-a9d2-4bef-5ddb-08de89885edc
+X-MS-Exchange-CrossTenant-AuthSource: PH7PR12MB7914.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 24 Mar 2026 09:33:13.6361
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 4031e0b7-aa69-4f6c-0f1c-08de8985482c
-X-MS-Exchange-CrossTenant-Id: 6eba8807-6ef0-4e31-890c-a6ecfbb98568
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=6eba8807-6ef0-4e31-890c-a6ecfbb98568;Ip=[122.147.219.42];Helo=[mail19.qnap.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	SG2PEPF000B66D0.apcprd03.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SI6PR04MB8344
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: wADm11okIeUUKk/je5lMOYeXokpF++P1nvW/44R5y//wSaYtLhPXT7oMkVYY2cFEhcfkawpfn0TpTLA44KTXjw==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN7PR12MB6789
 
-On AMD Ryzen Embedded V1780B (Family 17h, Zen 1), the BIOS does not
-provide ACPI _CPC objects and the CPU does not support MSR-based CPPC
-(X86_FEATURE_CPPC).  The _PSS table only lists nominal P-states
-(P0 = 3350 MHz), so when get_max_boost_ratio() fails at
-cppc_get_perf_caps(), cpuinfo_max_freq reports only the base frequency
-instead of the rated boost frequency (3600 MHz).
+On 2026-03-20 09:52, Bjorn Helgaas wrote:
+> External email: Use caution opening links or attachments
+>
+>
+> On Thu, Mar 19, 2026 at 07:13:09PM +0800, Kai-Heng Feng wrote:
+> > Add support for decoding NVIDIA-specific CPER sections delivered via
+> > the APEI GHES vendor record notifier chain. NVIDIA hardware generates
+> > vendor-specific CPER sections containing error signatures and diagnostic
+> > register dumps. This implementation registers a notifier_block with the
+> > GHES vendor record notifier and decodes these sections, printing error
+> > details via dev_info().
+> >
+> > The driver binds to ACPI device NVDA2012, present on NVIDIA server
+> > platforms. The NVIDIA CPER section contains a fixed header with error
+> > metadata (signature, error type, severity, socket) followed by
+> > variable-length register address-value pairs for hardware diagnostics.
+> >
+> > This work is based on libcper [0].
+> >
+> > Example output:
+> > nvidia-ghes NVDA2012:00: NVIDIA CPER section, error_data_length: 544
+> > nvidia-ghes NVDA2012:00: signature: CMET-INFO
+> > nvidia-ghes NVDA2012:00: error_type: 0
+> > nvidia-ghes NVDA2012:00: error_instance: 0
+> > nvidia-ghes NVDA2012:00: severity: 3
+> > nvidia-ghes NVDA2012:00: socket: 0
+> > nvidia-ghes NVDA2012:00: number_regs: 32
+> > nvidia-ghes NVDA2012:00: instance_base: 0x0000000000000000
+> > nvidia-ghes NVDA2012:00: register[0]: address=0x8000000100000000 value=0x0000000100000000
+>
+> Is there a convenient way to connect NVDA2012:00 with the actual device?  I
+> assume this is typically a PCIe device?  How would we relate this with PCIe
+> errors?
 
-  dmesg:
-    ACPI CPPC: No CPC descriptor for CPU:0
-    acpi_cpufreq: CPU0: Unable to get performance capabilities (-19)
+The CPER report is from ARM RAS firmware and not neccessarily be related
+to a PCIe device.
 
-cppc-cpufreq already has a DMI fallback (cppc_get_dmi_max_khz()) that
-reads the processor max speed from SMBIOS Type 4.  Export it and reuse
-it in acpi-cpufreq as a last-resort source for the boost frequency.
+>
+> Consider a cover letter.  Some of these comments apply to the series.
 
-A sanity check ensures the DMI value is above the _PSS P0 frequency
-and within 2x of it; values outside that range are ignored and the
-existing arch_set_max_freq_ratio() path is taken instead.  The 2x
-upper bound is based on a survey of the AMD Ryzen Embedded V1000
-series, where the highest boost-to-base ratio is 1.8x (V1404I:
-2.0 GHz base / 3.6 GHz boost).
+Will do in next version.
 
-The DMI lookup and sanity check are wrapped in a helper,
-acpi_cpufreq_resolve_max_freq(), which falls through to
-arch_set_max_freq_ratio() if the DMI value is absent or
-out of range.
+>
+> Wrap commit logs to fit in 75 columns.  When indented by "git log", all of
+> these overflow 80 columns by just a few characters.
+>
+> Possibly reorder so the acpi/apei patches are together.  I don't think the
+> NVIDIA record handler depends on the PCI patch.
+>
+> Typical subject line style in drivers/acpi/apei appears to be:
+>
+>   ACPI: APEI: GHES: Add ...
+>
+> > +config ACPI_APEI_NVIDIA_GHES
+> > +     tristate "NVIDIA GHES vendor record handler"
+> > +     depends on ACPI_APEI_GHES
+>
+> Maybe s/ACPI_APEI_NVIDIA_GHES/ACPI_APEI_GHES_NVIDIA/ since there will
+> likely be more, and they'll sort nicely if the vendor is at the end.
 
-Tested on AMD Ryzen Embedded V1780B with v7.0-rc4:
+OK, will do.
 
-  Before: cpuinfo_max_freq = 3350000 (base only)
-  After:  cpuinfo_max_freq = 3600000 (includes boost)
+>
+> > +     help
+> > +       Support for decoding NVIDIA-specific CPER sections delivered via
+> > +       the APEI GHES vendor record notifier chain. Registers a handler
+> > +       for the NVIDIA section GUID and logs error signatures, severity,
+> > +       socket, and diagnostic register address-value pairs.
+> > +
+> > +       Enable on NVIDIA server platforms (e.g. DGX, HGX) that expose
+> > +       ACPI device NVDA2012 in their firmware tables.
+>
+> Wrap to fit in 80 columns like the rest of this file.
+>
+> > +++ b/drivers/acpi/apei/nvidia-ghes.c
+>
+> Maybe rename to "ghes-nvidia.c" so future decoders for other vendors are
+> grouped?
 
-Link: https://www.amd.com/en/products/embedded/ryzen/ryzen-v1000-series.html#specifications
-Signed-off-by: Henry Tseng <henrytseng@qnap.com>
----
-v2:
-  - Extract else block into acpi_cpufreq_resolve_max_freq()
-    to avoid #ifdef in the main init path (Rafael)
-v1:
-  - https://lore.kernel.org/linux-pm/20260320095648.3598007-1-henrytseng@qnap.com/
-
- drivers/acpi/cppc_acpi.c       |  3 ++-
- drivers/cpufreq/acpi-cpufreq.c | 31 ++++++++++++++++++++++++-------
- include/acpi/cppc_acpi.h       |  1 +
- 3 files changed, 27 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-index f0e513e9ed5d..f53de414acf2 100644
---- a/drivers/acpi/cppc_acpi.c
-+++ b/drivers/acpi/cppc_acpi.c
-@@ -1944,7 +1944,7 @@ static void cppc_find_dmi_mhz(const struct dmi_header *dm, void *private)
- }
- 
- /* Look up the max frequency in DMI */
--static u64 cppc_get_dmi_max_khz(void)
-+u64 cppc_get_dmi_max_khz(void)
- {
- 	u16 mhz = 0;
- 
-@@ -1958,6 +1958,7 @@ static u64 cppc_get_dmi_max_khz(void)
- 
- 	return KHZ_PER_MHZ * mhz;
- }
-+EXPORT_SYMBOL_GPL(cppc_get_dmi_max_khz);
- 
- /*
-  * If CPPC lowest_freq and nominal_freq registers are exposed then we can
-diff --git a/drivers/cpufreq/acpi-cpufreq.c b/drivers/cpufreq/acpi-cpufreq.c
-index e7eff6c2f092..21639d9ac753 100644
---- a/drivers/cpufreq/acpi-cpufreq.c
-+++ b/drivers/cpufreq/acpi-cpufreq.c
-@@ -675,6 +675,29 @@ static inline u64 get_max_boost_ratio(unsigned int cpu, u64 *nominal_freq)
- }
- #endif
- 
-+static void acpi_cpufreq_resolve_max_freq(struct cpufreq_policy *policy,
-+					  unsigned int pss_max_freq)
-+{
-+#ifdef CONFIG_ACPI_CPPC_LIB
-+	u64 max_speed = cppc_get_dmi_max_khz();
-+	/*
-+	 * Use DMI "Max Speed" if it looks plausible: must be
-+	 * above _PSS P0 frequency and within 2x of it.
-+	 */
-+	if (max_speed > pss_max_freq && max_speed < pss_max_freq * 2) {
-+		policy->cpuinfo.max_freq = max_speed;
-+		return;
-+	}
-+#endif
-+	/*
-+	 * If the maximum "boost" frequency is unknown, ask the arch
-+	 * scale-invariance code to use the "nominal" performance for
-+	 * CPU utilization scaling so as to prevent the schedutil
-+	 * governor from selecting inadequate CPU frequencies.
-+	 */
-+	arch_set_max_freq_ratio(true);
-+}
-+
- static int acpi_cpufreq_cpu_init(struct cpufreq_policy *policy)
- {
- 	struct cpufreq_frequency_table *freq_table;
-@@ -849,13 +872,7 @@ static int acpi_cpufreq_cpu_init(struct cpufreq_policy *policy)
- 
- 		policy->cpuinfo.max_freq = freq * max_boost_ratio >> SCHED_CAPACITY_SHIFT;
- 	} else {
--		/*
--		 * If the maximum "boost" frequency is unknown, ask the arch
--		 * scale-invariance code to use the "nominal" performance for
--		 * CPU utilization scaling so as to prevent the schedutil
--		 * governor from selecting inadequate CPU frequencies.
--		 */
--		arch_set_max_freq_ratio(true);
-+		acpi_cpufreq_resolve_max_freq(policy, freq_table[0].frequency);
- 	}
- 
- 	policy->freq_table = freq_table;
-diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
-index 4d644f03098e..e6c5ef3173c5 100644
---- a/include/acpi/cppc_acpi.h
-+++ b/include/acpi/cppc_acpi.h
-@@ -156,6 +156,7 @@ extern int cppc_set_enable(int cpu, bool enable);
- extern int cppc_get_perf_caps(int cpu, struct cppc_perf_caps *caps);
- extern bool cppc_perf_ctrs_in_pcc_cpu(unsigned int cpu);
- extern bool cppc_perf_ctrs_in_pcc(void);
-+extern u64 cppc_get_dmi_max_khz(void);
- extern unsigned int cppc_perf_to_khz(struct cppc_perf_caps *caps, unsigned int perf);
- extern unsigned int cppc_khz_to_perf(struct cppc_perf_caps *caps, unsigned int freq);
- extern bool acpi_cpc_valid(void);
--- 
-2.43.0
-
+Will do.
