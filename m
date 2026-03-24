@@ -1,135 +1,97 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4A1023EB807;
-	Tue, 24 Mar 2026 11:33:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.13])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 084493F9F28;
+	Tue, 24 Mar 2026 12:31:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.13
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774352006; cv=none; b=OiT+ivJw86OgLGd394LzIWfXaRlaQRlunmR09pwmn/nWxmruQnjjIcz6F9Tsk/Kaw6KzQJqrfE+S3Vs0SlViDJeMInneIajgwD4phQAy3CQ16GAacETVdSl227qePg7BqhPZ6oQLRfVfH4f3wkRrz9qT9SjBv6Fof6Hc6rPlW3g=
+	t=1774355462; cv=none; b=sNF9O0JH0Gl3HDmm8VNG32lYR+NujL02oEzJC0/I9+IhemfSOc5Be8g9yj9gNiUxcq2MWjC8E1/RMqT8wd0SLxiPY7J+NJePu8m0Zf+b13EVS2RSOEcXCb2f7AJTbheo0ICtDZ8c7dwxGFys8mph/KdilzDggLCsvupPmLv9lOw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774352006; c=relaxed/simple;
-	bh=MGfqxzxnJdb6vcIOXaAzl+POeYgTm7zQWrbaMSRzX/8=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=RTR6AclKN0/FG35bX3EzRO9kHjQmNfg6JKmWmhnQ7JRJtxTf/jcp8/88v0F37a8Eu5JdkjQ2K0K4DDTic7KIQLpgenUdiAm4cezmit70xmQTAOpN6cpf7stNS3oy8At7LV13S9HZsUXTDybbO8mtfRoW21//50KVne4999m9PE8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 70E3E1476;
-	Tue, 24 Mar 2026 04:33:17 -0700 (PDT)
-Received: from e134344.cambridge.arm.com (e134344.arm.com [10.1.196.46])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 095083F885;
-	Tue, 24 Mar 2026 04:33:20 -0700 (PDT)
-From: Ben Horgan <ben.horgan@arm.com>
-To: ben.horgan@arm.com
-Cc: rafael@kernel.org,
-	lenb@kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH v1] ACPI / PPTT: Remove duplicate structure, acpi_pptt_cache_v1_full
-Date: Tue, 24 Mar 2026 11:33:00 +0000
-Message-ID: <20260324113300.1002569-1-ben.horgan@arm.com>
-X-Mailer: git-send-email 2.43.0
+	s=arc-20240116; t=1774355462; c=relaxed/simple;
+	bh=zMO1+9mbs7EoV8l2A6BMnY27sQegLkbm4+N4wUJDzIQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=abEfMUuCuCd3XQT6Wa0FY02qLS4TyfxMlSC86lgHjc13NHnirODd6tZkluH/xrF5AcyHE3QvUd0jPz7E43PDcQy+OsStkMedn+kMbQ8tF75arpIIUXeThyAdFfVdqbsq+6501cQrHlcfI+SnCPX/FgQJ9NRpXEu73uNg0FtMu10=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=P4ESjIiG; arc=none smtp.client-ip=198.175.65.13
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="P4ESjIiG"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1774355461; x=1805891461;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=zMO1+9mbs7EoV8l2A6BMnY27sQegLkbm4+N4wUJDzIQ=;
+  b=P4ESjIiGl6OcMNig0ue4h3nztAJDr9DJyVC9V/dMxQbXwfxiyQvmdrV2
+   GVIf+42ypk+e3ekApHESHmPOltHiTGVDPOsIscYkEEARxQoWsT556xiCq
+   ijRtpcl+gzf2yk2w8BMu/t6ouT/2qEDMvha7yK7i1GfPFEV+VPqnPzq9E
+   +x7mCMHfdOwzswyZEskLNz2+EwDQ3E2mxOP0k7ScudXe2n3Hb5viVw+4U
+   YcptJefUMw8dcwpy76Of5XWRhZCNe5L9eT9KpD4W6x6EvPcuDgv0XOmNp
+   6nwdnLY7+m/rAdKedowcvk9TPc5Wlk1os5/5Hi4dhUtd8tBpofz81Seu+
+   g==;
+X-CSE-ConnectionGUID: bHF0Ix38R+if2gBToR2vrA==
+X-CSE-MsgGUID: quDZS1UrSyWQjcybofOIZQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11738"; a="86443199"
+X-IronPort-AV: E=Sophos;i="6.23,138,1770624000"; 
+   d="scan'208";a="86443199"
+Received: from orviesa008.jf.intel.com ([10.64.159.148])
+  by orvoesa105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Mar 2026 05:31:00 -0700
+X-CSE-ConnectionGUID: XJ3MSu5bRki0X3r5PcHnbg==
+X-CSE-MsgGUID: 1uynBQlAQSGKSdEW4lsSyw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,138,1770624000"; 
+   d="scan'208";a="224340401"
+Received: from abityuts-desk.ger.corp.intel.com (HELO localhost) ([10.245.244.214])
+  by orviesa008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Mar 2026 05:30:57 -0700
+Date: Tue, 24 Mar 2026 14:30:54 +0200
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
+	Borislav Petkov <bp@alien8.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+	Hans de Goede <hansg@kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+	driver-core@lists.linux.dev
+Subject: Re: [PATCH 2/4] software node: allow passing reference args to
+ PROPERTY_ENTRY_REF
+Message-ID: <acKD_vzk_8bX17ZT@ashevche-desk.local>
+References: <20260323-property-gpio-fix-v1-0-9cb46e5fe7df@gmail.com>
+ <20260323-property-gpio-fix-v1-2-9cb46e5fe7df@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260323-property-gpio-fix-v1-2-9cb46e5fe7df@gmail.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-acpi_pptt_cache_v1_full was initially added as a stop gap until the
-equivalent structure imported from ACPICA, acpi_pptt_v1 in actbl2.h,
-contained all the fields of the Cache Type Structure. Since, commit :
-091c4af3562d ("ACPICA: ACPI 6.4: PPTT: include all fields in subtable
-type1"), acpi_pptt_v1 contains all these fields making
-acpi_pptt_cache_v1_full redundant.
+On Mon, Mar 23, 2026 at 05:39:38PM -0700, Dmitry Torokhov wrote:
+> When dynamically creating software nodes and properties for subsequent
+> use with software_node_register() current implementation of
+> PROPERTY_ENTRY_REF is not suitable because it creates a temporary
+> instance of struct software_node_ref_args on stack which will later
+> disappear, and software_node_register() only does shallow copy of
+> properties.
 
-Remove acpi_pptt_cache_v1_full.
+Isn't that the problem and we should take into account how to dup the reference
+inside property core?
 
-No functional change intended.
+> Fix this by allowing to pass address of reference arguments structure
+> directly into PROPERTY_ENTRY_REF(), so that caller can manage lifetime
+> of the object properly.
 
-Cc: Jeremy Linton <jeremy.linton@arm.com>
-Signed-off-by: Ben Horgan <ben.horgan@arm.com>
----
- drivers/acpi/pptt.c | 31 ++++++-------------------------
- 1 file changed, 6 insertions(+), 25 deletions(-)
-
-diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
-index de5f8c018333..ea28ba61ddd9 100644
---- a/drivers/acpi/pptt.c
-+++ b/drivers/acpi/pptt.c
-@@ -21,25 +21,6 @@
- #include <linux/cacheinfo.h>
- #include <acpi/processor.h>
- 
--/*
-- * The acpi_pptt_cache_v1 in actbl2.h, which is imported from acpica,
-- * only contains the cache_id field rather than all the fields of the
-- * Cache Type Structure. Use this alternative structure until it is
-- * resolved in acpica.
-- */
--struct acpi_pptt_cache_v1_full {
--	struct acpi_subtable_header header;
--	u16 reserved;
--	u32 flags;
--	u32 next_level_of_cache;
--	u32 size;
--	u32 number_of_sets;
--	u8 associativity;
--	u8 attributes;
--	u16 line_size;
--	u32 cache_id;
--} __packed;
--
- static struct acpi_subtable_header *fetch_pptt_subtable(struct acpi_table_header *table_hdr,
- 							u32 pptt_ref)
- {
-@@ -75,16 +56,16 @@ static struct acpi_pptt_cache *fetch_pptt_cache(struct acpi_table_header *table_
- 	return (struct acpi_pptt_cache *)fetch_pptt_subtable(table_hdr, pptt_ref);
- }
- 
--static struct acpi_pptt_cache_v1_full *upgrade_pptt_cache(struct acpi_pptt_cache *cache)
-+static struct acpi_pptt_cache_v1 *upgrade_pptt_cache(struct acpi_pptt_cache *cache)
- {
--	if (cache->header.length < sizeof(struct acpi_pptt_cache_v1_full))
-+	if (cache->header.length < sizeof(struct acpi_pptt_cache_v1))
- 		return NULL;
- 
- 	/* No use for v1 if the only additional field is invalid */
- 	if (!(cache->flags & ACPI_PPTT_CACHE_ID_VALID))
- 		return NULL;
- 
--	return (struct acpi_pptt_cache_v1_full *)cache;
-+	return (struct acpi_pptt_cache_v1 *)cache;
- }
- 
- static struct acpi_subtable_header *acpi_get_pptt_resource(struct acpi_table_header *table_hdr,
-@@ -397,7 +378,7 @@ static void update_cache_properties(struct cacheinfo *this_leaf,
- 				    struct acpi_pptt_cache *found_cache,
- 				    struct acpi_pptt_processor *cpu_node)
- {
--	struct acpi_pptt_cache_v1_full *found_cache_v1;
-+	struct acpi_pptt_cache_v1 *found_cache_v1;
- 
- 	this_leaf->fw_token = cpu_node;
- 	if (found_cache->flags & ACPI_PPTT_SIZE_PROPERTY_VALID)
-@@ -979,7 +960,7 @@ int find_acpi_cache_level_from_id(u32 cache_id)
- 
- 			empty = true;
- 			for (int i = 0; i < ARRAY_SIZE(cache_type); i++) {
--				struct acpi_pptt_cache_v1_full *cache_v1;
-+				struct acpi_pptt_cache_v1 *cache_v1;
- 
- 				cache = acpi_find_cache_node(table, acpi_cpu_id, cache_type[i],
- 							     level, &cpu_node);
-@@ -1043,7 +1024,7 @@ int acpi_pptt_get_cpumask_from_cache_id(u32 cache_id, cpumask_t *cpus)
- 
- 			empty = true;
- 			for (int i = 0; i < ARRAY_SIZE(cache_type); i++) {
--				struct acpi_pptt_cache_v1_full *cache_v1;
-+				struct acpi_pptt_cache_v1 *cache_v1;
- 
- 				cache = acpi_find_cache_node(table, acpi_cpu_id, cache_type[i],
- 							     level, &cpu_node);
 -- 
-2.43.0
+With Best Regards,
+Andy Shevchenko
+
 
