@@ -1,152 +1,235 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5CA30402BAB;
-	Tue, 24 Mar 2026 15:10:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from mout02.posteo.de (mout02.posteo.de [185.67.36.66])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35A98406279
+	for <linux-acpi@vger.kernel.org>; Tue, 24 Mar 2026 15:30:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.67.36.66
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774365042; cv=none; b=h8tqPTPpM6gOK6ZsIsOzmmPzd3+B8IanKVA4NtFX0NInCjlTmUebpn1dnHqJ+N9FMtt1ZNvMJ00W9KtdnjCP8I5UxCNpPQaFZbETb/QuvtQFuKaP2V3qmBR3ehLpicjs/WQTAEu3gwOlJQi+P1hOpz5rZrJLyEgmOcLhjAe/CyU=
+	t=1774366250; cv=none; b=tRBY6WDDfeRzRYZ2XlE9hod4Wf7MoNdi/8uxbHlgH1vgAT+VuWHLg+sJ82obKkFmhN7sltn0BA9T8u4oCOdHbp4hFg0skl1/XNkIrpCG4goTLkdYD1Kz1B99pIf+uQgO3QWklM4+diGJot/bXmngqjbWQjm1UCJt+QurV8eqRZs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774365042; c=relaxed/simple;
-	bh=QNmhiboPhTxoKZOkSDx1M9k0BHm6Q/x6fQ5gZzrRjWw=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=RuPKtUgpkwHMEKSyW/2qDRv3jKPfyA8KEvHDi6NGkn5WMI63BRlGvfeMJaBFYQ5gH//L/BJ7YkM9X4/RGOu9FiP6AAZjCfc3vcWWATQYnSzwP8Viu8918TDbUYu4WLoVLCE04FdMRF9U9bBdRcD6qDymjYeHpPPdYRK1iY7F16g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=BbnByRRJ; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	s=arc-20240116; t=1774366250; c=relaxed/simple;
+	bh=AFkZQoQFstyy/dwGWmvovM3jX8wDVNpwJfI/V0n4b9I=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=p72zOSi8FtnpxkMcVn5ZdiVThBzQb+PpBHRuOk0YMJl8Vy8rGObtOpiGa2lMzMz4zpCAsYc5AFxca0m8hcC+OwuFXHIsPHqcibEKm5quYDCRhwEyKzNuEbumjg8H77bKPsXDihpTRy0AytDrYMzxXEh6HmYJGsEo2p4FdFCyMCM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de; spf=pass smtp.mailfrom=posteo.de; dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b=Ynlwaq5R; arc=none smtp.client-ip=185.67.36.66
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=posteo.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="BbnByRRJ"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id BE1F414BF;
-	Tue, 24 Mar 2026 08:10:33 -0700 (PDT)
-Received: from [172.27.42.179] (usa-sjc-mx-foss1.foss.arm.com [172.31.20.19])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 80ECF3F836;
-	Tue, 24 Mar 2026 08:10:39 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1774365039; bh=QNmhiboPhTxoKZOkSDx1M9k0BHm6Q/x6fQ5gZzrRjWw=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=BbnByRRJqwrzoWg223sexUhotlxbljo3LaHFfNU9g0yLr7zeP+YflI17hy2vWe1C5
-	 QWY7UrkgTdaLsU6RK4F39oYKa2sC81wODV+XbVlk0IWylLDb3RyVmS6viXzQ9EBh5E
-	 Bo+vPS/McH2TIy6LCnIfERxzhzM/JWJbdTmw1WyA=
-Message-ID: <e1d447dd-cbba-4dce-bf4d-c6a7a79f4342@arm.com>
-Date: Tue, 24 Mar 2026 10:10:39 -0500
+	dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b="Ynlwaq5R"
+Received: from submission (posteo.de [185.67.36.169]) 
+	by mout02.posteo.de (Postfix) with ESMTPS id 74839240103
+	for <linux-acpi@vger.kernel.org>; Tue, 24 Mar 2026 16:30:40 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=posteo.de; s=2017;
+	t=1774366240; bh=TdylBglHESQc63FZeWoNveBg2huikViD/E4pJuXNAd4=;
+	h=Message-ID:Subject:From:To:Cc:Date:Autocrypt:Content-Type:
+	 MIME-Version:OpenPGP:From;
+	b=Ynlwaq5R0ESX6LDeft9LnAiYXA55D3EDEayHUkezmna3qfAEktqtHUCdzBu00qq2t
+	 UDe5m3kqzeDopoQW0f6GUZZSONrl1C+b2F7WxzUwrckaDl5Vm6KY6XXOkn0vcXpg8c
+	 0NnWgqCA4HI5QuRbbDH/QEwk2ONOPE7jqmCHumShq3pdfHLnnwAq+rS7OiXDnj5WT/
+	 qA08qtIGK2rKrOKWUK4Nx+HJNqrVrQehT/bFYdLr/U9OB8qyNVENF/mP2imNA0wXr6
+	 QfuQaYDoa8tr5IO5oOnQaVhrWR8EFlHS7zHsr92AQFMZn8jqBlfkk4CSZuu3eQuFQi
+	 QkxvpTlzud16w==
+Received: from customer (localhost [127.0.0.1])
+	by submission (posteo.de) with ESMTPSA id 4fgDWb08gfz6tsf;
+	Tue, 24 Mar 2026 16:30:34 +0100 (CET)
+Message-ID: <e8ffc9902c0af24ce6fde2d8712ea588b36e9194.camel@posteo.de>
+Subject: Re: [PATCH v3 3/7] acpi: add acpi_of_match_device_ids
+From: Markus Probst <markus.probst@posteo.de>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Lee Jones <lee@kernel.org>, Rob Herring <robh@kernel.org>, Krzysztof
+ Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, Greg
+ Kroah-Hartman	 <gregkh@linuxfoundation.org>, Miguel Ojeda
+ <ojeda@kernel.org>, Boqun Feng	 <boqun@kernel.org>, Gary Guo
+ <gary@garyguo.net>, =?ISO-8859-1?Q?Bj=F6rn?= Roy Baron
+ <bjorn3_gh@protonmail.com>, Benno Lossin <lossin@kernel.org>, Andreas
+ Hindborg	 <a.hindborg@kernel.org>, Alice Ryhl <aliceryhl@google.com>,
+ Trevor Gross	 <tmgross@umich.edu>, Danilo Krummrich <dakr@kernel.org>, Igor
+ Korotin	 <igor.korotin.linux@gmail.com>, Daniel Almeida
+ <daniel.almeida@collabora.com>,  Bjorn Helgaas <bhelgaas@google.com>,
+ Krzysztof =?UTF-8?Q?Wilczy=C5=84ski?= <kwilczynski@kernel.org>, Pavel
+ Machek <pavel@kernel.org>, Len Brown <lenb@kernel.org>, Robert Moore
+ <robert.moore@intel.com>, 	devicetree@vger.kernel.org,
+ linux-kernel@vger.kernel.org, 	rust-for-linux@vger.kernel.org,
+ driver-core@lists.linux.dev, 	linux-pci@vger.kernel.org,
+ linux-leds@vger.kernel.org, 	linux-acpi@vger.kernel.org,
+ acpica-devel@lists.linux.dev
+Date: Tue, 24 Mar 2026 15:30:38 +0000
+In-Reply-To: <CAJZ5v0jxHO2EH5NeEsMkxGz5xqVL00tO-W1JpaVd=GhwgQ3T=A@mail.gmail.com>
+References: <20260313-synology_microp_initial-v3-0-ad6ac463a201@posteo.de>
+	 <20260313-synology_microp_initial-v3-3-ad6ac463a201@posteo.de>
+	 <CAJZ5v0jxHO2EH5NeEsMkxGz5xqVL00tO-W1JpaVd=GhwgQ3T=A@mail.gmail.com>
+Autocrypt: addr=markus.probst@posteo.de; prefer-encrypt=mutual;
+ keydata=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
+ jfGillcaQOqFZ3WwVqyzG1BUfTow==
+Content-Type: multipart/signed; micalg="pgp-sha256";
+	protocol="application/pgp-signature"; boundary="=-eySGLK0BCKOzVjRv4LWn"
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v1] ACPI / PPTT: Remove duplicate structure,
- acpi_pptt_cache_v1_full
-To: Ben Horgan <ben.horgan@arm.com>
-Cc: rafael@kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org,
- linux-kernel@vger.kernel.org
-References: <20260324113300.1002569-1-ben.horgan@arm.com>
-Content-Language: en-US
-From: Jeremy Linton <jeremy.linton@arm.com>
-In-Reply-To: <20260324113300.1002569-1-ben.horgan@arm.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+OpenPGP: url=https://posteo.de/keys/markus.probst@posteo.de.asc; preference=encrypt
 
-Hi,
 
-On 3/24/26 6:33 AM, Ben Horgan wrote:
-> acpi_pptt_cache_v1_full was initially added as a stop gap until the
-> equivalent structure imported from ACPICA, acpi_pptt_v1 in actbl2.h,
-> contained all the fields of the Cache Type Structure. Since, commit :
-> 091c4af3562d ("ACPICA: ACPI 6.4: PPTT: include all fields in subtable
-> type1"), acpi_pptt_v1 contains all these fields making
-> acpi_pptt_cache_v1_full redundant.
-> 
-> Remove acpi_pptt_cache_v1_full.
+--=-eySGLK0BCKOzVjRv4LWn
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Looks good, thanks for taking care of this.
+On Mon, 2026-03-23 at 20:57 +0100, Rafael J. Wysocki wrote:
+> On Fri, Mar 13, 2026 at 8:03=E2=80=AFPM Markus Probst via B4 Relay
+> <devnull+markus.probst.posteo.de@kernel.org> wrote:
+> >=20
+> > From: Markus Probst <markus.probst@posteo.de>
+> >=20
+> > Add a function to match acpi devices against of_device_ids. This will b=
+e
+> > used in the following commit ("mfd: match acpi devices against PRP0001"=
+)
+> > to match mfd sub-devices against a of compatible string.
+>=20
+> Please always spell ACPI in capitals in patch subjects, comments,
+> changelogs, etc.  It is not a regular word.
+Ok.
+>=20
+> > Signed-off-by: Markus Probst <markus.probst@posteo.de>
+> > ---
+> >  drivers/acpi/bus.c      | 7 +++++++
+> >  include/acpi/acpi_bus.h | 2 ++
+> >  2 files changed, 9 insertions(+)
+> >=20
+> > diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> > index f6707325f582..5ddcc56edc87 100644
+> > --- a/drivers/acpi/bus.c
+> > +++ b/drivers/acpi/bus.c
+> > @@ -1044,6 +1044,13 @@ int acpi_match_device_ids(struct acpi_device *de=
+vice,
+> >  }
+> >  EXPORT_SYMBOL(acpi_match_device_ids);
+> >=20
+>=20
+> Missing kerneldoc.
+The same amount of kerneldoc as `acpi_match_device_ids`, if I am not
+mistaken.
+>=20
+> > +int acpi_of_match_device_ids(struct acpi_device *device,
+> > +                         const struct of_device_id *ids)
+> > +{
+> > +       return __acpi_match_device(device, NULL, ids, NULL, NULL) ? 0 :=
+ -ENOENT;
+> > +}
+> > +EXPORT_SYMBOL(acpi_of_match_device_ids);
+>=20
+> Are you aware of the consensus that using PRP0001 in production
+> platform firmware will be regarded as invalid?
+>=20
+> Because of that, it is not an option for a driver to avoid providing
+> ACPI match data on a platform that uses ACPI.
+First of all, the driver that would have made use of it has been
+restructed to not use mfd subdevices. It would not be affected anymore
+through this patch set. Not sure if I should still send it as its own
+patch series though.
 
-Reviewed-by: Jeremy Linton <jeremy.linton@arm.com>
+The device of the driver has no ACPI ID allocated by the manufacturer,
+as it is only used on a proprietary Linux OS (with their own modified
+kernel).
 
-> 
-> No functional change intended.
-> 
-> Cc: Jeremy Linton <jeremy.linton@arm.com>
-> Signed-off-by: Ben Horgan <ben.horgan@arm.com>
-> ---
->   drivers/acpi/pptt.c | 31 ++++++-------------------------
->   1 file changed, 6 insertions(+), 25 deletions(-)
-> 
-> diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
-> index de5f8c018333..ea28ba61ddd9 100644
-> --- a/drivers/acpi/pptt.c
-> +++ b/drivers/acpi/pptt.c
-> @@ -21,25 +21,6 @@
->   #include <linux/cacheinfo.h>
->   #include <acpi/processor.h>
->   
-> -/*
-> - * The acpi_pptt_cache_v1 in actbl2.h, which is imported from acpica,
-> - * only contains the cache_id field rather than all the fields of the
-> - * Cache Type Structure. Use this alternative structure until it is
-> - * resolved in acpica.
-> - */
-> -struct acpi_pptt_cache_v1_full {
-> -	struct acpi_subtable_header header;
-> -	u16 reserved;
-> -	u32 flags;
-> -	u32 next_level_of_cache;
-> -	u32 size;
-> -	u32 number_of_sets;
-> -	u8 associativity;
-> -	u8 attributes;
-> -	u16 line_size;
-> -	u32 cache_id;
-> -} __packed;
-> -
->   static struct acpi_subtable_header *fetch_pptt_subtable(struct acpi_table_header *table_hdr,
->   							u32 pptt_ref)
->   {
-> @@ -75,16 +56,16 @@ static struct acpi_pptt_cache *fetch_pptt_cache(struct acpi_table_header *table_
->   	return (struct acpi_pptt_cache *)fetch_pptt_subtable(table_hdr, pptt_ref);
->   }
->   
-> -static struct acpi_pptt_cache_v1_full *upgrade_pptt_cache(struct acpi_pptt_cache *cache)
-> +static struct acpi_pptt_cache_v1 *upgrade_pptt_cache(struct acpi_pptt_cache *cache)
->   {
-> -	if (cache->header.length < sizeof(struct acpi_pptt_cache_v1_full))
-> +	if (cache->header.length < sizeof(struct acpi_pptt_cache_v1))
->   		return NULL;
->   
->   	/* No use for v1 if the only additional field is invalid */
->   	if (!(cache->flags & ACPI_PPTT_CACHE_ID_VALID))
->   		return NULL;
->   
-> -	return (struct acpi_pptt_cache_v1_full *)cache;
-> +	return (struct acpi_pptt_cache_v1 *)cache;
->   }
->   
->   static struct acpi_subtable_header *acpi_get_pptt_resource(struct acpi_table_header *table_hdr,
-> @@ -397,7 +378,7 @@ static void update_cache_properties(struct cacheinfo *this_leaf,
->   				    struct acpi_pptt_cache *found_cache,
->   				    struct acpi_pptt_processor *cpu_node)
->   {
-> -	struct acpi_pptt_cache_v1_full *found_cache_v1;
-> +	struct acpi_pptt_cache_v1 *found_cache_v1;
->   
->   	this_leaf->fw_token = cpu_node;
->   	if (found_cache->flags & ACPI_PPTT_SIZE_PROPERTY_VALID)
-> @@ -979,7 +960,7 @@ int find_acpi_cache_level_from_id(u32 cache_id)
->   
->   			empty = true;
->   			for (int i = 0; i < ARRAY_SIZE(cache_type); i++) {
-> -				struct acpi_pptt_cache_v1_full *cache_v1;
-> +				struct acpi_pptt_cache_v1 *cache_v1;
->   
->   				cache = acpi_find_cache_node(table, acpi_cpu_id, cache_type[i],
->   							     level, &cpu_node);
-> @@ -1043,7 +1024,7 @@ int acpi_pptt_get_cpumask_from_cache_id(u32 cache_id, cpumask_t *cpus)
->   
->   			empty = true;
->   			for (int i = 0; i < ARRAY_SIZE(cache_type); i++) {
-> -				struct acpi_pptt_cache_v1_full *cache_v1;
-> +				struct acpi_pptt_cache_v1 *cache_v1;
->   
->   				cache = acpi_find_cache_node(table, acpi_cpu_id, cache_type[i],
->   							     level, &cpu_node);
+The driver would have only been useful via device tree or an ACPI
+Overlay. Obviously, I don't have a PNP or ACPI Vendor ID, so I can't
+assign one. The parent/main driver does only have a of compatible id.
+As it needs to use PRP0001 anyway on ACPI, I thought it makes more
+sense to also use PRP0001 there instead of matching it with a _ADR
+which is "a grey area in the ACPI specification".
 
+Thanks
+- Markus Probst
+
+>=20
+> > +
+> >  bool acpi_driver_match_device(struct device *dev,
+> >                               const struct device_driver *drv)
+> >  {
+> > diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> > index aad1a95e6863..0081b9e4aaee 100644
+> > --- a/include/acpi/acpi_bus.h
+> > +++ b/include/acpi/acpi_bus.h
+> > @@ -677,6 +677,8 @@ void acpi_bus_trim(struct acpi_device *start);
+> >  acpi_status acpi_bus_get_ejd(acpi_handle handle, acpi_handle * ejd);
+> >  int acpi_match_device_ids(struct acpi_device *device,
+> >                           const struct acpi_device_id *ids);
+> > +int acpi_of_match_device_ids(struct acpi_device *device,
+> > +                         const struct of_device_id *ids);
+> >  void acpi_set_modalias(struct acpi_device *adev, const char *default_i=
+d,
+> >                        char *modalias, size_t len);
+> >=20
+> >=20
+> > --
+> > 2.52.0
+> >=20
+> >=20
+
+--=-eySGLK0BCKOzVjRv4LWn
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+
+iQJPBAABCAA5FiEEgnQYxPSsWOdyMMRzNHYf+OetQ9IFAmnCrg8bFIAAAAAABAAO
+bWFudTIsMi41KzEuMTEsMiwyAAoJEDR2H/jnrUPSyJcQAIdNJxt+dh0p+HWg0EJ9
+4dysXiahWSceToUh6b1YoYF6bXQgR3mj5iMzdOsPoz4uBiqdFPMSHUPFKAzEVdSS
+7Zi58NGMSHCugtmIHre8yar2oTK9/e7OnDZTxCq9OjbaTJ+jfQvLQGRdavTYWcDe
+6rARxxz/boxlb0Un9L0WGpzw8D7qiwRBRuTgxmZkSREQ8mXFw6cVzp62CaGcjV9Q
+qIgCPBzIZqH/wWzEoFHnzeHSkGqJa02ymTWfJuP2VIsUiCrcvJG0v1pYsyjXAFKB
+UsxAclnJAwJDFQWQT/F/g76qOmmbpqFTr3AqMgTvD2HVk1FF5N0jQJOXsHYsNdYL
+JAcXa3NDsNoi/Or50Sth0fYQ73204cR9uP6guEQ2UWkOh5AIvSy1ksGwqjPngCcA
+f2iQPeabC4is4rxtmbWFubNBk+16qxSWOG36T4pHvQhmlafsHE823RyFQdGerUNd
+D2dKR1Q1u/9+OHGcFs/ryDxNHuNue/3gGnhhcnumXZH7sIljW/RnEd/7eIyH+owa
+2u0w+hCm9l9jqTxheBBVxVSsoi4KBkTcPXiFa+BMjdrBi5lKu3DeEFb+WLEed+dj
+OmAovcBDv7hgCb3K59nJqhAUScLbILd0+vuqSwZJdZcJDO85ab/gyjPbOxsdWeci
+3gGSzxYlCbtFh+SyAe9dnCel
+=H6Zp
+-----END PGP SIGNATURE-----
+
+--=-eySGLK0BCKOzVjRv4LWn--
