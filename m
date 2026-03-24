@@ -1,92 +1,68 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9F803932CA;
-	Tue, 24 Mar 2026 07:59:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 492893C13FD;
+	Tue, 24 Mar 2026 08:01:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774339187; cv=none; b=l1rwouxdJuVNXBQVhupyMZ3t1EvuwEwONBZG1nB2DNoFT3Ip+ZyALk/ZS51PJDNgeVHjU0wiUdJHjrfE6ofdvarKLSNqyQ7p0vzYaHwXxdDrhOyo9KZzqm515/MR/WUx6Vxki0GZiE1LIT1q4AtXep1gPtRpAPxCEUJpH+HahXM=
+	t=1774339298; cv=none; b=CETg+kzYTKVTj/fZHsq8I7aarVI0UK8OWivWRPtTAyi+CjElEV8pETRU81kujfO/wOZ/EtOicMYHtjoZIuGZth6C8PLTFAW19YqhZqxxGS8rETn3q51r3rlHfDAL5vmRobwXwqOTdE7rNBE7pcI4xm6ZpR4OWl2wvPThe2d3Vg0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774339187; c=relaxed/simple;
-	bh=RAzgL2sQteo/JNXLjPH+jvC10bnkmlfp2keY2Tg6Hu8=;
+	s=arc-20240116; t=1774339298; c=relaxed/simple;
+	bh=L/NRHvWaqdKANbOjHjy0QH5kNVvSd7l1FP/xB0ljk7o=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=bc8+zqhWBbVuPMllzvGL2psUqZcgRGhQMNrjpgL8aXS+/nSJlLEmOZ2nzEmkGFsZHh1WqWGGqSYLzbtSInZQufG951DdH4x/KhmsWgNb5a0wbppYrie1Uadb0ZH2U+CLamH4L1ebBsuV28+d88mALJIdhGfA10wlFSOJK48TB2M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=cbTvBR8w; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=FpYD0K6uRQBt5KvBmi1u7iOkAFODZIpQPN0iW2IBhBxVPM5wULEBxXSpEDG0dW+7mWVfU2vT2JA6qe5IeQicJkSSARUP0eKYPXLF4vvz7snHrk9yRkMV7DOaSDHo07nZ1yTrJ9b66wNNHmPWuJwG9vkaRrR1ooadkZ0jUREQsQY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=twVeA+g+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="cbTvBR8w"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7889DC19424;
-	Tue, 24 Mar 2026 07:59:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1774339187;
-	bh=RAzgL2sQteo/JNXLjPH+jvC10bnkmlfp2keY2Tg6Hu8=;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="twVeA+g+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3199C19424;
+	Tue, 24 Mar 2026 08:01:37 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1774339297;
+	bh=L/NRHvWaqdKANbOjHjy0QH5kNVvSd7l1FP/xB0ljk7o=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=cbTvBR8wpERq3UbyP25P08Hpd6xRdDPXhwi8pKwNtrIsL9N6xf/jPfSgRZ//OE9q0
-	 794R3mUQsZnH83+C/URcb/OigwbSF5eQs+FnpigTmx01LPEKSPjfkRngaJBFhKn/NS
-	 sY50sIT6nWET4jPTQbT0WvS7IkXoZFccQzS1ouEI=
-Date: Tue, 24 Mar 2026 08:59:24 +0100
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Bartosz Golaszewski <brgl@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org,
-	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] software node: allow referencing software nodes by name
-Message-ID: <2026032406-recycler-device-7660@gregkh>
-References: <acIV6xF8mY-8wd5e@google.com>
+	b=twVeA+g+FCSfmvLQzp9g9b630LF57eH2oCJngoiRxlCAqyPAx4hFV1z/AYT5s9/Vc
+	 aZ+iBkopqsIt+DJ2aHNZYk3tVn9OF6+8YJ5qq40vGjEkf9TP5m9FArd0xgn5/0RxRg
+	 DcW+5z1zxrpZyLwkMsvBT0kd1RS9OkyaJvi3tL1RXUxoT+FVMcfFWYsmR6WQSVz8gF
+	 nDqeAnkTEjeA4O4Zg3XqNk/+lJywyHg2AJNP/bpECNSYp8oi0j944FqUWjR4ujiJRz
+	 l3Lu1S0RLu186h8pucaL8KTp6xL7diavxy2g97z/y/C150G66RSAVOonlQsgwKwwR/
+	 9QxuH0AEtKRZw==
+Date: Tue, 24 Mar 2026 01:01:37 -0700
+From: Kees Cook <kees@kernel.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Robert Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>,
+	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+	acpica-devel@lists.linux.dev, linux-hardening@vger.kernel.org
+Subject: Re: [PATCH] ACPICA: Replace strncpy() with strscpy_pad() in
+ acpi_ut_safe_strncpy()
+Message-ID: <202603240100.E64786C688@keescook>
+References: <20260323172451.work.079-kees@kernel.org>
+ <CAJZ5v0hOS7j2f-wkmvarULCS-1+Zio2hOz2ExMvFXN61OPv_tQ@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <acIV6xF8mY-8wd5e@google.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAJZ5v0hOS7j2f-wkmvarULCS-1+Zio2hOz2ExMvFXN61OPv_tQ@mail.gmail.com>
 
-On Mon, Mar 23, 2026 at 09:46:50PM -0700, Dmitry Torokhov wrote:
-> Currently static device properties references require either an
-> instance of software node or an instance of fwnode_handle to be
-> available when defining a reference property. This may not be very
-> convenient when device node is instantiated from a different module
-> (which is usually the case).
+On Mon, Mar 23, 2026 at 06:31:20PM +0100, Rafael J. Wysocki wrote:
+> On Mon, Mar 23, 2026 at 6:24 PM Kees Cook <kees@kernel.org> wrote:
+> > [...]
+> > kernel APIs before like ACPI_FLEX_ARRAY and similar helpers. However,
+> > acpi_ut_safe_strncpy() is an explicit function implementation rather
+> > than a macro mapping, so the approach for upstreaming this change to
+> > ACPICA is not clear. What's the best way to land this?
 > 
-> The original implementation for describing GPIOs using software nodes
-> worked around this by creating a detached from gpiochip instances
-> software nodes, and performing matching using gpiochip label and node
-> name. The gpiolib maintainers rightfully questioned this approach, and
-> currently recommend to attach secondary software node to gpiochip
-> instance, export the symbol, and use it in board file when instantiating
-> static properties. This unfortunately results in tight coupling between
-> gpiochip drivers and board code, necessitates creation of header files,
-> requires adding Kconfig dependencies, limits options for choosing module
-> vs built-in compilation, and alters device initialization/probing order.
-> 
-> Solve the issue by providing an option to use software node name in
-> place of the node instance when describing reference properties. When
-> evaluating reference driver core will attempt to resolve the name to
-> concrete node instance and, in case of GPIO references, will use
-> identity match on firmware node to locate corresponding gpiochip device.
-> 
-> This approach has a drawback of needing to know name of the node that
-> gpiochip device will be using, however benefits (minimal coupling, no
-> need for adding dependencies) outweigh this drawback.
-> 
-> To deal cases with software nodes not being created or registered at
-> time of look up, assume that the node with matching name will get
-> registered eventually and return -EPROBE_DEFER in the meantime.
-> 
-> Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-> ---
->  drivers/base/swnode.c    | 25 +++++++++++++++++++------
->  include/linux/property.h |  4 ++++
->  2 files changed, 23 insertions(+), 6 deletions(-)
+> I can apply this directly, it shouldn't be a major problem for porting
+> patches from the upstream.
 
-Do you have a follow-on patch that uses this new api anywhere?
+Okay, thanks! I wasn't sure if that was going to be a viable approach.
+:)
 
-thanks,
+-Kees
 
-greg k-h
+-- 
+Kees Cook
