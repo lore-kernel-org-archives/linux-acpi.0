@@ -1,43 +1,60 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B570C3CD8C3;
-	Wed, 25 Mar 2026 11:53:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFEDB3CEB85;
+	Wed, 25 Mar 2026 12:06:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774439634; cv=none; b=fofFATU7yQFPvHEI3/VLcCrOf2kp13B5y776g0T2zZFBGldJbqiCogwAM2eYVr9YGbWJSUgk7fQaclaAWMWCCamIa6s+HWYc3OKBlqcFFK+wR9KYRjJLTkcx3xof0fDbqtHID1uDn1yV6wT1/69gPry/3JR2GYI6og4G0qc1igA=
+	t=1774440381; cv=none; b=enb83HUOEJZa7qJqcmMsAu/muV8oHgc+HeByi7eR8zC8lXG3FGUUXZsTWL+M8Ym2zbdBi3PpSis2hjS82zZIQDlTwi9A57XJhUkq3Lp2K89hZcy+6d87aJocv37lqwvAsblejTOx2ovwYuHN6CbKxqbUodfrMJxAjkkBEW9smMk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774439634; c=relaxed/simple;
-	bh=q7sdXYTH6G0hCZF8EhZUSwX64woUGHD1B0KGCD2819E=;
+	s=arc-20240116; t=1774440381; c=relaxed/simple;
+	bh=ueF0hrvRluFMJ/+IsNDv2TY9qAQLpZVCChvf6GImWMk=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=gwtVa1uXHmlKsOWgeOwXE7dHc68dHZ9+EMs8wzSPwNPVBhNxN63wJp4rdPZawNTJzjXFcRTczgBsnYvZdrAS8bg48BhpFJMzveu8LUX2NvRWuYDAHVI53pwhzbJkvAwMkt8S/h8en0lmmlm8EBWSTusZRmCMUsrsYNI+sJtVWaA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=h5p3H55w; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=UePQYMMHUF/w8im0JJRCGP8h++AX33oeb2sMfRAch2CTvkZnnX/RQjpaJe9ZCqUtZXTY0mBolr4AD1TseUHjJwYkCH6lLc9I1+/U2YuwnLyfOaxQY85cECeCrvYVBPxO38SFSHrowpm/K9TT9JRrjTml+7m9OlhyIieIf77S+dw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=b64J3S/9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="h5p3H55w"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5EB62C4CEF7;
-	Wed, 25 Mar 2026 11:53:53 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="b64J3S/9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AFB30C4CEF7;
+	Wed, 25 Mar 2026 12:06:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774439634;
-	bh=q7sdXYTH6G0hCZF8EhZUSwX64woUGHD1B0KGCD2819E=;
+	s=k20201202; t=1774440381;
+	bh=ueF0hrvRluFMJ/+IsNDv2TY9qAQLpZVCChvf6GImWMk=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=h5p3H55w91FEElEk86870641UUYkG5L5HPvw2yqk1g9VzQmA4iJnwlI/dmM6aEJws
-	 MrlT37+dmAnM4srsLiljKxSbWqlzOCQlu05g+TtFa5wV2C1F5LSg+r+9UZoAedJOsE
-	 28jV8Wz6rN7fx9ZvUvFBkbn+jlfB4aaL6iFHM2hW2Vjx/zanbe3Xzb5EiAVR7TsoNt
-	 PDbJTfgx/VrzSm/mjG1/o/yH+S7MfBkixmsnb6OUazXfS+2o4JHafDRovJr73jA3kM
-	 D8rPUEy7pIGMi7WuEToBp3p4uSCqMNVDULHgjkVFkuRxQi9c5MagRX62FJKNW1GF9g
-	 HkmoVhlZDh6ng==
-Date: Wed, 25 Mar 2026 11:53:51 +0000
-From: Sudeep Holla <sudeep.holla@kernel.org>
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Ben Horgan <ben.horgan@arm.com>, lenb@kernel.org,
-	Sudeep Holla <sudeep.holla@kernel.org>, linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Jeremy Linton <jeremy.linton@arm.com>
-Subject: Re: [PATCH v1] ACPI / PPTT: Remove duplicate structure,
- acpi_pptt_cache_v1_full
-Message-ID: <20260325-laughing-coot-of-piety-e2bdff@sudeepholla>
-References: <20260324113300.1002569-1-ben.horgan@arm.com>
- <20260324-nostalgic-adamant-coucal-7afd8b@sudeepholla>
- <CAJZ5v0gn5NTdSj=i5iRpK03kT0V-UshADp=VaaEAO=wzLsjjUA@mail.gmail.com>
+	b=b64J3S/9wMpdMbsb28lUju0wP16mAjZXdtTfStiNijzPEkHs1QwjQqNJn9Vm96m4G
+	 SesNnOOhFr1Av4MG+5BeUKnlWQbTn7LgkfIEGssQYGwMJXp7uc7C3mqUl+mJqux3Mz
+	 7GVqbaVqgjEGvz6Dkath/TBSnChu4Yci0FfgPm2vMcRNKaevXioRglINXVrTJZU9MW
+	 NstZ4onOipYfdbdsAS/lY7IdpfwvbAM5L8zb11Se6dTjuxRPVKptHkfpZpHB14zIix
+	 egtrB549HcgGNnuMLCUyzdeVWiCIdft3TDwdf/Teh6A6NpfuRpF0LvSmjfIaruYB8r
+	 /NaH//k6jNhlQ==
+Date: Wed, 25 Mar 2026 17:36:08 +0530
+From: Manivannan Sadhasivam <mani@kernel.org>
+To: Mark Pearson <mpearson-lenovo@squebb.ca>
+Cc: Dmitry Baryshkov <dmitry.baryshkov@oss.qualcomm.com>, 
+	Rob Herring <robh@kernel.org>, Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>, 
+	Greg KH <gregkh@linuxfoundation.org>, Jiri Slaby <jirislaby@kernel.org>, 
+	Nathan Chancellor <nathan@kernel.org>, Nicolas Schier <nicolas.schier@linux.dev>, 
+	Hans de Goede <hansg@kernel.org>, Ilpo =?utf-8?B?SsOkcnZpbmVu?= <ilpo.jarvinen@linux.intel.com>, 
+	"Derek J . Clark" <derekjohn.clark@gmail.com>, Krzysztof Kozlowski <krzk+dt@kernel.org>, 
+	Conor Dooley <conor+dt@kernel.org>, Marcel Holtmann <marcel@holtmann.org>, 
+	Luiz Augusto von Dentz <luiz.dentz@gmail.com>, Bartosz Golaszewski <brgl@bgdev.pl>, 
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Bartosz Golaszewski <brgl@kernel.org>, 
+	linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-kbuild@vger.kernel.org, 
+	"platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, 
+	linux-arm-msm@vger.kernel.org, linux-bluetooth@vger.kernel.org, linux-pm@vger.kernel.org, 
+	Stephan Gerhold <stephan.gerhold@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Subject: Re: [PATCH v6 6/9] dt-bindings: connector: m2: Add M.2 1620 LGA
+ soldered down connector
+Message-ID: <cvqdbqnzjmzoowxkvz2lyv4avropu5jw7h2r6zng3ecf245hgg@fsysjqflqd35>
+References: <20260317-pci-m2-e-v6-6-9c898f108d3d@oss.qualcomm.com>
+ <20260322233713.GA98177-robh@kernel.org>
+ <to2mrizprc3hjufqbiplpqyek7f4uutqtn4hx4gkmdgv2rykbc@ybwwjhdec4nm>
+ <CAL_JsqJXrHCJt770bJkMmAUhirSF3kHjYwSzkG7cXp7-eys8Rg@mail.gmail.com>
+ <6aef3xxjjd4nbgrfx6jc6jt6rpqmttoui6hil5zqgdpas2j6gj@ie6j72orenou>
+ <fsvmmgoe5wslmxebhrrwmdg2ldcmhzvj53gjkdfnfg2m2rz2lw@dcfboaakz7ae>
+ <bguhzabwryayyqkv4ilzwr3ixwv6bzxncblo3ircz2wm3fs52k@66zvcrfcb4oe>
+ <blhm4csjyw6r667cleljgzd6rpwagttjo5rau7wjrlnjakq2qm@ekyhc4jvwmwf>
+ <m44mupdmg7kgco62n4evcviagqo7wwgyt3gybugbxwesd4ekjz@o24r6v4tpezc>
+ <3faffec9-dc9d-4eec-a652-a84d30d85c96@app.fastmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -47,30 +64,90 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAJZ5v0gn5NTdSj=i5iRpK03kT0V-UshADp=VaaEAO=wzLsjjUA@mail.gmail.com>
+In-Reply-To: <3faffec9-dc9d-4eec-a652-a84d30d85c96@app.fastmail.com>
 
-On Wed, Mar 25, 2026 at 12:45:27PM +0100, Rafael J. Wysocki wrote:
-> On Tue, Mar 24, 2026 at 9:43 PM Sudeep Holla <sudeep.holla@kernel.org> wrote:
-> >
-> > On Tue, Mar 24, 2026 at 11:33:00AM +0000, Ben Horgan wrote:
-> > > acpi_pptt_cache_v1_full was initially added as a stop gap until the
-> > > equivalent structure imported from ACPICA, acpi_pptt_v1 in actbl2.h,
-> > > contained all the fields of the Cache Type Structure. Since, commit :
-> > > 091c4af3562d ("ACPICA: ACPI 6.4: PPTT: include all fields in subtable
-> > > type1"), acpi_pptt_v1 contains all these fields making
-> > > acpi_pptt_cache_v1_full redundant.
-> > >
-> > > Remove acpi_pptt_cache_v1_full.
-> > >
-> > > No functional change intended.
-> > >
-> >
-> > Reviewed-by: Sudeep Holla <sudeep.holla@kernel.org>
+On Mon, Mar 23, 2026 at 01:23:07PM -0400, Mark Pearson wrote:
 > 
-> Am I supposed to pick this up?
+> 
+> On Mon, Mar 23, 2026, at 12:52 PM, Manivannan Sadhasivam wrote:
+> > On Mon, Mar 23, 2026 at 06:45:15PM +0200, Dmitry Baryshkov wrote:
+> >> On Mon, Mar 23, 2026 at 09:26:04PM +0530, Manivannan Sadhasivam wrote:
+> >> > On Mon, Mar 23, 2026 at 05:14:30PM +0200, Dmitry Baryshkov wrote:
+> >> > > On Mon, Mar 23, 2026 at 07:14:25PM +0530, Manivannan Sadhasivam wrote:
+> >> > > > On Mon, Mar 23, 2026 at 08:39:55AM -0500, Rob Herring wrote:
+> >> > > > > On Mon, Mar 23, 2026 at 7:16 AM Manivannan Sadhasivam <mani@kernel.org> wrote:
+> >> > > > > >
+> >> > > > > > On Sun, Mar 22, 2026 at 06:37:13PM -0500, Rob Herring wrote:
+> >> > > > > > > On Tue, Mar 17, 2026 at 09:59:56AM +0530, Manivannan Sadhasivam wrote:
+> >> > > > > > > > Lenovo Thinkpad T14s is found to have a soldered down version of M.2 1620
+> >> > > > > > > > LGA connector. Though, there is no 1620 LGA form factor defined in the M.2
+> >> > > > > > > > spec, it looks very similar to the M.2 Key E connector. So add the
+> >> > > > > > > > "pcie-m2-1620-lga-connector" compatible with "pcie-m2-e-connector" fallback
+> >> > > > > > > > to reuse the Key E binding.
+> >> > > > > > >
+> >> > > > > > > What is LGA?
+> >> > > > > > >
+> >> > > > > >
+> >> > > > > > Land Grid Array
+> >> > > > > >
+> >> > > > > > > If not in the spec, is it really something generic?
+> >> > > > > > >
+> >> > > > > >
+> >> > > > > > Good question. Yes and No! LGA is not something that Lenovo only uses. Other
+> >> > > > > > vendors may also use this form factor. PCIe connectors are full of innovation as
+> >> > > > > > the spec gives room for hardware designers to be as innovative as possible to
+> >> > > > > > save the BOM cost.
+> >> > > > > 
+> >> > > > > innovation == incompatible changes
+> >> > > > > 
+> >> > > > 
+> >> > > > Yes, I was trying to sound nice :)
+> >> > > > 
+> >> > > > > > This is why I do not want to make it Lenovo specific. But if you prefer that, I
+> >> > > > > > can name it as "lenovo,pcie-m2-1620-lga-connector".
+> >> > > > > 
+> >> > > > > Depends if you think that s/w needs to know the differences. Hard to
+> >> > > > > say with a sample size of 1.
+> >> > > > > 
+> >> > > > 
+> >> > > > Sure. Will add the 'lenovo' prefix then.
+> >> > > 
+> >> > > Is it really Lenovo? Or is it some other module vendor, whose LGAs are
+> >> > > being used by Lenovo?
+> >> > > 
+> >> > > I remember that DB820c also used some kind of a module for the WiFi card
+> >> > > (which might be M.2 compatible or might not, I can't find exact docs at
+> >> > > this point).
+> >> > > 
+> >> > 
+> >> > I don't know. These kind of designs might be reused by several vendors. But
+> >> > considering that we should not make it generic, I'd go with Lenovo as that's
+> >> > the only vendor we know as of now.
+> >> 
+> >> ... and later we learn that other vendors use the same idea /pinout,
+> >> then nothing stops us from still telling that it's a
+> >> "lenovo,pcie-m2-something-lga". 
+> >> 
+> >
+> > How do you possibly know whether a single vendor has introduced this form factor
+> > or reused by multiple ones? Atleast, I don't have access to such a source to
+> > confirm.
+> >
+> I've not really been following this thread/patchset in detail; but want me to try and check with the T14s platform team if this device is specifically made for us (Lenovo) or not?
+> I doubt it is - we just don't do that usually, but I can go and ask the question if it will help resolve this (with the caveat that it could hold up the review for a bit and I may not be able to get a straight answer)
+> 
 
-Yes please, IIUC we route only drivers/acpi/arm/* via arm64 tree in general.
+I can drop this specific patch in the meantime.
+
+> My vote (for what little it's worth) would be to make it non-Lenovo specific. Then when the same part causes issues on another vendors platform I won't get asked questions about why Lenovo is breaking <other vendor> :)
+> 
+
+Even if Lenovo prefix is used, it won't break other vendors. Just that we will
+end up adding more compatibles.
+
+Anyhow, I'll wait for your reply and drop this patch for next revision.
+
+- Mani
 
 -- 
-Regards,
-Sudeep
+மணிவண்ணன் சதாசிவம்
