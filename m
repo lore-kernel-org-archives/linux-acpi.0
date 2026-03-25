@@ -1,194 +1,205 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6964C24DFF3;
-	Wed, 25 Mar 2026 13:13:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B3E8248881
+	for <linux-acpi@vger.kernel.org>; Wed, 25 Mar 2026 13:32:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774444431; cv=none; b=QHnODjAYCDMZYk+26FvvLOpfnfzKrgC1E9PESGJVo2H8DcA1/iG713rWwsHJP/XoxLIzgxwLUwZlY41LHfr0dnjYT92VmwSQKklGol7KpHedulSeLQniyDH2qhREw0kFIZlD2G1afI1SB8yoLNiHf1/TyHEAE6L6XkUzCE+mvFo=
+	t=1774445546; cv=none; b=rSaV/XAGuO9TWtedM+1c16Im1le5PJkqoybAxm0VZOVQGWzKfwZSPXS1IRMShu/8WYbSOv9/+7OsvdvbSo7WseUr/y1L9ARCh+rUtovHmim9tJwX9FBxQXX0MLejwWUneKg7JHrOkST3ygLRIhjM5wX0iVRx+5cmFXDBju0dUyg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774444431; c=relaxed/simple;
-	bh=adeypLH4Z74KNAFMkRjnUeG5Q/XEPuKzGE7SLt/uv7E=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=ADozisZmi1wiJQpMRSfg5kD7qyJRK71tAFjqu9VIkKN8ppCxfOA7H9/Z4D39Q8eSCl/nvZeC/sGw54rJGi6NWNScaH7aIuqqXlqdAncRdNLlBbXAx+OQuFYuIK+vpDY/JCnL+FtMd5bf70e0QfMX2uoD8VTKCqOndOxaTDDLy+0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QixVQICm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774445546; c=relaxed/simple;
+	bh=XY73DpzMPzwxeFdhnv17+xRoeqE3UsGbq7QiCS2vh0M=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=q5qG9LMy/c6nivlMkqJrT49vjymGIM6lnHElgJnRfTO/Q+xecgCmaHtFEJDTjd97ROjsIzdKuv09dDStoWZ3hW91W3WEDUupck89adRGX5eLxOf55SAb0p8pa3MC7p5/RlfotNMUH6v+M52VUr5zwu3jlsbw3eZ8AKqfzv6/KMY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UQZH1cAN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QixVQICm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52DE7C4CEF7;
-	Wed, 25 Mar 2026 13:13:46 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UQZH1cAN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D93CC2BCB3
+	for <linux-acpi@vger.kernel.org>; Wed, 25 Mar 2026 13:32:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774444431;
-	bh=adeypLH4Z74KNAFMkRjnUeG5Q/XEPuKzGE7SLt/uv7E=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=QixVQICmwxR1do0VXN8ey36RrvcUnH6mxGzIW1yiLk3H3bEBZe8NefSmOabsCcT4G
-	 Tv+QFx50+0IscUyp5UNgRlmUbpNSZkkftx8LNR8lyshtr4EmrB3JWCZX3uMBj4i9k3
-	 7gqqmK3vo6tYHkx0t2ZB6WavmknK7ERJueRLb1rAr3WGdEqApPsflJIWUYyEFztA5C
-	 51bTl6gNYKFoZhB/RWW5R9AIWiHOR+FgCw0XBbPInINMGOu4Uo9UegkGDKvJ52xP47
-	 XaBxWGgc2okE6Qz2ii490wrXH26YduMXY6vRkbvZMgtfw6JaQF9qwD5oJkmjWumMwc
-	 iJuIaUfddDqkA==
-Message-ID: <66ac3fc8-bc23-49cc-9f8c-6738a4671623@kernel.org>
-Date: Wed, 25 Mar 2026 14:13:44 +0100
+	s=k20201202; t=1774445546;
+	bh=XY73DpzMPzwxeFdhnv17+xRoeqE3UsGbq7QiCS2vh0M=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=UQZH1cAN80Cwf0FaZfDSV9U4r7zKBN+ounWtJs242Wqhjy14p3C3lEmHepOcxwONZ
+	 YUM2owXUIpeIGCpwukb+YxQTZi6+MDHHbjGaOgCZNth/deCmtmXKbYdLOpRNjjPugk
+	 SCxZkNjhvBSSyQvalXlaC4rfLa5p0xpRe4t+HJyPbC0cADKv8PHnQxN+5zRn+hU6H8
+	 1z0381vHveyEIvsuf8s+BFRjDF3aNvVTjIpJsyI9m+SR+MC4PcgPVnKBV33d7mGApU
+	 KZnMBZu2D0ii0eva8hebV4/7l3RFoQGEIU5LiFYiqJYvh+wWoyKNjGKrayy1ta8IV/
+	 MD/dfWBmbC+eQ==
+Received: by mail-oa1-f49.google.com with SMTP id 586e51a60fabf-4094b31a037so4628352fac.1
+        for <linux-acpi@vger.kernel.org>; Wed, 25 Mar 2026 06:32:26 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCUr9xAG6cAsUKYM5dU3RD1D1r0o3161LSCDS0npUjQOU26WQDMYdSgg9qOLu5rR5B5cWo1heAiaZyeR@vger.kernel.org
+X-Gm-Message-State: AOJu0YwH+kRgcmWMb8EMwD4fFuoUX7lx62rg8NwC0dN+LtNrB5M8Z9m9
+	ZCQf6jIMlYF7iizfsX1Vc+Vm3BT28HSFz6T1i0ChPJMFCSDEWZrL6F5Rk1D58OdIgt9uxPLTVOI
+	ikN1LrHk4IxWvxi86rTaXyLmMDug5GrU=
+X-Received: by 2002:a05:6870:d30a:b0:416:b429:28e with SMTP id
+ 586e51a60fabf-41ca6e47cb8mr1881156fac.20.1774445545149; Wed, 25 Mar 2026
+ 06:32:25 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 12/12] arm64: defconfig: Enable I3C and SPD5118 hwmon
-To: Thierry Reding <thierry.reding@kernel.org>
-Cc: Akhil R <akhilrajeev@nvidia.com>, Frank.Li@nxp.com,
- acpica-devel@lists.linux.dev, alexandre.belloni@bootlin.com,
- conor+dt@kernel.org, devicetree@vger.kernel.org, ebiggers@kernel.org,
- fredrik.markstrom@est.tech, jonathanh@nvidia.com, krzk+dt@kernel.org,
- lenb@kernel.org, linux-acpi@vger.kernel.org, linux-hwmon@vger.kernel.org,
- linux-i3c@lists.infradead.org, linux-kernel@vger.kernel.org,
- linux-tegra@vger.kernel.org, linux@roeck-us.net, miquel.raynal@bootlin.com,
- p.zabel@pengutronix.de, rafael@kernel.org, robert.moore@intel.com,
- robh@kernel.org, smangipudi@nvidia.com
-References: <20260319-nano-manatee-of-vastness-fbafa1@quoll>
- <20260319170929.14543-1-akhilrajeev@nvidia.com>
- <67165a1f-9fa3-4853-b530-b1f9d6e4c2cf@kernel.org> <acO4NKPDUayny-I4@orome>
- <6342b6fd-9802-49d9-a269-ecb3b70b4604@kernel.org> <acPWvjCJ426AyIQh@orome>
- <61ec49e8-9b60-467e-8ca9-c1246ae5caa2@kernel.org> <acPcM4dlvpdo3L59@orome>
-From: Krzysztof Kozlowski <krzk@kernel.org>
-Content-Language: en-US
-Autocrypt: addr=krzk@kernel.org; keydata=
- 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 a/A=
-In-Reply-To: <acPcM4dlvpdo3L59@orome>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+References: <20260324090948.1667340-1-henrytseng@qnap.com>
+In-Reply-To: <20260324090948.1667340-1-henrytseng@qnap.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Wed, 25 Mar 2026 14:32:14 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0hT_FJ48z0bCTcgNHgUHp-reUZGa4877MnNAGC6UTd5MA@mail.gmail.com>
+X-Gm-Features: AQROBzCheUiE8Qqxed4qz1HhnN9ekihoy1ekq0S_GnHGApOpqbV_AxhifGw4QcY
+Message-ID: <CAJZ5v0hT_FJ48z0bCTcgNHgUHp-reUZGa4877MnNAGC6UTd5MA@mail.gmail.com>
+Subject: Re: [PATCH v2] cpufreq: acpi-cpufreq: use DMI max speed when CPPC is unavailable
+To: Henry Tseng <henrytseng@qnap.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>, 
+	Len Brown <lenb@kernel.org>, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, 
+	SW Chen <swchen@qnap.com>, Kevin Ko <kevinko@qnap.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 25/03/2026 14:05, Thierry Reding wrote:
-> On Wed, Mar 25, 2026 at 01:47:44PM +0100, Krzysztof Kozlowski wrote:
->> On 25/03/2026 13:41, Thierry Reding wrote:
->>> On Wed, Mar 25, 2026 at 11:59:36AM +0100, Krzysztof Kozlowski wrote:
->>>> On 25/03/2026 11:31, Thierry Reding wrote:
->>>>> On Thu, Mar 19, 2026 at 06:15:14PM +0100, Krzysztof Kozlowski wrote:
->>>>>> On 19/03/2026 18:09, Akhil R wrote:
->>>>>>> On Thu, 19 Mar 2026 10:40:34 +0100, Krzysztof Kozlowski wrote:
->>>>>>>> On Wed, Mar 18, 2026 at 10:57:25PM +0530, Akhil R wrote:
->>>>>>>>> Add I3C subsystem support, DesignWare I3C master controller, and
->>>>>>>>> SPD5118 hwmon sensor as modules to the defconfig.
->>>>>>>>
->>>>>>>> Why? If there is no user of that, why would we want it? Your commit msg
->>>>>>>> should explain that.
->>>>>>>
->>>>>>> Ack. This is for Tegra410 which has a DesignWare I3C host controller.
->>>>>>> I will add this in the commit message.
->>>>>>
->>>>>> Board or products. Not SoCs.
->>>>>
->>>>> Is this a new requirement? I see a bit of both in defconfig changes.
->>>>
->>>> Almost every review from me has it for 2-3 years... And it is a known
->>>> thing since always in a bit different wording: we do not care about
->>>> downstream things and downstream products. defconfig does not serve
->>>> downstream at all, makes no sense outside of our (upstream) work.
->>>
->>> I don't understand why you're turning this into a downstream vs.
->>> upstream discussion. This is all code that is being submitted upstream,
->>> because we want these new platforms with I3C support enabled upstream.
->>> It's as simple as that.
->>>
->>>>> Some mention specific products, other mention SoCs. Does this
->>>>> requirement apply to DT platforms or also ACPI platforms?
->>>>
->>>> Just like kernel, applies to all platforms, regardless of firmware
->>>> interface.
->>>
->>> Hm... again, I don't think there's every been a rule to the effect of
->>> needing to specify a particular platform or product when adding a new
->>> defconfig change. There's plenty of things that we're enabling in the
->>> defconfigs because we think they are generally useful.
->>
->> And the commit msg MUST always explain WHY we are doing it, in this case
->> - why do you think it is generally useful.
->>
->> If you add new driver, it is usually obvious why it is generally useful.
->>
->> If you add defconfig change for dead stuff, it is not obvious. That's
->> why commit msg must provide arguments WHY do we want it, WHY do you
->> think it is useful for us.
-> 
-> You're making too many assumptions. What's your basis for calling this
-> dead stuff? Do you really think we'd be spending any time on this if it
-> wasn't going to get used?
+On Tue, Mar 24, 2026 at 10:11=E2=80=AFAM Henry Tseng <henrytseng@qnap.com> =
+wrote:
+>
+> On AMD Ryzen Embedded V1780B (Family 17h, Zen 1), the BIOS does not
+> provide ACPI _CPC objects and the CPU does not support MSR-based CPPC
+> (X86_FEATURE_CPPC).  The _PSS table only lists nominal P-states
+> (P0 =3D 3350 MHz), so when get_max_boost_ratio() fails at
+> cppc_get_perf_caps(), cpuinfo_max_freq reports only the base frequency
+> instead of the rated boost frequency (3600 MHz).
+>
+>   dmesg:
+>     ACPI CPPC: No CPC descriptor for CPU:0
+>     acpi_cpufreq: CPU0: Unable to get performance capabilities (-19)
+>
+> cppc-cpufreq already has a DMI fallback (cppc_get_dmi_max_khz()) that
+> reads the processor max speed from SMBIOS Type 4.  Export it and reuse
+> it in acpi-cpufreq as a last-resort source for the boost frequency.
+>
+> A sanity check ensures the DMI value is above the _PSS P0 frequency
+> and within 2x of it; values outside that range are ignored and the
+> existing arch_set_max_freq_ratio() path is taken instead.  The 2x
+> upper bound is based on a survey of the AMD Ryzen Embedded V1000
+> series, where the highest boost-to-base ratio is 1.8x (V1404I:
+> 2.0 GHz base / 3.6 GHz boost).
+>
+> The DMI lookup and sanity check are wrapped in a helper,
+> acpi_cpufreq_resolve_max_freq(), which falls through to
+> arch_set_max_freq_ratio() if the DMI value is absent or
+> out of range.
+>
+> Tested on AMD Ryzen Embedded V1780B with v7.0-rc4:
+>
+>   Before: cpuinfo_max_freq =3D 3350000 (base only)
+>   After:  cpuinfo_max_freq =3D 3600000 (includes boost)
+>
+> Link: https://www.amd.com/en/products/embedded/ryzen/ryzen-v1000-series.h=
+tml#specifications
+> Signed-off-by: Henry Tseng <henrytseng@qnap.com>
+> ---
+> v2:
+>   - Extract else block into acpi_cpufreq_resolve_max_freq()
+>     to avoid #ifdef in the main init path (Rafael)
+> v1:
+>   - https://lore.kernel.org/linux-pm/20260320095648.3598007-1-henrytseng@=
+qnap.com/
+>
+>  drivers/acpi/cppc_acpi.c       |  3 ++-
+>  drivers/cpufreq/acpi-cpufreq.c | 31 ++++++++++++++++++++++++-------
+>  include/acpi/cppc_acpi.h       |  1 +
+>  3 files changed, 27 insertions(+), 8 deletions(-)
+>
+> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+> index f0e513e9ed5d..f53de414acf2 100644
+> --- a/drivers/acpi/cppc_acpi.c
+> +++ b/drivers/acpi/cppc_acpi.c
+> @@ -1944,7 +1944,7 @@ static void cppc_find_dmi_mhz(const struct dmi_head=
+er *dm, void *private)
+>  }
+>
+>  /* Look up the max frequency in DMI */
+> -static u64 cppc_get_dmi_max_khz(void)
+> +u64 cppc_get_dmi_max_khz(void)
+>  {
+>         u16 mhz =3D 0;
+>
+> @@ -1958,6 +1958,7 @@ static u64 cppc_get_dmi_max_khz(void)
+>
+>         return KHZ_PER_MHZ * mhz;
+>  }
+> +EXPORT_SYMBOL_GPL(cppc_get_dmi_max_khz);
+>
+>  /*
+>   * If CPPC lowest_freq and nominal_freq registers are exposed then we ca=
+n
+> diff --git a/drivers/cpufreq/acpi-cpufreq.c b/drivers/cpufreq/acpi-cpufre=
+q.c
+> index e7eff6c2f092..21639d9ac753 100644
+> --- a/drivers/cpufreq/acpi-cpufreq.c
+> +++ b/drivers/cpufreq/acpi-cpufreq.c
+> @@ -675,6 +675,29 @@ static inline u64 get_max_boost_ratio(unsigned int c=
+pu, u64 *nominal_freq)
+>  }
+>  #endif
+>
+> +static void acpi_cpufreq_resolve_max_freq(struct cpufreq_policy *policy,
+> +                                         unsigned int pss_max_freq)
+> +{
+> +#ifdef CONFIG_ACPI_CPPC_LIB
+> +       u64 max_speed =3D cppc_get_dmi_max_khz();
+> +       /*
+> +        * Use DMI "Max Speed" if it looks plausible: must be
+> +        * above _PSS P0 frequency and within 2x of it.
+> +        */
+> +       if (max_speed > pss_max_freq && max_speed < pss_max_freq * 2) {
+> +               policy->cpuinfo.max_freq =3D max_speed;
+> +               return;
+> +       }
+> +#endif
+> +       /*
+> +        * If the maximum "boost" frequency is unknown, ask the arch
+> +        * scale-invariance code to use the "nominal" performance for
+> +        * CPU utilization scaling so as to prevent the schedutil
+> +        * governor from selecting inadequate CPU frequencies.
+> +        */
+> +       arch_set_max_freq_ratio(true);
+> +}
+> +
+>  static int acpi_cpufreq_cpu_init(struct cpufreq_policy *policy)
+>  {
+>         struct cpufreq_frequency_table *freq_table;
+> @@ -849,13 +872,7 @@ static int acpi_cpufreq_cpu_init(struct cpufreq_poli=
+cy *policy)
+>
+>                 policy->cpuinfo.max_freq =3D freq * max_boost_ratio >> SC=
+HED_CAPACITY_SHIFT;
+>         } else {
+> -               /*
+> -                * If the maximum "boost" frequency is unknown, ask the a=
+rch
+> -                * scale-invariance code to use the "nominal" performance=
+ for
+> -                * CPU utilization scaling so as to prevent the schedutil
+> -                * governor from selecting inadequate CPU frequencies.
+> -                */
+> -               arch_set_max_freq_ratio(true);
+> +               acpi_cpufreq_resolve_max_freq(policy, freq_table[0].frequ=
+ency);
+>         }
+>
+>         policy->freq_table =3D freq_table;
+> diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
+> index 4d644f03098e..e6c5ef3173c5 100644
+> --- a/include/acpi/cppc_acpi.h
+> +++ b/include/acpi/cppc_acpi.h
+> @@ -156,6 +156,7 @@ extern int cppc_set_enable(int cpu, bool enable);
+>  extern int cppc_get_perf_caps(int cpu, struct cppc_perf_caps *caps);
+>  extern bool cppc_perf_ctrs_in_pcc_cpu(unsigned int cpu);
+>  extern bool cppc_perf_ctrs_in_pcc(void);
+> +extern u64 cppc_get_dmi_max_khz(void);
+>  extern unsigned int cppc_perf_to_khz(struct cppc_perf_caps *caps, unsign=
+ed int perf);
+>  extern unsigned int cppc_khz_to_perf(struct cppc_perf_caps *caps, unsign=
+ed int freq);
+>  extern bool acpi_cpc_valid(void);
+> --
 
-I don't know. That's why the commit msg explains that it is not dead
-stuff because we use it here and there.
-
-Let's read the commit msg:
-
-"Add I3C subsystem support, DesignWare I3C master controller, and
-SPD5118 hwmon sensor as modules to the defconfig."
-
-Helps nothing.
-
-> 
->> If you add defconfig change for device which no one (in terms of
->> upstream) can use, then automatically it is not useful. Whether this
->> change is like that - I do not know. That's why you have commit msg to
->> provide argument WHY maintainer should take it. And it is as simple as
->> one sentence explaining the upstream kernel user/use case of this
->> defconfig change...
-> 
-> Again, why are you making this about upstream vs. downstream? The goal
-> of these submissions is to make upstream capable of running on real
-
-Up to here:
-I do not make it upstream vs downstream. I expressed the same goal as
-you here.
-
-> devices that real people want to run (preferably upstream) Linux on.
-
-But here not true. defconfig is ONLY upstream. The purpose of defconfig
-is not to give some libraries of configs for downstream trees, because
-it is useless for them. All downstreams or distros have their own
-defconfigs, thus defconfig role is *only* upstream. I do not make it
-"upstream vs downstream", but I make strong requirement of talking here
-only about upstream.
-
-Best regards,
-Krzysztof
+Applied as 7.1 material, thanks!
