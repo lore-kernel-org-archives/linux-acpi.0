@@ -1,176 +1,230 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 404773FE348
-	for <linux-acpi@vger.kernel.org>; Wed, 25 Mar 2026 17:16:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FF3B407107;
+	Wed, 25 Mar 2026 17:37:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.12
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774458981; cv=none; b=foHUKarB0N3/MVww575pABXaO0qNw3vNiea7LC8BTKIWUgjKMmefUdyeLEBAfSrwYHaF1iGhAckH4u0SsnpkcUcA/T9WyEWQrNIneEvi324FtITD1Tz6mRBto5OmvWb8eqEXOOv+g37Y85uPQKPg1h6W/6OFsZfIVimpW0SYnbU=
+	t=1774460245; cv=none; b=V2yEQAg26pMEaweWeR29D7VLPoOOPIfm4k6smt/xwG8youV/TKlCnrXqIDzX9mLlyddL9QxdDIH2ESh0tzi+TC4dw0oGWWwrWDL0uu3EWIcWRDUhFRMzKAsrP1aFsIHra39B93IQPqbp1iB+e3Ff1XOgfhuQMSZK1nT+GgCIeT0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774458981; c=relaxed/simple;
-	bh=2hcKSsui5WBGqPDwcFVXgtU4A6cWRrjy69NusLHOeAQ=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=rs5Cf75tOaBFxz4oVxGy3DqEAjlUzSO1e+InwSyIux4HS9g5jGL0aiAozEaXv+cJI+WnGZy9DayUC87Z29vcosUsd/BOmy43c0OFffDVvhPFdc71f2KB7p2qgva7g4qb8NHZPFxV8wsVlnC3Rz9bnNl9FbAKPuchWs3aSqk+JQk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XrBdcsDB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774460245; c=relaxed/simple;
+	bh=p/fgokrH2AN55tfNwoCxAMr+6XsIyIZTChoqOYjEmMY=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=e+DeEJW+zZjqWaTWMGsZOu+t93Yo4t0Lza2QVdFC1P0CzHL5FcVrogYgahpfdC3LB2Y8Bl6JmoykVe6MhMBvSZl1s+ht2GiW0GZZqd7MOudyDPKT8MSlnG6M0TzinePwVcS8hc8xGA5p2xC9RCNTEPWeoC2fSeTTDUaxXljN1z4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=CKljfBYO; arc=none smtp.client-ip=198.175.65.12
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XrBdcsDB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23C84C2BCB1
-	for <linux-acpi@vger.kernel.org>; Wed, 25 Mar 2026 17:16:21 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774458981;
-	bh=2hcKSsui5WBGqPDwcFVXgtU4A6cWRrjy69NusLHOeAQ=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=XrBdcsDBR/hRA28jDNz7mwJGjsF+bsHu2DpkTAf36uWRp8LWJLHp9Uvd4z0Z/VkdI
-	 lVNvo2W+KyR8739nfLNTXdTnITvPKYebio0fPTDYiiuz+0ij0wNgBpF90w/U5d5MlX
-	 BuLmdFpXP8Pm5J1Rn1wXJptSCLLMtI5XlqVLUSKt1tQ+fZtChJobl+8Fk4eQo70g1B
-	 MNYb4RIoa1eVOZRV83GubD4chwM5VH19rVugzBt849e9bcRAjewObAmOHxy3EUs6UU
-	 KSh6XWhTf7TXglNRYQxXp+eAUOB4Zj1JYAmVPpOnDDGHMKOkfp/eg8ZbEhGnoKQvgx
-	 1ygbkZ0qvvamQ==
-Received: by mail-oa1-f51.google.com with SMTP id 586e51a60fabf-415c8a4d2e6so53735fac.0
-        for <linux-acpi@vger.kernel.org>; Wed, 25 Mar 2026 10:16:21 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCWCdmsKgTESxqHxQDVj1q+4u2iM581WCcVgpozX/eSsYMrpWWTMzEbrJyzQHkUhm+RXW2LITx6tk7+H@vger.kernel.org
-X-Gm-Message-State: AOJu0YxPW8WDmK9IRQTMLIPZT6cHd6fSCBBaR3GImGcqo5/McDwfSuUK
-	Su8B4Y6SSe1x72UGiDjDwAAnBGhYBOyIix9w4O3aILUYUrNTjI9RwxM1+OZbE+bv9CaHdZCIln4
-	QGsoWiJ/IZtfviW8pLcvIta5M7Z8Ur24=
-X-Received: by 2002:a05:6870:8dc8:b0:417:2a17:285 with SMTP id
- 586e51a60fabf-41ca7003846mr2323605fac.30.1774458979846; Wed, 25 Mar 2026
- 10:16:19 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="CKljfBYO"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1774460240; x=1805996240;
+  h=date:from:to:cc:subject:message-id;
+  bh=p/fgokrH2AN55tfNwoCxAMr+6XsIyIZTChoqOYjEmMY=;
+  b=CKljfBYOgLjvWa64SwGNXGua02QpaFQlxBGDgHOwk5d3WAW8usETOVcJ
+   86ylMtpKjT4FnHKo/84sAbLnIiFNwbCCU7oeu2HaTjrWvXDT0r6tXqWNx
+   UmzE7khe8qGTI+oWzPFGewJxL3hexul0I125BcOkR6Kmj30u99ajWdpVj
+   35eCmR4u9FGanYijTYPVbqRQB+yvvepfwEI72K7WRK2mExOtTlVJgQjnX
+   rWzRDlwAiPJODAM8+zBdablFZSRCAi6vj2DDQ3DJ2TwiWASCJkOLB0HIX
+   jp4uZfvSpsGpIx31OBq+DIxo+DKubxzLtxIpYpe+XU8ZNZ/9ouTeEno5J
+   g==;
+X-CSE-ConnectionGUID: Bk18dZP/QMCJWADalyHqlg==
+X-CSE-MsgGUID: eIexSTu/Sjav8qU5r5wjNA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11740"; a="86985670"
+X-IronPort-AV: E=Sophos;i="6.23,140,1770624000"; 
+   d="scan'208";a="86985670"
+Received: from fmviesa004.fm.intel.com ([10.60.135.144])
+  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Mar 2026 10:37:19 -0700
+X-CSE-ConnectionGUID: 2IMAijpXR6SI68b5bNP9qA==
+X-CSE-MsgGUID: /XgqxJAuQm+umuAKjGrIIA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,140,1770624000"; 
+   d="scan'208";a="226389218"
+Received: from lkp-server01.sh.intel.com (HELO 3905d212be1b) ([10.239.97.150])
+  by fmviesa004.fm.intel.com with ESMTP; 25 Mar 2026 10:37:17 -0700
+Received: from kbuild by 3905d212be1b with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1w5SAM-000000007QL-1cvI;
+	Wed, 25 Mar 2026 17:37:14 +0000
+Date: Thu, 26 Mar 2026 01:37:03 +0800
+From: kernel test robot <lkp@intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+Subject: [rafael-pm:bleeding-edge] BUILD SUCCESS
+ 877556758cf5718848fe4ff01c93109f51ce715b
+Message-ID: <202603260154.xenzGRA1-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <acJYJlm2JZn_W7yO@M5403NF6WD> <20260324161533.GA1131495@bhelgaas>
- <DHBTY4W21Z9S.1LCIGKKJ0WX3T@nvidia.com> <20260325153628.GA1189053@bhelgaas> <20260325170805.00005ba1@huawei.com>
-In-Reply-To: <20260325170805.00005ba1@huawei.com>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Wed, 25 Mar 2026 18:16:07 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0hrvqVHutf27GXtA_wX5mDC=boq8z0kG570dhaX4tKZpw@mail.gmail.com>
-X-Gm-Features: AQROBzDtKbsXPgGx_n7ggjHtefyZQ8wQVR0bsXcoGvoZ2DCEuDL9YyvxHOrDn5s
-Message-ID: <CAJZ5v0hrvqVHutf27GXtA_wX5mDC=boq8z0kG570dhaX4tKZpw@mail.gmail.com>
-Subject: Re: [PATCH v2 3/3] acpi/apei: Add NVIDIA GHES vendor CPER record handler
-To: Jonathan Cameron <jonathan.cameron@huawei.com>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, Kai-Heng Feng <kaihengf@nvidia.com>, rafael@kernel.org, 
-	Shiju Jose <shiju.jose@huawei.com>, Tony Luck <tony.luck@intel.com>, 
-	Borislav Petkov <bp@alien8.de>, Hanjun Guo <guohanjun@huawei.com>, 
-	Mauro Carvalho Chehab <mchehab@kernel.org>, Shuai Xue <xueshuai@linux.alibaba.com>, 
-	Len Brown <lenb@kernel.org>, Kees Cook <kees@kernel.org>, 
-	"Gustavo A. R. Silva" <gustavoars@kernel.org>, Will Deacon <will@kernel.org>, 
-	Huang Yiwei <quic_hyiwei@quicinc.com>, Dave Jiang <dave.jiang@intel.com>, 
-	Nathan Chancellor <nathan@kernel.org>, 
-	"Fabio M. De Francesco" <fabio.m.de.francesco@linux.intel.com>, linux-kernel@vger.kernel.org, 
-	linux-acpi@vger.kernel.org, linux-hardening@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Wed, Mar 25, 2026 at 6:08=E2=80=AFPM Jonathan Cameron
-<jonathan.cameron@huawei.com> wrote:
->
-> On Wed, 25 Mar 2026 10:36:28 -0500
-> Bjorn Helgaas <helgaas@kernel.org> wrote:
->
-> > On Wed, Mar 25, 2026 at 07:34:50PM +0800, Kai-Heng Feng wrote:
-> > > On Wed Mar 25, 2026 at 12:15 AM CST, Bjorn Helgaas wrote:
-> > > > On Tue, Mar 24, 2026 at 05:33:06PM +0800, Kai-Heng Feng wrote:
-> > > >> On 2026-03-20 09:52, Bjorn Helgaas wrote:
-> > > >> > On Thu, Mar 19, 2026 at 07:13:09PM +0800, Kai-Heng Feng wrote:
-> > > >> > > Add support for decoding NVIDIA-specific CPER sections deliver=
-ed via
-> > > >> > > the APEI GHES vendor record notifier chain. NVIDIA hardware ge=
-nerates
-> > > >> > > vendor-specific CPER sections containing error signatures and =
-diagnostic
-> > > >> > > register dumps. This implementation registers a notifier_block=
- with the
-> > > >> > > GHES vendor record notifier and decodes these sections, printi=
-ng error
-> > > >> > > details via dev_info().
-> > > >> > >
-> > > >> > > The driver binds to ACPI device NVDA2012, present on NVIDIA se=
-rver
-> > > >> > > platforms. The NVIDIA CPER section contains a fixed header wit=
-h error
-> > > >> > > metadata (signature, error type, severity, socket) followed by
-> > > >> > > variable-length register address-value pairs for hardware diag=
-nostics.
-> > > >> > >
-> > > >> > > This work is based on libcper [0].
-> > > >> > >
-> > > >> > > Example output:
-> > > >> > > nvidia-ghes NVDA2012:00: NVIDIA CPER section, error_data_lengt=
-h: 544
-> > > >> > > nvidia-ghes NVDA2012:00: signature: CMET-INFO
-> > > >> > > nvidia-ghes NVDA2012:00: error_type: 0
-> > > >> > > nvidia-ghes NVDA2012:00: error_instance: 0
-> > > >> > > nvidia-ghes NVDA2012:00: severity: 3
-> > > >> > > nvidia-ghes NVDA2012:00: socket: 0
-> > > >> > > nvidia-ghes NVDA2012:00: number_regs: 32
-> > > >> > > nvidia-ghes NVDA2012:00: instance_base: 0x0000000000000000
-> > > >> > > nvidia-ghes NVDA2012:00: register[0]: address=3D0x800000010000=
-0000 value=3D0x0000000100000000
-> > > >> >
-> > > >> > Is there a convenient way to connect NVDA2012:00 with the actual
-> > > >> > device?  I assume this is typically a PCIe device?  How would we
-> > > >> > relate this with PCIe errors?
-> > > >>
-> > > >> The CPER report is from ARM RAS firmware and not neccessarily be
-> > > >> related to a PCIe device.
-> > > >
-> > > > Right, I know CPER is more general than just PCI/PCIe.
-> > > >
-> > > > But in this case, I think NVDA2012 probably *is* a PCIe device.  Ho=
-w
-> > > > would we figure out which one?  If we have to manually do an acpidu=
-mp,
-> > > > figure out which NVDA2012 is :00, and look for an _ADR or something=
-,
-> > > > that doesn't really seem convenient for multi-NVDA2012 situations.
-> > >
-> > > It's actually just an ACPI device:
-> > > Device (CPER)
-> > > {
-> > >   Name (_HID, "NVDA2012")  // _HID: Hardware ID
-> > >   Name (_UID, 0x00)  // _UID: Unique ID
-> > >   Method (_DSM, 4, Serialized) // _DSM: Device-Specific Method
-> > > }
-> > >
-> > > And that's it.
-> >
-> > Weird.  There's nothing for a driver to operate the device with except
-> > _DSM?  The device doesn't need any MMIO resources?  I would expect some
-> > resources described by a _CRS method or some native enumeration protoco=
-l
-> > like PCI BARs.
-> >
-> > The _UID 0x00 matches the "00" in "NVDA2012:00", but I think that's a
-> > coincidence; I think the "00" in the device name came from the ida_allo=
-c()
-> > in acpi_device_set_name(), not from _UID.
-> >
-> > So I still don't know how you would identify the correct part in a syst=
-em
-> > with multiple NVDA2012 devices.  I do see the "socket" and "instance_ba=
-se"
-> > in the output.  Maybe that would help, but those seem to be
-> > device-specific, and it seems like we should have a generic mechanism.
->
-> It's not unique in ACPI terms.  There are a few cases even in the ACPI sp=
-ec
-> of IDs that exist just to say some feature is there.
->
-> ACPI0017 is an example. Simply says, there be CXL here, go look for the
-> tables.
->
-> Here this device is used to indicate that a platform should be ready to h=
-andle
-> a particular type of error record.  If it happened to expose any other
-> interfaces, then I agree it would need resources or a _DSM etc.
->
-> Basically it's a workaround for the lack of discoverability in APEI /
-> ACPI error reporting. Could use an _OSC bit for the same job but then
-> we'd run out of those fast.  Device IDs are near free.
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
+branch HEAD: 877556758cf5718848fe4ff01c93109f51ce715b  Merge branch 'experimental/acpi-driver-conversion' into bleeding-edge
 
-Well, in principle, an auxiliary device could be registered when a
-given ACPI table was present.  It would then trigger a driver load and
-the driver would probe against the table in question.
+elapsed time: 1258m
+
+configs tested: 153
+configs skipped: 10
+
+The following configs have been built successfully.
+More configs may be tested in the coming days.
+
+tested configs:
+alpha                             allnoconfig    gcc-15.2.0
+alpha                            allyesconfig    gcc-15.2.0
+alpha                               defconfig    gcc-15.2.0
+arc                              allmodconfig    gcc-15.2.0
+arc                               allnoconfig    gcc-15.2.0
+arc                              allyesconfig    gcc-15.2.0
+arc                                 defconfig    gcc-15.2.0
+arc                   randconfig-001-20260325    gcc-15.2.0
+arc                   randconfig-002-20260325    gcc-8.5.0
+arm                               allnoconfig    clang-23
+arm                              allyesconfig    gcc-15.2.0
+arm                                 defconfig    clang-23
+arm                            mmp2_defconfig    gcc-15.2.0
+arm                   randconfig-001-20260325    gcc-8.5.0
+arm                   randconfig-002-20260325    clang-23
+arm                   randconfig-003-20260325    clang-23
+arm                   randconfig-004-20260325    clang-17
+arm64                             allnoconfig    gcc-15.2.0
+arm64                               defconfig    gcc-15.2.0
+arm64                 randconfig-001-20260325    clang-23
+arm64                 randconfig-002-20260325    gcc-11.5.0
+arm64                 randconfig-003-20260325    gcc-8.5.0
+arm64                 randconfig-004-20260325    clang-23
+csky                              allnoconfig    gcc-15.2.0
+csky                                defconfig    gcc-15.2.0
+csky                  randconfig-001-20260325    gcc-10.5.0
+csky                  randconfig-002-20260325    gcc-12.5.0
+hexagon                          allmodconfig    clang-17
+hexagon                           allnoconfig    clang-23
+hexagon                             defconfig    clang-23
+hexagon               randconfig-001-20260325    clang-19
+hexagon               randconfig-002-20260325    clang-23
+i386                              allnoconfig    gcc-14
+i386                             allyesconfig    gcc-14
+i386        buildonly-randconfig-001-20260325    gcc-14
+i386        buildonly-randconfig-002-20260325    gcc-14
+i386        buildonly-randconfig-003-20260325    clang-20
+i386        buildonly-randconfig-004-20260325    clang-20
+i386        buildonly-randconfig-005-20260325    clang-20
+i386        buildonly-randconfig-006-20260325    clang-20
+i386                                defconfig    clang-20
+i386                  randconfig-001-20260325    clang-20
+i386                  randconfig-002-20260325    clang-20
+i386                  randconfig-003-20260325    gcc-14
+i386                  randconfig-004-20260325    clang-20
+i386                  randconfig-005-20260325    gcc-14
+i386                  randconfig-006-20260325    clang-20
+i386                  randconfig-007-20260325    clang-20
+i386                  randconfig-011-20260325    gcc-14
+i386                  randconfig-012-20260325    gcc-14
+i386                  randconfig-013-20260325    gcc-14
+i386                  randconfig-014-20260325    gcc-14
+i386                  randconfig-015-20260325    clang-20
+i386                  randconfig-016-20260325    clang-20
+i386                  randconfig-017-20260325    gcc-14
+loongarch                        allmodconfig    clang-19
+loongarch                         allnoconfig    clang-23
+loongarch                           defconfig    clang-19
+loongarch             randconfig-001-20260325    clang-23
+loongarch             randconfig-002-20260325    clang-23
+m68k                             allmodconfig    gcc-15.2.0
+m68k                              allnoconfig    gcc-15.2.0
+m68k                             allyesconfig    gcc-15.2.0
+m68k                                defconfig    gcc-15.2.0
+microblaze                        allnoconfig    gcc-15.2.0
+microblaze                       allyesconfig    gcc-15.2.0
+microblaze                          defconfig    gcc-15.2.0
+mips                              allnoconfig    gcc-15.2.0
+mips                             allyesconfig    gcc-15.2.0
+nios2                            allmodconfig    gcc-11.5.0
+nios2                             allnoconfig    gcc-11.5.0
+nios2                               defconfig    gcc-11.5.0
+nios2                 randconfig-001-20260325    gcc-8.5.0
+nios2                 randconfig-002-20260325    gcc-11.5.0
+openrisc                         allmodconfig    gcc-15.2.0
+openrisc                          allnoconfig    gcc-15.2.0
+openrisc                            defconfig    gcc-15.2.0
+parisc                            allnoconfig    gcc-15.2.0
+parisc                           allyesconfig    gcc-15.2.0
+parisc                              defconfig    gcc-15.2.0
+parisc                randconfig-001-20260325    gcc-8.5.0
+parisc                randconfig-002-20260325    gcc-14.3.0
+parisc64                            defconfig    gcc-15.2.0
+powerpc                           allnoconfig    gcc-15.2.0
+powerpc               randconfig-001-20260325    clang-23
+powerpc               randconfig-002-20260325    clang-23
+powerpc64             randconfig-001-20260325    clang-23
+powerpc64             randconfig-002-20260325    clang-23
+riscv                            allmodconfig    clang-23
+riscv                             allnoconfig    gcc-15.2.0
+riscv                            allyesconfig    clang-16
+riscv                               defconfig    clang-23
+riscv                 randconfig-001-20260325    clang-20
+riscv                 randconfig-002-20260325    gcc-14.3.0
+s390                             allmodconfig    clang-18
+s390                              allnoconfig    clang-23
+s390                                defconfig    clang-23
+s390                  randconfig-001-20260325    clang-23
+s390                  randconfig-002-20260325    gcc-8.5.0
+sh                               allmodconfig    gcc-15.2.0
+sh                                allnoconfig    gcc-15.2.0
+sh                               allyesconfig    gcc-15.2.0
+sh                                  defconfig    gcc-15.2.0
+sh                    randconfig-001-20260325    gcc-15.2.0
+sh                    randconfig-002-20260325    gcc-15.2.0
+sparc                             allnoconfig    gcc-15.2.0
+sparc                               defconfig    gcc-15.2.0
+sparc                 randconfig-001-20260325    gcc-8.5.0
+sparc                 randconfig-002-20260325    gcc-14.3.0
+sparc64                          allmodconfig    clang-23
+sparc64                             defconfig    clang-20
+sparc64               randconfig-001-20260325    clang-23
+sparc64               randconfig-002-20260325    clang-23
+um                               allmodconfig    clang-19
+um                                allnoconfig    clang-23
+um                               allyesconfig    gcc-14
+um                                  defconfig    clang-23
+um                             i386_defconfig    gcc-14
+um                    randconfig-001-20260325    gcc-13
+um                    randconfig-002-20260325    gcc-14
+um                           x86_64_defconfig    clang-23
+x86_64                           allmodconfig    clang-20
+x86_64                            allnoconfig    clang-20
+x86_64                           allyesconfig    clang-20
+x86_64      buildonly-randconfig-001-20260325    gcc-14
+x86_64      buildonly-randconfig-002-20260325    gcc-14
+x86_64      buildonly-randconfig-003-20260325    gcc-14
+x86_64      buildonly-randconfig-004-20260325    gcc-14
+x86_64      buildonly-randconfig-005-20260325    gcc-14
+x86_64      buildonly-randconfig-006-20260325    clang-20
+x86_64                              defconfig    gcc-14
+x86_64                randconfig-001-20260325    gcc-14
+x86_64                randconfig-002-20260325    gcc-14
+x86_64                randconfig-003-20260325    clang-20
+x86_64                randconfig-004-20260325    clang-20
+x86_64                randconfig-005-20260325    gcc-14
+x86_64                randconfig-006-20260325    gcc-12
+x86_64                randconfig-011-20260325    clang-20
+x86_64                randconfig-012-20260325    gcc-13
+x86_64                randconfig-013-20260325    gcc-14
+x86_64                randconfig-014-20260325    gcc-14
+x86_64                randconfig-015-20260325    clang-20
+x86_64                randconfig-016-20260325    gcc-13
+x86_64                randconfig-071-20260325    clang-20
+x86_64                randconfig-072-20260325    gcc-14
+x86_64                randconfig-073-20260325    clang-20
+x86_64                randconfig-074-20260325    gcc-14
+x86_64                randconfig-075-20260325    gcc-14
+x86_64                randconfig-076-20260325    gcc-14
+x86_64                          rhel-9.4-rust    clang-20
+xtensa                            allnoconfig    gcc-15.2.0
+xtensa                randconfig-001-20260325    gcc-13.4.0
+xtensa                randconfig-002-20260325    gcc-12.5.0
+
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
