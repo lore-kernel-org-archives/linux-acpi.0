@@ -1,153 +1,132 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFEDB3CEB85;
-	Wed, 25 Mar 2026 12:06:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75F113CC9F8;
+	Wed, 25 Mar 2026 12:41:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774440381; cv=none; b=enb83HUOEJZa7qJqcmMsAu/muV8oHgc+HeByi7eR8zC8lXG3FGUUXZsTWL+M8Ym2zbdBi3PpSis2hjS82zZIQDlTwi9A57XJhUkq3Lp2K89hZcy+6d87aJocv37lqwvAsblejTOx2ovwYuHN6CbKxqbUodfrMJxAjkkBEW9smMk=
+	t=1774442484; cv=none; b=VgnkvUKkTWLJik1+gFzNpzmVVyjkZcTIMHjksue/dUNQP2+2enWOEL5IaE9QNxRTpH8raa1lw1r7axHnxbKWjrZRwSP8tw9dNvrm6bU3x9JWWx8ouTA6HV5l1e5yS7g+/5tGzFGwZeVJcNEQ3S7e60n+4+mH2RPecUy5T5GilBs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774440381; c=relaxed/simple;
-	bh=ueF0hrvRluFMJ/+IsNDv2TY9qAQLpZVCChvf6GImWMk=;
+	s=arc-20240116; t=1774442484; c=relaxed/simple;
+	bh=GFTUx3kdhgQgTWvb7Q2fjG3wR+lIHMZ/P3hX/zvDfV4=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=UePQYMMHUF/w8im0JJRCGP8h++AX33oeb2sMfRAch2CTvkZnnX/RQjpaJe9ZCqUtZXTY0mBolr4AD1TseUHjJwYkCH6lLc9I1+/U2YuwnLyfOaxQY85cECeCrvYVBPxO38SFSHrowpm/K9TT9JRrjTml+7m9OlhyIieIf77S+dw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=b64J3S/9; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=kKZyAyieiEnD4H1nsmririOHgS1g1m8ib1xpEImbYskky2kuyZ+7Dt34EQclRzI/0aY87xtR9xNhd+08KsGZUQaZMeLRA8pWOnhpAzn6pz69mLuw885MbshrTR1ERke1xxpKWcOzvTR3T5H2whHVq87grXNlzCidU7yy4ZCmhFA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=f16WpEVQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="b64J3S/9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AFB30C4CEF7;
-	Wed, 25 Mar 2026 12:06:12 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="f16WpEVQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 857BAC4CEF7;
+	Wed, 25 Mar 2026 12:41:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774440381;
-	bh=ueF0hrvRluFMJ/+IsNDv2TY9qAQLpZVCChvf6GImWMk=;
+	s=k20201202; t=1774442484;
+	bh=GFTUx3kdhgQgTWvb7Q2fjG3wR+lIHMZ/P3hX/zvDfV4=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=b64J3S/9wMpdMbsb28lUju0wP16mAjZXdtTfStiNijzPEkHs1QwjQqNJn9Vm96m4G
-	 SesNnOOhFr1Av4MG+5BeUKnlWQbTn7LgkfIEGssQYGwMJXp7uc7C3mqUl+mJqux3Mz
-	 7GVqbaVqgjEGvz6Dkath/TBSnChu4Yci0FfgPm2vMcRNKaevXioRglINXVrTJZU9MW
-	 NstZ4onOipYfdbdsAS/lY7IdpfwvbAM5L8zb11Se6dTjuxRPVKptHkfpZpHB14zIix
-	 egtrB549HcgGNnuMLCUyzdeVWiCIdft3TDwdf/Teh6A6NpfuRpF0LvSmjfIaruYB8r
-	 /NaH//k6jNhlQ==
-Date: Wed, 25 Mar 2026 17:36:08 +0530
-From: Manivannan Sadhasivam <mani@kernel.org>
-To: Mark Pearson <mpearson-lenovo@squebb.ca>
-Cc: Dmitry Baryshkov <dmitry.baryshkov@oss.qualcomm.com>, 
-	Rob Herring <robh@kernel.org>, Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>, 
-	Greg KH <gregkh@linuxfoundation.org>, Jiri Slaby <jirislaby@kernel.org>, 
-	Nathan Chancellor <nathan@kernel.org>, Nicolas Schier <nicolas.schier@linux.dev>, 
-	Hans de Goede <hansg@kernel.org>, Ilpo =?utf-8?B?SsOkcnZpbmVu?= <ilpo.jarvinen@linux.intel.com>, 
-	"Derek J . Clark" <derekjohn.clark@gmail.com>, Krzysztof Kozlowski <krzk+dt@kernel.org>, 
-	Conor Dooley <conor+dt@kernel.org>, Marcel Holtmann <marcel@holtmann.org>, 
-	Luiz Augusto von Dentz <luiz.dentz@gmail.com>, Bartosz Golaszewski <brgl@bgdev.pl>, 
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Bartosz Golaszewski <brgl@kernel.org>, 
-	linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-kbuild@vger.kernel.org, 
-	"platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, 
-	linux-arm-msm@vger.kernel.org, linux-bluetooth@vger.kernel.org, linux-pm@vger.kernel.org, 
-	Stephan Gerhold <stephan.gerhold@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Subject: Re: [PATCH v6 6/9] dt-bindings: connector: m2: Add M.2 1620 LGA
- soldered down connector
-Message-ID: <cvqdbqnzjmzoowxkvz2lyv4avropu5jw7h2r6zng3ecf245hgg@fsysjqflqd35>
-References: <20260317-pci-m2-e-v6-6-9c898f108d3d@oss.qualcomm.com>
- <20260322233713.GA98177-robh@kernel.org>
- <to2mrizprc3hjufqbiplpqyek7f4uutqtn4hx4gkmdgv2rykbc@ybwwjhdec4nm>
- <CAL_JsqJXrHCJt770bJkMmAUhirSF3kHjYwSzkG7cXp7-eys8Rg@mail.gmail.com>
- <6aef3xxjjd4nbgrfx6jc6jt6rpqmttoui6hil5zqgdpas2j6gj@ie6j72orenou>
- <fsvmmgoe5wslmxebhrrwmdg2ldcmhzvj53gjkdfnfg2m2rz2lw@dcfboaakz7ae>
- <bguhzabwryayyqkv4ilzwr3ixwv6bzxncblo3ircz2wm3fs52k@66zvcrfcb4oe>
- <blhm4csjyw6r667cleljgzd6rpwagttjo5rau7wjrlnjakq2qm@ekyhc4jvwmwf>
- <m44mupdmg7kgco62n4evcviagqo7wwgyt3gybugbxwesd4ekjz@o24r6v4tpezc>
- <3faffec9-dc9d-4eec-a652-a84d30d85c96@app.fastmail.com>
+	b=f16WpEVQ60zjYzS+sVNF502WXxMyeiBgyt2Q9wXCYo9w09DS/KwlV8lV3Cf4xrFU+
+	 u8uOaH2kdR8bZKl/0Rdghb4RBSMZRM8peRogRgbvew+wRQqtN0NDo5JJsZvWGpg3Jd
+	 y/O1waNE3BsFE7ij3l3/vw6aRmuRgWH24gY07DhtfoPvyWbZHCDrF0Fk6nF1ZhpcOP
+	 qf1X6IRQeDhdCt29bG480HRF0fNhOKSOBFPbhZwHPydtDMEKGcBTXPv6FiSgrHp5+H
+	 j+F76UZXDXTekW3r7AqjV6rmrODczfx9ulxNartk6tdcj1W86RiFzB5GDWcdWscD7t
+	 rEGL/gaG0612Q==
+Date: Wed, 25 Mar 2026 13:41:21 +0100
+From: Thierry Reding <thierry.reding@kernel.org>
+To: Krzysztof Kozlowski <krzk@kernel.org>
+Cc: Akhil R <akhilrajeev@nvidia.com>, Frank.Li@nxp.com, 
+	acpica-devel@lists.linux.dev, alexandre.belloni@bootlin.com, conor+dt@kernel.org, 
+	devicetree@vger.kernel.org, ebiggers@kernel.org, fredrik.markstrom@est.tech, 
+	jonathanh@nvidia.com, krzk+dt@kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, 
+	linux-hwmon@vger.kernel.org, linux-i3c@lists.infradead.org, linux-kernel@vger.kernel.org, 
+	linux-tegra@vger.kernel.org, linux@roeck-us.net, miquel.raynal@bootlin.com, 
+	p.zabel@pengutronix.de, rafael@kernel.org, robert.moore@intel.com, robh@kernel.org, 
+	smangipudi@nvidia.com
+Subject: Re: [PATCH 12/12] arm64: defconfig: Enable I3C and SPD5118 hwmon
+Message-ID: <acPWvjCJ426AyIQh@orome>
+References: <20260319-nano-manatee-of-vastness-fbafa1@quoll>
+ <20260319170929.14543-1-akhilrajeev@nvidia.com>
+ <67165a1f-9fa3-4853-b530-b1f9d6e4c2cf@kernel.org>
+ <acO4NKPDUayny-I4@orome>
+ <6342b6fd-9802-49d9-a269-ecb3b70b4604@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="qna5mk7v3eomnmx3"
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <3faffec9-dc9d-4eec-a652-a84d30d85c96@app.fastmail.com>
+In-Reply-To: <6342b6fd-9802-49d9-a269-ecb3b70b4604@kernel.org>
 
-On Mon, Mar 23, 2026 at 01:23:07PM -0400, Mark Pearson wrote:
-> 
-> 
-> On Mon, Mar 23, 2026, at 12:52 PM, Manivannan Sadhasivam wrote:
-> > On Mon, Mar 23, 2026 at 06:45:15PM +0200, Dmitry Baryshkov wrote:
-> >> On Mon, Mar 23, 2026 at 09:26:04PM +0530, Manivannan Sadhasivam wrote:
-> >> > On Mon, Mar 23, 2026 at 05:14:30PM +0200, Dmitry Baryshkov wrote:
-> >> > > On Mon, Mar 23, 2026 at 07:14:25PM +0530, Manivannan Sadhasivam wrote:
-> >> > > > On Mon, Mar 23, 2026 at 08:39:55AM -0500, Rob Herring wrote:
-> >> > > > > On Mon, Mar 23, 2026 at 7:16 AM Manivannan Sadhasivam <mani@kernel.org> wrote:
-> >> > > > > >
-> >> > > > > > On Sun, Mar 22, 2026 at 06:37:13PM -0500, Rob Herring wrote:
-> >> > > > > > > On Tue, Mar 17, 2026 at 09:59:56AM +0530, Manivannan Sadhasivam wrote:
-> >> > > > > > > > Lenovo Thinkpad T14s is found to have a soldered down version of M.2 1620
-> >> > > > > > > > LGA connector. Though, there is no 1620 LGA form factor defined in the M.2
-> >> > > > > > > > spec, it looks very similar to the M.2 Key E connector. So add the
-> >> > > > > > > > "pcie-m2-1620-lga-connector" compatible with "pcie-m2-e-connector" fallback
-> >> > > > > > > > to reuse the Key E binding.
-> >> > > > > > >
-> >> > > > > > > What is LGA?
-> >> > > > > > >
-> >> > > > > >
-> >> > > > > > Land Grid Array
-> >> > > > > >
-> >> > > > > > > If not in the spec, is it really something generic?
-> >> > > > > > >
-> >> > > > > >
-> >> > > > > > Good question. Yes and No! LGA is not something that Lenovo only uses. Other
-> >> > > > > > vendors may also use this form factor. PCIe connectors are full of innovation as
-> >> > > > > > the spec gives room for hardware designers to be as innovative as possible to
-> >> > > > > > save the BOM cost.
-> >> > > > > 
-> >> > > > > innovation == incompatible changes
-> >> > > > > 
-> >> > > > 
-> >> > > > Yes, I was trying to sound nice :)
-> >> > > > 
-> >> > > > > > This is why I do not want to make it Lenovo specific. But if you prefer that, I
-> >> > > > > > can name it as "lenovo,pcie-m2-1620-lga-connector".
-> >> > > > > 
-> >> > > > > Depends if you think that s/w needs to know the differences. Hard to
-> >> > > > > say with a sample size of 1.
-> >> > > > > 
-> >> > > > 
-> >> > > > Sure. Will add the 'lenovo' prefix then.
-> >> > > 
-> >> > > Is it really Lenovo? Or is it some other module vendor, whose LGAs are
-> >> > > being used by Lenovo?
-> >> > > 
-> >> > > I remember that DB820c also used some kind of a module for the WiFi card
-> >> > > (which might be M.2 compatible or might not, I can't find exact docs at
-> >> > > this point).
-> >> > > 
-> >> > 
-> >> > I don't know. These kind of designs might be reused by several vendors. But
-> >> > considering that we should not make it generic, I'd go with Lenovo as that's
-> >> > the only vendor we know as of now.
-> >> 
-> >> ... and later we learn that other vendors use the same idea /pinout,
-> >> then nothing stops us from still telling that it's a
-> >> "lenovo,pcie-m2-something-lga". 
-> >> 
-> >
-> > How do you possibly know whether a single vendor has introduced this form factor
-> > or reused by multiple ones? Atleast, I don't have access to such a source to
-> > confirm.
-> >
-> I've not really been following this thread/patchset in detail; but want me to try and check with the T14s platform team if this device is specifically made for us (Lenovo) or not?
-> I doubt it is - we just don't do that usually, but I can go and ask the question if it will help resolve this (with the caveat that it could hold up the review for a bit and I may not be able to get a straight answer)
-> 
 
-I can drop this specific patch in the meantime.
+--qna5mk7v3eomnmx3
+Content-Type: text/plain; protected-headers=v1; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+Subject: Re: [PATCH 12/12] arm64: defconfig: Enable I3C and SPD5118 hwmon
+MIME-Version: 1.0
 
-> My vote (for what little it's worth) would be to make it non-Lenovo specific. Then when the same part causes issues on another vendors platform I won't get asked questions about why Lenovo is breaking <other vendor> :)
-> 
+On Wed, Mar 25, 2026 at 11:59:36AM +0100, Krzysztof Kozlowski wrote:
+> On 25/03/2026 11:31, Thierry Reding wrote:
+> > On Thu, Mar 19, 2026 at 06:15:14PM +0100, Krzysztof Kozlowski wrote:
+> >> On 19/03/2026 18:09, Akhil R wrote:
+> >>> On Thu, 19 Mar 2026 10:40:34 +0100, Krzysztof Kozlowski wrote:
+> >>>> On Wed, Mar 18, 2026 at 10:57:25PM +0530, Akhil R wrote:
+> >>>>> Add I3C subsystem support, DesignWare I3C master controller, and
+> >>>>> SPD5118 hwmon sensor as modules to the defconfig.
+> >>>>
+> >>>> Why? If there is no user of that, why would we want it? Your commit =
+msg
+> >>>> should explain that.
+> >>>
+> >>> Ack. This is for Tegra410 which has a DesignWare I3C host controller.
+> >>> I will add this in the commit message.
+> >>
+> >> Board or products. Not SoCs.
+> >=20
+> > Is this a new requirement? I see a bit of both in defconfig changes.
+>=20
+> Almost every review from me has it for 2-3 years... And it is a known
+> thing since always in a bit different wording: we do not care about
+> downstream things and downstream products. defconfig does not serve
+> downstream at all, makes no sense outside of our (upstream) work.
 
-Even if Lenovo prefix is used, it won't break other vendors. Just that we will
-end up adding more compatibles.
+I don't understand why you're turning this into a downstream vs.
+upstream discussion. This is all code that is being submitted upstream,
+because we want these new platforms with I3C support enabled upstream.
+It's as simple as that.
 
-Anyhow, I'll wait for your reply and drop this patch for next revision.
+> > Some mention specific products, other mention SoCs. Does this
+> > requirement apply to DT platforms or also ACPI platforms?
+>=20
+> Just like kernel, applies to all platforms, regardless of firmware
+> interface.
 
-- Mani
+Hm... again, I don't think there's every been a rule to the effect of
+needing to specify a particular platform or product when adding a new
+defconfig change. There's plenty of things that we're enabling in the
+defconfigs because we think they are generally useful.
 
--- 
-மணிவண்ணன் சதாசிவம்
+But alright, we'll either add more details to the commit message, or
+drop this patch entirely.
+
+Thierry
+
+--qna5mk7v3eomnmx3
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEEiOrDCAFJzPfAjcif3SOs138+s6EFAmnD1+4ACgkQ3SOs138+
+s6FDCg//TEr1ZBNYM0xe8kwbmPyZIx3Vx3e28JVg+qyEspS58LsOeq9esxtRuXxS
+nbLyK6ZR2UMQSz8flsE3eTLe6uX2nS4M2ulMPPhiGmS68FWBMX87sjcgm838wRCY
+81kws1U2fMSmqX/4cPJ1GX+t0v5h33bMZR6NZnfQnuZA4XAUMpX8tc/yR1N7WkUM
+xx8snURBoY1HEyabSqye0F1kwIwBP4uD0Lp+BLb3WTcLnRlTShkmUiYN5XoIaZAr
+qqgERKNeG48lK8XB07DSNEi/vZF0SxMUvlv5xKZlK+G0m+Wdd8QaNrMqfZPQfvzk
+mT/ixvLEwmWhI6TjzbNeAh84MZoCNm6M1/khnUfiwECVZbiRubyO1f2MDwCC/Vej
+D8mZm0IKzSS1Nni8cccKarGjtf7AtziB6cTwmihlqpBvYCDMMtF/Pkz8JVX4rCSR
+F3F/dwnFWLHfzn9XIz0YFPQyeXYOjI8GpwdcCAYUv86M1c+b8hp6W2CDwdVhZrX6
+wcSAxuep2zqjuQ9qDMD+l2DHSuC4raYwmHR4SwkumNAUGumrOP5tGHpwPvcfzdBv
+W1vEzFjECkS6NxWfDxLtF3NbjKPbQ8WZHoKMmC8vQW8p5fd0WKHOfJjYSx9HSaET
+3Tk9L+O4ChP4yfX+vwPicJqk8Vo9yZUmeGXIN9hKUBBfYHR+tLQ=
+=TaJr
+-----END PGP SIGNATURE-----
+
+--qna5mk7v3eomnmx3--
