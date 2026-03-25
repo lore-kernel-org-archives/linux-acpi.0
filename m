@@ -1,319 +1,253 @@
-Received: from canpmsgout03.his.huawei.com (canpmsgout03.his.huawei.com [113.46.200.218])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 083C42E11D2;
-	Wed, 25 Mar 2026 09:24:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.218
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEE3C3A1D05;
+	Wed, 25 Mar 2026 10:16:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774430669; cv=none; b=Q6EJpxkTIxc+RJuEzbwb/hungB4gfhuE0mLroo2cXMEvmeWy9Y0uU/pUp3Llw7aI+FXLVoBjnQGEfS6ZiHWpd7iPnRlhLR0ANbs74wf6KQ73kgAlOxLjwCwhZcuN3xoni2JfxPBcTYbFfjmET6EuftmQzKkwGTW1ln4kCPiJimM=
+	t=1774433781; cv=none; b=py2hyeVSJAGCzjLI+dGGBQeE65JxGFoVqbtfZv2ovVqOYQ2jexulbIGs0D5aUzqqpO4nwVpOavqewRD0bvgnlMtJvyHRI0yK21Y1qsbs/NFThkSj1GZlK6/4ASUya6EooNOJygKKeoxsjzdz5ukRGNabEApelZyvX2bv2F0KhH4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774430669; c=relaxed/simple;
-	bh=/X1nHGjwiXZGFR9erqz/mPLTpZBwETcA1AcwmNZyskM=;
-	h=Subject:To:References:CC:From:Message-ID:Date:MIME-Version:
-	 In-Reply-To:Content-Type; b=sC3FwFX83r44ToQ0eakybI2Ey7+Olonhxa0jZ/L2WGmqnLdBLIW9mOlbbx4mttJz5eSfAXPjaOQNc2nL+/8UWtwU30rLnVcaUAq6mxWmFWMQnYc0BURuTQ/hX79ZkvAaIecMlDb38rTH8eFPBnPb2sAfFx2476RnKu5LI02rteE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=h-partners.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=pEiHmct5; arc=none smtp.client-ip=113.46.200.218
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=h-partners.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=h-partners.com
+	s=arc-20240116; t=1774433781; c=relaxed/simple;
+	bh=J1W/W6dgugIFTw8lc+XnBxr8W9IvNju4+ItfTBX6Hyk=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=EeaG7cETxd1Zq4w6jP9SgCVykXMDlwo0rqHvdRYH+JeMpcKw7DPiB+upWCabKfkZWBeyc4d7CPOuBO8DZdi5+Vzx5Chr9ePJ1AOUxoEl5VSb1iZ98eH4xR1aJ7AzLXUCYX+ibJHTx/dXoOu0yL/gwXj3GJQZcz2fFkizey9dT9Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=ntO5bAju; arc=none smtp.client-ip=198.175.65.18
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="pEiHmct5"
-dkim-signature: v=1; a=rsa-sha256; d=h-partners.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=bh7067GN57IAg9QssYF1304Uk3406Q33k+2xLpDRDo0=;
-	b=pEiHmct5G/0RBWLv2m2ruf5aFUqTg7LmdcRui9E2LddqE9pTABLDA+ya4Suu0raPoroTk53F9
-	yrPEB25PANfMGkEMOKr15XfJW9i1/SohJDqQ9VkZ8mr3/NeezWCSt89yciQsMneg62IFPvCrYYk
-	k0OqT2VYrMh6hauio3R7PVQ=
-Received: from mail.maildlp.com (unknown [172.19.162.144])
-	by canpmsgout03.his.huawei.com (SkyGuard) with ESMTPS id 4fghD06ZC8zpSty;
-	Wed, 25 Mar 2026 17:18:40 +0800 (CST)
-Received: from dggemv705-chm.china.huawei.com (unknown [10.3.19.32])
-	by mail.maildlp.com (Postfix) with ESMTPS id BACCF40538;
-	Wed, 25 Mar 2026 17:24:16 +0800 (CST)
-Received: from kwepemn500004.china.huawei.com (7.202.194.145) by
- dggemv705-chm.china.huawei.com (10.3.19.32) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Wed, 25 Mar 2026 17:24:16 +0800
-Received: from [10.67.120.218] (10.67.120.218) by
- kwepemn500004.china.huawei.com (7.202.194.145) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Wed, 25 Mar 2026 17:24:15 +0800
-Subject: Re: [PATCH] ACPI: APEI: Handle repeated SEA error interrupts storm
- scenarios
-To: Shuai Xue <xueshuai@linux.alibaba.com>, "Rafael J. Wysocki"
-	<rafael@kernel.org>, "Luck, Tony" <tony.luck@intel.com>
-References: <20251030071321.2763224-1-hejunhao3@h-partners.com>
- <CAJZ5v0h=QtcT7zhZEgrTjUk7EAk2OfbGG6BoEEv-3toKODMXQA@mail.gmail.com>
- <bf42a19d-0f5d-48d8-91f5-febb8bfd06d3@linux.alibaba.com>
- <9817f221-5b5f-7c25-ab94-cb04a854553a@h-partners.com>
- <70b85b7c-5107-4f79-abf7-3cc5b7e1438d@linux.alibaba.com>
- <ea31b6d3-fae5-ab5c-c10c-ed6901296498@h-partners.com>
- <c72680a4-5133-4b93-8efb-2e72ce0ed7fa@linux.alibaba.com>
-CC: <bp@alien8.de>, <guohanjun@huawei.com>, <mchehab@kernel.org>,
-	<jarkko@kernel.org>, <yazen.ghannam@amd.com>, <jane.chu@oracle.com>,
-	<lenb@kernel.org>, <Jonathan.Cameron@huawei.com>,
-	<linux-acpi@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
-	<linux-kernel@vger.kernel.org>, <linux-edac@vger.kernel.org>,
-	<shiju.jose@huawei.com>, <tanxiaofei@huawei.com>, Linuxarm
-	<linuxarm@huawei.com>, Junhao He <hejunhao3@h-partners.com>
-From: hejunhao <hejunhao3@h-partners.com>
-Message-ID: <22567fce-992c-89df-28fe-3d5959b8b205@h-partners.com>
-Date: Wed, 25 Mar 2026 17:24:15 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:45.0) Gecko/20100101
- Thunderbird/45.7.1
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="ntO5bAju"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1774433780; x=1805969780;
+  h=date:from:to:cc:subject:message-id;
+  bh=J1W/W6dgugIFTw8lc+XnBxr8W9IvNju4+ItfTBX6Hyk=;
+  b=ntO5bAjuFuk6poymIvfAvpYfVcJv1P54+H8t28wEJv9qndF6e7rQgbXt
+   NGYEFBAE0XPnvF6FHGkGYa6Lp57cHzijDbEEy+eKIsxAQZl3R05if/OfL
+   8NGXXGJ5oFXpvqQUs6n6dr4QyGkn1A1zoExoq51fAETZ9mxPP5LKtYvgU
+   qO98J4FRXQBEgy31Qh9iZBt8iveJ+U3yk4/k3ODCinpIHh6Mc8GgQ/xka
+   BH2KTOF2lXjRqIALSJ5rnygT0Iuji+rKuFORnPWn+h6C8q4BJ/OBYo+N5
+   BKc8vrk+7n8jcxeR24AXEsj2lO08MTKOoKvXYESH6wKxu7r1SWmdvBMqx
+   A==;
+X-CSE-ConnectionGUID: mnejOEFyRQqGD9fRjrLDDw==
+X-CSE-MsgGUID: uSGXP/ugSKyJMWo6qsSLEA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11739"; a="75488606"
+X-IronPort-AV: E=Sophos;i="6.23,139,1770624000"; 
+   d="scan'208";a="75488606"
+Received: from orviesa007.jf.intel.com ([10.64.159.147])
+  by orvoesa110.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Mar 2026 03:16:20 -0700
+X-CSE-ConnectionGUID: ShJuyI4OQGmEPQEFMN9r1Q==
+X-CSE-MsgGUID: aJWeaUsuSoay1v/0XcKlcw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,139,1770624000"; 
+   d="scan'208";a="224894166"
+Received: from lkp-server01.sh.intel.com (HELO 3905d212be1b) ([10.239.97.150])
+  by orviesa007.jf.intel.com with ESMTP; 25 Mar 2026 03:16:18 -0700
+Received: from kbuild by 3905d212be1b with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1w5LHb-000000006cD-1yli;
+	Wed, 25 Mar 2026 10:16:15 +0000
+Date: Wed, 25 Mar 2026 18:15:25 +0800
+From: kernel test robot <lkp@intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+Subject: [rafael-pm:fixes] BUILD SUCCESS
+ 4354f16141fb93bdea922285dfbdbe997cdfba15
+Message-ID: <202603251817.F3wuNlcb-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-In-Reply-To: <c72680a4-5133-4b93-8efb-2e72ce0ed7fa@linux.alibaba.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: kwepems200002.china.huawei.com (7.221.188.68) To
- kwepemn500004.china.huawei.com (7.202.194.145)
 
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git fixes
+branch HEAD: 4354f16141fb93bdea922285dfbdbe997cdfba15  Merge branch 'thermal-intel-fixes' into fixes
 
+elapsed time: 939m
 
-On 2026/3/25 10:12, Shuai Xue wrote:
-> Hi, junhao
->
-> On 3/24/26 6:04 PM, hejunhao wrote:
->> Hi shuai xue,
->>
->>
->> On 2026/3/3 22:42, Shuai Xue wrote:
->>> Hi, junhao,
->>>
->>> On 2/27/26 8:12 PM, hejunhao wrote:
->>>>
->>>>
->>>> On 2025/11/4 9:32, Shuai Xue wrote:
->>>>>
->>>>>
->>>>> 在 2025/11/4 00:19, Rafael J. Wysocki 写道:
->>>>>> On Thu, Oct 30, 2025 at 8:13 AM Junhao He <hejunhao3@h-partners.com> wrote:
->>>>>>>
->>>>>>> The do_sea() function defaults to using firmware-first mode, if supported.
->>>>>>> It invoke acpi/apei/ghes ghes_notify_sea() to report and handling the SEA
->>>>>>> error, The GHES uses a buffer to cache the most recent 4 kinds of SEA
->>>>>>> errors. If the same kind SEA error continues to occur, GHES will skip to
->>>>>>> reporting this SEA error and will not add it to the "ghes_estatus_llist"
->>>>>>> list until the cache times out after 10 seconds, at which point the SEA
->>>>>>> error will be reprocessed.
->>>>>>>
->>>>>>> The GHES invoke ghes_proc_in_irq() to handle the SEA error, which
->>>>>>> ultimately executes memory_failure() to process the page with hardware
->>>>>>> memory corruption. If the same SEA error appears multiple times
->>>>>>> consecutively, it indicates that the previous handling was incomplete or
->>>>>>> unable to resolve the fault. In such cases, it is more appropriate to
->>>>>>> return a failure when encountering the same error again, and then proceed
->>>>>>> to arm64_do_kernel_sea for further processing.
->>>
->>> There is no such function in the arm64 tree. If apei_claim_sea() returns
->>
->> Sorry for the mistake in the commit message. The function arm64_do_kernel_sea() should
->> be arm64_notify_die().
->>
->>> an error, the actual fallback path in do_sea() is arm64_notify_die(),
->>> which sends SIGBUS?
->>>
->>
->> If apei_claim_sea() returns an error, arm64_notify_die() will call arm64_force_sig_fault(inf->sig /* SIGBUS */, , , ),
->> followed by force_sig_fault(SIGBUS, , ) to force the process to receive the SIGBUS signal.
->
-> So the process is expected to killed by SIGBUS?
+configs tested: 176
+configs skipped: 2
 
-Yes. The devmem process is expected to terminate upon receiving a SIGBUS signal, you can
-see this at the last line of the test log after the patch is applied.
-For other processes whether it terminates depends on whether it catches the signal; the kernel is
-responsible for sending it immediately.
+The following configs have been built successfully.
+More configs may be tested in the coming days.
 
->
->>
->>>>>>>
->>>>>>> When hardware memory corruption occurs, a memory error interrupt is
->>>>>>> triggered. If the kernel accesses this erroneous data, it will trigger
->>>>>>> the SEA error exception handler. All such handlers will call
->>>>>>> memory_failure() to handle the faulty page.
->>>>>>>
->>>>>>> If a memory error interrupt occurs first, followed by an SEA error
->>>>>>> interrupt, the faulty page is first marked as poisoned by the memory error
->>>>>>> interrupt process, and then the SEA error interrupt handling process will
->>>>>>> send a SIGBUS signal to the process accessing the poisoned page.
->>>>>>>
->>>>>>> However, if the SEA interrupt is reported first, the following exceptional
->>>>>>> scenario occurs:
->>>>>>>
->>>>>>> When a user process directly requests and accesses a page with hardware
->>>>>>> memory corruption via mmap (such as with devmem), the page containing this
->>>>>>> address may still be in a free buddy state in the kernel. At this point,
->>>>>>> the page is marked as "poisoned" during the SEA claim memory_failure().
->>>>>>> However, since the process does not request the page through the kernel's
->>>>>>> MMU, the kernel cannot send SIGBUS signal to the processes. And the memory
->>>>>>> error interrupt handling process not support send SIGBUS signal. As a
->>>>>>> result, these processes continues to access the faulty page, causing
->>>>>>> repeated entries into the SEA exception handler. At this time, it lead to
->>>>>>> an SEA error interrupt storm.
->>>
->>> In such case, the user process which accessing the poisoned page will be killed
->>> by memory_fauilre?
->>>
->>> // memory_failure():
->>>
->>>      if (TestSetPageHWPoison(p)) {
->>>          res = -EHWPOISON;
->>>          if (flags & MF_ACTION_REQUIRED)
->>>              res = kill_accessing_process(current, pfn, flags);
->>>          if (flags & MF_COUNT_INCREASED)
->>>              put_page(p);
->>>          action_result(pfn, MF_MSG_ALREADY_POISONED, MF_FAILED);
->>>          goto unlock_mutex;
->>>      }
->>>
->>> I think this problem has already been fixed by commit 2e6053fea379 ("mm/memory-failure:
->>> fix infinite UCE for VM_PFNMAP pfn").
->>>
->>> The root cause is that walk_page_range() skips VM_PFNMAP vmas by default when
->>> no .test_walk callback is set, so kill_accessing_process() returns 0 for a
->>> devmem-style mapping (remap_pfn_range, VM_PFNMAP), making the caller believe
->>> the UCE was handled properly while the process was never actually killed.
->>>
->>> Did you try the lastest kernel version?
->>>
->>
->> I retested this issue on the kernel v7.0.0-rc4 with the following debug patch and was still able to reproduce it.
->>
->>
->> @@ -1365,8 +1365,11 @@ static int ghes_in_nmi_queue_one_entry(struct ghes *ghes,
->>          ghes_clear_estatus(ghes, &tmp_header, buf_paddr, fixmap_idx);
->>
->>          /* This error has been reported before, don't process it again. */
->> -       if (ghes_estatus_cached(estatus))
->> +       if (ghes_estatus_cached(estatus)) {
->> +               pr_info("This error has been reported before, don't process it again.\n");
->>                  goto no_work;
->> +       }
->>
->> the test log Only some debug logs are retained here.
->>
->> [2026/3/24 14:51:58.199] [root@localhost ~]# taskset -c 40 busybox devmem 0x1351811824 32 0
->> [2026/3/24 14:51:58.369] [root@localhost ~]# taskset -c 40 busybox devmem 0x1351811824 32
->> [2026/3/24 14:51:58.458] [  130.558038][   C40] {1}[Hardware Error]: Hardware error from APEI Generic Hardware Error Source: 9
->> [2026/3/24 14:51:58.459] [  130.572517][   C40] {1}[Hardware Error]: event severity: recoverable
->> [2026/3/24 14:51:58.459] [  130.578861][   C40] {1}[Hardware Error]:  Error 0, type: recoverable
->> [2026/3/24 14:51:58.459] [  130.585203][   C40] {1}[Hardware Error]:   section_type: ARM processor error
->> [2026/3/24 14:51:58.459] [  130.592238][   C40] {1}[Hardware Error]:   MIDR: 0x0000000000000000
->> [2026/3/24 14:51:58.459] [  130.598492][   C40] {1}[Hardware Error]:   Multiprocessor Affinity Register (MPIDR): 0x0000000081010400
->> [2026/3/24 14:51:58.459] [  130.607871][   C40] {1}[Hardware Error]:   error affinity level: 0
->> [2026/3/24 14:51:58.459] [  130.614038][   C40] {1}[Hardware Error]:   running state: 0x1
->> [2026/3/24 14:51:58.459] [  130.619770][   C40] {1}[Hardware Error]:   Power State Coordination Interface state: 0
->> [2026/3/24 14:51:58.459] [  130.627673][   C40] {1}[Hardware Error]:   Error info structure 0:
->> [2026/3/24 14:51:58.459] [  130.633839][   C40] {1}[Hardware Error]:   num errors: 1
->> [2026/3/24 14:51:58.459] [  130.639137][   C40] {1}[Hardware Error]:    error_type: 0, cache error
->> [2026/3/24 14:51:58.459] [  130.645652][   C40] {1}[Hardware Error]:    error_info: 0x0000000020400014
->> [2026/3/24 14:51:58.459] [  130.652514][   C40] {1}[Hardware Error]:     cache level: 1
->> [2026/3/24 14:51:58.551] [  130.658073][   C40] {1}[Hardware Error]:     the error has not been corrected
->> [2026/3/24 14:51:58.551] [  130.665194][   C40] {1}[Hardware Error]:    physical fault address: 0x0000001351811800
->> [2026/3/24 14:51:58.551] [  130.673097][   C40] {1}[Hardware Error]:   Vendor specific error info has 48 bytes:
->> [2026/3/24 14:51:58.551] [  130.680744][   C40] {1}[Hardware Error]:    00000000: 00000000 00000000 00000000 00000000  ................
->> [2026/3/24 14:51:58.551] [  130.690471][   C40] {1}[Hardware Error]:    00000010: 00000000 00000000 00000000 00000000  ................
->> [2026/3/24 14:51:58.552] [  130.700198][   C40] {1}[Hardware Error]:    00000020: 00000000 00000000 00000000 00000000  ................
->> [2026/3/24 14:51:58.552] [  130.710083][ T9767] Memory failure: 0x1351811: recovery action for free buddy page: Recovered
->> [2026/3/24 14:51:58.638] [  130.790952][   C40] This error has been reported before, don't process it again.
->> [2026/3/24 14:51:58.903] [  131.046994][   C40] This error has been reported before, don't process it again.
->> [2026/3/24 14:51:58.991] [  131.132360][   C40] This error has been reported before, don't process it again.
->> [2026/3/24 14:51:59.969] [  132.071431][   C40] This error has been reported before, don't process it again.
->> [2026/3/24 14:52:00.860] [  133.010255][   C40] This error has been reported before, don't process it again.
->> [2026/3/24 14:52:01.927] [  134.034746][   C40] This error has been reported before, don't process it again.
->> [2026/3/24 14:52:02.906] [  135.058973][   C40] This error has been reported before, don't process it again.
->> [2026/3/24 14:52:03.971] [  136.083213][   C40] This error has been reported before, don't process it again.
->> [2026/3/24 14:52:04.860] [  137.021956][   C40] This error has been reported before, don't process it again.
->> [2026/3/24 14:52:06.018] [  138.131460][   C40] This error has been reported before, don't process it again.
->> [2026/3/24 14:52:06.905] [  139.070280][   C40] This error has been reported before, don't process it again.
->> [2026/3/24 14:52:07.886] [  140.009147][   C40] This error has been reported before, don't process it again.
->> [2026/3/24 14:52:08.596] [  140.777368][   C40] {2}[Hardware Error]: Hardware error from APEI Generic Hardware Error Source: 9
->> [2026/3/24 14:52:08.683] [  140.791921][   C40] {2}[Hardware Error]: event severity: recoverable
->> [2026/3/24 14:52:08.683] [  140.798263][   C40] {2}[Hardware Error]:  Error 0, type: recoverable
->> [2026/3/24 14:52:08.683] [  140.804606][   C40] {2}[Hardware Error]:   section_type: ARM processor error
->> [2026/3/24 14:52:08.683] [  140.811641][   C40] {2}[Hardware Error]:   MIDR: 0x0000000000000000
->> [2026/3/24 14:52:08.684] [  140.817895][   C40] {2}[Hardware Error]:   Multiprocessor Affinity Register (MPIDR): 0x0000000081010400
->> [2026/3/24 14:52:08.684] [  140.827274][   C40] {2}[Hardware Error]:   error affinity level: 0
->> [2026/3/24 14:52:08.684] [  140.833440][   C40] {2}[Hardware Error]:   running state: 0x1
->> [2026/3/24 14:52:08.684] [  140.839173][   C40] {2}[Hardware Error]:   Power State Coordination Interface state: 0
->> [2026/3/24 14:52:08.684] [  140.847076][   C40] {2}[Hardware Error]:   Error info structure 0:
->> [2026/3/24 14:52:08.684] [  140.853241][   C40] {2}[Hardware Error]:   num errors: 1
->> [2026/3/24 14:52:08.684] [  140.858540][   C40] {2}[Hardware Error]:    error_type: 0, cache error
->> [2026/3/24 14:52:08.684] [  140.865055][   C40] {2}[Hardware Error]:    error_info: 0x0000000020400014
->> [2026/3/24 14:52:08.684] [  140.871917][   C40] {2}[Hardware Error]:     cache level: 1
->> [2026/3/24 14:52:08.684] [  140.877475][   C40] {2}[Hardware Error]:     the error has not been corrected
->> [2026/3/24 14:52:08.764] [  140.884596][   C40] {2}[Hardware Error]:    physical fault address: 0x0000001351811800
->> [2026/3/24 14:52:08.764] [  140.892499][   C40] {2}[Hardware Error]:   Vendor specific error info has 48 bytes:
->> [2026/3/24 14:52:08.766] [  140.900145][   C40] {2}[Hardware Error]:    00000000: 00000000 00000000 00000000 00000000  ................
->> [2026/3/24 14:52:08.767] [  140.909872][   C40] {2}[Hardware Error]:    00000010: 00000000 00000000 00000000 00000000  ................
->> [2026/3/24 14:52:08.767] [  140.919598][   C40] {2}[Hardware Error]:    00000020: 00000000 00000000 00000000 00000000  ................
->> [2026/3/24 14:52:08.768] [  140.929346][ T9767] Memory failure: 0x1351811: already hardware poisoned
->> [2026/3/24 14:52:08.768] [  140.936072][ T9767] Memory failure: 0x1351811: Sending SIGBUS to busybox:9767 due to hardware memory corruption
->
-> Did you cut off some logs here?
+tested configs:
+alpha                             allnoconfig    gcc-15.2.0
+alpha                            allyesconfig    gcc-15.2.0
+alpha                               defconfig    gcc-15.2.0
+arc                              allmodconfig    clang-16
+arc                               allnoconfig    gcc-15.2.0
+arc                              allyesconfig    clang-23
+arc                                 defconfig    gcc-15.2.0
+arc                   randconfig-001-20260325    gcc-8.5.0
+arc                   randconfig-002-20260325    gcc-8.5.0
+arm                               allnoconfig    gcc-15.2.0
+arm                              allyesconfig    clang-16
+arm                                 defconfig    gcc-15.2.0
+arm                       netwinder_defconfig    gcc-15.2.0
+arm                           omap1_defconfig    gcc-15.2.0
+arm                   randconfig-001-20260325    gcc-8.5.0
+arm                   randconfig-002-20260325    gcc-8.5.0
+arm                   randconfig-003-20260325    gcc-8.5.0
+arm                   randconfig-004-20260325    gcc-8.5.0
+arm64                            allmodconfig    clang-23
+arm64                             allnoconfig    gcc-15.2.0
+arm64                               defconfig    gcc-15.2.0
+arm64                 randconfig-001-20260325    clang-23
+arm64                 randconfig-002-20260325    clang-23
+arm64                 randconfig-003-20260325    clang-23
+arm64                 randconfig-004-20260325    clang-23
+csky                             allmodconfig    gcc-15.2.0
+csky                              allnoconfig    gcc-15.2.0
+csky                                defconfig    gcc-15.2.0
+csky                  randconfig-001-20260325    clang-23
+csky                  randconfig-002-20260325    clang-23
+hexagon                          allmodconfig    gcc-15.2.0
+hexagon                           allnoconfig    gcc-15.2.0
+hexagon                             defconfig    gcc-15.2.0
+hexagon               randconfig-001-20260325    gcc-11.5.0
+hexagon               randconfig-002-20260325    gcc-11.5.0
+i386                             allmodconfig    clang-20
+i386                              allnoconfig    gcc-15.2.0
+i386                             allyesconfig    clang-20
+i386        buildonly-randconfig-001-20260325    gcc-14
+i386        buildonly-randconfig-002-20260325    gcc-14
+i386        buildonly-randconfig-003-20260325    gcc-14
+i386        buildonly-randconfig-004-20260325    gcc-14
+i386        buildonly-randconfig-005-20260325    gcc-14
+i386        buildonly-randconfig-006-20260325    gcc-14
+i386                                defconfig    gcc-15.2.0
+i386                  randconfig-001-20260325    clang-20
+i386                  randconfig-002-20260325    clang-20
+i386                  randconfig-003-20260325    clang-20
+i386                  randconfig-004-20260325    clang-20
+i386                  randconfig-005-20260325    clang-20
+i386                  randconfig-006-20260325    clang-20
+i386                  randconfig-007-20260325    clang-20
+i386                  randconfig-011-20260325    clang-20
+i386                  randconfig-012-20260325    clang-20
+i386                  randconfig-013-20260325    clang-20
+i386                  randconfig-014-20260325    clang-20
+i386                  randconfig-015-20260325    clang-20
+i386                  randconfig-016-20260325    clang-20
+i386                  randconfig-017-20260325    clang-20
+loongarch                        allmodconfig    clang-23
+loongarch                         allnoconfig    gcc-15.2.0
+loongarch                           defconfig    clang-19
+loongarch             randconfig-001-20260325    gcc-11.5.0
+loongarch             randconfig-002-20260325    gcc-11.5.0
+m68k                             allmodconfig    gcc-15.2.0
+m68k                              allnoconfig    gcc-15.2.0
+m68k                             allyesconfig    clang-16
+m68k                                defconfig    clang-19
+microblaze                        allnoconfig    gcc-15.2.0
+microblaze                       allyesconfig    gcc-15.2.0
+microblaze                          defconfig    clang-19
+mips                             allmodconfig    gcc-15.2.0
+mips                              allnoconfig    gcc-15.2.0
+mips                             allyesconfig    gcc-15.2.0
+nios2                            allmodconfig    clang-23
+nios2                            allmodconfig    gcc-11.5.0
+nios2                             allnoconfig    clang-23
+nios2                               defconfig    clang-19
+nios2                 randconfig-001-20260325    gcc-11.5.0
+nios2                 randconfig-002-20260325    gcc-11.5.0
+openrisc                         allmodconfig    clang-23
+openrisc                         allmodconfig    gcc-15.2.0
+openrisc                          allnoconfig    clang-23
+openrisc                            defconfig    gcc-15.2.0
+parisc                           allmodconfig    gcc-15.2.0
+parisc                            allnoconfig    clang-23
+parisc                           allyesconfig    clang-19
+parisc                           allyesconfig    gcc-15.2.0
+parisc                              defconfig    gcc-15.2.0
+parisc                randconfig-001-20260325    clang-23
+parisc                randconfig-002-20260325    clang-23
+parisc64                            defconfig    clang-19
+powerpc                          allmodconfig    gcc-15.2.0
+powerpc                           allnoconfig    clang-23
+powerpc               randconfig-001-20260325    clang-23
+powerpc               randconfig-002-20260325    clang-23
+powerpc                     taishan_defconfig    clang-17
+powerpc64             randconfig-001-20260325    clang-23
+powerpc64             randconfig-002-20260325    clang-23
+riscv                            allmodconfig    clang-23
+riscv                             allnoconfig    clang-23
+riscv                            allyesconfig    clang-16
+riscv                               defconfig    gcc-15.2.0
+riscv                 randconfig-001-20260325    gcc-8.5.0
+riscv                 randconfig-002-20260325    gcc-8.5.0
+s390                             allmodconfig    clang-18
+s390                             allmodconfig    clang-19
+s390                              allnoconfig    clang-23
+s390                             allyesconfig    gcc-15.2.0
+s390                                defconfig    gcc-15.2.0
+s390                  randconfig-001-20260325    gcc-8.5.0
+s390                  randconfig-002-20260325    gcc-8.5.0
+sh                               allmodconfig    gcc-15.2.0
+sh                                allnoconfig    clang-23
+sh                               allyesconfig    clang-19
+sh                               allyesconfig    gcc-15.2.0
+sh                                  defconfig    gcc-14
+sh                    randconfig-001-20260325    gcc-8.5.0
+sh                    randconfig-002-20260325    gcc-8.5.0
+sparc                             allnoconfig    clang-23
+sparc                               defconfig    gcc-15.2.0
+sparc                 randconfig-001-20260325    gcc-13
+sparc                 randconfig-002-20260325    gcc-13
+sparc64                          allmodconfig    clang-23
+sparc64                             defconfig    gcc-14
+sparc64               randconfig-001-20260325    gcc-13
+sparc64               randconfig-002-20260325    gcc-13
+um                               allmodconfig    clang-19
+um                                allnoconfig    clang-23
+um                               allyesconfig    gcc-15.2.0
+um                                  defconfig    gcc-14
+um                             i386_defconfig    gcc-14
+um                    randconfig-001-20260325    gcc-13
+um                    randconfig-002-20260325    gcc-13
+um                           x86_64_defconfig    gcc-14
+x86_64                           allmodconfig    clang-20
+x86_64                            allnoconfig    clang-23
+x86_64                           allyesconfig    clang-20
+x86_64      buildonly-randconfig-001-20260325    gcc-14
+x86_64      buildonly-randconfig-002-20260325    gcc-14
+x86_64      buildonly-randconfig-003-20260325    gcc-14
+x86_64      buildonly-randconfig-004-20260325    gcc-14
+x86_64      buildonly-randconfig-005-20260325    gcc-14
+x86_64      buildonly-randconfig-006-20260325    gcc-14
+x86_64                              defconfig    gcc-14
+x86_64                                  kexec    clang-20
+x86_64                randconfig-001-20260325    gcc-12
+x86_64                randconfig-002-20260325    gcc-12
+x86_64                randconfig-003-20260325    gcc-12
+x86_64                randconfig-004-20260325    gcc-12
+x86_64                randconfig-005-20260325    gcc-12
+x86_64                randconfig-006-20260325    gcc-12
+x86_64                randconfig-011-20260325    clang-20
+x86_64                randconfig-012-20260325    clang-20
+x86_64                randconfig-013-20260325    clang-20
+x86_64                randconfig-014-20260325    clang-20
+x86_64                randconfig-015-20260325    clang-20
+x86_64                randconfig-016-20260325    clang-20
+x86_64                randconfig-071-20260325    gcc-14
+x86_64                randconfig-072-20260325    gcc-14
+x86_64                randconfig-073-20260325    gcc-14
+x86_64                randconfig-074-20260325    gcc-14
+x86_64                randconfig-075-20260325    gcc-14
+x86_64                randconfig-076-20260325    gcc-14
+x86_64                               rhel-9.4    clang-20
+x86_64                           rhel-9.4-bpf    gcc-14
+x86_64                          rhel-9.4-func    clang-20
+x86_64                    rhel-9.4-kselftests    clang-20
+x86_64                         rhel-9.4-kunit    gcc-14
+x86_64                           rhel-9.4-ltp    gcc-14
+x86_64                          rhel-9.4-rust    clang-20
+xtensa                            allnoconfig    clang-23
+xtensa                           allyesconfig    clang-23
+xtensa                           allyesconfig    gcc-15.2.0
+xtensa                randconfig-001-20260325    gcc-13
+xtensa                randconfig-002-20260325    gcc-13
 
-I just removed some duplicate debug logs: "This error has already been...", these were added by myself.
-> The error log also indicates that the SIGBUS is delivered as expected.
-
-An SError occurs at kernel time 130.558038. Then, after 10 seconds, the kernel
-can re-enter the SEA processing flow and send the SIGBUS signal to the process.
-This 10-second delay corresponds to the cache timeout threshold of the
-ghes_estatus_cached() feature.
-Therefore, the purpose of this patch is to send the SIGBUS signal to the process
-immediately, rather than waiting for the timeout to expire.
-
->
->>
->>
->> Apply the patch:
->>
->> @@ -1365,8 +1365,11 @@ static int ghes_in_nmi_queue_one_entry(struct ghes *ghes,
->>          ghes_clear_estatus(ghes, &tmp_header, buf_paddr, fixmap_idx);
->>
->>          /* This error has been reported before, don't process it again. */
->> -       if (ghes_estatus_cached(estatus))
->> +       if (ghes_estatus_cached(estatus)) {
->> +               pr_info("This error has been reported before, don't process it again.\n");
->> +               rc = -ECANCELED;
->>                  goto no_work;
->> +       }
->>
->> [2026/3/24 16:45:40.084] [root@localhost ~]# taskset -c 40 busybox devmem 0x1351811824 32 0
->> [2026/3/24 16:45:40.272] [root@localhost ~]# taskset -c 40 busybox devmem 0x1351811824 32
->> [2026/3/24 16:45:40.362] [  112.279324][   C40] {1}[Hardware Error]: Hardware error from APEI Generic Hardware Error Source: 9
->> [2026/3/24 16:45:40.362] [  112.293797][   C40] {1}[Hardware Error]: event severity: recoverable
->> [2026/3/24 16:45:40.362] [  112.300139][   C40] {1}[Hardware Error]:  Error 0, type: recoverable
->> [2026/3/24 16:45:40.363] [  112.306481][   C40] {1}[Hardware Error]:   section_type: ARM processor error
->> [2026/3/24 16:45:40.363] [  112.313516][   C40] {1}[Hardware Error]:   MIDR: 0x0000000000000000
->> [2026/3/24 16:45:40.363] [  112.319771][   C40] {1}[Hardware Error]:   Multiprocessor Affinity Register (MPIDR): 0x0000000081010400
->> [2026/3/24 16:45:40.363] [  112.329151][   C40] {1}[Hardware Error]:   error affinity level: 0
->> [2026/3/24 16:45:40.363] [  112.335317][   C40] {1}[Hardware Error]:   running state: 0x1
->> [2026/3/24 16:45:40.363] [  112.341049][   C40] {1}[Hardware Error]:   Power State Coordination Interface state: 0
->> [2026/3/24 16:45:40.363] [  112.348953][   C40] {1}[Hardware Error]:   Error info structure 0:
->> [2026/3/24 16:45:40.363] [  112.355119][   C40] {1}[Hardware Error]:   num errors: 1
->> [2026/3/24 16:45:40.363] [  112.360418][   C40] {1}[Hardware Error]:    error_type: 0, cache error
->> [2026/3/24 16:45:40.363] [  112.366932][   C40] {1}[Hardware Error]:    error_info: 0x0000000020400014
->> [2026/3/24 16:45:40.363] [  112.373795][   C40] {1}[Hardware Error]:     cache level: 1
->> [2026/3/24 16:45:40.453] [  112.379354][   C40] {1}[Hardware Error]:     the error has not been corrected
->> [2026/3/24 16:45:40.453] [  112.386475][   C40] {1}[Hardware Error]:    physical fault address: 0x0000001351811800
->> [2026/3/24 16:45:40.453] [  112.394378][   C40] {1}[Hardware Error]:   Vendor specific error info has 48 bytes:
->> [2026/3/24 16:45:40.453] [  112.402027][   C40] {1}[Hardware Error]:    00000000: 00000000 00000000 00000000 00000000  ................
->> [2026/3/24 16:45:40.453] [  112.411754][   C40] {1}[Hardware Error]:    00000010: 00000000 00000000 00000000 00000000  ................
->> [2026/3/24 16:45:40.453] [  112.421480][   C40] {1}[Hardware Error]:    00000020: 00000000 00000000 00000000 00000000  ................
->> [2026/3/24 16:45:40.453] [  112.431639][ T9769] Memory failure: 0x1351811: recovery action for free buddy page: Recovered
->> [2026/3/24 16:45:40.531] [  112.512520][   C40] This error has been reported before, don't process it again.
->> [2026/3/24 16:45:40.757] Bus error (core dumped)
->>
->
->
-> Thanks.
-> Shuai
->
->
-> .
->
-
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
