@@ -1,280 +1,200 @@
-Received: from out30-112.freemail.mail.aliyun.com (out30-112.freemail.mail.aliyun.com [115.124.30.112])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-f43.google.com (mail-ot1-f43.google.com [209.85.210.43])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A660E8F7D;
-	Wed, 25 Mar 2026 02:12:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.112
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774404748; cv=none; b=LF5a1tLfK47YUrR7DB21yzL8XKN51oe4wH0LW654/M8zBj7TLFMfRS1sc2M9WlVF/aOzYXSJmucvS4MNalWc9zV4ywScnxFozIy+qXa34syMnjTNqDeRkpo3exFI9nWYLGHzw3F4M8m6ryQYdprYiKWcxcwEnxM+Xdq/pAypvtw=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774404748; c=relaxed/simple;
-	bh=xzmMbgdm/qsyXfgZr8+BUQyq29jhHg//51q5iMUrf78=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=bGPmMW06ZTBFJ1Y2W30vvG5yqO4IQELS/9oon+rVuOx+Ds3Yqoumcjblv9HpQyJnAdU+LpnSGrY8zNllQZpONXYbW2DCnjPOF6vahEsoadXxeSpTdR4vKQIwgU8oW934tSznWmXQ72z4W/DwoKDgENvVKhLTmvtnDU3GEx/LBWo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=QWKh2yjR; arc=none smtp.client-ip=115.124.30.112
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01ABF261B8A
+	for <linux-acpi@vger.kernel.org>; Wed, 25 Mar 2026 02:31:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.210.43
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1774405915; cv=pass; b=G9qtwlS/VfDAY3IemcIaeFXSKBbzyMmstmoYp1IqE4PhKKmFX3BkFWpr5L5p8hvVeCdH8l3Z59jy0i3HdmPpcgFoG6lt4TnzRdKG67Lj25Bv2nbO3A4ECbl4z5CtXp9I5Wxg9WPNL1LDfbgFfVfKlohMr0sdSVPFAr7pIygY5N4=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1774405915; c=relaxed/simple;
+	bh=PyO7nXn0BKvL4OXhMD1Xm1VJSQgBBVytDo/XkUUyNfA=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=hBWUg1Jzn0e9GWsMIu3QOcYEcM0UhSqyoeKRfi+CoTA4XvmSC1o2L3B0jcYrDLxmbKq9M0ahTOJv+hvlTuloXzfR614VfZ+QqOdZ/VW6Zoa3R1QFl4C3BHMIL+bS6L8RQETAHmcG3YKm6Z1+qPh43kvt9oD4+KW2zRPcu2y/50k=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com; spf=pass smtp.mailfrom=bytedance.com; dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b=XxvB7sRH; arc=pass smtp.client-ip=209.85.210.43
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bytedance.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="QWKh2yjR"
-DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux.alibaba.com; s=default;
-	t=1774404735; h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type;
-	bh=UJkGERVoIntxxjUUGoj1f/1gDk0qAPWFweVmoX93EW8=;
-	b=QWKh2yjRFiDoCe9887+epGbugErtom61R4r+zuxMgMWfrZUYMGp9N3lic8G/Jk/rEgZ1SLD3uGgkKnEr/wFAP6W5BsiSV82x52sNGGyWrG0RXErvv2N0ikApNVSa0TacARZgsapkWJpahgExgxlhaQKxGg15glnQUIikF5YVI4E=
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R181e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033037009110;MF=xueshuai@linux.alibaba.com;NM=1;PH=DS;RN=18;SR=0;TI=SMTPD_---0X.g6LPG_1774404732;
-Received: from 30.246.162.22(mailfrom:xueshuai@linux.alibaba.com fp:SMTPD_---0X.g6LPG_1774404732 cluster:ay36)
-          by smtp.aliyun-inc.com;
-          Wed, 25 Mar 2026 10:12:14 +0800
-Message-ID: <c72680a4-5133-4b93-8efb-2e72ce0ed7fa@linux.alibaba.com>
-Date: Wed, 25 Mar 2026 10:12:24 +0800
+	dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b="XxvB7sRH"
+Received: by mail-ot1-f43.google.com with SMTP id 46e09a7af769-7d7f09aa39fso4943730a34.0
+        for <linux-acpi@vger.kernel.org>; Tue, 24 Mar 2026 19:31:51 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1774405911; cv=none;
+        d=google.com; s=arc-20240605;
+        b=IHRIzNnNk1nZXHmhBfoMZzdi4h4H3MSr4uFwWUBsmFy63X7Ev6RNLYTmBBHSVV/HtP
+         CES43ytbGQvzbSLZC2QbTetRORq37hF0CufON6zdyOe2XsNhKLmr90797wGs/FR1BnYN
+         CntJnSZyFyWDhAVua11SFAG3HPHrXMDEMaPnZ/REw5KUgU0+1uthrgcGUUjKeo00j6VG
+         kc9KibQDisZU/fQWlUM8IsITLO8p5fYGuEdD5cC8z7JDR9o1Hw1rEM+b/dJmIKnpV6DG
+         G+xDskRbfEMTsfjxrTOnsyjUlFyuex/PjEl9cV8nmzVOr7WcF4vy6MAkW0OfwMhSODOY
+         Mikw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=Z6L/dK9RXBU0ye50vaCd1XpagmdaKpcR91kPPZAxHEc=;
+        fh=clnZYDwv/D/RthlBoCaF3t7vLWZ4cGoyoulCSyImih4=;
+        b=DrqY1HJwNG4ALlKgsv4GmUNZGSwuEJtOzooJqfK2yNN20J1dypA1Vx9KeRzXO7N8te
+         E3JDpO0KOrXm46T7sjqS64iCMBQVUCINK3HajobwQiiwu0dkR2SBfbstXBHTcvkisqdq
+         faS8wfIipWua9eTdmDMBE2F9n3bEv4snt3u74ZuBSUgQc/sNe43ef5+GRQO9+UyDOVsc
+         Q86rdwQ4Xop1zHUjzT/WWvU4Cs6VT+DfeK2J2S3w7KPDEuaIJs7gzWC7AO2XQVMWDNC7
+         /DcvdWfr7y819mQbh8uhcbHFPE2fJvExcB0XU9Yk2BSejxUAmv0RcrXo5/cb+ROUP17N
+         BUTQ==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=bytedance.com; s=google; t=1774405911; x=1775010711; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Z6L/dK9RXBU0ye50vaCd1XpagmdaKpcR91kPPZAxHEc=;
+        b=XxvB7sRH0o0pf5O5dAWb3nZX6x9FUXHXuG/0qppIDbNWejWzWXvB1/DpYnc0e8Q9/K
+         C7VcgUx4chLdQgG+ePYv8UVXkeZGUFAeXJ/PAB2iVGhx18CKWvHNTEZNb2cJ4L75xZbR
+         9Ppte0a1XoIfKh6TXHv46sVxfTzU9lD51vHQf4UA7w3qE5qgWVUocIR8lKGejRFQesTn
+         5m7ohp/FXaPWrhLsqk0Yfm3ECBUXPC9UuSQ3M/Q5HrpA8IM18/nt7L2Hwu4cz1aWFsC+
+         jKe24WPOwLIrnrufpTZoP4bm3Espw2JGfrO9VJHWdQ+ZHIKBvqXFwXINKQymXXEjFgNu
+         T2IQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1774405911; x=1775010711;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=Z6L/dK9RXBU0ye50vaCd1XpagmdaKpcR91kPPZAxHEc=;
+        b=ksy4Xm3EpyNoTj5hbF55HumRQ+0zjfRhsCGaIKRA8ymcRAPtdfGMgRRDx+/u8dayzq
+         8Q6ageh6ZlncJldIX1K+Jt/BhyLBRChFwrGuCXJmeAzqtTi6iDlJXSzgi03hspE2DUDQ
+         lPYL4TPJyGdunJSisEVCBVLlRFZLyk3XXIPw3LgRUGLpQ8kt+yNAmYN2+6Vsjsq9q6f+
+         wzGUCh+fxyn+DbacSJNnWmuDM1ZeuUr4RDvAmlzZv8w7ur2fvCyvjnuhCF7YM8sr34Cl
+         WkH9RFH4On3FkOHEtC0Il+O7R+IZG57qG+noZEegzdLseDBS7UxdVGbpqpw00NEzsbbr
+         9zMg==
+X-Forwarded-Encrypted: i=1; AJvYcCWWqax7+KYOsAuwe7JZbSSkQnXfJV3joczFwo6VBwqBo2F5BGtzomUeXJDZriMVgyo3K6gbc1tDdnTc@vger.kernel.org
+X-Gm-Message-State: AOJu0Yx3dAeGrEY/FA/sMhKJv43XZqbcYaPQ1IRKXofgRgLkQ/zf+zx8
+	jkabJO3ung0mJ3rNXRiNo3Fsrb1qJixnFAhckaTqWhC+uhfuZGk+KnvZvfoxsKZ+lIJbtLuk03S
+	ReObSlmXyJ9doNBLWaK48T6J4fPNGIKz4P7ZLUpLjyw==
+X-Gm-Gg: ATEYQzwiPoeA7I0/sOrFOW13h5p0BaREGTJZT8H0ggK0NkMTheYLBLWPviy5G1loyKV
+	mLmj8OX5p8SkoG1CQVyNyO//fq8dvHo9UeaHBU1h2c65PBHJRpae9EwyRECkek1TjQsmr/qnRLi
+	FOJlNmEZA5akknpviEP8oOpKb78Xd96SwubCaH0rgh0yb5AFA0Yp0SD25XygAuLgFCB9q5CKaXM
+	2gE8NdHbCAmCbR8Yfk7/EAcfSioBMHI73rE/E5AMPI7WLeG6ZWZRf/E7JaHqWEn5bS56htRrHPy
+	X527lsWQKAAxBA==
+X-Received: by 2002:a05:6830:82b4:b0:7d9:b46f:ee21 with SMTP id
+ 46e09a7af769-7d9d69cdf4bmr897075a34.16.1774405910770; Tue, 24 Mar 2026
+ 19:31:50 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] ACPI: APEI: Handle repeated SEA error interrupts storm
- scenarios
-To: hejunhao <hejunhao3@h-partners.com>, "Rafael J. Wysocki"
- <rafael@kernel.org>, "Luck, Tony" <tony.luck@intel.com>
-Cc: bp@alien8.de, guohanjun@huawei.com, mchehab@kernel.org,
- jarkko@kernel.org, yazen.ghannam@amd.com, jane.chu@oracle.com,
- lenb@kernel.org, Jonathan.Cameron@huawei.com, linux-acpi@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
- linux-edac@vger.kernel.org, shiju.jose@huawei.com, tanxiaofei@huawei.com,
- Linuxarm <linuxarm@huawei.com>
-References: <20251030071321.2763224-1-hejunhao3@h-partners.com>
- <CAJZ5v0h=QtcT7zhZEgrTjUk7EAk2OfbGG6BoEEv-3toKODMXQA@mail.gmail.com>
- <bf42a19d-0f5d-48d8-91f5-febb8bfd06d3@linux.alibaba.com>
- <9817f221-5b5f-7c25-ab94-cb04a854553a@h-partners.com>
- <70b85b7c-5107-4f79-abf7-3cc5b7e1438d@linux.alibaba.com>
- <ea31b6d3-fae5-ab5c-c10c-ed6901296498@h-partners.com>
-From: Shuai Xue <xueshuai@linux.alibaba.com>
-In-Reply-To: <ea31b6d3-fae5-ab5c-c10c-ed6901296498@h-partners.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+References: <20260128-ssqosid-cbqri-v2-0-dca586b091b9@kernel.org> <20260128-ssqosid-cbqri-v2-6-dca586b091b9@kernel.org>
+In-Reply-To: <20260128-ssqosid-cbqri-v2-6-dca586b091b9@kernel.org>
+From: yunhui cui <cuiyunhui@bytedance.com>
+Date: Wed, 25 Mar 2026 10:31:39 +0800
+X-Gm-Features: AaiRm50kmkkX4lpUb-H53j141xOJJF0B4hNLojrNS59qLQl25FnWptD4NwPaAxM
+Message-ID: <CAEEQ3wmuAnHU1VBFDwbCBFb8j63ZcizJ3jEC2SiVWnoMPc4=SA@mail.gmail.com>
+Subject: Re: [External] [PATCH RFC v2 06/17] RISC-V: QoS: define CBQRI resctrl
+ resources and domains
+To: Drew Fustini <fustini@kernel.org>
+Cc: Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, 
+	Albert Ou <aou@eecs.berkeley.edu>, Alexandre Ghiti <alex@ghiti.fr>, 
+	=?UTF-8?B?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar@ventanamicro.com>, 
+	Samuel Holland <samuel.holland@sifive.com>, Adrien Ricciardi <aricciardi@baylibre.com>, 
+	Nicolas Pitre <npitre@baylibre.com>, =?UTF-8?Q?Kornel_Dul=C4=99ba?= <mindal@semihalf.com>, 
+	Atish Patra <atish.patra@linux.dev>, Atish Kumar Patra <atishp@rivosinc.com>, 
+	Vasudevan Srinivasan <vasu@rivosinc.com>, Ved Shanbhogue <ved@rivosinc.com>, 
+	Chen Pei <cp0613@linux.alibaba.com>, Liu Zhiwei <zhiwei_liu@linux.alibaba.com>, 
+	Weiwei Li <liwei1518@gmail.com>, guo.wenjia23@zte.com.cn, liu.qingtao2@zte.com.cn, 
+	Reinette Chatre <reinette.chatre@intel.com>, Tony Luck <tony.luck@intel.com>, 
+	Babu Moger <babu.moger@amd.com>, Peter Newman <peternewman@google.com>, 
+	Fenghua Yu <fenghua.yu@intel.com>, James Morse <james.morse@arm.com>, 
+	Ben Horgan <ben.horgan@arm.com>, Dave Martin <Dave.Martin@arm.com>, linux-kernel@vger.kernel.org, 
+	linux-riscv@lists.infradead.org, x86@kernel.org, 
+	Rob Herring <robh@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
+	Robert Moore <robert.moore@intel.com>, Sunil V L <sunilvl@ventanamicro.com>, 
+	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
+	Paul Walmsley <paul.walmsley@sifive.com>, linux-acpi@vger.kernel.org, 
+	acpica-devel@lists.linux.dev, devicetree@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi, junhao
+Hi Drew,
 
-On 3/24/26 6:04 PM, hejunhao wrote:
-> Hi shuai xue,
-> 
-> 
-> On 2026/3/3 22:42, Shuai Xue wrote:
->> Hi, junhao,
->>
->> On 2/27/26 8:12 PM, hejunhao wrote:
->>>
->>>
->>> On 2025/11/4 9:32, Shuai Xue wrote:
->>>>
->>>>
->>>> 在 2025/11/4 00:19, Rafael J. Wysocki 写道:
->>>>> On Thu, Oct 30, 2025 at 8:13 AM Junhao He <hejunhao3@h-partners.com> wrote:
->>>>>>
->>>>>> The do_sea() function defaults to using firmware-first mode, if supported.
->>>>>> It invoke acpi/apei/ghes ghes_notify_sea() to report and handling the SEA
->>>>>> error, The GHES uses a buffer to cache the most recent 4 kinds of SEA
->>>>>> errors. If the same kind SEA error continues to occur, GHES will skip to
->>>>>> reporting this SEA error and will not add it to the "ghes_estatus_llist"
->>>>>> list until the cache times out after 10 seconds, at which point the SEA
->>>>>> error will be reprocessed.
->>>>>>
->>>>>> The GHES invoke ghes_proc_in_irq() to handle the SEA error, which
->>>>>> ultimately executes memory_failure() to process the page with hardware
->>>>>> memory corruption. If the same SEA error appears multiple times
->>>>>> consecutively, it indicates that the previous handling was incomplete or
->>>>>> unable to resolve the fault. In such cases, it is more appropriate to
->>>>>> return a failure when encountering the same error again, and then proceed
->>>>>> to arm64_do_kernel_sea for further processing.
->>
->> There is no such function in the arm64 tree. If apei_claim_sea() returns
-> 
-> Sorry for the mistake in the commit message. The function arm64_do_kernel_sea() should
-> be arm64_notify_die().
-> 
->> an error, the actual fallback path in do_sea() is arm64_notify_die(),
->> which sends SIGBUS?
->>
-> 
-> If apei_claim_sea() returns an error, arm64_notify_die() will call arm64_force_sig_fault(inf->sig /* SIGBUS */, , , ),
-> followed by force_sig_fault(SIGBUS, , ) to force the process to receive the SIGBUS signal.
+On Thu, Jan 29, 2026 at 4:28=E2=80=AFAM Drew Fustini <fustini@kernel.org> w=
+rote:
+>
+> Define data structures to encapsulate the resctrl resource
+> and domain structures.
+>
+> Co-developed-by: Adrien Ricciardi <aricciardi@baylibre.com>
+> Signed-off-by: Adrien Ricciardi <aricciardi@baylibre.com>
+> [fustini: rebased current upstream]
+> Signed-off-by: Drew Fustini <fustini@kernel.org>
+> ---
+>  arch/riscv/kernel/qos/internal.h | 27 +++++++++++++++++++++++++++
+>  1 file changed, 27 insertions(+)
+>
+> diff --git a/arch/riscv/kernel/qos/internal.h b/arch/riscv/kernel/qos/int=
+ernal.h
+> index ff2c7eff50be..c0402dd06cfa 100644
+> --- a/arch/riscv/kernel/qos/internal.h
+> +++ b/arch/riscv/kernel/qos/internal.h
+> @@ -65,6 +65,11 @@
+>  #define CBQRI_BC_ALLOC_CTL_OP_READ_LIMIT   2
+>  #define CBQRI_BC_ALLOC_CTL_STATUS_SUCCESS  1
+>
+> +int qos_resctrl_setup(void);
+> +void qos_resctrl_exit(void);
+> +int qos_resctrl_online_cpu(unsigned int cpu);
+> +int qos_resctrl_offline_cpu(unsigned int cpu);
+> +
+>  /* Capacity Controller hardware capabilities */
+>  struct riscv_cbqri_capacity_caps {
+>         u16 ncblks; /* number of capacity blocks */
+> @@ -125,4 +130,26 @@ struct cbqri_controller {
+>         bool mon_capable;
+>  };
+>
+> +struct cbqri_resctrl_res {
+> +       struct rdt_resource     resctrl_res;
+> +       struct cbqri_controller controller;
+> +       u32 max_rcid;
+> +       u32 max_mcid;
+> +};
+> +
+> +struct cbqri_resctrl_dom {
+> +       struct rdt_domain_hdr       resctrl_dom_hdr;
+> +       struct rdt_ctrl_domain  resctrl_ctrl_dom;
+> +       struct rdt_mon_domain   resctrl_mon_dom;
+> +       u64 cbm;
+> +       u64 rbwb;
+> +       u64 *ctrl_val;
+> +       struct cbqri_controller *hw_ctrl;
+> +};
+> +
 
-So the process is expected to killed by SIGBUS?
+Can we trim down some fields? For example:
+ struct cbqri_resctrl_res {
+        struct rdt_resource     resctrl_res;
+-       struct cbqri_controller controller;
+        u32 max_rcid;
+        u32 max_mcid;
+ };
 
-> 
->>>>>>
->>>>>> When hardware memory corruption occurs, a memory error interrupt is
->>>>>> triggered. If the kernel accesses this erroneous data, it will trigger
->>>>>> the SEA error exception handler. All such handlers will call
->>>>>> memory_failure() to handle the faulty page.
->>>>>>
->>>>>> If a memory error interrupt occurs first, followed by an SEA error
->>>>>> interrupt, the faulty page is first marked as poisoned by the memory error
->>>>>> interrupt process, and then the SEA error interrupt handling process will
->>>>>> send a SIGBUS signal to the process accessing the poisoned page.
->>>>>>
->>>>>> However, if the SEA interrupt is reported first, the following exceptional
->>>>>> scenario occurs:
->>>>>>
->>>>>> When a user process directly requests and accesses a page with hardware
->>>>>> memory corruption via mmap (such as with devmem), the page containing this
->>>>>> address may still be in a free buddy state in the kernel. At this point,
->>>>>> the page is marked as "poisoned" during the SEA claim memory_failure().
->>>>>> However, since the process does not request the page through the kernel's
->>>>>> MMU, the kernel cannot send SIGBUS signal to the processes. And the memory
->>>>>> error interrupt handling process not support send SIGBUS signal. As a
->>>>>> result, these processes continues to access the faulty page, causing
->>>>>> repeated entries into the SEA exception handler. At this time, it lead to
->>>>>> an SEA error interrupt storm.
->>
->> In such case, the user process which accessing the poisoned page will be killed
->> by memory_fauilre?
->>
->> // memory_failure():
->>
->>      if (TestSetPageHWPoison(p)) {
->>          res = -EHWPOISON;
->>          if (flags & MF_ACTION_REQUIRED)
->>              res = kill_accessing_process(current, pfn, flags);
->>          if (flags & MF_COUNT_INCREASED)
->>              put_page(p);
->>          action_result(pfn, MF_MSG_ALREADY_POISONED, MF_FAILED);
->>          goto unlock_mutex;
->>      }
->>
->> I think this problem has already been fixed by commit 2e6053fea379 ("mm/memory-failure:
->> fix infinite UCE for VM_PFNMAP pfn").
->>
->> The root cause is that walk_page_range() skips VM_PFNMAP vmas by default when
->> no .test_walk callback is set, so kill_accessing_process() returns 0 for a
->> devmem-style mapping (remap_pfn_range, VM_PFNMAP), making the caller believe
->> the UCE was handled properly while the process was never actually killed.
->>
->> Did you try the lastest kernel version?
->>
-> 
-> I retested this issue on the kernel v7.0.0-rc4 with the following debug patch and was still able to reproduce it.
-> 
-> 
-> @@ -1365,8 +1365,11 @@ static int ghes_in_nmi_queue_one_entry(struct ghes *ghes,
->          ghes_clear_estatus(ghes, &tmp_header, buf_paddr, fixmap_idx);
-> 
->          /* This error has been reported before, don't process it again. */
-> -       if (ghes_estatus_cached(estatus))
-> +       if (ghes_estatus_cached(estatus)) {
-> +               pr_info("This error has been reported before, don't process it again.\n");
->                  goto no_work;
-> +       }
-> 
-> the test log Only some debug logs are retained here.
-> 
-> [2026/3/24 14:51:58.199] [root@localhost ~]# taskset -c 40 busybox devmem 0x1351811824 32 0
-> [2026/3/24 14:51:58.369] [root@localhost ~]# taskset -c 40 busybox devmem 0x1351811824 32
-> [2026/3/24 14:51:58.458] [  130.558038][   C40] {1}[Hardware Error]: Hardware error from APEI Generic Hardware Error Source: 9
-> [2026/3/24 14:51:58.459] [  130.572517][   C40] {1}[Hardware Error]: event severity: recoverable
-> [2026/3/24 14:51:58.459] [  130.578861][   C40] {1}[Hardware Error]:  Error 0, type: recoverable
-> [2026/3/24 14:51:58.459] [  130.585203][   C40] {1}[Hardware Error]:   section_type: ARM processor error
-> [2026/3/24 14:51:58.459] [  130.592238][   C40] {1}[Hardware Error]:   MIDR: 0x0000000000000000
-> [2026/3/24 14:51:58.459] [  130.598492][   C40] {1}[Hardware Error]:   Multiprocessor Affinity Register (MPIDR): 0x0000000081010400
-> [2026/3/24 14:51:58.459] [  130.607871][   C40] {1}[Hardware Error]:   error affinity level: 0
-> [2026/3/24 14:51:58.459] [  130.614038][   C40] {1}[Hardware Error]:   running state: 0x1
-> [2026/3/24 14:51:58.459] [  130.619770][   C40] {1}[Hardware Error]:   Power State Coordination Interface state: 0
-> [2026/3/24 14:51:58.459] [  130.627673][   C40] {1}[Hardware Error]:   Error info structure 0:
-> [2026/3/24 14:51:58.459] [  130.633839][   C40] {1}[Hardware Error]:   num errors: 1
-> [2026/3/24 14:51:58.459] [  130.639137][   C40] {1}[Hardware Error]:    error_type: 0, cache error
-> [2026/3/24 14:51:58.459] [  130.645652][   C40] {1}[Hardware Error]:    error_info: 0x0000000020400014
-> [2026/3/24 14:51:58.459] [  130.652514][   C40] {1}[Hardware Error]:     cache level: 1
-> [2026/3/24 14:51:58.551] [  130.658073][   C40] {1}[Hardware Error]:     the error has not been corrected
-> [2026/3/24 14:51:58.551] [  130.665194][   C40] {1}[Hardware Error]:    physical fault address: 0x0000001351811800
-> [2026/3/24 14:51:58.551] [  130.673097][   C40] {1}[Hardware Error]:   Vendor specific error info has 48 bytes:
-> [2026/3/24 14:51:58.551] [  130.680744][   C40] {1}[Hardware Error]:    00000000: 00000000 00000000 00000000 00000000  ................
-> [2026/3/24 14:51:58.551] [  130.690471][   C40] {1}[Hardware Error]:    00000010: 00000000 00000000 00000000 00000000  ................
-> [2026/3/24 14:51:58.552] [  130.700198][   C40] {1}[Hardware Error]:    00000020: 00000000 00000000 00000000 00000000  ................
-> [2026/3/24 14:51:58.552] [  130.710083][ T9767] Memory failure: 0x1351811: recovery action for free buddy page: Recovered
-> [2026/3/24 14:51:58.638] [  130.790952][   C40] This error has been reported before, don't process it again.
-> [2026/3/24 14:51:58.903] [  131.046994][   C40] This error has been reported before, don't process it again.
-> [2026/3/24 14:51:58.991] [  131.132360][   C40] This error has been reported before, don't process it again.
-> [2026/3/24 14:51:59.969] [  132.071431][   C40] This error has been reported before, don't process it again.
-> [2026/3/24 14:52:00.860] [  133.010255][   C40] This error has been reported before, don't process it again.
-> [2026/3/24 14:52:01.927] [  134.034746][   C40] This error has been reported before, don't process it again.
-> [2026/3/24 14:52:02.906] [  135.058973][   C40] This error has been reported before, don't process it again.
-> [2026/3/24 14:52:03.971] [  136.083213][   C40] This error has been reported before, don't process it again.
-> [2026/3/24 14:52:04.860] [  137.021956][   C40] This error has been reported before, don't process it again.
-> [2026/3/24 14:52:06.018] [  138.131460][   C40] This error has been reported before, don't process it again.
-> [2026/3/24 14:52:06.905] [  139.070280][   C40] This error has been reported before, don't process it again.
-> [2026/3/24 14:52:07.886] [  140.009147][   C40] This error has been reported before, don't process it again.
-> [2026/3/24 14:52:08.596] [  140.777368][   C40] {2}[Hardware Error]: Hardware error from APEI Generic Hardware Error Source: 9
-> [2026/3/24 14:52:08.683] [  140.791921][   C40] {2}[Hardware Error]: event severity: recoverable
-> [2026/3/24 14:52:08.683] [  140.798263][   C40] {2}[Hardware Error]:  Error 0, type: recoverable
-> [2026/3/24 14:52:08.683] [  140.804606][   C40] {2}[Hardware Error]:   section_type: ARM processor error
-> [2026/3/24 14:52:08.683] [  140.811641][   C40] {2}[Hardware Error]:   MIDR: 0x0000000000000000
-> [2026/3/24 14:52:08.684] [  140.817895][   C40] {2}[Hardware Error]:   Multiprocessor Affinity Register (MPIDR): 0x0000000081010400
-> [2026/3/24 14:52:08.684] [  140.827274][   C40] {2}[Hardware Error]:   error affinity level: 0
-> [2026/3/24 14:52:08.684] [  140.833440][   C40] {2}[Hardware Error]:   running state: 0x1
-> [2026/3/24 14:52:08.684] [  140.839173][   C40] {2}[Hardware Error]:   Power State Coordination Interface state: 0
-> [2026/3/24 14:52:08.684] [  140.847076][   C40] {2}[Hardware Error]:   Error info structure 0:
-> [2026/3/24 14:52:08.684] [  140.853241][   C40] {2}[Hardware Error]:   num errors: 1
-> [2026/3/24 14:52:08.684] [  140.858540][   C40] {2}[Hardware Error]:    error_type: 0, cache error
-> [2026/3/24 14:52:08.684] [  140.865055][   C40] {2}[Hardware Error]:    error_info: 0x0000000020400014
-> [2026/3/24 14:52:08.684] [  140.871917][   C40] {2}[Hardware Error]:     cache level: 1
-> [2026/3/24 14:52:08.684] [  140.877475][   C40] {2}[Hardware Error]:     the error has not been corrected
-> [2026/3/24 14:52:08.764] [  140.884596][   C40] {2}[Hardware Error]:    physical fault address: 0x0000001351811800
-> [2026/3/24 14:52:08.764] [  140.892499][   C40] {2}[Hardware Error]:   Vendor specific error info has 48 bytes:
-> [2026/3/24 14:52:08.766] [  140.900145][   C40] {2}[Hardware Error]:    00000000: 00000000 00000000 00000000 00000000  ................
-> [2026/3/24 14:52:08.767] [  140.909872][   C40] {2}[Hardware Error]:    00000010: 00000000 00000000 00000000 00000000  ................
-> [2026/3/24 14:52:08.767] [  140.919598][   C40] {2}[Hardware Error]:    00000020: 00000000 00000000 00000000 00000000  ................
-> [2026/3/24 14:52:08.768] [  140.929346][ T9767] Memory failure: 0x1351811: already hardware poisoned
-> [2026/3/24 14:52:08.768] [  140.936072][ T9767] Memory failure: 0x1351811: Sending SIGBUS to busybox:9767 due to hardware memory corruption
+ struct cbqri_resctrl_dom {
+-       struct rdt_domain_hdr       resctrl_dom_hdr;
+        struct rdt_ctrl_domain  resctrl_ctrl_dom;
+        struct rdt_mon_domain   resctrl_mon_dom;
+-       u64 cbm;
+-       u64 rbwb;
+        u64 *ctrl_val;
+        struct cbqri_controller *hw_ctrl;
+ };
 
-Did you cut off some logs here?
-The error log also indicates that the SIGBUS is delivered as expected.
+> +struct cbqri_config {
+> +       u64 cbm; /* capacity block mask */
+> +       u64 rbwb; /* reserved bandwidth blocks */
+> +};
+> +
+>  #endif /* _ASM_RISCV_QOS_INTERNAL_H */
+>
+> --
+> 2.43.0
+>
 
-> 
-> 
-> Apply the patch:
-> 
-> @@ -1365,8 +1365,11 @@ static int ghes_in_nmi_queue_one_entry(struct ghes *ghes,
->          ghes_clear_estatus(ghes, &tmp_header, buf_paddr, fixmap_idx);
-> 
->          /* This error has been reported before, don't process it again. */
-> -       if (ghes_estatus_cached(estatus))
-> +       if (ghes_estatus_cached(estatus)) {
-> +               pr_info("This error has been reported before, don't process it again.\n");
-> +               rc = -ECANCELED;
->                  goto no_work;
-> +       }
-> 
-> [2026/3/24 16:45:40.084] [root@localhost ~]# taskset -c 40 busybox devmem 0x1351811824 32 0
-> [2026/3/24 16:45:40.272] [root@localhost ~]# taskset -c 40 busybox devmem 0x1351811824 32
-> [2026/3/24 16:45:40.362] [  112.279324][   C40] {1}[Hardware Error]: Hardware error from APEI Generic Hardware Error Source: 9
-> [2026/3/24 16:45:40.362] [  112.293797][   C40] {1}[Hardware Error]: event severity: recoverable
-> [2026/3/24 16:45:40.362] [  112.300139][   C40] {1}[Hardware Error]:  Error 0, type: recoverable
-> [2026/3/24 16:45:40.363] [  112.306481][   C40] {1}[Hardware Error]:   section_type: ARM processor error
-> [2026/3/24 16:45:40.363] [  112.313516][   C40] {1}[Hardware Error]:   MIDR: 0x0000000000000000
-> [2026/3/24 16:45:40.363] [  112.319771][   C40] {1}[Hardware Error]:   Multiprocessor Affinity Register (MPIDR): 0x0000000081010400
-> [2026/3/24 16:45:40.363] [  112.329151][   C40] {1}[Hardware Error]:   error affinity level: 0
-> [2026/3/24 16:45:40.363] [  112.335317][   C40] {1}[Hardware Error]:   running state: 0x1
-> [2026/3/24 16:45:40.363] [  112.341049][   C40] {1}[Hardware Error]:   Power State Coordination Interface state: 0
-> [2026/3/24 16:45:40.363] [  112.348953][   C40] {1}[Hardware Error]:   Error info structure 0:
-> [2026/3/24 16:45:40.363] [  112.355119][   C40] {1}[Hardware Error]:   num errors: 1
-> [2026/3/24 16:45:40.363] [  112.360418][   C40] {1}[Hardware Error]:    error_type: 0, cache error
-> [2026/3/24 16:45:40.363] [  112.366932][   C40] {1}[Hardware Error]:    error_info: 0x0000000020400014
-> [2026/3/24 16:45:40.363] [  112.373795][   C40] {1}[Hardware Error]:     cache level: 1
-> [2026/3/24 16:45:40.453] [  112.379354][   C40] {1}[Hardware Error]:     the error has not been corrected
-> [2026/3/24 16:45:40.453] [  112.386475][   C40] {1}[Hardware Error]:    physical fault address: 0x0000001351811800
-> [2026/3/24 16:45:40.453] [  112.394378][   C40] {1}[Hardware Error]:   Vendor specific error info has 48 bytes:
-> [2026/3/24 16:45:40.453] [  112.402027][   C40] {1}[Hardware Error]:    00000000: 00000000 00000000 00000000 00000000  ................
-> [2026/3/24 16:45:40.453] [  112.411754][   C40] {1}[Hardware Error]:    00000010: 00000000 00000000 00000000 00000000  ................
-> [2026/3/24 16:45:40.453] [  112.421480][   C40] {1}[Hardware Error]:    00000020: 00000000 00000000 00000000 00000000  ................
-> [2026/3/24 16:45:40.453] [  112.431639][ T9769] Memory failure: 0x1351811: recovery action for free buddy page: Recovered
-> [2026/3/24 16:45:40.531] [  112.512520][   C40] This error has been reported before, don't process it again.
-> [2026/3/24 16:45:40.757] Bus error (core dumped)
-> 
-
-
-Thanks.
-Shuai
-
-
+Thanks,
+Yunhui
