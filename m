@@ -1,205 +1,90 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B3E8248881
-	for <linux-acpi@vger.kernel.org>; Wed, 25 Mar 2026 13:32:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BC9623F40D
+	for <linux-acpi@vger.kernel.org>; Wed, 25 Mar 2026 13:32:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774445546; cv=none; b=rSaV/XAGuO9TWtedM+1c16Im1le5PJkqoybAxm0VZOVQGWzKfwZSPXS1IRMShu/8WYbSOv9/+7OsvdvbSo7WseUr/y1L9ARCh+rUtovHmim9tJwX9FBxQXX0MLejwWUneKg7JHrOkST3ygLRIhjM5wX0iVRx+5cmFXDBju0dUyg=
+	t=1774445579; cv=none; b=PBNalwMqXQZhSGu8T8MHkzmKnmorjVF1EroSeYp7SpRGjCCd3kaayT8Xyb9AGX8ltPY2LBWcIoWJzE1kcC945wn0tyIIL7kCoe33/NEIYFvpRzY58T8yHRD0oER4GrscCarbWSHzRXna/R/NJ9SB3AAkWESEyJwy5u0wp8yLq1w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774445546; c=relaxed/simple;
-	bh=XY73DpzMPzwxeFdhnv17+xRoeqE3UsGbq7QiCS2vh0M=;
+	s=arc-20240116; t=1774445579; c=relaxed/simple;
+	bh=NN8UioJcRHKdN89Z8PpqB5u1g//q5a9FN+5Ve6sKkms=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=q5qG9LMy/c6nivlMkqJrT49vjymGIM6lnHElgJnRfTO/Q+xecgCmaHtFEJDTjd97ROjsIzdKuv09dDStoWZ3hW91W3WEDUupck89adRGX5eLxOf55SAb0p8pa3MC7p5/RlfotNMUH6v+M52VUr5zwu3jlsbw3eZ8AKqfzv6/KMY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UQZH1cAN; arc=none smtp.client-ip=10.30.226.201
+	 To:Cc:Content-Type; b=QQ7uoBqILSqbmfvqDqvdNvt8aD7NdjMwx2qB/0BprazSZOf5cWOqBOa8Dzll2azXOQqqleZjYbXHlYP3oT8S176xRmryKwxVNj2TQyD+eebEpS+UTxyLDvLhOcoib7IYs5vdJBliR3yAYn2VnBtAxYJUb0MdgZdhaFxn8wPTLDM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NXTELgVg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UQZH1cAN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D93CC2BCB3
-	for <linux-acpi@vger.kernel.org>; Wed, 25 Mar 2026 13:32:26 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NXTELgVg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01E3DC4CEF7
+	for <linux-acpi@vger.kernel.org>; Wed, 25 Mar 2026 13:32:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774445546;
-	bh=XY73DpzMPzwxeFdhnv17+xRoeqE3UsGbq7QiCS2vh0M=;
+	s=k20201202; t=1774445579;
+	bh=NN8UioJcRHKdN89Z8PpqB5u1g//q5a9FN+5Ve6sKkms=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=UQZH1cAN80Cwf0FaZfDSV9U4r7zKBN+ounWtJs242Wqhjy14p3C3lEmHepOcxwONZ
-	 YUM2owXUIpeIGCpwukb+YxQTZi6+MDHHbjGaOgCZNth/deCmtmXKbYdLOpRNjjPugk
-	 SCxZkNjhvBSSyQvalXlaC4rfLa5p0xpRe4t+HJyPbC0cADKv8PHnQxN+5zRn+hU6H8
-	 1z0381vHveyEIvsuf8s+BFRjDF3aNvVTjIpJsyI9m+SR+MC4PcgPVnKBV33d7mGApU
-	 KZnMBZu2D0ii0eva8hebV4/7l3RFoQGEIU5LiFYiqJYvh+wWoyKNjGKrayy1ta8IV/
-	 MD/dfWBmbC+eQ==
-Received: by mail-oa1-f49.google.com with SMTP id 586e51a60fabf-4094b31a037so4628352fac.1
-        for <linux-acpi@vger.kernel.org>; Wed, 25 Mar 2026 06:32:26 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCUr9xAG6cAsUKYM5dU3RD1D1r0o3161LSCDS0npUjQOU26WQDMYdSgg9qOLu5rR5B5cWo1heAiaZyeR@vger.kernel.org
-X-Gm-Message-State: AOJu0YwH+kRgcmWMb8EMwD4fFuoUX7lx62rg8NwC0dN+LtNrB5M8Z9m9
-	ZCQf6jIMlYF7iizfsX1Vc+Vm3BT28HSFz6T1i0ChPJMFCSDEWZrL6F5Rk1D58OdIgt9uxPLTVOI
-	ikN1LrHk4IxWvxi86rTaXyLmMDug5GrU=
-X-Received: by 2002:a05:6870:d30a:b0:416:b429:28e with SMTP id
- 586e51a60fabf-41ca6e47cb8mr1881156fac.20.1774445545149; Wed, 25 Mar 2026
- 06:32:25 -0700 (PDT)
+	b=NXTELgVg6M6so3U0TFY8RNa/J2q21gle7ougpx5HWKW4GuBVHsvVYzWfWVLaLa5cN
+	 6FKu079gSXMMbZQw3s/NG9ckcpfkbnQ5qQRAaKiL7CPScfp/sCkdzgPSYXNd6vrchy
+	 1/upqRH88TGxIfTotVlPnPs+xq2cXGjsjdWwXnLVKNnhxYCjZxcbOyuxlwYYU1oObM
+	 S3z9ILu5vnmjvzBWIYEGm7supXztfvCE6StRB4vLgWd0zgIo96K0/zAtz+aSj/9Tgq
+	 Nxq88ZM+/as9XNc8aHdWcQOxdX17T0Eqa2rCpSKxlg3d3v6akSowiaA3x7xQfAZ1yx
+	 jHqr/RFk5r/uQ==
+Received: by mail-oi1-f171.google.com with SMTP id 5614622812f47-46726528f1cso4412352b6e.0
+        for <linux-acpi@vger.kernel.org>; Wed, 25 Mar 2026 06:32:58 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCXHDtUhmm7PVRmg7zgh1/7I02VuJLoYmE/TiOtK9cxJ6UtSILY2u5BTPq+UlHDkudf0/29Avo8SRTar@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw5x32WncfcYrwV4KLpEGLBagY416FzoHpEqnjumUc9EGb3R1Tu
+	KJcAvh4TJmbSm/waak/ajS46Zh4MjphZllIXzWp+S/8nRqHgH5KUi0DbeMd5xmr1r5bvxG9Ed8e
+	bAHeklWdvQDV7Xf0TQVSwvjNOTOon7EM=
+X-Received: by 2002:a05:6808:5187:b0:466:f3a2:dc34 with SMTP id
+ 5614622812f47-46a5c79da6amr1489587b6e.36.1774445578102; Wed, 25 Mar 2026
+ 06:32:58 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260324090948.1667340-1-henrytseng@qnap.com>
-In-Reply-To: <20260324090948.1667340-1-henrytseng@qnap.com>
+References: <20260324113300.1002569-1-ben.horgan@arm.com> <20260324-nostalgic-adamant-coucal-7afd8b@sudeepholla>
+ <CAJZ5v0gn5NTdSj=i5iRpK03kT0V-UshADp=VaaEAO=wzLsjjUA@mail.gmail.com> <20260325-laughing-coot-of-piety-e2bdff@sudeepholla>
+In-Reply-To: <20260325-laughing-coot-of-piety-e2bdff@sudeepholla>
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Wed, 25 Mar 2026 14:32:14 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0hT_FJ48z0bCTcgNHgUHp-reUZGa4877MnNAGC6UTd5MA@mail.gmail.com>
-X-Gm-Features: AQROBzCheUiE8Qqxed4qz1HhnN9ekihoy1ekq0S_GnHGApOpqbV_AxhifGw4QcY
-Message-ID: <CAJZ5v0hT_FJ48z0bCTcgNHgUHp-reUZGa4877MnNAGC6UTd5MA@mail.gmail.com>
-Subject: Re: [PATCH v2] cpufreq: acpi-cpufreq: use DMI max speed when CPPC is unavailable
-To: Henry Tseng <henrytseng@qnap.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>, 
-	Len Brown <lenb@kernel.org>, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, 
-	SW Chen <swchen@qnap.com>, Kevin Ko <kevinko@qnap.com>
+Date: Wed, 25 Mar 2026 14:32:47 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0jcf0tQ-Ghdi=FZE7gsKXEVjjbfJ7_csnm3_+DG0FzPBg@mail.gmail.com>
+X-Gm-Features: AQROBzAdgeGg7wDflxTDlwovz2zOFiIUgQkCUeTXgIIuFPhJEsod9f-TVAWKSqA
+Message-ID: <CAJZ5v0jcf0tQ-Ghdi=FZE7gsKXEVjjbfJ7_csnm3_+DG0FzPBg@mail.gmail.com>
+Subject: Re: [PATCH v1] ACPI / PPTT: Remove duplicate structure, acpi_pptt_cache_v1_full
+To: Sudeep Holla <sudeep.holla@kernel.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Ben Horgan <ben.horgan@arm.com>, lenb@kernel.org, 
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	Jeremy Linton <jeremy.linton@arm.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Mar 24, 2026 at 10:11=E2=80=AFAM Henry Tseng <henrytseng@qnap.com> =
-wrote:
+On Wed, Mar 25, 2026 at 12:53=E2=80=AFPM Sudeep Holla <sudeep.holla@kernel.=
+org> wrote:
 >
-> On AMD Ryzen Embedded V1780B (Family 17h, Zen 1), the BIOS does not
-> provide ACPI _CPC objects and the CPU does not support MSR-based CPPC
-> (X86_FEATURE_CPPC).  The _PSS table only lists nominal P-states
-> (P0 =3D 3350 MHz), so when get_max_boost_ratio() fails at
-> cppc_get_perf_caps(), cpuinfo_max_freq reports only the base frequency
-> instead of the rated boost frequency (3600 MHz).
+> On Wed, Mar 25, 2026 at 12:45:27PM +0100, Rafael J. Wysocki wrote:
+> > On Tue, Mar 24, 2026 at 9:43=E2=80=AFPM Sudeep Holla <sudeep.holla@kern=
+el.org> wrote:
+> > >
+> > > On Tue, Mar 24, 2026 at 11:33:00AM +0000, Ben Horgan wrote:
+> > > > acpi_pptt_cache_v1_full was initially added as a stop gap until the
+> > > > equivalent structure imported from ACPICA, acpi_pptt_v1 in actbl2.h=
+,
+> > > > contained all the fields of the Cache Type Structure. Since, commit=
+ :
+> > > > 091c4af3562d ("ACPICA: ACPI 6.4: PPTT: include all fields in subtab=
+le
+> > > > type1"), acpi_pptt_v1 contains all these fields making
+> > > > acpi_pptt_cache_v1_full redundant.
+> > > >
+> > > > Remove acpi_pptt_cache_v1_full.
+> > > >
+> > > > No functional change intended.
+> > > >
+> > >
+> > > Reviewed-by: Sudeep Holla <sudeep.holla@kernel.org>
+> >
+> > Am I supposed to pick this up?
 >
->   dmesg:
->     ACPI CPPC: No CPC descriptor for CPU:0
->     acpi_cpufreq: CPU0: Unable to get performance capabilities (-19)
->
-> cppc-cpufreq already has a DMI fallback (cppc_get_dmi_max_khz()) that
-> reads the processor max speed from SMBIOS Type 4.  Export it and reuse
-> it in acpi-cpufreq as a last-resort source for the boost frequency.
->
-> A sanity check ensures the DMI value is above the _PSS P0 frequency
-> and within 2x of it; values outside that range are ignored and the
-> existing arch_set_max_freq_ratio() path is taken instead.  The 2x
-> upper bound is based on a survey of the AMD Ryzen Embedded V1000
-> series, where the highest boost-to-base ratio is 1.8x (V1404I:
-> 2.0 GHz base / 3.6 GHz boost).
->
-> The DMI lookup and sanity check are wrapped in a helper,
-> acpi_cpufreq_resolve_max_freq(), which falls through to
-> arch_set_max_freq_ratio() if the DMI value is absent or
-> out of range.
->
-> Tested on AMD Ryzen Embedded V1780B with v7.0-rc4:
->
->   Before: cpuinfo_max_freq =3D 3350000 (base only)
->   After:  cpuinfo_max_freq =3D 3600000 (includes boost)
->
-> Link: https://www.amd.com/en/products/embedded/ryzen/ryzen-v1000-series.h=
-tml#specifications
-> Signed-off-by: Henry Tseng <henrytseng@qnap.com>
-> ---
-> v2:
->   - Extract else block into acpi_cpufreq_resolve_max_freq()
->     to avoid #ifdef in the main init path (Rafael)
-> v1:
->   - https://lore.kernel.org/linux-pm/20260320095648.3598007-1-henrytseng@=
-qnap.com/
->
->  drivers/acpi/cppc_acpi.c       |  3 ++-
->  drivers/cpufreq/acpi-cpufreq.c | 31 ++++++++++++++++++++++++-------
->  include/acpi/cppc_acpi.h       |  1 +
->  3 files changed, 27 insertions(+), 8 deletions(-)
->
-> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-> index f0e513e9ed5d..f53de414acf2 100644
-> --- a/drivers/acpi/cppc_acpi.c
-> +++ b/drivers/acpi/cppc_acpi.c
-> @@ -1944,7 +1944,7 @@ static void cppc_find_dmi_mhz(const struct dmi_head=
-er *dm, void *private)
->  }
->
->  /* Look up the max frequency in DMI */
-> -static u64 cppc_get_dmi_max_khz(void)
-> +u64 cppc_get_dmi_max_khz(void)
->  {
->         u16 mhz =3D 0;
->
-> @@ -1958,6 +1958,7 @@ static u64 cppc_get_dmi_max_khz(void)
->
->         return KHZ_PER_MHZ * mhz;
->  }
-> +EXPORT_SYMBOL_GPL(cppc_get_dmi_max_khz);
->
->  /*
->   * If CPPC lowest_freq and nominal_freq registers are exposed then we ca=
-n
-> diff --git a/drivers/cpufreq/acpi-cpufreq.c b/drivers/cpufreq/acpi-cpufre=
-q.c
-> index e7eff6c2f092..21639d9ac753 100644
-> --- a/drivers/cpufreq/acpi-cpufreq.c
-> +++ b/drivers/cpufreq/acpi-cpufreq.c
-> @@ -675,6 +675,29 @@ static inline u64 get_max_boost_ratio(unsigned int c=
-pu, u64 *nominal_freq)
->  }
->  #endif
->
-> +static void acpi_cpufreq_resolve_max_freq(struct cpufreq_policy *policy,
-> +                                         unsigned int pss_max_freq)
-> +{
-> +#ifdef CONFIG_ACPI_CPPC_LIB
-> +       u64 max_speed =3D cppc_get_dmi_max_khz();
-> +       /*
-> +        * Use DMI "Max Speed" if it looks plausible: must be
-> +        * above _PSS P0 frequency and within 2x of it.
-> +        */
-> +       if (max_speed > pss_max_freq && max_speed < pss_max_freq * 2) {
-> +               policy->cpuinfo.max_freq =3D max_speed;
-> +               return;
-> +       }
-> +#endif
-> +       /*
-> +        * If the maximum "boost" frequency is unknown, ask the arch
-> +        * scale-invariance code to use the "nominal" performance for
-> +        * CPU utilization scaling so as to prevent the schedutil
-> +        * governor from selecting inadequate CPU frequencies.
-> +        */
-> +       arch_set_max_freq_ratio(true);
-> +}
-> +
->  static int acpi_cpufreq_cpu_init(struct cpufreq_policy *policy)
->  {
->         struct cpufreq_frequency_table *freq_table;
-> @@ -849,13 +872,7 @@ static int acpi_cpufreq_cpu_init(struct cpufreq_poli=
-cy *policy)
->
->                 policy->cpuinfo.max_freq =3D freq * max_boost_ratio >> SC=
-HED_CAPACITY_SHIFT;
->         } else {
-> -               /*
-> -                * If the maximum "boost" frequency is unknown, ask the a=
-rch
-> -                * scale-invariance code to use the "nominal" performance=
- for
-> -                * CPU utilization scaling so as to prevent the schedutil
-> -                * governor from selecting inadequate CPU frequencies.
-> -                */
-> -               arch_set_max_freq_ratio(true);
-> +               acpi_cpufreq_resolve_max_freq(policy, freq_table[0].frequ=
-ency);
->         }
->
->         policy->freq_table =3D freq_table;
-> diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
-> index 4d644f03098e..e6c5ef3173c5 100644
-> --- a/include/acpi/cppc_acpi.h
-> +++ b/include/acpi/cppc_acpi.h
-> @@ -156,6 +156,7 @@ extern int cppc_set_enable(int cpu, bool enable);
->  extern int cppc_get_perf_caps(int cpu, struct cppc_perf_caps *caps);
->  extern bool cppc_perf_ctrs_in_pcc_cpu(unsigned int cpu);
->  extern bool cppc_perf_ctrs_in_pcc(void);
-> +extern u64 cppc_get_dmi_max_khz(void);
->  extern unsigned int cppc_perf_to_khz(struct cppc_perf_caps *caps, unsign=
-ed int perf);
->  extern unsigned int cppc_khz_to_perf(struct cppc_perf_caps *caps, unsign=
-ed int freq);
->  extern bool acpi_cpc_valid(void);
-> --
+> Yes please, IIUC we route only drivers/acpi/arm/* via arm64 tree in gener=
+al.
 
-Applied as 7.1 material, thanks!
+Done, thanks!
