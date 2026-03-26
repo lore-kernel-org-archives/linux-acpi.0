@@ -1,108 +1,208 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.17])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-f49.google.com (mail-ot1-f49.google.com [209.85.210.49])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91F19350A05;
-	Thu, 26 Mar 2026 08:28:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.17
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774513689; cv=none; b=Rp3O06GGZTk4dwD4+M84LzL36cu0vJra7ghH9JkRNI/v0g1rQJLGIFjMRDjQZkjs6oGGYb3WYCmvTz9nLAlcp9802++hq4VRiSb9ZsK5rnrPMtXe8eGKcc+oJHlJJ/yQUDE+MHRpOdoaR4RzSXH1qWgOkXOlkn8uIMRzyKlHzRI=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774513689; c=relaxed/simple;
-	bh=inHJ4dT6ElVj4BE6uqmx4EW+OYoui9+Rb+XGJqS3kQ0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=tG9fwe5CGkKwbSyxpRsJy+rSwXPipmORJ9VSiyDZDjjQpgxpGKmQoa8EQyk3T0mmKx+tDAH1z5kDFYr9rk2ziDqprInjmL4T34HkpbmwggwmxBoy+fjsBM9cGrmUmvbVfRVs7tBNG9z4sk4HDnuOXTR+xql9StgOZjjyLxf7k0A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=lzK1sd+F; arc=none smtp.client-ip=192.198.163.17
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9439E366072
+	for <linux-acpi@vger.kernel.org>; Thu, 26 Mar 2026 08:32:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.210.49
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1774513981; cv=pass; b=ZaTdvXmqzQIFx9hJMGaziPCgopksHywUEMsno+sQ5up1Pxo54ex/0qha7hPrBmUshzTgESgmAJYbw3c7PQw45PIrTufM/W6WSB+8Z7FLZq4jKOr9Y2tW4kh3cE7QaJ0g8uxwwi6FWo0JSFeeOjSPZwmQ8lJeswf9zOSvOXmTj3w=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1774513981; c=relaxed/simple;
+	bh=y1dooAU1BdG3t77Ol/IyqzrIRk3RQ4SObO3++MueMSk=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=b2lMGi36aby4ENuC/XdATLtdxiSuC9CMONL3ys2JCS8ixaRKsRaw22yrfqjaL5bOTdaMyG/vt5ZxuFs9Gm18al3NV6Ti92amUH4DYn+hlR0bxu0pim1UGYYJtrJKM15Aj9W74HfjQCB1WXeiaFXwNvL4ZGnnuRwUwr6c4gQOG0w=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com; spf=pass smtp.mailfrom=bytedance.com; dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b=H5E09jiR; arc=pass smtp.client-ip=209.85.210.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bytedance.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="lzK1sd+F"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1774513688; x=1806049688;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:content-transfer-encoding:in-reply-to;
-  bh=inHJ4dT6ElVj4BE6uqmx4EW+OYoui9+Rb+XGJqS3kQ0=;
-  b=lzK1sd+FZemllMchLp9T/Cub24bCyx79+2Ues93pW+Ey3t00PY84JzNd
-   YwG+lRPnqHxs1QKZPhBqi3AnW+T+I487O77Bfkij17vSmhMjqQwuhNZYH
-   PpWs+UJbJ94KELmdvdaxWwQX4BhYTxziAodQZNOjqTO+gQZsw9gofqIMc
-   0mqP0gvT3twJot18RhhDK669XM+ykEatfreUsFSsZNxsfKSRnXuTIaZhg
-   50wRbDgj+Sy1vQ5nJQzA9/ddN8GsfnWzWKE6LBriAHod/ZbSr/IKFvP96
-   B1xj4Dm4e81OlknC8N1Smk62R6Qf+DGZTHSkGjAZoeROUUh62grmu0SrU
-   w==;
-X-CSE-ConnectionGUID: JxcykNArSTOCAjj3rNgV3A==
-X-CSE-MsgGUID: qtvMvRrySGaUpB8Nk/HY/A==
-X-IronPort-AV: E=McAfee;i="6800,10657,11740"; a="75467479"
-X-IronPort-AV: E=Sophos;i="6.23,141,1770624000"; 
-   d="scan'208";a="75467479"
-Received: from orviesa001.jf.intel.com ([10.64.159.141])
-  by fmvoesa111.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Mar 2026 01:28:08 -0700
-X-CSE-ConnectionGUID: NgrkqevTTh6FONhCos6p+A==
-X-CSE-MsgGUID: TdwsWJYXTaazMBl8v5vJpA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.23,141,1770624000"; 
-   d="scan'208";a="262854479"
-Received: from smoticic-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.245.216])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Mar 2026 01:28:05 -0700
-Date: Thu, 26 Mar 2026 10:28:02 +0200
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Bartosz Golaszewski <brgl@kernel.org>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Danilo Krummrich <dakr@kernel.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org,
-	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] software node: allow referencing software nodes by name
-Message-ID: <acTuEl39FjgekOxA@ashevche-desk.local>
-References: <acIV6xF8mY-8wd5e@google.com>
- <CAMRc=MdJ0U2_ZQ5rP0Vmbv7+-xurf9F+WOwD3LwV=n5Fx33U=Q@mail.gmail.com>
- <acK69OColNT7ViLf@google.com>
- <CAMRc=Mcw66QpjQt4+_JdMq9JiAY28hjzNHa24gfOCCXyie-uRQ@mail.gmail.com>
- <acTtzuGD-K5XvVir@ashevche-desk.local>
+	dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b="H5E09jiR"
+Received: by mail-ot1-f49.google.com with SMTP id 46e09a7af769-7d8b2703f37so613930a34.1
+        for <linux-acpi@vger.kernel.org>; Thu, 26 Mar 2026 01:32:59 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1774513978; cv=none;
+        d=google.com; s=arc-20240605;
+        b=SdCAIglJm4zQzR2zH9hJ7SXKbYh9pp93fwwk9/71vIjl+epDEDJne7Bu+KiMPZgMoZ
+         ffJE2ZJzoJlJNJO1y4TLJO1v8kKPtLglOxiwLdU3GRsl1z670wfFak/iM6rm1QimnMfF
+         DfzBI5qAp7r1zeRv+RSjL74RXCJXZfhc4qBASRwh49UjChaz0LJ5xVqHjMg+Ep4wWVvD
+         diQY2k4mAzdd/dL2jmRlNiJZUcszHFWUlp3GI3qE0kTF5cuF8gcCkP7cr5KJ5coJQ7Yn
+         8uehvw/pbAugUHcQ4t+gUoXjibwwBFN1NcXq52XhQKzhGjBPZ7fCQCz1hpk5ySAgQn+X
+         mLmw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=mePLymdm4A/01lEY7TSspPJxPyHHrcq2b7WusiYGL2A=;
+        fh=+qg1t5awG3xIWTgwubZrDB3uNS0LVIJ0vasWcQzGTnU=;
+        b=dxHK48GvmyWGfwIvnuHLzg67OPd7MzUFxIoZsNB4okK8xqThMQZwGeOrpOCP6/YLUb
+         UdtVH8wGbtyX8hM7L0LFlyjX6OavD+0J13dOr0wNKeXDZF8bIo7pcKoRf2HCBNf3VXNF
+         qfQrnpYM8f/Q0X1JqKPuSKWVjfyIN/mmLiZ2krav4edwgG8iKboNDvoeR5Nmu4s76gDD
+         2yTohphJ7MeeJ/SJyHqJxGWv92i8T9eSjevZ9WrPG4Oe0RsTuvRzApp/6FyKDFWoQGUc
+         ewr9C6U/8yCqeC3MZWqFysBO5PY9pM6yp8l8pHMSxRAmMgesuDCRxfHW3gyOWnFCqOKL
+         qk8A==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=bytedance.com; s=google; t=1774513978; x=1775118778; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=mePLymdm4A/01lEY7TSspPJxPyHHrcq2b7WusiYGL2A=;
+        b=H5E09jiRGdFfXO174HqKQe2ylSV8/+PQLhgLEfytIIUYJDgjgVDlgzmFjTxLHOErr1
+         5Z3qNYJwXOtvhOOJfYOHwCmsWx5GGVcm8DSqMc8jKJ0MOjoFfojt1/wwE2uQhsnNITBj
+         TqD2WR3YDeOfr0DYZu9kXqJhIY6Rl/PmTQaKzj2kLH8Zd8sADH4iA2ZX89KFvTskAkiP
+         pyQd0niCoDOMqcBEJun11z2SNo2gF1hRLCpqAPz80sjfwUB2CrrjNyV1kVqx5h7Xc4FD
+         AHhifJQRb+PCvW4A9u2VRMLCfHKVQhGM6bAA26WvTbwxFFgpH29pXWlu8l2Fn/gbmyAt
+         UokA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1774513978; x=1775118778;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=mePLymdm4A/01lEY7TSspPJxPyHHrcq2b7WusiYGL2A=;
+        b=ED++TDk2MzC1AQMyoMXQZAQEqcsh1CaK0NM4B6tgPc8JqclZ7CCDSV3Er1O7wC2zjQ
+         nfuVs/YMZbVBPnv/2LLJAnajbqxwJFkCyAVvnSqQb5YB27aYgBnZBbwFcNGM4ng/E9d/
+         JMAB3ruNXR0GBF0OsmNwY3aLSo7mFt07pRUKsLJAfyhBZmdwEbANDlkvsNgfIydpazYD
+         BHLrnax0b4v76AEhl6REkxg90fDQ+chzFeYvkAABEceKlA3wUIWuWDcpWeN7jcRGJqCb
+         zcDz8UJVBlIayzQ2axKcJnvi5HhAoFBWJtPOf2IfN/eiRnhvmPwAHTYFU8M9maqKHew5
+         CceA==
+X-Forwarded-Encrypted: i=1; AJvYcCWKmXiz5wr/sD3wfEtmBV+emyd2GWbC24zE/QIoYquzKR2DtlZ9h66VeyHR4ydmJfuXvZTd806j7bnP@vger.kernel.org
+X-Gm-Message-State: AOJu0Yyo1Wv1FENmhOJPfO6ed2Y1GBtbk69UGo1wiZZSCEj0OPZKTMjE
+	23kVYILcr+gcfBLKR/6ztAb2kxd5mVHhWQqOC9Sj3Fm/TTT4aPeSP7BS538HizjP2kXHEtydK6Z
+	WsfozwhZIjueRdXSHqFG8z5nUJSK5vh6jyK82RrTb/Q==
+X-Gm-Gg: ATEYQzzLhTcaSjjKV6HLAScHiT2nea91w5ld5FBADpT8M2/UZ3F+aFwxAGz/XppQwY2
+	FqUx3fJY1Sd4SMSyZBjtx4p5Cl7cYuXfk+0kPSGy9fhKfpRfCR+sQFz23DrGp3RDn5DoVMR5koy
+	ckjJwt3gT9YQuHBu2dXVPvr46QEGdUB7XIoYAx3zPo4KWMI/bzqB/kr/MGhcSuEmADLur9ljiwX
+	Jqf5DVZT7VXBJidlZURjTtUQOMjZnhJTPT+hMDi8NkQCMf0qkrHQsXt4eOXz/xF+6Liq0UKExy7
+	6Cm+OA==
+X-Received: by 2002:a05:6830:3988:b0:7d7:de7f:1216 with SMTP id
+ 46e09a7af769-7d9d6a2ee3fmr4210937a34.34.1774513978540; Thu, 26 Mar 2026
+ 01:32:58 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <acTtzuGD-K5XvVir@ashevche-desk.local>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+References: <20260128-ssqosid-cbqri-v2-0-dca586b091b9@kernel.org>
+ <20260128-ssqosid-cbqri-v2-6-dca586b091b9@kernel.org> <CAEEQ3wmuAnHU1VBFDwbCBFb8j63ZcizJ3jEC2SiVWnoMPc4=SA@mail.gmail.com>
+ <acOFef6f9og1hft2@gen8>
+In-Reply-To: <acOFef6f9og1hft2@gen8>
+From: yunhui cui <cuiyunhui@bytedance.com>
+Date: Thu, 26 Mar 2026 16:32:47 +0800
+X-Gm-Features: AQROBzDH3jYcjM2CiSfjVYp26hEHF6X2ANXFbNRUWifhxguxrWvAlswpTfv9uY4
+Message-ID: <CAEEQ3w=zV1k+uea5D9tnO=O5X5LQUpyNVZi8V8TOANxXJQbg=w@mail.gmail.com>
+Subject: Re: [External] [PATCH RFC v2 06/17] RISC-V: QoS: define CBQRI resctrl
+ resources and domains
+To: Drew Fustini <fustini@kernel.org>
+Cc: Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, 
+	Albert Ou <aou@eecs.berkeley.edu>, Alexandre Ghiti <alex@ghiti.fr>, 
+	=?UTF-8?B?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar@ventanamicro.com>, 
+	Samuel Holland <samuel.holland@sifive.com>, Adrien Ricciardi <aricciardi@baylibre.com>, 
+	Nicolas Pitre <npitre@baylibre.com>, =?UTF-8?Q?Kornel_Dul=C4=99ba?= <mindal@semihalf.com>, 
+	Atish Patra <atish.patra@linux.dev>, Atish Kumar Patra <atishp@rivosinc.com>, 
+	Vasudevan Srinivasan <vasu@rivosinc.com>, Ved Shanbhogue <ved@rivosinc.com>, 
+	Chen Pei <cp0613@linux.alibaba.com>, Liu Zhiwei <zhiwei_liu@linux.alibaba.com>, 
+	Weiwei Li <liwei1518@gmail.com>, guo.wenjia23@zte.com.cn, liu.qingtao2@zte.com.cn, 
+	Reinette Chatre <reinette.chatre@intel.com>, Tony Luck <tony.luck@intel.com>, 
+	Babu Moger <babu.moger@amd.com>, Peter Newman <peternewman@google.com>, 
+	Fenghua Yu <fenghua.yu@intel.com>, James Morse <james.morse@arm.com>, 
+	Ben Horgan <ben.horgan@arm.com>, Dave Martin <Dave.Martin@arm.com>, linux-kernel@vger.kernel.org, 
+	linux-riscv@lists.infradead.org, x86@kernel.org, 
+	Rob Herring <robh@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
+	Robert Moore <robert.moore@intel.com>, Sunil V L <sunilvl@ventanamicro.com>, 
+	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
+	Paul Walmsley <paul.walmsley@sifive.com>, linux-acpi@vger.kernel.org, 
+	acpica-devel@lists.linux.dev, devicetree@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, Mar 26, 2026 at 10:27:00AM +0200, Andy Shevchenko wrote:
-> On Wed, Mar 25, 2026 at 05:32:06PM +0100, Bartosz Golaszewski wrote:
-> > On Tue, Mar 24, 2026 at 8:30 PM Dmitry Torokhov
-> > <dmitry.torokhov@gmail.com> wrote:
+Hi Drew=EF=BC=8C
+
+On Wed, Mar 25, 2026 at 2:49=E2=80=AFPM Drew Fustini <fustini@kernel.org> w=
+rote:
+>
+> On Wed, Mar 25, 2026 at 10:31:39AM +0800, yunhui cui wrote:
+> > Hi Drew,
+> >
+> > On Thu, Jan 29, 2026 at 4:28=E2=80=AFAM Drew Fustini <fustini@kernel.or=
+g> wrote:
 > > >
-> > > Please post the reworked version so we can review all the details. My
-> > > concern was that it relies on notifier chains to notify when devices
-> > > get registered and unregistered, and instead of matching node names you
-> > > now need to somehow match device instances and software node instances,
-> > > which again likely is done based on some name. This just piles on
-> > > complexity where a simpler solution would be sufficient.
-> > 
-> > I will post it. Hopefully before the end of the week. I want to cover
-> > both OF nodes with paz00 as well as ACPI with android tablets. The
-> > latter case will have to wait for devices because there's no way to
-> > look up an ACPI node by name that I could idenfity (correct me if I'm
-> > wrong).
-> 
-> What do you need from ACPI exactly? The ACPI namespace in the OS is represented
-> by set of ACPI handles, each of which is the object pointing out to some object
+> > > Define data structures to encapsulate the resctrl resource
+> > > and domain structures.
+> > >
+> > > Co-developed-by: Adrien Ricciardi <aricciardi@baylibre.com>
+> > > Signed-off-by: Adrien Ricciardi <aricciardi@baylibre.com>
+> > > [fustini: rebased current upstream]
+> > > Signed-off-by: Drew Fustini <fustini@kernel.org>
+> > > ---
+> > >  arch/riscv/kernel/qos/internal.h | 27 +++++++++++++++++++++++++++
+> > >  1 file changed, 27 insertions(+)
+> > >
+> > > diff --git a/arch/riscv/kernel/qos/internal.h b/arch/riscv/kernel/qos=
+/internal.h
+> > > index ff2c7eff50be..c0402dd06cfa 100644
+> > > --- a/arch/riscv/kernel/qos/internal.h
+> > > +++ b/arch/riscv/kernel/qos/internal.h
+> > > @@ -65,6 +65,11 @@
+> > >  #define CBQRI_BC_ALLOC_CTL_OP_READ_LIMIT   2
+> > >  #define CBQRI_BC_ALLOC_CTL_STATUS_SUCCESS  1
+> > >
+> > > +int qos_resctrl_setup(void);
+> > > +void qos_resctrl_exit(void);
+> > > +int qos_resctrl_online_cpu(unsigned int cpu);
+> > > +int qos_resctrl_offline_cpu(unsigned int cpu);
+> > > +
+> > >  /* Capacity Controller hardware capabilities */
+> > >  struct riscv_cbqri_capacity_caps {
+> > >         u16 ncblks; /* number of capacity blocks */
+> > > @@ -125,4 +130,26 @@ struct cbqri_controller {
+> > >         bool mon_capable;
+> > >  };
+> > >
+> > > +struct cbqri_resctrl_res {
+> > > +       struct rdt_resource     resctrl_res;
+> > > +       struct cbqri_controller controller;
+> > > +       u32 max_rcid;
+> > > +       u32 max_mcid;
+> > > +};
+> > > +
+> > > +struct cbqri_resctrl_dom {
+> > > +       struct rdt_domain_hdr       resctrl_dom_hdr;
+> > > +       struct rdt_ctrl_domain  resctrl_ctrl_dom;
+> > > +       struct rdt_mon_domain   resctrl_mon_dom;
+> > > +       u64 cbm;
+> > > +       u64 rbwb;
+> > > +       u64 *ctrl_val;
+> > > +       struct cbqri_controller *hw_ctrl;
+> > > +};
+> > > +
+> >
+> > Can we trim down some fields? For example:
+> >  struct cbqri_resctrl_res {
+> >         struct rdt_resource     resctrl_res;
+> > -       struct cbqri_controller controller;
+> >         u32 max_rcid;
+> >         u32 max_mcid;
+> >  };
+> >
+> >  struct cbqri_resctrl_dom {
+> > -       struct rdt_domain_hdr       resctrl_dom_hdr;
+> >         struct rdt_ctrl_domain  resctrl_ctrl_dom;
+> >         struct rdt_mon_domain   resctrl_mon_dom;
+> > -       u64 cbm;
+> > -       u64 rbwb;
+> >         u64 *ctrl_val;
+> >         struct cbqri_controller *hw_ctrl;
+> >  };
+>
+> Can you explain why you don't think these are needed??
 
-"...which is the pointer..."
-(sorry for the possible confusion)
+The functionality works well without those fields, feel free to try.
 
-> in it. Any object in ACPI has a unique path. At any time, after parsing the
-> ACPI table(s) into ACPI namespace we may get a handle based on the path.
+Btw, when do you plan to send the next revision?
 
--- 
-With Best Regards,
-Andy Shevchenko
+>
+> Thanks,
+> Drew
+>
 
-
+Thanks,
+Yunhui
