@@ -1,135 +1,85 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5449401A38
-	for <linux-acpi@vger.kernel.org>; Thu, 26 Mar 2026 15:47:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3447B33509A
+	for <linux-acpi@vger.kernel.org>; Thu, 26 Mar 2026 18:10:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774540034; cv=none; b=XzuKH+/7ZUxTCJLoMAOwFkWOQTOgx6nkotaBAAFL/cgpuxMcaCiQSM0Fgk0zFztpssZA3g3HP/Smdfwt1DciGQMFs/lRy5pjQr/IXDBPT87S5LPXnJ4FZ081fc5kmVurj+f5PBmXAcnT7qM0pVL4zBFfOzfrW/O6XZpE0/2LH+o=
+	t=1774548601; cv=none; b=bKi+xJ4T9Cq8gAP62nrncQv24cNL8x3aYtlkKfuSpOddYAxnSal4cTBv/ql49Yr6gQJg5mWBPtTBNLvGjLlSwpBdDRHZ6mz/x2H7OttxVfdcd+4gE4iM8w4PhD77B3IHPZFP9q8k1oLBpMMK54VLUKomhn9PNcfUH/FteS2pyTE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774540034; c=relaxed/simple;
-	bh=fWnV7rDU2XNvNnwbXNTOC3wtz4D4Ffj4sBhra5QKJMk=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=n6EuoMMUm6oZuy3VoHpmMsF7WCdH3XKignCn4KTWWI7CKDw8B5y1E9H+O0L006dpdiInwUxYMAfZqjFAIdUy6KkQdGULUM7nVQtdmf5j8uO4HUTD/JZ5DnaRY4CEr2A2LKDAGPfJ5JsgXhjIuhV6ck8JW0ORbLXKstGxS3FDxOk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ftCKq5fD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774548601; c=relaxed/simple;
+	bh=B3MiaxlBHCItTEXkunnaZHjgsbKerYuSCijvUA6ZIx8=;
+	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=P79NUbcBNjlUfNDBX+3be2frduiMFFaXPgwiYbhkbcNhK4CdorIbMbd73NKewGAXK19wyiv2RmzQWD3SIUE5/dx7/CEdKXnXcxyK4ABqF/spSibWkXo3yYpSaWxKGOmZrr5EAOp/OO74HkdlfXetgSVICTiGgMB/WyylWlz0sxU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=j8Y4bNQt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ftCKq5fD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 744DBC2BCB5
-	for <linux-acpi@vger.kernel.org>; Thu, 26 Mar 2026 15:47:14 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="j8Y4bNQt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1845C116C6
+	for <linux-acpi@vger.kernel.org>; Thu, 26 Mar 2026 18:10:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774540034;
-	bh=fWnV7rDU2XNvNnwbXNTOC3wtz4D4Ffj4sBhra5QKJMk=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=ftCKq5fDWXgoE6TB7zqzejmnwb7TwGh/Ef70cw2Erxvd5NtOawXMKGgki6mxHAQIb
-	 AF+kGDCJtRVBWWmaG5oz7I77jgoblk9bjZ+27Kv8YbbqKo878ki9/dLGioJBz90NKh
-	 ZDeqBBXDIznMeQkOuEhr45wg8adR0HxDNGZpSdtikDomDuK0cVo4rtgVem2oawOrxz
-	 t4duiBxoKgen3oQtTvB+hf8f0vMgsinjirMu4mJWsvBkIKaK+oVvfe5CaSHbs7PVBU
-	 OSYvC3WFoLCv/6a1w3jETjsdR2MecSs+XelNMuI5VHb+MvT1H3Lp3eOdxlgXlkhLpj
-	 Ox0iIX7Rd98uA==
-Received: by mail-lj1-f179.google.com with SMTP id 38308e7fff4ca-38be5d7c27cso10372541fa.0
-        for <linux-acpi@vger.kernel.org>; Thu, 26 Mar 2026 08:47:14 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCUE1W9O22/WsjSq/wvcAWrSgpYCp8qZMPVwyarMToZrylQlpHljUqnKjUDoyNR/uQw6Q4OSF4ZGESYq@vger.kernel.org
-X-Gm-Message-State: AOJu0YyM//B3kGEBs2bh3nI6cKEqTYCWyRr/VymZLC+X8aa5j4KV0ywO
-	44o48cvY3xhnWSvclZiYN0/sODwrBQvqsq7APHfxocLmeLWK2ySw0JsNht9o9TB2gqxsZs1t0kB
-	9wAJh/LG+d/8cJIaYs2xzO0TKGuPrqI1Ryu5I1zD1og==
-X-Received: by 2002:a05:651c:2118:b0:38c:4b14:13ab with SMTP id
- 38308e7fff4ca-38c4b148507mr26935061fa.33.1774540032962; Thu, 26 Mar 2026
- 08:47:12 -0700 (PDT)
+	s=k20201202; t=1774548600;
+	bh=B3MiaxlBHCItTEXkunnaZHjgsbKerYuSCijvUA6ZIx8=;
+	h=From:Date:Subject:To:Cc:From;
+	b=j8Y4bNQtPJMmSUG+ldlZOSGkgBXWkZ8/hknXQA4rkkW9Kl+dQ56NZJbOK/ewaNWkp
+	 aadWCiI9Tdg72Agf2AaooWbJMpz6TCZigruh8Ai4zurkTxgn7XvpMNY3/Mpr5JRpJi
+	 jH7deS+1Y9VFEt4RFHkpIpc91/ZZo7hCiwIRCXtwIJwVKn35Ju/zj6+TGJQg8Iguyo
+	 9ogWGm99McXvIVr/asXYvRpuOiR1yTnYGYhqPEpMQy3H7OWx1jAomT+CpoECXlHT96
+	 Ldk9skK7GlDkNvjGCtXy+NXRzjb0n+gBiXPh//TGhft3dmwD2Ckb1UovQMjfta8zNq
+	 E7qCLnRvlo0ww==
+Received: by mail-ot1-f46.google.com with SMTP id 46e09a7af769-7d9e22176a7so613325a34.1
+        for <linux-acpi@vger.kernel.org>; Thu, 26 Mar 2026 11:10:00 -0700 (PDT)
+X-Gm-Message-State: AOJu0YzyrIEcM+/P0/3zHVv+VPMo+SchgpEYj6xx7SKPLywX/qaLQASs
+	1cQxQAwdoF1m1I6y8x3igJU2hM1GLzBafWAL5KlZBW4jf8FzJXFlYaX+G7q3a7k3DUa5wQpCCzo
+	FprpknUNJ1y8+6O+iI16MoyLExEzFSDQ=
+X-Received: by 2002:a05:6870:f602:b0:41c:63f2:bfb8 with SMTP id
+ 586e51a60fabf-41ca6ddbb48mr4201753fac.13.1774548599776; Thu, 26 Mar 2026
+ 11:09:59 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <acIV6xF8mY-8wd5e@google.com> <CAMRc=MdJ0U2_ZQ5rP0Vmbv7+-xurf9F+WOwD3LwV=n5Fx33U=Q@mail.gmail.com>
- <acK69OColNT7ViLf@google.com> <CAMRc=Mcw66QpjQt4+_JdMq9JiAY28hjzNHa24gfOCCXyie-uRQ@mail.gmail.com>
- <acTtzuGD-K5XvVir@ashevche-desk.local> <CAMRc=MeEMx1w5HaXBUP6iAu8T8b7Ti1i7JVDDTwvpjaEOtDJuw@mail.gmail.com>
- <acTwqD8fXZSncMIS@ashevche-desk.local> <acTy8Wkfs8Sx84oZ@ashevche-desk.local>
-In-Reply-To: <acTy8Wkfs8Sx84oZ@ashevche-desk.local>
-From: Bartosz Golaszewski <brgl@kernel.org>
-Date: Thu, 26 Mar 2026 16:47:00 +0100
-X-Gmail-Original-Message-ID: <CAMRc=MdrxYRhB3MWnhTPM9FqzF-_P7Br5mRJ7kYOxQ2G3zjdow@mail.gmail.com>
-X-Gm-Features: AQROBzDf3HYMGKXpGrLn5Y55f4GIrv8bJ8UmGCkyoSsx25x8l8K48Rl09M-Q0Ho
-Message-ID: <CAMRc=MdrxYRhB3MWnhTPM9FqzF-_P7Br5mRJ7kYOxQ2G3zjdow@mail.gmail.com>
-Subject: Re: [PATCH] software node: allow referencing software nodes by name
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Daniel Scally <djrscally@gmail.com>, 
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
-	Sakari Ailus <sakari.ailus@linux.intel.com>, Danilo Krummrich <dakr@kernel.org>, 
-	"Rafael J. Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org, driver-core@lists.linux.dev, 
-	linux-kernel@vger.kernel.org
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Thu, 26 Mar 2026 19:09:48 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0hMiiJojiagbnUPMW4w_6EsP7P0GqVTGWJm51-Ha71PHQ@mail.gmail.com>
+X-Gm-Features: AQROBzAoZQadVw0JovZCcqfwELTd2xkAtA_jjSxi5AWskeVTqNAr6AQsMRtSMBU
+Message-ID: <CAJZ5v0hMiiJojiagbnUPMW4w_6EsP7P0GqVTGWJm51-Ha71PHQ@mail.gmail.com>
+Subject: [GIT PULL] ACPI support fix for v7.0-rc6
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, 
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Thu, Mar 26, 2026 at 9:48=E2=80=AFAM Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
->
-> On Thu, Mar 26, 2026 at 10:39:09AM +0200, Andy Shevchenko wrote:
-> > On Thu, Mar 26, 2026 at 09:34:01AM +0100, Bartosz Golaszewski wrote:
-> > > On Thu, Mar 26, 2026 at 9:27=E2=80=AFAM Andy Shevchenko
-> > > <andriy.shevchenko@linux.intel.com> wrote:
-> > > > On Wed, Mar 25, 2026 at 05:32:06PM +0100, Bartosz Golaszewski wrote=
-:
-> > > > > On Tue, Mar 24, 2026 at 8:30=E2=80=AFPM Dmitry Torokhov
-> > > > > <dmitry.torokhov@gmail.com> wrote:
-> > > > > >
-> > > > > > Please post the reworked version so we can review all the detai=
-ls. My
-> > > > > > concern was that it relies on notifier chains to notify when de=
-vices
-> > > > > > get registered and unregistered, and instead of matching node n=
-ames you
-> > > > > > now need to somehow match device instances and software node in=
-stances,
-> > > > > > which again likely is done based on some name. This just piles =
-on
-> > > > > > complexity where a simpler solution would be sufficient.
-> > > > >
-> > > > > I will post it. Hopefully before the end of the week. I want to c=
-over
-> > > > > both OF nodes with paz00 as well as ACPI with android tablets. Th=
-e
-> > > > > latter case will have to wait for devices because there's no way =
-to
-> > > > > look up an ACPI node by name that I could idenfity (correct me if=
- I'm
-> > > > > wrong).
-> > > >
-> > > > What do you need from ACPI exactly? The ACPI namespace in the OS is=
- represented
-> > > > by set of ACPI handles, each of which is the object pointing out to=
- some object
-> > > > in it. Any object in ACPI has a unique path. At any time, after par=
-sing the
-> > > > ACPI table(s) into ACPI namespace we may get a handle based on the =
-path.
-> > >
-> > > DT is unflattened very early into the boot sequence. Is this the case
-> > > for ACPI tables as well? Knowing the name of the device (HID + index,
-> > > eg.: "INT33FF:00"), can I check if there's a corresponding ACPI node
-> > > (of_find_by_path/name() in DT parlance)?
-> >
-> > I believe so. See how we find a GPIO chip in the gpiolib-acpi-core.c.
-> > In the similar way you can try finding any object in ACPI namespace.
-> >
-> > But note, ":00" is part of device instance name, it's not available
-> > in ACPI namespace. There we have HID, UID, et cetera, ":00" is pure
-> > Linux kernel thingy.
->
-> We have acpi_dev_present(), but if you read its kernel-doc, it suggests
-> to use acpi_get_devices() for the case of early checks (before device
-> are actually being instantiated).
->
+Hi Linus,
 
-Ah, but I'm seeing that the firmware node handle of the acpi device is
-part of struct acpi_device and is only initialized during the scanning
-phase which happens at subsys_initcall() time? When using
-acpi_get_devices() you have an abstract handle and no fwnode for which
-to assign the secondary node yet, right?
+Please pull from the tag
 
-It's not like with DT where there already is an instance of struct
-device_node to which you can assign the secondary fwnode even if its
-device doesn't exist yet.
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ acpi-7.0-rc6
 
-Bart
+with top-most commit f6484cadbcaf26b5844b51bd7307a663dda48ef6
+
+ ACPI: EC: clean up handlers on probe failure in acpi_ec_setup()
+
+on top of commit c369299895a591d96745d6492d4888259b004a9e
+
+ Linux 7.0-rc5
+
+to receive an ACPI support fix for 7.0-rc6.
+
+This prevents use-after-free from occurring on reduced-hardware ACPI
+platforms when -EPROBE_DEFER is returned by ec_install_handlers()
+during ACPI EC driver initialization (Weiming Shi).
+
+Thanks!
+
+
+---------------
+
+Weiming Shi (1):
+      ACPI: EC: clean up handlers on probe failure in acpi_ec_setup()
+
+---------------
+
+ drivers/acpi/ec.c | 2 ++
+ 1 file changed, 2 insertions(+)
