@@ -1,143 +1,134 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.17])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 895E03B6C07;
-	Thu, 26 Mar 2026 09:03:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.17
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2465B3C8736
+	for <linux-acpi@vger.kernel.org>; Thu, 26 Mar 2026 10:33:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774515812; cv=none; b=tC+pTQc7gxvQATY/c1XVXk61LRM9oApUjTESi0pLU/iVqa/X2m1ynfh8pnB4i98eJddjqYBkDxmQBLeRAmv+v96XUU4PniaFmzhh0nwFbmLKgCXHlfqYDgg365/esN2AcTCzZo0mjds1SggIo397CMTJua9HuUNjO4uyTbdewaM=
+	t=1774521212; cv=none; b=Z945pAxM8kI7VKe+0dF6VOAIEM9ft+dtwHCEvcrhiQX466kCgnofsJOHSMbDydqrQycaA9Wx1z1GBb+7YdXbAFfqmFFS3tVlh2+YK8YTXuzZy80PA6lp8NEnTQEBtgze+98XE43S6IbaBS+Uz8b507/nuZD+OJ28Hp7WA1rqZKs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774515812; c=relaxed/simple;
-	bh=IHrp3qcbUirCp94NsEtIYd8rf/kv8Pb6+qqpXq11Pxo=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=snDtJn03trFYbCFC+Sy/NJ/SjDfELbzJ+LetlfC9WAcCL64fkJO+pXX4U/gBta4f0/UedfYCT8+26Kr7Ou49zCm3f/Z8UwrM0DAg62HLP+unouy4yC5LdV6AkFlKPiDMdsrq1Cmm6PWnN7niVNQsXvB6Pkrr1PolKz2x14x9zM8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Tt20P8/F; arc=none smtp.client-ip=198.175.65.17
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1774521212; c=relaxed/simple;
+	bh=ZudevnbvHxuJFNRVUgY0l6TTlPYj57cCXzQfq18RxyU=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=RGND5Tk6sZo1QNAWUHcn9RSbt38jLPeNhR8XF9Cb4S54x6BT6xA9q7QDA9xvhqmDWev3uMpDjXwCa77UJlEbsvthk0ZGFLHAYe1NwaTAsiQ3VuoY1knVUCkYkUrl2M+aZWVkgJABCKeMTovZrAfCWdTH7MmhMsnkuIF2oxKZJ8w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kLAVn+yy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Tt20P8/F"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1774515812; x=1806051812;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:content-transfer-encoding:in-reply-to;
-  bh=IHrp3qcbUirCp94NsEtIYd8rf/kv8Pb6+qqpXq11Pxo=;
-  b=Tt20P8/F5gT0AjFloNjb31p3jKb3tPTY03WNLbKYkRMbGLSlwmtVQzQf
-   S2sPImpiaLtmY1db/VWA6ZpXyXve1L0VtIjkXEu1WtxnIbn3fTBJpwpLx
-   bn6V4WeJZyToHVfUAQxAH5x5Fs7HbXSqadfXUUiIYEktj6kPFAhZgrrAL
-   fPdRPgaMcz9JFdXY4nBzvESxOXWtr/PSgupPhmWKiK/8pZnc4Punura4t
-   3Cpw6r4AXvaYbEmh1Nz8hnVwOw+5HIVRMfJQQW6HGcBhBtE4LpZro0im6
-   TzKEd2fmu+EhplTPJqTjhZXwVQm5Aubh3u3dlfpVQFsJRQsLIG0x/rVNp
-   Q==;
-X-CSE-ConnectionGUID: TYJhqN8YS1WvRg2A+5BkQw==
-X-CSE-MsgGUID: +FtuBVQmTu28s1LtyPGneA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11740"; a="75530814"
-X-IronPort-AV: E=Sophos;i="6.23,141,1770624000"; 
-   d="scan'208";a="75530814"
-Received: from fmviesa003.fm.intel.com ([10.60.135.143])
-  by orvoesa109.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Mar 2026 02:03:31 -0700
-X-CSE-ConnectionGUID: 2Q1+ycJPTDK+6k70ZCre4g==
-X-CSE-MsgGUID: L6X4ANMzRaSDcTFvQ9JQeQ==
-X-ExtLoop1: 1
-Received: from smoticic-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.245.216])
-  by fmviesa003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Mar 2026 02:03:28 -0700
-Date: Thu, 26 Mar 2026 11:03:26 +0200
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Bartosz Golaszewski <brgl@kernel.org>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Danilo Krummrich <dakr@kernel.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org,
-	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] software node: allow referencing software nodes by name
-Message-ID: <acT2XtIKyG3smt3I@ashevche-desk.local>
-References: <acIV6xF8mY-8wd5e@google.com>
- <CAMRc=MdJ0U2_ZQ5rP0Vmbv7+-xurf9F+WOwD3LwV=n5Fx33U=Q@mail.gmail.com>
- <acK69OColNT7ViLf@google.com>
- <CAMRc=Mcw66QpjQt4+_JdMq9JiAY28hjzNHa24gfOCCXyie-uRQ@mail.gmail.com>
- <acTtzuGD-K5XvVir@ashevche-desk.local>
- <CAMRc=MeEMx1w5HaXBUP6iAu8T8b7Ti1i7JVDDTwvpjaEOtDJuw@mail.gmail.com>
- <acTwqD8fXZSncMIS@ashevche-desk.local>
- <CAMRc=McUD+M4oYOAyhU845nuSF6yve_JuaTDSNBWw3Ah3OVgrQ@mail.gmail.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kLAVn+yy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DEA1BC4AF09
+	for <linux-acpi@vger.kernel.org>; Thu, 26 Mar 2026 10:33:31 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1774521211;
+	bh=ZudevnbvHxuJFNRVUgY0l6TTlPYj57cCXzQfq18RxyU=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=kLAVn+yyTl/Q8z+UhqbNmfz2LrWrp36HL1Ae4tSkcqPbq1qp3GRw4UjT323vqOUua
+	 8ahJjFB01lxdM/2KIMuWIT/npAo065XzkAEJITt09khnLhIl+eLEP4WHkDeGlGhT4f
+	 e0aeWHoRGhZBI4R40jiCJ1bYcjad052WCHxrFwLVGoii6XzPg7Pg1HGrPKXJuKh9dZ
+	 FixFToi4dvl3Fnnmk6MV3sIitDaktMkzrAFWZVUVpwagZgrFRx2FtV0UYZvB2u1NgG
+	 sqo55jxPVDBNxHLQcxm2vrGc3ZOgOvS+j+ZAYexlcyf+b06vLqMYU9z3zUlgUTwEUY
+	 w55U+UPZxDs9w==
+Received: by mail-yw1-f177.google.com with SMTP id 00721157ae682-79628fb5c05so6860437b3.2
+        for <linux-acpi@vger.kernel.org>; Thu, 26 Mar 2026 03:33:31 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCWDqJJ4zEAN0EbR/nZH5siSNCedFluKzMAR4mSUfPSNu+2dtq3zgocPLMgXKauOiT9mf5wsVHR3WDVQ@vger.kernel.org
+X-Gm-Message-State: AOJu0Yz1MSIRMk91yrXO8VxziQfbimR8OsrWF1lshQ1QzLBmWr/6L4kI
+	x6ye46KTzeO5yQBe7zI8KT8VWOcKEcQ4PZuolIdYwuyZvcA8nJRlG7uXins9eNhlwUh7tiI31Ss
+	0L8aLkH4fgsu331wNrj4OPJuM+7aW2gc=
+X-Received: by 2002:a05:690c:6086:b0:79a:69bc:f20f with SMTP id
+ 00721157ae682-79acf3a8b76mr76387137b3.21.1774521210579; Thu, 26 Mar 2026
+ 03:33:30 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAMRc=McUD+M4oYOAyhU845nuSF6yve_JuaTDSNBWw3Ah3OVgrQ@mail.gmail.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+References: <20260325143555.451852-1-herve.codina@bootlin.com> <20260325143555.451852-21-herve.codina@bootlin.com>
+In-Reply-To: <20260325143555.451852-21-herve.codina@bootlin.com>
+From: Linus Walleij <linusw@kernel.org>
+Date: Thu, 26 Mar 2026 11:33:19 +0100
+X-Gmail-Original-Message-ID: <CAD++jLkFu+Z22QBFiaa9S+Epeh=RJZOYX8BOLVDFw4bhEoYF1Q@mail.gmail.com>
+X-Gm-Features: AQROBzC4i_eE97sXtt89YSs_3fVQUuKW8eO9nnDvhVba5azUhozyRvIt7ceD-wY
+Message-ID: <CAD++jLkFu+Z22QBFiaa9S+Epeh=RJZOYX8BOLVDFw4bhEoYF1Q@mail.gmail.com>
+Subject: Re: [PATCH v6 20/27] misc: lan966x_pci: Fix dtso nodes ordering
+To: Herve Codina <herve.codina@bootlin.com>
+Cc: Andrew Lunn <andrew@lunn.ch>, Rob Herring <robh@kernel.org>, 
+	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
+	Geert Uytterhoeven <geert+renesas@glider.be>, Kalle Niemi <kaleposti@gmail.com>, 
+	Matti Vaittinen <mazziesaccount@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+	"Rafael J. Wysocki" <rafael@kernel.org>, Danilo Krummrich <dakr@kernel.org>, Frank Li <Frank.Li@nxp.com>, 
+	Sascha Hauer <s.hauer@pengutronix.de>, Pengutronix Kernel Team <kernel@pengutronix.de>, 
+	Fabio Estevam <festevam@gmail.com>, Michael Turquette <mturquette@baylibre.com>, 
+	Stephen Boyd <sboyd@kernel.org>, Andi Shyti <andi.shyti@kernel.org>, 
+	Wolfram Sang <wsa+renesas@sang-engineering.com>, Peter Rosin <peda@axentia.se>, 
+	Arnd Bergmann <arnd@arndb.de>, Saravana Kannan <saravanak@kernel.org>, 
+	Bjorn Helgaas <bhelgaas@google.com>, Charles Keepax <ckeepax@opensource.cirrus.com>, 
+	Richard Fitzgerald <rf@opensource.cirrus.com>, David Rhodes <david.rhodes@cirrus.com>, 
+	Ulf Hansson <ulf.hansson@linaro.org>, Mark Brown <broonie@kernel.org>, Len Brown <lenb@kernel.org>, 
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Daniel Scally <djrscally@gmail.com>, 
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, Davidlohr Bueso <dave@stgolabs.net>, 
+	Jonathan Cameron <jonathan.cameron@huawei.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Alison Schofield <alison.schofield@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, 
+	Ira Weiny <ira.weiny@intel.com>, Dan Williams <dan.j.williams@intel.com>, 
+	Shawn Guo <shawnguo@kernel.org>, Wolfram Sang <wsa@kernel.org>, linux-kernel@vger.kernel.org, 
+	driver-core@lists.linux.dev, imx@lists.linux.dev, 
+	linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, 
+	linux-i2c@vger.kernel.org, devicetree@vger.kernel.org, 
+	linux-pci@vger.kernel.org, linux-sound@vger.kernel.org, 
+	patches@opensource.cirrus.com, linux-gpio@vger.kernel.org, 
+	linux-pm@vger.kernel.org, linux-spi@vger.kernel.org, 
+	linux-acpi@vger.kernel.org, linux-cxl@vger.kernel.org, 
+	Allan Nielsen <allan.nielsen@microchip.com>, Horatiu Vultur <horatiu.vultur@microchip.com>, 
+	Steen Hegelund <steen.hegelund@microchip.com>, Luca Ceresoli <luca.ceresoli@bootlin.com>, 
+	Thomas Petazzoni <thomas.petazzoni@bootlin.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, Mar 26, 2026 at 09:47:03AM +0100, Bartosz Golaszewski wrote:
-> On Thu, Mar 26, 2026 at 9:39 AM Andy Shevchenko
-> <andriy.shevchenko@linux.intel.com> wrote:
-> > On Thu, Mar 26, 2026 at 09:34:01AM +0100, Bartosz Golaszewski wrote:
-> > > On Thu, Mar 26, 2026 at 9:27 AM Andy Shevchenko
-> > > <andriy.shevchenko@linux.intel.com> wrote:
-> > > > On Wed, Mar 25, 2026 at 05:32:06PM +0100, Bartosz Golaszewski wrote:
-> > > > > On Tue, Mar 24, 2026 at 8:30 PM Dmitry Torokhov
-> > > > > <dmitry.torokhov@gmail.com> wrote:
-> > > > > >
-> > > > > > Please post the reworked version so we can review all the details. My
-> > > > > > concern was that it relies on notifier chains to notify when devices
-> > > > > > get registered and unregistered, and instead of matching node names you
-> > > > > > now need to somehow match device instances and software node instances,
-> > > > > > which again likely is done based on some name. This just piles on
-> > > > > > complexity where a simpler solution would be sufficient.
-> > > > >
-> > > > > I will post it. Hopefully before the end of the week. I want to cover
-> > > > > both OF nodes with paz00 as well as ACPI with android tablets. The
-> > > > > latter case will have to wait for devices because there's no way to
-> > > > > look up an ACPI node by name that I could idenfity (correct me if I'm
-> > > > > wrong).
-> > > >
-> > > > What do you need from ACPI exactly? The ACPI namespace in the OS is represented
-> > > > by set of ACPI handles, each of which is the object pointing out to some object
-> > > > in it. Any object in ACPI has a unique path. At any time, after parsing the
-> > > > ACPI table(s) into ACPI namespace we may get a handle based on the path.
-> > >
-> > > DT is unflattened very early into the boot sequence. Is this the case
-> > > for ACPI tables as well? Knowing the name of the device (HID + index,
-> > > eg.: "INT33FF:00"), can I check if there's a corresponding ACPI node
-> > > (of_find_by_path/name() in DT parlance)?
-> >
-> > I believe so. See how we find a GPIO chip in the gpiolib-acpi-core.c.
-> > In the similar way you can try finding any object in ACPI namespace.
-> >
-> > But note, ":00" is part of device instance name, it's not available
-> > in ACPI namespace. There we have HID, UID, et cetera, ":00" is pure
-> > Linux kernel thingy.
-> 
-> And how would the four instances of the cherryview pin controller be
-> identified in ACPI? I've just created a dumy table with a single
-> device, I don't know ACPI very well. Could you post an example .dsl
-> here for testing?
+Hi Herve,
 
-They are identified in the driver by using HID + UID combination:
+this is nitpicking, but if you respin the series consider the following:
 
-https://elixir.bootlin.com/linux/v7.0-rc5/source/drivers/pinctrl/intel/pinctrl-cherryview.c#L1757
+On Wed, Mar 25, 2026 at 3:42=E2=80=AFPM Herve Codina <herve.codina@bootlin.=
+com> wrote:
+>
+> Nodes available in the dtso are not ordered by their unit address.
+>
+> Fix that re-ordering them according to their unit address.
+>
+> Signed-off-by: Herve Codina <herve.codina@bootlin.com>
+(...)
+> +                               switch: switch@e0000000 {
 
-https://elixir.bootlin.com/linux/v7.0-rc5/source/drivers/pinctrl/intel/pinctrl-cherryview.c#L273
-https://elixir.bootlin.com/linux/v7.0-rc5/source/drivers/pinctrl/intel/pinctrl-cherryview.c#L367
-https://elixir.bootlin.com/linux/v7.0-rc5/source/drivers/pinctrl/intel/pinctrl-cherryview.c#L412
-https://elixir.bootlin.com/linux/v7.0-rc5/source/drivers/pinctrl/intel/pinctrl-cherryview.c#L412
+Recommended practice is:
 
-In ASL it will be something like
+ethernet-switch@...
 
-	Device (GPO1) {
-		Name (_HID, "INT33FF")
-		Name (_UID, "1")
-	}
+> +                                       compatible =3D "microchip,lan966x=
+-switch";
+> +                                       reg =3D <0xe0000000 0x0100000>,
+> +                                             <0xe2000000 0x0800000>;
+> +                                       reg-names =3D "cpu", "gcb";
+> +
+> +                                       interrupt-parent =3D <&oic>;
+> +                                       interrupts =3D <12 IRQ_TYPE_LEVEL=
+_HIGH>,
+> +                                                    <9 IRQ_TYPE_LEVEL_HI=
+GH>;
+> +                                       interrupt-names =3D "xtr", "ana";
+> +
+> +                                       resets =3D <&reset 0>;
+> +                                       reset-names =3D "switch";
+> +
+> +                                       pinctrl-names =3D "default";
+> +                                       pinctrl-0 =3D <&tod_pins>;
+> +
+> +                                       ethernet-ports {
+> +                                               #address-cells =3D <1>;
+> +                                               #size-cells =3D <0>;
+> +
+> +                                               port0: port@0 {
 
--- 
-With Best Regards,
-Andy Shevchenko
+Recommended practice is:
+ethernet-port@...
 
-
+Yours,
+Linus Walleij
