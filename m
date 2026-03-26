@@ -1,98 +1,125 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 329C63C2799
-	for <linux-acpi@vger.kernel.org>; Thu, 26 Mar 2026 08:48:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 580DC376BC6;
+	Thu, 26 Mar 2026 08:48:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.19
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774514913; cv=none; b=sjDUOPB11DELTLPA1iBSF8RDA1RIuA567EcuJwDAhMIocI1tFQwxrYolpBiZeXX1eobtiEPtqw+uSP0pSXAbgTTniwQbDDQ79DLCkkcldgxvtkZaJGnULkWd4xp1Q5HBE1fV6CTzXq8VCxsnC2wem8jElqP1r23JXjwA+iPWDdQ=
+	t=1774514935; cv=none; b=JLiCz1rY8011CtFiE82Eh2XgtP6TyY5M/+IylSWTabC5wYQSakGm2ijTGWVw34C3CGFjw1Uc+KplZ7x1S1NcPmB3zr84GJ7vRueoJW0AgzfV6vrVxJJdVbMXJb3TnSsJrSS3XWJA40FhOYS05Nn0jixsJpzQyHNSoFPNxxlTkc8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774514913; c=relaxed/simple;
-	bh=xDpz5toXT9+YnrNMtuCC5O0FW4S4IE6N5NmMAjyruQI=;
-	h=From:In-Reply-To:MIME-Version:References:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=jKU3BabBRS7yA22rXJoUyRyZeuHNVNqbOQ50cS4ovh2rSZAkccBa/wLD1bcWJP95bzydf4sFUutUYO4GyPJ8X9Oc+PX2B88vLgWCXEECRRdKHLU3Jwf28Cngx9DOT41+MBk/f+5LhQWmVNco//dZaDGA4d0Ga4jngeIBlWcVhvs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RaBDsuuB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774514935; c=relaxed/simple;
+	bh=Fdn/ZJCfBhR8xh4Pgmngup2rIrIPZJS1rBlOHf0y9Fw=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=K0c+8T1Jf4UpeKkpemIGFcoll7CRFsINp82kQa3XP/3ue9LlmswJG9a88K0vHJVBrS5JYkN6QmMpGeWVyMu4lPGDa3pQNWrYtZ9+j+ugl1dh41nG0YoqmXjnWbzcPZE8hBpZ3GcUMvtRKT2WyqCUe6cyOrPlCMJdrK8FBShVWro=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=JKfVQCIM; arc=none smtp.client-ip=192.198.163.19
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RaBDsuuB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1792BC116C6
-	for <linux-acpi@vger.kernel.org>; Thu, 26 Mar 2026 08:48:33 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774514913;
-	bh=xDpz5toXT9+YnrNMtuCC5O0FW4S4IE6N5NmMAjyruQI=;
-	h=From:In-Reply-To:References:Date:Subject:To:Cc:From;
-	b=RaBDsuuBoxRR8Qgxvg+UmO5s2HdbVnCJ0XdMWvufgUaAdaZns67Q3xi0cOKih1S4w
-	 v8DKEUyIui23rs4Z7hjw4rbchPkqyeuDhZdfMlUOYWEOnnFdiljamN2Vs4MonazcM9
-	 /NnenSW3iVfaEwVZ7t3JzXtupUSRZ08iXrklLXOuVrlg3tD7vO/GIa6uKMicekUn1Q
-	 CwZNC15gHeTE22JTO/Bh2RHV8Fdco+zDEker5K+kXxnIFIKzpQvgKX5r2NJNeM9L7H
-	 xgGID5ptAHpiY8+Ut5ld7Q0z7SS6bJqAVGJAmBXE23g8PWTlBK2OKFPc2XXvj98qVP
-	 7MP+fyPAZWFDQ==
-Received: by mail-lj1-f178.google.com with SMTP id 38308e7fff4ca-38bcdda57b0so5032371fa.3
-        for <linux-acpi@vger.kernel.org>; Thu, 26 Mar 2026 01:48:33 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCWf6MFgWaNZvmCQCdEDyfZp/R7RT0DzIFEp4BfvkHJ6YLc8u7R+YmtdVjNQKocJvppV/66CCBI9yk4n@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw7t9wDuo3M3jDiYrVYoNGCOzs/YHFF9I3aH9NXviGLxT96FHQs
-	e/HiTvu99AWaLB1JQhhQWP3V9jaGZdSeFKw6Jpw133JfCsgTRVgJ3wpVhjrgLYDDvocU3Z5kf5Q
-	9a12v8A6XJlvqKM87kg5oj8COJFwbx8JNJVUaDhjh8Q==
-X-Received: by 2002:a05:651c:1587:b0:38a:332c:777a with SMTP id
- 38308e7fff4ca-38c43206b02mr27254831fa.34.1774514911324; Thu, 26 Mar 2026
- 01:48:31 -0700 (PDT)
-Received: from 969154062570 named unknown by gmailapi.google.com with
- HTTPREST; Thu, 26 Mar 2026 01:48:29 -0700
-Received: from 969154062570 named unknown by gmailapi.google.com with
- HTTPREST; Thu, 26 Mar 2026 01:48:29 -0700
-From: Bartosz Golaszewski <brgl@kernel.org>
-In-Reply-To: <20260326-pci-m2-e-v7-5-43324a7866e6@oss.qualcomm.com>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="JKfVQCIM"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1774514934; x=1806050934;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:content-transfer-encoding:in-reply-to;
+  bh=Fdn/ZJCfBhR8xh4Pgmngup2rIrIPZJS1rBlOHf0y9Fw=;
+  b=JKfVQCIM3YXEHxZ2D/wzyKc4/Ih1yi3wPYqUcIKiiGtbCKiaE7AoiQY2
+   VZO1MsLJtLiYp7/B7nXXYCWkvuxFf8NJXiOk8UpAk5+pkv8gtF8a37DzV
+   HWz9BPNHQute1RR13Lw6hv5Y7OoBlVbEDBZQGWV6Owf6FDC2E6bIEXJSo
+   0OFs2e87+271hphKamugR/e+Ax/AmhfUTyQ+eHa8n3sAog99Ud1kwnk6Y
+   RKuh4ISyysokQ7UtusSx+6dg631fDdWnA2bb7zCYPjQ/KTFRf3rwC5C0C
+   MYqUmFGioyIDHh7Q6SHCNiA/w7LVc8PZN3MLSUw4ZTy90y2Y2r86zjPca
+   w==;
+X-CSE-ConnectionGUID: i78dqMy8SGWuIqM56LDYvA==
+X-CSE-MsgGUID: ZYASTqI4R0qj7xdZl2bk4w==
+X-IronPort-AV: E=McAfee;i="6800,10657,11740"; a="74595133"
+X-IronPort-AV: E=Sophos;i="6.23,141,1770624000"; 
+   d="scan'208";a="74595133"
+Received: from fmviesa004.fm.intel.com ([10.60.135.144])
+  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Mar 2026 01:48:54 -0700
+X-CSE-ConnectionGUID: HM4pB0GoTbCc/PXCXrxQdA==
+X-CSE-MsgGUID: jsWLlxmzQY2u2yHGmOjP7g==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,141,1770624000"; 
+   d="scan'208";a="226581061"
+Received: from smoticic-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.245.216])
+  by fmviesa004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Mar 2026 01:48:51 -0700
+Date: Thu, 26 Mar 2026 10:48:49 +0200
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Bartosz Golaszewski <brgl@kernel.org>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Danilo Krummrich <dakr@kernel.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org,
+	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] software node: allow referencing software nodes by name
+Message-ID: <acTy8Wkfs8Sx84oZ@ashevche-desk.local>
+References: <acIV6xF8mY-8wd5e@google.com>
+ <CAMRc=MdJ0U2_ZQ5rP0Vmbv7+-xurf9F+WOwD3LwV=n5Fx33U=Q@mail.gmail.com>
+ <acK69OColNT7ViLf@google.com>
+ <CAMRc=Mcw66QpjQt4+_JdMq9JiAY28hjzNHa24gfOCCXyie-uRQ@mail.gmail.com>
+ <acTtzuGD-K5XvVir@ashevche-desk.local>
+ <CAMRc=MeEMx1w5HaXBUP6iAu8T8b7Ti1i7JVDDTwvpjaEOtDJuw@mail.gmail.com>
+ <acTwqD8fXZSncMIS@ashevche-desk.local>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260326-pci-m2-e-v7-0-43324a7866e6@oss.qualcomm.com> <20260326-pci-m2-e-v7-5-43324a7866e6@oss.qualcomm.com>
-Date: Thu, 26 Mar 2026 01:48:29 -0700
-X-Gmail-Original-Message-ID: <CAMRc=MfcT2hLOQ6yVQrvdgimsA1oDzGM3e_7nAWyUAFoOyhH6A@mail.gmail.com>
-X-Gm-Features: AQROBzDDnGGEISO25bRpZEkvayXNWHPvGoERJaG_tDIkHVVI5jwB71NCISyV7hU
-Message-ID: <CAMRc=MfcT2hLOQ6yVQrvdgimsA1oDzGM3e_7nAWyUAFoOyhH6A@mail.gmail.com>
-Subject: Re: [PATCH v7 5/8] dt-bindings: connector: Add PCIe M.2 Mechanical
- Key E connector
-To: manivannan.sadhasivam@oss.qualcomm.com
-Cc: Manivannan Sadhasivam via B4 Relay <devnull+manivannan.sadhasivam.oss.qualcomm.com@kernel.org>, 
-	linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-kbuild@vger.kernel.org, platform-driver-x86@vger.kernel.org, 
-	linux-pci@vger.kernel.org, devicetree@vger.kernel.org, 
-	linux-arm-msm@vger.kernel.org, linux-bluetooth@vger.kernel.org, 
-	linux-pm@vger.kernel.org, Stephan Gerhold <stephan.gerhold@linaro.org>, 
-	Dmitry Baryshkov <dmitry.baryshkov@oss.qualcomm.com>, linux-acpi@vger.kernel.org, 
-	Rob Herring <robh@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	Jiri Slaby <jirislaby@kernel.org>, Nathan Chancellor <nathan@kernel.org>, 
-	Nicolas Schier <nicolas.schier@linux.dev>, Hans de Goede <hansg@kernel.org>, 
-	=?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, 
-	Mark Pearson <mpearson-lenovo@squebb.ca>, "Derek J. Clark" <derekjohn.clark@gmail.com>, 
-	Manivannan Sadhasivam <mani@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
-	Marcel Holtmann <marcel@holtmann.org>, Luiz Augusto von Dentz <luiz.dentz@gmail.com>, 
-	Bartosz Golaszewski <brgl@bgdev.pl>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
-	Bartosz Golaszewski <brgl@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <acTwqD8fXZSncMIS@ashevche-desk.local>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On Thu, 26 Mar 2026 09:06:33 +0100, Manivannan Sadhasivam via B4 Relay
-<devnull+manivannan.sadhasivam.oss.qualcomm.com@kernel.org> said:
-> From: Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>
->
-> Add the devicetree binding for PCIe M.2 Mechanical Key E connector defined
-> in the PCI Express M.2 Specification, r4.0, sec 5.1.2. This connector
-> provides interfaces like PCIe or SDIO to attach the WiFi devices to the
-> host machine, USB or UART+PCM interfaces to attach the Bluetooth (BT)
-> devices. Spec also provides an optional interface to connect the UIM card,
-> but that is not covered in this binding.
->
-> The connector provides a primary power supply of 3.3v, along with an
-> optional 1.8v VIO supply for the Adapter I/O buffer circuitry operating at
-> 1.8v sideband signaling.
->
-> The connector also supplies optional signals in the form of GPIOs for fine
-> grained power management.
->
-> Reviewed-by: Rob Herring (Arm) <robh@kernel.org>
-> Signed-off-by: Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>
-> ---
+On Thu, Mar 26, 2026 at 10:39:09AM +0200, Andy Shevchenko wrote:
+> On Thu, Mar 26, 2026 at 09:34:01AM +0100, Bartosz Golaszewski wrote:
+> > On Thu, Mar 26, 2026 at 9:27 AM Andy Shevchenko
+> > <andriy.shevchenko@linux.intel.com> wrote:
+> > > On Wed, Mar 25, 2026 at 05:32:06PM +0100, Bartosz Golaszewski wrote:
+> > > > On Tue, Mar 24, 2026 at 8:30 PM Dmitry Torokhov
+> > > > <dmitry.torokhov@gmail.com> wrote:
+> > > > >
+> > > > > Please post the reworked version so we can review all the details. My
+> > > > > concern was that it relies on notifier chains to notify when devices
+> > > > > get registered and unregistered, and instead of matching node names you
+> > > > > now need to somehow match device instances and software node instances,
+> > > > > which again likely is done based on some name. This just piles on
+> > > > > complexity where a simpler solution would be sufficient.
+> > > >
+> > > > I will post it. Hopefully before the end of the week. I want to cover
+> > > > both OF nodes with paz00 as well as ACPI with android tablets. The
+> > > > latter case will have to wait for devices because there's no way to
+> > > > look up an ACPI node by name that I could idenfity (correct me if I'm
+> > > > wrong).
+> > >
+> > > What do you need from ACPI exactly? The ACPI namespace in the OS is represented
+> > > by set of ACPI handles, each of which is the object pointing out to some object
+> > > in it. Any object in ACPI has a unique path. At any time, after parsing the
+> > > ACPI table(s) into ACPI namespace we may get a handle based on the path.
+> > 
+> > DT is unflattened very early into the boot sequence. Is this the case
+> > for ACPI tables as well? Knowing the name of the device (HID + index,
+> > eg.: "INT33FF:00"), can I check if there's a corresponding ACPI node
+> > (of_find_by_path/name() in DT parlance)?
+> 
+> I believe so. See how we find a GPIO chip in the gpiolib-acpi-core.c.
+> In the similar way you can try finding any object in ACPI namespace.
+> 
+> But note, ":00" is part of device instance name, it's not available
+> in ACPI namespace. There we have HID, UID, et cetera, ":00" is pure
+> Linux kernel thingy.
 
-Reviewed-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+We have acpi_dev_present(), but if you read its kernel-doc, it suggests
+to use acpi_get_devices() for the case of early checks (before device
+are actually being instantiated).
+
+-- 
+With Best Regards,
+Andy Shevchenko
+
+
