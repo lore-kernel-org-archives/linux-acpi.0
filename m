@@ -1,146 +1,136 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E2F13FFAA8;
-	Thu, 26 Mar 2026 15:24:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 924E62C08AB
+	for <linux-acpi@vger.kernel.org>; Thu, 26 Mar 2026 15:32:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774538680; cv=none; b=qyu1Pwtnyl+UouyU3/CtVgpOF8z/QCvMrz1q+KwbynbObpk3f/99Ah338fsU+UPmWSTi+yHT3X7wkCYnvZKvctpjcHjJjzK+/fSa4t0NaACnFUYKqmVDELfyVA7tJuyYPfCjumfbpSt+ISVC7ejNE7PbtV/2SreApXbAZuo0+zA=
+	t=1774539164; cv=none; b=oS64zYvt40BqhRgmlzlzmbGBBUOlfKWk4rYiSxb7XfG8xGw0c41/iwNMPNHOOfD9f8l2Wl/f0uT0VGPK7dlIgj6YNMqEp8ZDz4TE5v2so+0CecoYqfRjrB7Ch2H5bMcUGqmn/NBQikEfd0VoxtqmvL4CKoCDvOkDn54xBlO2h0I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774538680; c=relaxed/simple;
-	bh=VC8lDUeLQaF89olSSrKq5JgPweNUCYlwAaUQYICMSVc=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=A7fmLGpL0kqkmEA1U3qaMOW3m6tFN5WUIMmWsWZoWCeQKyYkq6/wd4xvm2eZbqR1zD6E0z8rdK1hg/m7J4ItiTbZFYBEWHOtyTH/cVkPHA9yctOgXEvnjhjvF8ji5ex6Z6wAq8sZbll5zkiJWkFxt56b5EgrrgzmeizfptGmtR4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kaAEnN52; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774539164; c=relaxed/simple;
+	bh=aGPammMlS+MY9llgYLwFVqcAGKmSY6vGnlECdDqJR0k=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=L2BGAujQrfA3mVa3DjavOYTy8bGJKEdDIRWLfqfEwHnveA8nHH/WRGf31F0HF4WQa5KRdH298YcYfKuOn1Qp0r/aMDiPrA4YYD6xPIZY3uGXIVKrOj0j5Ku9fm742+9QWKPwWLZYVFxcRbWh28Kf3+NOmCir/+97ksd7H+fQtdA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=YgOw8ybX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kaAEnN52"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8768C19423;
-	Thu, 26 Mar 2026 15:24:39 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="YgOw8ybX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3125EC19424
+	for <linux-acpi@vger.kernel.org>; Thu, 26 Mar 2026 15:32:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774538680;
-	bh=VC8lDUeLQaF89olSSrKq5JgPweNUCYlwAaUQYICMSVc=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=kaAEnN52eATLIBzXKxWYkAjEQF54lvKDkYc4MOirqFrd5bD5DAIMQRi7Z6XFDonBb
-	 WKa61FlMkBcd/iXQJ6NVvj56BLrUfSeujVI4srqkrjEo0YNkS+P6/Xr/rSzIa4TTE8
-	 2nnxiSlLoWZ9fwxqX9ylNk7h2LFe47bb/mfRrR6P0j9DmK3EzFipJ7bxp5c8xm2TuS
-	 NiMdnWVRBzuXH1POPXiMkAnG50ifQBOXsOongqLa/bTPgKB4QNBbt70yCIYs0d7SRq
-	 J1Ih9mzFlDLWUDBMRSL14ekNbotN/3lElMlAvI5lwEmHOwIOUc4QCgy+qNYqG3bT9G
-	 pKTZSBiYPPjOg==
-Date: Thu, 26 Mar 2026 10:24:36 -0500
-From: Rob Herring <robh@kernel.org>
-To: Ahmed Tiba <ahmed.tiba@arm.com>
-Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-cxl@vger.kernel.org, Michael.Zhao2@arm.com,
-	linux-arm-kernel@lists.infradead.org, Dmitry.Lamerov@arm.com,
-	rafael@kernel.org, conor@kernel.org, will@kernel.org, bp@alien8.de,
-	catalin.marinas@arm.com, krzk+dt@kernel.org,
-	linux-doc@vger.kernel.org, mchehab+huawei@kernel.org,
-	tony.luck@intel.com
-Subject: Re: [PATCH v3 09/10] dt-bindings: firmware: add arm,ras-cper
-Message-ID: <20260326152436.GA2484010-robh@kernel.org>
-References: <20260318-topics-ahmtib01-ras_ffh_arm_internal_review-v3-0-48e6a1c249ef@arm.com>
- <20260318-topics-ahmtib01-ras_ffh_arm_internal_review-v3-9-48e6a1c249ef@arm.com>
+	s=k20201202; t=1774539164;
+	bh=aGPammMlS+MY9llgYLwFVqcAGKmSY6vGnlECdDqJR0k=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=YgOw8ybX4svTL558RVcv7nULFd0TNlrjG1/YPVNgWcnc8807BAb+n9XKTei0cjDl+
+	 fhEkH2H6mVQJ0uvMoHgJme0xgf12cYcjl1n2Vp680B7W5S7pdv7tV1DrL6FuplU7cf
+	 SzmlQ89UhH1m5dyVYJLJdT1VCRJmdsz8AmrUinRhBGX6nNDS8vg2FtXj5FKfe0Z5vn
+	 COcWcy0LDq3DLRlnbyXS960VVEXsB4hj7RxQ1RYxVlhDmPKr8H5Xbeod7hrSHBCB2p
+	 +N8LCHI+DXY5/vRBZ6MsN2SJcarhlDetM7Lnr2G7MTn8OuGdS4MMxtZdQ5gsNJfigO
+	 AC3RhBYZBr88Q==
+Received: by mail-oi1-f175.google.com with SMTP id 5614622812f47-467e044082dso418643b6e.1
+        for <linux-acpi@vger.kernel.org>; Thu, 26 Mar 2026 08:32:44 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCXOL+VcUVCC80zenfujHRoVUOqtgwxXdXV3sSzMLZWFQgs38xzwB44MHDO/IGwCbZoFDaUmFPHnQJfk@vger.kernel.org
+X-Gm-Message-State: AOJu0YwupI1S8B1to2J9nkKkKpJQ9A3NljIv0mn7aMn7s6XHgwv+tdRd
+	C8vlnehWt/G3P/X08uVU6t1K6YbBpKH/oWhGD7wWFrMvPBIWMk5B1sNLb4CeiTuj7vpvzfRQfmC
+	sqkewmoo0DtwBAO2liRKjFUNrpFGImLk=
+X-Received: by 2002:a05:6808:5246:b0:467:ff72:95af with SMTP id
+ 5614622812f47-46a5c7951ffmr3662170b6e.50.1774539163193; Thu, 26 Mar 2026
+ 08:32:43 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260318-topics-ahmtib01-ras_ffh_arm_internal_review-v3-9-48e6a1c249ef@arm.com>
+References: <20260324231456.701-1-nathaniel.l.desimone@intel.com> <20260324231456.701-2-nathaniel.l.desimone@intel.com>
+In-Reply-To: <20260324231456.701-2-nathaniel.l.desimone@intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Thu, 26 Mar 2026 16:32:31 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0hD2_PVf18yRUA-ZAP_7wbOJmZYqCt-2wJMDYjj9j_tQQ@mail.gmail.com>
+X-Gm-Features: AQROBzAoP3Wuya_ueMbPPUvtZeMpTq0k2dwLHaomrTQHRiywSMUAq9x0HIKlcbA
+Message-ID: <CAJZ5v0hD2_PVf18yRUA-ZAP_7wbOJmZYqCt-2wJMDYjj9j_tQQ@mail.gmail.com>
+Subject: Re: [PATCH v3 1/2] ACPI: FPDT: expose FBPT and S3PT subtables via sysfs
+To: Nate DeSimone <nathaniel.l.desimone@intel.com>
+Cc: rafael@kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, 
+	tony.luck@intel.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Wed, Mar 18, 2026 at 08:48:06PM +0000, Ahmed Tiba wrote:
-> Describe the DeviceTree node that exposes the Arm firmware-first
-> CPER provider and hook the file into MAINTAINERS so the
-> binding has an owner.
-> 
-> Signed-off-by: Ahmed Tiba <ahmed.tiba@arm.com>
+On Wed, Mar 25, 2026 at 12:17=E2=80=AFAM Nate DeSimone
+<nathaniel.l.desimone@intel.com> wrote:
+>
+> Add sysfs files at /sys/firmware/acpi/fpdt/FBPT and
+> /sys/firmware/acpi/fpdt/S3PT that expose the raw contents of the
+> FPDT subtables. Note that /sys/firmware/acpi/tables/FPDT only provides
+> the top level table, not the subtables. Adding access to the subtables
+> enables a usage model similar to /sys/firmware/dmi/tables/DMI, allowing
+> userspace tools to interpret newer record types (e.g. String Event
+> Records, Microcontroller Boot Performance Data Records, etc.) defined
+> in recent ACPI specifications[1] without requiring kernel changes.
+>
+> [1]
+> https://uefi.org/specs/ACPI/6.6/05_ACPI_Software_Programming_Model.html#p=
+erformance-event-record-types
+>
+> Signed-off-by: Nate DeSimone <nathaniel.l.desimone@intel.com>
 > ---
->  .../devicetree/bindings/firmware/arm,ras-cper.yaml | 71 ++++++++++++++++++++++
->  MAINTAINERS                                        |  5 ++
->  2 files changed, 76 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/firmware/arm,ras-cper.yaml b/Documentation/devicetree/bindings/firmware/arm,ras-cper.yaml
-> new file mode 100644
-> index 000000000000..bd93cfb8d222
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/firmware/arm,ras-cper.yaml
-> @@ -0,0 +1,71 @@
-> +# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
-> +%YAML 1.2
-> +---
-> +$id: http://devicetree.org/schemas/firmware/arm,ras-cper.yaml#
-> +$schema: http://devicetree.org/meta-schemas/core.yaml#
+>  drivers/acpi/acpi_fpdt.c | 28 ++++++++++++++++++++++++++++
+>  1 file changed, 28 insertions(+)
+>
+> diff --git a/drivers/acpi/acpi_fpdt.c b/drivers/acpi/acpi_fpdt.c
+> index 271092f2700a..e75dd28d31a9 100644
+> --- a/drivers/acpi/acpi_fpdt.c
+> +++ b/drivers/acpi/acpi_fpdt.c
+> @@ -141,6 +141,9 @@ static const struct attribute_group boot_attr_group =
+=3D {
+>         .name =3D "boot",
+>  };
+>
+> +static BIN_ATTR(FBPT, 0400, sysfs_bin_attr_simple_read, NULL, 0);
+> +static BIN_ATTR(S3PT, 0400, sysfs_bin_attr_simple_read, NULL, 0);
 > +
-> +title: Arm RAS CPER provider
+>  static struct kobject *fpdt_kobj;
+>
+>  #if defined CONFIG_X86 && defined CONFIG_PHYS_ADDR_T_64BIT
+> @@ -254,9 +257,34 @@ static int fpdt_process_subtable(u64 address, u32 su=
+btable_type)
+>                         break;
+>                 }
+>         }
 > +
-> +maintainers:
-> +  - Ahmed Tiba <ahmed.tiba@arm.com>
+> +       if (subtable_type =3D=3D SUBTABLE_FBPT) {
+> +               bin_attr_FBPT.private =3D subtable_header;
+> +               bin_attr_FBPT.size =3D length;
+> +               result =3D sysfs_create_bin_file(fpdt_kobj, &bin_attr_FBP=
+T);
+> +               if (result)
+> +                       pr_warn("Failed to create FBPT sysfs attribute.\n=
+");
+> +       } else if (subtable_type =3D=3D SUBTABLE_S3PT) {
+> +               bin_attr_S3PT.private =3D subtable_header;
+> +               bin_attr_S3PT.size =3D length;
+> +               result =3D sysfs_create_bin_file(fpdt_kobj, &bin_attr_S3P=
+T);
+> +               if (result)
+> +                       pr_warn("Failed to create S3PT sysfs attribute.\n=
+");
+> +       }
 > +
-> +description: |
-> +  Arm Reliability, Availability and Serviceability (RAS) firmware can expose
-> +  a firmware-first CPER error source directly via DeviceTree. Firmware
-> +  provides the CPER Generic Error Status block and notifies the OS through
-> +  an interrupt.
+>         return 0;
+>
+>  err:
+> +       if (bin_attr_FBPT.private) {
+> +               sysfs_remove_bin_file(fpdt_kobj, &bin_attr_FBPT);
+> +               bin_attr_FBPT.private =3D NULL;
+> +       }
 > +
-> +properties:
-> +  compatible:
-> +    const: arm,ras-cper
+> +       if (bin_attr_S3PT.private) {
+> +               sysfs_remove_bin_file(fpdt_kobj, &bin_attr_S3PT);
+> +               bin_attr_S3PT.private =3D NULL;
+> +       }
 > +
-> +  reg:
-> +    minItems: 1
-> +    items:
-> +      - description:
-> +          CPER Generic Error Status block exposed by firmware
-> +      - description:
-> +          Optional 32- or 64-bit doorbell register used on platforms
-> +          where firmware needs an explicit "ack" handshake before overwriting
-> +          the CPER buffer. Firmware watches bit 0 and expects the OS to set it
-> +          once the current status block has been consumed.
-> +
-> +  interrupts:
-> +    maxItems: 1
-> +    description:
-> +      Interrupt used to signal that a new status record is ready.
-> +
-> +  memory-region:
-> +    $ref: /schemas/types.yaml#/definitions/phandle
+>         if (record_boot)
+>                 sysfs_remove_group(fpdt_kobj, &boot_attr_group);
+>
+> --
 
-memory-region already has a defined type. You just need to define how 
-many entries (maxItems: 1).
-
-> +    description:
-> +      Optional phandle to the reserved-memory entry that backs the status
-> +      buffer so firmware and the OS use the same carved-out region.
-> +
-> +required:
-> +  - compatible
-> +  - reg
-> +  - interrupts
-> +
-> +additionalProperties: false
-> +
-> +examples:
-> +  - |
-> +    #include <dt-bindings/interrupt-controller/arm-gic.h>
-> +
-> +    reserved-memory {
-> +      #address-cells = <2>;
-> +      #size-cells = <2>;
-> +      ras_cper_buffer: cper@fe800000 {
-> +        reg = <0x0 0xfe800000 0x0 0x1000>;
-> +        no-map;
-> +      };
-> +    };
-> +
-> +    error-handler@fe800000 {
-> +      compatible = "arm,ras-cper";
-> +      reg = <0xfe800000 0x1000>,
-
-Wait! Why is the reserved address here? There's 2 problems with that. 
-There shouldn't be same address in 2 places in the DT. The 2nd is 
-reserved memory should only be regions within DRAM (or whatever is 
-system memory).
-
-Rob
+Both patches applied as 7.1 material, thanks!
