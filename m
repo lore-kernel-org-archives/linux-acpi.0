@@ -1,155 +1,154 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4EE83644D1;
-	Wed, 25 Mar 2026 20:20:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9951433ADAC;
+	Thu, 26 Mar 2026 08:06:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774470039; cv=none; b=eybBcXhRxMxmPtn87BtN2tyZcMcdfxSZUt/3Vfh4OOjuGp65DIV2u0pfE6O8/JElhxGUPZWbN+VE+kgpMOocSSz+uj2NLdfs7/+hRyKUaLlNHBDZ48YuTqK1vet6nCutMXOs6JvvBjMhSR/1EDgQc3XpoF4m6mbAR1aOSS6hZyY=
+	t=1774512400; cv=none; b=pGopi+wxqmKjlpJtyxhQ/J+FOj5SVFwOd9935hkpHAdcjhxdv/hJ2JhDE3D4PO/6tCjk0Vw7Q7hTvbcToQVzMhWrWrCr+MOlveQMcdIUd+ghzJtmVupVJdp7eHIVJISnWPS+Uc54sbC4XXumMP2yMsyUvO3v4ZnIvGd8RApsqL4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774470039; c=relaxed/simple;
-	bh=EJf9EH03K048GnQyciGn9nJ/4njlCY8sY9h7aSYy5jQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition:In-Reply-To; b=d/hwnw7DXZ71R5AFbQeXXCrtvFgOKDmscmEvalotQF+3a31/4Ma6W+uZ9Qw+wCSvMBWMNpapeMzBt22kwDRMBsextEGh8G4w2MfQoWoEFcWtHyC2rZfeue+sMkjxFXxIAkj8x6on8EibsojxQ1FTYudKAy2gjaUoASKU56Lwwjg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=R/sHWhQC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774512400; c=relaxed/simple;
+	bh=90rMoHNtpikEEOX4hxu7KxohYPZTjuhD8cCrdkwCho4=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=CJrNPvnsp9k4EW1l5pAZGjGUfb/VsViAAbGQWYCcBILAzN8DqVa7fZh5osQzWJsQfwtVvF7HsyZh1tIJyAxX8MeNydUOxZRr4hhatGOYli5oUqsBuDiqxC57HoGr4q0R7ntJTc2MRtlweBPalh0Bp0xKg+44yBFFnG4X3Y80ub4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VSUoMf7R; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="R/sHWhQC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 469B9C4CEF7;
-	Wed, 25 Mar 2026 20:20:38 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VSUoMf7R"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 6C1F4C2BCB1;
+	Thu, 26 Mar 2026 08:06:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774470038;
-	bh=EJf9EH03K048GnQyciGn9nJ/4njlCY8sY9h7aSYy5jQ=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:From;
-	b=R/sHWhQCzYd+ZF4ClNbFtPpjz3TwD6fZXZ1sS0wPW8AqP3rl0tovUYaWdonKVWaiJ
-	 OwlrlLGPKyQJzjTcNTMD7KHdXAJOjy/Pgec4iK1sQUwsjoZifIZYI5uC0jTlzEGcLG
-	 18viuyai68dZgzN8F87qzLT1SkxhJdMLTx9dm/6064TjKTmgnptwvlSI/XP/fcRtl4
-	 giL0rQUFbbUETMdG05uXbW4WH5fvuqaOMDFtm2P7I5VMCeTlaQAU4irvLB2JumoxMH
-	 16eIDSTM+Evjf3AQNa1cthVdIu/mws4vSuaCZCJQTTLQFydtFozsiRGP5ZJm2cF9Ry
-	 tmA3OJZNW4eqw==
-Date: Wed, 25 Mar 2026 15:20:37 -0500
-From: Bjorn Helgaas <helgaas@kernel.org>
-To: Herve Codina <herve.codina@bootlin.com>
-Cc: Andrew Lunn <andrew@lunn.ch>, Rob Herring <robh@kernel.org>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	Geert Uytterhoeven <geert+renesas@glider.be>,
-	Kalle Niemi <kaleposti@gmail.com>,
-	Matti Vaittinen <mazziesaccount@gmail.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>, Frank Li <Frank.Li@nxp.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Pengutronix Kernel Team <kernel@pengutronix.de>,
-	Fabio Estevam <festevam@gmail.com>,
-	Michael Turquette <mturquette@baylibre.com>,
-	Stephen Boyd <sboyd@kernel.org>, Andi Shyti <andi.shyti@kernel.org>,
-	Wolfram Sang <wsa+renesas@sang-engineering.com>,
-	Peter Rosin <peda@axentia.se>, Arnd Bergmann <arnd@arndb.de>,
-	Saravana Kannan <saravanak@kernel.org>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Charles Keepax <ckeepax@opensource.cirrus.com>,
-	Richard Fitzgerald <rf@opensource.cirrus.com>,
-	David Rhodes <david.rhodes@cirrus.com>,
-	Linus Walleij <linusw@kernel.org>,
-	Ulf Hansson <ulf.hansson@linaro.org>,
-	Mark Brown <broonie@kernel.org>, Len Brown <lenb@kernel.org>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Davidlohr Bueso <dave@stgolabs.net>,
-	Jonathan Cameron <jonathan.cameron@huawei.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Alison Schofield <alison.schofield@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Ira Weiny <ira.weiny@intel.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Shawn Guo <shawnguo@kernel.org>, Wolfram Sang <wsa@kernel.org>,
-	linux-kernel@vger.kernel.org, driver-core@lists.linux.dev,
-	imx@lists.linux.dev, linux-arm-kernel@lists.infradead.org,
-	linux-clk@vger.kernel.org, linux-i2c@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-pci@vger.kernel.org,
-	linux-sound@vger.kernel.org, patches@opensource.cirrus.com,
-	linux-gpio@vger.kernel.org, linux-pm@vger.kernel.org,
-	linux-spi@vger.kernel.org, linux-acpi@vger.kernel.org,
-	linux-cxl@vger.kernel.org,
-	Allan Nielsen <allan.nielsen@microchip.com>,
-	Horatiu Vultur <horatiu.vultur@microchip.com>,
-	Steen Hegelund <steen.hegelund@microchip.com>,
-	Luca Ceresoli <luca.ceresoli@bootlin.com>,
-	Thomas Petazzoni <thomas.petazzoni@bootlin.com>
-Subject: Re: [PATCH v6 13/27] PCI: of: Remove fwnode_dev_initialized() call
- for a PCI root bridge node
-Message-ID: <20260325202037.GA1291636@bhelgaas>
+	s=k20201202; t=1774512400;
+	bh=90rMoHNtpikEEOX4hxu7KxohYPZTjuhD8cCrdkwCho4=;
+	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
+	b=VSUoMf7RhRL6XWXGd4mB8B+FTVTqYZfDUov0jI/YT+tcrFj+ZqPFSmCYkQgAij6od
+	 ZvMhHeQLKBsDKRVJ/VdKqApFKQegyaggZYQrqwTlSf4NsPyxfo+ReuW3afaP66NqYn
+	 fs1N2SReU+iI5+bblk1v0A2Qq395tYa2zA8oSVhmoCFDE2eL6NVANUmYQPXkrboUN4
+	 n/08EUj0c/EiET7vBeT1ptYl9DPCN9hD83CE/BfoGBZzNE1QNeUYZN8kxMkKbb8DUl
+	 L/pZOJ9by1ekkiAV5z0EL+hbPZlUhS4mmkl4yDUFZgbhwTBoPUAzYIsV7hhnIHPM8Z
+	 IAiHN910O4OoA==
+Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 55653106F2F3;
+	Thu, 26 Mar 2026 08:06:40 +0000 (UTC)
+From: Manivannan Sadhasivam via B4 Relay <devnull+manivannan.sadhasivam.oss.qualcomm.com@kernel.org>
+Date: Thu, 26 Mar 2026 13:36:30 +0530
+Subject: [PATCH v7 2/8] serdev: Add an API to find the serdev controller
+ associated with the devicetree node
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260325143555.451852-14-herve.codina@bootlin.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20260326-pci-m2-e-v7-2-43324a7866e6@oss.qualcomm.com>
+References: <20260326-pci-m2-e-v7-0-43324a7866e6@oss.qualcomm.com>
+In-Reply-To: <20260326-pci-m2-e-v7-0-43324a7866e6@oss.qualcomm.com>
+To: Rob Herring <robh@kernel.org>, 
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+ Jiri Slaby <jirislaby@kernel.org>, Nathan Chancellor <nathan@kernel.org>, 
+ Nicolas Schier <nicolas.schier@linux.dev>, Hans de Goede <hansg@kernel.org>, 
+ =?utf-8?q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, 
+ Mark Pearson <mpearson-lenovo@squebb.ca>, 
+ "Derek J. Clark" <derekjohn.clark@gmail.com>, 
+ Manivannan Sadhasivam <mani@kernel.org>, 
+ Krzysztof Kozlowski <krzk+dt@kernel.org>, 
+ Conor Dooley <conor+dt@kernel.org>, Marcel Holtmann <marcel@holtmann.org>, 
+ Luiz Augusto von Dentz <luiz.dentz@gmail.com>, 
+ Bartosz Golaszewski <brgl@bgdev.pl>, 
+ Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
+ Bartosz Golaszewski <brgl@kernel.org>
+Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ linux-kbuild@vger.kernel.org, platform-driver-x86@vger.kernel.org, 
+ linux-pci@vger.kernel.org, devicetree@vger.kernel.org, 
+ linux-arm-msm@vger.kernel.org, linux-bluetooth@vger.kernel.org, 
+ linux-pm@vger.kernel.org, Stephan Gerhold <stephan.gerhold@linaro.org>, 
+ Dmitry Baryshkov <dmitry.baryshkov@oss.qualcomm.com>, 
+ linux-acpi@vger.kernel.org, 
+ Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>, 
+ Hans de Goede <johannes.goede@oss.qualcomm.com>, 
+ Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+X-Mailer: b4 0.15.0
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2248;
+ i=manivannan.sadhasivam@oss.qualcomm.com; h=from:subject:message-id;
+ bh=rr2lmVP0IC6lUnB67NHw0qDXlaCs5LnvUTeOalg9qug=;
+ b=owEBbQGS/pANAwAKAVWfEeb+kc71AcsmYgBpxOkNFnPCY8rlImwmoav5x6RK0WOCh1k67UnkK
+ tWxcXlgZmSJATMEAAEKAB0WIQRnpUMqgUjL2KRYJ5dVnxHm/pHO9QUCacTpDQAKCRBVnxHm/pHO
+ 9XKQB/9CSXeRJwS5NhVSb4wiX3OflP1zFS299ahwT+wJ/WPmuWbeRd7xFOmfaCHyxHa3z7q4+Z4
+ uOwpqWolIy+p2mDbVuDufH1pTUjYCZ4V3z63MWM6tUB4cWaUqf0Bqv09LwOiaJ60fSvgGk3I8+3
+ /DhHBpnSID+mbL/nQxvlIqoWDvsi1RCHAl3TJzup7yyJq6507KDw3lXW2SesGmy1DnH3k96xt6i
+ u2KunrYZaUQZx47kXE8MdNR3dQKI6oDdWNK+IjhhoHYmJUErD7jTq8Mmd33VXoKteKBL+Knjh5v
+ RmR7FAslGJokUbE6ad1rbPmMnYzzLYQBQl2yY3iF+HY9GgYr
+X-Developer-Key: i=manivannan.sadhasivam@oss.qualcomm.com; a=openpgp;
+ fpr=C668AEC3C3188E4C611465E7488550E901166008
+X-Endpoint-Received: by B4 Relay for
+ manivannan.sadhasivam@oss.qualcomm.com/default with auth_id=461
+X-Original-From: Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>
+Reply-To: manivannan.sadhasivam@oss.qualcomm.com
 
-On Wed, Mar 25, 2026 at 03:35:40PM +0100, Herve Codina wrote:
-> During the instantiation of devices described by a device-tree overlay
-> applied on a PCI device, devlink displays the following kind of debug
-> messages instead of creating the expected links:
->    'Not linking xxxx - might never become dev'
-> 
-> Without those expected links, the device removal order cannot be
-> correct.
-> 
-> Those debug traces are printed by fw_devlink_create_devlink(). In our
-> use case, they are all printed because the supplier of the link has at
-> least one of its ancestor with its fwnode flag FWNODE_FLAG_INITIALIZED
-> set.
-> 
-> The culprit ancestor is the PCI root bridge.
-> 
-> The fwnode related to the PCI root bridge is created dynamically by the
-> of_pci_make_host_bridge_node() function. During this creation
-> fwnode_dev_initialized() is called which set the FWNODE_FLAG_INITIALIZED
-> flag.
-> 
-> Calling fwnode_dev_initialized() tells devlink that the device related
-> to this node is handled out of the driver core. This is not correct in
-> our case. Indeed the device related to this firmware node is handled
-> using driver core mechanisms and is fully compliant devlink
-> expectations.
-> 
-> Simply remove the fwnode_dev_initialized() call. With that done, the
-> devlink debug messages are no more displayed and links that were missing
-> are correctly created.
-> 
-> Signed-off-by: Herve Codina <herve.codina@bootlin.com>
+From: Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>
 
-I would ordinarily make sure the person who added
-fwnode_dev_initialized() here was ok with its removal, but it looks
-like you added this with 1f340724419e ("PCI: of: Create device tree
-PCI host bridge node"), so I assume you're ok with removing it :)
+Add of_find_serdev_controller_by_node() API to find the serdev controller
+device associated with the devicetree node.
 
-I suppose there could be a "Fixes: 1f340724419e" tag, but maybe
-there's no need to backport this anywhere?
+Tested-by: Hans de Goede <johannes.goede@oss.qualcomm.com> # ThinkPad T14s gen6 (arm64)
+Reviewed-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Signed-off-by: Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>
+---
+ drivers/tty/serdev/core.c | 19 +++++++++++++++++++
+ include/linux/serdev.h    |  9 +++++++++
+ 2 files changed, 28 insertions(+)
 
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+diff --git a/drivers/tty/serdev/core.c b/drivers/tty/serdev/core.c
+index 8f25510f89b6..bf88b95f7458 100644
+--- a/drivers/tty/serdev/core.c
++++ b/drivers/tty/serdev/core.c
+@@ -514,6 +514,25 @@ struct serdev_controller *serdev_controller_alloc(struct device *host,
+ }
+ EXPORT_SYMBOL_GPL(serdev_controller_alloc);
+ 
++#ifdef CONFIG_OF
++/**
++ * of_find_serdev_controller_by_node() - Find the serdev controller associated
++ *					 with the devicetree node
++ * @node:	Devicetree node
++ *
++ * Return: Pointer to the serdev controller associated with the node. NULL if
++ * the controller is not found. Caller is responsible for calling
++ * serdev_controller_put() to drop the reference.
++ */
++struct serdev_controller *of_find_serdev_controller_by_node(struct device_node *node)
++{
++	struct device *dev = bus_find_device_by_of_node(&serdev_bus_type, node);
++
++	return (dev && dev->type == &serdev_ctrl_type) ? to_serdev_controller(dev) : NULL;
++}
++EXPORT_SYMBOL_GPL(of_find_serdev_controller_by_node);
++#endif
++
+ static int of_serdev_register_devices(struct serdev_controller *ctrl)
+ {
+ 	struct device_node *node;
+diff --git a/include/linux/serdev.h b/include/linux/serdev.h
+index 0c7d3c27d1f8..188c0ba62d50 100644
+--- a/include/linux/serdev.h
++++ b/include/linux/serdev.h
+@@ -334,4 +334,13 @@ static inline bool serdev_acpi_get_uart_resource(struct acpi_resource *ares,
+ }
+ #endif /* CONFIG_ACPI */
+ 
++#ifdef CONFIG_OF
++struct serdev_controller *of_find_serdev_controller_by_node(struct device_node *node);
++#else
++static inline struct serdev_controller *of_find_serdev_controller_by_node(struct device_node *node)
++{
++	return NULL;
++}
++#endif /* CONFIG_OF */
++
+ #endif /*_LINUX_SERDEV_H */
 
-> ---
->  drivers/pci/of.c | 1 -
->  1 file changed, 1 deletion(-)
-> 
-> diff --git a/drivers/pci/of.c b/drivers/pci/of.c
-> index b694fcda16b1..0993257fe025 100644
-> --- a/drivers/pci/of.c
-> +++ b/drivers/pci/of.c
-> @@ -811,7 +811,6 @@ void of_pci_make_host_bridge_node(struct pci_host_bridge *bridge)
->  	 */
->  	of_node_set_flag(np, OF_POPULATED);
->  	fw_devlink_set_device(&np->fwnode, &bridge->dev);
-> -	fwnode_dev_initialized(&np->fwnode, true);
->  
->  	ret = of_changeset_apply(cset);
->  	if (ret)
-> -- 
-> 2.53.0
-> 
+-- 
+2.51.0
+
+
