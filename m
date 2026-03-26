@@ -1,150 +1,135 @@
-Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91ACE4014A2;
-	Thu, 26 Mar 2026 15:44:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.84.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5449401A38
+	for <linux-acpi@vger.kernel.org>; Thu, 26 Mar 2026 15:47:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774539883; cv=none; b=iGuvhLqb7I18xwHtzkUn2TBkQUDv6gGYhk8F9bUvwnMwRwvhEiQPlbT0e4CBCqcMhYro2XCHMRDc4AmPlZvIJOOXyFQr5vH9BqmhzuLiJr/HlS0J5umqOJShVuVWI+/RlCissZgrTCsvo10ZtT3qG5XCprTfJPuSRAOkj2tBIZ8=
+	t=1774540034; cv=none; b=XzuKH+/7ZUxTCJLoMAOwFkWOQTOgx6nkotaBAAFL/cgpuxMcaCiQSM0Fgk0zFztpssZA3g3HP/Smdfwt1DciGQMFs/lRy5pjQr/IXDBPT87S5LPXnJ4FZ081fc5kmVurj+f5PBmXAcnT7qM0pVL4zBFfOzfrW/O6XZpE0/2LH+o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774539883; c=relaxed/simple;
-	bh=fegKwxX/JUwCF2Lx6tujwh9Zba20d9CylFdb5bDXNpU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=nLVpI74ZgIKW/X2dT1VkaHjpQ6r6RysT90arYiQ1d0c+QYtogf7/aDDr4L19OA+HrciTBfA4SkDhK4W0Sd/OLdqm7aTSFLIkfkn4XsZDyOsLhdbY1rlCl3x6hNhpaenxA0epH4Tou8ryIirHrZ28IJEJyaAWfaQckR/W4UURU3g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=FJppiSpM; arc=none smtp.client-ip=185.246.84.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
+	s=arc-20240116; t=1774540034; c=relaxed/simple;
+	bh=fWnV7rDU2XNvNnwbXNTOC3wtz4D4Ffj4sBhra5QKJMk=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=n6EuoMMUm6oZuy3VoHpmMsF7WCdH3XKignCn4KTWWI7CKDw8B5y1E9H+O0L006dpdiInwUxYMAfZqjFAIdUy6KkQdGULUM7nVQtdmf5j8uO4HUTD/JZ5DnaRY4CEr2A2LKDAGPfJ5JsgXhjIuhV6ck8JW0ORbLXKstGxS3FDxOk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ftCKq5fD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="FJppiSpM"
-Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-02.galae.net (Postfix) with ESMTPS id 890941A3003;
-	Thu, 26 Mar 2026 15:44:38 +0000 (UTC)
-Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id 59680601FA;
-	Thu, 26 Mar 2026 15:44:38 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id D012C10450519;
-	Thu, 26 Mar 2026 16:44:31 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1774539877; h=from:subject:date:message-id:to:cc:mime-version:content-type:
-	 in-reply-to:references; bh=LkNoR3D4UbafRdhgG19imB15t8UnwV/2QMs/xxLmVyU=;
-	b=FJppiSpMFzTcwEj8BcylcxckqdLi3AAFThxTsgjf1VxD813E3aBkMGWgw/R8+eBpwILq49
-	SIqEMogdAM0hHIpYOqpvRet+87Z47SIG9H9zRGzztKEagjZGSc4jC99LV/pEPGmnmE2hFR
-	j0aicGJlzLGjkOyveHO/MPNtvWTEuOVTmXN354hbJc3sOB2XwIbuNT8VMVJ7XwtFWFcCiX
-	WpySGxQl2dLbAeHYterMB/py0EmGIPFEY/G0Dr2QHaPgWHusv9ZuoJeS5EFUE01picFt2j
-	WdKopCMVh7tFY8NZVxQFvXnJXyafnRHn+K9a5syQrIxj5hxsj0ZHxN/KF4wAqg==
-Date: Thu, 26 Mar 2026 16:44:31 +0100
-From: Alexandre Belloni <alexandre.belloni@bootlin.com>
-To: Rob Herring <robh@kernel.org>
-Cc: Conor Dooley <conor@kernel.org>, Akhil R <akhilrajeev@nvidia.com>,
-	Frank Li <Frank.Li@nxp.com>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	"Rafael J . Wysocki" <rafael@kernel.org>,
-	Robert Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Eric Biggers <ebiggers@kernel.org>,
-	Fredrik Markstrom <fredrik.markstrom@est.tech>,
-	Miquel Raynal <miquel.raynal@bootlin.com>,
-	Thierry Reding <thierry.reding@kernel.org>,
-	Jon Hunter <jonathanh@nvidia.com>,
-	Suresh Mangipudi <smangipudi@nvidia.com>,
-	linux-tegra@vger.kernel.org, linux-i3c@lists.infradead.org,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev,
-	linux-hwmon@vger.kernel.org
-Subject: Re: [PATCH 01/12] dt-bindings: i3c: Add mipi-i3c-static-method to
- support SETAASA
-Message-ID: <202603261544313f63018c@mail.local>
-References: <20260318172820.13771-1-akhilrajeev@nvidia.com>
- <20260318172820.13771-2-akhilrajeev@nvidia.com>
- <20260318-tweed-herbicide-eb924ef056b8@spud>
- <20260326150503.GA2360967-robh@kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ftCKq5fD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 744DBC2BCB5
+	for <linux-acpi@vger.kernel.org>; Thu, 26 Mar 2026 15:47:14 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1774540034;
+	bh=fWnV7rDU2XNvNnwbXNTOC3wtz4D4Ffj4sBhra5QKJMk=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=ftCKq5fDWXgoE6TB7zqzejmnwb7TwGh/Ef70cw2Erxvd5NtOawXMKGgki6mxHAQIb
+	 AF+kGDCJtRVBWWmaG5oz7I77jgoblk9bjZ+27Kv8YbbqKo878ki9/dLGioJBz90NKh
+	 ZDeqBBXDIznMeQkOuEhr45wg8adR0HxDNGZpSdtikDomDuK0cVo4rtgVem2oawOrxz
+	 t4duiBxoKgen3oQtTvB+hf8f0vMgsinjirMu4mJWsvBkIKaK+oVvfe5CaSHbs7PVBU
+	 OSYvC3WFoLCv/6a1w3jETjsdR2MecSs+XelNMuI5VHb+MvT1H3Lp3eOdxlgXlkhLpj
+	 Ox0iIX7Rd98uA==
+Received: by mail-lj1-f179.google.com with SMTP id 38308e7fff4ca-38be5d7c27cso10372541fa.0
+        for <linux-acpi@vger.kernel.org>; Thu, 26 Mar 2026 08:47:14 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCUE1W9O22/WsjSq/wvcAWrSgpYCp8qZMPVwyarMToZrylQlpHljUqnKjUDoyNR/uQw6Q4OSF4ZGESYq@vger.kernel.org
+X-Gm-Message-State: AOJu0YyM//B3kGEBs2bh3nI6cKEqTYCWyRr/VymZLC+X8aa5j4KV0ywO
+	44o48cvY3xhnWSvclZiYN0/sODwrBQvqsq7APHfxocLmeLWK2ySw0JsNht9o9TB2gqxsZs1t0kB
+	9wAJh/LG+d/8cJIaYs2xzO0TKGuPrqI1Ryu5I1zD1og==
+X-Received: by 2002:a05:651c:2118:b0:38c:4b14:13ab with SMTP id
+ 38308e7fff4ca-38c4b148507mr26935061fa.33.1774540032962; Thu, 26 Mar 2026
+ 08:47:12 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260326150503.GA2360967-robh@kernel.org>
-X-Last-TLS-Session-Version: TLSv1.3
+References: <acIV6xF8mY-8wd5e@google.com> <CAMRc=MdJ0U2_ZQ5rP0Vmbv7+-xurf9F+WOwD3LwV=n5Fx33U=Q@mail.gmail.com>
+ <acK69OColNT7ViLf@google.com> <CAMRc=Mcw66QpjQt4+_JdMq9JiAY28hjzNHa24gfOCCXyie-uRQ@mail.gmail.com>
+ <acTtzuGD-K5XvVir@ashevche-desk.local> <CAMRc=MeEMx1w5HaXBUP6iAu8T8b7Ti1i7JVDDTwvpjaEOtDJuw@mail.gmail.com>
+ <acTwqD8fXZSncMIS@ashevche-desk.local> <acTy8Wkfs8Sx84oZ@ashevche-desk.local>
+In-Reply-To: <acTy8Wkfs8Sx84oZ@ashevche-desk.local>
+From: Bartosz Golaszewski <brgl@kernel.org>
+Date: Thu, 26 Mar 2026 16:47:00 +0100
+X-Gmail-Original-Message-ID: <CAMRc=MdrxYRhB3MWnhTPM9FqzF-_P7Br5mRJ7kYOxQ2G3zjdow@mail.gmail.com>
+X-Gm-Features: AQROBzDf3HYMGKXpGrLn5Y55f4GIrv8bJ8UmGCkyoSsx25x8l8K48Rl09M-Q0Ho
+Message-ID: <CAMRc=MdrxYRhB3MWnhTPM9FqzF-_P7Br5mRJ7kYOxQ2G3zjdow@mail.gmail.com>
+Subject: Re: [PATCH] software node: allow referencing software nodes by name
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Daniel Scally <djrscally@gmail.com>, 
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, Danilo Krummrich <dakr@kernel.org>, 
+	"Rafael J. Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org, driver-core@lists.linux.dev, 
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 26/03/2026 10:05:03-0500, Rob Herring wrote:
-> On Wed, Mar 18, 2026 at 05:31:50PM +0000, Conor Dooley wrote:
-> > On Wed, Mar 18, 2026 at 10:57:14PM +0530, Akhil R wrote:
-> > > Add the 'mipi-i3c-static-method' property mentioned in the MIPI I3C
-> > > Discovery and Configuration Specification [1] to specify which discovery
-> > > method an I3C device supports during bus initialization. The property is
-> > > a bitmap, where a bit value of 1 indicates support for that method, and 0
-> > > indicates lack of support.
-> > > Bit 0: SETDASA CCC (Direct)
-> > > Bit 1: SETAASA CCC (Broadcast)
-> > > Bit 2: Other CCC (vendor / standards extension)
-> > > All other bits are reserved.
-> > > 
-> > > It is specifically needed when an I3C device requires SETAASA for the
-> > > address assignment. SETDASA will be supported by default if this property
-> > > is absent - which means for now the property just serves as a flag to
-> > > enable SETAASA, but keep the property as a bitmap to align with the
-> > > specifications.
-> > > 
-> > > [1] https://www.mipi.org/specifications/disco
-> > > 
-> > > Signed-off-by: Akhil R <akhilrajeev@nvidia.com>
-> > > ---
-> > >  .../devicetree/bindings/i3c/i3c.yaml          | 30 ++++++++++++++++---
-> > >  1 file changed, 26 insertions(+), 4 deletions(-)
-> > > 
-> > > diff --git a/Documentation/devicetree/bindings/i3c/i3c.yaml b/Documentation/devicetree/bindings/i3c/i3c.yaml
-> > > index e25fa72fd785..1705d90d4d79 100644
-> > > --- a/Documentation/devicetree/bindings/i3c/i3c.yaml
-> > > +++ b/Documentation/devicetree/bindings/i3c/i3c.yaml
-> > > @@ -31,10 +31,12 @@ properties:
-> > >        described in the device tree, which in turn means we have to describe
-> > >        I3C devices.
-> > >  
-> > > -      Another use case for describing an I3C device in the device tree is when
-> > > -      this I3C device has a static I2C address and we want to assign it a
-> > > -      specific I3C dynamic address before the DAA takes place (so that other
-> > > -      devices on the bus can't take this dynamic address).
-> > > +      Other use-cases for describing an I3C device in the device tree are:
-> > > +      - When the I3C device has a static I2C address and we want to assign
-> > > +        it a specific I3C dynamic address before the DAA takes place (so
-> > > +        that other devices on the bus can't take this dynamic address).
-> > > +      - When the I3C device requires SETAASA for its discovery and uses a
-> > > +        pre-defined static address.
-> > >  
-> > >    "#size-cells":
-> > >      const: 0
-> > > @@ -147,6 +149,26 @@ patternProperties:
-> > >            through SETDASA. If static address is not present, this address is assigned
-> > >            through SETNEWDA after assigning a temporary address via ENTDAA.
-> > >  
-> > > +      mipi-i3c-static-method:
-> > > +        $ref: /schemas/types.yaml#/definitions/uint32
-> > > +        minimum: 0x1
-> > > +        maximum: 0xff
-> > > +        default: 1
-> > > +        description: |
-> > > +          Bitmap describing which methods of Dynamic Address Assignment from a
-> > > +          static address are supported by this I3C Target. A bit value of 1
-> > > +          indicates support for that method, and 0 indicates lack of support.
-> > 
-> > I really am not keen on properties that are bitmaps, why can't we just
-> > use the strings "setdasa", "setaasa" etc?
-> 
-> If this comes from a specification, then I'd tend to just copy it rather 
-> than invent our own thing. Obviously if is something structured 
-> fundamentally different from how DT is designed, then we wouldn't. But 
-> this is just a simple property.
-> 
+On Thu, Mar 26, 2026 at 9:48=E2=80=AFAM Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
+>
+> On Thu, Mar 26, 2026 at 10:39:09AM +0200, Andy Shevchenko wrote:
+> > On Thu, Mar 26, 2026 at 09:34:01AM +0100, Bartosz Golaszewski wrote:
+> > > On Thu, Mar 26, 2026 at 9:27=E2=80=AFAM Andy Shevchenko
+> > > <andriy.shevchenko@linux.intel.com> wrote:
+> > > > On Wed, Mar 25, 2026 at 05:32:06PM +0100, Bartosz Golaszewski wrote=
+:
+> > > > > On Tue, Mar 24, 2026 at 8:30=E2=80=AFPM Dmitry Torokhov
+> > > > > <dmitry.torokhov@gmail.com> wrote:
+> > > > > >
+> > > > > > Please post the reworked version so we can review all the detai=
+ls. My
+> > > > > > concern was that it relies on notifier chains to notify when de=
+vices
+> > > > > > get registered and unregistered, and instead of matching node n=
+ames you
+> > > > > > now need to somehow match device instances and software node in=
+stances,
+> > > > > > which again likely is done based on some name. This just piles =
+on
+> > > > > > complexity where a simpler solution would be sufficient.
+> > > > >
+> > > > > I will post it. Hopefully before the end of the week. I want to c=
+over
+> > > > > both OF nodes with paz00 as well as ACPI with android tablets. Th=
+e
+> > > > > latter case will have to wait for devices because there's no way =
+to
+> > > > > look up an ACPI node by name that I could idenfity (correct me if=
+ I'm
+> > > > > wrong).
+> > > >
+> > > > What do you need from ACPI exactly? The ACPI namespace in the OS is=
+ represented
+> > > > by set of ACPI handles, each of which is the object pointing out to=
+ some object
+> > > > in it. Any object in ACPI has a unique path. At any time, after par=
+sing the
+> > > > ACPI table(s) into ACPI namespace we may get a handle based on the =
+path.
+> > >
+> > > DT is unflattened very early into the boot sequence. Is this the case
+> > > for ACPI tables as well? Knowing the name of the device (HID + index,
+> > > eg.: "INT33FF:00"), can I check if there's a corresponding ACPI node
+> > > (of_find_by_path/name() in DT parlance)?
+> >
+> > I believe so. See how we find a GPIO chip in the gpiolib-acpi-core.c.
+> > In the similar way you can try finding any object in ACPI namespace.
+> >
+> > But note, ":00" is part of device instance name, it's not available
+> > in ACPI namespace. There we have HID, UID, et cetera, ":00" is pure
+> > Linux kernel thingy.
+>
+> We have acpi_dev_present(), but if you read its kernel-doc, it suggests
+> to use acpi_get_devices() for the case of early checks (before device
+> are actually being instantiated).
+>
 
-The issue being that the specification is not public so it is difficult
-to take any decision.
+Ah, but I'm seeing that the firmware node handle of the acpi device is
+part of struct acpi_device and is only initialized during the scanning
+phase which happens at subsys_initcall() time? When using
+acpi_get_devices() you have an abstract handle and no fwnode for which
+to assign the secondary node yet, right?
 
--- 
-Alexandre Belloni, co-owner and COO, Bootlin
-Embedded Linux and Kernel engineering
-https://bootlin.com
+It's not like with DT where there already is an instance of struct
+device_node to which you can assign the secondary fwnode even if its
+device doesn't exist yet.
+
+Bart
