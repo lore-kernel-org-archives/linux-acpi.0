@@ -1,85 +1,128 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3447B33509A
-	for <linux-acpi@vger.kernel.org>; Thu, 26 Mar 2026 18:10:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24E7939FCA8;
+	Thu, 26 Mar 2026 19:01:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.19
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774548601; cv=none; b=bKi+xJ4T9Cq8gAP62nrncQv24cNL8x3aYtlkKfuSpOddYAxnSal4cTBv/ql49Yr6gQJg5mWBPtTBNLvGjLlSwpBdDRHZ6mz/x2H7OttxVfdcd+4gE4iM8w4PhD77B3IHPZFP9q8k1oLBpMMK54VLUKomhn9PNcfUH/FteS2pyTE=
+	t=1774551695; cv=none; b=COCA67mqZldPu/z+U0gs4SXZh6FybeOeRf8mUYJFrvU4cKL1GCsS34FXDo0bKfgTOQF8HWh0aRCulnKECnOBUxfTSSi90hYnobaE+HYkF/zZoQdXxw939sxF9w/wKtp4WGiflvhs/df4FMoisWy1OclfrFpuidQUc8pjq3xbff8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774548601; c=relaxed/simple;
-	bh=B3MiaxlBHCItTEXkunnaZHjgsbKerYuSCijvUA6ZIx8=;
-	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=P79NUbcBNjlUfNDBX+3be2frduiMFFaXPgwiYbhkbcNhK4CdorIbMbd73NKewGAXK19wyiv2RmzQWD3SIUE5/dx7/CEdKXnXcxyK4ABqF/spSibWkXo3yYpSaWxKGOmZrr5EAOp/OO74HkdlfXetgSVICTiGgMB/WyylWlz0sxU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=j8Y4bNQt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774551695; c=relaxed/simple;
+	bh=pemYj7W8qnWMM3IVzS/AldTzqGCv3suyEAE2D6hM5OQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=ri1ePTH6ncywjsG2HB6GdgFyB3Eio+PsIb1SLytt+3UGGE6woARkVU9kKE1j1rL1V9DRz53kjlznE7a7tV/plrywqHlqDSCye6ACvr7yocM6WMKyfpTlSZJQlozYhdcS0fH8I+VLspN1vdxR7X021jR2w/FSDmE9FHRZA2bX5iw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Huv9CZgi; arc=none smtp.client-ip=192.198.163.19
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="j8Y4bNQt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1845C116C6
-	for <linux-acpi@vger.kernel.org>; Thu, 26 Mar 2026 18:10:00 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774548600;
-	bh=B3MiaxlBHCItTEXkunnaZHjgsbKerYuSCijvUA6ZIx8=;
-	h=From:Date:Subject:To:Cc:From;
-	b=j8Y4bNQtPJMmSUG+ldlZOSGkgBXWkZ8/hknXQA4rkkW9Kl+dQ56NZJbOK/ewaNWkp
-	 aadWCiI9Tdg72Agf2AaooWbJMpz6TCZigruh8Ai4zurkTxgn7XvpMNY3/Mpr5JRpJi
-	 jH7deS+1Y9VFEt4RFHkpIpc91/ZZo7hCiwIRCXtwIJwVKn35Ju/zj6+TGJQg8Iguyo
-	 9ogWGm99McXvIVr/asXYvRpuOiR1yTnYGYhqPEpMQy3H7OWx1jAomT+CpoECXlHT96
-	 Ldk9skK7GlDkNvjGCtXy+NXRzjb0n+gBiXPh//TGhft3dmwD2Ckb1UovQMjfta8zNq
-	 E7qCLnRvlo0ww==
-Received: by mail-ot1-f46.google.com with SMTP id 46e09a7af769-7d9e22176a7so613325a34.1
-        for <linux-acpi@vger.kernel.org>; Thu, 26 Mar 2026 11:10:00 -0700 (PDT)
-X-Gm-Message-State: AOJu0YzyrIEcM+/P0/3zHVv+VPMo+SchgpEYj6xx7SKPLywX/qaLQASs
-	1cQxQAwdoF1m1I6y8x3igJU2hM1GLzBafWAL5KlZBW4jf8FzJXFlYaX+G7q3a7k3DUa5wQpCCzo
-	FprpknUNJ1y8+6O+iI16MoyLExEzFSDQ=
-X-Received: by 2002:a05:6870:f602:b0:41c:63f2:bfb8 with SMTP id
- 586e51a60fabf-41ca6ddbb48mr4201753fac.13.1774548599776; Thu, 26 Mar 2026
- 11:09:59 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Huv9CZgi"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1774551694; x=1806087694;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:content-transfer-encoding:in-reply-to;
+  bh=pemYj7W8qnWMM3IVzS/AldTzqGCv3suyEAE2D6hM5OQ=;
+  b=Huv9CZgiKWt2aqldB6FdnyWIVUQTpkiL/UAs9I2yzQ7AFKDUFigeqjC1
+   +ZMf5fZS6jSXZgK2FSGxFVx7bl3Rlnk9xv2Dn9M1XfYbnw6sRT6AXAP/Q
+   xZwJ8IyaTL1caxhC3PBIMclRUa9kwg8unF1hPK6+T+0z9nudLSLXvRZf8
+   2DQq+XqKOQeYPDh7D+kTlIs3d3NpR+eH6/2nTi7vnwkVpTITVB4g+BLlS
+   jmtvXqAi0bpPUW3Bt0qSErdo5K675PMkQn7A/u5K4eEstXAPcS3JmTdPA
+   Gjr63J9sIMbIgEuJt7ztIzjwbzDFcG/Ve5zcdwsVMuPHNw6rQ62ohhWKz
+   w==;
+X-CSE-ConnectionGUID: jtg1qP99RX2JDNa3Am61Hg==
+X-CSE-MsgGUID: UtJRYc8bRxmp7ywHYnnoTQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11741"; a="74652592"
+X-IronPort-AV: E=Sophos;i="6.23,142,1770624000"; 
+   d="scan'208";a="74652592"
+Received: from orviesa004.jf.intel.com ([10.64.159.144])
+  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Mar 2026 12:01:30 -0700
+X-CSE-ConnectionGUID: oWnWrdXhSuqxXeb2amQQsA==
+X-CSE-MsgGUID: GRCYOhJMRJS4HNWoHMVpbw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,142,1770624000"; 
+   d="scan'208";a="229558134"
+Received: from smoticic-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.245.216])
+  by orviesa004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Mar 2026 12:01:27 -0700
+Date: Thu, 26 Mar 2026 21:01:24 +0200
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Bartosz Golaszewski <brgl@kernel.org>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Danilo Krummrich <dakr@kernel.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org,
+	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] software node: allow referencing software nodes by name
+Message-ID: <acWChJZK-xwpuTZM@ashevche-desk.local>
+References: <acIV6xF8mY-8wd5e@google.com>
+ <CAMRc=MdJ0U2_ZQ5rP0Vmbv7+-xurf9F+WOwD3LwV=n5Fx33U=Q@mail.gmail.com>
+ <acK69OColNT7ViLf@google.com>
+ <CAMRc=Mcw66QpjQt4+_JdMq9JiAY28hjzNHa24gfOCCXyie-uRQ@mail.gmail.com>
+ <acTtzuGD-K5XvVir@ashevche-desk.local>
+ <CAMRc=MeEMx1w5HaXBUP6iAu8T8b7Ti1i7JVDDTwvpjaEOtDJuw@mail.gmail.com>
+ <acTwqD8fXZSncMIS@ashevche-desk.local>
+ <acTy8Wkfs8Sx84oZ@ashevche-desk.local>
+ <CAMRc=MdrxYRhB3MWnhTPM9FqzF-_P7Br5mRJ7kYOxQ2G3zjdow@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Thu, 26 Mar 2026 19:09:48 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0hMiiJojiagbnUPMW4w_6EsP7P0GqVTGWJm51-Ha71PHQ@mail.gmail.com>
-X-Gm-Features: AQROBzAoZQadVw0JovZCcqfwELTd2xkAtA_jjSxi5AWskeVTqNAr6AQsMRtSMBU
-Message-ID: <CAJZ5v0hMiiJojiagbnUPMW4w_6EsP7P0GqVTGWJm51-Ha71PHQ@mail.gmail.com>
-Subject: [GIT PULL] ACPI support fix for v7.0-rc6
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, 
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAMRc=MdrxYRhB3MWnhTPM9FqzF-_P7Br5mRJ7kYOxQ2G3zjdow@mail.gmail.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-Hi Linus,
+On Thu, Mar 26, 2026 at 04:47:00PM +0100, Bartosz Golaszewski wrote:
+> On Thu, Mar 26, 2026 at 9:48 AM Andy Shevchenko
+> <andriy.shevchenko@linux.intel.com> wrote:
+> > On Thu, Mar 26, 2026 at 10:39:09AM +0200, Andy Shevchenko wrote:
+> > > On Thu, Mar 26, 2026 at 09:34:01AM +0100, Bartosz Golaszewski wrote:
 
-Please pull from the tag
+...
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-7.0-rc6
+> > > I believe so. See how we find a GPIO chip in the gpiolib-acpi-core.c.
+> > > In the similar way you can try finding any object in ACPI namespace.
+> > >
+> > > But note, ":00" is part of device instance name, it's not available
+> > > in ACPI namespace. There we have HID, UID, et cetera, ":00" is pure
+> > > Linux kernel thingy.
+> >
+> > We have acpi_dev_present(), but if you read its kernel-doc, it suggests
+> > to use acpi_get_devices() for the case of early checks (before device
+> > are actually being instantiated).
+> 
+> Ah, but I'm seeing that the firmware node handle of the acpi device is
+> part of struct acpi_device and is only initialized during the scanning
+> phase which happens at subsys_initcall() time?
 
-with top-most commit f6484cadbcaf26b5844b51bd7307a663dda48ef6
+Sounds correct. With that you can just check the device presence in the table
+and maybe evaluate the status (but I'm not sure about the latter).
 
- ACPI: EC: clean up handlers on probe failure in acpi_ec_setup()
+> When using
+> acpi_get_devices() you have an abstract handle and no fwnode for which
+> to assign the secondary node yet, right?
 
-on top of commit c369299895a591d96745d6492d4888259b004a9e
+You have no fwnode concept in ACPI namespace. It's Linux thingy.
+So, yes, until you have a companion device (ACPI device as object of
+struct acpi_device), you have fwnode, without that device, there is
+no fwnode.
 
- Linux 7.0-rc5
+> It's not like with DT where there already is an instance of struct
+> device_node to which you can assign the secondary fwnode even if its
+> device doesn't exist yet.
 
-to receive an ACPI support fix for 7.0-rc6.
+Yeah DT in this sense is available earlier because they are just
+static data. ACPI needs an interpreter and hence some preparations
+to be done before full access to the namespace will be available.
 
-This prevents use-after-free from occurring on reduced-hardware ACPI
-platforms when -EPROBE_DEFER is returned by ec_install_handlers()
-during ACPI EC driver initialization (Weiming Shi).
-
-Thanks!
+-- 
+With Best Regards,
+Andy Shevchenko
 
 
----------------
-
-Weiming Shi (1):
-      ACPI: EC: clean up handlers on probe failure in acpi_ec_setup()
-
----------------
-
- drivers/acpi/ec.c | 2 ++
- 1 file changed, 2 insertions(+)
