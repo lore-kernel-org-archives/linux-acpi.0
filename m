@@ -1,230 +1,160 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.13])
+Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3EDE813A3ED;
-	Fri, 27 Mar 2026 15:54:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.13
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F111E355055
+	for <linux-acpi@vger.kernel.org>; Fri, 27 Mar 2026 17:06:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.84.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774626893; cv=none; b=Z1Inr8O/ERvVt2lOnC6Na8XRDIzsACg5JX1Didh+XMAYXxiYH6Qcw6849z8rrkKtzVoUh0DsJVdjwNhaoeG2W+vvPfN72DWYaLl2dSeZkxj0nS/EP1RnVlTsCvuEet1Uqjmiu+oEPogZSoiHtfRzNLBANlTiEmPCW7cqAiY6rro=
+	t=1774631215; cv=none; b=s67PC5PgYaM0ZYblD4W3a6vgI//dD5G2IOALOu/o4aWnEr8fRmE6lTeai1FtmKRXKRhSKnvYR6uOLi7KrzLxrjOy3zTNKviyRgMPGu9yukz2iJY8J6ZQatZP35fq6LNesJABZtiYTQEFABsVaZ/TAovc3d3B8Yiowde2f3XpEhU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774626893; c=relaxed/simple;
-	bh=UiroqzcbHytgjtA58hXE+zHBvav7jviIRMDQGrky9X0=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=WJ1ckY7ge6zBfRywuwHg5Cr6tcT2In74Y5WylPJyrRSbC/dCJtsATCrEsv7Yn9XVLTP/3zJ17AZKDVFshczv+lBgt7G7KzlM7Jj35i1QPcXm9xXA0lAc9BEGu/0U6RIrqZp3ND6F1MR7Pu67duPf4mDhqEWkfO4NuyxfzOPENJ8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=VJy67JCb; arc=none smtp.client-ip=198.175.65.13
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1774631215; c=relaxed/simple;
+	bh=vLL4v8VAXKNthR6L1PD+8yULdWXnKJctvDyolGaUXzQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=r0XJxC/FZo0S+9XxGY9bZeSjEH5f4ZKvcEmqD7hUR0AAvEVGj4eods5YjHQg3rYJq99IPwWgBHX5nFegPE8fQSIPNH+0RBwUbNvhSIhQ3sXcXTJ7+cSkYr/G1n5btlDK/bb8LOVE/FWV2JXxePrr1sKr2Woq3hQRq5PIQ80Yoo0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=tkjXcO/2; arc=none smtp.client-ip=185.246.84.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="VJy67JCb"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1774626893; x=1806162893;
-  h=date:from:to:cc:subject:message-id;
-  bh=UiroqzcbHytgjtA58hXE+zHBvav7jviIRMDQGrky9X0=;
-  b=VJy67JCbBZfoFTVjqmduK08VHdMaj1gm1HK70ZK78jJAI4X+hsgXb1vW
-   0bYXPes0B5Z9gUtYVB2BmUFQ8QMhsvmTsgYgsaWm9vHEZUcILFTzs6Q4c
-   EwTLXsrsdIOIajRkkN/Nfyw/50c5FFAb/HfKuuyFjuMtkG3d0VZOYe/Y7
-   98mIr9CyXU7s1xMSsEReNJJxbz1bi6wulwECH9CWW/L2pfbl4iArZNjUq
-   sPH2zucANaBrYjp+anKH75pLWKi33e/0gi83W18g6ep63LDtOP4o2M8h3
-   wwwuk6SVX60eLh+5Zh5ngUf8ZxPptMpLxRf0Cg5FF26KJ77as7IzbX4Vn
-   Q==;
-X-CSE-ConnectionGUID: Ooi/cFztSsubDKVqP9hMJA==
-X-CSE-MsgGUID: t4TBZOkHSD2j1ihaiTU7+A==
-X-IronPort-AV: E=McAfee;i="6800,10657,11741"; a="86778908"
-X-IronPort-AV: E=Sophos;i="6.23,144,1770624000"; 
-   d="scan'208";a="86778908"
-Received: from fmviesa007.fm.intel.com ([10.60.135.147])
-  by orvoesa105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Mar 2026 08:54:45 -0700
-X-CSE-ConnectionGUID: Ytm1kzJmR/GMISPF76iz1g==
-X-CSE-MsgGUID: BvhzUfYeRtypGKOpHt0U4w==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.23,144,1770624000"; 
-   d="scan'208";a="222025994"
-Received: from lkp-server01.sh.intel.com (HELO 3905d212be1b) ([10.239.97.150])
-  by fmviesa007.fm.intel.com with ESMTP; 27 Mar 2026 08:54:43 -0700
-Received: from kbuild by 3905d212be1b with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1w69WD-00000000AQP-10ay;
-	Fri, 27 Mar 2026 15:54:41 +0000
-Date: Fri, 27 Mar 2026 23:54:18 +0800
-From: kernel test robot <lkp@intel.com>
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
-Subject: [rafael-pm:bleeding-edge] BUILD SUCCESS
- ccbc696f9e4ceb00bd007184c84bf8e08344da99
-Message-ID: <202603272309.J7BA0Kyj-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="tkjXcO/2"
+Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
+	by smtpout-02.galae.net (Postfix) with ESMTPS id 0B9401A301E;
+	Fri, 27 Mar 2026 17:06:50 +0000 (UTC)
+Received: from mail.galae.net (mail.galae.net [212.83.136.155])
+	by smtpout-01.galae.net (Postfix) with ESMTPS id CF91D60268;
+	Fri, 27 Mar 2026 17:06:49 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 4EF2D10451ABF;
+	Fri, 27 Mar 2026 18:06:43 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
+	t=1774631208; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 in-reply-to:references; bh=Jzs16/Hci7BrDK5k2/QRaN0P7w7nkSMj+Uv+0x67DEo=;
+	b=tkjXcO/2wsgAXL+NYyrzec0vnbi4rC8qkOwkf3LFSG5nJzKMKu2dyWKUPUctv0Pb4OxNiC
+	cXy8c4N/K7xsgsa1wTdmgQSiWIZ8IcflMD5TBzJVrEghDCPi00eMy0NcbcarvwDxd6KZOx
+	x7655TfMh4huEAqwKTYEwnAXgEqbHbjZ1zGwqOaWbhSBMKuH7W4ATUl8Ard9ZmZMcdXur2
+	RCf3YxyK9eIGCIvdKOIfHI4K0SyfgeLYWCtfOxkw+i+AgK1ZGoB8yH9oO9/MoaWnEuTb2L
+	lAILrenKgQCwCx9gEIDL72yUUw/VRdK4GGK1M/cT1od0jD7AhG9M+nIk7juhag==
+Date: Fri, 27 Mar 2026 18:06:42 +0100
+From: Alexandre Belloni <alexandre.belloni@bootlin.com>
+To: Akhil R <akhilrajeev@nvidia.com>
+Cc: Frank.Li@nxp.com, acpica-devel@lists.linux.dev, conor+dt@kernel.org,
+	conor@kernel.org, devicetree@vger.kernel.org, ebiggers@kernel.org,
+	fredrik.markstrom@est.tech, jonathanh@nvidia.com,
+	krzk+dt@kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org,
+	linux-hwmon@vger.kernel.org, linux-i3c@lists.infradead.org,
+	linux-kernel@vger.kernel.org, linux-tegra@vger.kernel.org,
+	linux@roeck-us.net, miquel.raynal@bootlin.com,
+	p.zabel@pengutronix.de, rafael@kernel.org, robert.moore@intel.com,
+	robh@kernel.org, smangipudi@nvidia.com, thierry.reding@kernel.org
+Subject: Re: [PATCH 01/12] dt-bindings: i3c: Add mipi-i3c-static-method to
+ support SETAASA
+Message-ID: <2026032717064247cc495e@mail.local>
+References: <20260327082721f7e69e6a@mail.local>
+ <20260327114204.46556-1-akhilrajeev@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260327114204.46556-1-akhilrajeev@nvidia.com>
+X-Last-TLS-Session-Version: TLSv1.3
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
-branch HEAD: ccbc696f9e4ceb00bd007184c84bf8e08344da99  Merge branch 'acpi-tables' into bleeding-edge
+On 27/03/2026 17:12:04+0530, Akhil R wrote:
+> On Fri, 27 Mar 2026 09:27:21 +0100, Alexandre Belloni wrote:
+> > On 27/03/2026 13:48:58+0530, Akhil R wrote:
+> >> On Thu, 26 Mar 2026 16:44:31 +0100, Alexandre Belloni wrote:
+> >> > On 26/03/2026 10:05:03-0500, Rob Herring wrote:
+> >> >> On Wed, Mar 18, 2026 at 05:31:50PM +0000, Conor Dooley wrote:
+> >> >> > On Wed, Mar 18, 2026 at 10:57:14PM +0530, Akhil R wrote:
+> >> >> > > Add the 'mipi-i3c-static-method' property mentioned in the MIPI I3C
+> >> >> > > Discovery and Configuration Specification [1] to specify which discovery
+> >> >> > > method an I3C device supports during bus initialization. The property is
+> >> >> > > a bitmap, where a bit value of 1 indicates support for that method, and 0
+> >> >> > > indicates lack of support.
+> >> >> > > Bit 0: SETDASA CCC (Direct)
+> >> >> > > Bit 1: SETAASA CCC (Broadcast)
+> >> >> > > Bit 2: Other CCC (vendor / standards extension)
+> >> >> > > All other bits are reserved.
+> >> >> > > 
+> >> >> > > It is specifically needed when an I3C device requires SETAASA for the
+> >> >> > > address assignment. SETDASA will be supported by default if this property
+> >> >> > > is absent - which means for now the property just serves as a flag to
+> >> >> > > enable SETAASA, but keep the property as a bitmap to align with the
+> >> >> > > specifications.
+> >> >> > > 
+> >> >> > > [1] https://www.mipi.org/specifications/disco
+> >> >> > > 
+> >> >> > > Signed-off-by: Akhil R <akhilrajeev@nvidia.com>
+> >> >> > > ---
+> >> >> > >  .../devicetree/bindings/i3c/i3c.yaml          | 30 ++++++++++++++++---
+> >> >> > >  1 file changed, 26 insertions(+), 4 deletions(-)
+> >> >> > > 
+> >> >> > > diff --git a/Documentation/devicetree/bindings/i3c/i3c.yaml b/Documentation/devicetree/bindings/i3c/i3c.yaml
+> >> >> > > index e25fa72fd785..1705d90d4d79 100644
+> >> >> > > --- a/Documentation/devicetree/bindings/i3c/i3c.yaml
+> >> >> > > +++ b/Documentation/devicetree/bindings/i3c/i3c.yaml
+> >> >> > > @@ -31,10 +31,12 @@ properties:
+> >> >> > >        described in the device tree, which in turn means we have to describe
+> >> >> > >        I3C devices.
+> >> >> > >  
+> >> >> > > -      Another use case for describing an I3C device in the device tree is when
+> >> >> > > -      this I3C device has a static I2C address and we want to assign it a
+> >> >> > > -      specific I3C dynamic address before the DAA takes place (so that other
+> >> >> > > -      devices on the bus can't take this dynamic address).
+> >> >> > > +      Other use-cases for describing an I3C device in the device tree are:
+> >> >> > > +      - When the I3C device has a static I2C address and we want to assign
+> >> >> > > +        it a specific I3C dynamic address before the DAA takes place (so
+> >> >> > > +        that other devices on the bus can't take this dynamic address).
+> >> >> > > +      - When the I3C device requires SETAASA for its discovery and uses a
+> >> >> > > +        pre-defined static address.
+> >> >> > >  
+> >> >> > >    "#size-cells":
+> >> >> > >      const: 0
+> >> >> > > @@ -147,6 +149,26 @@ patternProperties:
+> >> >> > >            through SETDASA. If static address is not present, this address is assigned
+> >> >> > >            through SETNEWDA after assigning a temporary address via ENTDAA.
+> >> >> > >  
+> >> >> > > +      mipi-i3c-static-method:
+> >> >> > > +        $ref: /schemas/types.yaml#/definitions/uint32
+> >> >> > > +        minimum: 0x1
+> >> >> > > +        maximum: 0xff
+> >> >> > > +        default: 1
+> >> >> > > +        description: |
+> >> >> > > +          Bitmap describing which methods of Dynamic Address Assignment from a
+> >> >> > > +          static address are supported by this I3C Target. A bit value of 1
+> >> >> > > +          indicates support for that method, and 0 indicates lack of support.
+> >> >> > 
+> >> >> > I really am not keen on properties that are bitmaps, why can't we just
+> >> >> > use the strings "setdasa", "setaasa" etc?
+> >> >> 
+> >> >> If this comes from a specification, then I'd tend to just copy it rather 
+> >> >> than invent our own thing. Obviously if is something structured 
+> >> >> fundamentally different from how DT is designed, then we wouldn't. But 
+> >> >> this is just a simple property.
+> >> >> 
+> >> > 
+> >> > The issue being that the specification is not public so it is difficult
+> >> > to take any decision.
+> >> 
+> >> There is a public version available in the same link, but you would still
+> >> have to provide them a name and an email ID. The document will be sent to
+> >> the mail ID.
+> >> 
+> > 
+> > The public version only contains one property:
+> > mipi-disco-interface-revision
+> 
+> Could you check once if the below link works?
+> https://www.mipi.org/mipi-disco-for-i3c-download
 
-elapsed time: 1201m
+It works, thanks. The bitfield is fine then.
 
-configs tested: 153
-configs skipped: 4
+> 
+> Best Regards,
+> Akhil
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
-
-tested configs:
-alpha                             allnoconfig    gcc-15.2.0
-alpha                            allyesconfig    gcc-15.2.0
-alpha                               defconfig    gcc-15.2.0
-arc                              allmodconfig    gcc-15.2.0
-arc                               allnoconfig    gcc-15.2.0
-arc                              allyesconfig    gcc-15.2.0
-arc                                 defconfig    gcc-15.2.0
-arc                   randconfig-001-20260327    gcc-11.5.0
-arc                   randconfig-002-20260327    gcc-8.5.0
-arm                               allnoconfig    clang-23
-arm                              allyesconfig    gcc-15.2.0
-arm                                 defconfig    clang-23
-arm                   randconfig-001-20260327    gcc-8.5.0
-arm                   randconfig-002-20260327    clang-23
-arm                   randconfig-003-20260327    clang-18
-arm                   randconfig-004-20260327    gcc-11.5.0
-arm                           tegra_defconfig    gcc-15.2.0
-arm64                            allmodconfig    clang-19
-arm64                             allnoconfig    gcc-15.2.0
-arm64                               defconfig    gcc-15.2.0
-arm64                 randconfig-001-20260327    clang-23
-arm64                 randconfig-002-20260327    clang-18
-arm64                 randconfig-003-20260327    gcc-9.5.0
-arm64                 randconfig-004-20260327    clang-23
-csky                             allmodconfig    gcc-15.2.0
-csky                              allnoconfig    gcc-15.2.0
-csky                                defconfig    gcc-15.2.0
-csky                  randconfig-001-20260327    gcc-15.2.0
-csky                  randconfig-002-20260327    gcc-15.2.0
-hexagon                          allmodconfig    clang-17
-hexagon                           allnoconfig    clang-23
-hexagon                             defconfig    clang-23
-hexagon               randconfig-001-20260327    clang-23
-hexagon               randconfig-002-20260327    clang-19
-i386                             allmodconfig    gcc-14
-i386                              allnoconfig    gcc-14
-i386                             allyesconfig    gcc-14
-i386        buildonly-randconfig-001-20260327    clang-20
-i386        buildonly-randconfig-002-20260327    clang-20
-i386        buildonly-randconfig-003-20260327    gcc-14
-i386        buildonly-randconfig-004-20260327    clang-20
-i386        buildonly-randconfig-005-20260327    clang-20
-i386        buildonly-randconfig-006-20260327    gcc-14
-i386                                defconfig    clang-20
-i386                  randconfig-001-20260327    clang-20
-i386                  randconfig-002-20260327    clang-20
-i386                  randconfig-003-20260327    gcc-14
-i386                  randconfig-004-20260327    clang-20
-i386                  randconfig-005-20260327    clang-20
-i386                  randconfig-006-20260327    clang-20
-i386                  randconfig-007-20260327    gcc-14
-i386                  randconfig-011-20260327    clang-20
-i386                  randconfig-012-20260327    gcc-14
-i386                  randconfig-013-20260327    gcc-12
-i386                  randconfig-014-20260327    gcc-12
-i386                  randconfig-015-20260327    clang-20
-i386                  randconfig-016-20260327    gcc-14
-i386                  randconfig-017-20260327    gcc-14
-loongarch                        allmodconfig    clang-19
-loongarch                         allnoconfig    clang-23
-loongarch                           defconfig    clang-19
-loongarch             randconfig-001-20260327    gcc-15.2.0
-loongarch             randconfig-002-20260327    clang-23
-m68k                             allmodconfig    gcc-15.2.0
-m68k                              allnoconfig    gcc-15.2.0
-m68k                             allyesconfig    gcc-15.2.0
-m68k                                defconfig    gcc-15.2.0
-microblaze                        allnoconfig    gcc-15.2.0
-microblaze                       allyesconfig    gcc-15.2.0
-microblaze                          defconfig    gcc-15.2.0
-mips                             allmodconfig    gcc-15.2.0
-mips                              allnoconfig    gcc-15.2.0
-mips                             allyesconfig    gcc-15.2.0
-nios2                            allmodconfig    gcc-11.5.0
-nios2                             allnoconfig    gcc-11.5.0
-nios2                               defconfig    gcc-11.5.0
-nios2                 randconfig-001-20260327    gcc-9.5.0
-nios2                 randconfig-002-20260327    gcc-8.5.0
-openrisc                         allmodconfig    gcc-15.2.0
-openrisc                          allnoconfig    gcc-15.2.0
-openrisc                            defconfig    gcc-15.2.0
-parisc                            allnoconfig    gcc-15.2.0
-parisc                           allyesconfig    gcc-15.2.0
-parisc                              defconfig    gcc-15.2.0
-parisc                randconfig-001-20260327    gcc-8.5.0
-parisc                randconfig-002-20260327    gcc-8.5.0
-parisc64                            defconfig    gcc-15.2.0
-powerpc                          allmodconfig    gcc-15.2.0
-powerpc                           allnoconfig    gcc-15.2.0
-powerpc               randconfig-001-20260327    gcc-8.5.0
-powerpc               randconfig-002-20260327    clang-18
-powerpc64             randconfig-001-20260327    clang-23
-powerpc64             randconfig-002-20260327    clang-23
-riscv                            allmodconfig    clang-23
-riscv                             allnoconfig    gcc-15.2.0
-riscv                            allyesconfig    clang-16
-riscv                               defconfig    clang-23
-riscv                 randconfig-001-20260327    clang-23
-riscv                 randconfig-002-20260327    clang-23
-s390                             allmodconfig    clang-18
-s390                              allnoconfig    clang-23
-s390                             allyesconfig    gcc-15.2.0
-s390                                defconfig    clang-23
-s390                  randconfig-001-20260327    clang-23
-s390                  randconfig-002-20260327    gcc-12.5.0
-sh                               allmodconfig    gcc-15.2.0
-sh                                allnoconfig    gcc-15.2.0
-sh                               allyesconfig    gcc-15.2.0
-sh                                  defconfig    gcc-15.2.0
-sh                    randconfig-001-20260327    gcc-14.3.0
-sh                    randconfig-002-20260327    gcc-13.4.0
-sparc                             allnoconfig    gcc-15.2.0
-sparc                               defconfig    gcc-15.2.0
-sparc                 randconfig-001-20260327    gcc-14.3.0
-sparc                 randconfig-002-20260327    gcc-13.4.0
-sparc64                          allmodconfig    clang-23
-sparc64                             defconfig    clang-20
-sparc64               randconfig-001-20260327    clang-23
-sparc64               randconfig-002-20260327    clang-23
-um                               allmodconfig    clang-19
-um                                allnoconfig    clang-23
-um                               allyesconfig    gcc-14
-um                                  defconfig    clang-23
-um                             i386_defconfig    gcc-14
-um                    randconfig-001-20260327    gcc-14
-um                    randconfig-002-20260327    clang-23
-um                           x86_64_defconfig    clang-23
-x86_64                           allmodconfig    clang-20
-x86_64                            allnoconfig    clang-20
-x86_64                           allyesconfig    clang-20
-x86_64      buildonly-randconfig-001-20260327    clang-20
-x86_64      buildonly-randconfig-002-20260327    clang-20
-x86_64      buildonly-randconfig-003-20260327    gcc-14
-x86_64      buildonly-randconfig-004-20260327    clang-20
-x86_64      buildonly-randconfig-005-20260327    gcc-14
-x86_64      buildonly-randconfig-006-20260327    gcc-14
-x86_64                              defconfig    gcc-14
-x86_64                randconfig-001-20260327    clang-20
-x86_64                randconfig-002-20260327    clang-20
-x86_64                randconfig-003-20260327    gcc-14
-x86_64                randconfig-004-20260327    clang-20
-x86_64                randconfig-005-20260327    gcc-14
-x86_64                randconfig-006-20260327    gcc-14
-x86_64                randconfig-071-20260327    clang-20
-x86_64                randconfig-072-20260327    clang-20
-x86_64                randconfig-073-20260327    clang-20
-x86_64                randconfig-074-20260327    gcc-13
-x86_64                randconfig-075-20260327    clang-20
-x86_64                randconfig-076-20260327    clang-20
-x86_64                          rhel-9.4-rust    clang-20
-xtensa                            allnoconfig    gcc-15.2.0
-xtensa                randconfig-001-20260327    gcc-14.3.0
-xtensa                randconfig-002-20260327    gcc-10.5.0
-
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+-- 
+Alexandre Belloni, co-owner and COO, Bootlin
+Embedded Linux and Kernel engineering
+https://bootlin.com
