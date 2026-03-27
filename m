@@ -1,93 +1,110 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from canpmsgout05.his.huawei.com (canpmsgout05.his.huawei.com [113.46.200.220])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 176DA346E63;
-	Thu, 26 Mar 2026 21:03:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA207390203;
+	Fri, 27 Mar 2026 06:23:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.220
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774558991; cv=none; b=AGrv5rwy69ZCxe0ocg/aMu8YX+EgIh5k7FGi1LMOpytl7OAnhHzvtycrciYQWXSmTqgQBpCDTL3wKeY27PfaWy4iXvBdr1mI3N1jPZrndAOS5EMbC9iC0uUVAenJh7+NHgjhdLRN/TtDDNAmxjhutK3OimS8w3YyzPUHVFQuT9I=
+	t=1774592608; cv=none; b=QlNlKCKO4eM2KTSoDPaIRPqH5r0/pKzx+ddCLld0S6fEaxwd1MDcCmN2p+K+mdfuGkE/7feBNbz3KolaFmmCesxGu6c57kVbruBp8XZpLA60N0OHhIlDRZSLpCQfdWKwFfu/7rqNH7oCqYY2Riu7RQFw9t7jYaHwJ+HdIHwNsvI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774558991; c=relaxed/simple;
-	bh=Oga/OddxY2WJCZhkLe7zcVGjS6Fu4I4k5/6EH62Urbk=;
-	h=Mime-Version:Content-Type:Date:Message-Id:To:From:Subject:Cc:
-	 References:In-Reply-To; b=szeZkdJJEMaEKEac4/jeT1SsUEMRT55nf43o96zp0tzF4C0WskdEWf4Do1YrS0zir83x9XuewaUh6xPvnopAOvBxU18C/h+q6XCVThmbSeWtLBo55oJbX0nW8TKedAgWHjzOkk+wMsNUfkZyGPeEplpJHZwCwuG4U0d8EHEpmf0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gPAAIB3f; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774592608; c=relaxed/simple;
+	bh=ce4RQ7hXrAiq8pfqE5vhgI8aoDUwiPrx1s6qvLSG1XI=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=BOmr42+XsqqYV+DFAE+XbvLZQFv5CGBgwI9/vXPGdffWM5lwOO+u3xR0tGWYdIjj8VXjYsWMO1kH2FBaa8OPeODvD09dQpPW/UJz79m9K1nYLnvyj8Cd1wBLz9mMiFMlHrury/RowVDCzPHj536Jxw7U8YJ4IPdjstqtnX9Otrc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=Y374bQQY; arc=none smtp.client-ip=113.46.200.220
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=h-partners.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gPAAIB3f"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9306BC116C6;
-	Thu, 26 Mar 2026 21:03:04 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774558990;
-	bh=Oga/OddxY2WJCZhkLe7zcVGjS6Fu4I4k5/6EH62Urbk=;
-	h=Date:To:From:Subject:Cc:References:In-Reply-To:From;
-	b=gPAAIB3fsENGAvoB1ls1d+lyJstfElum/pLWj2DuNK2WleRkSJpZzbuOcSRguNRex
-	 LE7yjFpGJeYqgeiTWSX6kkVoDPXfYgQsoiYvVNcYBuRy7Weff6IyhdJ7LJejW3y2q7
-	 Lu58LJqd2qR99uWpkNGFPfJeYhdGTH7gmxUd9PImDf3hgeIKuz12xa1bfI6GtosZ25
-	 zz/3VILPimPfvECimlah9QRnSQlerX84zqBcJ1XtWuuz4pCn2J3IQkAwYpmSsY+R6p
-	 Vq0PeeQgRdA6sV45AaVZZ3KVJItFvjXCg6L1WvlZQDmeunZRkvtTNmqHb/caoBZYIw
-	 rdfYLFPYbjpsg==
+	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="Y374bQQY"
+dkim-signature: v=1; a=rsa-sha256; d=h-partners.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=ng6Qd2zdF+2nQBS2USkwcFgr03S5OOX6iEJmZlKhJ0g=;
+	b=Y374bQQYKO2qdVjXZTgxIX9VafM4EaZxWu/R5QPG22vFZjLVehg/N3AekpMBO/Sa9dh830YzW
+	cahf068gMCjS8dM/mfz0cTKgO9dUuxnulIFuwASQIr4ujmXZxYSx0OIi3AygdO+0/nQjrUZDOfP
+	WYw2btGsBFaF3XFbufNC7zM=
+Received: from mail.maildlp.com (unknown [172.19.163.104])
+	by canpmsgout05.his.huawei.com (SkyGuard) with ESMTPS id 4fhr6W47ZYz12LD3;
+	Fri, 27 Mar 2026 14:17:55 +0800 (CST)
+Received: from dggemv712-chm.china.huawei.com (unknown [10.1.198.32])
+	by mail.maildlp.com (Postfix) with ESMTPS id D34274056A;
+	Fri, 27 Mar 2026 14:23:21 +0800 (CST)
+Received: from kwepemn100009.china.huawei.com (7.202.194.112) by
+ dggemv712-chm.china.huawei.com (10.1.198.32) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.11; Fri, 27 Mar 2026 14:23:21 +0800
+Received: from [10.67.121.59] (10.67.121.59) by kwepemn100009.china.huawei.com
+ (7.202.194.112) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.36; Fri, 27 Mar
+ 2026 14:23:21 +0800
+Message-ID: <3948b6fe-2aa6-4e38-9d58-c0e25e48fe93@huawei.com>
+Date: Fri, 27 Mar 2026 14:23:16 +0800
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset=UTF-8
-Date: Thu, 26 Mar 2026 22:03:02 +0100
-Message-Id: <DHD0NQH9UJ21.3J691DBDXS0K0@kernel.org>
-To: "Douglas Anderson" <dianders@chromium.org>
-From: "Danilo Krummrich" <dakr@kernel.org>
-Subject: Re: [PATCH v2] device property: Make modifications of fwnode
- "flags" thread safe
-Cc: "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>, "Rafael J . Wysocki"
- <rafael@kernel.org>, <stable@vger.kernel.org>, "Andy Shevchenko"
- <andriy.shevchenko@linux.intel.com>, "Mark Brown" <broonie@kernel.org>,
- "Wolfram Sang" <wsa+renesas@sang-engineering.com>, "Andrew Lunn"
- <andrew@lunn.ch>, "Daniel Scally" <djrscally@gmail.com>, "David S. Miller"
- <davem@davemloft.net>, "Eric Dumazet" <edumazet@google.com>, "Fabio
- Estevam" <festevam@gmail.com>, "Frank Li" <Frank.Li@nxp.com>, "Heikki
- Krogerus" <heikki.krogerus@linux.intel.com>, "Heiner Kallweit"
- <hkallweit1@gmail.com>, "Jakub Kicinski" <kuba@kernel.org>, "Len Brown"
- <lenb@kernel.org>, "Paolo Abeni" <pabeni@redhat.com>, "Pengutronix Kernel
- Team" <kernel@pengutronix.de>, "Rob Herring" <robh@kernel.org>, "Russell
- King" <linux@armlinux.org.uk>, "Sakari Ailus"
- <sakari.ailus@linux.intel.com>, "Saravana Kannan" <saravanak@kernel.org>,
- "Sascha Hauer" <s.hauer@pengutronix.de>, <devicetree@vger.kernel.org>,
- <driver-core@lists.linux.dev>, <imx@lists.linux.dev>,
- <linux-acpi@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
- <linux-i2c@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
- <linux-spi@vger.kernel.org>, <netdev@vger.kernel.org>
-References: <20260317090112.v2.1.I0a4d03104ecd5103df3d76f66c8d21b1d15a2e38@changeid>
-In-Reply-To: <20260317090112.v2.1.I0a4d03104ecd5103df3d76f66c8d21b1d15a2e38@changeid>
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 1/3] cpuidle: Add enable_cpuidle() interface
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+CC: <lenb@kernel.org>, <linux-acpi@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, <Sudeep.Holla@arm.com>,
+	<linuxarm@huawei.com>, <jonathan.cameron@huawei.com>,
+	<zhanjie9@hisilicon.com>, <zhenglifeng1@huawei.com>, <yubowen8@huawei.com>
+References: <20251125072933.3706006-1-lihuisong@huawei.com>
+ <20251125072933.3706006-2-lihuisong@huawei.com>
+ <CAJZ5v0j6HPW8thPNLSRRzZCjSSnr69DWBHn9BBR2+L4tOKD6Fw@mail.gmail.com>
+ <11f9d333-4d18-463a-817f-d3f450d1624e@huawei.com>
+ <2d2d2d40-c73a-4988-90fe-fad75e35c75b@huawei.com>
+ <f2be1178-28f4-4412-adb7-1530944a76ed@huawei.com>
+ <CAJZ5v0heJsOWA5z7CwrON4zvaebj8-C_HBe5ymYa+FAbfJgy1A@mail.gmail.com>
+From: "lihuisong (C)" <lihuisong@huawei.com>
+In-Reply-To: <CAJZ5v0heJsOWA5z7CwrON4zvaebj8-C_HBe5ymYa+FAbfJgy1A@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: kwepems500002.china.huawei.com (7.221.188.17) To
+ kwepemn100009.china.huawei.com (7.202.194.112)
 
-On Tue Mar 17, 2026 at 5:01 PM CET, Douglas Anderson wrote:
-> In various places in the kernel, we modify the fwnode "flags" member
-> by doing either:
->   fwnode->flags |=3D SOME_FLAG;
->   fwnode->flags &=3D ~SOME_FLAG;
->
-> This type of modification is not thread-safe. If two threads are both
-> mucking with the flags at the same time then one can clobber the
-> other.
->
-> While flags are often modified while under the "fwnode_link_lock",
-> this is not universally true.
->
-> Create some accessor functions for setting, clearing, and testing the
-> FWNODE flags and move all users to these accessor functions. New
-> accessor functions use set_bit() and clear_bit(), which are
-> thread-safe.
->
-> Cc: stable@vger.kernel.org
-> Fixes: c2c724c868c4 ("driver core: Add fw_devlink_parse_fwtree()")
-> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Acked-by: Mark Brown <broonie@kernel.org>
-> Reviewed-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
-> Signed-off-by: Douglas Anderson <dianders@chromium.org>
 
-    [ Fix fwnode_clear_flag() argument alignment, restore dropped blank
-      line in fwnode_dev_initialized(), and remove unnecessary parentheses
-      around fwnode_test_flag() calls. - Danilo ]
+On 3/26/2026 9:39 PM, Rafael J. Wysocki wrote:
+> On Thu, Mar 26, 2026 at 1:17 PM lihuisong (C) <lihuisong@huawei.com> wrote:
+>> Hi Rafael,
+>>
+>> On 1/30/2026 9:59 AM, lihuisong (C) wrote:
+>>> Hi Rafael,
+>>>
+>>> On 1/15/2026 8:18 PM, lihuisong (C) wrote:
+>>>> On 1/15/2026 3:18 AM, Rafael J. Wysocki wrote:
+>>>>> On Tue, Nov 25, 2025 at 8:29 AM Huisong Li <lihuisong@huawei.com>
+>>>>> wrote:
+>>>>>> The global switch of cpuidle can be turned back on in some case.
+>>>>>> So add enable_cpuidle().
+>>>>> No, this is not going to work.  The "off" switch only affects
+>>>>> initialization AFAICS.
+>>>> I think it would be work.
+>>>> The cpuidle_not_available() also see the "off" on do_idle().
+>>>> And cpuidle_idle_call() check this function first and then select
+>>>> idle state.
+>>>> Cpuidle doesn't select and enter idle state if this fuction return true.
+>>> I verified that disable_cpuidle() effectively prevents all CPUs from
+>>> entering any idle states and the cpuidle function is correctly
+>>> restored after calling enable_cpuidle().
+>>> What do you think?
+>> Could you pleasetake a look atmy reply?
+>> If not ok, I will drop this from my upstream list.
+> Sorry, can you please remind me what problem you wanted to address
+> with the help of this?
+Regarding the discussion in the link[1], if driver fail to get power 
+info in power notify,
+the old idle states may no longer be reliable. Therefore, patch 2/3 
+disables ACPI idle
+via the new interface introduced in patch 1/3.
 
-Applied to driver-core-testing, thanks!
+However, our discussion on whether this new interface can disable ACPI 
+idle has not yet reached a conclusion.
+Could you please revisit this thread? It's quite brief, and I'd 
+appreciate your further input.
+
+[1] 
+https://lore.kernel.org/all/20251103084244.2654432-1-lihuisong@huawei.com
