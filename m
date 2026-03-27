@@ -1,54 +1,65 @@
-Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.14])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 003443D6CC3;
-	Fri, 27 Mar 2026 08:27:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.84.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 632B93CE497;
+	Fri, 27 Mar 2026 09:28:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.14
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774600060; cv=none; b=D9yU/ABejGlEwMLVucxiFKp0MR1NFtQG51Ctf91DjAcdsGEPSs+V/f4nKAYOmSd0vB9hdrnrpdog0wKdQY50hfSarjJqfPEj0NkgnumUcP3oyI90fL15bupsxBo9+9x/buDZ6ejyU41vXFbedfPDNMlM8DfmTeRUFaoAsrOziiU=
+	t=1774603713; cv=none; b=OekaOX9koaLC1RDj7I0D4fDxx50B51d7xxYVCXfgtuaLbBKWWm85F0JtBcls0wEli1JPPh71oNncvI3eLwXklGCM1r3UAFm5pKOCHcaX+R4cDpBcjxwVLJfTZzYobg0n+WNNrdiuBN3EP9K2XFkVvsKM95SgwaeFC4XL/ODpEOM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774600060; c=relaxed/simple;
-	bh=pnd5rHaXCCt+M4SrM7wM83jo3Va9J11tuQmok8a4dRE=;
+	s=arc-20240116; t=1774603713; c=relaxed/simple;
+	bh=RHdRErJ4hF4/KqB488JgMjZDt35iAVLAc9ubaLUHyyI=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=SqoFgOd6bW0pdwLEiF153w40l5rOag42tsQns1MQNJh2y7WZLyZEB5G2mH+RF+7Y3zC7ZG6cNZX5s+590zbi9TtTRF5Kkg12okXjXkel+XG/50ewd5S042cqoMZea9Hh8jUiY+5TUJdyUQ+m+VLjM1bX4U/6q2aKzyq2VUYq32Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=xWsA0LTk; arc=none smtp.client-ip=185.246.84.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=DKPHfEav6dYEtU+V2O9CRAt9qA7jcXcGQi/Q9nAjVzYNHuj4G2QTTbvKoTpDkkyKAoqiQhbp7Q6j0ZP5MwBK2mJTf7AH1Vp/o++gefFyDNhrGUL9mkKAgrpKn/Fy4bilRVcxnJ9zYx81Vu8vq1V0Qp8SjKwSI/RQ9U+HNSCbc3I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=DrorG5hv; arc=none smtp.client-ip=198.175.65.14
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="xWsA0LTk"
-Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-02.galae.net (Postfix) with ESMTPS id 54D8D1A3018;
-	Fri, 27 Mar 2026 08:27:36 +0000 (UTC)
-Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id 1E1E660230;
-	Fri, 27 Mar 2026 08:27:36 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 5E16510450F0D;
-	Fri, 27 Mar 2026 09:27:30 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1774600054; h=from:subject:date:message-id:to:cc:mime-version:content-type:
-	 in-reply-to:references; bh=txJM2GJWPPWLss62O+A2FkU4gpdBs6qgEn0gNwSfyQw=;
-	b=xWsA0LTkRU1SsJOMLr0Hc92VkQpX9sqGZGYnEk4gFZlSykvrEghAy12WspWUCTUnu9uuMl
-	OwRAudxKkfLzuBaYjgzFAjfi/EACbl/iqfBZ1I+FRctTDBpCA0dNx05COtH621c9aIz2EB
-	kViSgYBFQM/sOipM5ZjVrf/dlvS7AkSxZT8GqT2RpjVbvYcQRr8o0oD7GWtH988k3nk9Wz
-	gxVeLSDNBSdmkAPUCjcMYx7JdzbvNWE/GTHbuL8Haf82UV1rlJl1FjBoRCvTpDEenVzeTD
-	8sAzrPgD6o9J3k8hPOZGTaJFnGxwG8hQxEfGvEoR/J8FLQLwaiy29wdu0RIhhQ==
-Date: Fri, 27 Mar 2026 09:27:21 +0100
-From: Alexandre Belloni <alexandre.belloni@bootlin.com>
-To: Akhil R <akhilrajeev@nvidia.com>
-Cc: Frank.Li@nxp.com, acpica-devel@lists.linux.dev, conor+dt@kernel.org,
-	conor@kernel.org, devicetree@vger.kernel.org, ebiggers@kernel.org,
-	fredrik.markstrom@est.tech, jonathanh@nvidia.com,
-	krzk+dt@kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org,
-	linux-hwmon@vger.kernel.org, linux-i3c@lists.infradead.org,
-	linux-kernel@vger.kernel.org, linux-tegra@vger.kernel.org,
-	linux@roeck-us.net, miquel.raynal@bootlin.com,
-	p.zabel@pengutronix.de, rafael@kernel.org, robert.moore@intel.com,
-	robh@kernel.org, smangipudi@nvidia.com, thierry.reding@kernel.org
-Subject: Re: [PATCH 01/12] dt-bindings: i3c: Add mipi-i3c-static-method to
- support SETAASA
-Message-ID: <20260327082721f7e69e6a@mail.local>
-References: <202603261544313f63018c@mail.local>
- <20260327081858.32354-1-akhilrajeev@nvidia.com>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="DrorG5hv"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1774603711; x=1806139711;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=RHdRErJ4hF4/KqB488JgMjZDt35iAVLAc9ubaLUHyyI=;
+  b=DrorG5hvuSSvBqpWCH1gDbWzm6ajlYmXOSfHg9W/nU9BrShRxiLL+bVP
+   bD1+78dmZeCZl2WVrPSrPVeiCDx/Z+QvRR9jmHon7pN41tlnBNOt4phUN
+   ZQRwGIiqb24DtZ21F7vQf7/6CP3V+nCb/gfJVdPSrULHzqyDMoI5nPJNE
+   DpRmy1EMC9gd4uIHXl3x/2t+gBJWiUzamuu/F8VG+FnWM9T+9ZyEcB0P0
+   VMx1ZlpHN1IEBgexGd/P8ebb0oBjet2baVHKWtYp47H6S6/iDGO3k1/lS
+   sPG0W6s5KVMQ16ogY7OrHTL94KVAGfa2lnSo6SEsWinqm+4oC7qF1S/81
+   A==;
+X-CSE-ConnectionGUID: 8hOwmbBWRXSuTzS6C8lQNw==
+X-CSE-MsgGUID: OkOZ/XGnTH6f3CFr+M0tLA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11741"; a="79532719"
+X-IronPort-AV: E=Sophos;i="6.23,143,1770624000"; 
+   d="scan'208";a="79532719"
+Received: from orviesa004.jf.intel.com ([10.64.159.144])
+  by orvoesa106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Mar 2026 02:28:30 -0700
+X-CSE-ConnectionGUID: lzfcOEGCQiy65HeIW202dQ==
+X-CSE-MsgGUID: KAtiGO4HRoOib/QBLo9sPA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,143,1770624000"; 
+   d="scan'208";a="229742915"
+Received: from vpanait-mobl.ger.corp.intel.com (HELO localhost) ([10.245.244.127])
+  by orviesa004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Mar 2026 02:28:28 -0700
+Date: Fri, 27 Mar 2026 11:28:26 +0200
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: david.laight.linux@gmail.com
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>,
+	Robert Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>,
+	linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev,
+	linux-kernel@vger.kernel.org,
+	Masami Hiramatsu <mhiramat@kernel.org>,
+	Petr Mladek <pmladek@suse.com>,
+	Rasmus Villemoes <linux@rasmusvillemoes.dk>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Sergey Senozhatsky <senozhatsky@chromium.org>,
+	Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH next] ACPICA: AML Parser: Remove spurious precision from
+ format used to dump parse trees
+Message-ID: <acZNuoRmQ5BrfPPd@ashevche-desk.local>
+References: <20260326201830.3938-1-david.laight.linux@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -57,94 +68,24 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260327081858.32354-1-akhilrajeev@nvidia.com>
-X-Last-TLS-Session-Version: TLSv1.3
+In-Reply-To: <20260326201830.3938-1-david.laight.linux@gmail.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On 27/03/2026 13:48:58+0530, Akhil R wrote:
-> On Thu, 26 Mar 2026 16:44:31 +0100, Alexandre Belloni wrote:
-> > On 26/03/2026 10:05:03-0500, Rob Herring wrote:
-> >> On Wed, Mar 18, 2026 at 05:31:50PM +0000, Conor Dooley wrote:
-> >> > On Wed, Mar 18, 2026 at 10:57:14PM +0530, Akhil R wrote:
-> >> > > Add the 'mipi-i3c-static-method' property mentioned in the MIPI I3C
-> >> > > Discovery and Configuration Specification [1] to specify which discovery
-> >> > > method an I3C device supports during bus initialization. The property is
-> >> > > a bitmap, where a bit value of 1 indicates support for that method, and 0
-> >> > > indicates lack of support.
-> >> > > Bit 0: SETDASA CCC (Direct)
-> >> > > Bit 1: SETAASA CCC (Broadcast)
-> >> > > Bit 2: Other CCC (vendor / standards extension)
-> >> > > All other bits are reserved.
-> >> > > 
-> >> > > It is specifically needed when an I3C device requires SETAASA for the
-> >> > > address assignment. SETDASA will be supported by default if this property
-> >> > > is absent - which means for now the property just serves as a flag to
-> >> > > enable SETAASA, but keep the property as a bitmap to align with the
-> >> > > specifications.
-> >> > > 
-> >> > > [1] https://www.mipi.org/specifications/disco
-> >> > > 
-> >> > > Signed-off-by: Akhil R <akhilrajeev@nvidia.com>
-> >> > > ---
-> >> > >  .../devicetree/bindings/i3c/i3c.yaml          | 30 ++++++++++++++++---
-> >> > >  1 file changed, 26 insertions(+), 4 deletions(-)
-> >> > > 
-> >> > > diff --git a/Documentation/devicetree/bindings/i3c/i3c.yaml b/Documentation/devicetree/bindings/i3c/i3c.yaml
-> >> > > index e25fa72fd785..1705d90d4d79 100644
-> >> > > --- a/Documentation/devicetree/bindings/i3c/i3c.yaml
-> >> > > +++ b/Documentation/devicetree/bindings/i3c/i3c.yaml
-> >> > > @@ -31,10 +31,12 @@ properties:
-> >> > >        described in the device tree, which in turn means we have to describe
-> >> > >        I3C devices.
-> >> > >  
-> >> > > -      Another use case for describing an I3C device in the device tree is when
-> >> > > -      this I3C device has a static I2C address and we want to assign it a
-> >> > > -      specific I3C dynamic address before the DAA takes place (so that other
-> >> > > -      devices on the bus can't take this dynamic address).
-> >> > > +      Other use-cases for describing an I3C device in the device tree are:
-> >> > > +      - When the I3C device has a static I2C address and we want to assign
-> >> > > +        it a specific I3C dynamic address before the DAA takes place (so
-> >> > > +        that other devices on the bus can't take this dynamic address).
-> >> > > +      - When the I3C device requires SETAASA for its discovery and uses a
-> >> > > +        pre-defined static address.
-> >> > >  
-> >> > >    "#size-cells":
-> >> > >      const: 0
-> >> > > @@ -147,6 +149,26 @@ patternProperties:
-> >> > >            through SETDASA. If static address is not present, this address is assigned
-> >> > >            through SETNEWDA after assigning a temporary address via ENTDAA.
-> >> > >  
-> >> > > +      mipi-i3c-static-method:
-> >> > > +        $ref: /schemas/types.yaml#/definitions/uint32
-> >> > > +        minimum: 0x1
-> >> > > +        maximum: 0xff
-> >> > > +        default: 1
-> >> > > +        description: |
-> >> > > +          Bitmap describing which methods of Dynamic Address Assignment from a
-> >> > > +          static address are supported by this I3C Target. A bit value of 1
-> >> > > +          indicates support for that method, and 0 indicates lack of support.
-> >> > 
-> >> > I really am not keen on properties that are bitmaps, why can't we just
-> >> > use the strings "setdasa", "setaasa" etc?
-> >> 
-> >> If this comes from a specification, then I'd tend to just copy it rather 
-> >> than invent our own thing. Obviously if is something structured 
-> >> fundamentally different from how DT is designed, then we wouldn't. But 
-> >> this is just a simple property.
-> >> 
-> > 
-> > The issue being that the specification is not public so it is difficult
-> > to take any decision.
-> 
-> There is a public version available in the same link, but you would still
-> have to provide them a name and an email ID. The document will be sent to
-> the mail ID.
-> 
+On Thu, Mar 26, 2026 at 08:18:30PM +0000, david.laight.linux@gmail.com wrote:
 
-The public version only contains one property:
-mipi-disco-interface-revision
+> The debug code in acpi_ps_delete_parse_tree() uses ("%*.s", level * 4, " ")
+> to indent traces.
+> POSIX requires the empty precision be treated as zero, but the kernel treats
+> is as 'no precision specified'.
+> Change to ("%*s", level * 4, "") since there is additional whitespace and no
+> reason to indent by one space when level is zero.
 
+This is cross-platform code. Does the same applies to MS VC compiler, for
+example?
 
 -- 
-Alexandre Belloni, co-owner and COO, Bootlin
-Embedded Linux and Kernel engineering
-https://bootlin.com
+With Best Regards,
+Andy Shevchenko
+
+
