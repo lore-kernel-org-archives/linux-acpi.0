@@ -1,144 +1,100 @@
-Received: from canpmsgout12.his.huawei.com (canpmsgout12.his.huawei.com [113.46.200.227])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.17])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60F511EA7F4;
-	Sat, 28 Mar 2026 04:06:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.227
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D05FB3783DB;
+	Sat, 28 Mar 2026 09:30:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.17
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774670787; cv=none; b=KcdS6FIqavsaFSFrjl7lK+6yhlKKtLOjOHLYrJyGHDwL7dygBdGZpAr47peNdSxRq3HiSG/KL58m3SUcnU151104/IoQGwgZiTqvhgM2QzCnhalm4Rpzsgd0HBM8q5jO6DVBexMkBnPcjMWFTUOnVC1jpwcLSNL6exPgYnjm8Zw=
+	t=1774690212; cv=none; b=sC7fJtRYE1MhMEG9NLVhZOLSWruqlw1I8WRzqV9pzWqJ5rGkDXF0d30sHLeYG63qQ6BA1vfmZYTLvtcUi46KWMM2VPI636aNz9Frz0C5aBBaXxdxedl7wL3nZ6cUMNTERxRvJ0kzuT7qfMgncox6E51xQMIWkDge+kqaSfVR5Ds=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774670787; c=relaxed/simple;
-	bh=s/60rjEVWikwZ9PeOCTiSFY9Ab+XizrvFQTqZILGbOQ=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=fjkPdyTrsAjP9rCFu3dETn0AFZO3dTTCCSHmtrvY+HD4zsavcrrab8aaK0ESDAe+eoFS8YC7D2jZSeqe5RqTM8UkT7cY6wgAePcgWANYfvqhi1Zw3IZvY3jHMyZbvJgPaxpgkRD/WNrjDeG30qKS8a3ksLSn03pxDd2ZVnJKzqA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=ok25tMcB; arc=none smtp.client-ip=113.46.200.227
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=h-partners.com
+	s=arc-20240116; t=1774690212; c=relaxed/simple;
+	bh=ZIN3K4vAZh3AbifESV3YvOZ2UBDwIgV0cDjy1tNXvQ0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=NrKj+X5im4DpRx9Gn9sqIlTrZvHnDKbtQ/Tzco0DoAkKFL10ow9UsDG2le1teVKS8lMWmELcl1SDRhLuvHYI9pwa/PJM4RM3ydr/69y3Zb6HHf27tZaY0y1rvblv8SvMMHFGK9xWBfDDi3E9GaoBbCinSa9ymQ5Vu56EztkLGNc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=HwYKXg3G; arc=none smtp.client-ip=198.175.65.17
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="ok25tMcB"
-dkim-signature: v=1; a=rsa-sha256; d=h-partners.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=ZcMXbDbpoMQKT+PPi4k+xuXXt5x6H9WnCQbnswzsMLA=;
-	b=ok25tMcBg7dpwDJ/9S7n9yruxt1jzKvpjyysRrw38msMEUc+/c17OyoXmTef7G1eIoYZcNu30
-	hNYRGW9tOIMj9K0RCWcancMtr8ZNbMphKCMFIWC+HiyOASpQlXnau3U6YG78Pq568caCeuyPodn
-	iJfyUUeKb2yk23tj3JjtCTQ=
-Received: from mail.maildlp.com (unknown [172.19.163.200])
-	by canpmsgout12.his.huawei.com (SkyGuard) with ESMTPS id 4fjP1s2YCXznTVT;
-	Sat, 28 Mar 2026 12:00:49 +0800 (CST)
-Received: from dggemv712-chm.china.huawei.com (unknown [10.1.198.32])
-	by mail.maildlp.com (Postfix) with ESMTPS id 6C93140563;
-	Sat, 28 Mar 2026 12:06:15 +0800 (CST)
-Received: from kwepemn100009.china.huawei.com (7.202.194.112) by
- dggemv712-chm.china.huawei.com (10.1.198.32) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Sat, 28 Mar 2026 12:06:15 +0800
-Received: from [10.67.121.59] (10.67.121.59) by kwepemn100009.china.huawei.com
- (7.202.194.112) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.36; Sat, 28 Mar
- 2026 12:06:14 +0800
-Message-ID: <47d38645-235b-43af-ac0b-300af338db31@huawei.com>
-Date: Sat, 28 Mar 2026 12:06:14 +0800
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="HwYKXg3G"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1774690207; x=1806226207;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=ZIN3K4vAZh3AbifESV3YvOZ2UBDwIgV0cDjy1tNXvQ0=;
+  b=HwYKXg3GDgfK23O9DJaQ5Iaz6MNpliB/1uMWvtOVy0vP7IP0yIx4IsHm
+   1hHySCcvgAdDix0ZR+thH3JKbxrWDBi8Pri3lc6voQbYqd4frOUR2a6Z0
+   TL8d/BN0wFcKcJVvnnuLpFMjBUfXEyFtILg2avnX8YcCI/K0StOEZfWgf
+   GBaY79y8MNjuurWtk3mDLoBX4WbESarpQEfluS5CtTwXl+LSOGzAugm9s
+   iUYy7levgNlvVUwofPgT9pMtdYdBeGc9WmdPD+Nw+1hmfvSK0YtqZi51K
+   UCPx1RZrngFYdzfTmHDl0S2qee0U3nRREIt2z6ampVuksSsL6lU03KdQ5
+   w==;
+X-CSE-ConnectionGUID: xL2qoIjxS5muyH/LT3MTRw==
+X-CSE-MsgGUID: DlxQXf0dT9+6fDqmEZ1Zqw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11742"; a="75722002"
+X-IronPort-AV: E=Sophos;i="6.23,145,1770624000"; 
+   d="scan'208";a="75722002"
+Received: from orviesa002.jf.intel.com ([10.64.159.142])
+  by orvoesa109.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Mar 2026 02:30:05 -0700
+X-CSE-ConnectionGUID: begHELPwQrmwIbfPmJ5N3w==
+X-CSE-MsgGUID: gTghySnRSh+1Dz4nJQtBgg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,145,1770624000"; 
+   d="scan'208";a="256047578"
+Received: from igk-lkp-server01.igk.intel.com (HELO 9958d990ccf2) ([10.211.93.152])
+  by orviesa002.jf.intel.com with ESMTP; 28 Mar 2026 02:30:03 -0700
+Received: from kbuild by 9958d990ccf2 with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1w6PzU-000000007ev-0K6O;
+	Sat, 28 Mar 2026 09:30:00 +0000
+Date: Sat, 28 Mar 2026 10:29:43 +0100
+From: kernel test robot <lkp@intel.com>
+To: Padmashree S S <padmashreess2006@gmail.com>, rafael@kernel.org,
+	tony.luck@intel.com
+Cc: oe-kbuild-all@lists.linux.dev, bp@alien8.de, guohanjun@huawei.com,
+	mchehab@kernel.org, xueshuai@linux.alibaba.com,
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Padmashree S S <padmashreess2006@gmail.com>
+Subject: Re: [PATCH] ACPI: APEI: EINJ: make einj_initialized static
+Message-ID: <202603281058.fgnC9vIy-lkp@intel.com>
+References: <20260325034626.405366-1-padmashreess2006@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 1/3] cpuidle: Add enable_cpuidle() interface
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-CC: <lenb@kernel.org>, <linux-acpi@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, <Sudeep.Holla@arm.com>,
-	<linuxarm@huawei.com>, <jonathan.cameron@huawei.com>,
-	<zhanjie9@hisilicon.com>, <zhenglifeng1@huawei.com>, <yubowen8@huawei.com>
-References: <20251125072933.3706006-1-lihuisong@huawei.com>
- <20251125072933.3706006-2-lihuisong@huawei.com>
- <CAJZ5v0j6HPW8thPNLSRRzZCjSSnr69DWBHn9BBR2+L4tOKD6Fw@mail.gmail.com>
- <11f9d333-4d18-463a-817f-d3f450d1624e@huawei.com>
- <2d2d2d40-c73a-4988-90fe-fad75e35c75b@huawei.com>
- <f2be1178-28f4-4412-adb7-1530944a76ed@huawei.com>
- <CAJZ5v0heJsOWA5z7CwrON4zvaebj8-C_HBe5ymYa+FAbfJgy1A@mail.gmail.com>
- <3948b6fe-2aa6-4e38-9d58-c0e25e48fe93@huawei.com>
- <CAJZ5v0jPhW_spgjhfeig96G9pMEYb27_EKEYz17eZngrDLY7iA@mail.gmail.com>
-From: "lihuisong (C)" <lihuisong@huawei.com>
-In-Reply-To: <CAJZ5v0jPhW_spgjhfeig96G9pMEYb27_EKEYz17eZngrDLY7iA@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: kwepems500002.china.huawei.com (7.221.188.17) To
- kwepemn100009.china.huawei.com (7.202.194.112)
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260325034626.405366-1-padmashreess2006@gmail.com>
 
+Hi Padmashree,
 
-On 3/27/2026 7:33 PM, Rafael J. Wysocki wrote:
-> On Fri, Mar 27, 2026 at 7:23 AM lihuisong (C) <lihuisong@huawei.com> wrote:
->>
->> On 3/26/2026 9:39 PM, Rafael J. Wysocki wrote:
->>> On Thu, Mar 26, 2026 at 1:17 PM lihuisong (C) <lihuisong@huawei.com> wrote:
->>>> Hi Rafael,
->>>>
->>>> On 1/30/2026 9:59 AM, lihuisong (C) wrote:
->>>>> Hi Rafael,
->>>>>
->>>>> On 1/15/2026 8:18 PM, lihuisong (C) wrote:
->>>>>> On 1/15/2026 3:18 AM, Rafael J. Wysocki wrote:
->>>>>>> On Tue, Nov 25, 2025 at 8:29 AM Huisong Li <lihuisong@huawei.com>
->>>>>>> wrote:
->>>>>>>> The global switch of cpuidle can be turned back on in some case.
->>>>>>>> So add enable_cpuidle().
->>>>>>> No, this is not going to work.  The "off" switch only affects
->>>>>>> initialization AFAICS.
->>>>>> I think it would be work.
->>>>>> The cpuidle_not_available() also see the "off" on do_idle().
->>>>>> And cpuidle_idle_call() check this function first and then select
->>>>>> idle state.
->>>>>> Cpuidle doesn't select and enter idle state if this fuction return true.
->>>>> I verified that disable_cpuidle() effectively prevents all CPUs from
->>>>> entering any idle states and the cpuidle function is correctly
->>>>> restored after calling enable_cpuidle().
->>>>> What do you think?
->>>> Could you pleasetake a look atmy reply?
->>>> If not ok, I will drop this from my upstream list.
->>> Sorry, can you please remind me what problem you wanted to address
->>> with the help of this?
->> Regarding the discussion in the link[1], if driver fail to get power
->> info in power notify,
->> the old idle states may no longer be reliable. Therefore, patch 2/3
->> disables ACPI idle
->> via the new interface introduced in patch 1/3.
->>
->> However, our discussion on whether this new interface can disable ACPI
->> idle has not yet reached a conclusion.
->> Could you please revisit this thread? It's quite brief, and I'd
->> appreciate your further input.
->>
->> [1]
->> https://lore.kernel.org/all/20251103084244.2654432-1-lihuisong@huawei.com
-> The "off" variable has been intended for disabling cpuidle via kernel
-> command line (note that the corresponding module param is read-only).
->
-> disable_cpuidle() is only used by Xen now and only at the setup/init stage.
->
-> I don't think that using it on idle state list change notifications is
-> a good idea.
+kernel test robot noticed the following build errors:
 
-Understand.
+[auto build test ERROR on rafael-pm/linux-next]
+[also build test ERROR on rafael-pm/bleeding-edge linus/master v7.0-rc5 next-20260327]
+[If your patch is applied to the wrong git tree, kindly drop us a note.
+And when submitting patch, we suggest to use '--base' as documented in
+https://git-scm.com/docs/git-format-patch#_base_tree_information]
 
->
-> Something like cpuidle_pause_and_lock() would be a better match I
-> think.  acpi_processor_hotplug() uses it already for a similar
-> purpose.
+url:    https://github.com/intel-lab-lkp/linux/commits/Padmashree-S-S/ACPI-APEI-EINJ-make-einj_initialized-static/20260328-022553
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
+patch link:    https://lore.kernel.org/r/20260325034626.405366-1-padmashreess2006%40gmail.com
+patch subject: [PATCH] ACPI: APEI: EINJ: make einj_initialized static
+config: x86_64-rhel-9.4 (https://download.01.org/0day-ci/archive/20260328/202603281058.fgnC9vIy-lkp@intel.com/config)
+compiler: gcc-14 (Debian 14.2.0-19) 14.2.0
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260328/202603281058.fgnC9vIy-lkp@intel.com/reproduce)
 
-Interfaces like cpuidle_pause_and_lock() and cpuidle_pause() disable cpuidle by clearing the global "initialized" flag,
-which requires "enabled_devices" to be non-zero.
-IIUC, cpuidle_disable_device() isn't called when a CPU goes offline; instead, it's handled in acpi_processor_hotplug() during online.
-This means "enabled_devices" stays above zero even if some CPUs are offline.
-In this case, the driver can still successfully set initialized to zero when get power information failed in power notify.
-So we can disable APCI idle on all CPUs.
-But we need to ensure that other threads wouldn't resume the "initialized" flag by interfaces like cpuidle_resume().
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202603281058.fgnC9vIy-lkp@intel.com/
 
-I have found a scenario for that where acpi_processor_hotplug enables the cpuidle_device and restores the "initialized" value.
-In this case, special processing may be required.
-For example, the cpuidle state of the cpuidle driver also need reinitialize or the disable cpuilde state is still maintained.
+All errors (new ones prefixed by >>, old ones prefixed by <<):
 
-/Huisong
+>> ERROR: modpost: "einj_initialized" [drivers/acpi/apei/einj.ko] undefined!
 
+-- 
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
