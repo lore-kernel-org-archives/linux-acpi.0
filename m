@@ -1,231 +1,286 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DEAD37F736
-	for <linux-acpi@vger.kernel.org>; Sat, 28 Mar 2026 11:59:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E84513C8E8;
+	Sat, 28 Mar 2026 13:37:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.10
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774699182; cv=none; b=ZZyVqXhaHo55gIgtzaEb2ofrcBEe4MPcmo2ht2X0b52yq5ZsgnjZg7RlqmOYcL/y8iPDwv75Li+VqvWtbCH3T1UPAE2yNglNv9gOWowhwDBwRHKa06462Y4bCjhd3S+MLbttekUoDMwABjJLU+aFP3NyL50it+Dl+eONZBDkdvc=
+	t=1774705054; cv=none; b=SjyncB3IPuf7p4mQWR3JGKsNmWh2G7qhYT5SrnpfYtwvjjLXIUNxSl/fVQoAldg+BK4VvfHl4C94Xgco/Nx2YaHBxxm1NCBUzskgFUHPZtC7WJCeNwS9BsaZDnmdbMjJeVLS45SQHS/v0kN/Q5ekdDPq7HyZlpvOZL7VCdAm9eY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774699182; c=relaxed/simple;
-	bh=PTz2rHI475IxV/7XekLz6uyjPu4o8UrPYGzuKbSBcaU=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=vFsNhZgnVzlBa8R+TwNzA4AmWAUaXV8b5ypynA0TFJgpmwF08UXUmz1j4614HWJwW4ewY9uZC4uMazTe92mXRMu7zLzI5rWQAhGNYOf/LfgbB/rLiqr5QvCMYa0Ew0XF4O2XkVcK/TaI6CK4e9aC2Qu+KTllXVmfxAKkiBrySR0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=a5uMPz4v; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774705054; c=relaxed/simple;
+	bh=zW7d7iZPdcpENlHfHfEufuVSSrTOU4Wqwfwy8Wj/VZE=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=TS4Sr/My2KjF/SgShhSy6koCyATprVBMwo3e8MVNyOkzofeNu2CIL8cHXK0jXDNn6Oddx5E815HLN+0LoGCpS3HgkiioLpYrAPzTBEtU0pK6N8xu2vDm9QvGoRQ1NqdrqP1KiCQqPcGA+mn1VQeO5WItvFfoJbPNs80n1TsoAx4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=lQeedpjg; arc=none smtp.client-ip=192.198.163.10
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="a5uMPz4v"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 214BCC2BC9E
-	for <linux-acpi@vger.kernel.org>; Sat, 28 Mar 2026 11:59:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774699182;
-	bh=PTz2rHI475IxV/7XekLz6uyjPu4o8UrPYGzuKbSBcaU=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=a5uMPz4v1SyZIsXxv2hZAIKcTrC0XpWrUq8qYLhxv97mEF1HNY6xMOWv8ZqpiMH0W
-	 T3gHZTmN8AC3lkffRuAIFMHv3qznShrriIdcUKeCPXtOY/OoJmqEzQBhhK0hSDG+Yb
-	 S9FD5lLZ9a2zddwX0pTcbLLgy/J9p5w2hTflBNVc0QceEs8heP6sCuKvQmacQxyuvv
-	 9BjohsaV5FnpQxEAOjXtoMEDWmEGkiq7QIzpQBEvioBWy6dCkWdzvVGuzjjeJg1d1V
-	 jXQXcCyhmmRxXmgvg25Em90Q9smFMr8PhbMnJL+zHTUeWNPEo7dyRLbY3sXv4wvQDv
-	 obOzyNWLCkmrQ==
-Received: by mail-oa1-f43.google.com with SMTP id 586e51a60fabf-40ef10ec84cso2435763fac.2
-        for <linux-acpi@vger.kernel.org>; Sat, 28 Mar 2026 04:59:42 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCUM6hd3G3GVNGo6QyPZKDSuiaHlIT3olbU9amhUW2JbFB01VVvnmtIntDYVqspZg70tn1y29Lii3BLf@vger.kernel.org
-X-Gm-Message-State: AOJu0YyRQyvbOTx4tHEIp64jfMLdoqDe+iJK6Xl2EFE8QCOwvc51kvOB
-	diewMyTdTOBr5BCTo1w+F4TM2fOCAjgOfgXHbx8iKHemZiAXIZNjvJKL5n9c2w0b8qSiyOhT50R
-	TmliRNgRyA6HDe0NVilnt95GKCdtEvEU=
-X-Received: by 2002:a05:6870:b3e4:b0:409:5560:72f8 with SMTP id
- 586e51a60fabf-41cebe755a7mr3240178fac.0.1774699181235; Sat, 28 Mar 2026
- 04:59:41 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="lQeedpjg"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1774705053; x=1806241053;
+  h=date:from:to:cc:subject:message-id;
+  bh=zW7d7iZPdcpENlHfHfEufuVSSrTOU4Wqwfwy8Wj/VZE=;
+  b=lQeedpjg0Q+Ev67ZH6Is3pqyHGDyhwYU0IDzZO03tda+1WJOdAOTMRTI
+   p6t6vJM/W4RYTRDezyqEaNaf3NOwGGrg4KOWvrBdISfdLL3riF1pk/h0X
+   +Do6maSaC7FistOR9jFhA0wI2XUViNKM+jr3xJYhMV6cFETJMS50c6aCE
+   DCV8eAatpAE6zhpxHx+n4LcqSTK9OMsODtrKawh+Onr9U1Xn4zTPIZ5mQ
+   usGB0aB4ZEtvRlIATjPZZy4mR/YI+Gz9sXyys5nb+P+35AZNNhvqpenNp
+   hNQ3REgp7sCbuO7zwmPbsDZaP7OPe30hsTQfn4u6XiWn4F75Pbtqu1+V7
+   g==;
+X-CSE-ConnectionGUID: UUrdTdMuTveI2xvZLoWdYw==
+X-CSE-MsgGUID: iNUgRBCdRhuCI9nJkbcN2g==
+X-IronPort-AV: E=McAfee;i="6800,10657,11742"; a="87148041"
+X-IronPort-AV: E=Sophos;i="6.23,146,1770624000"; 
+   d="scan'208";a="87148041"
+Received: from fmviesa010.fm.intel.com ([10.60.135.150])
+  by fmvoesa104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Mar 2026 06:37:33 -0700
+X-CSE-ConnectionGUID: qMjEActMQVuQn0SEnw38+Q==
+X-CSE-MsgGUID: 0YzZEa0sQ2+smWaV46buVQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,146,1770624000"; 
+   d="scan'208";a="221179029"
+Received: from lkp-server01.sh.intel.com (HELO 3905d212be1b) ([10.239.97.150])
+  by fmviesa010.fm.intel.com with ESMTP; 28 Mar 2026 06:37:31 -0700
+Received: from kbuild by 3905d212be1b with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1w6Tqy-00000000BS1-45ED;
+	Sat, 28 Mar 2026 13:37:28 +0000
+Date: Sat, 28 Mar 2026 21:37:14 +0800
+From: kernel test robot <lkp@intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+Subject: [rafael-pm:bleeding-edge] BUILD SUCCESS
+ d5fd8cd3b0d8b0d995d9f97135e2ac680d3ed1f1
+Message-ID: <202603282105.9G5STQJe-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <3949487.kQq0lBPeGt@rafael.j.wysocki> <cd671e41-9f36-409d-97b4-f696935b1efe@app.fastmail.com>
-In-Reply-To: <cd671e41-9f36-409d-97b4-f696935b1efe@app.fastmail.com>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Sat, 28 Mar 2026 12:59:29 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0gwA-dDen-GYsdtEkHqahVrg4jSc9KD6-5AHLT=RV=bWA@mail.gmail.com>
-X-Gm-Features: AQROBzA3DxvYl3RU61mvKW4Htjtda6yOaEem0JiYgDysa_YLltqwpeGV0M_fbRE
-Message-ID: <CAJZ5v0gwA-dDen-GYsdtEkHqahVrg4jSc9KD6-5AHLT=RV=bWA@mail.gmail.com>
-Subject: Re: [PATCH v1] platform/x86: thinkpad_acpi: Drop ACPI driver registration
-To: Mark Pearson <mpearson-lenovo@squebb.ca>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, 
-	Hans de Goede <hansg@kernel.org>, LKML <linux-kernel@vger.kernel.org>, 
-	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, 
-	"platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, 
-	Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Derek J . Clark" <derekjohn.clark@gmail.com>, 
-	ibm-acpi-devel@lists.sourceforge.net
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Sat, Mar 28, 2026 at 2:29=E2=80=AFAM Mark Pearson <mpearson-lenovo@squeb=
-b.ca> wrote:
->
-> Hi Rafael
->
-> On Tue, Mar 24, 2026, at 4:08 PM, Rafael J. Wysocki wrote:
-> > From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-> >
-> > There is no point in registering an ACPI driver that only has an empty
-> > .add() callback, which is done by the thinkpad_acpi driver, since
-> > after binding to an ACPI device it only sits there and does nothing.
-> >
-> > That binding only effectively causes the ACPI device's reference count
-> > to increase, but that can be achieved by using acpi_get_acpi_dev()
-> > instead of acpi_fetch_acpi_dev() in setup_acpi_notify(), and doing
-> > the corresponding cleanup in ibm_exit().
-> >
-> > Update the code accordingly and get rid of the non-functional ACPI
-> > driver.
-> >
-> > No intentional functional impact beyond altering sysfs content.
->
-> Just curious - where would I see changes?
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
+branch HEAD: d5fd8cd3b0d8b0d995d9f97135e2ac680d3ed1f1  Merge branch 'thermal-core-fixes' into bleeding-edge
 
-In /sys/bus/acpi/drivers/ - no thinkpad_* any more (quite obviously)
-and no "driver" link in the sysfs directory of the ACPI device the
-driver used to bind to.  That should be it IIRC.
+elapsed time: 1098m
 
-> >
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > ---
-> >  drivers/platform/x86/lenovo/thinkpad_acpi.c | 62 ++-------------------
-> >  1 file changed, 4 insertions(+), 58 deletions(-)
-> >
-> > diff --git a/drivers/platform/x86/lenovo/thinkpad_acpi.c
-> > b/drivers/platform/x86/lenovo/thinkpad_acpi.c
-> > index 8982d92dfd97..9e1614754cd7 100644
-> > --- a/drivers/platform/x86/lenovo/thinkpad_acpi.c
-> > +++ b/drivers/platform/x86/lenovo/thinkpad_acpi.c
-> > @@ -299,7 +299,6 @@ struct ibm_struct;
-> >
-> >  struct tp_acpi_drv_struct {
-> >       const struct acpi_device_id *hid;
-> > -     struct acpi_driver *driver;
-> >
-> >       void (*notify) (struct ibm_struct *, u32);
-> >       acpi_handle *handle;
-> > @@ -322,7 +321,6 @@ struct ibm_struct {
-> >       struct tp_acpi_drv_struct *acpi;
-> >
-> >       struct {
-> > -             u8 acpi_driver_registered:1;
-> >               u8 acpi_notify_installed:1;
-> >               u8 proc_created:1;
-> >               u8 init_called:1;
-> > @@ -832,9 +830,9 @@ static int __init setup_acpi_notify(struct ibm_stru=
-ct *ibm)
-> >       vdbg_printk(TPACPI_DBG_INIT,
-> >               "setting up ACPI notify for %s\n", ibm->name);
-> >
-> > -     ibm->acpi->device =3D acpi_fetch_acpi_dev(*ibm->acpi->handle);
-> > +     ibm->acpi->device =3D acpi_get_acpi_dev(*ibm->acpi->handle);
-> >       if (!ibm->acpi->device) {
-> > -             pr_err("acpi_fetch_acpi_dev(%s) failed\n", ibm->name);
-> > +             pr_err("acpi_get_acpi_dev(%s) failed\n", ibm->name);
-> >               return -ENODEV;
-> >       }
-> >
-> > @@ -859,44 +857,6 @@ static int __init setup_acpi_notify(struct ibm_str=
-uct *ibm)
-> >       return 0;
-> >  }
-> >
-> > -static int __init tpacpi_device_add(struct acpi_device *device)
-> > -{
-> > -     return 0;
-> > -}
-> > -
-> > -static int __init register_tpacpi_subdriver(struct ibm_struct *ibm)
-> > -{
-> > -     int rc;
-> > -
-> > -     dbg_printk(TPACPI_DBG_INIT,
-> > -             "registering %s as an ACPI driver\n", ibm->name);
-> > -
-> > -     BUG_ON(!ibm->acpi);
-> > -
-> > -     ibm->acpi->driver =3D kzalloc_obj(struct acpi_driver);
-> > -     if (!ibm->acpi->driver) {
-> > -             pr_err("failed to allocate memory for ibm->acpi->driver\n=
-");
-> > -             return -ENOMEM;
-> > -     }
-> > -
-> > -     sprintf(ibm->acpi->driver->name, "%s_%s", TPACPI_NAME, ibm->name)=
-;
-> > -     ibm->acpi->driver->ids =3D ibm->acpi->hid;
-> > -
-> > -     ibm->acpi->driver->ops.add =3D &tpacpi_device_add;
-> > -
-> > -     rc =3D acpi_bus_register_driver(ibm->acpi->driver);
-> > -     if (rc < 0) {
-> > -             pr_err("acpi_bus_register_driver(%s) failed: %d\n",
-> > -                    ibm->name, rc);
-> > -             kfree(ibm->acpi->driver);
-> > -             ibm->acpi->driver =3D NULL;
-> > -     } else if (!rc)
-> > -             ibm->flags.acpi_driver_registered =3D 1;
-> > -
-> > -     return rc;
-> > -}
-> > -
-> > -
-> >  /*********************************************************************=
-*******
-> >   *********************************************************************=
-*******
-> >   *
-> > @@ -11532,6 +11492,8 @@ static void ibm_exit(struct ibm_struct *ibm)
-> >               acpi_remove_notify_handler(*ibm->acpi->handle,
-> >                                          ibm->acpi->type,
-> >                                          dispatch_acpi_notify);
-> > +             ibm->acpi->device->driver_data =3D NULL;
-> > +             acpi_dev_put(ibm->acpi->device);
-> >               ibm->flags.acpi_notify_installed =3D 0;
-> >       }
-> >
-> > @@ -11542,16 +11504,6 @@ static void ibm_exit(struct ibm_struct *ibm)
-> >               ibm->flags.proc_created =3D 0;
-> >       }
-> >
-> > -     if (ibm->flags.acpi_driver_registered) {
-> > -             dbg_printk(TPACPI_DBG_EXIT,
-> > -                     "%s: acpi_bus_unregister_driver\n", ibm->name);
-> > -             BUG_ON(!ibm->acpi);
-> > -             acpi_bus_unregister_driver(ibm->acpi->driver);
-> > -             kfree(ibm->acpi->driver);
-> > -             ibm->acpi->driver =3D NULL;
-> > -             ibm->flags.acpi_driver_registered =3D 0;
-> > -     }
-> > -
-> >       if (ibm->flags.init_called && ibm->exit) {
-> >               ibm->exit();
-> >               ibm->flags.init_called =3D 0;
-> > @@ -11587,12 +11539,6 @@ static int __init ibm_init(struct
-> > ibm_init_struct *iibm)
-> >       }
-> >
-> >       if (ibm->acpi) {
-> > -             if (ibm->acpi->hid) {
-> > -                     ret =3D register_tpacpi_subdriver(ibm);
-> > -                     if (ret)
-> > -                             goto err_out;
-> > -             }
-> > -
-> >               if (ibm->acpi->notify) {
-> >                       ret =3D setup_acpi_notify(ibm);
-> >                       if (ret =3D=3D -ENODEV) {
-> > --
-> > 2.51.0
->
-> Changes seem good to me (but not an expert).
-> I did try them out on a system (X1 Carbon 13) and didn't find any problem=
-s. Let me know if there's anything in particular I should look out for or c=
-heck and happy to do that.
->
-> Tested-by: Mark Pearson <mpearson-lenovo@squebb.ca>
-> Reviewed-by: Mark Pearson <mpearson-lenovo@squebb.ca>
+configs tested: 209
+configs skipped: 4
 
-Thank you!
+The following configs have been built successfully.
+More configs may be tested in the coming days.
+
+tested configs:
+alpha                             allnoconfig    gcc-15.2.0
+alpha                            allyesconfig    gcc-15.2.0
+alpha                               defconfig    gcc-15.2.0
+arc                              allmodconfig    clang-16
+arc                              allmodconfig    gcc-15.2.0
+arc                               allnoconfig    gcc-15.2.0
+arc                              allyesconfig    clang-23
+arc                              allyesconfig    gcc-15.2.0
+arc                                 defconfig    gcc-15.2.0
+arc                   randconfig-001-20260328    gcc-15.2.0
+arc                   randconfig-002-20260328    gcc-15.2.0
+arm                               allnoconfig    clang-23
+arm                               allnoconfig    gcc-15.2.0
+arm                              allyesconfig    clang-16
+arm                              allyesconfig    gcc-15.2.0
+arm                       aspeed_g4_defconfig    clang-23
+arm                                 defconfig    gcc-15.2.0
+arm                   randconfig-001-20260328    gcc-15.2.0
+arm                   randconfig-002-20260328    gcc-15.2.0
+arm                   randconfig-003-20260328    gcc-15.2.0
+arm                   randconfig-004-20260328    gcc-15.2.0
+arm64                            allmodconfig    clang-19
+arm64                            allmodconfig    clang-23
+arm64                             allnoconfig    gcc-15.2.0
+arm64                               defconfig    gcc-15.2.0
+arm64                 randconfig-001-20260328    gcc-14.3.0
+arm64                 randconfig-002-20260328    gcc-14.3.0
+arm64                 randconfig-003-20260328    gcc-14.3.0
+arm64                 randconfig-004-20260328    gcc-14.3.0
+csky                             allmodconfig    gcc-15.2.0
+csky                              allnoconfig    gcc-15.2.0
+csky                                defconfig    gcc-15.2.0
+csky                  randconfig-001-20260328    gcc-14.3.0
+csky                  randconfig-002-20260328    gcc-14.3.0
+hexagon                          allmodconfig    clang-17
+hexagon                          allmodconfig    gcc-15.2.0
+hexagon                           allnoconfig    clang-23
+hexagon                           allnoconfig    gcc-15.2.0
+hexagon                             defconfig    gcc-15.2.0
+hexagon               randconfig-001-20260328    gcc-11.5.0
+hexagon               randconfig-002-20260328    gcc-11.5.0
+i386                             allmodconfig    clang-20
+i386                             allmodconfig    gcc-14
+i386                              allnoconfig    gcc-14
+i386                              allnoconfig    gcc-15.2.0
+i386                             allyesconfig    clang-20
+i386                             allyesconfig    gcc-14
+i386        buildonly-randconfig-001-20260328    clang-20
+i386        buildonly-randconfig-002-20260328    clang-20
+i386        buildonly-randconfig-002-20260328    gcc-12
+i386        buildonly-randconfig-003-20260328    clang-20
+i386        buildonly-randconfig-003-20260328    gcc-14
+i386        buildonly-randconfig-004-20260328    clang-20
+i386        buildonly-randconfig-005-20260328    clang-20
+i386        buildonly-randconfig-006-20260328    clang-20
+i386        buildonly-randconfig-006-20260328    gcc-14
+i386                                defconfig    gcc-15.2.0
+i386                  randconfig-001-20260328    clang-20
+i386                  randconfig-002-20260328    clang-20
+i386                  randconfig-003-20260328    clang-20
+i386                  randconfig-004-20260328    clang-20
+i386                  randconfig-005-20260328    clang-20
+i386                  randconfig-006-20260328    clang-20
+i386                  randconfig-007-20260328    clang-20
+i386                  randconfig-011-20260328    gcc-13
+i386                  randconfig-012-20260328    gcc-13
+i386                  randconfig-012-20260328    gcc-14
+i386                  randconfig-013-20260328    clang-20
+i386                  randconfig-013-20260328    gcc-13
+i386                  randconfig-014-20260328    gcc-13
+i386                  randconfig-014-20260328    gcc-14
+i386                  randconfig-015-20260328    gcc-13
+i386                  randconfig-016-20260328    gcc-13
+i386                  randconfig-017-20260328    clang-20
+i386                  randconfig-017-20260328    gcc-13
+loongarch                        allmodconfig    clang-19
+loongarch                        allmodconfig    clang-23
+loongarch                         allnoconfig    clang-23
+loongarch                         allnoconfig    gcc-15.2.0
+loongarch                           defconfig    clang-19
+loongarch             randconfig-001-20260328    gcc-11.5.0
+loongarch             randconfig-002-20260328    gcc-11.5.0
+m68k                             allmodconfig    gcc-15.2.0
+m68k                              allnoconfig    gcc-15.2.0
+m68k                             allyesconfig    clang-16
+m68k                             allyesconfig    gcc-15.2.0
+m68k                                defconfig    clang-19
+microblaze                        allnoconfig    gcc-15.2.0
+microblaze                       allyesconfig    gcc-15.2.0
+microblaze                          defconfig    clang-19
+mips                             allmodconfig    gcc-15.2.0
+mips                              allnoconfig    gcc-15.2.0
+mips                             allyesconfig    gcc-15.2.0
+mips                           ip27_defconfig    gcc-15.2.0
+nios2                            allmodconfig    clang-23
+nios2                            allmodconfig    gcc-11.5.0
+nios2                             allnoconfig    clang-23
+nios2                             allnoconfig    gcc-11.5.0
+nios2                               defconfig    clang-19
+nios2                 randconfig-001-20260328    gcc-11.5.0
+nios2                 randconfig-002-20260328    gcc-11.5.0
+openrisc                         allmodconfig    clang-23
+openrisc                         allmodconfig    gcc-15.2.0
+openrisc                          allnoconfig    clang-23
+openrisc                          allnoconfig    gcc-15.2.0
+openrisc                            defconfig    gcc-15.2.0
+parisc                           allmodconfig    gcc-15.2.0
+parisc                            allnoconfig    clang-23
+parisc                            allnoconfig    gcc-15.2.0
+parisc                           allyesconfig    clang-19
+parisc                           allyesconfig    gcc-15.2.0
+parisc                              defconfig    gcc-15.2.0
+parisc                randconfig-001-20260328    gcc-10.5.0
+parisc                randconfig-002-20260328    gcc-10.5.0
+parisc64                            defconfig    clang-19
+powerpc                          allmodconfig    gcc-15.2.0
+powerpc                           allnoconfig    clang-23
+powerpc                           allnoconfig    gcc-15.2.0
+powerpc                        cell_defconfig    gcc-15.2.0
+powerpc               randconfig-001-20260328    gcc-10.5.0
+powerpc               randconfig-002-20260328    gcc-10.5.0
+powerpc64             randconfig-001-20260328    gcc-10.5.0
+powerpc64             randconfig-002-20260328    gcc-10.5.0
+riscv                            allmodconfig    clang-23
+riscv                             allnoconfig    clang-23
+riscv                             allnoconfig    gcc-15.2.0
+riscv                            allyesconfig    clang-16
+riscv                               defconfig    gcc-15.2.0
+riscv                 randconfig-001-20260328    clang-23
+riscv                 randconfig-002-20260328    clang-23
+s390                             allmodconfig    clang-18
+s390                             allmodconfig    clang-19
+s390                              allnoconfig    clang-23
+s390                             allyesconfig    gcc-15.2.0
+s390                                defconfig    gcc-15.2.0
+s390                  randconfig-001-20260328    clang-23
+s390                  randconfig-002-20260328    clang-23
+sh                               allmodconfig    gcc-15.2.0
+sh                                allnoconfig    clang-23
+sh                                allnoconfig    gcc-15.2.0
+sh                               allyesconfig    clang-19
+sh                               allyesconfig    gcc-15.2.0
+sh                                  defconfig    gcc-14
+sh                    randconfig-001-20260328    clang-23
+sh                    randconfig-002-20260328    clang-23
+sh                           se7705_defconfig    gcc-15.2.0
+sparc                             allnoconfig    clang-23
+sparc                             allnoconfig    gcc-15.2.0
+sparc                               defconfig    gcc-15.2.0
+sparc                 randconfig-001-20260328    gcc-14
+sparc                 randconfig-002-20260328    gcc-14
+sparc64                          allmodconfig    clang-23
+sparc64                             defconfig    gcc-14
+sparc64               randconfig-001-20260328    gcc-14
+sparc64               randconfig-002-20260328    gcc-14
+um                               allmodconfig    clang-19
+um                                allnoconfig    clang-23
+um                               allyesconfig    gcc-14
+um                               allyesconfig    gcc-15.2.0
+um                                  defconfig    gcc-14
+um                             i386_defconfig    gcc-14
+um                    randconfig-001-20260328    gcc-14
+um                    randconfig-002-20260328    gcc-14
+um                           x86_64_defconfig    gcc-14
+x86_64                           allmodconfig    clang-20
+x86_64                            allnoconfig    clang-20
+x86_64                            allnoconfig    clang-23
+x86_64                           allyesconfig    clang-20
+x86_64      buildonly-randconfig-001-20260328    clang-20
+x86_64      buildonly-randconfig-002-20260328    clang-20
+x86_64      buildonly-randconfig-003-20260328    clang-20
+x86_64      buildonly-randconfig-004-20260328    clang-20
+x86_64      buildonly-randconfig-005-20260328    clang-20
+x86_64      buildonly-randconfig-006-20260328    clang-20
+x86_64                              defconfig    gcc-14
+x86_64                                  kexec    clang-20
+x86_64                randconfig-001-20260328    clang-20
+x86_64                randconfig-001-20260328    gcc-14
+x86_64                randconfig-002-20260328    gcc-13
+x86_64                randconfig-002-20260328    gcc-14
+x86_64                randconfig-003-20260328    gcc-14
+x86_64                randconfig-004-20260328    gcc-14
+x86_64                randconfig-005-20260328    clang-20
+x86_64                randconfig-005-20260328    gcc-14
+x86_64                randconfig-006-20260328    gcc-14
+x86_64                randconfig-011-20260328    clang-20
+x86_64                randconfig-012-20260328    clang-20
+x86_64                randconfig-013-20260328    clang-20
+x86_64                randconfig-014-20260328    clang-20
+x86_64                randconfig-015-20260328    clang-20
+x86_64                randconfig-016-20260328    clang-20
+x86_64                randconfig-071-20260328    gcc-12
+x86_64                randconfig-072-20260328    gcc-12
+x86_64                randconfig-073-20260328    gcc-12
+x86_64                randconfig-074-20260328    gcc-12
+x86_64                randconfig-075-20260328    gcc-12
+x86_64                randconfig-076-20260328    gcc-12
+x86_64                               rhel-9.4    clang-20
+x86_64                           rhel-9.4-bpf    gcc-14
+x86_64                          rhel-9.4-func    clang-20
+x86_64                    rhel-9.4-kselftests    clang-20
+x86_64                         rhel-9.4-kunit    gcc-14
+x86_64                           rhel-9.4-ltp    gcc-14
+x86_64                          rhel-9.4-rust    clang-20
+xtensa                            allnoconfig    clang-23
+xtensa                            allnoconfig    gcc-15.2.0
+xtensa                           allyesconfig    clang-23
+xtensa                randconfig-001-20260328    gcc-14
+xtensa                randconfig-002-20260328    gcc-14
+
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
