@@ -1,296 +1,178 @@
-Received: from mail-oi1-f171.google.com (mail-oi1-f171.google.com [209.85.167.171])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8188425CC57
-	for <linux-acpi@vger.kernel.org>; Sun, 29 Mar 2026 16:18:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.167.171
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774801129; cv=pass; b=K8ND6b4KtgX3lMXVHD1nZxZ5JF7KyX/sszaeSlivUXO+SJn6kJjsV6sg9NZDcWEbKMKwEdbUKgKB82kK7nO3a9p8cA8z/gtAfdfRZP6ou2x4EwTw3oiarEdURrU8jlAvbrzfTwceYIQL+/fVLkBKoPK9+Wl11YxyLcGwcj3hSEc=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774801129; c=relaxed/simple;
-	bh=xQqCvaSYvMDehLMpCAi2Exo2F9/DzAf4RUjSbu4AXqo=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=urEwN+oI3BJBbSHW6mpVqgj33mKChyUC9g6kU11Chhe4r1GcPaWV9acPjGBenhbtshEpdW456kacsZ/nSQrhfjqtk/enNTGXCKEUlEYTZ3zVTTo34Un0JFTHVGfxFSuDZ2prg76E4TeRv66Vz52J1KffG3CJTi95FQG2OkeOIK8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=FrzopNnu; arc=pass smtp.client-ip=209.85.167.171
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ACD0A262A6;
+	Sun, 29 Mar 2026 18:02:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1774807360; cv=none; b=BLw/xelGRgF8YJOmma0tuT4O1TMo912E7qimmQe+3xkswsP8fIashiwDp0+aPSkHWiV3+LWnPe+KaRmi5AavVknW3VZyFq/1MsmNlCEB1EeJvuKjKr0nMNWnFiLbxupwULodiBbHlr1/M4r7Sx+7qNn6PlfxZvT5vcPuGsKaMo0=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1774807360; c=relaxed/simple;
+	bh=KQLMbeg4QKqADBpszyEzpxFyxsA9Ac3jxbOP4uoc5Y8=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=CX1z+ofibYoLBzh8lXqEK4b3r9gsGiQjtvDrv4p1Pl8t7A2xXTyuCPEuugSVG0EoZHrihpVy5pX4WfPw0P5GmRCqqeFFFr+FJhmEvlJ36zHfCLLsVI72mfjL77nM4tdMP0Gvkl6hvafW3uS9pAJAJ+0yAQOH5+VtcyZYqSp6Fgo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ob9ACM1V; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FrzopNnu"
-Received: by mail-oi1-f171.google.com with SMTP id 5614622812f47-467161c4a1cso1132940b6e.3
-        for <linux-acpi@vger.kernel.org>; Sun, 29 Mar 2026 09:18:48 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1774801127; cv=none;
-        d=google.com; s=arc-20240605;
-        b=WX1oWk6WsxMdhqOsXMaJOeNIQ6lwejAv1DNEeLwXpvFuey9gXjXO/F670MBVoHyM+s
-         TRUr7HEKMaE8AXsQFbI3LSOmtoF7Ems1ZqemOCmbf6rbvzJFtfhNKx6cTbJPCoi/f1PZ
-         JIoOGfdJK5Q6YLh3VD2kroBZNiBs1ZkvjJpvnxDgFN3CJKI7uBZlWZ19IzahVE7uElRm
-         Mc8gjZyXQW9FT3kp6y0+aV9pVjMIY1s1qzOdZWj/qMpSRKrNKxTyBG/HY12tdWYhqavj
-         +C5xWcZq9ENGx/eM/p73iwZ7wUnDkpNDq+zPfh6QqE9BNf03N3L9s8NQDIDooAp9Av9F
-         oPcQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=WxRWrohRC+fNvhhMsjBNKWfMlLneWiOcUehlHfN3ctw=;
-        fh=qm4uIL+aQLw7n6AuHh47rL7A34H5xnxYm/82C8VIB7c=;
-        b=gjiw2PTzngSae+vCTWTFa4ThNNPSowlenf1ZgrvSpMMK/zY8sfw5S9AvAGtl7C83YU
-         zubu8hsI1zg9CWRYROQ/V1iWEPO6+kpEe5sAaaFYWdLMmkL8SU3OiJYLCnIF9tlbRz8n
-         Na7vxqLBQ3GZ29Ro52todsriZDXk4mN0+LPWu3Ny+sX322TOJWPOAHxFYQB9+roV8kfW
-         1dcaxYvuQ5I3ziKSbxTxNPQp00mmr7WFKF0MiGvulrpsLwLi/OORtc//bPYbhoeIvD3t
-         l8owxSk3QTOlGKJdQ324m9nMrk0qE5lA009/SDFmkaWuD5/mqqmS0jI0wG0I1xyC6Ehy
-         otGw==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1774801127; x=1775405927; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=WxRWrohRC+fNvhhMsjBNKWfMlLneWiOcUehlHfN3ctw=;
-        b=FrzopNnu1K3dOdZ3TusFe8IBsytL0sNJAtbEJkAi2Ep8ulCYvIgLXG4+vwzGZL2WTj
-         dcNudB5wUTfvIW5re3cUZG1++D3fhNZHa7genkw4HI1c7csQf1RXcAHwTh5tuOB3y5Ac
-         NhqgOzqMP+I9e1gDGtW9RHi0h9GiWlGWkoV8VZ9vMGW20CnRMLgxv93uoi+zKLL5PqT7
-         lihAloiFoH2AGTujWWUiAFI749sAv2zVeMRfU/ziSpIjWTK5dBcrG6sRO3MGavZt6fU9
-         E6j+o3xX2I0lIFURRwKtsQcu1qw4zO3iHzPjhkW81uQG0TxQUR40RLPD0mgcCnrfoU6b
-         yfXQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1774801127; x=1775405927;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=WxRWrohRC+fNvhhMsjBNKWfMlLneWiOcUehlHfN3ctw=;
-        b=UC25EFV693O3YESmFcIYRQCMGAv3/nlhX9Wz4x/nt10YGy04rgmUF7z0Qdv6vQRxzX
-         rcYAcul8ZAX+DjYb8hEKtWoyI3m4dSO6vhr1Gpe06TXALMmSohytvkaOKB4xR9jo/ms/
-         cuJQ4TibPqZKhN55094nCCG559eORP8DkHqTo36OCFZI2nJA8mOKav9TCDpyTB5w0oQl
-         +1CaKWufwPNxRDqfr7KXAnXyc2QuHHfIjjwC3gH/ovbGZmnXJV4lMlNUlfUm4kvXdmvo
-         NUY19ZQdRMpJw382xomQrYKBAWeBNFHie6fXcNHtQzhQgl44ghCtV+FTzwk/rLvEFHMh
-         4wdQ==
-X-Forwarded-Encrypted: i=1; AJvYcCVlt7a4h8cPTSJP/8zPgxz4+TmRrNrfLjG7yGgRIXU30ixJ2KBeX0vmnTNGD6ClaTU4JvEABEPI/MLU@vger.kernel.org
-X-Gm-Message-State: AOJu0YwqD4C9VIbC068hb/e3J1birKyA1ekK8/cRILxmM0TJ2mCPFN9k
-	Hh0MDD2JD4NPWXKk7ptuyQUM9NRfSOSFvfnBhmVxPgEahd0lG4yLnnRXHfXNifbaeU4ISCsnIo7
-	7tEfBLIJ/FaH9JEHYHDTnlC4nOcFFSuQ=
-X-Gm-Gg: ATEYQzyqERX926q/+019RXW9j8xfz0XwMAHtYIzWSCMnsar48w0gP97yZK6Z88cymQM
-	13ZpJISjeLAguEIlrfnCamXT0gJqQquKgm8V5xg0WhRDT0HT7rAxDswjtmJnsRmIKmWAqrltXdl
-	a9d1AyvWruOo2ZsSNQLwA0QFn2GtoNPGgDouIbpdK4bU1GqVV+6nwUEjAbl0POomz4xlp55GPv2
-	jem0Rv+v6o+jn8mWgOG9CqVSoC5KrMQv/WG0SuaPdpchJtQs44M3ExUyaro2OBvLKvZ6mxkQDof
-	3Rvv36If
-X-Received: by 2002:a05:6808:1909:b0:466:f25d:3281 with SMTP id
- 5614622812f47-46a8a535f24mr4527393b6e.29.1774801127539; Sun, 29 Mar 2026
- 09:18:47 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ob9ACM1V"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 59879C19424;
+	Sun, 29 Mar 2026 18:02:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1774807360;
+	bh=KQLMbeg4QKqADBpszyEzpxFyxsA9Ac3jxbOP4uoc5Y8=;
+	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
+	b=Ob9ACM1Vt+/wakNGNDH0pR4HUEX+fPwSanH6rvYONZoZx0QWAcSCa0jgSpG0Gpv7Q
+	 vFYU+cqhYQS58iquT9D/PJPWY1+PxQubE1yYv85MXKyFLqHM/+ZpsLQ93CxUciLSoz
+	 O/BDgesGTccaxadgUQlhSKU8N1/VzM6FX9E6niszqm3dxxihIsD62Fp5q+G/OGKiZ5
+	 CeuqVMdIkizO6tZQnUYs61WEr1iCi33vHvUzp0LJicxZ3FCji+6Mdu1BbNZQWEJCO6
+	 Y08ObhHn+73FsJ+6Ua2JZ9htShkF+5Pwo12lPUkY5DzFMcOlwDExgJ/1JPC34QocgS
+	 NpLHaZITwTpYA==
+Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 46E50F3D61C;
+	Sun, 29 Mar 2026 18:02:40 +0000 (UTC)
+From: Markus Probst via B4 Relay <devnull+markus.probst.posteo.de@kernel.org>
+Date: Sun, 29 Mar 2026 20:02:15 +0200
+Subject: [PATCH v5 1/4] dt-bindings: embedded-controller: Add synology
+ microp devices
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260327151112.5202-2-wsa+renesas@sang-engineering.com>
-In-Reply-To: <20260327151112.5202-2-wsa+renesas@sang-engineering.com>
-From: Jassi Brar <jassisinghbrar@gmail.com>
-Date: Sun, 29 Mar 2026 11:18:36 -0500
-X-Gm-Features: AQROBzAT0Y7MQA0Vu0exbVKBXS_ASbnND8ZlhVVTpfO0frVJ0Okq55qzNtMBYvo
-Message-ID: <CABb+yY3J2T5c4=dGaqPYi3L=88zgTqRn6AJwxBJ9Sqx6aDH8jw@mail.gmail.com>
-Subject: Re: [PATCH v3] mailbox: remove superfluous internal header
-To: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Cc: linux-renesas-soc@vger.kernel.org, Sudeep Holla <sudeep.holla@kernel.org>, 
-	Daniel Baluta <daniel.baluta@nxp.com>, Peter Chen <peter.chen@cixtech.com>, 
-	Fugang Duan <fugang.duan@cixtech.com>, 
-	CIX Linux Kernel Upstream Group <cix-kernel-upstream@cixtech.com>, Frank Li <Frank.Li@nxp.com>, 
-	Sascha Hauer <s.hauer@pengutronix.de>, Pengutronix Kernel Team <kernel@pengutronix.de>, 
-	Fabio Estevam <festevam@gmail.com>, Thierry Reding <thierry.reding@gmail.com>, 
-	Jonathan Hunter <jonathanh@nvidia.com>, linux-kernel@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, imx@lists.linux.dev, 
-	linux-acpi@vger.kernel.org, linux-tegra@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20260329-synology_microp_initial-v5-1-27cb80bdf591@posteo.de>
+References: <20260329-synology_microp_initial-v5-0-27cb80bdf591@posteo.de>
+In-Reply-To: <20260329-synology_microp_initial-v5-0-27cb80bdf591@posteo.de>
+To: Hans de Goede <hansg@kernel.org>, 
+ =?utf-8?q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, 
+ Bryan O'Donoghue <bryan.odonoghue@linaro.org>, Lee Jones <lee@kernel.org>, 
+ Pavel Machek <pavel@kernel.org>, Rob Herring <robh@kernel.org>, 
+ Krzysztof Kozlowski <krzk+dt@kernel.org>, 
+ Conor Dooley <conor+dt@kernel.org>, Miguel Ojeda <ojeda@kernel.org>, 
+ Boqun Feng <boqun@kernel.org>, Gary Guo <gary@garyguo.net>, 
+ =?utf-8?q?Bj=C3=B6rn_Roy_Baron?= <bjorn3_gh@protonmail.com>, 
+ Benno Lossin <lossin@kernel.org>, Andreas Hindborg <a.hindborg@kernel.org>, 
+ Alice Ryhl <aliceryhl@google.com>, Trevor Gross <tmgross@umich.edu>, 
+ Danilo Krummrich <dakr@kernel.org>, 
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+ "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
+ Saravana Kannan <saravanak@kernel.org>
+Cc: platform-driver-x86@vger.kernel.org, linux-leds@vger.kernel.org, 
+ devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ rust-for-linux@vger.kernel.org, linux-acpi@vger.kernel.org, 
+ Markus Probst <markus.probst@posteo.de>
+X-Mailer: b4 0.14.3
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2847;
+ i=markus.probst@posteo.de; h=from:subject:message-id;
+ bh=LjFpIfANTZFo1+4IPCHrW+YIb3KmnE+ivKHsB6gln08=;
+ b=owEBiQJ2/ZANAwAIATR2H/jnrUPSAcsmYgBpyWk57cnwGnzCYU7bX9FQiaKM/eXTH6tO9Tsvs
+ 8PqY3PJRquJAk8EAAEIADkWIQSCdBjE9KxY53IwxHM0dh/4561D0gUCaclpORsUgAAAAAAEAA5t
+ YW51MiwyLjUrMS4xMSwyLDIACgkQNHYf+OetQ9IgDA/+MkrrYxXzol9wLHQzbRjvpCsg6A/6Hn6
+ H0AoQgev00ZuBP8o5HPBJW2wL0BSIZ8hEg/hIxrGg/vxBYMKHz90cfSGPjF3tyqVJw7tf1wlcwP
+ bNRykHuuxTXqNeQ+vtEhLD5oa/y4pbwkDoTFmGfRxCmPpj3h/5iEo4k6yOVRA+toNg63jEtMCzJ
+ Hm9aq4s6vaWN/X9Hf4+1jdJi4PUZN4gozqI3iqp1zLIuFKx2S/M5wrlTp9whdBqunWSDYYgcyZ5
+ RoZ/kNYb+049oFVOHCwX46k1+J7C3s58MemHgWiIO0JL0t2y45exFk4ozUVw94/68rEd2gq4yZ3
+ ZAAN4RyhqCBQRgUeQREp3CA1W++fodZZvkfV9H7Wy7d+q82wvmLmM8LA1X2Q+zyOmw3RmuXMYs9
+ /APKwzC5fDHFOHpsmIPsEIqVwdPldK1Ks//Pk/hbtNso3D7lsMOr4oZqNzdZX5JragSPj7xQU0d
+ ITPdapX3ODn4R/yTCsVvEKra7yBbBPTXOA2NtaDri54URNPhMOWMdQiouADGMCksBjS9sGKM//W
+ PtWNKFQh2n+d4kBn3+0rL6epwa7Ut344MIYHN1fxtSfZS2QPtDTw6hS88OcFQU93DvwEo5R28h/
+ BAKU8Sbn74AVHk0n0D6UHZuBbWlKJVvWckYrJ7+xj86jWoINbFt0=
+X-Developer-Key: i=markus.probst@posteo.de; a=openpgp;
+ fpr=827418C4F4AC58E77230C47334761FF8E7AD43D2
+X-Endpoint-Received: by B4 Relay for markus.probst@posteo.de/default with
+ auth_id=680
+X-Original-From: Markus Probst <markus.probst@posteo.de>
+Reply-To: markus.probst@posteo.de
 
-On Fri, Mar 27, 2026 at 10:11=E2=80=AFAM Wolfram Sang
-<wsa+renesas@sang-engineering.com> wrote:
->
-> Quite some controller drivers use the defines from the internal header
-> already. This prevents controller drivers outside the mailbox directory.
-> Move the defines to the public controller header to allow this again as
-> the defines are not strictly internal anyhow.
->
-> Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
-> Reviewed-by: Sudeep Holla <sudeep.holla@kernel.org>
-> Reviewed-by: Daniel Baluta <daniel.baluta@nxp.com>
-> ---
->
-> Changes since v2:
-> * rebased to 7.0-rc5
-> * add tag (Thanks, Daniel!)
->
->  drivers/mailbox/cix-mailbox.c      |  2 --
->  drivers/mailbox/hi3660-mailbox.c   |  2 --
->  drivers/mailbox/imx-mailbox.c      |  2 --
->  drivers/mailbox/mailbox-sti.c      |  2 --
->  drivers/mailbox/mailbox.c          |  2 --
->  drivers/mailbox/mailbox.h          | 12 ------------
->  drivers/mailbox/omap-mailbox.c     |  2 --
->  drivers/mailbox/pcc.c              |  2 --
->  drivers/mailbox/tegra-hsp.c        |  2 --
->  include/linux/mailbox_controller.h |  5 +++++
->  10 files changed, 5 insertions(+), 28 deletions(-)
->  delete mode 100644 drivers/mailbox/mailbox.h
->
-> diff --git a/drivers/mailbox/cix-mailbox.c b/drivers/mailbox/cix-mailbox.=
-c
-> index 443620e8ae37..864f98f21fc3 100644
-> --- a/drivers/mailbox/cix-mailbox.c
-> +++ b/drivers/mailbox/cix-mailbox.c
-> @@ -12,8 +12,6 @@
->  #include <linux/module.h>
->  #include <linux/platform_device.h>
->
-> -#include "mailbox.h"
-> -
->  /*
->   * The maximum transmission size is 32 words or 128 bytes.
->   */
-> diff --git a/drivers/mailbox/hi3660-mailbox.c b/drivers/mailbox/hi3660-ma=
-ilbox.c
-> index 17c29e960fbf..9b727a2b54a5 100644
-> --- a/drivers/mailbox/hi3660-mailbox.c
-> +++ b/drivers/mailbox/hi3660-mailbox.c
-> @@ -15,8 +15,6 @@
->  #include <linux/platform_device.h>
->  #include <linux/slab.h>
->
-> -#include "mailbox.h"
-> -
->  #define MBOX_CHAN_MAX                  32
->
->  #define MBOX_RX                                0x0
-> diff --git a/drivers/mailbox/imx-mailbox.c b/drivers/mailbox/imx-mailbox.=
-c
-> index 003f9236c35e..22331b579489 100644
-> --- a/drivers/mailbox/imx-mailbox.c
-> +++ b/drivers/mailbox/imx-mailbox.c
-> @@ -23,8 +23,6 @@
->  #include <linux/slab.h>
->  #include <linux/workqueue.h>
->
-> -#include "mailbox.h"
-> -
->  #define IMX_MU_CHANS           24
->  /* TX0/RX0/RXDB[0-3] */
->  #define IMX_MU_SCU_CHANS       6
-> diff --git a/drivers/mailbox/mailbox-sti.c b/drivers/mailbox/mailbox-sti.=
-c
-> index b4b5bdd503cf..b6c9ecbbc8ec 100644
-> --- a/drivers/mailbox/mailbox-sti.c
-> +++ b/drivers/mailbox/mailbox-sti.c
-> @@ -21,8 +21,6 @@
->  #include <linux/property.h>
->  #include <linux/slab.h>
->
-> -#include "mailbox.h"
-> -
->  #define STI_MBOX_INST_MAX      4      /* RAM saving: Max supported insta=
-nces */
->  #define STI_MBOX_CHAN_MAX      20     /* RAM saving: Max supported chann=
-els  */
->
-> diff --git a/drivers/mailbox/mailbox.c b/drivers/mailbox/mailbox.c
-> index e63b2292ee7a..9d41a1ab9018 100644
-> --- a/drivers/mailbox/mailbox.c
-> +++ b/drivers/mailbox/mailbox.c
-> @@ -18,8 +18,6 @@
->  #include <linux/property.h>
->  #include <linux/spinlock.h>
->
-> -#include "mailbox.h"
-> -
->  static LIST_HEAD(mbox_cons);
->  static DEFINE_MUTEX(con_mutex);
->
-> diff --git a/drivers/mailbox/mailbox.h b/drivers/mailbox/mailbox.h
-> deleted file mode 100644
-> index e1ec4efab693..000000000000
-> --- a/drivers/mailbox/mailbox.h
-> +++ /dev/null
-> @@ -1,12 +0,0 @@
-> -/* SPDX-License-Identifier: GPL-2.0-only */
-> -
-> -#ifndef __MAILBOX_H
-> -#define __MAILBOX_H
-> -
-> -#include <linux/bits.h>
-> -
-> -#define TXDONE_BY_IRQ  BIT(0) /* controller has remote RTR irq */
-> -#define TXDONE_BY_POLL BIT(1) /* controller can read status of last TX *=
-/
-> -#define TXDONE_BY_ACK  BIT(2) /* S/W ACK received by Client ticks the TX=
- */
-> -
-> -#endif /* __MAILBOX_H */
-> diff --git a/drivers/mailbox/omap-mailbox.c b/drivers/mailbox/omap-mailbo=
-x.c
-> index d9f100c18895..5772c6b9886a 100644
-> --- a/drivers/mailbox/omap-mailbox.c
-> +++ b/drivers/mailbox/omap-mailbox.c
-> @@ -22,8 +22,6 @@
->  #include <linux/pm_runtime.h>
->  #include <linux/mailbox_controller.h>
->
-> -#include "mailbox.h"
-> -
->  #define MAILBOX_REVISION               0x000
->  #define MAILBOX_MESSAGE(m)             (0x040 + 4 * (m))
->  #define MAILBOX_FIFOSTATUS(m)          (0x080 + 4 * (m))
-> diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
-> index 22e70af1ae5d..636879ae1db7 100644
-> --- a/drivers/mailbox/pcc.c
-> +++ b/drivers/mailbox/pcc.c
-> @@ -59,8 +59,6 @@
->  #include <linux/io-64-nonatomic-lo-hi.h>
->  #include <acpi/pcc.h>
->
-> -#include "mailbox.h"
-> -
->  #define MBOX_IRQ_NAME          "pcc-mbox"
->
->  /**
-> diff --git a/drivers/mailbox/tegra-hsp.c b/drivers/mailbox/tegra-hsp.c
-> index ed9a0bb2bcd8..2231050bb5a9 100644
-> --- a/drivers/mailbox/tegra-hsp.c
-> +++ b/drivers/mailbox/tegra-hsp.c
-> @@ -16,8 +16,6 @@
->
->  #include <dt-bindings/mailbox/tegra186-hsp.h>
->
-> -#include "mailbox.h"
-> -
->  #define HSP_INT_IE(x)          (0x100 + ((x) * 4))
->  #define HSP_INT_IV             0x300
->  #define HSP_INT_IR             0x304
-> diff --git a/include/linux/mailbox_controller.h b/include/linux/mailbox_c=
-ontroller.h
-> index 80a427c7ca29..16fef421c30c 100644
-> --- a/include/linux/mailbox_controller.h
-> +++ b/include/linux/mailbox_controller.h
-> @@ -3,6 +3,7 @@
->  #ifndef __MAILBOX_CONTROLLER_H
->  #define __MAILBOX_CONTROLLER_H
->
-> +#include <linux/bits.h>
->  #include <linux/completion.h>
->  #include <linux/device.h>
->  #include <linux/hrtimer.h>
-> @@ -11,6 +12,10 @@
->
->  struct mbox_chan;
->
-> +#define TXDONE_BY_IRQ  BIT(0) /* controller has remote RTR irq */
-> +#define TXDONE_BY_POLL BIT(1) /* controller can read status of last TX *=
-/
-> +#define TXDONE_BY_ACK  BIT(2) /* S/W ACK received by Client ticks the TX=
- */
-> +
->  /**
->   * struct mbox_chan_ops - methods to control mailbox channels
->   * @send_data: The API asks the MBOX controller driver, in atomic
-> --
-> 2.51.0
->
-Applied to mailbox/for-next
-Thanks
-Jassi
+From: Markus Probst <markus.probst@posteo.de>
+
+Add the Synology Microp devicetree bindings. Those devices are
+microcontrollers found on Synology NAS devices. They are connected to a
+serial port on the host device.
+
+Those devices are used to control certain LEDs, fan speeds, a beeper, to
+handle buttons, fan failures and to properly shutdown and reboot the
+device.
+
+Signed-off-by: Markus Probst <markus.probst@posteo.de>
+---
+ .../synology,ds923p-microp.yaml                    | 65 ++++++++++++++++++++++
+ 1 file changed, 65 insertions(+)
+
+diff --git a/Documentation/devicetree/bindings/embedded-controller/synology,ds923p-microp.yaml b/Documentation/devicetree/bindings/embedded-controller/synology,ds923p-microp.yaml
+new file mode 100644
+index 000000000000..599d32ce2be9
+--- /dev/null
++++ b/Documentation/devicetree/bindings/embedded-controller/synology,ds923p-microp.yaml
+@@ -0,0 +1,65 @@
++# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
++%YAML 1.2
++---
++$id: http://devicetree.org/schemas/embedded-controller/synology,ds923p-microp.yaml#
++$schema: http://devicetree.org/meta-schemas/core.yaml#
++
++title: Synology NAS on-board Microcontroller
++
++maintainers:
++  - Markus Probst <markus.probst@posteo.de>
++
++description: |
++  Synology Microp is a microcontroller found in Synology NAS devices.
++  It is connected to a serial port on the host device.
++
++  It is necessary to properly shutdown and reboot the NAS device and
++  provides additional functionality such as led control, fan speed control,
++  a beeper and buttons on the NAS device.
++
++properties:
++  compatible:
++    enum:
++      - synology,ds923p-microp
++      - synology,ds918p-microp
++      - synology,ds214play-microp
++      - synology,ds225p-microp
++      - synology,ds425p-microp
++      - synology,ds710p-microp
++      - synology,ds1010p-microp
++      - synology,ds723p-microp
++      - synology,ds1522p-microp
++      - synology,rs422p-microp
++      - synology,ds725p-microp
++      - synology,ds118-microp
++      - synology,ds124-microp
++      - synology,ds223-microp
++      - synology,ds223j-microp
++      - synology,ds1823xsp-microp
++      - synology,rs822p-microp
++      - synology,rs1221p-microp
++      - synology,rs1221rpp-microp
++      - synology,ds925p-microp
++      - synology,ds1525p-microp
++      - synology,ds1825p-microp
++
++  fan-failure-gpios:
++    description: GPIOs needed to determine which fans stopped working on a fan failure event.
++    minItems: 2
++    maxItems: 3
++
++required:
++  - compatible
++
++additionalProperties: false
++
++examples:
++  - |
++    #include <dt-bindings/leds/common.h>
++    #include <dt-bindings/gpio/gpio.h>
++
++    embedded-controller {
++      compatible = "synology,ds923p-microp";
++
++      fan-failure-gpios = <&gpio 68 GPIO_ACTIVE_HIGH>, <&gpio 69 GPIO_ACTIVE_HIGH>;
++    };
+
+-- 
+2.52.0
+
+
