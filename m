@@ -1,68 +1,68 @@
-Received: from mail-dy1-f181.google.com (mail-dy1-f181.google.com [74.125.82.181])
+Received: from mail-dy1-f178.google.com (mail-dy1-f178.google.com [74.125.82.178])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD21034CFCF
-	for <linux-acpi@vger.kernel.org>; Mon, 30 Mar 2026 02:28:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.181
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 863BA3921F1
+	for <linux-acpi@vger.kernel.org>; Mon, 30 Mar 2026 02:28:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774837683; cv=none; b=Xblv+ZdgwvS0olKRrzF4hntaqa2vOBkhdk+F1B0mIM8SRGg4+10SehKbTg5VVrdK2iOoC3vO4kRwLzmRZS6WFNI48eE22y/jvZvODpufQcHyeMYgwzB1IzqoBVhbZ05Svc7iap51HdIqQqC5OJXLTWCwTHtWQs2xBWNsCd4Bces=
+	t=1774837684; cv=none; b=OZu1ly6dhSJ1p0fq457vB7AkpNtgOZDGo3EJ5dChvWsFgqBFZ4d/mv3+TFNUOtQ1Xv4cH5Ow4R74TqqD4KcDeNhxX4+CPhna53hEFgGXDzWp6Dn4X5j51c9d5HeOWGub7A2cNaW1wvngIWzZmi7GYgkNd9ksa5eW2Np3DXtbZ9E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774837683; c=relaxed/simple;
-	bh=bFqZrxIa+wAz0ne9hpWyd8utebsvCUq3EVc4FZvgjF4=;
+	s=arc-20240116; t=1774837684; c=relaxed/simple;
+	bh=Gk/XhY40PWnO3LOxD5YjgUSYIokh9KUYlW7/pTRxeiE=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=Yz+yCYMjXOuKq+dsDa8dZadjs9R2qn1HBj26jJDMshUFXAQLauVNUo1vobha3ozRYVnL9SuMqJ2rdWJGQaAnXeqPFJ3JHwYITfh7Z5mxoJNWrkvcXrETPi23GhonzLB8Km5cujqDkL4M9nlxfKRzUfGOS/mX3OSa6nRePYxsue4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=W9Uk1jtU; arc=none smtp.client-ip=74.125.82.181
+	 In-Reply-To:To:Cc; b=cE4T6Dy8hcpsKT23xZUgSRmtybEqd0QwTVuFvmopVdYJaywCaYd5XCMTXWdpnbzXNNgwUIdCbpwuIEGbqgstW7bPFCZqC8WiG4QQX9XuuDvHs4miyH873JDVaKyovw7rpe51Uvzc+pd0Pzbm60qbgZ9fJDITzzudM27UTTb8WSQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=H/b1HB/J; arc=none smtp.client-ip=74.125.82.178
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="W9Uk1jtU"
-Received: by mail-dy1-f181.google.com with SMTP id 5a478bee46e88-2c156c4a9efso3734623eec.1
-        for <linux-acpi@vger.kernel.org>; Sun, 29 Mar 2026 19:28:01 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="H/b1HB/J"
+Received: by mail-dy1-f178.google.com with SMTP id 5a478bee46e88-2c0c955a481so1096418eec.1
+        for <linux-acpi@vger.kernel.org>; Sun, 29 Mar 2026 19:28:03 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1774837681; x=1775442481; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1774837683; x=1775442483; darn=vger.kernel.org;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=Zqs1uUluer6Mf+lCXT25NfqzHgsGQt/gWHHebQbC4Q4=;
-        b=W9Uk1jtUzfSwS+ApjDjt8P0n0Ww1/75z6hTaBql3scpt/hE1Bl6dqsb30zNPanLEaD
-         Q58BZmuZ9rr4YvkFcx0c7M9iRh/lsyaWJYnbp4juvBTeQgmxGP/LniJHeGHuDwzD/6+y
-         R8h8oc73Wxe2fCrO/3iS65sUCaTBDR6ODBl9l6joajSSjRUfECn1D80NNqEjy4zqImMv
-         UMiIt0TUqY2w9oAO+7mGDVZAMU1Y3pE76q6t5K6qhxHw+Ppm7IpHNyMkZdRuHhSAXk3i
-         UONFVUvYxGrqfLqmvezdu/Hi9qdOXmXve+K0vBlYDEHMSNzf4A5Z6HmV4YjEYO/w9a1A
-         QvCA==
+        bh=iu5Dic5CoGqaGahlCm060hwT3Wf5ekOnX3Fgg92paMs=;
+        b=H/b1HB/JcxIsxcFzUtr9F0c5rPn6wZrccqxnNDU4GrNDLgdJNROKnDCqygupDb6f6w
+         Yty04DEhmwqjHFA75nkDOZ4EUadLrlXM3pFkPGs1J2oaQePRGm73cZq8KQ2hYGgu7K4R
+         wo1JEmRgj/8frN4ihuJo386C6i6N+wRLJRSFJEzkbBXKNt7+lwESg9SQiWYHVYcn1EXi
+         IUVoZ6zL1mkkzpHZ9oO8PkNEuv9y0cL8Bd/u1lLntWbxXhRODh8wSB2PUX1UR7reby5U
+         5eb/Wx0tAY4TJlf0s4SIsptIH6liVqylBTzTecdhnmmtYw6u2PulgufSO0OGnXuUBild
+         5Cmg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1774837681; x=1775442481;
+        d=1e100.net; s=20251104; t=1774837683; x=1775442483;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:x-gm-gg:x-gm-message-state:from:to
          :cc:subject:date:message-id:reply-to;
-        bh=Zqs1uUluer6Mf+lCXT25NfqzHgsGQt/gWHHebQbC4Q4=;
-        b=osbovJvwXa744kzEsKJlXH/6a94Kd8nFTDm1QIadO5VRAkCcejrdR4bZXlT8sZ1wBA
-         aH4xVpCT/FfzRaesilYoMHjiOoOwFxLZ78e8QAdGSnfpRsKZLgRTkv2WqhM+FEqknOOz
-         DHLG+4R9tESL0J8JUmJKJBtbASB8nx4lg6HwSmSEeotnL9nBTbjjNP8zKfN/i3dlKV5U
-         Ch3LzScQ5s4dKQxnwpu8vrVrobNYN3sUTvTi9k4hECMLq1k+pZHToW7So3VSebEVntVu
-         YAovIV0+IrX3YySPKYcdOKz57ORfCzT2mNPuEud8CDmjPRDusYOK6msPsEiAinOHsTpJ
-         p4WA==
-X-Forwarded-Encrypted: i=1; AJvYcCX5Qyr0yDkw3XjpJp+3HZWNZi4zVTiKqPGAVsQg2lM0sJObvMDWmXX/4C5GwcPm8kb819h7Ej64YnHh@vger.kernel.org
-X-Gm-Message-State: AOJu0YzFT/NC0l3fY4S8XP1zIa5dCu2faTc3vG2rnHhA6EzAK24g0UI0
-	Xtz2ChtdU/02aGAn47S47X4bdr9h7jQLeE6x0CX3dqcROt0g8YSP8dB0
-X-Gm-Gg: ATEYQzyJWHi4tgpf3va7cEhXa4GIcpuaQ17cPAaYAQAeCIkw0AjSXxKxWKY8JPDIcsZ
-	43rXoq37v7rgqZFI2H0dBPwkyvXHf2cZmfRb2PLboK2nOcX1NFpi9Y21R1qTBL0REzbnL2ZVt3o
-	PM2OIIy3WA9eYIE2kma/bAseB68i1nGjklSizE/zaephDnD4DrgtEupfDtzf+GectzQ/+8YqO6F
-	YzEmf9IhfIGBcU9DDeBARK7aB87aRsjbjcEowo9mGAYIzBOswGth71+zs+1cV793g6m64ln8sh5
-	Z4ea9rT/tXPwYa/cX9KB3wXa9Yps54h4IDXQEBBDTRNmals1GDaPyuPpYQLaLTJJpW+r7I3+7/S
-	9htd9+cWGrwrRbADzeBra5rwrW7qnnRAqdiMEVf0ayLUL8nqbPVGXFPRfR+Xdwrq/2AitCHbL1E
-	KjuA/AT7fOuFh7MKA5dezQjB5H6PDDU3mZB9rdmwDuBjBUww/IuC3363QwlkcrVc63mJXRzORC/
-	mT+n1F9I7nQsWI=
-X-Received: by 2002:a05:7300:b58a:b0:2c5:d833:a4f3 with SMTP id 5a478bee46e88-2c5d833c673mr1330554eec.18.1774837681020;
-        Sun, 29 Mar 2026 19:28:01 -0700 (PDT)
+        bh=iu5Dic5CoGqaGahlCm060hwT3Wf5ekOnX3Fgg92paMs=;
+        b=ldXd8xkB5ZYu0jxtpP9AjxHkfQAoPhIbPXZxqjqc9VyKYlx+RiSCNdsFIelWz+OQA9
+         tVUchvQfy3H2Kaunfz/hYG2P9ggC7Y44WXr3bngpwOV3WeEhK0jGa/Fg7VEUCVm7NDkE
+         7I01K9/CAX/dv/08MRYRdsp41IWHuYLnbAuN0SB9WxcL1JJOppvMo4kLee17oUVcasC+
+         s7iLtJr5uYexf7wWbd2kAe4NV5d9wzVJRFN7rgnjrzB2fPTNpvMkOiKCmAH3oS3ddbAY
+         qtObLoPAadOwBckYKmm90xw5Ny3j7sXN8s76+LRQew76FX6FaY4CstBKNUDoPkHFM6tT
+         bvog==
+X-Forwarded-Encrypted: i=1; AJvYcCV7SgKbPjL29/EeH/42BmIzujBNRx4qjMZ8wdTgg8WhHZQHmlOZ8a147x40AbSQitrtlsxckbgq2spy@vger.kernel.org
+X-Gm-Message-State: AOJu0YyqhJi78cSiXagyr5dstc0q58+ZgI/R1KtCVThXsdfgIVsJ9Al4
+	bWf5Mp3mW/m6cf+HBe1O0nQynZYhn6rFyRowCdZl00DV+U8BFJiwnvi0
+X-Gm-Gg: ATEYQzxGfcguc4KBfJde4Y7eJ9kqVgbP5z+y4trJJjOy2kSYOik1SV3vQOShmO3oasf
+	Ih3p5jbAIrGXa3Yj/i9tDU4LtrQeMvRvBqibVeTRbXlwtoEx+LK0CjtodN4ZEO+fIQw5uvDJvS5
+	KtFiOtzLrrLQNLVFGKIAtmXiUEACSlB9WzWmspyHXJHI0OCQxFp8/thn/1wTs1q/7qEokC0L3t8
+	a6Hwe5lGCeC4AwJHyCMP/cxABpMspm4wsJMatTmiqcMk5f2sd+n32kLWmrlSEIrNvqrguIRaskU
+	g+6QyyPSrzi4/1ZLYttXDz+sJTORVaX5xsBPVRvCAD8hqyJk2vGGg/0Umx83aIMLOKlmKD53Er7
+	peUIE3Ndq88XwxWkeHZbKdTqKMM84JzZSqhzexuWdX60nvO7BkHx/02UVcBxPtF4i7jhXJ2N4XR
+	4wf37UZjz3IuxMlBVjkBWEluwsX857HD8PRjJWfJby5CCsI23rF4elfp7MkNGyYAobLZcyAHBG7
+	O55E7sNeKT8ixc=
+X-Received: by 2002:a05:7301:6781:b0:2c0:d690:7bc with SMTP id 5a478bee46e88-2c185e16735mr6142104eec.22.1774837682719;
+        Sun, 29 Mar 2026 19:28:02 -0700 (PDT)
 Received: from dtor-ws.sjc.corp.google.com ([2a00:79e0:2ebe:8:7265:773a:8e51:c62f])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2c3c7971d97sm6250673eec.30.2026.03.29.19.27.59
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2c3c7971d97sm6250673eec.30.2026.03.29.19.28.01
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 29 Mar 2026 19:28:00 -0700 (PDT)
+        Sun, 29 Mar 2026 19:28:02 -0700 (PDT)
 From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Date: Sun, 29 Mar 2026 19:27:50 -0700
-Subject: [PATCH v2 3/4] software node: verify that property data is not on
- stack
+Date: Sun, 29 Mar 2026 19:27:51 -0700
+Subject: [PATCH v2 4/4] x86/geode: use PROPERTY_ENTRY_REF for GPIO
+ properties
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -71,7 +71,7 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260329-property-gpio-fix-v2-3-3cca5ba136d8@gmail.com>
+Message-Id: <20260329-property-gpio-fix-v2-4-3cca5ba136d8@gmail.com>
 References: <20260329-property-gpio-fix-v2-0-3cca5ba136d8@gmail.com>
 In-Reply-To: <20260329-property-gpio-fix-v2-0-3cca5ba136d8@gmail.com>
 To: Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>, 
@@ -87,50 +87,37 @@ Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
  driver-core@lists.linux.dev
 X-Mailer: b4 0.15-dev-a6826
 
-When registering a software node, ensure that the property data is not
-located on the stack, as it is expected to persist for the lifetime of
-the node.
+Now that the PROPERTY_ENTRY_REF macro can accept a pointer to struct
+software_node_ref_args directly, we don't need to use the more
+cumbersome PROPERTY_ENTRY_REF_ARRAY_LEN(..., 1) variant.
 
 Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 ---
- drivers/base/swnode.c | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ arch/x86/platform/geode/geode-common.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
-index 51320837f3a9..286eab02e8fb 100644
---- a/drivers/base/swnode.c
-+++ b/drivers/base/swnode.c
-@@ -16,6 +16,7 @@
- #include <linux/kstrtox.h>
- #include <linux/list.h>
- #include <linux/property.h>
-+#include <linux/sched/task_stack.h>
- #include <linux/slab.h>
- #include <linux/spinlock.h>
- #include <linux/string.h>
-@@ -917,6 +918,7 @@ EXPORT_SYMBOL_GPL(software_node_unregister_node_group);
- int software_node_register(const struct software_node *node)
- {
- 	struct swnode *parent = software_node_to_swnode(node->parent);
-+	const struct property_entry *prop;
+diff --git a/arch/x86/platform/geode/geode-common.c b/arch/x86/platform/geode/geode-common.c
+index 1843ae385e2d..6572ae388d7d 100644
+--- a/arch/x86/platform/geode/geode-common.c
++++ b/arch/x86/platform/geode/geode-common.c
+@@ -31,7 +31,7 @@ static const struct software_node geode_gpio_keys_node = {
+ static struct software_node_ref_args geode_restart_gpio_ref;
  
- 	if (software_node_to_swnode(node))
- 		return -EEXIST;
-@@ -924,6 +926,14 @@ int software_node_register(const struct software_node *node)
- 	if (node->parent && !parent)
- 		return -EINVAL;
- 
-+	for (prop = node->properties; prop && prop->name; prop++) {
-+		if (!prop->is_inline && object_is_on_stack(prop->pointer)) {
-+			pr_err("%s: property data can't be on stack ('%s')\n",
-+			       __func__, prop->name);
-+			return -EINVAL;
-+		}
-+	}
-+
- 	return PTR_ERR_OR_ZERO(swnode_register(node, parent, 0));
- }
- EXPORT_SYMBOL_GPL(software_node_register);
+ static const struct property_entry geode_restart_key_props[] = {
+-	PROPERTY_ENTRY_REF_ARRAY_LEN("gpios", &geode_restart_gpio_ref, 1),
++	PROPERTY_ENTRY_REF("gpios", &geode_restart_gpio_ref),
+ 	PROPERTY_ENTRY_U32("linux,code", KEY_RESTART),
+ 	PROPERTY_ENTRY_STRING("label", "Reset button"),
+ 	PROPERTY_ENTRY_U32("debounce-interval", 100),
+@@ -147,7 +147,7 @@ int __init geode_create_leds(const char *label, const struct geode_led *leds,
+ 						       leds[i].pin,
+ 						       GPIO_ACTIVE_LOW);
+ 		props[i * 3 + 0] =
+-			PROPERTY_ENTRY_REF_ARRAY_LEN("gpios", &gpio_refs[i], 1);
++			PROPERTY_ENTRY_REF("gpios", &gpio_refs[i]);
+ 		props[i * 3 + 1] =
+ 			PROPERTY_ENTRY_STRING("linux,default-trigger",
+ 					      leds[i].default_on ?
 
 -- 
 2.53.0.1018.g2bb0e51243-goog
