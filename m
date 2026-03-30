@@ -1,40 +1,40 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EDC93A75A8
-	for <linux-acpi@vger.kernel.org>; Mon, 30 Mar 2026 13:52:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DC231F4180
+	for <linux-acpi@vger.kernel.org>; Mon, 30 Mar 2026 14:08:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774878743; cv=none; b=hkL/Nd5KSbgBWF+rBapgnOsuAaMD+Grr9EtO9Nq0MjxN28iYY/4ycvO5WX6StWDEW54VsvUXsYorLaS/eAqspXdAcapkcvY6yoQMMh+pv/r/Vo8eSEGq5WHVlgAq6KS18dbPWyWTDDexQ1/nfnOWaVDjar5+VuLuKBpGqaxWS7s=
+	t=1774879729; cv=none; b=bg9oDxJXVTVwI5KrE6yWvkTd+RkGDpV7GP9BBMIV1uo0jLc1gCYFy/TFVKxw2p5MXp4LKHlt3trxR0FWF16ciGraBAxcuWRXSuV9HECVyGS2rOXne+ZPhf02bwwaGqFTokk2LdpZ4lMXrCYrMBoOpRZgZTJryhIKIH8iBpYzENA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774878743; c=relaxed/simple;
-	bh=L3VXBQUY2/EFN+ebLxUXYbj0kJUaO8DCP5kVnC5RKr0=;
+	s=arc-20240116; t=1774879729; c=relaxed/simple;
+	bh=UBMvKa6530vLa0XbCReC9z5oa2AyiAgd7zjDJyxTv74=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=unZPoetj9CNhDzdK1Rr25Hsh9HrN6wkzjoMKVUQY0pvYbsgILqyv0yLG/UgkupPQ/JIcylee9MoeENBE/KOMyqa9r126g5suiTdsDh/FqL0BaqOU12RHL3NUcffBiPQwNLsR7fFVrxidmG+cvWnuMer7rJ6kfaFU+ar1IOfGEWY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kkA7JSdc; arc=none smtp.client-ip=10.30.226.201
+	 To:Cc:Content-Type; b=nHqd/s+int8rO+1AWCF+i/T9N6jh2KIdUEy/6AA2jCGcN+mcOi6O+SywbJD7BL9NoxtFfP8EWCmWaypTz5fmxUBiSAQO4txp6n/U5CFkzCBmy0yTOP1SYfYFDXgIbqtK9iTFLb6LmmIKv7ghH46wskEXD6tq99XNTNN0KDu0Is0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=uuP7Z1Ks; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kkA7JSdc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57398C2BCB4
-	for <linux-acpi@vger.kernel.org>; Mon, 30 Mar 2026 13:52:22 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="uuP7Z1Ks"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 703D7C2BCC7
+	for <linux-acpi@vger.kernel.org>; Mon, 30 Mar 2026 14:08:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774878742;
-	bh=L3VXBQUY2/EFN+ebLxUXYbj0kJUaO8DCP5kVnC5RKr0=;
+	s=k20201202; t=1774879729;
+	bh=UBMvKa6530vLa0XbCReC9z5oa2AyiAgd7zjDJyxTv74=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=kkA7JSdcoHzcBOhLsyqSCdNSyjvMqP0zCSOe2nolL88XiL2Dge3SDpLlwXmkiz3NL
-	 bt6hmbuFf3pnyvIIbQUp7U4euzasvd5MHt1JRSHBWf5nwJdrH6JmNdGQiQiMWr+FEK
-	 uG/uq45gW7jrJb11uLo8V8+FjotGddogMfNROXCj0q9sUeeFmClucjx0ReAaj1yJAI
-	 bXzJrDAwNQ+ztdRAbr8hRL3ox9wKG/3yrEOweFpSrXEqIcCtxfF0lBk8bDsbyrhb8v
-	 ZbMNjKuZtofDP6qS4qjL4QZj7Q0oB9mngMlYBzreWKZoNrOcbiAscfRpjimX7PeXSh
-	 9w+5t09NHTzdw==
-Received: by mail-lj1-f170.google.com with SMTP id 38308e7fff4ca-38a23dd61c1so37929331fa.1
-        for <linux-acpi@vger.kernel.org>; Mon, 30 Mar 2026 06:52:22 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCWxqc4E+ZZkks6zlVautfk7mot2dFv3foliA9YdgX1uqXAIqcjWcGBqquedgA8OOOyKuSEl7cFvt2R8@vger.kernel.org
-X-Gm-Message-State: AOJu0Yyd9qPWFt3XPZC3SoNPY9pq50s4eher55lBGnXs9JwsEEjarqAT
-	EBWVkSG5ZaXuJBFXX/7yoBbjYZ8PNh/Pm0QNc45qNRSoDISgNeso4giDj1bCVyFcki3UwaR8NXE
-	9r4fIC+VsKohPMFqiCsnkup8RVS0hpKh0Z5bJrSp0Gw==
-X-Received: by 2002:a2e:9a11:0:b0:38b:f0f0:e3f7 with SMTP id
- 38308e7fff4ca-38c7310232cmr39514361fa.7.1774878740944; Mon, 30 Mar 2026
- 06:52:20 -0700 (PDT)
+	b=uuP7Z1KsMgAA6tSsPe2Z5q0aw+WmtfZ+YM3g7RqLtOGZbCjBUCFDGPXKx1sZgMUTW
+	 5Bv24X1+9iOsLr8H5S0AxGPl5YVOjUUerA2gE4NkPS6v+P8//CqoiKR3akGiuY/9nn
+	 lfPWH9fALC2uJtMI7+dGs+kcW4lLy1bGguXutCbJffPStgYy71J8RZrhVBGFGPQ/D5
+	 F22RwOEq+Vly6dJixo51icP4mdgf9gnXn3g/rAQ04jobWUTbFQ8h/DfIOkctYqrTt/
+	 clayt7zBzx5tFb6Osuqcdlzia+Eccuc4WB2rwJE9J9TxMCXDdnVPdarIcRLwkCgrRr
+	 pd1UrbPCRMpEw==
+Received: by mail-lj1-f174.google.com with SMTP id 38308e7fff4ca-38ad26e3992so34968421fa.1
+        for <linux-acpi@vger.kernel.org>; Mon, 30 Mar 2026 07:08:49 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCX2/7xmNlceK1kXajhxHxUI76oDVl0ClkjTu1NmGnOWtXWj/UWdUAFzE5oOdFG6u9Z0CSseBt4mtSdk@vger.kernel.org
+X-Gm-Message-State: AOJu0YxMfw6zhNK97tOpsFqqNskU6IgTOxHC0FQWwjQ5gno7F50E4HTR
+	suJOhd8nSrHw3nZLK5LlOXRUltraR/M1oVA2q9A59YsuBABa9EaThzK0AbbB0eJuvyaEOwZOI+S
+	cuc8z1hv7E/+40KDJnbb5DXN6Vszw5CTh5kDvGi8N6g==
+X-Received: by 2002:a2e:a548:0:b0:38a:43eb:239e with SMTP id
+ 38308e7fff4ca-38c73192b65mr45193471fa.13.1774879728025; Mon, 30 Mar 2026
+ 07:08:48 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -42,13 +42,13 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 References: <20260330-nokia770-gpio-swnodes-v4-0-b68592e977d0@oss.qualcomm.com>
- <DHG5OX85I4LL.39U0RRBS0JXFP@kernel.org>
-In-Reply-To: <DHG5OX85I4LL.39U0RRBS0JXFP@kernel.org>
+ <DHG5OX85I4LL.39U0RRBS0JXFP@kernel.org> <CAMRc=MfG1ZF=4T2WAw71Zb+4BFD2_4VSNRQZQsoGLE8gZxWcHg@mail.gmail.com>
+In-Reply-To: <CAMRc=MfG1ZF=4T2WAw71Zb+4BFD2_4VSNRQZQsoGLE8gZxWcHg@mail.gmail.com>
 From: Bartosz Golaszewski <brgl@kernel.org>
-Date: Mon, 30 Mar 2026 15:52:08 +0200
-X-Gmail-Original-Message-ID: <CAMRc=MfG1ZF=4T2WAw71Zb+4BFD2_4VSNRQZQsoGLE8gZxWcHg@mail.gmail.com>
-X-Gm-Features: AQROBzBsrEPDG8YUUE_t5P-kX_9D2aMQwVqcM1UV6Hiu3mOg0TdUxoDMofvLMMA
-Message-ID: <CAMRc=MfG1ZF=4T2WAw71Zb+4BFD2_4VSNRQZQsoGLE8gZxWcHg@mail.gmail.com>
+Date: Mon, 30 Mar 2026 16:08:35 +0200
+X-Gmail-Original-Message-ID: <CAMRc=Md4gD+9Rkg9MSe0OiYw-bS53nMAarFq_MZZHEq=yxYwVQ@mail.gmail.com>
+X-Gm-Features: AQROBzCZ3sn6YhqN7BcNEXBcWbVXRGN722aFgaQTZcIuW6VGsXjtEbj0I4HGOcQ
+Message-ID: <CAMRc=Md4gD+9Rkg9MSe0OiYw-bS53nMAarFq_MZZHEq=yxYwVQ@mail.gmail.com>
 Subject: Re: [PATCH v4 0/3] ARM: omap1: use real firmware node lookup for
  GPIOs on Nokia 770
 To: Danilo Krummrich <dakr@kernel.org>
@@ -65,24 +65,31 @@ Cc: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Mar 30, 2026 at 3:37=E2=80=AFPM Danilo Krummrich <dakr@kernel.org> =
-wrote:
+On Mon, Mar 30, 2026 at 3:52=E2=80=AFPM Bartosz Golaszewski <brgl@kernel.or=
+g> wrote:
 >
-> On Mon Mar 30, 2026 at 2:40 PM CEST, Bartosz Golaszewski wrote:
-> > Bartosz Golaszewski (3):
-> >       kernel: ksysfs: initialize kernel_kobj earlier
-> >       driver core: make software nodes available earlier
-> >       ARM: omap1: enable real software node lookup of GPIOs on Nokia 77=
-0
+> On Mon, Mar 30, 2026 at 3:37=E2=80=AFPM Danilo Krummrich <dakr@kernel.org=
+> wrote:
+> >
+> > On Mon Mar 30, 2026 at 2:40 PM CEST, Bartosz Golaszewski wrote:
+> > > Bartosz Golaszewski (3):
+> > >       kernel: ksysfs: initialize kernel_kobj earlier
+> > >       driver core: make software nodes available earlier
+> > >       ARM: omap1: enable real software node lookup of GPIOs on Nokia =
+770
+> >
+> > Looks good to me overall (one minor nit in the first patch); which tree=
+ should
+> > this go through?
 >
-> Looks good to me overall (one minor nit in the first patch); which tree s=
-hould
-> this go through?
+> If the first two patches can make v7.1 then I'm fine with postponing
+> patch 3 until v7.2. Maybe Dmitry's changes allowing passing
+> unregistered software nodes to new platform devices (where are we with
+> this?) would also make it in and patch 3/3 could be smaller as a
+> result.
+>
 
-If the first two patches can make v7.1 then I'm fine with postponing
-patch 3 until v7.2. Maybe Dmitry's changes allowing passing
-unregistered software nodes to new platform devices (where are we with
-this?) would also make it in and patch 3/3 could be smaller as a
-result.
+In other words: patches 1 and 2 can go though the driver core tree
+into v7.1 and patch 3/3 will be respun next cycle.
 
 Bart
