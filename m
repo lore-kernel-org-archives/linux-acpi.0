@@ -1,111 +1,212 @@
-Received: from mail-dy1-f181.google.com (mail-dy1-f181.google.com [74.125.82.181])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mout01.posteo.de (mout01.posteo.de [185.67.36.65])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06AAB3A543F
-	for <linux-acpi@vger.kernel.org>; Mon, 30 Mar 2026 21:49:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.181
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0AE1E3ACA51
+	for <linux-acpi@vger.kernel.org>; Mon, 30 Mar 2026 23:38:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.67.36.65
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774907398; cv=none; b=RSlBUh5uwyiTJ4/MXMwqUUWsvLL7M8NOYyMf42XVMTfgV+Fppz7BVDComZTcYihSLcCvieRKVHjQstBeWX1ql1bEhdljhl8R5aORpRtslbk3FE/HjRzV2SFKQ+i/AM0vZTry/gnAMpA5sToEcJh8ncqCluUfJDJhA0KeytwE3EQ=
+	t=1774913929; cv=none; b=Ou04QTob4+Kw0/ifO6ktrk7TrkrvealWOf9XmwX1RMYFFVazBB8x4+dCeBBIDZU9U7B6hOYfDMrl63mlNCC8KswtXOYEdlfrXVEMbKe6Z2z+d+JujPoJQqGoGE6MS/ekRwubp5Nw+2oBXBIqBM6ROtc//0Vec/yKO+UNJGJRvb4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774907398; c=relaxed/simple;
-	bh=l5INRuRaEyv3DR+fe9MbM7/2rrIKYN4BPu7Os7f6DQo=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Gyl41iN+G/pbfFlaWaDCW0Ll8TvYlqeh0qVYyJB7kGfiUdT1uZ6bVeNMGyIv61lmZgLg/KMQK0UrEdZpPLS39Om8oWazbGvtFpPtgq3XepJtqEDOOW9SjU+xZN4mgRj2X++cP0xaVVQkfhbijVE+NxEv/gWA5BmeVMvBESsc7oE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=A65NcvJb; arc=none smtp.client-ip=74.125.82.181
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1774913929; c=relaxed/simple;
+	bh=UXt0GpjVUU9iZtnxHkrvLTJCcJMggqxXAxcvcgaaOF8=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=iEv/r+duxtLj8pOMDab27x8jjWJohsYld3fSEYLckRIwZX6ouuLrOa4qnhk9IxPOJqncBEmWUsNkMIzwvTJNjzfwxF2CdcfUUul7vPTkYjQryampoQlc5mu33jgahYBl4lBbyEa8zAOrYprmez/Ok65DS0IgsA4XRxjx+L+Z1Xw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de; spf=pass smtp.mailfrom=posteo.de; dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b=q3M++rMh; arc=none smtp.client-ip=185.67.36.65
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=posteo.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="A65NcvJb"
-Received: by mail-dy1-f181.google.com with SMTP id 5a478bee46e88-2c7e5f38b37so276050eec.0
-        for <linux-acpi@vger.kernel.org>; Mon, 30 Mar 2026 14:49:56 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1774907396; x=1775512196; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=Ne+NreH4GL7rcymdn4Vd9RUHDjCDNb3QWyD6st1ksRA=;
-        b=A65NcvJbD8Z6QYa0QtzdbXf7/qYRHofeVKpeOp+5aUqVatYn0/i4WFeOFdp7C3Opng
-         o3O6za2fpOTkgOcVyiFo0zM8+BSTJjkC7tX+RMaPIwOlVZmDp6aY3+On6Aoi/XRo16ub
-         Ql+zazcnlhWbVbbro/RPZ9kTGkLU21X9hewPrnt28He3tEOXbnBL3j2Y1Ayr6MfltFoO
-         P8kVWXkZICNHO9cYyjnr+o+EdYRg7SmEVQOwAXD+WpRD2psR1F4cLMoFH3uJPCASVx6X
-         mDkBt4jbda/5/y5PcWkOOiunL037e0xFx2uN8uZdOQ12ZbCUc93jF9O63mmlUGrns6GV
-         39sg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1774907396; x=1775512196;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=Ne+NreH4GL7rcymdn4Vd9RUHDjCDNb3QWyD6st1ksRA=;
-        b=XajXpgYGvdXZNo6jvL+l0Bhq8mdRtbFfWkD6Y1q4nXkreZEyGBS3QOPb3xKQ4+gPZP
-         vgCo0bF6BKunjXTz7b2s7ONz1xGPMgr9ZPoYMArSRb6z7JCnTOKJjoIGZK+dovasLvE4
-         zTArm2blXZgiMOSXIa/BpuiXcS2YXJh4ALiPgx8yt9Fxb9oqvc+6N/RB5NHTGMptg2By
-         BAjfea5TERDfY8oFmtiskw8VdELDjK+k0D7dK5Bm30iN0x1fGzlgyffS5tLieGiHXCmt
-         3NJqISQhUS339tJ9ly/PDnd2DaxzNTo8+bFn4Q7s9LmGSIR0O6MeuvyRlFYZZrZlQCUe
-         HPgw==
-X-Forwarded-Encrypted: i=1; AJvYcCXrEoThi0ldEefFyMpfAl9Wgo9UWqyOewGiIdu65QVs4KOp832XGzwNBc1panaaSr4mqtsFZ1VVIJfE@vger.kernel.org
-X-Gm-Message-State: AOJu0Ywz7O7nRE37g1gy7WS26wI84pk9OEsnVtItsFS1gbS2ptfShJTD
-	cTjwuiSLBTSxVyaQqVIZ9IGacmpV1UztNfrfqlgbV/87JKKrVde5nhSE
-X-Gm-Gg: ATEYQzyzbfFpNw7fOGWEzvoKlwpqY0qmsn3n0dmCIaqacvpRP0FJb6dFOsnicgNoaMb
-	y+cdz60nF4m+MqRm9e4kYwUbPQb9oFxazGAou2VyWcFdIY9Tpjzqtp8G4HDliK0kFdJW4hBIUHc
-	LUEJBCnCcVr0Idgb86iu3vTcJCV4dB3bP2i7CUlyM/dqf5JrIsYqR+mEpCX+nKfsnJswjhXbGEx
-	aUn2Xl9KcGLrYR2haAstm2HHDRP2DiD3Q7dvqS8e+w+6ZJ0UoIOKjf1bfxv4kw5Tz0P9rh/D+r+
-	2Hea4rawgJVaCyp3bAPezyIvxw982UjTsOAhdnxrNMOve48HXeiDi9QKPqtd9FsdfiT6fRVh70z
-	BOLPfICMfBTKoGCqYrAmm2+msE2Pc6PMpOnG8dELSm9k1YiBDUIUgbOYDYJoLltq7jCqTtkGfG5
-	TnRf/FACwJNin3W8joJCosuUFO69sOhDc6RJyoQU3dyaWadXZ4dyr8m/Vf8p0WGZ69
-X-Received: by 2002:a05:693c:3106:b0:2c0:d9e6:7eb3 with SMTP id 5a478bee46e88-2c185f383d7mr7769698eec.23.1774907396065;
-        Mon, 30 Mar 2026 14:49:56 -0700 (PDT)
-Received: from google.com ([2a00:79e0:2ebe:8:7f4e:2749:b37a:e9d5])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2c3c747e410sm8325528eec.25.2026.03.30.14.49.54
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 30 Mar 2026 14:49:55 -0700 (PDT)
-Date: Mon, 30 Mar 2026 14:49:52 -0700
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>, 
-	Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, 
-	Hans de Goede <hansg@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	"Rafael J. Wysocki" <rafael@kernel.org>, Danilo Krummrich <dakr@kernel.org>, 
-	Daniel Scally <djrscally@gmail.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
-	Sakari Ailus <sakari.ailus@linux.intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, 
-	driver-core@lists.linux.dev
-Subject: Re: [PATCH v2 3/4] software node: verify that property data is not
- on stack
-Message-ID: <acrvakIBxO76OAlU@google.com>
-References: <20260329-property-gpio-fix-v2-0-3cca5ba136d8@gmail.com>
- <20260329-property-gpio-fix-v2-3-3cca5ba136d8@gmail.com>
- <acpRi0BOgT73pqpE@ashevche-desk.local>
+	dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b="q3M++rMh"
+Received: from submission (posteo.de [185.67.36.169]) 
+	by mout01.posteo.de (Postfix) with ESMTPS id 3799E24002A
+	for <linux-acpi@vger.kernel.org>; Tue, 31 Mar 2026 01:38:46 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=posteo.de; s=2017;
+	t=1774913926; bh=KJlVFt0fFfjlXIIskbJ95F8NElAOQxivO1b71aYLZAI=;
+	h=Message-ID:Subject:From:To:Cc:Date:Autocrypt:Content-Type:
+	 MIME-Version:OpenPGP:From;
+	b=q3M++rMhTTpHctbWlS63vFRua+CL+BOfVeeMLLLvKF25Qj+XY+4ObJIeXfsSnyGQs
+	 msNxbmZGURARpgxXMRudfOH/i0JM7ai6jEEUey/IrnwvLUTJ8gLzut+LmJGYh4NL8l
+	 62sogM64ZYk6dKi1U09bajBi9/fo1xR9Qke1igzDoXSaIQhh4347yEC2SCkKClNjvK
+	 xbQhJ53q4vIUfN53e8LVrL+J1RbKbnOIlSfW+DfpdMIwU01n5ZPunFrZw7wAeeFMqx
+	 OdX/SDwA4vdJfEP7LlwMIWq749oXDdf9ekGxMGDE5XaVqPaPt8bm2RQT9iFHVzOZoz
+	 L509L/Ult+/wg==
+Received: from customer (localhost [127.0.0.1])
+	by submission (posteo.de) with ESMTPSA id 4fl7431RT7z9rxB;
+	Tue, 31 Mar 2026 01:38:42 +0200 (CEST)
+Message-ID: <325bf1f6a037bad714db19101421588f671e3b2d.camel@posteo.de>
+Subject: Re: [PATCH v5 1/4] dt-bindings: embedded-controller: Add synology
+ microp devices
+From: Markus Probst <markus.probst@posteo.de>
+To: Krzysztof Kozlowski <krzk@kernel.org>
+Cc: Hans de Goede <hansg@kernel.org>, Ilpo =?ISO-8859-1?Q?J=E4rvinen?=	
+ <ilpo.jarvinen@linux.intel.com>, Bryan O'Donoghue
+ <bryan.odonoghue@linaro.org>,  Lee Jones <lee@kernel.org>, Pavel Machek
+ <pavel@kernel.org>, Rob Herring <robh@kernel.org>,  Krzysztof Kozlowski	
+ <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, Miguel Ojeda	
+ <ojeda@kernel.org>, Boqun Feng <boqun@kernel.org>, Gary Guo
+ <gary@garyguo.net>,  =?ISO-8859-1?Q?Bj=F6rn?= Roy Baron	
+ <bjorn3_gh@protonmail.com>, Benno Lossin <lossin@kernel.org>, Andreas
+ Hindborg	 <a.hindborg@kernel.org>, Alice Ryhl <aliceryhl@google.com>,
+ Trevor Gross	 <tmgross@umich.edu>, Danilo Krummrich <dakr@kernel.org>, Greg
+ Kroah-Hartman	 <gregkh@linuxfoundation.org>, "Rafael J. Wysocki"
+ <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Saravana Kannan
+ <saravanak@kernel.org>, 	platform-driver-x86@vger.kernel.org,
+ linux-leds@vger.kernel.org, 	devicetree@vger.kernel.org,
+ linux-kernel@vger.kernel.org, 	rust-for-linux@vger.kernel.org,
+ linux-acpi@vger.kernel.org
+Date: Mon, 30 Mar 2026 23:38:45 +0000
+In-Reply-To: <20260330-delicate-sassy-mayfly-ebcca7@quoll>
+References: <20260329-synology_microp_initial-v5-0-27cb80bdf591@posteo.de>
+	 <20260329-synology_microp_initial-v5-1-27cb80bdf591@posteo.de>
+	 <20260330-delicate-sassy-mayfly-ebcca7@quoll>
+Autocrypt: addr=markus.probst@posteo.de; prefer-encrypt=mutual;
+ keydata=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
+ jfGillcaQOqFZ3WwVqyzG1BUfTow==
+Content-Type: multipart/signed; micalg="pgp-sha256";
+	protocol="application/pgp-signature"; boundary="=-YMgqfLsG96AmlufvYGNr"
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <acpRi0BOgT73pqpE@ashevche-desk.local>
+OpenPGP: url=https://posteo.de/keys/markus.probst@posteo.de.asc; preference=encrypt
 
-On Mon, Mar 30, 2026 at 01:33:47PM +0300, Andy Shevchenko wrote:
-> On Sun, Mar 29, 2026 at 07:27:50PM -0700, Dmitry Torokhov wrote:
-> > When registering a software node, ensure that the property data is not
-> > located on the stack, as it is expected to persist for the lifetime of
-> > the node.
-> 
-> ...
-> 
-> > +	for (prop = node->properties; prop && prop->name; prop++) {
-> > +		if (!prop->is_inline && object_is_on_stack(prop->pointer)) {
-> 
-> I read more about this... Any code that uses vmalloc() (or potentially may
-> switch to it from regular allocator with help of kvalloc() and similar) will
-> fail now. While it might be no issue right now, this may become a such. So
-> with this check in place you put a requirement that properties can only be
-> allocated from a kernel low memory heap and not vm.
 
-Can you tell me more about this? As far as I can see it will actually
-have false negatives with CONFIG_VMAP_STACK, but should be OK not
-trigger with vmalloced memory... But I am genuinely interested to know
-more.
+--=-YMgqfLsG96AmlufvYGNr
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Thanks.
+On Mon, 2026-03-30 at 08:51 +0200, Krzysztof Kozlowski wrote:
+> On Sun, Mar 29, 2026 at 08:02:15PM +0200, Markus Probst wrote:
+> > +properties:
+> > +  compatible:
+> > +    enum:
+> > +      - synology,ds923p-microp
+> > +      - synology,ds918p-microp
+> > +      - synology,ds214play-microp
+> > +      - synology,ds225p-microp
+> > +      - synology,ds425p-microp
+> > +      - synology,ds710p-microp
+> > +      - synology,ds1010p-microp
+> > +      - synology,ds723p-microp
+> > +      - synology,ds1522p-microp
+> > +      - synology,rs422p-microp
+> > +      - synology,ds725p-microp
+> > +      - synology,ds118-microp
+> > +      - synology,ds124-microp
+> > +      - synology,ds223-microp
+> > +      - synology,ds223j-microp
+> > +      - synology,ds1823xsp-microp
+> > +      - synology,rs822p-microp
+> > +      - synology,rs1221p-microp
+> > +      - synology,rs1221rpp-microp
+> > +      - synology,ds925p-microp
+> > +      - synology,ds1525p-microp
+> > +      - synology,ds1825p-microp
+>=20
+> Last time you had one compatible and implied they are all compatible.
+> Now none of them are compatible, which might be accurate,
 
--- 
-Dmitry
+As you mentioned earlier:
+
+Unless exactly same board is used
+in different models (unlikely) then the compatible defines the LEDs and
+they are not needed in DT.
+
+>=20
+> but nothing
+> explains WHY they are not compatible in the commit msg.
+Shall all 22 compatible be in the commit msg?
+
+Also, might be worth documenting this requirement [1].
+
+>=20
+> > +
+> > +  fan-failure-gpios:
+> > +    description: GPIOs needed to determine which fans stopped working =
+on a fan failure event.
+> > +    minItems: 2
+> > +    maxItems: 3
+>=20
+> Constraints cannot be flexible. You need allOf:if:then: block to narrow
+> them per variant.
+I can disable the property or force the property based on compatible
+with it.
+But it seems it won't let me modify the minItems and maxItems
+constraint.
+
+Thanks
+- Markus Probst
+
+
+[1] https://docs.kernel.org/devicetree/bindings/submitting-patches.html
+
+
+>=20
+> Best regards,
+> Krzysztof
+
+--=-YMgqfLsG96AmlufvYGNr
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+
+iQJPBAABCAA5FiEEgnQYxPSsWOdyMMRzNHYf+OetQ9IFAmnLCYAbFIAAAAAABAAO
+bWFudTIsMi41KzEuMTEsMiwyAAoJEDR2H/jnrUPS/gEQAIMb2gXuY4FHniYPy2Jp
+la8R/ykjbSW+5ISJlfj5m9XwiPLY+AcTgISu7weP2W3kfacbdkOnbx63+vyjR0DF
+6QGhEgvY9V1vgq+0An+SSmnkzjm2ffg291nxKiqIfXtFY3v9djZk5v+MQTL38uYb
+rqGGmFHU7u7Ij+1v5TLFPuZyNwdS7wh3JQ4E+II3fBcfJRKmyqaPhrbGSOiJOuUv
+WQtTJo7lT5Obr8PPGHx3Cm59ByECXf98BF9AjjpvXDPlGiEEsQS40/F5R3Fq9UNV
+EEjNKp9SXEJJXnc/Y9zrgw6h5qwVhytq6SSlk0JA3Lh2WU2ruzzDXOUxY4RV4tK7
+DkebkYKkAGaLgnf3DNYMLsUCg8FsPle6Aadd4BzzdgJnPbotvgR3CkiUWcYjI9Ml
+k04nGUtFjBC8mIVKGOhBunCvweb8ucrOTjRk6mxhBBXOED2xvtiPASozNkNpo729
+sGA08vwLJqwhRx/WlSK2qL8C94L2CaTaWxltPT73KLrdIDcy1hliIDxxOxH9XYdE
+z9g2yYMjekpjBbsS2I57Yo3h3Zler9eO6ZhbI4m7gSpixwl0t37CsJ3mO426l923
+EuFLAnw/qbx4Gst5XESfEFkubfAU/RiU6hP4yUWVaxQlPxmS3vfVthw0QJpK7rE0
+LaHObcMI5OrEmT6Vlfr5qK5v
+=+wyl
+-----END PGP SIGNATURE-----
+
+--=-YMgqfLsG96AmlufvYGNr--
