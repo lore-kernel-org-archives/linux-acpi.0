@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0F1019046E;
-	Mon, 30 Mar 2026 13:37:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 735CF2DCF67;
+	Mon, 30 Mar 2026 13:47:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774877866; cv=none; b=uUR86iAF71J5SSI9E4/iCAcmSp7jR/3SkYPIPED8+v2ygLg3jQLz6BM/r9ARxP7Iyf5q4SqFcEOMsr2Fi5YIy1JwpxoCodeKzH2EEJp/iQS8GT/nLwFo24GHdh+cRINkCYY2boBm6PacWWErEez4qpkWMDZPZck3CHB1S2exruw=
+	t=1774878479; cv=none; b=DrbNnDpYc4+AZ+cFCqKZtIUhWPtaZho0Zm7YENvus3BqtH90Vqa9dlRzfQ/j1oOAsSz7YjAbPeVyWn23vr1vSG6mKxwYOmXFMyrlqMu3tmIM6srNPKTFUVwHkIBpnqH9p1oyDpXvI9tcbLKK5WwQ+FmNklxXALBwi0eOkkDcV34=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774877866; c=relaxed/simple;
-	bh=d49rzc7VgXP+qBIv+G+I+R2A+YQZkwu+LgZRxaLstvo=;
-	h=Mime-Version:Content-Type:Date:Message-Id:Subject:Cc:To:From:
-	 References:In-Reply-To; b=PEFUREwZFgAPpIBQnF0s69t9kQN8vaCgOaJLbyVMWY/saRcG9sdiSTnECiPdQO30Ks7s/Nx0MMCOmSGDk25fuP0EP4sWV12tIQ3dbmdnkcoSwLYVmbYN35IE9jV9JEohkuFwN4QW0A0l7SEIylqVJvAAV4SbXKRFZgsxC9PzO7g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Jl8hWv+u; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774878479; c=relaxed/simple;
+	bh=4HWngODzhwNimgKwWfcRLqmqV+gsxSnsNR2bNYJtCnY=;
+	h=Mime-Version:Content-Type:Date:Message-Id:From:Subject:Cc:To:
+	 References:In-Reply-To; b=NqHbpUrbfIWCZrvXTeFSxG0eDKdMn6zHOOh2QRic69wiPq2JwCJMBEgmiENB7NrvSaXu2ZhAP5z2PcnCNTuSD0CFj0Gf4SbnOwiMVTrPcqBdys8qyC92ainVJjnhZ4knOxg1AAJMY+OZ4tHN+NwVOEGDzeQZTzrlEcVZEjb2bhs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=E1/zwihM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Jl8hWv+u"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4E17C4CEF7;
-	Mon, 30 Mar 2026 13:37:42 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="E1/zwihM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C1F2C4CEF7;
+	Mon, 30 Mar 2026 13:47:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774877866;
-	bh=d49rzc7VgXP+qBIv+G+I+R2A+YQZkwu+LgZRxaLstvo=;
-	h=Date:Subject:Cc:To:From:References:In-Reply-To:From;
-	b=Jl8hWv+uJLAQPEKSKGdE36Wo97h3x2+83eL7VvA30dPSlAGNq20iJlr+RrB0l/qTB
-	 ls/X6vlrnayAkWbLGo3aTXCmKM1Hc38gIVCuDo751r6yCFETwEyUxUhqVuzm2Q7CPf
-	 QNNFMh+B1VQgOfWxTp/t0lan3Jg6GqfmcBB93S5FvdgyITm+lP1TOFxOvjGOYtj4sg
-	 0zxKew3Il0nIua8n6fqyzRXYLwwhm3C2PexPHfFLzXAn46rqWd3KlckUDVlhc4gICb
-	 /8wPvlfxqvBeu4mC48PTYWwBgbqs50wm62Vlu2LQq4T341SB29J8ikM3R7KY3oTVqw
-	 RRViDgBf0tbHg==
+	s=k20201202; t=1774878479;
+	bh=4HWngODzhwNimgKwWfcRLqmqV+gsxSnsNR2bNYJtCnY=;
+	h=Date:From:Subject:Cc:To:References:In-Reply-To:From;
+	b=E1/zwihM+sttFZGmZX09B5wZ3pRgOhu57TF/VAcFy/o8XuVyMibyvYFbqUI5tnrt9
+	 Up6mCERLdsi7+g7yAgd2X+OgkGkVXxPxlqAv3RkQkUSuToIOAN6pWAu5Uo9AtzVZWb
+	 2qMyjNq/wBE9CgHU5jdLQOTxiXGiE1UVfOgxHEgrIzdEluVabyLwJd8hffpplTn0MN
+	 HZaTDH9kwcN06nHoqVx+Rvj1atZPk/w3VhFX3YBXfdlEE87ev8sJGrZ5dDWQRL1tSh
+	 1bl9kTCAOJtIloVrxMzWLUxn8cUTNYSNaBgpWr8fFUlFdiy+vryDSxaythfTOX1lt4
+	 1m+BJpItHjojQ==
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -34,10 +34,10 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain; charset=UTF-8
-Date: Mon, 30 Mar 2026 15:37:41 +0200
-Message-Id: <DHG5OX85I4LL.39U0RRBS0JXFP@kernel.org>
-Subject: Re: [PATCH v4 0/3] ARM: omap1: use real firmware node lookup for
- GPIOs on Nokia 770
+Date: Mon, 30 Mar 2026 15:47:53 +0200
+Message-Id: <DHG5WQI26R5U.WTZW61VKJHF5@kernel.org>
+From: "Danilo Krummrich" <dakr@kernel.org>
+Subject: Re: [PATCH v4 1/3] kernel: ksysfs: initialize kernel_kobj earlier
 Cc: "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>, "Rafael J. Wysocki"
  <rafael@kernel.org>, "Andy Shevchenko" <andriy.shevchenko@linux.intel.com>,
  "Daniel Scally" <djrscally@gmail.com>, "Heikki Krogerus"
@@ -51,16 +51,23 @@ Cc: "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>, "Rafael J. Wysocki"
  <linux-acpi@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
  <linux-omap@vger.kernel.org>
 To: "Bartosz Golaszewski" <bartosz.golaszewski@oss.qualcomm.com>
-From: "Danilo Krummrich" <dakr@kernel.org>
-References: <20260330-nokia770-gpio-swnodes-v4-0-b68592e977d0@oss.qualcomm.com>
-In-Reply-To: <20260330-nokia770-gpio-swnodes-v4-0-b68592e977d0@oss.qualcomm.com>
+References: <20260330-nokia770-gpio-swnodes-v4-0-b68592e977d0@oss.qualcomm.com> <20260330-nokia770-gpio-swnodes-v4-1-b68592e977d0@oss.qualcomm.com>
+In-Reply-To: <20260330-nokia770-gpio-swnodes-v4-1-b68592e977d0@oss.qualcomm.com>
 
 On Mon Mar 30, 2026 at 2:40 PM CEST, Bartosz Golaszewski wrote:
-> Bartosz Golaszewski (3):
->       kernel: ksysfs: initialize kernel_kobj earlier
->       driver core: make software nodes available earlier
->       ARM: omap1: enable real software node lookup of GPIOs on Nokia 770
+> diff --git a/include/linux/kobject.h b/include/linux/kobject.h
+> index c8219505a79f98bc370e52997efc8af51833cfda..71b9086621c35b7e4ef99b9d3=
+b6707db23faf58c 100644
+> --- a/include/linux/kobject.h
+> +++ b/include/linux/kobject.h
+> @@ -219,4 +219,6 @@ int kobject_synth_uevent(struct kobject *kobj, const =
+char *buf, size_t count);
+>  __printf(2, 3)
+>  int add_uevent_var(struct kobj_uevent_env *env, const char *format, ...)=
+;
+> =20
+> +void ksysfs_init(void);
 
-Looks good to me overall (one minor nit in the first patch); which tree sho=
-uld
-this go through?
+NIT: I'm aware there's also all the core kobjects in include/linux/kobject.=
+h,
+but maybe a separate header would be a better fit.
