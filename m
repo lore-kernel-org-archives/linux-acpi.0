@@ -1,155 +1,195 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from canpmsgout01.his.huawei.com (canpmsgout01.his.huawei.com [113.46.200.216])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62F6735949
-	for <linux-acpi@vger.kernel.org>; Tue, 31 Mar 2026 12:24:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34D313E2771;
+	Tue, 31 Mar 2026 12:48:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.216
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774959880; cv=none; b=Uc6MFX9F8ZSwbbhOtwRgbsWoQRLJzy4WS/pOWLom0taGg836+y23xaKDYtyvPuqd4lNK+FdjdXepNICDZ7SP+HEg06I1RdcBjdrhYQI6d+vURpPnS1lvo2cpK38M7eKRrOptCtShG5p8qBupJ0HLPw70bJ2fW+dQ69Doo5bzHlg=
+	t=1774961306; cv=none; b=CvalWBujMz9yxJ3Tm88JNNL8+8Yf9LOdTsccv2yCP/fztray0/qq/1zcS5XWT/7tTVWF7RPA96qDAhGIBNlWoDI8aBc0eWGjAY1kCUjTKY5VtWoAOsw3w4UkFnacFJytsL+t1u/dbSMHXxQ1l80AVw0GvvxMyln9vb7bEay32ME=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774959880; c=relaxed/simple;
-	bh=+v0lsG31lmz9yOKp4sThWdLD00iDG9mSDxn4BdCze+s=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=r7nFIa/BlFwGuy/BkleI2ZF6lIeEeFktIHX0sqB6RSTzSJlzvIE5JcnPvIPY/rY4Q73lICKZrhRivy+x2v0snXj8tx//Ltx1Y00xH1LNu8IdGZNZoso4XeQMb/YjFMzUFfExjyVYP0iYGhIiPqxskA7hCXtD6NtnC8uMcfVfJkc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RJZmO7Tv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774961306; c=relaxed/simple;
+	bh=uH2Vc6Cq17FEd1pZf3p7f2otmb/lgbtFj5sT9pKQKSA=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=B3tjoEX20cXJ+FlTYdgrF/WmMZlaWGVz+zILB2PEfMXWPbMPho+1vHyt9yuEhfsZhPg9wgOxavL1smkxEoNL+nmTD+zCgggsSopKK0s4OUyny9BOYW8F50w7Hz925kTEIlMQAe4ypp5lSJdrodhWp3nUIjOIlro82TeRAUYARWo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=ng0v+JdV; arc=none smtp.client-ip=113.46.200.216
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=h-partners.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RJZmO7Tv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45647C2BCB7
-	for <linux-acpi@vger.kernel.org>; Tue, 31 Mar 2026 12:24:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774959880;
-	bh=+v0lsG31lmz9yOKp4sThWdLD00iDG9mSDxn4BdCze+s=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=RJZmO7TvhY88kQe3eU7xRIwnSJdkZvyh60WN8MrF2rST5eqYT7Si7twWZg/DT2ZoX
-	 YzqUgPxfYDwdo0IEdVVzbGnpMkc2xEIEQWtZG/kOBKnlwvP5OBf9k5ABA9qJOS+Ukj
-	 eOekVrlTQVDRLMnCElfoE+fONsncPPw1jhKXxukkxEyJi7dEXS+heu/pZUzPng526Q
-	 fQrEJ4DiG53+M4yOJk7Zh135J6HBPJuwoHDZrzQcHd3EDgZteWUMcAVKR5sOaepyV5
-	 f2xbf4yCO62QwUTSWKNB376JIzJj0sbMnh6R7hTd0WRb04t6xyHnCnYuuXajw89d5X
-	 Ti2a3xJRDsK2w==
-Received: by mail-oa1-f48.google.com with SMTP id 586e51a60fabf-4042fe53946so2173790fac.3
-        for <linux-acpi@vger.kernel.org>; Tue, 31 Mar 2026 05:24:40 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCVoneW/JNFKSFkchS82iabf1c1fYV0J+pQErlEwoEX2jlAruFQAzSFLOyaXLJPhIrn2e5SGAjfLyiF0@vger.kernel.org
-X-Gm-Message-State: AOJu0Yy5J10g6x+XZahTlq3akFNEAsLHBackn5Xx+Qaph/BOC8On+Rh8
-	zyYgWM2oMxnKRR0pHRMo/aR52IceqKfQtrxq08GV4woJqtagNH58q9b0eEshDw1QvniPjHcS/Tg
-	+2lf7Yszt5zw8+L3QDMgYmEfzId01vqc=
-X-Received: by 2002:a05:6870:3212:b0:41c:5212:2c7e with SMTP id
- 586e51a60fabf-41cec149624mr8736242fac.20.1774959878527; Tue, 31 Mar 2026
- 05:24:38 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="ng0v+JdV"
+dkim-signature: v=1; a=rsa-sha256; d=h-partners.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=k9e4ED/8rEqnoNpRsLd7OaKPs85nfeWS5gEYngR3nrA=;
+	b=ng0v+JdV0iFmsKtiVYgVzJF/4YqGSkMPvIsavVESUbopr0R9a+/IRSPmN3Dkzs/BGlRMWIwLm
+	BFJAxbCoOG3hQ/eI2LMqREj/KjK8zDQjQUibkNxHLSo30Wb/fM708dNJ+U5fhivIdjXHil+hRDu
+	ZJ+C+LvIf6L8mSDrEdGAO1s=
+Received: from mail.maildlp.com (unknown [172.19.162.197])
+	by canpmsgout01.his.huawei.com (SkyGuard) with ESMTPS id 4flSSY1nB1z1T4Gb;
+	Tue, 31 Mar 2026 20:42:37 +0800 (CST)
+Received: from dggemv712-chm.china.huawei.com (unknown [10.1.198.32])
+	by mail.maildlp.com (Postfix) with ESMTPS id EDE8A40569;
+	Tue, 31 Mar 2026 20:48:16 +0800 (CST)
+Received: from kwepemn100009.china.huawei.com (7.202.194.112) by
+ dggemv712-chm.china.huawei.com (10.1.198.32) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.11; Tue, 31 Mar 2026 20:48:16 +0800
+Received: from [10.67.121.59] (10.67.121.59) by kwepemn100009.china.huawei.com
+ (7.202.194.112) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.36; Tue, 31 Mar
+ 2026 20:48:16 +0800
+Message-ID: <7ee19eab-60e0-456d-a513-b8837b757777@huawei.com>
+Date: Tue, 31 Mar 2026 20:48:15 +0800
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260320031737.35048-1-fengchengwen@huawei.com>
-In-Reply-To: <20260320031737.35048-1-fengchengwen@huawei.com>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Tue, 31 Mar 2026 14:24:26 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0gO1VSPs58JeupaiTZBkP3i_-H2bEQpfU-6k2TXjdiaOQ@mail.gmail.com>
-X-Gm-Features: AQROBzDL-JtY7QC0BpuyBPGCuLquO5-Gf9GrQy5Yvy_4yGsymDKEHbc8tb9l0x0
-Message-ID: <CAJZ5v0gO1VSPs58JeupaiTZBkP3i_-H2bEQpfU-6k2TXjdiaOQ@mail.gmail.com>
-Subject: Re: [PATCH v10 0/8] ACPI: Unify CPU UID interface and fix ARM64 TPH
- steer-tag issue
-To: Chengwen Feng <fengchengwen@huawei.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Catalin Marinas <catalin.marinas@arm.com>, 
-	Will Deacon <will@kernel.org>, Jonathan Corbet <corbet@lwn.net>, Palmer Dabbelt <palmer@dabbelt.com>, 
-	Borislav Petkov <bp@alien8.de>, "H . Peter Anvin" <hpa@zytor.com>, Juergen Gross <jgross@suse.com>, 
-	Boris Ostrovsky <boris.ostrovsky@oracle.com>, Sunil V L <sunilvl@ventanamicro.com>, 
-	Mark Rutland <mark.rutland@arm.com>, Jonathan Cameron <jonathan.cameron@huawei.com>, 
-	Kees Cook <kees@kernel.org>, Yanteng Si <si.yanteng@linux.dev>, 
-	Sean Christopherson <seanjc@google.com>, Kai Huang <kai.huang@intel.com>, 
-	Tom Lendacky <thomas.lendacky@amd.com>, Thomas Huth <thuth@redhat.com>, 
-	Thorsten Blum <thorsten.blum@linux.dev>, Kevin Loughlin <kevinloughlin@google.com>, 
-	Zheyun Shen <szy0127@sjtu.edu.cn>, Peter Zijlstra <peterz@infradead.org>, 
-	Pawan Gupta <pawan.kumar.gupta@linux.intel.com>, Xin Li <xin@zytor.com>, 
-	"Ahmed S . Darwish" <darwi@linutronix.de>, Sohil Mehta <sohil.mehta@intel.com>, 
-	Ilkka Koskinen <ilkka@os.amperecomputing.com>, Robin Murphy <robin.murphy@arm.com>, 
-	James Clark <james.clark@linaro.org>, Besar Wicaksono <bwicaksono@nvidia.com>, 
-	Ma Ke <make24@iscas.ac.cn>, Wei Huang <wei.huang2@amd.com>, 
-	Andy Gospodarek <andrew.gospodarek@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, 
-	punit.agrawal@oss.qualcomm.com, guohanjun@huawei.com, suzuki.poulose@arm.com, 
-	ryan.roberts@arm.com, chenl311@chinatelecom.cn, masahiroy@kernel.org, 
-	wangyuquan1236@phytium.com.cn, anshuman.khandual@arm.com, 
-	heinrich.schuchardt@canonical.com, Eric.VanTassell@amd.com, 
-	wangzhou1@hisilicon.com, wanghuiqiang@huawei.com, liuyonglong@huawei.com, 
-	linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
-	loongarch@lists.linux.dev, linux-riscv@lists.infradead.org, 
-	xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, 
-	linux-perf-users@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 1/3] cpuidle: Add enable_cpuidle() interface
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+CC: <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<Sudeep.Holla@arm.com>, <linuxarm@huawei.com>, <jonathan.cameron@huawei.com>,
+	<zhanjie9@hisilicon.com>, <zhenglifeng1@huawei.com>, <yubowen8@huawei.com>
+References: <20251125072933.3706006-1-lihuisong@huawei.com>
+ <20251125072933.3706006-2-lihuisong@huawei.com>
+ <CAJZ5v0j6HPW8thPNLSRRzZCjSSnr69DWBHn9BBR2+L4tOKD6Fw@mail.gmail.com>
+ <11f9d333-4d18-463a-817f-d3f450d1624e@huawei.com>
+ <2d2d2d40-c73a-4988-90fe-fad75e35c75b@huawei.com>
+ <f2be1178-28f4-4412-adb7-1530944a76ed@huawei.com>
+ <CAJZ5v0heJsOWA5z7CwrON4zvaebj8-C_HBe5ymYa+FAbfJgy1A@mail.gmail.com>
+ <3948b6fe-2aa6-4e38-9d58-c0e25e48fe93@huawei.com>
+ <CAJZ5v0jPhW_spgjhfeig96G9pMEYb27_EKEYz17eZngrDLY7iA@mail.gmail.com>
+ <47d38645-235b-43af-ac0b-300af338db31@huawei.com>
+ <525c4cce-288e-447d-a890-d2d0b262984f@huawei.com>
+ <CAJZ5v0gJcG2-TioBmc6DQf=fUQz+Aihb=_B9gmad_G54mVMvNA@mail.gmail.com>
+ <CAJZ5v0gL=5r+drro7xQvPa2E4NCpWoWmAcTaAP_d49c4aMsg2A@mail.gmail.com>
+From: "lihuisong (C)" <lihuisong@huawei.com>
+In-Reply-To: <CAJZ5v0gL=5r+drro7xQvPa2E4NCpWoWmAcTaAP_d49c4aMsg2A@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: kwepems200001.china.huawei.com (7.221.188.67) To
+ kwepemn100009.china.huawei.com (7.202.194.112)
 
-On Fri, Mar 20, 2026 at 4:17=E2=80=AFAM Chengwen Feng <fengchengwen@huawei.=
-com> wrote:
->
-> This patchset unifies ACPI Processor UID retrieval across
-> arm64/loongarch/riscv/x86 via acpi_get_cpu_uid() (with input validation)
-> and fixes ARM64 CPU steer-tag retrieval failure in PCI/TPH:
->
-> 1-4: Add acpi_get_cpu_uid() for arm64/loongarch/riscv/x86 (update
->      respective users)
-> 5: Centralize acpi_get_cpu_uid() declaration in include/linux/acpi.h
-> 6: Clean up perf/arm_cspmu
-> 7: Clean up ACPI/PPTT and remove unused get_acpi_id_for_cpu()
-> 8: Pass ACPI Processor UID to Cache Locality _DSM
->
-> The interface refactor ensures consistent CPU UID retrieval across
-> architectures (no functional changes for valid inputs) and provides the
-> unified interface required for the ARM64 TPH fix.
->
-> ---
-> Changes in v10:
-> - Refine commit header&log according to Punit's and Bjorn's review
-> - Split perf/arm_cspmu as a separate commit which address Punit's
->   review
->
-> Changes in v9:
-> - Address Bjorn's review: split commits to each platform so that make
->   them easy to review
->
-> Changes in v8:
-> - Moving arm64's get_cpu_for_acpi_id() to kernel/acpi.c which address
->   Jeremy's review
->
-> Chengwen Feng (8):
->   arm64: acpi: Add acpi_get_cpu_uid() for unified ACPI CPU UID retrieval
->   LoongArch: Add acpi_get_cpu_uid() for unified ACPI CPU UID retrieval
->   RISC-V: ACPI: Add acpi_get_cpu_uid() for unified ACPI CPU UID
->     retrieval
->   x86/acpi: Add acpi_get_cpu_uid() for unified ACPI CPU UID retrieval
->   ACPI: Centralize acpi_get_cpu_uid() declaration in
->     include/linux/acpi.h
->   perf: arm_cspmu: Switch to acpi_get_cpu_uid() from
->     get_acpi_id_for_cpu()
->   ACPI: PPTT: Use acpi_get_cpu_uid() and remove get_acpi_id_for_cpu()
->   PCI/TPH: Pass ACPI Processor UID to Cache Locality _DSM
->
->  Documentation/PCI/tph.rst          |  4 +--
->  arch/arm64/include/asm/acpi.h      | 17 +---------
->  arch/arm64/kernel/acpi.c           | 30 ++++++++++++++++++
->  arch/loongarch/include/asm/acpi.h  |  5 ---
->  arch/loongarch/kernel/acpi.c       |  9 ++++++
->  arch/riscv/include/asm/acpi.h      |  4 ---
->  arch/riscv/kernel/acpi.c           | 16 ++++++++++
->  arch/riscv/kernel/acpi_numa.c      |  9 ++++--
->  arch/x86/include/asm/cpu.h         |  1 -
->  arch/x86/include/asm/smp.h         |  1 -
->  arch/x86/kernel/acpi/boot.c        | 20 ++++++++++++
->  arch/x86/xen/enlighten_hvm.c       |  5 +--
->  drivers/acpi/pptt.c                | 50 ++++++++++++++++++++++--------
->  drivers/acpi/riscv/rhct.c          |  7 ++++-
->  drivers/pci/tph.c                  | 16 +++++++---
->  drivers/perf/arm_cspmu/arm_cspmu.c |  6 ++--
->  include/linux/acpi.h               | 11 +++++++
->  include/linux/pci-tph.h            |  4 +--
->  18 files changed, 158 insertions(+), 57 deletions(-)
->
-> --
 
-It doesn't look like anyone has a particular heartburn related to this
-series, so I could apply it in principle, but I'd appreciate some ACKs
-from arch maintainers.
-
-Why don't you resend it with all of the tags collected so far (and
-please add x86@kernel.org to the CC list)?
+On 3/31/2026 8:10 PM, Rafael J. Wysocki wrote:
+> On Tue, Mar 31, 2026 at 2:05 PM Rafael J. Wysocki <rafael@kernel.org> wrote:
+>> Hi,
+>>
+>> On Tue, Mar 31, 2026 at 2:01 PM lihuisong (C) <lihuisong@huawei.com> wrote:
+>>>
+>>> On 3/28/2026 12:06 PM, lihuisong (C) wrote:
+>>>> On 3/27/2026 7:33 PM, Rafael J. Wysocki wrote:
+>>>>> On Fri, Mar 27, 2026 at 7:23 AM lihuisong (C) <lihuisong@huawei.com>
+>>>>> wrote:
+>>>>>> On 3/26/2026 9:39 PM, Rafael J. Wysocki wrote:
+>>>>>>> On Thu, Mar 26, 2026 at 1:17 PM lihuisong (C)
+>>>>>>> <lihuisong@huawei.com> wrote:
+>>>>>>>> Hi Rafael,
+>>>>>>>>
+>>>>>>>> On 1/30/2026 9:59 AM, lihuisong (C) wrote:
+>>>>>>>>> Hi Rafael,
+>>>>>>>>>
+>>>>>>>>> On 1/15/2026 8:18 PM, lihuisong (C) wrote:
+>>>>>>>>>> On 1/15/2026 3:18 AM, Rafael J. Wysocki wrote:
+>>>>>>>>>>> On Tue, Nov 25, 2025 at 8:29 AM Huisong Li <lihuisong@huawei.com>
+>>>>>>>>>>> wrote:
+>>>>>>>>>>>> The global switch of cpuidle can be turned back on in some case.
+>>>>>>>>>>>> So add enable_cpuidle().
+>>>>>>>>>>> No, this is not going to work.  The "off" switch only affects
+>>>>>>>>>>> initialization AFAICS.
+>>>>>>>>>> I think it would be work.
+>>>>>>>>>> The cpuidle_not_available() also see the "off" on do_idle().
+>>>>>>>>>> And cpuidle_idle_call() check this function first and then select
+>>>>>>>>>> idle state.
+>>>>>>>>>> Cpuidle doesn't select and enter idle state if this fuction
+>>>>>>>>>> return true.
+>>>>>>>>> I verified that disable_cpuidle() effectively prevents all CPUs from
+>>>>>>>>> entering any idle states and the cpuidle function is correctly
+>>>>>>>>> restored after calling enable_cpuidle().
+>>>>>>>>> What do you think?
+>>>>>>>> Could you pleasetake a look atmy reply?
+>>>>>>>> If not ok, I will drop this from my upstream list.
+>>>>>>> Sorry, can you please remind me what problem you wanted to address
+>>>>>>> with the help of this?
+>>>>>> Regarding the discussion in the link[1], if driver fail to get power
+>>>>>> info in power notify,
+>>>>>> the old idle states may no longer be reliable. Therefore, patch 2/3
+>>>>>> disables ACPI idle
+>>>>>> via the new interface introduced in patch 1/3.
+>>>>>>
+>>>>>> However, our discussion on whether this new interface can disable ACPI
+>>>>>> idle has not yet reached a conclusion.
+>>>>>> Could you please revisit this thread? It's quite brief, and I'd
+>>>>>> appreciate your further input.
+>>>>>>
+>>>>>> [1]
+>>>>>> https://lore.kernel.org/all/20251103084244.2654432-1-lihuisong@huawei.com
+>>>>>>
+>>>>> The "off" variable has been intended for disabling cpuidle via kernel
+>>>>> command line (note that the corresponding module param is read-only).
+>>>>>
+>>>>> disable_cpuidle() is only used by Xen now and only at the setup/init
+>>>>> stage.
+>>>>>
+>>>>> I don't think that using it on idle state list change notifications is
+>>>>> a good idea.
+>>>> Understand.
+>>>>
+>>>>> Something like cpuidle_pause_and_lock() would be a better match I
+>>>>> think.  acpi_processor_hotplug() uses it already for a similar
+>>>>> purpose.
+>>>> Interfaces like cpuidle_pause_and_lock() and cpuidle_pause() disable
+>>>> cpuidle by clearing the global "initialized" flag,
+>>>> which requires "enabled_devices" to be non-zero.
+>>>> IIUC, cpuidle_disable_device() isn't called when a CPU goes offline;
+>>>> instead, it's handled in acpi_processor_hotplug() during online.
+>>>> This means "enabled_devices" stays above zero even if some CPUs are
+>>>> offline.
+>>>> In this case, the driver can still successfully set initialized to
+>>>> zero when get power information failed in power notify.
+>>>> So we can disable APCI idle on all CPUs.
+>>>> But we need to ensure that other threads wouldn't resume the
+>>>> "initialized" flag by interfaces like cpuidle_resume().
+>>>>
+>>>> I have found a scenario for that where acpi_processor_hotplug enables
+>>>> the cpuidle_device and restores the "initialized" value.
+>>>> In this case, special processing may be required.
+>>>> For example, the cpuidle state of the cpuidle driver also need
+>>>> reinitialize or the disable cpuilde state is still maintained.
+>>>>
+>>> Hi Rafel,
+>>>
+>>> I have thought about this issue for a long time. I feel that it is a bit
+>>> tricky to handle.
+>>>
+>>> First, if the power information fails to be obtained from the power
+>>> notify, we want to disable the ACPI idle of all CPUs by calling
+>>> cpuidle_pause(). However, in the CPU hotplug scenario, when the idle
+>>> state may be unavailable, the idle state needs to be set up again.
+>>>
+>>> Second, I found that the current driver only calls
+>>> acpi_processor_setup_cpuidle_states() to update the idle states in
+>>> acpi_idle_driver.
+>>> Other variables in acpi_idle_driver also need to be initialized again.
+>>> For example, target_residency_ns and exit_latency_ns need to be updated.
+>>> For details, see the implementation of __cpuidle_register_driver().
+>>> These variables are used when selecting the state to enter (please see
+>>> cpuidle_enter_state()).
+>>> Therefore, when the idle states information changes, the idle states we
+>>> actually use are still the old values.
+>>> This is also a problem.
+>>>
+>>> I am not sure whether we need to remove all cpuidle_device, remove
+>>> acpi_idle_driver, and then re-initialize and register acpi_idle_driver
+>>> and register all cpuidle_device in power notify.
+>>> I think it is very likely that we need to do so.
+>> Well, yes, we do, but only if the list of available states has
+>> actually changed (that is, the number of states has changed or the
+>> latency values have changed).
+> What actually needs to be done there is to unregister the cpuidle
+> driver and register it again because the list of idle states is a
+> property of the driver.
+We also need to unregister and register cpuidle device again.
+Because the state count of ACPI idle driver may be changed, some 
+releated sysfs need to be recreated.
