@@ -1,220 +1,141 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from fhigh-b6-smtp.messagingengine.com (fhigh-b6-smtp.messagingengine.com [202.12.124.157])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41C5C3E3D95
-	for <linux-acpi@vger.kernel.org>; Tue, 31 Mar 2026 13:01:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1468B3F9F27;
+	Tue, 31 Mar 2026 14:28:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.157
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774962068; cv=none; b=kv9FtZDcMj30tply5ECJso7dvWekwcAH3jaxCVxUGoJDkNH4kCXjlS4pQ4nqHAGvji2rbV0cGafe02cjFLsdkALKRdYNJ60w2A09Fkjl5DSwmjHe+tDhLEzWVviyqTpeuMItFgGHT3Ecl3KcmvLGKy11lcdXNthc8cSxOUUEdUo=
+	t=1774967341; cv=none; b=Nl9YLh9xvYuK+SLumCDQIrggwDbyDgPt2BLu2FN6uXCKY/NMWtif6ZmQeeU+2a8pIxPcaVcxzAKm/sgmdZ2JJC4jFT6lHmGCnFvLrYNJsBsr1cCGRJxBNWXkRPKkFPnSMZUM6wNrGHb+KAmKX7dtWPL4pZ8Yioe+wIuCi1kxlwQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774962068; c=relaxed/simple;
-	bh=rj7TSSe4JZgfLW3ywawInDrdzpkKfbFOPsbqOpk/VNI=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=NEUrCf/5yCsVhlZZK2i64YeS0FuR3CCy7aNFCwHaCqgLv3IuWBydCvpMrqa5+x5AzOqJzv5zJ0+neiYo/kKMTzgnwd/jKSu42XLFp+J5MRHE8aGfELoPcz2nQRxLJlLUZ4EIt+VPA10UDk3FTwzdRInZjqCJFQuCvejVkHtsRDk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=g9GiqBzg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774967341; c=relaxed/simple;
+	bh=+1bS46ZAA7pp0mgz73/J8GN2ndSPqyiQ8J/28Jl0deM=;
+	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
+	 Subject:Content-Type; b=V9w9GbC98CcDsJ1xXWvTv+LdIWMnw96svpagT07XRhYxyyuLymjXZl/XngJ3sDZdaMzpwz4u1FW3zG3ye3GpK5tYwu5dcI2wezKxERCjGGKPgrHDvYVYPxN5NaOvzkpHWkt2auYN9PFa+g6UJFIANP2Z2xxinKqNeCsTJ8nTinE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de; spf=pass smtp.mailfrom=arndb.de; dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b=GIyQRsgL; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=Jx3yUZHQ; arc=none smtp.client-ip=202.12.124.157
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="g9GiqBzg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CBF8EC2BCB2
-	for <linux-acpi@vger.kernel.org>; Tue, 31 Mar 2026 13:01:07 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774962067;
-	bh=rj7TSSe4JZgfLW3ywawInDrdzpkKfbFOPsbqOpk/VNI=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=g9GiqBzgvM+8xGuEVSD5t8pe2xojog862uq+v2gD5DpH3uMwp4yNz81RBzhZE6F1g
-	 VFjzrSiRsB+I0xsnmLc9zFTIfMb5MiFj5n7CLhFW3ANFGep6mblFhQlXMfhYrQB21Z
-	 v4cV++kPmI30PDTvcjGqUfAR4xEoumQYJY/y6VLOA1myI3+Y47SCTbO60FIukJbw4b
-	 5dcXH/Oc+0cldEqh1Ua9Sz2lkQbkxZJKIZfhDCsRcUAQgpmwQvdtTQ0Pw4wI2HjMhq
-	 Wr8FzlH2HXyJpsGcaKHBLCwiu0aNR9TZxHzEPfd9DsCV0i0F092RheAE5XZTkOhGtH
-	 NSQW0Lt1U/haQ==
-Received: by mail-oa1-f45.google.com with SMTP id 586e51a60fabf-4094b31a037so4038786fac.1
-        for <linux-acpi@vger.kernel.org>; Tue, 31 Mar 2026 06:01:07 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCUJPt98dqROL9eCkHtvoJW6XkHAHgvYYXbvKCpH5o8hYTcSpyl7xmttUK2B2g/IQP+Mty+91Ua61LVN@vger.kernel.org
-X-Gm-Message-State: AOJu0YwD3OQe8CnTf64p7GYNvS6orHL4CRb2acTYGtvtyv6bEOzU4ryF
-	bNCyMT9k0j7VOnp51l/o+29x39WXwMs3ROwCqEQSGdQGxrJcCBZch8IxiWJSwd2Fx37KFtgd54c
-	uaCeg7GmzD9p7iXyKrP7o0CCAZS8uqL0=
-X-Received: by 2002:a05:6870:21f5:b0:3ec:3d37:87da with SMTP id
- 586e51a60fabf-41cec0e3156mr9926801fac.3.1774962066610; Tue, 31 Mar 2026
- 06:01:06 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b="GIyQRsgL";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="Jx3yUZHQ"
+Received: from phl-compute-04.internal (phl-compute-04.internal [10.202.2.44])
+	by mailfhigh.stl.internal (Postfix) with ESMTP id A771A7A00E8;
+	Tue, 31 Mar 2026 10:28:58 -0400 (EDT)
+Received: from phl-imap-02 ([10.202.2.81])
+  by phl-compute-04.internal (MEProxy); Tue, 31 Mar 2026 10:28:59 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
+	:cc:content-transfer-encoding:content-type:content-type:date
+	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:subject:subject:to:to; s=fm1; t=1774967338;
+	 x=1775053738; bh=gwjTKRN7CKx6VBzelTeoJWz//Z40N3ckpJ64EfpPZN4=; b=
+	GIyQRsgLBEUPdekUSmrKw3y2sdb9k8B56H0eto+5KHHuKLgLxNooiIV+8n1zkVXh
+	PK+Y/U141AnNdcccVG7n9IjwSAxwlP3wYwvP4EWOgxu8SuJ7qrrA6jWybMCA5Rcm
+	ixkvUub/GUbqmNsOtVUh2XO/ejs1kpWI49aosAvoltqSNmXKOqZAnDhXOgrXsTPq
+	ELOlAltwV91RL3I2cHjv1nyiT8h+o5nO3eqO9fieuaLHMzGLJfdwoyASfqZleSrS
+	IubSNfy+Jt3QbwVhEWSOPsMvMw4Wf9Gm3/NLXrNDDPWZQKgsxHY0ktwGvg3jb9Vg
+	OAHJq3ykXIuBV/7wv0gPmA==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-transfer-encoding
+	:content-type:content-type:date:date:feedback-id:feedback-id
+	:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:subject:subject:to:to:x-me-proxy
+	:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=1774967338; x=
+	1775053738; bh=gwjTKRN7CKx6VBzelTeoJWz//Z40N3ckpJ64EfpPZN4=; b=J
+	x3yUZHQHmZi493P+Bypf5OpDAyDXLErp4LHLcwQ5F8rpRx25f5igK5cVLwI/M64P
+	bOs9G3iCafoQgiDE4CILBxQ/zRAy9aZbzAucwvOH0DjK0YlL8bDUde7timAiDcED
+	mg8z8KB85BqmCqo3pRpy9o5gJ8mpwACiAMNwkLB9nQv9mSDzOJ038gyBmka6K9/7
+	HOtJzBB703yxJIwCwJhRlU5Cu5cpcWyeAdtjimhBFWNWrr3sFATfBBz0iZlAO6eR
+	EKxcyRvw8Plov6LPzGkEEjy7bky1dWCfnn5B+g1QEfBIScbyhgw91C2/rF4OJhYm
+	7BT0sBH7STRbl+UxLYKnw==
+X-ME-Sender: <xms:KtrLaQSPBrym0FF0ZYzAt9huAYT-K0lY1ozO13CGTO0Jp02FF1iINQ>
+    <xme:KtrLaYlQhx63FcE-M7AX9J-mfJKcuG0jNHM3SLYLjCnPYffcMdSZTHvHJtfnB0VLJ
+    4ihpHML4BJ4mNx5eQrNoplaBv48wWW9o0SAMHCRqreaqUHv-N0_>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefhedrtddtgdeggecutefuodetggdotefrodftvf
+    curfhrohhfihhlvgemucfhrghsthforghilhdpuffrtefokffrpgfnqfghnecuuegrihhl
+    ohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpe
+    foggffhffvvefkjghfufgtgfesthejredtredttdenucfhrhhomhepfdetrhhnugcuuegv
+    rhhgmhgrnhhnfdcuoegrrhhnugesrghrnhgusgdruggvqeenucggtffrrghtthgvrhhnpe
+    fhtdfhvddtfeehudekteeggffghfejgeegteefgffgvedugeduveelvdekhfdvieenucev
+    lhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpegrrhhnugesrg
+    hrnhgusgdruggvpdhnsggprhgtphhtthhopedvtddpmhhouggvpehsmhhtphhouhhtpdhr
+    tghpthhtoheplhhinhhugiesrghrmhhlihhnuhigrdhorhhgrdhukhdprhgtphhtthhope
+    htohhnhiesrghtohhmihguvgdrtghomhdprhgtphhtthhopehkhhhilhhmrghnsegsrgih
+    lhhisghrvgdrtghomhdprhgtphhtthhopegujhhrshgtrghllhihsehgmhgrihhlrdgtoh
+    hmpdhrtghpthhtohepughmihhtrhihrdhtohhrohhkhhhovhesghhmrghilhdrtghomhdp
+    rhgtphhtthhopehjmhhkrhiihihsiihtsehgmhgrihhlrdgtohhmpdhrtghpthhtoheprg
+    grrhhordhkohhskhhinhgvnhesihhkihdrfhhipdhrtghpthhtohepsghrghhlsehkvghr
+    nhgvlhdrohhrghdprhgtphhtthhopegurghkrheskhgvrhhnvghlrdhorhhg
+X-ME-Proxy: <xmx:KtrLadCzLDpwew3xf9ULxZFdCUioGdiLTCHFC3kiDkY0QMU5oqvz9Q>
+    <xmx:KtrLaYvGjSiwzJzUHoUu94YNOAIMrFCh44hYhgCh7VabhHvroXMDGA>
+    <xmx:KtrLadHjmS5TgUtzGs25OUzfHPLXEPKsjZbAQkAXJrYT4YezYeYnZA>
+    <xmx:KtrLaT_NqHLFlO9u-7dljQjtLKKu9cv2kKw3eNzEotXKYe0-BHc5Gg>
+    <xmx:KtrLaVSozOKHK4qeBoQCNI6YOCaveUP1H8SnzxKeqdxn-lscZ_JgwLMW>
+Feedback-ID: i56a14606:Fastmail
+Received: by mailuser.phl.internal (Postfix, from userid 501)
+	id ED3CA700065; Tue, 31 Mar 2026 10:28:57 -0400 (EDT)
+X-Mailer: MessagingEngine.com Webmail Interface
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20251125072933.3706006-1-lihuisong@huawei.com>
- <20251125072933.3706006-2-lihuisong@huawei.com> <CAJZ5v0j6HPW8thPNLSRRzZCjSSnr69DWBHn9BBR2+L4tOKD6Fw@mail.gmail.com>
- <11f9d333-4d18-463a-817f-d3f450d1624e@huawei.com> <2d2d2d40-c73a-4988-90fe-fad75e35c75b@huawei.com>
- <f2be1178-28f4-4412-adb7-1530944a76ed@huawei.com> <CAJZ5v0heJsOWA5z7CwrON4zvaebj8-C_HBe5ymYa+FAbfJgy1A@mail.gmail.com>
- <3948b6fe-2aa6-4e38-9d58-c0e25e48fe93@huawei.com> <CAJZ5v0jPhW_spgjhfeig96G9pMEYb27_EKEYz17eZngrDLY7iA@mail.gmail.com>
- <47d38645-235b-43af-ac0b-300af338db31@huawei.com> <525c4cce-288e-447d-a890-d2d0b262984f@huawei.com>
- <CAJZ5v0gJcG2-TioBmc6DQf=fUQz+Aihb=_B9gmad_G54mVMvNA@mail.gmail.com>
- <CAJZ5v0gL=5r+drro7xQvPa2E4NCpWoWmAcTaAP_d49c4aMsg2A@mail.gmail.com> <7ee19eab-60e0-456d-a513-b8837b757777@huawei.com>
-In-Reply-To: <7ee19eab-60e0-456d-a513-b8837b757777@huawei.com>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Tue, 31 Mar 2026 15:00:55 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0iLgrQNuXppnVq37oD9WX+Rhhoj9rp6yHH5Tta723UhBQ@mail.gmail.com>
-X-Gm-Features: AQROBzCtW6xCzwD_omGc5sEd_KcZoRojPLjGe7QMzBBEsSlIRi7A37ElKP0ZDOE
-Message-ID: <CAJZ5v0iLgrQNuXppnVq37oD9WX+Rhhoj9rp6yHH5Tta723UhBQ@mail.gmail.com>
-Subject: Re: [PATCH 1/3] cpuidle: Add enable_cpuidle() interface
-To: "lihuisong (C)" <lihuisong@huawei.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, Sudeep.Holla@arm.com, linuxarm@huawei.com, 
-	jonathan.cameron@huawei.com, zhanjie9@hisilicon.com, zhenglifeng1@huawei.com, 
-	yubowen8@huawei.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-ThreadId: AFr_uRj1O5Ps
+Date: Tue, 31 Mar 2026 16:28:37 +0200
+From: "Arnd Bergmann" <arnd@arndb.de>
+To: "Andy Shevchenko" <andriy.shevchenko@linux.intel.com>
+Cc: "Dmitry Torokhov" <dmitry.torokhov@gmail.com>,
+ "Bartosz Golaszewski" <bartosz.golaszewski@oss.qualcomm.com>,
+ "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
+ "Rafael J . Wysocki" <rafael@kernel.org>,
+ "Danilo Krummrich" <dakr@kernel.org>, "Daniel Scally" <djrscally@gmail.com>,
+ "Heikki Krogerus" <heikki.krogerus@linux.intel.com>,
+ "Sakari Ailus" <sakari.ailus@linux.intel.com>,
+ "Aaro Koskinen" <aaro.koskinen@iki.fi>,
+ "Janusz Krzysztofik" <jmkrzyszt@gmail.com>,
+ "Tony Lindgren" <tony@atomide.com>, "Russell King" <linux@armlinux.org.uk>,
+ "Kevin Hilman" <khilman@baylibre.com>,
+ "Bartosz Golaszewski" <brgl@kernel.org>, driver-core@lists.linux.dev,
+ linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, Linux-OMAP <linux-omap@vger.kernel.org>
+Message-Id: <a895905f-069b-4fc5-bbf0-34c3978b3f39@app.fastmail.com>
+In-Reply-To: <acuraLhLVgyP-LUK@ashevche-desk.local>
+References: 
+ <20260330-nokia770-gpio-swnodes-v4-0-b68592e977d0@oss.qualcomm.com>
+ <20260330-nokia770-gpio-swnodes-v4-2-b68592e977d0@oss.qualcomm.com>
+ <acrcDTPpXZ_5A4D8@ashevche-desk.local> <acruxMNdnUlyRHiy@google.com>
+ <acto3TE1AR8iTzF0@ashevche-desk.local>
+ <DDF494E5-C188-4A86-AC02-265B6169B591@gmail.com>
+ <acuMD7Oly4XWW4n8@ashevche-desk.local>
+ <9359e475-fc8e-4d32-9ab4-383710170553@app.fastmail.com>
+ <acuraLhLVgyP-LUK@ashevche-desk.local>
+Subject: Re: [PATCH v4 2/3] driver core: make software nodes available earlier
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-On Tue, Mar 31, 2026 at 2:48=E2=80=AFPM lihuisong (C) <lihuisong@huawei.com=
-> wrote:
+On Tue, Mar 31, 2026, at 13:09, Andy Shevchenko wrote:
+> On Tue, Mar 31, 2026 at 12:45:59PM +0200, Arnd Bergmann wrote:
+>> On Tue, Mar 31, 2026, at 10:55, Andy Shevchenko wrote:
+>>
+>> My best guess is that __exit_call should just use
+>> __attribute__((unused)) instead of __attribute__((used)) and
+>> have the compiler drop it from built-in code instead of the linker:
 >
->
-> On 3/31/2026 8:10 PM, Rafael J. Wysocki wrote:
-> > On Tue, Mar 31, 2026 at 2:05=E2=80=AFPM Rafael J. Wysocki <rafael@kerne=
-l.org> wrote:
-> >> Hi,
-> >>
-> >> On Tue, Mar 31, 2026 at 2:01=E2=80=AFPM lihuisong (C) <lihuisong@huawe=
-i.com> wrote:
-> >>>
-> >>> On 3/28/2026 12:06 PM, lihuisong (C) wrote:
-> >>>> On 3/27/2026 7:33 PM, Rafael J. Wysocki wrote:
-> >>>>> On Fri, Mar 27, 2026 at 7:23=E2=80=AFAM lihuisong (C) <lihuisong@hu=
-awei.com>
-> >>>>> wrote:
-> >>>>>> On 3/26/2026 9:39 PM, Rafael J. Wysocki wrote:
-> >>>>>>> On Thu, Mar 26, 2026 at 1:17=E2=80=AFPM lihuisong (C)
-> >>>>>>> <lihuisong@huawei.com> wrote:
-> >>>>>>>> Hi Rafael,
-> >>>>>>>>
-> >>>>>>>> On 1/30/2026 9:59 AM, lihuisong (C) wrote:
-> >>>>>>>>> Hi Rafael,
-> >>>>>>>>>
-> >>>>>>>>> On 1/15/2026 8:18 PM, lihuisong (C) wrote:
-> >>>>>>>>>> On 1/15/2026 3:18 AM, Rafael J. Wysocki wrote:
-> >>>>>>>>>>> On Tue, Nov 25, 2025 at 8:29=E2=80=AFAM Huisong Li <lihuisong=
-@huawei.com>
-> >>>>>>>>>>> wrote:
-> >>>>>>>>>>>> The global switch of cpuidle can be turned back on in some c=
-ase.
-> >>>>>>>>>>>> So add enable_cpuidle().
-> >>>>>>>>>>> No, this is not going to work.  The "off" switch only affects
-> >>>>>>>>>>> initialization AFAICS.
-> >>>>>>>>>> I think it would be work.
-> >>>>>>>>>> The cpuidle_not_available() also see the "off" on do_idle().
-> >>>>>>>>>> And cpuidle_idle_call() check this function first and then sel=
-ect
-> >>>>>>>>>> idle state.
-> >>>>>>>>>> Cpuidle doesn't select and enter idle state if this fuction
-> >>>>>>>>>> return true.
-> >>>>>>>>> I verified that disable_cpuidle() effectively prevents all CPUs=
- from
-> >>>>>>>>> entering any idle states and the cpuidle function is correctly
-> >>>>>>>>> restored after calling enable_cpuidle().
-> >>>>>>>>> What do you think?
-> >>>>>>>> Could you pleasetake a look atmy reply?
-> >>>>>>>> If not ok, I will drop this from my upstream list.
-> >>>>>>> Sorry, can you please remind me what problem you wanted to addres=
-s
-> >>>>>>> with the help of this?
-> >>>>>> Regarding the discussion in the link[1], if driver fail to get pow=
-er
-> >>>>>> info in power notify,
-> >>>>>> the old idle states may no longer be reliable. Therefore, patch 2/=
-3
-> >>>>>> disables ACPI idle
-> >>>>>> via the new interface introduced in patch 1/3.
-> >>>>>>
-> >>>>>> However, our discussion on whether this new interface can disable =
-ACPI
-> >>>>>> idle has not yet reached a conclusion.
-> >>>>>> Could you please revisit this thread? It's quite brief, and I'd
-> >>>>>> appreciate your further input.
-> >>>>>>
-> >>>>>> [1]
-> >>>>>> https://lore.kernel.org/all/20251103084244.2654432-1-lihuisong@hua=
-wei.com
-> >>>>>>
-> >>>>> The "off" variable has been intended for disabling cpuidle via kern=
-el
-> >>>>> command line (note that the corresponding module param is read-only=
-).
-> >>>>>
-> >>>>> disable_cpuidle() is only used by Xen now and only at the setup/ini=
-t
-> >>>>> stage.
-> >>>>>
-> >>>>> I don't think that using it on idle state list change notifications=
- is
-> >>>>> a good idea.
-> >>>> Understand.
-> >>>>
-> >>>>> Something like cpuidle_pause_and_lock() would be a better match I
-> >>>>> think.  acpi_processor_hotplug() uses it already for a similar
-> >>>>> purpose.
-> >>>> Interfaces like cpuidle_pause_and_lock() and cpuidle_pause() disable
-> >>>> cpuidle by clearing the global "initialized" flag,
-> >>>> which requires "enabled_devices" to be non-zero.
-> >>>> IIUC, cpuidle_disable_device() isn't called when a CPU goes offline;
-> >>>> instead, it's handled in acpi_processor_hotplug() during online.
-> >>>> This means "enabled_devices" stays above zero even if some CPUs are
-> >>>> offline.
-> >>>> In this case, the driver can still successfully set initialized to
-> >>>> zero when get power information failed in power notify.
-> >>>> So we can disable APCI idle on all CPUs.
-> >>>> But we need to ensure that other threads wouldn't resume the
-> >>>> "initialized" flag by interfaces like cpuidle_resume().
-> >>>>
-> >>>> I have found a scenario for that where acpi_processor_hotplug enable=
-s
-> >>>> the cpuidle_device and restores the "initialized" value.
-> >>>> In this case, special processing may be required.
-> >>>> For example, the cpuidle state of the cpuidle driver also need
-> >>>> reinitialize or the disable cpuilde state is still maintained.
-> >>>>
-> >>> Hi Rafel,
-> >>>
-> >>> I have thought about this issue for a long time. I feel that it is a =
-bit
-> >>> tricky to handle.
-> >>>
-> >>> First, if the power information fails to be obtained from the power
-> >>> notify, we want to disable the ACPI idle of all CPUs by calling
-> >>> cpuidle_pause(). However, in the CPU hotplug scenario, when the idle
-> >>> state may be unavailable, the idle state needs to be set up again.
-> >>>
-> >>> Second, I found that the current driver only calls
-> >>> acpi_processor_setup_cpuidle_states() to update the idle states in
-> >>> acpi_idle_driver.
-> >>> Other variables in acpi_idle_driver also need to be initialized again=
-.
-> >>> For example, target_residency_ns and exit_latency_ns need to be updat=
-ed.
-> >>> For details, see the implementation of __cpuidle_register_driver().
-> >>> These variables are used when selecting the state to enter (please se=
-e
-> >>> cpuidle_enter_state()).
-> >>> Therefore, when the idle states information changes, the idle states =
-we
-> >>> actually use are still the old values.
-> >>> This is also a problem.
-> >>>
-> >>> I am not sure whether we need to remove all cpuidle_device, remove
-> >>> acpi_idle_driver, and then re-initialize and register acpi_idle_drive=
-r
-> >>> and register all cpuidle_device in power notify.
-> >>> I think it is very likely that we need to do so.
-> >> Well, yes, we do, but only if the list of available states has
-> >> actually changed (that is, the number of states has changed or the
-> >> latency values have changed).
-> > What actually needs to be done there is to unregister the cpuidle
-> > driver and register it again because the list of idle states is a
-> > property of the driver.
->
-> We also need to unregister and register cpuidle device again.
-> Because the state count of ACPI idle driver may be changed, some
-> releated sysfs need to be recreated.
+> But why do we need that at all? Can we just drop the full section for good.
+> Or i.o.w. where exactly is it being used in the current kernel?
 
-Ah, right.  So all cpuidle needs to be torn down and re-created from
-scratch then.
+The main use case I see for __exit_call is for device drivers
+that can be either loadable modules or built-in: In a loadable module,
+you need the cleanup function, but for built-in code you want
+it to be dropped at build time.
 
-I'm starting to wonder if that's really worth it.
+For the few direct callers of __exitcall, the only explanation I have
+is that these could at some point be turned into loadable modules,
+and the author wanted to be prepared for changing it later. In theory
+we could change those to module_exit(), or just remove them, but
+there is little practical benefit either way.
+
+I've tested the __maybe_unused change on randconfig builds now and
+found no (build-time) issues with that, so I'm submitting that
+now.
+
+     Arnd
