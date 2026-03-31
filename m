@@ -1,100 +1,155 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1F79382F37
-	for <linux-acpi@vger.kernel.org>; Tue, 31 Mar 2026 12:18:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62F6735949
+	for <linux-acpi@vger.kernel.org>; Tue, 31 Mar 2026 12:24:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774959502; cv=none; b=UGAwIALn/x9bXu3P+8q3A8Kjot+Iynpl32A/sD0r+/yk5i+D8fepGmNiS79u7QrM3fnET/E9T2FGNcg0HUhfOyXegTumU3afrosvbNlW7aWvqvEIkNBpb/hTe57wxplfGdLlkF6aCAvg1dTrEI3QgdN0g/5f3djaiwiALbZ5Oi8=
+	t=1774959880; cv=none; b=Uc6MFX9F8ZSwbbhOtwRgbsWoQRLJzy4WS/pOWLom0taGg836+y23xaKDYtyvPuqd4lNK+FdjdXepNICDZ7SP+HEg06I1RdcBjdrhYQI6d+vURpPnS1lvo2cpK38M7eKRrOptCtShG5p8qBupJ0HLPw70bJ2fW+dQ69Doo5bzHlg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774959502; c=relaxed/simple;
-	bh=NrKb3Hx3cKJoOdTevgDagOXB1CFIHAEOMb1inHGc+cM=;
+	s=arc-20240116; t=1774959880; c=relaxed/simple;
+	bh=+v0lsG31lmz9yOKp4sThWdLD00iDG9mSDxn4BdCze+s=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=oNoODZMqNPQ0XGnk4sQZV3wZMCXO6ypkNiRx7ItI70ZpWOogqRVERfTCOYWrXGI45wusGn9UGmSo0cDNED+mKf9xOz0AH9GtoaxRS1ZPRW99MloV+Hd9ALL1rlt3kGVvmiTY4hryxmRrEgMDTa32TwaBcl/Z9TPGifY3+c0zy5U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lkuHisc7; arc=none smtp.client-ip=10.30.226.201
+	 To:Cc:Content-Type; b=r7nFIa/BlFwGuy/BkleI2ZF6lIeEeFktIHX0sqB6RSTzSJlzvIE5JcnPvIPY/rY4Q73lICKZrhRivy+x2v0snXj8tx//Ltx1Y00xH1LNu8IdGZNZoso4XeQMb/YjFMzUFfExjyVYP0iYGhIiPqxskA7hCXtD6NtnC8uMcfVfJkc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RJZmO7Tv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lkuHisc7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1F7CC2BCB3
-	for <linux-acpi@vger.kernel.org>; Tue, 31 Mar 2026 12:18:21 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RJZmO7Tv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45647C2BCB7
+	for <linux-acpi@vger.kernel.org>; Tue, 31 Mar 2026 12:24:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774959501;
-	bh=NrKb3Hx3cKJoOdTevgDagOXB1CFIHAEOMb1inHGc+cM=;
+	s=k20201202; t=1774959880;
+	bh=+v0lsG31lmz9yOKp4sThWdLD00iDG9mSDxn4BdCze+s=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=lkuHisc7NK3Db9kq6X82/ItrdEbbosaMVACrKLX2u4R1M9UgXSyIRENpBdu7QRlr0
-	 YVmuIqe0pf4fWUQkd9i8za4eqS70H00zZjL9Zst20gJtbw0z88xFlmyx/MNcK5CXsA
-	 RjNtoAP2UNzBVW3O5lZrfmlbqmDbPUf9mbBepds5b72HyQx9zj3+i6gJTtvg41MySX
-	 5gyb+2GwKZe2zrsKH3SvKIS8LmLttc1VoBz+38bhixh3br8PUA1L035sDyBXyGhJaa
-	 +31oZ7oFm6JkNcWQCKIBcmBPILpKScssebQPf3+GcO4nlQ8TqEPmgMLssbpHXGVDZI
-	 jAVSXnzYvPr6A==
-Received: by mail-oa1-f54.google.com with SMTP id 586e51a60fabf-417571c6083so3041953fac.2
-        for <linux-acpi@vger.kernel.org>; Tue, 31 Mar 2026 05:18:21 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCUNrVgR1UWrKsh6l3xaETejPoOM0N/dQnPex2++eqL5zoYUhe5E5RoTtrfJTG4aC/JtYO18Sgoc6KL9@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx9jRpLKAfh3Fnb/F924n9QRP4JkfIW0+uMOOXpm28QMzqhBqul
-	DjuXGfA4MAs21R5TJgV6KIBIULA8KmnEusj1dZAiN9dxQWP0BNN+pjhNK/8GeOAMKm43PeGqOwt
-	Bun0KN2psK2Dz8DEE2D6MJpNDOU6i0To=
-X-Received: by 2002:a05:6870:bb0d:b0:409:b5a3:42bb with SMTP id
- 586e51a60fabf-41cec33f322mr8024838fac.31.1774959500820; Tue, 31 Mar 2026
- 05:18:20 -0700 (PDT)
+	b=RJZmO7TvhY88kQe3eU7xRIwnSJdkZvyh60WN8MrF2rST5eqYT7Si7twWZg/DT2ZoX
+	 YzqUgPxfYDwdo0IEdVVzbGnpMkc2xEIEQWtZG/kOBKnlwvP5OBf9k5ABA9qJOS+Ukj
+	 eOekVrlTQVDRLMnCElfoE+fONsncPPw1jhKXxukkxEyJi7dEXS+heu/pZUzPng526Q
+	 fQrEJ4DiG53+M4yOJk7Zh135J6HBPJuwoHDZrzQcHd3EDgZteWUMcAVKR5sOaepyV5
+	 f2xbf4yCO62QwUTSWKNB376JIzJj0sbMnh6R7hTd0WRb04t6xyHnCnYuuXajw89d5X
+	 Ti2a3xJRDsK2w==
+Received: by mail-oa1-f48.google.com with SMTP id 586e51a60fabf-4042fe53946so2173790fac.3
+        for <linux-acpi@vger.kernel.org>; Tue, 31 Mar 2026 05:24:40 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCVoneW/JNFKSFkchS82iabf1c1fYV0J+pQErlEwoEX2jlAruFQAzSFLOyaXLJPhIrn2e5SGAjfLyiF0@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy5J10g6x+XZahTlq3akFNEAsLHBackn5Xx+Qaph/BOC8On+Rh8
+	zyYgWM2oMxnKRR0pHRMo/aR52IceqKfQtrxq08GV4woJqtagNH58q9b0eEshDw1QvniPjHcS/Tg
+	+2lf7Yszt5zw8+L3QDMgYmEfzId01vqc=
+X-Received: by 2002:a05:6870:3212:b0:41c:5212:2c7e with SMTP id
+ 586e51a60fabf-41cec149624mr8736242fac.20.1774959878527; Tue, 31 Mar 2026
+ 05:24:38 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <acIV6xF8mY-8wd5e@google.com> <CAMRc=MdJ0U2_ZQ5rP0Vmbv7+-xurf9F+WOwD3LwV=n5Fx33U=Q@mail.gmail.com>
- <acK69OColNT7ViLf@google.com> <CAMRc=Mcw66QpjQt4+_JdMq9JiAY28hjzNHa24gfOCCXyie-uRQ@mail.gmail.com>
- <acTtzuGD-K5XvVir@ashevche-desk.local> <CAMRc=MeEMx1w5HaXBUP6iAu8T8b7Ti1i7JVDDTwvpjaEOtDJuw@mail.gmail.com>
- <acTwqD8fXZSncMIS@ashevche-desk.local> <acTy8Wkfs8Sx84oZ@ashevche-desk.local>
- <CAMRc=MdrxYRhB3MWnhTPM9FqzF-_P7Br5mRJ7kYOxQ2G3zjdow@mail.gmail.com> <acWChJZK-xwpuTZM@ashevche-desk.local>
-In-Reply-To: <acWChJZK-xwpuTZM@ashevche-desk.local>
+References: <20260320031737.35048-1-fengchengwen@huawei.com>
+In-Reply-To: <20260320031737.35048-1-fengchengwen@huawei.com>
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Tue, 31 Mar 2026 14:18:08 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0i-3eG_fGAfS7oAf3gBac-K0EUuBfgsUShu6+0=PMC7uA@mail.gmail.com>
-X-Gm-Features: AQROBzBepqKiiMX5qG_ajp9HutWOQhTUXdB9zgxGE_X9kLiUvl9QoBSsUD3u5R8
-Message-ID: <CAJZ5v0i-3eG_fGAfS7oAf3gBac-K0EUuBfgsUShu6+0=PMC7uA@mail.gmail.com>
-Subject: Re: [PATCH] software node: allow referencing software nodes by name
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Bartosz Golaszewski <brgl@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Daniel Scally <djrscally@gmail.com>, 
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
-	Sakari Ailus <sakari.ailus@linux.intel.com>, Danilo Krummrich <dakr@kernel.org>, 
-	"Rafael J. Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org, driver-core@lists.linux.dev, 
-	linux-kernel@vger.kernel.org
+Date: Tue, 31 Mar 2026 14:24:26 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0gO1VSPs58JeupaiTZBkP3i_-H2bEQpfU-6k2TXjdiaOQ@mail.gmail.com>
+X-Gm-Features: AQROBzDL-JtY7QC0BpuyBPGCuLquO5-Gf9GrQy5Yvy_4yGsymDKEHbc8tb9l0x0
+Message-ID: <CAJZ5v0gO1VSPs58JeupaiTZBkP3i_-H2bEQpfU-6k2TXjdiaOQ@mail.gmail.com>
+Subject: Re: [PATCH v10 0/8] ACPI: Unify CPU UID interface and fix ARM64 TPH
+ steer-tag issue
+To: Chengwen Feng <fengchengwen@huawei.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Catalin Marinas <catalin.marinas@arm.com>, 
+	Will Deacon <will@kernel.org>, Jonathan Corbet <corbet@lwn.net>, Palmer Dabbelt <palmer@dabbelt.com>, 
+	Borislav Petkov <bp@alien8.de>, "H . Peter Anvin" <hpa@zytor.com>, Juergen Gross <jgross@suse.com>, 
+	Boris Ostrovsky <boris.ostrovsky@oracle.com>, Sunil V L <sunilvl@ventanamicro.com>, 
+	Mark Rutland <mark.rutland@arm.com>, Jonathan Cameron <jonathan.cameron@huawei.com>, 
+	Kees Cook <kees@kernel.org>, Yanteng Si <si.yanteng@linux.dev>, 
+	Sean Christopherson <seanjc@google.com>, Kai Huang <kai.huang@intel.com>, 
+	Tom Lendacky <thomas.lendacky@amd.com>, Thomas Huth <thuth@redhat.com>, 
+	Thorsten Blum <thorsten.blum@linux.dev>, Kevin Loughlin <kevinloughlin@google.com>, 
+	Zheyun Shen <szy0127@sjtu.edu.cn>, Peter Zijlstra <peterz@infradead.org>, 
+	Pawan Gupta <pawan.kumar.gupta@linux.intel.com>, Xin Li <xin@zytor.com>, 
+	"Ahmed S . Darwish" <darwi@linutronix.de>, Sohil Mehta <sohil.mehta@intel.com>, 
+	Ilkka Koskinen <ilkka@os.amperecomputing.com>, Robin Murphy <robin.murphy@arm.com>, 
+	James Clark <james.clark@linaro.org>, Besar Wicaksono <bwicaksono@nvidia.com>, 
+	Ma Ke <make24@iscas.ac.cn>, Wei Huang <wei.huang2@amd.com>, 
+	Andy Gospodarek <andrew.gospodarek@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, 
+	punit.agrawal@oss.qualcomm.com, guohanjun@huawei.com, suzuki.poulose@arm.com, 
+	ryan.roberts@arm.com, chenl311@chinatelecom.cn, masahiroy@kernel.org, 
+	wangyuquan1236@phytium.com.cn, anshuman.khandual@arm.com, 
+	heinrich.schuchardt@canonical.com, Eric.VanTassell@amd.com, 
+	wangzhou1@hisilicon.com, wanghuiqiang@huawei.com, liuyonglong@huawei.com, 
+	linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+	loongarch@lists.linux.dev, linux-riscv@lists.infradead.org, 
+	xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, 
+	linux-perf-users@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Mar 26, 2026 at 8:01=E2=80=AFPM Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
+On Fri, Mar 20, 2026 at 4:17=E2=80=AFAM Chengwen Feng <fengchengwen@huawei.=
+com> wrote:
 >
-> On Thu, Mar 26, 2026 at 04:47:00PM +0100, Bartosz Golaszewski wrote:
-> > On Thu, Mar 26, 2026 at 9:48=E2=80=AFAM Andy Shevchenko
-> > <andriy.shevchenko@linux.intel.com> wrote:
-> > > On Thu, Mar 26, 2026 at 10:39:09AM +0200, Andy Shevchenko wrote:
-> > > > On Thu, Mar 26, 2026 at 09:34:01AM +0100, Bartosz Golaszewski wrote=
-:
+> This patchset unifies ACPI Processor UID retrieval across
+> arm64/loongarch/riscv/x86 via acpi_get_cpu_uid() (with input validation)
+> and fixes ARM64 CPU steer-tag retrieval failure in PCI/TPH:
 >
-> ...
+> 1-4: Add acpi_get_cpu_uid() for arm64/loongarch/riscv/x86 (update
+>      respective users)
+> 5: Centralize acpi_get_cpu_uid() declaration in include/linux/acpi.h
+> 6: Clean up perf/arm_cspmu
+> 7: Clean up ACPI/PPTT and remove unused get_acpi_id_for_cpu()
+> 8: Pass ACPI Processor UID to Cache Locality _DSM
 >
-> > > > I believe so. See how we find a GPIO chip in the gpiolib-acpi-core.=
-c.
-> > > > In the similar way you can try finding any object in ACPI namespace=
-.
-> > > >
-> > > > But note, ":00" is part of device instance name, it's not available
-> > > > in ACPI namespace. There we have HID, UID, et cetera, ":00" is pure
-> > > > Linux kernel thingy.
-> > >
-> > > We have acpi_dev_present(), but if you read its kernel-doc, it sugges=
-ts
-> > > to use acpi_get_devices() for the case of early checks (before device
-> > > are actually being instantiated).
-> >
-> > Ah, but I'm seeing that the firmware node handle of the acpi device is
-> > part of struct acpi_device and is only initialized during the scanning
-> > phase which happens at subsys_initcall() time?
+> The interface refactor ensures consistent CPU UID retrieval across
+> architectures (no functional changes for valid inputs) and provides the
+> unified interface required for the ARM64 TPH fix.
 >
-> Sounds correct. With that you can just check the device presence in the t=
-able
-> and maybe evaluate the status (but I'm not sure about the latter).
+> ---
+> Changes in v10:
+> - Refine commit header&log according to Punit's and Bjorn's review
+> - Split perf/arm_cspmu as a separate commit which address Punit's
+>   review
+>
+> Changes in v9:
+> - Address Bjorn's review: split commits to each platform so that make
+>   them easy to review
+>
+> Changes in v8:
+> - Moving arm64's get_cpu_for_acpi_id() to kernel/acpi.c which address
+>   Jeremy's review
+>
+> Chengwen Feng (8):
+>   arm64: acpi: Add acpi_get_cpu_uid() for unified ACPI CPU UID retrieval
+>   LoongArch: Add acpi_get_cpu_uid() for unified ACPI CPU UID retrieval
+>   RISC-V: ACPI: Add acpi_get_cpu_uid() for unified ACPI CPU UID
+>     retrieval
+>   x86/acpi: Add acpi_get_cpu_uid() for unified ACPI CPU UID retrieval
+>   ACPI: Centralize acpi_get_cpu_uid() declaration in
+>     include/linux/acpi.h
+>   perf: arm_cspmu: Switch to acpi_get_cpu_uid() from
+>     get_acpi_id_for_cpu()
+>   ACPI: PPTT: Use acpi_get_cpu_uid() and remove get_acpi_id_for_cpu()
+>   PCI/TPH: Pass ACPI Processor UID to Cache Locality _DSM
+>
+>  Documentation/PCI/tph.rst          |  4 +--
+>  arch/arm64/include/asm/acpi.h      | 17 +---------
+>  arch/arm64/kernel/acpi.c           | 30 ++++++++++++++++++
+>  arch/loongarch/include/asm/acpi.h  |  5 ---
+>  arch/loongarch/kernel/acpi.c       |  9 ++++++
+>  arch/riscv/include/asm/acpi.h      |  4 ---
+>  arch/riscv/kernel/acpi.c           | 16 ++++++++++
+>  arch/riscv/kernel/acpi_numa.c      |  9 ++++--
+>  arch/x86/include/asm/cpu.h         |  1 -
+>  arch/x86/include/asm/smp.h         |  1 -
+>  arch/x86/kernel/acpi/boot.c        | 20 ++++++++++++
+>  arch/x86/xen/enlighten_hvm.c       |  5 +--
+>  drivers/acpi/pptt.c                | 50 ++++++++++++++++++++++--------
+>  drivers/acpi/riscv/rhct.c          |  7 ++++-
+>  drivers/pci/tph.c                  | 16 +++++++---
+>  drivers/perf/arm_cspmu/arm_cspmu.c |  6 ++--
+>  include/linux/acpi.h               | 11 +++++++
+>  include/linux/pci-tph.h            |  4 +--
+>  18 files changed, 158 insertions(+), 57 deletions(-)
+>
+> --
 
-Yes, you can.  _STA is available at that point.
+It doesn't look like anyone has a particular heartburn related to this
+series, so I could apply it in principle, but I'd appreciate some ACKs
+from arch maintainers.
+
+Why don't you resend it with all of the tags collected so far (and
+please add x86@kernel.org to the CC list)?
