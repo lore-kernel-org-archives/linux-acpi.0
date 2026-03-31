@@ -1,141 +1,160 @@
-Received: from fhigh-b6-smtp.messagingengine.com (fhigh-b6-smtp.messagingengine.com [202.12.124.157])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1468B3F9F27;
-	Tue, 31 Mar 2026 14:28:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.157
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C15523E8C4B;
+	Tue, 31 Mar 2026 14:42:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774967341; cv=none; b=Nl9YLh9xvYuK+SLumCDQIrggwDbyDgPt2BLu2FN6uXCKY/NMWtif6ZmQeeU+2a8pIxPcaVcxzAKm/sgmdZ2JJC4jFT6lHmGCnFvLrYNJsBsr1cCGRJxBNWXkRPKkFPnSMZUM6wNrGHb+KAmKX7dtWPL4pZ8Yioe+wIuCi1kxlwQ=
+	t=1774968142; cv=none; b=Ncn5ZUkFyvDNDvDPRwYyavdrJsfdqzbIqQtH5NKjSanM7I0g0rM0vglo3aq+rWlLTCPubijcZj4we2S4404Q2tDWw1mzgSdfcQNqyE9fsk/vxgErbSCIT0b9SJ+c5AUK6AOYLE1hk8OdYhBWHbGi9XuNMiv+e4PtuVSjsDVSSso=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774967341; c=relaxed/simple;
-	bh=+1bS46ZAA7pp0mgz73/J8GN2ndSPqyiQ8J/28Jl0deM=;
-	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
-	 Subject:Content-Type; b=V9w9GbC98CcDsJ1xXWvTv+LdIWMnw96svpagT07XRhYxyyuLymjXZl/XngJ3sDZdaMzpwz4u1FW3zG3ye3GpK5tYwu5dcI2wezKxERCjGGKPgrHDvYVYPxN5NaOvzkpHWkt2auYN9PFa+g6UJFIANP2Z2xxinKqNeCsTJ8nTinE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de; spf=pass smtp.mailfrom=arndb.de; dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b=GIyQRsgL; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=Jx3yUZHQ; arc=none smtp.client-ip=202.12.124.157
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b="GIyQRsgL";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="Jx3yUZHQ"
-Received: from phl-compute-04.internal (phl-compute-04.internal [10.202.2.44])
-	by mailfhigh.stl.internal (Postfix) with ESMTP id A771A7A00E8;
-	Tue, 31 Mar 2026 10:28:58 -0400 (EDT)
-Received: from phl-imap-02 ([10.202.2.81])
-  by phl-compute-04.internal (MEProxy); Tue, 31 Mar 2026 10:28:59 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-	:cc:content-transfer-encoding:content-type:content-type:date
-	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to; s=fm1; t=1774967338;
-	 x=1775053738; bh=gwjTKRN7CKx6VBzelTeoJWz//Z40N3ckpJ64EfpPZN4=; b=
-	GIyQRsgLBEUPdekUSmrKw3y2sdb9k8B56H0eto+5KHHuKLgLxNooiIV+8n1zkVXh
-	PK+Y/U141AnNdcccVG7n9IjwSAxwlP3wYwvP4EWOgxu8SuJ7qrrA6jWybMCA5Rcm
-	ixkvUub/GUbqmNsOtVUh2XO/ejs1kpWI49aosAvoltqSNmXKOqZAnDhXOgrXsTPq
-	ELOlAltwV91RL3I2cHjv1nyiT8h+o5nO3eqO9fieuaLHMzGLJfdwoyASfqZleSrS
-	IubSNfy+Jt3QbwVhEWSOPsMvMw4Wf9Gm3/NLXrNDDPWZQKgsxHY0ktwGvg3jb9Vg
-	OAHJq3ykXIuBV/7wv0gPmA==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:content-type:date:date:feedback-id:feedback-id
-	:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=1774967338; x=
-	1775053738; bh=gwjTKRN7CKx6VBzelTeoJWz//Z40N3ckpJ64EfpPZN4=; b=J
-	x3yUZHQHmZi493P+Bypf5OpDAyDXLErp4LHLcwQ5F8rpRx25f5igK5cVLwI/M64P
-	bOs9G3iCafoQgiDE4CILBxQ/zRAy9aZbzAucwvOH0DjK0YlL8bDUde7timAiDcED
-	mg8z8KB85BqmCqo3pRpy9o5gJ8mpwACiAMNwkLB9nQv9mSDzOJ038gyBmka6K9/7
-	HOtJzBB703yxJIwCwJhRlU5Cu5cpcWyeAdtjimhBFWNWrr3sFATfBBz0iZlAO6eR
-	EKxcyRvw8Plov6LPzGkEEjy7bky1dWCfnn5B+g1QEfBIScbyhgw91C2/rF4OJhYm
-	7BT0sBH7STRbl+UxLYKnw==
-X-ME-Sender: <xms:KtrLaQSPBrym0FF0ZYzAt9huAYT-K0lY1ozO13CGTO0Jp02FF1iINQ>
-    <xme:KtrLaYlQhx63FcE-M7AX9J-mfJKcuG0jNHM3SLYLjCnPYffcMdSZTHvHJtfnB0VLJ
-    4ihpHML4BJ4mNx5eQrNoplaBv48wWW9o0SAMHCRqreaqUHv-N0_>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefhedrtddtgdeggecutefuodetggdotefrodftvf
-    curfhrohhfihhlvgemucfhrghsthforghilhdpuffrtefokffrpgfnqfghnecuuegrihhl
-    ohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpe
-    foggffhffvvefkjghfufgtgfesthejredtredttdenucfhrhhomhepfdetrhhnugcuuegv
-    rhhgmhgrnhhnfdcuoegrrhhnugesrghrnhgusgdruggvqeenucggtffrrghtthgvrhhnpe
-    fhtdfhvddtfeehudekteeggffghfejgeegteefgffgvedugeduveelvdekhfdvieenucev
-    lhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpegrrhhnugesrg
-    hrnhgusgdruggvpdhnsggprhgtphhtthhopedvtddpmhhouggvpehsmhhtphhouhhtpdhr
-    tghpthhtoheplhhinhhugiesrghrmhhlihhnuhigrdhorhhgrdhukhdprhgtphhtthhope
-    htohhnhiesrghtohhmihguvgdrtghomhdprhgtphhtthhopehkhhhilhhmrghnsegsrgih
-    lhhisghrvgdrtghomhdprhgtphhtthhopegujhhrshgtrghllhihsehgmhgrihhlrdgtoh
-    hmpdhrtghpthhtohepughmihhtrhihrdhtohhrohhkhhhovhesghhmrghilhdrtghomhdp
-    rhgtphhtthhopehjmhhkrhiihihsiihtsehgmhgrihhlrdgtohhmpdhrtghpthhtoheprg
-    grrhhordhkohhskhhinhgvnhesihhkihdrfhhipdhrtghpthhtohepsghrghhlsehkvghr
-    nhgvlhdrohhrghdprhgtphhtthhopegurghkrheskhgvrhhnvghlrdhorhhg
-X-ME-Proxy: <xmx:KtrLadCzLDpwew3xf9ULxZFdCUioGdiLTCHFC3kiDkY0QMU5oqvz9Q>
-    <xmx:KtrLaYvGjSiwzJzUHoUu94YNOAIMrFCh44hYhgCh7VabhHvroXMDGA>
-    <xmx:KtrLadHjmS5TgUtzGs25OUzfHPLXEPKsjZbAQkAXJrYT4YezYeYnZA>
-    <xmx:KtrLaT_NqHLFlO9u-7dljQjtLKKu9cv2kKw3eNzEotXKYe0-BHc5Gg>
-    <xmx:KtrLaVSozOKHK4qeBoQCNI6YOCaveUP1H8SnzxKeqdxn-lscZ_JgwLMW>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.phl.internal (Postfix, from userid 501)
-	id ED3CA700065; Tue, 31 Mar 2026 10:28:57 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
+	s=arc-20240116; t=1774968142; c=relaxed/simple;
+	bh=fYIT+cqEDxgHSO28QxCRmWesd/bKgSrSZYDth0wro10=;
+	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
+	 Content-Type:MIME-Version; b=s8rr4Ephz0W5GLvp3MCoeUGwQjK6Em/TB+LLH/t7Yzcn5YMAhre0VH7oZB6Pm+sFNqIOy9dLado/84YADo+ueSP/fAe8EWBG1p/5MXz5cV2yTR/V5NV7zw5Hx9wZDVWzV0FyjeDvWp3z+J4SYMHxNWw+WTMNA1j7+ckg5liVV4Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.18.224.107])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTPS id 4flW5h6S3GzHnGdq;
+	Tue, 31 Mar 2026 22:41:28 +0800 (CST)
+Received: from dubpeml500006.china.huawei.com (unknown [7.214.146.138])
+	by mail.maildlp.com (Postfix) with ESMTPS id 4300540587;
+	Tue, 31 Mar 2026 22:42:16 +0800 (CST)
+Received: from dubpeml500008.china.huawei.com (7.214.146.94) by
+ dubpeml500006.china.huawei.com (7.214.146.138) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.11; Tue, 31 Mar 2026 15:42:15 +0100
+Received: from dubpeml500008.china.huawei.com ([7.214.146.94]) by
+ dubpeml500008.china.huawei.com ([7.214.146.94]) with mapi id 15.02.1544.011;
+ Tue, 31 Mar 2026 15:42:15 +0100
+From: Shiju Jose <shiju.jose@huawei.com>
+To: Kai-Heng Feng <kaihengf@nvidia.com>, "rafael@kernel.org"
+	<rafael@kernel.org>
+CC: Jonathan Cameron <jonathan.cameron@huawei.com>, "helgaas@kernel.org"
+	<helgaas@kernel.org>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+	"linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+	"acpica-devel@lists.linux.dev" <acpica-devel@lists.linux.dev>,
+	"linux-hardening@vger.kernel.org" <linux-hardening@vger.kernel.org>, "Tony
+ Luck" <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, "Mauro Carvalho
+ Chehab" <mchehab@kernel.org>, Shuai Xue <xueshuai@linux.alibaba.com>, "Len
+ Brown" <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, "Fabio M. De
+ Francesco" <fabio.m.de.francesco@linux.intel.com>, Breno Leitao
+	<leitao@debian.org>, Jason Tian <jason@os.amperecomputing.com>
+Subject: RE: [PATCH v3 1/3] ACPI: APEI: GHES: Add
+ devm_ghes_register_vendor_record_notifier()
+Thread-Topic: [PATCH v3 1/3] ACPI: APEI: GHES: Add
+ devm_ghes_register_vendor_record_notifier()
+Thread-Index: AQHcwCmNhLqdgm9+6UO86Dnyr2nw5LXIuGrg
+Date: Tue, 31 Mar 2026 14:42:15 +0000
+Message-ID: <1d4350a5e55640c68d051229e8d79576@huawei.com>
+References: <20260330094203.38022-1-kaihengf@nvidia.com>
+ <20260330094203.38022-2-kaihengf@nvidia.com>
+In-Reply-To: <20260330094203.38022-2-kaihengf@nvidia.com>
+Accept-Language: en-GB, en-US
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-ThreadId: AFr_uRj1O5Ps
-Date: Tue, 31 Mar 2026 16:28:37 +0200
-From: "Arnd Bergmann" <arnd@arndb.de>
-To: "Andy Shevchenko" <andriy.shevchenko@linux.intel.com>
-Cc: "Dmitry Torokhov" <dmitry.torokhov@gmail.com>,
- "Bartosz Golaszewski" <bartosz.golaszewski@oss.qualcomm.com>,
- "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
- "Rafael J . Wysocki" <rafael@kernel.org>,
- "Danilo Krummrich" <dakr@kernel.org>, "Daniel Scally" <djrscally@gmail.com>,
- "Heikki Krogerus" <heikki.krogerus@linux.intel.com>,
- "Sakari Ailus" <sakari.ailus@linux.intel.com>,
- "Aaro Koskinen" <aaro.koskinen@iki.fi>,
- "Janusz Krzysztofik" <jmkrzyszt@gmail.com>,
- "Tony Lindgren" <tony@atomide.com>, "Russell King" <linux@armlinux.org.uk>,
- "Kevin Hilman" <khilman@baylibre.com>,
- "Bartosz Golaszewski" <brgl@kernel.org>, driver-core@lists.linux.dev,
- linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, Linux-OMAP <linux-omap@vger.kernel.org>
-Message-Id: <a895905f-069b-4fc5-bbf0-34c3978b3f39@app.fastmail.com>
-In-Reply-To: <acuraLhLVgyP-LUK@ashevche-desk.local>
-References: 
- <20260330-nokia770-gpio-swnodes-v4-0-b68592e977d0@oss.qualcomm.com>
- <20260330-nokia770-gpio-swnodes-v4-2-b68592e977d0@oss.qualcomm.com>
- <acrcDTPpXZ_5A4D8@ashevche-desk.local> <acruxMNdnUlyRHiy@google.com>
- <acto3TE1AR8iTzF0@ashevche-desk.local>
- <DDF494E5-C188-4A86-AC02-265B6169B591@gmail.com>
- <acuMD7Oly4XWW4n8@ashevche-desk.local>
- <9359e475-fc8e-4d32-9ab4-383710170553@app.fastmail.com>
- <acuraLhLVgyP-LUK@ashevche-desk.local>
-Subject: Re: [PATCH v4 2/3] driver core: make software nodes available earlier
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
 
-On Tue, Mar 31, 2026, at 13:09, Andy Shevchenko wrote:
-> On Tue, Mar 31, 2026 at 12:45:59PM +0200, Arnd Bergmann wrote:
->> On Tue, Mar 31, 2026, at 10:55, Andy Shevchenko wrote:
->>
->> My best guess is that __exit_call should just use
->> __attribute__((unused)) instead of __attribute__((used)) and
->> have the compiler drop it from built-in code instead of the linker:
+>-----Original Message-----
+>From: Kai-Heng Feng <kaihengf@nvidia.com>
+>Sent: 30 March 2026 10:42
+>To: rafael@kernel.org
+>Cc: Jonathan Cameron <jonathan.cameron@huawei.com>;
+>helgaas@kernel.org; Guohanjun (Hanjun Guo) <guohanjun@huawei.com>;
+>linux-kernel@vger.kernel.org; linux-acpi@vger.kernel.org; linux-
+>pci@vger.kernel.org; acpica-devel@lists.linux.dev; linux-
+>hardening@vger.kernel.org; Kai-Heng Feng <kaihengf@nvidia.com>; Shiju Jose
+><shiju.jose@huawei.com>; Tony Luck <tony.luck@intel.com>; Borislav Petkov
+><bp@alien8.de>; Mauro Carvalho Chehab <mchehab@kernel.org>; Shuai Xue
+><xueshuai@linux.alibaba.com>; Len Brown <lenb@kernel.org>; Robert Moore
+><robert.moore@intel.com>; Fabio M. De Francesco
+><fabio.m.de.francesco@linux.intel.com>; Breno Leitao <leitao@debian.org>;
+>Jason Tian <jason@os.amperecomputing.com>
+>Subject: [PATCH v3 1/3] ACPI: APEI: GHES: Add
+>devm_ghes_register_vendor_record_notifier()
 >
-> But why do we need that at all? Can we just drop the full section for good.
-> Or i.o.w. where exactly is it being used in the current kernel?
+>Add a device-managed wrapper around
+>ghes_register_vendor_record_notifier()
+>so drivers can avoid manual cleanup on device removal or probe failure.
+>
+>Cc: Shiju Jose <shiju.jose@huawei.com>
+>Cc: Jonathan Cameron <jonathan.cameron@huawei.com>
+>Signed-off-by: Kai-Heng Feng <kaihengf@nvidia.com>
 
-The main use case I see for __exit_call is for device drivers
-that can be either loadable modules or built-in: In a loadable module,
-you need the cleanup function, but for built-in code you want
-it to be dropped at build time.
+Reviewed-by: Shiju Jose <shiju.jose@huawei.com>
+>---
+>v3:
+> - Change patch title
+> - Move documentation to header file.
+>v2:
+> - New patch.
+>
+> drivers/acpi/apei/ghes.c | 18 ++++++++++++++++++
+> include/acpi/ghes.h      | 11 +++++++++++
+> 2 files changed, 29 insertions(+)
+>
+>diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c index
+>8acd2742bb27..3236a3ce79d6 100644
+>--- a/drivers/acpi/apei/ghes.c
+>+++ b/drivers/acpi/apei/ghes.c
+>@@ -689,6 +689,24 @@ void ghes_unregister_vendor_record_notifier(struct
+>notifier_block *nb)  }
+>EXPORT_SYMBOL_GPL(ghes_unregister_vendor_record_notifier);
+>
+>+static void ghes_vendor_record_notifier_destroy(void *nb) {
+>+	ghes_unregister_vendor_record_notifier(nb);
+>+}
+>+
+>+int devm_ghes_register_vendor_record_notifier(struct device *dev,
+>+					      struct notifier_block *nb)
+>+{
+>+	int ret;
+>+
+>+	ret =3D ghes_register_vendor_record_notifier(nb);
+>+	if (ret)
+>+		return ret;
+>+
+>+	return devm_add_action_or_reset(dev,
+>+ghes_vendor_record_notifier_destroy, nb); }
+>+EXPORT_SYMBOL_GPL(devm_ghes_register_vendor_record_notifier);
+>+
+> static void ghes_vendor_record_work_func(struct work_struct *work)  {
+> 	struct ghes_vendor_record_entry *entry; diff --git
+>a/include/acpi/ghes.h b/include/acpi/ghes.h index
+>7bea522c0657..8d7e5caef3f1 100644
+>--- a/include/acpi/ghes.h
+>+++ b/include/acpi/ghes.h
+>@@ -71,6 +71,17 @@ int ghes_register_vendor_record_notifier(struct
+>notifier_block *nb);
+>  */
+> void ghes_unregister_vendor_record_notifier(struct notifier_block *nb);
+>
+>+/**
+>+ * devm_ghes_register_vendor_record_notifier - device-managed vendor
+>+ * record notifier registration.
+>+ * @dev: device that owns the notifier lifetime
+>+ * @nb: pointer to the notifier_block structure of the vendor record
+>+handler
+>+ *
+>+ * Return: 0 on success, negative errno on failure.
+>+ */
+>+int devm_ghes_register_vendor_record_notifier(struct device *dev,
+>+					      struct notifier_block *nb);
+>+
+> struct list_head *ghes_get_devices(void);
+>
+> void ghes_estatus_pool_region_free(unsigned long addr, u32 size);
+>--
+>2.50.1 (Apple Git-155)
+>
 
-For the few direct callers of __exitcall, the only explanation I have
-is that these could at some point be turned into loadable modules,
-and the author wanted to be prepared for changing it later. In theory
-we could change those to module_exit(), or just remove them, but
-there is little practical benefit either way.
-
-I've tested the __maybe_unused change on randconfig builds now and
-found no (build-time) issues with that, so I'm submitting that
-now.
-
-     Arnd
