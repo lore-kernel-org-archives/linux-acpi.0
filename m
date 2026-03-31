@@ -1,135 +1,155 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from CY7PR03CU001.outbound.protection.outlook.com (mail-westcentralusazon11010028.outbound.protection.outlook.com [40.93.198.28])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4BD93DEFE8
-	for <linux-acpi@vger.kernel.org>; Tue, 31 Mar 2026 08:59:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774947549; cv=none; b=MZjTnDVtvxJszVezlLWc8Hn+zBTf5r3fX7L0pjIRhGvbQUiF37GSHfH3Z45aWS8L5MprpRQhZ1lkdUw0y/7rEMJhoII8VDWyNP9Le+f4RgKZp3o/HDVDBl32x8PlM0UkSSr+TNN4FWWaiGlrLKZBZ9OC+Dbzsxx+hWvyt/Fhpe4=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774947549; c=relaxed/simple;
-	bh=IYGobMEXU13zxFV94JS8/SK88BkSPNQBTubyddj5Owk=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=OEbKfGOeCdllVHT48Cd24RZltitPuNYjH/hj6ADCN4/GjDJzaLgsaV9wUthLmnItu/HSL7j9Xu4X/L9WekBnNSl3c9MS+aPkssKoJEvcgwxAhEG3fgCn+ESdW9z+Z4AiGfxrrXkzUzbGwQK7mvREeFTjZYaGD1GRhlGdMZnxsZ0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JGmq4onR; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B44F399345;
+	Tue, 31 Mar 2026 10:09:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.198.28
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1774951777; cv=fail; b=U4D8KRuBNfnbViK0JT3PkQrDmUYzPfotDRRrFyTruwiRt2aKrpTezNtWZkgAkOXykyasj53xm2ZEAWnBY1EpCyWFJTMAB9PHDsNsajtOAk5DB3lQDGAHHa2cFc/yFtQFcB7XZ+deGXavovk5zskGg7WdsAux+5PPyh21pOttirE=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1774951777; c=relaxed/simple;
+	bh=/Q7VyRE0kz2w0ERqr2gblIsDYOpcA2IW9vANTQE8nLg=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=J5wmrEb6t/8sI6sKdTHRY1pRlBBzhL7jqKrxDEEqKaPVYhCHwrsz6kDAByeDLjtPOLIgNKPH7Uo8Gq1VoTwVU/4xn8RszR0a4Mwbhd27oEVnZAPmCxQlnCQeSmqSoU9i3jfj4DMO3KZ1bpZ42IIHQzd2WYYXkbjvQSy7UqlEo4w=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=i3oxRlQ5; arc=fail smtp.client-ip=40.93.198.28
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JGmq4onR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B601BC19423
-	for <linux-acpi@vger.kernel.org>; Tue, 31 Mar 2026 08:59:09 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774947549;
-	bh=IYGobMEXU13zxFV94JS8/SK88BkSPNQBTubyddj5Owk=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=JGmq4onRjzaV5h7DDEpYNFw0IK/0JsivWpE6ODmyTBf7wNGUo3rFHRFRw90gAFgZW
-	 IGxaEi2XTGciKsZQCP3ZMgk6uh6IFJq8QYN2X/4ZmGj//jbaHCyjBpj7nseP71ms4R
-	 c/VW+9CDdGQfYi5TgudkKNgkCoQXINArPhD0FaJpHeouZ/wGlAD6kYemj/Fg6BgLYp
-	 5+D3bf/q4bUF0Pr/r6Wz5YWdg07Xi/zOJhTtcRMyCDeKtmumiqAFD5Vtbd7pN7mjBa
-	 5Q6RfXVbwjj0F9WYidHi6OA/xLlmnWJSsXkAGAfh+tyQhV6OJ7pltYzzvXNbAFJtdl
-	 BJg0+8DiVSSBQ==
-Received: by mail-lj1-f177.google.com with SMTP id 38308e7fff4ca-38c26612508so44286691fa.3
-        for <linux-acpi@vger.kernel.org>; Tue, 31 Mar 2026 01:59:09 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCXjiZdRXBGgJN81uxvf6kZ/Ng9pwviZ+igse1aFdlu/A1jVZl+ovz2FMBECZAX33UtQjujmWtgiS+Bg@vger.kernel.org
-X-Gm-Message-State: AOJu0YxJgoErLP2l2RnNXFs9ibyoTose+Pfc7ALh9Kvce5pR4VTNI9YJ
-	ueNLp36TnujkN1JRv39qDACHp9rcvsUj6lKITKt/RTXeMXQK3DbitQ54E9hxrEY14HCxDtFD+hZ
-	Z5uBTMNJUl91fYrj+gDCqaPN9SKMFKDAL2dshv3/SVg==
-X-Received: by 2002:a2e:a593:0:b0:38a:8602:71aa with SMTP id
- 38308e7fff4ca-38c731af9acmr51553271fa.16.1774947548197; Tue, 31 Mar 2026
- 01:59:08 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="i3oxRlQ5"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=Qb48zAQFIXMpKf3cbZoXyNcvHYh4ut0s5sEDVbVdpPMBq8euubYbuNl3KBOXyCdBsyY6FAN/+0soK0ZwkVGMfDKQgkgtUBUShNuUjwrvu0dmP53VkeTPZQdQ6xTdG8K0O8ySpTfrosKrIo7FqWsq/8rbqIwkacNNzarCM/pZ9hob3Fog8RxafZVhJOQ9ikIJf5+4c17Z2pRQp5EmUSQKnDgSzCLU5trPokh+wKNpGQuUn9w+OsM8Nd7H4w5SN+nPgoEcy1EbrjlRt0kQwskodV/5WSXJhOOBnqkOeW5xowJ9fazAVlCtGclR+oeLofAaUaSVFSVuhfjTCc2b5hQTFg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=rkzTy732sh6+Kc/GptaD4U1dc5kPwfd1HhpxUZvmFdo=;
+ b=URz4UjvfyeM00mJ4WmE698Cl/zpSXj1B2HlfQGUzJdLw9axw/m35oEo8tnJtC4fN0Zg99TYgFfvs0PzGJH4Ac4uMxf/LK+TMecl1tba9kTdnxQ/gngJIO5GzVi6QQcWUz8eHO2J5ilcH59T9ezGWnvUBsK70sUsLOdBY31LgY/Dc/EhuA1GrHq3WlTA/Qpmbdmvs92rVn2CVkjn3UgcOwj9Sqqm1Guedf6ghlbpaGRdPwZqG83iu4UANoFJlOTJwIRL5NR7cffAZMFyTdLGU/exugbUxJcu3SE8lXevJOs2uYHMe1HMuhWKLVW/D5Wf4AvsspBhQsuz6O1uNMBqVNg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.117.161) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=rkzTy732sh6+Kc/GptaD4U1dc5kPwfd1HhpxUZvmFdo=;
+ b=i3oxRlQ5X45WCdGHStooJwcWzz0HzQq2vf+Wl+rZcjbPkfqX9b7d7x7uo1UPZnxfmOIL8orTd2RynKeDRMFqoYU3umZwW7kuV93m87FetdBwOZ9zGcozWEWSOX9dlb7is7eh/QD1ZQgTEeJiP1BNZ/8z5xZ/jmdElCQjrdZh+4DcoL4CXJO83dN24BFiXHsrXEhlKl8kxUl5fKH03H7QXSKUpdlBQwAiPeFmk8heVNIoTIsyF0p0ZAi7hRi+fP7MmwSNdBOTPNGER9bmI8Jj7MGul2+g02s0kFRBVV7/8xwZAFA37FwILSO1+/BnoGt6GGXstfStAfF55OUIL8utnw==
+Received: from MN0PR03CA0009.namprd03.prod.outlook.com (2603:10b6:208:52f::14)
+ by IA1PR12MB6138.namprd12.prod.outlook.com (2603:10b6:208:3ea::17) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9769.15; Tue, 31 Mar
+ 2026 10:09:29 +0000
+Received: from BL02EPF0001A104.namprd05.prod.outlook.com
+ (2603:10b6:208:52f::4) by MN0PR03CA0009.outlook.office365.com
+ (2603:10b6:208:52f::14) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.9745.29 via Frontend Transport; Tue,
+ 31 Mar 2026 10:09:29 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.161)
+ smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.161) by
+ BL02EPF0001A104.mail.protection.outlook.com (10.167.241.135) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.9745.21 via Frontend Transport; Tue, 31 Mar 2026 10:09:29 +0000
+Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
+ (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Tue, 31 Mar
+ 2026 03:09:13 -0700
+Received: from rnnvmail202.nvidia.com (10.129.68.7) by rnnvmail201.nvidia.com
+ (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Tue, 31 Mar
+ 2026 03:09:12 -0700
+Received: from BUILDSERVER-IO-L4T.nvidia.com (10.127.8.13) by mail.nvidia.com
+ (10.129.68.7) with Microsoft SMTP Server id 15.2.2562.20 via Frontend
+ Transport; Tue, 31 Mar 2026 03:09:05 -0700
+From: Akhil R <akhilrajeev@nvidia.com>
+To: <thierry.reding@kernel.org>
+CC: <Frank.Li@nxp.com>, <acpica-devel@lists.linux.dev>,
+	<akhilrajeev@nvidia.com>, <alexandre.belloni@bootlin.com>,
+	<conor+dt@kernel.org>, <devicetree@vger.kernel.org>, <ebiggers@kernel.org>,
+	<fredrik.markstrom@est.tech>, <jonathanh@nvidia.com>, <krzk@kernel.org>,
+	<lenb@kernel.org>, <linux-acpi@vger.kernel.org>,
+	<linux-hwmon@vger.kernel.org>, <linux-i3c@lists.infradead.org>,
+	<linux-kernel@vger.kernel.org>, <linux-tegra@vger.kernel.org>,
+	<linux@roeck-us.net>, <lkp@intel.com>, <llvm@lists.linux.dev>,
+	<miquel.raynal@bootlin.com>, <oe-kbuild-all@lists.linux.dev>,
+	<p.zabel@pengutronix.de>, <rafael@kernel.org>, <robert.moore@intel.com>,
+	<robh@kernel.org>
+Subject: Re: [PATCH 04/12] i3c: master: Support ACPI enumeration
+Date: Tue, 31 Mar 2026 15:39:04 +0530
+Message-ID: <20260331100904.30932-1-akhilrajeev@nvidia.com>
+X-Mailer: git-send-email 2.50.1
+In-Reply-To: <acO_PUjS_VG07qcS@orome>
+References: <acO_PUjS_VG07qcS@orome>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260330-nokia770-gpio-swnodes-v4-0-b68592e977d0@oss.qualcomm.com>
- <20260330-nokia770-gpio-swnodes-v4-2-b68592e977d0@oss.qualcomm.com>
- <acrcDTPpXZ_5A4D8@ashevche-desk.local> <acruxMNdnUlyRHiy@google.com>
- <acto3TE1AR8iTzF0@ashevche-desk.local> <DDF494E5-C188-4A86-AC02-265B6169B591@gmail.com>
- <acuMD7Oly4XWW4n8@ashevche-desk.local>
-In-Reply-To: <acuMD7Oly4XWW4n8@ashevche-desk.local>
-From: Bartosz Golaszewski <brgl@kernel.org>
-Date: Tue, 31 Mar 2026 10:58:55 +0200
-X-Gmail-Original-Message-ID: <CAMRc=Md-eJW4NUo7cVGDArg_MO53vfueHVqCzxrfUWJ5-MGjng@mail.gmail.com>
-X-Gm-Features: AQROBzC64iVV0opSN20lxil0szzNnss6IuetV8sn6EmP7LsMeDIFMQJ351z-AI4
-Message-ID: <CAMRc=Md-eJW4NUo7cVGDArg_MO53vfueHVqCzxrfUWJ5-MGjng@mail.gmail.com>
-Subject: Re: [PATCH v4 2/3] driver core: make software nodes available earlier
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, 
-	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
-	Danilo Krummrich <dakr@kernel.org>, Daniel Scally <djrscally@gmail.com>, 
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
-	Sakari Ailus <sakari.ailus@linux.intel.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, 
-	Janusz Krzysztofik <jmkrzyszt@gmail.com>, Tony Lindgren <tony@atomide.com>, 
-	Russell King <linux@armlinux.org.uk>, Kevin Hilman <khilman@baylibre.com>, 
-	Arnd Bergmann <arnd@arndb.de>, driver-core@lists.linux.dev, linux-kernel@vger.kernel.org, 
-	linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
-	linux-omap@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-NV-OnPremToCloud: ExternallySecured
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BL02EPF0001A104:EE_|IA1PR12MB6138:EE_
+X-MS-Office365-Filtering-Correlation-Id: 0178985a-f202-4647-67ff-08de8f0d98e0
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|36860700016|7416014|376014|1800799024|82310400026|22082099003|18002099003|56012099003;
+X-Microsoft-Antispam-Message-Info:
+	o66Hi730BBYN4PsXul8TRyNJNTRWyLlrDJxFC9jpJpF7I2Ob1qgIhUAHDNEGvPsYARzSEHcnZt092aTt+96hjjiLf7mlmwdaByLY7eBVc2s7T2Jb3YML/tXN2VtIOSDuyPFrW5qflpO2njlIXJ4sG3/MgqydVZks9ZO585NZZMj9DLL+QtPf1/bDdPICX6DwSorO2tXq5683ky8JaoTTGG0eLG8vlnJwbWikQJrLgsSWsHJcUTLuA4j0PEUti6fcMlL/LWmgNtkJ9H3ywb6c5GgMTQTBhKDqQgktXTbWHTABJxrZJVFoogO1v5w9wx8xDQr4UUe1G4xcNpx6nSwBFyuSdzLiRQmrIJkyfKcp1Ah6wPiFNkOIVZwFI3N8vGSwe0k3URYhDh/WbNojFneEHdyJLrpy9p5IApDIcGK+w02TA0WGbXEkocqzOvXz+rsbZ90yEWm1u50syx/JPt5qEVsQZPOdCN27mZDscJ0qB+YYXyQ7l8bLpCf1a8avGzLsUCBZxfvwIo7HVxIcmJMwDUsSwj9VGkbdtcgexWh2OwLec0PmLaX44rsh6cbZLPSofntEpyHq7gzi7uIiYrQQDQAXFlm4hrxfjBKIFIhVgpyA5rVkYAtvnBvJyxQrY4H4YTXhSkXxrAa1mMJSP28QnRXH3P95oWM/Z276ZJZEpentn8QoIoZj8Q5v3AODjYSyjtoUVd+P1qsuud8t/wtGG0NJdKciQUiFcek1g+Rzh8JCB9OIqrSdlieNSjWeRG5PDBUGg76+wRlSBnmq8rFYQA==
+X-Forefront-Antispam-Report:
+	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(36860700016)(7416014)(376014)(1800799024)(82310400026)(22082099003)(18002099003)(56012099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	xTvS9JM/gPYed1yWoTFxG5DSrVMgL4FXA3s4LiLXzwutjkK9D6irMDTUKWs+M2woxZKj63S8KrY57S+e2Nu8vT2iKwhOwFdJskM8NUywTRSU/0EmyJA33ZILjM91aZLsl2dg2/QMZuzRcMARhBB7BfOHTrikfoeCLkyDb3PSkxUN4nMxHB1U42NQLilTBfnH6q6dVfPOTQ67NOwRGHzdDBVPzo8r+vpzQKMH5V/YV4TZLV1NvNpxOEhtPtdTXkegLDziuJszpEiDrMjehM2iyZPE6wxYmOJzfL6NorQZ1RdI3mbzlf/gvhZl7Ot/pGEcIZqzxKtrq1tO/0Pd/8spLM6pvVrRH7cWUWhqm+j2/lsWxR/F041phU0K6m57TagWXlNA/XAYTjl6nQiwGIHtE1kZ9xzo+FYWjxHcG8TgvB8VuLyV8/WbEr3svc+ga+n2
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 31 Mar 2026 10:09:29.3415
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 0178985a-f202-4647-67ff-08de8f0d98e0
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	BL02EPF0001A104.namprd05.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR12MB6138
 
-On Tue, Mar 31, 2026 at 10:55=E2=80=AFAM Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
->
-> On Mon, Mar 30, 2026 at 11:52:34PM -0700, Dmitry Torokhov wrote:
-> > On March 30, 2026 11:25:33 PM PDT, Andy Shevchenko <andriy.shevchenko@l=
-inux.intel.com> wrote:
-> > >On Mon, Mar 30, 2026 at 02:46:45PM -0700, Dmitry Torokhov wrote:
-> > >> On Mon, Mar 30, 2026 at 11:24:45PM +0300, Andy Shevchenko wrote:
-> > >> > On Mon, Mar 30, 2026 at 02:40:47PM +0200, Bartosz Golaszewski wrot=
-e:
->
-> ...
->
-> > >> > > -static void __exit software_node_exit(void)
-> > >> > > -{
-> > >> > > -      ida_destroy(&swnode_root_ids);
-> > >> > > -      kset_unregister(swnode_kset);
-> > >> > >  }
-> > >> > > -__exitcall(software_node_exit);
-> > >> >
-> > >> > Why? What's wrong with the __exitcall?
-> > >>
-> > >> It's dead code. Always was, always will be.
-> > >>
-> > >> Maybe split in a separate patch, but I sometimes feel the idea of "o=
-ne
-> > >> change" is taken to extreme and adds to both developer's and maintai=
-ners
-> > >> burden by needing to keep track of extra patches.
-> > >
-> > >Why does __exitcall() exist then? It's also used in other places.
-> > >I think it's generally good to have a possibility to clean up
-> > >after run.
-> >
-> > The code section will be discarded when the kernel finishes booting so =
-it
-> > only increases image size on disk.
->
-> Almost true. Interesting microblaze case, where it's not discarded.
-> But I can't find where it's actually used on any architecture.
->
-> > >A bit of archaeology:
-> > >
-> > >The first time it appeared was in the bcc2152647b8 ("Import 2.4.0-test=
-3pre3").
-> > >Then somehow spread a bit (but not much).
-> >
-> > And it shows how useful it is. Maybe it had some purpose a long time ag=
-o, but
-> > at present time this code will never be executed since it cannot be bui=
-lt as
-> > a module.
->
-> Are you sure about definition of __exitcall? As I read init.h the macro
-> is defined when it's not a MODULE.
->
-> Anyways, if we going to drop that, it should be in a separate change
-> explaining all these.
->
+On Wed, 25 Mar 2026 11:59:12 +0100, Thierry Reding wrote:
+> On Tue, Mar 24, 2026 at 10:52:15PM +0530, Akhil R wrote:
+>> On Tue, 24 Mar 2026 09:43:27 +0100, Alexandre Belloni wrote:
+>> 
+>> ...
+>> 
+>> >> #include <linux/acpi.h> is added in PATCH 03/12. The functions' prototypes
+>> >> are present in acpi.h. I think the bot checked this patch individually,
+>> >> or did I miss something?
+>> >> 
+>> > 
+>> > #include <acpi/acpi_bus.h> is behind an #ifdef in acpi.h and your code
+>> > is not.
+>> 
+>> Thanks for pointing Alexandre and Guenter. I also noticed that we do not
+>> have stub functions for a few of the acpi_* functions in #else.
+>> 
+>> Looks like I will have to guard calls to these functions under
+>> #ifdef CONFIG_ACPI.
+> 
+> Alternatively it might make sense to add the stubs in a separate patch.
+> I don't know if they were purposefully left out or nobody's ever run
+> into the lack of these before.
 
-Sure. We must drop it too because the initialization no longer happens
-in an initcall but is called from elsewhere so - were it not dead code
-- we could end up with it being called before the init function.
+I looked into this and it turns out to be more involved than expected,
+and requires adding stubs at multiple layers. We may end up either
+sneaking in only what we require or a non-trivial change which may
+involve too many parameters.
 
-Bart
+If you would agree, I will guard the ACPI calls used in this patchset with
+#ifdef CONFIG_ACPI to keep things self-contained. If you think adding the
+stubs is worthwhile, we can take them up as a separate series.
+
+Best Regards,
+Akhil
