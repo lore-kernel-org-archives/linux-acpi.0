@@ -1,103 +1,135 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.17])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E68D413258;
-	Tue, 31 Mar 2026 16:45:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.17
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 3071243635C;
+	Tue, 31 Mar 2026 17:31:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774975562; cv=none; b=GSfof+J1Oj8AjHAIfc1juTnesaD6ckpO+D+eNJk3RPNYvpetr8jyFtrXV9pfVIyMtJQtKmHnSZuM56d5Qg9aHL/zD0ckVcCrh70hvQH66NveEyf6Ha+v7hrfMOrJdROLScxPHWezvs21stF/74k9/+UVH41yy360FDQSlLkWGKI=
+	t=1774978305; cv=none; b=sY1vweNPCLT15i8FzG/TNOazxAqoI+s3IODawlGqYcbjE9hPjK/z6eAyIoAh8FSayiZ+9cDTrKN90aKC06YG9wbn9unVwORbp/rfuNoMx3ymD7h39P9+cj93NOTqO8Eu98lzRGvkPcL1VmAo6FFudfzLStqq7Y+gjFq+ia7UBiw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774975562; c=relaxed/simple;
-	bh=tlNRVubdChgIq7rhkIIh14YQiBUCImmmOa9E6WD1o/w=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=nqPUfctaLBKnABXC/NLezpIM1X43N5EHySC86V6RB4HlVwjXF7E/WHM9k9PyWyNYKjgBaQYoIA47iHHAlqYlP2MbCbKq7AnDafY2NaormX5/BImS8bGj4aLivAiaOsyxWOh6NmMUCRu1darCCYJkxWDd9Xj/XxK5CICbSvU5Pqg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=GtN+DfCl; arc=none smtp.client-ip=192.198.163.17
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1774978305; c=relaxed/simple;
+	bh=3i1Gq4JAIizBknxjSLlecxNj8YdouZQOldf/Gi8SPcc=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=uI2WBVD1KNj/vbWPOt8JZdWy1rES0FBPi4tnEWCPjHrzq+upMhOBFbT8Hn5pL0uUW9iz98AFvjVbiqTVIPCTdyUQt3VLIVJZFvYpCk32uiZnjAywTHiQjzgStwt7DukC5Xk5ARGF/9TEUdbbGB9K8gwv23WpnwYMa/uA95+wD+8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=WDzivK/a; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="GtN+DfCl"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1774975560; x=1806511560;
-  h=from:to:cc:in-reply-to:references:subject:message-id:
-   date:mime-version:content-transfer-encoding;
-  bh=tlNRVubdChgIq7rhkIIh14YQiBUCImmmOa9E6WD1o/w=;
-  b=GtN+DfClnR+4qUGO0tSNvhYFx7WCWNZfpiIAfrh8nXwXIWu90OMeHA3P
-   BpY1XLQ9QjzY0ifKnlLBV6w0A+ozL6ROr0hAbwxotecNczvhhXjzx1qog
-   pCEa78MicLjbnmiu9T0F8uMj/FzSR58Zi5bukI0lu3q29R9KxWcy2+XjZ
-   fwXbl4aaEMfNctfBcOxq0KVImXgJmhruPesKzlp7CKcIT6onPfliHLNdv
-   Y8FN5BZhNmQ0KGcvbGl9oZkrTyJGiS0FUYwQhD/xbNXUFJeRJBpjzHUhE
-   4+nfOf7sPS/zeFbvgUO9EH7SpmCJeEjw4r5FB4a4i0f3rBeuTa9D/6a9W
-   g==;
-X-CSE-ConnectionGUID: RzhKvTY9RIe9OgMPurBbRQ==
-X-CSE-MsgGUID: BFGYf4SZQ+msZfdT+eFLzA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11745"; a="75890610"
-X-IronPort-AV: E=Sophos;i="6.23,152,1770624000"; 
-   d="scan'208";a="75890610"
-Received: from fmviesa004.fm.intel.com ([10.60.135.144])
-  by fmvoesa111.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Mar 2026 09:45:59 -0700
-X-CSE-ConnectionGUID: jICKustMSRmn0+lpNYNXGw==
-X-CSE-MsgGUID: jhvl/YdqRty2KsY+Dm469g==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.23,152,1770624000"; 
-   d="scan'208";a="228020181"
-Received: from ijarvine-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.244.6])
-  by fmviesa004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Mar 2026 09:42:42 -0700
-From: =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, 
- Linux ACPI <linux-acpi@vger.kernel.org>, Hans de Goede <hansg@kernel.org>, 
- platform-driver-x86@vger.kernel.org, Azael Avalos <coproscefalo@gmail.com>
-In-Reply-To: <6262981.lOV4Wx5bFT@rafael.j.wysocki>
-References: <6262981.lOV4Wx5bFT@rafael.j.wysocki>
-Subject: Re: [PATCH v1 0/7] platform/x86: toshiba: Bind to platform devices
- instead of ACPI ones
-Message-Id: <177497527011.15813.7349975948458381081.b4-ty@linux.intel.com>
-Date: Tue, 31 Mar 2026 19:41:10 +0300
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="WDzivK/a"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 8C85B1D31;
+	Tue, 31 Mar 2026 10:31:36 -0700 (PDT)
+Received: from arm.com (usa-sjc-mx-foss1.foss.arm.com [172.31.20.19])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id BDE373F915;
+	Tue, 31 Mar 2026 10:31:35 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1774978302; bh=3i1Gq4JAIizBknxjSLlecxNj8YdouZQOldf/Gi8SPcc=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=WDzivK/ay0BT4/Mfila47ssOCUKcoC8mcE1OJ3YzJDm9s79Zs686E4kzJf4HRuKB6
+	 lpHJ/DyPCzQqdZR0SBq1PcmDDq9UF0avGeThJW47JsQ4fAL+D9oqkCMCvB+7zuGSCf
+	 u5jO9aDk1QLnYCQi+3kmjhvfmGJUmFBpQyUk3kzE=
+Date: Tue, 31 Mar 2026 18:31:33 +0100
+From: Catalin Marinas <catalin.marinas@arm.com>
+To: Chengwen Feng <fengchengwen@huawei.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Will Deacon <will@kernel.org>,
+	"Rafael J . Wysocki" <rafael@kernel.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Palmer Dabbelt <palmer@dabbelt.com>, Borislav Petkov <bp@alien8.de>,
+	"H . Peter Anvin" <hpa@zytor.com>, Juergen Gross <jgross@suse.com>,
+	Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+	Len Brown <lenb@kernel.org>, Sunil V L <sunilvl@ventanamicro.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Jonathan Cameron <jonathan.cameron@huawei.com>,
+	Kees Cook <kees@kernel.org>, Yanteng Si <si.yanteng@linux.dev>,
+	Sean Christopherson <seanjc@google.com>,
+	Kai Huang <kai.huang@intel.com>,
+	Tom Lendacky <thomas.lendacky@amd.com>,
+	Thomas Huth <thuth@redhat.com>,
+	Thorsten Blum <thorsten.blum@linux.dev>,
+	Kevin Loughlin <kevinloughlin@google.com>,
+	Zheyun Shen <szy0127@sjtu.edu.cn>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Pawan Gupta <pawan.kumar.gupta@linux.intel.com>,
+	Xin Li <xin@zytor.com>, "Ahmed S . Darwish" <darwi@linutronix.de>,
+	Sohil Mehta <sohil.mehta@intel.com>,
+	Ilkka Koskinen <ilkka@os.amperecomputing.com>,
+	Robin Murphy <robin.murphy@arm.com>,
+	James Clark <james.clark@linaro.org>,
+	Besar Wicaksono <bwicaksono@nvidia.com>, Ma Ke <make24@iscas.ac.cn>,
+	Wei Huang <wei.huang2@amd.com>,
+	Andy Gospodarek <andrew.gospodarek@broadcom.com>,
+	Somnath Kotur <somnath.kotur@broadcom.com>,
+	punit.agrawal@oss.qualcomm.com, guohanjun@huawei.com,
+	suzuki.poulose@arm.com, ryan.roberts@arm.com,
+	chenl311@chinatelecom.cn, masahiroy@kernel.org,
+	wangyuquan1236@phytium.com.cn, anshuman.khandual@arm.com,
+	heinrich.schuchardt@canonical.com, Eric.VanTassell@amd.com,
+	wangzhou1@hisilicon.com, wanghuiqiang@huawei.com,
+	liuyonglong@huawei.com, linux-pci@vger.kernel.org,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, loongarch@lists.linux.dev,
+	linux-riscv@lists.infradead.org, xen-devel@lists.xenproject.org,
+	linux-acpi@vger.kernel.org, linux-perf-users@vger.kernel.org,
+	stable@vger.kernel.org
+Subject: Re: [PATCH v10 0/8] ACPI: Unify CPU UID interface and fix ARM64 TPH
+ steer-tag issue
+Message-ID: <acwE9V-r63-W2wby@arm.com>
+References: <20260320031737.35048-1-fengchengwen@huawei.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.13.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260320031737.35048-1-fengchengwen@huawei.com>
 
-On Tue, 24 Mar 2026 20:57:18 +0100, Rafael J. Wysocki wrote:
-
-> This series is part of a larger effort to switch over all drivers using
-> the struct acpi_driver interface to the more common struct platform_driver
-> interface and eliminate the former.  The background is explained in
-> Documentation/driver-api/acpi/acpi-drivers.rst and in the changelog of
-> the patch that introduced the above document:
+On Fri, Mar 20, 2026 at 11:17:29AM +0800, Chengwen Feng wrote:
+> This patchset unifies ACPI Processor UID retrieval across
+> arm64/loongarch/riscv/x86 via acpi_get_cpu_uid() (with input validation)
+> and fixes ARM64 CPU steer-tag retrieval failure in PCI/TPH:
 > 
-> https://lore.kernel.org/all/2396510.ElGaqSPkdT@rafael.j.wysocki/
+> 1-4: Add acpi_get_cpu_uid() for arm64/loongarch/riscv/x86 (update
+>      respective users)
+> 5: Centralize acpi_get_cpu_uid() declaration in include/linux/acpi.h
+> 6: Clean up perf/arm_cspmu
+> 7: Clean up ACPI/PPTT and remove unused get_acpi_id_for_cpu()
+> 8: Pass ACPI Processor UID to Cache Locality _DSM
 > 
-> [...]
+> The interface refactor ensures consistent CPU UID retrieval across
+> architectures (no functional changes for valid inputs) and provides the
+> unified interface required for the ARM64 TPH fix.
+> 
+> ---
+> Changes in v10:
+> - Refine commit header&log according to Punit's and Bjorn's review
+> - Split perf/arm_cspmu as a separate commit which address Punit's
+>   review
+> 
+> Changes in v9:
+> - Address Bjorn's review: split commits to each platform so that make
+>   them easy to review
+> 
+> Changes in v8:
+> - Moving arm64's get_cpu_for_acpi_id() to kernel/acpi.c which address
+>   Jeremy's review
+> 
+> Chengwen Feng (8):
+>   arm64: acpi: Add acpi_get_cpu_uid() for unified ACPI CPU UID retrieval
+>   LoongArch: Add acpi_get_cpu_uid() for unified ACPI CPU UID retrieval
+>   RISC-V: ACPI: Add acpi_get_cpu_uid() for unified ACPI CPU UID
+>     retrieval
+>   x86/acpi: Add acpi_get_cpu_uid() for unified ACPI CPU UID retrieval
+>   ACPI: Centralize acpi_get_cpu_uid() declaration in
+>     include/linux/acpi.h
+>   perf: arm_cspmu: Switch to acpi_get_cpu_uid() from
+>     get_acpi_id_for_cpu()
+>   ACPI: PPTT: Use acpi_get_cpu_uid() and remove get_acpi_id_for_cpu()
+>   PCI/TPH: Pass ACPI Processor UID to Cache Locality _DSM
+> 
+>  Documentation/PCI/tph.rst          |  4 +--
+>  arch/arm64/include/asm/acpi.h      | 17 +---------
+>  arch/arm64/kernel/acpi.c           | 30 ++++++++++++++++++
 
+For the arm64 bits:
 
-Thank you for your contribution, it has been applied to my local
-review-ilpo-next branch. Note it will show up in the public
-platform-drivers-x86/review-ilpo-next branch only once I've pushed my
-local branch there, which might take a while.
-
-The list of commits applied:
-[1/7] platform/x86: toshiba_acpi: Reorder code to avoid forward declaration
-      commit: 99aef5d711c6e463ceff34d0657eca4b4558996a
-[2/7] platform/x86: toshiba_acpi: Register ACPI notify handler directly
-      commit: b0bcf48c74cc7f72d1b6effc7cecdae871b1785e
-[3/7] platform/x86: toshiba_acpi: Convert ACPI driver to a platform one
-      commit: 246d6cefe525f3fc760017e717bd77a3e751a260
-[4/7] platform/x86: toshiba_bluetooth: Register ACPI notify handler directly
-      commit: 4315abf338301090eec70c68117afa854fddb264
-[5/7] platform/x86: toshiba_bluetooth: Convert ACPI driver to a platform one
-      commit: 553b2ac59fbb434330287fde0cabc64bc6f11ceb
-[6/7] platform/x86: toshiba_haps: Register ACPI notify handler directly
-      commit: 32156fd2fbb8fc2d049ad459336cd71b2556f75a
-[7/7] platform/x86: toshiba_haps: Convert ACPI driver to a platform one
-      commit: 3a96c7915d93231e128df74901fe8fcb960b0ecb
-
---
- i.
-
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
