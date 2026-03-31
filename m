@@ -1,104 +1,200 @@
-Received: from mail.alien8.de (mail.alien8.de [65.109.113.108])
+Received: from out-170.mta0.migadu.com (out-170.mta0.migadu.com [91.218.175.170])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF07736C5BF;
-	Tue, 31 Mar 2026 19:10:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=65.109.113.108
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FA203A5442
+	for <linux-acpi@vger.kernel.org>; Tue, 31 Mar 2026 19:19:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.170
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774984214; cv=none; b=OYQDHvVA2e+wt5MsiRsSzz1zlesgtq2YpDqZN6+FLonOTI/ZwIJ+ms96v4A2wpyJinIyOh/fu0ZssU05NthAPyZi0NC9hVq6K9yF/CUbKlY9wj4BOUGthXTMZarzgVeSRPznxn+1sJCf4nuhHl25DKp+HcDvd4WhUn3BS1wpPIg=
+	t=1774984773; cv=none; b=NghSwLguUNv85FXHEkqJO4q476jV0bktp+2DpFfGTeGQZmPAgv9DsQ5D8bQjI29somtzwhPqVd/BLoGPIvhT6iPXFk7IGGJwnYHeMmi84hxG2BvfRlH4wWUvONAG8rBTvPzy8za7cc2ry3bznvzRQq+nTmWecMdTShcWbLpG1kQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774984214; c=relaxed/simple;
-	bh=ALCJiRWwAx1GeWPCy6deUJru+dM357tVnhevOKL3rKE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=jYOtlEZROZKZxhtdeE7aItCS3KbRUt2Ur2lITCqTnvAlcn8DGUyEsSFCGBf4GLsKwv13KM4+2pYQbv6QBiUps8M99yTc4X+yH+YbZi17v2lfh1wd0TiAdxXcHRvk0KsWkHBZ48GoopMG8OodY4VqKtfLxRqCphNVuOt6Xkq/R4A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de; spf=pass smtp.mailfrom=alien8.de; dkim=pass (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b=MME+mIyP; arc=none smtp.client-ip=65.109.113.108
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=alien8.de
+	s=arc-20240116; t=1774984773; c=relaxed/simple;
+	bh=kJ4XfBu+/Sx5IUFJaLKcBQVJryP5ZhZBKJqRtr60k/w=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=LSdv6XRUF6+IO0iwu5GclXbbNDQPQLSKmQkw8xVMMzjca7IIwBm+nta1D1erIrfZA4/ZYiO1kjWqBXCx27dAFSORb+oHzZSoJD3zPOeeu2gZNJwa7Mbhn0/gaKzMF9f9yViQtBWj/3Qy7Qu3mYUlmpg8zT70jfBKX4b5NOBTdRQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=oLhLuPNz; arc=none smtp.client-ip=91.218.175.170
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b="MME+mIyP"
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with ESMTP id D7D4540E00DC;
-	Tue, 31 Mar 2026 19:10:09 +0000 (UTC)
-X-Virus-Scanned: Debian amavisd-new at mail.alien8.de
-Authentication-Results: mail.alien8.de (amavisd-new); dkim=pass (4096-bit key)
-	header.d=alien8.de
-Received: from mail.alien8.de ([127.0.0.1])
-	by localhost (mail.alien8.de [127.0.0.1]) (amavisd-new, port 10026)
-	with ESMTP id NwInlk3m7uiH; Tue, 31 Mar 2026 19:10:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=alien8;
-	t=1774984203; bh=9J4oyQdFTw1JEDTJIcVZ0yRoiRCjhJYpSNrXR3GSd6E=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=MME+mIyPJJhkctSyuwWSM0gOGYpppwNxrd7IJMgFpEoYcFX8iZdSsxvGYWecDGsUU
-	 bqcsT9CXd9xCDvyrmrfIVNnIo66+ks4s2xT+4AtZcaKMQc53WJK4MoU8QHJth2m7IT
-	 k2IFeay5QV/8oQCjfTgTGcLEUYb+Gl/stATH6JytK2pPzjtTUt2uqEJwomUz2DxENf
-	 pE+BmgJjh9nWjQ5mHMDBQHXEd0mXKoHzzu2ZbeRGVB57lms3XIFOJygKLH6xxz6ng6
-	 btUgPU7KBJEbOQqF4c3uIF3O7bhtUtfS4wILT8lsywQWTxVtz4aayD7y/Y/AhCpFdv
-	 BtrHgmjz1WcO+cKouKuOLLydR7F+ysYuKcDWDygKXWodVpYLjBvp1FOk+oLglpRes9
-	 yBi5RrZcIoM9UkefH4X8zP2aEsBfaWTD22HxY0kaxE+rbr/aviGqZbrmtHqQvQ34tq
-	 ztiuZPw4ELy7bwwYeqYF7BWDRDguq2SBUJ8ZoIj/p0T+1fLTlKAmrxS8PiVK5kwzec
-	 NVDiebkHjC0KNKFo3QTnTcyorem2rlqY5dKsohSiukAB/PB4Q4VLI70rr1Vu04ur/E
-	 GAxyNTlz8sGu83SH4SASWeTYMFBQasZiRaLoP7aATf/grvwCrGdOpJLcYG0xT4WplL
-	 A5sl8rHNc6WmQEC4YTmL1zcM=
-Received: from zn.tnic (p5de8e020.dip0.t-ipconnect.de [93.232.224.32])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (P-256) server-signature ECDSA (P-256) server-digest SHA256)
-	(No client certificate requested)
-	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with UTF8SMTPSA id 14F1E40E0032;
-	Tue, 31 Mar 2026 19:09:27 +0000 (UTC)
-Date: Tue, 31 Mar 2026 21:09:19 +0200
-From: Borislav Petkov <bp@alien8.de>
-To: shiju.jose@huawei.com
-Cc: rafael@kernel.org, akpm@linux-foundation.org, rppt@kernel.org,
-	dferguson@amperecomputing.com, linux-edac@vger.kernel.org,
-	linux-acpi@vger.kernel.org, linux-mm@kvack.org,
-	linux-doc@vger.kernel.org, tony.luck@intel.com, lenb@kernel.org,
-	leo.duran@amd.com, Yazen.Ghannam@amd.com, mchehab@kernel.org,
-	jonathan.cameron@huawei.com, linuxarm@huawei.com,
-	rientjes@google.com, jiaqiyan@google.com, Jon.Grimm@amd.com,
-	dave.hansen@linux.intel.com, naoya.horiguchi@nec.com,
-	james.morse@arm.com, jthoughton@google.com, somasundaram.a@hpe.com,
-	erdemaktas@google.com, pgonda@google.com, duenwen@google.com,
-	gthelen@google.com, wschwartz@amperecomputing.com,
-	wbs@os.amperecomputing.com, nifan.cxl@gmail.com,
-	tanxiaofei@huawei.com, prime.zeng@hisilicon.com,
-	roberto.sassu@huawei.com, kangkang.shen@futurewei.com,
-	wanghuiqiang@huawei.com
-Subject: Re: [PATCH v18 0/2] ACPI: Add support for ACPI RAS2 feature table
-Message-ID: <20260331190919.GVacwb35SNFnzXUvnE@fat_crate.local>
-References: <20260325165714.294-1-shiju.jose@huawei.com>
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="oLhLuPNz"
+Message-ID: <7dcebac5-ef4a-4ddb-a276-82ffdb4796c4@linux.dev>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1774984758;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=1thraRRZOZ7peTSH3ZYe6lSStUD7WuMb66T+Rkw4Ebg=;
+	b=oLhLuPNzG+BICY/jCqlOoxsvgZqduERWGiDJbvSa/9iDC7zskTB6n042mSUJPRqpTBg8IO
+	MGfrNjc3iVeMYIJ5MTlMncYTOV3bELwpC1nn/sz93wCLUOzWfGU9e1tW4EVCYibX+LRZFh
+	YxFfQWZuSjcNtlsGs4pTRRtJ/UAFBKM=
+Date: Tue, 31 Mar 2026 21:19:14 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20260325165714.294-1-shiju.jose@huawei.com>
+Subject: Re: [PATCH v1 2/4] platform/x86: asus-laptop: Convert ACPI driver to
+ a platform one
+To: =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Hans de Goede
+ <hansg@kernel.org>, LKML <linux-kernel@vger.kernel.org>,
+ Linux ACPI <linux-acpi@vger.kernel.org>,
+ platform-driver-x86@vger.kernel.org,
+ Corentin Chary <corentin.chary@gmail.com>, "Luke D. Jones"
+ <luke@ljones.dev>, =?UTF-8?Q?Jo=C3=A3o_Paulo_Rechi_Vita?= <jprvita@gmail.com>
+References: <5971620.DvuYhMxLoT@rafael.j.wysocki>
+ <2402539.ElGaqSPkdT@rafael.j.wysocki>
+ <c9697592-c70b-4ef8-864f-213b5ea4782d@linux.dev>
+ <d42eed14-b6b1-b8f4-b73a-6033162e79e7@linux.intel.com>
+Content-Language: en-US, it-IT, en-US-large
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From: Denis Benato <denis.benato@linux.dev>
+In-Reply-To: <d42eed14-b6b1-b8f4-b73a-6033162e79e7@linux.intel.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-Migadu-Flow: FLOW_OUT
 
-On Wed, Mar 25, 2026 at 04:57:10PM +0000, shiju.jose@huawei.com wrote:
-> From: Shiju Jose <shiju.jose@huawei.com>
-> 
-> Add support for ACPI RAS2 feature table (RAS2) defined in the
-> ACPI 6.5 specification, section 5.2.21 and RAS2 HW based memory
-> scrubbing feature.
-> 
-> ACPI RAS2 patches were part of the EDAC series [1] and
-> this is the 38th version (20 + 18) of RAS2 patches sending
-> in last 3 years.
-> 
-> The code is based on linux.git v7.0-rc3 [2].
 
-The other AI has more review comments:
+On 3/31/26 10:14, Ilpo Järvinen wrote:
+> On Sat, 28 Feb 2026, Denis Benato wrote:
+>> On 2/28/26 16:11, Rafael J. Wysocki wrote:
+>>> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+>>>
+>>> In all cases in which a struct acpi_driver is used for binding a driver
+>>> to an ACPI device object, a corresponding platform device is created by
+>>> the ACPI core and that device is regarded as a proper representation of
+>>> underlying hardware.  Accordingly, a struct platform_driver should be
+>>> used by driver code to bind to that device.  There are multiple reasons
+>>> why drivers should not bind directly to ACPI device objects [1].
+>>>
+>>> Overall, it is better to bind drivers to platform devices than to their
+>>> ACPI companions, so convert the Asus laptop ACPI driver to a platform
+>>> one.
+>>>
+>>> While this is not expected to alter functionality, it changes sysfs
+>>> layout and so it will be visible to user space.
+>> Alright I will take a look if asus-linux software is affected and act accordingly.
+>> How much time do I have?
+>>
+>> Thanks. 
+> Hi Denis,
+>
+> Has there been some progress with this check?
+Hi!
 
-https://sashiko.dev/#/patchset/20260325165714.294-1-shiju.jose%40huawei.com
+I quickly looked at it and I think there shouldn't be any problem.
 
-Some of them do sound nasty...
+Worst case scenario I update the criteria udev uses to find certain
+things but it shouldn't be necessary (or at least I can't find a problematic spot).
 
-Thx.
-
--- 
-Regards/Gruss,
-    Boris.
-
-https://people.kernel.org/tglx/notes-about-netiquette
+Thanks,
+Denis
+> --
+>  i.
+>
+>>> Link: https://lore.kernel.org/all/2396510.ElGaqSPkdT@rafael.j.wysocki/ [1]
+>>> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>> Reviewed-by: Denis Benato <denis.benato@linux.dev>
+>>> ---
+>>>  drivers/platform/x86/asus-laptop.c | 35 +++++++++++++++---------------
+>>>  1 file changed, 18 insertions(+), 17 deletions(-)
+>>>
+>>> diff --git a/drivers/platform/x86/asus-laptop.c b/drivers/platform/x86/asus-laptop.c
+>>> index c927665dfa96..dbbb6292cd11 100644
+>>> --- a/drivers/platform/x86/asus-laptop.c
+>>> +++ b/drivers/platform/x86/asus-laptop.c
+>>> @@ -1824,8 +1824,9 @@ static void asus_dmi_check(void)
+>>>  
+>>>  static bool asus_device_present;
+>>>  
+>>> -static int asus_acpi_add(struct acpi_device *device)
+>>> +static int asus_acpi_probe(struct platform_device *pdev)
+>>>  {
+>>> +	struct acpi_device *device = ACPI_COMPANION(&pdev->dev);
+>>>  	struct asus_laptop *asus;
+>>>  	int result;
+>>>  
+>>> @@ -1837,7 +1838,6 @@ static int asus_acpi_add(struct acpi_device *device)
+>>>  	asus->handle = device->handle;
+>>>  	strscpy(acpi_device_name(device), ASUS_LAPTOP_DEVICE_NAME);
+>>>  	strscpy(acpi_device_class(device), ASUS_LAPTOP_CLASS);
+>>> -	device->driver_data = asus;
+>>>  	asus->device = device;
+>>>  
+>>>  	asus_dmi_check();
+>>> @@ -1846,6 +1846,8 @@ static int asus_acpi_add(struct acpi_device *device)
+>>>  	if (result)
+>>>  		goto fail_platform;
+>>>  
+>>> +	platform_set_drvdata(pdev, asus);
+>>> +
+>>>  	/*
+>>>  	 * Need platform type detection first, then the platform
+>>>  	 * device.  It is used as a parent for the sub-devices below.
+>>> @@ -1907,11 +1909,12 @@ static int asus_acpi_add(struct acpi_device *device)
+>>>  	return result;
+>>>  }
+>>>  
+>>> -static void asus_acpi_remove(struct acpi_device *device)
+>>> +static void asus_acpi_remove(struct platform_device *pdev)
+>>>  {
+>>> -	struct asus_laptop *asus = acpi_driver_data(device);
+>>> +	struct asus_laptop *asus = platform_get_drvdata(pdev);
+>>>  
+>>> -	acpi_dev_remove_notify_handler(device, ACPI_DEVICE_NOTIFY, asus_acpi_notify);
+>>> +	acpi_dev_remove_notify_handler(asus->device, ACPI_DEVICE_NOTIFY,
+>>> +				       asus_acpi_notify);
+>>>  	asus_backlight_exit(asus);
+>>>  	asus_rfkill_exit(asus);
+>>>  	asus_led_exit(asus);
+>>> @@ -1930,15 +1933,13 @@ static const struct acpi_device_id asus_device_ids[] = {
+>>>  };
+>>>  MODULE_DEVICE_TABLE(acpi, asus_device_ids);
+>>>  
+>>> -static struct acpi_driver asus_acpi_driver = {
+>>> -	.name = ASUS_LAPTOP_NAME,
+>>> -	.class = ASUS_LAPTOP_CLASS,
+>>> -	.ids = asus_device_ids,
+>>> -	.flags = ACPI_DRIVER_ALL_NOTIFY_EVENTS,
+>>> -	.ops = {
+>>> -		.add = asus_acpi_add,
+>>> -		.remove = asus_acpi_remove,
+>>> -		},
+>>> +static struct platform_driver asus_acpi_driver = {
+>>> +	.probe = asus_acpi_probe,
+>>> +	.remove = asus_acpi_remove,
+>>> +	.driver = {
+>>> +		.name = ASUS_LAPTOP_NAME,
+>>> +		.acpi_match_table = asus_device_ids,
+>>> +	},
+>>>  };
+>>>  
+>>>  static int __init asus_laptop_init(void)
+>>> @@ -1949,7 +1950,7 @@ static int __init asus_laptop_init(void)
+>>>  	if (result < 0)
+>>>  		return result;
+>>>  
+>>> -	result = acpi_bus_register_driver(&asus_acpi_driver);
+>>> +	result = platform_driver_register(&asus_acpi_driver);
+>>>  	if (result < 0)
+>>>  		goto fail_acpi_driver;
+>>>  	if (!asus_device_present) {
+>>> @@ -1959,7 +1960,7 @@ static int __init asus_laptop_init(void)
+>>>  	return 0;
+>>>  
+>>>  fail_no_device:
+>>> -	acpi_bus_unregister_driver(&asus_acpi_driver);
+>>> +	platform_driver_unregister(&asus_acpi_driver);
+>>>  fail_acpi_driver:
+>>>  	platform_driver_unregister(&platform_driver);
+>>>  	return result;
+>>> @@ -1967,7 +1968,7 @@ static int __init asus_laptop_init(void)
+>>>  
+>>>  static void __exit asus_laptop_exit(void)
+>>>  {
+>>> -	acpi_bus_unregister_driver(&asus_acpi_driver);
+>>> +	platform_driver_unregister(&asus_acpi_driver);
+>>>  	platform_driver_unregister(&platform_driver);
+>>>  }
+>>>  
