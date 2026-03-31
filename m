@@ -1,111 +1,122 @@
-Received: from mail-pj1-f45.google.com (mail-pj1-f45.google.com [209.85.216.45])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86E72367F5D
-	for <linux-acpi@vger.kernel.org>; Tue, 31 Mar 2026 02:53:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.45
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C649F175A6B;
+	Tue, 31 Mar 2026 05:34:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774925588; cv=none; b=OrWeCLgmyT9LmU7cwuY5tMcRN4FfWePHf/8sbihY+NVcJguCe077gUqqppy5BTsDtZtZX5Xn84FmQyqlF/PsPbxbPtQ9ykHdbRNKdrP7pfjEdA78NbeMgKXgTvf/ZnC7Qc/oxUNvSjoAjx37xdOYtO6paGL17QPfOJMuf8/kzEk=
+	t=1774935286; cv=none; b=RO+YjDx30sgDi2IuaLCmaetxjnGEVGs8QYFhtJrIgrnGhXBtVOxiKcoUOQD4PhrEdB0EI1ZcWASL6W/k1SIEK5P+C3b9VZ54J353QYFFYTylAjHItg8Wizw4yOJx3yy2wJzsHm9jHcSzBA7aBpHibgMD+4roGlKkTZCF8StzAW8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774925588; c=relaxed/simple;
-	bh=R40Juy3+Owhh9EBAGYTFKsMNK1+iwfY9nEhDApPpyJI=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=QOeMC9IwMp9SpvsZjKh0UQzoix0t7NBe1gp96ESX+PDGJBofelr+W8QXNKi8vDQkZP3SJbWT+ETNpk/ua9KcMYD1Up6bqOb5BhsDGGjo2DN2i81Ic3lLBf9HnSY3rO1OuhY0LiCBPcH2SLSrkmHOWLOr2ccxG49BKSLHVhfsjGg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=KKv8l7le; arc=none smtp.client-ip=209.85.216.45
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1774935286; c=relaxed/simple;
+	bh=ERgkL2Rh8Uk73V3Zb2z9UjJCCMin0IIArfID3g+LSbk=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=JpFD+T5H2bLaWqqAcF18LQNawjo2WSThSItk7uNlz2IYBwPr/EevyKGUSLdQ2IecZ6DftU2yeFR1/xnz+nPu2cRCIwjZhhupoElmta9W4uRmlLucURJlz5R9Up1tgHsFxX2czdYtM7SoK2yC2tzIB0mqYSWPT+crzB+4iIt18Kg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NwzrqdnY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KKv8l7le"
-Received: by mail-pj1-f45.google.com with SMTP id 98e67ed59e1d1-35d8e548a05so3237862a91.1
-        for <linux-acpi@vger.kernel.org>; Mon, 30 Mar 2026 19:53:07 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1774925587; x=1775530387; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=ilhcaIS/tbQmsg6PWjrfVpOQh4yyfAhJzLT1EMbVKSo=;
-        b=KKv8l7lefb66OzxZbb8uVgAyD0k/EfOci0F89WcoEANQtMSWGN2B6p0UlF5rPG7VS1
-         DPdOfgSggo6FYnxeh88LQieGZlz/AwpvLMsBlGcM70D7DYTiwR+YQkZzerzQWb9QDybU
-         NK1Xdz8xwxNfk5HtqxnzI1h+FQf6fBUFnuRMciwOeWhlV/CiTUH1xNXgO+VtFwt/fyPX
-         wC1tz0fmpZmRrrr68Tk6p1PUrICEy0HJd9NC9Wf2l+3EeRCGniB+ChkqvA0kdwokY5xf
-         ogONPxt1Cs66xOVMCwLvygY2izM6gPaisJKa/DwaOpGixY9f4lq3Q7OmYo4hfvWV+7M7
-         wtGQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1774925587; x=1775530387;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=ilhcaIS/tbQmsg6PWjrfVpOQh4yyfAhJzLT1EMbVKSo=;
-        b=jz2CXYDuRNwMsmNY0ODz1AslO4ksHBt5a5lmVpyrwqSd8UVQZvtDErZWfd1GvrbUOd
-         eO6gqVeFg1K3OYzYHCehYv0OWFdWIsn3zYcrDH6wh/45q/V+URH8Vjv32XYcJUr6b2kJ
-         PrBbnds1LzmEzCVU4HO8zLQN9ZdUPRrT+HXygv0pnEqgTwDxEElwoyUGEL5NjdVTmiUe
-         E3pl+3SpC5Ra6w8nfLMSNDpvk26PWAaWyCx4M73w3LVfsGJ38mMboJ5M65KnmMxDTVWO
-         n+i3qR1B/PbKiIm06ZREKz9ok2hpuySMDQZM9dwuVYstUdBSVRjJR8vTZaYJxIM4DUB/
-         WnUA==
-X-Forwarded-Encrypted: i=1; AJvYcCWm+UZWr3u46C5vRHNrhRBq92Vr23nRUCnKE1Dm6ecMsAwGgnDp9j9zgODMC/RuKg7fHrcHEOv4tnU6@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw+FXLF4AWHPKN35B/t+H/QW9SPbm/tAGkRlK4cmz111MRHoriO
-	sf/Hkg6Sl5O0UcR44Qqsab+jZiVAMpmgJkPGmjvwoV9LZt4BiulIlqPDM5kM+YgX
-X-Gm-Gg: ATEYQzzFDi0YgsA9QFAkIHVMIJRLRFK1/gAAkfgmIkM+Q72n7aWZx+2w4v1u5z7wjmv
-	EfySComRDQkUzKTIUtX7fiL3iUUQ2gLGyoyem8pdqoecDbLq7NVhyMs+dxyVj6AiWFq6Pxy9eBA
-	7A3esfuOjDXZtoteAxMe2GTaUiQyNsju1Fqt/T+bhnczASC5TIza4fqpSPYjXlLDA9yH7bhfXMa
-	56QLg88Pk91K/BV0t9aCc5HGltCCFX5rEihVmwd0tT1SPTvVRhA33PO6zYFbEPL8ZA457dcbHC6
-	naXKzf24yVBYnl+SzsewjJ92WNXdRFOj7bSbMI/9YJKwBfesIsQtf3ndxWA3PiHr0lVe6rBaJZH
-	+PRgUJayzSJTVSBBAEXd28NaEVhoH+p1UCq4gkKVAOAynUr4xLAxSIc7+W7sKwePxc3f+c9g6Rc
-	Fe0LilWCMBdDg9nN1uY178wQ6baHS0jqHIp/8JPIwGOKV7pRA83NLD3A==
-X-Received: by 2002:a17:90a:710:b0:35d:95eb:879a with SMTP id 98e67ed59e1d1-35d95eb8b32mr6542247a91.13.1774925586915;
-        Mon, 30 Mar 2026 19:53:06 -0700 (PDT)
-Received: from ZC-202510311500 ([61.185.217.216])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-35dbe66fb67sm4887a91.9.2026.03.30.19.53.03
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 30 Mar 2026 19:53:06 -0700 (PDT)
-From: Haoyu Lu <hechushiguitu666@gmail.com>
-To: "Rafael J . Wysocki" <rafael@kernel.org>,
-	Lorenzo Pieralisi <lpieralisi@kernel.org>,
-	Hanjun Guo <guohanjun@huawei.com>,
-	Sudeep Holla <sudeep.holla@kernel.org>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will@kernel.org>
-Cc: Len Brown <lenb@kernel.org>,
-	Ilkka Koskinen <ilkka@os.amperecomputing.com>,
-	Russell King <rmk+kernel@armlinux.org.uk>,
-	linux-acpi@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org,
-	Haoyu Lu <hechushiguitu666@gmail.com>
-Subject: [PATCH 1/2] acpi: arm64: agdi: fix missing newline in error message
-Date: Tue, 31 Mar 2026 10:52:56 +0800
-Message-ID: <20260331025257.463-1-hechushiguitu666@gmail.com>
-X-Mailer: git-send-email 2.53.0.windows.1
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NwzrqdnY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A73DC19424;
+	Tue, 31 Mar 2026 05:34:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1774935286;
+	bh=ERgkL2Rh8Uk73V3Zb2z9UjJCCMin0IIArfID3g+LSbk=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=NwzrqdnYKdEzHYC3yTxdkylUQ1f/98RlsJ5axnZ7I7R/tVsGV4biNd2hgONpDJ7g2
+	 qW0H0i8yTJug3ZPpHlP9XeHTf92syolzyfxB+PMYIEkPZh5EotX/7F6Bl4gOFUNg0+
+	 wpOKKjZKVm4/Xr8jpVZciDfs/7fEMb2hMBUpznpkyoaDs8t2lzZxTqRmPg3aGm3tWn
+	 mip77J2Rgp93M0L2OHVAcbZepnWHmf2Ax7+S2C9Fq5BIXr8aBETGODFOJzoxQUFqRE
+	 uCmh100aL7SEvftal4YMDH/TFg1hb4jk5Agu6UC4YtvaNMS04nAzVpoC2zzrlI5ncE
+	 nnMkoYZM8k0wQ==
+Date: Tue, 31 Mar 2026 11:04:32 +0530
+From: Manivannan Sadhasivam <mani@kernel.org>
+To: Kai-Heng Feng <kaihengf@nvidia.com>
+Cc: rafael@kernel.org, jonathan.cameron@huawei.com, helgaas@kernel.org, 
+	guohanjun@huawei.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, 
+	linux-pci@vger.kernel.org, acpica-devel@lists.linux.dev, linux-hardening@vger.kernel.org, 
+	Shiju Jose <shiju.jose@huawei.com>, Lorenzo Pieralisi <lpieralisi@kernel.org>, 
+	Krzysztof =?utf-8?Q?Wilczy=C5=84ski?= <kwilczynski@kernel.org>, Rob Herring <robh@kernel.org>, 
+	Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH v3 2/3] PCI: hisi: Use
+ devm_ghes_register_vendor_record_notifier()
+Message-ID: <i4pg4fvo3vulzevo5cnjb5qku73cqtucuxqwhiw73dfxcufhqi@ofsvdrffsegl>
+References: <20260330094203.38022-1-kaihengf@nvidia.com>
+ <20260330094203.38022-3-kaihengf@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <20260330094203.38022-3-kaihengf@nvidia.com>
 
-Add the missing trailing newline to the dev_err() message
-printed when SDEI event registration fails.
+On Mon, Mar 30, 2026 at 05:41:56PM +0800, Kai-Heng Feng wrote:
+> Switch to the device-managed variant so the notifier is automatically
+> unregistered on device removal, allowing the open-coded remove callback
+> to be dropped entirely.
+> 
+> Cc: Shiju Jose <shiju.jose@huawei.com>
+> Cc: Jonathan Cameron <jonathan.cameron@huawei.com>
+> Signed-off-by: Kai-Heng Feng <kaihengf@nvidia.com>
 
-This keeps the error output as a properly terminated log line.
+Acked-by: Manivannan Sadhasivam <mani@kernel.org>
 
-Fixes: a2a591fb76e6f5461dfd04715b69c317e50c43a5 ("ACPI: AGDI: Add driver for Arm Generic Diagnostic Dump and Reset device")
-Signed-off-by: Haoyu Lu <hechushiguitu666@gmail.com>
----
- drivers/acpi/arm64/agdi.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Since there is an API dependency, feel free to take it through ACPI tree.
 
-diff --git a/drivers/acpi/arm64/agdi.c b/drivers/acpi/arm64/agdi.c
-index feb4b2cb4618..0c2d9d6c160b 100644
---- a/drivers/acpi/arm64/agdi.c
-+++ b/drivers/acpi/arm64/agdi.c
-@@ -36,7 +36,7 @@ static int agdi_sdei_probe(struct platform_device *pdev,
- 
- 	err = sdei_event_register(adata->sdei_event, agdi_sdei_handler, pdev);
- 	if (err) {
--		dev_err(&pdev->dev, "Failed to register for SDEI event %d",
-+		dev_err(&pdev->dev, "Failed to register for SDEI event %d\n",
- 			adata->sdei_event);
- 		return err;
- 	}
+- Mani
+
+> ---
+> v3:
+>  - No change.
+> v2:
+>  - New patch.
+> 
+>  drivers/pci/controller/pcie-hisi-error.c | 12 +-----------
+>  1 file changed, 1 insertion(+), 11 deletions(-)
+> 
+> diff --git a/drivers/pci/controller/pcie-hisi-error.c b/drivers/pci/controller/pcie-hisi-error.c
+> index aaf1ed2b6e59..36be86d827a8 100644
+> --- a/drivers/pci/controller/pcie-hisi-error.c
+> +++ b/drivers/pci/controller/pcie-hisi-error.c
+> @@ -287,25 +287,16 @@ static int hisi_pcie_error_handler_probe(struct platform_device *pdev)
+>  
+>  	priv->nb.notifier_call = hisi_pcie_notify_error;
+>  	priv->dev = &pdev->dev;
+> -	ret = ghes_register_vendor_record_notifier(&priv->nb);
+> +	ret = devm_ghes_register_vendor_record_notifier(&pdev->dev, &priv->nb);
+>  	if (ret) {
+>  		dev_err(&pdev->dev,
+>  			"Failed to register hisi pcie controller error handler with apei\n");
+>  		return ret;
+>  	}
+>  
+> -	platform_set_drvdata(pdev, priv);
+> -
+>  	return 0;
+>  }
+>  
+> -static void hisi_pcie_error_handler_remove(struct platform_device *pdev)
+> -{
+> -	struct hisi_pcie_error_private *priv = platform_get_drvdata(pdev);
+> -
+> -	ghes_unregister_vendor_record_notifier(&priv->nb);
+> -}
+> -
+>  static const struct acpi_device_id hisi_pcie_acpi_match[] = {
+>  	{ "HISI0361", 0 },
+>  	{ }
+> @@ -317,7 +308,6 @@ static struct platform_driver hisi_pcie_error_handler_driver = {
+>  		.acpi_match_table = hisi_pcie_acpi_match,
+>  	},
+>  	.probe		= hisi_pcie_error_handler_probe,
+> -	.remove		= hisi_pcie_error_handler_remove,
+>  };
+>  module_platform_driver(hisi_pcie_error_handler_driver);
+>  
+> -- 
+> 2.50.1 (Apple Git-155)
+> 
+
 -- 
-2.17.1
-
+மணிவண்ணன் சதாசிவம்
