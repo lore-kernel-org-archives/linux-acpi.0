@@ -1,135 +1,211 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 3071243635C;
-	Tue, 31 Mar 2026 17:31:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF6BF441027
+	for <linux-acpi@vger.kernel.org>; Tue, 31 Mar 2026 17:48:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.168.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774978305; cv=none; b=sY1vweNPCLT15i8FzG/TNOazxAqoI+s3IODawlGqYcbjE9hPjK/z6eAyIoAh8FSayiZ+9cDTrKN90aKC06YG9wbn9unVwORbp/rfuNoMx3ymD7h39P9+cj93NOTqO8Eu98lzRGvkPcL1VmAo6FFudfzLStqq7Y+gjFq+ia7UBiw=
+	t=1774979318; cv=none; b=IU+vBoc3I/vsA2Fund/dASlAV89N3UdNFrY04ycHzLTcwF4aDiM3p6Y+o/nq/3KoRZEnUq6BfpCbw9v8Ba5YQzev96EuK270fUtGic3kDhTyQmO0yuMyod+2+5ue3JvInc/EVKcxRd9S/35YTEo6xXJjQ103mGFM73mms2CnN7Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774978305; c=relaxed/simple;
-	bh=3i1Gq4JAIizBknxjSLlecxNj8YdouZQOldf/Gi8SPcc=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=uI2WBVD1KNj/vbWPOt8JZdWy1rES0FBPi4tnEWCPjHrzq+upMhOBFbT8Hn5pL0uUW9iz98AFvjVbiqTVIPCTdyUQt3VLIVJZFvYpCk32uiZnjAywTHiQjzgStwt7DukC5Xk5ARGF/9TEUdbbGB9K8gwv23WpnwYMa/uA95+wD+8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=WDzivK/a; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	s=arc-20240116; t=1774979318; c=relaxed/simple;
+	bh=yInp3jQ2nfEc1FkUQ7qUyW0p89IAt5AFdaupsLTGINE=;
+	h=Mime-Version:Content-Type:Date:Message-Id:Subject:Cc:To:From:
+	 References:In-Reply-To; b=q55LG4BWah+TguDGCWS37mPwe7fVgznuTlw2WDyjVZLLIoHhOpr9DxPnDQErkv+9+c5XxUC9Tcwtk0go1pTfzBn/o7DnFZ0WTTtBtK5/Bm/PfsGCDDmWg8DZg19kde4NBe3KJSho0OLN12cjI6iwLjsxmGQe77+Ci8oXl1+4clA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=IgBJukjV; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=HWlqPLNJ; arc=none smtp.client-ip=205.220.168.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="WDzivK/a"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 8C85B1D31;
-	Tue, 31 Mar 2026 10:31:36 -0700 (PDT)
-Received: from arm.com (usa-sjc-mx-foss1.foss.arm.com [172.31.20.19])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id BDE373F915;
-	Tue, 31 Mar 2026 10:31:35 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1774978302; bh=3i1Gq4JAIizBknxjSLlecxNj8YdouZQOldf/Gi8SPcc=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=WDzivK/ay0BT4/Mfila47ssOCUKcoC8mcE1OJ3YzJDm9s79Zs686E4kzJf4HRuKB6
-	 lpHJ/DyPCzQqdZR0SBq1PcmDDq9UF0avGeThJW47JsQ4fAL+D9oqkCMCvB+7zuGSCf
-	 u5jO9aDk1QLnYCQi+3kmjhvfmGJUmFBpQyUk3kzE=
-Date: Tue, 31 Mar 2026 18:31:33 +0100
-From: Catalin Marinas <catalin.marinas@arm.com>
-To: Chengwen Feng <fengchengwen@huawei.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Will Deacon <will@kernel.org>,
-	"Rafael J . Wysocki" <rafael@kernel.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Palmer Dabbelt <palmer@dabbelt.com>, Borislav Petkov <bp@alien8.de>,
-	"H . Peter Anvin" <hpa@zytor.com>, Juergen Gross <jgross@suse.com>,
-	Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-	Len Brown <lenb@kernel.org>, Sunil V L <sunilvl@ventanamicro.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Jonathan Cameron <jonathan.cameron@huawei.com>,
-	Kees Cook <kees@kernel.org>, Yanteng Si <si.yanteng@linux.dev>,
-	Sean Christopherson <seanjc@google.com>,
-	Kai Huang <kai.huang@intel.com>,
-	Tom Lendacky <thomas.lendacky@amd.com>,
-	Thomas Huth <thuth@redhat.com>,
-	Thorsten Blum <thorsten.blum@linux.dev>,
-	Kevin Loughlin <kevinloughlin@google.com>,
-	Zheyun Shen <szy0127@sjtu.edu.cn>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Pawan Gupta <pawan.kumar.gupta@linux.intel.com>,
-	Xin Li <xin@zytor.com>, "Ahmed S . Darwish" <darwi@linutronix.de>,
-	Sohil Mehta <sohil.mehta@intel.com>,
-	Ilkka Koskinen <ilkka@os.amperecomputing.com>,
-	Robin Murphy <robin.murphy@arm.com>,
-	James Clark <james.clark@linaro.org>,
-	Besar Wicaksono <bwicaksono@nvidia.com>, Ma Ke <make24@iscas.ac.cn>,
-	Wei Huang <wei.huang2@amd.com>,
-	Andy Gospodarek <andrew.gospodarek@broadcom.com>,
-	Somnath Kotur <somnath.kotur@broadcom.com>,
-	punit.agrawal@oss.qualcomm.com, guohanjun@huawei.com,
-	suzuki.poulose@arm.com, ryan.roberts@arm.com,
-	chenl311@chinatelecom.cn, masahiroy@kernel.org,
-	wangyuquan1236@phytium.com.cn, anshuman.khandual@arm.com,
-	heinrich.schuchardt@canonical.com, Eric.VanTassell@amd.com,
-	wangzhou1@hisilicon.com, wanghuiqiang@huawei.com,
-	liuyonglong@huawei.com, linux-pci@vger.kernel.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, loongarch@lists.linux.dev,
-	linux-riscv@lists.infradead.org, xen-devel@lists.xenproject.org,
-	linux-acpi@vger.kernel.org, linux-perf-users@vger.kernel.org,
-	stable@vger.kernel.org
-Subject: Re: [PATCH v10 0/8] ACPI: Unify CPU UID interface and fix ARM64 TPH
- steer-tag issue
-Message-ID: <acwE9V-r63-W2wby@arm.com>
-References: <20260320031737.35048-1-fengchengwen@huawei.com>
+	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="IgBJukjV";
+	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="HWlqPLNJ"
+Received: from pps.filterd (m0279864.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 62VGdhrT3926858
+	for <linux-acpi@vger.kernel.org>; Tue, 31 Mar 2026 17:48:36 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
+	9tkluilWSFi/zwAvCgNgh5sc8znVExg6yAujw+zfcHE=; b=IgBJukjVHVlVxAeC
+	uka8zQLMz3Hpa6J1fgfMtCBZI89mTZ68ZtodlMEERZAKZUcKVnWH2l//Tha7AD1f
+	WJiujnb3gxO/PKyKDmp9G/vPf5MR5sA9PDr1GksgOsatL2SsqGph9AArDf6S8z8/
+	3LhvgwRX/pBIY9Gef6MJTWA8nwyImw6Wy+Cl8dhw5lLukZhh0KKPCWQgYtFC53bv
+	MESSzTiyrq/ozH2s9JhocgnIsND7Lsq38ZOvTw4BgrCOb+iHWVpOic3FVqhhpmSF
+	sUnufd0QpedVrTnqkCXm7EzO8vDAMTO7aJOwphbYyvy+uqWOaAZ9MrSAlyztHnLn
+	oVnf1g==
+Received: from mail-qt1-f197.google.com (mail-qt1-f197.google.com [209.85.160.197])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4d8b932dp4-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <linux-acpi@vger.kernel.org>; Tue, 31 Mar 2026 17:48:36 +0000 (GMT)
+Received: by mail-qt1-f197.google.com with SMTP id d75a77b69052e-50b4fe4ff7bso5540791cf.0
+        for <linux-acpi@vger.kernel.org>; Tue, 31 Mar 2026 10:48:36 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=oss.qualcomm.com; s=google; t=1774979315; x=1775584115; darn=vger.kernel.org;
+        h=in-reply-to:references:from:to:cc:subject:message-id:date
+         :content-transfer-encoding:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=9tkluilWSFi/zwAvCgNgh5sc8znVExg6yAujw+zfcHE=;
+        b=HWlqPLNJExBxiZ28bo2fvjBfnNBzpans7/7+9Q9Abv7LC3Ah4k/fMn6dfxE7f+HHbL
+         Md8S7D2G+A44PaxSW6I6smragVL7kiElff2c0AWfeDWhXT4P92D9uY6T81r7E25p5w9A
+         eNfWgbRHdb1w0NiemmPoXgbq5Lv44uQ9rlidlXYHYwaoE0rQ9A0Mnvmuwlxog2zOKHkM
+         SpIYQGswVjBTz5uFDJKdfIF+h9PLshwJ1Qi1Rlnxc8L5PHZUZKctE9jckxYD4FW7Pz/n
+         TL2A/du6VGI4DglBA9c3dkC2NMjt7ff6IX5BsYiVMWtoSF8BFUg68GLqVNxvcF8z3gzn
+         90cQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1774979315; x=1775584115;
+        h=in-reply-to:references:from:to:cc:subject:message-id:date
+         :content-transfer-encoding:mime-version:x-gm-gg:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=9tkluilWSFi/zwAvCgNgh5sc8znVExg6yAujw+zfcHE=;
+        b=WT++3ijsxbn6WJErv5NL4O9ddjXw5fSr3QwkLgxEMvCKxqtwWD1IyKDzsEFqqVfIiw
+         fxyi/2Sjz4uhaxAu1PPqumo6dMpW3v5RuGZIS+4cgijvzoAYeuHuweRpfImQpIUhBuZk
+         Pg4MKKunqX6UBgAwBvgJRb9rHAkWFtOLCeLKNAd0C5qjCA9xVbA07x2Jz27dEy6YccPI
+         fEFPKIv20kqKdlez/UpZzMT4qLdJemM+ViFhCnBSzi742lqngugoFMBz3nvIG3NF3qZB
+         0wsBLZ32MaABPK0oHjOgZ8FknsY6hB9wU0J4EGIvXQaWjJ+0Rka4DH05DKJewQoHMDrG
+         BpJw==
+X-Forwarded-Encrypted: i=1; AJvYcCWgX8xP8c7GaktlsJP5obOJhkh+T0hBlaN6TR6bL7DqDG1fLD5VAaZVNIT0KGtMsldCN+K+bJugLcQv@vger.kernel.org
+X-Gm-Message-State: AOJu0YzIgogVJInh08GO9+bIkRBqNApnCMNWlZI5dv/oN956SW1t72xy
+	XuYbSDFNZcFsGlQl9EH8RByNSkkFHybY1MRK5F2YTX31mbSGcPHUhNnk2Bj+yoVWunWtJ2MfhnS
+	NwzM5EetMlg1u5Z12lS7Z+cgOKgtKqSkAI47KV8tT1WkonXKtnAvqieghXB+rQtg6
+X-Gm-Gg: ATEYQzwoySVGh3r7uA4GcCZx68wcRihU62cELR8F8bOj85fEvlHfUeo+2od869xnt5k
+	n1dsfKZFXEb2R02+oeqWqQXOFfQ/49qI2i50kHW5ld9qJlzqRR41nl02R0G4sLIxzo2Phtsf2xZ
+	3GaNMsMM2S1tFMoOgmNXYZgBTQPhhQ3WhaRP63eO0CuXXMazlrcVCHbJfvaLS238Gac1oirKrEB
+	EYm9wkIKBCcV8x5GWvh1k0hSS2tyWnIXXYZf5XZJkAyxa2zVENejcH8G/Ox9Nq+0WpqRNSgqL1t
+	OlUc9i5mBd/DFQ7DXJzogcvNvHon7o275BmqOMmPnLFkoRZHfYvaLq5jgqhcOqsemZpcewT3BHa
+	nfsKjctgXqxPYg0ss43zq3reLLnTI7P4F4l7cS2rLxWmJZPvsvYRQXh/RzDNB
+X-Received: by 2002:a05:622a:a045:b0:509:144a:43bd with SMTP id d75a77b69052e-50d2c5b718bmr43350881cf.3.1774979310208;
+        Tue, 31 Mar 2026 10:48:30 -0700 (PDT)
+X-Received: by 2002:a05:622a:a045:b0:509:144a:43bd with SMTP id d75a77b69052e-50d2c5b718bmr43350401cf.3.1774979309635;
+        Tue, 31 Mar 2026 10:48:29 -0700 (PDT)
+Received: from localhost (ip-86-49-249-15.bb.vodafone.cz. [86.49.249.15])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-b9c091331e0sm50383566b.8.2026.03.31.10.48.27
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 31 Mar 2026 10:48:28 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260320031737.35048-1-fengchengwen@huawei.com>
+Mime-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8
+Date: Tue, 31 Mar 2026 19:48:27 +0200
+Message-Id: <DHH5NGQGQYBE.31X8OI8AKTYRU@oss.qualcomm.com>
+Subject: Re: [PATCH RFC v2 08/17] RISC-V: QoS: add resctrl interface for
+ CBQRI controllers
+Cc: "Paul Walmsley" <paul.walmsley@sifive.com>, <linux-acpi@vger.kernel.org>,
+        <acpica-devel@lists.linux.dev>, <devicetree@vger.kernel.org>,
+        "linux-riscv"
+ <linux-riscv-bounces@lists.infradead.org>
+To: "Drew Fustini" <fustini@kernel.org>, "Paul Walmsley" <pjw@kernel.org>,
+        "Palmer Dabbelt" <palmer@dabbelt.com>,
+        "Albert Ou" <aou@eecs.berkeley.edu>, "Alexandre Ghiti" <alex@ghiti.fr>,
+        "Samuel Holland"
+ <samuel.holland@sifive.com>,
+        "Adrien Ricciardi" <aricciardi@baylibre.com>,
+        "Nicolas Pitre" <npitre@baylibre.com>,
+        =?utf-8?q?Kornel_Dul=C4=99ba?=
+ <mindal@semihalf.com>,
+        "Atish Patra" <atish.patra@linux.dev>,
+        "Atish Kumar
+ Patra" <atishp@rivosinc.com>,
+        "Vasudevan Srinivasan" <vasu@rivosinc.com>,
+        "Ved Shanbhogue" <ved@rivosinc.com>,
+        "yunhui cui"
+ <cuiyunhui@bytedance.com>,
+        "Chen Pei" <cp0613@linux.alibaba.com>,
+        "Liu
+ Zhiwei" <zhiwei_liu@linux.alibaba.com>,
+        "Weiwei Li" <liwei1518@gmail.com>, <guo.wenjia23@zte.com.cn>,
+        <liu.qingtao2@zte.com.cn>,
+        "Reinette Chatre"
+ <reinette.chatre@intel.com>,
+        "Tony Luck" <tony.luck@intel.com>, "Babu
+ Moger" <babu.moger@amd.com>,
+        "Peter Newman" <peternewman@google.com>,
+        "Fenghua Yu" <fenghua.yu@intel.com>,
+        "James Morse" <james.morse@arm.com>, "Ben Horgan" <ben.horgan@arm.com>,
+        "Dave Martin" <Dave.Martin@arm.com>, <linux-kernel@vger.kernel.org>,
+        <linux-riscv@lists.infradead.org>, <x86@kernel.org>,
+        "Rob Herring" <robh@kernel.org>,
+        "Rafael J. Wysocki"
+ <rafael@kernel.org>,
+        "Len Brown" <lenb@kernel.org>,
+        "Robert Moore"
+ <robert.moore@intel.com>,
+        "Sunil V L" <sunilvl@ventanamicro.com>,
+        "Krzysztof Kozlowski" <krzk+dt@kernel.org>,
+        "Conor Dooley"
+ <conor+dt@kernel.org>
+From: =?utf-8?q?Radim_Kr=C4=8Dm=C3=A1=C5=99?=
+ <radim.krcmar@oss.qualcomm.com>
+References: <20260128-ssqosid-cbqri-v2-0-dca586b091b9@kernel.org>
+ <20260128-ssqosid-cbqri-v2-8-dca586b091b9@kernel.org>
+In-Reply-To: <20260128-ssqosid-cbqri-v2-8-dca586b091b9@kernel.org>
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwMzMxMDE2OSBTYWx0ZWRfXy8IhURqufokZ
+ w/Lfjk/81viGBPZ/EhaUpuDtpBs5/zTwibVdYRySe2kUEZWwjM3qARNajaqCv2HWOj/W+Gs7SEz
+ KcqpokmVqeayD90QWnyNyQrRnAkezOIcFTVt9QWFLFfNe2apanaoNzCAN14f4g6+3wmsBKe+nvt
+ zAVMxQE5FXUk4ibo4rFKlqeLGiL/W6g9cglnGRLmmZix8GPG1GDQFfbEJLQr4078z8aF2v23cO3
+ MU38KCU7ILUOrpwGcEX21B/i7ZVcRTBrHO1ouUefHNgAYoSwQGpyIbHGFHRc7ttCGcGtgzzBEen
+ ZQHfpF/I8iu1KlxmpdUBf5pyNObp1pCG0GjVJs6g3xQkMMslgs9xbPxqWL6wscjFOEF1QmVxqS+
+ rQjlXm86wEjcRUkDHIKLBQ6T2tZSYM7otxAVn1aXLT9MyNrQz7kZNGHqE5fq2JiNdAtC6TLeC4Q
+ ///X1BCJV0X8QrFjBYg==
+X-Proofpoint-ORIG-GUID: Lo493yMOXeKZ5DTy58SCNy5cPZlzjE_G
+X-Proofpoint-GUID: Lo493yMOXeKZ5DTy58SCNy5cPZlzjE_G
+X-Authority-Analysis: v=2.4 cv=NLjYOk6g c=1 sm=1 tr=0 ts=69cc08f4 cx=c_pps
+ a=EVbN6Ke/fEF3bsl7X48z0g==:117 a=fuErIE+P63Icv3tqjtEZBw==:17
+ a=IkcTkHD0fZMA:10 a=Yq5XynenixoA:10 a=M51BFTxLslgA:10 a=s4-Qcg_JpJYA:10
+ a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=DJpcGTmdVt4CTyJn9g5Z:22
+ a=VwQbUJbxAAAA:8 a=IpJZQVW2AAAA:8 a=1RoDV13bKi5nvpdD3ZQA:9 a=QEXdDO2ut3YA:10
+ a=a_PwQJl-kcHnX1M80qC6:22 a=IawgGOuG5U0WyFbmm1f5:22
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.51,FMLib:17.12.100.49
+ definitions=2026-03-31_04,2026-03-31_02,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ adultscore=0 suspectscore=0 impostorscore=0 spamscore=0 phishscore=0
+ priorityscore=1501 malwarescore=0 clxscore=1011 lowpriorityscore=0
+ bulkscore=0 classifier=typeunknown authscore=0 authtc= authcc= route=outbound
+ adjust=0 reason=mlx scancount=1 engine=8.22.0-2603050001
+ definitions=main-2603310169
 
-On Fri, Mar 20, 2026 at 11:17:29AM +0800, Chengwen Feng wrote:
-> This patchset unifies ACPI Processor UID retrieval across
-> arm64/loongarch/riscv/x86 via acpi_get_cpu_uid() (with input validation)
-> and fixes ARM64 CPU steer-tag retrieval failure in PCI/TPH:
-> 
-> 1-4: Add acpi_get_cpu_uid() for arm64/loongarch/riscv/x86 (update
->      respective users)
-> 5: Centralize acpi_get_cpu_uid() declaration in include/linux/acpi.h
-> 6: Clean up perf/arm_cspmu
-> 7: Clean up ACPI/PPTT and remove unused get_acpi_id_for_cpu()
-> 8: Pass ACPI Processor UID to Cache Locality _DSM
-> 
-> The interface refactor ensures consistent CPU UID retrieval across
-> architectures (no functional changes for valid inputs) and provides the
-> unified interface required for the ARM64 TPH fix.
-> 
+2026-01-28T12:27:29-08:00, Drew Fustini <fustini@kernel.org>:
+> Add interface for CBQRI controller drivers to make use of the resctrl
+> filesystem.
+>
+> Co-developed-by: Adrien Ricciardi <aricciardi@baylibre.com>
+> Signed-off-by: Adrien Ricciardi <aricciardi@baylibre.com>
+> Signed-off-by: Drew Fustini <fustini@kernel.org>
 > ---
-> Changes in v10:
-> - Refine commit header&log according to Punit's and Bjorn's review
-> - Split perf/arm_cspmu as a separate commit which address Punit's
->   review
-> 
-> Changes in v9:
-> - Address Bjorn's review: split commits to each platform so that make
->   them easy to review
-> 
-> Changes in v8:
-> - Moving arm64's get_cpu_for_acpi_id() to kernel/acpi.c which address
->   Jeremy's review
-> 
-> Chengwen Feng (8):
->   arm64: acpi: Add acpi_get_cpu_uid() for unified ACPI CPU UID retrieval
->   LoongArch: Add acpi_get_cpu_uid() for unified ACPI CPU UID retrieval
->   RISC-V: ACPI: Add acpi_get_cpu_uid() for unified ACPI CPU UID
->     retrieval
->   x86/acpi: Add acpi_get_cpu_uid() for unified ACPI CPU UID retrieval
->   ACPI: Centralize acpi_get_cpu_uid() declaration in
->     include/linux/acpi.h
->   perf: arm_cspmu: Switch to acpi_get_cpu_uid() from
->     get_acpi_id_for_cpu()
->   ACPI: PPTT: Use acpi_get_cpu_uid() and remove get_acpi_id_for_cpu()
->   PCI/TPH: Pass ACPI Processor UID to Cache Locality _DSM
-> 
->  Documentation/PCI/tph.rst          |  4 +--
->  arch/arm64/include/asm/acpi.h      | 17 +---------
->  arch/arm64/kernel/acpi.c           | 30 ++++++++++++++++++
 
-For the arm64 bits:
+Hi Drew, I have just a few minor comments as I noticed that you plan to
+send a new version soon, so I'll try for a review then...
 
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+> diff --git a/arch/riscv/kernel/qos/qos_resctrl.c b/arch/riscv/kernel/qos/=
+qos_resctrl.c
+> +static int cbqri_probe_controller(struct cbqri_controller_info *ctrl_inf=
+o,
+> +				  struct cbqri_controller *ctrl)
+> +{
+> +	int err =3D 0, status;
+> +	u64 reg;
+[...]
+> +	ctrl->base =3D ioremap(ctrl_info->addr, ctrl_info->size);
+> +	if (!ctrl->base) {
+> +		pr_warn("%s(): goto err_release_mem_region", __func__);
+
+Missing "err =3D -E...".
+
+> +		goto err_release_mem_region;
+> +	}
+[...]
+> +		ctrl->ver_minor =3D reg & CBQRI_CC_CAPABILITIES_VER_MINOR_MASK;
+> +		ctrl->ver_major =3D reg & CBQRI_CC_CAPABILITIES_VER_MAJOR_MASK;
+
+Major version is shifted.
+
+> +
+> +		ctrl->cc.supports_alloc_op_flush_rcid =3D (reg >> CBQRI_CC_CAPABILITIE=
+S_FRCID_SHIFT)
+> +			& CBQRI_CC_CAPABILITIES_FRCID_MASK;
+
+FIELD_GET() could be used to make the mask+shift pattern nicer when
+defined by GENMASK().
+
+Thanks.
