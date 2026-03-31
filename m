@@ -1,118 +1,116 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C88A940DFCA;
-	Tue, 31 Mar 2026 05:57:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2149538B7CD;
+	Tue, 31 Mar 2026 06:25:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.10
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774936676; cv=none; b=dd68RNzZfiwcRD8kw0U02EzOwRddOTy2hQvGmvcORcnB0SeS/jHQqKlrY7OXps3jWiv0iSN3FFZsEJDFHUqvH1afD2jDwEm6vuxxk0eOFlBACWFM88Sh9ZaKNFBRVaWvtpuzdOJ5NZI974GQiEFR3Ps4h0pDGTE4Co/Z7ZAx1ZA=
+	t=1774938342; cv=none; b=gdqx0QbxBEfgCpR0A3yCpcxXcrOkTydowJ7fj92sEhZA7patMjVmSMLp+J/aYoKhlsEj80T3cHwH6pK6N6oYFmTyK0BjxzQ89SPnzU1O7D9LEQoim095oopWKjGsjahKpQ0eqHogj7vYAOI1TlCZS3/DlVYqtbR1qPsb8uBTXz4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774936676; c=relaxed/simple;
-	bh=5hADumHSBXCjIT1+LmAVrQVfEhe+8GDNiqeARvyfA+I=;
+	s=arc-20240116; t=1774938342; c=relaxed/simple;
+	bh=3VFiO/9e0/Dwa/+IPq3LFbEGBlbpH2h2kskMyOOM2wU=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=gVgqoDF18OlAaJO3kGNOZsoD+tTZIGp2+CyKCF04dLchWBWCM6kTzcPW1QcTYDXKetPbs5P4qUQgwAij6coPLCm/CwkmTC7L97pPJ7Y72EpVksZpLwXjb3MiWTXqMJ3tkpbVZ8+b0VQ5NfXcVZcKDDmq0qdIeeKITvyxrZ7ofLo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mIyEdRjM; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=f+ff9PV3NCE9CjV4W648M6rlVOdLDgKBlrN05z5Dr1g6kOnTUqnZr4dV6FaT5Nw9pehe+A5IV2rQv6LlyhTeulQOi0rHykawZ8d/GS1e3eD37hKZhpNKBh+S5xudaTsxLnMg+jEDFKYWOJOs1aSPZSxbkZwmP6Crmp7POFBOoPo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=M2mIq6aQ; arc=none smtp.client-ip=198.175.65.10
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mIyEdRjM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AAE5CC19423;
-	Tue, 31 Mar 2026 05:57:55 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774936676;
-	bh=5hADumHSBXCjIT1+LmAVrQVfEhe+8GDNiqeARvyfA+I=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=mIyEdRjMgpcYCfx8c2wkR1g9VBqLaIM+JUvM94CrucqM8dJfEWLApjrIuG5eqArjg
-	 QorgFLXDc6ZfIpx7w254FmJvjd01xC6pC7lMhDgaf6fuUDhUM/sRpCv+1AtfEn49Gz
-	 ems2dTvkV+doldKZL09o+HBJ3cIncReLiFwIG8KKbIcCDzBJMhEHJJAhTJj6nICM48
-	 kHAGWQ/MTlrcniA/NcP3wMs2DOnN1+VpqCKRoyyXGUnWFc8TCnZRduI6DtNBYySZft
-	 VOOmZEM5sNsGsXdH1kCX1imhiqJg9AS1s53HKHLn5KWxbVRfd69xa6gIk4QdZKELRC
-	 B2WhVDvepMeqQ==
-Date: Mon, 30 Mar 2026 22:57:54 -0700
-From: Drew Fustini <fustini@kernel.org>
-To: guo.wenjia23@zte.com.cn
-Cc: dave.martin@arm.com, acpica-devel@lists.linux.dev, alex@ghiti.fr,
-	aou@eecs.berkeley.edu, aricciardi@baylibre.com,
-	atish.patra@linux.dev, atishp@rivosinc.com, babu.moger@amd.com,
-	ben.horgan@arm.com, conor+dt@kernel.org, cp0613@linux.alibaba.com,
-	cuiyunhui@bytedance.com, devicetree@vger.kernel.org,
-	fenghua.yu@intel.com, james.morse@arm.com, krzk+dt@kernel.org,
-	lenb@kernel.org, linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org,
-	liu.qingtao2@zte.com.cn, liwei1518@gmail.com, mindal@semihalf.com,
-	npitre@baylibre.com, palmer@dabbelt.com, paul.walmsley@sifive.com,
-	peternewman@google.com, pjw@kernel.org, rafael@kernel.org,
-	reinette.chatre@intel.com, rkrcmar@ventanamicro.com,
-	robert.moore@intel.com, robh@kernel.org, samuel.holland@sifive.com,
-	sunilvl@ventanamicro.com, tony.luck@intel.com, vasu@rivosinc.com,
-	ved@rivosinc.com, x86@kernel.org, zhiwei_liu@linux.alibaba.com
-Subject: Re: [PATCH RFC 08/19] RISC-V: QoS: add resctrl interface for CBQRI
- controllers
-Message-ID: <actiYi6ACcOrvz9J@gen8>
-References: <20260119-ssqosid-cbqri-v1-8-aa2a75153832@kernel.org>
- <202603261113.62QBDn8T007047@mse-db.zte.com.cn>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="M2mIq6aQ"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1774938341; x=1806474341;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=3VFiO/9e0/Dwa/+IPq3LFbEGBlbpH2h2kskMyOOM2wU=;
+  b=M2mIq6aQm0Wf2Z5nB/MA+dMiE3IMI6YqKp2tWv0V6X/t72wRFCQfpACP
+   S6U3vW2MWIYnDG3S/hUv7HI9kSOwP4PfKaQiZ4m/DVVq3BsI5pi4wlsuQ
+   WcHKduVZIFgR137Px3hv4AE1RNMaG+e1wctxSKKydBr8/4U2mIiaeS2D7
+   g25ILUWpQv34mN/BnYmMoMkcmFHtZ6ArVU8vRcTYNT08HMFvTCm0Tl3KI
+   Y1Hesl39EuC8j6OkUOWdhRNEyMztUDBelqJuU4qOItuClxR6J5dM3D9n7
+   w3aBwfnae06fSWUoQhI2AqS2o+s8r2IhYcMJTf3CrlGkCyXj0hgDZsvgN
+   A==;
+X-CSE-ConnectionGUID: o70gKDI/TGiw/DeIF7QLBw==
+X-CSE-MsgGUID: j7FETsUAR2yOhTF2wB9Yig==
+X-IronPort-AV: E=McAfee;i="6800,10657,11744"; a="93323388"
+X-IronPort-AV: E=Sophos;i="6.23,151,1770624000"; 
+   d="scan'208";a="93323388"
+Received: from orviesa004.jf.intel.com ([10.64.159.144])
+  by orvoesa102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Mar 2026 23:25:41 -0700
+X-CSE-ConnectionGUID: tM5AvxKvTS20bU+YYeM05g==
+X-CSE-MsgGUID: XLXLMmThTjauDlTqrccrPw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,151,1770624000"; 
+   d="scan'208";a="230730554"
+Received: from rvuia-mobl.ger.corp.intel.com (HELO localhost) ([10.245.245.209])
+  by orviesa004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Mar 2026 23:25:35 -0700
+Date: Tue, 31 Mar 2026 09:25:33 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Janusz Krzysztofik <jmkrzyszt@gmail.com>,
+	Tony Lindgren <tony@atomide.com>,
+	Russell King <linux@armlinux.org.uk>,
+	Kevin Hilman <khilman@baylibre.com>, Arnd Bergmann <arnd@arndb.de>,
+	brgl@kernel.org, driver-core@lists.linux.dev,
+	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Subject: Re: [PATCH v4 2/3] driver core: make software nodes available earlier
+Message-ID: <acto3TE1AR8iTzF0@ashevche-desk.local>
+References: <20260330-nokia770-gpio-swnodes-v4-0-b68592e977d0@oss.qualcomm.com>
+ <20260330-nokia770-gpio-swnodes-v4-2-b68592e977d0@oss.qualcomm.com>
+ <acrcDTPpXZ_5A4D8@ashevche-desk.local>
+ <acruxMNdnUlyRHiy@google.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <202603261113.62QBDn8T007047@mse-db.zte.com.cn>
+In-Reply-To: <acruxMNdnUlyRHiy@google.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On Thu, Mar 26, 2026 at 07:05:48PM +0800, guo.wenjia23@zte.com.cn wrote:
-> Hi Drew,
+On Mon, Mar 30, 2026 at 02:46:45PM -0700, Dmitry Torokhov wrote:
+> On Mon, Mar 30, 2026 at 11:24:45PM +0300, Andy Shevchenko wrote:
+> > On Mon, Mar 30, 2026 at 02:40:47PM +0200, Bartosz Golaszewski wrote:
+
+...
+
+> > > -static void __exit software_node_exit(void)
+> > > -{
+> > > -	ida_destroy(&swnode_root_ids);
+> > > -	kset_unregister(swnode_kset);
+> > >  }
+> > > -__exitcall(software_node_exit);
+> > 
+> > Why? What's wrong with the __exitcall?
 > 
-> On Thu, Jan 29, 2026 at 4:28 AM Drew Fustini <fustini@kernel.org> wrote:>
-> > Add interface for CBQRI controller drivers to make use of the resctrl
-> > filesystem.
-> >
-> > Co-developed-by: Adrien Ricciardi <aricciardi@baylibre.com>
-> > Signed-off-by: Adrien Ricciardi <aricciardi@baylibre.com>
-> > Signed-off-by: Drew Fustini <fustini@kernel.org>
-> > ---
-> >  arch/riscv/kernel/qos/qos_resctrl.c | 1192 +++++++++++++++++++++++++++++++++++
-> >  1 file changed, 1192 insertions(+)
-> >
-> > ...
-> >
-> > +
-> > +int resctrl_arch_update_one(struct rdt_resource *r, struct rdt_ctrl_domain *d,
-> > +                           u32 closid, enum resctrl_conf_type t, u32 cfg_val)
-> > +{
-> > +       struct cbqri_controller *ctrl;
-> > +       struct cbqri_resctrl_dom *dom;
-> > +       struct cbqri_config cfg;
-> > +       int err = 0;
-> > +
-> > +       dom = container_of(d, struct cbqri_resctrl_dom, resctrl_ctrl_dom);
-> > +       ctrl = dom->hw_ctrl;
-> > +
-> > +       if (!r->alloc_capable)
-> > +               return -EINVAL;
-> > +
-> > +       switch (r->rid) {
-> > +       case RDT_RESOURCE_L2:
-> > +       case RDT_RESOURCE_L3:
-> > +               cfg.cbm = cfg_val;
-> > +               err = cbqri_apply_cache_config(dom, closid, t, &cfg);
-> > +               break;
-> > +       case RDT_RESOURCE_MBA:
-> > +               /* covert from percentage to bandwidth blocks */
-> > +               cfg.rbwb = cfg_val * ctrl->bc.nbwblks / 100;
+> It's dead code. Always was, always will be.
 > 
-> Should use bc.mrbwb to calculate rbwb? 
-> I think bc.nbwblks represent the available bw blks in the controller.
-> It should should decrease as they are allocated.
+> Maybe split in a separate patch, but I sometimes feel the idea of "one
+> change" is taken to extreme and adds to both developer's and maintainers
+> burden by needing to keep track of extra patches.
 
-The resctrl MBA resource is supposed to be the percentage of total
-memory bandwidth. nbwblks is the total number of bandwidth blocks, so I
-think the existing calucation is correct.
+Why does __exitcall() exist then? It's also used in other places.
+I think it's generally good to have a possibility to clean up
+after run.
 
-From the example SoC configuration, the number of bandwidth blocks is
-1024, and mrbwb is meant to be 80% of nbwblks which is 819.
+A bit of archaeology:
 
-Setting MB to 80% in schemata would yield: 80 * 1024 / 100 = 819
+The first time it appeared was in the bcc2152647b8 ("Import 2.4.0-test3pre3").
+Then somehow spread a bit (but not much).
 
-Thanks,
-Drew
+-- 
+With Best Regards,
+Andy Shevchenko
+
+
