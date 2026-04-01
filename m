@@ -1,71 +1,114 @@
-Received: from out30-97.freemail.mail.aliyun.com (out30-97.freemail.mail.aliyun.com [115.124.30.97])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f170.google.com (mail-pl1-f170.google.com [209.85.214.170])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BA34175A6B;
-	Wed,  1 Apr 2026 01:55:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.97
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 331EE33F5B4
+	for <linux-acpi@vger.kernel.org>; Wed,  1 Apr 2026 02:30:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.170
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775008518; cv=none; b=GNsFA6iJ9J938RyMha6W+4znAjUAwS/SKr29M86mJNmzp1deGIsIhU7SmV07DSZt+F5ohKAEeD67mtjoS5Oz05BFQJkDC0y8tYgLyaJeOXtPBTdryXBHMuuTh17y1p4SO83qgGrvc5Yj9A26fGffsgXDcckZ3JkmndezDfwtXVo=
+	t=1775010613; cv=none; b=XCmZOIsmDI8cVy2P48LKMx+3kOyenwWJ9vypcYeM1JMtOb+0oe2VcM51ro+HPFpzmQgOBRgmFGKxKF2iDoBensK02oTuGldc+DsbnCEiMiOTTi7mzSAlXUzUf5HvCnuIKrENbfgJ5s8BNvZbE9/2Pq05VRBWt8mCnuqqvQfzxFo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775008518; c=relaxed/simple;
-	bh=q50Bz65E+OyJ9vDk1N9jM1vlWen+ne5EUNUrgXUwgJY=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=e+xfYYa5Fv7JREk6InJccbjrRUkXhisSpyNwuwFx2q/Tu4A8AdwjXtx+UT5gcvZd4D2cnIhjpU1qZORkxwmPzBoCrEMKsQ4s2CTgZmn+6VClMY4Cx10JwRMYDCqBqZy+HiX1xCEG5BTQ8Gg8o090tW57sN56nTCC0GxVucWwHQk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=NOWj6NiB; arc=none smtp.client-ip=115.124.30.97
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+	s=arc-20240116; t=1775010613; c=relaxed/simple;
+	bh=zvkcBEqh/jDqQTe9s+XIQDMewdcXVDODI24G6WA9YJw=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=NE+tcdOPSMJrEPPBAjdxBcNFA+cIpzS12WHLzoQ6+kF1kI7Z20EhtbX3mCo9TJ6EaoheU72Fwr+1tNqtYamHWJn4+6y0rw7powZFV2U/Qzde56c+fZDPoTLB9afW4ZYADsGA37Wxj+eOfmifB0tMnNwHMvMAgj4CQMfYq/+Zg2M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=aN2kbjD4; arc=none smtp.client-ip=209.85.214.170
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="NOWj6NiB"
-DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux.alibaba.com; s=default;
-	t=1775008512; h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type;
-	bh=etQknAdonqm8UWH0ocwzl5DXIHYZ47qOaMPkJRg7jIs=;
-	b=NOWj6NiB9lHDbjmZvcCt+/GLnHv+rSKBrXzp+PfSAPpXtI0fcVpYmsaeBt3TLBOZ/rA6g4pbSOZCUT1Dg6BTyo3askrxS9gTzLBdtynHsUV2/GdQi8GdmojM0k8bbIcaZ38ltzpg/M4tSxMB/Vl4vMlI7nx9m7NvGQ+rIT1bkmw=
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R241e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam011083073210;MF=xueshuai@linux.alibaba.com;NM=1;PH=DS;RN=19;SR=0;TI=SMTPD_---0X061LQV_1775008509;
-Received: from 30.246.177.235(mailfrom:xueshuai@linux.alibaba.com fp:SMTPD_---0X061LQV_1775008509 cluster:ay36)
-          by smtp.aliyun-inc.com;
-          Wed, 01 Apr 2026 09:55:10 +0800
-Message-ID: <32ad70fc-c07e-47c0-8511-fed3bc3fc76f@linux.alibaba.com>
-Date: Wed, 1 Apr 2026 09:55:21 +0800
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="aN2kbjD4"
+Received: by mail-pl1-f170.google.com with SMTP id d9443c01a7336-2b23f90f53aso39706215ad.0
+        for <linux-acpi@vger.kernel.org>; Tue, 31 Mar 2026 19:30:08 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1775010608; x=1775615408; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=uU6xSYE0T+TCq9LtlZpBqruvjiamhGaYf3vCeGkc/3w=;
+        b=aN2kbjD4tTPE6pErD8jk5mYP1633Ev2IuVe0J0a+Ee3hzn1Nk2eGYlPo3GAA8QNQVr
+         7ni8LZsMNYpfoj3L0SUB7A3Agc01a3M8tl//ty8UdOepbZcjsWC5z5qyKo/wo5tqiiCe
+         7pbZNqix7bD3MwjaSy/HBzoPsolcam51fAENHfHtoOFKbFJb2bPXGfcj7x4VJ3q29GgM
+         Vhy5pbp6IOlqn+bE647zTAgjzmg7Y+YcEfOYXmo13GFN0Tbn6RYx0FT9TbDrgC5oLIjY
+         +3T8ody6hlZo7nCx/u/R3wD5YT4WRG+APCw8J86V8fuhPapHCr5exR/aOQ1w0N+bLThb
+         8zNw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1775010608; x=1775615408;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=uU6xSYE0T+TCq9LtlZpBqruvjiamhGaYf3vCeGkc/3w=;
+        b=rHzyFqhn+Foj9mrsVvf0UJMJgo5X3vy7cHNUr2hiPluG/KZOeJriMA747YXa+nnG6s
+         5kNdyayRTGTxW4Nzb3KQUfUwGmBHmcBv77Sy25WPWl5+ZSMv6uoiIkSX3Owt1n6AuZg+
+         i6sgHjXyZ8szhVx2ugqJ2ioK2FS6bkAff6Eit7XVqQwbbjrn1E2PRAK0tMYJAUlbmo10
+         sjaVxwtLZk5reboaXFc2lNFqu7I0qy+goNJUxaszxHPCm9MX09oD9M72zaL8ksyZ3j5X
+         JO5OVK/QsH7eum4jEcX7fec9ma6qNdfiSdi7EoDVePqcAJULLBBGUUgwk0wlK0rLBCLy
+         SGEQ==
+X-Forwarded-Encrypted: i=1; AJvYcCVcJCNq9c4RgOEFzCN97S9ScrFIjSAz6m/L9Wocc9ERQ6SB5w4qudXvz0HfWddHLWyolhtc7AQ2fgw9@vger.kernel.org
+X-Gm-Message-State: AOJu0YzOWhrUWgQtkPxD5dc7hpd9cQunap7sLo3ZJgSb03tVXYKVglYo
+	FIvJe9kjxQFfdo+N+R3lj1uZsG9ONKgKMVyQH8hJDj3KsWpdJFGVOKBeFvRMu+6Y
+X-Gm-Gg: ATEYQzxG+efpre4iX8Gbsimv6XvYpcI+2Wgtovqy8XiOwrgVgSKBnJckeinmOHaGfLL
+	eGUGcQnpaRlZmSDEabZyqAXmZcB0EmtsiRX0lexU0OnqIsxQmHJLl1oxjsdzzK+LXrDLSDJAVQM
+	KnpowyHF7VMRWb2ikPL+2iTXqdncFeuWK/9kqC3j17XqtrXgi94pKQevPwpWi5Jw6Yk2tUmiXFy
+	NZIEU8pChg4eUp1duVo5pzmKy87XgJxWu7CNq87fFk8sgJHTNiRSUaEAT3VII88x+2+BMJvyQkv
+	rvSKfNmXZuWduMDYq+FGQxe/8AVwCGawoibZ0mSpV8W09/8zjREtdo2SsSAffIlo/TD3fvRtl/x
+	b7MqtyCIewsDQnRruo7JJ3vj+1CFmhGP0VHHqhZvNCCKP/8jf9ioSF4XQLkS4Rr9LsXZJBFG+G7
+	3u3ZIqthVljN5tT2sXRFcxMADkdt7vOhwIXcfmcuWXu4EkJo84G5E=
+X-Received: by 2002:a17:903:2b0c:b0:2b0:ac1e:9720 with SMTP id d9443c01a7336-2b269cffdefmr15058905ad.23.1775010607797;
+        Tue, 31 Mar 2026 19:30:07 -0700 (PDT)
+Received: from ZC-202510311500 ([123.139.39.4])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2b25ca51aefsm64331575ad.16.2026.03.31.19.30.03
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 31 Mar 2026 19:30:07 -0700 (PDT)
+From: Haoyu Lu <hechushiguitu666@gmail.com>
+To: "Rafael J . Wysocki" <rafael@kernel.org>,
+	Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	Hanjun Guo <guohanjun@huawei.com>,
+	Sudeep Holla <sudeep.holla@kernel.org>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>
+Cc: Len Brown <lenb@kernel.org>,
+	Ilkka Koskinen <ilkka@os.amperecomputing.com>,
+	Russell King <rmk+kernel@armlinux.org.uk>,
+	linux-acpi@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org,
+	Haoyu Lu <hechushiguitu666@gmail.com>
+Subject: [PATCH v2] ACPI: AGDI: fix missing newline in error message
+Date: Wed,  1 Apr 2026 10:29:56 +0800
+Message-ID: <20260401022957.611-1-hechushiguitu666@gmail.com>
+X-Mailer: git-send-email 2.53.0.windows.1
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 1/3] ACPI: APEI: GHES: Add
- devm_ghes_register_vendor_record_notifier()
-To: Kai-Heng Feng <kaihengf@nvidia.com>, rafael@kernel.org
-Cc: jonathan.cameron@huawei.com, helgaas@kernel.org, guohanjun@huawei.com,
- linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
- linux-pci@vger.kernel.org, acpica-devel@lists.linux.dev,
- linux-hardening@vger.kernel.org, Shiju Jose <shiju.jose@huawei.com>,
- Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>,
- Mauro Carvalho Chehab <mchehab@kernel.org>, Len Brown <lenb@kernel.org>,
- Robert Moore <robert.moore@intel.com>,
- "Fabio M. De Francesco" <fabio.m.de.francesco@linux.intel.com>,
- Breno Leitao <leitao@debian.org>, Jason Tian <jason@os.amperecomputing.com>
-References: <20260330094203.38022-1-kaihengf@nvidia.com>
- <20260330094203.38022-2-kaihengf@nvidia.com>
-From: Shuai Xue <xueshuai@linux.alibaba.com>
-In-Reply-To: <20260330094203.38022-2-kaihengf@nvidia.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
+Add the missing trailing newline to the dev_err() message
+printed when SDEI event registration fails.
 
+This keeps the error output as a properly terminated log line.
 
-On 3/30/26 5:41 PM, Kai-Heng Feng wrote:
-> Add a device-managed wrapper around ghes_register_vendor_record_notifier()
-> so drivers can avoid manual cleanup on device removal or probe failure.
-> 
-> Cc: Shiju Jose <shiju.jose@huawei.com>
-> Cc: Jonathan Cameron <jonathan.cameron@huawei.com>
-> Signed-off-by: Kai-Heng Feng <kaihengf@nvidia.com>
+Changes in v2:
+- Change subject prefix from "acpi: arm64: agdi:" to "ACPI: AGDI:"
 
-LGTM.
+Fixes: a2a591fb76e6f5461dfd04715b69c317e50c43a5 ("ACPI: AGDI: Add driver for Arm Generic Diagnostic Dump and Reset device")
+Reviewed-by: Ilkka Koskinen <ilkka@os.amperecomputing.com>
+Signed-off-by: Haoyu Lu <hechushiguitu666@gmail.com>
+---
+ drivers/acpi/arm64/agdi.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Reviewed-by: Shuai Xue <xueshuai@linux.alibaba.com>
+diff --git a/drivers/acpi/arm64/agdi.c b/drivers/acpi/arm64/agdi.c
+index feb4b2cb4618..0c2d9d6c160b 100644
+--- a/drivers/acpi/arm64/agdi.c
++++ b/drivers/acpi/arm64/agdi.c
+@@ -36,7 +36,7 @@ static int agdi_sdei_probe(struct platform_device *pdev,
 
-Thanks.
-Shuai
+ 	err = sdei_event_register(adata->sdei_event, agdi_sdei_handler, pdev);
+ 	if (err) {
+-		dev_err(&pdev->dev, "Failed to register for SDEI event %d",
++		dev_err(&pdev->dev, "Failed to register for SDEI event %d\n",
+ 			adata->sdei_event);
+ 		return err;
+ 	}
+--
+2.17.1
