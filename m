@@ -1,40 +1,65 @@
-Received: from canpmsgout10.his.huawei.com (canpmsgout10.his.huawei.com [113.46.200.225])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk1-f177.google.com (mail-qk1-f177.google.com [209.85.222.177])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05A7932F740;
-	Wed,  1 Apr 2026 08:22:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.225
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0559340FD99
+	for <linux-acpi@vger.kernel.org>; Wed,  1 Apr 2026 11:50:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.177
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775031773; cv=none; b=Wt49u9NKds2+Iz/JQSkErXvo9Bg/urV4dR9jnlIdSP75R1mFyx3SlXgYsHs1vRi09JNHPI3yr8bPoVQgNTZ3CZDYolfRT1hVsiKp1eL18TTTgGkeVIdQWXqUplIuSDkqvARYfMyxQxINqupmAH5IP6TzLQUSIvL+MRCjsqCSowc=
+	t=1775044206; cv=none; b=Bgqxo5ExmK+fgk4XMFU/XXPyCLx58j8RMY531BEilDsWT7+ccMD/wJ1cVRMAlgWU+PpQczIt4g29lgcA+dlOASjsfI0agHlOUI1dfPNwqpODlzwcR+8ONIIB089hAg1DZJn6JjvYHhlLXOwuwEief+3qaLZRgdYpfpkHBC3OiVo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775031773; c=relaxed/simple;
-	bh=OM/5KN+8jtiSBVhOTr2FyDR++jU2kqIl3x0xZYpcebs=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=t4TFOyvzz1M73P1sIVlPoRs2Jp+1WoRxul/pZpLFFdvUb9kr3kzjzeHlmHJ+zwq2cuL1rbM0oNiWJWHD2clvB49rjh54EmentLry6jzAJ0QzVJ7SEspfS15BsTu3ZTh+kV7r8vjmhpLv3urfzQr7AkYTSGvWNvmGigzy1/NRnMI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=zfVqdZWZ; arc=none smtp.client-ip=113.46.200.225
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+	s=arc-20240116; t=1775044206; c=relaxed/simple;
+	bh=N1+Ri8tyl8Kwm5BhyBgbC2qh62bga6Mp83akJRvVsJA=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=A4GHvH1TnB5dY2CxYZ8EcOGYD7eJXKyLI2M8/QUwlDenYxRXRzoCCKSghaA8HlQDR0Ge+RtIaQxok13vBWGwwvYDr/pv9eWF6/f7HbD+vI6/+pC6QNURUVeEMkNFLX11MpPdc3LbJ2aM01gBvOpraoKD+yAAnYq0U39wHlVsAYA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org; spf=pass smtp.mailfrom=linaro.org; dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b=b9D3a059; arc=none smtp.client-ip=209.85.222.177
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="zfVqdZWZ"
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=MTNaVMsdonTBgQUg0Ejtg6uI8JOpWHbQuBn8i2Muytk=;
-	b=zfVqdZWZzivpJLTuZeEYbETVgUbpjxcc6vmJiz9VmBmGK7+p3ocbi7KhRl4SW1imGIWS+H+/S
-	GEL7RNT6jhEzLuaPxUUhmMIjHBiCm2o5aipjEt5QgHPSsV8YAFhEn4y9speX8o0Hs3CLk5Jp28M
-	LXlEaI+zkFwl4t8bQIqGT9w=
-Received: from mail.maildlp.com (unknown [172.19.162.92])
-	by canpmsgout10.his.huawei.com (SkyGuard) with ESMTPS id 4flyW63nb4z1K9VW;
-	Wed,  1 Apr 2026 16:16:34 +0800 (CST)
-Received: from kwepemk500009.china.huawei.com (unknown [7.202.194.94])
-	by mail.maildlp.com (Postfix) with ESMTPS id 071664056C;
-	Wed,  1 Apr 2026 16:22:42 +0800 (CST)
-Received: from [10.67.121.161] (10.67.121.161) by
- kwepemk500009.china.huawei.com (7.202.194.94) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Wed, 1 Apr 2026 16:22:40 +0800
-Message-ID: <504b43e1-fa7d-4694-b8af-fe4975823db3@huawei.com>
-Date: Wed, 1 Apr 2026 16:22:39 +0800
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="b9D3a059"
+Received: by mail-qk1-f177.google.com with SMTP id af79cd13be357-8cfc497a604so848004185a.3
+        for <linux-acpi@vger.kernel.org>; Wed, 01 Apr 2026 04:50:04 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google; t=1775044204; x=1775649004; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=yCRyd9qleOZMVIjgK7RhQpHFpKKn7hN1W8j3Towy8nQ=;
+        b=b9D3a05953Hj09I908zLhRHOdPzMVkUexZAEK+UpRXiVHQx9wtx8w699TThP5LSEsL
+         9K2maOGtF+CyYwU4W6Fu2+oIfxYs+cicJzIfut3brCPGc8PlJlTfWt31L2ysAQHLbYpz
+         iv9AIepXTKwg1oHBtlGkgB8uJ7KXJyARkWufy5fzKSxCBOHldCKj+2RLXv9BClRhO6cV
+         cy5A96hvsb7UREo3OiQgMdD7I1zLtS6VeTBRVhI4rYXZ38t2QQSqzRv/3g7aCLEpA7c8
+         zeX27wWCjNkIsbFG7zr6q6vUekmfZXAiipwmbR6g9U5NoygBttAdSPpmhvVvg3zLeGCD
+         VKKg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1775044204; x=1775649004;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=yCRyd9qleOZMVIjgK7RhQpHFpKKn7hN1W8j3Towy8nQ=;
+        b=sHzXUoSj8AelYBJSmihD7DdWaSJsCqLUkJXQZd5fiZ1cKgnnHaAl6SB/6NEi5pZjex
+         1BwpqvXXiT2POmQT02ELmtHR5IJr0KaIjv+ekeFasxZwok+qbVjTn50YtO++vPJQyvtn
+         UgJMS/4Ei4OZZax878ERCQds26yElmdNyEP1Nxdn8wWhJyiLG4jXfNWpO6IF+bvLKoUD
+         FLBJUT6wbJ9zz/HoLJx2fdklEhc6A4cmNWDgHeYF3+/TYYxc0wS+qU1cYsgHkdV9oRTJ
+         o4tk14fHp+BLYGBThg13J7Prqrk3Uc3S+4o2ReSdeaaaOWpS5fik0UG+ojmL4f0LDKrl
+         tMbw==
+X-Gm-Message-State: AOJu0Yw20L/sniI+ObhRDcjviWrpga5RwwY/0GcQMu91OxqrjS8cDMbz
+	HJdIvdYudPn0x58mtuxdeTmfXzUf6DDQ6z2Ob1nYnsRgwstfgdp8gKo5ESLvTxSdnOs=
+X-Gm-Gg: ATEYQzywWUcT7bR+/Nc542bCZvcdvTuCyHmFXHU7ivC82sCzu5gI96kRB4mwEjKAmhQ
+	dz6OAGTQmhZ8DyuLedPSO3XuBlH/twd6EPXl7q8tXQNR5C1XjBhm803BLG/gJvS9fAiemUmW9eC
+	DDUtFLt8hQOEHZ/tVWffiUbR+ooA0b0vN1sfdysU8WlVqF5LwNn3kToG+N8yfZmM86MpGmuUBcA
+	LcL0ZHIc3urS0DBx30Rv5dKXSdMZpv2sbfHXkuD3dxjr87pL82KPnrIpkKmdB/WdaVuDd7gY1k4
+	ybJ3aUgEw/2efjYlAf20azKVSZ3isyMA4bsdQEOpGyQJYzcG8eThUB8F03rZpo49jQSbsr3M3W4
+	9p+HIfiWdT2UqKVdE2csRBf0eGBttn2FV+UP+l8bkQJiT44/WZuVs7uu7guUpOuw+J1HpxUsC3i
+	FcLApHMOcTJXvSrvKl8inK+VQpyDfnCQ8=
+X-Received: by 2002:a05:620a:6910:b0:8cd:b90f:fc16 with SMTP id af79cd13be357-8d1b5c6bf23mr447046685a.68.1775044203818;
+        Wed, 01 Apr 2026 04:50:03 -0700 (PDT)
+Received: from [10.11.12.108] ([79.115.63.48])
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-8d027db4770sm1309221285a.0.2026.04.01.04.49.58
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 01 Apr 2026 04:50:03 -0700 (PDT)
+Message-ID: <e011f298-cec4-4c6e-94e8-ce533642a3f8@linaro.org>
+Date: Wed, 1 Apr 2026 14:49:54 +0300
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -42,121 +67,122 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v10 0/8] ACPI: Unify CPU UID interface and fix ARM64 TPH
- steer-tag issue
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-CC: Bjorn Helgaas <bhelgaas@google.com>, Catalin Marinas
-	<catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, Jonathan Corbet
-	<corbet@lwn.net>, Palmer Dabbelt <palmer@dabbelt.com>, Borislav Petkov
-	<bp@alien8.de>, "H . Peter Anvin" <hpa@zytor.com>, Juergen Gross
-	<jgross@suse.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Sunil V L
-	<sunilvl@ventanamicro.com>, Mark Rutland <mark.rutland@arm.com>, Jonathan
- Cameron <jonathan.cameron@huawei.com>, Kees Cook <kees@kernel.org>, Yanteng
- Si <si.yanteng@linux.dev>, Sean Christopherson <seanjc@google.com>, Kai Huang
-	<kai.huang@intel.com>, Tom Lendacky <thomas.lendacky@amd.com>, Thomas Huth
-	<thuth@redhat.com>, Thorsten Blum <thorsten.blum@linux.dev>, Kevin Loughlin
-	<kevinloughlin@google.com>, Zheyun Shen <szy0127@sjtu.edu.cn>, Peter Zijlstra
-	<peterz@infradead.org>, Pawan Gupta <pawan.kumar.gupta@linux.intel.com>, Xin
- Li <xin@zytor.com>, "Ahmed S . Darwish" <darwi@linutronix.de>, Sohil Mehta
-	<sohil.mehta@intel.com>, Ilkka Koskinen <ilkka@os.amperecomputing.com>, Robin
- Murphy <robin.murphy@arm.com>, James Clark <james.clark@linaro.org>, Besar
- Wicaksono <bwicaksono@nvidia.com>, Ma Ke <make24@iscas.ac.cn>, Wei Huang
-	<wei.huang2@amd.com>, Andy Gospodarek <andrew.gospodarek@broadcom.com>,
-	Somnath Kotur <somnath.kotur@broadcom.com>, <punit.agrawal@oss.qualcomm.com>,
-	<guohanjun@huawei.com>, <suzuki.poulose@arm.com>, <ryan.roberts@arm.com>,
-	<chenl311@chinatelecom.cn>, <masahiroy@kernel.org>,
-	<wangyuquan1236@phytium.com.cn>, <anshuman.khandual@arm.com>,
-	<heinrich.schuchardt@canonical.com>, <Eric.VanTassell@amd.com>,
-	<wangzhou1@hisilicon.com>, <wanghuiqiang@huawei.com>,
-	<liuyonglong@huawei.com>, <linux-pci@vger.kernel.org>,
-	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>, <loongarch@lists.linux.dev>,
-	<linux-riscv@lists.infradead.org>, <xen-devel@lists.xenproject.org>,
-	<linux-acpi@vger.kernel.org>, <linux-perf-users@vger.kernel.org>
-References: <20260320031737.35048-1-fengchengwen@huawei.com>
- <CAJZ5v0gO1VSPs58JeupaiTZBkP3i_-H2bEQpfU-6k2TXjdiaOQ@mail.gmail.com>
+Subject: Re: [PATCH v2 4/4] iommu: Get DT/ACPI parsing into the proper probe
+ path
+To: Robin Murphy <robin.murphy@arm.com>,
+ Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo
+ <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@arm.com>,
+ "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+ Russell King <linux@armlinux.org.uk>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ Danilo Krummrich <dakr@kernel.org>, Stuart Yoder <stuyoder@gmail.com>,
+ Laurentiu Tudor <laurentiu.tudor@nxp.com>, Nipun Gupta
+ <nipun.gupta@amd.com>, Nikhil Agarwal <nikhil.agarwal@amd.com>,
+ Joerg Roedel <joro@8bytes.org>, Will Deacon <will@kernel.org>,
+ Rob Herring <robh@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+ linux-kernel@vger.kernel.org, iommu@lists.linux.dev,
+ devicetree@vger.kernel.org, linux-pci@vger.kernel.org,
+ Charan Teja Kalla <quic_charante@quicinc.com>,
+ Peter Griffin <peter.griffin@linaro.org>,
+ =?UTF-8?Q?Andr=C3=A9_Draszik?= <andre.draszik@linaro.org>,
+ Juan Yescas <jyescas@google.com>, kernel-team@android.com
+References: <e3b191e6fd6ca9a1e84c5e5e40044faf97abb874.1740753261.git.robin.murphy@arm.com>
+ <67b32e90-1f60-4bf5-b534-b4a901d5a796@linaro.org>
+ <6c3b506e-8cc4-45ad-a801-326886c694c4@arm.com>
 Content-Language: en-US
-From: fengchengwen <fengchengwen@huawei.com>
-In-Reply-To: <CAJZ5v0gO1VSPs58JeupaiTZBkP3i_-H2bEQpfU-6k2TXjdiaOQ@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
+From: Tudor Ambarus <tudor.ambarus@linaro.org>
+In-Reply-To: <6c3b506e-8cc4-45ad-a801-326886c694c4@arm.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: kwepems500002.china.huawei.com (7.221.188.17) To
- kwepemk500009.china.huawei.com (7.202.194.94)
 
-On 3/31/2026 8:24 PM, Rafael J. Wysocki wrote:
-> On Fri, Mar 20, 2026 at 4:17 AM Chengwen Feng <fengchengwen@huawei.com> wrote:
+Hi, Robin,
+
+Thanks a lot for the educative answers!
+And sorry for the late reply, I got sidetracked.
+
+On 3/23/26 10:49 PM, Robin Murphy wrote:
+> On 23/03/2026 5:18 pm, Tudor Ambarus wrote:
+>> Hi, Robin,
 >>
->> This patchset unifies ACPI Processor UID retrieval across
->> arm64/loongarch/riscv/x86 via acpi_get_cpu_uid() (with input validation)
->> and fixes ARM64 CPU steer-tag retrieval failure in PCI/TPH:
+>> On 2/28/25 5:46 PM, Robin Murphy wrote:
+>>> diff --git a/drivers/iommu/iommu.c b/drivers/iommu/iommu.c
+>>> index a3b45b84f42b..1cec7074367a 100644
+>>> --- a/drivers/iommu/iommu.c
+>>> +++ b/drivers/iommu/iommu.c
+>>> @@ -414,9 +414,21 @@ static int iommu_init_device(struct device *dev)
+>>>       if (!dev_iommu_get(dev))
+>>>           return -ENOMEM;
+>>>       /*
+>>> -     * For FDT-based systems and ACPI IORT/VIOT, drivers register IOMMU
+>>> -     * instances with non-NULL fwnodes, and client devices should have been
+>>> -     * identified with a fwspec by this point. Otherwise, we can currently
+>>> +     * For FDT-based systems and ACPI IORT/VIOT, the common firmware parsing
+>>> +     * is buried in the bus dma_configure path. Properly unpicking that is
+>>> +     * still a big job, so for now just invoke the whole thing. The device
+>>> +     * already having a driver bound means dma_configure has already run and
+>>> +     * either found no IOMMU to wait for, or we're in its replay call right
+>>> +     * now, so either way there's no point calling it again.
+>>> +     */
+>>> +    if (!dev->driver && dev->bus->dma_configure) {
+>>> +        mutex_unlock(&iommu_probe_device_lock);
+>>> +        dev->bus->dma_configure(dev);
+>>> +        mutex_lock(&iommu_probe_device_lock);
+>>> +    }
 >>
->> 1-4: Add acpi_get_cpu_uid() for arm64/loongarch/riscv/x86 (update
->>      respective users)
->> 5: Centralize acpi_get_cpu_uid() declaration in include/linux/acpi.h
->> 6: Clean up perf/arm_cspmu
->> 7: Clean up ACPI/PPTT and remove unused get_acpi_id_for_cpu()
->> 8: Pass ACPI Processor UID to Cache Locality _DSM
+>> I was chasing the "something fishy" dev_WARN on a 6.19+ downstream
+>> android kernel and while looking at the IOMMU code I couldn't help
+>> myself and ask whether we shall prevent concurrent execution of
+>> dma_configure().
 >>
->> The interface refactor ensures consistent CPU UID retrieval across
->> architectures (no functional changes for valid inputs) and provides the
->> unified interface required for the ARM64 TPH fix.
->>
->> ---
->> Changes in v10:
->> - Refine commit header&log according to Punit's and Bjorn's review
->> - Split perf/arm_cspmu as a separate commit which address Punit's
->>   review
->>
->> Changes in v9:
->> - Address Bjorn's review: split commits to each platform so that make
->>   them easy to review
->>
->> Changes in v8:
->> - Moving arm64's get_cpu_for_acpi_id() to kernel/acpi.c which address
->>   Jeremy's review
->>
->> Chengwen Feng (8):
->>   arm64: acpi: Add acpi_get_cpu_uid() for unified ACPI CPU UID retrieval
->>   LoongArch: Add acpi_get_cpu_uid() for unified ACPI CPU UID retrieval
->>   RISC-V: ACPI: Add acpi_get_cpu_uid() for unified ACPI CPU UID
->>     retrieval
->>   x86/acpi: Add acpi_get_cpu_uid() for unified ACPI CPU UID retrieval
->>   ACPI: Centralize acpi_get_cpu_uid() declaration in
->>     include/linux/acpi.h
->>   perf: arm_cspmu: Switch to acpi_get_cpu_uid() from
->>     get_acpi_id_for_cpu()
->>   ACPI: PPTT: Use acpi_get_cpu_uid() and remove get_acpi_id_for_cpu()
->>   PCI/TPH: Pass ACPI Processor UID to Cache Locality _DSM
->>
->>  Documentation/PCI/tph.rst          |  4 +--
->>  arch/arm64/include/asm/acpi.h      | 17 +---------
->>  arch/arm64/kernel/acpi.c           | 30 ++++++++++++++++++
->>  arch/loongarch/include/asm/acpi.h  |  5 ---
->>  arch/loongarch/kernel/acpi.c       |  9 ++++++
->>  arch/riscv/include/asm/acpi.h      |  4 ---
->>  arch/riscv/kernel/acpi.c           | 16 ++++++++++
->>  arch/riscv/kernel/acpi_numa.c      |  9 ++++--
->>  arch/x86/include/asm/cpu.h         |  1 -
->>  arch/x86/include/asm/smp.h         |  1 -
->>  arch/x86/kernel/acpi/boot.c        | 20 ++++++++++++
->>  arch/x86/xen/enlighten_hvm.c       |  5 +--
->>  drivers/acpi/pptt.c                | 50 ++++++++++++++++++++++--------
->>  drivers/acpi/riscv/rhct.c          |  7 ++++-
->>  drivers/pci/tph.c                  | 16 +++++++---
->>  drivers/perf/arm_cspmu/arm_cspmu.c |  6 ++--
->>  include/linux/acpi.h               | 11 +++++++
->>  include/linux/pci-tph.h            |  4 +--
->>  18 files changed, 158 insertions(+), 57 deletions(-)
->>
->> --
+>> It seems to me that while the IOMMU subsystem is executing
+>> dma_configure(), the deferred probe workqueue can concurrently pick up
+>> the same device, enter really_probe(), set dev->driver, and execute
+>> dma_configure(). Is it worth protecting against this?
 > 
-> It doesn't look like anyone has a particular heartburn related to this
-> series, so I could apply it in principle, but I'd appreciate some ACKs
-> from arch maintainers.
+> Yes, it's certainly still possible to hit a false-positive if thread A in iommu_device_register()->bus_iommu_probe() races against thread B attempting to bind, simply because thread B can set dev->driver long before it gets to any point where ends up serialising on iommu_probe_device_lock again, so thread A can observe that even while it is doing the IOMMU probe in the "correct" context. Other than the warning though, it's still functionally OK even if the "wrong" thread does end up finishing the probe, at least after 0c8e9c148e29 ("iommu: Avoid introducing more races").
+
+I confirm I have 0c8e9c148e29 ("iommu: Avoid introducing more races") in
+my tree.
+
+If the concurrent execution is functionally safe and the dev->driver
+check is a known source of false positives during async probing, do you
+think it would worth switching the dev_WARN to dev_info? I'm thinking
+dev_WARN is a bit harsh, as it can disrupt CI pipelines that halt on
+warnings.
+
+>>
+>> diff --git a/drivers/iommu/iommu.c b/drivers/iommu/iommu.c
+>> index e61927b4d41f..5f0c1a8064b5 100644
+>> --- a/drivers/iommu/iommu.c
+>> +++ b/drivers/iommu/iommu.c
+>> @@ -461,9 +461,19 @@ static int iommu_init_device(struct device *dev)
+>>           * already having a driver bound means dma_configure has already run and
+>>           * found no IOMMU to wait for, so there's no point calling it again.
+>>           */
+>> -       if (!dev->iommu->fwspec && !dev->driver && dev->bus->dma_configure) {
+>> +       if (!dev->iommu->fwspec && !READ_ONCE(dev->driver) &&
+>> +           dev->bus->dma_configure) {
+>>                  mutex_unlock(&iommu_probe_device_lock);
+>> -               dev->bus->dma_configure(dev);
+>> +
+>> +               /*
+>> +                * Serialize with really_probe(). Recheck dev->driver in case a
+>> +                * driver bound while we were waiting for the lock.
+>> +                */
+>> +               device_lock(dev);
+>> +               if (!dev->driver)
+>> +                       dev->bus->dma_configure(dev);
+>> +               device_unlock(dev);
 > 
-> Why don't you resend it with all of the tags collected so far (and
-> please add x86@kernel.org to the CC list)?
+> Much as I can't wait to get rid of iommu_probe_device_lock, the main reason we still can't rely on device_lock() at the moment is not actually the remaining sketchy replay-dependers per the comment in __iommu_probe_device(), but more fundamentally that for most IOMMU drivers this will deadlock in that same iommu_device_register()->bus_iommu_probe() path, when the bus walk happens to stumble across the IOMMU device itself, which of course is already locked as it's still in the middle of its own driver bind. I couldn't see an easy, clean and reliable way to get around that, so that can got kicked down the road in order to get the "call of_xlate in the right order and make iommu_device_register() actually work" basics landed (and start shaking out all these other problems...)
+> 
 
-done for resend v10 which with all the review/ack tag, add add x86@kernel.org to CC list
+Thank you for the detailed explanation. Between the self-deadlock on
+the IOMMU device itself, and the fact that a non-blocking
+device_trylock() would be unsafe (as it could fail due to a simple sysfs
+read, permanently orphaning the device from the bus walk), it's clear
+there is no clean locking fix for this TOCTOU window right now.
 
-Thanks
+Thanks,
+ta
