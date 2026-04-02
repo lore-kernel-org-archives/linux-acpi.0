@@ -1,85 +1,86 @@
 Received: from mx0b-0031df01.pphosted.com (mx0b-0031df01.pphosted.com [205.220.180.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60EF93E3C58
-	for <linux-acpi@vger.kernel.org>; Thu,  2 Apr 2026 14:15:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8ADB63E51E0
+	for <linux-acpi@vger.kernel.org>; Thu,  2 Apr 2026 14:15:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.180.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775139322; cv=none; b=YrufOH/hGS76ofz/0UjVnYo1kczUkzPEJVDOezk1zn1ASXU/gUuTguJm+lYj0du3dwhFCerQF46Jhiv+9/yLQz+z1CY6Dba7jV9QUNctQjaK20FZAgQswQyy6xKb3lijGdmq6cTbv/mQluOPLsnhHicARY/dSPE0+iiuqUNAtHQ=
+	t=1775139323; cv=none; b=baAHOmJ3WH++ORl7LQ/W2j4Oe//8AKZ4AUWtHv0JimUN5WSt3KtAgGdsHiAqc6ot6F14N3ZePk0Z7FaJQii3Fzz2bxWypmqk9pSXpZd+R/3PtTu4QsZL0i0iQgoVEqATxL4oFflHiXbFZj/6C1frlmc5IvpVKO7oe569e0MaAEU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775139322; c=relaxed/simple;
-	bh=9xHP9YGJtqo9V/BvuF1Xk3Wt1TALDLTxAhAxwgZviEQ=;
-	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=ixg4AJBLljHBe1LPBLbbLmcMX4b/56w7AfwPomIz1+wShOIuqDbtCMpcX4nyxScwigtdPOVj83GnsRbFl+2/3koHWJzpXlK5p6bBbP/aSQgpbTi2UBIUQW37rDwEwdAP/Qi6NeSsA2psvUWfy/wvb+ZA/tp1f62q+CpTJGDX+XE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=VMfUXqfE; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=BO2UsRsu; arc=none smtp.client-ip=205.220.180.131
+	s=arc-20240116; t=1775139323; c=relaxed/simple;
+	bh=biv+GH+fROKOSl4fjZqd21aT3c4FLHEhSXzFKMuT8pQ=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=mK+OFEPayup3sQw2RzCzm6DTizAZQ5S9O2NRir/RWG4vxWwS4FmVI/2kyZAoQDq/owauthYa0RCneoxkyG3A023lvPzF7l/ejswbougZaS9rt4tfniCmdw7Ahd7VcJTN7StyWpUFB6kjbIBndvevQ0OmJCqZIpMnlxNKCKNw4+0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=ZJ9HwgEw; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=UNTWu6jC; arc=none smtp.client-ip=205.220.180.131
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="VMfUXqfE";
-	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="BO2UsRsu"
-Received: from pps.filterd (m0279870.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 632BlJ7d2337948
-	for <linux-acpi@vger.kernel.org>; Thu, 2 Apr 2026 14:15:20 GMT
+	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="ZJ9HwgEw";
+	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="UNTWu6jC"
+Received: from pps.filterd (m0279871.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 632BAqAw090852
+	for <linux-acpi@vger.kernel.org>; Thu, 2 Apr 2026 14:15:21 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-transfer-encoding:content-type:date:from:message-id
-	:mime-version:subject:to; s=qcppdkim1; bh=I0iEYnM6TxpFjlb6DDopS2
-	eLno0oaG8tAIZJH9RCSIc=; b=VMfUXqfEvL1i05v9ML1s09gEgzAP8RxxtyO0GR
-	PbaWK6ex2ZXp4fX9pnyChWWI5ch0d3wSZb7Sg4H8+D9yUJ1dD4iv2HZJVKOyiyvR
-	dWbzTl35sh18TTuk9fhAl3F88y7Q6ZDomkjzYPiLjMLwgC0afQoPeQ2wCU30ysBz
-	BHa6PLsM/2mlEpORmwLwQCtX43DYgaT4OEUbyhVXFh70asqmwERtsSnw97QUGv2a
-	+o8G+GZrcQZzgUDZG7oABwbqQU+8LzwG+dHeOq5TciIXJTNyN9qy4lGSBcZi7SHG
-	J2+V8SIDyGQehrSL9uKLW9uevE+ocum0dLc02mderrSyyZrg==
-Received: from mail-qt1-f197.google.com (mail-qt1-f197.google.com [209.85.160.197])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4d9qw08mja-1
+	cc:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
+	1QP3yia4CdU5PX7yrF+zFl8JFATM5bcCf24XnEBdAEY=; b=ZJ9HwgEw3XRIYWXB
+	5Dy0Wpj5dn+FGEp441qjsC2bPEzYqQzvcRCFp2TTSuP68RwkhbqNAvZA70PHDvBn
+	eGfBeQet+Z0Kx/hasgTcjeAiMJJ+ftCYY+DPISLN1C+Q9ZW5iEsZyC84njmCX+Oj
+	iaoD50pu+JIiNtP0wZ/1d2ZoF/2uLPBzdcwRYXzLCx/oPNfikHn9kkWNiQjWJV0l
+	uyOtjlLm+YMd18I/aO+OQxhGwl9Q09DcsODECgPhtYTgFobVJrD1TmEgdkfnF3eP
+	9WBPqvQKDx9EN2qdHhDxjj4wswEx9iRpmMsoVcqWL66sxbvfDYC87b/Z9xC3ODHD
+	1Jgv+w==
+Received: from mail-qt1-f200.google.com (mail-qt1-f200.google.com [209.85.160.200])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4d9jcua4d6-1
 	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-acpi@vger.kernel.org>; Thu, 02 Apr 2026 14:15:20 +0000 (GMT)
-Received: by mail-qt1-f197.google.com with SMTP id d75a77b69052e-50b802961ecso10259761cf.1
-        for <linux-acpi@vger.kernel.org>; Thu, 02 Apr 2026 07:15:20 -0700 (PDT)
+	for <linux-acpi@vger.kernel.org>; Thu, 02 Apr 2026 14:15:21 +0000 (GMT)
+Received: by mail-qt1-f200.google.com with SMTP id d75a77b69052e-50b274f94f8so3113891cf.1
+        for <linux-acpi@vger.kernel.org>; Thu, 02 Apr 2026 07:15:21 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1775139319; x=1775744119; darn=vger.kernel.org;
-        h=cc:to:content-transfer-encoding:mime-version:message-id:date
-         :subject:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=I0iEYnM6TxpFjlb6DDopS2eLno0oaG8tAIZJH9RCSIc=;
-        b=BO2UsRsu5KRQ6rZ2pIxkxBw/ve4+c+CyyTsNv6M4ivu2f5IDRtzxkIRwO1B332eLF0
-         mfNFUnrj1Ln1n9WpBKG+svEBVcAWia29ix3gGr33uyDSIjfAnhixOjVp1exmbwtXqIOP
-         VjfO+YsgACvDssAeoikj6daq0EuKHFhgk74jgBslvsS2PpuvpS8V2WBgv0rvEJL1PLA+
-         54oqhPk/HPG83vgXf5FWB/KReDM5FteHytApfk6XoxmTwhQQ3uHe3ClGGUyqcOkQfY9C
-         uO27egWiTCUFjSOtC4XC+aTVJ6Y7ipYqM292WWPOFJiT5imvBnk7KQnSRionu8TZaeGM
-         u09A==
+        d=oss.qualcomm.com; s=google; t=1775139321; x=1775744121; darn=vger.kernel.org;
+        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
+         :mime-version:subject:date:from:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=1QP3yia4CdU5PX7yrF+zFl8JFATM5bcCf24XnEBdAEY=;
+        b=UNTWu6jCoGZJxdACXDUC1030yqFwJwK1cWFzHX3pnACQrKsy4BC6NmAwSD0VZKEWID
+         jEl3mpA4km684UUiJtksJJgvolAe/CZCyF51wQqNZJhRpBxUb6rK7Ny+l7wcfmLxxq3C
+         eIXklY+fays4OWy3DJqh4p+oEhRW0rdprQxCtr+zRN/1BL1l/LKRl6mqMUlgGU/G+bpe
+         4KRew/qXstuCMSWL4GZqUue2g3sCpltaGcQZpik0q18lKccT3LanCY4CXdYgWOxjg8N6
+         i4r+y1+rAmmyQgmwiMO4fzMkB4oI+D8r/qGZqXKczOK+X/mfeqNVnJkE5RWPxy6wCQaj
+         SIuQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1775139319; x=1775744119;
-        h=cc:to:content-transfer-encoding:mime-version:message-id:date
-         :subject:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=I0iEYnM6TxpFjlb6DDopS2eLno0oaG8tAIZJH9RCSIc=;
-        b=r5XVoHCDv+3SVCV8zB3gGlq6xnBMJaUbh2C/TqQV7C5f0DW/KcGFPocERBl4WKBo7t
-         QVJzqKhNltnANjMQo11YPS0IWlI0zkd2ewD7Eg0CWBPUcrgilRkwf3ksaiz2ItG0B1K0
-         dVijmS5Z6fqYSX8LNjW82/ReLNSgKzdb4l5wiM+yZdNdsoEmAzoW2jYNuq1niD9n/6Jp
-         iUCD5zzI3XLViw6nurCCMay2yne2wontsTLi9U2WcawTl6pDEuD5OiFch6SVZKIBzj4Y
-         Z80Ff1+Jww9aUrbrlfgnO7HvbixfJRTZaW2SlATgXOHbnFvxxmehYmkCV+XwDZgN34Mp
-         Ocog==
-X-Forwarded-Encrypted: i=1; AJvYcCXkixP+sWtBKHPhZcIsB6j9kwTYioV/+aHQeRzx7ZNwIavDi7WOfBj4Gc2YfyTpe8DMCM1w21+73xrw@vger.kernel.org
-X-Gm-Message-State: AOJu0YzkYpjM5PPHxlifnQ/3uk+tQZiPhav931/ZILPI04Bw8dJqugjz
-	hJlhKwX03sBfVp2dl7d7vwYDn4WO+jGWJ4s4RAI90DW/Xs0jk/tru/jV/oa6F7s15ZeiqvWN5fS
-	jFSUxa1UMZwSJEn9XoRGqKSkK3FLUvvcBm0762EKvyQpsBtvmbz9Mm0Lwq0f+FF9o
-X-Gm-Gg: ATEYQzwtV22UAJav+Wuw7KGOZ5kLd5f7+OkUegsc6Oylo21hWWEz5d//XsGRy6O6bfW
-	DYCBfKkg/tkbGNLw72Aq4z7NPwM6Ag0W1gib1qNBQF1Y3j0xSIzhaBaWzaatbIkL9bImCKFlF1m
-	wfWOKQjcKeVCOh1eJfp/n7FYggRuSl8RggaTnImEH0au6XbktPXfe5gZzz42PIMH5X8zhYYw1pI
-	p3bh6RNzqAuvglS++486atoKjMQWGoCDRwua6mJVhEGywIL8g69RaW6B9bGaS0MPWHJE+akiyxw
-	fvAOEM2Pty2058uavEgR/DZQhSH64Lv5SjjqE/s5n6oUXxH7i8eX1fEolTFMwo7xg6/HMVDuv7b
-	pl/uFKD5+nPqRKCQ4ktQ4xMFEgDSQkPU7OjNiaTvRnPs1y+2oKsKp
-X-Received: by 2002:ac8:5a91:0:b0:50b:5056:fcc4 with SMTP id d75a77b69052e-50d3bb92f71mr104570981cf.4.1775139318320;
+        d=1e100.net; s=20251104; t=1775139321; x=1775744121;
+        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
+         :mime-version:subject:date:from:x-gm-gg:x-gm-message-state:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=1QP3yia4CdU5PX7yrF+zFl8JFATM5bcCf24XnEBdAEY=;
+        b=SnK2ogHbj6Pqmud/Weahu+xvIbIK+l+h1nHMxlKBsbZil68Ug2r2L7T22yZYT3boHf
+         bhdWAANfkITHDFd0loMv2RezFEfEfTM7zQNjjSi0DACQ3zDY0kjpphl6ipR3p8RtNoos
+         G3fToAWcHHr/w6ybnuphnCCrvizN6BpDBybBMRXwFopuCfV9TkIrOiB54vGhQpDT1YUn
+         cROQZ62XMQa2y8qm8ONNV3FNlK56qyrP9VaXlHnBUG4TKHkabl1O6TYMnFkjWvyPD++P
+         6Xd2fYJF59fsdY4odMS2AMP4BqaWcWzKAit/8wtsxr04+0bdiBIXEHyqG7g9WLmgtyLi
+         l6vQ==
+X-Forwarded-Encrypted: i=1; AJvYcCXbyU1m/RtzwA0pA0dqlrRmy7QUy4D/Zb7WOs5cOvKGxRHbcITfGnb0FtyVc1SOhWb7RmrPhB0xYKKq@vger.kernel.org
+X-Gm-Message-State: AOJu0YymzDbIpegv4ory1BWoBCxktMQuCUxCJe+hQ+UVrK/6Nwu7y+U9
+	H3C7/JoNKpgkppYSZxmfgkwDmwPGVzm2HQ7lQ3JiQNvk9UqCHry8tiQX6vXZ7pzYkYexdUCtu24
+	ofEHxsT3EMTq98oTpPo4nv5qaFG80Mtn2QEom2Z/EqRUEHGUfgtBHVzpn9ADCdCw+
+X-Gm-Gg: ATEYQzy8UrXYvlwuD47P5qeCR6XiUhndMM8hs9OLfdHSfYrGRjnLnYIK1f4VhYy91T/
+	pgSnN/RhTx/756hylTUkqUZclU+vayBtqa+08tCzAE424RpIxORbY37mRovYQJMrW5EWi01AWYW
+	oYmP1pbFaen1qJdT1YLFA3HG468/sqY3QcY/PwiOIOFO9ITp1URm9mcaqrnHLUdTn/zHsbNf4Iq
+	tdHT9OLCxDjILS/47RNYCbWxY0opCDec83hg77t+LaK4ylDhbxFDSHxkncNxKVtZ5Ix1j2o/8k5
+	BJGQ8lD+rBPxm3f+WvOIJsfqv3fCY3nC8AdWbH9Q/BBlTPtKFkjU0IstFQ9QdhSrYEIvLCvq1Ho
+	0SpmtEO+d+SU4xVzOgrzSu/9RY3QkFF64e5oFpbT/7SLptqlitCK0
+X-Received: by 2002:a05:622a:e:b0:50b:893f:7d89 with SMTP id d75a77b69052e-50d4fcf5467mr29566801cf.36.1775139320256;
+        Thu, 02 Apr 2026 07:15:20 -0700 (PDT)
+X-Received: by 2002:a05:622a:e:b0:50b:893f:7d89 with SMTP id d75a77b69052e-50d4fcf5467mr29564051cf.36.1775139318611;
         Thu, 02 Apr 2026 07:15:18 -0700 (PDT)
-X-Received: by 2002:ac8:5a91:0:b0:50b:5056:fcc4 with SMTP id d75a77b69052e-50d3bb92f71mr104568721cf.4.1775139316950;
-        Thu, 02 Apr 2026 07:15:16 -0700 (PDT)
 Received: from brgl-qcom.local ([2a01:cb1d:dc:7e00:4ff1:3e57:22ec:dadc])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4887e80a5e2sm192824885e9.1.2026.04.02.07.15.15
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4887e80a5e2sm192824885e9.1.2026.04.02.07.15.17
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 02 Apr 2026 07:15:16 -0700 (PDT)
+        Thu, 02 Apr 2026 07:15:17 -0700 (PDT)
 From: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Subject: [PATCH v5 0/4] ARM: omap1: use real firmware node lookup for GPIOs
- on Nokia 770
-Date: Thu, 02 Apr 2026 16:15:01 +0200
-Message-Id: <20260402-nokia770-gpio-swnodes-v5-0-d730db3dd299@oss.qualcomm.com>
+Date: Thu, 02 Apr 2026 16:15:02 +0200
+Subject: [PATCH v5 1/4] kernel: ksysfs: initialize kernel_kobj earlier
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -88,11 +89,9 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-B4-Tracking: v=1; b=H4sIAOV5zmkC/4WNQQ6CMBBFr0K6dkhDKQVX3sOwKHSEidJiR1FDu
- LuVC7j5yfvJf38VjJGQxTFbRcSFmIJPoA+Z6EfrBwRyiUUhi0oqJcGHK1ljJAwzBeCXDw4ZtLN
- 1Z5VuygpF2s4RL/Tevec28Uj8CPGz3yzlr/1nXEqQ0FW1bgpsjHHyFJjz+9Pe+jBNeQrRbtv2B
- eDGddLBAAAA
-X-Change-ID: 20260330-nokia770-gpio-swnodes-5da8ba35946e
+Message-Id: <20260402-nokia770-gpio-swnodes-v5-1-d730db3dd299@oss.qualcomm.com>
+References: <20260402-nokia770-gpio-swnodes-v5-0-d730db3dd299@oss.qualcomm.com>
+In-Reply-To: <20260402-nokia770-gpio-swnodes-v5-0-d730db3dd299@oss.qualcomm.com>
 To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         "Rafael J. Wysocki" <rafael@kernel.org>,
         Danilo Krummrich <dakr@kernel.org>,
@@ -110,108 +109,149 @@ Cc: brgl@kernel.org, driver-core@lists.linux.dev, linux-kernel@vger.kernel.org,
         linux-omap@vger.kernel.org,
         Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
 X-Mailer: b4 0.14.2
-X-Developer-Signature: v=1; a=openpgp-sha256; l=2587;
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2976;
  i=bartosz.golaszewski@oss.qualcomm.com; h=from:subject:message-id;
- bh=9xHP9YGJtqo9V/BvuF1Xk3Wt1TALDLTxAhAxwgZviEQ=;
- b=owEBbQKS/ZANAwAKAQWdLsv/NoTDAcsmYgBpznnpgbWuE8PB92kyk7oxM0EhrfC9uGBqdWjbK
- 5/AVS9z4L6JAjMEAAEKAB0WIQSR5RMt5bVGHXuiZfwFnS7L/zaEwwUCac556QAKCRAFnS7L/zaE
- wxWDEACXpxQ47yMXyNOUQwCxOnke7iYT5ZQOnqkVVZvzIPH/rpFUqujwJTR6i77GBhHklwMd76n
- nz0VXCWCxBstpkby2i801FON5C1se1aityaTE0UexGxIDX6a7UlDqNJfpwgkyWNdGXm/bhOawr5
- Gt5aQZHe9u0bHKJf6Ocv5YdO/ATOtNygibon8PvTR43Bu1iynN3LWQH2I29xPtQfSTPf5eYtzef
- 4CtWkr1jd8ZqLnth3r4J1T68um/z3XHqjl59apZ4/gdQh9EXsx1pJTYwrwdIt5RZ4l5ezVnpDWa
- Wrg4S3WMXyWmKmJP+XPoZkzKIcSImHJqA1Qm5Q4Tq2Do0G46aRg8WPiSIOsqjX7WByQ/gBEqMDN
- WKvH8saFlplZ05ZJ7TVQKwRxBKHMhRzq0QdullzLHCnEJ3tT85P7P4Du9Zl8TKbWZWmKiXny1qw
- a7p1JALeRLwCRDbgDVY+ZPhblU3YF5s7AmgkX5UOxZMhvOxZSwyPtvneHGZs66I5Q0S3qS9tH7R
- aT/AcxEeqJZHS96PIYfpFFkFYl0yb9WrxZh5E2tu3Cl1AqPJ04bO4UVKuHbtXm+LvMgp5Dy09jm
- PlR1ufRVBI7A7QanvZfKMEz6Y+EcB88mzBac88+prWUsCZT7PpV00MHuHH/11UE3KZURkZDNdF9
- 6tH4XwQ8V4izhbw==
+ bh=biv+GH+fROKOSl4fjZqd21aT3c4FLHEhSXzFKMuT8pQ=;
+ b=owEBbQKS/ZANAwAKAQWdLsv/NoTDAcsmYgBpznnu7om+n7+rbJOz3z08q9B8Y3FEV7dYeTCln
+ OZLROiB7lWJAjMEAAEKAB0WIQSR5RMt5bVGHXuiZfwFnS7L/zaEwwUCac557gAKCRAFnS7L/zaE
+ w+WKEACdYAfS2DGORcLixPHvLig3V48ch0qzhA4/SOrOeb8/L90oRYwHpVF3FIN8XJzcj+sXrqR
+ mlvTnt8vY4kXOYEKWN8M9ozIXntN3nD5cBV970wYhYxNEddy/g6xcFc2D7MLu/vKNsU18jaLRG2
+ uUqYfq1288iNrwpEa20YD8fdUsTj68e4RHXkBiG1F0WsNOEx4fJJGeAbiQkB26B09EfDCSkvZxx
+ ItkmsL/OjanSVB+1Wad3WZWFE5g8Dwx6PbqCZXp8oja4Xrpo7opxeKIF1dr5YFMwKvCjlZR9TvQ
+ 332efEH7bJT0Tov0H/xOSgTKMOezKuVG+EN+cODZ+CsZrOSyCtMYBENElpyfAf9vV8SB60tGFGa
+ BpJ2VG/WASYT54LNTh+sopX5OYCnYlCEDRZFIlatE6Y4WgPGovNHUKI8I0R2e+RUME1wSggR6p/
+ HTLsIgc8Fq1kTvZL3ep+ygvuwb7eV0fBtv2KR0Hsb4gTnePyZSnwVeFxfCR4Zi2HIWAE1OZKOBP
+ mkH6cVwt35lSDpumJverYjHAkR7wJRlqMZemeZDsWnjW8+NU3920MVWAUGAJ0MbCHUAqTVuYIL9
+ GLLpdx7e48FFJh6X8e8ShyK6edBvSrsYGdzeN/5jZcUgZ+LBlWFgWWQN0SDMd1lC0xe6hL+gyz5
+ LMEtq/0VCF+he0g==
 X-Developer-Key: i=bartosz.golaszewski@oss.qualcomm.com; a=openpgp;
  fpr=169DEB6C0BC3C46013D2C79F11A72EA01471D772
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNDAyMDEyOSBTYWx0ZWRfXxQN+xLC9ZjtU
- HoRAZwh0uxvpgbH7R6CU13NMSP71Jkvq+Cq2Se0QJmXrPhS/D0Wd3CSFkrNV9QczCjQbYH6vV/d
- HZKIsZdftGVxabsgIhPxbOh+iPuHJFhD2e+1158smPf+T4EfQBaixMPjNn+02HbX7LmS5TPgRGJ
- H8RTryY2leK6Vy+iogqRP8lX1DZxA0jkw9eIvs/2E3ao/FYDRG1b1uNVSqeTvQFWhxkjDttxoGC
- y0g+aBoO5lPk+dYEEV8zpfZlKOUnIDARSD6VNaPqx5aXFAVkhlz6YPxtkAn666u1BupePoFAdxl
- JpVzk7UXe+b4kNwYMw3gR8UgCBKTe7b/wKW/ugUykC+b6zKPLGXFgOHag9bRErHqwLU32vw9nf8
- QdDOWV5Pxibg/W07fCJKfiGftanJ7tXD669nmBc3DctIf294ZPXgYY1EvilNL+AQ6z4qOmPxGTJ
- M9k16vDi36R+vyIf3TA==
-X-Authority-Analysis: v=2.4 cv=PNICOPqC c=1 sm=1 tr=0 ts=69ce79f8 cx=c_pps
- a=EVbN6Ke/fEF3bsl7X48z0g==:117 a=xqWC_Br6kY4A:10 a=IkcTkHD0fZMA:10
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNDAyMDEyOCBTYWx0ZWRfX31RL4FBlaGev
+ 2oamPIpxU9fZBnuPjY14z0ZNcJpalLAbA8zLUnMy7x9FkwfvQexWVRkbJIN7sHdyi8lfHcMUPUr
+ 8kHu+ZZYEwpuJU2y6jyfilL6g5JmEs0KlVEN/92nfs+ROiRfPdHGBPo/62Pr8VL3JA7RuNqlqw9
+ 8fSkarXZP03T1HW0u193ips09BZ1Ni0BPqooYgDGqawiAykok0f1NHQkk6prJjBipHQmZ+y7bBa
+ AvmK9ZDmGfXgxas8cglK2R5HFOOANugm6ZFidMPFV1Ab/Wp97/NXVokUwSUx2YyDIo5esOgY8Ru
+ jdGE69S8AELqLSOpERM72FOkHq3is8tQPUH9QaOWqZPHY6WrEu+gt7baIl7g6SFzB6vcd5GTPxq
+ 9PYraezfC5p9QKvdUzmyFPFRyOc+iCzxIyYjAS61pNMBXUrnG1JNNh2rNvsD/itl74Gd4jTpUYd
+ eubtyFt7SipTYbBZVdA==
+X-Proofpoint-GUID: 2NlX2UFNHZFNW1iPmiUq7BX01ESt2CZN
+X-Authority-Analysis: v=2.4 cv=eYYwvrEH c=1 sm=1 tr=0 ts=69ce79f9 cx=c_pps
+ a=JbAStetqSzwMeJznSMzCyw==:117 a=xqWC_Br6kY4A:10 a=IkcTkHD0fZMA:10
  a=A5OVakUREuEA:10 a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=u7WPNUs3qKkmUXheDGA7:22 a=gowsoOTTUOVcmtlkKump:22 a=bC-a23v3AAAA:8
- a=EUspDBNiAAAA:8 a=VwQbUJbxAAAA:8 a=WeWpliTHXVVyQaQyHOwA:9 a=QEXdDO2ut3YA:10
- a=a_PwQJl-kcHnX1M80qC6:22 a=FO4_E8m0qiDe52t0p3_H:22
-X-Proofpoint-GUID: ew7Y1CUspZIzRNHqsdpxMAWettmS4SrV
-X-Proofpoint-ORIG-GUID: ew7Y1CUspZIzRNHqsdpxMAWettmS4SrV
+ a=u7WPNUs3qKkmUXheDGA7:22 a=3WHJM1ZQz_JShphwDgj5:22 a=EUspDBNiAAAA:8
+ a=cUGsBi5UaGteNmT5bNcA:9 a=QEXdDO2ut3YA:10 a=uxP6HrT_eTzRwkO_Te1X:22
+X-Proofpoint-ORIG-GUID: 2NlX2UFNHZFNW1iPmiUq7BX01ESt2CZN
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.51,FMLib:17.12.100.49
  definitions=2026-04-02_02,2026-04-02_03,2025-10-01_01
 X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- impostorscore=0 malwarescore=0 suspectscore=0 lowpriorityscore=0 spamscore=0
- priorityscore=1501 adultscore=0 phishscore=0 bulkscore=0 clxscore=1015
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2603050001 definitions=main-2604020129
+ suspectscore=0 priorityscore=1501 lowpriorityscore=0 phishscore=0
+ impostorscore=0 malwarescore=0 bulkscore=0 adultscore=0 clxscore=1015
+ spamscore=0 classifier=typeunknown authscore=0 authtc= authcc= route=outbound
+ adjust=0 reason=mlx scancount=1 engine=8.22.0-2603050001
+ definitions=main-2604020128
 
-Mergin strategy: It would be awesome if patches 1-3 could make v7.1
-through the driver core tree after which the final patch could go
-through ARM-SoC separately in v7.2.
+Software nodes depend on kernel_kobj which is initialized pretty late
+into the boot process - as a core_initcall(). Ahead of moving the
+software node initialization to driver_init() we must first make
+kernel_kobj available before it.
 
-This converts Nokia 770 to using real firmware node lookup for GPIOs by
-attaching the software nodes describing GPIO controllers to their target
-devices.
-
-As determined by Aaro's testing, both omap16xx_gpio_init() and
-software_node_init() run in postcore_initcall() so we need to make
-software nodes available earlier hence the new patches in v4.
-
-Please note that while the goal of this series is to allow Nokia 770 to
-use software nodes earlier, we're not modifying core kernel code just to
-accomodate an old ARM platform - more such conversions are coming up so
-the change will be useful to more consumers of the software node API.
+Make ksysfs_init() visible in a new header - ksysfs.h - and call it in
+do_basic_setup() right before driver_init().
 
 Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
 ---
-Changes in v5:
-- Put ksysfs_init() in a separate new header
-- Remove software_node_exit() in a separate patch
-- Link to v4: https://patch.msgid.link/20260330-nokia770-gpio-swnodes-v4-0-b68592e977d0@oss.qualcomm.com
+ MAINTAINERS            | 1 +
+ include/linux/ksysfs.h | 8 ++++++++
+ init/main.c            | 2 ++
+ kernel/ksysfs.c        | 9 ++++-----
+ 4 files changed, 15 insertions(+), 5 deletions(-)
 
-Changes in v4:
-- Add patches making software nodes available earlier
-- Remove stray newline
-- Link to v3: https://lore.kernel.org/all/20260212112508.73500-1-bartosz.golaszewski@oss.qualcomm.com/
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 0f258aeeacba184d2025b932d90280cf2aabf4b0..8bc934162e712cf8ddf033e53bf3481054cfb7fe 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -7843,6 +7843,7 @@ F:	include/linux/debugfs.h
+ F:	include/linux/device.h
+ F:	include/linux/fwnode.h
+ F:	include/linux/kobj*
++F:	include/linux/ksysfs.h
+ F:	include/linux/property.h
+ F:	include/linux/sysfs.h
+ F:	lib/kobj*
+diff --git a/include/linux/ksysfs.h b/include/linux/ksysfs.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..c7dc6e18f28e8a12a66d64ffffb13749d424a881
+--- /dev/null
++++ b/include/linux/ksysfs.h
+@@ -0,0 +1,8 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++
++#ifndef _KSYSFS_H_
++#define _KSYSFS_H_
++
++void ksysfs_init(void);
++
++#endif /* _KSYSFS_H_ */
+diff --git a/init/main.c b/init/main.c
+index 8b7633b7ab720b9c13a231d64291d35d3852602c..96f93bb06c49013bae8d3d6b7afca13d6277a868 100644
+--- a/init/main.c
++++ b/init/main.c
+@@ -36,6 +36,7 @@
+ #include <linux/kmod.h>
+ #include <linux/kprobes.h>
+ #include <linux/kmsan.h>
++#include <linux/ksysfs.h>
+ #include <linux/vmalloc.h>
+ #include <linux/kernel_stat.h>
+ #include <linux/start_kernel.h>
+@@ -1482,6 +1483,7 @@ static void __init do_initcalls(void)
+ static void __init do_basic_setup(void)
+ {
+ 	cpuset_init_smp();
++	ksysfs_init();
+ 	driver_init();
+ 	init_irq_proc();
+ 	do_ctors();
+diff --git a/kernel/ksysfs.c b/kernel/ksysfs.c
+index a9e6354d9e2579317d3b1bcb54223432d3ce0950..f45ade718054af4eb72fba88dab10c86287986ee 100644
+--- a/kernel/ksysfs.c
++++ b/kernel/ksysfs.c
+@@ -8,6 +8,7 @@
+ 
+ #include <asm/byteorder.h>
+ #include <linux/kobject.h>
++#include <linux/ksysfs.h>
+ #include <linux/string.h>
+ #include <linux/sysfs.h>
+ #include <linux/export.h>
+@@ -213,7 +214,7 @@ static const struct attribute_group kernel_attr_group = {
+ 	.attrs = kernel_attrs,
+ };
+ 
+-static int __init ksysfs_init(void)
++void __init ksysfs_init(void)
+ {
+ 	int error;
+ 
+@@ -234,14 +235,12 @@ static int __init ksysfs_init(void)
+ 			goto group_exit;
+ 	}
+ 
+-	return 0;
++	return;
+ 
+ group_exit:
+ 	sysfs_remove_group(kernel_kobj, &kernel_attr_group);
+ kset_exit:
+ 	kobject_put(kernel_kobj);
+ exit:
+-	return error;
++	pr_err("failed to initialize the kernel kobject: %d\n", error);
+ }
+-
+-core_initcall(ksysfs_init);
 
-Changes in v3:
-- fix references to the MPU node
-
-Changes in v2:
-- fix build with CONFIG_I2C_CBUS_GPIO
-- only export the two symbols that are actually required by the nokia
-  board file
-
----
-Bartosz Golaszewski (4):
-      kernel: ksysfs: initialize kernel_kobj earlier
-      software node: remove software_node_exit()
-      driver core: make software nodes available earlier
-      ARM: omap1: enable real software node lookup of GPIOs on Nokia 770
-
- MAINTAINERS                          |  1 +
- arch/arm/mach-omap1/board-nokia770.c | 30 +++++-------------------------
- arch/arm/mach-omap1/common.h         |  3 +++
- arch/arm/mach-omap1/gpio16xx.c       | 28 +++++++++++++++++++++++++++-
- drivers/base/base.h                  |  1 +
- drivers/base/init.c                  |  1 +
- drivers/base/swnode.c                | 13 ++-----------
- include/linux/ksysfs.h               |  8 ++++++++
- init/main.c                          |  2 ++
- kernel/ksysfs.c                      |  9 ++++-----
- 10 files changed, 54 insertions(+), 42 deletions(-)
----
-base-commit: bd0f139e5fc11182777b81cefc3893ea508544ec
-change-id: 20260330-nokia770-gpio-swnodes-5da8ba35946e
-
-Best regards,
 -- 
-Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+2.47.3
 
