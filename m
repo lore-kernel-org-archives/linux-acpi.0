@@ -1,156 +1,116 @@
-Received: from CY3PR05CU001.outbound.protection.outlook.com (mail-westcentralusazon11013063.outbound.protection.outlook.com [40.93.201.63])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-dy1-f174.google.com (mail-dy1-f174.google.com [74.125.82.174])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BF2437880B;
-	Thu,  2 Apr 2026 19:58:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.201.63
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775159891; cv=fail; b=iL0W+sDyq6uzgutL/eqWFWXadKDcsyoZmjvgOoP7PgGU+06wlVqelxqlfFaJKXWY1NfLZq6hYdKfz50w5Um6L7pbO4wJiewKcCT3xUbgjOuaJaZgvQP6C/cBwK2SBBjnSYhfK4lPfsD8RXJH12c85I/emE1ZO0Vzfer3aHHleZg=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775159891; c=relaxed/simple;
-	bh=nWGvkhVIlygtWijnfhGHnRlU9dBt4+mhFkouEt1lgd0=;
-	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=n8YKtc2cwLArVlecOTTOY93ltQ8ZbWX/GBbWyCqqRW4mJr6KqXNHSWX5778uF815o8PW6f1FwRKOpsFAuWQoXULeETuHsnM4jppX3ttFiywZuHBiV8oXnbIw5eJ9W+cc9gio8PSBYxqdE+sn0fLp1QdC8pE1lXJ87D4VhcmjBbs=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=3N8UMSsu; arc=fail smtp.client-ip=40.93.201.63
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 711AE34752B
+	for <linux-acpi@vger.kernel.org>; Thu,  2 Apr 2026 20:43:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.174
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1775162621; cv=none; b=DzrzQLMZXLaMwYQ/2B65vH+FEZ1oR5E4SzUIqLVo0H1d1BvnYdQHKLNUQ+yb6/VBI5gPmpk9z3uEMAlUgtaP98d4eeFybrrsrkFTt2UZRE6jfa9/IxG2MfuL38pUa/pDWCNMnQbJtOgYfO3mPRVaf8jCvxA5z4IIpiwK34lnTuU=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1775162621; c=relaxed/simple;
+	bh=PfOSvF+9Q9GvIApbJuER9HJI0ph9y/C4dHyB4wNs/UM=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=lwIimsbpm3Zbydm7jNkn9QKeMVsWNCd0eS7z4zvNC+PIPw8jqGBcm5GHU/qZwQ+TK4mdDSDL10DPT3iKZyO+ACEgkyf2UN1aG8l/3jWPmiDnX77V4vNY6oBUVF+blS1eqLR3Pt6nAp7UWtjKFw0K5OdFJOhd2H4oMIB3MmHMhoI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=gXiyjDE2; arc=none smtp.client-ip=74.125.82.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="3N8UMSsu"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=yTotF/fHQKq5DDRN0UfMayZO1FBbQLFpaqBj6mIN4g7CJtjl+SHt9NJL0gtz/4ykCBOx+6aY71ylsqjWzo/eoj3Y272iNN/uDcZcHeXBEZOBMPmaAdnfQLiyMlWrjr9ctGvjYvNsVIFdlix979UXZbJbN9ms2jhVbqUCEiGYyElDe0eFefxCGVRVj0NBJQ1l88Cssp8EI168Ksy6Ck064mgNXMsVe3JeKEqgcEcHCmZfWvdEF3yBKOqbE91fkK5z4aazaRPu20J/+lXKtwdflSQpaLYWzZdulMj8rPJFdlv7OXDtXMN8WXTLgwgh0tSiW6laLNvajZ+i0JRKr3hKlw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=w0cxzLPc833EDh8BwDS9gByK9zezT045cl4zH1zCqs4=;
- b=fdKsa0uaevqkv2rO1Z0K8AJhdz4bF/Gr9ePugdBlpXB7gH73eogm2gJ1JRIgzCROx7/QzlmLfdPfJMXUFXOpb4cErwFs1xLJrfjnhYJFyHb5fju3/5jYZLdSrXDgzNMKBOjTDtwYXMweFEqD1rrjmddXXRzqmDYNYaf2JF6Aq0KOQgSdwA97ohRQoRi6lUAFhMT3EYg/UYlYaa1mg5+W2nc57RN0LP8RCPfaOXE7qTp50NswBSq4hgbTix7ai0Iuz7sb8BrZozVn2FHJATG/YctijZwMW5kjlLp8Mk2f4mzDcIfqgC4t9y6gEqJsbUyZWchpjIftcin0YU63JAZQNQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
- header.d=amd.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=w0cxzLPc833EDh8BwDS9gByK9zezT045cl4zH1zCqs4=;
- b=3N8UMSsuFZz7FGM4592Kut51v2COSsoPEPK1Pr44zQ21/8yAuH5Y/Etyp8k0bPF+Rn40oVjLVEnctXm1Qo0mpqYle6X2o25Xdm0BEHbw19mAjVZju9dFM+IMdwsjbGd7uEUSuNdFM2YSIcZp303CJSZTb+27Pknv8vAjc8yLljs=
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=amd.com;
-Received: from SA0PR12MB4557.namprd12.prod.outlook.com (2603:10b6:806:9d::10)
- by DM4PR12MB6447.namprd12.prod.outlook.com (2603:10b6:8:bf::16) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9769.20; Thu, 2 Apr
- 2026 19:58:06 +0000
-Received: from SA0PR12MB4557.namprd12.prod.outlook.com
- ([fe80::885a:79b3:8288:287]) by SA0PR12MB4557.namprd12.prod.outlook.com
- ([fe80::885a:79b3:8288:287%5]) with mapi id 15.20.9769.018; Thu, 2 Apr 2026
- 19:58:06 +0000
-Message-ID: <a935b2e3-e11d-47ec-af47-7eb7e86a9dd0@amd.com>
-Date: Thu, 2 Apr 2026 14:58:04 -0500
-User-Agent: Mozilla Thunderbird
-Subject: Re: [BUG] ASUS ProArt PX13 HN7306WU: amd_pmc s2idle S0ix corrupts AMD
- 1022:150b root port, NVIDIA dGPU returns header type 7f
-To: Joyful Lee <joy@joyfullee.me>, platform-driver-x86@vger.kernel.org
-Cc: Shyam Sundar S K <Shyam-sundar.S-k@amd.com>,
- Hans de Goede <hansg@kernel.org>,
- =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
- linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>,
- linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>,
- linux-kernel@vger.kernel.org
-References: <CADj6jrgK+sRXoNaYH90Rdc8DYEFK2iSF4vkJC=KE4UaZ73y67A@mail.gmail.com>
-Content-Language: en-US
-From: Mario Limonciello <mario.limonciello@amd.com>
-In-Reply-To: <CADj6jrgK+sRXoNaYH90Rdc8DYEFK2iSF4vkJC=KE4UaZ73y67A@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: SA1P222CA0112.NAMP222.PROD.OUTLOOK.COM
- (2603:10b6:806:3c5::25) To SA0PR12MB4557.namprd12.prod.outlook.com
- (2603:10b6:806:9d::10)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="gXiyjDE2"
+Received: by mail-dy1-f174.google.com with SMTP id 5a478bee46e88-2bd9a485bd6so2911702eec.1
+        for <linux-acpi@vger.kernel.org>; Thu, 02 Apr 2026 13:43:40 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1775162620; x=1775767420; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=21ClTGnhigH6pmJ1bdxGPTsm+cYy8Gt+rk4//h1qZck=;
+        b=gXiyjDE23EjXZrk7uxkNcBB90uOw5CiHfWwnqND5xV+ZfXYwOvoki959Actdm7YRIG
+         JkGCDOyqQ4vgCIsZBFfYtt8JrzFCwl+C+wz0hhnpA8CCzJqeiTmleEFdz2i3jtapa9EE
+         L2fhOyB4vIj3CAC8YmbQsUvNwPsjDv9mvPjffXHOFlcaBRowboyMcjG2PfT1JIWglBUH
+         aWEMWu5IkK/vHJ2VO+loA+2NQBrbvt6q5BmEztS5StTut1G7l7l4Osv3+/5SeEd4Ueb8
+         /pxhVKKvn/o4XmluN2Ii16rlCd7rTdcfToOBaTXYsXqFlmMntxbJL/xdCIhKmvzC+YSl
+         AB5g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1775162620; x=1775767420;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=21ClTGnhigH6pmJ1bdxGPTsm+cYy8Gt+rk4//h1qZck=;
+        b=JO2xza4XPudhCZiodnYPVN3r7ZNEM3us5yFCweCtqqiiRQv0S5XKXVduJZxMS8XRzU
+         HcVMDDFFNxp1lfwfohBXIjFnU1OUM7QlNNanNIlrWw0YXVHZGKrnw+Lj5KoAsvj2vnp0
+         47HQa9BIr5j3MHc2IXVhsZ5quOkU8e8QNMYjaEOh4CjSsWzBEAu9z0JLz6D1zG47wFE3
+         D216F8AKUtRIWAq4eeevIKGLXmd+HfqeANMBZwH+eOSS9lpwueN0vVbXWglCed6DOPpm
+         TroQjehjf0c/RgTuKpUSj7zio0LOL3qF5GKSo9UnDWhPvKU70BP1K+M9GNaDO7K5AGDP
+         kc9A==
+X-Forwarded-Encrypted: i=1; AJvYcCVOD+qyYIccSCV0UEaMhrxsm4KcW+K/79oPSJyuwjIshQejIl5m+g9UfTOxxgk0NLrDmqEiZ7zo8Tkb@vger.kernel.org
+X-Gm-Message-State: AOJu0YwrkJwOFg7SzkRL7tfvFnRElt1W7+G+AkFpXlgqb1N/oeQCPDBN
+	EWFgEPci7c0ZPUkvX8P8SUjVFKsjDNCTRcMuuJWQ12YF20uZqhvc/L1y
+X-Gm-Gg: AeBDievPtnUUVQz64HWlkzRJOPHMugcMLtXAjGFXJ8O+w4HVHOUYeST5yDYZzRP3XuP
+	xP7WviGKJSBTFMXavB0JWx46/zCQjAFTYLR4ccCWUJChzYY1/oTevG8IMYmQyhHpoiJ44MbwTUb
+	bXwszUegGPwnFZnLUE8S7aaDnfEqxuwzcIzt6f8RkWNy8N8R+yGfXYMyUJUpFmuGt50Xxs3HTQ3
+	l0rOZNEl5SdF29b4IgC6p5ajrNDD0bUun/vJWbZFgnlpIKaHxnTHBqdq8VA2VyJCfTqMnHFG9Yo
+	9E5DM9EWZC6Xqkw6yjZXbVBTCpGIuudz1cmFHEsCvGcXXW4cvU8RRHslto7Jm1/BiagIGk22R1L
+	yM0taN7ioAuYU9RRJTLqbA+GPqB8tnE7fCS0tdFIIJue5cqLxOfN1j87JfjYxxsgIhp+Go6MXjF
+	UvA8arsnpOVvsv3i1P+oLMHHIthG8sybWPM4qtiKRRHSNCV7rv0RGhTDPej9/JD4Xk
+X-Received: by 2002:a05:7301:1e87:b0:2c6:cdb3:bd8d with SMTP id 5a478bee46e88-2cbf9afd61emr347222eec.7.1775162619471;
+        Thu, 02 Apr 2026 13:43:39 -0700 (PDT)
+Received: from google.com ([2a00:79e0:2ebe:8:902a:cd8d:1c0d:8926])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2ca7c20b195sm3280897eec.16.2026.04.02.13.43.37
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 02 Apr 2026 13:43:38 -0700 (PDT)
+Date: Thu, 2 Apr 2026 13:43:35 -0700
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>, 
+	Daniel Scally <djrscally@gmail.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+	"Rafael J. Wysocki" <rafael@kernel.org>, Danilo Krummrich <dakr@kernel.org>, 
+	Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andy@kernel.org>, 
+	Linus Walleij <linusw@kernel.org>, Hans de Goede <hansg@kernel.org>, 
+	Ilpo =?utf-8?B?SsOkcnZpbmVu?= <ilpo.jarvinen@linux.intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
+	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, 
+	platform-driver-x86@vger.kernel.org, brgl@kernel.org
+Subject: Re: [PATCH v2 1/4] software node: return -ENXIO when referenced
+ swnode is not registered yet
+Message-ID: <ac7UqTsPC8yUooAR@google.com>
+References: <20260402-baytrail-real-swnode-v2-0-6f5054a4cc07@oss.qualcomm.com>
+ <20260402-baytrail-real-swnode-v2-1-6f5054a4cc07@oss.qualcomm.com>
+ <ac5wprh9vfTU5pGa@ashevche-desk.local>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SA0PR12MB4557:EE_|DM4PR12MB6447:EE_
-X-MS-Office365-Filtering-Correlation-Id: eca7cb42-52f1-4589-2baa-08de90f227dc
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|366016|1800799024|376014|56012099003|22082099003|18002099003;
-X-Microsoft-Antispam-Message-Info:
-	/TAAjzSbi/opAyG+zcjFSm4U+iEaAbUZYDpm13vTDlTmwL/tgYbpU6tGQs4ayXtaXIKwaWVRxnxtwvt7bUakcvWF5QiiN/2GOJtF/glAeP8VHY28OH5+2KeeBJfAbjE0JS/xbFuvxiHuGlS8jwJpS/OrfgKtxcDUxAwXn6pg49XMLSL2qHAwEmeU1O+vrggaAha2BVyGvl01HZqr81P0BgAkX5kzytL2G1nsjvi1ExiOegZrfOe93q6tUWBjiZrP52BgA2oZ7vzNyD6l7pnMM/fo1HDI4F7QldI68jex1JG3Rzii2nnoIQUZD8Z+6EhgjfLVrPeVdr1+/wGjZKI7h/MKhXFHqoNWb8DnvIUS8Lzbmls7tA/HTUT2N5rO7++sB10DeU4C+Bv6hGpxI8YPTf3KmiZsRlP9LUlIkRb8j7Q4Mf9L8yMR4vJYvPzVdZH/VEfSaTgcNVEFIqWHHWbhbz8efgLZ1EcN6GJhJ9j/jn1Z8ibnAHVhyic6XePAyKOmxz70KQqWUC9NxysQFbunIg0qgKFE61nyzOpzAwzHBYBB4x6B9R9dwTJntsIKu9hnycMpDctiEI8NE+wW+Sa5LF6dL38gwNkBaJM9ERL6SieLZPXU3OYkEPwIwu89Mjl80ESt1amqSYRYpsa+DTMMS7Ui/nIu7Mi9WXho5zd8pGkmdzrvNy1IMFQUBvqh/YCp
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA0PR12MB4557.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(376014)(56012099003)(22082099003)(18002099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?dlRVU3gvUkNFKzhrQ20vREhoblNTbDRUNGFhb1UzNUIrUWMwVXo3N1Y4b0pF?=
- =?utf-8?B?Z0wxTjdqYjVMMnNGdzI1TmJvL1RWRlpMNUZRNUFScENyWGx1d0RielFOV05O?=
- =?utf-8?B?cDhxRjhtOXRZcWRRdlBWSWwwSnhJaUN2TFZKc3lqMUh1VDVvdW51cmVsMHJW?=
- =?utf-8?B?Y1Qrc3cweUtmQ25icVp2ZFlJaStpOFkwYXBPN3FLa2dFeUpCSVlob2tKRGRU?=
- =?utf-8?B?NWREMUN6aWVsQ05LS1BhSklabWFBU0FTVzlhMXZ1NEszL3VoVUQ5a1BJTlNv?=
- =?utf-8?B?amYyTm1hM0E0U24zT1k2RUNmdThWamVXajkxajRWK1RNeGFadHU3Qzh5cm9L?=
- =?utf-8?B?ZW4veW5ONUVBaWpaYzBlU1lDVXNlMFdJSEJhVDdjSmlwTzk3SUgxQTJvbzlp?=
- =?utf-8?B?NmVVMEVhWE84bGRtQzhQS0oycDFUMHJOemNXbmEvSlhabGZ1djYzVWprOFRU?=
- =?utf-8?B?ZlY2cWlzTkN2YmhBR1ZacVdranhObnlvc1h2T24xWW5PQjdibzZXY0FHUk1Y?=
- =?utf-8?B?bE5neEQxaEVhWnQ4dzFrVjZUZ3FXRXhGM0VMcXpDd1ZzNE9VVWdpTnFYWGpv?=
- =?utf-8?B?QTNCMGlUNVZpWVpHdkx4bWdLTFhoZFZNTGhPVUR0K0xwb0pnams1UTNhcmRH?=
- =?utf-8?B?bUVrWFJRdkdMTERSTHh2Snd1MTBlWjlXZjQwMkdmYTIrNVN3SGNSTUdyYWF4?=
- =?utf-8?B?dUkrYnRsS05ZUVZJUlBFWE43VzhSRkFmK3hBVFJTbE1Kcmh5cFRCMWZmVllV?=
- =?utf-8?B?WGR5Nm5tZkRrSERUNUUxQTBzU0FZb1dpTmhaaXdxQ3RSMksxNThCZFhiaXpM?=
- =?utf-8?B?bmthV1BId20rSkFGVjJ0VDcwMFZHNlR6UmFXSHU0Q1NVRENzd3Vxam9PRVF2?=
- =?utf-8?B?Uk5BaUIybzlUUmNaN0xFQk1EQ0JjWWNJcFUreGl3QzNFMDAzdnpoTzNpUGdY?=
- =?utf-8?B?VVNjbjM1K2RwNytFMndKWFdIUEEzZHVseldCenpSRmVVbzJKYkszN29PQ3VW?=
- =?utf-8?B?T0dDYmJvT3h0NXdUV0tPTE02N1VIb1lleUxGSU4zaURCam55eDcrYVFCa0VN?=
- =?utf-8?B?SHJGMlZzMXhyVGUwcldIaTV2MDB1M0VKbmt6ekNNNVhMaDZ5UjFRN2x2Z0ZT?=
- =?utf-8?B?a01iNUZGZkF1dzIreUIzVHZBVG55eE5tUHFQTml0UmE0aWhBbEZiNUJaUHRE?=
- =?utf-8?B?MHVkYzV1NlMrQnN1VXlhdCt0eUtwVC95UFBUazVHdXhQWTRsaVNPMXIvTFJj?=
- =?utf-8?B?YXVLSjdPU29zeXZNUTFqMzVBeGFLNVY0UVNVeitOazRkTFVicThaS2w1dFUz?=
- =?utf-8?B?b25BSUZzU2JQZitrY1hUd3JUVThmNHd0U3lCQkZabjdhZndnYUFKZFRNaVR4?=
- =?utf-8?B?M3orVCtBdFdyaHJ3c1R4ZHIzTjZEeG4xekZGczZaektzSDBhWWw4UVEvSmNh?=
- =?utf-8?B?SXdLQWtKMGU3WEJORjQ4NHFOM1I0SEhNditnck1mZHNkZ3JjOXhEc3NtVEM1?=
- =?utf-8?B?WFJXTDg0dmV5Ky8yN3E5d2xqeFl6eC82WFRCckxJQmJETW1nQWV2YlVZaTNW?=
- =?utf-8?B?RDEwSVMzYVFFMUJ2dVlUeDg3U1FtVFNNbjI3RXRnMHlQemxFMkNHRXVzOXF0?=
- =?utf-8?B?OU9rencydUFiV1NGbkszdFJvSjU1Z1A2MEFpS3BPb1ZHUHJWRUhtVDZ6VFBS?=
- =?utf-8?B?TmNvSVlkQllpVXBYNms4aVJJa2VjMTVVaG8vcEgvQ2M5RWNZZzdyNGs3SDBj?=
- =?utf-8?B?UmJlTVJLZ0tmVnk0L1p4aG9HYmJmMGU3c1BsNFFkSngrS1RjYndiLzBUTTBx?=
- =?utf-8?B?ZkJCNEx4anRvTVNyQzNTMWE0Slc3TUNPbDFkdGdyTnlFMEh3d1JKQyt0OXFj?=
- =?utf-8?B?aWx1UEQrWit4WVcxQ0ZPQTc4b1p3b1V2dTByK2FpK1d0Yit5Kzd1aXVMbDhv?=
- =?utf-8?B?eFZiNHRHL0JJT3lyd2F1aTA4bnhDODkxbDRMWmFTd0Q0MFl3SjVOV0p4TnVh?=
- =?utf-8?B?Uk56Q2hVbmRISWdEUzNRNnl2TlZBVWxieE4yUFlzM3NoN1djZVlYS1dkcmNX?=
- =?utf-8?B?aTJVbFB1aW0zL0FmNVpWZkgvTFlGQnJyVTczKzBsMDRjNGw1V3l2T05Ga2Ir?=
- =?utf-8?B?RCtITXZKOEVvZGhaaTVjY2diL0JUMFZrRWswYkw2SDdRRDlPSnJQcXVKcFRQ?=
- =?utf-8?B?K2hROXJ5VVY4TkdKRUN4UHZ4eVhUVytRdVVlZWFZNWJ0NFpneXNQaWJHNVFw?=
- =?utf-8?B?a1Zjbk9Sb1hMaHJrekMvQ3prYnU2R0NCZlV0SWpmbHhIeDByQmtRM05VR3VO?=
- =?utf-8?B?VEZGUGFBZ3FUWlFQL0pTd3FFcU5NNWdJK1RZbjJzdjFMQnpCYm5xdz09?=
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: eca7cb42-52f1-4589-2baa-08de90f227dc
-X-MS-Exchange-CrossTenant-AuthSource: SA0PR12MB4557.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 02 Apr 2026 19:58:05.9680
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: MtCcjaeyP09cFajlGvLZH80K/KuvzFDOr8Z/71K/pfBwNlcS7/OutPUqj19/8kLz4SvCfo7Ud9FcLZ8u2qQywA==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM4PR12MB6447
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ac5wprh9vfTU5pGa@ashevche-desk.local>
 
-On 4/2/26 1:49 PM, Joyful Lee wrote:
-> [You don't often get email from joy@joyfullee.me. Learn why this is important at https://aka.ms/LearnAboutSenderIdentification ]
+On Thu, Apr 02, 2026 at 04:35:34PM +0300, Andy Shevchenko wrote:
+> On Thu, Apr 02, 2026 at 02:54:26PM +0200, Bartosz Golaszewski wrote:
+> > It's possible that at the time of resolving a reference to a remote
+> > software node, the node we know exists is not yet registered as a full
+> > firmware node. We currently return -ENOENT in this case but the same
+> > error code is also returned in some other cases, like the reference
+> > property with given name not existing in the property list of the local
+> > software node.
+> > 
+> > It makes sense to let users know that we're dealing with an unregistered
+> > software node so that they can defer probe - the situation is somewhat
+> > similar to there existing a firmware node to which no device is bound
+> > yet - which is valid grounds for probe deferral. To that end: use -ENXIO
+> > which stands for "No such device or address".
 > 
- > (LLM garbage)
- >
-> So far, every path that reaches real S0ix through the normal 0x03/arg=1 PMC
-> flow still corrupts the root port, while every path that avoids real S0ix keeps
-> the root port healthy.
+> This error code is also too generic to my taste. What about alternative(s)?
+> EADDRNOTAVAIL
+> ENOTCONN
 > 
-> (LLM garbage)
+> (The brief grep shows that the second one might suit slightly better than the
+>  first one by existing use cases.)
 
-What does corruption mean in your context?  Because I don't have any 
-idea what a root port being corrupted means.
+We are in the core of the driver core. Why not simply use -EPROBE_DEFER
+to which all users will resolve this error to and call it a day?
 
-Basically I don't trust a single assumption that was made by that LLM.
+Thanks.
 
-Can you please get an amd-s2idle report from an unpatched mainline kernel:
-
-https://origin.kernel.org/doc/html/next/arch/x86/amd-debugging.html#s2idle-debugging-tool
-
-*Then* let's talk like people used to before LLMs came into the picture 
-about your problem.
+-- 
+Dmitry
