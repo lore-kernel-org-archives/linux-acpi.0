@@ -1,105 +1,126 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.16])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9477B3EFD1E
-	for <linux-acpi@vger.kernel.org>; Thu,  2 Apr 2026 15:03:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23DD82FFF8F;
+	Thu,  2 Apr 2026 16:05:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.16
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775142204; cv=none; b=mU4RDtXjHjGe83QZ5np9RvG1zxnoEGwPRlwOVY1Rpsdf1XIJpcPZbqwvq8KZ8/KNJwhLhYX42DhPc80U88kHepVTHG4A/sCwjhz/6K+Os6V68Xa0I9sSB1aogoS6TsNuUxroo+XJ63Y4yVJDf9JqTNQwPGUY/IoMoOAMg6X25N8=
+	t=1775145930; cv=none; b=bTcvTCrC+QcVSLhF66FrJpVLnU1YkhlHsvBKwQ5sl2B27Rr8VeJR/hZSyKwn2WWxuFat9KalebEJG81DrYo/+LSAU16pwGmBWnwunKvsy17NRuChAIAnpsjzO4JzVB+uF5rjqRTVgDNAaUzy2z14fUiOJWjJ6yKnpfAkcTvaNpQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775142204; c=relaxed/simple;
-	bh=F4zhH6M3sP6/pIp7gAJGXFdabfzYRh9hex7KTF1/hgk=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=PKrsnmWRdOv+S+0QHDLK2Ef0+sb6P67ejxAntRPckekceFC3T/pzJAu+dEa53FOc0Q87IrW67rJkCMv+26ulTo8wIP0tkypjznWnmgO5c/A0ojXDvvaG6q60i7XDPwH0cXpGl9U7te2+cs23RLososIBjZSSLyyoDtDNSbQyTvM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TAzaKBk5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775145930; c=relaxed/simple;
+	bh=IODCawz8kcexRtKlj/yGaPPXqXPpD1zBkHmNkzRnqCc=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=pmaEd38Ci0kI2MZq/2hPENoz2Dmw2/waMT9aDQNNQoQw+6OvKUq+9Xixb8AFqtSTgGn0yrZk1ECUIiRWx1Llu1YqMiSdmmpQ98wLLwdeIG269ak3ttVS+bXFAZaqc90Hr2pM0JUkqkod2yRA/3V7VP7AoAV5Px/KPXDxfW62jWk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=TBfV5Ra0; arc=none smtp.client-ip=192.198.163.16
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TAzaKBk5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DD17C2BCB3
-	for <linux-acpi@vger.kernel.org>; Thu,  2 Apr 2026 15:03:24 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1775142204;
-	bh=F4zhH6M3sP6/pIp7gAJGXFdabfzYRh9hex7KTF1/hgk=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=TAzaKBk5bQHEBAnoDbUHErPGXZrqeqWseRisq+qBPxAXpmtjCa/Es6/BTjCHNfocR
-	 XE0tH+MhdOYS5aqtuArK6aR4Ho7A/XpMrvpI8i0bz7uUIn6PbsJ3DAigAc1iMCTu0k
-	 v0M3NLt3KBRYEgupn6ici5UJ18Zqf9r3QCP5lR9vOUGq1MBGyC3hMf+o/beD+76xKa
-	 yFZDW5tbw4inyMJwlcwAYvzaO2RxtTIXXUBWsPVQEyVOlp2Kg5g0yDdemO7O00G5oJ
-	 /Xeg6GQoCrTPJvnqZ8dqelftFEBREBcy5ftGuZrnev05C+vlBNcXUMWyM+d4EmmSqE
-	 lEy6KOHRLFiWw==
-Received: by mail-lj1-f176.google.com with SMTP id 38308e7fff4ca-38a42a0d7f7so18376581fa.1
-        for <linux-acpi@vger.kernel.org>; Thu, 02 Apr 2026 08:03:24 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCXjTFxb8K5JKQGpWSwViU+cKyQIjJSau2KKPLzCJKDWcjJCtK523ClBmVqAAGLVfmX9NI/26siKWpy4@vger.kernel.org
-X-Gm-Message-State: AOJu0YxlwAbOGFNGbYu8uB63GNwzaN410oZzWA4C7Fcyfco7zTWtOrGG
-	SSyYlSHVDLbTGq03eLUGhyoKV/kZnmE/WNa1jFBiYaVLguTSJW+LUFYukpSabIn3MwnNQbSCTjI
-	ml70ywAxRSbyufslbVsepKZgARrhAIVcDWMOxSnugfw==
-X-Received: by 2002:a05:6512:3d9e:b0:5a2:c66a:d6d1 with SMTP id
- 2adb3069b0e04-5a2c8d78c78mr1121944e87.6.1775142202973; Thu, 02 Apr 2026
- 08:03:22 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="TBfV5Ra0"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1775145929; x=1806681929;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:content-transfer-encoding:in-reply-to;
+  bh=IODCawz8kcexRtKlj/yGaPPXqXPpD1zBkHmNkzRnqCc=;
+  b=TBfV5Ra0I+92u9sINodPHjWu1ZqGk5c+EOluiuRjiygXHGYW4BJkJbPA
+   XhNT7cQHZqhpol4fqo6dj4Vq5zBhmdp7UVVxB9dp5IvQ6tRy6LJmmzmZo
+   gMgKs53wMxavM35HMHTPAgcF5Il3AdZMCfCFvjfagLuIb0CMX69Eert1m
+   tUffP/T7qNnrdwUwQ90WL/3/iF5sXBOn0sqXioOaqXwthy+LZTCZTcURQ
+   18yJGaJDREVG2ZHSrnwB6A1Pvyr5zXDBk3K4ZL7yBhD/DnjFH+1CRewfo
+   4Y73qSF3vzGIBIBD7xxLowDRqu++rFG83QNhoxtVeXRO6CVcNNRINl1uR
+   w==;
+X-CSE-ConnectionGUID: RWkKSCMvSfyv8ulmt00mww==
+X-CSE-MsgGUID: mOCdQftDTDaRjG9gW+/WIA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11747"; a="63759096"
+X-IronPort-AV: E=Sophos;i="6.23,156,1770624000"; 
+   d="scan'208";a="63759096"
+Received: from orviesa009.jf.intel.com ([10.64.159.149])
+  by fmvoesa110.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Apr 2026 09:05:28 -0700
+X-CSE-ConnectionGUID: nX2n9YhRQIiu0VLycGKtyQ==
+X-CSE-MsgGUID: AvO1IF+FSPGsevXXqjehog==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,156,1770624000"; 
+   d="scan'208";a="226886785"
+Received: from amilburn-desk.amilburn-desk (HELO localhost) ([10.245.245.31])
+  by orviesa009-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Apr 2026 09:05:23 -0700
+Date: Thu, 2 Apr 2026 19:05:20 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Bartosz Golaszewski <brgl@kernel.org>
+Cc: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
+	Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Mika Westerberg <mika.westerberg@linux.intel.com>,
+	Andy Shevchenko <andy@kernel.org>,
+	Linus Walleij <linusw@kernel.org>, Hans de Goede <hansg@kernel.org>,
+	Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
+	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org,
+	linux-gpio@vger.kernel.org, platform-driver-x86@vger.kernel.org
+Subject: Re: [PATCH v2 0/4] platform/x86: x86-android-tablets: use real
+ firmware node references with intel drivers
+Message-ID: <ac6TwAL3fQrlpef2@ashevche-desk.local>
+References: <20260402-baytrail-real-swnode-v2-0-6f5054a4cc07@oss.qualcomm.com>
+ <ac5t5XozmzN9oq96@ashevche-desk.local>
+ <CAMRc=McR+S9LCHmDjAS6Wn=SrNvq5Ojr-w1qeLsGNJ+L39pbrw@mail.gmail.com>
+ <ac5zhZAyiwbUwzWo@ashevche-desk.local>
+ <CAMRc=McJFNp15jnrehGLHsmFRfBpRQoppmdB_51whzJUQ-5ZLw@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260402-baytrail-real-swnode-v2-0-6f5054a4cc07@oss.qualcomm.com>
- <ac5t5XozmzN9oq96@ashevche-desk.local> <CAMRc=McR+S9LCHmDjAS6Wn=SrNvq5Ojr-w1qeLsGNJ+L39pbrw@mail.gmail.com>
- <ac5zhZAyiwbUwzWo@ashevche-desk.local>
-In-Reply-To: <ac5zhZAyiwbUwzWo@ashevche-desk.local>
-From: Bartosz Golaszewski <brgl@kernel.org>
-Date: Thu, 2 Apr 2026 17:03:10 +0200
-X-Gmail-Original-Message-ID: <CAMRc=McJFNp15jnrehGLHsmFRfBpRQoppmdB_51whzJUQ-5ZLw@mail.gmail.com>
-X-Gm-Features: AQROBzC8kXfF8m1woyIDTDDAIkrV3H5UZACDhpRJ_7Yt9ZM71rXQFfvjqh5OmSk
-Message-ID: <CAMRc=McJFNp15jnrehGLHsmFRfBpRQoppmdB_51whzJUQ-5ZLw@mail.gmail.com>
-Subject: Re: [PATCH v2 0/4] platform/x86: x86-android-tablets: use real
- firmware node references with intel drivers
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>, 
-	Daniel Scally <djrscally@gmail.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
-	Sakari Ailus <sakari.ailus@linux.intel.com>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
-	Danilo Krummrich <dakr@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, 
-	Andy Shevchenko <andy@kernel.org>, Linus Walleij <linusw@kernel.org>, Hans de Goede <hansg@kernel.org>, 
-	=?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, 
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
-	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org, 
-	linux-gpio@vger.kernel.org, platform-driver-x86@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAMRc=McJFNp15jnrehGLHsmFRfBpRQoppmdB_51whzJUQ-5ZLw@mail.gmail.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On Thu, Apr 2, 2026 at 3:47=E2=80=AFPM Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
->
-> On Thu, Apr 02, 2026 at 03:35:24PM +0200, Bartosz Golaszewski wrote:
-> > On Thu, Apr 2, 2026 at 3:23=E2=80=AFPM Andy Shevchenko
-> > <andriy.shevchenko@linux.intel.com> wrote:
+On Thu, Apr 02, 2026 at 05:03:10PM +0200, Bartosz Golaszewski wrote:
+> On Thu, Apr 2, 2026 at 3:47 PM Andy Shevchenko
+> <andriy.shevchenko@linux.intel.com> wrote:
+> > On Thu, Apr 02, 2026 at 03:35:24PM +0200, Bartosz Golaszewski wrote:
+> > > On Thu, Apr 2, 2026 at 3:23 PM Andy Shevchenko
+> > > <andriy.shevchenko@linux.intel.com> wrote:
+
+...
+
+> > > > > 3. Export the acpi_bus_type symbol. It's already available in the
+> > > > > acpi_bus.h header but it's not available to loadable modules.
+> > > >
+> > > > Nowadays we don't do that but export the dev_is_acpi() or something similar if
+> > > > it's not yet available and to_acpi_dev(). (Names are derived from the existing
+> > > > pattern, they might be need to be adjusted, dunno.) See how PNP does that.
+> > > > Note, I haven't read the patches yet, just a quick comment.
 > > >
-> > > > 3. Export the acpi_bus_type symbol. It's already available in the
-> > > > acpi_bus.h header but it's not available to loadable modules.
-> > >
-> > > Nowadays we don't do that but export the dev_is_acpi() or something s=
-imilar if
-> > > it's not yet available and to_acpi_dev(). (Names are derived from the=
- existing
-> > > pattern, they might be need to be adjusted, dunno.) See how PNP does =
-that.
-> > > Note, I haven't read the patches yet, just a quick comment.
+> > > Maybe I should have said why I do it. It's to register a notifier call
+> > > on ACPI bus events. Is there a better way to do this?
 > >
-> > Maybe I should have said why I do it. It's to register a notifier call
-> > on ACPI bus events. Is there a better way to do this?
->
-> AFAIU there shouldn't be pure ACPI devices, they are companions to the re=
-al
-> ones. Can we simply attach to the normal device notifier and check if the
-> companion is what we are looking for? Also since it's specific to that dr=
-iver
-> and you know what the platforms you are looking for, why can't we hook
-> something into drivers/acpi/x86/lpss.c?
->
+> > AFAIU there shouldn't be pure ACPI devices, they are companions to the real
+> > ones. Can we simply attach to the normal device notifier and check if the
+> > companion is what we are looking for? Also since it's specific to that driver
+> > and you know what the platforms you are looking for, why can't we hook
+> > something into drivers/acpi/x86/lpss.c?
+> 
+> The ACPI companions seem to only ever be added once and never removed
+> - unlike platform devices. This is why I prefer to check the ACPI bus.
+> 
+> As for lpss.c - what do you sugest exactly because at first glance I'm
+> not quite sure what's there to hook up?
 
-The ACPI companions seem to only ever be added once and never removed
-- unlike platform devices. This is why I prefer to check the ACPI bus.
+Can't we create / submit the software node of the given device (GPIO)
+when it's get created (as platform device)? That driver uses a notification
+when ACPI bus is scanned, that's what may trigger the software node creation
+and the other end will eventually see it.
 
-As for lpss.c - what do you sugest exactly because at first glance I'm
-not quite sure what's there to hook up?
+-- 
+With Best Regards,
+Andy Shevchenko
 
-Bart
+
