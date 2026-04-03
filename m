@@ -1,41 +1,41 @@
 Received: from canpmsgout06.his.huawei.com (canpmsgout06.his.huawei.com [113.46.200.221])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B67843147;
-	Fri,  3 Apr 2026 08:45:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4488D37B025;
+	Fri,  3 Apr 2026 08:53:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.221
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775205955; cv=none; b=c129kbF91sOkzr3dezBrv//2PFGRbrvdtbjQ2qvvebi5FAxyUzH0g6B9BAcyk5Xv2HfX+39XtoLlQqQU/6XZGulIOJ98q/LTt7FsoWdooVDossjVOQZPXuyVswUqGnHIGyHt+qehPWWhF7tEiv6J7tOcgIQTAl0C81lJu+1J8Zc=
+	t=1775206430; cv=none; b=AquOcA1jGTojZMdDCKx89F4x9Ozo2LOYQPblQxs6QmuXlOtbKrj3NGkTZMCCRGi32Iig2ntW2Ny/VoIcqw4MgU4xt9sMViN2zvGkDZOFB/S46/MjeJH9fXe6BJ1At1pa4Ms7JlZp+80+vFge8wwtPwblvw+CHI7wW+gBxTNcpRM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775205955; c=relaxed/simple;
-	bh=Hpm3U1WnLpJu7i31BrOnNMQW6zCeIl/NGeqf4iAmgwA=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=KSH8Z6Gy+uSUPysHG3IPQ0ah47NsN8NReX97/xr0vimK2LXzSNUQW7Yp/0bZDAlLEU5UV3Sduvs9bmjejpn8Kw0CDO9w0scy0eQ1GRQj65/1/drvNB8kGGUXe3qGJhuZ3G2lQDisZeutrqxmT5I8twJ4Jza354zSxYTmiug3flw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=jzKwqLBk; arc=none smtp.client-ip=113.46.200.221
+	s=arc-20240116; t=1775206430; c=relaxed/simple;
+	bh=7hljSfbCMoe7aotArStlInJGZBHF3UccXe+EzzmK7cw=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=ZNmiB6n/yYzNk4eY8pP2wGtrAbyhrrKxjyikdDgK7eG104jpWuC/gNFV0HUfQXm/4oCNnH2jqP4NNYrdofTP62OQ0yxMum12NyTSprF8S1ZpfUyDdOMe0W7tLV+csIG0xTzlRZt4lLVPu8URMUd20juxWH5r79DkD3sTWG+LhvA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=FtXXLtRi; arc=none smtp.client-ip=113.46.200.221
 Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=h-partners.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="jzKwqLBk"
+	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="FtXXLtRi"
 dkim-signature: v=1; a=rsa-sha256; d=h-partners.com; s=dkim;
 	c=relaxed/relaxed; q=dns/txt;
 	h=From;
-	bh=+cl1UGkNELaUkQFAdZ5UWGReiv4GzdSFoHv0mWPbBIo=;
-	b=jzKwqLBkCWAIarb3jII59oNRdlR7EN8ZHqghKHem7ct8JAwbhJ4oEFSRW5E+c7uublD6bYg87
-	ryDZcNNU+07qeH/JNGraKELlLJsGlW8WUj7oy5/DK4VS8QEz+QqlBVZt1dI7+mt2VyVd/61jyJA
-	CHa3prd9QjhuNmvibl+rl7o=
-Received: from mail.maildlp.com (unknown [172.19.162.144])
-	by canpmsgout06.his.huawei.com (SkyGuard) with ESMTPS id 4fnBwh3G1SzRhTp;
-	Fri,  3 Apr 2026 16:39:32 +0800 (CST)
+	bh=pl97eqEMyiskpjfdPoPG1e9P8KOX2jBc3sUg0vI9cns=;
+	b=FtXXLtRiIWaGA6TLuC9cuCjD1SOc3ewmpHPj0B56OzkshH4KozGpv3cAk6KhzrXC1cfP/SjX/
+	+xB/piM0mublGGwSdSeVJLgYQ2JSkKIl+WDeAq82RmnvBbQDTakmasD/yAQMsCjXu1Fq8V6QoV2
+	bTdHFaQZyvAKh2qkbvAw6M8=
+Received: from mail.maildlp.com (unknown [172.19.162.223])
+	by canpmsgout06.his.huawei.com (SkyGuard) with ESMTPS id 4fnC5y0kSdzRhTp;
+	Fri,  3 Apr 2026 16:47:34 +0800 (CST)
 Received: from dggemv712-chm.china.huawei.com (unknown [10.1.198.32])
-	by mail.maildlp.com (Postfix) with ESMTPS id 761C44056D;
-	Fri,  3 Apr 2026 16:45:43 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id 2395340561;
+	Fri,  3 Apr 2026 16:53:45 +0800 (CST)
 Received: from kwepemn100009.china.huawei.com (7.202.194.112) by
  dggemv712-chm.china.huawei.com (10.1.198.32) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Fri, 3 Apr 2026 16:45:43 +0800
+ 15.2.1544.11; Fri, 3 Apr 2026 16:53:44 +0800
 Received: from localhost.localdomain (10.50.163.32) by
  kwepemn100009.china.huawei.com (7.202.194.112) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.36; Fri, 3 Apr 2026 16:45:42 +0800
+ 15.2.1544.36; Fri, 3 Apr 2026 16:53:44 +0800
 From: Huisong Li <lihuisong@huawei.com>
 To: <rafael@kernel.org>, <lenb@kernel.org>
 CC: <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
@@ -43,9 +43,9 @@ CC: <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
 	<zhanjie9@hisilicon.com>, <zhenglifeng1@huawei.com>, <yubowen8@huawei.com>,
 	<wangzhi12@huawei.com>, <zhangpengjie2@huawei.com>,
 	<wanghuiqiang@huawei.com>, <lihuisong@huawei.com>
-Subject: [PATCH] cpuidle: Simplify cpuidle_register_device() with guard()
-Date: Fri, 3 Apr 2026 16:45:42 +0800
-Message-ID: <20260403084542.708104-1-lihuisong@huawei.com>
+Subject: [PATCH] ACPI: processor: idle: Reset power_setup_done flag on initialization failure
+Date: Fri, 3 Apr 2026 16:53:43 +0800
+Message-ID: <20260403085343.866440-1-lihuisong@huawei.com>
 X-Mailer: git-send-email 2.33.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
@@ -58,57 +58,61 @@ Content-Type: text/plain
 X-ClientProxiedBy: kwepems500002.china.huawei.com (7.221.188.17) To
  kwepemn100009.china.huawei.com (7.202.194.112)
 
-Use guard() macro for mutex to simplify the control flow in
-cpuidle_register_device().
+The 'power_setup_done' flag is a key indicator used across the ACPI
+processor driver to determine if cpuidle are properly configured and
+available for a given CPU.
+
+Currently, this flag is set during the early stages of initialization.
+However, if the subsequent registration of the cpuidle driver in
+acpi_processor_register_idle_driver() or the per-CPU device registration
+in acpi_processor_power_init() fails, this flag remains set. This may
+lead to some issues where other functions in ACPI idle driver use these
+flags.
+
+Fix this by explicitly resetting this flag to 0 in these error paths.
 
 Signed-off-by: Huisong Li <lihuisong@huawei.com>
 ---
- drivers/cpuidle/cpuidle.c | 12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ drivers/acpi/processor_idle.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
-index c7876e9e024f..8c037db46792 100644
---- a/drivers/cpuidle/cpuidle.c
-+++ b/drivers/cpuidle/cpuidle.c
-@@ -679,16 +679,16 @@ int cpuidle_register_device(struct cpuidle_device *dev)
- 	if (!dev)
- 		return -EINVAL;
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index 2adaee0f32ed..c1cddb4a5887 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -1378,6 +1378,7 @@ void acpi_processor_register_idle_driver(void)
  
--	mutex_lock(&cpuidle_lock);
-+	guard(mutex)(&cpuidle_lock);
+ 	ret = cpuidle_register_driver(&acpi_idle_driver);
+ 	if (ret) {
++		pr->flags.power_setup_done = 0;
+ 		pr_debug("register %s failed.\n", acpi_idle_driver.name);
+ 		return;
+ 	}
+@@ -1386,7 +1387,16 @@ void acpi_processor_register_idle_driver(void)
  
- 	if (dev->registered)
--		goto out_unlock;
-+		return ret;
- 
- 	__cpuidle_device_init(dev);
- 
- 	ret = __cpuidle_register_device(dev);
- 	if (ret)
--		goto out_unlock;
-+		return ret;
- 
- 	ret = cpuidle_add_sysfs(dev);
- 	if (ret)
-@@ -700,16 +700,14 @@ int cpuidle_register_device(struct cpuidle_device *dev)
- 
- 	cpuidle_install_idle_handler();
- 
--out_unlock:
--	mutex_unlock(&cpuidle_lock);
--
- 	return ret;
- 
- out_sysfs:
- 	cpuidle_remove_sysfs(dev);
- out_unregister:
- 	__cpuidle_unregister_device(dev);
--	goto out_unlock;
+ void acpi_processor_unregister_idle_driver(void)
+ {
++	struct acpi_processor *pr;
++	int cpu;
 +
-+	return ret;
+ 	cpuidle_unregister_driver(&acpi_idle_driver);
++	for_each_possible_cpu(cpu) {
++		pr = per_cpu(processors, cpu);
++		if (!pr)
++			continue;
++		pr->flags.power_setup_done = 0;
++	}
  }
  
- EXPORT_SYMBOL_GPL(cpuidle_register_device);
+ void acpi_processor_power_init(struct acpi_processor *pr)
+@@ -1423,6 +1433,7 @@ void acpi_processor_power_init(struct acpi_processor *pr)
+ 	 */
+ 	if (cpuidle_register_device(dev)) {
+ 		per_cpu(acpi_cpuidle_device, pr->id) = NULL;
++		pr->flags.power_setup_done = 0;
+ 		kfree(dev);
+ 	}
+ }
 -- 
 2.33.0
 
