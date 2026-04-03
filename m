@@ -1,126 +1,172 @@
-Received: from mail-ed1-f48.google.com (mail-ed1-f48.google.com [209.85.208.48])
+Received: from mail-oo1-f42.google.com (mail-oo1-f42.google.com [209.85.161.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9E873CAE7F
-	for <linux-acpi@vger.kernel.org>; Fri,  3 Apr 2026 16:19:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C62E742048
+	for <linux-acpi@vger.kernel.org>; Fri,  3 Apr 2026 16:47:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.161.42
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775233161; cv=pass; b=Px7mmZ8RnL6llKJXpmNmFIJEWXJN+TMuKERExIEHR7qWfrHQAgU9OtQQ342ZMkY6VxGnQWfI1+TrFk/0yjE2+ld0EZH23u80qu7w73NbOxbsH9JyjkQsBYb66CEN112scbSKVrEDEeQc15ePwE6Myfbb9bNAxukvN5nK8rElBZk=
+	t=1775234861; cv=pass; b=TwVeU/h48IsRmMFWHd4gwYbFpB7sXFM2QTVKLVpBL293S//emKq7Jfle4wjSwUfa4Zr8WIde1BjBZSzjy7nU5QYSVxx4yP1tBMktOaPfasoU1D3PYq++JyhHWImIFE9/SctAMBWkPUZXzNGbv+ST2XG/KiN4bUY5HwO4xKk2Nns=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775233161; c=relaxed/simple;
-	bh=L30/b4+Gyh2roINFrjR8Nr0vV0xKSjAAnBDD3nswarY=;
+	s=arc-20240116; t=1775234861; c=relaxed/simple;
+	bh=bOvgYL3sN+3HT6Ry7DE2UyR+exdHNE12LBkCxRWzVAI=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=SMheopal6ZyjPGZ3HGcaeZL4ogCk/n9p1zjQXODu+Dnz8x2SlCmldUKNLPcsmfl8pel3lL44i1h8RSz1fZUnWp/avl8ZK8loghyqHxJYKKRbwcCmCRIOrxYp7LBXMGOzq1ou+5J+S98A5sZMsm8VM6J1wosUg0d8RL92bL2Y6hg=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=joyfullee.me; spf=none smtp.mailfrom=joyfullee.me; dkim=pass (2048-bit key) header.d=joyfullee-me.20251104.gappssmtp.com header.i=@joyfullee-me.20251104.gappssmtp.com header.b=IgvPzJ4e; arc=pass smtp.client-ip=209.85.208.48
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=joyfullee.me
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=joyfullee.me
+	 To:Cc:Content-Type; b=Xt7DMEXITK2TliPPFLbhN7X0gxTcw/X8giX8tlh1D51wTfGTsd2M2bk9IiokhIaEtn9uFJKKK5UKp6DkXL1fd4JRhbA2vpOgzxsKQ4zOcuUv5oXVbBeU4BRCZvzINRQ8a7BwSp4h4SdvM9XmYA6CQ/xfnylKtk9pwes80ElgEUY=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brainfault.org; spf=none smtp.mailfrom=brainfault.org; dkim=pass (2048-bit key) header.d=brainfault-org.20251104.gappssmtp.com header.i=@brainfault-org.20251104.gappssmtp.com header.b=Nv9xjQfK; arc=pass smtp.client-ip=209.85.161.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brainfault.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=brainfault.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=joyfullee-me.20251104.gappssmtp.com header.i=@joyfullee-me.20251104.gappssmtp.com header.b="IgvPzJ4e"
-Received: by mail-ed1-f48.google.com with SMTP id 4fb4d7f45d1cf-66dd1b5bb6aso3528409a12.2
-        for <linux-acpi@vger.kernel.org>; Fri, 03 Apr 2026 09:19:19 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1775233158; cv=none;
+	dkim=pass (2048-bit key) header.d=brainfault-org.20251104.gappssmtp.com header.i=@brainfault-org.20251104.gappssmtp.com header.b="Nv9xjQfK"
+Received: by mail-oo1-f42.google.com with SMTP id 006d021491bc7-67e09232daeso1281189eaf.2
+        for <linux-acpi@vger.kernel.org>; Fri, 03 Apr 2026 09:47:39 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1775234859; cv=none;
         d=google.com; s=arc-20240605;
-        b=P2yOo23dcJdrQ8c/V+pFhCS5qvzhuew8Y0UYWEopxk9Dt74GODQIywOqFSlnCJlIPS
-         yqOuEyLbMy4xtmN2U/XxnVEpTOyN2BbHRh8ocndlP53rp3SfyUXBgSoHcpCB4XsT6/mL
-         veZzUZCcS82ezM7+xLr2TXsQ1L2q0D4qeLG08lcA0BSqctpt2/NP1ea4nRo0vFSsETPc
-         g5ELU2E9W1rKvTd31nRRYPCxv0koPymdYjz94nPAaXcYsaI+qOrh881lJSlk3WAc17tj
-         hXJGHjsgoLsOz0kSkzNDg7A26MF6QfuAQ65k4OAa0Utc3dA6gFuJloVJpA0SmK+15veU
-         8Vaw==
+        b=iu3pEOkkx6+Z5dhPMi48hUmlmunKR9IBhLBA4hOM9Ry3CTMaMzIGmlRBEJUNmB8iOQ
+         gDEaZMMOHwkkZm5eqB3pKVX/aRHjkSRN0GTkoWXgj0smis8PF00k/DCXAlCPbHPdmA1W
+         cjFksYaOZXNx2iTZLa6gJxVSAaTNET726luSBa0TwcSdIsj2x4qsQNtouzUxdEvutMMc
+         vmelEVxihDOdfL2C+KljkE6xPomQ2sBIg7E08m7G8dTR1e+x4h4Xmb1sne2Ldo3JKTeM
+         Hz3BfZeRxO4Uf4C2+tz8UijWLL8XpfR+FMwUcHhAmICNNCfZ/LxS+kofItOUuhrnX1qc
+         M5ww==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=F3gZOk0u2GpWeeWhIugCmNU2OqtSSo0NtKnU+5FZ5cU=;
-        fh=37mBXTuJXSnMUdxGAl/VgO+PMXfwMZOq8daDGtbIEsk=;
-        b=Scw+/k7pHKdR2qyUJFJzGfc0xA3cTnr1dRlwpYCsB5/kLByMgyc2Bkw8YGX1j6jyZ1
-         OcBkOQdUDGIJ5MzA6+CMzeehEul+PycYL+NFLQ//qL99tFLE5jqqEpUfwXUwoMhn8hb+
-         kXOM6S8ioZUiBrqkMLTMFt+pfKOlb8f7MXx5BXhc5SVlRpAokxqNQnLYTlbsb0RHYaO8
-         2R/iVTqlL3kmzPo3/zIsNUJWsBtH/lEA+HxGVm7fMj0trkZDNvgez6JYqKoVVu6bYpH9
-         ZjbcVZ9OS3aMsYaM72Rw6yzAtpbXNemL3ekqOFPoSJzVkTH4JbC+StQSMWRQWYJ+wzqF
-         WtHg==;
+        bh=Yd/fcGpgiRLI6biLglbkJN32L6g92D+Cp9fisarR7TE=;
+        fh=0dXELpQGMVkE9rw2cWU4AXhlcG/cw9RqO/mIcbeNmqs=;
+        b=Hpif/9PtHjgRhEupCiTqkciIUux4H7V3xTFjLA2/V/1q8J9wiKAzko0Ikmu71dibxa
+         VpKB3gqK+I3kaosNenQC3u+w1Yab0JX9ZWFkV6I1uZCfnJAozL1A4UF/ufi+CltWo9Zl
+         pfJi0qYtA3Cpce9HM9YzlE8ZL6zI48qOHifSu/JUvbvJlr+SVFzcPvqrL2kGgXKBOVkn
+         6DgPUSQeLZmIuCqY5EKZ3nOyVHVmHarn8JOX3TgS66PKAFRMjUX3NtPZOrkBRXnjZ+HV
+         z+Dn4BxaydBBjHy8XLoOzto1VseJVZa16uM5bDCHV0fwzfI6OqnNheZTE2NmKCpfsdoW
+         GWeg==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=joyfullee-me.20251104.gappssmtp.com; s=20251104; t=1775233158; x=1775837958; darn=vger.kernel.org;
+        d=brainfault-org.20251104.gappssmtp.com; s=20251104; t=1775234859; x=1775839659; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=F3gZOk0u2GpWeeWhIugCmNU2OqtSSo0NtKnU+5FZ5cU=;
-        b=IgvPzJ4ecaieqx8gqzpxkFIAvEerdRagxmjw7ONA5GKWwmmA4Nb+Q3LhouxAXs5bCl
-         ettdniV89+VdyAIYkhZ30Ijtbcp6lxJUogXLfTMbHfk1YcwdxTQnG9eK1yuWW4EEpo9l
-         yeJFbvnGNg99jghzixMd++LH8lMZlEFG8JSydQflp4rxAwnqS9UhSSp7xB0irc6aanD4
-         r5jDfE9LRWZ4sZQJk3B9HUpG5Ts/dm42QdyZ9h8GzZx8wsGAFzn1NJ/ERb23ENAodMyo
-         +bPV+vcjaCfZIqyCbffd5z2escXOuO+jy1B3wOScAiv5PVMYwizzD8/cMIg5dNY9D/zn
-         edww==
+        bh=Yd/fcGpgiRLI6biLglbkJN32L6g92D+Cp9fisarR7TE=;
+        b=Nv9xjQfKE5L1hhZ3sM5VNGA9GepnNCvt+e3SH2mCR7rOwpoyIA4tx7qHKLoVwiiw63
+         LtVO4JdnEX3CISKKurClo3TUOj6x656jD51+dEfcPjpEHKAWoQYNHZ0HuCHZIgljosNT
+         yF+JdKdlq8z9Id7YzalnpUzPqpiB+6sgX2yT40AGCDg6QTHJdy7rG6n6qwnDTlTQnytE
+         9u10VR0ff1JTNbE4NSZRbRnro5UJ4hrTDAv0pSG6nJUwvaPZ9hI/1LX3hLi4s1Z1gbXS
+         SgWczLQja8xrFzMiw4cN1TpFQJXAF9ZI34cStgpKXFkOCmuLV0E9muFI46Tj+WL5cuzv
+         JEiw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1775233158; x=1775837958;
+        d=1e100.net; s=20251104; t=1775234859; x=1775839659;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=F3gZOk0u2GpWeeWhIugCmNU2OqtSSo0NtKnU+5FZ5cU=;
-        b=brEsAHqgAkVHSk0qphFZj+MUfVABYOMM6Hs0dGmB9qDOpvlnJrxbZmRzl3WUvSJiCR
-         mL761V1eFGAkhXmvrPi5gJHzZhMyL0w4H3ohEpak7IWTqhmtEBgUG6IalMfSdK8yLP73
-         y70wPGAU6JhrFQxozPR28m4TJUQSxxA+8if9KmoySkq3w+wcWLRN0zELHdBf5WUpTkvu
-         Dp2Cl142lwSNJxFIzynwE9wOkrhLqtlI7totiWqSUTeppE0JOZm42tnUx2dryzcSa7NH
-         ZrCFOOJVhFJgxWrd8CUm+G6s/p6XjQJpNNTUbgOqL84SEUxDHeXDqiHTPIE+Gauly9Wz
-         i+og==
-X-Forwarded-Encrypted: i=1; AJvYcCU/jLtCUy8pu9g2LbBSFNsb5+jZIBbrOOZL2CaaE3T0BBmOBSrWbG9XQtt/Z1eRIVGjn75feTbrKuUV@vger.kernel.org
-X-Gm-Message-State: AOJu0Yy+oOxT1zvFsTo4MHvV/8YAMQLCcS8/pQdgcIX6dXVAT9ZYMLde
-	70w3dakwELFwA7T7CcsDnHV8GtQgrS8HWjmzBoevvPnaMSbJp1CxESNuhTK449zadP1L74L3Crb
-	n/dIN7WIdzS6avAgiN1ILC4/yq9QwgHk5pLq0SpuAmw==
-X-Gm-Gg: AeBDietQjuU+QtZXG8SRSD/Id+HoZr0bNSuCps3+3VUjwzAXYoeJgeX6Y6UB56TNJNg
-	3lbO1sQBNyuCwFpZn8iPqurzI41t5Z0sluN7x5wNFPOdl14tQUA+IPbYKXwgSOY0GPY35ZEMdnD
-	UWqMBaaN1wmwzTF6aM7s2Kb/LzMO2D1XOmD0s2+3Cg8rdJFc5ZDHaiPGQoKx8XoRjlUiMChH4TO
-	WpuIGrCQDEJqj15O2FYB88y6U/uvHejEfVTl5iLj/NRGdTyJHXGUGcxEaAtLdvcekNkVcPbJ5Pb
-	SJqm8w==
-X-Received: by 2002:a17:907:6d1b:b0:b8f:848b:4456 with SMTP id
- a640c23a62f3a-b9c6742299emr177158966b.13.1775233157953; Fri, 03 Apr 2026
- 09:19:17 -0700 (PDT)
+        bh=Yd/fcGpgiRLI6biLglbkJN32L6g92D+Cp9fisarR7TE=;
+        b=OZVomAs/o+sdLFdW030sOqwH5dXu2CH4R2yfxrdvLQVqmK7WcpJ4E0LrpwMVfqFV2K
+         gSK5uZN9InwHLD/LhMryr9CzcqU+IwUlXgCqZVWUA1Jpf7c9wEoRby2xsgZwdxqvwVFR
+         bvQC4hGt6u/bUrpe9i9dyx2PIU8CglfPZKyV4jD4oUCf/d/gkuPDx/h3gmYpc5oGxxld
+         U8mylDmoH8n1VEZOiy+50KGTtp1VlE8tWzPfJci9i0vTCfn4CZ/QftMBwRaAMxSIaYCZ
+         rKS45aa7VSVq2U6XDMIQ82jE/Xt60Jpsm+c8TCSMtfwi0+7lr5M9OrOv++IUcdB45dcM
+         abHg==
+X-Forwarded-Encrypted: i=1; AJvYcCXW2CXIGlmg1e82mbL4zr2bhyxbZMWzy5XqJCUhfhE140rz14W24vlog2nM3vGR2bqAnjP0YUE9EFd9@vger.kernel.org
+X-Gm-Message-State: AOJu0YwMADgNsjgY/bDF9pS2NWw/W28vtOkA/SXffVZ+9WlRcazH+Q96
+	CaBYLTC2e6ebhUeMfEIsBisRLE3x9Z7ha/qnvbP9Xnp9h5yDosz6hDclxeaCI/L2zovlghJgdzl
+	XlgHJdt4WCkdJn/8IWCslT8tN0Em2soTOkWmPm6nF3A==
+X-Gm-Gg: ATEYQzwzxEyfeWxBEYUreTwdx99s4P4/q11hzdIUEQS5DGt44XSM2T32yG2yCuoa+qC
+	VKquNc/Dp4Ta2uR0LVN58D5jgwe6s6u5b+/TmbI1Bsklqhq9rdG9pn2vCg0fpCh3FztBYMTNqtA
+	aFCiu1PKtZRoEYEdtz59sm1viGL2TpZlZ01qdX1OjRb3uxr5Nf8MDK7dQuW7UV11RaCChOZsIFp
+	NBQmJNU52mJocpyOAF7TSpRLFNDOssmdlNy5w2fOvRF0C5+Q/BU38RE3I9w1x/rVEV8XdwnY+BA
+	+uoqu54OwZ8CpRjPYeE/SLQ0ct0ACrvb5QfdxE1M+qSNVR+t+w6xW/1iailC45IsuNtczquZQSw
+	ACq1wuYF9BGeC5efMBSYOPIBqqA==
+X-Received: by 2002:a05:6820:1799:b0:67e:1dd2:4102 with SMTP id
+ 006d021491bc7-6821f67891fmr1943718eaf.32.1775234858557; Fri, 03 Apr 2026
+ 09:47:38 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <CADj6jrgK+sRXoNaYH90Rdc8DYEFK2iSF4vkJC=KE4UaZ73y67A@mail.gmail.com>
- <a935b2e3-e11d-47ec-af47-7eb7e86a9dd0@amd.com> <CADj6jrgcuz=Bcp0q7BHVizVeF=C2r_8qXw7r0Mc5X9Vd8uWK-w@mail.gmail.com>
- <4192851c-20d1-4185-9f63-32c66ed2a664@amd.com> <CADj6jrgse2NksUgkHUzTm0332ba4qnV=0QOJAnupS=Lr=5hh4A@mail.gmail.com>
- <4978c9b7-00bf-4562-baae-098bd0d09ba4@amd.com> <CADj6jrh2AT6vvQqujB5UN5tfcQ-qdDKjV_7fK18zsqkHpFTMzw@mail.gmail.com>
- <867b2fa7-a8a4-44ad-aee8-fbb9d0555072@amd.com>
-In-Reply-To: <867b2fa7-a8a4-44ad-aee8-fbb9d0555072@amd.com>
-From: Joyful Lee <joy@joyfullee.me>
-Date: Fri, 3 Apr 2026 12:19:06 -0400
-X-Gm-Features: AQROBzD_0zG6UUOBfCeJDvISibakR2t2dYw6Xl5_Zpv1OrcQrZkOco2YmA-Qx6Q
-Message-ID: <CADj6jriuyztRnB60awqyhO-hu18mZ+UmpMsY+_qnSYPkcGqDSA@mail.gmail.com>
-Subject: Re: [BUG] ASUS ProArt PX13 HN7306WU: amd_pmc s2idle S0ix corrupts AMD
- 1022:150b root port, NVIDIA dGPU returns header type 7f
-To: Mario Limonciello <mario.limonciello@amd.com>
-Cc: platform-driver-x86@vger.kernel.org, 
-	Shyam Sundar S K <Shyam-sundar.S-k@amd.com>, Hans de Goede <hansg@kernel.org>, 
-	=?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, 
-	linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-acpi@vger.kernel.org, 
-	"Rafael J. Wysocki" <rafael@kernel.org>, linux-kernel@vger.kernel.org
+References: <20260204155309.763597-1-anup.patel@oss.qualcomm.com>
+ <20260204155309.763597-2-anup.patel@oss.qualcomm.com> <603b0a16-4965-2689-d3ea-3f9db0cc49aa@kernel.org>
+ <CAAhSdy28oPgzaaZj94F-MToTYT6WTWsiSVpuy0VzLkM_maSP0g@mail.gmail.com> <e8a5e3b7-b68a-8b92-192f-985a0559eb95@kernel.org>
+In-Reply-To: <e8a5e3b7-b68a-8b92-192f-985a0559eb95@kernel.org>
+From: Anup Patel <anup@brainfault.org>
+Date: Fri, 3 Apr 2026 22:17:27 +0530
+X-Gm-Features: AQROBzCgxdkNDQ3suqhKRRV9KCytYtmrrnUx1qrolNT_DoeDZPgRKtPsxGB4U-k
+Message-ID: <CAAhSdy3DOsJrwgoBii5Un8iWU9SUS0k6xVw=FQVavhjHKMJDJg@mail.gmail.com>
+Subject: Re: [PATCH v5 1/1] RISC-V: Add common csr_read_num() and
+ csr_write_num() functions
+To: Paul Walmsley <pjw@kernel.org>
+Cc: Anup Patel <anup.patel@oss.qualcomm.com>, Sunil V L <sunilvl@oss.qualcomm.com>, 
+	"Rafael J . Wysocki" <rafael@kernel.org>, Mark Rutland <mark.rutland@arm.com>, 
+	Anup Patel <apatel@ventanamicro.com>, Alexandre Ghiti <alex@ghiti.fr>, 
+	Atish Patra <atish.patra@linux.dev>, Atish Patra <atishp@rivosinc.com>, 
+	linux-kernel@vger.kernel.org, Andrew Jones <andrew.jones@oss.qualcomm.com>, 
+	linux-acpi@vger.kernel.org, Palmer Dabbelt <palmer@dabbelt.com>, 
+	Paul Walmsley <paul.walmsley@sifive.com>, Nutty Liu <nutty.liu@hotmail.com>, 
+	linux-riscv@lists.infradead.org, Andrew Jones <ajones@ventanamicro.com>, 
+	Will Deacon <will@kernel.org>, Len Brown <lenb@kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Apr 3, 2026 at 10:25=E2=80=AFAM Mario Limonciello
-<mario.limonciello@amd.com> wrote:
-> That's really unfortunate to hear.  If I was in your shoes - If not
-> solved by the end of the return period I would return the machine and
-> purchase one from a vendor that has been testing, fixing BIOS issues and
-> supporting Linux.
+On Fri, Apr 3, 2026 at 9:26=E2=80=AFPM Paul Walmsley <pjw@kernel.org> wrote=
+:
 >
-> I'm not going to pick favorites, but Dell, Framework, HP, and Lenovo all
-> have offerings that they do this.
+> On Fri, 3 Apr 2026, Anup Patel wrote:
 >
-> By chance does the BIOS offer access to "AMD PBS" or "AMD CBS" menus?
-> If so, there may be an option nestled in there for dGPU D3 behavior.
+> > On Fri, Apr 3, 2026 at 1:55=E2=80=AFPM Paul Walmsley <pjw@kernel.org> w=
+rote:
+> > >
+> > > On Wed, 4 Feb 2026, Anup Patel wrote:
+> > >
+> > > > From: Anup Patel <apatel@ventanamicro.com>
+> > > >
+> > > > In RISC-V, there is no CSR read/write instruction which takes CSR
+> > > > number via register so add common csr_read_num() and csr_write_num(=
+)
+> > > > functions which allow accessing certain CSRs by passing CSR number
+> > > > as parameter. These common functions will be first used by the
+> > > > ACPI CPPC driver and RISC-V PMU driver.
+> > > >
+> > > > Also, the RISC-V ACPI FFH specification allows arbitrary CSR number
+> > > > as CPPC register and the RISC-V SBI specification allows arbitrary
+> > > > CSR number as PMU hardware counter. This means ACPI CPPC driver and
+> > > > RISC-V PMU driver no longer need to do sanity checks on CSR number
+> > > > which are now done by the common csr_read_num() and csr_write_num()
+> > > > functions.
+> > >
+> > > I recall that when we discussed this patch on a call a few months ago=
+, it
+> > > was brought up that it seemed useful to restrict which CSRs could be =
+read
+> > > or written at runtime, on a per-vendor basis.  That way, the FFH inte=
+rface
+> > > couldn't be used to read or write custom CSRs that had nothing to do =
+with
+> > > CPPC or PMU functions.
+> > >
+> > > Are you still planning to implement that change?
+> >
+> > The current csr_read_num() and csr_write_num() only allows
+> > HPM counters and custom CSR space (as defined by the Priv
+> > spec) to be accessible via ACPI FFH. The ACPI FFH interface
+> > is very flexible and allows vendors to specify the CSR number
+> > in the ACPI table itself so we don't need to compile kernel on
+> > per-vendor basis.
+> >
+> > In other words, the current approach allows same Linux kernel
+> > image for multiple vendor even if they use custom CSRs in their
+> > ACPI FFH interface.
+>
+> I understand that part.  The part that I don't like is that with this
+> patch, the FFH interface could also be used to read and write custom CSRs
+> that have nothing to do with CPPC or PMU functions.  That doesn't seem
+> like a good idea.  What I had in mind was to add a way to restrict the
+> custom CSRs that the kernel would allow FFH to use, via a mechanism other
+> than the ACPI table - e.g., sysfs, or the kernel command line, etc.
+>
 
-I got it working. My kernel, which I build up from defconfig, was
-missing CONFIG_HOTPLUG_PCI_PCIE. It makes sense, but I wish there was
-more evidence that pointed me to this option. At least we can close the
-loop here in case anyone else runs into this problem. As a side benefit,
-enabling this option also got the dGPU to enter D3cold where before the
-lowest it would get is D3hot.
+We can't use FFH interface to read and write custom CSRs
+from any part of the kernel. This is because ACPI FFH encoding
+is specific to a subsystem. Currently, RISC-V ACPI FFH encoding
+is only defined for LPI states and CPPC registers. Out of these,
+only CPPC FFH encoding allows specifying custom CSRs.
 
-Thanks again,
-Joy
+Regards,
+Anup
