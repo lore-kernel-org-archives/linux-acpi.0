@@ -1,109 +1,99 @@
-Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 228A01E9906;
-	Fri,  3 Apr 2026 09:03:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.187
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A10BD33F5B3;
+	Fri,  3 Apr 2026 11:57:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775206983; cv=none; b=gLsFjR6O9n1ksH1kPkb4Ra0LRb8+oPuSPJIHIjj6KJGJU9gt8yZQ9nXjpTeGZcYdBT0m+XwRMD0NNpGwe/WiKBWi3oGOv1KCmE3xWbR78LPUm1PqnvZURJtmRazj8HWbN+nmRXQaJRdC3cQzTHKZ25FbU494Xxvc2Q4eMSmpOZk=
+	t=1775217421; cv=none; b=q+J6M1RRt4wMCJn3BrleQG7uFMIBOmYH2GUknNqQWE70R4MyN+VvOM8hrn5MLiKEh9gRcI+nJyvYKn21ppBvlxSGAMWAkLVnxnYJ3le4yokU7NeEkZYgYaXLYmTrVsoGLQjjIxNlb4aLN191f0NBjMvVQOI7zgV6PxVQI/gMpeU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775206983; c=relaxed/simple;
-	bh=oHgnLsESaBzRthoqqqnf/65q1igUK2snZTuYNKRSvp8=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=gu17JeSTmnGhwTw+EAW2ixx7upXsly/PzNEWVUewZ/1TXQTR1eqfwgDdFkSkETqA8uibY1+ZdtE6K29dixZM/16a78yf4Z/hVuIZs6u0zVylKdzCqjD+7DuEe0zi9jaweD19bO2okmXvSeIOsPIV6O/K633BZn67DziLwIJHtA0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=kSXOA/yB; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=kSXOA/yB; arc=none smtp.client-ip=45.249.212.187
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=h-partners.com
+	s=arc-20240116; t=1775217421; c=relaxed/simple;
+	bh=hlI1RBQqJjfpWuFZsCc6c4R0ASQxP62EyBGuIa0hpOs=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=iT1YRfme64lpzVplDtYDbJYUCqJbpcxUyyOg8GuTRIUHOOd9r7aZYnlaCTxEc+0jfIX/wlam2OOm4/updRax2fwSLTwDcZFxbhUYa52O1uikGUg6dRELsDln9MXkuqXcmDEEN0iCJXdigVlrcyf5gedfZeifP+PckN7Z6o/WPOE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WExiF/lE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="kSXOA/yB";
-	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="kSXOA/yB"
-dkim-signature: v=1; a=rsa-sha256; d=h-partners.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=anOT8bGurbxJptjoEKZ9kahhNJjJfa6fle0uyAj5Kfg=;
-	b=kSXOA/yB8dxuRwSYPfihcWkqqJZtmTpX+9u4odSGiWi1mGq1Dv3FznK5lf4gI0meMd4gU0esJ
-	Qedum3ktzSbjOwh83//riv+PyEQ6Qxi1Ti78A+cTdn8/eFYDKLAP4hFBtJPn/DSeMWSbsEIIhuO
-	9AaqGU30GpRV9DORnvs61bE=
-Received: from canpmsgout03.his.huawei.com (unknown [172.19.92.159])
-	by szxga01-in.huawei.com (SkyGuard) with ESMTPS id 4fnCRL38rsz1BG6X;
-	Fri,  3 Apr 2026 17:02:38 +0800 (CST)
-dkim-signature: v=1; a=rsa-sha256; d=h-partners.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=anOT8bGurbxJptjoEKZ9kahhNJjJfa6fle0uyAj5Kfg=;
-	b=kSXOA/yB8dxuRwSYPfihcWkqqJZtmTpX+9u4odSGiWi1mGq1Dv3FznK5lf4gI0meMd4gU0esJ
-	Qedum3ktzSbjOwh83//riv+PyEQ6Qxi1Ti78A+cTdn8/eFYDKLAP4hFBtJPn/DSeMWSbsEIIhuO
-	9AaqGU30GpRV9DORnvs61bE=
-Received: from mail.maildlp.com (unknown [172.19.162.197])
-	by canpmsgout03.his.huawei.com (SkyGuard) with ESMTPS id 4fnCJv1XnrzpTJn;
-	Fri,  3 Apr 2026 16:57:03 +0800 (CST)
-Received: from dggemv705-chm.china.huawei.com (unknown [10.3.19.32])
-	by mail.maildlp.com (Postfix) with ESMTPS id A82EA40576;
-	Fri,  3 Apr 2026 17:02:54 +0800 (CST)
-Received: from kwepemn100009.china.huawei.com (7.202.194.112) by
- dggemv705-chm.china.huawei.com (10.3.19.32) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Fri, 3 Apr 2026 17:02:54 +0800
-Received: from localhost.localdomain (10.50.163.32) by
- kwepemn100009.china.huawei.com (7.202.194.112) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.36; Fri, 3 Apr 2026 17:02:53 +0800
-From: Huisong Li <lihuisong@huawei.com>
-To: <rafael@kernel.org>, <lenb@kernel.org>
-CC: <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linuxarm@huawei.com>, <jonathan.cameron@huawei.com>,
-	<zhanjie9@hisilicon.com>, <zhenglifeng1@huawei.com>, <yubowen8@huawei.com>,
-	<wangzhi12@huawei.com>, <zhangpengjie2@huawei.com>,
-	<wanghuiqiang@huawei.com>, <lihuisong@huawei.com>
-Subject: [PATCH] ACPI: processor: idle: Fix NULL pointer dereference in hotplug path
-Date: Fri, 3 Apr 2026 17:02:53 +0800
-Message-ID: <20260403090253.998322-1-lihuisong@huawei.com>
-X-Mailer: git-send-email 2.33.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WExiF/lE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1F48C4CEF7;
+	Fri,  3 Apr 2026 11:56:53 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1775217421;
+	bh=hlI1RBQqJjfpWuFZsCc6c4R0ASQxP62EyBGuIa0hpOs=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=WExiF/lER3/HxYWRZ7/VYGGhEbpEpz9xoEPNjcsCFvTGNpufubq1/grWFEw4iuMUy
+	 OoXV5ZN9cvTpw+MrimzFf6s9HmUgEebMHP6rxEPoVqpOak+AAKYreCCI+aI8f5Gcf8
+	 zd3TXBgf41BbeUDYgDIMBFsxjCPG+plKws+G4eTYF97BpuDvffRy9f5yT7XQBVGQbe
+	 XqHjaEsIVjnSBX+EIpGZbUC6lXfkWCjygMqGuZgL2M9uFpPhtTcBQ2hiVkdvbT8xp0
+	 yn+PYHPMRpNNVo0RArrBjXz2Wp47lKN2V/BGSRUsMLv3YU6gYJZRfQsOsmZPjmN+O6
+	 y2sPDI66WCWpQ==
+Date: Fri, 3 Apr 2026 12:56:51 +0100
+From: Mark Brown <broonie@kernel.org>
+To: Douglas Anderson <dianders@chromium.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J . Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	Robin Murphy <robin.murphy@arm.com>,
+	Leon Romanovsky <leon@kernel.org>,
+	Paul Burton <paul.burton@mips.com>,
+	Saravana Kannan <saravanak@kernel.org>,
+	Alexander Lobakin <aleksander.lobakin@intel.com>,
+	Eric Dumazet <edumazet@google.com>, Toshi Kani <toshi.kani@hp.com>,
+	Christoph Hellwig <hch@lst.de>,
+	Alexey Kardashevskiy <aik@ozlabs.ru>,
+	Johan Hovold <johan@kernel.org>, ardb@kernel.org,
+	catalin.marinas@arm.com, chleroy@kernel.org, david@kernel.org,
+	driver-core@lists.linux.dev, kees@kernel.org, kevin.brodsky@arm.com,
+	lenb@kernel.org, linux-acpi@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-cxl@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+	linuxppc-dev@lists.ozlabs.org, maddy@linux.ibm.com, maz@kernel.org,
+	miko.lenczewski@arm.com, mpe@ellerman.id.au, npiggin@gmail.com,
+	osalvador@suse.de, oupton@kernel.org, peterz@infradead.org,
+	tglx@kernel.org, will@kernel.org, yangyicong@hisilicon.com,
+	yeoreum.yun@arm.com
+Subject: Re: [PATCH v3 9/9] driver core: Replace dev->offline +
+ ->offline_disabled with DEV_FLAGs
+Message-ID: <57452867-60be-4292-9bc5-4e2faf1f3cb4@sirena.org.uk>
+References: <20260403005005.30424-1-dianders@chromium.org>
+ <20260402174925.v3.9.I897d478b4a9361d79cd5073207c1062fd4d0d0e4@changeid>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: kwepems500002.china.huawei.com (7.221.188.17) To
- kwepemn100009.china.huawei.com (7.202.194.112)
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="AVRN0JUTTuR+6v5a"
+Content-Disposition: inline
+In-Reply-To: <20260402174925.v3.9.I897d478b4a9361d79cd5073207c1062fd4d0d0e4@changeid>
+X-Cookie: The Korean War must have been fun.
 
-A cpuidle_device might fail to register during boot, but the system can
-continue to run. In such cases, acpi_processor_hotplug() can trigger
-a NULL pointer dereference when accessing the per-cpu acpi_cpuidle_device.
 
-So add NULL pointer check for the per-cpu acpi_cpuidle_device in
-acpi_processor_hotplug.
+--AVRN0JUTTuR+6v5a
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Signed-off-by: Huisong Li <lihuisong@huawei.com>
----
- drivers/acpi/processor_idle.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+On Thu, Apr 02, 2026 at 05:49:55PM -0700, Douglas Anderson wrote:
+> In C, bitfields are not necessarily safe to modify from multiple
+> threads without locking. Switch "offline" and "offline_disabled" over
+> to the "flags" field so modifications are safe.
 
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index 479995a4c48a..2adaee0f32ed 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -1267,16 +1267,15 @@ static int acpi_processor_get_power_info(struct acpi_processor *pr)
- 
- int acpi_processor_hotplug(struct acpi_processor *pr)
- {
-+	struct cpuidle_device *dev = per_cpu(acpi_cpuidle_device, pr->id);
- 	int ret = 0;
--	struct cpuidle_device *dev;
- 
- 	if (disabled_by_idle_boot_param())
- 		return 0;
- 
--	if (!pr->flags.power_setup_done)
-+	if (!pr->flags.power_setup_done || !dev)
- 		return -ENODEV;
- 
--	dev = per_cpu(acpi_cpuidle_device, pr->id);
- 	cpuidle_pause_and_lock();
- 	cpuidle_disable_device(dev);
- 	ret = acpi_processor_get_power_info(pr);
--- 
-2.33.0
+Acked-by: Mark Brown <broonie@kernel.org>
 
+--AVRN0JUTTuR+6v5a
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAmnPqwIACgkQJNaLcl1U
+h9DTzAf+NmJvooER0KUGxju0cXbQLPzjhe+zmzezOQJa1zXjXfgBycnhieaqK7ny
+S+ZKb3sGXOFz1uf62w0rkTigz6ZBhVej2811kP/v6hOK59NgZZTJQfO8dQuSxEnT
+a/yLND6ngy2gm9svEKalKOxPy9JbUJjkq+j/fHmoGQtgZJzi3MQgf8Dj9JD9Hi9K
+CfKa+1VEAm39ijM8hfGOPXIHopw7PmdFfwGHkxLjmh4CRnWEhvWLFCPR+FiBQ0Sn
+XrkEJ4xDFRK5m2nxMzIK4mnPEH5oNBFredP+/WQ/ak8W69Tqy7XcVG1E5yZLgzci
+4Y9/xe7D3PUt6PvteNaqZANk/e1zpA==
+=qXM/
+-----END PGP SIGNATURE-----
+
+--AVRN0JUTTuR+6v5a--
