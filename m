@@ -1,55 +1,55 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C69A13358BE
-	for <linux-acpi@vger.kernel.org>; Sat,  4 Apr 2026 18:41:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7B1033ADAC
+	for <linux-acpi@vger.kernel.org>; Sat,  4 Apr 2026 18:44:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775328116; cv=none; b=gf7QO/GgH4/XTFEeh9JbFta2cUS72muzbDZDEePBxI0ltO63Q7us01mJChmrvCIG7N5TKwvBOoVTK7SbJMYRims4QWlXLUl7LWIaGPsTgjcn9DL0gPNkqvT67AvdMWWzhRcikZ2bZ8kN5oJ8auF6LK7xmyaN6MmwB8ViauuMXtQ=
+	t=1775328253; cv=none; b=WP8+76Npm86AQ+y1dvKgJn+c4/y8vhA5kI/GjZe6vt90+Iny4cDazWc0NmaAG+iY2Yy+8bhFyk0UVRrG8aB8Fe4H7ADo4B2w24TlXHowq4iN1XGqfORyse2dSBZ0cHD87yyGWU3D2lLTA6wGZOeOpP6EZHQcsXot1WR9CNnvUuY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775328116; c=relaxed/simple;
-	bh=MWfcc451QSIHGrpVZc9PzHDEtY0/laVmfZUl5PaawKQ=;
+	s=arc-20240116; t=1775328253; c=relaxed/simple;
+	bh=1f7KOEoJ44TQLWaak4ISOnZqIsoel6VUGdkjYhNfDWI=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=mdDFbYo7NiFNgftJbp0emkWOOOTMqIRhiTyMzaF7/wvn+DGS+l9bHgeUj85xO+/KnXgScv07cbKkJ8XRcNZ2yflgEbwJIuq186VjcHKxDZleb7C0sf6hYnBT+hpkrptNzTszBfFAwAZDZqaD6uoYjtR6MCZIDYwU4rAmmjh51gs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PPOVPYgx; arc=none smtp.client-ip=10.30.226.201
+	 To:Cc:Content-Type; b=otNtCFNB0izQ0OvrXXFHEUUsOLvTH5ZWBFFNjW4amjlPv/vQW8f5ZTtPsGJ56LzIQxtf24uvTbnhH/GwaTWF9sVG+KOFEjP/oXgc+Y9eHmxEHDfmPs8N3jZW7h74a98U2E3JRvshV82qc5ugiirXiB2fA3jIKUEWpkbVFSCuw+A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hEpuzM2V; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PPOVPYgx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68994C4AF09
-	for <linux-acpi@vger.kernel.org>; Sat,  4 Apr 2026 18:41:56 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hEpuzM2V"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F166C2BCB3
+	for <linux-acpi@vger.kernel.org>; Sat,  4 Apr 2026 18:44:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1775328116;
-	bh=MWfcc451QSIHGrpVZc9PzHDEtY0/laVmfZUl5PaawKQ=;
+	s=k20201202; t=1775328253;
+	bh=1f7KOEoJ44TQLWaak4ISOnZqIsoel6VUGdkjYhNfDWI=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=PPOVPYgxRucHr3ekDuF2Tg5a3A9GBU/5wAAYJu5Hhl9skmXZlIUK2s9ZMrYHOw85g
-	 f8tyLOLGJCLSPRBMaYHKfrGkMbl4+4edSB4gNSc9ca6qbMOBuhyHxiojHy1iMcHFF4
-	 oBwY9xzqo37RHqo0kY+7JfPDQ6qWc7gmbnyeu5evUDoEP2b0RZ7T7QIxdE7BZBHSOG
-	 pl6j1ETWv4KENQIzb18iXTnidvsAPMoSejPYMpDSeF47o+LjNh44vtH3tCns4gzAzT
-	 7n5GHOx+46yhPo/JzYGkoU2S0rdJkBZ8xdNPX8gsliJDFdEvoyyyGH74ti2ioutXqG
-	 TnGKWJIrIdoSA==
-Received: by mail-oa1-f51.google.com with SMTP id 586e51a60fabf-415c8a4d2e6so1151923fac.0
-        for <linux-acpi@vger.kernel.org>; Sat, 04 Apr 2026 11:41:56 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCVIFrNWGZWuEeYl7bGqDZX518TkdSwj08YaBSjSy8CGUWOzxNE6EWvUYndvLC0p1gaPgjYM9vteMnvc@vger.kernel.org
-X-Gm-Message-State: AOJu0YwATc3RawTOj7cr/JaXT0BPtDRw4D4uyJgTcCNY/jK3fPztxnGn
-	Dg6I1cjQFdkm2emj3llTAlBojS4RKJIEF+QrdQM2rDslOSgSFm0uaoEiwHmh3qyyv3/2fcErjn2
-	y0yyI/GLP9HguB6wdu1Su8n1HoUme7JY=
-X-Received: by 2002:a05:6870:c189:b0:417:9244:d168 with SMTP id
- 586e51a60fabf-423100197c9mr3889251fac.41.1775328115404; Sat, 04 Apr 2026
- 11:41:55 -0700 (PDT)
+	b=hEpuzM2VYPm4KqqUP+U84+yj97OTYhpvAohKAQBY04Nr+maT3irKQS2kN/a1ziIzv
+	 a+SglZi1rw3j9mhfHp8fwkIPeTVXsrpYAOOcuxq0oFCPn8oOL3ZgEIL3j0qB4Wmnpe
+	 Mqy0OL/IOj/z/jOpSSjBP7hz9MUT4r3u4XMtB1OhE6JzSMgNNkXR5utMGUzcbpnysY
+	 uSAP1P04WsUa/EIHrayuX1FJwO0xYrT1aWQcyIx97WxRbAKfb6A6cZ25DTHIZukjGh
+	 E2ZogSBynOxM5wXd8hNQ7UFn2+mZDiNnqDzuipl7TbqPeCQ/EOA6Ugh67pQieBSkNy
+	 MC3ELE9PLydpQ==
+Received: by mail-oi1-f169.google.com with SMTP id 5614622812f47-470145d7e6fso337812b6e.2
+        for <linux-acpi@vger.kernel.org>; Sat, 04 Apr 2026 11:44:13 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCWdOqdlHJSQu2oHu4geiuUJrD3DOAGFH2gGfjI/doCvCJC30i4l81aq37uni1bAu1HIg0QwUC9xL5mk@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy58dJfbV/q/FVjlaTq+PsgDqeMvEZJHObs5eGjfl+RYK+ooc+5
+	gkebw5pqW3DVUPUCeR32F8IPcRn3p0RddmW97hH14hWzASiA9sTUBi4sFd4wa/6AMoU7kmDvL0i
+	ZJuNiPR9pg3pz50LRAOBnQl0aDH8X5go=
+X-Received: by 2002:a05:6871:210d:b0:417:359c:292e with SMTP id
+ 586e51a60fabf-4230fd52b22mr4262567fac.12.1775328252534; Sat, 04 Apr 2026
+ 11:44:12 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260403085343.866440-1-lihuisong@huawei.com>
-In-Reply-To: <20260403085343.866440-1-lihuisong@huawei.com>
+References: <20260403090253.998322-1-lihuisong@huawei.com>
+In-Reply-To: <20260403090253.998322-1-lihuisong@huawei.com>
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Sat, 4 Apr 2026 20:41:44 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0j=dxags+X_dpqdQ_u3gY0QAtFiGbza+2VraoWip1x3Rw@mail.gmail.com>
-X-Gm-Features: AQROBzBZnje0LwVU0QiXgJJP_0hIuRPhHXG2uWxvWTFsOy6WrYJoGn0uZBLhi-E
-Message-ID: <CAJZ5v0j=dxags+X_dpqdQ_u3gY0QAtFiGbza+2VraoWip1x3Rw@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: processor: idle: Reset power_setup_done flag on
- initialization failure
+Date: Sat, 4 Apr 2026 20:44:00 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0g+ZThRAJcsmqiEjYdV1i4coVph5Js_vwAMyR6ccdGgNw@mail.gmail.com>
+X-Gm-Features: AQROBzA4zqUG8L_8jcLgAKGOyrOnUnyZiAbe11FksDs6lrPhCct_R5tKZXoGCjw
+Message-ID: <CAJZ5v0g+ZThRAJcsmqiEjYdV1i4coVph5Js_vwAMyR6ccdGgNw@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: processor: idle: Fix NULL pointer dereference in
+ hotplug path
 To: Huisong Li <lihuisong@huawei.com>
 Cc: rafael@kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, 
 	linux-kernel@vger.kernel.org, linuxarm@huawei.com, 
@@ -59,66 +59,48 @@ Cc: rafael@kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org,
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Apr 3, 2026 at 10:53=E2=80=AFAM Huisong Li <lihuisong@huawei.com> w=
+On Fri, Apr 3, 2026 at 11:03=E2=80=AFAM Huisong Li <lihuisong@huawei.com> w=
 rote:
 >
-> The 'power_setup_done' flag is a key indicator used across the ACPI
-> processor driver to determine if cpuidle are properly configured and
-> available for a given CPU.
+> A cpuidle_device might fail to register during boot, but the system can
+> continue to run. In such cases, acpi_processor_hotplug() can trigger
+> a NULL pointer dereference when accessing the per-cpu acpi_cpuidle_device=
+.
 >
-> Currently, this flag is set during the early stages of initialization.
-> However, if the subsequent registration of the cpuidle driver in
-> acpi_processor_register_idle_driver() or the per-CPU device registration
-> in acpi_processor_power_init() fails, this flag remains set. This may
-> lead to some issues where other functions in ACPI idle driver use these
-> flags.
->
-> Fix this by explicitly resetting this flag to 0 in these error paths.
+> So add NULL pointer check for the per-cpu acpi_cpuidle_device in
+> acpi_processor_hotplug.
 >
 > Signed-off-by: Huisong Li <lihuisong@huawei.com>
 > ---
->  drivers/acpi/processor_idle.c | 11 +++++++++++
->  1 file changed, 11 insertions(+)
+>  drivers/acpi/processor_idle.c | 5 ++---
+>  1 file changed, 2 insertions(+), 3 deletions(-)
 >
 > diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.=
 c
-> index 2adaee0f32ed..c1cddb4a5887 100644
+> index 479995a4c48a..2adaee0f32ed 100644
 > --- a/drivers/acpi/processor_idle.c
 > +++ b/drivers/acpi/processor_idle.c
-> @@ -1378,6 +1378,7 @@ void acpi_processor_register_idle_driver(void)
+> @@ -1267,16 +1267,15 @@ static int acpi_processor_get_power_info(struct a=
+cpi_processor *pr)
 >
->         ret =3D cpuidle_register_driver(&acpi_idle_driver);
->         if (ret) {
-> +               pr->flags.power_setup_done =3D 0;
->                 pr_debug("register %s failed.\n", acpi_idle_driver.name);
->                 return;
->         }
-> @@ -1386,7 +1387,16 @@ void acpi_processor_register_idle_driver(void)
->
->  void acpi_processor_unregister_idle_driver(void)
+>  int acpi_processor_hotplug(struct acpi_processor *pr)
 >  {
-> +       struct acpi_processor *pr;
-> +       int cpu;
-> +
->         cpuidle_unregister_driver(&acpi_idle_driver);
-> +       for_each_possible_cpu(cpu) {
-> +               pr =3D per_cpu(processors, cpu);
-> +               if (!pr)
-> +                       continue;
-> +               pr->flags.power_setup_done =3D 0;
-> +       }
->  }
+> +       struct cpuidle_device *dev =3D per_cpu(acpi_cpuidle_device, pr->i=
+d);
+>         int ret =3D 0;
+> -       struct cpuidle_device *dev;
 >
->  void acpi_processor_power_init(struct acpi_processor *pr)
-> @@ -1423,6 +1433,7 @@ void acpi_processor_power_init(struct acpi_processo=
-r *pr)
->          */
->         if (cpuidle_register_device(dev)) {
->                 per_cpu(acpi_cpuidle_device, pr->id) =3D NULL;
-> +               pr->flags.power_setup_done =3D 0;
->                 kfree(dev);
->         }
->  }
+>         if (disabled_by_idle_boot_param())
+>                 return 0;
+>
+> -       if (!pr->flags.power_setup_done)
+> +       if (!pr->flags.power_setup_done || !dev)
+>                 return -ENODEV;
+>
+> -       dev =3D per_cpu(acpi_cpuidle_device, pr->id);
+>         cpuidle_pause_and_lock();
+>         cpuidle_disable_device(dev);
+>         ret =3D acpi_processor_get_power_info(pr);
 > --
 
 Applied as 7.1 material, thanks!
