@@ -1,248 +1,289 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A685724293C
-	for <linux-acpi@vger.kernel.org>; Sat,  4 Apr 2026 17:12:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA10B2E54D3
+	for <linux-acpi@vger.kernel.org>; Sat,  4 Apr 2026 18:25:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775322732; cv=none; b=og+NSDm9H4xOney1WXcVVlFkB3+EVAvEobndAb1++jWS3xVVcT0kd87KhWPi0J5GUi0E76QARn5S/23DU72KZqoOUTSEE9aysEEyKW4bwvC8s9pje+NaDyWijqoKES2IUPsAnuDO+qx/lEYL2QTQeNtYWx4K+kZBumxX1coc18g=
+	t=1775327156; cv=none; b=rlglZrtsmQJFy8k1R9NAe/iaSvNKsRdLA+YgmeBH7Dgw2Yy7/yNpdJkrELTlAwbsfRbQI/eN/biRiOPZ0mfwnO0Q2OE7WGu2ksPX7VrlrRz9sG/fCUio1RKjRZzMR0auicizaC9n3oK4eJDygkc5m3SbJlmDX2hLK/sIjtQdLb8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775322732; c=relaxed/simple;
-	bh=6HWbdXTvY5ARCKQw/mJejk6jJkYYvhLGzuFZu/CMKrk=;
+	s=arc-20240116; t=1775327156; c=relaxed/simple;
+	bh=HmVC8HG22vzlAHr9b9ZKLVJ7JJhmrXnAN67usYKy5N8=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=iZ4SZe5/TvP6jTGDpITa1VW05L3v3xF8taazeJ7pK/AEC1oKvqE4aJmlUGTwfEQbAf2imfaf9GqDFugYwYwPizPbtiMvz9N3jp0Wr9d2MixXcW2H16Mb5kJqLL+MUwbbsuLligjPl+0Hc3B69clFcG2CgFDP/+yRqojrLt1DmL8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=l24Zqoay; arc=none smtp.client-ip=10.30.226.201
+	 To:Cc:Content-Type; b=TMbX78TLoczr1nH8VC8fcor99Hc23FO9tUqD4s3RddRMT2lPL4rSi7+zrdbtIQgc5a/GeidLBLL0S4rXILwijH8N7+SUe5e6H39Kp1W6BMh4UM8HfAHBO44xrDhOaLThbnftitfZDDb+Ak8EXyyncljJMWPrWRny+FPVfib2jjw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dasMaZUC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="l24Zqoay"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44D82C2BCB2
-	for <linux-acpi@vger.kernel.org>; Sat,  4 Apr 2026 17:12:12 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dasMaZUC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D342C2BCB5
+	for <linux-acpi@vger.kernel.org>; Sat,  4 Apr 2026 18:25:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1775322732;
-	bh=6HWbdXTvY5ARCKQw/mJejk6jJkYYvhLGzuFZu/CMKrk=;
+	s=k20201202; t=1775327156;
+	bh=HmVC8HG22vzlAHr9b9ZKLVJ7JJhmrXnAN67usYKy5N8=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=l24ZqoayMC0xXGNQJsL1cczZw+VJ7tydZVENUQoFBihS5d0jJ67r8PkLWJbt7LO9X
-	 nNEDpcOuw7tthiYq0W7ZllEXSxo1P0nmWkteU2AW/A7FTMB1eKiec9rAGl/eCan8xY
-	 cuG+x8njyYuOQVmOLYoW96ZXXvFkJbdIJ3bSrizrTqBsUnV5NqWT9CmoPEJSZT/A6T
-	 r5TzM/5f+0qceH5JHMLsipBwEFTxPAxgKYIZJkysfbQQD4BlPelJVwSHHuqi7q9ITh
-	 PB7cR/Biqc2lujS5dbZrpsEBHzOGjFI+k/3wAx1GIyCMqHCsgfCso8EOVfFUYrU5xg
-	 hCnONTBJ0i0Nw==
-Received: by mail-oa1-f50.google.com with SMTP id 586e51a60fabf-40efc77933fso1774245fac.3
-        for <linux-acpi@vger.kernel.org>; Sat, 04 Apr 2026 10:12:12 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCX6uyo3L47rGbWPCb5+1NJ6cazqWlDcKYTwdTpsSVZiia4EQJXrViultf/3rxw8NOdB0v1dpi4tjfra@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw4VUFO0+NiuaSZy5zqCZ7lutwf2cMepw2MovWQ+4HEcA+vnhHD
-	1raHOvD0YJjmDu7iDnJhsR6gwii/e19wzMXfBIlYJnTpLWK9V/NY9UYMWmRDXMwAQ2IbrplfZY5
-	1NEpLOnbpJ5evyMFaPGJuTGWJI+Eku68=
-X-Received: by 2002:a05:6871:581e:b0:422:cd76:929d with SMTP id
- 586e51a60fabf-4230fd2d9e4mr3996409fac.18.1775322730928; Sat, 04 Apr 2026
- 10:12:10 -0700 (PDT)
+	b=dasMaZUC5EkFDx2TKERqqeWNVyhb4oojm4rJGiJ9uG9TX2ZtFQD2I1hVwM+pTTTrd
+	 9tPcYq+2jwV0Qivdi9fSOJW6BeFkNIwz+X1QGStle9Jw6Zevcu64IRjVvjOAPHPivn
+	 JRjZdFuXb/Ihk1ZohNIu78gmuMMCX517ZR6hfp2EDq1NqgdHS0tGD3fwuQ774gCwjq
+	 rlIUxqgfdfTT/Wrs3C5Dja7FvXcNICUQ0YDPqsLK/ZdVwZtVbciurRWtyLwaOllJkt
+	 Q06x1xz4ukp6eVZWok518Fas4+/dsxqW8QOr+84yLM3ODguMdz/+qWwXjfrl8VuMsJ
+	 +GC4opymnJkPA==
+Received: by mail-oi1-f182.google.com with SMTP id 5614622812f47-4670464029eso1619516b6e.2
+        for <linux-acpi@vger.kernel.org>; Sat, 04 Apr 2026 11:25:56 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCV+8x/Zu3Ap6i2tYxRbrC2Kc2fNAmGwthxir1yc1+0PtC7Gj2Vljz21MSeeZXRKTLkshRph0vCw+hYO@vger.kernel.org
+X-Gm-Message-State: AOJu0YxCc/wm8Wtt5Bi3MKvS7mRrXF03DCj/v4TD+fKY+huZps8aoA63
+	2zA0IfF5h8I9KcFfT3jHPDGko8y0Pf0CxjSbL50rwCcXipNUrU3WlgcHB4Nh/MO+1HW958bim45
+	BUcgal9Fe4Qcl4lwsidZMH3gIRVWVpAU=
+X-Received: by 2002:a05:6870:21d3:b0:417:3421:13ff with SMTP id
+ 586e51a60fabf-4230ff4f728mr3820411fac.29.1775327155442; Sat, 04 Apr 2026
+ 11:25:55 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260404000644.522677-1-dianders@chromium.org>
-In-Reply-To: <20260404000644.522677-1-dianders@chromium.org>
+References: <20260402-baytrail-real-swnode-v2-0-6f5054a4cc07@oss.qualcomm.com> <20260402-baytrail-real-swnode-v2-4-6f5054a4cc07@oss.qualcomm.com>
+In-Reply-To: <20260402-baytrail-real-swnode-v2-4-6f5054a4cc07@oss.qualcomm.com>
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Sat, 4 Apr 2026 19:11:59 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0hRKyPesMGKGoDZEMDCX-GVw6Z-dxMLhNhwy6Kjz=7MCQ@mail.gmail.com>
-X-Gm-Features: AQROBzCS1sK1yep87rT-2xolltVfQ4j4qlt-9lHai0wQJnu4V3tzUHOX8_7jVCo
-Message-ID: <CAJZ5v0hRKyPesMGKGoDZEMDCX-GVw6Z-dxMLhNhwy6Kjz=7MCQ@mail.gmail.com>
-Subject: Re: [PATCH v4 0/9] driver core: Fix some race conditions
-To: Douglas Anderson <dianders@chromium.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rafael@kernel.org>, 
-	Danilo Krummrich <dakr@kernel.org>, Alan Stern <stern@rowland.harvard.edu>, 
-	Saravana Kannan <saravanak@kernel.org>, Christoph Hellwig <hch@lst.de>, Eric Dumazet <edumazet@google.com>, 
-	Johan Hovold <johan@kernel.org>, Leon Romanovsky <leon@kernel.org>, 
-	Alexander Lobakin <aleksander.lobakin@intel.com>, Alexey Kardashevskiy <aik@ozlabs.ru>, 
-	Robin Murphy <robin.murphy@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Frank.Li@kernel.org, 
-	Jason Gunthorpe <jgg@ziepe.ca>, alex@ghiti.fr, alexander.stein@ew.tq-group.com, 
-	andre.przywara@arm.com, andrew@codeconstruct.com.au, andrew@lunn.ch, 
-	andriy.shevchenko@linux.intel.com, aou@eecs.berkeley.edu, ardb@kernel.org, 
-	bhelgaas@google.com, brgl@kernel.org, broonie@kernel.org, 
-	catalin.marinas@arm.com, chleroy@kernel.org, davem@davemloft.net, 
-	david@kernel.org, devicetree@vger.kernel.org, dmaengine@vger.kernel.org, 
-	driver-core@lists.linux.dev, gbatra@linux.ibm.com, 
-	gregory.clement@bootlin.com, hkallweit1@gmail.com, iommu@lists.linux.dev, 
-	jirislaby@kernel.org, joel@jms.id.au, joro@8bytes.org, kees@kernel.org, 
-	kevin.brodsky@arm.com, kuba@kernel.org, lenb@kernel.org, lgirdwood@gmail.com, 
-	linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
-	linux-aspeed@lists.ozlabs.org, linux-cxl@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linux-mm@kvack.org, 
-	linux-pci@vger.kernel.org, linux-riscv@lists.infradead.org, 
-	linux-serial@vger.kernel.org, linux-snps-arc@lists.infradead.org, 
-	linux-usb@vger.kernel.org, linux@armlinux.org.uk, 
-	linuxppc-dev@lists.ozlabs.org, m.szyprowski@samsung.com, maddy@linux.ibm.com, 
-	mani@kernel.org, maz@kernel.org, miko.lenczewski@arm.com, mpe@ellerman.id.au, 
-	netdev@vger.kernel.org, npiggin@gmail.com, osalvador@suse.de, 
-	oupton@kernel.org, pabeni@redhat.com, palmer@dabbelt.com, 
-	peter.ujfalusi@gmail.com, peterz@infradead.org, pjw@kernel.org, 
-	robh@kernel.org, sebastian.hesselbarth@gmail.com, tglx@kernel.org, 
-	tsbogend@alpha.franken.de, vgupta@kernel.org, vkoul@kernel.org, 
-	will@kernel.org, willy@infradead.org, yangyicong@hisilicon.com, 
-	yeoreum.yun@arm.com
+Date: Sat, 4 Apr 2026 20:25:43 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0iwfZPcFtM7Jv29bXFmh3zN0OaG9UfNY5iC5RpzRzp07w@mail.gmail.com>
+X-Gm-Features: AQROBzD6YmXrnAzgz9aL6fqWq1iOyolotQRnTtrF6brMuNKBBNGJLMNRaP4UCiA
+Message-ID: <CAJZ5v0iwfZPcFtM7Jv29bXFmh3zN0OaG9UfNY5iC5RpzRzp07w@mail.gmail.com>
+Subject: Re: [PATCH v2 4/4] platform/x86: x86-android-tablets: enable fwnode
+ matching of GPIO chips
+To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Daniel Scally <djrscally@gmail.com>, 
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Danilo Krummrich <dakr@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, 
+	Andy Shevchenko <andy@kernel.org>, Linus Walleij <linusw@kernel.org>, Hans de Goede <hansg@kernel.org>, 
+	=?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, 
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
+	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org, 
+	linux-gpio@vger.kernel.org, platform-driver-x86@vger.kernel.org, 
+	brgl@kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, Apr 4, 2026 at 2:07=E2=80=AFAM Douglas Anderson <dianders@chromium.=
-org> wrote:
+On Thu, Apr 2, 2026 at 2:54=E2=80=AFPM Bartosz Golaszewski
+<bartosz.golaszewski@oss.qualcomm.com> wrote:
 >
-> The main goal of this series is to fix the observed bug talked about
-> in the first patch ("driver core: Don't let a device probe until it's
-> ready"). That patch fixes a problem that has been observed in the real
-> world and could land even if the rest of the patches are found
-> unacceptable or need to be spun.
+> In order to allow GPIOLIB to match cherryview and baytrail GPIO
+> controllers by their firmware nodes instead of their names, we need to
+> attach the - currently "dangling" - existing software nodes to their
+> target devices dynamically.
 >
-> That said, during patch review Danilo correctly pointed out that many
-> of the bitfield accesses in "struct device" are unsafe. I added a
-> bunch of patches in the series to address each one.
+> We deal with devices described in ACPI so set up a bus notifier waiting
+> for the ADD events. We know the name of the device we're waiting for so
+> match against it and - on match - assign the appropriate software node
+> as the secondary firmware node of the underlying ACPI node. In case the
+> event was emitted earlier than this driver's probe: also make sure the
+> device was not added before.
 >
-> Danilo said he's most worried about "can_match", so I put that one
-> first. After that, I tried to transition bitfields to flags in reverse
-> order to when the bitfield was added.
+> Scheduling fine-grained devres actions allows for proper teardown and
+> unsetting of the secondary firmware nodes.
 >
-> Even if transitioning from bitfields to flags isn't truly needed for
-> correctness, it seems silly (and wasteful of space in struct device)
-> to have some in bitfields and some as flags. Thus I didn't spend time
-> for each bitfield showing that it's truly needed for correctness.
+> Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+> ---
+>  drivers/platform/x86/x86-android-tablets/core.c | 127 ++++++++++++++++++=
++++++-
+>  1 file changed, 124 insertions(+), 3 deletions(-)
 >
-> Transition was done semi manually. Presumably someone skilled at
-> coccinelle could do a better job, but I just used sed in a heavy-
-> handed manner and then reviewed/fixed the results, undoing anything my
-> script got wrong. My terrible/ugly script was:
+> diff --git a/drivers/platform/x86/x86-android-tablets/core.c b/drivers/pl=
+atform/x86/x86-android-tablets/core.c
+> index 021009e9085bec3db9c4daa1f6235600210a6099..9e6e8f272dfe16cda421b5698=
+02045c3d94fc0ab 100644
+> --- a/drivers/platform/x86/x86-android-tablets/core.c
+> +++ b/drivers/platform/x86/x86-android-tablets/core.c
+> @@ -13,10 +13,12 @@
+>  #include <linux/acpi.h>
+>  #include <linux/device.h>
+>  #include <linux/dmi.h>
+> +#include <linux/fwnode.h>
+>  #include <linux/gpio/consumer.h>
+>  #include <linux/gpio/machine.h>
+>  #include <linux/irq.h>
+>  #include <linux/module.h>
+> +#include <linux/notifier.h>
+>  #include <linux/pci.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/serdev.h>
+> @@ -360,6 +362,124 @@ static const struct software_node *cherryview_gpioc=
+hip_node_group[] =3D {
+>         NULL
+>  };
 >
-> var=3Dcan_match
-> caps=3D"${var^^}"
-> for f in $(git grep -l "[>\.]${var}[^1-9_a-zA-Z\[]"); do
->   echo $f
->   sed -i~ -e "s/\([a-zA-Z_0-9\.>()-][a-zA-Z_0-9\.>()-]*\)->${var} =3D tru=
-e/set_bit(DEV_FLAG_${caps}, \&\\1->flags)/" "$f"
->   sed -i~ -e "s/\([a-zA-Z_0-9\.>()-][a-zA-Z_0-9\.>()-]*\)\.${var} =3D tru=
-e/dev_set_${caps}(\&\\1)/" "$f"
->   sed -i~ -e "s/\([a-zA-Z_0-9\.>()-][a-zA-Z_0-9\.>()-]*\)->${var} =3D fal=
-se/clear_bit(DEV_FLAG_${caps}, \&\\1->flags)/" "$f"
->   sed -i~ -e "s/\([a-zA-Z_0-9\.>()-][a-zA-Z_0-9\.>()-]*\)\.${var} =3D fal=
-se/dev_clear_${caps}(\&\\1)/" "$f"
->   sed -i~ -e "s/\([a-zA-Z_0-9\.>()-][a-zA-Z_0-9\.>()-]*\)->${var} =3D \([=
-^;]*\)/assign_bit(DEV_FLAG_${caps}, \&\\1->flags, \\2)/" "$f"
->   sed -i~ -e "s/\([a-zA-Z_0-9\.>()-][a-zA-Z_0-9\.>()-]*\)\.${var} =3D \([=
-^;]*\)/dev_assign_${caps}(\&\\1, \\2)/" "$f"
->   sed -i~ -e "s/\([a-zA-Z_0-9\.>()-][a-zA-Z_0-9\.>()-]*\)->${var}\([^1-9_=
-a-zA-Z\[]\)/test_bit(DEV_FLAG_${caps}, \&\\1->flags)\\2/" "$f"
->   sed -i~ -e "s/\([a-zA-Z_0-9\.>()-][a-zA-Z_0-9\.>()-]*\)\.${var}\([^1-9_=
-a-zA-Z\[]\)/dev_${caps}(\&\\1)\\2/" "$f"
-> done
+> +struct auto_secondary_data {
+> +       struct notifier_block nb;
+> +       struct device *parent;
+> +};
+> +
+> +static void auto_secondary_unset(void *data)
+> +{
+> +       struct fwnode_handle *fwnode =3D data;
+> +
+> +       fwnode->secondary =3D NULL;
+> +}
+> +
+> +static int acpi_set_secondary_fwnode(struct device *parent, struct devic=
+e *dev,
+> +                                    const struct software_node *const sw=
+node)
+> +{
+> +       struct acpi_device *device =3D to_acpi_device(dev);
+> +       struct fwnode_handle *fwnode;
+> +       int ret;
+> +
+> +       fwnode =3D software_node_fwnode(swnode);
+> +       if (WARN_ON(!fwnode))
+> +               return -ENOENT;
+> +
+> +       fwnode->secondary =3D ERR_PTR(-ENODEV);
+> +       device->fwnode.secondary =3D fwnode;
+> +
+> +       ret =3D devm_add_action_or_reset(parent, auto_secondary_unset, &d=
+evice->fwnode);
+> +       if (ret)
+> +               dev_err(parent, "Failed to schedule the unset action for =
+secondary fwnode\n");
+> +
+> +       return ret;
+> +}
+> +
+> +static int acpi_auto_secondary_notifier(struct notifier_block *nb,
+> +                                       unsigned long action, void *data)
+> +{
+> +       struct auto_secondary_data *auto_sec =3D container_of(nb, struct =
+auto_secondary_data, nb);
+> +       const struct software_node *const *swnode;
+> +       struct device *dev =3D data;
+> +       int ret;
+> +
+> +       switch (action) {
+> +       case BUS_NOTIFY_ADD_DEVICE:
+> +               for (swnode =3D gpiochip_node_group; *swnode; swnode++) {
+> +                       if (strcmp((*swnode)->name, dev_name(dev)) =3D=3D=
+ 0) {
+> +                               ret =3D acpi_set_secondary_fwnode(auto_se=
+c->parent, dev, *swnode);
+> +                               return ret ? NOTIFY_BAD : NOTIFY_OK;
+> +                       }
+> +               }
+> +               break;
+> +       default:
+> +               break;
+> +       }
+> +
+> +       return NOTIFY_DONE;
+> +}
+> +
+> +static void auto_secondary_unregister_node_group(void *data)
+> +{
+> +       const struct software_node **nodes =3D data;
+> +
+> +       software_node_unregister_node_group(nodes);
+> +}
+> +
+> +static void auto_secondary_unregister_notifier(void *data)
+> +{
+> +       struct notifier_block *nb =3D data;
+> +
+> +       bus_unregister_notifier(&acpi_bus_type, nb);
+> +}
+
+Instead of exporting acpi_bus_type in the previous patch and defining
+this function here, can you define
+
+void acpi_bus_unregister_notifier(void *data)
+{
+       struct notifier_block *nb =3D data;
+
+       bus_unregister_notifier(&acpi_bus_type, nb);
+}
+
+in the previous patch and use it here?
+
+> +
+> +static int auto_secondary_fwnode_init(struct device *parent)
+> +{
+> +       const struct software_node *const *swnode;
+> +       struct auto_secondary_data *data;
+> +       int ret;
+> +
+> +       ret =3D software_node_register_node_group(gpiochip_node_group);
+> +       if (ret)
+> +               return ret;
+> +
+> +       ret =3D devm_add_action_or_reset(parent,
+> +                                      auto_secondary_unregister_node_gro=
+up,
+> +                                      gpiochip_node_group);
+> +       if (ret)
+> +               return ret;
+> +
+> +       data =3D devm_kzalloc(parent, sizeof(*data), GFP_KERNEL);
+> +       if (!data)
+> +               return -ENOMEM;
+> +
+> +       data->nb.notifier_call =3D acpi_auto_secondary_notifier;
+> +       data->parent =3D parent;
+> +
+> +       ret =3D bus_register_notifier(&acpi_bus_type, &data->nb);
+> +       if (ret)
+> +               return ret;
+> +
+> +       ret =3D devm_add_action_or_reset(parent,
+> +                                      auto_secondary_unregister_notifier=
+,
+> +                                      &data->nb);
+> +       if (ret)
+> +               return ret;
+> +
+> +       /* Device may have been already added. */
+> +       for (swnode =3D gpiochip_node_group; *swnode; swnode++) {
+> +               struct device *dev __free(put_device) =3D
+> +                       bus_find_device_by_name(&acpi_bus_type, NULL, (*s=
+wnode)->name);
+> +               if (dev) {
+> +                       ret =3D acpi_set_secondary_fwnode(parent, dev, *s=
+wnode);
+> +                       if (ret)
+> +                               return ret;
+> +               }
+> +       }
+> +
+> +       return 0;
+> +}
+> +
+>  static void x86_android_tablet_remove(struct platform_device *pdev)
+>  {
+>         int i;
+> @@ -391,7 +511,6 @@ static void x86_android_tablet_remove(struct platform=
+_device *pdev)
 >
-> From v3 to v4, I transitioned to accessor functions with another ugly
-> sed script. I had git format the old patches, then transformed them
-> with:
+>         software_node_unregister_node_group(gpio_button_swnodes);
+>         software_node_unregister_node_group(swnode_group);
+> -       software_node_unregister_node_group(gpiochip_node_group);
+>  }
 >
-> for f in *.patch; do
->   echo $f
->   sed -i~ -e "s/test_and_set_bit(DEV_FLAG_\([^,]*\), \&\(.*\)->flags)/dev=
-_test_and_set_\\L\\1(\\2)/" "$f"
->   sed -i~ -e "s/test_and_set_bit(DEV_FLAG_\([^,]*\), \(.*\)\.flags)/dev_t=
-est_and_set_\\L\\1(\\2)/" "$f"
->   sed -i~ -e "s/test_bit(DEV_FLAG_\([^,]*\), \&\(.*\)->flags)/dev_\\L\\1(=
-\\2)/" "$f"
->   sed -i~ -e "s/test_bit(DEV_FLAG_\([^,]*\), \(.*\)\.flags)/dev_\\L\\1(\\=
-2)/" "$f"
->   sed -i~ -e "s/set_bit(DEV_FLAG_\([^,]*\), \&\(.*\)->flags)/dev_set_\\L\=
-\1(\\2)/" "$f"
->   sed -i~ -e "s/set_bit(DEV_FLAG_\([^,]*\), \(.*\)\.flags)/dev_set_\\L\\1=
-(\\2)/" "$f"
->   sed -i~ -e "s/clear_bit(DEV_FLAG_\([^,]*\), \&\(.*\)->flags)/dev_clear_=
-\\L\\1(\\2)/" "$f"
->   sed -i~ -e "s/clear_bit(DEV_FLAG_\([^,]*\), \(.*\)\.flags)/dev_clear_\\=
-L\\1(\\2)/" "$f"
->   sed -i~ -e "s/assign_bit(DEV_FLAG_\([^,]*\), \&\(.*\)->flags, \(.*\))/d=
-ev_assign_\\L\\1(\\2, \\3)/" "$f"
->   sed -i~ -e "s/assign_bit(DEV_FLAG_\([^,]*\), \(.*\)\.flags, \(.*\))/dev=
-_assign_\\L\\1(\\2, \\3)/" "$f"
-> done
+>  static __init int x86_android_tablet_probe(struct platform_device *pdev)
+> @@ -427,9 +546,11 @@ static __init int x86_android_tablet_probe(struct pl=
+atform_device *pdev)
+>                 break;
+>         }
 >
-> ...and then did a few manual touchups for spacing.
+> -       ret =3D software_node_register_node_group(gpiochip_node_group);
+> -       if (ret)
+> +       ret =3D auto_secondary_fwnode_init(&pdev->dev);
+> +       if (ret) {
+> +               x86_android_tablet_remove(pdev);
+>                 return ret;
+> +       }
 >
-> NOTE: one potentially "controversial" choice I made in some patches
-> was to always reserve a flag ID even if a flag is only used under
-> certain CONFIG_ settings. This is a change from how things were
-> before. Keeping the numbering consistent and allowing easy
-> compile-testing of both CONFIG settings seemed worth it, especially
-> since it won't take up any extra space until we've added a lot more
-> flags.
->
-> I only marked the first patch as a "Fix" since it is the only one
-> fixing observed problems. Other patches could be considered fixes too
-> if folks want.
->
-> I tested the first patch in the series backported to kernel 6.6 on the
-> Pixel phone that was experiencing the race. I added extra printouts to
-> make sure that the problem was hitting / addressed. The rest of the
-> patches are tested with allmodconfig with arm32, arm64, ppc, and
-> x86. I boot tested on an arm64 Chromebook running mainline.
->
-> Changes in v4:
-> - Use accessor functions for flags
->
-> Changes in v3:
-> - Use a new "flags" bitfield
-> - Add missing \n in probe error message
->
-> Changes in v2:
-> - Instead of adjusting the ordering, use "ready_to_probe" flag
->
-> Douglas Anderson (9):
->   driver core: Don't let a device probe until it's ready
->   driver core: Replace dev->can_match with dev_can_match()
->   driver core: Replace dev->dma_iommu with dev_dma_iommu()
->   driver core: Replace dev->dma_skip_sync with dev_dma_skip_sync()
->   driver core: Replace dev->dma_ops_bypass with dev_dma_ops_bypass()
->   driver core: Replace dev->state_synced with dev_state_synced()
->   driver core: Replace dev->dma_coherent with dev_dma_coherent()
->   driver core: Replace dev->of_node_reused with dev_of_node_reused()
->   driver core: Replace dev->offline + ->offline_disabled with accessors
->
->  arch/arc/mm/dma.c                             |   4 +-
->  arch/arm/mach-highbank/highbank.c             |   2 +-
->  arch/arm/mach-mvebu/coherency.c               |   2 +-
->  arch/arm/mm/dma-mapping-nommu.c               |   4 +-
->  arch/arm/mm/dma-mapping.c                     |  28 ++--
->  arch/arm64/kernel/cpufeature.c                |   2 +-
->  arch/arm64/mm/dma-mapping.c                   |   2 +-
->  arch/mips/mm/dma-noncoherent.c                |   2 +-
->  arch/powerpc/kernel/dma-iommu.c               |   8 +-
->  .../platforms/pseries/hotplug-memory.c        |   4 +-
->  arch/riscv/mm/dma-noncoherent.c               |   2 +-
->  drivers/acpi/scan.c                           |   2 +-
->  drivers/base/core.c                           |  53 +++++---
->  drivers/base/cpu.c                            |   4 +-
->  drivers/base/dd.c                             |  28 ++--
->  drivers/base/memory.c                         |   2 +-
->  drivers/base/pinctrl.c                        |   2 +-
->  drivers/base/platform.c                       |   2 +-
->  drivers/dma/ti/k3-udma-glue.c                 |   6 +-
->  drivers/dma/ti/k3-udma.c                      |   6 +-
->  drivers/iommu/dma-iommu.c                     |   9 +-
->  drivers/iommu/iommu.c                         |   5 +-
->  drivers/net/pcs/pcs-xpcs-plat.c               |   2 +-
->  drivers/of/device.c                           |   6 +-
->  drivers/pci/of.c                              |   2 +-
->  drivers/pci/pwrctrl/core.c                    |   2 +-
->  drivers/regulator/bq257xx-regulator.c         |   2 +-
->  drivers/regulator/rk808-regulator.c           |   2 +-
->  drivers/tty/serial/serial_base_bus.c          |   2 +-
->  drivers/usb/gadget/udc/aspeed-vhub/dev.c      |   2 +-
->  include/linux/device.h                        | 120 ++++++++++++------
->  include/linux/dma-map-ops.h                   |   6 +-
->  include/linux/dma-mapping.h                   |   2 +-
->  include/linux/iommu-dma.h                     |   3 +-
->  kernel/cpu.c                                  |   4 +-
->  kernel/dma/mapping.c                          |  12 +-
->  mm/hmm.c                                      |   2 +-
->  37 files changed, 206 insertions(+), 142 deletions(-)
+>         ret =3D software_node_register_node_group(dev_info->swnode_group)=
+;
+>         if (ret) {
 >
 > --
-
-For the whole set
-
-Reviewed-by: Rafael J. Wysocki (Intel) <rafael@kernel.org>
+> 2.47.3
+>
