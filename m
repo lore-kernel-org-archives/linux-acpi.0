@@ -1,199 +1,293 @@
-Received: from SN4PR2101CU001.outbound.protection.outlook.com (mail-southcentralusazon11012029.outbound.protection.outlook.com [40.93.195.29])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-dy1-f172.google.com (mail-dy1-f172.google.com [74.125.82.172])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 706131D5AD4;
-	Fri,  3 Apr 2026 21:28:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.195.29
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775251710; cv=fail; b=uWxVg1in15RNv1+xOqbC/wzCKnwkdowjH682fQct66fPuyQk0SLReSXVVQxObcrIssjsmqTFz98qNQRM1EhX7cEDfWKz6dhM5iuws+q6WidJzimTKfuZYlJlK/OyD6xJ0/7CHiICrXgK0cvaZPNMC+mzfeuUc0fy91szk1F+a00=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775251710; c=relaxed/simple;
-	bh=JWPaJF/sHKKAkcffUgj39F8tDnS/sN/d3WAfJHThP0c=;
-	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=bskttFoiv0OjAFq6i2DdRRa4FCdXJXJoX94/nvpk0DDmlVXdMWEBliMe9C+fx9brEQSnmdKl2HB+XKMHJWitNu5qVZa984zk0FSIC64rwmipfSSd1Cx/+aVenJ5hN2UmLSWMDhIPVxSXtXXIkOcMAi3jW9v74JWFB7BCO8yzYEQ=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=SuABkZg+; arc=fail smtp.client-ip=40.93.195.29
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 485D7125D0
+	for <linux-acpi@vger.kernel.org>; Sat,  4 Apr 2026 00:07:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.172
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1775261244; cv=none; b=eU7nPQ2nk5i+OqsdSnepd1o6LInXMvGEc0AWyFvwHgYj0Ef2G4FPCuMkJRrUDdFdeR1rPRLAVRmdlDMge7GvkaxqV2PJIoaU/UK2M73Fb7iYVWVARNHdWuV1M+KxwQt+8/CN7Wk36Esh7tdx30Pckt84Ogs7bUj/divluy+aHQs=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1775261244; c=relaxed/simple;
+	bh=4U6qcOnXRz1y4XkIRO6Hkkenfy7He0XdH8Hlg7ak3cg=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=G56scVQ5IhbV73i6Cf79YVM0AW90En+cAha6VsMt2E29ofeWT1Y55mvYhcoJrVndUgT1UjKyZHHN0ZPkAi+zHGTeLrHSGw8Q1fzWdUTUl6dc7/9EnKP1wJiXeA3/x/BN2gfSmZVDB2gEKdvx8L7H0BemW9tbvMOh2q3nSe8jSac=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=PwkM0ca5; arc=none smtp.client-ip=74.125.82.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="SuABkZg+"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=hsHNSHoKm+OojHiQIkzRrLr3/b9Y0ogx6z+HV+hOM6M1NU3tAdNGu2LW+qHBaiQkaplPd31XE3ZDkJcAXtvhK5oVAmEHRr4yfVNqWovvGxVDbwOpmH44pFBvdbcAIIOB+rFOQ6IKyGUzZ2iWAkBlqqK7aW0UXFIiziuyZ807BtBGSmTCEaWMmvwWwAr6xFsvHCoCXR6ZuT7F7C4dvuo0v0maNfeRfb/F+kn5QM410ozg6HcB3SjDW0WJOakcXqbXKLluMBDdBh0TJu17paCSoQBcybpWV7KEN/lqEvyS71G1yCyuX+CxlGqI0Z5U/tE0GIII1QuNXaxY2Z4xy5XAvA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=TN1rBrKjCXTE2tkyjrvZAuYp1G/ZsCKA9XCbbH106q4=;
- b=LD+RhBEvPEccqjaMeqGeNDHfx4aAn9F1si3GL0WR5AbvmsVrRyd75D00P2bNpzGLLzk8Zzi98sxRAnwW5MZd0XY45/2pDuTkNGc8lZTNUwb8gpf/u3uAVflLf4oUThpbpDUaTd4+EsgRBHYjCkoWiGQUxMtvE2Jfa6YAhc8wQ9KzFTkdSjDfeSvJGwI+dzgGmW31gbDL0+A42x06SGQ4tQagd0m2XvDLJRz+3B4ZznXUmVzfdqdJoI6OYMQQVup0OP/Lg0I1ZsdEQJDj3K9tQGkpS9OLmZ/oddyrnpIdbSGnHfuy8S1XuV1inZpCFS5pl+QJhj4ZmNUm6NKaNgxPug==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
- header.d=amd.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=TN1rBrKjCXTE2tkyjrvZAuYp1G/ZsCKA9XCbbH106q4=;
- b=SuABkZg+kUtT3E5XiNtRCcSMuSkfEaCFhE1bFkobkJog7Uy07/9q7vVN35hoZ1laRx9QLETE+GzddkBF8lKrUZwpEpl4bPbiCCW2I3xm74nezSI/LJFTLWqGT1a2iH5VlQNar36NNXoZhyNYmSA4f5G6xmadi21d629eeW5NGFw=
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=amd.com;
-Received: from SA0PR12MB4557.namprd12.prod.outlook.com (2603:10b6:806:9d::10)
- by MN0PR12MB5835.namprd12.prod.outlook.com (2603:10b6:208:37a::6) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9769.17; Fri, 3 Apr
- 2026 21:28:26 +0000
-Received: from SA0PR12MB4557.namprd12.prod.outlook.com
- ([fe80::885a:79b3:8288:287]) by SA0PR12MB4557.namprd12.prod.outlook.com
- ([fe80::885a:79b3:8288:287%5]) with mapi id 15.20.9769.018; Fri, 3 Apr 2026
- 21:28:26 +0000
-Message-ID: <adc13acd-4a2b-4b64-9dcc-c622d8b9f3cf@amd.com>
-Date: Fri, 3 Apr 2026 16:28:23 -0500
-User-Agent: Mozilla Thunderbird
-Subject: Re: [BUG] ASUS ProArt PX13 HN7306WU: amd_pmc s2idle S0ix corrupts AMD
- 1022:150b root port, NVIDIA dGPU returns header type 7f
-To: Joyful Lee <joy@joyfullee.me>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, platform-driver-x86@vger.kernel.org,
- Shyam Sundar S K <Shyam-sundar.S-k@amd.com>, Hans de Goede
- <hansg@kernel.org>, =?UTF-8?Q?Ilpo_J=C3=A4rvinen?=
- <ilpo.jarvinen@linux.intel.com>, linux-pci@vger.kernel.org,
- Bjorn Helgaas <bhelgaas@google.com>, linux-acpi@vger.kernel.org,
- "Rafael J. Wysocki" <rafael@kernel.org>, linux-kernel@vger.kernel.org,
- Lukas Wunner <lukas@wunner.de>
-References: <84268751-a128-4cfc-94ae-588de5d98ec8@amd.com>
- <20260403180422.GA341023@bhelgaas>
- <CADj6jrg4YWx+iR0o=JSh23uP0Mb2Mvs-ngCJXGUAwCCUQGHM4A@mail.gmail.com>
- <d0994dad-4506-4b5a-b44d-3bb68aae4517@amd.com>
- <CADj6jrgEwySW_A=-0o947aGg+CmaZD+qR4NnopVFoQptdHz=bQ@mail.gmail.com>
- <024bce0e-5bc7-40ca-be01-278ef9935531@amd.com>
-Content-Language: en-US
-From: Mario Limonciello <mario.limonciello@amd.com>
-In-Reply-To: <024bce0e-5bc7-40ca-be01-278ef9935531@amd.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: CH0PR04CA0077.namprd04.prod.outlook.com
- (2603:10b6:610:74::22) To SA0PR12MB4557.namprd12.prod.outlook.com
- (2603:10b6:806:9d::10)
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="PwkM0ca5"
+Received: by mail-dy1-f172.google.com with SMTP id 5a478bee46e88-2cc4c693d59so2340870eec.1
+        for <linux-acpi@vger.kernel.org>; Fri, 03 Apr 2026 17:07:21 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1775261240; x=1775866040; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=KGKsMy9vhlN9yvdnOvYy+R4lmavPYuTzTATeThGwgQc=;
+        b=PwkM0ca5QROQeAiqfW1iW3X5spqYFYnS/2L8X2vcFUpdpBz6vLqXtTdxRmqYTeF6q/
+         NDi5p9sCrUEvbIK5uHiC57+gLzcOEIBYv7aCk5GMpae+1/ZnhWFUDq8sr72nlwgdVNST
+         nHX5BJ12zprQxgF4o/WMCad7kw+xm3w03KRW8=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1775261240; x=1775866040;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=KGKsMy9vhlN9yvdnOvYy+R4lmavPYuTzTATeThGwgQc=;
+        b=WwCrz8oDrSfFnG86UQebzsdSAR2iMGAayT4Nl5j8rh6ru6kCKAg0RnKBAEiJxLXpLl
+         xKxQ3bduXoFgQES6CDsJ/t3vyT8rOBf1hcj0GKU7Vxve2HOS2gsN3xLKQ4UU+/ffL2Dw
+         LMz3VAHQ9gvPsaeZ80kaQk+oHKk1IEbhahIPvzlbRNwSPfAN1BfS2hbQUAo68Id1QtAE
+         4qTS2YabzSHdzH+T2tvbE9r2ORFi94LYLU3fjpwiVu3EzflhMQv6icqZLtX3x8zbxr4c
+         Ezq3wzejnD7OylHyij4yh5eQOr/CwtDRVOqMHhgN+beE4AA3EYJR2nM+7Bry/MhIZsXL
+         FpUQ==
+X-Forwarded-Encrypted: i=1; AJvYcCV5+jytCy9ands8uWEwc7LB6uTxoKjRbFd/1Tn4awPCrVMGBtJV0lrH6OiGHNvdt/oIBRHFOj7onB7N@vger.kernel.org
+X-Gm-Message-State: AOJu0YyWCVHwLr9/F6l5GeJVCGZQrgFSFzZu1l3Alwf7DaVRLGD368P0
+	Imkhu0sWUCgpR+BoWZriZFQibV4NrL93E7S1hr9I5/vPsqp+DRnCoUzTMbob63HvAw==
+X-Gm-Gg: AeBDiev6UrOlAD6xvHgk3joQqOLN7hZPlj/X9gxUlwa/wT28RPBkm4CEu9eABxHF+g0
+	n2ljuORtf9HkjoVzL682KrwyNMzWeYGS5x89MC+LeyFy3xox/8hz5jCKpypy9wd8uggg01L8ucm
+	QN5M8j6KkVI0ftUfyDDmADd0RwpPavcAn5/BbJeVgvKeGIJEXX35S7iUajoEHr4Rbvo4HoEv30c
+	HDyh9rBbX+kgNVUV9uCAEQ+AORotFgDYtdzOwftDQqk55zwe/ta4zsJ3EkFTK+2WGc+AwcVI22d
+	ybpwiIWpsXaP0wsV3ZoGrGGudo0OZnWMpIQX0FU7zMNzIMJw1GQK8/CGZH3MDm7N7SXzBPGzDKf
+	z5oj0CbsyLec+UP7/vd3hsaHfZU3hsihQJ5sRTfE85mAcbtef8rIV9w+JMcVyTpW7GNSkVw8npv
+	q49Uo7tpOhy3plRYXiz/bPR0Xyx+tZiZ0Ysx9AmC7xlqNLepeYrNciM/B2sIMZzEu7hEVmbQdex
+	ZiFL6mowNA=
+X-Received: by 2002:a05:7300:5722:b0:2c7:ea98:da0 with SMTP id 5a478bee46e88-2cbfbc8aeb9mr2680118eec.19.1775261240285;
+        Fri, 03 Apr 2026 17:07:20 -0700 (PDT)
+Received: from dianders.sjc.corp.google.com ([2a00:79e0:2e7c:8:a8b6:55b2:3eb6:2c0e])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2ca79e1d93bsm6520716eec.12.2026.04.03.17.07.16
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 03 Apr 2026 17:07:19 -0700 (PDT)
+From: Douglas Anderson <dianders@chromium.org>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J . Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Alan Stern <stern@rowland.harvard.edu>
+Cc: Saravana Kannan <saravanak@kernel.org>,
+	Christoph Hellwig <hch@lst.de>,
+	Eric Dumazet <edumazet@google.com>,
+	Johan Hovold <johan@kernel.org>,
+	Leon Romanovsky <leon@kernel.org>,
+	Alexander Lobakin <aleksander.lobakin@intel.com>,
+	Alexey Kardashevskiy <aik@ozlabs.ru>,
+	Robin Murphy <robin.murphy@arm.com>,
+	Douglas Anderson <dianders@chromium.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Frank.Li@kernel.org,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	alex@ghiti.fr,
+	alexander.stein@ew.tq-group.com,
+	andre.przywara@arm.com,
+	andrew@codeconstruct.com.au,
+	andrew@lunn.ch,
+	andriy.shevchenko@linux.intel.com,
+	aou@eecs.berkeley.edu,
+	ardb@kernel.org,
+	bhelgaas@google.com,
+	brgl@kernel.org,
+	broonie@kernel.org,
+	catalin.marinas@arm.com,
+	chleroy@kernel.org,
+	davem@davemloft.net,
+	david@kernel.org,
+	devicetree@vger.kernel.org,
+	dmaengine@vger.kernel.org,
+	driver-core@lists.linux.dev,
+	gbatra@linux.ibm.com,
+	gregory.clement@bootlin.com,
+	hkallweit1@gmail.com,
+	iommu@lists.linux.dev,
+	jirislaby@kernel.org,
+	joel@jms.id.au,
+	joro@8bytes.org,
+	kees@kernel.org,
+	kevin.brodsky@arm.com,
+	kuba@kernel.org,
+	lenb@kernel.org,
+	lgirdwood@gmail.com,
+	linux-acpi@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-aspeed@lists.ozlabs.org,
+	linux-cxl@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-mips@vger.kernel.org,
+	linux-mm@kvack.org,
+	linux-pci@vger.kernel.org,
+	linux-riscv@lists.infradead.org,
+	linux-serial@vger.kernel.org,
+	linux-snps-arc@lists.infradead.org,
+	linux-usb@vger.kernel.org,
+	linux@armlinux.org.uk,
+	linuxppc-dev@lists.ozlabs.org,
+	m.szyprowski@samsung.com,
+	maddy@linux.ibm.com,
+	mani@kernel.org,
+	maz@kernel.org,
+	miko.lenczewski@arm.com,
+	mpe@ellerman.id.au,
+	netdev@vger.kernel.org,
+	npiggin@gmail.com,
+	osalvador@suse.de,
+	oupton@kernel.org,
+	pabeni@redhat.com,
+	palmer@dabbelt.com,
+	peter.ujfalusi@gmail.com,
+	peterz@infradead.org,
+	pjw@kernel.org,
+	robh@kernel.org,
+	sebastian.hesselbarth@gmail.com,
+	tglx@kernel.org,
+	tsbogend@alpha.franken.de,
+	vgupta@kernel.org,
+	vkoul@kernel.org,
+	will@kernel.org,
+	willy@infradead.org,
+	yangyicong@hisilicon.com,
+	yeoreum.yun@arm.com
+Subject: [PATCH v4 0/9] driver core: Fix some race conditions
+Date: Fri,  3 Apr 2026 17:04:54 -0700
+Message-ID: <20260404000644.522677-1-dianders@chromium.org>
+X-Mailer: git-send-email 2.53.0.1213.gd9a14994de-goog
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SA0PR12MB4557:EE_|MN0PR12MB5835:EE_
-X-MS-Office365-Filtering-Correlation-Id: 826d02d1-9173-44de-08db-08de91c7f108
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|366016|7416014|1800799024|56012099003|18002099003|22082099003;
-X-Microsoft-Antispam-Message-Info:
-	8kXbNQUukL6BHNMYQSTJgIm2lq675W+gqlRjbhXxbtl2GxrFqx5TxA/kFdC1xOYdErHztjZoZ9Q9WM/L+xQT1Q/G1riI+tKCRBBj3xIB3wLbC4ptwD2P145Iq2bCcND+LjI4WJjb30Oe6daFfjVTwTX2DbIcc5fqffpCtSJvPfvqlDTzjGO1kf4CMeHyt11lhFGGn3ODzLHWRzWDy3+WnwMlAJ0UuhgrpdHmkIdmrgak9uhtwMAV6o6iGk3WmEw+ntiVl4pTDyqmP1CIzDAauRrXF6YBdolqxFRPnNqmP+8uwUYu5i0CJ4NVGCiLl953PqagfZmUifBJukHY4KgDW6hN4q09Hftzha5Ec9X+dAw5RiDXXsR4FxaM/P82WxnvVXkSoRazYZEAF+9+TuO18gi4pMivk4RcYQYI3OmhMA0c9YLQDz7jG9pDh3Kh3eukZ4NXf5OhmZipXwhzuobD1l8P8pSRVLjpJRMlpDRPBa0Ru4E6JvA7EYXpmKeifkrjo1ijefJcSGzenMq7eZF8zVqU3vg8uyRciAXSwylZyRVvcC/Vlsmhq4fa9yhHmONYNttSijVWKW09KO7rsEYpZYYof1jG8+e19/8cVPVbYu97xu8UyfVxBAOjZXhM8yRx1sFi5bxFKbOqC3AWpvT3SWUkgtrnEDGDQ/VpFwLnv7MOzyJ8/e+5FgyL0h1RBxsteHX1tO7Tccryj1DgJjlGCudbpcR3ZGvAadVo7lVA9h0=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA0PR12MB4557.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(366016)(7416014)(1800799024)(56012099003)(18002099003)(22082099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?bDZDMmZETklsTC9vNEdzQVpBRXFuME5JcFBPUUo5LzA5b2VpaUliSDR5alFR?=
- =?utf-8?B?SkJxN1NkWkdENW1wZDhQN0JObHk5UDV0aE04bVl4TnBQNUw5UU9FdmQ1dEZL?=
- =?utf-8?B?Kzd1UVlFblVXYXViZVZUaDRmVWh4cmY3SFo1THFDSDRsTS96b25CZjV6YWFZ?=
- =?utf-8?B?ejlvK1NJVEFvU0N6SnhtcnFOQlN0WXg0YjdzUjZlUHdCWHM3UUt0MzFpQk5L?=
- =?utf-8?B?N2srUGh1RktDYW9KU2NiMlE2UWtZQWtYbGZSOXIwK21WdHdzTTk5eEVab2pm?=
- =?utf-8?B?VkVmYTlGOUhiZDU3VUR0azIxRFczUEtWR0IzVzNFSkZRaFVtdDVuaytYQWZh?=
- =?utf-8?B?TVdWTVc4M2dyYlpnOWVsbnd2N3lQVWhWWnprVzZDSGh1aVJiQ2owc2J4TUda?=
- =?utf-8?B?MWJDbVZVeHNRM09ORHovY0t0MVc0OS9zSGxTU0hwczFNcmR0MEh4cTBDalM4?=
- =?utf-8?B?QTRJSUlxcjE4a01OeUd5aXo2MzJ5b0Y0alpzdFoxeGZLQVBlVmFKQ1FhS3Ez?=
- =?utf-8?B?SUs4cjVVTCt5enBKVWxUSTFPc2krM3pGaFoyYXJ1cVduaWdtUk1aKy9NYjFk?=
- =?utf-8?B?UEd1QkNYeEJyeStXNlVaNGtFOUx1dHhOR3RSU1FZSzByT2dMQVhPZTdJalFS?=
- =?utf-8?B?UXFoMWlLTlV1N29zc2tTcFRLUVpuZ0F4OUY5dFEyUTBPbEtsbW0rMlZreity?=
- =?utf-8?B?RXNaM0ZOc0dBcVdlc2pNOTBJdVJOSjA1L2dzc0ppUmUxM1k2cytwYVM1VEJO?=
- =?utf-8?B?dFl0ZnhWWnJVM1AwOTUzNVBsdk1uVy9FY1lodFhIMGZSUVNBK2ZEN2dkNzdT?=
- =?utf-8?B?Q3ZrcXk0U3hWb1ZCS0h2UTh6SmZhVFhpQXVIclgxNHhHWUlSd2FkRUFXbE81?=
- =?utf-8?B?MEdkVTBmdVhKNFhRSWdIN0JhOFNhdk9HTnM1Ti9zdUVQdURCaTd1cjNDMDFO?=
- =?utf-8?B?dEpFSWpvd2s2dnUxZm5McFZOM1AvWVpCTWVQQ24wTWFHN3BVQWN6WVFXTUhW?=
- =?utf-8?B?Nm9sNGlHRnRJR0N5Tlp2WFJwVVlYUmVwbnRsOThNNCs2b0E4SHFyZHhoTDB6?=
- =?utf-8?B?V3lqbVR0OW9PV2s1dmdCMHY1YUxSemtDTjNiY3hQUUtYaTl5ZDBFK0JTQ1Ey?=
- =?utf-8?B?QzZVN21KU05JdFFnUHU1ZExZeEhRZzBnV0YzeDEyQUV1NnA4Y3AwYXVzYTJZ?=
- =?utf-8?B?alRMWVNlRFU0THl2dmdRLzNQSjIvMGRTY0w0WFU5K2tnRzE3dzJISTAzWXdC?=
- =?utf-8?B?MVIwc01veEk0RkdBUG9VZlNZMlFFSFZ0d3NvWEFnSWFXbmFCckttRjdab25C?=
- =?utf-8?B?aFJLTFRWYmFpa2EvczAzMVVVUnlWakxVZHpoTlZORURKYktXZnpGYTZOZlpV?=
- =?utf-8?B?amNBWE5yeXE4S3g4UytRdGx1bjN0S0Z2RUlOTS9yVnpSMnRRaGI3dkpKV0tn?=
- =?utf-8?B?QitHOHQ3eWRaZjdMbWV0bzJIOW8zTnRrb0xZVWJ2cmVJV3pQRmdhd2ZCd1hz?=
- =?utf-8?B?U1AwUnJ6RXZsQ213NDJ5b0NlanhsanFlVnpGbjNFY0xxY0pmVTFFdUJjeUNN?=
- =?utf-8?B?WEovLytNVS9PQzBBMHlXamJSYXo1eEQ3UUdaMHVxYVE2aThaVk8vV01UUGVh?=
- =?utf-8?B?bmVDRVJLMnR0V2I3ekdLS2l0M0lPb0VPV0MzWjVETmlxazkwMlZsb3JYbHZh?=
- =?utf-8?B?N1FYQmVwQXlNQjh0aEpxcVMrRkhVZGRYUWlUQUNLKysvR2ZmaWVDQ1pBSlE3?=
- =?utf-8?B?TUFTR0JkeU1QQUQ2d0Z4QzU2T205dUdKZnl4UXVBaExwQ2FzaEU2WkVwME8r?=
- =?utf-8?B?aWpYSDZSd0RsUDVlOEVwT1ZVWFBUR2Q3Qmo3NUxEVytvb0hVQWFqR2ViMzlO?=
- =?utf-8?B?ZDlya1hrOFdjZ05ZT2VwcW9pcDFjTlNvcmNXUDdXR0dPNEs5cEhHOXFPQ0JN?=
- =?utf-8?B?UzNDd1UzQksyNzNEZ01jV2VUTUV2NERFNTBHWEdybXZhdWh3QnNUemVZNGhr?=
- =?utf-8?B?ckpXUDJOK3l4OVRQNS9NOU9QZ2NrcnBCYXVjR0dTQmpVNCt3eENJN1h2NVFW?=
- =?utf-8?B?Z3dWY3RvSTk0aUhTQUJaelgzbnNoQ1oyWTdTelZZWG9oQmRLQVJaNVBFL212?=
- =?utf-8?B?bkFnKzU4Ym44YmtGMkRkMkNMRGl5b05XV01IVXloSWV0ODVMTDBoMEdldzF0?=
- =?utf-8?B?Ui9BcXhnSnFWeE0rQmsxNmVKa0F4M29wcHQzTCtTZDBGdkVkKzNTMHVUSGZU?=
- =?utf-8?B?V2RqSHJkMTNRbjNLZWc5WWhIUEViY3ZSR1UyTllEVFZwNzJobDhNTW1qdVNp?=
- =?utf-8?B?VndRMzcreUJpYUhSRnlvZXVCK1kxTnNGSWVsdCtLQWNITUFWQmF3dz09?=
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 826d02d1-9173-44de-08db-08de91c7f108
-X-MS-Exchange-CrossTenant-AuthSource: SA0PR12MB4557.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Apr 2026 21:28:26.2785
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: og1Fhhm67fTof5KtyzuC8Ub7q5/lD92Z127gjH1KBN8/r3h8PswbOdUqlj7ALlBZpkUbY/Kl455BNnzD1RR/pg==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN0PR12MB5835
+Content-Transfer-Encoding: 8bit
 
-On 4/3/26 4:05 PM, Mario Limonciello wrote:
-> On 4/3/26 3:47 PM, Joyful Lee wrote:
->> On Fri, Apr 3, 2026 at 4:03 PM Mario Limonciello
->> <mario.limonciello@amd.com> wrote:
->>> Can you do the exact same on the same branch/commit but without pciehp
->>> enabled?  It will make comparison of all the impacts (not just this root
->>> port) a lot easier.
->>
->> Here you go. Unfortunately it's not *exactly* the same because I had to
->> disable the nvidia driver to get a result.
-> 
-> Thanks - the most obvious observation is what you already noted - 
-> without hotplug support the root port skips PM all together.
-> 
-> [24.575705] pcieport 0000:00:01.2: PCI PM: Suspend power state: D0
-> [24.575707] pcieport 0000:00:01.2: PCI PM: Skipped
-> [24.575709] pcieport 0000:00:01.1: PCI PM: Suspend power state: D0
-> [24.575709] pcieport 0000:00:01.1: PCI PM: Skipped
-> 
-> vs
-> 
-> [29.279987] pcieport 0000:00:01.1: power state changed by ACPI to D3cold
-> [29.279991] pcieport 0000:00:01.1: PCI PM: Suspend power state: D3cold
-> [29.280214] pcieport 0000:00:01.2: power state changed by ACPI to D3cold
-> [29.280219] pcieport 0000:00:01.2: PCI PM: Suspend power state: D3cold
-> 
-> The hotplug support seems to apply to 3 ports.
-> 
->    0000:00:01.1 (Bus 01):
->    - Slot Capabilities: 0x00040060
->    - Flags: HotPlug+ Surprise+ LLActRep+
-> 
->    0000:00:01.2 (Bus 61):
->    - Slot Capabilities: 0x00040060
->    - Flags: HotPlug+ Surprise+ LLActRep+
-> 
->    0000:00:03.1 (Bus c4):
->    - Slot Capabilities: 0x000425e0
->    - Flags: HotPlug+ Surprise+ LLActRep+
->    - This port also has bandwidth control enabled: bwctrl: enabled with 
-> IRQ 38
-> 
-> The port stays in D0 because the child (the GPU) stays in D0 for suspend.
-> 
->    [24.599889] pcieport 0000:00:03.1: PCI PM: Suspend power state: D0
-> 
-> 
->    [24.599890] pcieport 0000:00:03.1: PCI PM: Skipped
-> 
-> So I would say we should look at what the GPU isn't going to D3 for 
-> suspend for the next clue.
+The main goal of this series is to fix the observed bug talked about
+in the first patch ("driver core: Don't let a device probe until it's
+ready"). That patch fixes a problem that has been observed in the real
+world and could land even if the rest of the patches are found
+unacceptable or need to be spun.
 
-OK - so the issue comes from acpi_pci_bridge_d3() which is called from 
-platform_pci_bridge_d3():
+That said, during patch review Danilo correctly pointed out that many
+of the bitfield accesses in "struct device" are unsafe. I added a
+bunch of patches in the series to address each one.
 
-	if (acpi_pci_disabled || !dev->is_pciehp)
-		return false;
+Danilo said he's most worried about "can_match", so I put that one
+first. After that, I tried to transition bitfields to flags in reverse
+order to when the bitfield was added.
 
+Even if transitioning from bitfields to flags isn't truly needed for
+correctness, it seems silly (and wasteful of space in struct device)
+to have some in bitfields and some as flags. Thus I didn't spend time
+for each bitfield showing that it's truly needed for correctness.
+
+Transition was done semi manually. Presumably someone skilled at
+coccinelle could do a better job, but I just used sed in a heavy-
+handed manner and then reviewed/fixed the results, undoing anything my
+script got wrong. My terrible/ugly script was:
+
+var=can_match
+caps="${var^^}"
+for f in $(git grep -l "[>\.]${var}[^1-9_a-zA-Z\[]"); do
+  echo $f
+  sed -i~ -e "s/\([a-zA-Z_0-9\.>()-][a-zA-Z_0-9\.>()-]*\)->${var} = true/set_bit(DEV_FLAG_${caps}, \&\\1->flags)/" "$f"
+  sed -i~ -e "s/\([a-zA-Z_0-9\.>()-][a-zA-Z_0-9\.>()-]*\)\.${var} = true/dev_set_${caps}(\&\\1)/" "$f"
+  sed -i~ -e "s/\([a-zA-Z_0-9\.>()-][a-zA-Z_0-9\.>()-]*\)->${var} = false/clear_bit(DEV_FLAG_${caps}, \&\\1->flags)/" "$f"
+  sed -i~ -e "s/\([a-zA-Z_0-9\.>()-][a-zA-Z_0-9\.>()-]*\)\.${var} = false/dev_clear_${caps}(\&\\1)/" "$f"
+  sed -i~ -e "s/\([a-zA-Z_0-9\.>()-][a-zA-Z_0-9\.>()-]*\)->${var} = \([^;]*\)/assign_bit(DEV_FLAG_${caps}, \&\\1->flags, \\2)/" "$f"
+  sed -i~ -e "s/\([a-zA-Z_0-9\.>()-][a-zA-Z_0-9\.>()-]*\)\.${var} = \([^;]*\)/dev_assign_${caps}(\&\\1, \\2)/" "$f"
+  sed -i~ -e "s/\([a-zA-Z_0-9\.>()-][a-zA-Z_0-9\.>()-]*\)->${var}\([^1-9_a-zA-Z\[]\)/test_bit(DEV_FLAG_${caps}, \&\\1->flags)\\2/" "$f"
+  sed -i~ -e "s/\([a-zA-Z_0-9\.>()-][a-zA-Z_0-9\.>()-]*\)\.${var}\([^1-9_a-zA-Z\[]\)/dev_${caps}(\&\\1)\\2/" "$f"
+done
+
+From v3 to v4, I transitioned to accessor functions with another ugly
+sed script. I had git format the old patches, then transformed them
+with:
+
+for f in *.patch; do
+  echo $f
+  sed -i~ -e "s/test_and_set_bit(DEV_FLAG_\([^,]*\), \&\(.*\)->flags)/dev_test_and_set_\\L\\1(\\2)/" "$f"
+  sed -i~ -e "s/test_and_set_bit(DEV_FLAG_\([^,]*\), \(.*\)\.flags)/dev_test_and_set_\\L\\1(\\2)/" "$f"
+  sed -i~ -e "s/test_bit(DEV_FLAG_\([^,]*\), \&\(.*\)->flags)/dev_\\L\\1(\\2)/" "$f"
+  sed -i~ -e "s/test_bit(DEV_FLAG_\([^,]*\), \(.*\)\.flags)/dev_\\L\\1(\\2)/" "$f"
+  sed -i~ -e "s/set_bit(DEV_FLAG_\([^,]*\), \&\(.*\)->flags)/dev_set_\\L\\1(\\2)/" "$f"
+  sed -i~ -e "s/set_bit(DEV_FLAG_\([^,]*\), \(.*\)\.flags)/dev_set_\\L\\1(\\2)/" "$f"
+  sed -i~ -e "s/clear_bit(DEV_FLAG_\([^,]*\), \&\(.*\)->flags)/dev_clear_\\L\\1(\\2)/" "$f"
+  sed -i~ -e "s/clear_bit(DEV_FLAG_\([^,]*\), \(.*\)\.flags)/dev_clear_\\L\\1(\\2)/" "$f"
+  sed -i~ -e "s/assign_bit(DEV_FLAG_\([^,]*\), \&\(.*\)->flags, \(.*\))/dev_assign_\\L\\1(\\2, \\3)/" "$f"
+  sed -i~ -e "s/assign_bit(DEV_FLAG_\([^,]*\), \(.*\)\.flags, \(.*\))/dev_assign_\\L\\1(\\2, \\3)/" "$f"
+done
+
+...and then did a few manual touchups for spacing.
+
+NOTE: one potentially "controversial" choice I made in some patches
+was to always reserve a flag ID even if a flag is only used under
+certain CONFIG_ settings. This is a change from how things were
+before. Keeping the numbering consistent and allowing easy
+compile-testing of both CONFIG settings seemed worth it, especially
+since it won't take up any extra space until we've added a lot more
+flags.
+
+I only marked the first patch as a "Fix" since it is the only one
+fixing observed problems. Other patches could be considered fixes too
+if folks want.
+
+I tested the first patch in the series backported to kernel 6.6 on the
+Pixel phone that was experiencing the race. I added extra printouts to
+make sure that the problem was hitting / addressed. The rest of the
+patches are tested with allmodconfig with arm32, arm64, ppc, and
+x86. I boot tested on an arm64 Chromebook running mainline.
+
+Changes in v4:
+- Use accessor functions for flags
+
+Changes in v3:
+- Use a new "flags" bitfield
+- Add missing \n in probe error message
+
+Changes in v2:
+- Instead of adjusting the ordering, use "ready_to_probe" flag
+
+Douglas Anderson (9):
+  driver core: Don't let a device probe until it's ready
+  driver core: Replace dev->can_match with dev_can_match()
+  driver core: Replace dev->dma_iommu with dev_dma_iommu()
+  driver core: Replace dev->dma_skip_sync with dev_dma_skip_sync()
+  driver core: Replace dev->dma_ops_bypass with dev_dma_ops_bypass()
+  driver core: Replace dev->state_synced with dev_state_synced()
+  driver core: Replace dev->dma_coherent with dev_dma_coherent()
+  driver core: Replace dev->of_node_reused with dev_of_node_reused()
+  driver core: Replace dev->offline + ->offline_disabled with accessors
+
+ arch/arc/mm/dma.c                             |   4 +-
+ arch/arm/mach-highbank/highbank.c             |   2 +-
+ arch/arm/mach-mvebu/coherency.c               |   2 +-
+ arch/arm/mm/dma-mapping-nommu.c               |   4 +-
+ arch/arm/mm/dma-mapping.c                     |  28 ++--
+ arch/arm64/kernel/cpufeature.c                |   2 +-
+ arch/arm64/mm/dma-mapping.c                   |   2 +-
+ arch/mips/mm/dma-noncoherent.c                |   2 +-
+ arch/powerpc/kernel/dma-iommu.c               |   8 +-
+ .../platforms/pseries/hotplug-memory.c        |   4 +-
+ arch/riscv/mm/dma-noncoherent.c               |   2 +-
+ drivers/acpi/scan.c                           |   2 +-
+ drivers/base/core.c                           |  53 +++++---
+ drivers/base/cpu.c                            |   4 +-
+ drivers/base/dd.c                             |  28 ++--
+ drivers/base/memory.c                         |   2 +-
+ drivers/base/pinctrl.c                        |   2 +-
+ drivers/base/platform.c                       |   2 +-
+ drivers/dma/ti/k3-udma-glue.c                 |   6 +-
+ drivers/dma/ti/k3-udma.c                      |   6 +-
+ drivers/iommu/dma-iommu.c                     |   9 +-
+ drivers/iommu/iommu.c                         |   5 +-
+ drivers/net/pcs/pcs-xpcs-plat.c               |   2 +-
+ drivers/of/device.c                           |   6 +-
+ drivers/pci/of.c                              |   2 +-
+ drivers/pci/pwrctrl/core.c                    |   2 +-
+ drivers/regulator/bq257xx-regulator.c         |   2 +-
+ drivers/regulator/rk808-regulator.c           |   2 +-
+ drivers/tty/serial/serial_base_bus.c          |   2 +-
+ drivers/usb/gadget/udc/aspeed-vhub/dev.c      |   2 +-
+ include/linux/device.h                        | 120 ++++++++++++------
+ include/linux/dma-map-ops.h                   |   6 +-
+ include/linux/dma-mapping.h                   |   2 +-
+ include/linux/iommu-dma.h                     |   3 +-
+ kernel/cpu.c                                  |   4 +-
+ kernel/dma/mapping.c                          |  12 +-
+ mm/hmm.c                                      |   2 +-
+ 37 files changed, 206 insertions(+), 142 deletions(-)
+
+-- 
+2.53.0.1213.gd9a14994de-goog
 
