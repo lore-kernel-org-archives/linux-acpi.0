@@ -1,289 +1,124 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA10B2E54D3
-	for <linux-acpi@vger.kernel.org>; Sat,  4 Apr 2026 18:25:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C69A13358BE
+	for <linux-acpi@vger.kernel.org>; Sat,  4 Apr 2026 18:41:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775327156; cv=none; b=rlglZrtsmQJFy8k1R9NAe/iaSvNKsRdLA+YgmeBH7Dgw2Yy7/yNpdJkrELTlAwbsfRbQI/eN/biRiOPZ0mfwnO0Q2OE7WGu2ksPX7VrlrRz9sG/fCUio1RKjRZzMR0auicizaC9n3oK4eJDygkc5m3SbJlmDX2hLK/sIjtQdLb8=
+	t=1775328116; cv=none; b=gf7QO/GgH4/XTFEeh9JbFta2cUS72muzbDZDEePBxI0ltO63Q7us01mJChmrvCIG7N5TKwvBOoVTK7SbJMYRims4QWlXLUl7LWIaGPsTgjcn9DL0gPNkqvT67AvdMWWzhRcikZ2bZ8kN5oJ8auF6LK7xmyaN6MmwB8ViauuMXtQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775327156; c=relaxed/simple;
-	bh=HmVC8HG22vzlAHr9b9ZKLVJ7JJhmrXnAN67usYKy5N8=;
+	s=arc-20240116; t=1775328116; c=relaxed/simple;
+	bh=MWfcc451QSIHGrpVZc9PzHDEtY0/laVmfZUl5PaawKQ=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=TMbX78TLoczr1nH8VC8fcor99Hc23FO9tUqD4s3RddRMT2lPL4rSi7+zrdbtIQgc5a/GeidLBLL0S4rXILwijH8N7+SUe5e6H39Kp1W6BMh4UM8HfAHBO44xrDhOaLThbnftitfZDDb+Ak8EXyyncljJMWPrWRny+FPVfib2jjw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dasMaZUC; arc=none smtp.client-ip=10.30.226.201
+	 To:Cc:Content-Type; b=mdDFbYo7NiFNgftJbp0emkWOOOTMqIRhiTyMzaF7/wvn+DGS+l9bHgeUj85xO+/KnXgScv07cbKkJ8XRcNZ2yflgEbwJIuq186VjcHKxDZleb7C0sf6hYnBT+hpkrptNzTszBfFAwAZDZqaD6uoYjtR6MCZIDYwU4rAmmjh51gs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PPOVPYgx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dasMaZUC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D342C2BCB5
-	for <linux-acpi@vger.kernel.org>; Sat,  4 Apr 2026 18:25:56 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PPOVPYgx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68994C4AF09
+	for <linux-acpi@vger.kernel.org>; Sat,  4 Apr 2026 18:41:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1775327156;
-	bh=HmVC8HG22vzlAHr9b9ZKLVJ7JJhmrXnAN67usYKy5N8=;
+	s=k20201202; t=1775328116;
+	bh=MWfcc451QSIHGrpVZc9PzHDEtY0/laVmfZUl5PaawKQ=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=dasMaZUC5EkFDx2TKERqqeWNVyhb4oojm4rJGiJ9uG9TX2ZtFQD2I1hVwM+pTTTrd
-	 9tPcYq+2jwV0Qivdi9fSOJW6BeFkNIwz+X1QGStle9Jw6Zevcu64IRjVvjOAPHPivn
-	 JRjZdFuXb/Ihk1ZohNIu78gmuMMCX517ZR6hfp2EDq1NqgdHS0tGD3fwuQ774gCwjq
-	 rlIUxqgfdfTT/Wrs3C5Dja7FvXcNICUQ0YDPqsLK/ZdVwZtVbciurRWtyLwaOllJkt
-	 Q06x1xz4ukp6eVZWok518Fas4+/dsxqW8QOr+84yLM3ODguMdz/+qWwXjfrl8VuMsJ
-	 +GC4opymnJkPA==
-Received: by mail-oi1-f182.google.com with SMTP id 5614622812f47-4670464029eso1619516b6e.2
-        for <linux-acpi@vger.kernel.org>; Sat, 04 Apr 2026 11:25:56 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCV+8x/Zu3Ap6i2tYxRbrC2Kc2fNAmGwthxir1yc1+0PtC7Gj2Vljz21MSeeZXRKTLkshRph0vCw+hYO@vger.kernel.org
-X-Gm-Message-State: AOJu0YxCc/wm8Wtt5Bi3MKvS7mRrXF03DCj/v4TD+fKY+huZps8aoA63
-	2zA0IfF5h8I9KcFfT3jHPDGko8y0Pf0CxjSbL50rwCcXipNUrU3WlgcHB4Nh/MO+1HW958bim45
-	BUcgal9Fe4Qcl4lwsidZMH3gIRVWVpAU=
-X-Received: by 2002:a05:6870:21d3:b0:417:3421:13ff with SMTP id
- 586e51a60fabf-4230ff4f728mr3820411fac.29.1775327155442; Sat, 04 Apr 2026
- 11:25:55 -0700 (PDT)
+	b=PPOVPYgxRucHr3ekDuF2Tg5a3A9GBU/5wAAYJu5Hhl9skmXZlIUK2s9ZMrYHOw85g
+	 f8tyLOLGJCLSPRBMaYHKfrGkMbl4+4edSB4gNSc9ca6qbMOBuhyHxiojHy1iMcHFF4
+	 oBwY9xzqo37RHqo0kY+7JfPDQ6qWc7gmbnyeu5evUDoEP2b0RZ7T7QIxdE7BZBHSOG
+	 pl6j1ETWv4KENQIzb18iXTnidvsAPMoSejPYMpDSeF47o+LjNh44vtH3tCns4gzAzT
+	 7n5GHOx+46yhPo/JzYGkoU2S0rdJkBZ8xdNPX8gsliJDFdEvoyyyGH74ti2ioutXqG
+	 TnGKWJIrIdoSA==
+Received: by mail-oa1-f51.google.com with SMTP id 586e51a60fabf-415c8a4d2e6so1151923fac.0
+        for <linux-acpi@vger.kernel.org>; Sat, 04 Apr 2026 11:41:56 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCVIFrNWGZWuEeYl7bGqDZX518TkdSwj08YaBSjSy8CGUWOzxNE6EWvUYndvLC0p1gaPgjYM9vteMnvc@vger.kernel.org
+X-Gm-Message-State: AOJu0YwATc3RawTOj7cr/JaXT0BPtDRw4D4uyJgTcCNY/jK3fPztxnGn
+	Dg6I1cjQFdkm2emj3llTAlBojS4RKJIEF+QrdQM2rDslOSgSFm0uaoEiwHmh3qyyv3/2fcErjn2
+	y0yyI/GLP9HguB6wdu1Su8n1HoUme7JY=
+X-Received: by 2002:a05:6870:c189:b0:417:9244:d168 with SMTP id
+ 586e51a60fabf-423100197c9mr3889251fac.41.1775328115404; Sat, 04 Apr 2026
+ 11:41:55 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260402-baytrail-real-swnode-v2-0-6f5054a4cc07@oss.qualcomm.com> <20260402-baytrail-real-swnode-v2-4-6f5054a4cc07@oss.qualcomm.com>
-In-Reply-To: <20260402-baytrail-real-swnode-v2-4-6f5054a4cc07@oss.qualcomm.com>
+References: <20260403085343.866440-1-lihuisong@huawei.com>
+In-Reply-To: <20260403085343.866440-1-lihuisong@huawei.com>
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Sat, 4 Apr 2026 20:25:43 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0iwfZPcFtM7Jv29bXFmh3zN0OaG9UfNY5iC5RpzRzp07w@mail.gmail.com>
-X-Gm-Features: AQROBzD6YmXrnAzgz9aL6fqWq1iOyolotQRnTtrF6brMuNKBBNGJLMNRaP4UCiA
-Message-ID: <CAJZ5v0iwfZPcFtM7Jv29bXFmh3zN0OaG9UfNY5iC5RpzRzp07w@mail.gmail.com>
-Subject: Re: [PATCH v2 4/4] platform/x86: x86-android-tablets: enable fwnode
- matching of GPIO chips
-To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Daniel Scally <djrscally@gmail.com>, 
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
-	Sakari Ailus <sakari.ailus@linux.intel.com>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
-	Danilo Krummrich <dakr@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, 
-	Andy Shevchenko <andy@kernel.org>, Linus Walleij <linusw@kernel.org>, Hans de Goede <hansg@kernel.org>, 
-	=?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, 
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
-	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org, 
-	linux-gpio@vger.kernel.org, platform-driver-x86@vger.kernel.org, 
-	brgl@kernel.org
+Date: Sat, 4 Apr 2026 20:41:44 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0j=dxags+X_dpqdQ_u3gY0QAtFiGbza+2VraoWip1x3Rw@mail.gmail.com>
+X-Gm-Features: AQROBzBZnje0LwVU0QiXgJJP_0hIuRPhHXG2uWxvWTFsOy6WrYJoGn0uZBLhi-E
+Message-ID: <CAJZ5v0j=dxags+X_dpqdQ_u3gY0QAtFiGbza+2VraoWip1x3Rw@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: processor: idle: Reset power_setup_done flag on
+ initialization failure
+To: Huisong Li <lihuisong@huawei.com>
+Cc: rafael@kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linuxarm@huawei.com, 
+	jonathan.cameron@huawei.com, zhanjie9@hisilicon.com, zhenglifeng1@huawei.com, 
+	yubowen8@huawei.com, wangzhi12@huawei.com, zhangpengjie2@huawei.com, 
+	wanghuiqiang@huawei.com
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Apr 2, 2026 at 2:54=E2=80=AFPM Bartosz Golaszewski
-<bartosz.golaszewski@oss.qualcomm.com> wrote:
+On Fri, Apr 3, 2026 at 10:53=E2=80=AFAM Huisong Li <lihuisong@huawei.com> w=
+rote:
 >
-> In order to allow GPIOLIB to match cherryview and baytrail GPIO
-> controllers by their firmware nodes instead of their names, we need to
-> attach the - currently "dangling" - existing software nodes to their
-> target devices dynamically.
+> The 'power_setup_done' flag is a key indicator used across the ACPI
+> processor driver to determine if cpuidle are properly configured and
+> available for a given CPU.
 >
-> We deal with devices described in ACPI so set up a bus notifier waiting
-> for the ADD events. We know the name of the device we're waiting for so
-> match against it and - on match - assign the appropriate software node
-> as the secondary firmware node of the underlying ACPI node. In case the
-> event was emitted earlier than this driver's probe: also make sure the
-> device was not added before.
+> Currently, this flag is set during the early stages of initialization.
+> However, if the subsequent registration of the cpuidle driver in
+> acpi_processor_register_idle_driver() or the per-CPU device registration
+> in acpi_processor_power_init() fails, this flag remains set. This may
+> lead to some issues where other functions in ACPI idle driver use these
+> flags.
 >
-> Scheduling fine-grained devres actions allows for proper teardown and
-> unsetting of the secondary firmware nodes.
+> Fix this by explicitly resetting this flag to 0 in these error paths.
 >
-> Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+> Signed-off-by: Huisong Li <lihuisong@huawei.com>
 > ---
->  drivers/platform/x86/x86-android-tablets/core.c | 127 ++++++++++++++++++=
-+++++-
->  1 file changed, 124 insertions(+), 3 deletions(-)
+>  drivers/acpi/processor_idle.c | 11 +++++++++++
+>  1 file changed, 11 insertions(+)
 >
-> diff --git a/drivers/platform/x86/x86-android-tablets/core.c b/drivers/pl=
-atform/x86/x86-android-tablets/core.c
-> index 021009e9085bec3db9c4daa1f6235600210a6099..9e6e8f272dfe16cda421b5698=
-02045c3d94fc0ab 100644
-> --- a/drivers/platform/x86/x86-android-tablets/core.c
-> +++ b/drivers/platform/x86/x86-android-tablets/core.c
-> @@ -13,10 +13,12 @@
->  #include <linux/acpi.h>
->  #include <linux/device.h>
->  #include <linux/dmi.h>
-> +#include <linux/fwnode.h>
->  #include <linux/gpio/consumer.h>
->  #include <linux/gpio/machine.h>
->  #include <linux/irq.h>
->  #include <linux/module.h>
-> +#include <linux/notifier.h>
->  #include <linux/pci.h>
->  #include <linux/platform_device.h>
->  #include <linux/serdev.h>
-> @@ -360,6 +362,124 @@ static const struct software_node *cherryview_gpioc=
-hip_node_group[] =3D {
->         NULL
->  };
+> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.=
+c
+> index 2adaee0f32ed..c1cddb4a5887 100644
+> --- a/drivers/acpi/processor_idle.c
+> +++ b/drivers/acpi/processor_idle.c
+> @@ -1378,6 +1378,7 @@ void acpi_processor_register_idle_driver(void)
 >
-> +struct auto_secondary_data {
-> +       struct notifier_block nb;
-> +       struct device *parent;
-> +};
-> +
-> +static void auto_secondary_unset(void *data)
-> +{
-> +       struct fwnode_handle *fwnode =3D data;
-> +
-> +       fwnode->secondary =3D NULL;
-> +}
-> +
-> +static int acpi_set_secondary_fwnode(struct device *parent, struct devic=
-e *dev,
-> +                                    const struct software_node *const sw=
-node)
-> +{
-> +       struct acpi_device *device =3D to_acpi_device(dev);
-> +       struct fwnode_handle *fwnode;
-> +       int ret;
-> +
-> +       fwnode =3D software_node_fwnode(swnode);
-> +       if (WARN_ON(!fwnode))
-> +               return -ENOENT;
-> +
-> +       fwnode->secondary =3D ERR_PTR(-ENODEV);
-> +       device->fwnode.secondary =3D fwnode;
-> +
-> +       ret =3D devm_add_action_or_reset(parent, auto_secondary_unset, &d=
-evice->fwnode);
-> +       if (ret)
-> +               dev_err(parent, "Failed to schedule the unset action for =
-secondary fwnode\n");
-> +
-> +       return ret;
-> +}
-> +
-> +static int acpi_auto_secondary_notifier(struct notifier_block *nb,
-> +                                       unsigned long action, void *data)
-> +{
-> +       struct auto_secondary_data *auto_sec =3D container_of(nb, struct =
-auto_secondary_data, nb);
-> +       const struct software_node *const *swnode;
-> +       struct device *dev =3D data;
-> +       int ret;
-> +
-> +       switch (action) {
-> +       case BUS_NOTIFY_ADD_DEVICE:
-> +               for (swnode =3D gpiochip_node_group; *swnode; swnode++) {
-> +                       if (strcmp((*swnode)->name, dev_name(dev)) =3D=3D=
- 0) {
-> +                               ret =3D acpi_set_secondary_fwnode(auto_se=
-c->parent, dev, *swnode);
-> +                               return ret ? NOTIFY_BAD : NOTIFY_OK;
-> +                       }
-> +               }
-> +               break;
-> +       default:
-> +               break;
-> +       }
-> +
-> +       return NOTIFY_DONE;
-> +}
-> +
-> +static void auto_secondary_unregister_node_group(void *data)
-> +{
-> +       const struct software_node **nodes =3D data;
-> +
-> +       software_node_unregister_node_group(nodes);
-> +}
-> +
-> +static void auto_secondary_unregister_notifier(void *data)
-> +{
-> +       struct notifier_block *nb =3D data;
-> +
-> +       bus_unregister_notifier(&acpi_bus_type, nb);
-> +}
-
-Instead of exporting acpi_bus_type in the previous patch and defining
-this function here, can you define
-
-void acpi_bus_unregister_notifier(void *data)
-{
-       struct notifier_block *nb =3D data;
-
-       bus_unregister_notifier(&acpi_bus_type, nb);
-}
-
-in the previous patch and use it here?
-
-> +
-> +static int auto_secondary_fwnode_init(struct device *parent)
-> +{
-> +       const struct software_node *const *swnode;
-> +       struct auto_secondary_data *data;
-> +       int ret;
-> +
-> +       ret =3D software_node_register_node_group(gpiochip_node_group);
-> +       if (ret)
-> +               return ret;
-> +
-> +       ret =3D devm_add_action_or_reset(parent,
-> +                                      auto_secondary_unregister_node_gro=
-up,
-> +                                      gpiochip_node_group);
-> +       if (ret)
-> +               return ret;
-> +
-> +       data =3D devm_kzalloc(parent, sizeof(*data), GFP_KERNEL);
-> +       if (!data)
-> +               return -ENOMEM;
-> +
-> +       data->nb.notifier_call =3D acpi_auto_secondary_notifier;
-> +       data->parent =3D parent;
-> +
-> +       ret =3D bus_register_notifier(&acpi_bus_type, &data->nb);
-> +       if (ret)
-> +               return ret;
-> +
-> +       ret =3D devm_add_action_or_reset(parent,
-> +                                      auto_secondary_unregister_notifier=
-,
-> +                                      &data->nb);
-> +       if (ret)
-> +               return ret;
-> +
-> +       /* Device may have been already added. */
-> +       for (swnode =3D gpiochip_node_group; *swnode; swnode++) {
-> +               struct device *dev __free(put_device) =3D
-> +                       bus_find_device_by_name(&acpi_bus_type, NULL, (*s=
-wnode)->name);
-> +               if (dev) {
-> +                       ret =3D acpi_set_secondary_fwnode(parent, dev, *s=
-wnode);
-> +                       if (ret)
-> +                               return ret;
-> +               }
-> +       }
-> +
-> +       return 0;
-> +}
-> +
->  static void x86_android_tablet_remove(struct platform_device *pdev)
+>         ret =3D cpuidle_register_driver(&acpi_idle_driver);
+>         if (ret) {
+> +               pr->flags.power_setup_done =3D 0;
+>                 pr_debug("register %s failed.\n", acpi_idle_driver.name);
+>                 return;
+>         }
+> @@ -1386,7 +1387,16 @@ void acpi_processor_register_idle_driver(void)
+>
+>  void acpi_processor_unregister_idle_driver(void)
 >  {
->         int i;
-> @@ -391,7 +511,6 @@ static void x86_android_tablet_remove(struct platform=
-_device *pdev)
->
->         software_node_unregister_node_group(gpio_button_swnodes);
->         software_node_unregister_node_group(swnode_group);
-> -       software_node_unregister_node_group(gpiochip_node_group);
+> +       struct acpi_processor *pr;
+> +       int cpu;
+> +
+>         cpuidle_unregister_driver(&acpi_idle_driver);
+> +       for_each_possible_cpu(cpu) {
+> +               pr =3D per_cpu(processors, cpu);
+> +               if (!pr)
+> +                       continue;
+> +               pr->flags.power_setup_done =3D 0;
+> +       }
 >  }
 >
->  static __init int x86_android_tablet_probe(struct platform_device *pdev)
-> @@ -427,9 +546,11 @@ static __init int x86_android_tablet_probe(struct pl=
-atform_device *pdev)
->                 break;
+>  void acpi_processor_power_init(struct acpi_processor *pr)
+> @@ -1423,6 +1433,7 @@ void acpi_processor_power_init(struct acpi_processo=
+r *pr)
+>          */
+>         if (cpuidle_register_device(dev)) {
+>                 per_cpu(acpi_cpuidle_device, pr->id) =3D NULL;
+> +               pr->flags.power_setup_done =3D 0;
+>                 kfree(dev);
 >         }
->
-> -       ret =3D software_node_register_node_group(gpiochip_node_group);
-> -       if (ret)
-> +       ret =3D auto_secondary_fwnode_init(&pdev->dev);
-> +       if (ret) {
-> +               x86_android_tablet_remove(pdev);
->                 return ret;
-> +       }
->
->         ret =3D software_node_register_node_group(dev_info->swnode_group)=
-;
->         if (ret) {
->
+>  }
 > --
-> 2.47.3
->
+
+Applied as 7.1 material, thanks!
