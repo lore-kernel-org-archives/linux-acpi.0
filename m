@@ -1,130 +1,292 @@
-Received: from mail-ed1-f41.google.com (mail-ed1-f41.google.com [209.85.208.41])
+Received: from mail-dy1-f176.google.com (mail-dy1-f176.google.com [74.125.82.176])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7828E332610
-	for <linux-acpi@vger.kernel.org>; Mon,  6 Apr 2026 19:32:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.41
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775503922; cv=pass; b=LwDQroWgTAb2PR8cPpg2M6V2UYy8qPA0/fAnJlcgsJRffGfA1dqN3mjjDlxUGGpYiLtpdgf6R87kcYooDwl8Ac4Ktn3lroNjqwnpVwGcJQuwE3gJoyeCdPff1Y3a5QJInZd/fLkJaeY+ccJTjkvECYP33dOVbv55A1NNi99L0I4=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775503922; c=relaxed/simple;
-	bh=uqMLT0sthcKy6wznYkh7Sc1SM3oGMGeO98F9LvQVTXw=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=NOvThVpup2mwtEuVoQxA3JSlSMk3ygV3FOe8omfFfxYfv764XaAhy0YHMA5bHqSl0L0UUHCTlNTC9hdLp1dixpHpJZisBgHTYPahvrZQndCFi8skQGrWZhG9AapxrpneQhXn7QODgV9tJFejlDFMKVvHLWYtgj/Z5WT1rdVUsH4=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=dA3kyBNH; arc=pass smtp.client-ip=209.85.208.41
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 566DA38F248
+	for <linux-acpi@vger.kernel.org>; Mon,  6 Apr 2026 23:25:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.176
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1775517927; cv=none; b=SSXguZgXv8B1iuvYLT9FfQ5YCvq1gIrBg+2bbOqTFySKRERumKK+CS0hQZm4FJX+095zNjzAhb5NjvI4kUbaxGu3bx6+tXsQw3UQ72DAJ6TgFnYrsMkkDAbTr5JsTNAhGbbXWyEuXV8n5kL3g5uEkKWNfV1Lnm+g/xfpAGyQRzw=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1775517927; c=relaxed/simple;
+	bh=a3r3KrEuJLHBWtXp3+zPQs9X4rkDOMQXRKluXAK5krI=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=WMl7D1PP9UfdO+IpxJEr/AMriv7Y82LLWln6md5IlyI9Isjj/iRPi5fiIdbKZduRSCJloox4mhQg2TeIn+/Yam+I91EQ3+inmW0MsiHX2HKCBhaHABZwbDpl9F8clHBqieRnyGxA3MecukG8UPg9vHfwkYkE+vIW7w58PuGtw4Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=C7XkuzFi; arc=none smtp.client-ip=74.125.82.176
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="dA3kyBNH"
-Received: by mail-ed1-f41.google.com with SMTP id 4fb4d7f45d1cf-66ba9898ae8so7826470a12.1
-        for <linux-acpi@vger.kernel.org>; Mon, 06 Apr 2026 12:32:00 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1775503919; cv=none;
-        d=google.com; s=arc-20240605;
-        b=TMrSafFhFxphxnVSDtQ4Q2CyY+HDq8TJ80v6YQ4/ITlPQ+P2/RrodscwIF1XqgBXFP
-         fIP9FX/Khy/cuQbz4RAQ7NrdX+oGuEDSl7XTP8N3sWGutXBFr9E6bTnb7HsX6zri0gbp
-         ujMHVy4kIU+N+9rdFhhhfCRqRGx3WLhsO3h8oHdKzBWVG82ubvjJ9Ga9HBMzioe6Xq0Q
-         JrX1sEVk3wiF0jX8SPJzE8BQcr386MhZwEFwuip/aCv/DkBicpeUNxUhYTJDJkuWSdEX
-         RBzyBd2nY5wIzCTDHoE3CkzNdVPUwhQc8R5ZH8LwU/2jIKbSyB1W4pOVHtIo5HEPUgHV
-         4IpA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=uqMLT0sthcKy6wznYkh7Sc1SM3oGMGeO98F9LvQVTXw=;
-        fh=4oDLsJsrx0p2jI5Cu/WGwJMOjXeC0J6WYZiOD8JODgM=;
-        b=HeQ/VL01UjY39sVUcFstiACPBiJfpx28lr7EBiiOfPbRLTGLn9hNSuwVJZ4uq1Q1+f
-         XCGAS4h8zlYjCR8qkVEN6jX4WZuX9U521E3d9ZRCiXNDqBphq03bcJL085n94Nf5grUm
-         9x5wgRXj7R0bHxFqXSemQA7lB29MofGjyX+oWSbtJs17sbzGdyRg/zgziFsgLkTEOyxh
-         iJrDznEibY5VmN/leS35a0j8mUhkwT3J6onF6BPeRWsBBh3Sa/3ArzNqIRyHHhJ0y4Dw
-         PrA/XQvLtFq70KwenkKMvIVtwDRNYEY8l6BPBdXYmvy/XxYYb9ftW4lPfqeaEtzSW1B4
-         K7kw==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="C7XkuzFi"
+Received: by mail-dy1-f176.google.com with SMTP id 5a478bee46e88-2ce102afb0aso2630014eec.1
+        for <linux-acpi@vger.kernel.org>; Mon, 06 Apr 2026 16:25:24 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1775503919; x=1776108719; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=uqMLT0sthcKy6wznYkh7Sc1SM3oGMGeO98F9LvQVTXw=;
-        b=dA3kyBNHclM4Ez/APobjWKyaK3W5bJL4bLOsg4CRJ76I7AcKq38GlG29bWbM/U5+PH
-         APWM+YSeNP6h0WNdexoK9v5az1CaQ482iGJy4iHliQQAqHo//7VefoFUyB1Bqce124N/
-         Na14l5xU7kBReh1xhamoAkNqBq4H6sg9QhNrSb+84Q6FbE/lhgAD60Jt2JVr4g5jDtNU
-         bx6hL8fJmfRYOi3kSIWOL9d8MgO4IuDftSvF4gUCXobV8XnWZVpwLFmltr4WpF4C1qzd
-         ei5oXE8Cq5GKQSK08C5sz54J6fEZlD5Z3VM/zp+93WbQp0RkcMItGmPUkWnK29NZ2dhP
-         xUng==
+        d=chromium.org; s=google; t=1775517923; x=1776122723; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=e+LsTmUaKDUP6TtbtpmsofePBR8TWMvjJHv9+/xi4nY=;
+        b=C7XkuzFi8BgckAdjqH1TaaQYw3Cz/FCHv1Ztl4wqO9HGHtrp5tPLxmMJ2RBUDuwyb6
+         1nId1gnR0WyWEW9NAzON05hgbpeKXxc3LDDohEOOEHxXogtppLAXUM3IX8gPs03e5Hf6
+         gnQNX8eMEFVqOJ9LCFo4Mao5L28IExThf90gk=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1775503919; x=1776108719;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=uqMLT0sthcKy6wznYkh7Sc1SM3oGMGeO98F9LvQVTXw=;
-        b=bk7iZWdXczf3Kr1UCpQsaVAmThqjFcqRCwkp4U/83nwH0hn03+hOz+cp6IGlG0jlaS
-         bZwJseC6IfcRkleRT85NPyaahZ8CBPQ9r/mzzbJ28U176Eq+KTIBhye4gtk6ya4TjpAs
-         dLaxbKxTByAS9Wi0E+f9t1u3l/yhpKP8SHK4TNisx1wRcRzB9pGO230Lc10b8ESMUBL1
-         1iWYx7jnZOePEj52wjvpJo8WvUgg33Wcb+r27exHrhK7LapYqFMsO1szSIjBkZRIJlEs
-         xTK/Vz3MlhgpkU9WRNMhqzIrY5KWtWrGtc4jPN1nIVr3WP15Af3sCn/AscUDvUl8rHO8
-         csCw==
-X-Forwarded-Encrypted: i=1; AJvYcCXLBHS+axw4TimKDeKNiHU8IF0hUaXauDNrJsFB3Y0Lh2l5VXBvhCVk0XY1LgprU9HvGumaVq3sgiet@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw/T5FqiQCqNQI6vYeJm07i7H3+mR2+nOTWELHIatwa4qKUQZmy
-	bM4SU4I2J8AOtE/twQ6Gdd0Qc9N0pc2bcKcL7WabAEr8obPzfAi7QwPG7xj4KESJ7ooIIlXkLBr
-	++OvQTUYKMCvI27f/osANwNp2U+MsQpA=
-X-Gm-Gg: AeBDieurlWyKyMsmlxFSyBInWJLbL2yoqTHovzKow4NCK1LSPBI0z4TTQqryLo6xP6S
-	mV5NfqryBv8Pvl60FtwMHPrtu+u2cWU8MExG80zmpss+DdHoKZ1u7+4iYqNZp4C+IRzA2+WPkHD
-	UZsE1MCs7Dgs97WicnP+HtZNTVbUW7487HiL24btqwi/WeOu2o5tsMJTuG8yg1dOafSniKsg3aF
-	+xonKhdj+EZs5QINP0Ucbo3FIS9IbDYuK+duqx3i7san1yi1CUAdYX7CVekuVvDzwAAJ0f9UwXB
-	6ih5rcPjsE2tFA1RNjVi1dusJoemTpE48t/UjE41oG7JLyliv2Hp46YflhcgQxxcyVp2AiIuQAw
-	mFeA/Ri4=
-X-Received: by 2002:a17:907:9407:b0:b90:b959:4c72 with SMTP id
- a640c23a62f3a-b9c65596656mr612539466b.6.1775503918392; Mon, 06 Apr 2026
- 12:31:58 -0700 (PDT)
+        d=1e100.net; s=20251104; t=1775517923; x=1776122723;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=e+LsTmUaKDUP6TtbtpmsofePBR8TWMvjJHv9+/xi4nY=;
+        b=F4VttyEUI4xMbvo3F7zjiPxdyp4ok9RqOU5gLF1iGkCcYWLsOPoy6LBU+lp5fuO8dk
+         1lk/GaT384DR4Fk+UZw7dXlX54VWbmYH3FnPk+kU1BF2TyVH8CUnn24JBZpcv5JLNi1Q
+         8Up7lP0VpBjDdortT3FM7tHOZDHZxrDJXiQUH9F0mAIZquWKSKwrilUafJJpdwlIOvX8
+         4YRLt9vckWYtUfByKPj0SQVPc6XicDMg5/7m0JzfqBEW1IxvGzlSF3FP36WN0I4Fqfzo
+         +JevXG7y4Jq+2lB3LiZ3c8yBpF/KhU4VIyCZN0iU+5UrLt4v8WC+VYjR28+AjAKY4NJJ
+         XRqA==
+X-Forwarded-Encrypted: i=1; AJvYcCXGutosxyGuxS5jJL07MGCye5MrCYZOxN4fXqKk7Rnym73O0Ii6VjxK53WSBHnEwzSWEOgXOTxeB4Xw@vger.kernel.org
+X-Gm-Message-State: AOJu0YzsZ8GRujPG2Z/5TFogTqj0VAo5TNo7fCYTRNS1gJA2IiYbwam8
+	7l2RfH9VLDZcZZEHd6qFdwrPHZylppgWrIAufObKtEFTIDGRXAKBKlbIiXBL8mwHNw==
+X-Gm-Gg: AeBDieuRvA0GLkPgfcMbMSDmIntp89kuHKQzwyWcecStz4yVF5Z5zPSSAYrJaB4Ephv
+	Tn9+CJdRT+0sW26bKR9aVvnn8pFCqSxt/qp/O1Ig4sQTwG5jfEhm3whP3d86K1H7kt7LhPK81mL
+	6Pv2IedFzsGzQvp12rty2W+nhR2D7wsNiIUOELvZBhOSDQvlZkj3AUUv4bX2VuKFIpT8BzzSsvt
+	c7A7ixGKKDN1iMXakU9OALmPb4UZjlPQMA43RYsRdZxEH//hU0nT+O1kZEPCmCCvYIfi98URbRo
+	q7hrRVE+hmkA9h1fmfjovgk2Om4eR0dn4Ke5o8roG48Z4v1XwqH9cwxt+a36NIAO+qRQBlW1q07
+	45bgUo1iibJ26oClVN3fCUToALrs/6IWNBYMezf9a2xmiEn2bsxmFd/FtfWzLUrDpSHCdCMxEet
+	9uev4r2C8Sol+1i9gPbVosiaNJLJmMMp/8BNvmWtc1RQdVh60CeB9sGvhTP8ziECundgHRCzqrw
+	JDp1Y3cTKsydTd4PD9F
+X-Received: by 2002:a05:7300:818c:b0:2c7:3a7:c7b1 with SMTP id 5a478bee46e88-2cbf9503916mr7679632eec.1.1775517923360;
+        Mon, 06 Apr 2026 16:25:23 -0700 (PDT)
+Received: from dianders.sjc.corp.google.com ([2a00:79e0:2e7c:8:c071:3b78:5a5:824a])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2ca760b0518sm14730975eec.0.2026.04.06.16.25.18
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 06 Apr 2026 16:25:22 -0700 (PDT)
+From: Douglas Anderson <dianders@chromium.org>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J . Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Alan Stern <stern@rowland.harvard.edu>
+Cc: Alexey Kardashevskiy <aik@ozlabs.ru>,
+	Johan Hovold <johan@kernel.org>,
+	Eric Dumazet <edumazet@google.com>,
+	Leon Romanovsky <leon@kernel.org>,
+	Christoph Hellwig <hch@lst.de>,
+	Robin Murphy <robin.murphy@arm.com>,
+	maz@kernel.org,
+	Alexander Lobakin <aleksander.lobakin@intel.com>,
+	Saravana Kannan <saravanak@kernel.org>,
+	Douglas Anderson <dianders@chromium.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Frank.Li@kernel.org,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	alex@ghiti.fr,
+	alexander.stein@ew.tq-group.com,
+	andre.przywara@arm.com,
+	andrew@codeconstruct.com.au,
+	andrew@lunn.ch,
+	andriy.shevchenko@linux.intel.com,
+	aou@eecs.berkeley.edu,
+	ardb@kernel.org,
+	astewart@tektelic.com,
+	bhelgaas@google.com,
+	brgl@kernel.org,
+	broonie@kernel.org,
+	catalin.marinas@arm.com,
+	chleroy@kernel.org,
+	davem@davemloft.net,
+	david@kernel.org,
+	devicetree@vger.kernel.org,
+	dmaengine@vger.kernel.org,
+	driver-core@lists.linux.dev,
+	gbatra@linux.ibm.com,
+	gregory.clement@bootlin.com,
+	hkallweit1@gmail.com,
+	iommu@lists.linux.dev,
+	jirislaby@kernel.org,
+	joel@jms.id.au,
+	joro@8bytes.org,
+	kees@kernel.org,
+	kevin.brodsky@arm.com,
+	kuba@kernel.org,
+	lenb@kernel.org,
+	lgirdwood@gmail.com,
+	linux-acpi@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-aspeed@lists.ozlabs.org,
+	linux-cxl@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-mips@vger.kernel.org,
+	linux-mm@kvack.org,
+	linux-pci@vger.kernel.org,
+	linux-riscv@lists.infradead.org,
+	linux-serial@vger.kernel.org,
+	linux-snps-arc@lists.infradead.org,
+	linux-usb@vger.kernel.org,
+	linux@armlinux.org.uk,
+	linuxppc-dev@lists.ozlabs.org,
+	m.szyprowski@samsung.com,
+	maddy@linux.ibm.com,
+	mani@kernel.org,
+	miko.lenczewski@arm.com,
+	mpe@ellerman.id.au,
+	netdev@vger.kernel.org,
+	npiggin@gmail.com,
+	osalvador@suse.de,
+	oupton@kernel.org,
+	pabeni@redhat.com,
+	palmer@dabbelt.com,
+	peter.ujfalusi@gmail.com,
+	peterz@infradead.org,
+	pjw@kernel.org,
+	robh@kernel.org,
+	sebastian.hesselbarth@gmail.com,
+	tglx@kernel.org,
+	tsbogend@alpha.franken.de,
+	vgupta@kernel.org,
+	vkoul@kernel.org,
+	will@kernel.org,
+	willy@infradead.org,
+	yangyicong@hisilicon.com,
+	yeoreum.yun@arm.com
+Subject: [PATCH v5 0/9] driver core: Fix some race conditions
+Date: Mon,  6 Apr 2026 16:22:53 -0700
+Message-ID: <20260406232444.3117516-1-dianders@chromium.org>
+X-Mailer: git-send-email 2.53.0.1213.gd9a14994de-goog
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260403-swnode-unreg-retcode-v3-0-7886092b28b4@oss.qualcomm.com> <20260403-swnode-unreg-retcode-v3-1-7886092b28b4@oss.qualcomm.com>
-In-Reply-To: <20260403-swnode-unreg-retcode-v3-1-7886092b28b4@oss.qualcomm.com>
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Date: Mon, 6 Apr 2026 22:31:22 +0300
-X-Gm-Features: AQROBzDF6KYTnuyhLB-pMUEmLRfSC888lHdfiDN5w1084rUmzr9JPBFEahloXWo
-Message-ID: <CAHp75Vd7cs8tF1vRVFNmXsO0X-cgTJ_Ua22+KigdsN8Kpf-Tyw@mail.gmail.com>
-Subject: Re: [PATCH v3 1/2] software node: return -ENOTCONN when referenced
- swnode is not registered yet
-To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Daniel Scally <djrscally@gmail.com>, 
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
-	Sakari Ailus <sakari.ailus@linux.intel.com>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
-	Danilo Krummrich <dakr@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, 
-	Andy Shevchenko <andy@kernel.org>, Linus Walleij <linusw@kernel.org>, Hans de Goede <hansg@kernel.org>, 
-	=?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, 
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
-	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org, 
-	linux-gpio@vger.kernel.org, platform-driver-x86@vger.kernel.org, 
-	brgl@kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Fri, Apr 3, 2026 at 4:52=E2=80=AFPM Bartosz Golaszewski
-<bartosz.golaszewski@oss.qualcomm.com> wrote:
->
-> It's possible that at the time of resolving a reference to a remote
-> software node, the node we know exists is not yet registered as a full
-> firmware node. We currently return -ENOENT in this case but the same
-> error code is also returned in some other cases, like the reference
-> property with given name not existing in the property list of the local
-> software node.
->
-> It makes sense to let users know that we're dealing with an unregistered
-> software node so that they can defer probe - the situation is somewhat
-> similar to there existing a firmware node to which no device is bound
-> yet - which is valid grounds for probe deferral. To that end: use
-> -ENOTCONN to indicate the software node is "not connected".
+The main goal of this series is to fix the observed bug talked about
+in the first patch ("driver core: Don't let a device probe until it's
+ready"). That patch fixes a problem that has been observed in the real
+world and could land even if the rest of the patches are found
+unacceptable or need to be spun.
 
-Despite being mostly for networking purposes this error code also be
-de facto used in other contexts similar to what we have.
-Acked-by: Andy Shevchenko <andy@kernel.org>
+That said, during patch review Danilo correctly pointed out that many
+of the bitfield accesses in "struct device" are unsafe. I added a
+bunch of patches in the series to address each one.
 
---=20
-With Best Regards,
-Andy Shevchenko
+Danilo said he's most worried about "can_match", so I put that one
+first. After that, I tried to transition bitfields to flags in reverse
+order to when the bitfield was added.
+
+Even if transitioning from bitfields to flags isn't truly needed for
+correctness, it seems silly (and wasteful of space in struct device)
+to have some in bitfields and some as flags. Thus I didn't spend time
+for each bitfield showing that it's truly needed for correctness.
+
+Transition was done semi manually. Presumably someone skilled at
+coccinelle could do a better job, but I just used sed in a heavy-
+handed manner and then reviewed/fixed the results, undoing anything my
+script got wrong. My terrible/ugly script was:
+
+var=can_match
+caps="${var^^}"
+for f in $(git grep -l "[>\.]${var}[^1-9_a-zA-Z\[]"); do
+  echo $f
+  sed -i~ -e "s/\([a-zA-Z_0-9\.>()-][a-zA-Z_0-9\.>()-]*\)->${var} = true/set_bit(DEV_FLAG_${caps}, \&\\1->flags)/" "$f"
+  sed -i~ -e "s/\([a-zA-Z_0-9\.>()-][a-zA-Z_0-9\.>()-]*\)\.${var} = true/dev_set_${caps}(\&\\1)/" "$f"
+  sed -i~ -e "s/\([a-zA-Z_0-9\.>()-][a-zA-Z_0-9\.>()-]*\)->${var} = false/clear_bit(DEV_FLAG_${caps}, \&\\1->flags)/" "$f"
+  sed -i~ -e "s/\([a-zA-Z_0-9\.>()-][a-zA-Z_0-9\.>()-]*\)\.${var} = false/dev_clear_${caps}(\&\\1)/" "$f"
+  sed -i~ -e "s/\([a-zA-Z_0-9\.>()-][a-zA-Z_0-9\.>()-]*\)->${var} = \([^;]*\)/assign_bit(DEV_FLAG_${caps}, \&\\1->flags, \\2)/" "$f"
+  sed -i~ -e "s/\([a-zA-Z_0-9\.>()-][a-zA-Z_0-9\.>()-]*\)\.${var} = \([^;]*\)/dev_assign_${caps}(\&\\1, \\2)/" "$f"
+  sed -i~ -e "s/\([a-zA-Z_0-9\.>()-][a-zA-Z_0-9\.>()-]*\)->${var}\([^1-9_a-zA-Z\[]\)/test_bit(DEV_FLAG_${caps}, \&\\1->flags)\\2/" "$f"
+  sed -i~ -e "s/\([a-zA-Z_0-9\.>()-][a-zA-Z_0-9\.>()-]*\)\.${var}\([^1-9_a-zA-Z\[]\)/dev_${caps}(\&\\1)\\2/" "$f"
+done
+
+From v3 to v4, I transitioned to accessor functions with another ugly
+sed script. I had git format the old patches, then transformed them
+with:
+
+for f in *.patch; do
+  echo $f
+  sed -i~ -e "s/test_and_set_bit(DEV_FLAG_\([^,]*\), \&\(.*\)->flags)/dev_test_and_set_\\L\\1(\\2)/" "$f"
+  sed -i~ -e "s/test_and_set_bit(DEV_FLAG_\([^,]*\), \(.*\)\.flags)/dev_test_and_set_\\L\\1(\\2)/" "$f"
+  sed -i~ -e "s/test_bit(DEV_FLAG_\([^,]*\), \&\(.*\)->flags)/dev_\\L\\1(\\2)/" "$f"
+  sed -i~ -e "s/test_bit(DEV_FLAG_\([^,]*\), \(.*\)\.flags)/dev_\\L\\1(\\2)/" "$f"
+  sed -i~ -e "s/set_bit(DEV_FLAG_\([^,]*\), \&\(.*\)->flags)/dev_set_\\L\\1(\\2)/" "$f"
+  sed -i~ -e "s/set_bit(DEV_FLAG_\([^,]*\), \(.*\)\.flags)/dev_set_\\L\\1(\\2)/" "$f"
+  sed -i~ -e "s/clear_bit(DEV_FLAG_\([^,]*\), \&\(.*\)->flags)/dev_clear_\\L\\1(\\2)/" "$f"
+  sed -i~ -e "s/clear_bit(DEV_FLAG_\([^,]*\), \(.*\)\.flags)/dev_clear_\\L\\1(\\2)/" "$f"
+  sed -i~ -e "s/assign_bit(DEV_FLAG_\([^,]*\), \&\(.*\)->flags, \(.*\))/dev_assign_\\L\\1(\\2, \\3)/" "$f"
+  sed -i~ -e "s/assign_bit(DEV_FLAG_\([^,]*\), \(.*\)\.flags, \(.*\))/dev_assign_\\L\\1(\\2, \\3)/" "$f"
+done
+
+...and then did a few manual touchups for spacing.
+
+I only marked the first patch as a "Fix" since it is the only one
+fixing observed problems. Other patches could be considered fixes too
+if folks want.
+
+I tested the first patch in the series backported to kernel 6.6 on the
+Pixel phone that was experiencing the race. I added extra printouts to
+make sure that the problem was hitting / addressed. The rest of the
+patches are tested with allmodconfig with arm32, arm64, ppc, and
+x86. I boot tested on an arm64 Chromebook running mainline.
+
+Changes in v5:
+- ready_to_prove => ready_to_probe typo
+- device_lock() while calling dev_set_ready_to_probe()
+- Add comment before "can_match = true" from Danilo.
+- undef __create_dev_flag_accessors
+
+Changes in v4:
+- Use accessor functions for flags
+
+Changes in v3:
+- Use a new "flags" bitfield
+- Add missing \n in probe error message
+
+Changes in v2:
+- Instead of adjusting the ordering, use "ready_to_probe" flag
+
+Douglas Anderson (9):
+  driver core: Don't let a device probe until it's ready
+  driver core: Replace dev->can_match with dev_can_match()
+  driver core: Replace dev->dma_iommu with dev_dma_iommu()
+  driver core: Replace dev->dma_skip_sync with dev_dma_skip_sync()
+  driver core: Replace dev->dma_ops_bypass with dev_dma_ops_bypass()
+  driver core: Replace dev->state_synced with dev_state_synced()
+  driver core: Replace dev->dma_coherent with dev_dma_coherent()
+  driver core: Replace dev->of_node_reused with dev_of_node_reused()
+  driver core: Replace dev->offline + ->offline_disabled with accessors
+
+ arch/arc/mm/dma.c                             |   4 +-
+ arch/arm/mach-highbank/highbank.c             |   2 +-
+ arch/arm/mach-mvebu/coherency.c               |   2 +-
+ arch/arm/mm/dma-mapping-nommu.c               |   4 +-
+ arch/arm/mm/dma-mapping.c                     |  28 ++--
+ arch/arm64/kernel/cpufeature.c                |   2 +-
+ arch/arm64/mm/dma-mapping.c                   |   2 +-
+ arch/mips/mm/dma-noncoherent.c                |   2 +-
+ arch/powerpc/kernel/dma-iommu.c               |   8 +-
+ .../platforms/pseries/hotplug-memory.c        |   4 +-
+ arch/riscv/mm/dma-noncoherent.c               |   2 +-
+ drivers/acpi/scan.c                           |   2 +-
+ drivers/base/core.c                           |  55 +++++---
+ drivers/base/cpu.c                            |   4 +-
+ drivers/base/dd.c                             |  36 ++++--
+ drivers/base/memory.c                         |   2 +-
+ drivers/base/pinctrl.c                        |   2 +-
+ drivers/base/platform.c                       |   2 +-
+ drivers/dma/ti/k3-udma-glue.c                 |   6 +-
+ drivers/dma/ti/k3-udma.c                      |   6 +-
+ drivers/iommu/dma-iommu.c                     |   9 +-
+ drivers/iommu/iommu.c                         |   5 +-
+ drivers/net/pcs/pcs-xpcs-plat.c               |   2 +-
+ drivers/of/device.c                           |   6 +-
+ drivers/pci/of.c                              |   2 +-
+ drivers/pci/pwrctrl/core.c                    |   2 +-
+ drivers/regulator/bq257xx-regulator.c         |   2 +-
+ drivers/regulator/rk808-regulator.c           |   2 +-
+ drivers/tty/serial/serial_base_bus.c          |   2 +-
+ drivers/usb/gadget/udc/aspeed-vhub/dev.c      |   2 +-
+ include/linux/device.h                        | 122 ++++++++++++------
+ include/linux/dma-map-ops.h                   |   6 +-
+ include/linux/dma-mapping.h                   |   2 +-
+ include/linux/iommu-dma.h                     |   3 +-
+ kernel/cpu.c                                  |   4 +-
+ kernel/dma/mapping.c                          |  12 +-
+ mm/hmm.c                                      |   2 +-
+ 37 files changed, 218 insertions(+), 142 deletions(-)
+
+-- 
+2.53.0.1213.gd9a14994de-goog
+
