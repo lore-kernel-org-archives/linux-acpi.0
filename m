@@ -1,97 +1,89 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B3A6386424
-	for <linux-acpi@vger.kernel.org>; Mon,  6 Apr 2026 14:44:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56DA03845CD
+	for <linux-acpi@vger.kernel.org>; Mon,  6 Apr 2026 14:50:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775486682; cv=none; b=BwJ3cLJfd10FBHtJUXmI8uBK965HVz9dYWMW/wQUlifR9qlgWUD4Khyu9qNVdQJM18GJxpYVk3ySrs1s32r7CAVzWiQVy3omMXgMPI6NSRsay0LaDW0lBPH4H7zrE7B6OmVLk9rzBPszbdyitMxMd96yxeBXwP7rRV57fj2nMMI=
+	t=1775487044; cv=none; b=mY8y7ivtJeLy45aJGSWv1rOoEDPIJDcAjtHmd6feSoMcST36mXxfSQdRRZIUJfzs9OgKeRQtqB0pwpr8/O1IYPe5pFwruGFmz4UYPHfH6n8GPLN9K1oJRtNBqqBoFADKENFcvof21SmfBFVTpE7LFWEQ7ClrA+klE8p3DM/I51w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775486682; c=relaxed/simple;
-	bh=v3Irs1NIPTFYJcSHAF9iC7cgfpGgGTjEhxGID1fhyuk=;
+	s=arc-20240116; t=1775487044; c=relaxed/simple;
+	bh=WrxYgl7XA1ThS6PENxnoEuUSrU4ZRekvAxTu6dGvrvg=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=gUYjczYAj2gEXnDGs+QxWWYR9gRivvQ+nbeki8Yncj4EnCkTAOxLZDoTwKYlfZBqU0MhfBoUqk00mWcVgRJ1GR+oToCk3VaaBELZiyCx601ypbZ6Jt3IlWJT3TMk9CAgV/reDPiOla9JM/5AoesuSP9dZR5WPqdbWvEFeiX6ho8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ODpe9CmW; arc=none smtp.client-ip=10.30.226.201
+	 To:Cc:Content-Type; b=mOHgW0aMNY09otkiR1qqupGW0muq/poWQdnaJq1bczpA0rp23kIkVx5mVnlW1n+f6xLN1/rEVatXai1vYXyLL6/18dm9chdQ/sjHYXbiO4Q1J4TXwI//bMoEO7W2tUJKaDMs7UvF4FMdkDuRIIi72MRqCTpeVQPcVkDbLa+0dWs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=u1FsQEVl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ODpe9CmW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DDA00C2BCAF
-	for <linux-acpi@vger.kernel.org>; Mon,  6 Apr 2026 14:44:41 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="u1FsQEVl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25AB0C2BCB3
+	for <linux-acpi@vger.kernel.org>; Mon,  6 Apr 2026 14:50:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1775486681;
-	bh=v3Irs1NIPTFYJcSHAF9iC7cgfpGgGTjEhxGID1fhyuk=;
+	s=k20201202; t=1775487044;
+	bh=WrxYgl7XA1ThS6PENxnoEuUSrU4ZRekvAxTu6dGvrvg=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=ODpe9CmWtsC7BymXhJfknAaNyASd5DVsMNvOR4od4EJuN7EzvDeR17BXxDJX/4CeN
-	 6wlvlid+XQE95Zqu1eQjKuZyAabXsRe6R4JJqyzMtU2HUSUuSjEzPbwDEhtyLOozhn
-	 M6xTgNn4cpZ+0Amujwtep75qn+r/Mhs9eA9TGtM/4rADyPhM2l/8ZLpE9fUXJ+8s7s
-	 zCvjHiZRBYKtstHKcTVnvciqp97p9ffF6G6CAazlNc/5OoELdHC8YdFkkEEmpHA2H3
-	 83DE/nylfJUHt315OQnJen/tRxjETLKD9FfTMkvvL3/WUs4KaJrsDBalBVYRkViUWs
-	 i5wfaG6J4aHFg==
-Received: by mail-oo1-f46.google.com with SMTP id 006d021491bc7-684571567a8so500191eaf.1
-        for <linux-acpi@vger.kernel.org>; Mon, 06 Apr 2026 07:44:41 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCUPFUHDNBbnC1+quzFAJhldVnshVjT+0494vxpIUDlkYccH76SRsrD/BIVRxMg64S8TkjdK2UJ/1btv@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx6LdbLZ+SzKA8VFJXeK+C3QXnm7rh149DrJTVu4hgTN7+Ehjda
-	zxzS78oTUjZHLwzWVeiL8UBbJ42m/uwDS7iTVSLk7KYXAK0Ei2GIUnBC5RghtjTCgWNr+F4cgCD
-	RLSIlp3TlbTOyAWC4jZbrvazBXN0Eaa0=
-X-Received: by 2002:a05:6820:174e:b0:67e:cc7:ccf5 with SMTP id
- 006d021491bc7-6821e869e70mr6882008eaf.9.1775486681131; Mon, 06 Apr 2026
- 07:44:41 -0700 (PDT)
+	b=u1FsQEVl7Kq9gxyF+zMwpM0Fid8Dtx3datkJQAaeCesUdb/K743VZw3kDfI2xtCTv
+	 JBQY5ebJKddyIw5UA5UCRfpdWS0bGphvGt9XHE1k7ENM3V63gmMD+73GMsr8jlACBw
+	 rssAdsfulbnuQ7pcSrMhlbNdArf/3lJdnMyhJ/55ipCCn+/TxbHewwgufUEucl4NRw
+	 X/XquzTbIncF7PfoxoJ3iQIbqsx3MBc7BQyzFYVDak21U+I4vdpeJ9NshYoLY8Uzr/
+	 ymp5y8swdc9VT/AP6obPjD+hz0rEotIkaqZl6fqkzPcbAjjLfsSZjZFz1hcO54RA5T
+	 fEJGXxa9g1+rQ==
+Received: by mail-oi1-f177.google.com with SMTP id 5614622812f47-463a0e14abfso2192784b6e.2
+        for <linux-acpi@vger.kernel.org>; Mon, 06 Apr 2026 07:50:44 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCVIp8smDi8FRZmwggpPe+Kv6Oi6tQtNb3sU+u2lODQofH7mVgvcbetUE3m8M/QKRTZ85o4wkmq90WcX@vger.kernel.org
+X-Gm-Message-State: AOJu0YybIxsSxREBkNv0pLopmJ26XNWLhyjLamz9do6u4cu15Pmmb97U
+	HyZA294WCD99N/9aZY4mYGdLZ4UKvDzi0CF0AUN371o3DIRXDpGi5+Qsc7slbFDbyVHMxOz+RbI
+	p3kmur++JkMhKsTMrtIB4CgHk/8OxdAU=
+X-Received: by 2002:a05:6808:1b90:b0:467:de9:3eaf with SMTP id
+ 5614622812f47-46ef56fb08fmr5823750b6e.10.1775487043256; Mon, 06 Apr 2026
+ 07:50:43 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260401135311.1737958-2-xry111@xry111.site>
-In-Reply-To: <20260401135311.1737958-2-xry111@xry111.site>
+References: <20260330094203.38022-1-kaihengf@nvidia.com>
+In-Reply-To: <20260330094203.38022-1-kaihengf@nvidia.com>
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Mon, 6 Apr 2026 16:44:26 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0iL-XZaUwgan-j6ctG=r461BTyGc6cTBAK=Mr0v12WwgA@mail.gmail.com>
-X-Gm-Features: AQROBzDsZRUsUtASikqhmQYyvIbvNieZ4PnJ2nc1p7aEvrgNQ_ZD3EbS3dZpXdc
-Message-ID: <CAJZ5v0iL-XZaUwgan-j6ctG=r461BTyGc6cTBAK=Mr0v12WwgA@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: Enable FPDT on LoongArch
-To: Xi Ruoyao <xry111@xry111.site>
-Cc: Huacai Chen <chenhuacai@kernel.org>, WANG Xuerui <kernel@xen0n.name>, loongarch@lists.linux.dev, 
-	Zixing Liu <liushuyu@aosc.io>, Mingcong Bai <jeffbai@aosc.io>, 
-	"Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org
+Date: Mon, 6 Apr 2026 16:50:29 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0gf9FBpouRcCFXqSa5dR+OtENbr7tA40gSd9+8aLyAr+Q@mail.gmail.com>
+X-Gm-Features: AQROBzDpYFk7aorvhyknCAypgjVAHZoSFyCqOeYakgrSTcsYTN5_WmQ_PFmp-o0
+Message-ID: <CAJZ5v0gf9FBpouRcCFXqSa5dR+OtENbr7tA40gSd9+8aLyAr+Q@mail.gmail.com>
+Subject: Re: [PATCH v3 0/3] ACPI: APEI: GHES: Add device-managed notifier
+ helper and NVIDIA CPER handler
+To: Kai-Heng Feng <kaihengf@nvidia.com>
+Cc: rafael@kernel.org, jonathan.cameron@huawei.com, helgaas@kernel.org, 
+	guohanjun@huawei.com, linux-kernel@vger.kernel.org, 
+	linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, 
+	acpica-devel@lists.linux.dev, linux-hardening@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Apr 1, 2026 at 3:55=E2=80=AFPM Xi Ruoyao <xry111@xry111.site> wrote=
-:
+On Mon, Mar 30, 2026 at 11:42=E2=80=AFAM Kai-Heng Feng <kaihengf@nvidia.com=
+> wrote:
 >
-> FPDT provides system- and application-readable performance statistics,
-> useful for profiling and analyzing boot-time performance. FPDT table
-> support is now available as a pending patch at the EDK II upstream [1]
-> and has been tested on real hardware such as Loongson XA61200_V1.1 and
-> XB612B0_V1.2 with patched firmware.
+> NVIDIA DGX and HGX platforms provide an ACPI device (NVDA2012) alongside
+> the GHES error source. The device does not generate the error records
+> itself; its purpose is to allow the vendor CPER handler driver to load
+> automatically via ACPI enumeration rather than manual module loading.
 >
-> We have also cross checked systemd-analyze(1) against a stop watch and
-> the `dp' command in EFI Shell to see that the timing information are
-> correct.
+> The series introduces devm_ghes_register_vendor_record_notifier() helper,
+> let HiSilicon PCI driver and new NVIDA GHES driver use the new helper.
 >
-> Now that the functionality of FPDT is verified on LoongArch hardware,
-> list LOONGARCH as a possible dependency, allowing it to be enabled.
+> Kai-Heng Feng (3):
+>   ACPI: APEI: GHES: Add devm_ghes_register_vendor_record_notifier()
+>   PCI: hisi: Use devm_ghes_register_vendor_record_notifier()
+>   ACPI: APEI: GHES: Add NVIDIA vendor CPER record handler
 >
-> Link: https://github.com/tianocore/edk2/pull/12378 [1]
-> Signed-off-by: Xi Ruoyao <xry111@xry111.site>
-> ---
->  drivers/acpi/Kconfig | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  MAINTAINERS                              |   6 +
+>  drivers/acpi/apei/Kconfig                |  14 +++
+>  drivers/acpi/apei/Makefile               |   1 +
+>  drivers/acpi/apei/ghes-nvidia.c          | 149 +++++++++++++++++++++++
+>  drivers/acpi/apei/ghes.c                 |  18 +++
+>  drivers/pci/controller/pcie-hisi-error.c |  12 +-
+>  include/acpi/ghes.h                      |  11 ++
+>  7 files changed, 200 insertions(+), 11 deletions(-)
+>  create mode 100644 drivers/acpi/apei/ghes-nvidia.c
 >
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index 6f4b545f7377..f165d14cf61a 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -96,7 +96,7 @@ config ACPI_SPCR_TABLE
->
->  config ACPI_FPDT
->         bool "ACPI Firmware Performance Data Table (FPDT) support"
-> -       depends on X86_64 || ARM64
-> +       depends on X86_64 || ARM64 || LOONGARCH
->         help
->           Enable support for the Firmware Performance Data Table (FPDT).
->           This table provides information on the timing of the system
 > --
 
-Applied as 7.1 material, thanks!
+Whole series applied as 7.1 material, thanks!
