@@ -1,77 +1,100 @@
-Received: from aib29agb125.bom1.oracleemaildelivery.com (aib29agb125.bom1.oracleemaildelivery.com [192.29.172.125])
+Received: from canpmsgout01.his.huawei.com (canpmsgout01.his.huawei.com [113.46.200.216])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18E48342177
-	for <linux-acpi@vger.kernel.org>; Tue,  7 Apr 2026 04:53:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.29.172.125
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF3D638838A;
+	Tue,  7 Apr 2026 06:36:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.216
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775537616; cv=none; b=slkZh/tIVh8XthnDAksmaoJ+HNiUk9NiFpEF9qRPmL++yJ2ygBp2fq/EnvxJlfYOf/fP08ZnjOWphRoAybIq+XWsKzu8fgRA3rg1ZSHVdwgFyWuyCHbMZO6J3Z5YXUyT6Xc6sKeI1Pbd/obJPeNruB5copDJr4erqilGfjL4mmQ=
+	t=1775543812; cv=none; b=K/YWQEuB9oTaM6tVlD7RjqJo6ioxa+I5TO+QkIprLiZd2KaBjnANmi/Jm4c2yYdI1DxKnCH5CeLSOCBXjZ0QLwK4w9Tpw3Pb7lyWGGz+9L/1BrhLFPASt3++IvPj7q6JrKy389WlT/gjREiT0GsqxVzTfzOyhRiKMD3tkdSBv6I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775537616; c=relaxed/simple;
-	bh=DOGNxOuGnChhZQLwlrQLOpL2pK7O5LofYIVDLE+YYWc=;
-	h=From:To:Subject:Date:Message-id:MIME-version:Content-type; b=ZYWXZWO+U5l91jJwoyzOfb+dZYtTKfXKq2fQp3ba92i0LqrnETmsesRlNROQZsIV+ms9AW9Ns4E0++drZJa9jOtItkYjOhj8WrWS0tMhUnX4QyDR3cMgMEBSN6+7TkeShuUvTnxWaI+T5++hkdMipLxzAMCNr/jrF3RK2ijMc88=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=linknsell.com; spf=pass smtp.mailfrom=bom1.rp.oracleemaildelivery.com; dkim=pass (2048-bit key) header.d=linknsell.com header.i=@linknsell.com header.b=CITR1maR; dkim=pass (2048-bit key) header.d=bom1.rp.oracleemaildelivery.com header.i=@bom1.rp.oracleemaildelivery.com header.b=asGefRho; arc=none smtp.client-ip=192.29.172.125
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=linknsell.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bom1.rp.oracleemaildelivery.com
+	s=arc-20240116; t=1775543812; c=relaxed/simple;
+	bh=Q0xfphDZWpWzLvgeQV/FeyZvzyzk7zUGIeHSb/2hdIw=;
+	h=Subject:To:CC:References:From:Message-ID:Date:MIME-Version:
+	 In-Reply-To:Content-Type; b=h6YG5HQa0l3bG5mmOdZcgMtnIaQmJUeKmDcf4YMEIBcq/MwRlCNI9QFtMiQtWBQdI/X8LnOwjbWS2n7uOxF0KTQsu0gtN/4YUAIaKhDVdVr8OUGBBDBajAptz2RkjpfymntOcBDVXFg75iH1SOvCt8FunzimzcZea2/lfX+2oN0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=KodDnzDX; arc=none smtp.client-ip=113.46.200.216
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linknsell.com header.i=@linknsell.com header.b="CITR1maR";
-	dkim=pass (2048-bit key) header.d=bom1.rp.oracleemaildelivery.com header.i=@bom1.rp.oracleemaildelivery.com header.b="asGefRho"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; s=smtp.linknsell.com.20250508;
- d=linknsell.com;
- h=Date:To:From:Subject:Message-Id:MIME-Version:Sender:List-Unsubscribe:List-Unsubscribe-Post;
- bh=DOGNxOuGnChhZQLwlrQLOpL2pK7O5LofYIVDLE+YYWc=;
- b=CITR1maRM7EUPfhdKN7kzGaO2kk6J0xLe4nBXv5KsbRJMnEEYCMfMhsf06o7kmo5A1z6scijJyHA
-   p1gRQ3fDzxiNIrlVZ4FV+HSBZgPYgCTRUnakwFanbuO9nnDTkxD4WfLHIdQoX1dAB5UqRmMROJId
-   kt0E7bdmE+MZKhEkrGuWJ+f29TqP7kJ3xAsKlLE3ciw/D+mtiUaPuQR0Zho2WtgV4T7v7YwORjv5
-   ZaX7WxnevKp9sIjR434yfLEWUPfZxJnn0E9evrV1+I4YUkSBdadA5XcniB6T/SQhbr+vogHqkV2o
-   uXKuP5tc4K2/2qCzBn7ywIFfizU/5NCTmUiWkQ==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; s=prod-bom-20200207;
- d=bom1.rp.oracleemaildelivery.com;
- h=Date:To:From:Subject:Message-Id:MIME-Version:Sender:List-Unsubscribe:List-Unsubscribe-Post;
- bh=DOGNxOuGnChhZQLwlrQLOpL2pK7O5LofYIVDLE+YYWc=;
- b=asGefRhoHf4LC4WYR4ZoYLPpyap/jrXUiG1mbZIlaSW7nXI0uGCNdjpwGA8XmP+5rX5hyZnwbNP8
-   /N4E7OOaUhN47L4oCx2ebnK+hejyT3r13wDwI3GbxB0DqBCigexIPGuqZ3g+oI8cqurltuUSZKyc
-   n/Izjf/oZ2tifMBN8BrXlET+aCwdWWHXKcbd7kcRZDlH9yT4B0MvPXB+1aAII7xMpZAonuSCoiJ9
-   hDkPcW5/pE2qQBT2HlLvQWI3Hb+/04QBQJfXwznfyJU0Z4rHO5gsfGj7S6j5BJRYjfA3bAxCkQN/
-   QV4H++yOkI6VlPSZ87grRUO+UHxgH0Wlofa9dA==
-Received: by omta-ad1-fd2-402-ap-mumbai-1.omtaad1.vcndpbom.oraclevcn.com
- (Oracle Communications Messaging Server 8.1.0.1.20260212 64bit (built Feb 12
- 2026))
- with ESMTPS id <0TD300JDTXL8S4F0@omta-ad1-fd2-402-ap-mumbai-1.omtaad1.vcndpbom.oraclevcn.com> for
- linux-acpi@vger.kernel.org; Tue, 07 Apr 2026 04:53:32 +0000 (GMT)
-List-Unsubscribe-Post: List-Unsubscribe=One-Click
-Reply-to: jisunlee@gmilweb.com
-From: Jisun Lee <NoReply@linknsell.com>
-To: linux-acpi@vger.kernel.org
-Subject: I need your help
-Date: 7 Apr 2026 05:53:23 +0100
-Message-id: <20260407051725.F120973797C64E04@linknsell.com>
+	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="KodDnzDX"
+dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=sOMRFVxkkjIdBVHHRMg1i4CxlVw1ZlggtUcOT1JfmRY=;
+	b=KodDnzDXynX43R1YNENTD4eOOJlfHbew+wKDbQKhYzADoR5O2bpFYRP20JGABtq6R3nfrFW4H
+	ii1VLlpyAPpp9MzAsO8YCJTCrAmH9rQGtkeoVJu4+VCwB71WTLYj7A6fH5qrayDHBiZYPKIfRZr
+	izV54KdG6Y1+h3jeQGUK/rQ=
+Received: from mail.maildlp.com (unknown [172.19.162.197])
+	by canpmsgout01.his.huawei.com (SkyGuard) with ESMTPS id 4fqbtL06yhz1T4G8;
+	Tue,  7 Apr 2026 14:30:50 +0800 (CST)
+Received: from dggpemf500002.china.huawei.com (unknown [7.185.36.57])
+	by mail.maildlp.com (Postfix) with ESMTPS id 381A040576;
+	Tue,  7 Apr 2026 14:36:39 +0800 (CST)
+Received: from [10.174.179.24] (10.174.179.24) by
+ dggpemf500002.china.huawei.com (7.185.36.57) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.11; Tue, 7 Apr 2026 14:36:38 +0800
+Subject: Re: [PATCH v3] ACPI: AGDI: fix missing newline in error message
+To: Haoyu Lu <hechushiguitu666@gmail.com>, "Rafael J . Wysocki"
+	<rafael@kernel.org>, Lorenzo Pieralisi <lpieralisi@kernel.org>, Sudeep Holla
+	<sudeep.holla@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Will
+ Deacon <will@kernel.org>
+CC: Len Brown <lenb@kernel.org>, Ilkka Koskinen
+	<ilkka@os.amperecomputing.com>, Russell King <rmk+kernel@armlinux.org.uk>,
+	<linux-acpi@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
+	<linux-kernel@vger.kernel.org>
+References: <20260407033117.100-1-hechushiguitu666@gmail.com>
+From: Hanjun Guo <guohanjun@huawei.com>
+Message-ID: <714472c7-ec8b-9f6b-928a-3de62f14b4f2@huawei.com>
+Date: Tue, 7 Apr 2026 14:36:37 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101
+ Thunderbird/68.6.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-version: 1.0
-Content-type: text/plain;	charset="utf-8"
-Content-transfer-encoding: quoted-printable
-Reporting-Meta:
- AAGi5cWnrTT4y34B1qvDUxR1Rsnzi/bNdivngbcgnQHx1PzWyIJmi0ji+3UCCCnp
- D4cA0CnNMIO1lBduhQOtIeENYZguLw5sC/FJ3n+I4Uu2QRyReftLlkolsbut1nJL
- PwIsIVbO9g7wM6iP6E8+30+UuPK7TThbeHd6CpLj95pvcCEHTzryN+KUyUjRjYQR
- Wm1VR+AaZESDpt0UCzcihepgDh3/9bYIqJnHWGplBmKwR914IHt7m0gJ4M+Cp8p2
- hfVx8kPq/ZWen/4XvqDp+UNXqhG1vHXnRzRor17QS2oKqj9N9VBu7WH4RAiMPlVS
- XxaFvTzMigYpSAZj1C28Y2hnwpaJxV2H1AfPr//PVtDbx9qufFc6rfWU63qG7cvY
- KwoTJeevyUrIAXmXZxTRYT0aE/syU6RWntybv3HrPLLHVwm1XY9ARupuJXxvoHCo
- ufpv0TfyuSkJS+lS50psMfjohkIWgAZx5h/1xGgzGbD+15K278fQOin4
+MIME-Version: 1.0
+In-Reply-To: <20260407033117.100-1-hechushiguitu666@gmail.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: kwepems100002.china.huawei.com (7.221.188.206) To
+ dggpemf500002.china.huawei.com (7.185.36.57)
 
-Dear Beloved
+On 2026/4/7 11:31, Haoyu Lu wrote:
+> Add the missing trailing newline to the dev_err() message
+> printed when SDEI event registration fails.
+> 
+> This keeps the error output as a properly terminated log line.
+> 
+> Fixes: a2a591fb76e6f5461dfd04715b69c317e50c43a5 ("ACPI: AGDI: Add driver for Arm Generic Diagnostic Dump and Reset device")
+> Reviewed-by: Ilkka Koskinen <ilkka@os.amperecomputing.com>
+> Signed-off-by: Haoyu Lu <hechushiguitu666@gmail.com>
+> ---
+> Changes in v2:
+> - Change subject prefix from "acpi: arm64: agdi:" to "ACPI: AGDI:"
+> 
+> Changes in v3:
+> - Move version history below the "---" separator as per review feedback
+> 
+>   drivers/acpi/arm64/agdi.c | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/arm64/agdi.c b/drivers/acpi/arm64/agdi.c
+> index feb4b2cb4618..0c2d9d6c160b 100644
+> --- a/drivers/acpi/arm64/agdi.c
+> +++ b/drivers/acpi/arm64/agdi.c
+> @@ -36,7 +36,7 @@ static int agdi_sdei_probe(struct platform_device *pdev,
+> 
+>   	err = sdei_event_register(adata->sdei_event, agdi_sdei_handler, pdev);
+>   	if (err) {
+> -		dev_err(&pdev->dev, "Failed to register for SDEI event %d",
+> +		dev_err(&pdev->dev, "Failed to register for SDEI event %d\n",
+>   			adata->sdei_event);
+>   		return err;
+>   	}
 
-My ex Husband Song Lee refuse to pay our divorce settlement
-funds. =E2=80=8BI need your help to recover Assets from the bank for=20
-healthcare and child support
-=E2=80=8Bpurposes, diagnosed with (bladder cancer).
+Reviewed-by: Hanjun Guo <guohanjun@huawei.com>
 
-=E2=80=8BI need your advise and support
-
-=E2=80=8BThank You
-Jisun Lee
+Thanks
+Hanjun
