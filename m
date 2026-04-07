@@ -1,155 +1,364 @@
-Received: from mail-yx1-f54.google.com (mail-yx1-f54.google.com [74.125.224.54])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mout01.posteo.de (mout01.posteo.de [185.67.36.65])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E6462E719B
-	for <linux-acpi@vger.kernel.org>; Tue,  7 Apr 2026 20:54:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.224.54
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775595266; cv=pass; b=gGSl4JlFRg0GAylG2BMn6WDId45EDhWEFFccdzyHFEb12w9lklC9LhrVcqmRm0tEM+Ii/wmMMsffWjOW70vRhJuQrd45ugaRWWjIsckdy8UfOGo0zdFQil3M3kEeXkZbEaQEVntOghAQkTD2bR4rhoC/MBHsPuRAXtSf7bMa7lg=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775595266; c=relaxed/simple;
-	bh=GbqZWK6hmD58nXcOhqaZTh5og7wqKMlwZDNwWjoc9Bc=;
-	h=MIME-Version:From:Date:Message-ID:Subject:To:Content-Type; b=HSOuXfGope7b9yuU9iSE9ppx3487gOJrsq/5q3EiDU7i3sXB+jokSWprcmgu17dujBvJzFdBu48T9+pqNU/8/hAOIZFpf/L5/6PR43HZb4B4ARPwRrlZuCPnUwoFfs8OmX46isl5moXK4vYmLXtWkU1myWPQjEgsXIMl7uaPMpE=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=khr1mTiP; arc=pass smtp.client-ip=74.125.224.54
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8838A215F42
+	for <linux-acpi@vger.kernel.org>; Tue,  7 Apr 2026 21:41:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.67.36.65
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1775598119; cv=none; b=j0Mr53xgQOOwgFOtLsYmU+RzSAF72aTAfTysk7RTPIZi1AY8yhe3thkCsa8mUN9AadIHksyy+GTbzmx+F8+996aOuatoj54N7tQteFtnL5rES0ncAEUSltWvmMDBcm9FNapZPLsoQ4A1w+la94/C5p9QRuXVBUDcb9cSonlVvN8=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1775598119; c=relaxed/simple;
+	bh=dqH1+n/pDXkCcFrC7fFms6msTXpAOeDzSU/tQ28i9KY=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=IxOxW3QJcK4yYjxy5i+8xjlv/6v678Ni/EdHcXsCa8XtrjE7h0r6LRfiwv9VQh6PBzQhFt5Eb20by5oIMlJBoYn7Axa+2pLKOpRqh0m3C4JQ8zofdkPslBrq8qvdibDS7PPo5JmXMarLOLlDzGSDeYJp3ipcuspCcYfRs8CZ/KA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de; spf=pass smtp.mailfrom=posteo.de; dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b=Usl3xobq; arc=none smtp.client-ip=185.67.36.65
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=posteo.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="khr1mTiP"
-Received: by mail-yx1-f54.google.com with SMTP id 956f58d0204a3-6500040ef83so3844600d50.2
-        for <linux-acpi@vger.kernel.org>; Tue, 07 Apr 2026 13:54:25 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1775595264; cv=none;
-        d=google.com; s=arc-20240605;
-        b=RlN1QpQM8pOqkUMGo4jX9E7GLmlbqN7TGmUSCZVLypugxdoCRlgXceQ7f826GUto4/
-         fFwgUQuPfOZln9WqUCCDsdopyX19dxJzFFxInZDws3n++zbbtzJwzGoJHjnTMRplAViO
-         ZsExkYIwqddsIEsaq6WKZAQjfXj6eYJXy+0ce9NJKwBTqITEB/l68/A9sEX2TNDsXzrj
-         GINFqytkEU6LDxQ8EJm81MALUaV1nJfvusaPdXiKFCvut5MwAW31GAc9aI/g8rgW9LR/
-         FGjCQckCSt9qboIM2Tj13+bOsM1mlWADvfn/+fxtm5CwAkK4BSlVeTsjPjQKXm2GXJn7
-         G+lw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=to:subject:message-id:date:from:mime-version:dkim-signature;
-        bh=FB32mt/InDVL1RdAiT/LiCcwAuWSPBgRDI9AIQasW48=;
-        fh=GmFy5nA39On4RWbrn/GETH8dUHq8oY5XORs93v5i3qg=;
-        b=WSsAwxlpj87xBv4xazagHNokiy+UrJyCjOIk7nEqnImW3Ehnpo9+7Cj6e8GukBkhGg
-         w4zrlOScS1HBXlWXZgIXvE5wKHVocQea9iG1fSPS8HRjP52OH+oiMacaF/iS91Bxzx9K
-         g/xi8Cad7qTPHbO0KbL9A5VuamOPtnpvXSlTPw6kkjI1jrPzQE18zTV90MS9dxE5sH1V
-         wmw1W/QLDCivBd43TADcpzQ1B7OH6Oxh83rsXnLiG8s6wwhkOQeVbZd5hgMKt84Qr4bp
-         50TlSN2YljZM3C1wvWL4gP0JyewFEBXXDEV/dafkgUmxvIwy5SfbCDPUwYlcb7UH/YcO
-         xxvw==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1775595264; x=1776200064; darn=vger.kernel.org;
-        h=to:subject:message-id:date:from:mime-version:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=FB32mt/InDVL1RdAiT/LiCcwAuWSPBgRDI9AIQasW48=;
-        b=khr1mTiPAiyJHHpwjZrDDqaqhcXDuvnOvzg7hTmqwchN6kd5szdBfkyJdM+A4gbGzS
-         R3urpWNhaOLiuAxSCWm38W0zj6iRi6z+czwd20WjDUtP/sXgqtFhVYjaLOyKJGH4p0Fx
-         +8Bjg3+RYTZtRmo9RlO9WYXCeAycuUCT9H/J4Q2Nd8M/3PM8m9gfYUbfJ9J/TL4paemf
-         i13Hn1iX65IeuUFAK398OU5sFmrBUHmSNmyq1aURAMr+Eu5cU53RL+Wwc0whI6CsPq+c
-         XqFibrDl0iMuD5XJ/GisbwFGrpjakJGq0mF7T1DNu5w12OysZkcNuCeuXlCvqBEcm/el
-         HE7w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1775595264; x=1776200064;
-        h=to:subject:message-id:date:from:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=FB32mt/InDVL1RdAiT/LiCcwAuWSPBgRDI9AIQasW48=;
-        b=byCcIPkkIr1dXnxpom8Qja/GDoNu1C98EjOQdCLXYoO+jIYQxFatk6IrCKmgtVbeon
-         MA11eytQ+4Mw6hSAcXNm1KaCDVk1KhXAIwhfTpjfsgT/HYFQIM+bjuoFxCawrpy2wGZV
-         4UNkdW2lRRR0jKVohwyaYzHMy/V89Hjz5KMCKEvwuwvL1DB6GT2IzhBTFVvXUz1rsJk2
-         xZMqgc0dHrIPdL1zaQvZSYfapt8p4c962yB10aRxSQiKU42RAqg6J90MDCOO2pzxaf1A
-         N/ZxQawg2c9k0/0tlFCMX6k0TZ+qcs7WKu8YkIp/B/VcQbMqIyKZnjScFEBV/mZKXGTO
-         cjtw==
-X-Gm-Message-State: AOJu0YyKhhtMt05eS5JIhE6YhZt6SMvQ9FBQRjKAvmL3BdEj2y7nVnF/
-	vgnXc8ahUMtArwOUgSeBh0MRL77SUnIf3/Xpq/enABy/RQYynIlwB3hu+w/7fFmUWgKWHmCiYf+
-	BD4QjK72epWjXvW95vWDxBHF4vWmUu9BTqAeI
-X-Gm-Gg: AeBDieuazhxlAzd57okb4b3LXifuPHYMYDM1k0z5M4z0t53rVuAC+PaZKEXGZj1A3H2
-	Gd3LRJ+BFT/SX33djrzLUzPx1iGrDlg1Tk6CSmhe0E6eeLt2cKGrcUIvxMNkBDKVLPwBueWfY5t
-	WJSS8ULg9C9l9Ar3o5ZdGgEbOAA+0Hw8EuLxPmFl8r1Wx3QQtZ+0MsrFsAfHz8PT9PoOpXFQUHp
-	/EbHqv2EenyD6i7J/15GK7+rZt3lGOoNzE9NVLqlx0bQF5GSwuMf604ZCl8aBd3YXIzrO36ncJQ
-	2PIDSCRboWOlYY0j+hACV4Mik59yMFebl5fy4tjnO7yeWDo+0MTeWHpCnrHMwsJYQNo8DUIVJgR
-	a0WE0JYy5/ZPWTurirnCOiFba2w==
-X-Received: by 2002:a05:690e:4849:b0:650:2ff9:d678 with SMTP id
- 956f58d0204a3-650487277f2mr14027671d50.29.1775595264419; Tue, 07 Apr 2026
- 13:54:24 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b="Usl3xobq"
+Received: from submission (posteo.de [185.67.36.169]) 
+	by mout01.posteo.de (Postfix) with ESMTPS id D449B240027
+	for <linux-acpi@vger.kernel.org>; Tue,  7 Apr 2026 23:41:49 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=posteo.de; s=2017;
+	t=1775598109; bh=2CeHqOpyfwFzIVcrD737pRhCSkZvA1jGIAJqQ7AT+Jc=;
+	h=From:Date:Subject:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding:Message-Id:To:Cc:Autocrypt:OpenPGP:From;
+	b=Usl3xobqjvGGPtsz80zLc/Dq0zVVUSDYMupzXNLvq8vtSjZEnf8xXFv3IvefBjE2Z
+	 Eje/SQ21DTU+GN9lo+yK/4T0TLJhG3VjfsAiMkGpsFZSDwc7zNgBY73Q2JQ4PQAorV
+	 yIHdV+muziiKJTFFX6PakC9QD7FXS2B14mpMTB6qgDq/29iAmUtsTy78sGo/420/jC
+	 SFu9WKlBbDS4HxdKzGH+a7BxnhERhI7ih/4+oJHgJxYYwPyCBT/kOoMpTS09M5F5+5
+	 zwgfjdyLzcb5vNXWdQf8AsUZ0C//BZkmUXdoZRYGIzAPYplq/TvZMWD6YDtAFCKtzu
+	 Jt465F6Dbf6jA==
+Received: from customer (localhost [127.0.0.1])
+	by submission (posteo.de) with ESMTPSA id 4fr05Q6rkpz6tvx;
+	Tue,  7 Apr 2026 23:41:46 +0200 (CEST)
+From: Markus Probst <markus.probst@posteo.de>
+Date: Tue, 07 Apr 2026 21:41:48 +0000
+Subject: [PATCH v3] rust: ACPI: fix missing match data for PRP0001
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-From: Alexander Zubkov <zubkov318@gmail.com>
-Date: Tue, 7 Apr 2026 22:53:44 +0200
-X-Gm-Features: AQROBzCiLek94RxAsY8iH9Yjf7CtNWUTECNhWnxZxI9_06Ct0ycMduI0_IacEBE
-Message-ID: <CABXn0zehxT90bNogCu44fRu4ANZmjjrcd8WzX_ms-Bb_JxA2Kw@mail.gmail.com>
-Subject: [BUG] ASUS Vivobook M1502NAQ: ACPI DSDT namespace collision (ASMI)
- causes early boot hang
-To: linux-acpi@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20260407-rust_acpi_prp0001-v3-1-c5b24590c273@posteo.de>
+X-B4-Tracking: v=1; b=H4sIABN61WkC/33OQQ7CIBAF0Ks0rKUBCqJdeQ9jGkoHZaEgUKJpe
+ ncRNy6My/8z82YWFCFYiKhvFhQg22jdrYRu0yB9UbczYDuVjBhhW8IJxWGOaVDa28EHT0hpFNt
+ LKng3CiFQ2fMBjH1U83j65AD3udDpU6JRRcDaXa829U2WLcFBS/SevdiYXHjWdzKtw38uZ4opN
+ lvFJwZmzzg/eBcTuHaCqmX2LYhfAisCN7uRakOkmLpvYV3XFx8VKSAgAQAA
+X-Change-ID: 20260401-rust_acpi_prp0001-a2971543b555
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
+ Miguel Ojeda <ojeda@kernel.org>, Boqun Feng <boqun@kernel.org>, 
+ Gary Guo <gary@garyguo.net>, 
+ =?utf-8?q?Bj=C3=B6rn_Roy_Baron?= <bjorn3_gh@protonmail.com>, 
+ Benno Lossin <lossin@kernel.org>, Andreas Hindborg <a.hindborg@kernel.org>, 
+ Alice Ryhl <aliceryhl@google.com>, Trevor Gross <tmgross@umich.edu>, 
+ Danilo Krummrich <dakr@kernel.org>, 
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+ Robert Moore <robert.moore@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, 
+ rust-for-linux@vger.kernel.org, driver-core@lists.linux.dev, 
+ acpica-devel@lists.linux.dev, Markus Probst <markus.probst@posteo.de>
+X-Developer-Signature: v=1; a=openpgp-sha256; l=8636;
+ i=markus.probst@posteo.de; h=from:subject:message-id;
+ bh=dqH1+n/pDXkCcFrC7fFms6msTXpAOeDzSU/tQ28i9KY=;
+ b=kA0DAAgBNHYf+OetQ9IByyZiAGnVehqgY4tC0bwiq7pazhmdK+Oug9xOpocpOWp4M1lXNJQ37
+ IkCTwQAAQgAORYhBIJ0GMT0rFjncjDEczR2H/jnrUPSBQJp1XoaGxSAAAAAAAQADm1hbnUyLDIu
+ NSsxLjEyLDIsMgAKCRA0dh/4561D0tSrD/sEGH+Pj6kgvlhSzc3sMHrkACWGkzatFRLHWiRffGr
+ b00ln5UDVMOJHW05tj9qXtsRkt4xPlNLcCrAxAzgMDEQb4k+b/Rc1LGMzK044cnKG6FCOt6vJrA
+ gM3lX2P9dDUSK0ugVEm+GDW1fXZ06ZfV+btgVGYAs5VRWXDYtdTd7G7NFi1VVE/lxN6jcaur1Ms
+ tQkg9bDXKdiXnchPu57l0pBmzdgKS+/Yr1gDXbT8CuC42SqI8PU3MMyMl2I96hHbhuwuYMChvHq
+ N5i9m3NffwjCZDQbC91iKpC/FbI3rAp2lbYyUXOvYDgFIaOdZdOjrgyXyQXWEtmxio++yAXV9eB
+ 7KoguzLFJapPuy+SPtg9HGjflbx977CoKeXP1LaXc5SGbT1nxX/jyMzkVqsPv87HNp3gF4e6pHF
+ WvViPwmmE4Cwe6W1CoJDlRijhyAkBc/w3KBXlCwWAFKNFMbbzqS2x6pnWhwAVg7reHh71fMWucr
+ lgOq7PDiF2m56LC0HI/ZnITMAYFd2dhUd35GqJW5eW8+/fJYOIHX2/HmD4K2j0pnc6NyX5DI9tO
+ T3pdXkBwfXyB+PucikGnuLkwa5iCaPNcfX+h4dgtsUqA3hAGAmFZF6RsI0jYjEYqj3bo2lVSdgd
+ KpIO9RrLd+MGdXK4VjHZH8Glj5CNA/dKFfrhsOk10SA==
+X-Developer-Key: i=markus.probst@posteo.de; a=openpgp;
+ fpr=827418C4F4AC58E77230C47334761FF8E7AD43D2
+Autocrypt: addr=markus.probst@posteo.de; prefer-encrypt=mutual;
+  keydata=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
+  aBeNN4ijKZchBXHPgVx+YtWRHfcm4l8=
+OpenPGP: url=https://posteo.de/keys/markus.probst@posteo.de.asc; preference=encrypt
 
-Hello,
+Export `acpi_of_match_device` function and use it to match the of device
+table against ACPI PRP0001 in Rust.
 
-I'd like to report an ACPI issue on an ASUS Vivobook 15 M1502NAQ-BQ067
-(AMD Ryzen 5 150 - Zen3+ / Rembrandt platform). UEFI version:
-M1502NAQ.302.
+This fixes id_info being None on ACPI PRP0001 devices.
 
-Linux kernels (tested with recent mainline live images of Alpine,
-Void, NixOS and Fedora) hang immediately after bootloader when ACPI is
-enabled. No output is produced, even with earlycon/earlyprintk:
-earlycon=efi,keep earlyprintk=efi,keep loglevel=8 ignore_loglevel
-initcall_debug acpi.debug_level=0x2 acpi.debug_layer=0xFFFFFFFF
+Using `device_get_match_data` is not possible, because Rust stores an
+index in the of device id instead of a data pointer. This was done this
+way to provide a convenient and obvious API for drivers, which can be
+evaluated in const context without the use of any unstable language
+features.
 
-I've tried various ACPI-related options, boot works only with:
-* acpi=off (but system resets with no error several seconds after the
-boot, keyboard does not work)
-* acpi_no_static_ssdt (system boots, keyboard does not work)
+Fixes: 7a718a1f26d1 ("rust: driver: implement `Adapter`")
+Signed-off-by: Markus Probst <markus.probst@posteo.de>
+---
+Changes in v3:
+- use acpi/acpi_bus.h instead of drivers/acpi/internal.h to declare
+  `acpi_of_match_device`
+- Link to v2: https://lore.kernel.org/r/20260405-rust_acpi_prp0001-v2-1-4f8b1cf075d3@posteo.de
 
-Notebook's firmare was upgraded to the latest available version. I've
-also tried to boot a windows installer, just to check it is not a
-hardware issue. It boots normally.
+Changes in v2:
+- keep unsafe block as short as possible
+- don't export acpi_of_match_device
+- add implementation decisions to commit msg
+- Link to v1: https://lore.kernel.org/r/20260401-rust_acpi_prp0001-v1-1-f6a4d2ef9244@posteo.de
+---
+ MAINTAINERS                     |  1 +
+ drivers/acpi/bus.c              |  6 ++--
+ include/acpi/acpi_bus.h         |  4 +++
+ rust/bindings/bindings_helper.h |  5 +++
+ rust/helpers/acpi.c             |  8 +++++
+ rust/helpers/helpers.c          |  1 +
+ rust/kernel/driver.rs           | 70 ++++++++++++++++++++++++++++++++---------
+ 7 files changed, 78 insertions(+), 17 deletions(-)
 
-I'm not an expert in ACPI, so I used ChatGPT to lead the debug.
-Although I suppose it misleaded me sometimes, it turned out to be
-useful, because I found a DSDT patch that fixed the issue. Most of
-debugging was done using Alpine's kernel 6.18.21-0-lts.
-
-The issue was traced to a namespace collision in DSDT:
-* Method \ASMI defined in global scope
-* Method _SB.ASMI also defined
-
-ChatGPT presumes that unqualified calls to ASMI appear to resolve
-incorrectly under Linux (ACPICA), leading to a firmware-level failure
-during early ACPI initialization. I dumped ACPI tables from UEFI shell
-and tried different overrides.
-
-The minimal fix I found is renaming the global method in DSDT and its
-single call. After applying this dsdt.aml override, the kernel boots
-well without additional acpi options, does not reset after boot, and
-the keybord initializes and works well. The patch looks like this (and
-I also increased the revision number):
-
---- a/dsdt.dsl    2026-04-07 18:31:52.727022684 +0200
-+++ b/dsdt.dsl    2026-04-07 21:30:04.393990891 +0200
-@@ -10138,7 +10138,7 @@
-             SMCM = Arg0
-         }
-
--        Method (ASMI, 1, Serialized)
-+        Method (ASMX, 1, Serialized)
-         {
-             AL_D = Arg0
-             SMCM = 0xD6
-@@ -10151,7 +10151,7 @@
-             DB_2 = Arg1
-             DB_3 = Arg2
-             DB_4 = Arg3
--            ASMI (0x80)
-+            ASMX (0x80)
-         }
+diff --git a/MAINTAINERS b/MAINTAINERS
+index c3fe46d7c4bc..3a7b3b5f2a28 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -302,6 +302,7 @@ F:	include/linux/acpi.h
+ F:	include/linux/fwnode.h
+ F:	include/linux/fw_table.h
+ F:	lib/fw_table.c
++F:	rust/helpers/acpi.c
+ F:	rust/kernel/acpi.rs
+ F:	tools/power/acpi/
+ 
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 2ec095e2009e..554dbddb1c8c 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -831,9 +831,9 @@ const struct acpi_device *acpi_companion_match(const struct device *dev)
+  * identifiers and a _DSD object with the "compatible" property, use that
+  * property to match against the given list of identifiers.
+  */
+-static bool acpi_of_match_device(const struct acpi_device *adev,
+-				 const struct of_device_id *of_match_table,
+-				 const struct of_device_id **of_id)
++bool acpi_of_match_device(const struct acpi_device *adev,
++			  const struct of_device_id *of_match_table,
++			  const struct of_device_id **of_id)
+ {
+ 	const union acpi_object *of_compatible, *obj;
+ 	int i, nval;
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index aad1a95e6863..d0098f24346f 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -187,6 +187,10 @@ struct acpi_driver {
+  * -----------
+  */
+ 
++bool acpi_of_match_device(const struct acpi_device *adev,
++			  const struct of_device_id *of_match_table,
++			  const struct of_device_id **of_id);
++
+ /* Status (_STA) */
+ 
+ struct acpi_device_status {
+diff --git a/rust/bindings/bindings_helper.h b/rust/bindings/bindings_helper.h
+index 083cc44aa952..e47643ce8b50 100644
+--- a/rust/bindings/bindings_helper.h
++++ b/rust/bindings/bindings_helper.h
+@@ -96,6 +96,11 @@
+  */
+ #include <../../drivers/base/base.h>
+ 
++/*
++ * The driver-core Rust code needs to call `acpi_of_match_device`.
++ */
++#include <acpi/acpi_bus.h>
++
+ #if defined(CONFIG_DRM_PANIC_SCREEN_QR_CODE)
+ // Used by `#[export]` in `drivers/gpu/drm/drm_panic_qr.rs`.
+ #include <drm/drm_panic.h>
+diff --git a/rust/helpers/acpi.c b/rust/helpers/acpi.c
+new file mode 100644
+index 000000000000..f2aa00ec99c2
+--- /dev/null
++++ b/rust/helpers/acpi.c
+@@ -0,0 +1,8 @@
++// SPDX-License-Identifier: GPL-2.0
++
++#include <linux/acpi.h>
++
++__rust_helper struct acpi_device *rust_helper_to_acpi_device_node(struct fwnode_handle *fwnode)
++{
++	return to_acpi_device_node(fwnode);
++}
+diff --git a/rust/helpers/helpers.c b/rust/helpers/helpers.c
+index a3c42e51f00a..8ecd1580aa69 100644
+--- a/rust/helpers/helpers.c
++++ b/rust/helpers/helpers.c
+@@ -9,6 +9,7 @@
+ 
+ #define __rust_helper
+ 
++#include "acpi.c"
+ #include "atomic.c"
+ #include "atomic_ext.c"
+ #include "auxiliary.c"
+diff --git a/rust/kernel/driver.rs b/rust/kernel/driver.rs
+index 36de8098754d..62d7d1ab776c 100644
+--- a/rust/kernel/driver.rs
++++ b/rust/kernel/driver.rs
+@@ -96,13 +96,18 @@
+ 
+ use crate::{
+     acpi,
+-    device,
++    device::{
++        self,
++        property::FwNode, //
++    },
+     of,
+     prelude::*,
+     types::Opaque,
+     ThisModule, //
+ };
+ 
++use core::ptr;
++
+ /// Trait describing the layout of a specific device driver.
+ ///
+ /// This trait describes the layout of a specific driver structure, such as `struct pci_driver` or
+@@ -278,6 +283,18 @@ fn init(
      }
+ }
+ 
++#[inline(never)]
++#[allow(clippy::missing_safety_doc)]
++#[must_use]
++unsafe fn acpi_of_match_device(
++    adev: *const bindings::acpi_device,
++    of_match_table: *const bindings::of_device_id,
++    of_id: *mut *const bindings::of_device_id,
++) -> bool {
++    // SAFETY: Safety requirements are the same as `bindings::acpi_device_id`.
++    unsafe { bindings::acpi_of_match_device(adev, of_match_table, of_id) }
++}
++
+ /// The bus independent adapter to match a drivers and a devices.
+ ///
+ /// This trait should be implemented by the bus specific adapter, which represents the connection
+@@ -329,35 +346,60 @@ fn acpi_id_info(dev: &device::Device) -> Option<&'static Self::IdInfo> {
+     ///
+     /// If this returns `None`, it means there is no match with an entry in the [`of::IdTable`].
+     fn of_id_info(dev: &device::Device) -> Option<&'static Self::IdInfo> {
+-        #[cfg(not(CONFIG_OF))]
++        let table = Self::of_id_table()?;
++
++        #[cfg(not(any(CONFIG_OF, CONFIG_ACPI)))]
+         {
+-            let _ = dev;
+-            None
++            let _ = (dev, table);
+         }
+ 
+         #[cfg(CONFIG_OF)]
+         {
+-            let table = Self::of_id_table()?;
+-
+             // SAFETY:
+             // - `table` has static lifetime, hence it's valid for read,
+             // - `dev` is guaranteed to be valid while it's alive, and so is `dev.as_raw()`.
+             let raw_id = unsafe { bindings::of_match_device(table.as_ptr(), dev.as_raw()) };
+ 
+-            if raw_id.is_null() {
+-                None
+-            } else {
++            if !raw_id.is_null() {
+                 // SAFETY: `DeviceId` is a `#[repr(transparent)]` wrapper of `struct of_device_id`
+                 // and does not add additional invariants, so it's safe to transmute.
+                 let id = unsafe { &*raw_id.cast::<of::DeviceId>() };
+ 
+-                Some(
+-                    table.info(<of::DeviceId as crate::device_id::RawDeviceIdIndex>::index(
+-                        id,
+-                    )),
+-                )
++                return Some(table.info(
++                    <of::DeviceId as crate::device_id::RawDeviceIdIndex>::index(id),
++                ));
+             }
+         }
++
++        #[cfg(CONFIG_ACPI)]
++        {
++            let mut raw_id = ptr::null();
++
++            let fwnode = dev.fwnode().map_or(ptr::null_mut(), FwNode::as_raw);
++
++            // SAFETY: `fwnode` is a pointer to a valid `fwnode_handle`. A null pointer will be
++            // passed through the function.
++            let adev = unsafe { bindings::to_acpi_device_node(fwnode) };
++
++            // SAFETY:
++            // - `adev` is a valid pointer to `acpi_device` or is null. It is guaranteed to be
++            //   valid as long as `dev` is alive.
++            // - `table` has static lifetime, hence it's valid for read.
++            if unsafe { acpi_of_match_device(adev, table.as_ptr(), &raw mut raw_id) } {
++                // SAFETY:
++                // - the function returns true, therefore `raw_id` has been set to a pointer to a
++                //   valid `of_device_id`.
++                // - `DeviceId` is a `#[repr(transparent)]` wrapper of `struct of_device_id`
++                //   and does not add additional invariants, so it's safe to transmute.
++                let id = unsafe { &*raw_id.cast::<of::DeviceId>() };
++
++                return Some(table.info(
++                    <of::DeviceId as crate::device_id::RawDeviceIdIndex>::index(id),
++                ));
++            }
++        }
++
++        None
+     }
+ 
+     /// Returns the driver's private data from the matching entry of any of the ID tables, if any.
 
-Is this a known ACPICA behavior difference vs Windows, or should this
-be considered a firmware bug only? I can provide full acpidump / DSDT
-if needed.
+---
+base-commit: 0e5d0a0b5ca6ea4e391d6786266405c5871e0151
+change-id: 20260401-rust_acpi_prp0001-a2971543b555
 
-Thanks,
-Alexander Zubkov
