@@ -1,96 +1,153 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.20])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFF2D3A7F73;
-	Tue,  7 Apr 2026 10:21:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.20
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63A993A16BD
+	for <linux-acpi@vger.kernel.org>; Tue,  7 Apr 2026 10:57:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775557272; cv=none; b=jDVIm6cF9FA4pjdsf6HPhMf5mOSa8DyWKlQqLDmVXGJoA2ndhc94+cFEnfBzoy6Vjt2CLemIqbPUmF7JQMkP44AVOqqCMbdICJ78sxKJz8/FJ8pJGvBmzLV1h9jI3C2U3sQfSle3FTIsc2fqAffB34ettrynxCMct6RzSoyDSB4=
+	t=1775559462; cv=none; b=RIAtoso0npFqocPaOEj0TwnRqTihi5z0eLrf1MVL4gqNOLxVd7y6gx45QXeLz+kA9xaIXLlCj7pb+Py4UTCFpLy8PpUnGe9e2ChfdIcLk7EMoT23eTKBcdyNluX/J1RLCPQrCa8Yaal8YWR9TqASjsfiKdG54pakE6QEB8FjLSg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775557272; c=relaxed/simple;
-	bh=lWEKuMDUirtY8W6D67nhHs6CO4IyDOIsCGg7DHJjIy4=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=RABiPx9xL3FMi21j4pkKaSYOLTtOKKFdYP2l1LnHdpubEoSc+AFMaS9pNf8FP+/lQfSHpy3PRS7lUM0PBlZlGVv/YXKXVZRZoUCBA4BQVwbqUgP7djmf1hzhuX0MOQiZbtKlVvCZo2Tlxie4e8XPACAT1LOWGoPlHgGOXoJ7bis=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=AuO8X9Ev; arc=none smtp.client-ip=198.175.65.20
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1775559462; c=relaxed/simple;
+	bh=4r1vDbs0pq5LzaslrOkl01oKuos6pzpFCtMes87/kkw=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=tzvqDeajqxQ8bzmS2SkfGq/8FKOrcXn25OuSojAOzwnBIen2xCgTwtP816Xpj8bPFy8VMAX/jH0ag1Xo+3ecPfkXnn5jYRmTOveWzjIZtXSTliO6Ee6/Pl/6d8e3fUKx8Bqes+qk9uZegmeiOiLJM9gC8EcXC7OXLKi85uS2drc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mYWWf7Qb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="AuO8X9Ev"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1775557271; x=1807093271;
-  h=from:to:cc:in-reply-to:references:subject:message-id:
-   date:mime-version:content-transfer-encoding;
-  bh=lWEKuMDUirtY8W6D67nhHs6CO4IyDOIsCGg7DHJjIy4=;
-  b=AuO8X9EvWyucD+fdDHZvqQffMnsk9mKXdVNPdxVX7J2ABM7q8TU3/NbJ
-   D+aJEZZZ36wWX0tClCWI35PwKYrhE3v3lQukX3ZfM2R+S2Fzo+w8oUfdk
-   t+o+VNoM8BaRSOa+ML71/cY2H7Uyio0WaiaUq1TkalSRyVcdmVHxvJ1Ko
-   EsT3K8wQ+eqKUbtamrqDv3O/SXzqg+wTW6RwKqzfA1fZSks54H/Ozr9Z1
-   I7tNvIR7AAPjiWdS1pQgMMH6ZsCr/jqQ3dRHzpi98f+BBwIKAM9Jo+OOZ
-   /76VrkgxMjDuarjiUxRCi2YZ9NcbbHPrSPlTg4lxNaedga1oFStqUA0PX
-   A==;
-X-CSE-ConnectionGUID: holXHKW/Qti0jiECpl6Z6w==
-X-CSE-MsgGUID: GLFrcUHPTjmisLFJNqD7Cg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11751"; a="76234250"
-X-IronPort-AV: E=Sophos;i="6.23,165,1770624000"; 
-   d="scan'208";a="76234250"
-Received: from fmviesa004.fm.intel.com ([10.60.135.144])
-  by orvoesa112.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Apr 2026 03:21:10 -0700
-X-CSE-ConnectionGUID: fZvG8Da2TgikQD0xbG8imQ==
-X-CSE-MsgGUID: IChbp1q3RKWvDus9ALgTCA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.23,165,1770624000"; 
-   d="scan'208";a="229804585"
-Received: from ijarvine-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.244.110])
-  by fmviesa004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Apr 2026 03:21:06 -0700
-From: =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Hans de Goede <hansg@kernel.org>, LKML <linux-kernel@vger.kernel.org>, 
- Linux ACPI <linux-acpi@vger.kernel.org>, 
- platform-driver-x86@vger.kernel.org, 
- Henrique de Moraes Holschuh <hmh@hmh.eng.br>, 
- Mark Pearson <mpearson-lenovo@squebb.ca>, 
- "Derek J. Clark" <derekjohn.clark@gmail.com>, 
- ibm-acpi-devel@lists.sourceforge.net
-In-Reply-To: <3949487.kQq0lBPeGt@rafael.j.wysocki>
-References: <3949487.kQq0lBPeGt@rafael.j.wysocki>
-Subject: Re: [PATCH v1] platform/x86: thinkpad_acpi: Drop ACPI driver
- registration
-Message-Id: <177555726172.8162.3791830877649176236.b4-ty@linux.intel.com>
-Date: Tue, 07 Apr 2026 13:21:01 +0300
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mYWWf7Qb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E14BC4AF09
+	for <linux-acpi@vger.kernel.org>; Tue,  7 Apr 2026 10:57:42 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1775559462;
+	bh=4r1vDbs0pq5LzaslrOkl01oKuos6pzpFCtMes87/kkw=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=mYWWf7Qby/+Ci0q++KFsbjqGBGSoCxKvCQ2kqJycj6SIEnHNLLwR9r44X0d4CPolK
+	 tg3Bfo3kPewMeTpksUKFEVeP6Mdx60XXNYMPnEHKZwOHbvf24rnA6ul1eoIUzbMlVU
+	 ZCo6qCqJhpc2PfUP3hPYjnH929wKNz2iPZqbyvPqt8pBOzT0lMi6hJddmw16cwsJfU
+	 J9ip6EGwANwwjWw33HDR4T6V/HLd5/lctDR5mnTLrAgq8pqbROkLVUVlgbnl+4rkyg
+	 NGjqcxD8eJL87zmmj8WbVfvcad2TwOSwA+tOxnekG11AdspcwOIFn48c4UKl6GjiSC
+	 7ujyavdEdgpGQ==
+Received: by mail-lf1-f50.google.com with SMTP id 2adb3069b0e04-5a3cee3a271so3204215e87.3
+        for <linux-acpi@vger.kernel.org>; Tue, 07 Apr 2026 03:57:42 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCUSndyup1La9P0a3NHtxyGLApBexZBekvoTc3JPPxBRRPQLn08fBANZL3t9kkFFGh+uu88B3cu5ArIy@vger.kernel.org
+X-Gm-Message-State: AOJu0YzqXU52f6DJJ/DdSxA0LdgCweqWu1tsi3syO4xY3CrPET70+jlr
+	B7dXAT/y/GGF9rPpbvNEqxZ14a00FTAOrMYMiO+y3ybr/qamu8nMFBgmr7G8UnYhJVkiwAxMC36
+	CkYjHb4B7e9xnQ2f0jHQSmpI/G2boTZjnovHT1+N2JQ==
+X-Received: by 2002:ac2:4e0a:0:b0:5a2:a0b0:94a with SMTP id
+ 2adb3069b0e04-5a33757bf68mr5319679e87.25.1775559460807; Tue, 07 Apr 2026
+ 03:57:40 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.13.0
+References: <20260402-baytrail-real-swnode-v2-0-6f5054a4cc07@oss.qualcomm.com>
+ <20260402-baytrail-real-swnode-v2-1-6f5054a4cc07@oss.qualcomm.com>
+ <ac5wprh9vfTU5pGa@ashevche-desk.local> <ac7UqTsPC8yUooAR@google.com>
+ <CAMRc=Mcq-T=4fnGTWXzEBjfiPaZLGw4HVAuOm48v-5Uf++K5xg@mail.gmail.com> <ac_9EV3C0I1WXQz2@google.com>
+In-Reply-To: <ac_9EV3C0I1WXQz2@google.com>
+From: Bartosz Golaszewski <brgl@kernel.org>
+Date: Tue, 7 Apr 2026 12:57:29 +0200
+X-Gmail-Original-Message-ID: <CAMRc=MeRSKWoEn36hht4JuwrwOMpoA5g_Xju2XT9Urq3mQS2wg@mail.gmail.com>
+X-Gm-Features: AQROBzBAE1qyZXcNp6W0M7clxAQQsS9tQ0MKkJzF0Q5g3_M3cSllREtCbrsIUy0
+Message-ID: <CAMRc=MeRSKWoEn36hht4JuwrwOMpoA5g_Xju2XT9Urq3mQS2wg@mail.gmail.com>
+Subject: Re: [PATCH v2 1/4] software node: return -ENXIO when referenced
+ swnode is not registered yet
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
+	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>, Daniel Scally <djrscally@gmail.com>, 
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Danilo Krummrich <dakr@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, 
+	Andy Shevchenko <andy@kernel.org>, Linus Walleij <linusw@kernel.org>, Hans de Goede <hansg@kernel.org>, 
+	=?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, 
+	Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, driver-core@lists.linux.dev, 
+	linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, 
+	platform-driver-x86@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, 24 Mar 2026 21:08:01 +0100, Rafael J. Wysocki wrote:
+On Fri, Apr 3, 2026 at 8:07=E2=80=AFPM Dmitry Torokhov
+<dmitry.torokhov@gmail.com> wrote:
+>
+> On Fri, Apr 03, 2026 at 09:29:38AM +0200, Bartosz Golaszewski wrote:
+> > On Thu, Apr 2, 2026 at 10:43=E2=80=AFPM Dmitry Torokhov
+> > <dmitry.torokhov@gmail.com> wrote:
+> > >
+> > > On Thu, Apr 02, 2026 at 04:35:34PM +0300, Andy Shevchenko wrote:
+> > > > On Thu, Apr 02, 2026 at 02:54:26PM +0200, Bartosz Golaszewski wrote=
+:
+> > > > > It's possible that at the time of resolving a reference to a remo=
+te
+> > > > > software node, the node we know exists is not yet registered as a=
+ full
+> > > > > firmware node. We currently return -ENOENT in this case but the s=
+ame
+> > > > > error code is also returned in some other cases, like the referen=
+ce
+> > > > > property with given name not existing in the property list of the=
+ local
+> > > > > software node.
+> > > > >
+> > > > > It makes sense to let users know that we're dealing with an unreg=
+istered
+> > > > > software node so that they can defer probe - the situation is som=
+ewhat
+> > > > > similar to there existing a firmware node to which no device is b=
+ound
+> > > > > yet - which is valid grounds for probe deferral. To that end: use=
+ -ENXIO
+> > > > > which stands for "No such device or address".
+> > > >
+> > > > This error code is also too generic to my taste. What about alterna=
+tive(s)?
+> > > > EADDRNOTAVAIL
+> > > > ENOTCONN
+> > > >
+> > > > (The brief grep shows that the second one might suit slightly bette=
+r than the
+> > > >  first one by existing use cases.)
+> > >
+> > > We are in the core of the driver core. Why not simply use -EPROBE_DEF=
+ER
+> > > to which all users will resolve this error to and call it a day?
+> > >
+> >
+> > Because -EPROBE_DEFER only makes sense in probe() context, while
+> > fwnode_get_reference_args() may be called in many other situations.
+>
+> Exactly same argument applies to your follow-up change: gpiod_get()
+> returning -EPROBE_DEFER only makes sense in probe context but it may be
+> called in many other situations. Are you planning to change all places
+> where gpiolib returns -EPROBE_DEFER to something else just in case it
+> might be called outside of probe context?
+>
 
-> There is no point in registering an ACPI driver that only has an empty
-> .add() callback, which is done by the thinkpad_acpi driver, since
-> after binding to an ACPI device it only sits there and does nothing.
-> 
-> That binding only effectively causes the ACPI device's reference count
-> to increase, but that can be achieved by using acpi_get_acpi_dev()
-> instead of acpi_fetch_acpi_dev() in setup_acpi_notify(), and doing
-> the corresponding cleanup in ibm_exit().
-> 
-> [...]
+I'd argue that gpiod_get() should really be limited to being called at
+probe() time but I see your point.
 
+> -EPROBE_DEFER should have been called -ENOTREADY from the beginning and
+> then we would not have this argument. Or, even better, we should have
+> used -EAGAIN. But it is just a name, semantics does not really change.
+> We want to signal that something is not ready and the operation needs be
+> repeated. Currently we contorting ourselves by using yet another error
+> code that everyone will either convert to -EPORBE_DEFER or will handle
+> like -EAGAIN.
+>
+> > I think ENOTCONN as "not connected" makes sense, though the string
+>
+> Why is it better? Most of users of -ENOTCONN are in networking code so
+> it is somewhat unexpected to have other APIs return it.
+>
+> > representation says: "Transport endpoint is not connected" which
+> > doesn't spell out quite the same thing.
+>
+> Yes, because it is really for networking/sockets handling.
+>
+> Thanks.
+>
 
-Thank you for your contribution, it has been applied to my local
-review-ilpo-next branch. Note it will show up in the public
-platform-drivers-x86/review-ilpo-next branch only once I've pushed my
-local branch there, which might take a while.
+Andy et al: what is your take on this?
 
-The list of commits applied:
-[1/1] platform/x86: thinkpad_acpi: Drop ACPI driver registration
-      commit: 955165c3e537668b9a5a6eb26397281b88143002
-
---
- i.
-
+Bart
