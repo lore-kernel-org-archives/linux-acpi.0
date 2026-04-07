@@ -1,165 +1,147 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 573521F37D3
-	for <linux-acpi@vger.kernel.org>; Tue,  7 Apr 2026 13:36:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1985A3B636E;
+	Tue,  7 Apr 2026 13:59:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.21
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775568984; cv=none; b=jVKXtQ80+Pj7vRNFXLyXrI+eCYamkkCGCxNprIOTpFIes0UQ6fzqv2XiQcyXb1XpH7u7OJbGxosLc5WSe/8oxIF7jTAKd01qnIOvID1pacdMdVFI34tcCpwTOFxzn5OhCgNswP10Htkg+fMN3iY+f+uhpetcuFokIwZdvXsrnOs=
+	t=1775570400; cv=none; b=ooty5LvFLa9SUkOmsZX1+/yvlhIZZQjTAOtWsZ3UADMALcB8hYqhEHlT8KEZZ49aHq2WrMKMK8F/QkGa0MJF5rAYMOZ2LOm+B8rZj2LBSVZqpZcEWGJ280p/Uh9GIKG1hPP1MKvytYTlB/z5+azO85y6CpQlE70wpAnsNUkCXTY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775568984; c=relaxed/simple;
-	bh=t4+6y+QheVrGV2I8uaLoNpw7AcOSpqEBFQWhZWZte4I=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=AIMlSCVDfTsZxoEXeYPJwXBvYFRM8mPeSn+A7voNsoczXYhA8BD1qx0jjP/CdX0orhI3kmbSW04hzAlv7WcQ5a2KsI6xCm5Q1W1cAwDzZ51sNWT2ynpfXhEY4Rpv9wffw+7XNzza5XCVs5MNHXQOuf59n6R/Iq+QmQMR/K2Yr4I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eYplDhKq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775570400; c=relaxed/simple;
+	bh=H3Fo4J2NVU0PFRfCQAwlJEgYC6mqn4kJRkIsmg1rNmQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=PK9GZqk2X+OEoNWMjSf4y3pi0zwpaJExTQLQdJUAWJhrPee8AT/7S5hwXzGAP6codUQ47mL3htxRUs0pQD5GKWTDCuy9CB72wbTjI0TG0SPXkxS6HN3pzubBmBJgtWIdfICUDrrtCHwy9iwvWgHDf+eAQkPYJn3Ae7bLAibX7Ks=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=KFjXiaUj; arc=none smtp.client-ip=198.175.65.21
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eYplDhKq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10528C2BCB3
-	for <linux-acpi@vger.kernel.org>; Tue,  7 Apr 2026 13:36:24 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1775568984;
-	bh=t4+6y+QheVrGV2I8uaLoNpw7AcOSpqEBFQWhZWZte4I=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=eYplDhKqLw2H2/IP4V8gg19gj95mAgL9RQw1SVPnZMhU00mdOjFFdv4pTLrGy0JUr
-	 zKbho+x9iTk5wkkLHSErLR8vrUaRPl7O2IjLGrbQpHQDC3Cbmdz4TtWZr6TeG7kAU1
-	 Fv3voSuyhQcbow+xRHbBBdYvJavILLkRM3R8riYPKMFkMlWeA974czNGYWaBR27C6E
-	 P4sp4N7WWIcqowyREfdSUAPl1Sp8xdoaO0LBctKGIsI63Ih8ZLEGxEnZO5D22rpPuE
-	 y9qVgVC5JELVig701pLynYikJWJHfMnfAmNoB2vci07T+FJVvtdcMcpFJ7MxJlCwuz
-	 OTW5kQp1Z5lIg==
-Received: by mail-oi1-f171.google.com with SMTP id 5614622812f47-463f00cda04so2740476b6e.2
-        for <linux-acpi@vger.kernel.org>; Tue, 07 Apr 2026 06:36:24 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCXYJrtVAl9e0e6g/57ayNdHqXhSl9kUIy0wCK1Zk9fRZCt7FD3rS5Ec+UONGTCaqfLQxl3ti1mZX9uJ@vger.kernel.org
-X-Gm-Message-State: AOJu0YzGbkZFOHGAoaUVoArRfY0rQKIhHwiFeWoA2H6m48mTWMlweMY5
-	QsXwHzRdY7uEibAwOCkZTTM61e4BlZjxp+b+Xjr4hXNJxUquGWGIdJYHxoZctC7wBOj2I3RA/mq
-	xsjOZamPCrRTM165F7Bp60jUFdvFrVo0=
-X-Received: by 2002:a05:6808:23c7:b0:46a:cd63:96ca with SMTP id
- 5614622812f47-46ef7919ed6mr9088986b6e.27.1775568982903; Tue, 07 Apr 2026
- 06:36:22 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="KFjXiaUj"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1775570399; x=1807106399;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:content-transfer-encoding:in-reply-to;
+  bh=H3Fo4J2NVU0PFRfCQAwlJEgYC6mqn4kJRkIsmg1rNmQ=;
+  b=KFjXiaUjrQBaUb7SBE2M+hlt2hCUGWcOpEkNOq7zK/MO970unci8Waty
+   vUFnE5XiA0uf09PTop5vKWr377HfdfJnnyVMdqrG6/q9wU8bzUaim33j7
+   Pg0AUyjXr9C5JnF2DSuRtXnUb7SR1ORYKCAnVJfDs1vhRB/zdaUV7X9UA
+   3DY2aT0c/5rSJcXGlabM1o4udVDRPOUdollXX2qHpGBEg7+ij6DnmlQwM
+   fV6Uo6PvuzrA5NzbvhWcg53PvRYx0SwTv55PdNtKVsHGx8u/W5yhWQPJa
+   E2MhGkQJm/hV46OczP85cIj8qgXWtr//R3VtGR4/5pH88h6aPYv8Vtsrj
+   g==;
+X-CSE-ConnectionGUID: wozY9WhbSWaxH2KWOTaGUQ==
+X-CSE-MsgGUID: n967fMBuTAeldXDhtCfT+Q==
+X-IronPort-AV: E=McAfee;i="6800,10657,11752"; a="76416502"
+X-IronPort-AV: E=Sophos;i="6.23,165,1770624000"; 
+   d="scan'208";a="76416502"
+Received: from fmviesa002.fm.intel.com ([10.60.135.142])
+  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Apr 2026 06:59:59 -0700
+X-CSE-ConnectionGUID: IGZNhBObRoOtINcVfkMZIw==
+X-CSE-MsgGUID: EdV9wd8jR22m7NUwFtblFA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,165,1770624000"; 
+   d="scan'208";a="251309532"
+Received: from pgcooper-mobl3.ger.corp.intel.com (HELO localhost) ([10.245.244.182])
+  by fmviesa002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Apr 2026 06:59:54 -0700
+Date: Tue, 7 Apr 2026 16:59:52 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Bartosz Golaszewski <brgl@kernel.org>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
+	Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Mika Westerberg <mika.westerberg@linux.intel.com>,
+	Andy Shevchenko <andy@kernel.org>,
+	Linus Walleij <linusw@kernel.org>, Hans de Goede <hansg@kernel.org>,
+	Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+	Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
+	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org,
+	linux-gpio@vger.kernel.org, platform-driver-x86@vger.kernel.org
+Subject: Re: [PATCH v2 1/4] software node: return -ENXIO when referenced
+ swnode is not registered yet
+Message-ID: <adUN2LIjNn9Y_xeT@ashevche-desk.local>
+References: <20260402-baytrail-real-swnode-v2-0-6f5054a4cc07@oss.qualcomm.com>
+ <20260402-baytrail-real-swnode-v2-1-6f5054a4cc07@oss.qualcomm.com>
+ <ac5wprh9vfTU5pGa@ashevche-desk.local>
+ <ac7UqTsPC8yUooAR@google.com>
+ <CAMRc=Mcq-T=4fnGTWXzEBjfiPaZLGw4HVAuOm48v-5Uf++K5xg@mail.gmail.com>
+ <ac_9EV3C0I1WXQz2@google.com>
+ <CAMRc=MeRSKWoEn36hht4JuwrwOMpoA5g_Xju2XT9Urq3mQS2wg@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260407081141.2493581-1-lihuisong@huawei.com> <20260407081141.2493581-2-lihuisong@huawei.com>
-In-Reply-To: <20260407081141.2493581-2-lihuisong@huawei.com>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Tue, 7 Apr 2026 15:36:11 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0i6eTz2EyKAd9jKK6V8S-qUhGHM7Dk+f-FYLzSrBJ0A0g@mail.gmail.com>
-X-Gm-Features: AQROBzC34aLtYLQg37BiQCL892AXHpLihD85F1-lwckm4XWgoDEAxHeSgmJtGoo
-Message-ID: <CAJZ5v0i6eTz2EyKAd9jKK6V8S-qUhGHM7Dk+f-FYLzSrBJ0A0g@mail.gmail.com>
-Subject: Re: [PATCH v2 1/2] cpuidle: Extract and export no-lock variants of cpuidle_unregister_device
-To: Huisong Li <lihuisong@huawei.com>
-Cc: rafael@kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linuxarm@huawei.com, 
-	jonathan.cameron@huawei.com, zhanjie9@hisilicon.com, zhenglifeng1@huawei.com, 
-	yubowen8@huawei.com, wangzhi12@huawei.com, zhangpengjie2@huawei.com, 
-	wanghuiqiang@huawei.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAMRc=MeRSKWoEn36hht4JuwrwOMpoA5g_Xju2XT9Urq3mQS2wg@mail.gmail.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On Tue, Apr 7, 2026 at 10:11=E2=80=AFAM Huisong Li <lihuisong@huawei.com> w=
-rote:
->
-> The cpuidle_unregister_device() function always acquire the internal
-> cpuidle_lock (or pause/resume idle) during their execution.
-> However, in some power notification scenarios (e.g., when old idle
-> states may become unavailable), it is necessary to efficiently disable
-> cpuidle first, then remove and re-create all cpuidle devices for all
-> CPUs. To avoid frequent lock overhead and ensure atomicity across the
-> entire batch operation, the caller needs to hold the cpuidle_lock once
-> outside the loop.
->
-> To address this, extract the core logic into the new function
-> cpuidle_unregister_device_no_lock() and export it.
->
-> Signed-off-by: Huisong Li <lihuisong@huawei.com>
-> ---
->  drivers/cpuidle/cpuidle.c | 22 +++++++++++++++-------
->  include/linux/cpuidle.h   |  2 ++
->  2 files changed, 17 insertions(+), 7 deletions(-)
->
-> diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
-> index c7876e9e024f..1a55542efead 100644
-> --- a/drivers/cpuidle/cpuidle.c
-> +++ b/drivers/cpuidle/cpuidle.c
-> @@ -714,16 +714,12 @@ int cpuidle_register_device(struct cpuidle_device *=
-dev)
->
->  EXPORT_SYMBOL_GPL(cpuidle_register_device);
->
-> -/**
-> - * cpuidle_unregister_device - unregisters a CPU's idle PM feature
-> - * @dev: the cpu
-> - */
-> -void cpuidle_unregister_device(struct cpuidle_device *dev)
-> +void cpuidle_unregister_device_no_lock(struct cpuidle_device *dev)
->  {
->         if (!dev || dev->registered =3D=3D 0)
->                 return;
->
-> -       cpuidle_pause_and_lock();
-> +       lockdep_assert_held(&cpuidle_lock);
->
->         cpuidle_disable_device(dev);
->
-> @@ -732,10 +728,22 @@ void cpuidle_unregister_device(struct cpuidle_devic=
-e *dev)
->         __cpuidle_unregister_device(dev);
->
->         cpuidle_coupled_unregister_device(dev);
-> +}
-> +EXPORT_SYMBOL_GPL(cpuidle_unregister_device_no_lock);
-> +
-> +/**
-> + * cpuidle_unregister_device - unregisters a CPU's idle PM feature
-> + * @dev: the cpu
-> + */
-> +void cpuidle_unregister_device(struct cpuidle_device *dev)
-> +{
-> +       if (!dev || dev->registered =3D=3D 0)
-> +               return;
->
-> +       cpuidle_pause_and_lock();
-> +       cpuidle_unregister_device_no_lock(dev);
->         cpuidle_resume_and_unlock();
->  }
-> -
->  EXPORT_SYMBOL_GPL(cpuidle_unregister_device);
->
->  /**
-> diff --git a/include/linux/cpuidle.h b/include/linux/cpuidle.h
-> index 4073690504a7..2ead2d8c57e6 100644
-> --- a/include/linux/cpuidle.h
-> +++ b/include/linux/cpuidle.h
-> @@ -188,6 +188,7 @@ extern void cpuidle_driver_state_disabled(struct cpui=
-dle_driver *drv, int idx,
->  extern void cpuidle_unregister_driver(struct cpuidle_driver *drv);
->  extern int cpuidle_register_device(struct cpuidle_device *dev);
->  extern void cpuidle_unregister_device(struct cpuidle_device *dev);
-> +extern void cpuidle_unregister_device_no_lock(struct cpuidle_device *dev=
-);
->  extern int cpuidle_register(struct cpuidle_driver *drv,
->                             const struct cpumask *const coupled_cpus);
->  extern void cpuidle_unregister(struct cpuidle_driver *drv);
-> @@ -226,6 +227,7 @@ static inline void cpuidle_unregister_driver(struct c=
-puidle_driver *drv) { }
->  static inline int cpuidle_register_device(struct cpuidle_device *dev)
->  {return -ENODEV; }
->  static inline void cpuidle_unregister_device(struct cpuidle_device *dev)=
- { }
-> +static void cpuidle_unregister_device_no_lock(struct cpuidle_device *dev=
-) {}
->  static inline int cpuidle_register(struct cpuidle_driver *drv,
->                                    const struct cpumask *const coupled_cp=
-us)
->  {return -ENODEV; }
-> --
+On Tue, Apr 07, 2026 at 12:57:29PM +0200, Bartosz Golaszewski wrote:
+> On Fri, Apr 3, 2026 at 8:07 PM Dmitry Torokhov
+> <dmitry.torokhov@gmail.com> wrote:
+> > On Fri, Apr 03, 2026 at 09:29:38AM +0200, Bartosz Golaszewski wrote:
+> > > On Thu, Apr 2, 2026 at 10:43 PM Dmitry Torokhov
+> > > <dmitry.torokhov@gmail.com> wrote:
+> > > > On Thu, Apr 02, 2026 at 04:35:34PM +0300, Andy Shevchenko wrote:
+> > > > > On Thu, Apr 02, 2026 at 02:54:26PM +0200, Bartosz Golaszewski wrote:
 
-Both patches applied as 7.1 material, though I'm somewhat nervous
-about removing sysfs entries under cpus_read_lock().
+...
 
-Note that I've changed the subject of the second patch to "ACPI:
-processor: idle: Reset cpuidle on C-state list changes".
+> > > Because -EPROBE_DEFER only makes sense in probe() context, while
+> > > fwnode_get_reference_args() may be called in many other situations.
+> >
+> > Exactly same argument applies to your follow-up change: gpiod_get()
+> > returning -EPROBE_DEFER only makes sense in probe context but it may be
+> > called in many other situations. Are you planning to change all places
+> > where gpiolib returns -EPROBE_DEFER to something else just in case it
+> > might be called outside of probe context?
+> 
+> I'd argue that gpiod_get() should really be limited to being called at
+> probe() time but I see your point.
 
-Thanks!
+There is weird hardware that might need to switch GPIO from IRQ (input) to
+output at runtime (at least some touchscreens functioning like that IIRC).
+But I dunno if it requires gpiod_put()/gpiod_get() dances.
+
+> > -EPROBE_DEFER should have been called -ENOTREADY from the beginning and
+> > then we would not have this argument. Or, even better, we should have
+> > used -EAGAIN. But it is just a name, semantics does not really change.
+> > We want to signal that something is not ready and the operation needs be
+> > repeated. Currently we contorting ourselves by using yet another error
+> > code that everyone will either convert to -EPORBE_DEFER or will handle
+> > like -EAGAIN.
+> >
+> > > I think ENOTCONN as "not connected" makes sense, though the string
+> >
+> > Why is it better? Most of users of -ENOTCONN are in networking code so
+> > it is somewhat unexpected to have other APIs return it.
+> >
+> > > representation says: "Transport endpoint is not connected" which
+> > > doesn't spell out quite the same thing.
+> >
+> > Yes, because it is really for networking/sockets handling.
+
+> Andy et al: what is your take on this?
+
+I already commented on this while ago, and I think EPROBE_DEFER should be
+limited as much as possible (and eventually killed for good). This is known
+hack to the Linux device model instead of doing it via some graphs that are
+constructed during initialisation. There were talks and approaches how to
+solve this using graph theory IIRC (i.o.w. mathematically proven).
+
+To the current case, I think the fwnode/swnode APIs should be clean of
+deferred probe hack, so I like Bart's patch.
+
+-- 
+With Best Regards,
+Andy Shevchenko
+
+
