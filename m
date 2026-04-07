@@ -1,100 +1,133 @@
-Received: from canpmsgout01.his.huawei.com (canpmsgout01.his.huawei.com [113.46.200.216])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF3D638838A;
-	Tue,  7 Apr 2026 06:36:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.216
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7EF224DD15;
+	Tue,  7 Apr 2026 07:04:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.21
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775543812; cv=none; b=K/YWQEuB9oTaM6tVlD7RjqJo6ioxa+I5TO+QkIprLiZd2KaBjnANmi/Jm4c2yYdI1DxKnCH5CeLSOCBXjZ0QLwK4w9Tpw3Pb7lyWGGz+9L/1BrhLFPASt3++IvPj7q6JrKy389WlT/gjREiT0GsqxVzTfzOyhRiKMD3tkdSBv6I=
+	t=1775545466; cv=none; b=ko43HtljLNroCe9TElndplzYY++FYeys9o0+TR6hdbOsNKtF9OnHYmYCdxP7ffxbmq2BCfmiWz099FvLtnfcD5ndr0dregXJdSy0YeZ/FfPXYM21qrEqXxdWGbm7NtC4QO0+mB/tF5cLcHBD+RXHx8cHVDaLw/u+29VGRgdFJ+U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775543812; c=relaxed/simple;
-	bh=Q0xfphDZWpWzLvgeQV/FeyZvzyzk7zUGIeHSb/2hdIw=;
-	h=Subject:To:CC:References:From:Message-ID:Date:MIME-Version:
-	 In-Reply-To:Content-Type; b=h6YG5HQa0l3bG5mmOdZcgMtnIaQmJUeKmDcf4YMEIBcq/MwRlCNI9QFtMiQtWBQdI/X8LnOwjbWS2n7uOxF0KTQsu0gtN/4YUAIaKhDVdVr8OUGBBDBajAptz2RkjpfymntOcBDVXFg75iH1SOvCt8FunzimzcZea2/lfX+2oN0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=KodDnzDX; arc=none smtp.client-ip=113.46.200.216
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+	s=arc-20240116; t=1775545466; c=relaxed/simple;
+	bh=Gjw9pVSfJyk8lGKR3YSdogwRldHB4JrnsplgXcwYkOg=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Smj2V+3wF6ZkF9xlH7DMGeTBSAECgB7FTjuS5df7EWe8pk+IOTpIW0AvNWNmD+Xxp2IczkTUOXvQjW8iuLYkBTyAMr59rU8ysKgyu8BNApLwfwmKK4MxhzP/t8m1kLtPJHEy+wuvncv1n4qsZhWMJMIAxNYGkD8if7S1vFpAkXw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=PI6nTNkq; arc=none smtp.client-ip=198.175.65.21
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="KodDnzDX"
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=sOMRFVxkkjIdBVHHRMg1i4CxlVw1ZlggtUcOT1JfmRY=;
-	b=KodDnzDXynX43R1YNENTD4eOOJlfHbew+wKDbQKhYzADoR5O2bpFYRP20JGABtq6R3nfrFW4H
-	ii1VLlpyAPpp9MzAsO8YCJTCrAmH9rQGtkeoVJu4+VCwB71WTLYj7A6fH5qrayDHBiZYPKIfRZr
-	izV54KdG6Y1+h3jeQGUK/rQ=
-Received: from mail.maildlp.com (unknown [172.19.162.197])
-	by canpmsgout01.his.huawei.com (SkyGuard) with ESMTPS id 4fqbtL06yhz1T4G8;
-	Tue,  7 Apr 2026 14:30:50 +0800 (CST)
-Received: from dggpemf500002.china.huawei.com (unknown [7.185.36.57])
-	by mail.maildlp.com (Postfix) with ESMTPS id 381A040576;
-	Tue,  7 Apr 2026 14:36:39 +0800 (CST)
-Received: from [10.174.179.24] (10.174.179.24) by
- dggpemf500002.china.huawei.com (7.185.36.57) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Tue, 7 Apr 2026 14:36:38 +0800
-Subject: Re: [PATCH v3] ACPI: AGDI: fix missing newline in error message
-To: Haoyu Lu <hechushiguitu666@gmail.com>, "Rafael J . Wysocki"
-	<rafael@kernel.org>, Lorenzo Pieralisi <lpieralisi@kernel.org>, Sudeep Holla
-	<sudeep.holla@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Will
- Deacon <will@kernel.org>
-CC: Len Brown <lenb@kernel.org>, Ilkka Koskinen
-	<ilkka@os.amperecomputing.com>, Russell King <rmk+kernel@armlinux.org.uk>,
-	<linux-acpi@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
-	<linux-kernel@vger.kernel.org>
-References: <20260407033117.100-1-hechushiguitu666@gmail.com>
-From: Hanjun Guo <guohanjun@huawei.com>
-Message-ID: <714472c7-ec8b-9f6b-928a-3de62f14b4f2@huawei.com>
-Date: Tue, 7 Apr 2026 14:36:37 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101
- Thunderbird/68.6.0
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="PI6nTNkq"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1775545465; x=1807081465;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=Gjw9pVSfJyk8lGKR3YSdogwRldHB4JrnsplgXcwYkOg=;
+  b=PI6nTNkq3/9bhWRVD9CUTOVPp8FX6dQlxysNiAxcilvqafVy8wCbJxgh
+   AN/2LWCh7+FOIaEFeaEwP3BuQEDdRCZ0YbmmnN7vF20HeY1bvcnAhIxTy
+   2wuos2w9t7sA7OGZXWannhGCTRUXosEVPHnsD3xynZpOIvUvyt79U04bO
+   jYvRqiimpcyqlEPpGUdgHHQh5+HNaXsWD8NkVSp8tMH1iN049IziXJ4+k
+   2K+4x0FgcfNd5+60SAGt15R7Q5Svrm5iaoJivc4WmwDaA/Xso12PX9Wx8
+   pCgzOCEog/SO5+9MRDU7yGdc2VDoCr3Nt/1KjQxbsFb04tYgRo68n2hVN
+   w==;
+X-CSE-ConnectionGUID: eJKNYQvTQMy7ZY+eu6mE/A==
+X-CSE-MsgGUID: ARfPmcHmR02XoqpUWCOT6Q==
+X-IronPort-AV: E=McAfee;i="6800,10657,11751"; a="76382599"
+X-IronPort-AV: E=Sophos;i="6.23,165,1770624000"; 
+   d="scan'208";a="76382599"
+Received: from fmviesa010.fm.intel.com ([10.60.135.150])
+  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Apr 2026 00:04:09 -0700
+X-CSE-ConnectionGUID: ARjcj5YsSkOuSW/B4EXUQA==
+X-CSE-MsgGUID: qBWU+OS7SPqqGskJaINwjg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,165,1770624000"; 
+   d="scan'208";a="223779891"
+Received: from amilburn-desk.amilburn-desk (HELO kekkonen.fi.intel.com) ([10.245.244.123])
+  by fmviesa010-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Apr 2026 00:04:04 -0700
+Received: from kekkonen.localdomain (localhost [IPv6:::1])
+	by kekkonen.fi.intel.com (Postfix) with SMTP id 19E3E12080D;
+	Tue, 07 Apr 2026 10:04:18 +0300 (EEST)
+Date: Tue, 7 Apr 2026 10:04:18 +0300
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6 krs, Bertel Jungin Aukio 5, 02600 Espoo
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Mika Westerberg <mika.westerberg@linux.intel.com>,
+	Andy Shevchenko <andy@kernel.org>,
+	Linus Walleij <linusw@kernel.org>, Hans de Goede <hansg@kernel.org>,
+	Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
+	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org,
+	linux-gpio@vger.kernel.org, platform-driver-x86@vger.kernel.org,
+	brgl@kernel.org
+Subject: Re: [PATCH v3 1/2] software node: return -ENOTCONN when referenced
+ swnode is not registered yet
+Message-ID: <adSscliuE_kHopnC@kekkonen.localdomain>
+References: <20260403-swnode-unreg-retcode-v3-0-7886092b28b4@oss.qualcomm.com>
+ <20260403-swnode-unreg-retcode-v3-1-7886092b28b4@oss.qualcomm.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <20260407033117.100-1-hechushiguitu666@gmail.com>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: kwepems100002.china.huawei.com (7.221.188.206) To
- dggpemf500002.china.huawei.com (7.185.36.57)
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260403-swnode-unreg-retcode-v3-1-7886092b28b4@oss.qualcomm.com>
 
-On 2026/4/7 11:31, Haoyu Lu wrote:
-> Add the missing trailing newline to the dev_err() message
-> printed when SDEI event registration fails.
+Hi Bartosz,
+
+Thanks for the update.
+
+On Fri, Apr 03, 2026 at 03:51:50PM +0200, Bartosz Golaszewski wrote:
+> It's possible that at the time of resolving a reference to a remote
+> software node, the node we know exists is not yet registered as a full
+> firmware node. We currently return -ENOENT in this case but the same
+> error code is also returned in some other cases, like the reference
+> property with given name not existing in the property list of the local
+> software node.
 > 
-> This keeps the error output as a properly terminated log line.
+> It makes sense to let users know that we're dealing with an unregistered
+> software node so that they can defer probe - the situation is somewhat
+> similar to there existing a firmware node to which no device is bound
+> yet - which is valid grounds for probe deferral. To that end: use
+> -ENOTCONN to indicate the software node is "not connected".
 > 
-> Fixes: a2a591fb76e6f5461dfd04715b69c317e50c43a5 ("ACPI: AGDI: Add driver for Arm Generic Diagnostic Dump and Reset device")
-> Reviewed-by: Ilkka Koskinen <ilkka@os.amperecomputing.com>
-> Signed-off-by: Haoyu Lu <hechushiguitu666@gmail.com>
+> Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
 > ---
-> Changes in v2:
-> - Change subject prefix from "acpi: arm64: agdi:" to "ACPI: AGDI:"
+>  drivers/base/swnode.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> Changes in v3:
-> - Move version history below the "---" separator as per review feedback
-> 
->   drivers/acpi/arm64/agdi.c | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/arm64/agdi.c b/drivers/acpi/arm64/agdi.c
-> index feb4b2cb4618..0c2d9d6c160b 100644
-> --- a/drivers/acpi/arm64/agdi.c
-> +++ b/drivers/acpi/arm64/agdi.c
-> @@ -36,7 +36,7 @@ static int agdi_sdei_probe(struct platform_device *pdev,
-> 
->   	err = sdei_event_register(adata->sdei_event, agdi_sdei_handler, pdev);
->   	if (err) {
-> -		dev_err(&pdev->dev, "Failed to register for SDEI event %d",
-> +		dev_err(&pdev->dev, "Failed to register for SDEI event %d\n",
->   			adata->sdei_event);
->   		return err;
->   	}
+> diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
+> index 51320837f3a9f1bf4f65aa161d9b941affc74936..61e73417aee89feb855b0f429e112ca0af78a003 100644
+> --- a/drivers/base/swnode.c
+> +++ b/drivers/base/swnode.c
+> @@ -554,7 +554,7 @@ software_node_get_reference_args(const struct fwnode_handle *fwnode,
+>  		return -EINVAL;
+>  
+>  	if (!refnode)
+> -		return -ENOENT;
+> +		return -ENOTCONN;
 
-Reviewed-by: Hanjun Guo <guohanjun@huawei.com>
+This needs to be documented for fwnode_property_get_reference_args() as
+well.
 
-Thanks
-Hanjun
+In V4L2 we do
+<URL:https://lore.kernel.org/linux-media/20260313091122.GA333526@killaraus.ideasonboard.com/T/#t>
+so the caller just returns the error code but maybe that's not generic
+enough.
+
+>  
+>  	if (nargs_prop) {
+>  		error = fwnode_property_read_u32(refnode, nargs_prop, &nargs_prop_val);
+> 
+
+-- 
+Kind regards,
+
+Sakari Ailus
