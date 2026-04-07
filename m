@@ -1,216 +1,214 @@
-Received: from mailout2.w1.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.7])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97E0C39B948
-	for <linux-acpi@vger.kernel.org>; Tue,  7 Apr 2026 08:57:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=210.118.77.12
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DB5439A7E5;
+	Tue,  7 Apr 2026 09:49:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.7
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775552243; cv=none; b=E9NtN/2KOxTfeiQRMpqzEMkQ3Cd8jrA+rb04OUQ/NVpVVS0i6OfWRwi5FI5N/DTkrt/XqTh0pMT/uIlz2PWfQmyr+xTILa2BNH7XCHZHzujhyiFOxKobGbvYQKb0NVs3bnyFalHepZxXFeieF5UNt3mAQhnuyMfZuc9GgsR5zbw=
+	t=1775555365; cv=none; b=SzJsCF5zROPL+zI5pdYSMPHCPGrKJFOp8FT1R2lxCxiKbR2ffVZJ0kx4dZijPycziZWnK8viGrT5PDrzVo43Y2jonePAOUOWBzfk4i2VHY2iZI61/nJDAx1uAjtnMs7oNYDLw6Dq8lJgYHIUOIduIiG/Bb6VW39laPaOgD/y6JU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775552243; c=relaxed/simple;
-	bh=flM5R4a3zc02/BOf48KzXgd1rgLMFNIw0OQjt1NUicI=;
-	h=Message-ID:Date:MIME-Version:From:Subject:To:Cc:In-Reply-To:
-	 Content-Type:References; b=urSTnLk7bYjeacAoC6VIzcXHzSQNXv0c2d15VPhTqAqNqQskSrqzqP7/4LT2Tfz+6doRpPsZ1NbGGhJdVj1uIZ+3MrqLy7yToeOCiTPgoOKgh7Ex0Jx/Ex2mYe7GIxXdKhgALedZn0vP6XF3sTI1aZu8r4MTcMkNQZah7GpKq4Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=RZP7wrMK; arc=none smtp.client-ip=210.118.77.12
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
+	s=arc-20240116; t=1775555365; c=relaxed/simple;
+	bh=RDUqleSpjpgYZePf8Bz8VO9+1LyDG8E6th7dDGstbCo=;
+	h=From:Date:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=cldCERMEmGp1StqBcTtf1rCHbb0UuYs+qrRreRSn0IzpAS3/SlqzOg2S5V1SNCPsyJRawRLR/emtTtob9/1tsb7Op9pI0YLGDUAs6VZN8w1NnRPn0+P0WpTA4v3xfvYyuKPIpKIARRga72ptDi/fREf5dRRrkJQsTDC4sDO5coI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=CUPFJSM9; arc=none smtp.client-ip=192.198.163.7
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="RZP7wrMK"
-Received: from eucas1p2.samsung.com (unknown [182.198.249.207])
-	by mailout2.w1.samsung.com (KnoxPortal) with ESMTP id 20260407085713euoutp023b2a4a581a1e3c94cf74a9cd7a3a6bb2~kB1lYuD900442304423euoutp02G
-	for <linux-acpi@vger.kernel.org>; Tue,  7 Apr 2026 08:57:13 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout2.w1.samsung.com 20260407085713euoutp023b2a4a581a1e3c94cf74a9cd7a3a6bb2~kB1lYuD900442304423euoutp02G
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-	s=mail20170921; t=1775552233;
-	bh=j6bI40rFXjnNi4xEhtGuTS96Jn2uqw2dljQ1TolNlrY=;
-	h=Date:From:Subject:To:Cc:In-Reply-To:References:From;
-	b=RZP7wrMKzjWpTNSEshTsXiJTw8AOOP1zOFBBv3tS71vQiKtLXKVltuDeWF8EcIlfM
-	 zElp9QyxfncUuCiEwOUWl9FjZN1RcG+kB8hUgcqxg2h6EcoSs1h0Ivn4/iGzNp9W9Y
-	 Hbg61O3FN+HxRRDMyEpK+gegKhATJxWzq1dImPGc=
-Received: from eusmtip2.samsung.com (unknown [203.254.199.222]) by
-	eucas1p2.samsung.com (KnoxPortal) with ESMTPA id
-	20260407085713eucas1p2511c88350d65a30746d62a99c13306c5~kB1lHOMuj1628516285eucas1p2J;
-	Tue,  7 Apr 2026 08:57:13 +0000 (GMT)
-Received: from [106.210.134.192] (unknown [106.210.134.192]) by
-	eusmtip2.samsung.com (KnoxPortal) with ESMTPA id
-	20260407085711eusmtip2e1ec49f71f6ce486832315b6cf927c28~kB1jYPioW0291302913eusmtip27;
-	Tue,  7 Apr 2026 08:57:11 +0000 (GMT)
-Message-ID: <e65750d2-7e1a-4e4a-acd9-ab4c4d0a2055@samsung.com>
-Date: Tue, 7 Apr 2026 10:57:10 +0200
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="CUPFJSM9"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1775555363; x=1807091363;
+  h=from:date:to:cc:subject:in-reply-to:message-id:
+   references:mime-version;
+  bh=RDUqleSpjpgYZePf8Bz8VO9+1LyDG8E6th7dDGstbCo=;
+  b=CUPFJSM9tj3DrIH0ei/pO3hI8m2WIC5l+B5PXmGvqmJa/7n6WGbtZgTV
+   Wi/H8fNtaoZR6uy0XEeV8JvRlJ5UF7Ixoi65X6sQYQUvy8ew4Brpj+ZVb
+   qQINUeAv7Q48PIboBXxvHVY6Q1PLWwNb3UeH3l7T6ojHiTSGH/voAnGiI
+   xMIPZZb96XgtIhxBGNwYHOAHxFv3hAAXwZ+XVcm8IqZm4jz6lYu9P/j5s
+   kJTf7UASs6MZx6ZBUGMd7PS6Vay5ZOo1EMgXJ5ddBZOjOIE2OFsAohn4j
+   E7brYGX7QCr/qHq2++0mERQe/gJbqlAC0r2VDRrkL+IcthseWKISvbXSy
+   g==;
+X-CSE-ConnectionGUID: TkyHX+G4Te2QIx+wreNUJw==
+X-CSE-MsgGUID: JZC0bhSbRO2TsR/YsdreXw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11751"; a="101968732"
+X-IronPort-AV: E=Sophos;i="6.23,165,1770624000"; 
+   d="scan'208";a="101968732"
+Received: from fmviesa009.fm.intel.com ([10.60.135.149])
+  by fmvoesa101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Apr 2026 02:49:23 -0700
+X-CSE-ConnectionGUID: 2FJbUA4/RQqMsNvCMWCGTQ==
+X-CSE-MsgGUID: yrE75+9kS5eSwf0onIxgwg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,165,1770624000"; 
+   d="scan'208";a="221552409"
+Received: from ijarvine-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.244.110])
+  by fmviesa009-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Apr 2026 02:49:19 -0700
+From: =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
+Date: Tue, 7 Apr 2026 12:49:16 +0300 (EEST)
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+cc: Hans de Goede <hansg@kernel.org>, LKML <linux-kernel@vger.kernel.org>, 
+    Linux ACPI <linux-acpi@vger.kernel.org>, 
+    platform-driver-x86@vger.kernel.org, 
+    Corentin Chary <corentin.chary@gmail.com>, 
+    "Luke D. Jones" <luke@ljones.dev>, Denis Benato <benato.denis96@gmail.com>, 
+    =?ISO-8859-15?Q?Jo=E3o_Paulo_Rechi_Vita?= <jprvita@gmail.com>
+Subject: Re: [PATCH v1 4/4] platform/x86: asus-wireless: Convert ACPI driver
+ to a platform one
+In-Reply-To: <13959361.uLZWGnKmhe@rafael.j.wysocki>
+Message-ID: <daa3e217-4099-7cdc-93b3-fde37864cd28@linux.intel.com>
+References: <5971620.DvuYhMxLoT@rafael.j.wysocki> <13959361.uLZWGnKmhe@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Betterbird (Windows)
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH v5 0/9] driver core: Fix some race conditions
-To: Douglas Anderson <dianders@chromium.org>, Greg Kroah-Hartman
-	<gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>, Alan Stern <stern@rowland.harvard.edu>
-Cc: Leon Romanovsky <leon@kernel.org>, Christoph Hellwig <hch@lst.de>, Robin
-	Murphy <robin.murphy@arm.com>, driver-core@lists.linux.dev,
-	iommu@lists.linux.dev, linux-acpi@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-mm@kvack.org, linux-pci@vger.kernel.org, linux-usb@vger.kernel.org,
-	linux@armlinux.org.uk
-Content-Language: en-US
-In-Reply-To: <20260406232444.3117516-1-dianders@chromium.org>
-Content-Transfer-Encoding: 7bit
-X-CMS-MailID: 20260407085713eucas1p2511c88350d65a30746d62a99c13306c5
-X-Msg-Generator: CA
-Content-Type: text/plain; charset="utf-8"
-X-RootMTR: 20260406232527eucas1p2faa678aa90f0636bd17e0a7f4cb8fa28
-X-EPHeader: CA
-X-CMS-RootMailID: 20260406232527eucas1p2faa678aa90f0636bd17e0a7f4cb8fa28
-References: <CGME20260406232527eucas1p2faa678aa90f0636bd17e0a7f4cb8fa28@eucas1p2.samsung.com>
-	<20260406232444.3117516-1-dianders@chromium.org>
+Content-Type: multipart/mixed; boundary="8323328-516245395-1775555356=:983"
 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-On 07.04.2026 01:22, Douglas Anderson wrote:
-> The main goal of this series is to fix the observed bug talked about
-> in the first patch ("driver core: Don't let a device probe until it's
-> ready"). That patch fixes a problem that has been observed in the real
-> world and could land even if the rest of the patches are found
-> unacceptable or need to be spun.
->
-> That said, during patch review Danilo correctly pointed out that many
-> of the bitfield accesses in "struct device" are unsafe. I added a
-> bunch of patches in the series to address each one.
->
-> Danilo said he's most worried about "can_match", so I put that one
-> first. After that, I tried to transition bitfields to flags in reverse
-> order to when the bitfield was added.
->
-> Even if transitioning from bitfields to flags isn't truly needed for
-> correctness, it seems silly (and wasteful of space in struct device)
-> to have some in bitfields and some as flags. Thus I didn't spend time
-> for each bitfield showing that it's truly needed for correctness.
->
-> Transition was done semi manually. Presumably someone skilled at
-> coccinelle could do a better job, but I just used sed in a heavy-
-> handed manner and then reviewed/fixed the results, undoing anything my
-> script got wrong. My terrible/ugly script was:
->
-> var=can_match
-> caps="${var^^}"
-> for f in $(git grep -l "[>\.]${var}[^1-9_a-zA-Z\[]"); do
->   echo $f
->   sed -i~ -e "s/\([a-zA-Z_0-9\.>()-][a-zA-Z_0-9\.>()-]*\)->${var} = true/set_bit(DEV_FLAG_${caps}, \&\\1->flags)/" "$f"
->   sed -i~ -e "s/\([a-zA-Z_0-9\.>()-][a-zA-Z_0-9\.>()-]*\)\.${var} = true/dev_set_${caps}(\&\\1)/" "$f"
->   sed -i~ -e "s/\([a-zA-Z_0-9\.>()-][a-zA-Z_0-9\.>()-]*\)->${var} = false/clear_bit(DEV_FLAG_${caps}, \&\\1->flags)/" "$f"
->   sed -i~ -e "s/\([a-zA-Z_0-9\.>()-][a-zA-Z_0-9\.>()-]*\)\.${var} = false/dev_clear_${caps}(\&\\1)/" "$f"
->   sed -i~ -e "s/\([a-zA-Z_0-9\.>()-][a-zA-Z_0-9\.>()-]*\)->${var} = \([^;]*\)/assign_bit(DEV_FLAG_${caps}, \&\\1->flags, \\2)/" "$f"
->   sed -i~ -e "s/\([a-zA-Z_0-9\.>()-][a-zA-Z_0-9\.>()-]*\)\.${var} = \([^;]*\)/dev_assign_${caps}(\&\\1, \\2)/" "$f"
->   sed -i~ -e "s/\([a-zA-Z_0-9\.>()-][a-zA-Z_0-9\.>()-]*\)->${var}\([^1-9_a-zA-Z\[]\)/test_bit(DEV_FLAG_${caps}, \&\\1->flags)\\2/" "$f"
->   sed -i~ -e "s/\([a-zA-Z_0-9\.>()-][a-zA-Z_0-9\.>()-]*\)\.${var}\([^1-9_a-zA-Z\[]\)/dev_${caps}(\&\\1)\\2/" "$f"
-> done
->
-> From v3 to v4, I transitioned to accessor functions with another ugly
-> sed script. I had git format the old patches, then transformed them
-> with:
->
-> for f in *.patch; do
->   echo $f
->   sed -i~ -e "s/test_and_set_bit(DEV_FLAG_\([^,]*\), \&\(.*\)->flags)/dev_test_and_set_\\L\\1(\\2)/" "$f"
->   sed -i~ -e "s/test_and_set_bit(DEV_FLAG_\([^,]*\), \(.*\)\.flags)/dev_test_and_set_\\L\\1(\\2)/" "$f"
->   sed -i~ -e "s/test_bit(DEV_FLAG_\([^,]*\), \&\(.*\)->flags)/dev_\\L\\1(\\2)/" "$f"
->   sed -i~ -e "s/test_bit(DEV_FLAG_\([^,]*\), \(.*\)\.flags)/dev_\\L\\1(\\2)/" "$f"
->   sed -i~ -e "s/set_bit(DEV_FLAG_\([^,]*\), \&\(.*\)->flags)/dev_set_\\L\\1(\\2)/" "$f"
->   sed -i~ -e "s/set_bit(DEV_FLAG_\([^,]*\), \(.*\)\.flags)/dev_set_\\L\\1(\\2)/" "$f"
->   sed -i~ -e "s/clear_bit(DEV_FLAG_\([^,]*\), \&\(.*\)->flags)/dev_clear_\\L\\1(\\2)/" "$f"
->   sed -i~ -e "s/clear_bit(DEV_FLAG_\([^,]*\), \(.*\)\.flags)/dev_clear_\\L\\1(\\2)/" "$f"
->   sed -i~ -e "s/assign_bit(DEV_FLAG_\([^,]*\), \&\(.*\)->flags, \(.*\))/dev_assign_\\L\\1(\\2, \\3)/" "$f"
->   sed -i~ -e "s/assign_bit(DEV_FLAG_\([^,]*\), \(.*\)\.flags, \(.*\))/dev_assign_\\L\\1(\\2, \\3)/" "$f"
-> done
->
-> ...and then did a few manual touchups for spacing.
->
-> I only marked the first patch as a "Fix" since it is the only one
-> fixing observed problems. Other patches could be considered fixes too
-> if folks want.
->
-> I tested the first patch in the series backported to kernel 6.6 on the
-> Pixel phone that was experiencing the race. I added extra printouts to
-> make sure that the problem was hitting / addressed. The rest of the
-> patches are tested with allmodconfig with arm32, arm64, ppc, and
-> x86. I boot tested on an arm64 Chromebook running mainline.
-The dma-mapping related bits are probably not race prone, but if you plan
-to refactor that part I won't object.
+--8323328-516245395-1775555356=:983
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-Acked-by: Marek Szyprowski
+On Sat, 28 Feb 2026, Rafael J. Wysocki wrote:
 
+> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+>=20
+> In all cases in which a struct acpi_driver is used for binding a driver
+> to an ACPI device object, a corresponding platform device is created by
+> the ACPI core and that device is regarded as a proper representation of
+> underlying hardware.  Accordingly, a struct platform_driver should be
+> used by driver code to bind to that device.  There are multiple reasons
+> why drivers should not bind directly to ACPI device objects [1].
+>=20
+> Overall, it is better to bind drivers to platform devices than to their
+> ACPI companions, so convert the Asus wireless ACPI driver to a platform
+> one.
+>=20
+> After this change, the subordinate input and LED devices will be
+> registered under the platform device used for driver binding instead of
+> its ACPI companion.
+>=20
+> While this is not expected to alter functionality, it changes sysfs
+> layout and so it will be visible to user space.
+>=20
+> Link: https://lore.kernel.org/all/2396510.ElGaqSPkdT@rafael.j.wysocki/ [1=
+]
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/platform/x86/asus-wireless.c | 39 +++++++++++++++-------------
+>  1 file changed, 21 insertions(+), 18 deletions(-)
+>=20
+> diff --git a/drivers/platform/x86/asus-wireless.c b/drivers/platform/x86/=
+asus-wireless.c
+> index 45d41875c515..2b494bf3cba8 100644
+> --- a/drivers/platform/x86/asus-wireless.c
+> +++ b/drivers/platform/x86/asus-wireless.c
+> @@ -12,6 +12,7 @@
+>  #include <linux/acpi.h>
+>  #include <linux/input.h>
+>  #include <linux/pci_ids.h>
+> +#include <linux/platform_device.h>
+>  #include <linux/leds.h>
+> =20
+>  struct hswc_params {
+> @@ -124,19 +125,22 @@ static void asus_wireless_notify(acpi_handle handle=
+, u32 event, void *context)
+>  =09input_sync(data->idev);
+>  }
+> =20
+> -static int asus_wireless_add(struct acpi_device *adev)
+> +static int asus_wireless_probe(struct platform_device *pdev)
+>  {
+> +=09struct acpi_device *adev =3D ACPI_COMPANION(&pdev->dev);
+>  =09struct asus_wireless_data *data;
+>  =09const struct acpi_device_id *id;
+>  =09int err;
+> =20
+> -=09data =3D devm_kzalloc(&adev->dev, sizeof(*data), GFP_KERNEL);
+> +=09data =3D devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
+>  =09if (!data)
+>  =09=09return -ENOMEM;
+> -=09adev->driver_data =3D data;
+> +
+> +=09platform_set_drvdata(pdev, data);
+> +
+>  =09data->adev =3D adev;
+> =20
+> -=09data->idev =3D devm_input_allocate_device(&adev->dev);
+> +=09data->idev =3D devm_input_allocate_device(&pdev->dev);
+>  =09if (!data->idev)
+>  =09=09return -ENOMEM;
+>  =09data->idev->name =3D "Asus Wireless Radio Control";
+> @@ -165,14 +169,14 @@ static int asus_wireless_add(struct acpi_device *ad=
+ev)
+>  =09data->led.flags =3D LED_CORE_SUSPENDRESUME;
+>  =09data->led.max_brightness =3D 1;
+>  =09data->led.default_trigger =3D "rfkill-none";
+> -=09err =3D devm_led_classdev_register(&adev->dev, &data->led);
+> +=09err =3D devm_led_classdev_register(&pdev->dev, &data->led);
+>  =09if (err)
+>  =09=09goto err;
+> =20
+>  =09err =3D acpi_dev_install_notify_handler(adev, ACPI_DEVICE_NOTIFY,
+>  =09=09=09=09=09      asus_wireless_notify, data);
+>  =09if (err) {
+> -=09=09devm_led_classdev_unregister(&adev->dev, &data->led);
+> +=09=09devm_led_classdev_unregister(&pdev->dev, &data->led);
 
-> Changes in v5:
-> - ready_to_prove => ready_to_probe typo
-> - device_lock() while calling dev_set_ready_to_probe()
-> - Add comment before "can_match = true" from Danilo.
-> - undef __create_dev_flag_accessors
->
-> Changes in v4:
-> - Use accessor functions for flags
->
-> Changes in v3:
-> - Use a new "flags" bitfield
-> - Add missing \n in probe error message
->
-> Changes in v2:
-> - Instead of adjusting the ordering, use "ready_to_probe" flag
->
-> Douglas Anderson (9):
->   driver core: Don't let a device probe until it's ready
->   driver core: Replace dev->can_match with dev_can_match()
->   driver core: Replace dev->dma_iommu with dev_dma_iommu()
->   driver core: Replace dev->dma_skip_sync with dev_dma_skip_sync()
->   driver core: Replace dev->dma_ops_bypass with dev_dma_ops_bypass()
->   driver core: Replace dev->state_synced with dev_state_synced()
->   driver core: Replace dev->dma_coherent with dev_dma_coherent()
->   driver core: Replace dev->of_node_reused with dev_of_node_reused()
->   driver core: Replace dev->offline + ->offline_disabled with accessors
->
->  arch/arc/mm/dma.c                             |   4 +-
->  arch/arm/mach-highbank/highbank.c             |   2 +-
->  arch/arm/mach-mvebu/coherency.c               |   2 +-
->  arch/arm/mm/dma-mapping-nommu.c               |   4 +-
->  arch/arm/mm/dma-mapping.c                     |  28 ++--
->  arch/arm64/kernel/cpufeature.c                |   2 +-
->  arch/arm64/mm/dma-mapping.c                   |   2 +-
->  arch/mips/mm/dma-noncoherent.c                |   2 +-
->  arch/powerpc/kernel/dma-iommu.c               |   8 +-
->  .../platforms/pseries/hotplug-memory.c        |   4 +-
->  arch/riscv/mm/dma-noncoherent.c               |   2 +-
->  drivers/acpi/scan.c                           |   2 +-
->  drivers/base/core.c                           |  55 +++++---
->  drivers/base/cpu.c                            |   4 +-
->  drivers/base/dd.c                             |  36 ++++--
->  drivers/base/memory.c                         |   2 +-
->  drivers/base/pinctrl.c                        |   2 +-
->  drivers/base/platform.c                       |   2 +-
->  drivers/dma/ti/k3-udma-glue.c                 |   6 +-
->  drivers/dma/ti/k3-udma.c                      |   6 +-
->  drivers/iommu/dma-iommu.c                     |   9 +-
->  drivers/iommu/iommu.c                         |   5 +-
->  drivers/net/pcs/pcs-xpcs-plat.c               |   2 +-
->  drivers/of/device.c                           |   6 +-
->  drivers/pci/of.c                              |   2 +-
->  drivers/pci/pwrctrl/core.c                    |   2 +-
->  drivers/regulator/bq257xx-regulator.c         |   2 +-
->  drivers/regulator/rk808-regulator.c           |   2 +-
->  drivers/tty/serial/serial_base_bus.c          |   2 +-
->  drivers/usb/gadget/udc/aspeed-vhub/dev.c      |   2 +-
->  include/linux/device.h                        | 122 ++++++++++++------
->  include/linux/dma-map-ops.h                   |   6 +-
->  include/linux/dma-mapping.h                   |   2 +-
->  include/linux/iommu-dma.h                     |   3 +-
->  kernel/cpu.c                                  |   4 +-
->  kernel/dma/mapping.c                          |  12 +-
->  mm/hmm.c                                      |   2 +-
->  37 files changed, 218 insertions(+), 142 deletions(-)
->
-Best regards
+I've taken this series now into the review-ilpo-next branch.
 
--- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
+However, here are manual devm_*() rollbacks which could probably be=20
+eliminated as well but you can do them on top of this.
 
+--
+ i.
+
+>  =09=09goto err;
+>  =09}
+>  =09return 0;
+> @@ -182,28 +186,27 @@ static int asus_wireless_add(struct acpi_device *ad=
+ev)
+>  =09return err;
+>  }
+> =20
+> -static void asus_wireless_remove(struct acpi_device *adev)
+> +static void asus_wireless_remove(struct platform_device *pdev)
+>  {
+> -=09struct asus_wireless_data *data =3D acpi_driver_data(adev);
+> +=09struct asus_wireless_data *data =3D platform_get_drvdata(pdev);
+> =20
+> -=09acpi_dev_remove_notify_handler(adev, ACPI_DEVICE_NOTIFY,
+> +=09acpi_dev_remove_notify_handler(data->adev, ACPI_DEVICE_NOTIFY,
+>  =09=09=09=09       asus_wireless_notify);
+>  =09if (data->wq) {
+> -=09=09devm_led_classdev_unregister(&adev->dev, &data->led);
+> +=09=09devm_led_classdev_unregister(&pdev->dev, &data->led);
+>  =09=09destroy_workqueue(data->wq);
+>  =09}
+>  }
+> =20
+> -static struct acpi_driver asus_wireless_driver =3D {
+> -=09.name =3D "Asus Wireless Radio Control Driver",
+> -=09.class =3D "hotkey",
+> -=09.ids =3D device_ids,
+> -=09.ops =3D {
+> -=09=09.add =3D asus_wireless_add,
+> -=09=09.remove =3D asus_wireless_remove,
+> +static struct platform_driver asus_wireless_driver =3D {
+> +=09.probe =3D asus_wireless_probe,
+> +=09.remove =3D asus_wireless_remove,
+> +=09.driver =3D {
+> +=09=09.name =3D "Asus Wireless Radio Control Driver",
+> +=09=09.acpi_match_table =3D device_ids,
+>  =09},
+>  };
+> -module_acpi_driver(asus_wireless_driver);
+> +module_platform_driver(asus_wireless_driver);
+> =20
+>  MODULE_DESCRIPTION("Asus Wireless Radio Control Driver");
+>  MODULE_AUTHOR("Jo=C3=A3o Paulo Rechi Vita <jprvita@gmail.com>");
+>=20
+--8323328-516245395-1775555356=:983--
