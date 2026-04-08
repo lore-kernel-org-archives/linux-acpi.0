@@ -1,87 +1,103 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.7])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 112092BE04C;
-	Wed,  8 Apr 2026 10:58:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.7
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D2283D646D;
+	Wed,  8 Apr 2026 15:28:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775645935; cv=none; b=DHs/k6FabhQKfSE5rxQXB7BD/ce24eHhN3DqtLKvvWXUIjDI9eLagW+N8lToS2U9Q7LnqSEbVlPZAOMSKhHpIhh7hUBgzsf6uukXk8dSKGbwcPH2wFxTCt3GpLGxm4JyWv7n2e97YTJXoGfUnrPDv/olm2QU/w4AOaPF6ttJ8NU=
+	t=1775662133; cv=none; b=lyBe9UsnTzgoVshoLXElwAH1DthfC+FcbuX1LwHSKAVf/KArFxBhboByizUzHFvo1hR84XUxa/VxcZcaTgq7PiYdmcCGRCFKUhWIqebZF+oEJw49WovDlZ0IQJF5ppTK6NeSlP/NWLnES+FPqCZirp2mpdAO87wXmEScdLcJZi4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775645935; c=relaxed/simple;
-	bh=yhGUaeJuXPEXey6cTCrR/VOqeDvC3awUjWTPNd0YTAg=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=myu7CEbifSaP7Ri0gBm1n68K3Brc5HUycKK2MTlgwVRNPgSkyYO6D2z13ihDKJ/6yskpcPGH0DOAZBPrCjAoa1rhO1tPB0fN+fjYAZPz2X2aN2E2Pu9sgHYVhz8MtLs5CM/gxLO0oL28RIAN9eni/BbkG2C3hBc0ew7seSNCAxk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=QuV0doOp; arc=none smtp.client-ip=192.198.163.7
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1775662133; c=relaxed/simple;
+	bh=wCWFT/9q2k5RRPzbWKYbpefTxNcp2EWEDGnOMlT4WrM=;
+	h=Mime-Version:Content-Type:Date:Message-Id:Subject:Cc:To:From:
+	 References:In-Reply-To; b=KB76Zcdr3kk6cg7ApSE8hZS7F4a3uePY8AtjXAyFt1K6TOV8XU6dsmh38OXu2Cp+kgFwIm2mvOu8DHm0dpKTha4f8fphyG55HJnqsRz3PtnmA74Ztp6r4PeM4KiXf79Aas1dTIqjH3mTJYeZYlsMChnS6XDaAZKg+HH+Kb4vWKs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RYiJzEIN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="QuV0doOp"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1775645934; x=1807181934;
-  h=date:from:to:cc:subject:message-id;
-  bh=yhGUaeJuXPEXey6cTCrR/VOqeDvC3awUjWTPNd0YTAg=;
-  b=QuV0doOpjXAKjtnyGamppjep+muizYsEpxi2HjqZPnd6IyWQBNrDzAAI
-   6Bhb+QqxiLdi1gQnTdxIAXiWul8pK3S9Pckl/TdkFcwNMMTFvcrUGoWSI
-   hUf7XW8MrgqYNZP6q5Gt6bnRVvlzUgi3RsKi/CR9cknhWstbIRNZpsMPu
-   JqqERw8ykWqgRLniBUeHIcB7/J1Wb1CCoHCFFNwMKuqW7Ha05oeGutn+7
-   injDQmm9rHp/1FOs44EvHdxL5iTQ9/DxUsbqQ4sb2DBx2WO+EZGhUAslZ
-   byzm5MrFWDgCfPH4LwTFToHj7RU7g5JreN4JRiZwtFejY1ayCwag2AUYF
-   w==;
-X-CSE-ConnectionGUID: guYa9wUkSxW6EjX+J6w0zg==
-X-CSE-MsgGUID: NxmxNmx8RqCo1RL9ebrMUA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11752"; a="102078398"
-X-IronPort-AV: E=Sophos;i="6.23,167,1770624000"; 
-   d="scan'208";a="102078398"
-Received: from orviesa007.jf.intel.com ([10.64.159.147])
-  by fmvoesa101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Apr 2026 03:58:53 -0700
-X-CSE-ConnectionGUID: 8WWFW87eQlW8fo2XZ4qPzA==
-X-CSE-MsgGUID: XuvOI0X8RPuj7g9aSpqsSw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.23,167,1770624000"; 
-   d="scan'208";a="228691427"
-Received: from lkp-server01.sh.intel.com (HELO d00eb8a6782a) ([10.239.97.150])
-  by orviesa007.jf.intel.com with ESMTP; 08 Apr 2026 03:58:52 -0700
-Received: from kbuild by d00eb8a6782a with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1wAQcS-000000001lN-41IL;
-	Wed, 08 Apr 2026 10:58:48 +0000
-Date: Wed, 08 Apr 2026 18:58:11 +0800
-From: kernel test robot <lkp@intel.com>
-To: Daniel Lezcano <daniel.lezcano@oss.qualcomm.com>
-Cc: oe-kbuild-all@lists.linux.dev, linux-acpi@vger.kernel.org,
- linux-pm@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [rafael-pm:bleeding-edge 170/268] ERROR: modpost:
- "thermal_of_cooling_device_register" [drivers/gpu/drm/etnaviv/etnaviv.ko]
- undefined!
-Message-ID: <202604081848.Yh1jEbFo-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RYiJzEIN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12084C2BC9E;
+	Wed,  8 Apr 2026 15:28:48 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1775662132;
+	bh=wCWFT/9q2k5RRPzbWKYbpefTxNcp2EWEDGnOMlT4WrM=;
+	h=Date:Subject:Cc:To:From:References:In-Reply-To:From;
+	b=RYiJzEINIAUuLwwxzwbKMJ4PoNGjD3lvsGAni07Q4y/U7LcJ0n+2ZwG+XzLAqklkV
+	 Psk0SQ+PJnG531WPB4bRI1qvPuFzW563Y4Vd0r47fuwNr3f6MXOZ/yxr01M66MLjdc
+	 8YQSjQCeTXSAb8k6DfELSctyLGCSdnqqOgqoSJogEHm5zezda54Vq6Ymj8rlKcTRlD
+	 8kpXPgxRUXLXc/aC/+v3g4FycB6rwaI6RB2F1lfuIXzIEc9blzElpT5AabyGZ6c23F
+	 IV3YNMTyi7ZDwwh2x/gHfpnXC+etMDeQE6RSv8XxqkEYNZ8ZzpTw9ID+B4HOxO+d6Q
+	 ifzZXvQsA6/MA==
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8
+Date: Wed, 08 Apr 2026 17:28:46 +0200
+Message-Id: <DHNVOVO67YMW.1Q763BB153CGF@kernel.org>
+Subject: Re: [PATCH v4 1/2] software node: return -ENOTCONN when referenced
+ swnode is not registered yet
+Cc: "Andy Shevchenko" <andriy.shevchenko@linux.intel.com>, "Daniel Scally"
+ <djrscally@gmail.com>, "Heikki Krogerus" <heikki.krogerus@linux.intel.com>,
+ "Sakari Ailus" <sakari.ailus@linux.intel.com>, "Greg Kroah-Hartman"
+ <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>,
+ "Mika Westerberg" <mika.westerberg@linux.intel.com>, "Andy Shevchenko"
+ <andy@kernel.org>, "Linus Walleij" <linusw@kernel.org>, "Hans de Goede"
+ <hansg@kernel.org>, =?utf-8?q?Ilpo_J=C3=A4rvinen?=
+ <ilpo.jarvinen@linux.intel.com>, "Dmitry Torokhov"
+ <dmitry.torokhov@gmail.com>, "Len Brown" <lenb@kernel.org>,
+ <linux-acpi@vger.kernel.org>, <driver-core@lists.linux.dev>,
+ <linux-kernel@vger.kernel.org>, <linux-gpio@vger.kernel.org>,
+ <platform-driver-x86@vger.kernel.org>, "Bartosz Golaszewski"
+ <bartosz.golaszewski@oss.qualcomm.com>
+To: "Bartosz Golaszewski" <brgl@kernel.org>
+From: "Danilo Krummrich" <dakr@kernel.org>
+References: <20260407-swnode-unreg-retcode-v4-0-1b2f0725eb9c@oss.qualcomm.com> <20260407-swnode-unreg-retcode-v4-1-1b2f0725eb9c@oss.qualcomm.com> <CAMRc=MdWSigDmTGSCe-ggAC+rKcCLimKgKU_kAGh5N66jyXGtg@mail.gmail.com>
+In-Reply-To: <CAMRc=MdWSigDmTGSCe-ggAC+rKcCLimKgKU_kAGh5N66jyXGtg@mail.gmail.com>
 
-Hi Daniel,
+On Wed Apr 8, 2026 at 9:19 AM CEST, Bartosz Golaszewski wrote:
+> On Tue, Apr 7, 2026 at 3:28=E2=80=AFPM Bartosz Golaszewski
+> <bartosz.golaszewski@oss.qualcomm.com> wrote:
+>>
+>> It's possible that at the time of resolving a reference to a remote
+>> software node, the node we know exists is not yet registered as a full
+>> firmware node. We currently return -ENOENT in this case but the same
+>> error code is also returned in some other cases, like the reference
+>> property with given name not existing in the property list of the local
+>> software node.
+>>
+>> It makes sense to let users know that we're dealing with an unregistered
+>> software node so that they can defer probe - the situation is somewhat
+>> similar to there existing a firmware node to which no device is bound
+>> yet - which is valid grounds for probe deferral. To that end: use
+>> -ENOTCONN to indicate the software node is "not connected".
+>>
+>> Acked-by: Andy Shevchenko <andy@kernel.org>
+>> Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com=
+>
+>> ---
+>
+> Hi Danilo!
+>
+> With Andy's Ack, do you think you could still queue this for v7.1?
 
-FYI, the error/warning was bisected to this commit, please ignore it if it's irrelevant.
+Yeah, that should work, but I have a question about the patch.
 
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
-head:   d18364264af84e2a89da14c6b5f0eae2ba7f98de
-commit: e1b96fba58c6fe18a31a06f752ebc8ad6921b1cb [170/268] thermal/of: Move OF code where it belongs to
-config: x86_64-randconfig-005-20260408 (https://download.01.org/0day-ci/archive/20260408/202604081848.Yh1jEbFo-lkp@intel.com/config)
-compiler: gcc-14 (Debian 14.2.0-19) 14.2.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260408/202604081848.Yh1jEbFo-lkp@intel.com/reproduce)
+The comment added to fwnode_property_get_reference_args() says:
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202604081848.Yh1jEbFo-lkp@intel.com/
+	+ *            %-ENOTCONN when the remote firmware node is a software node=
+ that
+	+ *                       has not been registered as a firmware node yet
 
-All errors (new ones prefixed by >>, old ones prefixed by <<):
+This seems like a bit of a layering violation to me, as it makes it explici=
+t
+that this error code indicates a software node, while
+fwnode_property_get_reference_args() itself should be agnostic.
 
->> ERROR: modpost: "thermal_of_cooling_device_register" [drivers/gpu/drm/etnaviv/etnaviv.ko] undefined!
-ERROR: modpost: "devm_thermal_of_cooling_device_register" [drivers/hwmon/dell-smm-hwmon.ko] undefined!
+The caller can easily derive more specific semantics with an is_software_no=
+de()
+check as you already do in the GPIO code.
 
--- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+Can we describe the same condition, but without explicitly naming the backe=
+nd?
