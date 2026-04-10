@@ -1,194 +1,184 @@
-Received: from canpmsgout11.his.huawei.com (canpmsgout11.his.huawei.com [113.46.200.226])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7715C33263F;
-	Fri, 10 Apr 2026 09:41:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.226
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AEAF21CC5A;
+	Fri, 10 Apr 2026 09:57:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775814113; cv=none; b=Z1Rj8N2GBQH+KYLM3PZFUxatt3o9cJJA274G9eUsXa9YACmwmxWQ3tq88NlO5Lc/nqXvNvH9lkHDlYY359T4p6xXw3aUsBmyEEBb5WMzxi6a7RXXInz4e//G0YWJDNq3ydTn7/Pz5VLRvekfr4d6tM9HpM3DAM5owSygP58ee/c=
+	t=1775815038; cv=none; b=NHuUtrE+yuE+PVZZdZNTAMTJdKGqKL4WAqVu0PQ3EPx4UX2K6UzBx9UAUV2yIjYt53rJ35do7tX20/bqp1KAfFFaqmAf7+gWHwG1mjQhNTSqP2WK4Yjgnz/OSmIpLVj4qThtNF5+OwHWofWV5Bwpa+rOvkWSoLRlFnMDS+R0BNc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775814113; c=relaxed/simple;
-	bh=F4ryKXUAEmlZ4yDcjSFw3cplbvom8lVuZFR/S2jceLk=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=PgxzZKAJlHvkTD+J3ZKyPUa1NS1LT9pSUX3euAM2OL94/SkLiSc6Nr0VQ4lXoFynBGR4BkpE/ndlYNLf2zHLUq6t6InBl9zMziqingBKmvsrrX5TssLmAZ8vyf7NcmLoknVwsWhaMrqrrxFoYsfi82egab2ibyO2hzHCrgLTFAU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=XQbtAW8P; arc=none smtp.client-ip=113.46.200.226
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+	s=arc-20240116; t=1775815038; c=relaxed/simple;
+	bh=T8Dpiclgk8Jf9La7iQF35pp6q30d9rgfaHQL5Rakqjc=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=of+q/k/7IULCoREI48oJr7P+iSg3eojyqY8LRyGi5bZpWrFZPUQVKKUPuEhmKtx1x11zg21k/nJtf6DbeilKp6kYj/kKk32XTRM260Oi0B31CoHLYP0fTWkIHyXwICRZyXW7bM9K4okl+NPY3Mu9c/9OnJBS3iZJXWpWewF6EIA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RX9WLI4y; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="XQbtAW8P"
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=bwFRFS4W6cPblkf+h6/g3f55xTUa33U6wkzy7Jalz+k=;
-	b=XQbtAW8PTuHSGpxk6Z9BfBydwcSWs3+sgRnHXvomEmj5xWtEFWbhDzqJqop8TaUsXBNToyPHm
-	hBYWYzu0V0om/AO6aBqPOS2pIcAx3GhJaKskNk6jVNxZwKm/81qCoEEv6zKWnNFoYkYXqPn4gYu
-	zJCzRQ59C+wjHjsE2dsAuRg=
-Received: from mail.maildlp.com (unknown [172.19.163.15])
-	by canpmsgout11.his.huawei.com (SkyGuard) with ESMTPS id 4fsWr33LNzzKm5f;
-	Fri, 10 Apr 2026 17:35:31 +0800 (CST)
-Received: from kwepemr200004.china.huawei.com (unknown [7.202.195.241])
-	by mail.maildlp.com (Postfix) with ESMTPS id 9890E40571;
-	Fri, 10 Apr 2026 17:41:48 +0800 (CST)
-Received: from huawei.com (10.50.163.32) by kwepemr200004.china.huawei.com
- (7.202.195.241) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Fri, 10 Apr
- 2026 17:41:47 +0800
-From: Pengjie Zhang <zhangpengjie2@huawei.com>
-To: <catalin.marinas@arm.com>, <will@kernel.org>, <rafael@kernel.org>,
-	<lenb@kernel.org>, <robert.moore@intel.com>, <beata.michalska@arm.com>,
-	<zhenglifeng1@huawei.com>, <zhanjie9@hisilicon.com>, <sumitg@nvidia.com>,
-	<cuiyunhui@bytedance.com>
-CC: <linux-arm-kernel@lists.infradead.org>, <linux-kernel@vger.kernel.org>,
-	<linux-acpi@vger.kernel.org>, <acpica-devel@lists.linux.dev>,
-	<linuxarm@huawei.com>, <jonathan.cameron@huawei.com>,
-	<prime.zeng@hisilicon.com>, <wanghuiqiang@huawei.com>, <xuwei5@huawei.com>,
-	<lihuisong@huawei.com>, <yubowen8@huawei.com>, <zhangpengjie2@huawei.com>,
-	<wangzhi12@huawei.com>
-Subject: [PATCH 2/2] arm64: topology: read CPPC FFH feedback counters in one operation
-Date: Fri, 10 Apr 2026 17:41:45 +0800
-Message-ID: <20260410094145.4132082-3-zhangpengjie2@huawei.com>
-X-Mailer: git-send-email 2.33.0
-In-Reply-To: <20260410094145.4132082-1-zhangpengjie2@huawei.com>
-References: <20260410094145.4132082-1-zhangpengjie2@huawei.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RX9WLI4y"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF269C19421;
+	Fri, 10 Apr 2026 09:57:13 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1775815038;
+	bh=T8Dpiclgk8Jf9La7iQF35pp6q30d9rgfaHQL5Rakqjc=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=RX9WLI4y3+csJJcf9jQG8Ba2LLobhbU+ToOw16B9IyN282S8duPvxsvh7qp4QSehp
+	 Vv07bLfvMbqQo5WaS63U9QzvWXFFcVh+ZsJgfJw1XmpQGoZOv+MubIowr1jKxoM2Hw
+	 7u6saOL9tK0sREeLg+/TuJCSzSmDtjZ2ux8P4Vl+bbftyIImJbr6DqvMaLMsxlBOmy
+	 ppeka/25AnYN35ReaHoURS5hjJd7ce4GeujNV1r6GvUbygGyfEKRQU/9n8VQT+OPQF
+	 kklpnjwHTPpSG4R/oL8e/M+TaoquHp5ORlVzFC3LobJIeD8yamNQXf548S8ctokRjG
+	 YL5AT2swl/7gQ==
+Message-ID: <5c751739-5044-4d23-9648-8d46dd0945d1@kernel.org>
+Date: Fri, 10 Apr 2026 11:57:11 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: kwepems500001.china.huawei.com (7.221.188.70) To
- kwepemr200004.china.huawei.com (7.202.195.241)
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2 13/13] arm64: defconfig: Enable I3C and SPD5118 hwmon
+To: Akhil R <akhilrajeev@nvidia.com>
+Cc: Frank.Li@nxp.com, acpica-devel@lists.linux.dev,
+ alexandre.belloni@bootlin.com, conor+dt@kernel.org,
+ devicetree@vger.kernel.org, ebiggers@kernel.org, krzk+dt@kernel.org,
+ lenb@kernel.org, linux-acpi@vger.kernel.org, linux-hwmon@vger.kernel.org,
+ linux-i3c@lists.infradead.org, linux-kernel@vger.kernel.org,
+ linux@roeck-us.net, miquel.raynal@bootlin.com, p.zabel@pengutronix.de,
+ rafael@kernel.org, robh@kernel.org, sakari.ailus@linux.intel.com,
+ wsa+renesas@sang-engineering.com
+References: <9e1093e6-18f9-4edc-8659-510245c5d6db@kernel.org>
+ <20260410083710.54993-1-akhilrajeev@nvidia.com>
+From: Krzysztof Kozlowski <krzk@kernel.org>
+Content-Language: en-US
+Autocrypt: addr=krzk@kernel.org; keydata=
+ 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 a/A=
+In-Reply-To: <20260410083710.54993-1-akhilrajeev@nvidia.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-arm64 implements CPPC FFH feedback-counter reads using AMU counters.
-Because those counters must be sampled on the target CPU, reading the
-delivered and reference counters separately widens the observation window
-between them.
+On 10/04/2026 10:37, Akhil R wrote:
+> On Fri, 10 Apr 2026 09:18:48 +0200, Krzysztof Kozlowski wrote:
+>> On 10/04/2026 08:57, Guenter Roeck wrote:
+>>> On 4/9/26 23:39, Krzysztof Kozlowski wrote:
+>>>> On 09/04/2026 12:57, Akhil R wrote:
+>>>>> Add I3C subsystem support, DesignWare I3C master controller, and
+>>>>> SPD5118 hwmon sensor as modules to the defconfig and therefore
+>>>>> enable the support for SPD5118 sensor on SOCAMM found in NVIDIA
+>>>>> Vera platforms.
+>>>>
+>>>> git grep for "Vera" gave me zero results. Are you sure this is an
+>>>> upstream platform? Please point the DTS using this.
+>>>>
+>>>
+>>> I think this is an ACPI based system, or at least that is what Google search
+>>> tells me.
+>>
+>> Thanks. Following Google Vera is either a "CPU" or entire architecture
+>> (at least that's how they call it), so it does not have SPD5118 sensor.
+> 
+> SOCAMM is a Memory Module. SPD5118, as it's Kconfig mentions, is a sensor
+> found within such memory modules. I didn't quite get why would you state
+> that the SOCAMM present in Vera architecture (or CPU) does not have
+> SPD5118 in it.
 
-Implement the paired FFH feedback-counter read hook on arm64 and sample
-both AMU counters together before decoding the requested CPC register
-values.
+I said that CPU or entire architecture does not have it.
 
-Also factor the FFH bitfield extraction logic into a helper and reuse
-it from the existing single-counter FFH read path.
+Commit is pretty vague in helping me to figure out the things I asked
+for in last email.
 
-Signed-off-by: Pengjie Zhang <zhangpengjie2@huawei.com>
----
- arch/arm64/kernel/topology.c | 75 ++++++++++++++++++++++++++++++++----
- 1 file changed, 67 insertions(+), 8 deletions(-)
 
-diff --git a/arch/arm64/kernel/topology.c b/arch/arm64/kernel/topology.c
-index b32f13358fbb..b90a767b2a1f 100644
---- a/arch/arm64/kernel/topology.c
-+++ b/arch/arm64/kernel/topology.c
-@@ -50,6 +50,16 @@ struct amu_cntr_sample {
- 	unsigned long	last_scale_update;
- };
- 
-+struct amu_ffh_ctrs {
-+	u64 corecnt;
-+	u64 constcnt;
-+};
-+
-+enum cpc_ffh_ctr_id {
-+	CPC_FFH_CTR_CORE  = 0x0,
-+	CPC_FFH_CTR_CONST = 0x1,
-+};
-+
- static DEFINE_PER_CPU_SHARED_ALIGNED(struct amu_cntr_sample, cpu_amu_samples);
- 
- void update_freq_counters_refs(void)
-@@ -397,7 +407,7 @@ static void cpu_read_constcnt(void *val)
- }
- 
- static inline
--int counters_read_on_cpu(int cpu, smp_call_func_t func, u64 *val)
-+int counters_read_on_cpu(int cpu, smp_call_func_t func, void *val)
- {
- 	/*
- 	 * Abort call on counterless CPU.
-@@ -447,24 +457,73 @@ bool cpc_ffh_supported(void)
- 	return true;
- }
- 
-+static void amu_read_core_const_ctrs(void *val)
-+{
-+	struct amu_ffh_ctrs *ctrs = val;
-+
-+	cpu_read_constcnt(&ctrs->constcnt);
-+	cpu_read_corecnt(&ctrs->corecnt);
-+}
-+
-+static u64 cpc_ffh_extract_bits(const struct cpc_reg *reg, u64 val)
-+{
-+	val &= GENMASK_ULL(reg->bit_offset + reg->bit_width - 1,
-+			   reg->bit_offset);
-+	val >>= reg->bit_offset;
-+
-+	return val;
-+}
-+
-+static bool cpc_ffh_ctr_value(const struct cpc_reg *reg,
-+			      const struct amu_ffh_ctrs *ctrs, u64 *val)
-+{
-+	switch ((u64)reg->address) {
-+	case CPC_FFH_CTR_CORE:
-+		*val = ctrs->corecnt;
-+		break;
-+	case CPC_FFH_CTR_CONST:
-+		*val = ctrs->constcnt;
-+		break;
-+	default:
-+		return false;
-+	}
-+
-+	*val = cpc_ffh_extract_bits(reg, *val);
-+	return true;
-+}
-+
-+int cpc_read_ffh_fb_ctrs(int cpu, struct cpc_reg *reg1, u64 *val1,
-+			 struct cpc_reg *reg2, u64 *val2)
-+{
-+	struct amu_ffh_ctrs ctrs;
-+	int ret;
-+
-+	ret = counters_read_on_cpu(cpu, amu_read_core_const_ctrs, &ctrs);
-+	if (ret)
-+		return ret;
-+
-+	if (!cpc_ffh_ctr_value(reg1, &ctrs, val1) ||
-+	    !cpc_ffh_ctr_value(reg2, &ctrs, val2))
-+		return -EOPNOTSUPP;
-+
-+	return 0;
-+}
-+
- int cpc_read_ffh(int cpu, struct cpc_reg *reg, u64 *val)
- {
- 	int ret = -EOPNOTSUPP;
- 
- 	switch ((u64)reg->address) {
--	case 0x0:
-+	case CPC_FFH_CTR_CORE:
- 		ret = counters_read_on_cpu(cpu, cpu_read_corecnt, val);
- 		break;
--	case 0x1:
-+	case CPC_FFH_CTR_CONST:
- 		ret = counters_read_on_cpu(cpu, cpu_read_constcnt, val);
- 		break;
- 	}
- 
--	if (!ret) {
--		*val &= GENMASK_ULL(reg->bit_offset + reg->bit_width - 1,
--				    reg->bit_offset);
--		*val >>= reg->bit_offset;
--	}
-+	if (!ret)
-+		*val = cpc_ffh_extract_bits(reg, *val);
- 
- 	return ret;
- }
--- 
-2.33.0
+> 
+> Pasting the below from the Vera Rubin product page [1] -
+> "NVIDIA Vera CPUs add enhanced serviceability with small-outline
+> compression-attached memory modules (SOCAMM) LPDDR5X and in-system tests
+> for the CPU cores."
+> 
+> [1]: https://www.nvidia.com/en-us/data-center/technologies/rubin/
 
+So this is for Vera Rubin? For what is this exactly?
+
+> 
+>>
+>>
+>> "Nvidia vera socamm" gives me something about "rubin". It's not me who
+>> should be guessing all this.
+>>
+>> "nvidia vera socamm SPD5118" gives me even less, so justification is flaky.
+>>
+>> To remind, this commit msg should convince why generic kernel for
+>> developers affecting all possible platforms - not end users, because
+>> they always use distro kernels - should enable these configs. And it
+>> should bring me clear rule what I can or cannot remove from defconfig,
+>> if in 2 years I come and start pruning it from symbols.
+> 
+> I found little details on what we should be adding in the defconfig. It
+
+Then maybe we should not be adding it to defconfig?
+
+We usually do not make changes which we do not know why we are making
+them. IOW, every commit must be useful for the community and this is
+achieved by either explicit or implicit answer why doing this.
+
+And I gave in the past clear guidelines - this is config for the
+upstream kernel developers to use the upstream hardware and/or for
+distros to understand what is needed to support that upstream hardware
+(although last part in theory, because many distros do variantion of
+allmodconfig, so they don't really care about our defconfig).
+
+> would help if you could share some guidance. Do you mean to say that the
+> defconfig should include only the configs which are necessary in
+> development platforms and not in end-products?
+
+No, the type of product does not matter because upstream supports every
+type of product. Upstream does not say "oh, you run end-product, so we
+don't care about you". But defconfig is not used by endusers and has
+zero meaning to them.
+
+It seems to missed or ignored one more reason I wrote:
+
+>> And it
+>> should bring me clear rule what I can or cannot remove from defconfig,
+>> if in 2 years I come and start pruning it from symbols.
+
+Best regards,
+Krzysztof
