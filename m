@@ -1,361 +1,208 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mout02.posteo.de (mout02.posteo.de [185.67.36.66])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D077434B410
-	for <linux-acpi@vger.kernel.org>; Fri, 10 Apr 2026 14:27:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40D3F3D7D7B
+	for <linux-acpi@vger.kernel.org>; Fri, 10 Apr 2026 14:57:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.67.36.66
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775831268; cv=none; b=eBlkk6ARDlAl8aLd5ud1K6IFBCej2Lz+OhqAE6wPwlSwV2BwcxK/b6TK58+U4AA5grFph3vjuvfu8uck5V3tSZxF/8syDf3xl3xBwOZXayi80+/QuJreQOHNufAW/YO20MSlHaN53Ww3aZRUZyy6+4p61HYQWNJ1ecOErUej0cc=
+	t=1775833040; cv=none; b=HIQWQ3Lv79xmZJWBnqSLdDESTqNZJ+WpwXRBex7PcBs7jgtnWQQN5K6xUVHgwEPeRoDaFRSYiGqGYvDscSlhzSksCyVXKkO25LJurhcbsCTrgtOFu7BvZ0MOONWVo2N6Nc9LXK2KfD1Gzs86LobAJ8HAP53YkAKMbNzCPHHB7ec=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775831268; c=relaxed/simple;
-	bh=5OF6/4w4OAfRYl2jkechvWsUDuDKyomm4FcDklBAcZs=;
-	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=ec8PLtegZrfhpaI9mZfVOzTq8VRBF5g0hAfqsWy0EdpiJFk0o7R7hppFfLfA8PvuVBXtNP7qA/j3caZdrpb1iZwX8BVS5kW7uBc6ysREesiAqSz4BH73oqUcRFbrVuwprjlVa6KaJ9vgrOSUDENyqVn39mGHz8I067sI1P4sgZA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XCk6106c; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775833040; c=relaxed/simple;
+	bh=BBCyDm6ZOScKgHBSmWujAr9ZbowcP5MVOPw0e/pzp/o=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=jE1n5sJxaazH7JxuUPdnQnJNtG4JbpZlbKH+WFO5QdsgipjJX+RJzFoiElhmqbc5QhtNTUOnrpSWT+rRrKx9kOBEaVPbSj6ZnZq8Zv+b1RvFwwSBKFApxgZ4mFwTbip6sHk5Bnau/moGmF0NwEbWG2+MZovhlW+NtA32a1i8g90=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de; spf=pass smtp.mailfrom=posteo.de; dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b=SH0hoAPJ; arc=none smtp.client-ip=185.67.36.66
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=posteo.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XCk6106c"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96450C2BC87
-	for <linux-acpi@vger.kernel.org>; Fri, 10 Apr 2026 14:27:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1775831268;
-	bh=5OF6/4w4OAfRYl2jkechvWsUDuDKyomm4FcDklBAcZs=;
-	h=From:Date:Subject:To:Cc:From;
-	b=XCk6106cmcqvda/Wlw8Z94zd0+uy2lOL7ZxJ7OVtePWYsFx1mxIKY7Q2hv80kRzah
-	 FAG1g+x4riFVivzvsYZY+V/mGlmOPyf+R5pAXPh4nOG3hN1R7/hBmYFPho47g0XW0z
-	 NA9CXZyGCjTuIbHACNqWSm2n+xsQ1YlsRk6Pi6rlLyA2vjAu3DI2+fyzvm8wq3a7VN
-	 hjLzyqqQEaj3UIbFn4Ei70KgtkkmTc/gLqubwAd7tl1ANMHNCYrA+nyW1vD5xCZGr1
-	 xtCFGEBQIYgF+6TjF2Nnjj5v+LHe+tq+V+87RX+nA9MM2hTpECm8b35Wwbzkozch77
-	 E90DR4qZhTz5g==
-Received: by mail-ot1-f49.google.com with SMTP id 46e09a7af769-7d55b97f358so1303544a34.3
-        for <linux-acpi@vger.kernel.org>; Fri, 10 Apr 2026 07:27:48 -0700 (PDT)
-X-Gm-Message-State: AOJu0Yy+f9WvP90DGwUdVrMVkSlQspkkAOfG+UXp1KXAWU7Bqhcvou7S
-	J89rU4tG2+4vb8JkAkUxMSMNEevhxvOD1KVayEgFigV2jUe+AtRM5QlUkSgKgNR1gyiaH3PKqrz
-	rTjD4MavQZ/4kNZqFIOBOWWY0+9ru+SE=
-X-Received: by 2002:a05:6820:199b:b0:681:6a53:6662 with SMTP id
- 006d021491bc7-68be5e56a57mr1513712eaf.13.1775831267653; Fri, 10 Apr 2026
- 07:27:47 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b="SH0hoAPJ"
+Received: from submission (posteo.de [185.67.36.169]) 
+	by mout02.posteo.de (Postfix) with ESMTPS id C6664240103
+	for <linux-acpi@vger.kernel.org>; Fri, 10 Apr 2026 16:57:15 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=posteo.de; s=2017;
+	t=1775833035; bh=50IaxMfYb7aroQWQsATCxQ2AIuqB50Wsug3UV/yX5r0=;
+	h=Message-ID:Subject:From:To:Cc:Date:Autocrypt:Content-Type:
+	 MIME-Version:OpenPGP:From;
+	b=SH0hoAPJWm/RN+2EslAeV1OqA24xKSQIeE1fB9HpuRgjReh0ZfwCirLieMYD9gB2B
+	 8hD7sKc5oupr/+KPhyYesa9d0qMl9iIrxfbedMlrKYWkpM8bSD3kppDne2h/iSOFmw
+	 UvL0swjtJdj30856ZxZ6FmGk9d1Dv4LDwBavJJ5GtXhCUdeWdxAG3Lk+CUHrrt9PKg
+	 dOUG6eNR3FqSslBi86DDSEofXfKCT4RfEzF6mA7o5uBLJkBASjDkZmqbYWAKFSXSG3
+	 fY28mBNr4GEwnKl7O5pvYKpPy8P3XUnKhzmU/ubcq7cQqet9vElFAYwzaa24P3tZdo
+	 RtiR4FJgFxJqw==
+Received: from customer (localhost [127.0.0.1])
+	by submission (posteo.de) with ESMTPSA id 4fsfzD6VBWz9rxD;
+	Fri, 10 Apr 2026 16:57:12 +0200 (CEST)
+Message-ID: <bbf903b3db06fbe9f5042dd64dc18fbc897927a4.camel@posteo.de>
+Subject: Re: [PATCH v3] rust: ACPI: fix missing match data for PRP0001
+From: Markus Probst <markus.probst@posteo.de>
+To: Danilo Krummrich <dakr@kernel.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
+ Miguel Ojeda <ojeda@kernel.org>, Boqun Feng <boqun@kernel.org>, Gary Guo
+ <gary@garyguo.net>,  =?ISO-8859-1?Q?Bj=F6rn?= Roy Baron	
+ <bjorn3_gh@protonmail.com>, Benno Lossin <lossin@kernel.org>, Andreas
+ Hindborg	 <a.hindborg@kernel.org>, Alice Ryhl <aliceryhl@google.com>,
+ Trevor Gross	 <tmgross@umich.edu>, Greg Kroah-Hartman
+ <gregkh@linuxfoundation.org>, Robert Moore <robert.moore@intel.com>,
+ linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, 
+	rust-for-linux@vger.kernel.org, driver-core@lists.linux.dev, 
+	acpica-devel@lists.linux.dev
+Date: Fri, 10 Apr 2026 14:57:14 +0000
+In-Reply-To: <DHO46CIJNVZH.1Q6ZLX1XNWRR4@kernel.org>
+References: <20260407-rust_acpi_prp0001-v3-1-c5b24590c273@posteo.de>
+	 <DHNWFFEB3HD9.1QM2XXNE6BANY@kernel.org>
+	 <4d5cd9887e67007f4dabfed0986861a60e395ae6.camel@posteo.de>
+	 <DHO1GI8ZAR1L.3DUWFSM1VT8BS@kernel.org>
+	 <e6985ffe6d35e27b85b540e410cf92592d597a69.camel@posteo.de>
+	 <DHO46CIJNVZH.1Q6ZLX1XNWRR4@kernel.org>
+Autocrypt: addr=markus.probst@posteo.de; prefer-encrypt=mutual;
+ keydata=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
+ jfGillcaQOqFZ3WwVqyzG1BUfTow==
+Content-Type: multipart/signed; micalg="pgp-sha256";
+	protocol="application/pgp-signature"; boundary="=-vQ4DsA9o3Evk1s4cnEPc"
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Fri, 10 Apr 2026 16:27:36 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0i9EjajGD55kAXtQz=NjvqT8ffcmEYS_dHoFvu901TjwA@mail.gmail.com>
-X-Gm-Features: AQROBzAQ4cr0bU2BOWe-65L7XX_jjNVAHsKgnDvzktqeNPVPY2KBQNc1UZszAb4
-Message-ID: <CAJZ5v0i9EjajGD55kAXtQz=NjvqT8ffcmEYS_dHoFvu901TjwA@mail.gmail.com>
-Subject: [GIT PULL] ACPI support updates for v7.1-rc1
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, 
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+OpenPGP: url=https://posteo.de/keys/markus.probst@posteo.de.asc; preference=encrypt
+
+
+--=-vQ4DsA9o3Evk1s4cnEPc
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi Linus,
+On Thu, 2026-04-09 at 00:07 +0200, Danilo Krummrich wrote:
+> On Wed Apr 8, 2026 at 11:42 PM CEST, Markus Probst wrote:
+> > On Wed, 2026-04-08 at 21:59 +0200, Danilo Krummrich wrote:
+> > > On Wed Apr 8, 2026 at 9:40 PM CEST, Markus Probst wrote:
+> > > > On Wed, 2026-04-08 at 18:03 +0200, Danilo Krummrich wrote:
+> > > > > On Tue Apr 7, 2026 at 11:41 PM CEST, Markus Probst wrote:
+> > > > > > diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> > > > > > index aad1a95e6863..d0098f24346f 100644
+> > > > > > --- a/include/acpi/acpi_bus.h
+> > > > > > +++ b/include/acpi/acpi_bus.h
+> > > > > > @@ -187,6 +187,10 @@ struct acpi_driver {
+> > > > > >   * -----------
+> > > > > >   */
+> > > > > > =20
+> > > > > > +bool acpi_of_match_device(const struct acpi_device *adev,
+> > > > > > +			  const struct of_device_id *of_match_table,
+> > > > > > +			  const struct of_device_id **of_id);
+> > > > >=20
+> > > > > This also has to be defined for !CONFIG_ACPI, otherwise we run in=
+to the
+> > > > > following compatible error.
+> > > > >=20
+> > > > > 	error[E0425]: cannot find function `acpi_of_match_device` in cra=
+te `bindings`
+> > > > > 	      --> rust/kernel/driver.rs:295:24
+> > > > > 	       |
+> > > > > 	   295 |       unsafe { bindings::acpi_of_match_device(adev, of_=
+match_table, of_id) }
+> > > > > 	       |                          ^^^^^^^^^^^^^^^^^^^^
+> > > > > 	       |
+> > > > > 	      ::: /mnt/nvme/work/projects/linux/driver-core/driver-core-=
+testing/rust/bindings/bindings_generated.rs:118713:5
+> > > > >=20
+> > > > > There is an
+> > > > >=20
+> > > > > 	#else	/* CONFIG_ACPI */
+> > > > >=20
+> > > > > block at the end of acpi_bus.h for this.
+> > > > I don't think the function exists in that case and bindgen can't
+> > > > generate inline functions, so I will just add a `#[cfg(CONFIG_ACPI)=
+]`
+> > > > condition on top of the function.
+> > >=20
+> > > Usually we provide a stub instead of conditionalize the callers; this=
+ case might
+> > > be a bit special, but I'd still follow the usual pattern.
+> > The usual C pattern would be
+> >=20
+> > static inline bool acpi_of_match_device(const struct acpi_device *adev,
+> > 			const struct of_device_id *of_match_table,
+> > 			const struct of_device_id **of_id);
+> >=20
+> > , which is ignored by bindgen (i. e. same error).
+>=20
+> That's where you define a Rust helper; we have lots of cases where we onl=
+y have
+> the Rust helper to deal with the inline function stub used when the
+> corresponding CONFIG_* is disabled.
+According to git commit msg [1], __rust_helper is needed to inline
+these helpers into Rust code. Does this mean we could omit the extra
+function declaration with #[inline(never)] and just use a helper
+without __rust_helper?
 
-This goes early because I will be traveling next week.
+[1]
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?=
+id=3Da9aabb3b839aba094ed80861054993785c61462c
 
-Please pull from the tag
+Thanks
+- Markus Probst
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-7.1-rc1
+--=-vQ4DsA9o3Evk1s4cnEPc
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
 
-with top-most commit 8e937866b425248fa375b2138c19c117a87c6be0
+-----BEGIN PGP SIGNATURE-----
 
- Merge branch 'acpi-apei'
+iQJPBAABCAA5FiEEgnQYxPSsWOdyMMRzNHYf+OetQ9IFAmnZD8gbFIAAAAAABAAO
+bWFudTIsMi41KzEuMTIsMiwyAAoJEDR2H/jnrUPSjTgQAJxzmgET7ENUYshXpn8f
+OQo7nKxHlBxDTDb/C+h9tV3LH/AlKQ4c1xcxfIxinrW/8N3/XwHpCZEi/mgx4PG5
+pmthLwQFscaChQD/jMyscKKqZjDxddHpR2KuOqR4J7OD/EBM7yEi+niXAzg3IEjw
+GIZEtc3xKIk7m4hLAqNNqUXj5vO6XX4cpgTBvwkNGXVGRwHnsB4kB3XgfeJkJYjT
+l3sK/w8dnhQJ8LGrmJfAKE3MLOe6SREP4Bb5ZSXaAc0/CA347cMf13NLKV8Zi8VF
+I19TrBIxotc/WhvEc1jXJ0TANZ8tVmdKufaAcMmMXVbgUZCa4cvlP4hPMOO2+Vr/
+MwixyugodZkyaO9d+RSTdBjduGmYuGdL7nmL4Fgchpw8QpDuDu3knldf9qOM3kU0
+8TjLDdIIA9/fVYsTqb0rSPQ5onoKXiOLeNjKxiLqGYDwkeDlCr1SCZl0e0BLEbWM
+tAwmb/e1uVKwgIRAj1tYV5jWlctoDofhOt356qilNT83kqpBrJoGvzFX2eZa164M
+k4kso+djELpWsS4FA/ppJncxWhokjhHt6s+rqzQDeXkB56+9DLaQGajY+1i1h2Po
+9R64BBAg8qE4xnTKnQMYQ6QLGUBR5EsTW4i5qIVUMT66v8PpeBratgGWZN53ySqQ
+oo4cqp+8nQhxKrIc6IRy1M7f
+=9POa
+-----END PGP SIGNATURE-----
 
-on top of commit 591cd656a1bf5ea94a222af5ef2ee76df029c1d2
-
- Linux 7.0-rc7
-
-to receive ACPI support updates for 7.1-rc1.
-
-These include an update of the CMOS RTC driver and the related ACPI
-and x86 code that, among other things, switches it over to using the
-platform device interface for device binding on x86 instead of the PNP
-device driver interface (which allows the code in question to be
-simplified quite a bit), a major update of the ACPI Time and Alarm
-Device (TAD) driver adding an RTC class device interface to it, and
-updates of core ACPI drivers that remove some unnecessary and not
-really useful code from them.
-
-Apart from that, two drivers are converted to using the platform driver
-interface for device binding instead of the ACPI driver one, which is
-slated for removal, support for the Performance Limited register is
-added to the ACPI CPPC library and there are some janitorial updates
-of it and the related cpufreq CPPC driver, the ACPI processor driver is
-fixed and cleaned up, and NVIDIA vendor CPER record handler is added
-to the APEI GHES code.
-
-Also, the interface for obtaining a CPU UID from ACPI is consolidated
-across architectures and used for fixing a problem with the PCI TPH
-Steering Tag on ARM64, there are two updates related to ACPICA, a
-minor ACPI OS Services Layer (OSL) update, and a few assorted updates
-related to ACPI tables parsing.
-
-Specifics:
-
- - Update maintainers information regarding ACPICA (Rafael Wysocki)
-
- - Replace strncpy() with strscpy_pad() in acpi_ut_safe_strncpy() (Kees
-   Cook)
-
- - Trigger an ordered system power off after encountering a fatal error
-   operator in AML (Armin Wolf)
-
- - Enable ACPI FPDT parsing on LoongArch (Xi Ruoyao)
-
- - Remove the temporary stop-gap acpi_pptt_cache_v1_full structure from
-   the ACPI PPTT parser (Ben Horgan)
-
- - Add support for exposing ACPI FPDT subtables FBPT and S3PT (Nate
-   DeSimone)
-
- - Address multiple assorted issues and clean up the code in the ACPI
-   processor idle driver (Huisong Li)
-
- - Replace strlcat() in the ACPI processor idle drive with a better
-   alternative (Andy Shevchenko)
-
- - Rearrange and clean up acpi_processor_errata_piix4() (Rafael Wysocki)
-
- - Move reference performance to capabilities and fix an uninitialized
-   variable in the ACPI CPPC library (Pengjie Zhang)
-
- - Add support for the Performance Limited Register to the ACPI CPPC
-   library (Sumit Gupta)
-
- - Add cppc_get_perf() API to read performance controls, extend
-   cppc_set_epp_perf() for FFH/SystemMemory, and make the ACPI CPPC
-   library warn on missing mandatory DESIRED_PERF register (Sumit Gupta)
-
- - Modify the cpufreq CPPC driver to update MIN_PERF/MAX_PERF in target
-   callbacks to allow it to control performance bounds via standard
-   scaling_min_freq and scaling_max_freq sysfs attributes and add sysfs
-   documentation for the Performance Limited Register to it (Sumit Gupta)
-
- - Add ACPI support to the platform device interface in the CMOS RTC
-   driver, make the ACPI core device enumeration code create a platform
-   device for the CMOS RTC, and drop CMOS RTC PNP device support (Rafael
-   Wysocki)
-
- - Consolidate the x86-specific CMOS RTC handling with the ACPI TAD
-   driver and clean up the CMOS RTC ACPI address space handler (Rafael
-   Wysocki)
-
- - Enable ACPI alarm in the CMOS RTC driver if advertised in ACPI FADT
-   and allow that driver to work without a dedicated IRQ if the ACPI
-   alarm is used (Rafael Wysocki)
-
- - Clean up the ACPI TAD driver in various ways and add an RTC class
-   device interface, including both the RTC setting/reading and alarm
-   timer support, to it (Rafael Wysocki)
-
- - Clean up the ACPI AC and ACPI PAD (processor aggregator device)
-   drivers (Rafael Wysocki)
-
- - Rework checking for duplicate video bus devices and consolidate
-   pnp.bus_id workarounds handling in the ACPI video bus driver (Rafael
-   Wysocki)
-
- - Update the ACPI core device drivers to stop setting acpi_device_name()
-   unnecessarily (Rafael Wysocki)
-
- - Rearrange code using acpi_device_class() in the ACPI core device
-   drivers and update them to stop setting acpi_device_class()
-   unnecessarily (Rafael Wysocki)
-
- - Define ACPI_AC_CLASS in one place (Rafael Wysocki)
-
- - Convert the ni903x_wdt watchdog driver and the xen ACPI PAD driver to
-   bind to platform devices instead of ACPI devices (Rafael Wysocki)
-
- - Add devm_ghes_register_vendor_record_notifier(), use it in the PCI
-   hisi driver, and Add NVIDIA vendor CPER record handler (Kai-Heng
-   Feng)
-
- - Consolidate the interface for obtaining a CPU UID from ACPI across
-   architectures and use it to address incorrect PCI TPH Steering Tag
-   on ARM64 resulting from the invalid assumption that the ACPI
-   Processor UID would always be the same as the corresponding logical
-   CPU ID in Linux (Chengwen Feng)
-
-Thanks!
-
-
----------------
-
-Andy Shevchenko (1):
-      ACPI: processor: idle: Replace strlcat() with better alternative
-
-Armin Wolf (1):
-      ACPI: OSL: Poweroff when encountering a fatal ACPI error
-
-Ben Horgan (1):
-      ACPI: PPTT: Remove duplicate structure, acpi_pptt_cache_v1_full
-
-Chengwen Feng (8):
-      arm64: acpi: Add acpi_get_cpu_uid() for unified ACPI CPU UID retrieval
-      LoongArch: Add acpi_get_cpu_uid() for unified ACPI CPU UID retrieval
-      RISC-V: ACPI: Add acpi_get_cpu_uid() for unified ACPI CPU UID retrieval
-      x86/acpi: Add acpi_get_cpu_uid() for unified ACPI CPU UID retrieval
-      ACPI: Centralize acpi_get_cpu_uid() declaration in include/linux/acpi.h
-      perf: arm_cspmu: Switch to acpi_get_cpu_uid() from get_acpi_id_for_cpu()
-      ACPI: PPTT: Use acpi_get_cpu_uid() and remove get_acpi_id_for_cpu()
-      PCI/TPH: Pass ACPI Processor UID to Cache Locality _DSM
-
-Huisong Li (7):
-      ACPI: processor: idle: Remove redundant cstate check in
-acpi_processor_power_init
-      ACPI: processor: idle: Move max_cstate update out of the loop
-      ACPI: processor: idle: Remove redundant static variable and
-rename cstate check function
-      ACPI: processor: idle: Reset power_setup_done flag on
-initialization failure
-      ACPI: processor: idle: Fix NULL pointer dereference in hotplug path
-      cpuidle: Extract and export no-lock variants of
-cpuidle_unregister_device()
-      ACPI: processor: idle: Reset cpuidle on C-state list changes
-
-Jingkai Tan (1):
-      ACPI: processor: idle: Add missing bounds check in flatten_lpi_states()
-
-Kai-Heng Feng (3):
-      ACPI: APEI: GHES: Add devm_ghes_register_vendor_record_notifier()
-      PCI: hisi: Use devm_ghes_register_vendor_record_notifier()
-      ACPI: APEI: GHES: Add NVIDIA vendor CPER record handler
-
-Kees Cook (1):
-      ACPICA: Replace strncpy() with strscpy_pad() in acpi_ut_safe_strncpy()
-
-Nate DeSimone (2):
-      ACPI: FPDT: expose FBPT and S3PT subtables via sysfs
-      Documentation: ABI: add FBPT and S3PT entries to sysfs-firmware-acpi
-
-Pengjie Zhang (2):
-      ACPI: CPPC: Move reference performance to capabilities
-      ACPI: CPPC: Fix uninitialized ref variable in cppc_get_perf_caps()
-
-Rafael J. Wysocki (37):
-      ACPI: x86: cmos_rtc: Clean up address space handler driver
-      ACPI: x86: cmos_rtc: Improve coordination with ACPI TAD driver
-      ACPI: x86: cmos_rtc: Create a CMOS RTC platform device
-      ACPI: x86/rtc-cmos: Use platform device for driver binding
-      ACPI: PNP: Drop CMOS RTC PNP device support
-      x86: rtc: Drop PNP device check
-      rtc: cmos: Drop PNP device support
-      ACPI: TAD/x86: cmos_rtc: Consolidate address space handler setup
-      ACPI: AC: Get rid of unnecessary declarations
-      ACPI: PAD: Rearrange notify handler installation and removal
-      driver core: auxiliary bus: Introduce dev_is_auxiliary()
-      ACPI: video: Rework checking for duplicate video bus devices
-      ACPI: video: Consolidate pnp.bus_id workarounds handling
-      ACPI: driver: Do not set acpi_device_name() unnecessarily
-      ACPI: event: Redefine acpi_notifier_call_chain()
-      ACPI: driver: Avoid using pnp.device_class for netlink handling
-      ACPI: driver: Do not set acpi_device_class() unnecessarily
-      ACPI: AC: Define ACPI_AC_CLASS in one place
-      rtc: cmos: Enable ACPI alarm if advertised in ACPI FADT
-      rtc: cmos: Do not require IRQ if ACPI alarm is used
-      ACPI: TAD: Create one attribute group
-      ACPI: TAD: Support RTC without wakeup
-      ACPI: TAD: Use __free() for cleanup in time_store()
-      ACPI: TAD: Rearrange RT data validation checking
-      ACPI: TAD: Clear unused RT data in acpi_tad_set_real_time()
-      ACPI: TAD: Add RTC class device interface
-      ACPI: TAD: Update the driver description comment
-      ACPI: TAD: Use dev_groups in struct device_driver
-      ACPI: TAD: Use DC wakeup only if AC wakeup is supported
-      ACPI: processor: Rearrange and clean up acpi_processor_errata_piix4()
-      ACPI: TAD: Split three functions to untangle runtime PM handling
-      ACPI: TAD: Relocate two functions
-      ACPI: TAD: Split acpi_tad_rtc_read_time()
-      ACPI: TAD: Add alarm support to the RTC class device interface
-      ACPI: PAD: xen: Convert to a platform driver
-      watchdog: ni903x_wdt: Convert to a platform driver
-      ACPICA: Update maintainers information
-
-Sumit Gupta (8):
-      ACPI: CPPC: Add cppc_get_perf() API to read performance controls
-      ACPI: CPPC: Warn on missing mandatory DESIRED_PERF register
-      ACPI: CPPC: Extend cppc_set_epp_perf() for FFH/SystemMemory
-      cpufreq: CPPC: Update cached perf_ctrls on sysfs write
-      cpufreq: cppc: Update MIN_PERF/MAX_PERF in target callbacks
-      ACPI: CPPC: add APIs and sysfs interface for perf_limited
-      cpufreq: CPPC: Add sysfs documentation for perf_limited
-      ACPI: CPPC: Check cpc_read() return values consistently
-
-Xi Ruoyao (1):
-      ACPI: tables: Enable FPDT on LoongArch
-
----------------
-
- Documentation/ABI/testing/sysfs-devices-system-cpu |  18 +
- Documentation/ABI/testing/sysfs-firmware-acpi      |   6 +
- Documentation/PCI/tph.rst                          |   4 +-
- Documentation/admin-guide/kernel-parameters.txt    |   8 +
- MAINTAINERS                                        |   8 +-
- arch/arm64/include/asm/acpi.h                      |  17 +-
- arch/arm64/kernel/acpi.c                           |  30 ++
- arch/loongarch/include/asm/acpi.h                  |   5 -
- arch/loongarch/kernel/acpi.c                       |   9 +
- arch/riscv/include/asm/acpi.h                      |   4 -
- arch/riscv/kernel/acpi.c                           |  16 +
- arch/riscv/kernel/acpi_numa.c                      |   9 +-
- arch/x86/include/asm/cpu.h                         |   1 -
- arch/x86/include/asm/smp.h                         |   1 -
- arch/x86/kernel/acpi/boot.c                        |  20 +
- arch/x86/kernel/rtc.c                              |  21 +-
- arch/x86/xen/enlighten_hvm.c                       |   5 +-
- drivers/acpi/Kconfig                               |   2 +-
- drivers/acpi/ac.c                                  |  31 +-
- drivers/acpi/acpi_fpdt.c                           |  28 ++
- drivers/acpi/acpi_memhotplug.c                     |   4 -
- drivers/acpi/acpi_pad.c                            |  28 +-
- drivers/acpi/acpi_pnp.c                            |  22 +-
- drivers/acpi/acpi_processor.c                      |  31 +-
- drivers/acpi/acpi_tad.c                            | 492 ++++++++++++++-------
- drivers/acpi/acpi_video.c                          | 100 ++---
- drivers/acpi/acpica/utnonansi.c                    |   3 +-
- drivers/acpi/apei/Kconfig                          |  14 +
- drivers/acpi/apei/Makefile                         |   1 +
- drivers/acpi/apei/ghes-nvidia.c                    | 149 +++++++
- drivers/acpi/apei/ghes.c                           |  18 +
- drivers/acpi/battery.c                             |   9 +-
- drivers/acpi/button.c                              |  11 +-
- drivers/acpi/cppc_acpi.c                           | 293 ++++++++++--
- drivers/acpi/ec.c                                  |   6 -
- drivers/acpi/event.c                               |   7 +-
- drivers/acpi/osl.c                                 |  19 +-
- drivers/acpi/pci_link.c                            |   4 -
- drivers/acpi/pci_root.c                            |   9 +-
- drivers/acpi/power.c                               |   4 -
- drivers/acpi/pptt.c                                |  81 ++--
- drivers/acpi/processor_driver.c                    |  22 +-
- drivers/acpi/processor_idle.c                      |  82 ++--
- drivers/acpi/riscv/rhct.c                          |   7 +-
- drivers/acpi/sbs.c                                 |   4 -
- drivers/acpi/sbshc.c                               |   6 -
- drivers/acpi/thermal.c                             |  13 +-
- drivers/acpi/x86/cmos_rtc.c                        |  86 ++--
- drivers/base/auxiliary.c                           |  10 +
- drivers/cpufreq/cppc_cpufreq.c                     | 104 ++++-
- drivers/cpuidle/cpuidle.c                          |  22 +-
- drivers/gpu/drm/amd/include/amd_acpi.h             |   2 -
- drivers/gpu/drm/radeon/radeon_acpi.c               |   2 -
- drivers/pci/controller/pcie-hisi-error.c           |  12 +-
- drivers/pci/tph.c                                  |  16 +-
- drivers/perf/arm_cspmu/arm_cspmu.c                 |   6 +-
- drivers/platform/x86/hp/hp-wmi.c                   |   2 -
- drivers/platform/x86/lenovo/wmi-capdata.c          |   1 -
- drivers/rtc/rtc-cmos.c                             | 143 ++----
- drivers/watchdog/ni903x_wdt.c                      |  27 +-
- drivers/xen/xen-acpi-pad.c                         |  23 +-
- include/acpi/acpi_bus.h                            |  14 +-
- include/acpi/cppc_acpi.h                           |  22 +-
- include/acpi/ghes.h                                |  11 +
- include/acpi/processor.h                           |   2 -
- include/linux/acpi.h                               |  21 +
- include/linux/auxiliary_bus.h                      |   2 +
- include/linux/cpuidle.h                            |   2 +
- include/linux/pci-tph.h                            |   4 +-
- 69 files changed, 1450 insertions(+), 766 deletions(-)
+--=-vQ4DsA9o3Evk1s4cnEPc--
