@@ -1,115 +1,150 @@
-Received: from mail-pf1-f173.google.com (mail-pf1-f173.google.com [209.85.210.173])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19A6635B632
-	for <linux-acpi@vger.kernel.org>; Fri, 10 Apr 2026 10:35:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.173
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6A9F391E52
+	for <linux-acpi@vger.kernel.org>; Fri, 10 Apr 2026 10:57:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775817308; cv=none; b=nS+CMDsTAVqrEYN9FvktvOA6N7Gutm5c0ZxG5sOtl1JrqYbN6Eb9WvQVGJ8Hnbtqt8Lk32harEgVvfmH09UWgyizGsXI4Bkx9qP9oEhlrKkgQ7JzFjgbw+MKEw054LLUI4f9+8pbEYw8LVyYtym3qQscpzpL1QXcy7Wd0B+UcYk=
+	t=1775818676; cv=none; b=Btp/PD1LVD8QNcQBFNff6BubLMXIEFLRnAG+WAEj7NIu74o6+NWE+Awrx0WP0mcPAyt56Vo3U2DTohI6hlTMYWcWguzR0Kws68Qb/orvIJSc+tg2z146HBhV4KObJEU1/djIBfLCL60ORlxf4rZE48Rr2x/rcRfrt1QnpWjSzaw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775817308; c=relaxed/simple;
-	bh=/2nU6DwGYrB+jeV22Tu6KgLsWFcZFrLNZ+WCDr3H/Qc=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=nBQxYntFjSU6vVBUSBAwt1u8PLRT6Cv8zxSlZcOzPB6wmUKPNwMgo8AZHWyN08/ghbrP7YnxiIhJE6nieeZkGDWySxKtZ60FlAWR80H9gmw3I2lmVnlghDynrppC1qKz2HqXbalpf4esPWANuh14slMaApBAADFTM6AMztTe4z8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=UsHiNQCa; arc=none smtp.client-ip=209.85.210.173
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1775818676; c=relaxed/simple;
+	bh=J3SSveqiYGEqaxrur6FeuF/gwWkfkw7ff6t1aPxNYSY=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=mIQ0mLwlg+27GFr1Xuzp36ODOsfALL6Bdf1tnbPK8j6NMIbQEBHt0eBfKWZNnFyFg3QR5aCZ07McYasLPVMdW8pgnSFv8WLqeiA+5TLo8rvylpROp/+sfU4p2Yh0cHcrEAaQwdTfn7VGPdmxB6gghTdqADkVpDactR+AWqwTnoY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Dwgpam1t; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="UsHiNQCa"
-Received: by mail-pf1-f173.google.com with SMTP id d2e1a72fcca58-827270d50d4so1780667b3a.3
-        for <linux-acpi@vger.kernel.org>; Fri, 10 Apr 2026 03:35:05 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1775817305; x=1776422105; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=m9CrhvcxM7cDtB9lpTmog91+MN/asbSvWwrp/YtXbmI=;
-        b=UsHiNQCapg8iULk7EptHrHrvd+IhlwCXSh4mG+eK4okgDR0B+jJ3i4UJpvG1Kz6UBk
-         egn5vkgJoQjv4S5LuMZS63+oO1qkvr+fO62IpfUgwggbShefWCMg5y6QIxXQ735o7Rw1
-         s75J365nL9bqC9GoatK7uAV7zzsbNXaF0f2rnL5oAJ9NMtYnh1953+booqbHvZ+wLzyZ
-         jLEGZ3+8hCyeQN6l4BNaf5abwt8SljLvs2QEHTN6dDYZIa4nIF/wJ72FZiRK1Y6g6NtQ
-         WxFDz0UlXDSn9JgzYG+wH6A3bRcD5bH06iPnjJEB8knoq3Xw1nyP8iqLGo7Hg5AiKnHL
-         tHKA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1775817305; x=1776422105;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=m9CrhvcxM7cDtB9lpTmog91+MN/asbSvWwrp/YtXbmI=;
-        b=WmK3+pNaeXY0q1zo3+kHWtSEoqlxDWbKs2OCF5pkUv87tNRxsXfo0e9C7Sa4JxsmxM
-         duG7cFAhiMrg+h5j4NPwF86NL8Wy0BwCHBiF1KmZcEo+i4OeC+VDdijp7Sl0keJCPGKJ
-         kXMS9HhG9+aSbLOLQkyUWWPLAagAL+XGsB8zXFsn4cH8a1ePWHcYbeosT2BDREL+BE6j
-         eij2oMMrN/Ff5i/eCfKJDSqKY46CHVndK3DhwIerV3Jhu/WHn0dvf00LAgMEXbluEZpH
-         gkqwpGxbhoWRdzW4HMnglir2TnSNf9beX0RpZCkJuLIiqKUrg9j4OmKJNKMhVxKK2WxP
-         BrwQ==
-X-Forwarded-Encrypted: i=1; AJvYcCVqaA6LageACRlKnhZm+SoZykdkS++V5iqvYUEfBTiavaFIykVxjPFc3zVyroLAqv4DD6OsmUhqBEf2@vger.kernel.org
-X-Gm-Message-State: AOJu0YwXS7IRa2Vq7H8vUyEfo977s817V8U94M4wlktbl4GX2KLNUhc1
-	eUpO9KRyukp5G41XeQSdp4sJrYHkAdN5vA3AP2pMi63ba4zHuzO9K1gF
-X-Gm-Gg: AeBDievoxBQs+dqC8o95CQrUXXWI7ehM5zgAmgw5iTAZ4oWcPIp9UANyiovMxj5dPVc
-	imnTK1k0RvQaGigsOfe3EBver/elf2Go2lar1tlX6OkyEcqCf4mFHSh2sNNKxLhpTAb3Nh6ho8B
-	WNI1Dn8irWmZXhxLKCsZYPaubWKHHtp0p+ahbZsdjmirb85xWnZvJxlKiU0R+WE3ouzIp3B6jU2
-	/TQg9Q4LIU+Be5pUYRNCidzKwxnDkqe/bYA76ar5pTjukz97kTBflHCAPyLSqXaHlenP0omXwV2
-	LBbZR9cbCA6PvtvdgxK3LXBLBpal4nrz/ooalUT1ryws9oswvclMTYsksMCVPPhheO7xFL4yC4P
-	aPM2KFjbXmQkRqLo3WEPD9R5Nu6OGNEGQrwe/rcy9vGIgJqXf6Il/TQwTr/0ychHGEJEaXRlZYA
-	FBxYw2Yusf1xaKgJ4=
-X-Received: by 2002:a05:6a00:32ce:b0:82d:24f:2510 with SMTP id d2e1a72fcca58-82f0c384a66mr3113052b3a.50.1775817305356;
-        Fri, 10 Apr 2026 03:35:05 -0700 (PDT)
-Received: from lgs.. ([199.182.234.55])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-82f0c4e182csm2503600b3a.45.2026.04.10.03.35.03
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 10 Apr 2026 03:35:04 -0700 (PDT)
-From: Guangshuo Li <lgs201920130244@gmail.com>
-To: "Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: Guangshuo Li <lgs201920130244@gmail.com>,
-	stable@vger.kernel.org
-Subject: [PATCH] ACPI: power: Use put_device() in power resource add error path
-Date: Fri, 10 Apr 2026 18:34:51 +0800
-Message-ID: <20260410103451.2014607-1-lgs201920130244@gmail.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Dwgpam1t"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84BB2C2BCB8
+	for <linux-acpi@vger.kernel.org>; Fri, 10 Apr 2026 10:57:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1775818676;
+	bh=J3SSveqiYGEqaxrur6FeuF/gwWkfkw7ff6t1aPxNYSY=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=Dwgpam1tEIdD4KfA38GLrh/kCplxbb1sZsi4kWDQOVcU/0tTUe7m3eJfuAhJoxuL8
+	 T4LIl+2KPAKpNfHPRFX1+r3S1hkiuvyBRKmDLRwYzdiF0X0Og19SVk3GWo37y4SATU
+	 mW3PETNmvpIUJC7kp/v1kwQ+XZC8FkAe3eY6Fb5OcbWVKOVWYycieZhIvDcNFMoRRL
+	 JjSkC6RPc+SrMyKSQUw6wl29bjk7KHlO0NFKIH6XkOBhx60Hpl/II1R7jaNNPWfTPU
+	 lmId3dYTXb8I9MIWozUoe3Dyr845RD3njfWukCSDjMMv9wo+kFdSj/9WDqaFbxSg26
+	 itFG9fN30+Uew==
+Received: by mail-ot1-f49.google.com with SMTP id 46e09a7af769-7dbec19732eso1774620a34.3
+        for <linux-acpi@vger.kernel.org>; Fri, 10 Apr 2026 03:57:56 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCVeaYtYhGojIGBh0bk6Tz7lux5dzRCm87PSw8NGNb3zQkBJ8HmDZCIj4V/dhYHexGvyJBiTwr346DMH@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxol8N/Kzbta2dqtGwiyo7J0+0ELCzHSkFqF2G7pGchD0FjBlfc
+	nOc3YUAEd0hfIAbuj4FJQuuHEZ7fCBSzEKIonB+cxknAInfWFE/EASVupxf5bYIbWtguBxbkjVr
+	u0mHvj4E2o9T6Spt4Yqx0wRA7I18D/NU=
+X-Received: by 2002:a05:6820:328d:b0:682:fa66:61cb with SMTP id
+ 006d021491bc7-68be7ee1e4emr834163eaf.41.1775818675345; Fri, 10 Apr 2026
+ 03:57:55 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20260409105747.48158-1-akhilrajeev@nvidia.com>
+ <20260409105747.48158-3-akhilrajeev@nvidia.com> <adhalQxfbMsL3V0T@lizhi-Precision-Tower-5810>
+In-Reply-To: <adhalQxfbMsL3V0T@lizhi-Precision-Tower-5810>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Fri, 10 Apr 2026 12:57:43 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0jKZJg3Yh6OYiKncipT-47N0o0QLniPtj4NO+ojmsJ1rQ@mail.gmail.com>
+X-Gm-Features: AQROBzAjJeCEEVSt2XY1F7M-MV9mizZ42mbvlFT3Shx19xZYzF_yLub_Mz-tACQ
+Message-ID: <CAJZ5v0jKZJg3Yh6OYiKncipT-47N0o0QLniPtj4NO+ojmsJ1rQ@mail.gmail.com>
+Subject: Re: [PATCH v2 02/13] ACPICA: Read LVR from the I2C resource descriptor
+To: Frank Li <Frank.li@nxp.com>
+Cc: Akhil R <akhilrajeev@nvidia.com>, 
+	Alexandre Belloni <alexandre.belloni@bootlin.com>, Rob Herring <robh@kernel.org>, 
+	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
+	"Rafael J . Wysocki" <rafael@kernel.org>, Robert Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, 
+	Guenter Roeck <linux@roeck-us.net>, Philipp Zabel <p.zabel@pengutronix.de>, 
+	Eric Biggers <ebiggers@kernel.org>, Sakari Ailus <sakari.ailus@linux.intel.com>, 
+	Wolfram Sang <wsa+renesas@sang-engineering.com>, 
+	Miquel Raynal <miquel.raynal@bootlin.com>, linux-i3c@lists.infradead.org, 
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev, 
+	linux-hwmon@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-After device_initialize(), the lifetime of struct device is managed by
-the driver core through reference counting.
+On Fri, Apr 10, 2026 at 4:04=E2=80=AFAM Frank Li <Frank.li@nxp.com> wrote:
+>
+> On Thu, Apr 09, 2026 at 04:27:32PM +0530, Akhil R wrote:
+> > ACPI 6.3 specifies byte 8 of I2C Serial Bus Connection descriptor to be
+> > used for Legacy Virtual Register (LVR) data as specified in the MIPI
+> > I3C Specification for an I2C device connected to an I3C Host Controller=
+.
+> > LVR will be read by I3C host controller drivers and it provides details
+> > about the specific speed and 50ns spike filter capabilities of I2C
+> > devices.
+> >
+> > Update the rsconvert_info to include this field. For I2C devices on an
+> > I2C bus, this field is Reserved and unused.
+> >
+> > This commit is the result of squashing the following:
+> > ACPICA commit 70082dc8fc847673ac7f4bbb1541776730f0b63e
+> > ACPICA commit e62e74baf7e08cf059ec82049aeccd565b24d661
+> > ACPICA commit c404118235108012cad396c834b5aabe2dd1b51a
+> > ACPICA commit 7650d4a889ea7907060bfce89f4f780ce83e7b28
+> > ACPICA commit 014fa9f2dbcc6b1bd42a4a4a6f6705d9cf7d460b
+>
+> These commit number is not existed at linus official tree. Please remove =
+it.
 
-acpi_add_power_resource() initializes device->dev via
-acpi_init_device_object(), which installs acpi_release_power_resource()
-as the release callback. If acpi_device_add() fails, however, the error
-path calls acpi_release_power_resource() directly instead of dropping
-the device reference with put_device().
+These are upstream ACPICA commits and it is entirely legitimate to
+mention them in kernel commits touching ACPICA code.
 
-This bypasses the normal device lifetime rules and frees the object
-without releasing the reference acquired by device_initialize(), which
-may lead to a refcount leak and potentially a use-after-free. Fix it by
-calling put_device(&device->dev) and let the release callback handle
-the final cleanup.
+However, Link: tags pointing to those commits would be sufficient.
 
-Fixes: 781d737c7466 ("ACPI: Drop power resources driver")
-Cc: stable@vger.kernel.org
-Signed-off-by: Guangshuo Li <lgs201920130244@gmail.com>
----
- drivers/acpi/power.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-index 361a7721a6a8..f96f954876a7 100644
---- a/drivers/acpi/power.c
-+++ b/drivers/acpi/power.c
-@@ -991,7 +991,7 @@ struct acpi_device *acpi_add_power_resource(acpi_handle handle)
- 	return device;
- 
-  err:
--	acpi_release_power_resource(&device->dev);
-+	put_device(&device->dev);
- 	return NULL;
- }
- 
--- 
-2.43.0
-
+> >
+> > Link: https://github.com/acpica/acpica/commit/70082dc8
+> > Link: https://github.com/acpica/acpica/commit/b3c38dc9
+> > Signed-off-by: Akhil R <akhilrajeev@nvidia.com>
+> > ---
+> >  drivers/acpi/acpica/rsserial.c | 6 +++++-
+> >  include/acpi/acrestyp.h        | 1 +
+> >  2 files changed, 6 insertions(+), 1 deletion(-)
+> >
+> > diff --git a/drivers/acpi/acpica/rsserial.c b/drivers/acpi/acpica/rsser=
+ial.c
+> > index 279bfa27da94..c06e918ab889 100644
+> > --- a/drivers/acpi/acpica/rsserial.c
+> > +++ b/drivers/acpi/acpica/rsserial.c
+> > @@ -315,7 +315,7 @@ struct acpi_rsconvert_info acpi_rs_convert_csi2_ser=
+ial_bus[14] =3D {
+> >   *
+> >   *********************************************************************=
+*********/
+> >
+> > -struct acpi_rsconvert_info acpi_rs_convert_i2c_serial_bus[17] =3D {
+> > +struct acpi_rsconvert_info acpi_rs_convert_i2c_serial_bus[18] =3D {
+> >       {ACPI_RSC_INITGET, ACPI_RESOURCE_TYPE_SERIAL_BUS,
+> >        ACPI_RS_SIZE(struct acpi_resource_i2c_serialbus),
+> >        ACPI_RSC_TABLE_SIZE(acpi_rs_convert_i2c_serial_bus)},
+> > @@ -391,6 +391,10 @@ struct acpi_rsconvert_info acpi_rs_convert_i2c_ser=
+ial_bus[17] =3D {
+> >        AML_OFFSET(i2c_serial_bus.type_specific_flags),
+> >        0},
+> >
+> > +     {ACPI_RSC_MOVE8, ACPI_RS_OFFSET(data.i2c_serial_bus.lvr),
+> > +      AML_OFFSET(i2c_serial_bus.type_specific_flags) + 1,
+> > +      1},
+> > +
+> >       {ACPI_RSC_MOVE32, ACPI_RS_OFFSET(data.i2c_serial_bus.connection_s=
+peed),
+> >        AML_OFFSET(i2c_serial_bus.connection_speed),
+> >        1},
+> > diff --git a/include/acpi/acrestyp.h b/include/acpi/acrestyp.h
+> > index 842f932e2c2b..38a19b1d19ac 100644
+> > --- a/include/acpi/acrestyp.h
+> > +++ b/include/acpi/acrestyp.h
+> > @@ -423,6 +423,7 @@ struct acpi_resource_i2c_serialbus {
+> >       ACPI_RESOURCE_SERIAL_COMMON u8 access_mode;
+> >       u16 slave_address;
+> >       u32 connection_speed;
+> > +     u8 lvr;
+> >  };
+> >
+> >  /* Values for access_mode field above */
+> > --
+> > 2.50.1
+> >
+>
