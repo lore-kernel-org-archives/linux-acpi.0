@@ -1,246 +1,205 @@
-Received: from mout.gmx.net (mout.gmx.net [212.227.15.19])
+Received: from AM0PR83CU005.outbound.protection.outlook.com (mail-westeuropeazon11010064.outbound.protection.outlook.com [52.101.69.64])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72B583446BC
-	for <linux-acpi@vger.kernel.org>; Thu,  9 Apr 2026 21:00:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.15.19
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775768406; cv=none; b=l3mjOeYzMRIafELQ4+iU8gaBkwpnv/aDaM/cQWuywAZ3Zw3Ql3Sfcmix9jZmS89zyh0+X0K64Ofy2KLe/2cJEEpX6k863OqOhoy2MASJOht2fLs4zryp7MmwQ6QPcw9riWbXyyMQx2qX88Ayr6WqbH+IRiZ1al5gKi3PCbWbHrE=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775768406; c=relaxed/simple;
-	bh=mnGVnvxmKh71195gJBvPzQUOqAJ03JdsCYtAigFabho=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=JpDsCBtNyAZhxFcr81KISb5meNRzXIuUjlmUuOoKeXN5p02nNDUYoYVyk9Yzm/AD94Iy68YDlbDEDoXAeeXcpAepU59pD8f32T0Tfr0IxQozu0HkQumPJy6rzHY2Pc2vK+SEXma+nitNGm5viMVfOSP5zT+En7FG4LSY+JU/tso=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de; spf=pass smtp.mailfrom=gmx.de; dkim=pass (2048-bit key) header.d=gmx.de header.i=w_armin@gmx.de header.b=VZdEJIwn; arc=none smtp.client-ip=212.227.15.19
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmx.de
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F7C331E85E;
+	Fri, 10 Apr 2026 02:00:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.69.64
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1775786456; cv=fail; b=aYMqBvH88ct7FRizXauFhAUzXpgSEKaTAg1G67dZpgwt7dB8SZg2do4OzvMU1pqATIIBqTbV7N1L2AWKL4TfaVWziYs7JeUhdL6WDu9PGwRmTD0XZmd0L8ZsxehGDRV4fucw90l2wDkqCoSHuFesqBbxRLXid0DqeUY5w85F3EE=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1775786456; c=relaxed/simple;
+	bh=JvITRfJ41XFY8qrYJ3OZ1ve+d4tOTfXRivLQrEq2XGg=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=S1Yab3JH7IIPF6Vfywv/QEEhVuA0r1U9LNeOPoUf7x/II5dC/RhaBSiYs8EUjXLlt6vEn32J1GWeZgwsGgFKZVNuykzVoEs7tD51lhbdQ9p+og38+I575kdrmcKlXw0LQR7/L7CVxZtUlvov8/qSr/YjYjrPe7W9SaBHArLOk08=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=nxp.com; spf=pass smtp.mailfrom=nxp.com; dkim=pass (2048-bit key) header.d=nxp.com header.i=@nxp.com header.b=iD/h/0Ir; arc=fail smtp.client-ip=52.101.69.64
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=nxp.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nxp.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmx.de header.i=w_armin@gmx.de header.b="VZdEJIwn"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmx.de;
-	s=s31663417; t=1775768400; x=1776373200; i=w_armin@gmx.de;
-	bh=rUQ0HbwkOYFcKH1Qny5KuRgdpUFfSyqRggo8XqeVj6g=;
-	h=X-UI-Sender-Class:Message-ID:Date:MIME-Version:Subject:To:Cc:
-	 References:From:In-Reply-To:Content-Type:
-	 Content-Transfer-Encoding:cc:content-transfer-encoding:
-	 content-type:date:from:message-id:mime-version:reply-to:subject:
-	 to;
-	b=VZdEJIwnf7gMLOEaTkxv05up2kjfl75JjOrcW7DLB49DiX3DUncjmfd5iFP/FSwy
-	 E1rv220l5ikGv4Cv7mjeucvT+6loP1pMGlPjp8ukpfAw5umbRRRUhD9kkmmcSRlzz
-	 6piNbTIGvmGsVJfn4DSODfdHNrYfphWFyIOkq3e770C1MNm404LeMYIdy94CeRQa5
-	 NnxzcbAde3PG6tU915L0U1PjL6OGtFhX+WiUtS03eJ5vFB/+fHyAiUW5EMaLPWvNz
-	 XMdS8PecZYSz7PwXVlnCM1wbC/FPpue7KHjcyZoVGd0zeNH4DT8NDv2ZYed+E9bZ3
-	 2ILym/Y+AawN091Gqg==
-X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
-Received: from client.hidden.invalid by mail.gmx.net (mrgmx005
- [212.227.17.190]) with ESMTPSA (Nemesis) id 1Mlf4S-1vlGRm2XkA-00kFVK; Thu, 09
- Apr 2026 23:00:00 +0200
-Message-ID: <673690f1-cdb3-400e-b11e-8490e80a23ef@gmx.de>
-Date: Thu, 9 Apr 2026 23:00:00 +0200
+	dkim=pass (2048-bit key) header.d=nxp.com header.i=@nxp.com header.b="iD/h/0Ir"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=fNe2F5/N0ckjMKM8UqUcgI8tEHXCJk359OCg/5CARTF3FUzOYRjYwo5cFH6oKDmLT3xA2XuQ/mT6JRkl4YRuTdblYRl2BsVu4OA/PMb19vkhxrS6jO2eR9PZSQDbH5xcITeKa/VEUHkkjGZAR9PWrvZG/knbfswkrphh2b82+UjFgMyve6Lmd/kepIXJdKUDIXyfJEs6PO62UAS4GBkj9SstpwiA33sEk/HICPF/O++VRafg4bQzK0pPRPTHmSPqn5GLXGMr18iOtb92JF1r6urT3upoPIUFrzCmF2gDjptWICGqCGzq+ukUH2gRZ6CErkaGrsogA/fwlS/vW2wGlw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=/3V6CHSIZ+sJr8sL/vGdO+JnQYM3ITy336iawgRLdSk=;
+ b=IcOCVmkbfu0rPHsaYsgqzndnsovSqs13do0NRyMnqXS9h+/vDDbAWQkgXMZCKj3/1bt5KOgTCOlLfnSVwkVqsT2zfv5Ehw3ZCGW91/LCnQpT/tSic+/JjV3l6zb3KA3Va19QFBrbN73TaXMPcJm6dNoILyrrn2IVY8mZMHX48U+uOv1LCocnZmjHa9+x0TGiF6D69jXS0XgYmsKkg800aiW26yYdGDAHlj+SXtQzJ6U1pW6HP/PTbnZKgZ3fdZ2u70tmmDLv5qUJgaMrXTebzdydvus28ci8fbnyMFotUiFmACUBuVnz/jaqXd3hEQlq0B4rm73havrbHHLn8/k1xA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nxp.com; dmarc=pass action=none header.from=nxp.com; dkim=pass
+ header.d=nxp.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nxp.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=/3V6CHSIZ+sJr8sL/vGdO+JnQYM3ITy336iawgRLdSk=;
+ b=iD/h/0IrOwK8OvdLe3R6QvquZDgH22lNMH8GmMVVJQs1bH2zXTPcBo2tqnoEyAwLfI5480WiULSZpxiCOgKZAs6a4M5GbtTPr7m6TXmaz+imakk+551l0/hiLz7pY2VKUKOzZhWN3/ss0nomqRTOv/3Dlq9olsARqs4Kp8A1hsmXcgV1cD+lZJ2hiTrBSaaiXQgXMD3qhMDxKv5/2vBjivgBS8806173ZzLp+ROPCFHaxXJtllElaFXEi1R8hQu27YsIDxusJOrUn2kJpLnxVaIKnxC65k1n0cyT0QkLL9840O7AJnQnTPnvCW1b550zsM7N6NxP5Yy090wduZGjyg==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nxp.com;
+Received: from PA4PR04MB9366.eurprd04.prod.outlook.com (2603:10a6:102:2a9::8)
+ by AS8PR04MB7526.eurprd04.prod.outlook.com (2603:10a6:20b:299::23) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9769.20; Fri, 10 Apr
+ 2026 02:00:50 +0000
+Received: from PA4PR04MB9366.eurprd04.prod.outlook.com
+ ([fe80::75e4:8143:ddbc:6588]) by PA4PR04MB9366.eurprd04.prod.outlook.com
+ ([fe80::75e4:8143:ddbc:6588%6]) with mapi id 15.20.9769.018; Fri, 10 Apr 2026
+ 02:00:49 +0000
+Date: Thu, 9 Apr 2026 22:00:39 -0400
+From: Frank Li <Frank.li@nxp.com>
+To: Akhil R <akhilrajeev@nvidia.com>
+Cc: Alexandre Belloni <alexandre.belloni@bootlin.com>,
+	Rob Herring <robh@kernel.org>,
+	Krzysztof Kozlowski <krzk+dt@kernel.org>,
+	Conor Dooley <conor+dt@kernel.org>,
+	"Rafael J . Wysocki" <rafael@kernel.org>,
+	Robert Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Eric Biggers <ebiggers@kernel.org>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Wolfram Sang <wsa+renesas@sang-engineering.com>,
+	Miquel Raynal <miquel.raynal@bootlin.com>,
+	linux-i3c@lists.infradead.org, devicetree@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+	acpica-devel@lists.linux.dev, linux-hwmon@vger.kernel.org
+Subject: Re: [PATCH v2 01/13] dt-bindings: i3c: Add mipi-i3c-static-method to
+ support SETAASA
+Message-ID: <adhZnNozqpW0DaXF@lizhi-Precision-Tower-5810>
+References: <20260409105747.48158-1-akhilrajeev@nvidia.com>
+ <20260409105747.48158-2-akhilrajeev@nvidia.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260409105747.48158-2-akhilrajeev@nvidia.com>
+X-ClientProxiedBy: PH7PR13CA0008.namprd13.prod.outlook.com
+ (2603:10b6:510:174::15) To PA4PR04MB9366.eurprd04.prod.outlook.com
+ (2603:10a6:102:2a9::8)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [BUG] ASUS Vivobook M1502NAQ: ACPI DSDT namespace collision
- (ASMI) causes early boot hang
-To: Alexander Zubkov <zubkov318@gmail.com>
-Cc: linux-acpi@vger.kernel.org
-References: <CABXn0zehxT90bNogCu44fRu4ANZmjjrcd8WzX_ms-Bb_JxA2Kw@mail.gmail.com>
- <4380e659-c807-43c4-9fe3-97e1403cc8a7@gmx.de>
- <CABXn0zdTmaR_pXR1Q73uHWFL=62V-VdGt3+M1Kig6LBpCnXZrA@mail.gmail.com>
-Content-Language: en-US
-From: Armin Wolf <W_Armin@gmx.de>
-In-Reply-To: <CABXn0zdTmaR_pXR1Q73uHWFL=62V-VdGt3+M1Kig6LBpCnXZrA@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: quoted-printable
-X-Provags-ID: V03:K1:mo0Nrb8lYUbLlhf4aGbBu2gJnhtIStKPbkMXC+od9W9+m1yWwN+
- nW0TatfBPuZftcFUPbXKNyEeIdBGXwWAR+raJmuchJZTthqSzT+dHJ3sfWNW/l2YuLyDVHo
- eXcgEub3VL6si0lpuX4u42pRf803J+6HICo7Dxmu2IRFwYQAVo48JlGje48XSj33afoLaBv
- SG1ZgbvJwzvNhfbL2Gutw==
-X-Spam-Flag: NO
-UI-OutboundReport: notjunk:1;M01:P0:mGTPOh17SJs=;KN2/+Vix/nCppzyMDUBrT8n5k44
- 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
- L/NnaQnwobmQTTaV9HSdM9Zl9GhggzZ6fZDo=
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: PA4PR04MB9366:EE_|AS8PR04MB7526:EE_
+X-MS-Office365-Filtering-Correlation-Id: 75c6e0f7-1be9-4c84-152b-08de96a4fce2
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|366016|7416014|52116014|376014|19092799006|1800799024|38350700014|18002099003|22082099003|56012099003;
+X-Microsoft-Antispam-Message-Info:
+	t/4A9tRx5eRLVcyZmAdmTOezRFhSJRmEGSmciwemUn1sbc/MM1wLRgjZWeMYfiIVdG+6dnwsst1912JtiC1h67Jb/KM8gGSyAqueGeym8w+/8FGTFeFai4m/L12giSIY9De64FnfKD6mOn2TPPkfvmeEF1CeqkW5SK3HoMGUawxelFODwsWd70WwVCmrWvVRF4Bycb5mpvXTNDaxSIOQjMy8sTrk0xKCI54TSxWwhFX90UFC3KE7FU9wiAkZvVKeD2qgz59+0mlbynWOncOhnKUFDJ1x7PxnQ3lVE/g3c3wAuM63+aai/EpSBZ3e3zZAYHpG6T5i/LM7uEo5MBN2+AwSlJq12IWpEyzDHeXxL4uWr8XOecD919A/eFyaWcpsEePeCWlNYPpphaP8CtvORS8eyWAExShT74vQwIzroULVOQeyixAD6qS9Q9Avp8oF/9e4MzUhBa5OsVpMwmItdJ/NDidB+wDJSzyfv2YQdcEfcBWR9Ji+Im7piojkgI0sugJLauE+MxRXyAofLp0yjB3AW0h1f5ju4pwYUzMz3a04/ru7KxuAvrJC4UInifhXwz3bPG5J6dGnbLhYIm/6/OheWNJ9JzyTSIYLdWvTMwjmfgeHJjhL+s5/9bdXVVPAFyIIKFlqc1lp+jXIoBfo5VWTD+LWoQFrwNDJC0ULN5SVMfIwM/cajBwV0uAdk/rm0v5nj6UPZbuHgzTf1VPrPXrRUekcnm47frQoaUSaVFfVgni9maldBHfhkvr21P1/
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PA4PR04MB9366.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(7416014)(52116014)(376014)(19092799006)(1800799024)(38350700014)(18002099003)(22082099003)(56012099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?+ui5M3IhphxLpfdOMk1Y6XVqnOrT2nq2t2dqXrDU8/PgGSedu/SbCiaPff+y?=
+ =?us-ascii?Q?8uAzYjp5PHZbXkoEudtCvBcXzQTkekB+wUtdBQHwFeZE+XwKGKn8wfMtnOj3?=
+ =?us-ascii?Q?272VlkbR7YgBxwAvqS56Je842ntxXGXSWpiisU0vBYx1vFC2+Z4C73IcTvJm?=
+ =?us-ascii?Q?QKutizZIDBsk+bpHUOPQtk+RwISQ9OtZk1kjyOq1UpA788cg2VGRieFLt53s?=
+ =?us-ascii?Q?fpG/wbm+shO1zQB1/Ys1M8hI1IbCekRwarNPrvD0V8C63Bs36HWg6Shy2YgX?=
+ =?us-ascii?Q?V8IwH6/K1uQhF2fgYKSwFlL4k7RlJxT/B2OxokAczrESF1TtTYR379Tng+kK?=
+ =?us-ascii?Q?azqWdJVg58h07x5m/cYkrOFwbDZr3pd3ex71dViVYM+6Z32+PftrWF324qIm?=
+ =?us-ascii?Q?y0nA2NIr1uykqXKxXdB45g9kgxdhUPk+AOV7vwKKVW6MK5a2FEPUzO4U12nK?=
+ =?us-ascii?Q?C424PYfRiUUcu9pg4WCHfaoCqtO9q20sBcqqv7U8wBc0p0+7IzPxFMgbbBFH?=
+ =?us-ascii?Q?IHuTFf16pk7XGsqSu1niFcB5ZtTBcsXu674MYs3tMF7c6RgBwmvBW8hoIuB6?=
+ =?us-ascii?Q?N9Fc4QATEu0Jjvn+j3fLC6CPFqa/Xj4xg6UTI3FXPl+s4UBk+ai9eQLbuT2c?=
+ =?us-ascii?Q?FAHXF/scKM1YD4w4Cf/UFg/vgS+jvjVZ+5t0yyCSfnzdSyNZBAiFvyvUyI4V?=
+ =?us-ascii?Q?jnJ4MGY6hSVcZwUYaIN4ahuMBZn6IjKqwHuLjUHz9VTIdMATnqlWhe1QFm1R?=
+ =?us-ascii?Q?suzSFhqPsVMiWdWq1rw368BueCBUP3XMSZ9Nkzh5lR73g/j8PCuwHjTRd3zT?=
+ =?us-ascii?Q?CXViycwJEJDU/uJDMdgyz1UrB11HIZMQCIz+mSHreEiYk8/mi+OA6yU0PTrp?=
+ =?us-ascii?Q?zFhJ73jAKzmt67/zuyEcfluC1/c+9ITBIyNtygEVqL9r4K5SX96bCb0yOALD?=
+ =?us-ascii?Q?Yf+R3dgVSvutOEafOx4WqMo0ByUZ9TAAuHbbPZMzVzHumdFvtB3UYzwfTqzR?=
+ =?us-ascii?Q?aM+r9fyDOVbd+CkelyHB51+P85AdcCJ07+W4y9BAdTsmBcp9hyo8J868kVAQ?=
+ =?us-ascii?Q?h4rFBWqJqjaSHgCzjnlJhUyhJ1BLwgUPgfZ1U4LOf7ba3XLCRPs6VrTNkugI?=
+ =?us-ascii?Q?nrNwE/MIWr2C/Vcg/g0DiNkG6OcyaZ97KUawpWu2LajoIzttpippN3HigtIK?=
+ =?us-ascii?Q?HI3oe6mX3StKWMv7nsT1w9mhMiRDrZ8JqLi1pg/vgfJ3JGhTSzAQe5b9sglr?=
+ =?us-ascii?Q?ftWwBvgYKGlKEqE/VaF3A/0MQoIZuaGzwKX7FUOSxDTqw4H3VQKkWG7zpfOJ?=
+ =?us-ascii?Q?1xYz8fMIq0kYjbCq86oTkSxpM1iSiPtD0wZN1NOWqk9rVWl+5p9bwHHrYLIM?=
+ =?us-ascii?Q?mJ0JvaXVj9I4luiPZ9H8YYPxx7Vggz5OQv3nb5HFBT04mWEp4mqyiHAN38ZM?=
+ =?us-ascii?Q?LTXLO8OK1boycdPBgubKCPYRmym8MILEpWdlUDDWjq1QCCxv3eDJLZ8RBaIX?=
+ =?us-ascii?Q?YFt3LeP5+WKLjS3gwK1wSYdoTTwuVsmtjVwMxmXEDKCrDhxCmkcjdaM98cpX?=
+ =?us-ascii?Q?aTs9+UJuiK+br2dWaD6q5Zpaz+SsdvbTVlQODl6s7h0AY9hE0pljrMGzxemm?=
+ =?us-ascii?Q?FNv8rjpJ1dQNNkMbxuk98S9zZuUq/p/0LClGxZRtuw5skQn0cYQ19O+t5ksY?=
+ =?us-ascii?Q?34kKRmSjP6ORu4435QwP3HNFpTyh9KKTLYVvKqn5rjurBCB0vnwejW5iRVwL?=
+ =?us-ascii?Q?dAFziN20aQ=3D=3D?=
+X-OriginatorOrg: nxp.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 75c6e0f7-1be9-4c84-152b-08de96a4fce2
+X-MS-Exchange-CrossTenant-AuthSource: PA4PR04MB9366.eurprd04.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 Apr 2026 02:00:49.8861
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 686ea1d3-bc2b-4c6f-a92c-d99c5c301635
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: 4iIv/IYLiWDS5hQe6RIK81zIWw72K8eWx3F5yVfNeSW12aJ/PfAjpQKCBCmDyBbWnPyIS7qBeMb3uh9IRkHIHg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AS8PR04MB7526
 
-Am 09.04.26 um 21:19 schrieb Alexander Zubkov:
-
-> On Thu, Apr 9, 2026 at 4:58=E2=80=AFPM Armin Wolf <W_Armin@gmx.de> wrote=
-:
->> Am 07.04.26 um 22:53 schrieb Alexander Zubkov:
->>
->>> Hello,
->>>
->>> I'd like to report an ACPI issue on an ASUS Vivobook 15 M1502NAQ-BQ067
->>> (AMD Ryzen 5 150 - Zen3+ / Rembrandt platform). UEFI version:
->>> M1502NAQ.302.
->>>
->>> Linux kernels (tested with recent mainline live images of Alpine,
->>> Void, NixOS and Fedora) hang immediately after bootloader when ACPI is
->>> enabled. No output is produced, even with earlycon/earlyprintk:
->>> earlycon=3Defi,keep earlyprintk=3Defi,keep loglevel=3D8 ignore_logleve=
-l
->>> initcall_debug acpi.debug_level=3D0x2 acpi.debug_layer=3D0xFFFFFFFF
->>>
->>> I've tried various ACPI-related options, boot works only with:
->>> * acpi=3Doff (but system resets with no error several seconds after th=
-e
->>> boot, keyboard does not work)
->>> * acpi_no_static_ssdt (system boots, keyboard does not work)
->>>
->>> Notebook's firmare was upgraded to the latest available version. I've
->>> also tried to boot a windows installer, just to check it is not a
->>> hardware issue. It boots normally.
->>>
->>> I'm not an expert in ACPI, so I used ChatGPT to lead the debug.
->>> Although I suppose it misleaded me sometimes, it turned out to be
->>> useful, because I found a DSDT patch that fixed the issue. Most of
->>> debugging was done using Alpine's kernel 6.18.21-0-lts.
->>>
->>> The issue was traced to a namespace collision in DSDT:
->>> * Method \ASMI defined in global scope
->>> * Method _SB.ASMI also defined
->>>
->>> ChatGPT presumes that unqualified calls to ASMI appear to resolve
->>> incorrectly under Linux (ACPICA), leading to a firmware-level failure
->>> during early ACPI initialization. I dumped ACPI tables from UEFI shell
->>> and tried different overrides.
->>>
->>> The minimal fix I found is renaming the global method in DSDT and its
->>> single call. After applying this dsdt.aml override, the kernel boots
->>> well without additional acpi options, does not reset after boot, and
->>> the keybord initializes and works well. The patch looks like this (and
->>> I also increased the revision number):
->>>
->>> --- a/dsdt.dsl    2026-04-07 18:31:52.727022684 +0200
->>> +++ b/dsdt.dsl    2026-04-07 21:30:04.393990891 +0200
->>> @@ -10138,7 +10138,7 @@
->>>                SMCM =3D Arg0
->>>            }
->>>
->>> -        Method (ASMI, 1, Serialized)
->>> +        Method (ASMX, 1, Serialized)
->>>            {
->>>                AL_D =3D Arg0
->>>                SMCM =3D 0xD6
->>> @@ -10151,7 +10151,7 @@
->>>                DB_2 =3D Arg1
->>>                DB_3 =3D Arg2
->>>                DB_4 =3D Arg3
->>> -            ASMI (0x80)
->>> +            ASMX (0x80)
->>>            }
->>>        }
->>>
->>> Is this a known ACPICA behavior difference vs Windows, or should this
->>> be considered a firmware bug only? I can provide full acpidump / DSDT
->>> if needed.
->> This might indeed be a Bug inside ACPICA, please provide the acpidump
->> so we can inspect the caller of ASMI ().
-> Please see the acpi dumps and override attached. I noticed that dump
-> from Linux slightly differs from the one I made from shell.
+On Thu, Apr 09, 2026 at 04:27:31PM +0530, Akhil R wrote:
+> Add the 'mipi-i3c-static-method' property mentioned in the MIPI I3C
+> Discovery and Configuration Specification [1] to specify which discovery
+> method an I3C device supports during bus initialization. The property is
+> a bitmap, where a bit value of 1 indicates support for that method, and 0
+> indicates lack of support.
+> Bit 0: SETDASA CCC (Direct)
+> Bit 1: SETAASA CCC (Broadcast)
+> Bit 2: Other CCC (vendor / standards extension)
+> All other bits are reserved.
 >
-> acpi-shell.tar.xz - dump from UEFI shell
-> acpi-linux.tar.xz - dump from Linux with override applied
-> asus-fix.cpio.xz - early initrd with DSDT override
+> It is specifically needed when an I3C device requires SETAASA for the
+> address assignment. SETDASA will be supported by default if this property
+> is absent, which means for now the property just serves as a flag to
+> enable SETAASA, but keep the property as a bitmap to align with the
+> specifications.
+>
+> [1] https://www.mipi.org/mipi-disco-for-i3c-download
+>
+> Signed-off-by: Akhil R <akhilrajeev@nvidia.com>
+> ---
+>  .../devicetree/bindings/i3c/i3c.yaml          | 30 ++++++++++++++++---
+>  1 file changed, 26 insertions(+), 4 deletions(-)
+>
+> diff --git a/Documentation/devicetree/bindings/i3c/i3c.yaml b/Documentation/devicetree/bindings/i3c/i3c.yaml
+> index e25fa72fd785..1705d90d4d79 100644
+> --- a/Documentation/devicetree/bindings/i3c/i3c.yaml
+> +++ b/Documentation/devicetree/bindings/i3c/i3c.yaml
+> @@ -31,10 +31,12 @@ properties:
+>        described in the device tree, which in turn means we have to describe
+>        I3C devices.
+>
+> -      Another use case for describing an I3C device in the device tree is when
+> -      this I3C device has a static I2C address and we want to assign it a
+> -      specific I3C dynamic address before the DAA takes place (so that other
+> -      devices on the bus can't take this dynamic address).
+> +      Other use-cases for describing an I3C device in the device tree are:
+> +      - When the I3C device has a static I2C address and we want to assign
+> +        it a specific I3C dynamic address before the DAA takes place (so
+> +        that other devices on the bus can't take this dynamic address).
+> +      - When the I3C device requires SETAASA for its discovery and uses a
+> +        pre-defined static address.
+>
+>    "#size-cells":
+>      const: 0
+> @@ -147,6 +149,26 @@ patternProperties:
+>            through SETDASA. If static address is not present, this address is assigned
+>            through SETNEWDA after assigning a temporary address via ENTDAA.
+>
+> +      mipi-i3c-static-method:
+> +        $ref: /schemas/types.yaml#/definitions/uint32
+> +        minimum: 0x1
+> +        maximum: 0xff
+> +        default: 1
+> +        description: |
+> +          Bitmap describing which methods of Dynamic Address Assignment from a
+> +          static address are supported by this I3C Target. A bit value of 1
+> +          indicates support for that method, and 0 indicates lack of support.
+> +          Bit 0: SETDASA CCC (Direct)
+> +          Bit 1: SETAASA CCC (Broadcast)
+> +          Bit 2: Other CCC (vendor / standards extension)
 
-Thanks, please use reply-all next time so other people can access the ACPI=
- tables too.
-I wrote a simple ACPI table to simulate your problem (two ASMI methods, on=
- at \ and one at \_SB),
-and it seems that ACPICA correctly uses the ASMI method inside the _SB sco=
-pe.
+You need define at include/dt-bindings/i3c/i3c.h
 
-Does the problem still occur when you blacklist the asus-wmi driver? AFAIK=
- all the calls to ASMI()
-are triggered by said driver.
+Or direct use string arrray
+anyOf
+  - setdasa
+  - setaasa
+  - vendor
 
-Can you also check if loading asus-wmi later in the boot process (for exam=
-ple after the users has
-logged in) fixes this issue?
 
-Thanks,
-Armin Wolf
-
->> Thanks,
->> Armin Wolf
->>
->>> Thanks,
->>> Alexander Zubkov
->>>
+Frank
