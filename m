@@ -1,153 +1,166 @@
-Received: from CH1PR05CU001.outbound.protection.outlook.com (mail-northcentralusazon11010013.outbound.protection.outlook.com [52.101.193.13])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f48.google.com (mail-pj1-f48.google.com [209.85.216.48])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F57C2DBF76;
-	Sat, 11 Apr 2026 05:41:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.193.13
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775886089; cv=fail; b=duSNUK/aXOnC9fzn/rcaofSEwcc2D5sFBvR6VPUgeYDdDCWXTm/8zFeCu3zWM8iPh/KgDvAo8FqjezkTnuAcQUbpRo+ZoiKDe0tTjNJkFKZB4orObMzHca7zw2oXXn5IkbKCYVq+ZC7lluubSc3EZov9mDU49P6pEvFZtXb69w8=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775886089; c=relaxed/simple;
-	bh=Zi9YYF+wD3IxeiqdEoqw08las5xMg69g9vfnkqCvOFE=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=I+a/+/S6mBuN8TNQF8sfVll6WHAMs7x0acXPe+pJRlrAhisEMj+XsVow1nJT/9Qzoa149Vv/xyJbYvu62+uOX4C4LUJtc73OUjeyvXPqS6U4Kk7OJgxAn49pSEA3X2sOjjDbupCGUKcJmMz4WvZZAoA20dLaOStf+InbIHZcT88=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=Pis9ojEK; arc=fail smtp.client-ip=52.101.193.13
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72342326D4A
+	for <linux-acpi@vger.kernel.org>; Sat, 11 Apr 2026 07:20:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.48
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1775892032; cv=none; b=rdrfy61uro2PjICrHlVDd/YhTsqs4bRPAaXziGHrYD+Mt3uXSKZVC5Xpg+pe+Lbspcfbz7+Jq83TORSfaSUS2LRq71bk7oYmQRw7sOhoQ0PuuXsrxKbDAtpvClZhVPiuYDIjvcHaK9OtTAwYUAJDBUp1eJHk0vMpLV5o7R8LkZc=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1775892032; c=relaxed/simple;
+	bh=giGY+nVbFQQ4Xw5h+OvpqFsfwqaC6d2zZAaoZfV8m6Q=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=k9qYGtBgBdPhDFTKC4rX24gYpKcjtQ/apXoBP+NTBzS5O0nhqRDsFyjYEEeLQDGBYEj9Ux7k7nLCbmscH78riA0TPNbotfYhW7uETNm/WEK3Zns7TRyj+/PsT+uUnLKlUNAx0XBxe3G5k4qK9b1z9BxCRcnKRjqs/calf2PI5fY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=roeck-us.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=h6wkAzBv; arc=none smtp.client-ip=209.85.216.48
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=roeck-us.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="Pis9ojEK"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=klh8csoBwx+q1yCpLdWUY6IA1PPVLnotYZI7cBifKkPtNw0GSz3S2Js8IqV3ItPGlb5PuXOhVYmZxcoJ053kXsSt7n/XANGb8gXcH/iw5AmNuorWsDfpk/NBaRx+08vAJn5GcgR8wskTLI7n8J2VxpESuIR+E29iaHkh6zyFUPD4uQa03oSwZenDSzDqr7qArnya4MdC/OHDpjlMOywoDJtIqDSp9Dp6MDurO6bDIHBKkEX0YhG62oFlr3q1kqwgTWuPb7F5g40LeuljWRce6taP//JDfAD5NCcQPSqieOeyAQoxX8Ak0zobxhUNzF0atIpP+QWO/CuDoah07MafFA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=aK+vOWvDBFMpLXYOmQRle+HbReR4882LXreDCWONZFU=;
- b=vLRhzz/qKVmpHEcqhym0sy3lWgXH3MLX160zOBkquBa8wanFKahxoEctr/OTA7lAgiC2bOljPjGDx5UXZFgq5XAI0aV3D8sMTw/WT+79ka5VlO+gxJPdjqOO1TOTGOWZhFQgwL56oEjyY1JzUPnnUOr0jZsd2fEF36MZ/tN7sOBcjMtn4exbkkbhA5sZylIRDvH9UDShwXInd76wNS8poD3BdkZlebYFabRcYToOZg/5pyKyn09nTuy//gD/bpNjJakl/WIjOlmI4hR/DQiwkd0rE86DaHuD0Z+3UR4jpwE82dXzZ82tsbiYphgxT+BInVz24fmTx2hHEaO0oJErVA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.160) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=aK+vOWvDBFMpLXYOmQRle+HbReR4882LXreDCWONZFU=;
- b=Pis9ojEK1o4fI7Zvvsgy7Edd2a2KXMcrFKBHDy9xQysBwSKBQPwmLebtNUU39p3qilIV39FL5OSRuAonuOCmAzMfhbMIxsSJgXVaIUXFqBPFt6fpe/a0cihUJUYwk+95uP7yZx9krXJDUmSUnovxshGSrmHOKLLuIn395tzF+bQ1AiXuygb61k35eXFqIETPkIPOMtSCLdnq2HzK7v18x6VkJ7YZPXONsXz/mZ+bQOgMf2IZylBJ/GftWI4p7mseAFVerP9tXEfSX1A3dvHGy/rXQb2bBwXdZrICLVDbwD34/0eF7Xo8EUnofAA3Y/ly2WY3JF/Tzhx+kfV1Niojlg==
-Received: from BYAPR11CA0076.namprd11.prod.outlook.com (2603:10b6:a03:f4::17)
- by CH3PR12MB9218.namprd12.prod.outlook.com (2603:10b6:610:19f::22) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9791.33; Sat, 11 Apr
- 2026 05:41:22 +0000
-Received: from CO1PEPF00012E83.namprd03.prod.outlook.com
- (2603:10b6:a03:f4:cafe::22) by BYAPR11CA0076.outlook.office365.com
- (2603:10b6:a03:f4::17) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.9769.42 via Frontend Transport; Sat,
- 11 Apr 2026 05:41:21 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.160) by
- CO1PEPF00012E83.mail.protection.outlook.com (10.167.249.58) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9769.17 via Frontend Transport; Sat, 11 Apr 2026 05:41:21 +0000
-Received: from rnnvmail205.nvidia.com (10.129.68.10) by mail.nvidia.com
- (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Fri, 10 Apr
- 2026 22:41:11 -0700
-Received: from rnnvmail205.nvidia.com (10.129.68.10) by rnnvmail205.nvidia.com
- (10.129.68.10) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Fri, 10 Apr
- 2026 22:41:09 -0700
-Received: from BUILDSERVER-IO-L4T.nvidia.com (10.127.8.9) by mail.nvidia.com
- (10.129.68.10) with Microsoft SMTP Server id 15.2.2562.20 via Frontend
- Transport; Fri, 10 Apr 2026 22:41:02 -0700
-From: Akhil R <akhilrajeev@nvidia.com>
-To: <rafael@kernel.org>
-CC: <acpica-devel@lists.linux.dev>, <akhilrajeev@nvidia.com>,
-	<alexandre.belloni@bootlin.com>, <conor+dt@kernel.org>,
-	<devicetree@vger.kernel.org>, <ebiggers@kernel.org>, <frank.li@nxp.com>,
-	<krzk+dt@kernel.org>, <lenb@kernel.org>, <linux-acpi@vger.kernel.org>,
-	<linux-hwmon@vger.kernel.org>, <linux-i3c@lists.infradead.org>,
-	<linux-kernel@vger.kernel.org>, <linux@roeck-us.net>,
-	<miquel.raynal@bootlin.com>, <p.zabel@pengutronix.de>, <robh@kernel.org>,
-	<sakari.ailus@linux.intel.com>, <wsa+renesas@sang-engineering.com>
-Subject: Re: [PATCH v2 02/13] ACPICA: Read LVR from the I2C resource descriptor
-Date: Sat, 11 Apr 2026 11:11:00 +0530
-Message-ID: <20260411054101.50827-1-akhilrajeev@nvidia.com>
-X-Mailer: git-send-email 2.50.1
-In-Reply-To: <CAJZ5v0jW9=VtjyjeoEDTm9hrGKP_BYUeuKCxcKoV-VsvM5otiA@mail.gmail.com>
-References: <CAJZ5v0jW9=VtjyjeoEDTm9hrGKP_BYUeuKCxcKoV-VsvM5otiA@mail.gmail.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="h6wkAzBv"
+Received: by mail-pj1-f48.google.com with SMTP id 98e67ed59e1d1-35d90833cacso1857160a91.2
+        for <linux-acpi@vger.kernel.org>; Sat, 11 Apr 2026 00:20:31 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1775892031; x=1776496831; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:autocrypt:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:sender:from:to:cc:subject:date:message-id:reply-to;
+        bh=VlHFHyv7lotD4cDN/ipcHMLKOy2CDqZhb9XbRaJOH1U=;
+        b=h6wkAzBvB2DI6GRbAcT03i/5nmeRpuWPKr8xtzuTDRqqKTXLtuXmzgxS9JJjbhGjz8
+         81fj1S2a7sAl0WZe74H65R5DcSNslDqJEozYH/aWnsKFFPyY1T2xZE9JvZsP9Y8t45+7
+         mXuMtNKXWhzF+d8an6fLn3FoAmUKkoCa8MEsZsyg/uIqNRB9Avdee48D0+wt8ZXv61ta
+         ywVtNobAfgqGPZHV1PuN+5hhGUGpbuGYfYtJ9+xCHu4EbhNBJaYza0dPGaWnx4g8qrSg
+         mF5QzJ7f0DPLhIj1A57kbcs5aheAme4BZz3J2cA6x+ZLcePqSZ04erdB6bYd2JGdpmJV
+         C8hA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1775892031; x=1776496831;
+        h=content-transfer-encoding:in-reply-to:autocrypt:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:sender:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=VlHFHyv7lotD4cDN/ipcHMLKOy2CDqZhb9XbRaJOH1U=;
+        b=rGDqMCeiZNcI89dL9wAocL0cZf0jXHxxcGBZKOxsd2cf211N7NI886U8fMgQ0N8tfq
+         dyx9piL+whjAjLdjsDaJAt3Q4xL6v2f8pbzA5W6KzsNayFhxGgyx3m4IQh5cXDCUxk7X
+         lsJ/gQ6P1Q6+9uoO4OeCbjAxnKaMYMiPdmaztjt/UN8nIJbxrCCTL5ZlPwWx8CVXlnXj
+         AONrMePvUPvHChQOi2V1Aq4WyzTVT9JfiSF582/sJlV+kZ0BRUbni8/8GrAnE3AMttZd
+         aLmD387KSJWnHAvOxRPatTs9tELGXC5oc/ybXe9fuUgRZQb9m+8hjKbP9mFghBAyCUF2
+         2r5g==
+X-Forwarded-Encrypted: i=1; AJvYcCXH/+hrKbz/4yBEtLuYlqYnik+LNFEsbzbwWv8ZlzpP6I5lxInRpx1h+8GyzxPH/EUjP9R2uUgJ+048@vger.kernel.org
+X-Gm-Message-State: AOJu0Ywvde2gTWPtwd42to28woRRyCYj9pZtQMNAbLgOO0Gfi0zp8U/c
+	eYZv9TnBwftGnA8mcHUok0vl3oDV1he/w4bUkWZHiM5d6cHJNr+9msxn
+X-Gm-Gg: AeBDiev5vr9P0we1Ptp7SxITjZp2zJ25mB39zGDDtNSpBGn3/pzQ5ekSwBpmJ2eG3Nk
+	eS6ge9uBto9VZB0r1ASrR/DivDhafUFJaM/tW+ExLYk+yaFPhzB8qGiu0/wDj4rfbDpDdTH2Nru
+	aPLlsuv+nG3tAylxwwrF/I7lNsbYXQQCFsdO+p3+5bEJgnET7yz4ty1QoaDOwvP6HUj8loEPbGp
+	ESGSh2VZ9u/hR6FzJkCuOw02fg75VNjeBHKX9DrtyEq9PsVrZ/KKWeszamwiiyIfFueFBOAfiS8
+	z8nXRN4fHYLBcMMOHSLDuC1q8uqNL5vyw8DoTOI9jtDRvjwiJVkC+RC/XscvlHlN+CH0lsi8ooW
+	QnHCJyCFOP9j1+JWUdSfOI+DaSATVcNKQpDkdiNgVtnOI6O7egaiTfV6uWGUoum3ygQb8s19D4P
+	yOD4x8SC6pyIRfHnu8ZdXdNSE6ULIEV0UqIpaKPKGnNS0rcKzZXK4PqhnBCQjXtSobbKWXutig
+X-Received: by 2002:a17:90b:2ccb:b0:35b:c900:79a6 with SMTP id 98e67ed59e1d1-35e4274e341mr5769646a91.4.1775892030776;
+        Sat, 11 Apr 2026 00:20:30 -0700 (PDT)
+Received: from ?IPV6:2600:1700:e321:62f0:da43:aeff:fecc:bfd5? ([2600:1700:e321:62f0:da43:aeff:fecc:bfd5])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-35e35155829sm9191314a91.13.2026.04.11.00.20.29
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sat, 11 Apr 2026 00:20:30 -0700 (PDT)
+Sender: Guenter Roeck <groeck7@gmail.com>
+Message-ID: <d0f1f053-589a-4681-8c8f-8e4b5daec145@roeck-us.net>
+Date: Sat, 11 Apr 2026 00:20:28 -0700
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-X-NV-OnPremToCloud: ExternallySecured
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CO1PEPF00012E83:EE_|CH3PR12MB9218:EE_
-X-MS-Office365-Filtering-Correlation-Id: 34e908d6-04b0-410b-0e0f-08de978cf638
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|7416014|82310400026|36860700016|1800799024|13003099007|56012099003|18002099003|22082099003;
-X-Microsoft-Antispam-Message-Info:
-	kpnPbVQy24QbgoaOT+RD0UGnuw2Hue+UmUShh15nA7LimZ4+kqfIJM7xU4PbWhOu1cjZkmtXlvD21qPgF/TqMzKm2q2zv855z3I+uAb51gGGMLgSzvQQv87U6FREs18sUkAV9nRnQ0CugBO7ISfrj05QYNtQ+LhV6J7KEtOgt6xqLzVKp+mNqkCwsbU0kxB102rmR3PQ9T7zBnARjs6ar2aD/Fq+w4nYT/fIFAl66xwAJKUH+3ds3V0tnhQw1Aqwgaaz6/UaSSN4D9C8gm7iALmnH8yzHncOnpdWrs91E/HFq6TQjgHM5p7pVS6AkZpYfc3HfSij2bp9FW5hQiOnjfXBMP0nVnWaI3HG21rvH/O2rLGtVw6CejSNmy3yhGFbZY/Df5fARIqMaU7l96co0Y1GnFNdf5drjAAcTwvWWd5qwe2x5Ibs+oS7VExjEcNXAGdcIeEC+rZmSPZ+9fbBLM6lKYHLmeZC/tuFbKTaFHeXyFY9b8RN4LRoZszTocmFhP8kT4uHzQflVZkv52DwxVw0hFkM8jznnRh0WsMvFf/XdvNhPVwp/fYRm6RsqyVJz0uqr7Bgpg6ZtorjQmX1aFG6YqOS3YMrtI0jSwfo5OhsIoysbzmKOPK9kAkWsBajSAIsExEzCWh85uGd5roceAUxSD0qqHl+pXSJbtrEFZUDFy0n/EO4DM72PuNt0/a+SCPH514hz+8ELO+TrR/MlgqJYitGP+K1TXVIZwuV/l4+pe4mIbQaY6up1zFd4sIPVx1QH1oKRctd1NJ+untqWQ==
-X-Forefront-Antispam-Report:
-	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(376014)(7416014)(82310400026)(36860700016)(1800799024)(13003099007)(56012099003)(18002099003)(22082099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	D07tL7Gu7xXvNdbJBzKsooKMlLx7fvoOr8PmltRzUkCpbzJS7hE63CgEjeduA/tArKPMg7XoMGvcmCdA3OI5r0vl/cPzQ9RDDNL/CgQuSrmcI4t/SZFpudlBnhBbaQ7xaHNlawts8Sv6mPWk/QL7oO4rvo/yjFxjNiTzPSGTyybD//mX32Osi5kmF+ub2NLRAN30Fcm8DrMZ6/IWttGSNcjAMof2S5gGsNYbJTdZo93lR5FG7WieLGH3K95nDdVz/pGbqSXtl0mJzsJSTS0yF/IXgXo/BOLJrctF3LLqgaYOJYtceVvjzQHfPaQhz4XyHK080GGoFTInUMN0HF7i0Fi9Ewfl1P/u/FfI0LAvJzd1K8udnIWHhzSRtGgm6Q6+TDi4LZES1hcjvmLOdZBy6VqjYXjElNNVKQx+gx7A8dtaB2ZDHi7eNVMcR/LOLTza
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 Apr 2026 05:41:21.3859
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 34e908d6-04b0-410b-0e0f-08de978cf638
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	CO1PEPF00012E83.namprd03.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH3PR12MB9218
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2 13/13] arm64: defconfig: Enable I3C and SPD5118 hwmon
+To: Akhil R <akhilrajeev@nvidia.com>, krzk@kernel.org
+Cc: Frank.Li@nxp.com, acpica-devel@lists.linux.dev,
+ alexandre.belloni@bootlin.com, conor+dt@kernel.org,
+ devicetree@vger.kernel.org, ebiggers@kernel.org, krzk+dt@kernel.org,
+ lenb@kernel.org, linux-acpi@vger.kernel.org, linux-hwmon@vger.kernel.org,
+ linux-i3c@lists.infradead.org, linux-kernel@vger.kernel.org,
+ miquel.raynal@bootlin.com, p.zabel@pengutronix.de, rafael@kernel.org,
+ robh@kernel.org, sakari.ailus@linux.intel.com,
+ wsa+renesas@sang-engineering.com
+References: <5c751739-5044-4d23-9648-8d46dd0945d1@kernel.org>
+ <20260411053433.49655-1-akhilrajeev@nvidia.com>
+Content-Language: en-US
+From: Guenter Roeck <linux@roeck-us.net>
+Autocrypt: addr=linux@roeck-us.net; keydata=
+ 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
+ np3900V20aS7eD9K8GTU0TGC1pyz6IVJwIE=
+In-Reply-To: <20260411053433.49655-1-akhilrajeev@nvidia.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Fri, 10 Apr 2026 12:59:06 +0200, Rafael J. Wysocki wrote:
-> On Fri, Apr 10, 2026 at 6:45 AM Akhil R <akhilrajeev@nvidia.com> wrote:
->>
->> On Thu, 9 Apr 2026 22:04:05 -0400, Frank Li wrote:
->>> On Thu, Apr 09, 2026 at 04:27:32PM +0530, Akhil R wrote:
->>>> ACPI 6.3 specifies byte 8 of I2C Serial Bus Connection descriptor to be
->>>> used for Legacy Virtual Register (LVR) data as specified in the MIPI
->>>> I3C Specification for an I2C device connected to an I3C Host Controller.
->>>> LVR will be read by I3C host controller drivers and it provides details
->>>> about the specific speed and 50ns spike filter capabilities of I2C
->>>> devices.
->>>>
->>>> Update the rsconvert_info to include this field. For I2C devices on an
->>>> I2C bus, this field is Reserved and unused.
->>>>
->>>> This commit is the result of squashing the following:
->>>> ACPICA commit 70082dc8fc847673ac7f4bbb1541776730f0b63e
->>>> ACPICA commit e62e74baf7e08cf059ec82049aeccd565b24d661
->>>> ACPICA commit c404118235108012cad396c834b5aabe2dd1b51a
->>>> ACPICA commit 7650d4a889ea7907060bfce89f4f780ce83e7b28
->>>> ACPICA commit 014fa9f2dbcc6b1bd42a4a4a6f6705d9cf7d460b
->>>
->>> These commit number is not existed at linus official tree. Please remove it.
->>
->> These are commits from ACPI-CA github. The files in the acpica folder is
->> a mirror of that repo. I suppose the commits in this folder are expected
->> to be structured like this. The process is also described here -
->> https://docs.kernel.org/driver-api/acpi/linuxized-acpica.html
+On 4/10/26 22:34, Akhil R wrote:
+[ ... ]
+>>>> And it
+>>>> should bring me clear rule what I can or cannot remove from defconfig,
+>>>> if in 2 years I come and start pruning it from symbols.
 > 
-> While the above is correct overall, it would also be sufficient to use
-> Link: tags pointing to those commits.
+> I am still a little confused on what information would likely accept (and
+> keep) these configs in the defconfig. Would updating the commit message
+> as below work?
+> 
+> "These configs enable the support for SPD5118 within the
+> Small-Outline-Compression-Attached Memory Modules (SOCAMM) LPDDR5X found
+> in the NVIDIA Vera CPUs. The Vera CPU uses ACPI and is part of platforms
+> such as Vera Rubin."
+> 
 
-Ack. I will drop the commit IDs in the next version.
+It is quite interesting that we argue about SPD5118 which is mandatory in
+DDR5 systems. At the same time, CONFIG_IGB_HWMON, CONFIG_SENSORS_MACSMC_HWMON,
+CONFIG_SENSORS_RASPBERRYPI_HWMON, and CONFIG_RTC_DRV_DS3232_HWMON _are_
+enabled in arm64:defconfig. CONFIG_IGB_HWMON is even built-in.
 
-Best Regards,
-Akhil
+It is kind of difficult to understand why those are more important than
+the temperature sensor on DDR5 modules (or the temperature sensor on DDR4
+modules, for that matter).
+
+I don't know what the policy for defconfig is, but just based on that it does
+seem to lack consistency.
+
+A separate question is if it is time to enable I3C in default configurations.
+I'd think so - more and more chip vendors support it, and presumably they would
+not invest in it if there was no demand, but that is just my personal opinion.
+
+Guenter
+
