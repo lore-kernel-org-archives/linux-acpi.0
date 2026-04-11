@@ -1,131 +1,105 @@
-Received: from fout-a2-smtp.messagingengine.com (fout-a2-smtp.messagingengine.com [103.168.172.145])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8AF0C28504D;
-	Sat, 11 Apr 2026 09:27:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.145
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AA1127816C
+	for <linux-acpi@vger.kernel.org>; Sat, 11 Apr 2026 11:33:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775899658; cv=none; b=B4k8mewxF3KGyB0CCEiu5h+x1D7q+my/eubTPawtQCbeaqnjaQiI+Ov5iirtB59K4r23JKnknWNyxl8tbQoA0mov1FKz+2v3F5P0N1pzd6W2ds0NCvPCda9B5haCcO2ujENbaApnnv4xeieAgTjgqkwt5/IDGHypBNbFFYb9/ZQ=
+	t=1775907204; cv=none; b=n9hRjeUeEmNPLhNUAL5GgV85FFA0R6otxBfKBge476aSNdMBmsnwzKUMvLYSmCvPapEJ/p37x4rHShRqgcYg474r7Omwm1OKClP9BCscnxGnjLvrQpx2mrwZ4rx6k+cOUqzUmTeeyhZTb6FslWea5XzrK/fPF52joNVsbigfdXo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775899658; c=relaxed/simple;
-	bh=WGO85Fdp0tqLa26nqiI4ibDLGEdkYhnwXmRIDSzXfRE=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=j+zITtHRed0R5QkDtkEfIFUdQgEa0UTOLTqz0ObZjBhXJz727kZlk85F/H1afRjy0ZTpNHfGBf01u5sihAQgjdtJ7q63YCmTPB+Z8YL746QfrACWRW4buP2xmYTIJS6hcTHLod8F0ZT+yrOAsMci9GbHgcIqG4N1fyvg4k1f7AY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=jschaer.ch; spf=pass smtp.mailfrom=jschaer.ch; dkim=pass (2048-bit key) header.d=jschaer.ch header.i=@jschaer.ch header.b=RZeVBz0V; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=pZnZkYIA; arc=none smtp.client-ip=103.168.172.145
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=jschaer.ch
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=jschaer.ch
+	s=arc-20240116; t=1775907204; c=relaxed/simple;
+	bh=yCwfZVKRGy2sHdV6NywY4rfux68HZ7RD7Myz9Y2oT9Q=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=fVz3YzQeVnwYtT+vzmme2ngxDB16Y7v+zOaTphLzQGDJ2fRj6Ux2T+RRxfSD5IlRJceosXDrUYO5kGZDUNg6mXlCs6+cObU3MusNti8MLo5vpDKhJ4ku6RM7rRJGIkwSAltHMNzP2T5HZ5WiWIDsCKbCZac/fbCZA9pXSWTDBMs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VabrCVK8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=jschaer.ch header.i=@jschaer.ch header.b="RZeVBz0V";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="pZnZkYIA"
-Received: from phl-compute-05.internal (phl-compute-05.internal [10.202.2.45])
-	by mailfout.phl.internal (Postfix) with ESMTP id A5FC7EC0426;
-	Sat, 11 Apr 2026 05:27:34 -0400 (EDT)
-Received: from phl-frontend-04 ([10.202.2.163])
-  by phl-compute-05.internal (MEProxy); Sat, 11 Apr 2026 05:27:34 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=jschaer.ch; h=cc
-	:cc:content-transfer-encoding:content-type:content-type:date
-	:date:from:from:in-reply-to:message-id:mime-version:reply-to
-	:subject:subject:to:to; s=fm2; t=1775899654; x=1775986054; bh=KD
-	6ob3Wr4yj8Spjk63OAbmr6Ll4y0ZZjEiaGbgQWnSE=; b=RZeVBz0VOAcOo/ovK/
-	UnYGJ83McfaNRKNhievz8qnWiG9qZS+D0r6ud8utEIO9Pa+nUjxSNEW5Zy4UtzIG
-	YhxEG1NvDa9hZmIpZflZa3+Dy6/dko+5NmNJhXxyrcxmIvdpiH15ETPBL4thL3dj
-	xRIaqPTANzcClt+mg922pvBTUc3prvGLxLO58rJqH0rP6/vST5reID+MwRGfvffh
-	qpidqqEcTQzGTmmGd5y4x5tjeDU68lh5tEDjO+pDqrFe7/nUoVpSR2JKojWRZQgu
-	m9EHNbiMtOaiLCRmsjXkmYjz9VonDKzQbHBlGwjyZYq2jgCq95aZiNTCroptgjJm
-	+B0g==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:content-type:date:date:feedback-id:feedback-id
-	:from:from:in-reply-to:message-id:mime-version:reply-to:subject
-	:subject:to:to:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
-	fm2; t=1775899654; x=1775986054; bh=KD6ob3Wr4yj8Spjk63OAbmr6Ll4y
-	0ZZjEiaGbgQWnSE=; b=pZnZkYIAOXp9a5h71mqvaqmBvVf+vPcGQoL3QNX5zuAM
-	ZWCl2O7c0aWci4Lqo0nZjvqMbwigJwHD2MXSxcRaqXwM2eE51X80qFrcIZFBZRg/
-	o3IXX0NJSO3dFFkOnoTFFS8nWaecnaC0r9Yw31HQm413EoIMeKS7OB4V1vm6jwzl
-	2DSJ1EkUU/CdEL7KDxb6LjtJt4KpZ1PMF4aQPnqOtkjrm+E46QVyci3Yj5DxxbEX
-	gcq6LArCOCs3q3WW+tlhoGES7FFu7iWcyqNPidI5XQv0QdaAG80CvVAIECQXL/Tt
-	DslRjTqHa2HhHaTT3KaIConi+bO04DUBBM1jaDVI2Q==
-X-ME-Sender: <xms:BhTaaVEWsQGk75BML5va45gmvhYBWY2uVq3qLNNMNC1md6mQ6tY48w>
-    <xme:BhTaaTq2DIdRC3Vba63XOdnlCS9cwNbfTRl59NouCgbMMIf_ETwlLh7wU68xrLKuq
-    mljRGuArshM451xknsLky4A_2z4LMy5b4q3QFa7K9tvu9JJ2gyhvA>
-X-ME-Received: <xmr:BhTaaeaBD5yUpibMI5IOfOGmWjuiqdgpZ4QL5zBASMjZORdBsRvGiX2Z_cVq9Q3Duj_ziQ4ARdPKPXHTKVbD5FPT0OEdMxWciPpuD588>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefhedrtddtgdefudelkecutefuodetggdotefrod
-    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpuffrtefokffrpgfnqfghnecuuegr
-    ihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjug
-    hrpefhvfevufffkffogggtgfesthekredtredtjeenucfhrhhomheplfgrnhcuufgthhom
-    rhcuoehjrghnsehjshgthhgrvghrrdgthheqnecuggftrfgrthhtvghrnhepheeifeegff
-    fghfffueejueeljeefvedvleefieffhfejleeggeeiffffffffteelnecuvehluhhsthgv
-    rhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomhepjhgrnhesjhhstghhrggvrh
-    drtghhpdhnsggprhgtphhtthhopeeipdhmohguvgepshhmthhpohhuthdprhgtphhtthho
-    pehrrghfrggvlheskhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhgvnhgssehkvghrnh
-    gvlhdrohhrghdprhgtphhtthhopehhrghnshhgsehkvghrnhgvlhdrohhrghdprhgtphht
-    thhopehlihhnuhigqdgrtghpihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtth
-    hopehjrghnsehjshgthhgrvghrrdgthhdprhgtphhtthhopehsthgrsghlvgesvhhgvghr
-    rdhkvghrnhgvlhdrohhrgh
-X-ME-Proxy: <xmx:BhTaacURhySgtQeW88fX46TY1C0E5n7HKgYU-DCo9Fe6Pd4sB9gmBg>
-    <xmx:BhTaaX8FHi30UoZO6hkHtYl6l39SLUIdEzbZho6E763S9BasnjfHpQ>
-    <xmx:BhTaaV91mmCw8WA-peQnbPhnU2FOnKRMp6v5q3wqyWXRav9yrcBoqw>
-    <xmx:BhTaaXQvD2itAzreTwmiCwesTTQw1WS1D1TNCdQxVltkoQFB4dHQYA>
-    <xmx:BhTaaeoq6Lp_gj9hWoo5JLQQHz2hP-3e-WoVeGipIPPiPasuup2R6oRA>
-Feedback-ID: ie67446dc:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Sat,
- 11 Apr 2026 05:27:33 -0400 (EDT)
-From: =?UTF-8?q?Jan=20Sch=C3=A4r?= <jan@jschaer.ch>
-To: "Rafael J . Wysocki" <rafael@kernel.org>
-Cc: Len Brown <lenb@kernel.org>,
-	Hans de Goede <hansg@kernel.org>,
-	linux-acpi@vger.kernel.org,
-	=?UTF-8?q?Jan=20Sch=C3=A4r?= <jan@jschaer.ch>,
-	stable@vger.kernel.org
-Subject: [PATCH] ACPI: video: Add backlight=native quirk for Dell OptiPlex 7770 AIO
-Date: Sat, 11 Apr 2026 11:26:06 +0200
-Message-ID: <20260411092606.47925-1-jan@jschaer.ch>
-X-Mailer: git-send-email 2.51.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VabrCVK8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09AB0C2BCB0
+	for <linux-acpi@vger.kernel.org>; Sat, 11 Apr 2026 11:33:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1775907204;
+	bh=yCwfZVKRGy2sHdV6NywY4rfux68HZ7RD7Myz9Y2oT9Q=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=VabrCVK8tz5wBVZC810196634nz76SAF/45GK1Aw0Uu6hCz8eS619DbBz+XmxtFtY
+	 VjMlHS+OxjC5iUA31/NfDB/TAgrPj7TipXcag38TppwrFZhEEfy/lpbzqoJxmhpNDc
+	 bMOwL6b/JTC2vFr2EwValOEMiqxsYYeMrNzo+87ddeGSTgsE5jZmwUjn/bjuOK43uz
+	 ndruIIqbOs+etoYHpHxJc59RIfUvpIqXMScb4P+B4PdobrDZQucZx4JZKRG9d1PUIq
+	 0jtHkd/vlyeEgS8xvIfMqQfQMNisGN+atqIiaprMEl5O8Ds5bGEuhtZXwHTdsqesb4
+	 BInykFIM+Rehg==
+Received: by mail-oa1-f43.google.com with SMTP id 586e51a60fabf-415e568a7ecso1028151fac.0
+        for <linux-acpi@vger.kernel.org>; Sat, 11 Apr 2026 04:33:23 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCWQG4zM8E5QxS4nycN0Hco7+6O+fmCWTEphFb3SuPhY/8CQ+EhsrSqt4km7kOjqoZONFHcZ8RUhlOIe@vger.kernel.org
+X-Gm-Message-State: AOJu0YxHgzxwtPDsDfiB9kj0Cnlt5by1xwvZkGciaHNwmzF0tspnBsI3
+	tZMUdhNF/cnUvY2tgmdS6dl8944PVfjHUk+ehH8xkuIVV0qQlczY/NK8/gOQbYAfHMmuNpTZL05
+	4tASioiWjgWZkBP6YHUqGrgsg5KXmhHM=
+X-Received: by 2002:a05:6820:841a:b0:67c:27a7:8c4d with SMTP id
+ 006d021491bc7-68be86e7a4bmr2185898eaf.48.1775907203103; Sat, 11 Apr 2026
+ 04:33:23 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+References: <20260410103451.2014607-1-lgs201920130244@gmail.com>
+In-Reply-To: <20260410103451.2014607-1-lgs201920130244@gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Sat, 11 Apr 2026 13:33:09 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0iADp9n2y0VYRYVd7dbCmrs8DePUiHt8NfdWpei88CVsA@mail.gmail.com>
+X-Gm-Features: AQROBzA1eomXPQ2GoLn5YRzGqNl9QPHF9M4-G07uNibocYRp9f3nIytu6184pUg
+Message-ID: <CAJZ5v0iADp9n2y0VYRYVd7dbCmrs8DePUiHt8NfdWpei88CVsA@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: power: Use put_device() in power resource add error path
+To: Guangshuo Li <lgs201920130244@gmail.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-The Dell OptiPlex 7770 AIO needs the same quirk as the 7760 AIO. The
-backlight can be controlled with the native controller, intel_backlight,
-but not with dell_uart_backlight.
+On Fri, Apr 10, 2026 at 12:35=E2=80=AFPM Guangshuo Li <lgs201920130244@gmai=
+l.com> wrote:
+>
+> After device_initialize(), the lifetime of struct device is managed by
+> the driver core through reference counting.
+>
+> acpi_add_power_resource() initializes device->dev via
+> acpi_init_device_object(), which installs acpi_release_power_resource()
+> as the release callback. If acpi_device_add() fails, however, the error
+> path calls acpi_release_power_resource() directly instead of dropping
+> the device reference with put_device().
+>
+> This bypasses the normal device lifetime rules and frees the object
+> without releasing the reference acquired by device_initialize(), which
+> may lead to a refcount leak and potentially a use-after-free. Fix it by
+> calling put_device(&device->dev) and let the release callback handle
+> the final cleanup.
+>
+> Fixes: 781d737c7466 ("ACPI: Drop power resources driver")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Guangshuo Li <lgs201920130244@gmail.com>
+> ---
+>  drivers/acpi/power.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
+> index 361a7721a6a8..f96f954876a7 100644
+> --- a/drivers/acpi/power.c
+> +++ b/drivers/acpi/power.c
+> @@ -991,7 +991,7 @@ struct acpi_device *acpi_add_power_resource(acpi_hand=
+le handle)
+>         return device;
+>
+>   err:
+> -       acpi_release_power_resource(&device->dev);
+> +       put_device(&device->dev);
 
-I dumped the DSDT using acpidump, acpixtract and iasl, and confirmed
-that it contains the DELL0501 device. When loading the
-dell_uart_backlight driver with `rmmod dell_uart_backlight`, `modprobe
-dell_uart_backlight dyndbg`, it reports "Firmware version: GL_Re_V18".
+Please use acpi_dev_put() here.
 
-Fixes: cd8e468efb4f ("ACPI: video: Add Dell UART backlight controller detection")
-Cc: stable@vger.kernel.org
-Signed-off-by: Jan Schär <jan@jschaer.ch>
----
- drivers/acpi/video_detect.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+Also, acpi_add_single_object() has the exact same problem, so it would
+be good to fix them both together in one patch.
 
-diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index 4cf74f173c78..4a2132ae28b4 100644
---- a/drivers/acpi/video_detect.c
-+++ b/drivers/acpi/video_detect.c
-@@ -878,6 +878,14 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
- 		DMI_MATCH(DMI_PRODUCT_NAME, "OptiPlex 7760 AIO"),
- 		},
- 	},
-+	{
-+	 .callback = video_detect_force_native,
-+	 /* Dell OptiPlex 7770 AIO */
-+	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "OptiPlex 7770 AIO"),
-+		},
-+	},
- 
- 	/*
- 	 * Models which have nvidia-ec-wmi support, but should not use it.
+>         return NULL;
+>  }
+>
+> --
 
-base-commit: 591cd656a1bf5ea94a222af5ef2ee76df029c1d2
--- 
-2.51.0
-
+Thanks!
