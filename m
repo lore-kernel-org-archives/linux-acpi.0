@@ -1,277 +1,150 @@
-Received: from mail-wm1-f44.google.com (mail-wm1-f44.google.com [209.85.128.44])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3C3C2FD1AA
-	for <linux-acpi@vger.kernel.org>; Sat, 11 Apr 2026 22:44:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A98C33D6CA;
+	Sun, 12 Apr 2026 13:21:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775947463; cv=none; b=OSNnmVUaBsUGQXB3gsUT2bWuN9U9qNQlm4XPw7HwiBxV3e+oJENgbKnZX2NbFtwifMrcjAcu0Y8nJzJe8mXvFQ8wyDGrqvUchz30ccxbpGM2moFANHKhGrEYs9oXxfPLnzjActV5BMWqQIZE0HAL/fxBPFpQ+VINe9cr8ymF+yI=
+	t=1776000106; cv=none; b=FlcwLwIg+xqZskyYLxX3YCHcobIinzkwVmM2faFw0EB5Dysjx+tnD8LZ37sKsteA6T7q3f/WkiG7dUIj+WzPlk7FqlC65ATyNKVZTaj1qgiUcK7i5gNFk/00GSojvNvnDHabeE0nhaa1i8IQkl0gSR6cd7gnybDQXG9LvEQcloI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775947463; c=relaxed/simple;
-	bh=UtlUU8Fi5Is3Qu3V3vltYkE9KJwA3e3KogM751fdf1Y=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=fqzvN6soWGxA/eoo3SarkbANltrsGVMSjz/c8MPjabp34tpWvOIzOZOrElpfTYHxqZxQwa6ihvdhP8JWQ3cE9LKUBWpJM/k66RtybwYUYcUrJBwrxfdBQa9aGxE6O2bslfaajRMXsnoWvNfrgVVYxHfahqksYRM5oOPHXFnFmYs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Qge3sCkz; arc=none smtp.client-ip=209.85.128.44
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1776000106; c=relaxed/simple;
+	bh=5SZyBkE6asksdQJY2MgtgFUkYXkx6F6xTXUq/bmwqKI=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Oopsvl1rbFzUJWkbvBqqmJZbv7gPHpcjDPsgH2Umxu1L27ZJ6ePcnUqLqw0tBlAbY8GUJFYuCBwy53ih3/t3MKbEf9dL1GZMgs5syWhnwxGwaXoJNGUj/3IH+ifUtWv1B93WWtDmo8cnaIhK5H9IOT/xzji4UBVcWzb7Hy43ivw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mZQsKP32; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Qge3sCkz"
-Received: by mail-wm1-f44.google.com with SMTP id 5b1f17b1804b1-488a88aeec9so42230055e9.2
-        for <linux-acpi@vger.kernel.org>; Sat, 11 Apr 2026 15:44:21 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1775947460; x=1776552260; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=3Jmm5Ymsda8i8WZ0iSLh/8W4gMwGSV0Qd7yCqvS/JSA=;
-        b=Qge3sCkz07nyB4aQfxe1DcXgzHhgrGe/7QdvKUdGqZm18tg5UqcNUo0G+DYUt3aTk4
-         6A7XLi/FTB9PlHAv0SJtj9FSj9owhq6CnYNP3DsD+eefH7/E3I43sWHRXcZW55yrZT0B
-         iwCM44JVKW+gmrPbI6608qyCVgyy6q8am+qISMYuzDyExmV2OZJlBtSpK3ByxJXqY8xs
-         tyQKHwpmWWMNexZBJNxkyJakldU8/7k3dh0Z6K6lAekhvDLtwguoa6JupX91QZvRvrRN
-         RveDzYZV2WJ5aeYbQHyJPQVw4jFqI+qP+gDZmHp70fA/IiTLbkYJO1kbfYxHA+tBEqyY
-         wYWA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1775947460; x=1776552260;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=3Jmm5Ymsda8i8WZ0iSLh/8W4gMwGSV0Qd7yCqvS/JSA=;
-        b=SjJby0x8JNlOtyZrsJhdiexLUg9WcR2siIkDF3UEI6zsAr7Y/ybF1y/nv7ZNrz7xxY
-         9vsdmsBYDGFRCfLc5fI62TItOlFFxL5DWQWxPpBbe/7pNKu1ymQGZ5nFAYXXiu4H32o6
-         ZQ08JmXtR5jWXrpdGW6Ubne7Qwef15eNaLZOC4VIJGnX+zHwza3c+bs+I7HBThI813zU
-         EesIQd/JpKPIX0fGurMwv5UspQOuF/PLKVLByqE2/6RjX+j7EI6NhPHGLuayz9S2pDUC
-         OyX/EOydkhKurgwgfkA74kQVBZ8JQAMii79QhzOTOe/oZxxE4YSw8KvVeof/eKp5Eu4f
-         Yszw==
-X-Gm-Message-State: AOJu0YyoGVZJeF2DGMMlheSjjl12MGWCdQfhu4zlqqtZ+NnZ0YSoKHTP
-	2/LQ4aemLHr+KHCrRBrCWxurfSbpI2QFSye3mKMeDfmA4Hr6QgK0qHkZW4tzVA==
-X-Gm-Gg: AeBDievG487ZA6rZtt0kdQrI/19Hw+0J49FWMz2tNfuUx2D9lFwIDYM8zDexiQH3uyv
-	IMhXnYNbCVM3WkiFMmzvp2v7B0S4j0namG+2e+JKgfBdVTnpaZ9qDNMwtsKGZEhvbvsgaJAOnnR
-	G1YpPNSCxPd3gKDPqIfhY4ocVnUHsXQmUYYVpYobVg0kRsERTOnw7tAywKzQUCWPFbmOXuZb1R4
-	IHZrff8kSIQS4t0jue4copl3WOHX+NsgIjgCY2gEMl1t6ah8wWq1TXwoBI4CEvEaNE8He+pk4Zz
-	wIn4JSLiTa+5LtTy0k1jqIbLuLDPTJXCA80WmHkk6GBKUyywO69IEAUZ1LOvB0Ne8Y378PGiIa+
-	crM/ajDqcnlZ87R04z0lnMDxwUS9fy3M1+O6W79E0e215m9MnedUA+zYSz+IaYuHdaEz+KD0gL3
-	tbGkj1qRj4Sd4LjZSF+Mpq8yOyydz9IA9tVyrSFHwgLmY3+rcCV+20d7AUmcN5lD4plth0or86u
-	p4rNWdWjLYJ9Vr6odUlzqqnqRmQxjFQNvMrx191jl1hGsZA8K/VxutRMOx9GuXgkrI6vqUbnT26
-	GEMexCGyw3PidcWGGTvoGoRb/uRdfGgCraEKMd+bogQQuXrZhTtSq7Ux62hfuU1S87SlHfg=
-X-Received: by 2002:a05:600c:c0da:b0:488:b187:d898 with SMTP id 5b1f17b1804b1-488d685b6e8mr96824865e9.14.1775947459934;
-        Sat, 11 Apr 2026 15:44:19 -0700 (PDT)
-Received: from dev-container.europe-west9-a.c.privasys-development.internal (65.170.155.34.bc.googleusercontent.com. [34.155.170.65])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-488d532ef00sm198117115e9.5.2026.04.11.15.44.19
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 11 Apr 2026 15:44:19 -0700 (PDT)
-From: bfoing <bertrand.foing@gmail.com>
-X-Google-Original-From: bfoing <40759640+bfoing@users.noreply.github.com>
-To: linux-acpi@vger.kernel.org
-Cc: rafael@kernel.org,
-	lenb@kernel.org,
-	robert.moore@intel.com,
-	kirill.shutemov@linux.intel.com,
-	thomas.lendacky@amd.com,
-	linux-coco@lists.linux.dev,
-	linux-kernel@vger.kernel.org,
-	Bertrand Foing <40759640+bfoing@users.noreply.github.com>
-Subject: [PATCH] ACPI: block AML access to confidential VM private memory
-Date: Sat, 11 Apr 2026 22:44:12 +0000
-Message-ID: <20260411224412.2236817-1-40759640+bfoing@users.noreply.github.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mZQsKP32"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 546D1C2BCB0;
+	Sun, 12 Apr 2026 13:21:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1776000106;
+	bh=5SZyBkE6asksdQJY2MgtgFUkYXkx6F6xTXUq/bmwqKI=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=mZQsKP32Gl9lZPeZBwcB9Bg1fNsSTq3NcLmaMijXOrEM9wwUZ5nTfNQxAtbYR9N+Z
+	 3Ekz4U+uiqRFlCYzuzkeEVxi/5hkiiFRxp/oRptCVIe7OaIq87VR4Z9rQO7lyM/gcj
+	 IEskTIDc2z8qb6Rmnse7OfzpxWHHnsWCtPdaa8w8sdfQCvILiwrXkqyhl09aQsRiZx
+	 1FXUcz+Co9PH6pfadMITdszEKMeDe2DVDcfzbP2S26/Bl1QC5+k1X6lcNqV2vS/TBv
+	 tVQoLXSs3P1hWC81meQ2fVjiHiiPrlb8XRXi96M6/+25XsPVU0za96yxkz0frvWVcM
+	 5g2fpauKjAD0g==
+Message-ID: <5751aa6f-ee7a-4031-99a8-b64f45e9084b@kernel.org>
+Date: Sun, 12 Apr 2026 15:21:36 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2 13/13] arm64: defconfig: Enable I3C and SPD5118 hwmon
+To: Akhil R <akhilrajeev@nvidia.com>
+Cc: Frank.Li@nxp.com, acpica-devel@lists.linux.dev,
+ alexandre.belloni@bootlin.com, conor+dt@kernel.org,
+ devicetree@vger.kernel.org, ebiggers@kernel.org, krzk+dt@kernel.org,
+ lenb@kernel.org, linux-acpi@vger.kernel.org, linux-hwmon@vger.kernel.org,
+ linux-i3c@lists.infradead.org, linux-kernel@vger.kernel.org,
+ linux@roeck-us.net, miquel.raynal@bootlin.com, p.zabel@pengutronix.de,
+ rafael@kernel.org, robh@kernel.org, sakari.ailus@linux.intel.com,
+ wsa+renesas@sang-engineering.com
+References: <5c751739-5044-4d23-9648-8d46dd0945d1@kernel.org>
+ <20260411053433.49655-1-akhilrajeev@nvidia.com>
+From: Krzysztof Kozlowski <krzk@kernel.org>
+Content-Language: en-US
+Autocrypt: addr=krzk@kernel.org; keydata=
+ xsFNBFVDQq4BEAC6KeLOfFsAvFMBsrCrJ2bCalhPv5+KQF2PS2+iwZI8BpRZoV+Bd5kWvN79
+ cFgcqTTuNHjAvxtUG8pQgGTHAObYs6xeYJtjUH0ZX6ndJ33FJYf5V3yXqqjcZ30FgHzJCFUu
+ JMp7PSyMPzpUXfU12yfcRYVEMQrmplNZssmYhiTeVicuOOypWugZKVLGNm0IweVCaZ/DJDIH
+ gNbpvVwjcKYrx85m9cBVEBUGaQP6AT7qlVCkrf50v8bofSIyVa2xmubbAwwFA1oxoOusjPIE
+ J3iadrwpFvsZjF5uHAKS+7wHLoW9hVzOnLbX6ajk5Hf8Pb1m+VH/E8bPBNNYKkfTtypTDUCj
+ NYcd27tjnXfG+SDs/EXNUAIRefCyvaRG7oRYF3Ec+2RgQDRnmmjCjoQNbFrJvJkFHlPeHaeS
+ BosGY+XWKydnmsfY7SSnjAzLUGAFhLd/XDVpb1Een2XucPpKvt9ORF+48gy12FA5GduRLhQU
+ vK4tU7ojoem/G23PcowM1CwPurC8sAVsQb9KmwTGh7rVz3ks3w/zfGBy3+WmLg++C2Wct6nM
+ Pd8/6CBVjEWqD06/RjI2AnjIq5fSEH/BIfXXfC68nMp9BZoy3So4ZsbOlBmtAPvMYX6U8VwD
+ TNeBxJu5Ex0Izf1NV9CzC3nNaFUYOY8KfN01X5SExAoVTr09ewARAQABzSVLcnp5c3p0b2Yg
+ S296bG93c2tpIDxrcnprQGtlcm5lbC5vcmc+wsGVBBMBCgA/AhsDBgsJCAcDAgYVCAIJCgsE
+ FgIDAQIeAQIXgBYhBJvQfg4MUfjVlne3VBuTQ307QWKbBQJoF1BKBQkWlnSaAAoJEBuTQ307
+ QWKbHukP/3t4tRp/bvDnxJfmNdNVn0gv9ep3L39IntPalBFwRKytqeQkzAju0whYWg+R/rwp
+ +r2I1Fzwt7+PTjsnMFlh1AZxGDmP5MFkzVsMnfX1lGiXhYSOMP97XL6R1QSXxaWOpGNCDaUl
+ ajorB0lJDcC0q3xAdwzRConxYVhlgmTrRiD8oLlSCD5baEAt5Zw17UTNDnDGmZQKR0fqLpWy
+ 786Lm5OScb7DjEgcA2PRm17st4UQ1kF0rQHokVaotxRM74PPDB8bCsunlghJl1DRK9s1aSuN
+ hL1Pv9VD8b4dFNvCo7b4hfAANPU67W40AaaGZ3UAfmw+1MYyo4QuAZGKzaP2ukbdCD/DYnqi
+ tJy88XqWtyb4UQWKNoQqGKzlYXdKsldYqrLHGoMvj1UN9XcRtXHST/IaLn72o7j7/h/Ac5EL
+ 8lSUVIG4TYn59NyxxAXa07Wi6zjVL1U11fTnFmE29ALYQEXKBI3KUO1A3p4sQWzU7uRmbuxn
+ naUmm8RbpMcOfa9JjlXCLmQ5IP7Rr5tYZUCkZz08LIfF8UMXwH7OOEX87Y++EkAB+pzKZNNd
+ hwoXulTAgjSy+OiaLtuCys9VdXLZ3Zy314azaCU3BoWgaMV0eAW/+gprWMXQM1lrlzvwlD/k
+ whyy9wGf0AEPpLssLVt9VVxNjo6BIkt6d1pMg6mHsUEVzsFNBFVDXDQBEADNkrQYSREUL4D3
+ Gws46JEoZ9HEQOKtkrwjrzlw/tCmqVzERRPvz2Xg8n7+HRCrgqnodIYoUh5WsU84N03KlLue
+ MNsWLJBvBaubYN4JuJIdRr4dS4oyF1/fQAQPHh8Thpiz0SAZFx6iWKB7Qrz3OrGCjTPcW6ei
+ OMheesVS5hxietSmlin+SilmIAPZHx7n242u6kdHOh+/SyLImKn/dh9RzatVpUKbv34eP1wA
+ GldWsRxbf3WP9pFNObSzI/Bo3kA89Xx2rO2roC+Gq4LeHvo7ptzcLcrqaHUAcZ3CgFG88CnA
+ 6z6lBZn0WyewEcPOPdcUB2Q7D/NiUY+HDiV99rAYPJztjeTrBSTnHeSBPb+qn5ZZGQwIdUW9
+ YegxWKvXXHTwB5eMzo/RB6vffwqcnHDoe0q7VgzRRZJwpi6aMIXLfeWZ5Wrwaw2zldFuO4Dt
+ 91pFzBSOIpeMtfgb/Pfe/a1WJ/GgaIRIBE+NUqckM+3zJHGmVPqJP/h2Iwv6nw8U+7Yyl6gU
+ BLHFTg2hYnLFJI4Xjg+AX1hHFVKmvl3VBHIsBv0oDcsQWXqY+NaFahT0lRPjYtrTa1v3tem/
+ JoFzZ4B0p27K+qQCF2R96hVvuEyjzBmdq2esyE6zIqftdo4MOJho8uctOiWbwNNq2U9pPWmu
+ 4vXVFBYIGmpyNPYzRm0QPwARAQABwsF8BBgBCgAmAhsMFiEEm9B+DgxR+NWWd7dUG5NDfTtB
+ YpsFAmgXUF8FCRaWWyoACgkQG5NDfTtBYptO0w//dlXJs5/42hAXKsk+PDg3wyEFb4NpyA1v
+ qmx7SfAzk9Hf6lWwU1O6AbqNMbh6PjEwadKUk1m04S7EjdQLsj/MBSgoQtCT3MDmWUUtHZd5
+ RYIPnPq3WVB47GtuO6/u375tsxhtf7vt95QSYJwCB+ZUgo4T+FV4hquZ4AsRkbgavtIzQisg
+ Dgv76tnEv3YHV8Jn9mi/Bu0FURF+5kpdMfgo1sq6RXNQ//TVf8yFgRtTUdXxW/qHjlYURrm2
+ H4kutobVEIxiyu6m05q3e9eZB/TaMMNVORx+1kM3j7f0rwtEYUFzY1ygQfpcMDPl7pRYoJjB
+ dSsm0ZuzDaCwaxg2t8hqQJBzJCezTOIkjHUsWAK+tEbU4Z4SnNpCyM3fBqsgYdJxjyC/tWVT
+ AQ18NRLtPw7tK1rdcwCl0GFQHwSwk5pDpz1NH40e6lU+NcXSeiqkDDRkHlftKPV/dV+lQXiu
+ jWt87ecuHlpL3uuQ0ZZNWqHgZoQLXoqC2ZV5KrtKWb/jyiFX/sxSrodALf0zf+tfHv0FZWT2
+ zHjUqd0t4njD/UOsuIMOQn4Ig0SdivYPfZukb5cdasKJukG1NOpbW7yRNivaCnfZz6dTawXw
+ XRIV/KDsHQiyVxKvN73bThKhONkcX2LWuD928tAR6XMM2G5ovxLe09vuOzzfTWQDsm++9UKF a/A=
+In-Reply-To: <20260411053433.49655-1-akhilrajeev@nvidia.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-From: Bertrand Foing <40759640+bfoing@users.noreply.github.com>
+On 11/04/2026 07:34, Akhil R wrote:
+> On Fri, 10 Apr 2026 11:57:11 +0200, Krzysztof Kozlowski wrote:
+>> On 10/04/2026 10:37, Akhil R wrote:
+>>> On Fri, 10 Apr 2026 09:18:48 +0200, Krzysztof Kozlowski wrote:
+>>>> On 10/04/2026 08:57, Guenter Roeck wrote:
+>>>>> On 4/9/26 23:39, Krzysztof Kozlowski wrote:
+>>>>>> On 09/04/2026 12:57, Akhil R wrote:
+>>>>>>> Add I3C subsystem support, DesignWare I3C master controller, and
+>>>>>>> SPD5118 hwmon sensor as modules to the defconfig and therefore
+>>>>>>> enable the support for SPD5118 sensor on SOCAMM found in NVIDIA
+>>>>>>> Vera platforms.
+>>>>>>
+>>>>>> git grep for "Vera" gave me zero results. Are you sure this is an
+>>>>>> upstream platform? Please point the DTS using this.
+>>>>>>
+>>>>>
+>>>>> I think this is an ACPI based system, or at least that is what Google search
+>>>>> tells me.
+>>>>
+>>>> Thanks. Following Google Vera is either a "CPU" or entire architecture
+>>>> (at least that's how they call it), so it does not have SPD5118 sensor.
+>>>
+>>> SOCAMM is a Memory Module. SPD5118, as it's Kconfig mentions, is a sensor
+>>> found within such memory modules. I didn't quite get why would you state
+>>> that the SOCAMM present in Vera architecture (or CPU) does not have
+>>> SPD5118 in it.
+>>
+>> I said that CPU or entire architecture does not have it.
+>>
+>> Commit is pretty vague in helping me to figure out the things I asked
+>> for in last email.
+>>
+>>
+>>>
+>>> Pasting the below from the Vera Rubin product page [1] -
+>>> "NVIDIA Vera CPUs add enhanced serviceability with small-outline
+>>> compression-attached memory modules (SOCAMM) LPDDR5X and in-system tests
+>>> for the CPU cores."
+>>>
+>>> [1]: https://www.nvidia.com/en-us/data-center/technologies/rubin/
+>>
+>> So this is for Vera Rubin? For what is this exactly?
+> 
+> SOCAMM is with the Vera CPU. Any Vera based platform would have this module.
+> Vera Rubin is one such platform.
+> 
+> SPD5118 is within the SOCAMM.
 
-Add a guard in the ACPICA SystemMemory space handler that prevents AML
-bytecode from reading or writing pages belonging to the confidential VM
-private address range.
+So just mention this, instead of giving imprecise "Vera".
 
-On TDX and SEV-SNP guests the ACPI tables are under host/VMM control.
-Malicious AML ("BadAML") can issue SystemMemory region reads and writes
-to arbitrary guest physical addresses, extracting secrets or corrupting
-guest state without triggering any existing kernel protection.
-
-The guard walks the kernel page tables for the target virtual address
-and checks whether the page-table entry carries the platform-specific
-is private the access is denied with AE_AML_ILLEGAL_ADDRESS.
-
-Signed-off-by: Bertrand Foing <40759640+bfoing@users.noreply.github.com>
----
- drivers/acpi/Makefile          |   1 +
- drivers/acpi/acpica/exregion.c |  12 ++++
- drivers/acpi/cvm_guard.c       | 121 +++++++++++++++++++++++++++++++++
- 3 files changed, 134 insertions(+)
- create mode 100644 drivers/acpi/cvm_guard.c
-
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index d1b0affb8..6743ece85 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -45,6 +45,7 @@ acpi-y				+= resource.o
- acpi-y				+= acpi_processor.o
- acpi-y				+= processor_core.o
- acpi-$(CONFIG_ARCH_MIGHT_HAVE_ACPI_PDC) += processor_pdc.o
-+acpi-$(CONFIG_ARCH_HAS_CC_PLATFORM)	+= cvm_guard.o
- acpi-$(CONFIG_ACPI_EC)		+= ec.o
- acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
- acpi-$(CONFIG_PCI)		+= pci_root.o pci_link.o pci_irq.o
-diff --git a/drivers/acpi/acpica/exregion.c b/drivers/acpi/acpica/exregion.c
-index a390a1c2b..f12cacff3 100644
---- a/drivers/acpi/acpica/exregion.c
-+++ b/drivers/acpi/acpica/exregion.c
-@@ -14,6 +14,12 @@
- #define _COMPONENT          ACPI_EXECUTER
- ACPI_MODULE_NAME("exregion")
- 
-+#ifdef CONFIG_ARCH_HAS_CC_PLATFORM
-+bool acpi_cvm_guard_deny_access(unsigned long virt_addr);
-+#else
-+static inline bool acpi_cvm_guard_deny_access(unsigned long v) { return false; }
-+#endif
-+
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_ex_system_memory_space_handler
-@@ -176,6 +182,12 @@ acpi_ex_system_memory_space_handler(u32 function,
- 	logical_addr_ptr = mm->logical_address +
- 		((u64) address - (u64) mm->physical_address);
- 
-+#ifdef CONFIG_ARCH_HAS_CC_PLATFORM
-+	if (acpi_cvm_guard_deny_access((unsigned long)logical_addr_ptr)) {
-+		return_ACPI_STATUS(AE_AML_ILLEGAL_ADDRESS);
-+	}
-+#endif
-+
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 			  "System-Memory (width %u) R/W %u Address=%8.8X%8.8X\n",
- 			  bit_width, function, ACPI_FORMAT_UINT64(address)));
-diff --git a/drivers/acpi/cvm_guard.c b/drivers/acpi/cvm_guard.c
-new file mode 100644
-index 000000000..0524bf902
---- /dev/null
-+++ b/drivers/acpi/cvm_guard.c
-@@ -0,0 +1,121 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * CVM Guard - Block AML access to confidential VM private memory
-+ *
-+ * Copyright (C) 2026 Privasys
-+ *
-+ * On TDX and SEV-SNP guests the host VMM controls ACPI tables, so
-+ * AML bytecode executing SystemMemory reads and writes can target
-+ * arbitrary guest physical addresses.  This file provides a guard
-+ * function called from the ACPICA SystemMemory space handler that
-+ * checks whether the target virtual address maps to a page marked
-+ * as encrypted (private) in the page tables, and denies the access
-+ * if so.
-+ *
-+ * Reference: "BadAML: Exploiting AML in Confidential Virtual Machines"
-+ *            Takekoshi et al., ACM CCS 2025
-+ */
-+
-+#include <linux/cc_platform.h>
-+#include <linux/mm.h>
-+#include <linux/printk.h>
-+#include <asm/coco.h>
-+
-+/* Prototype to satisfy -Wmissing-prototypes; declared here rather than in
-+ * internal.h because this file does not need the full ACPI driver headers.
-+ */
-+bool acpi_cvm_guard_deny_access(unsigned long virt_addr);
-+
-+/*
-+ * Walk the four-level kernel page tables for @addr and return the raw
-+ * PTE/PMD/PUD value.  Returns 0 if the walk fails at any level.
-+ * Handles 1 GB (PUD) and 2 MB (PMD) large pages.
-+ */
-+static unsigned long cvm_guard_pte_val(unsigned long addr)
-+{
-+	pgd_t *pgd;
-+	p4d_t *p4d;
-+	pud_t *pud;
-+	pmd_t *pmd;
-+	pte_t *pte;
-+
-+	pgd = pgd_offset_k(addr);
-+	if (pgd_none(*pgd))
-+		return 0;
-+
-+	p4d = p4d_offset(pgd, addr);
-+	if (p4d_none(*p4d))
-+		return 0;
-+
-+	pud = pud_offset(p4d, addr);
-+	if (pud_none(*pud))
-+		return 0;
-+	if (pud_leaf(*pud))
-+		return pud_val(*pud);
-+
-+	pmd = pmd_offset(pud, addr);
-+	if (pmd_none(*pmd))
-+		return 0;
-+	if (pmd_leaf(*pmd))
-+		return pmd_val(*pmd);
-+
-+	pte = pte_offset_kernel(pmd, addr);
-+	if (pte_none(*pte))
-+		return 0;
-+
-+	return pte_val(*pte);
-+}
-+
-+/*
-+ * Check whether @addr maps to a private (encrypted) page.
-+ *
-+ * cc_mkenc() applies the platform-specific encryption mask:
-+ *   AMD SEV/SEV-SNP: sets the C-bit
-+ *   Intel TDX:       clears the shared bit
-+ *
-+ * If the PTE already matches its encrypted form, the page is private
-+ * and must not be accessible to AML.  If the walk fails (returns 0)
-+ * we deny access - fail-closed is the safe default.
-+ */
-+static bool cvm_guard_page_is_private(unsigned long addr)
-+{
-+	unsigned long val;
-+
-+	val = cvm_guard_pte_val(addr);
-+	if (!val) {
-+		pr_warn_ratelimited("CVM guard: page table walk failed for %lx\n",
-+				    addr);
-+		return true;
-+	}
-+
-+	return val == cc_mkenc(val);
-+}
-+
-+/**
-+ * acpi_cvm_guard_deny_access - block AML access to CVM private pages
-+ * @virt_addr: kernel virtual address resolved by the SystemMemory handler
-+ *
-+ * Called from acpi_ex_system_memory_space_handler() after the virtual
-+ * address has been computed but before any read or write.
-+ *
-+ * On non-CVM systems (CC_ATTR_MEM_ENCRYPT not set) this returns false.
-+ *
-+ * Return: true if the access must be denied, false if allowed.
-+ */
-+bool acpi_cvm_guard_deny_access(unsigned long virt_addr)
-+{
-+	if (!cc_platform_has(CC_ATTR_MEM_ENCRYPT))
-+		return false;
-+
-+	pr_info_once("CVM guard: active, AML access to private pages will be denied\n");
-+
-+	virt_addr &= PAGE_MASK;
-+
-+	if (cvm_guard_page_is_private(virt_addr)) {
-+		pr_warn_ratelimited("CVM guard: denied AML access to private page at %lx\n",
-+				    virt_addr);
-+		return true;
-+	}
-+
-+	return false;
-+}
--- 
-2.43.0
-
+Best regards,
+Krzysztof
