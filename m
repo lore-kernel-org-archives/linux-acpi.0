@@ -1,145 +1,97 @@
-Received: from mail.189.cn (189sx01-ptr.21cn.com [125.88.204.37])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 598863559CA;
-	Mon, 13 Apr 2026 08:01:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=125.88.204.37
+Received: from smtpout-04.galae.net (smtpout-04.galae.net [185.171.202.116])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 531CB3ACEE3;
+	Mon, 13 Apr 2026 08:45:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.171.202.116
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776067313; cv=none; b=gweWUX3GUuddP3bEIGVf2KHoyZ8UDyOGZtEKgO7cLKq1zPEWRX+/8OkdhdhikyBfmDQXZ3QXVkHnBd+WUbrmMfYVHdMjeykujGr/WB+39yzk3/5QhzcBPHV746P4vIhX9TZ8qmZ80ONCdxlxmDJXg1RRjoH6jEHSQASgLhb2Bhg=
+	t=1776069914; cv=none; b=kozYbpUGzP8le9KlwSlpF7+v6PE6QTRS0W5mlXwqWspMygUJKIiULbQzckLJEnBFQgsQqUSAtXqwYhiqKDS3YC0HFVJukydyWBZ/z6BzNMbLq/Ie1ygvK6i1ctl+zXX5ifvrW6hB+8Yl01Ol/b/miPd5CqYup4njvH90+9c2CzA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776067313; c=relaxed/simple;
-	bh=VUnQLH2pPEqvFRZdcj9hGaqbHbCCyp43cVorRQ4b3rQ=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=bg3JOOaCYiGLLOoZHGXjS6CvvQB/Y6wvtJQW6z0k+nPoImlE3K9Oty2bGJKYJ9tqNjUmMWyrdVFmPt68jSmJnraQwbGBs2ml65IIEiP0j9QiqfdPZxovveFNic5t78fnNKhCPlTiiqCBbpC/yDqTeuVDQXRiSDg/FxZJXXfmqbE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=189.cn; spf=pass smtp.mailfrom=189.cn; arc=none smtp.client-ip=125.88.204.37
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=189.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=189.cn
-HMM_SOURCE_IP:10.158.242.145:0.2069108682
-HMM_ATTACHE_NUM:0000
-HMM_SOURCE_TYPE:SMTP
-Received: from clientip-221.238.56.48 (unknown [10.158.242.145])
-	by mail.189.cn (HERMES) with SMTP id 24E5F4002A1;
-	Mon, 13 Apr 2026 16:01:43 +0800 (CST)
-Received: from  ([221.238.56.48])
-	by gateway-153622-dep-76cc7bc9cd-r45x9 with ESMTP id 33ade6dc9ca54545a389407f17f1d0f0 for rafael@kernel.org;
-	Mon, 13 Apr 2026 16:01:46 CST
-X-Transaction-ID: 33ade6dc9ca54545a389407f17f1d0f0
-X-Real-From: chensong_2000@189.cn
-X-Receive-IP: 221.238.56.48
-X-MEDUSA-Status: 0
-Sender: chensong_2000@189.cn
-From: chensong_2000@189.cn
-To: rafael@kernel.org,
-	lenb@kernel.org,
-	mturquette@baylibre.com,
-	sboyd@kernel.org,
-	viresh.kumar@linaro.org,
-	agk@redhat.com,
-	snitzer@kernel.org,
-	mpatocka@redhat.com,
-	bmarzins@redhat.com,
-	song@kernel.org,
-	yukuai@fnnas.com,
-	linan122@huawei.com,
-	jason.wessel@windriver.com,
-	danielt@kernel.org,
-	dianders@chromium.org,
-	horms@kernel.org,
-	davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	paulmck@kernel.org,
-	frederic@kernel.org,
-	mcgrof@kernel.org,
-	petr.pavlu@suse.com,
-	da.gomez@kernel.org,
-	samitolvanen@google.com,
-	atomlin@atomlin.com,
-	jpoimboe@kernel.org,
-	jikos@kernel.org,
-	mbenes@suse.cz,
-	pmladek@suse.com,
-	joe.lawrence@redhat.com,
-	rostedt@goodmis.org,
-	mhiramat@kernel.org,
-	mark.rutland@arm.com,
-	mathieu.desnoyers@efficios.com
-Cc: linux-modules@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-trace-kernel@vger.kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-clk@vger.kernel.org,
-	linux-pm@vger.kernel.org,
-	live-patching@vger.kernel.org,
-	dm-devel@lists.linux.dev,
-	linux-raid@vger.kernel.org,
-	kgdb-bugreport@lists.sourceforge.net,
-	netdev@vger.kernel.org,
-	Song Chen <chensong_2000@189.cn>
-Subject: [RFC PATCH 0/2] Decouple ftrace/livepatch from module loader via notifier priority and reverse traversal
-Date: Mon, 13 Apr 2026 16:01:40 +0800
-Message-ID: <20260413080140.180616-1-chensong_2000@189.cn>
-X-Mailer: git-send-email 2.43.0
+	s=arc-20240116; t=1776069914; c=relaxed/simple;
+	bh=tmQJpknZ8K4PSRjinbsN1H/HEMJHlC8GhEtPYDeXP10=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=P39Yw8ov0KqxWV3TmHh4FGE69+3IH4bWcHxDx/NcQWhCmcBcE/Q4lKB3evuZLCcB457PgCpAcSi23ycOO57cWK1kgKtHDTwxBd2yZXPpXOYsrDaZSSRdnOZ0jDo2TWUqtDMf67VfncbnLCgceBru46BJ1jSrk02FZj8LRrb7UEw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=v4e01hq2; arc=none smtp.client-ip=185.171.202.116
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="v4e01hq2"
+Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
+	by smtpout-04.galae.net (Postfix) with ESMTPS id 373BEC5C183;
+	Mon, 13 Apr 2026 08:45:47 +0000 (UTC)
+Received: from mail.galae.net (mail.galae.net [212.83.136.155])
+	by smtpout-01.galae.net (Postfix) with ESMTPS id A7AD25FFB9;
+	Mon, 13 Apr 2026 08:45:10 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 8C75A1045022E;
+	Mon, 13 Apr 2026 10:45:03 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
+	t=1776069909; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 in-reply-to:references; bh=OAcntNoyq2S1cVcahMpYXYXm/PDPKoqEbIewOEJeAjU=;
+	b=v4e01hq22EDC4/XGzWZC0N932NKIdtmZmagCALKezEcHag8wUtTAHANpsuIN11hBq+shHX
+	G5sYe6E0JaLYgooFVPt4Wqgjue55ZOv6lyofk9DSX7fgBAofgaPetE0gCl7cvGg6sX0T4K
+	pyzCiinPnNqL8O2DfpF6fgx629SxxgditTjsDVR9mwYD2Ksg0F0OV0f2WCO60Lf3W4ksRk
+	HFGI/cGkhSGnTxSP1BHCtY6SjHwxFOcD55x9gPJ9Zeo9bZHTRwpbyl85xh4gJWUKIEKDoq
+	g2PR2rFbNcY7o+qoZP/rrr3ChCsTy1q31N1icM9ZZym74WaeI7ODM2cVf8iZzA==
+Date: Mon, 13 Apr 2026 10:45:02 +0200
+From: Alexandre Belloni <alexandre.belloni@bootlin.com>
+To: Akhil R <akhilrajeev@nvidia.com>
+Cc: frank.li@nxp.com, acpica-devel@lists.linux.dev, conor+dt@kernel.org,
+	devicetree@vger.kernel.org, ebiggers@kernel.org, krzk+dt@kernel.org,
+	lenb@kernel.org, linux-acpi@vger.kernel.org,
+	linux-hwmon@vger.kernel.org, linux-i3c@lists.infradead.org,
+	linux-kernel@vger.kernel.org, linux@roeck-us.net,
+	miquel.raynal@bootlin.com, p.zabel@pengutronix.de,
+	rafael@kernel.org, robert.moore@intel.com, robh@kernel.org,
+	sakari.ailus@linux.intel.com, wsa+renesas@sang-engineering.com
+Subject: Re: [PATCH v2 09/13] i3c: dw-i3c-master: Add a quirk to skip clock
+ and reset
+Message-ID: <2026041308450274636352@mail.local>
+References: <adhkNYQW73yQ728h@lizhi-Precision-Tower-5810>
+ <20260410060712.30377-1-akhilrajeev@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260410060712.30377-1-akhilrajeev@nvidia.com>
+X-Last-TLS-Session-Version: TLSv1.3
 
-From: Song Chen <chensong_2000@189.cn>
+On 10/04/2026 11:37:11+0530, Akhil R wrote:
+> On Thu, 9 Apr 2026 22:45:09 -0400, Frank Li wrote:
+> > On Thu, Apr 09, 2026 at 04:27:39PM +0530, Akhil R wrote:
+> >> Some ACPI-enumerated devices like Tegra410 do not have clock and reset
+> >> resources exposed via the clk/reset frameworks. Add a match data for
+> > 
+> > why not export fix clock at ACPI?
+> > 
+> >> such devices to skip acquiring clock and reset controls during probe.
+> >>
+> >> Move match data parsing before clock/reset acquisition so the quirk is
+> >> available early enough.  When the quirk is set, fall back to reading
+> >> the clock rate from the "clock-frequency" device property instead.
+> > 
+> > "clock-frequency" is legacy proptery.
+> 
+> The document ACPI on ARMv8 Servers [1] suggests not to use clock or reset
+> framework at all. I also could not find any proper way to export the clock
+> to the kernel from the ACPI table. The same document suggests to use only
+> _DSD properties, if to pass any data to the kernel.
+> 
+> I can rename the property to 'default-clock-rate' if that sounds good.
+> Please let me know your suggestion.
+> 
 
-This patchset addresses a long-standing tight coupling between the
-module loader and two of its key consumers: ftrace and livepatch.
+"clock-frequency" is fine for ACPI
 
-Background:
-
-The module loader currently hard-codes direct calls to
-ftrace_module_enable(), klp_module_coming(), klp_module_going() and
-ftrace_release_mod() inside prepare_coming_module() and the module
-unload path. This hard-coding was necessary because the module notifier
-chain could not guarantee the strict call ordering that ftrace and
-livepatch require:
-
-  During MODULE_STATE_COMING, ftrace must run before livepatch, so
-  that per-module function records are ready before livepatch registers
-  its ftrace hooks.
-
-  During MODULE_STATE_GOING, livepatch must run before ftrace, so that
-  livepatch removes its hooks before ftrace releases those records.
-
-This symmetric setup/teardown ordering could not be expressed through
-the notifier chain because the chain only supported forward (descending
-priority) traversal. Without reverse traversal, it was impossible to
-guarantee that the GOING order would be the strict inverse of the
-COMING order using a single priority value per notifier.
-
-Patch 1 - notifier: replace single-linked list with double-linked list.
-Patch 2 - ftrace/klp: decouple from module loader using notifier
-priority.
-
-headsup: somehow the smtp of my mailbox doesn't work very well lately, 
-if i receive return letter, i have to resend, sorry in advance.
-
-Song Chen (2):
-  kernel/notifier: replace single-linked list with double-linked list
-    for reverse traversal
-  kernel/module: Decouple klp and ftrace from load_module
-
- drivers/acpi/sleep.c      |   1 -
- drivers/clk/clk.c         |   2 +-
- drivers/cpufreq/cpufreq.c |   2 +-
- drivers/md/dm-integrity.c |   1 -
- drivers/md/md.c           |   1 -
- include/linux/module.h    |   8 ++
- include/linux/notifier.h  |  26 ++---
- kernel/debug/debug_core.c |   1 -
- kernel/livepatch/core.c   |  29 ++++-
- kernel/module/main.c      |  34 +++---
- kernel/notifier.c         | 219 ++++++++++++++++++++++++++++++++------
- kernel/trace/ftrace.c     |  38 +++++++
- net/ipv4/nexthop.c        |   2 +-
- 13 files changed, 290 insertions(+), 74 deletions(-)
+> [1]: https://www.kernel.org/doc/html/v6.1/arm64/arm-acpi.html#programmable-power-control-resources
+> 
+> Best Regards,
+> Akhil
 
 -- 
-2.43.0
-
+Alexandre Belloni, co-owner and COO, Bootlin
+Embedded Linux and Kernel engineering
+https://bootlin.com
