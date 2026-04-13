@@ -1,170 +1,196 @@
-Received: from mail-dy1-f171.google.com (mail-dy1-f171.google.com [74.125.82.171])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from BYAPR05CU005.outbound.protection.outlook.com (mail-westusazon11010066.outbound.protection.outlook.com [52.101.85.66])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D41DD3126CD
-	for <linux-acpi@vger.kernel.org>; Sun, 12 Apr 2026 21:26:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.171
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776029168; cv=none; b=u+eVwY0bkoTL2YmI9nmj6W74VLYxYvR6C0/X5GuaCOlnEVEbYxIqWufc+2QTFvtmK68Ao2YBb0PXoJQZNjjbRbhszwuL6fsslxh+bwR50Oq2glMzvtgYsZzTxDeT+Z32xo4r+Z/OuNYCTnLhBLpbiDv75g+09vqAHkAVqLJGPbM=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776029168; c=relaxed/simple;
-	bh=yNLe+SGJdzNljhesx4aut5AQpUeuoltAcUMEObSLyyo=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=sOHkbDdFTh3pTZtJkex6HFwAE3pd79YFUQXDW/dH9epXtBfoL8K0C+83WkNtrqvIeEoebaRkCDzpowP6H3pANCUkpHvDtPJxNhI/Ruc9yMfR/J7ymd7azk3rDdgglZUTiuzxRfl1QJ1fXsfh+ahSf7VuWKXsTrxNaamSRJf9x0M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=roeck-us.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=S/1gnAtc; arc=none smtp.client-ip=74.125.82.171
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=roeck-us.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D22A7392C34;
+	Mon, 13 Apr 2026 06:58:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.85.66
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1776063494; cv=fail; b=Enxale0MBTPW87Sf2sFKgQpukkCxNlewsRaUNAlyXmxKaVDMDpHQzMTb23nmc2LFD8M1beGjYOrM3iCz7dncorptoEpfn5Nh9C2Rl4JjnQCwgJZ1Sw6zMIqUrwLLYmcrlIM/MYD3aIUUTERdfsHrd5YXtQB41eONWNrcVtrEkME=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1776063494; c=relaxed/simple;
+	bh=nOaLsznnGxDwKWkP4iEzftFBAR3zQFAyunG4ZfHyXFc=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=WoWbLPoTif2N9gVuF91JekjGmH5VaUI/4gYiQ/RQpfh4pArOOt69aSSsowRzO6OyqgxH7SHZF2bNhFNEI/ApPN95V8rrhol90kXDCLVAQHEfINB6l28A7ulHXUIYJe/6pXAgDxgq8CUkf7fXi0fGuJ8O8GStaztXxLP/nSZP158=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=Q7HYvaOh; arc=fail smtp.client-ip=52.101.85.66
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="S/1gnAtc"
-Received: by mail-dy1-f171.google.com with SMTP id 5a478bee46e88-2b4520f6b32so3860223eec.0
-        for <linux-acpi@vger.kernel.org>; Sun, 12 Apr 2026 14:26:06 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1776029166; x=1776633966; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:autocrypt:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:sender:from:to:cc:subject:date:message-id:reply-to;
-        bh=g5YONsemN2vvgZ9asQJIXKdXNxh3MWkRpVIQ/RmrGZw=;
-        b=S/1gnAtcRW4q8vMrKXaZo+3yw/hONK0ou8exVTXxPO09fhkJQ7LKAk5HtqX5y/ivtg
-         wUjWMeRoWe+QUjx+YMXo43S0tOqd4YMdsgxbVjZngJ4VwiempCc7fqqQvKW6B4eRLKeG
-         +W+nli4HZ/oJV5gS5BGXOztyQ2GbDp4xQZq4+4NnOhpqWYgrrTknIbf+YoKyHh13rB7y
-         6wfkfGWIKKC8wBnXGxe//lfOUw/THWKln6exL854wxvn1a6tWK2UA4QT0wXikZPnHX3B
-         2RzZA/0acMSs4JoWHNlx9MmYs02AfvmImXcpXWhHRadh5Rq7GyREuP/viHg61SIISWd1
-         Fm5g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1776029166; x=1776633966;
-        h=content-transfer-encoding:in-reply-to:autocrypt:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:sender:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=g5YONsemN2vvgZ9asQJIXKdXNxh3MWkRpVIQ/RmrGZw=;
-        b=fJ+668nVnvCy39IoImVqq9BIREum81NxJM4bHUCEY5b27CT046dJnVQorgYGEQwkW4
-         ZhflDFCnAcZw2UIdsgJmWmypFmxykLIu6NJsMVGaA1esJi/70ph+V9Ad3dZ678UpBh3n
-         hzg1XJ9SR2h8e2gdSNU1T69pqlhqnUxGcw4TKRL1cJTANgr9HtMfMq0pww2QjUqcspf/
-         geCP+WfZdB6myUVu3qQOU7dzVF/tVL1eodL2lTBd7wHJOjGMfQu60yjL3lBKKZdH88r9
-         f894xq2dORxAnZ5/+vNF8Yrfgi8TXGgkOtB4fh+I9QEL8v+IHfhEh+GxSFT4BmA8jeC2
-         DU4A==
-X-Forwarded-Encrypted: i=1; AFNElJ+vE6cgbh6ddd6GHxFkzSwbw0QuuZSKKsY4PH2uUszm3K526DQCkpckR/U1WC2g4Qp+Lv4vJaIlJXVP@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw4VZzHPhtuaFC682qpSQzwxzKfQXY4pw22NrsglTN/Q60gqC1J
-	9sKbzDnL4JJVQzsdrx0HCmt2P72rQo117vo8lzQLjCR6V91A529FgyjR
-X-Gm-Gg: AeBDiet8LS6CXVA5Hj+YugN0foONg8LBMWiv8+e0CAcFIkbPiOViXybcr3PDCcozbbW
-	H3tsSfDjNRJPDrb6zADVoEEZ5GcdEP/5XF3IxKmIMF/UDaVhZT0D4L+ufhmHPYDha33eV7wQCyH
-	LYZowsjxDgoyPTwWdTWUTnsjrnB72484avfPWqfBr9mIbuueJAaQRCaQioh0ZqI9yFYZ0zRsGpR
-	xFRzIsNZOjPRUgKf67mbXHw6XltKRBUwOHIvpIETnIRH5lz62oH9ceiT6IHhjaGVFjECDCr+4om
-	PcCNherFN5AcsKy37pgwNBT8WNhz+oKuD8jcFkwg32TwlTM0n66cGqfT9mxr73Ik9luAtoc7Jp9
-	14zUbXbXJBTVGBRiIA83zLcAXyAmANC8ZPQXSOTqx7dqHKJ981xv+k7l4H2EDqzeiTefdR1XRRA
-	ATAzGJoBLVx3lrqDWdz9tPtZCnDhvj26seNnKZNLw/gnlpEJ5DepbejkAktiNyN0GGAzor7hlH
-X-Received: by 2002:a05:693c:2c84:b0:2c5:d833:a4f3 with SMTP id 5a478bee46e88-2d58907b4admr6254248eec.18.1776029165814;
-        Sun, 12 Apr 2026 14:26:05 -0700 (PDT)
-Received: from ?IPV6:2600:1700:e321:62f0:da43:aeff:fecc:bfd5? ([2600:1700:e321:62f0:da43:aeff:fecc:bfd5])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2d55faa42dasm13905817eec.7.2026.04.12.14.26.04
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sun, 12 Apr 2026 14:26:05 -0700 (PDT)
-Sender: Guenter Roeck <groeck7@gmail.com>
-Message-ID: <e7418ef5-b41e-489b-b913-aeebcf9a5235@roeck-us.net>
-Date: Sun, 12 Apr 2026 14:26:03 -0700
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="Q7HYvaOh"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=sIhW0lapTjZbrn1Em7mPTKDQc8QWo45wLqp4BsHw/WR9dCLYrm/8+zCKy7n1av4IVSmQRXd2w46st8wyAULrRkT/dOxdy8gq/y9lq3vHhezooWYKH6NxUJwa66GKeVmPbetd6OJRkAthQP0GpTQTx5L06Yf0Q2GXUjmtftZrSS5xj99Mkjo7L4zsqsC9mdsQwPANNu41OP9Kw8GlegGyZYCxoVbqNDk01uyPmkfANK4g3EpHkGG4P7OEHQQleWxcmw56bP/ceZJr5dLbzUFLjDSVDsXLPgjwpKLhaMrS24+gjeSHkJb6/gEjYq5z3nKb2nx1Hf770Gtf9fVp6QBCqw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=Mc2JHPftxn6su4G20FRzk/QpZ1WTGhsqylFzBr/VyDE=;
+ b=IYAK1N+AZTjxNQiWHqfX0laScaN4stp3fYkjSNG7Q+KcXZKyBi9/to56R8bH7Hsoltue4UAlMWkHIcIZR2oBiQhhKN0An4EBXX7pHgJA4lOHFWB2kqMZZbRH25UFnUu/Ks0Pp3AP8ymTpgKf0jY9v1b7AlRPo+Mhz2c2eYXc2OMjFrJh8SacuUGJIqQNBj/CgRYS2zs0qgwNDCCQWhc9Nlv/egT/lNf/x8CtLjYY6tu2m4HLbv0YaCz4O3CW/JOnUwoXN0YSSX1mH8plNbadnl6iJ0c8zHLT6UjsBDZNWB/cOcrafBPfNCsO/DXLZlopYa/cPiV9djBf3mbSPQfd5w==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.117.161) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=Mc2JHPftxn6su4G20FRzk/QpZ1WTGhsqylFzBr/VyDE=;
+ b=Q7HYvaOhiC0TT79by63DisdL1y6VB1KNWvYv8J6IDaBbIKIR2tvWQwZ691VkgSHsBpsXmEzVzcIxMzRNhcyVgvYbCSn0gAbRqRtZ2S/3J+E/5BmwV/HwsQl2HwNlgBgXJ1YfXZXztywefJgJRk6v7f1M8hkz8JJC3uboyJGfNcsrxYMiYOgfIi2bz2u7SXwGFEvroteN41QtTPwNPO0hLheyvrSkKFEg9k7i/DytKGdtMucpPOtazqJU/fJ70mrpBYvrYZAgcJK6zDFCd/ZNGk1+A3+wUoU3P8/mVooWVZoNjI63kTINh85tDCtBmch1QErdDR25tuWF/DwcXBR7Xg==
+Received: from DM6PR06CA0102.namprd06.prod.outlook.com (2603:10b6:5:336::35)
+ by CH3PR12MB7691.namprd12.prod.outlook.com (2603:10b6:610:151::18) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9769.46; Mon, 13 Apr
+ 2026 06:58:06 +0000
+Received: from DS3PEPF000099DE.namprd04.prod.outlook.com
+ (2603:10b6:5:336:cafe::6d) by DM6PR06CA0102.outlook.office365.com
+ (2603:10b6:5:336::35) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.9769.48 via Frontend Transport; Mon,
+ 13 Apr 2026 06:58:09 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.161)
+ smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.161) by
+ DS3PEPF000099DE.mail.protection.outlook.com (10.167.17.200) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.9769.17 via Frontend Transport; Mon, 13 Apr 2026 06:58:06 +0000
+Received: from rnnvmail204.nvidia.com (10.129.68.6) by mail.nvidia.com
+ (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Sun, 12 Apr
+ 2026 23:57:55 -0700
+Received: from rnnvmail204.nvidia.com (10.129.68.6) by rnnvmail204.nvidia.com
+ (10.129.68.6) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Sun, 12 Apr
+ 2026 23:57:54 -0700
+Received: from BUILDSERVER-IO-L4T.nvidia.com (10.127.8.9) by mail.nvidia.com
+ (10.129.68.6) with Microsoft SMTP Server id 15.2.2562.20 via Frontend
+ Transport; Sun, 12 Apr 2026 23:57:48 -0700
+From: Akhil R <akhilrajeev@nvidia.com>
+To: <krzk@kernel.org>
+CC: <Frank.Li@nxp.com>, <acpica-devel@lists.linux.dev>,
+	<akhilrajeev@nvidia.com>, <alexandre.belloni@bootlin.com>,
+	<conor+dt@kernel.org>, <devicetree@vger.kernel.org>, <ebiggers@kernel.org>,
+	<krzk+dt@kernel.org>, <lenb@kernel.org>, <linux-acpi@vger.kernel.org>,
+	<linux-hwmon@vger.kernel.org>, <linux-i3c@lists.infradead.org>,
+	<linux-kernel@vger.kernel.org>, <linux@roeck-us.net>,
+	<miquel.raynal@bootlin.com>, <p.zabel@pengutronix.de>, <rafael@kernel.org>,
+	<robh@kernel.org>, <sakari.ailus@linux.intel.com>,
+	<wsa+renesas@sang-engineering.com>, <smangipudi@nvidia.com>
+Subject: Re: [PATCH v2 13/13] arm64: defconfig: Enable I3C and SPD5118 hwmon
+Date: Mon, 13 Apr 2026 12:27:46 +0530
+Message-ID: <20260413065747.31834-1-akhilrajeev@nvidia.com>
+X-Mailer: git-send-email 2.50.1
+In-Reply-To: <d62130c6-c503-479d-99d8-b4f0f0582a4b@kernel.org>
+References: <d62130c6-c503-479d-99d8-b4f0f0582a4b@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 12/13] hwmon: spd5118: Add I3C support
-To: Alexandre Belloni <alexandre.belloni@bootlin.com>
-Cc: Akhil R <akhilrajeev@nvidia.com>, Frank Li <Frank.Li@nxp.com>,
- Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>,
- Conor Dooley <conor+dt@kernel.org>, "Rafael J . Wysocki"
- <rafael@kernel.org>, Robert Moore <robert.moore@intel.com>,
- Len Brown <lenb@kernel.org>, Philipp Zabel <p.zabel@pengutronix.de>,
- Eric Biggers <ebiggers@kernel.org>,
- Sakari Ailus <sakari.ailus@linux.intel.com>,
- Wolfram Sang <wsa+renesas@sang-engineering.com>,
- Miquel Raynal <miquel.raynal@bootlin.com>, linux-i3c@lists.infradead.org,
- devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev,
- linux-hwmon@vger.kernel.org
-References: <20260409105747.48158-1-akhilrajeev@nvidia.com>
- <20260409105747.48158-13-akhilrajeev@nvidia.com>
- <19218853-499c-46a2-8843-0bafa17c81d5@roeck-us.net>
- <20260412201629345ffec6@mail.local>
-Content-Language: en-US
-From: Guenter Roeck <linux@roeck-us.net>
-Autocrypt: addr=linux@roeck-us.net; keydata=
- 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
- np3900V20aS7eD9K8GTU0TGC1pyz6IVJwIE=
-In-Reply-To: <20260412201629345ffec6@mail.local>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-NV-OnPremToCloud: ExternallySecured
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DS3PEPF000099DE:EE_|CH3PR12MB7691:EE_
+X-MS-Office365-Filtering-Correlation-Id: b5be24d7-9276-48e4-e76a-08de992a03bb
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|36860700016|82310400026|376014|1800799024|7416014|22082099003|56012099003|18002099003;
+X-Microsoft-Antispam-Message-Info:
+	ZQjKTw9HTlQb5z2XaQqH1IBWWpR1VtJAy/8tpfAO+TC+ysEI0cW71RN4IF2vJHgqg38BRvtUbyaOFMj7PifIpxl7MyBqGhNrWWq5WMhfJ33itKrH1poEQaYLQOwFI+CMKTcrfGTaYuGGE21tmXwFt+6izHa4L93lj3q1N4I+TlVeWp0/OGCWvzxNZnZY8KO5iHISI+umXi2ZYM1Uat2OM6uschWzah5H91RqSHUlpmPASyb2age563Cw9YUHjwt1L8cbCJj0E/j438CpYhbm8xVvzbDwv0welXpHZqvmwDBcsclgu9yAPvrbAOkKb8V2dFdmddAnUUd88Yru7qIUL7atOZxdK8SDaUwWN5ItUntss0xV/IBJ8JItE2ntHNq0iYwlgRgWqye3/sLaKGQ+BvChDlhj4dAUDdphLrVHwnMWuJlzsw+LBoan4d2zz9vdPjOSadiJcVWs96Fw4hl0j5eqmu1yMYq2V/CQtsQmZHIAZedUAjpTZ875CaWLLLG0T5OfuTP9pG6VJ9wMvvMKixXiizSg2q5J2x48R/BXvzI1RF2yURHzfsR9xruSan2sXa7jppmkYKPdQLyNj2aNGkQKrKVSWtxNsKzLV1fomdXN80e/ln0aK4zp/ZH/jv//Sf9xKJcjhx4Jyo5Qsz23gDGMrLToxjx9HPVmbM/AgOjMO2vsc6aSKlqqFbBlAbwI/u6w3szH0w62KQrlAgLE+f8E23xDKv6W2qdhg69UQ4ZTkMLO9aI3tQjz/INA9ms2HvkOmGHr873ZWVpb6ZtNEA==
+X-Forefront-Antispam-Report:
+	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(36860700016)(82310400026)(376014)(1800799024)(7416014)(22082099003)(56012099003)(18002099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	7fFm/0xKZWgjYAVZjbIvc/H2N7gna0e8taFZoQNRcXQSQu7GThrf/BdgEINCGlKBqLfTbRfWrvZqdhZFTUZ7cJtWU+3DwZaGNGEhwyjMSXOtDMJDi5Xq2degfQ3LOs8a/XjRaCGVJ5g0UKGpKrgkGyvQTce1e6D5Q3kiz/7h5Uxzen/mN9fSACvMtAeCneuOWFfWGufigLHNkkEbdI5w3c5FR/Y3ZRr6+zEb8S+tMAKxpZgqD6f0zf1eo6KJVr4oFbhOTrCUx58M1tYwP0Q17719e3t5xiskrZ969CiO9XayKVggfyrZxv5T0X14ZqEt5FGcEALs/QVlWqSEnjwqAehn0RzFAVIZJdLVpqJ6Hv8LSaUGfqaaEO7CYEScKvbWOF3lNyoTqsSRc/7XS0++BtO4hB/jtJSGT2ZWfZN55sZ1qcIQpbLq26FNgKw40rdu
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 13 Apr 2026 06:58:06.2048
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: b5be24d7-9276-48e4-e76a-08de992a03bb
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	DS3PEPF000099DE.namprd04.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH3PR12MB7691
 
-Hi Alexandre,
-
-On 4/12/26 13:16, Alexandre Belloni wrote:
-> On 09/04/2026 07:19:25-0700, Guenter Roeck wrote:
->> On 4/9/26 03:57, Akhil R wrote:
->>> Add a regmap config and a probe function to support for I3C based
->>> communication to SPD5118 devices.
+On Sun, 12 Apr 2026 15:33:42 +0200, Krzysztof Kozlowski
+> On 12/04/2026 15:32, Krzysztof Kozlowski wrote:
+>> On 11/04/2026 09:20, Guenter Roeck wrote:
+>>> On 4/10/26 22:34, Akhil R wrote:
+>>> [ ... ]
+>>>>>>> And it
+>>>>>>> should bring me clear rule what I can or cannot remove from defconfig,
+>>>>>>> if in 2 years I come and start pruning it from symbols.
+>>>>
+>>>> I am still a little confused on what information would likely accept (and
+>>>> keep) these configs in the defconfig. Would updating the commit message
+>>>> as below work?
+>>>>
+>>>> "These configs enable the support for SPD5118 within the
+>>>> Small-Outline-Compression-Attached Memory Modules (SOCAMM) LPDDR5X found
+>>>> in the NVIDIA Vera CPUs. The Vera CPU uses ACPI and is part of platforms
+>>>> such as Vera Rubin."
+>>>>
 >>>
->>> On an I3C bus, SPD5118 are enumerated via SETAASA and always require an
->>> ACPI or device tree entry. The device matching is hence through the OF
->>> match tables only and do not need an I3C class match table. The device
->>> identity is verified in the type registers before proceeding to the
->>> common probe function.
+>>> It is quite interesting that we argue about SPD5118 which is mandatory in
+>>> DDR5 systems. At the same time, CONFIG_IGB_HWMON, CONFIG_SENSORS_MACSMC_HWMON,
+>>> CONFIG_SENSORS_RASPBERRYPI_HWMON, and CONFIG_RTC_DRV_DS3232_HWMON _are_
+>>> enabled in arm64:defconfig. CONFIG_IGB_HWMON is even built-in.
+>> 
+>> Why CONFIG_SENSORS_MACSMC_HWMON is weird? It is part of the soc using
+>> the defconfig?
+>> 
+>> The author here has troubles bringing any arguments why his drivers
+>> should be defconfig and keeps asking what do I want to hear. If one
+>> cannot make an argument why a change is needed, then maybe the change
+>> should not be sent?
+>> 
+>> It's the job of the author to convince why the community needs this
+>> change, unless it is obvious, ofc.
+>> 
 >>>
->>> Signed-off-by: Akhil R <akhilrajeev@nvidia.com>
->>
->> Acked-by: Guenter Roeck <linux@roeck-us.net>
->>
+>>> It is kind of difficult to understand why those are more important than
+>>> the temperature sensor on DDR5 modules (or the temperature sensor on DDR4
+>>> modules, for that matter).
+>> 
+>> No one discussed this. I have no clue what is SPD5118 and commit msg did
+>> not explain that. Did not even provide accurate user of that.
+>> 
+>>>
+>>> I don't know what the policy for defconfig is, but just based on that it does
+>>> seem to lack consistency.
+>> 
+>> No wonder... people write poor commits and send that to upstream. And
+>> when asked "why do we want this" they got stuck.
+>> 
+>>>
+>>> A separate question is if it is time to enable I3C in default configurations.
+>>> I'd think so - more and more chip vendors support it, and presumably they would
+>>> not invest in it if there was no demand, but that is just my personal opinion.
+>> 
+>> Isn't I3C needed for SPD5118. Otherwise I understand even less from this
+>> rationale - why I3C is being enabled here?
+>> 
+>> And before author asks what do I want to here: no, it is author's job to
+>> convince me to accept I3C in defconfig. Not mine.
 > 
-> Guenter, I guess you can actually take 11/13 and 12/13 for 7.1 if you
-> prefer as they don't seem to actually have any dependency on the
-> previous patches. The worst that can happen is that the driver won't be
-> probed because the I3C subsystem will not enumerate the device.
-> 
+> BTW, all this was asked at v1 and author did not improve the commit msg
+> beside giving quite broad/unspecific "Vera".
 
-Thanks, but Linus released 7.0 today, and the 7.1 commit window is open,
-so it is a bit late for adding content to it.
+If I am not wrong, the ask in v1 was to specify the product which this is
+getting used - 'Vera' it is. I do not know why you would think it is
+unspecific.
 
-I can queue the patches for 7.2 after the commit window closes.
+As Thierry and Guenter mentioned, the lack of policy and 'mix of both' in
+the defconfig makes it quite difficult to understand what could genuinely
+be convincing other than putting down every little detail or do a trial
+and error.
 
-Guenter
+Anyway, I will describe where each config is getting used in the next
+revision - hoping that would help.
 
+Regards,
+Akhil
