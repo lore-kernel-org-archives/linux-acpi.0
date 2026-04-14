@@ -1,48 +1,47 @@
-Received: from stravinsky.debian.org (stravinsky.debian.org [82.195.75.108])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F10F83E51EF;
-	Tue, 14 Apr 2026 12:05:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=82.195.75.108
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D03E520DE3;
+	Tue, 14 Apr 2026 12:25:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776168333; cv=none; b=BZ77RubcejJtQ1IJXiUzKGR4nlALaJlN3W1bM9+7RXnvK65BTZ6uRzc6lZ21+msF4B15Shys2d9+Jz5OVKxRFR8tUcjs1wXoLrUxyWmjTX15kZwJYuxkeIT/4JQRmAvZ22r3w4GqzAq2gl8HwirMUxNjQDxXFY6ZHk2mVBg9uRs=
+	t=1776169558; cv=none; b=QaDBsIyO2rEV+wXfsCikTPWCKwHFs7lwCWQLt3I81g1zZALIpW5NVSBze5UL3qTO6Mxxi7wf0R2ulMlJaNB1XOfbFbmRg6BuqNWrIPwPyf7Xy5KHaXAaQwhZNhGK6I4PdjXLU592uO+XWjedfcBVLbWyhYmkmgG1UYoE1Woy0bw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776168333; c=relaxed/simple;
-	bh=OxNEG/CrDx/DibAStevPEpUNCEJaJ+cGadlIJZMW30k=;
+	s=arc-20240116; t=1776169558; c=relaxed/simple;
+	bh=0mxqJDlo804wnC50q8gJO4xhJeZDLM0HfNEaZTltFmQ=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=B7dNUlWsFZO4UOREwGa0ojK7C1DbQZKJ7xS3R4fSSsLNWzlTgT3oSkAJvXiwuR5Wwv8G7mbHrr6DPxUqsfvpvRP13BkN13AgCQSCquQMapqClSlfUPCEA7kiGb8ggJ3iVTpZtGAuKhlsYkH/S5zPUiM/5/8l5mdp3zbqzRDkhI8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org; spf=none smtp.mailfrom=debian.org; dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b=prh3cNO7; arc=none smtp.client-ip=82.195.75.108
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=debian.org
+	 Content-Type:Content-Disposition:In-Reply-To; b=ESFEmO6dMHPYnQ42Ni50cqAgu+k7wvcXZrJJWcMS5OEYhWoCKBJUHvzj6OWyiIjIZrxnczpbbHsyzfHJS9GsIvusyH93LjNhemErcYA6J1E0Yjfsx+YTms14rssqHK/xlKN97cncNsRXrSezIp9d6aMSZfF44433hHjFefBSzMU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=peOoUo+2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b="prh3cNO7"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=debian.org;
-	s=smtpauto.stravinsky; h=X-Debian-User:In-Reply-To:Content-Transfer-Encoding:
-	Content-Type:MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:
-	Reply-To:Content-ID:Content-Description;
-	bh=JBdItcm4SpsvDcMo6VDP8MI5QdRVaF4W043aa/ZGUhQ=; b=prh3cNO7H5DIoCudtpYHbVGQ8z
-	95eGPGtTkFLexvqs6odwc4SN9rzEuqkklN8ahwVaX+79xwM49vqQ7z1PtADTAucfFiOTt5uQDo9sa
-	OYfJgJYGOUOTssGMffcBJQ24LGrBo6xoPO2Ou1DPx7Kv+82mU2sAaEI6Bsah622mpfCEa6MbeyOrc
-	S9fsJCkEn60d/jlrsapqNOmZrdC6QNHORD9oQX0pedBDJ6rV3uzYyC4EgHbD0BE3CTjDZ7Oemadm9
-	Nq7Ce8n1QibO23zbDWVXBSHKmMOUIsAiphi1hhgmoqXvn9vlQgGU5XmJ+3WjoGOuBweRbnda0AaT7
-	QAeTGLvA==;
-Received: from authenticated user
-	by stravinsky.debian.org with esmtpsa (TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
-	(Exim 4.96)
-	(envelope-from <leitao@debian.org>)
-	id 1wCcW1-00D3Kj-1S;
-	Tue, 14 Apr 2026 12:05:13 +0000
-Date: Tue, 14 Apr 2026 05:05:07 -0700
-From: Breno Leitao <leitao@debian.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="peOoUo+2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0DFCFC19425;
+	Tue, 14 Apr 2026 12:25:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1776169558;
+	bh=0mxqJDlo804wnC50q8gJO4xhJeZDLM0HfNEaZTltFmQ=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=peOoUo+2oGBuWmDUjhvX9j/hAewpeDfH2u+jmtg9Dh71UufFfYnP+oXNdP8B243Ov
+	 mWZ5nU9nj6eGX/KYBtL0By0CKbVANPc/N14231R33UPx8OMAKbsSairbuhpDsMsXcq
+	 YArLLwOrd5COXe6TiDL5EaQFbr/CpJDQMEsiXFz4eWVLGxu2jHOKH1m7rH/VYZslim
+	 lYB/MuuzemJin6TsIlbbst0ypigj7vJzy2Y+3+INJdwgnrSKs8DQZyLX7nNWRhawID
+	 5xcL0XphJ/tbYLYIwtCWUe+ni2O/2syednpzfAim22Y+OwLg6CPz8enh6GAmNq5WwF
+	 02sQK1XTaHRVg==
+Date: Tue, 14 Apr 2026 13:25:53 +0100
+From: Sudeep Holla <sudeep.holla@kernel.org>
 To: "lihuisong (C)" <lihuisong@huawei.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
-	lpieralisi@kernel.org, catalin.marinas@arm.com, will@kernel.org, 
-	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	pjaroszynski@nvidia.com, guohanjun@huawei.com, sudeep.holla@kernel.org, 
-	linux-arm-kernel@lists.infradead.org, rmikey@meta.com, kernel-team@meta.com
+Cc: Breno Leitao <leitao@debian.org>,
+	Sudeep Holla <sudeep.holla@kernel.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>, lpieralisi@kernel.org,
+	catalin.marinas@arm.com, will@kernel.org,
+	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+	pjaroszynski@nvidia.com, guohanjun@huawei.com,
+	linux-arm-kernel@lists.infradead.org, rmikey@meta.com,
+	kernel-team@meta.com
 Subject: Re: [PATCH RFC] ACPI: processor: idle: Do not propagate
  acpi_processor_ffh_lpi_probe() -ENODEV
-Message-ID: <ad4tXOlXITpREkLb@gmail.com>
+Message-ID: <20260414-cute-shapeless-dolphin-c5b2fc@sudeepholla>
 References: <20260413-ffh-v1-1-301704f69e2f@debian.org>
  <af9c679d-899c-4832-b902-e621b5987f12@huawei.com>
  <ad4UWJ__dnDQtrj8@gmail.com>
@@ -57,7 +56,6 @@ Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
 In-Reply-To: <6694ca7c-13bf-4e7d-9621-bc992cbf96a7@huawei.com>
-X-Debian-User: leitao
 
 On Tue, Apr 14, 2026 at 07:31:29PM +0800, lihuisong (C) wrote:
 > 
@@ -135,17 +133,17 @@ On Tue, Apr 14, 2026 at 07:31:29PM +0800, lihuisong (C) wrote:
 > -       if (count <= 0)
 > -               return -ENODEV;
 > -
-> -       for (i = 0; i < count; i++) {
-> +       for (i = 1; i < pr->power.count; i++) {
->                 u32 state;
-> 
-> -               lpi = &pr->power.lpi_states[i + 1];
-> +               lpi = &pr->power.lpi_states[i];
->                 /*
->                  * Only bits[31:0] represent a PSCI power_state while
->                  * bits[63:32] must be 0x0 as per ARM ACPI FFH Specification
 
-Ack, I will respin.
+It was intentionally designed this way, as there is little value in defining
+only WFI in the _LPI tables. In the absence of a cpuidle driver/LPI entry,
+arch_cpu_idle() is invoked, which is sufficient and avoids unnecessary
+complexity, only to ultimately execute wfi() anyway.
 
-Thanks for your help,
---breno
+So while I understand that the kernel did not report an error previously, that
+does not mean the _LPI table is merely moot on this platform when it contains
+only a WFI state.
+
+
+-- 
+Regards,
+Sudeep
