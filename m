@@ -1,136 +1,216 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC2922C08BC;
-	Wed, 15 Apr 2026 14:22:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0D512D0603;
+	Wed, 15 Apr 2026 14:57:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.84.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776262971; cv=none; b=f1EK6G3hf2z2RY4gudGsCv9QWkGqgJE33XRZBKYj6kdHMwBX1cnWdsi6Y5mx0gcqVO2yLF5HS2NrcugoCLe6DlJuCiQ8nIehaJWEHenuM0dWsK1O+vkavbqsuIGJa0muc/2VCdYlwDLDa6uUjFUSUtzW8H/X+P5j7W24+tTADNE=
+	t=1776265029; cv=none; b=nQ5jDbiiWlwgnap6aLET57e6sDd6rGRkd8dQtIgg6CT4JQ27CgwAuqEev5HXh8jGL52al2ICrq1rxrLRHtBgkTjnxJP6thJ5zP7MOEyjL9tvDitNhWa7XnYrH39tPOvazRxOT+iDg3wucdGlX9/NNgYLL8pdhWr557s8gEphx6Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776262971; c=relaxed/simple;
-	bh=lNzZik9VPWTUgwK14nf5iEIaHqnRFinwUz96N7sjVzY=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=l4sH4CuaZB/MJmwr9FAFTFhIxKvPB90luPIY4k8I/AIAnTwQ3MwE5XMlkDRPQ5QxZ7Hv8UMjbxWq4ARvGIPYAbcL+V/Ar8RIGoLY0dBSzQfj1SGrvTkAc1StWN/8ZSyHhMJbqiD92topYQLPnZJ8nDG4UiBfXng9JTYSwdrCQa8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VcC+7ldh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776265029; c=relaxed/simple;
+	bh=1S2kdSoru/ifNvwgwwUu/EShTTtvBQkznTzuC20u86I=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=dKd6O9rUDcbdDc4wOwby9ZSxZ/4rBKBKFVqVwXF7FQ49NrLQK0wCZpn7Eeiqom/LVRJlYC5wuPfS4hAxA4VjfWHCh74fPnqB6k7OvoAarGOu4K0NlaE/j805XEbBzKQP+8U6LIeePkEDNjVjxZ6f2kzodDyZNh7lK/jO6Oo36W8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=odMVGQ2n; arc=none smtp.client-ip=185.246.84.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VcC+7ldh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20286C19424;
-	Wed, 15 Apr 2026 14:22:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1776262971;
-	bh=lNzZik9VPWTUgwK14nf5iEIaHqnRFinwUz96N7sjVzY=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=VcC+7ldhKJgpd3sUmPUZaKymMc4w+CC++VWfdE7X1brjSzlCoC0jGJu677+8y+oMY
-	 xftsR84alCr5BWTN/FqCHwreI1kcqH3gtEIzkCGio3HG+jOZq++hDoomWYFLW8vryd
-	 hwqZbGfHYTm/2vlhzTp5pmVwrIySRAwFv6yhsfVipH5gUw7T8j3VGsr7l3LtDj8Vf3
-	 fZjaI9Qz99UV2opRFcNshankgFi5Yz5F4wB77boeRax4WbbPJ1uZh8+yCcOV7HezU3
-	 R+b7qAeCQ+60LDTiVkjXlSjUQKsvj6uT4K8qLKUtGBeoS3rDQXuVr1pNTVYqIgnY3T
-	 gQm3/eIeQ+BTw==
-Message-ID: <687f1e1a-39d0-4d69-bd22-6f4447afa65c@kernel.org>
-Date: Wed, 15 Apr 2026 16:22:45 +0200
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="odMVGQ2n"
+Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
+	by smtpout-02.galae.net (Postfix) with ESMTPS id BF20B1A32D8;
+	Wed, 15 Apr 2026 14:57:05 +0000 (UTC)
+Received: from mail.galae.net (mail.galae.net [212.83.136.155])
+	by smtpout-01.galae.net (Postfix) with ESMTPS id 7D7B360420;
+	Wed, 15 Apr 2026 14:57:05 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id A90DA10459FC4;
+	Wed, 15 Apr 2026 16:56:53 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
+	t=1776265023; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 content-transfer-encoding:in-reply-to:references;
+	bh=wNrWnquhsR0dlE0WJjRS5Whb5Pw+B2YUuFT6hABZVPw=;
+	b=odMVGQ2nxDTLW1G3zgpTCupAd+WE2qFmsXEHoMqdccBJm6+seTVkYni4wkvFut2s/DTE9G
+	rQgJl0iu49WoTtlt1D/ZKPek9XtvZcEmNB9JnLU3j86MKSmxk0y1H4eOFoLP4pJQsWK0+w
+	LDUa2pRoeccJ5yO0iFUiIEbEnbUiIajUOclrFN+JeJ62x/Xy4nqUEFN9xkXGH+zLdqVXtx
+	kehs4bdgRvsag91OXjg4XIBY8DTEtrZvQr4puEi8w9yA6S832dhmPp7KfxTskDf4t6OHwQ
+	pnPSy6MjhtDRs2iRsgVjZI0ToOQtgYM1i8qxDLRKg3x0iefOJqJW241JPYnlmg==
+Date: Wed, 15 Apr 2026 16:56:51 +0200
+From: Herve Codina <herve.codina@bootlin.com>
+To: Chen-Yu Tsai <wenst@chromium.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Manivannan
+ Sadhasivam <mani@kernel.org>, Manivannan Sadhasivam
+ <manivannan.sadhasivam@oss.qualcomm.com>, Rob Herring <robh@kernel.org>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby
+ <jirislaby@kernel.org>, Nathan Chancellor <nathan@kernel.org>, Nicolas
+ Schier <nicolas.schier@linux.dev>, Hans de Goede <hansg@kernel.org>, Ilpo
+ =?UTF-8?B?SsOkcnZpbmVu?= <ilpo.jarvinen@linux.intel.com>, Mark Pearson
+ <mpearson-lenovo@squebb.ca>, "Derek J. Clark" <derekjohn.clark@gmail.com>,
+ Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley
+ <conor+dt@kernel.org>, Marcel Holtmann <marcel@holtmann.org>, Luiz Augusto
+ von Dentz <luiz.dentz@gmail.com>, Bartosz Golaszewski <brgl@bgdev.pl>,
+ Bartosz Golaszewski <brgl@kernel.org>, linux-serial@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-kbuild@vger.kernel.org,
+ platform-driver-x86@vger.kernel.org, linux-pci@vger.kernel.org,
+ devicetree@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+ linux-bluetooth@vger.kernel.org, linux-pm@vger.kernel.org, Stephan Gerhold
+ <stephan.gerhold@linaro.org>, Dmitry Baryshkov
+ <dmitry.baryshkov@oss.qualcomm.com>, linux-acpi@vger.kernel.org, Hans de
+ Goede <johannes.goede@oss.qualcomm.com>, Bartosz Golaszewski
+ <bartosz.golaszewski@oss.qualcomm.com>, Luca Ceresoli
+ <luca.ceresoli@bootlin.com>
+Subject: Re: [PATCH v7 0/8] Add support for handling PCIe M.2 Key E
+ connectors in devicetree
+Message-ID: <20260415165651.153b573d@bootlin.com>
+In-Reply-To: <CAGXv+5EPA29G-fsH=wWOD8AK6TZFezFhsE0NHPYj_Pt3nT+d_w@mail.gmail.com>
+References: <20260326-pci-m2-e-v7-0-43324a7866e6@oss.qualcomm.com>
+	<20260413075459.GA2626902@google.com>
+	<fpcs4p62f35a5qyqwgm5ysa73stbysxcr62tkmmkrrcvsuf4t4@4ivukyqjey57>
+	<eeytuhqpgdz4do4tgtbmfntub2femtyq7bij7svhodpyjwaylx@j3gmvq2a2zqc>
+	<CAGXv+5E=tujhtZjwi6Qm7hk3Ks74UzTQHWq82NiTEw1+vYod5g@mail.gmail.com>
+	<ad36pIu-0dutL7Nk@ashevche-desk.local>
+	<CAGXv+5EGe59nJctLweEdZjb3MNmMvjuCHngGSfptzN985OiLdg@mail.gmail.com>
+	<ad4tJN27opdEooA7@ashevche-desk.local>
+	<CAGXv+5EPA29G-fsH=wWOD8AK6TZFezFhsE0NHPYj_Pt3nT+d_w@mail.gmail.com>
+Organization: Bootlin
+X-Mailer: Claws Mail 4.3.1 (GTK 3.24.52; x86_64-redhat-linux-gnu)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: Build failure in linux-next: implicit declaration of
- acpi_has_method
-To: "Rafael J. Wysocki" <rafael@kernel.org>,
- Venkat Rao Bagalkote <venkat88@linux.ibm.com>,
- Chandrashekar Devegowda <chandrashekar.devegowda@intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org,
- lenb@kernel.org, Madhavan Srinivasan <maddy@linux.ibm.com>,
- luiz.dentz@gmail.com, Ritesh Harjani <riteshh@linux.ibm.com>
-References: <ad624e0d-cfd7-4521-ae33-c5c3287b4204@linux.ibm.com>
- <CAJZ5v0g4R+X+JXf1JB=3b_gqAdbyOv0drF242MCKkuNx1n4oow@mail.gmail.com>
- <755caa0d-c574-4c58-a274-ce8f6f04aa9c@linux.ibm.com>
- <CAJZ5v0j8957hN2CzEahNC=rdPsOZK=mCs07-Uhym-8QngMz2nQ@mail.gmail.com>
-Content-Language: fr-FR
-From: "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>
-In-Reply-To: <CAJZ5v0j8957hN2CzEahNC=rdPsOZK=mCs07-Uhym-8QngMz2nQ@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
+X-Last-TLS-Session-Version: TLSv1.3
 
+Hi Chen, all,
 
-
-Le 15/04/2026 à 16:13, Rafael J. Wysocki a écrit :
-> On Wed, Apr 15, 2026 at 10:35 AM Venkat Rao Bagalkote
-> <venkat88@linux.ibm.com> wrote:
->>
->>
->> On 15/04/26 12:50 pm, Rafael J. Wysocki wrote:
->>> On Wed, Apr 15, 2026 at 9:16 AM Venkat Rao Bagalkote
->>> <venkat88@linux.ibm.com> wrote:
->>>> Greetings!!!
->>>>
->>>> IBM CI has reported a build failure on linux-next repo.
->>>>
->>>> Failures:
->>>>
->>>> drivers/bluetooth/btintel_pcie.c: In function
->>>> ‘btintel_pcie_acpi_reset_method’:
+...
+ 
 > 
-> What kernel is this?
+> I'm not arguing for a even more generic "M.2" connector. The "key" is
+> already described in the compatible. I'm saying we should have some way
+> of describing the individual interfaces (PCIe, SDIO, USB, UART, I2S, I2C)
+> on the connector so further nodes or properties can be attached to them,
+> either with overlays or dynamically within the kernel. Right now the
+> are only described as individual ports, but we can't actually tie a
+> device to a OF graph port.
+> 
+> But maybe I'm overthinking the representation part. AFAICT for Qualcomm's
+> UART-based BT bit part, Mani just had the driver create a device node
+> under the UART (by traversing the OF graph to find the UART). If that's
+> the desired way then the connector binding should mention it. And that
+> works for me. But I think it's messier and also we're missing an
+> opportunity to make the M.2 connector a standardized attachment point
+> for overlays.
+> 
+> Mani, could you also chime in a bit on what you envisioned?
+> 
+> (Added Luca from Bootlin to CC, as I think there are parallels to the
+>  "Hotplug of Non-discoverable Hardware" work)
+>
 
-linux-next, https://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next
+Related to "Hotplug of Non-discoverable Hardware",
 
-$ git grep btintel_pcie_acpi_reset_method next-20260415
-next-20260415:drivers/bluetooth/btintel_pcie.c:static int 
-btintel_pcie_acpi_reset_method(struct btintel_pcie_data *data)
-next-20260415:drivers/bluetooth/btintel_pcie.c: ret = 
-btintel_pcie_acpi_reset_method(data);
+I would add entries for busses in the connector without using an OF graph.
 
-commit 912a499a7955 ("Bluetooth: btintel_pcie: Support Product level reset")
+For I2C and later SPI, this was is done.
+
+You already have an i2c-parent property but no node where an i2c device
+can be added.
+
+The last discussion related to hotplug, connectors and DT led to the RFC
+series [1].
+
+It is a huge series. The last patch give a real example of representation:
+  https://lore.kernel.org/all/20260112142009.1006236-78-herve.codina@bootlin.com/
+
+In your case I would see some thing like:
+
+    connector {
+        compatible = "pcie-m2-e-connector";
+        vpcie3v3-supply = <&vreg_wcn_3p3>;
+        vpcie1v8-supply = <&vreg_l15b_1p8>;
+
+	/*
+	 * If those GPIOs have to be used by components available in
+	 * the connected board, a Nexus node should be used.
+         */
+        w-disable1-gpios = <&tlmm 115 GPIO_ACTIVE_LOW>;
+        w-disable2-gpios = <&tlmm 116 GPIO_ACTIVE_LOW>;
+        viocfg-gpios = <&tlmm 117 GPIO_ACTIVE_HIGH>;
+        uart-wake-gpios = <&tlmm 118 GPIO_ACTIVE_LOW>;
+        sdio-wake-gpios = <&tlmm 119 GPIO_ACTIVE_LOW>;
+        sdio-reset-gpios = <&tlmm 120 GPIO_ACTIVE_LOW>;
+
+	conn-i2c {
+		i2c-parent = <&i2c0>;
+
+		/*
+ 		 * Here i2c devices available on the board
+		 * connected to the connector can be described.
+		 */
+	};
+
+	/* Same kind to description for other busses */
+	conn-pcie {
+		pci-parent = <&xxxxx>;
+
+		/*
+		 * The PCIe bus has abilities to discover devices.
+		 * Not sure this node is needed.
+		 *
+		 * If a PCI device need a DT description to describe
+		 * stuffs behind the device, what has been done for LAN966x
+		 * could be re-used [2] and [3]
+		 */
+	};
+
+	conn_uart {
+		uart-parent = <&uart-ctrl>;
+
+		/* uart child (maybe a serdes) should be describe here
+	};
+
+	...
+    };
+
+Of course, some DT symbols need to be exported in order to have them usable from
+the DT describing the connected board.
+
+This notion of exported symbol is not yet available upstream and is the purpose of
+the RFC series [1].
+
+[1] https://lore.kernel.org/all/20260112142009.1006236-1-herve.codina@bootlin.com/
+[2] https://elixir.bootlin.com/linux/v7.0/source/drivers/misc/lan966x_pci.c
+[3] https://elixir.bootlin.com/linux/v7.0/source/drivers/misc/lan966x_pci.dtso
+
+Feel free to ask for more specific question if needed.
+
+Best regards,
+Hervé
 
 > 
-> I cannot find the function above in the mainline.
+> Thanks
+> ChenYu
 > 
->>>> drivers/bluetooth/btintel_pcie.c:2309:14: error: implicit declaration of
->>>> function ‘acpi_has_method’; did you mean ‘acpi_has_watchdog’?
->>>> [-Werror=implicit-function-declaration]
->>>>     2309 |         if (!acpi_has_method(handle, "_PRR")) {
->>>>          |              ^~~~~~~~~~~~~~~
->>>>          |              acpi_has_watchdog
->>>>
->>>>
->>>> The function acpi_has_method() lacks a stub definition in
->>>> include/linux/acpi.h
->>>> for the !CONFIG_ACPI case, unlike other ACPI utility functions.
->>> Code that calls acpi_has_method() clearly depends on ACPI though, so
->>> building it in the !CONFIG_ACPI case is questionable.
->>
->>
->> Thank you so much for the review and explanation!!
->>
->> Adding the stub, would just hide the real issue. I guess, proper fix is
->> to add the ACPI dependency in Kconfig.
->>
->>
->>
->> # git diff
->> diff --git a/drivers/bluetooth/Kconfig b/drivers/bluetooth/Kconfig
->> index c5d45cf91f88..fc1b37044a9b 100644
->> --- a/drivers/bluetooth/Kconfig
->> +++ b/drivers/bluetooth/Kconfig
->> @@ -502,7 +502,7 @@ config BT_NXPUART
->>
->>    config BT_INTEL_PCIE
->>           tristate "Intel HCI PCIe driver"
->> -       depends on PCI
->> +       depends on PCI && ACPI
->>           select BT_INTEL
->>           select FW_LOADER
->>           help
->>
->>
->> Can you please confirm, if this the right approach before I submit a
->> formal patch.
 > 
-> I'm not sure about that.  You need to talk to the driver maintainer.
-> 
->> Thank you again for your patience and guidance.
-> 
-> You're welcome.
+> > > The latter part is solvable, but we likely need child nodes under the
+> > > connector for the different interfaces. Properties that make sense for
+> > > one type might not make sense for another.
+> > >
+> > > P.S. We could also just add child device nodes under the controller to
+> > > put the generic properties, but that's splitting the description into
+> > > multiple parts. Let's not go there if at all possible.  
+> >
+> > --
+> > With Best Regards,
+> > Andy Shevchenko
+> >
+> >  
 
+
+
+-- 
+Hervé Codina, Bootlin
+Embedded Linux and Kernel engineering
+https://bootlin.com
