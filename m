@@ -1,216 +1,114 @@
-Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.16])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0D512D0603;
-	Wed, 15 Apr 2026 14:57:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.84.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BB873148D8;
+	Wed, 15 Apr 2026 16:36:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.16
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776265029; cv=none; b=nQ5jDbiiWlwgnap6aLET57e6sDd6rGRkd8dQtIgg6CT4JQ27CgwAuqEev5HXh8jGL52al2ICrq1rxrLRHtBgkTjnxJP6thJ5zP7MOEyjL9tvDitNhWa7XnYrH39tPOvazRxOT+iDg3wucdGlX9/NNgYLL8pdhWr557s8gEphx6Q=
+	t=1776271008; cv=none; b=IAE8O9p+ZzWKi1dV3K/uPxlauUp6xSXw/JzvIHa4CUR9WzcRbnQcJ+PfkPh8jL2Tf5vkZHCy6onbc0ah4yamWI+/CwcQg5tdIC8B3d1v80EoUH5PbXuZTToDc1kCykH/EAL2jSwNsRk4a/yCeeddsoe7eXZJQ5yiR8f8p779Kuc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776265029; c=relaxed/simple;
-	bh=1S2kdSoru/ifNvwgwwUu/EShTTtvBQkznTzuC20u86I=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=dKd6O9rUDcbdDc4wOwby9ZSxZ/4rBKBKFVqVwXF7FQ49NrLQK0wCZpn7Eeiqom/LVRJlYC5wuPfS4hAxA4VjfWHCh74fPnqB6k7OvoAarGOu4K0NlaE/j805XEbBzKQP+8U6LIeePkEDNjVjxZ6f2kzodDyZNh7lK/jO6Oo36W8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=odMVGQ2n; arc=none smtp.client-ip=185.246.84.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
+	s=arc-20240116; t=1776271008; c=relaxed/simple;
+	bh=u5Zcyvxerh8GwFVpZ5dVjjOQxR9AjrqFpq1aiJdbY5Q=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=dG0MOc48Agd0rLEsY42B8bg5EHS37tHmAH76akmyciPGK4qnRzC1GvCwM76GccEfsoJ3fwgLKB01GuKBUtb0u7NfWoe+q3zAVjbDNeny6eh8I4oapzlvSA/vCrIqq8rORyObQ9H4GHQ93QNfHDhWK0LiUYSx69miRsIvejc50nA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=WqcKJ33s; arc=none smtp.client-ip=198.175.65.16
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="odMVGQ2n"
-Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-02.galae.net (Postfix) with ESMTPS id BF20B1A32D8;
-	Wed, 15 Apr 2026 14:57:05 +0000 (UTC)
-Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id 7D7B360420;
-	Wed, 15 Apr 2026 14:57:05 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id A90DA10459FC4;
-	Wed, 15 Apr 2026 16:56:53 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1776265023; h=from:subject:date:message-id:to:cc:mime-version:content-type:
-	 content-transfer-encoding:in-reply-to:references;
-	bh=wNrWnquhsR0dlE0WJjRS5Whb5Pw+B2YUuFT6hABZVPw=;
-	b=odMVGQ2nxDTLW1G3zgpTCupAd+WE2qFmsXEHoMqdccBJm6+seTVkYni4wkvFut2s/DTE9G
-	rQgJl0iu49WoTtlt1D/ZKPek9XtvZcEmNB9JnLU3j86MKSmxk0y1H4eOFoLP4pJQsWK0+w
-	LDUa2pRoeccJ5yO0iFUiIEbEnbUiIajUOclrFN+JeJ62x/Xy4nqUEFN9xkXGH+zLdqVXtx
-	kehs4bdgRvsag91OXjg4XIBY8DTEtrZvQr4puEi8w9yA6S832dhmPp7KfxTskDf4t6OHwQ
-	pnPSy6MjhtDRs2iRsgVjZI0ToOQtgYM1i8qxDLRKg3x0iefOJqJW241JPYnlmg==
-Date: Wed, 15 Apr 2026 16:56:51 +0200
-From: Herve Codina <herve.codina@bootlin.com>
-To: Chen-Yu Tsai <wenst@chromium.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Manivannan
- Sadhasivam <mani@kernel.org>, Manivannan Sadhasivam
- <manivannan.sadhasivam@oss.qualcomm.com>, Rob Herring <robh@kernel.org>,
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby
- <jirislaby@kernel.org>, Nathan Chancellor <nathan@kernel.org>, Nicolas
- Schier <nicolas.schier@linux.dev>, Hans de Goede <hansg@kernel.org>, Ilpo
- =?UTF-8?B?SsOkcnZpbmVu?= <ilpo.jarvinen@linux.intel.com>, Mark Pearson
- <mpearson-lenovo@squebb.ca>, "Derek J. Clark" <derekjohn.clark@gmail.com>,
- Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley
- <conor+dt@kernel.org>, Marcel Holtmann <marcel@holtmann.org>, Luiz Augusto
- von Dentz <luiz.dentz@gmail.com>, Bartosz Golaszewski <brgl@bgdev.pl>,
- Bartosz Golaszewski <brgl@kernel.org>, linux-serial@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-kbuild@vger.kernel.org,
- platform-driver-x86@vger.kernel.org, linux-pci@vger.kernel.org,
- devicetree@vger.kernel.org, linux-arm-msm@vger.kernel.org,
- linux-bluetooth@vger.kernel.org, linux-pm@vger.kernel.org, Stephan Gerhold
- <stephan.gerhold@linaro.org>, Dmitry Baryshkov
- <dmitry.baryshkov@oss.qualcomm.com>, linux-acpi@vger.kernel.org, Hans de
- Goede <johannes.goede@oss.qualcomm.com>, Bartosz Golaszewski
- <bartosz.golaszewski@oss.qualcomm.com>, Luca Ceresoli
- <luca.ceresoli@bootlin.com>
-Subject: Re: [PATCH v7 0/8] Add support for handling PCIe M.2 Key E
- connectors in devicetree
-Message-ID: <20260415165651.153b573d@bootlin.com>
-In-Reply-To: <CAGXv+5EPA29G-fsH=wWOD8AK6TZFezFhsE0NHPYj_Pt3nT+d_w@mail.gmail.com>
-References: <20260326-pci-m2-e-v7-0-43324a7866e6@oss.qualcomm.com>
-	<20260413075459.GA2626902@google.com>
-	<fpcs4p62f35a5qyqwgm5ysa73stbysxcr62tkmmkrrcvsuf4t4@4ivukyqjey57>
-	<eeytuhqpgdz4do4tgtbmfntub2femtyq7bij7svhodpyjwaylx@j3gmvq2a2zqc>
-	<CAGXv+5E=tujhtZjwi6Qm7hk3Ks74UzTQHWq82NiTEw1+vYod5g@mail.gmail.com>
-	<ad36pIu-0dutL7Nk@ashevche-desk.local>
-	<CAGXv+5EGe59nJctLweEdZjb3MNmMvjuCHngGSfptzN985OiLdg@mail.gmail.com>
-	<ad4tJN27opdEooA7@ashevche-desk.local>
-	<CAGXv+5EPA29G-fsH=wWOD8AK6TZFezFhsE0NHPYj_Pt3nT+d_w@mail.gmail.com>
-Organization: Bootlin
-X-Mailer: Claws Mail 4.3.1 (GTK 3.24.52; x86_64-redhat-linux-gnu)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="WqcKJ33s"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1776271005; x=1807807005;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=u5Zcyvxerh8GwFVpZ5dVjjOQxR9AjrqFpq1aiJdbY5Q=;
+  b=WqcKJ33s2+3SN626hNyy0S72lPJFRvZ/CMXrs5+TKa7XP0/HD8WLJ/37
+   pqHuX6OL8ypPR7RiOgMeRR03H3Cc3ZmW6iM7ZxLVh7OZOJf0yvgHiclRl
+   YTHnddF5kZEQxNnjPQfLlyhR0ipgV2+eIKJmVPmPnuU/lRxKFHWm0W9XB
+   bvb/rergcLyudlztXIQFlzzkJ0dZsoy6zMCEgEVFBwyh2fazlst41+86x
+   fzDvkWHCqeCsGQJthOKRLjFPUzy6f7dr96+kVkY0WJPi9GxcemACRqWwF
+   hqJv7bdcqh1uduL/HqZnvs8TcFrhzvEGanlBwjiSQ2ltVYWDAvgOVTPDb
+   g==;
+X-CSE-ConnectionGUID: AmBRYsscTSCxFDdWkesb/g==
+X-CSE-MsgGUID: sqpodUmXTH6OWQ3Qm8O8yw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11760"; a="77438349"
+X-IronPort-AV: E=Sophos;i="6.23,179,1770624000"; 
+   d="scan'208";a="77438349"
+Received: from fmviesa008.fm.intel.com ([10.60.135.148])
+  by orvoesa108.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Apr 2026 09:36:34 -0700
+X-CSE-ConnectionGUID: aD0btk5zQ9eNDKJaeVX0mw==
+X-CSE-MsgGUID: PbEaGu+VRiqsg1GPaSfW/w==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,179,1770624000"; 
+   d="scan'208";a="227819829"
+Received: from vverma7-desk1.amr.corp.intel.com (HELO agluck-desk3.home.arpa) ([10.124.222.158])
+  by fmviesa008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Apr 2026 09:36:33 -0700
+From: Tony Luck <tony.luck@intel.com>
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: Herman Li <herman.li@intel.com>,
+	Zaid Alali <zaidal@os.amperecomputing.com>,
+	Jiaqi Yan <jiaqiyan@google.com>,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	patches@lists.linux.dev,
+	Tony Luck <tony.luck@intel.com>
+Subject: [PATCH] ACPI: APEI: EINJ: Fix EINJv2 memory injection
+Date: Wed, 15 Apr 2026 09:36:20 -0700
+Message-ID: <20260415163620.12957-1-tony.luck@intel.com>
+X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-X-Last-TLS-Session-Version: TLSv1.3
 
-Hi Chen, all,
+EINJ trigger actions for memory error injection often include access to
+the target injection address. This address does not need to special
+mapping.
 
-...
+The code to drop the target address from the resource list only checked
+for V1 injection signature.
+
+Add a test for the EINJ V2 memory injection signature.
+
+Reported-by: Herman Li <herman.li@intel.com>
+Signed-off-by: Tony Luck <tony.luck@intel.com>
+---
+ drivers/acpi/apei/einj-core.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/apei/einj-core.c b/drivers/acpi/apei/einj-core.c
+index a9248af078f6..ba0ce71b7adb 100644
+--- a/drivers/acpi/apei/einj-core.c
++++ b/drivers/acpi/apei/einj-core.c
+@@ -401,6 +401,17 @@ static struct acpi_generic_address *einj_get_trigger_parameter_region(
  
-> 
-> I'm not arguing for a even more generic "M.2" connector. The "key" is
-> already described in the compatible. I'm saying we should have some way
-> of describing the individual interfaces (PCIe, SDIO, USB, UART, I2S, I2C)
-> on the connector so further nodes or properties can be attached to them,
-> either with overlays or dynamically within the kernel. Right now the
-> are only described as individual ports, but we can't actually tie a
-> device to a OF graph port.
-> 
-> But maybe I'm overthinking the representation part. AFAICT for Qualcomm's
-> UART-based BT bit part, Mani just had the driver create a device node
-> under the UART (by traversing the OF graph to find the UART). If that's
-> the desired way then the connector binding should mention it. And that
-> works for me. But I think it's messier and also we're missing an
-> opportunity to make the M.2 connector a standardized attachment point
-> for overlays.
-> 
-> Mani, could you also chime in a bit on what you envisioned?
-> 
-> (Added Luca from Bootlin to CC, as I think there are parallels to the
->  "Hotplug of Non-discoverable Hardware" work)
->
-
-Related to "Hotplug of Non-discoverable Hardware",
-
-I would add entries for busses in the connector without using an OF graph.
-
-For I2C and later SPI, this was is done.
-
-You already have an i2c-parent property but no node where an i2c device
-can be added.
-
-The last discussion related to hotplug, connectors and DT led to the RFC
-series [1].
-
-It is a huge series. The last patch give a real example of representation:
-  https://lore.kernel.org/all/20260112142009.1006236-78-herve.codina@bootlin.com/
-
-In your case I would see some thing like:
-
-    connector {
-        compatible = "pcie-m2-e-connector";
-        vpcie3v3-supply = <&vreg_wcn_3p3>;
-        vpcie1v8-supply = <&vreg_l15b_1p8>;
-
-	/*
-	 * If those GPIOs have to be used by components available in
-	 * the connected board, a Nexus node should be used.
-         */
-        w-disable1-gpios = <&tlmm 115 GPIO_ACTIVE_LOW>;
-        w-disable2-gpios = <&tlmm 116 GPIO_ACTIVE_LOW>;
-        viocfg-gpios = <&tlmm 117 GPIO_ACTIVE_HIGH>;
-        uart-wake-gpios = <&tlmm 118 GPIO_ACTIVE_LOW>;
-        sdio-wake-gpios = <&tlmm 119 GPIO_ACTIVE_LOW>;
-        sdio-reset-gpios = <&tlmm 120 GPIO_ACTIVE_LOW>;
-
-	conn-i2c {
-		i2c-parent = <&i2c0>;
-
-		/*
- 		 * Here i2c devices available on the board
-		 * connected to the connector can be described.
-		 */
-	};
-
-	/* Same kind to description for other busses */
-	conn-pcie {
-		pci-parent = <&xxxxx>;
-
-		/*
-		 * The PCIe bus has abilities to discover devices.
-		 * Not sure this node is needed.
-		 *
-		 * If a PCI device need a DT description to describe
-		 * stuffs behind the device, what has been done for LAN966x
-		 * could be re-used [2] and [3]
-		 */
-	};
-
-	conn_uart {
-		uart-parent = <&uart-ctrl>;
-
-		/* uart child (maybe a serdes) should be describe here
-	};
-
-	...
-    };
-
-Of course, some DT symbols need to be exported in order to have them usable from
-the DT describing the connected board.
-
-This notion of exported symbol is not yet available upstream and is the purpose of
-the RFC series [1].
-
-[1] https://lore.kernel.org/all/20260112142009.1006236-1-herve.codina@bootlin.com/
-[2] https://elixir.bootlin.com/linux/v7.0/source/drivers/misc/lan966x_pci.c
-[3] https://elixir.bootlin.com/linux/v7.0/source/drivers/misc/lan966x_pci.dtso
-
-Feel free to ask for more specific question if needed.
-
-Best regards,
-Hervé
-
-> 
-> Thanks
-> ChenYu
-> 
-> 
-> > > The latter part is solvable, but we likely need child nodes under the
-> > > connector for the different interfaces. Properties that make sense for
-> > > one type might not make sense for another.
-> > >
-> > > P.S. We could also just add child device nodes under the controller to
-> > > put the generic properties, but that's splitting the description into
-> > > multiple parts. Let's not go there if at all possible.  
-> >
-> > --
-> > With Best Regards,
-> > Andy Shevchenko
-> >
-> >  
-
-
-
+ 	return NULL;
+ }
++
++static bool is_memory_injection(u32 type, u64 param2)
++{
++	if (is_v2)
++		return type & BIT(1);
++	else if (param_extension || acpi5)
++		return (type & MEM_ERROR_MASK) && param2;
++
++	return false;
++}
++
+ /* Execute instructions in trigger error action table */
+ static int __einj_error_trigger(u64 trigger_paddr, u32 type,
+ 				u64 param1, u64 param2)
+@@ -480,7 +491,7 @@ static int __einj_error_trigger(u64 trigger_paddr, u32 type,
+ 	 * This will cause resource conflict with regular memory.  So
+ 	 * remove it from trigger table resources.
+ 	 */
+-	if ((param_extension || acpi5) && (type & MEM_ERROR_MASK) && param2) {
++	if (is_memory_injection(type, param2)) {
+ 		struct apei_resources addr_resources;
+ 
+ 		apei_resources_init(&addr_resources);
 -- 
-Hervé Codina, Bootlin
-Embedded Linux and Kernel engineering
-https://bootlin.com
+2.53.0
+
