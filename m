@@ -1,137 +1,169 @@
-Received: from stravinsky.debian.org (stravinsky.debian.org [82.195.75.108])
+Received: from canpmsgout02.his.huawei.com (canpmsgout02.his.huawei.com [113.46.200.217])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2533325A357;
-	Tue, 14 Apr 2026 16:31:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=82.195.75.108
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF20642A80;
+	Wed, 15 Apr 2026 01:32:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.217
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776184319; cv=none; b=jMn/ej7Nb4kwssJ2Eb9j7/R2CM7zP2lRFu7xkorA1hG0cCsiu2DSa9Rso+j6JH5mYsgqSSc+gMaqesjeBLrHiy071al+aou4elYYgnCUWy0vdvFLeWq9G1BEgG2o17ZF27dZguTHUBS/aDFx7xgT/95VeA9EHfH5p8iQ0X2ecxk=
+	t=1776216778; cv=none; b=SQFMbenVlyrGuHvyN/uoIwTGpFJoKP7v1rpj1kHGO/9a9wUJvgJTboHQt7I2Nuhhpy/3bZ/RxPADpNHuzA6Rypm2ovL84t85fLs/Lo788QwqEJkf6LjKqrps1PalQGy8OhXy/lWPQvcq44sQQ5Mbkp49npA2az7yF+FT1riTtsQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776184319; c=relaxed/simple;
-	bh=z/DZ6HU3GofZiHyEMJzqlAJvWefQHWAuskaXNMazL8g=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=s4ZG+j50gZ7z1CJCNnEWS6SAGXwriMX7w54/Kup4lYcgD3TnB3+9gypcIfM9/DlUIsWuzf8hVln1VLtFpiDyHhjhCCOeL8UkU4Xn4udDgnIM8LVgP5ZmnvXpaJJ16jn/VmMsMovvnfXaYTplmrBl+J9K6hAHcuhAfPboz7U9HvE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org; spf=none smtp.mailfrom=debian.org; dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b=f7oDisXd; arc=none smtp.client-ip=82.195.75.108
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=debian.org
+	s=arc-20240116; t=1776216778; c=relaxed/simple;
+	bh=5rcl9FD1fZM5h/bD7b1NahAi6PX8APIZNxveMQ4IwJw=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=nye5IJXjQUA0mSe+F3OjMsGa7wTREONMzIobfKBEyH+yDthKUHOPDKflMQVtdrQ5OvSDtkgPQbfXO2P7hgqN08xLgT4OXW1meDlzM5NLfjkERYsyVTEdkz7v9EiILsbULxLh5B82tN/Ss6sXgkIKvxSNu+R61gTGS6SLdLE1nAw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=gaA/rGn4; arc=none smtp.client-ip=113.46.200.217
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=h-partners.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b="f7oDisXd"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=debian.org;
-	s=smtpauto.stravinsky; h=X-Debian-User:In-Reply-To:Content-Type:MIME-Version:
-	References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=FdXE2tVp66RJrAxYD1Fn/hCeXeICiymZD7gAr383aF4=; b=f7oDisXdB29ztjU627r7TbiRs2
-	z5xgC0uzYAUQyBwftf25Zi9Na8S12Zg3JYr2SriHdpKwl1NdB2zVetQb+8FXQg1ljsuOyiAR8ZJgY
-	FGNC8Iz70NZrs8VNe3mDkvOcYG7SwbBFDN1toDiWHi4/FLiAh9tPHddphByjYZGECqUm8H8Qn+JWx
-	x+TCUyjSRBrzb0YBDTmgsNp1JrFyIK9mt1ctcvVvFv7RMQMMwXFD3uXOINRtDbidzYkpAyXNzWWxT
-	DOTW/hQS4hMttMtqessxS4Exckl4nI8sPqysMJ9E49OUHrg/11GAGnkPMVeo56fNAQo1KS74Za570
-	U4G4HieA==;
-Received: from authenticated user
-	by stravinsky.debian.org with esmtpsa (TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
-	(Exim 4.96)
-	(envelope-from <leitao@debian.org>)
-	id 1wCgfr-00DCFn-1Z;
-	Tue, 14 Apr 2026 16:31:39 +0000
-Date: Tue, 14 Apr 2026 09:31:33 -0700
-From: Breno Leitao <leitao@debian.org>
-To: Sudeep Holla <sudeep.holla@kernel.org>
-Cc: "lihuisong (C)" <lihuisong@huawei.com>, 
-	"Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, lpieralisi@kernel.org, 
-	catalin.marinas@arm.com, will@kernel.org, 
-	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	pjaroszynski@nvidia.com, guohanjun@huawei.com, linux-arm-kernel@lists.infradead.org, 
-	rmikey@meta.com, kernel-team@meta.com
-Subject: Re: [PATCH RFC] ACPI: processor: idle: Do not propagate
- acpi_processor_ffh_lpi_probe() -ENODEV
-Message-ID: <ad5qxncafOiTeLNg@gmail.com>
-References: <20260413-ffh-v1-1-301704f69e2f@debian.org>
- <af9c679d-899c-4832-b902-e621b5987f12@huawei.com>
- <ad4UWJ__dnDQtrj8@gmail.com>
- <6694ca7c-13bf-4e7d-9621-bc992cbf96a7@huawei.com>
- <20260414-cute-shapeless-dolphin-c5b2fc@sudeepholla>
- <ad48gItCwrC-ar34@gmail.com>
- <20260414-excellent-hidden-dodo-5bb98e@sudeepholla>
+	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="gaA/rGn4"
+dkim-signature: v=1; a=rsa-sha256; d=h-partners.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=O2kZvsNPH9LHVBECqKSB4VWfMUhvRVjvwKNwWXu2iiI=;
+	b=gaA/rGn4O25rIzd73vQzt3VvnO0dQzUwEpEQMCnjyvQBByRZGGIUrgTFPHej+rEKlHVeMAc1b
+	olOQfRTI3eK8HKsejGlMsRt5s65hiS5g3oio9HyzQedZn4oTzhhjxUC3MEFzmS0XXa1DrUhSZX/
+	HOexY74PX6sSyqpdOsEeiV8=
+Received: from mail.maildlp.com (unknown [172.19.162.197])
+	by canpmsgout02.his.huawei.com (SkyGuard) with ESMTPS id 4fwNlG2XlQzcb3c;
+	Wed, 15 Apr 2026 09:26:18 +0800 (CST)
+Received: from dggemv706-chm.china.huawei.com (unknown [10.3.19.33])
+	by mail.maildlp.com (Postfix) with ESMTPS id D3CD340576;
+	Wed, 15 Apr 2026 09:32:47 +0800 (CST)
+Received: from kwepemn100009.china.huawei.com (7.202.194.112) by
+ dggemv706-chm.china.huawei.com (10.3.19.33) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.11; Wed, 15 Apr 2026 09:32:47 +0800
+Received: from [10.67.121.59] (10.67.121.59) by kwepemn100009.china.huawei.com
+ (7.202.194.112) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.36; Wed, 15 Apr
+ 2026 09:32:47 +0800
+Message-ID: <33c15199-25ea-4d39-bff9-91af0b49633e@huawei.com>
+Date: Wed, 15 Apr 2026 09:32:46 +0800
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260414-excellent-hidden-dodo-5bb98e@sudeepholla>
-X-Debian-User: leitao
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH RFC] ACPI: processor: idle: Do not propagate
+ acpi_processor_ffh_lpi_probe() -ENODEV
+To: Sudeep Holla <sudeep.holla@kernel.org>, "Rafael J. Wysocki"
+	<rafael@kernel.org>
+CC: Breno Leitao <leitao@debian.org>, Len Brown <lenb@kernel.org>,
+	<lpieralisi@kernel.org>, <catalin.marinas@arm.com>, <will@kernel.org>,
+	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+	<linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<pjaroszynski@nvidia.com>, <guohanjun@huawei.com>,
+	<linux-arm-kernel@lists.infradead.org>, <rmikey@meta.com>,
+	<kernel-team@meta.com>, <lihuisong@huawei.com>
+References: <20260413-ffh-v1-1-301704f69e2f@debian.org>
+ <af9c679d-899c-4832-b902-e621b5987f12@huawei.com>
+ <ad4UWJ__dnDQtrj8@gmail.com>
+ <6694ca7c-13bf-4e7d-9621-bc992cbf96a7@huawei.com>
+ <20260414-cute-shapeless-dolphin-c5b2fc@sudeepholla>
+From: "lihuisong (C)" <lihuisong@huawei.com>
+In-Reply-To: <20260414-cute-shapeless-dolphin-c5b2fc@sudeepholla>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: kwepems200002.china.huawei.com (7.221.188.68) To
+ kwepemn100009.china.huawei.com (7.202.194.112)
 
-Hello Sudeep,
 
-On Tue, Apr 14, 2026 at 03:10:03PM +0100, Sudeep Holla wrote:
-> On Tue, Apr 14, 2026 at 06:14:19AM -0700, Breno Leitao wrote:
-> > Hello Sudeep,
-> >
-> > On Tue, Apr 14, 2026 at 01:25:53PM +0100, Sudeep Holla wrote:
-> > > So while I understand that the kernel did not report an error previously, that
-> > > does not mean the _LPI table is merely moot on this platform when it contains
-> > > only a WFI state.
-> >
-> > Can you clarify whether datacenter ARM systems are expected to expose
-> > deeper idle states beyond WFI in their _LPI tables?
-> >
+On 4/14/2026 8:25 PM, Sudeep Holla wrote:
+> On Tue, Apr 14, 2026 at 07:31:29PM +0800, lihuisong (C) wrote:
+>> On 4/14/2026 6:21 PM, Breno Leitao wrote:
+>>> Hello Huisong,
+>>>
+>>> On Tue, Apr 14, 2026 at 05:43:51PM +0800, lihuisong (C) wrote:
+>>>> But it is a real issue. Thanks for your report.
+>>>> I think the best way to fix your issue is that remove this verification in
+>>>> psci_acpi_cpu_init_idle().
+>>>> Because it is legal for platform to report one LPI state.
+>>>> This function just needs to verify the LPI states which are FFH.
+>>> Thank you for the prompt feedback.
+>>>
+>>> Would this approach work?
+>>>
+>>> commit 6c9d52840a4f778cc989838ba76ee51416e85de3
+>>> Author: Breno Leitao <leitao@debian.org>
+>>> Date:   Tue Apr 14 03:16:08 2026 -0700
+>>>
+>>>       ACPI: processor: idle: Allow platforms with only one LPI state
+>>>       psci_acpi_cpu_init_idle() rejects platforms where power.count - 1 <= 0
+>>>       by returning -ENODEV. However, having a single LPI state (WFI) is a
+>>>       valid configuration. The function's purpose is to verify FFH idle states,
+>>>       and when count is zero, there are simply no FFH states to validate —
+>>>       this is not an error.
+>>>       On NVIDIA Grace (aarch64) systems with PSCIv1.1, power.count is 1 for
+>>>       all 72 CPUs, so the probe fails with -ENODEV. After commit cac173bea57d
+>>>       ("ACPI: processor: idle: Rework the handling of
+>>>       acpi_processor_ffh_lpi_probe()"), this failure propagates up and prevents
+>>>       cpuidle registration entirely.
+>>>       Change the check from (count <= 0) to (count < 0) so that platforms
+>>>       with only WFI are accepted. The for loop naturally handles count == 0
+>>>       by not iterating.
+>>>       Fixes: cac173bea57d ("ACPI: processor: idle: Rework the handling of acpi_processor_ffh_lpi_probe()")
+>>>       Signed-off-by: Breno Leitao <leitao@debian.org>
+>>>
+>>> diff --git a/drivers/acpi/arm64/cpuidle.c b/drivers/acpi/arm64/cpuidle.c
+>>> index 801f9c4501425..7791b751042ce 100644
+>>> --- a/drivers/acpi/arm64/cpuidle.c
+>>> +++ b/drivers/acpi/arm64/cpuidle.c
+>>> @@ -31,7 +31,7 @@ static int psci_acpi_cpu_init_idle(unsigned int cpu)
+>>>    		return -EOPNOTSUPP;
+>>>    	count = pr->power.count - 1;
+>>> -	if (count <= 0)
+>>> +	if (count < 0)
+>>>    		return -ENODEV;
+>>>    	for (i = 0; i < count; i++) {
+>> This count already verified in acpi_processor_get_lpi_info.
+>>
+>> I suggest modifing it as below:
+>>
+>> -->
+>>
+>> git diff
+>> diff --git a/drivers/acpi/arm64/cpuidle.c b/drivers/acpi/arm64/cpuidle.c
+>> index 801f9c450142..c68a5db8ebba 100644
+>> --- a/drivers/acpi/arm64/cpuidle.c
+>> +++ b/drivers/acpi/arm64/cpuidle.c
+>> @@ -16,7 +16,7 @@
+>>
+>>   static int psci_acpi_cpu_init_idle(unsigned int cpu)
+>>   {
+>> -       int i, count;
+>> +       int i;
+>>          struct acpi_lpi_state *lpi;
+>>          struct acpi_processor *pr = per_cpu(processors, cpu);
+>>
+>> @@ -30,14 +30,10 @@ static int psci_acpi_cpu_init_idle(unsigned int cpu)
+>>          if (!psci_ops.cpu_suspend)
+>>                  return -EOPNOTSUPP;
+>>
+>> -       count = pr->power.count - 1;
+>> -       if (count <= 0)
+>> -               return -ENODEV;
+>> -
+> It was intentionally designed this way, as there is little value in defining
+> only WFI in the _LPI tables. In the absence of a cpuidle driver/LPI entry,
+> arch_cpu_idle() is invoked, which is sufficient and avoids unnecessary
+> complexity, only to ultimately execute wfi() anyway.
+Yeah, it's correct. The code flow will be more simple and high-efficiency.
+This looks good to me.
+
+
+But cpuidle sysfs under per CPU is created when firmware just reports 
+WFI state before
+my commit cac173bea57d ("ACPI: processor: idle: Rework the handling of 
+acpi_processor_ffh_lpi_probe()").
+However, these platforms will no longer be created now and some 
+statistics for state0 are also missing.
+This change in behavor is visiable to user space.I'm not sure if it is 
+acceptable.
+What do you think, Rafael?
+> So while I understand that the kernel did not report an error previously, that
+> does not mean the _LPI table is merely moot on this platform when it contains
+> only a WFI state.
 >
-> Of course any system that prefers to save power when its idling must have
-> these _LPI deeper idle states.
 >
-> > Backing up, I'm observing 72 pr_err() messages during boot on these
-> > hosts and trying to determine whether this indicates a firmware issue or
-> > if the kernel needs adjustment.
->
-> I consider this a firmware issue, but not a fatal one. What matters more is
-> the behavior after those errors are reported.
-
-I understand. While I'm not a hardware or firmware vendor myself, I can
-see how they might consider power management features _optional_ for certain
-server configurations.
-
-> If you force success, either through your change or through the PSCI approach
-> suggested by lihuisong, then in practice you are only enabling a cpuidle
-> driver with a single usable state: WFI. That is not inherently wrong, but it
-> also does not provide much benefit.
-
-Given that this isn't a critical error, would it make sense to downgrade
-the pr_err() to pr_debug()? is it a reasonable compromise. I just want
-to avoid these pr_err() all accross the board, affecting kernel health
-metrics in large fleets.
-
-My proposal:
-
-commit c98007f9e10fe229672d29c3844c96705cecaed5
-Author: Breno Leitao <leitao@debian.org>
-Date:   Tue Apr 14 05:28:28 2026 -0700
-
-    ACPI: processor: idle: Downgrade FFH LPI probe failure message to pr_debug()
-    
-    The "Invalid FFH LPI data" message is printed at pr_err() level for every
-    CPU when acpi_processor_ffh_lpi_probe() fails. On platforms where the FFH
-    probe legitimately returns an error (e.g., no deep idle states beyond
-    WFI), this floods the kernel log with per-CPU error messages that are not
-    actionable.
-    
-    Downgrade to pr_debug() since this is a diagnostic message, not a
-    critical error.
-    
-    Signed-off-by: Breno Leitao <leitao@debian.org>
-
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index ee5facccbe10c..ab93a2c10a9ad 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -1259,7 +1259,7 @@ static int acpi_processor_get_power_info(struct acpi_processor *pr)
- 	if (pr->flags.has_lpi) {
- 		ret = acpi_processor_ffh_lpi_probe(pr->id);
- 		if (ret)
--			pr_err("CPU%u: Invalid FFH LPI data\n", pr->id);
-+			pr_debug("CPU%u: Invalid FFH LPI data\n", pr->id);
- 	}
- 
- 	return ret;
-
-
