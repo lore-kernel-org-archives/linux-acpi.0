@@ -1,131 +1,87 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 511223AF678
-	for <linux-acpi@vger.kernel.org>; Wed, 15 Apr 2026 17:09:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4682B4594A
+	for <linux-acpi@vger.kernel.org>; Wed, 15 Apr 2026 17:10:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776272977; cv=none; b=XmqG9GVCPi3k+8/zootG50pmpLr0kh2LfyY8AQTg7ncUK/vaHnE0z465NC4WrDDEnCVhI53wqDK1XZyksP7b8jF77+bsPU6gaF5YAR/xxHwYUOqB99Q+Nl6nFGx6BAsnieOr18T0UxiX6j6WghG5eFkg43viWLGLfIkdM+ltrW4=
+	t=1776273029; cv=none; b=lzYsMXy0xCEy+qlUn+rYhEqVlDkN/BQAMV2cMgVWdr4dwDpF3y1/9jULd+BBdnEQhcr7R4IFfXpLLzgFbg2LpzMv0uKAhoM0qeOr7gZfhnzJ5AN+vdjoGsGVA1dOc2o0QGc0gspCCGFNrP0TLt7C6aQhINC3iODW/jQFyOMrbv4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776272977; c=relaxed/simple;
-	bh=evVNg2mwISfuua7/LnejCpCCTdzRjZGYd06vxhXutik=;
+	s=arc-20240116; t=1776273029; c=relaxed/simple;
+	bh=BHm4G+DISlf5XJTfxSlC1IUeBoYC4hKUPRUtScT+KIA=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=QvcLC+IuGivRsDIH/2AKind3MkHMpdKuf4brsMFJkxu7VKYBAzY1tUDZUaevjJ2SOD/IlXofCyIvMKU7vJkAMyyAqEed/Y90iiObzqfcF6r0klYIrqWnybthgHFQOqmc4XuqCpyGa2cEnmINf7w6lgUPIbNcL30g3ZXoPvN+LsE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GtYo5oxl; arc=none smtp.client-ip=10.30.226.201
+	 To:Cc:Content-Type; b=phP8loom394Y5G7W7fEQWMXTRObF1/JyOpa0YcDnV1YBb8xpjnSyBWpaAXA50EwLZglyYDDWSxAh5UTQIXrRGF/Z1u7VhrfYxrPYHXt2JiMgFlDuxQhn0kRU3yU8yN4f4KVy23sAbm/t7OX205PnH74W6g+Uv5u7/Eh90M5J370=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fCy8NPIO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GtYo5oxl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01A18C4AF09
-	for <linux-acpi@vger.kernel.org>; Wed, 15 Apr 2026 17:09:36 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fCy8NPIO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A447C4AF09
+	for <linux-acpi@vger.kernel.org>; Wed, 15 Apr 2026 17:10:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1776272977;
-	bh=evVNg2mwISfuua7/LnejCpCCTdzRjZGYd06vxhXutik=;
+	s=k20201202; t=1776273029;
+	bh=BHm4G+DISlf5XJTfxSlC1IUeBoYC4hKUPRUtScT+KIA=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=GtYo5oxlzi2OTkkiIr3LNPAfjPcB0PQ5zyBAnx9FlB7f1lRAOIG/HJAxBvlyLRPF7
-	 bc6g+O+gb/Z6QRskbK/ZGfLWaLLEu2RzxYCFPDBxc8Jzj9P30MaShDuKId/VhcTo6W
-	 1guwM70bIWKW7f++dE9e5DA86IWvvFc3sJ4i8E7f6h8ljukshHt2KlyMkZlDaSvicy
-	 8adLQajM+6NURJXF5NfoLl72GRrcLV7Eul+RGdHqorOvbxTzvzq5acBiGAOWGHRLHA
-	 tmtnvw1rjQxvlIQ+hNZD2QKlnzp5lLXoeZEyoJSd5Ss+C/W+aH53TafPeixlYlhfWt
-	 Ig5Fp8N5VJthA==
-Received: by mail-oo1-f43.google.com with SMTP id 006d021491bc7-679b072ed3aso3207717eaf.1
-        for <linux-acpi@vger.kernel.org>; Wed, 15 Apr 2026 10:09:36 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AFNElJ9/wIhJNJXsKWXzvs7p3qEd+/w9G+k2YMDnutp2tL/Fp3uJDpXpmKDx1MrSmaARCimQKQbakyCZyM7h@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw7v7K3F88uDkQx/w6OLVEaXOLIXDqhGc0p/9+ROpT4sNeFlnS7
-	q1Um3wkTI0OmDRuzF0RH/AcG9k5p+pKTwMrPhVzOX2U2EvH0CDJ53Y6aAq0sY5hzwOp8lYgToLL
-	S/dtNBUmzaeLz/EUkL4qjA/+Bd4nJsVU=
-X-Received: by 2002:a05:6820:1f07:b0:67e:160c:36ab with SMTP id
- 006d021491bc7-68be6624f57mr11276879eaf.26.1776272976075; Wed, 15 Apr 2026
- 10:09:36 -0700 (PDT)
+	b=fCy8NPIO6h9ZRPYaNYATEFME6MCiv3FdNuSqEYvgYz3pnKmcmJquhNzMbMamDqShT
+	 ZrIV6tST7R3VmPV0DW0pOMBOBze/XsUN0itJ/EPlawsXuL/WPbhZHifgqrbz4IV6vY
+	 g6YZW/KIC3FiEYC1l2wzEQs36EdUr8Kc4HqZIvtR/R64mgwoMsMFfkCizYfOfCRLcB
+	 YGxiSCUkBrYPjULLe0uxyAHF//p/V62vPxSVICcuR6UjGNKH2qMEauHcpO+E22Grxm
+	 V45D50tFweNpIQq03/Z0bb8QKS8j9GSS0DAI0yuhv+/Bojcck5LldCkQr5aSPgklLk
+	 3CXWiMYHHWdAA==
+Received: by mail-oi1-f179.google.com with SMTP id 5614622812f47-471bf5157d7so3087489b6e.3
+        for <linux-acpi@vger.kernel.org>; Wed, 15 Apr 2026 10:10:29 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ8Lpy8CwlAO15PdLFqCrU8N0RIZ/mAR2Xeelcsdm9NR1KiGXewJpJGnc6cQFug3rd8SBK7OPzGZJYte@vger.kernel.org
+X-Gm-Message-State: AOJu0Yx4SiQvAyRC9kYGx+u+/Ic4QVT1GijR53fKA/yfT+ReUDStER8G
+	MOLczQXotieyIRxiXJNjqAZjiAj48TpxvgpoR8DbP8X7BI/406dCZHkk12Qidwtmm9U+LseSt56
+	eogmM87pIrlN7qTSjcTNV3NaMPgfEs6A=
+X-Received: by 2002:a05:6820:168a:b0:685:d2b6:6df7 with SMTP id
+ 006d021491bc7-68be5e52ec0mr11032545eaf.9.1776273028280; Wed, 15 Apr 2026
+ 10:10:28 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260413135343.2884481-1-lgs201920130244@gmail.com>
-In-Reply-To: <20260413135343.2884481-1-lgs201920130244@gmail.com>
+References: <20260413070132.3828606-1-arnd@kernel.org> <97c186b3-e9dc-464e-af0b-934aaa5a9538@huawei.com>
+In-Reply-To: <97c186b3-e9dc-464e-af0b-934aaa5a9538@huawei.com>
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Wed, 15 Apr 2026 19:09:24 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0i4j4T_O67_xRXNV75bwGrPTbUrpPjBA-jepz+MGoseQw@mail.gmail.com>
-X-Gm-Features: AQROBzC96gVUmjkZescl7wYhARDhHqJnwbrTvvAyPF5nojbA3e097dTNTeoA8wk
-Message-ID: <CAJZ5v0i4j4T_O67_xRXNV75bwGrPTbUrpPjBA-jepz+MGoseQw@mail.gmail.com>
-Subject: Re: [PATCH v3] ACPI: scan: Use acpi_dev_put() in object add error paths
-To: Guangshuo Li <lgs201920130244@gmail.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Lin Ming <ming.m.lin@intel.com>, 
-	Hugh Dickins <hugh.dickins@tiscali.co.uk>, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Date: Wed, 15 Apr 2026 19:10:15 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0igRxUcydSdbtK7AZ6YRJnmtqv-FCS0X-WffOMFpcFL3g@mail.gmail.com>
+X-Gm-Features: AQROBzA_OaMf77T0pp8JpABBU6AUWSRZJ5eJXXNH1e-VTpzQNR56xNj9HL_yfeA
+Message-ID: <CAJZ5v0igRxUcydSdbtK7AZ6YRJnmtqv-FCS0X-WffOMFpcFL3g@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: add acpi_get_cpu_uid() stub helper
+To: fengchengwen <fengchengwen@huawei.com>, Arnd Bergmann <arnd@kernel.org>
+Cc: Jonathan Cameron <jonathan.cameron@huawei.com>, Arnd Bergmann <arnd@arndb.de>, 
+	Catalin Marinas <catalin.marinas@arm.com>, Gavin Shan <gshan@redhat.com>, 
+	Shaopeng Tan <tan.shaopeng@jp.fujitsu.com>, James Morse <james.morse@arm.com>, 
+	Marc Zyngier <maz@kernel.org>, Kees Cook <kees@kernel.org>, Ben Horgan <ben.horgan@arm.com>, 
+	Dave Jiang <dave.jiang@intel.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, 
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Apr 13, 2026 at 3:54=E2=80=AFPM Guangshuo Li <lgs201920130244@gmail=
-.com> wrote:
+On Mon, Apr 13, 2026 at 1:42=E2=80=AFPM fengchengwen <fengchengwen@huawei.c=
+om> wrote:
 >
-> After acpi_init_device_object(), the lifetime of struct acpi_device is
-> managed by the driver core through reference counting.
+> Acked-by: Chengwen Feng <fengchengwen@huawei.com>
+> Thanks
 >
-> Both acpi_add_power_resource() and acpi_add_single_object() call
-> acpi_init_device_object() and then invoke acpi_device_add(). If that
-> fails, their error paths call the release callback directly instead of
-> dropping the device reference through acpi_dev_put().
+> On 4/13/2026 3:01 PM, Arnd Bergmann wrote:
+> > From: Arnd Bergmann <arnd@arndb.de>
+> >
+> > When ACPI is disabled, x86 Xen support fails to build:
+> >
+> > arch/x86/xen/enlighten_hvm.c: In function 'xen_cpu_up_prepare_hvm':
+> > arch/x86/xen/enlighten_hvm.c:165:13: error: implicit declaration of fun=
+ction 'acpi_get_cpu_uid' [-Wimplicit-function-declaration]
+> >   165 |         if (acpi_get_cpu_uid(cpu, &cpu_uid) =3D=3D 0)
+> >       |             ^~~~~~~~~~~~~~~~
+> >
+> > Add a trivial stub that can be used in place of the real function.
+> >
+> > Fixes: f652d0a4e13c ("ACPI: Centralize acpi_get_cpu_uid() declaration i=
+n include/linux/acpi.h")
+> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 >
-> This bypasses the normal device lifetime rules and frees the object
-> without releasing the reference acquired by device_initialize(), which
-> may lead to a refcount leak.
->
-> The issue was identified by a static analysis tool I developed and
-> confirmed by manual review.
->
-> Fix both error paths by using acpi_dev_put() and let the release
-> callback handle the final cleanup.
->
-> Fixes: 781d737c7466 ("ACPI: Drop power resources driver")
-> Fixes: 718fb0de8ff88 ("ACPI: fix NULL bug for HID/UID string")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Guangshuo Li <lgs201920130244@gmail.com>
-> ---
-> v3:
->   - Note that the issue was identified by my static analysis tool
->   - and confirmed by manual review
->
-> v2:
->   - Use acpi_dev_put() instead of put_device()
->   - Fix acpi_add_single_object() together with acpi_add_power_resource()
->   - Update the subject and commit message accordingly
->
->  drivers/acpi/power.c | 2 +-
->  drivers/acpi/scan.c  | 2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-> index 361a7721a6a8..542e182f94f1 100644
-> --- a/drivers/acpi/power.c
-> +++ b/drivers/acpi/power.c
-> @@ -991,7 +991,7 @@ struct acpi_device *acpi_add_power_resource(acpi_hand=
-le handle)
->         return device;
->
->   err:
-> -       acpi_release_power_resource(&device->dev);
-> +       acpi_dev_put(device);
->         return NULL;
->  }
->
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index 416d87f9bd10..5124ed02debc 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -1910,7 +1910,7 @@ static int acpi_add_single_object(struct acpi_devic=
-e **child,
->                 result =3D acpi_device_add(device);
->
->         if (result) {
-> -               acpi_device_release(&device->dev);
-> +               acpi_dev_put(device);
->                 return result;
->         }
->
+> ...
 
 Applied as 7.1-rc material, thanks!
-
-> --
-> 2.43.0
->
