@@ -1,35 +1,35 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C4EF31A062;
-	Wed, 15 Apr 2026 01:56:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E22331D375;
+	Wed, 15 Apr 2026 01:56:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776218217; cv=none; b=NzUB9FZyzYvp+IEqlJikKkuirJHdcrGGhORA2+7RA1MOdB/d+/N9lCJHBNYqGoKZ8dqBLoFHRkaO3Y92zeNY9Maa8dMLGezPLXc8AsWtV3fm/LHsq9dSq1jk+FGYky2RuvilZEY6Mpu0FIyvtLrpiSW/cSzL+BDGopavHWUgsGU=
+	t=1776218218; cv=none; b=pmriudOb30MXnehVsebb/l3K9GuiIxuZkfwGEgDhd8Bk9Rb0FKhyFoB7UrlJhno7YJpxtjX2z9InpBVoHCIzH2sCKnaaldIl3esU56DLevS0Q4bZDk3Ak50iq7w1kOjxjP5na8LQ6NFleq+VWEVYrd8vy7MDb107unXa2/Wd8LU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776218217; c=relaxed/simple;
-	bh=K1u9KtDv/RgUAXZ7DmVQ4g7/U7BEShgGe9dLp0XEClE=;
+	s=arc-20240116; t=1776218218; c=relaxed/simple;
+	bh=0N3/ljaEoSaUAHRrhb7+qug0MyFe8aVMQaHOTujWe+c=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=KF5OiPI9ORrZXaqdJEq0sYDB7qcyfUMsHDcbaBFwZz9/9ahUuUkdAdAHfuvx2bab3U4aIjY5wPc5LLXqsHJbEywvntXY7Xjy9Nh00l4afd6+feHiqpiYF6y9uFKJpvIuQTzQeGe20PUfcvpTU9OshuirFAqQxFvMwy4Vxqgz0yE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UNt385vl; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:To:Cc; b=M2YaMInZZxN9EdroZAPRN9a8KL5dqlHIOHMHb+J48KKO3wXbYrHxgBZ+c1qPy/x7996YuLCMUFZ9LAjjUDU+ze8bESaYgNC+I6r0RUikM8oj0fOd0D6jc/QwrgfblNvpLWVkwYBVgdgm2FZYjOLjzf4B8Yon0MfKZFagb5T2yEk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=COednS5x; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UNt385vl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C42D6C2BCC6;
-	Wed, 15 Apr 2026 01:56:56 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="COednS5x"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5FF4DC2BCB6;
+	Wed, 15 Apr 2026 01:56:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=k20201202; t=1776218217;
-	bh=K1u9KtDv/RgUAXZ7DmVQ4g7/U7BEShgGe9dLp0XEClE=;
+	bh=0N3/ljaEoSaUAHRrhb7+qug0MyFe8aVMQaHOTujWe+c=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-	b=UNt385vlbIZ2Dqkx6XB+BnqbrzGzSEYUN2m88yHdpyXxcCsGzIG6BTUdrLo6w+OIs
-	 udV42Svr7ZiZmh1W+x/iKMz3Wiea9g3n0LuJ1lKikalo6EJVsBi5RfX5+ncBjwgSM9
-	 tuSeGihQQEJ+WsScNlo3UMljvlsLiK0+g6bLE3wTvED+iHHglcoo6W0ntrsQxhJEzn
-	 HgL9I0AgeS97vKge4PRD+Vw2XnLORf6vvDJfL9hHAZDlJrQ9hYHS2Wb9tE3WTnpqZ7
-	 hlFQQr+nog3wVKtqrVBIC2MuiT1P8+aTUg4+W8CqFUFk+NlU5iuulmmnx4AZIm+I+n
-	 i3XETS8Isk6Lw==
+	b=COednS5xkmkPeIH5UZ9fhjGZh6IFHWQ870eksHvpTxUC82DvVrVKrvMvFcSlDciKc
+	 lKjjyNUULxL+ywqyR7ZG4i6mPUZA0DG09/pbn0LpEMcHgHPfhe++uDIBaYHpndbAV1
+	 0+Ar3lFDCCuDCMinwPXXU3RCi5Q+9OrPeL5E89boZ78CEmzCpEPmorN6WqDF9qys3F
+	 LT8RPrJ6k0mTUyCIEPKw+Rq19tvFXI406fCQX3orBB7YxsWvBXVFEoVfWfed0cMIWh
+	 5dSS/TbpSHiw+OXbx2RTnKPotdRZ/RdjBUGrtxkKh714C49JPyOc4Gdlhb7RXE2kNG
+	 mAk5+BXpNnxJA==
 From: Drew Fustini <fustini@kernel.org>
-Date: Tue, 14 Apr 2026 18:54:02 -0700
-Subject: [PATCH RFC v3 08/11] ACPI: PPTT: Add
- acpi_pptt_get_cache_size_from_id helper
+Date: Tue, 14 Apr 2026 18:54:03 -0700
+Subject: [PATCH RFC v3 09/11] DO NOT MERGE: include: acpi: actbl2: Add
+ structs for RQSC table
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -38,7 +38,7 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260414-ssqosid-cbqri-rqsc-v7-0-v3-8-b3b2e7e9847a@kernel.org>
+Message-Id: <20260414-ssqosid-cbqri-rqsc-v7-0-v3-9-b3b2e7e9847a@kernel.org>
 References: <20260414-ssqosid-cbqri-rqsc-v7-0-v3-0-b3b2e7e9847a@kernel.org>
 In-Reply-To: <20260414-ssqosid-cbqri-rqsc-v7-0-v3-0-b3b2e7e9847a@kernel.org>
 To: Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, 
@@ -70,131 +70,87 @@ Cc: linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org,
  x86@kernel.org, linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev, 
  devicetree@vger.kernel.org, Paul Walmsley <paul.walmsley@sifive.com>
 X-Mailer: b4 0.14.3
-X-Developer-Signature: v=1; a=openpgp-sha256; l=3731; i=fustini@kernel.org;
- h=from:subject:message-id; bh=K1u9KtDv/RgUAXZ7DmVQ4g7/U7BEShgGe9dLp0XEClE=;
- b=owGbwMvMwCV2+43O4ZsaG3kYT6slMWTe+5A04VtdUsJcsRSL83MPh3Ae9F6Z9HRbIM+xv+fk3
- kz5phVf1FHKwiDGxSArpsiy6UPehSVeoV8XzH+xDWYOKxPIEAYuTgGYyM7nDP9slAq03RcZRUmr
- R3hvlON7uNzq8PogW/PLL8TXzeTpv3uFkeH9Oocv167lySbV6z+6bPD0tFLSK157q3UX2qetFu8
- 5q8cLAA==
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2611; i=fustini@kernel.org;
+ h=from:subject:message-id; bh=0N3/ljaEoSaUAHRrhb7+qug0MyFe8aVMQaHOTujWe+c=;
+ b=owGbwMvMwCV2+43O4ZsaG3kYT6slMWTe+5AsfEfuo747Z9cOma99R+4qpVT97FPlOZ8tPXGSW
+ XS1bPCDjlIWBjEuBlkxRZZNH/IuLPEK/bpg/ottMHNYmUCGMHBxCsBE4n8xMuybaPnTJbxsb+cl
+ rYRpn7cL3t9+qMb203z9qt7l77/t7FVi+O/54Zqc6nT/faF/nP6Wrtnaav/ShddS1IV3bwXvMgu
+ VPQwA
 X-Developer-Key: i=fustini@kernel.org; a=openpgp;
  fpr=1B6F948213EA489734F3997035D5CD577C1E6010
 
-Add helper to look up a cache's size from its cache ID in the PPTT
-table. This is needed by the RISC-V RQSC parser to determine the cache
-size for CBQRI capacity controllers.
+Add structs for the RQSC table which describes the properties of the
+RISC-V QoS controllers (CBQRI) in the system. The table also describes
+the topological arrangement of the QoS controllers and resources in the
+system. The topology is expressed in terms of the location of the
+resources within the system and the relation between the QoS Controller
+and the resource it manages.
 
-The implementation follows the pattern established by
-find_acpi_cache_level_from_id() and acpi_pptt_get_cpumask_from_cache_id():
-uses acpi_get_pptt(), upgrade_pptt_cache(), checks all three cache types,
-and uses the do/while empty-detection loop.
+Note: This is a placeholder for RFC review purposes. The actbl2.h
+change must go through upstream ACPICA first and will be replaced by
+the auto-generated ACPICA commit once the RQSC spec is ratified.
 
+Link: https://github.com/riscv-non-isa/riscv-cbqri/releases/tag/v1.0
+Link: https://github.com/riscv-non-isa/riscv-rqsc/blob/main/src/chapter2.adoc
 Signed-off-by: Drew Fustini <fustini@kernel.org>
 ---
- drivers/acpi/pptt.c  | 63 ++++++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/acpi.h |  8 +++++++
- 2 files changed, 71 insertions(+)
+ include/acpi/actbl2.h | 36 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 36 insertions(+)
 
-diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
-index de5f8c018333..36e375551b43 100644
---- a/drivers/acpi/pptt.c
-+++ b/drivers/acpi/pptt.c
-@@ -1063,3 +1063,66 @@ int acpi_pptt_get_cpumask_from_cache_id(u32 cache_id, cpumask_t *cpus)
+diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
+index 5c0b55e7b3e4..d6f272e848fa 100644
+--- a/include/acpi/actbl2.h
++++ b/include/acpi/actbl2.h
+@@ -55,6 +55,7 @@
+ #define ACPI_SIG_RGRT           "RGRT"	/* Regulatory Graphics Resource Table */
+ #define ACPI_SIG_RHCT           "RHCT"	/* RISC-V Hart Capabilities Table */
+ #define ACPI_SIG_RIMT           "RIMT"	/* RISC-V IO Mapping Table */
++#define ACPI_SIG_RQSC           "RQSC"	/* RISC-V Quality of Service Controller */
+ #define ACPI_SIG_SBST           "SBST"	/* Smart Battery Specification Table */
+ #define ACPI_SIG_SDEI           "SDEI"	/* Software Delegated Exception Interface Table */
+ #define ACPI_SIG_SDEV           "SDEV"	/* Secure Devices table */
+@@ -3351,6 +3352,41 @@ enum acpi_rgrt_image_type {
+ 	ACPI_RGRT_TYPE_RESERVED = 2	/* 2 and greater are reserved */
+ };
  
- 	return 0;
- }
-+
-+/**
-+ * acpi_pptt_get_cache_size_from_id() - Get the size of the specified cache
-+ * @cache_id: The id field of the cache
-+ * @size: Where to store the cache size in bytes
++/*******************************************************************************
 + *
-+ * Determine the size of the cache identified by cache_id. This allows the
-+ * property to be found even if the CPUs are offline.
++ * RQSC - RISC-V Quality of Service Controller
++ *        Version 1
 + *
-+ * The PPTT table must be rev 3 or later.
-+ *
-+ * Return: -ENOENT if the PPTT doesn't exist, the revision isn't supported or
-+ * the cache cannot be found. Otherwise returns 0 and sets *size.
-+ */
-+int acpi_pptt_get_cache_size_from_id(u32 cache_id, u32 *size)
-+{
-+	int cpu;
-+	struct acpi_table_header *table;
++ ******************************************************************************/
 +
-+	table = acpi_get_pptt();
-+	if (!table)
-+		return -ENOENT;
++struct acpi_table_rqsc_fields_res {
++	u8 type;
++	u8 resv;
++	u16 length;
++	u16 flags;
++	u8 resv2;
++	u8 id_type;
++	u64 id1;
++	u32 id2;
++};
 +
-+	if (table->revision < 3)
-+		return -ENOENT;
++struct acpi_table_rqsc_fields {
++	u8 type;
++	u8 resv;
++	u16 length;
++	u32 reg[3];
++	u16 rcid;
++	u16 mcid;
++	u16 flags;
++	u16 nres;
++	struct acpi_table_rqsc_fields_res res[];
++};
 +
-+	for_each_possible_cpu(cpu) {
-+		bool empty;
-+		int level = 1;
-+		u32 acpi_cpu_id = get_acpi_id_for_cpu(cpu);
-+		struct acpi_pptt_processor *cpu_node;
++struct acpi_table_rqsc {
++	struct acpi_table_header header;	/* Common ACPI table header */
++	u32 num;
++};
 +
-+		cpu_node = acpi_find_processor_node(table, acpi_cpu_id);
-+		if (!cpu_node)
-+			continue;
-+
-+		do {
-+			int cache_type[] = {CACHE_TYPE_INST, CACHE_TYPE_DATA, CACHE_TYPE_UNIFIED};
-+
-+			empty = true;
-+			for (int i = 0; i < ARRAY_SIZE(cache_type); i++) {
-+				struct acpi_pptt_cache *cache;
-+				struct acpi_pptt_cache_v1_full *cache_v1;
-+
-+				cache = acpi_find_cache_node(table, acpi_cpu_id, cache_type[i],
-+							     level, &cpu_node);
-+				if (!cache)
-+					continue;
-+
-+				empty = false;
-+
-+				cache_v1 = upgrade_pptt_cache(cache);
-+				if (cache_v1 && cache_v1->cache_id == cache_id) {
-+					*size = cache->size;
-+					return 0;
-+				}
-+			}
-+			level++;
-+		} while (!empty);
-+	}
-+
-+	return -ENOENT;
-+}
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 4d2f0bed7a06..0596ec18f522 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -1547,6 +1547,7 @@ int find_acpi_cpu_topology_package(unsigned int cpu);
- int find_acpi_cpu_topology_hetero_id(unsigned int cpu);
- void acpi_pptt_get_cpus_from_container(u32 acpi_cpu_id, cpumask_t *cpus);
- int find_acpi_cache_level_from_id(u32 cache_id);
-+int acpi_pptt_get_cache_size_from_id(u32 cache_id, u32 *size);
- int acpi_pptt_get_cpumask_from_cache_id(u32 cache_id, cpumask_t *cpus);
- #else
- static inline int acpi_pptt_cpu_is_thread(unsigned int cpu)
-@@ -1571,10 +1572,17 @@ static inline int find_acpi_cpu_topology_hetero_id(unsigned int cpu)
- }
- static inline void acpi_pptt_get_cpus_from_container(u32 acpi_cpu_id,
- 						     cpumask_t *cpus) { }
-+
- static inline int find_acpi_cache_level_from_id(u32 cache_id)
- {
- 	return -ENOENT;
- }
-+
-+static inline int acpi_pptt_get_cache_size_from_id(u32 cache_id, u32 *size)
-+{
-+	return -ENOENT;
-+}
-+
- static inline int acpi_pptt_get_cpumask_from_cache_id(u32 cache_id,
- 						      cpumask_t *cpus)
- {
+ /*******************************************************************************
+  *
+  * RHCT - RISC-V Hart Capabilities Table
 
 -- 
 2.43.0
