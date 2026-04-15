@@ -1,188 +1,219 @@
-Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 788AE2DEA6B;
-	Wed, 15 Apr 2026 08:35:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.158.5
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 330A13115BC;
+	Wed, 15 Apr 2026 09:07:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.12
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776242117; cv=none; b=gzVC6Pkeiz3smGQptrWCalaVjx6HQJvaqr9To7JCAyQgAPDEh89Ilh7dsFRw/cio5ESaJLEt93BMKfubqO2lJbQ768hMTGMAuZ9Us9nOWKG51cuv9XV75/j+vVkcOXV0bFVKJeUkkM/yJ4azuGAE4EHg8GoDs1Jn/YtOh3e5tvo=
+	t=1776244037; cv=none; b=na45M0+Ra8Z8FVGViqmhk5a3xZKSo7UrLMu7qyobdesKXKDdzMxVbsbRsMsE2T2fJsR3mgOvmyu7ozo5B4x4Zei6nF8td4dgg36zUi4wwzsdVVm1S1kTvw1bk557R4ivgv4uZbvYPd3FAnO4jL4A8yQ0nvQSurIqz3mmyoHty7g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776242117; c=relaxed/simple;
-	bh=BGNkUMK+RyXSyyBoGxSWfMyTqZY5e8RPZ0Ee7o4McVs=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=rpbZD8acY5cZI5zGLG+/vZVbo/CcXjW8eRuly3rJR87abXf28VymYrMzOZFWAcKWncE5oIDJcBQn9JkeCTyYYVG17HjoE3RG8yMQ7Zh3nHz9UqPeelRx8RA03rFM1DMdD5T3yyUw/NmBC0VTsaiQn7TqKbx6yQ6rwcjPNxDeD5A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=L4T88hlU; arc=none smtp.client-ip=148.163.158.5
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
+	s=arc-20240116; t=1776244037; c=relaxed/simple;
+	bh=XHcFesqTcaOkSuOln4bQvIcKY4DyL9z2YyP7unLltzk=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=krwbDui9KKDeJOFN2UJNpe6fVGZ5LacrvPk+7frVj52cgHqY5kJdoYOfk1ivzw4y/mMyD0PgSDH/yEDMPU/cc5fFcz8ItKVHMFRr84YoR+dTGOtb7p34EQYoXW2hixUPdkzroUka8RN4KZG/u+ug9ePJoJau2mj1abMfVbT8rko=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=n4GZKgUQ; arc=none smtp.client-ip=198.175.65.12
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="L4T88hlU"
-Received: from pps.filterd (m0356516.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 63F6ZgSm1859930;
-	Wed, 15 Apr 2026 08:35:10 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
-	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=pp1; bh=2IjIcO
-	AHsaTv1L19m/3HXaImGx28qHJfjVKkY9vifRY=; b=L4T88hlUC7CAR9KvYAwDQH
-	YvZfUahr0jn73iLRjEJ4i1Npd8l/WehCAlh9+rXrUFkuQ5pXSRx9ZKsRZDf0Gv0p
-	HuodJl3CQuJlE3Dy9aaaozSxVVOl9wEYCanPIPeArSZhwsJhL84UclvuLhCK0e4G
-	hRrTk+RKm9ahiJb1JiqVa0seMLdARXIBvsQ6LIvKWMCeW24omcRA3S78YzspoANp
-	1eKAeGHVlZ50sYEnNiNxqrqw4nTKwOMkHi0AhCveaplBy2+K5+3S520MYvK7LYt8
-	grhYJhlTynT9O1G+tAM0hxE+TnAMghLMa0OkTL4rHE27fMG/gqIYrHPeEj2wiUzQ
-	==
-Received: from ppma12.dal12v.mail.ibm.com (dc.9e.1632.ip4.static.sl-reverse.com [50.22.158.220])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4dh89pep73-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 15 Apr 2026 08:35:10 +0000 (GMT)
-Received: from pps.filterd (ppma12.dal12v.mail.ibm.com [127.0.0.1])
-	by ppma12.dal12v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 63F7GtYv015158;
-	Wed, 15 Apr 2026 08:35:09 GMT
-Received: from smtprelay02.wdc07v.mail.ibm.com ([172.16.1.69])
-	by ppma12.dal12v.mail.ibm.com (PPS) with ESMTPS id 4dg0msnh03-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 15 Apr 2026 08:35:09 +0000
-Received: from smtpav04.dal12v.mail.ibm.com (smtpav04.dal12v.mail.ibm.com [10.241.53.103])
-	by smtprelay02.wdc07v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 63F8Z7tt18743870
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 15 Apr 2026 08:35:07 GMT
-Received: from smtpav04.dal12v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 98D2458064;
-	Wed, 15 Apr 2026 08:35:07 +0000 (GMT)
-Received: from smtpav04.dal12v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 033FC5805E;
-	Wed, 15 Apr 2026 08:35:05 +0000 (GMT)
-Received: from [9.123.12.79] (unknown [9.123.12.79])
-	by smtpav04.dal12v.mail.ibm.com (Postfix) with ESMTP;
-	Wed, 15 Apr 2026 08:35:04 +0000 (GMT)
-Message-ID: <755caa0d-c574-4c58-a274-ce8f6f04aa9c@linux.ibm.com>
-Date: Wed, 15 Apr 2026 14:05:03 +0530
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="n4GZKgUQ"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1776244036; x=1807780036;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:content-transfer-encoding:in-reply-to;
+  bh=XHcFesqTcaOkSuOln4bQvIcKY4DyL9z2YyP7unLltzk=;
+  b=n4GZKgUQqDMry7ukJAZ8CieW6miim0Ez8LYNOd0PJyViZDbqvY04EgjW
+   fk7opFqlHvihbIYouIYPNWEEQ5OknfFNSur54PNfS5tS3QVkh4gp3ZvIP
+   npdCa/oElsPXEOFskZrxR0pjNLBFgslor70ADJwq4i5dL6F0CXwwG9Ufg
+   nftBwHN/IV7CsWRycl95iT33rOcr+7nMtDHyymo+jjtXFXlMGZue0DAPa
+   gcF3A6X5HnAlqjp1fzCuxFUKR1pqPvl2I6NPXQLIA+EVOOPtR2Z8vMsUU
+   2kGy41FL7Bhg6oUmEZSh8snhRFBZRQ6pi5sR+z3sv9dYm4AHqyxk7ZP1q
+   g==;
+X-CSE-ConnectionGUID: xBnssV7sQJGFWH/O+01xTw==
+X-CSE-MsgGUID: 4v8MOZs4T0iqz/qDk9I0rw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11759"; a="88665396"
+X-IronPort-AV: E=Sophos;i="6.23,179,1770624000"; 
+   d="scan'208";a="88665396"
+Received: from orviesa002.jf.intel.com ([10.64.159.142])
+  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Apr 2026 02:07:15 -0700
+X-CSE-ConnectionGUID: dig/invKSJuZ7wLgGQHR4w==
+X-CSE-MsgGUID: XwsoHjG9TAOScEITg4Ykxw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,179,1770624000"; 
+   d="scan'208";a="260786988"
+Received: from rvuia-mobl.ger.corp.intel.com (HELO localhost) ([10.245.244.34])
+  by orviesa002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Apr 2026 02:07:09 -0700
+Date: Wed, 15 Apr 2026 12:07:06 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Chen-Yu Tsai <wenst@chromium.org>
+Cc: Manivannan Sadhasivam <mani@kernel.org>,
+	Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>,
+	Rob Herring <robh@kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jiri Slaby <jirislaby@kernel.org>,
+	Nathan Chancellor <nathan@kernel.org>,
+	Nicolas Schier <nicolas.schier@linux.dev>,
+	Hans de Goede <hansg@kernel.org>,
+	Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+	Mark Pearson <mpearson-lenovo@squebb.ca>,
+	"Derek J. Clark" <derekjohn.clark@gmail.com>,
+	Krzysztof Kozlowski <krzk+dt@kernel.org>,
+	Conor Dooley <conor+dt@kernel.org>,
+	Marcel Holtmann <marcel@holtmann.org>,
+	Luiz Augusto von Dentz <luiz.dentz@gmail.com>,
+	Bartosz Golaszewski <brgl@bgdev.pl>,
+	Bartosz Golaszewski <brgl@kernel.org>, linux-serial@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-kbuild@vger.kernel.org,
+	platform-driver-x86@vger.kernel.org, linux-pci@vger.kernel.org,
+	devicetree@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+	linux-bluetooth@vger.kernel.org, linux-pm@vger.kernel.org,
+	Stephan Gerhold <stephan.gerhold@linaro.org>,
+	Dmitry Baryshkov <dmitry.baryshkov@oss.qualcomm.com>,
+	linux-acpi@vger.kernel.org,
+	Hans de Goede <johannes.goede@oss.qualcomm.com>,
+	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
+	Luca Ceresoli <luca.ceresoli@bootlin.com>
+Subject: Re: [PATCH v7 0/8] Add support for handling PCIe M.2 Key E
+ connectors in devicetree
+Message-ID: <ad9VOqjTiLNM6keW@ashevche-desk.local>
+References: <20260326-pci-m2-e-v7-0-43324a7866e6@oss.qualcomm.com>
+ <20260413075459.GA2626902@google.com>
+ <fpcs4p62f35a5qyqwgm5ysa73stbysxcr62tkmmkrrcvsuf4t4@4ivukyqjey57>
+ <eeytuhqpgdz4do4tgtbmfntub2femtyq7bij7svhodpyjwaylx@j3gmvq2a2zqc>
+ <CAGXv+5E=tujhtZjwi6Qm7hk3Ks74UzTQHWq82NiTEw1+vYod5g@mail.gmail.com>
+ <ad36pIu-0dutL7Nk@ashevche-desk.local>
+ <CAGXv+5EGe59nJctLweEdZjb3MNmMvjuCHngGSfptzN985OiLdg@mail.gmail.com>
+ <ad4tJN27opdEooA7@ashevche-desk.local>
+ <CAGXv+5EPA29G-fsH=wWOD8AK6TZFezFhsE0NHPYj_Pt3nT+d_w@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: Build failure in linux-next: implicit declaration of
- acpi_has_method
-Content-Language: en-GB
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org,
-        lenb@kernel.org, Madhavan Srinivasan <maddy@linux.ibm.com>,
-        luiz.dentz@gmail.com, Ritesh Harjani <riteshh@linux.ibm.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>
-References: <ad624e0d-cfd7-4521-ae33-c5c3287b4204@linux.ibm.com>
- <CAJZ5v0g4R+X+JXf1JB=3b_gqAdbyOv0drF242MCKkuNx1n4oow@mail.gmail.com>
-From: Venkat Rao Bagalkote <venkat88@linux.ibm.com>
-In-Reply-To: <CAJZ5v0g4R+X+JXf1JB=3b_gqAdbyOv0drF242MCKkuNx1n4oow@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-Reinject: loops=2 maxloops=12
-X-Proofpoint-GUID: B0ZM7lO4gG56ctbOsRV23ozakcW1v8C3
-X-Proofpoint-ORIG-GUID: TAQc_sj3RL9Ylp3xgO7WfkCt1uWIeNWO
-X-Authority-Analysis: v=2.4 cv=WbE8rUhX c=1 sm=1 tr=0 ts=69df4dbe cx=c_pps
- a=bLidbwmWQ0KltjZqbj+ezA==:117 a=bLidbwmWQ0KltjZqbj+ezA==:17
- a=IkcTkHD0fZMA:10 a=A5OVakUREuEA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=RnoormkPH1_aCDwRdu11:22 a=Y2IxJ9c9Rs8Kov3niI8_:22 a=VnNF1IyMAAAA:8
- a=GhIUMZ6QRDI1o5qoBBoA:9 a=3ZKOabzyN94A:10 a=QEXdDO2ut3YA:10
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNDE1MDA3NSBTYWx0ZWRfX3pIB+umLq0mF
- JFzqKG90pi4q1wJFpvn1Zuz2jjLxIN+KTLksp27efHLg8tSW8nsh/hp5MKIUZc1peHExLuIwnwD
- Yt97BUmla+3suh+bUTAccssi1lHEyY98i72GpTuCQtMBAbgJxQ9mRnuAhs/Bm81BeX6WphIhOGn
- n9k0y7cM3wuhJrRqmSQHFuZ/Q7Am1Cclc2E+scwhnOHbzclqKS8n+37+J+zkEJKzzoLzp+Z+171
- KG1uWIL/rrZkANhLKWTmsFBBpraOAPbtCc4fPYf/8HdDepXiEQdpbGnECGL0aE0jbo3FFF+Z2uq
- gmfqqmzdpMddvdXor6R0ZrX+IAEFl6Job6Dh+Ku5yXJtGlI2i9rXAKQtNTpwHlUyu7TvqN8Zt+H
- Ce/xcOkoUi2RFNJmK10ctx1ucOiM2ev1/YhBxJlRcWckMymBtAQlDuFZK/WzOqaUtksbgrQW236
- EU7h+aMO1oLQo6i1ChA==
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.51,FMLib:17.12.100.49
- definitions=2026-04-14_04,2026-04-13_04,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- suspectscore=0 bulkscore=0 priorityscore=1501 spamscore=0 clxscore=1015
- phishscore=0 impostorscore=0 adultscore=0 malwarescore=0 lowpriorityscore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2604070000 definitions=main-2604150075
+In-Reply-To: <CAGXv+5EPA29G-fsH=wWOD8AK6TZFezFhsE0NHPYj_Pt3nT+d_w@mail.gmail.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
+
+On Wed, Apr 15, 2026 at 04:31:24PM +0800, Chen-Yu Tsai wrote:
+> On Tue, Apr 14, 2026 at 8:03 PM Andy Shevchenko
+> <andriy.shevchenko@linux.intel.com> wrote:
+> > On Tue, Apr 14, 2026 at 06:29:02PM +0800, Chen-Yu Tsai wrote:
+> > > On Tue, Apr 14, 2026 at 4:28 PM Andy Shevchenko
+> > > <andriy.shevchenko@linux.intel.com> wrote:
+> > > > On Tue, Apr 14, 2026 at 01:03:19PM +0800, Chen-Yu Tsai wrote:
+> > > > > On Tue, Apr 14, 2026 at 12:08 AM Manivannan Sadhasivam <mani@kernel.org> wrote:
+> > > > > > On Mon, Apr 13, 2026 at 07:33:12PM +0530, Manivannan Sadhasivam wrote:
+> > > > > > > On Mon, Apr 13, 2026 at 03:54:59PM +0800, Chen-Yu Tsai wrote:
+> > > > > > > > On Thu, Mar 26, 2026 at 01:36:28PM +0530, Manivannan Sadhasivam wrote:
+
+...
+
+> > > > > > > > - Given that this connector actually represents two devices, how do I
+> > > > > > > >   say I want the BT part to be a wakeup source, but not the WiFi part?
+> > > > > > > >   Does wakeup-source even work at this point?
+> > > > > > >
+> > > > > > > You can't use the DT property since the devices are not described in DT
+> > > > > > > statically. But you can still use the per-device 'wakeup' sysfs knob to enable
+> > > > > > > wakeup.
+> > > > >
+> > > > > I see. I think not being able to specify generic properties for the devices
+> > > > > on the connector is going to be a bit problematic.
+> > > >
+> > > > This is nature of the open-connectors, especially on the busses that are
+> > > > hotpluggable, like PCIe. We never know what is connected there _ahead_.
+> > >
+> > > I believe what you mean by "hotpluggable" is "user replaceable".
+> >
+> > From the OS perspective it's the same. From platform perspective
+> > there is a difference, granted.
+> 
+> Yes. I just wanted to clarify.
+> 
+> > > > In other words you can't describe in DT something that may not exist.
+> > >
+> > > But this is actually doable with the PCIe slot representation. The
+> > > properties are put in the device node for the slot. If no card is
+> > > actually inserted in the slot, then no device is created, and the
+> > > device node is left as not associated with anything.
+> >
+> > But you need to list all devices in the world if you want to support this
+> 
+> Why would I need to? The PCIe slot representation just describes a
+> PCIe bridge. Granted this might not be entirely correct, but it's
+> what we currently have.
+> 
+> And even then, there are properties like memory-region or wakeup-source
+> that are generic and aren't tied to specific devices.
+
+Yes,  see below what I replied...
+
+> > somehow. Yes, probably many of them (or majority) will be enumerated as is,
+
+^^^ "the majority" will work without any assistance.
+
+> > but some may need an assistance via (dynamic) properties or similar mechanisms.
+
+> Even if we wanted to add dynamic properties, there is currently no proper
+> device node to attach them to.
+
+Isn't that's node created dynamically as well and attached to the PCI bus?
+
+> > > It's just that for this new M.2 E-key connector, there aren't separate
+> > > nodes for each interface. And the system doesn't associate the device
+> > > node with the device, because it's no longer a child node of the
+> > > controller or hierarchy, but connected over the OF graph.
+> > >
+> > > Moving over to the E-key connector representation seems like one step
+> > > forward and one step backward in descriptive ability. We gain proper
+> > > power sequencing, but lose generic properties.
+> >
+> > The "key" is property of the connector. Hence if you have an idea what can be
+> > common for ALL "key":s, that's probably can be abstracted. Note, I'm not
+> > familiar with the connector framework in the Linux kernel, perhaps it's already
+> > that kind of abstraction.
+> 
+> I'm not arguing for a even more generic "M.2" connector. The "key" is
+> already described in the compatible. I'm saying we should have some way
+> of describing the individual interfaces (PCIe, SDIO, USB, UART, I2S, I2C)
+> on the connector so further nodes or properties can be attached to them,
+> either with overlays or dynamically within the kernel. Right now the
+> are only described as individual ports, but we can't actually tie a
+> device to a OF graph port.
+
+Shouldn't it be described as a DT subtree? Sorry, I am not familiar with DT
+enough to understand the issue you have.
+
+> But maybe I'm overthinking the representation part. AFAICT for Qualcomm's
+> UART-based BT bit part, Mani just had the driver create a device node
+> under the UART (by traversing the OF graph to find the UART). If that's
+> the desired way then the connector binding should mention it. And that
+> works for me. But I think it's messier and also we're missing an
+> opportunity to make the M.2 connector a standardized attachment point
+> for overlays.
+
+Okay, now it might get clearer to me, but still, I am not an expert.
+
+> Mani, could you also chime in a bit on what you envisioned?
+
++1, please elaborate to me as well.
+
+> (Added Luca from Bootlin to CC, as I think there are parallels to the
+>  "Hotplug of Non-discoverable Hardware" work)
+> 
+> > > The latter part is solvable, but we likely need child nodes under the
+> > > connector for the different interfaces. Properties that make sense for
+> > > one type might not make sense for another.
+> > >
+> > > P.S. We could also just add child device nodes under the controller to
+> > > put the generic properties, but that's splitting the description into
+> > > multiple parts. Let's not go there if at all possible.
+
+-- 
+With Best Regards,
+Andy Shevchenko
 
 
-On 15/04/26 12:50 pm, Rafael J. Wysocki wrote:
-> On Wed, Apr 15, 2026 at 9:16 AM Venkat Rao Bagalkote
-> <venkat88@linux.ibm.com> wrote:
->> Greetings!!!
->>
->> IBM CI has reported a build failure on linux-next repo.
->>
->> Failures:
->>
->> drivers/bluetooth/btintel_pcie.c: In function
->> ‘btintel_pcie_acpi_reset_method’:
->> drivers/bluetooth/btintel_pcie.c:2309:14: error: implicit declaration of
->> function ‘acpi_has_method’; did you mean ‘acpi_has_watchdog’?
->> [-Werror=implicit-function-declaration]
->>    2309 |         if (!acpi_has_method(handle, "_PRR")) {
->>         |              ^~~~~~~~~~~~~~~
->>         |              acpi_has_watchdog
->>
->>
->> The function acpi_has_method() lacks a stub definition in
->> include/linux/acpi.h
->> for the !CONFIG_ACPI case, unlike other ACPI utility functions.
-> Code that calls acpi_has_method() clearly depends on ACPI though, so
-> building it in the !CONFIG_ACPI case is questionable.
-
-
-Thank you so much for the review and explanation!!
-
-Adding the stub, would just hide the real issue. I guess, proper fix is 
-to add the ACPI dependency in Kconfig.
-
-
-
-# git diff
-diff --git a/drivers/bluetooth/Kconfig b/drivers/bluetooth/Kconfig
-index c5d45cf91f88..fc1b37044a9b 100644
---- a/drivers/bluetooth/Kconfig
-+++ b/drivers/bluetooth/Kconfig
-@@ -502,7 +502,7 @@ config BT_NXPUART
-
-  config BT_INTEL_PCIE
-         tristate "Intel HCI PCIe driver"
--       depends on PCI
-+       depends on PCI && ACPI
-         select BT_INTEL
-         select FW_LOADER
-         help
-
-
-Can you please confirm, if this the right approach before I submit a 
-formal patch.
-
-Thank you again for your patience and guidance.
-
-
-Regards,
-
-Venkat.
-
->> Below diff fixes the build failure.
->>
->>
->> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
->> index bfacb9475aac..d3804f7f2610 100644
->> --- a/include/linux/acpi.h
->> +++ b/include/linux/acpi.h
->> @@ -1100,6 +1100,11 @@ static inline const char
->> *acpi_get_subsystem_id(acpi_handle handle)
->>           return ERR_PTR(-ENODEV);
->>    }
->>
->> +static inline bool acpi_has_method(acpi_handle handle, char *name)
->> +{
->> +        return false;
->> +}
->> +
-> This doesn't belong in include/linux/acpi.h.
->
-> It might go into include/acpi/acpi_bus.h, but see above.
->
->>    static inline int acpi_register_wakeup_handler(int wake_irq,
->>           bool (*wakeup)(void *context), void *context)
->>    {
