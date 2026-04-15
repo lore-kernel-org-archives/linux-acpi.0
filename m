@@ -1,219 +1,138 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 330A13115BC;
-	Wed, 15 Apr 2026 09:07:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.12
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D9B5349AF6;
+	Wed, 15 Apr 2026 10:45:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776244037; cv=none; b=na45M0+Ra8Z8FVGViqmhk5a3xZKSo7UrLMu7qyobdesKXKDdzMxVbsbRsMsE2T2fJsR3mgOvmyu7ozo5B4x4Zei6nF8td4dgg36zUi4wwzsdVVm1S1kTvw1bk557R4ivgv4uZbvYPd3FAnO4jL4A8yQ0nvQSurIqz3mmyoHty7g=
+	t=1776249905; cv=none; b=k5FE1oVoirBkRCQo69qOoYAkWuk8/fWwPX2YEEBDl6ZEgplymRXF8NqvPBQOzWpGNG9CL76KK+QMRdu4WVokHTjjROrwwE+0gv7xaNIjRe6oWdrljQHvzUjZ0n30yLuVnJZy5UXf05fMek6MWYPth5m7FUgJIS9Wn8nwCCj+wPw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776244037; c=relaxed/simple;
-	bh=XHcFesqTcaOkSuOln4bQvIcKY4DyL9z2YyP7unLltzk=;
+	s=arc-20240116; t=1776249905; c=relaxed/simple;
+	bh=hqnG4hX/P4XDjZ09ai6m0Bt1CykyK6IVFaXnGLoQAHE=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=krwbDui9KKDeJOFN2UJNpe6fVGZ5LacrvPk+7frVj52cgHqY5kJdoYOfk1ivzw4y/mMyD0PgSDH/yEDMPU/cc5fFcz8ItKVHMFRr84YoR+dTGOtb7p34EQYoXW2hixUPdkzroUka8RN4KZG/u+ug9ePJoJau2mj1abMfVbT8rko=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=n4GZKgUQ; arc=none smtp.client-ip=198.175.65.12
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=QKPC1O8pcrQkYNUiI8rp7QI0W+xxLv23nD5ITm4/sIzqnEiXghs950iO0KRm4zl1TSSVC4MdC1yDhe5ox23qyEib4N1sVEUJW/2+h7RIIVe1egbiLlihIJqKB5s5XcdlkEELagvUf1VQoyFKPZIdU2gjA8M1zWRDO36eGtUsDHI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Si7HF6Ei; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="n4GZKgUQ"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1776244036; x=1807780036;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:content-transfer-encoding:in-reply-to;
-  bh=XHcFesqTcaOkSuOln4bQvIcKY4DyL9z2YyP7unLltzk=;
-  b=n4GZKgUQqDMry7ukJAZ8CieW6miim0Ez8LYNOd0PJyViZDbqvY04EgjW
-   fk7opFqlHvihbIYouIYPNWEEQ5OknfFNSur54PNfS5tS3QVkh4gp3ZvIP
-   npdCa/oElsPXEOFskZrxR0pjNLBFgslor70ADJwq4i5dL6F0CXwwG9Ufg
-   nftBwHN/IV7CsWRycl95iT33rOcr+7nMtDHyymo+jjtXFXlMGZue0DAPa
-   gcF3A6X5HnAlqjp1fzCuxFUKR1pqPvl2I6NPXQLIA+EVOOPtR2Z8vMsUU
-   2kGy41FL7Bhg6oUmEZSh8snhRFBZRQ6pi5sR+z3sv9dYm4AHqyxk7ZP1q
-   g==;
-X-CSE-ConnectionGUID: xBnssV7sQJGFWH/O+01xTw==
-X-CSE-MsgGUID: 4v8MOZs4T0iqz/qDk9I0rw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11759"; a="88665396"
-X-IronPort-AV: E=Sophos;i="6.23,179,1770624000"; 
-   d="scan'208";a="88665396"
-Received: from orviesa002.jf.intel.com ([10.64.159.142])
-  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Apr 2026 02:07:15 -0700
-X-CSE-ConnectionGUID: dig/invKSJuZ7wLgGQHR4w==
-X-CSE-MsgGUID: XwsoHjG9TAOScEITg4Ykxw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.23,179,1770624000"; 
-   d="scan'208";a="260786988"
-Received: from rvuia-mobl.ger.corp.intel.com (HELO localhost) ([10.245.244.34])
-  by orviesa002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Apr 2026 02:07:09 -0700
-Date: Wed, 15 Apr 2026 12:07:06 +0300
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Chen-Yu Tsai <wenst@chromium.org>
-Cc: Manivannan Sadhasivam <mani@kernel.org>,
-	Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>,
-	Rob Herring <robh@kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jiri Slaby <jirislaby@kernel.org>,
-	Nathan Chancellor <nathan@kernel.org>,
-	Nicolas Schier <nicolas.schier@linux.dev>,
-	Hans de Goede <hansg@kernel.org>,
-	Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
-	Mark Pearson <mpearson-lenovo@squebb.ca>,
-	"Derek J. Clark" <derekjohn.clark@gmail.com>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	Marcel Holtmann <marcel@holtmann.org>,
-	Luiz Augusto von Dentz <luiz.dentz@gmail.com>,
-	Bartosz Golaszewski <brgl@bgdev.pl>,
-	Bartosz Golaszewski <brgl@kernel.org>, linux-serial@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-kbuild@vger.kernel.org,
-	platform-driver-x86@vger.kernel.org, linux-pci@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-arm-msm@vger.kernel.org,
-	linux-bluetooth@vger.kernel.org, linux-pm@vger.kernel.org,
-	Stephan Gerhold <stephan.gerhold@linaro.org>,
-	Dmitry Baryshkov <dmitry.baryshkov@oss.qualcomm.com>,
-	linux-acpi@vger.kernel.org,
-	Hans de Goede <johannes.goede@oss.qualcomm.com>,
-	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
-	Luca Ceresoli <luca.ceresoli@bootlin.com>
-Subject: Re: [PATCH v7 0/8] Add support for handling PCIe M.2 Key E
- connectors in devicetree
-Message-ID: <ad9VOqjTiLNM6keW@ashevche-desk.local>
-References: <20260326-pci-m2-e-v7-0-43324a7866e6@oss.qualcomm.com>
- <20260413075459.GA2626902@google.com>
- <fpcs4p62f35a5qyqwgm5ysa73stbysxcr62tkmmkrrcvsuf4t4@4ivukyqjey57>
- <eeytuhqpgdz4do4tgtbmfntub2femtyq7bij7svhodpyjwaylx@j3gmvq2a2zqc>
- <CAGXv+5E=tujhtZjwi6Qm7hk3Ks74UzTQHWq82NiTEw1+vYod5g@mail.gmail.com>
- <ad36pIu-0dutL7Nk@ashevche-desk.local>
- <CAGXv+5EGe59nJctLweEdZjb3MNmMvjuCHngGSfptzN985OiLdg@mail.gmail.com>
- <ad4tJN27opdEooA7@ashevche-desk.local>
- <CAGXv+5EPA29G-fsH=wWOD8AK6TZFezFhsE0NHPYj_Pt3nT+d_w@mail.gmail.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Si7HF6Ei"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75204C19424;
+	Wed, 15 Apr 2026 10:45:02 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1776249905;
+	bh=hqnG4hX/P4XDjZ09ai6m0Bt1CykyK6IVFaXnGLoQAHE=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=Si7HF6EiHZeqSbXx+pG2SFAPkv0tzI0zpjPtkXkTmkuQRs0Ag7124vDq0zOd91yI4
+	 biniQGqHajZdlqN79sbcuEZa+OYMBIIvnQFwHw7O0xZoWRbqNDx2ZOj34AdRP/aGCb
+	 /42Zws8hrS3Qn+dQGOCHRVUutbgXcW6HFCr+mzXPxiYsb6Fp0pe1sVrq2Wi9kswmX7
+	 ZjXU5topfauCq9CIpW5iB4nViLRk5mvbOJRQm0fkR19NKINblyvdQNuab3NeEqOi2C
+	 gCjxpEAdLGlG5FEEPizEjkllt3LrdNdtd8X25Sq9VpHwb8LuLfIfkG3zeiHnIkLtZY
+	 hsgB5yxGG16Rw==
+Date: Wed, 15 Apr 2026 11:45:00 +0100
+From: Sudeep Holla <sudeep.holla@kernel.org>
+To: Breno Leitao <leitao@debian.org>
+Cc: "lihuisong (C)" <lihuisong@huawei.com>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Sudeep Holla <sudeep.holla@kernel.org>, Len Brown <lenb@kernel.org>,
+	lpieralisi@kernel.org, catalin.marinas@arm.com, will@kernel.org,
+	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+	pjaroszynski@nvidia.com, guohanjun@huawei.com,
+	linux-arm-kernel@lists.infradead.org, rmikey@meta.com,
+	kernel-team@meta.com
+Subject: Re: [PATCH RFC] ACPI: processor: idle: Do not propagate
+ acpi_processor_ffh_lpi_probe() -ENODEV
+Message-ID: <20260415-ostrich-of-immortal-order-5697cd@sudeepholla>
+References: <20260413-ffh-v1-1-301704f69e2f@debian.org>
+ <af9c679d-899c-4832-b902-e621b5987f12@huawei.com>
+ <ad4UWJ__dnDQtrj8@gmail.com>
+ <6694ca7c-13bf-4e7d-9621-bc992cbf96a7@huawei.com>
+ <20260414-cute-shapeless-dolphin-c5b2fc@sudeepholla>
+ <ad48gItCwrC-ar34@gmail.com>
+ <20260414-excellent-hidden-dodo-5bb98e@sudeepholla>
+ <ad5qxncafOiTeLNg@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAGXv+5EPA29G-fsH=wWOD8AK6TZFezFhsE0NHPYj_Pt3nT+d_w@mail.gmail.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+In-Reply-To: <ad5qxncafOiTeLNg@gmail.com>
 
-On Wed, Apr 15, 2026 at 04:31:24PM +0800, Chen-Yu Tsai wrote:
-> On Tue, Apr 14, 2026 at 8:03 PM Andy Shevchenko
-> <andriy.shevchenko@linux.intel.com> wrote:
-> > On Tue, Apr 14, 2026 at 06:29:02PM +0800, Chen-Yu Tsai wrote:
-> > > On Tue, Apr 14, 2026 at 4:28 PM Andy Shevchenko
-> > > <andriy.shevchenko@linux.intel.com> wrote:
-> > > > On Tue, Apr 14, 2026 at 01:03:19PM +0800, Chen-Yu Tsai wrote:
-> > > > > On Tue, Apr 14, 2026 at 12:08 AM Manivannan Sadhasivam <mani@kernel.org> wrote:
-> > > > > > On Mon, Apr 13, 2026 at 07:33:12PM +0530, Manivannan Sadhasivam wrote:
-> > > > > > > On Mon, Apr 13, 2026 at 03:54:59PM +0800, Chen-Yu Tsai wrote:
-> > > > > > > > On Thu, Mar 26, 2026 at 01:36:28PM +0530, Manivannan Sadhasivam wrote:
-
-...
-
-> > > > > > > > - Given that this connector actually represents two devices, how do I
-> > > > > > > >   say I want the BT part to be a wakeup source, but not the WiFi part?
-> > > > > > > >   Does wakeup-source even work at this point?
-> > > > > > >
-> > > > > > > You can't use the DT property since the devices are not described in DT
-> > > > > > > statically. But you can still use the per-device 'wakeup' sysfs knob to enable
-> > > > > > > wakeup.
-> > > > >
-> > > > > I see. I think not being able to specify generic properties for the devices
-> > > > > on the connector is going to be a bit problematic.
-> > > >
-> > > > This is nature of the open-connectors, especially on the busses that are
-> > > > hotpluggable, like PCIe. We never know what is connected there _ahead_.
+On Tue, Apr 14, 2026 at 09:31:33AM -0700, Breno Leitao wrote:
+> Hello Sudeep,
+> 
+> On Tue, Apr 14, 2026 at 03:10:03PM +0100, Sudeep Holla wrote:
+> > On Tue, Apr 14, 2026 at 06:14:19AM -0700, Breno Leitao wrote:
+> > > Hello Sudeep,
 > > >
-> > > I believe what you mean by "hotpluggable" is "user replaceable".
+> > > On Tue, Apr 14, 2026 at 01:25:53PM +0100, Sudeep Holla wrote:
+> > > > So while I understand that the kernel did not report an error previously, that
+> > > > does not mean the _LPI table is merely moot on this platform when it contains
+> > > > only a WFI state.
+> > >
+> > > Can you clarify whether datacenter ARM systems are expected to expose
+> > > deeper idle states beyond WFI in their _LPI tables?
+> > >
 > >
-> > From the OS perspective it's the same. From platform perspective
-> > there is a difference, granted.
-> 
-> Yes. I just wanted to clarify.
-> 
-> > > > In other words you can't describe in DT something that may not exist.
-> > >
-> > > But this is actually doable with the PCIe slot representation. The
-> > > properties are put in the device node for the slot. If no card is
-> > > actually inserted in the slot, then no device is created, and the
-> > > device node is left as not associated with anything.
+> > Of course any system that prefers to save power when its idling must have
+> > these _LPI deeper idle states.
 > >
-> > But you need to list all devices in the world if you want to support this
-> 
-> Why would I need to? The PCIe slot representation just describes a
-> PCIe bridge. Granted this might not be entirely correct, but it's
-> what we currently have.
-> 
-> And even then, there are properties like memory-region or wakeup-source
-> that are generic and aren't tied to specific devices.
-
-Yes,  see below what I replied...
-
-> > somehow. Yes, probably many of them (or majority) will be enumerated as is,
-
-^^^ "the majority" will work without any assistance.
-
-> > but some may need an assistance via (dynamic) properties or similar mechanisms.
-
-> Even if we wanted to add dynamic properties, there is currently no proper
-> device node to attach them to.
-
-Isn't that's node created dynamically as well and attached to the PCI bus?
-
-> > > It's just that for this new M.2 E-key connector, there aren't separate
-> > > nodes for each interface. And the system doesn't associate the device
-> > > node with the device, because it's no longer a child node of the
-> > > controller or hierarchy, but connected over the OF graph.
-> > >
-> > > Moving over to the E-key connector representation seems like one step
-> > > forward and one step backward in descriptive ability. We gain proper
-> > > power sequencing, but lose generic properties.
+> > > Backing up, I'm observing 72 pr_err() messages during boot on these
+> > > hosts and trying to determine whether this indicates a firmware issue or
+> > > if the kernel needs adjustment.
 > >
-> > The "key" is property of the connector. Hence if you have an idea what can be
-> > common for ALL "key":s, that's probably can be abstracted. Note, I'm not
-> > familiar with the connector framework in the Linux kernel, perhaps it's already
-> > that kind of abstraction.
+> > I consider this a firmware issue, but not a fatal one. What matters more is
+> > the behavior after those errors are reported.
 > 
-> I'm not arguing for a even more generic "M.2" connector. The "key" is
-> already described in the compatible. I'm saying we should have some way
-> of describing the individual interfaces (PCIe, SDIO, USB, UART, I2S, I2C)
-> on the connector so further nodes or properties can be attached to them,
-> either with overlays or dynamically within the kernel. Right now the
-> are only described as individual ports, but we can't actually tie a
-> device to a OF graph port.
-
-Shouldn't it be described as a DT subtree? Sorry, I am not familiar with DT
-enough to understand the issue you have.
-
-> But maybe I'm overthinking the representation part. AFAICT for Qualcomm's
-> UART-based BT bit part, Mani just had the driver create a device node
-> under the UART (by traversing the OF graph to find the UART). If that's
-> the desired way then the connector binding should mention it. And that
-> works for me. But I think it's messier and also we're missing an
-> opportunity to make the M.2 connector a standardized attachment point
-> for overlays.
-
-Okay, now it might get clearer to me, but still, I am not an expert.
-
-> Mani, could you also chime in a bit on what you envisioned?
-
-+1, please elaborate to me as well.
-
-> (Added Luca from Bootlin to CC, as I think there are parallels to the
->  "Hotplug of Non-discoverable Hardware" work)
+> I understand. While I'm not a hardware or firmware vendor myself, I can
+> see how they might consider power management features _optional_ for certain
+> server configurations.
 > 
-> > > The latter part is solvable, but we likely need child nodes under the
-> > > connector for the different interfaces. Properties that make sense for
-> > > one type might not make sense for another.
-> > >
-> > > P.S. We could also just add child device nodes under the controller to
-> > > put the generic properties, but that's splitting the description into
-> > > multiple parts. Let's not go there if at all possible.
+> > If you force success, either through your change or through the PSCI approach
+> > suggested by lihuisong, then in practice you are only enabling a cpuidle
+> > driver with a single usable state: WFI. That is not inherently wrong, but it
+> > also does not provide much benefit.
+> 
+> Given that this isn't a critical error, would it make sense to downgrade
+> the pr_err() to pr_debug()? is it a reasonable compromise. I just want
+> to avoid these pr_err() all accross the board, affecting kernel health
+> metrics in large fleets.
+> 
+> My proposal:
+> 
+> commit c98007f9e10fe229672d29c3844c96705cecaed5
+> Author: Breno Leitao <leitao@debian.org>
+> Date:   Tue Apr 14 05:28:28 2026 -0700
+> 
+>     ACPI: processor: idle: Downgrade FFH LPI probe failure message to pr_debug()
+>     
+>     The "Invalid FFH LPI data" message is printed at pr_err() level for every
+>     CPU when acpi_processor_ffh_lpi_probe() fails. On platforms where the FFH
+>     probe legitimately returns an error (e.g., no deep idle states beyond
+>     WFI), this floods the kernel log with per-CPU error messages that are not
+>     actionable.
+>     
+>     Downgrade to pr_debug() since this is a diagnostic message, not a
+>     critical error.
+>     
+>     Signed-off-by: Breno Leitao <leitao@debian.org>
+> 
+> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+> index ee5facccbe10c..ab93a2c10a9ad 100644
+> --- a/drivers/acpi/processor_idle.c
+> +++ b/drivers/acpi/processor_idle.c
+> @@ -1259,7 +1259,7 @@ static int acpi_processor_get_power_info(struct acpi_processor *pr)
+>  	if (pr->flags.has_lpi) {
+>  		ret = acpi_processor_ffh_lpi_probe(pr->id);
+>  		if (ret)
+> -			pr_err("CPU%u: Invalid FFH LPI data\n", pr->id);
+> +			pr_debug("CPU%u: Invalid FFH LPI data\n", pr->id);
+
+I am afraid if this might mask the real _LPI table entry errors.
+Need to think, I am still of the opinion that we need warn on that system
+as _LPI with just WFI is simply useless.
 
 -- 
-With Best Regards,
-Andy Shevchenko
-
-
+Regards,
+Sudeep
