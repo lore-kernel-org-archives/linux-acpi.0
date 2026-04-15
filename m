@@ -1,138 +1,181 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D9B5349AF6;
-	Wed, 15 Apr 2026 10:45:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F19B63CF045
+	for <linux-acpi@vger.kernel.org>; Wed, 15 Apr 2026 14:03:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776249905; cv=none; b=k5FE1oVoirBkRCQo69qOoYAkWuk8/fWwPX2YEEBDl6ZEgplymRXF8NqvPBQOzWpGNG9CL76KK+QMRdu4WVokHTjjROrwwE+0gv7xaNIjRe6oWdrljQHvzUjZ0n30yLuVnJZy5UXf05fMek6MWYPth5m7FUgJIS9Wn8nwCCj+wPw=
+	t=1776261810; cv=none; b=CwOEW0Oh/uvM/5lu8YZJNsWzs0/NHZKKms67KPJXMEkJwZJtSNGhuRBDuVh4ap0SO4cibMJznEn9zG0b3lzWaA543h5d2QHF9iR1WC87Q25AgyuHAeLG/5JEt3dsnDI0aLENvm/VmypKAbo3qemyivgDAqcuMh4cycICTqwQAbw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776249905; c=relaxed/simple;
-	bh=hqnG4hX/P4XDjZ09ai6m0Bt1CykyK6IVFaXnGLoQAHE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=QKPC1O8pcrQkYNUiI8rp7QI0W+xxLv23nD5ITm4/sIzqnEiXghs950iO0KRm4zl1TSSVC4MdC1yDhe5ox23qyEib4N1sVEUJW/2+h7RIIVe1egbiLlihIJqKB5s5XcdlkEELagvUf1VQoyFKPZIdU2gjA8M1zWRDO36eGtUsDHI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Si7HF6Ei; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776261810; c=relaxed/simple;
+	bh=5pS4SfD0lWDbRwrU5/HiL/ioGrDgnmIiFIPZChr5qes=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=iVAdzcfXvB/hk5VSlBPl9RqZa+G9wuOJBQSIphlU9/vor0l8Ta751Gmb+eXI4i+fbIoLOkjeTnKJ9i9EtXzbGoAPgru6GZqT3BwGhjLn00u5YuIQ1oeONv71vt4Awu68u1IKySdq7xPYfxQzL8znaqJZgilVkwO4tL6AaGP6L1U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=G8a67CT9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Si7HF6Ei"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75204C19424;
-	Wed, 15 Apr 2026 10:45:02 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="G8a67CT9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4A78C2BCB9
+	for <linux-acpi@vger.kernel.org>; Wed, 15 Apr 2026 14:03:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1776249905;
-	bh=hqnG4hX/P4XDjZ09ai6m0Bt1CykyK6IVFaXnGLoQAHE=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=Si7HF6EiHZeqSbXx+pG2SFAPkv0tzI0zpjPtkXkTmkuQRs0Ag7124vDq0zOd91yI4
-	 biniQGqHajZdlqN79sbcuEZa+OYMBIIvnQFwHw7O0xZoWRbqNDx2ZOj34AdRP/aGCb
-	 /42Zws8hrS3Qn+dQGOCHRVUutbgXcW6HFCr+mzXPxiYsb6Fp0pe1sVrq2Wi9kswmX7
-	 ZjXU5topfauCq9CIpW5iB4nViLRk5mvbOJRQm0fkR19NKINblyvdQNuab3NeEqOi2C
-	 gCjxpEAdLGlG5FEEPizEjkllt3LrdNdtd8X25Sq9VpHwb8LuLfIfkG3zeiHnIkLtZY
-	 hsgB5yxGG16Rw==
-Date: Wed, 15 Apr 2026 11:45:00 +0100
-From: Sudeep Holla <sudeep.holla@kernel.org>
-To: Breno Leitao <leitao@debian.org>
-Cc: "lihuisong (C)" <lihuisong@huawei.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Sudeep Holla <sudeep.holla@kernel.org>, Len Brown <lenb@kernel.org>,
-	lpieralisi@kernel.org, catalin.marinas@arm.com, will@kernel.org,
-	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-	pjaroszynski@nvidia.com, guohanjun@huawei.com,
-	linux-arm-kernel@lists.infradead.org, rmikey@meta.com,
-	kernel-team@meta.com
-Subject: Re: [PATCH RFC] ACPI: processor: idle: Do not propagate
- acpi_processor_ffh_lpi_probe() -ENODEV
-Message-ID: <20260415-ostrich-of-immortal-order-5697cd@sudeepholla>
-References: <20260413-ffh-v1-1-301704f69e2f@debian.org>
- <af9c679d-899c-4832-b902-e621b5987f12@huawei.com>
- <ad4UWJ__dnDQtrj8@gmail.com>
- <6694ca7c-13bf-4e7d-9621-bc992cbf96a7@huawei.com>
- <20260414-cute-shapeless-dolphin-c5b2fc@sudeepholla>
- <ad48gItCwrC-ar34@gmail.com>
- <20260414-excellent-hidden-dodo-5bb98e@sudeepholla>
- <ad5qxncafOiTeLNg@gmail.com>
+	s=k20201202; t=1776261809;
+	bh=5pS4SfD0lWDbRwrU5/HiL/ioGrDgnmIiFIPZChr5qes=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=G8a67CT9i9eC93CYW+yJKIVxfGColVv7omAwr4rBgTVUWXesxWhu+KWVrn+dRk4Hm
+	 /D4+5p1BXqRCV0CUL469IcePDSK4wl3qSHui2mPMa6VkC8OmLxtuBEF0/HFWhOPyVo
+	 YWxvQDpwYZe5t4kp8N3Vjt5PsqGGDiHavUcc+JiyRzzawH1Gfvx29FQ3E2QguA4QWT
+	 9GCW3mrsTqJCQNzqb/NoyAErhdTsYe3SezAApwLys3uH+u02BZzNly77ni1fuzEJm6
+	 s0A+CdRrQ59jMIf125pJNmpcAig6He+V/y00T47JjTj8mMH1KqtKKWP69caY5R6lSg
+	 mfi0E7oRw2onw==
+Received: by mail-oo1-f53.google.com with SMTP id 006d021491bc7-662f30d3f1fso3870747eaf.1
+        for <linux-acpi@vger.kernel.org>; Wed, 15 Apr 2026 07:03:29 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ/DaGm3VE60yOFH118OxaCG4rTxXjbE0JKqDJy5DGDS1vmM9+EDgVaBAKmHf0YX+c8gm68S1rLM+pC7@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw2vvAup/9yBbcv6QkOEL9dhVbkI9/fGPM9zJ+KsMgzs9+cY0Mz
+	+lpvoJEHoA5sPJIT24s1s5Y1WAcqGkxDK2jhCwceuJO+hk1fVqJ/5NRARS41f87+1GEqu3zr3f/
+	xznLPb6hzJCk7RwaLKNVcmbmtxa7L34w=
+X-Received: by 2002:a05:6820:218:b0:687:bbfa:2158 with SMTP id
+ 006d021491bc7-68bf6aebec2mr9587988eaf.13.1776261806782; Wed, 15 Apr 2026
+ 07:03:26 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ad5qxncafOiTeLNg@gmail.com>
+References: <20260413-ffh-v1-1-301704f69e2f@debian.org> <af9c679d-899c-4832-b902-e621b5987f12@huawei.com>
+ <ad4UWJ__dnDQtrj8@gmail.com> <6694ca7c-13bf-4e7d-9621-bc992cbf96a7@huawei.com>
+ <20260414-cute-shapeless-dolphin-c5b2fc@sudeepholla> <33c15199-25ea-4d39-bff9-91af0b49633e@huawei.com>
+In-Reply-To: <33c15199-25ea-4d39-bff9-91af0b49633e@huawei.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Wed, 15 Apr 2026 16:03:15 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0hftnagiLTPCEjqviyug5g5NQCztX1o0w5NOY8d=5cz+g@mail.gmail.com>
+X-Gm-Features: AQROBzARfwQzbblVS4HwmI4PAiTiOq-oHuuggUND-Sc3bt1HPaVjtyZCd_Xm8_o
+Message-ID: <CAJZ5v0hftnagiLTPCEjqviyug5g5NQCztX1o0w5NOY8d=5cz+g@mail.gmail.com>
+Subject: Re: [PATCH RFC] ACPI: processor: idle: Do not propagate
+ acpi_processor_ffh_lpi_probe() -ENODEV
+To: "lihuisong (C)" <lihuisong@huawei.com>
+Cc: Sudeep Holla <sudeep.holla@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Breno Leitao <leitao@debian.org>, Len Brown <lenb@kernel.org>, lpieralisi@kernel.org, 
+	catalin.marinas@arm.com, will@kernel.org, 
+	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, pjaroszynski@nvidia.com, guohanjun@huawei.com, 
+	linux-arm-kernel@lists.infradead.org, rmikey@meta.com, kernel-team@meta.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, Apr 14, 2026 at 09:31:33AM -0700, Breno Leitao wrote:
-> Hello Sudeep,
-> 
-> On Tue, Apr 14, 2026 at 03:10:03PM +0100, Sudeep Holla wrote:
-> > On Tue, Apr 14, 2026 at 06:14:19AM -0700, Breno Leitao wrote:
-> > > Hello Sudeep,
-> > >
-> > > On Tue, Apr 14, 2026 at 01:25:53PM +0100, Sudeep Holla wrote:
-> > > > So while I understand that the kernel did not report an error previously, that
-> > > > does not mean the _LPI table is merely moot on this platform when it contains
-> > > > only a WFI state.
-> > >
-> > > Can you clarify whether datacenter ARM systems are expected to expose
-> > > deeper idle states beyond WFI in their _LPI tables?
-> > >
-> >
-> > Of course any system that prefers to save power when its idling must have
-> > these _LPI deeper idle states.
-> >
-> > > Backing up, I'm observing 72 pr_err() messages during boot on these
-> > > hosts and trying to determine whether this indicates a firmware issue or
-> > > if the kernel needs adjustment.
-> >
-> > I consider this a firmware issue, but not a fatal one. What matters more is
-> > the behavior after those errors are reported.
-> 
-> I understand. While I'm not a hardware or firmware vendor myself, I can
-> see how they might consider power management features _optional_ for certain
-> server configurations.
-> 
-> > If you force success, either through your change or through the PSCI approach
-> > suggested by lihuisong, then in practice you are only enabling a cpuidle
-> > driver with a single usable state: WFI. That is not inherently wrong, but it
-> > also does not provide much benefit.
-> 
-> Given that this isn't a critical error, would it make sense to downgrade
-> the pr_err() to pr_debug()? is it a reasonable compromise. I just want
-> to avoid these pr_err() all accross the board, affecting kernel health
-> metrics in large fleets.
-> 
-> My proposal:
-> 
-> commit c98007f9e10fe229672d29c3844c96705cecaed5
-> Author: Breno Leitao <leitao@debian.org>
-> Date:   Tue Apr 14 05:28:28 2026 -0700
-> 
->     ACPI: processor: idle: Downgrade FFH LPI probe failure message to pr_debug()
->     
->     The "Invalid FFH LPI data" message is printed at pr_err() level for every
->     CPU when acpi_processor_ffh_lpi_probe() fails. On platforms where the FFH
->     probe legitimately returns an error (e.g., no deep idle states beyond
->     WFI), this floods the kernel log with per-CPU error messages that are not
->     actionable.
->     
->     Downgrade to pr_debug() since this is a diagnostic message, not a
->     critical error.
->     
->     Signed-off-by: Breno Leitao <leitao@debian.org>
-> 
-> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-> index ee5facccbe10c..ab93a2c10a9ad 100644
-> --- a/drivers/acpi/processor_idle.c
-> +++ b/drivers/acpi/processor_idle.c
-> @@ -1259,7 +1259,7 @@ static int acpi_processor_get_power_info(struct acpi_processor *pr)
->  	if (pr->flags.has_lpi) {
->  		ret = acpi_processor_ffh_lpi_probe(pr->id);
->  		if (ret)
-> -			pr_err("CPU%u: Invalid FFH LPI data\n", pr->id);
-> +			pr_debug("CPU%u: Invalid FFH LPI data\n", pr->id);
+On Wed, Apr 15, 2026 at 3:32=E2=80=AFAM lihuisong (C) <lihuisong@huawei.com=
+> wrote:
+>
+>
+> On 4/14/2026 8:25 PM, Sudeep Holla wrote:
+> > On Tue, Apr 14, 2026 at 07:31:29PM +0800, lihuisong (C) wrote:
+> >> On 4/14/2026 6:21 PM, Breno Leitao wrote:
+> >>> Hello Huisong,
+> >>>
+> >>> On Tue, Apr 14, 2026 at 05:43:51PM +0800, lihuisong (C) wrote:
+> >>>> But it is a real issue. Thanks for your report.
+> >>>> I think the best way to fix your issue is that remove this verificat=
+ion in
+> >>>> psci_acpi_cpu_init_idle().
+> >>>> Because it is legal for platform to report one LPI state.
+> >>>> This function just needs to verify the LPI states which are FFH.
+> >>> Thank you for the prompt feedback.
+> >>>
+> >>> Would this approach work?
+> >>>
+> >>> commit 6c9d52840a4f778cc989838ba76ee51416e85de3
+> >>> Author: Breno Leitao <leitao@debian.org>
+> >>> Date:   Tue Apr 14 03:16:08 2026 -0700
+> >>>
+> >>>       ACPI: processor: idle: Allow platforms with only one LPI state
+> >>>       psci_acpi_cpu_init_idle() rejects platforms where power.count -=
+ 1 <=3D 0
+> >>>       by returning -ENODEV. However, having a single LPI state (WFI) =
+is a
+> >>>       valid configuration. The function's purpose is to verify FFH id=
+le states,
+> >>>       and when count is zero, there are simply no FFH states to valid=
+ate =E2=80=94
+> >>>       this is not an error.
+> >>>       On NVIDIA Grace (aarch64) systems with PSCIv1.1, power.count is=
+ 1 for
+> >>>       all 72 CPUs, so the probe fails with -ENODEV. After commit cac1=
+73bea57d
+> >>>       ("ACPI: processor: idle: Rework the handling of
+> >>>       acpi_processor_ffh_lpi_probe()"), this failure propagates up an=
+d prevents
+> >>>       cpuidle registration entirely.
+> >>>       Change the check from (count <=3D 0) to (count < 0) so that pla=
+tforms
+> >>>       with only WFI are accepted. The for loop naturally handles coun=
+t =3D=3D 0
+> >>>       by not iterating.
+> >>>       Fixes: cac173bea57d ("ACPI: processor: idle: Rework the handlin=
+g of acpi_processor_ffh_lpi_probe()")
+> >>>       Signed-off-by: Breno Leitao <leitao@debian.org>
+> >>>
+> >>> diff --git a/drivers/acpi/arm64/cpuidle.c b/drivers/acpi/arm64/cpuidl=
+e.c
+> >>> index 801f9c4501425..7791b751042ce 100644
+> >>> --- a/drivers/acpi/arm64/cpuidle.c
+> >>> +++ b/drivers/acpi/arm64/cpuidle.c
+> >>> @@ -31,7 +31,7 @@ static int psci_acpi_cpu_init_idle(unsigned int cpu=
+)
+> >>>             return -EOPNOTSUPP;
+> >>>     count =3D pr->power.count - 1;
+> >>> -   if (count <=3D 0)
+> >>> +   if (count < 0)
+> >>>             return -ENODEV;
+> >>>     for (i =3D 0; i < count; i++) {
+> >> This count already verified in acpi_processor_get_lpi_info.
+> >>
+> >> I suggest modifing it as below:
+> >>
+> >> -->
+> >>
+> >> git diff
+> >> diff --git a/drivers/acpi/arm64/cpuidle.c b/drivers/acpi/arm64/cpuidle=
+.c
+> >> index 801f9c450142..c68a5db8ebba 100644
+> >> --- a/drivers/acpi/arm64/cpuidle.c
+> >> +++ b/drivers/acpi/arm64/cpuidle.c
+> >> @@ -16,7 +16,7 @@
+> >>
+> >>   static int psci_acpi_cpu_init_idle(unsigned int cpu)
+> >>   {
+> >> -       int i, count;
+> >> +       int i;
+> >>          struct acpi_lpi_state *lpi;
+> >>          struct acpi_processor *pr =3D per_cpu(processors, cpu);
+> >>
+> >> @@ -30,14 +30,10 @@ static int psci_acpi_cpu_init_idle(unsigned int cp=
+u)
+> >>          if (!psci_ops.cpu_suspend)
+> >>                  return -EOPNOTSUPP;
+> >>
+> >> -       count =3D pr->power.count - 1;
+> >> -       if (count <=3D 0)
+> >> -               return -ENODEV;
+> >> -
+> > It was intentionally designed this way, as there is little value in def=
+ining
+> > only WFI in the _LPI tables. In the absence of a cpuidle driver/LPI ent=
+ry,
+> > arch_cpu_idle() is invoked, which is sufficient and avoids unnecessary
+> > complexity, only to ultimately execute wfi() anyway.
+> Yeah, it's correct. The code flow will be more simple and high-efficiency=
+.
+> This looks good to me.
+>
+>
+> But cpuidle sysfs under per CPU is created when firmware just reports
+> WFI state before
+> my commit cac173bea57d ("ACPI: processor: idle: Rework the handling of
+> acpi_processor_ffh_lpi_probe()").
+> However, these platforms will no longer be created now and some
+> statistics for state0 are also missing.
+> This change in behavor is visiable to user space.I'm not sure if it is
+> acceptable.
+> What do you think, Rafael?
 
-I am afraid if this might mask the real _LPI table entry errors.
-Need to think, I am still of the opinion that we need warn on that system
-as _LPI with just WFI is simply useless.
-
--- 
-Regards,
-Sudeep
+I think that it would be good to restore the previous behavior,
+especially if it has been changed inadvertently.
