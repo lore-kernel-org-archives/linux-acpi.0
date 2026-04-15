@@ -1,111 +1,118 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.13])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F83F3E558D
-	for <linux-acpi@vger.kernel.org>; Wed, 15 Apr 2026 17:11:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8014396D2B;
+	Wed, 15 Apr 2026 17:37:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.13
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776273114; cv=none; b=Nr1TuzdVVW2t2AHiAqBbVkRdLdMW72E+4IzfpBIAnNJeUwhG9gW6oyEO2u65ELd9M3y2qXInJbMgrMvuxn94uQE8S2QpMVwxk0Jv0uzmWozegiNrGxsudJbuERJKzWKnBZdWOqaXTUN26bmth0Ng3tP/B/I1E60FRKwmlPzO42U=
+	t=1776274669; cv=none; b=bSLvzoa0qAzi1ydV2zIhA5XDczE6x67plMnFGhLjXzbZHEsM3C1cq2HD47c7ywgB7xSX4RwdEiIF6DoBrr4EAlceW6sUXhXZT+BITawX58Mq97YrJq4KMsFMQWQ8ixmkuMiAbSK/y1lKVBVaBSW/On0bfTiRsAoz6QkmLsxNJD8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776273114; c=relaxed/simple;
-	bh=n4eKRjTg2wsf8EiKvTV8/wa/jJXdHqUKwGO0Q+tazM8=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=CRx+L7FvoeTX8EdL1HbmyjEp0xTE8RRfMqp/uQ4qx6vNTIJev/8/wTnlmjuNCSDng9puGB8kbE5QMpwio50TgbORmzx11/CB3372gpw9abChcNMBCbpDBXQKOAQT0IKQC8iffiEnAwALSyIhHWnaAz3rqKC3jroAQg7qZIP1E40=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kH6U0cb1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776274669; c=relaxed/simple;
+	bh=zNcbkm/hUwKQh49O5J89Rxu2VqQ1cTYgzsuxxYEGH38=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=QX/P5LZvlIkJuGJiYw0nN+yS77cIeNx1ozG/KJ7IEWsog+fl5S06StUDebRFl2vh7mBINxpLpkNt3FAApmTui101QiPwFLlpRERAXvcBvUG/Iis73oziSJA1aDyGS+11dhAqUJZrJyd4jdbAygDqqW2C1W+eq3PRN0axWC6hDQI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=bdsFW0s8; arc=none smtp.client-ip=198.175.65.13
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kH6U0cb1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2008C2BCB5
-	for <linux-acpi@vger.kernel.org>; Wed, 15 Apr 2026 17:11:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1776273113;
-	bh=n4eKRjTg2wsf8EiKvTV8/wa/jJXdHqUKwGO0Q+tazM8=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=kH6U0cb1Z5ateciYoJZp9cOVcuDOsHfii15i6SHxO+LZs90Cm7EYBccgzQ3sFOUWf
-	 8e7t1ymjGxzg7asq0DzN7yUEoVfN0QfslUhmsRnP34c4bMN8kICeP2YZtbEqutVjHy
-	 XgkBkcNom0NKjMwYUmT5HmfTOliwbqPTEsYqhs4DZc0ppMQWsSUh3DCuVRsmQqqAjt
-	 Q7HZD4W/o1cx1yS9zlvsh9VvF8UafwH8o1jhYeW0uowWu2JLNKrg1QYekEyDk5lLWx
-	 ufyfZuujDrXxgqrdkp3gvfEvCQ+1s+uM/yxaHyvSvz1/cGcgv63SrLkYHxkz/UIMxo
-	 n1J35vLIJbAGw==
-Received: by mail-oo1-f48.google.com with SMTP id 006d021491bc7-685017d0fbcso4194653eaf.3
-        for <linux-acpi@vger.kernel.org>; Wed, 15 Apr 2026 10:11:53 -0700 (PDT)
-X-Gm-Message-State: AOJu0YxBFk28BBMO8+IdWHT00wtKv4I8voTZ+JEa5Zcv5jhHkOwt7N17
-	T79TVBVDOvLiqrT8DVLqNcsTew0pQ216wPcqYAXWi7awocqmyuSzgKZm1IVYHWk1b8fe0P/fiiN
-	6FMtX7ILJH8rLQdlEBNAkdJiBFVlXa6M=
-X-Received: by 2002:a05:6820:1620:b0:684:9e9e:816c with SMTP id
- 006d021491bc7-68be81e16ebmr12289343eaf.41.1776273112920; Wed, 15 Apr 2026
- 10:11:52 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="bdsFW0s8"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1776274668; x=1807810668;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=zNcbkm/hUwKQh49O5J89Rxu2VqQ1cTYgzsuxxYEGH38=;
+  b=bdsFW0s8pP4fNFQV05qK3oG1XTZhKBNRiDQSzxynLxzVUDLgxoid4Wqo
+   INYTHMUHnNX3pMwuBM26JHA84EAsEpwwCu/4lBzNDqDYeM9/E2/rroZkg
+   /COPxnLnkp1q58v77iGUYQgDw5IBtepg7mBt6UkPxfhBpSChKeraVyt89
+   Dx4lhIe4TcdflVixn6qxe1jsQjZZK/y56YlXGjBQfVjFmlD7kWAjK5KNp
+   GagADkhLvapW8ITPiOfkxvwaAeTFHOXvFavGTwqiovli+w6u/C5+zauKS
+   a+yH71wXzqqJ5d5Y16wDBKApDFK5q1/yfp4pIy4lXoJ/R0AN9k3KUJb7D
+   A==;
+X-CSE-ConnectionGUID: Vg6P77klTKm7NJoPdVIeDg==
+X-CSE-MsgGUID: LNyfy0C0Q+CVwzw6EG4UQw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11760"; a="88344104"
+X-IronPort-AV: E=Sophos;i="6.23,179,1770624000"; 
+   d="scan'208";a="88344104"
+Received: from fmviesa006.fm.intel.com ([10.60.135.146])
+  by orvoesa105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Apr 2026 10:37:47 -0700
+X-CSE-ConnectionGUID: /QG5vpw3TjuK05VDLRsEAg==
+X-CSE-MsgGUID: rcXTsBHhRxKBl69fq+LKNg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,179,1770624000"; 
+   d="scan'208";a="225785571"
+Received: from vverma7-desk1.amr.corp.intel.com (HELO agluck-desk3.home.arpa) ([10.124.222.158])
+  by fmviesa006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Apr 2026 10:37:47 -0700
+From: Tony Luck <tony.luck@intel.com>
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: Herman Li <herman.li@intel.com>,
+	Zaid Alali <zaidal@os.amperecomputing.com>,
+	Jiaqi Yan <jiaqiyan@google.com>,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	patches@lists.linux.dev,
+	Tony Luck <tony.luck@intel.com>
+Subject: [PATCH v2] ACPI: APEI: EINJ: Fix EINJv2 memory injection
+Date: Wed, 15 Apr 2026 10:37:35 -0700
+Message-ID: <20260415173735.24437-1-tony.luck@intel.com>
+X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260411092606.47925-1-jan@jschaer.ch> <d0d422ed-5ff2-4523-b145-573146902c9d@kernel.org>
-In-Reply-To: <d0d422ed-5ff2-4523-b145-573146902c9d@kernel.org>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Wed, 15 Apr 2026 19:11:41 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0jp08euJFsv9du5oyRi5GaeQ2zeKEFAkqTArSW2zfRzmw@mail.gmail.com>
-X-Gm-Features: AQROBzB5aXpDm_eKkTIzT27i4iSmfwggg1gD9e_BlfFTAdd2-WIlADEaj6L00_s
-Message-ID: <CAJZ5v0jp08euJFsv9du5oyRi5GaeQ2zeKEFAkqTArSW2zfRzmw@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: video: Add backlight=native quirk for Dell OptiPlex
- 7770 AIO
-To: Hans de Goede <hansg@kernel.org>, =?UTF-8?Q?Jan_Sch=C3=A4r?= <jan@jschaer.ch>
-Cc: linux-acpi@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Mon, Apr 13, 2026 at 11:04=E2=80=AFAM Hans de Goede <hansg@kernel.org> w=
-rote:
->
-> Hi,
->
-> On 11-Apr-26 11:26 AM, Jan Sch=C3=A4r wrote:
-> > The Dell OptiPlex 7770 AIO needs the same quirk as the 7760 AIO. The
-> > backlight can be controlled with the native controller, intel_backlight=
-,
-> > but not with dell_uart_backlight.
-> >
-> > I dumped the DSDT using acpidump, acpixtract and iasl, and confirmed
-> > that it contains the DELL0501 device. When loading the
-> > dell_uart_backlight driver with `rmmod dell_uart_backlight`, `modprobe
-> > dell_uart_backlight dyndbg`, it reports "Firmware version: GL_Re_V18".
-> >
-> > Fixes: cd8e468efb4f ("ACPI: video: Add Dell UART backlight controller d=
-etection")
-> > Cc: stable@vger.kernel.org
-> > Signed-off-by: Jan Sch=C3=A4r <jan@jschaer.ch>
->
-> Thanks, patch looks good to me:
->
-> Reviewed-by: Hans de Goede <johannes.goede@oss.qualcomm.com>
+EINJ trigger actions for memory error injection often include access to
+the target injection address. This address does not need to special
+mapping.
 
-Applied as 7.1-rc material, thanks!
+The code to drop the target address from the resource list only checked
+for V1 injection signature.
 
-> > ---
-> >  drivers/acpi/video_detect.c | 8 ++++++++
-> >  1 file changed, 8 insertions(+)
-> >
-> > diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-> > index 4cf74f173c78..4a2132ae28b4 100644
-> > --- a/drivers/acpi/video_detect.c
-> > +++ b/drivers/acpi/video_detect.c
-> > @@ -878,6 +878,14 @@ static const struct dmi_system_id video_detect_dmi=
-_table[] =3D {
-> >               DMI_MATCH(DMI_PRODUCT_NAME, "OptiPlex 7760 AIO"),
-> >               },
-> >       },
-> > +     {
-> > +      .callback =3D video_detect_force_native,
-> > +      /* Dell OptiPlex 7770 AIO */
-> > +      .matches =3D {
-> > +             DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-> > +             DMI_MATCH(DMI_PRODUCT_NAME, "OptiPlex 7770 AIO"),
-> > +             },
-> > +     },
-> >
-> >       /*
-> >        * Models which have nvidia-ec-wmi support, but should not use it=
-.
-> >
-> > base-commit: 591cd656a1bf5ea94a222af5ef2ee76df029c1d2
->
+Add a test for the EINJ V2 memory injection signature.
+
+Fixes: b47610296d17 ("ACPI: APEI: EINJ: Enable EINJv2 error injections")
+Reported-by: Herman Li <herman.li@intel.com>
+Signed-off-by: Tony Luck <tony.luck@intel.com>
+---
+
+V2: Add "Fixes:" tag
+
+ drivers/acpi/apei/einj-core.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/apei/einj-core.c b/drivers/acpi/apei/einj-core.c
+index a9248af078f6..ba0ce71b7adb 100644
+--- a/drivers/acpi/apei/einj-core.c
++++ b/drivers/acpi/apei/einj-core.c
+@@ -401,6 +401,17 @@ static struct acpi_generic_address *einj_get_trigger_parameter_region(
+ 
+ 	return NULL;
+ }
++
++static bool is_memory_injection(u32 type, u64 param2)
++{
++	if (is_v2)
++		return type & BIT(1);
++	else if (param_extension || acpi5)
++		return (type & MEM_ERROR_MASK) && param2;
++
++	return false;
++}
++
+ /* Execute instructions in trigger error action table */
+ static int __einj_error_trigger(u64 trigger_paddr, u32 type,
+ 				u64 param1, u64 param2)
+@@ -480,7 +491,7 @@ static int __einj_error_trigger(u64 trigger_paddr, u32 type,
+ 	 * This will cause resource conflict with regular memory.  So
+ 	 * remove it from trigger table resources.
+ 	 */
+-	if ((param_extension || acpi5) && (type & MEM_ERROR_MASK) && param2) {
++	if (is_memory_injection(type, param2)) {
+ 		struct apei_resources addr_resources;
+ 
+ 		apei_resources_init(&addr_resources);
+-- 
+2.53.0
+
