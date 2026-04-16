@@ -1,166 +1,169 @@
-Received: from canpmsgout08.his.huawei.com (canpmsgout08.his.huawei.com [113.46.200.223])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F3693947AA;
-	Thu, 16 Apr 2026 08:48:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.223
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB4653803E4;
+	Thu, 16 Apr 2026 08:55:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776329328; cv=none; b=hjJOxD1QoBNN6m1lXsH8H/WATs79ZFva+IqGbqCrsNEM3+pwuDrfeKd/UyFkzk7JjgSmxnLNWjXDsQhzhyltYbSySk9+ZPjIdBhi13bcfoj1mMw+5dmto4bMa8VMBUkNe7tnemKiMjViYajz86OCwsxF5eubEMlzyThyzbuHrkc=
+	t=1776329759; cv=none; b=HkmqzkC237y8LyPKIZ9CMaQtNFubvzI1X+BPUfJ+BUs6HlrxlMpVrPtgkUGMTfapXOir4Xru7dJekFjEWmA53jZMwVkIcRwnQMYVHoPPBNBlRY/eFWsjJo2FlUw5PyGYUOtEhsYGDHVUIgAPk46JlNcG8QsR4dlLuSxSHE6tisk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776329328; c=relaxed/simple;
-	bh=mvobvM9M+ymU0uN9ToA/yFUWVEZhHaoo/vGQ40aXq8w=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=phmJ1f5PI+Iu2iGHPWMJCPKHYvZo5DBnaWcoCsEcv5snU60ie0afF9oJnjwtFtZFzylILICt5Sm0RqUdUg2WL+GmABVB3rEAlEQYE2fDg2aA18+PZ/8N03ZOwsNUpgngqitpToMpCCowy4PvfpxZE6G2BDywNhrrVi3o/9UuWa8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=dVgaLnsL; arc=none smtp.client-ip=113.46.200.223
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+	s=arc-20240116; t=1776329759; c=relaxed/simple;
+	bh=qP9op7qqcS5Lukl0xY0FbOKSLZSPfuuTkBQ5FGAIXHs=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=eecpctI9I+2cTil7kbrNbea4202oxQSJKHcb44SGCNU5poUE+WG4fRDVQYJ5R5XMiaf94mhhAnPYTUJy+2KIbq+mXyst139gR3KRpYAgWC7C+0joLv/+eU89GcQYC5kS846Jdg6Mx09Pz0KNrlpqKe9yYh/3QwBmC9JNKc2WvwM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iJlnzjZD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="dVgaLnsL"
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=pRmo3xRk4FCQaZTIdl/dTls7ZAfPZPPgEZdmTEVN/DM=;
-	b=dVgaLnsLk4yjwu+/KqbzDX1Mf6uMHID4BbpY5UCIHsRWEUtbtgMRv0ZGhGqMjDW0zPRukjVkh
-	lOFukWQDuGXo85fYCMxm/qzIocnDNzso8k1OhTCyFiU7+GINBrZCz79MitZsdoKEOkcGHxfVNgG
-	AM9jkyfZDLZIsXNWzEbDAm4=
-Received: from mail.maildlp.com (unknown [172.19.163.214])
-	by canpmsgout08.his.huawei.com (SkyGuard) with ESMTPS id 4fxBMw0TsRzmV69;
-	Thu, 16 Apr 2026 16:42:20 +0800 (CST)
-Received: from dggpemf500011.china.huawei.com (unknown [7.185.36.131])
-	by mail.maildlp.com (Postfix) with ESMTPS id 77AAD4056C;
-	Thu, 16 Apr 2026 16:48:40 +0800 (CST)
-Received: from huawei.com (10.90.53.73) by dggpemf500011.china.huawei.com
- (7.185.36.131) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Thu, 16 Apr
- 2026 16:48:39 +0800
-From: Jinjie Ruan <ruanjinjie@huawei.com>
-To: <rafael@kernel.org>, <lenb@kernel.org>, <skelley@nvidia.com>,
-	<linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-CC: <ruanjinjie@huawei.com>
-Subject: [PATCH] Revert "ACPI: CPPC: Fix remaining for_each_possible_cpu() to use online CPUs"
-Date: Thu, 16 Apr 2026 16:52:21 +0800
-Message-ID: <20260416085221.3476726-1-ruanjinjie@huawei.com>
-X-Mailer: git-send-email 2.34.1
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iJlnzjZD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE584C2BCB3;
+	Thu, 16 Apr 2026 08:55:49 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1776329759;
+	bh=qP9op7qqcS5Lukl0xY0FbOKSLZSPfuuTkBQ5FGAIXHs=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=iJlnzjZDwcviicCbIILPDAxC4Y0Mnwb5Vex/ZZdnkcTF4swx0HthKq5a/CxVUQJ5I
+	 RaWf/yMsvg2I7H+kK63WbY+o5zZt0NKR7QtexrEONzBwSOzI6xsrS6jpTYT39jbH02
+	 JAJFyv/K9BkTkJQziyfkkJJ+FhebMJ0JYH6D9GiJAJLx0OQpJOmwTMXGH3MoSGp+d2
+	 bqootzA4OtnmAGQ1OTMfP8QAFPMn4OuQ2WmuMCjZIKcbYpFs1TAUh1TPAydaBLNcIX
+	 5xr/kJUuKYS9LEiUC46WBOHJwYYsjh4h8xTtUoYnGFn89huAW56f/j+VjePkFn3Dl6
+	 dy5VRIffuc3YA==
+Date: Thu, 16 Apr 2026 14:25:39 +0530
+From: Manivannan Sadhasivam <mani@kernel.org>
+To: Herve Codina <herve.codina@bootlin.com>
+Cc: Chen-Yu Tsai <wenst@chromium.org>, 
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>, 
+	Rob Herring <robh@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+	Jiri Slaby <jirislaby@kernel.org>, Nathan Chancellor <nathan@kernel.org>, 
+	Nicolas Schier <nicolas.schier@linux.dev>, Hans de Goede <hansg@kernel.org>, 
+	Ilpo =?utf-8?B?SsOkcnZpbmVu?= <ilpo.jarvinen@linux.intel.com>, Mark Pearson <mpearson-lenovo@squebb.ca>, 
+	"Derek J. Clark" <derekjohn.clark@gmail.com>, Krzysztof Kozlowski <krzk+dt@kernel.org>, 
+	Conor Dooley <conor+dt@kernel.org>, Marcel Holtmann <marcel@holtmann.org>, 
+	Luiz Augusto von Dentz <luiz.dentz@gmail.com>, Bartosz Golaszewski <brgl@bgdev.pl>, 
+	Bartosz Golaszewski <brgl@kernel.org>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-kbuild@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-pci@vger.kernel.org, 
+	devicetree@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-bluetooth@vger.kernel.org, 
+	linux-pm@vger.kernel.org, Stephan Gerhold <stephan.gerhold@linaro.org>, 
+	Dmitry Baryshkov <dmitry.baryshkov@oss.qualcomm.com>, linux-acpi@vger.kernel.org, 
+	Hans de Goede <johannes.goede@oss.qualcomm.com>, Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>, 
+	Luca Ceresoli <luca.ceresoli@bootlin.com>
+Subject: Re: [PATCH v7 0/8] Add support for handling PCIe M.2 Key E
+ connectors in devicetree
+Message-ID: <4yockfx5rjcvfh2n2excrgsknnhi72rv2w7wf7onks2ryt33sm@w7zkcxuc6vem>
+References: <20260326-pci-m2-e-v7-0-43324a7866e6@oss.qualcomm.com>
+ <20260413075459.GA2626902@google.com>
+ <fpcs4p62f35a5qyqwgm5ysa73stbysxcr62tkmmkrrcvsuf4t4@4ivukyqjey57>
+ <eeytuhqpgdz4do4tgtbmfntub2femtyq7bij7svhodpyjwaylx@j3gmvq2a2zqc>
+ <CAGXv+5E=tujhtZjwi6Qm7hk3Ks74UzTQHWq82NiTEw1+vYod5g@mail.gmail.com>
+ <ad36pIu-0dutL7Nk@ashevche-desk.local>
+ <CAGXv+5EGe59nJctLweEdZjb3MNmMvjuCHngGSfptzN985OiLdg@mail.gmail.com>
+ <ad4tJN27opdEooA7@ashevche-desk.local>
+ <CAGXv+5EPA29G-fsH=wWOD8AK6TZFezFhsE0NHPYj_Pt3nT+d_w@mail.gmail.com>
+ <20260415165651.153b573d@bootlin.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: kwepems500001.china.huawei.com (7.221.188.70) To
- dggpemf500011.china.huawei.com (7.185.36.131)
+In-Reply-To: <20260415165651.153b573d@bootlin.com>
 
-This reverts commit 56eb0c0ed345da7815274aa821a8546a073d7e97, because
-this commit cause warning call trace below when concurrently bringing up
-and down two SMT threads of a physical core.
+On Wed, Apr 15, 2026 at 04:56:51PM +0200, Herve Codina wrote:
+> Hi Chen, all,
+> 
+> ...
+>  
+> > 
+> > I'm not arguing for a even more generic "M.2" connector. The "key" is
+> > already described in the compatible. I'm saying we should have some way
+> > of describing the individual interfaces (PCIe, SDIO, USB, UART, I2S, I2C)
+> > on the connector so further nodes or properties can be attached to them,
+> > either with overlays or dynamically within the kernel. Right now the
+> > are only described as individual ports, but we can't actually tie a
+> > device to a OF graph port.
+> > 
+> > But maybe I'm overthinking the representation part. AFAICT for Qualcomm's
+> > UART-based BT bit part, Mani just had the driver create a device node
+> > under the UART (by traversing the OF graph to find the UART). If that's
+> > the desired way then the connector binding should mention it. And that
+> > works for me. But I think it's messier and also we're missing an
+> > opportunity to make the M.2 connector a standardized attachment point
+> > for overlays.
+> > 
+> > Mani, could you also chime in a bit on what you envisioned?
+> > 
+> > (Added Luca from Bootlin to CC, as I think there are parallels to the
+> >  "Hotplug of Non-discoverable Hardware" work)
+> >
+> 
+> Related to "Hotplug of Non-discoverable Hardware",
+> 
+> I would add entries for busses in the connector without using an OF graph.
+> 
 
-The issue timeline is as follows:
+I don't think this is a correct representation. It is non-standard to describe
+the device nodes in some other connectors. While it may work with your series in
+the future, not something I would bet-on at this point.
 
-1. when the system starts,
-	cpufreq: cpu: 220, policy->related_cpus: 220-221, policy->cpus: 220-221
+Using OF graph to link the connector nodes look like the cleaner solution to me.
 
-2. Offline cpu 220 and cpu 221.
+> For I2C and later SPI, this was is done.
+> 
+> You already have an i2c-parent property but no node where an i2c device
+> can be added.
+> 
+> The last discussion related to hotplug, connectors and DT led to the RFC
+> series [1].
+> 
+> It is a huge series. The last patch give a real example of representation:
+>   https://lore.kernel.org/all/20260112142009.1006236-78-herve.codina@bootlin.com/
+> 
+> In your case I would see some thing like:
+> 
+>     connector {
+>         compatible = "pcie-m2-e-connector";
+>         vpcie3v3-supply = <&vreg_wcn_3p3>;
+>         vpcie1v8-supply = <&vreg_l15b_1p8>;
+> 
+> 	/*
+> 	 * If those GPIOs have to be used by components available in
+> 	 * the connected board, a Nexus node should be used.
+>          */
+>         w-disable1-gpios = <&tlmm 115 GPIO_ACTIVE_LOW>;
+>         w-disable2-gpios = <&tlmm 116 GPIO_ACTIVE_LOW>;
+>         viocfg-gpios = <&tlmm 117 GPIO_ACTIVE_HIGH>;
+>         uart-wake-gpios = <&tlmm 118 GPIO_ACTIVE_LOW>;
+>         sdio-wake-gpios = <&tlmm 119 GPIO_ACTIVE_LOW>;
+>         sdio-reset-gpios = <&tlmm 120 GPIO_ACTIVE_LOW>;
+> 
+> 	conn-i2c {
+> 		i2c-parent = <&i2c0>;
+> 
+> 		/*
+>  		 * Here i2c devices available on the board
+> 		 * connected to the connector can be described.
+> 		 */
+> 	};
+> 
+> 	/* Same kind to description for other busses */
+> 	conn-pcie {
+> 		pci-parent = <&xxxxx>;
+> 
+> 		/*
+> 		 * The PCIe bus has abilities to discover devices.
+> 		 * Not sure this node is needed.
+> 		 *
+> 		 * If a PCI device need a DT description to describe
+> 		 * stuffs behind the device, what has been done for LAN966x
+> 		 * could be re-used [2] and [3]
+> 		 */
 
-3. Online cpu 220
-- cpu 221 is now offline, as acpi_get_psd_map() use for_each_online_cpu(),
-   so the cpu_data->shared_cpu_map, policy->cpus, and related_cpus has only
-   cpu 220.
-	cpufreq: cpu: 220, related_cpus: 220, cpus: 220
+I don't think anyone would connect something like LAN966x to the M.2 connector.
+M.2 cards have a defined purpose, like NVMe, WLAN etc... If anyone wants to
+connect another SoC like LAN966x, they would use non-M.2 connectors.
 
-4. offline cpu 220
+- Mani
 
-5. online cpu 221, the below call trace occurs:
-- Because cpu 220 and cpu 221 share one policy, and policy->related_cpus
-  = 220 after step 3, so cpu 221 is not in policy->related_cpus
-  but per_cpu(cpufreq_cpu_data, cpu221) is not NULL.
-
-The _PSD (P-State Dependency) defines the hardware-level dependency of
-frequency control across CPU cores. Since this relationship is a physical
-attribute of the hardware topology, it remains constant regardless of the
-online or offline status of the CPUs.
-
-Using for_each_online_cpu() in acpi_get_psd_map() is problematic. If a
-CPU is offline, it will be excluded from the shared_cpu_map.
-Consequently, if that CPU is brought online later, the kernel will fail to
-recognize it as part of any shared frequency domain.
-
-Switch back to for_each_possible_cpu() to ensure that all cores defined
-in the ACPI tables are correctly mapped into their respective performance
-domains from the start. This aligns with the logic of policy->related_cpus,
-which must encompass all potentially available cores in the domain to
-prevent logic gaps during CPU hotplug operations.
-
-How to reproduce, on arm64 machine with SMT support which use acpi cppc
-cpufreq driver:
-
-	bash test.sh 220 & bash test.sh 221 &
-
-	The test.sh is as below:
-		while true
-			do
-			echo 0 > /sys/devices/system/cpu/cpu${1}/online
-			sleep 0.5
-			cat /sys/devices/system/cpu/cpu${1}/cpufreq/related_cpus
-			echo 1 >  /sys/devices/system/cpu/cpu${1}/online
-			cat /sys/devices/system/cpu/cpu${1}/cpufreq/related_cpus
-		done
-
-	CPU: 221 PID: 1119 Comm: cpuhp/221 Kdump: loaded Not tainted 6.6.0debug+ #5
-	Hardware name: To be filled by O.E.M. S920X20/BC83AMDA01-7270Z, BIOS 20.39 09/04/2024
-	pstate: a1400009 (NzCv daif +PAN -UAO -TCO +DIT -SSBS BTYPE=--)
-	pc : cpufreq_online+0x8ac/0xa90
-	lr : cpuhp_cpufreq_online+0x18/0x30
-	sp : ffff80008739bce0
-	x29: ffff80008739bce0 x28: 0000000000000000 x27: ffff28400ca32200
-	x26: 0000000000000000 x25: 0000000000000003 x24: ffffd483503ff000
-	x23: ffffd483504051a0 x22: ffffd48350024a00 x21: 00000000000000dd
-	x20: 000000000000001d x19: ffff28400ca32000 x18: 0000000000000000
-	x17: 0000000000000020 x16: ffffd4834e6a3fc8 x15: 0000000000000020
-	x14: 0000000000000008 x13: 0000000000000001 x12: 00000000ffffffff
-	x11: 0000000000000040 x10: ffffd48350430728 x9 : ffffd4834f087c78
-	x8 : 0000000000000001 x7 : ffff2840092bdf00 x6 : ffffd483504264f0
-	x5 : ffffd48350405000 x4 : ffff283f7f95cc60 x3 : 0000000000000000
-	x2 : ffff53bc2f94b000 x1 : 00000000000000dd x0 : 0000000000000000
-	Call trace:
-	 cpufreq_online+0x8ac/0xa90
-	 cpuhp_cpufreq_online+0x18/0x30
-	 cpuhp_invoke_callback+0x128/0x580
-	 cpuhp_thread_fun+0x110/0x1b0
-	 smpboot_thread_fn+0x140/0x190
-	 kthread+0xec/0x100
-	 ret_from_fork+0x10/0x20
-	---[ end trace 0000000000000000 ]---
-
-Cc: stable@vger.kernel.org
-Fixes: 56eb0c0ed345 ("ACPI: CPPC: Fix remaining for_each_possible_cpu() to use online CPUs")
-Signed-off-by: Jinjie Ruan <ruanjinjie@huawei.com>
----
- drivers/acpi/cppc_acpi.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-index f0e513e9ed5d..9ae29f2c6db8 100644
---- a/drivers/acpi/cppc_acpi.c
-+++ b/drivers/acpi/cppc_acpi.c
-@@ -362,7 +362,7 @@ static int send_pcc_cmd(int pcc_ss_id, u16 cmd)
- end:
- 	if (cmd == CMD_WRITE) {
- 		if (unlikely(ret)) {
--			for_each_online_cpu(i) {
-+			for_each_possible_cpu(i) {
- 				struct cpc_desc *desc = per_cpu(cpc_desc_ptr, i);
- 
- 				if (!desc)
-@@ -524,7 +524,7 @@ int acpi_get_psd_map(unsigned int cpu, struct cppc_cpudata *cpu_data)
- 	else if (pdomain->coord_type == DOMAIN_COORD_TYPE_SW_ANY)
- 		cpu_data->shared_type = CPUFREQ_SHARED_TYPE_ANY;
- 
--	for_each_online_cpu(i) {
-+	for_each_possible_cpu(i) {
- 		if (i == cpu)
- 			continue;
- 
 -- 
-2.34.1
-
+மணிவண்ணன் சதாசிவம்
