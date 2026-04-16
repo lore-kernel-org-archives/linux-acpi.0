@@ -1,169 +1,252 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f49.google.com (mail-wm1-f49.google.com [209.85.128.49])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB4653803E4;
-	Thu, 16 Apr 2026 08:55:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 864703A5E88
+	for <linux-acpi@vger.kernel.org>; Thu, 16 Apr 2026 10:33:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776329759; cv=none; b=HkmqzkC237y8LyPKIZ9CMaQtNFubvzI1X+BPUfJ+BUs6HlrxlMpVrPtgkUGMTfapXOir4Xru7dJekFjEWmA53jZMwVkIcRwnQMYVHoPPBNBlRY/eFWsjJo2FlUw5PyGYUOtEhsYGDHVUIgAPk46JlNcG8QsR4dlLuSxSHE6tisk=
+	t=1776335634; cv=none; b=sdJ28OyMnapJrrzKCw2UJ8ltczoaPSpjsw85KO+KCpzPhMFEJMESaBb9cwIsbRDaxg0nAhbK4jQeBbVtZBJCZ3blfaYibqE30hHYFhwcoSeUw1EKG+7nqf/oAjzIJla/BBN1sd44o79vjEYfb+sdmFyLy8zpUio7zeKzg0/3428=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776329759; c=relaxed/simple;
-	bh=qP9op7qqcS5Lukl0xY0FbOKSLZSPfuuTkBQ5FGAIXHs=;
+	s=arc-20240116; t=1776335634; c=relaxed/simple;
+	bh=PnkhtnPlWqR69u9/G7kOgPwF0gnYlgcUF1nrMIPg0fc=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=eecpctI9I+2cTil7kbrNbea4202oxQSJKHcb44SGCNU5poUE+WG4fRDVQYJ5R5XMiaf94mhhAnPYTUJy+2KIbq+mXyst139gR3KRpYAgWC7C+0joLv/+eU89GcQYC5kS846Jdg6Mx09Pz0KNrlpqKe9yYh/3QwBmC9JNKc2WvwM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iJlnzjZD; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=e8YiN9s99PKVsrLBcGO3a6sg8BpF9sPBfQZagp4bUh8xv6/GewHa48gj4WIr2iclZO3zlRlaorwWfGbD1yMk1FxXW+UFdQeFY5yTHwOSZhtB5O2P0t4irYk8Z9/tuVMDat/FVlmMJvo+d8ZsqmdiJuyoSt6KBaJVBiUHzP0GNFE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=Yw99Yy5m; arc=none smtp.client-ip=209.85.128.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iJlnzjZD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE584C2BCB3;
-	Thu, 16 Apr 2026 08:55:49 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1776329759;
-	bh=qP9op7qqcS5Lukl0xY0FbOKSLZSPfuuTkBQ5FGAIXHs=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=iJlnzjZDwcviicCbIILPDAxC4Y0Mnwb5Vex/ZZdnkcTF4swx0HthKq5a/CxVUQJ5I
-	 RaWf/yMsvg2I7H+kK63WbY+o5zZt0NKR7QtexrEONzBwSOzI6xsrS6jpTYT39jbH02
-	 JAJFyv/K9BkTkJQziyfkkJJ+FhebMJ0JYH6D9GiJAJLx0OQpJOmwTMXGH3MoSGp+d2
-	 bqootzA4OtnmAGQ1OTMfP8QAFPMn4OuQ2WmuMCjZIKcbYpFs1TAUh1TPAydaBLNcIX
-	 5xr/kJUuKYS9LEiUC46WBOHJwYYsjh4h8xTtUoYnGFn89huAW56f/j+VjePkFn3Dl6
-	 dy5VRIffuc3YA==
-Date: Thu, 16 Apr 2026 14:25:39 +0530
-From: Manivannan Sadhasivam <mani@kernel.org>
-To: Herve Codina <herve.codina@bootlin.com>
-Cc: Chen-Yu Tsai <wenst@chromium.org>, 
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>, 
-	Rob Herring <robh@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	Jiri Slaby <jirislaby@kernel.org>, Nathan Chancellor <nathan@kernel.org>, 
-	Nicolas Schier <nicolas.schier@linux.dev>, Hans de Goede <hansg@kernel.org>, 
-	Ilpo =?utf-8?B?SsOkcnZpbmVu?= <ilpo.jarvinen@linux.intel.com>, Mark Pearson <mpearson-lenovo@squebb.ca>, 
-	"Derek J. Clark" <derekjohn.clark@gmail.com>, Krzysztof Kozlowski <krzk+dt@kernel.org>, 
-	Conor Dooley <conor+dt@kernel.org>, Marcel Holtmann <marcel@holtmann.org>, 
-	Luiz Augusto von Dentz <luiz.dentz@gmail.com>, Bartosz Golaszewski <brgl@bgdev.pl>, 
-	Bartosz Golaszewski <brgl@kernel.org>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-kbuild@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-pci@vger.kernel.org, 
-	devicetree@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-bluetooth@vger.kernel.org, 
-	linux-pm@vger.kernel.org, Stephan Gerhold <stephan.gerhold@linaro.org>, 
-	Dmitry Baryshkov <dmitry.baryshkov@oss.qualcomm.com>, linux-acpi@vger.kernel.org, 
-	Hans de Goede <johannes.goede@oss.qualcomm.com>, Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>, 
-	Luca Ceresoli <luca.ceresoli@bootlin.com>
-Subject: Re: [PATCH v7 0/8] Add support for handling PCIe M.2 Key E
- connectors in devicetree
-Message-ID: <4yockfx5rjcvfh2n2excrgsknnhi72rv2w7wf7onks2ryt33sm@w7zkcxuc6vem>
-References: <20260326-pci-m2-e-v7-0-43324a7866e6@oss.qualcomm.com>
- <20260413075459.GA2626902@google.com>
- <fpcs4p62f35a5qyqwgm5ysa73stbysxcr62tkmmkrrcvsuf4t4@4ivukyqjey57>
- <eeytuhqpgdz4do4tgtbmfntub2femtyq7bij7svhodpyjwaylx@j3gmvq2a2zqc>
- <CAGXv+5E=tujhtZjwi6Qm7hk3Ks74UzTQHWq82NiTEw1+vYod5g@mail.gmail.com>
- <ad36pIu-0dutL7Nk@ashevche-desk.local>
- <CAGXv+5EGe59nJctLweEdZjb3MNmMvjuCHngGSfptzN985OiLdg@mail.gmail.com>
- <ad4tJN27opdEooA7@ashevche-desk.local>
- <CAGXv+5EPA29G-fsH=wWOD8AK6TZFezFhsE0NHPYj_Pt3nT+d_w@mail.gmail.com>
- <20260415165651.153b573d@bootlin.com>
+	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="Yw99Yy5m"
+Received: by mail-wm1-f49.google.com with SMTP id 5b1f17b1804b1-488a041eae5so58285455e9.1
+        for <linux-acpi@vger.kernel.org>; Thu, 16 Apr 2026 03:33:49 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=suse.com; s=google; t=1776335627; x=1776940427; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=PFX0kfy1JVc6bVB6CE0bGMq+YH6jFLY5/9CO0YM6hrU=;
+        b=Yw99Yy5m7kvN1KSa9pxCJ+rj4LVOuiacf7mjAZ1+hedrfUk5JyPIN6zYHYbyElzPIe
+         x9JebNsVvvlrV/hoQwDjPkr/KB/PctEr7qKlO6OLJoafdSkZB9jeLeiL/a4vvE1M0t3/
+         om3eA/uaTfwen6E5V1J4ngTZ+wAbgwElWypa4jFVmTWBptmpaTJTIPBbe6XRWVKrTzwu
+         tebPL2lxwUgYQLNII1kDn9OyLAGJsxMAwVBH4Hvo76H6AxeHISu9mKkqAdAa5je+hRlh
+         rg54EVzzcMHE6qqQpg2GAWy6DRWd74af5HXg0FkOYrlGVCqvUn9fRdyfGdcpNr1UxK7W
+         J7gg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1776335627; x=1776940427;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=PFX0kfy1JVc6bVB6CE0bGMq+YH6jFLY5/9CO0YM6hrU=;
+        b=RIibGSWCcwISTU/WDkb/I4e+kLiMF2TZQxnoE2iIZcG4sjvYHl0PrLAt6za9aNCPtv
+         /CRAH4pq2LbfIpYQPzT01aYLjTcmrTlnnptlo/NRjAK5SK790iYWqAGkRGmbY+eSUfiW
+         BnEB7YAjkOzndeZ9XiyWPpBJ9sHnkYkrpAkKJfA/ZXruC74HNTExGY6+B5XkK+/cezGu
+         kYTorZv+UMUD6neASPMMUMj4YvH3J6Zbz5rp3KFONCrw1QKcQ5sCSy/ezcb35LKnhSoH
+         Na+xtwg06HjYUndEPFvqQMiDsXRWhoC/l4lz+ILMo2Xf98fFVIJXFKcd8cgLk4X55hLF
+         PcPA==
+X-Forwarded-Encrypted: i=1; AFNElJ+TBEtgh4paXVkyqAF3eNetnv9waerEabTSMXiAvFgYrgdSAARmVPVml0Cqj7Mx7KU3as8y/4X9YjXb@vger.kernel.org
+X-Gm-Message-State: AOJu0Yx/S9ofojatt0qric705p98iNXYVQDhQCyRIGWGtAjt0uztkc0w
+	xGwzcVntBZHpUNaIt7aeRIqoQNPmb0ue8cS7nwpQJc+qcduJ0kaIZL7A9YFVvgSMILk=
+X-Gm-Gg: AeBDiesT85UaBc/nDYgH5p+Ygz0g2u99+mniOW+AGWwm2TPMNsOAu+K5JTf+WEgvgB5
+	v0tjzH25cFVeoAEZc+VjU328OXvZ4QpJxoo53uHtiauw1aYUwQc0IzEMQTd/3I+ZwmcHILEXR/j
+	XcPy8SLXz/3iz+bz+9uuz090Ms19+ntQoxw8ddwPMvXAG/t7i4/TPf9lvaR0CS1+ANgycvdMYuM
+	UhMEG6FNZyD3mEOIQF26SujQIAgDajrtI1FJCeZq7h750xRIumBNpu9ppcuwapDMgxZiEhlChSy
+	G/vslSrFWVyFJwrA+Zpa3A+nBYdl9c8kXGyabQ1OPkzFYI8ldaGsa/+petj0PmEVdV6msIiSbC4
+	pWEUUnV9kmHw/jC/926n+nl0QN5PLhuHo67TRKRW6FJuSpas0qIw4FXZCdx6GaMLmopffq0cBaD
+	uq+0o4syJdKX5S9JtuJ8SvO2LWCw==
+X-Received: by 2002:a05:600c:3b96:b0:488:b098:b653 with SMTP id 5b1f17b1804b1-488d67f0a8amr350880245e9.13.1776335626808;
+        Thu, 16 Apr 2026 03:33:46 -0700 (PDT)
+Received: from pathway.suse.cz ([176.114.240.130])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-43ead402ee8sm12369872f8f.37.2026.04.16.03.33.45
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 16 Apr 2026 03:33:46 -0700 (PDT)
+Date: Thu, 16 Apr 2026 12:33:43 +0200
+From: Petr Mladek <pmladek@suse.com>
+To: chensong_2000@189.cn
+Cc: rafael@kernel.org, lenb@kernel.org, mturquette@baylibre.com,
+	sboyd@kernel.org, viresh.kumar@linaro.org, agk@redhat.com,
+	snitzer@kernel.org, mpatocka@redhat.com, bmarzins@redhat.com,
+	song@kernel.org, yukuai@fnnas.com, linan122@huawei.com,
+	jason.wessel@windriver.com, danielt@kernel.org,
+	dianders@chromium.org, horms@kernel.org, davem@davemloft.net,
+	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+	paulmck@kernel.org, frederic@kernel.org, mcgrof@kernel.org,
+	petr.pavlu@suse.com, da.gomez@kernel.org, samitolvanen@google.com,
+	atomlin@atomlin.com, jpoimboe@kernel.org, jikos@kernel.org,
+	mbenes@suse.cz, joe.lawrence@redhat.com, rostedt@goodmis.org,
+	mhiramat@kernel.org, mark.rutland@arm.com,
+	mathieu.desnoyers@efficios.com, linux-modules@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
+	linux-acpi@vger.kernel.org, linux-clk@vger.kernel.org,
+	linux-pm@vger.kernel.org, live-patching@vger.kernel.org,
+	dm-devel@lists.linux.dev, linux-raid@vger.kernel.org,
+	kgdb-bugreport@lists.sourceforge.net, netdev@vger.kernel.org
+Subject: Re: [RFC PATCH 1/2] kernel/notifier: replace single-linked list with
+ double-linked list for reverse traversal
+Message-ID: <aeC7ByGA5MHBcGQR@pathway.suse.cz>
+References: <20260415070137.17860-1-chensong_2000@189.cn>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20260415165651.153b573d@bootlin.com>
+In-Reply-To: <20260415070137.17860-1-chensong_2000@189.cn>
 
-On Wed, Apr 15, 2026 at 04:56:51PM +0200, Herve Codina wrote:
-> Hi Chen, all,
+On Wed 2026-04-15 15:01:37, chensong_2000@189.cn wrote:
+> From: Song Chen <chensong_2000@189.cn>
 > 
-> ...
+> The current notifier chain implementation uses a single-linked list
+> (struct notifier_block *next), which only supports forward traversal
+> in priority order. This makes it difficult to handle cleanup/teardown
+> scenarios that require notifiers to be called in reverse priority order.
+> 
+> A concrete example is the ordering dependency between ftrace and
+> livepatch during module load/unload. see the detail here [1].
+> 
+> This patch replaces the single-linked list in struct notifier_block
+> with a struct list_head, converting the notifier chain into a
+> doubly-linked list sorted in descending priority order. Based on
+> this, a new function notifier_call_chain_reverse() is introduced,
+> which traverses the chain in reverse (ascending priority order).
+> The corresponding blocking_notifier_call_chain_reverse() is also
+> added as the locking wrapper for blocking notifier chains.
+> 
+> The internal notifier_call_chain_robust() is updated to use
+> notifier_call_chain_reverse() for rollback: on error, it records
+> the failing notifier (last_nb) and the count of successfully called
+> notifiers (nr), then rolls back exactly those nr-1 notifiers in
+> reverse order starting from last_nb's predecessor, without needing
+> to know the total length of the chain.
+> 
+> With this change, subsystems with symmetric setup/teardown ordering
+> requirements can register a single notifier_block with one priority
+> value, and rely on blocking_notifier_call_chain() for forward
+> traversal and blocking_notifier_call_chain_reverse() for reverse
+> traversal, without needing hard-coded call sequences or separate
+> notifier registrations for each direction.
+> 
+> [1]:https://lore.kernel.org/all
+> 	/alpine.LNX.2.00.1602172216491.22700@cbobk.fhfr.pm/
+> 
+> --- a/include/linux/notifier.h
+> +++ b/include/linux/notifier.h
+> @@ -53,41 +53,41 @@ typedef	int (*notifier_fn_t)(struct notifier_block *nb,
+[...]
+>  struct notifier_block {
+>  	notifier_fn_t notifier_call;
+> -	struct notifier_block __rcu *next;
+> +	struct list_head __rcu entry;
+>  	int priority;
+>  };
+[...]
+>  #define ATOMIC_INIT_NOTIFIER_HEAD(name) do {	\
+>  		spin_lock_init(&(name)->lock);	\
+> -		(name)->head = NULL;		\
+> +		INIT_LIST_HEAD(&(name)->head);		\
+
+I would expect the RCU variant here, aka INIT_LIST_HEAD_RCU().
+
+> --- a/kernel/notifier.c
+> +++ b/kernel/notifier.c
+> @@ -14,39 +14,47 @@
+>   *	are layered on top of these, with appropriate locking added.
+>   */
 >  
-> > 
-> > I'm not arguing for a even more generic "M.2" connector. The "key" is
-> > already described in the compatible. I'm saying we should have some way
-> > of describing the individual interfaces (PCIe, SDIO, USB, UART, I2S, I2C)
-> > on the connector so further nodes or properties can be attached to them,
-> > either with overlays or dynamically within the kernel. Right now the
-> > are only described as individual ports, but we can't actually tie a
-> > device to a OF graph port.
-> > 
-> > But maybe I'm overthinking the representation part. AFAICT for Qualcomm's
-> > UART-based BT bit part, Mani just had the driver create a device node
-> > under the UART (by traversing the OF graph to find the UART). If that's
-> > the desired way then the connector binding should mention it. And that
-> > works for me. But I think it's messier and also we're missing an
-> > opportunity to make the M.2 connector a standardized attachment point
-> > for overlays.
-> > 
-> > Mani, could you also chime in a bit on what you envisioned?
-> > 
-> > (Added Luca from Bootlin to CC, as I think there are parallels to the
-> >  "Hotplug of Non-discoverable Hardware" work)
-> >
-> 
-> Related to "Hotplug of Non-discoverable Hardware",
-> 
-> I would add entries for busses in the connector without using an OF graph.
-> 
+> -static int notifier_chain_register(struct notifier_block **nl,
+> +static int notifier_chain_register(struct list_head *nl,
+>  				   struct notifier_block *n,
+>  				   bool unique_priority)
+>  {
+> -	while ((*nl) != NULL) {
+> -		if (unlikely((*nl) == n)) {
+> +	struct notifier_block *cur;
+> +
+> +	list_for_each_entry(cur, nl, entry) {
+> +		if (unlikely(cur == n)) {
+>  			WARN(1, "notifier callback %ps already registered",
+>  			     n->notifier_call);
+>  			return -EEXIST;
+>  		}
+> -		if (n->priority > (*nl)->priority)
+> -			break;
+> -		if (n->priority == (*nl)->priority && unique_priority)
+> +
+> +		if (n->priority == cur->priority && unique_priority)
+>  			return -EBUSY;
+> -		nl = &((*nl)->next);
+> +
+> +		if (n->priority > cur->priority) {
+> +			list_add_tail(&n->entry, &cur->entry);
+> +			goto out;
+> +		}
+>  	}
+> -	n->next = *nl;
+> -	rcu_assign_pointer(*nl, n);
+> +
+> +	list_add_tail(&n->entry, nl);
 
-I don't think this is a correct representation. It is non-standard to describe
-the device nodes in some other connectors. While it may work with your series in
-the future, not something I would bet-on at this point.
+I would expect list_add_tail_rcu() here.
 
-Using OF graph to link the connector nodes look like the cleaner solution to me.
+> @@ -59,25 +67,25 @@ static int notifier_chain_unregister(struct notifier_block **nl,
+>   *			value of this parameter is -1.
+>   *	@nr_calls:	Records the number of notifications sent. Don't care
+>   *			value of this field is NULL.
+> + *	@last_nb:  Records the last called notifier block for rolling back
+>   *	Return:		notifier_call_chain returns the value returned by the
+>   *			last notifier function called.
+>   */
+> -static int notifier_call_chain(struct notifier_block **nl,
+> +static int notifier_call_chain(struct list_head *nl,
+>  			       unsigned long val, void *v,
+> -			       int nr_to_call, int *nr_calls)
+> +			       int nr_to_call, int *nr_calls,
+> +				   struct notifier_block **last_nb)
+>  {
+>  	int ret = NOTIFY_DONE;
+> -	struct notifier_block *nb, *next_nb;
+> -
+> -	nb = rcu_dereference_raw(*nl);
+> +	struct notifier_block *nb;
+>  
+> -	while (nb && nr_to_call) {
+> -		next_nb = rcu_dereference_raw(nb->next);
+> +	if (!nr_to_call)
+> +		return ret;
+>  
+> +	list_for_each_entry(nb, nl, entry) {
 
-> For I2C and later SPI, this was is done.
-> 
-> You already have an i2c-parent property but no node where an i2c device
-> can be added.
-> 
-> The last discussion related to hotplug, connectors and DT led to the RFC
-> series [1].
-> 
-> It is a huge series. The last patch give a real example of representation:
->   https://lore.kernel.org/all/20260112142009.1006236-78-herve.codina@bootlin.com/
-> 
-> In your case I would see some thing like:
-> 
->     connector {
->         compatible = "pcie-m2-e-connector";
->         vpcie3v3-supply = <&vreg_wcn_3p3>;
->         vpcie1v8-supply = <&vreg_l15b_1p8>;
-> 
-> 	/*
-> 	 * If those GPIOs have to be used by components available in
-> 	 * the connected board, a Nexus node should be used.
->          */
->         w-disable1-gpios = <&tlmm 115 GPIO_ACTIVE_LOW>;
->         w-disable2-gpios = <&tlmm 116 GPIO_ACTIVE_LOW>;
->         viocfg-gpios = <&tlmm 117 GPIO_ACTIVE_HIGH>;
->         uart-wake-gpios = <&tlmm 118 GPIO_ACTIVE_LOW>;
->         sdio-wake-gpios = <&tlmm 119 GPIO_ACTIVE_LOW>;
->         sdio-reset-gpios = <&tlmm 120 GPIO_ACTIVE_LOW>;
-> 
-> 	conn-i2c {
-> 		i2c-parent = <&i2c0>;
-> 
-> 		/*
->  		 * Here i2c devices available on the board
-> 		 * connected to the connector can be described.
-> 		 */
-> 	};
-> 
-> 	/* Same kind to description for other busses */
-> 	conn-pcie {
-> 		pci-parent = <&xxxxx>;
-> 
-> 		/*
-> 		 * The PCIe bus has abilities to discover devices.
-> 		 * Not sure this node is needed.
-> 		 *
-> 		 * If a PCI device need a DT description to describe
-> 		 * stuffs behind the device, what has been done for LAN966x
-> 		 * could be re-used [2] and [3]
-> 		 */
+I would expect the RCU variant here, aka list_for_each_rcu()
 
-I don't think anyone would connect something like LAN966x to the M.2 connector.
-M.2 cards have a defined purpose, like NVMe, WLAN etc... If anyone wants to
-connect another SoC like LAN966x, they would use non-M.2 connectors.
+These are just two random examples which I found by a quick look.
 
-- Mani
+I guess that the notifier API is very old and it does not use all
+the RCU API features which allow to track safety when
+CONFIG_PROVE_RCU and CONFIG_PROVE_RCU_LIST are enabled.
 
--- 
-மணிவண்ணன் சதாசிவம்
+It actually might be worth to audit the code and make it right.
+
+>  #ifdef CONFIG_DEBUG_NOTIFIERS
+>  		if (unlikely(!func_ptr_is_kernel_text(nb->notifier_call))) {
+>  			WARN(1, "Invalid notifier called!");
+> -			nb = next_nb;
+>  			continue;
+>  		}
+>  #endif
+
+That said, I am not sure if the ftrace/livepatching handlers are
+the right motivation for this. Especially when I see the
+complexity of the 2nd patch [*]
+
+After thinking more about it. I am not even sure that the ftrace and
+livepatching callbacks are good candidates for generic notifiers.
+They are too special. It is not only about ordering them against
+each other. But it is also about ordering them against other
+notifiers. The ftrace/livepatching callbacks must be the first/last
+during module load/release.
+
+[*] The 2nd patch is not archived by lore for some reason.
+    I have found only a review but it gives a good picture, see
+    https://lore.kernel.org/all/1191caf5-6a61-4622-a15e-854d3701f4fc@suse.com/
+
+Best Regards,
+Petr
