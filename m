@@ -1,145 +1,112 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f49.google.com (mail-wm1-f49.google.com [209.85.128.49])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D778839D6D1;
-	Thu, 16 Apr 2026 11:59:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF3D63B7B91
+	for <linux-acpi@vger.kernel.org>; Thu, 16 Apr 2026 12:30:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776340763; cv=none; b=qFHfouTkNLN47eztD5yWesgXo7EzaKkR6RG8evutD0Ngy0ypezbBNrCnRG0+eAtbsayz8sAaCrCKb61jxBEv+jNldKgM8srcGUttwEDh5lvrG0eBl2mpdGZDfKOuxPZ/6dgwS+vkKrDdD2/thoA/vAjI2LJI8NKpuhmgo9yhatQ=
+	t=1776342610; cv=none; b=ImelBjoVQ0sTMpSNeuOQd5YWCE0vtDik+DaNHJQd+7LfiEEWD4SoIer9YG426jR7asXH0aDjHDqFHT/0Kd/sFRkL89ku1oSwDnB7WRRs6FN6/RCfp2m1B1Y6aGmMJodrxvd12YKu1g0iCwIt+MTkYd7uf4dnGf4R4ngTwnVDUOA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776340763; c=relaxed/simple;
-	bh=py7wWhiWmBXGzlBtBHNVd2e7B5dJrS5FkveYE/aeNek=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RrPv4c5ddFFk3wgt85HzUlctA+Ip1R4pJ5Z4q7eqOVTHCTCV8dqDvqTnRoVO7LsPFt7QP+TRjF7EkCZc5gAbtzdY/mSEgcEBJLY8b1Jnk/S0z3M9OI/oZno3/S2hcXH6mqeCys+Jl8MiPZdKH7PtxHOWyP55nJfQAS/zlh1QHkQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=FKQSpSff; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776342610; c=relaxed/simple;
+	bh=K/4afwQ5p31SSvbXjWdzi0L0oqupXfEEFTghGQ4JcSM=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=N/WT4z7UWPl5Q1qqoJ1FOVmxyg9rkph/NH8oiq3TItpJrVIf5wmqZ3OxN101Gt2HKYr7DyRymAO5n6dOeeV1QQ+PEj6NN21+Iwb5zcsZwrdO9cTDahRRflJ9BX+hIdWpXeWjtv/n05Bq5HRQHmda+Q7ly3TQst+dA63hHt/rV2Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=SMyIhcMB; arc=none smtp.client-ip=209.85.128.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="FKQSpSff"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34ACAC2BCAF;
-	Thu, 16 Apr 2026 11:59:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1776340763;
-	bh=py7wWhiWmBXGzlBtBHNVd2e7B5dJrS5FkveYE/aeNek=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=FKQSpSffpiBziKTs2wrKLd54/U5m8YfRAOg7k9HlmeUGd0cqVQsHQmICDl1sS4fWw
-	 7YxEtCqUdJ3/MMg2ymrm4NgXW185Jd+gcoFxX0mGJwVeJenMzT1VFgtZGuoU9cE2lb
-	 hefo+YQtU9/oXiL9AyKUpgbzPvnCDLQCYsPil9MjvqVU+3ONKf15yRSE5eLwxA9lss
-	 IClFfY+vWWpS/vOvKtoMcw9m1/40d0SRkN3aPIWBP0gdwreaAfdJofPlZEemcw8sk8
-	 igPnINMEYDlNRCj7pupcdNWvr31ITdhrXpfd5GI9lpJc2pgWBQiXpx6Nqde0sazqrh
-	 fPlu2DYfBWzrA==
-Date: Thu, 16 Apr 2026 06:59:21 -0500
-From: Rob Herring <robh@kernel.org>
-To: Akhil R <akhilrajeev@nvidia.com>
-Cc: Alexandre Belloni <alexandre.belloni@bootlin.com>,
-	Frank Li <Frank.Li@nxp.com>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	"Rafael J . Wysocki" <rafael@kernel.org>,
-	Robert Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Eric Biggers <ebiggers@kernel.org>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Wolfram Sang <wsa+renesas@sang-engineering.com>,
-	Miquel Raynal <miquel.raynal@bootlin.com>,
-	linux-i3c@lists.infradead.org, devicetree@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-	acpica-devel@lists.linux.dev, linux-hwmon@vger.kernel.org
-Subject: Re: [PATCH v2 01/13] dt-bindings: i3c: Add mipi-i3c-static-method to
- support SETAASA
-Message-ID: <20260416115921.GA2724261-robh@kernel.org>
-References: <20260409105747.48158-1-akhilrajeev@nvidia.com>
- <20260409105747.48158-2-akhilrajeev@nvidia.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SMyIhcMB"
+Received: by mail-wm1-f49.google.com with SMTP id 5b1f17b1804b1-4887f49ec5aso95897545e9.1
+        for <linux-acpi@vger.kernel.org>; Thu, 16 Apr 2026 05:30:08 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1776342607; x=1776947407; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:subject:cc:to:from:date:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=wD5n29vJmomxS6DITZYPjUM6os1Itf/93DfNIu2KPog=;
+        b=SMyIhcMBhud7E9S0oZfY4dPtDZqiIEqLPYjB6s4KMU/0r83YLgF5ZbDmBOKyocj9ZY
+         qrYE7AXH6tRIrCBZ2stUl3Qi0p1ekSMzV/bw635qeh1plkYWcNycJtCcJhUXvLmdYZkQ
+         ak84/JBnez1KRfcmlMpgZ++CuFvu085GXxYYRhr73LFU4mA8rLyuOYJFvhMOOSuhDheC
+         cVlzWB5L4UqeH/Dt9xlmzSUVQmUeJPE5kIcqSfdNeq+fT/ncidGLUeITziIc3LIGoSlb
+         mIEymQGy7PCqcWSexrvq+2z77t5rI8LX0YHsKA3o8o949yKU9SPV8ckeT8kyG1heRNFK
+         DfaQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1776342607; x=1776947407;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=wD5n29vJmomxS6DITZYPjUM6os1Itf/93DfNIu2KPog=;
+        b=M6qU2gnWoyEG/+PkhiIcYb1KmQVJ0W6eq2R6WI3aVJ3JAgkx0wZAXxxno0Ek/l3eg7
+         oMaZD+tZMwNYQro0D+RH+fTAooN0SrXDpb8DdPmJmlhOyI2qeu48TAxLcZj+02tqLsHa
+         OSONVgyppqjCu1z6FZtSxJ5TjKZRu7jrbOAyjDx2wx3WuCwib5B5pOROEJcYWj3sQgUc
+         tTa/2Wh3RPqFFzBFdRI9cjE/1NW955+GeIbLx3oQUmE+NHU9xx+Sybd8fCyPY7lnpSdP
+         3B6AtuF/cvNJ7o8OPrDc+Ho12z3O2eD9pil8RKPHq52FuXaIqW/ajJSdTS0tMbRoi2lD
+         7qmw==
+X-Forwarded-Encrypted: i=1; AFNElJ/eDB1ZnNyfDl7pl9C7x8jkoVHB84zc4hXjKdOYIXvW69hLzyrfDvP+j+wtYh1e/nQvBgtCrhvIvpWz@vger.kernel.org
+X-Gm-Message-State: AOJu0Yx7A85ulvInLEh4m+yOB5cOYszyljTIzzJ5cpffx9QTz2qOqPFX
+	KqLaCLZqrUnnBkYhQJrY7mAFyPfqqdQS9XA62G1S4O+RTAj+cqdUyRoT
+X-Gm-Gg: AeBDieuuk7ShlI+AUnXuCatFr6F3tu2xbBiB2KWXdbCc573kWdZle0yizZ4/LBVcCZc
+	pofCqvlOh24sBBHfc1wsRJIJqUmKyydYNKFqSKvfnEDT6pTcmdma2nLH1vfm36SKV2+k+cRknlI
+	4EctJD52+borYlsZuNv6PUIvHP8Hgu0yRe1JSZL8kKWS8a5RztpNeTJ6wylRNzY3vAlH15ROMUR
+	raSde1uxhuEhf7HGIR0Vg7sNNpcaMigeg13Pg3OpFdSrMcP/VzgQVx3/L0AltFvGt1x8nED3cSU
+	2JjrMZz7j/5vlKjt7b65RpyJqenUJkuMIV957ZAO4QbawHmBuNzwG8539b2CmajnmLN5OpAeNxt
+	pjcK2nuJBqh0CBPqLx9Bpqrs6KukJLaZE7F3acda5TIsOogalMDtETYHUjcbvcL0AMSLdTDnkuC
+	i4IR/SipRyS+qWHeprC23MbZFoMFpLqhzSJHF6kn6kzb1VaiGAksyCRA/Gq/uh1U1J
+X-Received: by 2002:a05:600c:45ce:b0:485:3e19:9e01 with SMTP id 5b1f17b1804b1-488d6890c9dmr355637165e9.28.1776342606991;
+        Thu, 16 Apr 2026 05:30:06 -0700 (PDT)
+Received: from pumpkin (82-69-66-36.dsl.in-addr.zen.co.uk. [82.69.66.36])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-488f0e9c668sm69981255e9.4.2026.04.16.05.30.05
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 16 Apr 2026 05:30:06 -0700 (PDT)
+Date: Thu, 16 Apr 2026 13:30:04 +0100
+From: David Laight <david.laight.linux@gmail.com>
+To: chensong_2000@189.cn
+Cc: rafael@kernel.org, lenb@kernel.org, mturquette@baylibre.com,
+ sboyd@kernel.org, viresh.kumar@linaro.org, agk@redhat.com,
+ snitzer@kernel.org, mpatocka@redhat.com, bmarzins@redhat.com,
+ song@kernel.org, yukuai@fnnas.com, linan122@huawei.com,
+ jason.wessel@windriver.com, danielt@kernel.org, dianders@chromium.org,
+ horms@kernel.org, davem@davemloft.net, edumazet@google.com,
+ kuba@kernel.org, pabeni@redhat.com, paulmck@kernel.org,
+ frederic@kernel.org, mcgrof@kernel.org, petr.pavlu@suse.com,
+ da.gomez@kernel.org, samitolvanen@google.com, atomlin@atomlin.com,
+ jpoimboe@kernel.org, jikos@kernel.org, mbenes@suse.cz, pmladek@suse.com,
+ joe.lawrence@redhat.com, rostedt@goodmis.org, mhiramat@kernel.org,
+ mark.rutland@arm.com, mathieu.desnoyers@efficios.com,
+ linux-modules@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-trace-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+ linux-clk@vger.kernel.org, linux-pm@vger.kernel.org,
+ live-patching@vger.kernel.org, dm-devel@lists.linux.dev,
+ linux-raid@vger.kernel.org, kgdb-bugreport@lists.sourceforge.net,
+ netdev@vger.kernel.org
+Subject: Re: [RFC PATCH 1/2] kernel/notifier: replace single-linked list
+ with double-linked list for reverse traversal
+Message-ID: <20260416133004.07bd2886@pumpkin>
+In-Reply-To: <20260415070137.17860-1-chensong_2000@189.cn>
+References: <20260415070137.17860-1-chensong_2000@189.cn>
+X-Mailer: Claws Mail 4.1.1 (GTK 3.24.38; arm-unknown-linux-gnueabihf)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260409105747.48158-2-akhilrajeev@nvidia.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-On Thu, Apr 09, 2026 at 04:27:31PM +0530, Akhil R wrote:
-> Add the 'mipi-i3c-static-method' property mentioned in the MIPI I3C
-> Discovery and Configuration Specification [1] to specify which discovery
-> method an I3C device supports during bus initialization. The property is
-> a bitmap, where a bit value of 1 indicates support for that method, and 0
-> indicates lack of support.
-> Bit 0: SETDASA CCC (Direct)
-> Bit 1: SETAASA CCC (Broadcast)
-> Bit 2: Other CCC (vendor / standards extension)
-> All other bits are reserved.
+On Wed, 15 Apr 2026 15:01:37 +0800
+chensong_2000@189.cn wrote:
+
+> From: Song Chen <chensong_2000@189.cn>
 > 
-> It is specifically needed when an I3C device requires SETAASA for the
-> address assignment. SETDASA will be supported by default if this property
-> is absent, which means for now the property just serves as a flag to
-> enable SETAASA, but keep the property as a bitmap to align with the
-> specifications.
-> 
-> [1] https://www.mipi.org/mipi-disco-for-i3c-download
-> 
-> Signed-off-by: Akhil R <akhilrajeev@nvidia.com>
-> ---
->  .../devicetree/bindings/i3c/i3c.yaml          | 30 ++++++++++++++++---
->  1 file changed, 26 insertions(+), 4 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/i3c/i3c.yaml b/Documentation/devicetree/bindings/i3c/i3c.yaml
-> index e25fa72fd785..1705d90d4d79 100644
-> --- a/Documentation/devicetree/bindings/i3c/i3c.yaml
-> +++ b/Documentation/devicetree/bindings/i3c/i3c.yaml
-> @@ -31,10 +31,12 @@ properties:
->        described in the device tree, which in turn means we have to describe
->        I3C devices.
->  
-> -      Another use case for describing an I3C device in the device tree is when
-> -      this I3C device has a static I2C address and we want to assign it a
-> -      specific I3C dynamic address before the DAA takes place (so that other
-> -      devices on the bus can't take this dynamic address).
-> +      Other use-cases for describing an I3C device in the device tree are:
-> +      - When the I3C device has a static I2C address and we want to assign
-> +        it a specific I3C dynamic address before the DAA takes place (so
-> +        that other devices on the bus can't take this dynamic address).
-> +      - When the I3C device requires SETAASA for its discovery and uses a
-> +        pre-defined static address.
->  
->    "#size-cells":
->      const: 0
-> @@ -147,6 +149,26 @@ patternProperties:
->            through SETDASA. If static address is not present, this address is assigned
->            through SETNEWDA after assigning a temporary address via ENTDAA.
->  
-> +      mipi-i3c-static-method:
-> +        $ref: /schemas/types.yaml#/definitions/uint32
-> +        minimum: 0x1
-> +        maximum: 0xff
+> The current notifier chain implementation uses a single-linked list
+> (struct notifier_block *next), which only supports forward traversal
+> in priority order. This makes it difficult to handle cleanup/teardown
+> scenarios that require notifiers to be called in reverse priority order.
 
-Looks like the max is 0x7 currently.
+If it is only cleanup/teardown then the list can be order-reversed
+as part of that process at the same time as the list is deleted.
 
-> +        default: 1
-> +        description: |
-> +          Bitmap describing which methods of Dynamic Address Assignment from a
-> +          static address are supported by this I3C Target. A bit value of 1
-> +          indicates support for that method, and 0 indicates lack of support.
+	David
 
-blank line here.
 
-> +          Bit 0: SETDASA CCC (Direct)
-> +          Bit 1: SETAASA CCC (Broadcast)
-> +          Bit 2: Other CCC (vendor / standards extension)
-> +          All other bits are reserved.
-
-Indent these by 2 more.
-
-> +
-> +          This property follows the MIPI I3C specification. The primary use
-> +          of this property is to indicate support for SETAASA, i.e Bit 1, but
-> +          will allow all values so that it is aligned with the specifications.
-> +          SETDASA will remain as the default method even if this property is
-> +          not present.
-> +
->      required:
->        - reg
->  
-> -- 
-> 2.50.1
-> 
