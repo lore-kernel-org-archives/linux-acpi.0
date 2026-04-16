@@ -1,200 +1,166 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from canpmsgout08.his.huawei.com (canpmsgout08.his.huawei.com [113.46.200.223])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81E95391E75;
-	Thu, 16 Apr 2026 08:34:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F3693947AA;
+	Thu, 16 Apr 2026 08:48:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.223
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776328496; cv=none; b=dxYCSUZe+DZDDHhv4D5rZD7BjBUCrBGYmmC4wlD0MdsOruK/yMkqGlbfvDXvteC7AlOvDhQnp6pCvbOBNRRPNrapoQRKokp1GrywJtWiyWT8/IDI+UY9nEXqeXvXapCnNW7kQIR5iDcAzgWD3Tk3pPL9aUp3hWflQIQ4Jj2v/c0=
+	t=1776329328; cv=none; b=hjJOxD1QoBNN6m1lXsH8H/WATs79ZFva+IqGbqCrsNEM3+pwuDrfeKd/UyFkzk7JjgSmxnLNWjXDsQhzhyltYbSySk9+ZPjIdBhi13bcfoj1mMw+5dmto4bMa8VMBUkNe7tnemKiMjViYajz86OCwsxF5eubEMlzyThyzbuHrkc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776328496; c=relaxed/simple;
-	bh=aM4+d7l5SobaIHWwosmsIax5/zWaIyefWpD4h8VccEg=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RfCi2DKV9pLA0D8ukdn0RngqAcPLWDRB/J1HPrAmJ9Y7TxpfHCbzgg5828TUv1KvGuwCBCaQs1F0MerKUvFHYtOjuZvhNlcjwY7iRhszjx61WB8CBK7IoUI0p/YqMGRsxM37jKFi1lzPODYGMsj9tAtOqiVUM+XHIsPwvgCryIM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=EI2+kHOe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776329328; c=relaxed/simple;
+	bh=mvobvM9M+ymU0uN9ToA/yFUWVEZhHaoo/vGQ40aXq8w=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=phmJ1f5PI+Iu2iGHPWMJCPKHYvZo5DBnaWcoCsEcv5snU60ie0afF9oJnjwtFtZFzylILICt5Sm0RqUdUg2WL+GmABVB3rEAlEQYE2fDg2aA18+PZ/8N03ZOwsNUpgngqitpToMpCCowy4PvfpxZE6G2BDywNhrrVi3o/9UuWa8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=dVgaLnsL; arc=none smtp.client-ip=113.46.200.223
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="EI2+kHOe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A59AEC2BCB3;
-	Thu, 16 Apr 2026 08:34:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1776328496;
-	bh=aM4+d7l5SobaIHWwosmsIax5/zWaIyefWpD4h8VccEg=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=EI2+kHOe/DSVW7CnFneR5MVopc93u+GXckFYs8+VSkPIcMFQWRZgP5q80n6iB1eiX
-	 aoNUEwlqhXD+o+H9Eh11VuiH+quE4tAbQTtlE80W7c2LYprKl/R7Qjni/yScZ14lDN
-	 Wvc1heA3ps2ph6X5y2R8R9fPI0wghozxYGHyPeDwvjLCQp0CS+CXJU7Cnh67pjqPQm
-	 xG53TF8arOZmLIP9mOWvsmIDxybYzZ+Lbj0Ug/slhEhOriwaIrC2pN0DQqauKZ7hdx
-	 MeMVb/IVzD9Jq2gRYN0O0zx/vHqqSqA30ro36X42rb6yE9cdu+ySyEC0vvg2SKuHBU
-	 FwYQLiWDwwJ8w==
-Date: Thu, 16 Apr 2026 14:04:38 +0530
-From: Manivannan Sadhasivam <mani@kernel.org>
-To: Chen-Yu Tsai <wenst@chromium.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
-	Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>, Rob Herring <robh@kernel.org>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jirislaby@kernel.org>, 
-	Nathan Chancellor <nathan@kernel.org>, Nicolas Schier <nicolas.schier@linux.dev>, 
-	Hans de Goede <hansg@kernel.org>, Ilpo =?utf-8?B?SsOkcnZpbmVu?= <ilpo.jarvinen@linux.intel.com>, 
-	Mark Pearson <mpearson-lenovo@squebb.ca>, "Derek J. Clark" <derekjohn.clark@gmail.com>, 
-	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
-	Marcel Holtmann <marcel@holtmann.org>, Luiz Augusto von Dentz <luiz.dentz@gmail.com>, 
-	Bartosz Golaszewski <brgl@bgdev.pl>, Bartosz Golaszewski <brgl@kernel.org>, 
-	linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-kbuild@vger.kernel.org, 
-	platform-driver-x86@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, 
-	linux-arm-msm@vger.kernel.org, linux-bluetooth@vger.kernel.org, linux-pm@vger.kernel.org, 
-	Stephan Gerhold <stephan.gerhold@linaro.org>, Dmitry Baryshkov <dmitry.baryshkov@oss.qualcomm.com>, 
-	linux-acpi@vger.kernel.org, Hans de Goede <johannes.goede@oss.qualcomm.com>, 
-	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>, Luca Ceresoli <luca.ceresoli@bootlin.com>
-Subject: Re: [PATCH v7 0/8] Add support for handling PCIe M.2 Key E
- connectors in devicetree
-Message-ID: <7kpwgrxgtrpavmm2aezv66csuumma6wzsqtwvmojwgrtiqasjf@gczv34l6pnma>
-References: <20260326-pci-m2-e-v7-0-43324a7866e6@oss.qualcomm.com>
- <20260413075459.GA2626902@google.com>
- <fpcs4p62f35a5qyqwgm5ysa73stbysxcr62tkmmkrrcvsuf4t4@4ivukyqjey57>
- <eeytuhqpgdz4do4tgtbmfntub2femtyq7bij7svhodpyjwaylx@j3gmvq2a2zqc>
- <CAGXv+5E=tujhtZjwi6Qm7hk3Ks74UzTQHWq82NiTEw1+vYod5g@mail.gmail.com>
- <ad36pIu-0dutL7Nk@ashevche-desk.local>
- <CAGXv+5EGe59nJctLweEdZjb3MNmMvjuCHngGSfptzN985OiLdg@mail.gmail.com>
- <ad4tJN27opdEooA7@ashevche-desk.local>
- <CAGXv+5EPA29G-fsH=wWOD8AK6TZFezFhsE0NHPYj_Pt3nT+d_w@mail.gmail.com>
+	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="dVgaLnsL"
+dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=pRmo3xRk4FCQaZTIdl/dTls7ZAfPZPPgEZdmTEVN/DM=;
+	b=dVgaLnsLk4yjwu+/KqbzDX1Mf6uMHID4BbpY5UCIHsRWEUtbtgMRv0ZGhGqMjDW0zPRukjVkh
+	lOFukWQDuGXo85fYCMxm/qzIocnDNzso8k1OhTCyFiU7+GINBrZCz79MitZsdoKEOkcGHxfVNgG
+	AM9jkyfZDLZIsXNWzEbDAm4=
+Received: from mail.maildlp.com (unknown [172.19.163.214])
+	by canpmsgout08.his.huawei.com (SkyGuard) with ESMTPS id 4fxBMw0TsRzmV69;
+	Thu, 16 Apr 2026 16:42:20 +0800 (CST)
+Received: from dggpemf500011.china.huawei.com (unknown [7.185.36.131])
+	by mail.maildlp.com (Postfix) with ESMTPS id 77AAD4056C;
+	Thu, 16 Apr 2026 16:48:40 +0800 (CST)
+Received: from huawei.com (10.90.53.73) by dggpemf500011.china.huawei.com
+ (7.185.36.131) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Thu, 16 Apr
+ 2026 16:48:39 +0800
+From: Jinjie Ruan <ruanjinjie@huawei.com>
+To: <rafael@kernel.org>, <lenb@kernel.org>, <skelley@nvidia.com>,
+	<linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+CC: <ruanjinjie@huawei.com>
+Subject: [PATCH] Revert "ACPI: CPPC: Fix remaining for_each_possible_cpu() to use online CPUs"
+Date: Thu, 16 Apr 2026 16:52:21 +0800
+Message-ID: <20260416085221.3476726-1-ruanjinjie@huawei.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAGXv+5EPA29G-fsH=wWOD8AK6TZFezFhsE0NHPYj_Pt3nT+d_w@mail.gmail.com>
+Content-Type: text/plain
+X-ClientProxiedBy: kwepems500001.china.huawei.com (7.221.188.70) To
+ dggpemf500011.china.huawei.com (7.185.36.131)
 
-On Wed, Apr 15, 2026 at 04:31:24PM +0800, Chen-Yu Tsai wrote:
-> On Tue, Apr 14, 2026 at 8:03 PM Andy Shevchenko
-> <andriy.shevchenko@linux.intel.com> wrote:
-> >
-> > On Tue, Apr 14, 2026 at 06:29:02PM +0800, Chen-Yu Tsai wrote:
-> > > On Tue, Apr 14, 2026 at 4:28 PM Andy Shevchenko
-> > > <andriy.shevchenko@linux.intel.com> wrote:
-> > > > On Tue, Apr 14, 2026 at 01:03:19PM +0800, Chen-Yu Tsai wrote:
-> > > > > On Tue, Apr 14, 2026 at 12:08 AM Manivannan Sadhasivam <mani@kernel.org> wrote:
-> > > > > > On Mon, Apr 13, 2026 at 07:33:12PM +0530, Manivannan Sadhasivam wrote:
-> > > > > > > On Mon, Apr 13, 2026 at 03:54:59PM +0800, Chen-Yu Tsai wrote:
-> > > > > > > > On Thu, Mar 26, 2026 at 01:36:28PM +0530, Manivannan Sadhasivam wrote:
-> >
-> > ...
-> >
-> > > > > > > > - Given that this connector actually represents two devices, how do I
-> > > > > > > >   say I want the BT part to be a wakeup source, but not the WiFi part?
-> > > > > > > >   Does wakeup-source even work at this point?
-> > > > > > >
-> > > > > > > You can't use the DT property since the devices are not described in DT
-> > > > > > > statically. But you can still use the per-device 'wakeup' sysfs knob to enable
-> > > > > > > wakeup.
-> > > > >
-> > > > > I see. I think not being able to specify generic properties for the devices
-> > > > > on the connector is going to be a bit problematic.
-> > > >
-> > > > This is nature of the open-connectors, especially on the busses that are
-> > > > hotpluggable, like PCIe. We never know what is connected there _ahead_.
-> > >
-> > > I believe what you mean by "hotpluggable" is "user replaceable".
-> >
-> > From the OS perspective it's the same. From platform perspective
-> > there is a difference, granted.
-> 
-> Yes. I just wanted to clarify.
-> 
-> > > > In other words you can't describe in DT something that may not exist.
-> > >
-> > > But this is actually doable with the PCIe slot representation. The
-> > > properties are put in the device node for the slot. If no card is
-> > > actually inserted in the slot, then no device is created, and the
-> > > device node is left as not associated with anything.
-> >
-> > But you need to list all devices in the world if you want to support this
-> 
-> Why would I need to? The PCIe slot representation just describes a
-> PCIe bridge. Granted this might not be entirely correct, but it's
-> what we currently have.
-> 
-> And even then, there are properties like memory-region or wakeup-source
-> that are generic and aren't tied to specific devices.
-> 
-> > somehow. Yes, probably many of them (or majority) will be enumerated as is,
-> > but some may need an assistance via (dynamic) properties or similar mechanisms.
-> 
-> Even if we wanted to add dynamic properties, there is currently no proper
-> device node to attach them to.
-> 
+This reverts commit 56eb0c0ed345da7815274aa821a8546a073d7e97, because
+this commit cause warning call trace below when concurrently bringing up
+and down two SMT threads of a physical core.
 
-There are dynamic device nodes that we need to create for hotpluggable devices,
-if we need to pass the DT properties to the driver. Like how we do it for PCIe,
-serdev. You cannot describe static device nodes in DT for devices attached to
-swappable cards like M.2.
+The issue timeline is as follows:
 
-> > > It's just that for this new M.2 E-key connector, there aren't separate
-> > > nodes for each interface. And the system doesn't associate the device
-> > > node with the device, because it's no longer a child node of the
-> > > controller or hierarchy, but connected over the OF graph.
-> > >
-> > > Moving over to the E-key connector representation seems like one step
-> > > forward and one step backward in descriptive ability. We gain proper
-> > > power sequencing, but lose generic properties.
-> >
-> > The "key" is property of the connector. Hence if you have an idea what can be
-> > common for ALL "key":s, that's probably can be abstracted. Note, I'm not
-> > familiar with the connector framework in the Linux kernel, perhaps it's already
-> > that kind of abstraction.
-> 
-> I'm not arguing for a even more generic "M.2" connector. The "key" is
-> already described in the compatible. I'm saying we should have some way
-> of describing the individual interfaces (PCIe, SDIO, USB, UART, I2S, I2C)
-> on the connector so further nodes or properties can be attached to them,
-> either with overlays or dynamically within the kernel. Right now the
-> are only described as individual ports, but we can't actually tie a
-> device to a OF graph port.
-> 
+1. when the system starts,
+	cpufreq: cpu: 220, policy->related_cpus: 220-221, policy->cpus: 220-221
 
-If there are properties that apply to the interfaces, *not devices*, then you
-can add them to the relevant endpoint node:
-https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/Documentation/devicetree/bindings/connector/pcie-m2-e-connector.yaml#n167
+2. Offline cpu 220 and cpu 221.
 
-> But maybe I'm overthinking the representation part. AFAICT for Qualcomm's
-> UART-based BT bit part, Mani just had the driver create a device node
-> under the UART (by traversing the OF graph to find the UART). If that's
-> the desired way then the connector binding should mention it.
+3. Online cpu 220
+- cpu 221 is now offline, as acpi_get_psd_map() use for_each_online_cpu(),
+   so the cpu_data->shared_cpu_map, policy->cpus, and related_cpus has only
+   cpu 220.
+	cpufreq: cpu: 220, related_cpus: 220, cpus: 220
 
-What do you mean by 'connector binding should mention it'? You cannot hardcode
-the device node in the connector binding, because it is not part of the
-connector binding itself. For example, the UART device node that is created for
-the WCN7850, already has a binding:
-https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/Documentation/devicetree/bindings/net/bluetooth/qcom,wcn7850-bt.yaml
+4. offline cpu 220
 
-What the driver does is, just creating that node under the serdev controller as
-if the device was described statically in the DT.
+5. online cpu 221, the below call trace occurs:
+- Because cpu 220 and cpu 221 share one policy, and policy->related_cpus
+  = 220 after step 3, so cpu 221 is not in policy->related_cpus
+  but per_cpu(cpufreq_cpu_data, cpu221) is not NULL.
 
-For the wakeup property you asked earlier, it depends on the interface. If the
-interface supports "in-band" wakeup like USB/SDIO, you can add the property in
-the relevant controller node statically itself. For example, with USB XHCI
-controller, you would know that the controller will support wakeup or not
-statically. So you will add that property to the controller node. Then, if the
-user has enabled the wakeup for a specific USB device like keyboard/mouse
-through sysfs, then wakeup will just work. Here, we don't need to create the
-USB device node at all.
+The _PSD (P-State Dependency) defines the hardware-level dependency of
+frequency control across CPU cores. Since this relationship is a physical
+attribute of the hardware topology, it remains constant regardless of the
+online or offline status of the CPUs.
 
-But if the interface supports physical wakeup, like UART_WAKE# in M.2 SDIO Key
-E, then based on the presence of that property, you would configure wakeup in
-the connector driver itself. But this is not present as of now.
+Using for_each_online_cpu() in acpi_get_psd_map() is problematic. If a
+CPU is offline, it will be excluded from the shared_cpu_map.
+Consequently, if that CPU is brought online later, the kernel will fail to
+recognize it as part of any shared frequency domain.
 
-> And that
-> works for me. But I think it's messier and also we're missing an
-> opportunity to make the M.2 connector a standardized attachment point
-> for overlays.
-> 
+Switch back to for_each_possible_cpu() to ensure that all cores defined
+in the ACPI tables are correctly mapped into their respective performance
+domains from the start. This aligns with the logic of policy->related_cpus,
+which must encompass all potentially available cores in the domain to
+prevent logic gaps during CPU hotplug operations.
 
-I don't envision using overlays for the M.2 connectors. It is not strictly
-needed, unless the connector is non-standard.
+How to reproduce, on arm64 machine with SMT support which use acpi cppc
+cpufreq driver:
 
-- Mani
+	bash test.sh 220 & bash test.sh 221 &
 
+	The test.sh is as below:
+		while true
+			do
+			echo 0 > /sys/devices/system/cpu/cpu${1}/online
+			sleep 0.5
+			cat /sys/devices/system/cpu/cpu${1}/cpufreq/related_cpus
+			echo 1 >  /sys/devices/system/cpu/cpu${1}/online
+			cat /sys/devices/system/cpu/cpu${1}/cpufreq/related_cpus
+		done
+
+	CPU: 221 PID: 1119 Comm: cpuhp/221 Kdump: loaded Not tainted 6.6.0debug+ #5
+	Hardware name: To be filled by O.E.M. S920X20/BC83AMDA01-7270Z, BIOS 20.39 09/04/2024
+	pstate: a1400009 (NzCv daif +PAN -UAO -TCO +DIT -SSBS BTYPE=--)
+	pc : cpufreq_online+0x8ac/0xa90
+	lr : cpuhp_cpufreq_online+0x18/0x30
+	sp : ffff80008739bce0
+	x29: ffff80008739bce0 x28: 0000000000000000 x27: ffff28400ca32200
+	x26: 0000000000000000 x25: 0000000000000003 x24: ffffd483503ff000
+	x23: ffffd483504051a0 x22: ffffd48350024a00 x21: 00000000000000dd
+	x20: 000000000000001d x19: ffff28400ca32000 x18: 0000000000000000
+	x17: 0000000000000020 x16: ffffd4834e6a3fc8 x15: 0000000000000020
+	x14: 0000000000000008 x13: 0000000000000001 x12: 00000000ffffffff
+	x11: 0000000000000040 x10: ffffd48350430728 x9 : ffffd4834f087c78
+	x8 : 0000000000000001 x7 : ffff2840092bdf00 x6 : ffffd483504264f0
+	x5 : ffffd48350405000 x4 : ffff283f7f95cc60 x3 : 0000000000000000
+	x2 : ffff53bc2f94b000 x1 : 00000000000000dd x0 : 0000000000000000
+	Call trace:
+	 cpufreq_online+0x8ac/0xa90
+	 cpuhp_cpufreq_online+0x18/0x30
+	 cpuhp_invoke_callback+0x128/0x580
+	 cpuhp_thread_fun+0x110/0x1b0
+	 smpboot_thread_fn+0x140/0x190
+	 kthread+0xec/0x100
+	 ret_from_fork+0x10/0x20
+	---[ end trace 0000000000000000 ]---
+
+Cc: stable@vger.kernel.org
+Fixes: 56eb0c0ed345 ("ACPI: CPPC: Fix remaining for_each_possible_cpu() to use online CPUs")
+Signed-off-by: Jinjie Ruan <ruanjinjie@huawei.com>
+---
+ drivers/acpi/cppc_acpi.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+index f0e513e9ed5d..9ae29f2c6db8 100644
+--- a/drivers/acpi/cppc_acpi.c
++++ b/drivers/acpi/cppc_acpi.c
+@@ -362,7 +362,7 @@ static int send_pcc_cmd(int pcc_ss_id, u16 cmd)
+ end:
+ 	if (cmd == CMD_WRITE) {
+ 		if (unlikely(ret)) {
+-			for_each_online_cpu(i) {
++			for_each_possible_cpu(i) {
+ 				struct cpc_desc *desc = per_cpu(cpc_desc_ptr, i);
+ 
+ 				if (!desc)
+@@ -524,7 +524,7 @@ int acpi_get_psd_map(unsigned int cpu, struct cppc_cpudata *cpu_data)
+ 	else if (pdomain->coord_type == DOMAIN_COORD_TYPE_SW_ANY)
+ 		cpu_data->shared_type = CPUFREQ_SHARED_TYPE_ANY;
+ 
+-	for_each_online_cpu(i) {
++	for_each_possible_cpu(i) {
+ 		if (i == cpu)
+ 			continue;
+ 
 -- 
-மணிவண்ணன் சதாசிவம்
+2.34.1
+
