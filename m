@@ -1,291 +1,228 @@
-Received: from mail-wm1-f50.google.com (mail-wm1-f50.google.com [209.85.128.50])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87EB33BA220
-	for <linux-acpi@vger.kernel.org>; Thu, 16 Apr 2026 13:09:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AACEC38BF63;
+	Thu, 16 Apr 2026 13:34:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.84.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776344978; cv=none; b=RJlv9pr1oK34w5xl9yba3EWpT/zXJUY3rAfWfgYPnwwohcVpzmlfiCAn+eh8cCmlK1pSr9yYKeE7EiPQ2cOGQJ1kc8EH4hPd/C1gh1aohAD9bP9KgDPi66VDyUAmWrxJLT3exom3UE41DhkACmpQb0+RcxKaSrcE/C3XvrwFTaI=
+	t=1776346477; cv=none; b=jJROUxeD17HF7QaZRUT0Ip90fGDdQJI8ZhbrwZ4kbMDZALEOMfM5joFqwgfrTnz2ev1rSyflGkL+6BhklDAGqU7Ix31faUdLuVl6a+nNukzIGQBhus9EjXe6Ro7lCZR3gQG/NvzkbwrH/oPINHbYWSnrFV7gjjyvhy5H8Z2S0IU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776344978; c=relaxed/simple;
-	bh=eVmjde+k93xycVxx5TzpLj5SCL1rx1KrvC1l3ql6brE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=BTaIiZkusQHeGXHnaXIE33SKEVP3eYPSc0CKK1mTENnLecbixPXn2kCeF2nfG6la8GuAiaZyBhybkNTo9GZeEPa0N7hQHjqZv5dCFGVy8JwXVPUHNamOUIDS6HvFyqmescwaQNVngvFEoi+wQIlt+TazmpvgSpxACqoe2XQd50o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=gWVkabXn; arc=none smtp.client-ip=209.85.128.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
+	s=arc-20240116; t=1776346477; c=relaxed/simple;
+	bh=OdPGRiJ2OTAd0wN0VpIuzIvWe5D9n+gShs26W0B8xqs=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=KN4c0OSYumQWlsmEKCbOgyqyBvvegLoAiFahJmzTq9woCjwVBWA4CUjMhC3VEPLOCm9H44+COB5KEhTUiihz2Glc7ROO9WbbKoRiFQ4LCkRfBFaJzb0sXtpB84b6/C6Pna4aEAGD6v+TFq7bXHp3f+ypIQo7f3Bfjn8+xA64zVw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=EloIX9sM; arc=none smtp.client-ip=185.246.84.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="gWVkabXn"
-Received: by mail-wm1-f50.google.com with SMTP id 5b1f17b1804b1-4852b81c73aso74680895e9.3
-        for <linux-acpi@vger.kernel.org>; Thu, 16 Apr 2026 06:09:36 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=suse.com; s=google; t=1776344975; x=1776949775; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=m3piWCtfpN3U6w8bKY3YeNvzMYnQTdnw3h4KjP2i/sk=;
-        b=gWVkabXnsOnvoM3GUthhg8haRYPkHddoedkvckM6BiaWRjb06CqxgY1ZFpHCK6p2WQ
-         FeqGPchIhpZXb0+i22atTHjtQiVxh/L3GaX0sweeDZNZh0F0BqZNyig0cvTJIlkZOWrU
-         iafVJOHGilIbYuSWy9/9iW9WyzDmm/DAkiMmIoAp3Kr55fvy4h49B0CstsHsF0gAOsMP
-         k2vDVLT3F5J56OpiQi1aRT8PZh7o1ZnusmrX9FtcSuPjXgt4jpR7uV6jXUFW+6bTdZK+
-         bfmF+CPLNC4k007+B1ngA7VPideyNIXpDY5g7gjNDJuM/JGoIeOAqBG39/Z81HGf0hxO
-         cXOA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1776344975; x=1776949775;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=m3piWCtfpN3U6w8bKY3YeNvzMYnQTdnw3h4KjP2i/sk=;
-        b=hywz2ZtREVa5wGiAYVQWswFmy7/WoKN4xfv0GL7DO96kn/TPWfJVy8wcKM1I099GZD
-         kdL7l0fNYNtiJZoAXHfdpbrvGiTn4+mYSx4mKXebpPTZADZDsAEiWg8EsJwprOIeuc8K
-         CZWr3yHJmIiUnRyctCLGVtzC2Mzm2HPVYaL4BFHe5R1emRDpVdPFs2GFobHFx6KK9gE3
-         U9psw7FCVEFySKyrbTliC2ei8syLc3Uq0GT7/6OBkm/MAWjdLHjh4C85EG70YKECT9eC
-         moxukvugctKh2FPp/Jf2zpviLcyPTExX/JNVCnq7v1VZe8ob2q/wiDGxL22gSu2cG1DB
-         CChQ==
-X-Forwarded-Encrypted: i=1; AFNElJ9gJIkzbNZ2gXcbUTIDtKlWyAEstDdQstuqain8xh25FCSA8H8alWu3WjmZiLEE4unjgDdZ+oJlZi0R@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx3xD54y99/eBo3uandW3F4uI2n/GuihaozdsmXcrL8o1IQIS3P
-	jnlMKCgqWKq0fft7SiXtK+Il90ngZz8fiqibxPlrJQZGEPb7KqmHLh82ABD+oa+la+o=
-X-Gm-Gg: AeBDiesWRO7+Ka2XkngAm+k6zbjKUPCF8jskhNVcutU3CiWj5T9Pn4ZLdzJ3FVno4V8
-	hujjtSoyRFm3wDGURGYrZHO5xWWHh85/30eW251X/t2L/EI3YtKfuHHP+4VZgkXr2MnZHXiosps
-	dme7/NismxsCeDfd5euX1mAm49Fw52Q3KX0AedA+91yQ0J5FOjWaspd2uYNEty81c7RNip9D/4W
-	pdgvGZWEsE7ipJzpn1mVaMTWOpiIOBuNLemEIXaeHY3JsVaoYpwwVCj+YHii7ZdvgoE0pLGbIwL
-	Dlrq5JT6JqEWRpo4ui5dsqMAWlFs5nNhF0r1xCdpUm7ozmdq+WxeJJTxRRR7ePyp8XFUmNUYIMU
-	h4uTeAKOVvO44AU2B+BjDukyWOfgHe7K33weis1lYboooaPGQYTpgurQCU9fpTznhpOXCZYIYwN
-	qRgou0I5zG9EErOgpIuQ1J+NS6kg==
-X-Received: by 2002:a05:600d:8449:b0:487:55c:e0c1 with SMTP id 5b1f17b1804b1-488d68364fdmr279402625e9.14.1776344974877;
-        Thu, 16 Apr 2026 06:09:34 -0700 (PDT)
-Received: from pathway.suse.cz ([176.114.240.130])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-488f585cefdsm53796665e9.14.2026.04.16.06.09.32
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 16 Apr 2026 06:09:34 -0700 (PDT)
-Date: Thu, 16 Apr 2026 15:09:31 +0200
-From: Petr Mladek <pmladek@suse.com>
-To: Song Chen <chensong_2000@189.cn>
-Cc: Petr Pavlu <petr.pavlu@suse.com>, rafael@kernel.org, lenb@kernel.org,
-	mturquette@baylibre.com, sboyd@kernel.org, viresh.kumar@linaro.org,
-	agk@redhat.com, snitzer@kernel.org, mpatocka@redhat.com,
-	bmarzins@redhat.com, song@kernel.org, yukuai@fnnas.com,
-	linan122@huawei.com, jason.wessel@windriver.com, danielt@kernel.org,
-	dianders@chromium.org, horms@kernel.org, davem@davemloft.net,
-	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
-	paulmck@kernel.org, frederic@kernel.org, mcgrof@kernel.org,
-	da.gomez@kernel.org, samitolvanen@google.com, atomlin@atomlin.com,
-	jpoimboe@kernel.org, jikos@kernel.org, mbenes@suse.cz,
-	joe.lawrence@redhat.com, rostedt@goodmis.org, mhiramat@kernel.org,
-	mark.rutland@arm.com, mathieu.desnoyers@efficios.com,
-	linux-modules@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-trace-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-	linux-clk@vger.kernel.org, linux-pm@vger.kernel.org,
-	live-patching@vger.kernel.org, dm-devel@lists.linux.dev,
-	linux-raid@vger.kernel.org, kgdb-bugreport@lists.sourceforge.net,
-	netdev@vger.kernel.org
-Subject: Re: [RFC PATCH 2/2] kernel/module: Decouple klp and ftrace from
- load_module
-Message-ID: <aeDfi98xpnKcAJx5@pathway.suse.cz>
-References: <20260413080701.180976-1-chensong_2000@189.cn>
- <1191caf5-6a61-4622-a15e-854d3701f4fc@suse.com>
- <a35f5f94-7d5a-4347-974b-b270c89ef241@189.cn>
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="EloIX9sM"
+Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
+	by smtpout-02.galae.net (Postfix) with ESMTPS id 462291A32F4;
+	Thu, 16 Apr 2026 13:34:34 +0000 (UTC)
+Received: from mail.galae.net (mail.galae.net [212.83.136.155])
+	by smtpout-01.galae.net (Postfix) with ESMTPS id 0867F60495;
+	Thu, 16 Apr 2026 13:34:34 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 360BB10460880;
+	Thu, 16 Apr 2026 15:34:23 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
+	t=1776346472; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 content-transfer-encoding:in-reply-to:references;
+	bh=3XpbdgVt+Cx8FP8MN9lmm4BPNvobbTQ5J2Ix6m+jMcE=;
+	b=EloIX9sM1QOhKmblue3jMDM5k8KpAKMHSGLQ8TanAuK7ENEV4CJPIMh2MskGhnhqAWn8Yw
+	kUAvaK1IF/Se+k3PBQG/MKIkBmVQpmTrY37v/4rJgCuO1y+r/1Gi1LkS705qt3VLfG8J/t
+	Xh6hvLhGANS4fiHpUfY431EjCRXdb9gafJMTVqrXQqnuY5IB80FZ7/DSZE6NczIytZJkU/
+	4zplh8emxfZOdpV5qrGtzBrEKS6pZZFh2AdjAIRSTDrK00XSpARNgEHfGzFQBwyefj3PSo
+	lEtKIt5lgvdG95GPo0kXJtjJ2O6cW+fsn6WroFDb1nkTBbUb0qISYKdg0D0cCg==
+Date: Thu, 16 Apr 2026 15:34:21 +0200
+From: Herve Codina <herve.codina@bootlin.com>
+To: Manivannan Sadhasivam <mani@kernel.org>
+Cc: Chen-Yu Tsai <wenst@chromium.org>, Andy Shevchenko
+ <andriy.shevchenko@linux.intel.com>, Manivannan Sadhasivam
+ <manivannan.sadhasivam@oss.qualcomm.com>, Rob Herring <robh@kernel.org>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby
+ <jirislaby@kernel.org>, Nathan Chancellor <nathan@kernel.org>, Nicolas
+ Schier <nicolas.schier@linux.dev>, Hans de Goede <hansg@kernel.org>, Ilpo
+ =?UTF-8?B?SsOkcnZpbmVu?= <ilpo.jarvinen@linux.intel.com>, Mark Pearson
+ <mpearson-lenovo@squebb.ca>, "Derek J. Clark" <derekjohn.clark@gmail.com>,
+ Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley
+ <conor+dt@kernel.org>, Marcel Holtmann <marcel@holtmann.org>, Luiz Augusto
+ von Dentz <luiz.dentz@gmail.com>, Bartosz Golaszewski <brgl@bgdev.pl>,
+ Bartosz Golaszewski <brgl@kernel.org>, linux-serial@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-kbuild@vger.kernel.org,
+ platform-driver-x86@vger.kernel.org, linux-pci@vger.kernel.org,
+ devicetree@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+ linux-bluetooth@vger.kernel.org, linux-pm@vger.kernel.org, Stephan Gerhold
+ <stephan.gerhold@linaro.org>, Dmitry Baryshkov
+ <dmitry.baryshkov@oss.qualcomm.com>, linux-acpi@vger.kernel.org, Hans de
+ Goede <johannes.goede@oss.qualcomm.com>, Bartosz Golaszewski
+ <bartosz.golaszewski@oss.qualcomm.com>, Luca Ceresoli
+ <luca.ceresoli@bootlin.com>
+Subject: Re: [PATCH v7 0/8] Add support for handling PCIe M.2 Key E
+ connectors in devicetree
+Message-ID: <20260416153421.1692848f@bootlin.com>
+In-Reply-To: <4yockfx5rjcvfh2n2excrgsknnhi72rv2w7wf7onks2ryt33sm@w7zkcxuc6vem>
+References: <20260326-pci-m2-e-v7-0-43324a7866e6@oss.qualcomm.com>
+	<20260413075459.GA2626902@google.com>
+	<fpcs4p62f35a5qyqwgm5ysa73stbysxcr62tkmmkrrcvsuf4t4@4ivukyqjey57>
+	<eeytuhqpgdz4do4tgtbmfntub2femtyq7bij7svhodpyjwaylx@j3gmvq2a2zqc>
+	<CAGXv+5E=tujhtZjwi6Qm7hk3Ks74UzTQHWq82NiTEw1+vYod5g@mail.gmail.com>
+	<ad36pIu-0dutL7Nk@ashevche-desk.local>
+	<CAGXv+5EGe59nJctLweEdZjb3MNmMvjuCHngGSfptzN985OiLdg@mail.gmail.com>
+	<ad4tJN27opdEooA7@ashevche-desk.local>
+	<CAGXv+5EPA29G-fsH=wWOD8AK6TZFezFhsE0NHPYj_Pt3nT+d_w@mail.gmail.com>
+	<20260415165651.153b573d@bootlin.com>
+	<4yockfx5rjcvfh2n2excrgsknnhi72rv2w7wf7onks2ryt33sm@w7zkcxuc6vem>
+Organization: Bootlin
+X-Mailer: Claws Mail 4.3.1 (GTK 3.24.52; x86_64-redhat-linux-gnu)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <a35f5f94-7d5a-4347-974b-b270c89ef241@189.cn>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-Last-TLS-Session-Version: TLSv1.3
 
-On Wed 2026-04-15 14:43:53, Song Chen wrote:
-> Hi,
-> 
-> On 4/14/26 22:33, Petr Pavlu wrote:
-> > On 4/13/26 10:07 AM, chensong_2000@189.cn wrote:
-> > > From: Song Chen <chensong_2000@189.cn>
+Hi Manivannan,
+
+On Thu, 16 Apr 2026 14:25:39 +0530
+Manivannan Sadhasivam <mani@kernel.org> wrote:
+
+> On Wed, Apr 15, 2026 at 04:56:51PM +0200, Herve Codina wrote:
+> > Hi Chen, all,
+> > 
+> > ...
+> >    
 > > > 
-> > > ftrace and livepatch currently have their module load/unload callbacks
-> > > hard-coded in the module loader as direct function calls to
-> > > ftrace_module_enable(), klp_module_coming(), klp_module_going()
-> > > and ftrace_release_mod(). This tight coupling was originally introduced
-> > > to enforce strict call ordering that could not be guaranteed by the
-> > > module notifier chain, which only supported forward traversal. Their
-> > > notifiers were moved in and out back and forth. see [1] and [2].
+> > > I'm not arguing for a even more generic "M.2" connector. The "key" is
+> > > already described in the compatible. I'm saying we should have some way
+> > > of describing the individual interfaces (PCIe, SDIO, USB, UART, I2S, I2C)
+> > > on the connector so further nodes or properties can be attached to them,
+> > > either with overlays or dynamically within the kernel. Right now the
+> > > are only described as individual ports, but we can't actually tie a
+> > > device to a OF graph port.
+> > > 
+> > > But maybe I'm overthinking the representation part. AFAICT for Qualcomm's
+> > > UART-based BT bit part, Mani just had the driver create a device node
+> > > under the UART (by traversing the OF graph to find the UART). If that's
+> > > the desired way then the connector binding should mention it. And that
+> > > works for me. But I think it's messier and also we're missing an
+> > > opportunity to make the M.2 connector a standardized attachment point
+> > > for overlays.
+> > > 
+> > > Mani, could you also chime in a bit on what you envisioned?
+> > > 
+> > > (Added Luca from Bootlin to CC, as I think there are parallels to the
+> > >  "Hotplug of Non-discoverable Hardware" work)
+> > >  
 > > 
-> > I'm unclear about what is meant by the notifiers being moved back and
-> > forth. The links point to patches that converted ftrace+klp from using
-> > module notifiers to explicit callbacks due to ordering issues, but this
-> > switch occurred only once. Have there been other attempts to use
-> > notifiers again?
+> > Related to "Hotplug of Non-discoverable Hardware",
 > > 
-> > > diff --git a/include/linux/module.h b/include/linux/module.h
-> > > index 14f391b186c6..0bdd56f9defd 100644
-> > > --- a/include/linux/module.h
-> > > +++ b/include/linux/module.h
-> > > @@ -308,6 +308,14 @@ enum module_state {
-> > >   	MODULE_STATE_COMING,	/* Full formed, running module_init. */
-> > >   	MODULE_STATE_GOING,	/* Going away. */
-> > >   	MODULE_STATE_UNFORMED,	/* Still setting it up. */
-> > > +	MODULE_STATE_FORMED,
-> > 
-> > I don't see a reason to add a new module state. Why is it necessary and
-> > how does it fit with the existing states?
-> > 
-> because once notifier fails in state MODULE_STATE_UNFORMED (now only ftrace
-> has someting to do in this state), notifier chain will roll back by calling
-> blocking_notifier_call_chain_robust, i'm afraid MODULE_STATE_GOING is going
-> to jeopardise the notifers which don't handle it appropriately, like:
+> > I would add entries for busses in the connector without using an OF graph.
+> >   
 > 
-> case MODULE_STATE_COMING:
->      kmalloc();
-> case MODULE_STATE_GOING:
->      kfree();
+> I don't think this is a correct representation. It is non-standard to describe
+> the device nodes in some other connectors. While it may work with your series in
+> the future, not something I would bet-on at this point.
 > 
+> Using OF graph to link the connector nodes look like the cleaner solution to me.
+
+In your DT binding, there is the i2c-parent property at connector level.
+
+How it is used or planned to be used in order to handle devices available on the
+board connected to the M2 connector ?
+
 > 
-> > > +};
-> > > +
-> > > +enum module_notifier_prio {
-> > > +	MODULE_NOTIFIER_PRIO_LOW = INT_MIN,	/* Low prioroty, coming last, going first */
-> > > +	MODULE_NOTIFIER_PRIO_MID = 0,	/* Normal priority. */
-> > > +	MODULE_NOTIFIER_PRIO_SECOND_HIGH = INT_MAX - 1,	/* Second high priorigy, coming second*/
-> > > +	MODULE_NOTIFIER_PRIO_HIGH = INT_MAX,	/* High priorigy, coming first, going late. */
+> > For I2C and later SPI, this was is done.
 > > 
-> > I suggest being explicit about how the notifiers are ordered. For
-> > example:
+> > You already have an i2c-parent property but no node where an i2c device
+> > can be added.
 > > 
-> > enum module_notifier_prio {
-> > 	MODULE_NOTIFIER_PRIO_NORMAL,	/* Normal priority, coming last, going first. */
-> > 	MODULE_NOTIFIER_PRIO_LIVEPATCH,
-> > 	MODULE_NOTIFIER_PRIO_FTRACE,	/* High priority, coming first, going late. */
-> > };
+> > The last discussion related to hotplug, connectors and DT led to the RFC
+> > series [1].
 > > 
-
-I like the explicit PRIO_LIVEPATCH/FTRACE names.
-
-But I would keep the INT_MAX - 1 and INT_MAX priorities. I believe
-that ftrace/livepatching will always be the first/last to call.
-And INT_MAX would help to preserve kABI when PRIO_NORMAL is not
-enough for the rest of notifiers.
-
-That said, I am not sure whether this is worth the effort.
-This patch tries to move the explicit callbacks in a generic
-notifiers API. But it will still need to use some explictly
-defined (reserved) priorities. And it will
-not guarantee a misuse. Also it requires the double linked
-list which complicates the notifiers code.
-
-
-> > >   };
-> > >   struct mod_tree_node {
-> > > --- a/kernel/module/main.c
-> > > +++ b/kernel/module/main.c
-> > > @@ -3281,20 +3277,14 @@ static int complete_formation(struct module *mod, struct load_info *info)
-> > >   	return err;
-> > >   }
-> > > -static int prepare_coming_module(struct module *mod)
-> > > +static int prepare_module_state_transaction(struct module *mod,
-> > > +			unsigned long val_up, unsigned long val_down)
-> > >   {
-> > >   	int err;
-> > > -	ftrace_module_enable(mod);
-> > > -	err = klp_module_coming(mod);
-> > > -	if (err)
-> > > -		return err;
-> > > -
-> > >   	err = blocking_notifier_call_chain_robust(&module_notify_list,
-> > > -			MODULE_STATE_COMING, MODULE_STATE_GOING, mod);
-> > > +			val_up, val_down, mod);
-> > >   	err = notifier_to_errno(err);
-> > > -	if (err)
-> > > -		klp_module_going(mod);
-> > >   	return err;
-> > >   }
-
-I personally find the name "prepare_module_state_transaction"
-misleading. What is the "transaction" here? If this was a "preparation"
-step then where is the transaction done/finished?
-
-It might be better to just opencode the
-blocking_notifier_call_chain_robust() instead.
-
-> > > @@ -3468,14 +3458,21 @@ static int load_module(struct load_info *info, const char __user *uargs,
-> > >   	init_build_id(mod, info);
-> > >   	/* Ftrace init must be called in the MODULE_STATE_UNFORMED state */
-> > > -	ftrace_module_init(mod);
-> > > +	err = prepare_module_state_transaction(mod,
-> > > +				MODULE_STATE_UNFORMED, MODULE_STATE_FORMED);
+> > It is a huge series. The last patch give a real example of representation:
+> >   https://lore.kernel.org/all/20260112142009.1006236-78-herve.codina@bootlin.com/
 > > 
-> > I believe val_down should be MODULE_STATE_GOING to reverse the
-> > operation. Why is the new state MODULE_STATE_FORMED needed here?
-> to avoid this:
+> > In your case I would see some thing like:
+> > 
+> >     connector {
+> >         compatible = "pcie-m2-e-connector";
+> >         vpcie3v3-supply = <&vreg_wcn_3p3>;
+> >         vpcie1v8-supply = <&vreg_l15b_1p8>;
+> > 
+> > 	/*
+> > 	 * If those GPIOs have to be used by components available in
+> > 	 * the connected board, a Nexus node should be used.
+> >          */
+> >         w-disable1-gpios = <&tlmm 115 GPIO_ACTIVE_LOW>;
+> >         w-disable2-gpios = <&tlmm 116 GPIO_ACTIVE_LOW>;
+> >         viocfg-gpios = <&tlmm 117 GPIO_ACTIVE_HIGH>;
+> >         uart-wake-gpios = <&tlmm 118 GPIO_ACTIVE_LOW>;
+> >         sdio-wake-gpios = <&tlmm 119 GPIO_ACTIVE_LOW>;
+> >         sdio-reset-gpios = <&tlmm 120 GPIO_ACTIVE_LOW>;
+> > 
+> > 	conn-i2c {
+> > 		i2c-parent = <&i2c0>;
+> > 
+> > 		/*
+> >  		 * Here i2c devices available on the board
+> > 		 * connected to the connector can be described.
+> > 		 */
+> > 	};
+> > 
+> > 	/* Same kind to description for other busses */
+> > 	conn-pcie {
+> > 		pci-parent = <&xxxxx>;
+> > 
+> > 		/*
+> > 		 * The PCIe bus has abilities to discover devices.
+> > 		 * Not sure this node is needed.
+> > 		 *
+> > 		 * If a PCI device need a DT description to describe
+> > 		 * stuffs behind the device, what has been done for LAN966x
+> > 		 * could be re-used [2] and [3]
+> > 		 */  
 > 
-> case MODULE_STATE_COMING:
->      kmalloc();
-> case MODULE_STATE_GOING:
->      kfree();
+> I don't think anyone would connect something like LAN966x to the M.2 connector.
+> M.2 cards have a defined purpose, like NVMe, WLAN etc... If anyone wants to
+> connect another SoC like LAN966x, they would use non-M.2 connectors.
 
-Hmm, the module is in "FORMED" state here.
+Hum, maybe yes, maybe not. I don't know what kind of hardware could be available
+on a M2 connector.
 
-> > > +	if (err)
-> > > +		goto ddebug_cleanup;
-> > >   	/* Finally it's fully formed, ready to start executing. */
-> > >   	err = complete_formation(mod, info);
+One think sure is that a PCIe bus is available on the connector and so, potentially
+all PCI devices could be wired on a M2 form factor.
 
-And we call "complete_formation()" function. This sounds like
-it was not really "FORMED" before. => It is confusing and nono.
+LAN966x in PCI version is just a PCI device.
 
-Please, try to avoid the new state if possible. My experience
-with reading the module loader code is that any new state
-brings a lot of complexity. You need to take it into account
-when checking correctness of other changes, features, ...
+Anyway, Is it allowed to have sub-nodes in a port node ?
 
-Something tells me that if the state was not needed before
-then we could avoid it.
+I mean, can we describe devices connected to a bus described by the port node ?
 
-> > > -	if (err)
-> > > +	if (err) {
-> > > +		blocking_notifier_call_chain_reverse(&module_notify_list,
-> > > +				MODULE_STATE_FORMED, mod);
-> > >   		goto ddebug_cleanup;
-> > > +	}
-> > > -	err = prepare_coming_module(mod);
-> > > +	err = prepare_module_state_transaction(mod,
-> > > +				MODULE_STATE_COMING, MODULE_STATE_GOING);
-> > >   	if (err)
-> > >   		goto bug_cleanup;
-> > > --- a/kernel/trace/ftrace.c
-> > > +++ b/kernel/trace/ftrace.c
-> > > @@ -5241,6 +5241,44 @@ static int __init ftrace_mod_cmd_init(void)
-> > >   }
-> > >   core_initcall(ftrace_mod_cmd_init);
-> > > +static int ftrace_module_callback(struct notifier_block *nb, unsigned long op,
-> > > +			void *module)
-> > > +{
-> > > +	struct module *mod = module;
-> > > +
-> > > +	switch (op) {
-> > > +	case MODULE_STATE_UNFORMED:
-> > > +		ftrace_module_init(mod);
-> > > +		break;
-> > > +	case MODULE_STATE_COMING:
-> > > +		ftrace_module_enable(mod);
-> > > +		break;
-> > > +	case MODULE_STATE_LIVE:
-> > > +		ftrace_free_mem(mod, mod->mem[MOD_INIT_TEXT].base,
-> > > +				mod->mem[MOD_INIT_TEXT].base + mod->mem[MOD_INIT_TEXT].size);
-> > > +		break;
-> > > +	case MODULE_STATE_GOING:
-> > > +	case MODULE_STATE_FORMED:
-> > > +		ftrace_release_mod(mod);
+For USB and PCI it is probably not needed for common use cases but having a DT
+description for devices on PCI and/or USB exists and is supported in the current
+kernel
 
-This calls "release" in a "FORMED" state. It does not make any
-sense. Something looks fishy, either the code or the naming.
+On SDIO, wireless devices can be described:
+  Documentation/devicetree/bindings/net/wireless/
 
-> > > +		break;
-> > > +	default:
-> > > +		break;
-> > > +	}
-> > 
+and so, sub-nodes will be needed.
 
-I am sorry for being so picky about names. I believe that good names
-help to prevent bugs and reduce headaches.
+As those devices need an address (reg property), #address-cells and
+#size-cells will be needed.
 
-Best Regards,
-Petr
+This will end in a mix of sub-nodes describing devices and a sub-node
+describing the endpoint connection.
+
+#address-cells and #size-cells will conflict at some points.
+
+Is a reg value for endpoints has the same characteristics as a reg value
+for a SDIO device ?
+
+How a BT devices is described under the UART available in the M2
+connector ?
+
+Best regards,
+Hervé
