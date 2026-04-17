@@ -1,40 +1,40 @@
-Received: from canpmsgout06.his.huawei.com (canpmsgout06.his.huawei.com [113.46.200.221])
+Received: from canpmsgout04.his.huawei.com (canpmsgout04.his.huawei.com [113.46.200.219])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F32E353EE0;
-	Fri, 17 Apr 2026 03:17:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.221
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CD661EB9E3;
+	Fri, 17 Apr 2026 03:46:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.219
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776395855; cv=none; b=Wg5Cj0ZPKiXJmnmG6Nmd0iO9IeFxZfJaPmKYKXFUjJncQALwNBkqps3dC5a5lXVe70QzCXOZUS/JemsvGjwT1uMRKIbjvOiCNpkAKHs/ISXORtSG8CPhyJxBuCifa8cm7SN4J6Yj2tk6mv628Ml8P/GMjXOBHqvo0INJoWXf9Jo=
+	t=1776397582; cv=none; b=n39dIElvd9emc8isiCcI2Vm9+GyzxE4Uh6V2XmZKsqSUkU9DgRQom6XdSBaVXhdwFeywcykFkAjtPRXzbaVj2C0hw38n6k4mN2HRYzS3NRz5DZRL1hOdsayPhX7qMRqLAh4EhI+rQ5DKIjMCWiIWZfUhvRBet/BqDqynYwA9IhU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776395855; c=relaxed/simple;
-	bh=djgGm4ao9tpKhi9vmQmmZMtDRJ5ag3ubVqzLM79Qhvg=;
+	s=arc-20240116; t=1776397582; c=relaxed/simple;
+	bh=tCvH6uLger0Ioky0MX1o0CRTVjRkJxC3Bx2Ch7Wz5pc=;
 	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=FL0wZuhu0hNYHbIQosUiBfhVSxrQihMuJCa1pjkmDyTvF3c9qCOySj5VM6TTAoiwh12tRABy8sF7hzvACz4on3WEW8feApqjhU5e1Vpy18yc+tmkWCYhnsoVYjpTryVBNpZTPPKGiIvnVhknNaxKmReXqoSWhdFLx8nNDn5RKUE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=QnTArbUX; arc=none smtp.client-ip=113.46.200.221
+	 In-Reply-To:Content-Type; b=q1Mr9pJt9eB+a3+Bf7jXdl65mxOpIA02Nai2RRf+1sL5DCoOnBS3BdxnBXHuloX4c8+ZZGetEij8yg0ijbbgIv5Wme7DBeS/P36PFFGKabqUqhMwj+IoEiQYZhe7nHofDilEL5tYe8hF9GciEpSrxP2u7lVRaqrH6eH4vKgk6bs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=iYT6WgR5; arc=none smtp.client-ip=113.46.200.219
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="QnTArbUX"
+	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="iYT6WgR5"
 dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
 	c=relaxed/relaxed; q=dns/txt;
 	h=From;
-	bh=v+6I85L0Bfimqk+TZG50i7beWvV84T1h6ObpP+WLryU=;
-	b=QnTArbUX0+OBSWpEDpJGhoUfO1FrYTyFZP8kKEN/XbM09OkrFAdBonp6thDHUHUf6EEMik/Vb
-	/K9XNEUrUxOiNGw6IFVhDzVlT9mS4lfou93eS3z+bNl0Px/fFKlxCNL+2+OKgKQsQuZrXWFKY1D
-	gXeuts54NOUWphHnMXmyRUE=
-Received: from mail.maildlp.com (unknown [172.19.162.197])
-	by canpmsgout06.his.huawei.com (SkyGuard) with ESMTPS id 4fxfzB06lzzRhV9;
-	Fri, 17 Apr 2026 11:11:02 +0800 (CST)
+	bh=Gokk2P3VLya6gmleELPiNm6zsmS5EN/ClruU2zIJUKw=;
+	b=iYT6WgR5fgoMcZ3/LDsW8OWD16gSWmztHx+NK+o+O60hX8ifP6yJ0RaM9mIb/sPqU+C6cG+l+
+	G3NkQ54DWIKo+Oqhcm+uzcxL3Ij3FLcaFg8w+m5CC01UgptwHeNDZJjfUKeCPy2+eN7Nu4Q5KYx
+	jDbtwmFcfX2a+3/IFaSS0ZE=
+Received: from mail.maildlp.com (unknown [172.19.163.104])
+	by canpmsgout04.his.huawei.com (SkyGuard) with ESMTPS id 4fxgcT3dCtz1prLd;
+	Fri, 17 Apr 2026 11:39:53 +0800 (CST)
 Received: from dggpemf500011.china.huawei.com (unknown [7.185.36.131])
-	by mail.maildlp.com (Postfix) with ESMTPS id 6B1F340576;
-	Fri, 17 Apr 2026 11:17:21 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id B940A4048F;
+	Fri, 17 Apr 2026 11:46:15 +0800 (CST)
 Received: from [10.67.109.254] (10.67.109.254) by
  dggpemf500011.china.huawei.com (7.185.36.131) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Fri, 17 Apr 2026 11:17:20 +0800
-Message-ID: <ffee33bb-9c86-49c6-8689-cd187b6804f5@huawei.com>
-Date: Fri, 17 Apr 2026 11:17:19 +0800
+ 15.2.1544.11; Fri, 17 Apr 2026 11:46:15 +0800
+Message-ID: <0523407c-de2c-4463-bde2-8753e01971d5@huawei.com>
+Date: Fri, 17 Apr 2026 11:46:13 +0800
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -56,7 +56,7 @@ From: Jinjie Ruan <ruanjinjie@huawei.com>
 In-Reply-To: <f925dbeb-27be-48e5-90e0-2a22a12e740a@nvidia.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: kwepems100001.china.huawei.com (7.221.188.238) To
+X-ClientProxiedBy: kwepems200002.china.huawei.com (7.221.188.68) To
  dggpemf500011.china.huawei.com (7.185.36.131)
 
 
@@ -141,10 +141,6 @@ On 4/17/2026 11:00 AM, Sean Kelley wrote:
 > arm64 does:
 >   arch/arm64/Kconfig    select HOTPLUG_SMT if HOTPLUG_CPU
 > 
-
-Right, ARM64 does support 'nosmt' functionally, but the docs are
-outdated. I'll prepare a bugfix to update them."
-
 > And acpi_get_psd_map() is called from drivers/cpufreq/cppc_cpufreq.c,
 > which has: depends on ARM || ARM64 || RISCV.
 > 
@@ -153,8 +149,16 @@ outdated. I'll prepare a bugfix to update them."
 > environment where the original -EFAULT failure in acpi_get_psd_map()
 > was reproduced.
 
-Thanks, I'll reproduce the original bug on ARM64 as well to validate the
-new fix.
+After reverting commit 56eb0c0ed345 ("ACPI: CPPC: Fix remaining
+for_each_possible_cpu() to use online CPUs"), I tried to reproduce your
+original issue on my local ARM64 machine with the 'nosmt' boot parameter
+enabled and I have confirmed that it works., but I couldn't trigger it
+and the acpi cppc cpufreq driver successfully registered. Could you
+please help test if the new fix resolves the problem you encountered
+previously?
+
+Best regards,
+Jinjie
 
 > 
 >>
