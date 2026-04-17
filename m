@@ -1,187 +1,242 @@
-Received: from canpmsgout08.his.huawei.com (canpmsgout08.his.huawei.com [113.46.200.223])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 099BA2DCF74;
-	Fri, 17 Apr 2026 03:57:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.223
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 671E922D4E9;
+	Fri, 17 Apr 2026 06:26:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.8
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776398277; cv=none; b=OoAYVGXYdp0/KgbgpEu4gLPOdgT02f+CHb9HS9RrmFngTA5KGEFAyZwUJbaQ4sppFdAJFs5DQz5TDj/Ze//v7G5A4JYDJseyfaVXR3kwdHPSgU3h+TYpvubjtOrTU+SA9pTtgZnWcjZJevoV2naAtsXSEtj/oQEh/s6AxSc9O88=
+	t=1776407202; cv=none; b=HSZCkb5a96faRn34dri2b2BiNuWD14maCOJHEKOqdTuJPzB0yq1czpsBxCwjtt3zlzVhXog8PBShz5DJiMy4NGJAxcIZGb9EWGxpbNpuZGjCKSgw8OjImAYWTRGpHXqeIYsVeJz6Aefwfg+ONZztON1XG907HxM7WfPyAo2ABFU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776398277; c=relaxed/simple;
-	bh=JqgQH6tfVnmWWHepw3Qpa2RNHNMxsp6g8lbCRtY6FjM=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=kk/gbLGaQZGOKw8dCL6OFZfMGaZ5YBkAYL7AVPwYmqQOky6E3hMKyrHdHwleYVxrlePuh3YjEg+1cOrZwVW0CY9NorHuUmCggMqukxiEHRmz+T3nNfxAwmy3b+XSq4iE36PXywjrJtv1mcRjw8Jhx9NWFkmOwGXR4/R7PJR1uxY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=yUdEAuzC; arc=none smtp.client-ip=113.46.200.223
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+	s=arc-20240116; t=1776407202; c=relaxed/simple;
+	bh=PKweS3U2RTTvyWsl1xeYbGNWADoTLnyJR9SFOYbNaf8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=NWDbyIvpWURY/ryIv3Ek1AmqrvrpEvvhnCQ6oJV+JXNP6asDeLnqlkqHWMbWk3GR7+Ai45Kh6bL62D0YoyynE8q10gUQOigR4le39FKWKhbAu0sVbplNW3y3SwILJQMqCaCoBQzu3LNShzMd6X26TLeubGQHz4XNnyNOFc5xytE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=GjIvkBpU; arc=none smtp.client-ip=192.198.163.8
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="yUdEAuzC"
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=idc8gkJwQIuISWDpjUk6l0rfAOAG94Y8xDZQBHeRnWo=;
-	b=yUdEAuzC8ZMLK3TaJEfOoc44tiu2u6cOMSh6gFYyapisZKn2rcNJ3vW4PvIDuat6Vp+AXpYaQ
-	xH3/2t4D4dCAX1AbYkiwDTcCnRWZnlKZF3mlIG0U7CaP14wAAeTMg29AtHb72u6/Gmh64dgH1d0
-	lOIZT06aJJOTVkvmcVZV1K8=
-Received: from mail.maildlp.com (unknown [172.19.163.15])
-	by canpmsgout08.his.huawei.com (SkyGuard) with ESMTPS id 4fxgsm6NNMzmV69;
-	Fri, 17 Apr 2026 11:51:24 +0800 (CST)
-Received: from dggpemf500011.china.huawei.com (unknown [7.185.36.131])
-	by mail.maildlp.com (Postfix) with ESMTPS id C5B4640571;
-	Fri, 17 Apr 2026 11:57:45 +0800 (CST)
-Received: from huawei.com (10.90.53.73) by dggpemf500011.china.huawei.com
- (7.185.36.131) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Fri, 17 Apr
- 2026 11:57:45 +0800
-From: Jinjie Ruan <ruanjinjie@huawei.com>
-To: <rafael@kernel.org>, <lenb@kernel.org>, <skelley@nvidia.com>,
-	<linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-CC: <ruanjinjie@huawei.com>
-Subject: [PATCH v2] ACPI: CPPC: Fix related_cpus inconsistency during CPU hotplug
-Date: Fri, 17 Apr 2026 12:01:12 +0800
-Message-ID: <20260417040112.3727756-1-ruanjinjie@huawei.com>
-X-Mailer: git-send-email 2.34.1
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="GjIvkBpU"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1776407200; x=1807943200;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:content-transfer-encoding:in-reply-to;
+  bh=PKweS3U2RTTvyWsl1xeYbGNWADoTLnyJR9SFOYbNaf8=;
+  b=GjIvkBpUhaJLRzzOuEg6vbuAKN6XaYCslGnVLylPOaJMdD65vNqXWHXR
+   hrXTXqWQLEvNGuXnxb7nw/rIUUkYmu3Yr8rATHWj3wPb/AzI0x62+jr/0
+   crCvNl1nyJdYbY4kVKpSnVpk3eZRBIoZqLLhbcghuIzoinYJFGqvGwaHk
+   gQvObLXnBqJvz16mo/VP5xdaG8T+bOZQ7MnRFaZ00Jerd1eHE+dq3Lgvo
+   2rhYeeYxs0U3g4asVodoiFJ3xiupiJ/N+dSBtNExIeTHQE1LBjLrxrmgH
+   2lbetTQViBfgDmR0Xv0PqB0jqmJmVNA6Uhbvbtdts4zxluXqEfBXMWFT+
+   Q==;
+X-CSE-ConnectionGUID: IiAwRXUjQWCjrQbbC97Nog==
+X-CSE-MsgGUID: 3bq7AIVeSbuBLAs80ZrztA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11761"; a="94987226"
+X-IronPort-AV: E=Sophos;i="6.23,183,1770624000"; 
+   d="scan'208";a="94987226"
+Received: from orviesa004.jf.intel.com ([10.64.159.144])
+  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Apr 2026 23:26:39 -0700
+X-CSE-ConnectionGUID: XWc4OD7/SAWNe64I+rIg3Q==
+X-CSE-MsgGUID: NHsNtzFpQWm5N9y/2kynHw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,183,1770624000"; 
+   d="scan'208";a="235328939"
+Received: from hrotuna-mobl2.ger.corp.intel.com (HELO localhost) ([10.245.245.78])
+  by orviesa004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Apr 2026 23:26:34 -0700
+Date: Fri, 17 Apr 2026 09:26:31 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Lorenzo Pieralisi <lpieralisi@kernel.org>
+Cc: Linus Walleij <linusw@kernel.org>, Lei Xue <lei.xue@mediatek.com>,
+	Hanjun Guo <guohanjun@huawei.com>,
+	Sudeep Holla <sudeep.holla@arm.com>,
+	Sean Wang <sean.wang@kernel.org>,
+	Linus Walleij <linus.walleij@linaro.org>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
+	linux-kernel@vger.kernel.org, linux-mediatek@lists.infradead.org,
+	linux-gpio@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	yong.mao@mediatek.com, qingliang.li@mediatek.com,
+	Fred-WY.Chen@mediatek.com, ot_cathy.xu@mediatek.com,
+	ot_shunxi.zhang@mediatek.com, ot_yaoy.wang@mediatek.com,
+	ot_ye.wang@mediatek.com, linux-acpi@vger.kernel.org,
+	robh@kernel.org
+Subject: Re: [PATCH 2/3] pinctrl: mediatek: Add acpi support
+Message-ID: <aeHSl9MYGq0bRXsu@ashevche-desk.local>
+References: <20251125023639.2416546-1-lei.xue@mediatek.com>
+ <20251125023639.2416546-3-lei.xue@mediatek.com>
+ <CAD++jL=h4ZEgrjgGOfgFyAXBM7EL91ZD-La82UQ7GPOXv8h9WQ@mail.gmail.com>
+ <aScwaxBG53dnZ4a4@lpieralisi>
+ <aSdBu-B9mwU2-1_S@smile.fi.intel.com>
+ <aSgipbe75hrwhTD7@lpieralisi>
+ <aShgYukPRfDkq_Z0@smile.fi.intel.com>
+ <aSh0EyGm9ZHAc3dN@lpieralisi>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: kwepems200002.china.huawei.com (7.221.188.68) To
- dggpemf500011.china.huawei.com (7.185.36.131)
+In-Reply-To: <aSh0EyGm9ZHAc3dN@lpieralisi>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-When concurrently bringing up and down two SMT threads of a physical
-core, many warning call traces occur as below:
+On Thu, Nov 27, 2025 at 04:53:55PM +0100, Lorenzo Pieralisi wrote:
+> On Thu, Nov 27, 2025 at 04:29:54PM +0200, Andy Shevchenko wrote:
+> > On Thu, Nov 27, 2025 at 11:06:29AM +0100, Lorenzo Pieralisi wrote:
+> > > On Wed, Nov 26, 2025 at 08:06:51PM +0200, Andy Shevchenko wrote:
 
-The issue timeline is as follows:
+[...]
 
-1. when the system starts,
-	cpufreq: cpu: 220, policy->related_cpus: 220-221, policy->cpus: 220-221
+> > > > > I also assume/hope that we don't want to add a "reg-names" _DSD property either
+> > > > > in ACPI to deal with this seamlessly in DT/ACPI (that was done for
+> > > > > "interrupt-names"):
+> > > > > 
+> > > > > https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/Documentation/firmware-guide/acpi/enumeration.rst?h=v6.18-rc7#n188
+> > > > 
+> > > > Hmm... Why not?
+> > > 
+> > > What's the policy there ?
+> > 
+> > > Half of the ACPI bindings for an interrupt
+> > > descriptor are defined in the ACPI specs (ie _CRS) and the other half
+> > > (ie "interrupt-names") is documented in the Linux kernel (or are we
+> > > documenting this elsewhere ?) ?
+> > 
+> > Yeah, nobody pursued ACPI specification updates / addendum to make it fully
+> > official. _De facto_ we have established practice for GPIOs enumeration
+> > (as most used resources in the OSes), Linux official for PWM, I²C muxes,
+> > multi-functional HW (such as Diolan DLN-2, LJCA), Microsoft defined for
+> > so called "USB hardwired" devices, Linux defined for LEDs and GPIO keys,
+> > sensor mount matrix as per "most used" cases + DT analogue works just
+> > because we have agnostic APIs in IIO to retrieve that. There are maybe
+> > more, but don't remember
+> > 
+> > So, I think the practical "policies" are that:
+> > - if it's defined in ACPI spec, we use the spec
+> > - if there is Microsoft addendum, we rely on what Windows does
+> > - WMI, EFI, and other "windoze"-like vendor defined cases
+> > - if it makes sense, we establish practice from Linux perspective
+> > - the rest, every vendor does what it does
+> > 
+> > That said, for the first two we expect OEMs to follow, for the third one
+> > depends, but there are established WMI calls and other more or less "standard"
+> > interfaces, so like the first two.
+> > 
+> > For the fourth one (Linux) we do, but living in the expectation that some or
+> > more vendors fall to the fifth category and we might need to support that if
+> > we want their HW work in Linux.
+> > 
+> > > Or we are saying that "interrupt-names" properties are added by kernel
+> > > code _only_ (through software nodes, to make parsing seamless between DT
+> > > and ACPI) based on hardcoded name values in drivers ?
+> > 
+> > No, the idea behind software nodes is to "fix" the FW nodes in case the FW
+> > description can not be modified (and that might well happen to even DT in some
+> > cases AFAIH). So, if some driver hard codes "interrupt-names" we expect that
+> > new versions of the FW that support the HW that needs the property will be
+> > amended accordingly.
+> > 
+> > "interrupt-names" has been established for ACPI to support a separate SMB alert
+> > interrupt. However, I haven't heard any development of that IRL (for real
+> > devices in ACPI environment).
+> > 
+> > > I don't think I can grok any example of the latter in the mainline.
+> > > 
+> > > I am asking because I'd need to add something similar shortly to make parsing
+> > > of platform devices created out of ACPI static tables easier (I guess we
+> > > can postpone discussion till I post the code but I thought I'd ask).
+> > 
+> > Oh, I can go ahead and tell you, try to avoid that. Why?! Whatever,
+> > indeed, please Cc me to that, I will be glad to study the case and
+> > try to be helpful.
+> > 
+> > (Have you considered DT overlays instead? There is a big pending support for
+> >  that for _ACPI_ platforms.)
+> 
+> Long story short: we do need to create platform devices out of static
+> table (eg ARM64 IORT) entries. Current code parses the table entries and
+> try to map the devices IRQs (ie acpi_register_gsi()) when the platform
+> device is created. Now, the interrupt controller that device IRQ's is
+> routed to might not have probed yet. We have to defer probing and later,
+> when the platform driver probes, map the IRQ.
+> 
+> Issue is: for OF nodes and ACPI devices, behind the platform device
+> firmware node there is a standard firmware object, so implementing
+> fwnode_irq_get() is trivial. For the devices I am talking about,
+> the data providing GSI info (hwirq, trigger/polarity) is static
+> table specific, so the idea was to stash that data and embed it in
+> fwnode_static along with a irq_get() fwnode_operations function
+> specific to that piece of data so that device drivers can actually do:
+> 
+> fwnode_irq_get()
+> 
+> on the fwnode _seamlessly_ (if you still do wonder: those platform
+> devices created out of static table entries in ACPI in OF are
+> of_node(s)).
+> 
+> There is a less convoluted solution (that is what some platform
+> drivers in ACPI do today), that is, we pass the static table
+> data in pdev->dev.platform_data and each platform_driver parses it differently.
+> 
+> That works but that also means the in the respective device drivers
+> OF and ACPI IRQ (and MMIO) parsing differ (which is not necessarily
+> a problem I just have to rewrite them all).
 
-2. Offline cpu 220 and cpu 221.
+Hmm... The parsing inside drivers is quite a custom case. I would avoid doing
+it if it's not device specific (I mean if it's not related to the very unique
+device or family of the devices which most likely won't appear again in the
+future). In other words, I prefer agnostic solutions over custom ones.
 
-3. Online cpu 220
-- cpu 221 is now offline, as acpi_get_psd_map() use for_each_online_cpu(),
-  so the cpu_data->shared_cpu_map, policy->cpus, and related_cpus has only
-  cpu 220.
-	cpufreq: cpu: 220, policy->related_cpus: 220, policy->cpus: 220
+> Now - when it comes to "interrupt-names". Some of the device drivers
+> I mention do:
+> 
+> eg platform_get_irq_byname_optional()
+> 
+> that expects the IRQ to be mapped and stored in a named platform device resource.
+> 
+> That's easy in DT - for two reasons:
+> 
+> (1) "interrupt-names"
+> (2) standard properties behind the of_node
+> 
+> how to do that for fwnodes that aren't backed by either OF nodes or ACPI
+> devices (that do use "interrupt-names" _DSD property) is a question.
+> 
+> Mind, the "interrupt-names" thing is a detail in the whole mechanism.
+> 
+> DT overlays to represent in ACPI those static table entries ?
+> 
+> I vividly remember the days ACPI for ARM64 was being merged - that's what
+> our crystal ball predicted :)
 
-4. offline cpu 220
+So, the idea is to translate ACPI static table entries (which comes from IORT)
+to the IRQ fwnodes at initialisation (parsing) time?
 
-5. online cpu 221, the below call trace occurs:
-- Because cpu 220 and cpu 221 share one policy, and policy->related_cpus
-  = 220 after step 3, so cpu 221 is not in policy->related_cpus
-  but per_cpu(cpufreq_cpu_data, cpu221) is not NULL.
+> This delayed IRQ mapping notwithstanding, I read what you wrote and took
+> note. The worry is, this fwnode_*() (on ACPI nodes) interface trickling
+> into subsystems where it should not (ie PCI, clocks, regulators) - hopefully
+> the respective maintainers are keeping an eye on it.
+> 
+> > > Are we going to do the same for "reg-names" ?
+> > 
+> > If it makes sense and we expect some vendor to follow that _in ACPI_,
+> > why not?
+> > 
+> > > Most importantly, what is DT maintainers stance on the matter ?
+> > 
+> > AFAIK They don't care as long as there is a schema provided, accepted and
+> > used in DT, if it's ACPI-only thing, then it most likely should be done
+> > in ACPI-like way (see above the first two / three items: spec, MS, WMI/EFI).
+> > 
+> > > > > I am sorry I have got more questions than answers here - it would be good
+> > > > > to understand where the line is drawn when it comes to OF/ACPI and fwnode
+> > > > > heuristics compatibility.
 
-After revert commit 56eb0c0ed345 ("ACPI: CPPC: Fix remaining
-for_each_possible_cpu() to use online CPUs"), the issue disappeared.
-
-The _PSD (P-State Dependency) defines the hardware-level dependency of
-frequency control across CPU cores. Since this relationship is a physical
-attribute of the hardware topology, it remains constant regardless of the
-online or offline status of the CPUs.
-
-Using for_each_online_cpu() in acpi_get_psd_map() is problematic. If a
-CPU is offline, it will be excluded from the shared_cpu_map.
-Consequently, if that CPU is brought online later, the kernel will fail to
-recognize it as part of any shared frequency domain.
-
-Switch back to for_each_possible_cpu() to ensure that all cores defined
-in the ACPI tables are correctly mapped into their respective performance
-domains from the start. This aligns with the logic of policy->related_cpus,
-which must encompass all potentially available cores in the domain to
-prevent logic gaps during CPU hotplug operations.
-
-To resolve the original issue regarding the "nosmt" or "nosmt=force"
-boot parameter, as send_pcc_cmd() function already does if (!desc)
-continue, so reverting that loop back to for_each_possible_cpu() is ok,
-only need to change the match_cpc_ptr NULL case in acpi_get_psd_map() to
-continue as Sean suggested.
-
-How to reproduce, on arm64 machine with SMT support which use acpi cppc
-cpufreq driver:
-
-	bash test.sh 220 & bash test.sh 221 &
-
-	The test.sh is as below:
-		while true
-			do
-			echo 0 > /sys/devices/system/cpu/cpu${1}/online
-			sleep 0.5
-			cat /sys/devices/system/cpu/cpu${1}/cpufreq/related_cpus
-			echo 1 >  /sys/devices/system/cpu/cpu${1}/online
-			cat /sys/devices/system/cpu/cpu${1}/cpufreq/related_cpus
-		done
-
-	CPU: 221 PID: 1119 Comm: cpuhp/221 Kdump: loaded Not tainted 6.6.0debug+ #5
-	Hardware name: To be filled by O.E.M. S920X20/BC83AMDA01-7270Z, BIOS 20.39 09/04/2024
-	pstate: a1400009 (NzCv daif +PAN -UAO -TCO +DIT -SSBS BTYPE=--)
-	pc : cpufreq_online+0x8ac/0xa90
-	lr : cpuhp_cpufreq_online+0x18/0x30
-	sp : ffff80008739bce0
-	x29: ffff80008739bce0 x28: 0000000000000000 x27: ffff28400ca32200
-	x26: 0000000000000000 x25: 0000000000000003 x24: ffffd483503ff000
-	x23: ffffd483504051a0 x22: ffffd48350024a00 x21: 00000000000000dd
-	x20: 000000000000001d x19: ffff28400ca32000 x18: 0000000000000000
-	x17: 0000000000000020 x16: ffffd4834e6a3fc8 x15: 0000000000000020
-	x14: 0000000000000008 x13: 0000000000000001 x12: 00000000ffffffff
-	x11: 0000000000000040 x10: ffffd48350430728 x9 : ffffd4834f087c78
-	x8 : 0000000000000001 x7 : ffff2840092bdf00 x6 : ffffd483504264f0
-	x5 : ffffd48350405000 x4 : ffff283f7f95cc60 x3 : 0000000000000000
-	x2 : ffff53bc2f94b000 x1 : 00000000000000dd x0 : 0000000000000000
-	Call trace:
-	 cpufreq_online+0x8ac/0xa90
-	 cpuhp_cpufreq_online+0x18/0x30
-	 cpuhp_invoke_callback+0x128/0x580
-	 cpuhp_thread_fun+0x110/0x1b0
-	 smpboot_thread_fn+0x140/0x190
-	 kthread+0xec/0x100
-	 ret_from_fork+0x10/0x20
-	---[ end trace 0000000000000000 ]---
-
-Cc: stable@vger.kernel.org
-Fixes: 56eb0c0ed345 ("ACPI: CPPC: Fix remaining for_each_possible_cpu() to use online CPUs")
-Co-developed-by: Sean Kelley <skelley@nvidia.com>
-Signed-off-by: Sean Kelley <skelley@nvidia.com>
-Signed-off-by: Jinjie Ruan <ruanjinjie@huawei.com>
----
-v2:
-- Fix the original issue by continue if per_cpu(cpc_desc_ptr, i) is NULL.
-- Update the commit message
----
- drivers/acpi/cppc_acpi.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-index f0e513e9ed5d..bcfe2e6b8445 100644
---- a/drivers/acpi/cppc_acpi.c
-+++ b/drivers/acpi/cppc_acpi.c
-@@ -362,7 +362,7 @@ static int send_pcc_cmd(int pcc_ss_id, u16 cmd)
- end:
- 	if (cmd == CMD_WRITE) {
- 		if (unlikely(ret)) {
--			for_each_online_cpu(i) {
-+			for_each_possible_cpu(i) {
- 				struct cpc_desc *desc = per_cpu(cpc_desc_ptr, i);
- 
- 				if (!desc)
-@@ -524,13 +524,13 @@ int acpi_get_psd_map(unsigned int cpu, struct cppc_cpudata *cpu_data)
- 	else if (pdomain->coord_type == DOMAIN_COORD_TYPE_SW_ANY)
- 		cpu_data->shared_type = CPUFREQ_SHARED_TYPE_ANY;
- 
--	for_each_online_cpu(i) {
-+	for_each_possible_cpu(i) {
- 		if (i == cpu)
- 			continue;
- 
- 		match_cpc_ptr = per_cpu(cpc_desc_ptr, i);
- 		if (!match_cpc_ptr)
--			goto err_fault;
-+			continue;
- 
- 		match_pdomain = &(match_cpc_ptr->domain_info);
- 		if (match_pdomain->domain != pdomain->domain)
 -- 
-2.34.1
+With Best Regards,
+Andy Shevchenko
+
 
