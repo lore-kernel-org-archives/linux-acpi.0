@@ -1,183 +1,107 @@
-Received: from mxhk.zte.com.cn (mxhk.zte.com.cn [160.30.148.35])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f43.google.com (mail-wm1-f43.google.com [209.85.128.43])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF3E21F4C8C;
-	Sat, 18 Apr 2026 00:29:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=160.30.148.35
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D774D341062
+	for <linux-acpi@vger.kernel.org>; Sat, 18 Apr 2026 05:37:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.43
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776472149; cv=none; b=QD2RyYLkixV8pBDAYzJp/WV9i7oZLO1MORrjaEH5Djvp/520D4DA5TMRUiJ0qOilQdfMnL3qtu0Z/2RiHvKU2CYBZeCky5BLwnOobCkiw+cpwcT+JToviEqeviyANwkx8zeEaN5EkQUv09wCRoBSWvhaFjiwBFUtqYTQbSgk0o0=
+	t=1776490670; cv=none; b=myUhsjKy4JUlfN6KDRbq/z9tdN9lZOZR5CjBvajoPTAyslout90QrtXq3RU56nlgdh3Jg9pvYVW6A1J+Aw7GNar8F2cUtv+WSQ+6CyMh15UsFHJqqe8199vqEqYOpuXrh9zf/eGuwJcfxjWPelrS5CYicVtK1q4bdWDNGPD2zY0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776472149; c=relaxed/simple;
-	bh=5XfkxBgRZw1G4iOWjC/UNxOQcOsxLiT6whw9IzG3hBo=;
-	h=Message-Id:In-Reply-To:References:Date:Mime-Version:From:To:Cc:
-	 Subject:Content-Type; b=bv+t3SXJsMFp074guZjA48sjcN6tuxBj04VIfqHvksqICgWgqD3iDiL4K3NJoT7dB1UCOeu25MSGDMAxggFpSKmnB55Utj/yD/rJwmBrRJJH6J0Z/mnISEdEvp14GP5kGkwQtOpyY45vCp/EIl3uVjG7qAsSXT726eDzQR5fJA8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zte.com.cn; spf=pass smtp.mailfrom=zte.com.cn; arc=none smtp.client-ip=160.30.148.35
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zte.com.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zte.com.cn
-Received: from mse-fl1.zte.com.cn (unknown [10.5.228.132])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange x25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mxhk.zte.com.cn (FangMail) with ESMTPS id 4fyCKk72ghz8Xs6Q;
-	Sat, 18 Apr 2026 08:28:58 +0800 (CST)
-Received: (from root@localhost)
-	by mse-fl1.zte.com.cn id 63I0Svo8029922;
-	Sat, 18 Apr 2026 08:28:57 +0800 (+08)
-	(envelope-from guo.wenjia23@zte.com.cn)
-Message-Id: <202604180028.63I0Svo8029922@mse-fl1.zte.com.cn>
-Received: from njb2app05.zte.com.cn ([10.55.22.121])
-	by mse-fl1.zte.com.cn with SMTP id 63HAqPVX032987;
-	Fri, 17 Apr 2026 18:52:25 +0800 (+08)
-	(envelope-from guo.wenjia23@zte.com.cn)
-Received: from mapi (njy2app02[null])
-	by mapi (Zmail) with MAPI id mid202;
-	Fri, 17 Apr 2026 18:52:27 +0800 (CST)
-X-Zmail-TransId: 2afa69e210ebfc0-fc690
-X-Mailer: Zmail v1.0
-In-Reply-To: <20260414-ssqosid-cbqri-rqsc-v7-0-v3-6-b3b2e7e9847a@kernel.org>
-References: 20260414-ssqosid-cbqri-rqsc-v7-0-v3-0-b3b2e7e9847a@kernel.org,20260414-ssqosid-cbqri-rqsc-v7-0-v3-6-b3b2e7e9847a@kernel.org
-Date: Fri, 17 Apr 2026 18:52:27 +0800 (CST)
+	s=arc-20240116; t=1776490670; c=relaxed/simple;
+	bh=prW9Ym1vKl2hLBI+UbuMXxxNt2Sy1yJhvMrFoNFpczQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Dm7nhUphHzRnoS1ZbARpaYCCygJtWdaN/SwXaG9+2pUHdsROn1nrKMCaesmMepVvgBpfWp0cjYE+xT2qUAcIpPAXbbP65Qd78oY5P9IJ+rJWQd9PETqNZW0dGlAopXyApNbaKNsa0H3eDAr9cymZe3KesP7dcDXYl/GTydGwxkw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=dKu7uAtK; arc=none smtp.client-ip=209.85.128.43
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="dKu7uAtK"
+Received: by mail-wm1-f43.google.com with SMTP id 5b1f17b1804b1-488c1f446f3so2768405e9.0
+        for <linux-acpi@vger.kernel.org>; Fri, 17 Apr 2026 22:37:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1776490667; x=1777095467; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=IohdsypP3r+7DTKppzdm/+A74a+kqBF/x1lFwg/446s=;
+        b=dKu7uAtKFFytQssDpzNJhgHxbwTUeDoBN34lwDqpd9U00+S+q9Tvl2PwcNqqmVk3dh
+         4U3wdLOpet8OBsFJSfW6aRFlSb7LzdpfTM3J/zPJ3n0xCx5cn60WbTS+U8F9orKNQe9a
+         t9z4CdsGNQgPTNrbugsIr7SIZ2qDad6yr1e4r7S6sN18ZkvfrkS//IMSb4m6AobLW+0o
+         2LaijCyGDQX0PailV36tcH10dnN4WPeAGMvMw541Co90nqE59R6KiMM5yEclLNzI4N3E
+         ft37dDX41Avmvql5XyqJi2wE5eq5a68oP63zKTi5OEt4t5PlAgUvb39vC2Yhi087ukm9
+         mCTQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1776490667; x=1777095467;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=IohdsypP3r+7DTKppzdm/+A74a+kqBF/x1lFwg/446s=;
+        b=l8+gt3YzNYm0WOM9u5cMy8JitwxWh+fvVrTOb+TnicMQmGdYRP3vU4Jmy902Ry/BG7
+         nc1xaPMASnJvRffyIn9TDx20g2JQsgqUbGkVJwrRgjd8hOb/fAoQBLdTw+e9g9tcg/e6
+         EHZom3nM5o2mKe2w9ZeAUPnPaTHRSPcfn4ehikfF/nYCHRSWrlQXJ0dtYYmsrjPzEkQN
+         Kg8JSPgXpo9liLpbbtc5rT3XIUOyQLvBiK4JxU8otZZHp93q8JYFn18wTd1FJqOFAVAJ
+         JGdUaskU2pDwGExTuyrBvaotN0foD9GeMDqcblgIKho6IbuFfbEAvkmwN49saSc+wLPf
+         xxrA==
+X-Forwarded-Encrypted: i=1; AFNElJ9U9IrCyNPKPgXXNxxN8s+zajbtWCgqb3sZZqLArevFyiFa7cY7GMlF1HMu7cjpK++KyMS0kRsBfG7e@vger.kernel.org
+X-Gm-Message-State: AOJu0YxDiEeaA5ibGH6kvxplrSHXnwtwHqSefV9ZATtpKya6kq8z1NbF
+	4dlwd/ZoMuhT0YwY3hBnfMQG2ZfgrDFRaUsrvKzp9OHrKYRz1t4niIgI
+X-Gm-Gg: AeBDietid+UPOYeVxU+OYCpudC7ok1bO+oqpXZWmjErc8fsgWMmpVV97djgCF0DW3b1
+	J8nSjmn+zwDuYC3N4xsdbGVP68rX9lhG8QOfne40ruH5vsAUDnkGz7Mqugk9QNR5RDopFVy9c2G
+	l5ZT0olQ7dfsM/IsgXp8gN7ryHXudw1yVOccadrl0nU0BcKylSQQ795JP7fd1MCBKlTRWGqI1zx
+	pCNahPpPmC3sID6GmkSiFUONSDzPm5O6KpzdL88St4wigvLUelNgCwPQHULp50Vga/eTVYxz4zB
+	UZ7QVc9utfjGRlqmNpPXlAVQWcnVgjZarjeARR0jEJCfkEZtVvtsIxE8ypNBiMmIlw0/F0FZ+Ee
+	0l1ejYJxA73oacqKAK4WApOV5WygYpIzmdnMhZ6jkwTJb0dYfTNUPjlKFAFmUpHZwnUNqQQ64mY
+	9ceGwA1m8cf3TxemqWbdkYz/hHF/5YoiEPCjyHeeZrZ4FJDRR0Tt4kGEjZjgn1qSeRRRnyBbLj4
+	g==
+X-Received: by 2002:a05:600c:3b85:b0:488:a39a:24c2 with SMTP id 5b1f17b1804b1-488fb73e120mr45995315e9.1.1776490666619;
+        Fri, 17 Apr 2026 22:37:46 -0700 (PDT)
+Received: from thinkpad-cachy (adsl-178-39-113-125.adslplus.ch. [178.39.113.125])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-488fb74c7a2sm33871755e9.1.2026.04.17.22.37.45
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 17 Apr 2026 22:37:46 -0700 (PDT)
+From: Niels Franke <nielsfranke@gmail.com>
+To: westeri@kernel.org
+Cc: wsa+renesas@sang-engineering.com,
+	linux-i2c@vger.kernel.org,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Niels Franke <nielsfranke@gmail.com>
+Subject: [PATCH] i2c: acpi: Add ELAN0678 to i2c_acpi_force_100khz_device_ids
+Date: Sat, 18 Apr 2026 07:37:19 +0200
+Message-ID: <20260418053719.15766-1-nielsfranke@gmail.com>
+X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-From: <guo.wenjia23@zte.com.cn>
-To: <fustini@kernel.org>
-Cc: <pjw@kernel.org>, <palmer@dabbelt.com>, <aou@eecs.berkeley.edu>,
-        <alex@ghiti.fr>, <rkrcmar@ventanamicro.com>,
-        <samuel.holland@sifive.com>, <aricciardi@baylibre.com>,
-        <npitre@baylibre.com>, <mindal@semihalf.com>, <atish.patra@linux.dev>,
-        <atishp@rivosinc.com>, <vasu@rivosinc.com>, <ved@rivosinc.com>,
-        <conor.dooley@microchip.com>, <cuiyunhui@bytedance.com>,
-        <cp0613@linux.alibaba.com>, <zhiwei_liu@linux.alibaba.com>,
-        <liwei1518@gmail.com>, <gong.shuai@sanechips.com.cn>,
-        <gsh517@gmail.com>, <liu.qingtao2@zte.com.cn>,
-        <reinette.chatre@intel.com>, <tony.luck@intel.com>,
-        <babu.moger@amd.com>, <peternewman@google.com>, <fenghua.yu@intel.com>,
-        <james.morse@arm.com>, <ben.horgan@arm.com>, <Dave.Martin@arm.com>,
-        <robh@kernel.org>, <conor+dt@kernel.org>, <krzk+dt@kernel.org>,
-        <rafael@kernel.org>, <lenb@kernel.org>, <robert.moore@intel.com>,
-        <sunilvl@ventanamicro.com>, <fustini@kernel.org>,
-        <linux-kernel@vger.kernel.org>, <linux-riscv@lists.infradead.org>,
-        <x86@kernel.org>, <linux-acpi@vger.kernel.org>,
-        <acpica-devel@lists.linux.dev>, <devicetree@vger.kernel.org>,
-        <paul.walmsley@sifive.com>
-Subject: =?UTF-8?B?UmU6IFtQQVRDSCBSRkMgdjMgMDYvMTFdIFJJU0MtVjogUW9TOiBhZGQgcmVzY3RybCBzZXR1cCBhbmQgZG9tYWluIG1hbmFnZW1lbnQ=?=
-Content-Type: text/plain;
-	charset="UTF-8"
-X-MAIL:mse-fl1.zte.com.cn 63I0Svo8029922
-X-MSS: AUDITRELEASE@mse-fl1.zte.com.cn
-X-TLS: YES
-X-SPF-DOMAIN: zte.com.cn
-X-ENVELOPE-SENDER: guo.wenjia23@zte.com.cn
-X-SPF: None
-X-SOURCE-IP: 10.5.228.132 unknown Sat, 18 Apr 2026 08:28:59 +0800
-X-Fangmail-Anti-Spam-Filtered: true
-X-Fangmail-MID-QID: 69E2D04A.002/4fyCKk72ghz8Xs6Q
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-Hi Drew,
+The ELAN0678 touchpad (04F3:3195) found in the Lenovo ThinkPad X13
+exhibits excessive smoothing when the I2C bus runs at 400KHz, making
+the touchpad feel sluggish when plugged into AC power. This is the
+same issue previously fixed for ELAN06FA.
 
-On Wed, Apr 15, 2026 at 9:57 AM Drew Fustini <fustini@kernel.org> wrote:
+The device's ACPI table (Lenovo TP-R22) specifies 0x00061A80 (400KHz)
+for the I2cSerialBusV2 descriptor. Forcing the bus to 100KHz eliminates
+the sluggish behavior.
 
-> Add the setup and domain management layer: domain allocation
-> (qos_new_domain), controller value initialization
-> (qos_init_domain_ctrlval), resource struct initialization for cache and
-> bandwidth resources, domain registration with the resctrl filesystem
-> (qos_resctrl_add_controller_domain), and the top-level setup function
-> (qos_resctrl_setup) that probes all controllers and calls resctrl_init().
->
-> Also add qos_resctrl_online_cpu() and qos_resctrl_offline_cpu() for CPU
-> hotplug integration.
->
-> Co-developed-by: Adrien Ricciardi <aricciardi@baylibre.com>
-> Signed-off-by: Adrien Ricciardi <aricciardi@baylibre.com>
-> Signed-off-by: Drew Fustini <fustini@kernel.org>
-> ---
->  arch/riscv/kernel/qos/qos_resctrl.c | 295 +++++++++++++++++++++++++++++++++++-
->  1 file changed, 294 insertions(+), 1 deletion(-)
->
-> diff --git a/arch/riscv/kernel/qos/qos_resctrl.c b/arch/riscv/kernel/qos/qos_resctrl.c
-> index a4a120f89840..8d7e3b0abb75 100644
-> --- a/arch/riscv/kernel/qos/qos_resctrl.c
-> +++ b/arch/riscv/kernel/qos/qos_resctrl.c
-> @@ -675,7 +675,23 @@ void resctrl_arch_reset_rmid_all(struct rdt_resource *r, struct rdt_l3_mon_domai
->  
->  void resctrl_arch_reset_all_ctrls(struct rdt_resource *r)
->  {
-> -    /* not implemented for the RISC-V resctrl implementation */
-> +    struct cbqri_resctrl_res *hw_res;
-> +    struct rdt_ctrl_domain *d;
-> +    enum resctrl_conf_type t;
-> +    u32 default_ctrl;
-> +    int i;
-> +
-> +    lockdep_assert_cpus_held();
-> +
-> +    hw_res = container_of(r, struct cbqri_resctrl_res, resctrl_res);
-> +    default_ctrl = resctrl_get_default_ctrl(r);
-> +
-> +    list_for_each_entry(d, &r->ctrl_domains, hdr.list) {
-> +        for (i = 0; i < hw_res->max_rcid; i++) {
-> +            for (t = 0; t < CDP_NUM_TYPES; t++)
-> +                resctrl_arch_update_one(r, d, i, t, default_ctrl);
+Signed-off-by: Niels Franke <nielsfranke@gmail.com>
+---
+ drivers/i2c/i2c-core-acpi.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-For the bw controller, default_ctrl = max_bw, and resctrl_arch_update_one will set the rbwb of all RCIDs to max_bw. 
-According to the spec: The sum of Rbwb allocated across all rcids must not exceed MRBWB value. 
+diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
+index 2cbd31f77..96d339df0 100644
+--- a/drivers/i2c/i2c-core-acpi.c
++++ b/drivers/i2c/i2c-core-acpi.c
+@@ -372,6 +372,7 @@ static const struct acpi_device_id i2c_acpi_force_100khz_device_ids[] = {
+ 	 */
+ 	{ "DLL0945", 0 },
+ 	{ "ELAN06FA", 0 },
++	{ "ELAN0678", 0 },
+ 	{}
+ };
+ 
+-- 
+2.53.0
 
-Does this conflict with the spec?
-
-> +        }
-> +    }
->  }
->  
->  void resctrl_arch_pre_mount(void)
-> @@ -797,3 +813,280 @@ u32 resctrl_arch_get_config(struct rdt_resource *r, struct rdt_ctrl_domain *d,
->      spin_unlock(&ctrl->lock);
->      return val;
->  }
-> +
-> +static struct rdt_ctrl_domain *qos_new_domain(struct cbqri_controller *ctrl)
-> +{
-> +    struct cbqri_resctrl_dom *hw_dom;
-> +    struct rdt_ctrl_domain *domain;
-> +
-> +    hw_dom = kzalloc_obj(*hw_dom, GFP_KERNEL);
-> +    if (!hw_dom)
-> +        return NULL;
-> +
-> +    /* associate this cbqri_controller with the domain */
-> +    hw_dom->hw_ctrl = ctrl;
-> +
-> +    /* the rdt_domain struct from inside the cbqri_resctrl_dom struct */
-> +    domain = &hw_dom->resctrl_ctrl_dom;
-> +
-> +    INIT_LIST_HEAD(&domain->hdr.list);
-> +
-> +    return domain;
-> +}
-> +
-> +static int qos_init_domain_ctrlval(struct rdt_resource *r, struct rdt_ctrl_domain *d)
-> +{
-> +    struct cbqri_resctrl_res *hw_res;
-> +    int err = 0;
-> +    int i;
-> +
-> +    hw_res = container_of(r, struct cbqri_resctrl_res, resctrl_res);
-> +
-> +    for (i = 0; i < hw_res->max_rcid; i++) {
-> +        err = resctrl_arch_update_one(r, d, i, 0, resctrl_get_default_ctrl(r));
-
-Also set rbwb of all RCIDs to max_bw. Does this also conflict with the spec?
-
-> +        if (err)
-> +            return err;
-> +    }
-> +    return 0;
-> +}
-> +
-
-
-Thanks,
-Wenjia
