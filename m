@@ -1,157 +1,128 @@
-Received: from mail-wm1-f53.google.com (mail-wm1-f53.google.com [209.85.128.53])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D51F26CE2C
-	for <linux-acpi@vger.kernel.org>; Sat, 18 Apr 2026 16:50:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.53
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 084C3199D8;
+	Sat, 18 Apr 2026 22:01:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776531007; cv=none; b=WLtiM4PQzqpX03DZsUVAk1eWGM6t3sEvmSQ1OJGKAR05KVMWMbf8m+vFYD2t7UJYQGSHXK7kLHzHpphmWVLo2fn33OjMCWf6j1kgdqvyphXJanrKjkSqRtybB6rubixyvO3QUOP9LtBAoQaEEluVCe3TnIvEv0Bz2CaK2JtTKcw=
+	t=1776549678; cv=none; b=O38tdUA8XIkiGjZI8wKvEd+P6F6zXKxnSzz1ofF6i5QAI59oWNsshTZxTJ/DE2MM6ucrNBB/scKlLimcJv5LHW/Il/c7u7BdLZwb8jPPPjXTN1P4EYC1Z5cOEXV4BfMYXn9VeZrJxHDwYCwSpT4SQ8UEQN9ga94+vmjZr01FaKg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776531007; c=relaxed/simple;
-	bh=w1tzFvqfBOjNQPH8XlS/WSCtfxbNsAtCxqkiOna20KM=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=sXSSOnr4c6VFe1rcHtSLwQ1t5rral9vjINbVdTgPHBPnwPUqHVuOLkaKY24mI4JiTe6HFouloXRHsa2XvGKTihqW6MOD36rzDVbrnc4rLj7tsC4faKxgLApF/hVXsAGKsiyokc+EWqGxwLBg2/HPtQqTgsFP+nLx+HzXR1vkTig=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=XA24P/NV; arc=none smtp.client-ip=209.85.128.53
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1776549678; c=relaxed/simple;
+	bh=A5nAfY0NCQpH7+XTQGibmLwo/DHt2HJgZy3T+nc98RQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Bl14aWEJw9tZQaOSKqxMsbaS9CBjmvJJ/JB258Qb0/pXY6VtTLnE+IoY0GVZRY3SS2zUk6ZjjvIdcklTU6yqClmUCqdtxWgZ7JOMjMKBL5YxeEsyA5hDsbB5Fi9U+VtuJd902dyQ/7hn8zneGonMypFO/FXQoTV+yxBHmvz1jRY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ov6I0C9W; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="XA24P/NV"
-Received: by mail-wm1-f53.google.com with SMTP id 5b1f17b1804b1-488a14c31eeso12453585e9.0
-        for <linux-acpi@vger.kernel.org>; Sat, 18 Apr 2026 09:50:05 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1776531004; x=1777135804; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=uKQkIRa74x5lADi7CNb+Bghk3/CFXCC1R8y1s3ARJuY=;
-        b=XA24P/NVofyHAvCcAf0NfQc+ge7ApXORFwAGQcdgniTjgcki4+cDllagM/NRu6ytKM
-         d8EMnyadgh5abLsW3AqKS8krfVQdad1/QLX2vR2WFhxYIDIpgVZM4R3lEHmAK/IZ8A2Y
-         KDiF/YDgsz4x7v5QrfaeZLRIFsY6h7kTyNuWkRcsb8vE+qy78SQZzOmCSucVYkrXbqq4
-         YO2GQFBPiXPIhSTZ4dTY+kED9WdT7hfVIhFgaPhPMYYTI5Ouwzq24Sda+ZiKUgsBu8Yk
-         jDKUHfZfclb9FvMbq3OnlExWc9PPGzd2P9PgQaUXkdwf4G2akLErbkOhNKgA+dT2sEGp
-         dQqg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1776531004; x=1777135804;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=uKQkIRa74x5lADi7CNb+Bghk3/CFXCC1R8y1s3ARJuY=;
-        b=St3A8d3b0y9sIsj7UGtTD+MsNYVneCuZyAJKReJjkrh6URWWfbIIqiDW1bCZw7A0rD
-         nKi1iJEUbVlC4T938OTxaLBXKqhGKgfEhQzAOhvgQ/eYMk9up3QZ1lJCJIX070GW0HYM
-         9vti7sHtAVfQ+CIQl6w2MdNX90GayQ6yLrgfC3fYHlcQrtDksq+jVFatKGMJjm8iN42P
-         oRyHB7tdU5DrRh/trO308vQS7yPF2jRxq2XP1kMapANlP7W6RoZnxceVncnF624fHDGZ
-         /9gPPiNJRI9qqhOBVvF6FWAWVLdBgMtE9t4O4NboSeICSEhWFbsM/I9Lqmj6FZ5/W0DF
-         z/PA==
-X-Gm-Message-State: AOJu0Yz0bey0CyxeS3n6ZeDsl1M3sM8obAYHWLatsilkQwSPsJsB4Cud
-	ZVs35vGiAmrNWGdznxo+0iuSksKz1ztCOSagWNRFG1/YXg66lhRMHZSN
-X-Gm-Gg: AeBDievVM7PE+COI3lJ2SNuVm/I2Vnui830QO3tksgTCus95LlrPd/BcTW79JNnn5G4
-	r6pnqFuqd46h95JUSW1928HtUt+hwpljG7rM2CfbJnMMbdBISsKCq4S9+sMwuGmavQkyRPp2cSQ
-	9hq1EfE0RY/ZrF9fu4hisAqleZjIRTzeZHAcC23zFEI+I7zUVXU2kP8viJ+fBCEPXCWSiExTkGo
-	zEmefNwizlpAULlM66BUbBm4Ke9BPm1gD5x3JpCekRO4lWqnfr2JkvhJbnDJYdyCW2l7DFvfhWo
-	sJuTyfWFFpy/6D3++NQ7dQ3evSwaEVmhcqOui286atE/f+I41Ign5JfZEt+Gt/DIr4dJeeD47Yo
-	+kcjBfYduGkDQ1/+afJmUUsPnF8xbYPdnu1OLKiirrBurAtDLZouJNM10hJgQvVHO6O37se0zuv
-	sLMIgUeaGBnPd6oJHwnyvoOAdPfmcrm1DQdC6KOhVmjmEWurCtLw==
-X-Received: by 2002:a05:600c:45d1:b0:488:b098:b653 with SMTP id 5b1f17b1804b1-488fb75a1bdmr107851025e9.13.1776531003651;
-        Sat, 18 Apr 2026 09:50:03 -0700 (PDT)
-Received: from cachy.aybu.edu.tr ([95.183.210.170])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-43fe4e3a166sm14197469f8f.19.2026.04.18.09.50.02
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 18 Apr 2026 09:50:03 -0700 (PDT)
-From: =?UTF-8?q?Z=C3=BCht=C3=BC=20Eren=20=C4=B0ncekara?= <incekarazuhtu04@gmail.com>
-To: Hans de Goede <hansg@kernel.org>
-Cc: linux-acpi@vger.kernel.org,
-	devel@acpica.org,
-	=?UTF-8?q?Z=C3=BCht=C3=BC=20Eren=20=C4=B0ncekara?= <incekarazuhtu04@gmail.com>
-Subject: [PATCH] ACPICA: Dispatcher: Treat AE_ALREADY_EXISTS as a warning
-Date: Sat, 18 Apr 2026 19:49:47 +0300
-Message-ID: <20260418164948.7423-1-incekarazuhtu04@gmail.com>
-X-Mailer: git-send-email 2.53.0
-In-Reply-To: <eec034b8-7fa3-4169-915d-6e7173779d6c@kernel.org>
-References: <eec034b8-7fa3-4169-915d-6e7173779d6c@kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ov6I0C9W"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0758C19424;
+	Sat, 18 Apr 2026 22:01:16 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1776549677;
+	bh=A5nAfY0NCQpH7+XTQGibmLwo/DHt2HJgZy3T+nc98RQ=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=ov6I0C9WO+pvVeHHF8+eA1mVy/+nfpXNloSzyhX3q7T0ksZvQ8V1V3A63tcjeaDnY
+	 /bFBmlsemI4DRs1nKLBBXsmeVlYp1t2d96Uy6e04cwlpKK4Firh3X6VRDNIMszsVnn
+	 Kv7DSmLdGRXNK6envCiqUlGHxk9k6VHlnMc8gFSpsPtxYr4W4tNOI4RkTs1GU65LQI
+	 6/7Antf6xdT9gPXzY97fNCOsspL70XTzbTiwmtpFD+cdjR4Wcr2ldzoNkRsCKxQnGH
+	 //Pt9Pt60iTtFp6f8R4dKTd6jMGXq93OMWOlwaJKQOqNs6lMf+UwDwCAnGCcx02voi
+	 Bb/kPWTBSpApw==
+Date: Sat, 18 Apr 2026 15:01:12 -0700
+From: Drew Fustini <fustini@kernel.org>
+To: guo.wenjia23@zte.com.cn
+Cc: pjw@kernel.org, palmer@dabbelt.com, aou@eecs.berkeley.edu,
+	alex@ghiti.fr, rkrcmar@ventanamicro.com, samuel.holland@sifive.com,
+	aricciardi@baylibre.com, npitre@baylibre.com, mindal@semihalf.com,
+	atish.patra@linux.dev, atishp@rivosinc.com, vasu@rivosinc.com,
+	ved@rivosinc.com, conor.dooley@microchip.com,
+	cuiyunhui@bytedance.com, cp0613@linux.alibaba.com,
+	zhiwei_liu@linux.alibaba.com, liwei1518@gmail.com,
+	gong.shuai@sanechips.com.cn, gsh517@gmail.com,
+	liu.qingtao2@zte.com.cn, reinette.chatre@intel.com,
+	tony.luck@intel.com, babu.moger@amd.com, peternewman@google.com,
+	fenghua.yu@intel.com, james.morse@arm.com, ben.horgan@arm.com,
+	Dave.Martin@arm.com, robh@kernel.org, conor+dt@kernel.org,
+	krzk+dt@kernel.org, rafael@kernel.org, lenb@kernel.org,
+	robert.moore@intel.com, sunilvl@ventanamicro.com,
+	linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org,
+	x86@kernel.org, linux-acpi@vger.kernel.org,
+	acpica-devel@lists.linux.dev, devicetree@vger.kernel.org,
+	paul.walmsley@sifive.com
+Subject: Re: [PATCH RFC v3 06/11] RISC-V: QoS: add resctrl setup and domain
+ management
+Message-ID: <aeP_KJz07WnkqVTP@gen8>
+References: <20260414-ssqosid-cbqri-rqsc-v7-0-v3-6-b3b2e7e9847a@kernel.org>
+ <202604180028.63I0Svo8029922@mse-fl1.zte.com.cn>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <202604180028.63I0Svo8029922@mse-fl1.zte.com.cn>
 
-Hi Hans,
+On Fri, Apr 17, 2026 at 06:52:27PM +0800, guo.wenjia23@zte.com.cn wrote:
+> Hi Drew,
+> 
+> On Wed, Apr 15, 2026 at 9:57 AM Drew Fustini <fustini@kernel.org> wrote:
+> 
+> > Add the setup and domain management layer: domain allocation
+> > (qos_new_domain), controller value initialization
+> > (qos_init_domain_ctrlval), resource struct initialization for cache and
+> > bandwidth resources, domain registration with the resctrl filesystem
+> > (qos_resctrl_add_controller_domain), and the top-level setup function
+> > (qos_resctrl_setup) that probes all controllers and calls resctrl_init().
+> >
+> > Also add qos_resctrl_online_cpu() and qos_resctrl_offline_cpu() for CPU
+> > hotplug integration.
+> >
+> > Co-developed-by: Adrien Ricciardi <aricciardi@baylibre.com>
+> > Signed-off-by: Adrien Ricciardi <aricciardi@baylibre.com>
+> > Signed-off-by: Drew Fustini <fustini@kernel.org>
+> > ---
+> >  arch/riscv/kernel/qos/qos_resctrl.c | 295 +++++++++++++++++++++++++++++++++++-
+> >  1 file changed, 294 insertions(+), 1 deletion(-)
+> >
+> > diff --git a/arch/riscv/kernel/qos/qos_resctrl.c b/arch/riscv/kernel/qos/qos_resctrl.c
+> > index a4a120f89840..8d7e3b0abb75 100644
+> > --- a/arch/riscv/kernel/qos/qos_resctrl.c
+> > +++ b/arch/riscv/kernel/qos/qos_resctrl.c
+> > @@ -675,7 +675,23 @@ void resctrl_arch_reset_rmid_all(struct rdt_resource *r, struct rdt_l3_mon_domai
+> >  
+> >  void resctrl_arch_reset_all_ctrls(struct rdt_resource *r)
+> >  {
+> > -    /* not implemented for the RISC-V resctrl implementation */
+> > +    struct cbqri_resctrl_res *hw_res;
+> > +    struct rdt_ctrl_domain *d;
+> > +    enum resctrl_conf_type t;
+> > +    u32 default_ctrl;
+> > +    int i;
+> > +
+> > +    lockdep_assert_cpus_held();
+> > +
+> > +    hw_res = container_of(r, struct cbqri_resctrl_res, resctrl_res);
+> > +    default_ctrl = resctrl_get_default_ctrl(r);
+> > +
+> > +    list_for_each_entry(d, &r->ctrl_domains, hdr.list) {
+> > +        for (i = 0; i < hw_res->max_rcid; i++) {
+> > +            for (t = 0; t < CDP_NUM_TYPES; t++)
+> > +                resctrl_arch_update_one(r, d, i, t, default_ctrl);
+> 
+> For the bw controller, default_ctrl = max_bw, and
+> resctrl_arch_update_one will set the rbwb of all RCIDs to max_bw.
+> According to the spec: The sum of Rbwb allocated across all rcids must
+> not exceed MRBWB value. 
+> 
+> Does this conflict with the spec?
 
-I've implemented the ACPICA core patch as you suggested. I modified dswload2.c 
-to treat AE_ALREADY_EXISTS as a warning instead of a fatal error, allowing 
-the table load to continue.
+Good point. Yeah, this is not being done correctly. I had been doing
+similar to what is done on x86 but the big difference is that CBQRI is
+reservation based.
 
-I tested this on my ASUS Vivobook X7400PC with a custom 7.0.0-dirty kernel. 
-The patch successfully allows the problematic SSDT to load.
+Each RCID must have at least 1 Rbwb, and the remainder should be
+assigned to default group, RCID 0. It'll update the implementation.
 
-Verification from dmesg (The patch is working):
-[    0.190917] ACPI Warning: Namespace lookup: Object [APLD] already exists, continuing table load
-[    0.190940] ACPI Warning: Namespace lookup: Object [_UPC] already exists, continuing table load (20251212/dswload2-333)
-[    0.190971] ACPI Warning: Namespace lookup: Object [_PLD] already exists, continuing table load (20251212/dswload2-333)
-
-However, despite the table loading successfully, the missing thermal symbols 
-still persist in my logs:
-
-Persistent AE_NOT_FOUND errors:
-[    6.809032] ACPI BIOS Error (bug): Could not resolve symbol [\CTDP], AE_NOT_FOUND (20251212/psargs-332)
-[    6.829784] ACPI BIOS Error (bug): Could not resolve symbol [\_SB.PC00.LPCB.EC0.SEN1._CRT.S1CT], AE_NOT_FOUND
-[    6.829840] ACPI Error: Aborting method \_SB.PC00.LPCB.EC0.SEN1._PSV due to previous error (AE_NOT_FOUND)
-
-It appears the namespace collision was indeed preventing the table from 
-loading, but even with the table loaded, these specific thermal symbols 
-are still not resolvable. This might indicate they are truly missing 
-from the BIOS tables or defined elsewhere.
-
-Should we proceed with this ACPICA change, or should I go back to 
-providing these symbols via a quirk in asus-wmi?
-
-Best regards,
-Zühtü Eren İncekara
-
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-
-Allow ACPI table loading to continue when a named object already exists. This addresses BIOS bugs where SSDT tables redefine objects present in the DSDT, which prevents essential symbols (like thermal zones) from being loaded.
-
-Signed-off-by: Zühtü Eren İncekara <incekarazuhtu04@gmail.com>
----
- drivers/acpi/acpica/dswload2.c | 20 +++++++++++++++++---
- 1 file changed, 17 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/acpi/acpica/dswload2.c b/drivers/acpi/acpica/dswload2.c
-index bfc54c914..9d0deb2f7 100644
---- a/drivers/acpi/acpica/dswload2.c
-+++ b/drivers/acpi/acpica/dswload2.c
-@@ -323,9 +323,23 @@ acpi_ds_load2_begin_op(struct acpi_walk_state *walk_state,
- 	}
- 
- 	if (ACPI_FAILURE(status)) {
--		ACPI_ERROR_NAMESPACE(walk_state->scope_info,
--				     buffer_ptr, status);
--		return_ACPI_STATUS(status);
-+		/*
-+		 * If the object already exists, do not abort the table load.
-+		 * Instead, issue a warning and continue with AE_OK.
-+		 * This allows the rest of the SSDT to be loaded even if the
-+		 * BIOS incorrectly attempts to redefine an existing object.
-+		 */
-+		if (status == AE_ALREADY_EXISTS) {
-+			ACPI_WARNING((AE_INFO,
-+				      "Namespace lookup: Object [%s] already exists, continuing table load",
-+				      buffer_ptr));
-+			status = AE_OK;
-+		} else {
-+			/* For all other fatal errors, abort the method/table load */
-+			ACPI_ERROR_NAMESPACE(walk_state->scope_info,
-+					     buffer_ptr, status);
-+			return_ACPI_STATUS(status);
-+		}
- 	}
- 
- 	if (!op) {
--- 
-2.53.0
-
+Thanks,
+Drew
