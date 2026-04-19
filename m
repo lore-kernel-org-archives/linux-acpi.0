@@ -1,92 +1,84 @@
-Received: from mail.189.cn (189sx01-ptr.21cn.com [125.88.204.37])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id DAFEC2AD10;
-	Sun, 19 Apr 2026 00:21:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=125.88.204.37
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A2F83254B3
+	for <linux-acpi@vger.kernel.org>; Sun, 19 Apr 2026 11:29:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776558075; cv=none; b=EgulFwpClsmhipTdZgJ/sVEkbzK8zAT7uBtdmRWUCmkTEvotnVsOGo4KIcLBFIclobUfBNXfIkTqhauDto4NUFh2wE+F49odX8NI8k9t/WQJd3Z20bgloxZ4PYKvlTkSsvc3gp6SGikuvH7S0yX7dOKT9kTAwBDTX4COecqWmkg=
+	t=1776598180; cv=none; b=eqqnm5S+I5nqckHLLKX+DmkP+K0M8pXwWUl8fYK19uYoIxEr9YaRy2a+ZID+vSuu+PTvHTkuuNZv394Pe8XDd+nQF+wpQBApIKXnjwBLQ23RXOrglsYSzR3mqUIybNhIdIRbiGvt4U5pc9Ay5gnNgFeZ1SdKrPmX1wCvVvHK75Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776558075; c=relaxed/simple;
-	bh=n7RvdwwyxgFcYjvNyAgeH/BTooOtpphxA4vkMUajWJk=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=myOH+z4IeAJ4edgLFcyR0RKAMg3cr38R+zLUBd3smmVsAj2xiUbDvOENbGcxdShv2P0CDzBQFpvcQiKqo7D7EEdtAmVs3rw4Pvz/VP3uNXFYFQFsqpZGU1lP6Xtqi607JXpWZkaOWrXSULG33owbJ0nDP0n1CI6zCVepmG97fVg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=189.cn; spf=pass smtp.mailfrom=189.cn; arc=none smtp.client-ip=125.88.204.37
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=189.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=189.cn
-HMM_SOURCE_IP:10.158.242.145:0.272028814
-HMM_ATTACHE_NUM:0000
-HMM_SOURCE_TYPE:SMTP
-Received: from clientip-60.27.224.181 (unknown [10.158.242.145])
-	by mail.189.cn (HERMES) with SMTP id A4E65400083;
-	Sun, 19 Apr 2026 08:21:08 +0800 (CST)
-Received: from  ([60.27.224.181])
-	by gateway-153622-dep-76cc7bc9cd-r45x9 with ESMTP id 7f3f162eb12d49658ed84c9b5a5c81dd for david.laight.linux@gmail.com;
-	Sun, 19 Apr 2026 08:21:11 CST
-X-Transaction-ID: 7f3f162eb12d49658ed84c9b5a5c81dd
-X-Real-From: chensong_2000@189.cn
-X-Receive-IP: 60.27.224.181
-X-MEDUSA-Status: 0
-Sender: chensong_2000@189.cn
-Message-ID: <5838a534-8ec3-4bb5-bbce-4271fd456cc3@189.cn>
-Date: Sun, 19 Apr 2026 08:21:06 +0800
+	s=arc-20240116; t=1776598180; c=relaxed/simple;
+	bh=QvkoHQtcOl5TpwI7NbsfPvRhnb3xNkWqZGsr9oYnyng=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=HVyypkwJM+/wcftP3eIL2RVoCe5cm9DKvtHiIDYFgmB2V2rvNrSfkKWYIgoECEEMRvfp0zSanZOxI8AHH02+UcyZXfjCNZn5HdJndc24dbwwIlqAQJ1qzIPzh5C5lh20X1WawdezAJh7d5hk860ZsXhvglIzUS58fCRkZWWj2LE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JZPagMwg; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JZPagMwg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D05AFC2BCB5
+	for <linux-acpi@vger.kernel.org>; Sun, 19 Apr 2026 11:29:39 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1776598179;
+	bh=QvkoHQtcOl5TpwI7NbsfPvRhnb3xNkWqZGsr9oYnyng=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=JZPagMwgiQ/4rahy9dgvu7yrpWs10SA7mLT1TpknzDQUOaR83aF7R5qk9W9CkRXHn
+	 /wEX65dDwIe1gT1+V00b2dR+WuAlRJJFFD9RA70m9ZUCt6rty2aoATfou1wR9pkd4K
+	 c7bV4hQINNj3e7eDNKW7idUIQAGvUpDIpwQu97T5DW8HH+//6A3jldyh6Y2OzJWH9Z
+	 0b/6uIvLXXNxKZr6ptduMdBYFXNirhm7Zg8fTVZHtcHGxaipfHBvbo8dRkA0xajlwX
+	 Ge5uYAP+3IXH9mRkl4YGQDGgOUJ943urG1Oe1iKCi3qEkEBq1uaE7af40LybuIdekY
+	 54uvX38AV/Kug==
+Received: by mail-lf1-f53.google.com with SMTP id 2adb3069b0e04-5a40d02b58bso1902804e87.3
+        for <linux-acpi@vger.kernel.org>; Sun, 19 Apr 2026 04:29:39 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ+aIn8Mtw5RTHAz6iIV5phgZn4qOtIV9z6QXcCjuFhrFVOdcZPTKaEBGmdaP0lMs4obNZX1xIWcLUsS@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy1Oasy2rksemhyL6YbpfRoEM3aaJQJT2E1H+Ltvlyw8HazFVvZ
+	hivPqByY1Ak+67dDo8tq665qoFpQQsQc5Sjpmk5bn9rdj/AIAgT8Ja2WLasBtHshHVg3qPoYXec
+	j2ixIjCtmO1t9149u9dBiHGe0LuhhoXw=
+X-Received: by 2002:a05:6512:33d6:b0:5a2:c05c:1141 with SMTP id
+ 2adb3069b0e04-5a4172b749emr2855772e87.4.1776598178189; Sun, 19 Apr 2026
+ 04:29:38 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH 1/2] kernel/notifier: replace single-linked list with
- double-linked list for reverse traversal
-To: David Laight <david.laight.linux@gmail.com>
-Cc: rafael@kernel.org, lenb@kernel.org, mturquette@baylibre.com,
- sboyd@kernel.org, viresh.kumar@linaro.org, agk@redhat.com,
- snitzer@kernel.org, mpatocka@redhat.com, bmarzins@redhat.com,
- song@kernel.org, yukuai@fnnas.com, linan122@huawei.com,
- jason.wessel@windriver.com, danielt@kernel.org, dianders@chromium.org,
- horms@kernel.org, davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
- pabeni@redhat.com, paulmck@kernel.org, frederic@kernel.org,
- mcgrof@kernel.org, petr.pavlu@suse.com, da.gomez@kernel.org,
- samitolvanen@google.com, atomlin@atomlin.com, jpoimboe@kernel.org,
- jikos@kernel.org, mbenes@suse.cz, pmladek@suse.com, joe.lawrence@redhat.com,
- rostedt@goodmis.org, mhiramat@kernel.org, mark.rutland@arm.com,
- mathieu.desnoyers@efficios.com, linux-modules@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
- linux-acpi@vger.kernel.org, linux-clk@vger.kernel.org,
- linux-pm@vger.kernel.org, live-patching@vger.kernel.org,
- dm-devel@lists.linux.dev, linux-raid@vger.kernel.org,
- kgdb-bugreport@lists.sourceforge.net, netdev@vger.kernel.org
-References: <20260415070137.17860-1-chensong_2000@189.cn>
- <20260416133004.07bd2886@pumpkin>
-Content-Language: en-US
-From: Song Chen <chensong_2000@189.cn>
-In-Reply-To: <20260416133004.07bd2886@pumpkin>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+References: <20260415173735.24437-1-tony.luck@intel.com> <CACw3F522f6p-x6MEU8t7CEoU1P=PtU8dKy7opKjH8sOecdF1kg@mail.gmail.com>
+ <SJ1PR11MB6083BF86FFA17D90FBF86686FC222@SJ1PR11MB6083.namprd11.prod.outlook.com>
+In-Reply-To: <SJ1PR11MB6083BF86FFA17D90FBF86686FC222@SJ1PR11MB6083.namprd11.prod.outlook.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Sun, 19 Apr 2026 13:29:16 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0jg-FrNmGuLFu9aoSshGRzUqYuGTzhh+uczkzsHB4Cf9g@mail.gmail.com>
+X-Gm-Features: AQROBzC51TVKRs9me71FD9a-Bau7oqQSsYmMScOhs-quazpd4sFxkP76sutHqOE
+Message-ID: <CAJZ5v0jg-FrNmGuLFu9aoSshGRzUqYuGTzhh+uczkzsHB4Cf9g@mail.gmail.com>
+Subject: Re: [PATCH v2] ACPI: APEI: EINJ: Fix EINJv2 memory injection
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: Jiaqi Yan <jiaqiyan@google.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, 
+	"Li, Herman" <herman.li@intel.com>, Zaid Alali <zaidal@os.amperecomputing.com>, 
+	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, 
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, 
+	"patches@lists.linux.dev" <patches@lists.linux.dev>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi,
+On Wed, Apr 15, 2026 at 8:15=E2=80=AFPM Luck, Tony <tony.luck@intel.com> wr=
+ote:
+>
+> > > +static bool is_memory_injection(u32 type, u64 param2)
+> > > +{
+> > > +       if (is_v2)
+> > > +               return type & BIT(1);
+> >
+> > Hi Tony, just a nit: for readability would it better to introduce a
+> > macro for BIT(1)? like ACPI65_EINJV2_ERROR_TYPE_MEMORY
+>
+> I thought about that. The old (v1?) EINJ type bits are in <acpi/actbl1.h>
+>
+> So "the right thing"(TM) might be to add some V2 defines there:
+>
+> #define ACPI_EINJV2_PROCESSOR   BIT(0)
+> #define ACPI_EINJV2_MEMORY              BIT(1)
+> #define ACPI_EINJV2_PCIX                        BIT(2)
+>
+> Rafael: Do you want that? I can start the process in the ACPICA tree if y=
+ou do.
 
-On 4/16/26 20:30, David Laight wrote:
-> On Wed, 15 Apr 2026 15:01:37 +0800
-> chensong_2000@189.cn wrote:
-> 
->> From: Song Chen <chensong_2000@189.cn>
->>
->> The current notifier chain implementation uses a single-linked list
->> (struct notifier_block *next), which only supports forward traversal
->> in priority order. This makes it difficult to handle cleanup/teardown
->> scenarios that require notifiers to be called in reverse priority order.
-> 
-> If it is only cleanup/teardown then the list can be order-reversed
-> as part of that process at the same time as the list is deleted.
-> 
-> 	David
-> 
-> 
-> 
-
-Sorry, i don't follow, the notifiers in the list are deleted when 
-calling notifier_chain_unregister, other than that, they are traversed 
-forward and backward.
-
-Song
-
+Yes, please!
