@@ -1,78 +1,145 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.19])
+Received: from stravinsky.debian.org (stravinsky.debian.org [82.195.75.108])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77763388E55;
-	Mon, 20 Apr 2026 08:37:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.19
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 708B438CFFA;
+	Mon, 20 Apr 2026 09:29:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=82.195.75.108
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776674240; cv=none; b=bGv3D1/8NQ0ZpFsePPrVxqeOAFiQ9ayZJHdfKLnNusUoAtuLSGtg3P0wKCwcGhtrlrNu8w3Pc7YsQurBE4kwAsSass/ouZXBDrp2LgUx/BeK0uxx70P0F39vBm7E5o5Y4Ly7FbxcuHyfBilQZihtfqtdHyBcVeq9XdyUixa2eDE=
+	t=1776677393; cv=none; b=W0JV5lqPumBwFLRTfGK6miABlOIVm4Q7OJA5HHp6nVVvFF2ZiQxrZmBNWReAXMSSq4ZNg+s/igIjd1mSwjLLZYj6ev0A19QPjrDcxMcccgkdBscdRjGGR20DPwAbnsSzSUxnTQ+klXxXDmNcSN+T6IejLdCrj7yHlHByMScSotI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776674240; c=relaxed/simple;
-	bh=dKRuzBwG/k0FLMHeg/8aXg6fYoXyJDowLF6D6SBZJmQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=oQ6Fc46xck/B7X2aWnF6Bg8zd6asabKU0UEVuChpEtXwPQFROiK/TC+39ZYEGbqCDMJWs0nA+yih3aYFbPBsLMw02FpXMRc/p5aoLz8OHDlgOb8xpXD/vqt+BMYnuqBNF5DS7AEoiXKAVXDn/WYIgmFXNehWBuwHUcUE+ficXNY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=EMf6gNvq; arc=none smtp.client-ip=192.198.163.19
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1776677393; c=relaxed/simple;
+	bh=dCyASQv/4XztmsIYk1Flo/oDFHV7wnr3lzX8kb24qtU=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=FvXuScQ7OO8H9/f/RMc30W5E0zJZTRZv2v+CzWtdrw2KMG4rE36VURNDQMMnNAMErI/dHR7PCHaWl5z9oMG17raTV1hl116ayno1eIY1hGRietPDoxBippIhm0vNdhFe6DJPQOBTN6wxcWWLJYrip6rEXHePrIITAkq01VXgiWQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org; spf=none smtp.mailfrom=debian.org; dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b=CRQl3FSW; arc=none smtp.client-ip=82.195.75.108
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=debian.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="EMf6gNvq"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1776674238; x=1808210238;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=dKRuzBwG/k0FLMHeg/8aXg6fYoXyJDowLF6D6SBZJmQ=;
-  b=EMf6gNvqOFJeZ5A5otk+d7A0xaTV1pnddvFkM3ql+HIiw8sTLexRnEOL
-   d1lvNDJ2beJlnhYAdDtrecX/jtg8qCphK4/Uv4SFgK2hqDYxxZIpYrx6c
-   DwstVOUf1d1DGhztuNT1cpyZo22irhJhn4ClTivXeiIZi24BY3j1z9NXr
-   vSLGzmJDQp0X0yxS/S5WCbU5mxYdAZLJxpgVi/g3+yGgbqGR962NcWeJ7
-   CnvizEDgLQhLW3lddh9S2RkZbMJtioaJ8WR9jZZF9y2iFcyjEF+sTWwx0
-   eFsgP5iixnS2Ed4HHFVf3qceZNQwzo6+7UkidYiBiE/7hXg9rGrWo/GUw
-   w==;
-X-CSE-ConnectionGUID: wWU0FFSnSfii6HO3ITE6+A==
-X-CSE-MsgGUID: xErdLy4oSeickvyCGtaWmg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11762"; a="76612392"
-X-IronPort-AV: E=Sophos;i="6.23,189,1770624000"; 
-   d="scan'208";a="76612392"
-Received: from fmviesa003.fm.intel.com ([10.60.135.143])
-  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Apr 2026 01:37:17 -0700
-X-CSE-ConnectionGUID: lti6nJEmTbaL9SzKuAc65w==
-X-CSE-MsgGUID: MknTkTqaTKCvTkCqu2MZ4g==
-X-ExtLoop1: 1
-Received: from unknown (HELO black.igk.intel.com) ([10.91.253.5])
-  by fmviesa003.fm.intel.com with ESMTP; 20 Apr 2026 01:37:14 -0700
-Received: by black.igk.intel.com (Postfix, from userid 1001)
-	id 4A5C195; Mon, 20 Apr 2026 10:37:13 +0200 (CEST)
-Date: Mon, 20 Apr 2026 10:37:13 +0200
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-To: Niels Franke <nielsfranke@gmail.com>
-Cc: westeri@kernel.org, wsa+renesas@sang-engineering.com,
-	linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] i2c: acpi: Add ELAN0678 to
- i2c_acpi_force_100khz_device_ids
-Message-ID: <20260420083713.GA3598@black.igk.intel.com>
-References: <20260418053719.15766-1-nielsfranke@gmail.com>
+	dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b="CRQl3FSW"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=debian.org;
+	s=smtpauto.stravinsky; h=X-Debian-User:Cc:To:Message-Id:
+	Content-Transfer-Encoding:Content-Type:MIME-Version:Subject:Date:From:
+	Reply-To:Content-ID:Content-Description:In-Reply-To:References;
+	bh=l3E7Js9iCtlEfFoCuvz8eXLkCYO1Y8/jvTZT5sU/BaI=; b=CRQl3FSWYhYcm8pcTXKhNrpvUZ
+	EP7rGrDLzUEYtU8AqPC5MpNqCzsSMZKCw+BedlBQ1WWpPDEUz3eo4uWisHtnQAwtnkiEfDpfdzHhe
+	C1qJ2LCI4IK4pCzyS4mIQJuQ8QtDpi5lYKRZd0EHpUKA8Qmq13AEg7Stuv2ltVrkFpRlerFVaTLOD
+	mNN37pGoJ2O4+50iizUla1Q/wyRqz+DUVHC57tSQveQcomKbfVqtCPeaUxixqlIGWXLt1TLcwo3nb
+	QW6fo3gfyYohX7E9rnEo1E28mxAN+CQe+iuxkCXPvCe1kght5RxOTxaIQLwfZRolfHA3eXosTfvtM
+	+kX6N+rA==;
+Received: from authenticated user
+	by stravinsky.debian.org with esmtpsa (TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
+	(Exim 4.96)
+	(envelope-from <leitao@debian.org>)
+	id 1wEkwa-00HaDw-1t;
+	Mon, 20 Apr 2026 09:29:28 +0000
+From: Breno Leitao <leitao@debian.org>
+Date: Mon, 20 Apr 2026 02:27:13 -0700
+Subject: [PATCH] ACPI: arm64: cpuidle: Tolerate platforms with no deep PSCI
+ idle states
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20260418053719.15766-1-nielsfranke@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20260420-ffh-v1-1-6b4c10fec442@debian.org>
+X-B4-Tracking: v=1; b=H4sIAHDx5WkC/yXMMQqEMBBG4asMf21AEwmaqywW6s7oWOiSqAji3
+ cW1fMX3TiSOygmBTkTeNekyI1CREfqxnQc2+kUg2Nz6vCycERlN7cRXnZXStw4Z4RdZ9PhfPs3
+ baesm7teH4rpuKopwrmcAAAA=
+X-Change-ID: 20260413-ffh-93f68b2f46a3
+To: Lorenzo Pieralisi <lpieralisi@kernel.org>, 
+ Hanjun Guo <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>, 
+ Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, 
+ "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
+ Huisong Li <lihuisong@huawei.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, 
+ linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+ linux-kernel@vger.kernel.org, pjaroszynski@nvidia.com, rmikey@meta.com, 
+ kernel-team@meta.com, stable@vger.kernel.org, 
+ Breno Leitao <leitao@debian.org>
+X-Mailer: b4 0.16-dev-453a6
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2471; i=leitao@debian.org;
+ h=from:subject:message-id; bh=dCyASQv/4XztmsIYk1Flo/oDFHV7wnr3lzX8kb24qtU=;
+ b=owEBbQKS/ZANAwAIATWjk5/8eHdtAcsmYgBp5fHzqn+00bv5uiKjyfb0L3oxZFEemEvZoPtx7
+ SfZPToQOv2JAjMEAAEIAB0WIQSshTmm6PRnAspKQ5s1o5Of/Hh3bQUCaeXx8wAKCRA1o5Of/Hh3
+ bSCeD/97foqkwPA2sEHhr9/FhCvzbuTMfq2L5IYng7YjGvEuYfpcRqx4O1FLN9tEr9/tUo7ONtJ
+ C09130QdJvpFLNJfi2KYl4rLyEiGyT7DIzsfUmLFCN0zpTg0ilVHiNm28VutMdU04zMpRNn7v1m
+ 9VR2bGjBqr3hwSrA3Nqwx6Wv7envXp6cAWoqAWzOJb27+/zGR2fIHTHAEr95NDVEy+UI3eI/3v5
+ s5q7jk06CVpyp3AAby8D60kpwQadz0TISp0kTw0O05uFrdCw0kd2/lHKh6FC9QeS0oppiy+/yrm
+ o0DyFgJKyjytOJ78V2Nn7hnBacrT6WC0yVNowb10UlveuefuTmZfRNCBammkrTIGJrLrAlkRcGE
+ BYKKD1keoP/tqfapcaLSyuhS3AYWuIUUG58ezNInLcs18HMa5Fyd1OFRwOIfjWajzxfA7b2mP7Z
+ kwrL4MHM18KA0KYjgq/yLw+fqRjGi0/YQETM+KbnwIVTFLIHMNjSbALee/J+mM0DM6qOrm7TrZ4
+ wmrcxSFME+g3Pa5yicC2aTtQJPEGByK90k+aYgM1vBDytiyfaNsHT44jvT0kWVh0em32tPanwWL
+ 5pHHY3aUlf3fV0WoQ+IlYrjxYKmRM+diZ/95gtNDyrfwE2Zh/rgnBnVl34tGq1uxi17NzwwiqIj
+ b0Mhx3IjlF2IVkQ==
+X-Developer-Key: i=leitao@debian.org; a=openpgp;
+ fpr=AC8539A6E8F46702CA4A439B35A3939FFC78776D
+X-Debian-User: leitao
 
-On Sat, Apr 18, 2026 at 07:37:19AM +0200, Niels Franke wrote:
-> The ELAN0678 touchpad (04F3:3195) found in the Lenovo ThinkPad X13
-> exhibits excessive smoothing when the I2C bus runs at 400KHz, making
-> the touchpad feel sluggish when plugged into AC power. This is the
-> same issue previously fixed for ELAN06FA.
-> 
-> The device's ACPI table (Lenovo TP-R22) specifies 0x00061A80 (400KHz)
-> for the I2cSerialBusV2 descriptor. Forcing the bus to 100KHz eliminates
-> the sluggish behavior.
-> 
-> Signed-off-by: Niels Franke <nielsfranke@gmail.com>
+Commit cac173bea57d ("ACPI: processor: idle: Rework the handling of
+acpi_processor_ffh_lpi_probe()") moved the acpi_processor_ffh_lpi_probe()
+call from acpi_processor_setup_cpuidle_dev(), where its return value was
+ignored, to acpi_processor_get_power_info(), where it is now treated as
+a hard failure. As a result, platforms where psci_acpi_cpu_init_idle()
+returned -ENODEV stopped registering any cpuidle states, forcing CPUs to
+busy-poll when idle.
 
-Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+On NVIDIA Grace (aarch64) systems with PSCIv1.1, pr->power.count is 1
+(only WFI, no deep PSCI states beyond it), so the previous
+"count = pr->power.count - 1; if (count <= 0) return -ENODEV;" check
+returned -ENODEV for all 72 CPUs and disabled cpuidle entirely.
+
+The lpi_states count is already validated in acpi_processor_get_lpi_info(),
+so the check here is redundant. Simplify the loop to iterate over
+lpi_states[1..power.count). When only WFI is present, the loop body
+simply does not execute and the function returns 0, which is the correct
+outcome: there is nothing to validate for FFH and no error to report.
+
+Suggested-by: Huisong Li <lihuisong@huawei.com>
+Cc: stable@vger.kernel.org
+Fixes: cac173bea57d ("ACPI: processor: idle: Rework the handling of acpi_processor_ffh_lpi_probe()")
+Signed-off-by: Breno Leitao <leitao@debian.org>
+---
+ drivers/acpi/arm64/cpuidle.c | 10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/acpi/arm64/cpuidle.c b/drivers/acpi/arm64/cpuidle.c
+index 801f9c4501425..c68a5db8ebba8 100644
+--- a/drivers/acpi/arm64/cpuidle.c
++++ b/drivers/acpi/arm64/cpuidle.c
+@@ -16,7 +16,7 @@
+ 
+ static int psci_acpi_cpu_init_idle(unsigned int cpu)
+ {
+-	int i, count;
++	int i;
+ 	struct acpi_lpi_state *lpi;
+ 	struct acpi_processor *pr = per_cpu(processors, cpu);
+ 
+@@ -30,14 +30,10 @@ static int psci_acpi_cpu_init_idle(unsigned int cpu)
+ 	if (!psci_ops.cpu_suspend)
+ 		return -EOPNOTSUPP;
+ 
+-	count = pr->power.count - 1;
+-	if (count <= 0)
+-		return -ENODEV;
+-
+-	for (i = 0; i < count; i++) {
++	for (i = 1; i < pr->power.count; i++) {
+ 		u32 state;
+ 
+-		lpi = &pr->power.lpi_states[i + 1];
++		lpi = &pr->power.lpi_states[i];
+ 		/*
+ 		 * Only bits[31:0] represent a PSCI power_state while
+ 		 * bits[63:32] must be 0x0 as per ARM ACPI FFH Specification
+
+---
+base-commit: 1c7cc4904160c6fc6377564140062d68a3dc93a0
+change-id: 20260413-ffh-93f68b2f46a3
+
+Best regards,
+--  
+Breno Leitao <leitao@debian.org>
+
