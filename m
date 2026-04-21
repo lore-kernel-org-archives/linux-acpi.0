@@ -1,98 +1,91 @@
-Received: from canpmsgout08.his.huawei.com (canpmsgout08.his.huawei.com [113.46.200.223])
+Received: from stravinsky.debian.org (stravinsky.debian.org [82.195.75.108])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 774733859F3;
-	Tue, 21 Apr 2026 09:18:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.223
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D51994414;
+	Tue, 21 Apr 2026 09:52:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=82.195.75.108
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776763117; cv=none; b=UuiCfedyfZ2a+P6h1zRDB1w8rh9F/lK3kEO5Gr316tFfUsrxmW4JoYV4xcYXNaVxHMxGuL0Vy3d8V18yGf/20P7e1ukiZ+SMThrRQL5hS3DqHNBaxXhPEo0T8u0MvurNkjTZMIEBQn13+JtSCeBtUNEiNFwPkbP8ayipTVUKDVU=
+	t=1776765123; cv=none; b=iSbJ7Bu9sdrOTY+zKUJyD2jLn62J99abEKSLK7zdT2LWm/XgHTWK7dXM0wHInvTrmbxFJTVxl/av1XW5r+mwkLeKgPTy3cPV0yeOiTshbD6mNMc3grExwPqK0cnB7dkrJxEp6CjSn1zEniqjjaacaXyj+V0xxmp9ggcQO3oczgY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776763117; c=relaxed/simple;
-	bh=tJBQyXHnQn9klIpcTcvvMyVpAPSnlRbDUcZ7r1NOyR0=;
-	h=Message-ID:Date:MIME-Version:CC:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=pIl3ALPDQCB/hqVUloggzQE1u183/In/EI/zBUREuGn5AOFF86VkhIU4YA34/HstD5RWpLEPinT5+V5YZixDsXTk2AQMk8B02mJTDNEN7WrmBq3WZ4KUjv5zSrBTutgN6fenyJbTRw0sWIaNjvWF8f7Eqc0Mz4ngpOnZo/Wmj7w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=Qaj8jFha; arc=none smtp.client-ip=113.46.200.223
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+	s=arc-20240116; t=1776765123; c=relaxed/simple;
+	bh=09YPZAKY7rOpxPUVTsTAmxP+32o1aRIEB6eOcqRhE9Y=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=oYTf0Z9AwRWH3+KYEzd9CQTnS5jN5FDQAOyVgVN7NyvEPLp6FBO/vgFl2rUsc/ZNFomkDS637LV5dRoCG4luMJQYMODe/xLp2fglQYpnkBTLgFJ5iDczwBc2+duLr+4ScyDALFJdsslkVV8xZ6+C6ZVsW9vzD+WZfAE65DqxMxE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org; spf=none smtp.mailfrom=debian.org; dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b=p2CwlWz8; arc=none smtp.client-ip=82.195.75.108
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=debian.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="Qaj8jFha"
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=pWbjYiWVPEVqHky0jkAvhpEA7GLMbv2D6J2rXjOjo0Q=;
-	b=Qaj8jFhakGb9fUt1bL9RbOIAolX7LR9KcVJf9gEhqIL7/8QMTUDtpVx+7htuLBpLcXMvPt0eM
-	BUn2UyXeBkNM3vcs8okLD57HR3fD2zDS49R+3tPQuZWqVPEYff4Lnhu4cdHwAHDq7ACmUErhVeD
-	r9w/azxx2yA0fwXSGMzl2ds=
-Received: from mail.maildlp.com (unknown [172.19.162.92])
-	by canpmsgout08.his.huawei.com (SkyGuard) with ESMTPS id 4g0Gp032snzmV6X;
-	Tue, 21 Apr 2026 17:12:08 +0800 (CST)
-Received: from kwepemj100016.china.huawei.com (unknown [7.202.194.10])
-	by mail.maildlp.com (Postfix) with ESMTPS id E1CF940565;
-	Tue, 21 Apr 2026 17:18:31 +0800 (CST)
-Received: from [10.174.177.15] (10.174.177.15) by
- kwepemj100016.china.huawei.com (7.202.194.10) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.36; Tue, 21 Apr 2026 17:18:30 +0800
-Message-ID: <bdf9828c-a6e2-46be-aa39-9d222094d565@huawei.com>
-Date: Tue, 21 Apr 2026 17:18:28 +0800
+	dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b="p2CwlWz8"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=debian.org;
+	s=smtpauto.stravinsky; h=X-Debian-User:In-Reply-To:Content-Transfer-Encoding:
+	Content-Type:MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:
+	Reply-To:Content-ID:Content-Description;
+	bh=83aVEK9f9SufcwCkUntBBw2eItisKLS4TV7VwcFpGhQ=; b=p2CwlWz8heTBsicOtaS2dH9rBt
+	Kr4Td/2WmHq18jsZCKQDBg+pO7qQBnsluvlLuZkKpBNRyCr07yRuJMh0U3YcVpMTX6TqmB0/XDT7j
+	Jpyttg3XmIA+/oVluiKg+WX0jEB4BAfgJcYOJSCHyyMvtrwoAHg9kpJVrSA7ZPQ08IsYKt1/EuKSi
+	d9pvrqYPTApN5+eYn/4kGTcHeTz/KLCe/5NlZZ/9OB4gqj+qoiPZE5xx6056yfvcs4Sivix9RU52p
+	LbT5mT65YUAtTEjy4OPDHHSiz+zYjo8M7QzF9svrO1RI8A2pZh3RkXmV1mq86aZM1yRKogYzo8SWy
+	KX9JieMQ==;
+Received: from authenticated user
+	by stravinsky.debian.org with esmtpsa (TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
+	(Exim 4.96)
+	(envelope-from <leitao@debian.org>)
+	id 1wF7lj-000lhS-10;
+	Tue, 21 Apr 2026 09:51:47 +0000
+Date: Tue, 21 Apr 2026 02:51:42 -0700
+From: Breno Leitao <leitao@debian.org>
+To: Sudeep Holla <sudeep.holla@kernel.org>
+Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>, 
+	Hanjun Guo <guohanjun@huawei.com>, Catalin Marinas <catalin.marinas@arm.com>, 
+	Will Deacon <will@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Len Brown <lenb@kernel.org>, Huisong Li <lihuisong@huawei.com>, 
+	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+	linux-kernel@vger.kernel.org, pjaroszynski@nvidia.com, rmikey@meta.com, kernel-team@meta.com, 
+	stable@vger.kernel.org
+Subject: Re: [PATCH] ACPI: arm64: cpuidle: Tolerate platforms with no deep
+ PSCI idle states
+Message-ID: <aedGoi-Fk5HPK0OO@gmail.com>
+References: <20260420-ffh-v1-1-6b4c10fec442@debian.org>
+ <20260420-sturdy-unique-shark-c4ca8c@sudeepholla>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-CC: <mawupeng1@huawei.com>, <linux-kernel@vger.kernel.org>,
-	<linux-acpi@vger.kernel.org>
-Subject: Re: [PATCH] ACPI: APEI: check return value of task_work_add to
- prevent memory leaks
-To: <guohanjun@huawei.com>, <rafael@kernel.org>, <tony.luck@intel.com>,
-	<bp@alien8.de>, <mchehab@kernel.org>, <xueshuai@linux.alibaba.com>,
-	<lenb@kernel.org>, <jonathan.cameron@huawei.com>, <jane.chu@oracle.com>,
-	<jarkko@kernel.org>, <wangkefeng.wang@huawei.com>
-References: <20260417065021.4067113-1-mawupeng1@huawei.com>
- <bb2139ba-a7ff-440c-641f-57229a8389b3@huawei.com>
-From: mawupeng <mawupeng1@huawei.com>
-In-Reply-To: <bb2139ba-a7ff-440c-641f-57229a8389b3@huawei.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: kwepems500002.china.huawei.com (7.221.188.17) To
- kwepemj100016.china.huawei.com (7.202.194.10)
+In-Reply-To: <20260420-sturdy-unique-shark-c4ca8c@sudeepholla>
+X-Debian-User: leitao
 
+On Mon, Apr 20, 2026 at 04:12:38PM +0100, Sudeep Holla wrote:
+> On Mon, Apr 20, 2026 at 02:27:13AM -0700, Breno Leitao wrote:
+> > -	count = pr->power.count - 1;
+> > -	if (count <= 0)
+> > -		return -ENODEV;
+> > -
+>
+> Does it make sense to retain this check like
+>   if (pr->power.count < 1)
+>   	return -EINVAL;
+>
+> Though I see the assignment to pr->power.count in drivers/acpi/processor_idle.c
+> is through unsigned int. So I am fine even without the above check.
 
+I don't think the check is necessary. When count is 0 or 1, the loop
+for (i = 1; i < pr->power.count; i++) body won't execute, and the
+function will return 0.
 
-On 周二 2026-4-21 17:02, Hanjun Guo wrote:
-> Hi Wupeng,
-> 
-> On 2026/4/17 14:50, Wupeng Ma wrote:
->> task_work_add() can fail with -ESRCH if the target task is exiting.
->> When it fails, the caller must handle the error and free any allocated
->> resources.
->>
->> ghes_do_memory_failure() allocates a twcb structure from ghes_estatus_pool
->> before calling task_work_add(). If task_work_add() fails, twcb is leaked.
->>
->> This can happen due to a race during task exit:
->>
->>    do_exit()
->>      exit_mm()           # current->mm cleared
->>      exit_task_work()    # task->task_works = &work_exited
->>
->> ghes_do_memory_failure() checks current->mm before allocating twcb,
->> but exit_task_work() may run before task_work_add() completes.  At that
->> point task->task_works == &work_exited, causing task_work_add() to fail.
-> 
-> There are multi places in the kernel to call task_work_add() without
-> checking the return value, does this race only cause bug in
-> ghes_do_memory_failure()?
+This seems like the correct behavior — if there are no FFH PSCI states
+to validate, there's nothing that should fail.
 
-Thanks for the review. 
+Additionally, returning -ENODEV would trigger the "Invalid FFH LPI data"
+error message, which would be misleading since the LPI data isn't
+invalid, it's just not present.
 
-We have analyzed all the called functions, and apart from this location, only
-binder_deferred_fd_close has a potential resource leak issue upon failure.
+That said, please take this with a grain of salt since I'm not deeply
+familiar with _LPI states and their expected behavior.
 
-
-> 
-> Thanks
-> Hanjun
-
+Thanks for the review,
+--breno
