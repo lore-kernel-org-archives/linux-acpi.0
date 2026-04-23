@@ -1,120 +1,167 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qv1-f51.google.com (mail-qv1-f51.google.com [209.85.219.51])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 705D31E5724;
-	Thu, 23 Apr 2026 05:16:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 632D43DB648
+	for <linux-acpi@vger.kernel.org>; Thu, 23 Apr 2026 07:00:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776921362; cv=none; b=LWVraEeos/7zThXhp7KX2slDFilzQmNIDnx/9qisiFtbPA22LqeGtvT2XJ/9Fkif5QwwBHvxAd/OLohqquD8SKhC1QVyGPvGRPFxJ1Xjlocb/tVJqKnAzZr7EwAZ+Q0W6RHBVR481V857RjQdvVmg/rxWsLAmqtqUmgr0qKu/No=
+	t=1776927657; cv=none; b=PjuCB4XA8U0Ch/XAH1Om0Kz8bbSyupKkzcSJHilVGipMxx1kL28kfNoOwYR7/vSw3Gu+43Zt0kmQ7ZpraFNLgzfEzA84SmM7mMX6gnKq1X5ouZMZ1zW1rkbaJUNVWJjUgTTFmuvWehfplYo10w2SzC8NI9idXoEhW4fgF7R1awI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776921362; c=relaxed/simple;
-	bh=WBlJC2xQ6vXNDpAD4NMjUofuCEcyUB1qLXll+KoCQ5Y=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=GIluMx0FpVrCJewxOCd7PRm9hn88D9uTNQWd/Td7tewUqH422PJsawK9zP5AygBEs9E2A44eZ8aNUz+ZQLV3jRU09aNiOcp7KnYrHpjQm/4u9iV3pMksDRp63bTcfOQzEvSrtAEIF5fHge3rkqSk/wuQicnrKSTtS6u4fbvC3HI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IRlvFOO1; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IRlvFOO1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 594D8C2BCB2;
-	Thu, 23 Apr 2026 05:16:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1776921362;
-	bh=WBlJC2xQ6vXNDpAD4NMjUofuCEcyUB1qLXll+KoCQ5Y=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=IRlvFOO1bMNHBMIGrlyAT47NE/YJHDzM+7gF8LbHOmafwOllZfQZSOqOPWnEIvTC8
-	 y1sxpApBZIGiyaOxEZiNKWRePhS1pqTTs7yTMaKa9+Jlhk3x8259gmEr1zdyiI7lQn
-	 hGggR9s+2Zwy1ie8/pUcHGiOWUa1dM8M4A2xfjsEnBhBiih6qOGApCpr3NgzVjjdnF
-	 dWtstpgK6lI/C407fyk2omqskuXMFixFr/6h/BLGVVFj2GhdGM6UHqT6AnPV3I8j2M
-	 tT+GTGMTFEZcNWJnvpXEeviTEPkpt5CxJZHHLDEzidWjFogpi1QZAWOxPreyBrsLtH
-	 Md63Dv6EbO4+g==
-Message-ID: <3d562963-9581-4e0f-b9a0-5f0fe28d2495@kernel.org>
-Date: Thu, 23 Apr 2026 00:15:59 -0500
+	s=arc-20240116; t=1776927657; c=relaxed/simple;
+	bh=hexwbOGW/6m/Df6+GU12KM4IKYYaGu617h9GqYfIhNY=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=Hg2pVKU5YUD9VLEuTgm3b/BYSAitjF869WK8bil3FBVKWpB4GFSsCLuqD1dlexH8ryWhailcR4OYPR1rpmIQJU1xR78mJw6fxDi7/6gMzxDjq4rerCB9nAnj8PmedtoYYI8LuiGFOH/7SXHW0Yv1d/oQAGCdq1eIikRLFifbgXQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.219.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Received: by mail-qv1-f51.google.com with SMTP id 6a1803df08f44-8aca6bd57cfso60530036d6.0
+        for <linux-acpi@vger.kernel.org>; Thu, 23 Apr 2026 00:00:56 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1776927655; x=1777532455;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=FB5PTwtw54UUlBS193h15pAhGHmMjXQQ1mJTpaYMvb8=;
+        b=ePqSQ7SS53IuNTeX9mh5GPgLQD8ZVToX3ycFuRp5TkAHQ3YGPi0oI4VNwDTpc67ZnC
+         cdoSGA4jzRdzJlgV1hcd4JuYyoHA75JvnB/0eglqQdLrzFnUZxhs2X09dXRdx3DgzCzT
+         f0uZnauhkUf49aZd1wYwyyHM4IiLtjkhso/k0V8dq9Ctcw/3fK18TTEFmTzdP7aK0/dz
+         lTMLuf1w7QYRZW5T3mkLO9OZUBtZJ+0ryf0ddAmNOoBbik8nubTWbZzDiySiiSKGF6fa
+         gF/ePeGg8IBPUMPGTSzBJJSqOlp9TZSh38knYx/K5sfM8mNP1W7Epnpat+Kpgfadjrv5
+         efDQ==
+X-Forwarded-Encrypted: i=1; AFNElJ/BBPiga1yMfN0hstosFJa49iMiBIc98J4UlJvRb2ibyMRAIdZ+WurXgpIm56R3Qp5XckVn7pI6uWO4@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw7e2YU7CXqJlmarh+y9WCdrWdcYDIWILguKK4flurC0+TXJHLx
+	0DmfeXuxom64uJTFO8wWTlg5pB6hWt2dFVq20ffREgA9b91o2450RvHgyYrDOJAAd0U=
+X-Gm-Gg: AeBDieuOixa45RQmz6qg3PVIHlEOvAEyfH7z48qXdc6JZLFMDbAc1vKlbgicjJgYAfx
+	O4pYIKWldPU8Pfc6ta3cGs3Za5GfgJKmHGiJib6GNwCU0u1LWTcT1FAMtIpk7TiYaxugRJyGFrH
+	OT1LK/TuKzXXosq1bwBhX/6eDXOr/osjRCAvcNqaz5XBYiKNW8mFri6j8cqlBWE9Aq93fGaqHuQ
+	vZD3J9vOUesevuOyUNvGQ7W5sLt/jwvt26vDmxJ2yw1ue+9/x3kv609PD+I15vV/2M3s3tq9S9S
+	fzW1Il63xmtRwT09JH4vL6tnw9rSsXQXmbCi5Ww3X4aDnyt1ykjjVaTVnBLt0ZNAtwBoxIZF+Y7
+	PETvEr4xhQji7Eael/ElVDj4RLMX4TZm7RwABsf+PSQpOMS51YNweVUd2PnoEd6JWufdq9WnJa6
+	Shl9GkuK8Cdwuvse9GSNmvITLA2RdlPZdVYANtSkDdN7eA8R1SJUoi9Cw2B4/+EuwpDmoPDNuBT
+	H3s5ZARAXWjbg==
+X-Received: by 2002:a05:6214:470b:b0:8ac:aeed:b1e7 with SMTP id 6a1803df08f44-8b0280f80aamr338560396d6.30.1776927655354;
+        Thu, 23 Apr 2026 00:00:55 -0700 (PDT)
+Received: from mail-qk1-f170.google.com (mail-qk1-f170.google.com. [209.85.222.170])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-8b02ae7d79esm147274506d6.36.2026.04.23.00.00.55
+        for <linux-acpi@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 23 Apr 2026 00:00:55 -0700 (PDT)
+Received: by mail-qk1-f170.google.com with SMTP id af79cd13be357-8f0a87e23daso107947085a.1
+        for <linux-acpi@vger.kernel.org>; Thu, 23 Apr 2026 00:00:55 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ/EXJCgHDM0v95dMKMVWeUuTLztH5LppthsycGKzZMZIEsqa9m0q0eK2ozYy1DZhEC6I04SZmhWzKCZ@vger.kernel.org
+X-Received: by 2002:a05:6102:441d:b0:611:6fef:905 with SMTP id
+ ada2fe7eead31-616f750858emr13450072137.20.1776927225241; Wed, 22 Apr 2026
+ 23:53:45 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [BUG] 36-second boot delay due to by
- acpi_gpio_handle_deferred_request_irqs on ASUS ROG Strix G16 (2025)
-Content-Language: en-US
-To: Mika Westerberg <mika.westerberg@linux.intel.com>,
- Marco Scardovi <mscardovi95@gmail.com>, Hans de Goede <hansg@kernel.org>
-Cc: Francesco Lauritano <francesco.lauritano1@protonmail.com>,
- "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
- "open list:GPIO ACPI SUPPORT" <linux-gpio@vger.kernel.org>,
- "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>,
- "westeri@kernel.org" <westeri@kernel.org>,
- Benjamin Tissoires <bentiss@kernel.org>
-References: <e8ed4d4e-37e1-4577-bf80-62fcefbef7dc@kernel.org>
- <ReQS8sQSGy3UTuG6tyPvoOb8_037sC6A2yXsSFNuXY1PlTFtCcDHnjf8vufEsk8avBSIL46U0qE-ZjTJD1xsbVYZ6_d2-wlTOZ2NJ2coTsc=@protonmail.com>
- <20251218063954.GT2275908@black.igk.intel.com>
- <b57b44c3-ea96-4189-8b70-71bf4a80d29b@kernel.org>
- <20251218103831.GW2275908@black.igk.intel.com>
- <51f999d7-2064-47dc-8d9b-e262588bfbdb@gmail.com>
- <20260422090709.GB557136@black.igk.intel.com>
- <4e55e31e-a5e8-4098-8a7f-bb52476b882a@gmail.com>
- <20260422095558.GC557136@black.igk.intel.com>
- <5a36760d-5d1e-4eee-9006-3fed042aa2cd@gmail.com>
- <20260423044211.GD557136@black.igk.intel.com>
-From: Mario Limonciello <superm1@kernel.org>
-In-Reply-To: <20260423044211.GD557136@black.igk.intel.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+References: <20260325143555.451852-1-herve.codina@bootlin.com>
+ <20260325143555.451852-3-herve.codina@bootlin.com> <CAMuHMdU7x7LWFkD9xiq+wyOqnn0bdzr+JLfvbBexoiWyv8kftA@mail.gmail.com>
+ <CAD=FV=UK3NQKQN7FXyG4nGdDKO=LQYhnL4ZweomQ_4R9-EAYag@mail.gmail.com>
+ <aekg_IELc65BFrWp@ashevche-desk.local> <CAD=FV=XTvvq11y7kxmrfBe3dZsKro7N9=i-Hj9aqsLBay2Q9Rw@mail.gmail.com>
+In-Reply-To: <CAD=FV=XTvvq11y7kxmrfBe3dZsKro7N9=i-Hj9aqsLBay2Q9Rw@mail.gmail.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Thu, 23 Apr 2026 08:53:33 +0200
+X-Gmail-Original-Message-ID: <CAMuHMdUDCQrQ2Z9D7-ZOKiuDznDJVf2R_b_8P9+Xhk4RiJ3vdw@mail.gmail.com>
+X-Gm-Features: AQROBzAvgx3axNivzcvHu1RjLcwZ8ZssrkMMWMoOA6QWZi8LwGEf_PBN_biPlMM
+Message-ID: <CAMuHMdUDCQrQ2Z9D7-ZOKiuDznDJVf2R_b_8P9+Xhk4RiJ3vdw@mail.gmail.com>
+Subject: Re: [PATCH v6 02/27] of: dynamic: Fix overlayed devices not probing
+ because of fw_devlink
+To: Doug Anderson <dianders@chromium.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
+	Herve Codina <herve.codina@bootlin.com>, Andrew Lunn <andrew@lunn.ch>, Rob Herring <robh@kernel.org>, 
+	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
+	Kalle Niemi <kaleposti@gmail.com>, Matti Vaittinen <mazziesaccount@gmail.com>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Danilo Krummrich <dakr@kernel.org>, Frank Li <Frank.Li@nxp.com>, 
+	Sascha Hauer <s.hauer@pengutronix.de>, Pengutronix Kernel Team <kernel@pengutronix.de>, 
+	Fabio Estevam <festevam@gmail.com>, Michael Turquette <mturquette@baylibre.com>, 
+	Stephen Boyd <sboyd@kernel.org>, Andi Shyti <andi.shyti@kernel.org>, 
+	Wolfram Sang <wsa+renesas@sang-engineering.com>, Peter Rosin <peda@axentia.se>, 
+	Arnd Bergmann <arnd@arndb.de>, Saravana Kannan <saravanak@kernel.org>, 
+	Bjorn Helgaas <bhelgaas@google.com>, Charles Keepax <ckeepax@opensource.cirrus.com>, 
+	Richard Fitzgerald <rf@opensource.cirrus.com>, David Rhodes <david.rhodes@cirrus.com>, 
+	Linus Walleij <linusw@kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, 
+	Mark Brown <broonie@kernel.org>, Len Brown <lenb@kernel.org>, 
+	Daniel Scally <djrscally@gmail.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+	Davidlohr Bueso <dave@stgolabs.net>, Jonathan Cameron <jonathan.cameron@huawei.com>, 
+	Dave Jiang <dave.jiang@intel.com>, Alison Schofield <alison.schofield@intel.com>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>, 
+	Shawn Guo <shawnguo@kernel.org>, Wolfram Sang <wsa@kernel.org>, linux-kernel@vger.kernel.org, 
+	driver-core@lists.linux.dev, imx@lists.linux.dev, 
+	linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, 
+	linux-i2c@vger.kernel.org, devicetree@vger.kernel.org, 
+	linux-pci@vger.kernel.org, linux-sound@vger.kernel.org, 
+	patches@opensource.cirrus.com, linux-gpio@vger.kernel.org, 
+	linux-pm@vger.kernel.org, linux-spi@vger.kernel.org, 
+	linux-acpi@vger.kernel.org, linux-cxl@vger.kernel.org, 
+	Allan Nielsen <allan.nielsen@microchip.com>, Horatiu Vultur <horatiu.vultur@microchip.com>, 
+	Steen Hegelund <steen.hegelund@microchip.com>, Luca Ceresoli <luca.ceresoli@bootlin.com>, 
+	Thomas Petazzoni <thomas.petazzoni@bootlin.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 4/22/26 23:42, Mika Westerberg wrote:
-> Hi,
-> 
-> On Wed, Apr 22, 2026 at 02:08:29PM +0200, Marco Scardovi wrote:
->>>> Assuming all the variants suffer the same problem would it be ok to use a
->>>> wildcard for it?
->>> Yeah, we could expand it to all "ROG Strix G16" I think:
->>>
->>> diff --git a/drivers/gpio/gpiolib-acpi-quirks.c b/drivers/gpio/gpiolib-acpi-quirks.c
->>> index a0116f004975..e3a6111854e8 100644
->>> --- a/drivers/gpio/gpiolib-acpi-quirks.c
->>> +++ b/drivers/gpio/gpiolib-acpi-quirks.c
->>> @@ -392,6 +392,23 @@ static const struct dmi_system_id gpiolib_acpi_quirks[] __initconst = {
->>>    			.ignore_wake = "VEN_0488:00@355",
->>>    		},
->>>    	},
->>> +	{
->>> +		/*
->>> +		 * The ASUS ROG Strix G16 (2025) ACPI GPIO configuration
->>> +		 * causes acpi_gpio_handle_deferred_request_irqs() to
->>> +		 * stall for ~36 seconds during boot so ignore the two
->>> +		 * interrupts involved.
->>> +		 *
->>> +		 * Found in BIOS G614PP.307.
->>> +		 */
->>> +		.matches = {
->>> +			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
->>> +			DMI_MATCH(DMI_PRODUCT_NAME, "ROG Strix G16"),
->>> +		},
->>> +		.driver_data = &(struct acpi_gpiolib_dmi_quirk) {
->>> +			.ignore_interrupt = "AMDI0030:00@21,AMDI0030:00@24",
->>> +		},
->>> +	},
->>>    	{} /* Terminating entry */
->>>    };
->> As for now it seems working. I've reverted it on my kernel as I prefer
->> remain as much as possible close to the CachyOS' one but hopefully it will
->> be implemented on 7.1, if someone propose the patch and it is accepted. It
->> would be amazing to see Asus more interested on Linux and more strict with
->> their BIOS but in the end I understand it's like asking for the moon.
-> 
-> Okay thanks for checking. I guess this is what we have to live with for now
-> until someone finds a better way of dealing with these.
-> 
-> @Francesco, would you like to submit a new version of the patch similar to
-> above or you want me to do that?
+Hi Doug,
 
-Hans suggested that we might want to look at ripping out this edge 
-triggered events at boot earlier in the thread.
+On Wed, 22 Apr 2026 at 21:40, Doug Anderson <dianders@chromium.org> wrote:
+> On Wed, Apr 22, 2026 at 12:27=E2=80=AFPM Andy Shevchenko
+> <andriy.shevchenko@linux.intel.com> wrote:
+> > On Wed, Apr 22, 2026 at 11:51:36AM -0700, Doug Anderson wrote:
+> > > On Wed, Apr 22, 2026 at 10:44=E2=80=AFAM Geert Uytterhoeven
+> > > <geert@linux-m68k.org> wrote:
+> > > > On Wed, 25 Mar 2026 at 15:36, Herve Codina <herve.codina@bootlin.co=
+m> wrote:
+> >
+> > ...
+> >
+> > > > > +               if (fwnode->flags & FWNODE_FLAG_NOT_DEVICE)
+> > > >
+> > > > After commit f72e77c33e4b5657 ("device property: Make modifications
+> > > > of fwnode "flags" thread safe"), this must be changed to:
+> > > >
+> > > >     if (fwnode_test_flag(fwnode, FWNODE_FLAG_NOT_DEVICE))
+> > > >
+> > > > With this change my DT overlays are working again.
+> > > >
+> > > > I guess keeping the FWNODE_FLAG_* names, but changing their values
+> > > > from bit masks to bit numbers was probably not such a good idea,
+> > > > as it fails to catch missing conversions...
+> > >
+> > > Crud, I should have thought about that. :( Do you think it's worth it
+> > > to do a rename at this point to catch future problems?
 
-https://lore.kernel.org/platform-driver-x86/20260423044211.GD557136@black.igk.intel.com/T/#mdca882e6606d3a894ec7499d3b742d040933dbdb
+I am afraid it is too late (it is already in Linus' tree), and would
+add only more to the confusion.  We just have to take care when this
+patch (and 01/27) is backported to stable.  Fortunately the reverse
+is caught, as the fwnode_*_flag() helpers did not exist before.
 
-Hans - as you pointed out that the Surface lid state is the only real 
-issue left and you happen to have one do you think you could work up 
-some patches?
+> > You can try locally with allyesconfig / allmodconfig and see the outcom=
+e.
+> > If there are missed cases, and their amount reasonably low, I won't bot=
+her
+> > in this case.
+>
+> I believe I caught all of them at the time of my CL, but the problem
+> is in-flight stuff, right? I think the problem Geert is pointing out
+> isn't something I missed in my original patch but rather an
+> interaction between my patch and this in-flight patch.
 
+There are no unconverted cases in upstream or linux-next
+(I checked yesterday, and rechecked this morning).
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--=20
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k=
+.org
+
+In personal conversations with technical people, I call myself a hacker. Bu=
+t
+when I'm talking to journalists I just say "programmer" or something like t=
+hat.
+                                -- Linus Torvalds
