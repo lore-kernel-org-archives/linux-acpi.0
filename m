@@ -1,47 +1,82 @@
-Received: from smtpout-03.galae.net (smtpout-03.galae.net [185.246.85.4])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk1-f172.google.com (mail-qk1-f172.google.com [209.85.222.172])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A693833D4F8
-	for <linux-acpi@vger.kernel.org>; Thu, 23 Apr 2026 20:30:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.85.4
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1AFAA37649D
+	for <linux-acpi@vger.kernel.org>; Thu, 23 Apr 2026 22:43:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776976223; cv=none; b=ZTIaJ9kP/on0cxGoeULInBRFRsSozgKdGoYxUeVwtH+VRbk/LXUnn6EYSXocOWrdX0zEJOkLLVYSCbo2BKBAU/X4o1Hh2zOUk8/1VIIBrv3pju0de0SLbkH7KnuTV1hNYY5vTHjDNcK5zTh4bnX+7057ZR++t0BFczc/tuYsXpA=
+	t=1776984202; cv=none; b=uUjs4Q6A8TxPeebiIEVZt31xl2uRrqFrC/5Xvd0wE7vBsH1MiiKpaU+Ybn/M88veQnFhSj6FFJGNJDR/7YYgio/fq63pTyjqfkVNT9TNZGP3LEa+vbjZ+KpuJAW4ze8Wplk6xytFD/6f7Ettart+RiAoMB68Sm7PIfEs1o8yYjg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776976223; c=relaxed/simple;
-	bh=aOPZRoaDFMyw7xMYGt//8RvLBOMjN18KzZftyAuEx2M=;
+	s=arc-20240116; t=1776984202; c=relaxed/simple;
+	bh=CBu0C4Gbw+eSGJTiQmDn0Va7Mzdh0sn3nL6uhqMgdYo=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=OKfihqERptGokzXiVRJLxxwqXleAtli9D/oDyT+Qvxd5pOtBPBfp4EnoG1qq1iOyhe/kEUfac43Wz/iKHhXCYtjsqi7xQ9ZPhyhf2iMANxm6Q+szD97cS0w/xucx+sFbpKXhDXAbuCimC40RuihiG+K49BstT+DF4U4T9A4LGXA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=Ow64udvD; arc=none smtp.client-ip=185.246.85.4
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=DVO4IzeigUaul/t9+qV5lo+E5IAYCraQccgN5sYPDh7QbHwvaHZlsnv5TOObpc3dOYIZO0kkgEX+wzBD0x8NOiNcQuyVI8MeJeU3vf9x+sOb7JaZrJVY4J9rF7hv59bdvJi1IgELQSQ7d1V8u9UgeG8gTVwoCKPzj0iWpBOxH7A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=D4byo1ec; arc=none smtp.client-ip=209.85.222.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="Ow64udvD"
-Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-03.galae.net (Postfix) with ESMTPS id 2B6734E42AD3
-	for <linux-acpi@vger.kernel.org>; Thu, 23 Apr 2026 20:30:19 +0000 (UTC)
-Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id 0286F600DD;
-	Thu, 23 Apr 2026 20:30:19 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id C2A7810720636;
-	Thu, 23 Apr 2026 22:30:17 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1776976218; h=from:subject:date:message-id:to:cc:mime-version:content-type:
-	 in-reply-to:references; bh=Qk4iIJsTRqwNAecFhUCmL54kBm8GhkDY+d+oOXae5Dc=;
-	b=Ow64udvD70hGHYnvXqJWHf9WaFjPR1ZQrIuUMlVXzarGyAXpUjBn8viDHdZVmPJxp/s3AE
-	IPD0pajaf5CumjJ4xoR/88c9YyaUX7ZKL6JVmrjxuBp4rNBPr9FQawImsMNT+40mVOJAoD
-	lw4oWj3HFKkS+w3WMz3ia/JAIT/MydgMbX2VZ4pV+IPIkRNKoSCbwZrNIkQgu2JKRCo1r5
-	ig3QNyxhSPBKQ51+JAQ1+BBKPDyB8GTEFjHwPIwpd39YCZjGORc87muIipzymeMAghZaLS
-	QcP8xa7vy/BDdDq1gtffxllNn3UzcFxUdvJYkLF886q4IPhFDFmta75LDdcoog==
-Date: Thu, 23 Apr 2026 22:30:17 +0200
-From: Alexandre Belloni <alexandre.belloni@bootlin.com>
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, linux-rtc@vger.kernel.org,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v1 3/4] ACPI: TAD: RTC: Refine timer value computations
- and checks
-Message-ID: <20260423203017d25ac200@mail.local>
-References: <2415066.ElGaqSPkdT@rafael.j.wysocki>
- <3414608.aeNJFYEL58@rafael.j.wysocki>
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="D4byo1ec"
+Received: by mail-qk1-f172.google.com with SMTP id af79cd13be357-8eea23d01f7so192856185a.0
+        for <linux-acpi@vger.kernel.org>; Thu, 23 Apr 2026 15:43:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google; t=1776984200; x=1777589000; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=/T0GTDRuU/Ml1Jl3QzhDeR+2ndhb6qBdCM6HZ+ROdk0=;
+        b=D4byo1ecu182ZU65NYkcLK45iIq24mCIKDJQpNLU0ZeV+bCkJHlGiJyPcDX9CdkGp6
+         qrZAWy1Ds8n6lTl2ThtzakQ3rl4gGSmUeTKgUnBgNEik38F377NrL6JFh3qLcclyTz7u
+         9MF8O9cjEHLcqPRh1Ut8ng+YSmRO+Cam8MYEF20HJKFvLu/S0npvRrY7YpW1UJ6YEgOj
+         HqLLgs2EB6dEyIB192AOFRBSR16R1uU9fgMb6oxvn4K6Q+gwR3aZHDbQXbA47FE/Zmj9
+         zd0VSjoM/RKeVzQIDmw7hIjzTafTI5O90HbieMEBIWDtH2iJ+wxZREXguFJz6nnUAXHx
+         5TGw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1776984200; x=1777589000;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=/T0GTDRuU/Ml1Jl3QzhDeR+2ndhb6qBdCM6HZ+ROdk0=;
+        b=jGKoNtNChDqXziBvI6QHfy9oTagab2JfNBq7uosfFqPpvJfFGFOQGHvoheMFOsn++v
+         Vy3ClNLWXLr5IKr8/xUAfo6znPzUXV6BpxlTtw/1fSAHN0d7GbR7Lhv7FnC2yXaMGUne
+         EuY9RbSBTr/cNOLfY7VtnHLL5uAs8CdMpzJVFks6IDmcbH13wDTqSDPNvWiL9Hws43t0
+         EZBr2cIUTi3yx+imWqnPMiGDMsZYvzE8ZUBI5MHFadBbjKUZ5noprw2F+ORE73DzS5qo
+         TqB7C9ayZS1wn19ruJzh0j6Z90mJQ/Ea8eIlQ+l2TSmq52fS2fEkdCII31EbwEz4LBvY
+         KalA==
+X-Forwarded-Encrypted: i=1; AFNElJ8LpRe4FzCifLqNzBqPheirIEmfBTFc8nVoh9UjDmLQlz7FzncrKyiRt3kSpDxtFDUB66xdu50Vmj2m@vger.kernel.org
+X-Gm-Message-State: AOJu0YwDA/kPbV09Ln7+9fn6/QU+aVAe9eCJ8Copd8D4lqdYinT/6eqI
+	errM/Xdrillkw8ntzf2lDJLw3FvVoZMWVLYm1+frcLUFTlepHaqo7FOmbgmBL2z3EDY=
+X-Gm-Gg: AeBDietU3nwM+b8Lgz5dXjz0R07Sv/EMcADFJ5XsvFbMkKkok36X1dJiyX/3rUokq6B
+	n/QxJ2BLJPPuwmYxrfSvGHGOJHPDzke3LkK3F92rEeV1vaWHpWp1qXI18deiCWGe4UW0I7u0sQb
+	xIg3ci1NTf0BpDaRHKOTOwb6rZClit9EZ2UpHw44+1Vhmw1venEpgQzbjimmcywTYLf+E/5jKuI
+	Rsg0MHisSnLIMXHf30ZL9Q3X/7WRZ2qiF7t+OpLOWSG2HeAKRM+qD7OSzOwT7xp81vMXN2q2RBi
+	C52fjixLKRVewXvrmExqSygZQ8VTm24eBqqBTJHl8qmieaMGB6ox6i7vPU1eD+AYoTGdBGdnHZN
+	dM/kzSohzVcc6QZeIYqxfS3H+Tjxny1/Q7Avr2/oa1dddyrI15wDo5nMP/lbAMbIGc5VrMNfBEV
+	He/0LR6YneGv7rZxT2skPFU9gx/vfP7YGFEkxY+41aNzgbeixW7IFfJXA/lpA5X0pRgTfUENdCL
+	fc6+p7/fOo9cKw7nqyycjdQDG8=
+X-Received: by 2002:a05:620a:3187:b0:8f0:7516:da99 with SMTP id af79cd13be357-8f07516e40bmr1047695085a.60.1776984199901;
+        Thu, 23 Apr 2026 15:43:19 -0700 (PDT)
+Received: from ziepe.ca (crbknf0213w-47-54-130-67.pppoe-dynamic.high-speed.nl.bellaliant.net. [47.54.130.67])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-8b02aec3a3bsm169316686d6.49.2026.04.23.15.43.18
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 23 Apr 2026 15:43:19 -0700 (PDT)
+Received: from jgg by wakko with local (Exim 4.97)
+	(envelope-from <jgg@ziepe.ca>)
+	id 1wG2lS-0000000GLHD-1ruw;
+	Thu, 23 Apr 2026 19:43:18 -0300
+Date: Thu, 23 Apr 2026 19:43:18 -0300
+From: Jason Gunthorpe <jgg@ziepe.ca>
+To: Vidya Sagar <vidyas@nvidia.com>
+Cc: rafael@kernel.org, lenb@kernel.org, saket.dumbre@intel.com,
+	lpieralisi@kernel.org, guohanjun@huawei.com,
+	sudeep.holla@kernel.org, will@kernel.org, catalin.marinas@arm.com,
+	joro@8bytes.org, robin.murphy@arm.com, nicolinc@nvidia.com,
+	praan@google.com, vsethi@nvidia.com, sdonthineni@nvidia.com,
+	kthota@nvidia.com, sagar.tv@gmail.com, linux-acpi@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, acpica-devel@lists.linux.dev,
+	iommu@lists.linux.dev, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH V1 1/3] ACPICA: IORT: Add Root Complex PASID Flags field
+Message-ID: <20260423224318.GT3611611@ziepe.ca>
+References: <20260423191417.2031652-1-vidyas@nvidia.com>
+ <20260423191417.2031652-2-vidyas@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -50,60 +85,52 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <3414608.aeNJFYEL58@rafael.j.wysocki>
-X-Last-TLS-Session-Version: TLSv1.3
+In-Reply-To: <20260423191417.2031652-2-vidyas@nvidia.com>
 
-On 22/04/2026 17:26:49+0200, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Fri, Apr 24, 2026 at 12:44:15AM +0530, Vidya Sagar wrote:
+> The IORT spec, Issue E.c (ARM DEN 0049E.c, January 2022), bumps the
+> Root Complex Node to revision 4 and adds two PASID descriptors:
 > 
-> Since rtc_tm_to_ktime() may overflow for large RTC time values and
-> full second granularity is sufficient in timer value computations
-> in acpi_tad_rtc_set_alarm() and acpi_tad_rtc_read_alarm(), use
-> rtc_tm_to_time64() instead of that function, which also allows the
-> computations to be simplified.
+>   - PASID Capabilities at byte offset 33 (2 bytes), bits[4:0] of which
+>     report the Max PASID Width supported by the Root Complex.
+>   - Flags at byte offset 36 (4 bytes), bit 0 of which reports whether
+>     the Root Complex itself supports PASID. This is distinct from the
+>     existing ATS Attribute bit 2 (at offset 24) that only reports
+>     whether the RC forwards PASID information on translated
+>     transactions.
 > 
-> Moreover, U32_MAX is a special "timer disabled" value, so make
-> acpi_tad_rtc_set_alarm() reject it when attempting to program the
-> alarm timers.
+> The ACPICA struct in include/acpi/actbl2.h was updated for the E.c
+> PASID Capabilities descriptor (offset 33) but stops short with a
+> trailing 'u8 reserved[]' flexible array, so the new Flags field at
+> offset 36 is unreachable and the existing ACPI_IORT_PASID_*
+> definitions have no consumer.
 > 
-> Fixes: 7572dcabe38d ("ACPI: TAD: Add alarm support to the RTC class device interface")
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-
-Reviewed-by: Alexandre Belloni <alexandre.belloni@bootlin.com>
-
+> Replace the trailing flexible array with a fixed 'u8 reserved[1]'
+> followed by 'u32 flags' so the struct fully covers RC node revision 4,
+> and add the ACPI_IORT_RC_PASID_SUPPORTED mask for bit 0 of the new
+> field. With #pragma pack(1) in effect for actbl2.h, this lands the new
+> field at the spec-mandated absolute offset 36.
+> 
+> Signed-off-by: Vidya Sagar <vidyas@nvidia.com>
 > ---
->  drivers/acpi/acpi_tad.c |    8 +++-----
->  1 file changed, 3 insertions(+), 5 deletions(-)
-> 
-> --- a/drivers/acpi/acpi_tad.c
-> +++ b/drivers/acpi/acpi_tad.c
-> @@ -680,9 +680,8 @@ static int acpi_tad_rtc_set_alarm(struct
->  
->  		acpi_tad_rt_to_tm(&rt, &tm_now);
->  
-> -		value = ktime_divns(ktime_sub(rtc_tm_to_ktime(t->time),
-> -					      rtc_tm_to_ktime(tm_now)), NSEC_PER_SEC);
-> -		if (value <= 0 || value > U32_MAX)
-> +		value = rtc_tm_to_time64(&t->time) - rtc_tm_to_time64(&tm_now);
-> +		if (value <= 0 || value >= U32_MAX)
->  			return -EINVAL;
->  	}
->  
-> @@ -745,8 +744,7 @@ static int acpi_tad_rtc_read_alarm(struc
->  
->  	if (retval != ACPI_TAD_WAKE_DISABLED) {
->  		t->enabled = 1;
-> -		t->time = rtc_ktime_to_tm(ktime_add_ns(rtc_tm_to_ktime(tm_now),
-> -						       (u64)retval * NSEC_PER_SEC));
-> +		rtc_time64_to_tm(rtc_tm_to_time64(&tm_now) + retval, &t->time);
->  	} else {
->  		t->enabled = 0;
->  		t->time = tm_now;
-> 
-> 
-> 
+>  include/acpi/actbl2.h | 6 +++++-
+>  1 file changed, 5 insertions(+), 1 deletion(-)
 
--- 
-Alexandre Belloni, co-owner and COO, Bootlin
-Embedded Linux and Kernel engineering
-https://bootlin.com
+There is a whole process to change this file, I went through it once
+for canwbs..
+
+https://lore.kernel.org/acpica-devel/2-v3-e2e16cd7467f+2a6a1-smmuv3_nesting_jgg@nvidia.com/
+
+You have to make a pull request here:
+
+https://github.com/acpica/acpica/pulls
+
+And then use the 
+
+generate/linux/make-patches.sh -u <commit-id>
+
+Script to make this patch for linux in the perscribed format.
+
+I think, something like that
+
+Jason
