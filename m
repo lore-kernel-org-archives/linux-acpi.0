@@ -1,230 +1,233 @@
-Received: from CY3PR05CU001.outbound.protection.outlook.com (mail-westcentralusazon11013014.outbound.protection.outlook.com [40.93.201.14])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 337B23C3BF5;
-	Thu, 23 Apr 2026 09:01:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.201.14
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776934912; cv=fail; b=o4KHdh3mAztMljzj17ubvAUdZWxvW9ISyNaJ2a8yzmopKtNo0JgtAm1HZVyMwQ5lEmzev/GKS6gjEiAMyYyzjVpzZ3L9azdNtUhu7JrFThy+rgKC5lRHkdBa32kZxpWJJbt8T1PxeNol4+Vkm6750n0vo1hI0o2GhSfhd2VsCPs=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776934912; c=relaxed/simple;
-	bh=ouQxf2yeR3GDfQhsBUucR433sYP7U1NHXmQPQJSkKnU=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=UbpzfXO3+Pc+3+g9927yZCdON2hQUn2qNLtmIhHNiYFnMNiI3du68XIHRZmO7NCQmF4IoVKED25J2hHtVL2JrjcZQut1g41fLcHQ9jOKeq8PWiwnJj0VCfOe24Eq+ZujVZHpAMXmpCZfXocHKPkJK2LiTVEn5vRm7TDfcRlGHqA=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=Vg/wbKKZ; arc=fail smtp.client-ip=40.93.201.14
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26DD72D73BC;
+	Thu, 23 Apr 2026 09:08:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1776935331; cv=none; b=J2u6nmVpbmzeoucZcOiqzWX/hG89H3ZENvxufShLm/+DStKZUOjXqwVJCIN85TlFcKsXde+1XMACJKC9S7VsFC6oc5Kf4wkkuF7P2egGCWakutb5yi++7f/nUe/OQ/fJAizMxjATloCaNx7nFifdXfh8rb50ivxLL1v20C0rWOk=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1776935331; c=relaxed/simple;
+	bh=AajPNYE6TFj2rP8H0CMm3qNBnbsYRpDyKEMrNNFlxC4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=PUodrLADlqdBvq2lb00iZhGlChQXT5pkHWFVSQq1Hdw8Q0hTYnKirB2e8YqOoqgF/ELNL2HiQi0h2NmzLF5WT9pemvEqhEco/9RXwKKqRwIkXsh6EE3UETmcwk245SoTVVLQUx4HAPzJY7NBZsxVT+g3ppkJabJQkfOxAQ6MGhQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=buIvE1hs; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="Vg/wbKKZ"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=HOaD6d3yU9/uzvwB9ChiQ07BRHSobtsCBQEtZKepRsALKwglrR4/yr94awea38EU8vqM4Y9AeWMTQcW23axi3MsxnOUCg5JLrxP5ChVetdS8BpnTJ2Mlm177jOQmtrIUzD2DTlbvgEdKIhFfschHygUeSD/FUG1iUi/9QzWPyo0l+ZL3WTL9fAUOK12GgAc8VkCcb2GK3N8LaVjWk2kDLpaH4iZIZHbTdp+Incy/o9X19503G/Yfkpa2tsIn60w3sWFzvWrSQxLYrjDF9KvqqQ/s54sARrGJYQS6qlqGldUUgKmtxVScypSYkEJQSCuAqk3lSi2YLAUYKN6YiPDzKw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=p1RYpER9w5vgm1emdd9+8WObQub7TyWTMBKSL6ztCwk=;
- b=SwSt8Ob8sxxmJt7IxpKvd+x4InWrv20vdnkCiE/pmThektn2WoezYkGEDSUlqLTs4DXlD1pjVeNrLyC5P48XJrf7O7kRkCkhT3noPaXLW5NPlcVXTesxpheu+pPuKdzGGHCN7eD11MvkUjVdzmKiLWcxKHO9Uhaw0KJ+sD9hpOKnS5RBurEyTI5HapbELM7fx8DgX6KaXsp58teLLRlxe1e6CETFaXSv01rwqoWzHIH7/rJAF6axTG82uTIzP19sGhwFV628sfNUlfAqLjPRdYE+1IZaHrJcOsX2Hy8hIRbCFTi8nMk8mSL7WXMLD87U22UUAHRT/78Fr1/8dW0ajw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.160) smtp.rcpttodomain=bootlin.com smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=p1RYpER9w5vgm1emdd9+8WObQub7TyWTMBKSL6ztCwk=;
- b=Vg/wbKKZUdrE6wNnI/c6Q135hb8xhSoNUenxKcBosm8ISOfwBz0Q+Utv8KOSTZVI7u2ZEauwc0ccJb53ySt8Wm9MvLTPk9wJYH0QuWxsQNW3x813qRm7zW+cj5AxwuwlC3+T4RviFWmCKhvP6BYK7OV7HSicPJJ8o84Abux00KCzDoCNTTeCYatPvFLSc4pT7fps0bZ4YQWfhySLso+CXzgSgyWlbuumDiPFcGaqy45FlaLrV2P7vxaMCCMbjrTeL16JaBWb/uB6EgxqqSqXViQn7wYLJcVzkwQXEitR4e+DCaWiY/jFagnQ3JYE2/6d1zspGVL7ldr70rtsQWfOug==
-Received: from SJ0PR13CA0235.namprd13.prod.outlook.com (2603:10b6:a03:2c1::30)
- by CY1PR12MB9584.namprd12.prod.outlook.com (2603:10b6:930:fe::14) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9846.21; Thu, 23 Apr
- 2026 08:59:43 +0000
-Received: from CO1PEPF000075F1.namprd03.prod.outlook.com
- (2603:10b6:a03:2c1:cafe::8c) by SJ0PR13CA0235.outlook.office365.com
- (2603:10b6:a03:2c1::30) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.9846.19 via Frontend Transport; Thu,
- 23 Apr 2026 08:59:42 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.160) by
- CO1PEPF000075F1.mail.protection.outlook.com (10.167.249.40) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9846.18 via Frontend Transport; Thu, 23 Apr 2026 08:59:41 +0000
-Received: from rnnvmail202.nvidia.com (10.129.68.7) by mail.nvidia.com
- (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Thu, 23 Apr
- 2026 01:59:20 -0700
-Received: from rnnvmail202.nvidia.com (10.129.68.7) by rnnvmail202.nvidia.com
- (10.129.68.7) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Thu, 23 Apr
- 2026 01:59:19 -0700
-Received: from BUILDSERVER-IO-L4T.nvidia.com (10.127.8.9) by mail.nvidia.com
- (10.129.68.7) with Microsoft SMTP Server id 15.2.2562.20 via Frontend
- Transport; Thu, 23 Apr 2026 01:59:10 -0700
-From: Akhil R <akhilrajeev@nvidia.com>
-To: Alexandre Belloni <alexandre.belloni@bootlin.com>, Frank Li
-	<Frank.Li@nxp.com>, Rob Herring <robh@kernel.org>, Krzysztof Kozlowski
-	<krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, "Rafael J .
- Wysocki" <rafael@kernel.org>, Saket Dumbre <saket.dumbre@intel.com>, "Len
- Brown" <lenb@kernel.org>, Guenter Roeck <linux@roeck-us.net>, Philipp Zabel
-	<p.zabel@pengutronix.de>, Bjorn Andersson <bjorn.andersson@oss.qualcomm.com>,
-	Geert Uytterhoeven <geert@linux-m68k.org>, Dmitry Baryshkov
-	<dmitry.baryshkov@oss.qualcomm.com>, Arnd Bergmann <arnd@arndb.de>, "Eric
- Biggers" <ebiggers@kernel.org>, Wolfram Sang
-	<wsa+renesas@sang-engineering.com>, Miquel Raynal
-	<miquel.raynal@bootlin.com>, Jon Hunter <jonathanh@nvidia.com>, "Thierry
- Reding" <treding@nvidia.com>, <linux-tegra@vger.kernel.org>,
-	<linux-i3c@lists.infradead.org>, <devicetree@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
-	<acpica-devel@lists.linux.dev>, <linux-hwmon@vger.kernel.org>
-CC: Akhil R <akhilrajeev@nvidia.com>
-Subject: [PATCH v3 06/13] i3c: master: Add support for devices without PID
-Date: Thu, 23 Apr 2026 14:27:05 +0530
-Message-ID: <20260423085718.70762-7-akhilrajeev@nvidia.com>
-X-Mailer: git-send-email 2.50.1
-In-Reply-To: <20260423085718.70762-1-akhilrajeev@nvidia.com>
-References: <20260423085718.70762-1-akhilrajeev@nvidia.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="buIvE1hs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68B21C2BCB2;
+	Thu, 23 Apr 2026 09:08:46 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1776935331;
+	bh=AajPNYE6TFj2rP8H0CMm3qNBnbsYRpDyKEMrNNFlxC4=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=buIvE1hsbJLLTrrhVVInDJ2ppacZAzbWKDKaPq3D5fxir4QDSzXw5/bUi94QI/gB/
+	 agTq+n3xUnZk53cML3ywFrnM4fs/MthZL2HqxNpPgf85zeFi/iJLjj7q5S2odwMwOD
+	 EHbLwoBU/D+5yj/MiVV8baAq1sbM8fTmy/B6d775kLk9BMH3DOCVLcEJ1yVgprGcoO
+	 EmGFxkXuI2NxafoVx9x47wz9AqD5m3wp/lGtspAYLxgo2vjB3ZcuBX03TSj9JmtVBs
+	 +97FFXhfu8t2J2SiFzeUB8Fw600HWOK1cC8YFZQmraCTuwFXriNPrTY8g8U69VIaSB
+	 eMQ9nIQPKTOMw==
+Date: Thu, 23 Apr 2026 11:08:43 +0200
+From: Lorenzo Pieralisi <lpieralisi@kernel.org>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Linus Walleij <linusw@kernel.org>, Lei Xue <lei.xue@mediatek.com>,
+	Hanjun Guo <guohanjun@huawei.com>,
+	Sudeep Holla <sudeep.holla@arm.com>,
+	Sean Wang <sean.wang@kernel.org>,
+	Linus Walleij <linus.walleij@linaro.org>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
+	linux-kernel@vger.kernel.org, linux-mediatek@lists.infradead.org,
+	linux-gpio@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	yong.mao@mediatek.com, qingliang.li@mediatek.com,
+	Fred-WY.Chen@mediatek.com, ot_cathy.xu@mediatek.com,
+	ot_shunxi.zhang@mediatek.com, ot_yaoy.wang@mediatek.com,
+	ot_ye.wang@mediatek.com, linux-acpi@vger.kernel.org,
+	robh@kernel.org
+Subject: Re: [PATCH 2/3] pinctrl: mediatek: Add acpi support
+Message-ID: <aenhm/YOAMwjiBzh@lpieralisi>
+References: <20251125023639.2416546-1-lei.xue@mediatek.com>
+ <20251125023639.2416546-3-lei.xue@mediatek.com>
+ <CAD++jL=h4ZEgrjgGOfgFyAXBM7EL91ZD-La82UQ7GPOXv8h9WQ@mail.gmail.com>
+ <aScwaxBG53dnZ4a4@lpieralisi>
+ <aSdBu-B9mwU2-1_S@smile.fi.intel.com>
+ <aSgipbe75hrwhTD7@lpieralisi>
+ <aShgYukPRfDkq_Z0@smile.fi.intel.com>
+ <aSh0EyGm9ZHAc3dN@lpieralisi>
+ <aeHSl9MYGq0bRXsu@ashevche-desk.local>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-NVConfidentiality: public
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-NV-OnPremToCloud: ExternallySecured
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CO1PEPF000075F1:EE_|CY1PR12MB9584:EE_
-X-MS-Office365-Filtering-Correlation-Id: b82e10a9-da32-402e-c82c-08dea116a87d
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|7416014|82310400026|36860700016|376014|1800799024|921020|56012099003|22082099003|18002099003;
-X-Microsoft-Antispam-Message-Info:
-	KhA+q0wIsDdZP+EUypkgRANQpS/+ea++Ag8JddW1kKEvudE3wH6WcD7XqzLJLRQf7k4123vTS11J8shDk7tZDsZkkREyHN/sEAZlunn7BMzizjIR5WEyfJ0KO180bp3OBmxpaa0RejkFHk0iAJUk+b5Sa/LV+oaHMnfiLwWRdhA5q4RNjzhWrHf2cYflI/IpoccOq5/NeOzu1/+ZKOxK1QQYOqFRRRonDX1Ad88RjsPkBz4lwGEEMZ5kZ7DS6tzNnL78S9DrrRh/TQFwCIkhb5mtWbtm8o6U+Jf3w48Cg4yk28bxcy86bj7F2CUzwdF2ts3u23UYL9gMDGxMjj9mk4W0o86cH6bJknRCwljIAPjlJDuZ0tbr1oo+ECUr9vzVvNx8X1lhXkCXoaXaYOkt4oU9nWbnZSk1O6U+6lnUm26nUF3UbPgt4k2U/d9ABNK0WOLfAy6CCROo49+7J9TngOQvUXilmQTyj5J9YJRM7cORhU7WtiEWwj8FsgdBpxAFbFOjkazQe2UlOcX5nyDf+M9OSG6yz4uZ6wyFxdkL3yJfs7ta8xH9d/HHrBh8Aq8JiFgfuFfKdE5YuoI4DJybuCXPjklzvSbAzSCeQtkuEwsSHnzn+DNx9FIKXoNJ63Ixn/y25oKGQV+95S8glGGliegU0ZZCG0i+88MQICMTw7ychyC9W9z0wV/CXXKCxs+nc7kFO0t8ALptisLiRBzW9jSMj4NSai/zdDNOdz/C2vNQ+H8O8N2Q6G49b/qM7M0Akt5x+Wr4kAmb0g+CUZKr1YyZqI3Wsu1AbrV7qYtwTX1ISuXSZlqCu2y/8trvA3XR
-X-Forefront-Antispam-Report:
-	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(7416014)(82310400026)(36860700016)(376014)(1800799024)(921020)(56012099003)(22082099003)(18002099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	oAZIG16McKJjJkgdbT+HPTwxIsXJWJYtMvkn0wC5bKcebt24kvNaBMvE6QKbVzBvVW/lba8/NPJ0r/0yL6P9f8owgevebztHFVZy7LyquN8jbGPhTg/UuqwdcTOBynVS0uuCnktR39UrbB8t++OhJ4HFKS7hYKpUsIbqnzo2ybu6T3dTf1borvqLEVnaa5QcZ9le3kzSJNrBKzUCbuLZrV7QnWSPT6kznXOcUwx0SmMlrS4seTdkrbZI4TExcHvSyh0zxLlGha19ku3qrZKJ9NKYqcSUl6j3jgJutfIwsJ8ZUCDeE4lU2byQ0Ywm5ITq4aMcpU2l3X7AfRVExohZxFWarsAtGTJGGn8IgXzlPenzIPe9cd6L8nSp6gE817lyJF/Iww/fKiS+jDbxxYTFx5MNCzw3xmU6wDGqsSvMWcf3FVnFkv97YzY1ybmMemfK
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 23 Apr 2026 08:59:41.9964
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: b82e10a9-da32-402e-c82c-08dea116a87d
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	CO1PEPF000075F1.namprd03.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY1PR12MB9584
+In-Reply-To: <aeHSl9MYGq0bRXsu@ashevche-desk.local>
 
-Devices using SETAASA for address assignment are not required to have
-a 48-bit PID according to the I3C specification. Allow such devices to
-register and use the static address where PID was required.
+On Fri, Apr 17, 2026 at 09:26:31AM +0300, Andy Shevchenko wrote:
+> On Thu, Nov 27, 2025 at 04:53:55PM +0100, Lorenzo Pieralisi wrote:
+> > On Thu, Nov 27, 2025 at 04:29:54PM +0200, Andy Shevchenko wrote:
+> > > On Thu, Nov 27, 2025 at 11:06:29AM +0100, Lorenzo Pieralisi wrote:
+> > > > On Wed, Nov 26, 2025 at 08:06:51PM +0200, Andy Shevchenko wrote:
+> 
+> [...]
+> 
+> > > > > > I also assume/hope that we don't want to add a "reg-names" _DSD property either
+> > > > > > in ACPI to deal with this seamlessly in DT/ACPI (that was done for
+> > > > > > "interrupt-names"):
+> > > > > > 
+> > > > > > https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/Documentation/firmware-guide/acpi/enumeration.rst?h=v6.18-rc7#n188
+> > > > > 
+> > > > > Hmm... Why not?
+> > > > 
+> > > > What's the policy there ?
+> > > 
+> > > > Half of the ACPI bindings for an interrupt
+> > > > descriptor are defined in the ACPI specs (ie _CRS) and the other half
+> > > > (ie "interrupt-names") is documented in the Linux kernel (or are we
+> > > > documenting this elsewhere ?) ?
+> > > 
+> > > Yeah, nobody pursued ACPI specification updates / addendum to make it fully
+> > > official. _De facto_ we have established practice for GPIOs enumeration
+> > > (as most used resources in the OSes), Linux official for PWM, I²C muxes,
+> > > multi-functional HW (such as Diolan DLN-2, LJCA), Microsoft defined for
+> > > so called "USB hardwired" devices, Linux defined for LEDs and GPIO keys,
+> > > sensor mount matrix as per "most used" cases + DT analogue works just
+> > > because we have agnostic APIs in IIO to retrieve that. There are maybe
+> > > more, but don't remember
+> > > 
+> > > So, I think the practical "policies" are that:
+> > > - if it's defined in ACPI spec, we use the spec
+> > > - if there is Microsoft addendum, we rely on what Windows does
+> > > - WMI, EFI, and other "windoze"-like vendor defined cases
+> > > - if it makes sense, we establish practice from Linux perspective
+> > > - the rest, every vendor does what it does
+> > > 
+> > > That said, for the first two we expect OEMs to follow, for the third one
+> > > depends, but there are established WMI calls and other more or less "standard"
+> > > interfaces, so like the first two.
+> > > 
+> > > For the fourth one (Linux) we do, but living in the expectation that some or
+> > > more vendors fall to the fifth category and we might need to support that if
+> > > we want their HW work in Linux.
+> > > 
+> > > > Or we are saying that "interrupt-names" properties are added by kernel
+> > > > code _only_ (through software nodes, to make parsing seamless between DT
+> > > > and ACPI) based on hardcoded name values in drivers ?
+> > > 
+> > > No, the idea behind software nodes is to "fix" the FW nodes in case the FW
+> > > description can not be modified (and that might well happen to even DT in some
+> > > cases AFAIH). So, if some driver hard codes "interrupt-names" we expect that
+> > > new versions of the FW that support the HW that needs the property will be
+> > > amended accordingly.
+> > > 
+> > > "interrupt-names" has been established for ACPI to support a separate SMB alert
+> > > interrupt. However, I haven't heard any development of that IRL (for real
+> > > devices in ACPI environment).
+> > > 
+> > > > I don't think I can grok any example of the latter in the mainline.
+> > > > 
+> > > > I am asking because I'd need to add something similar shortly to make parsing
+> > > > of platform devices created out of ACPI static tables easier (I guess we
+> > > > can postpone discussion till I post the code but I thought I'd ask).
+> > > 
+> > > Oh, I can go ahead and tell you, try to avoid that. Why?! Whatever,
+> > > indeed, please Cc me to that, I will be glad to study the case and
+> > > try to be helpful.
+> > > 
+> > > (Have you considered DT overlays instead? There is a big pending support for
+> > >  that for _ACPI_ platforms.)
+> > 
+> > Long story short: we do need to create platform devices out of static
+> > table (eg ARM64 IORT) entries. Current code parses the table entries and
+> > try to map the devices IRQs (ie acpi_register_gsi()) when the platform
+> > device is created. Now, the interrupt controller that device IRQ's is
+> > routed to might not have probed yet. We have to defer probing and later,
+> > when the platform driver probes, map the IRQ.
+> > 
+> > Issue is: for OF nodes and ACPI devices, behind the platform device
+> > firmware node there is a standard firmware object, so implementing
+> > fwnode_irq_get() is trivial. For the devices I am talking about,
+> > the data providing GSI info (hwirq, trigger/polarity) is static
+> > table specific, so the idea was to stash that data and embed it in
+> > fwnode_static along with a irq_get() fwnode_operations function
+> > specific to that piece of data so that device drivers can actually do:
+> > 
+> > fwnode_irq_get()
+> > 
+> > on the fwnode _seamlessly_ (if you still do wonder: those platform
+> > devices created out of static table entries in ACPI in OF are
+> > of_node(s)).
+> > 
+> > There is a less convoluted solution (that is what some platform
+> > drivers in ACPI do today), that is, we pass the static table
+> > data in pdev->dev.platform_data and each platform_driver parses it differently.
+> > 
+> > That works but that also means the in the respective device drivers
+> > OF and ACPI IRQ (and MMIO) parsing differ (which is not necessarily
+> > a problem I just have to rewrite them all).
+> 
+> Hmm... The parsing inside drivers is quite a custom case. I would avoid doing
+> it if it's not device specific (I mean if it's not related to the very unique
+> device or family of the devices which most likely won't appear again in the
+> future). In other words, I prefer agnostic solutions over custom ones.
+> 
+> > Now - when it comes to "interrupt-names". Some of the device drivers
+> > I mention do:
+> > 
+> > eg platform_get_irq_byname_optional()
+> > 
+> > that expects the IRQ to be mapped and stored in a named platform device resource.
+> > 
+> > That's easy in DT - for two reasons:
+> > 
+> > (1) "interrupt-names"
+> > (2) standard properties behind the of_node
+> > 
+> > how to do that for fwnodes that aren't backed by either OF nodes or ACPI
+> > devices (that do use "interrupt-names" _DSD property) is a question.
+> > 
+> > Mind, the "interrupt-names" thing is a detail in the whole mechanism.
+> > 
+> > DT overlays to represent in ACPI those static table entries ?
+> > 
+> > I vividly remember the days ACPI for ARM64 was being merged - that's what
+> > our crystal ball predicted :)
+> 
+> So, the idea is to translate ACPI static table entries (which comes from IORT)
+> to the IRQ fwnodes at initialisation (parsing) time?
 
-Reviewed-by: Frank Li <Frank.Li@nxp.com>
-Signed-off-by: Akhil R <akhilrajeev@nvidia.com>
----
- drivers/i3c/master.c | 51 ++++++++++++++++++++++++++++++++++----------
- 1 file changed, 40 insertions(+), 11 deletions(-)
+They don't come from IORT only but that does not matter much. The point is,
+we have got to have a standard way for device drivers to retrieve a HW
+IRQ number for devices created out of static tables (and only code that
+knows what a static table represents can initialize such fwnodes because
+the interrupt fields are different in different static tables).
 
-diff --git a/drivers/i3c/master.c b/drivers/i3c/master.c
-index de72317c9a5c..fbe8710c4c56 100644
---- a/drivers/i3c/master.c
-+++ b/drivers/i3c/master.c
-@@ -1842,8 +1842,17 @@ i3c_master_register_new_i3c_devs(struct i3c_master_controller *master)
- 		desc->dev->dev.type = &i3c_device_type;
- 		desc->dev->dev.bus = &i3c_bus_type;
- 		desc->dev->dev.release = i3c_device_release;
--		dev_set_name(&desc->dev->dev, "%d-%llx", master->bus.id,
--			     desc->info.pid);
-+
-+		/*
-+		 * For devices without PID (e.g., SETAASA devices), use
-+		 * static address for naming instead.
-+		 */
-+		if (desc->info.pid)
-+			dev_set_name(&desc->dev->dev, "%d-%llx", master->bus.id,
-+				     desc->info.pid);
-+		else
-+			dev_set_name(&desc->dev->dev, "%d-%02x", master->bus.id,
-+				     desc->info.static_addr);
- 
- 		if (desc->boardinfo)
- 			device_set_node(&desc->dev->dev, desc->boardinfo->fwnode);
-@@ -2288,8 +2297,18 @@ static void i3c_master_attach_boardinfo(struct i3c_dev_desc *i3cdev)
- 	struct i3c_dev_boardinfo *i3cboardinfo;
- 
- 	list_for_each_entry(i3cboardinfo, &master->boardinfo.i3c, node) {
--		if (i3cdev->info.pid != i3cboardinfo->pid)
--			continue;
-+		/*
-+		 * For devices without PID (e.g., SETAASA devices), match by
-+		 * static address. For devices with PID, match by PID.
-+		 */
-+		if (i3cboardinfo->pid) {
-+			if (i3cdev->info.pid != i3cboardinfo->pid)
-+				continue;
-+		} else {
-+			if (!i3cboardinfo->static_addr ||
-+			    i3cdev->info.static_addr != i3cboardinfo->static_addr)
-+				continue;
-+		}
- 
- 		i3cdev->boardinfo = i3cboardinfo;
- 		i3cdev->info.static_addr = i3cboardinfo->static_addr;
-@@ -2303,8 +2322,12 @@ i3c_master_search_i3c_dev_duplicate(struct i3c_dev_desc *refdev)
- 	struct i3c_master_controller *master = i3c_dev_get_master(refdev);
- 	struct i3c_dev_desc *i3cdev;
- 
-+	if (!refdev->info.pid)
-+		return NULL;
-+
- 	i3c_bus_for_each_i3cdev(&master->bus, i3cdev) {
--		if (i3cdev != refdev && i3cdev->info.pid == refdev->info.pid)
-+		if (i3cdev != refdev && i3cdev->info.pid &&
-+		    i3cdev->info.pid == refdev->info.pid)
- 			return i3cdev;
- 	}
- 
-@@ -2604,9 +2627,15 @@ i3c_master_add_i3c_boardinfo(struct i3c_master_controller *master,
- 
- 	boardinfo->pid = ((u64)reg[1] << 32) | reg[2];
- 
--	if ((boardinfo->pid & GENMASK_ULL(63, 48)) ||
--	    I3C_PID_RND_LOWER_32BITS(boardinfo->pid))
--		return -EINVAL;
-+	/* For SETAASA devices, validate the static address instead of PID */
-+	if (boardinfo->static_addr_method & I3C_ADDR_METHOD_SETAASA) {
-+		if (!boardinfo->static_addr)
-+			return -EINVAL;
-+	} else {
-+		if ((boardinfo->pid & GENMASK_ULL(63, 48)) ||
-+		    I3C_PID_RND_LOWER_32BITS(boardinfo->pid))
-+			return -EINVAL;
-+	}
- 
- 	boardinfo->init_dyn_addr = init_dyn_addr;
- 	boardinfo->fwnode = fwnode_handle_get(fwnode);
-@@ -2629,10 +2658,10 @@ static int i3c_master_add_of_dev(struct i3c_master_controller *master,
- 		return ret;
- 
- 	/*
--	 * The manufacturer ID can't be 0. If reg[1] == 0 that means we're
--	 * dealing with an I2C device.
-+	 * I3C device should have either the manufacturer ID specified or the
-+	 * address discovery method specified. Else treat it as an I2C device.
- 	 */
--	if (!reg[1])
-+	if (!reg[1] && !fwnode_property_present(fwnode, "mipi-i3c-static-method"))
- 		ret = i3c_master_add_i2c_boardinfo(master, fwnode, reg);
- 	else
- 		ret = i3c_master_add_i3c_boardinfo(master, fwnode, reg);
--- 
-2.50.1
+Lorenzo
 
+> > This delayed IRQ mapping notwithstanding, I read what you wrote and took
+> > note. The worry is, this fwnode_*() (on ACPI nodes) interface trickling
+> > into subsystems where it should not (ie PCI, clocks, regulators) - hopefully
+> > the respective maintainers are keeping an eye on it.
+> > 
+> > > > Are we going to do the same for "reg-names" ?
+> > > 
+> > > If it makes sense and we expect some vendor to follow that _in ACPI_,
+> > > why not?
+> > > 
+> > > > Most importantly, what is DT maintainers stance on the matter ?
+> > > 
+> > > AFAIK They don't care as long as there is a schema provided, accepted and
+> > > used in DT, if it's ACPI-only thing, then it most likely should be done
+> > > in ACPI-like way (see above the first two / three items: spec, MS, WMI/EFI).
+> > > 
+> > > > > > I am sorry I have got more questions than answers here - it would be good
+> > > > > > to understand where the line is drawn when it comes to OF/ACPI and fwnode
+> > > > > > heuristics compatibility.
+> 
+> -- 
+> With Best Regards,
+> Andy Shevchenko
+> 
+> 
