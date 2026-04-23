@@ -1,147 +1,126 @@
-Received: from CH4PR04CU002.outbound.protection.outlook.com (mail-northcentralusazon11013057.outbound.protection.outlook.com [40.107.201.57])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 257D9375AAB;
-	Thu, 23 Apr 2026 04:29:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.201.57
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776918595; cv=fail; b=BA7VywoNhcP/65Fzku/3bOQ0o1zMyI8Q0eQgInCPHEKjdm/Z1mrBd5jf498V1boZueces5bAo9UZ2GjoSMbiEhgZdQTFC6p2mRyS+zlyKT3UMJ+3He2f/a9CwvCa8JN1MuSUFvUuTTFRV4fEaim4aKRxvh0DnpS/YA5f08srngg=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776918595; c=relaxed/simple;
-	bh=ltsuNTt9fjLOOX4ENkM1/rc0hKF7o7CQL/xKItf4Ca0=;
-	h=Date:From:To:CC:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=mzhu+lpRj4yeQhzY+H2hVJYYVPHge1YQSXWCk9R4cRtt3on7Oo5NnC4gpF0sQ63xh97SrhjXONhwDq/F0bc9MW16JJwohJMgVV/iRDdNpo/mv2PoeFtxiInur3xTtqBenfVZ+1DA5yfpfcWVEGVPK2pkkVvICFlGZMlv1yGwuaY=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=Vn1OkmM4; arc=fail smtp.client-ip=40.107.201.57
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 480DE375AB8;
+	Thu, 23 Apr 2026 04:42:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.12
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1776919337; cv=none; b=t9HOZW673JYcm4dLodJQFS8A+VfbxHbgbxDUBc7mhAYcIBZ4m6WtM6i5AxkZ+fbb1ukN8BpOGAPQhbah2+OxD51ab4qspTWXcEdiC0hcYMVsc/iV61hBSB4pktdIB2NeK+cYCg8XBQr2h3aZfMXh5oN284hlr3XvJYzCx6nEllU=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1776919337; c=relaxed/simple;
+	bh=PEfoAD0MUctfQntqKzteo2bgJQOA2RN52GfMGimY6y8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=cIXwyOwjHtzspcUhZzxN4NoAsu+BA4502ZtX8B7F2+jTXGb+OfMdBygRrMBCqSUjOVwMcHExHW9744jFe/v87HFSxXCYHAWCHGzl3avx4BG2U2mxaV7MzY8TlUWPLQK1esx6kwsTQ2p1IoaH2kzF4tuVyNv8Rk89GubeA9oMKfM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=OnEfdhrI; arc=none smtp.client-ip=198.175.65.12
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="Vn1OkmM4"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=ChXRyXbmQ0hYqDY7lZk6pQIvc8pAz3Ntf/H7Ms6om4zSGRHfkqduq8InFsVMnn8uIsnnFqq3b+WcyypPnpdMzU5UGbLl6DkGoecuz3w+PMh9pYhGewbmiBLkzo3XJcXNBxH0L5ffPLQXdWBNccYIT7Mkm1dEyz+jGkZIpGve8XjGFljMrnrcQ5twghbvCy73AWVST/IM2b9DwBmZGBPNTOYXQW6aOM8Pybo4QW4+PkNOuZCVTiffVZKyTxX6CKBuFlBY+y/bPLhhkk6fQyZfW4Xr0xR6/NUjnT++B6CmO+C3uQkI36w9SOePSRvDFx7/J1OJPOjJiiGkDFebTuZgEA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=L8azOsazaS+ID5+k4LSRaQ3uIeuSff7JsVjZcxmxhOU=;
- b=nsBezngxMk4F9VixMODjyIo47nZcod4e8uv8JCUWAnAklhNrtecPpGwblWTj3/PX9ud7NHdrqaL/T63qLs2mofSCUX3KapEFJlTrR+fgdUFold4l6Nnmi9str6ksatxFppEPPm+0d//VUR6HX17Bfu+hp0Z/zq+EamGUvU/dis9iqhxHe8+AAKnwZtoV6fcC0QaclBGyWEHjf5HsxmatNygCqiUqKNCdYso0Sgcu8dpejGffmyzHsR9AHksxQOCj933XogirxLe6G/ghOjhxxQiuwds+PR14UxQAIq/HLuprgLn67f1GjQysM81SsRR5I245cdqmhqUo1gJBV7MBHw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.160) smtp.rcpttodomain=linux.intel.com smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=L8azOsazaS+ID5+k4LSRaQ3uIeuSff7JsVjZcxmxhOU=;
- b=Vn1OkmM4SdNySV/FxAWrWPspNXSr85XrLKFuTjLZOKJq6WZ6vhk4POSYPnh2OaAYEanBt6Tt88AcqKeK5RC2XkvYzQzBgooRRl1TSuulv1UHp2I3h7DzlCoHSV6aqUE9k/sTHFhn0YLwBxI5sl4iVaWsb7b7tZmDz5zLRj5WANmgMqSxvvxXWD6d5Da9bjJmKnB+uVK5GXSmAaa8lBYSiizkQJuw4B3RI68DhJC1ZtrlQSpY1MKhTEChzR8hqqiw52Ax6TvORuP9Q5BoKTmmLuBGIr+7fKmaiOBO/fGNtjF1+dJMypt83LEpaSTVpjcFHdd6PkKy91w6ZKfV2SzxiQ==
-Received: from PH8PR07CA0043.namprd07.prod.outlook.com (2603:10b6:510:2cf::28)
- by SA1PR12MB7198.namprd12.prod.outlook.com (2603:10b6:806:2bf::21) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9846.16; Thu, 23 Apr
- 2026 04:29:48 +0000
-Received: from SA2PEPF000015C8.namprd03.prod.outlook.com
- (2603:10b6:510:2cf:cafe::a4) by PH8PR07CA0043.outlook.office365.com
- (2603:10b6:510:2cf::28) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.9791.48 via Frontend Transport; Thu,
- 23 Apr 2026 04:29:48 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.160) by
- SA2PEPF000015C8.mail.protection.outlook.com (10.167.241.198) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9846.18 via Frontend Transport; Thu, 23 Apr 2026 04:29:48 +0000
-Received: from rnnvmail205.nvidia.com (10.129.68.10) by mail.nvidia.com
- (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Wed, 22 Apr
- 2026 21:29:38 -0700
-Received: from rnnvmail204.nvidia.com (10.129.68.6) by rnnvmail205.nvidia.com
- (10.129.68.10) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Wed, 22 Apr
- 2026 21:29:38 -0700
-Received: from Asurada-Nvidia (10.127.8.12) by mail.nvidia.com (10.129.68.6)
- with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20 via Frontend
- Transport; Wed, 22 Apr 2026 21:29:37 -0700
-Date: Wed, 22 Apr 2026 21:29:35 -0700
-From: Nicolin Chen <nicolinc@nvidia.com>
-To: Baolu Lu <baolu.lu@linux.intel.com>
-CC: Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>, "Joerg
- Roedel" <joro@8bytes.org>, Bjorn Helgaas <bhelgaas@google.com>, "Jason
- Gunthorpe" <jgg@nvidia.com>, "Rafael J . Wysocki" <rafael@kernel.org>, "Len
- Brown" <lenb@kernel.org>, Pranjal Shrivastava <praan@google.com>, "Mostafa
- Saleh" <smostafa@google.com>, Kevin Tian <kevin.tian@intel.com>,
-	<linux-arm-kernel@lists.infradead.org>, <iommu@lists.linux.dev>,
-	<linux-kernel@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
-	<linux-pci@vger.kernel.org>, <vsethi@nvidia.com>, Shuai Xue
-	<xueshuai@linux.alibaba.com>
-Subject: Re: [PATCH v3 01/11] PCI: Propagate FLR return values to callers
-Message-ID: <aemgLxV+bCIaLGfI@Asurada-Nvidia>
-References: <cover.1776381841.git.nicolinc@nvidia.com>
- <8bc784e505dc04ca81582307c4a70babbf58eca0.1776381841.git.nicolinc@nvidia.com>
- <cbcbea4e-c857-4b75-a55d-ba3f89cdf22d@linux.intel.com>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="OnEfdhrI"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1776919335; x=1808455335;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=PEfoAD0MUctfQntqKzteo2bgJQOA2RN52GfMGimY6y8=;
+  b=OnEfdhrIfcqPNJJOV5wd8CTHRG8CbxwdAGv6FptMtSK15HVTw3lBO8Ff
+   m4ZGT1FMdlD3oDBzB6Q2jwajl4HFFuGMx8gPkx46XZ3j7xlOTqjbk+vJE
+   lpjrXHJiterfGld0+D1A5si8SucvLPRL8VFl8keALOA9ITtMmsw9/6D0A
+   CCCvmVsxM70tAydJcg3g7zYYCeH+JmXub4f/5p0p1WleHYYjVXd6KREZi
+   KbGfVK65zqkfIeyN8gr+/eG/Wfr1zDA1BYy6NGg8NXFcG6JgpJypKr3R/
+   e8HaotGT4UrTxQ+PgXPLOgSr/+UflBIQhn5qw3qekFnxOM82dBdRLXaDm
+   Q==;
+X-CSE-ConnectionGUID: qaQCKkeTTz6lbff9CG0xxQ==
+X-CSE-MsgGUID: RdZKGVmPTC+yKOojcTJmEw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11764"; a="89346835"
+X-IronPort-AV: E=Sophos;i="6.23,194,1770624000"; 
+   d="scan'208";a="89346835"
+Received: from orviesa001.jf.intel.com ([10.64.159.141])
+  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Apr 2026 21:42:15 -0700
+X-CSE-ConnectionGUID: BnuklEX+SzW4upnSuxbNtw==
+X-CSE-MsgGUID: DdQL4TkRQL+qP8HhGXlY7Q==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,194,1770624000"; 
+   d="scan'208";a="270664607"
+Received: from black.igk.intel.com ([10.91.253.5])
+  by orviesa001.jf.intel.com with ESMTP; 22 Apr 2026 21:42:12 -0700
+Received: by black.igk.intel.com (Postfix, from userid 1001)
+	id 580C895; Thu, 23 Apr 2026 06:42:11 +0200 (CEST)
+Date: Thu, 23 Apr 2026 06:42:11 +0200
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+To: Marco Scardovi <mscardovi95@gmail.com>
+Cc: Hans de Goede <hansg@kernel.org>,
+	Francesco Lauritano <francesco.lauritano1@protonmail.com>,
+	Mario Limonciello <superm1@kernel.org>,
+	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+	"open list:GPIO ACPI SUPPORT" <linux-gpio@vger.kernel.org>,
+	"platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>,
+	"westeri@kernel.org" <westeri@kernel.org>,
+	Benjamin Tissoires <bentiss@kernel.org>
+Subject: Re: [BUG] 36-second boot delay due to by
+ acpi_gpio_handle_deferred_request_irqs on ASUS ROG Strix G16 (2025)
+Message-ID: <20260423044211.GD557136@black.igk.intel.com>
+References: <e8ed4d4e-37e1-4577-bf80-62fcefbef7dc@kernel.org>
+ <ReQS8sQSGy3UTuG6tyPvoOb8_037sC6A2yXsSFNuXY1PlTFtCcDHnjf8vufEsk8avBSIL46U0qE-ZjTJD1xsbVYZ6_d2-wlTOZ2NJ2coTsc=@protonmail.com>
+ <20251218063954.GT2275908@black.igk.intel.com>
+ <b57b44c3-ea96-4189-8b70-71bf4a80d29b@kernel.org>
+ <20251218103831.GW2275908@black.igk.intel.com>
+ <51f999d7-2064-47dc-8d9b-e262588bfbdb@gmail.com>
+ <20260422090709.GB557136@black.igk.intel.com>
+ <4e55e31e-a5e8-4098-8a7f-bb52476b882a@gmail.com>
+ <20260422095558.GC557136@black.igk.intel.com>
+ <5a36760d-5d1e-4eee-9006-3fed042aa2cd@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <cbcbea4e-c857-4b75-a55d-ba3f89cdf22d@linux.intel.com>
-X-NV-OnPremToCloud: ExternallySecured
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SA2PEPF000015C8:EE_|SA1PR12MB7198:EE_
-X-MS-Office365-Filtering-Correlation-Id: bc7fb18a-3f6e-4a06-4b5d-08dea0f0f424
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|7416014|376014|36860700016|82310400026|18002099003|56012099003|22082099003;
-X-Microsoft-Antispam-Message-Info:
-	JD1AbeDfTButLGUJlpUBnbTm4q0kSkGFB5iXVLP+TzAa5Wl3IXl4yPVcxARwx0i3Zf5oJtuAErdddpibEXtPcVut7uUkNqoN0bRAsq8GFeByW2ahHOJtwB+0sxzIVd+ruBomox9w+hsyVj3k3fwXLyllijwK5oE7+xZcZ+C6FEnVxK1QgZIbGsZwy1xARxB2vxbForMMO1B6mk9GoUGPIzZe8GeuIucteOHDiErUSm2TmgDocC9cwn+O/gy8C1k9PUYRERMXPFSZLqhKDwmKvfIxyNLzyhO9q3QPRNBV+0yfiMt6aZcTN1Mp5d/elfZ0F5gxAClKN3ft8/828ktXg5dkqwY7rc5sfc2LvghHPgcUg1SGsaxTt3VsyEizXnQASnaBbJ9/YfTujqlFWudMD41jBoVn3hNmi7QEqU8g0MXXiTf7PmDpSTi3m8LYRg/5qsdnyacjPvR9Svzr8tozrGrM64t2j/IfIYnzzWcADYWwaGfUWnBJ5zzmsouxOo1XmnROn0WalyCOtx36b4HM3M0IMRn4mb9RVVn7adLeStSG+8HaZowPg5iOFmwElP6kQj8K9uSDmPHhDhUwpPXFimDQnkuHiluq14hUv+51hLQY5tDb9LDkVDlkDkb0s/PS+ibdGLD52WVmHGbe2U0FN2XUHnMGO9s4XZsHtcIuJyguOtPvCYRDzhGp51EMvLISEgl8KHDQwNkvNbPFPd7Q4j/B2mcQzIPzLxcitZB2Vb8rqLvLJs06YH+T91JYzNcEWDbS7CB7kcc0yXYjWySulg==
-X-Forefront-Antispam-Report:
-	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(1800799024)(7416014)(376014)(36860700016)(82310400026)(18002099003)(56012099003)(22082099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	cGF+pptuGjS5mhaWo3/YSD54cDWIWND0UQsfvzF5w7jmKHZC7dOO3EnkTDr9G3FHvc97WmOVKmQR2pisi2Ju/y3ORFY383V62X7u5DaUAiDM1CgtIJtBdPuIHg7OvTZatLL6IxoKgavdetZMBdAmXm0I7/zWfCDlnT/YjCLQavKbZ68OCsSlqsK6RPj6AG6uasEtYWGMf1wcTPd+oArxnQc3k56/5kpD22n1gKksPxhfEyzDipjBs1WrW4EGNoi98Ut9QuXqovSE/RyA07HUVC1g7MvmkKSzw3NuUdN4HYvHcJEIylH6y3SUpPOqYs4Ltjy62UUO6GEM1N5c2AsVySDX48akZtLy2ObHW1YikqUe9OjhnYr/yr+P1aV1Du5pe0V8zNkg4tfi3wLqF/gfjN5IyKVZ5pRznhl2pafEKAjXwgq79BLWdh+Rce3cX9+F
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 23 Apr 2026 04:29:48.0580
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: bc7fb18a-3f6e-4a06-4b5d-08dea0f0f424
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	SA2PEPF000015C8.namprd03.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR12MB7198
+In-Reply-To: <5a36760d-5d1e-4eee-9006-3fed042aa2cd@gmail.com>
 
-On Wed, Apr 22, 2026 at 02:13:49PM +0800, Baolu Lu wrote:
-> On 4/17/26 07:28, Nicolin Chen wrote:
-> > @@ -4060,7 +4061,7 @@ static int reset_chelsio_generic_dev(struct pci_dev *dev, bool probe)
-> >   				      PCI_MSIX_FLAGS_ENABLE |
-> >   				      PCI_MSIX_FLAGS_MASKALL);
-> > -	pcie_flr(dev);
-> > +	ret = pcie_flr(dev);
-> 
-> It makes more sense to return early here on failure. There is no need to
-> perform the subsequent steps if pcie_flr() fails. Would something like
-> the following work?
-[...]
-> @@ -4060,7 +4061,9 @@ static int reset_chelsio_generic_dev(struct pci_dev
-> *dev, bool probe)
->                                       PCI_MSIX_FLAGS_ENABLE |
->                                       PCI_MSIX_FLAGS_MASKALL);
-> 
-> -       pcie_flr(dev);
-> +       ret = pcie_flr(dev);
-> +       if (ret)
-> +               return ret;
+Hi,
 
-Yea, I was a bit worried to change the behavior, skipping the rest
-part. But that's probably the right thing to do.
+On Wed, Apr 22, 2026 at 02:08:29PM +0200, Marco Scardovi wrote:
+> > > Assuming all the variants suffer the same problem would it be ok to use a
+> > > wildcard for it?
+> > Yeah, we could expand it to all "ROG Strix G16" I think:
+> > 
+> > diff --git a/drivers/gpio/gpiolib-acpi-quirks.c b/drivers/gpio/gpiolib-acpi-quirks.c
+> > index a0116f004975..e3a6111854e8 100644
+> > --- a/drivers/gpio/gpiolib-acpi-quirks.c
+> > +++ b/drivers/gpio/gpiolib-acpi-quirks.c
+> > @@ -392,6 +392,23 @@ static const struct dmi_system_id gpiolib_acpi_quirks[] __initconst = {
+> >   			.ignore_wake = "VEN_0488:00@355",
+> >   		},
+> >   	},
+> > +	{
+> > +		/*
+> > +		 * The ASUS ROG Strix G16 (2025) ACPI GPIO configuration
+> > +		 * causes acpi_gpio_handle_deferred_request_irqs() to
+> > +		 * stall for ~36 seconds during boot so ignore the two
+> > +		 * interrupts involved.
+> > +		 *
+> > +		 * Found in BIOS G614PP.307.
+> > +		 */
+> > +		.matches = {
+> > +			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
+> > +			DMI_MATCH(DMI_PRODUCT_NAME, "ROG Strix G16"),
+> > +		},
+> > +		.driver_data = &(struct acpi_gpiolib_dmi_quirk) {
+> > +			.ignore_interrupt = "AMDI0030:00@21,AMDI0030:00@24",
+> > +		},
+> > +	},
+> >   	{} /* Terminating entry */
+> >   };
+> As for now it seems working. I've reverted it on my kernel as I prefer
+> remain as much as possible close to the CachyOS' one but hopefully it will
+> be implemented on 7.1, if someone propose the patch and it is accepted. It
+> would be amazing to see Asus more interested on Linux and more strict with
+> their BIOS but in the end I understand it's like asking for the moon.
 
-Thanks
-Nicolin
+Okay thanks for checking. I guess this is what we have to live with for now
+until someone finds a better way of dealing with these.
+
+@Francesco, would you like to submit a new version of the patch similar to
+above or you want me to do that?
