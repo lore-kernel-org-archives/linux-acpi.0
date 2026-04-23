@@ -1,157 +1,189 @@
-Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
+Received: from DM1PR04CU001.outbound.protection.outlook.com (mail-centralusazon11010014.outbound.protection.outlook.com [52.101.61.14])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 426F83DE44F
-	for <linux-acpi@vger.kernel.org>; Thu, 23 Apr 2026 08:42:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.84.56
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776933728; cv=none; b=WHINftt+PyFconhPGNI7zbAFG9LJnT7MnFzgo6u+0/gjYW+XjpMqaw3lU9BXso3xqaPLMt16nOptggASODFsR0fLl/AEZKgS8PkfaBClfdSbBP7l5ZhJAp7U8iV419/wcwbafXWKU5hQD2wYvSadddn2AtGNGrDB/ECuCuHMRtY=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776933728; c=relaxed/simple;
-	bh=qbmvRxNwjPJySkdRlLxR16VTUeX6pN7MhszSZBGGJgE=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=D3tUTt9qSDMJaZSePrLeWPO5cHTCK6kviLMSarFalOXb8j2mo3mY4AiizQgdqh9SgrRfWiLVbyBL1E1aBDZoGJ0zEnZmSNraVl9eciqhzlCNTmrpE66wMkt6Gt1cv7PdLfDxLjfypRWEcUweYQ2t+OiY/1tMXGyw6xSGg96H/80=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=RHSMPu0z; arc=none smtp.client-ip=185.246.84.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98C1D3DEFE4;
+	Thu, 23 Apr 2026 08:58:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.61.14
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1776934699; cv=fail; b=HyZ808fg4Tnaa7y7DPmQo80hPOZshX4R9qQb+hGYrPqy9JeWJSfqs4O4pCUFobzWpbORjghKDEdQI1yj/YkGqb0Skibghf9Duxe/kCBbTW5cTF69eKmOipWxUyEcJMMKteY/ytC5L/raU2JMcO3mCFkj82pB0fm1Ag5cxgc4TSg=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1776934699; c=relaxed/simple;
+	bh=1SHmzT5hhepKNFwgowf0wmTZDkeNYUB3TnpPinuBK0Y=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=fz6SZjLShxoZBIiTUKbmZMbQREKh8WkN7ybYnsYGkmwi3TIJxGl+atZz3Vnm1L+WF+LSr0CD33frGg8zpmhsjAk9izsZfGjyuKAIF683Q10DJZaQ0aX9xXd6Qmkyv/4nKDY0Y3G9hUbZWwkXiul9Am9aAveKJL/Kv9Nj1yEz8C0=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=idXjy7Mq; arc=fail smtp.client-ip=52.101.61.14
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="RHSMPu0z"
-Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-02.galae.net (Postfix) with ESMTPS id 962051A33B7;
-	Thu, 23 Apr 2026 08:42:04 +0000 (UTC)
-Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id 62E8960495;
-	Thu, 23 Apr 2026 08:42:04 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id E551910460B49;
-	Thu, 23 Apr 2026 10:41:40 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1776933721; h=from:subject:date:message-id:to:cc:mime-version:content-type:
-	 content-transfer-encoding:in-reply-to:references;
-	bh=hpnJk/yJbY+uVhKNecCDBid6JdXHXsFWMSbXliiAR00=;
-	b=RHSMPu0z0hSdt3mn4ffe5+6hUm/ZCjtCUZUKE3rWKy/r3VhfZhbKf1a9Ulxwtthkq/Wtgh
-	ronPMyU1B2CxZw6JMN3u3wI3DLWBsdkToYIBM80eaHi7YgAeDyH1Z2ue1q/847GcERxQOk
-	g0JXmw3tYv6IvZXdp7pb5HMp5Kl7KsJKyYniqOHUilIBM3mmL0cJgDls1/VLPGNufaZTfw
-	v2x1SEkJspkHM37hhCeIXdZLX8dFFZdF2oY0Y3ytw9DTXzpHCHxarn2MoEkQvoK+911wsc
-	ELgVc4CKa9SO2hHeYBProWT6SvtWBufgTUp8YNP4tGFwdFM5Ild9qV3eo9YpxA==
-Date: Thu, 23 Apr 2026 10:41:39 +0200
-From: Herve Codina <herve.codina@bootlin.com>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Doug Anderson <dianders@chromium.org>, Andy Shevchenko
- <andriy.shevchenko@linux.intel.com>, Andrew Lunn <andrew@lunn.ch>, Rob
- Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor
- Dooley <conor+dt@kernel.org>, Kalle Niemi <kaleposti@gmail.com>, Matti
- Vaittinen <mazziesaccount@gmail.com>, Greg Kroah-Hartman
- <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>,
- Danilo Krummrich <dakr@kernel.org>, Frank Li <Frank.Li@nxp.com>, Sascha
- Hauer <s.hauer@pengutronix.de>, Pengutronix Kernel Team
- <kernel@pengutronix.de>, Fabio Estevam <festevam@gmail.com>, Michael
- Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@kernel.org>, Andi
- Shyti <andi.shyti@kernel.org>, Wolfram Sang
- <wsa+renesas@sang-engineering.com>, Peter Rosin <peda@axentia.se>, Arnd
- Bergmann <arnd@arndb.de>, Saravana Kannan <saravanak@kernel.org>, Bjorn
- Helgaas <bhelgaas@google.com>, Charles Keepax
- <ckeepax@opensource.cirrus.com>, Richard Fitzgerald
- <rf@opensource.cirrus.com>, David Rhodes <david.rhodes@cirrus.com>, Linus
- Walleij <linusw@kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, Mark
- Brown <broonie@kernel.org>, Len Brown <lenb@kernel.org>, Daniel Scally
- <djrscally@gmail.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>,
- Davidlohr Bueso <dave@stgolabs.net>, Jonathan Cameron
- <jonathan.cameron@huawei.com>, Dave Jiang <dave.jiang@intel.com>, Alison
- Schofield <alison.schofield@intel.com>, Vishal Verma
- <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>, Shawn Guo
- <shawnguo@kernel.org>, Wolfram Sang <wsa@kernel.org>,
- linux-kernel@vger.kernel.org, driver-core@lists.linux.dev,
- imx@lists.linux.dev, linux-arm-kernel@lists.infradead.org,
- linux-clk@vger.kernel.org, linux-i2c@vger.kernel.org,
- devicetree@vger.kernel.org, linux-pci@vger.kernel.org,
- linux-sound@vger.kernel.org, patches@opensource.cirrus.com,
- linux-gpio@vger.kernel.org, linux-pm@vger.kernel.org,
- linux-spi@vger.kernel.org, linux-acpi@vger.kernel.org,
- linux-cxl@vger.kernel.org, Allan Nielsen <allan.nielsen@microchip.com>,
- Horatiu Vultur <horatiu.vultur@microchip.com>, Steen Hegelund
- <steen.hegelund@microchip.com>, Luca Ceresoli <luca.ceresoli@bootlin.com>,
- Thomas Petazzoni <thomas.petazzoni@bootlin.com>
-Subject: Re: [PATCH v6 02/27] of: dynamic: Fix overlayed devices not probing
- because of fw_devlink
-Message-ID: <20260423104139.0246ca0a@bootlin.com>
-In-Reply-To: <CAMuHMdUDCQrQ2Z9D7-ZOKiuDznDJVf2R_b_8P9+Xhk4RiJ3vdw@mail.gmail.com>
-References: <20260325143555.451852-1-herve.codina@bootlin.com>
-	<20260325143555.451852-3-herve.codina@bootlin.com>
-	<CAMuHMdU7x7LWFkD9xiq+wyOqnn0bdzr+JLfvbBexoiWyv8kftA@mail.gmail.com>
-	<CAD=FV=UK3NQKQN7FXyG4nGdDKO=LQYhnL4ZweomQ_4R9-EAYag@mail.gmail.com>
-	<aekg_IELc65BFrWp@ashevche-desk.local>
-	<CAD=FV=XTvvq11y7kxmrfBe3dZsKro7N9=i-Hj9aqsLBay2Q9Rw@mail.gmail.com>
-	<CAMuHMdUDCQrQ2Z9D7-ZOKiuDznDJVf2R_b_8P9+Xhk4RiJ3vdw@mail.gmail.com>
-Organization: Bootlin
-X-Mailer: Claws Mail 4.4.0 (GTK 3.24.52; x86_64-redhat-linux-gnu)
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="idXjy7Mq"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=S2ygp33zDDCpLFyL6Vm3B+HX0eycPxj0m43tOPxmbfPr9DqwZzPUHuchNYji/yezXzDQqdXXS+wZdLWJFbwSQIWeUyoL2xl+aN0ASqdV4/QR/ko9prj6BiO4I+LaIQPnsvwAqt0z8wEiNBbrBuO41Ss6jP+6VNnWxbIyPcMgg6CjS8IUGww98ZhOeK1Ktw6IaEA0Fb2I71NT3chGRCSaU1COFUL2EICQWriJrm5on/6RYqvJVYaJX6U5kdBbifEC/kscEOdb4qgPYY88xKQo9zM/OyshQ72pXRFUBy5tTwze8LOI+3xk85nZWaZ/rgYY72JDo3JmwpZ491E2J+09lA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=tVZw5OvMS5G9u2NFh69O+TOgbzxV+OTCf7AEW8DnzBY=;
+ b=L6ISwwZCUk07NQsOnAUNqL7uOKpoH5/gED9eo966gs4bxhguy2nA2gOaRsIRksh7ykjOWBM27ILfHefEUtkqm/2hJLjqcqc0Wmdc8ECJgEVjfKYyYRmf6WWx5Ih3T3cEqOCZs147OGkqPe5BeomZF8levme4RdSwehI+QUP1kP9mxAg3KMlzmPR3E690e0UXg0ya5bbTksTYBdQN+t0ldiyitTYOLeeXikWb/Pla9g6embHUO4IdvOui775WQQ/g1BonQlLDvS4wNZiV82JX01EiBku92oGWZGwasxWW1irVnHrmGOjgpI37eBvcOM9OoZMywT1tcqNDq+HEXj7+Vg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.117.160) smtp.rcpttodomain=bootlin.com smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=tVZw5OvMS5G9u2NFh69O+TOgbzxV+OTCf7AEW8DnzBY=;
+ b=idXjy7Mqg5ZnZe6o/x5OgUnQW3sJd9W2Jdf4pffNGfePXDSpgaidViYwTGq5dJOniNAkZnjJJunCSv2RRWxmHMZXbEpNSXSfT2H7mN1z4eYaQyPMqHwAK35AgQ/zUC/dyVQ5t+ooGUpiXO0k0yDKLYvACkRXBoNPt/M+vzT4T86Kz2ngbUhnIBH5bxoB3Jp//olXBgEyQpkuLGgvFrJl/kdZWvv0KZyvEr9wyqB29fUeGZ33wlID60pGTRpTRAdacxzk4wIrCH/RqxuVWYeX4BP1lCpjCUIP+E7yOQZRj+SsQ10cph+PhRK8ktnYKcVhmu8Fdc04E0zEIcOjbJAIzQ==
+Received: from MW4PR03CA0296.namprd03.prod.outlook.com (2603:10b6:303:b5::31)
+ by DS4PR12MB9747.namprd12.prod.outlook.com (2603:10b6:8:2a5::10) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9846.20; Thu, 23 Apr
+ 2026 08:58:11 +0000
+Received: from CO1PEPF000075F0.namprd03.prod.outlook.com
+ (2603:10b6:303:b5:cafe::fd) by MW4PR03CA0296.outlook.office365.com
+ (2603:10b6:303:b5::31) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.9791.48 via Frontend Transport; Thu,
+ 23 Apr 2026 08:58:11 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
+ smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.160) by
+ CO1PEPF000075F0.mail.protection.outlook.com (10.167.249.39) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.9846.18 via Frontend Transport; Thu, 23 Apr 2026 08:58:10 +0000
+Received: from rnnvmail202.nvidia.com (10.129.68.7) by mail.nvidia.com
+ (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Thu, 23 Apr
+ 2026 01:57:49 -0700
+Received: from rnnvmail202.nvidia.com (10.129.68.7) by rnnvmail202.nvidia.com
+ (10.129.68.7) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Thu, 23 Apr
+ 2026 01:57:48 -0700
+Received: from BUILDSERVER-IO-L4T.nvidia.com (10.127.8.9) by mail.nvidia.com
+ (10.129.68.7) with Microsoft SMTP Server id 15.2.2562.20 via Frontend
+ Transport; Thu, 23 Apr 2026 01:57:39 -0700
+From: Akhil R <akhilrajeev@nvidia.com>
+To: Alexandre Belloni <alexandre.belloni@bootlin.com>, Frank Li
+	<Frank.Li@nxp.com>, Rob Herring <robh@kernel.org>, Krzysztof Kozlowski
+	<krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, "Rafael J .
+ Wysocki" <rafael@kernel.org>, Saket Dumbre <saket.dumbre@intel.com>, "Len
+ Brown" <lenb@kernel.org>, Guenter Roeck <linux@roeck-us.net>, Philipp Zabel
+	<p.zabel@pengutronix.de>, Bjorn Andersson <bjorn.andersson@oss.qualcomm.com>,
+	Geert Uytterhoeven <geert@linux-m68k.org>, Dmitry Baryshkov
+	<dmitry.baryshkov@oss.qualcomm.com>, Arnd Bergmann <arnd@arndb.de>, "Eric
+ Biggers" <ebiggers@kernel.org>, Wolfram Sang
+	<wsa+renesas@sang-engineering.com>, Miquel Raynal
+	<miquel.raynal@bootlin.com>, Jon Hunter <jonathanh@nvidia.com>, "Thierry
+ Reding" <treding@nvidia.com>, <linux-tegra@vger.kernel.org>,
+	<linux-i3c@lists.infradead.org>, <devicetree@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
+	<acpica-devel@lists.linux.dev>, <linux-hwmon@vger.kernel.org>
+CC: Akhil R <akhilrajeev@nvidia.com>
+Subject: [PATCH v3 00/13] Support ACPI and SETAASA device discovery
+Date: Thu, 23 Apr 2026 14:26:59 +0530
+Message-ID: <20260423085718.70762-1-akhilrajeev@nvidia.com>
+X-Mailer: git-send-email 2.50.1
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+X-NVConfidentiality: public
 Content-Transfer-Encoding: 8bit
-X-Last-TLS-Session-Version: TLSv1.3
+Content-Type: text/plain
+X-NV-OnPremToCloud: ExternallySecured
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: CO1PEPF000075F0:EE_|DS4PR12MB9747:EE_
+X-MS-Office365-Filtering-Correlation-Id: fd46f657-2e5f-469b-0db4-08dea11671f3
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|36860700016|376014|1800799024|7416014|82310400026|921020|56012099003|18002099003;
+X-Microsoft-Antispam-Message-Info:
+	EZH2SECpcfJenaPyUoi2rgbCyF3s5gRzok4+/JpgyXO4RSi4GcmQ3BuoHN+w6mRK8f/W69QR+DfDhXc2p8CV1w6HHCFARJ4uKQRYIm++g+zt4nhi+gLICmc8FGpj40vNMfYQQL09LmGU317mAPsUWsE0WQ4dq9IsVDYEwlzG1wLcH/QHvhOn643MjGjga6sGrCt0FsQmfKZDh7rj8fqWKRvL5xWDgwmHIr7HUkl+Eqmj3oF3yKEjmlolU9en5NrCbHhAbdhqfOOFT2UB8/32Wj58fjJeA5T2b+CO4uNKIOwKC+UkZPJ5meALKP9kNEZZZAyzKSGrnT5VBqXOMFKbK5+YXXJaokqfaNZeLsyGJ+2psCBjb58u7dCunPn1R944+vqN7zERqSHSbd7YFQgTAwjBR2qxS9rz+pEGkOAW9TWThIRiwEbFPmGWfeqIw0xCl8qF+52q/yOkBp4Q1xs6HWr09hEtp7gqoAOVEVQiXyXe/0Dqx8S1UyltcmV9HHFcQ8YQNAYjk5eHSAk7Xyux7uIOo+afPUdwVfZkueFwhRR0slmaJBStCqt/b4R8QcHpOC1O/a1g9NeqEQdH+U6tw0M9t8Xjxs8UtTTUXQDBVzy+jDrCLcXNpIsyic7b0pojFj3iGFsGIdrUaXpmi45DaUKCNXlZVLEV8PgdPbVO/fJ7JcTsswkLsrgyXek7Cfhc9Lw2dKvhqDAc9ZD9DxAAtsrO0eELB7YgmnEI/VMmjd5vfKXLEmkctp5cd/u2wRTm6DNUJc0Pp3YSl6fE1FnPvnbQrHchv8PzeGstDh8KMh7AJviTG8iqGSEmgDP9yDdB
+X-Forefront-Antispam-Report:
+	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(36860700016)(376014)(1800799024)(7416014)(82310400026)(921020)(56012099003)(18002099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	Y14/ELzFR1RDK0gjFSg3A0Cw4fxUc0aoIfVmMblpuq/+pDvXmgFa1h5UMyvW6/rrATQmLrfPIZ8U/nEcWHtDD2YMfKy6tif2Ep3U2D/UwruBYZ7hCqVfCkYreVEGlukiSfZOuNETMHeMUK4BnvdyD/OUXjHgfrDJ+uKBIy5fyJ92whRPkIdiqAXcaJCdVyjeuCICz4Og1/ooOYMo7flebUyM1+S+IBzXr6kVfP7XayWFq/vsyi65Ohw0htSS/yal6tiMqGQ8DryIzg35dj2YJ4NgVItORcVXsK/8COe9iS7rHaMTfTEhgW7s0GxCjAn+9yg83GYo6uOL73dsW4EUrot9VXQsSDrh65aSUKlbQwetuiiPsg10g+A6HqVHal2jEkYIVfdfwWUL+Ypzm8yPQpjTHyJPOzpvj9lpC7iC4w4kz+ckhns+notn3IlXXyX1
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 23 Apr 2026 08:58:10.4730
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: fd46f657-2e5f-469b-0db4-08dea11671f3
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	CO1PEPF000075F0.namprd03.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS4PR12MB9747
 
-Hi Geert, Doug,
+This patch series adds SETAASA device discovery to the I3C subsystem,
+enabling support for SPD5118 temperature sensors found on DDR5 memory
+modules. The changes also add ACPI support for all existing DAA
+methods like SETDASA, SETNEWDA as well as I2C devices on I3C bus.
 
-On Thu, 23 Apr 2026 08:53:33 +0200
-Geert Uytterhoeven <geert@linux-m68k.org> wrote:
+SPD5118 and similar devices on DDR5 memory modules differ from typical
+I3C devices in their initialization. They use SETAASA broadcast CCC
+instead of ENTDAA for address assignment, and per JEDEC specification,
+are not required to have a Provisioned ID or implement standard device
+information CCC commands (GETPID, GETDCR, GETBCR).
 
-> Hi Doug,
-> 
-> On Wed, 22 Apr 2026 at 21:40, Doug Anderson <dianders@chromium.org> wrote:
-> > On Wed, Apr 22, 2026 at 12:27 PM Andy Shevchenko
-> > <andriy.shevchenko@linux.intel.com> wrote:  
-> > > On Wed, Apr 22, 2026 at 11:51:36AM -0700, Doug Anderson wrote:  
-> > > > On Wed, Apr 22, 2026 at 10:44 AM Geert Uytterhoeven
-> > > > <geert@linux-m68k.org> wrote:  
-> > > > > On Wed, 25 Mar 2026 at 15:36, Herve Codina <herve.codina@bootlin.com> wrote:  
-> > >
-> > > ...
-> > >  
-> > > > > > +               if (fwnode->flags & FWNODE_FLAG_NOT_DEVICE)  
-> > > > >
-> > > > > After commit f72e77c33e4b5657 ("device property: Make modifications
-> > > > > of fwnode "flags" thread safe"), this must be changed to:
-> > > > >
-> > > > >     if (fwnode_test_flag(fwnode, FWNODE_FLAG_NOT_DEVICE))
-> > > > >
-> > > > > With this change my DT overlays are working again.
-> > > > >
-> > > > > I guess keeping the FWNODE_FLAG_* names, but changing their values
-> > > > > from bit masks to bit numbers was probably not such a good idea,
-> > > > > as it fails to catch missing conversions...  
-> > > >
-> > > > Crud, I should have thought about that. :( Do you think it's worth it
-> > > > to do a rename at this point to catch future problems?  
-> 
-> I am afraid it is too late (it is already in Linus' tree), and would
-> add only more to the confusion.  We just have to take care when this
-> patch (and 01/27) is backported to stable.  Fortunately the reverse
-> is caught, as the fwnode_*_flag() helpers did not exist before.
-> 
-> > > You can try locally with allyesconfig / allmodconfig and see the outcome.
-> > > If there are missed cases, and their amount reasonably low, I won't bother
-> > > in this case.  
-> >
-> > I believe I caught all of them at the time of my CL, but the problem
-> > is in-flight stuff, right? I think the problem Geert is pointing out
-> > isn't something I missed in my original patch but rather an
-> > interaction between my patch and this in-flight patch.  
-> 
-> There are no unconverted cases in upstream or linux-next
-> (I checked yesterday, and rechecked this morning).
-> 
+The series enables to describe all I3C and I2C devices on both Device
+Tree and the ACPI table, using unified device property APIs throughout
+the I3C core and the Synopsys DesignWare I3C master driver.
 
-Thanks for having pointed out this modification.
-It will save some debug hours on my side when I test the next iteration. 
+Please note that the series modifies drivers across multiple subsystems,
+like Device Tree bindings, ACPI, I3C and HWMON.
 
-For this in-flight series, I will use new accessors introduced in
-f72e77c33e4b5657 ("device property: Make modifications of fwnode "flags"
-thread safe")
+v2->v3:
+  * Fix maximum value and indent bit list for mipi-i3c-static-method.
+  * Move I3C_ADDR_METHOD_* macros to dt-bindings header.
+  * Drop ACPICA commit IDs, keep only the Link: tags.
+  * Revert the change which proceeds to register other devices if SETAASA
+    is not supported so that it aligns with the rest of the driver and to
+    avoid the issues pointed by Sashiko.
+  * Rework multiple commit messages.
 
-Best regards,
-Hervé
+v1->v2:
+  * Added patch to remove 16-bit addressing support for SPD5118
+  * Guard ACPI calls with #ifdef CONFIG_ACPI
+  * Remove CONFIG_OF guard for of_alias_get_highest_id()
+  * Mask mipi-i3c-static-method in the driver to select only valid values.
+  * Proceed to register other devices if SETAASA is not supported.
+  * Update commit message and links in the description of multiple commits.
+
+
+Akhil R (13):
+  dt-bindings: i3c: Add mipi-i3c-static-method to support SETAASA
+  ACPICA: Read LVR from the I2C resource descriptor
+  i3c: master: Use unified device property interface
+  i3c: master: Support ACPI enumeration of child devices
+  i3c: master: Add support for devices using SETAASA
+  i3c: master: Add support for devices without PID
+  i3c: master: match I3C device through DT and ACPI
+  i3c: dw-i3c-master: Add SETAASA as supported CCC
+  i3c: dw-i3c-master: Add a quirk to skip clock and reset
+  i3c: dw-i3c-master: Add ACPI ID for Tegra410
+  hwmon: spd5118: Remove 16-bit addressing
+  hwmon: spd5118: Add I3C support
+  arm64: defconfig: Enable I3C and SPD5118 hwmon
+
+ .../devicetree/bindings/i3c/i3c.yaml          |  31 +-
+ arch/arm64/configs/defconfig                  |   3 +
+ drivers/acpi/acpica/rsserial.c                |   6 +-
+ drivers/hwmon/Kconfig                         |   9 +-
+ drivers/hwmon/spd5118.c                       | 119 +++---
+ drivers/i3c/master.c                          | 354 +++++++++++++++---
+ drivers/i3c/master/dw-i3c-master.c            |  66 ++--
+ include/acpi/acrestyp.h                       |   1 +
+ include/dt-bindings/i3c/i3c.h                 |   3 +
+ include/linux/i3c/ccc.h                       |   1 +
+ include/linux/i3c/master.h                    |  20 +-
+ 11 files changed, 463 insertions(+), 150 deletions(-)
+
+-- 
+2.50.1
 
