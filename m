@@ -1,159 +1,168 @@
-Received: from MW6PR02CU001.outbound.protection.outlook.com (mail-westus2azon11012012.outbound.protection.outlook.com [52.101.48.12])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f50.google.com (mail-wm1-f50.google.com [209.85.128.50])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC96E35966;
-	Thu, 23 Apr 2026 15:47:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.48.12
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776959272; cv=fail; b=bcT2Y7IhcjdX4DgvUyss2uKFKGieGM2aOZzOvH5RmFREOjuO4gqQuqndJdEM9Sac5uehosgrCAPf2NRalVZM+nNNs8wFVyUfmsGcHTaicJeBXFH3zhZgux84rq09KLQi5GgHU+rVmeSNBv+82W6Vx8qWyOy4Lb7EqKosius94rY=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776959272; c=relaxed/simple;
-	bh=PRmT//+U6fgEKyidfzvEpAgCO2/CRCiDvhjHwhohYC0=;
-	h=Date:From:To:CC:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=i/vTzC/M3Ee6LHaGT+uiRYdbRLCTPcILP8Ti8gixn+MEF9p1HkaUrJfExo11j/YXeQKX4XCf3q+210H+GVEB9g0yp17K9dv4chpzNLlkdcnHBFGK5luqKdLVxBLCm1R9hqt2IsHbZxIImTlFoTMrW8u/9G968Vhp8qNsx6dQppk=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=poqKwhmE; arc=fail smtp.client-ip=52.101.48.12
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAA8936DA15
+	for <linux-acpi@vger.kernel.org>; Thu, 23 Apr 2026 17:46:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.50
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1776966399; cv=none; b=hC8ELkRyW21cx7uW5u0PZKYeSDpXABlFz8iqujADNVrcJlEzA/rfSmzJLLIOId6YSw3ddgoeUxXanqAIxFvlc3SZjoQwXcTBeLC5YLSb+M7QXbKwqiGFIy4SRUlQSTscnH+k1uk4lsKfIRVMCVU3aUHmZ3rzpL8ktZeWkUaUriU=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1776966399; c=relaxed/simple;
+	bh=Q/08wWQ4SfuMhfDVP9sXEtWA2o3HnwK33N7dXefJmWM=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=L3Kczjqkh2mEaEaMlrNqLom12V1hO7EjWU3HWKFZEvVdHzBsRW0cquNemPRAxtkJmrImCQPLEkZz0Mm1lmZg9wmHBslNM0xv6e5a/WnCsNLH3f/ZKko6aH3r9Cf9Y5+LeoXQOYd36MsSPiFM8Vg7vmn+4XRaxZVZAUpE1dErj3A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=TgxG5Rf0; arc=none smtp.client-ip=209.85.128.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="poqKwhmE"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=lgfzzNRR1/8JHuOyYM0SqXmMx7XeQZrjZj4FLuQcAwfZVczExaIPpt49lDHklcDa+cbdBur/F5WeQI1yaLsvt/+Hxcggkb2v+flTXeOgVMDVnC/ZGA/cFx5y0C4vXHRf4RYvrapqNYs2TWew6en2NNhxQRttuJjZujpKPKc2U18GhqmxvGjZ43GeI7/OXtyD6qBaOvTUErfUacyCIJ//lfzxcLhnKgdtcayESeIKftVz2oOH5m0N6C6Ui6xtrxnYuDSsAHl4E3iUjHPl0ef8XMu1PpxE+JX0L2ldWM5cTgHqZU3QStuHfzkjnzDlm5bJsbK403rzNOQmEZm1EtlSEg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=dC7DNEvH2Dc5r5NO1YFZU4U6vzo4Vxa0qfuO1PHkhoE=;
- b=scNcioX8QPK9zzmDjyw/PBTSQQb0tNT5i+3ETrIHvhcMqUL+Lb5DRPUAy/N2H1caqcxkKv97p3EWDNQllD97B7/p4tQAwfZ9SHAXLoJmBSjcTCMNB6BCFHhqPZQ8ifyAqBDUCFET8i79UUemU85UrO5m0PaUXouSJfAKsk4cbJXaWEKwavRGusj551dsDV6gvPYExA5Thvz3uF/b68HMV1fQg5zY2QghuWWeYWLMPbo0pUl4MnutQG1DIlGw50sQ013UUJsNyEchtkoLmaAOHadX3vwhrRLYA/4JOKFmk1XgJ9etXSxVwbDr7T7AVE4wTxDUxG1lUFroorQRQB0g5g==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.160) smtp.rcpttodomain=linux.intel.com smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=dC7DNEvH2Dc5r5NO1YFZU4U6vzo4Vxa0qfuO1PHkhoE=;
- b=poqKwhmEjjJWr/tA0FBURpZOnSW7lwkHum4WZ3MEpljQRRmQ6RBXI2DRvHgmYn8lqweAZFiAjYZhKJRdDc0XKV4RCwQkaYXulY5w19MfV1XvTap3RXdePrwebv4xU8TqdvYpdTXSIXnKGG2CXqjYpZ2Gn2bfD+Xycz33v1uZSrQw8Xig4huq2JIplFQro/QR+SnEBUC4DGAlHQZPmkDYvP6YsBxxjx8ql3g+I45W6ouJKyOeE9IDFzKigibtGHmGFfWnrhUE/dUJMlVT7/obPMCD+tIqTjci+CPr7c388dahz2IOKxdPQ3BR+cDULoaMVG5rYt+/1PPsoD2bzblAjw==
-Received: from CY5PR10CA0028.namprd10.prod.outlook.com (2603:10b6:930:1c::21)
- by CY1PR12MB9582.namprd12.prod.outlook.com (2603:10b6:930:fe::17) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9846.21; Thu, 23 Apr
- 2026 15:47:44 +0000
-Received: from CY4PEPF0000E9D6.namprd05.prod.outlook.com
- (2603:10b6:930:1c:cafe::89) by CY5PR10CA0028.outlook.office365.com
- (2603:10b6:930:1c::21) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.9846.22 via Frontend Transport; Thu,
- 23 Apr 2026 15:47:43 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.160) by
- CY4PEPF0000E9D6.mail.protection.outlook.com (10.167.241.69) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9846.18 via Frontend Transport; Thu, 23 Apr 2026 15:47:43 +0000
-Received: from rnnvmail202.nvidia.com (10.129.68.7) by mail.nvidia.com
- (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Thu, 23 Apr
- 2026 08:47:19 -0700
-Received: from rnnvmail204.nvidia.com (10.129.68.6) by rnnvmail202.nvidia.com
- (10.129.68.7) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Thu, 23 Apr
- 2026 08:47:19 -0700
-Received: from Asurada-Nvidia (10.127.8.12) by mail.nvidia.com (10.129.68.6)
- with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20 via Frontend
- Transport; Thu, 23 Apr 2026 08:47:17 -0700
-Date: Thu, 23 Apr 2026 08:47:16 -0700
-From: Nicolin Chen <nicolinc@nvidia.com>
-To: Baolu Lu <baolu.lu@linux.intel.com>
-CC: Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>, "Joerg
- Roedel" <joro@8bytes.org>, Bjorn Helgaas <bhelgaas@google.com>, "Jason
- Gunthorpe" <jgg@nvidia.com>, "Rafael J . Wysocki" <rafael@kernel.org>, "Len
- Brown" <lenb@kernel.org>, Pranjal Shrivastava <praan@google.com>, "Mostafa
- Saleh" <smostafa@google.com>, Kevin Tian <kevin.tian@intel.com>,
-	<linux-arm-kernel@lists.infradead.org>, <iommu@lists.linux.dev>,
-	<linux-kernel@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
-	<linux-pci@vger.kernel.org>, <vsethi@nvidia.com>, Shuai Xue
-	<xueshuai@linux.alibaba.com>
-Subject: Re: [PATCH v3 06/11] iommu: Defer __iommu_group_free_device() to be
- outside group->mutex
-Message-ID: <aeo/BDwYM9yYHctI@Asurada-Nvidia>
-References: <cover.1776381841.git.nicolinc@nvidia.com>
- <3f5d229267d1f4d918641bc5b896f54b5c4b7782.1776381841.git.nicolinc@nvidia.com>
- <3570e178-f887-45c9-a251-e089915cfbd9@linux.intel.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TgxG5Rf0"
+Received: by mail-wm1-f50.google.com with SMTP id 5b1f17b1804b1-483487335c2so68418885e9.2
+        for <linux-acpi@vger.kernel.org>; Thu, 23 Apr 2026 10:46:37 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1776966396; x=1777571196; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=KKO0ZSfKpXY8aQTH5b7X8YGTTyGiXXEYMnXwkBPcBbk=;
+        b=TgxG5Rf0D6+XEDnDW9xBvzpnyRDZDrymF543ek4kkzR+gYRk8/nffD/by7kRisi3D2
+         q71qvkSVSdP2YG71S1mxZg3tKApvpAA4piUNIKDddPY/9hAbspQ3m6OjYu96sto8HlKx
+         ucKLoK5148Y3oRXEjOBSpGKxlj11ApiqLapCdSPpMLp2PnVRuIdzvuyEgYn4Uq7Gg7MM
+         WcGWWpU2dSAwB7UW1bAEFVw4RT1XafzBUa8k1/AswBlzt+l20RrLClMnUyjoor93ZVqY
+         L618uq6XvNkDcvNIce5c+d9AOoDy1gDZCrRrElOtWC6W0VUu1QoxNcRjicwp864/ae0T
+         zZ0Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1776966396; x=1777571196;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=KKO0ZSfKpXY8aQTH5b7X8YGTTyGiXXEYMnXwkBPcBbk=;
+        b=ofMqv6zPYT1t2HpRldsh3MTTww1Gm3KptVL9tI06ylsaTsVKFrdE0JvU42DIOaTvya
+         qFPLTKmB8rqJLXkaDYsbvIGMjBPiL1wrk2iNFp0x4CjRz2KZFBp3bTJcRUGUQ/KDNqeb
+         LuAP0zoucGYgvv/MJMxS58p6nptukXA1EXfSul3HxYTaAzYaTENwjBosJf8bRnuw2m1K
+         nZpAtq6qOP8IgHCKZwd4UCt3xZ53cymtBnB/MTWCE2fx9FGhCVddPLnV2LEGRxXrtExH
+         esOAbCI8M57s/5fxr184SodFPk0ZtAPUA8WsQ6QCVkcFyvgtquFJVRYakFyr6+KDO3DY
+         hYqg==
+X-Forwarded-Encrypted: i=1; AFNElJ8W5p+PGCrkFKUz+mE2fz9TQi4w1Ni3He2cblZPGT8NsPmIjS4OgeWXfx31/pwZ/DtJwkiet4XyKyxF@vger.kernel.org
+X-Gm-Message-State: AOJu0YxMm4cyTcNCSY/yms3hKbnWQRWYisV9JzaP0nHfI8PkpJ4HXXwD
+	nDBhOSnq90E23jJ7jvXVQhrSuRg8BDo1aa+FbZlz9l8Ru9z0tJuKNZnw
+X-Gm-Gg: AeBDies6q82nZUpK0ds6hggATYeRimPbptH+E4h647dHOq+fn4ySfLmmub7PZHASSkI
+	sfgbzVA4t6jCQH8oYofH8z3+HdIZJwqP2YwZ4L6pR3lQFReo4/gXux7C/uwtLZgh0Sm2laG3cen
+	lxgBJV9zXbzCjujcfT67Jltv762gryQWqfD0jPxOV8ntgAAhGG8cimKFVfIfn9uId2X+lFS2mwb
+	WNO96kVREkSwrrYnA00eValLmZZehW0jBhmlJsUOp3XZ9k8xMhU6ex9uTwB0+pzM5KB/O4+Nddw
+	6m/8TF4qcfsib2lO+gLyH2wZwV6pQqbpdPQjrAREEJ5viHshbyyUdHGD8WXhV98zfZ3LFDrxqgY
+	+Kd0HvpzdFtsjvZRu18/JWE77EAZ3lrUEJYUreNX2meZ92ivQWCCr2gXoyOk7NGs8XFiS+qtPai
+	4AihNnLZbYKZYJR8xTs2vKFlPueXpj+/U4wuue3lO5zKzzPkQ7cSEL1t/QGGk12Cz2/kZE/9GVm
+	b9US0E=
+X-Received: by 2002:a05:600c:6085:b0:488:936a:6220 with SMTP id 5b1f17b1804b1-488fb782618mr367619265e9.21.1776966395897;
+        Thu, 23 Apr 2026 10:46:35 -0700 (PDT)
+Received: from ?IPV6:2a01:e11:202b:40:3c42:f121:865e:1066? ([2a01:e11:202b:40:3c42:f121:865e:1066])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-488fc0f82bbsm916283675e9.3.2026.04.23.10.46.34
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 23 Apr 2026 10:46:34 -0700 (PDT)
+Message-ID: <f72a1da5-2cc1-4e08-9441-ea252062b4e5@gmail.com>
+Date: Thu, 23 Apr 2026 19:46:33 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <3570e178-f887-45c9-a251-e089915cfbd9@linux.intel.com>
-X-NV-OnPremToCloud: ExternallySecured
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CY4PEPF0000E9D6:EE_|CY1PR12MB9582:EE_
-X-MS-Office365-Filtering-Correlation-Id: add238e4-2238-4d2a-6b6a-08dea14fa898
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|82310400026|7416014|376014|36860700016|1800799024|13003099007|56012099003|18002099003|22082099003;
-X-Microsoft-Antispam-Message-Info:
-	FvJEpaecXYOhepOdyGIeR10eRmgp/o+6zOAENSVvrO2H0IzNpMeDK5o96/XYLfiNSO8YTSW10O8y5OPjG25j8fAFIXntgQRfpLOjP2lZ2IcR/3dYbZ09jvP3TeBQO6hFlVnPYJp6XJWfCqn0JqemBIBgIsmd9NsJjWRlH8bNL84/QUVy7Y2b09HiFBtDwKN+JPbn98sResqA/HszuGKAw+q0RIN3PS4ZqFL+JEJgN7zi/HDsivAooUk2NjQ8O7REjgE5dtWpOSmafBffiZYnA461aqvrU3px6DtJ8DDLtbByk7dEU5ix6Og+e7b+oqH4uqfD5Ts14r1Hqq8CNkaOiLiLyW5kMbooPCoQZI02zoKU8L8r6FOlNED65wFaM9BXVy4n+1sIHHLyALLT23X/QyTJjW84zPiOr95SkdbODWJ+JR39GNuJvxKQpOLDgWIsoyegtSIy7dC9yJczXJcQstaABcWCw4ukaC39edxs5MLj4ws46kO+u+3FqDzDZT83N6rb0stnVNYogWlUHDZOpS6MqkfwDfY12Cvwkgyc8RPn3uUExcZ8VUgV5bSauc8CTIubzGOUl6WMhlnZzS7vpC7O2md2Y2x46LXf/m6GStwFem6FEUWgaZTWwFNqPi/jBO8qhDpYv7B842d6Ov7cQ61qVz8+26uaz9IpbuR0K+GAHhKCsxBd08WGvHQUprmTbm9+LgRiiTwkQXIGJLpNJnVaXHK2ZFoSNpBmwhPz3oyX/9Rv/cqrFl+fADhmlx5iBVoEqUOIVJwXR9quHJX/Dg==
-X-Forefront-Antispam-Report:
-	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(82310400026)(7416014)(376014)(36860700016)(1800799024)(13003099007)(56012099003)(18002099003)(22082099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	O5VG5Rzpiv5WCql5oNpBf+/zZ12wKn55sJRj2Inj6bq6p+JyshRYeerh2onACbj1CfUeTvS3+9YCTVQJFS6Va3MPwvrVlAa7PTPwUXdHIp2SY+dSojzlb3zN9RJoucu+ED1ZJ/LBGyzkB91GAeXaKz33e4x3X+XqEYYUaL8SP7PZF50iL5natFnCc86uEv5BU1A+HEOFfW/8gUj2/x+2P68AHYV0w+SG+Hnvzuh1GEu1lZ9Y4TuGiwBlFkxpNNuO2s/oj7fHvK53ad4l6ElOCbNtVpCXem+RJ9hqk3x8izeusgvktxZtaRbgP2t9LjCnKVuAqIk5izTyO3XQX545hoS84nJZLnHRPOGWSQpi9s3HXzSaDM69BnFUjfoeZTqTrElQod+flFrF71e06dJ3sQl3MI9ezOtPjNSrwLkHvZsNvpXwrqfxvB19u+pPdWPv
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 23 Apr 2026 15:47:43.4935
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: add238e4-2238-4d2a-6b6a-08dea14fa898
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	CY4PEPF0000E9D6.namprd05.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY1PR12MB9582
+User-Agent: Mozilla Thunderbird
+Subject: Re: [BUG] 36-second boot delay due to by
+ acpi_gpio_handle_deferred_request_irqs on ASUS ROG Strix G16 (2025)
+To: Mario Limonciello <superm1@kernel.org>,
+ Mika Westerberg <mika.westerberg@linux.intel.com>,
+ Hans de Goede <hansg@kernel.org>
+Cc: Francesco Lauritano <francesco.lauritano1@protonmail.com>,
+ "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+ "open list:GPIO ACPI SUPPORT" <linux-gpio@vger.kernel.org>,
+ "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>,
+ "westeri@kernel.org" <westeri@kernel.org>,
+ Benjamin Tissoires <bentiss@kernel.org>
+References: <e8ed4d4e-37e1-4577-bf80-62fcefbef7dc@kernel.org>
+ <ReQS8sQSGy3UTuG6tyPvoOb8_037sC6A2yXsSFNuXY1PlTFtCcDHnjf8vufEsk8avBSIL46U0qE-ZjTJD1xsbVYZ6_d2-wlTOZ2NJ2coTsc=@protonmail.com>
+ <20251218063954.GT2275908@black.igk.intel.com>
+ <b57b44c3-ea96-4189-8b70-71bf4a80d29b@kernel.org>
+ <20251218103831.GW2275908@black.igk.intel.com>
+ <51f999d7-2064-47dc-8d9b-e262588bfbdb@gmail.com>
+ <20260422090709.GB557136@black.igk.intel.com>
+ <4e55e31e-a5e8-4098-8a7f-bb52476b882a@gmail.com>
+ <20260422095558.GC557136@black.igk.intel.com>
+ <5a36760d-5d1e-4eee-9006-3fed042aa2cd@gmail.com>
+ <20260423044211.GD557136@black.igk.intel.com>
+ <3d562963-9581-4e0f-b9a0-5f0fe28d2495@kernel.org>
+Content-Language: en-US
+From: Marco Scardovi <mscardovi95@gmail.com>
+In-Reply-To: <3d562963-9581-4e0f-b9a0-5f0fe28d2495@kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-On Thu, Apr 23, 2026 at 03:55:02PM +0800, Baolu Lu wrote:
-> On 4/17/26 07:28, Nicolin Chen wrote:
-> > +static void __iommu_group_empty_assert_owner_cnt(struct iommu_group *group)
-> > +{
-> > +	lockdep_assert_held(&group->mutex);
-> > +	/*
-> > +	 * If the group has become empty then ownership must have been
-> > +	 * released, and the current domain must be set back to NULL or
-> > +	 * the default domain.
-> > +	 */
-> 
-> Nit: this comment doesn't quite match the following code. The code
-> doesn't check "group->domain != NULL". Or perhaps in that case,
-> group->default_domain must be NULL?
 
-This is the original patch from Jason:
-https://lore.kernel.org/r/4-v3-328044aa278c+45e49-iommu_probe_jgg@nvidia.com
-
-I kept the comments as-is, though It might be slightly confusing?
-
-I think it means:
-If group->default_domain == NULL, it does check "set back to NULL".
-If group->default_domain != NULL, it then checks "default domain".
-
-Maybe it could be "must be set back to the default domain (which
-itself can be NULL"?
-
-> Furthermore, if a device is currently quarantined, group->domain will be
-> the blocking_domain. If that quarantined device is then hot-removed and
-> happens to be the last device in the group, will this WARN_ON trigger
-> unnecessarily?
-
-If a device is quarantined, its group->domain is retained to the
-previously attached domain. Its blocking state is logged in the
-gdev->blocked flag. So, I think it can pass the test.
-
-Thanks
-Nicolin
+On 4/23/26 07:15, Mario Limonciello wrote:
+> On 4/22/26 23:42, Mika Westerberg wrote:
+>> Hi,
+>>
+>> On Wed, Apr 22, 2026 at 02:08:29PM +0200, Marco Scardovi wrote:
+>>>>> Assuming all the variants suffer the same problem would it be ok 
+>>>>> to use a
+>>>>> wildcard for it?
+>>>> Yeah, we could expand it to all "ROG Strix G16" I think:
+>>>>
+>>>> diff --git a/drivers/gpio/gpiolib-acpi-quirks.c 
+>>>> b/drivers/gpio/gpiolib-acpi-quirks.c
+>>>> index a0116f004975..e3a6111854e8 100644
+>>>> --- a/drivers/gpio/gpiolib-acpi-quirks.c
+>>>> +++ b/drivers/gpio/gpiolib-acpi-quirks.c
+>>>> @@ -392,6 +392,23 @@ static const struct dmi_system_id 
+>>>> gpiolib_acpi_quirks[] __initconst = {
+>>>>                .ignore_wake = "VEN_0488:00@355",
+>>>>            },
+>>>>        },
+>>>> +    {
+>>>> +        /*
+>>>> +         * The ASUS ROG Strix G16 (2025) ACPI GPIO configuration
+>>>> +         * causes acpi_gpio_handle_deferred_request_irqs() to
+>>>> +         * stall for ~36 seconds during boot so ignore the two
+>>>> +         * interrupts involved.
+>>>> +         *
+>>>> +         * Found in BIOS G614PP.307.
+>>>> +         */
+>>>> +        .matches = {
+>>>> +            DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
+>>>> +            DMI_MATCH(DMI_PRODUCT_NAME, "ROG Strix G16"),
+>>>> +        },
+>>>> +        .driver_data = &(struct acpi_gpiolib_dmi_quirk) {
+>>>> +            .ignore_interrupt = "AMDI0030:00@21,AMDI0030:00@24",
+>>>> +        },
+>>>> +    },
+>>>>        {} /* Terminating entry */
+>>>>    };
+>>> As for now it seems working. I've reverted it on my kernel as I prefer
+>>> remain as much as possible close to the CachyOS' one but hopefully 
+>>> it will
+>>> be implemented on 7.1, if someone propose the patch and it is 
+>>> accepted. It
+>>> would be amazing to see Asus more interested on Linux and more 
+>>> strict with
+>>> their BIOS but in the end I understand it's like asking for the moon.
+>>
+>> Okay thanks for checking. I guess this is what we have to live with 
+>> for now
+>> until someone finds a better way of dealing with these.
+>>
+>> @Francesco, would you like to submit a new version of the patch 
+>> similar to
+>> above or you want me to do that?
+>
+> Hans suggested that we might want to look at ripping out this edge 
+> triggered events at boot earlier in the thread.
+>
+> https://lore.kernel.org/platform-driver-x86/20260423044211.GD557136@black.igk.intel.com/T/#mdca882e6606d3a894ec7499d3b742d040933dbdb 
+>
+>
+> Hans - as you pointed out that the Surface lid state is the only real 
+> issue left and you happen to have one do you think you could work up 
+> some patches?
+>
+I see. Well, that makes totally sense
