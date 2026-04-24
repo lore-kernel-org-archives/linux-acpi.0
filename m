@@ -1,116 +1,137 @@
-Received: from mail-yx1-f46.google.com (mail-yx1-f46.google.com [74.125.224.46])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.7])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EFEC36DA0A
-	for <linux-acpi@vger.kernel.org>; Fri, 24 Apr 2026 13:16:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.224.46
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777036616; cv=pass; b=Nsh/9vcai+2jHYHXicZF/ld4V0cZKEOOYvzbu0Pa88wr/vZeqIme97bJanzv6Mh1u2RaHJfqwpgG2siq5RH6z7y57ux3/HuPArV2lcXtqmyVetMMXJ5v7W9/ewWpNQJqJlIeFwh48/OSePLtADKZr1y/rFlVCPDrofRqwNoOj6w=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777036616; c=relaxed/simple;
-	bh=bgpykBiGFmgfbB040q2IaZLJIblegELKxJ3y2wnB8v4=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=IS62pfrbRMDo5gqalMwCj+q4j1wdUb9umZgSkV99O/qyVCeKbJ5P0L6FQo/TFhZrTQEz+bHRGVw2VAirDD/PE0V8/9EbIgCoZ/9nekMGXO2Nq2Ie6vmi1p7eZKMg44cjsVdE6lq+QgTwXzEV6aFzjZ67Aw40tffmUnx8v5I2XSs=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=jdfcKmSJ; arc=pass smtp.client-ip=74.125.224.46
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E89D78F4A;
+	Fri, 24 Apr 2026 13:33:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.7
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1777037592; cv=none; b=XU0rEiQCWWwrzTLX5bcGpCo78bOjWqb3uY/Yrv+4qWaT7jkEaENYCYn8h9EnGO8zeH+ombm3bOrpb9PwCX5OPgAov8okd7sbSTctILtN0b3XzoAwW5H1ZvJ56hOvfs7HH7/kNla+Z1oWBFJT/12Ayf4qMRYdeZdrZtmmX8OOwfk=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1777037592; c=relaxed/simple;
+	bh=BxPc+7iahjpb/CxTUGbPxS5kERM4lN3q0tzckLdAeQM=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=P7gOlrZja7jIZOMMGTnIWfZ1NbBmvtCLokn3XzvqNkMleGIhhuHS63hHa3ppvrdx9IMyh7v26LdP+jwntxK658ATh6sUiTZRJXfVQjKX5v+6OBN0ezeOgBtgHGFzNHQdrWnIhjLPWrtCAhUCzztgGDTQr6CP94Vq5yUIjUz1m0Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=bxWtiFTR; arc=none smtp.client-ip=192.198.163.7
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jdfcKmSJ"
-Received: by mail-yx1-f46.google.com with SMTP id 956f58d0204a3-64d5a7926cfso7830827d50.2
-        for <linux-acpi@vger.kernel.org>; Fri, 24 Apr 2026 06:16:53 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1777036612; cv=none;
-        d=google.com; s=arc-20240605;
-        b=D/s1/PKy7vnfJGg+NzSRP+xl3TwOZ7TYp5vcDp5h87yHYFBiLh6JHFNG8D4Q1nF+M5
-         E52qXoYJf4ldF6aCkC3DYy65cmiu4l7LjGwDyALnAgLkOfvxqPjLgTSdmD5KCjRCzmcu
-         VVVCGTQ99pwcGXK6m2PqCDWrwgxyauzcr/slaCMyXyzHk6jl6pHQM+mCRBB3SkCjIGAx
-         0frT+h6JVk+7N3Rttk32aalNhbZBELIihH011L29RTrmXrQ8oU00Ps9+ZXvnOaDHic8c
-         SYMAwxXXXQb5/T86U1S3h7rDTW5WahnJU+6SjDzpr1R45k4sCfM2ZULE8CzcFscKVxao
-         e+DQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=bgpykBiGFmgfbB040q2IaZLJIblegELKxJ3y2wnB8v4=;
-        fh=Nf+Usb52Js0RXqAuJwncaAq30EuYw8/oEX4hoz4Fr+0=;
-        b=QszJA1nE2krS0JTkcpUspHcUYVshLaVEuICeqCUADs1Ame87eA4NtEWgS+s6rE0a33
-         VCqocVDCGRApV0xbpnRQjAkIPdbd4iFdngv/soOpOYsVkeWN5vRMf0NpdXacUcH9E4YB
-         ONcGlcQp6PMH8VvjQ1FF/TLEWq+S2+/xmY+Nc699R6hRPggd3laL9kmpZqINARi9Wp7X
-         iV+EyZD1HJz4r318nb/JCL4Aj7BHn3orkHJFhI4wMqrhQ2kHZQDUQ9ZRTsqnTn/dkiNS
-         9sdp1zQ9FucsGAitaAj8bQb05A9S6XQ3bZk284WzVKOP0FOaivvAekBwUot/vBbcZWOc
-         GMjw==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1777036612; x=1777641412; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=bgpykBiGFmgfbB040q2IaZLJIblegELKxJ3y2wnB8v4=;
-        b=jdfcKmSJNC/d9dNCO5rXDoxHkKyy14nyJt/I4NZm61GsG/JN9eGycDsJENg02IS68+
-         0OsvTlJCwOBtY0IqfbstVJkdqv8CIe/0WFjMtoRU1I9/QrnBifeHe0ixIRHDNSD3Hu8n
-         7HsVK+pUflJ1yXT54Ylz/pnp+bfX9FupoQfnTgoeKsqYUSpiwIZAudF/H+e+sHWiM26L
-         0iVbMFiByM4i9DU2+fuoyGC4EiRD+fFbzmBKwVl+NxzFgC85DSQ9kIQWdLcdG4+z8wAl
-         KF+BJGCHqqYWrW8EklSX8nK3/I1mSDjD7Qmi4gmU7ksDAjpDdty7CibmMZsxqPKXefem
-         VPmg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1777036612; x=1777641412;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=bgpykBiGFmgfbB040q2IaZLJIblegELKxJ3y2wnB8v4=;
-        b=PnAOmfReL855kUiHaP8FXegjpW+WEOXkWf9lQmJpsfT/6++P05S/LjvKTjd3vgO8Uu
-         Op/u+D0iAaVPWabjkf2P9/PPlF97nrV+YHy0poxDVi3CU/b1pNyY2VLz5WjtuH/7dkgv
-         N4Q6UMV6vYaaI3FTbvZmb+eGJBgDnjcOlLeoyunnYEwitnam9yLXNeK8q92emwUa7j5x
-         paWvgBE5/2ooGyNeSAOmgO9E7ByiknIW3gU2O4JdG6huPJkp5UGNZ63/YF7TJbqVz36h
-         nTRr/i0JmyorV/hWUrVMtnbllK48gm4SaKsWbiXz7VGaKGxgkEfKgOJVhSQgDZUwbqLT
-         QGIg==
-X-Forwarded-Encrypted: i=1; AFNElJ/qDQag3VCmKTgHVGmf43gaK2wC+NUvO/duvg5YhGeT6Zs4WGUlWWMgvDantYSEPP5LkhQgHdGh3Mcp@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx/1w3PY7bGqNTFdxV77tLH9k8K6w01Rtw4Qc0RQ5qWsYBLLndm
-	LuKg4rAvRsy1xFsddegn67lcwttFGyKTmXSLclFJtpVzHnixgDUh7pZXoNq5MxdhsXKnLuS3pkD
-	LHUrlc5q7V3O5TzuL+k8eIrpEMC31zeI=
-X-Gm-Gg: AeBDieutnDEhxEirf+L44n7P6Emqqyp7ysbhvdf5b1qj04/xWcp+kTmW5aSiyvtV70Y
-	1pEfNxbvZN068Jdb3riI666f4g7uQeY1UOCRwehvH8YgscDtAMeRgH2xBwc5LbWaodCCuhZJ5KN
-	LAtYkbGrjonOLB9xFiQiTv8p6UlTLJ4GhjT1XelTK1gbm24PzgNUwsId+K7nOYhwjxwb4acBdv+
-	FuwIJO06S+/WoDyV6xJgSVXsaAMybaBVBI5opxPdf8sGnaR/HhrqEnPIznK0gFLYQCTcaXGucPn
-	XAn3alX72ZHvQJteU6oD
-X-Received: by 2002:a05:690e:1c1a:b0:64f:c830:1e47 with SMTP id
- 956f58d0204a3-6531082d925mr29744782d50.21.1777036612180; Fri, 24 Apr 2026
- 06:16:52 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="bxWtiFTR"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1777037591; x=1808573591;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=BxPc+7iahjpb/CxTUGbPxS5kERM4lN3q0tzckLdAeQM=;
+  b=bxWtiFTRIlEVxH4pW6xjO5GYNz/KPasGzLXEOwlXv3f5C4qhdd/XDNUl
+   DtrGHnvu9snTRXgTvSHNwUvMEngwEMAoL4+10J7w6aKhjdPH24IUMKsh1
+   rr+zz19IN/QUU+8tnqGYbpNTvABPlAgnvUgM/ZKeUy5gKzhUIevSbEOeg
+   QJf77Gkl0VHTgjZYBMZL0bQoA+DA6bBu8DRKpr2czgcpNBT78rj3N0Gc4
+   x0Q8p2TdXuXzp60nNnGtxJ/BDvj2cDmtTel7au+45SpegY4ctbVORFQtc
+   RqmGD9JUNMDNXG8x/AfC4xvjwoS4FOCxgGwXda/aHkHYTnT9lmIhVOW04
+   A==;
+X-CSE-ConnectionGUID: PLO3tL+ATv6khBLtNQumgw==
+X-CSE-MsgGUID: aLCAnVd1TQGDoLcd7fIuug==
+X-IronPort-AV: E=McAfee;i="6800,10657,11765"; a="103479089"
+X-IronPort-AV: E=Sophos;i="6.23,196,1770624000"; 
+   d="scan'208";a="103479089"
+Received: from orviesa003.jf.intel.com ([10.64.159.143])
+  by fmvoesa101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Apr 2026 06:33:11 -0700
+X-CSE-ConnectionGUID: +m2BoJGgRRWEy8MsT2dsww==
+X-CSE-MsgGUID: O4gNinr4Qf6s8Fl+WbudkQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,196,1770624000"; 
+   d="scan'208";a="236926347"
+Received: from pgcooper-mobl3.ger.corp.intel.com (HELO localhost) ([10.245.245.71])
+  by ORVIESA003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Apr 2026 06:33:08 -0700
+Date: Fri, 24 Apr 2026 16:33:05 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Cc: Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>, linux-acpi@vger.kernel.org,
+	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org,
+	brgl@kernel.org
+Subject: Re: [PATCH] software node: provide wrappers around kobject_get/put()
+Message-ID: <aetxEcjE8wD4-ZyV@ashevche-desk.local>
+References: <20260424124250.92890-1-bartosz.golaszewski@oss.qualcomm.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260424035501.219946-1-m32285159@gmail.com> <aes0QGXqZEpsZozV@ashevche-desk.local>
-In-Reply-To: <aes0QGXqZEpsZozV@ashevche-desk.local>
-From: Maxwell Doose <m32285159@gmail.com>
-Date: Fri, 24 Apr 2026 08:16:41 -0500
-X-Gm-Features: AQROBzB5XsLpznYpC7OQJMplgRtZMG3X1TrnYaf_fIBN2D758HQDBFDHWjrcTdA
-Message-ID: <CAKqfh0F0EM=AtSMLttEhbdRCjPWA2zOA2U1pccU_Fqzu-eKv0w@mail.gmail.com>
-Subject: Re: [PATCH] acpi: pmic: Replace mutex_lock/unlock() with guard()/scoped_guard()
-To: Andy Shevchenko <andriy.shevchenko@intel.com>
-Cc: rafael@kernel.org, lenb@kernel.org, andy@kernel.org, 
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260424124250.92890-1-bartosz.golaszewski@oss.qualcomm.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On Fri, Apr 24, 2026 at 4:13=E2=80=AFAM Andy Shevchenko
-<andriy.shevchenko@intel.com> wrote:
->
-> No. You need to either split a helper and use guard()() there, or indent =
-the
-> body of scoped_guard() accordingly.
+On Fri, Apr 24, 2026 at 02:42:50PM +0200, Bartosz Golaszewski wrote:
+> Make the code more readable by avoid constant dereferencing of the
+> swnode's kobject when managing references. Provide wrappers that take
+> struct swnode * as argument and make them hide that logic.
 
-Ah, I missed that. Thanks for pointing that out.
+...
 
-> This is not a switch-case and direct returns in if-else-if makes it harde=
-r to
-> follow. What you need is to drop now redundant 'else':s and leave the las=
-t one
-> unconditionally as the last code in the function.
+> +static void swnode_get(struct swnode *swnode)
+> +{
+> +	kobject_get(&swnode->kobj);
+> +}
 
-Sounds good, I'll start adding those changes for a v2 for this at some poin=
-t.
+Isn't a pattern to return the object itself so the code can bump the reference
+in a single statement (if appropriate)?
 
-best regards,
-maxwell
+...
+
+>  static struct fwnode_handle *software_node_get(struct fwnode_handle *fwnode)
+>  {
+>  	struct swnode *swnode = to_swnode(fwnode);
+>  
+> -	kobject_get(&swnode->kobj);
+> +	swnode_get(swnode);
+
+Like
+
+	struct swnode *swnode = swnode_get(to_swnode(fwnode));
+
+>  	return &swnode->fwnode;
+>  }
+
+...
+
+>  	list_for_each_entry(child, &swnode->children, entry) {
+>  		if (!strcmp(childname, kobject_name(&child->kobj))) {
+> -			kobject_get(&child->kobj);
+> +			swnode_get(child);
+
+Becomes inconsistent with kobject_name()...
+
+>  			return &child->fwnode;
+>  		}
+>  	}
+
+...
+
+>  		swnode = kobj_to_swnode(k);
+>  		if (parent == swnode->node->parent && swnode->node->name &&
+>  		    !strcmp(name, swnode->node->name)) {
+> -			kobject_get(&swnode->kobj);
+> +			swnode_get(swnode);
+
+Also not sure. Maybe use 'k'?
+
+>  			break;
+>  		}
+
+...
+
+Otherwise LGTM and makes sense.
+
+-- 
+With Best Regards,
+Andy Shevchenko
+
+
