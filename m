@@ -1,109 +1,131 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 889F33D410E;
-	Fri, 24 Apr 2026 14:40:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F3F73271EA;
+	Fri, 24 Apr 2026 15:32:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.9
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777041608; cv=none; b=jwRyfBFXcPvzasvqSuDBalARbSpYelTp7s48tkG2ggZ/rmWB1Tcjqyitgy7tpybDtbljTkFRk9mL9ckUt+gHNuXoMiCz5GTW7bGAEzpazKhpenuWbgimj7dEW7xZIudOvKfk/zsNQjpx3144oCxhIC1OzfnJSl/WFRjwCIJcMmE=
+	t=1777044760; cv=none; b=GihnQwZ8nr5qogdyFSGG6X3sE8tRwE86ThUZi9VtRpaJ+dGMo334gbQN/vyCjNfV5YS4F/raoiV5OnMF9+8X9dVGirnhQeqBvoDg9JlhOBE+rW9PEorlny12W5Ira4APzutvj0IJN5lWjy/RhmJRneFn37rh4usKu1Jonc4ssxI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777041608; c=relaxed/simple;
-	bh=/HUHBYr7J8fvctu0YDBJBup+H6tg/5xrzZBGF+e9KeY=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=FDtoLgvM42hFVDjFeElc+5dVKbG259zmd7WBbfkTi8F9cKWWAj1Bc5ITfwvfk/p9eDWwWOi3ed6fjtCi7F7WXW43OzjpXqmFXkMZ55y0Js5lsp3tUYUQL/JEhcMCfJ82Hixt4Jf8dWwAVOXVUE6rtqlyhoB+c0ty3LfKx5+5jMY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=pyG0o2y7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777044760; c=relaxed/simple;
+	bh=cXfvpMfbUty6WH27pMRJg1yoB1H9Izvgfx98Du8Quj0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=grERnDTgLmIXmS9gwTpzDGhaEV48MbGbgGBuGxqPNNFtjb6uGY+VArr4o/czqDv43LjUxSLxUD5UGAL5k2EGR0GBxOBRzz6mpCAYWsHBNCfN6qosJ54IKb0Pf5HmAPqTa0VBbc2R+/W1FkIMsfhJRj5cF7zO40NZBRDkYJuYR7Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=azIYX67U; arc=none smtp.client-ip=198.175.65.9
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="pyG0o2y7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB650C19425;
-	Fri, 24 Apr 2026 14:40:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1777041608;
-	bh=/HUHBYr7J8fvctu0YDBJBup+H6tg/5xrzZBGF+e9KeY=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=pyG0o2y7erh/w6NST0BQpmqle1ZDa7h43hJco97yxKQU1VxYFOkq/89edruc7o/BM
-	 sPvw7T6H9sNDuevxMwqFNSF/QvlWc+2FxwRZ7sYFlBShisictDWkSu2Al8mwVx7qf5
-	 pEjLfRkhO9qGFOuQq8YZMehuzxjaEBLWvNt0508jDPBUtQ+xpEGcIhvgeDrxd2U1J7
-	 ZM0n/u72+qQAcL+28AtUiPXsRPc52+2T5ZlYleOJuvfqIFKrHTK/LWxp+R9OBvYm9L
-	 BgLcnIUhCvzQ71/PzxrMZmpJdrrvzZSUbj1IjcyiKu6WwqwfTPwFvawWExNPLI54zz
-	 CIJnFAAflOkbg==
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-To: Evgeny Sagatov <evgeny.sagatov@gmail.com>
-Cc: regressions@lists.linux.dev, linux-acpi@vger.kernel.org,
- Thorsten Leemhuis <regressions@leemhuis.info>,
- LKML <linux-kernel@vger.kernel.org>,
- Wysocki Rafael J <rafael.j.wysocki@intel.com>
-Subject: Re: Pressing the power button causes the device to freeze completely
-Date: Fri, 24 Apr 2026 16:40:04 +0200
-Message-ID: <5107109.31r3eYUQgx@rafael.j.wysocki>
-Organization: Linux Kernel Development
-In-Reply-To:
- <CAGAxtY2vstAuswt0b6sS_0Gi1=S6fd6cetskjfOEKnWqmMZBiw@mail.gmail.com>
-References:
- <12879883.O9o76ZdvQC@rafael.j.wysocki> <5996744.DvuYhMxLoT@rafael.j.wysocki>
- <CAGAxtY2vstAuswt0b6sS_0Gi1=S6fd6cetskjfOEKnWqmMZBiw@mail.gmail.com>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="azIYX67U"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1777044759; x=1808580759;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:content-transfer-encoding:in-reply-to;
+  bh=cXfvpMfbUty6WH27pMRJg1yoB1H9Izvgfx98Du8Quj0=;
+  b=azIYX67UGdMCQ/GcGEDOK/iTMx3holln8wjLZbFGdEvVKTh+KTqZB1qC
+   8kzjE1mFnzpu6OJbE3kO+W5nwc62KWkg85SY9sEcHetthiLUqJfqBOFsU
+   oXErC2AF0BCpXuvrOeD0ZfxAhSkXMto1EgE9rPBHxU5o90Mz9MiZDytXV
+   2y9IZ9x4TzmTelVHrpcQ44qyAqjaKtc5yvCvaDUwEuvQjE/tYGC/52H9H
+   wknJ8Thd+2TFZK3conI04XPDU/d2RU+244IJGrlbbH8Dj5id6AwF6xYu/
+   yEirFwWT7noqLxBoAhSUbu64s/EgzPyRLY7VxuyxZEtUr82t3vfIuBvCL
+   g==;
+X-CSE-ConnectionGUID: cVFW7LoKT6y1RFDiwAxLlw==
+X-CSE-MsgGUID: /V24NvC3TmmZaiy5kt7OIg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11766"; a="100680151"
+X-IronPort-AV: E=Sophos;i="6.23,196,1770624000"; 
+   d="scan'208";a="100680151"
+Received: from orviesa003.jf.intel.com ([10.64.159.143])
+  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Apr 2026 08:32:39 -0700
+X-CSE-ConnectionGUID: aZXW0m3cQlG7JtpWyq/65Q==
+X-CSE-MsgGUID: qvq93lBjT1ayP5Bwdw6pUA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,196,1770624000"; 
+   d="scan'208";a="236952003"
+Received: from pgcooper-mobl3.ger.corp.intel.com (HELO localhost) ([10.245.245.71])
+  by ORVIESA003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Apr 2026 08:32:36 -0700
+Date: Fri, 24 Apr 2026 18:32:33 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Bartosz Golaszewski <brgl@kernel.org>
+Cc: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
+	Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>, linux-acpi@vger.kernel.org,
+	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] software node: provide wrappers around kobject_get/put()
+Message-ID: <aeuNEYymSicUcMyZ@ashevche-desk.local>
+References: <20260424124250.92890-1-bartosz.golaszewski@oss.qualcomm.com>
+ <aetxEcjE8wD4-ZyV@ashevche-desk.local>
+ <CAMRc=Mem3m8JZXafL9xrUvWZWuFaCofkNEdVYLNMgC+3N0i21g@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAMRc=Mem3m8JZXafL9xrUvWZWuFaCofkNEdVYLNMgC+3N0i21g@mail.gmail.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On Thursday, April 23, 2026 10:07:39 PM CEST Evgeny Sagatov wrote:
-> This patch doesn't change anything. The PC remains frozen when
-> pressing the power button.
+On Fri, Apr 24, 2026 at 03:43:39PM +0200, Bartosz Golaszewski wrote:
+> On Fri, Apr 24, 2026 at 3:33 PM Andy Shevchenko
+> <andriy.shevchenko@linux.intel.com> wrote:
+> > On Fri, Apr 24, 2026 at 02:42:50PM +0200, Bartosz Golaszewski wrote:
 
-Well, thanks for giving it a go.
+...
 
-This at least means that the issue is related to certain activity in schedutil,
-and the specific values used by it are most likely irrelevant.
+> > Isn't a pattern to return the object itself so the code can bump the reference
+> > in a single statement (if appropriate)?
+> 
+> Typically yeah but nobody here would use it right now. I can change it
+> if you prefer it.
 
-This time, I'd like to check two things in one go.  First, whether or not
-fast frequency switching is enabled on your system (if it is, it will exercise
-a different code path in schedutil) and second, whether or not the power button
-press processing gets beyond the clearing the associated event status bit.
+I showed below the example (it's now cut from the context).
 
-For this purpose, please apply the patch below and (1) after booting the
-system with the new kernel, run
+...
 
-$ dmesg | grep "Fast frequency"
+> > >       list_for_each_entry(child, &swnode->children, entry) {
+> > >               if (!strcmp(childname, kobject_name(&child->kobj))) {
+> > > -                     kobject_get(&child->kobj);
+> > > +                     swnode_get(child);
+> >
+> > Becomes inconsistent with kobject_name()...
+> 
+> What do you mean?
+> 
+> > >                       return &child->fwnode;
+> > >               }
+> > >       }
 
-and let me know if it produces any output (and what the output is if so).
+The same piece of code uses kobj and child either way of this conversion happen
+or not. To be fully consistent we need something like swnode_match_name() or
+alike instead of that strcmp().
 
-Then (2) press the power button and see if that still locks up the system
-if schedutil is the cpufreq governor (if it doesn't lock up, a message
-will be printed to the kernel log every time the button is pressed).
+...
 
----
- drivers/acpi/acpica/evevent.c |    5 +++++
- drivers/cpufreq/cpufreq.c     |    1 +
- 2 files changed, 6 insertions(+)
+> > >               swnode = kobj_to_swnode(k);
+> > >               if (parent == swnode->node->parent && swnode->node->name &&
+> > >                   !strcmp(name, swnode->node->name)) {
+> > > -                     kobject_get(&swnode->kobj);
+> > > +                     swnode_get(swnode);
+> >
+> > Also not sure. Maybe use 'k'?
+> 
+> I'm not following either, please rephrase.
 
---- a/drivers/acpi/acpica/evevent.c
-+++ b/drivers/acpi/acpica/evevent.c
-@@ -243,6 +243,11 @@ static u32 acpi_ev_fixed_event_dispatch(
- 	(void)acpi_write_bit_register(acpi_gbl_fixed_event_info[event].
- 				      status_register_id, ACPI_CLEAR_STATUS);
- 
-+	if (event == ACPI_EVENT_POWER_BUTTON) {
-+		pr_info("ACPI power button event\n");
-+		return (ACPI_INTERRUPT_HANDLED);
-+	}
-+
- 	/*
- 	 * Make sure that a handler exists. If not, report an error
- 	 * and disable the event to prevent further interrupts.
---- a/drivers/cpufreq/cpufreq.c
-+++ b/drivers/cpufreq/cpufreq.c
-@@ -473,6 +473,7 @@ void cpufreq_enable_fast_switch(struct c
- 	if (cpufreq_fast_switch_count >= 0) {
- 		cpufreq_fast_switch_count++;
- 		policy->fast_switch_enabled = true;
-+		pr_info("CPU%u: Fast frequency switching enabled\n", policy->cpu);
- 	} else {
- 		pr_warn("CPU%u: Fast frequency switching not enabled\n",
- 			policy->cpu);
+                     kobject_get(k);
 
+should also work. And here I referred to the fact that we already have a kobject
+instance available. Yes, my counter example is just to reveal inconsistency,
+I kinda agree that using swnode specific API might be clearer approach.
+
+-- 
+With Best Regards,
+Andy Shevchenko
 
 
