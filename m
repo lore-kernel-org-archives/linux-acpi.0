@@ -1,147 +1,172 @@
-Received: from SN4PR0501CU005.outbound.protection.outlook.com (mail-southcentralusazon11011044.outbound.protection.outlook.com [40.93.194.44])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-f41.google.com (mail-ot1-f41.google.com [209.85.210.41])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8A331E5714;
-	Fri, 24 Apr 2026 03:09:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.194.44
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777000163; cv=fail; b=I+jwrVxnNSfyeaxwgmOIzndqcWOfzcSW23X4bjJMSeV+3l8erDn+Gjx/A8AqayY62plDInMVl6xlhq1aR0I+4Sa+sssiNUMIqhcvz10N5gujmKOn8RJqc6ASs5S/2pZi2vJdTONBCSw9ZadempsNTSIOWm1O4WX489EqWDjUNB4=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777000163; c=relaxed/simple;
-	bh=fsaNkeJpS9tpgr93hX7/xo7Ek4K+VRL7BjGpixQ3sp4=;
-	h=Date:From:To:CC:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=fimDGd1xGA8XgOBbBiZ4Rz8G1qtjdAHoXst1CVeJcSkoEKPAAFqjd9ISct94p1waqEHqkI9cWBnvLABGOA/SJ77LR04qnb9UssP+tonADJ/Cz2YTeOFsdfv3y4cQ632UuqzUMw7tGwE6esE3te9eeiHJdUZlLcpG663DTONAp04=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=OV+lMwux; arc=fail smtp.client-ip=40.93.194.44
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD06A2C21F1
+	for <linux-acpi@vger.kernel.org>; Fri, 24 Apr 2026 03:55:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.41
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1777002905; cv=none; b=JaCRQ3fl2ESRRXy7M+uZk5PevFcS+Cfn1anQVQ69qAjBDy/qSUpikoOLrXg2xCyDW8wYEydi+ITOq0R7xAPtQxvCFfQxfppgZ3CObHzBaCvXDdGdwUQQ/lNIIO7XROXXtHk9fDXxJ2DF6xL41Byq4zl63MdCXORjdKojo5wSgzM=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1777002905; c=relaxed/simple;
+	bh=fbqp/tLWEdUGwCbgseVMqb+BZIIg/c3ifxxcNciO5T4=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=G9Ma2Li4yp31nsyQ1hMA4BPE9ifupBRR/fW2KigAMBPt865x4FmsJEnosuCzwcxXNeSCy1ma7pzETzVbS0vo8PDeLIt5UUHC/0KMtf1oJEHPjtSqM7VWldBBwkSXRBJGQ9RJLpuYY1LhIev99D7L8xwxQaglSzwcm+EYk7/CppA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Nf1KCpNi; arc=none smtp.client-ip=209.85.210.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="OV+lMwux"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=Az6Lqh3mv+ik9FqCk7bs6zPyLbakBzucxogbxdOUPt1iiUSxbAazcYTswRkI1yywDzm70E8AZNdukykpegkrntEFGmoNtg1U0OoGwP1d1ecYkrwhAtqUCsKrMpcn006u4988+42+xofhNvxxZRmkOl5aXZRfnPhi4xGKwH+oD3Zmm4VecH2vC6Iy3MQ3ITfD9oVXpjnSE7dJgnSrOt++8A5j1xl/vaFp2CoLYxxTCa9C7Fwdrc6TiOqkryoy/+1sr9tu97jPJOTw8xqjtC4i7GnmapbMvUYkm6RTrrtSLSwqW8N600QUs9J3IttrQCTcU7FFQz9xz+95+FRbdAuw1Q==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=RIhPV6JdXmJ7o7wri5yQ1P/GTLuGcDdHdUf/92+Kh8A=;
- b=R5Jt+44+Kc5IKi5GhYKCGg/r54dgsAbldH0iffsQdLwXu15nC7APJNWnZ639OO7vNqH3kby/grXBYZ20SHzORCtgkqW1AXCKpGIXvLVx+nIA2IxgweBUPtuzU92LErLfDmfPsnztHpc36YSKa+H+NlnPEVgCxmr+osVIkSI7kRlDMGS13f+qKDC+6Gr+fLvDcNR1UEfIA0/4m0VLHyIkpSzaeL4cPp5Ut05KOzMWtmB6KQLmr7E8DTwpA3TJidLhQmzytmj1uQ9aY4PkNoDjVbExQ+/tON+NIVRmk03X9F6f2hjQh+hUJ4yD3kQYFNsIc9sdcKJ2ZQjY+VxDc2u1Og==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.118.232) smtp.rcpttodomain=linux.intel.com smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=RIhPV6JdXmJ7o7wri5yQ1P/GTLuGcDdHdUf/92+Kh8A=;
- b=OV+lMwux+XCsmJToe5E5KqVgGol9Z7IeDTtaQI2Vp/kRIVkel4mJpWoWzgGsRICKeJSAMeAxGTECYCNrr2jKrX2beaROgBEr6xUdBEtHecLIGSrqidm+9Zh0ifig3T9LDmzIPxM40+jlP4IO7RiZosdzQ1Na0ytBaiDQDQda6oTfX/e5khm7AFy01qbCdt4uvQSvSL1p1mI7IQDYUqc4aYwJm8LtT+dg8I/RDLkU9uZKe7HakDfyWsauZUpZ9OoevCCjuPSCYRedAKlUtRvNHyqs3eKYt3x+R9QgBLg6HKZCSe7ZwxFvOm2IDHAf2Z/IAPisf19bCTqMGuTPcPia8g==
-Received: from BL0PR05CA0024.namprd05.prod.outlook.com (2603:10b6:208:91::34)
- by PH0PR12MB999087.namprd12.prod.outlook.com (2603:10b6:510:38f::11) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9846.16; Fri, 24 Apr
- 2026 03:09:18 +0000
-Received: from MN1PEPF0000ECD7.namprd02.prod.outlook.com
- (2603:10b6:208:91:cafe::ae) by BL0PR05CA0024.outlook.office365.com
- (2603:10b6:208:91::34) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.9846.21 via Frontend Transport; Fri,
- 24 Apr 2026 03:09:18 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.232)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.118.232 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.118.232; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.118.232) by
- MN1PEPF0000ECD7.mail.protection.outlook.com (10.167.242.136) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9846.18 via Frontend Transport; Fri, 24 Apr 2026 03:09:17 +0000
-Received: from drhqmail201.nvidia.com (10.126.190.180) by mail.nvidia.com
- (10.127.129.5) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Thu, 23 Apr
- 2026 20:09:02 -0700
-Received: from drhqmail203.nvidia.com (10.126.190.182) by
- drhqmail201.nvidia.com (10.126.190.180) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.20; Thu, 23 Apr 2026 20:09:01 -0700
-Received: from Asurada-Nvidia (10.127.8.12) by mail.nvidia.com
- (10.126.190.182) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20 via Frontend
- Transport; Thu, 23 Apr 2026 20:09:01 -0700
-Date: Thu, 23 Apr 2026 20:08:59 -0700
-From: Nicolin Chen <nicolinc@nvidia.com>
-To: Baolu Lu <baolu.lu@linux.intel.com>
-CC: Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>, "Joerg
- Roedel" <joro@8bytes.org>, Bjorn Helgaas <bhelgaas@google.com>, "Jason
- Gunthorpe" <jgg@nvidia.com>, "Rafael J . Wysocki" <rafael@kernel.org>, "Len
- Brown" <lenb@kernel.org>, Pranjal Shrivastava <praan@google.com>, "Mostafa
- Saleh" <smostafa@google.com>, Kevin Tian <kevin.tian@intel.com>,
-	<linux-arm-kernel@lists.infradead.org>, <iommu@lists.linux.dev>,
-	<linux-kernel@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
-	<linux-pci@vger.kernel.org>, <vsethi@nvidia.com>, Shuai Xue
-	<xueshuai@linux.alibaba.com>
-Subject: Re: [PATCH v3 05/11] iommu: Change group->devices to RCU-protected
- list
-Message-ID: <aerey+ULGG589rdi@Asurada-Nvidia>
-References: <cover.1776381841.git.nicolinc@nvidia.com>
- <12a224061de4fff9e0725909fd0ba4e14996ff08.1776381841.git.nicolinc@nvidia.com>
- <779dad61-d7e7-4ae0-83a9-8c5920222219@linux.intel.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Nf1KCpNi"
+Received: by mail-ot1-f41.google.com with SMTP id 46e09a7af769-7d4be94eeacso7470573a34.2
+        for <linux-acpi@vger.kernel.org>; Thu, 23 Apr 2026 20:55:03 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1777002903; x=1777607703; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=8+QqOEvBQQNNJhPCAHarXJy9IMtNIeogs/9KHIMbr2g=;
+        b=Nf1KCpNiy9Yl/2YyhhS2fQxovhzx5gOnOQbtzCw2/CjzrobmJge4awhoJoKhJGtQDZ
+         CLZKlpWJ9sgDgrdO/5xBBO0ivNykoxXifPlxu0kwyfgV/cjkxLPJSKytpO97wiRiHKyk
+         XVFR6fXsvFAmt7fNPGdBEy5/75E1udDSylHMjsqCihTq99RLq/UYniHcrBkTHxAqJVwo
+         6K+RPdQdNG/XeGEhPp5qXI+MjR8d3+LeNwT5XEjnImRkCnOPq41W6VvTp5lI9hrX5lS3
+         V6QWUGCUlLfpk3DnQY/+EGvMBfk3HYxpHv/5mzLkp/So/Bsniw3LV7fd7PqCAASqkCJL
+         EYSw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1777002903; x=1777607703;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=8+QqOEvBQQNNJhPCAHarXJy9IMtNIeogs/9KHIMbr2g=;
+        b=K61QMt4SaTHlU6xXPlv5ZCs/z2e6dmQj8KOPEiYCrmPpny2LAD9vZF57f6R39gWjxK
+         tlRnhTFlOuJvdcEfNz8Vm1Csk+Q/8lsxVAkUluZnx5uJsjRhnt16FLg3HP9XZCEkimRR
+         XSaFTgsF1Jaw+5uXr36fCx9bP1BhNyGz0e9beBK5ctjlBgoIlDlmwop+DaO1HpUNSuk8
+         MluOSOZmJQm/5NPik+rVd87AvcWY6C18Hz8ImPPqg6v8LHyNf+hj3W7vZoSnTda3z9ob
+         FUeX8ihQn0B7eLxAp3T/QxV2UI7eHlqzm0IYIIQpxHeQSHAhKPXGzn9TAUPJ0So+cjqV
+         KIsw==
+X-Forwarded-Encrypted: i=1; AFNElJ+H4rqn8kYtmcdrHIw2H7T07SMfT5wzRcw6radW9cEvam5J1uUlCU2EYDUvNH6hmUIQyhLtwbO9tjhE@vger.kernel.org
+X-Gm-Message-State: AOJu0YyE0R9/yDJ4a7l8rweBchY4hhR7MDnI9H57/vzB/vkPKoTF6HWn
+	M/zuDcL+nCyZgcMVtzOIqRPh6ugevhQVdfSLbUJLs2cXPOnE5Lh35ik/
+X-Gm-Gg: AeBDiesRZFsGPmvPDnn7PUEH2l8Rw/JMEYP0Xn3mG1tNBYHlnBKEppOkIBOk/beq76J
+	tjXHCIvUuXxWJ8E9PCDz9WLA7S2WFfBzwbmE/cgmi8UeZoH/Iq8Ea6hgnfLUgU8dXVd+J8gZ4bB
+	siduvVtj76CCq8eWgOlPf9YgO+1P8VZgL+8C0unzBYhbTULEzhMLAl3ccDYeTet6Mz5rqzVTx0R
+	iftpVS32ulSNi2BTNGkMNwfpjlMqXQ47FSv2KbEGDsBVy9y5Wwy43UDp766nKaqmRDQn/SUYd+H
+	WUJ/PIplBtFJE3xG5+2y75lIVY71g1KTvXSLvOvFT7n0FFwNT/bVjwMZOGf4GLrAT4FLkBV9MQc
+	GD49CNpSQSzmzfePgdX+9EIz/Nypmakd0K0iB4HuSQdVMdJqNETH7KN3J/JShwgn1ptiOxr+BMe
+	PQXKviQcDoo5W9dHjIsk32F63CD+ICmz1ULCkETC32mK1a7gKE7kljiyWcd1EXXB+PKnAC
+X-Received: by 2002:a05:6830:67e8:b0:7dc:d7e8:cb30 with SMTP id 46e09a7af769-7dcd7e8d77emr9368379a34.26.1777002902836;
+        Thu, 23 Apr 2026 20:55:02 -0700 (PDT)
+Received: from linuxescape.lan (23-88-128-2.fttp.usinternet.com. [23.88.128.2])
+        by smtp.gmail.com with ESMTPSA id 46e09a7af769-7dcc892c515sm11722342a34.21.2026.04.23.20.55.01
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 23 Apr 2026 20:55:02 -0700 (PDT)
+From: Maxwell Doose <m32285159@gmail.com>
+To: rafael@kernel.org,
+	lenb@kernel.org
+Cc: andy@kernel.org,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] acpi: pmic: Replace mutex_lock/unlock() with guard()/scoped_guard()
+Date: Thu, 23 Apr 2026 22:55:01 -0500
+Message-ID: <20260424035501.219946-1-m32285159@gmail.com>
+X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <779dad61-d7e7-4ae0-83a9-8c5920222219@linux.intel.com>
-X-NV-OnPremToCloud: ExternallySecured
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MN1PEPF0000ECD7:EE_|PH0PR12MB999087:EE_
-X-MS-Office365-Filtering-Correlation-Id: a21a36fc-d7aa-419f-1739-08dea1aedf33
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|7416014|376014|36860700016|82310400026|22082099003|56012099003|18002099003;
-X-Microsoft-Antispam-Message-Info:
-	ryZKCl95TtqD/I2f6F+vuRhEZCBE+uFrknDdX+GAir612EAhtJ/+gJBHAkg7M+6SUmd1QYcg2jPlFbkW2Yi1R2JPAtRfYQ08U7EkxNHFBBaPFH6v3ydiHqjdfSFgeRT/Szf1KgO6vRHr5iGMtjsvTFweFLpwCP6v4ZiLIXh5HembP0cZ3FBxzjX5mrR84qNtlP7RLFic/eYsHNAAkQN6QisqgxuzWClnIAAK0fswuUWB2kq7TBjmcJkkThXnWLs7/+xO6Sz3B2z276GjHyKvdPZ6QVD0GDirhYlOF4isO59MtVyPKgoDqq/h8uPKxJdpBGUufgz0jlPBsMP7IzuMf6SLOFqROuyODW52Suh/op+icOdKZH+dnflleZXlGoeRhomVh+a7+Kfnwzgh3H+5ia+h81la1nwV3lpAGNwEyx7sDh215pabU7QSpdlVCfOgr3lKGjrUbLzFoMqhOPN5yzZSrfmZ1EvHyQAcFhJgVWAEXgUQVZJlvzyOiLZzm6B/bUTSQ+g4EBrC59zWubLEOdy4Kj17/zcoTd1y5twDURJubFCuvWNEDpIWz/RImRQP2NhsodateofPFwWzMMGk6njc5MN9IVPHFzsrrtFMp+eTAajFmNfVRXTQ1oNOoELIbCIluVkjGTpNBxjo3Te8NMF9zSC9V5FsYemCtTA4mI+eVzq3QWev988Nk8EXoDkRQ2AlL6xZrSOC3qAGy1AADSc9A+TToJF0rRIKggJ1+2jwNbg2e5YJLQJDNa0dy7w8YcXPRR14iAHwSnS3vbHNMQ==
-X-Forefront-Antispam-Report:
-	CIP:216.228.118.232;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge1.nvidia.com;CAT:NONE;SFS:(13230040)(1800799024)(7416014)(376014)(36860700016)(82310400026)(22082099003)(56012099003)(18002099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	dZbDUIv1wFMx3HEb8mtHmyf9+CocfL9Zpg8hciEQ2as5xmL6Kks0W3DWV8Eol1EpY9o1aWIU5evnkckqaUAB4mjF6CVWhnqfPeqL7tX2gywfB02RP8vXDT87Bw7hf4Gojjg7r5QX4wUofDmu/UjnLdGLa8MSHRof0IUSIIHEXOokJYfXrJFBJeyRti6MfxboZK9DlDm6PHO26Aqw2pgL/Kh8HOEA8u7Q3+V7WjHa7tcFAoVLQIdpGPao+jm6nTQHTk1szPtkZEftgnHWMz42pIBIaThcxnTNJaw0Et2zV0DTp2UpBKQVZMvUYzlTxxZaKFT47veDKRrUgunXLL9Cv7092jsZWrcP/d7aYS4Xtz2Oh+WscspXK6uJT+SzzEe/r8xhyq5TK4RAAKoS4fZr5MSl3WHGKHv76fA4/hfkGC3hkRnGb1Cj/gtgKn7KFkEf
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 24 Apr 2026 03:09:17.2248
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: a21a36fc-d7aa-419f-1739-08dea1aedf33
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.232];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	MN1PEPF0000ECD7.namprd02.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH0PR12MB999087
+Content-Transfer-Encoding: 8bit
 
-On Fri, Apr 24, 2026 at 10:53:49AM +0800, Baolu Lu wrote:
-> On 4/17/26 07:28, Nicolin Chen wrote:
-> 	    mutex_unlock(&group->mutex);
->             /*
->              * FIXME: Mis-locked because the ops->probe_finalize() call-back
->              * of some IOMMU drivers calls arm_iommu_attach_device() which
->              * in-turn might call back into IOMMU core code, where it tries
->              * to take group->mutex, resulting in a deadlock.
->              */
->              for_each_group_device(group, gdev)
->                         iommu_group_do_probe_finalize(gdev->dev);
->         }
-> 
->         return 0;
-> }
-> 
-> Will the change above trigger a lockdep splat due to this "mis-locked"
-> case?"
+Replace mutex_lock() and unlock() macros with the newer guard() and
+scoped_guard() macros. This will help modernize and clean the code.
 
-Oh, I missed this one. That's a good finding!
+In intel_soc_pmic_exec_mipi_pmic_seq_element(): While at it, remove
+now redundant "ret" variable.
 
-Perhaps we can just change it to list_for_each_entry_rcu holding
-rcu_read_lock() and drop the FIXME.
+Signed-off-by: Maxwell Doose <m32285159@gmail.com>
+---
+ drivers/acpi/pmic/intel_pmic.c | 23 ++++++++---------------
+ 1 file changed, 8 insertions(+), 15 deletions(-)
 
-Thanks!
-Nicolin
+diff --git a/drivers/acpi/pmic/intel_pmic.c b/drivers/acpi/pmic/intel_pmic.c
+index 134e9ca8eaa2..36a43328c550 100644
+--- a/drivers/acpi/pmic/intel_pmic.c
++++ b/drivers/acpi/pmic/intel_pmic.c
+@@ -67,14 +67,12 @@ static acpi_status intel_pmic_power_handler(u32 function,
+ 	if (result == -ENOENT)
+ 		return AE_BAD_PARAMETER;
+ 
+-	mutex_lock(&opregion->lock);
++	guard(&opregion->lock);
+ 
+ 	result = function == ACPI_READ ?
+ 		d->get_power(regmap, reg, bit, value64) :
+ 		d->update_power(regmap, reg, bit, *value64 == 1);
+ 
+-	mutex_unlock(&opregion->lock);
+-
+ 	return result ? AE_ERROR : AE_OK;
+ }
+ 
+@@ -182,7 +180,7 @@ static acpi_status intel_pmic_thermal_handler(u32 function,
+ 	if (result == -ENOENT)
+ 		return AE_BAD_PARAMETER;
+ 
+-	mutex_lock(&opregion->lock);
++	scoped_guard(&opregion->lock) {
+ 
+ 	if (pmic_thermal_is_temp(address))
+ 		result = pmic_thermal_temp(opregion, reg, function, value64);
+@@ -194,7 +192,7 @@ static acpi_status intel_pmic_thermal_handler(u32 function,
+ 	else
+ 		result = -EINVAL;
+ 
+-	mutex_unlock(&opregion->lock);
++	}
+ 
+ 	if (result < 0) {
+ 		if (result == -EINVAL)
+@@ -345,7 +343,6 @@ int intel_soc_pmic_exec_mipi_pmic_seq_element(u16 i2c_address, u32 reg_address,
+ 					      u32 value, u32 mask)
+ {
+ 	const struct intel_pmic_opregion_data *d;
+-	int ret;
+ 
+ 	if (!intel_pmic_opregion) {
+ 		pr_warn("%s: No PMIC registered\n", __func__);
+@@ -354,30 +351,26 @@ int intel_soc_pmic_exec_mipi_pmic_seq_element(u16 i2c_address, u32 reg_address,
+ 
+ 	d = intel_pmic_opregion->data;
+ 
+-	mutex_lock(&intel_pmic_opregion->lock);
++	guard(&intel_pmic_opregion->lock);
+ 
+ 	if (d->exec_mipi_pmic_seq_element) {
+-		ret = d->exec_mipi_pmic_seq_element(intel_pmic_opregion->regmap,
++		return d->exec_mipi_pmic_seq_element(intel_pmic_opregion->regmap,
+ 						    i2c_address, reg_address,
+ 						    value, mask);
+ 	} else if (d->pmic_i2c_address) {
+ 		if (i2c_address == d->pmic_i2c_address) {
+-			ret = regmap_update_bits(intel_pmic_opregion->regmap,
++			return regmap_update_bits(intel_pmic_opregion->regmap,
+ 						 reg_address, mask, value);
+ 		} else {
+ 			pr_err("%s: Unexpected i2c-addr: 0x%02x (reg-addr 0x%x value 0x%x mask 0x%x)\n",
+ 			       __func__, i2c_address, reg_address, value, mask);
+-			ret = -ENXIO;
++			return -ENXIO;
+ 		}
+ 	} else {
+ 		pr_warn("%s: Not implemented\n", __func__);
+ 		pr_warn("%s: i2c-addr: 0x%x reg-addr 0x%x value 0x%x mask 0x%x\n",
+ 			__func__, i2c_address, reg_address, value, mask);
+-		ret = -EOPNOTSUPP;
++		return -EOPNOTSUPP;
+ 	}
+-
+-	mutex_unlock(&intel_pmic_opregion->lock);
+-
+-	return ret;
+ }
+ EXPORT_SYMBOL_GPL(intel_soc_pmic_exec_mipi_pmic_seq_element);
+-- 
+2.53.0
+
