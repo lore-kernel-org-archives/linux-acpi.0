@@ -1,169 +1,233 @@
-Received: from BN8PR05CU002.outbound.protection.outlook.com (mail-eastus2azon11011007.outbound.protection.outlook.com [52.101.57.7])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20F231BD9C9;
-	Sat, 25 Apr 2026 00:51:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.57.7
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777078317; cv=fail; b=FHOh+X/ULyzP4CRo3C3ptpuYDd+JNChg7zBXfo5Ei0RlTjw4sQLnQFnD1jm2sHdF/Fh1IDhapsykKtWTTkPtLfoFFlrpGv8SsV0VSksgDfmhLE9dfXlNdiVdzYTHOes02tHxg5J62WLYgOtbSaTjiNHgbed/22vf6X4SAUucvBE=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777078317; c=relaxed/simple;
-	bh=jOULSSth7Qp2y84r/rb149go3J0Cau968Gq1QESCRYo=;
-	h=Date:From:To:CC:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=dOhBQN2/2xncenoMsLeMahZ3Ifn0vIm0PjWqUcMoVwCty2HuvLiigHGQdwmpYhMLLmkyvsgTc6jHU4nKniY4i/ScuibiXeR9pOQ9LGTsTwQVTB4ksWg3NWkQUBqwOrb47Lak4BhYGCn4uABP16YwiFsgPT0Nw1B+J+jRaCvF0L0=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=cMg+r5bF; arc=fail smtp.client-ip=52.101.57.7
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B8B840DFA5;
+	Sat, 25 Apr 2026 15:15:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1777130122; cv=none; b=JzXfoBjbjY9FMCRjKzWVzCwzrQNqaXt9ZpZuEE86VJs0zGvcS8W5KmRrFqc+y9Csv1xijMRdBaxhPHYUpImfJVSCeWWHwOCqwhOXXQrLhISSSGwvJjqHl+HCetMyjSjTyS7nyoka/ZEwT2/mxMTOpEqG/IHLsb3mETy+zUTc7RE=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1777130122; c=relaxed/simple;
+	bh=iSoI4DFNO6LwbQUPgechwxRsrKT7FQXtvei2Qm7F2CU=;
+	h=Content-Type:Message-ID:Date:MIME-Version:Subject:To:Cc:
+	 References:From:In-Reply-To; b=KvLQwrG98bdSBUNsjTVS7G8Z4KzvbVWaDAQc2bYw2fuUAwsqUVc/1KAc6KkhllXB4nBLPnof18aacCDqUjHy+9uFBE/mdhOdY1GqWcNp86STK5KxwBxDl1Rfmf6AupMaBGO/V9cFSjb7efZobDzy0qw8Kec/oX+XU8qDx+HYNXY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ja7lG0qx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="cMg+r5bF"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=gENPDpY195jqB2bTlj3VRzQBMmXioYoA4RlfSPXUcU2CzH7MZIA70ICG30BH91/OpT0+yJ9hneZhkWYRlPsRyC9+0eLGvdhHqDA82VkoUiILtByYcAAOft509+TSG0tiuaVHRhjq5BRv24P91ovpsYAsz1RdGpE0GX2s0q1ivss+pokgISpi9629V/RPQNPdUzb5P8xIeOJ3/DdCNmlxTe0x9CiFmA9WjRDy8e1GPwITQxFW5uGLx6da8xYGVGzSAE9JllkmJ8ZOsZqg9ZRQPtxSOEcTZHEPN/60lijkllPvtmA20ZjXQakyCLaP5D1wtUmQAKm1/sE+36qm190rMA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=2ClXLjb0gpBaRqcFE1LjnEvb3ZPPqJV/bZdFw6swByA=;
- b=xIErcHz7eCz1d8fWxCvbnU9D7lb01Q7t8kDkiJwXKJmLd+woCY9rlQeWcXganXB4p9rhRl2tLQVJqD2LdYmsf2vLDk2FJVj9biqvYrFm5DdlV261oz6IheSTJWGhXLWAaYzLgnVLsx41wsLBlc9h6noB3dRyUcu1MmKWS0N8DiR4lAbmzfJTOqQPXyLHXp/Ea9BZrCc2s0o1NpSIdAMsIS03FabzetVAovGHxz0mP4/MAufS9zkbehnz8KR8atuxp1bLK4ErnFxgitvNaSbh34catzWdWbyh4x0nv2c/KDeodPsEXNt+H10DsDv/34dfyi0+5ejxSeDyUHrLEXCATg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.161) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=2ClXLjb0gpBaRqcFE1LjnEvb3ZPPqJV/bZdFw6swByA=;
- b=cMg+r5bF5Rp7XIBeh3x+Kw4FkHuYgBAnp35PSnOjZ2bD/AmPTuCo++4w9GSTz+yLAdNQDOMl0c+2DLkToQsS7WnWl+1zJY3wY6JBRLfv+eapzrj6Ieg0F26DW7M6gqLUbhglgNchKK7CwiKUhCZpC+LxNBQeXrCUovacCce+Ah8EzuDk9wqfgXKVMjnHb5eIA20E2hcUcYA21B9KC7XLnCn2CZfFHZqSU6MfhedjDfi/HwDdltpIXnDqF6Gw/R/ScO74Pt6/5coL2vCgAOOzktXCvqcutNxQDHpH0bNAS6vt+TmNzONO0sHZJZ8fp0jL3sFrstW1KiekR8shpkJmKQ==
-Received: from DM6PR07CA0126.namprd07.prod.outlook.com (2603:10b6:5:330::9) by
- DS0PR12MB8574.namprd12.prod.outlook.com (2603:10b6:8:166::7) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9846.22; Sat, 25 Apr 2026 00:51:49 +0000
-Received: from DS1PEPF0001708F.namprd03.prod.outlook.com
- (2603:10b6:5:330:cafe::7f) by DM6PR07CA0126.outlook.office365.com
- (2603:10b6:5:330::9) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.9846.23 via Frontend Transport; Sat,
- 25 Apr 2026 00:51:49 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.161)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.161) by
- DS1PEPF0001708F.mail.protection.outlook.com (10.167.17.139) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9846.18 via Frontend Transport; Sat, 25 Apr 2026 00:51:49 +0000
-Received: from rnnvmail203.nvidia.com (10.129.68.9) by mail.nvidia.com
- (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Fri, 24 Apr
- 2026 17:51:40 -0700
-Received: from rnnvmail202.nvidia.com (10.129.68.7) by rnnvmail203.nvidia.com
- (10.129.68.9) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Fri, 24 Apr
- 2026 17:51:40 -0700
-Received: from Asurada-Nvidia (10.127.8.12) by mail.nvidia.com (10.129.68.7)
- with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20 via Frontend
- Transport; Fri, 24 Apr 2026 17:51:38 -0700
-Date: Fri, 24 Apr 2026 17:51:37 -0700
-From: Nicolin Chen <nicolinc@nvidia.com>
-To: Jason Gunthorpe <jgg@nvidia.com>
-CC: Baolu Lu <baolu.lu@linux.intel.com>, Will Deacon <will@kernel.org>, "Robin
- Murphy" <robin.murphy@arm.com>, Joerg Roedel <joro@8bytes.org>, Bjorn Helgaas
-	<bhelgaas@google.com>, "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown
-	<lenb@kernel.org>, Pranjal Shrivastava <praan@google.com>, Mostafa Saleh
-	<smostafa@google.com>, Kevin Tian <kevin.tian@intel.com>,
-	<linux-arm-kernel@lists.infradead.org>, <iommu@lists.linux.dev>,
-	<linux-kernel@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
-	<linux-pci@vger.kernel.org>, <vsethi@nvidia.com>, Shuai Xue
-	<xueshuai@linux.alibaba.com>
-Subject: Re: [PATCH v3 05/11] iommu: Change group->devices to RCU-protected
- list
-Message-ID: <aewQGSVwfgFov5Nu@Asurada-Nvidia>
-References: <cover.1776381841.git.nicolinc@nvidia.com>
- <12a224061de4fff9e0725909fd0ba4e14996ff08.1776381841.git.nicolinc@nvidia.com>
- <779dad61-d7e7-4ae0-83a9-8c5920222219@linux.intel.com>
- <aerey+ULGG589rdi@Asurada-Nvidia>
- <20260424131148.GB3444440@nvidia.com>
- <aevAqKFq7ATYk3+i@Asurada-Nvidia>
- <20260424225820.GN3444440@nvidia.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ja7lG0qx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CF39C2BCB0;
+	Sat, 25 Apr 2026 15:15:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1777130122;
+	bh=iSoI4DFNO6LwbQUPgechwxRsrKT7FQXtvei2Qm7F2CU=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=Ja7lG0qx4W7zVcH188TZD45Gdt2FZyOIngIE/pkGvF1P/8j4rUHnDEmbj4irXPP9N
+	 eWvd9qVbO6cAh//OWOBv04SDYcLACl6NADgVLFbISwPuco7+WMF6oIoJymPy1HGXbu
+	 76VdKVd2TAnwfbrugBG2bKh2HOPze8Xwq256qyX7xUr92hFHxq71NsmcBlr/akIF2Q
+	 2CXvHKz8qUDsnKZA/854n5UBdXNqyO6AMWX8EaKofO6qmEQVWbVU+15EHv7cQRDLoA
+	 HVC76eS/SCZ+Nu4uK5HKvHLIHVTMqOFFEsCQYi93pOTVRsEOrkOrn/H7hvMfEm4UwQ
+	 5kOjs3lhLpXPw==
+Content-Type: multipart/mixed; boundary="------------YnLCLDdpuLD0GWNeh9S5lhol"
+Message-ID: <f4979d43-f61f-4387-8490-ccec7043c940@kernel.org>
+Date: Sat, 25 Apr 2026 10:15:19 -0500
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20260424225820.GN3444440@nvidia.com>
-X-NV-OnPremToCloud: ExternallySecured
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS1PEPF0001708F:EE_|DS0PR12MB8574:EE_
-X-MS-Office365-Filtering-Correlation-Id: 008006bd-c31a-4f6e-f5ea-08dea264d582
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|7416014|36860700016|376014|1800799024|82310400026|56012099003|18002099003|22082099003;
-X-Microsoft-Antispam-Message-Info:
-	yvQqGv99CmWbAaplAG2f2VLh2IAXAhelsVViiyvytjQphxr7/DZSjva8QyzsjQV3HO9iTqQE7WH+XVOO8pEEecHHzUqQiKhZDIUHVRzdGRqMKPNivWMtj1PIHCle5WqG6at0/563YHwIJuU2ctZPAFtiLU9MSSSRE2wVMBrbek+Tw6gjb+0bUeFCFp/ToPHg68Jjw7subvNKEJDM5AoH6N02GWhzD8BXS9jEpL0ANXfXP7QLAA2zX5/4AZSdBKfhYmXuVfO0guDzDqqo57yKDno+C/F0Q27d1N+ZaSjdyKPezUTipWpUeEc16FFY2mcS660Mnan+teg4pWgN27wtSGhGAuOlYl+qmwqFhed+tYMD6UtIS/lM3I7tuE5W/6DfXRIerjLKdfjIBDHHzACqDj4+xLffCyHWuSL6lph8UDKEOnSL/49VS3pyCGQmjd437Mv58p42ZHlIx12O4seCbx1YW6JGE91lspmOw1On5joWi4asQVMoRh9l3zBcOIOpbibFRLPLquQPSfTlhHcV6ZIEVb+X9KSvQehqTM/NjFveH3YVkS3BBb0lHC7W7zWgmdheMPBTMNrKLhUd0IH6pw2xP0nIXnwXzmf1r5I89JzGiL0kmtqM9OL2nHoAn6QIWiROucl+2eFHKe34iUCU5ZXzLNXY3kI/G2p0zMPJeWwSIulJHjXtD2AYyuGOpzzIeqL6pnPE6rffZNVzBUFs/TVaT3WTeIGYnYMuQc7qwc8FgD3Ze8wO9pUrKIu8S8/Uf7xo8xzWWp/LagzBRQ2Few==
-X-Forefront-Antispam-Report:
-	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(7416014)(36860700016)(376014)(1800799024)(82310400026)(56012099003)(18002099003)(22082099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	FypL5IZRuEq7AP/ndOT6DTOQjqw/wd0yWkiUQn3yeFjMBMnJLITpu2vNEBP7tm4r0RXiJ5zTkuyqE2Mi+eIj55agZf8IOkUg3Yf4zQt4ELoEyyT45f35Cj53TqveCvyLdoPUgBYCIZ+43E1fydgtkU2uSjU3aV5a1a0hn1WWItSoWj4lsNCGqMviLywqBrMP58ig07qPRwxxBVtMmzSQGzZYDFTSdvgEq3tCgjaWIabgDI9PdSIwabR9JXBmMJ/erX6Tub1ziNqs/j1gn+mtQmH6r0b+aI15zGmN3g8N7f+RR59oH3XAhzthpIenMdF+lpQMJPkvzYpKOLtk1DWMbGHUKo84x7Y3T+E6mVVbJKo/tZHGI11GmJi/f4DnLpC1vNJsMp+QWUC6joYl8a1a05fql/6xsY0lvHzR2LkPQclwtK9QFEZKSaTLlJdbgrdj
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Apr 2026 00:51:49.4537
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 008006bd-c31a-4f6e-f5ea-08dea264d582
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	DS1PEPF0001708F.namprd03.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS0PR12MB8574
+User-Agent: Mozilla Thunderbird
+Subject: Re: [BUG] 36-second boot delay due to by
+ acpi_gpio_handle_deferred_request_irqs on ASUS ROG Strix G16 (2025)
+Content-Language: en-US
+To: Armin Wolf <W_Armin@gmx.de>, Marco Scardovi <mscardovi95@gmail.com>,
+ Mika Westerberg <mika.westerberg@linux.intel.com>,
+ Hans de Goede <hansg@kernel.org>
+Cc: Francesco Lauritano <francesco.lauritano1@protonmail.com>,
+ "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+ "open list:GPIO ACPI SUPPORT" <linux-gpio@vger.kernel.org>,
+ "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>,
+ "westeri@kernel.org" <westeri@kernel.org>,
+ Benjamin Tissoires <bentiss@kernel.org>
+References: <e8ed4d4e-37e1-4577-bf80-62fcefbef7dc@kernel.org>
+ <ReQS8sQSGy3UTuG6tyPvoOb8_037sC6A2yXsSFNuXY1PlTFtCcDHnjf8vufEsk8avBSIL46U0qE-ZjTJD1xsbVYZ6_d2-wlTOZ2NJ2coTsc=@protonmail.com>
+ <20251218063954.GT2275908@black.igk.intel.com>
+ <b57b44c3-ea96-4189-8b70-71bf4a80d29b@kernel.org>
+ <20251218103831.GW2275908@black.igk.intel.com>
+ <51f999d7-2064-47dc-8d9b-e262588bfbdb@gmail.com>
+ <20260422090709.GB557136@black.igk.intel.com>
+ <4e55e31e-a5e8-4098-8a7f-bb52476b882a@gmail.com>
+ <20260422095558.GC557136@black.igk.intel.com>
+ <5a36760d-5d1e-4eee-9006-3fed042aa2cd@gmail.com>
+ <20260423044211.GD557136@black.igk.intel.com>
+ <3d562963-9581-4e0f-b9a0-5f0fe28d2495@kernel.org>
+ <f72a1da5-2cc1-4e08-9441-ea252062b4e5@gmail.com>
+ <a2a187d9-363c-48fe-8301-6a199366c478@gmx.de>
+From: Mario Limonciello <superm1@kernel.org>
+In-Reply-To: <a2a187d9-363c-48fe-8301-6a199366c478@gmx.de>
 
-On Fri, Apr 24, 2026 at 07:58:20PM -0300, Jason Gunthorpe wrote:
-> On Fri, Apr 24, 2026 at 12:12:40PM -0700, Nicolin Chen wrote:
-> > On Fri, Apr 24, 2026 at 10:11:48AM -0300, Jason Gunthorpe wrote:
-> > > On Thu, Apr 23, 2026 at 08:08:59PM -0700, Nicolin Chen wrote:
-> > > > On Fri, Apr 24, 2026 at 10:53:49AM +0800, Baolu Lu wrote:
-> > > > > On 4/17/26 07:28, Nicolin Chen wrote:
-> > > > > 	    mutex_unlock(&group->mutex);
-> > > > >             /*
-> > > > >              * FIXME: Mis-locked because the ops->probe_finalize() call-back
-> > > > >              * of some IOMMU drivers calls arm_iommu_attach_device() which
-> > > > >              * in-turn might call back into IOMMU core code, where it tries
-> > > > >              * to take group->mutex, resulting in a deadlock.
-> > > > >              */
-> > > > >              for_each_group_device(group, gdev)
-> > > > >                         iommu_group_do_probe_finalize(gdev->dev);
-> > > > >         }
-> > > > > 
-> > > > >         return 0;
-> > > > > }
-> > > > > 
-> > > > > Will the change above trigger a lockdep splat due to this "mis-locked"
-> > > > > case?"
-> > > > 
-> > > > Oh, I missed this one. That's a good finding!
-> > > > 
-> > > > Perhaps we can just change it to list_for_each_entry_rcu holding
-> > > > rcu_read_lock() and drop the FIXME.
-> > > 
-> > > You can't hold rcu across that function IIRC
-> > 
-> > Oh right. I didn't think too carefully...
-> > 
-> > I tend to keep it as-is. So, maybe just list_for_each_entry?
+This is a multi-part message in MIME format.
+--------------YnLCLDdpuLD0GWNeh9S5lhol
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+
+On 4/24/26 15:02, Armin Wolf wrote:
+> Am 23.04.26 um 19:46 schrieb Marco Scardovi:
 > 
-> Does your series make this existing race materially worse?
+>>
+>> On 4/23/26 07:15, Mario Limonciello wrote:
+>>> On 4/22/26 23:42, Mika Westerberg wrote:
+>>>> Hi,
+>>>>
+>>>> On Wed, Apr 22, 2026 at 02:08:29PM +0200, Marco Scardovi wrote:
+>>>>>>> Assuming all the variants suffer the same problem would it be ok 
+>>>>>>> to use a
+>>>>>>> wildcard for it?
+>>>>>> Yeah, we could expand it to all "ROG Strix G16" I think:
+>>>>>>
+>>>>>> diff --git a/drivers/gpio/gpiolib-acpi-quirks.c b/drivers/gpio/ 
+>>>>>> gpiolib-acpi-quirks.c
+>>>>>> index a0116f004975..e3a6111854e8 100644
+>>>>>> --- a/drivers/gpio/gpiolib-acpi-quirks.c
+>>>>>> +++ b/drivers/gpio/gpiolib-acpi-quirks.c
+>>>>>> @@ -392,6 +392,23 @@ static const struct dmi_system_id 
+>>>>>> gpiolib_acpi_quirks[] __initconst = {
+>>>>>>                .ignore_wake = "VEN_0488:00@355",
+>>>>>>            },
+>>>>>>        },
+>>>>>> +    {
+>>>>>> +        /*
+>>>>>> +         * The ASUS ROG Strix G16 (2025) ACPI GPIO configuration
+>>>>>> +         * causes acpi_gpio_handle_deferred_request_irqs() to
+>>>>>> +         * stall for ~36 seconds during boot so ignore the two
+>>>>>> +         * interrupts involved.
+>>>>>> +         *
+>>>>>> +         * Found in BIOS G614PP.307.
+>>>>>> +         */
+>>>>>> +        .matches = {
+>>>>>> +            DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
+>>>>>> +            DMI_MATCH(DMI_PRODUCT_NAME, "ROG Strix G16"),
+>>>>>> +        },
+>>>>>> +        .driver_data = &(struct acpi_gpiolib_dmi_quirk) {
+>>>>>> +            .ignore_interrupt = "AMDI0030:00@21,AMDI0030:00@24",
+>>>>>> +        },
+>>>>>> +    },
+>>>>>>        {} /* Terminating entry */
+>>>>>>    };
+>>>>> As for now it seems working. I've reverted it on my kernel as I prefer
+>>>>> remain as much as possible close to the CachyOS' one but hopefully 
+>>>>> it will
+>>>>> be implemented on 7.1, if someone propose the patch and it is 
+>>>>> accepted. It
+>>>>> would be amazing to see Asus more interested on Linux and more 
+>>>>> strict with
+>>>>> their BIOS but in the end I understand it's like asking for the moon.
+>>>>
+>>>> Okay thanks for checking. I guess this is what we have to live with 
+>>>> for now
+>>>> until someone finds a better way of dealing with these.
+>>>>
+>>>> @Francesco, would you like to submit a new version of the patch 
+>>>> similar to
+>>>> above or you want me to do that?
+>>>
+>>> Hans suggested that we might want to look at ripping out this edge 
+>>> triggered events at boot earlier in the thread.
+>>>
+>>> https://lore.kernel.org/platform-driver- 
+>>> x86/20260423044211.GD557136@black.igk.intel.com/T/ 
+>>> #mdca882e6606d3a894ec7499d3b742d040933dbdb
+>>>
+>>> Hans - as you pointed out that the Surface lid state is the only real 
+>>> issue left and you happen to have one do you think you could work up 
+>>> some patches?
+>>>
+>> I see. Well, that makes totally sense 
+> 
+> Hi,
+> 
+> according to the Microsoft documentation (https://learn.microsoft.com/ 
+> en-us/windows-hardware/drivers/bringup/general-purpose-i-o--gpio-,
+> section "GPIO controllers and ActiveBoth interrupts"), triggering GPIO 
+> interrupts marked as ActiveBoth during initialization is
+> correct as long as the associated GPIO line is already "asserted" (aka 
+> logic level low). I think the problem is that we also trigger
+> edge-based GPIO interrupts _not_ marked as ActiveBoth.
+> 
+> Based on this i agree with Hans, except that we should continue you 
+> trigger ActiveBoth GPIO interrupts as long as the above
+> condition applies.
+> 
+> Thanks,
+> Armin Wolf
+> 
 
-I think it would be a status quo.
+So maybe something like this (attached)?
 
-The only possible place is __iommu_group_remove_device() that this
-series touched by changing the kfree(gdev) within the mutex to the
-kfree_rcu(gdev, rcu) outside the mutex, which actually added small
-delay. Though that doesn't fix a potential race, it shouldn't make
-things worse.
+--------------YnLCLDdpuLD0GWNeh9S5lhol
+Content-Type: text/x-patch; charset=UTF-8;
+ name="0001-gpiolib-acpi-Only-trigger-ActiveBoth-interrupts-on-b.patch"
+Content-Disposition: attachment;
+ filename*0="0001-gpiolib-acpi-Only-trigger-ActiveBoth-interrupts-on-b.pa";
+ filename*1="tch"
+Content-Transfer-Encoding: base64
 
-Nicolin
+RnJvbSBjOTcyYThmYTU3NGQwNDlhM2Q4ZmFjYTc2MTIxZDlkM2NiNThlZjQ4IE1vbiBTZXAg
+MTcgMDA6MDA6MDAgMjAwMQpGcm9tOiBNYXJpbyBMaW1vbmNpZWxsbyA8bWFyaW8ubGltb25j
+aWVsbG9AYW1kLmNvbT4KRGF0ZTogU2F0LCAyNSBBcHIgMjAyNiAxMDoxMTozMyAtMDUwMApT
+dWJqZWN0OiBbUEFUQ0hdIGdwaW9saWI6IGFjcGk6IE9ubHkgdHJpZ2dlciBBY3RpdmVCb3Ro
+IGludGVycnVwdHMgb24gYm9vdAoKQ29tbWl0IGNhODc2Yzc0ODNiNiAoImdwaW9saWItYWNw
+aTogbWFrZSBzdXJlIHdlIHRyaWdnZXIgZWRnZSBldmVudHMgYXQKbGVhc3Qgb25jZSBvbiBi
+b290IikgaW50cm9kdWNlZCBsb2dpYyB0byB0cmlnZ2VyIGVkZ2UtYmFzZWQgR1BJTwppbnRl
+cnJ1cHRzIGR1cmluZyBpbml0aWFsaXphdGlvbiB0byBlbnN1cmUgcHJvcGVyIGluaXRpYWwg
+c3RhdGUgc2V0dXAKd2hlbiBmaXJtd2FyZSBkb2Vzbid0IGluaXRpYWxpemUgaXQuCgpIb3dl
+dmVyLCBhY2NvcmRpbmcgdG8gdGhlIE1pY3Jvc29mdCBHUElPIGRvY3VtZW50YXRpb24sIHRy
+aWdnZXJpbmcgR1BJTwppbnRlcnJ1cHRzIGR1cmluZyBpbml0aWFsaXphdGlvbiBzaG91bGQg
+b25seSBoYXBwZW4gZm9yIGludGVycnVwdHMKbWFya2VkIGFzIEFjdGl2ZUJvdGggKGJvdGgg
+SVJRRl9UUklHR0VSX1JJU0lORyBhbmQgSVJRRl9UUklHR0VSX0ZBTExJTkcpCmFuZCBvbmx5
+IHdoZW4gdGhlIGFzc29jaWF0ZWQgR1BJTyBsaW5lIGlzIGFscmVhZHkgYXNzZXJ0ZWQgKGxv
+Z2ljIGxldmVsCmxvdykuCgpUaGUgY3VycmVudCBpbXBsZW1lbnRhdGlvbiBpbmNvcnJlY3Rs
+eSB0cmlnZ2VyczoKMS4gQW55IGVkZ2UtdHJpZ2dlcmVkIGludGVycnVwdCAoUklTSU5HLW9u
+bHkgb3IgRkFMTElORy1vbmx5KQoyLiBSSVNJTkcgaW50ZXJydXB0cyB3aGVuIHZhbHVlIGlz
+IGhpZ2ggYW5kIEZBTExJTkcgd2hlbiB2YWx1ZSBpcyBsb3cKClRoaXMgY2F1c2VzIHByb2Js
+ZW1zIGF0IGJvb3R1cCBmb3Igc2luZ2xlLWVkZ2UgaW50ZXJydXB0cyB0aGF0CmRvbid0IGZv
+bGxvdyB0aGUgQWN0aXZlQm90aCBwYXR0ZXJuLgoKRml4IHRoaXMgYnk6Ci0gT25seSB0cmln
+Z2VyaW5nIHdoZW4gQk9USCByaXNpbmcgYW5kIGZhbGxpbmcgZWRnZXMgYXJlIGNvbmZpZ3Vy
+ZWQKLSBPbmx5IHRyaWdnZXJpbmcgd2hlbiB0aGUgR1BJTyBsaW5lIGlzIGFzc2VydGVkICh2
+YWx1ZSA9PSAwKQoKRml4ZXM6IGNhODc2Yzc0ODNiNjkgKCJncGlvbGliLWFjcGk6IG1ha2Ug
+c3VyZSB3ZSB0cmlnZ2VyIGVkZ2UgZXZlbnRzIGF0IGxlYXN0IG9uY2Ugb24gYm9vdCIpCkxp
+bms6IGh0dHBzOi8vbGVhcm4ubWljcm9zb2Z0LmNvbS9lbi11cy93aW5kb3dzLWhhcmR3YXJl
+L2RyaXZlcnMvYnJpbmd1cC9nZW5lcmFsLXB1cnBvc2UtaS1vLS1ncGlvLQpTdWdnZXN0ZWQt
+Ynk6IEFybWluIFdvbGYgPFdfQXJtaW5AZ214LmRlPgpTaWduZWQtb2ZmLWJ5OiBNYXJpbyBM
+aW1vbmNpZWxsbyA8bWFyaW8ubGltb25jaWVsbG9AYW1kLmNvbT4KLS0tCiBkcml2ZXJzL2dw
+aW8vZ3Bpb2xpYi1hY3BpLWNvcmUuYyB8IDE5ICsrKysrKysrKysrKysrKy0tLS0KIDEgZmls
+ZSBjaGFuZ2VkLCAxNSBpbnNlcnRpb25zKCspLCA0IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdp
+dCBhL2RyaXZlcnMvZ3Bpby9ncGlvbGliLWFjcGktY29yZS5jIGIvZHJpdmVycy9ncGlvL2dw
+aW9saWItYWNwaS1jb3JlLmMKaW5kZXggMDlmODYwMjAwYTA1OS4uZWI4YTQwY2ZiN2E5OCAx
+MDA2NDQKLS0tIGEvZHJpdmVycy9ncGlvL2dwaW9saWItYWNwaS1jb3JlLmMKKysrIGIvZHJp
+dmVycy9ncGlvL2dwaW9saWItYWNwaS1jb3JlLmMKQEAgLTIzMywxMiArMjMzLDIzIEBAIHN0
+YXRpYyB2b2lkIGFjcGlfZ3Bpb2NoaXBfcmVxdWVzdF9pcnEoc3RydWN0IGFjcGlfZ3Bpb19j
+aGlwICphY3BpX2dwaW8sCiAKIAlldmVudC0+aXJxX3JlcXVlc3RlZCA9IHRydWU7CiAKLQkv
+KiBNYWtlIHN1cmUgd2UgdHJpZ2dlciB0aGUgaW5pdGlhbCBzdGF0ZSBvZiBlZGdlLXRyaWdn
+ZXJlZCBJUlFzICovCisJLyoKKwkgKiBNYWtlIHN1cmUgd2UgdHJpZ2dlciB0aGUgaW5pdGlh
+bCBzdGF0ZSBvZiBBY3RpdmVCb3RoIElSUXMuCisJICoKKwkgKiBBY2NvcmRpbmcgdG8gdGhl
+IE1pY3Jvc29mdCBHUElPIGRvY3VtZW50YXRpb24sIHRyaWdnZXJpbmcgR1BJTworCSAqIGlu
+dGVycnVwdHMgbWFya2VkIGFzIEFjdGl2ZUJvdGggZHVyaW5nIGluaXRpYWxpemF0aW9uIGlz
+IGNvcnJlY3QKKwkgKiBhcyBsb25nIGFzIHRoZSBhc3NvY2lhdGVkIEdQSU8gbGluZSBpcyBh
+bHJlYWR5ICJhc3NlcnRlZCIKKwkgKiAobG9naWMgbGV2ZWwgbG93KS4gV2Ugc2hvdWxkIG5v
+dCB0cmlnZ2VyIGVkZ2UtYmFzZWQgR1BJTworCSAqIGludGVycnVwdHMgbm90IG1hcmtlZCBh
+cyBBY3RpdmVCb3RoLgorCSAqCisJICogU2VlOiBodHRwczovL2xlYXJuLm1pY3Jvc29mdC5j
+b20vZW4tdXMvd2luZG93cy1oYXJkd2FyZS9kcml2ZXJzL2JyaW5ndXAvZ2VuZXJhbC1wdXJw
+b3NlLWktby0tZ3Bpby0KKwkgKiBTZWN0aW9uOiAiR1BJTyBjb250cm9sbGVycyBhbmQgQWN0
+aXZlQm90aCBpbnRlcnJ1cHRzIgorCSAqLwogCWlmIChhY3BpX2dwaW9fbmVlZF9ydW5fZWRn
+ZV9ldmVudHNfb25fYm9vdCgpICYmCi0JICAgIChldmVudC0+aXJxZmxhZ3MgJiAoSVJRRl9U
+UklHR0VSX1JJU0lORyB8IElSUUZfVFJJR0dFUl9GQUxMSU5HKSkpIHsKKwkgICAgKChldmVu
+dC0+aXJxZmxhZ3MgJiAoSVJRRl9UUklHR0VSX1JJU0lORyB8IElSUUZfVFJJR0dFUl9GQUxM
+SU5HKSkgPT0KKwkgICAgIChJUlFGX1RSSUdHRVJfUklTSU5HIHwgSVJRRl9UUklHR0VSX0ZB
+TExJTkcpKSkgewogCQl2YWx1ZSA9IGdwaW9kX2dldF9yYXdfdmFsdWVfY2Fuc2xlZXAoZXZl
+bnQtPmRlc2MpOwotCQlpZiAoKChldmVudC0+aXJxZmxhZ3MgJiBJUlFGX1RSSUdHRVJfUklT
+SU5HKSAmJiB2YWx1ZSA9PSAxKSB8fAotCQkgICAgKChldmVudC0+aXJxZmxhZ3MgJiBJUlFG
+X1RSSUdHRVJfRkFMTElORykgJiYgdmFsdWUgPT0gMCkpCisJCWlmICh2YWx1ZSA9PSAwKQog
+CQkJZXZlbnQtPmhhbmRsZXIoZXZlbnQtPmlycSwgZXZlbnQpOwogCX0KIH0KLS0gCjIuNTMu
+MAoK
+
+--------------YnLCLDdpuLD0GWNeh9S5lhol--
