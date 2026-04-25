@@ -1,42 +1,42 @@
 Received: from relay11.grserver.gr (relay11.grserver.gr [78.46.171.57])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BB9B3624BC;
-	Sat, 25 Apr 2026 21:57:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 689F8364021;
+	Sat, 25 Apr 2026 21:57:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=78.46.171.57
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777154275; cv=none; b=RDmHjTDaKI2pNsCIpYgI4oE1BWvQjjhP71y2/I/LDPnLwKRl8d0nEg/rq59O6VYkRouEBpWYJD+Mnq96y5yLOh2iW9ezuHzYL7rBe10FbzUL1a4hu7hj2LFnkk3yv9zXK3XUREtbkBNC1Ynvf7/rvGJuTAEeyn58JPHdBFhRwDs=
+	t=1777154275; cv=none; b=tUg7mhTofpraYrQ+oAsrjeU4S5bqBibgbH1yNauY1h6AUPeOrZPUY6GnHfEcnXppvOdS/y6U988PLEGxS5eYry3r5Gt6/Wphv/NYZ3/uwloiqdDiPtrsTvnzVta5oSlXM3zwo108UQnNNLC/PWBXsdH3TS1R5fOl4R71jZLX+YM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1777154275; c=relaxed/simple;
-	bh=AP89DkESuwydEd7J0wae54cCZMvXIyheVKlao9Qrhgs=;
+	bh=YD2uJqjynXYZ5kbG6NjfdGBit/uYJrRq5xHZ4pUB8D0=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=iqJV+BnCYunoCzsO8KBBATMz1Y9Cc9elrigoW82vqB35XRaXuO8bqRLFDa3AQEEM6Yb+an0OHhTaPtCDZe7s8BNa1YcpoxVZgwATrNmYfCeiK+iOHeUUvbl5aNvkU506EpBpCQwYtpymmBlgkoF1EbK5M7ZCvgKs+QnAp3/Gqo0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=antheas.dev; spf=pass smtp.mailfrom=antheas.dev; dkim=pass (2048-bit key) header.d=antheas.dev header.i=@antheas.dev header.b=cpYsQhvU; arc=none smtp.client-ip=78.46.171.57
+	 MIME-Version; b=srVPJdCS24hOOZ8Jn/Mbx5iTTDNcisfcBKS17yFNsPbluoCME14LjdnN46r1/0MC5KqB+mAizZHYvkOTp12zcixqtN7Il8AkWX3JYukscYG0gUCTFTp9Go4eRKkKOCUXkzW2GXABjtJqkAc5M7iNNNBaywFuvHJ1ka1MkN67t2k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=antheas.dev; spf=pass smtp.mailfrom=antheas.dev; dkim=pass (2048-bit key) header.d=antheas.dev header.i=@antheas.dev header.b=kBndYnJk; arc=none smtp.client-ip=78.46.171.57
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=antheas.dev
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=antheas.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=antheas.dev header.i=@antheas.dev header.b="cpYsQhvU"
+	dkim=pass (2048-bit key) header.d=antheas.dev header.i=@antheas.dev header.b="kBndYnJk"
 Received: from relay11 (localhost.localdomain [127.0.0.1])
-	by relay11.grserver.gr (Proxmox) with ESMTP id BA180C1878;
-	Sun, 26 Apr 2026 00:57:50 +0300 (EEST)
+	by relay11.grserver.gr (Proxmox) with ESMTP id 42A33C1839;
+	Sun, 26 Apr 2026 00:57:47 +0300 (EEST)
 Received: from linux3247.grserver.gr (linux3247.grserver.gr [213.158.90.240])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by relay11.grserver.gr (Proxmox) with ESMTPS id 3BD53C1848;
-	Sun, 26 Apr 2026 00:57:50 +0300 (EEST)
+	by relay11.grserver.gr (Proxmox) with ESMTPS id B83CFC1818;
+	Sun, 26 Apr 2026 00:57:46 +0300 (EEST)
 Received: from antheas-z13 (unknown [IPv6:2a05:f6c5:43c3:0:378a:d3f6:f8b0:bed1])
-	by linux3247.grserver.gr (Postfix) with ESMTPSA id ED8CE1FD47E;
-	Sun, 26 Apr 2026 00:57:48 +0300 (EEST)
+	by linux3247.grserver.gr (Postfix) with ESMTPSA id 62BFD1FD3F5;
+	Sun, 26 Apr 2026 00:57:45 +0300 (EEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=antheas.dev;
-	s=default; t=1777154269;
-	bh=N4qEeycmmz0KE5x0LMZMn4VfPN7YU/1xc0CRVvTcA4c=; h=From:To:Subject;
-	b=cpYsQhvU5eEA1YnmYyhu0hkUeYL1KwGspF+Jynri2yThhfyQQunWD9PTDY5B9UMmo
-	 /TmAqKKSP3Iv869Pq/tM/OVgYKcZo32FM5feLTNAM5vXgsZc/iHa8qP2Rony0tT7au
-	 y484MLKqJu4i4PoTKDx3H89SLsa1HRtUNowipXUPW85XfO4PJF0730b47OiO2MJJ+e
-	 u9Yk7m4ouUD7BJaQ9ssZfwXiWu7vAYtUm0ynVgL23X1lJsQr7x6vUS7TJIQU6VFDpj
-	 yczwxTCSuhAHwkV3578SXmCt8Z4DOpe5Q2FI/8FfQJewuf+YzgTmoogADjoSvvAH7+
-	 eO9vXa1cP9zpQ==
+	s=default; t=1777154266;
+	bh=6NFWgb50ety8JDzGpmqrkBu/w2C6asiylhwI3zG12Rk=; h=From:To:Subject;
+	b=kBndYnJkN6qwxdvEJhg8LQnadxoaYt+QzAYvyOb0QX3OaTUv1WqHyf6GbTyySHyKD
+	 dolMQLhUV7OcKVQFF838kENTKlixV3WxwYIARVmWIC5jvS02Uf+BD88D6zW8Bho3bi
+	 hfbv04hYTeGDMJUSRTzwrXCPmsFqzCrbaPDuKnRrYY8UQ/ogWpx/ukLuMblkcCcwNl
+	 Je8qbhLPDgLhWZTzutsLYryeNJAbtxSKqp2N2wLc7eG1nRqPp7HI0lWGnmb/7ZCYX3
+	 nxKYBs354vOJfbTV0DFBREVwPTdUMYCMSTnpC2nDoM0iTPHKTG1Rf8f8W+mHmWZSLc
+	 EkCoRR/LdCYLA==
 Authentication-Results: linux3247.grserver.gr;
 	spf=pass (sender IP is 2a05:f6c5:43c3:0:378a:d3f6:f8b0:bed1) smtp.mailfrom=lkml@antheas.dev smtp.helo=antheas-z13
 Received-SPF: pass (linux3247.grserver.gr: connection is authenticated)
@@ -58,10 +58,10 @@ Cc: bob.beckett@collabora.com,
 	superm1@kernel.org,
 	systemd-devel@lists.freedesktop.org,
 	xaver.hugl@gmail.com
-Subject: [RFC v2 07/10] Documentation: Add documentation for the new sysfs
- hints class
-Date: Sat, 25 Apr 2026 23:57:31 +0200
-Message-ID: <20260425215734.14116-8-lkml@antheas.dev>
+Subject: [RFC v2 04/10] platform/x86: asus-wmi: add s2idle begin delay for
+ Ally devices
+Date: Sat, 25 Apr 2026 23:57:28 +0200
+Message-ID: <20260425215734.14116-5-lkml@antheas.dev>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260425215734.14116-1-lkml@antheas.dev>
 References: <20260425215734.14116-1-lkml@antheas.dev>
@@ -73,107 +73,158 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-PPP-Message-ID: 
- <177715426979.3678271.16250783409712348661@linux3247.grserver.gr>
+ <177715426636.3678028.7224113446620385481@linux3247.grserver.gr>
 X-PPP-Vhost: antheas.dev
 X-Virus-Scanned: clamav-milter 1.4.3 at linux3247.grserver.gr
 X-Virus-Status: Clean
 
-The new sysfs hints class allows adding standardized hints to inform
-devices of the host state. The initial hint added is the idle hint,
-which allows userspace to inform devices of the host's idle state
-based on user interaction (e.g., inactive). Add the documentation for
-the new class and the currently available activity hint.
+Asus ROG Ally devices have a small fade animation during their suspend
+sequence. This animation is triggered by the Display Off firmware
+notification. After it, they power off, disconnect, and save their
+state. Without a delay after that notification, if the device is placed
+into D3, it causes it to reboot during resume, or particularly for
+original Allies, also leave the xpad device connected, causing spurious
+wakeups when a gamepad button is pressed and higher standby drain.
+
+Therefore, introduce a small delay quirk and bind it to an s2idle dev
+ops device. Place this quirk in the asus-wmi driver, as the USB gamepad
+disconnects, making it hard to place in hid-asus, and to allow for
+proper functionality when the hid-asus driver is blacklisted.
 
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
- Documentation/ABI/testing/sysfs-class-hint | 78 ++++++++++++++++++++++
- 1 file changed, 78 insertions(+)
- create mode 100644 Documentation/ABI/testing/sysfs-class-hint
+ drivers/platform/x86/asus-nb-wmi.c | 40 ++++++++++++++++++++++++++++++
+ drivers/platform/x86/asus-wmi.c    | 12 +++++++++
+ drivers/platform/x86/asus-wmi.h    | 14 +++++++++++
+ 3 files changed, 66 insertions(+)
 
-diff --git a/Documentation/ABI/testing/sysfs-class-hint b/Documentation/ABI/testing/sysfs-class-hint
-new file mode 100644
-index 000000000000..9d6ec956ebb4
---- /dev/null
-+++ b/Documentation/ABI/testing/sysfs-class-hint
-@@ -0,0 +1,78 @@
-+What:		/sys/class/hint/*/name
-+Date:		June 2026
-+KernelVersion:	7.2
-+Description:	Name of the class device given by the driver.
+diff --git a/drivers/platform/x86/asus-nb-wmi.c b/drivers/platform/x86/asus-nb-wmi.c
+index b4677c5bba5b..da963f3a17b1 100644
+--- a/drivers/platform/x86/asus-nb-wmi.c
++++ b/drivers/platform/x86/asus-nb-wmi.c
+@@ -155,6 +155,10 @@ static struct quirk_entry quirk_asus_z13 = {
+ 	.tablet_switch_mode = asus_wmi_kbd_dock_devid,
+ };
+ 
++static struct quirk_entry quirk_ally = {
++	.lps0_begin_delay = 500,
++};
 +
-+		RO
+ static int dmi_matched(const struct dmi_system_id *dmi)
+ {
+ 	pr_info("Identified laptop model '%s'\n", dmi->ident);
+@@ -553,6 +557,42 @@ static const struct dmi_system_id asus_quirks[] = {
+ 		},
+ 		.driver_data = &quirk_asus_z13,
+ 	},
++	{
++		.callback = dmi_matched,
++		.ident = "ASUS ROG Ally",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
++			DMI_MATCH(DMI_BOARD_NAME, "RC71L"),
++		},
++		.driver_data = (void *)&quirk_ally,
++	},
++	{
++		.callback = dmi_matched,
++		.ident = "ASUS ROG Ally X",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
++			DMI_MATCH(DMI_BOARD_NAME, "RC72L"),
++		},
++		.driver_data = (void *)&quirk_ally,
++	},
++	{
++		.callback = dmi_matched,
++		.ident = "ASUS ROG Xbox Ally",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
++			DMI_MATCH(DMI_BOARD_NAME, "RC73Y"),
++		},
++		.driver_data = (void *)&quirk_ally,
++	},
++	{
++		.callback = dmi_matched,
++		.ident = "ASUS ROG Xbox Ally X",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
++			DMI_MATCH(DMI_BOARD_NAME, "RC73X"),
++		},
++		.driver_data = (void *)&quirk_ally,
++	},
+ 	{},
+ };
+ 
+diff --git a/drivers/platform/x86/asus-wmi.c b/drivers/platform/x86/asus-wmi.c
+index 7c0915e097ba..3316415abbdf 100644
+--- a/drivers/platform/x86/asus-wmi.c
++++ b/drivers/platform/x86/asus-wmi.c
+@@ -337,6 +337,8 @@ struct asus_wmi {
+ 	struct asus_wmi_debug debug;
+ 
+ 	struct asus_wmi_driver *driver;
 +
-+What:		/sys/class/hint/*/idle_choices
-+Date:		June 2026
-+KernelVersion:	7.2
-+Description:	If the device supports idle states, this file contains
-+		space-separated list of idle states supported for this device.
-+		These states can be used to modify the runtime appearance of the
-+		device (e.g., turn off the fan for snooze, turn off the keyboard
-+		backlight for inactive) in response to user activity and host
-+		state. Userspace can keep track of the idle state of the host
-+		and inform devices with idle hint support of the current state.
++	struct acpi_s2idle_dev_ops s2idle_dev_ops;
+ };
+ 
+ /* Global to allow setting externally without requiring driver data */
+@@ -5030,6 +5032,12 @@ static int asus_wmi_add(struct platform_device *pdev)
+ 	if (err)
+ 		goto fail_platform;
+ 
++	if (asus->driver->quirks->lps0_begin_delay) {
++		asus->s2idle_dev_ops.begin_delay =
++			asus->driver->quirks->lps0_begin_delay;
++		acpi_register_lps0_dev(&asus->s2idle_dev_ops);
++	}
 +
-+		The following idle states are supported:
-+
-+		==========	========================================
-+		active		The user is actively interacting with the host.
-+				The device appearance is unchanged and normal.
-+		inactive	The user has stopped interacting with the
-+				host and triggered an inactivity timer (e.g.,
-+				lockscreen timeout) and the host displays
-+				(if any) are off. The device may choose to
-+				change its appearance (e.g. turn off its
-+				backlight) or suspend if it is user facing
-+				(e.g., handheld controller).
-+		snooze	  The host enters a "dark resume" state where the
-+				host should look like it is suspended. In
-+				response, platform devices may turn off the
-+				device fan, pulse the power light, or lower
-+				the thermal envelope of the device.
-+		resume	  While in the snooze state, userspace has decided
-+				to prepare for user interaction while remaining
-+				in snooze (e.g., user pressed a keyboard
-+				button). If the device lowered its thermal
-+				envelope for the snooze state, it can use this
-+				hint to restore the normal thermal envelope and
-+				lower the time to interaction.
-+		==========	========================================
-+
-+		Reference the following diagram for userspace implementations:
-+
-+		<Suspend> <-> <Snooze> <-> <Inactive> <-> <Active>
-+			       ->  <Resume>  /\
-+
-+		Where Suspend is the normal suspend path (e.g., s2idle). Devices
-+		may support a subset of these idle states (e.g., only active and
-+		inactive). In this case, userspace should report the closest
-+		supported idle state that's higher than the target one.
-+
-+		Examples:
-+			1) Device supports inactive and active:
-+			   If the desired state is snooze, choose inactive
-+			2) Device supports snooze and active:
-+			   If the desired state is inactive, choose active
-+			3) Device does not support resume:
-+			   If the desired state is resume, stay in snooze
-+
-+		RO
-+
-+What:		/sys/class/hint/*/idle
-+Date:		June 2026
-+KernelVersion:	7.2
-+Description:	Reading this file gives the current selected idle hint for
-+		this device. Writing this file with one of the strings from
-+		idle_choices changes the idle state to the new value.
-+
-+		Depending on the device, certain transition combinations may
-+		be disallowed. Specifically, devices can choose to reject
-+		entering resume from a state other than snooze and re-entering
-+		snooze from resume. In this case, the device rejects the change
-+		with -EINVAL.
-+
-+		RW
+ 	if (use_ally_mcu_hack == ASUS_WMI_ALLY_MCU_HACK_INIT) {
+ 		if (acpi_has_method(NULL, ASUS_USB0_PWR_EC0_CSEE)
+ 					&& dmi_check_system(asus_rog_ally_device))
+@@ -5184,6 +5192,8 @@ static int asus_wmi_add(struct platform_device *pdev)
+ fail_custom_fan_curve:
+ fail_platform_profile_setup:
+ fail_fan_boost_mode:
++	if (asus->driver->quirks->lps0_begin_delay)
++		acpi_unregister_lps0_dev(&asus->s2idle_dev_ops);
+ fail_platform:
+ 	kfree(asus);
+ 	return err;
+@@ -5207,6 +5217,8 @@ static void asus_wmi_remove(struct platform_device *device)
+ 	asus_fan_set_auto(asus);
+ 	throttle_thermal_policy_set_default(asus);
+ 	asus_wmi_battery_exit(asus);
++	if (asus->driver->quirks->lps0_begin_delay)
++		acpi_unregister_lps0_dev(&asus->s2idle_dev_ops);
+ 
+ 	kfree(asus);
+ }
+diff --git a/drivers/platform/x86/asus-wmi.h b/drivers/platform/x86/asus-wmi.h
+index 5cd4392b964e..2a8c51d39bf8 100644
+--- a/drivers/platform/x86/asus-wmi.h
++++ b/drivers/platform/x86/asus-wmi.h
+@@ -52,6 +52,20 @@ struct quirk_entry {
+ 	 */
+ 	int no_display_toggle;
+ 	u32 xusb2pr;
++	/*
++	 * Ally devices uninitialize after the display off DSM of modern
++	 * stanby, after a predetermined fade animation on their RGB.
++	 * If the USB subsystem puts the controller into D3 before that,
++	 * it loses its state and (i) for original allies, it leaves the
++	 * xpad device connected, causing spurious wake-ups and higher
++	 * power draw, (ii) for newer allies using the adaptive protocol
++	 * causes the controller to reboot on resume if mcu_powersave is
++	 * false. Therefore, allow adding a delay for the affected devices.
++	 * (if MCU powersave is true the controller always reboots, but
++	 * this also causes an unwelcome 5-7s delay on resume, this issue
++	 * is present on all firmwares)
++	 */
++	int lps0_begin_delay;
+ };
+ 
+ struct asus_wmi_driver {
 -- 
 2.53.0
 
