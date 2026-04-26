@@ -1,99 +1,132 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from m16.mail.126.com (m16.mail.126.com [117.135.210.8])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E589B146A66
-	for <linux-acpi@vger.kernel.org>; Sun, 26 Apr 2026 14:15:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99FBC2236EB;
+	Sun, 26 Apr 2026 14:17:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=117.135.210.8
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777212901; cv=none; b=j+fxF9Fn1uTxL3fCyHHpWggUea5fKF452N7n/IaZghspg+vYMS9A/fGIA3lnuJGXrBdBOFbgs1OGcW0HBIobusDcp0uorHgIWYGOXEhMCe94jrXGShl9DcbsG118lckHA+fWw0Sea/2pRR1L2++uo0h84j/V4yqvwj4YaBk1lIg=
+	t=1777213064; cv=none; b=SLy6lOZBOWRlcm8xhnOgCmUm3ueuMH6Pzbi4rqqES/u1EkRVKyzScr3MloWphH9nTzBQRFOJNScK8GpS42G0IpXTW8/MvUA/GuTkIkzxaqoai38bxc2YhaQI+BQMVLZ4DDYCl7DFmMfoJC2Om/H0V/uyHeyZ1BXoLCO3fCgmNSA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777212901; c=relaxed/simple;
-	bh=FUNWq72NPGGdz6EJb3uxa+Oi+retgXmbTsjPtrfFkcQ=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=iuPBsNgAlfuAp/PQd6nUtcgcCQf25lTDz1Xpu9/zMznqro4d1bgsd41Ld05l0ifQ6BMuJPte5KmW0pNepuB7Co5jNLHcPeAynyKtTnJNCmad7o+z3iViO5VnK25/ywj2U8W52BmjsnfF6vkBUS0rTIUFFuowVhSVIi4U+7/b1qs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hsEYHSu8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777213064; c=relaxed/simple;
+	bh=PpgkP1YKmlbuFUrJNXhMVv1K4LUZT2tLz09Jj+Nnro0=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=gfQC2aqZalEToTQeUvXFbomjsBRuldvj1Nk1Y6i/6aGZSfkSgvLcS4N+7pwMxjL+TJAHJbDgQDylzgTg0D/s5IgvIse9H7ho7lxJSPtA+9Cm39MvJPhQIH4LATHrP/09tJAtBBETDVt38r/oEkOr04YgVbX9irudt9ODhJTub/M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=126.com; spf=pass smtp.mailfrom=126.com; dkim=pass (1024-bit key) header.d=126.com header.i=@126.com header.b=MiHDuQ3a; arc=none smtp.client-ip=117.135.210.8
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=126.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=126.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hsEYHSu8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A723AC2BCF5
-	for <linux-acpi@vger.kernel.org>; Sun, 26 Apr 2026 14:15:00 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1777212900;
-	bh=FUNWq72NPGGdz6EJb3uxa+Oi+retgXmbTsjPtrfFkcQ=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=hsEYHSu85lecGigxt58jpJmevAe3rIyC+a3hR+VtB21njzrDdyn2QQJosCXvBda9t
-	 e/lGCdDFn8K5GL2cxRl13hXuj765mNd7QA8+apL82nOjdCiH47tdjWg4Ns5zqt3U4b
-	 fJGnnpSbpyYN8K/Fol/z4lVUALRGHIZe9MKpwXCDZnUCnT6bR4m722TD2esdaAHYpG
-	 iYfX/HUGJTmcx/mXIhczLgwe5H+hSRMQwSHuPEU2RmPeraUMfyOg++ZcgA8UsuuKHM
-	 j5vNdP4pMqdMWXo0+WPptRyL1rR8PTiWhQ7EIhbzUb/8o6X4403R/2JgovJmKndcgF
-	 X2GzvFcuAyrCQ==
-Received: by mail-lj1-f169.google.com with SMTP id 38308e7fff4ca-38dd575bca3so90884121fa.1
-        for <linux-acpi@vger.kernel.org>; Sun, 26 Apr 2026 07:15:00 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AFNElJ+U97qlBa1YrXBhg64DyakbwWeFNqXF0JykKHFMprSP73R0XhAo5H1ahPaWy2YUtsnayPoXBONLft6j@vger.kernel.org
-X-Gm-Message-State: AOJu0YxWqH3GxPzWGzCsPjPcdxUIGZXgQ5JouQ6QOBBZxhmEdjj4Mge/
-	3ujXjzaRA6JV1xQRMmGQ4urcVaOhjA24+zPF0Yj91Syjd1hDCxkoGoHaj/tBiikjhZ4gCqsHovg
-	I6NxsAqm1I9ZoSe1Rmdqvfb1R7sLT0sA=
-X-Received: by 2002:a05:6512:15a8:b0:5a1:5994:2773 with SMTP id
- 2adb3069b0e04-5a41729a1edmr10689256e87.14.1777212898821; Sun, 26 Apr 2026
- 07:14:58 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=126.com header.i=@126.com header.b="MiHDuQ3a"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=126.com;
+	s=s110527; h=Message-ID:Date:MIME-Version:Subject:To:From:
+	Content-Type; bh=buJnxB7ZO086rGZFo2LRvhB0nYMnOVMe4qEqFrdkycM=;
+	b=MiHDuQ3aM0w40MkZuRTZDrM885olgYuK7xbsTOXHp4lT/cD7bkwpwZZ5XVkNrZ
+	r81nQvRWVagRR3hk6K4kEm4G+n6t/UKXjfxhvevhUatCqlPXKtOEpl8/Yc8ooebv
+	GLgKMdGai9+gq1Q85IKLbNypuUgpj9yVPZRD36EWDEneo=
+Received: from [IPV6:2408:8210:480a:2590:ec66:74e8:68a7:a44b] (unknown [])
+	by gzsmtp4 (Coremail) with SMTP id PykvCgD3X9rhHe5pse0hEA--.31129S2;
+	Sun, 26 Apr 2026 22:15:00 +0800 (CST)
+Message-ID: <7b73e122-8bca-410d-a14f-a8f55a79305c@126.com>
+Date: Sun, 26 Apr 2026 22:14:57 +0800
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260425215734.14116-1-lkml@antheas.dev> <20260425215734.14116-2-lkml@antheas.dev>
-In-Reply-To: <20260425215734.14116-2-lkml@antheas.dev>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Sun, 26 Apr 2026 16:14:45 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0ipM9khNZs3uNu5GuFO3nJZ=EOht7mLtLNNsW9s9jWCsg@mail.gmail.com>
-X-Gm-Features: AVHnY4JWyGMd1NOgybJl2FDo75-8DqAC5Ej-Y-3SSPoX25XI_lL-W6Spt_Wccrc
-Message-ID: <CAJZ5v0ipM9khNZs3uNu5GuFO3nJZ=EOht7mLtLNNsW9s9jWCsg@mail.gmail.com>
-Subject: Re: [RFC v2 01/10] acpi/x86: s2idle: Rename LPS0 constants so they
- mirror their function
-To: Antheas Kapenekakis <lkml@antheas.dev>
-Cc: dmitry.osipenko@collabora.com, bob.beckett@collabora.com, 
-	bookeldor@gmail.com, hadess@hadess.net, jaap@haitsma.org, 
-	kernel@collabora.com, lennart@poettering.net, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, mccann@jhu.edu, rafael@kernel.org, 
-	richard@hughsie.com, sebastian.reichel@collabora.com, superm1@kernel.org, 
-	systemd-devel@lists.freedesktop.org, xaver.hugl@gmail.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC PATCH 1/2] kernel/notifier: replace single-linked list with
+ double-linked list for reverse traversal
+To: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: rafael@kernel.org, lenb@kernel.org, mturquette@baylibre.com,
+ sboyd@kernel.org, viresh.kumar@linaro.org, agk@redhat.com,
+ snitzer@kernel.org, mpatocka@redhat.com, bmarzins@redhat.com,
+ song@kernel.org, yukuai@fnnas.com, linan122@huawei.com,
+ jason.wessel@windriver.com, danielt@kernel.org, dianders@chromium.org,
+ horms@kernel.org, davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+ pabeni@redhat.com, paulmck@kernel.org, frederic@kernel.org,
+ mcgrof@kernel.org, petr.pavlu@suse.com, da.gomez@kernel.org,
+ samitolvanen@google.com, atomlin@atomlin.com, jpoimboe@kernel.org,
+ jikos@kernel.org, mbenes@suse.cz, pmladek@suse.com, joe.lawrence@redhat.com,
+ rostedt@goodmis.org, mark.rutland@arm.com, mathieu.desnoyers@efficios.com,
+ linux-modules@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-trace-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+ linux-clk@vger.kernel.org, linux-pm@vger.kernel.org,
+ live-patching@vger.kernel.org, dm-devel@lists.linux.dev,
+ linux-raid@vger.kernel.org, kgdb-bugreport@lists.sourceforge.net,
+ netdev@vger.kernel.org
+References: <20260415070137.17860-1-chensong_2000@189.cn>
+ <20260420144429.57b45f2beece690bceea96ec@kernel.org>
+Content-Language: en-US
+From: Song Chen <chensong_2000@126.com>
+In-Reply-To: <20260420144429.57b45f2beece690bceea96ec@kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-CM-TRANSID:PykvCgD3X9rhHe5pse0hEA--.31129S2
+X-Coremail-Antispam: 1Uf129KBjvJXoW7AF4DuFWxKw45Ww15ZF1DWrg_yoW8KF13pa
+	4qgr4fCF4kJr92yFs2qw1xWFyYga95JFWUJF18C34Sywn0gF9FvrWxtw45uFWkCws3Zry2
+	9w4UXwnrua4DZaDanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07UXBMNUUUUU=
+X-CM-SenderInfo: xfkh02prqjsjqqqqqiyswou0bp/xtbBpASWFmnuHeTUYwAA3p
 
-On Sat, Apr 25, 2026 at 11:57=E2=80=AFPM Antheas Kapenekakis <lkml@antheas.=
-dev> wrote:
->
-> The LPS0 3/4 constants are part of a firmware notification called
-> "Display on/off", in which the device enters a "Screen Off" state.
-> The LPS0 7/8 constants are part of a firmware notification in which
-> a Windows modern standby computer enters a "sleep" state where the
-> CPU may still be active and maintain the radios.
->
-> However, currently, the values are named as "Screen on/off" and "MS
-> entry/exit", where Modern Standby is abbreviated as "MS". Therefore,
-> perform a minor rename so that the values match their function. Then,
-> fix the debug message to say that it executes notifications instead of
-> entering states as it is otherwise confusing.
->
-> Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
-> ---
->  drivers/acpi/x86/s2idle.c | 84 +++++++++++++++++++++------------------
->  1 file changed, 45 insertions(+), 39 deletions(-)
->
-> diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
-> index b6b1dd76a06b..61a044b59776 100644
-> --- a/drivers/acpi/x86/s2idle.c
-> +++ b/drivers/acpi/x86/s2idle.c
-> @@ -43,20 +43,20 @@ static const struct acpi_device_id lps0_device_ids[] =
-=3D {
->  #define ACPI_LPS0_DSM_UUID     "c4eb40a0-6cd2-11e2-bcfd-0800200c9a66"
->
->  #define ACPI_LPS0_GET_DEVICE_CONSTRAINTS       1
-> -#define ACPI_LPS0_SCREEN_OFF   3
-> -#define ACPI_LPS0_SCREEN_ON    4
-> +#define ACPI_LPS0_DISPLAY_OFF  3
-> +#define ACPI_LPS0_DISPLAY_ON   4
+Hi Hiramatsu san,
 
-You've clearly ignored my feedback on this.
 
-Thanks!
+On 4/20/26 13:44, Masami Hiramatsu (Google) wrote:
+> Hi Song,
+> 
+> On Wed, 15 Apr 2026 15:01:37 +0800
+> chensong_2000@189.cn wrote:
+> 
+>> From: Song Chen <chensong_2000@189.cn>
+>>
+>> The current notifier chain implementation uses a single-linked list
+>> (struct notifier_block *next), which only supports forward traversal
+>> in priority order. This makes it difficult to handle cleanup/teardown
+>> scenarios that require notifiers to be called in reverse priority order.
+> 
+> What about introducing a new notification callback API that allows you
+> to describe dependencies between callback functions?
+> 
+> For example, when registering a callback, you could register a string
+> as an ID and specify whether to call it before or after that ID,
+> or you could register a comparison function that is called when adding
+> to a list. (I prefer @name and @depends fields so that it can be easily
+> maintained.)
+> 
+> This would allow for better dependency building when adding to the list.
+> 
+
+Is the new notification callback API going to replace 
+blocking_notifier_chain in module loader? or an expansion inside 
+blocking_notifier_chain but introducing less complexity?
+>>
+>> A concrete example is the ordering dependency between ftrace and
+>> livepatch during module load/unload. see the detail here [1].
+> 
+> If this only concerns notification callback issues with the ftrace
+> and livepatch modules, it's far more robust to simply call the
+> necessary processing directly when the modules load and unload,
+> rather than registering notification callbacks externally.
+> 
+> There are fprobe, kprobe and its trace-events, all of them are using
+> ftrace as its fundation layer. In this case, I always needs to
+> consider callback order when a module is unloaded.
+> 
+> If ftrace is working as a part of module callbacks, it will conflict
+> with fprobe/kprobe module callback. Of course we can reorder it with
+> modifying its priority. But this is ugly, because when we introduce
+> a new other feature which depends on another layer, we need to
+> reorder the callback's priority number on the list.
+> 
+> Based on the above, I don't think this can be resolved simply by
+> changing the list of notification callbacks to a bidirectional list.
+> 
+> Thank you,
+> 
+
+understood, many thanks for your proposal, i will think  about it.
+
+best regards,
+
+Song
+
