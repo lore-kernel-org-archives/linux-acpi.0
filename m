@@ -1,140 +1,99 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92854364925;
-	Sun, 26 Apr 2026 14:08:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E589B146A66
+	for <linux-acpi@vger.kernel.org>; Sun, 26 Apr 2026 14:15:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777212530; cv=none; b=Cpp8KMGFZia1urGfVwxxhNk3XKbs3DiVBOms6RiS8ioHb5peq5oM4BNwubR2TOjmOD+IQerK2x/iyxHsY4V0ccv66ANEa6WeZ0ip2HHCIeuf6C0dyoAmQ8b1113SAr5WL96jKPNV72dEs+W/NFXwFN3zfNU6EgQbsnwtt+FbqIc=
+	t=1777212901; cv=none; b=j+fxF9Fn1uTxL3fCyHHpWggUea5fKF452N7n/IaZghspg+vYMS9A/fGIA3lnuJGXrBdBOFbgs1OGcW0HBIobusDcp0uorHgIWYGOXEhMCe94jrXGShl9DcbsG118lckHA+fWw0Sea/2pRR1L2++uo0h84j/V4yqvwj4YaBk1lIg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777212530; c=relaxed/simple;
-	bh=Aqi75IhndrV0ywUutOkCqgNS6SouxMp0XDzJxatZjrY=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=l/1vukUg36u4TL5JvuSVmdTCQPF58pwLjIR+dom9Cs6ShNMBWgDgxTHhkltoTcBOZufShxHwdibf5Wr9TFzbVCnUJdV2+hGXY0mMrXYQoR4mFKv5IWgRdUUV5x5/LoYzFrUNbxJEqZRj4ZjkmmjBrzpWPO44XFlIZW+IkXbT7RU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XYY6jPZ7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777212901; c=relaxed/simple;
+	bh=FUNWq72NPGGdz6EJb3uxa+Oi+retgXmbTsjPtrfFkcQ=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=iuPBsNgAlfuAp/PQd6nUtcgcCQf25lTDz1Xpu9/zMznqro4d1bgsd41Ld05l0ifQ6BMuJPte5KmW0pNepuB7Co5jNLHcPeAynyKtTnJNCmad7o+z3iViO5VnK25/ywj2U8W52BmjsnfF6vkBUS0rTIUFFuowVhSVIi4U+7/b1qs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hsEYHSu8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XYY6jPZ7"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 3BE8AC2BCB3;
-	Sun, 26 Apr 2026 14:08:50 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hsEYHSu8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A723AC2BCF5
+	for <linux-acpi@vger.kernel.org>; Sun, 26 Apr 2026 14:15:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1777212530;
-	bh=Aqi75IhndrV0ywUutOkCqgNS6SouxMp0XDzJxatZjrY=;
-	h=From:Date:Subject:To:Cc:Reply-To:From;
-	b=XYY6jPZ7QSASe7snmeFwrM6pHNhkv0AOZMZfyK1IZeF4b83hT23HfVmanvwmi4Z+a
-	 /rNG8bx4Fyhy4osjwp9yPgblAhg0vDgFxLRMvmVUs3TjWe9PV0UsB0DgrwxLOfVDud
-	 +EqQ8xJNbCENQtbG6/iIeOItrQ/sCTeUVsDIcxJOIqTmeV2Tl5hOwPd/zHSKobXw+i
-	 cO4N5/BL6v4cbgUWVfDEu6NFHloHaw9lfdDHWMpN+rJOUvMIf/e9qBKNt8TQevNe3T
-	 Zd2W1765QXV7FYqPLP3h9FE1a38LS+VnVT73d8CHzBvFG2pLLB5p2ecTbs8P+2jwSZ
-	 XGBK60af56tSw==
-Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DD02FF885E;
-	Sun, 26 Apr 2026 14:08:50 +0000 (UTC)
-From: Shivam Kalra via B4 Relay <devnull+shivamkalra98.zohomail.in@kernel.org>
-Date: Sun, 26 Apr 2026 19:38:41 +0530
-Subject: [PATCH] ACPI: video: force native backlight on HP OMEN 16 (8A44)
+	s=k20201202; t=1777212900;
+	bh=FUNWq72NPGGdz6EJb3uxa+Oi+retgXmbTsjPtrfFkcQ=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=hsEYHSu85lecGigxt58jpJmevAe3rIyC+a3hR+VtB21njzrDdyn2QQJosCXvBda9t
+	 e/lGCdDFn8K5GL2cxRl13hXuj765mNd7QA8+apL82nOjdCiH47tdjWg4Ns5zqt3U4b
+	 fJGnnpSbpyYN8K/Fol/z4lVUALRGHIZe9MKpwXCDZnUCnT6bR4m722TD2esdaAHYpG
+	 iYfX/HUGJTmcx/mXIhczLgwe5H+hSRMQwSHuPEU2RmPeraUMfyOg++ZcgA8UsuuKHM
+	 j5vNdP4pMqdMWXo0+WPptRyL1rR8PTiWhQ7EIhbzUb/8o6X4403R/2JgovJmKndcgF
+	 X2GzvFcuAyrCQ==
+Received: by mail-lj1-f169.google.com with SMTP id 38308e7fff4ca-38dd575bca3so90884121fa.1
+        for <linux-acpi@vger.kernel.org>; Sun, 26 Apr 2026 07:15:00 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ+U97qlBa1YrXBhg64DyakbwWeFNqXF0JykKHFMprSP73R0XhAo5H1ahPaWy2YUtsnayPoXBONLft6j@vger.kernel.org
+X-Gm-Message-State: AOJu0YxWqH3GxPzWGzCsPjPcdxUIGZXgQ5JouQ6QOBBZxhmEdjj4Mge/
+	3ujXjzaRA6JV1xQRMmGQ4urcVaOhjA24+zPF0Yj91Syjd1hDCxkoGoHaj/tBiikjhZ4gCqsHovg
+	I6NxsAqm1I9ZoSe1Rmdqvfb1R7sLT0sA=
+X-Received: by 2002:a05:6512:15a8:b0:5a1:5994:2773 with SMTP id
+ 2adb3069b0e04-5a41729a1edmr10689256e87.14.1777212898821; Sun, 26 Apr 2026
+ 07:14:58 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Message-Id: <20260426-omen-16-backlight-fix-v1-1-62364f268ea6@zohomail.in>
-X-B4-Tracking: v=1; b=H4sIAGgc7mkC/yXM0Q5DQBCF4VeRuTYJS1Gv0rjYWYPRdjW7iES8u
- y2X30nOv4NnJ+yhjnZwvIqXyQakcQRm0LZnlDYYVKKKJFcPnL5sMS2QtHl/pB9m7GTDMuuoIpN
- rRU8I35/jMF/dV3PbLzSymf8xOI4TdT+L03kAAAA=
-X-Change-ID: 20260425-omen-16-backlight-fix-73fb8bc4a2b9
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
- stable@vger.kernel.org, Shivam Kalra <shivamkalra98@zohomail.in>
-X-Mailer: b4 0.15.1
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1777212528; l=3008;
- i=shivamkalra98@zohomail.in; s=20260402; h=from:subject:message-id;
- bh=Ks75/0yCMSiPZ5NGPSiLdDntV/e7UFJBadOo45wysJA=;
- b=ImzlN1NF/yjSEwdic/vHSQlDyh2HDbuxm3ilC7wHeE26rJSBVCMfn4V3XByKns2e2Sekc/Yrj
- AA+AbNfO0kDAJPvHDEDPFsh+D+binV7lvoEReIkEwJGdwwIhdYKWZAB
-X-Developer-Key: i=shivamkalra98@zohomail.in; a=ed25519;
- pk=U8kQSxcte8P8iZ6zB7phIj+Yl+i/5ntifBGuclgypx8=
-X-Endpoint-Received: by B4 Relay for shivamkalra98@zohomail.in/20260402
- with auth_id=716
-X-Original-From: Shivam Kalra <shivamkalra98@zohomail.in>
-Reply-To: shivamkalra98@zohomail.in
+References: <20260425215734.14116-1-lkml@antheas.dev> <20260425215734.14116-2-lkml@antheas.dev>
+In-Reply-To: <20260425215734.14116-2-lkml@antheas.dev>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Sun, 26 Apr 2026 16:14:45 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0ipM9khNZs3uNu5GuFO3nJZ=EOht7mLtLNNsW9s9jWCsg@mail.gmail.com>
+X-Gm-Features: AVHnY4JWyGMd1NOgybJl2FDo75-8DqAC5Ej-Y-3SSPoX25XI_lL-W6Spt_Wccrc
+Message-ID: <CAJZ5v0ipM9khNZs3uNu5GuFO3nJZ=EOht7mLtLNNsW9s9jWCsg@mail.gmail.com>
+Subject: Re: [RFC v2 01/10] acpi/x86: s2idle: Rename LPS0 constants so they
+ mirror their function
+To: Antheas Kapenekakis <lkml@antheas.dev>
+Cc: dmitry.osipenko@collabora.com, bob.beckett@collabora.com, 
+	bookeldor@gmail.com, hadess@hadess.net, jaap@haitsma.org, 
+	kernel@collabora.com, lennart@poettering.net, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, mccann@jhu.edu, rafael@kernel.org, 
+	richard@hughsie.com, sebastian.reichel@collabora.com, superm1@kernel.org, 
+	systemd-devel@lists.freedesktop.org, xaver.hugl@gmail.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-From: Shivam Kalra <shivamkalra98@zohomail.in>
+On Sat, Apr 25, 2026 at 11:57=E2=80=AFPM Antheas Kapenekakis <lkml@antheas.=
+dev> wrote:
+>
+> The LPS0 3/4 constants are part of a firmware notification called
+> "Display on/off", in which the device enters a "Screen Off" state.
+> The LPS0 7/8 constants are part of a firmware notification in which
+> a Windows modern standby computer enters a "sleep" state where the
+> CPU may still be active and maintain the radios.
+>
+> However, currently, the values are named as "Screen on/off" and "MS
+> entry/exit", where Modern Standby is abbreviated as "MS". Therefore,
+> perform a minor rename so that the values match their function. Then,
+> fix the debug message to say that it executes notifications instead of
+> entering states as it is otherwise confusing.
+>
+> Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+> ---
+>  drivers/acpi/x86/s2idle.c | 84 +++++++++++++++++++++------------------
+>  1 file changed, 45 insertions(+), 39 deletions(-)
+>
+> diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
+> index b6b1dd76a06b..61a044b59776 100644
+> --- a/drivers/acpi/x86/s2idle.c
+> +++ b/drivers/acpi/x86/s2idle.c
+> @@ -43,20 +43,20 @@ static const struct acpi_device_id lps0_device_ids[] =
+=3D {
+>  #define ACPI_LPS0_DSM_UUID     "c4eb40a0-6cd2-11e2-bcfd-0800200c9a66"
+>
+>  #define ACPI_LPS0_GET_DEVICE_CONSTRAINTS       1
+> -#define ACPI_LPS0_SCREEN_OFF   3
+> -#define ACPI_LPS0_SCREEN_ON    4
+> +#define ACPI_LPS0_DISPLAY_OFF  3
+> +#define ACPI_LPS0_DISPLAY_ON   4
 
-The HP OMEN 16 Gaming Laptop (board name 8A44) has a mux-less hybrid
-GPU configuration with AMD Rembrandt (Radeon 680M) and NVIDIA GA104
-(RTX 3070 Ti). The internal eDP panel is wired to the AMD iGPU.
+You've clearly ignored my feedback on this.
 
-When Nouveau loads without GSP firmware, the ACPI video backlight
-device (acpi_video0) gets registered alongside the native AMD
-backlight (amdgpu_bl2). In this state, writes to amdgpu_bl2 update
-the software brightness value but fail to change the physical panel
-brightness.
-
-Force native backlight to prevent acpi_video0 from registering.
-Confirmed that booting with acpi_backlight=native resolves the issue.
-
-Cc: stable@vger.kernel.org
-Signed-off-by: Shivam Kalra <shivamkalra98@zohomail.in>
----
-This patch adds a DMI quirk to force native backlight control on the
-HP OMEN 16 Gaming Laptop (board name 8A44), which has a mux-less
-hybrid GPU configuration with AMD Rembrandt (680M iGPU) and NVIDIA
-GA104 (RTX 3070 Ti).
-On this laptop the internal eDP panel is wired to the AMD iGPU. The
-amdgpu driver registers amdgpu_bl2 as the native backlight device.
-When the Nouveau driver is loaded without GSP firmware (as is the
-case on v6.17 where GSP is not the default for Ampere GPUs), writes
-to amdgpu_bl2 fail silently — the brightness sysfs value updates
-but the physical panel brightness does not change.
-Testing:
-- Tested on HP OMEN 16 with AMD Ryzen 9 6900HX + NVIDIA RTX 3070 Ti.
-- On v6.17, without this quirk, brightness control is broken.
-- On v6.17, booting with acpi_backlight=native restores correct
-  brightness control. This patch applies that workaround
-  automatically via DMI match.
-- On v6.18+, the issue does not reproduce because commit
-  e0ed674acbac ("drm/nouveau: Remove DRM_NOUVEAU_GSP_DEFAULT
-  config") made GSP firmware the default for Ampere, which avoids
-  the ACPI conflict entirely.  
-I have only tested this on v6.17 and v7.0. I am leaving it to the
-stable/LTS maintainers to determine whether this quirk should be
-backported, as I have not verified the stability of the GSP firmware
-path on intermediate releases.
-
-Thanks,
-Shivam Kalra
----
- drivers/acpi/video_detect.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
-
-diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index 0a3c8232d15d..458efa4fe9d4 100644
---- a/drivers/acpi/video_detect.c
-+++ b/drivers/acpi/video_detect.c
-@@ -916,6 +916,14 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
- 		DMI_MATCH(DMI_PRODUCT_NAME, "82K8"),
- 		},
- 	},
-+	{
-+	 .callback = video_detect_force_native,
-+	 /* HP OMEN Gaming Laptop 16-n0xxx */
-+	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "HP"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "OMEN by HP Gaming Laptop 16-n0xxx"),
-+		},
-+	},
- 
- 	/*
- 	 * x86 android tablets which directly control the backlight through
-
----
-base-commit: 27d128c1cff64c3b8012cc56dd5a1391bb4f1821
-change-id: 20260425-omen-16-backlight-fix-73fb8bc4a2b9
-
-Best regards,
---  
-Shivam Kalra <shivamkalra98@zohomail.in>
-
-
+Thanks!
