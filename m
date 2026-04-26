@@ -1,143 +1,240 @@
-Received: from relay10.grserver.gr (relay10.grserver.gr [37.27.248.198])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f46.google.com (mail-ej1-f46.google.com [209.85.218.46])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D85F15ECCC
-	for <linux-acpi@vger.kernel.org>; Sun, 26 Apr 2026 17:03:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=37.27.248.198
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777223030; cv=none; b=SFM0NnqrX5ccF0qCLdPZwyTJtbEarYLmrAnxgE5w7BVk6XXvyysumDAEpej4J3EmYPBnC24fysncQSSCzX7gk5QlrdfIg1sXg4qOgsLRo6RK9iWdU2PoiIw52SKxm/pN16s7ecYhM86gBmjEPbhA+bW0rKA1qysEMnZP3Hdp+kw=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777223030; c=relaxed/simple;
-	bh=u4g4f5IE0Cynm1ZQNlu2Tk9YpQjwNZYKT8qSytxaPIE=;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A3892750E6
+	for <linux-acpi@vger.kernel.org>; Sun, 26 Apr 2026 20:45:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.46
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1777236321; cv=pass; b=kookRUctcBKcyhEwEQtGjGKjJqiKxPV4usDcldpBlJlQ/vxCIQXqxuW+MMgWa56bYLzlO0Y121MxnqzDMnKzBY7k9rm7iCN4qOo1emPNvFLOzP9MK6HJ+V8lgJXHudjLat0oD8SK8qvuXfEFcDJqWAmz8Y8ZM/yXaNsheNFXIn8=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1777236321; c=relaxed/simple;
+	bh=xsCqiLWlmlKEfzOlQLOq2KagHtUsAxco7lxmqPv4vFY=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Naq2cPqRUkj1JVtQlIEFrSR3u8y0b0T3SsO3/q4ugWzUNEkwrKPBhn3qJ5N02kHFt8kJG4PWp5w0DMQsZlgvbisUizk9bUZ/rmYPD7VYxJzxs/9FoCgC3viY2QQnf6+d1APJiIxop7t6AeyD675bLka+J7C66LDgFFvYKSaDSCY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=antheas.dev; spf=pass smtp.mailfrom=antheas.dev; dkim=pass (2048-bit key) header.d=antheas.dev header.i=@antheas.dev header.b=JtMO+Ofa; arc=none smtp.client-ip=37.27.248.198
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=antheas.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=antheas.dev
+	 To:Cc:Content-Type; b=pxdP6c2cNzd65++UQUIblDnDC0ZH6rrQV/amhyUr0/zkCG6miN9OEtfvHss2c3VJKsX2fkFymLUvaTXiGMJZmP+s1jf2nAEIqsYlUQQJrIFSKgtt5zBtcIQrJRt3iQaNugLvrTTXto1ZmOSwpFyESTe0xOk4fpcLREGYet5xxQ8=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=HbAzUklU; arc=pass smtp.client-ip=209.85.218.46
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=antheas.dev header.i=@antheas.dev header.b="JtMO+Ofa"
-Received: from relay10 (localhost.localdomain [127.0.0.1])
-	by relay10.grserver.gr (Proxmox) with ESMTP id BA38E4281B
-	for <linux-acpi@vger.kernel.org>; Sun, 26 Apr 2026 19:54:56 +0300 (EEST)
-Received: from linux3247.grserver.gr (linux3247.grserver.gr [213.158.90.240])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by relay10.grserver.gr (Proxmox) with ESMTPS id B4C73427F4
-	for <linux-acpi@vger.kernel.org>; Sun, 26 Apr 2026 19:54:55 +0300 (EEST)
-Received: from mail-pl1-f171.google.com (mail-pl1-f171.google.com [209.85.214.171])
-	by linux3247.grserver.gr (Postfix) with ESMTPSA id C34CC1FDE21
-	for <linux-acpi@vger.kernel.org>; Sun, 26 Apr 2026 19:54:54 +0300 (EEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=antheas.dev;
-	s=default; t=1777222495;
-	bh=PHyksx3SrYCAksdyFDyGJC4k4AOcdtDlG3f/xsyVUYU=;
-	h=Received:From:Subject:To;
-	b=JtMO+OfaquiG26OUZcc/7vkuRZOG79FihrHZkCL5xucQE6M5+b9Ty/cDdb7a+tfGb
-	 FROkhcYP2v7UM4gqkTbhTDkJJMbIttj7B+eu2OG/Vs+pjfCW8Mz6QjsKZIVMRnxhpY
-	 BXF8zUL5hVVU0Uv6VPXfxEhpW6zC+3PV1S6GKyrcqzCZ5HUQAz6nDI1tfvJU9wgHLm
-	 ib7qRf+ufN5S3OwFWD3Zqzqh8cnmklE1G+c+1NgW6e+4IHbTsK3iEK5Sn+SIicuRKT
-	 0V+4LD9PE8p6pBXPObvtYgrIZQ4Q+6hMFqqD3Ulh1F5lK9F8pTWHfhRhWpLFHYf8Eg
-	 f9UepeTnbWxEg==
-Authentication-Results: linux3247.grserver.gr;
-        spf=pass (sender IP is 209.85.214.171) smtp.mailfrom=lkml@antheas.dev smtp.helo=mail-pl1-f171.google.com
-Received-SPF: pass (linux3247.grserver.gr: connection is authenticated)
-Received: by mail-pl1-f171.google.com with SMTP id
- d9443c01a7336-2b4650d5f5cso35273795ad.0
-        for <linux-acpi@vger.kernel.org>;
- Sun, 26 Apr 2026 09:54:54 -0700 (PDT)
-X-Forwarded-Encrypted: i=1;
- AFNElJ8dJYzIrNjNYnb2OTFFZllgSsFZpHTEm5tBm+yjad/FUR4uigaguxGOna+qZky6UxcS0UatCwngd5EG@vger.kernel.org
-X-Gm-Message-State: AOJu0YxSgkTJiXVBK5jmDrEo2YbXGrjLxrmuOjJFbtoKypvY6JOMLFf+
-	c2VM2+Y5WN8/rJ+Z5gIL65NmHoGzV9dwahCA+4TeLxE7MPSuOg1ME1LUr7tL9gzjWzFaZ6nHgDt
-	ilr0SJQ6bFo36syrxOKowZebC1Exymo4=
-X-Received: by 2002:a17:902:868f:b0:2b4:59bf:5728 with SMTP id
- d9443c01a7336-2b5f9f3ca68mr311602245ad.25.1777222492929; Sun, 26 Apr 2026
- 09:54:52 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="HbAzUklU"
+Received: by mail-ej1-f46.google.com with SMTP id a640c23a62f3a-b9d9971d059so1353827066b.2
+        for <linux-acpi@vger.kernel.org>; Sun, 26 Apr 2026 13:45:18 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1777236317; cv=none;
+        d=google.com; s=arc-20240605;
+        b=aEqX8CB+4f+bXEeZ1dc1cg888ctFSCbywFqcA05AiEeGfIkF+m9SQnrPfcUVghrzzZ
+         YIF6ttEeekIDuT9IKQcW8cmTfKe0MnjRVAjN4Ys+FBKKXLazPrEB2+FG7GNcTpSPyqgC
+         CQ4a1BO9Y3kc4QnIVp+A5nFBDbYCxmUng3b7cqwWMvL5+CosSQ4Ug28t9IHzVxXRMmNm
+         E1SePtV88swjC7hHMV/3AhXBjj4RQBy0H2qqHcH39WBGogpNea7RX/eopBzdjlamibdJ
+         5cCKjAmBZ0UKAitMSG6m0xYUj+dmU8osm1+YK5JD++uqKme7ebVkGeLNhWsUHLW/NOnZ
+         x7QA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=H42zUt22pJHq35qrT9HLLcYii5EQ25Njx0nZAlGKwMA=;
+        fh=gekNmFa5vFEy6RuAF1k8NammWi9YFBXeZQhesPc/Y30=;
+        b=k9Qc7/F3pDm+gPHc3oRGhsRp4jTF1pDKEYSCzWuTIbJEnX7MhWsDT+0TV2no5bARo3
+         9C4cJTY3XdXichzp/uVibcxVFI/clSdS/EYZLLv0EQWN5Man7rIf2t+BGHD+ADxsIKzN
+         wUz0KriA7U/209ceM1aAmctvvJiM6g3App6eT8Jrfz5Y5Cv8bHqjeVbyR7H7oaLlIKNk
+         fPdFhULdwWVf4MXLO4VdROADjCp1LuJQoXlIQJtGep6jOTfNeUSNvkmqDbw3LErjUnaX
+         XrMbTe/ihnvmRat3QCDraXjEfiz9dvORmO6DFL574ICXSMu5CLDh/p/lTifBUxwzwk6c
+         ATfg==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1777236317; x=1777841117; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=H42zUt22pJHq35qrT9HLLcYii5EQ25Njx0nZAlGKwMA=;
+        b=HbAzUklUsyBMk727h5CTVYNpSgoMaQQdxj2ERWcGt3IWhkhgLDkeOuZ9G7XnOwGV6D
+         ZF11UpgcZ9F14qk1D4DHGhq77+c1y2PQ56vJgvIUFWGeGJG++w2B05D7zNDKgp8WPTYg
+         rE9elo29vj6vjP79Qlw6TzpELYCPGZ5oLpy9W+D2Qr2MEAZBvC9YEYyaEfc0sKFAVoFB
+         /F+lW6g+K3LSFpF47dnYmdmCv8Gv77S67ePaVXUWfRcG1uhQw2Wx2K//1YrfF68OONLc
+         aik8J4n3BWYXYv2B4kbF5HeOhEKhjRF2eH6sNuAKCXyx3NdSuSqc9m9bNmLgxirXJnmH
+         9A5w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1777236317; x=1777841117;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=H42zUt22pJHq35qrT9HLLcYii5EQ25Njx0nZAlGKwMA=;
+        b=WsnLyq9SVMCI90pPojzXELVksYMuWT0yHgXei0BbIhs/jOznKWIZyxeMIgd1PzLbhl
+         SokYSTLFCJ/H5eWuCeIEyRUJjz6puUTgMD9DAe6bpBQPwxcqUXrnTpVjeoCQritBivrN
+         EoBFA0neE7lV4qNFFlabmBmwqgZNDmTol5TElivBuWGr/DUIoR0rzRd5TwDYHjq5/RLl
+         Mw9kW8FoLZ17IwYFw6xQANst3PGc1rif1AL3ovdcITA1FWKX/vpNhBtniuyWUQWxTVvf
+         7qK/HBgHA8Dy/JdBwu0JyS7Ud4VPG5yfurJv0qPY+17orngKKpD2YuyiPP7HCgARRXX1
+         0b5g==
+X-Forwarded-Encrypted: i=1; AFNElJ+pr/wgwholKLtyu9XRJrMRVKmq/XlYoMIepTrvmJYfqyiAmbAoknlZ3QXiGIRDmc38LyHQYmDr8yfb@vger.kernel.org
+X-Gm-Message-State: AOJu0YzMUeO2Mu3vMuVOjAZwBR+Tn0DyRu4cShNDtB53D92oDDwE46b7
+	gZJgPyx4ylhahOVLtLeSxpQnkq7ASdUcLo/SbVP+iJ8olVqBSRGXgWvWRCg3uzScRznTO9nbTt1
+	fXEvURjr71uzCVRHytuMwT4exWC93RbI=
+X-Gm-Gg: AeBDieuDMe8NSRrbfGAH2Mbb35S/nARmKZRhNGaJJX7Oppq/Nme5MZAUS/FiQlUCGHY
+	Z7ws4y9AF2/yHDQ92UmacZNNJtV0m/sM21TahGg4vhOMY2eQBZoRa5aAMdSm0CN0xltu2b10ZBo
+	Hhv0cmmafB8sRPoGycHoiwwTKAoYZBhk5IEjDhSIIUv9BhJh8qFzTp9BwOPHj4lpnA4kYSfKhZi
+	M3zVsHsxpIYb95cnmiA4KSjzAgdF+FX2XiCFZGoatqFv4zgzz04RQR3CJHSWVWUrppedJBJqMnu
+	Qu1lgWjkNat1qp5TUA==
+X-Received: by 2002:a17:907:d03:b0:baa:2d37:cbf9 with SMTP id
+ a640c23a62f3a-baa2d37ce1bmr1034416966b.1.1777236317215; Sun, 26 Apr 2026
+ 13:45:17 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260425215734.14116-1-lkml@antheas.dev>
- <20260425215734.14116-2-lkml@antheas.dev>
- <CAJZ5v0ipM9khNZs3uNu5GuFO3nJZ=EOht7mLtLNNsW9s9jWCsg@mail.gmail.com>
-In-Reply-To: 
- <CAJZ5v0ipM9khNZs3uNu5GuFO3nJZ=EOht7mLtLNNsW9s9jWCsg@mail.gmail.com>
-From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sun, 26 Apr 2026 18:54:41 +0200
-X-Gmail-Original-Message-ID: 
- <CAGwozwE4aqgBur-45whZManQzj-bMF4GUfA-oPk+huRnpkGRYA@mail.gmail.com>
-X-Gm-Features: AQROBzBUutY0iqVq8V5-HgxBaFnjta-3eJA1kE9fzUUNEwlDl2ydpE8BwfqoC_8
-Message-ID: 
- <CAGwozwE4aqgBur-45whZManQzj-bMF4GUfA-oPk+huRnpkGRYA@mail.gmail.com>
-Subject: Re: [RFC v2 01/10] acpi/x86: s2idle: Rename LPS0 constants so they
- mirror their function
+References: <12879883.O9o76ZdvQC@rafael.j.wysocki> <12895688.O9o76ZdvQC@rafael.j.wysocki>
+ <CAGAxtY13R3F6M4HFiwwsx8SEbcUsu5mQKJrayaCGFp14cEB2wg@mail.gmail.com>
+ <5112068.31r3eYUQgx@rafael.j.wysocki> <CAJZ5v0ivGuRESW2B1_+8s1=YSm9YV4FAuc1CB9FGTdwHZuGZNA@mail.gmail.com>
+In-Reply-To: <CAJZ5v0ivGuRESW2B1_+8s1=YSm9YV4FAuc1CB9FGTdwHZuGZNA@mail.gmail.com>
+From: Evgeny Sagatov <evgeny.sagatov@gmail.com>
+Date: Sun, 26 Apr 2026 23:45:03 +0300
+X-Gm-Features: AVHnY4JCKXiEdZaeifSP1mB5o8qE3MJnXWsD_ALENnorm_5WHY2xGSdQErODl3U
+Message-ID: <CAGAxtY3HF3iOV7ZKq9-LTjyA-p3jNVHKSi5CBM8AJ38LYUdXbw@mail.gmail.com>
+Subject: Re: Pressing the power button causes the device to freeze completely
 To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: dmitry.osipenko@collabora.com, bob.beckett@collabora.com,
-	bookeldor@gmail.com, hadess@hadess.net, jaap@haitsma.org,
-	kernel@collabora.com, lennart@poettering.net, linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org, mccann@jhu.edu, richard@hughsie.com,
-	sebastian.reichel@collabora.com, superm1@kernel.org,
-	systemd-devel@lists.freedesktop.org, xaver.hugl@gmail.com
+Cc: regressions@lists.linux.dev, linux-acpi@vger.kernel.org, 
+	Thorsten Leemhuis <regressions@leemhuis.info>, LKML <linux-kernel@vger.kernel.org>, 
+	Wysocki Rafael J <rafael.j.wysocki@intel.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
-X-PPP-Message-ID: 
- <177722249519.171739.647858828543374472@linux3247.grserver.gr>
-X-PPP-Vhost: antheas.dev
-X-Virus-Scanned: clamav-milter 1.4.3 at linux3247.grserver.gr
-X-Virus-Status: Clean
 
-On Sun, 26 Apr 2026 at 16:15, Rafael J. Wysocki <rafael@kernel.org> wrote:
+dmesg | grep "frequency s"
+[    8.622778] acpi_cpufreq: CPU0: Using I/O space for frequency scaling
+[    8.622806] cpufreq: CPU0: Fast frequency switching enabled
+[    8.622869] acpi_cpufreq: CPU1: Using I/O space for frequency scaling
+[    8.622888] cpufreq: CPU1: Fast frequency switching enabled
+[    8.622938] acpi_cpufreq: CPU2: Using I/O space for frequency scaling
+[    8.622955] cpufreq: CPU2: Fast frequency switching enabled
+[    8.623006] acpi_cpufreq: CPU3: Using I/O space for frequency scaling
+[    8.623026] cpufreq: CPU3: Fast frequency switching enabled
+
+When I press the power button, a message is displayed:
+apr 26 23:40:36 srv kernel: ACPI power button event
+
+The PC does not freeze.
+The single core performance benchmark shows good values.
+
+=D0=B2=D1=81, 26 =D0=B0=D0=BF=D1=80. 2026=E2=80=AF=D0=B3. =D0=B2 17:54, Raf=
+ael J. Wysocki <rafael@kernel.org>:
 >
-> On Sat, Apr 25, 2026 at 11:57=E2=80=AFPM Antheas Kapenekakis <lkml@anthea=
-s.dev> wrote:
+> On Sun, Apr 26, 2026 at 4:50=E2=80=AFPM Rafael J. Wysocki <rafael@kernel.=
+org> wrote:
 > >
-> > The LPS0 3/4 constants are part of a firmware notification called
-> > "Display on/off", in which the device enters a "Screen Off" state.
-> > The LPS0 7/8 constants are part of a firmware notification in which
-> > a Windows modern standby computer enters a "sleep" state where the
-> > CPU may still be active and maintain the radios.
+> > On Friday, April 24, 2026 11:18:02 PM CEST Evgeny Sagatov wrote:
+> > > dmesg | grep "Fast frequency"
+> > > Nothing was displayed.
+> > >
+> > > The PC froze when I pressed the power button. Nothing in the log.
+> > >
+> > > I applied this patch after deleting all the previous ones. Is this co=
+rrect?
 > >
-> > However, currently, the values are named as "Screen on/off" and "MS
-> > entry/exit", where Modern Standby is abbreviated as "MS". Therefore,
-> > perform a minor rename so that the values match their function. Then,
-> > fix the debug message to say that it executes notifications instead of
-> > entering states as it is otherwise confusing.
+> > Yes, it is.
 > >
-> > Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+> > > I received this message when applying a patch. Perhaps we have
+> > > different versions of the source code? I'm using 7.0.0.
+> > > patching file drivers/acpi/acpica/evevent.c
+> > > patching file drivers/cpufreq/acpi-cpufreq.c
+> > > Hunk #1 succeeded at 895 (offset -17 lines).
+> > > patching file drivers/cpufreq/cpufreq.c
+> >
+> > That should be fine.
+> >
+> > We've switched over schedutil to a different code path and the problem =
+is
+> > still there, so it appears to be related to hardware accesses.
+> >
+> > To test this, please apply the patch below (which is a replacement for =
+the
+> > previous patch) and collect the output of
+> >
+> > $ dmesg | grep ""
+>
+> This should have been
+>
+> $ dmesg | grep "frequency scaling"
+>
+> (pressed "send" too early, sorry about that) but sending a complete
+> dmesg log (which would be produced by grepping for an empty string)
+> would work either.
+>
+> > after a fresh boot.  Please let me know what's there.
+> >
+> > Also, the "Fast frequency switching enabled" messages should be back.
+> >
+> > Then, check what happens when the power button is pressed (if the syste=
+m
+> > doesn't lock up, a message should be printed to the kernel log every ti=
+me
+> > the power button is pressed).
+> >
+> > With this patch applied, schedutil will not access hardware in the fast
+> > frequency switching path, so the frequency scaling will not actually wo=
+rk
+> > (this is roughly equivalent to running the "performance" or "powersave"
+> > governor all the time).
+> >
 > > ---
-> >  drivers/acpi/x86/s2idle.c | 84 +++++++++++++++++++++------------------
-> >  1 file changed, 45 insertions(+), 39 deletions(-)
+> >  drivers/acpi/acpica/evevent.c  |    5 +++++
+> >  drivers/cpufreq/acpi-cpufreq.c |    6 ++++--
+> >  drivers/cpufreq/cpufreq.c      |    1 +
+> >  3 files changed, 10 insertions(+), 2 deletions(-)
 > >
-> > diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
-> > index b6b1dd76a06b..61a044b59776 100644
-> > --- a/drivers/acpi/x86/s2idle.c
-> > +++ b/drivers/acpi/x86/s2idle.c
-> > @@ -43,20 +43,20 @@ static const struct acpi_device_id lps0_device_ids[=
-] =3D {
-> >  #define ACPI_LPS0_DSM_UUID     "c4eb40a0-6cd2-11e2-bcfd-0800200c9a66"
+> > --- a/drivers/acpi/acpica/evevent.c
+> > +++ b/drivers/acpi/acpica/evevent.c
+> > @@ -243,6 +243,11 @@ static u32 acpi_ev_fixed_event_dispatch(
+> >         (void)acpi_write_bit_register(acpi_gbl_fixed_event_info[event].
+> >                                       status_register_id, ACPI_CLEAR_ST=
+ATUS);
 > >
-> >  #define ACPI_LPS0_GET_DEVICE_CONSTRAINTS       1
-> > -#define ACPI_LPS0_SCREEN_OFF   3
-> > -#define ACPI_LPS0_SCREEN_ON    4
-> > +#define ACPI_LPS0_DISPLAY_OFF  3
-> > +#define ACPI_LPS0_DISPLAY_ON   4
->
-> You've clearly ignored my feedback on this.
-
-Hi,
-
-did https://lore.kernel.org/all/CAGwozwE_QbiNk53+kTjwELtWhK31LCrBm5fgx2b46s=
-Za_5wjaA@mail.gmail.com/
-not address your feedback?
-
-The notifications are named display off / on in the document you linked.
-
-I did not receive a response so I considered it resolved.
-
-Antheas
-
-> Thanks!
->
-
+> > +       if (event =3D=3D ACPI_EVENT_POWER_BUTTON) {
+> > +               pr_info("ACPI power button event\n");
+> > +               return (ACPI_INTERRUPT_HANDLED);
+> > +       }
+> > +
+> >         /*
+> >          * Make sure that a handler exists. If not, report an error
+> >          * and disable the event to prevent further interrupts.
+> > --- a/drivers/cpufreq/acpi-cpufreq.c
+> > +++ b/drivers/cpufreq/acpi-cpufreq.c
+> > @@ -479,8 +479,8 @@ static unsigned int acpi_cpufreq_fast_sw
+> >                         return next_freq;
+> >         }
+> >
+> > -       data->cpu_freq_write(&perf->control_register,
+> > -                            perf->states[next_perf_state].control);
+> > +       /*data->cpu_freq_write(&perf->control_register,
+> > +                            perf->states[next_perf_state].control);*/
+> >         perf->state =3D next_perf_state;
+> >         return next_freq;
+> >  }
+> > @@ -887,9 +887,11 @@ static int acpi_cpufreq_cpu_init(struct
+> >                  * unknown and not detectable via IO ports.
+> >                  */
+> >                 policy->cur =3D acpi_cpufreq_guess_freq(data, policy->c=
+pu);
+> > +               pr_info("CPU%u: Using I/O space for frequency scaling\n=
+", cpu);
+> >                 break;
+> >         case ACPI_ADR_SPACE_FIXED_HARDWARE:
+> >                 acpi_cpufreq_driver.get =3D get_cur_freq_on_cpu;
+> > +               pr_info("CPU%u: Using FFH for frequency scaling\n", cpu=
+);
+> >                 break;
+> >         default:
+> >                 break;
+> > --- a/drivers/cpufreq/cpufreq.c
+> > +++ b/drivers/cpufreq/cpufreq.c
+> > @@ -473,6 +473,7 @@ void cpufreq_enable_fast_switch(struct c
+> >         if (cpufreq_fast_switch_count >=3D 0) {
+> >                 cpufreq_fast_switch_count++;
+> >                 policy->fast_switch_enabled =3D true;
+> > +               pr_info("CPU%u: Fast frequency switching enabled\n", po=
+licy->cpu);
+> >         } else {
+> >                 pr_warn("CPU%u: Fast frequency switching not enabled\n"=
+,
+> >                         policy->cpu);
+> >
+> >
+> >
+> >
