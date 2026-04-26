@@ -1,149 +1,140 @@
-Received: from m16.mail.126.com (m16.mail.126.com [117.135.210.9])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F8A52BEC43;
-	Sun, 26 Apr 2026 14:01:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=117.135.210.9
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92854364925;
+	Sun, 26 Apr 2026 14:08:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777212101; cv=none; b=fNnxC8e632xyBtRjul6WKexVSm1iRXuWMiB0cSshCoYsBqKAQ/E/K1CUXzjHCnyCYjPyf5qOvpP+qmZZ63HLjOkzfvuphtEm8lhovqgW72NGcpAgGEeRFkMyEEEjUWgK4W7AoMkn7LtNG39pQn+8PWCXOrYOyu441ayAL42zkqg=
+	t=1777212530; cv=none; b=Cpp8KMGFZia1urGfVwxxhNk3XKbs3DiVBOms6RiS8ioHb5peq5oM4BNwubR2TOjmOD+IQerK2x/iyxHsY4V0ccv66ANEa6WeZ0ip2HHCIeuf6C0dyoAmQ8b1113SAr5WL96jKPNV72dEs+W/NFXwFN3zfNU6EgQbsnwtt+FbqIc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777212101; c=relaxed/simple;
-	bh=1EWd3FHK/NUyYRjrPUv26hddlhWeaeFiowafrqz4J6I=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=PQ3YRqbiWlw5FZ7K5ZFEGH8ys41/9ZkPkKTZQUMeRfJuRZqizloPsX8zsInnqNLdizKEcCqA0ja41TNAvs4ziBMVmKPwd8zbrX1oY6aID1/szGjLjaGVtBKzmhCI9bfHY5gSFZif51/hZCDtRIhJRYMGUJmT/PB2Mpvd0J0iPQs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=126.com; spf=pass smtp.mailfrom=126.com; dkim=pass (1024-bit key) header.d=126.com header.i=@126.com header.b=Gfz8tGph; arc=none smtp.client-ip=117.135.210.9
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=126.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=126.com
+	s=arc-20240116; t=1777212530; c=relaxed/simple;
+	bh=Aqi75IhndrV0ywUutOkCqgNS6SouxMp0XDzJxatZjrY=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=l/1vukUg36u4TL5JvuSVmdTCQPF58pwLjIR+dom9Cs6ShNMBWgDgxTHhkltoTcBOZufShxHwdibf5Wr9TFzbVCnUJdV2+hGXY0mMrXYQoR4mFKv5IWgRdUUV5x5/LoYzFrUNbxJEqZRj4ZjkmmjBrzpWPO44XFlIZW+IkXbT7RU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XYY6jPZ7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=126.com header.i=@126.com header.b="Gfz8tGph"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=126.com;
-	s=s110527; h=Message-ID:Date:MIME-Version:Subject:To:From:
-	Content-Type; bh=VObAGbTW+9A0YlT8RDgNBAL8kbf8Bp4GNC/bJiVMM38=;
-	b=Gfz8tGph2KWgVIskV7kFH/2JPRot07G06I1K2xbCam83mOtshbvOugP3G7Jyqo
-	ai37Dr1ofQD7wUpqZRBL3mxeK1hyR12P/5uwp0yunrzAchjxANOPZenxC08kKLYx
-	5hJRvTmihsx0Vyjm1RkYPJzh1rEdFERh8U8wZYoIfh//U=
-Received: from [IPV6:2408:8210:480a:2590:ec66:74e8:68a7:a44b] (unknown [])
-	by gzsmtp4 (Coremail) with SMTP id PykvCgD3_9WEGe5pvjEhEA--.25861S2;
-	Sun, 26 Apr 2026 21:56:23 +0800 (CST)
-Message-ID: <30411bd3-2c92-495b-9d87-d6660b5cf3a3@126.com>
-Date: Sun, 26 Apr 2026 21:56:20 +0800
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XYY6jPZ7"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 3BE8AC2BCB3;
+	Sun, 26 Apr 2026 14:08:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1777212530;
+	bh=Aqi75IhndrV0ywUutOkCqgNS6SouxMp0XDzJxatZjrY=;
+	h=From:Date:Subject:To:Cc:Reply-To:From;
+	b=XYY6jPZ7QSASe7snmeFwrM6pHNhkv0AOZMZfyK1IZeF4b83hT23HfVmanvwmi4Z+a
+	 /rNG8bx4Fyhy4osjwp9yPgblAhg0vDgFxLRMvmVUs3TjWe9PV0UsB0DgrwxLOfVDud
+	 +EqQ8xJNbCENQtbG6/iIeOItrQ/sCTeUVsDIcxJOIqTmeV2Tl5hOwPd/zHSKobXw+i
+	 cO4N5/BL6v4cbgUWVfDEu6NFHloHaw9lfdDHWMpN+rJOUvMIf/e9qBKNt8TQevNe3T
+	 Zd2W1765QXV7FYqPLP3h9FE1a38LS+VnVT73d8CHzBvFG2pLLB5p2ecTbs8P+2jwSZ
+	 XGBK60af56tSw==
+Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DD02FF885E;
+	Sun, 26 Apr 2026 14:08:50 +0000 (UTC)
+From: Shivam Kalra via B4 Relay <devnull+shivamkalra98.zohomail.in@kernel.org>
+Date: Sun, 26 Apr 2026 19:38:41 +0530
+Subject: [PATCH] ACPI: video: force native backlight on HP OMEN 16 (8A44)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH 1/2] kernel/notifier: replace single-linked list with
- double-linked list for reverse traversal
-To: Petr Mladek <pmladek@suse.com>, Masami Hiramatsu <mhiramat@kernel.org>
-Cc: chensong_2000@189.cn, rafael@kernel.org, lenb@kernel.org,
- mturquette@baylibre.com, sboyd@kernel.org, viresh.kumar@linaro.org,
- agk@redhat.com, snitzer@kernel.org, mpatocka@redhat.com,
- bmarzins@redhat.com, song@kernel.org, yukuai@fnnas.com, linan122@huawei.com,
- jason.wessel@windriver.com, danielt@kernel.org, dianders@chromium.org,
- horms@kernel.org, davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
- pabeni@redhat.com, paulmck@kernel.org, frederic@kernel.org,
- mcgrof@kernel.org, petr.pavlu@suse.com, da.gomez@kernel.org,
- samitolvanen@google.com, atomlin@atomlin.com, jpoimboe@kernel.org,
- jikos@kernel.org, mbenes@suse.cz, joe.lawrence@redhat.com,
- rostedt@goodmis.org, mark.rutland@arm.com, mathieu.desnoyers@efficios.com,
- linux-modules@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-trace-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
- linux-clk@vger.kernel.org, linux-pm@vger.kernel.org,
- live-patching@vger.kernel.org, dm-devel@lists.linux.dev,
- linux-raid@vger.kernel.org, kgdb-bugreport@lists.sourceforge.net,
- netdev@vger.kernel.org
-References: <20260415070137.17860-1-chensong_2000@189.cn>
- <20260420144429.57b45f2beece690bceea96ec@kernel.org>
- <aec90caYZDHDAHgw@pathway.suse.cz>
-Content-Language: en-US
-From: Song Chen <chensong_2000@126.com>
-In-Reply-To: <aec90caYZDHDAHgw@pathway.suse.cz>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-CM-TRANSID:PykvCgD3_9WEGe5pvjEhEA--.25861S2
-X-Coremail-Antispam: 1Uf129KBjvJXoWxGr48trW5Xw1rurW8KFy5twb_yoW5Wry5pF
-	90gF4SkF4kJr92kFn2gw18WF1Y9FZ5GFWqqr18GrySkwn0grnFvrZrtw15uFykur48Ar12
-	vrWUXasru34DZaDanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07UXyCJUUUUU=
-X-CM-SenderInfo: xfkh02prqjsjqqqqqiyswou0bp/xtbBpQd9-GnuGYeunwAA3L
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Message-Id: <20260426-omen-16-backlight-fix-v1-1-62364f268ea6@zohomail.in>
+X-B4-Tracking: v=1; b=H4sIAGgc7mkC/yXM0Q5DQBCF4VeRuTYJS1Gv0rjYWYPRdjW7iES8u
+ y2X30nOv4NnJ+yhjnZwvIqXyQakcQRm0LZnlDYYVKKKJFcPnL5sMS2QtHl/pB9m7GTDMuuoIpN
+ rRU8I35/jMF/dV3PbLzSymf8xOI4TdT+L03kAAAA=
+X-Change-ID: 20260425-omen-16-backlight-fix-73fb8bc4a2b9
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ stable@vger.kernel.org, Shivam Kalra <shivamkalra98@zohomail.in>
+X-Mailer: b4 0.15.1
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1777212528; l=3008;
+ i=shivamkalra98@zohomail.in; s=20260402; h=from:subject:message-id;
+ bh=Ks75/0yCMSiPZ5NGPSiLdDntV/e7UFJBadOo45wysJA=;
+ b=ImzlN1NF/yjSEwdic/vHSQlDyh2HDbuxm3ilC7wHeE26rJSBVCMfn4V3XByKns2e2Sekc/Yrj
+ AA+AbNfO0kDAJPvHDEDPFsh+D+binV7lvoEReIkEwJGdwwIhdYKWZAB
+X-Developer-Key: i=shivamkalra98@zohomail.in; a=ed25519;
+ pk=U8kQSxcte8P8iZ6zB7phIj+Yl+i/5ntifBGuclgypx8=
+X-Endpoint-Received: by B4 Relay for shivamkalra98@zohomail.in/20260402
+ with auth_id=716
+X-Original-From: Shivam Kalra <shivamkalra98@zohomail.in>
+Reply-To: shivamkalra98@zohomail.in
 
-Hi,
+From: Shivam Kalra <shivamkalra98@zohomail.in>
 
-On 4/21/26 17:05, Petr Mladek wrote:
-> On Mon 2026-04-20 14:44:29, Masami Hiramatsu wrote:
->> Hi Song,
->>
->> On Wed, 15 Apr 2026 15:01:37 +0800
->> chensong_2000@189.cn wrote:
->>
->>> From: Song Chen <chensong_2000@189.cn>
->>>
->>> The current notifier chain implementation uses a single-linked list
->>> (struct notifier_block *next), which only supports forward traversal
->>> in priority order. This makes it difficult to handle cleanup/teardown
->>> scenarios that require notifiers to be called in reverse priority order.
->>
->> What about introducing a new notification callback API that allows you
->> to describe dependencies between callback functions?
->>
->> For example, when registering a callback, you could register a string
->> as an ID and specify whether to call it before or after that ID,
->> or you could register a comparison function that is called when adding
->> to a list. (I prefer @name and @depends fields so that it can be easily
->> maintained.)
-> 
-> This looks too complex. It would make sense only
-> when this API has more users.
-> 
-> Also this won't be enough for the ftrace/livepatch callbacks.
-> They need to be ordered against against each other. But they
-> also need to be called before/after all other callbacks.
-> For example, when the module is loaded:
-> 
->     + 1st frace
->     + 2nd livepatch
->     + then other notifiers
-> 
-> See the commit c1bf08ac26e92122 ("ftrace: Be first to run code
-> modification on modules").
-> 
->> This would allow for better dependency building when adding to the list.
->   
->>>
->>> A concrete example is the ordering dependency between ftrace and
->>> livepatch during module load/unload. see the detail here [1].
->>
->> If this only concerns notification callback issues with the ftrace
->> and livepatch modules, it's far more robust to simply call the
->> necessary processing directly when the modules load and unload,
->> rather than registering notification callbacks externally.
->>
->> There are fprobe, kprobe and its trace-events, all of them are using
->> ftrace as its fundation layer. In this case, I always needs to
->> consider callback order when a module is unloaded.
->>
->> If ftrace is working as a part of module callbacks, it will conflict
->> with fprobe/kprobe module callback. Of course we can reorder it with
->> modifying its priority. But this is ugly, because when we introduce
->> a new other feature which depends on another layer, we need to
->> reorder the callback's priority number on the list.
->>
->> Based on the above, I don't think this can be resolved simply by
->> changing the list of notification callbacks to a bidirectional list.
-> 
-> I agree. I would keep it as is (hardcoded).
-> 
-> Best Regards,
-> Petr
-> 
+The HP OMEN 16 Gaming Laptop (board name 8A44) has a mux-less hybrid
+GPU configuration with AMD Rembrandt (Radeon 680M) and NVIDIA GA104
+(RTX 3070 Ti). The internal eDP panel is wired to the AMD iGPU.
 
+When Nouveau loads without GSP firmware, the ACPI video backlight
+device (acpi_video0) gets registered alongside the native AMD
+backlight (amdgpu_bl2). In this state, writes to amdgpu_bl2 update
+the software brightness value but fail to change the physical panel
+brightness.
 
-Thanks for the feedback, the necessity doesn't convincing enough. I will 
-try the proposal from Masami Hiramatsu.
+Force native backlight to prevent acpi_video0 from registering.
+Confirmed that booting with acpi_backlight=native resolves the issue.
+
+Cc: stable@vger.kernel.org
+Signed-off-by: Shivam Kalra <shivamkalra98@zohomail.in>
+---
+This patch adds a DMI quirk to force native backlight control on the
+HP OMEN 16 Gaming Laptop (board name 8A44), which has a mux-less
+hybrid GPU configuration with AMD Rembrandt (680M iGPU) and NVIDIA
+GA104 (RTX 3070 Ti).
+On this laptop the internal eDP panel is wired to the AMD iGPU. The
+amdgpu driver registers amdgpu_bl2 as the native backlight device.
+When the Nouveau driver is loaded without GSP firmware (as is the
+case on v6.17 where GSP is not the default for Ampere GPUs), writes
+to amdgpu_bl2 fail silently — the brightness sysfs value updates
+but the physical panel brightness does not change.
+Testing:
+- Tested on HP OMEN 16 with AMD Ryzen 9 6900HX + NVIDIA RTX 3070 Ti.
+- On v6.17, without this quirk, brightness control is broken.
+- On v6.17, booting with acpi_backlight=native restores correct
+  brightness control. This patch applies that workaround
+  automatically via DMI match.
+- On v6.18+, the issue does not reproduce because commit
+  e0ed674acbac ("drm/nouveau: Remove DRM_NOUVEAU_GSP_DEFAULT
+  config") made GSP firmware the default for Ampere, which avoids
+  the ACPI conflict entirely.  
+I have only tested this on v6.17 and v7.0. I am leaving it to the
+stable/LTS maintainers to determine whether this quirk should be
+backported, as I have not verified the stability of the GSP firmware
+path on intermediate releases.
+
+Thanks,
+Shivam Kalra
+---
+ drivers/acpi/video_detect.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+index 0a3c8232d15d..458efa4fe9d4 100644
+--- a/drivers/acpi/video_detect.c
++++ b/drivers/acpi/video_detect.c
+@@ -916,6 +916,14 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "82K8"),
+ 		},
+ 	},
++	{
++	 .callback = video_detect_force_native,
++	 /* HP OMEN Gaming Laptop 16-n0xxx */
++	 .matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "HP"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "OMEN by HP Gaming Laptop 16-n0xxx"),
++		},
++	},
+ 
+ 	/*
+ 	 * x86 android tablets which directly control the backlight through
+
+---
+base-commit: 27d128c1cff64c3b8012cc56dd5a1391bb4f1821
+change-id: 20260425-omen-16-backlight-fix-73fb8bc4a2b9
 
 Best regards,
+--  
+Shivam Kalra <shivamkalra98@zohomail.in>
 
-Song
 
