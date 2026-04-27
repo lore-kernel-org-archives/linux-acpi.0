@@ -1,123 +1,166 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B2CC32694E
-	for <linux-acpi@vger.kernel.org>; Mon, 27 Apr 2026 15:07:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E37B632AAA3;
+	Mon, 27 Apr 2026 15:30:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777302457; cv=none; b=vAB1o+9aEgVI+Wdejh8/wn+qIsBWK9G3eKGF16sOMs5StO0JIditF/CjpSda5kZg2BjRn9UwgUFyeRNWttBntfvCcfwhYWdSfLOUctuziMO3NDREDVI484AlKEXUX0ohJ4aLlESKGy7BBPumnCHpdXa6jAm3IM1ySnDzxTwLPkc=
+	t=1777303843; cv=none; b=UAmFgQbx9EN5+7l9VYbjf97MQMctKVfA6BenNeXXvMfoowmtqbqWt2eYUAsyC6IH35TtBwZuk8NT+YEtqRzbv94Pq0MKJZFlyGsudjwLrNl4NyI9fNVuqmpj2q5PDVo4ioTs05H90ffukBbi+H+OsPF8bwdoBJmB+ZYiFdyzBa0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777302457; c=relaxed/simple;
-	bh=lAOMKeAh78GaAZdGv8qnD3UtQWYzQjoXOP7kks58Nsk=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=qF/mek+mEFcIzSchNDJz00t82YwDVWivzmnrNFfHYU2fe9zxhfsuet2nV2p1ZYbHgaLG5q8tQ4Ijgt35VKRK1Kfy+zCS5znVYTGBRQVBlzncAbY5aExHGOWwd4Ztyhs30B92E0uEza3b0s825Ww+0cAVFVqFpf+XAYZD48aLQEQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bhrtn52d; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777303843; c=relaxed/simple;
+	bh=kssKR+WdqyY4GkBrJrl8u9664Ih9+DVxDxRUaEyrjAc=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=EGFcyOt6sAhvicz6Zqyem12aSvc/xbLDS30HZs+/HVMrBWPrGxcP0xbeCCxQsSdTppw9MjLJWfZQa/ByaD4BB83/O0eLJtJnyPooH35bRgJARuNp0/RTHa19pTykJZXFYk7GEEaJRZNbIUUNBJBcEsd7tDDgEaSmdzinbbR5yaA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TEq5F+Z8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bhrtn52d"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9BFAC2BCC9
-	for <linux-acpi@vger.kernel.org>; Mon, 27 Apr 2026 15:07:36 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TEq5F+Z8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5EB6C19425;
+	Mon, 27 Apr 2026 15:30:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1777302456;
-	bh=lAOMKeAh78GaAZdGv8qnD3UtQWYzQjoXOP7kks58Nsk=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=bhrtn52dQOioKttmXBC0pKNndmLFurFuVRJuczsSuhwZyG36Omu/6C7sHBL8FVyZX
-	 n2Ty9kE1Ghjqngk8V/pU/S/OTLQ5f1hiTuxKcN8aFglZcyoyxUDozSBAi6bXe1iZ50
-	 AUn9R8uRo7M7lUVMAC4BlKEJHLz1SduyxfIAvWrP91OPqwIqmnly4adkFTr4wRqD3D
-	 OKDh84DUp5BdQF1dLqc5ZB4NiwUTtXbvxHGYFWBOqJoUOIVQkSXd3zjNpkc6mw9Nct
-	 GUSA/MzHGtBEelvg1O9ql34l42uWhAiyKVBsQEvUDF5Em+DTdlCoRfXCluh7ORAL1b
-	 RHS/8FGhSO5tA==
-Received: by mail-lf1-f42.google.com with SMTP id 2adb3069b0e04-5a415fd6bceso11367802e87.1
-        for <linux-acpi@vger.kernel.org>; Mon, 27 Apr 2026 08:07:36 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AFNElJ/u50zsG+DQr9FeFK45FWLRa+REFEvrnE4uTrQA49Azcb2ClWh2ZlJFXJSmw1HzDWhr2bmZcqZXk/6v@vger.kernel.org
-X-Gm-Message-State: AOJu0Ywps5cWRaPebRd05vBazkZlDz7qdBsLRh83+LWIDZ2rg7UO70ZI
-	wdq93tnpOMzrqfg0i587+naO0+XnpfXW4RsMmxCjEnP2boUPSN9HE7IscNyr8dGrz8Yrjpbt20a
-	71wFmgC24R2oXSeUn57XgZwHyy9w+joo=
-X-Received: by 2002:a05:6512:3ba5:b0:5a2:b370:f796 with SMTP id
- 2adb3069b0e04-5a417287a78mr14128710e87.10.1777302455025; Mon, 27 Apr 2026
- 08:07:35 -0700 (PDT)
+	s=k20201202; t=1777303842;
+	bh=kssKR+WdqyY4GkBrJrl8u9664Ih9+DVxDxRUaEyrjAc=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=TEq5F+Z8eoambtc6oD/iC99d2HUmA/R4/+euq7miyU2GDtOzq+dBYAIVYAmxnjpeo
+	 4I1ZPwuzxYUrY/LL6kP+ETaVSyVr4CiG2/5m/qGsE1DjThXui0VpEycjz4SVH2TrM0
+	 Gj8JINskL0XbKaLoRUfFnivl13gHwZgrxG1094VzBE8p2eMqqCPsBA4XbRvwGw4FIS
+	 VLOdcQbvGmta/1Rqpg9AcjGGJb6I6etvXPwFqEqirC3aUNEVtgKXgUHhzCTrbmQVqS
+	 vWRjNAgy6Sk9GC531/x8ivMZyXt7za2IjwXLOOKVAXspCrM7sTk7okUL2tiGvO5KsZ
+	 QMz0h8bLhwL4g==
+Message-ID: <f8efd77f-6c49-4ec1-9d16-a855c2577908@kernel.org>
+Date: Mon, 27 Apr 2026 17:30:39 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260425215734.14116-1-lkml@antheas.dev> <20260425215734.14116-2-lkml@antheas.dev>
- <CAJZ5v0ipM9khNZs3uNu5GuFO3nJZ=EOht7mLtLNNsW9s9jWCsg@mail.gmail.com> <CAGwozwE4aqgBur-45whZManQzj-bMF4GUfA-oPk+huRnpkGRYA@mail.gmail.com>
-In-Reply-To: <CAGwozwE4aqgBur-45whZManQzj-bMF4GUfA-oPk+huRnpkGRYA@mail.gmail.com>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Mon, 27 Apr 2026 17:07:22 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0icsPtG1JaMCBZUPDHAvzsOwxKQZiSMNTcNpdASMJq34g@mail.gmail.com>
-X-Gm-Features: AVHnY4KzRX_ZRbV_VehzTpMgqf0QbXcy7KOi4ytw3bA60o7TAY-7PCGIC2_zrEs
-Message-ID: <CAJZ5v0icsPtG1JaMCBZUPDHAvzsOwxKQZiSMNTcNpdASMJq34g@mail.gmail.com>
-Subject: Re: [RFC v2 01/10] acpi/x86: s2idle: Rename LPS0 constants so they
- mirror their function
-To: Antheas Kapenekakis <lkml@antheas.dev>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, dmitry.osipenko@collabora.com, 
-	bob.beckett@collabora.com, bookeldor@gmail.com, hadess@hadess.net, 
-	jaap@haitsma.org, kernel@collabora.com, lennart@poettering.net, 
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, mccann@jhu.edu, 
-	richard@hughsie.com, sebastian.reichel@collabora.com, superm1@kernel.org, 
-	systemd-devel@lists.freedesktop.org, xaver.hugl@gmail.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: [BUG] 36-second boot delay due to by
+ acpi_gpio_handle_deferred_request_irqs on ASUS ROG Strix G16 (2025)
+To: Marco Scardovi <mscardovi95@gmail.com>,
+ Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Mario Limonciello <superm1@kernel.org>,
+ Francesco Lauritano <francesco.lauritano1@protonmail.com>,
+ "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+ "open list:GPIO ACPI SUPPORT" <linux-gpio@vger.kernel.org>,
+ "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>,
+ "westeri@kernel.org" <westeri@kernel.org>,
+ Benjamin Tissoires <bentiss@kernel.org>
+References: <b57b44c3-ea96-4189-8b70-71bf4a80d29b@kernel.org>
+ <20251218103831.GW2275908@black.igk.intel.com>
+ <51f999d7-2064-47dc-8d9b-e262588bfbdb@gmail.com>
+ <20260422090709.GB557136@black.igk.intel.com>
+ <4e55e31e-a5e8-4098-8a7f-bb52476b882a@gmail.com>
+ <20260422095558.GC557136@black.igk.intel.com>
+ <5a36760d-5d1e-4eee-9006-3fed042aa2cd@gmail.com>
+ <20260423044211.GD557136@black.igk.intel.com>
+ <3d562963-9581-4e0f-b9a0-5f0fe28d2495@kernel.org>
+ <c55b55ea-a8d5-481e-916f-eb92aeb2e06d@kernel.org>
+ <20260427122806.GN557136@black.igk.intel.com>
+ <edac84e9-93c0-4248-b28f-c121583b9f65@gmail.com>
+From: Hans de Goede <hansg@kernel.org>
+Content-Language: en-US, nl
+In-Reply-To: <edac84e9-93c0-4248-b28f-c121583b9f65@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-On Mon, Apr 27, 2026 at 4:08=E2=80=AFPM Antheas Kapenekakis <lkml@antheas.d=
-ev> wrote:
->
-> On Sun, 26 Apr 2026 at 16:15, Rafael J. Wysocki <rafael@kernel.org> wrote=
-:
-> >
-> > On Sat, Apr 25, 2026 at 11:57=E2=80=AFPM Antheas Kapenekakis <lkml@anth=
-eas.dev> wrote:
-> > >
-> > > The LPS0 3/4 constants are part of a firmware notification called
-> > > "Display on/off", in which the device enters a "Screen Off" state.
-> > > The LPS0 7/8 constants are part of a firmware notification in which
-> > > a Windows modern standby computer enters a "sleep" state where the
-> > > CPU may still be active and maintain the radios.
-> > >
-> > > However, currently, the values are named as "Screen on/off" and "MS
-> > > entry/exit", where Modern Standby is abbreviated as "MS". Therefore,
-> > > perform a minor rename so that the values match their function. Then,
-> > > fix the debug message to say that it executes notifications instead o=
-f
-> > > entering states as it is otherwise confusing.
-> > >
-> > > Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
-> > > ---
-> > >  drivers/acpi/x86/s2idle.c | 84 +++++++++++++++++++++----------------=
---
-> > >  1 file changed, 45 insertions(+), 39 deletions(-)
-> > >
-> > > diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
-> > > index b6b1dd76a06b..61a044b59776 100644
-> > > --- a/drivers/acpi/x86/s2idle.c
-> > > +++ b/drivers/acpi/x86/s2idle.c
-> > > @@ -43,20 +43,20 @@ static const struct acpi_device_id lps0_device_id=
-s[] =3D {
-> > >  #define ACPI_LPS0_DSM_UUID     "c4eb40a0-6cd2-11e2-bcfd-0800200c9a66=
-"
-> > >
-> > >  #define ACPI_LPS0_GET_DEVICE_CONSTRAINTS       1
-> > > -#define ACPI_LPS0_SCREEN_OFF   3
-> > > -#define ACPI_LPS0_SCREEN_ON    4
-> > > +#define ACPI_LPS0_DISPLAY_OFF  3
-> > > +#define ACPI_LPS0_DISPLAY_ON   4
-> >
-> > You've clearly ignored my feedback on this.
->
-> Hi,
->
-> did https://lore.kernel.org/all/CAGwozwE_QbiNk53+kTjwELtWhK31LCrBm5fgx2b4=
-6sZa_5wjaA@mail.gmail.com/
-> not address your feedback?
+Hi,
 
-I missed that one, sorry.
+On 27-Apr-26 14:41, Marco Scardovi wrote:
+> 
+> Il 27/04/26 14:28, Mika Westerberg ha scritto:
+>> On Mon, Apr 27, 2026 at 01:46:03PM +0200, Hans de Goede wrote:
+>>> Hi,
+>>>
+>>> On 23-Apr-26 07:15, Mario Limonciello wrote:
+>>>> On 4/22/26 23:42, Mika Westerberg wrote:
+>>>>> Hi,
+>>>>>
+>>>>> On Wed, Apr 22, 2026 at 02:08:29PM +0200, Marco Scardovi wrote:
+>>>>>>>> Assuming all the variants suffer the same problem would it be ok to use a
+>>>>>>>> wildcard for it?
+>>>>>>> Yeah, we could expand it to all "ROG Strix G16" I think:
+>>>>>>>
+>>>>>>> diff --git a/drivers/gpio/gpiolib-acpi-quirks.c b/drivers/gpio/gpiolib-acpi-quirks.c
+>>>>>>> index a0116f004975..e3a6111854e8 100644
+>>>>>>> --- a/drivers/gpio/gpiolib-acpi-quirks.c
+>>>>>>> +++ b/drivers/gpio/gpiolib-acpi-quirks.c
+>>>>>>> @@ -392,6 +392,23 @@ static const struct dmi_system_id gpiolib_acpi_quirks[] __initconst = {
+>>>>>>>                 .ignore_wake = "VEN_0488:00@355",
+>>>>>>>             },
+>>>>>>>         },
+>>>>>>> +    {
+>>>>>>> +        /*
+>>>>>>> +         * The ASUS ROG Strix G16 (2025) ACPI GPIO configuration
+>>>>>>> +         * causes acpi_gpio_handle_deferred_request_irqs() to
+>>>>>>> +         * stall for ~36 seconds during boot so ignore the two
+>>>>>>> +         * interrupts involved.
+>>>>>>> +         *
+>>>>>>> +         * Found in BIOS G614PP.307.
+>>>>>>> +         */
+>>>>>>> +        .matches = {
+>>>>>>> +            DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
+>>>>>>> +            DMI_MATCH(DMI_PRODUCT_NAME, "ROG Strix G16"),
+>>>>>>> +        },
+>>>>>>> +        .driver_data = &(struct acpi_gpiolib_dmi_quirk) {
+>>>>>>> +            .ignore_interrupt = "AMDI0030:00@21,AMDI0030:00@24",
+>>>>>>> +        },
+>>>>>>> +    },
+>>>>>>>         {} /* Terminating entry */
+>>>>>>>     };
+>>>>>> As for now it seems working. I've reverted it on my kernel as I prefer
+>>>>>> remain as much as possible close to the CachyOS' one but hopefully it will
+>>>>>> be implemented on 7.1, if someone propose the patch and it is accepted. It
+>>>>>> would be amazing to see Asus more interested on Linux and more strict with
+>>>>>> their BIOS but in the end I understand it's like asking for the moon.
+>>>>> Okay thanks for checking. I guess this is what we have to live with for now
+>>>>> until someone finds a better way of dealing with these.
+>>>>>
+>>>>> @Francesco, would you like to submit a new version of the patch similar to
+>>>>> above or you want me to do that?
+>>>> Hans suggested that we might want to look at ripping out this edge triggered events at boot earlier in the thread.
+>>>>
+>>>> https://lore.kernel.org/platform-driver-x86/20260423044211.GD557136@black.igk.intel.com/T/#mdca882e6606d3a894ec7499d3b742d040933dbdb
+>>>>
+>>>> Hans - as you pointed out that the Surface lid state is the only real issue left and you happen to have one do you think you could work up some patches?
+>>> Right, so I read further in the thread that Armin has a maybe better suggestion,
+>>> after that has been merged I can check a bunch of the current devices with
+>>> .no_edge_events_on_boot which I still have and see if those quirks can be
+>>> dropped now.
+>>>
+>>> But the above quirk for the ASUS ROG Strix G16 (2025) does not use
+>>> .no_edge_events_on_boot which just disables the initial run of
+>>> the ACPI event handler at boot. Instead it uses:
+>>>
+>>>              .ignore_interrupt = "AMDI0030:00@21,AMDI0030:00@24",
+>>>
+>>> which *completely* disables the ACPI event handlers for the mentioned pins.
+>> Oh, I've completely lost track of all the quirks that were added after I
+>> did anything with the ACPI GPIO stuff :(. Sorry about missing this. I will
+>> stay silent from now on ;-)
+> 
+> Hi Everyone,
+> 
+> @hans, I tried it and can confirm it does the trick as well.
 
-> The notifications are named display off / on in the document you linked.
->
-> I did not receive a response so I considered it resolved.
+Great, that is good news.
 
-OK, fair enough.
+Thank you for testing.
 
-I'll review the whole series later this week if all goes well.
+Can you try Mario's patch from:
+
+https://lore.kernel.org/platform-driver-x86/f4979d43-f61f-4387-8490-ccec7043c940@kernel.org/
+
+That changes the run-edge-events-at-boot behavior to only run
+under the same conditions as it does under Windows (according to
+the Windows docs). So maybe that will fix things without needing
+a quirk ?
+
+If you give this a test please remember to remove any other
+workarounds like the kernel commandline option.
+
+Regards,
+
+Hans
+
+
