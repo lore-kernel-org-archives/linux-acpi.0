@@ -1,180 +1,262 @@
-Received: from mail-wm1-f44.google.com (mail-wm1-f44.google.com [209.85.128.44])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7B523B9D80
-	for <linux-acpi@vger.kernel.org>; Mon, 27 Apr 2026 12:41:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8FEF3B6C09
+	for <linux-acpi@vger.kernel.org>; Mon, 27 Apr 2026 13:18:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.168.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777293701; cv=none; b=p91w7Gav+N7n/LwBBbyT5lHFeBg0iKvsaYcxQG85ZeQpISJVTXDlF4iRYISEhlEv6nBGQr3lDj4ag8iOvc2uhTVo6ov4TzJ1xsCDgkaJsy9Cse7VICyG2A7+5XDw0pbxnoEss9RFkPduIcGLyqDMkd5+RaSw8DFIKuqFh7eUDfU=
+	t=1777295914; cv=none; b=LiTe5MvLOZa4mZMZjnI08EKMnykkoEaF2xA8ewhtCEoJk4B2Ttdw8rO6PoavGdc8qqX58Y7ccyDaI95V7EyVgIs+/Ggyv9iNyCoYa+px/KbvT6K7JNbJ2rqsc5sKLC482imafEvGKn1RyU9r15lzZeIGCBemZUkbyejn1o3O7KE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777293701; c=relaxed/simple;
-	bh=2vEY9g+jd2zsiuvJOyMZ3k5klcsAKucqskQWVdm7nIQ=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=axFYH9TP2YLudDJwYRR93URDxHCAWwOuv77grBC0a5QYgciid0+ESue7hQhejQJtoB6TXqXQwHrlwFpKm4SsnD/pFSTzwtNN7XjMEMwbF8RKpPWtmzQ0oS8zTJjaVKpq5K73buEtbXByQfpcNuPeVB2c4QMzd4qQZ8rrZ7unZoY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=kp5MbLO0; arc=none smtp.client-ip=209.85.128.44
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1777295914; c=relaxed/simple;
+	bh=qcZdDAZYcucxialNIwKMj7fy8LHoFUSymG/EEtHJ/94=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Ycf3R/tMMbuKk8TPYb3FidbFtc2J0jwPZqYfoT+6BX0v91FuPcei9Kqa403Reca+/dYeBhG5ZUr94krEmUg3T72In24M7D027Us/T1P8eiNicqHm3uakq15jsb8M9wPX0TinAhUSQeoCf2jpx8NSc3IU7BH8aRjuJ/8w98UT05k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=BPRs4Ri4; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=YzbXady9; arc=none smtp.client-ip=205.220.168.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kp5MbLO0"
-Received: by mail-wm1-f44.google.com with SMTP id 5b1f17b1804b1-488ff90d6c7so87149565e9.2
-        for <linux-acpi@vger.kernel.org>; Mon, 27 Apr 2026 05:41:39 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="BPRs4Ri4";
+	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="YzbXady9"
+Received: from pps.filterd (m0279863.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 63RA3nUG3123516
+	for <linux-acpi@vger.kernel.org>; Mon, 27 Apr 2026 13:18:33 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:date:from:message-id:mime-version
+	:subject:to; s=qcppdkim1; bh=zkk15cs4HQuTAwcx0rFc4UdYWGmvwU5NjUq
+	dwPsu1+U=; b=BPRs4Ri4eG80x+9Vb8VjxMScKoLcIBbFyXs1QYFv5rmc7ZCm9oC
+	iCSuySrFoP5p2pKa0p79XuUVdB5Y5Wn0NtfQvl5qhwn2D8B9vnYP1jH7C5WDWhlx
+	E1oaAYF/k0VL2h44fZZAOqvWMmpNtdiwmQm9B8lVX1LqTQ7J85d55HwEL1RQnpXx
+	hsVd41VE3Zd46oFAwEX66HCoDihU02JheuJCr4X4s8rX40YyUYnB8zJ1+ggJRC4s
+	xVqfJzTDE0t2v6DN+Rsw6ytWcK0JbC0M/pDNtCQ6eLcYszU52YnMKL7VH8QAhOTd
+	0HwLYyITCRfBW+56DkdkCx5vHQSC81T9YLQ==
+Received: from mail-vs1-f69.google.com (mail-vs1-f69.google.com [209.85.217.69])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4dt5qggp6y-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <linux-acpi@vger.kernel.org>; Mon, 27 Apr 2026 13:18:32 +0000 (GMT)
+Received: by mail-vs1-f69.google.com with SMTP id ada2fe7eead31-612ef4e6c54so16786262137.2
+        for <linux-acpi@vger.kernel.org>; Mon, 27 Apr 2026 06:18:32 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1777293698; x=1777898498; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=Z0ouDnSC+T9ZSB+2JJ/MTzlB9sk99toFQYA8zN4EEOs=;
-        b=kp5MbLO0VCy1JbI5L+iD8oIg12pUFRmbJDNRhWo2QAQNpVOTvxC4Ot2RWO7Xlgu0xh
-         T6FDg7KEk7zelFW7VbHD14cWrPLQJD8kMQpmmuA0TgDVMLdrbzFGOkdSUur1ZkM3lUA4
-         f4i95SURw4yIS/i3kWmsqn7X5GY4yAh13k1hhaxbXMG0fn7+CN1+KV8oa8dTX9gdYrEM
-         4r2JRfn+XN45JswjwQunEPGjXpNbjOw2mRC991ARn0HR7hcxpJE51LJCXO9PMiraMo/u
-         PJdyXf0vytYPjK2T9Lnwlqh4jGL4Jh1xF42maNHIISl4KxkGg96ydhkNDAiYFZpaIW39
-         RBcw==
+        d=oss.qualcomm.com; s=google; t=1777295912; x=1777900712; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=zkk15cs4HQuTAwcx0rFc4UdYWGmvwU5NjUqdwPsu1+U=;
+        b=YzbXady9dRiFTM1GTJeDdDUDj7H0pI3PDyDxhm9D+5ichusIuyeN0EVxYqh69fJtPr
+         +HPXpHXMFEhxT2C8bHZxqtdTgFTX08Ycoe2nMCT+FcJLPFex1JPZIsjh/tAST7tada53
+         Sno9TK0m4GU6zGxQJ2bUPNEp33A8YXGtCj2BD8AfCuf6YTyyv3hS2iyK1ESlpxE6NBea
+         dRW/SHe1GLNHYdpCYm5YfOjqn4SM+B+3iXgEraCdsvf1KImU6d6C7s/P0+9RRr7fC53Q
+         Zm/vvCkFbNSlMBdZ3Kxlo6wB6oXWBnCRLqiDIDJ14dqX2h9d8AAPPpwqtWHtlhzKk2eL
+         4HLg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1777293698; x=1777898498;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=Z0ouDnSC+T9ZSB+2JJ/MTzlB9sk99toFQYA8zN4EEOs=;
-        b=cfVua0aDbuF8bPhMXxOYNid0ZuQpbSQ0c49FUcs1jWuEoKCG8uhtYFI3i33SkO2nGi
-         rwpFXsDAujggXJ/8VfmBqUJPBKiGHX3ngFKonL0W1HQZAuMJh9AO+xXVgIuoKODjtCu5
-         5ccuNhqFT0JZVJs3PF7SYyvpoW5z+NoNEa8sQHS73N8OpfVD0V02sUt+dFfYbgufagDE
-         nMS+1TM91WI8Mtv+gYOG4clcDL5e4y06ym0VjRGHFPe5d0C5GZhzZt3qP3QVaH69TW+p
-         kG6tQiSHYxbLFDGyBMTsHDOzITiNs7aMDFGQ+4wleNX4vjraf47IQud3V27XNpG6P0QL
-         R/KQ==
-X-Forwarded-Encrypted: i=1; AFNElJ/4hvf0B5GaGGHA5A9dTASMWF9yPykKHP41o6KJ+ifTBoeqDFr7iFkqDaf3ooz0s7he+F5xslFfWtrt@vger.kernel.org
-X-Gm-Message-State: AOJu0YwInCzTDXwlB9+ZRxGO/FXfOIIKfiNJzrJLPmJCEkU6o/KRoPK1
-	MICpzaaq1Xr2VY/lIF2vlqNh0zYT5hYnt68DADl2/4SzArzuCNGjx6/x
-X-Gm-Gg: AeBDietYdBg0d/e4duMGL7BMDf1hQ+JW2eUt/+YwGMmyv7743JB59KS3+KqAAak9i+X
-	M3F1KWVRUYNjcEUQTXvi2ceGpCWKxV1rHECoBn0RrPp1XlCN+19uKYrRNS5qqD0IpOkb36JQbE0
-	Jf1wrtoyvdFkmEu6WNeDyY4YHpKWNpchrbP27wazSX7GRi1Erx6o9xOid4B4l33ySyiFBjuWJiZ
-	QAGcQg+1Et/Y8ue7oaVa9pRP8n6CjrxO0jq/P2wDtxx+oJnr6Rg1ml03MdB8nhZGP9/PRw96XXE
-	VTPRvn9xyu7xlmWc2MoRJLGiOxiSfrbdKehdc6PsU9uGf+0rNDgkEPt/ArmO7XDCAzgxcbljeXO
-	wp4bPre3oXVwIguGHPTxv2GRY9brH+u4tf7CtTvgoPUM84ILBOY/271zGZez7LJGqeVaS/pT8Xl
-	pNG3Qd1GWsvYbQziHBGViqLK0ewtVvt5GZFw26N6XVq9QLc/NWaAzPG3bqr04aRFYkvxO21TC9s
-	5OaGWs=
-X-Received: by 2002:a05:600c:3150:b0:485:3b00:f93b with SMTP id 5b1f17b1804b1-488fb79df09mr631479005e9.31.1777293698059;
-        Mon, 27 Apr 2026 05:41:38 -0700 (PDT)
-Received: from ?IPV6:2a01:e11:202b:40:a4dd:2777:84a8:bc7b? ([2a01:e11:202b:40:a4dd:2777:84a8:bc7b])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-48a55dc9f58sm948747075e9.6.2026.04.27.05.41.37
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 27 Apr 2026 05:41:37 -0700 (PDT)
-Message-ID: <edac84e9-93c0-4248-b28f-c121583b9f65@gmail.com>
-Date: Mon, 27 Apr 2026 14:41:36 +0200
+        d=1e100.net; s=20251104; t=1777295912; x=1777900712;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=zkk15cs4HQuTAwcx0rFc4UdYWGmvwU5NjUqdwPsu1+U=;
+        b=dHUVDBgLQvCB94AXa/df07bsAEwCXvdNKcIxbkyW2LyB+CEl54ZsWxmej4CNL+E5OF
+         UApEWrGHlbM9LtV4QSupZUYZ1dnFn8DChXZ75kTR9opiwsIZra881N8KbCktd3vH0zjU
+         u7Yf/yj7A2sNF5wiytJV6kl8RTaZCsSq8maThefrAyrAlqwtRRL82TiJJJKNgPQlaYcZ
+         juPuR954SS87ZmLjT3Bgz5Txz1E+XJHM2f1yBF7SWgxFvk9qxbxdP3PN/So9fIRa1QA0
+         RPtx2qO1rVM385YPQyVEbdyd549iy1og34MIerVdf9SadqRAjLZTpk5dj7+PG5XNGwaR
+         NFSQ==
+X-Gm-Message-State: AOJu0YynWX04dIaL8b5Wls8Xolb5MAgczNYCRZNQUm/bIRqr4fOAumbh
+	9nPE3sZZyHheEk9TiRTFoqfxaPL7ka5gqe9BcTVS+kLgmc7ITIuLtV2FBxRzPIRdxQdj1L/rXKp
+	p2NnXkVou1HH4WpR7axWdXv/vP/WusAMz1ZI4RZcWvOe17W3mTZzVl0g7hJZ0fbay
+X-Gm-Gg: AeBDievOhmX0rxPqgoMRr2zhrqFv6NcJ9icRCxYDfkghDfllZcxZpIq8mF0tzWK9ddw
+	Oxz2oZ5p2Xtq1dbu4Yn9knC9VvIvImXDN8Pji4DTxU9vrOVXmUMXWEujegVk1vyassWAQaQgqdU
+	KH0BVw2F9pN229jVXc7SRKPiiho9ZUN25bHXOiWQXTkFtXQARxk6YCm5qbLPH3e+qpEI/+F5aGb
+	xW51bhFaqCs917x25kBKiAWRj6MT0Q+4rLphFnPl9b3W4jQj70FHydo8vv94M9Jugpv91s1AmT5
+	EafLnH5shxfjaKL3lg2ySIp3zB/6Vv/sTv2+ZIuwvfO5eryUf+4Y0JIM+m36Gou9z5gkGp1J5Zl
+	H00VqyTPBvwZvkUt00hS19pLHz9YwFFTVB2ym+j0tiGYU92Ea7CDP6LIU0VgF
+X-Received: by 2002:a05:6102:dcd:b0:612:b3af:39f1 with SMTP id ada2fe7eead31-616f68d1bafmr21907521137.18.1777295911907;
+        Mon, 27 Apr 2026 06:18:31 -0700 (PDT)
+X-Received: by 2002:a05:6102:dcd:b0:612:b3af:39f1 with SMTP id ada2fe7eead31-616f68d1bafmr21907497137.18.1777295911521;
+        Mon, 27 Apr 2026 06:18:31 -0700 (PDT)
+Received: from brgl-qcom.home ([2a01:cb1d:dc:7e00:83be:e944:7b0e:ef3d])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-48a66533ff4sm112607135e9.6.2026.04.27.06.18.29
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 27 Apr 2026 06:18:30 -0700 (PDT)
+From: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Daniel Scally <djrscally@gmail.com>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Danilo Krummrich <dakr@kernel.org>
+Cc: linux-acpi@vger.kernel.org, driver-core@lists.linux.dev,
+        linux-kernel@vger.kernel.org, brgl@kernel.org,
+        Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Subject: [PATCH v2] software node: provide wrappers around kobject_get/put()
+Date: Mon, 27 Apr 2026 15:18:25 +0200
+Message-ID: <20260427131825.15793-1-bartosz.golaszewski@oss.qualcomm.com>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [BUG] 36-second boot delay due to by
- acpi_gpio_handle_deferred_request_irqs on ASUS ROG Strix G16 (2025)
-To: Mika Westerberg <mika.westerberg@linux.intel.com>,
- Hans de Goede <hansg@kernel.org>
-Cc: Mario Limonciello <superm1@kernel.org>,
- Francesco Lauritano <francesco.lauritano1@protonmail.com>,
- "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
- "open list:GPIO ACPI SUPPORT" <linux-gpio@vger.kernel.org>,
- "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>,
- "westeri@kernel.org" <westeri@kernel.org>,
- Benjamin Tissoires <bentiss@kernel.org>
-References: <b57b44c3-ea96-4189-8b70-71bf4a80d29b@kernel.org>
- <20251218103831.GW2275908@black.igk.intel.com>
- <51f999d7-2064-47dc-8d9b-e262588bfbdb@gmail.com>
- <20260422090709.GB557136@black.igk.intel.com>
- <4e55e31e-a5e8-4098-8a7f-bb52476b882a@gmail.com>
- <20260422095558.GC557136@black.igk.intel.com>
- <5a36760d-5d1e-4eee-9006-3fed042aa2cd@gmail.com>
- <20260423044211.GD557136@black.igk.intel.com>
- <3d562963-9581-4e0f-b9a0-5f0fe28d2495@kernel.org>
- <c55b55ea-a8d5-481e-916f-eb92aeb2e06d@kernel.org>
- <20260427122806.GN557136@black.igk.intel.com>
-Content-Language: en-US
-From: Marco Scardovi <mscardovi95@gmail.com>
-In-Reply-To: <20260427122806.GN557136@black.igk.intel.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNDI3MDE0MSBTYWx0ZWRfX8wm+UPF2vlHG
+ LRnCY4uPYFitKlcwlprW1uWZOaoU6T/BcEgBrjKtyUhmb3exS5TjXk4nwZ+UnYLifyAAXSvz1xT
+ DrozRtCyhzNe3CaUG8HKbsgzADtS1b7bBj8ClMGUCg3ZPRdEuTs11/rrGjO0LwMRe1Uk/d/V2PX
+ gGwILEQuJYOWYXhxgD1/I/cV9dzsoXGdL41ehOQe8kxQsemakfupjKyrmkc0fV7vyOUnLSVT4XN
+ EYo/6SrlSAkriGKo44Fj0Les+sLqr3CvAvNlxIs4FW/KCpHgPKrLDfF7P6AxtVsUqEwAeJrxhWa
+ 857Yy8W06inMZfma5qv6v53D1fCXcDih7u/iIemXvjheHIvMz5E1cMX7xdDaZ2omIsM/TH49NET
+ QOOhQQ3ebZeRb3yNeJksevamVCN/xJbVPEl0z7uOuDhv+3a0YaSyiw9KmTdXqkCvzEzKBUds3Ji
+ 2b5s0AiBrj8NrDUz/RQ==
+X-Authority-Analysis: v=2.4 cv=V69NF+ni c=1 sm=1 tr=0 ts=69ef6228 cx=c_pps
+ a=5HAIKLe1ejAbszaTRHs9Ug==:117 a=xqWC_Br6kY4A:10 a=A5OVakUREuEA:10
+ a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22
+ a=yOCtJkima9RkubShWh1s:22 a=EUspDBNiAAAA:8 a=bCnx2AzvNVCsJt7Mrv4A:9
+ a=gYDTvv6II1OnSo0itH1n:22
+X-Proofpoint-GUID: qkC6CNiAHfUtr5AM85ah8mqBvUvHsS4Y
+X-Proofpoint-ORIG-GUID: qkC6CNiAHfUtr5AM85ah8mqBvUvHsS4Y
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.51,FMLib:17.12.100.49
+ definitions=2026-04-27_04,2026-04-21_02,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ malwarescore=0 clxscore=1015 suspectscore=0 adultscore=0 spamscore=0
+ phishscore=0 priorityscore=1501 bulkscore=0 impostorscore=0
+ lowpriorityscore=0 classifier=typeunknown authscore=0 authtc= authcc=
+ route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2604200000
+ definitions=main-2604270141
 
+Make the code more readable by avoid constant dereferencing of the
+swnode's kobject when managing references. Provide wrappers that take
+struct swnode * as argument and make them hide that logic.
 
-Il 27/04/26 14:28, Mika Westerberg ha scritto:
-> On Mon, Apr 27, 2026 at 01:46:03PM +0200, Hans de Goede wrote:
->> Hi,
->>
->> On 23-Apr-26 07:15, Mario Limonciello wrote:
->>> On 4/22/26 23:42, Mika Westerberg wrote:
->>>> Hi,
->>>>
->>>> On Wed, Apr 22, 2026 at 02:08:29PM +0200, Marco Scardovi wrote:
->>>>>>> Assuming all the variants suffer the same problem would it be ok to use a
->>>>>>> wildcard for it?
->>>>>> Yeah, we could expand it to all "ROG Strix G16" I think:
->>>>>>
->>>>>> diff --git a/drivers/gpio/gpiolib-acpi-quirks.c b/drivers/gpio/gpiolib-acpi-quirks.c
->>>>>> index a0116f004975..e3a6111854e8 100644
->>>>>> --- a/drivers/gpio/gpiolib-acpi-quirks.c
->>>>>> +++ b/drivers/gpio/gpiolib-acpi-quirks.c
->>>>>> @@ -392,6 +392,23 @@ static const struct dmi_system_id gpiolib_acpi_quirks[] __initconst = {
->>>>>>                 .ignore_wake = "VEN_0488:00@355",
->>>>>>             },
->>>>>>         },
->>>>>> +    {
->>>>>> +        /*
->>>>>> +         * The ASUS ROG Strix G16 (2025) ACPI GPIO configuration
->>>>>> +         * causes acpi_gpio_handle_deferred_request_irqs() to
->>>>>> +         * stall for ~36 seconds during boot so ignore the two
->>>>>> +         * interrupts involved.
->>>>>> +         *
->>>>>> +         * Found in BIOS G614PP.307.
->>>>>> +         */
->>>>>> +        .matches = {
->>>>>> +            DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
->>>>>> +            DMI_MATCH(DMI_PRODUCT_NAME, "ROG Strix G16"),
->>>>>> +        },
->>>>>> +        .driver_data = &(struct acpi_gpiolib_dmi_quirk) {
->>>>>> +            .ignore_interrupt = "AMDI0030:00@21,AMDI0030:00@24",
->>>>>> +        },
->>>>>> +    },
->>>>>>         {} /* Terminating entry */
->>>>>>     };
->>>>> As for now it seems working. I've reverted it on my kernel as I prefer
->>>>> remain as much as possible close to the CachyOS' one but hopefully it will
->>>>> be implemented on 7.1, if someone propose the patch and it is accepted. It
->>>>> would be amazing to see Asus more interested on Linux and more strict with
->>>>> their BIOS but in the end I understand it's like asking for the moon.
->>>> Okay thanks for checking. I guess this is what we have to live with for now
->>>> until someone finds a better way of dealing with these.
->>>>
->>>> @Francesco, would you like to submit a new version of the patch similar to
->>>> above or you want me to do that?
->>> Hans suggested that we might want to look at ripping out this edge triggered events at boot earlier in the thread.
->>>
->>> https://lore.kernel.org/platform-driver-x86/20260423044211.GD557136@black.igk.intel.com/T/#mdca882e6606d3a894ec7499d3b742d040933dbdb
->>>
->>> Hans - as you pointed out that the Surface lid state is the only real issue left and you happen to have one do you think you could work up some patches?
->> Right, so I read further in the thread that Armin has a maybe better suggestion,
->> after that has been merged I can check a bunch of the current devices with
->> .no_edge_events_on_boot which I still have and see if those quirks can be
->> dropped now.
->>
->> But the above quirk for the ASUS ROG Strix G16 (2025) does not use
->> .no_edge_events_on_boot which just disables the initial run of
->> the ACPI event handler at boot. Instead it uses:
->>
->>              .ignore_interrupt = "AMDI0030:00@21,AMDI0030:00@24",
->>
->> which *completely* disables the ACPI event handlers for the mentioned pins.
-> Oh, I've completely lost track of all the quirks that were added after I
-> did anything with the ACPI GPIO stuff :(. Sorry about missing this. I will
-> stay silent from now on ;-)
+Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+---
+Changes in v2:
+- Make swnode_get() return the address of the swnode whose refcount it
+  bumps and use that fact in software_node_get()
 
-Hi Everyone,
+ drivers/base/swnode.c | 40 ++++++++++++++++++++++++----------------
+ 1 file changed, 24 insertions(+), 16 deletions(-)
 
-@hans, I tried it and can confirm it does the trick as well.
-
-
-Best regards,
-
-Marco
+diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
+index a19f8f722bc8e..869228a65cb36 100644
+--- a/drivers/base/swnode.c
++++ b/drivers/base/swnode.c
+@@ -374,20 +374,28 @@ EXPORT_SYMBOL_GPL(property_entries_free);
+ /* -------------------------------------------------------------------------- */
+ /* fwnode operations */
+ 
+-static struct fwnode_handle *software_node_get(struct fwnode_handle *fwnode)
++static struct swnode *swnode_get(struct swnode *swnode)
+ {
+-	struct swnode *swnode = to_swnode(fwnode);
+-
+ 	kobject_get(&swnode->kobj);
+ 
++	return swnode;
++}
++
++static void swnode_put(struct swnode *swnode)
++{
++	kobject_put(&swnode->kobj);
++}
++
++static struct fwnode_handle *software_node_get(struct fwnode_handle *fwnode)
++{
++	struct swnode *swnode = swnode_get(to_swnode(fwnode));
++
+ 	return &swnode->fwnode;
+ }
+ 
+ static void software_node_put(struct fwnode_handle *fwnode)
+ {
+-	struct swnode *swnode = to_swnode(fwnode);
+-
+-	kobject_put(&swnode->kobj);
++	swnode_put(to_swnode(fwnode));
+ }
+ 
+ static bool software_node_property_present(const struct fwnode_handle *fwnode,
+@@ -493,7 +501,7 @@ software_node_get_named_child_node(const struct fwnode_handle *fwnode,
+ 
+ 	list_for_each_entry(child, &swnode->children, entry) {
+ 		if (!strcmp(childname, kobject_name(&child->kobj))) {
+-			kobject_get(&child->kobj);
++			swnode_get(child);
+ 			return &child->fwnode;
+ 		}
+ 	}
+@@ -737,7 +745,7 @@ software_node_find_by_name(const struct software_node *parent, const char *name)
+ 		swnode = kobj_to_swnode(k);
+ 		if (parent == swnode->node->parent && swnode->node->name &&
+ 		    !strcmp(name, swnode->node->name)) {
+-			kobject_get(&swnode->kobj);
++			swnode_get(swnode);
+ 			break;
+ 		}
+ 		swnode = NULL;
+@@ -835,13 +843,13 @@ swnode_register(const struct software_node *node, struct swnode *parent,
+ 					   parent ? &parent->kobj : NULL,
+ 					   "node%d", swnode->id);
+ 	if (ret) {
+-		kobject_put(&swnode->kobj);
++		swnode_put(swnode);
+ 		return ERR_PTR(ret);
+ 	}
+ 
+ 	/*
+ 	 * Assign the flag only in the successful case, so
+-	 * the above kobject_put() won't mess up with properties.
++	 * the above swnode_put() won't mess up with properties.
+ 	 */
+ 	swnode->allocated = allocated;
+ 
+@@ -978,7 +986,7 @@ void fwnode_remove_software_node(struct fwnode_handle *fwnode)
+ 	if (!swnode)
+ 		return;
+ 
+-	kobject_put(&swnode->kobj);
++	swnode_put(swnode);
+ }
+ EXPORT_SYMBOL_GPL(fwnode_remove_software_node);
+ 
+@@ -1002,7 +1010,7 @@ int device_add_software_node(struct device *dev, const struct software_node *nod
+ 
+ 	swnode = software_node_to_swnode(node);
+ 	if (swnode) {
+-		kobject_get(&swnode->kobj);
++		swnode_get(swnode);
+ 	} else {
+ 		ret = software_node_register(node);
+ 		if (ret)
+@@ -1044,7 +1052,7 @@ void device_remove_software_node(struct device *dev)
+ 		software_node_notify_remove(dev);
+ 
+ 	set_secondary_fwnode(dev, NULL);
+-	kobject_put(&swnode->kobj);
++	swnode_put(swnode);
+ }
+ EXPORT_SYMBOL_GPL(device_remove_software_node);
+ 
+@@ -1097,7 +1105,7 @@ void software_node_notify(struct device *dev)
+ 	if (!swnode)
+ 		return;
+ 
+-	kobject_get(&swnode->kobj);
++	swnode_get(swnode);
+ 	ret = sysfs_create_link(&dev->kobj, &swnode->kobj, "software_node");
+ 	if (ret)
+ 		return;
+@@ -1119,11 +1127,11 @@ void software_node_notify_remove(struct device *dev)
+ 
+ 	sysfs_remove_link(&swnode->kobj, dev_name(dev));
+ 	sysfs_remove_link(&dev->kobj, "software_node");
+-	kobject_put(&swnode->kobj);
++	swnode_put(swnode);
+ 
+ 	if (swnode->managed) {
+ 		set_secondary_fwnode(dev, NULL);
+-		kobject_put(&swnode->kobj);
++		swnode_put(swnode);
+ 	}
+ }
+ 
+-- 
+2.47.3
 
