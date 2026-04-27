@@ -1,286 +1,164 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0EE603D6486
-	for <linux-acpi@vger.kernel.org>; Mon, 27 Apr 2026 19:32:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48D0523ABBF;
+	Mon, 27 Apr 2026 19:51:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777318363; cv=none; b=IdJrvupxpL1ZyLkmr3INjIoZdYVoKghSiGvl+tRd/vMVRwZ55s565cFCb8VfonwPPL22y5PyZAVPHWz6B0l40F6bhy4EIvdiSaq/S3z+68IhyD9YiNA6Qvet4iqjWae89czs7t20WmOWvXpXKi9LsaVAnDTUUU5Yt7y4JzlaQP4=
+	t=1777319513; cv=none; b=f8GOL4cb+P4pvxuFSzBwD7xDv9nKqVQpAIZBoHHHg4GZyE9Tf/ygVSeAIE4HH9MbR1FNEA8mFKn6zN79Vi4CQd9Ve2lE60P5DdG9iOCc2MUsu520iXHRzeZ1V1U1vyi4YtmGzJ/6jXAxRJLUzTW4wIKgVkNZAKdo1tpyTlks4/U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777318363; c=relaxed/simple;
-	bh=GcVXS9DHM5KxSH9pj/UKoe1HEQEMUMwCF6ORNHkDtWY=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=eTLQh1/qc8oG73jL77C5b2ntrMGRH7lFjFuZ+gs8rx/L+WDuwpAf+cUpCVwYXhHc+j3oVFhim+OA9DZTaULmBM2Itn50iWg2BKbMdGz3ZriguC33D3wHvPX2fCceakkm1gHj2+i1dCLhK7AEYIzo9wf7sZAvcDNyFPzXdEdKti4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=OOE7miFq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777319513; c=relaxed/simple;
+	bh=LLLageJggb6XA0jICN5xnAQ9JLLp5NgyA2iF7MJNzlk=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=ISgBid1Gn7ZLOqq9GrbRN89vIkza6qqT14f3E7QPpmBaMpUv79mu91mDgqY4urKLIYm/YhVeMBFC7J3XyS2pn9Yb9KpWQRC1FiNdBS9jqXB1NOw8d7EAg7tuYlzbIFALrKjprPL7b4bKD0M9DfaCBxtpvwOgPv+YxJbthIDY1Po=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UZMvp0si; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="OOE7miFq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC845C2BCB5
-	for <linux-acpi@vger.kernel.org>; Mon, 27 Apr 2026 19:32:42 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UZMvp0si"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1006C19425;
+	Mon, 27 Apr 2026 19:51:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1777318362;
-	bh=GcVXS9DHM5KxSH9pj/UKoe1HEQEMUMwCF6ORNHkDtWY=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=OOE7miFq3mxasU1R85/vcilbMy/53K8jtyZ7HUsOiO4Oqvsbxd8FSMidIoQm43/jn
-	 734CPhh9uggVwsTcRz9E2+HFDa8e/X3nIe3XYlthRdXp0EHuT55uIE+VaXHD4p/Nam
-	 TkRPmmp/wN42yYCIfWJVQ4PsLY0m8ZSZhW57NnlUtymqhDWTZeroAM9uM4A1pqwUaG
-	 lFIG1Jgr14IGn7lXYqjq3jsdfHzcbG5W6PBRV17v77HE/L/OCmw+kwULfGtIlSJ34b
-	 8JqYb6JfQnjY9+CM8rqysaX2lcD3j09PrM3Y6G49rCAQ/rTMcdjKDjNYgdWJw7knI9
-	 Vq2u2uIAgIPDw==
-Received: by mail-lj1-f174.google.com with SMTP id 38308e7fff4ca-38eab6cf7d8so100928711fa.1
-        for <linux-acpi@vger.kernel.org>; Mon, 27 Apr 2026 12:32:42 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AFNElJ/6yr/yFf4u7eRxKMru2AwlRhdfDVRx0ttpYSn/tQOeAwn3pPtmJRDAeakmLRw5zxkwb6UjIUWPeOkZ@vger.kernel.org
-X-Gm-Message-State: AOJu0YyfbwR25XDA5Fmql98L5KHDKM8Cg25wKWM+WcVw24B0+qVXFwjz
-	y6E5GOGlcAIxImpw3baIa3FoAuO1T9rB6ibbM8Q0EPo1CnIpyPN9jGI/6vrC4OWcNEKq3xJXSP+
-	ZyB6NWmai1TQhbvZInZijv6b+ukXTQsI=
-X-Received: by 2002:a05:6512:1256:b0:5a3:e7d7:c67 with SMTP id
- 2adb3069b0e04-5a7466035femr65340e87.5.1777318361178; Mon, 27 Apr 2026
- 12:32:41 -0700 (PDT)
+	s=k20201202; t=1777319513;
+	bh=LLLageJggb6XA0jICN5xnAQ9JLLp5NgyA2iF7MJNzlk=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=UZMvp0sipsZwP/FpeUWCnCXnWaCKVMvM8X5bU0Q6FlekDyP+GOldrSJhEmEHZygmo
+	 rMbL0Ufka90gjet2jE+Wgp6VzNv0upjaykL3odiKTXlHVMqdhbul1i0VQmtd/Fr8pa
+	 +/s7lW+yWcRhwXZRWGvBJnn20ePNH5OgSvxRkKUgnCUWJ7gbpEikxlHora2sBeuPSJ
+	 mqxXs8xWXj3cLEx40l8TltCCcZcrKinlrxFdSzLTsCd3tiuPEAmovGoeZBN3kcZbVb
+	 jg1ESd2/dbWzHGqB2WoChADmjZrUudgpPFams2pkWXwIVF297gVNWSDuBB9AjoXAPa
+	 PesacK42/kWNw==
+Message-ID: <976a0bbb-1323-433b-aff5-02611526b1b6@kernel.org>
+Date: Mon, 27 Apr 2026 14:51:51 -0500
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260427-baytrail-real-swnode-v3-0-0003e4c1708c@oss.qualcomm.com> <20260427-baytrail-real-swnode-v3-2-0003e4c1708c@oss.qualcomm.com>
-In-Reply-To: <20260427-baytrail-real-swnode-v3-2-0003e4c1708c@oss.qualcomm.com>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Mon, 27 Apr 2026 21:32:28 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0gR=wvgFomQzjS6rzoJYxwT2sxB60EM52PA4j-iwcXocw@mail.gmail.com>
-X-Gm-Features: AVHnY4JhHwVpV2lDxM_tmrikNutREbg4Pf9PEzlXufNxh7vs1vpuoZx2mRT4OyE
-Message-ID: <CAJZ5v0gR=wvgFomQzjS6rzoJYxwT2sxB60EM52PA4j-iwcXocw@mail.gmail.com>
-Subject: Re: [PATCH v3 2/2] platform/x86: x86-android-tablets: enable fwnode
- matching of GPIO chips
-To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Daniel Scally <djrscally@gmail.com>, 
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
-	Sakari Ailus <sakari.ailus@linux.intel.com>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
-	Danilo Krummrich <dakr@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, 
-	Andy Shevchenko <andy@kernel.org>, Linus Walleij <linusw@kernel.org>, Hans de Goede <hansg@kernel.org>, 
-	=?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, 
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
-	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org, 
-	linux-gpio@vger.kernel.org, platform-driver-x86@vger.kernel.org, 
-	brgl@kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 2/6] ACPI: Add CPPC v4 definitions
+Content-Language: en-US
+To: =?UTF-8?Q?Rafael_J_=2E_Wysocki_=E2=8F=8E?= <rafael@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-pm@vger.kernel.org, K Prateek Nayak <kprateek.nayak@amd.com>,
+ x86@kernel.org
+References: <20260427035520.1427080-1-superm1@kernel.org>
+ <20260427035520.1427080-3-superm1@kernel.org>
+From: Mario Limonciello <superm1@kernel.org>
+In-Reply-To: <20260427035520.1427080-3-superm1@kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Mon, Apr 27, 2026 at 2:19=E2=80=AFPM Bartosz Golaszewski
-<bartosz.golaszewski@oss.qualcomm.com> wrote:
->
-> In order to allow GPIOLIB to match cherryview and baytrail GPIO
-> controllers by their firmware nodes instead of their names, we need to
-> attach the - currently "dangling" - existing software nodes to their
-> target devices dynamically.
->
-> We deal with devices described in ACPI so set up a bus notifier waiting
-> for the ADD events. We know the name of the device we're waiting for so
-> match against it and - on match - assign the appropriate software node
-> as the secondary firmware node of the underlying ACPI node. In case the
-> event was emitted earlier than this driver's probe: also make sure the
-> device was not added before.
->
-> Scheduling fine-grained devres actions allows for proper teardown and
-> unsetting of the secondary firmware nodes.
->
-> Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+On 4/26/26 22:55, Mario Limonciello (AMD) wrote:
+> ACPI 6.6 introduced new optional package values for
+> `OSPMNominalPerformanceRegister` and
+> `ResourcePriorityRegisters`.
+> 
+> Add these into the defines.  As they're not used right now they are not
+> wired up to anything at this time.
+> 
+> Link: https://uefi.org/specs/ACPI/6.6/08_Processor_Configuration_and_Control.html#cpc-continuous-performance-control
+> Signed-off-by: Mario Limonciello (AMD) <superm1@kernel.org>
+
+This patch will be dropped in favor of Sumit's patches on the same subject.
+
+https://lore.kernel.org/linux-acpi/20260427051823.280419-1-sumitg@nvidia.com/
+
+I will rebase the next version of the series on this instead.
+
 > ---
->  drivers/platform/x86/x86-android-tablets/core.c | 127 ++++++++++++++++++=
-+++++-
->  1 file changed, 124 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/platform/x86/x86-android-tablets/core.c b/drivers/pl=
-atform/x86/x86-android-tablets/core.c
-> index 021009e9085bec3db9c4daa1f6235600210a6099..9e6e8f272dfe16cda421b5698=
-02045c3d94fc0ab 100644
-> --- a/drivers/platform/x86/x86-android-tablets/core.c
-> +++ b/drivers/platform/x86/x86-android-tablets/core.c
-> @@ -13,10 +13,12 @@
->  #include <linux/acpi.h>
->  #include <linux/device.h>
->  #include <linux/dmi.h>
-> +#include <linux/fwnode.h>
->  #include <linux/gpio/consumer.h>
->  #include <linux/gpio/machine.h>
->  #include <linux/irq.h>
->  #include <linux/module.h>
-> +#include <linux/notifier.h>
->  #include <linux/pci.h>
->  #include <linux/platform_device.h>
->  #include <linux/serdev.h>
-> @@ -360,6 +362,124 @@ static const struct software_node *cherryview_gpioc=
-hip_node_group[] =3D {
->         NULL
->  };
->
-> +struct auto_secondary_data {
-> +       struct notifier_block nb;
-> +       struct device *parent;
-> +};
-> +
-> +static void auto_secondary_unset(void *data)
-> +{
-> +       struct fwnode_handle *fwnode =3D data;
-> +
-> +       fwnode->secondary =3D NULL;
-> +}
-> +
-> +static int acpi_set_secondary_fwnode(struct device *parent, struct devic=
-e *dev,
-> +                                    const struct software_node *const sw=
-node)
-> +{
-> +       struct acpi_device *device =3D to_acpi_device(dev);
-> +       struct fwnode_handle *fwnode;
-> +       int ret;
-> +
-> +       fwnode =3D software_node_fwnode(swnode);
-> +       if (WARN_ON(!fwnode))
-> +               return -ENOENT;
-> +
-> +       fwnode->secondary =3D ERR_PTR(-ENODEV);
-> +       device->fwnode.secondary =3D fwnode;
-> +
-> +       ret =3D devm_add_action_or_reset(parent, auto_secondary_unset, &d=
-evice->fwnode);
-> +       if (ret)
-> +               dev_err(parent, "Failed to schedule the unset action for =
-secondary fwnode\n");
-> +
-> +       return ret;
-> +}
-> +
-> +static int acpi_auto_secondary_notifier(struct notifier_block *nb,
-> +                                       unsigned long action, void *data)
-> +{
-> +       struct auto_secondary_data *auto_sec =3D container_of(nb, struct =
-auto_secondary_data, nb);
-> +       const struct software_node *const *swnode;
-> +       struct device *dev =3D data;
-> +       int ret;
-> +
-> +       switch (action) {
-> +       case BUS_NOTIFY_ADD_DEVICE:
-> +               for (swnode =3D gpiochip_node_group; *swnode; swnode++) {
-> +                       if (strcmp((*swnode)->name, dev_name(dev)) =3D=3D=
- 0) {
-> +                               ret =3D acpi_set_secondary_fwnode(auto_se=
-c->parent, dev, *swnode);
-> +                               return ret ? NOTIFY_BAD : NOTIFY_OK;
-> +                       }
-> +               }
-> +               break;
-> +       default:
-> +               break;
-> +       }
-> +
-> +       return NOTIFY_DONE;
-> +}
-> +
-> +static void auto_secondary_unregister_node_group(void *data)
-> +{
-> +       const struct software_node **nodes =3D data;
-> +
-> +       software_node_unregister_node_group(nodes);
-> +}
-> +
-> +static void auto_secondary_unregister_notifier(void *data)
-> +{
-> +       struct notifier_block *nb =3D data;
-> +
-> +       bus_unregister_notifier(&acpi_bus_type, nb);
+>   drivers/acpi/cppc_acpi.c | 16 ++++++++++++----
+>   include/acpi/cppc_acpi.h | 13 +++++++++----
+>   2 files changed, 21 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+> index 2e91c5a977611..cbfebc50b6eab 100644
+> --- a/drivers/acpi/cppc_acpi.c
+> +++ b/drivers/acpi/cppc_acpi.c
+> @@ -755,14 +755,15 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
+>   	 */
+>   	if ((cpc_rev == CPPC_V2_REV && num_ent != CPPC_V2_NUM_ENT) ||
+>   	    (cpc_rev == CPPC_V3_REV && num_ent != CPPC_V3_NUM_ENT) ||
+> -	    (cpc_rev > CPPC_V3_REV && num_ent <= CPPC_V3_NUM_ENT)) {
+> +	    (cpc_rev == CPPC_V4_REV && num_ent != CPPC_V4_NUM_ENT) ||
+> +	    (cpc_rev > CPPC_V4_REV && num_ent <= CPPC_V4_NUM_ENT)) {
+>   		pr_debug("Unexpected number of _CPC return package entries (%d) for CPU:%d\n",
+>   			 num_ent, pr->id);
+>   		goto out_free;
+>   	}
+> -	if (cpc_rev > CPPC_V3_REV) {
+> -		num_ent = CPPC_V3_NUM_ENT;
+> -		cpc_rev = CPPC_V3_REV;
+> +	if (cpc_rev > CPPC_V4_REV) {
+> +		num_ent = CPPC_V4_NUM_ENT;
+> +		cpc_rev = CPPC_V4_REV;
+>   	}
+>   
+>   	cpc_ptr->num_entries = num_ent;
+> @@ -845,6 +846,13 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
+>   
+>   			cpc_ptr->cpc_regs[i-2].type = ACPI_TYPE_BUFFER;
+>   			memcpy(&cpc_ptr->cpc_regs[i-2].cpc_entry.reg, gas_t, sizeof(*gas_t));
+> +		} else if (cpc_obj->type == ACPI_TYPE_PACKAGE) {
+> +			/*
+> +			 * CPPC v4 ResourcePriorityRegisters is a Package.
+> +			 * Store NULL for now as it's not wired up to anything.
+> +			 */
+> +			cpc_ptr->cpc_regs[i-2].type = ACPI_TYPE_PACKAGE;
+> +			cpc_ptr->cpc_regs[i-2].cpc_entry.pkg_data = NULL;
+>   		} else {
+>   			pr_debug("Invalid entry type (%d) in _CPC for CPU:%d\n",
+>   				 i, pr->id);
+> diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
+> index d1f02ceec4f98..38bf9013c6e2e 100644
+> --- a/include/acpi/cppc_acpi.h
+> +++ b/include/acpi/cppc_acpi.h
+> @@ -17,16 +17,18 @@
+>   #include <acpi/pcc.h>
+>   #include <acpi/processor.h>
+>   
+> -/* CPPCv2 and CPPCv3 support */
+> +/* CPPC support */
+>   #define CPPC_V2_REV	2
+>   #define CPPC_V3_REV	3
+> +#define CPPC_V4_REV	4
+>   #define CPPC_V2_NUM_ENT	21
+>   #define CPPC_V3_NUM_ENT	23
+> +#define CPPC_V4_NUM_ENT	25
+>   
+>   #define PCC_CMD_COMPLETE_MASK	(1 << 0)
+>   #define PCC_ERROR_MASK		(1 << 2)
+>   
+> -#define MAX_CPC_REG_ENT 21
+> +#define MAX_CPC_REG_ENT 23
+>   
+>   /* CPPC specific PCC commands. */
+>   #define	CMD_READ 0
+> @@ -60,8 +62,8 @@ struct cpc_reg {
+>   
+>   /*
+>    * Each entry in the CPC table is either
+> - * of type ACPI_TYPE_BUFFER or
+> - * ACPI_TYPE_INTEGER.
+> + * of type ACPI_TYPE_BUFFER, ACPI_TYPE_INTEGER,
+> + * or ACPI_TYPE_PACKAGE (for CPPC v4 ResourcePriorityRegisters).
+>    */
+>   struct cpc_register_resource {
+>   	acpi_object_type type;
+> @@ -69,6 +71,7 @@ struct cpc_register_resource {
+>   	union {
+>   		struct cpc_reg reg;
+>   		u64 int_value;
+> +		void *pkg_data;
+>   	} cpc_entry;
+>   };
+>   
+> @@ -109,6 +112,8 @@ enum cppc_regs {
+>   	REFERENCE_PERF,
+>   	LOWEST_FREQ,
+>   	NOMINAL_FREQ,
+> +	OSPM_NOMINAL_PERF,
+> +	RESOURCE_PRIO,
+>   };
+>   
+>   /*
 
-Please introduce acpi_bus_unregister_notifier() and use it here instead.
-
-> +}
-> +
-> +static int auto_secondary_fwnode_init(struct device *parent)
-> +{
-> +       const struct software_node *const *swnode;
-> +       struct auto_secondary_data *data;
-> +       int ret;
-> +
-> +       ret =3D software_node_register_node_group(gpiochip_node_group);
-> +       if (ret)
-> +               return ret;
-> +
-> +       ret =3D devm_add_action_or_reset(parent,
-> +                                      auto_secondary_unregister_node_gro=
-up,
-> +                                      gpiochip_node_group);
-> +       if (ret)
-> +               return ret;
-> +
-> +       data =3D devm_kzalloc(parent, sizeof(*data), GFP_KERNEL);
-> +       if (!data)
-> +               return -ENOMEM;
-> +
-> +       data->nb.notifier_call =3D acpi_auto_secondary_notifier;
-> +       data->parent =3D parent;
-> +
-> +       ret =3D bus_register_notifier(&acpi_bus_type, &data->nb);
-
-Please introduce acpi_bus_register_notifier() and use it here instead.
-
-> +       if (ret)
-> +               return ret;
-> +
-> +       ret =3D devm_add_action_or_reset(parent,
-> +                                      auto_secondary_unregister_notifier=
-,
-> +                                      &data->nb);
-> +       if (ret)
-> +               return ret;
-> +
-> +       /* Device may have been already added. */
-> +       for (swnode =3D gpiochip_node_group; *swnode; swnode++) {
-> +               struct device *dev __free(put_device) =3D
-> +                       bus_find_device_by_name(&acpi_bus_type, NULL, (*s=
-wnode)->name);
-
-Please introduce acpi_bus_find_device_by_name() and use it here instead.
-
-> +               if (dev) {
-> +                       ret =3D acpi_set_secondary_fwnode(parent, dev, *s=
-wnode);
-> +                       if (ret)
-> +                               return ret;
-> +               }
-> +       }
-> +
-> +       return 0;
-> +}
-> +
->  static void x86_android_tablet_remove(struct platform_device *pdev)
->  {
->         int i;
-> @@ -391,7 +511,6 @@ static void x86_android_tablet_remove(struct platform=
-_device *pdev)
->
->         software_node_unregister_node_group(gpio_button_swnodes);
->         software_node_unregister_node_group(swnode_group);
-> -       software_node_unregister_node_group(gpiochip_node_group);
->  }
->
->  static __init int x86_android_tablet_probe(struct platform_device *pdev)
-> @@ -427,9 +546,11 @@ static __init int x86_android_tablet_probe(struct pl=
-atform_device *pdev)
->                 break;
->         }
->
-> -       ret =3D software_node_register_node_group(gpiochip_node_group);
-> -       if (ret)
-> +       ret =3D auto_secondary_fwnode_init(&pdev->dev);
-> +       if (ret) {
-> +               x86_android_tablet_remove(pdev);
->                 return ret;
-> +       }
->
->         ret =3D software_node_register_node_group(dev_info->swnode_group)=
-;
->         if (ret) {
->
-> --
-> 2.47.3
->
->
