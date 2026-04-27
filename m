@@ -1,524 +1,204 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.11])
+Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB7A224293C;
-	Mon, 27 Apr 2026 09:29:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E57D227BB5
+	for <linux-acpi@vger.kernel.org>; Mon, 27 Apr 2026 10:46:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.168.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777282189; cv=none; b=n5vPreZtWUxy0QSdN4pVjTTxanuLNHJJLd/tt5c9Al1slQmAHAxMZa0lGrhBMdoikY4i/rMJ+zZl1skKlEiGMLz42ZJClG2xi9NsX5/hmHm3yBjVD1Ec8rsd2/MrdKX5sIggaOYQL5jCtU/LzhMN5jM8oOjCT8H3YCldvKQV7go=
+	t=1777286816; cv=none; b=nVqDAqKw/jEcfSWC2NB0oin7+P3tt3hePe4vixyBfrzQhh5zrOyDdngtP7i2D3/LqplTlQcZHsR0bTy/BQaW1puk0YyaKNTyBW1FBC8RZQxK7VfjcAo8UmAZEVFqkeYvArlsaa+gRUjsKHOOLzufNivsdCom7fkUm67W+OwHyFA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777282189; c=relaxed/simple;
-	bh=0ZE28fdR++/Wwu1MPpbwzMM01P9R5yy+JLPyS6qiCQU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=uij0VKzv7ifToOdP5ClA909+E+9wS3rSb7bguyU1+zxYNY8AdtjQdCtDq9g1YlbKBjN297jG+OnACih1008kLsSjausRxB26hZhRoOJU4+Y11vTGzW7hiXOC8oKTBM6fY6TNaNSBLs/HUiwC3TsdhDfLI8TuJuBvu5z+ASxeadY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=kP/0iBr+; arc=none smtp.client-ip=198.175.65.11
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1777286816; c=relaxed/simple;
+	bh=YRML3/4wubgO3BKLVRzWveh6hjcAaWgMYaQc9TCSNb8=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=jtERPGRIWt0I4MirlCXBMXlwECitNZLCVA9xzxUTzvVvv35zyR5Yk8weOPxaYWlEBmTvYBceZwtzv+PEUWK00IEtNas7qDUwj6oAo+Y2nlV2e5L5PYa5LqhJWhdSce3819FaF+CZfV1s7kabFG+O4a7ouOx2WL561BcNRQtHbr8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=Ry9QQjob; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=FCbl8QFW; arc=none smtp.client-ip=205.220.168.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="kP/0iBr+"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1777282187; x=1808818187;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=0ZE28fdR++/Wwu1MPpbwzMM01P9R5yy+JLPyS6qiCQU=;
-  b=kP/0iBr+kUtl6ThPUtxiiiSsueIfgZW7kQkD2zYRYitDyS2VtXRpxCe1
-   KBdjENzRcugMLMkkxrlXnhnZjvr9hw8S9vkPquhn9qAcY3G5qzjsq16Sf
-   LVvlhXH7IXK7BGrnxHLELci0PvHK2j148cDJVDZHf9VAEPoQUAe89Uj9R
-   vhy2jvLtry/1LMYSPAU52LnLxbObNhbgaVyMcPMXqG0lEeKdFWWY0CkW7
-   A4VE+Dx709agW2iV0oCR+SkR4gmomIWqKClscKpvHK8954qYGdVYA24hZ
-   eBXaJ68x2Qq5Uk3ATUI8cU7DI50fJANDY99V2xXmNJ5CGsaIRDtMFrjtM
-   A==;
-X-CSE-ConnectionGUID: tvan6bHdSeCQc7cI+PR9jg==
-X-CSE-MsgGUID: vN7xz1u2QHac6L0efVJs3A==
-X-IronPort-AV: E=McAfee;i="6800,10657,11768"; a="88478933"
-X-IronPort-AV: E=Sophos;i="6.23,201,1770624000"; 
-   d="scan'208";a="88478933"
-Received: from orviesa010.jf.intel.com ([10.64.159.150])
-  by orvoesa103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Apr 2026 02:29:45 -0700
-X-CSE-ConnectionGUID: +NytCJueTK2KVuFJgOWrZA==
-X-CSE-MsgGUID: doyzn9G1RZCKCHDeQ5DGEw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.23,201,1770624000"; 
-   d="scan'208";a="232707640"
-Received: from igk-lkp-server01.igk.intel.com (HELO bdf09bfdbd5f) ([10.211.93.152])
-  by orviesa010.jf.intel.com with ESMTP; 27 Apr 2026 02:29:43 -0700
-Received: from kbuild by bdf09bfdbd5f with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1wHIHc-0000000040P-1Cxd;
-	Mon, 27 Apr 2026 09:29:40 +0000
-Date: Mon, 27 Apr 2026 11:28:42 +0200
-From: kernel test robot <lkp@intel.com>
-To: Maxwell Doose <m32285159@gmail.com>, rafael@kernel.org, lenb@kernel.org
-Cc: oe-kbuild-all@lists.linux.dev, andy@kernel.org, westeri@kernel.org,
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2] ACPI: pmic: Replace mutex_lock/unlock() with
- guard()/scoped_guard()
-Message-ID: <202604271142.bKGFhwIQ-lkp@intel.com>
-References: <20260424220110.25929-1-m32285159@gmail.com>
+	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="Ry9QQjob";
+	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="FCbl8QFW"
+Received: from pps.filterd (m0279864.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 63R9OgJK3825281
+	for <linux-acpi@vger.kernel.org>; Mon, 27 Apr 2026 10:46:54 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:content-type:date:from:message-id
+	:mime-version:subject:to; s=qcppdkim1; bh=8BXF30rYIbp1AFSMQS7md7
+	DuGRyYvVsJVET8/FPU4oo=; b=Ry9QQjobYnoN0yZY5QYzJCvfP/8S9zvBWQgLlt
+	n/nvl3ogvZPaWQAnVYq0nGzk5jd8SNKIqudewE8X0wuzGnpgNZzLuR4Gh+v0K24M
+	1ndKEvpi2U7IAjllwV/UC3Fdatt0vjl42rORzQBNAxqG5A8Pn9EYi/koproGgaCt
+	+J993EA6pDClMijoH7uMnjlr/4LXIxBcC9VJuDvAEYfbGsHYhUMTfEpAXBxK1V8t
+	t7eD4bFeJTf8acCGTr7QKj+VUaPt8N7LvILZTWXwnHrPiIge0aype5VmPfsdqZyd
+	U5GRBs2zdMvNr2tZusNcJafAm8vijDkLTvhR0jABSMv2iz1Q==
+Received: from mail-qt1-f200.google.com (mail-qt1-f200.google.com [209.85.160.200])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4dt5550bjc-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <linux-acpi@vger.kernel.org>; Mon, 27 Apr 2026 10:46:53 +0000 (GMT)
+Received: by mail-qt1-f200.google.com with SMTP id d75a77b69052e-50fbc70cfbdso149038181cf.2
+        for <linux-acpi@vger.kernel.org>; Mon, 27 Apr 2026 03:46:53 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=oss.qualcomm.com; s=google; t=1777286813; x=1777891613; darn=vger.kernel.org;
+        h=cc:to:content-transfer-encoding:mime-version:message-id:date
+         :subject:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=8BXF30rYIbp1AFSMQS7md7DuGRyYvVsJVET8/FPU4oo=;
+        b=FCbl8QFWMp1NCwp5JpGKPgD5wGkK1EsrHlaIQrtiqCItaUIhOZGOPK2JixQ+S768HR
+         4Y+Kgcwyik7UdPPC/4Kan6IePmu4kXV5RCTj+pHK5bDMdUmqvZs7Fslzv321YyDsIoVr
+         KCnaShO3ubiB/8AHDTQ2QN9VnD3Sw4bxkKniYStaHE4Qt0huST5qSeqwkpun52noW/YC
+         YP9obt3LFG20KEhQRNTHMJofEhpsnS2Rwemqv3w0wf5piMT8360rQQSKNCAiRB1RAlUN
+         eC+1y7Ba2ielziLqE1LgMmfRqSuxVIQEGdKmxYrBUY96PoTmw5woGGWQGnedwWe4Nmmm
+         Ch6g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1777286813; x=1777891613;
+        h=cc:to:content-transfer-encoding:mime-version:message-id:date
+         :subject:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=8BXF30rYIbp1AFSMQS7md7DuGRyYvVsJVET8/FPU4oo=;
+        b=BmqoIBnw4OUp18zxWiBLq0tjMvhyAMhZiN1lq1fKcRMOEBZZMryGzlx2K965e18fpS
+         Js4NIlw9CC7ErisBMsuwY5rYapU3+rDG7lWTN+sKkoHeATBUqFOOII6+ey/m1lRB93m8
+         DJ+BY4YUfY3jbr7dulzL7UZJ7DdSe8v6ubxQeb9HpjSPgYRtN3YolxuM51k/xL0Oxm2H
+         OTlHN5A3njSBOe65185/UWsEn6mbB+Qi6BmfoAnYQFzY+hsIP6uGeGLXZ7sFKaT+vpmh
+         dqdSHIwDFbFGSSadwfRauOjmz9Fu8kmLUn7zgHrmDwfSDUFsnsWIlB8k4qgIuzRmpwHs
+         sZ6Q==
+X-Forwarded-Encrypted: i=1; AFNElJ/58+oZFR2463+/7ey2VTB/ZfUn4sG3c298eNEBLhF/T4foZWyx13kMfMGcLdgCKKxQvq1fEVPVK2s5@vger.kernel.org
+X-Gm-Message-State: AOJu0YyjAZbGsjH/mxAFlGclj4uHzg2RBvzSKS+bRkURZnIiMGSmvOeO
+	WALM8tld25VFXKCLtOsU1JOLW+9KDqYsoRbEH6N5VOu7j5mVGDKC2VOczS46CAFio6pYQy10Eeb
+	HnVgEnXHSbGW2EYGubF9a7emoG7kMwTEyolSjESy5PLw855Z2ncx7ekGLvH6khr/o
+X-Gm-Gg: AeBDievWC3QEtbQZ5Ny3OulociQgrW5C1peegSCH3dL95ie9j2huynCrE3zhoUx4e6L
+	gMOW1JK2CaJk8WVBwpsvDGeln4aCwLOAIycbyU9rdTe2VcK1dnXE4QdOftk7IubWqoJxu5g/cIR
+	UKfu2tzInCKa9aYgf5D5mKS1evcs0hKB+tajsfiHw4vBJ8flV0aSl+yUCUU9ZVb/2SlexOqRfLp
+	sw51LKse6yU2gZ470FOfx4EgkTTMeD1etowhngH6/vPYMNw5oWaIgqpySRvFwep3YPsqUkuz5bA
+	P2c0GU8KAz6i1ITzF71OttDsbcs2tgrfHlcsil1iVDd0lxKkv0nZsSGG/WsZYUUvFzGQcFsu1Tn
+	ECXAIN8vtEvOR5x4UbuG3EjIN5i3UE8CJFllAUzzbcOvY3w1QkKxxdJxU1T0pHw==
+X-Received: by 2002:ac8:5790:0:b0:50d:8cad:2381 with SMTP id d75a77b69052e-50e36f18d42mr627543601cf.54.1777286812948;
+        Mon, 27 Apr 2026 03:46:52 -0700 (PDT)
+X-Received: by 2002:ac8:5790:0:b0:50d:8cad:2381 with SMTP id d75a77b69052e-50e36f18d42mr627543071cf.54.1777286812430;
+        Mon, 27 Apr 2026 03:46:52 -0700 (PDT)
+Received: from brgl-qcom.local ([2a01:cb1d:dc:7e00:5062:ae86:23aa:702c])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-43fe4cc2cacsm80353681f8f.13.2026.04.27.03.46.50
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 27 Apr 2026 03:46:51 -0700 (PDT)
+From: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Subject: [PATCH v6 0/3] ARM: omap1: use real firmware node lookup for GPIOs
+ on Nokia 770
+Date: Mon, 27 Apr 2026 12:46:31 +0200
+Message-Id: <20260427-nokia770-gpio-swnodes-v6-0-b693296c1985@oss.qualcomm.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260424220110.25929-1-m32285159@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAIc+72kC/4XNSw7CIBCA4as0rKUhPIsr72Fc0ILtRIUKipqmd
+ 5d240bjZpJ/kvlmQslFcAltqwlFlyFB8CXkpkLdYHzvMNjSiBIqCWME+3ACoxTB/QgBp4cP1iU
+ srGlaw4Tm0qFyO0Z3hOfq7g+lB0i3EF/rm8yX7T8xc0xwKxuhqdNKWbILKdXXuzl34XKpy0ALn
+ MUH44T+wkTBrGLEtsxaqvUXbJ7nN/iScG0OAQAA
+X-Change-ID: 20260330-nokia770-gpio-swnodes-5da8ba35946e
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Danilo Krummrich <dakr@kernel.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Daniel Scally <djrscally@gmail.com>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Aaro Koskinen <aaro.koskinen@iki.fi>,
+        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
+        Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        Kevin Hilman <khilman@baylibre.com>, Arnd Bergmann <arnd@arndb.de>
+Cc: brgl@kernel.org, driver-core@lists.linux.dev, linux-kernel@vger.kernel.org,
+        linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-omap@vger.kernel.org,
+        Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+X-Mailer: b4 0.14.2
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1928;
+ i=bartosz.golaszewski@oss.qualcomm.com; h=from:subject:message-id;
+ bh=YRML3/4wubgO3BKLVRzWveh6hjcAaWgMYaQc9TCSNb8=;
+ b=owEBbQKS/ZANAwAKAQWdLsv/NoTDAcsmYgBp7z6PK3nq1haznfGr8//ff9K8BQVl7mgRVhqYj
+ +aI9ADMb8KJAjMEAAEKAB0WIQSR5RMt5bVGHXuiZfwFnS7L/zaEwwUCae8+jwAKCRAFnS7L/zaE
+ w7nnD/9AMYdqg75oZStvRYC5FCyQ2IE2ivLl2cj1MByL/F7KHa5TAPL4LF8aDOusADUsd4Vgakg
+ AJO23vfiElRCFVsqBY5W7BaTdW90nZRPr5zZmhqq9OkKThMiU/K1HF4bBuNP0cGEnep7lW0CoxZ
+ 6LruRyg4K6P2fDvlzH8u9x31q7g2r42VQsHg8za9Y7mr432v9+xQsUcfMAvZkDAfu+tNt/5+naH
+ RQvRICsNPsXsxblDLO+qwLOcwFvoUPeiRfCC2DJaU8anql7CqdHch3QNjwp9q5exov3+I9WMU1O
+ OK1HvP27Jso0PH7OPQohRYz2iDnzSvsESBVpVlaPwxXjT9/U+zmdmYiEKPGAHthmRwNWDg29ZB0
+ fqV9VcdUVhVAdTAJzPm+Od+4kuBCQcfDTn4y9opqei9iXIr6ox55NItZdV3BSQcxiQSUH+YIUfp
+ xDQjfc76y8My1uXMA9ZdZUr7tUkkV1ZCzr4i11EQP8VbL3NfCKmv0s+RVb5OKLuIX6NJmq8lx40
+ 1vBv1n73Iz36Xu66+PFeckqSSITHNnMfy/TdmjJv0xFBaAqyftoANFjx61rrCCRaQvXluMtVemX
+ YmW13Yf615p1HgSgiskOrwLGVkaRMh7LTSMvJ/XnweiMAnK8DDGPXm6XKZdcBHyOgHtTZ7L1e+s
+ 2ygmuEHqFUOXj6g==
+X-Developer-Key: i=bartosz.golaszewski@oss.qualcomm.com; a=openpgp;
+ fpr=169DEB6C0BC3C46013D2C79F11A72EA01471D772
+X-Proofpoint-GUID: A67FisL4YafxqrjZ8or50aS8PC7xte8N
+X-Authority-Analysis: v=2.4 cv=CJEamxrD c=1 sm=1 tr=0 ts=69ef3e9d cx=c_pps
+ a=JbAStetqSzwMeJznSMzCyw==:117 a=xqWC_Br6kY4A:10 a=IkcTkHD0fZMA:10
+ a=A5OVakUREuEA:10 a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=u7WPNUs3qKkmUXheDGA7:22 a=DJpcGTmdVt4CTyJn9g5Z:22 a=bC-a23v3AAAA:8
+ a=EUspDBNiAAAA:8 a=VwQbUJbxAAAA:8 a=vccPQ2CF_Qf-qLDx940A:9 a=QEXdDO2ut3YA:10
+ a=uxP6HrT_eTzRwkO_Te1X:22 a=FO4_E8m0qiDe52t0p3_H:22
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNDI3MDExNCBTYWx0ZWRfX3+72/p9dGqyX
+ LGg2nIfwfdGSM5/ViUM7HrLVAcl1z5jnsvxBwh2eAWJPJZvIrgMr6Opnll+s4Qrq+RdpOE+hhSA
+ DFo7pttv2Har3y8JSPiObBKDZKASIdNns0F444V0Pi1DYMzGOIRcJqMI0AynCH/kmRKQ1APEn4s
+ 9+q56l1U8zPblodOjTqWa2zfICXSE/wcoqIvhdMczQTFK/KR7qPmSX8R9HjuuHrreYPJ6/v8epj
+ a8F/yXVYYdFIGK/goe/Jo/L+w5yONcBuF9Jy6JQfkj39Y92Q5L5noaunQjyCzBcMo94LT3BPdNr
+ Xs7bS1E1o9zGRDHUze1SPwsI02qIyOvrMp/FA4/fVbvQ5FgjCT33p3IW2vmlLzHKWsdFE/THA7v
+ jQTPWNXB+B8Kd6u3dpCtfa6afJfQwGOVVf3c+CL5ulY5dF3p6QCTV9aUgha2B74yKOCJsdPnDEW
+ pYnjOTFoh2OkLqGXCcQ==
+X-Proofpoint-ORIG-GUID: A67FisL4YafxqrjZ8or50aS8PC7xte8N
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.51,FMLib:17.12.100.49
+ definitions=2026-04-27_03,2026-04-21_02,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ clxscore=1015 impostorscore=0 malwarescore=0 spamscore=0 lowpriorityscore=0
+ priorityscore=1501 adultscore=0 bulkscore=0 phishscore=0 suspectscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2604200000 definitions=main-2604270114
 
-Hi Maxwell,
+This converts Nokia 770 to using real firmware node lookup for GPIOs by
+attaching the software nodes describing GPIO controllers to their target
+devices.
 
-kernel test robot noticed the following build errors:
+Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+---
+Changes in v6:
+- Switch to using platform_device_register_full() and pass the software
+  node via the swnode field of struct platform_device_info
+- Drop driver-core prerequisites from the series
+- Rebase on top of v7.1-rc1
+- Add patch dropping an unused variable
+- Link to v5: https://patch.msgid.link/20260402-nokia770-gpio-swnodes-v5-0-d730db3dd299@oss.qualcomm.com
 
-[auto build test ERROR on rafael-pm/linux-next]
-[also build test ERROR on rafael-pm/bleeding-edge linus/master v7.1-rc1 next-20260424]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
+Changes in v5:
+- Put ksysfs_init() in a separate new header
+- Remove software_node_exit() in a separate patch
+- Link to v4: https://patch.msgid.link/20260330-nokia770-gpio-swnodes-v4-0-b68592e977d0@oss.qualcomm.com
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Maxwell-Doose/ACPI-pmic-Replace-mutex_lock-unlock-with-guard-scoped_guard/20260426-085114
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
-patch link:    https://lore.kernel.org/r/20260424220110.25929-1-m32285159%40gmail.com
-patch subject: [PATCH v2] ACPI: pmic: Replace mutex_lock/unlock() with guard()/scoped_guard()
-config: x86_64-rhel-9.4-ltp (https://download.01.org/0day-ci/archive/20260427/202604271142.bKGFhwIQ-lkp@intel.com/config)
-compiler: gcc-14 (Debian 14.2.0-19) 14.2.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260427/202604271142.bKGFhwIQ-lkp@intel.com/reproduce)
+Changes in v4:
+- Add patches making software nodes available earlier
+- Remove stray newline
+- Link to v3: https://lore.kernel.org/all/20260212112508.73500-1-bartosz.golaszewski@oss.qualcomm.com/
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202604271142.bKGFhwIQ-lkp@intel.com/
+Changes in v3:
+- fix references to the MPU node
 
-All errors (new ones prefixed by >>):
+Changes in v2:
+- fix build with CONFIG_I2C_CBUS_GPIO
+- only export the two symbols that are actually required by the nokia
+  board file
 
-   In file included from include/linux/acpi.h:11,
-                    from drivers/acpi/pmic/intel_pmic.c:9:
-   drivers/acpi/pmic/intel_pmic.c: In function 'intel_pmic_power_handler':
->> include/linux/cleanup.h:302:9: error: pasting "class_" and "&" does not give a valid preprocessing token
-     302 |         class_##_name##_t var __cleanup(class_##_name##_destructor) =   \
-         |         ^~~~~~
-   include/linux/cleanup.h:422:9: note: in expansion of macro 'CLASS'
-     422 |         CLASS(_name, __UNIQUE_ID(guard))
-         |         ^~~~~
-   drivers/acpi/pmic/intel_pmic.c:70:9: note: in expansion of macro 'guard'
-      70 |         guard(&opregion->lock);
-         |         ^~~~~
->> include/linux/cleanup.h:302:9: error: 'class_' undeclared (first use in this function); did you mean 'class'?
-     302 |         class_##_name##_t var __cleanup(class_##_name##_destructor) =   \
-         |         ^~~~~~
-   include/linux/cleanup.h:422:9: note: in expansion of macro 'CLASS'
-     422 |         CLASS(_name, __UNIQUE_ID(guard))
-         |         ^~~~~
-   drivers/acpi/pmic/intel_pmic.c:70:9: note: in expansion of macro 'guard'
-      70 |         guard(&opregion->lock);
-         |         ^~~~~
-   include/linux/cleanup.h:302:9: note: each undeclared identifier is reported only once for each function it appears in
-     302 |         class_##_name##_t var __cleanup(class_##_name##_destructor) =   \
-         |         ^~~~~~
-   include/linux/cleanup.h:422:9: note: in expansion of macro 'CLASS'
-     422 |         CLASS(_name, __UNIQUE_ID(guard))
-         |         ^~~~~
-   drivers/acpi/pmic/intel_pmic.c:70:9: note: in expansion of macro 'guard'
-      70 |         guard(&opregion->lock);
-         |         ^~~~~
->> drivers/acpi/pmic/intel_pmic.c:70:26: error: 'struct intel_pmic_opregion' has no member named 'lock_t'; did you mean 'lock'?
-      70 |         guard(&opregion->lock);
-         |                          ^~~~
-   include/linux/cleanup.h:302:17: note: in definition of macro 'CLASS'
-     302 |         class_##_name##_t var __cleanup(class_##_name##_destructor) =   \
-         |                 ^~~~~
-   drivers/acpi/pmic/intel_pmic.c:70:9: note: in expansion of macro 'guard'
-      70 |         guard(&opregion->lock);
-         |         ^~~~~
-   include/linux/compiler.h:165:17: error: expected ';' before '__UNIQUE_ID_guard_242'
-     165 |         __PASTE(__UNIQUE_ID_,                                   \
-         |                 ^~~~~~~~~~~~
-   include/linux/cleanup.h:302:27: note: in definition of macro 'CLASS'
-     302 |         class_##_name##_t var __cleanup(class_##_name##_destructor) =   \
-         |                           ^~~
-   include/linux/compiler_types.h:16:23: note: in expansion of macro '___PASTE'
-      16 | #define __PASTE(a, b) ___PASTE(a, b)
-         |                       ^~~~~~~~
-   include/linux/compiler.h:165:9: note: in expansion of macro '__PASTE'
-     165 |         __PASTE(__UNIQUE_ID_,                                   \
-         |         ^~~~~~~
-   include/linux/cleanup.h:422:22: note: in expansion of macro '__UNIQUE_ID'
-     422 |         CLASS(_name, __UNIQUE_ID(guard))
-         |                      ^~~~~~~~~~~
-   drivers/acpi/pmic/intel_pmic.c:70:9: note: in expansion of macro 'guard'
-      70 |         guard(&opregion->lock);
-         |         ^~~~~
-   include/linux/cleanup.h:302:41: error: pasting "class_" and "&" does not give a valid preprocessing token
-     302 |         class_##_name##_t var __cleanup(class_##_name##_destructor) =   \
-         |                                         ^~~~~~
-   include/linux/cleanup.h:422:9: note: in expansion of macro 'CLASS'
-     422 |         CLASS(_name, __UNIQUE_ID(guard))
-         |         ^~~~~
-   drivers/acpi/pmic/intel_pmic.c:70:9: note: in expansion of macro 'guard'
-      70 |         guard(&opregion->lock);
-         |         ^~~~~
-   include/linux/cleanup.h:303:17: error: pasting "class_" and "&" does not give a valid preprocessing token
-     303 |                 class_##_name##_constructor
-         |                 ^~~~~~
-   include/linux/cleanup.h:422:9: note: in expansion of macro 'CLASS'
-     422 |         CLASS(_name, __UNIQUE_ID(guard))
-         |         ^~~~~
-   drivers/acpi/pmic/intel_pmic.c:70:9: note: in expansion of macro 'guard'
-      70 |         guard(&opregion->lock);
-         |         ^~~~~
-   drivers/acpi/pmic/intel_pmic.c: In function 'intel_pmic_thermal_handler':
->> include/linux/cleanup.h:302:9: error: pasting "class_" and "&" does not give a valid preprocessing token
-     302 |         class_##_name##_t var __cleanup(class_##_name##_destructor) =   \
-         |         ^~~~~~
-   include/linux/cleanup.h:441:14: note: in expansion of macro 'CLASS'
-     441 |         for (CLASS(_name, scope)(args);                                 \
-         |              ^~~~~
-   include/linux/cleanup.h:450:9: note: in expansion of macro '__scoped_guard'
-     450 |         __scoped_guard(_name, __UNIQUE_ID(label), args)
-         |         ^~~~~~~~~~~~~~
-   drivers/acpi/pmic/intel_pmic.c:183:9: note: in expansion of macro 'scoped_guard'
-     183 |         scoped_guard(&opregion->lock) {
-         |         ^~~~~~~~~~~~
->> include/linux/cleanup.h:302:9: error: 'class_' undeclared (first use in this function); did you mean 'class'?
-     302 |         class_##_name##_t var __cleanup(class_##_name##_destructor) =   \
-         |         ^~~~~~
-   include/linux/cleanup.h:441:14: note: in expansion of macro 'CLASS'
-     441 |         for (CLASS(_name, scope)(args);                                 \
-         |              ^~~~~
-   include/linux/cleanup.h:450:9: note: in expansion of macro '__scoped_guard'
-     450 |         __scoped_guard(_name, __UNIQUE_ID(label), args)
-         |         ^~~~~~~~~~~~~~
-   drivers/acpi/pmic/intel_pmic.c:183:9: note: in expansion of macro 'scoped_guard'
-     183 |         scoped_guard(&opregion->lock) {
-         |         ^~~~~~~~~~~~
-   drivers/acpi/pmic/intel_pmic.c:183:33: error: 'struct intel_pmic_opregion' has no member named 'lock_t'; did you mean 'lock'?
-     183 |         scoped_guard(&opregion->lock) {
-         |                                 ^~~~
-   include/linux/cleanup.h:302:17: note: in definition of macro 'CLASS'
-     302 |         class_##_name##_t var __cleanup(class_##_name##_destructor) =   \
-         |                 ^~~~~
-   include/linux/cleanup.h:450:9: note: in expansion of macro '__scoped_guard'
-     450 |         __scoped_guard(_name, __UNIQUE_ID(label), args)
-         |         ^~~~~~~~~~~~~~
-   drivers/acpi/pmic/intel_pmic.c:183:9: note: in expansion of macro 'scoped_guard'
-     183 |         scoped_guard(&opregion->lock) {
-         |         ^~~~~~~~~~~~
->> include/linux/cleanup.h:441:27: error: expected ';' before 'scope'
-     441 |         for (CLASS(_name, scope)(args);                                 \
-         |                           ^~~~~
-   include/linux/cleanup.h:302:27: note: in definition of macro 'CLASS'
-     302 |         class_##_name##_t var __cleanup(class_##_name##_destructor) =   \
-         |                           ^~~
-   include/linux/cleanup.h:450:9: note: in expansion of macro '__scoped_guard'
-     450 |         __scoped_guard(_name, __UNIQUE_ID(label), args)
-         |         ^~~~~~~~~~~~~~
-   drivers/acpi/pmic/intel_pmic.c:183:9: note: in expansion of macro 'scoped_guard'
-     183 |         scoped_guard(&opregion->lock) {
-         |         ^~~~~~~~~~~~
-   include/linux/cleanup.h:302:41: error: pasting "class_" and "&" does not give a valid preprocessing token
-     302 |         class_##_name##_t var __cleanup(class_##_name##_destructor) =   \
-         |                                         ^~~~~~
-   include/linux/cleanup.h:441:14: note: in expansion of macro 'CLASS'
-     441 |         for (CLASS(_name, scope)(args);                                 \
-         |              ^~~~~
-   include/linux/cleanup.h:450:9: note: in expansion of macro '__scoped_guard'
-     450 |         __scoped_guard(_name, __UNIQUE_ID(label), args)
-         |         ^~~~~~~~~~~~~~
-   drivers/acpi/pmic/intel_pmic.c:183:9: note: in expansion of macro 'scoped_guard'
-     183 |         scoped_guard(&opregion->lock) {
-         |         ^~~~~~~~~~~~
-   include/linux/cleanup.h:303:17: error: pasting "class_" and "&" does not give a valid preprocessing token
-     303 |                 class_##_name##_constructor
-         |                 ^~~~~~
-   include/linux/cleanup.h:441:14: note: in expansion of macro 'CLASS'
-     441 |         for (CLASS(_name, scope)(args);                                 \
-         |              ^~~~~
-   include/linux/cleanup.h:450:9: note: in expansion of macro '__scoped_guard'
-     450 |         __scoped_guard(_name, __UNIQUE_ID(label), args)
-         |         ^~~~~~~~~~~~~~
-   drivers/acpi/pmic/intel_pmic.c:183:9: note: in expansion of macro 'scoped_guard'
-     183 |         scoped_guard(&opregion->lock) {
-         |         ^~~~~~~~~~~~
-   include/linux/cleanup.h:424:28: error: pasting "class_" and "&" does not give a valid preprocessing token
-     424 | #define __guard_ptr(_name) class_##_name##_lock_ptr
-         |                            ^~~~~~
-   include/linux/cleanup.h:442:14: note: in expansion of macro '__guard_ptr'
-     442 |              __guard_ptr(_name)(&scope) || !__is_cond_ptr(_name);       \
-         |              ^~~~~~~~~~~
-   include/linux/cleanup.h:450:9: note: in expansion of macro '__scoped_guard'
-     450 |         __scoped_guard(_name, __UNIQUE_ID(label), args)
-         |         ^~~~~~~~~~~~~~
-   drivers/acpi/pmic/intel_pmic.c:183:9: note: in expansion of macro 'scoped_guard'
-     183 |         scoped_guard(&opregion->lock) {
-         |         ^~~~~~~~~~~~
->> drivers/acpi/pmic/intel_pmic.c:183:31: error: 'struct intel_pmic_opregion' has no member named 'lock_lock_ptr'
-     183 |         scoped_guard(&opregion->lock) {
-         |                               ^~
-   include/linux/cleanup.h:424:36: note: in definition of macro '__guard_ptr'
-     424 | #define __guard_ptr(_name) class_##_name##_lock_ptr
-         |                                    ^~~~~
-   include/linux/cleanup.h:450:9: note: in expansion of macro '__scoped_guard'
-     450 |         __scoped_guard(_name, __UNIQUE_ID(label), args)
-         |         ^~~~~~~~~~~~~~
-   drivers/acpi/pmic/intel_pmic.c:183:9: note: in expansion of macro 'scoped_guard'
-     183 |         scoped_guard(&opregion->lock) {
-         |         ^~~~~~~~~~~~
->> include/linux/cleanup.h:442:34: error: 'scope' undeclared (first use in this function)
-     442 |              __guard_ptr(_name)(&scope) || !__is_cond_ptr(_name);       \
-         |                                  ^~~~~
-   include/linux/cleanup.h:450:9: note: in expansion of macro '__scoped_guard'
-     450 |         __scoped_guard(_name, __UNIQUE_ID(label), args)
-         |         ^~~~~~~~~~~~~~
-   drivers/acpi/pmic/intel_pmic.c:183:9: note: in expansion of macro 'scoped_guard'
-     183 |         scoped_guard(&opregion->lock) {
-         |         ^~~~~~~~~~~~
-   include/linux/cleanup.h:426:30: error: pasting "class_" and "&" does not give a valid preprocessing token
-     426 | #define __is_cond_ptr(_name) class_##_name##_is_conditional
-         |                              ^~~~~~
-   include/linux/cleanup.h:442:45: note: in expansion of macro '__is_cond_ptr'
-     442 |              __guard_ptr(_name)(&scope) || !__is_cond_ptr(_name);       \
-         |                                             ^~~~~~~~~~~~~
-   include/linux/cleanup.h:450:9: note: in expansion of macro '__scoped_guard'
-     450 |         __scoped_guard(_name, __UNIQUE_ID(label), args)
-         |         ^~~~~~~~~~~~~~
-   drivers/acpi/pmic/intel_pmic.c:183:9: note: in expansion of macro 'scoped_guard'
-     183 |         scoped_guard(&opregion->lock) {
-         |         ^~~~~~~~~~~~
->> drivers/acpi/pmic/intel_pmic.c:183:31: error: 'struct intel_pmic_opregion' has no member named 'lock_is_conditional'
-     183 |         scoped_guard(&opregion->lock) {
-         |                               ^~
-   include/linux/cleanup.h:426:38: note: in definition of macro '__is_cond_ptr'
-     426 | #define __is_cond_ptr(_name) class_##_name##_is_conditional
-         |                                      ^~~~~
-   include/linux/cleanup.h:450:9: note: in expansion of macro '__scoped_guard'
-     450 |         __scoped_guard(_name, __UNIQUE_ID(label), args)
-         |         ^~~~~~~~~~~~~~
-   drivers/acpi/pmic/intel_pmic.c:183:9: note: in expansion of macro 'scoped_guard'
-     183 |         scoped_guard(&opregion->lock) {
-         |         ^~~~~~~~~~~~
-   drivers/acpi/pmic/intel_pmic.c: In function 'intel_soc_pmic_exec_mipi_pmic_seq_element':
->> include/linux/cleanup.h:302:9: error: pasting "class_" and "&" does not give a valid preprocessing token
-     302 |         class_##_name##_t var __cleanup(class_##_name##_destructor) =   \
-         |         ^~~~~~
-   include/linux/cleanup.h:422:9: note: in expansion of macro 'CLASS'
-     422 |         CLASS(_name, __UNIQUE_ID(guard))
-         |         ^~~~~
-   drivers/acpi/pmic/intel_pmic.c:350:9: note: in expansion of macro 'guard'
-     350 |         guard(&intel_pmic_opregion->lock);
-         |         ^~~~~
->> include/linux/cleanup.h:302:9: error: 'class_' undeclared (first use in this function); did you mean 'class'?
-     302 |         class_##_name##_t var __cleanup(class_##_name##_destructor) =   \
-         |         ^~~~~~
-   include/linux/cleanup.h:422:9: note: in expansion of macro 'CLASS'
-     422 |         CLASS(_name, __UNIQUE_ID(guard))
-         |         ^~~~~
-   drivers/acpi/pmic/intel_pmic.c:350:9: note: in expansion of macro 'guard'
-     350 |         guard(&intel_pmic_opregion->lock);
-         |         ^~~~~
-   drivers/acpi/pmic/intel_pmic.c:350:37: error: 'struct intel_pmic_opregion' has no member named 'lock_t'; did you mean 'lock'?
-     350 |         guard(&intel_pmic_opregion->lock);
-         |                                     ^~~~
-   include/linux/cleanup.h:302:17: note: in definition of macro 'CLASS'
-     302 |         class_##_name##_t var __cleanup(class_##_name##_destructor) =   \
-         |                 ^~~~~
-   drivers/acpi/pmic/intel_pmic.c:350:9: note: in expansion of macro 'guard'
-     350 |         guard(&intel_pmic_opregion->lock);
-         |         ^~~~~
-   include/linux/compiler.h:165:17: error: expected ';' before '__UNIQUE_ID_guard_245'
-     165 |         __PASTE(__UNIQUE_ID_,                                   \
-         |                 ^~~~~~~~~~~~
-   include/linux/cleanup.h:302:27: note: in definition of macro 'CLASS'
-     302 |         class_##_name##_t var __cleanup(class_##_name##_destructor) =   \
-         |                           ^~~
-   include/linux/compiler_types.h:16:23: note: in expansion of macro '___PASTE'
-      16 | #define __PASTE(a, b) ___PASTE(a, b)
-         |                       ^~~~~~~~
-   include/linux/compiler.h:165:9: note: in expansion of macro '__PASTE'
-     165 |         __PASTE(__UNIQUE_ID_,                                   \
-         |         ^~~~~~~
-   include/linux/cleanup.h:422:22: note: in expansion of macro '__UNIQUE_ID'
-     422 |         CLASS(_name, __UNIQUE_ID(guard))
-         |                      ^~~~~~~~~~~
-   drivers/acpi/pmic/intel_pmic.c:350:9: note: in expansion of macro 'guard'
-     350 |         guard(&intel_pmic_opregion->lock);
-         |         ^~~~~
-   include/linux/cleanup.h:302:41: error: pasting "class_" and "&" does not give a valid preprocessing token
-     302 |         class_##_name##_t var __cleanup(class_##_name##_destructor) =   \
-         |                                         ^~~~~~
-   include/linux/cleanup.h:422:9: note: in expansion of macro 'CLASS'
-     422 |         CLASS(_name, __UNIQUE_ID(guard))
-         |         ^~~~~
-   drivers/acpi/pmic/intel_pmic.c:350:9: note: in expansion of macro 'guard'
-     350 |         guard(&intel_pmic_opregion->lock);
-         |         ^~~~~
-   include/linux/cleanup.h:303:17: error: pasting "class_" and "&" does not give a valid preprocessing token
-     303 |                 class_##_name##_constructor
-         |                 ^~~~~~
-   include/linux/cleanup.h:422:9: note: in expansion of macro 'CLASS'
-     422 |         CLASS(_name, __UNIQUE_ID(guard))
-         |         ^~~~~
-   drivers/acpi/pmic/intel_pmic.c:350:9: note: in expansion of macro 'guard'
-     350 |         guard(&intel_pmic_opregion->lock);
-         |         ^~~~~
+---
+Bartosz Golaszewski (3):
+      ARM: omap1: drop unused variable from omap16xx_gpio_init()
+      ARM: omap1: use platform_device_register_full() for GPIO devices on OMAP 16xx
+      ARM: omap1: enable real software node lookup of GPIOs on Nokia 770
 
+ arch/arm/mach-omap1/board-nokia770.c | 30 +++-----------
+ arch/arm/mach-omap1/common.h         |  3 ++
+ arch/arm/mach-omap1/gpio16xx.c       | 77 ++++++++++++++++++------------------
+ 3 files changed, 47 insertions(+), 63 deletions(-)
+---
+base-commit: 254f49634ee16a731174d2ae34bc50bd5f45e731
+change-id: 20260330-nokia770-gpio-swnodes-5da8ba35946e
 
-vim +70 drivers/acpi/pmic/intel_pmic.c
-
-    49	
-    50	static acpi_status intel_pmic_power_handler(u32 function,
-    51			acpi_physical_address address, u32 bits, u64 *value64,
-    52			void *handler_context, void *region_context)
-    53	{
-    54		struct intel_pmic_opregion *opregion = region_context;
-    55		struct regmap *regmap = opregion->regmap;
-    56		const struct intel_pmic_opregion_data *d = opregion->data;
-    57		int reg, bit, result;
-    58	
-    59		if (bits != 32 || !value64)
-    60			return AE_BAD_PARAMETER;
-    61	
-    62		if (function == ACPI_WRITE && !(*value64 == 0 || *value64 == 1))
-    63			return AE_BAD_PARAMETER;
-    64	
-    65		result = pmic_get_reg_bit(address, d->power_table,
-    66					  d->power_table_count, &reg, &bit);
-    67		if (result == -ENOENT)
-    68			return AE_BAD_PARAMETER;
-    69	
-  > 70		guard(&opregion->lock);
-    71	
-    72		result = function == ACPI_READ ?
-    73			d->get_power(regmap, reg, bit, value64) :
-    74			d->update_power(regmap, reg, bit, *value64 == 1);
-    75	
-    76		return result ? AE_ERROR : AE_OK;
-    77	}
-    78	
-    79	static int pmic_read_temp(struct intel_pmic_opregion *opregion,
-    80				  int reg, u64 *value)
-    81	{
-    82		int raw_temp, temp;
-    83	
-    84		if (!opregion->data->get_raw_temp)
-    85			return -ENXIO;
-    86	
-    87		raw_temp = opregion->data->get_raw_temp(opregion->regmap, reg);
-    88		if (raw_temp < 0)
-    89			return raw_temp;
-    90	
-    91		if (!opregion->lpat_table) {
-    92			*value = raw_temp;
-    93			return 0;
-    94		}
-    95	
-    96		temp = opregion->data->lpat_raw_to_temp(opregion->lpat_table, raw_temp);
-    97		if (temp < 0)
-    98			return temp;
-    99	
-   100		*value = temp;
-   101		return 0;
-   102	}
-   103	
-   104	static int pmic_thermal_temp(struct intel_pmic_opregion *opregion, int reg,
-   105				     u32 function, u64 *value)
-   106	{
-   107		return function == ACPI_READ ?
-   108			pmic_read_temp(opregion, reg, value) : -EINVAL;
-   109	}
-   110	
-   111	static int pmic_thermal_aux(struct intel_pmic_opregion *opregion, int reg,
-   112				    u32 function, u64 *value)
-   113	{
-   114		int raw_temp;
-   115	
-   116		if (function == ACPI_READ)
-   117			return pmic_read_temp(opregion, reg, value);
-   118	
-   119		if (!opregion->data->update_aux)
-   120			return -ENXIO;
-   121	
-   122		if (opregion->lpat_table) {
-   123			raw_temp = acpi_lpat_temp_to_raw(opregion->lpat_table, *value);
-   124			if (raw_temp < 0)
-   125				return raw_temp;
-   126		} else {
-   127			raw_temp = *value;
-   128		}
-   129	
-   130		return opregion->data->update_aux(opregion->regmap, reg, raw_temp);
-   131	}
-   132	
-   133	static int pmic_thermal_pen(struct intel_pmic_opregion *opregion, int reg,
-   134				    int bit, u32 function, u64 *value)
-   135	{
-   136		const struct intel_pmic_opregion_data *d = opregion->data;
-   137		struct regmap *regmap = opregion->regmap;
-   138	
-   139		if (!d->get_policy || !d->update_policy)
-   140			return -ENXIO;
-   141	
-   142		if (function == ACPI_READ)
-   143			return d->get_policy(regmap, reg, bit, value);
-   144	
-   145		if (*value != 0 && *value != 1)
-   146			return -EINVAL;
-   147	
-   148		return d->update_policy(regmap, reg, bit, *value);
-   149	}
-   150	
-   151	static bool pmic_thermal_is_temp(int address)
-   152	{
-   153		return (address <= 0x3c) && !(address % 12);
-   154	}
-   155	
-   156	static bool pmic_thermal_is_aux(int address)
-   157	{
-   158		return (address >= 4 && address <= 0x40 && !((address - 4) % 12)) ||
-   159		       (address >= 8 && address <= 0x44 && !((address - 8) % 12));
-   160	}
-   161	
-   162	static bool pmic_thermal_is_pen(int address)
-   163	{
-   164		return address >= 0x48 && address <= 0x5c;
-   165	}
-   166	
-   167	static acpi_status intel_pmic_thermal_handler(u32 function,
-   168			acpi_physical_address address, u32 bits, u64 *value64,
-   169			void *handler_context, void *region_context)
-   170	{
-   171		struct intel_pmic_opregion *opregion = region_context;
-   172		const struct intel_pmic_opregion_data *d = opregion->data;
-   173		int reg, bit, result;
-   174	
-   175		if (bits != 32 || !value64)
-   176			return AE_BAD_PARAMETER;
-   177	
-   178		result = pmic_get_reg_bit(address, d->thermal_table,
-   179					  d->thermal_table_count, &reg, &bit);
-   180		if (result == -ENOENT)
-   181			return AE_BAD_PARAMETER;
-   182	
- > 183		scoped_guard(&opregion->lock) {
-   184	
-   185			if (pmic_thermal_is_temp(address))
-   186				result = pmic_thermal_temp(opregion, reg, function, value64);
-   187			else if (pmic_thermal_is_aux(address))
-   188				result = pmic_thermal_aux(opregion, reg, function, value64);
-   189			else if (pmic_thermal_is_pen(address))
-   190				result = pmic_thermal_pen(opregion, reg, bit,
-   191							function, value64);
-   192			else
-   193				return AE_BAD_PARAMETER;
-   194	
-   195		}
-   196	
-   197		if (result < 0)
-   198			return AE_ERROR;
-   199	
-   200		return AE_OK;
-   201	}
-   202	
-
+Best regards,
 -- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+
