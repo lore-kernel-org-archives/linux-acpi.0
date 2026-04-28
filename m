@@ -1,235 +1,109 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from canpmsgout03.his.huawei.com (canpmsgout03.his.huawei.com [113.46.200.218])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DF6D4219E9
-	for <linux-acpi@vger.kernel.org>; Tue, 28 Apr 2026 10:42:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84DE641B362;
+	Tue, 28 Apr 2026 12:32:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.218
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777372979; cv=none; b=dtmyeRUI4/awVZXZV1g2iitHhi82doEQery+wtUYJvX+6r/AKhXumcg68R3bPiviRsQgqvnsogtqi3iqRIO2MIOVELs3xPSISnerbt4jJ2IcaeL/fCH7YgSX0qC3m88BwLbAgB+Eyzs/xuRCOA0kXHeaVcCgqZWo7xL0zuooB5E=
+	t=1777379551; cv=none; b=X1EFXxhkZWNqcyPX98oxUi3gQKCgl4CQ4biKMhoF3AWgEEPkobI6Rkc+1D7CorwnI8q4lOmbs9tUCdmn6dGsdlHZU22LpFg6CA3TIKbAbiUUGXm5QZakZuZXCNoY6ofyAELv/aye/iq8fSMJjiOXuXf2XiYeY5p5p0pGrHE7Ff8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777372979; c=relaxed/simple;
-	bh=WeLGO4yhqQAwUq5x2oVU4v+GLx3sCF9yxbIRykKjqNU=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Y1DI9udJuZ+ZWKdD0bf+2wvC23SHXbVU75e2fZ9x7ogiVpUNz3+4DIrN28PF77/DCcMt3r7zDBllFkVZ4CRIX9ydPsrVHTZmrErhI8yDxzoxxVbLXJmkvA3lJLWELeqQecPu/h6x+RWLtpYlnlyOsCB5lK/cjJ2Nzw1chGye8Jg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (1024-bit key) header.d=suse.com header.i=@suse.com header.b=EApXaj5v; dkim=pass (1024-bit key) header.d=suse.com header.i=@suse.com header.b=EApXaj5v; arc=none smtp.client-ip=195.135.223.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
+	s=arc-20240116; t=1777379551; c=relaxed/simple;
+	bh=0Fme70mutnWfE+gMGA9aNcG2k7MUS9AC/srCubxZtSM=;
+	h=Subject:To:CC:References:From:Message-ID:Date:MIME-Version:
+	 In-Reply-To:Content-Type; b=KDdi87dYmBLBKFgkKnZ1nfvUK+csz9BHOQk04egaDCsa99eUdkFzxWzfFWA00HV2QfNXU0qfUlDW46PQYPVRdU0NmvkmcGuMCYgNmE+OKCwORW6fwpS+dZtKcnAw+BgqnKYZGRZD13MNEUG5qvthKJgGrUR1XdhsgeehfpfASmE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=LFp0QVZW; arc=none smtp.client-ip=113.46.200.218
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.com header.i=@suse.com header.b="EApXaj5v";
-	dkim=pass (1024-bit key) header.d=suse.com header.i=@suse.com header.b="EApXaj5v"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 4EBDA5BCC9;
-	Tue, 28 Apr 2026 10:42:54 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
-	t=1777372974; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=7oMyrStr9JvcDJy2+NeD0uucdqDOtiU4PtB1nBasoGM=;
-	b=EApXaj5vRX0uskByxmMzrP0zqI1GN0vSCLxTfxOXbZpdisoTqSHtZUeZuyutqAYPExi9po
-	MxsZIFZYbLZRaY6qhp83BB2yfJiPtV7b89kF1A9ZQmPm1Bfz84+mjrKXUytxFPviQzVx0A
-	GuhdbJu9wao0ilVFYPF2dSAp8mywIqg=
-Authentication-Results: smtp-out2.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
-	t=1777372974; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=7oMyrStr9JvcDJy2+NeD0uucdqDOtiU4PtB1nBasoGM=;
-	b=EApXaj5vRX0uskByxmMzrP0zqI1GN0vSCLxTfxOXbZpdisoTqSHtZUeZuyutqAYPExi9po
-	MxsZIFZYbLZRaY6qhp83BB2yfJiPtV7b89kF1A9ZQmPm1Bfz84+mjrKXUytxFPviQzVx0A
-	GuhdbJu9wao0ilVFYPF2dSAp8mywIqg=
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id D53E1593B0;
-	Tue, 28 Apr 2026 10:42:53 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id I4b5Mi2P8GmwPgAAD6G6ig
-	(envelope-from <jgross@suse.com>); Tue, 28 Apr 2026 10:42:53 +0000
-From: Juergen Gross <jgross@suse.com>
-To: linux-kernel@vger.kernel.org,
-	x86@kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-pm@vger.kernel.org,
-	platform-driver-x86@vger.kernel.org
-Cc: Juergen Gross <jgross@suse.com>,
-	Thomas Gleixner <tglx@kernel.org>,
-	Ingo Molnar <mingo@redhat.com>,
-	Borislav Petkov <bp@alien8.de>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	"H. Peter Anvin" <hpa@zytor.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	Huang Rui <ray.huang@amd.com>,
-	Mario Limonciello <mario.limonciello@amd.com>,
-	Perry Yuan <perry.yuan@amd.com>,
-	K Prateek Nayak <kprateek.nayak@amd.com>,
-	Viresh Kumar <viresh.kumar@linaro.org>,
-	Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
-	Hans de Goede <hansg@kernel.org>,
-	=?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
-Subject: [PATCH RFC 08/11] x86/msr: Switch all callers of wrmsrq_safe_on_cpu() to use wrmsr_safe_on_cpu()
-Date: Tue, 28 Apr 2026 12:42:02 +0200
-Message-ID: <20260428104205.916924-9-jgross@suse.com>
-X-Mailer: git-send-email 2.53.0
-In-Reply-To: <20260428104205.916924-1-jgross@suse.com>
-References: <20260428104205.916924-1-jgross@suse.com>
+	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="LFp0QVZW"
+dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=WYVh3rRNApPh1xCCN3OpCIIeR/JDDKtNd9mRTZdEGN8=;
+	b=LFp0QVZWjsJ0M4aWYjOUIOQg+8m7/Uxy/nFSGQn3YvN1wf9blJa19UbcK2KFxPGA6iq+To5ef
+	EhcDSfDevbu0qDIij7sis/Q+3ur0xwmHxUT5+HHppwRXaMgg1L3sYz7ofXCdxOot5ydgVNAwgzO
+	ZSzpAHHo9w38T9efqE5QnCc=
+Received: from mail.maildlp.com (unknown [172.19.162.197])
+	by canpmsgout03.his.huawei.com (SkyGuard) with ESMTPS id 4g4fm32f6mzpSvH;
+	Tue, 28 Apr 2026 20:25:39 +0800 (CST)
+Received: from dggpemf500002.china.huawei.com (unknown [7.185.36.57])
+	by mail.maildlp.com (Postfix) with ESMTPS id BBFC240576;
+	Tue, 28 Apr 2026 20:32:14 +0800 (CST)
+Received: from [10.174.179.24] (10.174.179.24) by
+ dggpemf500002.china.huawei.com (7.185.36.57) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.11; Tue, 28 Apr 2026 20:32:13 +0800
+Subject: Re: [PATCH V1 1/3] ACPICA: IORT: Add Root Complex PASID Flags field
+To: Jason Gunthorpe <jgg@ziepe.ca>, Vidya Sagar <vidyas@nvidia.com>
+CC: <rafael@kernel.org>, <lenb@kernel.org>, <saket.dumbre@intel.com>,
+	<lpieralisi@kernel.org>, <sudeep.holla@kernel.org>, <will@kernel.org>,
+	<catalin.marinas@arm.com>, <joro@8bytes.org>, <robin.murphy@arm.com>,
+	<nicolinc@nvidia.com>, <praan@google.com>, <vsethi@nvidia.com>,
+	<sdonthineni@nvidia.com>, <kthota@nvidia.com>, <sagar.tv@gmail.com>,
+	<linux-acpi@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
+	<acpica-devel@lists.linux.dev>, <iommu@lists.linux.dev>,
+	<linux-kernel@vger.kernel.org>
+References: <20260423191417.2031652-1-vidyas@nvidia.com>
+ <20260423191417.2031652-2-vidyas@nvidia.com>
+ <20260423224318.GT3611611@ziepe.ca>
+From: Hanjun Guo <guohanjun@huawei.com>
+Message-ID: <e092b85e-9ac2-22ef-b213-1b2a32fbf784@huawei.com>
+Date: Tue, 28 Apr 2026 20:32:12 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101
+ Thunderbird/68.6.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Spam-Score: -2.80
-X-Spam-Level: 
-X-Spamd-Result: default: False [-2.80 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	MID_CONTAINS_FROM(1.00)[];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_MISSING_CHARSET(0.50)[];
-	NEURAL_HAM_SHORT(-0.20)[-0.999];
-	MIME_GOOD(-0.10)[text/plain];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	RCPT_COUNT_TWELVE(0.00)[21];
-	DKIM_SIGNED(0.00)[suse.com:s=susede1];
-	MIME_TRACE(0.00)[0:+];
-	ARC_NA(0.00)[];
-	RCVD_TLS_ALL(0.00)[];
-	R_RATELIMIT(0.00)[to_ip_from(RLfdszjqhz8kzzb9uwpzdm8png)];
-	FROM_HAS_DN(0.00)[];
-	TO_DN_SOME(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.com:mid,suse.com:email,imap1.dmz-prg2.suse.org:helo]
-X-Spam-Flag: NO
+In-Reply-To: <20260423224318.GT3611611@ziepe.ca>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: kwepems100002.china.huawei.com (7.221.188.206) To
+ dggpemf500002.china.huawei.com (7.185.36.57)
 
-Now that wrmsr_safe_on_cpu() has the same interface as
-wrmsrq_safe_on_cpu(), the callers of wrmsrq_safe_on_cpu() can be
-switched to wrmsr_safe_on_cpu() and wrmsrq_safe_on_cpu() can be
-removed.
+On 2026/4/24 6:43, Jason Gunthorpe wrote:
+> On Fri, Apr 24, 2026 at 12:44:15AM +0530, Vidya Sagar wrote:
+>> The IORT spec, Issue E.c (ARM DEN 0049E.c, January 2022), bumps the
+>> Root Complex Node to revision 4 and adds two PASID descriptors:
+>>
+>>    - PASID Capabilities at byte offset 33 (2 bytes), bits[4:0] of which
+>>      report the Max PASID Width supported by the Root Complex.
+>>    - Flags at byte offset 36 (4 bytes), bit 0 of which reports whether
+>>      the Root Complex itself supports PASID. This is distinct from the
+>>      existing ATS Attribute bit 2 (at offset 24) that only reports
+>>      whether the RC forwards PASID information on translated
+>>      transactions.
+>>
+>> The ACPICA struct in include/acpi/actbl2.h was updated for the E.c
+>> PASID Capabilities descriptor (offset 33) but stops short with a
+>> trailing 'u8 reserved[]' flexible array, so the new Flags field at
+>> offset 36 is unreachable and the existing ACPI_IORT_PASID_*
+>> definitions have no consumer.
+>>
+>> Replace the trailing flexible array with a fixed 'u8 reserved[1]'
+>> followed by 'u32 flags' so the struct fully covers RC node revision 4,
+>> and add the ACPI_IORT_RC_PASID_SUPPORTED mask for bit 0 of the new
+>> field. With #pragma pack(1) in effect for actbl2.h, this lands the new
+>> field at the spec-mandated absolute offset 36.
+>>
+>> Signed-off-by: Vidya Sagar <vidyas@nvidia.com>
+>> ---
+>>   include/acpi/actbl2.h | 6 +++++-
+>>   1 file changed, 5 insertions(+), 1 deletion(-)
+> 
+> There is a whole process to change this file, I went through it once
+> for canwbs..
+> 
+> https://lore.kernel.org/acpica-devel/2-v3-e2e16cd7467f+2a6a1-smmuv3_nesting_jgg@nvidia.com/
+> 
+> You have to make a pull request here:
+> 
+> https://github.com/acpica/acpica/pulls
 
-Signed-off-by: Juergen Gross <jgross@suse.com>
----
- arch/x86/include/asm/msr.h                       |  5 -----
- arch/x86/kernel/acpi/cppc.c                      |  2 +-
- arch/x86/lib/msr-smp.c                           | 16 ----------------
- drivers/cpufreq/amd-pstate.c                     |  2 +-
- .../x86/intel/speed_select_if/isst_if_common.c   |  9 ++++-----
- 5 files changed, 6 insertions(+), 28 deletions(-)
+Yes, please get this patch merged in ACPICA first.
 
-diff --git a/arch/x86/include/asm/msr.h b/arch/x86/include/asm/msr.h
-index cb14ede8f587..a5596d268053 100644
---- a/arch/x86/include/asm/msr.h
-+++ b/arch/x86/include/asm/msr.h
-@@ -262,7 +262,6 @@ void rdmsr_on_cpus(const struct cpumask *mask, u32 msr_no, struct msr __percpu *
- void wrmsr_on_cpus(const struct cpumask *mask, u32 msr_no, struct msr __percpu *msrs);
- int rdmsr_safe_on_cpu(unsigned int cpu, u32 msr_no, u64 *q);
- int wrmsr_safe_on_cpu(unsigned int cpu, u32 msr_no, u64 q);
--int wrmsrq_safe_on_cpu(unsigned int cpu, u32 msr_no, u64 q);
- int rdmsr_safe_regs_on_cpu(unsigned int cpu, u32 regs[8]);
- int wrmsr_safe_regs_on_cpu(unsigned int cpu, u32 regs[8]);
- #else  /*  CONFIG_SMP  */
-@@ -294,10 +293,6 @@ static inline int wrmsr_safe_on_cpu(unsigned int cpu, u32 msr_no, u64 q)
- {
- 	return wrmsrq_safe(msr_no, q);
- }
--static inline int wrmsrq_safe_on_cpu(unsigned int cpu, u32 msr_no, u64 q)
--{
--	return wrmsrq_safe(msr_no, q);
--}
- static inline int rdmsr_safe_regs_on_cpu(unsigned int cpu, u32 regs[8])
- {
- 	return rdmsr_safe_regs(regs);
-diff --git a/arch/x86/kernel/acpi/cppc.c b/arch/x86/kernel/acpi/cppc.c
-index 576319dcbbbf..9f75762622e7 100644
---- a/arch/x86/kernel/acpi/cppc.c
-+++ b/arch/x86/kernel/acpi/cppc.c
-@@ -74,7 +74,7 @@ int cpc_write_ffh(int cpunum, struct cpc_reg *reg, u64 val)
- 		val &= mask;
- 		rd_val &= ~mask;
- 		rd_val |= val;
--		err = wrmsrq_safe_on_cpu(cpunum, reg->address, rd_val);
-+		err = wrmsr_safe_on_cpu(cpunum, reg->address, rd_val);
- 	}
- 	return err;
- }
-diff --git a/arch/x86/lib/msr-smp.c b/arch/x86/lib/msr-smp.c
-index b2859435f4af..9ae9ff11f1f1 100644
---- a/arch/x86/lib/msr-smp.c
-+++ b/arch/x86/lib/msr-smp.c
-@@ -169,22 +169,6 @@ int wrmsr_safe_on_cpu(unsigned int cpu, u32 msr_no, u64 q)
- }
- EXPORT_SYMBOL(wrmsr_safe_on_cpu);
- 
--int wrmsrq_safe_on_cpu(unsigned int cpu, u32 msr_no, u64 q)
--{
--	int err;
--	struct msr_info rv;
--
--	memset(&rv, 0, sizeof(rv));
--
--	rv.msr_no = msr_no;
--	rv.reg.q = q;
--
--	err = smp_call_function_single(cpu, __wrmsr_safe_on_cpu, &rv, 1);
--
--	return err ? err : rv.err;
--}
--EXPORT_SYMBOL(wrmsrq_safe_on_cpu);
--
- /*
-  * These variants are significantly slower, but allows control over
-  * the entire 32-bit GPR set.
-diff --git a/drivers/cpufreq/amd-pstate.c b/drivers/cpufreq/amd-pstate.c
-index d1eee3cd8f9b..8f3d776836c3 100644
---- a/drivers/cpufreq/amd-pstate.c
-+++ b/drivers/cpufreq/amd-pstate.c
-@@ -450,7 +450,7 @@ static int shmem_set_epp(struct cpufreq_policy *policy, u8 epp)
- 
- static inline int msr_cppc_enable(struct cpufreq_policy *policy)
- {
--	return wrmsrq_safe_on_cpu(policy->cpu, MSR_AMD_CPPC_ENABLE, 1);
-+	return wrmsr_safe_on_cpu(policy->cpu, MSR_AMD_CPPC_ENABLE, 1);
- }
- 
- static int shmem_cppc_enable(struct cpufreq_policy *policy)
-diff --git a/drivers/platform/x86/intel/speed_select_if/isst_if_common.c b/drivers/platform/x86/intel/speed_select_if/isst_if_common.c
-index b15a798454dc..9d730e6f155d 100644
---- a/drivers/platform/x86/intel/speed_select_if/isst_if_common.c
-+++ b/drivers/platform/x86/intel/speed_select_if/isst_if_common.c
-@@ -192,8 +192,8 @@ void isst_resume_common(void)
- 			if (cb->registered)
- 				isst_mbox_resume_command(cb, sst_cmd);
- 		} else {
--			wrmsrq_safe_on_cpu(sst_cmd->cpu, sst_cmd->cmd,
--					   sst_cmd->data);
-+			wrmsr_safe_on_cpu(sst_cmd->cpu, sst_cmd->cmd,
-+					  sst_cmd->data);
- 		}
- 	}
- }
-@@ -500,9 +500,8 @@ static long isst_if_msr_cmd_req(u8 *cmd_ptr, int *write_only, int resume)
- 		if (!capable(CAP_SYS_ADMIN))
- 			return -EPERM;
- 
--		ret = wrmsrq_safe_on_cpu(msr_cmd->logical_cpu,
--					 msr_cmd->msr,
--					 msr_cmd->data);
-+		ret = wrmsr_safe_on_cpu(msr_cmd->logical_cpu,
-+					msr_cmd->msr, msr_cmd->data);
- 		*write_only = 1;
- 		if (!ret && !resume)
- 			ret = isst_store_cmd(0, msr_cmd->msr,
--- 
-2.53.0
-
+Thanks
+Hanjun
