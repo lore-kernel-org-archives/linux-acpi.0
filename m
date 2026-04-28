@@ -1,266 +1,101 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.14])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9AE1E2FE56F;
-	Tue, 28 Apr 2026 07:59:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.14
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BEF01258EC1;
+	Tue, 28 Apr 2026 08:14:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.19
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777363187; cv=none; b=VNuOP5FOgt7DNEsueg9WtzcVZz1O04DM66T/iXFepJw/2mNHftX66TH7HC08kqptFzaEUYgJvIyVyigKWHgS5upoY2cvw8neMIyP5Em3Kdy5VP+arbBVHW5h99dIDqI6yPhCYEsTDItFhlZkr3W+c5B92C/PPyJVikpjtqE+8Lo=
+	t=1777364043; cv=none; b=fjRn6KP6bwTpeAaHnPTUNSieip9n+USnf+lFOq9oAr4u8XMXkbCLmDEc8yy+YWWA/jDZKTJn8EqpczDhxlP1pwPfHELF/Gu4BrPNLCnKhzF2oduEI5JRij3g2dNzxe+6xIJb2cESaeXKWS+5YutkpWGk7R5ze7t2v/C4YrpOAYQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777363187; c=relaxed/simple;
-	bh=HLINe8lynGNsfZTVUlUPCIOIxQ8h4hN1PYtWjQ7oL0U=;
+	s=arc-20240116; t=1777364043; c=relaxed/simple;
+	bh=FIOpf50egYGuxDu1gkkmZlFJz0kV5/vkpFDnm9Lo3Ew=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=SFHH/VLEu08Rn7oQAccdU+PcXJdzT3WHHL8hWlO2waItbf9rMv9XkqEfIDZuXMQwTMBzWN2azr7yuroeIFFH2dH+qw7UHHRb+DBZ23DQ4z9u/AeJvsyqP94mU0tWk8LcQpZlCjDwjuv6xWalOfHOPWZ+Zq58at8CCIZQRim4KzI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Xa/2VSoK; arc=none smtp.client-ip=192.198.163.14
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=dDSWcW/NF7pKhNN+8eRi4V91EFQoicvVfcUiBT+BcO1PsAEB+9iDrjmpKv0iiosN3379M3KtSjq0ZsxRYzEP3BCn2icnunjHqiBowRgHO/niswvwwjvNstNBogOYpznxnAG7Kl655zvgggfH7Fg0eyUqrFFVFJSZvRYY9rgoGcQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=drft+S7o; arc=none smtp.client-ip=192.198.163.19
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Xa/2VSoK"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="drft+S7o"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1777363186; x=1808899186;
+  t=1777364042; x=1808900042;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=HLINe8lynGNsfZTVUlUPCIOIxQ8h4hN1PYtWjQ7oL0U=;
-  b=Xa/2VSoKCR0gm2VB0ekbIcB191XO3+bPTaII88kfTNpXPeM9qh/lKvWh
-   C3MDoZcmr2IMqoqVBlX7mUbuHum8q8MZSPsMFl6DAeaVH8sVpjdNqOQTY
-   zjQ/9k7rBi6dePRrqXOSdwrNigrLdBU2B8QgFTWXlEWMAJchMhj4UKz0r
-   gLYK8mKl1rq29XIluoxVKRwvaw1OCG21tOV9LbcJX09qvyoL0cumIzuBV
-   1Lg6gUZ0RfB1gDAvbbQSfWGwwX5KhHvZmeI1c2X10kETQ25eT627Ea5Pw
-   tkvierc6WbQLDsNDXgOYickzflW5q0/6dKCpD7TsmbdlRuD+6V4rmbR6w
-   g==;
-X-CSE-ConnectionGUID: DZ1kixXPTtOazAQwsuxUvw==
-X-CSE-MsgGUID: KDZnieHJR/iOpHAY7qYU7w==
-X-IronPort-AV: E=McAfee;i="6800,10657,11769"; a="78327390"
+  bh=FIOpf50egYGuxDu1gkkmZlFJz0kV5/vkpFDnm9Lo3Ew=;
+  b=drft+S7oeWYpNGfCKM7Cr4QtMkWTA11fnaL+Btn2gneRpiFGhp+3skFe
+   6T6L8tCZmR4sTOl8m6Hs91uMKpne8qoIEqyFpLz94dMWSA7cC4Q3cHpXH
+   7dKFEjAD/FTgPPiXILZZs5zLr6E5xgqF81X16UjTnUiGAJRu0OETKc8mW
+   2g5F5pEzt6MXar+jmP3diVUInCCzEzjyfEEO4Gg48MUE0S/DvC6Oneqji
+   pmt42NZFokIlyVnW+lq79UEub+vQAY0MI4NvCml1hViOoTy6dAFfrDHFY
+   taU5/yO9LvW9qcETJ4Zt4gUY90ro4XtQHnJ1ZHbYfP75zHzn+rUhEPQru
+   w==;
+X-CSE-ConnectionGUID: jWb9wC36RPa4TkOFa8rvbw==
+X-CSE-MsgGUID: QpVQZTcEQ9yY66IkpSydhQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11769"; a="77295921"
 X-IronPort-AV: E=Sophos;i="6.23,203,1770624000"; 
-   d="scan'208";a="78327390"
-Received: from orviesa006.jf.intel.com ([10.64.159.146])
-  by fmvoesa108.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Apr 2026 00:59:45 -0700
-X-CSE-ConnectionGUID: B1J0amLZRPqtfZF+mLna+w==
-X-CSE-MsgGUID: mXNGaTliRvOFdyzj7W0MxA==
+   d="scan'208";a="77295921"
+Received: from orviesa005.jf.intel.com ([10.64.159.145])
+  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Apr 2026 01:14:01 -0700
+X-CSE-ConnectionGUID: 5pvbqdeZT3So/V/mOTfTIQ==
+X-CSE-MsgGUID: k8bT68VJRuGrz8Im2m2Vow==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.23,203,1770624000"; 
-   d="scan'208";a="232876844"
-Received: from black.igk.intel.com ([10.91.253.5])
-  by orviesa006.jf.intel.com with ESMTP; 28 Apr 2026 00:59:43 -0700
-Received: by black.igk.intel.com (Postfix, from userid 1001)
-	id 81B4895; Tue, 28 Apr 2026 09:59:41 +0200 (CEST)
-Date: Tue, 28 Apr 2026 09:59:41 +0200
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-To: Armin Wolf <W_Armin@gmx.de>
-Cc: Mario Limonciello <superm1@kernel.org>,
-	Marco Scardovi <mscardovi95@gmail.com>,
-	Hans de Goede <hansg@kernel.org>,
-	Francesco Lauritano <francesco.lauritano1@protonmail.com>,
-	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-	"open list:GPIO ACPI SUPPORT" <linux-gpio@vger.kernel.org>,
-	"platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>,
-	"westeri@kernel.org" <westeri@kernel.org>,
-	Benjamin Tissoires <bentiss@kernel.org>
-Subject: Re: [BUG] 36-second boot delay due to by
- acpi_gpio_handle_deferred_request_irqs on ASUS ROG Strix G16 (2025)
-Message-ID: <20260428075941.GQ557136@black.igk.intel.com>
-References: <20260422095558.GC557136@black.igk.intel.com>
- <5a36760d-5d1e-4eee-9006-3fed042aa2cd@gmail.com>
- <20260423044211.GD557136@black.igk.intel.com>
- <3d562963-9581-4e0f-b9a0-5f0fe28d2495@kernel.org>
- <f72a1da5-2cc1-4e08-9441-ea252062b4e5@gmail.com>
- <a2a187d9-363c-48fe-8301-6a199366c478@gmx.de>
- <f4979d43-f61f-4387-8490-ccec7043c940@kernel.org>
- <bcdd110b-489e-4f09-892d-b2d6ce4b0ff0@gmx.de>
- <20260427045731.GI557136@black.igk.intel.com>
- <92b504d2-3d6e-4380-883c-be6b50eec25d@gmx.de>
+   d="scan'208";a="238913404"
+Received: from kniemiec-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.244.213])
+  by orviesa005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Apr 2026 01:13:59 -0700
+Date: Tue, 28 Apr 2026 11:13:56 +0300
+From: Andy Shevchenko <andriy.shevchenko@intel.com>
+To: Maxwell Doose <m32285159@gmail.com>
+Cc: rafael@kernel.org, lenb@kernel.org, Andy Shevchenko <andy@kernel.org>,
+	Mika Westerberg <westeri@kernel.org>, linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v3] ACPI: pmic: Replace mutex_lock/unlock() with
+ guard()/scoped_guard()
+Message-ID: <afBsRD8KqszA6Ava@ashevche-desk.local>
+References: <20260427231119.55486-1-m32285159@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <92b504d2-3d6e-4380-883c-be6b50eec25d@gmx.de>
+In-Reply-To: <20260427231119.55486-1-m32285159@gmail.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-Hi,
-
-On Tue, Apr 28, 2026 at 12:09:10AM +0200, Armin Wolf wrote:
-> Am 27.04.26 um 06:57 schrieb Mika Westerberg:
+On Mon, Apr 27, 2026 at 06:11:19PM -0500, Maxwell Doose wrote:
+> Replace mutex_lock() and unlock() macros with the newer guard() and
+> scoped_guard() macros. This will help modernize and clean the code.
 > 
-> > On Sat, Apr 25, 2026 at 10:41:46PM +0200, Armin Wolf wrote:
-> > > > > according to the Microsoft documentation
-> > > > > (https://learn.microsoft.com/
-> > > > > en-us/windows-hardware/drivers/bringup/general-purpose-i-o--gpio-,
-> > > > > section "GPIO controllers and ActiveBoth interrupts"), triggering
-> > > > > GPIO interrupts marked as ActiveBoth during initialization is
-> > > > > correct as long as the associated GPIO line is already "asserted"
-> > > > > (aka logic level low). I think the problem is that we also trigger
-> > > > > edge-based GPIO interrupts _not_ marked as ActiveBoth.
-> > > > > 
-> > > > > Based on this i agree with Hans, except that we should continue you
-> > > > > trigger ActiveBoth GPIO interrupts as long as the above
-> > > > > condition applies.
-> > > > > 
-> > > > > Thanks,
-> > > > > Armin Wolf
-> > > > > 
-> > > > So maybe something like this (attached)?
-> > > Yes, exactly.
-> > This is good information and definitely scales better than the quirk list.
-> > The linked document also mentions that there is _DSM under GPIO device that
-> > could be used to override the asserted state:
-> > 
-> > https://learn.microsoft.com/en-us/windows-hardware/drivers/bringup/gpio-controller-device-specific-method---dsm-
-> > 
-> > I wonder if we should implement that as well?
-> 
-> I already did some work in this area, but i kind of forgot about it
-> because i have no suitable device for testing this.  Maybe someone has a
-> device that uses this _DSM and can check if the attached patch works?
+> In intel_soc_pmic_exec_mipi_pmic_seq_element(): While at it, remove
+> now redundant "ret" variable.
 
-I don't have devices with the _DSM but few comments on the code (thanks BTW
-for doing this!).
+...
 
-> 
-> Thanks,
-> Armin Wolf
+> -	} else if (d->pmic_i2c_address) {
+> -		if (i2c_address == d->pmic_i2c_address) {
+> -			ret = regmap_update_bits(intel_pmic_opregion->regmap,
+> -						 reg_address, mask, value);
+> -		} else {
 
-> From 2e1dc51c864802c05c3a9e6b745dd8c34b4b615b Mon Sep 17 00:00:00 2001
-> From: Armin Wolf <W_Armin@gmx.de>
-> Date: Thu, 5 Feb 2026 22:39:35 +0100
-> Subject: [PATCH] gpiolib: acpi: Add support for Microsoft GPIO _DSM
-> 
-> Microsoft has defined a ACPI device specific method for determining
-> the logic level for which a given ActiveBoth GPIO interrupt should be
-> considered "asserted". Such GPIO interrupts are normally considered to
-> be "asserted" when being logic level low.
-> Being able to override this assumption might be important for firmware
-> implementations where a ActiveBoth GPIO interrupt is asserted at logic
-> level high.
-> 
-> Link: https://learn.microsoft.com/en-us/windows-hardware/drivers/bringup/gpio-controller-device-specific-method---dsm-
-> Signed-off-by: Armin Wolf <W_Armin@gmx.de>
-> ---
->  drivers/gpio/gpiolib-acpi-core.c | 67 ++++++++++++++++++++++++++++++--
->  1 file changed, 64 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/gpio/gpiolib-acpi-core.c b/drivers/gpio/gpiolib-acpi-core.c
-> index eb8a40cfb7a9..f7c58ae4d423 100644
-> --- a/drivers/gpio/gpiolib-acpi-core.c
-> +++ b/drivers/gpio/gpiolib-acpi-core.c
-> @@ -15,6 +15,8 @@
->  #include <linux/irq.h>
->  #include <linux/mutex.h>
->  #include <linux/pinctrl/pinctrl.h>
-> +#include <linux/printk.h>
-> +#include <linux/uuid.h>
->  
->  #include <linux/gpio/consumer.h>
->  #include <linux/gpio/driver.h>
-> @@ -23,6 +25,14 @@
->  #include "gpiolib.h"
->  #include "gpiolib-acpi.h"
->  
-> +/*
-> + * Defined by Microsoft at https://learn.microsoft.com/en-us/windows-hardware/drivers/bringup/
-> + * gpio-controller-device-specific-method---dsm-.
-> + */
-> +static const guid_t acpi_gpio_microsoft_guid = GUID_INIT(0x4F248F40, 0xD5E2, 0x499F, 0x83, 0x4C,
-> +							 0x27, 0x75, 0x8E, 0xA1, 0xCD, 0x3F);
-> +#define ACPI_GPIO_DSM_ACTIVE_BOTH_POLARITY 1
-> +
->  /**
->   * struct acpi_gpio_event - ACPI GPIO event handler data
->   *
-> @@ -216,9 +226,11 @@ bool acpi_gpio_get_io_resource(struct acpi_resource *ares,
->  EXPORT_SYMBOL_GPL(acpi_gpio_get_io_resource);
->  
->  static void acpi_gpiochip_request_irq(struct acpi_gpio_chip *acpi_gpio,
-> -				      struct acpi_gpio_event *event)
-> +				      struct acpi_gpio_event *event,
-> +				      union acpi_object *obj)
->  {
->  	struct device *parent = acpi_gpio->chip->parent;
-> +	bool active_low = true;
->  	int ret, value;
->  
->  	ret = request_threaded_irq(event->irq, NULL, event->handler,
-> @@ -248,18 +260,67 @@ static void acpi_gpiochip_request_irq(struct acpi_gpio_chip *acpi_gpio,
->  	if (acpi_gpio_need_run_edge_events_on_boot() &&
->  	    ((event->irqflags & (IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING)) ==
->  	     (IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING))) {
-> +		if (obj) {
-> +			for (u32 i = 0; i < obj->package.count; i++) {
-> +				if (obj->package.elements[i].integer.value == event->pin) {
-> +					active_low = false;
-> +					break;
-> +				}
-> +			}
-> +		}
-> +
->  		value = gpiod_get_raw_value_cansleep(event->desc);
-> -		if (value == 0)
-> +		if ((active_low && value == 0) || (!active_low && value == 1))
->  			event->handler(event->irq, event);
->  	}
->  }
->  
-> +static union acpi_object *acpi_gpiochip_evaluate_dsm(struct acpi_gpio_chip *acpi_gpio)
-> +{
-> +	struct device *parent = acpi_gpio->chip->parent;
-> +	union acpi_object dummy = {
-> +		.package = {
-> +			.type = ACPI_TYPE_PACKAGE,
-> +			.count = 0,
-> +			.elements = NULL,
-> +		},
-> +	};
-> +	acpi_handle handle = ACPI_HANDLE(parent);
-> +	union acpi_object *obj;
-> +
-> +	if (!acpi_check_dsm(handle, &acpi_gpio_microsoft_guid, 0,
-> +			    BIT(ACPI_GPIO_DSM_ACTIVE_BOTH_POLARITY)))
-> +		return NULL;
-> +
-> +	obj = acpi_evaluate_dsm_typed(handle, &acpi_gpio_microsoft_guid, 0,
-> +				      ACPI_GPIO_DSM_ACTIVE_BOTH_POLARITY,
-> +				      &dummy, ACPI_TYPE_PACKAGE);
-> +	if (obj) {
-> +		for (u32 i = 0; i < obj->package.count; i++) {
-> +			if (obj->package.elements[i].type == ACPI_TYPE_INTEGER)
-> +				continue;
-> +
-> +			dev_err(parent, FW_BUG "Ignoring GPIO _DSM due to invalid data\n");
-> +			ACPI_FREE(obj);
-> +			return NULL;
-> +		}
-> +	}
-> +
-> +	return obj;
-> +}
-> +
->  static void acpi_gpiochip_request_irqs(struct acpi_gpio_chip *acpi_gpio)
->  {
->  	struct acpi_gpio_event *event;
-> +	union acpi_object *obj;
-> +
-> +	obj = acpi_gpiochip_evaluate_dsm(acpi_gpio);
->  
+> +	if (d->pmic_i2c_address) {
+> +		if (i2c_address != d->pmic_i2c_address) {
 
-So intead of here I think it should be called from
-acpi_gpiochip_request_interrupts() after acpi_walk_resources() and make it
-fill new field active_low in struct acpi_gpio_event.
+I slightly tend to make this change less invasive, id est leaving the if-else
+as it was in the original code.
 
-Then use that field in acpi_gpiochip_request_irq().
+...
 
->  	list_for_each_entry(event, &acpi_gpio->events, node)
-> -		acpi_gpiochip_request_irq(acpi_gpio, event);
-> +		acpi_gpiochip_request_irq(acpi_gpio, event, obj);
-> +
-> +	if (obj)
-> +		ACPI_FREE(obj);
->  }
->  
->  static enum gpiod_flags
-> -- 
-> 2.39.5
-> 
+> -			       __func__, i2c_address, reg_address, value, mask);
+
+> +				__func__, i2c_address, reg_address, value, mask);
+
+Stray change.
+
+-- 
+With Best Regards,
+Andy Shevchenko
+
 
