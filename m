@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C55E229E11D;
-	Tue, 28 Apr 2026 01:56:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 459402BF3D7;
+	Tue, 28 Apr 2026 01:57:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777341414; cv=none; b=PSReNzDHHSbWMpYXf9I41WgbFplsLzjx7ooDL6dRHNQVzPLi8WLJ0uP4ygm0eD9yTGNBWyw8YQktWZys+fRz0zPDFsgzg2RUmuzLrfvZtq8HQixEglPcEnqTTYw9Rony/EJ4gm0PhY6V2nIld9NijtgeZsf7JJU8OuiiaFtEOPQ=
+	t=1777341474; cv=none; b=fqWtjFpi7A9EH2BYh7nK8Kc7LHnBD1sGJ4P+/2ubB1BR08D18QurMrJ0bKQt5fY5BR7ZFzOT7X963N9pjzuIOBJmcTl4s5w3aWoz9/WGBV4TQ3Eyn8xVZAiwCY0eCm8YWNQ99ljgapHXnGdVzwnEtXOGtcmxTQrnW/8QvfWGOhc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777341414; c=relaxed/simple;
-	bh=aQuhWlNvPYX+NkLPdd+qNBPd3TvJl1bgP7uJAQNuPrQ=;
+	s=arc-20240116; t=1777341474; c=relaxed/simple;
+	bh=rOonBp+piUpdPA+hE946zkT1f5kVqnqsMbM4XRaZLI0=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=iQYaTNHFY8Epd5OhncZuizrzemI+OEHlUKI+fZt+9axS7c+Cg2v2zgIM8XVVo5Y+gHQiCC9YSYQFpoDvm93PaHj055WP7xpDi16+h/HgtSl5YnYQePJO4Z/q3wtqWi6ZZDaLOuN3SabxKuJKggD54qO076FkKPupnBsL4LvLIWE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VJyKCI5w; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:Content-Type; b=dPbZpERH7sZ/SJYQ2C8EAbkAfH4/00vQyYUSpoYGEXtMF4e4zbwZVKZcdTRGQeZcj2BLVTdkI2l2Sz3K6mLldp3+4GNPBvAucAnbycniXiaHJoNZ01MtB6ekHsm2dg1/pc/a8vPuZ8JPcPy5V0+KpVtz8DOwHAmFjVebcIL9MgI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iw8RGdxa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VJyKCI5w"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75806C19425;
-	Tue, 28 Apr 2026 01:56:53 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iw8RGdxa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD90EC19425;
+	Tue, 28 Apr 2026 01:57:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1777341414;
-	bh=aQuhWlNvPYX+NkLPdd+qNBPd3TvJl1bgP7uJAQNuPrQ=;
+	s=k20201202; t=1777341474;
+	bh=rOonBp+piUpdPA+hE946zkT1f5kVqnqsMbM4XRaZLI0=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=VJyKCI5wb+1ENaz+1oKjaJYo6QKwTDJTtJ/y5qnGYDN9XW28+9IPlAn5pS67K92ne
-	 VEDp8txI3Bu0G0nC/IsL8A16DDzTpNRSngkQuNchjO6U/Uqv3lTRolsawsrLXWtfzl
-	 Rh5xwNv+kuxhf73265/glE4QUcfpO9KK88GcrW2r1uvbHfC8aqX1FVkjWrpOmii/+/
-	 Q/dUjSVWG5Lwb3uT75J6Uz+99OTVTV16EB590iE4g6kDCqfUJ8ITomwYEjRkpWRHel
-	 zHDat5PHBZTR15C8Ot+r7ovgPow2w9O+8P/GTm64UCyyBdOa8GJuf1ffVmDPCi4DQB
-	 pMk/e1p0b3y2Q==
-Message-ID: <93d15dd4-d084-4f9b-9e02-a5417ecb168e@kernel.org>
-Date: Mon, 27 Apr 2026 20:56:51 -0500
+	b=iw8RGdxaZbrsCiPlepUU3oswecINl5kKbUBkd8ltilHL1wXaiNHyZ1qhMK6UnTEf6
+	 Lo/Lfx+fbbIRXIdBWPYwpRpjoVX5z0x+kWHMrAsaweGk3obpKtN+Y3vfXaVDohSs33
+	 U3caI1705ePstmD1x0mQySiNk6+9TsohcLtUW+c08t46DCN/v/7H5lXlbppDdVuGWq
+	 Jtd0gUd7RrszVP7vwQxjf4tYW/xYmXuFPuztmIkdyR2E3M9JeskK96YwL6zkvds4il
+	 3cDOKXOGi3OQxNQehAKxmrQ15Jze1qt8NcJrR2+eg45e/DuMhZMxRBnqbGvoou1YcJ
+	 kttdXHlzPZrNg==
+Message-ID: <3841aded-9b40-4899-9b64-3fb42e077ac7@kernel.org>
+Date: Mon, 27 Apr 2026 20:57:51 -0500
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -35,8 +35,8 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC v2 04/10] platform/x86: asus-wmi: add s2idle begin delay for
- Ally devices
+Subject: Re: [RFC v2 03/10] acpi/x86: s2idle: Add support for adding a delay
+ after begin MS calls
 Content-Language: en-US
 To: Antheas Kapenekakis <lkml@antheas.dev>, dmitry.osipenko@collabora.com
 Cc: bob.beckett@collabora.com, bookeldor@gmail.com, hadess@hadess.net,
@@ -45,159 +45,82 @@ Cc: bob.beckett@collabora.com, bookeldor@gmail.com, hadess@hadess.net,
  rafael@kernel.org, richard@hughsie.com, sebastian.reichel@collabora.com,
  systemd-devel@lists.freedesktop.org, xaver.hugl@gmail.com
 References: <20260425215734.14116-1-lkml@antheas.dev>
- <20260425215734.14116-5-lkml@antheas.dev>
+ <20260425215734.14116-4-lkml@antheas.dev>
 From: Mario Limonciello <superm1@kernel.org>
-In-Reply-To: <20260425215734.14116-5-lkml@antheas.dev>
+In-Reply-To: <20260425215734.14116-4-lkml@antheas.dev>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
 On 4/25/26 16:57, Antheas Kapenekakis wrote:
-> Asus ROG Ally devices have a small fade animation during their suspend
-> sequence. This animation is triggered by the Display Off firmware
-> notification. After it, they power off, disconnect, and save their
-> state. Without a delay after that notification, if the device is placed
-> into D3, it causes it to reboot during resume, or particularly for
-> original Allies, also leave the xpad device connected, causing spurious
-> wakeups when a gamepad button is pressed and higher standby drain.
+> Certain platform/USB devices interact with Modern Standby firmware
+> notifications. This is particularly true with Asus, where the keyboards
+> are wired up to turn off their backlight during the Display Off
+> notification using a predetermined delay. While for Asus Keyboards this
+> does not cause an issue, it does manifest in ROG Ally devices, where the
+> controller waits for the animation to complete before saving its state.
 > 
-> Therefore, introduce a small delay quirk and bind it to an s2idle dev
-> ops device. Place this quirk in the asus-wmi driver, as the USB gamepad
-> disconnects, making it hard to place in hid-asus, and to allow for
-> proper functionality when the hid-asus driver is blacklisted.
+> In Windows, this is not a problem, because there is an ample delay after
+> these calls and before LPS0, typically seconds to minutes.
+> 
+> Therefore, introduce a delay quirk after these calls, to ensure affected
+> devices have time to uninitialize, and attach it to acpi_s2idle_dev_ops
+> so it can be consumed by device drivers.
 > 
 > Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 > ---
->   drivers/platform/x86/asus-nb-wmi.c | 40 ++++++++++++++++++++++++++++++
->   drivers/platform/x86/asus-wmi.c    | 12 +++++++++
->   drivers/platform/x86/asus-wmi.h    | 14 +++++++++++
->   3 files changed, 66 insertions(+)
+>   drivers/acpi/x86/s2idle.c | 11 +++++++++++
+>   include/linux/acpi.h      |  1 +
+>   2 files changed, 12 insertions(+)
 > 
-> diff --git a/drivers/platform/x86/asus-nb-wmi.c b/drivers/platform/x86/asus-nb-wmi.c
-> index b4677c5bba5b..da963f3a17b1 100644
-> --- a/drivers/platform/x86/asus-nb-wmi.c
-> +++ b/drivers/platform/x86/asus-nb-wmi.c
-> @@ -155,6 +155,10 @@ static struct quirk_entry quirk_asus_z13 = {
->   	.tablet_switch_mode = asus_wmi_kbd_dock_devid,
->   };
+> diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
+> index f5aefba8b191..8b48f999e0e9 100644
+> --- a/drivers/acpi/x86/s2idle.c
+> +++ b/drivers/acpi/x86/s2idle.c
+> @@ -16,6 +16,7 @@
+>    */
 >   
-> +static struct quirk_entry quirk_ally = {
-> +	.lps0_begin_delay = 500,
-> +};
-> +
->   static int dmi_matched(const struct dmi_system_id *dmi)
+>   #include <linux/acpi.h>
+> +#include <linux/delay.h>
+>   #include <linux/device.h>
+>   #include <linux/dmi.h>
+>   #include <linux/suspend.h>
+> @@ -517,6 +518,9 @@ static struct acpi_scan_handler lps0_handler = {
+>   
+>   static int acpi_s2idle_begin_lps0(void)
 >   {
->   	pr_info("Identified laptop model '%s'\n", dmi->ident);
-> @@ -553,6 +557,42 @@ static const struct dmi_system_id asus_quirks[] = {
->   		},
->   		.driver_data = &quirk_asus_z13,
->   	},
-> +	{
-> +		.callback = dmi_matched,
-> +		.ident = "ASUS ROG Ally",
-> +		.matches = {
-> +			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
-> +			DMI_MATCH(DMI_BOARD_NAME, "RC71L"),
-> +		},
-> +		.driver_data = (void *)&quirk_ally,
-> +	},
-> +	{
-> +		.callback = dmi_matched,
-> +		.ident = "ASUS ROG Ally X",
-> +		.matches = {
-> +			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
-> +			DMI_MATCH(DMI_BOARD_NAME, "RC72L"),
-> +		},
-> +		.driver_data = (void *)&quirk_ally,
-> +	},
-> +	{
-> +		.callback = dmi_matched,
-> +		.ident = "ASUS ROG Xbox Ally",
-> +		.matches = {
-> +			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
-> +			DMI_MATCH(DMI_BOARD_NAME, "RC73Y"),
-> +		},
-> +		.driver_data = (void *)&quirk_ally,
-> +	},
-> +	{
-> +		.callback = dmi_matched,
-> +		.ident = "ASUS ROG Xbox Ally X",
-> +		.matches = {
-> +			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
-> +			DMI_MATCH(DMI_BOARD_NAME, "RC73X"),
-> +		},
-> +		.driver_data = (void *)&quirk_ally,
-> +	},
->   	{},
->   };
->   
-> diff --git a/drivers/platform/x86/asus-wmi.c b/drivers/platform/x86/asus-wmi.c
-> index 7c0915e097ba..3316415abbdf 100644
-> --- a/drivers/platform/x86/asus-wmi.c
-> +++ b/drivers/platform/x86/asus-wmi.c
-> @@ -337,6 +337,8 @@ struct asus_wmi {
->   	struct asus_wmi_debug debug;
->   
->   	struct asus_wmi_driver *driver;
+> +	struct acpi_s2idle_dev_ops *handler;
+> +	int delay = 0;
 > +
-> +	struct acpi_s2idle_dev_ops s2idle_dev_ops;
->   };
+>   	if (!lps0_device_handle || sleep_no_lps0)
+>   		return acpi_s2idle_begin();
 >   
->   /* Global to allow setting externally without requiring driver data */
-> @@ -5030,6 +5032,12 @@ static int asus_wmi_add(struct platform_device *pdev)
->   	if (err)
->   		goto fail_platform;
+> @@ -552,6 +556,13 @@ static int acpi_s2idle_begin_lps0(void)
+>   					lps0_dsm_func_mask_microsoft,
+>   					lps0_dsm_guid_microsoft);
 >   
-> +	if (asus->driver->quirks->lps0_begin_delay) {
-> +		asus->s2idle_dev_ops.begin_delay =
-> +			asus->driver->quirks->lps0_begin_delay;
-> +		acpi_register_lps0_dev(&asus->s2idle_dev_ops);
+> +	list_for_each_entry(handler, &lps0_s2idle_devops_head, list_node) {
+> +		if (handler->begin_delay && handler->begin_delay > delay)
+> +			delay = handler->begin_delay;
 > +	}
+> +	if (delay > 0)
+> +		msleep(delay);
+
+Is this the correct location?  You wouldn't want it at the check callback?
+
 > +
->   	if (use_ally_mcu_hack == ASUS_WMI_ALLY_MCU_HACK_INIT) {
->   		if (acpi_has_method(NULL, ASUS_USB0_PWR_EC0_CSEE)
->   					&& dmi_check_system(asus_rog_ally_device))
-> @@ -5184,6 +5192,8 @@ static int asus_wmi_add(struct platform_device *pdev)
->   fail_custom_fan_curve:
->   fail_platform_profile_setup:
->   fail_fan_boost_mode:
-> +	if (asus->driver->quirks->lps0_begin_delay)
-> +		acpi_unregister_lps0_dev(&asus->s2idle_dev_ops);
->   fail_platform:
->   	kfree(asus);
->   	return err;
-> @@ -5207,6 +5217,8 @@ static void asus_wmi_remove(struct platform_device *device)
->   	asus_fan_set_auto(asus);
->   	throttle_thermal_policy_set_default(asus);
->   	asus_wmi_battery_exit(asus);
-> +	if (asus->driver->quirks->lps0_begin_delay)
-> +		acpi_unregister_lps0_dev(&asus->s2idle_dev_ops);
->   
->   	kfree(asus);
+>   	return acpi_s2idle_begin();
 >   }
-> diff --git a/drivers/platform/x86/asus-wmi.h b/drivers/platform/x86/asus-wmi.h
-> index 5cd4392b964e..2a8c51d39bf8 100644
-> --- a/drivers/platform/x86/asus-wmi.h
-> +++ b/drivers/platform/x86/asus-wmi.h
-> @@ -52,6 +52,20 @@ struct quirk_entry {
->   	 */
->   	int no_display_toggle;
->   	u32 xusb2pr;
-> +	/*
-> +	 * Ally devices uninitialize after the display off DSM of modern
-> +	 * stanby, after a predetermined fade animation on their RGB.
-standby
-> +	 * If the USB subsystem puts the controller into D3 before that,
-> +	 * it loses its state and (i) for original allies, it leaves the
-> +	 * xpad device connected, causing spurious wake-ups and higher
-> +	 * power draw, (ii) for newer allies using the adaptive protocol
-> +	 * causes the controller to reboot on resume if mcu_powersave is
-> +	 * false. Therefore, allow adding a delay for the affected devices.
-> +	 * (if MCU powersave is true the controller always reboots, but
-> +	 * this also causes an unwelcome 5-7s delay on resume, this issue
-> +	 * is present on all firmwares)
-> +	 */
-> +	int lps0_begin_delay;
->   };
 >   
->   struct asus_wmi_driver {
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 4d2f0bed7a06..a416e5c5798a 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -1154,6 +1154,7 @@ struct acpi_s2idle_dev_ops {
+>   	void (*prepare)(void);
+>   	void (*check)(void);
+>   	void (*restore)(void);
+> +	int begin_delay;
+>   };
+>   #if defined(CONFIG_SUSPEND) && defined(CONFIG_X86)
+>   int acpi_register_lps0_dev(struct acpi_s2idle_dev_ops *arg);
 
