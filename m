@@ -1,61 +1,59 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.19])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 825F1154425;
-	Wed, 29 Apr 2026 05:32:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.19
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4959139D6DB;
+	Wed, 29 Apr 2026 07:10:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.9
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777440771; cv=none; b=HiTsuO7bj9f4BwWsC32GsHKM+MvxfjBXugxZFNGvl9zK5rdXwMN6sYSMsl2Bh1JXhIlNSCFS2YLzgFFHAPBW4479pUTsFMtS/jinoKToEfcWRfpG3kDCgoSohNIAQzuqT95BwUCIZsgK13qtIR7Np2pnk6+YB2z24FavfNr63QY=
+	t=1777446602; cv=none; b=C6x26nWunZ3Ej2jbHwiZmiejWnSUmAbaP6lY8qqUm3hYgzaHkjvErkb7i98IW5JXEgPbXyG36T6LGGGPujnnPOnH4BUWDBQ3bDQphGVkjT6By6qQM2+FKNIEw07DUczP00y3dBzbh+gYFGtUsiy6mKzdIBmHnuy8QjmwIlR/SQA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777440771; c=relaxed/simple;
-	bh=imCpF8OHGJq9FBotlmnXuxwdACVRuU6SJcf5BFUg3EU=;
+	s=arc-20240116; t=1777446602; c=relaxed/simple;
+	bh=4Zy0uAMx48BrgJFZV9aSEkf8HlXY7+fqMe6l8NPxS0c=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Of8p9bc809vxVY9i6WH/NPFWodwkaPdZvopW76w2fFQU4v063Q+nTgy/JvpUeONZKyN+EYSpu2knMPo3GzHVb7cTJ1EeWl5wU5Pnn1NNUvhfWjKon2X6Cc42K2+znIrW6vq2Yt4o8t0smcJMZZoj2xBv9A9yovnubNkPdwWWNmQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Ubthj37M; arc=none smtp.client-ip=192.198.163.19
+	 Content-Type:Content-Disposition:In-Reply-To; b=DIemqhATRQapu/q5WWvjbXsUN/TOKkTgpWBCpSXf0Zx8MvZoDeUrlcstqpR3NrcllLzdJaADVv6Gy9ADsgNMqvleKz9mZYIk2uFYl+jW720aGJqnqrnZiezvKhwJ+bGm4VPthn4I+98/2qssbx4BWCZBgMictMCcX4j0nAyEjrQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=kISnpD83; arc=none smtp.client-ip=198.175.65.9
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Ubthj37M"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="kISnpD83"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1777440769; x=1808976769;
+  t=1777446601; x=1808982601;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=imCpF8OHGJq9FBotlmnXuxwdACVRuU6SJcf5BFUg3EU=;
-  b=Ubthj37MaQeyqNJfLrHv/mBSXFj0aIHiTLGvSvAvlKScStNkc0pOyz/1
-   QHw8oDPhOp3bnF2PUIqBc4ZA+cFwQ1HaR/rkwbH8g0mLgVOHCCT8ipN1j
-   dVi6HvauGvyuMh3PHtPW3Wgc03RIWEKJnr+/oENqcSxsZ26xxwVuo3S8c
-   AHWOEqX+EIjPo2dmZ/MVJito5YReO0Sr50vt5Mqr9adOcHsgHCzvgmW2u
-   vIJCF2gVi5+XK+dq0Ufx2A6Jw55fQVK3GEqv3Ctd1YoGDb4StK2HWcQ2z
-   zkH6GO0cIHIZ4NeZDvmmOBKRwtiWTp6YrOm7YGW9gjR4MJnn1/xWDrMhW
+  bh=4Zy0uAMx48BrgJFZV9aSEkf8HlXY7+fqMe6l8NPxS0c=;
+  b=kISnpD83JAnq6qIGq3LCIUZiEWHgfMHxcRVXPTI8QKLSiY43Rd9w55Yv
+   ntCP+oI6NZmBZnI3HiC+am4TLXFGjG0j9M9CGB3KUH8vSocDURyf50rz6
+   YvgluPM6Wfj2U78UbynAaAPaF5mScg/EmOrFlAXZ9v61+n4IpnnL7wQQ4
+   nOIJXQbaNMujbLBhFs5lLIUv/+ho/lq4l7xr41UsUZfFpCpg6EhhiCFzm
+   vK4IAI0DENsw6DoXZIksk5xj57VKoTI3jRqe0KBUG6HMDr/ON9QzXXJFV
+   YxKUQYLvt61usapTuzVDlQi5ATPSzb22fbPPtS5SSEPx33onO+8gVkbU7
    g==;
-X-CSE-ConnectionGUID: Vh2oKDQuQzCLRBQ5Wqeclg==
-X-CSE-MsgGUID: W60KA3K5RTK6eKwMjX/vDw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11770"; a="77391560"
+X-CSE-ConnectionGUID: Jgwxn9fWRk+mz2EgPKvMIg==
+X-CSE-MsgGUID: GsxxrYFcTTakRPLXlJn8lg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11770"; a="101030814"
 X-IronPort-AV: E=Sophos;i="6.23,205,1770624000"; 
-   d="scan'208";a="77391560"
-Received: from fmviesa002.fm.intel.com ([10.60.135.142])
-  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Apr 2026 22:32:49 -0700
-X-CSE-ConnectionGUID: 0RIj5XjQR6ub5LAWUwa3gA==
-X-CSE-MsgGUID: QD7Xf7pDQcmxrwfQiRL98g==
+   d="scan'208";a="101030814"
+Received: from fmviesa001.fm.intel.com ([10.60.135.141])
+  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Apr 2026 00:10:00 -0700
+X-CSE-ConnectionGUID: DQYx6t+QR3SDFVd1q3NErQ==
+X-CSE-MsgGUID: G/VvZE3LTr+stC8gBLUahg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.23,205,1770624000"; 
-   d="scan'208";a="257479037"
-Received: from black.igk.intel.com ([10.91.253.5])
-  by fmviesa002.fm.intel.com with ESMTP; 28 Apr 2026 22:32:12 -0700
-Received: by black.igk.intel.com (Postfix, from userid 1001)
-	id 7142895; Wed, 29 Apr 2026 07:32:11 +0200 (CEST)
-Date: Wed, 29 Apr 2026 07:32:11 +0200
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
+   d="scan'208";a="257739654"
+Received: from ettammin-mobl2.ger.corp.intel.com (HELO localhost) ([10.245.245.141])
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Apr 2026 00:09:57 -0700
+Date: Wed, 29 Apr 2026 10:09:55 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To: Mario Limonciello <mario.limonciello@amd.com>
-Cc: westeri@kernel.org, andriy.shevchenko@linux.intel.com,
-	linusw@kernel.org, brgl@kernel.org, bentiss@kernel.org,
-	hansg@kernel.org,
+Cc: westeri@kernel.org, linusw@kernel.org, brgl@kernel.org,
+	bentiss@kernel.org, hansg@kernel.org,
 	Francesco Lauritano <francesco.lauritano1@protonmail.com>,
 	Marco Scardovi <mscardovi95@gmail.com>, Armin Wolf <W_Armin@gmx.de>,
-	linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
+	mika.westerberg@linux.intel.com, linux-gpio@vger.kernel.org,
+	linux-acpi@vger.kernel.org
 Subject: Re: [PATCH] gpiolib: acpi: Only trigger ActiveBoth interrupts on boot
-Message-ID: <20260429053211.GA557136@black.igk.intel.com>
+Message-ID: <afGuw9VbvnGTQW0F@ashevche-desk.local>
 References: <20260429025247.1372984-1-mario.limonciello@amd.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
@@ -63,9 +61,11 @@ List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 In-Reply-To: <20260429025247.1372984-1-mario.limonciello@amd.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
 On Tue, Apr 28, 2026 at 09:52:39PM -0500, Mario Limonciello wrote:
 > Commit ca876c7483b6 ("gpiolib-acpi: make sure we trigger edge events at
@@ -89,13 +89,29 @@ On Tue, Apr 28, 2026 at 09:52:39PM -0500, Mario Limonciello wrote:
 > Fix this by:
 > - Only triggering when BOTH rising and falling edges are configured
 > - Only triggering when the GPIO line is asserted (value == 0)
-> 
-> Reported-by: Francesco Lauritano <francesco.lauritano1@protonmail.com>
-> Closes: https://lore.kernel.org/all/6iFCwGH2vssb7NRUTWGpkubGMNbgIlBHSz40z8ZsezjxngXpoiiRiJaijviNvhiDAGIr43bfUmdxLmxYoHDjyft4DgwFc3Pnu5hzPguTa0s=@protonmail.com/
-> Tested-by: Marco Scardovi <mscardovi95@gmail.com>
-> Fixes: ca876c7483b69 ("gpiolib-acpi: make sure we trigger edge events at least once on boot")
-> Link: https://learn.microsoft.com/en-us/windows-hardware/drivers/bringup/general-purpose-i-o--gpio-
-> Suggested-by: Armin Wolf <W_Armin@gmx.de>
-> Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
 
-Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Good catch!
+
+...
+
+>  	if (acpi_gpio_need_run_edge_events_on_boot() &&
+> -	    (event->irqflags & (IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING))) {
+> +	    ((event->irqflags & (IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING)) ==
+> +	     (IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING))) {
+
+Use _MASK in both cases.
+
+	    ((event->irqflags & IRQF_TRIGGER_MASK) == IRQF_TRIGGER_MASK)) {
+
+>  		value = gpiod_get_raw_value_cansleep(event->desc);
+> -		if (((event->irqflags & IRQF_TRIGGER_RISING) && value == 1) ||
+> -		    ((event->irqflags & IRQF_TRIGGER_FALLING) && value == 0))
+> +		if (value == 0)
+>  			event->handler(event->irq, event);
+>  	}
+
+-- 
+With Best Regards,
+Andy Shevchenko
+
+
