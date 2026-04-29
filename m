@@ -1,113 +1,178 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.15])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8809D3C2781;
-	Wed, 29 Apr 2026 09:55:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.15
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8A4C2EA498
+	for <linux-acpi@vger.kernel.org>; Wed, 29 Apr 2026 10:11:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777456513; cv=none; b=K00I5J8M31ms1Ky9Ino4gtyxLZ/H9ZTtD/RofZR211p64D8Oz3dqMvF7h3E3C2iTLfkf/3kX+6xYhQ6OeaxpIzhJ728z1YlkYQ2UGsYREx7jxdia8qh0MZXkIC8zK97NXJa38hayzeBcyamaMwukQYEIXeaDyEm+mQc1ZslG5aY=
+	t=1777457462; cv=none; b=iwJ+3iK8QwVbkuSf6+EmttIXwwLdW97qhhIMN94hD7AorNBXXK7Q4RN9wL3zdfgyi3rZXE6PIZZ6ye6uRGWxTjzBch7JEt44WBiEumWnH7FzGajKEYtNeGI/aTlaq3yg6nhKO0LWBqJ53SlBxgsLepWhrRO33guMoW3yJODqMgk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777456513; c=relaxed/simple;
-	bh=i4g81PTUWusksn1VQRzddmbepw6SAMy/nja9wr1wz90=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=aU/8yjUahdNryCg19DQWxhRiZCkN1LC634Q9TPv/+lzRN42cEDC4S5yGAoe9rMKkdoCPqCl0GSiZmxCsibEZoEp+OLi/leCmV7NVKJqa698Adk0/UbWmWLpM1cdjENXa9n3bURUlC4JXhEiqcGycE04lvJ3Tfh3uE4GAT12Kmjg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=mu6n6WG7; arc=none smtp.client-ip=198.175.65.15
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1777457462; c=relaxed/simple;
+	bh=3pC7niAFFvqgXTBmCRej2t0P6tbDDSy87RigrSH57Bs=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=qb2QuasIZf5DmpvpkbfLlSQmxd2V6cYymlNE9zg0ksc/TgeB382+ztz9ZTDFZPEJpC5cEWxHPsGk8haxudStMFXqUwokgDWGyghPEQGmP36scQbM9A9J970bRD6p2mZJkyM9LUic7UPMrw/8bOmyKc0F3fi4agRB7ANtloANyUw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VEMKYp+q; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="mu6n6WG7"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1777456511; x=1808992511;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=i4g81PTUWusksn1VQRzddmbepw6SAMy/nja9wr1wz90=;
-  b=mu6n6WG7KyZMIa3YKijYvCnMcJrvBRrox7md4Qywo0mrqNXkijoFAois
-   chhzOh1TtS/Ct0EIMGAk0S1IyE77Ha7tFtDiubvnDldXUdGuulr3+TNrD
-   u1DNxwfjgG4eZObxAqvEWVrMlGh8cROh1Zr2squCB7S01yiN72znUQz9P
-   quCUwQ9ZnPuREhD463EWEDOl4IbI+1kdHNzK1NYah0R5TfHPvdNYIhAtw
-   Xdq8KV6krWumRzYimeJ/L2FNWjyMJyA/jp65F6XQPeUAbihTOglQO1eG+
-   NKyzp3Oi/SaIzxmeRgxl1B6QWhCgjHnKIuBGphdGNcDFiHP72ZyMw/eYw
-   Q==;
-X-CSE-ConnectionGUID: 8F12m61FRA2UaBEkRlqwKA==
-X-CSE-MsgGUID: 9CrC1yvnR26zzk54V8k52w==
-X-IronPort-AV: E=McAfee;i="6800,10657,11770"; a="81988636"
-X-IronPort-AV: E=Sophos;i="6.23,205,1770624000"; 
-   d="scan'208";a="81988636"
-Received: from fmviesa003.fm.intel.com ([10.60.135.143])
-  by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Apr 2026 02:55:10 -0700
-X-CSE-ConnectionGUID: HRYMlwjTTN6DeGUPpzjDiA==
-X-CSE-MsgGUID: fazMivYyT5aEbTQxcewUSg==
-X-ExtLoop1: 1
-Received: from ettammin-mobl2.ger.corp.intel.com (HELO localhost) ([10.245.245.141])
-  by fmviesa003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Apr 2026 02:55:08 -0700
-Date: Wed, 29 Apr 2026 12:55:05 +0300
-From: Andy Shevchenko <andriy.shevchenko@intel.com>
-To: Maxwell Doose <m32285159@gmail.com>
-Cc: rafael@kernel.org, lenb@kernel.org, andy@kernel.org, westeri@kernel.org,
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v4] ACPI: pmic: Replace mutex_lock/unlock() with
- guard()/scoped_guard()
-Message-ID: <afHVeVavSJ2NZ480@ashevche-desk.local>
-References: <20260429012432.120830-1-m32285159@gmail.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VEMKYp+q"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C2D2C19425
+	for <linux-acpi@vger.kernel.org>; Wed, 29 Apr 2026 10:11:02 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1777457462;
+	bh=3pC7niAFFvqgXTBmCRej2t0P6tbDDSy87RigrSH57Bs=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=VEMKYp+q4/n7Rs1ESJXIDaDe4B5em25B9cgIevSLzeRZ4g+qezQfgy6k6lpgHo0RM
+	 qSIaLjtJeoRaxzi7KfwN02uUkkDhDXb04SQ8priM0YBd8aXSDuUskqj3vjxrq2h5SC
+	 PTMcfRyV571cinsA/xEhYiUuSinYCyxx3H6UkP7oqPaEfEr/PagLitIdSteggPU+E4
+	 Nv1txbf5KooZ8yBp42SDrKok4WMKFQAuC33P3ZEg9k/111aED99FjHb4fmPPDKuFCS
+	 9O3kp27iBFlfyjPcz2BlqaVDi4pFDTKSHwFEMXcf3QpFXZ7dlFI53mQ4THvyYQSVRj
+	 50VpL/t/HY4Yw==
+Received: by mail-lf1-f44.google.com with SMTP id 2adb3069b0e04-5a2b636b944so17295601e87.1
+        for <linux-acpi@vger.kernel.org>; Wed, 29 Apr 2026 03:11:02 -0700 (PDT)
+X-Gm-Message-State: AOJu0YwQTrTV+hP0kEqXeFDIoIbUiNxQJ92mvMlqloo7Qrzl4cWKeHi9
+	Oy8RkdeFgIQB6p+fPwC4zAhC0R4jioqxDbNZfu3abue9AvKQS6kcPtRzEKv49DW86XXDFhaaLXP
+	ytmuU2k3xLXcDcSqHcD8kq8Eiv3tD5JQ=
+X-Received: by 2002:a05:6512:33cc:b0:5a2:b43d:ac47 with SMTP id
+ 2adb3069b0e04-5a749cef71amr1134614e87.5.1777457460618; Wed, 29 Apr 2026
+ 03:11:00 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260429012432.120830-1-m32285159@gmail.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+References: <CABXn0zehxT90bNogCu44fRu4ANZmjjrcd8WzX_ms-Bb_JxA2Kw@mail.gmail.com>
+ <4380e659-c807-43c4-9fe3-97e1403cc8a7@gmx.de> <CABXn0zdTmaR_pXR1Q73uHWFL=62V-VdGt3+M1Kig6LBpCnXZrA@mail.gmail.com>
+ <673690f1-cdb3-400e-b11e-8490e80a23ef@gmx.de> <CABXn0zeBHt7CkJOBpyE5=nhj3AOxiAELZLk7PzjSUmwi4BoU3Q@mail.gmail.com>
+ <CABXn0zeKbNvWHRrV-VAnffAi4a16i8T0r13sEJDmvcQe0E56UQ@mail.gmail.com> <cdc2b171-0b13-4795-a615-6f953dc4005c@gmx.de>
+In-Reply-To: <cdc2b171-0b13-4795-a615-6f953dc4005c@gmx.de>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Wed, 29 Apr 2026 12:10:48 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0gFXHYjpvJu++0bnAZFPzt-Nc7U7NQiS0M9_xRH2OB3Qg@mail.gmail.com>
+X-Gm-Features: AVHnY4KrBt2mW8gUzMwB0oniPlynxzqu-DH-MhfcqdwYHi9XcwNwG-t8qThhgME
+Message-ID: <CAJZ5v0gFXHYjpvJu++0bnAZFPzt-Nc7U7NQiS0M9_xRH2OB3Qg@mail.gmail.com>
+Subject: Re: [BUG] ASUS Vivobook M1502NAQ: ACPI DSDT namespace collision
+ (ASMI) causes early boot hang
+To: Armin Wolf <W_Armin@gmx.de>, Alexander Zubkov <zubkov318@gmail.com>
+Cc: linux-acpi@vger.kernel.org, Saket Dumbre <saket.dumbre@intel.com>, 
+	Pawel Chmielewski <pawel.chmielewski@intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, Apr 28, 2026 at 08:24:32PM -0500, Maxwell Doose wrote:
+On Tue, Apr 28, 2026 at 11:28=E2=80=AFPM Armin Wolf <W_Armin@gmx.de> wrote:
+>
+> Am 28.04.26 um 09:03 schrieb Alexander Zubkov:
+>
+> > On Fri, Apr 10, 2026 at 10:11=E2=80=AFAM Alexander Zubkov <zubkov318@gm=
+ail.com> wrote:
+> >> On Thu, Apr 9, 2026 at 11:00=E2=80=AFPM Armin Wolf <W_Armin@gmx.de> wr=
+ote:
+> >>> Am 09.04.26 um 21:19 schrieb Alexander Zubkov:
+> >>>
+> >>>> On Thu, Apr 9, 2026 at 4:58=E2=80=AFPM Armin Wolf <W_Armin@gmx.de> w=
+rote:
+> >>>>> Am 07.04.26 um 22:53 schrieb Alexander Zubkov:
+> >>>>>
+> >>>>>> Hello,
+> >>>>>>
+> >>>>>> I'd like to report an ACPI issue on an ASUS Vivobook 15 M1502NAQ-B=
+Q067
+> >>>>>> (AMD Ryzen 5 150 - Zen3+ / Rembrandt platform). UEFI version:
+> >>>>>> M1502NAQ.302.
+> >>>>>>
+> >>>>>> Linux kernels (tested with recent mainline live images of Alpine,
+> >>>>>> Void, NixOS and Fedora) hang immediately after bootloader when ACP=
+I is
+> >>>>>> enabled. No output is produced, even with earlycon/earlyprintk:
+> >>>>>> earlycon=3Defi,keep earlyprintk=3Defi,keep loglevel=3D8 ignore_log=
+level
+> >>>>>> initcall_debug acpi.debug_level=3D0x2 acpi.debug_layer=3D0xFFFFFFF=
+F
+> >>>>>>
+> >>>>>> I've tried various ACPI-related options, boot works only with:
+> >>>>>> * acpi=3Doff (but system resets with no error several seconds afte=
+r the
+> >>>>>> boot, keyboard does not work)
+> >>>>>> * acpi_no_static_ssdt (system boots, keyboard does not work)
+> >>>>>>
+> >>>>>> Notebook's firmare was upgraded to the latest available version. I=
+'ve
+> >>>>>> also tried to boot a windows installer, just to check it is not a
+> >>>>>> hardware issue. It boots normally.
+> >>>>>>
+> >>>>>> I'm not an expert in ACPI, so I used ChatGPT to lead the debug.
+> >>>>>> Although I suppose it misleaded me sometimes, it turned out to be
+> >>>>>> useful, because I found a DSDT patch that fixed the issue. Most of
+> >>>>>> debugging was done using Alpine's kernel 6.18.21-0-lts.
+> >>>>>>
+> >>>>>> The issue was traced to a namespace collision in DSDT:
+> >>>>>> * Method \ASMI defined in global scope
+> >>>>>> * Method _SB.ASMI also defined
+> >>>>>>
+> >>>>>> ChatGPT presumes that unqualified calls to ASMI appear to resolve
+> >>>>>> incorrectly under Linux (ACPICA), leading to a firmware-level fail=
+ure
+> >>>>>> during early ACPI initialization. I dumped ACPI tables from UEFI s=
+hell
+> >>>>>> and tried different overrides.
+> >>>>>>
+> >>>>>> The minimal fix I found is renaming the global method in DSDT and =
+its
+> >>>>>> single call. After applying this dsdt.aml override, the kernel boo=
+ts
+> >>>>>> well without additional acpi options, does not reset after boot, a=
+nd
+> >>>>>> the keybord initializes and works well. The patch looks like this =
+(and
+> >>>>>> I also increased the revision number):
+> >>>>>>
+> >>>>>> --- a/dsdt.dsl    2026-04-07 18:31:52.727022684 +0200
+> >>>>>> +++ b/dsdt.dsl    2026-04-07 21:30:04.393990891 +0200
+> >>>>>> @@ -10138,7 +10138,7 @@
+> >>>>>>                 SMCM =3D Arg0
+> >>>>>>             }
+> >>>>>>
+> >>>>>> -        Method (ASMI, 1, Serialized)
+> >>>>>> +        Method (ASMX, 1, Serialized)
+> >>>>>>             {
+> >>>>>>                 AL_D =3D Arg0
+> >>>>>>                 SMCM =3D 0xD6
+> >>>>>> @@ -10151,7 +10151,7 @@
+> >>>>>>                 DB_2 =3D Arg1
+> >>>>>>                 DB_3 =3D Arg2
+> >>>>>>                 DB_4 =3D Arg3
+> >>>>>> -            ASMI (0x80)
+> >>>>>> +            ASMX (0x80)
+> >>>>>>             }
+> >>>>>>         }
+> >>>>>>
+> >>>>>> Is this a known ACPICA behavior difference vs Windows, or should t=
+his
+> >>>>>> be considered a firmware bug only? I can provide full acpidump / D=
+SDT
+> >>>>>> if needed.
+> >>>>> This might indeed be a Bug inside ACPICA, please provide the acpidu=
+mp
+> >>>>> so we can inspect the caller of ASMI ().
+> >>>> Please see the acpi dumps and override attached. I noticed that dump
+> >>>> from Linux slightly differs from the one I made from shell.
+> >>>>
+> >>>> acpi-shell.tar.xz - dump from UEFI shell
+> >>>> acpi-linux.tar.xz - dump from Linux with override applied
+> >>>> asus-fix.cpio.xz - early initrd with DSDT override
+> >>> Thanks, please use reply-all next time so other people can access the=
+ ACPI tables too.
+> > Sorry to bother. Is my debug helpful somehow? Could it be something in
+> > ACPICA, or I'd better try reporting it to Asus?
+>
+> I hoped other people on this mailing list did spot something, but it seem=
+s that no one
+> (including myself) has an idea why this happens.
+>
+> I suggest that you create an issue with ACPICA directly: https://github.c=
+om/acpica/acpica
 
-...
+Yes, that's the way to go.
 
->  v4:
->  - Added else keyword to if statement in
->    intel_soc_pmic_exec_mipi_pmic_seq_element() per Andy's request.
-
-Nope, sorry if I was not clear. The idea is to drop 'else'.
-Also make the patch less invasive.
-
-...
-
-> -			       __func__, i2c_address, reg_address, value, mask);
-
-> +				__func__, i2c_address, reg_address, value, mask);
-
-Still a stray change.
-
-...
-
-It should be
-
-	int ret; // also left untouched, drop that from commit message as well
-
-        if (d->exec_mipi_pmic_seq_element) {
-		// the below if-else-if just should be left untouched.
-		if (i2c_address == d->pmic_i2c_address) {
-			...
-		} else {
-			...
-		}
-
-		return ret;
-	}
-
-	if (d->pmic_i2c_address) {
-	}
-
-	...warnings...
-	return -EOPNOTSUPP;
-
-We may get a second patch for deeper refactoring later on.
-
--- 
-With Best Regards,
-Andy Shevchenko
-
-
+It really looks like a difference in behavior between ACPICA and
+Windows causes this problem to appear (I've added upstream ACPICA
+developers to the CC list).
