@@ -1,109 +1,110 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.19])
+Received: from canpmsgout07.his.huawei.com (canpmsgout07.his.huawei.com [113.46.200.222])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64F25191F91;
-	Wed, 29 Apr 2026 07:19:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.19
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE1BF282F1F;
+	Wed, 29 Apr 2026 08:16:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.222
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777447194; cv=none; b=NzilS1IPgf27k/4/1KbfnWuBdjzsohHde7HqthM1+U47kqNSxkPEnUZjlk0HUveJYJUtLQq+jycPyXfeOI+qJ0HLIupLuRc/gRWKPpOf6GvwQHdXk5VEYVINPbDTngUGykWzleWDHn22Wr6oJNMofsQYFO1WC1d9nVPj6P6MvS4=
+	t=1777450593; cv=none; b=GJ/dooKlPYSevjoC5RTzFagiylp2k1U6wNmLV4mbBuHRNm9CunrQAtKk1wW1hXbPmvKXkarndOi4LU+mR04pxpvd49R3YgvrwJlhJ4MMDTzZ8Oi3lP4PynCZ7M08kgT8EAvrMIlpVIepWgnpZbo6OjQ8mWO5A5QvnN8HV4NhSXM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777447194; c=relaxed/simple;
-	bh=MGGuJ836ozO0L7P2t7NyxjOwrd4vHvDWNMWMYI7mNn4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RxEmBaUt+pB5atnX/zc8Rysoh0Zf9msTQm1L8JjmNSuz7PBJgPof1HQ0QykRxz0EklaFcBws8HRI94MbEdNidL74DiaIqAFZ2TWS2ypo6vRQTiITmeZFyPqsLWod8C/r5FrqmJCnBitC0XFgaeJ3akG8EvY8jIECq+5rw/PXqZI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Klnvo1KJ; arc=none smtp.client-ip=192.198.163.19
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1777450593; c=relaxed/simple;
+	bh=gryjn78eMUF+zOCTpZJjDS/stCUXEUz6BV2iTpCgtYo=;
+	h=Subject:To:CC:References:From:Message-ID:Date:MIME-Version:
+	 In-Reply-To:Content-Type; b=NFMfgrX2yO03lAiBBiC/54PXmc1fxKtU/Efc8yIHiRS65d7eqH5L/1tRY8MAWPKBND5E8hNQ+Zn0l1Di+oRd3BAOQTwtSPg7OdpGpK1TcX8Bh5T7UBCY+yRsllmyvX/fs0/jOyxjXcAuokEi/f2pLyQdZvqzmyhd40ZZjmVjVSE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=JJ1Iwtjm; arc=none smtp.client-ip=113.46.200.222
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Klnvo1KJ"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1777447194; x=1808983194;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=MGGuJ836ozO0L7P2t7NyxjOwrd4vHvDWNMWMYI7mNn4=;
-  b=Klnvo1KJs1WrP1kUaDeox57P13ByQX4iIlqioma3bMeMbH4u1e7+Suf6
-   WZ4+zzBtit8OLKEk45Jv1dduGPyEiL2abB67SYVbyOtXK5PhnXWeRLv82
-   ifUAn4W6aPSWlrSDFSQalVOTA4uFFZP0EtJWCxLo9DHBkhXK87pw9IZ/T
-   CHhNjDYFzUDMykU74QQEQRKHuBU/IC9tD6oY22j8zmAt9tY+3Djtd3LkY
-   C0mhmnyKcqEXg4uF6G4TgbXfKFGjNhiawNG0aoahJTJh+E8EKkf26fVFi
-   dKtmssH0mnx20x9G/Bbx3uXQIuCf8B7P3CTMiCZgFU8v6SYCAXCi53D9m
-   g==;
-X-CSE-ConnectionGUID: py37BOL2Qvqh0eytfwd3yA==
-X-CSE-MsgGUID: iQysPTiPQj2qa6GPpD1Ytg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11770"; a="77399789"
-X-IronPort-AV: E=Sophos;i="6.23,205,1770624000"; 
-   d="scan'208";a="77399789"
-Received: from fmviesa003.fm.intel.com ([10.60.135.143])
-  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Apr 2026 00:19:53 -0700
-X-CSE-ConnectionGUID: gfRDYfPuRA+YiYCFgCjWDw==
-X-CSE-MsgGUID: 36r9hPD8QT2KgkuMIxdnCg==
-X-ExtLoop1: 1
-Received: from ettammin-mobl2.ger.corp.intel.com (HELO localhost) ([10.245.245.141])
-  by fmviesa003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Apr 2026 00:19:50 -0700
-Date: Wed, 29 Apr 2026 10:19:47 +0300
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Mario Limonciello <mario.limonciello@amd.com>, westeri@kernel.org,
-	linusw@kernel.org, brgl@kernel.org, bentiss@kernel.org,
-	hansg@kernel.org,
-	Francesco Lauritano <francesco.lauritano1@protonmail.com>,
-	Marco Scardovi <mscardovi95@gmail.com>, Armin Wolf <W_Armin@gmx.de>,
-	linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
-Subject: Re: [PATCH] gpiolib: acpi: Only trigger ActiveBoth interrupts on boot
-Message-ID: <afGxE1xmeAPFGa2O@ashevche-desk.local>
-References: <20260429025247.1372984-1-mario.limonciello@amd.com>
- <20260429053211.GA557136@black.igk.intel.com>
+	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="JJ1Iwtjm"
+dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=Yv839y2XHhgI0Jh2EHSKtNcKxrMlaQAU1dnI5wAnyBg=;
+	b=JJ1IwtjmHel1QgOPzhlePlVb0wFw/mrqbjACkZE9y4qFSattaqrJKoImZUotkp1smKbzb5Tir
+	kI2QQ2Cvfvvh+gAu83lubCxF3CgVmWs/aaB6fcRp0jAyAIhn/Y8G4eLAF5GhmrfPum3Y5Oace0t
+	SGB8Db10ms/ydvjLmQn4+C8=
+Received: from mail.maildlp.com (unknown [172.19.163.15])
+	by canpmsgout07.his.huawei.com (SkyGuard) with ESMTPS id 4g592d1gnyzLlYv;
+	Wed, 29 Apr 2026 16:10:01 +0800 (CST)
+Received: from dggpemf500002.china.huawei.com (unknown [7.185.36.57])
+	by mail.maildlp.com (Postfix) with ESMTPS id 58E3940539;
+	Wed, 29 Apr 2026 16:16:27 +0800 (CST)
+Received: from [10.174.179.24] (10.174.179.24) by
+ dggpemf500002.china.huawei.com (7.185.36.57) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.11; Wed, 29 Apr 2026 16:16:26 +0800
+Subject: Re: [PATCH] ACPI: APEI: check return value of task_work_add to
+ prevent memory leaks
+To: mawupeng <mawupeng1@huawei.com>, <rafael@kernel.org>,
+	<tony.luck@intel.com>, <bp@alien8.de>, <mchehab@kernel.org>,
+	<xueshuai@linux.alibaba.com>, <lenb@kernel.org>,
+	<jonathan.cameron@huawei.com>, <jane.chu@oracle.com>, <jarkko@kernel.org>,
+	<wangkefeng.wang@huawei.com>
+CC: <linux-kernel@vger.kernel.org>, <linux-acpi@vger.kernel.org>
+References: <20260417065021.4067113-1-mawupeng1@huawei.com>
+ <bb2139ba-a7ff-440c-641f-57229a8389b3@huawei.com>
+ <bdf9828c-a6e2-46be-aa39-9d222094d565@huawei.com>
+From: Hanjun Guo <guohanjun@huawei.com>
+Message-ID: <e0117700-e635-2572-10c3-67c8fe1687a2@huawei.com>
+Date: Wed, 29 Apr 2026 16:16:25 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101
+ Thunderbird/68.6.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260429053211.GA557136@black.igk.intel.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+In-Reply-To: <bdf9828c-a6e2-46be-aa39-9d222094d565@huawei.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: kwepems100001.china.huawei.com (7.221.188.238) To
+ dggpemf500002.china.huawei.com (7.185.36.57)
 
-On Wed, Apr 29, 2026 at 07:32:11AM +0200, Mika Westerberg wrote:
-> On Tue, Apr 28, 2026 at 09:52:39PM -0500, Mario Limonciello wrote:
-> > Commit ca876c7483b6 ("gpiolib-acpi: make sure we trigger edge events at
-> > least once on boot") introduced logic to trigger edge-based GPIO
-> > interrupts during initialization to ensure proper initial state setup
-> > when firmware doesn't initialize it.
-> > 
-> > However, according to the Microsoft GPIO documentation, triggering GPIO
-> > interrupts during initialization should only happen for interrupts
-> > marked as ActiveBoth (both IRQF_TRIGGER_RISING and IRQF_TRIGGER_FALLING)
-> > and only when the associated GPIO line is already asserted (logic level
-> > low).
-> > 
-> > The current implementation incorrectly triggers:
-> > 1. Any edge-triggered interrupt (RISING-only or FALLING-only)
-> > 2. RISING interrupts when value is high and FALLING when value is low
-> > 
-> > This causes problems at bootup for single-edge interrupts that
-> > don't follow the ActiveBoth pattern.
-> > 
-> > Fix this by:
-> > - Only triggering when BOTH rising and falling edges are configured
-> > - Only triggering when the GPIO line is asserted (value == 0)
-> > 
-> > Reported-by: Francesco Lauritano <francesco.lauritano1@protonmail.com>
-> > Closes: https://lore.kernel.org/all/6iFCwGH2vssb7NRUTWGpkubGMNbgIlBHSz40z8ZsezjxngXpoiiRiJaijviNvhiDAGIr43bfUmdxLmxYoHDjyft4DgwFc3Pnu5hzPguTa0s=@protonmail.com/
-> > Tested-by: Marco Scardovi <mscardovi95@gmail.com>
-> > Fixes: ca876c7483b69 ("gpiolib-acpi: make sure we trigger edge events at least once on boot")
-> > Link: https://learn.microsoft.com/en-us/windows-hardware/drivers/bringup/general-purpose-i-o--gpio-
-> > Suggested-by: Armin Wolf <W_Armin@gmx.de>
-> > Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
+On 2026/4/21 17:18, mawupeng wrote:
 > 
-> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> 
+> On 周二 2026-4-21 17:02, Hanjun Guo wrote:
+>> Hi Wupeng,
+>>
+>> On 2026/4/17 14:50, Wupeng Ma wrote:
+>>> task_work_add() can fail with -ESRCH if the target task is exiting.
+>>> When it fails, the caller must handle the error and free any allocated
+>>> resources.
+>>>
+>>> ghes_do_memory_failure() allocates a twcb structure from ghes_estatus_pool
+>>> before calling task_work_add(). If task_work_add() fails, twcb is leaked.
+>>>
+>>> This can happen due to a race during task exit:
+>>>
+>>>     do_exit()
+>>>       exit_mm()           # current->mm cleared
+>>>       exit_task_work()    # task->task_works = &work_exited
+>>>
+>>> ghes_do_memory_failure() checks current->mm before allocating twcb,
+>>> but exit_task_work() may run before task_work_add() completes.  At that
+>>> point task->task_works == &work_exited, causing task_work_add() to fail.
+>>
+>> There are multi places in the kernel to call task_work_add() without
+>> checking the return value, does this race only cause bug in
+>> ghes_do_memory_failure()?
+> 
+> Thanks for the review.
+> 
+> We have analyzed all the called functions, and apart from this location, only
+> binder_deferred_fd_close has a potential resource leak issue upon failure.
 
-Pushed to my review and testing queue, thanks!
+I think this is a real bugfix.
 
--- 
-With Best Regards,
-Andy Shevchenko
+Would you mind explaining the race in this way in the commit log,
 
+    CPU0                   CPU1
 
+do_exit()               xxx
+
+to explicitly show the problem?
+
+Thanks
+Hanjun
+	
