@@ -1,187 +1,140 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id D091E3FFADB;
-	Wed, 29 Apr 2026 14:14:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED3CE41C2E9
+	for <linux-acpi@vger.kernel.org>; Wed, 29 Apr 2026 18:24:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777472097; cv=none; b=CtSYPhsgC8NFBa2Siihy4pL8KocyEb+a87nDLIadk3XK9AAn7wU9rjc2tbUuu5JIpSPwAyR5kCuxx0MrZhG6dXfnzxZdxfUtpTZaBZ1ixsB9iKWI8rc6PiUVhKPwAmZLLULnZ5sn+8tKi1T4DjwiFMN0cpeq/2+XVqOUilZc/Eg=
+	t=1777487057; cv=none; b=R09q3utxwcsj8ZqXcjFC8cMMUySmgzafsyznVBLVr7+A19XkXGorbcfvQ/824Ynd+BdX525eI/vtokRoU+5ltHX5nZF2fIsrtzf3SKSvEvnhPWw9cFXJcOD7XFAOU20G1LftSbwhjMwRLi+o4O3+tSfgWBpV/UGnHkc4KDTNqWQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777472097; c=relaxed/simple;
-	bh=TWP2lAxaXbVnNFo9vl6Hezc0Pf81dRrSakpKGzDEGrA=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=o0c4m8IvcuVXoTPrsd7Aw1o0NPOdM8TnJOlJQSerl1xv4me1KP9xkvxJwynAbroYLdg10zKOQNltGyIAyVyuByru1RF/mMOxXWGDDL04v6xnaOKKPzZUqbRLmwCb+RSwmkDQ6dnHpXyzlmyY8Vb40AjWbNsr1IJlbY2/X6OoMUU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=EC+a4NN0; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	s=arc-20240116; t=1777487057; c=relaxed/simple;
+	bh=5Cd0UaxrsP5Ow4ItgLLN3F0cLG8bteVnTBK58g/m0Cg=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=Rv34YH10TUuom+y9ct+PHI0zylW/aJKG8EU3J1NXyP8iXoJT0G4eoV3E/I8Ak6tqz7EmmNle+aWBHfwkvmCDkwwtbe34L124QoCFJa0OeJar1po8sOi8+/An7nMWEX4IzoxPAVyIb+Wfh/XvC+yLfCFPtc4249yXUT2Be3ELCwU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UJ3+V+ZQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="EC+a4NN0"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id C7507337B;
-	Wed, 29 Apr 2026 07:14:49 -0700 (PDT)
-Received: from e142021.munich.arm.com (e142021.arm.com [10.41.150.154])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 1A5563F62B;
-	Wed, 29 Apr 2026 07:14:51 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1777472095; bh=TWP2lAxaXbVnNFo9vl6Hezc0Pf81dRrSakpKGzDEGrA=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=EC+a4NN0XacvSuP1ZAVaqebvSvCXSGooD78o5sbQrwatcJiY3G3N2OZ3WBXKZHsVy
-	 7Z49/1/5NlHsMjXGQEmzj+voK1P5e5wg+I0bKJLrwN5EulI+CGzn58eSDbHxMo+ODm
-	 BP04HxgYwVdhIc4OLn6BHOya39QWQsvQ4wguYaAY=
-From: Andre Przywara <andre.przywara@arm.com>
-To: Lorenzo Pieralisi <lpieralisi@kernel.org>,
-	Hanjun Guo <guohanjun@huawei.com>,
-	Sudeep Holla <sudeep.holla@kernel.org>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will@kernel.org>,
-	"Rafael J . Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	James Morse <james.morse@arm.com>,
-	Ben Horgan <ben.horgan@arm.com>,
-	Reinette Chatre <reinette.chatre@intel.com>,
-	Fenghua Yu <fenghuay@nvidia.com>
-Cc: Jonathan Cameron <jic23@kernel.org>,
-	linux-acpi@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH 5/5] arm_mpam: detect and enable MPAM-Fb PCC support
-Date: Wed, 29 Apr 2026 16:13:39 +0200
-Message-ID: <20260429141339.3171205-6-andre.przywara@arm.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260429141339.3171205-1-andre.przywara@arm.com>
-References: <20260429141339.3171205-1-andre.przywara@arm.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UJ3+V+ZQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B30F6C2BCC9
+	for <linux-acpi@vger.kernel.org>; Wed, 29 Apr 2026 18:24:16 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1777487056;
+	bh=5Cd0UaxrsP5Ow4ItgLLN3F0cLG8bteVnTBK58g/m0Cg=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=UJ3+V+ZQlTQaq2RLRBlGjznDYomXYGyZrjiIffm8md/neU92TYbxq2jTLYFFRXUKz
+	 ubl7LpH+qwtOd3Ubeb8ApDEsS1/AT/4AZnQu/pHGR81A0r/pydcKWb8K618LYcXu1g
+	 ijO2yDQhRs/kXfOheMTxa8TxdK1DQfePLZabBjKOK+EEJ8C9W6lRyFKKOcGQJNQQUX
+	 Ke9S9au++VHPBzlti/qSTA6CIRD50us+nGbICm3gC40OA6Cu56PJCPQKkPv24Cd8bB
+	 5BMU7QvY8hcLtfIjo7gzsHQ15OlPimPtYCsXlj4dAk26+O+yQMZ/ElvBV7OIBHWbPR
+	 JLfcOfpdycw2A==
+Received: by mail-lf1-f43.google.com with SMTP id 2adb3069b0e04-5a2c500750dso68940e87.1
+        for <linux-acpi@vger.kernel.org>; Wed, 29 Apr 2026 11:24:16 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ93LF+/q5/jPWLHD8t8GU3bG3D/Laz7tF0jTgE1drVXJ2SWAe9EAx5NGfwlJx79jWypvV7FWRzgyZVP@vger.kernel.org
+X-Gm-Message-State: AOJu0YzWnGBKJl+j8FmMZsqDoPDZ88xMMjymhGhwtGY5kyrrgHTl+YvQ
+	x+kl6pS6n6mlvjv6kkLV3csl92cGqUsJSiD1H0bv/gTZo4OY6gg9dK2dnM1TV32IUfDd9toD4qA
+	mf3n4wqgKmcADYbDEpcPG9M0RKqzeijg=
+X-Received: by 2002:a05:6512:3d0b:b0:5a4:c6f:d42d with SMTP id
+ 2adb3069b0e04-5a74661aa9emr3291553e87.37.1777487055022; Wed, 29 Apr 2026
+ 11:24:15 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <12879883.O9o76ZdvQC@rafael.j.wysocki> <6281827.lOV4Wx5bFT@rafael.j.wysocki>
+ <CAGAxtY1VBXN_6xY0WiraJt-BQiYp_kSdTt8xbPkgP8xPB26=WQ@mail.gmail.com>
+ <12904177.O9o76ZdvQC@rafael.j.wysocki> <CAGAxtY2SEkx7OgMgM5ypA8qsBN0h6pcs111VjnhD-5ZGq7Je6Q@mail.gmail.com>
+In-Reply-To: <CAGAxtY2SEkx7OgMgM5ypA8qsBN0h6pcs111VjnhD-5ZGq7Je6Q@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Wed, 29 Apr 2026 20:24:02 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0ikAeu7cW9K6sfKYbbsVK51GOsFrX-qv3KJ7cVr-gRHew@mail.gmail.com>
+X-Gm-Features: AVHnY4J9rrJQRyLpwX2WUpJea_sTD2AS0pZj4TmMTTt3-osu9j9rJhGue0HEjGk
+Message-ID: <CAJZ5v0ikAeu7cW9K6sfKYbbsVK51GOsFrX-qv3KJ7cVr-gRHew@mail.gmail.com>
+Subject: Re: Pressing the power button causes the device to freeze completely
+ (schedutil involved)
+To: Evgeny Sagatov <evgeny.sagatov@gmail.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Linux regressions mailing list <regressions@lists.linux.dev>, 
+	ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Thorsten Leemhuis <regressions@leemhuis.info>, 
+	LKML <linux-kernel@vger.kernel.org>, 
+	Wysocki Rafael J <rafael.j.wysocki@intel.com>, Vincent Guittot <vincent.guittot@linaro.org>, 
+	Linux PM <linux-pm@vger.kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-The Arm MPAM-Fb specification [1] describes a protocol to access MSC
-registers through a firmware interface. This requires a shared memory
-region to hold the message, and a mailbox to trigger the access.
-For ACPI this is wrapped as a PCC channel, described using existing
-ACPI abstractions.
+On Tue, Apr 28, 2026 at 11:05=E2=80=AFPM Evgeny Sagatov
+<evgeny.sagatov@gmail.com> wrote:
+>
+> The PC also froze with this patch when I pressed the power button.
 
-Add code to parse those PCC table descriptions associated with an MSC,
-and store the parsed information in the MSC struct.
-This will be used by the MPAM-Fb access wrapper code.
+Which means that the issue is not simply a matter of the lack of
+synchronization between different I/O space accesses, so most likely
+the problem lies deeper.
 
-[1] https://developer.arm.com/documentation/den0144/latest
+Let me summarize what we've learned so far (and expand the CC list somewhat=
+).
 
-Signed-off-by: Andre Przywara <andre.przywara@arm.com>
----
- drivers/acpi/arm64/mpam.c      |  2 ++
- drivers/resctrl/mpam_devices.c | 46 +++++++++++++++++++++++++++++++---
- 2 files changed, 45 insertions(+), 3 deletions(-)
+For those who have not seen the previous discussion, it is at:
 
-diff --git a/drivers/acpi/arm64/mpam.c b/drivers/acpi/arm64/mpam.c
-index 99c2bdbb3314..edb4d10e8dc3 100644
---- a/drivers/acpi/arm64/mpam.c
-+++ b/drivers/acpi/arm64/mpam.c
-@@ -341,6 +341,8 @@ static struct platform_device * __init acpi_mpam_parse_msc(struct acpi_mpam_msc_
- 	} else if (iface == MPAM_IFACE_PCC) {
- 		props[next_prop++] = PROPERTY_ENTRY_U32("pcc-channel",
- 							tbl_msc->base_address);
-+		props[next_prop++] = PROPERTY_ENTRY_U32("msc-id",
-+							tbl_msc->identifier);
- 	}
- 
- 	acpi_mpam_parse_irqs(pdev, tbl_msc, res, &next_res);
-diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_devices.c
-index 62aa04cb6905..6f0d0959d3a4 100644
---- a/drivers/resctrl/mpam_devices.c
-+++ b/drivers/resctrl/mpam_devices.c
-@@ -19,6 +19,7 @@
- #include <linux/irqdesc.h>
- #include <linux/list.h>
- #include <linux/lockdep.h>
-+#include <linux/mailbox_client.h>
- #include <linux/mutex.h>
- #include <linux/platform_device.h>
- #include <linux/printk.h>
-@@ -27,6 +28,9 @@
- #include <linux/types.h>
- #include <linux/workqueue.h>
- 
-+#include <acpi/pcc.h>
-+#include <acpi/acpi_io.h>
-+
- #include "mpam_internal.h"
- #include "mpam_fb.h"
- 
-@@ -1042,7 +1046,8 @@ static u64 mpam_msc_read_mbwu_l(struct mpam_msc *msc)
- 
- 	mpam_mon_sel_lock_held(msc);
- 
--	WARN_ON_ONCE((MSMON_MBWU_L + sizeof(u64)) > msc->mapped_hwpage_sz);
-+	if (msc->iface == MPAM_IFACE_MMIO)
-+		WARN_ON_ONCE((MSMON_MBWU_L + sizeof(u64)) > msc->mapped_hwpage_sz);
- 	WARN_ON_ONCE(!cpumask_test_cpu(smp_processor_id(), &msc->accessibility));
- 
- 	mbwu_l_high2 = __mpam_read_reg(msc, MSMON_MBWU_L + 4);
-@@ -2042,10 +2047,15 @@ static void mpam_msc_drv_remove(struct platform_device *pdev)
- 	mpam_free_garbage();
- }
- 
-+static void mpam_pcc_rx_callback(struct mbox_client *cl, void *msg)
-+{
-+	/* TODO: wake up tasks blocked on this MSC's PCC channel */
-+}
-+
- static struct mpam_msc *do_mpam_msc_drv_probe(struct platform_device *pdev)
- {
- 	int err;
--	u32 tmp;
-+	u32 pcc_subspace_id;
- 	struct mpam_msc *msc;
- 	struct resource *msc_res;
- 	struct device *dev = &pdev->dev;
-@@ -2090,7 +2100,8 @@ static struct mpam_msc *do_mpam_msc_drv_probe(struct platform_device *pdev)
- 	if (err)
- 		return ERR_PTR(err);
- 
--	if (device_property_read_u32(&pdev->dev, "pcc-channel", &tmp))
-+	if (device_property_read_u32(&pdev->dev, "pcc-channel",
-+				     &pcc_subspace_id))
- 		msc->iface = MPAM_IFACE_MMIO;
- 	else
- 		msc->iface = MPAM_IFACE_PCC;
-@@ -2106,6 +2117,35 @@ static struct mpam_msc *do_mpam_msc_drv_probe(struct platform_device *pdev)
- 		}
- 		msc->mapped_hwpage_sz = msc_res->end - msc_res->start;
- 		msc->mapped_hwpage = io;
-+	} else if (msc->iface == MPAM_IFACE_PCC) {
-+		u32 msc_id;
-+
-+		msc->pcc_cl.dev = &pdev->dev;
-+		msc->pcc_cl.rx_callback = mpam_pcc_rx_callback;
-+		msc->pcc_cl.tx_block = false;
-+		msc->pcc_cl.tx_tout = 1000; /* 1s */
-+		msc->pcc_cl.knows_txdone = false;
-+
-+		if (device_property_read_u32(&pdev->dev, "msc-id", &msc_id)) {
-+			pr_err("missing MPAM-Fb MSC identifier\n");
-+			return ERR_PTR(-EINVAL);
-+		}
-+		msc->mpam_fb_msc_id = msc_id;
-+
-+		msc->pcc_chan = pcc_mbox_request_channel(&msc->pcc_cl,
-+							 pcc_subspace_id);
-+		if (IS_ERR(msc->pcc_chan)) {
-+			pr_err("Failed to request MSC PCC channel\n");
-+			return (void *)msc->pcc_chan;
-+		}
-+
-+		if (msc->pcc_chan->shmem_size < MPAM_FB_MAX_MSG_SIZE) {
-+			pr_err("MPAM-Fb PCC channel size too small.\n");
-+			pcc_mbox_free_channel(msc->pcc_chan);
-+			return ERR_PTR(-ENOMEM);
-+		}
-+
-+		mutex_init(&msc->pcc_chan_lock);
- 	} else {
- 		return ERR_PTR(-EINVAL);
- 	}
--- 
-2.43.0
+https://lore.kernel.org/lkml/CAGAxtY2SEkx7OgMgM5ypA8qsBN0h6pcs111VjnhD-5ZGq=
+7Je6Q@mail.gmail.com/#r
 
+1. The issue is basically that the platform locks up completely when
+the power button is pressed
+
+This is reproducible 100% of the time.
+
+The power button processing flow is that, if the power button event is
+enabled in the ACPI PM1_ENABLE register, pressing the button causes
+the corresponding status bit in the ACPI PM1_STATUS register to be
+set, which in turn causes an ACPI interrupt (SCI) to trigger (both
+PM1_STATUS and PM1_ENABLE registers are accessible through the I/O
+address space).
+
+The SCI processing involves reading both the power button status and
+enable bits and clearing the former if set (this needs to be done or
+an interrupt storm would start if the status bit was not cleared).
+
+We don't actually know which of the steps above specifically causes
+the platform to lock up, but that doesn't matter too much because all
+of them are necessary.
+
+Clearing the power button enable bit in PM1_ENABLE prevents the issue
+from occurring (but then the power button obviously doesn't work).
+
+2. The issue only occurs if the schedutil cpufreq governor is used
+
+If either the "powersave" or "ondemand" governor is used instead, the
+issue doesn't appear.
+
+Also switching over to a different cpufreq governor (on all CPUs)
+before pressing the power button makes the issue go away.
+
+3. The issue didn't occur at all before commit e37617c8e53a
+("sched/fair: Fix frequency selection for non-invariant case")
+
+Reverting the merge that introduced commit e37617c8e53a into the
+mainline makes the issue go away.
+
+4. The issue occurs regardless of how schedutil invokes the cpufreq
+driver ("fast switch" vs sugov_deferred_update())
+
+5. The cpufreq driver in question is acpi-cpufreq and it uses a
+control register located in the I/O address space (the same control
+register is used for all CPUs)
+
+6. If acpi-cpufreq is not allowed to write into the control register
+at all, the issue doesn't occur
+
+7. Synchronizing all of the I/O space accesses in the ACPI-related
+code (via a spinlock), including acpi-cpufreq, doesn't prevent the
+issue from occurring
+
+So overall, it looks like the control register access pattern in
+acpi-cpufreq that results from schedutil's use of it after commit
+e37617c8e53a somehow puts the platform into a state in which a power
+button event causes it to lock up at the hardware level.
+
+While there are a couple of things more to check, I'm afraid that
+there may not be a viable way to address this issue other than
+replacing the schedutil governor with ondemand on this platform.
