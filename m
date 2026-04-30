@@ -1,119 +1,140 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 48A9B39F160;
-	Thu, 30 Apr 2026 09:20:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 637A939FCDC
+	for <linux-acpi@vger.kernel.org>; Thu, 30 Apr 2026 09:57:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777540856; cv=none; b=QDiYeqgPTnaqQO/bWjFFmwRUmb71WHoduJyLw0RWAB0OpKFBC9gqdqniiU3E6QM6rDfmN5+4lBPUuOpragxHegSTKrtERJ6DjyHsTcQOQXUWURRBkT4ui617ETan8dakOm4UcV/8ukMtDc1VQm1JI5A3p4is+Fq5VRYNfbE6dj0=
+	t=1777543037; cv=none; b=jZsSBV73LnRCPAj76Kn4WDEzEWxAxAkLeASAdPS63CbOyZ/hKBZOfHbhJPUC/6VHQGiDq66H3P2Cj0sl3ub1JrzYWqS0nxOFtyIrOtk0nXD1e1gOjf3eMvx06YCrpAZIB6hfTU+qiY+4YwXlWfJQ14Am2TOYKOx2FX2Hv2KtxHs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777540856; c=relaxed/simple;
-	bh=rEuYE3BOp0rZUoRuwFkMAOix88kidy9F1/N55h8chlI=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=HQXWUbI+wc6A5dW0CxXOV9ukICdCzceYSf5fnzi9mKjCKz9iFHaqvFyPHHdjAQCG0KYIvTq6AT/0thm29t7vVqZRUfX7Qf54V6+nfJPjPvQCnwXaTbziFffzmPjjTuEMTfm2BnW/6exbS2FDzgWlSB2gvCsDRZHTv2EQIEMidjc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=te8cLsXc; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	s=arc-20240116; t=1777543037; c=relaxed/simple;
+	bh=RwvCmSJulumGeXi0ewU+k1aaU5bqDhOyaS0bBtaKz2E=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=WuTxUr4TTjiYYk0WfMdjSpFTAk7gZWydXzPlEXOtg6ENjG4J8iUXtUA47cMONYCeE/3oO/yR036tb0VydetNsp0VtU+9PoAAJCrAqc2kIJd11nXlgyfd7T7n1wNJtkbfiXSog3Y1ZWELw/fBr7AQ5a1hz2Mv7wZ8q0qQyaK2rsA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cU9Ff4nm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="te8cLsXc"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 619F41A9A;
-	Thu, 30 Apr 2026 02:20:41 -0700 (PDT)
-Received: from [192.168.178.24] (usa-sjc-mx-foss1.foss.arm.com [172.31.20.19])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id A06173F7B4;
-	Thu, 30 Apr 2026 02:20:44 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1777540846; bh=rEuYE3BOp0rZUoRuwFkMAOix88kidy9F1/N55h8chlI=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=te8cLsXc/9padMNn1HNRnZmVeeS4irCJgGQmkQUJx4a0oAGiUezq/YFx/bt1hZWB+
-	 POTepneGGzzLeDhIG4eJ7QNqLdMl+Fim4jSGEYfDdhhOMh7KsHE6bFLb79b30UpwCB
-	 Eka39O2o43ZkyU0GGXm69bd6Sp8vsAt7UpJDuVVM=
-Message-ID: <fc96c088-f767-4bf2-b58b-d4e91b0acde4@arm.com>
-Date: Thu, 30 Apr 2026 11:20:42 +0200
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cU9Ff4nm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40A00C2BCFF
+	for <linux-acpi@vger.kernel.org>; Thu, 30 Apr 2026 09:57:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1777543037;
+	bh=RwvCmSJulumGeXi0ewU+k1aaU5bqDhOyaS0bBtaKz2E=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=cU9Ff4nmkLDTLzmGXxKUOxohnzH4mL9BQn4BqdNSH/FJnveFlWSQlSM6H8nivu0ev
+	 0HUsZ0zlLuKIXXtdmpnuQzI9DfLmhIoj8M123u+C+kzy1HSroafDcYQlqGnDFKvgMF
+	 RmpxT9ePP+3svCU/swn35V3tuJ2d0oBWeXsqj/Uvsig8NagoZCOPNDy+A0mhyFVKud
+	 nqCC9Ir+dPsmOmypEm+ufJDvsM0tGcrTnALAAEhRlRuCKwYAjK5JQxmeeIelKVvOUL
+	 9/Usg4QfAN/biDR+XWh4tI0APNb9ewX3RSxjjGt9woPeyNFnbGcAG8oP5qU1q3jCfb
+	 8+POysTjEqX0g==
+Received: by mail-lf1-f46.google.com with SMTP id 2adb3069b0e04-5a4113ab355so756246e87.1
+        for <linux-acpi@vger.kernel.org>; Thu, 30 Apr 2026 02:57:17 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ+8sr7A2pZm79vPP436FsM5HWzOZ7hcBSRimGFvN7YF1T0GkUYfCXt4lz9U+kaCKdbrML1dxxGDVc0b@vger.kernel.org
+X-Gm-Message-State: AOJu0YzgHHu8VniIczkwZwJZVbfY2q3vKtKMg/z1O/cikhyki5yLmcup
+	AWk4tUh07FWp6UbxZ2HC0nlWJ2Y8tiFItp1kB0PhbWkndhzGkOeuiUIXMp3Hh6KcaeCus/3dzMi
+	lZV0v7oB5oeR1IWIQ5Z1NYp1sLRbvhg8=
+X-Received: by 2002:a05:6512:4017:b0:5a2:864a:bebb with SMTP id
+ 2adb3069b0e04-5a8522d4eb8mr758559e87.20.1777543035289; Thu, 30 Apr 2026
+ 02:57:15 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 5/5] arm_mpam: detect and enable MPAM-Fb PCC support
-To: Sudeep Holla <sudeep.holla@kernel.org>
-Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>,
- Hanjun Guo <guohanjun@huawei.com>, Catalin Marinas
- <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
- "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
- James Morse <james.morse@arm.com>, Ben Horgan <ben.horgan@arm.com>,
- Reinette Chatre <reinette.chatre@intel.com>, Fenghua Yu
- <fenghuay@nvidia.com>, Jonathan Cameron <jic23@kernel.org>,
- linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
- linux-kernel@vger.kernel.org
-References: <20260429141339.3171205-1-andre.przywara@arm.com>
- <20260429141339.3171205-6-andre.przywara@arm.com>
- <20260430-brave-hoatzin-of-fascination-e7d4ad@sudeepholla>
-Content-Language: en-US
-From: Andre Przywara <andre.przywara@arm.com>
-In-Reply-To: <20260430-brave-hoatzin-of-fascination-e7d4ad@sudeepholla>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+References: <20260430-baytrail-real-swnode-v4-0-767bcda6667f@oss.qualcomm.com> <20260430-baytrail-real-swnode-v4-1-767bcda6667f@oss.qualcomm.com>
+In-Reply-To: <20260430-baytrail-real-swnode-v4-1-767bcda6667f@oss.qualcomm.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Thu, 30 Apr 2026 11:57:01 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0jooK3LqEXOH3m6Le4gDiMDOjCAawsmq_Kzim7T76kcDw@mail.gmail.com>
+X-Gm-Features: AVHnY4LLRxYWhknbQDaqqATspis7Xhq8JMKrXRvQlheeSpBHn0eRZucKuI2NAL8
+Message-ID: <CAJZ5v0jooK3LqEXOH3m6Le4gDiMDOjCAawsmq_Kzim7T76kcDw@mail.gmail.com>
+Subject: Re: [PATCH v4 1/2] ACPI: provide acpi_bus_find_device_by_name()
+To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Daniel Scally <djrscally@gmail.com>, 
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Danilo Krummrich <dakr@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, 
+	Andy Shevchenko <andy@kernel.org>, Linus Walleij <linusw@kernel.org>, Hans de Goede <hansg@kernel.org>, 
+	=?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, 
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
+	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org, 
+	linux-gpio@vger.kernel.org, platform-driver-x86@vger.kernel.org, 
+	brgl@kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi Sudeep,
+On Thu, Apr 30, 2026 at 9:34=E2=80=AFAM Bartosz Golaszewski
+<bartosz.golaszewski@oss.qualcomm.com> wrote:
+>
+> Provide a helper allowing to locate an ACPI device by its name.
+>
+> Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
 
-thanks for having a look!
+Acked-by: Rafael J. Wysocki (Intel) <rafael@kernel.org>
 
-On 4/30/26 10:35, Sudeep Holla wrote:
-> On Wed, Apr 29, 2026 at 04:13:39PM +0200, Andre Przywara wrote:
->> The Arm MPAM-Fb specification [1] describes a protocol to access MSC
->> registers through a firmware interface. This requires a shared memory
->> region to hold the message, and a mailbox to trigger the access.
->> For ACPI this is wrapped as a PCC channel, described using existing
->> ACPI abstractions.
->>
->> Add code to parse those PCC table descriptions associated with an MSC,
->> and store the parsed information in the MSC struct.
->> This will be used by the MPAM-Fb access wrapper code.
->>
->> [1] https://developer.arm.com/documentation/den0144/latest
->>
->> Signed-off-by: Andre Przywara <andre.przywara@arm.com>
->> ---
->>   drivers/acpi/arm64/mpam.c      |  2 ++
->>   drivers/resctrl/mpam_devices.c | 46 +++++++++++++++++++++++++++++++---
->>   2 files changed, 45 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/acpi/arm64/mpam.c b/drivers/acpi/arm64/mpam.c
->> index 99c2bdbb3314..edb4d10e8dc3 100644
->> --- a/drivers/acpi/arm64/mpam.c
->> +++ b/drivers/acpi/arm64/mpam.c
->> @@ -341,6 +341,8 @@ static struct platform_device * __init acpi_mpam_parse_msc(struct acpi_mpam_msc_
->>   	} else if (iface == MPAM_IFACE_PCC) {
->>   		props[next_prop++] = PROPERTY_ENTRY_U32("pcc-channel",
->>   							tbl_msc->base_address);
->> +		props[next_prop++] = PROPERTY_ENTRY_U32("msc-id",
->> +							tbl_msc->identifier);
-> 
-> I may be looking at the wrong documents, but neither DEN0065 nor DEN0144 carry
-> any definitions of pcc-channel and msc-id for the device with HID
-> "“ARMHAA5C". Since "pcc-channel" is already merged, I think I am looking at
-> wrong documents, please point me to the right one.
-
-Please excuse my ignorance, but I was under the assumption that the 
-strings used here are just unique identifiers that need to match the 
-property_get calls in the MPAM code. Is there any requirement to match 
-those property_entry.name fields with the names given in some spec? And 
-those strings are kernel-internal only, right? But for DT would match 
-exactly the property names?
-
-Those properties correspond to fields in table 4 in DEN0065, as also 
-described in struct acpi_mpam_msc_node in include/acpi/actbl2.h:
-- There is "Identifier", that uses distinct IDs for PCC and native MSCs. 
-I named it msc-id, because I'd assume that to be a good name for any 
-(yet to be defined) DT property.
-- Then there is "Base address", which doubles as the "subspace ID of the 
-PCC channel", when MPAM-Fb is used. As you mentioned, this is already 
-in, and the original spec name would be very misleading, I think.
-
-So shall those strings be renamed to match the struct names? Or shall I 
-keep the more readable names as of now, and add comments linking them to 
-the spec/struct?
-
-Cheers,
-Andre
+> ---
+>  drivers/acpi/bus.c   | 13 +++++++++++++
+>  include/linux/acpi.h |  7 +++++++
+>  2 files changed, 20 insertions(+)
+>
+> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> index 2ec095e2009e40b0645f654fb051429e5679dc7c..5dd8459be03db4165bcb59943=
+b94ea7db273ad7b 100644
+> --- a/drivers/acpi/bus.c
+> +++ b/drivers/acpi/bus.c
+> @@ -1181,6 +1181,19 @@ int acpi_bus_for_each_dev(int (*fn)(struct device =
+*, void *), void *data)
+>  }
+>  EXPORT_SYMBOL_GPL(acpi_bus_for_each_dev);
+>
+> +/**
+> + * acpi_bus_find_device_by_name() - Locate an ACPI device by its name
+> + * @name: Name of the device to match
+> + *
+> + * Returns:
+> + * New reference to the matched device or NULL if the device can't be fo=
+und.
+> + */
+> +struct device *acpi_bus_find_device_by_name(const char *name)
+> +{
+> +       return bus_find_device_by_name(&acpi_bus_type, NULL, name);
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_bus_find_device_by_name);
+> +
+>  struct acpi_dev_walk_context {
+>         int (*fn)(struct acpi_device *, void *);
+>         void *data;
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 67effb91fa98373d7bf19be5ae3d8baa9328d6e1..10d6c6c11bdffcad14100601e=
+104520366dfc30b 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -798,6 +798,8 @@ int acpi_get_local_u64_address(acpi_handle handle, u6=
+4 *addr);
+>  int acpi_get_local_address(acpi_handle handle, u32 *addr);
+>  const char *acpi_get_subsystem_id(acpi_handle handle);
+>
+> +struct device *acpi_bus_find_device_by_name(const char *name);
+> +
+>  #ifdef CONFIG_ACPI_MRRM
+>  int acpi_mrrm_max_mem_region(void);
+>  #endif
+> @@ -1106,6 +1108,11 @@ static inline const char *acpi_get_subsystem_id(ac=
+pi_handle handle)
+>         return ERR_PTR(-ENODEV);
+>  }
+>
+> +static inline struct device *acpi_bus_find_device_by_name(const char *na=
+me)
+> +{
+> +       return NULL;
+> +}
+> +
+>  static inline int acpi_register_wakeup_handler(int wake_irq,
+>         bool (*wakeup)(void *context), void *context)
+>  {
+>
+> --
+> 2.47.3
+>
