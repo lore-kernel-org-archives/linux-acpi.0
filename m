@@ -1,49 +1,49 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4016335F5EC;
-	Thu, 30 Apr 2026 12:52:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.13
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F67940B6F0;
+	Thu, 30 Apr 2026 13:01:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.10
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777553526; cv=none; b=KhcZ31M7xnNcE4Z7oOe/98Isz53QCLWZDEqaBW29xSjr4Q4EmqRKu4h07BF/3BXqxYLyu4PEkjh/KqaFnVDTeI+aTRwvOGeaIbaaShj8mjDCDH9I+waXWjLK9zJanGPaHiAEgv0qsd+AvmmWXL3zBNNDdbrg66sxSeklq3IAaa4=
+	t=1777554088; cv=none; b=bLe4Jl23SJT5P5FR8X8zQd5FP7HKVLjG4ZZtDd5Lxclo73Ia5tlRHrM4a9Dl6jkdr+4yudEhNyEWE5xCQjLcy0Huv++1l2yta4BzvXRGisj/MU+2PKEJLKH1UVsvHQQgjksjSoDpVkrVSNOPScqfjDbf+T0JWe7kagABJocEEMQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777553526; c=relaxed/simple;
-	bh=3A+ZKlTiXYyj3m20/8ggC63q8vnO7tm6cFlVhOyzMLk=;
+	s=arc-20240116; t=1777554088; c=relaxed/simple;
+	bh=MZgJ0oBWrhy8i1yH1rGUVjfYjDAk40yvCjLYbXjWgTI=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Oi8oQSw7PoklcwNxKfYI0HGRLvU/YT7fuepNwzvqoQCiYt83KNH2p1KI6xE4B/oFkiq+UFEZedMvqIZ08o+3pCUkM8VNrXTDP12RobmURh2CPaA+U7XOvx/TQO2TuSiQ5KY5sQTjVCgNRmB2olyhIlX6I7P14bITPrkLQlczQ+Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=kS18Ch94; arc=none smtp.client-ip=192.198.163.13
+	 Content-Type:Content-Disposition:In-Reply-To; b=G4FCRSodAKU0SkNApfYrFoi7h0B8T1+uzv6uEGBtgn7QbJ62HX16cz08ZBx1MbAUMiwAaks0zlkppQSJdyRl9mWITME8HJAS9OeRqqWNNe0NfRFdQnPeoJqI39+NRq5dDet1Tul0gkTWM1cUo2cM+YEFEBCP2aZukkBVoWLCEpo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=YRG20x3q; arc=none smtp.client-ip=192.198.163.10
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="kS18Ch94"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="YRG20x3q"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1777553526; x=1809089526;
+  t=1777554087; x=1809090087;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=3A+ZKlTiXYyj3m20/8ggC63q8vnO7tm6cFlVhOyzMLk=;
-  b=kS18Ch94nrLaE/ftqHPJuczTX2aWwuUS5U/nr0cpHWMNLjb4T1E5Hc3i
-   ounjhd/639I7Y2Fk3CdtCy568UUcY0tE48ixHyVl0FkvlNLBxefprhVZe
-   bWBcbxzxCbYj9pXZyR7R/xVc3lsJ72SY1JKcWwHVTg5rL+jNqowPw5MQv
-   9kxUX4uqmGjLkf9o2VfAfLsVNXVF8MgvA6u5/ksdi4uzQoW4KpBfRWPhq
-   3hO1JebzAQqYwIUloSEVjo6l9dg3Fi7No9yQD0Ah1QGx77JV4mC+R1Hdi
-   lEESrBps1xT4mgMkYEbfxDx5r2JiO4nbG5Z88q3nNFjUiA2/LByQ+gHle
-   Q==;
-X-CSE-ConnectionGUID: NLbwVlvSQKCaaC7c17397w==
-X-CSE-MsgGUID: Fd642AaTQmuvIt+EsSB9Hw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11771"; a="81075730"
+  bh=MZgJ0oBWrhy8i1yH1rGUVjfYjDAk40yvCjLYbXjWgTI=;
+  b=YRG20x3qMNpTzuSvCCCyzJhNZXIWttMP0hyxLEPRW5ZzRXWOBpwLRwmm
+   2ztjkfwRw3c7yhXR47VrAK6ElyLvwVZwnHMJRuCeFSQz6StNwW8bN2FwF
+   t2/oZ6JbnhcP3WXEcHQ1rax6KL3hG2uCm4rt8tu+wgj/ufKOKKRa1pAV6
+   nBi7xdXLG7ua1m2BDRNJlU5Ub1cLfah+doIqhsH5ioPUALpj6L+ma922d
+   O8flL/tVu9Ul1y94wTpgSvQ8208217Kph2ciX2wbfz13oPXc7VoeFYCs4
+   FGNtlC5W66uWRj30VNDlrTHsDx5x7suM3+cvG/6O7QeqanBiIMIYcgHU9
+   g==;
+X-CSE-ConnectionGUID: qnxgHchOR0OlNMbnF/0bjg==
+X-CSE-MsgGUID: 2TfPKjfzQSyhX3IeVX0K9g==
+X-IronPort-AV: E=McAfee;i="6800,10657,11771"; a="89877496"
 X-IronPort-AV: E=Sophos;i="6.23,208,1770624000"; 
-   d="scan'208";a="81075730"
-Received: from fmviesa009.fm.intel.com ([10.60.135.149])
-  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Apr 2026 05:52:05 -0700
-X-CSE-ConnectionGUID: 3iFZh2LPSv6l+Uj1zSqRAQ==
-X-CSE-MsgGUID: bp9WQx6kRm6e+OedyEC20A==
+   d="scan'208";a="89877496"
+Received: from orviesa008.jf.intel.com ([10.64.159.148])
+  by fmvoesa104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Apr 2026 06:01:26 -0700
+X-CSE-ConnectionGUID: oq+UgGJGQSuAaaHPoJWDwA==
+X-CSE-MsgGUID: c+4LrUYMSXmrcstSM8JCag==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.23,208,1770624000"; 
-   d="scan'208";a="228063936"
+   d="scan'208";a="234467576"
 Received: from zzombora-mobl1 (HELO localhost) ([10.245.244.42])
-  by fmviesa009-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Apr 2026 05:52:00 -0700
-Date: Thu, 30 Apr 2026 15:51:58 +0300
+  by orviesa008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Apr 2026 06:01:22 -0700
+Date: Thu, 30 Apr 2026 16:01:19 +0300
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
 Cc: Daniel Scally <djrscally@gmail.com>,
@@ -63,9 +63,10 @@ Cc: Daniel Scally <djrscally@gmail.com>,
 	brgl@kernel.org
 Subject: Re: [PATCH v4 2/2] platform/x86: x86-android-tablets: enable fwnode
  matching of GPIO chips
-Message-ID: <afNQbtmd3j6wG0iI@ashevche-desk.local>
+Message-ID: <afNSn42sB7sC_L9x@ashevche-desk.local>
 References: <20260430-baytrail-real-swnode-v4-0-767bcda6667f@oss.qualcomm.com>
  <20260430-baytrail-real-swnode-v4-2-767bcda6667f@oss.qualcomm.com>
+ <afNQbtmd3j6wG0iI@ashevche-desk.local>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -74,97 +75,30 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260430-baytrail-real-swnode-v4-2-767bcda6667f@oss.qualcomm.com>
+In-Reply-To: <afNQbtmd3j6wG0iI@ashevche-desk.local>
 Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
  krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On Thu, Apr 30, 2026 at 09:34:06AM +0200, Bartosz Golaszewski wrote:
-> In order to allow GPIOLIB to match cherryview and baytrail GPIO
-> controllers by their firmware nodes instead of their names, we need to
-> attach the - currently "dangling" - existing software nodes to their
-> target devices dynamically.
-> 
-> The driver uses platform_create_bundle() and expects all required
-> providers to be present before it itself is probed. We know the name of
-> the device we're waiting for so look them up and assign the appropriate
-> software node as the secondary firmware node of the underlying ACPI node.
-> 
-> Scheduling fine-grained devres actions allows for proper teardown and
-> unsetting of the secondary firmware nodes.
+On Thu, Apr 30, 2026 at 03:51:58PM +0300, Andy Shevchenko wrote:
+> On Thu, Apr 30, 2026 at 09:34:06AM +0200, Bartosz Golaszewski wrote:
 
 ...
 
-> +static void auto_secondary_unset(void *data)
-> +{
-> +	struct fwnode_handle *fwnode = data;
-> +
-> +	fwnode->secondary = NULL;
-> +}
-> +
-> +static int acpi_set_secondary_fwnode(struct device *parent, struct device *dev,
-> +				     const struct software_node *const swnode)
-> +{
-> +	struct acpi_device *device = to_acpi_device(dev);
-> +	struct fwnode_handle *fwnode;
-> +	int ret;
-> +
-> +	fwnode = software_node_fwnode(swnode);
-> +	if (WARN_ON(!fwnode))
-> +		return -ENOENT;
-> +
-> +	fwnode->secondary = ERR_PTR(-ENODEV);
-> +	device->fwnode.secondary = fwnode;
-> +
-> +	ret = devm_add_action_or_reset(parent, auto_secondary_unset, &device->fwnode);
-> +	if (ret)
-> +		dev_err(parent, "Failed to schedule the unset action for secondary fwnode\n");
-> +
-> +	return ret;
-> +}
+> > +	for (swnode = gpiochip_node_group; *swnode; swnode++) {
+> > +		struct device *dev __free(put_device) =
+> > +				acpi_bus_find_device_by_name((*swnode)->name);
+> > +		if (!dev) {
+> > +			dev_err(parent, "Failed to find the required GPIO controller: %s\n",
+> > +				(*swnode)->name);
+> 
+> swnode at this point is registered, meaning we have an associated fwnode
+> handle, hence why not use %pfwP here?
 
-Why don't we use set_secondary_fwnode() in the above functions?
-Drivers are not supposed to know the guts of the fwnode implementation.
+After reading the code again I think your version is KISS, no need for over
+engineering :-)
 
-...
-
-> +static int auto_secondary_fwnode_init(struct device *parent)
-> +{
-> +	const struct software_node *const *swnode;
-> +	int ret;
-> +
-> +	if (!gpiochip_node_group)
-> +		return 0;
-> +
-> +	ret = software_node_register_node_group(gpiochip_node_group);
-> +	if (ret)
-> +		return ret;
-> +
-> +	ret = devm_add_action_or_reset(parent,
-> +				       auto_secondary_unregister_node_group,
-> +				       gpiochip_node_group);
-> +	if (ret)
-> +		return ret;
-> +
-> +	for (swnode = gpiochip_node_group; *swnode; swnode++) {
-> +		struct device *dev __free(put_device) =
-> +				acpi_bus_find_device_by_name((*swnode)->name);
-> +		if (!dev) {
-> +			dev_err(parent, "Failed to find the required GPIO controller: %s\n",
-> +				(*swnode)->name);
-
-swnode at this point is registered, meaning we have an associated fwnode
-handle, hence why not use %pfwP here?
-
-> +			return -ENODEV;
-> +		}
-> +
-> +		ret = acpi_set_secondary_fwnode(parent, dev, *swnode);
-> +		if (ret)
-> +			return ret;
-> +	}
-> +
-> +	return 0;
-> +}
+> > +			return -ENODEV;
+> > +		}
 
 -- 
 With Best Regards,
