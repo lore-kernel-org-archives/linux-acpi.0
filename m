@@ -1,142 +1,236 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02B2F34E746;
-	Thu, 30 Apr 2026 14:51:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C528A43634B;
+	Thu, 30 Apr 2026 14:57:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777560684; cv=none; b=mWPkIqNhX/sIEnCiKXf07QyryHannEWL38iRjq1mYxSHSZxPHbjmgCMbpCKQMWJtxdhgg96MitwGiSuOMjN5yvpuq9swIFzescUpIQiWB1EIgvBQ7mNOwoBlJcEfJNmQf7q91nBWoh2FEB/9iZndbl8WiIV41b+mBFxSrYOxpKY=
+	t=1777561069; cv=none; b=Y0kZj57uVp5rNtrv6uphtUyLwAY+SwwvI25fkTysfjT3KHQxfQond/PywXKAdmz3PBf+IV+0qyR75jVnskGThkRm2gAhFZRhx5mr4xhNVV2RmX+77QnmsaW4iKt7Sp7k2VJLCa6dq9oK7CrmMDmE1dPdOuPKHX3+Zc0ETQiKmsE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777560684; c=relaxed/simple;
-	bh=F04flt0u0jeUiSYW5q5UKAs4vTOREkSTch+Sz1CLuk0=;
-	h=Date:Message-ID:From:To:Cc:Subject:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=cOLVBvjyYoS9AqfmgMd1nRA47nDj2nww9IT1oINTNObpQKSXrau7DzTmhvaeOxS11JUNoAxBfhDUtr4kMJYDAT0tl4HUqUYRaP+nAzKF3/uITWVu0GUMqgcK7Kn8BhaT+8HZX3/N97wbTw4meIt5RlZfhhRmoXXn6FK08jf4KYk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=N06B4eCq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777561069; c=relaxed/simple;
+	bh=iGaKif43+SfAXhK26YEklwWGOVDrCInBN6cz7m/+dCs=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=H453j8pXZtmSd8oqHClqvE6oaxGSf1EbtX8/OUP8lgN+gDDKy22wqAKvJ9j3l3mKW/m2egfBmqxcMjXfsCJ6Yen7+1StcBIQeSxSiQThw1IAoRdH7g5J8DTl9JxX7hHRgGknwqV6PF4SX6P6PHp/P0hwXNzoBmuApHKMFakM0MA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BhkUMnmW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="N06B4eCq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B9C2C2BCB3;
-	Thu, 30 Apr 2026 14:51:23 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BhkUMnmW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14AACC2BCB3;
+	Thu, 30 Apr 2026 14:57:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1777560683;
-	bh=F04flt0u0jeUiSYW5q5UKAs4vTOREkSTch+Sz1CLuk0=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=N06B4eCqsyK+pw6ROnfRJmBqvv47hgUyYU3hv0SxLfsuzCH4fxYZ1wmQDZ2ruXsdR
-	 oIR/l0FOsZGg2ty2hV1U1a/W9uHxkOvVDSUqRjzq0hnYQpZtGBgqwztoqou2pEC9MS
-	 y5WH0yO2QeyMqV05hlQNRaVYjji8gjkBXXSYtvI6/aIDb3Gyg7ozE8KP4Ly47lET7a
-	 dlqPSNSIsPgTtBYzFCCq/5iK9YQiENFB6sL+kThbsctiHB4bwmsN1cnJ/7Mq0kyXJC
-	 osnc32UOYzmWEvlvu7atHCyDaLBNpJ0PAvkNumGB/wBlm8sC5HRdQPqYZZ6oJpGvDu
-	 TCkuI5i9o4vsw==
-Received: from sofa.misterjones.org ([185.219.108.64] helo=goblin-girl.misterjones.org)
-	by disco-boy.misterjones.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.98.2)
-	(envelope-from <maz@kernel.org>)
-	id 1wISjY-0000000GIer-3eg7;
-	Thu, 30 Apr 2026 14:51:20 +0000
-Date: Thu, 30 Apr 2026 15:51:20 +0100
-Message-ID: <86a4ukzel3.wl-maz@kernel.org>
-From: Marc Zyngier <maz@kernel.org>
-To: Leonardo Bras <leo.bras@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>,	Will Deacon
- <will@kernel.org>,	Oliver Upton <oupton@kernel.org>,	Joey Gouly
- <joey.gouly@arm.com>,	Suzuki K Poulose <suzuki.poulose@arm.com>,	Zenghui Yu
- <yuzenghui@huawei.com>,	"Rafael J. Wysocki" <rafael@kernel.org>,	Len Brown
- <lenb@kernel.org>,	Saket Dumbre <saket.dumbre@intel.com>,	Paolo Bonzini
- <pbonzini@redhat.com>,	Chengwen Feng <fengchengwen@huawei.com>,	Jonathan
- Cameron <jic23@kernel.org>,	Kees Cook <kees@kernel.org>,	=?UTF-8?B?TWlr?=
- =?UTF-8?B?b8WCYWo=?= Lenczewski <miko.lenczewski@arm.com>,	Ryan Roberts
- <ryan.roberts@arm.com>,	Yang Shi <yang@os.amperecomputing.com>,	Thomas Huth
- <thuth@redhat.com>,	mrigendrachaubey <mrigendra.chaubey@gmail.com>,
-	Yeoreum Yun <yeoreum.yun@arm.com>,	Mark Brown <broonie@kernel.org>,	Kevin
- Brodsky <kevin.brodsky@arm.com>,	James Clark <james.clark@linaro.org>,	Ard
- Biesheuvel <ardb@kernel.org>,	Fuad Tabba <tabba@google.com>,	Raghavendra
- Rao Ananta <rananta@google.com>,	Nathan Chancellor <nathan@kernel.org>,
-	Vincent Donnefort <vdonnefort@google.com>,	Lorenzo Pieralisi
- <lpieralisi@kernel.org>,	Sascha Bischoff <Sascha.Bischoff@arm.com>,
-	Anshuman Khandual <anshuman.khandual@arm.com>,	Tian Zheng
- <zhengtian10@huawei.com>,	Wei-Lin Chang <weilin.chang@arm.com>,
-	linux-kernel@vger.kernel.org,	linux-arm-kernel@lists.infradead.org,
-	kvmarm@lists.linux.dev,	linux-acpi@vger.kernel.org,
-	acpica-devel@lists.linux.dev,	kvm@vger.kernel.org
-Subject: Re: [PATCH v1 00/12] KVM Dirty-bit cleaning accelerator (HACDBS)
-In-Reply-To: <afNZQKIiKmHPD5My@devkitleo>
-References: <20260430111424.3479613-2-leo.bras@arm.com>
-	<86bjf0zj2p.wl-maz@kernel.org>
-	<afNZQKIiKmHPD5My@devkitleo>
-User-Agent: Wanderlust/2.15.9 (Almost Unreal) SEMI-EPG/1.14.7 (Harue)
- FLIM-LB/1.14.9 (=?UTF-8?B?R29qxY0=?=) APEL-LB/10.8 EasyPG/1.0.0 Emacs/30.1
- (aarch64-unknown-linux-gnu) MULE/6.0 (HANACHIRUSATO)
+	s=k20201202; t=1777561069;
+	bh=iGaKif43+SfAXhK26YEklwWGOVDrCInBN6cz7m/+dCs=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=BhkUMnmWWep5wEPpbTwmnCuAU4b1GGaT6se0/f9E0IXon3efvLNbIXpjU+HgZNuZL
+	 NWQnAsd1Ik3KAsF6FYyGo6v2GjIMFIbXjbk/xLieqp2u3WNMDl4FpzVPzV0qK+PSgd
+	 kzcQK8c8LtOSsb0kfCxb5r8OBc7xYe4sGgnyI6xDvzVEnJ0303EjxqECXUCh174bR7
+	 tF3TzzVDJT78sB9tBUPoVW4ZVJ9a2l+FkhNKMu9NJdkatxeStRotq0sl4p4oFoRKH+
+	 ak7YbWzgGIDUBabyyZGtW7U3gbMWCAn+jftwvFWokAN/gbwh1XcQdCwwl+fKunBAA7
+	 rjV7xBPJfCC8w==
+Message-ID: <c3625be0-cafd-4b32-8225-30c75ca7eb72@kernel.org>
+Date: Thu, 30 Apr 2026 09:57:44 -0500
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0 (generated by SEMI-EPG 1.14.7 - "Harue")
-Content-Type: text/plain; charset=US-ASCII
-X-SA-Exim-Connect-IP: 185.219.108.64
-X-SA-Exim-Rcpt-To: leo.bras@arm.com, catalin.marinas@arm.com, will@kernel.org, oupton@kernel.org, joey.gouly@arm.com, suzuki.poulose@arm.com, yuzenghui@huawei.com, rafael@kernel.org, lenb@kernel.org, saket.dumbre@intel.com, pbonzini@redhat.com, fengchengwen@huawei.com, jic23@kernel.org, kees@kernel.org, miko.lenczewski@arm.com, ryan.roberts@arm.com, yang@os.amperecomputing.com, thuth@redhat.com, mrigendra.chaubey@gmail.com, yeoreum.yun@arm.com, broonie@kernel.org, kevin.brodsky@arm.com, james.clark@linaro.org, ardb@kernel.org, tabba@google.com, rananta@google.com, nathan@kernel.org, vdonnefort@google.com, lpieralisi@kernel.org, Sascha.Bischoff@arm.com, anshuman.khandual@arm.com, zhengtian10@huawei.com, weilin.chang@arm.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.linux.dev, linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev, kvm@vger.kernel.org
-X-SA-Exim-Mail-From: maz@kernel.org
-X-SA-Exim-Scanned: No (on disco-boy.misterjones.org); SAEximRunCond expanded to false
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2 2/2] ACPI: CPPC: Add ospm_nominal_perf support
+To: Sumit Gupta <sumitg@nvidia.com>, rafael@kernel.org,
+ viresh.kumar@linaro.org, lenb@kernel.org, pierre.gondois@arm.com,
+ zhenglifeng1@huawei.com, zhanjie9@hisilicon.com, saket.dumbre@intel.com,
+ linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-pm@vger.kernel.org, acpica-devel@lists.linux.dev
+Cc: treding@nvidia.com, jonathanh@nvidia.com, vsethi@nvidia.com,
+ ksitaraman@nvidia.com, sanjayc@nvidia.com, bbasu@nvidia.com
+References: <20260430142430.755437-1-sumitg@nvidia.com>
+ <20260430142430.755437-3-sumitg@nvidia.com>
+Content-Language: en-US
+From: Mario Limonciello <superm1@kernel.org>
+In-Reply-To: <20260430142430.755437-3-sumitg@nvidia.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Thu, 30 Apr 2026 14:29:37 +0100,
-Leonardo Bras <leo.bras@arm.com> wrote:
+
+
+On 4/30/26 09:24, Sumit Gupta wrote:
+> Add acpi_cppc/ospm_nominal_perf sysfs attribute (read-write) and
+> cppc_set_ospm_nominal_perf() API for the OSPM Nominal Performance
+> register (ACPI 6.6, Section 8.4.6.1.2.6).
 > 
-> On Thu, Apr 30, 2026 at 02:14:22PM +0100, Marc Zyngier wrote:
-> > On Thu, 30 Apr 2026 12:14:04 +0100,
-> > Leonardo Bras <leo.bras@arm.com> wrote:
-> > 
-> > > d - In __kvm_arch_dirty_log_clear() there is no way to predict how long
-> > >     should be the buffer, so I used 1x PAGE_SIZE, and when it gets full
-> > >     it's cleaned and reused. Should I let users configure that over a
-> > >     parameter, or is it overthinking?
-> > 
-> > How long is a piece of string? We can't know that. A single page feels
-> > very small in the 4kB case, and letting userspace define the size of
-> > that buffer seems a likely requirement.
-> > 
+> The register conveys the desired nominal performance level at which
+> the platform may run. OSPM can request a lower level than platform
+> nominal. Valid range is [Lowest Performance, Nominal Performance].
+> The value tells the platform what OSPM considers nominal. The
+> platform classifies performance above this as boosted and below as
+> throttled. It uses that for its power/thermal decisions.
 > 
-> Ok, as a KVM parameter, or as a compile-time option?
-
-Noticed the "userspace" word in there? It *has* to be controlled by
-userspace one way or another. So not as a kernel parameter, and
-*never* as a compile option.
-
-> > > Kernel v7.0.0 + this patchset builds properly, passing both kvm selftests
-> > > for dirty-bit tracking[2], on HW HACDBS enabled or disabled.
-> > 
-> > I have absolutely no trust in these tests.
-> > 
-> > Have you enabled a VMM to make use of these APIs, and actively
-> > migrated running guests? That's the level of testing I'd like to see,
-> > as the selftests are not what people run in production...
-> > 
+> Although the register is write-only per spec, cache the OSPM-written
+> value in cpc_desc so userspace can observe it via sysfs, and to
+> skip redundant writes.
 > 
-> There is no enablement needed on VMM side.
-> Yes, I have created a VM on upstream qemu with --enable-kvm and migrated it 
-> on the same host. (Inside a model)
+> Initialize to platform nominal at policy init. Override via sysfs
+> if needed.
 > 
-> That was the first test I used, but then I found out that kvm selftests 
-> stress up multiple scenarios in an easier way.
+> Signed-off-by: Sumit Gupta <sumitg@nvidia.com>
+Reviewed-by: Mario Limonciello (AMD) <superm1@kernel.org>
+> ---
+>   drivers/acpi/cppc_acpi.c       | 69 ++++++++++++++++++++++++++++++++++
+>   drivers/cpufreq/cppc_cpufreq.c | 10 +++++
+>   include/acpi/cppc_acpi.h       |  6 +++
+>   3 files changed, 85 insertions(+)
+> 
+> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+> index a1c91ce20cc8..fbc620adafad 100644
+> --- a/drivers/acpi/cppc_acpi.c
+> +++ b/drivers/acpi/cppc_acpi.c
+> @@ -155,6 +155,10 @@ static DEFINE_PER_CPU(struct cpc_desc *, cpc_desc_ptr);
+>   static struct kobj_attribute _name =		\
+>   __ATTR(_name, 0444, show_##_name, NULL)
+>   
+> +#define define_one_cppc_rw(_name)		\
+> +static struct kobj_attribute _name =		\
+> +__ATTR(_name, 0644, show_##_name, store_##_name)
+> +
+>   #define to_cpc_desc(a) container_of(a, struct cpc_desc, kobj)
+>   
+>   #define show_cppc_data(access_fn, struct_name, member_name)		\
+> @@ -211,6 +215,38 @@ static ssize_t show_feedback_ctrs(struct kobject *kobj,
+>   }
+>   define_one_cppc_ro(feedback_ctrs);
+>   
+> +static ssize_t show_ospm_nominal_perf(struct kobject *kobj,
+> +				      struct kobj_attribute *attr, char *buf)
+> +{
+> +	struct cpc_desc *cpc_ptr = to_cpc_desc(kobj);
+> +	u64 val = READ_ONCE(cpc_ptr->ospm_nominal_perf);
+> +
+> +	if (!val)
+> +		return -ENODATA;
+> +
+> +	return sysfs_emit(buf, "%llu\n", val);
+> +}
+> +
+> +static ssize_t store_ospm_nominal_perf(struct kobject *kobj,
+> +				       struct kobj_attribute *attr,
+> +				       const char *buf, size_t count)
+> +{
+> +	struct cpc_desc *cpc_ptr = to_cpc_desc(kobj);
+> +	u64 val;
+> +	int ret;
+> +
+> +	ret = kstrtou64(buf, 0, &val);
+> +	if (ret)
+> +		return ret;
+> +
+> +	ret = cppc_set_ospm_nominal_perf(cpc_ptr->cpu_id, val);
+> +	if (ret)
+> +		return ret;
+> +
+> +	return count;
+> +}
+> +define_one_cppc_rw(ospm_nominal_perf);
+> +
+>   static struct attribute *cppc_attrs[] = {
+>   	&feedback_ctrs.attr,
+>   	&reference_perf.attr,
+> @@ -222,6 +258,7 @@ static struct attribute *cppc_attrs[] = {
+>   	&nominal_perf.attr,
+>   	&nominal_freq.attr,
+>   	&lowest_freq.attr,
+> +	&ospm_nominal_perf.attr,
+>   	NULL
+>   };
+>   ATTRIBUTE_GROUPS(cppc);
+> @@ -1683,6 +1720,38 @@ int cppc_set_epp(int cpu, u64 epp_val)
+>   }
+>   EXPORT_SYMBOL_GPL(cppc_set_epp);
+>   
+> +/**
+> + * cppc_set_ospm_nominal_perf() - Write OSPM Nominal Performance register.
+> + * @cpu: CPU on which to write register.
+> + * @ospm_nominal_perf: Value to write to the OSPM Nominal Performance register.
+> + *
+> + * OSPM Nominal Performance allows OSPM to inform the platform of the nominal
+> + * performance level it intends to maintain.
+> + *
+> + * Return: 0 for success, -EINVAL on invalid input, -EOPNOTSUPP if not
+> + * supported, -EIO otherwise.
+> + */
+> +int cppc_set_ospm_nominal_perf(int cpu, u64 ospm_nominal_perf)
+> +{
+> +	struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpu);
+> +	int ret;
+> +
+> +	if (!ospm_nominal_perf || ospm_nominal_perf > U32_MAX)
+> +		return -EINVAL;
+> +
+> +	if (cpc_desc &&
+> +	    READ_ONCE(cpc_desc->ospm_nominal_perf) == ospm_nominal_perf)
+> +		return 0;
+> +
+> +	ret = cppc_set_reg_val(cpu, OSPM_NOMINAL_PERF, ospm_nominal_perf);
+> +	if (ret)
+> +		return ret;
+> +
+> +	WRITE_ONCE(cpc_desc->ospm_nominal_perf, ospm_nominal_perf);
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(cppc_set_ospm_nominal_perf);
+> +
+>   /**
+>    * cppc_get_auto_act_window() - Read autonomous activity window register.
+>    * @cpu: CPU from which to read register.
+> diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
+> index 7e7f9dfb7a24..d06cba963550 100644
+> --- a/drivers/cpufreq/cppc_cpufreq.c
+> +++ b/drivers/cpufreq/cppc_cpufreq.c
+> @@ -715,6 +715,16 @@ static int cppc_cpufreq_cpu_init(struct cpufreq_policy *policy)
+>   		goto out;
+>   	}
+>   
+> +	/*
+> +	 * Initialize OSPM Nominal Performance to inform firmware of
+> +	 * OSPM's nominal level. Performance above this value = boost;
+> +	 * below = throttle. Uses platform nominal by default.
+> +	 */
+> +	ret = cppc_set_ospm_nominal_perf(cpu, caps->nominal_perf);
+> +	if (ret && ret != -EOPNOTSUPP)
+> +		pr_debug("Failed to set ospm_nominal_perf for CPU%d: %d\n",
+> +			 cpu, ret);
+> +
+>   	cppc_cpufreq_cpu_fie_init(policy);
+>   	return 0;
+>   
+> diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
+> index 8693890a7275..3771e2ed507d 100644
+> --- a/include/acpi/cppc_acpi.h
+> +++ b/include/acpi/cppc_acpi.h
+> @@ -86,6 +86,7 @@ struct cpc_desc {
+>   	struct cpc_register_resource cpc_regs[MAX_CPC_REG_ENT];
+>   	struct acpi_psd_package domain_info;
+>   	struct kobject kobj;
+> +	u32 ospm_nominal_perf;
+>   };
+>   
+>   /* These are indexes into the per-cpu cpc_regs[]. Order is important. */
+> @@ -180,6 +181,7 @@ extern int cpc_write_ffh(int cpunum, struct cpc_reg *reg, u64 val);
+>   extern int cppc_get_epp_perf(int cpunum, u64 *epp_perf);
+>   extern int cppc_set_epp_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls, bool enable);
+>   extern int cppc_set_epp(int cpu, u64 epp_val);
+> +extern int cppc_set_ospm_nominal_perf(int cpu, u64 ospm_nominal_perf);
+>   extern int cppc_get_auto_act_window(int cpu, u64 *auto_act_window);
+>   extern int cppc_set_auto_act_window(int cpu, u64 auto_act_window);
+>   extern int cppc_get_auto_sel(int cpu, bool *enable);
+> @@ -266,6 +268,10 @@ static inline int cppc_set_epp(int cpu, u64 epp_val)
+>   {
+>   	return -EOPNOTSUPP;
+>   }
+> +static inline int cppc_set_ospm_nominal_perf(int cpu, u64 ospm_nominal_perf)
+> +{
+> +	return -EOPNOTSUPP;
+> +}
+>   static inline int cppc_get_auto_act_window(int cpu, u64 *auto_act_window)
+>   {
+>   	return -EOPNOTSUPP;
 
-Except when they don't. In my experience, the selftests are only there
-to give the CI people the fuzzy feeling that they are doing something
-useful. I have a collection of examples indicating that what these
-things test is not representative of the bugs we have in KVM.
-
-> Do you prefer me to test on any specific scenario, or does whatever qemu
-> uses as a default parameter work well enough?
-
-I want to hear about testing at a scale that make sense for production
-VMs, including live migrating between hosts while under memory
-pressure (swapping out).
-
-I'm also interested in efficiency: how much better is HACDBS compared
-to the current page faulting? Just having patches for a feature is not
-enough to decide adoption of that feature. Show me the benefits in a
-quantitative way (within the limits of the model, of course).
-
-Thanks,
-
-	M.
-
--- 
-Without deviation from the norm, progress is not possible.
