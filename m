@@ -1,207 +1,395 @@
-Received: from mail-ej1-f51.google.com (mail-ej1-f51.google.com [209.85.218.51])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.12])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF94D3BC66A
-	for <linux-acpi@vger.kernel.org>; Thu, 30 Apr 2026 23:18:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14F372EE262;
+	Thu, 30 Apr 2026 23:20:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.12
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777591086; cv=pass; b=Dk1T0rbep/2uZV3SoQREV70flB3reLxNIYbzEvteYSRWE19rReLJhiZ+Tws9gk4QdtuezlF1HZoQ18gDaDSzVwo1CFhcV92Xu/XueqwJDqENUBfJ5MdCvGsv/yznmKmdxXpAqUHxnTAFgsi/YBxjRd5x/InW5bVqrJ1IgpKnYeQ=
+	t=1777591219; cv=fail; b=agCPwdOJOCyDX/wSWnF7AFCWnfEjjZzZ80mZmIoPTZWzMGzICLm+IfwAFyeqPUKDFvMrE3oF7RQIIUzK+w/BSnEmlKDsJjavDowi9nOCrPlTje3ep43TxuBP7ElYaWTry2qbKpFaw3g2vKOVtW95jC+Nd/Bi0oSWjbYU1kqJUeI=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777591086; c=relaxed/simple;
-	bh=qMssuPB08Ftixa7cUXrksbDoBvMFkJHrhq6Zs/nyBnM=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=hEae1+erggpdzgB8D7vZigQT4qRNVPAheQz7cjUvFv7d19MozI+wied/++o0I9vMitSTGrUmLHoMxltfscjb2lFPwOaObHlOBGL2ax1nS0v8PpenZJsIMeei1PSHzY5m5C/fBgaMfzCLl1qp1d2LDj8NFXjsffYZ70zJgdhI4MM=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=PGvMF6X7; arc=pass smtp.client-ip=209.85.218.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1777591219; c=relaxed/simple;
+	bh=7wXWVDQ9N7i6TchEUySVJgN4TH/zyGscC9NQWEmhrf8=;
+	h=Message-ID:Date:Subject:To:CC:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=fEUHV9XXbKI/4KaSqQDcDkyY1/CYykMLnbVOkZpwcOKPyDrhwLobbdfFHHTGLUYrOI2+ZBWalT+lXgBShdW3m9EgWDWnczl4dcseI+sincN+I53RHkekbKJi8jQVls8URnNt+4ZDdaKzxQzhPckF1U6eYvjGVKwa/l1qbmqUXsw=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=mFryQYq9; arc=fail smtp.client-ip=192.198.163.12
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="PGvMF6X7"
-Received: by mail-ej1-f51.google.com with SMTP id a640c23a62f3a-ba51e69988aso247716766b.0
-        for <linux-acpi@vger.kernel.org>; Thu, 30 Apr 2026 16:18:02 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1777591080; cv=none;
-        d=google.com; s=arc-20240605;
-        b=bzMaXD78KWX8kPrruWFCoJv1Jy5u5ezOo40uOVHXrCqhD5AMkdNjGQKFmv6qxg6fz3
-         Cs+gsifvPXHEyGXAaF1HY6qKuoIL/TbukpRINYbcS02DD5An918A0Qi17XPJARFq9Tc8
-         QcfSDBvXOoKqwcwbcLiTqKvjNNl37HFrH6fQxaBVNuhzxI9INF0THGf92PyXmfPOuyq4
-         UeEEUKUUtyu4nQro0/K/RFIxnwMYgR+GlturO0gu5rTpe6Qswvn7u/MIpb4uLmXBRiSR
-         5t8R9pomACxeoEtpskWvryut8qPdON2RZM+wtXlans3GDPikJoICXlC4oXl/jg5B2utt
-         XnQA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=wr4f/O6tnwowWz0YOGfaBNk5o8gSqrjyXSQ8QIaml/8=;
-        fh=YeRhbhph7YYs1iC3U3wNAVeR23IaemsgqOx3g1wK9TA=;
-        b=SDXhwRL3NSxojbULZDQDJkzracgYuKHmMn2BU8wZgWEeRpCiXs3Xch8oaroRUQsv+z
-         jOaG9/9QA2obUzsQG6n99S8Xtdh+EvcV0yUmthvbCfa7/nmBQYxNx4tqyeywnnsERgqR
-         q4f8/TFV4CmjDk+rsU7ft55Bh97WlK9MfVezHNAdpVSlHJZ4gdYq0vXUB9kLZ1Kz0rF/
-         eOeiAlzop7fSZMqshx6FWAwySG5uwsl+hRual/29rHQXWzPQCfJunP+mxW5obmHq1ZFz
-         ioVZpa7BewDc/87P5tnQ1opmka/MmHsuH5zwT6a2YO1jRSsXdEQfO3RGrUX6l89FDb5X
-         RzOg==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1777591080; x=1778195880; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=wr4f/O6tnwowWz0YOGfaBNk5o8gSqrjyXSQ8QIaml/8=;
-        b=PGvMF6X7BnyJBp+WQjPOkm6JwqAIQbmHj2iWmHVxxnkvzM5mAmsjNVJaIW+7uJ+Q+n
-         COza2Ga4wvqoOXF8eI/807nP4cfcuxfnHCNxSGVQ9fXDWki3Sh5AUV6VThlWh/QkKyQO
-         AFsLlZyFcphGA/TN6KXZqzweDHx+m3r9NmRJTBnq2oOnV+jjcbdvlof6p1nCRUV/FuIC
-         3lTHA0ZZTp1I0vngnkQQ/JvtEZgkn07K/fc9nHOw7jxmjE7y2eZfC6BrtEXiFLSKkui3
-         U2f9ba0cSe3sez+1M9UwBX6+OVbl8KGIn0T6a61UX6AkHJ8ilUjGvPMdL2wIemJcawFg
-         6C4g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1777591080; x=1778195880;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=wr4f/O6tnwowWz0YOGfaBNk5o8gSqrjyXSQ8QIaml/8=;
-        b=F1VlJ4N8QbqaaNkU/nNdHn1rfbtDVJoI7kYzRCl0DTfr/ckpg9Ka1DqgKkDBGY7TgP
-         TWpzQdFKNSvV1B5aCQdW35jcbcFD1e4d3fwY9yo84wAY1wi6t8qPW1va6ad/GDCqkgDe
-         RMwjmntcTAl2CV6T/28BSv31+qRdiTaASg/i2ygx02nnkCtYLrlT52K9JJur4+o3N/c6
-         MHYdoTVCdd4Z5J+6shE0esyLRlbQL/T4H2apMGmLNElBxBczLvpCeQTun1+Uzlh89jKu
-         Fdfc3rBwpKGswB6tHZzr2sTZkKy8bDoKrcrWtkX7xySYtn9iIxvKhkPpXT/90Iytwft7
-         5uDQ==
-X-Forwarded-Encrypted: i=1; AFNElJ9kePfWJZB8wGTtrN4OYkqFvuz+jYWkaBuJv7JLbE3lun1BPYwK6Gvk7vMCTcY2Acf13LllLmkH5ZS6@vger.kernel.org
-X-Gm-Message-State: AOJu0YxV/i1ec8BmxOjJqLWOO1v3XAtLmX4TgKpGd900EzSC/w5EIrVW
-	DGqc48IEOPmJZWPJfnlQCmfCWLTZAcA25BODpig3FasOQYbSOU61oaW6CVMpEibiF/ypAII6eIA
-	roNOVo2Il6W7EVn4fXYJVOkEs7jTztvuXQgCH
-X-Gm-Gg: AeBDiesHRtw+ugBA9eizxxRruXtTsxIFqYmDlD4TSoH+QafhBTFzMGcM0jI/hPpCDnL
-	kJrSnJ/qnpq3gn7VpUGETmgnkwovi1myPSWUbD9fVOuiQYJsFNNTgF/y8vyK3mF8ewzoszmOaJL
-	U01DK89Re6I6Buuwc2V+1op+WckwTbSnL6dF1WLuUGpCJc4bIUTXtj6GOsZ7zZ8nG76mfxyD1K9
-	1mw9ZuesfD75SuV7qDpKlhx1A9IrCWSgiin864Hx14f1PYOguyLjHCS6BpYPrxg4UD/mr1wUAEd
-	J8dUcuLJ2YxyhPACjQ==
-X-Received: by 2002:a17:907:3e82:b0:ba7:e65:a5f0 with SMTP id
- a640c23a62f3a-bbebe614a46mr27887066b.5.1777591080209; Thu, 30 Apr 2026
- 16:18:00 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="mFryQYq9"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1777591218; x=1809127218;
+  h=message-id:date:subject:to:cc:references:from:
+   in-reply-to:content-transfer-encoding:mime-version;
+  bh=7wXWVDQ9N7i6TchEUySVJgN4TH/zyGscC9NQWEmhrf8=;
+  b=mFryQYq9rzyQQLv5CDE8rqsI+kH6/bWyAaoorQ0ULFC7ossxYbyvNhvb
+   RGO58B/QEp+R7C08A4QRCKXd0uIvoq7QRlNH0lErIbZOvtnAk7u4yl3Dc
+   sJqihsLKTzD10pvmvq+GIwuIBQWjFT0+FxHUVKy6WCybQfuZBhMxmJMxZ
+   FtbczNc1Bn9BgT65GNsl3tyl02GmtIvam9wP/khSNSgdO6L/LeuYc88qv
+   qB+z5mXEkb6hIk0qqk1nal/10pDop71T/qEj65n7N7G70nI0pgqOVNdv2
+   2G+C7VbgiZAIB88gZ+npY0M00yXo9MPUA7bGyJWx2TuCOHJdkcYn79atU
+   Q==;
+X-CSE-ConnectionGUID: OjpcwLdNQcGu66O+oXbd8A==
+X-CSE-MsgGUID: Amg34R8wTTeX6+uvqksV+Q==
+X-IronPort-AV: E=McAfee;i="6800,10657,11772"; a="82415849"
+X-IronPort-AV: E=Sophos;i="6.23,209,1770624000"; 
+   d="scan'208";a="82415849"
+Received: from fmviesa006.fm.intel.com ([10.60.135.146])
+  by fmvoesa106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Apr 2026 16:20:17 -0700
+X-CSE-ConnectionGUID: YjHtSRwgSTOXsPgAudL/RQ==
+X-CSE-MsgGUID: vxhOFYYeRkum2Ut1BgQkjw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,209,1770624000"; 
+   d="scan'208";a="230117894"
+Received: from fmsmsx902.amr.corp.intel.com ([10.18.126.91])
+  by fmviesa006.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Apr 2026 16:20:16 -0700
+Received: from FMSMSX902.amr.corp.intel.com (10.18.126.91) by
+ fmsmsx902.amr.corp.intel.com (10.18.126.91) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.37; Thu, 30 Apr 2026 16:20:16 -0700
+Received: from fmsedg902.ED.cps.intel.com (10.1.192.144) by
+ FMSMSX902.amr.corp.intel.com (10.18.126.91) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.37 via Frontend Transport; Thu, 30 Apr 2026 16:20:16 -0700
+Received: from PH7PR06CU001.outbound.protection.outlook.com (52.101.201.24) by
+ edgegateway.intel.com (192.55.55.82) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.37; Thu, 30 Apr 2026 16:20:16 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=HiCdVSr8qabYQgjJBYKLym/TiYTHS2H+O8ShDi3Vjo5Xum/g/3YVprTxvhRSVdbTBmXBBnLscWkAQS6RQaMeXlZeariZcw3RGNUm1/43s4MASh+s6zcatP2e4tKO7fAIZ36xpoYAZ+5ftmxjNfzYxVsjii3Kvar6bbWEkyjPqIzlLqhzi/n2pno1UpZ2MUJsXJosPI9hBbAXJYBVehhN73H1+Lmya8MqmPIj+b9kixzJM2MqndIOGGB/h1w5AnBk6oVyo9oWJp7Il+FULD6c/x0B6ezzBcnlF2TQ6+1Fa+i8hZNKF6vK0iiGCmTaXpuEdu9M59GzgNo9LpaynJ5czg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=vhHQJkuZBx2SWLWAMBfI3BT7aJc78bmkjRiFtFBK2lI=;
+ b=NAbOUtenlZopSWo3bCs8XVNnYjBqq3qtEPsUjD7F8r8ITC2cCPDJNDF2oPJOULM7G4PINpu/vVGpxHP4sjlh2TwuPIBCQl86mOKmysTlmThXRnF3hLL9nGDM7sLYOFSnlC1E//n86pganGaOHpCtnPBTitQ1ydgq8q0CjZOiDwLcm6uQSRFOlADQ7GeiobJqESE9nbk4Tj7jOJFXQ6rRAb0itCvjtOCjiMCQ3yAEJrVuGvVi1MUMU35xYfDng/khP4Bwz97IyCjCES/ZQdTIPcuaXRWK2PiFFqKP88w2uDIo4LURBbsQMCIdq6qHs+ZpfrJFGsWZRNw5B4MuAytj1A==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from SJ2PR11MB7573.namprd11.prod.outlook.com (2603:10b6:a03:4d2::10)
+ by MW3PR11MB4651.namprd11.prod.outlook.com (2603:10b6:303:2c::21) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9870.22; Thu, 30 Apr
+ 2026 23:20:13 +0000
+Received: from SJ2PR11MB7573.namprd11.prod.outlook.com
+ ([fe80::bfe:4ce1:556:4a9d]) by SJ2PR11MB7573.namprd11.prod.outlook.com
+ ([fe80::bfe:4ce1:556:4a9d%5]) with mapi id 15.20.9870.020; Thu, 30 Apr 2026
+ 23:20:13 +0000
+Message-ID: <9a8860a5-f63f-497c-ade9-6f64286abff0@intel.com>
+Date: Thu, 30 Apr 2026 16:20:09 -0700
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH RFC v3 06/11] RISC-V: QoS: add resctrl setup and domain
+ management
+To: Drew Fustini <fustini@kernel.org>, Paul Walmsley <pjw@kernel.org>, "Palmer
+ Dabbelt" <palmer@dabbelt.com>, Albert Ou <aou@eecs.berkeley.edu>, "Alexandre
+ Ghiti" <alex@ghiti.fr>, =?UTF-8?B?UmFkaW0gS3LEjW3DocWZ?=
+	<rkrcmar@ventanamicro.com>, Samuel Holland <samuel.holland@sifive.com>,
+	Adrien Ricciardi <aricciardi@baylibre.com>, Nicolas Pitre
+	<npitre@baylibre.com>, =?UTF-8?Q?Kornel_Dul=C4=99ba?= <mindal@semihalf.com>,
+	Atish Patra <atish.patra@linux.dev>, Atish Kumar Patra <atishp@rivosinc.com>,
+	Vasudevan Srinivasan <vasu@rivosinc.com>, Ved Shanbhogue <ved@rivosinc.com>,
+	Conor Dooley <conor.dooley@microchip.com>, yunhui cui
+	<cuiyunhui@bytedance.com>, Chen Pei <cp0613@linux.alibaba.com>, Liu Zhiwei
+	<zhiwei_liu@linux.alibaba.com>, Weiwei Li <liwei1518@gmail.com>,
+	<guo.wenjia23@zte.com.cn>, Gong Shuai <gong.shuai@sanechips.com.cn>, "Gong
+ Shuai" <gsh517@gmail.com>, <liu.qingtao2@zte.com.cn>, Tony Luck
+	<tony.luck@intel.com>, Babu Moger <babu.moger@amd.com>, Peter Newman
+	<peternewman@google.com>, Fenghua Yu <fenghua.yu@intel.com>, James Morse
+	<james.morse@arm.com>, Ben Horgan <ben.horgan@arm.com>, Dave Martin
+	<Dave.Martin@arm.com>, Rob Herring <robh@kernel.org>, Conor Dooley
+	<conor+dt@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, "Rafael J.
+ Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Robert Moore
+	<robert.moore@intel.com>, Sunil V L <sunilvl@ventanamicro.com>
+CC: <linux-kernel@vger.kernel.org>, <linux-riscv@lists.infradead.org>,
+	<x86@kernel.org>, <linux-acpi@vger.kernel.org>,
+	<acpica-devel@lists.linux.dev>, <devicetree@vger.kernel.org>, Paul Walmsley
+	<paul.walmsley@sifive.com>
+References: <20260414-ssqosid-cbqri-rqsc-v7-0-v3-0-b3b2e7e9847a@kernel.org>
+ <20260414-ssqosid-cbqri-rqsc-v7-0-v3-6-b3b2e7e9847a@kernel.org>
+Content-Language: en-US
+From: Reinette Chatre <reinette.chatre@intel.com>
+In-Reply-To: <20260414-ssqosid-cbqri-rqsc-v7-0-v3-6-b3b2e7e9847a@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: MW4PR04CA0088.namprd04.prod.outlook.com
+ (2603:10b6:303:6b::33) To SJ2PR11MB7573.namprd11.prod.outlook.com
+ (2603:10b6:a03:4d2::10)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <12879883.O9o76ZdvQC@rafael.j.wysocki> <CAGAxtY3h4sEphqKL-jiSn4p0NT9mdZtOFrVxW7CDo22XdL56iw@mail.gmail.com>
- <CAJZ5v0ixuF=AQf0_VcPH=4jo5X-HbEB3WvJAnk8_fZes+bjyLg@mail.gmail.com> <12909238.O9o76ZdvQC@rafael.j.wysocki>
-In-Reply-To: <12909238.O9o76ZdvQC@rafael.j.wysocki>
-From: Evgeny Sagatov <evgeny.sagatov@gmail.com>
-Date: Fri, 1 May 2026 02:17:48 +0300
-X-Gm-Features: AVHnY4Jqj25Kx5PBJv7oNLRVP3qU3f7s4xB1XbA1jZxGD5_AcSNv8SeOCrXOIeU
-Message-ID: <CAGAxtY2J3vBJ9oUh1nt1c9ytRE_o=-rwk7nLKuDN==jW2kodbA@mail.gmail.com>
-Subject: Re: Pressing the power button causes the device to freeze completely
- (schedutil involved)
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Linux regressions mailing list <regressions@lists.linux.dev>, 
-	ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Thorsten Leemhuis <regressions@leemhuis.info>, 
-	LKML <linux-kernel@vger.kernel.org>, 
-	Wysocki Rafael J <rafael.j.wysocki@intel.com>, Vincent Guittot <vincent.guittot@linaro.org>, 
-	Linux PM <linux-pm@vger.kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SJ2PR11MB7573:EE_|MW3PR11MB4651:EE_
+X-MS-Office365-Filtering-Correlation-Id: dc8037e6-392d-4583-dfdc-08dea70f07a3
+X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|376014|7416014|1800799024|366016|22082099003|18002099003|56012099003|921020;
+X-Microsoft-Antispam-Message-Info: 88aXl1goIFttfd7WUi76pLIiEl77ZdXXDmuZAPIAbb3GBZ2d/K6mWqrVPUGlH9woHBYaIl8EF10ztgKAWJ6Elcsd1sXV5EHMrl5lnpltht9NW2K36czywqbW8injpTPBrInvFtQZkOQnAPix8GVwpB6l4p1eAmVfC4eXYkxE/1xWngnUBFG3vifSdhtAi3tWU15xqvc33tNJpQnlR0g71j4mmMj8b6Zl0rQEmuIeE0bqqhWuG9vWIoYLH3X8P4/latR8VikSmRxpIh7OzB1trCo0P3g79IWYPJG+deABkeHACR1xML75Z4WnjiCGvLTY5nBHkUhmRSrgRplmYTrly4YogWBaGK3Mau9mH+HIjjWbTQEkthIIamZpVayxRhfPn9+0BBO9euxrxXkHocnyI/O3nPH9Gh8rXXAbLrh8+qks9lRC60Oyo4k3ikaKnENkL7xAZe8/6pDds8Dutut27a9QR27IAu6DGywq5EwtRegrpl8QOmjUATL422w5nQjHsmE7BXIHzhFtxcNb62teFcNnUb4pL4za4iaOIZdXFtjhSabeiBR28lje74K+hG0V+nxL1jVNwzfwOVDYwyosHddXNXtP5erYLRcCxwK5niIGDs2/77ZIA+0/xTRhK0w3Mi/pK0Mfj0MlmuTSXMXbVQh1WZ2jfcCyp7savm/HdTMpJ3ecWuyR28oFqJigw4lybZo6vh63a3fHoaOqALZbGTuDKHvHSNW8DILKvK+SA/M=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SJ2PR11MB7573.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(7416014)(1800799024)(366016)(22082099003)(18002099003)(56012099003)(921020);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?L1YzZzEwNWgzbmJWbEJla0d5L0x1b3VJSU1Nang4ZHU0VHlzWXBJNUt3c2sy?=
+ =?utf-8?B?UEZHUFR1WFRpNFIyT3g1U3loRFpsQzh2YlFyWUJGWXdrUDVtVVpjRmtiVkJI?=
+ =?utf-8?B?Y08rOHpKT3Y4QXI1L1o5TWhCNktWRFMvQ1ZUc29sWWc4Y3poNHpwbE5ITnRq?=
+ =?utf-8?B?ckYvK09sUlhYeGZHNkNud21nbTB4WEFVTndDTVpzOUZVbUZoNWNaUXpRR25r?=
+ =?utf-8?B?SUxLQ3NHWlM2NW5NNlpDdEtDU3NCQnhqdkZnajN3dURERTdGemxsZ3gwZXVI?=
+ =?utf-8?B?SUt2ZlRLUVlvbkx4WTRhM2l4bld1VzFQT01kQVJPQ3o2d3FodEl6Ym1sOEpF?=
+ =?utf-8?B?dWNxV3EvYk5zY3JsU2lFQTEwZitmM1lLNGU5RmxxcEV5aGRzQkkzQjdnY3Bk?=
+ =?utf-8?B?bldqZDNOWDNyNjNTVy9iMC9PellCZVdRYU9DL3ZMdENsU2g0Wk9jVUJJTU9N?=
+ =?utf-8?B?RnBkN1crQ3BIQ2dJd3BHM0RJTHJmYjJhMjFMbFM1Z3BZdXR2QUlWM3lnYmJl?=
+ =?utf-8?B?ZnFpOWpuZ0xtYVJZbXoxcWNJc3RubE1pMlNtMWJuektXVXRVemQzTitqSzJZ?=
+ =?utf-8?B?enJxWitYOXhlNkJSUkh0eThQbEpoRktzRzMrVXl0MnZDcy83NGIzNU1XVy9M?=
+ =?utf-8?B?czlpMS83cSswSXhvbThVNWxjQWF6aXIwbHFBNHpFQXNpZmx4UTVCckZhSWM4?=
+ =?utf-8?B?OTlaRDQ1OGc4Z2pXSG5OVmhMNGNWNkE1dEwzWS93S0ErUTd2ckttVlhvQ290?=
+ =?utf-8?B?ZVFrNDRGenBWZDNOUVN5dHVpdUVtNmU0M01JQXV0L2VYcVlkeWVnS0pkelU1?=
+ =?utf-8?B?K1pTck1pMUFBclV3REpxN0dJcE94dDVobUFLYXNkaVpXYjVoeC9NZ21jMkYr?=
+ =?utf-8?B?bGVHdHk1Vjh5WTU3dTg0M0EvK1ErRTJUcCthYjgxakdFaC9lbW1zL29taUdv?=
+ =?utf-8?B?UnplSFh4MU12eW03SVliNHJBNHFzVk80dEFENkhZQ3VRRzIwVmhpSWNKZjdp?=
+ =?utf-8?B?ckdPUmNNUFhLYTl4YVg5Vi9pTDBqNFZNUlBTeENXYjlvOTFJK2FzRHc5WkJG?=
+ =?utf-8?B?NHBsZnRmSENGSTM1b3VGNExHNFZzZjI0QmU0eGR4aUQ3WDdRTXVFbFNzQnYr?=
+ =?utf-8?B?alk3bE5IcDRwUG1EZHRGci9TRW1nZy9uZE10ZWxPTHBlbkQ2SDZ4UFhhbSsz?=
+ =?utf-8?B?OUF2UnZJeWl4N0c0cjJQWDhicVdWaCtzS0VPR0ZnY1F3WVFnM3BCWllUU1lF?=
+ =?utf-8?B?ZGE1N1dNdWdocDJabTNLcjFXbVNmWGY0TXE3ZG16NG1qeEsyYUlralBCV1JD?=
+ =?utf-8?B?R0ljOEYzNk52dlA4T3V1clBrdkZSN0tCTUp2dEhTT0paSWVNaTBzaTMwTjEr?=
+ =?utf-8?B?dFhTNEVJcjRhWVZxRzJEb3BSS25nakd2Qm1aTytIOENQVUFIZWQ2eERsUm5m?=
+ =?utf-8?B?aUttcE95ZEJycGVJUkdadDkzWGdnMko4b0t0TFdNTk9wNUtHRnBrdEZMRnQ3?=
+ =?utf-8?B?a2lmL2lqSnVKUlhPSW9hL1NWT2ovWE5VYVMyRjlSMC9mc2lQVDVHdXFwSHNn?=
+ =?utf-8?B?cmRlVTNZZnZFZHVJRnJqQjZ0djM4dUJFbGhVc1V6UFNlY0FHSzZaMUlBb05X?=
+ =?utf-8?B?YWprdkZtOXA4aXNwckY3Zmo3QkNBYSsrUG9wM0hXbGZlWGpQNGRLVnRLSGFZ?=
+ =?utf-8?B?SlVoOW5mQjlZZFZDWTVTUXE3UVdGY3YxZUZ6YWRjcDJCSkVuS1pkR1lTeTFJ?=
+ =?utf-8?B?c3diM0t4eC9qRUQvejZUN2xVdWVOdFQrZXhNM2poaXArSXVnZkxJcmczcUox?=
+ =?utf-8?B?ZWJZdTllL09MRExRaXFsZVFhUm9hUzdVT1BWTWd4dyt1S2NNTjdQbHc0TCth?=
+ =?utf-8?B?VDUxRjVmU09LaFB6MEkwZnQrNXRETGUvZmRHMHFaUXNIdi8zQ0xxOWNjaWly?=
+ =?utf-8?B?am1DU0pOVDBBUW5NcERZSllLeVZEbWIrOFd5d21hSmVrVC9sdGo5YUJxYklC?=
+ =?utf-8?B?VFI4SmpxSHIxb3hXc1FaR2JGTEI2cW9zbXJiSythL3cyZXFqTTRrK0tUZkVZ?=
+ =?utf-8?B?NSt2eEIyVDFHVU5kOHk3bFpodDJDei96Z0RWRVJ4aDdNaXhleVFpTmRDQ1ls?=
+ =?utf-8?B?QUxUL0tRNlJZblhKZHFDdkowUU8zMlVMdGw0UlhpZ1grbFc5QSt1VE95WEU0?=
+ =?utf-8?B?emM2cW9pQ2ZJaHg1OEtYa1R4cUlIK0IvNEpMYkVNT1U5bjM4TzYzVnVCRzg2?=
+ =?utf-8?B?WnVVMURWREViS09adVkyQlV4SGp5UjU0Z1hzWG90dElBbm8zNndxUzFjTkJC?=
+ =?utf-8?B?YVRhY0RzZFY0MGNkVXpJM0NPS1kxYkk3aWlXQUdya2lmMmZZLzFEU1UrVklX?=
+ =?utf-8?Q?8xvXbCtsVh9+ozJ0=3D?=
+X-Exchange-RoutingPolicyChecked: K0jlHY6LyXThc4oXlTjU14WcLcJ9zUOkaGKXwULCPoi8PTA4V+mzN/IiElMf5SHDanO62S6N+rLyiE2hIEoa+Hxj6b/YGLjcSxSnZUK9osg4gwrWSoyWrJUZjnUUDrZBvl7sDqw8lzvFefMpP4cEruUU/XH9Ep06qtMHXBBRBFHNeH1fPWy145ysXDFmFEvzADfhxtbtdxLh9pZaM0y3lO2wUCplO+2vkFLtx+tG/uPjy1GR6UDCtPl6/HlfWwSoAb3nQFA3DW6//RM2vUHGNPC7g/4i+L6J87abuBZUVfFthkv4rI1f37t1gADaepchhtqUZFUpvO2NEHXomvR1ew==
+X-MS-Exchange-CrossTenant-Network-Message-Id: dc8037e6-392d-4583-dfdc-08dea70f07a3
+X-MS-Exchange-CrossTenant-AuthSource: SJ2PR11MB7573.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Apr 2026 23:20:12.9286
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: 2KBtgm423FUm3UINvj5uqhdvfg8jSWdlCh5o9HP5jkwmwoKVhyL+luRjDSxkOWZ7KAQfFVuQUdeuwZRunAS5ccY1R8WS2hLswG93WYnJupc=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW3PR11MB4651
+X-OriginatorOrg: intel.com
 
-Rafael,
+Hi Drew,
 
-I'm leaving on vacation today. I'll be able to conduct new checks
-starting May 17th.
+On 4/14/26 6:54 PM, Drew Fustini wrote:
+> +
+> +static int qos_resctrl_add_controller_domain(struct cbqri_controller *ctrl)
+> +{
+> +	struct rdt_ctrl_domain *domain;
+> +	struct cbqri_resctrl_res *cbqri_res = NULL;
+> +	struct rdt_resource *res = NULL;
+> +	struct list_head *pos = NULL;
+> +	int err;
+> +
+> +	domain = qos_new_domain(ctrl);
+> +	if (!domain)
+> +		return -ENOSPC;
+> +
+> +	switch (ctrl->type) {
+> +	case CBQRI_CONTROLLER_TYPE_CAPACITY:
+> +		cpumask_copy(&domain->hdr.cpu_mask, &ctrl->cache.cpu_mask);
 
-Thanks for helping with resolving the issue!
+Looking at patch #10 ctrl->cache.cpu_mask contains all CPUs associated with cache
+even if they are offline. This is not what resctrl expects. Instead the expectation is
+that a domain exists and is online (hence "resctrl_online_ctrl_domain()") if at least one CPU
+belonging to that domain is online and domain->hdr.cpu_mask lists all the *online* CPUs
+associated with that domain.
+This is why resctrl always takes the CPU hotplug lock when traversing the domain
+lists.
 
-=D1=87=D1=82, 30 =D0=B0=D0=BF=D1=80. 2026=E2=80=AF=D0=B3. =D0=B2 17:42, Raf=
-ael J. Wysocki <rafael@kernel.org>:
->
-> On Thursday, April 30, 2026 3:57:41 PM CEST Rafael J. Wysocki wrote:
-> > On Thu, Apr 30, 2026 at 1:41=E2=80=AFPM Evgeny Sagatov <evgeny.sagatov@=
-gmail.com> wrote:
-> > >
-> > > I noticed that for powersave mode, I'm getting the following values:
-> >
-> > I guess you mean with the powersave governor.
-> >
-> > > cat /proc/cpuinfo | grep MHz
-> > > cpu MHz         : 2798.689
-> > > cpu MHz         : 1999.659
-> > > cpu MHz         : 1999.797
-> > > cpu MHz         : 2741.103
-> > > Also, there's now no difference in the single-core benchmark between
-> > > schedutil, ondemand, powersave and performance modes. The benchmark
-> > > always gives a very high result.
-> > > This wasn't the case before; the modes had different performance leve=
-ls.
-> >
-> > I would expect schedutil, ondemand and performance to give similar
-> > scores, but for powersave I would expect the score to be lower.
-> >
-> > With the same patch applied, can you please switch over to powersave,
-> > reset the stats and then capture the output of
-> >
-> > grep -r . /sys/devices/system/cpu/cpufreq/
-> >
-> > Also, I'd still like to see the output of
-> >
-> > grep . /sys/firmware/acpi/interrupts/sci*
->
-> Additionally, please remove all of the debug patches sent so far, apply
-> the one below and send a dmesg boot log.
->
-> I want to check if all of the CPUs use the same control values when
-> they write to the frequency scaling control register.
->
-> ---
->  drivers/cpufreq/acpi-cpufreq.c |   12 +++++++++---
->  drivers/cpufreq/cpufreq.c      |    1 +
->  2 files changed, 10 insertions(+), 3 deletions(-)
->
-> --- a/drivers/cpufreq/acpi-cpufreq.c
-> +++ b/drivers/cpufreq/acpi-cpufreq.c
-> @@ -887,9 +887,14 @@ static int acpi_cpufreq_cpu_init(struct
->                  * unknown and not detectable via IO ports.
->                  */
->                 policy->cur =3D acpi_cpufreq_guess_freq(data, policy->cpu=
-);
-> +               pr_info("CPU%u: Using I/O space for frequency scaling\n",=
- cpu);
-> +               pr_info("CPU%u: frequency scaling control address: %llu, =
-bit width: %u\n",
-> +                       cpu, perf->control_register.address,
-> +                       perf->control_register.bit_width);
->                 break;
->         case ACPI_ADR_SPACE_FIXED_HARDWARE:
->                 acpi_cpufreq_driver.get =3D get_cur_freq_on_cpu;
-> +               pr_info("CPU%u: Using FFH for frequency scaling\n", cpu);
->                 break;
->         default:
->                 break;
-> @@ -898,13 +903,14 @@ static int acpi_cpufreq_cpu_init(struct
->         /* notify BIOS that we exist */
->         acpi_processor_notify_smm(THIS_MODULE);
->
-> -       pr_debug("CPU%u - ACPI performance management activated.\n", cpu)=
-;
-> +       pr_info("CPU%u - ACPI performance management activated.\n", cpu);
->         for (i =3D 0; i < perf->state_count; i++)
-> -               pr_debug("     %cP%d: %d MHz, %d mW, %d uS\n",
-> +               pr_info("     %cP%d: %d MHz, %d mW, %d uS, %u\n",
->                         (i =3D=3D perf->state ? '*' : ' '), i,
->                         (u32) perf->states[i].core_frequency,
->                         (u32) perf->states[i].power,
-> -                       (u32) perf->states[i].transition_latency);
-> +                       (u32) perf->states[i].transition_latency,
-> +                       (u32) perf->states[i].control);
->
->         /*
->          * the first call to ->target() should result in us actually
-> --- a/drivers/cpufreq/cpufreq.c
-> +++ b/drivers/cpufreq/cpufreq.c
-> @@ -473,6 +473,7 @@ void cpufreq_enable_fast_switch(struct c
->         if (cpufreq_fast_switch_count >=3D 0) {
->                 cpufreq_fast_switch_count++;
->                 policy->fast_switch_enabled =3D true;
-> +               pr_info("CPU%u: Fast frequency switching enabled\n", poli=
-cy->cpu);
->         } else {
->                 pr_warn("CPU%u: Fast frequency switching not enabled\n",
->                         policy->cpu);
->
->
->
->
+I thus expected this initialization to be split between an early initialization of
+resource capabilities and then domain initialization as part of the CPU online/offline
+handlers.
+
+> +		domain->hdr.id = ctrl->cache.cache_id;
+> +
+> +		if (ctrl->cache.cache_level == 2) {
+> +			cbqri_res = &cbqri_resctrl_resources[RDT_RESOURCE_L2];
+> +			err = qos_init_cache_resource(ctrl, cbqri_res,
+> +						      RDT_RESOURCE_L2, "L2",
+> +						      RESCTRL_L2_CACHE);
+> +		} else if (ctrl->cache.cache_level == 3) {
+> +			cbqri_res = &cbqri_resctrl_resources[RDT_RESOURCE_L3];
+> +			err = qos_init_cache_resource(ctrl, cbqri_res,
+> +						      RDT_RESOURCE_L3, "L3",
+> +						      RESCTRL_L3_CACHE);
+> +		} else {
+> +			pr_err("unknown cache level %d\n", ctrl->cache.cache_level);
+> +			err = -ENODEV;
+> +		}
+> +		if (err)
+> +			goto err_free_domain;
+> +		res = &cbqri_res->resctrl_res;
+> +		break;
+> +
+> +	case CBQRI_CONTROLLER_TYPE_BANDWIDTH:
+> +		cpumask_copy(&domain->hdr.cpu_mask, &ctrl->mem.cpu_mask);
+> +		domain->hdr.id = ctrl->mem.prox_dom;
+> +		if (ctrl->alloc_capable) {
+> +			cbqri_res = &cbqri_resctrl_resources[RDT_RESOURCE_MBA];
+> +			err = qos_init_membw_resource(ctrl, cbqri_res);
+> +			if (err)
+> +				goto err_free_domain;
+> +			res = &cbqri_res->resctrl_res;
+> +		}
+> +		break;
+> +
+> +	default:
+> +		pr_err("unknown controller type %d\n", ctrl->type);
+> +		err = -ENODEV;
+> +		goto err_free_domain;
+> +	}
+> +
+> +	if (!res)
+> +		goto out;
+> +
+> +	err = qos_init_domain_ctrlval(res, domain);
+> +	if (err)
+> +		goto err_free_domain;
+> +
+> +	if (resctrl_find_domain(&res->ctrl_domains, domain->hdr.id, &pos)) {
+> +		pr_err("duplicate domain id %d for resource %s\n",
+> +		       domain->hdr.id, res->name);
+> +		err = -EEXIST;
+> +		goto err_free_domain;
+> +	}
+> +	if (pos)
+> +		list_add_tail(&domain->hdr.list, pos);
+> +	else
+> +		list_add_tail(&domain->hdr.list, &res->ctrl_domains);
+
+resctrl_find_domain() returns NULL if it cannot find an existing domain, in that
+case it initializes "pos" to support adding a new domain in a sorted list.
+Expectation is that domains are managed as part of CPU hotplug handlers. When
+a CPU comes online then handler can check if the domain it belongs to already exists,
+if it does then the CPU can just be added to that domain's cpu_mask, if it does
+not then a new domain is created and added in the the appropriate spot in the
+sorted list (based on domain ID) of domains. 
+
+
+> +
+> +	err = resctrl_online_ctrl_domain(res, domain);
+> +	if (err) {
+> +		pr_err("failed to online domain %d\n", domain->hdr.id);
+> +		list_del(&domain->hdr.list);
+> +		goto err_free_domain;
+> +	}
+> +
+> +out:
+> +	return 0;
+> +
+> +err_free_domain:
+> +	kfree(container_of(domain, struct cbqri_resctrl_dom, resctrl_ctrl_dom));
+> +	return err;
+> +}
+> +
+> +int qos_resctrl_setup(void)
+> +{
+> +	struct rdt_ctrl_domain *domain, *domain_temp;
+> +	struct cbqri_controller *ctrl;
+> +	struct cbqri_resctrl_res *res;
+> +	int err = 0;
+> +	int i = 0;
+> +
+> +	max_rmid = U32_MAX;
+> +
+> +	for (i = 0; i < RDT_NUM_RESOURCES; i++) {
+> +		res = &cbqri_resctrl_resources[i];
+> +		INIT_LIST_HEAD(&res->resctrl_res.ctrl_domains);
+> +		INIT_LIST_HEAD(&res->resctrl_res.mon_domains);
+> +		res->resctrl_res.rid = i;
+> +	}
+> +
+> +	list_for_each_entry(ctrl, &cbqri_controllers, list) {
+> +		err = cbqri_probe_controller(ctrl);
+> +		if (err) {
+> +			pr_err("%s(): failed (%d)\n", __func__, err);
+> +			goto err_free_controllers_list;
+> +		}
+> +
+> +		err = qos_resctrl_add_controller_domain(ctrl);
+> +		if (err) {
+> +			pr_err("%s(): failed to add controller domain (%d)\n", __func__, err);
+> +			goto err_free_controllers_list;
+> +		}
+> +
+> +		/*
+> +		 * CDP (code data prioritization) on x86 is similar to
+> +		 * the AT (access type) field in CBQRI. CDP only supports
+> +		 * caches so this must be a CBQRI capacity controller.
+> +		 */
+> +		if (ctrl->type == CBQRI_CONTROLLER_TYPE_CAPACITY &&
+> +		    ctrl->cc.supports_alloc_at_code) {
+> +			if (ctrl->cache.cache_level == 2)
+> +				exposed_cdp_l2_capable = true;
+> +			else
+> +				exposed_cdp_l3_capable = true;
+> +		}
+> +	}
+> +	pr_debug("alloc=%d cdp_l2=%d cdp_l3=%d\n",
+> +		 exposed_alloc_capable,
+> +		 exposed_cdp_l2_capable, exposed_cdp_l3_capable);
+> +
+> +	err = resctrl_init();
+> +	if (err)
+> +		goto err_free_controllers_list;
+> +
+> +	return 0;
+> +
+> +err_free_controllers_list:
+> +	for (i = 0; i < RDT_NUM_RESOURCES; i++) {
+> +		res = &cbqri_resctrl_resources[i];
+> +		list_for_each_entry_safe(domain, domain_temp, &res->resctrl_res.ctrl_domains,
+> +					 hdr.list) {
+> +			resctrl_offline_ctrl_domain(&res->resctrl_res, domain);
+> +			list_del(&domain->hdr.list);
+> +			kfree(container_of(domain, struct cbqri_resctrl_dom, resctrl_ctrl_dom));
+> +		}
+> +	}
+> +
+> +	list_for_each_entry(ctrl, &cbqri_controllers, list) {
+> +		if (!ctrl->base)
+> +			break;
+> +		iounmap(ctrl->base);
+> +		ctrl->base = NULL;
+> +		release_mem_region(ctrl->addr, ctrl->size);
+> +	}
+> +
+> +	return err;
+> +}
+> +
+> +int qos_resctrl_online_cpu(unsigned int cpu)
+> +{
+> +	resctrl_online_cpu(cpu);
+
+This is where a domain is expected to be added when its first CPU comes online.
+
+> +	return 0;
+> +}
+> +
+> +int qos_resctrl_offline_cpu(unsigned int cpu)
+> +{
+> +	resctrl_offline_cpu(cpu);
+
+This is where a domain is expected to be removed when its last CPU goes offline.
+
+> +	return 0;
+> +}
+> 
+
+Reinette
