@@ -1,236 +1,186 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C528A43634B;
-	Thu, 30 Apr 2026 14:57:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 345E42EA151;
+	Thu, 30 Apr 2026 15:36:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777561069; cv=none; b=Y0kZj57uVp5rNtrv6uphtUyLwAY+SwwvI25fkTysfjT3KHQxfQond/PywXKAdmz3PBf+IV+0qyR75jVnskGThkRm2gAhFZRhx5mr4xhNVV2RmX+77QnmsaW4iKt7Sp7k2VJLCa6dq9oK7CrmMDmE1dPdOuPKHX3+Zc0ETQiKmsE=
+	t=1777563361; cv=none; b=LkosrFUpHtrzqGQnOiV+7kw/8vTDNzebcXqb3srjZJDFsJKL0kuacDWS7UDLlkik5sDkbrISacv1jF0pEZ5rReKrp89YBv5bmWYXiJ5grHXV42n7pWODvyRnNPrFNuzWxH9BlBhrWYoIq2TkBtCttTu7MAH47c0LkXQa86nElRY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777561069; c=relaxed/simple;
-	bh=iGaKif43+SfAXhK26YEklwWGOVDrCInBN6cz7m/+dCs=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=H453j8pXZtmSd8oqHClqvE6oaxGSf1EbtX8/OUP8lgN+gDDKy22wqAKvJ9j3l3mKW/m2egfBmqxcMjXfsCJ6Yen7+1StcBIQeSxSiQThw1IAoRdH7g5J8DTl9JxX7hHRgGknwqV6PF4SX6P6PHp/P0hwXNzoBmuApHKMFakM0MA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BhkUMnmW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777563361; c=relaxed/simple;
+	bh=gzTlnjHw8z8mwv/xrWX3uCr8DWsCDpEaX9cnmlYIzL4=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type:Content-Disposition; b=n0mUb5mZkIKUZv2kZ9uElRLGuZjz7HfNzCecwIOgdVOTKOXa3/mtOVkHTg4CHlFyrkv8DNSFsUYN3VTsXKeC8l1YJlB8PZAlu0cXhOVqmqofgBxLAvHxEG/ODApcxb27AI70pVdt6/USw7DMR+Rzt/5nFyvpCuYpYUGlHPHrnzo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=rxVLEs6U; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BhkUMnmW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14AACC2BCB3;
-	Thu, 30 Apr 2026 14:57:47 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1777561069;
-	bh=iGaKif43+SfAXhK26YEklwWGOVDrCInBN6cz7m/+dCs=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=BhkUMnmWWep5wEPpbTwmnCuAU4b1GGaT6se0/f9E0IXon3efvLNbIXpjU+HgZNuZL
-	 NWQnAsd1Ik3KAsF6FYyGo6v2GjIMFIbXjbk/xLieqp2u3WNMDl4FpzVPzV0qK+PSgd
-	 kzcQK8c8LtOSsb0kfCxb5r8OBc7xYe4sGgnyI6xDvzVEnJ0303EjxqECXUCh174bR7
-	 tF3TzzVDJT78sB9tBUPoVW4ZVJ9a2l+FkhNKMu9NJdkatxeStRotq0sl4p4oFoRKH+
-	 ak7YbWzgGIDUBabyyZGtW7U3gbMWCAn+jftwvFWokAN/gbwh1XcQdCwwl+fKunBAA7
-	 rjV7xBPJfCC8w==
-Message-ID: <c3625be0-cafd-4b32-8225-30c75ca7eb72@kernel.org>
-Date: Thu, 30 Apr 2026 09:57:44 -0500
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="rxVLEs6U"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 3D4A332D1;
+	Thu, 30 Apr 2026 08:35:54 -0700 (PDT)
+Received: from devkitleo.cambridge.arm.com (devkitleo.cambridge.arm.com [10.1.196.90])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 212283F763;
+	Thu, 30 Apr 2026 08:35:54 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1777563359; bh=gzTlnjHw8z8mwv/xrWX3uCr8DWsCDpEaX9cnmlYIzL4=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=rxVLEs6Uu9YtFHgDKWpqFThQucat2oz2BVkAKJuDquKK56IPfzpBNZYTsMFNEbVp1
+	 pemTxhelUalIb7Qi82U6Rxdc/+UMhQAMRDNwKfIkadkFtpiJHVDXyWH9iIQJcPlhY+
+	 k6wBIDO5CwXuT6qTDMLK+lOqFVOyJml4tIhzFcX0=
+From: Leonardo Bras <leo.bras@arm.com>
+To: Marc Zyngier <maz@kernel.org>
+Cc: Leonardo Bras <leo.bras@arm.com>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>,
+	Oliver Upton <oupton@kernel.org>,
+	Joey Gouly <joey.gouly@arm.com>,
+	Suzuki K Poulose <suzuki.poulose@arm.com>,
+	Zenghui Yu <yuzenghui@huawei.com>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>,
+	Saket Dumbre <saket.dumbre@intel.com>,
+	Paolo Bonzini <pbonzini@redhat.com>,
+	Chengwen Feng <fengchengwen@huawei.com>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Kees Cook <kees@kernel.org>,
+	=?utf-8?Q?Miko=C5=82aj?= Lenczewski <miko.lenczewski@arm.com>,
+	Ryan Roberts <ryan.roberts@arm.com>,
+	Yang Shi <yang@os.amperecomputing.com>,
+	Thomas Huth <thuth@redhat.com>,
+	mrigendrachaubey <mrigendra.chaubey@gmail.com>,
+	Yeoreum Yun <yeoreum.yun@arm.com>,
+	Mark Brown <broonie@kernel.org>,
+	Kevin Brodsky <kevin.brodsky@arm.com>,
+	James Clark <james.clark@linaro.org>,
+	Ard Biesheuvel <ardb@kernel.org>,
+	Fuad Tabba <tabba@google.com>,
+	Raghavendra Rao Ananta <rananta@google.com>,
+	Nathan Chancellor <nathan@kernel.org>,
+	Vincent Donnefort <vdonnefort@google.com>,
+	Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	Sascha Bischoff <Sascha.Bischoff@arm.com>,
+	Anshuman Khandual <anshuman.khandual@arm.com>,
+	Tian Zheng <zhengtian10@huawei.com>,
+	Wei-Lin Chang <weilin.chang@arm.com>,
+	linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	kvmarm@lists.linux.dev,
+	linux-acpi@vger.kernel.org,
+	acpica-devel@lists.linux.dev,
+	kvm@vger.kernel.org
+Subject: Re: [PATCH v1 00/12] KVM Dirty-bit cleaning accelerator (HACDBS)
+Date: Thu, 30 Apr 2026 16:35:52 +0100
+Message-ID: <afN21w6J4Awg3gV3@devkitleo>
+X-Mailer: git-send-email 2.54.0
+In-Reply-To: <86a4ukzel3.wl-maz@kernel.org>
+References: <20260430111424.3479613-2-leo.bras@arm.com> <86bjf0zj2p.wl-maz@kernel.org> <afNZQKIiKmHPD5My@devkitleo> <86a4ukzel3.wl-maz@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 2/2] ACPI: CPPC: Add ospm_nominal_perf support
-To: Sumit Gupta <sumitg@nvidia.com>, rafael@kernel.org,
- viresh.kumar@linaro.org, lenb@kernel.org, pierre.gondois@arm.com,
- zhenglifeng1@huawei.com, zhanjie9@hisilicon.com, saket.dumbre@intel.com,
- linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-pm@vger.kernel.org, acpica-devel@lists.linux.dev
-Cc: treding@nvidia.com, jonathanh@nvidia.com, vsethi@nvidia.com,
- ksitaraman@nvidia.com, sanjayc@nvidia.com, bbasu@nvidia.com
-References: <20260430142430.755437-1-sumitg@nvidia.com>
- <20260430142430.755437-3-sumitg@nvidia.com>
-Content-Language: en-US
-From: Mario Limonciello <superm1@kernel.org>
-In-Reply-To: <20260430142430.755437-3-sumitg@nvidia.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 
+On Thu, Apr 30, 2026 at 03:51:20PM +0100, Marc Zyngier wrote:
+> On Thu, 30 Apr 2026 14:29:37 +0100,
+> Leonardo Bras <leo.bras@arm.com> wrote:
+> > 
+> > On Thu, Apr 30, 2026 at 02:14:22PM +0100, Marc Zyngier wrote:
+> > > On Thu, 30 Apr 2026 12:14:04 +0100,
+> > > Leonardo Bras <leo.bras@arm.com> wrote:
+> > > 
+> > > > d - In __kvm_arch_dirty_log_clear() there is no way to predict how long
+> > > >     should be the buffer, so I used 1x PAGE_SIZE, and when it gets full
+> > > >     it's cleaned and reused. Should I let users configure that over a
+> > > >     parameter, or is it overthinking?
+> > > 
+> > > How long is a piece of string? We can't know that. A single page feels
+> > > very small in the 4kB case, and letting userspace define the size of
+> > > that buffer seems a likely requirement.
+> > > 
+> > 
+> > Ok, as a KVM parameter, or as a compile-time option?
+> 
+> Noticed the "userspace" word in there? It *has* to be controlled by
+> userspace one way or another. So not as a kernel parameter, and
+> *never* as a compile option.
 
+Okay, I would suggest that a module parameter could be set by userspace, 
+but I remember now that it is usually built in the kernel instead. Also, it 
+could be bad having this set for the whole system, instead of per-VM.
 
-On 4/30/26 09:24, Sumit Gupta wrote:
-> Add acpi_cppc/ospm_nominal_perf sysfs attribute (read-write) and
-> cppc_set_ospm_nominal_perf() API for the OSPM Nominal Performance
-> register (ACPI 6.6, Section 8.4.6.1.2.6).
+How do you suggest letting userspace control that?
+(All I could think was using an ioctl / API of any sorts, which would 
+require changing the VMMs as well.)
+
 > 
-> The register conveys the desired nominal performance level at which
-> the platform may run. OSPM can request a lower level than platform
-> nominal. Valid range is [Lowest Performance, Nominal Performance].
-> The value tells the platform what OSPM considers nominal. The
-> platform classifies performance above this as boosted and below as
-> throttled. It uses that for its power/thermal decisions.
+> > > > Kernel v7.0.0 + this patchset builds properly, passing both kvm selftests
+> > > > for dirty-bit tracking[2], on HW HACDBS enabled or disabled.
+> > > 
+> > > I have absolutely no trust in these tests.
+> > > 
+> > > Have you enabled a VMM to make use of these APIs, and actively
+> > > migrated running guests? That's the level of testing I'd like to see,
+> > > as the selftests are not what people run in production...
+> > > 
+> > 
+> > There is no enablement needed on VMM side.
+> > Yes, I have created a VM on upstream qemu with --enable-kvm and migrated it 
+> > on the same host. (Inside a model)
+> > 
+> > That was the first test I used, but then I found out that kvm selftests 
+> > stress up multiple scenarios in an easier way.
 > 
-> Although the register is write-only per spec, cache the OSPM-written
-> value in cpc_desc so userspace can observe it via sysfs, and to
-> skip redundant writes.
+> Except when they don't. In my experience, the selftests are only there
+> to give the CI people the fuzzy feeling that they are doing something
+> useful.
+
+LOL
+
+> I have a collection of examples indicating that what these
+> things test is not representative of the bugs we have in KVM.
 > 
-> Initialize to platform nominal at policy init. Override via sysfs
-> if needed.
+
+Fair enough... it was tested in qemu live migration, and it works properly 
+(migrated from 2 instances of qemu in the same host, emulated by model).
+
+> > Do you prefer me to test on any specific scenario, or does whatever qemu
+> > uses as a default parameter work well enough?
 > 
-> Signed-off-by: Sumit Gupta <sumitg@nvidia.com>
-Reviewed-by: Mario Limonciello (AMD) <superm1@kernel.org>
-> ---
->   drivers/acpi/cppc_acpi.c       | 69 ++++++++++++++++++++++++++++++++++
->   drivers/cpufreq/cppc_cpufreq.c | 10 +++++
->   include/acpi/cppc_acpi.h       |  6 +++
->   3 files changed, 85 insertions(+)
+> I want to hear about testing at a scale that make sense for production
+> VMs, including live migrating between hosts while under memory
+> pressure (swapping out).
+
+I agree that's a more interesting test.
+
 > 
-> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-> index a1c91ce20cc8..fbc620adafad 100644
-> --- a/drivers/acpi/cppc_acpi.c
-> +++ b/drivers/acpi/cppc_acpi.c
-> @@ -155,6 +155,10 @@ static DEFINE_PER_CPU(struct cpc_desc *, cpc_desc_ptr);
->   static struct kobj_attribute _name =		\
->   __ATTR(_name, 0444, show_##_name, NULL)
->   
-> +#define define_one_cppc_rw(_name)		\
-> +static struct kobj_attribute _name =		\
-> +__ATTR(_name, 0644, show_##_name, store_##_name)
-> +
->   #define to_cpc_desc(a) container_of(a, struct cpc_desc, kobj)
->   
->   #define show_cppc_data(access_fn, struct_name, member_name)		\
-> @@ -211,6 +215,38 @@ static ssize_t show_feedback_ctrs(struct kobject *kobj,
->   }
->   define_one_cppc_ro(feedback_ctrs);
->   
-> +static ssize_t show_ospm_nominal_perf(struct kobject *kobj,
-> +				      struct kobj_attribute *attr, char *buf)
-> +{
-> +	struct cpc_desc *cpc_ptr = to_cpc_desc(kobj);
-> +	u64 val = READ_ONCE(cpc_ptr->ospm_nominal_perf);
-> +
-> +	if (!val)
-> +		return -ENODATA;
-> +
-> +	return sysfs_emit(buf, "%llu\n", val);
-> +}
-> +
-> +static ssize_t store_ospm_nominal_perf(struct kobject *kobj,
-> +				       struct kobj_attribute *attr,
-> +				       const char *buf, size_t count)
-> +{
-> +	struct cpc_desc *cpc_ptr = to_cpc_desc(kobj);
-> +	u64 val;
-> +	int ret;
-> +
-> +	ret = kstrtou64(buf, 0, &val);
-> +	if (ret)
-> +		return ret;
-> +
-> +	ret = cppc_set_ospm_nominal_perf(cpc_ptr->cpu_id, val);
-> +	if (ret)
-> +		return ret;
-> +
-> +	return count;
-> +}
-> +define_one_cppc_rw(ospm_nominal_perf);
-> +
->   static struct attribute *cppc_attrs[] = {
->   	&feedback_ctrs.attr,
->   	&reference_perf.attr,
-> @@ -222,6 +258,7 @@ static struct attribute *cppc_attrs[] = {
->   	&nominal_perf.attr,
->   	&nominal_freq.attr,
->   	&lowest_freq.attr,
-> +	&ospm_nominal_perf.attr,
->   	NULL
->   };
->   ATTRIBUTE_GROUPS(cppc);
-> @@ -1683,6 +1720,38 @@ int cppc_set_epp(int cpu, u64 epp_val)
->   }
->   EXPORT_SYMBOL_GPL(cppc_set_epp);
->   
-> +/**
-> + * cppc_set_ospm_nominal_perf() - Write OSPM Nominal Performance register.
-> + * @cpu: CPU on which to write register.
-> + * @ospm_nominal_perf: Value to write to the OSPM Nominal Performance register.
-> + *
-> + * OSPM Nominal Performance allows OSPM to inform the platform of the nominal
-> + * performance level it intends to maintain.
-> + *
-> + * Return: 0 for success, -EINVAL on invalid input, -EOPNOTSUPP if not
-> + * supported, -EIO otherwise.
-> + */
-> +int cppc_set_ospm_nominal_perf(int cpu, u64 ospm_nominal_perf)
-> +{
-> +	struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpu);
-> +	int ret;
-> +
-> +	if (!ospm_nominal_perf || ospm_nominal_perf > U32_MAX)
-> +		return -EINVAL;
-> +
-> +	if (cpc_desc &&
-> +	    READ_ONCE(cpc_desc->ospm_nominal_perf) == ospm_nominal_perf)
-> +		return 0;
-> +
-> +	ret = cppc_set_reg_val(cpu, OSPM_NOMINAL_PERF, ospm_nominal_perf);
-> +	if (ret)
-> +		return ret;
-> +
-> +	WRITE_ONCE(cpc_desc->ospm_nominal_perf, ospm_nominal_perf);
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(cppc_set_ospm_nominal_perf);
-> +
->   /**
->    * cppc_get_auto_act_window() - Read autonomous activity window register.
->    * @cpu: CPU from which to read register.
-> diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
-> index 7e7f9dfb7a24..d06cba963550 100644
-> --- a/drivers/cpufreq/cppc_cpufreq.c
-> +++ b/drivers/cpufreq/cppc_cpufreq.c
-> @@ -715,6 +715,16 @@ static int cppc_cpufreq_cpu_init(struct cpufreq_policy *policy)
->   		goto out;
->   	}
->   
-> +	/*
-> +	 * Initialize OSPM Nominal Performance to inform firmware of
-> +	 * OSPM's nominal level. Performance above this value = boost;
-> +	 * below = throttle. Uses platform nominal by default.
-> +	 */
-> +	ret = cppc_set_ospm_nominal_perf(cpu, caps->nominal_perf);
-> +	if (ret && ret != -EOPNOTSUPP)
-> +		pr_debug("Failed to set ospm_nominal_perf for CPU%d: %d\n",
-> +			 cpu, ret);
-> +
->   	cppc_cpufreq_cpu_fie_init(policy);
->   	return 0;
->   
-> diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
-> index 8693890a7275..3771e2ed507d 100644
-> --- a/include/acpi/cppc_acpi.h
-> +++ b/include/acpi/cppc_acpi.h
-> @@ -86,6 +86,7 @@ struct cpc_desc {
->   	struct cpc_register_resource cpc_regs[MAX_CPC_REG_ENT];
->   	struct acpi_psd_package domain_info;
->   	struct kobject kobj;
-> +	u32 ospm_nominal_perf;
->   };
->   
->   /* These are indexes into the per-cpu cpc_regs[]. Order is important. */
-> @@ -180,6 +181,7 @@ extern int cpc_write_ffh(int cpunum, struct cpc_reg *reg, u64 val);
->   extern int cppc_get_epp_perf(int cpunum, u64 *epp_perf);
->   extern int cppc_set_epp_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls, bool enable);
->   extern int cppc_set_epp(int cpu, u64 epp_val);
-> +extern int cppc_set_ospm_nominal_perf(int cpu, u64 ospm_nominal_perf);
->   extern int cppc_get_auto_act_window(int cpu, u64 *auto_act_window);
->   extern int cppc_set_auto_act_window(int cpu, u64 auto_act_window);
->   extern int cppc_get_auto_sel(int cpu, bool *enable);
-> @@ -266,6 +268,10 @@ static inline int cppc_set_epp(int cpu, u64 epp_val)
->   {
->   	return -EOPNOTSUPP;
->   }
-> +static inline int cppc_set_ospm_nominal_perf(int cpu, u64 ospm_nominal_perf)
-> +{
-> +	return -EOPNOTSUPP;
-> +}
->   static inline int cppc_get_auto_act_window(int cpu, u64 *auto_act_window)
->   {
->   	return -EOPNOTSUPP;
+> I'm also interested in efficiency: how much better is HACDBS compared
+> to the current page faulting? 
+
+The terms are indeed confusing, but HACDBS is just the cleaning accelerator 
+for dirty-bit. It means it will only affect how long it takes to transverse 
+the page table making pages in the array writable-dirty -> writable-clean.
+
+That being said, it regards to efficiency:
+Well, as I only have the model to test that, I am limmited to those 
+results, which may not reflect reality.
+
+As an example, on dirty_log_perf_test, the cleaning process took much 
+longer (8x) compared to software cleaning, even when faced with no error, 
+and entries that fit the array (4k page above). If it took that long even 
+in this ideal scenario, it means the HACDBS mechanism implemented in the 
+model takes much longer than software, which is counter-intuitive.
+
+> Just having patches for a feature is not
+> enough to decide adoption of that feature. Show me the benefits in a
+> quantitative way (within the limits of the model, of course).
+
+Sure, I will try measuring migration between 2 instances of the model, and 
+see how qemu live migration time is affected, then post the results in this 
+thread for us to compare.
+
+Thanks!
+Leo
 
