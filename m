@@ -1,149 +1,142 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0AF024279F8;
-	Thu, 30 Apr 2026 14:42:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02B2F34E746;
+	Thu, 30 Apr 2026 14:51:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777560135; cv=none; b=g6fBQ7qxQllBbotuI1tKMgFRxR4uAfYwFEUe352mIOA8lmxL7IVjKSD/NKADLOVwhBnFysdLkaeTz3twT6c++ocigh3hkys9edePCsqraZHT9QI0YHbMJ/2SmO6528ftu+wiWzYbam8TRzMY3IaNu/MPQAhJ91kIIgVb7HOV+8I=
+	t=1777560684; cv=none; b=mWPkIqNhX/sIEnCiKXf07QyryHannEWL38iRjq1mYxSHSZxPHbjmgCMbpCKQMWJtxdhgg96MitwGiSuOMjN5yvpuq9swIFzescUpIQiWB1EIgvBQ7mNOwoBlJcEfJNmQf7q91nBWoh2FEB/9iZndbl8WiIV41b+mBFxSrYOxpKY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777560135; c=relaxed/simple;
-	bh=iVMt6GfKbVRnrE1e85Lw0uA8Sc/dpXog7Tdk/VLb3KU=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=t0/udoZeq0kSfZUk4lvYpHTxAwXeUptyErJZXTP8H0lqNM9tP0+h7kaFevz7B4v+hmozNTCBHB9yMnhH7KUhN7yc2Crn7KwK/Oe0DaDXKK2LC9KndGqtYt2NdUnuHScSTJdaNAOErDd/0lyFfCVDeu2PtGfkhY773RTdcXw9xg8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TVYPozic; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777560684; c=relaxed/simple;
+	bh=F04flt0u0jeUiSYW5q5UKAs4vTOREkSTch+Sz1CLuk0=;
+	h=Date:Message-ID:From:To:Cc:Subject:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=cOLVBvjyYoS9AqfmgMd1nRA47nDj2nww9IT1oINTNObpQKSXrau7DzTmhvaeOxS11JUNoAxBfhDUtr4kMJYDAT0tl4HUqUYRaP+nAzKF3/uITWVu0GUMqgcK7Kn8BhaT+8HZX3/N97wbTw4meIt5RlZfhhRmoXXn6FK08jf4KYk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=N06B4eCq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TVYPozic"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CA1EC2BCB3;
-	Thu, 30 Apr 2026 14:42:11 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="N06B4eCq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B9C2C2BCB3;
+	Thu, 30 Apr 2026 14:51:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1777560134;
-	bh=iVMt6GfKbVRnrE1e85Lw0uA8Sc/dpXog7Tdk/VLb3KU=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=TVYPozicjCLC8Lb4M7/JBJNPIN159RBTJXKJLw3yEyeNJukETOG17v6BqQtSHlkIy
-	 XABHy+nXiz4mYy/8yzjYdw07pVnabYGy3hQju5wdcjTj9vZwU7Js+pj4wr8FL5JVQ/
-	 Ct6HDvqhmlVB0rDzjLjCKzFRikmN36BPjVtU2XG8pxEeSTnZhx3PtTbTiOanFLQoy/
-	 0WLTne9+Q3VTkHktS+viz7bxgbv8QUwnqmIUNrqV9z8kLXrz7ZlUQOblxr61SaXZNY
-	 yJ75Am43eWuebhKoRXdvSM1OY/Dd+TFtXbBPg8khngiRg6TfngiWAHxW6muyyLALEb
-	 oSkiJv0GxUneg==
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-To: Evgeny Sagatov <evgeny.sagatov@gmail.com>
-Cc: Linux regressions mailing list <regressions@lists.linux.dev>,
- ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
- Thorsten Leemhuis <regressions@leemhuis.info>,
- LKML <linux-kernel@vger.kernel.org>,
- Wysocki Rafael J <rafael.j.wysocki@intel.com>,
- Vincent Guittot <vincent.guittot@linaro.org>,
- Linux PM <linux-pm@vger.kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>
-Subject:
- Re: Pressing the power button causes the device to freeze completely
- (schedutil involved)
-Date: Thu, 30 Apr 2026 16:42:09 +0200
-Message-ID: <12909238.O9o76ZdvQC@rafael.j.wysocki>
-Organization: Linux Kernel Development
-In-Reply-To:
- <CAJZ5v0ixuF=AQf0_VcPH=4jo5X-HbEB3WvJAnk8_fZes+bjyLg@mail.gmail.com>
-References:
- <12879883.O9o76ZdvQC@rafael.j.wysocki>
- <CAGAxtY3h4sEphqKL-jiSn4p0NT9mdZtOFrVxW7CDo22XdL56iw@mail.gmail.com>
- <CAJZ5v0ixuF=AQf0_VcPH=4jo5X-HbEB3WvJAnk8_fZes+bjyLg@mail.gmail.com>
+	s=k20201202; t=1777560683;
+	bh=F04flt0u0jeUiSYW5q5UKAs4vTOREkSTch+Sz1CLuk0=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=N06B4eCqsyK+pw6ROnfRJmBqvv47hgUyYU3hv0SxLfsuzCH4fxYZ1wmQDZ2ruXsdR
+	 oIR/l0FOsZGg2ty2hV1U1a/W9uHxkOvVDSUqRjzq0hnYQpZtGBgqwztoqou2pEC9MS
+	 y5WH0yO2QeyMqV05hlQNRaVYjji8gjkBXXSYtvI6/aIDb3Gyg7ozE8KP4Ly47lET7a
+	 dlqPSNSIsPgTtBYzFCCq/5iK9YQiENFB6sL+kThbsctiHB4bwmsN1cnJ/7Mq0kyXJC
+	 osnc32UOYzmWEvlvu7atHCyDaLBNpJ0PAvkNumGB/wBlm8sC5HRdQPqYZZ6oJpGvDu
+	 TCkuI5i9o4vsw==
+Received: from sofa.misterjones.org ([185.219.108.64] helo=goblin-girl.misterjones.org)
+	by disco-boy.misterjones.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.98.2)
+	(envelope-from <maz@kernel.org>)
+	id 1wISjY-0000000GIer-3eg7;
+	Thu, 30 Apr 2026 14:51:20 +0000
+Date: Thu, 30 Apr 2026 15:51:20 +0100
+Message-ID: <86a4ukzel3.wl-maz@kernel.org>
+From: Marc Zyngier <maz@kernel.org>
+To: Leonardo Bras <leo.bras@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>,	Will Deacon
+ <will@kernel.org>,	Oliver Upton <oupton@kernel.org>,	Joey Gouly
+ <joey.gouly@arm.com>,	Suzuki K Poulose <suzuki.poulose@arm.com>,	Zenghui Yu
+ <yuzenghui@huawei.com>,	"Rafael J. Wysocki" <rafael@kernel.org>,	Len Brown
+ <lenb@kernel.org>,	Saket Dumbre <saket.dumbre@intel.com>,	Paolo Bonzini
+ <pbonzini@redhat.com>,	Chengwen Feng <fengchengwen@huawei.com>,	Jonathan
+ Cameron <jic23@kernel.org>,	Kees Cook <kees@kernel.org>,	=?UTF-8?B?TWlr?=
+ =?UTF-8?B?b8WCYWo=?= Lenczewski <miko.lenczewski@arm.com>,	Ryan Roberts
+ <ryan.roberts@arm.com>,	Yang Shi <yang@os.amperecomputing.com>,	Thomas Huth
+ <thuth@redhat.com>,	mrigendrachaubey <mrigendra.chaubey@gmail.com>,
+	Yeoreum Yun <yeoreum.yun@arm.com>,	Mark Brown <broonie@kernel.org>,	Kevin
+ Brodsky <kevin.brodsky@arm.com>,	James Clark <james.clark@linaro.org>,	Ard
+ Biesheuvel <ardb@kernel.org>,	Fuad Tabba <tabba@google.com>,	Raghavendra
+ Rao Ananta <rananta@google.com>,	Nathan Chancellor <nathan@kernel.org>,
+	Vincent Donnefort <vdonnefort@google.com>,	Lorenzo Pieralisi
+ <lpieralisi@kernel.org>,	Sascha Bischoff <Sascha.Bischoff@arm.com>,
+	Anshuman Khandual <anshuman.khandual@arm.com>,	Tian Zheng
+ <zhengtian10@huawei.com>,	Wei-Lin Chang <weilin.chang@arm.com>,
+	linux-kernel@vger.kernel.org,	linux-arm-kernel@lists.infradead.org,
+	kvmarm@lists.linux.dev,	linux-acpi@vger.kernel.org,
+	acpica-devel@lists.linux.dev,	kvm@vger.kernel.org
+Subject: Re: [PATCH v1 00/12] KVM Dirty-bit cleaning accelerator (HACDBS)
+In-Reply-To: <afNZQKIiKmHPD5My@devkitleo>
+References: <20260430111424.3479613-2-leo.bras@arm.com>
+	<86bjf0zj2p.wl-maz@kernel.org>
+	<afNZQKIiKmHPD5My@devkitleo>
+User-Agent: Wanderlust/2.15.9 (Almost Unreal) SEMI-EPG/1.14.7 (Harue)
+ FLIM-LB/1.14.9 (=?UTF-8?B?R29qxY0=?=) APEL-LB/10.8 EasyPG/1.0.0 Emacs/30.1
+ (aarch64-unknown-linux-gnu) MULE/6.0 (HANACHIRUSATO)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="UTF-8"
+MIME-Version: 1.0 (generated by SEMI-EPG 1.14.7 - "Harue")
+Content-Type: text/plain; charset=US-ASCII
+X-SA-Exim-Connect-IP: 185.219.108.64
+X-SA-Exim-Rcpt-To: leo.bras@arm.com, catalin.marinas@arm.com, will@kernel.org, oupton@kernel.org, joey.gouly@arm.com, suzuki.poulose@arm.com, yuzenghui@huawei.com, rafael@kernel.org, lenb@kernel.org, saket.dumbre@intel.com, pbonzini@redhat.com, fengchengwen@huawei.com, jic23@kernel.org, kees@kernel.org, miko.lenczewski@arm.com, ryan.roberts@arm.com, yang@os.amperecomputing.com, thuth@redhat.com, mrigendra.chaubey@gmail.com, yeoreum.yun@arm.com, broonie@kernel.org, kevin.brodsky@arm.com, james.clark@linaro.org, ardb@kernel.org, tabba@google.com, rananta@google.com, nathan@kernel.org, vdonnefort@google.com, lpieralisi@kernel.org, Sascha.Bischoff@arm.com, anshuman.khandual@arm.com, zhengtian10@huawei.com, weilin.chang@arm.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.linux.dev, linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev, kvm@vger.kernel.org
+X-SA-Exim-Mail-From: maz@kernel.org
+X-SA-Exim-Scanned: No (on disco-boy.misterjones.org); SAEximRunCond expanded to false
 
-On Thursday, April 30, 2026 3:57:41 PM CEST Rafael J. Wysocki wrote:
-> On Thu, Apr 30, 2026 at 1:41=E2=80=AFPM Evgeny Sagatov <evgeny.sagatov@gm=
-ail.com> wrote:
-> >
-> > I noticed that for powersave mode, I'm getting the following values:
->=20
-> I guess you mean with the powersave governor.
->=20
-> > cat /proc/cpuinfo | grep MHz
-> > cpu MHz         : 2798.689
-> > cpu MHz         : 1999.659
-> > cpu MHz         : 1999.797
-> > cpu MHz         : 2741.103
-> > Also, there's now no difference in the single-core benchmark between
-> > schedutil, ondemand, powersave and performance modes. The benchmark
-> > always gives a very high result.
-> > This wasn't the case before; the modes had different performance levels.
->=20
-> I would expect schedutil, ondemand and performance to give similar
-> scores, but for powersave I would expect the score to be lower.
->=20
-> With the same patch applied, can you please switch over to powersave,
-> reset the stats and then capture the output of
->=20
-> grep -r . /sys/devices/system/cpu/cpufreq/
->=20
-> Also, I'd still like to see the output of
->=20
-> grep . /sys/firmware/acpi/interrupts/sci*
+On Thu, 30 Apr 2026 14:29:37 +0100,
+Leonardo Bras <leo.bras@arm.com> wrote:
+> 
+> On Thu, Apr 30, 2026 at 02:14:22PM +0100, Marc Zyngier wrote:
+> > On Thu, 30 Apr 2026 12:14:04 +0100,
+> > Leonardo Bras <leo.bras@arm.com> wrote:
+> > 
+> > > d - In __kvm_arch_dirty_log_clear() there is no way to predict how long
+> > >     should be the buffer, so I used 1x PAGE_SIZE, and when it gets full
+> > >     it's cleaned and reused. Should I let users configure that over a
+> > >     parameter, or is it overthinking?
+> > 
+> > How long is a piece of string? We can't know that. A single page feels
+> > very small in the 4kB case, and letting userspace define the size of
+> > that buffer seems a likely requirement.
+> > 
+> 
+> Ok, as a KVM parameter, or as a compile-time option?
 
-Additionally, please remove all of the debug patches sent so far, apply
-the one below and send a dmesg boot log.
+Noticed the "userspace" word in there? It *has* to be controlled by
+userspace one way or another. So not as a kernel parameter, and
+*never* as a compile option.
 
-I want to check if all of the CPUs use the same control values when
-they write to the frequency scaling control register.
+> > > Kernel v7.0.0 + this patchset builds properly, passing both kvm selftests
+> > > for dirty-bit tracking[2], on HW HACDBS enabled or disabled.
+> > 
+> > I have absolutely no trust in these tests.
+> > 
+> > Have you enabled a VMM to make use of these APIs, and actively
+> > migrated running guests? That's the level of testing I'd like to see,
+> > as the selftests are not what people run in production...
+> > 
+> 
+> There is no enablement needed on VMM side.
+> Yes, I have created a VM on upstream qemu with --enable-kvm and migrated it 
+> on the same host. (Inside a model)
+> 
+> That was the first test I used, but then I found out that kvm selftests 
+> stress up multiple scenarios in an easier way.
 
-=2D--
- drivers/cpufreq/acpi-cpufreq.c |   12 +++++++++---
- drivers/cpufreq/cpufreq.c      |    1 +
- 2 files changed, 10 insertions(+), 3 deletions(-)
+Except when they don't. In my experience, the selftests are only there
+to give the CI people the fuzzy feeling that they are doing something
+useful. I have a collection of examples indicating that what these
+things test is not representative of the bugs we have in KVM.
 
-=2D-- a/drivers/cpufreq/acpi-cpufreq.c
-+++ b/drivers/cpufreq/acpi-cpufreq.c
-@@ -887,9 +887,14 @@ static int acpi_cpufreq_cpu_init(struct
- 		 * unknown and not detectable via IO ports.
- 		 */
- 		policy->cur =3D acpi_cpufreq_guess_freq(data, policy->cpu);
-+		pr_info("CPU%u: Using I/O space for frequency scaling\n", cpu);
-+		pr_info("CPU%u: frequency scaling control address: %llu, bit width: %u\n=
-",
-+			cpu, perf->control_register.address,
-+			perf->control_register.bit_width);
- 		break;
- 	case ACPI_ADR_SPACE_FIXED_HARDWARE:
- 		acpi_cpufreq_driver.get =3D get_cur_freq_on_cpu;
-+		pr_info("CPU%u: Using FFH for frequency scaling\n", cpu);
- 		break;
- 	default:
- 		break;
-@@ -898,13 +903,14 @@ static int acpi_cpufreq_cpu_init(struct
- 	/* notify BIOS that we exist */
- 	acpi_processor_notify_smm(THIS_MODULE);
-=20
-=2D	pr_debug("CPU%u - ACPI performance management activated.\n", cpu);
-+	pr_info("CPU%u - ACPI performance management activated.\n", cpu);
- 	for (i =3D 0; i < perf->state_count; i++)
-=2D		pr_debug("     %cP%d: %d MHz, %d mW, %d uS\n",
-+		pr_info("     %cP%d: %d MHz, %d mW, %d uS, %u\n",
- 			(i =3D=3D perf->state ? '*' : ' '), i,
- 			(u32) perf->states[i].core_frequency,
- 			(u32) perf->states[i].power,
-=2D			(u32) perf->states[i].transition_latency);
-+			(u32) perf->states[i].transition_latency,
-+			(u32) perf->states[i].control);
-=20
- 	/*
- 	 * the first call to ->target() should result in us actually
-=2D-- a/drivers/cpufreq/cpufreq.c
-+++ b/drivers/cpufreq/cpufreq.c
-@@ -473,6 +473,7 @@ void cpufreq_enable_fast_switch(struct c
- 	if (cpufreq_fast_switch_count >=3D 0) {
- 		cpufreq_fast_switch_count++;
- 		policy->fast_switch_enabled =3D true;
-+		pr_info("CPU%u: Fast frequency switching enabled\n", policy->cpu);
- 	} else {
- 		pr_warn("CPU%u: Fast frequency switching not enabled\n",
- 			policy->cpu);
+> Do you prefer me to test on any specific scenario, or does whatever qemu
+> uses as a default parameter work well enough?
 
+I want to hear about testing at a scale that make sense for production
+VMs, including live migrating between hosts while under memory
+pressure (swapping out).
 
+I'm also interested in efficiency: how much better is HACDBS compared
+to the current page faulting? Just having patches for a feature is not
+enough to decide adoption of that feature. Show me the benefits in a
+quantitative way (within the limits of the model, of course).
 
+Thanks,
 
+	M.
+
+-- 
+Without deviation from the norm, progress is not possible.
