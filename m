@@ -1,147 +1,105 @@
 Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0AA0C40DFB4;
-	Thu, 30 Apr 2026 06:23:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C210736828D;
+	Thu, 30 Apr 2026 06:40:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.19
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777530214; cv=none; b=P2U9vgYRE7N/i8a07nUZFbs4Uis5CSpE7OdSbKqyRRXP38wDgDE+AynqeKxi20h4HoJWqTx8OaR2OlzXqxxEiEmsBMseJCVRr3d/mxPcECx97xc0pzJZHQuiYAZtrYQlW+M+BEA3P/8sSIwfv0DpLHPYJn/0UNIPn89ySci8pnE=
+	t=1777531236; cv=none; b=BHziiWGNdORvWay908Y11zSb5YerOCUvmjA7+7D9DNarMkZCt4bb3320gucu7FuFckDeYl1P1vuy15wnZUs4uWdzNV2tfVsHNJFSb8d5f/4IOhizVSKNsf3b3T3/eaKrgD8rM4acmYYUIBppPXjwse+7QxNoL7eGLw68B0mwDeg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777530214; c=relaxed/simple;
-	bh=6L61oZr/77k8SEoKbWVbmQqUG3Y58FL1/cqxvgoHbDw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=TBVv3Dhcr5uQZjurCqKXzmfCoCMyEkBfRw60KkNNA16OrpiOvr8kxYsQwZeYnSMdjB18zelXUtzDgYyzUfK/sjXr1k7TYEsoPrrgm9b2GO4Botn5hWuSbGbmM8xD3slzwh3wE/xWB8gmrQ1lGT21kzLsZ4U9sFpoPdCfnzMUSwM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Guhv5UDY; arc=none smtp.client-ip=198.175.65.19
+	s=arc-20240116; t=1777531236; c=relaxed/simple;
+	bh=jq68uOfCLs7ckLRy7sytlzyCQJwRudpkMsuWOiXICiE=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=hKBGRX/zAxpPulEy+1fdVp5rqAEEKByZ31swMtKuJmhaTUkHxiVTRTyPJIx1DZ/Ffqcygk+hjIFm5GeAq3u0J8UMowEXmsgGJKzRu0hEr4a7x8eVIETnE68wbhGvZcKlBThjc+9AkJsNdaLIqGz5w0AzqTo56JQI6xd6nD5Hi2k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=E14tA/Dh; arc=none smtp.client-ip=198.175.65.19
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Guhv5UDY"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="E14tA/Dh"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1777530212; x=1809066212;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=6L61oZr/77k8SEoKbWVbmQqUG3Y58FL1/cqxvgoHbDw=;
-  b=Guhv5UDYb/zDg7+LCI1CCMGtHKSi4w28cT70SR2XMSMeZJSLu/mEedUQ
-   8iJa1XiblC65eiF2h+VlMCGxEMir3jbo5+ngS9XlQlWEHIO9J+xsKNK2F
-   oSjT+7NwDGGjK7h3VTWu3fRko1DyHdpOskkDaWwhtVoBnve7JIsmva4qv
-   aNkZ0Km3YnaLgx7qmnS+AHEoEqDiCZ8/wYRBUXre68o4ypcDtQ/kc3C6/
-   g3ASumrZt9qauvR80z3/hkgjofGx7pCHZ/3dIblmO6jNeQZ7XonhvqoPW
-   H6ag3SN6Bl+cLXD1MFT/yBWeT+L/KhXQY1f8pYLTXnt/S2VrwrEmrgdy6
+  t=1777531235; x=1809067235;
+  h=date:from:to:cc:subject:message-id;
+  bh=jq68uOfCLs7ckLRy7sytlzyCQJwRudpkMsuWOiXICiE=;
+  b=E14tA/DhndlapU1ZTKcgtN3MOoPnYbwQtm2LX8EPjTVtJ7LGfwNwOize
+   wMmKyW6AOix4VbYp+mMnn4w7Pb6f8QGWb7MzzdpcthGRSsQ9nyC6wF6LV
+   yVhDnr0VWXyIkBpfbyZtuSq8LSJVlt4/VRsc2vBTrA3aY6WKi23fhGyKB
+   McDFcp31t/rpcvlHnRmGhsQ+YKkitEsoF+p8FWGE9ns6NvGWQMD1qVsX1
+   rj8y6rrT/YlVMjux6YkcryApmcwH+cssCIE1igXEwtdVYrQswxJibaFOD
+   RIOLr86n1wB4EPXNqbGCcUBIFTltsAcalQiFTfxUgmD/O9PEIs/bKIEpZ
    Q==;
-X-CSE-ConnectionGUID: b6z+0azjQmmFuVNkEaRzDQ==
-X-CSE-MsgGUID: uZv9vaesTdyWpCnKemecLg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11771"; a="78392023"
+X-CSE-ConnectionGUID: +EpNYQnaTWO7fADd7Rew2Q==
+X-CSE-MsgGUID: Y6MPVB+/Ss2TDHZJNMgoxg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11771"; a="78394356"
 X-IronPort-AV: E=Sophos;i="6.23,207,1770624000"; 
-   d="scan'208";a="78392023"
+   d="scan'208";a="78394356"
 Received: from fmviesa001.fm.intel.com ([10.60.135.141])
-  by orvoesa111.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Apr 2026 23:23:32 -0700
-X-CSE-ConnectionGUID: T9nKqYqBRaifRppe4BqNKw==
-X-CSE-MsgGUID: jFbm2h45TJK/bPWfKDc+Ag==
+  by orvoesa111.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Apr 2026 23:40:35 -0700
+X-CSE-ConnectionGUID: Bl2i/imCTWiBmkZ2o+vqJw==
+X-CSE-MsgGUID: ZDZZwQHeRrCa1lkCFxDVjw==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.23,207,1770624000"; 
-   d="scan'208";a="258073179"
-Received: from zzombora-mobl1 (HELO localhost) ([10.245.244.42])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Apr 2026 23:23:29 -0700
-Date: Thu, 30 Apr 2026 09:23:27 +0300
-From: Andy Shevchenko <andriy.shevchenko@intel.com>
-To: Maxwell Doose <m32285159@gmail.com>
-Cc: rafael@kernel.org, lenb@kernel.org, Andy Shevchenko <andy@kernel.org>,
-	Mika Westerberg <westeri@kernel.org>,
-	"open list:ACPI PMIC DRIVERS" <linux-acpi@vger.kernel.org>,
-	open list <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v5] ACPI: pmic: Replace mutex_lock/unlock() with
- guard()/scoped_guard()
-Message-ID: <afL1X3ywCwJRIz1Z@ashevche-desk.local>
-References: <20260430013507.46259-1-m32285159@gmail.com>
+   d="scan'208";a="258075604"
+Received: from igk-lkp-server01.igk.intel.com (HELO bdf09bfdbd5f) ([10.211.93.152])
+  by fmviesa001.fm.intel.com with ESMTP; 29 Apr 2026 23:40:32 -0700
+Received: from kbuild by bdf09bfdbd5f with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1wIL4Y-000000004lH-3WK9;
+	Thu, 30 Apr 2026 06:40:30 +0000
+Date: Thu, 30 Apr 2026 08:40:04 +0200
+From: kernel test robot <lkp@intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: oe-kbuild-all@lists.linux.dev, linux-acpi@vger.kernel.org,
+ linux-pm@vger.kernel.org, linux-doc@vger.kernel.org
+Subject: [rafael-pm:bleeding-edge 14/30] htmldocs:
+ Documentation/driver-api/acpi/index.rst:5: WARNING: toctree contains
+ reference to nonexisting document 'driver-api/acpi/acpi-drivers'
+ [toc.not_readable]
+Message-ID: <202604300815.6rqygFFB-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260430013507.46259-1-m32285159@gmail.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On Wed, Apr 29, 2026 at 08:35:06PM -0500, Maxwell Doose wrote:
-> Replace mutex_lock() and unlock() macros with the newer guard() and
-> scoped_guard() macros. This will help modernize and clean the code.
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
+head:   c776b06fa37fc4193b29821f1ac2871c02ae97b4
+commit: 54ce12887d4a1d605f6a9b4736d07564ed07b529 [14/30] ACPI: Documentation: Remove driver-api/acpi/acpi-drivers.rst
+compiler: clang version 20.1.8 (https://github.com/llvm/llvm-project 87f0227cb60147a26a1eeb4fb06e3b505e9c7261)
+docutils: docutils (Docutils 0.21.2, Python 3.13.5, on linux)
+reproduce: (https://download.01.org/0day-ci/archive/20260430/202604300815.6rqygFFB-lkp@intel.com/reproduce)
 
-...
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202604300815.6rqygFFB-lkp@intel.com/
 
-> -	mutex_lock(&opregion->lock);
-> -
-> -	if (pmic_thermal_is_temp(address))
-> -		result = pmic_thermal_temp(opregion, reg, function, value64);
-> -	else if (pmic_thermal_is_aux(address))
-> -		result = pmic_thermal_aux(opregion, reg, function, value64);
-> -	else if (pmic_thermal_is_pen(address))
-> -		result = pmic_thermal_pen(opregion, reg, bit,
-> -						function, value64);
-> -	else
-> -		result = -EINVAL;
-> -
-> -	mutex_unlock(&opregion->lock);
-> +	scoped_guard(mutex, &opregion->lock) {
-> +		if (pmic_thermal_is_temp(address))
-> +			result = pmic_thermal_temp(opregion, reg, function, value64);
-> +		else if (pmic_thermal_is_aux(address))
-> +			result = pmic_thermal_aux(opregion, reg, function, value64);
-> +		else if (pmic_thermal_is_pen(address))
-> +			result = pmic_thermal_pen(opregion, reg, bit, function, value64);
-> +		else
-> +			result = -EINVAL;
-> +	}
+All warnings (new ones prefixed by >>):
 
->  
+   int kref_put_mutex (struct kref *kref, void (*release)(struct kref *kref), struct mutex *mutex) __cond_acquires(true# mutex)
+   ------------------------------------------------------------------------------------------------^
+   Documentation/core-api/kref:328: ./include/linux/kref.h:94: WARNING: Invalid C declaration: Expected end of definition. [error at 92]
+   int kref_put_lock (struct kref *kref, void (*release)(struct kref *kref), spinlock_t *lock) __cond_acquires(true# lock)
+   --------------------------------------------------------------------------------------------^
+>> Documentation/driver-api/acpi/index.rst:5: WARNING: toctree contains reference to nonexisting document 'driver-api/acpi/acpi-drivers' [toc.not_readable]
+   Documentation/driver-api/basics:42: ./kernel/time/time.c:370: WARNING: Duplicate C declaration, also defined at driver-api/basics:436.
+   Declaration is '.. c:function:: unsigned int jiffies_to_msecs (const unsigned long j)'. [duplicate_declaration.c]
+   Documentation/driver-api/basics:42: ./kernel/time/time.c:393: WARNING: Duplicate C declaration, also defined at driver-api/basics:453.
+   Declaration is '.. c:function:: unsigned int jiffies_to_usecs (const unsigned long j)'. [duplicate_declaration.c]
+   Documentation/driver-api/target:25: ./drivers/target/target_core_user.c:35: ERROR: Unexpected section title.
 
-This blank line is not needed as previous is coupled with this check.
-This is a minor thing, but what takes my attention is the result assignment for
-last else. While this is correct code it might provoke false positive warnings
-from the compiler(s) that can not properly parse scoped_guard() and proof that
-result is always assigned (the warning is something like "uninitialised variable
-in use"). Let's wait for CIs to be sure we do not enter a such. Otherwise, this
-will need a refactoring like
 
-	result = -EINVAL;
-	scoped_guard(...) {
-		...
-	}
+vim +5 Documentation/driver-api/acpi/index.rst
 
->  	if (result < 0) {
->  		if (result == -EINVAL)
+680e6ffa15103a Changbin Du 2019-04-25  4  
+680e6ffa15103a Changbin Du 2019-04-25 @5  .. toctree::
 
-...
+:::::: The code at line 5 was first introduced by commit
+:::::: 680e6ffa15103ab610c0fc1241d2f98c801b13e2 Documentation: add Linux ACPI to Sphinx TOC tree
 
->  	if (d->exec_mipi_pmic_seq_element) {
-> -		ret = d->exec_mipi_pmic_seq_element(intel_pmic_opregion->regmap,
-> +		return d->exec_mipi_pmic_seq_element(intel_pmic_opregion->regmap,
->  						    i2c_address, reg_address,
->  						    value, mask);
-> -	} else if (d->pmic_i2c_address) {
-> +	}
-> +
-> +	if (d->pmic_i2c_address) {
->  		if (i2c_address == d->pmic_i2c_address) {
-
-Maybe we should not touch this either and actually have clean guard()() patch +
-refactoring returns, dunno... My whole concern here is that this code is not as
-simple as IIO switch-cases when we replace break:s with return:s mostly
-automatically without breaking readability of anything. Here is different case
-and mixing guard()() with return:s refactoring makes it harder to review and
-understand. Also if any regression happens, will be harder to maintain.
-
-...
-
-I don't want you to waste more time on experimenting, I think we better
-wait for CIs and Rafael, if they all are okay with the change, that will
-work for me.
+:::::: TO: Changbin Du <changbin.du@gmail.com>
+:::::: CC: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
 -- 
-With Best Regards,
-Andy Shevchenko
-
-
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
