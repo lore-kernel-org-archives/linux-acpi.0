@@ -1,106 +1,221 @@
-Received: from canpmsgout04.his.huawei.com (canpmsgout04.his.huawei.com [113.46.200.219])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50D2C3A5E81;
-	Thu, 30 Apr 2026 10:00:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.219
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 265223DCD94
+	for <linux-acpi@vger.kernel.org>; Thu, 30 Apr 2026 10:03:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777543251; cv=none; b=mTgrT9/6gneJaPsAFc/tC8GybafnG+KplcRZo07UdEiTY8igIuYRYRLyDNEBienP63ZUUyF8ueVe3Bq7ppf+YEsad0S6+qnyiR9jlERYAWCksUl1JYtPslPMFHVcK3xwEYqMCDWshHY2IXgMmJHNsMimRLEl0w982QRyd8I5n2w=
+	t=1777543425; cv=none; b=I/bJa6XJ6TIXanwD6ipatXpWlRxLdHUwPtoSVg+lI5X3vbEMmWEXt3vu7nzAMH7qc+76IZHkNa0qq9dbZkkEC52d4OKJKoyMOTHfJAO0yrM6Yv5GJakvq6HmXRUH5WUO2H8pnYKlu/LkoPlW1d+/ZB/qwCUVHw5HyY1bX3jGftU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777543251; c=relaxed/simple;
-	bh=cG5mm5L1DMdDHae99z2sjBPEaKaBSG9Y2UhpIA83xPQ=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=ilPh5vZIKDu5z/GL6KGBfIHgE38PXlf5CiwDZnii0XuTYpfSoDeKps1DfTxQwW6cHRQobuuBTsRnxLYflC2kZpbI4/Uic7LQpVM+2+ucRbzWtBzcJMF9fok7Kn4eyLNiPeq01buS8Uffbbdd4rJJw1F1X7RrlYNQEdFBzVRgGzI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=5DhB24bF; arc=none smtp.client-ip=113.46.200.219
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+	s=arc-20240116; t=1777543425; c=relaxed/simple;
+	bh=24SUM8XNpgpD/jIkyrnqaESV6KB3r9PWuq9baM/oPwY=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=KC7MLsvfY5oLiDLIolinxp0CpZfNGSQ6GLoF0bOBV0lTEw288W4uyI+ya9yki7+HlGffworcbWEZNV3Hhejq6tG+x4GHlujNDzZn55iPRxlDbptJ4QT+LJl2GDqt20svZI5iIYSylfZbLnedqcoKJCin8YXpZROwIVEoVyE78+U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Fbm7bm/t; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="5DhB24bF"
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=WwwpkRJwkZezUuyadC6pFLx+PVDNGEiT19B/YITflFU=;
-	b=5DhB24bFvvGN0JfZCRxg/8DOOEZLKWNzogjjgdaQa8VOk03uLUKMMos83Kajwjd4ZU5THwYtA
-	uyddoWHhasNOgtD+WczcsMc4G8ZfTnA8lDL7yaRL+u7hXJuYriJVl1f2MVvBug/e4KVITObXavG
-	7eEvBZ5yz0zJyoXGMkiQHyo=
-Received: from mail.maildlp.com (unknown [172.19.162.223])
-	by canpmsgout04.his.huawei.com (SkyGuard) with ESMTPS id 4g5qJR6Tmrz1prLm;
-	Thu, 30 Apr 2026 17:54:15 +0800 (CST)
-Received: from kwepemr200004.china.huawei.com (unknown [7.202.195.241])
-	by mail.maildlp.com (Postfix) with ESMTPS id 27C3140561;
-	Thu, 30 Apr 2026 18:00:46 +0800 (CST)
-Received: from [10.67.121.62] (10.67.121.62) by kwepemr200004.china.huawei.com
- (7.202.195.241) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Thu, 30 Apr
- 2026 18:00:45 +0800
-Message-ID: <aa1284c1-ea26-48ca-a7d7-022027c8228a@huawei.com>
-Date: Thu, 30 Apr 2026 18:00:44 +0800
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Fbm7bm/t"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CEFE9C2BCC6
+	for <linux-acpi@vger.kernel.org>; Thu, 30 Apr 2026 10:03:44 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1777543424;
+	bh=24SUM8XNpgpD/jIkyrnqaESV6KB3r9PWuq9baM/oPwY=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=Fbm7bm/t+vu34+9t7voUW+wOOxbMCkLpxRdCIh99peme7yF2xulZ4cKP5EXb+2VzC
+	 Na+wpuETQ5x14dQJBJzo7rvklFJzOPeGYHO8rl0LUk8cZ3Uzib9TxhE658iCRzfM5f
+	 mq4oOK/NZeuMww+eKDCVvZz3ZbP1dEuRZ2S4kz++hJmsEb0UfGLGNdDfqGxQFRrL+t
+	 dF0jNT3lrD7+4/Zl52hk+xHKr4EFZL/wQMaoUU+LlYmZxuJ2eGnghCkj7+6XVm3R+M
+	 4EOmrnHGa6rhUqo4kt8iAEg+4pVCob+Dsyc0S5UR8W7FDyp/+q5oBig5vcpNJuc6IH
+	 M8CvFJxUuPTwg==
+Received: by mail-lf1-f49.google.com with SMTP id 2adb3069b0e04-5a40b2bc96dso726848e87.3
+        for <linux-acpi@vger.kernel.org>; Thu, 30 Apr 2026 03:03:44 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ9x8q4ZnXxU7+wRIZBnq2IXBu69xk/LspY/PRkEuPbjp0m6ZGuhnR2NyGUjBIxIvx7N27318HJIcI1M@vger.kernel.org
+X-Gm-Message-State: AOJu0YzUgXG6SGPjIc5a1g4r6UU8vtQ0x1rpr1HCTx97790Nj8vcvZwO
+	TcgNzvQs/G1IlvI5zqwBXJtx/sk9ztA1Z/7UrngYNyInKuDFe0BTuwUA0LI9W2flmrct6+AftKL
+	yara2vVY1nRXomNW9FxOrGujHd9Lyr7I=
+X-Received: by 2002:a05:6512:10cb:b0:5a4:157:5354 with SMTP id
+ 2adb3069b0e04-5a8522bc5ffmr780440e87.12.1777543423188; Thu, 30 Apr 2026
+ 03:03:43 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 0/2] CPPC: reduce FFH feedback-counter sampling skew on
- arm64
-To: <catalin.marinas@arm.com>, <will@kernel.org>, <rafael@kernel.org>,
-	<lenb@kernel.org>, <robert.moore@intel.com>, <beata.michalska@arm.com>,
-	<zhenglifeng1@huawei.com>, <zhanjie9@hisilicon.com>, <sumitg@nvidia.com>,
-	<cuiyunhui@bytedance.com>
-CC: <linux-arm-kernel@lists.infradead.org>, <linux-kernel@vger.kernel.org>,
-	<linux-acpi@vger.kernel.org>, <acpica-devel@lists.linux.dev>,
-	<linuxarm@huawei.com>, <jonathan.cameron@huawei.com>,
-	<prime.zeng@hisilicon.com>, <wanghuiqiang@huawei.com>, <xuwei5@huawei.com>,
-	<lihuisong@huawei.com>, <yubowen8@huawei.com>, <wangzhi12@huawei.com>
-References: <20260410094145.4132082-1-zhangpengjie2@huawei.com>
-From: "zhangpengjie (A)" <zhangpengjie2@huawei.com>
-In-Reply-To: <20260410094145.4132082-1-zhangpengjie2@huawei.com>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: kwepems200001.china.huawei.com (7.221.188.67) To
- kwepemr200004.china.huawei.com (7.202.195.241)
+References: <20260430-baytrail-real-swnode-v4-0-767bcda6667f@oss.qualcomm.com> <20260430-baytrail-real-swnode-v4-2-767bcda6667f@oss.qualcomm.com>
+In-Reply-To: <20260430-baytrail-real-swnode-v4-2-767bcda6667f@oss.qualcomm.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Thu, 30 Apr 2026 12:03:30 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0hs98RHqZxcMjsnQDB5JJ2gKQGG6c38y3vR3WO1aLgf3w@mail.gmail.com>
+X-Gm-Features: AVHnY4LRkqUG78amCXaKPu70AEG71fakKJrwqW9j-y8MndL15_3hAR17pY87BOk
+Message-ID: <CAJZ5v0hs98RHqZxcMjsnQDB5JJ2gKQGG6c38y3vR3WO1aLgf3w@mail.gmail.com>
+Subject: Re: [PATCH v4 2/2] platform/x86: x86-android-tablets: enable fwnode
+ matching of GPIO chips
+To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Daniel Scally <djrscally@gmail.com>, 
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Danilo Krummrich <dakr@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, 
+	Andy Shevchenko <andy@kernel.org>, Linus Walleij <linusw@kernel.org>, Hans de Goede <hansg@kernel.org>, 
+	=?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, 
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
+	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org, 
+	linux-gpio@vger.kernel.org, platform-driver-x86@vger.kernel.org, 
+	brgl@kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi all,
+On Thu, Apr 30, 2026 at 9:34=E2=80=AFAM Bartosz Golaszewski
+<bartosz.golaszewski@oss.qualcomm.com> wrote:
+>
+> In order to allow GPIOLIB to match cherryview and baytrail GPIO
+> controllers by their firmware nodes instead of their names, we need to
+> attach the - currently "dangling" - existing software nodes to their
+> target devices dynamically.
+>
+> The driver uses platform_create_bundle() and expects all required
+> providers to be present before it itself is probed. We know the name of
+> the device we're waiting for so look them up and assign the appropriate
+> software node as the secondary firmware node of the underlying ACPI node.
+>
+> Scheduling fine-grained devres actions allows for proper teardown and
+> unsetting of the secondary firmware nodes.
+>
+> Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
 
-Gentle ping on this thread. It has been a while since I posted it.
+I may have missed something subtle, but overall it looks reasonable to me, =
+so
 
-Could someone please take a look when you have time? If there is anything
-I should revise or any additional information needed, I'd be happy to
-update it.
+Reviewed-by: Rafael J. Wysocki (Intel) <rafael@kernel.org>
 
-Thanks!
-
-On 4/10/2026 5:41 PM, Pengjie Zhang wrote:
-> The legacy CPPC feedback-counter path reads the delivered and reference
-> performance counters separately.
+> ---
+>  drivers/platform/x86/x86-android-tablets/core.c | 78 +++++++++++++++++++=
++++++-
+>  1 file changed, 75 insertions(+), 3 deletions(-)
 >
-> On arm64 systems using AMU-backed CPPC FFH counters, each FFH read is
-> served through a cross-CPU counter read helper. Reading the counters
-> separately therefore widens the sampling window between them and can
-> skew the delivered/reference ratio used by cpuinfo_cur_freq. Under heavy
-> load, the skew is observable as transient values that may exceed the
-> platform maximum, as discussed in [1] and [2].
+> diff --git a/drivers/platform/x86/x86-android-tablets/core.c b/drivers/pl=
+atform/x86/x86-android-tablets/core.c
+> index 021009e9085bec3db9c4daa1f6235600210a6099..8fd0cffe351577182f31c90c1=
+04b616cec78c481 100644
+> --- a/drivers/platform/x86/x86-android-tablets/core.c
+> +++ b/drivers/platform/x86/x86-android-tablets/core.c
+> @@ -13,6 +13,7 @@
+>  #include <linux/acpi.h>
+>  #include <linux/device.h>
+>  #include <linux/dmi.h>
+> +#include <linux/fwnode.h>
+>  #include <linux/gpio/consumer.h>
+>  #include <linux/gpio/machine.h>
+>  #include <linux/irq.h>
+> @@ -360,6 +361,76 @@ static const struct software_node *cherryview_gpioch=
+ip_node_group[] =3D {
+>         NULL
+>  };
 >
-> This series adds a small generic hook for architectures that can obtain
-> both FFH feedback counters in one operation, while preserving the
-> existing per-register read path as the fallback.
+> +static void auto_secondary_unset(void *data)
+> +{
+> +       struct fwnode_handle *fwnode =3D data;
+> +
+> +       fwnode->secondary =3D NULL;
+> +}
+> +
+> +static int acpi_set_secondary_fwnode(struct device *parent, struct devic=
+e *dev,
+> +                                    const struct software_node *const sw=
+node)
+> +{
+> +       struct acpi_device *device =3D to_acpi_device(dev);
+> +       struct fwnode_handle *fwnode;
+> +       int ret;
+> +
+> +       fwnode =3D software_node_fwnode(swnode);
+> +       if (WARN_ON(!fwnode))
+> +               return -ENOENT;
+> +
+> +       fwnode->secondary =3D ERR_PTR(-ENODEV);
+> +       device->fwnode.secondary =3D fwnode;
+> +
+> +       ret =3D devm_add_action_or_reset(parent, auto_secondary_unset, &d=
+evice->fwnode);
+> +       if (ret)
+> +               dev_err(parent, "Failed to schedule the unset action for =
+secondary fwnode\n");
+> +
+> +       return ret;
+> +}
+> +
+> +static void auto_secondary_unregister_node_group(void *data)
+> +{
+> +       const struct software_node **nodes =3D data;
+> +
+> +       software_node_unregister_node_group(nodes);
+> +}
+> +
+> +static int auto_secondary_fwnode_init(struct device *parent)
+> +{
+> +       const struct software_node *const *swnode;
+> +       int ret;
+> +
+> +       if (!gpiochip_node_group)
+> +               return 0;
+> +
+> +       ret =3D software_node_register_node_group(gpiochip_node_group);
+> +       if (ret)
+> +               return ret;
+> +
+> +       ret =3D devm_add_action_or_reset(parent,
+> +                                      auto_secondary_unregister_node_gro=
+up,
+> +                                      gpiochip_node_group);
+> +       if (ret)
+> +               return ret;
+> +
+> +       for (swnode =3D gpiochip_node_group; *swnode; swnode++) {
+> +               struct device *dev __free(put_device) =3D
+> +                               acpi_bus_find_device_by_name((*swnode)->n=
+ame);
+> +               if (!dev) {
+> +                       dev_err(parent, "Failed to find the required GPIO=
+ controller: %s\n",
+> +                               (*swnode)->name);
+> +                       return -ENODEV;
+> +               }
+> +
+> +               ret =3D acpi_set_secondary_fwnode(parent, dev, *swnode);
+> +               if (ret)
+> +                       return ret;
+> +       }
+> +
+> +       return 0;
+> +}
+> +
+>  static void x86_android_tablet_remove(struct platform_device *pdev)
+>  {
+>         int i;
+> @@ -391,7 +462,6 @@ static void x86_android_tablet_remove(struct platform=
+_device *pdev)
 >
-> Patch 1 adds the generic CPPC hook and uses it from cppc_get_perf_ctrs().
-> Patch 2 implements the hook on arm64 by sampling both AMU counters in a
-> single operation on the target CPU.
+>         software_node_unregister_node_group(gpio_button_swnodes);
+>         software_node_unregister_node_group(swnode_group);
+> -       software_node_unregister_node_group(gpiochip_node_group);
+>  }
 >
-> [1] https://lore.kernel.org/all/20231025093847.3740104-4-zengheng4@huawei.com/
-> [2] https://lore.kernel.org/all/20231212072617.14756-1-lihuisong@huawei.com/
+>  static __init int x86_android_tablet_probe(struct platform_device *pdev)
+> @@ -427,9 +497,11 @@ static __init int x86_android_tablet_probe(struct pl=
+atform_device *pdev)
+>                 break;
+>         }
 >
-> Signed-off-by: Pengjie Zhang <zhangpengjie2@huawei.com>
+> -       ret =3D software_node_register_node_group(gpiochip_node_group);
+> -       if (ret)
+> +       ret =3D auto_secondary_fwnode_init(&pdev->dev);
+> +       if (ret) {
+> +               x86_android_tablet_remove(pdev);
+>                 return ret;
+> +       }
 >
-> Pengjie Zhang (2):
->    ACPI: CPPC: add paired FFH feedback-counter read hook
->    arm64: topology: read CPPC FFH feedback counters in one operation
+>         ret =3D software_node_register_node_group(dev_info->swnode_group)=
+;
+>         if (ret) {
 >
->   arch/arm64/kernel/topology.c | 75 ++++++++++++++++++++++++++++++++----
->   drivers/acpi/cppc_acpi.c     | 58 +++++++++++++++++++++++++---
->   include/acpi/cppc_acpi.h     |  7 ++++
->   3 files changed, 127 insertions(+), 13 deletions(-)
->
+> --
