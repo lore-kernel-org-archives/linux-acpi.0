@@ -1,153 +1,94 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 19A86421A14;
-	Thu, 30 Apr 2026 13:29:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2604428855
+	for <linux-acpi@vger.kernel.org>; Thu, 30 Apr 2026 13:57:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777555790; cv=none; b=kS64K5aXBnem7Yz76jZ0htwcvZgoWHp5OWKUaCsI8c/aa8v6Qb5JC2dMJfQKXulqZ8eRH/a9g6hQVqAJC3HJ/ZsNvqio5E+iygwqU7jvxLJkvRbon2P2w+Cfnk4XqI14SS2CmPTbRfyBJCOGZ/f0Tcrlmi0eLpVafirY9iE0xLk=
+	t=1777557476; cv=none; b=OLLkQIqggrvCKD3k42CLY9HO3apodMt1N87isjCzkNAriB/Bw6KkowmnhZBu4viHD5i5pcCSd1uT3s3JZSVEfN4ZfLoceuaha8ph0f+If1xRMjFNo3QP3kXsHFWfgTFP2SC+UTQni5pfbQAjhJx8uj5IfBvOasEByjzTK5pOFi8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777555790; c=relaxed/simple;
-	bh=/W1GRuxZq0cC6A7wpquemE4YB2GQRO11YgKNzJgpAzE=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type:Content-Disposition; b=CJUgm2bCqU2MevY6xPmnzO7FqYNwcbg7H71WFvBueUFfZgzCnIZxKTXJmsbUxisqoYiJSFFAB7414cwGh04KrrzYLwSuIKS5u8UC2AwVr9WMfpNYjPRQey94ZcX7HRsW6u+rgO03p0ut+2hurLC4563VP6+izLgvQsdpV3M9Yrs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=MIV0wfnW; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	s=arc-20240116; t=1777557476; c=relaxed/simple;
+	bh=ge29YIxBH3iQ1LnhDffsAcTCGa9EhJtWr2KykorkGaU=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=E/M/j48au/MyS4bQgTImPdt3dQCWdNEmlV17YixHgYgb+KzxMIC2Q9iI3zycsCf45dKYC9hboORyojEq+1gi/k1V6wJ2eqV/+vjJKaKKiVYr63fRj+glwDhXsM+iOlZgRfPO96vU60WwX2T4r8x0Eq/i9ktpvQSsRI6hePVWgWw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=SvwduuuL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="MIV0wfnW"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id EBE341AED;
-	Thu, 30 Apr 2026 06:29:42 -0700 (PDT)
-Received: from devkitleo.cambridge.arm.com (devkitleo.cambridge.arm.com [10.1.196.90])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id D026C3F7B4;
-	Thu, 30 Apr 2026 06:29:42 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1777555788; bh=/W1GRuxZq0cC6A7wpquemE4YB2GQRO11YgKNzJgpAzE=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=MIV0wfnWvMpN+DWDEs3DC7LO+ywU67ncAAqeBECPc/hmIVJgitsfq1OPtKUbFTwdg
-	 nvOWGEn5C1XToufUlAVzncZQtaq2SSb2kSiSyexB5Rb+sxsNKCvPTOvEJa/YsvsNmT
-	 E6Ci7q2Kk9ABl0De8i+eB010YSc/82PNfDsg8rYA=
-From: Leonardo Bras <leo.bras@arm.com>
-To: Marc Zyngier <maz@kernel.org>
-Cc: Leonardo Bras <leo.bras@arm.com>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will@kernel.org>,
-	Oliver Upton <oupton@kernel.org>,
-	Joey Gouly <joey.gouly@arm.com>,
-	Suzuki K Poulose <suzuki.poulose@arm.com>,
-	Zenghui Yu <yuzenghui@huawei.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	Saket Dumbre <saket.dumbre@intel.com>,
-	Paolo Bonzini <pbonzini@redhat.com>,
-	Chengwen Feng <fengchengwen@huawei.com>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Kees Cook <kees@kernel.org>,
-	=?utf-8?Q?Miko=C5=82aj?= Lenczewski <miko.lenczewski@arm.com>,
-	Ryan Roberts <ryan.roberts@arm.com>,
-	Yang Shi <yang@os.amperecomputing.com>,
-	Thomas Huth <thuth@redhat.com>,
-	mrigendrachaubey <mrigendra.chaubey@gmail.com>,
-	Yeoreum Yun <yeoreum.yun@arm.com>,
-	Mark Brown <broonie@kernel.org>,
-	Kevin Brodsky <kevin.brodsky@arm.com>,
-	James Clark <james.clark@linaro.org>,
-	Ard Biesheuvel <ardb@kernel.org>,
-	Fuad Tabba <tabba@google.com>,
-	Raghavendra Rao Ananta <rananta@google.com>,
-	Nathan Chancellor <nathan@kernel.org>,
-	Vincent Donnefort <vdonnefort@google.com>,
-	Lorenzo Pieralisi <lpieralisi@kernel.org>,
-	Sascha Bischoff <Sascha.Bischoff@arm.com>,
-	Anshuman Khandual <anshuman.khandual@arm.com>,
-	Tian Zheng <zhengtian10@huawei.com>,
-	Wei-Lin Chang <weilin.chang@arm.com>,
-	linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	kvmarm@lists.linux.dev,
-	linux-acpi@vger.kernel.org,
-	acpica-devel@lists.linux.dev,
-	kvm@vger.kernel.org
-Subject: Re: [PATCH v1 00/12] KVM Dirty-bit cleaning accelerator (HACDBS)
-Date: Thu, 30 Apr 2026 14:29:37 +0100
-Message-ID: <afNZQKIiKmHPD5My@devkitleo>
-X-Mailer: git-send-email 2.54.0
-In-Reply-To: <86bjf0zj2p.wl-maz@kernel.org>
-References: <20260430111424.3479613-2-leo.bras@arm.com> <86bjf0zj2p.wl-maz@kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="SvwduuuL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ABA70C2BCC9
+	for <linux-acpi@vger.kernel.org>; Thu, 30 Apr 2026 13:57:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1777557475;
+	bh=ge29YIxBH3iQ1LnhDffsAcTCGa9EhJtWr2KykorkGaU=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=SvwduuuLwA6Pelg/9PMBb76YUtL7/7SdeoA/KJ5em6fzeMHQ1wLlTkY42C4AA/R8H
+	 dUosG0iHrrEnOHzRuWt5pVxNSf+F0gDq77MgUzorDP/1cuNVOxa0MMaTBKzgonp5LK
+	 8hHP9y5zbAFArDYo/XyhjjAg5h8KnXfvHxbtk2jZ/+c6Nv+eJESSp9OH2qQ5UMrHjs
+	 ZVd1KuWCpEhDtbSVm54W81PS4lEEfeud1CG7g+tST3P9G0+TdKmFarmN7M+a0P3nBP
+	 bNM0Ei8WVsGWLw+MCQDqk0MeLew/Omnmrmfrfpuk2UH9b1557Jxcs9h9japc4JjWrh
+	 VleZH2GC+DrAA==
+Received: by mail-lj1-f182.google.com with SMTP id 38308e7fff4ca-38e936caafeso9271701fa.2
+        for <linux-acpi@vger.kernel.org>; Thu, 30 Apr 2026 06:57:55 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ+nbB+AOk49S6HD0J5sYjHeRLuwuG/eKzgnLGG5D8sy9LVlgBosVMLhaYisR799sLSDNdx1E8qG2ADf@vger.kernel.org
+X-Gm-Message-State: AOJu0Yx8JkX7D8Tq6eDEg0i5zhq2s9WXRxver/vqK79du7Asw/4ooUZW
+	Kc1/56r5EpwpeF7evUeuJeEVy98oAZf0n6i9zc47E3Tllzsx5Ka63va7oM6vKArtl7xNxehKJP9
+	7MLS9PMg5dKEKx+YB3w1D56R55cu1bcQ=
+X-Received: by 2002:a05:6512:1394:b0:5a4:176c:99ab with SMTP id
+ 2adb3069b0e04-5a8522c5bdcmr905626e87.4.1777557473917; Thu, 30 Apr 2026
+ 06:57:53 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
+References: <12879883.O9o76ZdvQC@rafael.j.wysocki> <CAGAxtY2SEkx7OgMgM5ypA8qsBN0h6pcs111VjnhD-5ZGq7Je6Q@mail.gmail.com>
+ <CAJZ5v0ikAeu7cW9K6sfKYbbsVK51GOsFrX-qv3KJ7cVr-gRHew@mail.gmail.com>
+ <6010375.DvuYhMxLoT@rafael.j.wysocki> <CAGAxtY2N-=3taOBCTFZzEmm4NqJ-KhtsWq0fNts_tn3nAxpkTA@mail.gmail.com>
+ <CAJZ5v0j2MKGRFRRVT4rFuzr2OwJg7ufAfDKUS0rgAsg-EBH6Kg@mail.gmail.com>
+ <CAJZ5v0jhjXap6gSZ5unR7cE+CQQPk1tDnAXLm9rkGsC2AnZTew@mail.gmail.com> <CAGAxtY3h4sEphqKL-jiSn4p0NT9mdZtOFrVxW7CDo22XdL56iw@mail.gmail.com>
+In-Reply-To: <CAGAxtY3h4sEphqKL-jiSn4p0NT9mdZtOFrVxW7CDo22XdL56iw@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Thu, 30 Apr 2026 15:57:41 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0ixuF=AQf0_VcPH=4jo5X-HbEB3WvJAnk8_fZes+bjyLg@mail.gmail.com>
+X-Gm-Features: AVHnY4JIu9d3USeTjQ79Co-kPsveECHPlQxCbNA31ZDe-AMFp5TVwBjxdrR76IQ
+Message-ID: <CAJZ5v0ixuF=AQf0_VcPH=4jo5X-HbEB3WvJAnk8_fZes+bjyLg@mail.gmail.com>
+Subject: Re: Pressing the power button causes the device to freeze completely
+ (schedutil involved)
+To: Evgeny Sagatov <evgeny.sagatov@gmail.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Linux regressions mailing list <regressions@lists.linux.dev>, 
+	ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Thorsten Leemhuis <regressions@leemhuis.info>, 
+	LKML <linux-kernel@vger.kernel.org>, 
+	Wysocki Rafael J <rafael.j.wysocki@intel.com>, Vincent Guittot <vincent.guittot@linaro.org>, 
+	Linux PM <linux-pm@vger.kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, Apr 30, 2026 at 02:14:22PM +0100, Marc Zyngier wrote:
-> On Thu, 30 Apr 2026 12:14:04 +0100,
-> Leonardo Bras <leo.bras@arm.com> wrote:
-> 
-> [...]
-> 
-> I haven't had a chance to look at any of this yet, but just on these
-> points:
-> 
-> > b - checkpatch.pl keeps bothering me to add an entry in MAINTAINERS file,
-> >     and I like the idea of maintaining this. Is there any rule or
-> >     common sense on this? Should I add this entry, or should I leave it
-> >     in the arch/arm64/kvm/ general rule?
-> 
-> No specific entry in MAINTAINERS required (or wanted). This falls into
-> the normal KVM/arm64 maintenance. And don't worry, we know where to
-> find you when it will come to fixing this stuff.
-> 
+On Thu, Apr 30, 2026 at 1:41=E2=80=AFPM Evgeny Sagatov <evgeny.sagatov@gmai=
+l.com> wrote:
+>
+> I noticed that for powersave mode, I'm getting the following values:
 
-Got it
+I guess you mean with the powersave governor.
 
-> > c - There are some trace_prink() I have left in the code, as they could
-> >     be helpful to check when HACDBS is not performing as well as it
-> >     should. Should I introduce a tracepoint instead? or just ignore it?
-> >     (it's triggered on HACDBS error, but as it falls back to software in
-> >     that case, it should not impact correctness, only performance).
-> 
-> Debug infrastructure should be preferably *removed* altogether.
-> trace_printk() is definitely a big no-no.
-> 
+> cat /proc/cpuinfo | grep MHz
+> cpu MHz         : 2798.689
+> cpu MHz         : 1999.659
+> cpu MHz         : 1999.797
+> cpu MHz         : 2741.103
+> Also, there's now no difference in the single-core benchmark between
+> schedutil, ondemand, powersave and performance modes. The benchmark
+> always gives a very high result.
+> This wasn't the case before; the modes had different performance levels.
 
-Will remove it then
+I would expect schedutil, ondemand and performance to give similar
+scores, but for powersave I would expect the score to be lower.
 
-> > d - In __kvm_arch_dirty_log_clear() there is no way to predict how long
-> >     should be the buffer, so I used 1x PAGE_SIZE, and when it gets full
-> >     it's cleaned and reused. Should I let users configure that over a
-> >     parameter, or is it overthinking?
-> 
-> How long is a piece of string? We can't know that. A single page feels
-> very small in the 4kB case, and letting userspace define the size of
-> that buffer seems a likely requirement.
-> 
+With the same patch applied, can you please switch over to powersave,
+reset the stats and then capture the output of
 
-Ok, as a KVM parameter, or as a compile-time option?
+grep -r . /sys/devices/system/cpu/cpufreq/
 
-> > 
-> > Kernel v7.0.0 + this patchset builds properly, passing both kvm selftests
-> > for dirty-bit tracking[2], on HW HACDBS enabled or disabled.
-> 
-> I have absolutely no trust in these tests.
-> 
-> Have you enabled a VMM to make use of these APIs, and actively
-> migrated running guests? That's the level of testing I'd like to see,
-> as the selftests are not what people run in production...
-> 
+Also, I'd still like to see the output of
 
-There is no enablement needed on VMM side.
-Yes, I have created a VM on upstream qemu with --enable-kvm and migrated it 
-on the same host. (Inside a model)
-
-That was the first test I used, but then I found out that kvm selftests 
-stress up multiple scenarios in an easier way.
-
-Do you prefer me to test on any specific scenario, or does whatever qemu 
-uses as a default parameter work well enough?
-
-Thanks!
-Leo
+grep . /sys/firmware/acpi/interrupts/sci*
