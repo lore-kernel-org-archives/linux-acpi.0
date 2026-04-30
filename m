@@ -1,80 +1,80 @@
-Received: from mail-ed1-f44.google.com (mail-ed1-f44.google.com [209.85.208.44])
+Received: from mail-ed1-f52.google.com (mail-ed1-f52.google.com [209.85.208.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A0E01F4C8E
-	for <linux-acpi@vger.kernel.org>; Thu, 30 Apr 2026 11:41:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E6473C1986
+	for <linux-acpi@vger.kernel.org>; Thu, 30 Apr 2026 11:58:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.52
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777549316; cv=pass; b=MpNlJijs9onG+RGTg1q79RAF0Nxmqr8dBBZvEQRBmmof21WshEYfmyKEJyegDpjQGx2YVsPBUr2SLzoOMZiPX7y5MWNpZxeSleUxeu5vN8jjmcfcHQTk9pSIWRfqQQ4iuKSZTYajx30KuFNqohz0R4fVtlmom/vno4bYfCUM+YQ=
+	t=1777550293; cv=pass; b=Q00O/zcJ9fuGDU93tQvWQj9gfUvtgmI3rsCqCGYT1hikYJ+QLh3LqoAddACw0KRkjDfz0J2R4N+v+l1xqD0+jF6I3I0rcWB2tZyRmxVTj8sfMf/h7kdA3wdXh9M7pN7/xxtOBdToPXoBkdiC1h63fAcEgObvvwR93j4IYXXsyEQ=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777549316; c=relaxed/simple;
-	bh=/5pzMFPyyu5B1ZrMTUDdPrpWXVCAGEdpGUv3o/pBFuQ=;
+	s=arc-20240116; t=1777550293; c=relaxed/simple;
+	bh=7+t7PSX2hG3R6I8OwaBELhZdseFSqxN1e19Nin/FxfQ=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=M2ueW3MO2CZpX51kKkASdkyex6LEVTUs2tUtgVMmO7h437z+Kem6jbf0pkWRpe3rG7Vsoekl18otqra9caP/jCD9p63a7JXlQMtExe/xbm4i3jWqkr1U7TH+7g/hvbclxMtEFyEx62h7bhHXlZDPBLwxGaJ3hS29G0J/rGobb6I=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=r1FNI3/p; arc=pass smtp.client-ip=209.85.208.44
+	 To:Cc:Content-Type; b=AR81abaJh0FSFWXjmPZg1arv7W0UQ4Z2PcajvwOTa6RyuKEfvgzXZL/KTh4/ReIywF4SzN0sH6aXzwYT7qFTSV+lae0Tcze9Af/WqY76hMt4BTrUftYQcl4qrEoNduBfL5g/7zCkORx4K1gDUo5L4dGTbDWpMUgZPTbMq14LY3Y=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=U6/8MgT6; arc=pass smtp.client-ip=209.85.208.52
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="r1FNI3/p"
-Received: by mail-ed1-f44.google.com with SMTP id 4fb4d7f45d1cf-67b32c695efso2142386a12.1
-        for <linux-acpi@vger.kernel.org>; Thu, 30 Apr 2026 04:41:54 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1777549313; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="U6/8MgT6"
+Received: by mail-ed1-f52.google.com with SMTP id 4fb4d7f45d1cf-66e8cf72a93so1130914a12.0
+        for <linux-acpi@vger.kernel.org>; Thu, 30 Apr 2026 04:58:10 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1777550289; cv=none;
         d=google.com; s=arc-20240605;
-        b=F6PjMBE6jInaLiQM0/84k10fPKZ79MDkkgnO7BSGLdXbgCWoGo8uvX82tPCp8HdgET
-         PV/e4rtpIXfu7q53EdG5EboVBt/8cmp3H3VN0MLAdfQbRwqUWV59aqyUAJSfrQUqAcsM
-         f49183qkn+Uh1eca/kIRoLvxQmm59Pxeoug3PElr4sPqwAWi+1ix4SB0Vt/rFeM1YgK1
-         4sd+dFApZ1iMsResmIBUlV8RA2kjLl+fuSZeCzRbcPGkgPJS90RyvOkHmDf9e7QU6F/V
-         174BzalbX/hmZpC/lx1Ey2LS2d/2WU76GmkQB2ssPXoIjqJ/2VVO/HQ7X6fJUz0hCeXw
-         hzEQ==
+        b=i9d9Jn4zM3Fl8+qZz/+r/L+pemz67HNwC38rAx5a/GbLJh+LRul4My1qkyCYwa8OB9
+         0g1FtZ+FmhLo5wxQEL/YF75fmzORkUewCqGUhGAQ1cYpc7qrjd3ftZ/6GneOJYUGwUSf
+         4tJoTAivqYjHA4MtgusgC1JnjLlC4VeHRcBihbvK+8meiY/He+fp3lQMdJMndgh6+sCv
+         8CVD0q7Qb0VDUibMXxoWcX6l+HPQEzzu91iJfcJdrek1N3kpU+z2duKipZOxSydPe3wp
+         fPcaFxgPUfYA/Ocd1NJZeEz1Ivbi4RFidMCAVNV8DKNQmJFsPb2xPacwYK55rmdZxOdt
+         8jQg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=DazGWBgk03LG4+OcyJaAsBQ8XTHJgJmb+GxkgUCMjvA=;
-        fh=8vXlNhf04j073JxxkSJBZMsN1sSfaAp5OvrNfemn+pQ=;
-        b=YKjyycDl7DNUgg1tanNrOIdRmc80+oZU4nhnk7mv0c9SqZwkkxeeiN7esNsQcLjQtD
-         DJGOlLbSAvKKtSEPiagVeyP1J0PWLpm8IrUfhfbyatoDXI5HI7vw+3tkmnFkY2Bz+t4z
-         9ByacxU4+5i1NSi/oVMP8yo8wk6qHdbsXObUsCUEKahRrDAbqkIod+N2gpLDiN5dGpWD
-         JVevTG6CEK0FLwoPCACeQa0ygKhgk30bSdiOHTlbGhCLlJvik7LJh1zMg7qhs9vvT4Sm
-         ZG47IEm5YpXqQoSdPB0STkxFfuKaDQvyBx2jn1yQGMtXq6TwUcsYctg9R0pLmbH31ZEZ
-         760w==;
+        bh=INw951u0BnQvjie+6mZXj6MBL3SF3GMW2lihCNmsoAM=;
+        fh=5RWaC+WIJg9jxM/RL+EQuMRSlr1Rt0KTU3+JBM1FR84=;
+        b=lfx2OcPEi0AEVhOt5H2pgBska/EaZsUJcCN5PIJUqZNunEEb6r6pyE600kcJGyyY4V
+         xAPijwjZYFUlbH3HYOa2AjxAnTn0Zl2/TXib6Ykm2uf7isq9DgoPO0xnOdjI3noGma8S
+         ywzzpfyGfLBOBwpymDDPio0qITCiXoQDJug9gldae9/Ut84UZBzynTsMVfaYQY3Qo7be
+         zw9ViT5B3+DBlv4tuzoOIf9wNF89JwFS+zH6fqkQifrxbKW8shRyJbLeNYeJtr+Ydt5t
+         qMzDJ95LrGynuq+5QOHZL3a5Fbo9x38pj78rK4Sadg+JVsxiau9+bUJi97lj+n93Ux6X
+         7Mfw==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1777549313; x=1778154113; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1777550289; x=1778155089; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=DazGWBgk03LG4+OcyJaAsBQ8XTHJgJmb+GxkgUCMjvA=;
-        b=r1FNI3/pgkBLpElkOwNyo1iW38IyN2ueezsc1BCsGeh8CstoA06wOKsgkRAIRop5Uu
-         ZVv5HtkIg3c1t3uR9Tt1HkDaPhkBSfEapkJlAu4pBoJaI3gwYUST0q212sHTO44Y5QiN
-         gZqMY345z41s8uk57tUN4i8ZvjHcjh5Avfo8DYQZD4AWRhl1C8N5GaOJs9PBpm5JlkUH
-         KOeYrLjZBL3Gqf6trNp00iCaQnGqO2EDh8PV/Y7p1rCSekIloZnj9jVZjxaUWESPQKcJ
-         TzQXJC120rMixso9+GNWJFORoFBX/Dpx2shbn8VEBsrhxrRq7NebJbXwaNv61PdqqY3t
-         eKcA==
+        bh=INw951u0BnQvjie+6mZXj6MBL3SF3GMW2lihCNmsoAM=;
+        b=U6/8MgT6h4n8/qUvHHwlzLteuqW9i+azIY+7bMyL0vr4PUyhwiRksv+MajM5sw65OJ
+         k4LKKK55VRT6Np4J+TT2+bLScsZhoGkxYz6OlRTwtuDnxbqY1eQv07SmXahlVQgyS6U8
+         tV+PMInR1ZItwOErcGgrORyLFwJiKlktWOjGIT3AYf+FnAB40QvxFCLjNvjiSd3tsjbz
+         g1PBQdNboJ7R1ccbrZZufdAp/yPDfQXUOz1aCMqDg8sEAA7BDzmbz+v655BLTdwe0a9R
+         lqv5qoX4H/Jz7u5+5BCwgTyw3z9+BZLH+rXS/27WdbqWKzb4KZIBQ6wU0hSDK9m6YCMH
+         qKxA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1777549313; x=1778154113;
+        d=1e100.net; s=20251104; t=1777550289; x=1778155089;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=DazGWBgk03LG4+OcyJaAsBQ8XTHJgJmb+GxkgUCMjvA=;
-        b=lbhvUU4wU+hSYeiuZzd+Vn1m72wBuJOJl7IIZ3GNsBGw9rsr8kmAIQe1F2sPRfqbsc
-         I4nR4wCdkrvSMpSi4gtcJ4/JN4fvLzVhhRcvD27Ys7eya2Q5jjv8sHfFpbG5isYqx6Mh
-         JH71PVfKJTYqIBMHXwRMH0BCIy7sSNLYxJDbUoZVE1u0nz2R7qKHbWieTDw28vpCHGPR
-         81WnV4WJ/uvM6jGR2s9RPVFes2EilauG0wtsb5QfNwlFjN9F1hDex4E9yGZwJ1Fm+KN+
-         o1hQdsa9QUTinK8b8BEhKUxCK0sNemOb60blDSQ3dBPOoorchSgJ4daQ2DEig1/7r9Xr
-         L0SQ==
-X-Forwarded-Encrypted: i=1; AFNElJ8UDhkjnW+AaN7z7Q/V4J1M56sNmhNrWqQxmsgnq92r0M/OPwmUMHVhz2RVUAt87mqyKRrNvc/Labw8@vger.kernel.org
-X-Gm-Message-State: AOJu0YzgqDqFkfz8mLxMP5GQvPnRRLmb44AF3GSpyUMA1abUTe+c4pGT
-	rv+eOS+f1KUjb11oxqM0FCglxOlC5M31OmaMskE4XS5plSlzoQxYNMQ1AodwmBnWvYf1LU0PNSR
-	uIudzYDUhoNsR8dmt3rNQnuaA9BHe0JA=
-X-Gm-Gg: AeBDietPXt3dNe6JWxwmys1pAYYdnVmzampsK90lkysuqLQiZ5NOzWg3uMBMxUCYtI8
-	5s0Prtd8e3A6AZObWC40+x9oWvBs1wF87JzFNL6oO598ozoSDK+uKJrWrXqFQS9PMGve8UA5gUo
-	BoZl9JA9IeZdt2F7kZ0IVDzc6LFmB8DFmW7gpm0roOQt4Bj+88/3Wp4uOD25XR1ZFsqkpGJekfO
-	ARbLaI1wdIY+ViIOyURZvTOId3x/eyIIKW3ExOL0VCwbxIUTtQW1UwfGSUz6OyCEsAnp3xIkBGL
-	RLA35Il++18HGyo2xA==
-X-Received: by 2002:a17:907:9307:b0:ba6:4eea:c1e1 with SMTP id
- a640c23a62f3a-bbb98f6d53emr115233366b.17.1777549313324; Thu, 30 Apr 2026
- 04:41:53 -0700 (PDT)
+        bh=INw951u0BnQvjie+6mZXj6MBL3SF3GMW2lihCNmsoAM=;
+        b=YBrajjBXav4LffvR3xrGbBy2l1J1VwxRP547YuHsnGpdy8Ja6HBzieql7okgtpZwNf
+         5XQ+6Y6z1/iCdEk33jHj7GqIhD8bL5mXUTkwVgE28VvyGi1BykqNz5y9KtShCh05yscI
+         AkqmQ0ifd3ClmLYOjfVOkMbKxAJ06PZwpXhpAk+dmDQJmu785b6/ALEKXElWwWFvUZGt
+         TmUCn5WU9NBoHOFIKXS8a2cLMH+we31ly+mIOImhXbd06W74WoykgznXbdnFCcatyTQH
+         /elNkzeLwozDG4IQrZX2cJSmab/kDGsn+F64Sn0UEprtw7yNIpA2kKgGHsr+kBkGoY+b
+         C6wQ==
+X-Forwarded-Encrypted: i=1; AFNElJ+CtsT7yWydojoVoLAtoIUKcZskDXZwAQFIevdIIzubhZJpvLTSSg59yLm5EOYKADOzc7Tlo+kd8OMc@vger.kernel.org
+X-Gm-Message-State: AOJu0YxoPPYAdmWpIekdSv/JtlcANF2JiznbCa7gZDxZJufqLw64+D84
+	I+Tf7c0oazASwePMqmSPZYtAFtxrljTZ/zjyS8/LjOHu8jlTo+v+JcBfEpPxyVCyVYTTU4AbAY/
+	BG/GTTfeug8MCVt3gTQDQWwA0ogMTBPo=
+X-Gm-Gg: AeBDietsfYPQmDH/l12Fb3Ua56HOPj2gabjKi0Zl35aIzcKA6JpT70A5T9QAGnXBUil
+	b/4qcZmJ7H3RUvSoBG5NmVFIo3S/IHAkKZKOi43KCe2xZ3KqJNP/F+nB/fceuy9N0cXzKdP7eDY
+	eqsZ/smXnjEP4ePSpq8lhtOSCl02AqeQAEdl6+vamceJPrKaxCj1ZrK2sLwEdTTj0e9UkxL/jOz
+	9f8WAQuMH8yiDsE/SBdRcSIt7pb7eU7++Q9FoCEEDeW/9BKhCrCWUTgBH1MLjC9RTvCLnPM3JNZ
+	bFLp40+IRUUO4eI8Iw==
+X-Received: by 2002:a17:907:d308:b0:bac:6d85:255c with SMTP id
+ a640c23a62f3a-bbac6abed63mr168975766b.21.1777550289198; Thu, 30 Apr 2026
+ 04:58:09 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -84,12 +84,13 @@ MIME-Version: 1.0
 References: <12879883.O9o76ZdvQC@rafael.j.wysocki> <CAGAxtY2SEkx7OgMgM5ypA8qsBN0h6pcs111VjnhD-5ZGq7Je6Q@mail.gmail.com>
  <CAJZ5v0ikAeu7cW9K6sfKYbbsVK51GOsFrX-qv3KJ7cVr-gRHew@mail.gmail.com>
  <6010375.DvuYhMxLoT@rafael.j.wysocki> <CAGAxtY2N-=3taOBCTFZzEmm4NqJ-KhtsWq0fNts_tn3nAxpkTA@mail.gmail.com>
- <CAJZ5v0j2MKGRFRRVT4rFuzr2OwJg7ufAfDKUS0rgAsg-EBH6Kg@mail.gmail.com> <CAJZ5v0jhjXap6gSZ5unR7cE+CQQPk1tDnAXLm9rkGsC2AnZTew@mail.gmail.com>
-In-Reply-To: <CAJZ5v0jhjXap6gSZ5unR7cE+CQQPk1tDnAXLm9rkGsC2AnZTew@mail.gmail.com>
+ <CAJZ5v0j2MKGRFRRVT4rFuzr2OwJg7ufAfDKUS0rgAsg-EBH6Kg@mail.gmail.com>
+ <CAJZ5v0jhjXap6gSZ5unR7cE+CQQPk1tDnAXLm9rkGsC2AnZTew@mail.gmail.com> <CAGAxtY3h4sEphqKL-jiSn4p0NT9mdZtOFrVxW7CDo22XdL56iw@mail.gmail.com>
+In-Reply-To: <CAGAxtY3h4sEphqKL-jiSn4p0NT9mdZtOFrVxW7CDo22XdL56iw@mail.gmail.com>
 From: Evgeny Sagatov <evgeny.sagatov@gmail.com>
-Date: Thu, 30 Apr 2026 14:41:41 +0300
-X-Gm-Features: AVHnY4JKI49zCihyCRiDCHor3psH662OA-YRmGfRM8cz3gfxerDwOZjw7eShbjI
-Message-ID: <CAGAxtY3h4sEphqKL-jiSn4p0NT9mdZtOFrVxW7CDo22XdL56iw@mail.gmail.com>
+Date: Thu, 30 Apr 2026 14:57:57 +0300
+X-Gm-Features: AVHnY4LQvFt_35xvg1VRGjxGx8TvY4fG1ix5ySQiyFhIwCPGN-TjlLMRfJgANw8
+Message-ID: <CAGAxtY39Te1zwK11KmuELHGV3MJMRYfTju+oXuzKeEZqVGKQzg@mail.gmail.com>
 Subject: Re: Pressing the power button causes the device to freeze completely
  (schedutil involved)
 To: "Rafael J. Wysocki" <rafael@kernel.org>
@@ -101,144 +102,155 @@ Cc: Linux regressions mailing list <regressions@lists.linux.dev>,
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-I noticed that for powersave mode, I'm getting the following values:
-cat /proc/cpuinfo | grep MHz
-cpu MHz         : 2798.689
-cpu MHz         : 1999.659
-cpu MHz         : 1999.797
-cpu MHz         : 2741.103
-Also, there's now no difference in the single-core benchmark between
-schedutil, ondemand, powersave and performance modes. The benchmark
-always gives a very high result.
-This wasn't the case before; the modes had different performance levels.
+I forgot to say that in ondemand mode, when I pressed the power
+button, the PC did not freeze.
 
-I switched to ondemand, did a reset and waited a few minutes:
-grep -r . /sys/devices/system/cpu/cpufreq/
-/sys/devices/system/cpu/cpufreq/ondemand/up_threshold:95
-/sys/devices/system/cpu/cpufreq/ondemand/ignore_nice_load:0
-/sys/devices/system/cpu/cpufreq/ondemand/sampling_down_factor:1
-/sys/devices/system/cpu/cpufreq/ondemand/powersave_bias:0
-/sys/devices/system/cpu/cpufreq/ondemand/sampling_rate:8000
-/sys/devices/system/cpu/cpufreq/ondemand/io_is_busy:1
-/sys/devices/system/cpu/cpufreq/policy0/scaling_min_freq:2000000
-/sys/devices/system/cpu/cpufreq/policy0/scaling_available_governors:ondeman=
-d
-performance schedutil
-/sys/devices/system/cpu/cpufreq/policy0/freqdomain_cpus:0 1 2 3
-/sys/devices/system/cpu/cpufreq/policy0/scaling_governor:ondemand
-/sys/devices/system/cpu/cpufreq/policy0/cpuinfo_max_freq:2834000
-/sys/devices/system/cpu/cpufreq/policy0/scaling_available_frequencies:28340=
-00
-2000000
-/sys/devices/system/cpu/cpufreq/policy0/related_cpus:0 1 2 3
-/sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq:2000000
-/sys/devices/system/cpu/cpufreq/policy0/scaling_setspeed:<unsupported>
-grep: /sys/devices/system/cpu/cpufreq/policy0/stats/reset: Access denied
-/sys/devices/system/cpu/cpufreq/policy0/stats/trans_table:   From  :    To
-/sys/devices/system/cpu/cpufreq/policy0/stats/trans_table:         :
-2834000   2000000
-/sys/devices/system/cpu/cpufreq/policy0/stats/trans_table:  2834000:
-      0        80
-/sys/devices/system/cpu/cpufreq/policy0/stats/trans_table:  2000000:
-     80         0
-/sys/devices/system/cpu/cpufreq/policy0/stats/total_trans:160
-/sys/devices/system/cpu/cpufreq/policy0/stats/time_in_state:2834000 397
-/sys/devices/system/cpu/cpufreq/policy0/stats/time_in_state:2000000 68525
-/sys/devices/system/cpu/cpufreq/policy0/affected_cpus:0 1 2 3
-/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq:2834000
-/sys/devices/system/cpu/cpufreq/policy0/cpuinfo_transition_latency:160000
-/sys/devices/system/cpu/cpufreq/policy0/scaling_driver:acpi-cpufreq
-/sys/devices/system/cpu/cpufreq/policy0/cpuinfo_min_freq:2000000
-/sys/devices/system/cpu/cpufreq/policy0/cpuinfo_avg_freq:2000000
-/sys/devices/system/cpu/cpufreq/policy0/bios_limit:2834000
-
-=D1=87=D1=82, 30 =D0=B0=D0=BF=D1=80. 2026=E2=80=AF=D0=B3. =D0=B2 13:53, Raf=
-ael J. Wysocki <rafael@kernel.org>:
+=D1=87=D1=82, 30 =D0=B0=D0=BF=D1=80. 2026=E2=80=AF=D0=B3. =D0=B2 14:41, Evg=
+eny Sagatov <evgeny.sagatov@gmail.com>:
 >
-> On Thu, Apr 30, 2026 at 12:40=E2=80=AFPM Rafael J. Wysocki <rafael@kernel=
-.org> wrote:
+> I noticed that for powersave mode, I'm getting the following values:
+> cat /proc/cpuinfo | grep MHz
+> cpu MHz         : 2798.689
+> cpu MHz         : 1999.659
+> cpu MHz         : 1999.797
+> cpu MHz         : 2741.103
+> Also, there's now no difference in the single-core benchmark between
+> schedutil, ondemand, powersave and performance modes. The benchmark
+> always gives a very high result.
+> This wasn't the case before; the modes had different performance levels.
+>
+> I switched to ondemand, did a reset and waited a few minutes:
+> grep -r . /sys/devices/system/cpu/cpufreq/
+> /sys/devices/system/cpu/cpufreq/ondemand/up_threshold:95
+> /sys/devices/system/cpu/cpufreq/ondemand/ignore_nice_load:0
+> /sys/devices/system/cpu/cpufreq/ondemand/sampling_down_factor:1
+> /sys/devices/system/cpu/cpufreq/ondemand/powersave_bias:0
+> /sys/devices/system/cpu/cpufreq/ondemand/sampling_rate:8000
+> /sys/devices/system/cpu/cpufreq/ondemand/io_is_busy:1
+> /sys/devices/system/cpu/cpufreq/policy0/scaling_min_freq:2000000
+> /sys/devices/system/cpu/cpufreq/policy0/scaling_available_governors:ondem=
+and
+> performance schedutil
+> /sys/devices/system/cpu/cpufreq/policy0/freqdomain_cpus:0 1 2 3
+> /sys/devices/system/cpu/cpufreq/policy0/scaling_governor:ondemand
+> /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_max_freq:2834000
+> /sys/devices/system/cpu/cpufreq/policy0/scaling_available_frequencies:283=
+4000
+> 2000000
+> /sys/devices/system/cpu/cpufreq/policy0/related_cpus:0 1 2 3
+> /sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq:2000000
+> /sys/devices/system/cpu/cpufreq/policy0/scaling_setspeed:<unsupported>
+> grep: /sys/devices/system/cpu/cpufreq/policy0/stats/reset: Access denied
+> /sys/devices/system/cpu/cpufreq/policy0/stats/trans_table:   From  :    T=
+o
+> /sys/devices/system/cpu/cpufreq/policy0/stats/trans_table:         :
+> 2834000   2000000
+> /sys/devices/system/cpu/cpufreq/policy0/stats/trans_table:  2834000:
+>       0        80
+> /sys/devices/system/cpu/cpufreq/policy0/stats/trans_table:  2000000:
+>      80         0
+> /sys/devices/system/cpu/cpufreq/policy0/stats/total_trans:160
+> /sys/devices/system/cpu/cpufreq/policy0/stats/time_in_state:2834000 397
+> /sys/devices/system/cpu/cpufreq/policy0/stats/time_in_state:2000000 68525
+> /sys/devices/system/cpu/cpufreq/policy0/affected_cpus:0 1 2 3
+> /sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq:2834000
+> /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_transition_latency:160000
+> /sys/devices/system/cpu/cpufreq/policy0/scaling_driver:acpi-cpufreq
+> /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_min_freq:2000000
+> /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_avg_freq:2000000
+> /sys/devices/system/cpu/cpufreq/policy0/bios_limit:2834000
+>
+> =D1=87=D1=82, 30 =D0=B0=D0=BF=D1=80. 2026=E2=80=AF=D0=B3. =D0=B2 13:53, R=
+afael J. Wysocki <rafael@kernel.org>:
 > >
-> > On Wed, Apr 29, 2026 at 11:17=E2=80=AFPM Evgeny Sagatov
-> > <evgeny.sagatov@gmail.com> wrote:
+> > On Thu, Apr 30, 2026 at 12:40=E2=80=AFPM Rafael J. Wysocki <rafael@kern=
+el.org> wrote:
 > > >
-> > > The PC froze when I pressed the power button.
-> >
-> > Well, we need to dig more I guess.
-> >
+> > > On Wed, Apr 29, 2026 at 11:17=E2=80=AFPM Evgeny Sagatov
+> > > <evgeny.sagatov@gmail.com> wrote:
+> > > >
+> > > > The PC froze when I pressed the power button.
+> > >
+> > > Well, we need to dig more I guess.
+> > >
+> > > > grep -r . /sys/devices/system/cpu/cpufreq/
+> > > > /sys/devices/system/cpu/cpufreq/schedutil/rate_limit_us:240
+> > > > /sys/devices/system/cpu/cpufreq/policy0/scaling_min_freq:2000000
+> > > > /sys/devices/system/cpu/cpufreq/policy0/scaling_available_governors=
+:performance
+> > > > schedutil
+> > > > /sys/devices/system/cpu/cpufreq/policy0/freqdomain_cpus:0 1 2 3
+> > > > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor:schedutil
+> > > > /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_max_freq:2834000
+> > > > /sys/devices/system/cpu/cpufreq/policy0/scaling_available_frequenci=
+es:2834000
+> > > > 2000000
+> > > > /sys/devices/system/cpu/cpufreq/policy0/related_cpus:0 1 2 3
+> > > > /sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq:1999759
+> > >
+> > > This kind of calls for some investigation.  It should not be less tha=
+n
+> > > scaling_min_freq, even though this looks like a rounding error.
+> > >
+> > > > /sys/devices/system/cpu/cpufreq/policy0/scaling_setspeed:<unsupport=
+ed>
+> > > > grep: /sys/devices/system/cpu/cpufreq/policy0/stats/reset: =D0=9E=
+=D1=82=D0=BA=D0=B0=D0=B7=D0=B0=D0=BD=D0=BE =D0=B2 =D0=B4=D0=BE=D1=81=D1=82=
+=D1=83=D0=BF=D0=B5
+> > > > /sys/devices/system/cpu/cpufreq/policy0/stats/trans_table:   From  =
+:    To
+> > > > /sys/devices/system/cpu/cpufreq/policy0/stats/trans_table:         =
+:
+> > > > 2834000   2000000
+> > > > /sys/devices/system/cpu/cpufreq/policy0/stats/trans_table:  2834000=
+:
+> > > >       0       844
+> > > > /sys/devices/system/cpu/cpufreq/policy0/stats/trans_table:  2000000=
+:
+> > > >     843         0
+> > > > /sys/devices/system/cpu/cpufreq/policy0/stats/total_trans:1687
+> > > > /sys/devices/system/cpu/cpufreq/policy0/stats/time_in_state:2834000=
+ 1164
+> > > > /sys/devices/system/cpu/cpufreq/policy0/stats/time_in_state:2000000=
+ 14130
+> > > > /sys/devices/system/cpu/cpufreq/policy0/affected_cpus:0 1 2 3
+> > > > /sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq:2834000
+> > > > /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_transition_latency:=
+160000
+> > > > /sys/devices/system/cpu/cpufreq/policy0/scaling_driver:acpi-cpufreq
+> > > > /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_min_freq:2000000
+> > > > /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_avg_freq:1999759
+> > > > /sys/devices/system/cpu/cpufreq/policy0/bios_limit:2834000
+> > >
+> > > So with the same patch applied (because I think that the one-policy
+> > > configuration is suitable for this platform), please capture the
+> > > output of
+> > >
 > > > grep -r . /sys/devices/system/cpu/cpufreq/
-> > > /sys/devices/system/cpu/cpufreq/schedutil/rate_limit_us:240
-> > > /sys/devices/system/cpu/cpufreq/policy0/scaling_min_freq:2000000
-> > > /sys/devices/system/cpu/cpufreq/policy0/scaling_available_governors:p=
-erformance
-> > > schedutil
-> > > /sys/devices/system/cpu/cpufreq/policy0/freqdomain_cpus:0 1 2 3
-> > > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor:schedutil
-> > > /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_max_freq:2834000
-> > > /sys/devices/system/cpu/cpufreq/policy0/scaling_available_frequencies=
-:2834000
-> > > 2000000
-> > > /sys/devices/system/cpu/cpufreq/policy0/related_cpus:0 1 2 3
-> > > /sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq:1999759
 > >
-> > This kind of calls for some investigation.  It should not be less than
-> > scaling_min_freq, even though this looks like a rounding error.
+> > Actually, the step above isn't necessary.
 > >
-> > > /sys/devices/system/cpu/cpufreq/policy0/scaling_setspeed:<unsupported=
->
-> > > grep: /sys/devices/system/cpu/cpufreq/policy0/stats/reset: =D0=9E=D1=
-=82=D0=BA=D0=B0=D0=B7=D0=B0=D0=BD=D0=BE =D0=B2 =D0=B4=D0=BE=D1=81=D1=82=D1=
-=83=D0=BF=D0=B5
-> > > /sys/devices/system/cpu/cpufreq/policy0/stats/trans_table:   From  : =
-   To
-> > > /sys/devices/system/cpu/cpufreq/policy0/stats/trans_table:         :
-> > > 2834000   2000000
-> > > /sys/devices/system/cpu/cpufreq/policy0/stats/trans_table:  2834000:
-> > >       0       844
-> > > /sys/devices/system/cpu/cpufreq/policy0/stats/trans_table:  2000000:
-> > >     843         0
-> > > /sys/devices/system/cpu/cpufreq/policy0/stats/total_trans:1687
-> > > /sys/devices/system/cpu/cpufreq/policy0/stats/time_in_state:2834000 1=
-164
-> > > /sys/devices/system/cpu/cpufreq/policy0/stats/time_in_state:2000000 1=
-4130
-> > > /sys/devices/system/cpu/cpufreq/policy0/affected_cpus:0 1 2 3
-> > > /sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq:2834000
-> > > /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_transition_latency:16=
-0000
-> > > /sys/devices/system/cpu/cpufreq/policy0/scaling_driver:acpi-cpufreq
-> > > /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_min_freq:2000000
-> > > /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_avg_freq:1999759
-> > > /sys/devices/system/cpu/cpufreq/policy0/bios_limit:2834000
+> > > switch over to the ondemand governor,
 > >
-> > So with the same patch applied (because I think that the one-policy
-> > configuration is suitable for this platform), please capture the
-> > output of
+> > It is better to reset the cpufreq statistics after switching over to
+> > ondemand by writing 1 to
+> >
+> > /sys/devices/system/cpu/cpufreq/policy0/stats/reset
+> >
+> > as root.  Then, wait for some time and capture the output of
 > >
 > > grep -r . /sys/devices/system/cpu/cpufreq/
->
-> Actually, the step above isn't necessary.
->
-> > switch over to the ondemand governor,
->
-> It is better to reset the cpufreq statistics after switching over to
-> ondemand by writing 1 to
->
-> /sys/devices/system/cpu/cpufreq/policy0/stats/reset
->
-> as root.  Then, wait for some time and capture the output of
->
-> grep -r . /sys/devices/system/cpu/cpufreq/
->
-> just once.
->
-> > wait for some time, capture the
-> > output of the above command again and send both.
 > >
-> > Also, please send the output of
+> > just once.
 > >
-> > grep . /sys/firmware/acpi/interrupts/sci*
-> >
-> > acquired after doing all of the above.
-> >
-> > You may as well check again if the power button works after switching
-> > to ondemand.
+> > > wait for some time, capture the
+> > > output of the above command again and send both.
+> > >
+> > > Also, please send the output of
+> > >
+> > > grep . /sys/firmware/acpi/interrupts/sci*
+> > >
+> > > acquired after doing all of the above.
+> > >
+> > > You may as well check again if the power button works after switching
+> > > to ondemand.
