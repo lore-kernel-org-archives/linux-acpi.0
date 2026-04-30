@@ -1,107 +1,128 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.10])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F67940B6F0;
-	Thu, 30 Apr 2026 13:01:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.10
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D37164218B2;
+	Thu, 30 Apr 2026 13:14:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777554088; cv=none; b=bLe4Jl23SJT5P5FR8X8zQd5FP7HKVLjG4ZZtDd5Lxclo73Ia5tlRHrM4a9Dl6jkdr+4yudEhNyEWE5xCQjLcy0Huv++1l2yta4BzvXRGisj/MU+2PKEJLKH1UVsvHQQgjksjSoDpVkrVSNOPScqfjDbf+T0JWe7kagABJocEEMQ=
+	t=1777554865; cv=none; b=Fl9eICEMmncYC6AYTCqUjTrzjKRbpuSm0NqdD5dLlXfm8FiFz2+FUrvIkkaqxdc/oGS1VDvIba4YUw/b1VDu0li69XHE4zYW+sv1QzOO/LP1lAq4rNJ03U6xNVSySOpQWM5tnBBvss0/ulw4vt91buJqbFLvbIM4DLu5cCOISV0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777554088; c=relaxed/simple;
-	bh=MZgJ0oBWrhy8i1yH1rGUVjfYjDAk40yvCjLYbXjWgTI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=G4FCRSodAKU0SkNApfYrFoi7h0B8T1+uzv6uEGBtgn7QbJ62HX16cz08ZBx1MbAUMiwAaks0zlkppQSJdyRl9mWITME8HJAS9OeRqqWNNe0NfRFdQnPeoJqI39+NRq5dDet1Tul0gkTWM1cUo2cM+YEFEBCP2aZukkBVoWLCEpo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=YRG20x3q; arc=none smtp.client-ip=192.198.163.10
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1777554865; c=relaxed/simple;
+	bh=jifMlssP5+ngMhDOU+yedkwt8RjFB3XDKVz2cX4Z3Zs=;
+	h=Date:Message-ID:From:To:Cc:Subject:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=KRMo+5rLGtlf4DOeL+tbGzvmLEnG3WWa7MgB+kShwYi1n09ZE/0bFMVXDZs3GfQrEcSHt82RR0qOg8yTe1oYxwJxQltqzXpljciPXXomcWxWJ0eBVoX7xF5ghwvEpU534BgH5qQdION6kNhGimWY34JXvYfvmbADhGYmfdI6tRQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=e0dgqLJE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="YRG20x3q"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1777554087; x=1809090087;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=MZgJ0oBWrhy8i1yH1rGUVjfYjDAk40yvCjLYbXjWgTI=;
-  b=YRG20x3qMNpTzuSvCCCyzJhNZXIWttMP0hyxLEPRW5ZzRXWOBpwLRwmm
-   2ztjkfwRw3c7yhXR47VrAK6ElyLvwVZwnHMJRuCeFSQz6StNwW8bN2FwF
-   t2/oZ6JbnhcP3WXEcHQ1rax6KL3hG2uCm4rt8tu+wgj/ufKOKKRa1pAV6
-   nBi7xdXLG7ua1m2BDRNJlU5Ub1cLfah+doIqhsH5ioPUALpj6L+ma922d
-   O8flL/tVu9Ul1y94wTpgSvQ8208217Kph2ciX2wbfz13oPXc7VoeFYCs4
-   FGNtlC5W66uWRj30VNDlrTHsDx5x7suM3+cvG/6O7QeqanBiIMIYcgHU9
-   g==;
-X-CSE-ConnectionGUID: qnxgHchOR0OlNMbnF/0bjg==
-X-CSE-MsgGUID: 2TfPKjfzQSyhX3IeVX0K9g==
-X-IronPort-AV: E=McAfee;i="6800,10657,11771"; a="89877496"
-X-IronPort-AV: E=Sophos;i="6.23,208,1770624000"; 
-   d="scan'208";a="89877496"
-Received: from orviesa008.jf.intel.com ([10.64.159.148])
-  by fmvoesa104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Apr 2026 06:01:26 -0700
-X-CSE-ConnectionGUID: oq+UgGJGQSuAaaHPoJWDwA==
-X-CSE-MsgGUID: c+4LrUYMSXmrcstSM8JCag==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.23,208,1770624000"; 
-   d="scan'208";a="234467576"
-Received: from zzombora-mobl1 (HELO localhost) ([10.245.244.42])
-  by orviesa008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Apr 2026 06:01:22 -0700
-Date: Thu, 30 Apr 2026 16:01:19 +0300
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Cc: Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>,
-	Mika Westerberg <mika.westerberg@linux.intel.com>,
-	Andy Shevchenko <andy@kernel.org>,
-	Linus Walleij <linusw@kernel.org>, Hans de Goede <hansg@kernel.org>,
-	Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
-	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org,
-	linux-gpio@vger.kernel.org, platform-driver-x86@vger.kernel.org,
-	brgl@kernel.org
-Subject: Re: [PATCH v4 2/2] platform/x86: x86-android-tablets: enable fwnode
- matching of GPIO chips
-Message-ID: <afNSn42sB7sC_L9x@ashevche-desk.local>
-References: <20260430-baytrail-real-swnode-v4-0-767bcda6667f@oss.qualcomm.com>
- <20260430-baytrail-real-swnode-v4-2-767bcda6667f@oss.qualcomm.com>
- <afNQbtmd3j6wG0iI@ashevche-desk.local>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="e0dgqLJE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62606C2BCB3;
+	Thu, 30 Apr 2026 13:14:25 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1777554865;
+	bh=jifMlssP5+ngMhDOU+yedkwt8RjFB3XDKVz2cX4Z3Zs=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=e0dgqLJEoMIzEHXFT4HqgpikyLxKMo8p8ZkYg8z2UAQSKn3ZH26iYJTczd6WOtzoD
+	 8WEkDCs9E33Y/ZJPKxJBzpdqm8eRWTj5JcB1CBFolQ32laxj/XOuFT7FCF8dNGbWpc
+	 z29CGKcR/P/Kmwq7fikgU8Bvz9jT6Z/JUnK2aF5onaRpVAAVJskSXFOSzYgfFTvRGM
+	 Lg1G3Y4jHvfgxYgtRhtFsvJht0gKKJQ4TluwLTxmpzKzIQHnfvrykZYujvZrkIBgH7
+	 NxxOFdSArj/Heni4c9evI+AJ1q+RzR+5HyD/0D6vMSeEKQyDZaD/wvPAw4BSN+6vOq
+	 cKs0F7d9Yz9zQ==
+Received: from sofa.misterjones.org ([185.219.108.64] helo=goblin-girl.misterjones.org)
+	by disco-boy.misterjones.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.98.2)
+	(envelope-from <maz@kernel.org>)
+	id 1wIRDj-0000000GHED-09B6;
+	Thu, 30 Apr 2026 13:14:23 +0000
+Date: Thu, 30 Apr 2026 14:14:22 +0100
+Message-ID: <86bjf0zj2p.wl-maz@kernel.org>
+From: Marc Zyngier <maz@kernel.org>
+To: Leonardo Bras <leo.bras@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>,	Will Deacon
+ <will@kernel.org>,	Oliver Upton <oupton@kernel.org>,	Joey Gouly
+ <joey.gouly@arm.com>,	Suzuki K Poulose <suzuki.poulose@arm.com>,	Zenghui Yu
+ <yuzenghui@huawei.com>,	"Rafael J. Wysocki" <rafael@kernel.org>,	Len Brown
+ <lenb@kernel.org>,	Saket Dumbre <saket.dumbre@intel.com>,	Paolo Bonzini
+ <pbonzini@redhat.com>,	Chengwen Feng <fengchengwen@huawei.com>,	Jonathan
+ Cameron <jic23@kernel.org>,	Kees Cook <kees@kernel.org>,	=?UTF-8?B?TWlr?=
+ =?UTF-8?B?b8WCYWo=?= Lenczewski <miko.lenczewski@arm.com>,	Ryan Roberts
+ <ryan.roberts@arm.com>,	Yang Shi <yang@os.amperecomputing.com>,	Thomas Huth
+ <thuth@redhat.com>,	mrigendrachaubey <mrigendra.chaubey@gmail.com>,
+	Yeoreum Yun <yeoreum.yun@arm.com>,	Mark Brown <broonie@kernel.org>,	Kevin
+ Brodsky <kevin.brodsky@arm.com>,	James Clark <james.clark@linaro.org>,	Ard
+ Biesheuvel <ardb@kernel.org>,	Fuad Tabba <tabba@google.com>,	Raghavendra
+ Rao Ananta <rananta@google.com>,	Nathan Chancellor <nathan@kernel.org>,
+	Vincent Donnefort <vdonnefort@google.com>,	Lorenzo Pieralisi
+ <lpieralisi@kernel.org>,	Sascha Bischoff <Sascha.Bischoff@arm.com>,
+	Anshuman Khandual <anshuman.khandual@arm.com>,	Tian Zheng
+ <zhengtian10@huawei.com>,	Wei-Lin Chang <weilin.chang@arm.com>,
+	linux-kernel@vger.kernel.org,	linux-arm-kernel@lists.infradead.org,
+	kvmarm@lists.linux.dev,	linux-acpi@vger.kernel.org,
+	acpica-devel@lists.linux.dev,	kvm@vger.kernel.org
+Subject: Re: [PATCH v1 00/12] KVM Dirty-bit cleaning accelerator (HACDBS)
+In-Reply-To: <20260430111424.3479613-2-leo.bras@arm.com>
+References: <20260430111424.3479613-2-leo.bras@arm.com>
+User-Agent: Wanderlust/2.15.9 (Almost Unreal) SEMI-EPG/1.14.7 (Harue)
+ FLIM-LB/1.14.9 (=?UTF-8?B?R29qxY0=?=) APEL-LB/10.8 EasyPG/1.0.0 Emacs/30.1
+ (aarch64-unknown-linux-gnu) MULE/6.0 (HANACHIRUSATO)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <afNQbtmd3j6wG0iI@ashevche-desk.local>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+MIME-Version: 1.0 (generated by SEMI-EPG 1.14.7 - "Harue")
+Content-Type: text/plain; charset=US-ASCII
+X-SA-Exim-Connect-IP: 185.219.108.64
+X-SA-Exim-Rcpt-To: leo.bras@arm.com, catalin.marinas@arm.com, will@kernel.org, oupton@kernel.org, joey.gouly@arm.com, suzuki.poulose@arm.com, yuzenghui@huawei.com, rafael@kernel.org, lenb@kernel.org, saket.dumbre@intel.com, pbonzini@redhat.com, fengchengwen@huawei.com, jic23@kernel.org, kees@kernel.org, miko.lenczewski@arm.com, ryan.roberts@arm.com, yang@os.amperecomputing.com, thuth@redhat.com, mrigendra.chaubey@gmail.com, yeoreum.yun@arm.com, broonie@kernel.org, kevin.brodsky@arm.com, james.clark@linaro.org, ardb@kernel.org, tabba@google.com, rananta@google.com, nathan@kernel.org, vdonnefort@google.com, lpieralisi@kernel.org, Sascha.Bischoff@arm.com, anshuman.khandual@arm.com, zhengtian10@huawei.com, weilin.chang@arm.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.linux.dev, linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev, kvm@vger.kernel.org
+X-SA-Exim-Mail-From: maz@kernel.org
+X-SA-Exim-Scanned: No (on disco-boy.misterjones.org); SAEximRunCond expanded to false
 
-On Thu, Apr 30, 2026 at 03:51:58PM +0300, Andy Shevchenko wrote:
-> On Thu, Apr 30, 2026 at 09:34:06AM +0200, Bartosz Golaszewski wrote:
+On Thu, 30 Apr 2026 12:14:04 +0100,
+Leonardo Bras <leo.bras@arm.com> wrote:
 
-...
+[...]
 
-> > +	for (swnode = gpiochip_node_group; *swnode; swnode++) {
-> > +		struct device *dev __free(put_device) =
-> > +				acpi_bus_find_device_by_name((*swnode)->name);
-> > +		if (!dev) {
-> > +			dev_err(parent, "Failed to find the required GPIO controller: %s\n",
-> > +				(*swnode)->name);
+I haven't had a chance to look at any of this yet, but just on these
+points:
+
+> b - checkpatch.pl keeps bothering me to add an entry in MAINTAINERS file,
+>     and I like the idea of maintaining this. Is there any rule or
+>     common sense on this? Should I add this entry, or should I leave it
+>     in the arch/arm64/kvm/ general rule?
+
+No specific entry in MAINTAINERS required (or wanted). This falls into
+the normal KVM/arm64 maintenance. And don't worry, we know where to
+find you when it will come to fixing this stuff.
+
+> c - There are some trace_prink() I have left in the code, as they could
+>     be helpful to check when HACDBS is not performing as well as it
+>     should. Should I introduce a tracepoint instead? or just ignore it?
+>     (it's triggered on HACDBS error, but as it falls back to software in
+>     that case, it should not impact correctness, only performance).
+
+Debug infrastructure should be preferably *removed* altogether.
+trace_printk() is definitely a big no-no.
+
+> d - In __kvm_arch_dirty_log_clear() there is no way to predict how long
+>     should be the buffer, so I used 1x PAGE_SIZE, and when it gets full
+>     it's cleaned and reused. Should I let users configure that over a
+>     parameter, or is it overthinking?
+
+How long is a piece of string? We can't know that. A single page feels
+very small in the 4kB case, and letting userspace define the size of
+that buffer seems a likely requirement.
+
 > 
-> swnode at this point is registered, meaning we have an associated fwnode
-> handle, hence why not use %pfwP here?
+> Kernel v7.0.0 + this patchset builds properly, passing both kvm selftests
+> for dirty-bit tracking[2], on HW HACDBS enabled or disabled.
 
-After reading the code again I think your version is KISS, no need for over
-engineering :-)
+I have absolutely no trust in these tests.
 
-> > +			return -ENODEV;
-> > +		}
+Have you enabled a VMM to make use of these APIs, and actively
+migrated running guests? That's the level of testing I'd like to see,
+as the selftests are not what people run in production...
+
+Thanks,
+
+	M.
 
 -- 
-With Best Regards,
-Andy Shevchenko
-
-
+Without deviation from the norm, progress is not possible.
