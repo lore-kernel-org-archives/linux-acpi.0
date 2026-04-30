@@ -1,151 +1,175 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 757CC3B95FF
-	for <linux-acpi@vger.kernel.org>; Thu, 30 Apr 2026 10:53:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id C172D31E844;
+	Thu, 30 Apr 2026 11:15:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777546422; cv=none; b=pbIlGCp8EzosMKFl7fJKA2MurUcFjkd7HZhxdzOR+aSLKx+DzYM1CNp4rIi184/y+fIKJsp4cmgCqq6Y7BtWPjkpfWtESITEFLdBiiBiqCqXzHWq19zPdVWb3AYeIsnRYOch/5O479CIqKwbnE+P/OT6wQc0medqmTuVBkOzrdU=
+	t=1777547722; cv=none; b=n+x3kYyMosmeMwosxM7Cr5WEsCD2878qiME/bEP1c9guoVVcpZqC8mXSjgnlr1vemvHTeHe+EaCt0RNv+YyWIqS5NNrIOFurqD/z+UfR8v2EVJhI9Hb7OzmJXZRtGLN1w7/OcQZiKMxOV+4iAJyrgr1yBXWSE7FTSuPzuwFSsuQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777546422; c=relaxed/simple;
-	bh=gGuNBk7mbEnLrwXbTrEzlIATFGvaDgzPF8kr9ybud9I=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Ib98cNtOdhQJJTEnydSnY5Ms5OrGA2KAvSGK+oRunnEBabYR6YazgvUJ2B/7lP2DP2QQP0yBkSnAsQY3/rcUJFRtEZgsLpyE4hDf+2mPNL7Z/mR3/bgB2CA436AqavSxg+4lcpvUVWa7ba04aAGd0T+ScQYIxXjKGMOvobo/lqo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=pQtyy5xC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777547722; c=relaxed/simple;
+	bh=DS9iix7VCwpek3rRia7jXvITJ4YRw/Mrhu3VT4B73bI=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=aiIU7fwX4i9cEPaVhSzK/TBeCwNo7fG36KT/XvEYBGRsYd8Yn3Kbmb3Su/9OqGsDoJjJcwWhTSh6p54qXNYII1bXYbBTwZ53d5GFs1oxfG2/fcst5CmkYGNG/9yWLNLoI0/Gyet77Tg4huSEnF9/QosGjE7OiTTuqjizKuOVNXk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=vB5CZ1ck; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="pQtyy5xC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28641C2BCC6
-	for <linux-acpi@vger.kernel.org>; Thu, 30 Apr 2026 10:53:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1777546422;
-	bh=gGuNBk7mbEnLrwXbTrEzlIATFGvaDgzPF8kr9ybud9I=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=pQtyy5xCuMPKscuFMEi2XHwkrzphYPNVM+Bh4aYS1JDNuvgLh5llRcKUTN9ugAqhn
-	 KHwWl4VHY29PMHVGHT6RGGumMt+vIT0VIZIp3HyscmNxwyaXD8VzzylUqt+z+HH+3i
-	 J6hMICiHpvstORnsel2TmaY6tj69Vk3D+6Gc06TvlybVk2WEykRf7XQ7t7yt15gwRs
-	 69D4Ldzx1VeMplfFdOwoKbfDmMZacdjtHERcNjnCyeUm4P1J7eWkMUc7PqIdyI7dhD
-	 CsZAo0AJGzzD/bh7g2T57e7nRDI/diLCfn4oP175hUlosYhTYGL4eEox7Sl3uAXe7g
-	 //a7bgiDmzQ3A==
-Received: by mail-lf1-f53.google.com with SMTP id 2adb3069b0e04-5a2b5ea59a1so1164664e87.1
-        for <linux-acpi@vger.kernel.org>; Thu, 30 Apr 2026 03:53:42 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AFNElJ9AiH8REZRS0PM+OauPFuq557Wuh74rAcm49Qrjgb1fHA2viLk0Ze8PlHaLYfTWEjU+OoSPI+BX4rjV@vger.kernel.org
-X-Gm-Message-State: AOJu0YzZ+rhqkZM/KI8AJP/ICqX3VOPzYG+xsuU1q7siUqh1p7Nbnqq6
-	Tg9+7U20EBb8YcFJXTk9zhbvKDILTqs8SafMps1SJpvnVgtjBgHT7B4f2/EweKLb/SnLkhbHo6P
-	MWkJUIJ93k8iCDRx0onNqRl/QDAM3duo=
-X-Received: by 2002:a05:6512:3ca4:b0:5a2:a5a5:5247 with SMTP id
- 2adb3069b0e04-5a8522db5e2mr815177e87.32.1777546420475; Thu, 30 Apr 2026
- 03:53:40 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="vB5CZ1ck"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 795201AED;
+	Thu, 30 Apr 2026 04:15:13 -0700 (PDT)
+Received: from devkitleo.cambridge.arm.com (devkitleo.cambridge.arm.com [10.1.196.90])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 7F5BD3F763;
+	Thu, 30 Apr 2026 04:15:14 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1777547718; bh=DS9iix7VCwpek3rRia7jXvITJ4YRw/Mrhu3VT4B73bI=;
+	h=From:To:Cc:Subject:Date:From;
+	b=vB5CZ1ckBlKPz0ugF95Z5KetcQxvkNWEO3iWLtN9GmWKSWO4DRhVa5zfcdyPQgS12
+	 Y7LzCja3BJbyd80kS9M3DerCNybXnL2X9wvg8eY1JxwRvauCkRwLA2EylLZdQX2cEb
+	 BpCjERyV/NhTPnrSxRDzP9DI2SYTHh8igCZcbvio=
+From: Leonardo Bras <leo.bras@arm.com>
+To: Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>,
+	Leonardo Bras <leo.bras@arm.com>,
+	Marc Zyngier <maz@kernel.org>,
+	Oliver Upton <oupton@kernel.org>,
+	Joey Gouly <joey.gouly@arm.com>,
+	Suzuki K Poulose <suzuki.poulose@arm.com>,
+	Zenghui Yu <yuzenghui@huawei.com>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>,
+	Saket Dumbre <saket.dumbre@intel.com>,
+	Paolo Bonzini <pbonzini@redhat.com>,
+	Chengwen Feng <fengchengwen@huawei.com>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Kees Cook <kees@kernel.org>,
+	=?UTF-8?q?Miko=C5=82aj=20Lenczewski?= <miko.lenczewski@arm.com>,
+	Ryan Roberts <ryan.roberts@arm.com>,
+	Yang Shi <yang@os.amperecomputing.com>,
+	Thomas Huth <thuth@redhat.com>,
+	mrigendrachaubey <mrigendra.chaubey@gmail.com>,
+	Yeoreum Yun <yeoreum.yun@arm.com>,
+	Mark Brown <broonie@kernel.org>,
+	Kevin Brodsky <kevin.brodsky@arm.com>,
+	James Clark <james.clark@linaro.org>,
+	Ard Biesheuvel <ardb@kernel.org>,
+	Fuad Tabba <tabba@google.com>,
+	Raghavendra Rao Ananta <rananta@google.com>,
+	Nathan Chancellor <nathan@kernel.org>,
+	Vincent Donnefort <vdonnefort@google.com>,
+	Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	Sascha Bischoff <Sascha.Bischoff@arm.com>,
+	Anshuman Khandual <anshuman.khandual@arm.com>,
+	Tian Zheng <zhengtian10@huawei.com>,
+	Wei-Lin Chang <weilin.chang@arm.com>
+Cc: linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	kvmarm@lists.linux.dev,
+	linux-acpi@vger.kernel.org,
+	acpica-devel@lists.linux.dev,
+	kvm@vger.kernel.org
+Subject: [PATCH v1 00/12] KVM Dirty-bit cleaning accelerator (HACDBS)
+Date: Thu, 30 Apr 2026 12:14:04 +0100
+Message-ID: <20260430111424.3479613-2-leo.bras@arm.com>
+X-Mailer: git-send-email 2.54.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <12879883.O9o76ZdvQC@rafael.j.wysocki> <CAGAxtY2SEkx7OgMgM5ypA8qsBN0h6pcs111VjnhD-5ZGq7Je6Q@mail.gmail.com>
- <CAJZ5v0ikAeu7cW9K6sfKYbbsVK51GOsFrX-qv3KJ7cVr-gRHew@mail.gmail.com>
- <6010375.DvuYhMxLoT@rafael.j.wysocki> <CAGAxtY2N-=3taOBCTFZzEmm4NqJ-KhtsWq0fNts_tn3nAxpkTA@mail.gmail.com>
- <CAJZ5v0j2MKGRFRRVT4rFuzr2OwJg7ufAfDKUS0rgAsg-EBH6Kg@mail.gmail.com>
-In-Reply-To: <CAJZ5v0j2MKGRFRRVT4rFuzr2OwJg7ufAfDKUS0rgAsg-EBH6Kg@mail.gmail.com>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Thu, 30 Apr 2026 12:53:27 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0jhjXap6gSZ5unR7cE+CQQPk1tDnAXLm9rkGsC2AnZTew@mail.gmail.com>
-X-Gm-Features: AVHnY4J2OQKIYeBfpafoh5Oc-5o9-n7Sa7zzxfXQkeu1Yn_7rChbkTC78Ri1yZI
-Message-ID: <CAJZ5v0jhjXap6gSZ5unR7cE+CQQPk1tDnAXLm9rkGsC2AnZTew@mail.gmail.com>
-Subject: Re: Pressing the power button causes the device to freeze completely
- (schedutil involved)
-To: Evgeny Sagatov <evgeny.sagatov@gmail.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, 
-	Linux regressions mailing list <regressions@lists.linux.dev>, 
-	ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Thorsten Leemhuis <regressions@leemhuis.info>, 
-	LKML <linux-kernel@vger.kernel.org>, 
-	Wysocki Rafael J <rafael.j.wysocki@intel.com>, Vincent Guittot <vincent.guittot@linaro.org>, 
-	Linux PM <linux-pm@vger.kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Thu, Apr 30, 2026 at 12:40=E2=80=AFPM Rafael J. Wysocki <rafael@kernel.o=
-rg> wrote:
->
-> On Wed, Apr 29, 2026 at 11:17=E2=80=AFPM Evgeny Sagatov
-> <evgeny.sagatov@gmail.com> wrote:
-> >
-> > The PC froze when I pressed the power button.
->
-> Well, we need to dig more I guess.
->
-> > grep -r . /sys/devices/system/cpu/cpufreq/
-> > /sys/devices/system/cpu/cpufreq/schedutil/rate_limit_us:240
-> > /sys/devices/system/cpu/cpufreq/policy0/scaling_min_freq:2000000
-> > /sys/devices/system/cpu/cpufreq/policy0/scaling_available_governors:per=
-formance
-> > schedutil
-> > /sys/devices/system/cpu/cpufreq/policy0/freqdomain_cpus:0 1 2 3
-> > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor:schedutil
-> > /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_max_freq:2834000
-> > /sys/devices/system/cpu/cpufreq/policy0/scaling_available_frequencies:2=
-834000
-> > 2000000
-> > /sys/devices/system/cpu/cpufreq/policy0/related_cpus:0 1 2 3
-> > /sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq:1999759
->
-> This kind of calls for some investigation.  It should not be less than
-> scaling_min_freq, even though this looks like a rounding error.
->
-> > /sys/devices/system/cpu/cpufreq/policy0/scaling_setspeed:<unsupported>
-> > grep: /sys/devices/system/cpu/cpufreq/policy0/stats/reset: =D0=9E=D1=82=
-=D0=BA=D0=B0=D0=B7=D0=B0=D0=BD=D0=BE =D0=B2 =D0=B4=D0=BE=D1=81=D1=82=D1=83=
-=D0=BF=D0=B5
-> > /sys/devices/system/cpu/cpufreq/policy0/stats/trans_table:   From  :   =
- To
-> > /sys/devices/system/cpu/cpufreq/policy0/stats/trans_table:         :
-> > 2834000   2000000
-> > /sys/devices/system/cpu/cpufreq/policy0/stats/trans_table:  2834000:
-> >       0       844
-> > /sys/devices/system/cpu/cpufreq/policy0/stats/trans_table:  2000000:
-> >     843         0
-> > /sys/devices/system/cpu/cpufreq/policy0/stats/total_trans:1687
-> > /sys/devices/system/cpu/cpufreq/policy0/stats/time_in_state:2834000 116=
-4
-> > /sys/devices/system/cpu/cpufreq/policy0/stats/time_in_state:2000000 141=
-30
-> > /sys/devices/system/cpu/cpufreq/policy0/affected_cpus:0 1 2 3
-> > /sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq:2834000
-> > /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_transition_latency:1600=
-00
-> > /sys/devices/system/cpu/cpufreq/policy0/scaling_driver:acpi-cpufreq
-> > /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_min_freq:2000000
-> > /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_avg_freq:1999759
-> > /sys/devices/system/cpu/cpufreq/policy0/bios_limit:2834000
->
-> So with the same patch applied (because I think that the one-policy
-> configuration is suitable for this platform), please capture the
-> output of
->
-> grep -r . /sys/devices/system/cpu/cpufreq/
+This patchset intends to create an arm64-specific dirty-bit cleaning
+accelerator based on HACDBS. To do so, it's needed to add a few
+snippets in arch-generic kvm code, and to do so properly, it makes
+them compile-out if the arch does not implement them.
 
-Actually, the step above isn't necessary.
+Patch 1 & 2 are here just to make this testable, as this patchset
+depends on bits from HDBSS that are not upstream yet. 
 
-> switch over to the ondemand governor,
+Patch 1 should be included in the HDBSS patchset, and patch 2
+is a bunch of bits that I collected across other patches so this can
+work. So few free to ignore them.
 
-It is better to reset the cpufreq statistics after switching over to
-ondemand by writing 1 to
+To be able to properly use HACDBS, it requires a PPI IRQ that triggers
+either on error, or when processing is complete. It's called
+HACDBSIRQ, and there is currently no upstream way of announcing it on
+ACPI tables, so it uses the suggested table/index in [1].
 
-/sys/devices/system/cpu/cpufreq/policy0/stats/reset
+It is able to accelerate the cleaning on both dirty-bitmap and
+dirty-ring tracking mechanisms on KVM, and that require different
+functions to be made accessible outside KVM code.
 
-as root.  Then, wait for some time and capture the output of
+On top of finding issues, there are a few questions I would like help with:
+a - Is the distribution between patches ok? should I merge or split
+    any of them?
+b - checkpatch.pl keeps bothering me to add an entry in MAINTAINERS file,
+    and I like the idea of maintaining this. Is there any rule or
+    common sense on this? Should I add this entry, or should I leave it
+    in the arch/arm64/kvm/ general rule?
+c - There are some trace_prink() I have left in the code, as they could
+    be helpful to check when HACDBS is not performing as well as it
+    should. Should I introduce a tracepoint instead? or just ignore it?
+    (it's triggered on HACDBS error, but as it falls back to software in
+    that case, it should not impact correctness, only performance).
+d - In __kvm_arch_dirty_log_clear() there is no way to predict how long
+    should be the buffer, so I used 1x PAGE_SIZE, and when it gets full
+    it's cleaned and reused. Should I let users configure that over a
+    parameter, or is it overthinking?
 
-grep -r . /sys/devices/system/cpu/cpufreq/
+Kernel v7.0.0 + this patchset builds properly, passing both kvm selftests
+for dirty-bit tracking[2], on HW HACDBS enabled or disabled.
 
-just once.
+Please let me know of any question :)
 
-> wait for some time, capture the
-> output of the above command again and send both.
->
-> Also, please send the output of
->
-> grep . /sys/firmware/acpi/interrupts/sci*
->
-> acquired after doing all of the above.
->
-> You may as well check again if the power button works after switching
-> to ondemand.
+Thanks for reviewing!
+Leo
+
+
+[1]: https://github.com/tianocore/edk2/issues/12409
+[2]: dirty_log_test && dirty_log_perf_test
+
+Leonardo Bras (12):
+  KVM: arm64: Enable eager hugepage splitting if HDBSS is available
+  KVM: arm64: HDBSS bits
+  arm64/cpufeature: Add system-wide FEAT_HACDBS detection
+  arm64/sysreg: Add HACDBS consumer and base registers
+  KVM: arm64: Detect (via ACPI) and initialize HACDBSIRQ
+  KVM: arm64: dirty_bit: Add base FEAT_HACDBS cleaning routine
+  kvm: Add arch-generic interface for hw-accelerated dirty-bitmap
+    cleaning
+  KVM: arm64: Add hardware-accelerated dirty-bitmap cleaning routine
+  kvm/dirty_ring: Introduce get_memslot and move helpers to header
+  kvm/dirty_ring: Add arch-generic interface for hw-accelerated
+    dirty-ring cleaning
+  KVM: arm64: Add hardware-accelerated dirty-ring cleaning routine
+  KVM: arm64: Enable KVM_HW_DIRTY_BIT
+
+ MAINTAINERS                            |   7 +
+ arch/arm64/include/asm/acpi.h          |   3 +
+ arch/arm64/include/asm/cpufeature.h    |  10 +
+ arch/arm64/include/asm/kvm_dirty_bit.h |  67 ++++
+ arch/arm64/include/asm/kvm_pgtable.h   |   3 +
+ include/acpi/actbl2.h                  |   1 +
+ include/linux/kvm_dirty_bit.h          |  34 ++
+ include/linux/kvm_dirty_ring.h         |  12 +
+ include/linux/kvm_host.h               |   3 +
+ arch/arm64/kernel/cpufeature.c         |  20 ++
+ arch/arm64/kvm/arm.c                   |   5 +
+ arch/arm64/kvm/dirty_bit.c             | 418 +++++++++++++++++++++++++
+ arch/arm64/kvm/hyp/pgtable.c           |  15 +-
+ arch/arm64/kvm/mmu.c                   |  12 +-
+ virt/kvm/dirty_ring.c                  |  34 +-
+ virt/kvm/kvm_main.c                    |  13 +-
+ arch/arm64/kvm/Kconfig                 |   1 +
+ arch/arm64/kvm/Makefile                |   2 +-
+ arch/arm64/tools/cpucaps               |   2 +
+ arch/arm64/tools/sysreg                |  30 ++
+ virt/kvm/Kconfig                       |   3 +
+ 21 files changed, 673 insertions(+), 22 deletions(-)
+ create mode 100644 arch/arm64/include/asm/kvm_dirty_bit.h
+ create mode 100644 include/linux/kvm_dirty_bit.h
+ create mode 100644 arch/arm64/kvm/dirty_bit.c
+
+-- 
+2.54.0
+
