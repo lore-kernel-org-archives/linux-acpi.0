@@ -1,116 +1,129 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B39F2175A73;
-	Thu, 30 Apr 2026 10:25:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D72CC3BB48
+	for <linux-acpi@vger.kernel.org>; Thu, 30 Apr 2026 10:40:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777544717; cv=none; b=E3Ju6liUP06Y0YDTPHtG5g1Lfr01cxltxEquxJBP7j9KLCpH+vJLo9RiA0ZA5tA9NevxFbPPBe0rcAzA+1gi6akeSL/wDiZXP7OBE8K38Q3A+V/1LkLxE0bmqLcjP3Za06t0lvZJ/3Lx/8lQC2QXeJ3g+5CZnHB8qf8b2VEK4fA=
+	t=1777545649; cv=none; b=F4a5tAMgJ14RNsJLS5ZnYOMr0Lzd9ZPVNDKaGEa8PEMZggBByaGyeVP6GdTKaJDZUV0wpnxnezzUS5ZQMsiNXIZG2wrfWOyFrvLYhDZwNq2MdY8qMu2Y0zUoO7C69CGdEtuAkLmy7sQthZuA0AK4yMJ+CHXQwhcwVv0mSLwk/hg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777544717; c=relaxed/simple;
-	bh=tMcr/ZNDm33BeUEJo0HZiE0/fFa3R/A1Oa5PdaowDp0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=eYOVv7dNVf26pZJj6vUjfCg8vg4smEASBWw38Cwi4+uOXp2juoJE6aCMxAstU9yZSOIjZhzZ0DDGspTXOb8mWrmL+F5qy7bL3pDya0RO+bqIP82MBE+zopbHxLgHnqJXyutrf2XYUnmGFYYg0qiYFiVHIStAAMIsrlEkq6vOA4Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jO2eG3k+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777545649; c=relaxed/simple;
+	bh=39dgywz31qzhdr4Cuy2OO5ajN7e6XIGKUu8xn8hAdFg=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=aO7JG8ILkkxF+Gzbq3JuB7MulKrs5lyBEQjlBBu3nPxsWRKXmPveLYjy7QuGETfV0m+hsqopls/MV9O+Ze9/AB0cFVCZkpBLI0toROPsRUnodYI7q/A6ZXwL0PXB31AbUe05aFZlyVgAfmHMuBV4NREpOyp5IzRzA+fKp5TnSl0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gsiBo9aS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jO2eG3k+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1A06C2BCB3;
-	Thu, 30 Apr 2026 10:25:14 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gsiBo9aS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B813CC2BCB4
+	for <linux-acpi@vger.kernel.org>; Thu, 30 Apr 2026 10:40:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1777544717;
-	bh=tMcr/ZNDm33BeUEJo0HZiE0/fFa3R/A1Oa5PdaowDp0=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=jO2eG3k+TD7SKH3f063YziHmLklRYcBOUMzewUdMjWcIV2LALhpDAffX/JjJ4h8TP
-	 AIRE8MkcqsfqjFNsgwigb//V3tYBoWFE9eY7ILSkNgWYiN/FyxRxIDZ+BNfu+Rzasp
-	 0L4NyU69D21eZTQnN49/hp6Kdjnj0FTjSjEsa+R1Jb7daHQva3fc820Ue5tl3Vhusz
-	 eiuv7mMfhOAywMNOOB0Ta3+NJ0ETwGAxZyKGDstCaBo3yPhSnm28gtubg2yeukPPbK
-	 qCVNiOmpwVYJKJfYRt3DnBmMxj/DpsDT3n1ByOY6G0jpH5oHRxUgW2l3xOwgvwvWyY
-	 Eu4MEXZsF8H2w==
-Date: Thu, 30 Apr 2026 11:25:12 +0100
-From: Sudeep Holla <sudeep.holla@kernel.org>
-To: Andre Przywara <andre.przywara@arm.com>
-Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>,
-	Hanjun Guo <guohanjun@huawei.com>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Sudeep Holla <sudeep.holla@kernel.org>,
-	Will Deacon <will@kernel.org>,
-	"Rafael J . Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>, James Morse <james.morse@arm.com>,
-	Ben Horgan <ben.horgan@arm.com>,
-	Reinette Chatre <reinette.chatre@intel.com>,
-	Fenghua Yu <fenghuay@nvidia.com>,
-	Jonathan Cameron <jic23@kernel.org>, linux-acpi@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 5/5] arm_mpam: detect and enable MPAM-Fb PCC support
-Message-ID: <20260430-chirpy-snobbish-pogona-58a9de@sudeepholla>
-References: <20260429141339.3171205-1-andre.przywara@arm.com>
- <20260429141339.3171205-6-andre.przywara@arm.com>
- <20260430-brave-hoatzin-of-fascination-e7d4ad@sudeepholla>
- <fc96c088-f767-4bf2-b58b-d4e91b0acde4@arm.com>
+	s=k20201202; t=1777545649;
+	bh=39dgywz31qzhdr4Cuy2OO5ajN7e6XIGKUu8xn8hAdFg=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=gsiBo9aS32oDdUM7G/YhNQ98dNLt8TnwL0A+dovNj0+RiBON+J/x1s966qkc72cww
+	 8qgSoWWtlRbTGMy9A9WsEGlr+NfNhjqklk+SzrtN2OBtYXYdicnB2jemew1XttMr7Y
+	 Z9V5eV9iQencfCDrdcxF+FJbmEkj3bhSKcBdqh3DEyNs2nCIpR5xqYh9/epsMDaaic
+	 E7T8816bxxFFhD+3q2CL+crT5bisWXzvxzQuJCmq/R7B+6RbJYPI2cgT7yWsMgWRv4
+	 57Q4cnqhMPaHvnOUp6svldT/kV/MXaSV2+4CBnoPFl82c0ssaRtz8TSvVCDHdrb5Oy
+	 t0CrSmdj1wYtw==
+Received: by mail-lf1-f43.google.com with SMTP id 2adb3069b0e04-5a3af1b7549so927671e87.1
+        for <linux-acpi@vger.kernel.org>; Thu, 30 Apr 2026 03:40:49 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ8ob3d3qvr31f2rjABtzYo9oN1kjo8EkuKecblEGSDG0qTQ5f4Wtbv9oqJp7YmwJ/x19lsDFFFahHVN@vger.kernel.org
+X-Gm-Message-State: AOJu0YxOR2D145x5jz7oy3+owGnUnBylk6AMzFEB3jyr1jFYe5B+3Z/N
+	76xoSDR3VOn2hrCsdiUzUmm6fuEwdPPkR3rE3NFuVgfoexHd9yMCPBQ5ftxU8woI/QJBQWL91Fh
+	7+ndPpR0WpkmqjIzfHkrTGBMWKK2xHZI=
+X-Received: by 2002:a05:6512:2396:b0:5a4:6f5:6c4e with SMTP id
+ 2adb3069b0e04-5a8522d4faamr878008e87.19.1777545648107; Thu, 30 Apr 2026
+ 03:40:48 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <fc96c088-f767-4bf2-b58b-d4e91b0acde4@arm.com>
+References: <12879883.O9o76ZdvQC@rafael.j.wysocki> <CAGAxtY2SEkx7OgMgM5ypA8qsBN0h6pcs111VjnhD-5ZGq7Je6Q@mail.gmail.com>
+ <CAJZ5v0ikAeu7cW9K6sfKYbbsVK51GOsFrX-qv3KJ7cVr-gRHew@mail.gmail.com>
+ <6010375.DvuYhMxLoT@rafael.j.wysocki> <CAGAxtY2N-=3taOBCTFZzEmm4NqJ-KhtsWq0fNts_tn3nAxpkTA@mail.gmail.com>
+In-Reply-To: <CAGAxtY2N-=3taOBCTFZzEmm4NqJ-KhtsWq0fNts_tn3nAxpkTA@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Thu, 30 Apr 2026 12:40:35 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0j2MKGRFRRVT4rFuzr2OwJg7ufAfDKUS0rgAsg-EBH6Kg@mail.gmail.com>
+X-Gm-Features: AVHnY4LVq_nGYEhV3o7zDZLNtARqjVJZ9s53dHCOXJKKxiFrmibB-uDXWdgbsPg
+Message-ID: <CAJZ5v0j2MKGRFRRVT4rFuzr2OwJg7ufAfDKUS0rgAsg-EBH6Kg@mail.gmail.com>
+Subject: Re: Pressing the power button causes the device to freeze completely
+ (schedutil involved)
+To: Evgeny Sagatov <evgeny.sagatov@gmail.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Linux regressions mailing list <regressions@lists.linux.dev>, 
+	ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Thorsten Leemhuis <regressions@leemhuis.info>, 
+	LKML <linux-kernel@vger.kernel.org>, 
+	Wysocki Rafael J <rafael.j.wysocki@intel.com>, Vincent Guittot <vincent.guittot@linaro.org>, 
+	Linux PM <linux-pm@vger.kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, Apr 30, 2026 at 11:20:42AM +0200, Andre Przywara wrote:
-> Hi Sudeep,
-> 
-> thanks for having a look!
-> 
-> On 4/30/26 10:35, Sudeep Holla wrote:
-> > On Wed, Apr 29, 2026 at 04:13:39PM +0200, Andre Przywara wrote:
-> > > The Arm MPAM-Fb specification [1] describes a protocol to access MSC
-> > > registers through a firmware interface. This requires a shared memory
-> > > region to hold the message, and a mailbox to trigger the access.
-> > > For ACPI this is wrapped as a PCC channel, described using existing
-> > > ACPI abstractions.
-> > > 
-> > > Add code to parse those PCC table descriptions associated with an MSC,
-> > > and store the parsed information in the MSC struct.
-> > > This will be used by the MPAM-Fb access wrapper code.
-> > > 
-> > > [1] https://developer.arm.com/documentation/den0144/latest
-> > > 
-> > > Signed-off-by: Andre Przywara <andre.przywara@arm.com>
-> > > ---
-> > >   drivers/acpi/arm64/mpam.c      |  2 ++
-> > >   drivers/resctrl/mpam_devices.c | 46 +++++++++++++++++++++++++++++++---
-> > >   2 files changed, 45 insertions(+), 3 deletions(-)
-> > > 
-> > > diff --git a/drivers/acpi/arm64/mpam.c b/drivers/acpi/arm64/mpam.c
-> > > index 99c2bdbb3314..edb4d10e8dc3 100644
-> > > --- a/drivers/acpi/arm64/mpam.c
-> > > +++ b/drivers/acpi/arm64/mpam.c
-> > > @@ -341,6 +341,8 @@ static struct platform_device * __init acpi_mpam_parse_msc(struct acpi_mpam_msc_
-> > >   	} else if (iface == MPAM_IFACE_PCC) {
-> > >   		props[next_prop++] = PROPERTY_ENTRY_U32("pcc-channel",
-> > >   							tbl_msc->base_address);
-> > > +		props[next_prop++] = PROPERTY_ENTRY_U32("msc-id",
-> > > +							tbl_msc->identifier);
-> > 
-> > I may be looking at the wrong documents, but neither DEN0065 nor DEN0144 carry
-> > any definitions of pcc-channel and msc-id for the device with HID
-> > "“ARMHAA5C". Since "pcc-channel" is already merged, I think I am looking at
-> > wrong documents, please point me to the right one.
-> 
-> Please excuse my ignorance, but I was under the assumption that the strings
-> used here are just unique identifiers that need to match the property_get
-> calls in the MPAM code. Is there any requirement to match those
-> property_entry.name fields with the names given in some spec? And those
-> strings are kernel-internal only, right? But for DT would match exactly the
-> property names?
-> 
+On Wed, Apr 29, 2026 at 11:17=E2=80=AFPM Evgeny Sagatov
+<evgeny.sagatov@gmail.com> wrote:
+>
+> The PC froze when I pressed the power button.
 
-My bad, I missed to see that these are properties added to the software node
-created for ACPI. I assumed the ACPI code is expecting this property in the
-namespace device with HID 'ARMHAA5C'. Ignore my comment.
+Well, we need to dig more I guess.
 
--- 
-Regards,
-Sudeep
+> grep -r . /sys/devices/system/cpu/cpufreq/
+> /sys/devices/system/cpu/cpufreq/schedutil/rate_limit_us:240
+> /sys/devices/system/cpu/cpufreq/policy0/scaling_min_freq:2000000
+> /sys/devices/system/cpu/cpufreq/policy0/scaling_available_governors:perfo=
+rmance
+> schedutil
+> /sys/devices/system/cpu/cpufreq/policy0/freqdomain_cpus:0 1 2 3
+> /sys/devices/system/cpu/cpufreq/policy0/scaling_governor:schedutil
+> /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_max_freq:2834000
+> /sys/devices/system/cpu/cpufreq/policy0/scaling_available_frequencies:283=
+4000
+> 2000000
+> /sys/devices/system/cpu/cpufreq/policy0/related_cpus:0 1 2 3
+> /sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq:1999759
+
+This kind of calls for some investigation.  It should not be less than
+scaling_min_freq, even though this looks like a rounding error.
+
+> /sys/devices/system/cpu/cpufreq/policy0/scaling_setspeed:<unsupported>
+> grep: /sys/devices/system/cpu/cpufreq/policy0/stats/reset: =D0=9E=D1=82=
+=D0=BA=D0=B0=D0=B7=D0=B0=D0=BD=D0=BE =D0=B2 =D0=B4=D0=BE=D1=81=D1=82=D1=83=
+=D0=BF=D0=B5
+> /sys/devices/system/cpu/cpufreq/policy0/stats/trans_table:   From  :    T=
+o
+> /sys/devices/system/cpu/cpufreq/policy0/stats/trans_table:         :
+> 2834000   2000000
+> /sys/devices/system/cpu/cpufreq/policy0/stats/trans_table:  2834000:
+>       0       844
+> /sys/devices/system/cpu/cpufreq/policy0/stats/trans_table:  2000000:
+>     843         0
+> /sys/devices/system/cpu/cpufreq/policy0/stats/total_trans:1687
+> /sys/devices/system/cpu/cpufreq/policy0/stats/time_in_state:2834000 1164
+> /sys/devices/system/cpu/cpufreq/policy0/stats/time_in_state:2000000 14130
+> /sys/devices/system/cpu/cpufreq/policy0/affected_cpus:0 1 2 3
+> /sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq:2834000
+> /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_transition_latency:160000
+> /sys/devices/system/cpu/cpufreq/policy0/scaling_driver:acpi-cpufreq
+> /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_min_freq:2000000
+> /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_avg_freq:1999759
+> /sys/devices/system/cpu/cpufreq/policy0/bios_limit:2834000
+
+So with the same patch applied (because I think that the one-policy
+configuration is suitable for this platform), please capture the
+output of
+
+grep -r . /sys/devices/system/cpu/cpufreq/
+
+switch over to the ondemand governor, wait for some time, capture the
+output of the above command again and send both.
+
+Also, please send the output of
+
+grep . /sys/firmware/acpi/interrupts/sci*
+
+acquired after doing all of the above.
+
+You may as well check again if the power button works after switching
+to ondemand.
