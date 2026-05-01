@@ -1,222 +1,182 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C1B7231827;
-	Fri,  1 May 2026 04:45:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63E6923EA8A
+	for <linux-acpi@vger.kernel.org>; Fri,  1 May 2026 12:00:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777610725; cv=none; b=UV77BdE5M3271SR9JIR5rEOyG9njnJR6rTWaaofCyMxf6UqTpA9JGR7aOcWitOT2nMEDyVZQ0uphC9N6deizN6Lp/sBvnp6YCXWSoNvqBmp473WampfS9T8rrZ/9A1HdHhkXJiFlin1CU5F1XmFy22Yh3kGlKzYg0XgYY/FqJrc=
+	t=1777636845; cv=none; b=b720vUiuSWVWTdkHMqigyDayKe9jcb6qUscVggBgHrFklhQqO1WYsZVH1ma7n7N9RigeGNEoKnu4Ud3C64oMq+H1w8YjZ1jONr1q5zLcDO+RWn+ubDvForihaZtSVthLWnmu4uSiMmZbhPLssfjYAokbDce89sCr9CR0m2WPMZI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777610725; c=relaxed/simple;
-	bh=0urt9bqbGp3y4rg3e1ksFahHj9pqpb5+cS/9lGfMSaU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=mTvQesG76oS0qEuQ4oElCMkXVm8IGXnJld5B6h2A7y77i2eIagePhOXsLqiTy3XxbRg6KR/9UZyUVBMeEzm064tRVVZYG+nmPsLnDHKNomi0eJlGGDQCwun6COxcuVpJ/8EEqp96oet8UsH6EGUIufOW1F8ChlXxAVFT9X9BRm0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iWME0HrS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777636845; c=relaxed/simple;
+	bh=Prvv7B0ov4/EhjwbeFDd/isxbU+ETX0Tg1NWb+ujt4c=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=adZxyyeC58T1V5dMVy1oe3IW7M6nvIcL/lV5DPxEmDsbZ9nXuVuAu+XoJkt+6JboCZ0JH/GFb/gaa36jrdTil1ANbmPaNsqUDLjXyviaLeJJOIh0JuakdX73i592+Z+IJw7VFpdLzrJcvNyYqypclN3nn4TFb2I6Tm+IzE+ihog=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DC6M8WON; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iWME0HrS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F0D3C2BCB7;
-	Fri,  1 May 2026 04:45:23 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DC6M8WON"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 337D5C4AF09
+	for <linux-acpi@vger.kernel.org>; Fri,  1 May 2026 12:00:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1777610724;
-	bh=0urt9bqbGp3y4rg3e1ksFahHj9pqpb5+cS/9lGfMSaU=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=iWME0HrS3+ZEPckX6tGyQtPb9xHhdBDN3q+ubDJmJc0Bih/PCJrsqizQtlxPBtWCF
-	 sHZaYjKEbEkY/RS/x7ZytmU2iTneqz2bS6vpVUlbGw5p155eV1RtlQP6PRg5QnpnQo
-	 Q4IphobPOyknjLvhiXir6NvcwdNDtoTwqbBT9h1KUqGo3g4NIvAI8LKqnTAn8By6Z/
-	 XDp+VZ843+nTEfHigSg2wAqkxBO3pQTRZrMDcXiFVkWv4IexvL8zahxJympsqKuZtK
-	 n7Km8CIWL+eKkFSRXc/8+cigobYlkT+NclXrtpidDd+1MoYCzxqqq3aEkC3NSyMTpJ
-	 MVfmA/DXwSM9A==
-Date: Thu, 30 Apr 2026 21:45:21 -0700
-From: Drew Fustini <fustini@kernel.org>
-To: Reinette Chatre <reinette.chatre@intel.com>
-Cc: Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>,
-	Albert Ou <aou@eecs.berkeley.edu>, Alexandre Ghiti <alex@ghiti.fr>,
-	Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar@ventanamicro.com>,
-	Samuel Holland <samuel.holland@sifive.com>,
-	Adrien Ricciardi <aricciardi@baylibre.com>,
-	Nicolas Pitre <npitre@baylibre.com>,
-	Kornel =?utf-8?Q?Dul=C4=99ba?= <mindal@semihalf.com>,
-	Atish Patra <atish.patra@linux.dev>,
-	Atish Kumar Patra <atishp@rivosinc.com>,
-	Vasudevan Srinivasan <vasu@rivosinc.com>,
-	Ved Shanbhogue <ved@rivosinc.com>,
-	Conor Dooley <conor.dooley@microchip.com>,
-	yunhui cui <cuiyunhui@bytedance.com>,
-	Chen Pei <cp0613@linux.alibaba.com>,
-	Liu Zhiwei <zhiwei_liu@linux.alibaba.com>,
-	Weiwei Li <liwei1518@gmail.com>, guo.wenjia23@zte.com.cn,
-	Gong Shuai <gong.shuai@sanechips.com.cn>,
-	Gong Shuai <gsh517@gmail.com>, liu.qingtao2@zte.com.cn,
-	Tony Luck <tony.luck@intel.com>, Babu Moger <babu.moger@amd.com>,
-	Peter Newman <peternewman@google.com>,
-	Fenghua Yu <fenghua.yu@intel.com>,
-	James Morse <james.morse@arm.com>, Ben Horgan <ben.horgan@arm.com>,
-	Dave Martin <Dave.Martin@arm.com>, Rob Herring <robh@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>,
-	Sunil V L <sunilvl@ventanamicro.com>, linux-kernel@vger.kernel.org,
-	linux-riscv@lists.infradead.org, x86@kernel.org,
-	linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev,
-	devicetree@vger.kernel.org,
-	Paul Walmsley <paul.walmsley@sifive.com>
-Subject: Re: [PATCH RFC v3 04/11] RISC-V: QoS: add CBQRI hardware interface
-Message-ID: <afQv4dpMHUonDJcJ@x1>
-References: <20260414-ssqosid-cbqri-rqsc-v7-0-v3-0-b3b2e7e9847a@kernel.org>
- <20260414-ssqosid-cbqri-rqsc-v7-0-v3-4-b3b2e7e9847a@kernel.org>
- <eeecb5df-64ee-46ef-b4a8-0f0cdc88f0ae@intel.com>
+	s=k20201202; t=1777636845;
+	bh=Prvv7B0ov4/EhjwbeFDd/isxbU+ETX0Tg1NWb+ujt4c=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=DC6M8WON5YvLORhN4QtI6pjt5reE5F0a+Wa1WMFUuH0ZsAr5ih8+mRJazO/x28+/j
+	 ImoTl4LyLMcbz1wKLFNc9UgYiyUhKOkaMGb+FvytX2LwqecmdtG+jdgbC8yNpJPxx2
+	 GzESMNHmqxZtUTb3BE87gJHegOpNtceIM33HAYPOJ5s2i0gRzo/dDdILWprKh/ecet
+	 uepihGtnJCB2Xt2q5VhEfuYuTrzyMgE3tyBGeotjkfCObc3YrswYP0f1kSjtEV2ka+
+	 ENvksu/nE+NHKDinzpaTAdmQqGtJRM+vJPE0XPbe9ZjepBibNHxoLZAmOEyu+3uAXI
+	 U9pfsXhb3qeGA==
+Received: by mail-lf1-f53.google.com with SMTP id 2adb3069b0e04-5a2c500750dso3289124e87.1
+        for <linux-acpi@vger.kernel.org>; Fri, 01 May 2026 05:00:45 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ88n9hn1hLBGHnYq+QzVHBCUvgFcEP8tRAT2yAw5jf73uFHcPHjlmIO1cRxznX1XEvYZ7xD151NBArj@vger.kernel.org
+X-Gm-Message-State: AOJu0YzN4iJA8Utmu+maquH0Wyq1B766NIRfxMWtPlq9mjmb+jd6Zdfg
+	FNiC79zzFmgRjs0jiIv2xYZnTcMzq6Y0Qj0e8sintKnh7ozgJx9b4+zxiIgxCDLJZAF33jzVIaG
+	nXN1BXIAdtcPTu/y3OPg37W/eqQPb3T4=
+X-Received: by 2002:a05:6512:1253:b0:5a2:b51a:6a55 with SMTP id
+ 2adb3069b0e04-5a8522d919emr2916721e87.29.1777636843461; Fri, 01 May 2026
+ 05:00:43 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <eeecb5df-64ee-46ef-b4a8-0f0cdc88f0ae@intel.com>
+References: <12879883.O9o76ZdvQC@rafael.j.wysocki> <CAGAxtY3h4sEphqKL-jiSn4p0NT9mdZtOFrVxW7CDo22XdL56iw@mail.gmail.com>
+ <CAJZ5v0ixuF=AQf0_VcPH=4jo5X-HbEB3WvJAnk8_fZes+bjyLg@mail.gmail.com>
+ <12909238.O9o76ZdvQC@rafael.j.wysocki> <CAGAxtY2J3vBJ9oUh1nt1c9ytRE_o=-rwk7nLKuDN==jW2kodbA@mail.gmail.com>
+In-Reply-To: <CAGAxtY2J3vBJ9oUh1nt1c9ytRE_o=-rwk7nLKuDN==jW2kodbA@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Fri, 1 May 2026 14:00:30 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0gX3O5rQ21WedZD8v-hJgBN=U67TwETGNuPquk4u+AhtQ@mail.gmail.com>
+X-Gm-Features: AVHnY4LyegHNXIktJOgi8NQ9SuD6HKNF69LprPtSs1OL2JnnuUQxHDKy9ENV8iw
+Message-ID: <CAJZ5v0gX3O5rQ21WedZD8v-hJgBN=U67TwETGNuPquk4u+AhtQ@mail.gmail.com>
+Subject: Re: Pressing the power button causes the device to freeze completely
+ (schedutil involved)
+To: Evgeny Sagatov <evgeny.sagatov@gmail.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Linux regressions mailing list <regressions@lists.linux.dev>, 
+	ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Thorsten Leemhuis <regressions@leemhuis.info>, 
+	LKML <linux-kernel@vger.kernel.org>, 
+	Wysocki Rafael J <rafael.j.wysocki@intel.com>, Vincent Guittot <vincent.guittot@linaro.org>, 
+	Linux PM <linux-pm@vger.kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, Apr 30, 2026 at 04:15:05PM -0700, Reinette Chatre wrote:
-> Hi Drew,
-> 
-> On 4/14/26 6:53 PM, Drew Fustini wrote:
-> > diff --git a/arch/riscv/kernel/qos/internal.h b/arch/riscv/kernel/qos/internal.h
-> > new file mode 100644
-> > index 000000000000..edbcbd9471b1
-> > --- /dev/null
-> > +++ b/arch/riscv/kernel/qos/internal.h
-> 
-> ...
-> 
-> > +
-> > +struct cbqri_config {
-> > +	u64 cbm; /* capacity block mask */
-> > +	u64 rbwb; /* reserved bandwidth blocks */
-> > +};
-> 
-> Is this struct necessary? From what I can tell it is used to pass a parameter to
-> cbqri_apply_cache_config() and cbqri_apply_bw_config() where each just picks the
-> one member of interest. Could parameter of interest just be provided directly to
-> cbqri_apply_cache_config() and cbqri_apply_bw_config() without bouncing it
-> through this struct first?
+On Fri, May 1, 2026 at 1:18=E2=80=AFAM Evgeny Sagatov <evgeny.sagatov@gmail=
+.com> wrote:
+>
+> Rafael,
+>
+> I'm leaving on vacation today. I'll be able to conduct new checks
+> starting May 17th.
 
-Agreed, the struct is unnecessary indirection. The two callers each
-write one field and read it back immediately. I will drop it and pass
-cbm / rbwb directly.
+Sure, thanks for the notice!
 
-> > +
-> > +#endif /* _ASM_RISCV_QOS_INTERNAL_H */
-> > diff --git a/arch/riscv/kernel/qos/qos_resctrl.c b/arch/riscv/kernel/qos/qos_resctrl.c
-> > new file mode 100644
-> > index 000000000000..6d294f2f2504
-> > --- /dev/null
-> > +++ b/arch/riscv/kernel/qos/qos_resctrl.c
-> > @@ -0,0 +1,432 @@
-> > +// SPDX-License-Identifier: GPL-2.0-only
-> > +
-> > +#define pr_fmt(fmt) "qos: resctrl: " fmt
-> > +
-> > +#include <linux/err.h>
-> > +#include <linux/io.h>
-> > +#include <linux/io-64-nonatomic-lo-hi.h>
-> > +#include <linux/iopoll.h>
-> > +#include <linux/ioport.h>
-> > +#include <linux/resctrl.h>
-> > +#include <linux/riscv_qos.h>
-> > +#include <linux/slab.h>
-> > +#include <linux/types.h>
-> > +#include <asm/csr.h>
-> > +#include <asm/qos.h>
-> > +#include "internal.h"
-> > +
-> > +static struct cbqri_resctrl_res cbqri_resctrl_resources[RDT_NUM_RESOURCES];
-> > +
-> > +static bool exposed_alloc_capable;
-> > +/* CDP (code data prioritization) on x86 is AT (access type) on RISC-V */
-> > +static bool exposed_cdp_l2_capable;
-> > +static bool exposed_cdp_l3_capable;
-> > +static bool is_cdp_l2_enabled;
-> > +static bool is_cdp_l3_enabled;
-> 
-> These CDP values could also be handled as part of struct cbqri_resctrl_res, similar
-> to how CDP is managed with struct rdt_hw_resource. There does seem to be a hidden
-> assumption in this implementation that if *any* cache controller at particular level
-> supports CDP (which will cause global exposed_cdp_l{2,3}_capable to be true) then all cache
-> controllers at that level are assumed to support CDP even though this property is
-> enumerated separately for every cache controller making it possible for this
-> support to not be uniform.
-> 
-> ...
+> Thanks for helping with resolving the issue!
 
-Good point. This is fixed in v4 which I was about to send. The
-controller-level cap is now stored on each controller as
-cc.supports_alloc_at_code and cc.supports_alloc_at_data, and
-cbqri_resctrl_pick_caches() rejects a heterogeneous-CDP set at the same
-cache level. Therefore, resctrl never sees a global-capable bit that
-some controllers cannot honour. I will take a look at folding this into
-struct cbqri_resctrl_res to make it simpler.
+No problem.
 
-> > +/* Perform capacity allocation control operation on capacity controller */
-> > +static int cbqri_cc_alloc_op(struct cbqri_controller *ctrl, int operation, int rcid,
-> > +			     enum resctrl_conf_type type)
-> > +{
-> > +	int reg_offset = CBQRI_CC_ALLOC_CTL_OFF;
-> > +	int status;
-> > +	u64 reg;
-> > +
-> > +	reg = ioread64(ctrl->base + reg_offset);
-> > +	reg &= ~CBQRI_CONTROL_REGISTERS_OP_MASK;
-> > +	reg |= FIELD_PREP(CBQRI_CONTROL_REGISTERS_OP_MASK, operation);
-> > +	reg &= ~CBQRI_CONTROL_REGISTERS_RCID_MASK;
-> > +	reg |= FIELD_PREP(CBQRI_CONTROL_REGISTERS_RCID_MASK, rcid);
-> > +
-> > +	/* CBQRI capacity AT is only supported on L2 and L3 caches for now */
-> > +	if (ctrl->type == CBQRI_CONTROLLER_TYPE_CAPACITY &&
-> > +	    ((ctrl->cache.cache_level == 2 && is_cdp_l2_enabled) ||
-> > +	    (ctrl->cache.cache_level == 3 && is_cdp_l3_enabled))) {
-> > +		reg &= ~CBQRI_CONTROL_REGISTERS_AT_MASK;
-> > +		switch (type) {
-> > +		case CDP_CODE:
-> > +			reg |= FIELD_PREP(CBQRI_CONTROL_REGISTERS_AT_MASK,
-> > +					  CBQRI_CONTROL_REGISTERS_AT_CODE);
-> > +			break;
-> > +		case CDP_DATA:
-> > +		default:
-> > +			reg |= FIELD_PREP(CBQRI_CONTROL_REGISTERS_AT_MASK,
-> > +					  CBQRI_CONTROL_REGISTERS_AT_DATA);
-> > +			break;
-> > +		}
-> > +	}
-> 
-> There does not seem to be any special enabling when resctrl enables CDP via
-> resctrl_arch_set_cdp_enabled() so I assume CDP is always enabled? Does that mean
-> that when CDP is disabled from resctrl perspective (thus, both is_cdp_l2_enabled
-> and is_cdp_l3_enabled are false, but exposed_cdp_l2_capable and exposed_cdp_l3_capable
-> are true) then the default behavior is that allocation applies to both code and data
-> and it is not necessary to set both CBQRI_CONTROL_REGISTERS_AT_CODE and
-> CBQRI_CONTROL_REGISTERS_AT_DATA?
-
-Good question. I think this is a bug. resctrl_arch_set_cdp_enabled() is
-implemented in v4 and toggles the is_cdp_l{2,3}_enabled flags. When CDP
-is disabled, the AT field is left at 0 in cbqri_cc_alloc_op(). But BQRI
-encodes AT=0 as data, so it only programs the data config and silently
-leaves code config at whatever the hardware default is.
-
-The fix would be to issue two CONFIG_LIMIT ops, AT=data and AT=code, for
-the same cbm when supports_alloc_at_code is true and CDP is disabled.
-Thanks for catching this.
-
-[..]
-> > +	/*
-> > +	 * max_rmid is used by resctrl_arch_system_num_rmid_idx()
-> > +	 * Find the smallest mcid_count amongst all controllers.
-> > +	 */
-> > +	max_rmid = min(max_rmid, ctrl->mcid_count);
-> 
-> This computation appears to include all controllers, whether they support monitoring or not.
-> What will ctrl->mcid_count be on a controller that does not support monitoring?
-
-Good catch. I will gate the minimum on ctrl->mon_capable.
-
-Thanks,
-Drew
+> =D1=87=D1=82, 30 =D0=B0=D0=BF=D1=80. 2026=E2=80=AF=D0=B3. =D0=B2 17:42, R=
+afael J. Wysocki <rafael@kernel.org>:
+> >
+> > On Thursday, April 30, 2026 3:57:41 PM CEST Rafael J. Wysocki wrote:
+> > > On Thu, Apr 30, 2026 at 1:41=E2=80=AFPM Evgeny Sagatov <evgeny.sagato=
+v@gmail.com> wrote:
+> > > >
+> > > > I noticed that for powersave mode, I'm getting the following values=
+:
+> > >
+> > > I guess you mean with the powersave governor.
+> > >
+> > > > cat /proc/cpuinfo | grep MHz
+> > > > cpu MHz         : 2798.689
+> > > > cpu MHz         : 1999.659
+> > > > cpu MHz         : 1999.797
+> > > > cpu MHz         : 2741.103
+> > > > Also, there's now no difference in the single-core benchmark betwee=
+n
+> > > > schedutil, ondemand, powersave and performance modes. The benchmark
+> > > > always gives a very high result.
+> > > > This wasn't the case before; the modes had different performance le=
+vels.
+> > >
+> > > I would expect schedutil, ondemand and performance to give similar
+> > > scores, but for powersave I would expect the score to be lower.
+> > >
+> > > With the same patch applied, can you please switch over to powersave,
+> > > reset the stats and then capture the output of
+> > >
+> > > grep -r . /sys/devices/system/cpu/cpufreq/
+> > >
+> > > Also, I'd still like to see the output of
+> > >
+> > > grep . /sys/firmware/acpi/interrupts/sci*
+> >
+> > Additionally, please remove all of the debug patches sent so far, apply
+> > the one below and send a dmesg boot log.
+> >
+> > I want to check if all of the CPUs use the same control values when
+> > they write to the frequency scaling control register.
+> >
+> > ---
+> >  drivers/cpufreq/acpi-cpufreq.c |   12 +++++++++---
+> >  drivers/cpufreq/cpufreq.c      |    1 +
+> >  2 files changed, 10 insertions(+), 3 deletions(-)
+> >
+> > --- a/drivers/cpufreq/acpi-cpufreq.c
+> > +++ b/drivers/cpufreq/acpi-cpufreq.c
+> > @@ -887,9 +887,14 @@ static int acpi_cpufreq_cpu_init(struct
+> >                  * unknown and not detectable via IO ports.
+> >                  */
+> >                 policy->cur =3D acpi_cpufreq_guess_freq(data, policy->c=
+pu);
+> > +               pr_info("CPU%u: Using I/O space for frequency scaling\n=
+", cpu);
+> > +               pr_info("CPU%u: frequency scaling control address: %llu=
+, bit width: %u\n",
+> > +                       cpu, perf->control_register.address,
+> > +                       perf->control_register.bit_width);
+> >                 break;
+> >         case ACPI_ADR_SPACE_FIXED_HARDWARE:
+> >                 acpi_cpufreq_driver.get =3D get_cur_freq_on_cpu;
+> > +               pr_info("CPU%u: Using FFH for frequency scaling\n", cpu=
+);
+> >                 break;
+> >         default:
+> >                 break;
+> > @@ -898,13 +903,14 @@ static int acpi_cpufreq_cpu_init(struct
+> >         /* notify BIOS that we exist */
+> >         acpi_processor_notify_smm(THIS_MODULE);
+> >
+> > -       pr_debug("CPU%u - ACPI performance management activated.\n", cp=
+u);
+> > +       pr_info("CPU%u - ACPI performance management activated.\n", cpu=
+);
+> >         for (i =3D 0; i < perf->state_count; i++)
+> > -               pr_debug("     %cP%d: %d MHz, %d mW, %d uS\n",
+> > +               pr_info("     %cP%d: %d MHz, %d mW, %d uS, %u\n",
+> >                         (i =3D=3D perf->state ? '*' : ' '), i,
+> >                         (u32) perf->states[i].core_frequency,
+> >                         (u32) perf->states[i].power,
+> > -                       (u32) perf->states[i].transition_latency);
+> > +                       (u32) perf->states[i].transition_latency,
+> > +                       (u32) perf->states[i].control);
+> >
+> >         /*
+> >          * the first call to ->target() should result in us actually
+> > --- a/drivers/cpufreq/cpufreq.c
+> > +++ b/drivers/cpufreq/cpufreq.c
+> > @@ -473,6 +473,7 @@ void cpufreq_enable_fast_switch(struct c
+> >         if (cpufreq_fast_switch_count >=3D 0) {
+> >                 cpufreq_fast_switch_count++;
+> >                 policy->fast_switch_enabled =3D true;
+> > +               pr_info("CPU%u: Fast frequency switching enabled\n", po=
+licy->cpu);
+> >         } else {
+> >                 pr_warn("CPU%u: Fast frequency switching not enabled\n"=
+,
+> >                         policy->cpu);
+> >
+> >
+> >
+> >
