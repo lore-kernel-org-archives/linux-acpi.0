@@ -1,147 +1,250 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0F2E36A030;
-	Fri,  1 May 2026 22:56:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13E2132A3E1;
+	Sat,  2 May 2026 16:49:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.12
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777676167; cv=none; b=JnoJhTHFXSbWwTSvR4VKrkwHxNSoZUqpTVVcmU0dAKpSlZJFNux7v4g1Ohs0zvU+wmuue7l61P/i70j70ko4oXmEGKyf371M7pJkT5V9NatlHSJwH8pW/dhP56GP+7xRo7fEVrSlb+uCLSKglMTB23NjbPuZZa6sW0PuntqEe4w=
+	t=1777740569; cv=none; b=rnrqpMV5JhOJjPwd1yszoq1XIYjyAR72LvpEgN1UH16FcgTma8KyV9c71hSx23tHLwZo7ulYL0pgrFlENyD71B41ZxlTSP3LgnQ+2bDzwc/CTN62tlwRDhCfqj4NWUqL+KebAMhG4zRp8p8Eocc9IivTok5sYSyqDKoaCy/2A6k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777676167; c=relaxed/simple;
-	bh=1iwI2aafpKey+TcNpyfdl6cbDQtnncXbzDesvM+TRLI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=mpEvm/ygj9URzhMN9J/BzYeW9EOTWjOLtHH96S9gOl3nIROpCk3gkfZwmREu8Lx/2/cQrFmC1ZF5AVKj3YfeDUz4IOwEXokV8a/PERzeJUnmd4m+xOYI7ekDrG4d/GlrFVrDu+ntjbzxp0aqkmqvYuHHXmALnOyELTgT1ILo9YE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=tVWaxZw9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777740569; c=relaxed/simple;
+	bh=cd91LKasQwNVroGebur+8tYpBxZcvzvH5Oljam35N9o=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=YTmj6RKazFrLieibuF9r+zPPqp6IwVCkalMq5Jwfn0CQeuO8Ay1XAJy5cwnM+LXDc+70caBo3AJMJmVyGrBj+8g6giTuYsgTacYOUz3TQnHVEPba0CM9oG5IyVbEIKdc/55B0nTxw3Hh69BMW2KqHU+AblxMNze5G5HoaNIDsZA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Ecl0FLZl; arc=none smtp.client-ip=192.198.163.12
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="tVWaxZw9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C758C2BCB4;
-	Fri,  1 May 2026 22:56:07 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1777676167;
-	bh=1iwI2aafpKey+TcNpyfdl6cbDQtnncXbzDesvM+TRLI=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=tVWaxZw91EPxSiL0niMsYUnvbV+iahQvNTUpd2iooPHMe2tXk4F+76ugSAQB+ZfyL
-	 83MAIleVOYBCp16xg9ptRPFXaa5CCJuvu0ZZT7oNDHUKJwO13e2CEPYgPbFUQqDyCu
-	 KGhC6IMSFarh6xghANHhjuz2NVGGt4GF2uKMpgc7LstKNdacnhtV6vveZoHzetcClP
-	 M0hfNwdQnIFUvxOAcHaldKZsxFP3wAa74ssiZqk67KGHol/SyCHyPq0cZ1s9gtwFCN
-	 dWeB8uLQgq9hWxQYORvT72I2PTp6YmIWELyLBEs7VvsM9aFg076a15zuwo1Pq2ACAW
-	 FRSa9mf8D8Caw==
-Date: Fri, 1 May 2026 15:56:05 -0700
-From: Drew Fustini <fustini@kernel.org>
-To: Reinette Chatre <reinette.chatre@intel.com>
-Cc: Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>,
-	Albert Ou <aou@eecs.berkeley.edu>, Alexandre Ghiti <alex@ghiti.fr>,
-	Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar@ventanamicro.com>,
-	Samuel Holland <samuel.holland@sifive.com>,
-	Adrien Ricciardi <aricciardi@baylibre.com>,
-	Nicolas Pitre <npitre@baylibre.com>,
-	Kornel =?utf-8?Q?Dul=C4=99ba?= <mindal@semihalf.com>,
-	Atish Patra <atish.patra@linux.dev>,
-	Atish Kumar Patra <atishp@rivosinc.com>,
-	Vasudevan Srinivasan <vasu@rivosinc.com>,
-	Ved Shanbhogue <ved@rivosinc.com>,
-	Conor Dooley <conor.dooley@microchip.com>,
-	yunhui cui <cuiyunhui@bytedance.com>,
-	Chen Pei <cp0613@linux.alibaba.com>,
-	Liu Zhiwei <zhiwei_liu@linux.alibaba.com>,
-	Weiwei Li <liwei1518@gmail.com>, guo.wenjia23@zte.com.cn,
-	Gong Shuai <gong.shuai@sanechips.com.cn>,
-	Gong Shuai <gsh517@gmail.com>, liu.qingtao2@zte.com.cn,
-	Tony Luck <tony.luck@intel.com>, Babu Moger <babu.moger@amd.com>,
-	Peter Newman <peternewman@google.com>,
-	Fenghua Yu <fenghua.yu@intel.com>,
-	James Morse <james.morse@arm.com>, Ben Horgan <ben.horgan@arm.com>,
-	Dave Martin <Dave.Martin@arm.com>, Rob Herring <robh@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>,
-	Sunil V L <sunilvl@ventanamicro.com>, linux-kernel@vger.kernel.org,
-	linux-riscv@lists.infradead.org, x86@kernel.org,
-	linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev,
-	devicetree@vger.kernel.org,
-	Paul Walmsley <paul.walmsley@sifive.com>
-Subject: Re: [PATCH RFC v3 06/11] RISC-V: QoS: add resctrl setup and domain
- management
-Message-ID: <afUvhf4SdKVjLqfk@x1>
-References: <20260414-ssqosid-cbqri-rqsc-v7-0-v3-0-b3b2e7e9847a@kernel.org>
- <20260414-ssqosid-cbqri-rqsc-v7-0-v3-6-b3b2e7e9847a@kernel.org>
- <9a8860a5-f63f-497c-ade9-6f64286abff0@intel.com>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Ecl0FLZl"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1777740568; x=1809276568;
+  h=date:from:to:cc:subject:message-id;
+  bh=cd91LKasQwNVroGebur+8tYpBxZcvzvH5Oljam35N9o=;
+  b=Ecl0FLZlu+a0yvjRAF6eH+AJFGAUtEkCxRWXTgelRr9X4nV7jfcUmo6V
+   af6WrywoCkzgR9Wri+Z0bmccpTLftcrKgRQ8vUEhf/V6QCnnsmusz3COM
+   BvgAL26pyOWSIg9T0P8prLIQ+YIkoacvo676wmdoHe9MustMvV+nnLGMB
+   +deT/Y3hEYVVvj5SafX0CAUY0fSZArxC0f/JRCTuu3sIEqPQJws1oPpfk
+   ggyQlMzKnssKgwurtEJ+YPfNOqsaH5mdCTwHX5jnnY5l9L2ZTN/jrHPvo
+   Z8szfSQVpghJK9RPXowzuqkPsqdMHuCC04IiIl/YNO2rBkrl6NDhL9Zg/
+   g==;
+X-CSE-ConnectionGUID: CNR3ywisS9+Ak89Yw295FA==
+X-CSE-MsgGUID: e/DCHfIJQiKP/0uHC//3IA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11774"; a="82522640"
+X-IronPort-AV: E=Sophos;i="6.23,212,1770624000"; 
+   d="scan'208";a="82522640"
+Received: from fmviesa008.fm.intel.com ([10.60.135.148])
+  by fmvoesa106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 May 2026 09:49:28 -0700
+X-CSE-ConnectionGUID: nvQPzf3lRFeMVhvJb9z2FQ==
+X-CSE-MsgGUID: /+PK2PzGQNOo1BcjRPvLQw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,212,1770624000"; 
+   d="scan'208";a="232479486"
+Received: from lkp-server01.sh.intel.com (HELO 781826d00641) ([10.239.97.150])
+  by fmviesa008.fm.intel.com with ESMTP; 02 May 2026 09:49:26 -0700
+Received: from kbuild by 781826d00641 with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1wJDWt-000000001bN-3GoB;
+	Sat, 02 May 2026 16:49:23 +0000
+Date: Sun, 03 May 2026 00:48:57 +0800
+From: kernel test robot <lkp@intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+Subject: [rafael-pm:bleeding-edge] BUILD SUCCESS
+ 2c1a59d5298cc73d41fa37cc761a343e8ecce43e
+Message-ID: <202605030038.UYt4cuTV-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <9a8860a5-f63f-497c-ade9-6f64286abff0@intel.com>
 
-On Thu, Apr 30, 2026 at 04:20:09PM -0700, Reinette Chatre wrote:
-> Hi Drew,
-> 
-> On 4/14/26 6:54 PM, Drew Fustini wrote:
-> > +
-> > +static int qos_resctrl_add_controller_domain(struct cbqri_controller *ctrl)
-> > +{
-> > +	struct rdt_ctrl_domain *domain;
-> > +	struct cbqri_resctrl_res *cbqri_res = NULL;
-> > +	struct rdt_resource *res = NULL;
-> > +	struct list_head *pos = NULL;
-> > +	int err;
-> > +
-> > +	domain = qos_new_domain(ctrl);
-> > +	if (!domain)
-> > +		return -ENOSPC;
-> > +
-> > +	switch (ctrl->type) {
-> > +	case CBQRI_CONTROLLER_TYPE_CAPACITY:
-> > +		cpumask_copy(&domain->hdr.cpu_mask, &ctrl->cache.cpu_mask);
-> 
-> Looking at patch #10 ctrl->cache.cpu_mask contains all CPUs associated with cache
-> even if they are offline. This is not what resctrl expects. Instead the expectation is
-> that a domain exists and is online (hence "resctrl_online_ctrl_domain()") if at least one CPU
-> belonging to that domain is online and domain->hdr.cpu_mask lists all the *online* CPUs
-> associated with that domain.
-> This is why resctrl always takes the CPU hotplug lock when traversing the domain
-> lists.
-> 
-> I thus expected this initialization to be split between an early initialization of
-> resource capabilities and then domain initialization as part of the CPU online/offline
-> handlers.
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
+branch HEAD: 2c1a59d5298cc73d41fa37cc761a343e8ecce43e  Merge branch 'pm-tools' into bleeding-edge
 
-Good point. I'll rework this so that domain allocation moves to the cpu
-online/offline handlers.
+elapsed time: 2684m
 
-[..]
-> > +	if (pos)
-> > +		list_add_tail(&domain->hdr.list, pos);
-> > +	else
-> > +		list_add_tail(&domain->hdr.list, &res->ctrl_domains);
-> 
-> resctrl_find_domain() returns NULL if it cannot find an existing domain, in that
-> case it initializes "pos" to support adding a new domain in a sorted list.
-> Expectation is that domains are managed as part of CPU hotplug handlers. When
-> a CPU comes online then handler can check if the domain it belongs to already exists,
-> if it does then the CPU can just be added to that domain's cpu_mask, if it does
-> not then a new domain is created and added in the the appropriate spot in the
-> sorted list (based on domain ID) of domains. 
+configs tested: 173
+configs skipped: 2
 
-Okay, I'll move this from probe to qos_resctrl_online_cpu().
+The following configs have been built successfully.
+More configs may be tested in the coming days.
 
-> > +int qos_resctrl_online_cpu(unsigned int cpu)
-> > +{
-> > +	resctrl_online_cpu(cpu);
-> 
-> This is where a domain is expected to be added when its first CPU comes online.
-[..]
-> > +int qos_resctrl_offline_cpu(unsigned int cpu)
-> > +{
-> > +	resctrl_offline_cpu(cpu);
-> 
-> This is where a domain is expected to be removed when its last CPU goes offline.
+tested configs:
+alpha                             allnoconfig    gcc-15.2.0
+alpha                            allyesconfig    gcc-15.2.0
+alpha                               defconfig    gcc-15.2.0
+arc                              allmodconfig    clang-16
+arc                               allnoconfig    gcc-15.2.0
+arc                              allyesconfig    clang-23
+arc                                 defconfig    gcc-15.2.0
+arc                            randconfig-001    gcc-8.5.0
+arc                   randconfig-001-20260502    gcc-8.5.0
+arc                            randconfig-002    gcc-8.5.0
+arc                   randconfig-002-20260502    gcc-8.5.0
+arm                               allnoconfig    gcc-15.2.0
+arm                              allyesconfig    clang-16
+arm                                 defconfig    gcc-15.2.0
+arm                            randconfig-001    gcc-8.5.0
+arm                   randconfig-001-20260502    gcc-8.5.0
+arm                            randconfig-002    gcc-8.5.0
+arm                   randconfig-002-20260502    gcc-8.5.0
+arm                            randconfig-003    gcc-8.5.0
+arm                   randconfig-003-20260502    gcc-8.5.0
+arm                            randconfig-004    gcc-8.5.0
+arm                   randconfig-004-20260502    gcc-8.5.0
+arm64                            allmodconfig    clang-23
+arm64                             allnoconfig    gcc-15.2.0
+arm64                               defconfig    gcc-15.2.0
+arm64                          randconfig-001    gcc-10.5.0
+arm64                 randconfig-001-20260502    gcc-10.5.0
+arm64                          randconfig-002    gcc-10.5.0
+arm64                 randconfig-002-20260502    gcc-10.5.0
+arm64                          randconfig-003    gcc-10.5.0
+arm64                 randconfig-003-20260502    gcc-10.5.0
+arm64                          randconfig-004    gcc-10.5.0
+arm64                 randconfig-004-20260502    gcc-10.5.0
+csky                             allmodconfig    gcc-15.2.0
+csky                              allnoconfig    gcc-15.2.0
+csky                                defconfig    gcc-15.2.0
+csky                           randconfig-001    gcc-10.5.0
+csky                  randconfig-001-20260502    gcc-10.5.0
+csky                           randconfig-002    gcc-10.5.0
+csky                  randconfig-002-20260502    gcc-10.5.0
+hexagon                          allmodconfig    gcc-15.2.0
+hexagon                           allnoconfig    gcc-15.2.0
+hexagon                             defconfig    gcc-15.2.0
+hexagon               randconfig-001-20260502    clang-23
+hexagon               randconfig-002-20260502    clang-23
+i386                             allmodconfig    clang-20
+i386                              allnoconfig    gcc-15.2.0
+i386                             allyesconfig    clang-20
+i386        buildonly-randconfig-001-20260502    gcc-14
+i386        buildonly-randconfig-002-20260502    gcc-14
+i386        buildonly-randconfig-003-20260502    gcc-14
+i386        buildonly-randconfig-004-20260502    gcc-14
+i386        buildonly-randconfig-005-20260502    gcc-14
+i386        buildonly-randconfig-006-20260502    gcc-14
+i386                                defconfig    gcc-15.2.0
+loongarch                        allmodconfig    clang-23
+loongarch                         allnoconfig    gcc-15.2.0
+loongarch                           defconfig    clang-19
+loongarch             randconfig-001-20260502    clang-23
+loongarch             randconfig-002-20260502    clang-23
+m68k                             allmodconfig    gcc-15.2.0
+m68k                              allnoconfig    gcc-15.2.0
+m68k                             allyesconfig    clang-16
+m68k                                defconfig    clang-19
+m68k                        mvme147_defconfig    gcc-15.2.0
+microblaze                        allnoconfig    gcc-15.2.0
+microblaze                       allyesconfig    gcc-15.2.0
+microblaze                          defconfig    clang-19
+mips                             allmodconfig    gcc-15.2.0
+mips                              allnoconfig    gcc-15.2.0
+mips                             allyesconfig    gcc-15.2.0
+nios2                            allmodconfig    clang-23
+nios2                             allnoconfig    clang-23
+nios2                               defconfig    clang-19
+nios2                 randconfig-001-20260502    clang-23
+nios2                 randconfig-002-20260502    clang-23
+openrisc                         allmodconfig    clang-23
+openrisc                          allnoconfig    clang-23
+openrisc                            defconfig    gcc-15.2.0
+parisc                           allmodconfig    gcc-15.2.0
+parisc                            allnoconfig    clang-23
+parisc                           allyesconfig    clang-19
+parisc                              defconfig    gcc-15.2.0
+parisc                         randconfig-001    gcc-12.5.0
+parisc                randconfig-001-20260502    gcc-12.5.0
+parisc                         randconfig-002    gcc-12.5.0
+parisc                randconfig-002-20260502    gcc-12.5.0
+parisc64                            defconfig    clang-19
+powerpc                          allmodconfig    gcc-15.2.0
+powerpc                           allnoconfig    clang-23
+powerpc                        randconfig-001    gcc-12.5.0
+powerpc               randconfig-001-20260502    gcc-12.5.0
+powerpc                        randconfig-002    gcc-12.5.0
+powerpc               randconfig-002-20260502    gcc-12.5.0
+powerpc64                      randconfig-001    gcc-12.5.0
+powerpc64             randconfig-001-20260502    gcc-12.5.0
+powerpc64                      randconfig-002    gcc-12.5.0
+powerpc64             randconfig-002-20260502    gcc-12.5.0
+riscv                            allmodconfig    clang-23
+riscv                             allnoconfig    clang-23
+riscv                            allyesconfig    clang-16
+riscv                               defconfig    gcc-15.2.0
+riscv                 randconfig-001-20260502    gcc-14.3.0
+riscv                 randconfig-002-20260502    gcc-14.3.0
+s390                             allmodconfig    clang-19
+s390                              allnoconfig    clang-23
+s390                             allyesconfig    gcc-15.2.0
+s390                                defconfig    gcc-15.2.0
+s390                  randconfig-001-20260502    gcc-14.3.0
+s390                  randconfig-002-20260502    gcc-14.3.0
+sh                               allmodconfig    gcc-15.2.0
+sh                                allnoconfig    clang-23
+sh                               allyesconfig    clang-19
+sh                                  defconfig    gcc-14
+sh                    randconfig-001-20260502    gcc-14.3.0
+sh                    randconfig-002-20260502    gcc-14.3.0
+sh                      rts7751r2d1_defconfig    gcc-15.2.0
+sparc                             allnoconfig    clang-23
+sparc                               defconfig    gcc-15.2.0
+sparc                 randconfig-001-20260502    gcc-8.5.0
+sparc                 randconfig-002-20260502    gcc-8.5.0
+sparc64                          allmodconfig    clang-23
+sparc64                             defconfig    gcc-14
+sparc64               randconfig-001-20260502    gcc-8.5.0
+sparc64               randconfig-002-20260502    gcc-8.5.0
+um                               allmodconfig    clang-19
+um                                allnoconfig    clang-23
+um                               allyesconfig    gcc-15.2.0
+um                                  defconfig    gcc-14
+um                             i386_defconfig    gcc-14
+um                    randconfig-001-20260502    gcc-8.5.0
+um                    randconfig-002-20260502    gcc-8.5.0
+um                           x86_64_defconfig    gcc-14
+x86_64                           allmodconfig    clang-20
+x86_64                            allnoconfig    clang-23
+x86_64                           allyesconfig    clang-20
+x86_64               buildonly-randconfig-001    clang-20
+x86_64      buildonly-randconfig-001-20260502    clang-20
+x86_64               buildonly-randconfig-002    clang-20
+x86_64      buildonly-randconfig-002-20260502    clang-20
+x86_64               buildonly-randconfig-003    clang-20
+x86_64      buildonly-randconfig-003-20260502    clang-20
+x86_64               buildonly-randconfig-004    clang-20
+x86_64      buildonly-randconfig-004-20260502    clang-20
+x86_64               buildonly-randconfig-005    clang-20
+x86_64      buildonly-randconfig-005-20260502    clang-20
+x86_64               buildonly-randconfig-006    clang-20
+x86_64      buildonly-randconfig-006-20260502    clang-20
+x86_64                              defconfig    gcc-14
+x86_64                                  kexec    clang-20
+x86_64                randconfig-001-20260502    clang-20
+x86_64                randconfig-002-20260502    clang-20
+x86_64                randconfig-003-20260502    clang-20
+x86_64                randconfig-004-20260502    clang-20
+x86_64                randconfig-005-20260502    clang-20
+x86_64                randconfig-006-20260502    clang-20
+x86_64                randconfig-071-20260502    gcc-14
+x86_64                randconfig-072-20260502    gcc-14
+x86_64                randconfig-073-20260502    gcc-14
+x86_64                randconfig-074-20260502    gcc-14
+x86_64                randconfig-075-20260502    gcc-14
+x86_64                randconfig-076-20260502    gcc-14
+x86_64                               rhel-9.4    clang-20
+x86_64                           rhel-9.4-bpf    gcc-14
+x86_64                          rhel-9.4-func    clang-20
+x86_64                    rhel-9.4-kselftests    clang-20
+x86_64                         rhel-9.4-kunit    gcc-14
+x86_64                           rhel-9.4-ltp    gcc-14
+x86_64                          rhel-9.4-rust    clang-20
+xtensa                            allnoconfig    clang-23
+xtensa                           allyesconfig    clang-23
+xtensa                randconfig-001-20260502    gcc-8.5.0
+xtensa                randconfig-002-20260502    gcc-8.5.0
 
-Okay, I'll update v4 to add and remove domains in these hooks.
-
-Thanks,
-Drew
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
