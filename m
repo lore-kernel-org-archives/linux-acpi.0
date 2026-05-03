@@ -1,109 +1,151 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f48.google.com (mail-wm1-f48.google.com [209.85.128.48])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4229D1519B4;
-	Sun,  3 May 2026 01:02:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4AC53C8700
+	for <linux-acpi@vger.kernel.org>; Sun,  3 May 2026 14:19:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.48
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777770120; cv=none; b=UxkqAeFhcjp6w8v9vdKyafmk540d1sxHGpJef/eUZuHVaNJbqs0eQX2osaMlS8Jv7a5piawOotb7FvTcbabajxANvt4pHcIR2S/rVj0CcQkzf4kprbkl+rKM/VfFBcSPIle1R9eU85Eo1lpc70Ja/XkD4OJDndSuzmfMF3dY1c4=
+	t=1777817942; cv=none; b=oOtpbTrd7kIrDSUHSwCnv1pJpbw2OtYIvSrOQxBcrHsrimGeqyQOfg2qRYJxIJ5KVa3Lr1XvnWtvOJ+H7lLNLY0VTccPMkGmTh7vAJEhAtYCkTX5e843WjfhJf1quPKVBuJ1sRm6MYac03NbJ3DDiT6BSPC0rslieBjwaroXoSM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777770120; c=relaxed/simple;
-	bh=BejErdLjcloUq8b5PniyViDnyXSa8nSLqZwJTPcujYs=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=fHE5byNamjYHH+W3hEILi4ShwWKo6710osFrZHMmfSUuXjckUaqVSOEcuz3TYg8eQrV5HBBD4B2vQB0Pj66Vky/bQQtyFkNMOL8y0DXKrwm9PCDRKkNXmZod5IT0/qRLIDdMpIFwrXrZAyHrRhqs3iXwxjWdOC6olbi3guQYa7U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=pDysEjuQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777817942; c=relaxed/simple;
+	bh=k2g4JV1KUrs12s7qAM9odomL0DLieqxgng3pruwzcJc=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=D4A+Ndun65db2HXSna4EP+s23PuzS+CmaFEJY3daUQk66jU9wu3RlklUyAY8vJ2eyTod3LLlHMvqFoqohk10dQcSp0ajutBfnbvaELyc2okJl9TI+Jd75J7fu5cC2yMNIJDr/wsOJwE2hDw9zvRKQV5jSSeN3fJwkle2HzR15LU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=FxCxleWV; arc=none smtp.client-ip=209.85.128.48
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="pDysEjuQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD9B7C19425;
-	Sun,  3 May 2026 01:01:59 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1777770120;
-	bh=BejErdLjcloUq8b5PniyViDnyXSa8nSLqZwJTPcujYs=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=pDysEjuQPcQ7jBSc1PFLCXCQ7pK5ItVVQyrqU8Gyl4viLnzTzP2w4VpjqCHLJKBOz
-	 usCZwjN9TDEfMj+cYa/33gOuSAt5nfamthqjp2AwRw35TvA18BnbXfGLYy1SIVi+Ku
-	 VpWJwmybN+1cdODsbyvSrF+RnXTLNgYjfKVg/rwFv0jz8VagDW4WlBsPMrVvnUQOsk
-	 x0UORuIs/mzc+UZ23N9WOgWRhQIL1pEqmyqwfrplHpTqh2Tj2KvS7aUgLuEY24jKBA
-	 6CeeawTTgroCGO+uJyDnpedMO+hrK0I2xks0sYaSGBYzPCGs8qi6e2RJLzNqaeVHvk
-	 dbgY9KLTOb/dQ==
-Received: by finisterre.sirena.org.uk (Postfix, from userid 1000)
-	id 45A1E1AC5865; Sun, 03 May 2026 02:01:57 +0100 (BST)
-Date: Sun, 3 May 2026 10:01:57 +0900
-From: Mark Brown <broonie@kernel.org>
-To: Leonardo Bras <leo.bras@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will@kernel.org>, Marc Zyngier <maz@kernel.org>,
-	Oliver Upton <oupton@kernel.org>, Joey Gouly <joey.gouly@arm.com>,
-	Suzuki K Poulose <suzuki.poulose@arm.com>,
-	Zenghui Yu <yuzenghui@huawei.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>, Saket Dumbre <saket.dumbre@intel.com>,
-	Paolo Bonzini <pbonzini@redhat.com>,
-	Chengwen Feng <fengchengwen@huawei.com>,
-	Jonathan Cameron <jic23@kernel.org>, Kees Cook <kees@kernel.org>,
-	=?utf-8?Q?Miko=C5=82aj?= Lenczewski <miko.lenczewski@arm.com>,
-	Ryan Roberts <ryan.roberts@arm.com>,
-	Yang Shi <yang@os.amperecomputing.com>,
-	Thomas Huth <thuth@redhat.com>,
-	mrigendrachaubey <mrigendra.chaubey@gmail.com>,
-	Yeoreum Yun <yeoreum.yun@arm.com>,
-	Kevin Brodsky <kevin.brodsky@arm.com>,
-	James Clark <james.clark@linaro.org>,
-	Ard Biesheuvel <ardb@kernel.org>, Fuad Tabba <tabba@google.com>,
-	Raghavendra Rao Ananta <rananta@google.com>,
-	Nathan Chancellor <nathan@kernel.org>,
-	Vincent Donnefort <vdonnefort@google.com>,
-	Lorenzo Pieralisi <lpieralisi@kernel.org>,
-	Sascha Bischoff <Sascha.Bischoff@arm.com>,
-	Anshuman Khandual <anshuman.khandual@arm.com>,
-	Tian Zheng <zhengtian10@huawei.com>,
-	Wei-Lin Chang <weilin.chang@arm.com>, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, kvmarm@lists.linux.dev,
-	linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev,
-	kvm@vger.kernel.org
-Subject: Re: [PATCH v1 04/12] arm64/sysreg: Add HACDBS consumer and base
- registers
-Message-ID: <afaehWCHVIN7EXNB@sirena.co.uk>
-References: <20260430111424.3479613-2-leo.bras@arm.com>
- <20260430111424.3479613-6-leo.bras@arm.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FxCxleWV"
+Received: by mail-wm1-f48.google.com with SMTP id 5b1f17b1804b1-4891b0786beso22442765e9.1
+        for <linux-acpi@vger.kernel.org>; Sun, 03 May 2026 07:19:00 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1777817939; x=1778422739; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=D31Kjx5p4Zz0J/9eHZzNKvFTByn7RU7HP4MuPEMcbXY=;
+        b=FxCxleWVN7MUblEkz+DTBFfykM3uOd4ljZpkD8n02Xxh0N21/QcqUoIxh1P7lNZSVP
+         S4bUEfUp8j7DmN2JpD8x0EKYLqDZG+CjqgvRtNACbTrI8caK2156xKy1pk3YLbO2xoWL
+         n+WDd36/Bwhqk8tyFP7VzWLEt8q3HmolSgzTixH4Btwbz5FtU6wcoO/Bv4Vonm9EPeYx
+         9AxLBrW0RsrigQCXe47Nj9IdgH4WpJR90fQhmvkHqVo38IRNur2bcQd66hAWdr9sojOm
+         FJyJaFOAdzyyYcuIfTmGeTB4IwcFEeKJsiwbXFyHz9Cnk6pDGMhPzm3dla29nD6qESZB
+         agNw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1777817939; x=1778422739;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=D31Kjx5p4Zz0J/9eHZzNKvFTByn7RU7HP4MuPEMcbXY=;
+        b=LU0mrrYABNvbiP2L1T//1c+cYx6cASjGPYmwr9/pNfHEGHJxpfL52Hw8uHfboCfLhB
+         048b6IMJVvEyv0YFmIg9gBKvZjUvgv6ZSbn1fiUMv3DL6jA8oQj35zZIOVMwSk7H9lkM
+         GtB+jdhQA3MKdjB8cC2rsHx2u85ejTijENBc947PeFLH6fYnzInrtUMMSiiPdRgNv+qU
+         Ds3ffOHtZa3pyE6GT/lULIcm9gCPl5QqmDXnzaMUzod5yX0JaVQiW+/quPE29zHGfbEP
+         IELGBU1hYGUlQtY962qGzI49ACdP812jiU+hHnSZ6x2sfliOQHGPrqy8MQVkvGYFTJf5
+         pgdQ==
+X-Forwarded-Encrypted: i=1; AFNElJ+y7Ga4bvzrNm+qCahNX6mI4yBGWqXaanKuC/HcHFJsn5uGdIWTqOXFQ8DRli+GdWPyMp9jbFdr5oZV@vger.kernel.org
+X-Gm-Message-State: AOJu0YyzVy3xdQCQjZBRbAbh514l7H7gr7jOh9SHw7hMHZgqnbTfqXDk
+	o9x1fIDQ2Lf3STqCxHIDe5Oj3G9LF3FIKaaruyrYziUCeARCie25Ha2B
+X-Gm-Gg: AeBDievZf0uMWMgzktJbFE4BAQ+L2yW1Wc5LApekvceQCky6i8982I+sXZn6LuBKtXW
+	VUJ7ppsi8odNv+hnLeGwNyqXrLIqQcPNH/dh2yBbPLPF8E1ARt9TzwBZMd+XPSCAcvAL/t2RpH9
+	ZSsSPR+gFGcv4DfA8KsKPkSXs1JDY8+QpCAya+WC0zm7vS8bRX7ke6v3cwOtCiITZQLLjN/RPk8
+	WhOMePXgKHUAtVot33EiNLQo2Vw29bzgaBoNgE8DzcbwAjCkuX5PYnvlxwO2evmTu6z+3t8F7Ai
+	T9GccNIMG2I2MbG6Nz8schJujEo+2SBCl/nDUZfvVatrwOUIeVsUMUJLN7jwGqglSmUKWscn68b
+	Aey156BiJuXgPNJJmxTZbc6Ugf+GPAgJGNtAVGbi825gzdfCLWDX0NVeuFVWHZCrEQyy72uiaYB
+	VukeGC4jwUptSRPz1gN0D5RZMdywJrlxhyopVWkZgj/9BA2LHPyQGOPGy6ER5MOjyDhvXNGP/Q3
+	gN3hzo=
+X-Received: by 2002:a05:600c:698d:b0:487:2439:b7be with SMTP id 5b1f17b1804b1-48a9852f4b9mr100217425e9.6.1777817939042;
+        Sun, 03 May 2026 07:18:59 -0700 (PDT)
+Received: from ?IPV6:2a01:e11:202b:40:68b1:8d59:e348:c16e? ([2a01:e11:202b:40:68b1:8d59:e348:c16e])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-48a8eb75fc1sm209044485e9.7.2026.05.03.07.18.57
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sun, 03 May 2026 07:18:58 -0700 (PDT)
+Message-ID: <a42767b8-7a0c-4202-9132-be8fa65baabc@gmail.com>
+Date: Sun, 3 May 2026 16:18:57 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="WmuCcD5bxYsJvAXW"
-Content-Disposition: inline
-In-Reply-To: <20260430111424.3479613-6-leo.bras@arm.com>
-X-Cookie: 667:
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] gpiolib: acpi: Only trigger ActiveBoth interrupts on boot
+To: Hans de Goede <hansg@kernel.org>,
+ Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Mario Limonciello <mario.limonciello@amd.com>, westeri@kernel.org,
+ linusw@kernel.org, brgl@kernel.org, bentiss@kernel.org,
+ Francesco Lauritano <francesco.lauritano1@protonmail.com>,
+ Armin Wolf <W_Armin@gmx.de>, mika.westerberg@linux.intel.com,
+ linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
+References: <20260429025247.1372984-1-mario.limonciello@amd.com>
+ <6f359bec-2525-40e9-9994-15b16fb82f12@kernel.org>
+ <afHcUTi5QNq8LlIb@ashevche-desk.local>
+ <c7fb45be-f53f-461f-b7a2-8298e5c7df05@kernel.org>
+Content-Language: en-US
+From: Marco Scardovi <mscardovi95@gmail.com>
+In-Reply-To: <c7fb45be-f53f-461f-b7a2-8298e5c7df05@kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
 
---WmuCcD5bxYsJvAXW
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On 4/29/26 13:01, Hans de Goede wrote:
+> Hi,
+>
+> On 29-Apr-26 12:24, Andy Shevchenko wrote:
+>> On Wed, Apr 29, 2026 at 11:48:13AM +0200, Hans de Goede wrote:
+>>> On 29-Apr-26 04:52, Mario Limonciello wrote:
+>> ...
+>>
+>>>> +	/*
+>>>> +	 * Make sure we trigger the initial state of ActiveBoth IRQs.
+>>>> +	 *
+>>>> +	 * According to the Microsoft GPIO documentation, triggering GPIO
+>>>> +	 * interrupts marked as ActiveBoth during initialization is correct
+>>>> +	 * as long as the associated GPIO line is already "asserted"
+>>>> +	 * (logic level low). We should not trigger edge-based GPIO
+>>>> +	 * interrupts not marked as ActiveBoth.
+>>>> +	 *
+>>>> +	 * See: https://learn.microsoft.com/en-us/windows-hardware/drivers/bringup/general-purpose-i-o--gpio-
+>>>> +	 * Section: "GPIO controllers and ActiveBoth interrupts"
+>>>> +	 */
+>>>>   	if (acpi_gpio_need_run_edge_events_on_boot() &&
+>>>> -	    (event->irqflags & (IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING))) {
+>>>> +	    ((event->irqflags & (IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING)) ==
+>>>> +	     (IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING))) {
+>>>>   		value = gpiod_get_raw_value_cansleep(event->desc);
+>>>> -		if (((event->irqflags & IRQF_TRIGGER_RISING) && value == 1) ||
+>>>> -		    ((event->irqflags & IRQF_TRIGGER_FALLING) && value == 0))
+>>>> +		if (value == 0)
+>>>>   			event->handler(event->irq, event);
+>>>>   	}
+>>>>   }
+>>> One nitpick, which can be a follow-up patch since Andy has already picked this
+>>> one up.
+>>>
+>>> I think that now that the second if condition has been simplified to just
+>>> value == 0, it can be added to the first if as " && value == 0" dropping
+>>> the nested if.
+>> But we need to get that value first (unconditionally!). I think it wouldn't
+>> be desirable change.
+> Ah right, I read over the line getting the value I thought this was already
+> done, never mind:
+>
+> FWIW:
+>
+> Reviewed-by: Hans de Goede <johannes.goede@oss.qualcomm.com>
+>
+> Regards,
+>
+> Hans
 
-On Thu, Apr 30, 2026 at 12:14:08PM +0100, Leonardo Bras wrote:
-> They will be used on a later commit to make use of the FEAT_HACDBS
-> mechanism if available.
+Hi everyone,
 
-Checked against DDI0601 2026-03:
+I tested it personally against both kernel 7.0 and 7.1 and can say it works.
 
-Reviewed-by: Mark Brown <broonie@kernel.org>
+Are there any news on how it is proceeding? Somewhere I can check the 
+progress?
 
---WmuCcD5bxYsJvAXW
-Content-Type: application/pgp-signature; name="signature.asc"
+Best regards,
 
------BEGIN PGP SIGNATURE-----
+Marco "scardracs" Scardovi
 
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAmn2noQACgkQJNaLcl1U
-h9CXzwf/ddnlYC9NFIeWjihBxou3oH5yLLC0aEWsSsEpn4ePUND6BEnFEbPaP+E0
-wbcFjU2eas3oIrx14W0iSIIkalM+8iam+DOyMFcNK22DZotaxwdHuqn1HmsicWN+
-bTSDBTOc0jl0nawI+0FSS00Efpiubnsd1b2vM75E8/nkDujvazEz94P55PRYoR+f
-DSl56OJoOQYDtJOcEGr7TFlY1T/nTMZ9nVO0+i1GCXNeWvSkm0driq2SxrwV6p6a
-s/THx+XOJC9gXNK9yIFDNRUObRZrSA04vIQQiVyi/hR3HZpCs2a3/9+1Axo8qQAh
-MuE6Mv9pzZeGJkoowjc8UJYs95E4aw==
-=vdry
------END PGP SIGNATURE-----
-
---WmuCcD5bxYsJvAXW--
