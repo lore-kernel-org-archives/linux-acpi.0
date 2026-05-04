@@ -1,98 +1,93 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.15])
+Received: from mail.zeus03.de (zeus03.de [194.117.254.33])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B579B283CBF;
-	Mon,  4 May 2026 06:33:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.15
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6E2F376BEC
+	for <linux-acpi@vger.kernel.org>; Mon,  4 May 2026 09:19:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=194.117.254.33
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777876414; cv=none; b=DPxCEDh8+T1BUdNJBCYKawnfoHoLKkN/OlxchLiRrHB12aerwBJoeXtLBsnGjzeSlJTKcGvwTRdY8R+D4WJQYE0fT9GSYHCbSBSr1hxJty4OyGYCp0pGkfm710s9oVG1Zhary9EOFDAzH+s2qheUP/67nEmK+bd+pqKFErAuhMM=
+	t=1777886350; cv=none; b=lgvJoMtFk+IiCSg1OSSCkqVMwT0hRZax5q3izQZrvZDR2Fgoxpj0VpswcDldZU+Bvf/BQ27rsn7+DCDyVlWaXjonj0LsCobDJae+Zj4wONg4coe7cIU/Ud+wywJnRSDZ2ANlb2RfYSMqde2NXLNorCAmjnQSlpE6lDqj3mRzH5s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777876414; c=relaxed/simple;
-	bh=Qc1hNRiJ0MUMcazZAndRA58GUbWn5T8Uba1vYnuZrr8=;
+	s=arc-20240116; t=1777886350; c=relaxed/simple;
+	bh=B9iom6SoBtIl4KxAXQi4NBPS5mHObXAidFBUUi9eiaw=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=MwLrpftZMQrEBTQ/K1p28oVNgZvQcLUdEUK6lSx8i0gUeIXw3FDY+2qw24AWQFv5UUvHrzsUzii6TZl0WS1DHFLXARD8GsFt79KZ3StDnXFhu6UQgf6PKeH4rDbZOrJyoRsyTGBl1fqTHp+o/PgVNfPq74N0IZwT9frLlo8SbKY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=nGd/XRBU; arc=none smtp.client-ip=192.198.163.15
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=IexSw0ixJq3P+gfo3MsthCR0EtyJT4nyg8X8/vB+nAjeKnucGXxwPiAz4hMrTFutgK/c3M1eM+7+gNJ6ALTwouUpN/iSJFluU2xCIAoLz+fCHzBxCaTzRC6x4sfxEsfxunAAhBCTEV967ITM+Ssg05/rwfBu7/zdGu69LmJYJ7g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sang-engineering.com; spf=pass smtp.mailfrom=sang-engineering.com; dkim=pass (2048-bit key) header.d=sang-engineering.com header.i=@sang-engineering.com header.b=ikGAZ4BR; arc=none smtp.client-ip=194.117.254.33
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sang-engineering.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sang-engineering.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="nGd/XRBU"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1777876413; x=1809412413;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=Qc1hNRiJ0MUMcazZAndRA58GUbWn5T8Uba1vYnuZrr8=;
-  b=nGd/XRBUrxK6emto3P/W4MlEz9/apjEPmdsTXIryjGK1ekNbXxndaR+B
-   stJxrapIMjsOcYZZCo3sJ65+1vF6lu2AY+EEGVF6rbbzLG+vmC02HQ4U+
-   3rZ47EWVeECZI9PIlUe5p6tAagdTJsCu74skbEoixED2zThYFUYOJJ7rA
-   4fsMoVk0P8g1ZLp+QMYgOwcTzFICVG6uACWbujdX9qIGCj6kjTQqxRWuT
-   5ZWMStshmNnORFXyBgPXOrQi/livNDSJ/MqZu1nnjTAjwKFf71xFsLu0t
-   A98eg9mQchgvTsTwfIL178ILsp9zUPmhOxfKrOAozfhw0ABpQx6E+SRnc
-   A==;
-X-CSE-ConnectionGUID: NS39jxxZT4SybmKb0d/dWw==
-X-CSE-MsgGUID: ahZX9HSvSOC8gX37DPjcCA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11775"; a="78829976"
-X-IronPort-AV: E=Sophos;i="6.23,215,1770624000"; 
-   d="scan'208";a="78829976"
-Received: from fmviesa006.fm.intel.com ([10.60.135.146])
-  by fmvoesa109.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 May 2026 23:33:32 -0700
-X-CSE-ConnectionGUID: eXcZzIjPTfCZWuyqpU/kaw==
-X-CSE-MsgGUID: 7QuJrlyATkC2MSQWE3M2xQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.23,215,1770624000"; 
-   d="scan'208";a="230829042"
-Received: from hrotuna-mobl2.ger.corp.intel.com (HELO localhost) ([10.245.245.78])
-  by fmviesa006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 May 2026 23:33:29 -0700
-Date: Mon, 4 May 2026 09:33:27 +0300
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Marco Scardovi <mscardovi95@gmail.com>
-Cc: Hans de Goede <hansg@kernel.org>,
-	Mario Limonciello <mario.limonciello@amd.com>, westeri@kernel.org,
-	linusw@kernel.org, brgl@kernel.org, bentiss@kernel.org,
-	Francesco Lauritano <francesco.lauritano1@protonmail.com>,
-	Armin Wolf <W_Armin@gmx.de>, mika.westerberg@linux.intel.com,
-	linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
-Subject: Re: [PATCH] gpiolib: acpi: Only trigger ActiveBoth interrupts on boot
-Message-ID: <afg9t3acIMDkXWgh@ashevche-desk.local>
-References: <20260429025247.1372984-1-mario.limonciello@amd.com>
- <6f359bec-2525-40e9-9994-15b16fb82f12@kernel.org>
- <afHcUTi5QNq8LlIb@ashevche-desk.local>
- <c7fb45be-f53f-461f-b7a2-8298e5c7df05@kernel.org>
- <a42767b8-7a0c-4202-9132-be8fa65baabc@gmail.com>
+	dkim=pass (2048-bit key) header.d=sang-engineering.com header.i=@sang-engineering.com header.b="ikGAZ4BR"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	sang-engineering.com; h=date:from:to:cc:subject:message-id
+	:references:mime-version:content-type:in-reply-to; s=k1; bh=B9io
+	m6SoBtIl4KxAXQi4NBPS5mHObXAidFBUUi9eiaw=; b=ikGAZ4BRLlXcusrljtCq
+	ZUzhjqsTbHXGuqiMjjQvntHR3fPwQHdvQGLsc7hdn2jgNugYRcqCYCTNB7UaR3I8
+	ftPaAfDzT6Fr+8eZBrfR1aykgwqNfxRVvlNNI/PFuyjxu1jVZstpSHGST0ZLkGvD
+	TQaL/npMegelSbV/ucaS68anDW2h5m6POCOhQD7Pgl3pD6CHSHuW2csi6HNEiWRE
+	OJNVV+BqugbXKQx+w4BZ0pD+bMlKAeam7bq07Hcow2XGvRVyOoYbe72k5vMHDZoF
+	TdZ+iVBUV/hG9XjDGIuZGfgsLRDYLYrIAs1WHoLzxMwtI1DGGOnaZwM4PbEdkrBB
+	1Q==
+Received: (qmail 2122993 invoked from network); 4 May 2026 11:19:04 +0200
+Received: by mail.zeus03.de with UTF8SMTPSA (TLS_AES_256_GCM_SHA384 encrypted, authenticated); 4 May 2026 11:19:04 +0200
+X-UD-Smtp-Session: l3s3148p1@1DoGbPpQPJ4ujnvR
+Date: Mon, 4 May 2026 11:19:04 +0200
+From: Wolfram Sang <wsa+renesas@sang-engineering.com>
+To: Niels Franke <nielsfranke@gmail.com>
+Cc: westeri@kernel.org, linux-i2c@vger.kernel.org,
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] i2c: acpi: Add ELAN0678 to
+ i2c_acpi_force_100khz_device_ids
+Message-ID: <afhkiGREdd50vYNN@ninjato>
+References: <20260418053719.15766-1-nielsfranke@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="oKyoE85Wsy/3DTOf"
+Content-Disposition: inline
+In-Reply-To: <20260418053719.15766-1-nielsfranke@gmail.com>
+
+
+--oKyoE85Wsy/3DTOf
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <a42767b8-7a0c-4202-9132-be8fa65baabc@gmail.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+Content-Transfer-Encoding: quoted-printable
 
-On Sun, May 03, 2026 at 04:18:57PM +0200, Marco Scardovi wrote:
-> On 4/29/26 13:01, Hans de Goede wrote:
-> > On 29-Apr-26 12:24, Andy Shevchenko wrote:
-> > > On Wed, Apr 29, 2026 at 11:48:13AM +0200, Hans de Goede wrote:
-> > > > On 29-Apr-26 04:52, Mario Limonciello wrote:
+On Sat, Apr 18, 2026 at 07:37:19AM +0200, Niels Franke wrote:
+> The ELAN0678 touchpad (04F3:3195) found in the Lenovo ThinkPad X13
+> exhibits excessive smoothing when the I2C bus runs at 400KHz, making
+> the touchpad feel sluggish when plugged into AC power. This is the
+> same issue previously fixed for ELAN06FA.
+>=20
+> The device's ACPI table (Lenovo TP-R22) specifies 0x00061A80 (400KHz)
+> for the I2cSerialBusV2 descriptor. Forcing the bus to 100KHz eliminates
+> the sluggish behavior.
+>=20
+> Signed-off-by: Niels Franke <nielsfranke@gmail.com>
 
-...
-
-> > Reviewed-by: Hans de Goede <johannes.goede@oss.qualcomm.com>
-> 
-> I tested it personally against both kernel 7.0 and 7.1 and can say it works.
-> 
-> Are there any news on how it is proceeding? Somewhere I can check the
-> progress?
-
-It is in the Linux Next already and after a few days or a couple of weeks
-I will send a PR to upper maintainers to pass it towards upstream.
-
-TL;DR: It should appear in one of the v7.1-rcX.
-
--- 
-With Best Regards,
-Andy Shevchenko
+Kept the sorting (alphanumeric) and applied to for-current, thanks!
 
 
+--oKyoE85Wsy/3DTOf
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAmn4ZIgACgkQFA3kzBSg
+KbY/iw//Q3MTxv0uoed9meVZMOoorKDntUhkTEsHs4nqKCkAg1nd/eTGT7BIRdS7
+9slZckra+FUkf64J5XxTvXW2rmX+pWHNxuk9W1POcOWPaTFrR9qjdB8grosviAAe
+Jv+Lvq1SrSio0sYWUX8zbXC9+aLz0FSKSZFkVGvIo8MoeSCNj90x0fqx10ibMems
+Xm7Dy0w2NeVqX10rJG+PdEofNLj7vme4lElw0MCtHAUI/vyzKT2uRNFUklyDuFvA
+1X+dNQZCddRNc13nuDHPv6QxZwyDbezi1oHi8lJg7HlYBdfiPwgCYC0Nx2vrkVyj
+Ccm/Fk/aLeGJ2dx1ePhTZhL/CIU/fIVL1+WyH9GrMo/VSVN5MX9HdKGmViN82CGY
+FRLAij+dZcJ3wqmr218vlmWin3/x8P/OeIPYzX70QticQfs+D4oyMV2y1JgGs10Z
+RIiW/VDISr08qvOSXycukIB1vMfFbDHcvdsP0mkGR8bjNE6GR2CGIZKU9JBk19g9
+3TUCefJkY3oLvHxy9dnfKwCU2Q4zlh6MSjbcTeRSeSr3ZQ114Boe9WOx3PZyzoSP
+S+5N394XLF7wjzXtgFWkHTntPniLMTbYXuINco8jO66eDP9uSq2e5QHNZ1jSYHYi
+Gr9dZg99QumBk+HGdZmRNz3fRgpl2beYCoNDqJDskV/6qL2BtJw=
+=BDC4
+-----END PGP SIGNATURE-----
+
+--oKyoE85Wsy/3DTOf--
