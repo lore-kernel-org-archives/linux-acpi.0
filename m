@@ -1,87 +1,87 @@
 Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AD324279E5
-	for <linux-acpi@vger.kernel.org>; Tue,  5 May 2026 12:25:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69B1E428841
+	for <linux-acpi@vger.kernel.org>; Tue,  5 May 2026 12:25:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.168.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777983901; cv=none; b=VPsT6vZq0IX6L3E9ZZyzvahNWL4rzvfu9GWe6Eixa/rU7wpMpyLjyZlcyUdCSeRHNhiEUb7wHBTGKVgGC78hwgi3A4X/pM+LhBX1qE1ANrAG6TU4FzhDEGDg4SbWtQS1vkVfPJC+91CaxuEnS8WMCU/yMCGs4LZfoRu8TwUbW4I=
+	t=1777983909; cv=none; b=m0JOm9LUMyhPC/3g2SATvLZRce5rVTsz4SrXLqWhkGasVg2rhcc6b8x5BM/c4V0G7PQVSCVqWsC8vnDPNX86lMFbOBsq4PQRWgFOggIbwlXOorZr83/5eCRedn6Yqu63tfiFq+7Y+9pjY8rCpoUDEyKaHNL2c5y254FBghi03FQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777983901; c=relaxed/simple;
-	bh=VI5F8t3DU2L32PPNZQHlAorz7SO6vTHnNS9mo4ZneVE=;
+	s=arc-20240116; t=1777983909; c=relaxed/simple;
+	bh=K7/WGQ524x+e2ze3I8r02DnkbU84gUgAARamEEr7Lg4=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=S0X+cMocLL463931Yj7RUil/mhsyDiOomfi/xxOsFTBlrsReiDczCqOs0lgJENo0H+CV45NbD8R06k+fdIU07FJfC0s0SD+c2md3/nRYsNHwdqH46BmxgOnP/HYjxtZkHKfqR94K/X6EilhxS7KUHT4Sw3cOJHeJoekF31DwBwc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=In5OnYwr; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=Gz70K9h9; arc=none smtp.client-ip=205.220.168.131
+	 In-Reply-To:To:Cc; b=o+pbWdQmAlb8F1AcnkSwpkv54WB2qdEwGVQuIfXQ/lqayNL4MDSfMaHpNAmOzSdRF2tk3BJBeia/OAgvcFFvPCWJ3+I0M4TSnBCZdKphlnJI/T+Fel+BVmmr8VuapqvrMujK9O83CYxTe1i9UxWBupiC0k5uESCNfxwTfZdfbt4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=JOddLap0; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=iV0tTTBc; arc=none smtp.client-ip=205.220.168.131
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="In5OnYwr";
-	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="Gz70K9h9"
-Received: from pps.filterd (m0279864.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6458VFbv1346341
-	for <linux-acpi@vger.kernel.org>; Tue, 5 May 2026 12:25:00 GMT
+	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="JOddLap0";
+	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="iV0tTTBc"
+Received: from pps.filterd (m0279866.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 645CDmE82187057
+	for <linux-acpi@vger.kernel.org>; Tue, 5 May 2026 12:25:06 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
 	cc:content-transfer-encoding:content-type:date:from:in-reply-to
 	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
-	iWsFFMNfVlraN9koczmb/sKMFEkm65rQ61A6AS0zXkE=; b=In5OnYwrOosFvrc4
-	229iIEoWGlI9oNLndzcldyoMyZUPv6/qN3n9YXP+e0rgWzFhyO4VdDJ2fc2YxyVY
-	oDrnbwG0aYkUhSVXUeuTDfbemwTLxuydv9CCxC4XXqJoCFHuwuqAOuDemHDx7M72
-	kb/mKcXyzQxlq9nNyoRauCHctrAYxmmUIgnpTSI5YBnJAsd7yfxbZ3qYmes0jYZx
-	5Nxo4K1K1wzgSB7sSXzYom/TXly1FlrBF8wJhzBaNLATiyQBqZq0GC5zPlVldxOL
-	AfiP828DFl8hJB3790buiORDsWtSZoh3+E781v0z9diF0bY6H/X4F7Rpc9t8suif
-	CzSXUQ==
+	Pmyq3Jn3jS95x5qGd6vMxoixGm9Dq9F0RVe09Iz/Q7E=; b=JOddLap0jB/q49ce
+	ysA9hU1v8gpGvceX4so5na3MuDovcsC1hapvbgPTLjG4p90D0Lw7HNcngXZ8/o6f
+	tS+tfHIjWHQtBoTPOdn8KqC2FBKhiH7v1k89tJR807w/wDuW/t1OsV3tRpzXaiyp
+	hWa7nKC5Wp9z/EmyBWE+gvt1HrVrRrEqpn/6Hv1Z83Sk5Rrg+vZqPAVwaeLYFkEi
+	VHpzE4WWdDmo6ck89/7+uXZ2KXkHvg4UmYyS6Jvm6b1glK6VTNFgfPYzybMqouAZ
+	2MLbCJq0Zp8irK6UA9PL27jDvN5MpXHR2XrdRxkSh+NgPIq5TRwHZOdA2kdSu72p
+	aYK6Ug==
 Received: from mail-pg1-f200.google.com (mail-pg1-f200.google.com [209.85.215.200])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4dxx2xc0qc-1
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4dygce00vp-1
 	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-acpi@vger.kernel.org>; Tue, 05 May 2026 12:24:59 +0000 (GMT)
-Received: by mail-pg1-f200.google.com with SMTP id 41be03b00d2f7-c6e2a6ba6b6so425162a12.1
-        for <linux-acpi@vger.kernel.org>; Tue, 05 May 2026 05:24:59 -0700 (PDT)
+	for <linux-acpi@vger.kernel.org>; Tue, 05 May 2026 12:25:05 +0000 (GMT)
+Received: by mail-pg1-f200.google.com with SMTP id 41be03b00d2f7-b633babe5b9so300207a12.3
+        for <linux-acpi@vger.kernel.org>; Tue, 05 May 2026 05:25:05 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1777983899; x=1778588699; darn=vger.kernel.org;
+        d=oss.qualcomm.com; s=google; t=1777983905; x=1778588705; darn=vger.kernel.org;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=iWsFFMNfVlraN9koczmb/sKMFEkm65rQ61A6AS0zXkE=;
-        b=Gz70K9h93Nf4chclWDgJmbutux/f38QWR8qpcxi+b1xhZ/lATW3/uhisZmnsEAqH2j
-         eAxNjCq9i8GjOEr5jRdi1GLtxvOwPFB6gd5WLZ4TNadNHHjfw6KwsbReIzcPOTlBmKzI
-         7SGxIcK8lqseY4P2tvNugvCmlXUuc9qXqgBgUhG+gSP/Qg1dWaq7jvjMngMDTCz/h5iC
-         MMLFktGN6v/P7vgjytYlRZrBeip8a6HXTNDZEqbvp4h0+AWPg4ePw7zx1TXdC/vaEDO8
-         FsL8KasucjE+YurDxq4Be7MX69B2LCAtpKwCTAzdBvYIzXZHF32sgreWKwxi+wEgcMwa
-         0xtQ==
+        bh=Pmyq3Jn3jS95x5qGd6vMxoixGm9Dq9F0RVe09Iz/Q7E=;
+        b=iV0tTTBclAELqgIkx4OmeTTTwtI6shm8Z/kvYiOkg9o+QLk1po69gtRjjYkOth31iv
+         Uk7Yi9y7Lclt/Ssaf7kpIgZaFWS+/jV1RntMrhSrMLVT7Mc5xQHOGr6Bu1XIcp0QBdh8
+         8sWQaAAWHdaxOUeoEcvxSp/EbfSGGvcPWiBT1oQrRGgKLyaDQbW53BF57uYI7JyiAotz
+         cB+lOenVTHqMpEbWBKmSPFCdnU5yFIe+ivrvWstKnpa6E5+73lDUFZW4UT8gzKokVolO
+         XxlE89okldt6eD9AhDTNSmdVAxj3O6DONsRdTg8M/pdkRmCoUHpwEq/Enqwe1a1u1B7Y
+         YQGw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1777983899; x=1778588699;
+        d=1e100.net; s=20251104; t=1777983905; x=1778588705;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:x-gm-gg:x-gm-message-state:from:to
          :cc:subject:date:message-id:reply-to;
-        bh=iWsFFMNfVlraN9koczmb/sKMFEkm65rQ61A6AS0zXkE=;
-        b=ABVwUNqo3tDVNoqquNKPj6NOAv5fCgWiBYLpef7C0copDOBz94sLfPf+BVzNPSsaJA
-         dDwHlzQNlLCokOlzJoVYoHk9H0+ADwPqfrkvip9vrgE+d56PYLFomMV6zAMb+noFaVn4
-         NH3p52+raHwKtvch1krhvE4E1kqkFvBHP7sXh2L3ffpJUE54XcaEhgiEilpz7HNU3IwD
-         Qv8QgEk5FNJSSpvxttrgKa/pixEEchcJcjgxW3Ri8gx96HzCNB0AjQ+VGujH71F8VAkA
-         eCwFN0oD19UHOzHhIb77nhwiQdIC1KMoLxvZiHWJq4d2BOD2KxVx/QwvCxLYH37Q0FpP
-         lGhw==
-X-Forwarded-Encrypted: i=1; AFNElJ+tu4D2bzacqpxumymbeqYeQI8fz9chq3CCrPeBY3VsIZDew+WoeiwPFQ65Chekn90l7qMiOfFtWr1O@vger.kernel.org
-X-Gm-Message-State: AOJu0YyFORnlPlDge2BRlidktiIJg7PDt+zFb1XJumoKtpX2LkcFHYcv
-	t9k5effi8pCPPRSKKt4MkAmWMHB4nMTyyBrIef8RDseErSjREdjHmHO5cMc3oI5VzRJJPXztOAK
-	CVFQseSers25+l0APty4VKg0kKlI/DA8C5mMib8C3oa7rKfc+Xy70fNCEDF9FdgKj
-X-Gm-Gg: AeBDieu/QT0exm1qyut5P5rHVH7WAtwZBR70EEPqZkM7uK2MEIV+vAchN2UiIswkm1Y
-	iaLpceRrU7Qxsx6jTUb0rRnHntxSGRfXgGMgCdA6d7b+aPNX892pymgp5zPYTZdBjAa0kGFhbYG
-	y9paFMMN4OOuH1e7N36cGTH4i900XDRr4YfKL3qgy/IAdXPSx6I1cra+0HfqSr/TzwsusYL+3mC
-	bo0bWm7GfV6Ouqzl648m+9LmpkRX91maV2U2XntMfKE1bqeV8uP0FHkbv1MD0i3a18cMUjPJqKc
-	xNPdBSmqBnbmGh7+tgcux5r13Aec7OUip0pSIn6/vwHtn9ynKF7W3J8GEQ8KWAjUgCZvOYucTeb
-	VdK3J1q4GQVnYnCT/XOR4dxml8TfvoLD87um2bXjLzjkuCLHzZMau01z/OSLCohQ=
-X-Received: by 2002:a05:6a21:7a91:b0:39c:68ed:9a39 with SMTP id adf61e73a8af0-3a7f1cccc9emr7197139637.6.1777983898872;
-        Tue, 05 May 2026 05:24:58 -0700 (PDT)
-X-Received: by 2002:a05:6a21:7a91:b0:39c:68ed:9a39 with SMTP id adf61e73a8af0-3a7f1cccc9emr7197093637.6.1777983898325;
-        Tue, 05 May 2026 05:24:58 -0700 (PDT)
+        bh=Pmyq3Jn3jS95x5qGd6vMxoixGm9Dq9F0RVe09Iz/Q7E=;
+        b=MYEZ8bJBgdXMMsO3/UpNAdfMiYdPl/jbN+r7y/kDHn6eHbJmgOw+XODpzHlTQP8KC7
+         akuZS6sFxTXnf53Jb5yLZXwUbs4bNUWKea/pbuQyJZiPkvY9AOorjplhAEZNVKbbPUmA
+         11AQ/gqc8YoXMbXPR9iTUFQ688jEJEVtAbBSfnF8HQDbTuIVqascHAud9O+Y8wrpoW/b
+         4Nx+OpQhBbBBoQEGxZWa0TyWzDezemIxCJL5G8TvKBUxQJVDpa+N7J0UcC8WncUER2ND
+         GA/c1AN6Kiyb9/UPfghA+2dx1CPqMIqntKbQTzyMf2Jq4yxoZYVFRZ4i4oWdA6Bt7nKd
+         6akw==
+X-Forwarded-Encrypted: i=1; AFNElJ83XZbufpWYUUk3uWuHH1RhH4jYfhjKHNpfL+LUqipZvvtGzZfE2rKlnNLDrJcp9sDnXCly7frZSLlM@vger.kernel.org
+X-Gm-Message-State: AOJu0YwBVlbB9ZSdeP1olUF9n+FeRsFwsDDMiEBd4Jb7ceW3uFyONmcK
+	352U7rKWRFEttfNKputIxeGe/9K1YPHMOyxHzvut3D8nBAfqLP3zVFHo8wpf9fs8ygl7uDGZLps
+	4TKNi58KZnGmg4tlLsDl1LfrhauCzADAcR9fpzGS/LyyoS0c0ei84aaOwliCWMCcZ
+X-Gm-Gg: AeBDiesIoWusWoHARSPdkhSZwdzufn92eBeeOb4OcBqjAMwFHMm0fLt5QTlwdQETjPN
+	0SXXMqb5IGk5GoYWk4GsKCSEKCDFvxGj1oG2SFnFkiQYNAJzpd+w0o2x6O40jCLpxnlr83yRsrr
+	ktJdAm7HbKQ5B3n56TQrmp4gYXWiicGC4WXE4Na92MjA6/91b/IT8Lt8PNIjvIo3y8Z0tacCIxM
+	uCnNqDHcTIEBATBrHncdAZAxvnTCW5wg1QNYGpbzymfLxNIOMdOEFQXXRSqTtTd0jHnYa1Lf54E
+	QaRuNwMEKiqiGD0LBHYlGZyRbZS5IrptOd5/OFJt3zT6DYDdw0Cb1pUmMrZNGy0abzz+yALrA3w
+	yEXKwW1IYVGkSmiBrRNslFh6KWKmJCCpfJOAAAMeE1i2jawVLmRVmEVG7BKqXJnY=
+X-Received: by 2002:a05:6a21:6906:b0:39b:91d1:6c10 with SMTP id adf61e73a8af0-3aa3e94ebb9mr1574698637.4.1777983905063;
+        Tue, 05 May 2026 05:25:05 -0700 (PDT)
+X-Received: by 2002:a05:6a21:6906:b0:39b:91d1:6c10 with SMTP id adf61e73a8af0-3aa3e94ebb9mr1574672637.4.1777983904596;
+        Tue, 05 May 2026 05:25:04 -0700 (PDT)
 Received: from hu-uchheda-hyd.qualcomm.com ([202.46.23.25])
-        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-c7ffbbaac5bsm12597998a12.6.2026.05.05.05.24.52
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-c7ffbbaac5bsm12597998a12.6.2026.05.05.05.24.58
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 05 May 2026 05:24:57 -0700 (PDT)
+        Tue, 05 May 2026 05:25:04 -0700 (PDT)
 From: Umang Chheda <umang.chheda@oss.qualcomm.com>
-Date: Tue, 05 May 2026 17:53:45 +0530
-Subject: [PATCH 1/8] ras: aest: Fix shared processor node handling and
- error log messages
+Date: Tue, 05 May 2026 17:53:46 +0530
+Subject: [PATCH 2/8] ras: aest: Fix CE/UE error counts not incrementing in
+ debugfs
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -89,8 +89,8 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Message-Id: <20260505-aest-devicetree-support-v1-1-d5d6ffacf0a5@oss.qualcomm.com>
+Content-Transfer-Encoding: 7bit
+Message-Id: <20260505-aest-devicetree-support-v1-2-d5d6ffacf0a5@oss.qualcomm.com>
 References: <20260505-aest-devicetree-support-v1-0-d5d6ffacf0a5@oss.qualcomm.com>
 In-Reply-To: <20260505-aest-devicetree-support-v1-0-d5d6ffacf0a5@oss.qualcomm.com>
 To: Ruidong Tian <tianruidond@linux.alibaba.com>,
@@ -108,198 +108,104 @@ Cc: linux-arm-msm@vger.kernel.org, linux-acpi@vger.kernel.org,
         linux-edac@vger.kernel.org,
         Umang Chheda <umang.chheda@oss.qualcomm.com>
 X-Mailer: b4 0.15.1
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1777983885; l=6543;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1777983885; l=2690;
  i=umang.chheda@oss.qualcomm.com; s=20260328; h=from:subject:message-id;
- bh=VI5F8t3DU2L32PPNZQHlAorz7SO6vTHnNS9mo4ZneVE=;
- b=6faC5/GEh5FwFL2OgPM+ezzK5byXA+KdZ7TJce1TC337AuIA1fKkKcfxOExCMlDv938Fkt0LW
- 6jmLHyuiasQDc5iy7BsY6vFF3Lv51LzJ4RKX9eYWynnQF1Ru28y5l3Z
+ bh=K7/WGQ524x+e2ze3I8r02DnkbU84gUgAARamEEr7Lg4=;
+ b=5srgoRDiOLE+04KITceVdE78eHY9ax0xzcodvWQFYmfY3QszjcUqV1fapWymL8cEoMNtESzDE
+ hlR4muq4F70BQ11YJzNFbjlpe+vvXZxKIK3RDMz5XqD1b9rqRIt0Cm1
 X-Developer-Key: i=umang.chheda@oss.qualcomm.com; a=ed25519;
  pk=3+tjZ+PFFYphz0Vvu4B14pBQSzqcG0jZAQspTaDRQYA=
-X-Authority-Analysis: v=2.4 cv=U9eiy+ru c=1 sm=1 tr=0 ts=69f9e19b cx=c_pps
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNTA1MDExNyBTYWx0ZWRfX98Ar9JyiKDhc
+ rbVNwFS4irLD5bRP2rVH9UzLg7rhoXRvbq8LIZQrfSe0QFcd7L7i1n2Vt/djPz0a4QOWNUFSIJP
+ 8GZUvQ2/vCJrfcx7rhXoq5wSq/JAwGNDr6cuVLjzuudgSmkHOHCGxSne9P9CurZbokpR7CIds/T
+ UBptXays/yKVbJD5ZvqI2yATa2kGBVTrw6eJEVNR8F4QfWNwxn+lNdiBNJM6vnrhY3+SoZBrAsm
+ 3nzBrO+i/2KUS2V3c2/yoSrDw0OmPdMy1eSNjEezUzuAY22Ww4rm6oMYCOnsoEuxuOgia9d+qsZ
+ UDmOlItfQ/RBGNqnf+H0qP6LVGgXsGnejriJFeMTD13WDOi2gipzOs2D74iRkeW7/hWkLEkC5XS
+ 1h/DIFFu1MCfatDFye5mYpWJiEz7ePXhpMhQoMLNOTeDLySW1RgloID4qVu8pmTcyGw182cwiuK
+ rdcTJt0tpqeM49MyBDA==
+X-Proofpoint-GUID: Tmp80uy81p7rJYCNAbvkvn4E-sYxD_KV
+X-Proofpoint-ORIG-GUID: Tmp80uy81p7rJYCNAbvkvn4E-sYxD_KV
+X-Authority-Analysis: v=2.4 cv=b6KCJNGx c=1 sm=1 tr=0 ts=69f9e1a1 cx=c_pps
  a=oF/VQ+ItUULfLr/lQ2/icg==:117 a=ZePRamnt/+rB5gQjfz0u9A==:17
  a=IkcTkHD0fZMA:10 a=NGcC8JguVDcA:10 a=s4-Qcg_JpJYA:10
- a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=DJpcGTmdVt4CTyJn9g5Z:22
- a=EUspDBNiAAAA:8 a=KYcbzuZsfW-uCfy2wYUA:9 a=3ZKOabzyN94A:10 a=QEXdDO2ut3YA:10
+ a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=YMgV9FUhrdKAYTUUvYB2:22
+ a=EUspDBNiAAAA:8 a=IvwcuExtd9bf9WbcJAsA:9 a=QEXdDO2ut3YA:10
  a=3WC7DwWrALyhR5TkjVHa:22
-X-Proofpoint-ORIG-GUID: 84LRfjcbtrnUgAYjqmR_wwogxucoXd4H
-X-Proofpoint-GUID: 84LRfjcbtrnUgAYjqmR_wwogxucoXd4H
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNTA1MDExNyBTYWx0ZWRfX4FILxPhSo+kx
- igYs2yLKjrlIZiykXVlDgTqVEaTHQlYepS3r3nYoZ5phAHsvcMmypexYCGAz8+gFfXnrhiU3U80
- +GZOQne/+aIranyNaGrq7KQGBSUNt74JDzMOMOpRkvXxgXdLKyKDxZZjXDHPjOLytzLTqhFtgGK
- 9Ym3gei1PuOKdmM/WZBbbsU9P/Yi/FhBKkJXlLwSOHbPX8fSuuUEI5uj5jq1TPeKgYHPCnFjYiq
- ucJGkAqXR2sKuS5ExYmOs47RiruMj2J/yVIkzQ1K5ckCuVW/0iceLnfpNy6k/RJulgW6+30+WFG
- TbbfyKb8wtDGgAMmtvCiy/Fke89PD1ispa/kqyokIfqmgGXOnZxwy8qp0x4dfX9Il7sEO9HSzYk
- CeIL7qL7a8fHO6jghqHqrHKhkOtjlnTyYLsN2PTHnT4FfGg2e+kP+Z1H1xft8knlTTh8JT+jtnK
- D72Fq7dTGktK0eI+btw==
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.51,FMLib:17.12.100.49
  definitions=2026-05-05_02,2026-04-30_02,2025-10-01_01
 X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- malwarescore=0 lowpriorityscore=0 adultscore=0 phishscore=0 spamscore=0
- bulkscore=0 priorityscore=1501 impostorscore=0 clxscore=1015 suspectscore=0
+ bulkscore=0 phishscore=0 adultscore=0 impostorscore=0 lowpriorityscore=0
+ priorityscore=1501 suspectscore=0 clxscore=1015 malwarescore=0 spamscore=0
  classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
  reason=mlx scancount=1 engine=8.22.0-2604200000 definitions=main-2605050117
 
-Two related fixes for processor nodes with ACPI_AEST_PROC_FLAG_SHARED
-or ACPI_AEST_PROC_FLAG_GLOBAL set (e.g. cluster L3 cache, DSU):
+The error counts visible under:
+  /sys/kernel/debug/aest/<dev>/processor<cpu>/<node>/err_count
 
-1. aest_dev_is_oncore() returns true for any PROCESSOR_ERROR_NODE,
-   causing shared processor nodes (which use an SPI) to take the
-   cpuhp/PPI path.  cpuhp_setup_state() is called instead of
-   aest_online_dev(), so aest_config_irq() is never called and the
-   hardware IRQ-config register is never programmed.
+always reported zero, even though corrected errors (CEs) were being
+serviced by the interrupt handler. aest_oncore_dev_init_debugfs() sets
+up per CPU debugfs entries but wired them up incorrectly in two places:
 
-   Fix aest_dev_is_oncore() to check irq_is_percpu() on the registered
-   IRQ.  Only nodes whose FHI or ERI is a per-CPU PPI take the oncore
-   path, nodes with an SPI take aest_online_dev().
+- this_cpu_ptr(adev->adev_oncore) was used inside for_each_possible_cpu().
+  This always selects the slot for the CPU executing the init code, so all
+  debugfs files ended up referencing the same per CPU aest_device instance
+  instead of the CPU indicated by the loop variable.
 
-2. alloc_aest_node_name() uses processor_id for the node name of all
-   processor nodes.  Shared/global nodes have processor_id=0 (the
-   field is unused when SHARED/GLOBAL is set), so every shared node
-   and the per-PE node for CPU 0 both got the name "processor.0",
-   making error logs ambiguous.
+- The code referenced adev->nodes[i], i.e. the template nodes allocated
+  before __setup_ppi, rather than the per-CPU copies at
+  percpu_dev->nodes[i]. The IRQ handler updates CE counters in the per-CPU
+  records created by __setup_ppi, the template records are never touched
+  at runtime, so err_count always read as zero.
 
-   For shared/global nodes, build the name as
-   "processor.<resource_type>.<device_id>" (e.g. "processor.cache.1")
-   so each node has a unique, meaningful identifier.  Per-PE nodes
-   keep the original "processor.<mpidr>" form.
+Fix this by:
 
-   Also add proc_flags to struct aest_event so aest_print() can
-   distinguish shared from per-PE nodes and print an appropriate
-   message.
+- Using per_cpu_ptr(adev->adev_oncore, cpu) when iterating over CPUs.
+  Wiring debugfs files to percpu_dev->nodes[i] so counters reflect the
+  data updated by the IRQ handler.
+
+- Using adev->nodes[i].name for debugfs directory names. The per-CPU node
+  receives name via a shallow memcpy and is not the authoritative source.
 
 Signed-off-by: Umang Chheda <umang.chheda@oss.qualcomm.com>
 ---
- drivers/ras/aest/aest-core.c | 54 ++++++++++++++++++++++++++++++++++++++++----
- drivers/ras/aest/aest.h      | 15 +++++++++++-
- 2 files changed, 64 insertions(+), 5 deletions(-)
+ drivers/ras/aest/aest-sysfs.c | 19 +++++++++++++------
+ 1 file changed, 13 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/ras/aest/aest-core.c b/drivers/ras/aest/aest-core.c
-index 6a2d84b47721..b4f4c975da1d 100644
---- a/drivers/ras/aest/aest-core.c
-+++ b/drivers/ras/aest/aest-core.c
-@@ -49,7 +49,19 @@ static void aest_print(struct aest_event *event)
+diff --git a/drivers/ras/aest/aest-sysfs.c b/drivers/ras/aest/aest-sysfs.c
+index 66e9c1103f99..f710503e4d74 100644
+--- a/drivers/ras/aest/aest-sysfs.c
++++ b/drivers/ras/aest/aest-sysfs.c
+@@ -189,16 +189,23 @@ aest_oncore_dev_init_debugfs(struct aest_device *adev)
+ 	char name[16];
  
- 	switch (event->type) {
- 	case ACPI_AEST_PROCESSOR_ERROR_NODE:
--		pr_err("%s Error from CPU%d\n", pfx_seq, event->id0);
-+		/*
-+		 * For shared/global nodes (e.g. cluster L3 cache, DSU),
-+		 * id0 is the CPU that handled the interrupt — not the error
-+		 * source itself.  The node_name already identifies the resource
-+		 * (e.g. "processor.cache.1").  Print a distinct message so the
-+		 * log is not confused with a per-PE CPU error.
-+		 */
-+		if (event->proc_flags &
-+		    (ACPI_AEST_PROC_FLAG_SHARED | ACPI_AEST_PROC_FLAG_GLOBAL))
-+			pr_err("%s Error from shared processor resource (interrupt handled on CPU%d)\n",
-+			       pfx_seq, event->id0);
-+		else
-+			pr_err("%s Error from CPU%d\n", pfx_seq, event->id0);
- 		break;
- 	case ACPI_AEST_MEMORY_ERROR_NODE:
- 		pr_err("%s Error from memory at SRAT proximity domain %#x\n",
-@@ -133,6 +145,7 @@ static void init_aest_event(struct aest_event *event,
- 				info->processor->processor_id);
+ 	for_each_possible_cpu(cpu) {
+-		percpu_dev = this_cpu_ptr(adev->adev_oncore);
++		percpu_dev = per_cpu_ptr(adev->adev_oncore, cpu);
  
- 		event->id1 = info->processor->resource_type;
-+		event->proc_flags = info->processor->flags;
- 		break;
- 	case ACPI_AEST_MEMORY_ERROR_NODE:
- 		event->id0 = info->memory->srat_proximity_domain;
-@@ -175,6 +188,7 @@ static int aest_node_gen_pool_add(struct aest_device *adev,
- 	if (!event)
- 		return -ENOMEM;
+-		snprintf(name, sizeof(name), "processor%u%u", cpu);
++		snprintf(name, sizeof(name), "processor%u", cpu);
+ 		percpu_dev->debugfs = debugfs_create_dir(name, adev->debugfs);
  
-+	memset(event, 0, sizeof(*event));
- 	init_aest_event(event, record, regs);
- 	llist_add(&event->llnode, &adev->event_list);
- 
-@@ -730,9 +744,41 @@ static char *alloc_aest_node_name(struct aest_node *node)
- 
- 	switch (node->type) {
- 	case ACPI_AEST_PROCESSOR_ERROR_NODE:
--		name = devm_kasprintf(node->adev->dev, GFP_KERNEL, "%s.%d",
--				      aest_node_name[node->type],
--				      node->info->processor->processor_id);
-+		/*
-+		 * Shared/global processor nodes (e.g. cluster L3 cache, DSU)
-+		 * have processor_id=0 and use smp_processor_id() at error-log
-+		 * time — using processor_id in the name would produce the same
-+		 * "processor.0" string for every shared node and every CPU0
-+		 * per-PE node, making logs ambiguous.
-+		 *
-+		 * For shared/global nodes, build the name from the resource
-+		 * type and the device id so each node gets a unique, meaningful
-+		 * name (e.g. "processor.cache.1", "processor.tlb.2").
-+		 *
-+		 * For per-PE nodes, keep the original "processor.<mpidr>" form.
-+		 */
-+		if (node->info->processor->flags &
-+		    (ACPI_AEST_PROC_FLAG_SHARED | ACPI_AEST_PROC_FLAG_GLOBAL)) {
-+			static const char *const res_name[] = {
-+				[ACPI_AEST_CACHE_RESOURCE]   = "cache",
-+				[ACPI_AEST_TLB_RESOURCE]     = "tlb",
-+				[ACPI_AEST_GENERIC_RESOURCE] = "generic",
-+			};
-+			u8 rtype = node->info->processor->resource_type;
-+			const char *rstr = (rtype < ARRAY_SIZE(res_name) &&
-+				res_name[rtype]) ? res_name[rtype] : "unknown";
+ 		for (i = 0; i < adev->node_cnt; i++) {
+-			node = &adev->nodes[i];
+-
+-			node->debugfs = debugfs_create_dir(node->name,
+-							percpu_dev->debugfs);
++			node = &percpu_dev->nodes[i];
 +
-+			name = devm_kasprintf(node->adev->dev, GFP_KERNEL,
-+					      "%s.%s.%d",
-+					      aest_node_name[node->type],
-+					      rstr,
-+					      node->adev->id);
-+		} else {
-+			name = devm_kasprintf(node->adev->dev, GFP_KERNEL,
-+					      "%s.%d",
-+					      aest_node_name[node->type],
-+					      node->info->processor->processor_id);
-+		}
- 		break;
- 	case ACPI_AEST_MEMORY_ERROR_NODE:
- 	case ACPI_AEST_SMMU_ERROR_NODE:
-diff --git a/drivers/ras/aest/aest.h b/drivers/ras/aest/aest.h
-index 9d67d79eb4a2..9704af97fee8 100644
---- a/drivers/ras/aest/aest.h
-+++ b/drivers/ras/aest/aest.h
-@@ -8,6 +8,7 @@
- #include <linux/acpi_aest.h>
- #include <asm/ras.h>
- #include <linux/debugfs.h>
-+#include <linux/irqdesc.h>
- 
- #define MAX_GSI_PER_NODE 2
- #define DEFAULT_CE_THRESHOLD 1
-@@ -94,6 +95,8 @@ struct aest_event {
- 	/* Vendor node	: hardware ID. */
- 	char *hid;
- 	u32 index;
-+	/* Processor node: ACPI_AEST_PROC_FLAG_* bitmask (SHARED/GLOBAL) */
-+	u8 proc_flags;
- 	u64 ce_threshold;
- 	int addressing_mode;
- 	struct ras_ext_regs regs;
-@@ -387,7 +390,17 @@ static inline void aest_sync(struct aest_node *node)
- 
- static inline bool aest_dev_is_oncore(struct aest_device *adev)
- {
--	return adev->type == ACPI_AEST_PROCESSOR_ERROR_NODE;
-+	/*
-+	 * A processor node is "on-core" (uses PPI + cpuhp) only when its
-+	 * interrupt is a per-CPU PPI.  A shared processor node (e.g. cluster
-+	 * L3 cache, DSU) uses an SPI and must follow the non-oncore path
-+	 * (aest_online_dev) so that aest_config_irq and aest_online_dev are
-+	 * called instead of cpuhp_setup_state.
-+	 */
-+	if (adev->type != ACPI_AEST_PROCESSOR_ERROR_NODE)
-+		return false;
-+	return irq_is_percpu(adev->irq[ACPI_AEST_NODE_FAULT_HANDLING]) ||
-+	       irq_is_percpu(adev->irq[ACPI_AEST_NODE_ERROR_RECOVERY]);
- }
- 
- static inline int default_errgsr_mapping(int errgsr_bit)
++			/*
++			 * Use adev->nodes[i].name (the original) rather than
++			 * node->name from the per-CPU copy. The per-CPU copy
++			 * receives node->name via shallow memcpy in __setup_ppi;
++			 * the original is the authoritative, guaranteed-valid
++			 * string.
++			 */
++			node->debugfs = debugfs_create_dir(adev->nodes[i].name,
++							   percpu_dev->debugfs);
+ 			aest_node_init_debugfs(node);
+ 		}
+ 	}
 
 -- 
 2.34.1
