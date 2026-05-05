@@ -1,66 +1,65 @@
-Received: from SN4PR2101CU001.outbound.protection.outlook.com (mail-southcentralusazon11012019.outbound.protection.outlook.com [40.93.195.19])
+Received: from SA9PR02CU001.outbound.protection.outlook.com (mail-southcentralusazon11013044.outbound.protection.outlook.com [40.93.196.44])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EAAF363C50;
-	Tue,  5 May 2026 15:51:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.195.19
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7071B48C8C1;
+	Tue,  5 May 2026 16:31:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.196.44
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777996274; cv=fail; b=ZVfOJYTt35KMzmth8okrDLW+rK1p7RRnc1vGKFyTcr90ZssmRYIlMkdchjzvbGj5WCkSy3RZIJBRT/4MxNiIInjTQt45+DwT8uZhoKOi8p1WKUlKoi1JWfQ8hquHHdSPLoBul1F/blMMVJlY6XQhvzPQvVviWly/YLifjlODuXY=
+	t=1777998674; cv=fail; b=nbXnellexVOaH5s7wCEMbuxmEXz+WBzbCwpTspY6hXK06gjzcjk9e7rgy0iCAMLrZZkwWNeAcX7Xilt0c/eg4aSzLiV6rfeag4P5kYDFu5+aDaV472tBtwreKgJ2Awe9Uf/vhX0eZAvVhYtDEmLx1sG+gVtLZjea7EoBJrz5cH4=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777996274; c=relaxed/simple;
-	bh=LSTjDZAEBNiVXbk3PwTcefXlz8xfMbO383zHiogTilw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=KcdPO75CimdvRWZTzBRNapUb7ofqsmDKg3M2/3fLTWqKaHZQK5pfSRPFi6brd532qyFsrXFHGyVRLfFHnOaxsOw7EZ64JTYzzW5YRgVCP8RhLlLQHgM+89JfWCTZt5aPD+1QwDgsNJCiOkZmiutCZ8myQkxcNLlLE4pYQnHrM+E=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=jP5C8Cne; arc=fail smtp.client-ip=40.93.195.19
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	s=arc-20240116; t=1777998674; c=relaxed/simple;
+	bh=wsWxgrn/kHdq4l2uMbD/f65Hrk7tb1tLAVpWLREoRc4=;
+	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=Y5X++W0C/TU8G/+3L/VDdoE8KOcGgUW6F0mO8VZJE1qi1qbrb0W0/nI7Qr/pSSW0ozykI5ogVTxXX5HI2c8O7cjgHfDR/9AIb4CKgPDLz0TK4QE8FQL41wBQaZz7pMc8AIDBKToG5lqnUflpS1xmjVQdXQDHUQxLBxR0vO/hQ7k=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=OjdPK41l; arc=fail smtp.client-ip=40.93.196.44
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="jP5C8Cne"
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="OjdPK41l"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=bKqL77uIMc2kyorSqdrWihamLkDW2QKSDsPKAstY0n8+DU7DkSwajQdtffcVo62iE/nI8fjhgMKN2YwRFK0bvMbupBzYwIcKexLenzCzcfdwgnSwIGcBPHdS/urOHy/9PIDdsfSjqpYlUQf2ZJR9vTJ1tEMtvXTG0cuWOZf9r6byJrWsmVhWrHV13N4Lrc9fHjhNhY6pZoiP7mfGFLFHFFKeKQ4W8qFHu5/nYxEbcpSUD/HoJugvBuM+dPQeHTbeh6psAydTh78Oioj9hp6pdM0jzwsdlwdiyHQz248lxjdf0W/X0AlmrYCofl7+SYyEXExnItIwptd08b9sunaKOQ==
+ b=bnMQsX3cVvNM71bhSWXvNfb1/xPmmkYCPu6keoQ0ZG9BdLNlkoQ0rYCjCxy5i4DaZmuKzFqgS0WzsxDshQyxrguEYApwh8ipZVZgdSQFuRw2HE03FJ9CmJiVXdNDpTebHe9rog0NOTz1OWfbd98bxYR68Jiicmcq0MvhZ456Z39ZrBTzvEhiDZYLF4uM/5EGDDgwJNzKRntUhmzwVMxTlfzny+5kOR5zIKvxYJSr/AFFdjGs2UlM5Hcwdtle6Lf/XtN2xGXS5EMs4SF1WLW0Bg6ThlziPO7L6R2joHNz4ffkGZkmnBIvXMtUGnKN+CS0YGUUCpVgMziJQv1RXaBVeA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=8tp1nIkSLuXxD94e4mrSbC051HzsB0ocn4gms5xgekk=;
- b=sgvzy2/ItVtmFfnMmgkrtvgCDhp2S43xLHiTFfDmcyg63l6ce3iLG7i2Qr3qVpGxKl3JIN+L0Idp5GdMCmabXREbXArFZOlJ/R0ftAn5rNB1lhvP/AzrFMOvf5JaXeKhCF5m8/wLspBCOEAo/CaiuMFl/GfTGtKQ4uOMBrn7EvHwWxvuQfvRyADASFO3kSIwoxgFzmuvS70sypfEKHQNC0yMJLtaEVh/L8ORfSh16iq09tEa92piZFzfflkMg/dNKEvVoFyOl6ihwOPT7pyG3o3fXTjKSD7Wc/fvRytAX+gHVgji3D+VgQE3nik/vgecr2CstSz9udcjg4coWLcgPQ==
+ bh=GWiJzAIZn5/hqVS/2iMNLTYzB69nUyBfC5JpBllzJiY=;
+ b=wfzZeflKeMudZxh3OtnkGsONQH7p+b6y8jDVQcDmu+TC52QHblUIUQhuwKnsffm4qzRrqRH+K6BQmZnS2TAkTLnBVCaTj97Xf75Sb+cIaCYRAIvn9Uii7IrWK7mMsibmeb0Yu/vNShwBD7qkJK7ywgsVUtY4lTDQmhrAe7qtbnRgINANYghb3BaavY0XcY55BKEK6tD9z0xP4GfS5lX2OcgIrMANitTSd8wq7O4MRhl5S45ZEe5tcHZoqrPZc1nXTuk2X52FQgTpA023ZNd5CtDCcFR6KLUVf9zXr7tXHmniBqxQvOYhy0ly/NzuljNaNhQ0ffyWEb+Rcty56hkbYw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
+ smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
+ header.d=amd.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=8tp1nIkSLuXxD94e4mrSbC051HzsB0ocn4gms5xgekk=;
- b=jP5C8Cne4VWTvtRHsRddxQKqCfDbQuLYE4ZjApV6DZoJ/ox9vsHHZ4YJNXXRvMEuuh+JEw/eIu+TdJMZ2aZk5GAQF7voJj65scal/JILZfCxbZbyhfvyiCqbkSQLdelunXD8CbkziLqb5sif5J5roOP/ZK0WFxQbIEpSFJZRcMyivm74q+jse6ltAeCQa8hF+NltODz9L0PtBqVZmiUdxn0Z1PlXx3eudMHR0XMoT+C9C6Z6b75/zZJgAsATy1i0jpQp5mn1NMxbZo4nkF5q7xaeb0DGI3H7Jq2RnyBL7yFKHpeL9FvVQYz/sSC03vcWBYx+VL44WnW+ZCZ3HI4ZMA==
+ bh=GWiJzAIZn5/hqVS/2iMNLTYzB69nUyBfC5JpBllzJiY=;
+ b=OjdPK41l6uYKLgqK0/Xzb4BE+0MWnvo3KcsY5+NMg0/BH8sjPeeLi4IXFznqKnMkW4LecmZ0sfhAs3dRoIyPcimu6Wk14moNNV4xsICX8bH2L05YVAKdvONCoPkbxEZ2pp2X040XcPzJKEMciBxfrcFsYJCocftoRiNIWetYFhE=
 Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from IA0PR12MB8422.namprd12.prod.outlook.com (2603:10b6:208:3de::8)
- by CH3PR12MB8996.namprd12.prod.outlook.com (2603:10b6:610:170::17) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9870.25; Tue, 5 May
- 2026 15:51:05 +0000
-Received: from IA0PR12MB8422.namprd12.prod.outlook.com
- ([fe80::b2c3:ee20:6aeb:7f6e]) by IA0PR12MB8422.namprd12.prod.outlook.com
- ([fe80::b2c3:ee20:6aeb:7f6e%4]) with mapi id 15.20.9870.023; Tue, 5 May 2026
- 15:51:05 +0000
-Date: Tue, 5 May 2026 10:51:02 -0500
-From: Daniel Dadap <ddadap@nvidia.com>
-To: Hans de Goede <johannes.goede@oss.qualcomm.com>
-Cc: Lee Jones <lee@kernel.org>, Daniel Thompson <danielt@kernel.org>,
-	Jingoo Han <jingoohan1@gmail.com>, Helge Deller <deller@gmx.de>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	linux-fbdev@vger.kernel.org,
-	linux-acpi <linux-acpi@vger.kernel.org>,
-	"platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>
-Subject: Re: Plan to fix nvidia_wmi_ec backlight issues, help wanted
-Message-ID: <afoR5jUHLPXpYJ8a@ddadap-lakeline.nvidia.com>
-References: <f10c039b-e9ef-4aae-8291-8f1e71074586@oss.qualcomm.com>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <f10c039b-e9ef-4aae-8291-8f1e71074586@oss.qualcomm.com>
-X-ClientProxiedBy: BN0PR04CA0052.namprd04.prod.outlook.com
- (2603:10b6:408:e8::27) To IA0PR12MB8422.namprd12.prod.outlook.com
- (2603:10b6:208:3de::8)
+ header.d=none;dmarc=none action=none header.from=amd.com;
+Received: from DS7PR12MB6263.namprd12.prod.outlook.com (2603:10b6:8:95::17) by
+ CY8PR12MB8265.namprd12.prod.outlook.com (2603:10b6:930:72::8) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.9870.25; Tue, 5 May 2026 16:31:04 +0000
+Received: from DS7PR12MB6263.namprd12.prod.outlook.com
+ ([fe80::c748:abd5:8638:f377]) by DS7PR12MB6263.namprd12.prod.outlook.com
+ ([fe80::c748:abd5:8638:f377%4]) with mapi id 15.20.9891.008; Tue, 5 May 2026
+ 16:31:04 +0000
+Message-ID: <6ca4ac03-7d6f-4320-8ac6-0556f408059b@amd.com>
+Date: Tue, 5 May 2026 11:30:46 -0500
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2 1/5] Revert "ACPI: CPPC: Adjust debug messages in
+ amd_set_max_freq_ratio() to warn"
+To: Mario Limonciello <mario.limonciello@amd.com>,
+ "Rafael J . Wysocki" <rafael@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-pm@vger.kernel.org, K Prateek Nayak <kprateek.nayak@amd.com>,
+ x86@kernel.org, stable@vger.kernel.org
+References: <20260504230141.484743-1-mario.limonciello@amd.com>
+ <20260504230141.484743-2-mario.limonciello@amd.com>
+Content-Language: en-US
+From: Kim Phillips <kim.phillips@amd.com>
+In-Reply-To: <20260504230141.484743-2-mario.limonciello@amd.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: BN9PR03CA0237.namprd03.prod.outlook.com
+ (2603:10b6:408:f8::32) To DS7PR12MB6263.namprd12.prod.outlook.com
+ (2603:10b6:8:95::17)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -68,212 +67,85 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: IA0PR12MB8422:EE_|CH3PR12MB8996:EE_
-X-MS-Office365-Filtering-Correlation-Id: 7a03ecac-e79c-4217-fc93-08deaabe1d95
+X-MS-TrafficTypeDiagnostic: DS7PR12MB6263:EE_|CY8PR12MB8265:EE_
+X-MS-Office365-Filtering-Correlation-Id: f9d21d25-579e-4ca4-2040-08deaac3b35f
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|7416014|366016|376014|1800799024|18002099003|22082099003|56012099003;
+	BCL:0;ARA:13230040|376014|366016|1800799024|18002099003|56012099003|22082099003;
 X-Microsoft-Antispam-Message-Info:
-	NbX/UnMWIw7wiDP//VBgHXhTifZMX1K9/JYdQnO54ftcglr3y3hIMDmYt9Rs5XcaB/ylnYZCcfLch0yevMjuEItcyjjvF2MZDcjivOVs2mhnMsVYHS10E0JP/WZLiHTGbOYIXLFsm6KKRBT4wyskE2eUF9JkGuA4mOyTvfjlWWbgyTu279e8uxglSM/TQ4vsfWbBCVQEXQ/GTF/e8LWbgGds0Oh0Yws9zgO+iy2SiLnBItD0D2ehm3EamV13e8Iax8+svof7pc1K3hsvgLANsgt8kPw1Qxx9g2st8mPDHXlIKV9wVthjc13FMd/8HW8lvZcuCJFoQbHrWJkG1oZZZFxupuoMXO1giBtQS795YkaijWN472MIgU1/Zb4MqR36mT00mdZD0mLX4HbaqRRf6oAuPrDz5RjnLHkgEObdoZyoSvtQMawB5rE8uRBMEQA5yN5NsuKG5RxehHRj1VzopJGG97dVEpfxz0/gxXzJmztJZLffUYsUCJkhWJFClMMPNalFgmkyCj/dT4SJ46d0YzSD5uzGq/ULb8lcHl7jyZGrXcZEf2s7fXBhPXpzOhEJKzVXQT82KsLUo+kTqkGK2xpZplWvkebE1JAZRxqp3JS0ATbWU+fipRNZ7T+zL3+/2eY932ioxy0GgeaQia3HLcYlXNKLpdwXDc5reMQmkqGpiVcPrxNWXK3jg0xDC/Gu
+	nIUHYiB+vPlBPvkrOUtKYRsgPZpo0E+UjLE0kDSR9gOOOMqJ4/xXel3p5wi8676tMtSypOa1M49mgKnOFr86AiZ4VUA4Sbzgez91GsZK2dEx5dVgG5H122LdRrqZmJ85+9negpGDp0fGC4oXgZAvf/i5tgA3w49cIkIGZl1Dda1/MvR7x7t5sBAQESJ6tI1yBJpLqT1P2o0TKC8PMHpWRs5DAuLrXfLilAT5QmVox2knB4qJApthwUklNN2Vpuh5fsayzHudNkavyHnADek2EhpMuaU6xkNaPuYFhS9LmOyC2Icy0d+/QsH+JyNZnE3uRyrN4SewlKmbfDjVirmsJcxZ0giFvrG1QXE9UsUSkZ0dBXydTwcSdOlRELC6WiI6g+J4g2Vc2g1F/VZs2GWZ7kuIEJwKdAnzV33SU6wWqVIu0wXnYxZBA2UF1DECIq6Fd1gE7L+xxhxEppC6OEFra0V820srMh0VuuS2gHDgKTYDgsTKRniTpf+dQWwQqsEeXXAZVJJ7bONlC4GbJBzgjf8BYhG+1uCo75X0z0+dsYw1GGcuvKhtOYzS8ewV5w11m8nj9byiEs9xVFQ3Q26F4j/hs83sGVfQZk+9+3Wq4JXC54JNuRFit4MsYJDssMuCeL8+OXxRlHoTp0RhOSJkGLe44Qz8SGbJhChieR4arbv05RtzRP+GOuSioXpoHJpi
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:IA0PR12MB8422.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(7416014)(366016)(376014)(1800799024)(18002099003)(22082099003)(56012099003);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS7PR12MB6263.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(366016)(1800799024)(18002099003)(56012099003)(22082099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?MAmcX3Z/PO5g6ZwQgLdIRde7vjAgM+zrjW9tjVaXay1u2s53w3YYkNgAWx9O?=
- =?us-ascii?Q?hN0O1LbwQjNILCCrQpM26s3hU/XhVJq3YJsgH40MCzZoVJ3WMqoJ32kdZ8DS?=
- =?us-ascii?Q?wvdlKTwpDhq4+/+ms72lnD4z2YXsSLgEdIs2KIYA4RVHqHfQZ87ieVWcE7ZD?=
- =?us-ascii?Q?tucL9iuMobOHXGDTaZLlE1BErAMS8zLotlUnpbX7x+wEYJ1vUJedE399hJxZ?=
- =?us-ascii?Q?TqbeWdBniWH3fHauxlNAsh3kAqwZmiOg8n+s3EdFT/LU4E6kXyxbeaQcv3P/?=
- =?us-ascii?Q?m1iLQcOpHmUq5EGqDeVgCtmJAhlBmxl2uzG4t+A4ZbbOMKz3k+HKey826RHN?=
- =?us-ascii?Q?1ktK1LrRcxj/tdOs5wijb98snJI6ThR7J+a3kr2HjequH767mtk3IxqCEx3E?=
- =?us-ascii?Q?Qm0bJdxgJnOtf/AbixAR4k9DaZYh/M8tqXlBuoMM60BO9Xiq4Fqo6kP2kPpU?=
- =?us-ascii?Q?Gt4yrx+T3Jat6XiSYpVNBombW+Q4AOBmDVe012EqscZWRYl/wVhx4cUgca+P?=
- =?us-ascii?Q?7D3jhNdgRaOtJ943KOHSarahEDYq71po9cIq5svrTGafs4Uv3QrZjIIVrjgs?=
- =?us-ascii?Q?jfXGKnEafVLhPvfhBLoexWDm3su2LQmi51g1HGruPlxI5aWbk+tMZx4lfN/w?=
- =?us-ascii?Q?5DodYvDHgXHV0JP4+rnNJirK5lxV7NPQbZfEIgu7nruzXk00Nol2yOW2L0xz?=
- =?us-ascii?Q?m9XFwwb1nJS43XlJygBhG609hEoiPwSAzjJDlwWunYepZR6dyThNphv+wuzf?=
- =?us-ascii?Q?1eyYOZWH5heUnutSEgpkIRWp5K1MPMwilArXJMktfSTblWva9E70+A3COBOj?=
- =?us-ascii?Q?bdQjiJyYhXwxb6GrJwI8qDYW46esR9G8M2aynj4ZgGwnucTxYhEgGGH8iQAm?=
- =?us-ascii?Q?eBGzZ8tpAsguY5ZMrXKega+jehnT8nI7dLFp0xbrmaQyqQq8fzZ4PA53jD2x?=
- =?us-ascii?Q?47n10xxThqap0l7kjPIxNdtzNnvcdBFMbZnslpMSdUhQCUugNBZOxmhOFgxF?=
- =?us-ascii?Q?IWFpyvDzttv1woa27Om2oN5T5EkTp7i5IiJvLcJ7q+h/i8jLR9xcYFJVmLTb?=
- =?us-ascii?Q?wBDh7O4JQ8PXT2aWPKvCVxsYic5g5ztKWkliuxWlGarnUwWfxppeAYRaesTw?=
- =?us-ascii?Q?y7zoky/hxOpgAagt+CUSDELsJr/s9McKunylM3tiT2Y29H6idjhqo8TXpiBF?=
- =?us-ascii?Q?qGtEDu6wtYWO/Ca7jBKrxvx7iT5QGiCJEcqHRdzpgEkyx75C80j3sgIu7Esh?=
- =?us-ascii?Q?FDd2Z/A6ra7+8HVQZU6UofbVke1G/Y1Tig0s/1X3m6I8SLmQylc2MfNrsZ47?=
- =?us-ascii?Q?8A9f8FAvLbefs7y8MggAzyVovMsjcZSmP7C+NdidgB7dCr+vfdMUtQCKB3Kv?=
- =?us-ascii?Q?xsdR2AhSKFJSo0WsH23/AfFy3WsOGgpdtEUG26Ak132MZ8u/m/R3MrXUqgp8?=
- =?us-ascii?Q?gvhSEt62kuNDBDyZgUdMoiz99haP+BpkqkLoePaOZ9XsXAdBMWKKpLb6xATK?=
- =?us-ascii?Q?nLnSRoP/YuJCyYlx+VbOtSUJ+siyYUU0ex8H/YDQ21wjNGq9hUDEDuM5QicX?=
- =?us-ascii?Q?g/7DWfKVOKJsbXS8aUwnN3FE4PbZk0NwihwQ0z0zAvtu9PvShV5FdHmaG7I+?=
- =?us-ascii?Q?rcNudnROC8FlwRMXtlyC8AjrwU8vLz/bQIzROiU7hGBnbNeRIMWyzHGefJmw?=
- =?us-ascii?Q?t9TLoSVIMXi63D/ep1P9ZV1oYtBVEjlrEcxYhgX4BB8WgUjU?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 7a03ecac-e79c-4217-fc93-08deaabe1d95
-X-MS-Exchange-CrossTenant-AuthSource: IA0PR12MB8422.namprd12.prod.outlook.com
+	=?utf-8?B?d1ptTEZGY0RCd0VhYmJnMVVEOEVZYjI5MTdVcVU2S1JhSThkMXc4SnB3K2Rv?=
+ =?utf-8?B?Zkt1cDQraDE0Q1oxa1pJRFhYRCt1eWpLRUNBT2xxb0FYRmU4aVExajlwZlI3?=
+ =?utf-8?B?RCsxOUNodTlwV1I3TzhKdnVVMEFlTTBrb1BJdG1tS0o5Y0kySkluNW03VjBW?=
+ =?utf-8?B?YjV0WGQ3dFFXMEF4ODd2ZHV1NTdDdExRVDE1YXNpNEltbzVncDJqTXJrMzBI?=
+ =?utf-8?B?UjhDOFQyN1N0TjRJUy9INE1tZ2RoMzJJc0xjQzdsNVorczA5QU9YdTcvcEJ3?=
+ =?utf-8?B?YThscy9sRGNHSlFKM3ExaHF5ckNGa1AyQ1hxeGxoNTlIZG1MVTVBaWpKVDhW?=
+ =?utf-8?B?YW1ITDM0bUtKTjllWmVNSGVqeWdFT3RmK3lSMXl1bUUrcytra1oxUEFxb3V0?=
+ =?utf-8?B?N0w2SHQxdmVUU3phRTNRcHZZZlNOb3JzVWZDOXQ5SWY1NTlTMXkwVXUzNlZu?=
+ =?utf-8?B?ejRrYjNtR2VCaFRXODBvclVCd1huUnZRSDRaa1hobXRYaExRTmh2QndKWnJ1?=
+ =?utf-8?B?TzkvMklFVzc5d0xvZVR5K2RFWkhsNWFoZ0ZxSFRmbTNMTC94VDRXTFVBMEI3?=
+ =?utf-8?B?US9sUVFiWFNpbVo0M3VTUVdMTXQ4SEEvZWlLcnROazIweTkyNlR5OWdlUHVG?=
+ =?utf-8?B?aFJZSUc5WVROVDg0VUxKaC91MXROcTJ2QUZNY09JRi9Qc3J3NWdFMThoVzE3?=
+ =?utf-8?B?dFhXMHJCT0xjQ0tPY3JnZWh5elpOdVlGZUluS1BuSjBDY1VkeVBxOUhsLzk1?=
+ =?utf-8?B?bXNkNXd4NC9yc1JUYkdrZHkwVUt5Qzcvc0g3eTZBM044eklySmpNMFJvK1VS?=
+ =?utf-8?B?MUJMd2pZZW9TZCtRSm9jYzgvUnIwcEh1VVl1RThjdGpSSGRqV1EzQUdJTlpL?=
+ =?utf-8?B?YnBxNEh6MEhSd3hXRU1FTEZoM1d2eXU3NUxaS3h1LzF1SHlDL2I4bzhwUUVv?=
+ =?utf-8?B?Y0RPSXMrRlUxdjJldWhwM2lUVldodHB4U1YzbmRJa0h3a2JnUVpZeWRYMTkz?=
+ =?utf-8?B?RUx6MUVZTjJ5TG83OUswOXFTOEdlTEZOQml4Y1NHTTU0RkJpb2hOQlBwakg0?=
+ =?utf-8?B?KzlwUFRrR0NVd1VMWDhKc0daUU1jbDYxbDlCZ3JPR0dBVXNDQUVsNkVDdTk2?=
+ =?utf-8?B?RHlsdXFZOCszZ0tUbXVRRzFJQ09yOGxCaG5LY1Z5aXdWNmtqUmxZRUtoSEpj?=
+ =?utf-8?B?SmZNTlgwYnZJNW5vcEdtU3psMm5OT3N5dVVCYi9vbWh0VXpYTDcvVEF0SnZV?=
+ =?utf-8?B?UzNoaDl0RFNSbTdNdXZzMzZBT2NMbXNWSGdTZGhoVGpJWGtXUmR3RGRJSFhU?=
+ =?utf-8?B?c2xteEdodmxUZHlua204MW5lZTVWY2V1VE5LZmZiMVRHeGJLbVFzc01IK1JJ?=
+ =?utf-8?B?QTZHSUdKYURONGUyVlZiQUU5UWxUaVFXQStYQXZTbWpFSjBKdUpsSUxZQ1c0?=
+ =?utf-8?B?aVhMcFlhYkw4TmxYKzU5cHdWdDR2dUNFS0NiZ2NoQzlwTHBxZVc4VmF5NmFS?=
+ =?utf-8?B?TS9MT1hYTExPZlYyMnkrUVh6Y1FGMFhxNC91TFRpS1BCcEN5dmpwMnQwWjMv?=
+ =?utf-8?B?akVUVVZqNVRJRHVqNlpHSGFxR0dkNVhpUXQ3SnU3SHFvTUsrUmNIUUN4VFJh?=
+ =?utf-8?B?T25hSGJ2Zmp3bVBWT0ZpMEpHTjk5bjdneEpHWXpsVkhrR3dnK0c1QUNFYnVr?=
+ =?utf-8?B?MDRVb0MrMXN6OXVMdFN5Ui9zOEtIUW5hYTFFQ1pYYkthWTNTeVFER1VUOGVD?=
+ =?utf-8?B?SmZaTSsvRHFRZnVqR0pGVGhGSWVwd3hSU1Z0aWEva0Y1QWM2U0ppT1JkeVd5?=
+ =?utf-8?B?OEMrTTloZDEvUkVqc1FXTWpQRUpBNlBMQkFZZ2kwYlM1ck43Ky8yZzdCYkti?=
+ =?utf-8?B?dGRvZEsweDRDMCtQTWdWdEhVdk02TmRncVB6MUhCYWhWWmlLU2FFeUNWOGdv?=
+ =?utf-8?B?QUc4ZmhVaVBBbzJqUkRLdWszSlcxQkJ0Nzl2ZzBjOGgvUEJuZU10QmlLM3oz?=
+ =?utf-8?B?di9oVEpHdW9yQ1JVenEvOUJCZVBOUjMwdThSQWFkVDVweThWeUJsWElRa01q?=
+ =?utf-8?B?eEl1MW9wWEJMOER3QXpBYk50MHp6bHh0MEdHUHd6N0xYVzBkaUs3Y2pVTWww?=
+ =?utf-8?B?dmIvS0VleXRWcThPUzZUMDZiNlFtNG9lK0RndHBhNmlWQytkamM5QVBVdW51?=
+ =?utf-8?B?UUNYODNETDUxdG0xQ05Id3VHRmE5c0ZMZlVGczRpVU5NNXh2d2xicmpPMzNF?=
+ =?utf-8?B?MlBoMy92R3NrNlFDOVl5bFlPZ1ZFSnROUEh5UVFyQWdBYnUvTW16aGh6MG4z?=
+ =?utf-8?B?Uk9SZS9pdXpnMkFEM0M5eUhUZUdDUERHTUIwejNBTUtSSHNhdWFJUT09?=
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: f9d21d25-579e-4ca4-2040-08deaac3b35f
+X-MS-Exchange-CrossTenant-AuthSource: DS7PR12MB6263.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 May 2026 15:51:05.1724
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 May 2026 16:31:04.0208
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: N71YBHM6IwmBtsVBw/Qpw/WYnpan236Q/eEAcRBrD8NzVupYISvEXSuIG0tljwBLm0oa2Hzr8U9PVlvTDDv3Xg==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH3PR12MB8996
+X-MS-Exchange-CrossTenant-UserPrincipalName: ggeJmfsQBsIfy/TKhMuIJ+hROUmgRgfnec60ok68aSJ1rHIDY9o3wRex7R27CKG3afk88CwweopPGUypYIxTUA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY8PR12MB8265
 
-Thanks, Hans -
+On 5/4/26 6:01 PM, Mario Limonciello wrote:
+> Some older systems don't support CPPC in the firmware and this just makes
+> noise for them when booting.  Drop back to debug.
+> 
+> This reverts commit 21fb59ab4b9767085f4fe1edbdbe3177fbb9ec97.
+> 
+> Fixes: 21fb59ab4b976 ("ACPI: CPPC: Adjust debug messages in amd_set_max_freq_ratio() to warn")
+> Suggested-by: Kim Phillips <kim.phillips@amd.com>
+> Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
 
-On Tue, May 05, 2026 at 11:52:55AM +0200, Hans de Goede wrote:
-> <resend adding pdx86 list, sorry>
-> 
-> Hi All,
-> 
-> A while ago Nvidia introduced a new Nvidia specific firmware method
-> for controlling the backlight on laptops with runtime switchable
-> Nvidia hybrid graphics.
-> 
-> This is supported through the nvidia-wmi-ec-backlight driver, but has
-> never worked 100%.
-> 
-> The new WMI firmware interface has a method to ask the firmware if
-> the backlight is controlled though the EC and this the new WMI interface
-> should be used; or if it is directly controlled by the GPU and the GPU
-> driver's native backlight support should be used.
-> 
-> There are several bugs in the implementation of this on various laptops:
-> 
-> 1. The method to get the backlight control source sometimes does not
-> report the correct value.
-> 
-> 2. On some laptop models which method (native-gpu vs nvidia-wmi) works
-> changes at runtime, e.g. when plugging in a charger.
-> 
-> Known affected laptop models/bug reports about this:
-> - Acer Predator PH315-55: needs acpi_backlight=native
-> - Dell G15 5515 with RTX 3050: *needs* acpi_backlight=native
-> - Dell G15 5515 with RTX 3060: *breaks* with acpi_backlight=native
-> - Lenovo Legion Slim 7 2021
-> - https://bugzilla.kernel.org/show_bug.cgi?id=217026
-> - https://gitlab.gnome.org/GNOME/gnome-settings-daemon/-/work_items/784
-> - https://gitlab.freedesktop.org/drm/amd/-/issues/4512
-> - https://bugzilla.suse.com/show_bug.cgi?id=1217750
+Re-adding:
 
-I believe there were also a couple of cases where different builds of the
-same notebook (as far as DMI quirks tables could detect) would be driven
-by different methods, exacerbating problem (1) because adding a quirtk to
-fix one notebook would break other versions of the "same" notebook. (Oh,
-maybe that's the two G15 5515 bugs linked above.)
+Cc: stable@vger.kernel.org
+Tested-by: Kim Phillips <kim.phillips@amd.com>
 
-> 
-> It turns out that under Windows both a WMI backlight driver and a GPU
-> native backlight driver get installed and Windows simply always calls
-> both when the backlight changes working around these kind of firmware
-> bugs.
-> 
+Thanks,
 
-Yes, it's frustrating that so many notebooks have implementations of this
-interface that have bugs that get masked by Windows always using both of
-the interfaces. I wonder whether Windows behaves this way because bugs of
-this type are so prevalent, or if the bugs are prevalent because Windows
-always behaved that way so nobody noticed.
+Kim
 
-> When this first came up, about 2 years ago, I came up with the below
-> plan to fix this. Nvidia was supposed to work in implementing this,
-> but so far an implementation of this plan has not happened.
-> 
-> Note I do not have time to work on this myself. I'm posting this here
-> in the hope that either Nvidia will pick this up after all; or that
-> someone else can make this happen.
-> 
-> I'm more then happy to help answering any questions which may come up
-> while implementing this; and to review the resulting patches.
->
-
-Sorry about that - I totally forgot about this proposal. I'm still happy
-to help here, although if someone else is especially eager to implement
-these changes, I'm also happy to answer questions, test, review, and help
-in other ways as bandwidth allows. I have some clarifying questions about
-the plan - it's been some time since we talked about this, so I apologize
-if I've already asked these questions and you've already answered them.
- 
-> 
-> The plan
-> ========
-> 
-> 1. Modify the core backlight code to allow registering a backlight-device
-> for in kernel use only, disabling the registering of a class device under
-> /sys/class/backlight .
-> 
-> 2. Add a new backlight-aggregate.c backlight driver, which exports a
-> devm_backlight_aggregate_register_or_add() function. Drivers can call
-> this passing in an existing backlight-device (with its sysfs interface
-> disabled). This either creates a singleton /sys/class/backlight/aggregate
-> device, or adds the passed in backlight to the existing singleton instance
-> if it already exists.
-> 
-> This new driver always exposes a range of 0-255 to userspace. This acts
-> as a proxie for any backlight-devices registered to be part of
-> the aggregate, forwarding any brightness set calls to all backlights,
-> scaled to their actual range. For reads this will report the last set
-> brightness value (starting with the value of the first registered
-> backlight-device).
-> 
-> 3. Add a new nvidia_wmi_ec_and_native type to drivers/acpi/video_detect.c
-> for both DMI quirks and commandline handling.
-> 
-
-So by default both the native and GPU drivers would register a "normal"
-backlight handler, and if the "both" quirk is set (or if requested via
-kernel command line) they'll register with the aggregate device?
-
-Would it make sense to make this more generic, with a parameter which
-can be set via command line or quirks for which backlight devices to
-aggregate? And then maybe instead of a new "nvidia_wmi_ec_and_native"
-backlight type in video_detect.c, it could be called "aggregate" or
-something else along those lines, used in combination with the list of
-backlight types to aggregate.
-
-Have we seen systems where both the iGPU and dGPU register their own
-native handlers? I vaguely recall seeing such a system, but I do not
-keep careful notes about this sort of thing, so I'm not certain. If
-there are indeed such systems, then "native" might not be specific
-enough, and it may be necessary to explicitly name backlight drivers
-individually in order to aggregate them.
-
-> 
-> 4. Modify acpi_video_backlight_use_native() to also return true if
-> the __acpi_video_get_backlight_type() call there returns the new
-> acpi_backlight_nvidia_wmi_ec_and_native.
-
-> 5. Add a new devm_backlight_device_register_native() helper which
-> calls __acpi_video_get_backlight_type(true, NULL) and if that returns
-> the new nvidia_wmi_ec_and_native type then registers the passed in
-> backlight with the flag to not register a sysfs class interface and
-> then on success calls the new devm_backlight_aggregate_register_or_add()
-> with the just registered backlight device; and if the returned type
-> instead is acpi_backlight_native register the passed in backlight
-> normally through devm_backlight_device_register()
-> 
-> 5. Modify the i915 and amdgpu drivers to use the new
-> devm_backlight_device_register_native() helper. Since this new helper
-> checks the backlight-type itself, drop acpi_video_backlight_use_native()
-> checks *if* the registration is the only thing guarded by that check.
-> 
-> 6. drivers/platform/x86/nvidia-wmi-ec-backlight.c to not return
-> early from probe when acpi_video_get_backlight_type() returns
-> the new nvidia_wmi_ec_and_native type and for that type make it
-> registers its backlight with the flag to not register a sysfs class
-> interface and then on success calls the new
-> devm_backlight_aggregate_register_or_add().
-> 
-
-There still isn't anything tying a particular sysfs backlight interface
-node to a specific display panel, right? Is there a plan to eventually
-support this? How would this interact with that plan? I'm just a little
-worried about designing ourselves into a corner that makes things harder
-to untangle individual devices later if the need arises.
-
-> Regards,
-> 
-> Hans
-> 
