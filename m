@@ -1,317 +1,156 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
+Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76644313543;
-	Wed,  6 May 2026 11:32:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.12
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49C8D425CE0
+	for <linux-acpi@vger.kernel.org>; Wed,  6 May 2026 11:57:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.168.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778067140; cv=none; b=lHvVFvma2o6R3T44WOGoomeUZzIU8/Ccr6F7x0GbEu/iABp0L9cqPhV32/WLX3ssi0GjVXwVg+a0tisG1GM8AV2GVw1eNrYRAgjgh34jz8wuEMkJZAOG4XZ0lzG6z8B2tWRFSdcxYyTuLcU/eLLNUbF86b9hzhSNdjK6nz2CLvI=
+	t=1778068634; cv=none; b=HqHxLJVuCi/pCQOPc/k4zipwdKl+pwb5HrF9YluV7FyTj75A4NQRAl0qwfcNVia9eOBIV4cHQK1+usQApuOcpHH6KaUIeeSAAtP68VNrycx5uepWCTpqOI9jVBVGHXpB6gtRv8rYHbIfGbRUGiJyn/DFDA8fyMD0D26CTMnWs8g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778067140; c=relaxed/simple;
-	bh=O6TF3HsWcTy6sdh8ERgaGEDnfbxo5JycHdzco+fV99Q=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=r+IlvOw5TavIGw1ISXEKXfdkQFd2Zu8292MM1VYXde/dEKkE1Ajoxj0D9yfiVT2qgqdMQFbTmD8mRLr6An9k8cZoP53XjL/7/Q9CKVwTzQNGeHIbqz9U+DP8UR+eGz9m07/zSFM85Zevvxx385R7Qe57iI1M71/KCtS8IsT8oew=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=N/yd5YKL; arc=none smtp.client-ip=198.175.65.12
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1778068634; c=relaxed/simple;
+	bh=87NP7XwywOn9x/iXWB+eXS5eWuDkx8j+CF4L7FZPusM=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=TSfllhdeU3ksB+D4MvyMccokySVaLkmSRmNXhh8iSiTMp3qL0HphT3+t5m8HbAMZucm8lApWDgScePaw1gfGRQUvQ6+tjOIG4LCRnJpiqSJt9QYszufWDjtZBEe7zzf1+/YN6a9Fl1V+R14cv1OZVFiIQkFv5H9Jm+Y1EJTbVOc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=es7gRqPv; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=LAaJQpp5; arc=none smtp.client-ip=205.220.168.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="N/yd5YKL"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1778067139; x=1809603139;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:content-transfer-encoding:in-reply-to;
-  bh=O6TF3HsWcTy6sdh8ERgaGEDnfbxo5JycHdzco+fV99Q=;
-  b=N/yd5YKL4rmRwtBSWP2g4EKXH9VmLjzvKMXjJZrpjYhA4m+JfGQLqjQ3
-   RkLgX6DpYvYEkeqlS8ZNmBeK31V0ifaVCuntGFf/OgTYpGDvflIDc1pga
-   pICdHmcQF8QrKdkpvLHsPde+Tzhr67AZCjc7aZLaemoWmuHNDXFTlkx2x
-   fUyxzjefOIRCWSi6YP9NEst4/8xuqA4coChShZcFET9v29IYP0b+HrmcK
-   TtQWZJVFlN1zrXG6YJGcNe3yIi15GB92iMEeAKbeZHjsG9c4lkrZSzjDH
-   a94egeXC2uoZw8O/vzeYhaJSwCZEndYz1UCZme2QxyurVHdPDYFF9JfXj
-   w==;
-X-CSE-ConnectionGUID: I80yiqw3TKKTD0zIPruOjQ==
-X-CSE-MsgGUID: sBaMIdCgTqmtcKnQ6ZyuhA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11777"; a="90451370"
-X-IronPort-AV: E=Sophos;i="6.23,219,1770624000"; 
-   d="scan'208";a="90451370"
-Received: from fmviesa006.fm.intel.com ([10.60.135.146])
-  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 May 2026 04:32:18 -0700
-X-CSE-ConnectionGUID: I0uO+rMCQnWeXhjzshuPZg==
-X-CSE-MsgGUID: 2eQO0X2DT4Ke8O30NSNBWQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.23,219,1770624000"; 
-   d="scan'208";a="231568222"
-Received: from black.igk.intel.com ([10.91.253.5])
-  by fmviesa006.fm.intel.com with ESMTP; 06 May 2026 04:32:16 -0700
-Received: by black.igk.intel.com (Postfix, from userid 1001)
-	id 1EC3595; Wed, 06 May 2026 13:32:15 +0200 (CEST)
-Date: Wed, 6 May 2026 13:32:15 +0200
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-To: Marco Scardovi <mscardovi95@gmail.com>
-Cc: mathias.nyman@linux.intel.com, linux-gpio@vger.kernel.org,
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH] gpio: acpi: modernize resource management using cleanup.h
-Message-ID: <20260506113215.GK6785@black.igk.intel.com>
-References: <59174ed2-dc3a-4891-929f-bf513deecdc2@gmail.com>
+	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="es7gRqPv";
+	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="LAaJQpp5"
+Received: from pps.filterd (m0279865.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6465qw6m2581370
+	for <linux-acpi@vger.kernel.org>; Wed, 6 May 2026 11:57:12 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:date:from:message-id:mime-version
+	:subject:to; s=qcppdkim1; bh=Odr8obAqI6YzuQA1Xf0eZUfZcXB+THZa+6j
+	Hl6jpP9g=; b=es7gRqPvfcWjkrWR2L584axIUuruZrtV6MWjOIfz7Lh1qSod49p
+	Oy8XigTxcm9eNpkWcayHLBAGl0VvVqQhYUX+SAh5f6n1w6RBEaEAo83Xz/Hv7Du9
+	6VYjwznv6cbl85IlV5FtzNpAORbLU2D5fShggV9A7NJSBQG78P/4evOrheeLY16/
+	zXNVzW1+4+M90DyGoFSd5J6MZJFsKQq+Arruncd7eXWyloeYem9HlCXF9iXelcZs
+	w/eEXlA7LzMN1Gh02d605dI+kI1YO4/cQ2Fhpn7o6dRaV2qyU4zWmPdQI/XppJX7
+	zekoMJJwlhQya9WcC2w3j4dbsIiuETzuaOg==
+Received: from mail-qt1-f198.google.com (mail-qt1-f198.google.com [209.85.160.198])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4dyyvw1bys-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <linux-acpi@vger.kernel.org>; Wed, 06 May 2026 11:57:12 +0000 (GMT)
+Received: by mail-qt1-f198.google.com with SMTP id d75a77b69052e-51009190feeso147016611cf.2
+        for <linux-acpi@vger.kernel.org>; Wed, 06 May 2026 04:57:11 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=oss.qualcomm.com; s=google; t=1778068631; x=1778673431; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=Odr8obAqI6YzuQA1Xf0eZUfZcXB+THZa+6jHl6jpP9g=;
+        b=LAaJQpp5SExFXdKFbSqZlBYkrRZ00hUU2Ua5ZpcHT3TWlKkeeqTd8MANgnsm/WU2/f
+         jeSgCWn4jN4C+Zfjlxhfpc7cxRh78OZjHlZKB5bDq11YQy1q3ill4AUpDvnrkx1S237s
+         4NLrlZmR2qDdUl/Z3vCxdF0u6JxnN6j7tsqjelf+jOlw+/6p2SsVeU4NCy2O9uAKKnci
+         J5OPmezin6uT/L7xyDKlF0090aTWOTWVgXKo4fg1i9VYZ4pMttiPTHz+qPIDnyABIUH2
+         PPmsyljpn+KURkpbm/MIjwzpT/BVHQBNr9xc2YBLdDz1o7H54b3eP9aSEBk+W4pYRQtN
+         I+aQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1778068631; x=1778673431;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Odr8obAqI6YzuQA1Xf0eZUfZcXB+THZa+6jHl6jpP9g=;
+        b=FjITWN7q7actDcCAPAILJcJ9hzmluKKfcAZ8gAvL79aU6WG0SV0UO6ASfywxMiN9pL
+         +1cWIKu32T9Pjaks8vTU0Yx57nLl2q4azaOlvgQrk/CmVFfuGdQk2Y8foJyKEIXAUug+
+         iyM0uOvgj3ngPpMV8xswzQEzSU77WDPPs+EjpFwVlJEzNHAj0PMQklFh83gA5aNaWGLz
+         r0wKOcbEekqF509hah+TawjPp8qsF5G8gl9jXy3uVRJ7WwxAhfg/COQRjyfzSmlYdgfn
+         npGQsh53yhCGlUiZ0o2tNkjcMzgonf91ONh7viz5r3gRnGKyshu9sNhVSLl+ragu9GD+
+         pMmQ==
+X-Forwarded-Encrypted: i=1; AFNElJ8J4jsM7LgmSKMU6ljWjb5MQhwmOfIirRZfaNe5CtbWDv+LY88F038Z8TT4seikFDxnpBgUpW03cyMk@vger.kernel.org
+X-Gm-Message-State: AOJu0YyXswdabos9sebWvO/IAx9pG+8xl/I/0r2tiwW07JMQbEtSn+Gy
+	FwCvPiKC/kXs8R7jpW/cVCT0F94ahUJYgjhDEaDN3UN48lJsxkTMLYJoWacWeY9WOAPvGqjRRbl
+	B9vOMFd9TXdOHrRXY0pda16IZNYqWWNd7Mn26Jindo/995HTDEHQs0oH1/ajrWQqj
+X-Gm-Gg: AeBDieuzIPSsuIwuRWGKW7K11iYQqFJ19PoLHLCUz/e5XGs1zvQJ8i234VLh6Yv3K6A
+	old81nFxdHZ90Mpmy55a5R85aVpQcxleUDT2JlKewioc7P+tkU5yoFqt2+T1ecyi0n4TDT33TBs
+	F+Ulfd6UUsgUWsANOf6Sr2nWF3M1Nj7l1yCKUEj2A1lreRHjk106+Rq7SnfcbYnPsrwmsgw/A+9
+	H3JhIVpMdCzlq6zSYqqPieHUve1QBBr2zG9L2kHZTQLDQz31ul1uetCfKQM+RDVQ0QMhwTsaHKx
+	b5n/sybIGYB9U6GKsOrZ1UBNSOzUwlBqskj5xpZG5FM+bjX0CZLg/EiIlqcu0Tt0lnAYBoLxvBe
+	gl6d+YFI0FxcMRIEbLMW++ixoSje8oW0xcjnfKyzyA4cYeyAUT5TQsJGCNsVP
+X-Received: by 2002:a05:622a:608c:b0:50e:60b7:bb40 with SMTP id d75a77b69052e-51461157e8emr44080191cf.0.1778068631061;
+        Wed, 06 May 2026 04:57:11 -0700 (PDT)
+X-Received: by 2002:a05:622a:608c:b0:50e:60b7:bb40 with SMTP id d75a77b69052e-51461157e8emr44079861cf.0.1778068630631;
+        Wed, 06 May 2026 04:57:10 -0700 (PDT)
+Received: from brgl-qcom.home ([2a01:cb1d:dc:7e00:ebfc:d4d5:c415:532a])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-4504f4857ffsm11651522f8f.0.2026.05.06.04.57.08
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 06 May 2026 04:57:09 -0700 (PDT)
+From: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Danilo Krummrich <dakr@kernel.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Daniel Scally <djrscally@gmail.com>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Len Brown <lenb@kernel.org>, Rob Herring <robh@kernel.org>,
+        Saravana Kannan <saravanak@kernel.org>
+Cc: driver-core@lists.linux.dev, linux-acpi@vger.kernel.org,
+        linux-kernel@vger.kernel.org, brgl@kernel.org,
+        Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
+        stable@vger.kernel.org
+Subject: [PATCH] device property: set fwnode->secondary to NULL in fwnode_init()
+Date: Wed,  6 May 2026 13:57:00 +0200
+Message-ID: <20260506115701.23035-1-bartosz.golaszewski@oss.qualcomm.com>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <59174ed2-dc3a-4891-929f-bf513deecdc2@gmail.com>
+X-Authority-Analysis: v=2.4 cv=YYCNIQRf c=1 sm=1 tr=0 ts=69fb2c98 cx=c_pps
+ a=mPf7EqFMSY9/WdsSgAYMbA==:117 a=xqWC_Br6kY4A:10 a=NGcC8JguVDcA:10
+ a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22
+ a=Um2Pa8k9VHT-vaBCBUpS:22 a=VwQbUJbxAAAA:8 a=EUspDBNiAAAA:8
+ a=oySY2n27BtFPXPS6EewA:9 a=dawVfQjAaf238kedN5IG:22
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNTA2MDExNSBTYWx0ZWRfX7cXyQAyzXNwj
+ yIG1v63QwonvL75kOcqDGqeHOAAMU5l/A/IkhlvtIV4ewP7UbFwL8gnlkkLNgNxB7nl6hdMKGjf
+ o7Vx4Z4QYH+e3QS8sWMlv3BDs80QJ0nhIeIMVDwXWKCuO52ZrCD7XdFeyc3xbJTaCBFcg/r0XkQ
+ 9WmwZE4AKb+i5zE6cyuG9Gmwm/rGOLaoFKtRljUg0gRWheNXuoK6VfvSptiOL7jn71ZbTGS8x0l
+ x3kgZA2HHDQYvSLonShaV24e4m4TgTqOodb/Ag+DVx29qZRs+bBvqNq2MFk9DKTECS1evfqzNDJ
+ BZanrz8rqcOZGAP1G/ej5P8J5mPg+0P6p9ZwmQMSCZN36+IelTCh+7FKBbk/l+tT5iWGZ6pnlDm
+ yJWo/glPZTVfaf/UQKilkvOGZMEz7htWEpEY/BCBp+h8Gm0x/UjEvKPLUK0CaaH7uEyBSLorNhc
+ NJ8E55EIVKGP5meTroQ==
+X-Proofpoint-ORIG-GUID: Ql7OR9lWpk9AnbTAiYjiRkgkd6zRMSXp
+X-Proofpoint-GUID: Ql7OR9lWpk9AnbTAiYjiRkgkd6zRMSXp
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.51,FMLib:17.12.100.49
+ definitions=2026-05-05_03,2026-04-30_02,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ phishscore=0 adultscore=0 impostorscore=0 malwarescore=0 clxscore=1015
+ lowpriorityscore=0 priorityscore=1501 spamscore=0 bulkscore=0 suspectscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2604200000 definitions=main-2605060115
 
-Hi.
+If a firmware node is allocated on the stack (for instance: temporary
+software node whose life-time we control) or on the heap - but using a
+non-zeroing allocation function - and initialized using fwnode_init(),
+its secondary pointer will contain uninitalized memory which likely will
+be neither NULL nor IS_ERR() and so may end up being dereferenced (for
+example: in dev_to_swnode()). Set fwnode->secondary to NULL on
+initialization.
 
-+Andy
+Cc: stable@vger.kernel.org
+Fixes: 01bb86b380a3 ("driver core: Add fwnode_init()")
+Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+---
+ include/linux/fwnode.h | 1 +
+ 1 file changed, 1 insertion(+)
 
-On Wed, May 06, 2026 at 11:29:36AM +0200, Marco Scardovi wrote:
-> Hi everyone,
-> 
-> I was looking for ways to switch to modern cleanup guards and auto-freeing
-> pointers to simplify error paths and synchronization in gpiolib-acpi-core.c
-> so I came up with the patch you can find below.
-> 
-> Here you can see the main points I've worked on:
-> - Use DEFINE_FREE() for gpio_desc and ACPI resources.
-> - Use guard(mutex)() within the OpRegion handler loop for automatic locking.
-> - Use __free() for automatic descriptor and memory cleanup.
-> - Fix off-by-one error in GPIO pin bounds check.
-> - Return AE_OK on out-of-range pins to allow processing other resources
->   even if one is misconfigured in firmware.
-> - Use break instead of goto in OpRegion handler for cleaner control flow
->   leveraging auto-cleanup.
+diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
+index 80b38fbf2121..31df7608737e 100644
+--- a/include/linux/fwnode.h
++++ b/include/linux/fwnode.h
+@@ -208,6 +208,7 @@ struct fwnode_operations {
+ static inline void fwnode_init(struct fwnode_handle *fwnode,
+ 			       const struct fwnode_operations *ops)
+ {
++	fwnode->secondary = NULL;
+ 	fwnode->ops = ops;
+ 	INIT_LIST_HEAD(&fwnode->consumers);
+ 	INIT_LIST_HEAD(&fwnode->suppliers);
+-- 
+2.47.3
 
-That should be several patches not one doing all these.
-
-> I've tested it (both build and functionality) against linux-next-20260430.
-> 
-> Signed-off-by: Marco Scardovi <mscardovi95@gmail.com>
-> ---
->  drivers/gpio/gpiolib-acpi-core.c | 94
-> +++++++++++++++++++---------------------
->  1 file changed, 43 insertions(+), 51 deletions(-)
-> 
-> diff --git a/drivers/gpio/gpiolib-acpi-core.c
-> b/drivers/gpio/gpiolib-acpi-core.c
-> index eb8a40cfb7a9..19a18222b7b2 100644
-> --- a/drivers/gpio/gpiolib-acpi-core.c
-> +++ b/drivers/gpio/gpiolib-acpi-core.c
-> @@ -7,6 +7,9 @@
->   *          Mika Westerberg <mika.westerberg@linux.intel.com>
->   */
-> 
-> +#include <linux/cleanup.h>
-> +#include <linux/slab.h>
-> +
-
-Drop the empty line.
-
->  #include <linux/acpi.h>
->  #include <linux/dmi.h>
->  #include <linux/errno.h>
-> @@ -23,6 +26,16 @@
->  #include "gpiolib.h"
->  #include "gpiolib-acpi.h"
-> 
-> +DEFINE_FREE(free_gpio_desc, struct gpio_desc *, {
-> +    if (_T)
-> +        gpiochip_free_own_desc(_T);
-> +})
-> +
-> +DEFINE_FREE(acpi_free, void *, {
-> +    if (_T)
-> +        ACPI_FREE(_T);
-> +})
-
-These are white space damaged. Also I'm not big fan of these but if Andy is
-fine then works for me too. However, please test with KASAN and kmemleak
-enabled that you don't break anything.
-
-> +
->  /**
->   * struct acpi_gpio_event - ACPI GPIO event handler data
->   *
-> @@ -361,6 +374,7 @@ static acpi_status acpi_gpiochip_alloc_event(struct
-> acpi_resource *ares,
->      struct acpi_gpio_event *event;
->      irq_handler_t handler = NULL;
->      struct gpio_desc *desc;
-> +    struct gpio_desc *desc_guard __free(free_gpio_desc) = NULL;
->      unsigned int pin;
->      int ret, irq;
-> 
-> @@ -370,6 +384,11 @@ static acpi_status acpi_gpiochip_alloc_event(struct
-> acpi_resource *ares,
->      handle = ACPI_HANDLE(chip->parent);
->      pin = agpio->pin_table[0];
-> 
-> +    if (pin >= chip->ngpio) {
-> +        dev_err(chip->parent, "Failed to request GPIO for pin 0x%04X, out
-> of range\n", pin);
-
-This is damaged too.
-
-Actually let's start with a proper patch and then look the details :)
-
-> +        return AE_OK;
-> +    }
-> +
->      if (pin <= 255) {
->          char ev_name[8];
->          sprintf(ev_name, "_%c%02X",
-> @@ -392,31 +411,26 @@ static acpi_status acpi_gpiochip_alloc_event(struct
-> acpi_resource *ares,
-> 
->      desc = acpi_request_own_gpiod(chip, agpio, 0, "ACPI:Event");
->      if (IS_ERR(desc)) {
-> -        dev_err(chip->parent,
-> -            "Failed to request GPIO for pin 0x%04X, err %pe\n",
-> -            pin, desc);
-> +        dev_err(chip->parent, "Failed to request GPIO for pin 0x%04X, err
-> %pe\n", pin, desc);
->          return AE_OK;
->      }
-> +    desc_guard = desc;
-> 
->      ret = gpiochip_lock_as_irq(chip, pin);
->      if (ret) {
-> -        dev_err(chip->parent,
-> -            "Failed to lock GPIO pin 0x%04X as interrupt, err %d\n",
-> -            pin, ret);
-> -        goto fail_free_desc;
-> +        dev_err(chip->parent, "Failed to lock GPIO pin 0x%04X as interrupt,
-> err %d\n", pin, ret);
-> +        return AE_OK;
->      }
-> 
->      irq = gpiod_to_irq(desc);
->      if (irq < 0) {
-> -        dev_err(chip->parent,
-> -            "Failed to translate GPIO pin 0x%04X to IRQ, err %d\n",
-> -            pin, irq);
-> -        goto fail_unlock_irq;
-> +        dev_err(chip->parent, "Failed to translate GPIO pin 0x%04X to IRQ,
-> err %d\n", pin, irq);
-> +        goto err_unlock;
->      }
-> 
->      event = kzalloc_obj(*event);
->      if (!event)
-> -        goto fail_unlock_irq;
-> +        goto err_unlock;
-> 
->      event->irqflags = IRQF_ONESHOT;
->      if (agpio->triggering == ACPI_LEVEL_SENSITIVE) {
-> @@ -444,17 +458,15 @@ static acpi_status acpi_gpiochip_alloc_event(struct
-> acpi_resource *ares,
->      event->irq = irq;
->      event->irq_is_wake = acpi_gpio_irq_is_wake(chip->parent, agpio);
->      event->pin = pin;
-> -    event->desc = desc;
-> +    /* Transfer ownership to event, prevent auto-free */
-> +    event->desc = no_free_ptr(desc_guard);
-> 
->      list_add_tail(&event->node, &acpi_gpio->events);
-> 
->      return AE_OK;
-> 
-> -fail_unlock_irq:
-> +err_unlock:
->      gpiochip_unlock_as_irq(chip, pin);
-> -fail_free_desc:
-> -    gpiochip_free_own_desc(desc);
-> -
->      return AE_OK;
->  }
-> 
-> @@ -1086,7 +1098,7 @@ acpi_gpio_adr_space_handler(u32 function,
-> acpi_physical_address address,
->      struct acpi_gpio_chip *achip = region_context;
->      struct gpio_chip *chip = achip->chip;
->      struct acpi_resource_gpio *agpio;
-> -    struct acpi_resource *ares;
-> +    struct acpi_resource *ares __free(acpi_free) = NULL;
->      u16 pin_index = address;
->      acpi_status status;
->      int length;
-> @@ -1097,20 +1109,17 @@ acpi_gpio_adr_space_handler(u32 function,
-> acpi_physical_address address,
->      if (ACPI_FAILURE(status))
->          return status;
-> 
-> -    if (WARN_ON(ares->type != ACPI_RESOURCE_TYPE_GPIO)) {
-> -        ACPI_FREE(ares);
-> +    if (WARN_ON(ares->type != ACPI_RESOURCE_TYPE_GPIO))
->          return AE_BAD_PARAMETER;
-> -    }
-> 
->      agpio = &ares->data.gpio;
-> 
->      if (WARN_ON(agpio->io_restriction == ACPI_IO_RESTRICT_INPUT &&
-> -        function == ACPI_WRITE)) {
-> -        ACPI_FREE(ares);
-> +        function == ACPI_WRITE))
->          return AE_BAD_PARAMETER;
-> -    }
-> 
->      length = min(agpio->pin_table_length, pin_index + bits);
-> +    status = AE_OK;
->      for (i = pin_index; i < length; ++i) {
->          unsigned int pin = agpio->pin_table[i];
->          struct acpi_gpio_connection *conn;
-> @@ -1118,7 +1127,7 @@ acpi_gpio_adr_space_handler(u32 function,
-> acpi_physical_address address,
->          u16 word, shift;
->          bool found;
-> 
-> -        mutex_lock(&achip->conn_lock);
-> +        guard(mutex)(&achip->conn_lock);
-> 
->          found = false;
->          list_for_each_entry(conn, &achip->conns, node) {
-> @@ -1150,17 +1159,15 @@ acpi_gpio_adr_space_handler(u32 function,
-> acpi_physical_address address,
->          if (!found) {
->              desc = acpi_request_own_gpiod(chip, agpio, i, "ACPI:OpRegion");
->              if (IS_ERR(desc)) {
-> -                mutex_unlock(&achip->conn_lock);
->                  status = AE_ERROR;
-> -                goto out;
-> +                break;
->              }
-> 
->              conn = kzalloc_obj(*conn);
->              if (!conn) {
->                  gpiochip_free_own_desc(desc);
-> -                mutex_unlock(&achip->conn_lock);
->                  status = AE_NO_MEMORY;
-> -                goto out;
-> +                break;
->              }
-> 
->              conn->pin = pin;
-> @@ -1168,8 +1175,6 @@ acpi_gpio_adr_space_handler(u32 function,
-> acpi_physical_address address,
->              list_add_tail(&conn->node, &achip->conns);
->          }
-> 
-> -        mutex_unlock(&achip->conn_lock);
-> -
->          /*
->           * For the cases when OperationRegion() consists of more than
->           * 64 bits calculate the word and bit shift to use that one to
-> @@ -1188,8 +1193,6 @@ acpi_gpio_adr_space_handler(u32 function,
-> acpi_physical_address address,
->          }
->      }
-> 
-> -out:
-> -    ACPI_FREE(ares);
->      return status;
->  }
-> 
