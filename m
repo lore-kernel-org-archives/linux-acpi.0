@@ -1,264 +1,113 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.17])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f175.google.com (mail-pl1-f175.google.com [209.85.214.175])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4308333A9C3;
-	Wed,  6 May 2026 00:00:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.17
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 736BA277818
+	for <linux-acpi@vger.kernel.org>; Wed,  6 May 2026 02:18:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.175
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778025614; cv=none; b=RhxpgQAqn5g8C3TCC+RsB44lu5fw2kNE27OKrVoMgFm8Ms/k29ALQ08of2qi8S5yKwaEVzkC+7pbEyBmg4fJKqFHbBemFPy0pqPvy1PnZYxxMgWfJdY01Y0KBg1ZaekQMzjhqNK/aEHaJ8/WYRk/3SI80PgHAIDdDjcpnUxX8hs=
+	t=1778033919; cv=none; b=tayLHXKakAGQ0KMldnCQBEy/hDI5VX11wJGfTwXXsN+VxTLdCEbAmKTErcIHg73jhemSwfI1VdpfTKA82/leqDdueBmEPla33k2rg7ust+FxKLFM7+ZZKWij50eJK8LwfuBbHJNR6b0DF2YN9mi+gZ+f2b6CtSGZl+DHRIaJ9fc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778025614; c=relaxed/simple;
-	bh=BU+ku2HbqivXM3GBbrgS1jHksjPhIuqY0hTbeAtLpCY=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=k2vWaspMBStlE8G3npRWZryKw8j+tHFs9wmdcElRDrUgd5RKIqcFLS9/v0VqdJtuai6+2osmkwy1r0GY4/RNJrhedDxHAqyvPJixNgfB9husYkWkIT9UaIdrVKc9G5rry62ooQNEHaSJJQz9NzgTZ6NiX7IO0WDPmhVS3y7GhhA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=QL1ttLtH; arc=none smtp.client-ip=198.175.65.17
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1778033919; c=relaxed/simple;
+	bh=bpKuTDWLrq9nRB2Uy83zrkgw+0T+HWieTx8p+YwRkoE=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=ICLeLCjodUb4DlL5aXkMl4VRzouCf7v5ZhzTNpx7NxIfwfUR6aSc0WGH9BznCF36WLOy0o2yWWfyEZLPIhZzSzgAGuHzlXBLypoW/zZE6UwFJMIBFSZcCesuR61Gg+WUodXYuGiIgIA7whLbCvgF4Uh/0ZBNU/wW49IgjIx4684=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=iLEswJx0; arc=none smtp.client-ip=209.85.214.175
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="QL1ttLtH"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1778025613; x=1809561613;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=BU+ku2HbqivXM3GBbrgS1jHksjPhIuqY0hTbeAtLpCY=;
-  b=QL1ttLtHqu2a9nn3xs8IQg763XleAATfO1eA5icokypFDhoSvWBa+q6r
-   hfICvgYrAU/todikd69+Y20zF+mO3Sg/bkY9BRb25EAtRc3tmvkmvsgUj
-   cxlLI+mUu2Datc9HCs6gOuaLVO2v8eIMaiAt6WkrzPQWdH+GgGhNdyN6h
-   CX0IDB4cRaY3sCOFxt5GUmJ2QZLpFY3DyF7qF6c0sdI9VsauUAdD2XcZ3
-   yH6AG375812AxoZQaOzn+4kIgv2ldnTiMv9OD/sMhFG0rEpJEmvJD23D1
-   smsAjJhU1dbLP0jA+vWRRSRHTMF7PapOzNnxDOme4pPQHE4HwmcDi71t5
-   Q==;
-X-CSE-ConnectionGUID: mwwx3kN2QWuEYuxkRYhbog==
-X-CSE-MsgGUID: Jcj8HCLWRWmfuIMRvYuWXw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11777"; a="78904501"
-X-IronPort-AV: E=Sophos;i="6.23,218,1770624000"; 
-   d="scan'208";a="78904501"
-Received: from fmviesa003.fm.intel.com ([10.60.135.143])
-  by orvoesa109.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 May 2026 17:00:05 -0700
-X-CSE-ConnectionGUID: 97GRI57NQquqI9I39KH9Dw==
-X-CSE-MsgGUID: MkPu+dmIQtm9R5fI4JCdNg==
-X-ExtLoop1: 1
-Received: from spandruv-mobl5.amr.corp.intel.com (HELO [10.125.110.85]) ([10.125.110.85])
-  by fmviesa003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 May 2026 17:00:01 -0700
-Message-ID: <ba97bbfc-2fc3-49d2-be6a-9384a4095c2c@intel.com>
-Date: Tue, 5 May 2026 16:59:58 -0700
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="iLEswJx0"
+Received: by mail-pl1-f175.google.com with SMTP id d9443c01a7336-2b9fcf7c91bso32379345ad.0
+        for <linux-acpi@vger.kernel.org>; Tue, 05 May 2026 19:18:38 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1778033918; x=1778638718; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=vZ8xQG/pi2YZ94Wyif4WkSnUaUizpmS2aclrnUnSYok=;
+        b=iLEswJx0Kz1me2GcAqmFCKYvEnNaOKQOXFkWPHJPm3kXwAPzEId3NuY7C8CEDmNGqF
+         EIyIFFh9BH2BMa6+9c2H+bw+UOfHVmfMmiR5zUdhQfIjoztgjbMJdg5gz4RVtfccDXbD
+         4UpwLpWUz5GpcldKbFVZ1pe7jBetiCNpS0O/a1qWRw1i4FwLP1CNlXj44YWfKbbZr1A9
+         ZkJ5tmBt1+ajwFCptseAfW5GlfkcxJfqyZuJurHbfV0Hz7SsMg7uQ6VJhXHd9fcA3tbE
+         cYv/1kNrEKgY1pY6C2WxpeOZqSYkJqZef1c9CVi/2hBkgwvcyZXKFbxcP4E1lpUGYPA5
+         C/Jw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1778033918; x=1778638718;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=vZ8xQG/pi2YZ94Wyif4WkSnUaUizpmS2aclrnUnSYok=;
+        b=NO9iKPlu60arQ3Z7wegStn24mPzE8hmAr5bAMi9Y45zNqCF0iSsKtWTABoHvYmU7Tr
+         YRHf3e1iPF3WCIPHz3BKmGrp0ZCker8gCk7rt7L9qOdlR+8JCUEI5ZVvMImS+3fH2Py8
+         ycbzsq8jyp4CNydWD+i3OaXgMCkXfMquDyw3SHNeN6E2vSTCLvwlircvYtR8xVjZ+pHz
+         +LuIIw1fYcZC4mCZKIdA8Ahex0ia+2ptUjq9qka+U//lkfmrrVfn6An+403do0NJFvAE
+         OgzgpqBZhzvSFZiuGkZQgML8eq7Lq4SKd0nd5AJ/VU6bFEO3GE8z5Yk4QK1S2nO9Z87C
+         e5Gw==
+X-Forwarded-Encrypted: i=1; AFNElJ/GKozs3BcTmdgj8RdQA5kWt5DBcPiKTe6y4Id0XnvaxGqYRPm9T+4vRfNei6A3K0ve06AlFKPZjMlv@vger.kernel.org
+X-Gm-Message-State: AOJu0YxZ+B9gAcZflcsGd1Z+bwKtNPtRT3agICi9JnZURFVbOJxtv//s
+	sC2ecfNzkO2rnUW6H3lZ0NXJLHnqv1E7fNxjpTgZPOUNRB1/hkQmVq5m
+X-Gm-Gg: AeBDieudKlV+e8WWRWTzEx7YpVJEItLoDo/ALouDvXESKTeJ82xKpPV4Pxj1QtOU/OC
+	QBugJ5khIPq3KV/LKaZDy3K9FPGaoeXlaR+3+TrZWle+F1Qxc3OV5b/DBPa7i52zKkQ66ZwThBC
+	bS7icpl3tqelgHI+qrjOOj4PRwVDllmP7jyNVZCdeUWjXamjxJMuRnaT1lEmL0Nnvn+Bbo4VyX8
+	YOW9Uju6WxllRA8AbP82aS1eNc4LmuEaRBfykn7U2IRJ/J2hlayguQuQT/8ovJRm+BBa3gT6+Oz
+	Yb9ReaFXvvaLzwR40LDjTlf1FNSuRLqZNW3sgs3Nx0OJ9ldgegBPnRw5tyw/EbW4ZKZfrrP2NqA
+	wqjHX6yWhYd3h3tNHf9Z/yg0qbHqlxrYKlemqIhJc74WPjJHMkBLOiZ1cp6AP583YyX2VrKwxzK
+	wVOHmVAsynM1Nr8gP4KztdBW4Vf8bAH8ye4RPJqQSTrfnkhMCz8F3gDg==
+X-Received: by 2002:a17:902:e54e:b0:2ba:4e84:966 with SMTP id d9443c01a7336-2ba7a358d4amr14644345ad.36.1778033917583;
+        Tue, 05 May 2026 19:18:37 -0700 (PDT)
+Received: from ampere-server.example.org ([103.68.183.118])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2ba7c9e1ac6sm6319525ad.42.2026.05.05.19.18.33
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 05 May 2026 19:18:37 -0700 (PDT)
+From: "chunzhi.lin" <linchunzhi0@gmail.com>
+To: netdev@vger.kernel.org
+Cc: Frank.Sae@motor-comm.com,
+	andrew@lunn.ch,
+	hkallweit1@gmail.com,
+	linux@armlinux.org.uk,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	davem@davemloft.net,
+	linux-acpi@vger.kernel.org,
+	rafael@kernel.org,
+	lenb@kernel.org,
+	"chunzhi.lin" <linchunzhi0@gmail.com>
+Subject: [PATCH net-next 0/2] net: phy: motorcomm: add ACPI _DSD property support
+Date: Wed,  6 May 2026 10:18:11 +0800
+Message-Id: <20260506021813.3658669-1-linchunzhi0@gmail.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v17 07/11] PCI/CXL: Add RCH support to CXL handlers
-To: Terry Bowman <terry.bowman@amd.com>, dave@stgolabs.net, jic23@kernel.org,
- alison.schofield@intel.com, djbw@kernel.org, bhelgaas@google.com,
- shiju.jose@huawei.com, ming.li@zohomail.com,
- Smita.KoralahalliChannabasappa@amd.com, rrichter@amd.com,
- dan.carpenter@linaro.org, PradeepVineshReddy.Kodamati@amd.com,
- lukas@wunner.de, Benjamin.Cheatham@amd.com,
- sathyanarayanan.kuppuswamy@linux.intel.com, vishal.l.verma@intel.com,
- alucerop@amd.com, ira.weiny@intel.com, corbet@lwn.net, rafael@kernel.org,
- xueshuai@linux.alibaba.com, linux-cxl@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org,
- linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org
-References: <20260505173029.2718246-1-terry.bowman@amd.com>
- <20260505173029.2718246-8-terry.bowman@amd.com>
-Content-Language: en-US
-From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <20260505173029.2718246-8-terry.bowman@amd.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
+Hi,
 
+This series makes the Motorcomm PHY driver parse firmware properties via
+device_property_*() so the same property set can be provided by either
+Devicetree or ACPI _DSD.
 
-On 5/5/26 10:30 AM, Terry Bowman wrote:
-> Restricted CXL Host (RCH) error handling is a separate path from the
-> new CXL Port error handling flow. Fold RCH error handling into the
-> Port flow so both share a common entry point.
-> 
-> Update cxl_rch_handle_error_iter() to forward RCH protocol errors
-> through the AER-CXL kfifo.
-> 
-> Update cxl_handle_proto_error() to dispatch RCH errors via
-> cxl_handle_rdport_errors(). cxl_handle_rdport_errors() handles both
-> correctable and uncorrectable RCH protocol errors.
-> 
-> Behavior change: an RCD uncorrectable CXL RAS error now panics via
-> cxl_do_recovery(). Before this patch the RCH path returned
-> PCI_ERS_RESULT_NEED_RESET via cxl_pci's err_handler. After this patch
-> the same condition panics. This matches the panic policy added in the
-> common CXL Port protocol error flow. CXL.cachemem traffic cannot be
-> safely recovered from an uncorrectable protocol error in software.
-> 
-> Change cxl_handle_rdport_errors() to take a PCI device instead of a
-> CXL device state, matching the new caller context. The error trace events
-> emitted from this path now report device=<PCI BDF> instead of device=<memN>,
-> matching the rest of the unified CXL trace events. Userspace consumers keyed
-> off the memdev name need to map the PCI BDF back to a memdev.
-> 
-> Include the RCD Endpoint serial number in RCH log messages so the RCH
-> can be associated with its RCD.
-> 
-> Remove the cxlds->rcd check from cxl_cor_error_detected() and
-> cxl_error_detected(). RCH errors are now forwarded by
-> cxl_rch_handle_error_iter() through the AER-CXL kfifo to
-> cxl_handle_proto_error(), so cxl_pci's err_handler no longer sees
-> them.
-> 
-> Signed-off-by: Terry Bowman <terry.bowman@amd.com>
-> 
-> ---
-> 
-> Changes in v16->v17:
-> - Drop now-dead cxlds->rcd branches from cxl_{cor_,}error_detected().
-> - Drop duplicate subject line from commit body.
-> - Document panic-on-uncorrectable behavior change for RCD path.
-> - Document trace event device-name change (memN -> PCI BDF) for RCH path.
-> - Rewrite cxl_handle_proto_error() RC_END comment to clarify RCD/RCH shared
->   interrupt relationship
-> - Rewrite commit message
-> 
-> Changes in v16:
-> - New commit
-> ---
->  drivers/cxl/core/core.h        |  4 ++--
->  drivers/cxl/core/ras.c         | 14 +++++++++-----
->  drivers/cxl/core/ras_rch.c     |  8 +++-----
->  drivers/pci/pcie/aer_cxl_rch.c | 17 +----------------
->  4 files changed, 15 insertions(+), 28 deletions(-)
-> 
-> diff --git a/drivers/cxl/core/core.h b/drivers/cxl/core/core.h
-> index bc36cd1575a4..2c7387506dfb 100644
-> --- a/drivers/cxl/core/core.h
-> +++ b/drivers/cxl/core/core.h
-> @@ -188,7 +188,7 @@ void cxl_handle_cor_ras(struct device *dev, u64 serial,
->  			void __iomem *ras_base);
->  void cxl_dport_map_rch_aer(struct cxl_dport *dport);
->  void cxl_disable_rch_root_ints(struct cxl_dport *dport);
-> -void cxl_handle_rdport_errors(struct cxl_dev_state *cxlds);
-> +void cxl_handle_rdport_errors(struct pci_dev *pdev);
->  void devm_cxl_dport_ras_setup(struct cxl_dport *dport);
->  #else
->  static inline int cxl_ras_init(void)
-> @@ -205,7 +205,7 @@ static inline void cxl_handle_cor_ras(struct device *dev, u64 serial,
->  				      void __iomem *ras_base) { }
->  static inline void cxl_dport_map_rch_aer(struct cxl_dport *dport) { }
->  static inline void cxl_disable_rch_root_ints(struct cxl_dport *dport) { }
-> -static inline void cxl_handle_rdport_errors(struct cxl_dev_state *cxlds) { }
-> +static inline void cxl_handle_rdport_errors(struct pci_dev *pdev) { }
->  static inline void devm_cxl_dport_ras_setup(struct cxl_dport *dport) { }
->  #endif /* CONFIG_CXL_RAS */
->  
-> diff --git a/drivers/cxl/core/ras.c b/drivers/cxl/core/ras.c
-> index 0a552d5a236e..1f1dd20623f6 100644
-> --- a/drivers/cxl/core/ras.c
-> +++ b/drivers/cxl/core/ras.c
-> @@ -267,9 +267,6 @@ void cxl_cor_error_detected(struct pci_dev *pdev)
->  			return;
->  		}
->  
-> -		if (cxlds->rcd)
-> -			cxl_handle_rdport_errors(cxlds);
-> -
->  		cxl_handle_cor_ras(&cxlds->cxlmd->dev, pci_get_dsn(pdev),
->  				   cxlmd->endpoint->regs.ras);
->  	}
-> @@ -292,8 +289,6 @@ pci_ers_result_t cxl_error_detected(struct pci_dev *pdev,
->  			return PCI_ERS_RESULT_DISCONNECT;
->  		}
->  
-> -		if (cxlds->rcd)
-> -			cxl_handle_rdport_errors(cxlds);
->  		/*
->  		 * A frozen channel indicates an impending reset which is fatal to
->  		 * CXL.mem operation, and will likely crash the system. On the off
-> @@ -329,6 +324,15 @@ EXPORT_SYMBOL_NS_GPL(cxl_error_detected, "CXL");
->  static void cxl_handle_proto_error(struct pci_dev *pdev, struct cxl_port *port,
->  				   struct cxl_dport *dport, int severity)
->  {
-> +	/*
-> +	 * An RC_END device is an RCD (Restricted CXL Device). Its AER
-> +	 * interrupt is shared with the RCH Downstream Port, so handle RCH
-> +	 * Downstream Port protocol errors first before processing the RCD's
-> +	 * own errors. See CXL spec r3.1 s12.2.
-> +	 */
-> +	if (pci_pcie_type(pdev) == PCI_EXP_TYPE_RC_END)
+Patch 1 switches drivers/net/phy/motorcomm.c from of_property_*() to
+device_property_*() on &phydev->mdio.dev.
 
-May as well use is_cxl_restricted(pdev).
+Patch 2 documents Motorcomm yt8xxx PHY ACPI _DSD properties under
+Documentation/firmware-guide/acpi/dsd and links the new document from
+the ACPI index.
 
-DJ
- 
-> +		cxl_handle_rdport_errors(pdev);
-> +
->  	if (severity == AER_CORRECTABLE) {
->  		cxl_handle_cor_ras(&pdev->dev, pci_get_dsn(pdev),
->  				   to_ras_base(port, dport));
-> diff --git a/drivers/cxl/core/ras_rch.c b/drivers/cxl/core/ras_rch.c
-> index 61835fbafc0f..cbd02cabefbc 100644
-> --- a/drivers/cxl/core/ras_rch.c
-> +++ b/drivers/cxl/core/ras_rch.c
-> @@ -1,7 +1,6 @@
->  // SPDX-License-Identifier: GPL-2.0-only
->  /* Copyright(c) 2025 AMD Corporation. All rights reserved. */
->  
-> -#include <linux/types.h>
->  #include <linux/aer.h>
->  #include "cxl.h"
->  #include "core.h"
-> @@ -95,9 +94,8 @@ static bool cxl_rch_get_aer_severity(struct aer_capability_regs *aer_regs,
->  	return false;
->  }
->  
-> -void cxl_handle_rdport_errors(struct cxl_dev_state *cxlds)
-> +void cxl_handle_rdport_errors(struct pci_dev *pdev)
->  {
-> -	struct pci_dev *pdev = to_pci_dev(cxlds->dev);
->  	struct aer_capability_regs aer_regs;
->  	struct cxl_dport *dport;
->  	int severity;
-> @@ -115,9 +113,9 @@ void cxl_handle_rdport_errors(struct cxl_dev_state *cxlds)
->  
->  	pci_print_aer(pdev, severity, &aer_regs);
->  	if (severity == AER_CORRECTABLE)
-> -		cxl_handle_cor_ras(&cxlds->cxlmd->dev, pci_get_dsn(pdev),
-> +		cxl_handle_cor_ras(&pdev->dev, pci_get_dsn(pdev),
->  				   dport->regs.ras);
->  	else
-> -		cxl_handle_ras(&cxlds->cxlmd->dev, pci_get_dsn(pdev),
-> +		cxl_handle_ras(&pdev->dev, pci_get_dsn(pdev),
->  			       dport->regs.ras);
->  }
-> diff --git a/drivers/pci/pcie/aer_cxl_rch.c b/drivers/pci/pcie/aer_cxl_rch.c
-> index e471eefec9c4..83142eac0cab 100644
-> --- a/drivers/pci/pcie/aer_cxl_rch.c
-> +++ b/drivers/pci/pcie/aer_cxl_rch.c
-> @@ -37,26 +37,11 @@ static bool cxl_error_is_native(struct pci_dev *dev)
->  static int cxl_rch_handle_error_iter(struct pci_dev *dev, void *data)
->  {
->  	struct aer_err_info *info = (struct aer_err_info *)data;
-> -	const struct pci_error_handlers *err_handler;
->  
->  	if (!is_cxl_mem_dev(dev) || !cxl_error_is_native(dev))
->  		return 0;
->  
-> -	guard(device)(&dev->dev);
-> -
-> -	err_handler = dev->driver ? dev->driver->err_handler : NULL;
-> -	if (!err_handler)
-> -		return 0;
-> -
-> -	if (info->severity == AER_CORRECTABLE) {
-> -		if (err_handler->cor_error_detected)
-> -			err_handler->cor_error_detected(dev);
-> -	} else if (err_handler->error_detected) {
-> -		if (info->severity == AER_NONFATAL)
-> -			err_handler->error_detected(dev, pci_channel_io_normal);
-> -		else if (info->severity == AER_FATAL)
-> -			err_handler->error_detected(dev, pci_channel_io_frozen);
-> -	}
-> +	cxl_forward_error(dev, info);
->  	return 0;
->  }
->  
+Thanks,
+chunzhi.lin
+
+chunzhi.lin (2):
+  net: phy: motorcomm: use device properties for firmware tuning
+  docs: acpi: dsd: add Motorcomm yt8xxx PHY properties
+
+ .../acpi/dsd/motorcomm-yt8xxx-phy.rst         | 107 ++++++++++++++++++
+ Documentation/firmware-guide/acpi/index.rst   |   1 +
+ drivers/net/phy/motorcomm.c                   |  41 ++++---
+ 3 files changed, 128 insertions(+), 21 deletions(-)
+ create mode 100644 Documentation/firmware-guide/acpi/dsd/motorcomm-yt8xxx-phy.rst
+
+-- 
+2.34.1
 
