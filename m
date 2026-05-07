@@ -1,232 +1,245 @@
-Received: from mail-pj1-f48.google.com (mail-pj1-f48.google.com [209.85.216.48])
+Received: from mail-pj1-f74.google.com (mail-pj1-f74.google.com [209.85.216.74])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 217D231A55E
-	for <linux-acpi@vger.kernel.org>; Thu,  7 May 2026 04:02:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A549D309EFA
+	for <linux-acpi@vger.kernel.org>; Thu,  7 May 2026 06:21:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.74
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778126559; cv=none; b=LJmZkXQR1gOFVUpUi2rNB2tSo3M6KmB9Evw9nGp9qOhLILvEnk7zFCDWFl+jb93z3XqnwnLs5n4g5NnR1Gxm9l8SoXoLGgRFg2nEO4+zD/pM7H8SIJlSymZ9/FaMK69mPp2KIKGcZOvbUjW3zJRerZVyLzFumKmPD+PNmpDlvbU=
+	t=1778134874; cv=none; b=Ne5qDMaMksiHRUOC2auHm+Xs6OhZ5KlpXmYBtlf0gZ9z8N9cPY5kfm9H5Efrsmql6dYGEsdpnHv0v3VkHsEUrKH1Qay9cBC8/K85AZw8FiEKBu7KxLSu631kKrM7in5urI0tP4XJXgXWd/Pr5KVdetBJOL+7ytkstmWNbA4mRL4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778126559; c=relaxed/simple;
-	bh=Ll5t8GG+HHemlVZ/dlzGil/rBZk5oSgZbVxAUeRxn+8=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=Aa1rIAFFcYKu86mTkpsBbztYqy0ip5dzneste2pD2hiYyyGtur0vy09lplRehPCWVR+0RHzA+G26BcIl7mt6LCDt8Ue9tC6FpHTD4XHAuMTQCZI5H0DpSSoFMgwL4kqOK5fg0W6qS3r/dx9R5zl7rYXKHal2WQIJV9OhZOVsCI8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=RL2LuZGw; arc=none smtp.client-ip=209.85.216.48
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1778134874; c=relaxed/simple;
+	bh=nIMuiDJkpQ3BU6BGPdUauhUu7GUK4la7iQqiFfw2fPU=;
+	h=Date:Mime-Version:Message-ID:Subject:From:To:Cc:Content-Type; b=t55QOo1MLa4TLvTHxT1PwQkVUrsnQyugf5vgnhCIC6tksTYmN00YpBkdFAHsMmPe/t67przKpsyYwf4zYT6iYE7ZLRGckI07M9sLz2y+aA+N1oVwakNOoqICT5dyVzlhyehzY9OkoOzwav8Z/TFEf/DbCgTloff9+RfUexcHIlw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--joonwonkang.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=rY1R4oBO; arc=none smtp.client-ip=209.85.216.74
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--joonwonkang.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="RL2LuZGw"
-Received: by mail-pj1-f48.google.com with SMTP id 98e67ed59e1d1-3660ab73adbso130951a91.1
-        for <linux-acpi@vger.kernel.org>; Wed, 06 May 2026 21:02:37 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="rY1R4oBO"
+Received: by mail-pj1-f74.google.com with SMTP id 98e67ed59e1d1-36472c6a7d8so1192494a91.3
+        for <linux-acpi@vger.kernel.org>; Wed, 06 May 2026 23:21:11 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1778126557; x=1778731357; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=Jq5gyYRLK16pcO2llT+UUfUWubla4yLA0GVq02udlXI=;
-        b=RL2LuZGwYfTHFPP9NJzBHUOyErQiI5dLc0Wm4BNfPAOqZBzInj4DvHJK+HAaQkYS85
-         cbxCvtE2effJedExPyIcmLObxJPL2fVcK6P/52AZo4fK4H13aGZm/VdUZpW56yYye0jy
-         pw62lQI3lr80jDFoKoVnWwFBzoXWb+N26svryuTWAxI4fs+ZMZgbWzd0NxV6pWAAbcVT
-         JQgnlByNqmEpWuOfkM7tv93sMhWiHXVOo2wgDNxGivfuAsuNN9yFL5ZLvAWxb72+2tVq
-         PDyHCsac6uneXgRpfpLOat89XVTH/nvgvAs262hgHFv9qvkxoDgSsbb/M5cm5san5Eyg
-         vx4A==
+        d=google.com; s=20251104; t=1778134871; x=1778739671; darn=vger.kernel.org;
+        h=cc:to:from:subject:message-id:mime-version:date:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=PtSXoOfzhrlxxFOxnnDsYGazc/78nZXxdsW0qIp9Udg=;
+        b=rY1R4oBO+LhJmfN4+hic2k7tkqmhs9TjaG1fIez9CPtDT5arSicEaQL/Z3pwhUN09c
+         sHhwZj9cvSjgOQeuDvDinfx5lZpUhSUHaAcvDUodiQfkeBqsdbby/g1L9Me2k25BhYxc
+         9FITvUHk7ZdU3DJYPx2HjNA+Ifn4ETrKhmvFjYcn7CN6GjDxLvC6yH2cXTufEGLw304O
+         P6vSpGw6LmmM4xpKV/N2VWbkfflCa+ecCZv9T7gQ7Ksra8HE2KEQQfKVFD1aQ4nzs+tm
+         W9uBNEJR+5gHqf6ZMVF7AlZ46DWOBg3Qm1QPb+PMlBY3m829tq17F0ul0J6AKDBiP8r5
+         b9Xw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778126557; x=1778731357;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=Jq5gyYRLK16pcO2llT+UUfUWubla4yLA0GVq02udlXI=;
-        b=Izd/9jjX7Mf3EGg8/HTjo7cUR7R/HhlxhSN1GqnKalfR1Zja3L2ibZoHvThuKoUcJC
-         prGrg6yfHTl0SC6ZiuAyFeWpUBhRfeqCP2XX/627WVN7wGHVysaIXFjwo3djROuDgcmd
-         UKlEGux1H6G+ljjlfs6RDan6WBL8pXnwJFs73/7sCJIVRPIa6LfB9XLJda4U+D8HZ+9B
-         NzvtVYAIZ4LYbtK2M0DtJyQiBkUBc/PsUxOmuKWDFoljdRC0/mooz7/XftRmahVq5ZOV
-         jVJpKZKYXAn0ZbsjJfgRoj2yv+F8SgazwFt3SUwWW7BpUXPkbfqwkcsaUTwY8oXP9rXk
-         +l5Q==
-X-Forwarded-Encrypted: i=1; AFNElJ+TW8Lx9+P9iqxqKR68cmP1wRB8QF5+LYj9NERAcFaI2bZ7PAhL3KtHny4acnWQTUMpfgtFEPdg995s@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx/IZ24w18pjRAEc6xubNUhaZw02MF+Q/DT4WUDb2CqPWFlaJHj
-	gyvHMV/GBaPoJK8KWF2xTAjU8sO80g0FObwWpyUC3y9lM07JuQ3udm8v
-X-Gm-Gg: AeBDieuyh12KwOQkx953eoQdDrme1EUSdRfgCu34cGJtLBShBUiZ8rzI07XQFyYBwlC
-	brZxoCnkrySvyRoz1cZudEwboaYDzKwMQKRoN4NVnI/2uLUl+jURMkiqmhk6EXjrjSA6JSUFrGU
-	/UBehttlVGGhzfKUykMOyo7+fdkTBOnP46zaIZiRyFwwRDExURUJmlLd+OWx1q/X116tvdV7T70
-	Bp/KrkFLDZ5YdO2ngrM7Idp5YPbIvuufI36V83TcEPPlJQP15kWQaCU+fNj4gRQleDCY9yb4sVP
-	+H0bDIJRD+6t/dlGJkNeMImprd66dKNJ8UTud5ba6NjhW5getAnH1NXjrwHVoVrHfTyTYBgN7qx
-	U6ct3i6CHXB3IJhjWT02y05zd2tNOUSRrwLJlHdbvyrjZUx4SYTK1V51T0+iWOyN/zRLLRRWYHM
-	PqyiS6IaBNJGMJReDyoHdywtf7vLlNRV0THhgUe3zuZI2mnGXrAfVi5g==
-X-Received: by 2002:a17:90b:37ce:b0:35e:579a:7e9a with SMTP id 98e67ed59e1d1-366053f7f37mr1026290a91.7.1778126557333;
-        Wed, 06 May 2026 21:02:37 -0700 (PDT)
-Received: from ampere-server.example.org ([103.68.183.118])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-365d8e3dad8sm2536182a91.1.2026.05.06.21.02.34
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 06 May 2026 21:02:37 -0700 (PDT)
-From: "chunzhi.lin" <linchunzhi0@gmail.com>
-To: netdev@vger.kernel.org
-Cc: Frank.Sae@motor-comm.com,
-	andrew@lunn.ch,
-	hkallweit1@gmail.com,
-	linux@armlinux.org.uk,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	edumazet@google.com,
-	davem@davemloft.net,
-	linux-acpi@vger.kernel.org,
-	rafael@kernel.org,
-	lenb@kernel.org,
-	"chunzhi.lin" <linchunzhi0@gmail.com>
-Subject: [PATCH v2 2/2] docs: acpi: dsd: add Motorcomm yt8xxx PHY properties
-Date: Thu,  7 May 2026 12:02:21 +0800
-Message-Id: <20260507040221.3679454-3-linchunzhi0@gmail.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20260507040221.3679454-1-linchunzhi0@gmail.com>
-References: <20260507040221.3679454-1-linchunzhi0@gmail.com>
+        d=1e100.net; s=20251104; t=1778134871; x=1778739671;
+        h=cc:to:from:subject:message-id:mime-version:date:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=PtSXoOfzhrlxxFOxnnDsYGazc/78nZXxdsW0qIp9Udg=;
+        b=RgfqUaGxr4atptB9X2c3MmMWTLhY5TVsyjEcI4YnoYTp4o1mDmReB5Xy+MgysIXxuc
+         8L2Ew88ESbIUkG+dYslJcql69ffkyAWKN8IlsUfnfifiUKUg9oJvttMnbZhhMRv9Uyqn
+         IuOSPP/sXL7ZRiyJChm/lqZOhFLq0Ctxx0hWXa24BIr6cJn62Y8diJtbF+h4IaM0YZUx
+         36Jk/n7Y5H9qPtkyElrpZU3HxN08CTr4iQZJvlCXOaFm5l0mi2qRRriSFRCdKgJtsBTH
+         /WZaKdhcABGZH7oIYa8Gp+FPc8w9SzpsbSAU115TcKPZufOVABWmOu8XpzESKyWDhi0j
+         ACuQ==
+X-Forwarded-Encrypted: i=1; AFNElJ+xUoSx63nNQzHY4yzvdSxUzIC120bK2OdNFuOhNQNwkxfQw3U3qWZviDZf35HxrMAUvlCBAcPqRTzt@vger.kernel.org
+X-Gm-Message-State: AOJu0YwdFtDTjOIiy1kwNtPGWmAcwZn155W+YfswCRO2ZhP7lUW8JyRN
+	odLfLTOqbroJAU29WFfApcC65fxMEwPl0GgbvqDR7MLNZ/Y9fYXAenY/pV+bcGni8g4ZnaBipZP
+	s6/w4/8c9sMyPT/oCM6vpezDMgw==
+X-Received: from pga2.prod.google.com ([2002:a05:6a02:4f82:b0:c0e:ddf5:1299])
+ (user=joonwonkang job=prod-delivery.src-stubby-dispatcher) by
+ 2002:a05:6a21:9987:b0:3a2:f402:50f6 with SMTP id adf61e73a8af0-3aa5aafa96cmr7306979637.31.1778134870844;
+ Wed, 06 May 2026 23:21:10 -0700 (PDT)
+Date: Thu,  7 May 2026 06:21:07 +0000
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Mime-Version: 1.0
+X-Mailer: git-send-email 2.54.0.545.g6539524ca2-goog
+Message-ID: <20260507062107.2927600-1-joonwonkang@google.com>
+Subject: [PATCH 6.18.y] mailbox: Fix NULL message support in mbox_send_message()
+From: Joonwon Kang <joonwonkang@google.com>
+To: stable@vger.kernel.org, jassisinghbrar@gmail.com
+Cc: sudeep.holla@arm.com, thierry.reding@gmail.com, jonathanh@nvidia.com, 
+	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, 
+	linux-tegra@vger.kernel.org, joonwonkang@google.com, 
+	Douglas Anderson <dianders@chromium.org>
+Content-Type: text/plain; charset="UTF-8"
 
-Document Motorcomm yt8xxx PHY ACPI _DSD properties consumed by
-the motorcomm PHY driver.
+From: Jassi Brar <jassisinghbrar@gmail.com>
 
-Describe property placement, UUID usage, and reference the DT binding
-for value constraints and defaults.
+commit c58e9456e30c ("mailbox: Fix NULL message support in mbox_send_message()") upstream.
 
-Signed-off-by: chunzhi.lin <linchunzhi0@gmail.com>
+The active_req field serves double duty as both the "is a TX in
+flight" flag (NULL means idle) and the storage for the in-flight
+message pointer. When a client sends NULL via mbox_send_message(),
+active_req is set to NULL, which the framework misinterprets as
+"no active request". This breaks the TX state machine by:
 
-Changes in v2:
-- Keep dsd/ entries sorted in Documentation/firmware-guide/acpi/index.rst
+ - tx_tick() short-circuits on (!mssg), skipping the tx_done
+   callback and the tx_complete completion
+ - txdone_hrtimer() skips the channel entirely since active_req
+   is NULL, so poll-based TX-done detection never fires.
+
+Fix this by introducing a MBOX_NO_MSG sentinel value that means
+"no active request," freeing NULL to be valid message data. The
+sentinel is defined in the subsystem-internal mailbox.h so that
+controller drivers within drivers/mailbox/ can reference it, but
+it is not exposed to clients outside the subsystem.
+
+Fifteen in-tree callers send NULL (doorbell-style IPCs on Qualcomm,
+Tegra, TI, Xilinx, i.MX, SCMI, and PCC platforms). All were
+audited for regression:
+
+ - Most already work around the bug via knows_txdone=true with a
+   manual mbox_client_txdone() call, making the framework's
+   tracking irrelevant. These are unaffected.
+
+ - Poll-based callers (Xilinx zynqmp/r5) are strictly better off:
+   the poll timer now correctly detects NULL-active channels
+   instead of silently skipping them.
+
+ - irq-qcom-mpm.c was a pre-existing bug -- the only Qualcomm
+   caller that omitted the knows_txdone + mbox_client_txdone()
+   pattern. Fixed in a companion commit ("irqchip/qcom-mpm: Fix
+   missing mailbox TX done acknowledgment").
+
+ - No caller sets both a tx_done callback and sends NULL, nor
+   combines tx_block=true with NULL sends, so the newly reachable
+   callback/completion paths are never exercised.
+
+Also update tegra-hsp's flush callback, which directly inspects
+active_req to wait for the channel to drain: the old "!= NULL"
+check becomes "!= MBOX_NO_MSG", otherwise flush spins until
+timeout since the sentinel is non-NULL.
+
+The only tradeoff is that 'MBOX_NO_MSG' can not be used as a message
+by clients.
+
+Reported-by: Joonwon Kang <joonwonkang@google.com>
+Reviewed-by: Douglas Anderson <dianders@chromium.org>
+Signed-off-by: Jassi Brar <jassisinghbrar@gmail.com>
+[ add the MBOX_NO_MSG check to drivers/mailbox/pcc.c. ]
+Signed-off-by: Joonwon Kang <joonwonkang@google.com>
 ---
- .../acpi/dsd/motorcomm-yt8xxx-phy.rst         | 107 ++++++++++++++++++
- Documentation/firmware-guide/acpi/index.rst   |   1 +
- 2 files changed, 108 insertions(+)
- create mode 100644 Documentation/firmware-guide/acpi/dsd/motorcomm-yt8xxx-phy.rst
+ drivers/mailbox/mailbox.c          | 15 ++++++++-------
+ drivers/mailbox/pcc.c              |  2 +-
+ drivers/mailbox/tegra-hsp.c        |  2 +-
+ include/linux/mailbox_controller.h |  3 +++
+ 4 files changed, 13 insertions(+), 9 deletions(-)
 
-diff --git a/Documentation/firmware-guide/acpi/dsd/motorcomm-yt8xxx-phy.rst b/Documentation/firmware-guide/acpi/dsd/motorcomm-yt8xxx-phy.rst
-new file mode 100644
-index 000000000000..d64a396fac81
---- /dev/null
-+++ b/Documentation/firmware-guide/acpi/dsd/motorcomm-yt8xxx-phy.rst
-@@ -0,0 +1,107 @@
-+.. SPDX-License-Identifier: GPL-2.0
+diff --git a/drivers/mailbox/mailbox.c b/drivers/mailbox/mailbox.c
+index 2acc6ec229a4..caa98e38ce04 100644
+--- a/drivers/mailbox/mailbox.c
++++ b/drivers/mailbox/mailbox.c
+@@ -52,7 +52,7 @@ static void msg_submit(struct mbox_chan *chan)
+ 	int err = -EBUSY;
+ 
+ 	scoped_guard(spinlock_irqsave, &chan->lock) {
+-		if (!chan->msg_count || chan->active_req)
++		if (!chan->msg_count || chan->active_req != MBOX_NO_MSG)
+ 			break;
+ 
+ 		count = chan->msg_count;
+@@ -87,13 +87,13 @@ static void tx_tick(struct mbox_chan *chan, int r)
+ 
+ 	scoped_guard(spinlock_irqsave, &chan->lock) {
+ 		mssg = chan->active_req;
+-		chan->active_req = NULL;
++		chan->active_req = MBOX_NO_MSG;
+ 	}
+ 
+ 	/* Submit next message */
+ 	msg_submit(chan);
+ 
+-	if (!mssg)
++	if (mssg == MBOX_NO_MSG)
+ 		return;
+ 
+ 	/* Notify the client */
+@@ -114,7 +114,7 @@ static enum hrtimer_restart txdone_hrtimer(struct hrtimer *hrtimer)
+ 	for (i = 0; i < mbox->num_chans; i++) {
+ 		struct mbox_chan *chan = &mbox->chans[i];
+ 
+-		if (chan->active_req && chan->cl) {
++		if (chan->active_req != MBOX_NO_MSG && chan->cl) {
+ 			txdone = chan->mbox->ops->last_tx_done(chan);
+ 			if (txdone)
+ 				tx_tick(chan, 0);
+@@ -246,7 +246,7 @@ int mbox_send_message(struct mbox_chan *chan, void *mssg)
+ {
+ 	int t;
+ 
+-	if (!chan || !chan->cl)
++	if (!chan || !chan->cl || mssg == MBOX_NO_MSG)
+ 		return -EINVAL;
+ 
+ 	t = add_to_rbuf(chan, mssg);
+@@ -319,7 +319,7 @@ static int __mbox_bind_client(struct mbox_chan *chan, struct mbox_client *cl)
+ 	scoped_guard(spinlock_irqsave, &chan->lock) {
+ 		chan->msg_free = 0;
+ 		chan->msg_count = 0;
+-		chan->active_req = NULL;
++		chan->active_req = MBOX_NO_MSG;
+ 		chan->cl = cl;
+ 		init_completion(&chan->tx_complete);
+ 
+@@ -477,7 +477,7 @@ void mbox_free_channel(struct mbox_chan *chan)
+ 	/* The queued TX requests are simply aborted, no callbacks are made */
+ 	scoped_guard(spinlock_irqsave, &chan->lock) {
+ 		chan->cl = NULL;
+-		chan->active_req = NULL;
++		chan->active_req = MBOX_NO_MSG;
+ 		if (chan->txdone_method == TXDONE_BY_ACK)
+ 			chan->txdone_method = TXDONE_BY_POLL;
+ 	}
+@@ -534,6 +534,7 @@ int mbox_controller_register(struct mbox_controller *mbox)
+ 
+ 		chan->cl = NULL;
+ 		chan->mbox = mbox;
++		chan->active_req = MBOX_NO_MSG;
+ 		chan->txdone_method = txdone;
+ 		spin_lock_init(&chan->lock);
+ 	}
+diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
+index ff292b9e0be9..7a2baeca2ba4 100644
+--- a/drivers/mailbox/pcc.c
++++ b/drivers/mailbox/pcc.c
+@@ -361,7 +361,7 @@ static irqreturn_t pcc_mbox_irq(int irq, void *p)
+ 	if (pchan->chan.rx_alloc)
+ 		handle = write_response(pchan);
+ 
+-	if (chan->active_req) {
++	if (chan->active_req != MBOX_NO_MSG) {
+ 		pcc_header = chan->active_req;
+ 		if (pcc_header->flags & PCC_CMD_COMPLETION_NOTIFY)
+ 			mbox_chan_txdone(chan, 0);
+diff --git a/drivers/mailbox/tegra-hsp.c b/drivers/mailbox/tegra-hsp.c
+index ed9a0bb2bcd8..7991e8dba579 100644
+--- a/drivers/mailbox/tegra-hsp.c
++++ b/drivers/mailbox/tegra-hsp.c
+@@ -497,7 +497,7 @@ static int tegra_hsp_mailbox_flush(struct mbox_chan *chan,
+ 			mbox_chan_txdone(chan, 0);
+ 
+ 			/* Wait until channel is empty */
+-			if (chan->active_req != NULL)
++			if (chan->active_req != MBOX_NO_MSG)
+ 				continue;
+ 
+ 			return 0;
+diff --git a/include/linux/mailbox_controller.h b/include/linux/mailbox_controller.h
+index 80a427c7ca29..1db0069c27c5 100644
+--- a/include/linux/mailbox_controller.h
++++ b/include/linux/mailbox_controller.h
+@@ -11,6 +11,9 @@
+ 
+ struct mbox_chan;
+ 
++/* Sentinel value distinguishing "no active request" from "NULL message data" */
++#define MBOX_NO_MSG	((void *)-1)
 +
-+======================================
-+Motorcomm yt8xxx PHY properties (_DSD)
-+======================================
-+
-+This document describes ACPI _DSD device properties for Motorcomm yt8xxx
-+Ethernet PHYs supported by the in-kernel driver in
-+``drivers/net/phy/motorcomm.c``.
-+
-+The properties are exposed on the PHY device object under the MDIO bus ACPI
-+device (the same objects that are registered via
-+``fwnode_mdiobus_register_phy()``). MAC-side connection properties such as
-+``phy-handle`` and ``phy-mode`` are documented in [acpi-mdio-phy]_.
-+
-+Property names and semantics are intentionally aligned with the Devicetree
-+binding [motorcomm-yt8xxx]_ so that the same driver code path
-+(``device_property_*`` on ``&phydev->mdio.dev``) can consume firmware
-+described either as Devicetree or ACPI _DSD.
-+
-+UUID and placement
-+==================
-+
-+Per [acpi-dsd-properties-rules]_ and [acpi-mdio-phy]_, properties must be
-+placed in an _DSD package using the standard Device Properties UUID::
-+
-+	ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301")
-+
-+Properties
-+==========
-+
-+Unless noted otherwise, integer properties use the same allowed values and
-+defaults as [motorcomm-yt8xxx]_.
-+
-+``rx-internal-delay-ps`` (u32, optional)
-+  RGMII RX internal delay in picoseconds. Only meaningful when the link is
-+  using RGMII modes with RX internal delay; see [motorcomm-yt8xxx]_.
-+
-+``tx-internal-delay-ps`` (u32, optional)
-+  RGMII TX internal delay in picoseconds. Only meaningful when the link is
-+  using RGMII modes with TX internal delay; see [motorcomm-yt8xxx]_.
-+
-+``motorcomm,clk-out-frequency-hz`` (u32, optional)
-+  Clock output frequency on the PHY clock output pin. Allowed values and
-+  default are defined in [motorcomm-yt8xxx]_.
-+
-+``motorcomm,keep-pll-enabled`` (boolean, optional)
-+  If true, keep the PLL enabled even when there is no link (useful for using
-+  the clock output without an Ethernet link). See [motorcomm-yt8xxx]_.
-+
-+``motorcomm,auto-sleep-disabled`` (boolean, optional)
-+  If true, disable the PHY auto-sleep behavior described in
-+  [motorcomm-yt8xxx]_.
-+
-+``motorcomm,rx-clk-drv-microamp`` (u32, optional)
-+  Drive strength for the ``rx_clk`` RGMII pad in microamps. Allowed values
-+  depend on the configured RGMII LDO voltage; see [motorcomm-yt8xxx]_.
-+
-+``motorcomm,rx-data-drv-microamp`` (u32, optional)
-+  Drive strength for the ``rx_data`` and ``rx_ctl`` RGMII pads in microamps.
-+  See [motorcomm-yt8xxx]_.
-+
-+``motorcomm,tx-clk-adj-enabled`` (boolean, optional)
-+  Enables adjustments related to ``motorcomm,tx-clk-*-inverted`` usage; see
-+  [motorcomm-yt8xxx]_.
-+
-+``motorcomm,tx-clk-10-inverted`` (boolean, optional)
-+``motorcomm,tx-clk-100-inverted`` (boolean, optional)
-+``motorcomm,tx-clk-1000-inverted`` (boolean, optional)
-+  Per-speed TX clock inversion options; see [motorcomm-yt8xxx]_.
-+
-+ASL example (illustrative)
-+==========================
-+
-+The example below only shows PHY-local _DSD properties. A real platform
-+still needs a MAC ``phy-handle`` and ``phy-mode`` package as in
-+[acpi-mdio-phy]_.
-+
-+.. code-block:: none
-+
-+	Scope (\_SB.MDI0)
-+	{
-+		Device (PHY4)
-+		{
-+			Name (_ADR, 0x4)
-+
-+			Name (_DSD, Package () {
-+				ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+				Package () {
-+					Package (2) { "rx-internal-delay-ps", 2100 },
-+					Package (2) { "tx-internal-delay-ps", 150 },
-+					Package (2) { "motorcomm,clk-out-frequency-hz", 0 },
-+					Package (2) { "motorcomm,keep-pll-enabled", 1 },
-+					Package (2) { "motorcomm,auto-sleep-disabled", 1 },
-+				}
-+			})
-+		}
-+	}
-+
-+References
-+==========
-+
-+.. [acpi-mdio-phy] Documentation/firmware-guide/acpi/dsd/phy.rst
-+.. [acpi-dsd-properties-rules]
-+   Documentation/firmware-guide/acpi/DSD-properties-rules.rst
-+.. [motorcomm-yt8xxx]
-+   Documentation/devicetree/bindings/net/motorcomm,yt8xxx.yaml
-diff --git a/Documentation/firmware-guide/acpi/index.rst b/Documentation/firmware-guide/acpi/index.rst
-index b246902f523f..db9eb7229948 100644
---- a/Documentation/firmware-guide/acpi/index.rst
-+++ b/Documentation/firmware-guide/acpi/index.rst
-@@ -11,6 +11,7 @@ ACPI Support
-    dsd/graph
-    dsd/data-node-references
-    dsd/leds
-+   dsd/motorcomm-yt8xxx-phy
-    dsd/phy
-    enumeration
-    osi
+ /**
+  * struct mbox_chan_ops - methods to control mailbox channels
+  * @send_data:	The API asks the MBOX controller driver, in atomic
 -- 
-2.34.1
+2.54.0.545.g6539524ca2-goog
 
