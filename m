@@ -1,63 +1,63 @@
-Received: from mail-pj1-f44.google.com (mail-pj1-f44.google.com [209.85.216.44])
+Received: from mail-pj1-f48.google.com (mail-pj1-f48.google.com [209.85.216.48])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BAB382D0610
-	for <linux-acpi@vger.kernel.org>; Thu,  7 May 2026 04:02:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 217D231A55E
+	for <linux-acpi@vger.kernel.org>; Thu,  7 May 2026 04:02:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.48
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778126556; cv=none; b=b06d/k5CyymDgnhT0cIGqdvVAvK0SMjkl1jxU6lN8RJ7CcUb7X2wSf5j3qiPDObIRF26x7+ij9hnnuQYXDFpFQ+6Zb/bsVaqpGjR9jsMLK0/sbpP7RbvqEzndwV2w97VuismZ/nZmD0TbgCF4t8bE0u++fJUbLQ5FvXAE5ckc3I=
+	t=1778126559; cv=none; b=LJmZkXQR1gOFVUpUi2rNB2tSo3M6KmB9Evw9nGp9qOhLILvEnk7zFCDWFl+jb93z3XqnwnLs5n4g5NnR1Gxm9l8SoXoLGgRFg2nEO4+zD/pM7H8SIJlSymZ9/FaMK69mPp2KIKGcZOvbUjW3zJRerZVyLzFumKmPD+PNmpDlvbU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778126556; c=relaxed/simple;
-	bh=8CirshOPoZFEoSaKPkqozU0UN5cm29drPAGUaxskDy8=;
+	s=arc-20240116; t=1778126559; c=relaxed/simple;
+	bh=Ll5t8GG+HHemlVZ/dlzGil/rBZk5oSgZbVxAUeRxn+8=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=YcaEGczC9hVFqDQIkGYDpegA00JT1zTvOe5D35OxSY8TpOP6Osoa5wvluJIf9bW3dxypG0DZkXEe9RODetRntlby92JDPQT+m3gtlCxjP74x2HAWO+qtPfUqWeLAsgwbyDBKloUfiIW5JBtX9o2MxMAKh9WyDL7E72PjM6bg9AQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=EKMIJp4Z; arc=none smtp.client-ip=209.85.216.44
+	 MIME-Version; b=Aa1rIAFFcYKu86mTkpsBbztYqy0ip5dzneste2pD2hiYyyGtur0vy09lplRehPCWVR+0RHzA+G26BcIl7mt6LCDt8Ue9tC6FpHTD4XHAuMTQCZI5H0DpSSoFMgwL4kqOK5fg0W6qS3r/dx9R5zl7rYXKHal2WQIJV9OhZOVsCI8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=RL2LuZGw; arc=none smtp.client-ip=209.85.216.48
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="EKMIJp4Z"
-Received: by mail-pj1-f44.google.com with SMTP id 98e67ed59e1d1-3650453fb28so206301a91.2
-        for <linux-acpi@vger.kernel.org>; Wed, 06 May 2026 21:02:34 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="RL2LuZGw"
+Received: by mail-pj1-f48.google.com with SMTP id 98e67ed59e1d1-3660ab73adbso130951a91.1
+        for <linux-acpi@vger.kernel.org>; Wed, 06 May 2026 21:02:37 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1778126554; x=1778731354; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1778126557; x=1778731357; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=ybWyM/GBCblqVoOsGBZoPNIvLTsiHHbsxa3USXRuJU0=;
-        b=EKMIJp4ZijPlK/QmXaOp+gg7QobbRTla+WqYwLjNpI8zc0gsYAi0gtYm+I7VKMilgt
-         U8KKpjiug5iXBGo5rTdubzy8JW637Mvlk9B8XZBkCwG7gMBXPvVg9eQDCKNroh2/R3Sq
-         inVMIsxitVUV7IePTlibdl84dSZRBdvhF4I1QO1H2d3iCur63UOl7cWO1dniEEfv11oV
-         WBjZMao7cVxkPNz95HCFLd9QAlNLVgtUV4Ht3C3SZLW60uhyk+51dyjcuGPQXka4NOgM
-         o4BLhHEJpD5gA86j4TtFptFKgTj3esAEYOmamlZoPKb425LO85ln7des9zmsIsi7R9T/
-         xTJA==
+        bh=Jq5gyYRLK16pcO2llT+UUfUWubla4yLA0GVq02udlXI=;
+        b=RL2LuZGwYfTHFPP9NJzBHUOyErQiI5dLc0Wm4BNfPAOqZBzInj4DvHJK+HAaQkYS85
+         cbxCvtE2effJedExPyIcmLObxJPL2fVcK6P/52AZo4fK4H13aGZm/VdUZpW56yYye0jy
+         pw62lQI3lr80jDFoKoVnWwFBzoXWb+N26svryuTWAxI4fs+ZMZgbWzd0NxV6pWAAbcVT
+         JQgnlByNqmEpWuOfkM7tv93sMhWiHXVOo2wgDNxGivfuAsuNN9yFL5ZLvAWxb72+2tVq
+         PDyHCsac6uneXgRpfpLOat89XVTH/nvgvAs262hgHFv9qvkxoDgSsbb/M5cm5san5Eyg
+         vx4A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778126554; x=1778731354;
+        d=1e100.net; s=20251104; t=1778126557; x=1778731357;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=ybWyM/GBCblqVoOsGBZoPNIvLTsiHHbsxa3USXRuJU0=;
-        b=E3hl6xdlFLukptNHsxdZwYxPOEL0s9pr2K8r2Mw+C0ipbc12ipUtXqIhHC0s4QXRa7
-         9T07hz1tk0NOSIdUL/Zy5A/5pmZEoJX96B7npMUjFWRla0EbnzigSSQI2VtVo+qN7wEV
-         YrsaVUn6tLv2bFpq7hmo5seml4sTNde5ShHHjr1o5VpWfrFJ96Mh58aO8du6wwbxRqkO
-         hjmI/X3Y+vJD8K4zHhHHqzQ2kKXPiU+b8z5r5ct1KBBPPM+m+09TOtUXOstKyiQQUa56
-         PuttxmCyFljhPPSRT4TGJL+aH5/ghchkarSh3eDkd8imllcpBR9PnzXJLFSnb2WGqhJh
-         +CFg==
-X-Forwarded-Encrypted: i=1; AFNElJ9FNqexLqIvYFGFyNf4WFrU80fP5/N+4JVXf5/iiOOq2CcexrhMYYhDkTOd5ytRmLr1uw/RmYYJMb1W@vger.kernel.org
-X-Gm-Message-State: AOJu0YzAsUleJKay+TvHW7YSziwhkmzsIrpP8w+MMvFs7dZfhXmkZrXr
-	3Wcp0tGhTeZkso1UenShUGniuy6oIhtxVX/a5w4173HmITrnrC5Wqk9b
-X-Gm-Gg: AeBDietHprD1ziyiUv162JiHAKNw0d9+cgQT9KASJn4MJwLIFXhBPcDptn2NYJY0kKc
-	TEqgBhokf8QfUvzt+MtE2/5f1Jk9TszPkNnilsM31SPr8JwQElrGJqXk576c0lWbuSgCi6ISmkL
-	k5euONJRNNaZXPoocYfd5FlXnI2s0XnqTP/seORmVpw2REMOydptVaRBC1D+9qJNAhLmFbpZiFF
-	AGLFSirdytOw5wZsWy8pjq/t7U9lnbZ2Je4n6152c/2ayGhvaUY6D7xuxIUou33JoH/VGMCd2mE
-	S2ralQ57DE+pHTsZ0JvKCzgr3p5D5b6FYBK9zWWzFXPsNHUD1jcTj3jDpyxxGBbz0T4HsOWTV3M
-	q8iDEjY8XlVXP9t50uIGC1PzzwBnLIqi3Ov9JlNlgTT280btyJow+/IfYRmlBQ/aFvqsoRXxW6I
-	pWhvoZl2D2zZE8K8Ee+qoG8iFbabHH7cjJPY5OFyIHPE4poAOlMNYd/Q==
-X-Received: by 2002:a17:90b:1b4b:b0:35f:c1e1:a263 with SMTP id 98e67ed59e1d1-365ac27a3bbmr5975819a91.19.1778126554003;
-        Wed, 06 May 2026 21:02:34 -0700 (PDT)
+        bh=Jq5gyYRLK16pcO2llT+UUfUWubla4yLA0GVq02udlXI=;
+        b=Izd/9jjX7Mf3EGg8/HTjo7cUR7R/HhlxhSN1GqnKalfR1Zja3L2ibZoHvThuKoUcJC
+         prGrg6yfHTl0SC6ZiuAyFeWpUBhRfeqCP2XX/627WVN7wGHVysaIXFjwo3djROuDgcmd
+         UKlEGux1H6G+ljjlfs6RDan6WBL8pXnwJFs73/7sCJIVRPIa6LfB9XLJda4U+D8HZ+9B
+         NzvtVYAIZ4LYbtK2M0DtJyQiBkUBc/PsUxOmuKWDFoljdRC0/mooz7/XftRmahVq5ZOV
+         jVJpKZKYXAn0ZbsjJfgRoj2yv+F8SgazwFt3SUwWW7BpUXPkbfqwkcsaUTwY8oXP9rXk
+         +l5Q==
+X-Forwarded-Encrypted: i=1; AFNElJ+TW8Lx9+P9iqxqKR68cmP1wRB8QF5+LYj9NERAcFaI2bZ7PAhL3KtHny4acnWQTUMpfgtFEPdg995s@vger.kernel.org
+X-Gm-Message-State: AOJu0Yx/IZ24w18pjRAEc6xubNUhaZw02MF+Q/DT4WUDb2CqPWFlaJHj
+	gyvHMV/GBaPoJK8KWF2xTAjU8sO80g0FObwWpyUC3y9lM07JuQ3udm8v
+X-Gm-Gg: AeBDieuyh12KwOQkx953eoQdDrme1EUSdRfgCu34cGJtLBShBUiZ8rzI07XQFyYBwlC
+	brZxoCnkrySvyRoz1cZudEwboaYDzKwMQKRoN4NVnI/2uLUl+jURMkiqmhk6EXjrjSA6JSUFrGU
+	/UBehttlVGGhzfKUykMOyo7+fdkTBOnP46zaIZiRyFwwRDExURUJmlLd+OWx1q/X116tvdV7T70
+	Bp/KrkFLDZ5YdO2ngrM7Idp5YPbIvuufI36V83TcEPPlJQP15kWQaCU+fNj4gRQleDCY9yb4sVP
+	+H0bDIJRD+6t/dlGJkNeMImprd66dKNJ8UTud5ba6NjhW5getAnH1NXjrwHVoVrHfTyTYBgN7qx
+	U6ct3i6CHXB3IJhjWT02y05zd2tNOUSRrwLJlHdbvyrjZUx4SYTK1V51T0+iWOyN/zRLLRRWYHM
+	PqyiS6IaBNJGMJReDyoHdywtf7vLlNRV0THhgUe3zuZI2mnGXrAfVi5g==
+X-Received: by 2002:a17:90b:37ce:b0:35e:579a:7e9a with SMTP id 98e67ed59e1d1-366053f7f37mr1026290a91.7.1778126557333;
+        Wed, 06 May 2026 21:02:37 -0700 (PDT)
 Received: from ampere-server.example.org ([103.68.183.118])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-365d8e3dad8sm2536182a91.1.2026.05.06.21.02.30
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-365d8e3dad8sm2536182a91.1.2026.05.06.21.02.34
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 06 May 2026 21:02:33 -0700 (PDT)
+        Wed, 06 May 2026 21:02:37 -0700 (PDT)
 From: "chunzhi.lin" <linchunzhi0@gmail.com>
 To: netdev@vger.kernel.org
 Cc: Frank.Sae@motor-comm.com,
@@ -72,9 +72,9 @@ Cc: Frank.Sae@motor-comm.com,
 	rafael@kernel.org,
 	lenb@kernel.org,
 	"chunzhi.lin" <linchunzhi0@gmail.com>
-Subject: [PATCH v2 1/2] net: phy: motorcomm: use device properties for firmware tuning
-Date: Thu,  7 May 2026 12:02:20 +0800
-Message-Id: <20260507040221.3679454-2-linchunzhi0@gmail.com>
+Subject: [PATCH v2 2/2] docs: acpi: dsd: add Motorcomm yt8xxx PHY properties
+Date: Thu,  7 May 2026 12:02:21 +0800
+Message-Id: <20260507040221.3679454-3-linchunzhi0@gmail.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20260507040221.3679454-1-linchunzhi0@gmail.com>
 References: <20260507040221.3679454-1-linchunzhi0@gmail.com>
@@ -86,202 +86,147 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The Motorcomm PHY driver reads optional firmware properties via
-of_property_read_*() from phydev->mdio.dev.of_node. This works for
-Device Tree based systems, but causes ACPI platforms to ignore the same
-properties when they are supplied through _DSD.
+Document Motorcomm yt8xxx PHY ACPI _DSD properties consumed by
+the motorcomm PHY driver.
 
-As a result, ACPI-described Motorcomm PHY devices fall back to default
-settings instead of applying firmware-provided tuning such as
-rx/tx internal delay, drive strength, clock output frequency, and
-optional boolean controls like auto-sleep-disabled,
-keep-pll-enabled, and tx clock inversion.
-
-Switch these lookups to device_property_read_*() so the driver uses the
-generic firmware node interface and can consume the same property names
-from either Device Tree or ACPI.
-
-This keeps the existing DT behavior unchanged while allowing ACPI
-platforms to honor PHY configuration from firmware.
-
-We have completed testing on Sophgo RISC-V architecture server SD3-10.
-This server has a 64-core Thead C920 CPU whose DWMAC is connected to
-Motorcomm's PHY YT8531. This server supports UEFI boot and it would like
-to use the ACPI table.
+Describe property placement, UUID usage, and reference the DT binding
+for value constraints and defaults.
 
 Signed-off-by: chunzhi.lin <linchunzhi0@gmail.com>
-Reviewed-by: Andrew Lunn <andrew@lunn.ch>
----
- drivers/net/phy/motorcomm.c | 41 ++++++++++++++++++-------------------
- 1 file changed, 20 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/net/phy/motorcomm.c b/drivers/net/phy/motorcomm.c
-index 4d62f7b36212..708491bc198a 100644
---- a/drivers/net/phy/motorcomm.c
-+++ b/drivers/net/phy/motorcomm.c
-@@ -10,7 +10,7 @@
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/phy.h>
--#include <linux/of.h>
-+#include <linux/property.h>
- 
- #define PHY_ID_YT8511		0x0000010a
- #define PHY_ID_YT8521		0x0000011a
-@@ -843,12 +843,12 @@ static u32 ytphy_get_delay_reg_value(struct phy_device *phydev,
- 				     u16 *rxc_dly_en,
- 				     u32 dflt)
- {
--	struct device_node *node = phydev->mdio.dev.of_node;
-+	struct device *dev = &phydev->mdio.dev;
- 	int tb_size_half = tb_size / 2;
- 	u32 val;
- 	int i;
- 
--	if (of_property_read_u32(node, prop_name, &val))
-+	if (device_property_read_u32(dev, prop_name, &val))
- 		goto err_dts_val;
- 
- 	/* when rxc_dly_en is NULL, it is get the delay for tx, only half of
-@@ -996,12 +996,12 @@ static int yt8531_get_ds_map(struct phy_device *phydev, u32 cur)
- 
- static int yt8531_set_ds(struct phy_device *phydev)
- {
--	struct device_node *node = phydev->mdio.dev.of_node;
-+	struct device *dev = &phydev->mdio.dev;
- 	u32 ds_field_low, ds_field_hi, val;
- 	int ret, ds;
- 
- 	/* set rgmii rx clk driver strength */
--	if (!of_property_read_u32(node, "motorcomm,rx-clk-drv-microamp", &val)) {
-+	if (!device_property_read_u32(dev, "motorcomm,rx-clk-drv-microamp", &val)) {
- 		ds = yt8531_get_ds_map(phydev, val);
- 		if (ds < 0)
- 			return dev_err_probe(&phydev->mdio.dev, ds,
-@@ -1018,7 +1018,7 @@ static int yt8531_set_ds(struct phy_device *phydev)
- 		return ret;
- 
- 	/* set rgmii rx data driver strength */
--	if (!of_property_read_u32(node, "motorcomm,rx-data-drv-microamp", &val)) {
-+	if (!device_property_read_u32(dev, "motorcomm,rx-data-drv-microamp", &val)) {
- 		ds = yt8531_get_ds_map(phydev, val);
- 		if (ds < 0)
- 			return dev_err_probe(&phydev->mdio.dev, ds,
-@@ -1051,7 +1051,6 @@ static int yt8531_set_ds(struct phy_device *phydev)
-  */
- static int yt8521_probe(struct phy_device *phydev)
- {
--	struct device_node *node = phydev->mdio.dev.of_node;
- 	struct device *dev = &phydev->mdio.dev;
- 	struct yt8521_priv *priv;
- 	int chip_config;
-@@ -1101,7 +1100,7 @@ static int yt8521_probe(struct phy_device *phydev)
- 			return ret;
- 	}
- 
--	if (of_property_read_u32(node, "motorcomm,clk-out-frequency-hz", &freq))
-+	if (device_property_read_u32(dev, "motorcomm,clk-out-frequency-hz", &freq))
- 		freq = YTPHY_DTS_OUTPUT_CLK_DIS;
- 
- 	if (phydev->drv->phy_id == PHY_ID_YT8521) {
-@@ -1169,11 +1168,11 @@ static int yt8521_probe(struct phy_device *phydev)
- 
- static int yt8531_probe(struct phy_device *phydev)
- {
--	struct device_node *node = phydev->mdio.dev.of_node;
-+	struct device *dev = &phydev->mdio.dev;
- 	u16 mask, val;
- 	u32 freq;
- 
--	if (of_property_read_u32(node, "motorcomm,clk-out-frequency-hz", &freq))
-+	if (device_property_read_u32(dev, "motorcomm,clk-out-frequency-hz", &freq))
- 		freq = YTPHY_DTS_OUTPUT_CLK_DIS;
- 
- 	switch (freq) {
-@@ -1665,7 +1664,7 @@ static int yt8521_resume(struct phy_device *phydev)
-  */
- static int yt8521_config_init(struct phy_device *phydev)
- {
--	struct device_node *node = phydev->mdio.dev.of_node;
-+	struct device *dev = &phydev->mdio.dev;
- 	int old_page;
- 	int ret = 0;
- 
-@@ -1680,7 +1679,7 @@ static int yt8521_config_init(struct phy_device *phydev)
- 			goto err_restore_page;
- 	}
- 
--	if (of_property_read_bool(node, "motorcomm,auto-sleep-disabled")) {
-+	if (device_property_read_bool(dev, "motorcomm,auto-sleep-disabled")) {
- 		/* disable auto sleep */
- 		ret = ytphy_modify_ext(phydev, YT8521_EXTREG_SLEEP_CONTROL1_REG,
- 				       YT8521_ESC1R_SLEEP_SW, 0);
-@@ -1688,7 +1687,7 @@ static int yt8521_config_init(struct phy_device *phydev)
- 			goto err_restore_page;
- 	}
- 
--	if (of_property_read_bool(node, "motorcomm,keep-pll-enabled")) {
-+	if (device_property_read_bool(dev, "motorcomm,keep-pll-enabled")) {
- 		/* enable RXC clock when no wire plug */
- 		ret = ytphy_modify_ext(phydev, YT8521_CLOCK_GATING_REG,
- 				       YT8521_CGR_RX_CLK_EN, 0);
-@@ -1801,14 +1800,14 @@ static int yt8521_led_hw_control_get(struct phy_device *phydev, u8 index,
- 
- static int yt8531_config_init(struct phy_device *phydev)
- {
--	struct device_node *node = phydev->mdio.dev.of_node;
-+	struct device *dev = &phydev->mdio.dev;
- 	int ret;
- 
- 	ret = ytphy_rgmii_clk_delay_config_with_lock(phydev);
- 	if (ret < 0)
- 		return ret;
- 
--	if (of_property_read_bool(node, "motorcomm,auto-sleep-disabled")) {
-+	if (device_property_read_bool(dev, "motorcomm,auto-sleep-disabled")) {
- 		/* disable auto sleep */
- 		ret = ytphy_modify_ext_with_lock(phydev,
- 						 YT8521_EXTREG_SLEEP_CONTROL1_REG,
-@@ -1817,7 +1816,7 @@ static int yt8531_config_init(struct phy_device *phydev)
- 			return ret;
- 	}
- 
--	if (of_property_read_bool(node, "motorcomm,keep-pll-enabled")) {
-+	if (device_property_read_bool(dev, "motorcomm,keep-pll-enabled")) {
- 		/* enable RXC clock when no wire plug */
- 		ret = ytphy_modify_ext_with_lock(phydev,
- 						 YT8521_CLOCK_GATING_REG,
-@@ -1844,7 +1843,7 @@ static int yt8531_config_init(struct phy_device *phydev)
-  */
- static void yt8531_link_change_notify(struct phy_device *phydev)
- {
--	struct device_node *node = phydev->mdio.dev.of_node;
-+	struct device *dev = &phydev->mdio.dev;
- 	bool tx_clk_1000_inverted = false;
- 	bool tx_clk_100_inverted = false;
- 	bool tx_clk_10_inverted = false;
-@@ -1852,17 +1851,17 @@ static void yt8531_link_change_notify(struct phy_device *phydev)
- 	u16 val = 0;
- 	int ret;
- 
--	if (of_property_read_bool(node, "motorcomm,tx-clk-adj-enabled"))
-+	if (device_property_read_bool(dev, "motorcomm,tx-clk-adj-enabled"))
- 		tx_clk_adj_enabled = true;
- 
- 	if (!tx_clk_adj_enabled)
- 		return;
- 
--	if (of_property_read_bool(node, "motorcomm,tx-clk-10-inverted"))
-+	if (device_property_read_bool(dev, "motorcomm,tx-clk-10-inverted"))
- 		tx_clk_10_inverted = true;
--	if (of_property_read_bool(node, "motorcomm,tx-clk-100-inverted"))
-+	if (device_property_read_bool(dev, "motorcomm,tx-clk-100-inverted"))
- 		tx_clk_100_inverted = true;
--	if (of_property_read_bool(node, "motorcomm,tx-clk-1000-inverted"))
-+	if (device_property_read_bool(dev, "motorcomm,tx-clk-1000-inverted"))
- 		tx_clk_1000_inverted = true;
- 
- 	if (phydev->speed < 0)
+Changes in v2:
+- Keep dsd/ entries sorted in Documentation/firmware-guide/acpi/index.rst
+---
+ .../acpi/dsd/motorcomm-yt8xxx-phy.rst         | 107 ++++++++++++++++++
+ Documentation/firmware-guide/acpi/index.rst   |   1 +
+ 2 files changed, 108 insertions(+)
+ create mode 100644 Documentation/firmware-guide/acpi/dsd/motorcomm-yt8xxx-phy.rst
+
+diff --git a/Documentation/firmware-guide/acpi/dsd/motorcomm-yt8xxx-phy.rst b/Documentation/firmware-guide/acpi/dsd/motorcomm-yt8xxx-phy.rst
+new file mode 100644
+index 000000000000..d64a396fac81
+--- /dev/null
++++ b/Documentation/firmware-guide/acpi/dsd/motorcomm-yt8xxx-phy.rst
+@@ -0,0 +1,107 @@
++.. SPDX-License-Identifier: GPL-2.0
++
++======================================
++Motorcomm yt8xxx PHY properties (_DSD)
++======================================
++
++This document describes ACPI _DSD device properties for Motorcomm yt8xxx
++Ethernet PHYs supported by the in-kernel driver in
++``drivers/net/phy/motorcomm.c``.
++
++The properties are exposed on the PHY device object under the MDIO bus ACPI
++device (the same objects that are registered via
++``fwnode_mdiobus_register_phy()``). MAC-side connection properties such as
++``phy-handle`` and ``phy-mode`` are documented in [acpi-mdio-phy]_.
++
++Property names and semantics are intentionally aligned with the Devicetree
++binding [motorcomm-yt8xxx]_ so that the same driver code path
++(``device_property_*`` on ``&phydev->mdio.dev``) can consume firmware
++described either as Devicetree or ACPI _DSD.
++
++UUID and placement
++==================
++
++Per [acpi-dsd-properties-rules]_ and [acpi-mdio-phy]_, properties must be
++placed in an _DSD package using the standard Device Properties UUID::
++
++	ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301")
++
++Properties
++==========
++
++Unless noted otherwise, integer properties use the same allowed values and
++defaults as [motorcomm-yt8xxx]_.
++
++``rx-internal-delay-ps`` (u32, optional)
++  RGMII RX internal delay in picoseconds. Only meaningful when the link is
++  using RGMII modes with RX internal delay; see [motorcomm-yt8xxx]_.
++
++``tx-internal-delay-ps`` (u32, optional)
++  RGMII TX internal delay in picoseconds. Only meaningful when the link is
++  using RGMII modes with TX internal delay; see [motorcomm-yt8xxx]_.
++
++``motorcomm,clk-out-frequency-hz`` (u32, optional)
++  Clock output frequency on the PHY clock output pin. Allowed values and
++  default are defined in [motorcomm-yt8xxx]_.
++
++``motorcomm,keep-pll-enabled`` (boolean, optional)
++  If true, keep the PLL enabled even when there is no link (useful for using
++  the clock output without an Ethernet link). See [motorcomm-yt8xxx]_.
++
++``motorcomm,auto-sleep-disabled`` (boolean, optional)
++  If true, disable the PHY auto-sleep behavior described in
++  [motorcomm-yt8xxx]_.
++
++``motorcomm,rx-clk-drv-microamp`` (u32, optional)
++  Drive strength for the ``rx_clk`` RGMII pad in microamps. Allowed values
++  depend on the configured RGMII LDO voltage; see [motorcomm-yt8xxx]_.
++
++``motorcomm,rx-data-drv-microamp`` (u32, optional)
++  Drive strength for the ``rx_data`` and ``rx_ctl`` RGMII pads in microamps.
++  See [motorcomm-yt8xxx]_.
++
++``motorcomm,tx-clk-adj-enabled`` (boolean, optional)
++  Enables adjustments related to ``motorcomm,tx-clk-*-inverted`` usage; see
++  [motorcomm-yt8xxx]_.
++
++``motorcomm,tx-clk-10-inverted`` (boolean, optional)
++``motorcomm,tx-clk-100-inverted`` (boolean, optional)
++``motorcomm,tx-clk-1000-inverted`` (boolean, optional)
++  Per-speed TX clock inversion options; see [motorcomm-yt8xxx]_.
++
++ASL example (illustrative)
++==========================
++
++The example below only shows PHY-local _DSD properties. A real platform
++still needs a MAC ``phy-handle`` and ``phy-mode`` package as in
++[acpi-mdio-phy]_.
++
++.. code-block:: none
++
++	Scope (\_SB.MDI0)
++	{
++		Device (PHY4)
++		{
++			Name (_ADR, 0x4)
++
++			Name (_DSD, Package () {
++				ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
++				Package () {
++					Package (2) { "rx-internal-delay-ps", 2100 },
++					Package (2) { "tx-internal-delay-ps", 150 },
++					Package (2) { "motorcomm,clk-out-frequency-hz", 0 },
++					Package (2) { "motorcomm,keep-pll-enabled", 1 },
++					Package (2) { "motorcomm,auto-sleep-disabled", 1 },
++				}
++			})
++		}
++	}
++
++References
++==========
++
++.. [acpi-mdio-phy] Documentation/firmware-guide/acpi/dsd/phy.rst
++.. [acpi-dsd-properties-rules]
++   Documentation/firmware-guide/acpi/DSD-properties-rules.rst
++.. [motorcomm-yt8xxx]
++   Documentation/devicetree/bindings/net/motorcomm,yt8xxx.yaml
+diff --git a/Documentation/firmware-guide/acpi/index.rst b/Documentation/firmware-guide/acpi/index.rst
+index b246902f523f..db9eb7229948 100644
+--- a/Documentation/firmware-guide/acpi/index.rst
++++ b/Documentation/firmware-guide/acpi/index.rst
+@@ -11,6 +11,7 @@ ACPI Support
+    dsd/graph
+    dsd/data-node-references
+    dsd/leds
++   dsd/motorcomm-yt8xxx-phy
+    dsd/phy
+    enumeration
+    osi
 -- 
 2.34.1
 
