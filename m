@@ -1,109 +1,117 @@
-Received: from mail-wr1-f52.google.com (mail-wr1-f52.google.com [209.85.221.52])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1AB54657CA
-	for <linux-acpi@vger.kernel.org>; Thu,  7 May 2026 15:57:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 303331E9B35;
+	Thu,  7 May 2026 15:57:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778169422; cv=none; b=Z17jpgIUU6pLpoOn2lrDtxK/iejcr+97eZL2b0KIo2/ARIPdLY8vMlQsbLWiUY7jIagG8FDPsbHJ8d7i41Htl3iZ3zHO1wg/7IL3S/swhOpKW4kFiRmJxFW47+OGK4K9MEACOLfx8YTEDbbhD6XZYRuUv3KAxpuzGlD2O4QRkpw=
+	t=1778169461; cv=none; b=i51AU/VJLH8qmRpy4lMxLmhVVhjayeV33x8pkoyXOc3wBg8O6CXCMS96SZtZk092JmNKlnBxqPYsiTZvFnsxVR0jAunI0xbJ1JdpsTHJC7QWa0Rub3g30MZKRgJwBJi7IV/InUBJDTePXJcDwLwf6WgBZTtjgZlS0NPqFnzL3hQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778169422; c=relaxed/simple;
-	bh=37auMNg/QVimiWcnWEOWuPkMh7KrDw5XZX81fsEUK/s=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=QEWM2ppvf3vuHmOTs2HxcnrDZpF9pCq3YatuKIZfZrL54ePw9Ww7i4CGg6JLymo0Uarx5XnoKcmwzSCkcj7jzI7viuDl45RbBhBakT/5yYWsOgbT80KvxpQMa384oZv+B80M20ySeKL6n+AnsLfqN86jhyEjMLqwDxZyrX+n5d0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=VuT1cXwb; arc=none smtp.client-ip=209.85.221.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1778169461; c=relaxed/simple;
+	bh=SRDQGAD1Jdb8rMWAaZJsxwcnVMafxfPILg9InfBnZk8=;
+	h=Date:Message-ID:From:To:Cc:Subject:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=udGbmJ645d7oESv9Hrodsac1BKQV8BacDOAkVEWkQgTlmM0KgrHuIwt0n6RvBzUYjgrvB6rTZmBDXH8bUMM+EQjBx+qVJr6uxy+3gxacvg9xwO96CxHi64xHuaH7LNnzfedOlhAOM/qCRd28fUpLEsp/5wD56CZIqDQzPTq41nQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BW6G5dbH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="VuT1cXwb"
-Received: by mail-wr1-f52.google.com with SMTP id ffacd0b85a97d-44c4cc7c1cfso873798f8f.0
-        for <linux-acpi@vger.kernel.org>; Thu, 07 May 2026 08:57:00 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1778169419; x=1778774219; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=TLgSTNMb8UYEFesiZU1z3JNyVkQfEaBHIUu75ZHyE5U=;
-        b=VuT1cXwbLDYi1cIqsSiJldPpxlGNZ0Lgkpwm5qcJO4GuvzzDjuHNsEICpMZpUQ/WBT
-         JpNRxGrdIjBbvErbVfbsScgoTOm4Quoh+mIb7z3RzpXBN9KnSWicpVj3fp+H4ddvjLR/
-         1GvOEkAcMrz0a8B1/CHsYuD0RFfENZGXUL4ksL10Axkk9kdFaU/Nz9sdDXLMm49caJz9
-         7aZXBOqnO60+nf6T9wbqhzh9yUhChKAkfv3olAXQnOPpoFzVrD0Fw+sbhnAxIFJgitxx
-         YsqW+DVuwK9nOsBEkAcoGhXU4S42rzBrOhJBwt10CT2hXKee46j4okGRIuXWuSRgFO1/
-         zuLQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778169419; x=1778774219;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=TLgSTNMb8UYEFesiZU1z3JNyVkQfEaBHIUu75ZHyE5U=;
-        b=n1gpWw6gTAxVgBm6T5kM+IjvUHGpEsaE6w3SqWlUR+xHTAtVfqzGUZG/qWJ8lwAxW3
-         oiKMhCXKK3Mq2VwBIy8GU7V49JITFTRWV1DZWXqnB4Y+cJNkYXxZgjCA6xXXi4XvnGO3
-         +Q6HQ/Jyz/LbvXETN8kYpoc8nZM6VWhzRvCiahKYZVlsy+Voqor0oUvS/QdW+3GjkZR5
-         Cl8mOAMfEdjUK1husHqBk/zpvn3FAZ+5RjDt5hp2lU87MgMI8D62mPjrjOwXQRLfZTWK
-         pjbkhkuQ/PSckqY/TjwE8q7GimBWMrVsUH1fiEM+JqFzUPVT80rj3tkHegIdOq8HIvrs
-         A50Q==
-X-Forwarded-Encrypted: i=1; AFNElJ8DGAHCsEfPOyl6RV/9P1XgvLkg3qgfquTrXPbOWWiojy9D+oAUDpFapV0M+OD0N8O8GP3q6LUNu0FJ@vger.kernel.org
-X-Gm-Message-State: AOJu0YxqjYQJl49PJDzBpvhtlEcpGXqOCTbqeOhXgRTPmOKMuIiNg7M3
-	qPxOlNJpcfILXChKQXxOri8QurVDKfcwqRCNtHZY4D/tqv67fSEXxZ18
-X-Gm-Gg: AeBDiesxdji5ma/22mWpV8w50BPahE+WpTvbKjNd9ylLcMFDlDiyc8rjH4wmIHrHnzI
-	qfvv0dJQejkRdo2T9B2V8CJBA5n+Wp9DPmajUPUhQc4pkzJW/xGk4jEnE37eFRE1JJI9aG9MvU5
-	w1Pq+TVmQH+Y4RwWV67poZoGFmQHzmnWgehxwOy4odo2gwI5jZlPN5WxBwpJbETSVI+MVM4tTVC
-	rnl+1SX+cZ8DQXOpHnXXErN3FelFPY3ciHJe9MGJGe/+fzfMzCgCvjBaas2b610d4E72mcb//wG
-	x6BTypb7XjpqTdrs5f+yJhvImdTI5xYna4DgBcNhpoM7w9K6YKqCG0Gh9TksbKMdeWi8s39GwhO
-	5egL0x746cGCq9qc9hppLPArkEOxu55FOvDOlSGB6Qjl+wSC/LEavDlhxAWXJAjSYjhrTpfz9KI
-	JMuVysrMMcgyh64jQ=
-X-Received: by 2002:a5d:64e3:0:b0:441:1cf8:be9b with SMTP id ffacd0b85a97d-4515d9a06cemr15004134f8f.37.1778169418765;
-        Thu, 07 May 2026 08:56:58 -0700 (PDT)
-Received: from ROG ([2a01:e11:202b:40:68b1:8d59:e348:c16e])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-45412820463sm44581f8f.3.2026.05.07.08.56.58
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 07 May 2026 08:56:58 -0700 (PDT)
-From: Marco Scardovi <mscardovi95@gmail.com>
-To: mika.westerberg@intel.com
-Cc: andriy.shevchenko@intel.com,
-	mathias.nyman@intel.com,
-	linux-gpio@vger.kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Marco Scardovi <mscardovi95@gmail.com>
-Subject: [PATCH v3 6/6] gpio: acpi: sort header inclusion alphabetically
-Date: Thu,  7 May 2026 17:56:47 +0200
-Message-ID: <20260507155647.403964-7-mscardovi95@gmail.com>
-X-Mailer: git-send-email 2.54.0
-In-Reply-To: <20260507155647.403964-1-mscardovi95@gmail.com>
-References: <20260506123421.1077421-1-mscardovi95@gmail.com>
- <20260507155647.403964-1-mscardovi95@gmail.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BW6G5dbH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF6DEC2BCB2;
+	Thu,  7 May 2026 15:57:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1778169461;
+	bh=SRDQGAD1Jdb8rMWAaZJsxwcnVMafxfPILg9InfBnZk8=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=BW6G5dbHPaISsPWE5mSZF9XcFmisdWcuoAKiW5zf0L3W7E4POAvDn732x84epIMl7
+	 nL+2cxtZ7AI1v1hOywTgzUA7IJzucqLN2kWzZf9Cx0+QT5B6ZtuCNa95UNRDmrik37
+	 B/MPn/Si4AsLpY1++E4JIWONY2cqBvsXA8rs0mQ+VPruEIU4hnjSJS1/ISetecwSTX
+	 ld+uGPWrx3At5c/+y4mURuzcC/wfYlRkgFOyW6rCvT8NC8XOQhy0b7ofpuprvih9eV
+	 78U15qZk4aaa7h7v7Cv8VfO7j7RTOrchBruaJiAGEMbeIbKsEvLS++6RtJ1b1Ao3cU
+	 uE85PDi3IRH9w==
+Received: from sofa.misterjones.org ([185.219.108.64] helo=goblin-girl.misterjones.org)
+	by disco-boy.misterjones.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.98.2)
+	(envelope-from <maz@kernel.org>)
+	id 1wL16U-000000002I0-0wWs;
+	Thu, 07 May 2026 15:57:34 +0000
+Date: Thu, 07 May 2026 16:57:33 +0100
+Message-ID: <86o6irxlea.wl-maz@kernel.org>
+From: Marc Zyngier <maz@kernel.org>
+To: Heiko Stuebner <heiko@sntech.de>
+Cc: linux-arm-kernel@lists.infradead.org,	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org,	devicetree@vger.kernel.org,	Lorenzo Pieralisi
+ <lpieralisi@kernel.org>,	Hanjun Guo <guohanjun@huawei.com>,	Sudeep Holla
+ <sudeep.holla@kernel.org>,	Catalin Marinas <catalin.marinas@arm.com>,	Will
+ Deacon <will@kernel.org>,	"Rafael J. Wysocki" <rafael@kernel.org>,	Mark
+ Rutland <mark.rutland@arm.com>,	Daniel Lezcano <daniel.lezcano@kernel.org>,
+	Thomas Gleixner <tglx@kernel.org>,	Rob Herring <robh@kernel.org>,
+	Krzysztof Kozlowski <krzk+dt@kernel.org>,	Conor Dooley
+ <conor+dt@kernel.org>,	Chen-Yu Tsai <wens@kernel.org>,	Jernej Skrabec
+ <jernej.skrabec@gmail.com>,	Samuel Holland <samuel@sholland.org>,	Neil
+ Armstrong <neil.armstrong@linaro.org>,	Kevin Hilman <khilman@baylibre.com>,
+	Jerome Brunet <jbrunet@baylibre.com>,	Martin Blumenstingl
+ <martin.blumenstingl@googlemail.com>,	Ge Gordon <gordon.ge@bst.ai>,	BST
+ Linux Kernel Upstream Group <bst-upstream@bstai.top>,	Jesper Nilsson
+ <jesper.nilsson@axis.com>,	Lars Persson <lars.persson@axis.com>,	Alim
+ Akhtar <alim.akhtar@samsung.com>,	Ivaylo Ivanov
+ <ivo.ivanov.ivanov1@gmail.com>,	Frank Li <Frank.Li@nxp.com>,	Sascha Hauer
+ <s.hauer@pengutronix.de>,	Pengutronix Kernel Team <kernel@pengutronix.de>,
+	Fabio Estevam <festevam@gmail.com>,	Dinh Nguyen <dinguyen@kernel.org>,
+	Matthias Brugger <matthias.bgg@gmail.com>,	AngeloGioacchino Del Regno
+ <angelogioacchino.delregno@collabora.com>,	Thierry Reding
+ <thierry.reding@kernel.org>,	Jonathan Hunter <jonathanh@nvidia.com>,	Bjorn
+ Andersson <andersson@kernel.org>,	Konrad Dybcio <konradybcio@kernel.org>,
+	Andreas =?UTF-8?B?RsOkcmJlcg==?= <afaerber@suse.de>,	Shawn Lin
+ <shawn.lin@rock-chips.com>,	Orson Zhai <orsonzhai@gmail.com>,	Baolin Wang
+ <baolin.wang@linux.alibaba.com>,	Michal Simek <michal.simek@amd.com>
+Subject: Re: [PATCH 14/16] arm64: dts: rockchip: Add EL2 virtual timer interrupt
+In-Reply-To: <3690258.8hzESeGDPO@phil>
+References: <20260507125544.2903406-1-maz@kernel.org>
+	<20260507125544.2903406-15-maz@kernel.org>
+	<3690258.8hzESeGDPO@phil>
+User-Agent: Wanderlust/2.15.9 (Almost Unreal) SEMI-EPG/1.14.7 (Harue)
+ FLIM-LB/1.14.9 (=?UTF-8?B?R29qxY0=?=) APEL-LB/10.8 EasyPG/1.0.0 Emacs/30.1
+ (aarch64-unknown-linux-gnu) MULE/6.0 (HANACHIRUSATO)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+MIME-Version: 1.0 (generated by SEMI-EPG 1.14.7 - "Harue")
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+X-SA-Exim-Connect-IP: 185.219.108.64
+X-SA-Exim-Rcpt-To: heiko@sntech.de, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, lpieralisi@kernel.org, guohanjun@huawei.com, sudeep.holla@kernel.org, catalin.marinas@arm.com, will@kernel.org, rafael@kernel.org, mark.rutland@arm.com, daniel.lezcano@kernel.org, tglx@kernel.org, robh@kernel.org, krzk+dt@kernel.org, conor+dt@kernel.org, wens@kernel.org, jernej.skrabec@gmail.com, samuel@sholland.org, neil.armstrong@linaro.org, khilman@baylibre.com, jbrunet@baylibre.com, martin.blumenstingl@googlemail.com, gordon.ge@bst.ai, bst-upstream@bstai.top, jesper.nilsson@axis.com, lars.persson@axis.com, alim.akhtar@samsung.com, ivo.ivanov.ivanov1@gmail.com, Frank.Li@nxp.com, s.hauer@pengutronix.de, kernel@pengutronix.de, festevam@gmail.com, dinguyen@kernel.org, matthias.bgg@gmail.com, angelogioacchino.delregno@collabora.com, thierry.reding@kernel.org, jonathanh@nvidia.com, andersson@kernel.org, konradybcio@kernel.org, afaerber@suse.de, shawn.lin@rock-chips.com, orsonzhai@gmail.com, baolin.wang@linux.alibaba.com, michal.simek@amd.com
+X-SA-Exim-Mail-From: maz@kernel.org
+X-SA-Exim-Scanned: No (on disco-boy.misterjones.org); SAEximRunCond expanded to false
 
----
- drivers/gpio/gpiolib-acpi-core.c | 2 ++
- 1 file changed, 2 insertions(+)
+On Thu, 07 May 2026 16:33:21 +0100,
+Heiko Stuebner <heiko@sntech.de> wrote:
+>=20
+> Hi Mark,
 
-diff --git a/drivers/gpio/gpiolib-acpi-core.c b/drivers/gpio/gpiolib-acpi-core.c
-index c9b12e24de14..7b324dd4ae67 100644
---- a/drivers/gpio/gpiolib-acpi-core.c
-+++ b/drivers/gpio/gpiolib-acpi-core.c
-@@ -8,12 +8,14 @@
-  */
- 
- #include <linux/acpi.h>
-+#include <linux/cleanup.h>
- #include <linux/dmi.h>
- #include <linux/errno.h>
- #include <linux/export.h>
- #include <linux/interrupt.h>
- #include <linux/irq.h>
- #include <linux/mutex.h>
-+#include <linux/slab.h>
- #include <linux/pinctrl/pinctrl.h>
- 
- #include <linux/gpio/consumer.h>
--- 
-2.54.0
+s/k/c/ ;-)
 
+>=20
+> Am Donnerstag, 7. Mai 2026, 14:55:42 Mitteleurop=C3=A4ische Sommerzeit sc=
+hrieb Marc Zyngier:
+> > The ARMv8.2 based CPUs used in a number of Rockchip SoCs are missing
+> > the EL2 virtual timer interrupt. Add it.
+>=20
+> the message talks about "a number of Rockchip SoCs", but below there are
+> only the rk3566/rk3568 variants? Or does it just mean the two?
+
+I have no idea how many Socs are covered by the 'x' in the filename,
+and I can't say I looked too hard -- I simply checked that whichever
+file was including this one was describing CPUs that were guaranteed
+to implement this timer.
+
+>=20
+> In any case,
+>=20
+> Acked-by: Heiko Stuebner <heiko@sntech.de>
+
+Thanks!
+
+	M.
+
+--=20
+Without deviation from the norm, progress is not possible.
