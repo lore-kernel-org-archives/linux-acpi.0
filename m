@@ -1,37 +1,36 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 344093F20F4;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 344A53F20F9;
 	Thu,  7 May 2026 12:55:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778158559; cv=none; b=Peu5ODVGm1nesY6NImwaoz+DYxNDH/pCUfU1MoKRPHXtIiXNXfvo/PiwfehwrgxMTphZlvGf/hb5puDidSne9PmOlDRWJn/9GMWkSnqsI6MZTs+0E66iYnF/x8DP5J71e6Fo0+/8x5H7PrHzvOrvasmKGAI2G/PDJSOXesb8vt4=
+	t=1778158559; cv=none; b=CMrMpdWqnKw9Skrb1TdnN6hQ/FIJyxW7CmYItqB1GUQD3+i2n2Td287+ZkstmBxsxlmF87B4P6p6SATJTfLo9qAOeRac7H2hCE9mXiEpjW+il59WhL6fVSR252DS+luGWr8Fsb0krwbWiXIdqEZEFT67wupw3ElTKBp4iOkudMg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1778158559; c=relaxed/simple;
-	bh=6c96IjMHaMre41xBr3FzTv5pSHvU6UTiqN3k4zC2F0A=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=g2l2w4/H2LYknu+tXLa+f6W2EC3LLm5UnoFIlJCoxqOQ774U2UlbWl4cl5KsPaMDiJ4sPuulk77B294D5jdIH1FK14Sa0nmWK3iWy6XyBn8TIVbX7I4Q24t+zWLj4GG980QhHBYDH0i8q2pQ3yZcMC/3oslSEjXx5QrTMvGDdqM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MZprJQtb; arc=none smtp.client-ip=10.30.226.201
+	bh=FsT+l541Gc3Q7KiBKJU7i6Nxs2fnWFdQHwCIG1QZY9g=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=tofF0ZFScn3JVksYKYmIPsHHkKyAu3VEQ6RrjY1EoCXYL/JMiF2jRpHxVlJNMGiBAeCVghamP0akjnh32I2anC0cC7tsPv7/uMNYbuCXhaLo/hW6dc2T8SlI0XS9Cx+kmeeXQLSuBi/9wAjxn3vP65g6MIbfbuVk5/nA2LQEGhI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hbzlviSe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MZprJQtb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1CBDC4AF52;
-	Thu,  7 May 2026 12:55:58 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hbzlviSe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DDE6CC2BCB2;
+	Thu,  7 May 2026 12:55:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778158559;
-	bh=6c96IjMHaMre41xBr3FzTv5pSHvU6UTiqN3k4zC2F0A=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=MZprJQtbEL/qKSJ+blHqLXn59EDJTINi2PRv8HZAJjZMGROUPoGzPTJmGlmAGFX3e
-	 PTDLW7Q3wARN/9UIHA87bU4LvS35WvweNlTSOV2N4QyUwpyKMoCcmXWDLViTxOkrz9
-	 1ErRvSfAbQb8+DlgtOg1hu8FQgUlVMfBT9OgirBt9ZE9U+bZHUQg7yH4iU/6xQ6Mrk
-	 M8yP6TCze5NN4CY5los0Up5KFHtKKV/CFilK3ntIJP+T2EcaOFKulLZIKLQ7BlB+Zv
-	 x8koVqu2iX8ZGsOLRudsFodKQ8ae5cJKJZNwLrVwLhfC8/6GQXaWAp7ZmBAuwZVU2v
-	 vRExc3FIx62kQ==
+	s=k20201202; t=1778158558;
+	bh=FsT+l541Gc3Q7KiBKJU7i6Nxs2fnWFdQHwCIG1QZY9g=;
+	h=From:To:Cc:Subject:Date:From;
+	b=hbzlviSehE3Eeso/9orgo3CdelO5SyRunrXAgqqTz666wYOwAP4qZuCKOT8ZJVfma
+	 cfORGQ69ITXIaNXxUgpsOYR9wVFADqCmmPjq3S3idVTV2CrCPWtWFFnn98U/ku0XBW
+	 Uu2/YKzuNtKA/ViGpzbc/0C2TeIRb6/qMXTc5BAi9Mfz8t2Zc4P1ogKMXLyp8AV1fO
+	 5kwNEwJwLE79sK1SerENnCqTHLRE00cv4WygqAke9HNb5qs9QZJ0z8Vr6UAfShwQeG
+	 E2RiNIyFPENVo0ityypqieToLnEe1hXb0/ng2Jpi/YQqhB51rDNX6bcf8Pq7frPvUS
+	 gviWUKCWFy5Cg==
 Received: from sofa.misterjones.org ([185.219.108.64] helo=valley-girl.lan)
 	by disco-boy.misterjones.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.98.2)
 	(envelope-from <maz@kernel.org>)
-	id 1wKyGi-00000000d7d-23jP;
-	Thu, 07 May 2026 12:55:56 +0000
+	id 1wKyGg-00000000d7d-3aSc;
+	Thu, 07 May 2026 12:55:54 +0000
 From: Marc Zyngier <maz@kernel.org>
 To: linux-arm-kernel@lists.infradead.org,
 	linux-acpi@vger.kernel.org,
@@ -79,12 +78,10 @@ Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>,
 	Orson Zhai <orsonzhai@gmail.com>,
 	Baolin Wang <baolin.wang@linux.alibaba.com>,
 	Michal Simek <michal.simek@amd.com>
-Subject: [PATCH 03/16] dt-bindings: timer: arm,arch_timer: Fix requirements for interrupt description
-Date: Thu,  7 May 2026 13:55:31 +0100
-Message-ID: <20260507125544.2903406-4-maz@kernel.org>
+Subject: [PATCH 00/16] arm64: Use EL2 virtual timer when running VHE
+Date: Thu,  7 May 2026 13:55:28 +0100
+Message-ID: <20260507125544.2903406-1-maz@kernel.org>
 X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260507125544.2903406-1-maz@kernel.org>
-References: <20260507125544.2903406-1-maz@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -97,70 +94,122 @@ X-SA-Exim-Rcpt-To: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.
 X-SA-Exim-Mail-From: maz@kernel.org
 X-SA-Exim-Scanned: No (on disco-boy.misterjones.org); SAEximRunCond expanded to false
 
-The arm,arch_timer DT binding is extremely imprecise in describing
-the requirements for interrupts.
+This series aims at making the kernel use the EL2 virtual timer rather
+than the EL2 physical timer when running VHE. It doesn't change
+anything when running bare-metal, but is significantly better when
+running as a guest as CNTVOFF_EL2 virtualises correctly, while
+CNTPOFF_EL2 doesn't.
 
-Follow the architecture by making it explicit that:
-- the EL1 secure timer irq is required if EL3 is implemented
-- the EL1 physical timer irq is always required
-- the EL1 virtual timer irq is always required
-- the EL2 physical timer irq is required if EL2 is implemented
-- the EL2 virtual timer irq is required if FEAT_VHE is implemented
+The first patch teaches the ACPI GTDT parsing about the EL2 vtimer
+interrupt. The table was specified years ago, just that nobody added
+the necessary logic to the parser.
 
-The consequence of the above is that the minimum number of interrupts
-to be described is 2, and not 1.
+The second patch is the important one. It changes the PPI selection
+logic to pick the EL2 vtimer over the EL2 ptimer *if* the interrupt
+exists in the firmware tables.
 
-Finally, clean up the description which made the assumption that
-the timers are plugged into a GIC (unfortunately, that's not always
-true), drop the MMIO nonsense that has long be moved to a separate
-binding, and use the architectural terminology to describe the various
-interrupts.
+As usual, firmware is in a sorry state (both DT and ACPI alike), but
+given that this is to run as a guest, who cares as long as the VMM is
+doing the right thing.
 
-Signed-off-by: Marc Zyngier <maz@kernel.org>
----
- .../bindings/timer/arm,arch_timer.yaml        | 21 +++++++------------
- 1 file changed, 8 insertions(+), 13 deletions(-)
+The following patches are totally optional and can be dropped as
+necessary: they clean up the DT binding to make it crystal clear that
+no, you can't decide to drop an interrupt while copy-pasting your DT
+from somewhere else.
 
-diff --git a/Documentation/devicetree/bindings/timer/arm,arch_timer.yaml b/Documentation/devicetree/bindings/timer/arm,arch_timer.yaml
-index c5fc3b6c8bd0b..c65e48a155ab6 100644
---- a/Documentation/devicetree/bindings/timer/arm,arch_timer.yaml
-+++ b/Documentation/devicetree/bindings/timer/arm,arch_timer.yaml
-@@ -10,13 +10,8 @@ maintainers:
-   - Marc Zyngier <marc.zyngier@arm.com>
-   - Mark Rutland <mark.rutland@arm.com>
- description: |+
--  ARM cores may have a per-core architected timer, which provides per-cpu timers,
--  or a memory mapped architected timer, which provides up to 8 frames with a
--  physical and optional virtual timer per frame.
--
--  The per-core architected timer is attached to a GIC to deliver its
--  per-processor interrupts via PPIs. The memory mapped timer is attached to a GIC
--  to deliver its interrupts via SPIs.
-+  The per-core architected timer is expected to deliver per-CPU interrupts
-+  (commonly to a GIC to deliver its per-processor interrupts as PPIs).
- 
- properties:
-   compatible:
-@@ -33,13 +28,13 @@ properties:
-           - const: arm,armv7-timer
- 
-   interrupts:
--    minItems: 1
-+    minItems: 2
-     items:
--      - description: secure timer irq
--      - description: non-secure timer irq
--      - description: virtual timer irq
--      - description: hypervisor timer irq
--      - description: hypervisor virtual timer irq
-+      - description: EL1 secure physical timer irq, if EL3 is implemented
-+      - description: EL1 non-secure physical timer irq
-+      - description: EL1 virtual timer irq
-+      - description: EL2 physical timer irq, if EL2 is implemented
-+      - description: EL2 virtual timer irq, if FEAT_VHE is implemented
- 
-   interrupt-names:
-     oneOf:
+They finally add missing EL2 vtimer interrupts to a bunch of DTs where
+I could guess the PPI number based on the other interrupts. I've left
+the Marvell AC5 crap behind as they have been creative in the PPI
+assignment, and life is too short to care about it.
+
+This has been tested both as a KVM guest and on bare metal (QC X1e and
+Amlogic SM1).
+
+Marc Zyngier (16):
+  ACPI: GTDT: Parse information related to the EL2 virtual timer
+  clocksource/drivers/arm_arch_timer: Default to EL2 virtual timer when
+    running VHE
+  dt-bindings: timer: arm,arch_timer: Fix requirements for interrupt
+    description
+  arm64: dts: allwinner: Add EL2 virtual timer interrupt
+  arm64: dts: amlogic: Add EL2 virtual timer interrupt
+  arm64: dts: bst: Add EL2 virtual timer interrupt
+  arm64: dts: exynos: Add EL2 virtual timer interrupt
+  arm64: dts: freescale: Add EL2 virtual timer interrupt
+  arm64: dts: intel: Add EL2 virtual timer interrupt
+  arm64: dts: mediatek: Add EL2 virtual timer interrupt
+  arm64: dts: nvidia: Add EL2 virtual timer interrupt
+  arm64: dts: qcom: Add EL2 virtual timer interrupt
+  arm64: dts: realtek: Add EL2 virtual timer interrupt
+  arm64: dts: rockchip: Add EL2 virtual timer interrupt
+  arm64: dts: sprd: Add EL2 virtual timer interrupt
+  arm64: dts: xilinx: Add EL2 virtual timer interrupt
+
+ .../bindings/timer/arm,arch_timer.yaml        | 21 ++++-----
+ .../arm64/boot/dts/allwinner/sun55i-a523.dtsi |  3 +-
+ .../boot/dts/amlogic/amlogic-a4-common.dtsi   |  8 ----
+ arch/arm64/boot/dts/amlogic/amlogic-a4.dtsi   |  8 ++++
+ arch/arm64/boot/dts/amlogic/amlogic-a5.dtsi   |  9 ++++
+ arch/arm64/boot/dts/amlogic/amlogic-s6.dtsi   |  3 +-
+ arch/arm64/boot/dts/amlogic/amlogic-s7.dtsi   |  3 +-
+ arch/arm64/boot/dts/amlogic/amlogic-s7d.dtsi  |  3 +-
+ .../boot/dts/amlogic/meson-g12-common.dtsi    | 13 ------
+ arch/arm64/boot/dts/amlogic/meson-g12.dtsi    |  9 ++++
+ arch/arm64/boot/dts/amlogic/meson-sm1.dtsi    | 10 +++++
+ arch/arm64/boot/dts/bst/bstc1200.dtsi         |  3 +-
+ arch/arm64/boot/dts/exynos/axis/artpec9.dtsi  |  3 +-
+ arch/arm64/boot/dts/exynos/exynos2200.dtsi    |  3 +-
+ arch/arm64/boot/dts/exynos/exynos990.dtsi     |  3 +-
+ arch/arm64/boot/dts/exynos/exynosautov9.dtsi  |  3 +-
+ arch/arm64/boot/dts/exynos/google/gs101.dtsi  |  3 +-
+ .../boot/dts/freescale/imx91_93_common.dtsi   |  3 +-
+ arch/arm64/boot/dts/freescale/imx94.dtsi      |  3 +-
+ arch/arm64/boot/dts/freescale/imx95.dtsi      |  3 +-
+ arch/arm64/boot/dts/freescale/imx952.dtsi     |  3 +-
+ arch/arm64/boot/dts/freescale/s32n79.dtsi     |  3 +-
+ .../arm64/boot/dts/intel/socfpga_agilex5.dtsi |  3 +-
+ arch/arm64/boot/dts/mediatek/mt6779.dtsi      |  3 +-
+ arch/arm64/boot/dts/mediatek/mt8186.dtsi      |  3 +-
+ arch/arm64/boot/dts/mediatek/mt8188.dtsi      |  3 +-
+ arch/arm64/boot/dts/mediatek/mt8192.dtsi      |  3 +-
+ arch/arm64/boot/dts/mediatek/mt8195.dtsi      |  3 +-
+ arch/arm64/boot/dts/nvidia/tegra194.dtsi      |  2 +
+ arch/arm64/boot/dts/nvidia/tegra234.dtsi      |  3 +-
+ arch/arm64/boot/dts/qcom/eliza.dtsi           |  3 +-
+ arch/arm64/boot/dts/qcom/hamoa.dtsi           |  3 +-
+ arch/arm64/boot/dts/qcom/kaanapali.dtsi       |  3 +-
+ arch/arm64/boot/dts/qcom/kodiak.dtsi          |  3 +-
+ arch/arm64/boot/dts/qcom/lemans.dtsi          |  3 +-
+ arch/arm64/boot/dts/qcom/milos.dtsi           |  1 +
+ arch/arm64/boot/dts/qcom/monaco.dtsi          |  3 +-
+ arch/arm64/boot/dts/qcom/sar2130p.dtsi        |  3 +-
+ arch/arm64/boot/dts/qcom/sc7180.dtsi          |  3 +-
+ arch/arm64/boot/dts/qcom/sc8180x.dtsi         |  3 +-
+ arch/arm64/boot/dts/qcom/sc8280xp.dtsi        |  3 +-
+ arch/arm64/boot/dts/qcom/sdm670.dtsi          |  3 +-
+ arch/arm64/boot/dts/qcom/sdm845.dtsi          |  3 +-
+ arch/arm64/boot/dts/qcom/sdx75.dtsi           |  1 +
+ arch/arm64/boot/dts/qcom/sm4450.dtsi          |  3 +-
+ arch/arm64/boot/dts/qcom/sm6350.dtsi          |  3 +-
+ arch/arm64/boot/dts/qcom/sm6375.dtsi          |  3 +-
+ arch/arm64/boot/dts/qcom/sm8150.dtsi          |  3 +-
+ arch/arm64/boot/dts/qcom/sm8250.dtsi          |  3 +-
+ arch/arm64/boot/dts/qcom/sm8350.dtsi          |  3 +-
+ arch/arm64/boot/dts/qcom/sm8450.dtsi          |  3 +-
+ arch/arm64/boot/dts/qcom/sm8550.dtsi          |  3 +-
+ arch/arm64/boot/dts/qcom/sm8650.dtsi          |  3 +-
+ arch/arm64/boot/dts/qcom/sm8750.dtsi          |  3 +-
+ arch/arm64/boot/dts/qcom/talos.dtsi           |  3 +-
+ arch/arm64/boot/dts/realtek/rtd16xx.dtsi      |  3 +-
+ arch/arm64/boot/dts/rockchip/rk356x-base.dtsi |  3 +-
+ arch/arm64/boot/dts/sprd/sc9863a.dtsi         |  3 +-
+ arch/arm64/boot/dts/sprd/ums512.dtsi          |  3 +-
+ arch/arm64/boot/dts/sprd/ums9620.dtsi         |  3 +-
+ arch/arm64/boot/dts/xilinx/versal-net.dtsi    |  3 +-
+ drivers/acpi/arm64/gtdt.c                     | 25 +++++++++++
+ drivers/clocksource/arm_arch_timer.c          | 44 +++++++++++--------
+ 63 files changed, 200 insertions(+), 104 deletions(-)
+
 -- 
 2.47.3
 
