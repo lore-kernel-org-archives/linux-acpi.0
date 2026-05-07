@@ -1,61 +1,63 @@
-Received: from mail-pj1-f45.google.com (mail-pj1-f45.google.com [209.85.216.45])
+Received: from mail-pj1-f44.google.com (mail-pj1-f44.google.com [209.85.216.44])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 743FD2C0F81
-	for <linux-acpi@vger.kernel.org>; Thu,  7 May 2026 04:02:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.45
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BAB382D0610
+	for <linux-acpi@vger.kernel.org>; Thu,  7 May 2026 04:02:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.44
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778126549; cv=none; b=GCq8aeLx0pC8BII3SROwCafjub+uq30jSFEVbM9Y8rkEbXc/drqJHrc2yf/+lOugWaG+ZIKXjZmZNeqizjnhZxM5SsRhYsKoB6t/jA30H2tr/7jtAgxpbFeV0bxhJT9s/LJ6jg9HarXceMUwbwMJTaqzr1CZrq4kmNna93V1410=
+	t=1778126556; cv=none; b=b06d/k5CyymDgnhT0cIGqdvVAvK0SMjkl1jxU6lN8RJ7CcUb7X2wSf5j3qiPDObIRF26x7+ij9hnnuQYXDFpFQ+6Zb/bsVaqpGjR9jsMLK0/sbpP7RbvqEzndwV2w97VuismZ/nZmD0TbgCF4t8bE0u++fJUbLQ5FvXAE5ckc3I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778126549; c=relaxed/simple;
-	bh=c7K+X72uYM/LaQUiEpD9eAXSPW2etRLQvoWgsxwz6nk=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=h39mcVjgoWRcsU/SpoEgI9F9sFHu8LBoFdC56r7ZFBEEWiTlL/4qhUr4SI8wej6eLWc29TrmfWMCBZGjNDu/htRP1Cf/DGJ7tKK7p6k31VVb+UP4d8flRqRMGU3UJklSob6FAa1yoQ0WCSD/dSAOLS07ep/AsGFfpomByhSzb18=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=SC6Cnx8m; arc=none smtp.client-ip=209.85.216.45
+	s=arc-20240116; t=1778126556; c=relaxed/simple;
+	bh=8CirshOPoZFEoSaKPkqozU0UN5cm29drPAGUaxskDy8=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=YcaEGczC9hVFqDQIkGYDpegA00JT1zTvOe5D35OxSY8TpOP6Osoa5wvluJIf9bW3dxypG0DZkXEe9RODetRntlby92JDPQT+m3gtlCxjP74x2HAWO+qtPfUqWeLAsgwbyDBKloUfiIW5JBtX9o2MxMAKh9WyDL7E72PjM6bg9AQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=EKMIJp4Z; arc=none smtp.client-ip=209.85.216.44
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SC6Cnx8m"
-Received: by mail-pj1-f45.google.com with SMTP id 98e67ed59e1d1-365312a27abso402643a91.3
-        for <linux-acpi@vger.kernel.org>; Wed, 06 May 2026 21:02:28 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="EKMIJp4Z"
+Received: by mail-pj1-f44.google.com with SMTP id 98e67ed59e1d1-3650453fb28so206301a91.2
+        for <linux-acpi@vger.kernel.org>; Wed, 06 May 2026 21:02:34 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1778126548; x=1778731348; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=yj9VpfFL3+hunMFrVeuK8hWm2xzuHDMrd3yGXwj1opk=;
-        b=SC6Cnx8m/E6TIlEjYpMYlqrTwUNmfPR458TnimWlYkBdk8vIoAxdH4fp5InL62puqX
-         xzP0hSYY+D1wXou02QQdsa7jpaRGjw4ZshQ3cIiiq68Cq+QoQVfYMkqd6TSpLireVfTa
-         dzpnw0aad9tvM58D6Qn+Ud2SwGi0wXkbrKHQcbpMztxTzwNqgoP6MdE80obCmUa2K+S3
-         CLHY54NDELIvgS8PScr3QvzZmVa+w6WfvYMrl2wM3U2Y0bbGLBb+/HLosjkt8S5fSqnz
-         HRkz+wKTFrdjnKx6beE5xSdlNrL8mWNmRnZqmpJjLaBT5DOHqDJhwRc0jmcmLynRbMJ4
-         anCA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778126548; x=1778731348;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20251104; t=1778126554; x=1778731354; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=yj9VpfFL3+hunMFrVeuK8hWm2xzuHDMrd3yGXwj1opk=;
-        b=LjrUJ0wIdNuLSC+hmNyHpZmLBqR3rNIiPZ9tc0ZF5KmNYZpd1qMWtowe6jmWy8DV5T
-         vvh+K3bgiRqOTAJgkX9xgNTfdmBCh5TEUxkR3cWdthYteYyS5QgjJF9hpfCHEGSr6kzQ
-         tYbNtqGYQFFthTNEdVy8tAmdKRgPD3KXIsgUQkD6XtBPJSWg061uoIEnYmAG6v4RaoeG
-         +MEMw3x6KTDxpNfKs+egDmHSRMiA7LAaCs/bFDl4XmFk7quvt7nmBJ9dFfsXWCsHe4be
-         d1xxqD5E1xrw4Kn/ORdWT14WnJu1K5IceiLLzkR+piYk2ji+478x4qBTuHZAXrzQuQJJ
-         x9Ew==
-X-Forwarded-Encrypted: i=1; AFNElJ9bVD6pVdHvmQt/dTfym70HShMJAFGpCLEBdQS8OJajuzjEb2WlgvJcLv6CAycqDbNwH0uSHIthUGF9@vger.kernel.org
-X-Gm-Message-State: AOJu0YyiuKREAy/Fqnu+ZHGQhglBU4dx7TY5y33kd6qqte6NtTtdx28z
-	cBFZ/SQbCVvkj7mHTFNxNXCqVgLQzzw8rym068e5Nj8FAmpfcQA64P7F
-X-Gm-Gg: AeBDiesYynowiSoA847ZEB7G7UIMYOc0bwfjTA/fQfRDEqYuC7i4+75h4NimYEp6Gh7
-	lC8qa9bex48SrDOSsvB7xKxxEK7XFQ/4MbaQb57AODcxEoI2/i1EzQcUiWLDbEzcCH5KIq0ue0i
-	1VR9ZtGEcFHx7OniORYqz8Ebb1zoFXE9kISP9Twj7fQmCNBce1wMh5mQNsjSzLnsNjkRtcZc8u2
-	bJltsT30sX6FwfGEhPmDN1NRHiHnlJ/bMP0TWUDd3eJv+A6XcyV0uFgIHrGA1jRvPN8Ro/TkHy5
-	YF8gl4pCrtk3Wi052uFREW9Dz2DA98kV7VlrqMW8u9RzxpdO2bRjE+On4oao0AATd0NbYVaxtd0
-	qpDr6AntqIALrEHajJBVqT50jIEuknDTZIGe5RChspwsl7Sm1umnL4iY6eo2QE2cUosJSVDrPm7
-	0lSkODk3EzxR+0tToZAyc7l4KUKWE0gBeI6MF4Xo3YbUVA0DGiNXjx5f3JlqoRB0nV
-X-Received: by 2002:a17:90b:3a4c:b0:35b:e56e:a17e with SMTP id 98e67ed59e1d1-365abe8a2dfmr6013189a91.17.1778126547585;
-        Wed, 06 May 2026 21:02:27 -0700 (PDT)
+        bh=ybWyM/GBCblqVoOsGBZoPNIvLTsiHHbsxa3USXRuJU0=;
+        b=EKMIJp4ZijPlK/QmXaOp+gg7QobbRTla+WqYwLjNpI8zc0gsYAi0gtYm+I7VKMilgt
+         U8KKpjiug5iXBGo5rTdubzy8JW637Mvlk9B8XZBkCwG7gMBXPvVg9eQDCKNroh2/R3Sq
+         inVMIsxitVUV7IePTlibdl84dSZRBdvhF4I1QO1H2d3iCur63UOl7cWO1dniEEfv11oV
+         WBjZMao7cVxkPNz95HCFLd9QAlNLVgtUV4Ht3C3SZLW60uhyk+51dyjcuGPQXka4NOgM
+         o4BLhHEJpD5gA86j4TtFptFKgTj3esAEYOmamlZoPKb425LO85ln7des9zmsIsi7R9T/
+         xTJA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1778126554; x=1778731354;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=ybWyM/GBCblqVoOsGBZoPNIvLTsiHHbsxa3USXRuJU0=;
+        b=E3hl6xdlFLukptNHsxdZwYxPOEL0s9pr2K8r2Mw+C0ipbc12ipUtXqIhHC0s4QXRa7
+         9T07hz1tk0NOSIdUL/Zy5A/5pmZEoJX96B7npMUjFWRla0EbnzigSSQI2VtVo+qN7wEV
+         YrsaVUn6tLv2bFpq7hmo5seml4sTNde5ShHHjr1o5VpWfrFJ96Mh58aO8du6wwbxRqkO
+         hjmI/X3Y+vJD8K4zHhHHqzQ2kKXPiU+b8z5r5ct1KBBPPM+m+09TOtUXOstKyiQQUa56
+         PuttxmCyFljhPPSRT4TGJL+aH5/ghchkarSh3eDkd8imllcpBR9PnzXJLFSnb2WGqhJh
+         +CFg==
+X-Forwarded-Encrypted: i=1; AFNElJ9FNqexLqIvYFGFyNf4WFrU80fP5/N+4JVXf5/iiOOq2CcexrhMYYhDkTOd5ytRmLr1uw/RmYYJMb1W@vger.kernel.org
+X-Gm-Message-State: AOJu0YzAsUleJKay+TvHW7YSziwhkmzsIrpP8w+MMvFs7dZfhXmkZrXr
+	3Wcp0tGhTeZkso1UenShUGniuy6oIhtxVX/a5w4173HmITrnrC5Wqk9b
+X-Gm-Gg: AeBDietHprD1ziyiUv162JiHAKNw0d9+cgQT9KASJn4MJwLIFXhBPcDptn2NYJY0kKc
+	TEqgBhokf8QfUvzt+MtE2/5f1Jk9TszPkNnilsM31SPr8JwQElrGJqXk576c0lWbuSgCi6ISmkL
+	k5euONJRNNaZXPoocYfd5FlXnI2s0XnqTP/seORmVpw2REMOydptVaRBC1D+9qJNAhLmFbpZiFF
+	AGLFSirdytOw5wZsWy8pjq/t7U9lnbZ2Je4n6152c/2ayGhvaUY6D7xuxIUou33JoH/VGMCd2mE
+	S2ralQ57DE+pHTsZ0JvKCzgr3p5D5b6FYBK9zWWzFXPsNHUD1jcTj3jDpyxxGBbz0T4HsOWTV3M
+	q8iDEjY8XlVXP9t50uIGC1PzzwBnLIqi3Ov9JlNlgTT280btyJow+/IfYRmlBQ/aFvqsoRXxW6I
+	pWhvoZl2D2zZE8K8Ee+qoG8iFbabHH7cjJPY5OFyIHPE4poAOlMNYd/Q==
+X-Received: by 2002:a17:90b:1b4b:b0:35f:c1e1:a263 with SMTP id 98e67ed59e1d1-365ac27a3bbmr5975819a91.19.1778126554003;
+        Wed, 06 May 2026 21:02:34 -0700 (PDT)
 Received: from ampere-server.example.org ([103.68.183.118])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-365d8e3dad8sm2536182a91.1.2026.05.06.21.02.24
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-365d8e3dad8sm2536182a91.1.2026.05.06.21.02.30
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 06 May 2026 21:02:27 -0700 (PDT)
+        Wed, 06 May 2026 21:02:33 -0700 (PDT)
 From: "chunzhi.lin" <linchunzhi0@gmail.com>
 To: netdev@vger.kernel.org
 Cc: Frank.Sae@motor-comm.com,
@@ -68,11 +70,14 @@ Cc: Frank.Sae@motor-comm.com,
 	davem@davemloft.net,
 	linux-acpi@vger.kernel.org,
 	rafael@kernel.org,
-	lenb@kernel.org
-Subject: [PATCH net-next v2 0/2] net: phy: motorcomm: add ACPI _DSD property support
-Date: Thu,  7 May 2026 12:02:19 +0800
-Message-Id: <20260507040221.3679454-1-linchunzhi0@gmail.com>
+	lenb@kernel.org,
+	"chunzhi.lin" <linchunzhi0@gmail.com>
+Subject: [PATCH v2 1/2] net: phy: motorcomm: use device properties for firmware tuning
+Date: Thu,  7 May 2026 12:02:20 +0800
+Message-Id: <20260507040221.3679454-2-linchunzhi0@gmail.com>
 X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20260507040221.3679454-1-linchunzhi0@gmail.com>
+References: <20260507040221.3679454-1-linchunzhi0@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -81,32 +86,202 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi,
+The Motorcomm PHY driver reads optional firmware properties via
+of_property_read_*() from phydev->mdio.dev.of_node. This works for
+Device Tree based systems, but causes ACPI platforms to ignore the same
+properties when they are supplied through _DSD.
 
-This series makes the Motorcomm PHY driver parse firmware properties via
-device_property_*() so the same property set can be provided by either
-Devicetree or ACPI _DSD.
+As a result, ACPI-described Motorcomm PHY devices fall back to default
+settings instead of applying firmware-provided tuning such as
+rx/tx internal delay, drive strength, clock output frequency, and
+optional boolean controls like auto-sleep-disabled,
+keep-pll-enabled, and tx clock inversion.
 
-Patch 1 switches drivers/net/phy/motorcomm.c from of_property_*() to
-device_property_*() on &phydev->mdio.dev.
+Switch these lookups to device_property_read_*() so the driver uses the
+generic firmware node interface and can consume the same property names
+from either Device Tree or ACPI.
 
-Patch 2 documents Motorcomm yt8xxx PHY ACPI _DSD properties under
-Documentation/firmware-guide/acpi/dsd and links the new document from
-the ACPI index.
+This keeps the existing DT behavior unchanged while allowing ACPI
+platforms to honor PHY configuration from firmware.
 
-Changes in v2:
-- docs: sort dsd/motorcomm-yt8xxx-phy within dsd/ entries in
-  Documentation/firmware-guide/acpi/index.rst
+We have completed testing on Sophgo RISC-V architecture server SD3-10.
+This server has a 64-core Thead C920 CPU whose DWMAC is connected to
+Motorcomm's PHY YT8531. This server supports UEFI boot and it would like
+to use the ACPI table.
 
-Thanks,
-chunzhi.lin
+Signed-off-by: chunzhi.lin <linchunzhi0@gmail.com>
+Reviewed-by: Andrew Lunn <andrew@lunn.ch>
+---
+ drivers/net/phy/motorcomm.c | 41 ++++++++++++++++++-------------------
+ 1 file changed, 20 insertions(+), 21 deletions(-)
 
-chunzhi.lin (2):
-  net: phy: motorcomm: use device properties for firmware tuning
-  docs: acpi: dsd: add Motorcomm yt8xxx PHY properties
+diff --git a/drivers/net/phy/motorcomm.c b/drivers/net/phy/motorcomm.c
+index 4d62f7b36212..708491bc198a 100644
+--- a/drivers/net/phy/motorcomm.c
++++ b/drivers/net/phy/motorcomm.c
+@@ -10,7 +10,7 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/phy.h>
+-#include <linux/of.h>
++#include <linux/property.h>
+ 
+ #define PHY_ID_YT8511		0x0000010a
+ #define PHY_ID_YT8521		0x0000011a
+@@ -843,12 +843,12 @@ static u32 ytphy_get_delay_reg_value(struct phy_device *phydev,
+ 				     u16 *rxc_dly_en,
+ 				     u32 dflt)
+ {
+-	struct device_node *node = phydev->mdio.dev.of_node;
++	struct device *dev = &phydev->mdio.dev;
+ 	int tb_size_half = tb_size / 2;
+ 	u32 val;
+ 	int i;
+ 
+-	if (of_property_read_u32(node, prop_name, &val))
++	if (device_property_read_u32(dev, prop_name, &val))
+ 		goto err_dts_val;
+ 
+ 	/* when rxc_dly_en is NULL, it is get the delay for tx, only half of
+@@ -996,12 +996,12 @@ static int yt8531_get_ds_map(struct phy_device *phydev, u32 cur)
+ 
+ static int yt8531_set_ds(struct phy_device *phydev)
+ {
+-	struct device_node *node = phydev->mdio.dev.of_node;
++	struct device *dev = &phydev->mdio.dev;
+ 	u32 ds_field_low, ds_field_hi, val;
+ 	int ret, ds;
+ 
+ 	/* set rgmii rx clk driver strength */
+-	if (!of_property_read_u32(node, "motorcomm,rx-clk-drv-microamp", &val)) {
++	if (!device_property_read_u32(dev, "motorcomm,rx-clk-drv-microamp", &val)) {
+ 		ds = yt8531_get_ds_map(phydev, val);
+ 		if (ds < 0)
+ 			return dev_err_probe(&phydev->mdio.dev, ds,
+@@ -1018,7 +1018,7 @@ static int yt8531_set_ds(struct phy_device *phydev)
+ 		return ret;
+ 
+ 	/* set rgmii rx data driver strength */
+-	if (!of_property_read_u32(node, "motorcomm,rx-data-drv-microamp", &val)) {
++	if (!device_property_read_u32(dev, "motorcomm,rx-data-drv-microamp", &val)) {
+ 		ds = yt8531_get_ds_map(phydev, val);
+ 		if (ds < 0)
+ 			return dev_err_probe(&phydev->mdio.dev, ds,
+@@ -1051,7 +1051,6 @@ static int yt8531_set_ds(struct phy_device *phydev)
+  */
+ static int yt8521_probe(struct phy_device *phydev)
+ {
+-	struct device_node *node = phydev->mdio.dev.of_node;
+ 	struct device *dev = &phydev->mdio.dev;
+ 	struct yt8521_priv *priv;
+ 	int chip_config;
+@@ -1101,7 +1100,7 @@ static int yt8521_probe(struct phy_device *phydev)
+ 			return ret;
+ 	}
+ 
+-	if (of_property_read_u32(node, "motorcomm,clk-out-frequency-hz", &freq))
++	if (device_property_read_u32(dev, "motorcomm,clk-out-frequency-hz", &freq))
+ 		freq = YTPHY_DTS_OUTPUT_CLK_DIS;
+ 
+ 	if (phydev->drv->phy_id == PHY_ID_YT8521) {
+@@ -1169,11 +1168,11 @@ static int yt8521_probe(struct phy_device *phydev)
+ 
+ static int yt8531_probe(struct phy_device *phydev)
+ {
+-	struct device_node *node = phydev->mdio.dev.of_node;
++	struct device *dev = &phydev->mdio.dev;
+ 	u16 mask, val;
+ 	u32 freq;
+ 
+-	if (of_property_read_u32(node, "motorcomm,clk-out-frequency-hz", &freq))
++	if (device_property_read_u32(dev, "motorcomm,clk-out-frequency-hz", &freq))
+ 		freq = YTPHY_DTS_OUTPUT_CLK_DIS;
+ 
+ 	switch (freq) {
+@@ -1665,7 +1664,7 @@ static int yt8521_resume(struct phy_device *phydev)
+  */
+ static int yt8521_config_init(struct phy_device *phydev)
+ {
+-	struct device_node *node = phydev->mdio.dev.of_node;
++	struct device *dev = &phydev->mdio.dev;
+ 	int old_page;
+ 	int ret = 0;
+ 
+@@ -1680,7 +1679,7 @@ static int yt8521_config_init(struct phy_device *phydev)
+ 			goto err_restore_page;
+ 	}
+ 
+-	if (of_property_read_bool(node, "motorcomm,auto-sleep-disabled")) {
++	if (device_property_read_bool(dev, "motorcomm,auto-sleep-disabled")) {
+ 		/* disable auto sleep */
+ 		ret = ytphy_modify_ext(phydev, YT8521_EXTREG_SLEEP_CONTROL1_REG,
+ 				       YT8521_ESC1R_SLEEP_SW, 0);
+@@ -1688,7 +1687,7 @@ static int yt8521_config_init(struct phy_device *phydev)
+ 			goto err_restore_page;
+ 	}
+ 
+-	if (of_property_read_bool(node, "motorcomm,keep-pll-enabled")) {
++	if (device_property_read_bool(dev, "motorcomm,keep-pll-enabled")) {
+ 		/* enable RXC clock when no wire plug */
+ 		ret = ytphy_modify_ext(phydev, YT8521_CLOCK_GATING_REG,
+ 				       YT8521_CGR_RX_CLK_EN, 0);
+@@ -1801,14 +1800,14 @@ static int yt8521_led_hw_control_get(struct phy_device *phydev, u8 index,
+ 
+ static int yt8531_config_init(struct phy_device *phydev)
+ {
+-	struct device_node *node = phydev->mdio.dev.of_node;
++	struct device *dev = &phydev->mdio.dev;
+ 	int ret;
+ 
+ 	ret = ytphy_rgmii_clk_delay_config_with_lock(phydev);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	if (of_property_read_bool(node, "motorcomm,auto-sleep-disabled")) {
++	if (device_property_read_bool(dev, "motorcomm,auto-sleep-disabled")) {
+ 		/* disable auto sleep */
+ 		ret = ytphy_modify_ext_with_lock(phydev,
+ 						 YT8521_EXTREG_SLEEP_CONTROL1_REG,
+@@ -1817,7 +1816,7 @@ static int yt8531_config_init(struct phy_device *phydev)
+ 			return ret;
+ 	}
+ 
+-	if (of_property_read_bool(node, "motorcomm,keep-pll-enabled")) {
++	if (device_property_read_bool(dev, "motorcomm,keep-pll-enabled")) {
+ 		/* enable RXC clock when no wire plug */
+ 		ret = ytphy_modify_ext_with_lock(phydev,
+ 						 YT8521_CLOCK_GATING_REG,
+@@ -1844,7 +1843,7 @@ static int yt8531_config_init(struct phy_device *phydev)
+  */
+ static void yt8531_link_change_notify(struct phy_device *phydev)
+ {
+-	struct device_node *node = phydev->mdio.dev.of_node;
++	struct device *dev = &phydev->mdio.dev;
+ 	bool tx_clk_1000_inverted = false;
+ 	bool tx_clk_100_inverted = false;
+ 	bool tx_clk_10_inverted = false;
+@@ -1852,17 +1851,17 @@ static void yt8531_link_change_notify(struct phy_device *phydev)
+ 	u16 val = 0;
+ 	int ret;
+ 
+-	if (of_property_read_bool(node, "motorcomm,tx-clk-adj-enabled"))
++	if (device_property_read_bool(dev, "motorcomm,tx-clk-adj-enabled"))
+ 		tx_clk_adj_enabled = true;
+ 
+ 	if (!tx_clk_adj_enabled)
+ 		return;
+ 
+-	if (of_property_read_bool(node, "motorcomm,tx-clk-10-inverted"))
++	if (device_property_read_bool(dev, "motorcomm,tx-clk-10-inverted"))
+ 		tx_clk_10_inverted = true;
+-	if (of_property_read_bool(node, "motorcomm,tx-clk-100-inverted"))
++	if (device_property_read_bool(dev, "motorcomm,tx-clk-100-inverted"))
+ 		tx_clk_100_inverted = true;
+-	if (of_property_read_bool(node, "motorcomm,tx-clk-1000-inverted"))
++	if (device_property_read_bool(dev, "motorcomm,tx-clk-1000-inverted"))
+ 		tx_clk_1000_inverted = true;
+ 
+ 	if (phydev->speed < 0)
+-- 
+2.34.1
 
- Documentation/firmware-guide/acpi/dsd/motorcomm-yt8xxx-phy.rst | 107 +++++++++++++
- Documentation/firmware-guide/acpi/index.rst                    |   1 +
- drivers/net/phy/motorcomm.c                                    |  41 +++--
- 3 files changed, 128 insertions(+), 21 deletions(-)
- create mode 100644 Documentation/firmware-guide/acpi/dsd/motorcomm-yt8xxx-phy.rst
