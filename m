@@ -1,36 +1,36 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B50C3F54DC;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B4163F54DB;
 	Thu,  7 May 2026 12:56:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778158562; cv=none; b=MEJzeIWkVu3Ld0uMJxwpv2zyYRqHg4Lbe6EjFkqBegOtJs7hAHXy122Ase4NDiAhGMMOuJ8BvZbpOGvFlAw2ZT39p/aHktpbSssAl9ojBuuUbQ0hXNNaOHCpru6oBNCBsurB277C0YVoFte+XtHzXjRpi01i2VRi4M7L/Lpi3Tw=
+	t=1778158562; cv=none; b=C6he0JiesyssvExmM795HF43MRxmJm37K2y3ulJmZpC84CdsfDdkmbkYoyb5eDGNZRM6tHq7ERfHgAdoPFuwJmURq6Ozj/lh9RUHhq4//QXmluImgrzmO5vViYInL45BQ+L92C9xNuzP+JE0YUoRwSG3X2j8GwlSwHDHO1DhMWo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1778158562; c=relaxed/simple;
-	bh=pSC+Wz3RdPQ5vZ/77OK/N1UzWpdcXw75IYRf3Cx9KpI=;
+	bh=VLsh85YozgAjTbaFo7luW5wp3AU+M3q21SDYWi9Ryio=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=BeGUJf1OA2rFiQy22Tuiex18olhiVyyRHZXUev858SCCgtp+mb5myWABsXKEKoSrnQGU5H9zh0ROR4HvZwXrLj5Ul8znDGjGzZJsEcTFziOS4jMaofDpS17IhBZerGsHNQS5Npyr0kVwksDal6tR4lnFc/C9/Tzhm4BJv8PFcvw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hr//lE5B; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=EouSEn6dyDe99fvC0FQiVyub63EhxN2+J8C4SwnTkM6m04AlJsi01YGrw5Hwtz5cHkQDwEWOowp1XF/wEJNl2RywP3uGA9J3QezUduZlp1qpWB2Cfu5QCZwZKLGFmeSgIRpEhewG5qRRY6hRNCSURROvWNyWUDIkqG+dt8kloZE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ObkYBuWe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hr//lE5B"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FB15C4DE1B;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ObkYBuWe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A30B9C4E673;
 	Thu,  7 May 2026 12:56:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=k20201202; t=1778158561;
-	bh=pSC+Wz3RdPQ5vZ/77OK/N1UzWpdcXw75IYRf3Cx9KpI=;
+	bh=VLsh85YozgAjTbaFo7luW5wp3AU+M3q21SDYWi9Ryio=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=hr//lE5BXql89qyasDHL2mo2OqWjztkKcwY4gx3htD4jtU7bvlR8cVJBHQJUUOTgA
-	 c5KJXR9rP1NeJIZwUFGUgCL4Vp1VT41BwJ0lIweQjfe/XYvNprThl5med2/XVDGmU3
-	 IQdlFb4nx9Y/eZFlkcQBYQxFN/R6/BMO/MDD8bCHGyZyl3VDpijBkgpI9Sun6GtiyR
-	 5QYB9Jsj5MmceM5vqRppvvxBFbOttFmULU7xwC+DxNcsf02IUg3oSEV3kQ16cJ6KHw
-	 7Rwn2bOZnohI+s2IOF5dDerkLAZsmpqgy/ngeOiyUUoe7vea+aF6exgPnqUq9B76Ab
-	 bt6P484o9we9g==
+	b=ObkYBuWeDE+NZIHF6cDhzZPwNM1iQhB4Oaq9EOLRcRyB5A3hnBLpOe8DdpVteEy1E
+	 pToXr/NcrGgamwWzbe3NH2qnVXPoy3iJhrmfRC1KctwNApmKIj4kKhp5211QqWGUup
+	 FsW/DZhF3EKrqyg8aBC5Ohlwf5OAlQ1s2G/C6SEmf0yoBxk5OodNc0wXHwNDPlaJeD
+	 m+/TJ9rCI4zxwFAMY4Mnng/dUl1sBSImRD2waAXsBSKiqPgU4hJ/RycC30c5+j5GxE
+	 2Q3FUcmset5G0wyf8/YI9BDPstRens0RiLWep6m7d2BRlPKJqLFdw73X7E7EnPdBSM
+	 BAtxibOHxt2rQ==
 Received: from sofa.misterjones.org ([185.219.108.64] helo=valley-girl.lan)
 	by disco-boy.misterjones.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.98.2)
 	(envelope-from <maz@kernel.org>)
-	id 1wKyGk-00000000d7d-3AWs;
+	id 1wKyGk-00000000d7d-0z0l;
 	Thu, 07 May 2026 12:55:58 +0000
 From: Marc Zyngier <maz@kernel.org>
 To: linux-arm-kernel@lists.infradead.org,
@@ -79,9 +79,9 @@ Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>,
 	Orson Zhai <orsonzhai@gmail.com>,
 	Baolin Wang <baolin.wang@linux.alibaba.com>,
 	Michal Simek <michal.simek@amd.com>
-Subject: [PATCH 07/16] arm64: dts: exynos: Add EL2 virtual timer interrupt
-Date: Thu,  7 May 2026 13:55:35 +0100
-Message-ID: <20260507125544.2903406-8-maz@kernel.org>
+Subject: [PATCH 06/16] arm64: dts: bst: Add EL2 virtual timer interrupt
+Date: Thu,  7 May 2026 13:55:34 +0100
+Message-ID: <20260507125544.2903406-7-maz@kernel.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260507125544.2903406-1-maz@kernel.org>
 References: <20260507125544.2903406-1-maz@kernel.org>
@@ -97,25 +97,19 @@ X-SA-Exim-Rcpt-To: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.
 X-SA-Exim-Mail-From: maz@kernel.org
 X-SA-Exim-Scanned: No (on disco-boy.misterjones.org); SAEximRunCond expanded to false
 
-A bunch of Samsung SoCs are missing the EL2 virtual timer interrupt
-despite using ARMv8.1+ CPUs. Add the missing interrupt, except for
-those broken designs where the interrupt is documented as not being
-wired.
+The ARMv8.2 based CPUs used in the bst c1200 SoC are missing the EL2
+virtual timer interrupt. Add it.
 
 Signed-off-by: Marc Zyngier <maz@kernel.org>
 ---
- arch/arm64/boot/dts/exynos/axis/artpec9.dtsi | 3 ++-
- arch/arm64/boot/dts/exynos/exynos2200.dtsi   | 3 ++-
- arch/arm64/boot/dts/exynos/exynos990.dtsi    | 3 ++-
- arch/arm64/boot/dts/exynos/exynosautov9.dtsi | 3 ++-
- arch/arm64/boot/dts/exynos/google/gs101.dtsi | 3 ++-
- 5 files changed, 10 insertions(+), 5 deletions(-)
+ arch/arm64/boot/dts/bst/bstc1200.dtsi | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm64/boot/dts/exynos/axis/artpec9.dtsi b/arch/arm64/boot/dts/exynos/axis/artpec9.dtsi
-index f8ed43c6e8258..cd46aaf056287 100644
---- a/arch/arm64/boot/dts/exynos/axis/artpec9.dtsi
-+++ b/arch/arm64/boot/dts/exynos/axis/artpec9.dtsi
-@@ -272,6 +272,7 @@ timer {
+diff --git a/arch/arm64/boot/dts/bst/bstc1200.dtsi b/arch/arm64/boot/dts/bst/bstc1200.dtsi
+index dd13c6bfc3c89..104ecf76ced10 100644
+--- a/arch/arm64/boot/dts/bst/bstc1200.dtsi
++++ b/arch/arm64/boot/dts/bst/bstc1200.dtsi
+@@ -92,6 +92,7 @@ timer {
  		interrupts = <GIC_PPI 13 IRQ_TYPE_LEVEL_LOW>,
  			     <GIC_PPI 14 IRQ_TYPE_LEVEL_LOW>,
  			     <GIC_PPI 11 IRQ_TYPE_LEVEL_LOW>,
@@ -124,62 +118,6 @@ index f8ed43c6e8258..cd46aaf056287 100644
 +			     <GIC_PPI 12 IRQ_TYPE_LEVEL_LOW>;
  	};
  };
-diff --git a/arch/arm64/boot/dts/exynos/exynos2200.dtsi b/arch/arm64/boot/dts/exynos/exynos2200.dtsi
-index 6487ccb58ae76..59662f9bdb98f 100644
---- a/arch/arm64/boot/dts/exynos/exynos2200.dtsi
-+++ b/arch/arm64/boot/dts/exynos/exynos2200.dtsi
-@@ -1911,7 +1911,8 @@ timer {
- 		interrupts = <GIC_PPI 13 IRQ_TYPE_LEVEL_LOW 0>,
- 			     <GIC_PPI 14 IRQ_TYPE_LEVEL_LOW 0>,
- 			     <GIC_PPI 11 IRQ_TYPE_LEVEL_LOW 0>,
--			     <GIC_PPI 10 IRQ_TYPE_LEVEL_LOW 0>;
-+			     <GIC_PPI 10 IRQ_TYPE_LEVEL_LOW 0>,
-+			     <GIC_PPI 12 IRQ_TYPE_LEVEL_LOW 0>;
- 		/*
- 		 * Non-updatable, broken stock Samsung bootloader does not
- 		 * configure CNTFRQ_EL0
-diff --git a/arch/arm64/boot/dts/exynos/exynos990.dtsi b/arch/arm64/boot/dts/exynos/exynos990.dtsi
-index f8e2a31b4b751..2e6fb24a3c928 100644
---- a/arch/arm64/boot/dts/exynos/exynos990.dtsi
-+++ b/arch/arm64/boot/dts/exynos/exynos990.dtsi
-@@ -405,7 +405,8 @@ timer {
- 		interrupts = <GIC_PPI 13 (GIC_CPU_MASK_SIMPLE(8) | IRQ_TYPE_LEVEL_LOW)>,
- 			     <GIC_PPI 14 (GIC_CPU_MASK_SIMPLE(8) | IRQ_TYPE_LEVEL_LOW)>,
- 			     <GIC_PPI 11 (GIC_CPU_MASK_SIMPLE(8) | IRQ_TYPE_LEVEL_LOW)>,
--			     <GIC_PPI 10 (GIC_CPU_MASK_SIMPLE(8) | IRQ_TYPE_LEVEL_LOW)>;
-+			     <GIC_PPI 10 (GIC_CPU_MASK_SIMPLE(8) | IRQ_TYPE_LEVEL_LOW)>,
-+			     <GIC_PPI 12 (GIC_CPU_MASK_SIMPLE(8) | IRQ_TYPE_LEVEL_LOW)>;
- 
- 		/*
- 		 * Non-updatable, broken stock Samsung bootloader does not
-diff --git a/arch/arm64/boot/dts/exynos/exynosautov9.dtsi b/arch/arm64/boot/dts/exynos/exynosautov9.dtsi
-index 66628cb32776e..2c34a2b30ad02 100644
---- a/arch/arm64/boot/dts/exynos/exynosautov9.dtsi
-+++ b/arch/arm64/boot/dts/exynos/exynosautov9.dtsi
-@@ -148,7 +148,8 @@ timer {
- 		interrupts = <GIC_PPI 13 (GIC_CPU_MASK_SIMPLE(8) | IRQ_TYPE_LEVEL_LOW)>,
- 			     <GIC_PPI 14 (GIC_CPU_MASK_SIMPLE(8) | IRQ_TYPE_LEVEL_LOW)>,
- 			     <GIC_PPI 11 (GIC_CPU_MASK_SIMPLE(8) | IRQ_TYPE_LEVEL_LOW)>,
--			     <GIC_PPI 10 (GIC_CPU_MASK_SIMPLE(8) | IRQ_TYPE_LEVEL_LOW)>;
-+			     <GIC_PPI 10 (GIC_CPU_MASK_SIMPLE(8) | IRQ_TYPE_LEVEL_LOW)>,
-+			     <GIC_PPI 12 (GIC_CPU_MASK_SIMPLE(8) | IRQ_TYPE_LEVEL_LOW)>;
- 	};
- 
- 	fixed-rate-clocks {
-diff --git a/arch/arm64/boot/dts/exynos/google/gs101.dtsi b/arch/arm64/boot/dts/exynos/google/gs101.dtsi
-index d085f9fb0f62a..86933f22647b7 100644
---- a/arch/arm64/boot/dts/exynos/google/gs101.dtsi
-+++ b/arch/arm64/boot/dts/exynos/google/gs101.dtsi
-@@ -1856,7 +1856,8 @@ timer {
- 		   <GIC_PPI 13 (GIC_CPU_MASK_SIMPLE(8) | IRQ_TYPE_LEVEL_LOW) 0>,
- 		   <GIC_PPI 14 (GIC_CPU_MASK_SIMPLE(8) | IRQ_TYPE_LEVEL_LOW) 0>,
- 		   <GIC_PPI 11 (GIC_CPU_MASK_SIMPLE(8) | IRQ_TYPE_LEVEL_LOW) 0>,
--		   <GIC_PPI 10 (GIC_CPU_MASK_SIMPLE(8) | IRQ_TYPE_LEVEL_LOW) 0>;
-+		   <GIC_PPI 10 (GIC_CPU_MASK_SIMPLE(8) | IRQ_TYPE_LEVEL_LOW) 0>,
-+		   <GIC_PPI 12 (GIC_CPU_MASK_SIMPLE(8) | IRQ_TYPE_LEVEL_LOW) 0>;
- 	};
- };
- 
 -- 
 2.47.3
 
