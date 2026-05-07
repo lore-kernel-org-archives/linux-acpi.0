@@ -1,93 +1,110 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.12])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05CE5348463;
-	Thu,  7 May 2026 07:25:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.12
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8737D3C0608
+	for <linux-acpi@vger.kernel.org>; Thu,  7 May 2026 09:27:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778138726; cv=none; b=PNMpvNqDyhszNmCdK+dIlkXWhszyC2Nv14ai56WWmTiZIljHzI1oBU1fYldVh1HhUL3bHchlZ/j8Vx1BO0baQgxFRYisXd3u3rjpYp2TcyqPYTniFIpDfwXeigT1gTNKqYxpa2KMy1ZJSzDqt4T9DjYV0ACDyzHPS84IWQni/rs=
+	t=1778146052; cv=none; b=sZ8sz+TCISvF9lxhoCKvMszRNtqev5r1Fzk0vPvgAPAcJvIrh0PLNED1I/epoSRXKFdlO0GUcHRaUkzSATrthvujY1Bl/GBbYcvlT/aXbEPcv67lbTtmhs+/VJNbzwjZThxRAJA5AdYq+D6GSUe377nGg9EcSTATvOnBo+qYsQU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778138726; c=relaxed/simple;
-	bh=pL59kLZ0TSRXYpk6p6E3c7Sc5FErfiqpx3+I4G0LGnI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=UjhEckd6fLlXik9DRsM81Coq+iIbbEgj0qFQSnCDcZVg+m/5aZbuHRPrCV4BQJf+fwjTUcJ1uoG5V/eIMZKuL3P24roiLXSEXkMAK1eSBrcuOl8P8B5UEQj7yST+EO9gDvcTEOL5Y6cJfB5NqzcH9fFkdqr9PhmUWYzkQs3fL5Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=gAsTnxA7; arc=none smtp.client-ip=192.198.163.12
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1778146052; c=relaxed/simple;
+	bh=x/JAxKHI7Ael5G6MScPlk2H+HssAyXfZZlY70tK9iiU=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=UalR6bs06IVoU2K+Dra8PvmrIjcYZJD0sO8pkSS6kBG98SlNBlYR5FjMbgAiPmGeNPvfPZkJK7Y6T9o/SwmQVAwucXXGUzGdFUIInIAb+g+MUhhFR1WJZ5blzY5ZHZOahw6pxLEvzOjPPxb7C9RfGPyMnaphIO50VyWys31iIdc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=M0rprqbA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="gAsTnxA7"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1778138720; x=1809674720;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=pL59kLZ0TSRXYpk6p6E3c7Sc5FErfiqpx3+I4G0LGnI=;
-  b=gAsTnxA7bK/6EYCfwmGs+P0+qP3k6j32niGEZE7glrfGrKiwos3TKl9D
-   u3jL0YZL3M5Hhx/lo44S/cxq5ITEeGUVGqKQTUFj4AIFZ9u03K0hAgvun
-   X74FAs0QnWe7nTdxPMduz+5tj4RxKxgNbeoIEKugxYicRtYLfF37+VDkG
-   SAoSAaKnBbLy/Qu1Tg8JK0BYLsDa9UiraagTC7f8SL8uOrhifxtTJlKpG
-   RVXv0Z0ruwtoAiMOjIMER7j3jg7QSI25ieE4tSo4EKin8nfh+ZU1A3LDL
-   7xg9ZoegXQTD3MUCOuh3KM+bBLEYpF1FsVpnIuqZg1ZGX4QjU3sQ2D1zN
-   w==;
-X-CSE-ConnectionGUID: XnvElsFARyWHAFjT9Jin4g==
-X-CSE-MsgGUID: UFO4kQigTRusgKMc2RSAIA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11778"; a="82925999"
-X-IronPort-AV: E=Sophos;i="6.23,221,1770624000"; 
-   d="scan'208";a="82925999"
-Received: from fmviesa009.fm.intel.com ([10.60.135.149])
-  by fmvoesa106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 May 2026 00:25:19 -0700
-X-CSE-ConnectionGUID: Ob8Pgo+sSH6yhS8/poQHgg==
-X-CSE-MsgGUID: M4OUYidHTWKCr8w03KSK/A==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.23,221,1770624000"; 
-   d="scan'208";a="229995422"
-Received: from pgcooper-mobl3.ger.corp.intel.com (HELO kekkonen.fi.intel.com) ([10.245.245.99])
-  by fmviesa009-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 May 2026 00:25:16 -0700
-Received: from kekkonen.localdomain (localhost [IPv6:::1])
-	by kekkonen.fi.intel.com (Postfix) with SMTP id 8949711F8DF;
-	Thu, 07 May 2026 10:25:14 +0300 (EEST)
-Date: Thu, 7 May 2026 10:25:14 +0300
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6 krs, Bertel Jungin Aukio 5, 02600 Espoo
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Len Brown <lenb@kernel.org>, Rob Herring <robh@kernel.org>,
-	Saravana Kannan <saravanak@kernel.org>, driver-core@lists.linux.dev,
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-	brgl@kernel.org, stable@vger.kernel.org
-Subject: Re: [PATCH] device property: set fwnode->secondary to NULL in
- fwnode_init()
-Message-ID: <afw-Wtz-yOWqLUl1@kekkonen.localdomain>
-References: <20260506115701.23035-1-bartosz.golaszewski@oss.qualcomm.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="M0rprqbA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65CEEC2BCF7
+	for <linux-acpi@vger.kernel.org>; Thu,  7 May 2026 09:27:32 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1778146052;
+	bh=x/JAxKHI7Ael5G6MScPlk2H+HssAyXfZZlY70tK9iiU=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=M0rprqbASG9AzM5L1LoCdxk36ssdaXCyannccq+gQqgcNbj1cx719RJBDVV3bb4dG
+	 oLT/r6JTAbAuNB26XMU7HHp6cDkKBiYx3jN993WhWhZ6kfi+qMGLgO0G8fQGJpRJia
+	 Rpu5solDUtB9CV0evm1gwu3/GX6cqyKIjJLF2YlSZ1CIvL2LYruBuBV/6ZzR29YVmN
+	 +UmK6BCu/NQKuvEQmqLRV3a3ZVy4l6WAo9/EUUwrLIfYVgY5x/TaIglHYErxlJS+l8
+	 4Ec1tWvIAlyKoFjj01NnecWNOa/mexcdaTbvHwmLzL86VJeL087WfJaJMARbT1XVU7
+	 jhVz9zWSmDrhQ==
+Received: by mail-lf1-f52.google.com with SMTP id 2adb3069b0e04-59dea72099eso578173e87.0
+        for <linux-acpi@vger.kernel.org>; Thu, 07 May 2026 02:27:32 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ96NqwYQc7jbXf2Ni618YvG0yJ8bBBCdJk0cybyFhQBrMoSre+k2SRs6S00T9lRcpCNOLbVUV241+nM@vger.kernel.org
+X-Gm-Message-State: AOJu0Yymnc4vQFWuc7pYqTyTRysAnpApIy6OxmiyKzXMUL9KqdFFfbC+
+	cxIgSlhUPvgBoJK47jEXfQQtykO+lcMNuu5gTr5TphY4i7Vc91dhpuVX+Gh/9jkF6RazSM+EaSc
+	tcio/YRHah6Pmf/XkRfWDFRdkCXumGGw=
+X-Received: by 2002:a05:6512:3ba7:b0:5a4:d34:5b38 with SMTP id
+ 2adb3069b0e04-5a887ada944mr2206033e87.2.1778146051005; Thu, 07 May 2026
+ 02:27:31 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260506115701.23035-1-bartosz.golaszewski@oss.qualcomm.com>
+References: <20260325143555.451852-1-herve.codina@bootlin.com>
+ <20260325143555.451852-21-herve.codina@bootlin.com> <CAD++jLkFu+Z22QBFiaa9S+Epeh=RJZOYX8BOLVDFw4bhEoYF1Q@mail.gmail.com>
+ <20260507092326.2f8e3b47@bootlin.com>
+In-Reply-To: <20260507092326.2f8e3b47@bootlin.com>
+From: Linus Walleij <linusw@kernel.org>
+Date: Thu, 7 May 2026 11:27:19 +0200
+X-Gmail-Original-Message-ID: <CAD++jLmsaddK4MLYhfK+1OkK263QqJfMZ3HF=L0Y7QdDsgX4XQ@mail.gmail.com>
+X-Gm-Features: AVHnY4J4kpHKlWyF60L1gEgZ_kRiVmUaWPxnRdg2mF7S7on9qK93oGWvqiVfuCU
+Message-ID: <CAD++jLmsaddK4MLYhfK+1OkK263QqJfMZ3HF=L0Y7QdDsgX4XQ@mail.gmail.com>
+Subject: Re: [PATCH v6 20/27] misc: lan966x_pci: Fix dtso nodes ordering
+To: Herve Codina <herve.codina@bootlin.com>
+Cc: Andrew Lunn <andrew@lunn.ch>, Rob Herring <robh@kernel.org>, 
+	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
+	Geert Uytterhoeven <geert+renesas@glider.be>, Kalle Niemi <kaleposti@gmail.com>, 
+	Matti Vaittinen <mazziesaccount@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+	"Rafael J. Wysocki" <rafael@kernel.org>, Danilo Krummrich <dakr@kernel.org>, Frank Li <Frank.Li@nxp.com>, 
+	Sascha Hauer <s.hauer@pengutronix.de>, Pengutronix Kernel Team <kernel@pengutronix.de>, 
+	Fabio Estevam <festevam@gmail.com>, Michael Turquette <mturquette@baylibre.com>, 
+	Stephen Boyd <sboyd@kernel.org>, Andi Shyti <andi.shyti@kernel.org>, 
+	Wolfram Sang <wsa+renesas@sang-engineering.com>, Peter Rosin <peda@axentia.se>, 
+	Arnd Bergmann <arnd@arndb.de>, Saravana Kannan <saravanak@kernel.org>, 
+	Bjorn Helgaas <bhelgaas@google.com>, Charles Keepax <ckeepax@opensource.cirrus.com>, 
+	Richard Fitzgerald <rf@opensource.cirrus.com>, David Rhodes <david.rhodes@cirrus.com>, 
+	Ulf Hansson <ulf.hansson@linaro.org>, Mark Brown <broonie@kernel.org>, Len Brown <lenb@kernel.org>, 
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Daniel Scally <djrscally@gmail.com>, 
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, Davidlohr Bueso <dave@stgolabs.net>, 
+	Jonathan Cameron <jonathan.cameron@huawei.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Alison Schofield <alison.schofield@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, 
+	Ira Weiny <ira.weiny@intel.com>, Dan Williams <dan.j.williams@intel.com>, 
+	Shawn Guo <shawnguo@kernel.org>, Wolfram Sang <wsa@kernel.org>, linux-kernel@vger.kernel.org, 
+	driver-core@lists.linux.dev, imx@lists.linux.dev, 
+	linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, 
+	linux-i2c@vger.kernel.org, devicetree@vger.kernel.org, 
+	linux-pci@vger.kernel.org, linux-sound@vger.kernel.org, 
+	patches@opensource.cirrus.com, linux-gpio@vger.kernel.org, 
+	linux-pm@vger.kernel.org, linux-spi@vger.kernel.org, 
+	linux-acpi@vger.kernel.org, linux-cxl@vger.kernel.org, 
+	Allan Nielsen <allan.nielsen@microchip.com>, Horatiu Vultur <horatiu.vultur@microchip.com>, 
+	Steen Hegelund <steen.hegelund@microchip.com>, Luca Ceresoli <luca.ceresoli@bootlin.com>, 
+	Thomas Petazzoni <thomas.petazzoni@bootlin.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Wed, May 06, 2026 at 01:57:00PM +0200, Bartosz Golaszewski wrote:
-> If a firmware node is allocated on the stack (for instance: temporary
-> software node whose life-time we control) or on the heap - but using a
-> non-zeroing allocation function - and initialized using fwnode_init(),
-> its secondary pointer will contain uninitalized memory which likely will
-> be neither NULL nor IS_ERR() and so may end up being dereferenced (for
-> example: in dev_to_swnode()). Set fwnode->secondary to NULL on
-> initialization.
-> 
-> Cc: stable@vger.kernel.org
-> Fixes: 01bb86b380a3 ("driver core: Add fwnode_init()")
-> Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+On Thu, May 7, 2026 at 9:23=E2=80=AFAM Herve Codina <herve.codina@bootlin.c=
+om> wrote:
 
-Reviewed-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > Recommended practice is:
+> >
+> > ethernet-switch@...
+(...)
+> > Recommended practice is:
+> > ethernet-port@...
+>
+> Yes, it should be but the DT binding [0] says "switch" and "port".
+(...)
+> Those node names have to follow the DT binding even if this binding doesn=
+'t
+> follow recommended practice.
 
--- 
-Sakari Ailus
+Aha this binding is not referencing the standard ethernet-switch.yaml,
+that's why I got confused.
+
+OK let's just fix it then, I sent a patch.
+
+Yours,
+Linus Walleij
