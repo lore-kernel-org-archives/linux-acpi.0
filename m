@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B69F6372EFA;
-	Thu,  7 May 2026 20:14:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D2F9372EFA;
+	Thu,  7 May 2026 20:14:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778184894; cv=none; b=PvmML5FTQPsOcrRyWuzUCbmT9mQVxbQUdNnryQ7s3aghICCTP0nhFpP78QNfdsEO5jlVC6xqT7XlAzpanx3xmYZ7vRYsgkW0LVOoG94gITMVDdS2SOQxjVRIv0/l6iyvV6SOYOAXSq1udHq4lIZtqF5dCBEwv1p9N6IqX6P+m8g=
+	t=1778184899; cv=none; b=joU9wHzaQYY8BARTBAk7mUVyEs5GW8JI3Chsu7YLKNzOAlEJHk8eI7LR3e0ZbQeQnQUoB0hweHKJselzLSC98JWk/2fjgMkaB4cWWubtofHoJxe+q0FH24FB6+xQ8u2OcvgL1zqLEy7eBoH71wL5kdFqEtLmTf+3Ac3Vt4w10dI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778184894; c=relaxed/simple;
-	bh=YnINZozjukJ4yXx2Kdm5hCgRyRLhQaT+jtOfY8JOspc=;
+	s=arc-20240116; t=1778184899; c=relaxed/simple;
+	bh=w9Xl3BMEvKerqkfo7hyfaeg4+mt9PYmovxRrXMFl7do=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=lckCpnCzQ6Sgj6vOX59VY6DF0HlSoI63Tbn146CiniCFUPjqLxw0DhaAHj8YGnz+x5MXyhqzd2w+DfsXiMbICvj3EH1gqtS2/qfne1wEf9hxDfvP8uS4SSeZenBRaZwczSVrqLKqzyMBBhAH8/9Tgtw/W21cm4hCN5Jvf4mKXn0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fn3jFZtM; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=DLvgG/sb01cNIowf+nTAR/QgcgNLVViUPBAIz6j2vMJa3Ret+OipsvnxwP51gF0hFNHZmftpW+SBOMpwkBhkA50QzuWEQ8q2uebJrbzaPC1GZ49GBm3zOV5VXouHCtsgW4duJAZHZkIZF9c/Y+Ts1sDVOC5bK/Ov/VEyAPkNoRE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hBoIzZDG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fn3jFZtM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2F8DC2BCB8;
-	Thu,  7 May 2026 20:14:52 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hBoIzZDG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72550C2BCB8;
+	Thu,  7 May 2026 20:14:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778184894;
-	bh=YnINZozjukJ4yXx2Kdm5hCgRyRLhQaT+jtOfY8JOspc=;
+	s=k20201202; t=1778184899;
+	bh=w9Xl3BMEvKerqkfo7hyfaeg4+mt9PYmovxRrXMFl7do=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=fn3jFZtMIPxwfdqQir4+YWQYeI/s8Y/e0Hc/EercMhyuxGHS7IVXjH6QfuoE3ksAZ
-	 u0qs8OlYeIFUpkgyIE6/TqsgSww09mqO4eadec3uw5aU8XB8zgXVAbJ+z1QQAX9Ga3
-	 kC6vBSzcbRZ80el7LEkFz05ZSQthuC6eTxMTr54XCjIWbjU62rum15NypBu5RW3fYI
-	 JZRvXywKmw1cP8z6oF1BgpNSic4a4CzP9j1ufMq+DPtf4EVwkKYwvvF2KW1/QzxWj+
-	 RaSLa1DCr/sTzwyZZ40pEpsowD/1Hm766k0Dv/Pe/JOkKkx5JsgUJoau20e6RMHlK9
-	 6Q2Ag/4V4OXRA==
+	b=hBoIzZDGy4eEEGcXVgh0zKEUAnSR/mZWkNH5r6loumva5rDP6PTLo6Zxo0AaUVm0X
+	 m3Y6oRdQ8wb8Eb9CrQQZD6f0oVxbnWegRU5cWQrauKGyIu9TzbiZaHTc2a531T9TA3
+	 QexZL2McLtZCRf1r0Tgko9wkLSO6E5GaYEAZObNYl1XxvS5WkTr40HvG5egCZAxrgN
+	 Rrhnf8fKYfZFkqU+a7iepCoHJueO0fa3s8U3np7UVA51ooQ0zLZKL4RiRuszNKkH6i
+	 us9ghb+Jzep4Z5nAB8kF9oHGdwnRZdfljJOcgicrFuMRQGpWILDZQH5twh3PfrSz3I
+	 cVtE3TVAwxaEw==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Ilpo =?ISO-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>
 Cc: LKML <linux-kernel@vger.kernel.org>,
@@ -33,10 +33,9 @@ Cc: LKML <linux-kernel@vger.kernel.org>,
  platform-driver-x86@vger.kernel.org,
  Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
 Subject:
- [PATCH v1 05/10] platform/x86: classmate-laptop: Register ACPI notify
- handlers directly
-Date: Thu, 07 May 2026 22:07:37 +0200
-Message-ID: <3693322.iIbC2pHGDl@rafael.j.wysocki>
+ [PATCH v1 04/10] platform/x86: classmate-laptop: Rename two helper functions
+Date: Thu, 07 May 2026 22:04:28 +0200
+Message-ID: <23097445.EfDdHjke4D@rafael.j.wysocki>
 Organization: Linux Kernel Development
 In-Reply-To: <1956046.tdWV9SEqCh@rafael.j.wysocki>
 References: <1956046.tdWV9SEqCh@rafael.j.wysocki>
@@ -51,206 +50,132 @@ Content-Type: text/plain; charset="UTF-8"
 
 From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-To facilitate subsequent conversions of classmate-laptop driver
-subdrivers to using struct platform_driver instead of struct
-acpi_driver, make them install their ACPI notify handlers directly
-instead of using .notify() callbacks in struct acpi_driver.
+Since cmpc_add_acpi_notify_device() and cmpc_remove_acpi_notify_device()
+have been modified to take a plain struct device pointer as the first
+argument, then have nothing to do with ACPI in principle, so rename
+them to cmpc_add_notify_device() and cmpc_remove_notify_device(),
+respectively, and consolidate white space around the call sites of
+the former.
 
 No intentional functional impact.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/platform/x86/classmate-laptop.c | 66 +++++++++++++++++++++----
- 1 file changed, 56 insertions(+), 10 deletions(-)
+ drivers/platform/x86/classmate-laptop.c | 30 +++++++++++--------------
+ 1 file changed, 13 insertions(+), 17 deletions(-)
 
 diff --git a/drivers/platform/x86/classmate-laptop.c b/drivers/platform/x86/classmate-laptop.c
-index bb575ae2bc89..938014c0e613 100644
+index 7784712bfabd..bb575ae2bc89 100644
 --- a/drivers/platform/x86/classmate-laptop.c
 +++ b/drivers/platform/x86/classmate-laptop.c
-@@ -177,8 +177,10 @@ static acpi_status cmpc_get_accel_v4(acpi_handle handle,
- 	return status;
+@@ -38,8 +38,8 @@ struct cmpc_accel {
+ 
+ typedef void (*input_device_init)(struct input_dev *dev);
+ 
+-static int cmpc_add_acpi_notify_device(struct device *dev, char *name,
+-				       input_device_init idev_init)
++static int cmpc_add_notify_device(struct device *dev, char *name,
++				  input_device_init idev_init)
+ {
+ 	struct input_dev *inputdev;
+ 	int error;
+@@ -59,7 +59,7 @@ static int cmpc_add_acpi_notify_device(struct device *dev, char *name,
+ 	return 0;
  }
  
--static void cmpc_accel_handler_v4(struct acpi_device *dev, u32 event)
-+static void cmpc_accel_handler_v4(acpi_handle handle, u32 event, void *data)
+-static void cmpc_remove_acpi_notify_device(struct device *dev)
++static void cmpc_remove_notify_device(struct device *dev)
  {
-+	struct acpi_device *dev = data;
-+
- 	if (event == 0x81) {
- 		int16_t x, y, z;
- 		acpi_status status;
-@@ -424,10 +426,17 @@ static int cmpc_accel_add_v4(struct acpi_device *acpi)
+ 	input_unregister_device(dev_get_drvdata(dev));
+ }
+@@ -404,8 +404,7 @@ static int cmpc_accel_add_v4(struct acpi_device *acpi)
+ 
+ 	accel->inputdev_state = CMPC_ACCEL_DEV_STATE_CLOSED;
+ 
+-	error = cmpc_add_acpi_notify_device(&acpi->dev, "cmpc_accel_v4",
+-					    cmpc_accel_idev_init_v4);
++	error = cmpc_add_notify_device(&acpi->dev, "cmpc_accel_v4", cmpc_accel_idev_init_v4);
  	if (error)
- 		goto failed_g_select;
+ 		goto failed_input;
  
-+	error = acpi_dev_install_notify_handler(acpi, ACPI_DEVICE_NOTIFY,
-+						cmpc_accel_handler_v4, acpi);
-+	if (error)
-+		goto failed_notify_handler;
-+
- 	dev_set_drvdata(&inputdev->dev, accel);
- 
- 	return 0;
- 
-+failed_notify_handler:
-+	device_remove_file(&acpi->dev, &cmpc_accel_g_select_attr_v4);
+@@ -432,7 +431,7 @@ static int cmpc_accel_add_v4(struct acpi_device *acpi)
  failed_g_select:
  	device_remove_file(&acpi->dev, &cmpc_accel_sensitivity_attr_v4);
  failed_sensitivity:
-@@ -442,6 +451,8 @@ static void cmpc_accel_remove_v4(struct acpi_device *acpi)
- 	struct input_dev *inputdev = dev_get_drvdata(&acpi->dev);
- 	struct cmpc_accel *accel = dev_get_drvdata(&inputdev->dev);
+-	cmpc_remove_acpi_notify_device(&acpi->dev);
++	cmpc_remove_notify_device(&acpi->dev);
+ failed_input:
+ 	kfree(accel);
+ 	return error;
+@@ -445,7 +444,7 @@ static void cmpc_accel_remove_v4(struct acpi_device *acpi)
  
-+	acpi_dev_remove_notify_handler(acpi, ACPI_DEVICE_NOTIFY,
-+				       cmpc_accel_handler_v4);
  	device_remove_file(&acpi->dev, &cmpc_accel_g_select_attr_v4);
  	device_remove_file(&acpi->dev, &cmpc_accel_sensitivity_attr_v4);
- 	cmpc_remove_notify_device(&acpi->dev);
-@@ -463,7 +474,6 @@ static struct acpi_driver cmpc_accel_acpi_driver_v4 = {
- 	.ops = {
- 		.add = cmpc_accel_add_v4,
- 		.remove = cmpc_accel_remove_v4,
--		.notify = cmpc_accel_handler_v4,
- 	},
- 	.drv.pm = &cmpc_accel_pm,
- };
-@@ -545,8 +555,10 @@ static acpi_status cmpc_get_accel(acpi_handle handle,
- 	return status;
+-	cmpc_remove_acpi_notify_device(&acpi->dev);
++	cmpc_remove_notify_device(&acpi->dev);
+ 	kfree(accel);
  }
  
--static void cmpc_accel_handler(struct acpi_device *dev, u32 event)
-+static void cmpc_accel_handler(acpi_handle handle, u32 event, void *data)
- {
-+	struct acpi_device *dev = data;
-+
- 	if (event == 0x81) {
- 		unsigned char x, y, z;
- 		acpi_status status;
-@@ -669,10 +681,17 @@ static int cmpc_accel_add(struct acpi_device *acpi)
+@@ -657,8 +656,7 @@ static int cmpc_accel_add(struct acpi_device *acpi)
+ 	if (!accel)
+ 		return -ENOMEM;
+ 
+-	error = cmpc_add_acpi_notify_device(&acpi->dev, "cmpc_accel",
+-					    cmpc_accel_idev_init);
++	error = cmpc_add_notify_device(&acpi->dev, "cmpc_accel", cmpc_accel_idev_init);
  	if (error)
- 		goto failed_file;
+ 		goto failed_input;
  
-+	error = acpi_dev_install_notify_handler(acpi, ACPI_DEVICE_NOTIFY,
-+						cmpc_accel_handler, acpi);
-+	if (error)
-+		goto failed_notify_handler;
-+
- 	dev_set_drvdata(&inputdev->dev, accel);
- 
+@@ -676,7 +674,7 @@ static int cmpc_accel_add(struct acpi_device *acpi)
  	return 0;
  
-+failed_notify_handler:
-+	device_remove_file(&acpi->dev, &cmpc_accel_sensitivity_attr);
  failed_file:
- 	cmpc_remove_notify_device(&acpi->dev);
+-	cmpc_remove_acpi_notify_device(&acpi->dev);
++	cmpc_remove_notify_device(&acpi->dev);
  failed_input:
-@@ -685,6 +704,8 @@ static void cmpc_accel_remove(struct acpi_device *acpi)
- 	struct input_dev *inputdev = dev_get_drvdata(&acpi->dev);
+ 	kfree(accel);
+ 	return error;
+@@ -688,7 +686,7 @@ static void cmpc_accel_remove(struct acpi_device *acpi)
  	struct cmpc_accel *accel = dev_get_drvdata(&inputdev->dev);
  
-+	acpi_dev_remove_notify_handler(acpi, ACPI_DEVICE_NOTIFY,
-+				       cmpc_accel_handler);
  	device_remove_file(&acpi->dev, &cmpc_accel_sensitivity_attr);
- 	cmpc_remove_notify_device(&acpi->dev);
+-	cmpc_remove_acpi_notify_device(&acpi->dev);
++	cmpc_remove_notify_device(&acpi->dev);
  	kfree(accel);
-@@ -702,7 +723,6 @@ static struct acpi_driver cmpc_accel_acpi_driver = {
- 	.ops = {
- 		.add = cmpc_accel_add,
- 		.remove = cmpc_accel_remove,
--		.notify = cmpc_accel_handler,
- 	}
- };
- 
-@@ -728,8 +748,9 @@ static acpi_status cmpc_get_tablet(acpi_handle handle,
- 	return status;
  }
  
--static void cmpc_tablet_handler(struct acpi_device *dev, u32 event)
-+static void cmpc_tablet_handler(acpi_handle handle, u32 event, void *data)
- {
-+	struct acpi_device *dev = data;
- 	unsigned long long val = 0;
- 	struct input_dev *inputdev = dev_get_drvdata(&dev->dev);
- 
-@@ -758,11 +779,24 @@ static void cmpc_tablet_idev_init(struct input_dev *inputdev)
+@@ -760,13 +758,12 @@ static void cmpc_tablet_idev_init(struct input_dev *inputdev)
  
  static int cmpc_tablet_add(struct acpi_device *acpi)
  {
--	return cmpc_add_notify_device(&acpi->dev, "cmpc_tablet", cmpc_tablet_idev_init);
-+	int error;
-+
-+	error = cmpc_add_notify_device(&acpi->dev, "cmpc_tablet", cmpc_tablet_idev_init);
-+	if (error)
-+		return error;
-+
-+	error = acpi_dev_install_notify_handler(acpi, ACPI_DEVICE_NOTIFY,
-+						cmpc_tablet_handler, acpi);
-+	if (error)
-+		cmpc_remove_notify_device(&acpi->dev);
-+
-+	return error;
+-	return cmpc_add_acpi_notify_device(&acpi->dev, "cmpc_tablet",
+-					   cmpc_tablet_idev_init);
++	return cmpc_add_notify_device(&acpi->dev, "cmpc_tablet", cmpc_tablet_idev_init);
  }
  
  static void cmpc_tablet_remove(struct acpi_device *acpi)
  {
-+	acpi_dev_remove_notify_handler(acpi, ACPI_DEVICE_NOTIFY,
-+				       cmpc_tablet_handler);
- 	cmpc_remove_notify_device(&acpi->dev);
+-	cmpc_remove_acpi_notify_device(&acpi->dev);
++	cmpc_remove_notify_device(&acpi->dev);
  }
  
-@@ -794,7 +828,6 @@ static struct acpi_driver cmpc_tablet_acpi_driver = {
- 	.ops = {
- 		.add = cmpc_tablet_add,
- 		.remove = cmpc_tablet_remove,
--		.notify = cmpc_tablet_handler,
- 	},
- 	.drv.pm = &cmpc_tablet_pm,
- };
-@@ -1058,8 +1091,9 @@ static int cmpc_keys_codes[] = {
- 	KEY_MAX
- };
- 
--static void cmpc_keys_handler(struct acpi_device *dev, u32 event)
-+static void cmpc_keys_handler(acpi_handle handle, u32 event, void *data)
- {
-+	struct acpi_device *dev = data;
- 	struct input_dev *inputdev;
- 	int code = KEY_MAX;
- 
-@@ -1081,11 +1115,24 @@ static void cmpc_keys_idev_init(struct input_dev *inputdev)
+ #ifdef CONFIG_PM_SLEEP
+@@ -1084,13 +1081,12 @@ static void cmpc_keys_idev_init(struct input_dev *inputdev)
  
  static int cmpc_keys_add(struct acpi_device *acpi)
  {
--	return cmpc_add_notify_device(&acpi->dev, "cmpc_keys", cmpc_keys_idev_init);
-+	int error;
-+
-+	error = cmpc_add_notify_device(&acpi->dev, "cmpc_keys", cmpc_keys_idev_init);
-+	if (error)
-+		return error;
-+
-+	error = acpi_dev_install_notify_handler(acpi, ACPI_DEVICE_NOTIFY,
-+						cmpc_keys_handler, acpi);
-+	if (error)
-+		cmpc_remove_notify_device(&acpi->dev);
-+
-+	return error;
+-	return cmpc_add_acpi_notify_device(&acpi->dev, "cmpc_keys",
+-					   cmpc_keys_idev_init);
++	return cmpc_add_notify_device(&acpi->dev, "cmpc_keys", cmpc_keys_idev_init);
  }
  
  static void cmpc_keys_remove(struct acpi_device *acpi)
  {
-+	acpi_dev_remove_notify_handler(acpi, ACPI_DEVICE_NOTIFY,
-+				       cmpc_keys_handler);
- 	cmpc_remove_notify_device(&acpi->dev);
+-	cmpc_remove_acpi_notify_device(&acpi->dev);
++	cmpc_remove_notify_device(&acpi->dev);
  }
  
-@@ -1101,7 +1148,6 @@ static struct acpi_driver cmpc_keys_acpi_driver = {
- 	.ops = {
- 		.add = cmpc_keys_add,
- 		.remove = cmpc_keys_remove,
--		.notify = cmpc_keys_handler,
- 	}
- };
- 
+ static const struct acpi_device_id cmpc_keys_device_ids[] = {
 
 
 
