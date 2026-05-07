@@ -1,37 +1,37 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 343383F20F3;
-	Thu,  7 May 2026 12:55:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B3223F54DA;
+	Thu,  7 May 2026 12:56:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778158559; cv=none; b=tXlOxQvLmFbSLrBawFfEdQd21jAtVVtAS1SRChRNCEf/l//m6KflLu93z+fRfn21XLcsX1mGUnJXKOAeUhcHeOV8yrty+VsFXwz1KxgwHeoreXfQEb/U/zQorHzkhnvtNgNvm2X79X3WIjEVrMeuIlZzDqAvbm2S+7eAouoRCmw=
+	t=1778158562; cv=none; b=cD25xFEZMhMkGKAsJ+OBHCBTopytaQwT43aHfDwb5CjTXXYX3UaOHQYfnOG6j7oSQstcCMegSKV2z58J39TT1cy2P29uBJsOVbZSbFaVveg00GQzKuVzRG78DQGwfCOENIBwC7YynIV7G1MnH2nk01y9xmpVoawc6jEfIUR3/Rw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778158559; c=relaxed/simple;
-	bh=jmztYL+cRetID0Id+T0uR/HfaxaSY7cdDgh3n5/jrck=;
+	s=arc-20240116; t=1778158562; c=relaxed/simple;
+	bh=AUUR2mNpd4MZjYN5NiaEO2JmuYp8gYDD2xKReT+S1UA=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=fHNut28csG+evuBFrTDzuzKDjdxeQPHALcuBOB7pBJai3Eo4lfxjKXxJ7IvVk+XedFUYmdydH+ob6Rf6vDtCcU3CcnanWNL7wPR/p+qktoT697rtvvUsVkOVGRQgr6gAJAXDAJAh1k81PzsPapxCMY3BKmq5oJDAFL0GSqSAZYQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=V4wqzSuw; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=MmywWEIc04exhDHVE7iW33yxMU5uczxoSWlqkowQ6RzU6enGZDSJYamWs65hE9mtQTEdYUss9qkwAZVmzW3Dl5n9AgGtdN8tLZEwsw0g7Xd8/nCdNjDzkYrG9BOf+BPbBjZ70Y3Mkg5ad+Da2v6Fc7/yXYWrJVdZ2UttbEtq9uM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=pcP4b0Ze; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="V4wqzSuw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8FD24C4AF51;
-	Thu,  7 May 2026 12:55:58 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="pcP4b0Ze"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC137C4E677;
+	Thu,  7 May 2026 12:56:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778158558;
-	bh=jmztYL+cRetID0Id+T0uR/HfaxaSY7cdDgh3n5/jrck=;
+	s=k20201202; t=1778158561;
+	bh=AUUR2mNpd4MZjYN5NiaEO2JmuYp8gYDD2xKReT+S1UA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=V4wqzSuwuZmFBP1AYiBi9xtz60JFhzvxqIwimyJTstBjGNuyWtoXnSRRoKFcgz6Y/
-	 IuAphYyswgyREfOthSY9wHlNF8qj5EorQwCJK1w2Uk6D9N7FanYAcPHIHcxOo1rcuf
-	 44fM07Hm4pygxoKeX4cIYXN+DfWE9S2Nmz+3v4pfMhLNygveV3ZqxiPHnYpOeOQc+L
-	 ippHJ0cYkCj99A1K72R87ktEC+Xw7PAMysDGnXSysziLUQtSoAXlUCEWmgUVzmVHXM
-	 WdXuDGYFw0WNBCxkhEIpoGcnWjCbEAxCpRJZ0P2IDclexs0jxwsPr6+TYJBBYMqX3D
-	 qG+148ZT8lNqQ==
+	b=pcP4b0Zejwv6+2w4K8LhMWHs1WayrOKmpUcXWogyuQ37pqbQjEvTOJv8x6G1mjg9b
+	 WmhztKpBLykQBURvS4YOZ9EOt5mL3KN23FT5nHXrVEksxtDJreYYNfZy76aac6rT93
+	 BYSfVnTTr0t6qRXsvGt51MH9a/0D+71csej3pxH5Mq81FoytStn3kguepZDW93+Qf4
+	 A3aRJ8BnmiDFoPnmsF6kFfi5FussTwOPbMyc8+pEkHonevtKcx9guWboukBggiBSY1
+	 5+corEULaX2Ncun+bh9bZvVM8jQYJscFPUFeN6vf6GtrLHa1cYH0IVR6hUxEqVvYRl
+	 mWORoIq/EqJZA==
 Received: from sofa.misterjones.org ([185.219.108.64] helo=valley-girl.lan)
 	by disco-boy.misterjones.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.98.2)
 	(envelope-from <maz@kernel.org>)
-	id 1wKyGh-00000000d7d-3zVR;
-	Thu, 07 May 2026 12:55:56 +0000
+	id 1wKyGj-00000000d7d-0Tmb;
+	Thu, 07 May 2026 12:55:57 +0000
 From: Marc Zyngier <maz@kernel.org>
 To: linux-arm-kernel@lists.infradead.org,
 	linux-acpi@vger.kernel.org,
@@ -79,9 +79,9 @@ Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>,
 	Orson Zhai <orsonzhai@gmail.com>,
 	Baolin Wang <baolin.wang@linux.alibaba.com>,
 	Michal Simek <michal.simek@amd.com>
-Subject: [PATCH 02/16] clocksource/drivers/arm_arch_timer: Default to EL2 virtual timer when running VHE
-Date: Thu,  7 May 2026 13:55:30 +0100
-Message-ID: <20260507125544.2903406-3-maz@kernel.org>
+Subject: [PATCH 04/16] arm64: dts: allwinner: Add EL2 virtual timer interrupt
+Date: Thu,  7 May 2026 13:55:32 +0100
+Message-ID: <20260507125544.2903406-5-maz@kernel.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260507125544.2903406-1-maz@kernel.org>
 References: <20260507125544.2903406-1-maz@kernel.org>
@@ -97,128 +97,28 @@ X-SA-Exim-Rcpt-To: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.
 X-SA-Exim-Mail-From: maz@kernel.org
 X-SA-Exim-Scanned: No (on disco-boy.misterjones.org); SAEximRunCond expanded to false
 
-When running with at EL2 with VHE enabled, the architecture provides
-two EL2 timer/counters, dubbed physical and virtual. Apart from their
-names, they are strictly identical.
-
-However, they don't get virtualised the same way, specially when
-it comes to adding arbitrary offsets to the timers. When running as
-a guest, the host CNTVOFF_EL2 does apply to the guest's view of
-CNTHV*_El2. This is not true for CNTPOFF_EL2 and CNTHP*_EL2, as
-the architecture is broken past the first level of virtualisation
-(it lacks some essential mechanisms to be usable, despite what
-the ARM ARM pretends).
-
-This means that when running as a L2 guest hypervisor, using the
-physical timer results in traps to L0, which are then forwarded to
-L1 in order to emulate the offset, leading to even worse performance
-due to massive trap amplification (the combination of register and
-ERET trapping is absolutely lethal).
-
-Switch the arch timer code to using the virtual timer when running
-in VHE by default, only using the physical timer if the interrupt
-is not correctly described in the firmware tables (which seems
-to be an unfortunately common case). This comes as no impact on
-bare-metal, and slightly improves the situation in the virtualised
-case.
+The ARMv8.2 based CPUs used in the A523 SoC (and derivatives)
+are missing the EL2 virtual timer interrupt. Add it.
 
 Signed-off-by: Marc Zyngier <maz@kernel.org>
 ---
- drivers/clocksource/arm_arch_timer.c | 44 ++++++++++++++++------------
- 1 file changed, 25 insertions(+), 19 deletions(-)
+ arch/arm64/boot/dts/allwinner/sun55i-a523.dtsi | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
-index 90aeff44a2764..eaf276a9b9d28 100644
---- a/drivers/clocksource/arm_arch_timer.c
-+++ b/drivers/clocksource/arm_arch_timer.c
-@@ -688,6 +688,7 @@ static void __arch_timer_setup(struct clock_event_device *clk)
- 	clk->irq = arch_timer_ppi[arch_timer_uses_ppi];
- 	switch (arch_timer_uses_ppi) {
- 	case ARCH_TIMER_VIRT_PPI:
-+	case ARCH_TIMER_HYP_VIRT_PPI:
- 		clk->set_state_shutdown = arch_timer_shutdown_virt;
- 		clk->set_state_oneshot_stopped = arch_timer_shutdown_virt;
- 		sne = erratum_handler(set_next_event_virt);
-@@ -879,7 +880,7 @@ static void __init arch_timer_banner(void)
- 	pr_info("cp15 timer running at %lu.%02luMHz (%s).\n",
- 		(unsigned long)arch_timer_rate / 1000000,
- 		(unsigned long)(arch_timer_rate / 10000) % 100,
--		(arch_timer_uses_ppi == ARCH_TIMER_VIRT_PPI) ? "virt" : "phys");
-+		arch_timer_ppi_names[arch_timer_uses_ppi]);
- }
+diff --git a/arch/arm64/boot/dts/allwinner/sun55i-a523.dtsi b/arch/arm64/boot/dts/allwinner/sun55i-a523.dtsi
+index 5afa8d92acbfb..d3c47966e8fc8 100644
+--- a/arch/arm64/boot/dts/allwinner/sun55i-a523.dtsi
++++ b/arch/arm64/boot/dts/allwinner/sun55i-a523.dtsi
+@@ -101,7 +101,8 @@ timer {
+ 		interrupts = <GIC_PPI 13 IRQ_TYPE_LEVEL_HIGH>,
+ 			     <GIC_PPI 14 IRQ_TYPE_LEVEL_HIGH>,
+ 			     <GIC_PPI 11 IRQ_TYPE_LEVEL_HIGH>,
+-			     <GIC_PPI 10 IRQ_TYPE_LEVEL_HIGH>;
++			     <GIC_PPI 10 IRQ_TYPE_LEVEL_HIGH>,
++			     <GIC_PPI 12 IRQ_TYPE_LEVEL_HIGH>;
+ 	};
  
- u32 arch_timer_get_rate(void)
-@@ -1023,6 +1024,7 @@ static int __init arch_timer_register(void)
- 	ppi = arch_timer_ppi[arch_timer_uses_ppi];
- 	switch (arch_timer_uses_ppi) {
- 	case ARCH_TIMER_VIRT_PPI:
-+	case ARCH_TIMER_HYP_VIRT_PPI:
- 		err = request_percpu_irq(ppi, arch_timer_handler_virt,
- 					 "arch_timer", arch_timer_evt);
- 		break;
-@@ -1090,25 +1092,34 @@ static int __init arch_timer_common_init(void)
- /**
-  * arch_timer_select_ppi() - Select suitable PPI for the current system.
-  *
-- * If HYP mode is available, we know that the physical timer
-- * has been configured to be accessible from PL1. Use it, so
-- * that a guest can use the virtual timer instead.
-+ * On AArch32, if HYP mode is available, we know that the physical
-+ * timer has been configured to be accessible from PL1. Use it, so
-+ * that a guest can use the virtual timer instead (though KVM host
-+ * support has long been removed).
-  *
-- * On ARMv8.1 with VH extensions, the kernel runs in HYP. VHE
-- * accesses to CNTP_*_EL1 registers are silently redirected to
-- * their CNTHP_*_EL2 counterparts, and use a different PPI
-- * number.
-+ * On ARMv8.1 with FEAT_VHE, the kernel runs in EL2. Accesses to
-+ * CNTV_*_EL1 registers are silently redirected to their CNTHV_*_EL2
-+ * counterparts, and the timer uses a different PPI number. Similar
-+ * thing happen when using the EL2 physical timer. Note that a bunch
-+ * of DTs out there omit the virtual EL2 timer, so fallback gracefully
-+ * on the physical timer.
-+ *
-+ * Without VHE, if no interrupt provided for virtual timer, we'll have
-+ * to stick to the physical timer. It'd better be accessible...
-  *
-- * If no interrupt provided for virtual timer, we'll have to
-- * stick to the physical timer. It'd better be accessible...
-  * For arm64 we never use the secure interrupt.
-  *
-  * Return: a suitable PPI type for the current system.
-  */
- static enum arch_timer_ppi_nr __init arch_timer_select_ppi(void)
- {
--	if (is_kernel_in_hyp_mode())
-+	if (is_kernel_in_hyp_mode()) {
-+		if (arch_timer_ppi[ARCH_TIMER_HYP_VIRT_PPI])
-+			return ARCH_TIMER_HYP_VIRT_PPI;
-+
-+		pr_warn_once("VHE without EL2 virtual timer interrupt, broken firmware\n");
- 		return ARCH_TIMER_HYP_PPI;
-+	}
- 
- 	if (!is_hyp_mode_available() && arch_timer_ppi[ARCH_TIMER_VIRT_PPI])
- 		return ARCH_TIMER_VIRT_PPI;
-@@ -1200,14 +1211,9 @@ static int __init arch_timer_acpi_init(struct acpi_table_header *table)
- 	if (ret)
- 		return ret;
- 
--	arch_timer_ppi[ARCH_TIMER_PHYS_NONSECURE_PPI] =
--		acpi_gtdt_map_ppi(ARCH_TIMER_PHYS_NONSECURE_PPI);
--
--	arch_timer_ppi[ARCH_TIMER_VIRT_PPI] =
--		acpi_gtdt_map_ppi(ARCH_TIMER_VIRT_PPI);
--
--	arch_timer_ppi[ARCH_TIMER_HYP_PPI] =
--		acpi_gtdt_map_ppi(ARCH_TIMER_HYP_PPI);
-+	/* The GTDT parser can't be bothered with the secure timer */
-+	for (int i = ARCH_TIMER_PHYS_NONSECURE_PPI; i < ARCH_TIMER_MAX_TIMER_PPI; i++)
-+		arch_timer_ppi[i] = acpi_gtdt_map_ppi(i);
- 
- 	arch_timer_populate_kvm_info();
- 
+ 	soc {
 -- 
 2.47.3
 
