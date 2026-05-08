@@ -1,88 +1,85 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.20])
+Received: from out30-97.freemail.mail.aliyun.com (out30-97.freemail.mail.aliyun.com [115.124.30.97])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1D52376BCD;
-	Fri,  8 May 2026 07:22:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.20
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B56C1199D8;
+	Fri,  8 May 2026 08:20:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.97
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778224986; cv=none; b=YM1xFaWcdWgRUNA8brJvU2x5c3k8UKD2R/VeTqyxPRG32hgsOH5WofBqIDDIM+C4Wis2ZsmSgxge1XSatuBVdXYPIloTFZg4Jt+ezawZn/lqBT12ZWt2udkQCiBLP1vRbVswAzg9XFDhqdDD6bBZmYJmuVpYzHCAvwc+uCvQip0=
+	t=1778228435; cv=none; b=alcNLqupCwf1T1t12dLCQUDnaNgq5ObOjRyDDI1AkVsx/bMNWrifJJScBreVgGomkzArx2KaBqtF9tAJ/Xhe6DpUyDp9QbD1IMBJK5wrg1XTutWIuY6ETX1CQ+PkTYlgPe4h7a+nKwiPfGq9Qb5Rl1TLe/73THH/2RHoClwDv9Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778224986; c=relaxed/simple;
-	bh=H88G6CL5TWFd7eybjl9i88KQu59+VhkHbQ8Vy9juMf4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=BPY3qg93Uo0/bZruIBXVwL5BXscYzak2zxiP6EwhSYaLfusIAqoh4WYR7GnuXmuvcff4fzWWJ8FzoMFsPHillg0BU8JmEsg6SjZi7mJ7WVosydSd+MV8c686LtJRpqM6+FPWtw5YqKEhVXH/OBA+7Jmb/g9kv/Nv5vrx5q2MbgQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=baah6Vd0; arc=none smtp.client-ip=198.175.65.20
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1778228435; c=relaxed/simple;
+	bh=IgNldgSNJuH2+rIIQUxUrYE1LC7TJ2fKuJV1Gfi7Ce0=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=qpMHgPUl1HkV+1+1qw0hJIS6vLXEoA978bYg5FqeOWchnREwQMgwqA1/CXh42X5k+vZvf7I7C+f0+TkeX/Nv//ScSCgQVDoj54WGlUVJlb66ThBbabMDEDwj4M9RIcBQE4U3Q1qUUUsCwSK11wSllsNNgPoJlW6uTEZBiA5/yes=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=g56H8FY0; arc=none smtp.client-ip=115.124.30.97
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="baah6Vd0"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1778224981; x=1809760981;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=H88G6CL5TWFd7eybjl9i88KQu59+VhkHbQ8Vy9juMf4=;
-  b=baah6Vd0lUtlWoIi6IPQLtHhUNu27t4H98KO2iMGhvVp7kwNAqmgImJk
-   Gghdlj+1JWzzPBKb6oEgxnFULYIFHMP95wnL3aClcuK6ySqKhrS/rIv80
-   Fi5bN2UYbKiYsc8/FCiOQrdLJ1oolmM3Gh1xuETqcpuAu/lF4VLOrs3Wj
-   YlzG/BLYOZx73liCY8/JLKmY00UFMdLSSHrEWd5K4FaXHsYFTW0jIk3ME
-   ZGuGJ6/0LFrbl2K1DeobLbK4ez/g+Jd2uRAHTXi4l1g7mLmDTrqqyjBIm
-   3dKKnEqxTxycZ0Lqz8vnfwmm5cbu4wpJ70it7tlHgAD09dccymVk/5P0S
-   w==;
-X-CSE-ConnectionGUID: rqwT8BSCTNORMDNUOH1xig==
-X-CSE-MsgGUID: gT8L2u2WRj6UT9ji0jkf5Q==
-X-IronPort-AV: E=McAfee;i="6800,10657,11779"; a="78913474"
-X-IronPort-AV: E=Sophos;i="6.23,223,1770624000"; 
-   d="scan'208";a="78913474"
-Received: from fmviesa008.fm.intel.com ([10.60.135.148])
-  by orvoesa112.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 May 2026 00:22:57 -0700
-X-CSE-ConnectionGUID: sP8EyzS4Q2CEw4wpMF5N/w==
-X-CSE-MsgGUID: GhWzL3kcT0K/Q5NLYveojw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.23,223,1770624000"; 
-   d="scan'208";a="234034060"
-Received: from ijarvine-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.245.237])
-  by fmviesa008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 May 2026 00:22:55 -0700
-Date: Fri, 8 May 2026 10:22:53 +0300
-From: Andy Shevchenko <andriy.shevchenko@intel.com>
-To: Marco Scardovi <mscardovi95@gmail.com>
-Cc: linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org,
-	linux-kernel@vger.kernel.org, mathias.nyman@intel.com,
-	mika.westerberg@intel.com
-Subject: Re: [PATCH v4 0/6] gpio: acpi: modernize resource management using
- cleanup.h
-Message-ID: <af2PTWlxzIffkaU2@ashevche-desk.local>
-References: <afzlsRkyKQzuUcgL@ashevche-desk.local>
- <20260508061729.9530-1-mscardovi95@gmail.com>
- <af2O4wKm01mSCaxr@ashevche-desk.local>
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="g56H8FY0"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1778228429; h=From:To:Subject:Date:Message-ID:MIME-Version;
+	bh=JFOE0oOtrup94m1Ct2dbwxOhyCe8CzDhIKZx+1CT/OA=;
+	b=g56H8FY0VmPgebe/uFhqE+NQ9DKZ+CDCtNJ1WYybL3EA9mkL/Wc9YcIpnlKlSX5iGfGCZgtra9EdRs8j0dR3MESUdL/i9B36UxLTDsuAdzAMsOe1821DVvpiZblSPfGOf6gObWscyTf5SQ8e7SIgKn2bxN2L74Q3TGzMQ+TnBUo=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R251e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033037026112;MF=tianruidong@linux.alibaba.com;NM=1;PH=DS;RN=17;SR=0;TI=SMTPD_---0X2Wljwh_1778228426;
+Received: from localhost(mailfrom:tianruidong@linux.alibaba.com fp:SMTPD_---0X2Wljwh_1778228426 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Fri, 08 May 2026 16:20:28 +0800
+From: Ruidong Tian <tianruidong@linux.alibaba.com>
+To: pjw@kernel.org,
+	palmer@dabbelt.com,
+	aou@eecs.berkeley.edu,
+	alex@ghiti.fr,
+	rafael@kernel.org,
+	tony.luck@intel.com,
+	bp@alien8.de,
+	guohanjun@huawei.com,
+	mchehab@kernel.org,
+	xueshuai@linux.alibaba.com,
+	lenb@kernel.org,
+	saket.dumbre@intel.com
+Cc: linux-riscv@lists.infradead.org,
+	linux-kernel@vger.kernel.org,
+	linux-acpi@vger.kernel.org,
+	acpica-devel@lists.linux.dev,
+	Ruidong Tian <tianruidong@linux.alibaba.com>
+Subject: [PATCH 1/3] acpi: Introduce HEE in HEST notification types
+Date: Fri,  8 May 2026 16:20:18 +0800
+Message-ID: <20260508082020.3368109-2-tianruidong@linux.alibaba.com>
+X-Mailer: git-send-email 2.43.7
+In-Reply-To: <20260508082020.3368109-1-tianruidong@linux.alibaba.com>
+References: <20260508082020.3368109-1-tianruidong@linux.alibaba.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <af2O4wKm01mSCaxr@ashevche-desk.local>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+Content-Transfer-Encoding: 8bit
 
-On Fri, May 08, 2026 at 10:21:11AM +0300, Andy Shevchenko wrote:
-> On Fri, May 08, 2026 at 08:17:23AM +0200, Marco Scardovi wrote:
-> > Hi Andy,
-> > as requested I've added the missing Signed-off-by and related commits' messages.
-> > Let me know if it's everything alright now.
-> 
-> Note, cover letter is not just for a simple comment like the above, it's mainly
-> for the overview of the series as a whole, what it doing and why. No need to
-> resend a series, just try to write down one in a reply to this message.
+Introduce a new HEST notification type for RISC-V Hardware
+Error Exception. The GHES entry's notification structure
+contains the notification to be used for a given error source.
 
-Also this is v4 of the series, you need to provide a changelog for each delta
-between two sequential versions (here we expect to see a v1->v2, v2->v3, and
-v3->v4).
+Signed-off-by: Ruidong Tian <tianruidong@linux.alibaba.com>
+---
+ include/acpi/actbl1.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
+diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
+index 14924383e2d0..2c1ad1d8587b 100644
+--- a/include/acpi/actbl1.h
++++ b/include/acpi/actbl1.h
+@@ -1793,7 +1793,8 @@ enum acpi_hest_notify_types {
+ 	ACPI_HEST_NOTIFY_GSIV = 10,	/* ACPI 6.1 */
+ 	ACPI_HEST_NOTIFY_SOFTWARE_DELEGATED = 11,	/* ACPI 6.2 */
+ 	ACPI_HEST_NOTIFY_SSE = 12, /* RISCV SSE */
+-	ACPI_HEST_NOTIFY_RESERVED = 13	/* 13 and greater are reserved */
++	ACPI_HEST_NOTIFY_HEE = 13, /* RISCV Hardware Error Exception */
++	ACPI_HEST_NOTIFY_RESERVED = 14	/* 14 and greater are reserved */
+ };
+ 
+ /* Values for config_write_enable bitfield above */
 -- 
-With Best Regards,
-Andy Shevchenko
-
+2.51.2.612.gdc70283dfc
 
