@@ -1,113 +1,114 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17A6C4219FB
-	for <linux-acpi@vger.kernel.org>; Fri,  8 May 2026 19:01:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11B352857EE
+	for <linux-acpi@vger.kernel.org>; Fri,  8 May 2026 19:04:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778266898; cv=none; b=u/eS5kgBG9LgubleNqIrR4E1twm8/RScWU+Y1JkqBUfohJEOUWwXhujLorlVTnikatWpXbJoSeYgfUlqxqirSPgFAehWo3kTE0u386fLBP5Voybo9WuRRr+GfUS4ooRoCtXF7f7UErZsTdntR7WpyjlQL+velkzP1fLGRPTi9zQ=
+	t=1778267090; cv=none; b=Ac3rwYpUwvNORrJowORxu6vVoz/3/DMCKkBkXsBBnZ95EK9R9N6qCFY6pYskBbuqdT8M2LVjKdwwr49MlSKtBcgD1ktkZXpFWo+6uYhEyyDc906AJQlerw6X30Q8hY3pN2mtN9pHsWkbvjGBzHhDqb7q5bDBMo97E6BRt6mNb5o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778266898; c=relaxed/simple;
-	bh=50SMXz4G7+Ucp6B0QXGQ4Eq9CUeIww16GU//taPwKuw=;
+	s=arc-20240116; t=1778267090; c=relaxed/simple;
+	bh=JuCBIWbnjv/QHSeclvxS58oWCNPLxU4hJ6XgJjekXLs=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=VvjqkyjsE0DKKZrjOITSqF1vXd7iycJXphZSQfpuz6sWiBItvlNq9ZjWCLNK5muRg30e0NA8Tdc38y3M4lV3ly39qIzLz3wRx+JKREbglAhOyoooK2Md3pw/0WkNoz/+RZsUyvAuoXenjmCqQMxHspXPAhi5R1thpRn9SIsSOaA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kMxjnNKD; arc=none smtp.client-ip=10.30.226.201
+	 To:Cc:Content-Type; b=mYm4uR27xUjqNU1e/wWMJuib+1tPsF8xm5qc1pzaLp4XwVinrigHU4chbkvgbOWzLnydJJY6SxsrHRGEKJzm5hLwqSGZWvXqvZDUqqpCHhxCKZIX/SUtEJKFWvdoVbaZyJ0scJyjpK05WnHnvO0BQ9Tdw7ZFye2y/07aDYWkZD0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Z4CAkIiA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kMxjnNKD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDD57C2BCF6
-	for <linux-acpi@vger.kernel.org>; Fri,  8 May 2026 19:01:37 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Z4CAkIiA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC091C2BCB0
+	for <linux-acpi@vger.kernel.org>; Fri,  8 May 2026 19:04:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778266897;
-	bh=50SMXz4G7+Ucp6B0QXGQ4Eq9CUeIww16GU//taPwKuw=;
+	s=k20201202; t=1778267089;
+	bh=JuCBIWbnjv/QHSeclvxS58oWCNPLxU4hJ6XgJjekXLs=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=kMxjnNKDNACcMoFB78LDcCOzWocwxbYqW5h8W+x0prfhCo9EhQzA4IjE6AGd3Yoma
-	 X+mJYXfcP26r4yDsMW/LFG3NjcuzR5PDVg/ZI7Ps9bHnVLCM8sA34XmAqNa36iniC2
-	 g9Hj6E7V123CGeFBplW9SYyoLrX3Klhj1RsYp8TTNp7BkNd67gz7e/KBD1N1sq7cIH
-	 g4Y81Qg5JNa5NmQzoenA4W9H5XpwnpwCe+edWPxcSwB/r4sqlduXjsPWEFl2HGL8K3
-	 iRbODU7TfhB54BLvpIwmwl3pRJIjsGx3dVBHIopXePVVhVQPl8Xj5LBOLHkOAsq3Td
-	 aUkAl59YGfV3g==
-Received: by mail-lf1-f51.google.com with SMTP id 2adb3069b0e04-5a887ebb416so2287439e87.2
-        for <linux-acpi@vger.kernel.org>; Fri, 08 May 2026 12:01:37 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AFNElJ/1k/sZjPApEUZHIZnU8InPOiARYQy9/uTqAJrkm7+0jKTjW4e36RNVw/0T7ZSCy2Sptt4H358hao4M@vger.kernel.org
-X-Gm-Message-State: AOJu0Yzf6lMssH7kXCPP4nWf3AZRn3uzS0KKwCm+pDSFxs0+ZM8glP6g
-	K03Kuse70swplv0SQA7zhm0N76hbdSismE8HFSctwCJ5A93I7cj8TOg28XCyASvxJRbJxITqj5D
-	KQDwh+8mk/bqHpaYdwdxzg5mYYYvv/S0=
-X-Received: by 2002:a05:6512:1095:b0:5a4:4ea:9977 with SMTP id
- 2adb3069b0e04-5a887adac13mr6102930e87.8.1778266896242; Fri, 08 May 2026
- 12:01:36 -0700 (PDT)
+	b=Z4CAkIiAfyTKAosC6czfa68+ji+R48BjMMnCFirZTvJrDM6vlHX4lryMgtVVrC0uv
+	 U5Zb9gFNa8YbhoPPLmXDBHbr+OfjQDZUH7Pp65FDc5CMHolki4oUj9NFJKhMoFZINf
+	 1pzXodUYv1qkUAHV2xxdxHdOordqV3qy4NAYKw96EVi6H2c+bYISu0hRhvzpDpP6Xm
+	 9iq1W+5ZaKHpMniY3XkerSEdSqyVWAio1SjuI7MtAVr06mGNi+q9zqNcamh3zbdAKq
+	 /xWur6HDHdV9Rx59GWU118J7X5p1wXhVp6sms/oIQ8zeSFJHxP90sm9l2EdcTWJzQn
+	 y1XbDDBlxDN3A==
+Received: by mail-lf1-f41.google.com with SMTP id 2adb3069b0e04-5a0ff30b240so3521982e87.0
+        for <linux-acpi@vger.kernel.org>; Fri, 08 May 2026 12:04:49 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ+Q7fgCqHhzHg3ou5zVbCyaqPiqXq88OkPLCGj9IeEh9aXqEjLZST4Ii9tx/CHB/d6HGhmJaDSCaCaF@vger.kernel.org
+X-Gm-Message-State: AOJu0YxbHZ3oLiQ8ar655JZRqiFlKHR33fxAPgwJ1CK3BXIbMyQs5Pua
+	Gq+jxtyOMw6EL5NGMuA83O5mB/XNHohgPqRDKNHsQdXMMX4jqGg9E8W96xhqAVDqnEU86hnxUHj
+	VrS2c0pMQt47DAGERl4px1pHP0N58rns=
+X-Received: by 2002:a05:6512:3d0b:b0:5a3:6731:910a with SMTP id
+ 2adb3069b0e04-5a887ae1756mr4708775e87.11.1778267088209; Fri, 08 May 2026
+ 12:04:48 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260430142430.755437-1-sumitg@nvidia.com>
-In-Reply-To: <20260430142430.755437-1-sumitg@nvidia.com>
+References: <20260504230141.484743-1-mario.limonciello@amd.com> <20260504230141.484743-2-mario.limonciello@amd.com>
+In-Reply-To: <20260504230141.484743-2-mario.limonciello@amd.com>
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Fri, 8 May 2026 21:01:22 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0gCSPjnxE2Vd+Py14ENJ6U46KBQVHiBetLfEKGybtDh8g@mail.gmail.com>
-X-Gm-Features: AVHnY4KDNOdtryvfMGgDj_cDqWpBdpyIVcpUjhjZQjhE5vuQhaFeqwKRZcl3OjE
-Message-ID: <CAJZ5v0gCSPjnxE2Vd+Py14ENJ6U46KBQVHiBetLfEKGybtDh8g@mail.gmail.com>
-Subject: Re: [PATCH v2 0/2] ACPI: CPPC: Add CPPC v4 support (ACPI 6.6)
-To: Sumit Gupta <sumitg@nvidia.com>
-Cc: rafael@kernel.org, viresh.kumar@linaro.org, lenb@kernel.org, 
-	pierre.gondois@arm.com, zhenglifeng1@huawei.com, zhanjie9@hisilicon.com, 
-	mario.limonciello@amd.com, saket.dumbre@intel.com, linux-acpi@vger.kernel.org, 
+Date: Fri, 8 May 2026 21:04:34 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0gBTxzkQU1EduyBNx2fCYfVU92XcNU8+AbSZziymBdJJw@mail.gmail.com>
+X-Gm-Features: AVHnY4JniMvibyMorBAgS3rttqq3y4-3ArgURY5ggycizySwR0ixYrXfJr22L5Y
+Message-ID: <CAJZ5v0gBTxzkQU1EduyBNx2fCYfVU92XcNU8+AbSZziymBdJJw@mail.gmail.com>
+Subject: Re: [PATCH v2 1/5] Revert "ACPI: CPPC: Adjust debug messages in
+ amd_set_max_freq_ratio() to warn"
+To: Mario Limonciello <mario.limonciello@amd.com>
+Cc: "Rafael J . Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org, 
 	linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, 
-	acpica-devel@lists.linux.dev, treding@nvidia.com, jonathanh@nvidia.com, 
-	vsethi@nvidia.com, ksitaraman@nvidia.com, sanjayc@nvidia.com, 
-	bbasu@nvidia.com
+	K Prateek Nayak <kprateek.nayak@amd.com>, x86@kernel.org, 
+	Kim Phillips <kim.phillips@amd.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Apr 30, 2026 at 4:25=E2=80=AFPM Sumit Gupta <sumitg@nvidia.com> wro=
-te:
+On Tue, May 5, 2026 at 1:01=E2=80=AFAM Mario Limonciello
+<mario.limonciello@amd.com> wrote:
 >
-> Add initial kernel support for CPPC v4 (ACPI 6.6, Section 8.4.6),
-> which extends the _CPC package from 23 to 25 entries with two
-> optional fields:
+> Some older systems don't support CPPC in the firmware and this just makes
+> noise for them when booting.  Drop back to debug.
 >
->   - OSPM Nominal Performance (8.4.6.1.2.6): register used by OSPM
->     to tell the platform what it considers nominal. The platform
->     classifies performance above this as boost and below as
->     throttle for power/thermal decisions.
+> This reverts commit 21fb59ab4b9767085f4fe1edbdbe3177fbb9ec97.
 >
->   - Resource Priority (8.4.6.1.2.7): Package of Resource Priority
->     Register Descriptor sub-packages. Full parsing is not yet
->     implemented; such entries are marked as unsupported.
->
-> Patch 1: Add v4 _CPC parsing - validate the 25-entry layout,
-> handle the Resource Priority package, and mark the two new
-> registers optional.
->
-> Patch 2: Add acpi_cppc/ospm_nominal_perf as a read-write sysfs
-> attribute, and initialize it to the platform nominal value
-> during cppc_cpufreq policy init.
->
+> Fixes: 21fb59ab4b976 ("ACPI: CPPC: Adjust debug messages in amd_set_max_f=
+req_ratio() to warn")
+> Suggested-by: Kim Phillips <kim.phillips@amd.com>
+> Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
 > ---
-> v1[1] -> v2:
-> - Patch 1: added Reviewed-by from Mario Limonciello.
-> - Patch 2:
->   - Make ospm_nominal_perf sysfs read-write; cache last write in
->     cpc_desc and skip redundant register writes.
->   - Validate input in cppc_set_ospm_nominal_perf.
+>  arch/x86/kernel/acpi/cppc.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
 >
-> Sumit Gupta (2):
->   ACPI: CPPC: Add support for CPPC v4
->   ACPI: CPPC: Add ospm_nominal_perf support
+> diff --git a/arch/x86/kernel/acpi/cppc.c b/arch/x86/kernel/acpi/cppc.c
+> index d7c8ef1e354d3..be4c5e9e5ff6f 100644
+> --- a/arch/x86/kernel/acpi/cppc.c
+> +++ b/arch/x86/kernel/acpi/cppc.c
+> @@ -88,19 +88,19 @@ static void amd_set_max_freq_ratio(void)
 >
->  drivers/acpi/cppc_acpi.c       | 93 +++++++++++++++++++++++++++++++---
->  drivers/cpufreq/cppc_cpufreq.c | 10 ++++
->  include/acpi/cppc_acpi.h       | 14 ++++-
->  3 files changed, 109 insertions(+), 8 deletions(-)
+>         rc =3D cppc_get_perf_caps(0, &perf_caps);
+>         if (rc) {
+> -               pr_warn("Could not retrieve perf counters (%d)\n", rc);
+> +               pr_debug("Could not retrieve perf counters (%d)\n", rc);
+>                 return;
+>         }
 >
-> [1] https://lore.kernel.org/lkml/20260427051823.280419-1-sumitg@nvidia.co=
-m/
+>         rc =3D amd_get_boost_ratio_numerator(0, &numerator);
+>         if (rc) {
+> -               pr_warn("Could not retrieve highest performance (%d)\n", =
+rc);
+> +               pr_debug("Could not retrieve highest performance (%d)\n",=
+ rc);
+>                 return;
+>         }
+>         nominal_perf =3D perf_caps.nominal_perf;
+>
+>         if (!nominal_perf) {
+> -               pr_warn("Could not retrieve nominal performance\n");
+> +               pr_debug("Could not retrieve nominal performance\n");
+>                 return;
+>         }
 >
 > --
 
-Can you please see the sashiko.dev feedback on this set:
+It looks like this could be applied without the rest of the series.
+Do you want me to do that?
 
-https://sashiko.dev/#/patchset/20260430142430.755437-1-sumitg%40nvidia.com
+Also, do I understand correctly that the rest of the series depends on
+Sumit's patch set at
 
-and let me know what you think?  Especially regarding the second patch?
+https://lore.kernel.org/all/20260430142430.755437-2-sumitg@nvidia.com/#r
