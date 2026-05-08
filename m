@@ -1,155 +1,137 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4BA33D6463
-	for <linux-acpi@vger.kernel.org>; Fri,  8 May 2026 19:11:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D09EB2F616B
+	for <linux-acpi@vger.kernel.org>; Fri,  8 May 2026 19:17:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778267506; cv=none; b=a56L7wE8d2vJ3jXAL50uXabj440XgYntovNjPHzAFFkqRn17uiYXC2bW0OCZXCp0DMgE47T5ke/EXIOnvLW1rVciR4K2KRJX9da8lwxbAeLZkGphpQAnHK3QVFl3eh7HXCSXq482elc9Gdnm4CE4ki2P/SpqDetdfI3HwV/SYJk=
+	t=1778267841; cv=none; b=QjchpxhOGjOQ1d7dSr7Hm0Z2C0inFU3m0mGroUF/bK1HxBsBQuriP3YNZ8Iaf1GZj8YPF6olxucymGEmt3CFtgFeEJ6MS2Sfjfh94rThl36Un+x9dIXFa2hnz7Fxv4+H44rUCu4Oprfuj3setF9qFpqtkF867a+Qc3nUo2rQhNM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778267506; c=relaxed/simple;
-	bh=C+pw4yJIPaRlnMdlWTQxxEe0lz+s59e+RZgniBqzs/A=;
+	s=arc-20240116; t=1778267841; c=relaxed/simple;
+	bh=GTUxtQBzUTRVyOkQ5bCBY1qoUmnSXalLGcYTrKbySWw=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=lArAtNn4Q5Z2AbXyGBPxxgxxh3S+YRmenbPxfD+XxLVZ7LaNVKr9pvlOJvArpxL76DfaeOO2FTH6faDhcurW/zJUXR46y7J1S07s31yvyWaPvY+zpayZePogri1HrzNnyt21KDfl1OOQhLrxr1IlFFePobAWIwEZZVgDwKvWBgg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gl9SOGeF; arc=none smtp.client-ip=10.30.226.201
+	 To:Cc:Content-Type; b=EUUg5rxpSk5A/jasJEwHO0rTlJRsxn9Ar0yRQ1BSCm2zNgr4Z+Za+bPdeH8uKnxVTs42h+bF4NXShlK/ckgbqicb3hSnkY6jP0K081Sr78G1UOvj23PMpjTqgsGpcF+jh9Ad79pPg+LK6A9UnmWKHfMdmf0nd+FchptEttmpW/Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bHlC6Dls; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gl9SOGeF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92C33C4AF09
-	for <linux-acpi@vger.kernel.org>; Fri,  8 May 2026 19:11:46 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bHlC6Dls"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86035C2BCC9
+	for <linux-acpi@vger.kernel.org>; Fri,  8 May 2026 19:17:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778267506;
-	bh=C+pw4yJIPaRlnMdlWTQxxEe0lz+s59e+RZgniBqzs/A=;
+	s=k20201202; t=1778267841;
+	bh=GTUxtQBzUTRVyOkQ5bCBY1qoUmnSXalLGcYTrKbySWw=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=gl9SOGeFoc+wRGOOvsqfLw5oamKlJhMbyeUBTll+soVd0y7dYCynoL2t4mF6mnNVV
-	 05qB98rhHZSVD9dfjpkcc7/ITjQIIIN9vZrpyvbABXM1vMWCag4l0E9OF/UwSRLwpt
-	 qDZu1XWGTski/lZT+uqtToVwPBz6QccXJbcROD5G9/0ulMuSfpUM2+FO4JjXqK51Lx
-	 Vr06IthsGISnsaTrMlyxlBwacbiA+RdocYik1kIoYScdxgucxFACirG5sWd4znAeNw
-	 PI+UAhxWxoZKj7EE96ZswVgAb0eOBFuRM2D5RZbIhJXIOu/y8jLu9LxsPWwtu6Y1HH
-	 qHlzOyB3ZrVfg==
-Received: by mail-lf1-f43.google.com with SMTP id 2adb3069b0e04-5a4113ab355so2277301e87.1
-        for <linux-acpi@vger.kernel.org>; Fri, 08 May 2026 12:11:46 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AFNElJ89dUAHoz10lQOhiHNmsNduXx4DbzXw/dtKjvksOPJcSTt5XzhewSI5J2lXOCgcxwo4FXGpiyBNAKR8@vger.kernel.org
-X-Gm-Message-State: AOJu0Yy3lYGYPOMfImzmk01Y8GNNs+999+GPxcNex5fsnFyvn3JiXLUd
-	IGGHzkOz4KbXE9Gv6OX27YRMbgmFPdGDJcS4iz7nIE39/SvzC5QqSIZ7HUyKq7e+QMNqGUFDDz7
-	sk3KYrmMhGDjbr4DblkffpU8qqJO/cTM=
-X-Received: by 2002:a05:6512:23a1:b0:5a7:70f0:a871 with SMTP id
- 2adb3069b0e04-5a8a94bc3ddmr1426320e87.25.1778267504910; Fri, 08 May 2026
- 12:11:44 -0700 (PDT)
+	b=bHlC6DlsfTHrtrjQfzx09kZNMIIC9cs99yla8SjcvesJbtWg7JJgtSll4WnJOyLmm
+	 4BLlvsB9Neuqf+p8JVLY3UJ76IKbOjOHf17RNIKZ5rsIxAl3pNnypaJpl4Owesyyve
+	 y0DA9aJzKWbTDx/o2w1P4Jye3URBL4aNlSLsoYEepR9/jNARj4M7eB9FHyEg1yj8cV
+	 +bosyDFHtpxuQJhPZPMx07Up0/6OEyW5Uyf9kGMPOuFH5fDE9PVdNVxXS53FlVoW0R
+	 fHeqtJrgnDfIYlsGq6iSE6uZv7SdWH8EpLTbc1ku+U7zmp1idwMRaHtdkaPsQaUu+w
+	 6LoBrhDfp4s/Q==
+Received: by mail-lj1-f170.google.com with SMTP id 38308e7fff4ca-393a44854d2so17666631fa.3
+        for <linux-acpi@vger.kernel.org>; Fri, 08 May 2026 12:17:21 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ8yKNRVnxCCMOGBHNNixZ51BnA3aInPX/TjUZ8aGkx5Pq6FgH1UA2dsX+t3nC9jg1vCIwiEpr50GL4X@vger.kernel.org
+X-Gm-Message-State: AOJu0YwO9ovjZq0NhPKuIw4q7jr0KdoUx6R7KrYktZ12rcP44fdtYjim
+	edzbM/HyLDc+ekh78JwzsvamwwpTIbUKVh/3PGecK+CZ6PN+6yRenI+NBCT4AAHZU/G6HqiYosK
+	Duu9ZaPl2a9XrY+MeYTcAdP8S4mTiNQI=
+X-Received: by 2002:a05:6512:3b0a:b0:5a8:a558:63b3 with SMTP id
+ 2adb3069b0e04-5a8a5586493mr1944574e87.30.1778267839918; Fri, 08 May 2026
+ 12:17:19 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260430013507.46259-1-m32285159@gmail.com> <afL1X3ywCwJRIz1Z@ashevche-desk.local>
-In-Reply-To: <afL1X3ywCwJRIz1Z@ashevche-desk.local>
+References: <20260504230141.484743-1-mario.limonciello@amd.com>
+ <20260504230141.484743-2-mario.limonciello@amd.com> <CAJZ5v0gBTxzkQU1EduyBNx2fCYfVU92XcNU8+AbSZziymBdJJw@mail.gmail.com>
+ <8e2c9db5-fd24-43a2-af0c-cb2cb54f5102@amd.com>
+In-Reply-To: <8e2c9db5-fd24-43a2-af0c-cb2cb54f5102@amd.com>
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Fri, 8 May 2026 21:11:32 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0jr+Y784Q7jKL_dKpCKiXFZAfSbU-XS851pG-MGgxiNSQ@mail.gmail.com>
-X-Gm-Features: AVHnY4LAHaXN5AoSTYHI_lqUmIvdp0xzkTHOnmiNN6PdbdgFoloNleqZ3KophOY
-Message-ID: <CAJZ5v0jr+Y784Q7jKL_dKpCKiXFZAfSbU-XS851pG-MGgxiNSQ@mail.gmail.com>
-Subject: Re: [PATCH v5] ACPI: pmic: Replace mutex_lock/unlock() with guard()/scoped_guard()
-To: Andy Shevchenko <andriy.shevchenko@intel.com>, Maxwell Doose <m32285159@gmail.com>
-Cc: Andy Shevchenko <andy@kernel.org>, Mika Westerberg <westeri@kernel.org>, 
-	"open list:ACPI PMIC DRIVERS" <linux-acpi@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
+Date: Fri, 8 May 2026 21:17:07 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0ima4+ieyE1Jem=PRpk1JgZvZQ2sZWBv43=ARWde8jipg@mail.gmail.com>
+X-Gm-Features: AVHnY4JZFJJu51VWW5Tu1Dk1TaZPavN065ies9bkFa_MR1S8lfvWyQQ5gLf3s2Y
+Message-ID: <CAJZ5v0ima4+ieyE1Jem=PRpk1JgZvZQ2sZWBv43=ARWde8jipg@mail.gmail.com>
+Subject: Re: [PATCH v2 1/5] Revert "ACPI: CPPC: Adjust debug messages in
+ amd_set_max_freq_ratio() to warn"
+To: Mario Limonciello <mario.limonciello@amd.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, 
+	K Prateek Nayak <kprateek.nayak@amd.com>, x86@kernel.org, 
+	Kim Phillips <kim.phillips@amd.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Apr 30, 2026 at 8:23=E2=80=AFAM Andy Shevchenko
-<andriy.shevchenko@intel.com> wrote:
+On Fri, May 8, 2026 at 9:09=E2=80=AFPM Mario Limonciello
+<mario.limonciello@amd.com> wrote:
 >
-> On Wed, Apr 29, 2026 at 08:35:06PM -0500, Maxwell Doose wrote:
-> > Replace mutex_lock() and unlock() macros with the newer guard() and
-> > scoped_guard() macros. This will help modernize and clean the code.
 >
-> ...
 >
-> > -     mutex_lock(&opregion->lock);
-> > -
-> > -     if (pmic_thermal_is_temp(address))
-> > -             result =3D pmic_thermal_temp(opregion, reg, function, val=
-ue64);
-> > -     else if (pmic_thermal_is_aux(address))
-> > -             result =3D pmic_thermal_aux(opregion, reg, function, valu=
-e64);
-> > -     else if (pmic_thermal_is_pen(address))
-> > -             result =3D pmic_thermal_pen(opregion, reg, bit,
-> > -                                             function, value64);
-> > -     else
-> > -             result =3D -EINVAL;
-> > -
-> > -     mutex_unlock(&opregion->lock);
-> > +     scoped_guard(mutex, &opregion->lock) {
-> > +             if (pmic_thermal_is_temp(address))
-> > +                     result =3D pmic_thermal_temp(opregion, reg, funct=
-ion, value64);
-> > +             else if (pmic_thermal_is_aux(address))
-> > +                     result =3D pmic_thermal_aux(opregion, reg, functi=
-on, value64);
-> > +             else if (pmic_thermal_is_pen(address))
-> > +                     result =3D pmic_thermal_pen(opregion, reg, bit, f=
-unction, value64);
-> > +             else
-> > +                     result =3D -EINVAL;
-> > +     }
->
+> On 5/8/26 14:04, Rafael J. Wysocki wrote:
+> > On Tue, May 5, 2026 at 1:01=E2=80=AFAM Mario Limonciello
+> > <mario.limonciello@amd.com> wrote:
+> >>
+> >> Some older systems don't support CPPC in the firmware and this just ma=
+kes
+> >> noise for them when booting.  Drop back to debug.
+> >>
+> >> This reverts commit 21fb59ab4b9767085f4fe1edbdbe3177fbb9ec97.
+> >>
+> >> Fixes: 21fb59ab4b976 ("ACPI: CPPC: Adjust debug messages in amd_set_ma=
+x_freq_ratio() to warn")
+> >> Suggested-by: Kim Phillips <kim.phillips@amd.com>
+> >> Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
+> >> ---
+> >>   arch/x86/kernel/acpi/cppc.c | 6 +++---
+> >>   1 file changed, 3 insertions(+), 3 deletions(-)
+> >>
+> >> diff --git a/arch/x86/kernel/acpi/cppc.c b/arch/x86/kernel/acpi/cppc.c
+> >> index d7c8ef1e354d3..be4c5e9e5ff6f 100644
+> >> --- a/arch/x86/kernel/acpi/cppc.c
+> >> +++ b/arch/x86/kernel/acpi/cppc.c
+> >> @@ -88,19 +88,19 @@ static void amd_set_max_freq_ratio(void)
+> >>
+> >>          rc =3D cppc_get_perf_caps(0, &perf_caps);
+> >>          if (rc) {
+> >> -               pr_warn("Could not retrieve perf counters (%d)\n", rc)=
+;
+> >> +               pr_debug("Could not retrieve perf counters (%d)\n", rc=
+);
+> >>                  return;
+> >>          }
+> >>
+> >>          rc =3D amd_get_boost_ratio_numerator(0, &numerator);
+> >>          if (rc) {
+> >> -               pr_warn("Could not retrieve highest performance (%d)\n=
+", rc);
+> >> +               pr_debug("Could not retrieve highest performance (%d)\=
+n", rc);
+> >>                  return;
+> >>          }
+> >>          nominal_perf =3D perf_caps.nominal_perf;
+> >>
+> >>          if (!nominal_perf) {
+> >> -               pr_warn("Could not retrieve nominal performance\n");
+> >> +               pr_debug("Could not retrieve nominal performance\n");
+> >>                  return;
+> >>          }
+> >>
+> >> --
 > >
+> > It looks like this could be applied without the rest of the series.
+> > Do you want me to do that?
 >
-> This blank line is not needed as previous is coupled with this check.
-> This is a minor thing, but what takes my attention is the result assignme=
-nt for
-> last else. While this is correct code it might provoke false positive war=
-nings
-> from the compiler(s) that can not properly parse scoped_guard() and proof=
- that
-> result is always assigned (the warning is something like "uninitialised v=
-ariable
-> in use"). Let's wait for CIs to be sure we do not enter a such. Otherwise=
-, this
-> will need a refactoring like
->
->         result =3D -EINVAL;
->         scoped_guard(...) {
->                 ...
->         }
->
-> >       if (result < 0) {
-> >               if (result =3D=3D -EINVAL)
->
-> ...
->
-> >       if (d->exec_mipi_pmic_seq_element) {
-> > -             ret =3D d->exec_mipi_pmic_seq_element(intel_pmic_opregion=
-->regmap,
-> > +             return d->exec_mipi_pmic_seq_element(intel_pmic_opregion-=
->regmap,
-> >                                                   i2c_address, reg_addr=
-ess,
-> >                                                   value, mask);
-> > -     } else if (d->pmic_i2c_address) {
-> > +     }
-> > +
-> > +     if (d->pmic_i2c_address) {
-> >               if (i2c_address =3D=3D d->pmic_i2c_address) {
->
-> Maybe we should not touch this either and actually have clean guard()() p=
-atch +
-> refactoring returns, dunno... My whole concern here is that this code is =
-not as
-> simple as IIO switch-cases when we replace break:s with return:s mostly
-> automatically without breaking readability of anything. Here is different=
- case
-> and mixing guard()() with return:s refactoring makes it harder to review =
-and
-> understand. Also if any regression happens, will be harder to maintain.
->
-> ...
->
-> I don't want you to waste more time on experimenting, I think we better
-> wait for CIs and Rafael, if they all are okay with the change, that will
-> work for me.
+> Yeah; go ahead and pick this one up.  Thanks.
 
-It's fine by me and sashiko.de hasn't found any issues in it, so
-applied as 7.2 material.
+Done, thanks!
 
-Thanks!
+> >
+> > Also, do I understand correctly that the rest of the series depends on
+> > Sumit's patch set at
+> >
+> > https://lore.kernel.org/all/20260430142430.755437-2-sumitg@nvidia.com/#=
+r
+>
+> That's correct.
+
+OK, so changes are requested in that patchset and there will be a v3
+(at least), so please resend this one when the dependency is
+finalized.
