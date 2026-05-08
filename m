@@ -1,137 +1,101 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D09EB2F616B
-	for <linux-acpi@vger.kernel.org>; Fri,  8 May 2026 19:17:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5162037B002
+	for <linux-acpi@vger.kernel.org>; Fri,  8 May 2026 19:19:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778267841; cv=none; b=QjchpxhOGjOQ1d7dSr7Hm0Z2C0inFU3m0mGroUF/bK1HxBsBQuriP3YNZ8Iaf1GZj8YPF6olxucymGEmt3CFtgFeEJ6MS2Sfjfh94rThl36Un+x9dIXFa2hnz7Fxv4+H44rUCu4Oprfuj3setF9qFpqtkF867a+Qc3nUo2rQhNM=
+	t=1778267982; cv=none; b=qzXrKrlrMOTLhgOAowgx2Np5+TYSu2qx7jfoHA8tU56M5WHSfAkkJ0g8k0YSrzh7BWsSE13KM1P70R6BxBYMnyisFHXUPJw5Ef2LTsNmJ+h1xgDHTHHlwTVldoghumyT8AcSJCU4aV2PRYxCTpeQWVsI759wlYZ+t+snNWN0Oog=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778267841; c=relaxed/simple;
-	bh=GTUxtQBzUTRVyOkQ5bCBY1qoUmnSXalLGcYTrKbySWw=;
+	s=arc-20240116; t=1778267982; c=relaxed/simple;
+	bh=zcjVkFYefsLMo6GxyToLR7NRNRr/X8RrBP3ifnomebE=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=EUUg5rxpSk5A/jasJEwHO0rTlJRsxn9Ar0yRQ1BSCm2zNgr4Z+Za+bPdeH8uKnxVTs42h+bF4NXShlK/ckgbqicb3hSnkY6jP0K081Sr78G1UOvj23PMpjTqgsGpcF+jh9Ad79pPg+LK6A9UnmWKHfMdmf0nd+FchptEttmpW/Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bHlC6Dls; arc=none smtp.client-ip=10.30.226.201
+	 To:Cc:Content-Type; b=IAK53OCS6IsvwHZL5vg7kzplIC1cMhrB3x8MFdrkVbmn494g2JG0bzF+YuflTdm8wffUrAbQZV5Q27+ck3U0Fx1TO37KUhfzM3HfX55IEKNl+ZbE2itBFyXQTOLuV5RvGA3iNer5nRUOtlrhZTOpnL+wf2UEASUqO1OQree7kg4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VRPM9TAo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bHlC6Dls"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86035C2BCC9
-	for <linux-acpi@vger.kernel.org>; Fri,  8 May 2026 19:17:21 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VRPM9TAo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E83B9C2BCF5
+	for <linux-acpi@vger.kernel.org>; Fri,  8 May 2026 19:19:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778267841;
-	bh=GTUxtQBzUTRVyOkQ5bCBY1qoUmnSXalLGcYTrKbySWw=;
+	s=k20201202; t=1778267981;
+	bh=zcjVkFYefsLMo6GxyToLR7NRNRr/X8RrBP3ifnomebE=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=bHlC6DlsfTHrtrjQfzx09kZNMIIC9cs99yla8SjcvesJbtWg7JJgtSll4WnJOyLmm
-	 4BLlvsB9Neuqf+p8JVLY3UJ76IKbOjOHf17RNIKZ5rsIxAl3pNnypaJpl4Owesyyve
-	 y0DA9aJzKWbTDx/o2w1P4Jye3URBL4aNlSLsoYEepR9/jNARj4M7eB9FHyEg1yj8cV
-	 +bosyDFHtpxuQJhPZPMx07Up0/6OEyW5Uyf9kGMPOuFH5fDE9PVdNVxXS53FlVoW0R
-	 fHeqtJrgnDfIYlsGq6iSE6uZv7SdWH8EpLTbc1ku+U7zmp1idwMRaHtdkaPsQaUu+w
-	 6LoBrhDfp4s/Q==
-Received: by mail-lj1-f170.google.com with SMTP id 38308e7fff4ca-393a44854d2so17666631fa.3
-        for <linux-acpi@vger.kernel.org>; Fri, 08 May 2026 12:17:21 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AFNElJ8yKNRVnxCCMOGBHNNixZ51BnA3aInPX/TjUZ8aGkx5Pq6FgH1UA2dsX+t3nC9jg1vCIwiEpr50GL4X@vger.kernel.org
-X-Gm-Message-State: AOJu0YwO9ovjZq0NhPKuIw4q7jr0KdoUx6R7KrYktZ12rcP44fdtYjim
-	edzbM/HyLDc+ekh78JwzsvamwwpTIbUKVh/3PGecK+CZ6PN+6yRenI+NBCT4AAHZU/G6HqiYosK
-	Duu9ZaPl2a9XrY+MeYTcAdP8S4mTiNQI=
-X-Received: by 2002:a05:6512:3b0a:b0:5a8:a558:63b3 with SMTP id
- 2adb3069b0e04-5a8a5586493mr1944574e87.30.1778267839918; Fri, 08 May 2026
- 12:17:19 -0700 (PDT)
+	b=VRPM9TAowG+G2KAHJMHr42lsLQlHuiu3TnwZqO5LdccMNjjR7MbNSKgMCuXwtTrMz
+	 19Q1pEOPzEqGJftlVpqOmwdPwQqQUFmsrqYVRnJNjkzDfyu3VTzvaSzbaozSJwGHU/
+	 sdC1+07o5F8wAPCOo3JSpoub1WQuxpHOh2MXjbGi8RjMZ1+uzXaRlzvrDuc0Ju92ut
+	 taScqbmeo5nRLGigA4xjeb1M3rbAO3yWw3R86RC7wNG9nCa3yd2/ZMOuO6mb781A7Z
+	 QmOd+Z7KdXYVpa/wc/SaOTAp8zlPytXZzOCATi+dhxYACAL89wh3n788hzrTjDPo6Z
+	 P+b+z26pf2qCw==
+Received: by mail-lf1-f46.google.com with SMTP id 2adb3069b0e04-5a525aedb24so2302443e87.2
+        for <linux-acpi@vger.kernel.org>; Fri, 08 May 2026 12:19:41 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ8vbUNipzbj1s5dOseYRMA5Vq0z3w0EKHYI2czYFwG//WXAWC/5c2Rx4dqdTq4f84U6CByoT1aZFy7a@vger.kernel.org
+X-Gm-Message-State: AOJu0YxfDT+Cm34KLyKoQhDGR51tgGaqyWmYRTONW2DnILf3hC0EbqYg
+	l9C8tuoW89Ndv3JF0OQMd+48LlBAf7L1maBSxol8/TEy5cS9CR3NmpuBDzWxO9EdVjVfMV0ZyFg
+	27eFqyml4wsXr2MSJwuWKrsN9YGL9+80=
+X-Received: by 2002:a05:6512:1309:b0:5a8:64a4:3d8c with SMTP id
+ 2adb3069b0e04-5a887ce996amr5016467e87.28.1778267980347; Fri, 08 May 2026
+ 12:19:40 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260504230141.484743-1-mario.limonciello@amd.com>
- <20260504230141.484743-2-mario.limonciello@amd.com> <CAJZ5v0gBTxzkQU1EduyBNx2fCYfVU92XcNU8+AbSZziymBdJJw@mail.gmail.com>
- <8e2c9db5-fd24-43a2-af0c-cb2cb54f5102@amd.com>
-In-Reply-To: <8e2c9db5-fd24-43a2-af0c-cb2cb54f5102@amd.com>
+References: <20260505-acpi_spcr-v1-1-fd4bc6f4eb53@posteo.de>
+In-Reply-To: <20260505-acpi_spcr-v1-1-fd4bc6f4eb53@posteo.de>
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Fri, 8 May 2026 21:17:07 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0ima4+ieyE1Jem=PRpk1JgZvZQ2sZWBv43=ARWde8jipg@mail.gmail.com>
-X-Gm-Features: AVHnY4JZFJJu51VWW5Tu1Dk1TaZPavN065ies9bkFa_MR1S8lfvWyQQ5gLf3s2Y
-Message-ID: <CAJZ5v0ima4+ieyE1Jem=PRpk1JgZvZQ2sZWBv43=ARWde8jipg@mail.gmail.com>
-Subject: Re: [PATCH v2 1/5] Revert "ACPI: CPPC: Adjust debug messages in
- amd_set_max_freq_ratio() to warn"
-To: Mario Limonciello <mario.limonciello@amd.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, 
-	K Prateek Nayak <kprateek.nayak@amd.com>, x86@kernel.org, 
-	Kim Phillips <kim.phillips@amd.com>
+Date: Fri, 8 May 2026 21:19:28 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0jzgDgw1eMugtSPc7ceeTXUM17=3uUaVY8OBkV7nBLsvg@mail.gmail.com>
+X-Gm-Features: AVHnY4JhgRdkxZtY59U4Zn6NdRrVOx9sHHW5yhIgRGnM8hyFsLrg5l9w2SZJgDw
+Message-ID: <CAJZ5v0jzgDgw1eMugtSPc7ceeTXUM17=3uUaVY8OBkV7nBLsvg@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: SPCR: Support UART clock frequency field
+To: Markus Probst <markus.probst@posteo.de>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, May 8, 2026 at 9:09=E2=80=AFPM Mario Limonciello
-<mario.limonciello@amd.com> wrote:
+On Tue, May 5, 2026 at 9:36=E2=80=AFPM Markus Probst <markus.probst@posteo.=
+de> wrote:
 >
+> The Microsoft Serial Port Console Redirection (SPCR) specification
+> revision 1.08 comprises additional field: UART Clock Frequency [1].
 >
+> It contains a non-zero value indicating the UART clock frequency in Hz.
 >
-> On 5/8/26 14:04, Rafael J. Wysocki wrote:
-> > On Tue, May 5, 2026 at 1:01=E2=80=AFAM Mario Limonciello
-> > <mario.limonciello@amd.com> wrote:
-> >>
-> >> Some older systems don't support CPPC in the firmware and this just ma=
-kes
-> >> noise for them when booting.  Drop back to debug.
-> >>
-> >> This reverts commit 21fb59ab4b9767085f4fe1edbdbe3177fbb9ec97.
-> >>
-> >> Fixes: 21fb59ab4b976 ("ACPI: CPPC: Adjust debug messages in amd_set_ma=
-x_freq_ratio() to warn")
-> >> Suggested-by: Kim Phillips <kim.phillips@amd.com>
-> >> Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
-> >> ---
-> >>   arch/x86/kernel/acpi/cppc.c | 6 +++---
-> >>   1 file changed, 3 insertions(+), 3 deletions(-)
-> >>
-> >> diff --git a/arch/x86/kernel/acpi/cppc.c b/arch/x86/kernel/acpi/cppc.c
-> >> index d7c8ef1e354d3..be4c5e9e5ff6f 100644
-> >> --- a/arch/x86/kernel/acpi/cppc.c
-> >> +++ b/arch/x86/kernel/acpi/cppc.c
-> >> @@ -88,19 +88,19 @@ static void amd_set_max_freq_ratio(void)
-> >>
-> >>          rc =3D cppc_get_perf_caps(0, &perf_caps);
-> >>          if (rc) {
-> >> -               pr_warn("Could not retrieve perf counters (%d)\n", rc)=
-;
-> >> +               pr_debug("Could not retrieve perf counters (%d)\n", rc=
-);
-> >>                  return;
-> >>          }
-> >>
-> >>          rc =3D amd_get_boost_ratio_numerator(0, &numerator);
-> >>          if (rc) {
-> >> -               pr_warn("Could not retrieve highest performance (%d)\n=
-", rc);
-> >> +               pr_debug("Could not retrieve highest performance (%d)\=
-n", rc);
-> >>                  return;
-> >>          }
-> >>          nominal_perf =3D perf_caps.nominal_perf;
-> >>
-> >>          if (!nominal_perf) {
-> >> -               pr_warn("Could not retrieve nominal performance\n");
-> >> +               pr_debug("Could not retrieve nominal performance\n");
-> >>                  return;
-> >>          }
-> >>
-> >> --
-> >
-> > It looks like this could be applied without the rest of the series.
-> > Do you want me to do that?
+> Link: https://learn.microsoft.com/en-us/windows-hardware/drivers/serports=
+/serial-port-console-redirection-table [1]
+> Signed-off-by: Markus Probst <markus.probst@posteo.de>
+> ---
+>  drivers/acpi/spcr.c | 3 +++
+>  1 file changed, 3 insertions(+)
 >
-> Yeah; go ahead and pick this one up.  Thanks.
+> diff --git a/drivers/acpi/spcr.c b/drivers/acpi/spcr.c
+> index 73cb933fdc89..d80ad87efae0 100644
+> --- a/drivers/acpi/spcr.c
+> +++ b/drivers/acpi/spcr.c
+> @@ -220,6 +220,9 @@ int __init acpi_parse_spcr(bool enable_earlycon, bool=
+ enable_console)
+>         if (!baud_rate) {
+>                 snprintf(opts, sizeof(opts), "%s,%s,0x%llx", uart, iotype=
+,
+>                          table->serial_port.address);
+> +       } else if (table->header.revision >=3D 3 && table->uart_clk_freq)=
+ {
+> +               snprintf(opts, sizeof(opts), "%s,%s,0x%llx,%d,%u", uart, =
+iotype,
+> +                       table->serial_port.address, baud_rate, table->uar=
+t_clk_freq);
+>         } else {
+>                 snprintf(opts, sizeof(opts), "%s,%s,0x%llx,%d", uart, iot=
+ype,
+>                          table->serial_port.address, baud_rate);
+>
+> ---
 
-Done, thanks!
+Please have a look at the sashiko.dev feedback at
 
-> >
-> > Also, do I understand correctly that the rest of the series depends on
-> > Sumit's patch set at
-> >
-> > https://lore.kernel.org/all/20260430142430.755437-2-sumitg@nvidia.com/#=
-r
->
-> That's correct.
+https://sashiko.dev/#/patchset/20260505-acpi_spcr-v1-1-fd4bc6f4eb53%40poste=
+o.de
 
-OK, so changes are requested in that patchset and there will be a v3
-(at least), so please resend this one when the dependency is
-finalized.
+and let me know what you think.
