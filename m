@@ -1,220 +1,113 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5344CA45
-	for <linux-acpi@vger.kernel.org>; Fri,  8 May 2026 18:47:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17A6C4219FB
+	for <linux-acpi@vger.kernel.org>; Fri,  8 May 2026 19:01:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778266077; cv=none; b=j+Q/XRXXjaLOCtfXkmg5e6l+McEZape0dMgG7T/Qf4tAXaTcWeUWieQR8vDoEGpp43u7QMdHnoQ7DSZ9vLMvwNl5iohqgiz3xr+6UwL1dPhF0enaRRacoiV7EXRu8bHHLPtAbnyTepUdFFUrS1MKz8FiUh7a/sCGJk0dCE3s1zc=
+	t=1778266898; cv=none; b=u/eS5kgBG9LgubleNqIrR4E1twm8/RScWU+Y1JkqBUfohJEOUWwXhujLorlVTnikatWpXbJoSeYgfUlqxqirSPgFAehWo3kTE0u386fLBP5Voybo9WuRRr+GfUS4ooRoCtXF7f7UErZsTdntR7WpyjlQL+velkzP1fLGRPTi9zQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778266077; c=relaxed/simple;
-	bh=7jpoG7kUm+k+fpqP2bCJreu5zXQDZII0qcCjSs2ODLU=;
+	s=arc-20240116; t=1778266898; c=relaxed/simple;
+	bh=50SMXz4G7+Ucp6B0QXGQ4Eq9CUeIww16GU//taPwKuw=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=HEitg45oZJwyRdWsK5Xrx+WAM7k0bcw6sHiu872Yg/C1r077nLVHOC8i0Bi8pb8uc9istgKEKEHvjkzN5RkAayqqCAkPfQiPZq12xvSAPBBcQRh2aumTCqf2SYY2jqlCeuk9hubd9STbyUKL7BJcQIOJrGda4Nh9Jjmu/1ld7Jc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=d2dWVDH8; arc=none smtp.client-ip=10.30.226.201
+	 To:Cc:Content-Type; b=VvjqkyjsE0DKKZrjOITSqF1vXd7iycJXphZSQfpuz6sWiBItvlNq9ZjWCLNK5muRg30e0NA8Tdc38y3M4lV3ly39qIzLz3wRx+JKREbglAhOyoooK2Md3pw/0WkNoz/+RZsUyvAuoXenjmCqQMxHspXPAhi5R1thpRn9SIsSOaA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kMxjnNKD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="d2dWVDH8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C4F0C2BCF4
-	for <linux-acpi@vger.kernel.org>; Fri,  8 May 2026 18:47:57 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kMxjnNKD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDD57C2BCF6
+	for <linux-acpi@vger.kernel.org>; Fri,  8 May 2026 19:01:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778266077;
-	bh=7jpoG7kUm+k+fpqP2bCJreu5zXQDZII0qcCjSs2ODLU=;
+	s=k20201202; t=1778266897;
+	bh=50SMXz4G7+Ucp6B0QXGQ4Eq9CUeIww16GU//taPwKuw=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=d2dWVDH8VGMfzunN1nwLfstC7kJIIV8/giCrtjdmnNuNwYFUCqtYarUtJ/+StKtQS
-	 lo0ogd5ajyiTjeh1d/bD932VSvJNsmpRPf2vgyKBN9nPPSOKaRyNrMG1+7epK1OXX3
-	 5FSM9pRMf2WSMELSUgOnrQLzHBJdt/A8Sly+o9H7z45HpTaV5MVodPWZbwwG4eThS7
-	 z5u10urD/8opaoVB1yUEaowna+UXEQPvr2oaSNqW9+SK1tH+BHObtXVPFFC4nGVHe3
-	 E0ara+LLS/30O94IePOKt/tsaSNWDD6H5Ongr+kBqFWZOT4xhbW9Y2Zso1ZPxFzmVo
-	 75llra0R6ldZw==
-Received: by mail-lf1-f41.google.com with SMTP id 2adb3069b0e04-5a865d1547aso3193062e87.1
-        for <linux-acpi@vger.kernel.org>; Fri, 08 May 2026 11:47:57 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AFNElJ8G49kS7xk0//8+jG81218TtTReNxL15/o1KRxne65Sy4YaQIah3I2mnaHa9oR189nzLwwddK8cj/u/@vger.kernel.org
-X-Gm-Message-State: AOJu0YzQsRxBhtKacXGDKy0qQ+7/vmfICL4g03wJjgmFbqEA5txioyN0
-	jSYytdILyRToYUnR5SfvbPf9cMRJn2n7y6NJUOXQdut7pF+b3l/GtKr+9/mezJFqD48jRHJ+h42
-	6jocOWZG/q9MclGKMp+AjCFyjiAXKKpc=
-X-Received: by 2002:a05:6512:308e:b0:5a8:8814:5662 with SMTP id
- 2adb3069b0e04-5a899b8fc0emr3746893e87.4.1778266075925; Fri, 08 May 2026
- 11:47:55 -0700 (PDT)
+	b=kMxjnNKDNACcMoFB78LDcCOzWocwxbYqW5h8W+x0prfhCo9EhQzA4IjE6AGd3Yoma
+	 X+mJYXfcP26r4yDsMW/LFG3NjcuzR5PDVg/ZI7Ps9bHnVLCM8sA34XmAqNa36iniC2
+	 g9Hj6E7V123CGeFBplW9SYyoLrX3Klhj1RsYp8TTNp7BkNd67gz7e/KBD1N1sq7cIH
+	 g4Y81Qg5JNa5NmQzoenA4W9H5XpwnpwCe+edWPxcSwB/r4sqlduXjsPWEFl2HGL8K3
+	 iRbODU7TfhB54BLvpIwmwl3pRJIjsGx3dVBHIopXePVVhVQPl8Xj5LBOLHkOAsq3Td
+	 aUkAl59YGfV3g==
+Received: by mail-lf1-f51.google.com with SMTP id 2adb3069b0e04-5a887ebb416so2287439e87.2
+        for <linux-acpi@vger.kernel.org>; Fri, 08 May 2026 12:01:37 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ/1k/sZjPApEUZHIZnU8InPOiARYQy9/uTqAJrkm7+0jKTjW4e36RNVw/0T7ZSCy2Sptt4H358hao4M@vger.kernel.org
+X-Gm-Message-State: AOJu0Yzf6lMssH7kXCPP4nWf3AZRn3uzS0KKwCm+pDSFxs0+ZM8glP6g
+	K03Kuse70swplv0SQA7zhm0N76hbdSismE8HFSctwCJ5A93I7cj8TOg28XCyASvxJRbJxITqj5D
+	KQDwh+8mk/bqHpaYdwdxzg5mYYYvv/S0=
+X-Received: by 2002:a05:6512:1095:b0:5a4:4ea:9977 with SMTP id
+ 2adb3069b0e04-5a887adac13mr6102930e87.8.1778266896242; Fri, 08 May 2026
+ 12:01:36 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260427131825.15793-1-bartosz.golaszewski@oss.qualcomm.com>
-In-Reply-To: <20260427131825.15793-1-bartosz.golaszewski@oss.qualcomm.com>
+References: <20260430142430.755437-1-sumitg@nvidia.com>
+In-Reply-To: <20260430142430.755437-1-sumitg@nvidia.com>
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Fri, 8 May 2026 20:47:44 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0jAiM03j57MSgjxz-yO2_a7JngfG6F35V2Yxs0GMmq1_w@mail.gmail.com>
-X-Gm-Features: AVHnY4JOQ5kSDJUQvKVr0nREtX0aKgzABMTYh_cjR2bJqKcjyBvdhQnAqI0U6tM
-Message-ID: <CAJZ5v0jAiM03j57MSgjxz-yO2_a7JngfG6F35V2Yxs0GMmq1_w@mail.gmail.com>
-Subject: Re: [PATCH v2] software node: provide wrappers around kobject_get/put()
-To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Daniel Scally <djrscally@gmail.com>, 
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
-	Sakari Ailus <sakari.ailus@linux.intel.com>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
-	Danilo Krummrich <dakr@kernel.org>, linux-acpi@vger.kernel.org, driver-core@lists.linux.dev, 
-	linux-kernel@vger.kernel.org, brgl@kernel.org
+Date: Fri, 8 May 2026 21:01:22 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0gCSPjnxE2Vd+Py14ENJ6U46KBQVHiBetLfEKGybtDh8g@mail.gmail.com>
+X-Gm-Features: AVHnY4KDNOdtryvfMGgDj_cDqWpBdpyIVcpUjhjZQjhE5vuQhaFeqwKRZcl3OjE
+Message-ID: <CAJZ5v0gCSPjnxE2Vd+Py14ENJ6U46KBQVHiBetLfEKGybtDh8g@mail.gmail.com>
+Subject: Re: [PATCH v2 0/2] ACPI: CPPC: Add CPPC v4 support (ACPI 6.6)
+To: Sumit Gupta <sumitg@nvidia.com>
+Cc: rafael@kernel.org, viresh.kumar@linaro.org, lenb@kernel.org, 
+	pierre.gondois@arm.com, zhenglifeng1@huawei.com, zhanjie9@hisilicon.com, 
+	mario.limonciello@amd.com, saket.dumbre@intel.com, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, 
+	acpica-devel@lists.linux.dev, treding@nvidia.com, jonathanh@nvidia.com, 
+	vsethi@nvidia.com, ksitaraman@nvidia.com, sanjayc@nvidia.com, 
+	bbasu@nvidia.com
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Apr 27, 2026 at 3:18=E2=80=AFPM Bartosz Golaszewski
-<bartosz.golaszewski@oss.qualcomm.com> wrote:
+On Thu, Apr 30, 2026 at 4:25=E2=80=AFPM Sumit Gupta <sumitg@nvidia.com> wro=
+te:
 >
-> Make the code more readable by avoid constant dereferencing of the
-> swnode's kobject when managing references. Provide wrappers that take
-> struct swnode * as argument and make them hide that logic.
+> Add initial kernel support for CPPC v4 (ACPI 6.6, Section 8.4.6),
+> which extends the _CPC package from 23 to 25 entries with two
+> optional fields:
 >
-> Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+>   - OSPM Nominal Performance (8.4.6.1.2.6): register used by OSPM
+>     to tell the platform what it considers nominal. The platform
+>     classifies performance above this as boost and below as
+>     throttle for power/thermal decisions.
+>
+>   - Resource Priority (8.4.6.1.2.7): Package of Resource Priority
+>     Register Descriptor sub-packages. Full parsing is not yet
+>     implemented; such entries are marked as unsupported.
+>
+> Patch 1: Add v4 _CPC parsing - validate the 25-entry layout,
+> handle the Resource Priority package, and mark the two new
+> registers optional.
+>
+> Patch 2: Add acpi_cppc/ospm_nominal_perf as a read-write sysfs
+> attribute, and initialize it to the platform nominal value
+> during cppc_cpufreq policy init.
+>
 > ---
-> Changes in v2:
-> - Make swnode_get() return the address of the swnode whose refcount it
->   bumps and use that fact in software_node_get()
-
-No issues found, so
-
-Reviewed-by: Rafael J. Wysocki (Intel) <rafael@kernel.org>
-
->  drivers/base/swnode.c | 40 ++++++++++++++++++++++++----------------
->  1 file changed, 24 insertions(+), 16 deletions(-)
+> v1[1] -> v2:
+> - Patch 1: added Reviewed-by from Mario Limonciello.
+> - Patch 2:
+>   - Make ospm_nominal_perf sysfs read-write; cache last write in
+>     cpc_desc and skip redundant register writes.
+>   - Validate input in cppc_set_ospm_nominal_perf.
 >
-> diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
-> index a19f8f722bc8e..869228a65cb36 100644
-> --- a/drivers/base/swnode.c
-> +++ b/drivers/base/swnode.c
-> @@ -374,20 +374,28 @@ EXPORT_SYMBOL_GPL(property_entries_free);
->  /* ---------------------------------------------------------------------=
------ */
->  /* fwnode operations */
+> Sumit Gupta (2):
+>   ACPI: CPPC: Add support for CPPC v4
+>   ACPI: CPPC: Add ospm_nominal_perf support
 >
-> -static struct fwnode_handle *software_node_get(struct fwnode_handle *fwn=
-ode)
-> +static struct swnode *swnode_get(struct swnode *swnode)
->  {
-> -       struct swnode *swnode =3D to_swnode(fwnode);
-> -
->         kobject_get(&swnode->kobj);
+>  drivers/acpi/cppc_acpi.c       | 93 +++++++++++++++++++++++++++++++---
+>  drivers/cpufreq/cppc_cpufreq.c | 10 ++++
+>  include/acpi/cppc_acpi.h       | 14 ++++-
+>  3 files changed, 109 insertions(+), 8 deletions(-)
 >
-> +       return swnode;
-> +}
-> +
-> +static void swnode_put(struct swnode *swnode)
-> +{
-> +       kobject_put(&swnode->kobj);
-> +}
-> +
-> +static struct fwnode_handle *software_node_get(struct fwnode_handle *fwn=
-ode)
-> +{
-> +       struct swnode *swnode =3D swnode_get(to_swnode(fwnode));
-> +
->         return &swnode->fwnode;
->  }
->
->  static void software_node_put(struct fwnode_handle *fwnode)
->  {
-> -       struct swnode *swnode =3D to_swnode(fwnode);
-> -
-> -       kobject_put(&swnode->kobj);
-> +       swnode_put(to_swnode(fwnode));
->  }
->
->  static bool software_node_property_present(const struct fwnode_handle *f=
-wnode,
-> @@ -493,7 +501,7 @@ software_node_get_named_child_node(const struct fwnod=
-e_handle *fwnode,
->
->         list_for_each_entry(child, &swnode->children, entry) {
->                 if (!strcmp(childname, kobject_name(&child->kobj))) {
-> -                       kobject_get(&child->kobj);
-> +                       swnode_get(child);
->                         return &child->fwnode;
->                 }
->         }
-> @@ -737,7 +745,7 @@ software_node_find_by_name(const struct software_node=
- *parent, const char *name)
->                 swnode =3D kobj_to_swnode(k);
->                 if (parent =3D=3D swnode->node->parent && swnode->node->n=
-ame &&
->                     !strcmp(name, swnode->node->name)) {
-> -                       kobject_get(&swnode->kobj);
-> +                       swnode_get(swnode);
->                         break;
->                 }
->                 swnode =3D NULL;
-> @@ -835,13 +843,13 @@ swnode_register(const struct software_node *node, s=
-truct swnode *parent,
->                                            parent ? &parent->kobj : NULL,
->                                            "node%d", swnode->id);
->         if (ret) {
-> -               kobject_put(&swnode->kobj);
-> +               swnode_put(swnode);
->                 return ERR_PTR(ret);
->         }
->
->         /*
->          * Assign the flag only in the successful case, so
-> -        * the above kobject_put() won't mess up with properties.
-> +        * the above swnode_put() won't mess up with properties.
->          */
->         swnode->allocated =3D allocated;
->
-> @@ -978,7 +986,7 @@ void fwnode_remove_software_node(struct fwnode_handle=
- *fwnode)
->         if (!swnode)
->                 return;
->
-> -       kobject_put(&swnode->kobj);
-> +       swnode_put(swnode);
->  }
->  EXPORT_SYMBOL_GPL(fwnode_remove_software_node);
->
-> @@ -1002,7 +1010,7 @@ int device_add_software_node(struct device *dev, co=
-nst struct software_node *nod
->
->         swnode =3D software_node_to_swnode(node);
->         if (swnode) {
-> -               kobject_get(&swnode->kobj);
-> +               swnode_get(swnode);
->         } else {
->                 ret =3D software_node_register(node);
->                 if (ret)
-> @@ -1044,7 +1052,7 @@ void device_remove_software_node(struct device *dev=
-)
->                 software_node_notify_remove(dev);
->
->         set_secondary_fwnode(dev, NULL);
-> -       kobject_put(&swnode->kobj);
-> +       swnode_put(swnode);
->  }
->  EXPORT_SYMBOL_GPL(device_remove_software_node);
->
-> @@ -1097,7 +1105,7 @@ void software_node_notify(struct device *dev)
->         if (!swnode)
->                 return;
->
-> -       kobject_get(&swnode->kobj);
-> +       swnode_get(swnode);
->         ret =3D sysfs_create_link(&dev->kobj, &swnode->kobj, "software_no=
-de");
->         if (ret)
->                 return;
-> @@ -1119,11 +1127,11 @@ void software_node_notify_remove(struct device *d=
-ev)
->
->         sysfs_remove_link(&swnode->kobj, dev_name(dev));
->         sysfs_remove_link(&dev->kobj, "software_node");
-> -       kobject_put(&swnode->kobj);
-> +       swnode_put(swnode);
->
->         if (swnode->managed) {
->                 set_secondary_fwnode(dev, NULL);
-> -               kobject_put(&swnode->kobj);
-> +               swnode_put(swnode);
->         }
->  }
+> [1] https://lore.kernel.org/lkml/20260427051823.280419-1-sumitg@nvidia.co=
+m/
 >
 > --
-> 2.47.3
->
+
+Can you please see the sashiko.dev feedback on this set:
+
+https://sashiko.dev/#/patchset/20260430142430.755437-1-sumitg%40nvidia.com
+
+and let me know what you think?  Especially regarding the second patch?
