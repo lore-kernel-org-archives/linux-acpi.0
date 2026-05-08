@@ -1,235 +1,211 @@
-Received: from out30-112.freemail.mail.aliyun.com (out30-112.freemail.mail.aliyun.com [115.124.30.112])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09AD03845C4;
-	Fri,  8 May 2026 08:20:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.112
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 8FB5A2DAFA9;
+	Fri,  8 May 2026 10:21:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778228445; cv=none; b=dvrn+p8CUxlHWxvRPmFiaHNw3uOjjhOO1SjKHckeEvzRjvhAK0ORcAYjhCVuLabiUx7cdXjbAhCBdgH5Uc6mICVbksuDkJlJOhB42o5g0iGYB7CrwrAiLtdLpFFcWE/d+2eSXg68UCwR/rynPK2kLQVOYqn3duyBDA1HdZfA4c4=
+	t=1778235692; cv=none; b=gQjXCx0wk9bAMmySHPh3vdWbC3eCmmASsd1g8zUNwmj62RPtdv5F9bEwIcrziAczX14JcJRGL7Sj5wunpjgRXl4wI/urbTQrPu6+UpTaovQCryvl8b3U6EmdFQJPXbOFOyed+iR1fui1+4jrHwn6TRIhgHr8xHs6yj56CzeLVJM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778228445; c=relaxed/simple;
-	bh=DdTUDZpQZBodq+Jsf2rbL/+2JWxAwch78X6dd8N6dhw=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=XJURNn7LUhqtonqsx44BMBqe38Jrbe0gWIXrlCczuax+Lq/xzdz7q66Jw3v/CYe0KR8VX0FvgOE/waNDnrfWFSkpV4uD8RiPmDdqCg4e4owbelxtrR4a9EO7mzPxgc/JHl/rRK2VAJGTuyN+frpJLxdMoua5w3IKF9TsIfR04k0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=lWUtowmF; arc=none smtp.client-ip=115.124.30.112
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+	s=arc-20240116; t=1778235692; c=relaxed/simple;
+	bh=oPupvqWJ0GwO+YvPgf2njzvz2yfMTQZ//f9TQ35sTbA=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=CO7RomeuuW77od1aE/OEtA/EIkm5y/KXthjJ1VWtP/b2g835uDiAfEPQ0LtDUhzO/ZnxvUOaXnSiK2G4CQRaw3syQJQg1OovpVMnlsFI//ETH1C5+ye9MiE7XfBJIMDRNR9kApaX5L8CbWsJZRARIgle/2Qgajbf2mHjT9diz3k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=YcRoMlN7; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="lWUtowmF"
-DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux.alibaba.com; s=default;
-	t=1778228435; h=From:To:Subject:Date:Message-ID:MIME-Version;
-	bh=hjnsD0ELdUzIO/JJbHc3X7gLpHKxXYAa5gL1Sp3NwVg=;
-	b=lWUtowmFSs7r/qfg38HLWSkNKhqcuj1BSUKnVhjj849HJbpCg296iYnkYLsqPRppjhrDqhGDU1ZaVcgoqwMusOGVwUh47JPCFsRUPyNo9QtvFYM0t5SbRfgu/yXrf9ucgPvC7r5ZB7v1csR85EtJ1adGzqff9/9bshfDHorNCXU=
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R111e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033045098064;MF=tianruidong@linux.alibaba.com;NM=1;PH=DS;RN=17;SR=0;TI=SMTPD_---0X2Wljyz_1778228432;
-Received: from localhost(mailfrom:tianruidong@linux.alibaba.com fp:SMTPD_---0X2Wljyz_1778228432 cluster:ay36)
-          by smtp.aliyun-inc.com;
-          Fri, 08 May 2026 16:20:34 +0800
-From: Ruidong Tian <tianruidong@linux.alibaba.com>
-To: pjw@kernel.org,
-	palmer@dabbelt.com,
-	aou@eecs.berkeley.edu,
-	alex@ghiti.fr,
-	rafael@kernel.org,
-	tony.luck@intel.com,
-	bp@alien8.de,
-	guohanjun@huawei.com,
-	mchehab@kernel.org,
-	xueshuai@linux.alibaba.com,
-	lenb@kernel.org,
-	saket.dumbre@intel.com
-Cc: linux-riscv@lists.infradead.org,
-	linux-kernel@vger.kernel.org,
-	linux-acpi@vger.kernel.org,
-	acpica-devel@lists.linux.dev,
-	Ruidong Tian <tianruidong@linux.alibaba.com>
-Subject: [PATCH 3/3] riscv: collect hardware error information via APEI on HEE
-Date: Fri,  8 May 2026 16:20:20 +0800
-Message-ID: <20260508082020.3368109-4-tianruidong@linux.alibaba.com>
-X-Mailer: git-send-email 2.43.7
-In-Reply-To: <20260508082020.3368109-1-tianruidong@linux.alibaba.com>
-References: <20260508082020.3368109-1-tianruidong@linux.alibaba.com>
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="YcRoMlN7"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 9341A1BCA;
+	Fri,  8 May 2026 03:21:18 -0700 (PDT)
+Received: from [10.1.196.46] (e134344.arm.com [10.1.196.46])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 418F33F763;
+	Fri,  8 May 2026 03:21:22 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1778235683; bh=oPupvqWJ0GwO+YvPgf2njzvz2yfMTQZ//f9TQ35sTbA=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=YcRoMlN79/DrdWDeyLFfoAkfFsj1WHMMbEWwzocwegPHBw9FyPKM32HFo6+gelmoO
+	 76O60oA8qy7ANB5qf53lmolVVelSPwCChegFwYpiKWA9em36eaqXzTgPy7wo5Ek08J
+	 ya5YkCQzl4t9z26+WDqymc3oKqqib0FnB5HGv4O0=
+Message-ID: <f12b8d73-7c8e-43e7-b9ce-d80a7c3f10c8@arm.com>
+Date: Fri, 8 May 2026 11:21:20 +0100
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Thunderbird Daily
+Subject: Re: [PATCH 1/5] arm_mpam: Parse the rest of the ACPI table
+To: Andre Przywara <andre.przywara@arm.com>,
+ Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo
+ <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>,
+ Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
+ "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+ James Morse <james.morse@arm.com>,
+ Reinette Chatre <reinette.chatre@intel.com>, Fenghua Yu <fenghuay@nvidia.com>
+Cc: Jonathan Cameron <jic23@kernel.org>, linux-acpi@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+References: <20260429141339.3171205-1-andre.przywara@arm.com>
+ <20260429141339.3171205-2-andre.przywara@arm.com>
+Content-Language: en-US
+From: Ben Horgan <ben.horgan@arm.com>
+In-Reply-To: <20260429141339.3171205-2-andre.przywara@arm.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-RISC-V already dispatches Hardware Error Exceptions through
-do_trap_hardware_error(), but the trap handler currently has no way to
-learn *what* went wrong: the user sees the offending task killed, or
-the kernel panic, with no diagnostic about the underlying hardware
-fault. No error record is logged, and the subsequent memory_failure()
-handling has no input.
+Hi Andre,
 
-There are two principal ways to obtain that information on HEE:
+On 4/29/26 15:13, Andre Przywara wrote:
+> From: James Morse <james.morse@arm.com>
+> 
+> The MPAM ACPI table lists the MPAM MSCs and indicates which resources
+> in the system they control. Not everything this table can describe is
+> supported by resctrl, e.g. memory-side-caches.
+> 
+> Add the additional table parsing to avoid reporting these as 'unknown'
+> to the MPAM driver. This allows class+component hierarchys to be built.
+> 
+> Until resctrl has support for any of these resources, users would be
+> in-kernel managers of a resource/PARTID or perf to query bandwidth
+> counters on a resource resctrl is unaware of.
 
-  1. Have firmware parse the platform error registers and hand the
-     kernel a CPER record through APEI / GHES.
-  2. Have the kernel read the error registers directly.
+Does this patch give us anything needed for MPAM-Fb? It seems to just add
+parsing for things we don't support in the MPAM driver.
 
-Option (2) is not yet viable on RISC-V: the architecture does not
-define a unified, mandatory layout for hardware error status
-registers across implementations, so there is nothing stable for
-common code to read. This patch therefore only implements option (1):
-collect hardware error information on HEE through the existing APEI /
-GHES path, mirroring how arm64 treats SEA.
+Thanks,
 
-Signed-off-by: Ruidong Tian <tianruidong@linux.alibaba.com>
----
- arch/riscv/include/asm/acpi.h |  2 ++
- arch/riscv/kernel/acpi.c      | 54 +++++++++++++++++++++++++++++++++++
- arch/riscv/kernel/traps.c     | 35 +++++++++++++++++++++--
- 3 files changed, 89 insertions(+), 2 deletions(-)
+Ben
 
-diff --git a/arch/riscv/include/asm/acpi.h b/arch/riscv/include/asm/acpi.h
-index aa889093f531..e4d18421063e 100644
---- a/arch/riscv/include/asm/acpi.h
-+++ b/arch/riscv/include/asm/acpi.h
-@@ -87,6 +87,7 @@ int acpi_get_riscv_isa(struct acpi_table_header *table,
- 
- void acpi_get_cbo_block_size(struct acpi_table_header *table, u32 *cbom_size,
- 			     u32 *cboz_size, u32 *cbop_size);
-+int apei_claim_hee(struct pt_regs *regs);
- #else
- static inline void acpi_init_rintc_map(void) { }
- static inline struct acpi_madt_rintc *acpi_cpu_get_madt_rintc(int cpu)
-@@ -104,6 +105,7 @@ static inline void acpi_get_cbo_block_size(struct acpi_table_header *table,
- 					   u32 *cbom_size, u32 *cboz_size,
- 					   u32 *cbop_size) { }
- 
-+static inline int apei_claim_hee(struct pt_regs *regs) { return -ENOENT; }
- #endif /* CONFIG_ACPI */
- 
- #ifdef CONFIG_ACPI_NUMA
-diff --git a/arch/riscv/kernel/acpi.c b/arch/riscv/kernel/acpi.c
-index 068e0b404b6f..77ad1e18a092 100644
---- a/arch/riscv/kernel/acpi.c
-+++ b/arch/riscv/kernel/acpi.c
-@@ -21,6 +21,9 @@
- #include <linux/of_fdt.h>
- #include <linux/pci.h>
- #include <linux/serial_core.h>
-+#include <linux/irq_work.h>
-+#include <linux/nmi.h>
-+#include <acpi/ghes.h>
- 
- int acpi_noirq = 1;		/* skip ACPI IRQ initialization */
- int acpi_disabled = 1;
-@@ -353,3 +356,54 @@ int acpi_get_cpu_uid(unsigned int cpu, u32 *uid)
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(acpi_get_cpu_uid);
-+
-+/*
-+ * Claim Hardware Error Exception as a firmware first notification.
-+ *
-+ * Used by RISC-V exception handler for hardware error processing.
-+ */
-+int apei_claim_hee(struct pt_regs *regs)
-+{
-+	int err = -ENOENT;
-+	unsigned long flags;
-+	bool return_to_irqs_enabled;
-+	bool need_nmi_ctx = !in_nmi();
-+
-+	if (!IS_ENABLED(CONFIG_ACPI_APEI_GHES))
-+		return err;
-+
-+	local_irq_save(flags);
-+
-+	/*
-+	 * Determine whether the interrupted context had IRQs enabled.
-+	 * This decides if we can run irq_work immediately after.
-+	 */
-+	return_to_irqs_enabled = false;
-+	if (regs)
-+		return_to_irqs_enabled = !regs_irqs_disabled(regs);
-+
-+	if (need_nmi_ctx)
-+		nmi_enter();
-+	err = ghes_notify_hee();
-+	if (need_nmi_ctx)
-+		nmi_exit();
-+
-+	/*
-+	 * APEI NMI-like notifications are deferred to irq_work. Unless
-+	 * we interrupted irqs-masked code, we can do that now.
-+	 */
-+	if (!err) {
-+		if (return_to_irqs_enabled) {
-+			__irq_enter();
-+			irq_work_run();
-+			__irq_exit();
-+		} else {
-+			pr_warn_ratelimited("APEI work queued but not completed");
-+			err = -EINPROGRESS;
-+		}
-+	}
-+
-+	local_irq_restore(flags);
-+	return err;
-+}
-+EXPORT_SYMBOL(apei_claim_hee);
-diff --git a/arch/riscv/kernel/traps.c b/arch/riscv/kernel/traps.c
-index 8c62c771a656..5ee0ac8b0745 100644
---- a/arch/riscv/kernel/traps.c
-+++ b/arch/riscv/kernel/traps.c
-@@ -22,6 +22,7 @@
- #include <linux/irq.h>
- #include <linux/kexec.h>
- #include <linux/entry-common.h>
-+#include <linux/acpi.h>
- 
- #include <asm/asm-prototypes.h>
- #include <asm/bug.h>
-@@ -161,8 +162,6 @@ asmlinkage __visible __trap_section void name(struct pt_regs *regs)		\
- 
- DO_ERROR_INFO(do_trap_unknown,
- 	SIGILL, ILL_ILLTRP, "unknown exception");
--DO_ERROR_INFO(do_trap_hardware_error,
--	SIGBUS, BUS_MCEERR_AR, "hardware error");
- DO_ERROR_INFO(do_trap_insn_misaligned,
- 	SIGBUS, BUS_ADRALN, "instruction address misaligned");
- DO_ERROR_INFO(do_trap_insn_fault,
-@@ -484,3 +483,35 @@ asmlinkage void handle_bad_stack(struct pt_regs *regs)
- 		wait_for_interrupt();
- }
- #endif
-+
-+static int claim_hardware_error(struct pt_regs *regs)
-+{
-+	if (IS_ENABLED(CONFIG_ACPI_APEI_HEE))
-+		return apei_claim_hee(regs);
-+	return -ENOENT;
-+}
-+
-+asmlinkage __visible __trap_section void do_trap_hardware_error(struct pt_regs *regs)
-+{
-+	if (user_mode(regs)) {
-+		irqentry_enter_from_user_mode(regs);
-+		local_irq_enable();
-+
-+		if (claim_hardware_error(regs))
-+			do_trap_error(regs, SIGBUS, BUS_MCEERR_AR,
-+				      regs->badaddr,
-+				      "Hardware Error Exception");
-+
-+		local_irq_disable();
-+		irqentry_exit_to_user_mode(regs);
-+	} else {
-+		irqentry_state_t state = irqentry_nmi_enter(regs);
-+
-+		claim_hardware_error(regs);
-+
-+		if (!fixup_exception(regs))
-+			die(regs, "Hardware Error Exception");
-+
-+		irqentry_nmi_exit(regs, state);
-+	}
-+}
--- 
-2.51.2.612.gdc70283dfc
+> 
+> Signed-off-by: James Morse <james.morse@arm.com>
+> Signed-off-by: Andre Przywara <andre.przywara@arm.com>
+> ---
+>  drivers/acpi/arm64/mpam.c | 91 +++++++++++++++++++++++++++++++++++++--
+>  1 file changed, 88 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/acpi/arm64/mpam.c b/drivers/acpi/arm64/mpam.c
+> index 84963a20c3e7..99c2bdbb3314 100644
+> --- a/drivers/acpi/arm64/mpam.c
+> +++ b/drivers/acpi/arm64/mpam.c
+> @@ -95,17 +95,51 @@ static void acpi_mpam_parse_irqs(struct platform_device *pdev,
+>  		res[(*res_idx)++] = DEFINE_RES_IRQ_NAMED(irq, "error");
+>  }
+>  
+> -static int acpi_mpam_parse_resource(struct mpam_msc *msc,
+> +#define UUID_MPAM_INTERCONNECT_TABLE		"fe2bd645-033b-49e6-9479-2e0b8b21d1cd"
+> +
+> +struct acpi_mpam_interconnect_descriptor_table {
+> +	u8	type_uuid[16];
+> +	u32	num_descriptors;
+> +};
+> +
+> +struct acpi_mpam_interconnect_descriptor {
+> +	u32	source_id;
+> +	u32	destination_id;
+> +	u8	link_type;
+> +	u8	reserved[3];
+> +};
+> +
+> +static int acpi_mpam_parse_resource(struct acpi_mpam_msc_node *tbl_msc,
+> +				    struct mpam_msc *msc,
+>  				    struct acpi_mpam_resource_node *res)
+>  {
+> +	struct acpi_mpam_interconnect_descriptor_table *tbl_int_tbl;
+> +	struct acpi_mpam_interconnect_descriptor *tbl_int;
+> +	guid_t int_tbl_uuid, spec_uuid;
+>  	int level, nid;
+>  	u32 cache_id;
+> +	off_t offset;
+>  
+> +	/*
+> +	 * Class IDs are somewhat arbitrary, but need to be co-ordinated.
+> +	 * 0-N are caches,
+> +	 * 64, 65: Interconnect, but ideally these would appear between the
+> +	 *     classes the controls are adjacent to.
+> +	 * 128: SMMU,
+> +	 * 192-192+level: Memory Side Caches, nothing checks that N is a
+> +	 *                small number.
+> +	 * 255: Memory Controllers
+> +	 *
+> +	 * ACPI devices would need a class id allocated based on the _HID.
+> +	 *
+> +	 * Classes that the mpam driver can't currently plumb into resctrl
+> +	 * are registered as UNKNOWN.
+> +	 */
+>  	switch (res->locator_type) {
+>  	case ACPI_MPAM_LOCATION_TYPE_PROCESSOR_CACHE:
+>  		cache_id = res->locator.cache_locator.cache_reference;
+>  		level = find_acpi_cache_level_from_id(cache_id);
+> -		if (level <= 0) {
+> +		if (level <= 0 || level >= 64) {
+>  			pr_err_once("Bad level (%d) for cache with id %u\n", level, cache_id);
+>  			return -EINVAL;
+>  		}
+> @@ -120,6 +154,57 @@ static int acpi_mpam_parse_resource(struct mpam_msc *msc,
+>  		}
+>  		return mpam_ris_create(msc, res->ris_index, MPAM_CLASS_MEMORY,
+>  				       MPAM_CLASS_ID_DEFAULT, nid);
+> +	case ACPI_MPAM_LOCATION_TYPE_SMMU:
+> +		return mpam_ris_create(msc, res->ris_index, MPAM_CLASS_UNKNOWN,
+> +				       128, res->locator.smmu_locator.smmu_interface);
+> +	case ACPI_MPAM_LOCATION_TYPE_MEMORY_CACHE:
+> +		cache_id = res->locator.mem_cache_locator.reference;
+> +		level = res->locator.mem_cache_locator.level;
+> +		if (192 + level >= 255) {
+> +			pr_err_once("Bad level for memory side cache with reference %u\n",
+> +				    cache_id);
+> +			return -EINVAL;
+> +		}
+> +
+> +		return mpam_ris_create(msc, res->ris_index, MPAM_CLASS_CACHE,
+> +				       192 + level, cache_id);
+> +
+> +	case ACPI_MPAM_LOCATION_TYPE_INTERCONNECT:
+> +		/* Find the descriptor table, and check it lands in the parent msc */
+> +		offset = res->locator.interconnect_ifc_locator.inter_connect_desc_tbl_off;
+> +		if (offset >= tbl_msc->length) {
+> +			pr_err_once("Bad offset for interconnect descriptor on msc %u\n",
+> +				    tbl_msc->identifier);
+> +			return -EINVAL;
+> +		}
+> +		tbl_int_tbl = ACPI_ADD_PTR(struct acpi_mpam_interconnect_descriptor_table,
+> +					   tbl_msc, offset);
+> +		guid_parse(UUID_MPAM_INTERCONNECT_TABLE, &spec_uuid);
+> +		import_guid(&int_tbl_uuid, tbl_int_tbl->type_uuid);
+> +		if (guid_equal(&spec_uuid, &int_tbl_uuid)) {
+> +			pr_err_once("Bad UUID for interconnect descriptor on msc %u\n",
+> +				    tbl_msc->identifier);
+> +			return -EINVAL;
+> +		}
+> +
+> +		offset += sizeof(*tbl_int_tbl);
+> +		offset += tbl_int_tbl->num_descriptors * sizeof(*tbl_int);
+> +		if (offset >= tbl_msc->length) {
+> +			pr_err_once("Bad num_descriptors for interconnect descriptor on msc %u\n",
+> +				    tbl_msc->identifier);
+> +			return -EINVAL;
+> +		}
+> +
+> +		tbl_int = ACPI_ADD_PTR(struct acpi_mpam_interconnect_descriptor,
+> +				       tbl_int_tbl, sizeof(*tbl_int_tbl));
+> +		cache_id = tbl_int->source_id;
+> +
+> +		/* Unknown link type? */
+> +		if (tbl_int->link_type != 0 && tbl_int->link_type == 1)
+> +			return 0;
+> +
+> +		return mpam_ris_create(msc, res->ris_index, MPAM_CLASS_UNKNOWN,
+> +				       64 + tbl_int->link_type, cache_id);
+>  	default:
+>  		/* These get discovered later and are treated as unknown */
+>  		return 0;
+> @@ -150,7 +235,7 @@ int acpi_mpam_parse_resources(struct mpam_msc *msc,
+>  			return -EINVAL;
+>  		}
+>  
+> -		err = acpi_mpam_parse_resource(msc, resource);
+> +		err = acpi_mpam_parse_resource(tbl_msc, msc, resource);
+>  		if (err)
+>  			return err;
+>  
 
