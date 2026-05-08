@@ -1,31 +1,30 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A484221DB3;
-	Fri,  8 May 2026 18:02:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 464642E9ED6;
+	Fri,  8 May 2026 18:02:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778263327; cv=none; b=NYgZVlMcB0Ycr1/XW/af03avs1piutNZEKa/H7oaQwjgOKZf4IiXK6ub5XfX/VcdaHtcROGVnrb8uMXVBKRYqpvVdjSb2EzTV4XxGuI52RABsp29mGB3t1YAA3+8SlrUBIrvgSx6DCACKVVZMeG1GhX9np+HLR8OoG/VtkgwLF0=
+	t=1778263331; cv=none; b=od6MernAFy+Y3esat4uf0XiLUNRyk9z3xHEp0nN/3n2QKnX4CirGm9wiwiZA/O7fBz+INEhixAIqrGx3wuQD9NNpbh/Xx91cwzl7KhGCgE+0ZvdDihkGIN1oUkg/mfmV28mZYMox/k/LAfSsSp8OVdVH7uqMr7UMWnLgVg4r6RI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778263327; c=relaxed/simple;
-	bh=uu0BnmfoBJMYfGn+9XrMXbqyei59QDGjBgLtDIRQXZA=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=amLF0/8rM5IRRXl1LZgz+AFqLLHV0MoFCW8pcR27tQudwqPQ0OMSqg7Z1y6NwaktByDAIqeQ9OJxv3yW1kB2rWW5gNC/Cvdcoh3RAuL6SGyDnsbQ6nmuxKekjYomzEpZY8bQdnETOF1DJ1kR2OGroDXkw2PU06lXwCPnAV552Xs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=N3sLI1By; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778263331; c=relaxed/simple;
+	bh=VwrKx6vrLciQY03HCA5btamEKhDOFQ+dbjukPU18hLo=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=mBOGe1c9tFDBHqvtmnv6ZRaAeKA7EUf0b1Ui5/r8IyQKls5kq+mg5jqgAYl4tP/S/DLed/to8Tnd+VDRXmBpGfD/aHjZrcmeSCuzOfYRJyBsc6ZLk9YxudQAlKnj8TFfKzcH6i0ohjBjiKalyX0RCyz12/DaGH2JMT6CYtn4HPU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Iy82qJXz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="N3sLI1By"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B808BC2BCB0;
-	Fri,  8 May 2026 18:02:04 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Iy82qJXz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4212C2BCB0;
+	Fri,  8 May 2026 18:02:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778263326;
-	bh=uu0BnmfoBJMYfGn+9XrMXbqyei59QDGjBgLtDIRQXZA=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=N3sLI1ByLhi84vhy+HowfwUJBZDj4RspZrEMbquEFZR5rAsvDiADWRRtpEDDoAP4S
-	 jsiqt077Eh2+TvzUdtb8l9TU+MYOni/Hv9Vkw8bfYhyFZ+/U1pmUQNOSBfrUOvBGXI
-	 TUdL34K3fDWYb/b8FofJhMd6pPFYqTQXwbHeOGjKHOKXg/cpyYHcc11aPDwuUStkQK
-	 aadsvHfavEnoc6iOdWU+eug80WlirYBYjCm3NfZDwdY+z46NXC9sO/kgWHX8A8rKh5
-	 An7Kmj0TVxi5oXEy30IcMptz80cb5dZ+SzVRRk6/dIf5VHlvDkGp2AVmRlt7/GdCma
-	 Yy4mmhQIvkDuQ==
+	s=k20201202; t=1778263330;
+	bh=VwrKx6vrLciQY03HCA5btamEKhDOFQ+dbjukPU18hLo=;
+	h=From:To:Cc:Subject:Date:From;
+	b=Iy82qJXzGMB2eUMfLPSYsOj7TvSRBU7sAtdE9K135bp8TRaJ0CJBazgQkxmWFr7Sp
+	 lo6vhOV+420HSiHeHzhySNM9Z5wK7qSu26yq6f3E/K6rnqYyDQpYY4Hacn1vAyTwY7
+	 4cLaLLsiNvVCCkpX888oIGopgSgCBO4Fp/r2GlDRGw6/u8wvuQgrhp6EvHfAbCYrgu
+	 yiwoyQ2gOaLJKn+P8ic2Z4edq/NpMHuZe5g9cr1u/gvH//PdueSay1VUHbIfTdvXb2
+	 f9gL/ngdrBf8Jo2J1BR/nl6gfFV8qwoxY4/8fc2BROHeMPb/zoXULzMVVjVh7W3WA1
+	 HewngfKpNHmfg==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: x86 Maintainers <x86@kernel.org>
 Cc: Ilpo =?ISO-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
@@ -34,12 +33,11 @@ Cc: Ilpo =?ISO-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
  Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>,
  Dave Hansen <dave.hansen@linux.intel.com>
 Subject:
- [PATCH v1 1/2] x86/platform/olpc: xo15: Drop wakeup source on driver removal
-Date: Fri, 08 May 2026 20:00:27 +0200
-Message-ID: <2069931.usQuhbGJ8B@rafael.j.wysocki>
+ [PATCH v1 0/2] x86/platform/olpc: xo15: Bind to a platform device instead of
+ an ACPI one
+Date: Fri, 08 May 2026 19:59:27 +0200
+Message-ID: <1868425.VLH7GnMWUR@rafael.j.wysocki>
 Organization: Linux Kernel Development
-In-Reply-To: <1868425.VLH7GnMWUR@rafael.j.wysocki>
-References: <1868425.VLH7GnMWUR@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -49,29 +47,34 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="UTF-8"
 
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Hi All,
 
-Prevent leaking a wakeup source object after removing the driver by
-adding appropriate cleanup code to its remove callback function.
+This series is part of a larger effort to switch over all drivers using
+the struct acpi_driver interface to the more common struct platform_driver
+interface and eliminate the former.  The background is explained in
+Documentation/driver-api/acpi/acpi-drivers.rst and in the changelog of
+the patch that introduced the above document:
 
-Fixes: a0f30f592d2d ("x86, olpc: Add XO-1.5 SCI driver")
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- arch/x86/platform/olpc/olpc-xo15-sci.c | 1 +
- 1 file changed, 1 insertion(+)
+https://lore.kernel.org/all/2396510.ElGaqSPkdT@rafael.j.wysocki/
 
-diff --git a/arch/x86/platform/olpc/olpc-xo15-sci.c b/arch/x86/platform/olpc/olpc-xo15-sci.c
-index 82c51b6ec528..276caf756a9c 100644
---- a/arch/x86/platform/olpc/olpc-xo15-sci.c
-+++ b/arch/x86/platform/olpc/olpc-xo15-sci.c
-@@ -186,6 +186,7 @@ static int xo15_sci_add(struct acpi_device *device)
- 
- static void xo15_sci_remove(struct acpi_device *device)
- {
-+	device_init_wakeup(&device->dev, false);
- 	acpi_disable_gpe(NULL, xo15_sci_gpe);
- 	acpi_remove_gpe_handler(NULL, xo15_sci_gpe, xo15_sci_gpe_handler);
- 	cancel_work_sync(&sci_work);
+The bottom line is that the kernel would be better off without struct
+acpi_driver and so it is better to get rid of it.
+
+This series carries out driver conversion of the x86 platform OLPC XO 1.5
+driver.
+
+Patch [1/2] fixes a possible wakeup source object leak on driver removal.
+
+Patch [2/2] converts the driver to using struct platform_driver for device
+binding.
+
+Off topic: I'm not really sure why the driver is there in arch/x86 because
+there really is nothing specific to x86 in it other than relying on some
+ACPI hardware to be present, but that's more about the platform than about
+the arch.  I guess it my as well be moved to platform/x86/ (there is one
+xo15-related driver in there already).
+
+Thanks!
 
 
 
