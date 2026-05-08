@@ -1,62 +1,62 @@
-Received: from mail-wm1-f45.google.com (mail-wm1-f45.google.com [209.85.128.45])
+Received: from mail-wm1-f49.google.com (mail-wm1-f49.google.com [209.85.128.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4158A349AEA
-	for <linux-acpi@vger.kernel.org>; Fri,  8 May 2026 06:17:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.45
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9ADC033FE02
+	for <linux-acpi@vger.kernel.org>; Fri,  8 May 2026 06:17:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778221082; cv=none; b=khQzSvIA90UpStxRU91AYdRAuN6jODGiYWCMeBztJV6Z3I4pyKvhNjOZLcPgikRXdamdxwrh+iEm56w8pldrbCDgopL9ISyf0p3O8XHDsKr4wYoBmrlE+6PQh4H/WmzcbUxikatql5mHt0M9AS1WCgGiWG8s4beHs6NKSR/sx1M=
+	t=1778221085; cv=none; b=ueZCNBIBf/WjnKKk04Ckygc28v+YWY5ewIyMKPuadgpUwWm3DpUZbsI+c130SeVNZGOq7O4vU+AuXCZh25J6YF37hIjp5KO1MoaeVVaSysbOVLMEjl2QRPuf1cHqAHCHbDBfEvWGxl5Ea2/u2Rwj/eFT9CPyCGkFf1EUrqjCc8I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778221082; c=relaxed/simple;
-	bh=du9luptkF1RMPunIoS83NkddF0URQJLyQE4jUAhjG3k=;
+	s=arc-20240116; t=1778221085; c=relaxed/simple;
+	bh=htgG8agL3qgdrhV6usqBHzQ8yuuUnR59c7IpqR6aYYY=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=rleFj73h8aCJ/mIEqGZF4YGsUdHQYHzgieXb1zEyr6NR6NZkEzlPSAN80c4W0dllO+hJzURFmSqAMOCyVoNUQws00Z9mHQ4bImG7Q5KPpGrTxGEofKzAmetBhCaE41MLLRYAQqTNS3FEzu8JwH6tuLOmoicooQ/2ap03u0ZAxEI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ecBLSQ9c; arc=none smtp.client-ip=209.85.128.45
+	 MIME-Version; b=eJ0SLM7DsnTn6HuBbFUU+x0ORyEfk5i7P41yjjmTH5AFGhaMbTgjZcR18dxVC/vCp4N5x2Rho1MVO5rQK92dLjULWAcOvWVp+G422vfi2Z9+6rVnUv1qXjeUPBTo2wNbL3qWhkq5MQY+Uuku/i5q+SRIxEUj02c4WNxP0x2CnUc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=AyS28LDH; arc=none smtp.client-ip=209.85.128.49
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ecBLSQ9c"
-Received: by mail-wm1-f45.google.com with SMTP id 5b1f17b1804b1-488b150559bso12324565e9.1
-        for <linux-acpi@vger.kernel.org>; Thu, 07 May 2026 23:17:58 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="AyS28LDH"
+Received: by mail-wm1-f49.google.com with SMTP id 5b1f17b1804b1-4852b81c73aso14604825e9.3
+        for <linux-acpi@vger.kernel.org>; Thu, 07 May 2026 23:17:55 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1778221071; x=1778825871; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1778221072; x=1778825872; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=4uJNehFBwWP73FrSYeNJ0QcPue1v1GrVxPAkYJ7F8Go=;
-        b=ecBLSQ9c9E9LN5q0HiJE5FftLfU/1lntaTDOdkzOiKTsuWPre3qo1BVdPbGq7RlGnB
-         fC4FUUZTXVfN+hMfwKHA5DfOB+30tegtvSS3l9AtfBsnN/GPRw69t7adUNa+pwRmGvmJ
-         QIZdN95WWH+NMa0JcYHmMWWSRY6O3vvgYIICWUEJYOhNmZxfy3mPdPSNyhzatDDPAuzC
-         ljBpLXCS8YgmTM7wfj0LQbDU7YHftaQ8jUCfiO+IGGBGz7aPZsLuPYQXhNfrHjQvd5I0
-         r67EZ3Mqk/UFhbPBzwTUB/sQvtOyZtITzXCBYE3dDe3+CUgBPa6GHzrkJ19x9xWOe45G
-         jC+A==
+        bh=kuh0TWbP7Q2PxqCNCqYvtEE1jwhkHwY8twT6/h1P3VM=;
+        b=AyS28LDHAL1+CprIFjF4DZxtxibzVwoBEReC/4UthEhmYO6nM0HMm7CQ41LAVTvBGu
+         RFZIKJpjI7ayh+EI9Um5M5ER0IMD9+80ja6sMFIO+I2tzZd2hxwvoj/POIXaTIVnr7Hx
+         RbZJcBwoTPoHoBQ6dNhn0YUHb8eGsU3SWJEVHSRCFM86D5DxWfxKIOcaI74x9UVyocuT
+         XXqW4d5mkEqTZO154+TFfqVU8Y09IENNP0KBUqFNLkrdlJHCp9It8rMVvwEXpT08ebik
+         UcssL2JT0zeIm+gnpN7JxFaHxhraDln0blTkC+FC01jUIFsA0ZULVhFgMdgs6iEsm/aj
+         IaUw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778221071; x=1778825871;
+        d=1e100.net; s=20251104; t=1778221072; x=1778825872;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=4uJNehFBwWP73FrSYeNJ0QcPue1v1GrVxPAkYJ7F8Go=;
-        b=HFQ1QcvAE9KItCoi7D3xbrsZRmKPtx6aKKnVp7t0bLZPevCwFipagBUrPy0iCWPTgW
-         K55qQeCwqoCpx1E0iSyvAPaoUiy//tbifATcQIMRvmXW4ffLU+35SuWDSF9mv26i21Mz
-         Vf1B6hN2tqHpGjf7rnhBNIbX6pU/3gdItOO8nnT3KhBocRA/pFHtWIdm+f7pgcV8sRmm
-         WcvxRMglnQULXstqrkrfnSqKdIQRLYN/r1uOtL1LaU+recbfDPYTJg1jvCDLg3dMm5F9
-         2EDxE0Vlf8I1DY9vPi66GHwEjlsZmNYE1aoZgY9jbq+VL90e5Ryd4qCeqtKxWZ5TuvA1
-         coQQ==
-X-Gm-Message-State: AOJu0YxCPWTZuywi18lOTASqMTQpYQ5/TfjZmN9aRbuCnM24PxIcPolY
-	lx1UMZoR6EJ0UuJmBuhrVxx9Dig+FHmpQf3HJ94a7ABYBunLDhuKgVCZh+yOejjyG4M=
-X-Gm-Gg: AeBDies9dP9RN0F5bgfZiTYQZAmlVqVRxYCdrXIqzq9OMVfgFAp0MtFrAKoFZ27LjfV
-	rqOBDqsc4FHCo4qfRaaUAd8CDhwyointrpXD28Zi3m6eO6dfAwCzg5ESu2mYI/RAyMUWGf+KVsW
-	9wVeah6r+XLAJ8TKET1R7ELn1UL3qbIrylhHYN7yeO+uiE/I+JCW0Jj20XRWgf+55603LaIKq8z
-	F8YodiOp573qIl9e2Zo1xtG8KwWcB7v/sfbd+s+E2kcMEoPiQX2OAhQqLQZpF+QqQ8M8zEJDKvz
-	0r+TzES7Wjqnn/mG24Ew0He5vw5ZWgPr+U7QlGTM7E9nuObEKjclITjo6Hwqlt88UmZIUU836Jb
-	xSoNk5dPGFzknu8FG2lPIaM8GvS07iChYJfIibanIuANhu8Z2VDNMbm9fl09hetZNuCdSeD15zc
-	Jm/FpxjAJp9cJiJG4=
-X-Received: by 2002:a05:600c:3ba8:b0:48a:7676:30bc with SMTP id 5b1f17b1804b1-48e52bd5035mr196450835e9.14.1778221071083;
-        Thu, 07 May 2026 23:17:51 -0700 (PDT)
+        bh=kuh0TWbP7Q2PxqCNCqYvtEE1jwhkHwY8twT6/h1P3VM=;
+        b=swiJX9vYVx/U/uKHj4mChTJPqiiL7oQVUlMrXUb/V4x+A/9YM48IPaXJjY5yXmWIYE
+         Rng5vIZdDKaWev7lji+gDIVcjVUwuF7gwYXOIkk3MVH1wsjp8Y1SVsGjh3Lgys5CN0HO
+         PC/IPWa7yKXkKYimTkrmYNbtIivyIWLdB6qH5/wXu6ZtPu2035BCBo+QQMn+0rqySdFu
+         WB8TSS9Xh4js2pL/EamCLzh9ULeIDbVTRv4JRLkiYcpKCN6+rsje0hC4d4/2njS8pxsp
+         V63pmQelEKzefWvzFeWJUy1PlB0ormAt1yxxKmGEzwipMxIuSCd4NqL7v/NJ2lxC9cBm
+         4jwA==
+X-Gm-Message-State: AOJu0YyCO+nilIGTBG60YWLVOK8KyQeFrIefLT/jNDli7TvTsa3al9PG
+	UIYDmm7c0KirU7eHMKiTf3rLLs8CRF17IzVwexMmWvEMmoOvkTYSVaf+
+X-Gm-Gg: AeBDies5XJNluQkkDZNObDqcB5pO6UVJNQ4t6R0E04eo6ngmIvxE0cH96EcJ15Q8hVt
+	qTg8/9IJfavvIdwTqPeNa3dnnL5L9FPNRvsJEzoT0lVQPD6zV0IUrCcYnHWbS4j2azA5fcks6LQ
+	ckymkuGs62U1MEeXJQKywtpSvtnY0e9IfgDLFxLgUcbG6kjJ9cwamY73tDZ4Fl/IiaYO2LtnK0b
+	aBqm4q2TeOrXKA7ZmRgYC9SBD6OHQpt8RB9qsfYPVTbUiJC93czk/zI/ttWlTq7+fLcypIiK4/l
+	qL4rEGxLA/Yz3WLyLD5lNE6zz2D+KakRisa5d1apAK7mDsHIi2TBSNyoES+G1KyrNNJMZCrzE13
+	mnsZaNLXO5TA3F7AqDReFuJNNivh/hoFXJKrm0IlSONz3jPtl/rmVDVzxbhWhxGcHt/29l+06Rl
+	8XcdcpcCZ/UCJV/Vg=
+X-Received: by 2002:a05:600c:4512:b0:488:ac01:72b6 with SMTP id 5b1f17b1804b1-48e51f3a538mr171437455e9.21.1778221072181;
+        Thu, 07 May 2026 23:17:52 -0700 (PDT)
 Received: from ROG ([2a01:e11:202b:40:68b1:8d59:e348:c16e])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-48e68f5d48fsm11251175e9.14.2026.05.07.23.17.50
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-48e68f5d48fsm11251175e9.14.2026.05.07.23.17.51
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 07 May 2026 23:17:50 -0700 (PDT)
+        Thu, 07 May 2026 23:17:51 -0700 (PDT)
 From: Marco Scardovi <mscardovi95@gmail.com>
 To: andriy.shevchenko@intel.com
 Cc: linux-acpi@vger.kernel.org,
@@ -65,9 +65,9 @@ Cc: linux-acpi@vger.kernel.org,
 	mathias.nyman@intel.com,
 	mika.westerberg@intel.com,
 	Marco Scardovi <mscardovi95@gmail.com>
-Subject: [PATCH v4 1/6] ACPI: Move DEFINE_FREE(acpi_free) to global header
-Date: Fri,  8 May 2026 08:17:24 +0200
-Message-ID: <20260508061729.9530-2-mscardovi95@gmail.com>
+Subject: [PATCH v4 2/6] gpiolib: Move DEFINE_FREE(free_gpio_desc) to driver header
+Date: Fri,  8 May 2026 08:17:25 +0200
+Message-ID: <20260508061729.9530-3-mscardovi95@gmail.com>
 X-Mailer: git-send-email 2.54.0
 In-Reply-To: <20260508061729.9530-1-mscardovi95@gmail.com>
 References: <afzlsRkyKQzuUcgL@ashevche-desk.local>
@@ -80,29 +80,29 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Introduce DEFINE_FREE(acpi_free) in include/linux/acpi.h to provide
-a standard way to perform automated memory deallocation for ACPI
-objects. This enables the use of the __free(acpi_free) attribute
-wherever ACPI_FREE() is required.
+Define the free_gpio_desc cleanup handler in include/linux/gpio/driver.h.
+This allows drivers to use the __free(free_gpio_desc) attribute for
+automated deallocation of GPIO descriptors obtained via
+gpiochip_request_own_desc().
 
 Signed-off-by: Marco Scardovi <mscardovi95@gmail.com>
 ---
- include/linux/acpi.h | 2 ++
+ include/linux/gpio/driver.h | 2 ++
  1 file changed, 2 insertions(+)
 
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 67effb91fa98..f58e704ee850 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -234,6 +234,8 @@ static inline struct acpi_table_header *acpi_get_table_pointer(char *signature,
- }
- DEFINE_FREE(acpi_put_table, struct acpi_table_header *, if (!IS_ERR_OR_NULL(_T)) acpi_put_table(_T))
+diff --git a/include/linux/gpio/driver.h b/include/linux/gpio/driver.h
+index 17511434ed07..7ee65b49056d 100644
+--- a/include/linux/gpio/driver.h
++++ b/include/linux/gpio/driver.h
+@@ -807,6 +807,8 @@ struct gpio_desc *gpiochip_request_own_desc(struct gpio_chip *gc,
+ 					    enum gpiod_flags dflags);
+ void gpiochip_free_own_desc(struct gpio_desc *desc);
  
-+DEFINE_FREE(acpi_free, void *, if (_T) ACPI_FREE(_T))
++DEFINE_FREE(free_gpio_desc, struct gpio_desc *, if (!IS_ERR_OR_NULL(_T)) gpiochip_free_own_desc(_T))
 +
- int acpi_table_parse(char *id, acpi_tbl_table_handler handler);
- int __init_or_acpilib acpi_table_parse_entries(char *id,
- 		unsigned long table_size, int entry_id,
+ struct gpio_desc *
+ gpio_device_get_desc(struct gpio_device *gdev, unsigned int hwnum);
+ 
 -- 
 2.54.0
 
