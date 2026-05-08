@@ -1,196 +1,220 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB3363F2113
-	for <linux-acpi@vger.kernel.org>; Fri,  8 May 2026 18:45:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5344CA45
+	for <linux-acpi@vger.kernel.org>; Fri,  8 May 2026 18:47:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778265900; cv=none; b=DpZsb15HkOsSX2QbRABDU+WOXu1RhBRQ59n8pdeoPFNoie+SypRz+cY9wfK5TiFOPfuokwKn6YZYdYGuCy/BGd3+whBtZQYSIQiETQS0vijEdIUp1R6BvKkQiSFTV6Ba+gWFCybxUPzMmuzYlD5NrLszG4/aDvfl8vArKcSmL0g=
+	t=1778266077; cv=none; b=j+Q/XRXXjaLOCtfXkmg5e6l+McEZape0dMgG7T/Qf4tAXaTcWeUWieQR8vDoEGpp43u7QMdHnoQ7DSZ9vLMvwNl5iohqgiz3xr+6UwL1dPhF0enaRRacoiV7EXRu8bHHLPtAbnyTepUdFFUrS1MKz8FiUh7a/sCGJk0dCE3s1zc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778265900; c=relaxed/simple;
-	bh=MelbRQlPSpb9U3QB2o/axJ+pkJp6b84ioVzzm3YW6R8=;
+	s=arc-20240116; t=1778266077; c=relaxed/simple;
+	bh=7jpoG7kUm+k+fpqP2bCJreu5zXQDZII0qcCjSs2ODLU=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=QZvixMuaB3OYwXuTwhnszk4oWhxKvrCYNAsBEX75YRwNVirK0eCpy9R46LPVhqFRVYRwPUobzNg4n0u8rD3sVbkgFiK1ZniGU+4fi2sF3SSv/zb43HM1yswFAQPE28i+mV4vTJewNYdTPn2BqJnhERf1GPfV844PeMrBzUotgKM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VucPNMPL; arc=none smtp.client-ip=10.30.226.201
+	 To:Cc:Content-Type; b=HEitg45oZJwyRdWsK5Xrx+WAM7k0bcw6sHiu872Yg/C1r077nLVHOC8i0Bi8pb8uc9istgKEKEHvjkzN5RkAayqqCAkPfQiPZq12xvSAPBBcQRh2aumTCqf2SYY2jqlCeuk9hubd9STbyUKL7BJcQIOJrGda4Nh9Jjmu/1ld7Jc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=d2dWVDH8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VucPNMPL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35EA3C2BCC7
-	for <linux-acpi@vger.kernel.org>; Fri,  8 May 2026 18:45:00 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="d2dWVDH8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C4F0C2BCF4
+	for <linux-acpi@vger.kernel.org>; Fri,  8 May 2026 18:47:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778265900;
-	bh=MelbRQlPSpb9U3QB2o/axJ+pkJp6b84ioVzzm3YW6R8=;
+	s=k20201202; t=1778266077;
+	bh=7jpoG7kUm+k+fpqP2bCJreu5zXQDZII0qcCjSs2ODLU=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=VucPNMPLR+On7bZVEXwy2/ybRo+nuf/j8At3EzBj7SGdOY/J4HhXJoMK+dS1g6PTF
-	 nHVxWnjKnrZgJ8lcLLjX9qL/yzVLpemIluhllP470M7mNfWgBxmT7JwyFEbGTr/H9Y
-	 jIOEdFFVcIoCZ+aWzDRg3ay7bTnTHDyrBKlmXXHQ5Q8QS3MsYYTFqdvgkIXqMIGBi4
-	 OZNLLg09KMIlnCJcO6YOZ3DUk2dGITQs/ng1hecytDqsz7PQks42OPaNgB0/mBSDkd
-	 A/o1FNDYKRxyEsT5H6DhipCrMdl1PD807dK0c7O6ziVa3+pgnqRqphACGBA3ZQy9gW
-	 8cnvxdlsUtb6A==
-Received: by mail-lf1-f41.google.com with SMTP id 2adb3069b0e04-59e5aa4ca41so2301718e87.2
-        for <linux-acpi@vger.kernel.org>; Fri, 08 May 2026 11:45:00 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AFNElJ+P69riT1XyqfOyAasa6HaPCjQhCz/F6HJs6h0GDZUtVzSWqT0WyLXnH9Lj3ZhYVtxgC1h5HcPanANU@vger.kernel.org
-X-Gm-Message-State: AOJu0YyyuwCx4ktOU92DrV4WErkf3dRQQTHrBPUMwkAfraMRtk/eODi4
-	7ehuIAP4dKu6kdaYm3l0pDndHLa170xaSp8h/8UkBtg9s9mVRmqrcniKTxCPey8ABe1DNoxH96a
-	5WOP3L2MWYZBECFoQFy/qnV+IwehBCio=
-X-Received: by 2002:a05:6512:400f:b0:5a8:65d9:612f with SMTP id
- 2adb3069b0e04-5a887adfdc9mr3985974e87.4.1778265898555; Fri, 08 May 2026
- 11:44:58 -0700 (PDT)
+	b=d2dWVDH8VGMfzunN1nwLfstC7kJIIV8/giCrtjdmnNuNwYFUCqtYarUtJ/+StKtQS
+	 lo0ogd5ajyiTjeh1d/bD932VSvJNsmpRPf2vgyKBN9nPPSOKaRyNrMG1+7epK1OXX3
+	 5FSM9pRMf2WSMELSUgOnrQLzHBJdt/A8Sly+o9H7z45HpTaV5MVodPWZbwwG4eThS7
+	 z5u10urD/8opaoVB1yUEaowna+UXEQPvr2oaSNqW9+SK1tH+BHObtXVPFFC4nGVHe3
+	 E0ara+LLS/30O94IePOKt/tsaSNWDD6H5Ongr+kBqFWZOT4xhbW9Y2Zso1ZPxFzmVo
+	 75llra0R6ldZw==
+Received: by mail-lf1-f41.google.com with SMTP id 2adb3069b0e04-5a865d1547aso3193062e87.1
+        for <linux-acpi@vger.kernel.org>; Fri, 08 May 2026 11:47:57 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ8G49kS7xk0//8+jG81218TtTReNxL15/o1KRxne65Sy4YaQIah3I2mnaHa9oR189nzLwwddK8cj/u/@vger.kernel.org
+X-Gm-Message-State: AOJu0YzQsRxBhtKacXGDKy0qQ+7/vmfICL4g03wJjgmFbqEA5txioyN0
+	jSYytdILyRToYUnR5SfvbPf9cMRJn2n7y6NJUOXQdut7pF+b3l/GtKr+9/mezJFqD48jRHJ+h42
+	6jocOWZG/q9MclGKMp+AjCFyjiAXKKpc=
+X-Received: by 2002:a05:6512:308e:b0:5a8:8814:5662 with SMTP id
+ 2adb3069b0e04-5a899b8fc0emr3746893e87.4.1778266075925; Fri, 08 May 2026
+ 11:47:55 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <afzlsRkyKQzuUcgL@ashevche-desk.local> <20260508061729.9530-1-mscardovi95@gmail.com>
- <20260508061729.9530-6-mscardovi95@gmail.com>
-In-Reply-To: <20260508061729.9530-6-mscardovi95@gmail.com>
+References: <20260427131825.15793-1-bartosz.golaszewski@oss.qualcomm.com>
+In-Reply-To: <20260427131825.15793-1-bartosz.golaszewski@oss.qualcomm.com>
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Fri, 8 May 2026 20:44:47 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0iR-doMaHUhwonHj8byfim18ti0a=_9+4S5bsWR1Z=TXQ@mail.gmail.com>
-X-Gm-Features: AVHnY4LIjC8RhqNXALMWq0ecWGQV3YRMPJj1Mx018DKCGE3si5Oe8_bF8NLTRc8
-Message-ID: <CAJZ5v0iR-doMaHUhwonHj8byfim18ti0a=_9+4S5bsWR1Z=TXQ@mail.gmail.com>
-Subject: Re: [PATCH v4 5/6] gpio: acpi: use cleanup.h for automated resource deallocation
-To: Marco Scardovi <mscardovi95@gmail.com>
-Cc: andriy.shevchenko@intel.com, linux-acpi@vger.kernel.org, 
-	linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	mathias.nyman@intel.com, mika.westerberg@intel.com
+Date: Fri, 8 May 2026 20:47:44 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0jAiM03j57MSgjxz-yO2_a7JngfG6F35V2Yxs0GMmq1_w@mail.gmail.com>
+X-Gm-Features: AVHnY4JOQ5kSDJUQvKVr0nREtX0aKgzABMTYh_cjR2bJqKcjyBvdhQnAqI0U6tM
+Message-ID: <CAJZ5v0jAiM03j57MSgjxz-yO2_a7JngfG6F35V2Yxs0GMmq1_w@mail.gmail.com>
+Subject: Re: [PATCH v2] software node: provide wrappers around kobject_get/put()
+To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Daniel Scally <djrscally@gmail.com>, 
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Danilo Krummrich <dakr@kernel.org>, linux-acpi@vger.kernel.org, driver-core@lists.linux.dev, 
+	linux-kernel@vger.kernel.org, brgl@kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, May 8, 2026 at 8:18=E2=80=AFAM Marco Scardovi <mscardovi95@gmail.co=
-m> wrote:
+On Mon, Apr 27, 2026 at 3:18=E2=80=AFPM Bartosz Golaszewski
+<bartosz.golaszewski@oss.qualcomm.com> wrote:
 >
-> Refactor acpi_gpiochip_alloc_event() and acpi_gpio_adr_space_handler()
-> to use the __free() macro for GPIO descriptors and ACPI resources.
-> This simplifies error handling by removing manual cleanup calls and
-> reducing the need for goto labels.
+> Make the code more readable by avoid constant dereferencing of the
+> swnode's kobject when managing references. Provide wrappers that take
+> struct swnode * as argument and make them hide that logic.
 >
-> Signed-off-by: Marco Scardovi <mscardovi95@gmail.com>
+> Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
 > ---
->  drivers/gpio/gpiolib-acpi-core.c | 40 +++++++++++---------------------
->  1 file changed, 14 insertions(+), 26 deletions(-)
->
-> diff --git a/drivers/gpio/gpiolib-acpi-core.c b/drivers/gpio/gpiolib-acpi=
--core.c
-> index 33d6c3b6cdf0..c9b12e24de14 100644
-> --- a/drivers/gpio/gpiolib-acpi-core.c
-> +++ b/drivers/gpio/gpiolib-acpi-core.c
-> @@ -397,31 +397,27 @@ static acpi_status acpi_gpiochip_alloc_event(struct=
- acpi_resource *ares,
->
->         desc =3D acpi_request_own_gpiod(chip, agpio, 0, "ACPI:Event");
->         if (IS_ERR(desc)) {
-> -               dev_err(chip->parent,
-> -                       "Failed to request GPIO for pin 0x%04X, err %pe\n=
-",
-> -                       pin, desc);
-> +               dev_err(chip->parent, "Failed to request GPIO for pin 0x%=
-04X, err %pe\n", pin, desc);
->                 return AE_OK;
->         }
->
-> +       struct gpio_desc *desc_guard __free(free_gpio_desc) =3D desc;
-> +
->         ret =3D gpiochip_lock_as_irq(chip, pin);
->         if (ret) {
-> -               dev_err(chip->parent,
-> -                       "Failed to lock GPIO pin 0x%04X as interrupt, err=
- %d\n",
-> -                       pin, ret);
-> -               goto fail_free_desc;
-> +               dev_err(chip->parent, "Failed to lock GPIO pin 0x%04X as =
-interrupt, err %d\n", pin, ret);
-> +               return AE_OK;
->         }
->
->         irq =3D gpiod_to_irq(desc);
->         if (irq < 0) {
-> -               dev_err(chip->parent,
-> -                       "Failed to translate GPIO pin 0x%04X to IRQ, err =
-%d\n",
-> -                       pin, irq);
-> -               goto fail_unlock_irq;
-> +               dev_err(chip->parent, "Failed to translate GPIO pin 0x%04=
-X to IRQ, err %d\n", pin, irq);
-> +               goto err_unlock;
+> Changes in v2:
+> - Make swnode_get() return the address of the swnode whose refcount it
+>   bumps and use that fact in software_node_get()
 
-You are not supposed to mix up cleanup.h stuff with gotos.
+No issues found, so
 
->         }
+Reviewed-by: Rafael J. Wysocki (Intel) <rafael@kernel.org>
+
+>  drivers/base/swnode.c | 40 ++++++++++++++++++++++++----------------
+>  1 file changed, 24 insertions(+), 16 deletions(-)
 >
->         event =3D kzalloc_obj(*event);
->         if (!event)
-> -               goto fail_unlock_irq;
-> +               goto err_unlock;
+> diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
+> index a19f8f722bc8e..869228a65cb36 100644
+> --- a/drivers/base/swnode.c
+> +++ b/drivers/base/swnode.c
+> @@ -374,20 +374,28 @@ EXPORT_SYMBOL_GPL(property_entries_free);
+>  /* ---------------------------------------------------------------------=
+----- */
+>  /* fwnode operations */
 >
->         event->irqflags =3D IRQF_ONESHOT;
->         if (agpio->triggering =3D=3D ACPI_LEVEL_SENSITIVE) {
-> @@ -449,17 +445,15 @@ static acpi_status acpi_gpiochip_alloc_event(struct=
- acpi_resource *ares,
->         event->irq =3D irq;
->         event->irq_is_wake =3D acpi_gpio_irq_is_wake(chip->parent, agpio)=
-;
->         event->pin =3D pin;
-> -       event->desc =3D desc;
-> +       /* Transfer ownership to event, prevent auto-free */
-> +       event->desc =3D no_free_ptr(desc_guard);
->
->         list_add_tail(&event->node, &acpi_gpio->events);
->
->         return AE_OK;
->
-> -fail_unlock_irq:
-> +err_unlock:
->         gpiochip_unlock_as_irq(chip, pin);
-> -fail_free_desc:
-> -       gpiochip_free_own_desc(desc);
+> -static struct fwnode_handle *software_node_get(struct fwnode_handle *fwn=
+ode)
+> +static struct swnode *swnode_get(struct swnode *swnode)
+>  {
+> -       struct swnode *swnode =3D to_swnode(fwnode);
 > -
->         return AE_OK;
+>         kobject_get(&swnode->kobj);
+>
+> +       return swnode;
+> +}
+> +
+> +static void swnode_put(struct swnode *swnode)
+> +{
+> +       kobject_put(&swnode->kobj);
+> +}
+> +
+> +static struct fwnode_handle *software_node_get(struct fwnode_handle *fwn=
+ode)
+> +{
+> +       struct swnode *swnode =3D swnode_get(to_swnode(fwnode));
+> +
+>         return &swnode->fwnode;
 >  }
 >
-> @@ -1091,7 +1085,7 @@ acpi_gpio_adr_space_handler(u32 function, acpi_phys=
-ical_address address,
->         struct acpi_gpio_chip *achip =3D region_context;
->         struct gpio_chip *chip =3D achip->chip;
->         struct acpi_resource_gpio *agpio;
-> -       struct acpi_resource *ares;
-> +       struct acpi_resource *ares __free(acpi_free) =3D NULL;
-
-Nope, that's not how you use __free().
-
->         u16 pin_index =3D address;
->         acpi_status status;
->         int length;
-> @@ -1102,18 +1096,14 @@ acpi_gpio_adr_space_handler(u32 function, acpi_ph=
-ysical_address address,
->         if (ACPI_FAILURE(status))
->                 return status;
+>  static void software_node_put(struct fwnode_handle *fwnode)
+>  {
+> -       struct swnode *swnode =3D to_swnode(fwnode);
+> -
+> -       kobject_put(&swnode->kobj);
+> +       swnode_put(to_swnode(fwnode));
+>  }
 >
-> -       if (WARN_ON(ares->type !=3D ACPI_RESOURCE_TYPE_GPIO)) {
-> -               ACPI_FREE(ares);
-> +       if (WARN_ON(ares->type !=3D ACPI_RESOURCE_TYPE_GPIO))
->                 return AE_BAD_PARAMETER;
-> -       }
+>  static bool software_node_property_present(const struct fwnode_handle *f=
+wnode,
+> @@ -493,7 +501,7 @@ software_node_get_named_child_node(const struct fwnod=
+e_handle *fwnode,
 >
->         agpio =3D &ares->data.gpio;
->
->         if (WARN_ON(agpio->io_restriction =3D=3D ACPI_IO_RESTRICT_INPUT &=
-&
-> -           function =3D=3D ACPI_WRITE)) {
-> -               ACPI_FREE(ares);
-> +           function =3D=3D ACPI_WRITE))
->                 return AE_BAD_PARAMETER;
-> -       }
->
->         length =3D min(agpio->pin_table_length, pin_index + bits);
->         for (i =3D pin_index; i < length; ++i) {
-> @@ -1189,8 +1179,6 @@ acpi_gpio_adr_space_handler(u32 function, acpi_phys=
-ical_address address,
+>         list_for_each_entry(child, &swnode->children, entry) {
+>                 if (!strcmp(childname, kobject_name(&child->kobj))) {
+> -                       kobject_get(&child->kobj);
+> +                       swnode_get(child);
+>                         return &child->fwnode;
 >                 }
 >         }
+> @@ -737,7 +745,7 @@ software_node_find_by_name(const struct software_node=
+ *parent, const char *name)
+>                 swnode =3D kobj_to_swnode(k);
+>                 if (parent =3D=3D swnode->node->parent && swnode->node->n=
+ame &&
+>                     !strcmp(name, swnode->node->name)) {
+> -                       kobject_get(&swnode->kobj);
+> +                       swnode_get(swnode);
+>                         break;
+>                 }
+>                 swnode =3D NULL;
+> @@ -835,13 +843,13 @@ swnode_register(const struct software_node *node, s=
+truct swnode *parent,
+>                                            parent ? &parent->kobj : NULL,
+>                                            "node%d", swnode->id);
+>         if (ret) {
+> -               kobject_put(&swnode->kobj);
+> +               swnode_put(swnode);
+>                 return ERR_PTR(ret);
+>         }
 >
-> -out:
-> -       ACPI_FREE(ares);
->         return status;
+>         /*
+>          * Assign the flag only in the successful case, so
+> -        * the above kobject_put() won't mess up with properties.
+> +        * the above swnode_put() won't mess up with properties.
+>          */
+>         swnode->allocated =3D allocated;
+>
+> @@ -978,7 +986,7 @@ void fwnode_remove_software_node(struct fwnode_handle=
+ *fwnode)
+>         if (!swnode)
+>                 return;
+>
+> -       kobject_put(&swnode->kobj);
+> +       swnode_put(swnode);
 >  }
+>  EXPORT_SYMBOL_GPL(fwnode_remove_software_node);
+>
+> @@ -1002,7 +1010,7 @@ int device_add_software_node(struct device *dev, co=
+nst struct software_node *nod
+>
+>         swnode =3D software_node_to_swnode(node);
+>         if (swnode) {
+> -               kobject_get(&swnode->kobj);
+> +               swnode_get(swnode);
+>         } else {
+>                 ret =3D software_node_register(node);
+>                 if (ret)
+> @@ -1044,7 +1052,7 @@ void device_remove_software_node(struct device *dev=
+)
+>                 software_node_notify_remove(dev);
+>
+>         set_secondary_fwnode(dev, NULL);
+> -       kobject_put(&swnode->kobj);
+> +       swnode_put(swnode);
+>  }
+>  EXPORT_SYMBOL_GPL(device_remove_software_node);
+>
+> @@ -1097,7 +1105,7 @@ void software_node_notify(struct device *dev)
+>         if (!swnode)
+>                 return;
+>
+> -       kobject_get(&swnode->kobj);
+> +       swnode_get(swnode);
+>         ret =3D sysfs_create_link(&dev->kobj, &swnode->kobj, "software_no=
+de");
+>         if (ret)
+>                 return;
+> @@ -1119,11 +1127,11 @@ void software_node_notify_remove(struct device *d=
+ev)
+>
+>         sysfs_remove_link(&swnode->kobj, dev_name(dev));
+>         sysfs_remove_link(&dev->kobj, "software_node");
+> -       kobject_put(&swnode->kobj);
+> +       swnode_put(swnode);
+>
+>         if (swnode->managed) {
+>                 set_secondary_fwnode(dev, NULL);
+> -               kobject_put(&swnode->kobj);
+> +               swnode_put(swnode);
+>         }
+>  }
+>
+> --
+> 2.47.3
 >
