@@ -1,47 +1,48 @@
-Received: from mout01.posteo.de (mout01.posteo.de [185.67.36.65])
+Received: from mout02.posteo.de (mout02.posteo.de [185.67.36.66])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2CDA634D90C
-	for <linux-acpi@vger.kernel.org>; Sat,  9 May 2026 06:13:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.67.36.65
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84D09390CAD
+	for <linux-acpi@vger.kernel.org>; Sat,  9 May 2026 08:47:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.67.36.66
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778307233; cv=none; b=h2G7iDB5erI8cV1/yEvNgW3FocLtK6wqD6TUHtxriMTB+afVp3p8M/zThUVQM6VQQjtuiM8oLH2HMKHvfRTMDL7Lb+OG2b/gtK9LhXaDZ7zlatF0HXyuTj8v7vhw7hkuMIFq0rsjdhvn1ufC3G4wDUAgI6AdP3+LerkGnRvKl4U=
+	t=1778316449; cv=none; b=oX/x1bmaiDpdv85tzcyIlQiLSUtN59DnJi6IwmYUlZp6dyOGLq++yRfr11clIFiGUJdatg+rlxbzU3B+LCykweIKZEfzgbzuopRL57Lhw3eWjeV7NFiUcX3+2vV8LkIWMi0gbpQSH+Xuu5JjUfj6IhQN4Afd/Uzn7xeuVAfSwik=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778307233; c=relaxed/simple;
-	bh=n052d3NVCe5oHiNU8UFzJ9RFVjS6QHAGJvTysQcfJTc=;
+	s=arc-20240116; t=1778316449; c=relaxed/simple;
+	bh=GP8I9HT3PMV8JyAVFBNUHM+zYk0Hmb2ioEsrD6oYJ7c=;
 	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=B+QmDKaZnN49E9XUplzOlFEPhcL4Dw5IgTX3tH+09ZmQ7jrtU4sDJRbpiw9XTXA7YM5JP+X+eA/MWxLA+q2G96fgu21XpSlFg0ikBsIh/PcuLze71SDuLKjPuAgPylS1zs+4nG/ZswRRBKrIVqhX/VgfDl9f3Eb4DprI+2V76oU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de; spf=pass smtp.mailfrom=posteo.de; dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b=KdSFcvQB; arc=none smtp.client-ip=185.67.36.65
+	 Content-Type:MIME-Version; b=VmG5hz3wKGN7D2y9wWsv3ZEVwUQjlBzvrVm9vueKoZfkjj/eW7IeM3KHrENJyqBZvG+vzOUcNOiyBSD+6RKbZKhVIxNRIoPLO2JhwZck3I3pl0Ou5neyA2Y9dS4/7LHMVT7LI/oFC4sBZys89dNEVp5E262fKIHUNjMtPpWvNNI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de; spf=pass smtp.mailfrom=posteo.de; dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b=Q3zn+7Q6; arc=none smtp.client-ip=185.67.36.66
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=posteo.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b="KdSFcvQB"
+	dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b="Q3zn+7Q6"
 Received: from submission (posteo.de [185.67.36.169]) 
-	by mout01.posteo.de (Postfix) with ESMTPS id C2E5A2403D1
-	for <linux-acpi@vger.kernel.org>; Sat,  9 May 2026 08:13:48 +0200 (CEST)
+	by mout02.posteo.de (Postfix) with ESMTPS id C4D3F2406CB
+	for <linux-acpi@vger.kernel.org>; Sat,  9 May 2026 10:47:20 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=posteo.de; s=2017;
-	t=1778307228; bh=mAcUMe0hg/2h6gimSEzcs9+8vqeg9sk3Taf5JO7Z4Nk=;
+	t=1778316440; bh=RQg6xjQ+Af692O7Pl7u/ZbKxABJ2VLsnjNegX9IKTS0=;
 	h=Message-ID:Subject:From:To:Cc:Date:Autocrypt:Content-Type:
 	 MIME-Version:OpenPGP:From;
-	b=KdSFcvQBYVpiW7QCQZB7UJRHbV2gO00wDCcnN6dltucxiX9AqxWyu8gCbleg4RoJW
-	 lThzXA9llLO/idUEXVJXUoJj12lQGces60bh+5oyH0GtDuob9/GLb068GWpDzQO07s
-	 6dML3AdfO6EYi2Vgxnbfa7iJyi3UYrjaPRMEBxwXogBk+VUZd9Aka2iEpQvV/ZB3ZQ
-	 rXtbmaplywfu2jLnwaq9yRudN9iqEzKLmydhm/dJgghyR/fOvv4pGfKhv6l8j9+Sg+
-	 4XzNlDRdUdSy5V3ObhLpkHCNTN6qBucIEbBye1euNj2dB1v9NwWY5mFc3Zcxa/+K6F
-	 gg8RKujd7szcg==
+	b=Q3zn+7Q6ZRcWXeyM4570f4VC+7HEId1jpkDjLxP7A3JQuJLi/Ffz7lXrChz8ONL+S
+	 s03rMdLlTth/91yfxXlrRrl2f7Fl/a1nDo1fYL2UEgbxJSlDFj23ZZknEYthn013TZ
+	 NiRpJIXGNpNSSgPieXwCTWtzQMgHXLZiU0M5kEhn85Sh8BoJJcwFq/lterDp07xogY
+	 lKJ+FQhIxQX9dhEubiUSGtrJGLoU8Pfp2p+3LduLZi5m0AMztrZrOhBdqkzz+NqbkI
+	 iT/5Wa1qaAQjx2yDvqjgpGGNnAaYe3nrH6/HeArWj9W2june49a3I8eE5kg4arM2/q
+	 iMdZDeq8p5g6g==
 Received: from customer (localhost [127.0.0.1])
-	by submission (posteo.de) with ESMTPSA id 4gCFzw0fQgz6txc;
-	Sat,  9 May 2026 08:13:48 +0200 (CEST)
-Message-ID: <813b3d417d04904080629c65111a57133ffd767a.camel@posteo.de>
+	by submission (posteo.de) with ESMTPSA id 4gCKP41txcz6twB;
+	Sat,  9 May 2026 10:47:20 +0200 (CEST)
+Message-ID: <800169e4011880faf75c6c990d6b4f78d5aa2043.camel@posteo.de>
 Subject: Re: [PATCH] ACPI: SPCR: Support UART clock frequency field
 From: Markus Probst <markus.probst@posteo.de>
 To: "Rafael J. Wysocki" <rafael@kernel.org>
 Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
 	linux-kernel@vger.kernel.org
-Date: Sat, 09 May 2026 06:13:48 +0000
-In-Reply-To: <CAJZ5v0jzgDgw1eMugtSPc7ceeTXUM17=3uUaVY8OBkV7nBLsvg@mail.gmail.com>
+Date: Sat, 09 May 2026 08:47:20 +0000
+In-Reply-To: <813b3d417d04904080629c65111a57133ffd767a.camel@posteo.de>
 References: <20260505-acpi_spcr-v1-1-fd4bc6f4eb53@posteo.de>
-	 <CAJZ5v0jzgDgw1eMugtSPc7ceeTXUM17=3uUaVY8OBkV7nBLsvg@mail.gmail.com>
+		 <CAJZ5v0jzgDgw1eMugtSPc7ceeTXUM17=3uUaVY8OBkV7nBLsvg@mail.gmail.com>
+	 <813b3d417d04904080629c65111a57133ffd767a.camel@posteo.de>
 Autocrypt: addr=markus.probst@posteo.de; prefer-encrypt=mutual;
  keydata=mQINBGiDvXgBEADAXUceKafpl46S35UmDh2wRvvx+UfZbcTjeQOlSwKP7YVJ4JOZrVs93
  qReNLkOWguIqPBxR9blQ4nyYrqSCV+MMw/3ifyXIm6Pw2YRUDg+WTEOjTixRCoWDgUj1nOsvJ9tVA
@@ -87,7 +88,7 @@ Autocrypt: addr=markus.probst@posteo.de; prefer-encrypt=mutual;
  dQNGrZ91M9nlIBKw8Y7c7xZ4098qX2b8JX/CxD+gC1r4C8vuA3GkhFLx+KlkON7LyiJPkrePp6Qky
  jfGillcaQOqFZ3WwVqyzG1BUfTow==
 Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-iiR/tfIbR7HqXJlKJs1S"
+	protocol="application/pgp-signature"; boundary="=-IzhfMxCRIMvuTuMM5JL3"
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -97,106 +98,102 @@ MIME-Version: 1.0
 OpenPGP: url=https://posteo.de/keys/markus.probst@posteo.de.asc; preference=encrypt
 
 
---=-iiR/tfIbR7HqXJlKJs1S
+--=-IzhfMxCRIMvuTuMM5JL3
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, 2026-05-08 at 21:19 +0200, Rafael J. Wysocki wrote:
-> On Tue, May 5, 2026 at 9:36=E2=80=AFPM Markus Probst <markus.probst@poste=
-o.de> wrote:
+On Sat, 2026-05-09 at 08:13 +0200, Markus Probst wrote:
+> On Fri, 2026-05-08 at 21:19 +0200, Rafael J. Wysocki wrote:
+> > On Tue, May 5, 2026 at 9:36=E2=80=AFPM Markus Probst <markus.probst@pos=
+teo.de> wrote:
+> > >=20
+> > > The Microsoft Serial Port Console Redirection (SPCR) specification
+> > > revision 1.08 comprises additional field: UART Clock Frequency [1].
+> > >=20
+> > > It contains a non-zero value indicating the UART clock frequency in H=
+z.
+> > >=20
+> > > Link: https://learn.microsoft.com/en-us/windows-hardware/drivers/serp=
+orts/serial-port-console-redirection-table [1]
+> > > Signed-off-by: Markus Probst <markus.probst@posteo.de>
+> > > ---
+> > >  drivers/acpi/spcr.c | 3 +++
+> > >  1 file changed, 3 insertions(+)
+> > >=20
+> > > diff --git a/drivers/acpi/spcr.c b/drivers/acpi/spcr.c
+> > > index 73cb933fdc89..d80ad87efae0 100644
+> > > --- a/drivers/acpi/spcr.c
+> > > +++ b/drivers/acpi/spcr.c
+> > > @@ -220,6 +220,9 @@ int __init acpi_parse_spcr(bool enable_earlycon, =
+bool enable_console)
+> > >         if (!baud_rate) {
+> > >                 snprintf(opts, sizeof(opts), "%s,%s,0x%llx", uart, io=
+type,
+> > >                          table->serial_port.address);
+> > > +       } else if (table->header.revision >=3D 3 && table->uart_clk_f=
+req) {
+> > > +               snprintf(opts, sizeof(opts), "%s,%s,0x%llx,%d,%u", ua=
+rt, iotype,
+> > > +                       table->serial_port.address, baud_rate, table-=
+>uart_clk_freq);
+> > >         } else {
+> > >                 snprintf(opts, sizeof(opts), "%s,%s,0x%llx,%d", uart,=
+ iotype,
+> > >                          table->serial_port.address, baud_rate);
+> > >=20
+> > > ---
 > >=20
-> > The Microsoft Serial Port Console Redirection (SPCR) specification
-> > revision 1.08 comprises additional field: UART Clock Frequency [1].
+> > Please have a look at the sashiko.dev feedback at
 > >=20
-> > It contains a non-zero value indicating the UART clock frequency in Hz.
+> > https://sashiko.dev/#/patchset/20260505-acpi_spcr-v1-1-fd4bc6f4eb53%40p=
+osteo.de
 > >=20
-> > Link: https://learn.microsoft.com/en-us/windows-hardware/drivers/serpor=
-ts/serial-port-console-redirection-table [1]
-> > Signed-off-by: Markus Probst <markus.probst@posteo.de>
-> > ---
-> >  drivers/acpi/spcr.c | 3 +++
-> >  1 file changed, 3 insertions(+)
-> >=20
-> > diff --git a/drivers/acpi/spcr.c b/drivers/acpi/spcr.c
-> > index 73cb933fdc89..d80ad87efae0 100644
-> > --- a/drivers/acpi/spcr.c
-> > +++ b/drivers/acpi/spcr.c
-> > @@ -220,6 +220,9 @@ int __init acpi_parse_spcr(bool enable_earlycon, bo=
-ol enable_console)
-> >         if (!baud_rate) {
-> >                 snprintf(opts, sizeof(opts), "%s,%s,0x%llx", uart, ioty=
-pe,
-> >                          table->serial_port.address);
-> > +       } else if (table->header.revision >=3D 3 && table->uart_clk_fre=
-q) {
-> > +               snprintf(opts, sizeof(opts), "%s,%s,0x%llx,%d,%u", uart=
-, iotype,
-> > +                       table->serial_port.address, baud_rate, table->u=
-art_clk_freq);
-> >         } else {
-> >                 snprintf(opts, sizeof(opts), "%s,%s,0x%llx,%d", uart, i=
-otype,
-> >                          table->serial_port.address, baud_rate);
-> >=20
-> > ---
+> > and let me know what you think.
+> For the first comment, I don't think thats an issue, as there is no
+> length check for the other fields either.
 >=20
-> Please have a look at the sashiko.dev feedback at
 >=20
-> https://sashiko.dev/#/patchset/20260505-acpi_spcr-v1-1-fd4bc6f4eb53%40pos=
-teo.de
+> The second comment however seems true.
 >=20
-> and let me know what you think.
-For the first comment, I don't think thats an issue, as there is no
-length check for the other fields either.
-
-
-The second comment however seems true.
-
-while earlycon parses
-
-<baudrate>,<uartclk>
-
-regular uart parses
-
-<baudrate><parity><bits><flow>
-
-This is strange, because according to kernel documentation, options for
-uart should be identical for earlycon and console kernel parameters.
-[1] [2].
+> while earlycon parses
+>=20
+> <baudrate>,<uartclk>
+>=20
+> regular uart parses
+>=20
+> <baudrate><parity><bits><flow>
+>=20
+> This is strange, because according to kernel documentation, options for
+> uart should be identical for earlycon and console kernel parameters.
+> [1] [2].
+I might have misinterpreted the documentation here. That uartclk only
+existing on earlycon seems to be intended. Feel free to ignore the last
+paragraph of my reply.
 
 Thanks
 - Markus Probst
 
 
-[1]
-https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/dri=
-vers/tty/serial/serial_core.c?h=3Dv7.1-rc1#n2097
-
-[2]
-https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/Doc=
-umentation/admin-guide/kernel-parameters.txt?h=3Dv7.1-rc1#n1451
-
-
---=-iiR/tfIbR7HqXJlKJs1S
+--=-IzhfMxCRIMvuTuMM5JL3
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
 
-iQJPBAABCAA5FiEEgnQYxPSsWOdyMMRzNHYf+OetQ9IFAmn+0JobFIAAAAAABAAO
-bWFudTIsMi41KzEuMTIsMiwyAAoJEDR2H/jnrUPS85kQALF5skHMNhTETz3p9yG8
-MlPsT2+KQQ2u5x4Kew/lj20Sj5TWHu/LTmRZPTt9rdmz03cCFC4YHJPx/Fc5jii6
-SawLDAf2fts+ZLc37bRb7SHvqzZistCBhapfpEbPdh3IkFmgG6yaaMvHbk22vc5G
-/u82q5E9bPpsztlGuuzzqJ8WoH/3VvsJfPan9tH+tL6m4PFxrBR0GX7x7bNqzbCz
-zmV0oj/+cB1UauyAZAOpIkF1AaZ8u/QlNCjjXXDHrrqzIpyPAk0JInYoj3KZE+dc
-re6KQMy7GI22kZno/Oabc1IRj9M+5hzx/f5QwwP9aVquGOk5UYJ5YGyORmqUF0/9
-mGLYVXYepN1HweUDixotakzranwJbnXMWD2sj/QgJ5PNgSgmONKkQUGIkmjKLXnY
-jXpsDnw3EVxWhbHgtRkwsJQGQYMMb7hyIxeN5ZST9lot27QH5Rw8O/2ZI3QhPsSy
-9ZtRnpl+J5b+MFPNi6fYV0z7VD2EYMMWKPb2ud6NEewYPs6H2C2Np/zaIa323l80
-E2U9f9kOq/H0p2gV3BMdlD0QAFfvLXUzsSwqh873zswVNSFI6RcYENQ3LyxRDju2
-TG7Q6SjUEVse1emsOjkBIs9HQqJYQKvk5Oa3CewwYfH7AYg/hza/7kO9vxszF6qW
-0hcLMegQbWONp4MOf1U3+HZ+
-=e1hF
+iQJPBAABCAA5FiEEgnQYxPSsWOdyMMRzNHYf+OetQ9IFAmn+9I0bFIAAAAAABAAO
+bWFudTIsMi41KzEuMTIsMiwyAAoJEDR2H/jnrUPSB7AP/3V8CLhUW1fdorMou7Ss
+L14QGeE/kfU2kjrRsmsCmwb/+p7MuvzFD4yn/4b9wCyMSwNwRoBiHZz2CWmtqfKv
+O+qZfPmABaMt8Vi0qO/USkHE+BAGRx+WA/UF/qbtYe4voRGiTX9OILuZIg2U4H0x
+LBBqtrmd17rTvshbqUbJKo5fUg39JqZUCivUKK0+YWOzQQNxMWfv/4k4t/ehXs2x
+oPQPYVOVrBghym5pIUYD7KZV2Xurx7Q/4KzzzZln2Hf6CbLTgvPkWKuVN7Ely1Qr
+cgMI4TGPKAQzhEQCjY5X4gwwbetfiU4H80oFP47LOxZotOEsDfdRpyyP+uDRvnaQ
+htq8vt1WI5n9yl2aiJcGvT3Vgvuj4vl6mC47iK7pdhjYCv/DAEm7XADF4N33LZx2
+0LJhSoZN07qRuz/3hUWRcm4mafVdD+83EBYaj6TzA+YOHI2Tu6eeBGQodsnbZ7Ot
+eXlMXOWISXGZaip3DY5HlT5vaEJyvqNhiwJZ6WmvGumErFScL4ETDwOckXBQP/Y3
+oyzfYJ++W4UTXGY3//nSZphymNLosV1mOBzPRXbm0DbOj8sPyOrHT4JIA4EKEKGu
+SXgwM1qgA6bZACPlWSCexGdiH8ySSlQZWpqbd/dQLPoWNTB5/fbFOdNYRzpylf+4
+2WbfxbBV2t6F2UwDjumOm9P+
+=8ROn
 -----END PGP SIGNATURE-----
 
---=-iiR/tfIbR7HqXJlKJs1S--
+--=-IzhfMxCRIMvuTuMM5JL3--
