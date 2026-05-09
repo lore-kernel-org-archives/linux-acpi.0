@@ -1,480 +1,202 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mout01.posteo.de (mout01.posteo.de [185.67.36.65])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11F2923D2A4;
-	Sat,  9 May 2026 03:49:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2CDA634D90C
+	for <linux-acpi@vger.kernel.org>; Sat,  9 May 2026 06:13:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.67.36.65
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778298561; cv=none; b=sNVJjg44KxRIfH0+8Vn7ULSuBxEZ3pVZ559n4agImkoNCffCpu9LBUZLJIRWUZMO4ofw5BeRNDciyk7BsCQB/gbCcf3BMhNAjg3m8YH2eLQaR8un2l4h7yEHyZh0hY6nXMRpKKGShIFtBPd3ydaAzmu7LKhp0sRmquDV9baNOYM=
+	t=1778307233; cv=none; b=h2G7iDB5erI8cV1/yEvNgW3FocLtK6wqD6TUHtxriMTB+afVp3p8M/zThUVQM6VQQjtuiM8oLH2HMKHvfRTMDL7Lb+OG2b/gtK9LhXaDZ7zlatF0HXyuTj8v7vhw7hkuMIFq0rsjdhvn1ufC3G4wDUAgI6AdP3+LerkGnRvKl4U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778298561; c=relaxed/simple;
-	bh=AjbX2/PuJjVkTJXhV0OHUmvecqEZOKJQGxfINAzjECs=;
-	h=Date:From:To:Cc:Message-ID:In-Reply-To:References:Subject:
-	 Mime-Version:Content-Type; b=CeYK1chWRCRtGkbpDwa1V0Gs7Nn1VH5QdtNTE7A9FP3vGGeZqG3H03geQyWP3GhJQcW7dhsFEaIQkC43fLTrMWrSE4xaZo916dvHtc5HN4vQPXxJz50sUHtI8XcqksDfPiHJYOxIc+pUEjUu09EidcVsJCAxDW8NL0pH2fdmaoE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Jy/1EbfD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778307233; c=relaxed/simple;
+	bh=n052d3NVCe5oHiNU8UFzJ9RFVjS6QHAGJvTysQcfJTc=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=B+QmDKaZnN49E9XUplzOlFEPhcL4Dw5IgTX3tH+09ZmQ7jrtU4sDJRbpiw9XTXA7YM5JP+X+eA/MWxLA+q2G96fgu21XpSlFg0ikBsIh/PcuLze71SDuLKjPuAgPylS1zs+4nG/ZswRRBKrIVqhX/VgfDl9f3Eb4DprI+2V76oU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de; spf=pass smtp.mailfrom=posteo.de; dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b=KdSFcvQB; arc=none smtp.client-ip=185.67.36.65
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=posteo.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Jy/1EbfD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0A48C4AF09;
-	Sat,  9 May 2026 03:49:19 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778298560;
-	bh=AjbX2/PuJjVkTJXhV0OHUmvecqEZOKJQGxfINAzjECs=;
-	h=Date:From:To:Cc:In-Reply-To:References:Subject:From;
-	b=Jy/1EbfDPmYKqPMbPRJcX9Fb6gCpkerFAzlXQ32KPcAwA1yflwbh1bHfwBWU50L5Y
-	 rhO91ML5b1Za0/YQbzlSGnBu5aO1baJnEx38DgkAOcBhZkrk8Ui797K+iNw4/BlNxf
-	 7Jn5dqFtRgXNUlXY89gwfGasW6JbQI1laW7aF6gnUWtzBwNG/I34n2nQSsasi78At+
-	 YwFKTJ6buySCOxE/HWJtZASf4XiEDIV2bA6FqgbuEZeUo7+GcRU8yc2T+QuqEHojIO
-	 VM3ps163w1CKjWUDcUUBM7kts3jcuNSHOD/7eAXGu+lWhSNNQkC/uYVi7ZniBfokM1
-	 7qqXxI0xPcbHw==
-Received: from phl-compute-05.internal (phl-compute-05.internal [10.202.2.45])
-	by mailfauth.phl.internal (Postfix) with ESMTP id 0F57FF40081;
-	Fri,  8 May 2026 23:49:19 -0400 (EDT)
-Received: from phl-frontend-03 ([10.202.2.162])
-  by phl-compute-05.internal (MEProxy); Fri, 08 May 2026 23:49:19 -0400
-X-ME-Sender: <xms:vq7-aQ4_xvATOb1WMTDcHkp7RP6K3e-kOEUgp1toRM6LtBrzZai2Gg>
-    <xme:vq7-abjwQmIuY2mbo0Jc94K0i2Ra90ZVLPPvs7qOWZw0g3TuJH2BEAK25qo5-P2d2
-    IdqfCYv4STBDil3IdVZhBQq4kSJHFBZpcV8dlvSN3n07GPKtQCD7Ho>
-X-ME-Received: <xmr:vq7-aS42y6DI2R2GZFTfkfj6s-0UXl0MXOigJ8uciBXfQBK4lHHCvbsLBoNtreP2WUP1Z1rvgAfMYFU-UlkBvW8FSF-ee7aeOxU>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefhedrtddtgdduuddvudelucetufdoteggodetrf
-    dotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfurfetoffkrfgpnffqhgenuceu
-    rghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujf
-    gurhepfffhvfevkfgjfhfugggtgfesthejredttddtjeenucfhrhhomhepfdffrghnucgh
-    ihhllhhirghmshculdhnvhhiughirgdmfdcuoegujhgsfieskhgvrhhnvghlrdhorhhgqe
-    enucggtffrrghtthgvrhhnpedtkeelkefgtdegudeiiedttdfgueegieekjeffueffueet
-    jeffkeevtefflefhheenucffohhmrghinhepkhgvrhhnvghlrdhorhhgnecuvehluhhsth
-    gvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomhepughjsgifodhmvghsmhht
-    phgruhhthhhpvghrshhonhgrlhhithihqddujeejvdeftdegheehqdeffeefleegtdegje
-    dqughjsgifpeepkhgvrhhnvghlrdhorhhgsehfrghsthhmrghilhdrtghomhdpnhgspghr
-    tghpthhtohepvdekpdhmohguvgepshhmthhpohhuthdprhgtphhtthhopehjihgtvdefse
-    hkvghrnhgvlhdrohhrghdprhgtphhtthhopehtvghrrhihrdgsohifmhgrnhesrghmugdr
-    tghomhdprhgtphhtthhopegurghvvgesshhtghholhgrsghsrdhnvghtpdhrtghpthhtoh
-    epuggrvhgvrdhjihgrnhhgsehinhhtvghlrdgtohhmpdhrtghpthhtoheprghlihhsohhn
-    rdhstghhohhfihgvlhgusehinhhtvghlrdgtohhmpdhrtghpthhtohepughjsgifsehkvg
-    hrnhgvlhdrohhrghdprhgtphhtthhopegshhgvlhhgrggrshesghhoohhglhgvrdgtohhm
-    pdhrtghpthhtohepshhhihhjuhdrjhhoshgvsehhuhgrfigvihdrtghomhdprhgtphhtth
-    hopehmihhnghdrlhhiseiiohhhohhmrghilhdrtghomh
-X-ME-Proxy: <xmx:vq7-acBFo02_fLfFu834Ew_CWBormYOgwYwrdcrWu7zVsOSSYXNNng>
-    <xmx:v67-afSQBYfb4eYJxFgVJS1zCBYVCi7Be_lJtvvgw4Hm7mOCqUbR6Q>
-    <xmx:v67-aTYvf0pi_CHt8KFsja7M4ArCFxvp1kIqgg_8mq13hGagvP122w>
-    <xmx:v67-aUVMc7ALQiL2NnpSL1vkV1MrGzLGB52_nj1B8586V-uOqCuGzw>
-    <xmx:v67-aQVrv4zT3DqE58fljWuO-CN9wOH7oDngriJRNxa1aUhkLWkdxz9J>
-Feedback-ID: i67ae4b3e:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Fri,
- 8 May 2026 23:49:18 -0400 (EDT)
-Date: Fri, 08 May 2026 20:49:17 -0700
-From: "Dan Williams (nvidia)" <djbw@kernel.org>
-To: Jonathan Cameron <jic23@kernel.org>, 
- "Bowman, Terry" <terry.bowman@amd.com>
-Cc: dave@stgolabs.net, 
- dave.jiang@intel.com, 
- alison.schofield@intel.com, 
- djbw@kernel.org, 
- bhelgaas@google.com, 
- shiju.jose@huawei.com, 
- ming.li@zohomail.com, 
- Smita.KoralahalliChannabasappa@amd.com, 
- rrichter@amd.com, 
- dan.carpenter@linaro.org, 
- PradeepVineshReddy.Kodamati@amd.com, 
- lukas@wunner.de, 
- Benjamin.Cheatham@amd.com, 
- sathyanarayanan.kuppuswamy@linux.intel.com, 
- vishal.l.verma@intel.com, 
- alucerop@amd.com, 
- ira.weiny@intel.com, 
- corbet@lwn.net, 
- rafael@kernel.org, 
- xueshuai@linux.alibaba.com, 
- linux-cxl@vger.kernel.org, 
- linux-kernel@vger.kernel.org, 
- linux-pci@vger.kernel.org, 
- linux-acpi@vger.kernel.org, 
- linux-doc@vger.kernel.org, 
- Mauro Carvalho Chehab <mchehab@kernel.org>
-Message-ID: <69feaebd471c3_1b86a100b@djbw-dev.notmuch>
-In-Reply-To: <20260508150533.04e19cf9@jic23-huawei>
-References: <20260505173029.2718246-1-terry.bowman@amd.com>
- <20260505173029.2718246-3-terry.bowman@amd.com>
- <20260507190836.70197e24@jic23-huawei>
- <8913c666-a343-4717-8ab2-0b8546d1bdfb@amd.com>
- <20260508150533.04e19cf9@jic23-huawei>
-Subject: Re: [PATCH v17 02/11] cxl/ras: Unify Endpoint and Port AER trace
- events
+	dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b="KdSFcvQB"
+Received: from submission (posteo.de [185.67.36.169]) 
+	by mout01.posteo.de (Postfix) with ESMTPS id C2E5A2403D1
+	for <linux-acpi@vger.kernel.org>; Sat,  9 May 2026 08:13:48 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=posteo.de; s=2017;
+	t=1778307228; bh=mAcUMe0hg/2h6gimSEzcs9+8vqeg9sk3Taf5JO7Z4Nk=;
+	h=Message-ID:Subject:From:To:Cc:Date:Autocrypt:Content-Type:
+	 MIME-Version:OpenPGP:From;
+	b=KdSFcvQBYVpiW7QCQZB7UJRHbV2gO00wDCcnN6dltucxiX9AqxWyu8gCbleg4RoJW
+	 lThzXA9llLO/idUEXVJXUoJj12lQGces60bh+5oyH0GtDuob9/GLb068GWpDzQO07s
+	 6dML3AdfO6EYi2Vgxnbfa7iJyi3UYrjaPRMEBxwXogBk+VUZd9Aka2iEpQvV/ZB3ZQ
+	 rXtbmaplywfu2jLnwaq9yRudN9iqEzKLmydhm/dJgghyR/fOvv4pGfKhv6l8j9+Sg+
+	 4XzNlDRdUdSy5V3ObhLpkHCNTN6qBucIEbBye1euNj2dB1v9NwWY5mFc3Zcxa/+K6F
+	 gg8RKujd7szcg==
+Received: from customer (localhost [127.0.0.1])
+	by submission (posteo.de) with ESMTPSA id 4gCFzw0fQgz6txc;
+	Sat,  9 May 2026 08:13:48 +0200 (CEST)
+Message-ID: <813b3d417d04904080629c65111a57133ffd767a.camel@posteo.de>
+Subject: Re: [PATCH] ACPI: SPCR: Support UART clock frequency field
+From: Markus Probst <markus.probst@posteo.de>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org
+Date: Sat, 09 May 2026 06:13:48 +0000
+In-Reply-To: <CAJZ5v0jzgDgw1eMugtSPc7ceeTXUM17=3uUaVY8OBkV7nBLsvg@mail.gmail.com>
+References: <20260505-acpi_spcr-v1-1-fd4bc6f4eb53@posteo.de>
+	 <CAJZ5v0jzgDgw1eMugtSPc7ceeTXUM17=3uUaVY8OBkV7nBLsvg@mail.gmail.com>
+Autocrypt: addr=markus.probst@posteo.de; prefer-encrypt=mutual;
+ keydata=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
+ jfGillcaQOqFZ3WwVqyzG1BUfTow==
+Content-Type: multipart/signed; micalg="pgp-sha256";
+	protocol="application/pgp-signature"; boundary="=-iiR/tfIbR7HqXJlKJs1S"
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain;
- charset=utf-8
-Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+OpenPGP: url=https://posteo.de/keys/markus.probst@posteo.de.asc; preference=encrypt
 
-Jonathan Cameron wrote:
-> On Thu, 7 May 2026 13:33:45 -0500
-> "Bowman, Terry" <terry.bowman@amd.com> wrote:
-[..]
-> > > This concerns me (sorry I wasn't paying attention to the v16 thread).
-> > > It is a userspace regression against code that is out in the wild and typically
-> > > not updated in sync with the kernel.
-> > > 
-> > > If you are suggesting breaking ras-daemon at the very least +CC the maintainer.
 
-Sorry, that was not the intent, see below.
+--=-iiR/tfIbR7HqXJlKJs1S
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-> > > 
-> > > To get to a unified tracepoint add a new one that does what you want, but
-> > > maintain the existing ones as well.  Userspace can then migrate and maybe
-> > > in 5+ years time we can delete the non unified ones.
-> > > 
-> > > No actually comments on the code, just left it all here for Mauro,
-> > > 
-> > > Thanks,
-> > > 
-> > > Jonathan
-> > >   
-> > 
-> > Dan was clear about using a single set of CE and UE handlers for all CXL RAS 
-> > protocol errors. While I understand there may be concerns, please direct any 
-> > objections to Dan and clarify what changes are required to avoid this 
-> > repeatedly going back and forth.
-> > 
-> > [1] https://lore.kernel.org/linux-cxl/69cb2d5ba3111_178904100b7@dwillia2-mobl4.notmuch/
-> 
-> Sure - Dan's on this thread so I'm sure he'll see it sooner or later.
-> 
-> Perhaps I'm missing something that makes this less critical than it appears.
+On Fri, 2026-05-08 at 21:19 +0200, Rafael J. Wysocki wrote:
+> On Tue, May 5, 2026 at 9:36=E2=80=AFPM Markus Probst <markus.probst@poste=
+o.de> wrote:
+> >=20
+> > The Microsoft Serial Port Console Redirection (SPCR) specification
+> > revision 1.08 comprises additional field: UART Clock Frequency [1].
+> >=20
+> > It contains a non-zero value indicating the UART clock frequency in Hz.
+> >=20
+> > Link: https://learn.microsoft.com/en-us/windows-hardware/drivers/serpor=
+ts/serial-port-console-redirection-table [1]
+> > Signed-off-by: Markus Probst <markus.probst@posteo.de>
+> > ---
+> >  drivers/acpi/spcr.c | 3 +++
+> >  1 file changed, 3 insertions(+)
+> >=20
+> > diff --git a/drivers/acpi/spcr.c b/drivers/acpi/spcr.c
+> > index 73cb933fdc89..d80ad87efae0 100644
+> > --- a/drivers/acpi/spcr.c
+> > +++ b/drivers/acpi/spcr.c
+> > @@ -220,6 +220,9 @@ int __init acpi_parse_spcr(bool enable_earlycon, bo=
+ol enable_console)
+> >         if (!baud_rate) {
+> >                 snprintf(opts, sizeof(opts), "%s,%s,0x%llx", uart, ioty=
+pe,
+> >                          table->serial_port.address);
+> > +       } else if (table->header.revision >=3D 3 && table->uart_clk_fre=
+q) {
+> > +               snprintf(opts, sizeof(opts), "%s,%s,0x%llx,%d,%u", uart=
+, iotype,
+> > +                       table->serial_port.address, baud_rate, table->u=
+art_clk_freq);
+> >         } else {
+> >                 snprintf(opts, sizeof(opts), "%s,%s,0x%llx,%d", uart, i=
+otype,
+> >                          table->serial_port.address, baud_rate);
+> >=20
+> > ---
+>=20
+> Please have a look at the sashiko.dev feedback at
+>=20
+> https://sashiko.dev/#/patchset/20260505-acpi_spcr-v1-1-fd4bc6f4eb53%40pos=
+teo.de
+>=20
+> and let me know what you think.
+For the first comment, I don't think thats an issue, as there is no
+length check for the other fields either.
 
-No, it is breakage and a thinko on my part on the advice to Terry on the
-backwards compatibility rules for tracepoints. At the time I was only
-tracking data type and order of the payload. I.e. string at same
-position. However, the name of the argument is ABI.
 
-Something like this incremental fixup I think gets this back on track.
-It keeps legacy ABI support for "memdev" field in the payload. It
-incrementally lets updated userspace understand "port" and "dport"
-events. It stops us from growing a new set of events just to update the
-arguments. It enhances the CPER events to now handle switch ports in
-addition to endpoint ports.
+The second comment however seems true.
 
-The bulk of the change is passing @port and @dport to the CXL trace
-events instead of a plain @dev.
+while earlycon parses
 
--- >8 --
-diff --git a/drivers/cxl/core/core.h b/drivers/cxl/core/core.h
-index ff39985d363f..ed3a56966369 100644
---- a/drivers/cxl/core/core.h
-+++ b/drivers/cxl/core/core.h
-@@ -183,9 +183,10 @@ static inline struct device *dport_to_host(struct cxl_dport *dport)
- #ifdef CONFIG_CXL_RAS
- int cxl_ras_init(void);
- void cxl_ras_exit(void);
--bool cxl_handle_ras(struct device *dev, u64 serial, void __iomem *ras_base);
--void cxl_handle_cor_ras(struct device *dev, u64 serial,
--			void __iomem *ras_base);
-+bool cxl_handle_ras(struct cxl_port *port, struct cxl_dport *dport, u64 serial,
-+		    void __iomem *ras_base);
-+void cxl_handle_cor_ras(struct cxl_port *port, struct cxl_dport *dport,
-+			u64 serial, void __iomem *ras_base);
- void cxl_dport_map_rch_aer(struct cxl_dport *dport);
- void cxl_disable_rch_root_ints(struct cxl_dport *dport);
- void cxl_handle_rdport_errors(struct pci_dev *pdev);
-diff --git a/drivers/cxl/core/trace.h b/drivers/cxl/core/trace.h
-index 6f3957b3c3af..3857d2fc279d 100644
---- a/drivers/cxl/core/trace.h
-+++ b/drivers/cxl/core/trace.h
-@@ -49,20 +49,24 @@
- )
- 
- TRACE_EVENT(cxl_aer_uncorrectable_error,
--	TP_PROTO(const struct device *dev, u32 status, u32 fe, u32 *hl,
--		 u64 serial),
--	TP_ARGS(dev, status, fe, hl, serial),
-+	TP_PROTO(struct cxl_port *port, struct cxl_dport *dport, u32 status,
-+		 u32 fe, u32 *hl, u64 serial),
-+	TP_ARGS(port, dport, status, fe, hl, serial),
- 	TP_STRUCT__entry(
--		__string(device, dev_name(dev))
--		__string(host, dev_name(dev->parent))
-+		__string(memdev, cxl_trace_memdev_name(port))
-+		__string(host, cxl_trace_host_name(port))
- 		__field(u64, serial)
- 		__field(u32, status)
- 		__field(u32, first_error)
- 		__array(u32, header_log, CXL_HEADERLOG_SIZE_U32)
-+		__string(port, cxl_trace_port_name(port))
-+		__string(dport, cxl_trace_dport_name(dport))
- 	),
- 	TP_fast_assign(
--		__assign_str(device);
-+		__assign_str(memdev);
- 		__assign_str(host);
-+		__assign_str(port);
-+		__assign_str(dport);
- 		__entry->serial = serial;
- 		__entry->status = status;
- 		__entry->first_error = fe;
-@@ -72,8 +76,9 @@ TRACE_EVENT(cxl_aer_uncorrectable_error,
- 		 */
- 		memcpy(__entry->header_log, hl, CXL_HEADERLOG_SIZE);
- 	),
--	TP_printk("device=%s host=%s serial=%lld status: '%s' first_error: '%s'",
--		  __get_str(device), __get_str(host), __entry->serial,
-+	TP_printk("memdev=%s port=%s dport=%s host=%s serial=%lld status: '%s' first_error: '%s'",
-+		  __get_str(memdev), __get_str(port), __get_str(dport),
-+		  __get_str(host), __entry->serial,
- 		  show_uc_errs(__entry->status),
- 		  show_uc_errs(__entry->first_error)
- 	)
-@@ -98,22 +103,27 @@ TRACE_EVENT(cxl_aer_uncorrectable_error,
- )
- 
- TRACE_EVENT(cxl_aer_correctable_error,
--	TP_PROTO(const struct device *dev, u32 status, u64 serial),
--	TP_ARGS(dev, status, serial),
-+	TP_PROTO(struct cxl_port *port, struct cxl_dport *dport, u32 status, u64 serial),
-+	TP_ARGS(port, dport, status, serial),
- 	TP_STRUCT__entry(
--		__string(device, dev_name(dev))
--		__string(host, dev_name(dev->parent))
-+		__string(memdev, cxl_trace_memdev_name(port))
-+		__string(host, cxl_trace_host_name(port))
- 		__field(u64, serial)
- 		__field(u32, status)
-+		__string(port, cxl_trace_port_name(port))
-+		__string(dport, cxl_trace_dport_name(dport))
- 	),
- 	TP_fast_assign(
--		__assign_str(device);
-+		__assign_str(memdev);
-+		__assign_str(port);
-+		__assign_str(dport);
- 		__assign_str(host);
- 		__entry->serial = serial;
- 		__entry->status = status;
- 	),
--	TP_printk("device=%s host=%s serial=%lld status: '%s'",
--		  __get_str(device), __get_str(host), __entry->serial,
-+	TP_printk("memdev=%s port=%s dport=%s host=%s serial=%lld status: '%s'",
-+		  __get_str(memdev), __get_str(port), __get_str(dport),
-+		  __get_str(host), __entry->serial,
- 		  show_ce_errs(__entry->status)
- 	)
- );
-diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
-index 776c50d1db51..83e161d48405 100644
---- a/drivers/cxl/cxlmem.h
-+++ b/drivers/cxl/cxlmem.h
-@@ -101,6 +101,12 @@ static inline bool is_cxl_endpoint(struct cxl_port *port)
- 	return is_cxl_memdev(port->uport_dev);
- }
- 
-+/* trace-event helpers */
-+const char *cxl_trace_memdev_name(struct cxl_port *port);
-+const char *cxl_trace_host_name(struct cxl_port *port);
-+const char *cxl_trace_port_name(struct cxl_port *port);
-+const char *cxl_trace_dport_name(struct cxl_dport *dport);
-+
- struct cxl_memdev *__devm_cxl_add_memdev(struct cxl_dev_state *cxlds,
- 					 const struct cxl_memdev_attach *attach);
- struct cxl_memdev *devm_cxl_add_memdev(struct cxl_dev_state *cxlds,
-diff --git a/drivers/cxl/core/ras.c b/drivers/cxl/core/ras.c
-index b45e2b539b5f..33e78f155916 100644
---- a/drivers/cxl/core/ras.c
-+++ b/drivers/cxl/core/ras.c
-@@ -8,16 +8,20 @@
- #include <cxlpci.h>
- #include "trace.h"
- 
--static void cxl_cper_trace_corr_prot_err(struct pci_dev *pdev, u64 serial,
--					 struct cxl_ras_capability_regs *ras_cap)
-+static void
-+cxl_cper_trace_corr_prot_err(struct cxl_port *port, struct cxl_dport *dport,
-+			     u64 serial,
-+			     struct cxl_ras_capability_regs *ras_cap)
- {
- 	u32 status = ras_cap->cor_status & ~ras_cap->cor_mask;
- 
--	trace_cxl_aer_correctable_error(&pdev->dev, status, serial);
-+	trace_cxl_aer_correctable_error(port, dport, status, serial);
- }
- 
--static void cxl_cper_trace_uncorr_prot_err(struct pci_dev *pdev, u64 serial,
--					   struct cxl_ras_capability_regs *ras_cap)
-+static void
-+cxl_cper_trace_uncorr_prot_err(struct cxl_port *port, struct cxl_dport *dport,
-+			       u64 serial,
-+			       struct cxl_ras_capability_regs *ras_cap)
- {
- 	u32 status = ras_cap->uncor_status & ~ras_cap->uncor_mask;
- 	u32 fe;
-@@ -28,10 +32,12 @@ static void cxl_cper_trace_uncorr_prot_err(struct pci_dev *pdev, u64 serial,
- 	else
- 		fe = status;
- 
--	trace_cxl_aer_uncorrectable_error(&pdev->dev, status, fe,
-+	trace_cxl_aer_uncorrectable_error(port, dport, status, fe,
- 					  ras_cap->header_log, serial);
- }
- 
-+static struct cxl_port *find_cxl_port_by_dev(struct device *dev, struct cxl_dport **dport);
-+
- void cxl_cper_handle_prot_err(struct cxl_cper_prot_err_work_data *data)
- {
- 	unsigned int devfn = PCI_DEVFN(data->prot_err.agent_addr.device,
-@@ -40,19 +46,26 @@ void cxl_cper_handle_prot_err(struct cxl_cper_prot_err_work_data *data)
- 		pci_get_domain_bus_and_slot(data->prot_err.agent_addr.segment,
- 					    data->prot_err.agent_addr.bus,
- 					    devfn);
-+	struct cxl_dport *dport;
- 
- 	if (!pdev)
- 		return;
- 
--	guard(device)(&pdev->dev);
--	if (!pdev->dev.driver)
-+	struct cxl_port *port __free(put_cxl_port) =
-+		find_cxl_port_by_dev(&pdev->dev, &dport);
-+
-+	if (!port)
-+		return;
-+
-+	guard(device)(&port->dev);
-+	if (!port->dev.driver)
- 		return;
- 
- 	if (data->severity == AER_CORRECTABLE)
--		cxl_cper_trace_corr_prot_err(pdev, pci_get_dsn(pdev),
-+		cxl_cper_trace_corr_prot_err(port, dport, pci_get_dsn(pdev),
- 					     &data->ras_cap);
- 	else
--		cxl_cper_trace_uncorr_prot_err(pdev, pci_get_dsn(pdev),
-+		cxl_cper_trace_uncorr_prot_err(port, dport, pci_get_dsn(pdev),
- 					       &data->ras_cap);
- }
- EXPORT_SYMBOL_GPL(cxl_cper_handle_prot_err);
-@@ -222,13 +235,12 @@ static void __iomem *to_ras_base(struct cxl_port *port, struct cxl_dport *dport)
- 
- static void cxl_do_recovery(struct pci_dev *pdev, struct cxl_port *port, struct cxl_dport *dport)
- {
--	struct device *dev = &pdev->dev;
- 	bool ue;
- 
- 	if (pci_dev_is_disconnected(pdev))
- 		panic("CXL cachemem error: device disconnected during UE recovery");
- 
--	ue = cxl_handle_ras(dev, pci_get_dsn(pdev),
-+	ue = cxl_handle_ras(port, dport, pci_get_dsn(pdev),
- 			    to_ras_base(port, dport));
- 	if (ue)
- 		panic("CXL cachemem error.");
-@@ -238,7 +250,8 @@ static void cxl_do_recovery(struct pci_dev *pdev, struct cxl_port *port, struct
- 	pci_aer_clear_fatal_status(pdev);
- }
- 
--void cxl_handle_cor_ras(struct device *dev, u64 serial, void __iomem *ras_base)
-+void cxl_handle_cor_ras(struct cxl_port *port, struct cxl_dport *dport,
-+			u64 serial, void __iomem *ras_base)
- {
- 	void __iomem *addr;
- 	u32 status;
-@@ -250,7 +263,7 @@ void cxl_handle_cor_ras(struct device *dev, u64 serial, void __iomem *ras_base)
- 	status = readl(addr);
- 	if (status & CXL_RAS_CORRECTABLE_STATUS_MASK) {
- 		writel(status & CXL_RAS_CORRECTABLE_STATUS_MASK, addr);
--		trace_cxl_aer_correctable_error(dev, status, serial);
-+		trace_cxl_aer_correctable_error(port, dport, status, serial);
- 	}
- }
- 
-@@ -275,7 +288,8 @@ static void header_log_copy(void __iomem *ras_base, u32 *log)
-  * Log the state of the RAS status registers and prepare them to log the
-  * next error status. Return 1 if reset needed.
-  */
--bool cxl_handle_ras(struct device *dev, u64 serial, void __iomem *ras_base)
-+bool cxl_handle_ras(struct cxl_port *port, struct cxl_dport *dport, u64 serial,
-+		    void __iomem *ras_base)
- {
- 	u32 hl[CXL_HEADERLOG_SIZE_U32];
- 	void __iomem *addr;
-@@ -302,7 +316,7 @@ bool cxl_handle_ras(struct device *dev, u64 serial, void __iomem *ras_base)
- 	}
- 
- 	header_log_copy(ras_base, hl);
--	trace_cxl_aer_uncorrectable_error(dev, status, fe, hl, serial);
-+	trace_cxl_aer_uncorrectable_error(port, dport, status, fe, hl, serial);
- 	writel(status & CXL_RAS_UNCORRECTABLE_STATUS_MASK, addr);
- 
- 	return true;
-@@ -358,7 +372,7 @@ static void cxl_handle_proto_error(struct pci_dev *pdev, struct cxl_port *port,
- 		cxl_handle_rdport_errors(pdev);
- 
- 	if (severity == AER_CORRECTABLE) {
--		cxl_handle_cor_ras(&pdev->dev, pci_get_dsn(pdev),
-+		cxl_handle_cor_ras(port, dport, pci_get_dsn(pdev),
- 				   to_ras_base(port, dport));
- 		pcie_clear_device_status(pdev);
- 	} else {
-diff --git a/drivers/cxl/core/ras_rch.c b/drivers/cxl/core/ras_rch.c
-index cbd02cabefbc..1bcd3c491aaa 100644
---- a/drivers/cxl/core/ras_rch.c
-+++ b/drivers/cxl/core/ras_rch.c
-@@ -113,9 +113,8 @@ void cxl_handle_rdport_errors(struct pci_dev *pdev)
- 
- 	pci_print_aer(pdev, severity, &aer_regs);
- 	if (severity == AER_CORRECTABLE)
--		cxl_handle_cor_ras(&pdev->dev, pci_get_dsn(pdev),
-+		cxl_handle_cor_ras(port, dport, pci_get_dsn(pdev),
- 				   dport->regs.ras);
- 	else
--		cxl_handle_ras(&pdev->dev, pci_get_dsn(pdev),
--			       dport->regs.ras);
-+		cxl_handle_ras(port, dport, pci_get_dsn(pdev), dport->regs.ras);
- }
-diff --git a/drivers/cxl/core/trace.c b/drivers/cxl/core/trace.c
-index 7f2a9dd0d0e3..df42d119c53d 100644
---- a/drivers/cxl/core/trace.c
-+++ b/drivers/cxl/core/trace.c
-@@ -2,7 +2,42 @@
- /* Copyright(c) 2022 Intel Corporation. All rights reserved. */
- 
- #include <cxl.h>
-+#include <cxlmem.h>
- #include "core.h"
- 
-+const char *cxl_trace_memdev_name(struct cxl_port *port)
-+{
-+	if (is_cxl_endpoint(port)) {
-+		struct cxl_memdev *cxlmd = to_cxl_memdev(port->uport_dev);
-+
-+		return dev_name(&cxlmd->dev);
-+	}
-+
-+	return "";
-+}
-+
-+const char *cxl_trace_host_name(struct cxl_port *port)
-+{
-+	if (is_cxl_endpoint(port)) {
-+		struct cxl_memdev *cxlmd = to_cxl_memdev(port->uport_dev);
-+
-+		return dev_name(cxlmd->dev.parent);
-+	}
-+
-+	return dev_name(port->uport_dev);
-+}
-+
-+const char *cxl_trace_port_name(struct cxl_port *port)
-+{
-+	return dev_name(&port->dev);
-+}
-+
-+const char *cxl_trace_dport_name(struct cxl_dport *dport)
-+{
-+	if (dport)
-+		return dev_name(dport->dport_dev);
-+	return "";
-+}
-+
- #define CREATE_TRACE_POINTS
- #include "trace.h"
+<baudrate>,<uartclk>
+
+regular uart parses
+
+<baudrate><parity><bits><flow>
+
+This is strange, because according to kernel documentation, options for
+uart should be identical for earlycon and console kernel parameters.
+[1] [2].
+
+Thanks
+- Markus Probst
+
+
+[1]
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/dri=
+vers/tty/serial/serial_core.c?h=3Dv7.1-rc1#n2097
+
+[2]
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/Doc=
+umentation/admin-guide/kernel-parameters.txt?h=3Dv7.1-rc1#n1451
+
+
+--=-iiR/tfIbR7HqXJlKJs1S
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+
+iQJPBAABCAA5FiEEgnQYxPSsWOdyMMRzNHYf+OetQ9IFAmn+0JobFIAAAAAABAAO
+bWFudTIsMi41KzEuMTIsMiwyAAoJEDR2H/jnrUPS85kQALF5skHMNhTETz3p9yG8
+MlPsT2+KQQ2u5x4Kew/lj20Sj5TWHu/LTmRZPTt9rdmz03cCFC4YHJPx/Fc5jii6
+SawLDAf2fts+ZLc37bRb7SHvqzZistCBhapfpEbPdh3IkFmgG6yaaMvHbk22vc5G
+/u82q5E9bPpsztlGuuzzqJ8WoH/3VvsJfPan9tH+tL6m4PFxrBR0GX7x7bNqzbCz
+zmV0oj/+cB1UauyAZAOpIkF1AaZ8u/QlNCjjXXDHrrqzIpyPAk0JInYoj3KZE+dc
+re6KQMy7GI22kZno/Oabc1IRj9M+5hzx/f5QwwP9aVquGOk5UYJ5YGyORmqUF0/9
+mGLYVXYepN1HweUDixotakzranwJbnXMWD2sj/QgJ5PNgSgmONKkQUGIkmjKLXnY
+jXpsDnw3EVxWhbHgtRkwsJQGQYMMb7hyIxeN5ZST9lot27QH5Rw8O/2ZI3QhPsSy
+9ZtRnpl+J5b+MFPNi6fYV0z7VD2EYMMWKPb2ud6NEewYPs6H2C2Np/zaIa323l80
+E2U9f9kOq/H0p2gV3BMdlD0QAFfvLXUzsSwqh873zswVNSFI6RcYENQ3LyxRDju2
+TG7Q6SjUEVse1emsOjkBIs9HQqJYQKvk5Oa3CewwYfH7AYg/hza/7kO9vxszF6qW
+0hcLMegQbWONp4MOf1U3+HZ+
+=e1hF
+-----END PGP SIGNATURE-----
+
+--=-iiR/tfIbR7HqXJlKJs1S--
