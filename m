@@ -1,232 +1,91 @@
-Received: from mail-pl1-f202.google.com (mail-pl1-f202.google.com [209.85.214.202])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D77CB265CA6
-	for <linux-acpi@vger.kernel.org>; Sun, 10 May 2026 05:58:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.202
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7138C24E4AF;
+	Sun, 10 May 2026 06:19:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.9
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778392697; cv=none; b=VJVO55CvbsfqXjCkf+bzQjH1uAcOV569R82oadF5meipoZvXo4L/T+NkdlAmT+cZ+5efMY+ZXfzyEthrJP5ouTRWcSQ0BDalx8Wy5GP6C+GQZpp9TklZdF879v6DzYx9mvg3X/uoUOSyPPRE8PF9pRweletClP4m836YoPosicY=
+	t=1778393955; cv=none; b=kCS8KqE6GVrz0eVZIzmrDruBJ/33ElOfODha/V4Dn3V6KVd1sXeIEPW5nLamoi2VzDPI14b/5q1O1DKaihJmew77teGFWKu1awSehQ2jrentk6vJoujCsQp2tnwz3CuZDooMCRiHRTmuYBvJkkgGb+TQ9t3gxHpUBRI+2qHO7Ag=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778392697; c=relaxed/simple;
-	bh=Lq/ueWM/AB4IC60AiiI03UXnPNsQQSOHqsWz+/zeDCk=;
-	h=Date:Mime-Version:Message-ID:Subject:From:To:Cc:Content-Type; b=SFSC9RtCOX7lfz0as7ZwjPUisk5Q/ulYSCnqst8bKr6RcpKCoXBInIyxf8X4UDPZXD6J1VIBzqz3lw4jWSS7N50wJbNdAXWzsiBD2SfSO5ckvKgEQPnLWcl7brpTbZA5Ahl0W1x8+fKBuXsZ95+pomCWNV+IvDPMEUkxJSb4UY0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--joonwonkang.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=uNAsrMIt; arc=none smtp.client-ip=209.85.214.202
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--joonwonkang.bounces.google.com
+	s=arc-20240116; t=1778393955; c=relaxed/simple;
+	bh=zgQD1poEEFdFBZRxRsQi2jZfPLh0jDmxyf4dQiXT9Vg=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=ebX0CJMk4JQoXsoMv1RysB5QJbeeYKQCgzKdZJ1GNgbTmukC8OYY29pK7qg6PZHB53kaSRYMmh0LJ/FScPPbDdaa5v4F2lPy+Kt2K4/xpN4MR3M0JRdiMw/H//VAM84SCr5gIe1bG36u10UPSiacwhMfgEZ4Z08/9fkRDXmLdGE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=XVe+pZQE; arc=none smtp.client-ip=198.175.65.9
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="uNAsrMIt"
-Received: by mail-pl1-f202.google.com with SMTP id d9443c01a7336-2ba838c5ff1so69325285ad.3
-        for <linux-acpi@vger.kernel.org>; Sat, 09 May 2026 22:58:14 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20251104; t=1778392694; x=1778997494; darn=vger.kernel.org;
-        h=cc:to:from:subject:message-id:mime-version:date:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=02FEpfqnOksLNZlovsl9fXdj4f/QI9yL1mFs8SDMyuE=;
-        b=uNAsrMItE9LOZuwEj+dkz6cngPwtSWSFMLr1+LRaB8psp5H0oSHb0z6ul96rvBFPGP
-         TStMjVt+009jlkw6VKZXKyDfNh1YHQXJ1laMcNTbINdsmWgz7vUBohjaKnHReMPv7mdP
-         17Imi9jpIuYUejB3Ni4NM/haZrZgyrPvdgoOjkMourObk5aUt8Vxj/t5Ps4CBC5kZQHM
-         jypWiEl1AZGhn9dS6JvPH1M7m41ytdwhD+dnkKSXcRQ3U0aBXhdd6GyamjNcNfifSYxH
-         zLcaAVAHAOaqhBQQucCL7VAxIeEIJCZy1QR2zU3dd9af7k4X776HKfutwUIDZ+SGKBM3
-         soRA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778392694; x=1778997494;
-        h=cc:to:from:subject:message-id:mime-version:date:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=02FEpfqnOksLNZlovsl9fXdj4f/QI9yL1mFs8SDMyuE=;
-        b=Xj2fMDbgcf5+8iZNi+UZCQLedLOHc73eoZeDHyXOvAaxGjlwKADHjUJ+VmDpEZG2ha
-         AL1RK3mBBU6+SurZODwIHIP8agBVshpB2QYTHZAd50I6qmAKmXzHSa1K/qrTKVD4Rdh0
-         M1TWcSLeeKRvHAvkwY3VP9cn3WOgyh8u36awvNzCxkpsfUVhTOnBlyb0b0Hd2WO3fvsU
-         IhP0m59T+262IqAW3c9KW6wOHB3P2gx08fLqZrmuG6mwB1j6JT4XceAGS3UykBMNbyqF
-         bo59aKKDw6oHCkUoCVVPJ3rNvEvOAGhhf0Af3eXrXQ7PE1XLJf/skruThXsvmDju/xfv
-         c8AA==
-X-Forwarded-Encrypted: i=1; AFNElJ/2SOg2RCPF7FWvy3DXd1m2KgY3ZK7C7M4Gi31uEsnmlPzGiBARyGCrdfxTqaxjrcJygO9JSj8Hkivd@vger.kernel.org
-X-Gm-Message-State: AOJu0YwFIhFxRKxNl0A+RqfsAP3KpJfj05jtPepM2V5CV6ZKs650NWRX
-	6bG8R1UL6TtSXJATNbrFfqOrZHBDryGkQeRPlJ9WmZYarL3VNrAm4+Lvh5pCPnzKfy0A+YcJS0n
-	i9c/smTqYNKLSF5Y9HXVBRKCjNA==
-X-Received: from plhn9.prod.google.com ([2002:a17:903:1109:b0:2b7:b346:a2c7])
- (user=joonwonkang job=prod-delivery.src-stubby-dispatcher) by
- 2002:a17:903:3dc8:b0:2ba:4ad9:70f6 with SMTP id d9443c01a7336-2ba7a32346dmr157161015ad.31.1778392694015;
- Sat, 09 May 2026 22:58:14 -0700 (PDT)
-Date: Sun, 10 May 2026 05:58:10 +0000
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="XVe+pZQE"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1778393953; x=1809929953;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=zgQD1poEEFdFBZRxRsQi2jZfPLh0jDmxyf4dQiXT9Vg=;
+  b=XVe+pZQE1vri9ieVi0maKtnDR0daY9I8ugr7LR56w58axF5+VQmWsyZb
+   HAppkoGtG3qedo7sxNt+Ydk+mzO1tERoRwintRs4r1dRX4zZWxrOWfWzY
+   iXEoJoZWqlG+8b63BarL4Kgu8KAT1NcIup+jzeOjf89W9n+oTgE0MziKl
+   a3Djqm9Mw1/UHhlYYZ7PG4fU/NakIIVqlRU3MhoCO/AfeXdffaVYDizkM
+   CnirWqWbVa3OR7V3laYIGxDbMAkHcXLBal4NmZtRfysE4QDDhpScESHsI
+   Zg9GIkXB7zzBd8RAuT5WF0Sz2h9J7dlfD5+E/s2EjoFqyvbGz6nYMeqrT
+   w==;
+X-CSE-ConnectionGUID: D1sblXn1ROO7XyOXdxvqtQ==
+X-CSE-MsgGUID: egM6RkL9Sb+fLzRP0Sd+vQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11781"; a="101983548"
+X-IronPort-AV: E=Sophos;i="6.23,227,1770624000"; 
+   d="scan'208";a="101983548"
+Received: from orviesa002.jf.intel.com ([10.64.159.142])
+  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 May 2026 23:19:13 -0700
+X-CSE-ConnectionGUID: ylQy8OFmTki4ApQgozksXg==
+X-CSE-MsgGUID: HVQJew80TCK/1M7jSNnrLQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,227,1770624000"; 
+   d="scan'208";a="267518246"
+Received: from dhhellew-desk2.ger.corp.intel.com (HELO localhost) ([10.245.244.171])
+  by orviesa002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 May 2026 23:19:12 -0700
+Date: Sun, 10 May 2026 09:19:09 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Hans de Goede <hansg@kernel.org>
+Subject: Re: [PATCH v1] ACPI: driver: Check ACPI_COMPANION() against NULL
+ during probe
+Message-ID: <agAjXbnPamNFd0gA@ashevche-desk.local>
+References: <4516068.ejJDZkT8p0@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-X-Mailer: git-send-email 2.54.0.563.g4f69b47b94-goog
-Message-ID: <20260510055810.796976-1-joonwonkang@google.com>
-Subject: [PATCH v2 v6.18.y] mailbox: Fix NULL message support in mbox_send_message()
-From: Joonwon Kang <joonwonkang@google.com>
-To: sashal@kernel.org, stable@vger.kernel.org, jassisinghbrar@gmail.com
-Cc: sudeep.holla@arm.com, thierry.reding@gmail.com, jonathanh@nvidia.com, 
-	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, 
-	linux-tegra@vger.kernel.org, joonwonkang@google.com, dianders@chromium.org
-Content-Type: text/plain; charset="UTF-8"
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4516068.ejJDZkT8p0@rafael.j.wysocki>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-From: Jassi Brar <jassisinghbrar@gmail.com>
+On Fri, May 08, 2026 at 08:04:33PM +0200, Rafael J. Wysocki wrote:
 
-commit c58e9456e30c ("mailbox: Fix NULL message support in mbox_send_message()") upstream.
+> Since every platform driver can be forced to match a device that doesn't
+> match its list of device IDs because of device_match_driver_override(),
+> platform drivers that rely on the existence of a device's ACPI companion
+> object should verify its presence.
+> 
+> Accordingly, add requisite ACPI_COMPANION() or ACPI_HANDLE() checks
+> against NULL to 13 platform drivers handling core ACPI devices.
+> 
+> Also change the value returned by the ACPI thermal zone driver when
+> the device's ACPI companion is not present to -ENODEV for consistency
+> with the other drivers.
 
-The active_req field serves double duty as both the "is a TX in
-flight" flag (NULL means idle) and the storage for the in-flight
-message pointer. When a client sends NULL via mbox_send_message(),
-active_req is set to NULL, which the framework misinterprets as
-"no active request". This breaks the TX state machine by:
+Yeah, or somehow to disable that matching.
+As a (quick) fix this patch seems fine to me.
 
- - tx_tick() short-circuits on (!mssg), skipping the tx_done
-   callback and the tx_complete completion
- - txdone_hrtimer() skips the channel entirely since active_req
-   is NULL, so poll-based TX-done detection never fires.
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-Fix this by introducing a MBOX_NO_MSG sentinel value that means
-"no active request," freeing NULL to be valid message data. The
-sentinel is defined in the subsystem-internal mailbox.h so that
-controller drivers within drivers/mailbox/ can reference it, but
-it is not exposed to clients outside the subsystem.
-
-Fifteen in-tree callers send NULL (doorbell-style IPCs on Qualcomm,
-Tegra, TI, Xilinx, i.MX, SCMI, and PCC platforms). All were
-audited for regression:
-
- - Most already work around the bug via knows_txdone=true with a
-   manual mbox_client_txdone() call, making the framework's
-   tracking irrelevant. These are unaffected.
-
- - Poll-based callers (Xilinx zynqmp/r5) are strictly better off:
-   the poll timer now correctly detects NULL-active channels
-   instead of silently skipping them.
-
- - irq-qcom-mpm.c was a pre-existing bug -- the only Qualcomm
-   caller that omitted the knows_txdone + mbox_client_txdone()
-   pattern. Fixed in a companion commit ("irqchip/qcom-mpm: Fix
-   missing mailbox TX done acknowledgment").
-
- - No caller sets both a tx_done callback and sends NULL, nor
-   combines tx_block=true with NULL sends, so the newly reachable
-   callback/completion paths are never exercised.
-
-Also update tegra-hsp's flush callback, which directly inspects
-active_req to wait for the channel to drain: the old "!= NULL"
-check becomes "!= MBOX_NO_MSG", otherwise flush spins until
-timeout since the sentinel is non-NULL.
-
-The only tradeoff is that 'MBOX_NO_MSG' can not be used as a message
-by clients.
-
-Reported-by: Joonwon Kang <joonwonkang@google.com>
-Reviewed-by: Douglas Anderson <dianders@chromium.org>
-Signed-off-by: Jassi Brar <jassisinghbrar@gmail.com>
-Signed-off-by: Joonwon Kang <joonwonkang@google.com>
----
-v2: Remove the obsolete change for drivers/mailbox/pcc.c.
-v1: Add the MBOX_NO_MSG check to drivers/mailbox/pcc.c.
-
- drivers/mailbox/mailbox.c          | 15 ++++++++-------
- drivers/mailbox/tegra-hsp.c        |  2 +-
- include/linux/mailbox_controller.h |  3 +++
- 3 files changed, 12 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/mailbox/mailbox.c b/drivers/mailbox/mailbox.c
-index 617ba505691d..9622369cab66 100644
---- a/drivers/mailbox/mailbox.c
-+++ b/drivers/mailbox/mailbox.c
-@@ -52,7 +52,7 @@ static void msg_submit(struct mbox_chan *chan)
- 	int err = -EBUSY;
- 
- 	scoped_guard(spinlock_irqsave, &chan->lock) {
--		if (!chan->msg_count || chan->active_req)
-+		if (!chan->msg_count || chan->active_req != MBOX_NO_MSG)
- 			break;
- 
- 		count = chan->msg_count;
-@@ -87,13 +87,13 @@ static void tx_tick(struct mbox_chan *chan, int r)
- 
- 	scoped_guard(spinlock_irqsave, &chan->lock) {
- 		mssg = chan->active_req;
--		chan->active_req = NULL;
-+		chan->active_req = MBOX_NO_MSG;
- 	}
- 
- 	/* Submit next message */
- 	msg_submit(chan);
- 
--	if (!mssg)
-+	if (mssg == MBOX_NO_MSG)
- 		return;
- 
- 	/* Notify the client */
-@@ -114,7 +114,7 @@ static enum hrtimer_restart txdone_hrtimer(struct hrtimer *hrtimer)
- 	for (i = 0; i < mbox->num_chans; i++) {
- 		struct mbox_chan *chan = &mbox->chans[i];
- 
--		if (chan->active_req && chan->cl) {
-+		if (chan->active_req != MBOX_NO_MSG && chan->cl) {
- 			txdone = chan->mbox->ops->last_tx_done(chan);
- 			if (txdone)
- 				tx_tick(chan, 0);
-@@ -246,7 +246,7 @@ int mbox_send_message(struct mbox_chan *chan, void *mssg)
- {
- 	int t;
- 
--	if (!chan || !chan->cl)
-+	if (!chan || !chan->cl || mssg == MBOX_NO_MSG)
- 		return -EINVAL;
- 
- 	t = add_to_rbuf(chan, mssg);
-@@ -319,7 +319,7 @@ static int __mbox_bind_client(struct mbox_chan *chan, struct mbox_client *cl)
- 	scoped_guard(spinlock_irqsave, &chan->lock) {
- 		chan->msg_free = 0;
- 		chan->msg_count = 0;
--		chan->active_req = NULL;
-+		chan->active_req = MBOX_NO_MSG;
- 		chan->cl = cl;
- 		init_completion(&chan->tx_complete);
- 
-@@ -477,7 +477,7 @@ void mbox_free_channel(struct mbox_chan *chan)
- 	/* The queued TX requests are simply aborted, no callbacks are made */
- 	scoped_guard(spinlock_irqsave, &chan->lock) {
- 		chan->cl = NULL;
--		chan->active_req = NULL;
-+		chan->active_req = MBOX_NO_MSG;
- 		if (chan->txdone_method == TXDONE_BY_ACK)
- 			chan->txdone_method = TXDONE_BY_POLL;
- 	}
-@@ -532,6 +532,7 @@ int mbox_controller_register(struct mbox_controller *mbox)
- 
- 		chan->cl = NULL;
- 		chan->mbox = mbox;
-+		chan->active_req = MBOX_NO_MSG;
- 		chan->txdone_method = txdone;
- 		spin_lock_init(&chan->lock);
- 	}
-diff --git a/drivers/mailbox/tegra-hsp.c b/drivers/mailbox/tegra-hsp.c
-index ed9a0bb2bcd8..7991e8dba579 100644
---- a/drivers/mailbox/tegra-hsp.c
-+++ b/drivers/mailbox/tegra-hsp.c
-@@ -497,7 +497,7 @@ static int tegra_hsp_mailbox_flush(struct mbox_chan *chan,
- 			mbox_chan_txdone(chan, 0);
- 
- 			/* Wait until channel is empty */
--			if (chan->active_req != NULL)
-+			if (chan->active_req != MBOX_NO_MSG)
- 				continue;
- 
- 			return 0;
-diff --git a/include/linux/mailbox_controller.h b/include/linux/mailbox_controller.h
-index 80a427c7ca29..1db0069c27c5 100644
---- a/include/linux/mailbox_controller.h
-+++ b/include/linux/mailbox_controller.h
-@@ -11,6 +11,9 @@
- 
- struct mbox_chan;
- 
-+/* Sentinel value distinguishing "no active request" from "NULL message data" */
-+#define MBOX_NO_MSG	((void *)-1)
-+
- /**
-  * struct mbox_chan_ops - methods to control mailbox channels
-  * @send_data:	The API asks the MBOX controller driver, in atomic
 -- 
-2.54.0.563.g4f69b47b94-goog
+With Best Regards,
+Andy Shevchenko
+
 
