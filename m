@@ -1,71 +1,71 @@
 Received: from mail-dl1-f44.google.com (mail-dl1-f44.google.com [74.125.82.44])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 243EF256C6C
-	for <linux-acpi@vger.kernel.org>; Sun, 10 May 2026 02:48:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B128924677F
+	for <linux-acpi@vger.kernel.org>; Sun, 10 May 2026 02:48:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.44
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778381288; cv=none; b=LPq134GLWhLiAYy19n9CvgJlKwOMQHYMlZXV8sG4CXrj2ViseqUECzYeVLjkhCgQN/f6jRMxrTlvpnTtL+zUqdTTgiL+ENKUdk7CoyPQchfpJOGQG2E/L5c297RBX2cUaiBObvF7mdhXyPaPxQv4xsacrDf/nPwrJz5znKeSXRs=
+	t=1778381289; cv=none; b=FLbM5SbqXjIzaKEak6D+naT3ABWoX7/J16SbXqTQ5qD1HPfjbVWAVdFGBFQJpAdSXd71S6ShpiGcPp1wIIgDf36w/8yqb2/Qok4uRy6vkWH65NgT79sgT3BwFSNsOJBeWcmOFsNtYkeBZ5IGoh8B3WW1szocawFZIFD0ntOEsds=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778381288; c=relaxed/simple;
-	bh=H93vS1Bl3RQWQI8icELFhQo19am9PzIsnbEQUSzr/dQ=;
+	s=arc-20240116; t=1778381289; c=relaxed/simple;
+	bh=SwMdwYGYzzLg3wQCGtdBTdijNHTXebXdySi03PYWB1k=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=jAiLQzm2QJ1sDEXdY8lM4Fu7vPl1MPI9FutcbkustdVpEkyIBS4u8WwNfYSQW1qrgJ9HR5oOBAbmeI2Nc+vHJQP27t/8iwg3D+FSB2pa/STSo+9VfsC7ej21Y6gfS4fBOPzZgHWptH5B8kSrUHZKnAvNR3XL9n5x3LMQ0tsxWlA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=UDbzQa5Q; arc=none smtp.client-ip=74.125.82.44
+	 MIME-Version; b=GJSYjBkhA4dNzlJt76XCO0jtcpqQcuIDk5oHC1RDVj0+R/soSYazTucfuAdICIxfvwxrItmM3oB2+ze5UxrOz/mKJ8aNZMXGmJeYqou2/lldYMtugDcII2cBSnqVt9ON0lnXnrtNlIi3sCE9NR6Ux43xFzrF2jHttJZYsUKLaWo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=lx96hGHC; arc=none smtp.client-ip=74.125.82.44
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="UDbzQa5Q"
-Received: by mail-dl1-f44.google.com with SMTP id a92af1059eb24-132c338a537so306790c88.0
-        for <linux-acpi@vger.kernel.org>; Sat, 09 May 2026 19:48:06 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="lx96hGHC"
+Received: by mail-dl1-f44.google.com with SMTP id a92af1059eb24-12c8f9846c8so4587223c88.0
+        for <linux-acpi@vger.kernel.org>; Sat, 09 May 2026 19:48:07 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1778381285; x=1778986085; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1778381287; x=1778986087; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=xJ5uIbASHp6bd9IXkDCffqNwnNKdW9lsre8l5tliLbw=;
-        b=UDbzQa5QOxISotkUOqiAZx0idyXIUoajwEqpeY2nIa3kAffXItQKnXiO4zgYZVuqUt
-         o9cCcYDS9WQge4cyGKxijTlvzVd8yOUgZdOO2wmvmTuIBBo1IQ+4FbTMa6QmlL8abdoG
-         Aa2LpNztD7FQvi4yr1b+hpVCEQc1qYFAfoLiTAm1yaEwNqRY2c88hpl87hQvRv3k+lfK
-         jSHLx187KrANuWFu3zYs5w4zWATgBFPMKOlwVG+u2/T+o/LOcPgBxLuKJID+/jviID/F
-         uy7KC1Yg9bd9sRAgCaaliO+7tyzbD/fpke84uoVTVmTxXtdCAs/OeF3MSgkcg1VUVMei
-         3xWg==
+        bh=GHwU+InujAdAxwaWrE0INLkxm6uhN8qMKbMfy91haL0=;
+        b=lx96hGHC6NttDugUA5vNzWiUk+u5762IVMrMwNIiZZtMGGtrHcfshaiIrnbD0oZHWy
+         sNOU8wh8ENU0TXbgpzNEx+F8/KAZGy37d9a8guTPxmmBMmsiUHjJ2n324yuy0YpraTZ0
+         m8sHFxW8Vw8ndQkDsnjtNo36AYAVVu/UWiDH5iDbcewsHwa+nqYo+RdR+jWvqOEhd8Ll
+         AWW07hInpNy57xHNxCuvuWg1asFG6a7ch2aD9j7SnJLUtRC6fA4leHCRr3j8VhQU2JZQ
+         j7ll4+pFvwVV2YYLOZ+SjAV5UPIOafKGWmOpuBd3uavttAvL+N/dzarXW6aArLj1GDEm
+         CRCA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778381285; x=1778986085;
+        d=1e100.net; s=20251104; t=1778381287; x=1778986087;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=xJ5uIbASHp6bd9IXkDCffqNwnNKdW9lsre8l5tliLbw=;
-        b=Wzs7ph9+zAIZn3gEsAljZB2pMDlycfEIJb8OCgSsMANM2eYZTqc/vQFtkUbcgUbQWq
-         LPMwqAjSbuYnncquzwgzaq+v/xBAEMTdnm5a89YGjifA1ytmTN1Q9zC2YXNO0G+uIMKw
-         88XuCyvcqktEAH2HkUEHRx1ToDn+Py45GxQDmZkrBevRxVBhGqgOb+T7bRA74ciccyvZ
-         hCBmsavF/PEkmrNk4IG3mu8V2tFgt/CUDh8hNQjGq06RmSeMkllbrjM88QMPgXtBbpEw
-         k7Ru3WoD+UcSlu4cdt4IPSnKSDEYZ5dpgcWta+XzLDRSLzG8WYBYagukiEbRelp0S3ap
-         5Qdg==
-X-Gm-Message-State: AOJu0YwTQA1cc3JH2Xy6HzDTdIY6k/xi1sbYS2PqpybxxLTAZiS7tXDO
-	xm0g9B0ZfYdA2oZQuUKntdv47PwGEv9PAX0MuLAu5EJKR4JlUrJf5MpOWd4mm+E=
-X-Gm-Gg: Acq92OHu7Yzcns/ClgWZ20tXXj6SlkMldQF/L39cKLxWJvbvvFGdYbCiWG/WqGwsv7E
-	rhwkjPMka9wbUmQVZze2dUOjhh+g08z6mMuSDOsza/iJhSSrFy7DsGyJjfVbumr52kdzm7zTWZR
-	YVaEmMdnI51/zfZoxat84/SAHVo0sFjNnCznvNNY7Asv0C2VXUAYGoVve46CPLcUGGDR7W7/At3
-	brZoRcrJWK7jXsKINpEhkgIOBNDGK5wU9pRFdMnFjv5o/t9MZdCC/Kg/PK/hs0KFXULHz294Fyu
-	ycngItnJWOAo5I+9ITJaWAy9engsUMCdhHC27/PiobiP7I4DUUvkpIktLNRApjVBlugrpchVDzG
-	c+NBZLBXj6LJRePk5BDyks+dy6C0Af5r4xVN5g8GThXpzdQi1knq58IVVRdrBFLGUhtwuveOcQJ
-	VOpN8PO4hO+P4YGIeMvGRM2H3YLnD2iyA=
-X-Received: by 2002:a05:7022:2215:b0:12c:839:7462 with SMTP id a92af1059eb24-1323ae990bemr5234567c88.12.1778381285296;
-        Sat, 09 May 2026 19:48:05 -0700 (PDT)
+        bh=GHwU+InujAdAxwaWrE0INLkxm6uhN8qMKbMfy91haL0=;
+        b=MaLUa+4jX4FqTbpRUsWP9vu1ZEJtjhQbPbvcGAhECdnQXB7haAaX7HlcqrdKJwcJPS
+         iw4LUAiFC12zDy93KX7aIThgdt9YwjIZc+DmTAUUdU3vA8TIVROZLRzuHF9A8boE3JCq
+         XHJdN6SeEYCCWGWHQDnZyXTzGFb1W+fgGEOh+pQ5wC7ev2p7nSbKEr+H65vsdzhGd/ui
+         6i9xWNkc04jCttN/3j4FWOb3hnXAVP5/iwRQszy1xWtHSckq14OFknirxmo+KAiBAbNm
+         6SrjiY0Kf89Vf8/Xrjo0DqvIedDYfKGM7Vt6EyWEOCK0UW+WO9uhaI6tT+/H3HIKYDng
+         FLkQ==
+X-Gm-Message-State: AOJu0YzizZPb8lWKp/j3KSw3SgqBmHFfC8c0pkFi8zevytWYB/jMmL1a
+	a5vkBYlCcX2Ulm7sa3+9F/dzJ8TbhelnqSUxGSSDNW5n3k4sCmCqgz8=
+X-Gm-Gg: Acq92OH7HOeoHcZ4kTjSq5jsTHRou07T9gPd54BzvRPtIYLC4CmCoAY3xOoDk1LTPPv
+	xpFatEv32RzdEeW97e0gGfCsWRnOR+99Z+a9gQCh6DlkP8+YMuvYA3wdT8FYgJe8JxV2ahSHV3u
+	wxUGtN+AtgXT8ZvU4OJ2ude6gyCcJOIfXzus0VgAVTNlBe785lFigTCh8JQjOUHJ+A1vkdEEDHe
+	c8Utp1AGrXzZpyDTOi7q9/n/9tlKDbP7YGHumj61NA739YkltoYNE9TOq2xz1yVcWeTzF9QXum/
+	4z90EedXiMhRc4RNEdI9Z78SlvRf2NYXunaDj1xUiZTMamNucxcxn3YyA/FCIcsgFW0/ZQcLKwC
+	wChk5mxs86NyZu+0kTR/cAiwK8UoQGjmmvpGvXdKnS4fbqGUpGFh70+seeU91S3aYQuhiHlq1qd
+	qe3jDSOcSjdUDpw/mz70Xz/8ITEVeFzt0=
+X-Received: by 2002:a05:7022:6198:b0:132:b202:8547 with SMTP id a92af1059eb24-132b20286a5mr1563614c88.36.1778381286653;
+        Sat, 09 May 2026 19:48:06 -0700 (PDT)
 Received: from localhost ([2601:647:4100:7b00:6600:cad2:6352:4cfc])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-1327810ffb9sm12016011c88.2.2026.05.09.19.48.04
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2f8860ce1bfsm8637608eec.9.2026.05.09.19.48.06
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 09 May 2026 19:48:05 -0700 (PDT)
+        Sat, 09 May 2026 19:48:06 -0700 (PDT)
 From: Jean-Ralph Aviles <jeanralph.aviles@gmail.com>
 To: rafael@kernel.org,
 	lenb@kernel.org
 Cc: linux-acpi@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	jeanralph.aviles@gmail.com
-Subject: [PATCH 3/4] ACPI: video: Fix quoted strings split across lines
-Date: Sat,  9 May 2026 19:47:22 -0700
-Message-ID: <67de3fc0f7d7f19ffff8d4bf3b63a6b1b600c9ca.1778378939.git.jeanralph.aviles@gmail.com>
+Subject: [PATCH 4/4] ACPI: video: Add blank line after declaration
+Date: Sat,  9 May 2026 19:47:23 -0700
+Message-ID: <6fcebe713899ae5da26a1790c6e9e5d764fc3911.1778378939.git.jeanralph.aviles@gmail.com>
 X-Mailer: git-send-email 2.51.2
 In-Reply-To: <cover.1778378939.git.jeanralph.aviles@gmail.com>
 References: <cover.1778378939.git.jeanralph.aviles@gmail.com>
@@ -79,38 +79,24 @@ Content-Transfer-Encoding: 8bit
 
 Reported by checkpatch:
 
-WARNING: quoted string split across lines
+WARNING: Missing a blank line after declarations
 Signed-off-by: Jean-Ralph Aviles <jeanralph.aviles@gmail.com>
 ---
- drivers/acpi/acpi_video.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ drivers/acpi/acpi_video.c | 1 +
+ 1 file changed, 1 insertion(+)
 
 diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
-index fc45f0ecf7cf..4fec8d817812 100644
+index 4fec8d817812..39a1c25fd840 100644
 --- a/drivers/acpi/acpi_video.c
 +++ b/drivers/acpi/acpi_video.c
-@@ -56,8 +56,7 @@ MODULE_PARM_DESC(report_key_events,
- static int hw_changes_brightness = -1;
- module_param(hw_changes_brightness, int, 0644);
- MODULE_PARM_DESC(hw_changes_brightness,
--	"Set this to 1 on buggy hw which changes the brightness itself when "
--	"a hotkey is pressed: -1: auto, 0: normal 1: hw-changes-brightness");
-+	"Set this to 1 on buggy hw which changes the brightness itself when a hotkey is pressed: -1: auto, 0: normal 1: hw-changes-brightness");
- 
- /*
-  * Whether the struct acpi_video_device_attrib::device_id_scheme bit should be
-@@ -1987,10 +1986,7 @@ static int acpi_video_bus_probe(struct auxiliary_device *aux_dev,
- 
- 	if (!allow_duplicates && acpi_video_bus_dev_is_duplicate(&aux_dev->dev)) {
- 		pr_info(FW_BUG
--			"Duplicate ACPI video bus devices for the"
--			" same VGA controller, please try module "
--			"parameter \"video.allow_duplicates=1\""
--			"if the current driver doesn't work.\n");
-+			"Duplicate ACPI video bus devices for the same VGA controller, please try module parameter \"video.allow_duplicates=1\" if the current driver doesn't work.\n");
- 		return -ENODEV;
- 	}
- 
+@@ -1361,6 +1361,7 @@ acpi_video_get_next_level(struct acpi_video_device *device,
+ 			  u32 level_current, u32 event)
+ {
+ 	int min, max, min_above, max_below, i, l, delta = 255;
++
+ 	max = max_below = 0;
+ 	min = min_above = 255;
+ 	/* Find closest level to level_current */
 -- 
 2.51.2
 
