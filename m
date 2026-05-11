@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D70C230264;
-	Mon, 11 May 2026 20:15:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34DE8221F2F;
+	Mon, 11 May 2026 20:15:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778530545; cv=none; b=TbQYCDRugx3mFiAaH+ReRQALB4Svd5g0JYIUPkSJ+kKJ7KjPb02QIfgK6FGHUzhfVG0cCMYt9Ii9FTJr3gNhAqKNnYXnRb6v+VRQyqfodYujB/IckQbZNq+uQy+fVvQbZW/u1tXSebeuyExWQHd8U2U1uOSrQHyomLTsYT9enV8=
+	t=1778530549; cv=none; b=AHY2ctA0ngOLIimJ3s2kZEMEtp3wNIC2l0khZ+blU3HnJ1GaBnAQqueOhRFEklQHgXURn2JLHs/h6Z4PDDOsPrA13EkDKZRBN80MqY8R9ztrpSzwwguwausTK26EhAFzXuAKEZepJ4Wuq1YVqzFARJQ8SgjI/Trx+JDXcz/7cfM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778530545; c=relaxed/simple;
-	bh=YFJzo12wIJY/44Pg9VRxR8K1o55N0qM0kqFzjGxRddo=;
+	s=arc-20240116; t=1778530549; c=relaxed/simple;
+	bh=+0Vpl23MevXpsPKDxjG+B60ODDM6DTJ2VXNmTuOsEDM=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=U78b77qiNOIO9tsU6DgFQYX88KQ4umau9s96k6SF3nYs8+GkMceK8h7MVHhFrZkmGV/Kv4Uazu80m1zGM/lNDfZrJs0qvRnvmU26Diusoa2pzdl5S+6MRljjCdHWm29B0Xcx7K8J32AiVQqJoxD+Vr7jOqCE/KN/JnKsdWOEhg4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KGLuECsz; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=nvoeKOUCktI42r0fNTI6RLlHPwnv6fT81ACQgsVGcUZVLgtP+UhmZdvGIhf+9VdZo/4j3SW02cckLlI4c+hjF11AH0x7ujVCikcjEwqvXt2tIdnTmTB436S93NSetEY3/snrTbjvl7ixiqDxfjK2y4wvqU84Q7XduPTBnMCWMYI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=FJurJZyX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KGLuECsz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CD5FC2BCB0;
-	Mon, 11 May 2026 20:15:43 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="FJurJZyX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52665C2BCB0;
+	Mon, 11 May 2026 20:15:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778530544;
-	bh=YFJzo12wIJY/44Pg9VRxR8K1o55N0qM0kqFzjGxRddo=;
+	s=k20201202; t=1778530548;
+	bh=+0Vpl23MevXpsPKDxjG+B60ODDM6DTJ2VXNmTuOsEDM=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=KGLuECsz0Jvt7t9u6HKzXnJknUyW0RwZltLYTC7UMDN/UJlsA4dw+MZvibWSc+Qil
-	 ZXMm0tsLo+d6XQBg+mG7dDEL9u7ZXDGoKnsf0T5Hz3ZG92kvAMed/q1SNrY6KPGmpv
-	 M0NsxRfKj/jD7YDBUfj5mMNowRlLqhzQywlFM6CL0OA2lvlXqDyGih9wtfOxsdDVAv
-	 +hI/SDq+pp8cDgbpzXOzJcwyw4fmrMH6h8fj+KT7Z0rmFk1nO9jPvNRuOJCGg16/Qf
-	 MzZAdq3WuDQsk99R8V26ZhxZLlnnqar0/2gX4/6ndCKs2iqwluPnnZOyihdJ0oJxDA
-	 R45BjZdlkvblg==
+	b=FJurJZyXQLD7GG0cGIHpzplM24lnNr2uimgpxn7ZDq23drQJ/tIEnMR0TxTHAzNd7
+	 tIuBjsvS3RZSKWeQw7wsEXmGJTQgnhCxHxTZenJ2GQ5oTB/IiipMm6rapKxDmtJdTv
+	 Z8Lfv/84PEyVV8B+nj/u9Wcj2DkLGCI0mFUAoaQBiATN0hHPzy+lRmyhs4RvJQeWTZ
+	 zKPsjMCG+E5eO6kA+BEcyxs6iPOufHl1/edNkkL8a7QNDPY02eND/zOWDCE+ZnHEYF
+	 plJ+cN4g4pvKvISbbmeT86Z30Ihx7upNBDaLgBVRMKZuJU4zKAH/c11HwOMvxWfX5b
+	 YMbIxUjAOWWrA==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Ilpo =?ISO-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>
 Cc: LKML <linux-kernel@vger.kernel.org>,
@@ -33,10 +33,10 @@ Cc: LKML <linux-kernel@vger.kernel.org>,
  platform-driver-x86@vger.kernel.org,
  Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
 Subject:
- [PATCH v2 08/10] platform/x86: classmate-laptop: Convert tablet driver to a
+ [PATCH v2 07/10] platform/x86: classmate-laptop: Convert accel driver to a
  platform one
-Date: Mon, 11 May 2026 22:12:55 +0200
-Message-ID: <4504318.ejJDZkT8p0@rafael.j.wysocki>
+Date: Mon, 11 May 2026 22:11:39 +0200
+Message-ID: <24365138.6Emhk5qWAg@rafael.j.wysocki>
 Organization: Linux Kernel Development
 In-Reply-To: <3415394.44csPzL39Z@rafael.j.wysocki>
 References: <3415394.44csPzL39Z@rafael.j.wysocki>
@@ -59,11 +59,14 @@ used by driver code to bind to that device.  There are multiple reasons
 why drivers should not bind directly to ACPI device objects [1].
 
 Overall, it is better to bind drivers to platform devices than to their
-ACPI companions, so convert cmpc_tablet_acpi_driver in the Classmate
+ACPI companions, so convert cmpc_accel_acpi_driver in the Classmate
 laptop driver from an ACPI driver to a platform one.
 
-After this change, the input device registered by the driver will appear
-under the platform device used for driver binding.
+After this change, the input device registered by the driver will
+appear under the platform device used for driver binding, but the sysfs
+attribute added by the driver under the ACPI companion of that device
+will stay there in case there are utilities in user space expecting
+it to be present there.
 
 While this is not expected to alter functionality, it changes sysfs
 layout and so it will be visible to user space.
@@ -77,144 +80,169 @@ v1 -> v2:
    * Check the ACPI companion against NULL at probe time
 
 ---
- drivers/platform/x86/classmate-laptop.c | 55 +++++++++++++------------
- 1 file changed, 29 insertions(+), 26 deletions(-)
+ drivers/platform/x86/classmate-laptop.c | 63 +++++++++++++------------
+ 1 file changed, 33 insertions(+), 30 deletions(-)
 
 diff --git a/drivers/platform/x86/classmate-laptop.c b/drivers/platform/x86/classmate-laptop.c
-index 0d5ad89d0f24..464ab852b492 100644
+index 454ba2823b51..0d5ad89d0f24 100644
 --- a/drivers/platform/x86/classmate-laptop.c
 +++ b/drivers/platform/x86/classmate-laptop.c
-@@ -748,12 +748,12 @@ static acpi_status cmpc_get_tablet(acpi_handle handle,
+@@ -558,15 +558,15 @@ static acpi_status cmpc_get_accel(acpi_handle handle,
  
- static void cmpc_tablet_handler(acpi_handle handle, u32 event, void *data)
+ static void cmpc_accel_handler(acpi_handle handle, u32 event, void *data)
  {
 -	struct acpi_device *dev = data;
 +	struct device *dev = data;
- 	unsigned long long val = 0;
--	struct input_dev *inputdev = dev_get_drvdata(&dev->dev);
-+	struct input_dev *inputdev = dev_get_drvdata(dev);
  
  	if (event == 0x81) {
--		if (ACPI_SUCCESS(cmpc_get_tablet(dev->handle, &val))) {
-+		if (ACPI_SUCCESS(cmpc_get_tablet(ACPI_HANDLE(dev), &val))) {
- 			input_report_switch(inputdev, SW_TABLET_MODE, !val);
- 			input_sync(inputdev);
- 		}
-@@ -762,40 +762,44 @@ static void cmpc_tablet_handler(acpi_handle handle, u32 event, void *data)
+ 		unsigned char x, y, z;
+ 		acpi_status status;
  
- static void cmpc_tablet_idev_init(struct input_dev *inputdev)
+-		status = cmpc_get_accel(dev->handle, &x, &y, &z);
++		status = cmpc_get_accel(ACPI_HANDLE(dev), &x, &y, &z);
+ 		if (ACPI_SUCCESS(status)) {
+-			struct input_dev *inputdev = dev_get_drvdata(&dev->dev);
++			struct input_dev *inputdev = dev_get_drvdata(dev);
+ 
+ 			input_report_abs(inputdev, ABS_X, x);
+ 			input_report_abs(inputdev, ABS_Y, y);
+@@ -633,20 +633,14 @@ static struct device_attribute cmpc_accel_sensitivity_attr = {
+ 
+ static int cmpc_accel_open(struct input_dev *input)
  {
-+	acpi_handle handle = ACPI_HANDLE(inputdev->dev.parent);
- 	unsigned long long val = 0;
 -	struct acpi_device *acpi;
- 
- 	set_bit(EV_SW, inputdev->evbit);
- 	set_bit(SW_TABLET_MODE, inputdev->swbit);
- 
--	acpi = to_acpi_device(inputdev->dev.parent);
--	if (ACPI_SUCCESS(cmpc_get_tablet(acpi->handle, &val))) {
-+	if (ACPI_SUCCESS(cmpc_get_tablet(handle, &val))) {
- 		input_report_switch(inputdev, SW_TABLET_MODE, !val);
- 		input_sync(inputdev);
- 	}
+-
+-	acpi = to_acpi_device(input->dev.parent);
+-	if (ACPI_SUCCESS(cmpc_start_accel(acpi->handle)))
++	if (ACPI_SUCCESS(cmpc_start_accel(ACPI_HANDLE(input->dev.parent))))
+ 		return 0;
+ 	return -EIO;
  }
  
--static int cmpc_tablet_add(struct acpi_device *acpi)
-+static int cmpc_tablet_probe(struct platform_device *pdev)
+ static void cmpc_accel_close(struct input_dev *input)
  {
-+	struct acpi_device *acpi;
- 	int error;
+-	struct acpi_device *acpi;
+-
+-	acpi = to_acpi_device(input->dev.parent);
+-	cmpc_stop_accel(acpi->handle);
++	cmpc_stop_accel(ACPI_HANDLE(input->dev.parent));
+ }
  
--	error = cmpc_add_notify_device(&acpi->dev, "cmpc_tablet", cmpc_tablet_idev_init);
+ static void cmpc_accel_idev_init(struct input_dev *inputdev)
+@@ -659,21 +653,27 @@ static void cmpc_accel_idev_init(struct input_dev *inputdev)
+ 	inputdev->close = cmpc_accel_close;
+ }
+ 
+-static int cmpc_accel_add(struct acpi_device *acpi)
++static int cmpc_accel_probe(struct platform_device *pdev)
+ {
+ 	int error;
+ 	struct input_dev *inputdev;
+ 	struct cmpc_accel *accel;
++	struct acpi_device *acpi;
+ 
+-	accel = devm_kzalloc(&acpi->dev, sizeof(*accel), GFP_KERNEL);
 +	acpi = ACPI_COMPANION(&pdev->dev);
 +	if (!acpi)
 +		return -ENODEV;
 +
-+	error = cmpc_add_notify_device(&pdev->dev, "cmpc_tablet", cmpc_tablet_idev_init);
++	accel = devm_kzalloc(&pdev->dev, sizeof(*accel), GFP_KERNEL);
+ 	if (!accel)
+ 		return -ENOMEM;
+ 
+-	error = cmpc_add_notify_device(&acpi->dev, "cmpc_accel", cmpc_accel_idev_init);
++	error = cmpc_add_notify_device(&pdev->dev, "cmpc_accel", cmpc_accel_idev_init);
  	if (error)
  		return error;
  
- 	error = acpi_dev_install_notify_handler(acpi, ACPI_DEVICE_NOTIFY,
--						cmpc_tablet_handler, acpi);
-+						cmpc_tablet_handler, &pdev->dev);
- 	if (error)
--		cmpc_remove_notify_device(&acpi->dev);
-+		cmpc_remove_notify_device(&pdev->dev);
+-	inputdev = dev_get_drvdata(&acpi->dev);
++	inputdev = dev_get_drvdata(&pdev->dev);
++	dev_set_drvdata(&acpi->dev, inputdev);
  
+ 	accel->sensitivity = CMPC_ACCEL_SENSITIVITY_DEFAULT;
+ 	cmpc_accel_set_sensitivity(acpi->handle, accel->sensitivity);
+@@ -683,7 +683,7 @@ static int cmpc_accel_add(struct acpi_device *acpi)
+ 		goto failed_file;
+ 
+ 	error = acpi_dev_install_notify_handler(acpi, ACPI_DEVICE_NOTIFY,
+-						cmpc_accel_handler, acpi);
++						cmpc_accel_handler, &pdev->dev);
+ 	if (error)
+ 		goto failed_notify_handler;
+ 
+@@ -694,16 +694,20 @@ static int cmpc_accel_add(struct acpi_device *acpi)
+ failed_notify_handler:
+ 	device_remove_file(&acpi->dev, &cmpc_accel_sensitivity_attr);
+ failed_file:
+-	cmpc_remove_notify_device(&acpi->dev);
++	dev_set_drvdata(&acpi->dev, NULL);
++	cmpc_remove_notify_device(&pdev->dev);
  	return error;
  }
  
--static void cmpc_tablet_remove(struct acpi_device *acpi)
-+static void cmpc_tablet_remove(struct platform_device *pdev)
+-static void cmpc_accel_remove(struct acpi_device *acpi)
++static void cmpc_accel_remove(struct platform_device *pdev)
  {
--	acpi_dev_remove_notify_handler(acpi, ACPI_DEVICE_NOTIFY,
--				       cmpc_tablet_handler);
++	struct acpi_device *acpi = ACPI_COMPANION(&pdev->dev);
++
+ 	acpi_dev_remove_notify_handler(acpi, ACPI_DEVICE_NOTIFY,
+ 				       cmpc_accel_handler);
+ 	device_remove_file(&acpi->dev, &cmpc_accel_sensitivity_attr);
 -	cmpc_remove_notify_device(&acpi->dev);
-+	acpi_dev_remove_notify_handler(ACPI_COMPANION(&pdev->dev),
-+				       ACPI_DEVICE_NOTIFY, cmpc_tablet_handler);
++	dev_set_drvdata(&acpi->dev, NULL);
 +	cmpc_remove_notify_device(&pdev->dev);
  }
  
- #ifdef CONFIG_PM_SLEEP
-@@ -804,7 +808,7 @@ static int cmpc_tablet_resume(struct device *dev)
- 	struct input_dev *inputdev = dev_get_drvdata(dev);
- 
- 	unsigned long long val = 0;
--	if (ACPI_SUCCESS(cmpc_get_tablet(to_acpi_device(dev)->handle, &val))) {
-+	if (ACPI_SUCCESS(cmpc_get_tablet(ACPI_HANDLE(dev), &val))) {
- 		input_report_switch(inputdev, SW_TABLET_MODE, !val);
- 		input_sync(inputdev);
- 	}
-@@ -819,15 +823,14 @@ static const struct acpi_device_id cmpc_tablet_device_ids[] = {
+ static const struct acpi_device_id cmpc_accel_device_ids[] = {
+@@ -711,14 +715,13 @@ static const struct acpi_device_id cmpc_accel_device_ids[] = {
  	{"", 0}
  };
  
--static struct acpi_driver cmpc_tablet_acpi_driver = {
--	.name = "cmpc_tablet",
--	.class = "cmpc_tablet",
--	.ids = cmpc_tablet_device_ids,
+-static struct acpi_driver cmpc_accel_acpi_driver = {
+-	.name = "cmpc_accel",
+-	.class = "cmpc_accel",
+-	.ids = cmpc_accel_device_ids,
 -	.ops = {
--		.add = cmpc_tablet_add,
--		.remove = cmpc_tablet_remove,
-+static struct platform_driver cmpc_tablet_acpi_driver = {
-+	.probe = cmpc_tablet_probe,
-+	.remove = cmpc_tablet_remove,
+-		.add = cmpc_accel_add,
+-		.remove = cmpc_accel_remove,
+-	}
++static struct platform_driver cmpc_accel_acpi_driver = {
++	.probe = cmpc_accel_probe,
++	.remove = cmpc_accel_remove,
 +	.driver = {
-+		.name = "cmpc_tablet",
-+		.acpi_match_table = cmpc_tablet_device_ids,
-+		.pm = &cmpc_tablet_pm,
- 	},
--	.drv.pm = &cmpc_tablet_pm,
++		.name = "cmpc_accel",
++		.acpi_match_table = cmpc_accel_device_ids,
++	},
  };
  
  
-@@ -1166,7 +1169,7 @@ static int cmpc_init(void)
- 	if (r)
- 		goto failed_bl;
- 
--	r = acpi_bus_register_driver(&cmpc_tablet_acpi_driver);
-+	r = platform_driver_register(&cmpc_tablet_acpi_driver);
+@@ -1167,7 +1170,7 @@ static int cmpc_init(void)
  	if (r)
  		goto failed_tablet;
  
-@@ -1184,7 +1187,7 @@ static int cmpc_init(void)
- 	platform_driver_unregister(&cmpc_accel_acpi_driver);
+-	r = acpi_bus_register_driver(&cmpc_accel_acpi_driver);
++	r = platform_driver_register(&cmpc_accel_acpi_driver);
+ 	if (r)
+ 		goto failed_accel;
+ 
+@@ -1178,7 +1181,7 @@ static int cmpc_init(void)
+ 	return r;
+ 
+ failed_accel_v4:
+-	acpi_bus_unregister_driver(&cmpc_accel_acpi_driver);
++	platform_driver_unregister(&cmpc_accel_acpi_driver);
  
  failed_accel:
--	acpi_bus_unregister_driver(&cmpc_tablet_acpi_driver);
-+	platform_driver_unregister(&cmpc_tablet_acpi_driver);
- 
- failed_tablet:
- 	acpi_bus_unregister_driver(&cmpc_ipml_acpi_driver);
-@@ -1200,7 +1203,7 @@ static void cmpc_exit(void)
+ 	acpi_bus_unregister_driver(&cmpc_tablet_acpi_driver);
+@@ -1196,7 +1199,7 @@ static int cmpc_init(void)
+ static void cmpc_exit(void)
  {
  	platform_driver_unregister(&cmpc_accel_acpi_driver_v4);
- 	platform_driver_unregister(&cmpc_accel_acpi_driver);
--	acpi_bus_unregister_driver(&cmpc_tablet_acpi_driver);
-+	platform_driver_unregister(&cmpc_tablet_acpi_driver);
+-	acpi_bus_unregister_driver(&cmpc_accel_acpi_driver);
++	platform_driver_unregister(&cmpc_accel_acpi_driver);
+ 	acpi_bus_unregister_driver(&cmpc_tablet_acpi_driver);
  	acpi_bus_unregister_driver(&cmpc_ipml_acpi_driver);
  	acpi_bus_unregister_driver(&cmpc_keys_acpi_driver);
- }
 -- 
 2.51.0
 
