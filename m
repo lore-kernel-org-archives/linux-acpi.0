@@ -1,164 +1,165 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from smtpout-04.galae.net (smtpout-04.galae.net [185.171.202.116])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DEF053D9028
-	for <linux-acpi@vger.kernel.org>; Mon, 11 May 2026 14:43:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E448B41C31A;
+	Mon, 11 May 2026 15:58:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.171.202.116
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778510611; cv=none; b=NH6hbYTCwrljGwJlr1d3O7K4idk3TOH7Q7NtUJBao32Yk5yH2W0RpFT3y+XpTz0eCN+GlJks1QJkhLBaHkaR4Kk6SuHH5rsp74Y7+5O0G0mdIpl7xlBszf9FzuPIhTOUraOCcydmRv0douCLovzOpuzRl2QeM4RCm8qjZQ1dWBs=
+	t=1778515109; cv=none; b=uoThvtFdrl86J5E/jNzDVJuLhO3gxIjYfOZenNHjy5D4N4fByAcdJxsFhFfx4HykY4egU6Vs8QvGRAUIPGlo6OmssTN/RcgDeKQ1IawdKivccAvvGmH7iAyHKq6Vd7jiGS4h+Osg21iB4APQIdqE8jd5xcyIdo7+LtWCtwL5rDc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778510611; c=relaxed/simple;
-	bh=pIBbToBFWDq0XDZ87Ik5kGwisGTl5NlEP0y7mDYzjJo=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=oPJKypmcjrDCuLRJ7tTr/2ECJzj+QuWZDGdFwGzFwBeVt6jVR+nolpqMs7qjGUtgNbLBachh6ozXuhjfwPdgWe9UnJmFNQLZJQk+24NdpC4srs8BuQwpHqcDhqja54HojFXqlXSg9ZacKpG42Vc4juKOLNHshqzvjFU+0fkhh9Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QUHRgCRP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778515109; c=relaxed/simple;
+	bh=faV48x66qT9Y451ucIdOMrXgpUrUv733nxGN+U0gWIA=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=jkmU8aPdPVhZZkVGBDqwgPLaCc8Q8Hqwr3FpXlpH5T1FZuefK8tHgF7J0AkGxdRamXULE613VOIYEz60f2PKaJvAR/g8NSS1ea1rbnBoqz18SnK8FHbusc9vE+d/3whyFk47cIKMtXMuA5kiBWdqrGdrkSHJEp/ZQnhHaTDKuEQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=jYe5/IyV; arc=none smtp.client-ip=185.171.202.116
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QUHRgCRP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7582C2BCB0
-	for <linux-acpi@vger.kernel.org>; Mon, 11 May 2026 14:43:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778510610;
-	bh=pIBbToBFWDq0XDZ87Ik5kGwisGTl5NlEP0y7mDYzjJo=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=QUHRgCRP0e/6ScxK/5dTZy8ISsmkojhS0TW2/gZ0b4ivVhMZyRTDRu51KN+ZD+Om+
-	 3eusio/rAALuGOlGwuJlukGhfOjglkRzOL5AAin9/HctvptBA5kMzZHrTrcg05I3q8
-	 TW2P6VvCw0cWKbb7XMPUeM+xi7HwqxfUpgMKSNqyoIb3QpkSAyXc0FTOt1DmsEaOYM
-	 1OXlhov6sc2jsiRZKgEffZ2x+2EvegF+fywRatJpAv384a5VrbHsoK5bKBbeGxMcDl
-	 MMhCMtvl8oafT3K47Mdb9Cw6YHWo9GJUFQEcGP3EYesRsjQnR5KaqoarfZJuc1JCC3
-	 GU+8EzBj7PYvQ==
-Received: by mail-lf1-f44.google.com with SMTP id 2adb3069b0e04-5a86c1fe573so4763424e87.3
-        for <linux-acpi@vger.kernel.org>; Mon, 11 May 2026 07:43:30 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AFNElJ8ZhPA1IIN22S6dhSQMDqb/vfxa3UdYmROaWyUwXl7/oDpJ2bRXDjY4wf8kSJY1QoNfwmv03nHG0Owy@vger.kernel.org
-X-Gm-Message-State: AOJu0Yxx86wu6MpxBE7KnCnK57G79KhQ+fwl8twoJRlg1yPRjqqMwYtK
-	c0VofXgUmVhtiX2YnKg9eOe52xisGTp3KKxJuxlKZOv/0JtpSknknZJ/nPRBe35MLU7RhjLHIOQ
-	JGkowkRu0enB5uF6xBE9uqIL2/G9atOk=
-X-Received: by 2002:a05:6512:ad6:b0:5a8:8de0:4576 with SMTP id
- 2adb3069b0e04-5a8b708e865mr2654068e87.25.1778510609071; Mon, 11 May 2026
- 07:43:29 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="jYe5/IyV"
+Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
+	by smtpout-04.galae.net (Postfix) with ESMTPS id D7818C5E14B;
+	Mon, 11 May 2026 15:59:13 +0000 (UTC)
+Received: from mail.galae.net (mail.galae.net [212.83.136.155])
+	by smtpout-01.galae.net (Postfix) with ESMTPS id 3184760646;
+	Mon, 11 May 2026 15:58:24 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 0FFCD11AF9F17;
+	Mon, 11 May 2026 17:58:09 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
+	t=1778515102; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 content-transfer-encoding; bh=6PvZiJbdFgg6CfVXI3ZnA/W5wMYdblVvpzZVyQN69HA=;
+	b=jYe5/IyV4+QQoPJhoH7kASCQK5hWPxqcsQRvqBqCShiZy80aw0NHrK/bRUrBiV5WbDCiry
+	/8JLDvNB6TNUw2z1KYOuG43u+dnPBL+j6KyU20SWwuuGIoIL5/ZMss7RWIzfc5fEfQogdg
+	91P65zTkGl/3A8bCLa9FlGNWKPYfQa/+wZyNiB1SHEXeKDXurNSCCJMEgXABD+4FfSoyfH
+	s0DXPDs0iJXUUlljvxnUT2JX0EVBicPQHfIgDilYiACGtiqQkfba7QGiIL/DJViqR86wdY
+	ZPlO2RSX+fQp9jT8ff+AbeAyzZPKUEqiD2ypxBO1MjuQe4+VmR9cAexa5Vtf8Q==
+From: Herve Codina <herve.codina@bootlin.com>
+To: Andrew Lunn <andrew@lunn.ch>,
+	Rob Herring <robh@kernel.org>,
+	Saravana Kannan <saravanak@kernel.org>,
+	Geert Uytterhoeven <geert+renesas@glider.be>,
+	Kalle Niemi <kaleposti@gmail.com>,
+	Matti Vaittinen <mazziesaccount@gmail.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Frank Li <Frank.Li@nxp.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Pengutronix Kernel Team <kernel@pengutronix.de>,
+	Fabio Estevam <festevam@gmail.com>,
+	Wolfram Sang <wsa+renesas@sang-engineering.com>,
+	Mark Brown <broonie@kernel.org>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Len Brown <lenb@kernel.org>,
+	Shawn Guo <shawnguo@kernel.org>
+Cc: Wolfram Sang <wsa@kernel.org>,
+	driver-core@lists.linux.dev,
+	linux-kernel@vger.kernel.org,
+	imx@lists.linux.dev,
+	linux-arm-kernel@lists.infradead.org,
+	linux-i2c@vger.kernel.org,
+	devicetree@vger.kernel.org,
+	linux-spi@vger.kernel.org,
+	linux-acpi@vger.kernel.org,
+	Allan Nielsen <allan.nielsen@microchip.com>,
+	Horatiu Vultur <horatiu.vultur@microchip.com>,
+	Daniel Machon <daniel.machon@microchip.com>,
+	Steen Hegelund <steen.hegelund@microchip.com>,
+	Luca Ceresoli <luca.ceresoli@bootlin.com>,
+	Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+	Herve Codina <herve.codina@bootlin.com>
+Subject: [PATCH v7 0/3] lan966x pci device: Add support for SFPs, core part
+Date: Mon, 11 May 2026 17:57:47 +0200
+Message-ID: <20260511155755.34428-1-herve.codina@bootlin.com>
+X-Mailer: git-send-email 2.54.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <2420444.ElGaqSPkdT@rafael.j.wysocki> <3420768.aeNJFYEL58@rafael.j.wysocki>
- <e46d3374-4762-3776-6195-bd6220998b5e@linux.intel.com>
-In-Reply-To: <e46d3374-4762-3776-6195-bd6220998b5e@linux.intel.com>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Mon, 11 May 2026 16:43:13 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0i5u4uq7v52oWYNt_tXwJAcpuXVS21y6PKU54XY7y=ciA@mail.gmail.com>
-X-Gm-Features: AVHnY4LOe4EP62-gPoPF1mzGD3d6HSYBsrrHbr1wuI1ywmHypezLHqxn-Ir6YGE
-Message-ID: <CAJZ5v0i5u4uq7v52oWYNt_tXwJAcpuXVS21y6PKU54XY7y=ciA@mail.gmail.com>
-Subject: Re: [PATCH v1 3/4] platform/x86: xo15-ebook: Register ACPI notify
- handler directly
-To: =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, LKML <linux-kernel@vger.kernel.org>, 
-	Linux ACPI <linux-acpi@vger.kernel.org>, Hans de Goede <hansg@kernel.org>, 
-	platform-driver-x86@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-Last-TLS-Session-Version: TLSv1.3
 
-On Mon, May 11, 2026 at 3:59=E2=80=AFPM Ilpo J=C3=A4rvinen
-<ilpo.jarvinen@linux.intel.com> wrote:
->
-> On Fri, 8 May 2026, Rafael J. Wysocki wrote:
->
-> > From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-> >
-> > To facilitate subsequent conversion of the driver to a platform one,
-> > make it install an ACPI notify handler directly instead of using
-> > a .notify() callback in struct acpi_driver.
-> >
-> > No intentional functional impact.
-> >
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > ---
-> >  drivers/platform/x86/xo15-ebook.c | 19 ++++++++++++++-----
-> >  1 file changed, 14 insertions(+), 5 deletions(-)
-> >
-> > diff --git a/drivers/platform/x86/xo15-ebook.c b/drivers/platform/x86/x=
-o15-ebook.c
-> > index 616f4bb3461a..8af1b9078db8 100644
-> > --- a/drivers/platform/x86/xo15-ebook.c
-> > +++ b/drivers/platform/x86/xo15-ebook.c
-> > @@ -57,16 +57,15 @@ static int ebook_send_state(struct acpi_device *dev=
-ice)
-> >       return 0;
-> >  }
-> >
-> > -static void ebook_switch_notify(struct acpi_device *device, u32 event)
-> > +static void ebook_switch_notify(acpi_handle handle, u32 event, void *d=
-ata)
-> >  {
-> >       switch (event) {
-> >       case ACPI_FIXED_HARDWARE_EVENT:
-> >       case XO15_EBOOK_NOTIFY_STATUS:
-> > -             ebook_send_state(device);
-> > +             ebook_send_state(data);
-> >               break;
-> >       default:
-> > -             acpi_handle_debug(device->handle,
-> > -                               "Unsupported event [0x%x]\n", event);
-> > +             acpi_handle_debug(handle, "Unsupported event [0x%x]\n", e=
-vent);
-> >               break;
-> >       }
-> >  }
-> > @@ -123,6 +122,11 @@ static int ebook_switch_add(struct acpi_device *de=
-vice)
-> >       if (error)
-> >               goto err_free_input;
-> >
-> > +     error =3D acpi_dev_install_notify_handler(device, ACPI_DEVICE_NOT=
-IFY,
-> > +                                             ebook_switch_notify, devi=
-ce);
-> > +     if (error)
-> > +             goto err_unregister_input;
-> > +
-> >       ebook_send_state(device);
-> >
-> >       if (device->wakeup.flags.valid) {
-> > @@ -139,6 +143,10 @@ static int ebook_switch_add(struct acpi_device *de=
-vice)
-> >  err_free_button:
-> >       kfree(button);
-> >       return error;
-> > +
-> > +err_unregister_input:
-> > +     input_unregister_device(input);
-> > +     goto err_free_button;
->
-> The end result would be much simpler if there would be patch 5 to convert
-> to devm_*().
+Hi,
 
-Well, I can add one.
+Previously, I sent a big picture series adding support for SFP ports
+available on the LAN966x PCI device [0].
 
-Do you want me to resend an update of the series for this?
+In this series patches touch several parts and sub-system in the kernel.
+Reviews have be done and it makes sense to split the series and send
+parts separately.
 
-> >  }
-> >
-> >  static void ebook_switch_remove(struct acpi_device *device)
-> > @@ -149,6 +157,8 @@ static void ebook_switch_remove(struct acpi_device =
-*device)
-> >               acpi_disable_gpe(device->wakeup.gpe_device,
-> >                                device->wakeup.gpe_number);
-> >
-> > +     acpi_dev_remove_notify_handler(device, ACPI_DEVICE_NOTIFY,
-> > +                                    ebook_switch_notify);
-> >       input_unregister_device(button->input);
-> >       kfree(button);
-> >  }
-> > @@ -160,7 +170,6 @@ static struct acpi_driver xo15_ebook_driver =3D {
-> >       .ops =3D {
-> >               .add =3D ebook_switch_add,
-> >               .remove =3D ebook_switch_remove,
-> > -             .notify =3D ebook_switch_notify,
-> >       },
-> >       .drv.pm =3D &ebook_switch_pm,
-> >  };
-> >
-> >
-> >
->
-> --
+This current series is the extraction of patches related to driver core
+subsystem. It fixes devlink issues when a device-tree overlay is applied
+and avoid a warning when a device is removed.
+
+It has to be seen as a continuation of the big picture series but
+related to this specific core part.
+
+Patches 1 and 2 fixes fw_devlink when it is used with overlay. Those
+patches were previously sent by Saravana [1].
+
+I rebased them on top of v7.1-rc1 and I added a call to
+driver_deferred_probe_trigger() in Saravana's patch (patch 2) to ensure
+that probes are retried after the modification performed on the dangling
+consumers. This allows to fix issues reported by Matti and Geert [2]
+with the previous iteration patches.
+
+Patch 3 avoids a warning on device removal.
+
+Those 3 patches seem ready to land and so having them extracted in this
+current series will help having them applied.
+
+[0] https://lore.kernel.org/all/20260325143555.451852-1-herve.codina@bootlin.com/
+[1] https://lore.kernel.org/lkml/20240411235623.1260061-1-saravanak@google.com/
+[2] https://lore.kernel.org/all/072dde7c-a53c-4525-83ac-57ea38edc0b5@gmail.com/
+
+Best regards,
+Hervé
+
+Changes:
+
+v6 -> v7
+
+  Rebase on top v7.1-rc1
+
+  - Patch 1
+    Fix conflict due to commit f72e77c33e4b ("device property: Make
+    modifications of fwnode "flags" thread safe")
+    Add 'Acked-by: Rob Herring'
+
+  - Patch 2
+    Use fwnode_test_flag() to test fwnode flags value
+    Add 'Acked-by: Rob Herring'
+
+  - Patche 3
+    No changes
+
+Older iterations:
+  Patches 1 to 3 in the big picture series
+  https://lore.kernel.org/all/20260325143555.451852-1-herve.codina@bootlin.com/
+
+Herve Codina (1):
+  driver core: Avoid warning when removing a device while its supplier
+    is unbinding
+
+Saravana Kannan (2):
+  Revert "treewide: Fix probing of devices in DT overlays"
+  of: dynamic: Fix overlayed devices not probing because of fw_devlink
+
+ drivers/base/core.c       | 86 ++++++++++++++++++++++++++++++++++-----
+ drivers/bus/imx-weim.c    |  6 ---
+ drivers/i2c/i2c-core-of.c |  5 ---
+ drivers/of/dynamic.c      |  1 -
+ drivers/of/overlay.c      | 15 +++++++
+ drivers/of/platform.c     |  5 ---
+ drivers/spi/spi.c         |  5 ---
+ include/linux/fwnode.h    |  1 +
+ 8 files changed, 92 insertions(+), 32 deletions(-)
+
+-- 
+2.54.0
+
