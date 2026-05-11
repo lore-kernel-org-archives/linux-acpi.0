@@ -1,71 +1,69 @@
-Received: from SA9PR02CU001.outbound.protection.outlook.com (mail-southcentralusazon11013032.outbound.protection.outlook.com [40.93.196.32])
+Received: from SN4PR0501CU005.outbound.protection.outlook.com (mail-southcentralusazon11011018.outbound.protection.outlook.com [40.93.194.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 111B334AB14;
-	Mon, 11 May 2026 21:04:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.196.32
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FAF7381B19;
+	Mon, 11 May 2026 21:20:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.194.18
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778533455; cv=fail; b=vD93avf4+k+wWlBaWvGEgsJlmUNX01tkLoIiRyaJhagy6mZX67jM1lfnMLf1NLck4j25/a7Y+mCodQuRoyaL6tKq/sjR9wDKOdquESrXZ/yLLOxw/PI7xkwie6yK3Oi4BlKozK/bSsx3VuqlUaWAhwKFpDPLO3vw7dTRAL0Gl4U=
+	t=1778534453; cv=fail; b=K5+wJ4reSiQnTd2UquhljZ2NecdzUtA+RRnWOwQpHQZBf6tSFIi3Ksmr/hrgX/iswTaHvH95/XmM/Nq2Dy/QG/StxdqkkoUPBNqfquMzZtcAQPgQGAKlSb/Vs6cryOOYFvGi6j0LHz1OAQZOBhKpg0eSJJiWIApAck1+udzJEsU=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778533455; c=relaxed/simple;
-	bh=sJIY3FK4XBOKhZlxh0c7lCLw3Ne+UzObDjnlE4TCkMw=;
+	s=arc-20240116; t=1778534453; c=relaxed/simple;
+	bh=nXN3W2meuftnA0y5A54F7L9H4Cbz0EPW7Cw2+H+Ysoc=;
 	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=ZYuXQRI71Oq9YaDNhYRf8jFxiHfWKH/NW4W/sIDWtZma9IBDtkTtIvY2uH4Iyx3D+/xUkDzyQiaTVeb3XjRxmWo+WLqlJLcsB/1DdaJI4F5VBYvAKa7gy7jCN4IT2fcoT28gJvTrdlImxPJyyJNvMYvtBWEZaMS1laoAf7gUNcc=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=q4qRsyuT; arc=fail smtp.client-ip=40.93.196.32
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+	 Content-Type:MIME-Version; b=Z9+wvSUg2IOvaIAFO2zx2BJpYUZzKXGqjPn302dhvHl3yLS3qW16jLQhflUiAsJaSR1ZwIXs1U0UkcD99WjmTaRz3nM0GihxIfZxfY8WKAoKfAjXqVw8nYJetu/MeRLrTeEkDewvuqRYwj8L91h1mXos5iNa0juYnVtZolviN38=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=g4OHo0XP; arc=fail smtp.client-ip=40.93.194.18
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="q4qRsyuT"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="g4OHo0XP"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=OIyCZ6D/OlA0zSc+uhp6v1zpHSqf0dPBA9uoz131R+tw5Ys7+9ySqJCU4tJmKsKKgFIyU5tRf9VtUQyKbgxFj0JnAc8U5eyqPyneVtPJGuoHxmZYoRbq9icE7fe3rC14hFq/yQYiEAoZdMgTNX2qrtgR3XNw8dcR37Z3JMrqpHiYtV1CqCCLMVlXNlUiDVUHDebKeTO9I46+DSISDdD9HYR763m/VEWVyCbLLPhicBUCTPUqRakZspLh8f8k7Gt42WwzOVElbnMys9/GHb2dP0Bbq0jcu6WhJlnLhbte82Clh4wmQuJeZeyoyAsYG3U+5/JfkyXfcMh1Rnx/GOyytg==
+ b=iNUa5Q1I+KJeKJ8P3zFV+tmszoVYAhrHKZ0binu3ag3OwdDprfDu4Vm6t/fjU5gGmY0gsyQx1SZd/edIwUGoFuHY55apc5ZCnCPIz5uHL4oP4nb2E0WCWpNUrrS4A2wUFY8nXoNBeDzq+L/UDlm0D57NfnDqcSE6al0dlOLWia18HJvaaSMsfzrUzyFLrzlsX0nNtXeIl4HJBqOfEOk3syzf7gz0bINmumQrbJbyX9lsDZjRlNGpQoEqhQVpkwCR7a0fMT/azK1eigW93FQOpyaguVBqAKub60SuCbeIDxffOu6dv0ouLnTw34RD5ey3VvJTRiXIpyB0csHY3Kpz+A==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=GwkMC8zgxzALWRRwUJvpcs0YkHjDdpwho3WmWmfJgGY=;
- b=RO38qNhC60vNo3GOeMlkcBZOHcUOuekPByn60Um6UbFgwUEpexKhTgaGEJC94LoS//PsNHeyWSbjLKQa59FC80mAxfL52vWFWV5knCs7uPPK2R5dn/TFtmwu9QzbPOgAFKa8peSWiv958u/sR/xRGAwdXM78jVkmJNrgaCQ+5wE15cMuV2q80T+36Rxi/x2C1B0b5qFcAcp2KkJiGTpUmYOhtmVhoDP3M89jNOhqeAmUQg0tbNs1W9rpzVIJqQuMwxFlMDIlDgTcGOHfF21pn6GsB/n/mFdoJx994NQwSUYzOF7+Wuazmcy6XX83LtFo6iTq4K3NcUcm/BpHM0LVdA==
+ bh=6py+6TD2tMBRfsNgJAGQSY198l4u8URjgXsbJUogmS4=;
+ b=MMiemA+fVYOeMZEmDFW+bVaVGKkXZHA4172pH9+55pIDYJmanxvi8oSYUwISM/327LOL2TE7pXHUV3SrAKZ/FtEH13FW9G1Bq6v41tIzsA5fqmgXwqF9mzXpr1MyplYCvqHnSo7oNDXbs4PrjPE95WhcO9OfFzDobNv+pwasz4LDiBIPgjR7kKipglbTk0ggNR5El2imgCee9T5K9Zaoa7hPv7XYDiaZ+KuIs/lq+H14iu7pcJgCXgEd80dgPeAj4lZv1QLxfFelohCp2oIcDGLkJ5co/roZi8cWMUaYp0ueatJxhHysdVa6nebV9zNrafpy/id8z4ezIdXOQCvk/A==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
- header.d=amd.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=GwkMC8zgxzALWRRwUJvpcs0YkHjDdpwho3WmWmfJgGY=;
- b=q4qRsyuTcEhX/h58zi5QWL2QIOFHjNq3iJAM3czRsfyfFPLxfwCtScJDlnkKLTrgzngjJxE3vLdRtwKAYcoMWmDlCppI3XRDgfbD+e8oV5vu5zva0Pmp6/xge4kzKRjW9f/9Ym5KWytK8i9q0PoDeM/jfS9LU0CPIb8gLaGVR94=
+ bh=6py+6TD2tMBRfsNgJAGQSY198l4u8URjgXsbJUogmS4=;
+ b=g4OHo0XPeiKbHhbiwugLoZWn6+nKzYN74z+G8p/Bknbaq/jlXkl0xIeh5ERDoX5PC8DkRrmEKHqpneV2K4VsIvp1ZhIUeLy95z86uJG6XBZQSzOJb5qLX9tZMh6OD7WBLGzWQMmmrun3ddYPJ0fXXI1DQ4rjv1BoGKOL4mPqxTtwd/YCO3LKg1IPw4SV8oB8MVg7hwBm5eceoYyTbp3mlMoO7j1WysVEuKxy+T5H6IpAzIFjs8F5nu+uDFeCJOtgRItqEwsv3X1EsBoDyBCMFGVtt2MzCkVceLlhdIyB4KXrG9z2rBRC8sq1nTqAXn+SCoOHeWws362RZWJT/xVeOg==
 Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=amd.com;
-Received: from DS2PR12MB9749.namprd12.prod.outlook.com (2603:10b6:8:2b9::14)
- by BN7PPF3C1137D8A.namprd12.prod.outlook.com (2603:10b6:40f:fc02::6cd) with
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from BN9PR12MB5179.namprd12.prod.outlook.com (2603:10b6:408:11c::18)
+ by PH7PR12MB9102.namprd12.prod.outlook.com (2603:10b6:510:2f8::14) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9891.22; Mon, 11 May
- 2026 21:04:07 +0000
-Received: from DS2PR12MB9749.namprd12.prod.outlook.com
- ([fe80::ad8d:e59a:e61:4e9e]) by DS2PR12MB9749.namprd12.prod.outlook.com
- ([fe80::ad8d:e59a:e61:4e9e%5]) with mapi id 15.20.9891.021; Mon, 11 May 2026
- 21:04:07 +0000
-Message-ID: <8ab3325b-175f-4664-a046-6f4b1d472816@amd.com>
-Date: Mon, 11 May 2026 16:04:02 -0500
+ 2026 21:20:44 +0000
+Received: from BN9PR12MB5179.namprd12.prod.outlook.com
+ ([fe80::cf08:f59b:d016:c95f]) by BN9PR12MB5179.namprd12.prod.outlook.com
+ ([fe80::cf08:f59b:d016:c95f%4]) with mapi id 15.20.9891.021; Mon, 11 May 2026
+ 21:20:43 +0000
+Message-ID: <3b0b5f30-437e-43c0-8b5a-d3ef84932113@nvidia.com>
+Date: Tue, 12 May 2026 02:50:33 +0530
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v17 10/11] PCI/CXL: Mask/Unmask CXL protocol errors
-To: Dave Jiang <dave.jiang@intel.com>, dave@stgolabs.net, jic23@kernel.org,
- alison.schofield@intel.com, djbw@kernel.org, bhelgaas@google.com,
- shiju.jose@huawei.com, ming.li@zohomail.com,
- Smita.KoralahalliChannabasappa@amd.com, rrichter@amd.com,
- dan.carpenter@linaro.org, PradeepVineshReddy.Kodamati@amd.com,
- lukas@wunner.de, Benjamin.Cheatham@amd.com,
- sathyanarayanan.kuppuswamy@linux.intel.com, vishal.l.verma@intel.com,
- alucerop@amd.com, ira.weiny@intel.com, corbet@lwn.net, rafael@kernel.org,
- xueshuai@linux.alibaba.com, linux-cxl@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org,
- linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org
-References: <20260505173029.2718246-1-terry.bowman@amd.com>
- <20260505173029.2718246-11-terry.bowman@amd.com>
- <38155e50-c0c0-4f51-9777-243f0dd049ca@intel.com>
+Subject: Re: [PATCH v2 0/2] ACPI: CPPC: Add CPPC v4 support (ACPI 6.6)
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: viresh.kumar@linaro.org, lenb@kernel.org, pierre.gondois@arm.com,
+ zhenglifeng1@huawei.com, zhanjie9@hisilicon.com, mario.limonciello@amd.com,
+ saket.dumbre@intel.com, linux-acpi@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org,
+ acpica-devel@lists.linux.dev, treding@nvidia.com, jonathanh@nvidia.com,
+ vsethi@nvidia.com, ksitaraman@nvidia.com, sanjayc@nvidia.com,
+ bbasu@nvidia.com, sumitg@nvidia.com
+References: <20260430142430.755437-1-sumitg@nvidia.com>
+ <CAJZ5v0gCSPjnxE2Vd+Py14ENJ6U46KBQVHiBetLfEKGybtDh8g@mail.gmail.com>
 Content-Language: en-US
-From: "Bowman, Terry" <terry.bowman@amd.com>
-In-Reply-To: <38155e50-c0c0-4f51-9777-243f0dd049ca@intel.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: DS7P222CA0027.NAMP222.PROD.OUTLOOK.COM (2603:10b6:8:2e::35)
- To DS2PR12MB9749.namprd12.prod.outlook.com (2603:10b6:8:2b9::14)
+From: Sumit Gupta <sumitg@nvidia.com>
+In-Reply-To: <CAJZ5v0gCSPjnxE2Vd+Py14ENJ6U46KBQVHiBetLfEKGybtDh8g@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: MA0PR01CA0017.INDPRD01.PROD.OUTLOOK.COM
+ (2603:1096:a01:80::12) To BN9PR12MB5179.namprd12.prod.outlook.com
+ (2603:10b6:408:11c::18)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -73,323 +71,203 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS2PR12MB9749:EE_|BN7PPF3C1137D8A:EE_
-X-MS-Office365-Filtering-Correlation-Id: f64f1231-cde1-4450-bd93-08deafa0d6e2
+X-MS-TrafficTypeDiagnostic: BN9PR12MB5179:EE_|PH7PR12MB9102:EE_
+X-MS-Office365-Filtering-Correlation-Id: 1dc70a52-63aa-4fe8-1533-08deafa3289c
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|366016|7416014|376014|1800799024|56012099003|22082099003|18002099003|3023799003|921020|11063799003;
+	BCL:0;ARA:13230040|376014|7416014|366016|1800799024|22082099003|56012099003|18002099003|11063799003;
 X-Microsoft-Antispam-Message-Info:
-	TFxlcQCzeHDwK+l78mqoO2xdgKxWj16rta+gzXyRvnWT3pX6qoy4VpmHWBBovDdq52T9agXe0m6Kmgcf3GVrShh/O/E5XCY9sVpH3qbrt5sFbdT+2G9Q10i/TCsW/DtFckDkUxbKy3ERXyEIr4Ov3sHjU+2dZPDXl/c/zbX7yWHJRlHMgpfi7URLsviwtMF5AbEDifbCXAIHTIQGDLSsWvaiBzMvv8Od4QgYqVvOaw3WiDHZJiDx5N8BWHDYlM4qZVf814k5qz09ZSP7/OTp7aJyUY7Dj7mu2wtRc8zIFIsOjdRxGRx8veH6d6RO4gZPZDuMP98RdbNXTF0ZSFUN97ALlNDitp2QjIrZr0kS3bjHMS0rEjGeSOT+OzFYIS2UFYKpbOEEY43UaUkLPKlAGDqWNQLQnkax892E1vdUVrQ3kSKcoTuGJhLJJcwi7SqFgP92ivgmZm0J4B1Z2wmp2ZmYghNP8rsgRf3Cz/KhqMrEcJM2OKcUCSWgoGL8U4/xLOPYqr8sgswCVsjLnAeuwtkNA8wD/P4og+O3PYxOsDfnFK3v+4FtFzwQtGfIMh5i9flMzNOOJSF4HOVRMPXAAZ7qA13FqoC7ArXMHLMl6jrRwTgVrTmsjIWpHWHHiEnPmYphZioXXWDXyzw/4nHWYFjYzeJtL89VPTOWmGLusTngdJXHhUlPIha9qNP5kcx6Vr7r5QcFZ8PEpH8hNIKps8n/xd0mtLqbvLZaWsz3gzQ=
+	GMdT+ig2vnTn80padArk8J9LGpPWkVSIFoE4yYVfEQ/dzMhd7EH87dFQlAOVMtV0YOOZD2Z+aGbICLBF6q0w8xb25KchkSef03MdEvnxccDpP+e36i27gBH4HyB6NM2vq3+57GcIVBOHXHRAj3nIHyErN4MXM4lUidta1Faud7SpprL53e0kknX/qQRsY/0e0ChV5j3cP41fCjz/HsgVaGsdHzIp5w5owKW2v8dZG6PWRdv0PI1kAk+SLsPDGy45Hlt+oawbfQaJ0Ngk+/mur2ze9kdef5DNBbQlKzsaUGn5VPgce91+HqjmlOiKi8ujbztTs3KX0qIzR2nLB44f/pmCjB6coiXCT0NpGb4bL8bHxLYra8zoTKVlNW9FD9n0XPgvZFLZXkf/fjCtVFtdwKBmXKFtsY609JNzstXG/TAsRvJgizlDbo0/eEhHgMwRwXz4vfsEThquBjowodhpKwisBfDsel5Jj4JNec4UDz5dBGZaQyKwcOE11T3uHfCW/TIi2NEQAA9hwRy1JxuJWP1Gd/0Dwl4hHFZsQ/NjAPUesIiUvRwhJZTfGl62I3hg8Bqg5VZ0WQwz9aaRKWPWHOpWpVAVCq1RrrjNU5VJgsyVqzqrNISxRm11iUfQkB4g7g4zn6PK6n60CTx+qM9VOlU78iYA0WMWbL7tqS6Y0QR7rdqfMSRsXv79AJy/+WyR
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS2PR12MB9749.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(7416014)(376014)(1800799024)(56012099003)(22082099003)(18002099003)(3023799003)(921020)(11063799003);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BN9PR12MB5179.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(7416014)(366016)(1800799024)(22082099003)(56012099003)(18002099003)(11063799003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?VVQxTnZKdzlpcTBNMXJoQkpZQlcwa09vUDNzY3MvYVl1Ri9nN21BMVh1dU14?=
- =?utf-8?B?SmNtdGZNTEdjNnUrS1BSTGRDSUowYzZpOWxpSTNLK01RQkZaTmdSR2NwYUo1?=
- =?utf-8?B?SGhnQ3RuUU4vaWlrQUFVdy8xekgyVGxVUWF4SzJNblByN2ZtbjYwWjFYWmZk?=
- =?utf-8?B?QW5kRG9nZDAzRy9jZ0xoNHB1Tmt3emF2UVorNlNsaFFHVjBDQXNvQ256cUky?=
- =?utf-8?B?cllRMEVSV21jMkdtWEJqUkZReWFxSXZqWmRlK3dxeXVEUVc4RnNqLy9tWGhn?=
- =?utf-8?B?OWVkRVNkMUJDQ2VtaERSL3hYcTdvVEtVU2JIRmh2azBIR0lZVTZlOTd6Q0xk?=
- =?utf-8?B?RU5pRTlhaTVpVzN6eVpIVTMrUCtjaEFkcFRnQVNyTmR1TWJ2Z2VpM2VZVUkw?=
- =?utf-8?B?b20xTkNtVkFsTWNTSmpraHVKRGlTUzJubWUwaVEyRDVSV21hN1dmZk5HYVUz?=
- =?utf-8?B?SlZRWWpmVTAyTUUxVXp6U0g1eTlQK1FxTWxHQkdaRmZCQk5Scll5aWcxSlp0?=
- =?utf-8?B?RGFRQzAzQTN5K1lzRWdWZTVOd3NzNzlVbkZSdnljRFhsczI2TVpHMkJjeHV1?=
- =?utf-8?B?TzN6dU13WTBNVDNTK3hiWkx2bGVqbHdvSkFQdkZaVldOVHY2VFQrbEhUNmkz?=
- =?utf-8?B?a1p6YWwzUVlYYnp0bDJmK0pOa3ZzSGhGaEQ5SG5WbG9TTXZRVERRM3FQU2lh?=
- =?utf-8?B?Rjh6RHZoczN5d2lpUW1aNGZtUnNaL3V2dHFCL1FPSHd1dlJFN3NzTHB1MkZr?=
- =?utf-8?B?aUxLZFlDemdya3RBVlpCWnhnUnlkSHcyZ0VZd0FGKy85OWx4M1huWWZqMWZm?=
- =?utf-8?B?VERrekxoSU5RdFBSdlVYcXNjT0EzK0kvZzc5ZVFPQmRPK1NtOW9WQjdvMDl6?=
- =?utf-8?B?c1ZBbWlPU3hjWVVBSS81S2x1SXUvYnF3Ylc1TWM2YVdGVmVIZWpSQkZDQnNj?=
- =?utf-8?B?Rkg4Y2ZvN1g0SU9SNUpTUFVVcTYzQUZ3VFU5blR5V1czRFk0alhDZUsvZzFS?=
- =?utf-8?B?ZEE3ZHNEc2RjRTlvQnBhMHM5UDJVMHZobVRJN0tKNDV0b2dJVC9GVGZMMVlG?=
- =?utf-8?B?K2tCOXgvYmR5bU5TNzFjYUwvNGVyOHVTK21KcXVaeGFMNWJ1WWxlZHROV2Jx?=
- =?utf-8?B?K1IwVGg3MCt2M3RibTFQUkJrS05qSXF3UnFFRDM0MlV6R2l1V05jYVY2dDkx?=
- =?utf-8?B?UE9oemk0dy82K1gxb2crTFhkZkxYT0ZaZVAzMzBxK1RXN1duNURUeUdVcTIy?=
- =?utf-8?B?b2JZQVJjQXV1bTBiZDRGV2NIbERHZ3Z6TDJWR3pkMnlvVVZzRTdvY3NoVitL?=
- =?utf-8?B?MHpYSWhMclZnaGhDRGJWNzFBTThCUDFWdTVzVzNSNi9vb1RXRUNEdmNhOHp3?=
- =?utf-8?B?SWNMeXE2THQySE1MU2F5bmZTMFBMSVF1aFNtLy85cExqeEdIRnU2Z1FzYTM1?=
- =?utf-8?B?N3NwaUgwVExQc3d5OWx1VEtDV3NEUlBVNENSR0Z3WHNLbmRxN00xQ3hONTAw?=
- =?utf-8?B?MURENlUrRDMwb2VoWE9nZlZlbHFRM0ozNEtDSGExRzRhU0YyMHFWQkJEejhU?=
- =?utf-8?B?ZEVTY3JnQ0VlY21uWVVEM3FpaFlXbTl4OEg5cStJRnd0OFYvRENtUnJFWVZB?=
- =?utf-8?B?UVVZYzAwR3pLV2ZGcWM2WXQ2b3RJTUwwaFY4ZHU3Y0o4Wkt3TE5PdkFCaE4z?=
- =?utf-8?B?VHFlSWJtMy9RVElnYWRGa0V2VXprY21ZN0hsakFNbUJHRC9leXREZDA5dXQw?=
- =?utf-8?B?VVVMU3dUWFpEaFE0UklKcVUxOU9QM2NtSVpmWFpzbXVZMXdLUFRuR0FKTlk0?=
- =?utf-8?B?VUJtREt0Y29Ua2svWnpjVCtCakpxckRTelZTTlBXZnVtRndCaUIrTEFtMzU2?=
- =?utf-8?B?dkVVWmtGOVpzNi9wNWNjNWxXemhFSFlWWlR4Y2ZjL1NhSVUrWXhRSFNqL2RH?=
- =?utf-8?B?SnM3UWoxSTNjei80ZGtxTkU1SEhIeEZMT0tBSWhHeGpaanpocld0WjBJMitm?=
- =?utf-8?B?VGNFMWRQS3ZGeUhMS0FTR2JUZENPUWNNNm9mQ3p5ZXd2N2FiNzJ1LytwNVUy?=
- =?utf-8?B?WC96Y0UyN0YyNTNXbkZJMkphRTRueHUwK3pzODFoNmtxbzVZWFV4VnRKWTZh?=
- =?utf-8?B?NitxNWh1eXJjbFlmd1J6TFN0TTJuYVNxV0tKb1phNmIzcGNvQ3puWHVQSzlP?=
- =?utf-8?B?eXAxcE1yaS9GcnFFM3Y2Q0N5azJocWM0bjJGRGRSNHo3TTBtUEFKU3ZBOUxx?=
- =?utf-8?B?UkJkTjNSZkRXcEcvZjNBcHJrcTFYa0xzZ2F2QUtkV1o5b24wbDlYdTRlanV6?=
- =?utf-8?B?NnlNejlkQlRRb1NvcGdCbGNTY0pONC9HM0FkcWVqQk1WTE1oMTFWdz09?=
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: f64f1231-cde1-4450-bd93-08deafa0d6e2
-X-MS-Exchange-CrossTenant-AuthSource: DS2PR12MB9749.namprd12.prod.outlook.com
+	=?utf-8?B?MWxnSlEzNFFSKy9aVDUya21Vcnhrb1dOSU90NnVLV2pncnRrTm9IMkVrb1lX?=
+ =?utf-8?B?bGVDMHRUcUxDL2RPcFRURXptQTRtSlhWVWJYRGQ5S0htRDBaRXdmcHdYV2Vn?=
+ =?utf-8?B?R0pSYXJkVXozVnRMWHJ0MVFXMU40UFRBem5xMjdpY0ZGbkVUMlIvdGRpUVlN?=
+ =?utf-8?B?Z3ZCejRLL0VIS1IxaGtIQjZ1UzlleUJVdnYzMCttZzZtZ3Zya3lxcEZqb2p3?=
+ =?utf-8?B?U052ZHZIY2orZjExS3ZXeWc2eThHZWEvMDN4cUs0L3NLNnVXbnBaOEhnaVJo?=
+ =?utf-8?B?d2RydG85SVE5dE0vaXNGajk0RkhmQmRMZHJYQ2dVZUpodlVMLzFHNzFTMElC?=
+ =?utf-8?B?WnNWS01aUE5OSDRUN3dUZWZ5VWZKSndaRXlYK0VqQm5Va0ZuUHE3MUplQjVm?=
+ =?utf-8?B?RERsWVI4Yk02RGp4cDcyZFhNSlJqZ2FEVnpZTkV1TVNLWlhYaGsvU0JVeUt3?=
+ =?utf-8?B?OUxDSm9qdXhIdlc0dUFTVVZDazZMMk1kZTFPSm15czk1WDhXcXRPNmVocGZi?=
+ =?utf-8?B?aDBzR3dJU3VReGtKQVk3SDJPWjRUUmZkY2hGbXZtaTlLbC9JV2d3ZGozd3pO?=
+ =?utf-8?B?MDhoY1cyVkdFWkVvRXdvUkZKUkNFZFZvbG5TRkY1R2ZRcGl5bVZQM2lhRVU1?=
+ =?utf-8?B?d0J5RW43aFBMbTFqcCtOb3IwdnE0cUtpamJsU2xLbG5VL0dmUUxNUEpIWXkr?=
+ =?utf-8?B?T2VOalVOSlZGNDBORlNTRXFORUVSZXdTbll0NTFxRVNYZGg0VzRMU3ROUFhB?=
+ =?utf-8?B?UE5yUFFyVExFaHZQbEVEbGFkeUpUUDVLNjVzeVBrQTUzbWxUQVFIK0NyS1ZU?=
+ =?utf-8?B?aHdmVFBtTjJIbWZEanlWUmZhb3R1RmUzVGJoTXlBbnNjb2pQWXZINnFZaHM1?=
+ =?utf-8?B?Ym13YzY5RmxJZ0pXTVlOZTBqTU1USGUydjZWZm8vU1h2eThoY2xqemNpZnpV?=
+ =?utf-8?B?WWo2eGxNbS8ydnJBUUdZM1hYc2VuZWlXdDhXNmxGSmZDdDFPMHRmeFd1bVVL?=
+ =?utf-8?B?YkY2bGxNaUxoNXJ6UGw0L2N1OFExREVlZVhyTmJpN1BFQVNEbWQwcHdjdU9X?=
+ =?utf-8?B?R0pKOG9ySHdQUmFCSU1lRmgzK2hFMjBSVDBaT3Voa3lUTHF0Nk1rbXMrKzNV?=
+ =?utf-8?B?Y2xNNFB6dER0b2ZzYmlQZ0FRanpMQ3ZFOGVJTG1WbFRQbXZVZzluSFQrUDAz?=
+ =?utf-8?B?VlpPUzJDdU54aHZzaDI0SmdmOFBKUmcyckVGVzhlaE5xcmRlUkhFNlVRcmho?=
+ =?utf-8?B?K0JzUWxXODlTc3cxaUsyZW5URGNqak5aZFNhYjgwL0srMkdlcXhoakg3bkFu?=
+ =?utf-8?B?dWozNDVZb0oybWlLdExPY2RnVWxZZ2M2ZkNnaUhZSWNlRjlUTVhxZ3ZHU0VH?=
+ =?utf-8?B?YWxJei9KVG5Ncld5YjlVOWE2YTFPRWFNWlBQZk1IR05uYjdGNXJ6NU9rbU00?=
+ =?utf-8?B?RzhjeUZDdUx3Zi9WR0licWZCWS90SldSc0RReWpTaFNVTk0vaUJHYjluY1hp?=
+ =?utf-8?B?OW5rcE5Ub29iNjZ2c3hMazZONHJtMFdPMWZHZGZseDd1aTBlMVJ2T1NCTkdH?=
+ =?utf-8?B?WXhTTDBUcXhPaHZxUVZueStwcTIybGdUQjhLdmx2d2hsdEJzTjUzQXFWQXhr?=
+ =?utf-8?B?bHloSGNzOUl4b1R2Mm93VVZzYzNOMGtZTDhxK3RReTRZYngvMTJQUXpNT21F?=
+ =?utf-8?B?YnRkSXZ5MmlOendLOTl5dXY0MXRMbWtKVldHZGwxMCtweE9YOENkc1A4NStt?=
+ =?utf-8?B?NGFrY0wyZFRYVFJHa3cxdm1Zd09MNVFhZVczOFhsZ1czVEpwZjdUeTJSVkRP?=
+ =?utf-8?B?MktKSm1tNkJKamJqUDlGV2c3djJSTG53Qkh4TU5kTGxRT205YXhpM1dweGoy?=
+ =?utf-8?B?THpKV2VjQVQ1VDB5azRHRHNubk1KTGttaUVnZHYrUzNKSHgxUnkvejJCZndZ?=
+ =?utf-8?B?dm1UWmhLRGFuY1kweTRmZ2Q5YkJzZi9pNXpZSEJFMmRQcUxTMVBsR3U1NHBr?=
+ =?utf-8?B?Q2ppR1piTlhCZ05NTjFTdUNMMFFjN09xUTZlY1lDVkduMjRKRjM1bjVmMVRR?=
+ =?utf-8?B?dk5xUmRIWjVSZWttMGU3dFprblFESzJLdDk0bnUyNEFpT0RwanluZUloSWtv?=
+ =?utf-8?B?d0NlV054TW5Ba3VIaUh5VUZZb2Ntd1lzQUw1dlVCZU1oWlIxSDdnTUFGUVdC?=
+ =?utf-8?B?V1Vuck9WUmxTN1NkM2t2RzZPcFpiUVBXRUFWTDliTXpYOFMyeHh6VTM0cU5M?=
+ =?utf-8?B?d3ZxQ2ExY0pZb21ydFh0RE9aSjVhTHgxbTR2SEc0RCtmWTQ1RXl3eUZJVGt2?=
+ =?utf-8?Q?8/snkVzF6F0CbNxPSz?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 1dc70a52-63aa-4fe8-1533-08deafa3289c
+X-MS-Exchange-CrossTenant-AuthSource: BN9PR12MB5179.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 May 2026 21:04:06.9458
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 May 2026 21:20:43.5725
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: TwhnA6mYf2c9IJlE1Tka6Yqh73l26E+8hJ3qOZceqO5SlcD8klyA8vJGANjihWo8yrdnbt7wvyGKmJG8cGxbEw==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BN7PPF3C1137D8A
+X-MS-Exchange-CrossTenant-UserPrincipalName: EX9zUBOOXGDvbs7yMB7KChTA58H3xbT84eu1ZzWF/4h7xqYYIfzE8wBeB5Fpt78X8+hzK/pZEKOR5o7KLRBKGg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR12MB9102
 
-On 5/6/2026 1:00 PM, Dave Jiang wrote:
-> 
-> 
-> On 5/5/26 10:30 AM, Terry Bowman wrote:
->> CXL protocol errors are not enabled for all CXL devices after boot. They
->> must be enabled in order to process CXL protocol errors. Provide matching
->> teardown helpers so the masks are restored when a CXL Port or Downstream
->> Port goes away.
+Hi Rafael,
+
+
+On 09/05/26 00:31, Rafael J. Wysocki wrote:
+> External email: Use caution opening links or attachments
+>
+>
+> On Thu, Apr 30, 2026 at 4:25 PM Sumit Gupta <sumitg@nvidia.com> wrote:
+>> Add initial kernel support for CPPC v4 (ACPI 6.6, Section 8.4.6),
+>> which extends the _CPC package from 23 to 25 entries with two
+>> optional fields:
 >>
->> Add pci_aer_mask_internal_errors() as the symmetric counterpart to
->> pci_aer_unmask_internal_errors() and export both for the cxl_core module.
+>>    - OSPM Nominal Performance (8.4.6.1.2.6): register used by OSPM
+>>      to tell the platform what it considers nominal. The platform
+>>      classifies performance above this as boost and below as
+>>      throttle for power/thermal decisions.
 >>
->> Introduce cxl_unmask_proto_interrupts() and cxl_mask_proto_interrupts()
->> in cxl_core to wrap the PCI helpers with the dev_is_pci() and
->> pcie_aer_is_native() gating CXL needs. Both helpers tolerate a NULL
->> @dev so teardown callers do not have to special-case it.
+>>    - Resource Priority (8.4.6.1.2.7): Package of Resource Priority
+>>      Register Descriptor sub-packages. Full parsing is not yet
+>>      implemented; such entries are marked as unsupported.
 >>
->> Wire cxl_unmask_proto_interrupts() into the success path of
->> cxl_dport_map_ras() and devm_cxl_port_ras_setup() so the unmask only
->> runs when the RAS register block was actually mapped. Pair each unmask
->> with a devm_add_action_or_reset() registration of
->> cxl_mask_proto_interrupts() scoped to the cxl_port device. The mask is
->> then restored when the cxl_port device releases its devres. This
->> applies to Endpoints, Upstream Switch Ports, Downstream Switch Ports,
->> and Root Ports.
+>> Patch 1: Add v4 _CPC parsing - validate the 25-entry layout,
+>> handle the Resource Priority package, and mark the two new
+>> registers optional.
 >>
->> Co-developed-by: Dan Williams <djbw@kernel.org>
->> Signed-off-by: Dan Williams <djbw@kernel.org>
->> Signed-off-by: Terry Bowman <terry.bowman@amd.com>
-> 
-> Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-> 
-> I do wonder if we should save the original mask values and write those back rather than blindly remask everything when we are done.
-> 
-> 
-
-Hi Dave,
-
-This is only masking/unmasking the internal error bit. The other mask bits are not 
-modified.
-
-- Terry
-
-
+>> Patch 2: Add acpi_cppc/ospm_nominal_perf as a read-write sysfs
+>> attribute, and initialize it to the platform nominal value
+>> during cppc_cpufreq policy init.
 >>
 >> ---
+>> v1[1] -> v2:
+>> - Patch 1: added Reviewed-by from Mario Limonciello.
+>> - Patch 2:
+>>    - Make ospm_nominal_perf sysfs read-write; cache last write in
+>>      cpc_desc and skip redundant register writes.
+>>    - Validate input in cppc_set_ospm_nominal_perf.
 >>
->> Changes in v16->v17:
->> - Drop redundant cxl_mask_proto_interrupts() calls from unregister_port()
->>   and cxl_dport_remove(); the devres action registered alongside the unmask
->>   is the sole mask path.
->> - Update title
->> - Remove unnecessary check for aer_capabilities
->> - Gate cxl_unmask_proto_interrupts() on pcie_aer_is_native()
->> - Add pci_aer_mask_internal_errors() and cxl_mask_proto_interrupts()
->> - Only unmask on successful cxl_map_component_regs()
->> - NULL-check @dev in cxl_{un,}mask_proto_interrupts()
->> - Drop static and declare in core/core.h
+>> Sumit Gupta (2):
+>>    ACPI: CPPC: Add support for CPPC v4
+>>    ACPI: CPPC: Add ospm_nominal_perf support
 >>
->> Change in v15 -> v16:
->> - None
+>>   drivers/acpi/cppc_acpi.c       | 93 +++++++++++++++++++++++++++++++---
+>>   drivers/cpufreq/cppc_cpufreq.c | 10 ++++
+>>   include/acpi/cppc_acpi.h       | 14 ++++-
+>>   3 files changed, 109 insertions(+), 8 deletions(-)
 >>
->> Change in v14 -> v15:
->> - None
+>> [1] https://lore.kernel.org/lkml/20260427051823.280419-1-sumitg@nvidia.com/
 >>
->> Changes in v13->v14:
->> - Update commit title's prefix (Bjorn)
->>
->> Changes in v12->v13:
->> - Add dev and dev_is_pci() NULL checks in cxl_unmask_proto_interrupts() (Terry)
->> - Add Dave Jiang's and Ben's review-by
->>
->> Changes in v11->v12:
->> - None
->> ---
->>  drivers/cxl/core/core.h |  4 +++
->>  drivers/cxl/core/ras.c  | 63 ++++++++++++++++++++++++++++++++++++++---
->>  drivers/pci/pcie/aer.c  | 25 ++++++++++++++++
->>  include/linux/aer.h     |  2 ++
->>  4 files changed, 90 insertions(+), 4 deletions(-)
->>
->> diff --git a/drivers/cxl/core/core.h b/drivers/cxl/core/core.h
->> index 2c7387506dfb..ff39985d363f 100644
->> --- a/drivers/cxl/core/core.h
->> +++ b/drivers/cxl/core/core.h
->> @@ -190,6 +190,8 @@ void cxl_dport_map_rch_aer(struct cxl_dport *dport);
->>  void cxl_disable_rch_root_ints(struct cxl_dport *dport);
->>  void cxl_handle_rdport_errors(struct pci_dev *pdev);
->>  void devm_cxl_dport_ras_setup(struct cxl_dport *dport);
->> +void cxl_unmask_proto_interrupts(struct device *dev);
->> +void cxl_mask_proto_interrupts(struct device *dev);
->>  #else
->>  static inline int cxl_ras_init(void)
->>  {
->> @@ -207,6 +209,8 @@ static inline void cxl_dport_map_rch_aer(struct cxl_dport *dport) { }
->>  static inline void cxl_disable_rch_root_ints(struct cxl_dport *dport) { }
->>  static inline void cxl_handle_rdport_errors(struct pci_dev *pdev) { }
->>  static inline void devm_cxl_dport_ras_setup(struct cxl_dport *dport) { }
->> +static inline void cxl_unmask_proto_interrupts(struct device *dev) { }
->> +static inline void cxl_mask_proto_interrupts(struct device *dev) { }
->>  #endif /* CONFIG_CXL_RAS */
->>  
->>  int cxl_gpf_port_setup(struct cxl_dport *dport);
->> diff --git a/drivers/cxl/core/ras.c b/drivers/cxl/core/ras.c
->> index a98ce0f412ad..b45e2b539b5f 100644
->> --- a/drivers/cxl/core/ras.c
->> +++ b/drivers/cxl/core/ras.c
->> @@ -66,16 +66,59 @@ static void cxl_cper_prot_err_work_fn(struct work_struct *work)
->>  }
->>  static DECLARE_WORK(cxl_cper_prot_err_work, cxl_cper_prot_err_work_fn);
->>  
->> +void cxl_unmask_proto_interrupts(struct device *dev)
->> +{
->> +	struct pci_dev *pdev;
->> +
->> +	if (!dev || !dev_is_pci(dev))
->> +		return;
->> +
->> +	pdev = to_pci_dev(dev);
->> +	if (!pcie_aer_is_native(pdev))
->> +		return;
->> +
->> +	pci_aer_unmask_internal_errors(pdev);
->> +}
->> +
->> +void cxl_mask_proto_interrupts(struct device *dev)
->> +{
->> +	struct pci_dev *pdev;
->> +
->> +	if (!dev || !dev_is_pci(dev))
->> +		return;
->> +
->> +	pdev = to_pci_dev(dev);
->> +	if (!pcie_aer_is_native(pdev))
->> +		return;
->> +
->> +	pci_aer_mask_internal_errors(pdev);
->> +}
->> +
->> +static void cxl_mask_proto_irqs(void *dev)
->> +{
->> +	cxl_mask_proto_interrupts(dev);
->> +}
->> +
->>  static void cxl_dport_map_ras(struct cxl_dport *dport)
->>  {
->>  	struct cxl_register_map *map = &dport->reg_map;
->>  	struct device *dev = dport->dport_dev;
->>  
->> -	if (!map->component_map.ras.valid)
->> +	if (!map->component_map.ras.valid) {
->>  		dev_dbg(dev, "RAS registers not found\n");
->> -	else if (cxl_map_component_regs(map, &dport->regs.component,
->> -					BIT(CXL_CM_CAP_CAP_ID_RAS)))
->> +		return;
->> +	}
->> +
->> +	if (cxl_map_component_regs(map, &dport->regs.component,
->> +				   BIT(CXL_CM_CAP_CAP_ID_RAS))) {
->>  		dev_dbg(dev, "Failed to map RAS capability.\n");
->> +		return;
->> +	}
->> +
->> +	cxl_unmask_proto_interrupts(dev);
->> +	if (devm_add_action_or_reset(dport_to_host(dport),
->> +				     cxl_mask_proto_irqs, dev))
->> +		dev_warn(dev, "failed to register CXL proto-irq mask cleanup\n");
->>  }
->>  
->>  /**
->> @@ -109,6 +152,7 @@ EXPORT_SYMBOL_NS_GPL(devm_cxl_dport_rch_ras_setup, "CXL");
->>  void devm_cxl_port_ras_setup(struct cxl_port *port)
->>  {
->>  	struct cxl_register_map *map = &port->reg_map;
->> +	struct device *dev;
->>  
->>  	if (!map->component_map.ras.valid) {
->>  		dev_dbg(&port->dev, "RAS registers not found\n");
->> @@ -117,8 +161,19 @@ void devm_cxl_port_ras_setup(struct cxl_port *port)
->>  
->>  	map->host = &port->dev;
->>  	if (cxl_map_component_regs(map, &port->regs,
->> -				   BIT(CXL_CM_CAP_CAP_ID_RAS)))
->> +				   BIT(CXL_CM_CAP_CAP_ID_RAS))) {
->>  		dev_dbg(&port->dev, "Failed to map RAS capability\n");
->> +		return;
->> +	}
->> +
->> +	dev = is_cxl_endpoint(port) ? port->uport_dev->parent : port->uport_dev;
->> +	if (!dev_is_pci(dev))
->> +		return;
->> +
->> +	cxl_unmask_proto_interrupts(dev);
->> +	if (devm_add_action_or_reset(&port->dev, cxl_mask_proto_irqs, dev))
->> +		dev_warn(&port->dev,
->> +			 "Failed to register CXL proto-irq mask cleanup\n");
->>  }
->>  EXPORT_SYMBOL_NS_GPL(devm_cxl_port_ras_setup, "CXL");
->>  
->> diff --git a/drivers/pci/pcie/aer.c b/drivers/pci/pcie/aer.c
->> index b9c6c7b97217..eaa36fe0eb31 100644
->> --- a/drivers/pci/pcie/aer.c
->> +++ b/drivers/pci/pcie/aer.c
->> @@ -1151,6 +1151,31 @@ void pci_aer_unmask_internal_errors(struct pci_dev *dev)
->>   */
->>  EXPORT_SYMBOL_FOR_MODULES(pci_aer_unmask_internal_errors, "cxl_core");
->>  
->> +/**
->> + * pci_aer_mask_internal_errors - mask internal errors
->> + * @dev: pointer to the pci_dev data structure
->> + *
->> + * Mask internal errors in the Uncorrectable and Correctable Error
->> + * Mask registers.
->> + *
->> + * Note: AER must be enabled and supported by the device which must be
->> + * checked in advance, e.g. with pcie_aer_is_native().
->> + */
->> +void pci_aer_mask_internal_errors(struct pci_dev *dev)
->> +{
->> +	int aer = dev->aer_cap;
->> +	u32 mask;
->> +
->> +	pci_read_config_dword(dev, aer + PCI_ERR_UNCOR_MASK, &mask);
->> +	mask |= PCI_ERR_UNC_INTN;
->> +	pci_write_config_dword(dev, aer + PCI_ERR_UNCOR_MASK, mask);
->> +
->> +	pci_read_config_dword(dev, aer + PCI_ERR_COR_MASK, &mask);
->> +	mask |= PCI_ERR_COR_INTERNAL;
->> +	pci_write_config_dword(dev, aer + PCI_ERR_COR_MASK, mask);
->> +}
->> +EXPORT_SYMBOL_FOR_MODULES(pci_aer_mask_internal_errors, "cxl_core");
->> +
->>  /**
->>   * pci_aer_handle_error - handle logging error into an event log
->>   * @dev: pointer to pci_dev data structure of error source device
->> diff --git a/include/linux/aer.h b/include/linux/aer.h
->> index 979ed2f9fd38..c52db62d4c7e 100644
->> --- a/include/linux/aer.h
->> +++ b/include/linux/aer.h
->> @@ -71,6 +71,7 @@ int pci_aer_clear_nonfatal_status(struct pci_dev *dev);
->>  void pci_aer_clear_fatal_status(struct pci_dev *dev);
->>  int pcie_aer_is_native(struct pci_dev *dev);
->>  void pci_aer_unmask_internal_errors(struct pci_dev *dev);
->> +void pci_aer_mask_internal_errors(struct pci_dev *dev);
->>  #else
->>  static inline int pci_aer_clear_nonfatal_status(struct pci_dev *dev)
->>  {
->> @@ -79,6 +80,7 @@ static inline int pci_aer_clear_nonfatal_status(struct pci_dev *dev)
->>  static inline void pci_aer_clear_fatal_status(struct pci_dev *dev) { }
->>  static inline int pcie_aer_is_native(struct pci_dev *dev) { return 0; }
->>  static inline void pci_aer_unmask_internal_errors(struct pci_dev *dev) { }
->> +static inline void pci_aer_mask_internal_errors(struct pci_dev *dev) { }
->>  #endif
->>  
->>  #ifdef CONFIG_CXL_RAS
-> 
+>> --
+> Can you please see the sashiko.dev feedback on this set:
+>
+> https://sashiko.dev/#/patchset/20260430142430.755437-1-sumitg%40nvidia.com
+>
+> and let me know what you think?  Especially regarding the second patch?
+
+
+Thank you for sharing this.
+
+Patch 1:
+- Comments #1 and #2 are pre-existing issues with rare occurrence.
+   I will address them in a separate hardening patch.
+
+- Comment #3: In v3, will limit the ACPI_TYPE_PACKAGE handling to the
+   RESOURCE_PRIORITY entry. So a Package at any other slot will be
+   treated as invalid and abort probe, as it did before this patch.
+
+----------------
+
+Patch 2:
+Discussed the changes for v3 in some detail on this thread already
+which address most of the points (Please see my reply to Pierre [1]).
+
+Summary of how each point will be addressed below:
+
+
+ > The commit message states the valid range is [Lowest Performance,
+ > Nominal Performance]. Does this code allow writing arbitrary values
+ > outside that range by only checking against U32_MAX, without fetching
+ > the CPU's capabilities to validate the input?
+Will fetch the bounds via cppc_get_perf_caps() and reject values
+outside [lowest_perf, nominal_perf] in v3.
+
+
+ > If the hardware loses state during a logical CPU hotplug or system
+ > suspend, but the software cache is not invalidated, will this check
+ > prevent the register from being correctly re-initialized when the CPU
+ > comes back online?
+The redundant write check will be removed in v3, so the stale cache
+failure mode won't be possible.
+
+
+ > Can concurrent sysfs writes permanently desynchronize the software
+ > cache from the hardware register?
+ > ...
+ > Is a lock needed around the read-modify-write cycle?
+This will not occur in v3 since concurrent calls for the same
+policy are serialized by policy->rwsem at the cpufreq layer (see [1]).
+
+
+ > Additionally, can a time-of-check to time-of-use race lead to a NULL
+ > pointer dereference if cpc_desc_ptr is initialized concurrently?
+ > ...
+ > Would this cause the WRITE_ONCE() to dereference the locally fetched NULL
+ > cpc_desc pointer? Should this explicitly return -ENODEV early if 
+!cpc_desc?
+Will add the early -ENODEV return at the top of the function in v3,
+eliminating the NULL cpc_desc race.
+
+
+ > For shared cpufreq policies where policy->cpus contains multiple
+ > logical cores (such as CPUFREQ_SHARED_TYPE_ANY), does this skip
+ > initializing the secondary CPUs in the domain?
+ >
+ > If they are uninitialized, will their local cache remain 0, causing
+ > sysfs reads for those secondary CPUs to incorrectly return -ENODATA?
+Will move the rw sysfs from the per-CPU acpi_cppc interface to a
+per-policy cpufreq interface in v3, and write the register on every
+CPU in policy->cpus/domain.
+The -ENODATA on unwritten read path will go away with the per-CPU node,
+and the per-policy show returns 0 until user-space writes a value. See [1].
+
+
+ > Also, since the sysfs attribute is tied to the physical CPU device
+ > lifetime and persists independently of cpufreq policy teardowns, will
+ > unconditionally setting the nominal performance here silently clobber
+ > any persistent userspace configurations when a CPU is taken offline
+ > and online?
+Will drop the unconditional cpu_init write in v3, so the user-set
+value won't be overwritten on CPU hotplug.
+
+[1] 
+https://lore.kernel.org/all/9c32f75a-294f-4cea-810e-c011c4dd91ab@nvidia.com/
+
+Thank you,
+Sumit Gupta
+
 
