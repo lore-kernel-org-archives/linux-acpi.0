@@ -1,81 +1,108 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D202B3E9585
-	for <linux-acpi@vger.kernel.org>; Mon, 11 May 2026 13:34:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BDA33EB7F0
+	for <linux-acpi@vger.kernel.org>; Mon, 11 May 2026 13:44:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778506492; cv=none; b=cFe8DyH62gW75aCByibl76f4YPZQk+wZ5OhlgM0jCFEJGMG47LNeaEkl2xTHfNm6s+3ta55/YFGgQZKXlMIwTp+NUw2FMIMEjRS+tiSwbuT+p8HInxv3LV93SC49ck7UIVMtbIib+usjyCaS6p559gj/9pRnGhEo0EtC7lQWEvQ=
+	t=1778507082; cv=none; b=oKJ+/7UIDNpVl8/wPvojEfJlPG2ZXVdsj1s/5dq/okgwpyxjrKQo33ZrdrKeLeEJ+bDOCiPM7jKBLoTE1FUwTQQ8cjZ7p+ycoCqaHfppnPT2whxreKvOd4sVnG/NkAg2mtCplwT/kqCgs1NIdePt8f6gZs1R7WOTpMcRm3h45J0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778506492; c=relaxed/simple;
-	bh=r1NwL7C4TUXiy0IqMMrn3WpIg+m5YuGpDASE8HR118U=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=MRYVVHM9BrjvEw6rARKwTXWVxKAvG+gKjj/fzLCAm7JSN478g7VYS/h8p2622BX1LPRVbOaWdzYO9cIyagzMNsa5M54PDa/zSOO/Cb/zve4VCI9zvT+7pJ9t28L/2tnZVwfNPjizXJ8gqQTdj3qw3FfJt1o2LX/Ya8ZR8G4l7uo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CY1zmRAv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778507082; c=relaxed/simple;
+	bh=TGo8jl/rBevGbdt8gQCYDmDdjx0KgSjv0sIYnti7bp4=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type; b=fTatzbvGk2Ok9CBa7EPwtHq2/ppTVXuQX2lpoI5RA/tzUl/LGlettMcqQn1tZfZMxTpL9+9Ft338ug3hZ6AoYPSQTo2GWcTlhAkOd1vMR+nXREVnLodeMMa1alw6xMPdqHKCnUkEh/74kpAnTGM57mjaVx37Nw19KzUXZQt2EYM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=l6r/Irwl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CY1zmRAv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99EF9C32786
-	for <linux-acpi@vger.kernel.org>; Mon, 11 May 2026 13:34:52 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="l6r/Irwl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1C0AC2BCB0;
+	Mon, 11 May 2026 13:44:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778506492;
-	bh=r1NwL7C4TUXiy0IqMMrn3WpIg+m5YuGpDASE8HR118U=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=CY1zmRAv/Ku8mbJt4v6JYur71VvXUxbPvCoe1xXRVF9B3F6gu+fmOley5laUHiwCG
-	 extjOR7/YS2xIQD8BEzYdA9lyWONIr6U0M0ZbPVoKwDFQd1T7bHwkrYorKd4qG+i0d
-	 0NyDNQ1y55OaK0E1yIBilPr71rkX7HVuDO1vRRlLqbWWavLej0icZOI+0xODaf6B01
-	 uEqdaqo4t0yPUT96/tEylp0NISrg6t0XIJli4QK6f0z7LYVqCxziIU89lJriPvoFo2
-	 ev1Rt9JCtlWduoD5wsvx8DH2xebwPrTbIZZSRaFXRz5HRCvRHYnzmF6nib5sSGRS8b
-	 EEAeIkqXYcEuQ==
-Received: by mail-lj1-f172.google.com with SMTP id 38308e7fff4ca-3942e9977a5so4840511fa.1
-        for <linux-acpi@vger.kernel.org>; Mon, 11 May 2026 06:34:52 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AFNElJ+0nQ3fsPKnYoLd7Svyofbyxo4OnyEbDjvujILxGiBrDQdWfxu0rVpkDqjPlFR9hKaT2elS0xYWbsHI@vger.kernel.org
-X-Gm-Message-State: AOJu0YwKxD8chcbyp8CWY0yPoQPXuw6L8ybj2GY8Nd5KPkdUxDgBuPFC
-	Fh1Qt+dmXullNvYlCheD1Gl+sfBYraxzUyeMJGwLq+O4sc2htV5OfbTyyWIQ4f6G0HgmMgCfpvI
-	Peeu+AV+zJvI4KiKe1Oqy15TVrHK+WoD/BVBiJ6WHNg==
-X-Received: by 2002:a05:651c:2229:b0:38e:15d9:d60d with SMTP id
- 38308e7fff4ca-393dad5f88bmr64043021fa.3.1778506491219; Mon, 11 May 2026
- 06:34:51 -0700 (PDT)
+	s=k20201202; t=1778507082;
+	bh=TGo8jl/rBevGbdt8gQCYDmDdjx0KgSjv0sIYnti7bp4=;
+	h=Date:From:To:Cc:Subject:From;
+	b=l6r/IrwlgynoX4q4Ct6GGzmkplXJSHusFhox8RShrmOBqmvD+gfPjDaB4sLSV5VP3
+	 XDTENFOl77HDREGWCmabCiVhkHhPOpGpp4mkhAOD6y15BTtlrnBBSmn1AoHmYwPZjS
+	 R9Mkhk2TVbWyEEeEfJBOyYDDwWodFz++Y0kHLHQvOHHW/fHDCQ6txDM5IYb/x6Y7AO
+	 v/IjyRo+xZ8jN4beO7ivUv09i46bAPzW/FxTPoYCNgPm0Ldis8LUr03xCuvjUHl1KG
+	 bplMhgndL8uMi3zhtQxuE7vjpFn9pH4Dk7bgb46C7gk0AYv0w4+9DoxGClwXNuVwkM
+	 Z5DSpcAQitevQ==
+Date: Mon, 11 May 2026 15:44:37 +0200
+From: Mauro Carvalho Chehab <mchehab@kernel.org>
+To: uswg@uefi.org
+Cc: taoxiaofei@huawei.com, Mauro Carvalho Chehab <m.chehab@huawei.com>,
+ linux-acpi@vger.kernel.org, Jonathan Cameron <jic23@kernel.org>,
+ qemu-arm@nongnu.org
+Subject: troubles with ARM processor type changes on UEFI 2.11
+Message-ID: <20260511154437.4de20cea@foz.lan>
+X-Mailer: Claws Mail 4.4.0 (GTK 3.24.52; x86_64-redhat-linux-gnu)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260430-nokia770-gpio-swnodes-v7-0-c88f74c90dd6@oss.qualcomm.com>
-In-Reply-To: <20260430-nokia770-gpio-swnodes-v7-0-c88f74c90dd6@oss.qualcomm.com>
-From: Bartosz Golaszewski <brgl@kernel.org>
-Date: Mon, 11 May 2026 15:34:39 +0200
-X-Gmail-Original-Message-ID: <CAMRc=MdN9EpQVW=1Sb-9hRdt56Y5NNbskujjq2RiXhu90t0QyA@mail.gmail.com>
-X-Gm-Features: AVHnY4LqUFEpLtkv3mOskgVKC1lucSnvu3DKdQtMuet6VRvxpZSBsuokLGXn78E
-Message-ID: <CAMRc=MdN9EpQVW=1Sb-9hRdt56Y5NNbskujjq2RiXhu90t0QyA@mail.gmail.com>
-Subject: Re: [PATCH v7 0/3] ARM: omap1: use real firmware node lookup for
- GPIOs on Nokia 770
-To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
-	Danilo Krummrich <dakr@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
-	Daniel Scally <djrscally@gmail.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
-	Sakari Ailus <sakari.ailus@linux.intel.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, 
-	Janusz Krzysztofik <jmkrzyszt@gmail.com>, Tony Lindgren <tony@atomide.com>, 
-	Russell King <linux@armlinux.org.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, 
-	Kevin Hilman <khilman@baylibre.com>, Arnd Bergmann <arnd@arndb.de>, driver-core@lists.linux.dev, 
-	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-On Thu, Apr 30, 2026 at 9:31=E2=80=AFAM Bartosz Golaszewski
-<bartosz.golaszewski@oss.qualcomm.com> wrote:
->
-> This converts Nokia 770 to using real firmware node lookup for GPIOs by
-> attaching the software nodes describing GPIO controllers to their target
-> devices.
->
-> Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-> ---
+Hi,
 
-Hi!
+I maintain ACPI HEST support on QEMU and I'm one of the Linux kernel reviewers
+for the RAS subsystem. I'm also the author and maintainer of Linux rasdaemon,
+responsible to handle RAS reports (including from GHES) on Linux.
 
-Gentle ping, can this be queued now for v7.2?
+There is an incompatible change at UEFI 2.11 spec at Section N.2.4.4.1,
+which, according with UEFI 2.11 changelog, it is related to this issue:
+
+	2462 - Fix the Type mnemonic description in the ARM Processor Error Information Structure
+
+This is the second time the specs changed the meaning of the type field
+inside the ARM processor error info:
+
+- Before UEFI 2.9A, the spec has a list of values for error type. 
+  From the specs, type, at offset 4 was described as:
+    
+            - Cache error
+            - TLB Error
+            - Bus Error
+            - Micro-architectural Error
+            All other values are reserved
+    
+    Yet, there was no information about how this would be encoded.
+    
+- UEFI 2.9A defined the actual expected values as:
+    
+            - Bit 1 - Cache Error
+            - Bit 2 - TLB Error
+            - Bit 3 - Bus Error
+            - Bit 4 - Micro-architectural Error
+            All other values are reserved
+
+    However, even being an incompatible change, the spec didn't change
+    version field at Section N.2.4.4.1.
+
+   Linux, QEMU, rasdaemon and likely several BIOS implementations
+   were updated accordingly.
+
+- UEFI 2.11 changed the definition to:
+
+            - Bit 0 - Cache Error
+            - Bit 1 - TLB Error
+            - Bit 2 - Bus Error
+            - Bit 3 - Micro-architectural Error
+            All other values are reserved
+
+  Again, another incompatible change and without changing the version
+  field at Section N.2.4.4.1.
+
+With the current mess, it is impossible for the OSPM (and RAS apps) to
+properly map ARM processor error types, as for instance, type=2 can
+mean:
+
+	- Bus error (up to UEFI 2.9)
+	- Cache error (UEFI 2.9A and UEFI 2.10)
+	- TLB error (UEFI 2.11)
+
+Please issue an errata incrementing version number, to allow OSPM
+QEMU and rasdaemon to properly interpret this field.
 
 Thanks,
-Bart
+Mauro
