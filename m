@@ -1,333 +1,343 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E1264DB560;
-	Mon, 11 May 2026 22:20:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F5402EDD69;
+	Mon, 11 May 2026 22:37:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.9
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778538010; cv=none; b=ewJzM/q6DWHWHkELq87gA8FiUx9OX3ZrXuEvzOshseGvBrSzUFBaArHDGyWZq800j6wmMpqqQzgw1XxDwu/7AMPLHo8SWxxfQZyXdA4tQo5Q0cAEa1KCnTjeOYCF4KfNeojacfXNo2suTM4OyD/8Y6VuffMEoz9ZNmUxuxanqmQ=
+	t=1778539022; cv=none; b=RlruMFW+c/974x0JVDYDTk2Gh+k99Z8YoYNV54zgwpjLcmLk17015skub7C1y+trShrDNJNe2CasnKJJcx5xq9LJhf4aTlwBykfHjdzY/HUx6syygaoGTVu+3M/nb3hItEIvlI4VgKnTFh3yE9QCqK7vV7TnQWXRa4AZc1RQVeE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778538010; c=relaxed/simple;
-	bh=pP8iVAxF1FoMXalCFIkZlnb3QWBe+RsA4kTO38lVTnk=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=pj6C90I5vDw8ds4WJ7vl7r46SP9z4N66pX1XMZ/YK7s1LuyY7Jfi70iKEzZp2R947d7pb245Q4pRzG9MKKpsV2E71dmYI64Jnmv/CRRmY+FNR2+p6CIY72ndkRLa0RoFGAy9oIIlMv3J8KDKAV6ScXe0nKJIlr96dv8YVjFOTXI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fDjTXQgi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778539022; c=relaxed/simple;
+	bh=3R+hgMBF67mYP0ugC40K6hy8hGcBSeyRPXKwDKSy77c=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=WzSuUJHHjOqI3FKHc4sn3QibN8sChf8/5TYfqoV1OXTiwpE+KWZycUYTNm9Fwu1e+EpHlyGCy5el5jzuWO4pqecNwlRIaFAxmcvl6wTvb75rBIgxxCpf//Qlvcyiyv4j8oiHFTaqABeqG4TzZTAZRiYMFCI3MONQnzSe5Q3OfTM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=DCa4H4DO; arc=none smtp.client-ip=198.175.65.9
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fDjTXQgi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0058CC2BCFB;
-	Mon, 11 May 2026 22:20:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778538010;
-	bh=pP8iVAxF1FoMXalCFIkZlnb3QWBe+RsA4kTO38lVTnk=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=fDjTXQgiVsLQN2umBM4iqidqhE64mx5qtWDlKxrFXIqo45MX+9APBg8fWwjKzhdkd
-	 jcB+rmwP3qdhf+koN0OmJr1UKSb7JhY4gyMiFCooUS4zMuD1nS/S4jbb9RFFzeA/yx
-	 uuyjXv7HxRTfsRRon7HI5J18AFQi8cNCwoNsCPUUQgbFlJz06WPhdyX9P6mbeCd/ue
-	 IEAo2YSDL2j/7syZJa4PhKrE+OAUyb1zMT+zjCSUB/2wXoiD5rEvWxqGcWH018j6EZ
-	 7j5hzGStRdr4gV8J367pzRknKpL4dlDaFCb+JPmSuJ6L3fAqJuXj8VGJfMjEfWIcJ0
-	 HrQ4AB6BNitpA==
-From: Sasha Levin <sashal@kernel.org>
-To: patches@lists.linux.dev,
-	stable@vger.kernel.org
-Cc: Niels Franke <nielsfranke@gmail.com>,
-	Mika Westerberg <mika.westerberg@linux.intel.com>,
-	Wolfram Sang <wsa+renesas@sang-engineering.com>,
-	Sasha Levin <sashal@kernel.org>,
-	wsa@kernel.org,
-	linux-i2c@vger.kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH AUTOSEL 7.0-5.10] i2c: acpi: Add ELAN0678 to i2c_acpi_force_100khz_device_ids
-Date: Mon, 11 May 2026 18:19:25 -0400
-Message-ID: <20260511221931.2370053-26-sashal@kernel.org>
-X-Mailer: git-send-email 2.53.0
-In-Reply-To: <20260511221931.2370053-1-sashal@kernel.org>
-References: <20260511221931.2370053-1-sashal@kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="DCa4H4DO"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1778539021; x=1810075021;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=3R+hgMBF67mYP0ugC40K6hy8hGcBSeyRPXKwDKSy77c=;
+  b=DCa4H4DO+Tlu800o7JnF0FYYQmUwN/sRK/eB9lzXMg4cJcFFHH96KfQS
+   c/WsAIbklyUxCDGouHMvuBiZJBX4Bgh3T+3o/yRsLhTaZVsiQDfF7HGHO
+   ZFXhPevdQrtJnJ3Fj6VndpK5d7/fRlrjWEq3jvHlC16PvcCK6ZW3zBj7J
+   bmBZLe7al7tMCBskQ+iweJLoneHwfBLE8apoHF5mUTE+u6A8HuZnt0ma+
+   QiZ+4rOLMginU6o+dEvi0jbR7enJMIOy5CPfC1/xoLcHAFkNdw3gfXwgo
+   /Vt9aLJcJhz4C58FqAn39my2zTM6yzO9UfPepT3wYlLHchb0tN31hKTe0
+   w==;
+X-CSE-ConnectionGUID: 3CG59hdHRXe+P1+Z0COrbw==
+X-CSE-MsgGUID: bJU0R3jyQhiHiRJi/gdVCg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11783"; a="102103390"
+X-IronPort-AV: E=Sophos;i="6.23,229,1770624000"; 
+   d="scan'208";a="102103390"
+Received: from orviesa009.jf.intel.com ([10.64.159.149])
+  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 May 2026 15:37:01 -0700
+X-CSE-ConnectionGUID: GnGZz2FXQsmxX3vcuzdT0Q==
+X-CSE-MsgGUID: OMiw94sCRiW6AdoHvBpbfQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,229,1770624000"; 
+   d="scan'208";a="237678564"
+Received: from rchatre-mobl4.amr.corp.intel.com (HELO [10.125.111.187]) ([10.125.111.187])
+  by orviesa009-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 May 2026 15:36:58 -0700
+Message-ID: <ce03e27a-f82f-40f8-b185-d80c74ce15ed@intel.com>
+Date: Mon, 11 May 2026 15:36:58 -0700
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-X-stable-base: Linux 7.0.6
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v17 10/11] PCI/CXL: Mask/Unmask CXL protocol errors
+To: "Bowman, Terry" <terry.bowman@amd.com>, dave@stgolabs.net,
+ jic23@kernel.org, alison.schofield@intel.com, djbw@kernel.org,
+ bhelgaas@google.com, shiju.jose@huawei.com, ming.li@zohomail.com,
+ Smita.KoralahalliChannabasappa@amd.com, rrichter@amd.com,
+ dan.carpenter@linaro.org, PradeepVineshReddy.Kodamati@amd.com,
+ lukas@wunner.de, Benjamin.Cheatham@amd.com,
+ sathyanarayanan.kuppuswamy@linux.intel.com, vishal.l.verma@intel.com,
+ alucerop@amd.com, ira.weiny@intel.com, corbet@lwn.net, rafael@kernel.org,
+ xueshuai@linux.alibaba.com, linux-cxl@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org,
+ linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org
+References: <20260505173029.2718246-1-terry.bowman@amd.com>
+ <20260505173029.2718246-11-terry.bowman@amd.com>
+ <38155e50-c0c0-4f51-9777-243f0dd049ca@intel.com>
+ <8ab3325b-175f-4664-a046-6f4b1d472816@amd.com>
+Content-Language: en-US
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <8ab3325b-175f-4664-a046-6f4b1d472816@amd.com>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 
-From: Niels Franke <nielsfranke@gmail.com>
 
-[ Upstream commit 9998e388be9930c106eb5904c23ecf2162407527 ]
 
-The ELAN0678 touchpad (04F3:3195) found in the Lenovo ThinkPad X13
-exhibits excessive smoothing when the I2C bus runs at 400KHz, making
-the touchpad feel sluggish when plugged into AC power. This is the
-same issue previously fixed for ELAN06FA.
+On 5/11/26 2:04 PM, Bowman, Terry wrote:
+> On 5/6/2026 1:00 PM, Dave Jiang wrote:
+>>
+>>
+>> On 5/5/26 10:30 AM, Terry Bowman wrote:
+>>> CXL protocol errors are not enabled for all CXL devices after boot. They
+>>> must be enabled in order to process CXL protocol errors. Provide matching
+>>> teardown helpers so the masks are restored when a CXL Port or Downstream
+>>> Port goes away.
+>>>
+>>> Add pci_aer_mask_internal_errors() as the symmetric counterpart to
+>>> pci_aer_unmask_internal_errors() and export both for the cxl_core module.
+>>>
+>>> Introduce cxl_unmask_proto_interrupts() and cxl_mask_proto_interrupts()
+>>> in cxl_core to wrap the PCI helpers with the dev_is_pci() and
+>>> pcie_aer_is_native() gating CXL needs. Both helpers tolerate a NULL
+>>> @dev so teardown callers do not have to special-case it.
+>>>
+>>> Wire cxl_unmask_proto_interrupts() into the success path of
+>>> cxl_dport_map_ras() and devm_cxl_port_ras_setup() so the unmask only
+>>> runs when the RAS register block was actually mapped. Pair each unmask
+>>> with a devm_add_action_or_reset() registration of
+>>> cxl_mask_proto_interrupts() scoped to the cxl_port device. The mask is
+>>> then restored when the cxl_port device releases its devres. This
+>>> applies to Endpoints, Upstream Switch Ports, Downstream Switch Ports,
+>>> and Root Ports.
+>>>
+>>> Co-developed-by: Dan Williams <djbw@kernel.org>
+>>> Signed-off-by: Dan Williams <djbw@kernel.org>
+>>> Signed-off-by: Terry Bowman <terry.bowman@amd.com>
+>>
+>> Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+>>
+>> I do wonder if we should save the original mask values and write those back rather than blindly remask everything when we are done.
+>>
+>>
+> 
+> Hi Dave,
+> 
+> This is only masking/unmasking the internal error bit. The other mask bits are not 
+> modified.
 
-The device's ACPI table (Lenovo TP-R22) specifies 0x00061A80 (400KHz)
-for the I2cSerialBusV2 descriptor. Forcing the bus to 100KHz eliminates
-the sluggish behavior.
+Hi Terry,
+My point is we lost the original register values for internal error on exit. We probably should restore whatever was in the register before we unmasked. Currently it comes to us with everything masked. But maybe in the future in may not be and we don't want to go chasing that side effect. 
 
-Signed-off-by: Niels Franke <nielsfranke@gmail.com>
-Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-[wsa: kept the sorting]
-Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
+DJ
 
-LLM Generated explanations, may be completely bogus:
-
-## Phase 1: Commit Message Forensics
-
-Step 1.1 - Subject:
-Record: Subsystem `i2c: acpi`; action verb `Add`; intent is to add ACPI
-HID `ELAN0678` to the existing 100 kHz forced-speed quirk table.
-
-Step 1.2 - Tags:
-Record: `Signed-off-by: Niels Franke <nielsfranke@gmail.com>`; `Acked-
-by: Mika Westerberg <mika.westerberg@linux.intel.com>`; maintainer note
-`[wsa: kept the sorting]`; `Signed-off-by: Wolfram Sang
-<wsa+renesas@sang-engineering.com>`. No `Fixes:`, `Reported-by:`,
-`Tested-by:`, `Link:`, or `Cc: stable@vger.kernel.org` tags.
-
-Step 1.3 - Body:
-Record: The bug is real hardware misbehavior: ELAN0678 touchpad
-`04F3:3195` on Lenovo ThinkPad X13 becomes sluggish/excessively smoothed
-when ACPI-described I2C speed is 400 kHz. The commit says forcing 100
-kHz eliminates it. Root cause is a bad/not-working speed choice for this
-device, matching the earlier ELAN06FA workaround.
-
-Step 1.4 - Hidden bug fix:
-Record: Yes. Although phrased as “Add”, this is a hardware
-workaround/quirk for a user-visible input-device malfunction, not new
-feature work.
-
-## Phase 2: Diff Analysis
-
-Step 2.1 - Inventory:
-Record: One file changed: `drivers/i2c/i2c-core-acpi.c`, `+1/-0`. It
-adds `{ "ELAN0678", 0 }` to `i2c_acpi_force_100khz_device_ids`. Scope is
-a single-file, one-line hardware quirk.
-
-Step 2.2 - Code flow:
-Record: Before, ELAN0678 used the normal ACPI/min-speed path and could
-run at the 400 kHz speed from firmware. After, when
-`i2c_acpi_lookup_speed()` sees an ACPI device matching `ELAN0678`, it
-sets `lookup->force_speed = I2C_MAX_STANDARD_MODE_FREQ`, causing
-`i2c_acpi_find_bus_speed()` to return 100 kHz.
-
-Step 2.3 - Bug mechanism:
-Record: Hardware workaround. The broken condition is a known-not-working
-I2C bus speed for a specific ACPI HID. The fix reuses the existing
-forced-100-kHz mechanism.
-
-Step 2.4 - Fix quality:
-Record: Obviously correct and minimal. It only affects machines exposing
-ACPI HID `ELAN0678`. Regression risk is very low: affected devices will
-run slower I2C, intentionally matching the verified workaround; all
-other devices are unchanged.
-
-## Phase 3: Git History
-
-Step 3.1 - Blame:
-Record: `git blame` on `origin/master` shows the new line is commit
-`9998e388be993`; the 100 kHz table and `ELAN06FA` handling came from
-`bfd74cd1fbc026`, first contained around `v6.14-rc1`; `DLL0945` came
-from `0b7c9528facdb5`, first contained around `v6.17-rc1`.
-
-Step 3.2 - Fixes tag:
-Record: Not applicable; no `Fixes:` tag is present.
-
-Step 3.3 - File history:
-Record: Recent file history shows related quirks `ELAN06FA` and
-`DLL0945`, plus unrelated treewide allocation conversions. No
-prerequisite structural change is needed where the 100 kHz table already
-exists.
-
-Step 3.4 - Author context:
-Record: Local history shows Niels Franke has this one I2C commit on
-`origin/master`. The patch was acked by Mika Westerberg, listed in
-`MAINTAINERS` as I2C ACPI maintainer, and committed by Wolfram Sang.
-
-Step 3.5 - Dependencies:
-Record: Standalone for stable branches that already have
-`i2c_acpi_force_100khz_device_ids`. For branches lacking the table, it
-depends on the earlier ELAN06FA forced-100-kHz infrastructure.
-
-## Phase 4: Mailing List And External Research
-
-Step 4.1 - Original discussion:
-Record: `b4 dig -c 9998e388be993` found the original submission at
-`https://patch.msgid.link/20260418053719.15766-1-nielsfranke@gmail.com`.
-The mirror thread shows v1 only, Mika Westerberg acked it, and Wolfram
-Sang applied it to `for-current` while keeping sort order. No objections
-or NAKs found.
-
-Step 4.2 - Reviewers/recipients:
-Record: `b4 dig -w` shows recipients included Niels Franke,
-`westeri@kernel.org`, Wolfram Sang, `linux-i2c`, `linux-acpi`, and
-`linux-kernel`. This reached the relevant I2C ACPI maintainer and lists.
-
-Step 4.3 - Bug report:
-Record: No separate `Reported-by` or bug tracker link in the commit. The
-commit message itself documents affected hardware, ACPI table speed, and
-the tested workaround. Web search also found unrelated ELAN0678 user
-reports, but I did not rely on those for the final decision.
-
-Step 4.4 - Series context:
-Record: `b4 dig -a` shows a single v1 patch, not a multi-patch series.
-
-Step 4.5 - Stable discussion:
-Record: Direct lore stable fetch was blocked by Anubis; web search found
-no specific stable-list discussion for ELAN0678. Stable branch git logs
-sampled do not yet contain ELAN0678.
-
-## Phase 5: Code Semantic Analysis
-
-Step 5.1 - Key functions:
-Record: The diff changes only the ACPI ID table, but behavior flows
-through `i2c_acpi_lookup_speed()` and `i2c_acpi_find_bus_speed()`.
-
-Step 5.2 - Callers:
-Record: `i2c_acpi_find_bus_speed()` is called by multiple I2C bus
-drivers, including DesignWare, USBIO, SynQuacer, LS2X, Zhaoxin, and AMD
-MP2. For DesignWare, `dw_i2c_plat_probe()` and PCI probe paths call
-`i2c_dw_fw_parse_and_configure()`, which calls the ACPI speed lookup
-during controller setup.
-
-Step 5.3 - Callees:
-Record: The relevant code calls `acpi_walk_namespace()`,
-`i2c_acpi_do_lookup()`, and `acpi_match_device_ids()`; if matched, it
-returns the forced speed to bus-driver timing configuration.
-
-Step 5.4 - Reachability:
-Record: Reachable during I2C adapter/controller initialization on ACPI
-systems. On affected Lenovo hardware, this path controls the bus speed
-used for the touchpad.
-
-Step 5.5 - Similar patterns:
-Record: Verified sibling quirks `ELAN06FA` and `DLL0945` in the same
-table, both addressing touchpad sluggishness at higher I2C speed.
-
-## Phase 6: Stable Tree Analysis
-
-Step 6.1 - Buggy code in stable:
-Record: Sampled stable branches `5.10.y`, `5.15.y`, `6.6.y`, `6.12.y`,
-`6.15.y` through `7.0.y` already contain the 100 kHz quirk table with
-`ELAN06FA`/`DLL0945`, but not `ELAN0678`. `5.4.y` has ACPI speed lookup
-but not the forced-100-kHz table in the sampled state.
-
-Step 6.2 - Backport difficulty:
-Record: Clean or trivial for branches with both `DLL0945` and `ELAN06FA`
-adjacent. Branches lacking `DLL0945` or the table may need a trivial
-context adjustment or dependency backport.
-
-Step 6.3 - Related fixes already stable:
-Record: Stable branches sampled already carry related ELAN06FA/DLL0945
-quirks, but no ELAN0678 equivalent.
-
-## Phase 7: Subsystem Context
-
-Step 7.1 - Subsystem:
-Record: `drivers/i2c/i2c-core-acpi.c`, I2C ACPI support. Criticality is
-important for affected ACPI laptop hardware, but not universal/core.
-
-Step 7.2 - Activity:
-Record: File history shows active maintenance and recent hardware quirk
-additions. The patch was accepted through the I2C maintainer path.
-
-## Phase 8: Impact And Risk
-
-Step 8.1 - Affected users:
-Record: Users of systems exposing the ELAN0678 ACPI touchpad,
-specifically verified by commit message for Lenovo ThinkPad X13.
-
-Step 8.2 - Trigger:
-Record: Triggered when the I2C bus is configured at 400 kHz for this
-device, including via the Lenovo TP-R22 ACPI `I2cSerialBusV2`
-descriptor. This is normal boot/device setup, not an obscure manual
-path.
-
-Step 8.3 - Severity:
-Record: Medium severity user-visible hardware malfunction: sluggish
-touchpad/input behavior. Not a crash, security issue, or data
-corruption.
-
-Step 8.4 - Risk-benefit:
-Record: Benefit is high for affected laptops because it restores usable
-touchpad behavior. Risk is very low because it is a one-line ACPI HID-
-specific quirk using existing logic.
-
-## Phase 9: Final Synthesis
-
-Step 9.1 - Evidence:
-Record: For backporting: real hardware bug, existing quirk mechanism,
-one-line scoped change, maintainer ack, accepted by I2C maintainer,
-stable branches already carry analogous quirks. Against backporting: no
-explicit stable tag, no separate bug report link, not a critical
-crash/security fix. Unresolved: exact applicability to every older
-stable branch; `5.4.y` would need more than this one-line context.
-
-Step 9.2 - Stable rules:
-Record: Obviously correct: yes. Tested: commit states forcing 100 kHz
-eliminates the issue, though no `Tested-by` tag. Real bug: yes, touchpad
-sluggishness. Important enough: yes under hardware quirk/workaround
-practice. Small/contained: yes, one line. No new APIs/features: yes.
-Applies to stable: yes for branches with the existing table; trivial
-adjustment/dependency for older divergent branches.
-
-Step 9.3 - Exception:
-Record: This falls squarely under the stable hardware quirk/workaround
-exception.
-
-Step 9.4 - Decision:
-Record: Backport. The risk is tiny and the fix is exactly the sort of
-targeted hardware workaround stable trees routinely carry.
-
-## Verification
-
-- Phase 1: Parsed `git show --format=fuller --stat --patch
-  9998e388be993`; confirmed subject, body, tags, and one-line diff.
-- Phase 2: Read `drivers/i2c/i2c-core-acpi.c`; confirmed
-  `i2c_acpi_force_100khz_device_ids` is checked by
-  `i2c_acpi_lookup_speed()` and returns 100 kHz through
-  `i2c_acpi_find_bus_speed()`.
-- Phase 3: Ran `git blame` on the relevant lines; confirmed commits for
-  `ELAN06FA`, `DLL0945`, and `ELAN0678`.
-- Phase 3: Ran `git describe --contains`; confirmed first-containing
-  release positions for related mainline commits.
-- Phase 4: Ran `b4 dig -c`, `b4 dig -a`, and `b4 dig -w`; found original
-  v1 submission, no later revisions, and relevant recipients.
-- Phase 4: Fetched the public mirror thread; confirmed Mika Westerberg’s
-  ack and Wolfram Sang’s application note.
-- Phase 5: Used semantic search, `rg`, and file reads; confirmed
-  DesignWare and other I2C bus drivers call `i2c_acpi_find_bus_speed()`.
-- Phase 6: Used `git grep` and stable branch logs; confirmed sampled
-  stable branches contain related forced-speed quirks but not ELAN0678.
-- Phase 8: Failure mode is verified from the commit message and lore
-  thread: sluggish/excessively smoothed touchpad at 400 kHz, fixed by
-  100 kHz.
-- UNVERIFIED: Direct `lore.kernel.org/stable` content was blocked by
-  Anubis, so I could not independently inspect stable-list discussion
-  there.
-
-**YES**
-
- drivers/i2c/i2c-core-acpi.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
-index 2cbd31f77667a..28c0e4884a7f2 100644
---- a/drivers/i2c/i2c-core-acpi.c
-+++ b/drivers/i2c/i2c-core-acpi.c
-@@ -371,6 +371,7 @@ static const struct acpi_device_id i2c_acpi_force_100khz_device_ids[] = {
- 	 * a 400KHz frequency. The root cause of the issue is not known.
- 	 */
- 	{ "DLL0945", 0 },
-+	{ "ELAN0678", 0 },
- 	{ "ELAN06FA", 0 },
- 	{}
- };
--- 
-2.53.0
+> 
+> - Terry
+> 
+> 
+>>>
+>>> ---
+>>>
+>>> Changes in v16->v17:
+>>> - Drop redundant cxl_mask_proto_interrupts() calls from unregister_port()
+>>>   and cxl_dport_remove(); the devres action registered alongside the unmask
+>>>   is the sole mask path.
+>>> - Update title
+>>> - Remove unnecessary check for aer_capabilities
+>>> - Gate cxl_unmask_proto_interrupts() on pcie_aer_is_native()
+>>> - Add pci_aer_mask_internal_errors() and cxl_mask_proto_interrupts()
+>>> - Only unmask on successful cxl_map_component_regs()
+>>> - NULL-check @dev in cxl_{un,}mask_proto_interrupts()
+>>> - Drop static and declare in core/core.h
+>>>
+>>> Change in v15 -> v16:
+>>> - None
+>>>
+>>> Change in v14 -> v15:
+>>> - None
+>>>
+>>> Changes in v13->v14:
+>>> - Update commit title's prefix (Bjorn)
+>>>
+>>> Changes in v12->v13:
+>>> - Add dev and dev_is_pci() NULL checks in cxl_unmask_proto_interrupts() (Terry)
+>>> - Add Dave Jiang's and Ben's review-by
+>>>
+>>> Changes in v11->v12:
+>>> - None
+>>> ---
+>>>  drivers/cxl/core/core.h |  4 +++
+>>>  drivers/cxl/core/ras.c  | 63 ++++++++++++++++++++++++++++++++++++++---
+>>>  drivers/pci/pcie/aer.c  | 25 ++++++++++++++++
+>>>  include/linux/aer.h     |  2 ++
+>>>  4 files changed, 90 insertions(+), 4 deletions(-)
+>>>
+>>> diff --git a/drivers/cxl/core/core.h b/drivers/cxl/core/core.h
+>>> index 2c7387506dfb..ff39985d363f 100644
+>>> --- a/drivers/cxl/core/core.h
+>>> +++ b/drivers/cxl/core/core.h
+>>> @@ -190,6 +190,8 @@ void cxl_dport_map_rch_aer(struct cxl_dport *dport);
+>>>  void cxl_disable_rch_root_ints(struct cxl_dport *dport);
+>>>  void cxl_handle_rdport_errors(struct pci_dev *pdev);
+>>>  void devm_cxl_dport_ras_setup(struct cxl_dport *dport);
+>>> +void cxl_unmask_proto_interrupts(struct device *dev);
+>>> +void cxl_mask_proto_interrupts(struct device *dev);
+>>>  #else
+>>>  static inline int cxl_ras_init(void)
+>>>  {
+>>> @@ -207,6 +209,8 @@ static inline void cxl_dport_map_rch_aer(struct cxl_dport *dport) { }
+>>>  static inline void cxl_disable_rch_root_ints(struct cxl_dport *dport) { }
+>>>  static inline void cxl_handle_rdport_errors(struct pci_dev *pdev) { }
+>>>  static inline void devm_cxl_dport_ras_setup(struct cxl_dport *dport) { }
+>>> +static inline void cxl_unmask_proto_interrupts(struct device *dev) { }
+>>> +static inline void cxl_mask_proto_interrupts(struct device *dev) { }
+>>>  #endif /* CONFIG_CXL_RAS */
+>>>  
+>>>  int cxl_gpf_port_setup(struct cxl_dport *dport);
+>>> diff --git a/drivers/cxl/core/ras.c b/drivers/cxl/core/ras.c
+>>> index a98ce0f412ad..b45e2b539b5f 100644
+>>> --- a/drivers/cxl/core/ras.c
+>>> +++ b/drivers/cxl/core/ras.c
+>>> @@ -66,16 +66,59 @@ static void cxl_cper_prot_err_work_fn(struct work_struct *work)
+>>>  }
+>>>  static DECLARE_WORK(cxl_cper_prot_err_work, cxl_cper_prot_err_work_fn);
+>>>  
+>>> +void cxl_unmask_proto_interrupts(struct device *dev)
+>>> +{
+>>> +	struct pci_dev *pdev;
+>>> +
+>>> +	if (!dev || !dev_is_pci(dev))
+>>> +		return;
+>>> +
+>>> +	pdev = to_pci_dev(dev);
+>>> +	if (!pcie_aer_is_native(pdev))
+>>> +		return;
+>>> +
+>>> +	pci_aer_unmask_internal_errors(pdev);
+>>> +}
+>>> +
+>>> +void cxl_mask_proto_interrupts(struct device *dev)
+>>> +{
+>>> +	struct pci_dev *pdev;
+>>> +
+>>> +	if (!dev || !dev_is_pci(dev))
+>>> +		return;
+>>> +
+>>> +	pdev = to_pci_dev(dev);
+>>> +	if (!pcie_aer_is_native(pdev))
+>>> +		return;
+>>> +
+>>> +	pci_aer_mask_internal_errors(pdev);
+>>> +}
+>>> +
+>>> +static void cxl_mask_proto_irqs(void *dev)
+>>> +{
+>>> +	cxl_mask_proto_interrupts(dev);
+>>> +}
+>>> +
+>>>  static void cxl_dport_map_ras(struct cxl_dport *dport)
+>>>  {
+>>>  	struct cxl_register_map *map = &dport->reg_map;
+>>>  	struct device *dev = dport->dport_dev;
+>>>  
+>>> -	if (!map->component_map.ras.valid)
+>>> +	if (!map->component_map.ras.valid) {
+>>>  		dev_dbg(dev, "RAS registers not found\n");
+>>> -	else if (cxl_map_component_regs(map, &dport->regs.component,
+>>> -					BIT(CXL_CM_CAP_CAP_ID_RAS)))
+>>> +		return;
+>>> +	}
+>>> +
+>>> +	if (cxl_map_component_regs(map, &dport->regs.component,
+>>> +				   BIT(CXL_CM_CAP_CAP_ID_RAS))) {
+>>>  		dev_dbg(dev, "Failed to map RAS capability.\n");
+>>> +		return;
+>>> +	}
+>>> +
+>>> +	cxl_unmask_proto_interrupts(dev);
+>>> +	if (devm_add_action_or_reset(dport_to_host(dport),
+>>> +				     cxl_mask_proto_irqs, dev))
+>>> +		dev_warn(dev, "failed to register CXL proto-irq mask cleanup\n");
+>>>  }
+>>>  
+>>>  /**
+>>> @@ -109,6 +152,7 @@ EXPORT_SYMBOL_NS_GPL(devm_cxl_dport_rch_ras_setup, "CXL");
+>>>  void devm_cxl_port_ras_setup(struct cxl_port *port)
+>>>  {
+>>>  	struct cxl_register_map *map = &port->reg_map;
+>>> +	struct device *dev;
+>>>  
+>>>  	if (!map->component_map.ras.valid) {
+>>>  		dev_dbg(&port->dev, "RAS registers not found\n");
+>>> @@ -117,8 +161,19 @@ void devm_cxl_port_ras_setup(struct cxl_port *port)
+>>>  
+>>>  	map->host = &port->dev;
+>>>  	if (cxl_map_component_regs(map, &port->regs,
+>>> -				   BIT(CXL_CM_CAP_CAP_ID_RAS)))
+>>> +				   BIT(CXL_CM_CAP_CAP_ID_RAS))) {
+>>>  		dev_dbg(&port->dev, "Failed to map RAS capability\n");
+>>> +		return;
+>>> +	}
+>>> +
+>>> +	dev = is_cxl_endpoint(port) ? port->uport_dev->parent : port->uport_dev;
+>>> +	if (!dev_is_pci(dev))
+>>> +		return;
+>>> +
+>>> +	cxl_unmask_proto_interrupts(dev);
+>>> +	if (devm_add_action_or_reset(&port->dev, cxl_mask_proto_irqs, dev))
+>>> +		dev_warn(&port->dev,
+>>> +			 "Failed to register CXL proto-irq mask cleanup\n");
+>>>  }
+>>>  EXPORT_SYMBOL_NS_GPL(devm_cxl_port_ras_setup, "CXL");
+>>>  
+>>> diff --git a/drivers/pci/pcie/aer.c b/drivers/pci/pcie/aer.c
+>>> index b9c6c7b97217..eaa36fe0eb31 100644
+>>> --- a/drivers/pci/pcie/aer.c
+>>> +++ b/drivers/pci/pcie/aer.c
+>>> @@ -1151,6 +1151,31 @@ void pci_aer_unmask_internal_errors(struct pci_dev *dev)
+>>>   */
+>>>  EXPORT_SYMBOL_FOR_MODULES(pci_aer_unmask_internal_errors, "cxl_core");
+>>>  
+>>> +/**
+>>> + * pci_aer_mask_internal_errors - mask internal errors
+>>> + * @dev: pointer to the pci_dev data structure
+>>> + *
+>>> + * Mask internal errors in the Uncorrectable and Correctable Error
+>>> + * Mask registers.
+>>> + *
+>>> + * Note: AER must be enabled and supported by the device which must be
+>>> + * checked in advance, e.g. with pcie_aer_is_native().
+>>> + */
+>>> +void pci_aer_mask_internal_errors(struct pci_dev *dev)
+>>> +{
+>>> +	int aer = dev->aer_cap;
+>>> +	u32 mask;
+>>> +
+>>> +	pci_read_config_dword(dev, aer + PCI_ERR_UNCOR_MASK, &mask);
+>>> +	mask |= PCI_ERR_UNC_INTN;
+>>> +	pci_write_config_dword(dev, aer + PCI_ERR_UNCOR_MASK, mask);
+>>> +
+>>> +	pci_read_config_dword(dev, aer + PCI_ERR_COR_MASK, &mask);
+>>> +	mask |= PCI_ERR_COR_INTERNAL;
+>>> +	pci_write_config_dword(dev, aer + PCI_ERR_COR_MASK, mask);
+>>> +}
+>>> +EXPORT_SYMBOL_FOR_MODULES(pci_aer_mask_internal_errors, "cxl_core");
+>>> +
+>>>  /**
+>>>   * pci_aer_handle_error - handle logging error into an event log
+>>>   * @dev: pointer to pci_dev data structure of error source device
+>>> diff --git a/include/linux/aer.h b/include/linux/aer.h
+>>> index 979ed2f9fd38..c52db62d4c7e 100644
+>>> --- a/include/linux/aer.h
+>>> +++ b/include/linux/aer.h
+>>> @@ -71,6 +71,7 @@ int pci_aer_clear_nonfatal_status(struct pci_dev *dev);
+>>>  void pci_aer_clear_fatal_status(struct pci_dev *dev);
+>>>  int pcie_aer_is_native(struct pci_dev *dev);
+>>>  void pci_aer_unmask_internal_errors(struct pci_dev *dev);
+>>> +void pci_aer_mask_internal_errors(struct pci_dev *dev);
+>>>  #else
+>>>  static inline int pci_aer_clear_nonfatal_status(struct pci_dev *dev)
+>>>  {
+>>> @@ -79,6 +80,7 @@ static inline int pci_aer_clear_nonfatal_status(struct pci_dev *dev)
+>>>  static inline void pci_aer_clear_fatal_status(struct pci_dev *dev) { }
+>>>  static inline int pcie_aer_is_native(struct pci_dev *dev) { return 0; }
+>>>  static inline void pci_aer_unmask_internal_errors(struct pci_dev *dev) { }
+>>> +static inline void pci_aer_mask_internal_errors(struct pci_dev *dev) { }
+>>>  #endif
+>>>  
+>>>  #ifdef CONFIG_CXL_RAS
+>>
+> 
 
