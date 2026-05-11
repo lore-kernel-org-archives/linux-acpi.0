@@ -1,154 +1,96 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.15])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC1F23FADE5;
-	Mon, 11 May 2026 13:59:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.15
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D94493FCB33;
+	Mon, 11 May 2026 14:15:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.8
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778507964; cv=none; b=CwdJCrW3ZAC+9udspoO8FFnJqczOSR7zDj7hJD/biXqrlG2TVGbEKo5sbOaj1AIaWiCY/aM7atRWClOx/g0IOmT6EeL2iBDytmtuPcdwh9XxS1XASVd9BIPOOrys5uXi9LSg7JZMiR4yzLXAEfdtPLsV1XTGdLBnWsdHvvykMvc=
+	t=1778508910; cv=none; b=BnOLpBP/PLR8imN9p2/sa8FgulFTwFLJ1uR8kv/bi8Y5OSuHAeTb4Z0mt1PtycizePz3zFmPdBSqMhdI7lpKnwykF/YFNw7fg+QxyCdrRatB64H7xDHmTMcPjs3CPP7/oHUO2TPcRCrp6/dhUpqi9uv8GyABeAVMmGxY8kaV3DU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778507964; c=relaxed/simple;
-	bh=FXF+GYk4YhOz2SuzlWBsAonAec/nJc7DZp/Z8EHp3QU=;
-	h=From:Date:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=spEBi8QuGs/j6mIKcOcX1Y3aLMGZGtCWIGTmsS8JlKOEyPLBS8V3UAFxJ55GVEcCfy9kTSQbDZ81up/dmWJb+LxaqOguwfg5vYaU6nCQ1rjb9D4EeapyyIMka3g7e9hEq+jG9CfqMO3blVEtYcy+EnHf4Fr60iwCVrn/olJqmDg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=f+vudU1F; arc=none smtp.client-ip=198.175.65.15
+	s=arc-20240116; t=1778508910; c=relaxed/simple;
+	bh=XA2O/aRwSRyBYpjnbzawpJn6DkqqVS3RJXZbZYj/GiY=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=QCQKKR1EDqSEWVY6yDKfUl7D6YKBsITwQ1ybgKRkUwb7CM/2qMV97iEYod6iUWT+pOfhTe77MytGoKNFxMnHLnhQEybHRBGhvtFnEVP1SXQswiaBbmct2LDiWNYrg/US2YeQN2hzRBFvUMDOOKB124RBl9aYN+p8ctf6gRtjW5E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=NDmgGfZ4; arc=none smtp.client-ip=192.198.163.8
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="f+vudU1F"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="NDmgGfZ4"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1778507963; x=1810043963;
-  h=from:date:to:cc:subject:in-reply-to:message-id:
-   references:mime-version;
-  bh=FXF+GYk4YhOz2SuzlWBsAonAec/nJc7DZp/Z8EHp3QU=;
-  b=f+vudU1FaNu8h8uGVtt+NjgLx77QdSrK7bfR7Af0KgsB3Bu01CwR7wzC
-   hlzEldc7MZ6ZmCwEI0HAJeJCy6LPxEBsRWnjOw2b6ciyZvEnND/bDpWtf
-   U//lRrqSQD5aReeM6gkVs3nXD45asornku1I37aLV/95Kq3unO/b8jxSn
-   DpSljog9YBqrNLjXY4txse5DD5M8/P4DnixPa3czDhupHM+0PEL7AzT0W
-   CbmH1YvD/c4XzjhjG0jCgHGm4dabCY1Toz8r2Ls+fPMZAfPDszq4YJfYk
-   K911naNXAdz9cMWB3cEKDJZZ5gtaUGuZAJ1IzGwl4D68FZgw6jruXGysi
-   w==;
-X-CSE-ConnectionGUID: RJSSoJEzQlGChsroHENt8A==
-X-CSE-MsgGUID: H7X2TfBLTpmDayPnMYBpag==
-X-IronPort-AV: E=McAfee;i="6800,10657,11783"; a="83008205"
+  t=1778508909; x=1810044909;
+  h=from:to:cc:in-reply-to:references:subject:message-id:
+   date:mime-version:content-transfer-encoding;
+  bh=XA2O/aRwSRyBYpjnbzawpJn6DkqqVS3RJXZbZYj/GiY=;
+  b=NDmgGfZ4FXjLq8TaWpTndEOC/acc1UzO+3LPMMjaDDU446F37brAwRSt
+   H5OvD9kVPkHYz8VbWYVrUCqx6TEGrb4I44zN1EkpVky5lekfdnRQfm1Ki
+   foNtQ02oVcD4oyxcuUom5mP9O7Md+9MHAzu9bujLwkmNdnaPmeNwkkIaC
+   ANfnEdAn9drGmXCpLF41hu+NENBcDBvr6XsVKs6fSqhzXoVJIDOmR5EFR
+   HKSNo0XbQuYe2ZG0P4MDY/6rsmVOHlftUz/Ot/wPow0TPYwKP7pAAWnIJ
+   BZrPSz9aLQ3oA3yDVkVXPxVPRBk34KrhMZnLo6rPgKhh/bXaUmH7P+1tf
+   g==;
+X-CSE-ConnectionGUID: j2YtvgJdQXODnCzDQtg+eg==
+X-CSE-MsgGUID: 12+27PmTQu667s7QB5yZnw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11783"; a="96960333"
 X-IronPort-AV: E=Sophos;i="6.23,229,1770624000"; 
-   d="scan'208";a="83008205"
-Received: from fmviesa009.fm.intel.com ([10.60.135.149])
-  by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 May 2026 06:59:23 -0700
-X-CSE-ConnectionGUID: pli8gOZjRymHC2wl3ykwfw==
-X-CSE-MsgGUID: srApQyP2TTqQlNsMSxFWlQ==
+   d="scan'208";a="96960333"
+Received: from fmviesa008.fm.intel.com ([10.60.135.148])
+  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 May 2026 07:15:08 -0700
+X-CSE-ConnectionGUID: iDk7OyFQS4OOBsYHSldFfA==
+X-CSE-MsgGUID: QfjmJXKyTPiqrt7ymi00Ag==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.23,229,1770624000"; 
-   d="scan'208";a="231069179"
+   d="scan'208";a="234804030"
 Received: from ijarvine-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.245.28])
-  by fmviesa009-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 May 2026 06:59:20 -0700
+  by fmviesa008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 May 2026 07:15:05 -0700
 From: =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
-Date: Mon, 11 May 2026 16:59:16 +0300 (EEST)
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-cc: LKML <linux-kernel@vger.kernel.org>, 
-    Linux ACPI <linux-acpi@vger.kernel.org>, Hans de Goede <hansg@kernel.org>, 
-    platform-driver-x86@vger.kernel.org
-Subject: Re: [PATCH v1 3/4] platform/x86: xo15-ebook: Register ACPI notify
- handler directly
-In-Reply-To: <3420768.aeNJFYEL58@rafael.j.wysocki>
-Message-ID: <e46d3374-4762-3776-6195-bd6220998b5e@linux.intel.com>
-References: <2420444.ElGaqSPkdT@rafael.j.wysocki> <3420768.aeNJFYEL58@rafael.j.wysocki>
+To: x86 Maintainers <x86@kernel.org>, 
+ "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Hans de Goede <hansg@kernel.org>, LKML <linux-kernel@vger.kernel.org>, 
+ Linux ACPI <linux-acpi@vger.kernel.org>, 
+ platform-driver-x86@vger.kernel.org, Borislav Petkov <bp@alien8.de>, 
+ Dave Hansen <dave.hansen@linux.intel.com>, 
+ Thomas Gleixner <tglx@kernel.org>
+In-Reply-To: <1868425.VLH7GnMWUR@rafael.j.wysocki>
+References: <1868425.VLH7GnMWUR@rafael.j.wysocki>
+Subject: Re: [PATCH v1 0/2] x86/platform/olpc: xo15: Bind to a platform
+ device instead of an ACPI one
+Message-Id: <177850890028.20277.13805473856244184975.b4-ty@linux.intel.com>
+Date: Mon, 11 May 2026 17:15:00 +0300
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.13.0
 
-On Fri, 8 May 2026, Rafael J. Wysocki wrote:
+On Fri, 08 May 2026 19:59:27 +0200, Rafael J. Wysocki wrote:
 
-> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+> This series is part of a larger effort to switch over all drivers using
+> the struct acpi_driver interface to the more common struct platform_driver
+> interface and eliminate the former.  The background is explained in
+> Documentation/driver-api/acpi/acpi-drivers.rst and in the changelog of
+> the patch that introduced the above document:
 > 
-> To facilitate subsequent conversion of the driver to a platform one,
-> make it install an ACPI notify handler directly instead of using
-> a .notify() callback in struct acpi_driver.
+> https://lore.kernel.org/all/2396510.ElGaqSPkdT@rafael.j.wysocki/
 > 
-> No intentional functional impact.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->  drivers/platform/x86/xo15-ebook.c | 19 ++++++++++++++-----
->  1 file changed, 14 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/platform/x86/xo15-ebook.c b/drivers/platform/x86/xo15-ebook.c
-> index 616f4bb3461a..8af1b9078db8 100644
-> --- a/drivers/platform/x86/xo15-ebook.c
-> +++ b/drivers/platform/x86/xo15-ebook.c
-> @@ -57,16 +57,15 @@ static int ebook_send_state(struct acpi_device *device)
->  	return 0;
->  }
->  
-> -static void ebook_switch_notify(struct acpi_device *device, u32 event)
-> +static void ebook_switch_notify(acpi_handle handle, u32 event, void *data)
->  {
->  	switch (event) {
->  	case ACPI_FIXED_HARDWARE_EVENT:
->  	case XO15_EBOOK_NOTIFY_STATUS:
-> -		ebook_send_state(device);
-> +		ebook_send_state(data);
->  		break;
->  	default:
-> -		acpi_handle_debug(device->handle,
-> -				  "Unsupported event [0x%x]\n", event);
-> +		acpi_handle_debug(handle, "Unsupported event [0x%x]\n", event);
->  		break;
->  	}
->  }
-> @@ -123,6 +122,11 @@ static int ebook_switch_add(struct acpi_device *device)
->  	if (error)
->  		goto err_free_input;
->  
-> +	error = acpi_dev_install_notify_handler(device, ACPI_DEVICE_NOTIFY,
-> +						ebook_switch_notify, device);
-> +	if (error)
-> +		goto err_unregister_input;
-> +
->  	ebook_send_state(device);
->  
->  	if (device->wakeup.flags.valid) {
-> @@ -139,6 +143,10 @@ static int ebook_switch_add(struct acpi_device *device)
->  err_free_button:
->  	kfree(button);
->  	return error;
-> +
-> +err_unregister_input:
-> +	input_unregister_device(input);
-> +	goto err_free_button;
+> [...]
 
-The end result would be much simpler if there would be patch 5 to convert 
-to devm_*().
 
->  }
->  
->  static void ebook_switch_remove(struct acpi_device *device)
-> @@ -149,6 +157,8 @@ static void ebook_switch_remove(struct acpi_device *device)
->  		acpi_disable_gpe(device->wakeup.gpe_device,
->  				 device->wakeup.gpe_number);
->  
-> +	acpi_dev_remove_notify_handler(device, ACPI_DEVICE_NOTIFY,
-> +				       ebook_switch_notify);
->  	input_unregister_device(button->input);
->  	kfree(button);
->  }
-> @@ -160,7 +170,6 @@ static struct acpi_driver xo15_ebook_driver = {
->  	.ops = {
->  		.add = ebook_switch_add,
->  		.remove = ebook_switch_remove,
-> -		.notify = ebook_switch_notify,
->  	},
->  	.drv.pm = &ebook_switch_pm,
->  };
-> 
-> 
-> 
+Thank you for your contribution, it has been applied to my local
+review-ilpo-next branch. Note it will show up in the public
+platform-drivers-x86/review-ilpo-next branch only once I've pushed my
+local branch there, which might take a while.
 
--- 
+The list of commits applied:
+[1/2] x86/platform/olpc: xo15: Drop wakeup source on driver removal
+      commit: cc966553e6ff0849978b5754531b768b0ff54985
+[2/2] x86/platform/olpc: xo15: Convert ACPI driver to a platform one
+      commit: 75c7d3d76b78b568969316224c8ae25c0224cc9a
+
+--
  i.
 
