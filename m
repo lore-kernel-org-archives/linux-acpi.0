@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4B4B3AFB0A;
-	Tue, 12 May 2026 14:19:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F0C33B1ED0;
+	Tue, 12 May 2026 14:19:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778595555; cv=none; b=gwB7CzqUQl1Jper4VWA6okurRySaLLj9f6sya0USUmkTnKMwNfqK2Q8Yjw7fF0XhZE4ANxTblMgeyYsaCxKgwAJbpuSgVHxckhqbzMp692vcK50PRdTiB0YT0ymAxXSaQmTzYtu5AVqSiERdp6ZJub8pBd62eq0/vgaq30wXa3c=
+	t=1778595560; cv=none; b=HfePnsYJXTWF/8Z/xTaU6jkn7WhIMawiEnY63u1PO4rZ7I6K5N18MxvfiD1Srg5BzjT+eglhWjssrPtl3RBqRVhPMyYw+ahcn2oPAdtwBCBa2nKO+fszTbumg1y83xuQmLQIrWZq7P7tZq26ET0pYX3rCbauxUUiUNmXNBZQn4g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778595555; c=relaxed/simple;
-	bh=S7Bw079dUK7p08dhks4JZveMAQRlAqspNYw42nFkADU=;
+	s=arc-20240116; t=1778595560; c=relaxed/simple;
+	bh=QVmau9GfaUT170w7Q7/p0/c+7zEQrJoUbzR2NChOmAY=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=HYTrXsrT+TVIhPpbTgbIx48GVm+dp12vaG175mB9AJnWPITGpbQv0AuLoWOM6u++dp3lAYOvKaAD6fl4rvBkgqKS9/E/FWP8uQb6VT9oKjfxWrvGW4ZE+7AW5xosoqY1JrULYTppeuIY8RVIzTmffcrRdNtl1/HwyzktbEykGiQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fvHNlicp; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=pd2Q+rOxxFCQ2iVIpm683ZTDIU5S4tmXVybx3IeMDd0PhnFgW6C1fBflUIq2icT8oosAkhBkxP/DaZ+66qbKXTKw1TCqR9AflB/bFeejgtTN/ZKPb8TbIRvBwPnZrL1wuNH0/dPiqXJpLKgLvAtiYN8GcSNNEAWot73aONlZkoo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=FQNvsqP2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fvHNlicp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94D3DC2BCB0;
-	Tue, 12 May 2026 14:19:12 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="FQNvsqP2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D4CEC2BCF6;
+	Tue, 12 May 2026 14:19:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778595555;
-	bh=S7Bw079dUK7p08dhks4JZveMAQRlAqspNYw42nFkADU=;
+	s=k20201202; t=1778595560;
+	bh=QVmau9GfaUT170w7Q7/p0/c+7zEQrJoUbzR2NChOmAY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=fvHNlicpmq/5zgi0Ku6asm0MnjttpFyDj8GtABP9rwjZhTRRys5t+rQjqaN6xBIHb
-	 HdEURecbrytw3zHf71KvSBmXIxSw+BNYexLE2eneO9TJm0KeN3apJ1kdZk0kfMAFHF
-	 /j07bK7RVINaQuIx86ZGPsX5AnHKlXsAQfGLET/aBLW87+QyJCRnVvzCLn6iiMgFDt
-	 QM5Ub0CGT22DY+A3tBR7NeOHf4T8wLpX9QrUqgz0S8/sLI3OsgyF3QrTDr6lOX+SOd
-	 cHJ7c6bNpkFAqNc8IbD4eccyNnYQ8fQaty0FMXJnv8/z+RQMN0jT3rq0zWT5Qv2rUe
-	 /kpeDgLb8/rTA==
+	b=FQNvsqP2U0GC+SgiFrzJjRSlPB/3n8zHHEEx3zOStg6FaSIkd55hPJ7+Ya9BkOv7k
+	 +Z4L3GBk7D0+lNRwpX5JWMg07z6Ieu+xBRKhotaxVIGGa+a4nfIKiXU0XFK0Piu4H1
+	 unora3i/6u3+ckjUhde0lARKYKs9n7BBHGdlY6AfI1JtWIlkZqC58fhdXbFs9sWbv7
+	 C8cMfs5S6TVVTna5pH+vgJ8tp2SaDXQKOl5rY4sAlAHWjpFFiJSBh8i2SDpoOuSfOg
+	 0A0PLLsdPm4/d2wUvDrblbX2ZJcX0k/TlLKL+EXMhXw3ATYXTYpMxWSM3aURjLG2xh
+	 rk0XfxFEYjx4g==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Ilpo =?ISO-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>
 Cc: Hans de Goede <hansg@kernel.org>, LKML <linux-kernel@vger.kernel.org>,
@@ -40,10 +40,10 @@ Cc: Hans de Goede <hansg@kernel.org>, LKML <linux-kernel@vger.kernel.org>,
  Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
  platform-driver-x86@vger.kernel.org
 Subject:
- [PATCH v2 03/16] platform/x86: dell/dell-rbtn: Check ACPI_COMPANION() against
+ [PATCH v2 02/16] platform/x86: asus-laptop: Check ACPI_COMPANION() against
  NULL
-Date: Tue, 12 May 2026 16:05:07 +0200
-Message-ID: <2276487.irdbgypaU6@rafael.j.wysocki>
+Date: Tue, 12 May 2026 16:04:23 +0200
+Message-ID: <5083741.GXAFRqVoOG@rafael.j.wysocki>
 Organization: Linux Kernel Development
 In-Reply-To: <12904885.O9o76ZdvQC@rafael.j.wysocki>
 References: <12904885.O9o76ZdvQC@rafael.j.wysocki>
@@ -64,36 +64,35 @@ platform drivers that rely on the existence of a device's ACPI companion
 object need to verify its presence.
 
 Accordingly, add a requisite ACPI_COMPANION() check against NULL to the
-platform/x86 dell-rbtn driver.
+platform/x86 asus-laptop driver.
 
-Fixes: 19ebacfb442b ("platform/x86: dell/dell-rbtn: Convert ACPI driver to a platform one")
+Fixes: ba19eb10170b ("platform/x86: asus-laptop: Convert ACPI driver to a platform one")
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/platform/x86/dell/dell-rbtn.c | 6 +++++-
+ drivers/platform/x86/asus-laptop.c | 6 +++++-
  1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/platform/x86/dell/dell-rbtn.c b/drivers/platform/x86/dell/dell-rbtn.c
-index 34af9f4ff741..180b8c6720e6 100644
---- a/drivers/platform/x86/dell/dell-rbtn.c
-+++ b/drivers/platform/x86/dell/dell-rbtn.c
-@@ -396,11 +396,15 @@ static void rbtn_cleanup(struct device *dev)
+diff --git a/drivers/platform/x86/asus-laptop.c b/drivers/platform/x86/asus-laptop.c
+index dbbb6292cd11..140ac8a10537 100644
+--- a/drivers/platform/x86/asus-laptop.c
++++ b/drivers/platform/x86/asus-laptop.c
+@@ -1826,10 +1826,14 @@ static bool asus_device_present;
  
- static int rbtn_probe(struct platform_device *pdev)
+ static int asus_acpi_probe(struct platform_device *pdev)
  {
 -	struct acpi_device *device = ACPI_COMPANION(&pdev->dev);
- 	struct rbtn_data *rbtn_data;
 +	struct acpi_device *device;
- 	enum rbtn_type type;
- 	int ret = 0;
+ 	struct asus_laptop *asus;
+ 	int result;
  
 +	device = ACPI_COMPANION(&pdev->dev);
 +	if (!device)
 +		return -ENODEV;
 +
- 	type = rbtn_check(device);
- 	if (type == RBTN_UNKNOWN) {
- 		dev_info(&pdev->dev, "Unknown device type\n");
+ 	pr_notice("Asus Laptop Support version %s\n",
+ 		  ASUS_LAPTOP_VERSION);
+ 	asus = kzalloc_obj(struct asus_laptop);
 -- 
 2.51.0
 
