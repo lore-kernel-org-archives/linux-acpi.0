@@ -1,31 +1,30 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED0963B1EC8;
-	Tue, 12 May 2026 14:19:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6EFC3B1037;
+	Tue, 12 May 2026 14:19:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778595565; cv=none; b=TzDJmuRsCN0gNwI7rOuShNbEYLer49hqq2PYyZWyhIBDq0eztlzuxJ/ZA5cRpdNmhgpqgj+B9DbTncg8CKwe98UGiErx4B0R86C5pINvTMOik5m0Qmq+rP+G2oSgZn1Rnc5sONN+Rc/B+5GjaFrzsHDGaamg8y9ef+7YxxM2hDY=
+	t=1778595569; cv=none; b=mJzLY5p8H5Kjdvne6119M/35ztmRV/SIa5fYETBtRcbUpPtF4+wZkepK5J+5V4b05UwvOPhYeHKZPqr8YMfzkIUVSU3YlrYFZIXz9pm3ftuWjHrW9W7xiKsi2W2VbFoN4j8UPxkJIwa/XKm/L8puB8z4p8Mik7OZtaN9Nml3BwQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778595565; c=relaxed/simple;
-	bh=jKCNqnqrMcs8HpiAmusRHcEnRsqJjCrqRerGX4HePrw=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=MBboAloDiGYno25UaY5OPLXFuulBv3pSj0DgQhGy1ehA4wObHruYcovfw95IvJmW+htOMFdBnUItJRWURijRSMhjE9n1UZJo56vibt2ch6k3M5oGbbyG9gMrQMKBtDTSh/RCTX0ZY3XLXS4fybRt+nyfIMeYog/1vge69sBoiB8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=m/tBTFPt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778595569; c=relaxed/simple;
+	bh=M00Vvi1LUzRwd8T6JtZ1syr05U3z/HiDIk8TB5gIWAE=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=GQpsNg3HQjpEY3jxiuGBvw0+wqz0nES0fzD/CTWwABvNoBYV2xdhc/kYbVxf9T/LmjFbCvMjdPkU8N3iCKOlhytYFY7RYsUc/tNCs78LXe5pg6xlAHGQWbIk0P5jXiGClcWngYFaGx2JYa8qvEv7mnPRDQ2QRK45bMx9wL6QvWU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=puY7xDYR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="m/tBTFPt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 123BDC2BCF7;
-	Tue, 12 May 2026 14:19:21 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="puY7xDYR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AAD33C2BCB0;
+	Tue, 12 May 2026 14:19:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778595564;
-	bh=jKCNqnqrMcs8HpiAmusRHcEnRsqJjCrqRerGX4HePrw=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=m/tBTFPtsdS6RoXYOhTBKaawAy1xNH7xORpwqtNcVb2vx+tf1m/RS5D77rwYK6fPD
-	 SMJm0PeWB50tCh3N+0ahiBqq7mNx/DESEhI9VV+8vGjzXQL5ruKfQP42Wf5aOHIcGS
-	 2+PI8C61TaT0ybtdoBTGdaKSMTdK2U487WfTMj4vZy8+PbDYB3LTV1nWbOcQu4lbQQ
-	 7EnUWtHJ5XhFmLQLS3WwAFCOz2PSY+n7WRncMe+/Rk9CWF2WMc5q60RSzr5x86ik4m
-	 75cE9rEFwmpr9fkPVpr7ZhZSD3Q6MIOR4WtbBjAHKWHLFBm3USxJkNLoI5f/4mFIlv
-	 gnw9BHxpxqOag==
+	s=k20201202; t=1778595569;
+	bh=M00Vvi1LUzRwd8T6JtZ1syr05U3z/HiDIk8TB5gIWAE=;
+	h=From:To:Cc:Subject:Date:From;
+	b=puY7xDYRZtimw9zSSqX+GEf18F7yXaG1Ctwt3iiWgJSvob8jGqNGr9JvGaHZs69fb
+	 J7aAOfWXheds+xesNQcf0hKWxe+8gdHBcPJGb4PxEQX1ygt7m3/oEOQBmMIwdy9UW2
+	 AqIPZxKHN4mfWHwFDSh2bwXiIvqFfcQ0WqS3F70ay3gD06rbw5fSCiAW7Uu9w8y/y1
+	 xp9LjAWuADKdssg2ZVSdJzEbbsYFIQ/djJil3RDxlFDieZqrTJyytw3MM1qZF4CkL3
+	 RWbuanCEK1B8CuGyr/q8F7AOGuYUT0gRJuJWGT3fyQ0S9eMBt/eNAS/0YwmoUgLdTQ
+	 RMPW6PEMDLFvA==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Ilpo =?ISO-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>
 Cc: Hans de Goede <hansg@kernel.org>, LKML <linux-kernel@vger.kernel.org>,
@@ -40,13 +39,11 @@ Cc: Hans de Goede <hansg@kernel.org>, LKML <linux-kernel@vger.kernel.org>,
  Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
  platform-driver-x86@vger.kernel.org
 Subject:
- [PATCH v2 01/16] platform/x86: acer-wireless: Check ACPI_COMPANION() against
- NULL
-Date: Tue, 12 May 2026 16:03:21 +0200
-Message-ID: <4746824.LvFx2qVVIh@rafael.j.wysocki>
+ [PATCH v2 00/16] platform/x86: Check ACPI_COMPANION() against NULL during
+ probe
+Date: Tue, 12 May 2026 16:01:43 +0200
+Message-ID: <12904885.O9o76ZdvQC@rafael.j.wysocki>
 Organization: Linux Kernel Development
-In-Reply-To: <12904885.O9o76ZdvQC@rafael.j.wysocki>
-References: <12904885.O9o76ZdvQC@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -56,55 +53,24 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="UTF-8"
 
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Hi All,
+
+This series replaces
+
+https://lore.kernel.org/linux-acpi/5990022.DvuYhMxLoT@rafael.j.wysocki/
+
+and, as a whole, it makes exactly the same code changes.
 
 Every platform driver can be forced to match a device that doesn't match
 its list of device IDs because of device_match_driver_override(), so
 platform drivers that rely on the existence of a device's ACPI companion
 object need to verify its presence.
 
-Accordingly, add a requisite ACPI_COMPANION() check against NULL to the
-platform/x86 acer-wireless driver.
+Accordingly, requisite ACPI_COMPANION() or ACPI_HANDLE() checks against NULL
+are added to multiple platform/x86 drivers that have been converted to platform
+drivers from ACPI drivers recently.
 
-Fixes: f7e648027d7e ("platform/x86: acer-wireless: Convert ACPI driver to a platform one")
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/platform/x86/acer-wireless.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/platform/x86/acer-wireless.c b/drivers/platform/x86/acer-wireless.c
-index f464b13a58af..fae8e5ad0f97 100644
---- a/drivers/platform/x86/acer-wireless.c
-+++ b/drivers/platform/x86/acer-wireless.c
-@@ -37,9 +37,14 @@ static void acer_wireless_notify(acpi_handle handle, u32 event, void *data)
- 
- static int acer_wireless_probe(struct platform_device *pdev)
- {
-+	struct acpi_device *adev;
- 	struct input_dev *idev;
- 	int ret;
- 
-+	adev = ACPI_COMPANION(&pdev->dev);
-+	if (!adev)
-+		return -ENODEV;
-+
- 	idev = devm_input_allocate_device(&pdev->dev);
- 	if (!idev)
- 		return -ENOMEM;
-@@ -57,8 +62,7 @@ static int acer_wireless_probe(struct platform_device *pdev)
- 	if (ret)
- 		return ret;
- 
--	return acpi_dev_install_notify_handler(ACPI_COMPANION(&pdev->dev),
--					       ACPI_DEVICE_NOTIFY,
-+	return acpi_dev_install_notify_handler(adev, ACPI_DEVICE_NOTIFY,
- 					       acer_wireless_notify,
- 					       &pdev->dev);
- }
--- 
-2.51.0
-
+Thanks!
 
 
 
