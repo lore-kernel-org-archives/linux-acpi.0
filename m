@@ -1,76 +1,75 @@
-Received: from mail-dl1-f41.google.com (mail-dl1-f41.google.com [74.125.82.41])
+Received: from mail-dy1-f170.google.com (mail-dy1-f170.google.com [74.125.82.170])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 957B125B080
-	for <linux-acpi@vger.kernel.org>; Tue, 12 May 2026 18:31:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.41
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B7A325B09E
+	for <linux-acpi@vger.kernel.org>; Tue, 12 May 2026 18:32:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.170
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778610674; cv=none; b=laTRnWGkDHARMaT6Wj32VB3XuRzURjLrA6V7amXoN6JpBUQOofan290qIH3pO458dxqus2lgunqVxX/HF4OEHkPvANCpbTrSt6TwcYPPYP8pt8ia0CuoRai55rw5+WFCwSckFAp4AV63/sz2OvISeSvmgoPEoYhQx+22fi7nfiw=
+	t=1778610764; cv=none; b=Cs/BkUVDPQGDRAh0TEYwIzeN7D3xt8FyyIsbQidvihCNYlrnKqp7JpQGg2CtOBN+bN+b2gSvR+32r0nTi5jpUh8dhvM7TNCAqEzaFzFb3dohZMaQpNmNZZYyT1VUgw9tUW4bESw0iqzMwPT324X6ECt4skV6T2sJWeKYGrOaZi0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778610674; c=relaxed/simple;
-	bh=5zuVOAfpBrN8nUV5rRh7DAd01oonyphvre94jBBXL/I=;
+	s=arc-20240116; t=1778610764; c=relaxed/simple;
+	bh=TpQV7EfOpsbYJ6QldzBf1Aw+Bi4z2zhrb+GGulcJC0s=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=otKfLfTwhLlPX3FkMpEZT+68WQObhuV61JvG1YzcUFbyksabDtLxnWHY/lrZPezAmoH6hm1qxhbhDqi6K1Hofn9vQqvlRzhvIfTBmd/g+nrbl+dhpCyvr1/K7Ar9iGP+B4WtGtd9wWxEgSPhMLXgIjSlNZeg6Nrb9yo8oTymEDE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=roeck-us.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=aiXVSWL8; arc=none smtp.client-ip=74.125.82.41
+	 Content-Type:Content-Disposition:In-Reply-To; b=qxwLhIjkcRNXMLwNWtWZxdYNAWu0XnN2gRSevCsc7aAGHbZFH/zfbX6D4lF6iMgSjgviKixgvXyuPYri9PA6uiIaXPfLBQZYkP51sA6hD+eWPuGqBrkkGNGH94RSaHw3QRkzXlpr+YjA3iG4COzypNSHJOw3Ve82BA5Me6jhHjc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=roeck-us.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=AtPNbU5c; arc=none smtp.client-ip=74.125.82.170
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=roeck-us.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="aiXVSWL8"
-Received: by mail-dl1-f41.google.com with SMTP id a92af1059eb24-1335cb20406so1921108c88.0
-        for <linux-acpi@vger.kernel.org>; Tue, 12 May 2026 11:31:13 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="AtPNbU5c"
+Received: by mail-dy1-f170.google.com with SMTP id 5a478bee46e88-2ecf9e398f4so1958990eec.1
+        for <linux-acpi@vger.kernel.org>; Tue, 12 May 2026 11:32:43 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1778610673; x=1779215473; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1778610762; x=1779215562; darn=vger.kernel.org;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:sender:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=Lbpfqp9eZFaWLOn99BFCizyb8FixFL821MVG82h4o7Q=;
-        b=aiXVSWL8VSyEVUm0Zb84PvP/T+73LDnEJkhuQyjGUdgsaK244mKXlQ2TDsW6hibw+W
-         c1pPyokadxQlkWsRuS/Wf1RWvJND5EWWfLUZWaeLq4eSq3+twsOh2oKEoKSp06YNv2t3
-         L81Hvs09Uo6sKonod6T5FyBsRa6vDWEOGITHciCa4zLfNMj4RdGKdF7KYMAtjf0kEUVK
-         u6lJg2JhbWnNPz4+Y6abFXfIk8EO2kPJjVi5iE0zImsZNGLEXqJmB2cga2RJFRedISGb
-         /ail0EEESsuMbsCh0UO0CzsUdCdsLG+n3jeEQD5VUBcaEcRrge43tdo1TDyj0CvuuXBe
-         1Xfw==
+        bh=ja6bKCcVCVMtzZDOZ+vitgR4xNzTf+japdav6A1ckx4=;
+        b=AtPNbU5cQIFElvPpOV+3AjXxGa6KKDxF4gg54N5qtJFxx+NBiS0p5jtt/a6Z6Kax4S
+         Clz7A1bBVncTpWtSUBi9x7Nr2mqLQ9TUQRBRuAp6ovc5x7jm6XqW9t0XOebQ0kVB/vmq
+         lBr+ifXFou8204pYNFi1olZ63fmEOMeUfsLHbMz092t703G9XmV3yo3jVL7akVqXrFW5
+         hVBtDS+kyO8YK/fMNLrMRfU2A/7fsoAJNuMkkftlwELr54+vn6/sk8IU3zhQe2yogSSN
+         76HcGOQXfhBGI7d4IMqKBnC/ZinkqEoy8zgQAQ7imvnpJNXgV2n85oz16hYRs5MLOt16
+         oRPQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778610673; x=1779215473;
+        d=1e100.net; s=20251104; t=1778610762; x=1779215562;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:sender:x-gm-gg:x-gm-message-state:from:to
          :cc:subject:date:message-id:reply-to;
-        bh=Lbpfqp9eZFaWLOn99BFCizyb8FixFL821MVG82h4o7Q=;
-        b=FQkf7SQRuEMS9Ter2C3DtaTlIJu+IhghizVdGxJIz41mQ87B6T+8jX3v3NauPJNoI0
-         o4hJ+C4bMdxF8nPsaxt2oF9NefA6g5Z5iU9PHTCZGpqpsELwaIJxzX/Msw9idmE0JNem
-         HGWugVhaVlgeC+eRgFpsu9Qlq648GgjKAY3ZkcFs14vouILZwP9LFKfX/1xNp6W1V9nS
-         w9q9UjujW6WV+eMKM3QwZBzPJHqKwzo/lC/H/w3IXSVX3TBX7bB39M02wQDiuIG29/a3
-         Ld7g61Nnn2fOSYg61NAFGZy+SfQjipaV8I6EnQMp2UJCctTblJCUj549NrN2cKZjDLmC
-         LxZw==
-X-Forwarded-Encrypted: i=1; AFNElJ9eWgVXFIqLd58FdU2DSg/pwusJxt5rQRcfDjU8oglANoDeRN7tVjweYi6x6un6mJG4CZ1MntaCapn8@vger.kernel.org
-X-Gm-Message-State: AOJu0YyMBuHvGLlO4/y32awGQt//HyvXn8fo22VNVsz7C94fmkP1PB6H
-	M+9UqB2ieSNGnG3IfQLdw4x1RvkFiXzES4tyLitZSVo3Ic4Z+rbcR49n
-X-Gm-Gg: Acq92OHXHa6DE7Z2dVGa57Mwdypo66OYgCZCBZWbYVrPfuTI1trt0ak7VT5SvslEVcA
-	IouJN+CmrE9EZDXFn1ORtDqn/SSCx6hBrxjhhFgrzo7UacDvndfvKu3z4sclNRu2v3ERz4NNA0D
-	IAjdWN7+eDQ8qVQGnxnkqu6NQbdSWGDGoKsfZ+7NN/IMa3zmVI8IDBKfusUbohtLlHK+JrMmQqS
-	KPV7C3XeksIDI4tmY79RmyDT1fPJK1BNpmrYevp4QLc9+GylWshoauEit/XOiylc9QZGE622aIE
-	daGbav+NCC2W2aWGHQi8vBpYHCpJL/Yr/K/6Bhu2Mt7ZVE01kQmKfNY1qr6UTwnd1i0UgKyqfBR
-	rgK4mp5LddNKBOBdjTiqpusvgbyH+poHHTzaRXZh8VWCHqyqatVpjs5pf6bKx3q6FhGZ0kk6wIH
-	yyvbeQOmGTBuQCJhYToSpcfuGQRD4F9iwCXeic
-X-Received: by 2002:a05:7022:1e04:b0:12d:f7a6:e641 with SMTP id a92af1059eb24-13436990c90mr60514c88.25.1778610672620;
-        Tue, 12 May 2026 11:31:12 -0700 (PDT)
+        bh=ja6bKCcVCVMtzZDOZ+vitgR4xNzTf+japdav6A1ckx4=;
+        b=XcmhQs3wHiPbBvkNMxehbReAPk8E4oASfKB8z8m19Q+6QNGgo6CdqjO6JUv5PlNBq6
+         5tU16NkLV6Uu8oi0gPVUkpoFw2VJFQ04CKOcsHb0qldcllKd3Zuu3yepRGb4r/zOBQHC
+         47RIa8uM6/jYdZXki3i21yHw123kUgQUDSfHTrJvXc6DrCtpLfo/+WyeaW+bfufl9XnI
+         sJOosl/EXzZejRmJ+A6iOK1Lwpvyalfz81ZVbwZEBW6C6EemEV8nIyPlHOEKEbqNAyIh
+         F66Pua+Ue8IQExG3QD+aQzkELGUTVkErvB/Cc3XQ3uzRVr14Lw7inYiOOtxp2+YdYg29
+         ud2Q==
+X-Forwarded-Encrypted: i=1; AFNElJ/lgJ8El6ty8S/KVFoDtV04RCp0STve1v6g0e0emao/3CvRAokWOivxBpcgNFr1Y3iDNoG793uQdiCK@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxe/TALGqnwtMfB8bInZydZWxFgHtRniUGhB+Xeqe05emCwCW4X
+	SLajPwI0csH2J6qxSy1deuxJs2PdZJ7TSOuUClhRoUuNlv2LRSjUr9fD
+X-Gm-Gg: Acq92OF2ZJrNM+gVBD/jKY/e3i7RY+fXoXX48W+nnqqZhphLayuXUsLNY4Fz7TVK+bq
+	5QGwFuIZntD4xnQ+LdxjXmavivyb9mf/h9HhsEq4i2kr9FlpwU/1cxWUTpD8JyDh6z2qH8dzemI
+	R7WZjGX1Pa1YpRJZ9aOZASepd5o40CNBPVCr/z6qkg1J7oGcrH/ITrWlo2v7coeGUmyGnIOSQgU
+	tJmuOTC7+a+esP2FZhZM28a20zlaCVLvr+tAme3RPR2hEOP9SVu5sk3ewco9Vt8mpqPR8VAHx1t
+	CeZqYu5CaYQ7KoeYSwQK/rlwDLMe4vsNiCTQC1wtpO6P5COwN57yy5tcfz+Gw3wGTYW1Ckh5o+A
+	gYr6h1fn4HrCJQLOLgrNaQsZ9Bj0G13strqwm1bWBjWBI6NV4bRrge/fR7o37bF5D+/dKAleQbq
+	nAUSTHIQeHM5tLVpIdMoloN+LcUgaNZOnzMpw4
+X-Received: by 2002:a05:693c:290d:b0:2d8:df01:d9f7 with SMTP id 5a478bee46e88-30117a7ad80mr157863eec.15.1778610762401;
+        Tue, 12 May 2026 11:32:42 -0700 (PDT)
 Received: from server.roeck-us.net ([2600:1700:e321:62f0:da43:aeff:fecc:bfd5])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-13278765984sm19827539c88.14.2026.05.12.11.31.11
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2f888c469b6sm19080122eec.24.2026.05.12.11.32.41
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 12 May 2026 11:31:12 -0700 (PDT)
+        Tue, 12 May 2026 11:32:41 -0700 (PDT)
 Sender: Guenter Roeck <groeck7@gmail.com>
-Date: Tue, 12 May 2026 11:31:11 -0700
+Date: Tue, 12 May 2026 11:32:41 -0700
 From: Guenter Roeck <linux@roeck-us.net>
 To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Wim Van Sebroeck <wim@linux-watchdog.org>,
-	linux-watchdog@vger.kernel.org,
+Cc: linux-hwmon@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
 	Linux ACPI <linux-acpi@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v1] watchdog: ni903x_wdt: Check ACPI_COMPANION() against
- NULL
-Message-ID: <a61ad93f-bfde-4b53-9681-83dc1a895943@roeck-us.net>
-References: <2280455.irdbgypaU6@rafael.j.wysocki>
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Linux PM <linux-pm@vger.kernel.org>
+Subject: Re: [PATCH v1] hwmon: (acpi_power_meter) Check ACPI_COMPANION()
+ against NULL
+Message-ID: <c7b6cd59-7ef8-467a-a5f0-b1882059a8ea@roeck-us.net>
+References: <5068745.GXAFRqVoOG@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -79,9 +78,9 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <2280455.irdbgypaU6@rafael.j.wysocki>
+In-Reply-To: <5068745.GXAFRqVoOG@rafael.j.wysocki>
 
-On Tue, May 12, 2026 at 06:22:57PM +0200, Rafael J. Wysocki wrote:
+On Mon, May 11, 2026 at 09:54:51PM +0200, Rafael J. Wysocki wrote:
 > From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 > 
 > Every platform driver can be forced to match a device that doesn't match
@@ -90,11 +89,10 @@ On Tue, May 12, 2026 at 06:22:57PM +0200, Rafael J. Wysocki wrote:
 > object need to verify its presence.
 > 
 > Accordingly, add a requisite ACPI_COMPANION() check against NULL to the
-> ni903x_wdt watchdog driver.
+> acpi_power_meter hwmon driver.
 > 
-> Fixes: d37ec2fbab55 ("watchdog: ni903x_wdt: Convert to a platform driver")
+> Fixes: afc6c4aedea5 ("hwmon: (acpi_power_meter) Convert ACPI driver to a platform one")
 > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
 Applied.
 
