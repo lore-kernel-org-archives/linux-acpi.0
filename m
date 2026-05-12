@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D94483AFAF4;
-	Tue, 12 May 2026 14:18:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 995A13B2D3D;
+	Tue, 12 May 2026 14:18:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778595526; cv=none; b=Xv7Jx3qmm/3vv+ASvhFsBHisNGgcXg9AJYou9w8R5rEYlXzC/+uYoRsEwJF6dG+Qjx6vwoOst2yPRmHvrJMUPlpTE3oOb0ARzlUQx1FF3ss5VzCL2qFdOj+9YIQXwzW8oYwI/8P62twM8HZPtIIcoV/K6AqTbm4ILcXwzzrC/2Y=
+	t=1778595531; cv=none; b=K/YAZ9tac9B3ndrUF0oMkQKoT8pszSpxVR+OvBTC1BmTrJRttBtD+mU63EQeMRwK9PvrNcL2pvPx0ch0oCl96ta2YysieiDk5O7dDtp9ikhLqZNsABEHdmkF6dMNlnSGBuK5kul3qnHZqi1X9gHWe2OTaAPYyjfib0Cq4SegpjY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778595526; c=relaxed/simple;
-	bh=uf9DS2HbQDByZPHjb+Xk+7pcu5vyx78kmtGEQDSm32A=;
+	s=arc-20240116; t=1778595531; c=relaxed/simple;
+	bh=x8uV5tyGdsWbhx4JIoAlLo/7EV+PydOiiuVxwV29HeE=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=fJqgCLQlsVI9cKcAOunJSsZ3M2fnbIVhoPfB0p9ta4GhQ0xFiPwdReJaQv1XwyD2sHGggH2QmTlHLvsNeC8liCJxzRjKiq0bt2La6NGD3FAPwvhx3efBfpzLcVxrrUolgnePd5S0adImtjmUBh6A+yDUk8OMUdxZ2KaJ6hn8g5Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bUe7oBcC; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=I72bTlQj0wudEOIqXaBk6BEKsw3IE1PBYuc31sucjXLWsac6dID6IwWESSB+fFr6b08gt6/WZJu2vTEQdsHGYdY78UZpqjGIsAPNKIEYZksW+mX6mCz/SWWF3LJVbagyvd3I6iTnlevW1ljpl3W1mQPfOjXnCPijWWsZDIE9k0c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DvCdlrSb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bUe7oBcC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB6DFC2BCF5;
-	Tue, 12 May 2026 14:18:43 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DvCdlrSb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A182C2BCF5;
+	Tue, 12 May 2026 14:18:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778595526;
-	bh=uf9DS2HbQDByZPHjb+Xk+7pcu5vyx78kmtGEQDSm32A=;
+	s=k20201202; t=1778595531;
+	bh=x8uV5tyGdsWbhx4JIoAlLo/7EV+PydOiiuVxwV29HeE=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=bUe7oBcC+MCJ6z2L1Nrl20tQp7FeSkZAaJYcuTQUiHwYqlPOY0673eou4ZRM2uvsC
-	 dpw/evtPMXY8khjf1VwHiybq4im9MGEpqUKUV0Y89fO7SLWVzrOKTSSUj0veXeD12o
-	 Ipx8B+xUnegzojE7N81txdZwEp8LfQemyP5RZ6Uro9Oqzw7mgl2qQ28BPwu7SVjbG9
-	 z+iMfIQBDQJOKc/aYBVfKL6cr3ANmEhECigerYwH43ujgMrwNlp/P+FCeJDbPmCHRN
-	 e+JJyqIdHSR9PcBoWwgwIHviTHmVxqMl+Jkj6MPk6OM8azk89BRmOATCKFQ/fXNJHg
-	 1IyjG9gY7IqzQ==
+	b=DvCdlrSbO1Bzff/aaRErnQ9zhQAHTiZHtA5kzHF5EDqvuJLDQ+QCv7JhMLeqfqt/q
+	 gtTiZuciWC6LZI5ruojEXSe63ADK4+iIYG+kgGdf9xysQIR30mAO15IFRrErr3ie9d
+	 zwd8hdjrufsoxEqq0+egQW6dSqxCQMQOTUCsza4mfWOTJruLE7dzaLrpdNVTv28qHr
+	 yqFMtPKpG7/7k8gVqjpr4wYOIvLmbt+7YYL8Ld4dsRkp9ao1IO1qLsgWsMrHrea3VL
+	 zDFeO10zn+E9oXJKFpU7vXCCq1iI9FVSjbtmKgtZWH6Jm9KdlQFc0zV7hh/DYPsOs8
+	 oaZv+VT13BZeg==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Ilpo =?ISO-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>
 Cc: Hans de Goede <hansg@kernel.org>, LKML <linux-kernel@vger.kernel.org>,
@@ -40,9 +40,10 @@ Cc: Hans de Goede <hansg@kernel.org>, LKML <linux-kernel@vger.kernel.org>,
  Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
  platform-driver-x86@vger.kernel.org
 Subject:
- [PATCH v2 09/16] platform/x86: lg-laptop: Check ACPI_COMPANION() against NULL
-Date: Tue, 12 May 2026 16:12:27 +0200
-Message-ID: <3706551.iIbC2pHGDl@rafael.j.wysocki>
+ [PATCH v2 08/16] platform/x86: intel/smartconnect: Check ACPI_HANDLE()
+ against NULL
+Date: Tue, 12 May 2026 16:11:43 +0200
+Message-ID: <7956676.EvYhyI6sBW@rafael.j.wysocki>
 Organization: Linux Kernel Development
 In-Reply-To: <12904885.O9o76ZdvQC@rafael.j.wysocki>
 References: <12904885.O9o76ZdvQC@rafael.j.wysocki>
@@ -62,47 +63,36 @@ its list of device IDs because of device_match_driver_override(), so
 platform drivers that rely on the existence of a device's ACPI companion
 object need to verify its presence.
 
-Accordingly, add a requisite ACPI_COMPANION() check against NULL to the
-platform/x86 lg-laptop driver.
+Accordingly, add a requisite ACPI_HANDLE() check against NULL to the
+platform/x86 intel/smartconnect driver.
 
-Fixes: 2d9cb20610f7 ("platform/x86: lg-laptop: Convert ACPI driver to a platform one")
+Fixes: 8a44bd3ffdb2 ("platform/x86: intel/smartconnect: Convert ACPI driver to a platform one")
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/platform/x86/lg-laptop.c | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ drivers/platform/x86/intel/smartconnect.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/platform/x86/lg-laptop.c b/drivers/platform/x86/lg-laptop.c
-index 9681412d694b..a8f2f465ef3f 100644
---- a/drivers/platform/x86/lg-laptop.c
-+++ b/drivers/platform/x86/lg-laptop.c
-@@ -761,12 +761,11 @@ static void lg_laptop_remove_address_space_handler(void *data)
+diff --git a/drivers/platform/x86/intel/smartconnect.c b/drivers/platform/x86/intel/smartconnect.c
+index 4d866b6366d6..71e91ac60e5d 100644
+--- a/drivers/platform/x86/intel/smartconnect.c
++++ b/drivers/platform/x86/intel/smartconnect.c
+@@ -12,10 +12,14 @@ MODULE_LICENSE("GPL");
  
- static int acpi_probe(struct platform_device *pdev)
+ static int smartconnect_acpi_probe(struct platform_device *pdev)
  {
--	struct acpi_device *device = ACPI_COMPANION(&pdev->dev);
- 	struct platform_device_info pdev_info = {
--		.fwnode = acpi_fwnode_handle(device),
- 		.name = PLATFORM_NAME,
- 		.id = PLATFORM_DEVID_NONE,
- 	};
-+	struct acpi_device *device;
+-	acpi_handle handle = ACPI_HANDLE(&pdev->dev);
+ 	unsigned long long value;
++	acpi_handle handle;
  	acpi_status status;
- 	int ret;
- 	const char *product;
-@@ -775,6 +774,12 @@ static int acpi_probe(struct platform_device *pdev)
- 	if (pf_device)
- 		return 0;
  
-+	device = ACPI_COMPANION(&pdev->dev);
-+	if (!device)
++	handle = ACPI_HANDLE(&pdev->dev);
++	if (!handle)
 +		return -ENODEV;
 +
-+	pdev_info.fwnode = acpi_fwnode_handle(device),
-+
- 	status = acpi_install_address_space_handler(device->handle, LG_ADDRESS_SPACE_ID,
- 						    &lg_laptop_address_space_handler,
- 						    NULL, &pdev->dev);
+ 	status = acpi_evaluate_integer(handle, "GAOS", NULL, &value);
+ 	if (ACPI_FAILURE(status))
+ 		return -EINVAL;
 -- 
 2.51.0
 
