@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1796A3A7D78;
-	Tue, 12 May 2026 14:18:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8CC653AFB06;
+	Tue, 12 May 2026 14:18:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778595508; cv=none; b=UWVe6DIvsRH0ICJWcLBn9CN+hwfkEMAwzMFs7y774BK83q/q3xuG8RU+Tr81DjmFzrsD496zLedFlCsXzuuGRtKXparYDShLURuexxLbqbm/wfpHg9llKKzX6jFTnhX1U9uMwPhUpBCwI6OEOOiKGjSmDBLkPy+JAsZPATJsL60=
+	t=1778595512; cv=none; b=PrViZHG5eTqe1rdqPxe5sRgz9NygdZcqLPSco+Blr47sYabp+b7PmLl87Fu9bcddkRY2x8l+w3z717TA+e/bC1CUfN/376opjgphZO3cPT8mmHwVd3KkfQHmWP/L9WJek671Z6Wp1Xi0szFaseuyPm4CzypRMusQL4zVFMmbtvw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778595508; c=relaxed/simple;
-	bh=cXVgoJYIJNGuVpl7BTWmLi4F4WKx3XAXg5bsGo4UBJA=;
+	s=arc-20240116; t=1778595512; c=relaxed/simple;
+	bh=//c9zye5TzctZyA2/XixKbu53QHkacJyoz+2yhZdPB4=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=uRs7FvJKGb0ik+kvUyaB2xWOcFzj88gmfSEerbSCWCwZupgJmD+Nrmki6yw74VDfM7iftO0U85LbKU1vh7YNHrx9RUcXuiNUOtcCtN04wrRcaGGgMZ5vN1s2vhKyQKmsdH/8osFKnHSepYtQNdJBFv3BbffIh24+sv3CShsl5qo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hRLJDQXn; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=sgHp4P1XfztCA6ivmZTL6uh4df1jIKooFYR443XF+wrYotyYlukZGhqgBWGFBMcTxvvwZQPzd6CqY48PaifO0ST2nwLZp0/yz+TNbHHA+DM2U8mALmG/NQnlaGflQZU5AXWOlMyDlRE57CshjJXTJppz8nBg1q8QeqhES2h05t8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DB6lE0Q9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hRLJDQXn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D12B7C2BCF5;
-	Tue, 12 May 2026 14:18:24 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DB6lE0Q9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97C40C2BCF6;
+	Tue, 12 May 2026 14:18:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778595507;
-	bh=cXVgoJYIJNGuVpl7BTWmLi4F4WKx3XAXg5bsGo4UBJA=;
+	s=k20201202; t=1778595512;
+	bh=//c9zye5TzctZyA2/XixKbu53QHkacJyoz+2yhZdPB4=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=hRLJDQXngK2AdcinpLQxbT5TMgv2ilbbppdvgTItypqaRm9WFEi/w/PsbK2nVfbNK
-	 cUDwdt9+uqZ8BYB81j4WLhpwDt8Znu2eTXjZiP8Ebgfb6pV+gy/eU2CISdeYY6DWQi
-	 89gmqkaAs2rg3bDCajPs6n4jp8s9sxMl/cUNKn0M9qI6FTi4Xy381KBWpI4UuAP/1F
-	 Iw2J89n15NihtP2KDug2rnsEkfvzMCocWf9W6nm4h8tf4SBu7uZkzRRIFNxX45abIr
-	 28XkZP/ZyHCyBuFhItP2nnTIu9sf0nwy6AaWKxCi+rI8XGxXHDM1pXUX01lMgkKhP+
-	 QIoNqUoOZzdKA==
+	b=DB6lE0Q9BXNN7LiO2N2JUADdfueVocFD2iAryNiIQvMAwPym64p36Myuhl9VVXgr3
+	 Q6Sv5O7Hy3bdmrGg5ULp/btkZ/oihbyRMZNu1BkSMW5Kruj+RY/HgLUUID2KlBaLW4
+	 TkvoY97avF4phdsGNL0MjJV3yB2YBeP+PS9MeIMloLPjpwy2k0wI0+LdDBFcDZoGsi
+	 dv5RQVxInF01fKlkNMq0Dz7Vr6Ukvmor4nE6OqBFFiwmMmlSAUzKdBUl+FACNM4ABw
+	 3M/hxI6yl4S2gOjtYKEfTiwGJ8sF873JcgPxS5ZDKaMxHrwu40qVtdB97bPkUqRgXy
+	 F1JuIqgZwcfIQ==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Ilpo =?ISO-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>
 Cc: Hans de Goede <hansg@kernel.org>, LKML <linux-kernel@vger.kernel.org>,
@@ -40,10 +40,9 @@ Cc: Hans de Goede <hansg@kernel.org>, LKML <linux-kernel@vger.kernel.org>,
  Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
  platform-driver-x86@vger.kernel.org
 Subject:
- [PATCH v2 13/16] platform/x86: toshiba_acpi: Check ACPI_COMPANION() against
- NULL
-Date: Tue, 12 May 2026 16:15:31 +0200
-Message-ID: <1973170.CQOukoFCf9@rafael.j.wysocki>
+ [PATCH v2 12/16] platform/x86: system76: Check ACPI_COMPANION() against NULL
+Date: Tue, 12 May 2026 16:14:43 +0200
+Message-ID: <2072699.usQuhbGJ8B@rafael.j.wysocki>
 Organization: Linux Kernel Development
 In-Reply-To: <12904885.O9o76ZdvQC@rafael.j.wysocki>
 References: <12904885.O9o76ZdvQC@rafael.j.wysocki>
@@ -64,39 +63,35 @@ platform drivers that rely on the existence of a device's ACPI companion
 object need to verify its presence.
 
 Accordingly, add a requisite ACPI_COMPANION() check against NULL to the
-platform/x86 toshiba_acpi driver.
+platform/x86 system76 driver.
 
-Fixes: 246d6cefe525 ("platform/x86: toshiba_acpi: Convert ACPI driver to a platform one")
+Fixes: 80b8f68b94ab ("platform/x86: system76: Convert ACPI driver to a platform one")
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/platform/x86/toshiba_acpi.c | 6 +++++-
+ drivers/platform/x86/system76_acpi.c | 6 +++++-
  1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/platform/x86/toshiba_acpi.c b/drivers/platform/x86/toshiba_acpi.c
-index 35d899c01740..7cecb3a70b9c 100644
---- a/drivers/platform/x86/toshiba_acpi.c
-+++ b/drivers/platform/x86/toshiba_acpi.c
-@@ -3374,7 +3374,7 @@ static const struct dmi_system_id toshiba_dmi_quirks[] __initconst = {
- 
- static int toshiba_acpi_probe(struct platform_device *pdev)
+diff --git a/drivers/platform/x86/system76_acpi.c b/drivers/platform/x86/system76_acpi.c
+index 693cbb461382..dd7b1b07c316 100644
+--- a/drivers/platform/x86/system76_acpi.c
++++ b/drivers/platform/x86/system76_acpi.c
+@@ -674,10 +674,14 @@ static void system76_notify(acpi_handle handle, u32 event, void *context)
+ // Probe a System76 platform device
+ static int system76_probe(struct platform_device *pdev)
  {
 -	struct acpi_device *acpi_dev = ACPI_COMPANION(&pdev->dev);
 +	struct acpi_device *acpi_dev;
- 	struct toshiba_acpi_dev *dev;
- 	const char *hci_method;
- 	u32 dummy;
-@@ -3383,6 +3383,10 @@ static int toshiba_acpi_probe(struct platform_device *pdev)
- 	if (toshiba_acpi)
- 		return -EBUSY;
+ 	struct system76_data *data;
+ 	int err;
  
 +	acpi_dev = ACPI_COMPANION(&pdev->dev);
 +	if (!acpi_dev)
 +		return -ENODEV;
 +
- 	pr_info("Toshiba Laptop ACPI Extras version %s\n",
- 	       TOSHIBA_ACPI_VERSION);
- 
+ 	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
+ 	if (!data)
+ 		return -ENOMEM;
 -- 
 2.51.0
 
