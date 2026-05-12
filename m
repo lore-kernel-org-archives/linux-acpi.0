@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FACE3ABD91;
-	Tue, 12 May 2026 14:18:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16AAF3AFB01;
+	Tue, 12 May 2026 14:18:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778595517; cv=none; b=RMpHXTOJINpruNUyUPFUDp2Miz6Xw1oj7rcxiwi6/tFfy7W0UE/4qb380LzlmZ4HdW4FSOnKZ7Jop0nugiqcCewB6QFrac7KP9ZYqrh4VRlnkaJHsP3t8USKRUTYvWiU26qWHUFEVj2h6XJLUCQ/7YyFK1TkbkIlPR10TybWioo=
+	t=1778595522; cv=none; b=MiIxvXCcrd3SFJucmJUC+XULHM9jOiofIk7fxlEVLS+Xw9eO9CR6M4jDdbdw05EXtgUUESYAQXbno72vygYj1I5rMbQU0UNaF27wrkqvoms0Sdv36XfRUHETYMSxPJLuzHtr4+VF5zB0XmGZSSlv7u7GyZgdz1O/O5GEu4uDw5U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778595517; c=relaxed/simple;
-	bh=t7PNP21lIAiFfq+kGKW8cuDJZtoV4Hw8IcS+VciYa8Q=;
+	s=arc-20240116; t=1778595522; c=relaxed/simple;
+	bh=U7k6IrQDCHj0S1fRjuWAWaxTgzck0ioVtXZf9Mz6Vqg=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=Q2v++e5nyq1sOG0pSv9DW3qz9/a6H0N+jBwePd4tIjNH/QYmiIyRFj1euG0LIPLBXCLFTf6cQS1kzpz3K6cVh/iSV5NI+yE3nX/4Vgkq7jkDnerYYtyxqW3aBGSYlS7sB75+JWspVe6SzvwUZItsoHwDpKCmzJt7BMgxdD5V3/Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bA9xpgHk; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=vEy3TjnzypnYRlgZuNtVwJckQ5DXA5Yp1UjD41VkiIsYyLtbIsFVeowyw92aMNP6QRAXlq5ZQ/FLtEPcCv9lruFyML+rpUqaU3t6qb9QR7LjGwQStbDoEuXclqWbXeeoksKF32jpVvkxcElTizljQOgnBwF8mWrL/ZES9BMMHTA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eVf77GD6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bA9xpgHk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 534A8C2BCF7;
-	Tue, 12 May 2026 14:18:34 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eVf77GD6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17E4BC2BCB0;
+	Tue, 12 May 2026 14:18:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778595517;
-	bh=t7PNP21lIAiFfq+kGKW8cuDJZtoV4Hw8IcS+VciYa8Q=;
+	s=k20201202; t=1778595521;
+	bh=U7k6IrQDCHj0S1fRjuWAWaxTgzck0ioVtXZf9Mz6Vqg=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=bA9xpgHk3rTtZstWTYDvmiG1rjwhycuXrGwzCyEIvAQZ9pDzqr36E13WRTE1wCGPB
-	 5V06T8JAIgu0Qz+hDTPKmeNjInlhVZvH9QTcx75Y+YL0FQFd/VJJ9bti6oIxoUCq1f
-	 SF9IDGljO5/ASoqd2eRdIy+CUVczifspJvzbBCebpVkKLXu+ySEyBWG+Vc0RCQeBih
-	 71h+0H+OeyW6/cIaWgkuvmNb1bfjc0/wSDBHFVKNyrspMjD9qg8wsb9FVxnIvWq37n
-	 O96pKk9Yg9bhcdX1MeomcKWM3fcqxNq3C08EuLq9tEVHMA7tVhQs4KBAmeOkhqOgMz
-	 k5o/ZIS0VrKCQ==
+	b=eVf77GD66k4xOvkSJgeHF5SKxoyeZ2ZIZLjQfmeOupn4QfhbfLAv3PeLUlk5VL3cW
+	 QoBuBu9uV0exqsUMuMJd6a5jCXDlWrOS0WzO23DoyAjsxIKi0xjIQRdh5gUhTj3bdv
+	 tp2SNeBALLnbcfwdvfakQ46Eau6FCNfkSxAnD+Bj5Zb5uACkRp9dH4M+PAk9Ln96Xx
+	 2i2UOXZsUvrjjlsRwg3WHfvokYYcIFrD7kUPT4PSRiQ0kXZu5Bq/Vgxv6rLjW2vBHZ
+	 NKMhrWg6a3URcpOB5a82MoeaAZxNzQAM0u2khz28e1X/ZmkIn+6MyB/O1/qDJbGxVk
+	 0M2A8exQEfx2Q==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Ilpo =?ISO-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>
 Cc: Hans de Goede <hansg@kernel.org>, LKML <linux-kernel@vger.kernel.org>,
@@ -40,10 +40,10 @@ Cc: Hans de Goede <hansg@kernel.org>, LKML <linux-kernel@vger.kernel.org>,
  Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
  platform-driver-x86@vger.kernel.org
 Subject:
- [PATCH v2 11/16] platform/x86: sony-laptop: Check ACPI_COMPANION() against
- NULL
-Date: Tue, 12 May 2026 16:13:59 +0200
-Message-ID: <1871155.VLH7GnMWUR@rafael.j.wysocki>
+ [PATCH v2 10/16] platform/x86: panasonic-laptop: Check ACPI_COMPANION()
+ against NULL
+Date: Tue, 12 May 2026 16:13:13 +0200
+Message-ID: <3353471.5fSG56mABF@rafael.j.wysocki>
 Organization: Linux Kernel Development
 In-Reply-To: <12904885.O9o76ZdvQC@rafael.j.wysocki>
 References: <12904885.O9o76ZdvQC@rafael.j.wysocki>
@@ -63,55 +63,37 @@ its list of device IDs because of device_match_driver_override(), so
 platform drivers that rely on the existence of a device's ACPI companion
 object need to verify its presence.
 
-Accordingly, add requisite ACPI_COMPANION() checks against NULL to the
-platform/x86 sony-laptop driver.
+Accordingly, add a requisite ACPI_COMPANION() check against NULL to the
+platform/x86 panasonic-laptop driver.
 
-Fixes: 138db7ee58c0 ("platform/x86: sony-laptop: Convert PIC driver to a platform one")
-Fixes: 14004dd31caa ("platform/x86: sony-laptop: Convert NC driver to a platform one")
+Fixes: de6837243af0 ("platform/x86: panasonic-laptop: Convert ACPI driver to a platform one")
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/platform/x86/sony-laptop.c | 12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ drivers/platform/x86/panasonic-laptop.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/platform/x86/sony-laptop.c b/drivers/platform/x86/sony-laptop.c
-index b18f00e9082f..67370967df6f 100644
---- a/drivers/platform/x86/sony-laptop.c
-+++ b/drivers/platform/x86/sony-laptop.c
-@@ -3147,11 +3147,15 @@ static void sony_nc_backlight_cleanup(void)
+diff --git a/drivers/platform/x86/panasonic-laptop.c b/drivers/platform/x86/panasonic-laptop.c
+index 1337f7c49805..b83113c26f88 100644
+--- a/drivers/platform/x86/panasonic-laptop.c
++++ b/drivers/platform/x86/panasonic-laptop.c
+@@ -981,11 +981,15 @@ static int acpi_pcc_hotkey_resume(struct device *dev)
  
- static int sony_nc_probe(struct platform_device *pdev)
+ static int acpi_pcc_hotkey_probe(struct platform_device *pdev)
  {
 -	struct acpi_device *device = ACPI_COMPANION(&pdev->dev);
+ 	struct backlight_properties props;
 +	struct acpi_device *device;
- 	acpi_status status;
- 	int result = 0;
- 	struct sony_nc_value *item;
+ 	struct pcc_acpi *pcc;
+ 	int num_sifr, result;
  
 +	device = ACPI_COMPANION(&pdev->dev);
 +	if (!device)
 +		return -ENODEV;
 +
- 	sony_nc_acpi_device = device;
- 	strscpy(acpi_device_class(device), "sony/hotkey");
+ 	num_sifr = acpi_pcc_get_sqty(device);
  
-@@ -4509,11 +4513,15 @@ static void sony_pic_remove(struct platform_device *pdev)
- 
- static int sony_pic_probe(struct platform_device *pdev)
- {
--	struct acpi_device *device = ACPI_COMPANION(&pdev->dev);
- 	struct sony_pic_ioport *io, *tmp_io;
- 	struct sony_pic_irq *irq, *tmp_irq;
-+	struct acpi_device *device;
- 	int result;
- 
-+	device = ACPI_COMPANION(&pdev->dev);
-+	if (!device)
-+		return -ENODEV;
-+
- 	spic_dev.acpi_dev = device;
- 	strscpy(acpi_device_class(device), "sony/hotkey");
- 	sony_pic_detect_device_type(&spic_dev);
+ 	/*
 -- 
 2.51.0
 
