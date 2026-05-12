@@ -1,196 +1,116 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from server.atrad.com.au (server.atrad.com.au [150.101.241.2])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F9382D47F1;
-	Mon, 11 May 2026 23:28:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D9342236E3;
+	Tue, 12 May 2026 00:42:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=150.101.241.2
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778542133; cv=none; b=oPWnXGOFrjty8qBl9De+TO5xo5rfUSEhNYmcp0Q2VUDi4+e75J5BKZLGJ+HCIJJURID5lvVF4KWM5Wl9tkGJm9TodBbsSGNxIhjpd7BCO2i/cDUpE2EkBWQzdEsSxYJRzOJVSWiCL5/0EtsGeBJaC3gPZBesS2NBqr0SkFUhpBo=
+	t=1778546549; cv=none; b=oOCmLXb6sy23fvkaiKEJ9VngZakd2vJXzPtzJT77IFHLuNMKfP7lVvhN9GX2g3c7u9ywhSqX6QY3opIxVHEftH6VOBXC7ZqSshVOTrhhL6zsWgFnIXMKURfSZO5A4V5CJuVKOY695Cf0eMZUy2vTlTKnFJv+qQGT2sXxh9t9paM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778542133; c=relaxed/simple;
-	bh=aADp7DgVuAPyaGlpb+SO4KZbRsMSVdrHhsP3kBXCfLw=;
-	h=Date:From:To:Cc:Message-ID:In-Reply-To:References:Subject:
-	 Mime-Version:Content-Type; b=XZKAwcAfXxSVBvFuwqCzR1LXAVBtAWuFYs+wmtGL7yPHxef7jz7gROz0+a+kOs8s9hjnjXq3pQ1LK1GCEnPFM/N0IOAJ7uqfJdDfsXooMDrRJTaw6zBG1B2WAR4LNu2n6Uiwz18JQBknq+nDGcgtyZH4DCdtWCgd4kwiuAA6SCA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VKnAaPhY; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VKnAaPhY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53E11C2BCF5;
-	Mon, 11 May 2026 23:28:52 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778542133;
-	bh=aADp7DgVuAPyaGlpb+SO4KZbRsMSVdrHhsP3kBXCfLw=;
-	h=Date:From:To:Cc:In-Reply-To:References:Subject:From;
-	b=VKnAaPhYkMjXtNYBBpR+2rAoWThQGtiVYS0cvvCDMVWbZRVYbRy3R2a6Y7E0q7csH
-	 6MUQbAEo6sj2tW+YaiBaqK5Hrsac9zUd4kpCOT3RLz05zSkwSJOPzkOL7RMz7UDZRL
-	 AdcqDrpFllD4sG+JIgRgHV5Tg8Da6xoWM3ViLZjBcL+XgVSlhD0GvY30gG/ZWOE4l2
-	 lHYZiPfFVDQxyKBTAjM2qtCsoae5G0MWvTnrRghRLYM1rbsbt/qQLwLPP1KlLVkBex
-	 m4nmDCTq7Fm3lVw+mIqwmhIGcqCMYxNmEPyPQRuPE/H9Ed/PJxn3BtVezk/WJvf2yW
-	 ZA51GmYvWsOfQ==
-Received: from phl-compute-06.internal (phl-compute-06.internal [10.202.2.46])
-	by mailfauth.phl.internal (Postfix) with ESMTP id 75475F40069;
-	Mon, 11 May 2026 19:28:51 -0400 (EDT)
-Received: from phl-frontend-04 ([10.202.2.163])
-  by phl-compute-06.internal (MEProxy); Mon, 11 May 2026 19:28:51 -0400
-X-ME-Sender: <xms:M2YCamdbFM64ymqngWj5O329txdA3O7T--Vb61oKSNUrTeG5TrjH6w>
-    <xme:M2YCap34CBrDTBhQ4CwEYsKD_WHBOjjBPVinCH1bfp0TMjzxS8cY-WSx_y8bnVfJX
-    _6UIJWcnqhBIScn9pXo5JZyjrr9QExFUunM2kLonFsjCqab7Cwd>
-X-ME-Received: <xmr:M2YCaq9QUKhUqMN3glWylDp-vYyKfjBZZqt0UAu2djEQy34H5HKJfncVZE7FnfwiiFOyXEqlidVQMhTeP5rCIkbUMyHqqrUVRgI>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefhedrtddtgdduvddtvdehucetufdoteggodetrf
-    dotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfurfetoffkrfgpnffqhgenuceu
-    rghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujf
-    gurhepfffhvfevkfgjfhfugggtgfesthejredttddtjeenucfhrhhomhepfdffrghnucgh
-    ihhllhhirghmshculdhnvhhiughirgdmfdcuoegujhgsfieskhgvrhhnvghlrdhorhhgqe
-    enucggtffrrghtthgvrhhnpedtkeelkefgtdegudeiiedttdfgueegieekjeffueffueet
-    jeffkeevtefflefhheenucffohhmrghinhepkhgvrhhnvghlrdhorhhgnecuvehluhhsth
-    gvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomhepughjsgifodhmvghsmhht
-    phgruhhthhhpvghrshhonhgrlhhithihqddujeejvdeftdegheehqdeffeefleegtdegje
-    dqughjsgifpeepkhgvrhhnvghlrdhorhhgsehfrghsthhmrghilhdrtghomhdpnhgspghr
-    tghpthhtohepvdekpdhmohguvgepshhmthhpohhuthdprhgtphhtthhopehtvghrrhihrd
-    gsohifmhgrnhesrghmugdrtghomhdprhgtphhtthhopegujhgsfieskhgvrhhnvghlrdho
-    rhhgpdhrtghpthhtohepjhhitgdvfeeskhgvrhhnvghlrdhorhhgpdhrtghpthhtohepug
-    grvhgvsehsthhgohhlrggsshdrnhgvthdprhgtphhtthhopegurghvvgdrjhhirghnghes
-    ihhnthgvlhdrtghomhdprhgtphhtthhopegrlhhishhonhdrshgthhhofhhivghlugesih
-    hnthgvlhdrtghomhdprhgtphhtthhopegshhgvlhhgrggrshesghhoohhglhgvrdgtohhm
-    pdhrtghpthhtohepshhhihhjuhdrjhhoshgvsehhuhgrfigvihdrtghomhdprhgtphhtth
-    hopehmihhnghdrlhhiseiiohhhohhmrghilhdrtghomh
-X-ME-Proxy: <xmx:M2YCaq10C2R19tgRVDbetC1eA6Y1ve7S_ozN2VQ7W1imQnHn_6TZOQ>
-    <xmx:M2YCat15BnSUZfq7j-azLAw0GkgNrJHlGVux7mFHPicElCdwRnFuAg>
-    <xmx:M2YCamuw78kLXFUdqy2k4BpVPSkoHDrbVM-y-kmY0lgntnoCAYi8rw>
-    <xmx:M2YCatbtSxrQ8fMcUmYP5btnJLC6pfsG6Hk_Pd4Rgoi6Cx4hIGcrDw>
-    <xmx:M2YCasJ70O4NK3-xFJ790GKeQhUzcgUhDb6l4YD4PXRCj_guGD2Ixa-A>
-Feedback-ID: i67ae4b3e:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Mon,
- 11 May 2026 19:28:50 -0400 (EDT)
-Date: Mon, 11 May 2026 16:28:49 -0700
-From: "Dan Williams (nvidia)" <djbw@kernel.org>
-To: "Bowman, Terry" <terry.bowman@amd.com>, 
- "Dan Williams (nvidia)" <djbw@kernel.org>, 
- Jonathan Cameron <jic23@kernel.org>
-Cc: dave@stgolabs.net, 
- dave.jiang@intel.com, 
- alison.schofield@intel.com, 
- bhelgaas@google.com, 
- shiju.jose@huawei.com, 
- ming.li@zohomail.com, 
- Smita.KoralahalliChannabasappa@amd.com, 
- rrichter@amd.com, 
- dan.carpenter@linaro.org, 
- PradeepVineshReddy.Kodamati@amd.com, 
- lukas@wunner.de, 
- Benjamin.Cheatham@amd.com, 
- sathyanarayanan.kuppuswamy@linux.intel.com, 
- vishal.l.verma@intel.com, 
- alucerop@amd.com, 
- ira.weiny@intel.com, 
- corbet@lwn.net, 
- rafael@kernel.org, 
- xueshuai@linux.alibaba.com, 
- linux-cxl@vger.kernel.org, 
- linux-kernel@vger.kernel.org, 
- linux-pci@vger.kernel.org, 
- linux-acpi@vger.kernel.org, 
- linux-doc@vger.kernel.org, 
- Mauro Carvalho Chehab <mchehab@kernel.org>
-Message-ID: <6a026631b4f86_1b86a100d7@djbw-dev.notmuch>
-In-Reply-To: <09796934-e093-44e6-b6e2-2d0dd5a29673@amd.com>
-References: <20260505173029.2718246-1-terry.bowman@amd.com>
- <20260505173029.2718246-3-terry.bowman@amd.com>
- <20260507190836.70197e24@jic23-huawei>
- <8913c666-a343-4717-8ab2-0b8546d1bdfb@amd.com>
- <20260508150533.04e19cf9@jic23-huawei>
- <69feaebd471c3_1b86a100b@djbw-dev.notmuch>
- <09796934-e093-44e6-b6e2-2d0dd5a29673@amd.com>
-Subject: Re: [PATCH v17 02/11] cxl/ras: Unify Endpoint and Port AER trace
- events
+	s=arc-20240116; t=1778546549; c=relaxed/simple;
+	bh=QXxkJwcxM0kowTwE5lbEn5I2ePQXfBlaBtcfwyQtPcY=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Skr0wpQ1GlIA5nKFug0v/1ynFpAQvMRMmmnjsZfydbDJ8z8IRQypBnEQFWPJz9vQLVOqJixJdc9da//QGh4yUzAQ6RGfO2u07dhUoOIyHWgCPI5ClVbKQSZYyyZKSc+J+gTgSkwnRvI9mc6fSOei9oTN9VZydfYgQBKqX+gmcsU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=just42.net; spf=pass smtp.mailfrom=just42.net; arc=none smtp.client-ip=150.101.241.2
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=just42.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=just42.net
+Received: from marvin.atrad.com.au (marvin.atrad.com.au [192.168.0.2])
+	by server.atrad.com.au (8.18.1/8.18.1) with ESMTPS id 64C0G6GH031500
+	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NO);
+	Tue, 12 May 2026 09:46:07 +0930
+Date: Tue, 12 May 2026 09:46:06 +0930
+From: Jonathan Woithe <jwoithe@just42.net>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+        Hans de Goede <hansg@kernel.org>, LKML <linux-kernel@vger.kernel.org>,
+        Linux ACPI <linux-acpi@vger.kernel.org>,
+        Corentin Chary <corentin.chary@gmail.com>,
+        "Luke D. Jones" <luke@ljones.dev>,
+        Denis Benato <denis.benato@linux.dev>,
+        Pali =?iso-8859-1?Q?Roh=E1r?= <pali@kernel.org>,
+        Robert Gerlach <khnz@gmx.de>, Matan Ziv-Av <matan@svgalib.org>,
+        Kenneth Chan <kenneth.t.chan@gmail.com>,
+        Mattia Dongili <malattia@linux.it>,
+        Jeremy Soller <jeremy@system76.com>,
+        Azael Avalos <coproscefalo@gmail.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        platform-driver-x86@vger.kernel.org
+Subject: Re: [PATCH v1] platform/x86: Check ACPI_COMPANION() against NULL
+ during probe
+Message-ID: <agJxRrDj2M42R8S1@marvin.atrad.com.au>
+References: <5990022.DvuYhMxLoT@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain;
- charset=utf-8
-Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5990022.DvuYhMxLoT@rafael.j.wysocki>
+X-MIMEDefang-action: accept
+X-Scanned-By: MIMEDefang 2.86 on 192.168.0.1
 
-Bowman, Terry wrote:
-> On 5/8/2026 10:49 PM, Dan Williams (nvidia) wrote:
-> > Jonathan Cameron wrote:
-> >> On Thu, 7 May 2026 13:33:45 -0500
-> >> "Bowman, Terry" <terry.bowman@amd.com> wrote:
-> > [..]
-> >>>> This concerns me (sorry I wasn't paying attention to the v16 thread).
-> >>>> It is a userspace regression against code that is out in the wild and typically
-> >>>> not updated in sync with the kernel.
-> >>>>
-> >>>> If you are suggesting breaking ras-daemon at the very least +CC the maintainer.
-> > 
-> > Sorry, that was not the intent, see below.
-> > 
-> >>>>
-> >>>> To get to a unified tracepoint add a new one that does what you want, but
-> >>>> maintain the existing ones as well.  Userspace can then migrate and maybe
-> >>>> in 5+ years time we can delete the non unified ones.
-> >>>>
-> >>>> No actually comments on the code, just left it all here for Mauro,
-> >>>>
-> >>>> Thanks,
-> >>>>
-> >>>> Jonathan
-> >>>>   
-> >>>
-> >>> Dan was clear about using a single set of CE and UE handlers for all CXL RAS 
-> >>> protocol errors. While I understand there may be concerns, please direct any 
-> >>> objections to Dan and clarify what changes are required to avoid this 
-> >>> repeatedly going back and forth.
-> >>>
-> >>> [1] https://lore.kernel.org/linux-cxl/69cb2d5ba3111_178904100b7@dwillia2-mobl4.notmuch/
-> >>
-> >> Sure - Dan's on this thread so I'm sure he'll see it sooner or later.
-> >>
-> >> Perhaps I'm missing something that makes this less critical than it appears.
-> > 
-> > No, it is breakage and a thinko on my part on the advice to Terry on the
-> > backwards compatibility rules for tracepoints. At the time I was only
-> > tracking data type and order of the payload. I.e. string at same
-> > position. However, the name of the argument is ABI.
-> > 
-> > Something like this incremental fixup I think gets this back on track.
-> > It keeps legacy ABI support for "memdev" field in the payload. It
-> > incrementally lets updated userspace understand "port" and "dport"
-> > events. It stops us from growing a new set of events just to update the
-> > arguments. It enhances the CPER events to now handle switch ports in
-> > addition to endpoint ports.
-> > 
-> > The bulk of the change is passing @port and @dport to the CXL trace
-> > events instead of a plain @dev.
-> > 
+On Mon, May 11, 2026 at 09:48:26PM +0200, Rafael J. Wysocki wrote:
+> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 > 
-> Thanks Dan and Jonathan,
+> Every platform driver can be forced to match a device that doesn't match
+> its list of device IDs because of device_match_driver_override(), so
+> platform drivers that rely on the existence of a device's ACPI companion
+> object need to verify its presence.
 > 
-> I have a few questions.
-> 
-> Does this miss logging the Upstream SwitchPort device errors? Add another 
-> entry "uport=$"?
-> 
-> How does the user know which of the devices (memdev, port, or dport) is the 
-> erroring device? Do the traces need another string variable inidicating which 
-> device triggered the error?
+> Accordingly, add requisite ACPI_COMPANION() or ACPI_HANDLE() checks
+> against NULL to multiple platform/x86 drivers that have been converted
+> to platform drivers from ACPI drivers recently.
 
-I expect that can be determined from what values get populated.
+For the fujitsu-laptop portions of the patch as below:
 
-Endpoint:
-memdev=memX port=endpointY dport= host=parent(memX)
+    Acked-by: Jonathan Woithe <jwoithe@just42.net>
 
-Downstream:
-memdev= port=portX dport=dport_dev(dportY) host=uport_dev(portX)
+Regards
+  jonathan
 
-Upstream:
-memdev= port=portX dport= host=uport_dev(portX)
+--
 
-If dport= is populated, that is the device that triggered the error,
-otherwise it is the host= value.
-
-> And, I need to confirm: the Endpoint is NULL unless the CXL Port is an Endpoint 
-> Port?
-
-You mean memdev is empty, right? 
+> :
+> Fixes: 6da22b031a3c ("platform/x86: fujitsu: Convert laptop driver to a platform one")
+> Fixes: d5c9212ccfaa ("platform/x86: fujitsu: Convert backlight driver to a platform one")
+> :
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/platform/x86/fujitsu-laptop.c     |   12 ++++++++++--
+> :
+> --- a/drivers/platform/x86/fujitsu-laptop.c
+> +++ b/drivers/platform/x86/fujitsu-laptop.c
+> @@ -530,10 +530,14 @@ static void acpi_fujitsu_bl_notify(acpi_
+>  
+>  static int acpi_fujitsu_bl_probe(struct platform_device *pdev)
+>  {
+> -	struct acpi_device *device = ACPI_COMPANION(&pdev->dev);
+> +	struct acpi_device *device;
+>  	struct fujitsu_bl *priv;
+>  	int ret;
+>  
+> +	device = ACPI_COMPANION(&pdev->dev);
+> +	if (!device)
+> +		return -ENODEV;
+> +
+>  	if (acpi_video_get_backlight_type() != acpi_backlight_vendor)
+>  		return -ENODEV;
+>  
+> @@ -993,10 +997,14 @@ static void acpi_fujitsu_laptop_notify(a
+>  
+>  static int acpi_fujitsu_laptop_probe(struct platform_device *pdev)
+>  {
+> -	struct acpi_device *device = ACPI_COMPANION(&pdev->dev);
+>  	struct fujitsu_laptop *priv;
+> +	struct acpi_device *device;
+>  	int ret, i = 0;
+>  
+> +	device = ACPI_COMPANION(&pdev->dev);
+> +	if (!device)
+> +		return -ENODEV;
+> +
+>  	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
+>  	if (!priv)
+>  		return -ENOMEM;
