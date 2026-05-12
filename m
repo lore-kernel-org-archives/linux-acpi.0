@@ -1,66 +1,62 @@
 Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4126449250D;
-	Tue, 12 May 2026 09:53:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FF4E39769A;
+	Tue, 12 May 2026 09:56:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.15
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778579626; cv=none; b=o6akoBB9ae3jr0FSnqCbvMyqNnxNLDH681T1QdUBcsfYZlumiDPH0acHrMIJDa8VmeZcNK/kmXpjhhWLOTiE2kR934tdtThx0/tgDFy3QSSYX7yyvxE7lLFWTxRE6teLKQ6uUAPQjDV4oyqPg8kcIKBPmLEKTIW9vQj0REYMx58=
+	t=1778579800; cv=none; b=hq4eZKcBTSEg7eNEDUjOye6fVdqTliU+KO5vMQvC+E0XNBh/2zb7j2odrV37UYwdNG2paReEUlZCEKPmblhveXQPGboPEvl4+QyDqAWV3mrrjEpj6LuMfisHTdrvygemnWQj8p7b420rfQhGIxjuN9hDIJTPWlmtyBuNAEYZyJg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778579626; c=relaxed/simple;
-	bh=BIK+kn7bBypwc1dFd2hMNvaIr8YgsWs8NGIF+loU9os=;
+	s=arc-20240116; t=1778579800; c=relaxed/simple;
+	bh=gH/oUBfQgahdz+BP603ndsmNTmaMVyixXY6MRwtO7bs=;
 	h=From:Date:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=n4t9LamK3Z5gSvtgBP+oPtqtal/vN2QgY+Bz+g10AlKzE0UngG6MiBBlni09DNR2WcYnmpAHPY2tJ8tMWISMqTQsGznMT+bdl9ZGV6brwre4b2b9FZsF37+Br3zVyr2RlGcnFb3bcLb8O994qkk4MEi9jq65lquQJ2gie2e18dU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=YxDsHqJ0; arc=none smtp.client-ip=192.198.163.15
+	 MIME-Version:Content-Type; b=qnYVDhA/54rEWxSuyvOP0kXTYeFEWXmPdhSstwyLYPF9Rhpgv3au6mC4/vnoxVF8nwUKa+jqQa+pjqqGfKwrbqmdNQH/iIi4PA+aRqzhbAL2CjRgzEIIebhuuZHOezghCHBJ5BRYtRqXLqP7uRNlT4qRMRaKhU1I2diGzSKcKbA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=KEn3R/eL; arc=none smtp.client-ip=192.198.163.15
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="YxDsHqJ0"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="KEn3R/eL"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1778579625; x=1810115625;
+  t=1778579799; x=1810115799;
   h=from:date:to:cc:subject:in-reply-to:message-id:
    references:mime-version;
-  bh=BIK+kn7bBypwc1dFd2hMNvaIr8YgsWs8NGIF+loU9os=;
-  b=YxDsHqJ0NdVS/9Q/+MQhpRNr0Uh9t7YJjauLvR4SMuNpdu+OVMGgHjJ0
-   ia/L8B8XWXNQQFpsr8k33hfUOrWXtfLfmy/QlKC1IL+YOWdcVRXsdGrZU
-   y4s4KTKuCLBx+vi/vAu9fkiOeo3D6rPwPutUUlPnmDFGM0sutYzggRD1B
-   iUR/dIwNbqwb2pzkNGQ8wrwj/9KrIta55VW9AH0uCcb0D33wdVM7SgQnR
-   aWrjSI+DU9fPuB7o1eoIxaItGtUVJwn+W2TK4HixWJcHer4kUHr8Et+uh
-   knc8VbTcOmfAJei5vsMOUx3qEg1ZetFllp7NqD+3Y4s3bJigEpMsqgFNL
-   Q==;
-X-CSE-ConnectionGUID: wkN0g8nMR/+xAOxeWDL0LA==
-X-CSE-MsgGUID: PrxsmW4gSYerdp8MV3AC0g==
-X-IronPort-AV: E=McAfee;i="6800,10657,11783"; a="79594574"
+  bh=gH/oUBfQgahdz+BP603ndsmNTmaMVyixXY6MRwtO7bs=;
+  b=KEn3R/eL8lkzuwyVsJspnBbah1Tio3KRPxmEBO3nC8GJdUdt/6Hd7koj
+   vZ/QGawzaUxz3BqTL9Z2MKl0KiN5cu7dDrF4nN5OevhT1m3jtcPaK3F66
+   K7lxlXLjCloq2IiPT+YD+hZuVI5uWik1TTBYuCnyBHyTTn9vpExjG6wid
+   iwkxf3PcUSMPfef5EHrV+u4hpXhWwLpeTbmzVpP0kxB7Ir0Toe+yz53MT
+   szBEa+Ydqgna0c/trHexThu/Y9/2ZLq57+VXSZ9dk3j1zWBWurAmnDYEW
+   hK4RKoHy8sF4BUygge1p66ZDYjtzISnlNJuBKxHItBQ2iDHQq/E6/wXNt
+   w==;
+X-CSE-ConnectionGUID: 863+f5hTRH6tEDjbfUD/XQ==
+X-CSE-MsgGUID: EL8HExeGRnyoeVo7xpqkCA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11783"; a="79594735"
 X-IronPort-AV: E=Sophos;i="6.23,230,1770624000"; 
-   d="scan'208";a="79594574"
-Received: from fmviesa008.fm.intel.com ([10.60.135.148])
-  by fmvoesa109.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2026 02:53:45 -0700
-X-CSE-ConnectionGUID: 8VExXSzQQ9KrDh6P1fPiQw==
-X-CSE-MsgGUID: rSD84105RaqbApV13wlXTA==
+   d="scan'208";a="79594735"
+Received: from fmviesa003.fm.intel.com ([10.60.135.143])
+  by fmvoesa109.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2026 02:56:39 -0700
+X-CSE-ConnectionGUID: cjYmkoBvQ7aGRDVhEuYY/w==
+X-CSE-MsgGUID: WlfT2t/BQ46L4OhR2OQ+DA==
 X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.23,230,1770624000"; 
-   d="scan'208";a="235054893"
 Received: from ijarvine-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.245.190])
-  by fmviesa008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2026 02:53:38 -0700
+  by fmviesa003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2026 02:56:34 -0700
 From: =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
-Date: Tue, 12 May 2026 12:53:35 +0300 (EEST)
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-cc: "Rafael J. Wysocki" <rafael@kernel.org>, Hans de Goede <hansg@kernel.org>, 
-    LKML <linux-kernel@vger.kernel.org>, 
+Date: Tue, 12 May 2026 12:56:31 +0300 (EEST)
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+cc: Hans de Goede <hansg@kernel.org>, LKML <linux-kernel@vger.kernel.org>, 
     Linux ACPI <linux-acpi@vger.kernel.org>, 
-    Corentin Chary <corentin.chary@gmail.com>, 
-    "Luke D. Jones" <luke@ljones.dev>, Denis Benato <denis.benato@linux.dev>, 
-    =?ISO-8859-15?Q?Pali_Roh=E1r?= <pali@kernel.org>, 
-    Jonathan Woithe <jwoithe@just42.net>, Robert Gerlach <khnz@gmx.de>, 
-    Matan Ziv-Av <matan@svgalib.org>, Kenneth Chan <kenneth.t.chan@gmail.com>, 
-    Mattia Dongili <malattia@linux.it>, Jeremy Soller <jeremy@system76.com>, 
-    Azael Avalos <coproscefalo@gmail.com>, platform-driver-x86@vger.kernel.org
-Subject: Re: [PATCH v1] platform/x86: Check ACPI_COMPANION() against NULL
- during probe
-In-Reply-To: <agLV5STILBnNNfWH@ashevche-desk.local>
-Message-ID: <2bb54d48-e06c-f187-4d0f-53d9c4567e74@linux.intel.com>
-References: <5990022.DvuYhMxLoT@rafael.j.wysocki> <agLV5STILBnNNfWH@ashevche-desk.local>
+    Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
+    platform-driver-x86@vger.kernel.org, 
+    Andrea Ho <Andrea.Ho@advantech.com.tw>, 
+    Eric Piel <eric.piel@tremplin-utc.net>, Alex Hung <alexhung@gmail.com>, 
+    Shravan Sudhakar <s.shravan@intel.com>, 
+    AceLan Kao <acelan.kao@canonical.com>
+Subject: Re: [PATCH v1] platform/x86: Add ACPI_COMPANION() checks against
+ NULL to probe
+In-Reply-To: <4731840.LvFx2qVVIh@rafael.j.wysocki>
+Message-ID: <a944a591-409d-6a73-3c6f-5c29bb2583f9@linux.intel.com>
+References: <4731840.LvFx2qVVIh@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -69,90 +65,129 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 
-On Tue, 12 May 2026, Andy Shevchenko wrote:
+On Mon, 11 May 2026, Rafael J. Wysocki wrote:
 
-> On Mon, May 11, 2026 at 09:48:26PM +0200, Rafael J. Wysocki wrote:
+> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 > 
-> > Every platform driver can be forced to match a device that doesn't match
-> > its list of device IDs because of device_match_driver_override(), so
-> > platform drivers that rely on the existence of a device's ACPI companion
-> > object need to verify its presence.
-> > 
-> > Accordingly, add requisite ACPI_COMPANION() or ACPI_HANDLE() checks
-> > against NULL to multiple platform/x86 drivers that have been converted
-> > to platform drivers from ACPI drivers recently.
+> Every platform driver can be forced to match a device that doesn't match
+> its list of device IDs because of device_match_driver_override(), so
+> platform drivers that rely on the existence of a device's ACPI companion
+> object need to verify its presence.
+> 
+> Accordingly, add requisite ACPI_COMPANION() or ACPI_HANDLE() checks
+> against NULL to multiple platform/x86 drivers where they are missing.
+> 
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-I was already wondering about when the NULL check is necessary not that 
-long ago, as some many places seemed to be lacking the check.
+Don't these fixes need fixes tags?
 
-> > Fixes: 578bc2a53ae2 ("platform/wmi: Convert drivers to use wmidev_invoke_procedure()")
-> > Fixes: f7e648027d7e ("platform/x86: asus-wireless: Convert ACPI driver to a platform one")
-> > Fixes: ba19eb10170b ("platform/x86: asus-laptop: Convert ACPI driver to a platform one")
-> > Fixes: 3a96c7915d93 ("platform/x86: toshiba_haps: Convert ACPI driver to a platform one")
-> > Fixes: 553b2ac59fbb ("platform/x86: toshiba_bluetooth: Convert ACPI driver to a platform one")
-> > Fixes: 246d6cefe525 ("platform/x86: toshiba_acpi: Convert ACPI driver to a platform one")
-> > Fixes: 19ebacfb442b ("platform/x86: dell/dell-rbtn: Convert ACPI driver to a platform one")
-> > Fixes: 80b8f68b94ab ("platform/x86: system76: Convert ACPI driver to a platform one")
-> > Fixes: de6837243af0 ("platform/x86: panasonic-laptop: Convert ACPI driver to a platform one")
-> > Fixes: 6da22b031a3c ("platform/x86: fujitsu: Convert laptop driver to a platform one")
-> > Fixes: d5c9212ccfaa ("platform/x86: fujitsu: Convert backlight driver to a platform one")
-> > Fixes: bd13b265d386 ("platform/x86: fujitsu-tablet: Convert ACPI driver to a platform one")
-> > Fixes: 8507277ef132 ("platform/x86: wireless-hotkey: Convert ACPI driver to a platform one")
-> > Fixes: 3471415c8186 ("platform/x86: topstar-laptop: Convert ACPI driver to a platform one")
-> > Fixes: 138db7ee58c0 ("platform/x86: sony-laptop: Convert PIC driver to a platform one")
-> > Fixes: 14004dd31caa ("platform/x86: sony-laptop: Convert NC driver to a platform one")
-> > Fixes: 2d9cb20610f7 ("platform/x86: lg-laptop: Convert ACPI driver to a platform one")
-> > Fixes: 8a44bd3ffdb2 ("platform/x86: intel/smartconnect: Convert ACPI driver to a platform one")
-> > Fixes: 163a68a31f74 ("platform/x86: intel/rst: Convert ACPI driver to a platform one")
-> > Fixes: 079b59fd2d79 ("platform/x86: eeepc-laptop: Convert ACPI driver to a platform one")
-> > Fixes: b30a462720ad ("platform/x86: acer-wireless: Convert ACPI driver to a platform one")
-> 
-> Looking at this I would rather see the series, but am not a maintainer here and
-> I'm fine with the result.
+So this part has the changes that are needed pre-7.1?
+And the other is for changes going into 7.1?
 
-It would probably be better to split this per driver. Lets say somewhere 
-in future stable people want to backport some other fix which has this 
-change as a prerequisite, it will be simpler for them to handle if they're 
-not all together.
-
-> As a single patch or as a series
+> ---
+>  drivers/platform/x86/adv_swbutton.c            |    6 +++++-
+>  drivers/platform/x86/hp/hp_accel.c             |    3 +++
+>  drivers/platform/x86/intel/hid.c               |    6 +++++-
+>  drivers/platform/x86/intel/int1092/intel_sar.c |    7 ++++++-
+>  drivers/platform/x86/intel/vbtn.c              |    6 +++++-
+>  5 files changed, 24 insertions(+), 4 deletions(-)
 > 
-> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> --- a/drivers/platform/x86/adv_swbutton.c
+> +++ b/drivers/platform/x86/adv_swbutton.c
+> @@ -48,10 +48,14 @@ static int adv_swbutton_probe(struct pla
+>  {
+>  	struct adv_swbutton *button;
+>  	struct input_dev *input;
+> -	acpi_handle handle = ACPI_HANDLE(&device->dev);
+> +	acpi_handle handle;
+>  	acpi_status status;
+>  	int error;
+>  
+> +	handle = ACPI_HANDLE(&device->dev);
+> +	if (!handle)
+> +		return -ENODEV;
+> +
+>  	button = devm_kzalloc(&device->dev, sizeof(*button), GFP_KERNEL);
+>  	if (!button)
+>  		return -ENOMEM;
+> --- a/drivers/platform/x86/hp/hp_accel.c
+> +++ b/drivers/platform/x86/hp/hp_accel.c
+> @@ -300,6 +300,9 @@ static int lis3lv02d_probe(struct platfo
+>  	int ret;
+>  
+>  	lis3_dev.bus_priv = ACPI_COMPANION(&device->dev);
+> +	if (!lis3_dev.bus_priv)
+> +		return -ENODEV;
+> +
+>  	lis3_dev.init = lis3lv02d_acpi_init;
+>  	lis3_dev.read = lis3lv02d_acpi_read;
+>  	lis3_dev.write = lis3lv02d_acpi_write;
+> --- a/drivers/platform/x86/intel/hid.c
+> +++ b/drivers/platform/x86/intel/hid.c
+> @@ -688,12 +688,16 @@ static bool button_array_present(struct
+>  
+>  static int intel_hid_probe(struct platform_device *device)
+>  {
+> -	acpi_handle handle = ACPI_HANDLE(&device->dev);
+>  	unsigned long long mode, dummy;
+>  	struct intel_hid_priv *priv;
+> +	acpi_handle handle;
+>  	acpi_status status;
+>  	int err;
+>  
+> +	handle = ACPI_HANDLE(&device->dev);
+> +	if (!handle)
+> +		return -ENODEV;
+> +
+>  	intel_hid_init_dsm(handle);
+>  
+>  	if (!intel_hid_evaluate_method(handle, INTEL_HID_DSM_HDMM_FN, &mode)) {
+> --- a/drivers/platform/x86/intel/int1092/intel_sar.c
+> +++ b/drivers/platform/x86/intel/int1092/intel_sar.c
+> @@ -245,15 +245,20 @@ static void sar_get_data(int reg, struct
+>  static int sar_probe(struct platform_device *device)
+>  {
+>  	struct wwan_sar_context *context;
+> +	acpi_handle handle;
+>  	int reg;
+>  	int result;
+>  
+> +	handle = ACPI_HANDLE(&device->dev);
+> +	if (!handle)
+> +		return -ENODEV;
+> +
+>  	context = kzalloc_obj(*context);
+>  	if (!context)
+>  		return -ENOMEM;
+>  
+>  	context->sar_device = device;
+> -	context->handle = ACPI_HANDLE(&device->dev);
+> +	context->handle = handle;
+>  	dev_set_drvdata(&device->dev, context);
+>  
+>  	result = guid_parse(SAR_DSM_UUID, &context->guid);
+> --- a/drivers/platform/x86/intel/vbtn.c
+> +++ b/drivers/platform/x86/intel/vbtn.c
+> @@ -275,12 +275,16 @@ static bool intel_vbtn_has_switches(acpi
+>  
+>  static int intel_vbtn_probe(struct platform_device *device)
+>  {
+> -	acpi_handle handle = ACPI_HANDLE(&device->dev);
+>  	bool dual_accel, has_buttons, has_switches;
+>  	struct intel_vbtn_priv *priv;
+> +	acpi_handle handle;
+>  	acpi_status status;
+>  	int err;
+>  
+> +	handle = ACPI_HANDLE(&device->dev);
+> +	if (!handle)
+> +		return -ENODEV;
+> +
+>  	dual_accel = dual_accel_detect();
+>  	has_buttons = acpi_has_method(handle, "VBDL");
+>  	has_switches = intel_vbtn_has_switches(handle, dual_accel);
 > 
-> ...
-> 
-> >  static int acpi_fujitsu_probe(struct platform_device *pdev)
-> >  {
-> > -	struct acpi_device *adev = ACPI_COMPANION(&pdev->dev);
-> > +	struct acpi_device *adev;
-> >  	acpi_status status;
-> >  	int error;
-> >  
-> > +	adev = ACPI_COMPANION(&pdev->dev);
-> > +	if (!adev)
-> > +		return -ENODEV;
-> > +
-> >  	status = acpi_walk_resources(adev->handle, METHOD_NAME__CRS,
-> 
-> Don't you want ACPI_HANDLE() actually? (Note it's not directly related
-> to this change, but perhaps a material for further improvements.)
-> 
-> >  			fujitsu_walk_resources, NULL);
-> 
-> ...
-> 
-> > +	device = ACPI_COMPANION(&pdev->dev);
-> > +	if (!device)
-> > +		return -ENODEV;
-> > +
-> > +	pdev_info.fwnode = acpi_fwnode_handle(device),
-> > +
-> >  	status = acpi_install_address_space_handler(device->handle, LG_ADDRESS_SPACE_ID,
-> 
-> Similar Q here. And some more drivers seem use handle in the given context.
-> 
-> >  						    &lg_laptop_address_space_handler,
-> >  						    NULL, &pdev->dev);
 > 
 > 
 
