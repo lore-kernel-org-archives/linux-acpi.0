@@ -1,76 +1,124 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from fanzine2.igalia.com (fanzine2.igalia.com [213.97.179.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6EFC3B1037;
-	Tue, 12 May 2026 14:19:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2A1C3AEB2B;
+	Tue, 12 May 2026 15:10:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.97.179.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778595569; cv=none; b=mJzLY5p8H5Kjdvne6119M/35ztmRV/SIa5fYETBtRcbUpPtF4+wZkepK5J+5V4b05UwvOPhYeHKZPqr8YMfzkIUVSU3YlrYFZIXz9pm3ftuWjHrW9W7xiKsi2W2VbFoN4j8UPxkJIwa/XKm/L8puB8z4p8Mik7OZtaN9Nml3BwQ=
+	t=1778598614; cv=none; b=RFZKbFqFicKluHKfxf3hTCbrcS7aRs73GzMxxTRgaQPzOxYMRLgs6zRq/E06wxnUrVhHcWfbfFscggcnJEdQS+ADaQMJTbazVs+hr3Mg4MEtuPyOdW+b+DqY6oDl1FtVfXmJTLFaudvK2wBLaBVtxL8AQDZVxwHvlVD2BzCxvhI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778595569; c=relaxed/simple;
-	bh=M00Vvi1LUzRwd8T6JtZ1syr05U3z/HiDIk8TB5gIWAE=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=GQpsNg3HQjpEY3jxiuGBvw0+wqz0nES0fzD/CTWwABvNoBYV2xdhc/kYbVxf9T/LmjFbCvMjdPkU8N3iCKOlhytYFY7RYsUc/tNCs78LXe5pg6xlAHGQWbIk0P5jXiGClcWngYFaGx2JYa8qvEv7mnPRDQ2QRK45bMx9wL6QvWU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=puY7xDYR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778598614; c=relaxed/simple;
+	bh=AwZ1ILjhydP03cFGJ0iPjOyonN56LkioZWITTJgz5RA=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=D3jLOTE8cCURazprfHzeM3a4Xwyzyvx7uRoPqwI5ruF3L6fNEC6DcTnhUeNbGi6QM2BaCuKn6YkMYvGjNftEG/QRJodbJKXdLxscqXF37azlG1rnexmiJRyUCBY4OpLIOh2qA3aYoJ09sEf69ls12+Y3WcbopclLdIY4EQt/VZc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com; spf=pass smtp.mailfrom=igalia.com; dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b=VBaNM4q5; arc=none smtp.client-ip=213.97.179.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=igalia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="puY7xDYR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AAD33C2BCB0;
-	Tue, 12 May 2026 14:19:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778595569;
-	bh=M00Vvi1LUzRwd8T6JtZ1syr05U3z/HiDIk8TB5gIWAE=;
-	h=From:To:Cc:Subject:Date:From;
-	b=puY7xDYRZtimw9zSSqX+GEf18F7yXaG1Ctwt3iiWgJSvob8jGqNGr9JvGaHZs69fb
-	 J7aAOfWXheds+xesNQcf0hKWxe+8gdHBcPJGb4PxEQX1ygt7m3/oEOQBmMIwdy9UW2
-	 AqIPZxKHN4mfWHwFDSh2bwXiIvqFfcQ0WqS3F70ay3gD06rbw5fSCiAW7Uu9w8y/y1
-	 xp9LjAWuADKdssg2ZVSdJzEbbsYFIQ/djJil3RDxlFDieZqrTJyytw3MM1qZF4CkL3
-	 RWbuanCEK1B8CuGyr/q8F7AOGuYUT0gRJuJWGT3fyQ0S9eMBt/eNAS/0YwmoUgLdTQ
-	 RMPW6PEMDLFvA==
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-To: Ilpo =?ISO-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>
-Cc: Hans de Goede <hansg@kernel.org>, LKML <linux-kernel@vger.kernel.org>,
- Linux ACPI <linux-acpi@vger.kernel.org>,
- Corentin Chary <corentin.chary@gmail.com>, "Luke D. Jones" <luke@ljones.dev>,
- Denis Benato <denis.benato@linux.dev>,
- Pali =?ISO-8859-1?Q?Roh=E1r?= <pali@kernel.org>,
- Jonathan Woithe <jwoithe@just42.net>, Robert Gerlach <khnz@gmx.de>,
- Matan Ziv-Av <matan@svgalib.org>, Kenneth Chan <kenneth.t.chan@gmail.com>,
- Mattia Dongili <malattia@linux.it>, Jeremy Soller <jeremy@system76.com>,
- Azael Avalos <coproscefalo@gmail.com>,
- Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
- platform-driver-x86@vger.kernel.org
-Subject:
- [PATCH v2 00/16] platform/x86: Check ACPI_COMPANION() against NULL during
- probe
-Date: Tue, 12 May 2026 16:01:43 +0200
-Message-ID: <12904885.O9o76ZdvQC@rafael.j.wysocki>
-Organization: Linux Kernel Development
+	dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b="VBaNM4q5"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
+	s=20170329; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=8a8fVTOm7NIfOqX3i9o33WdWb5aUpm3fCdKruyf2uwc=; b=VBaNM4q5YqZyWkfgF+xwje+BzB
+	uDvS88FkMgmDGw+ENEuJv4iTxVrccmxlDFo9Ix0vVyH2ljbKtK0/kxdibp3JyCYQnoy3HxuhIdRvT
+	16HxhCO39zUZd2L/nkXZOMDzR2S6OmncxepLTrT3/nNeNEB6OTmkgzKXzkbhZcMNQD3wdHmpzuxhH
+	TL5PMYc4HPojgSqI8O0zUJInvykkbgpfW/6MTWw/doL2U3xh47Skoew/S03T9BIF900krOu9Qcg7g
+	LazyQtbgVv/T1HjTXuZq3aX0v1OOMeXFqKGXvEa+LE5NPb5Ws9aESFsatpuArI9XOlrQbtwaBcdkC
+	rWcOKIBg==;
+Received: from 179-125-79-241-dinamico.pombonet.net.br ([179.125.79.241] helo=quatroqueijos.cascardo.eti.br)
+	by fanzine2.igalia.com with esmtpsa 
+	(Cipher TLS1.3:ECDHE_SECP256R1__RSA_PSS_RSAE_SHA256__AES_256_GCM:256) (Exim)
+	id 1wMokC-009Whm-HZ; Tue, 12 May 2026 17:10:00 +0200
+Date: Tue, 12 May 2026 12:09:55 -0300
+From: Thadeu Lima de Souza Cascardo <cascardo@igalia.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Linux ACPI <linux-acpi@vger.kernel.org>,
+	Hans de Goede <hansg@kernel.org>,
+	platform-driver-x86@vger.kernel.org,
+	Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+Subject: Re: [PATCH v2 00/10] platform/x86: classmate-laptop: Bind to
+ platform devices instead of ACPI ones
+Message-ID: <agNCw7_AL-PIemmO@quatroqueijos.cascardo.eti.br>
+References: <3415394.44csPzL39Z@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <3415394.44csPzL39Z@rafael.j.wysocki>
 
-Hi All,
+On Mon, May 11, 2026 at 10:01:45PM +0200, Rafael J. Wysocki wrote:
+> Hi All,
+> 
+> This is an update of
+> 
+> https://lore.kernel.org/linux-acpi/1956046.tdWV9SEqCh@rafael.j.wysocki/
+> 
+> sent mostly because I have realized that using devm_kzalloc() in the first
+> patch simplifies things going forward, but also it adds ACPI companion
+> checks against NULL at probe time that were missing previously.
+> 
+> This series is part of a larger effort to switch over all drivers using
+> the struct acpi_driver interface to the more common struct platform_driver
+> interface and eliminate the former.  The background is explained in
+> Documentation/driver-api/acpi/acpi-drivers.rst and in the changelog of
+> the patch that introduced the above document:
+> 
+> https://lore.kernel.org/all/2396510.ElGaqSPkdT@rafael.j.wysocki/
+> 
+> The bottom line is that the kernel would be better off without struct
+> acpi_driver and so it is better to get rid of it.
+> 
+> This series carries out driver conversion of 5 subdrivers in the platform x86
+> classmate-laptop driver.
+> 
+> The first 5 patches in the series are preliminary.
+> 
+> Patch [01/10] converts two subdrivers in classmate-laptop to using
+> devm_kzalloc() for allocating memory which helps to avoid memory leaks
+> during driver removal.
+> 
+> Patch [02/10] modifies 2 subdrivers in classmate-laptop so that their probe
+> rollback code ordering is the same as the removal one.
+> 
+> Patches [03-04/10] change the type of the first argument in 2 helper functions
+> in classmate-laptop and rename them.
+> 
+> Patch [05/10] updates classmate-laptop subdrivers to install their own ACPI
+> notify handlers instead of using the .notify() callback in struct acpi_driver.
+> 
+> The remaining patches convert the classmate-laptop subdrivers to platform
+> drivers, one at a time.
+> 
+> Patch [06/10] converts the accel-v4 subdriver in classmate-laptop to using
+> struct platform_driver for device binding.
+> 
+> Patch [07/10] converts the accel subdriver in classmate-laptop to using
+> struct platform_driver for device binding.
+> 
+> Patch [08/10] converts the tablet subdriver in classmate-laptop to using
+> struct platform_driver for device binding.
+> 
+> Patch [09/10] converts the ipml subdriver in classmate-laptop to using
+> struct platform_driver for device binding.
+> 
+> Patch [10/10] converts the keys subdriver in classmate-laptop to using
+> struct platform_driver for device binding.
+> 
+> Thanks!
+> 
+> 
+> 
+> 
 
-This series replaces
+For the whole series:
 
-https://lore.kernel.org/linux-acpi/5990022.DvuYhMxLoT@rafael.j.wysocki/
-
-and, as a whole, it makes exactly the same code changes.
-
-Every platform driver can be forced to match a device that doesn't match
-its list of device IDs because of device_match_driver_override(), so
-platform drivers that rely on the existence of a device's ACPI companion
-object need to verify its presence.
-
-Accordingly, requisite ACPI_COMPANION() or ACPI_HANDLE() checks against NULL
-are added to multiple platform/x86 drivers that have been converted to platform
-drivers from ACPI drivers recently.
-
-Thanks!
-
-
-
+Acked-by: Thadeu Lima de Souza Cascardo <cascardo@igalia.com>
