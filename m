@@ -1,116 +1,83 @@
-Received: from server.atrad.com.au (server.atrad.com.au [150.101.241.2])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D9342236E3;
-	Tue, 12 May 2026 00:42:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=150.101.241.2
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BC07283CAF;
+	Tue, 12 May 2026 01:20:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778546549; cv=none; b=oOCmLXb6sy23fvkaiKEJ9VngZakd2vJXzPtzJT77IFHLuNMKfP7lVvhN9GX2g3c7u9ywhSqX6QY3opIxVHEftH6VOBXC7ZqSshVOTrhhL6zsWgFnIXMKURfSZO5A4V5CJuVKOY695Cf0eMZUy2vTlTKnFJv+qQGT2sXxh9t9paM=
+	t=1778548847; cv=none; b=NPeBrj9RbJLTlX2K7XQ2dRg9tANu5qiuxrPNnNsdWO0dma6p2CuJ8/h9HpkxoZ/Usai9zBuJ1uLa4YzbgZzDKi38L95Wno5OruFAL7LAjJq6LgufiEPvOP9nV5Ez/co5Cs/t8p1tYUwO/EOpt7zMTwfRGacfiG0284pKCM+v7cI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778546549; c=relaxed/simple;
-	bh=QXxkJwcxM0kowTwE5lbEn5I2ePQXfBlaBtcfwyQtPcY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Skr0wpQ1GlIA5nKFug0v/1ynFpAQvMRMmmnjsZfydbDJ8z8IRQypBnEQFWPJz9vQLVOqJixJdc9da//QGh4yUzAQ6RGfO2u07dhUoOIyHWgCPI5ClVbKQSZYyyZKSc+J+gTgSkwnRvI9mc6fSOei9oTN9VZydfYgQBKqX+gmcsU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=just42.net; spf=pass smtp.mailfrom=just42.net; arc=none smtp.client-ip=150.101.241.2
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=just42.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=just42.net
-Received: from marvin.atrad.com.au (marvin.atrad.com.au [192.168.0.2])
-	by server.atrad.com.au (8.18.1/8.18.1) with ESMTPS id 64C0G6GH031500
-	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NO);
-	Tue, 12 May 2026 09:46:07 +0930
-Date: Tue, 12 May 2026 09:46:06 +0930
-From: Jonathan Woithe <jwoithe@just42.net>
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
-        Hans de Goede <hansg@kernel.org>, LKML <linux-kernel@vger.kernel.org>,
-        Linux ACPI <linux-acpi@vger.kernel.org>,
-        Corentin Chary <corentin.chary@gmail.com>,
-        "Luke D. Jones" <luke@ljones.dev>,
-        Denis Benato <denis.benato@linux.dev>,
-        Pali =?iso-8859-1?Q?Roh=E1r?= <pali@kernel.org>,
-        Robert Gerlach <khnz@gmx.de>, Matan Ziv-Av <matan@svgalib.org>,
-        Kenneth Chan <kenneth.t.chan@gmail.com>,
-        Mattia Dongili <malattia@linux.it>,
-        Jeremy Soller <jeremy@system76.com>,
-        Azael Avalos <coproscefalo@gmail.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        platform-driver-x86@vger.kernel.org
-Subject: Re: [PATCH v1] platform/x86: Check ACPI_COMPANION() against NULL
- during probe
-Message-ID: <agJxRrDj2M42R8S1@marvin.atrad.com.au>
-References: <5990022.DvuYhMxLoT@rafael.j.wysocki>
+	s=arc-20240116; t=1778548847; c=relaxed/simple;
+	bh=23HRQSeSUXXpJlupJbUpOhWdWAET4Bp+xdD9yJ1NC/o=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=Cm9Lj5XWc7yYliwXO6B9lZXCE18qG4+b1LX7rJGrx4cD8RHwXHE7ueqkDWMU4THlVQX2q0ZLF6BBdCtVGeZjm2YC1CumVQQ6XycfxDi5AmhbeLRTQXhfxMDaUJMfhaqOj0JPsg4ugQ+rmljN6AB4V6Xr4cuy4osRuWOA7jxQxQY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dg2QvRjE; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dg2QvRjE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D662C2BCB0;
+	Tue, 12 May 2026 01:20:47 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1778548847;
+	bh=23HRQSeSUXXpJlupJbUpOhWdWAET4Bp+xdD9yJ1NC/o=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=dg2QvRjEFhG+IgytybygKfpx1FEuN3z76nj8qSsZrD/lxle7gzfJw66sTgPoYBdPV
+	 VpzUZO8rM3kXPB+3k/LD/pONdVi7xRWLNcnclxXgsZO5iY3v8AX9TuzBKtIiIM3pcg
+	 PTkIGlLe7VabpO9dZRHnyHetjbllAhwACt1gonzdifA1kMAw6aCAvqOK2kHYs011Q2
+	 t8QfB522eESNItcMMDmDQ+aTCfIAlhLzyuMdJXoOJGhZKWwBlWlA0Xn1cSX8caAbSM
+	 92DuP0iltFDSJu4sX0eCzGX91PSx5ELABPyoXv5VxWL9X3kIgMpKA+8cfUkjgqX8WW
+	 8y2YdzVM2gLyw==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id B9F4A39308E4;
+	Tue, 12 May 2026 01:19:54 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5990022.DvuYhMxLoT@rafael.j.wysocki>
-X-MIMEDefang-action: accept
-X-Scanned-By: MIMEDefang 2.86 on 192.168.0.1
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next v2 0/2] net: phy: motorcomm: add ACPI _DSD
+ property
+ support
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <177854879356.2528168.9082191580005110678.git-patchwork-notify@kernel.org>
+Date: Tue, 12 May 2026 01:19:53 +0000
+References: <20260507040221.3679454-1-linchunzhi0@gmail.com>
+In-Reply-To: <20260507040221.3679454-1-linchunzhi0@gmail.com>
+To: chunzhi.lin <linchunzhi0@gmail.com>
+Cc: netdev@vger.kernel.org, Frank.Sae@motor-comm.com, andrew@lunn.ch,
+ hkallweit1@gmail.com, linux@armlinux.org.uk, kuba@kernel.org,
+ pabeni@redhat.com, edumazet@google.com, davem@davemloft.net,
+ linux-acpi@vger.kernel.org, rafael@kernel.org, lenb@kernel.org
 
-On Mon, May 11, 2026 at 09:48:26PM +0200, Rafael J. Wysocki wrote:
-> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Hello:
+
+This series was applied to netdev/net-next.git (main)
+by Jakub Kicinski <kuba@kernel.org>:
+
+On Thu,  7 May 2026 12:02:19 +0800 you wrote:
+> Hi,
 > 
-> Every platform driver can be forced to match a device that doesn't match
-> its list of device IDs because of device_match_driver_override(), so
-> platform drivers that rely on the existence of a device's ACPI companion
-> object need to verify its presence.
+> This series makes the Motorcomm PHY driver parse firmware properties via
+> device_property_*() so the same property set can be provided by either
+> Devicetree or ACPI _DSD.
 > 
-> Accordingly, add requisite ACPI_COMPANION() or ACPI_HANDLE() checks
-> against NULL to multiple platform/x86 drivers that have been converted
-> to platform drivers from ACPI drivers recently.
+> Patch 1 switches drivers/net/phy/motorcomm.c from of_property_*() to
+> device_property_*() on &phydev->mdio.dev.
+> 
+> [...]
 
-For the fujitsu-laptop portions of the patch as below:
+Here is the summary with links:
+  - [v2,1/2] net: phy: motorcomm: use device properties for firmware tuning
+    https://git.kernel.org/netdev/net-next/c/fffedfece2b4
+  - [v2,2/2] docs: acpi: dsd: add Motorcomm yt8xxx PHY properties
+    https://git.kernel.org/netdev/net-next/c/28f431eac1e5
 
-    Acked-by: Jonathan Woithe <jwoithe@just42.net>
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
-Regards
-  jonathan
 
---
-
-> :
-> Fixes: 6da22b031a3c ("platform/x86: fujitsu: Convert laptop driver to a platform one")
-> Fixes: d5c9212ccfaa ("platform/x86: fujitsu: Convert backlight driver to a platform one")
-> :
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->  drivers/platform/x86/fujitsu-laptop.c     |   12 ++++++++++--
-> :
-> --- a/drivers/platform/x86/fujitsu-laptop.c
-> +++ b/drivers/platform/x86/fujitsu-laptop.c
-> @@ -530,10 +530,14 @@ static void acpi_fujitsu_bl_notify(acpi_
->  
->  static int acpi_fujitsu_bl_probe(struct platform_device *pdev)
->  {
-> -	struct acpi_device *device = ACPI_COMPANION(&pdev->dev);
-> +	struct acpi_device *device;
->  	struct fujitsu_bl *priv;
->  	int ret;
->  
-> +	device = ACPI_COMPANION(&pdev->dev);
-> +	if (!device)
-> +		return -ENODEV;
-> +
->  	if (acpi_video_get_backlight_type() != acpi_backlight_vendor)
->  		return -ENODEV;
->  
-> @@ -993,10 +997,14 @@ static void acpi_fujitsu_laptop_notify(a
->  
->  static int acpi_fujitsu_laptop_probe(struct platform_device *pdev)
->  {
-> -	struct acpi_device *device = ACPI_COMPANION(&pdev->dev);
->  	struct fujitsu_laptop *priv;
-> +	struct acpi_device *device;
->  	int ret, i = 0;
->  
-> +	device = ACPI_COMPANION(&pdev->dev);
-> +	if (!device)
-> +		return -ENODEV;
-> +
->  	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
->  	if (!priv)
->  		return -ENOMEM;
