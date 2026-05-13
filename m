@@ -1,106 +1,97 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF3403A6F15
-	for <linux-acpi@vger.kernel.org>; Wed, 13 May 2026 19:26:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25C293793D2;
+	Wed, 13 May 2026 20:42:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.19
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778700370; cv=none; b=as1gJ8Q61wtAlN8hVHTjvoa6+bmOY2eJF6xsYV7hu0uwz2YRl0kd+cV2/BMG7Ms0o/9crugwQgr+mMUhUiFRA0yaYdQAyVrnf0ymcJnmTIpsIkRNoDfRH6na5amXsWh2W5kbsJm2J54FOpmQFzAlpFEhhCLQZSplxXG6wHOxAdY=
+	t=1778704964; cv=none; b=B6nOifDLr0XXEe3JD/yZ63y50MNILJyCCsQnbeXGVgLoZg/EiWsS1QXCHPKsHx9zrLzvo1ldBGjk6tuu1qoxfxePvgNdMsF1zioDhyIqXMqeKt9IQk1E5x/ICdmxZbRA57OAFzFWlCLI4osqMXUkMq6NmIQEhTjK3sFnomQyLVE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778700370; c=relaxed/simple;
-	bh=jkUkWktFpdEdF2Lcj4EAj+e+wcRxBaXPi67I/QnY5NQ=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=BNYmMGnNz/zw5U2p6WNxGksNcTDR6slMFXUu5Hrx3AcVCSu5S5gAH3OnrRmQKgf6qrQjFEVWOihvkrcCMUing2ch6g3/OeOIpa4KVEIZ7nF0ORsXoxqIRAaViGgz47kw16iPSOn9Z3HgzAF+TmzZcYvjD7y6TIMiNiYk4SO56m0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cYGlfSj2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778704964; c=relaxed/simple;
+	bh=b4tiv6EnRYdOIOYOWIdyTPnp4PG2IQAXzJLtKunbDJY=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=M1HpbNA/cxg240orHuKOc9Hqps/VudF5jrm2FgkUKLGM6vxpA2Lp1/1wPxPjKkzmJMC9BpjVLOELLbK4q220dUTjLWzFzi+bcufz+ffFH4QlgrRNYMOB0f2HOlXeEY74aBWQqqYZZ41Q/AahATnJvoFlBq3eHvHxIUZ+fpd+4KY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=YFPQ9lq3; arc=none smtp.client-ip=198.175.65.19
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cYGlfSj2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70E86C2BCFC
-	for <linux-acpi@vger.kernel.org>; Wed, 13 May 2026 19:26:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778700370;
-	bh=jkUkWktFpdEdF2Lcj4EAj+e+wcRxBaXPi67I/QnY5NQ=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=cYGlfSj2/CHzKzyv9me2Zk/HspGP9sjtk4Engs8yoqb2zW9iTZpuRoru+aQDg8KcV
-	 CEivNN1d8In9wMQitua9OBf7lWz7JGVU2BXwSMqwhsjDrgaw9VroxtmQhiVPWihWfx
-	 IozQQUTd3LoCBCP9tlsnzBJWhc5SrgtBEEXIps7vxbey6TVUvgg6W3P+IunX3Lt6kL
-	 5lsFlql/jIyJ5Mi8TcUHdEoBcdsJliEGZoacbbNpWwvqBquVFzVBija05KoWnslRv4
-	 O3QXNx5fZDPvRLLqI9Tk+1kTQPbvK1d4jjK7Kkbz9sEpPCHoijuPNVMzLhU0VhCnqs
-	 sPx4/a+0DCMDA==
-Received: by mail-lf1-f45.google.com with SMTP id 2adb3069b0e04-5a8891febd2so8612520e87.1
-        for <linux-acpi@vger.kernel.org>; Wed, 13 May 2026 12:26:10 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AFNElJ/dSi8DDoDvSoJjCruCRhupBNM59su09bs/ovsDPrM99Ns31DqSjOnKk4T9v2TyNZJhs0x8hO8a3otD@vger.kernel.org
-X-Gm-Message-State: AOJu0Ywrx44VPDoNhvLLXTSYCbfeA804vpYqKxlQX6mhkTxOwp5UCMoN
-	X3/Jb+mJniWLVVSGZnyX0G1fYpwI575/Y319iZZqMV8XZzgcf9o7ZCDQnK3FH7ZdbzmTtglKQgK
-	HGSoIPW8r204PUmm1gogq9MiKstkjFoo=
-X-Received: by 2002:a05:6512:684:b0:5a3:cc81:eff3 with SMTP id
- 2adb3069b0e04-5a8ef97ca57mr1632659e87.26.1778700368753; Wed, 13 May 2026
- 12:26:08 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="YFPQ9lq3"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1778704963; x=1810240963;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=b4tiv6EnRYdOIOYOWIdyTPnp4PG2IQAXzJLtKunbDJY=;
+  b=YFPQ9lq3wUEFgNpQHqL6tBJM/wI1UuVF/gWOsCAOB9Lz0mIgyJKZQOxx
+   O4Na6exJ4oFCk1CpGaXJ8NZ+pc4k+MtkWipOlgCXvQCww/YH8t2AUuC4E
+   gwb5Oxm3+sYfdfOpyh/NQh/AHL/IVYa50Rwt7V1OFX0eru9G8HgmEi9Tq
+   qqvMHxroIsXXgflSPGHK5uUBUBdqfXn8guBvFRGSyXF/Nsc/QFn2H2o7b
+   /OCO1q2hgTt4sJxdeWqlT/cL3USYJxVPHTeN/zBmtzpxpKRkQ8u6zkL9O
+   qrSv5bgjOFOphJCe84iFWSlgP9IJwGgPERH/yr08LuaFfEI8pB4QVAMbC
+   A==;
+X-CSE-ConnectionGUID: WBAuOPUyQv+EnsjKxWgC0Q==
+X-CSE-MsgGUID: zH8HjKgBRPexxrUXEj1aHw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11785"; a="79595464"
+X-IronPort-AV: E=Sophos;i="6.23,233,1770624000"; 
+   d="scan'208";a="79595464"
+Received: from fmviesa005.fm.intel.com ([10.60.135.145])
+  by orvoesa111.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 May 2026 13:42:42 -0700
+X-CSE-ConnectionGUID: AOQFnQSrQ/W+ULwGqcCaUA==
+X-CSE-MsgGUID: r5gm8HS5TUm8Lasynt9MSw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,233,1770624000"; 
+   d="scan'208";a="243154783"
+Received: from slindbla-desk.ger.corp.intel.com (HELO localhost) ([10.245.244.106])
+  by fmviesa005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 May 2026 13:42:41 -0700
+Date: Wed, 13 May 2026 23:42:38 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Linux ACPI <linux-acpi@vger.kernel.org>,
+	Hans de Goede <hansg@kernel.org>,
+	platform-driver-x86@vger.kernel.org
+Subject: Re: [PATCH v1] platform/x86: xo15-ebook: Use devres-based resource
+ management
+Message-ID: <agTiPgeCEEbUEWEY@ashevche-desk.local>
+References: <12913455.O9o76ZdvQC@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260513084325.2176952-1-himanshu.chauhan@oss.qualcomm.com> <20260513084325.2176952-4-himanshu.chauhan@oss.qualcomm.com>
-In-Reply-To: <20260513084325.2176952-4-himanshu.chauhan@oss.qualcomm.com>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Wed, 13 May 2026 21:25:56 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0g2kjfAvcTzp8898A8HdMymU1SQ-rHW_DFhZP49c9=s5Q@mail.gmail.com>
-X-Gm-Features: AVHnY4I62r5FzdLCp8o0gBy8GA7EdJU8GhHm1Xiv_xt-CcqS2_Q5U7R1FjYttsM
-Message-ID: <CAJZ5v0g2kjfAvcTzp8898A8HdMymU1SQ-rHW_DFhZP49c9=s5Q@mail.gmail.com>
-Subject: Re: [PATCH v4 03/10] acpi: Introduce SSE in HEST notification types
-To: Himanshu Chauhan <himanshu.chauhan@oss.qualcomm.com>
-Cc: linux-riscv@lists.infradead.org, linux-kernel@vger.kernel.org, 
-	linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org, 
-	acpica-devel@lists.linux.dev, paul.walmsley@sifive.com, palmer@dabbelt.com, 
-	lenb@kernel.org, james.morse@arm.com, tony.luck@intel.com, ardb@kernel.org, 
-	conor@kernel.org, cleger@rivosinc.com, robert.moore@intel.com, 
-	sunilvl@oss.qualcomm.com, anup.patel@oss.qualcomm.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <12913455.O9o76ZdvQC@rafael.j.wysocki>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On Wed, May 13, 2026 at 10:44=E2=80=AFAM Himanshu Chauhan
-<himanshu.chauhan@oss.qualcomm.com> wrote:
->
-> Introduce a new HEST notification type for RISC-V SSE events.
-> The GHES entry's notification structure contains the notification
-> to be used for a given error source. For error sources delivering
-> events over SSE, it should contain the new SSE notification type.
->
-> Signed-off-by: Himanshu Chauhan <himanshu.chauhan@oss.qualcomm.com>
-> Reviewed-by: Cl=C3=A9ment L=C3=A9ger <cleger@rivosinc.com>
-> ---
->  include/acpi/actbl1.h | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
->
-> diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
-> index f72e00517eb3..2a8167979458 100644
-> --- a/include/acpi/actbl1.h
-> +++ b/include/acpi/actbl1.h
+On Wed, May 13, 2026 at 08:53:44PM +0200, Rafael J. Wysocki wrote:
 
-This is an ACPICA change, so it should go through the upstream ACPICA
-project on GitHub.  See
+> Use devm_kzalloc() and devm_input_allocate_device() in
+> ebook_switch_probe() for allocating the button object and the
+> input device, respectively, to simplify the rollback path in
+> that function and ebook_switch_remove().
 
-Documentation/driver-api/acpi/linuxized-acpica.rst
+...
 
-for more information.
+>  	id = acpi_match_acpi_device(ebook_device_ids, device);
+>  	if (!id) {
+> -		dev_err(&pdev->dev, "Unsupported hid\n");
+> -		error = -ENODEV;
+> -		goto err_free_input;
+> +		dev_err(dev, "Unsupported hid\n");
+> +		return -ENODEV;
 
-If there is already an upstream ACPICA commit making this change,
-please add a Link: tag pointing to that commit to the $subject patch.
+Now we can use
 
-> @@ -1798,7 +1798,8 @@ enum acpi_hest_notify_types {
->         ACPI_HEST_NOTIFY_SEI =3D 9,       /* ACPI 6.1 */
->         ACPI_HEST_NOTIFY_GSIV =3D 10,     /* ACPI 6.1 */
->         ACPI_HEST_NOTIFY_SOFTWARE_DELEGATED =3D 11,       /* ACPI 6.2 */
-> -       ACPI_HEST_NOTIFY_RESERVED =3D 12  /* 12 and greater are reserved =
-*/
-> +       ACPI_HEST_NOTIFY_SSE =3D 12, /* RISCV SSE */
-> +       ACPI_HEST_NOTIFY_RESERVED =3D 13  /* 13 and greater are reserved =
-*/
->  };
->
->  /* Values for config_write_enable bitfield above */
-> --
-> 2.43.0
->
->
+		return dev_err_probe(dev, -ENODEV, "Unsupported hid\n");
+
+>  	}
+
+-- 
+With Best Regards,
+Andy Shevchenko
+
+
