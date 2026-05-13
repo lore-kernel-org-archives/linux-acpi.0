@@ -1,162 +1,106 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F07123AD52A;
-	Wed, 13 May 2026 18:53:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF3403A6F15
+	for <linux-acpi@vger.kernel.org>; Wed, 13 May 2026 19:26:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778698428; cv=none; b=QSWmMTHFdBrWFGN+iMGN1x7JVdCNECLZHmZuN2NEqmx7f8T1K6kHAQl4CaCom9Nves8pQ5fbGOBaGCI+LZberAqngFapRd/E5RSQnbkvFEncs9JjzJWdBpA25nnxryFxHZu6wtn5xo9EG/tKAWw2l6Jlm4ScliKqmaU4CwkMp7E=
+	t=1778700370; cv=none; b=as1gJ8Q61wtAlN8hVHTjvoa6+bmOY2eJF6xsYV7hu0uwz2YRl0kd+cV2/BMG7Ms0o/9crugwQgr+mMUhUiFRA0yaYdQAyVrnf0ymcJnmTIpsIkRNoDfRH6na5amXsWh2W5kbsJm2J54FOpmQFzAlpFEhhCLQZSplxXG6wHOxAdY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778698428; c=relaxed/simple;
-	bh=h67Nep+/LeB6jgt3BV4Gbz4JxruB2JJ7D0Ck6gBRITQ=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=K6V82eBzcphlsZNstbv8FU1jSKrJbgOgdW2joQck+VTzb6s3r6RpVR1ZBzScirdU15T123sALq/gjhTvI8J1zo/RIiGZdX6x9+uNCWyztxtM7NBf1uvatyWCEDOQ2ojRL6ptoiDSDF7T/lp9JL+GeX4xy50WS3xs1LQSdD9JLJo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Zsjhyh+j; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778700370; c=relaxed/simple;
+	bh=jkUkWktFpdEdF2Lcj4EAj+e+wcRxBaXPi67I/QnY5NQ=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=BNYmMGnNz/zw5U2p6WNxGksNcTDR6slMFXUu5Hrx3AcVCSu5S5gAH3OnrRmQKgf6qrQjFEVWOihvkrcCMUing2ch6g3/OeOIpa4KVEIZ7nF0ORsXoxqIRAaViGgz47kw16iPSOn9Z3HgzAF+TmzZcYvjD7y6TIMiNiYk4SO56m0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cYGlfSj2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Zsjhyh+j"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 363D4C19425;
-	Wed, 13 May 2026 18:53:45 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cYGlfSj2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70E86C2BCFC
+	for <linux-acpi@vger.kernel.org>; Wed, 13 May 2026 19:26:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778698427;
-	bh=h67Nep+/LeB6jgt3BV4Gbz4JxruB2JJ7D0Ck6gBRITQ=;
-	h=From:To:Cc:Subject:Date:From;
-	b=Zsjhyh+jlhhxPk8OajbQ32XMuwacs0fhf+ytXQSFlcFoT6WyQzhc4jEKzEIgpTtsC
-	 GF+eaVVtBMHtndnLY0xWUKZL9ud7BYwrwzSEtf5gq0DpG7bgRzS/XvwvQiC9pYpaPL
-	 DS2GWDhvCjmSx8joQB5y6bsGlTwem2pUeGCfr1gl2ZN7HxQWul2LRT7ydSfExJT9xz
-	 ty9SygHx06I46YyLS5h5L60bjbxQ9LVubkJluYyl4qnIDdZBia8JWo6AA8GG1mGMrw
-	 J+aFV/BskyPTkQHzzvpARNk976jLsD9wpzWfrg9Zj4SBDGi8AKm7izWDYooNt6XAba
-	 Fm7vqa7RY5QIg==
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-To: Ilpo =?ISO-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
- Linux ACPI <linux-acpi@vger.kernel.org>, Hans de Goede <hansg@kernel.org>,
- platform-driver-x86@vger.kernel.org,
- Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject:
- [PATCH v1] platform/x86: xo15-ebook: Use devres-based resource management
-Date: Wed, 13 May 2026 20:53:44 +0200
-Message-ID: <12913455.O9o76ZdvQC@rafael.j.wysocki>
-Organization: Linux Kernel Development
+	s=k20201202; t=1778700370;
+	bh=jkUkWktFpdEdF2Lcj4EAj+e+wcRxBaXPi67I/QnY5NQ=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=cYGlfSj2/CHzKzyv9me2Zk/HspGP9sjtk4Engs8yoqb2zW9iTZpuRoru+aQDg8KcV
+	 CEivNN1d8In9wMQitua9OBf7lWz7JGVU2BXwSMqwhsjDrgaw9VroxtmQhiVPWihWfx
+	 IozQQUTd3LoCBCP9tlsnzBJWhc5SrgtBEEXIps7vxbey6TVUvgg6W3P+IunX3Lt6kL
+	 5lsFlql/jIyJ5Mi8TcUHdEoBcdsJliEGZoacbbNpWwvqBquVFzVBija05KoWnslRv4
+	 O3QXNx5fZDPvRLLqI9Tk+1kTQPbvK1d4jjK7Kkbz9sEpPCHoijuPNVMzLhU0VhCnqs
+	 sPx4/a+0DCMDA==
+Received: by mail-lf1-f45.google.com with SMTP id 2adb3069b0e04-5a8891febd2so8612520e87.1
+        for <linux-acpi@vger.kernel.org>; Wed, 13 May 2026 12:26:10 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ/dSi8DDoDvSoJjCruCRhupBNM59su09bs/ovsDPrM99Ns31DqSjOnKk4T9v2TyNZJhs0x8hO8a3otD@vger.kernel.org
+X-Gm-Message-State: AOJu0Ywrx44VPDoNhvLLXTSYCbfeA804vpYqKxlQX6mhkTxOwp5UCMoN
+	X3/Jb+mJniWLVVSGZnyX0G1fYpwI575/Y319iZZqMV8XZzgcf9o7ZCDQnK3FH7ZdbzmTtglKQgK
+	HGSoIPW8r204PUmm1gogq9MiKstkjFoo=
+X-Received: by 2002:a05:6512:684:b0:5a3:cc81:eff3 with SMTP id
+ 2adb3069b0e04-5a8ef97ca57mr1632659e87.26.1778700368753; Wed, 13 May 2026
+ 12:26:08 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
+References: <20260513084325.2176952-1-himanshu.chauhan@oss.qualcomm.com> <20260513084325.2176952-4-himanshu.chauhan@oss.qualcomm.com>
+In-Reply-To: <20260513084325.2176952-4-himanshu.chauhan@oss.qualcomm.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Wed, 13 May 2026 21:25:56 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0g2kjfAvcTzp8898A8HdMymU1SQ-rHW_DFhZP49c9=s5Q@mail.gmail.com>
+X-Gm-Features: AVHnY4I62r5FzdLCp8o0gBy8GA7EdJU8GhHm1Xiv_xt-CcqS2_Q5U7R1FjYttsM
+Message-ID: <CAJZ5v0g2kjfAvcTzp8898A8HdMymU1SQ-rHW_DFhZP49c9=s5Q@mail.gmail.com>
+Subject: Re: [PATCH v4 03/10] acpi: Introduce SSE in HEST notification types
+To: Himanshu Chauhan <himanshu.chauhan@oss.qualcomm.com>
+Cc: linux-riscv@lists.infradead.org, linux-kernel@vger.kernel.org, 
+	linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org, 
+	acpica-devel@lists.linux.dev, paul.walmsley@sifive.com, palmer@dabbelt.com, 
+	lenb@kernel.org, james.morse@arm.com, tony.luck@intel.com, ardb@kernel.org, 
+	conor@kernel.org, cleger@rivosinc.com, robert.moore@intel.com, 
+	sunilvl@oss.qualcomm.com, anup.patel@oss.qualcomm.com
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+On Wed, May 13, 2026 at 10:44=E2=80=AFAM Himanshu Chauhan
+<himanshu.chauhan@oss.qualcomm.com> wrote:
+>
+> Introduce a new HEST notification type for RISC-V SSE events.
+> The GHES entry's notification structure contains the notification
+> to be used for a given error source. For error sources delivering
+> events over SSE, it should contain the new SSE notification type.
+>
+> Signed-off-by: Himanshu Chauhan <himanshu.chauhan@oss.qualcomm.com>
+> Reviewed-by: Cl=C3=A9ment L=C3=A9ger <cleger@rivosinc.com>
+> ---
+>  include/acpi/actbl1.h | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+>
+> diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
+> index f72e00517eb3..2a8167979458 100644
+> --- a/include/acpi/actbl1.h
+> +++ b/include/acpi/actbl1.h
 
-Use devm_kzalloc() and devm_input_allocate_device() in
-ebook_switch_probe() for allocating the button object and the
-input device, respectively, to simplify the rollback path in
-that function and ebook_switch_remove().
+This is an ACPICA change, so it should go through the upstream ACPICA
+project on GitHub.  See
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
+Documentation/driver-api/acpi/linuxized-acpica.rst
 
-As promised, on top of
+for more information.
 
-https://lore.kernel.org/linux-acpi/2420444.ElGaqSPkdT@rafael.j.wysocki/
+If there is already an upstream ACPICA commit making this change,
+please add a Link: tag pointing to that commit to the $subject patch.
 
----
- drivers/platform/x86/xo15-ebook.c |   41 ++++++++++++--------------------------
- 1 file changed, 14 insertions(+), 27 deletions(-)
-
---- a/drivers/platform/x86/xo15-ebook.c
-+++ b/drivers/platform/x86/xo15-ebook.c
-@@ -82,29 +82,29 @@ static SIMPLE_DEV_PM_OPS(ebook_switch_pm
- 
- static int ebook_switch_probe(struct platform_device *pdev)
- {
--	struct acpi_device *device = ACPI_COMPANION(&pdev->dev);
-+	struct device *dev = &pdev->dev;
-+	struct acpi_device *device = ACPI_COMPANION(dev);
- 	const struct acpi_device_id *id;
- 	struct ebook_switch *button;
- 	struct input_dev *input;
- 	int error;
- 
--	button = kzalloc_obj(struct ebook_switch);
-+	button = devm_kzalloc(dev, sizeof(*button), GFP_KERNEL);
- 	if (!button)
- 		return -ENOMEM;
- 
- 	platform_set_drvdata(pdev, button);
- 
--	button->input = input = input_allocate_device();
--	if (!input) {
--		error = -ENOMEM;
--		goto err_free_button;
--	}
-+	input = devm_input_allocate_device(dev);
-+	if (!input)
-+		return -ENOMEM;
-+
-+	button->input = input;
- 
- 	id = acpi_match_acpi_device(ebook_device_ids, device);
- 	if (!id) {
--		dev_err(&pdev->dev, "Unsupported hid\n");
--		error = -ENODEV;
--		goto err_free_input;
-+		dev_err(dev, "Unsupported hid\n");
-+		return -ENODEV;
- 	}
- 
- 	strscpy(acpi_device_name(device), XO15_EBOOK_DEVICE_NAME);
-@@ -115,21 +115,20 @@ static int ebook_switch_probe(struct pla
- 	input->name = acpi_device_name(device);
- 	input->phys = button->phys;
- 	input->id.bustype = BUS_HOST;
--	input->dev.parent = &pdev->dev;
- 
- 	input->evbit[0] = BIT_MASK(EV_SW);
- 	set_bit(SW_TABLET_MODE, input->swbit);
- 
- 	error = input_register_device(input);
- 	if (error)
--		goto err_free_input;
-+		return error;
- 
- 	error = acpi_dev_install_notify_handler(device, ACPI_DEVICE_NOTIFY,
--						ebook_switch_notify, &pdev->dev);
-+						ebook_switch_notify, dev);
- 	if (error)
--		goto err_unregister_input;
-+		return error;
- 
--	ebook_send_state(&pdev->dev);
-+	ebook_send_state(dev);
- 
- 	if (device->wakeup.flags.valid) {
- 		/* Button's GPE is run-wake GPE */
-@@ -139,16 +138,6 @@ static int ebook_switch_probe(struct pla
- 	}
- 
- 	return 0;
--
--err_free_input:
--	input_free_device(input);
--err_free_button:
--	kfree(button);
--	return error;
--
--err_unregister_input:
--	input_unregister_device(input);
--	goto err_free_button;
- }
- 
- static void ebook_switch_remove(struct platform_device *pdev)
-@@ -162,8 +151,6 @@ static void ebook_switch_remove(struct p
- 
- 	acpi_dev_remove_notify_handler(device, ACPI_DEVICE_NOTIFY,
- 				       ebook_switch_notify);
--	input_unregister_device(button->input);
--	kfree(button);
- }
- 
- static struct platform_driver xo15_ebook_driver = {
-
-
-
+> @@ -1798,7 +1798,8 @@ enum acpi_hest_notify_types {
+>         ACPI_HEST_NOTIFY_SEI =3D 9,       /* ACPI 6.1 */
+>         ACPI_HEST_NOTIFY_GSIV =3D 10,     /* ACPI 6.1 */
+>         ACPI_HEST_NOTIFY_SOFTWARE_DELEGATED =3D 11,       /* ACPI 6.2 */
+> -       ACPI_HEST_NOTIFY_RESERVED =3D 12  /* 12 and greater are reserved =
+*/
+> +       ACPI_HEST_NOTIFY_SSE =3D 12, /* RISCV SSE */
+> +       ACPI_HEST_NOTIFY_RESERVED =3D 13  /* 13 and greater are reserved =
+*/
+>  };
+>
+>  /* Values for config_write_enable bitfield above */
+> --
+> 2.43.0
+>
+>
