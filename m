@@ -1,112 +1,71 @@
-Received: from out-179.mta0.migadu.com (out-179.mta0.migadu.com [91.218.175.179])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9F65382288
-	for <linux-acpi@vger.kernel.org>; Tue, 12 May 2026 21:36:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.179
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7B00388878;
+	Wed, 13 May 2026 02:22:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778621797; cv=none; b=lZJtf5Y48uJapFnkZQDBDoPMTInoqMLDeBbgnyiszE703ZrTltGYd7fJWt8GobS22NIZ0xAtHMi/6OQw0sPNSz0Z2Ge6L6Wl3SJBxSXT24ZsU6SeOj7blbg4tJb+wQwKhMDbiXPu5D4N4dmDZ/FkQA4ULHnOAgTCiVQlPKXCJgo=
+	t=1778638940; cv=none; b=XwvUs6lhbsA6J9Vz3f1CnqrP9YaptsFbDrZuVIUXn8WeWOEBuYAfhpa3klQPCQ+5u0VQ3tRMA4zRdZTiZioiEiBevPbdX5jeF1+jGyav0qIeaYN56F3iG+3ESHSSq9chpZcW9x5wQEVfQwyALUW2ALep3NuEmyMhb9EGmvWsmoQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778621797; c=relaxed/simple;
-	bh=0vAP28fh1vXeuE2/nJrsMQ+1H1ysW38QAL3eoe9zj44=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=ARQH8n62t4NfGuM4P+qbujaUwmgJ31tzKVYWKpv4VNx3c0mCB4AKdX8TijlqSJhsxci/y5ZE1M360Qb05988zZntuJJiO+wL8bys+a++0q9I7k51vz86xJ3lDBv1avnsKqyPesPaeJ3hqcpD5ZMvFTiyoDHMcw2oEVuQdGYQq1w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=flipperpa.ws; spf=pass smtp.mailfrom=flipperpa.ws; dkim=pass (2048-bit key) header.d=flipperpa.ws header.i=@flipperpa.ws header.b=5G8IDFcC; arc=none smtp.client-ip=91.218.175.179
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=flipperpa.ws
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flipperpa.ws
+	s=arc-20240116; t=1778638940; c=relaxed/simple;
+	bh=zfdfbDuowTrXp7HhXYyygoNc22j93nrjHdwYMEVqXYQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=HITnptCi+jXy+1HhUYihlim4/axgjqPvLpcp4gmuQY5zRZ243NYz+FuqsyIZrkBeS2G5YRUYAvlUVpTbpKKdjoQK3qszt+CRSxm4eNRsEcsH6n4U+HP7W4hF3mXOKJUmU00CARH5a9fUUa7makga8jHTvJdey4ZUVQ235HWSeUA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=U6UxdXX7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=flipperpa.ws header.i=@flipperpa.ws header.b="5G8IDFcC"
-Message-ID: <1453fe0d-230c-4655-93ad-3f685b8ab713@flipperpa.ws>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=flipperpa.ws;
-	s=key1; t=1778621792;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=FreEy+Htd1nD+3U09B1yurSwA28R+OhBDx0gjRFjvC0=;
-	b=5G8IDFcCrb8yzddOb8HveaXflZMc6dpbiNumgTkuKGTGk1LSKsL+Rku6+2X1+Zore/pCOK
-	3KORjC3Ouw8t17XUm57/isSQBuEKCtvPLrKXykcEIAzH0VB+r/iqSZpIkHpV4HWyNuI4sM
-	y9omTq9SLGJNGJ/GLfz+BJ3b0k1C4O2V0lV0Q2+Gf4aEmOtNpWuKX5z05ACrQliKqjt52f
-	TrxnJOQWb8TLsk7kOFxezLDo6c2YVgoAgBhVJ2TBqMEbX3frEaexDQZkuh9iWBnMpfMV3+
-	QAHvEtjucSPiCr7CY0cpobCY7YENqk+UFi76oSiOY3vGGw4CZvuvG5fUbuHijQ==
-Date: Tue, 12 May 2026 23:36:26 +0200
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="U6UxdXX7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8661DC2BCB0;
+	Wed, 13 May 2026 02:22:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1778638939;
+	bh=zfdfbDuowTrXp7HhXYyygoNc22j93nrjHdwYMEVqXYQ=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=U6UxdXX7YkWMSz1Vhx+ue3H93GTISymWoR3G2vWaBHeSXKXmIUkiTAM7WRIxwrzXG
+	 GtoJOWJ8FMPF6GUYx1wdC3pGb6152JZXDTuLaYSfrdzNINAIULdB+TL0rjdSHNJxHD
+	 nXam+tmNpQoyyFvyGh4A02tecVwbEZxkFTcgAAT0y9KMLCtLSloA3xMsbAwBtjtHHs
+	 xYGILhzxDse5phECC/BlwktXdE93+n0NSS+Vm10tLTxK3KfqxebTZifGxX0CtfyOQp
+	 l+VlSUiuOPZChOsaER0ipnw/j0qkEZtnVU69mdgwlgr1al0NV6M5r3DBWOV1DprtOF
+	 1wJZHi5QmfJvg==
+Date: Wed, 13 May 2026 02:22:16 +0000
+From: Tzung-Bi Shih <tzungbi@kernel.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Benson Leung <bleung@chromium.org>, chrome-platform@lists.linux.dev
+Subject: Re: [PATCH v1 0/3] platform/chrome: Check ACPI_COMPANION() against
+ NULL at probe time
+Message-ID: <agPgWFhTfLoJSSeX@google.com>
+References: <3710526.iIbC2pHGDl@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Subject: Re: [PATCH] i2c: acpi: Add ELAN0678 to
- i2c_acpi_force_100khz_device_ids
-To: Wolfram Sang <wsa+renesas@sang-engineering.com>,
- Niels Franke <nielsfranke@gmail.com>
-Cc: westeri@kernel.org, linux-i2c@vger.kernel.org,
- linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20260418053719.15766-1-nielsfranke@gmail.com>
- <afhkiGREdd50vYNN@ninjato>
-Content-Language: en-US, en-GB
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: Odoben <odoben@flipperpa.ws>
-In-Reply-To: <afhkiGREdd50vYNN@ninjato>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <3710526.iIbC2pHGDl@rafael.j.wysocki>
 
-Hi,
+On Tue, May 12, 2026 at 06:34:06PM +0200, Rafael J. Wysocki wrote:
+> Hi All,
+> 
+> This series fixes up three platform/chrome drivers recently converted to
+> platform drivers to make them check the devices' ACPI companion objects at
+> probe time.
+> 
+> Thanks!
+> 
 
-I have what appears to be the same issue on a ThinkPad X13 Gen 2 with 
-Intel i5-1145G7, but with ACPI HID ELAN0676 instead of ELAN0678.
+Applied to
 
-The touchpad is:
+    https://git.kernel.org/pub/scm/linux/kernel/git/chrome-platform/linux.git for-next
 
-ELAN0676:00 04F3:3195 Touchpad
+[1/3] platform/chrome: chromeos_privacy_screen: Check ACPI_COMPANION()
+      commit: 8a4a217f617b1ac2f8c095f33efd67d947ddb2cf
+[2/3] platform/chrome: chromeos_tbmc: Check ACPI_COMPANION()
+      commit: c15dbae7c856fb53cc6ffb86c6c64ebb816d07c8
+[3/3] platform/chrome: wilco_ec: event: Check ACPI_COMPANION()
+      commit: 51dcff9796fd486d7abf01081ca62e4072789e9d
 
-libinput reports:
-
-Id: i2c:04f3:3195
-
-dmesg shows:
-
-i2c_designware.0 -> i2c-ELAN0676:00 -> hid-multitouch
-
-The ACPI table contains:
-
-Package (0x06)
-{
-0x04F3,
-0x3195,
-0x15,
-One,
-One,
-"ELAN0676"
-}
-
-and the surrounding firmware logic maps the fifth field to speed:
-
-Local5 == Zero -> SPED = 0x000186A0 = 100 kHz
-Local5 == One -> SPED = 0x00061A80 = 400 kHz
-
-So this machine also configures the 04F3:3195 ELAN touchpad at 400 
-kHz. The symptom is very frequent rubbery/sluggish pointer movement, 
-consistent with the excessive smoothing described for ELAN0678.
-
-Would it make sense to include ELAN0676 in the 
-same i2c_acpi_force_100khz_device_ids quirk?
-
-Thanks,
-Odoben
-
-On 2026-05-04 11:19, Wolfram Sang wrote:
-> On Sat, Apr 18, 2026 at 07:37:19AM +0200, Niels Franke wrote:
->> The ELAN0678 touchpad (04F3:3195) found in the Lenovo ThinkPad X13
->> exhibits excessive smoothing when the I2C bus runs at 400KHz, making
->> the touchpad feel sluggish when plugged into AC power. This is the
->> same issue previously fixed for ELAN06FA.
->>
->> The device's ACPI table (Lenovo TP-R22) specifies 0x00061A80 (400KHz)
->> for the I2cSerialBusV2 descriptor. Forcing the bus to 100KHz eliminates
->> the sluggish behavior.
->>
->> Signed-off-by: Niels Franke <nielsfranke@gmail.com>
-> Kept the sorting (alphanumeric) and applied to for-current, thanks!
->
+Thanks!
