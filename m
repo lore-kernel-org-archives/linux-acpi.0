@@ -1,33 +1,33 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id BCC703D7D79;
-	Thu, 14 May 2026 09:10:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 583E228C87C;
+	Thu, 14 May 2026 09:30:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778749816; cv=none; b=cQMJB0ps/RrDObKtH6oA45BaisqCmNE7GRqTZX6sZQl+a426cmfmJCB8mXdzPN4kxEncW+MQL+5w/SbgmnxFom3gyP6avQd+t3CCCQGHWI/rthxYCmuPNIbIOuA56zmKNq0TyeHjLjc41pbteZH3sHk46y/4xs/7fFDMtiVdZA0=
+	t=1778751042; cv=none; b=c+JGdpNpEKpHzGLfJC/jZ1kavSgHwya3AFZNn76uHO25MNbkAPqwB+h4TW2lLYcbUja2gvmQPQkfWvbJoTN5N4T/oh+hVVS0rEYfBiW1TF+VGJRuGsvTj63hEAZ6UesnfTk09/Kk+XXyYfadHh33K9rCoEphIwVSgk0f86NXXm4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778749816; c=relaxed/simple;
-	bh=6WdgSVMT1/HuNpQmTptj568ulJx8H66BVsxpAr09b64=;
+	s=arc-20240116; t=1778751042; c=relaxed/simple;
+	bh=y3gtJvNPzCP1iiJATyDYhKo/1mGzrMwzA2uwBxMeefA=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=PQrzb7ZbPjInXoWSrXbBpVGK2pY+2ZW3t/c9trQ9SoUOFpY/gdTmQG+ABA1Rs6hRroO8siF0h2IiYfrDaCrMuHctpbY9vNMYsgI7h66wgcO2cNPU5rb1w3SW8JgFzQA+uMgh3J9m1nbiC3ChQNon7CApRE0bo/BaMzqm58Yk/dM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=dGDtK0A4; arc=none smtp.client-ip=217.140.110.172
+	 In-Reply-To:Content-Type; b=QixBgTtQkKmKS+0y1s38OOyFR5/OqI2OU8erVvwXHMh3IYMzjuwQ7H7g6a7cY+vg/eUgTSVW4o0d7+BYEqPAgMnPbbhei8FdqTwYaDxgHeuA+D302Jyd1CsQXpIA8qU8hHXsxSsa4dVjhuwfSexj6Qzwe7UUpz/X5ZSqQDF/BwE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=Trv3pqBq; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="dGDtK0A4"
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="Trv3pqBq"
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id DE5563502;
-	Thu, 14 May 2026 02:10:08 -0700 (PDT)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 071723502;
+	Thu, 14 May 2026 02:30:34 -0700 (PDT)
 Received: from [10.1.196.46] (e134344.arm.com [10.1.196.46])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 0733A3F85F;
-	Thu, 14 May 2026 02:10:11 -0700 (PDT)
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id CAFCD3F85F;
+	Thu, 14 May 2026 02:30:36 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1778749814; bh=6WdgSVMT1/HuNpQmTptj568ulJx8H66BVsxpAr09b64=;
+	t=1778751039; bh=y3gtJvNPzCP1iiJATyDYhKo/1mGzrMwzA2uwBxMeefA=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=dGDtK0A4Gt7rlrsd7zSytiBBV0jCpOpMzhhPBLrR7Rl6GygveWfJtBdh8JtTyNN5i
-	 LVI90aLOElSV4O8S/j4nQkbGmNEWmbO23VhMjDb0VtSgUoQ0N+QsIDx2qwF+1avWGM
-	 OFqYbGR4TT3h/3vn4NuYY2JLu7S6CrtpgITZH7cQ=
-Message-ID: <9b9dddc6-16d0-44a9-a785-37c072f73af0@arm.com>
-Date: Thu, 14 May 2026 10:10:04 +0100
+	b=Trv3pqBq75R94D0uW57IhDdAAALp4HFw1AbhNn1VcpWSrxDlU/5GJBvOMl04TzMLH
+	 5Q3GaYehNrBm3BMmHTXjhVc7LlgnnT7TZ7ts8FUQyB36ImkQQR3vHHB113wORWVolT
+	 dDGxPwY/u9uVsFSxekzjIGltAy7Upc0YaoL9KpkY=
+Message-ID: <b73bc4e8-ac7a-45ee-9eaa-557fb41d5ad2@arm.com>
+Date: Thu, 14 May 2026 10:30:35 +0100
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -35,7 +35,7 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Thunderbird Daily
-Subject: Re: [PATCH 5/5] arm_mpam: detect and enable MPAM-Fb PCC support
+Subject: Re: [PATCH 3/5] arm_mpam: add MPAM-Fb MSC firmware access support
 To: Andre Przywara <andre.przywara@arm.com>,
  Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo
  <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>,
@@ -46,188 +46,139 @@ To: Andre Przywara <andre.przywara@arm.com>,
 Cc: Jonathan Cameron <jic23@kernel.org>, linux-acpi@vger.kernel.org,
  linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 References: <20260429141339.3171205-1-andre.przywara@arm.com>
- <20260429141339.3171205-6-andre.przywara@arm.com>
- <42144185-2d4b-4340-a2e4-aff871637e2f@arm.com>
- <81f8bea6-bcf3-4523-ae0e-3d45c32800cb@arm.com>
+ <20260429141339.3171205-4-andre.przywara@arm.com>
 Content-Language: en-US
 From: Ben Horgan <ben.horgan@arm.com>
-In-Reply-To: <81f8bea6-bcf3-4523-ae0e-3d45c32800cb@arm.com>
+In-Reply-To: <20260429141339.3171205-4-andre.przywara@arm.com>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 
 Hi Andre,
 
-On 5/13/26 15:51, Andre Przywara wrote:
-> Hi Ben,
+I'm just having another look to try and understand this a bit better.
+
+On 4/29/26 15:13, Andre Przywara wrote:
+> The Arm MPAM Firmware-backed (Fb) Profile document[1] describes an
+> alternative way of accessing the "Memory System Components" (MSC) in an
+> MPAM enabled system.
+> Normally the MSCs are MMIO mapped, but in some implementations this
+> might not be possible (MSC located outside of the local socket, MSC
+> mapped secure-only) or desirable (direct MMIO access too slow or needs
+> to be mediated through a control processor). MPAM-fb standardises a
+> protocol to abstract MSC accesses, building on the SCMI protocol.
 > 
-> On 5/8/26 12:48, Ben Horgan wrote:
->> Hi Andre,
->>
->> On 4/29/26 15:13, Andre Przywara wrote:
->>> The Arm MPAM-Fb specification [1] describes a protocol to access MSC
->>> registers through a firmware interface. This requires a shared memory
->>> region to hold the message, and a mailbox to trigger the access.
->>> For ACPI this is wrapped as a PCC channel, described using existing
->>> ACPI abstractions.
->>>
->>> Add code to parse those PCC table descriptions associated with an MSC,
->>> and store the parsed information in the MSC struct.
->>> This will be used by the MPAM-Fb access wrapper code.
->>>
->>> [1] https://developer.arm.com/documentation/den0144/latest
->>>
->>> Signed-off-by: Andre Przywara <andre.przywara@arm.com>
->>> ---
->>>   drivers/acpi/arm64/mpam.c      |  2 ++
->>>   drivers/resctrl/mpam_devices.c | 46 +++++++++++++++++++++++++++++++---
->>>   2 files changed, 45 insertions(+), 3 deletions(-)
->>>
->>> diff --git a/drivers/acpi/arm64/mpam.c b/drivers/acpi/arm64/mpam.c
->>> index 99c2bdbb3314..edb4d10e8dc3 100644
->>> --- a/drivers/acpi/arm64/mpam.c
->>> +++ b/drivers/acpi/arm64/mpam.c
->>> @@ -341,6 +341,8 @@ static struct platform_device * __init acpi_mpam_parse_msc(struct acpi_mpam_msc_
->>>       } else if (iface == MPAM_IFACE_PCC) {
->>>           props[next_prop++] = PROPERTY_ENTRY_U32("pcc-channel",
->>>                               tbl_msc->base_address);
->>> +        props[next_prop++] = PROPERTY_ENTRY_U32("msc-id",
->>> +                            tbl_msc->identifier);
->>>       }
->>>         acpi_mpam_parse_irqs(pdev, tbl_msc, res, &next_res);
->>> diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_devices.c
->>> index 62aa04cb6905..6f0d0959d3a4 100644
->>> --- a/drivers/resctrl/mpam_devices.c
->>> +++ b/drivers/resctrl/mpam_devices.c
->>> @@ -19,6 +19,7 @@
->>>   #include <linux/irqdesc.h>
->>>   #include <linux/list.h>
->>>   #include <linux/lockdep.h>
->>> +#include <linux/mailbox_client.h>
->>>   #include <linux/mutex.h>
->>>   #include <linux/platform_device.h>
->>>   #include <linux/printk.h>
->>> @@ -27,6 +28,9 @@
->>>   #include <linux/types.h>
->>>   #include <linux/workqueue.h>
->>>   +#include <acpi/pcc.h>
->>> +#include <acpi/acpi_io.h>
->>> +
->>>   #include "mpam_internal.h"
->>>   #include "mpam_fb.h"
->>>   @@ -1042,7 +1046,8 @@ static u64 mpam_msc_read_mbwu_l(struct mpam_msc *msc)
->>>         mpam_mon_sel_lock_held(msc);
->>>   -    WARN_ON_ONCE((MSMON_MBWU_L + sizeof(u64)) > msc->mapped_hwpage_sz);
->>> +    if (msc->iface == MPAM_IFACE_MMIO)
->>> +        WARN_ON_ONCE((MSMON_MBWU_L + sizeof(u64)) > msc->mapped_hwpage_sz);
->>
->> This should be in a different patch.
+> Add functions that do an MSC read or write access by redirecting the
+> request through a firmware interface. For now this done via an ACPI
+> PCC shared memory and mailbox combination.
 > 
-> Which one, preferably? A separate one? Or patch 3/5, which adds the PCC access code?
-> This one here is the patch that enables non-MMIO accesses, so I figured that's the place we should relax this check.
-
-I thought this matched the WARN_ON_ONCE() changes in patch 3/5 but that patch just concentrates on the lower level so
-I'm ok to keep it in this patch. I think you've missed a similar WARN_ON_ONCE() in mpam_msc_zero_mbwu_l() though.
-
+> Since the protocol used is only a small subset of the full SCMI spec,
+> and the SCMI protocol has no full ACPI support anyway, open-code the
+> SCMI message generation and handshake, for just the fields we need.
 > 
->>
->>>       WARN_ON_ONCE(!cpumask_test_cpu(smp_processor_id(), &msc->accessibility));
->>>         mbwu_l_high2 = __mpam_read_reg(msc, MSMON_MBWU_L + 4);
->>> @@ -2042,10 +2047,15 @@ static void mpam_msc_drv_remove(struct platform_device *pdev)
->>>       mpam_free_garbage();
->>>   }
->>>   +static void mpam_pcc_rx_callback(struct mbox_client *cl, void *msg)
->>> +{
->>> +    /* TODO: wake up tasks blocked on this MSC's PCC channel */
->>> +}
->>> +
->>>   static struct mpam_msc *do_mpam_msc_drv_probe(struct platform_device *pdev)
->>>   {
->>>       int err;
->>> -    u32 tmp;
->>> +    u32 pcc_subspace_id;
->>>       struct mpam_msc *msc;
->>>       struct resource *msc_res;
->>>       struct device *dev = &pdev->dev;
->>> @@ -2090,7 +2100,8 @@ static struct mpam_msc *do_mpam_msc_drv_probe(struct platform_device *pdev)
->>>       if (err)
->>>           return ERR_PTR(err);
->>>   -    if (device_property_read_u32(&pdev->dev, "pcc-channel", &tmp))
->>> +    if (device_property_read_u32(&pdev->dev, "pcc-channel",
->>> +                     &pcc_subspace_id))
->>>           msc->iface = MPAM_IFACE_MMIO;
->>>       else
->>>           msc->iface = MPAM_IFACE_PCC;
->>> @@ -2106,6 +2117,35 @@ static struct mpam_msc *do_mpam_msc_drv_probe(struct platform_device *pdev)
->>>           }
->>>           msc->mapped_hwpage_sz = msc_res->end - msc_res->start;
->>>           msc->mapped_hwpage = io;
->>> +    } else if (msc->iface == MPAM_IFACE_PCC) {
->>> +        u32 msc_id;
->>> +
->>> +        msc->pcc_cl.dev = &pdev->dev;
->>> +        msc->pcc_cl.rx_callback = mpam_pcc_rx_callback;
->>> +        msc->pcc_cl.tx_block = false;
->>
->> How do we make sure that, for instance, a MON_SEL write has completed before we start reading
->> the associated counters? Is there an ordering guarantee?
+> [1] https://developer.arm.com/documentation/den0144/latest
 > 
-> What is your concern here, exactly? To group all the accesses selected by one MON_SEL write, we have the mon_sel lock
-> (now mutex) already. And on the mbox side I think we are safe because the PCC channel is exclusive, we have the per-
-> channel mutex (pcc_chan_lock, in patch 3/5), and we wait for confirmation from the other end, even for writes. So as
+> Signed-off-by: Andre Przywara <andre.przywara@arm.com>
+> ---
+>  drivers/resctrl/Makefile        |   2 +-
+>  drivers/resctrl/mpam_devices.c  |  16 +++-
+>  drivers/resctrl/mpam_fb.c       | 158 ++++++++++++++++++++++++++++++++
+>  drivers/resctrl/mpam_fb.h       |  17 ++++
+>  drivers/resctrl/mpam_internal.h |   5 +
+>  include/linux/arm_mpam.h        |   2 +-
+>  6 files changed, 196 insertions(+), 4 deletions(-)
+>  create mode 100644 drivers/resctrl/mpam_fb.c
+>  create mode 100644 drivers/resctrl/mpam_fb.h
+[...]
+>  static inline void _mpam_write_partsel_reg(struct mpam_msc *msc, u16 reg, u32 val)
+> diff --git a/drivers/resctrl/mpam_fb.c b/drivers/resctrl/mpam_fb.c
+> new file mode 100644
+> index 000000000000..bfb5798c74b0
+> --- /dev/null
+> +++ b/drivers/resctrl/mpam_fb.c
+[...]
+> +
+> +#define SCMI_CHANNEL_FREE	true
+> +#define SCMI_CHANNEL_BUSY	false
+> +static int mpam_fb_wait_for_channel(struct pcc_mbox_chan *chan,
+> +				    bool free)
+> +{
+> +	u32 status = free ? SCMI_CHAN_STATUS_FREE_BIT : 0;
+> +	u32 val;
+> +
+> +	/*
+> +	 * The channel should really be free always at this point, as we take
+> +	 * a lock for every read or write request. Check the free bit anyway,
+> +	 * for good measure and to catch corner cases.
+> +	 */
+> +	return readl_poll_timeout(chan->shmem + SCMI_CHAN_STATUS_OFS, val,
+> +				  (val & SCMI_CHAN_STATUS_FREE_BIT) == status,
+> +				  1, 10000);
+> +}
 
-That sounds like there is no problem then. I wasn't sure that we were waiting for confirmation of writes. We can assume
-that the f/w end of the link processing the requests in the order it acknowledges them, right?
-
-Is the waiting for confirmation of writes done by this bit of patch 3?
-
-+	status = readl(chan->shmem + SCMI_MSG_HEADER_OFS);
-+	if (FIELD_GET(MPAM_MSC_TOKEN_MASK, status) != token)
-+		return -ETIMEDOUT;
-
-
-> long as the MON_SEL write appears in program order before the counter read, all should be good, no? Am I missing something?
-
-I expect that I'm the one who was missing something.
+What would be the reason to call mpam_fb_wait_for_channel() with
+free=SCMI_CHANNEL_BUSY? I see that in this patch you always call it with
+free=SCMI_CHANNEL_FREE.
 
 Thanks,
 
 Ben
 
-> 
-> Cheers,
-> Andre
-> 
->>
->> Thanks,
->>
->> Ben
->>
->>> +        msc->pcc_cl.tx_tout = 1000; /* 1s */
->>> +        msc->pcc_cl.knows_txdone = false;
->>> +
->>> +        if (device_property_read_u32(&pdev->dev, "msc-id", &msc_id)) {
->>> +            pr_err("missing MPAM-Fb MSC identifier\n");
->>> +            return ERR_PTR(-EINVAL);
->>> +        }
->>> +        msc->mpam_fb_msc_id = msc_id;
->>> +
->>> +        msc->pcc_chan = pcc_mbox_request_channel(&msc->pcc_cl,
->>> +                             pcc_subspace_id);
->>> +        if (IS_ERR(msc->pcc_chan)) {
->>> +            pr_err("Failed to request MSC PCC channel\n");
->>> +            return (void *)msc->pcc_chan;
->>> +        }
->>> +
->>> +        if (msc->pcc_chan->shmem_size < MPAM_FB_MAX_MSG_SIZE) {
->>> +            pr_err("MPAM-Fb PCC channel size too small.\n");
->>> +            pcc_mbox_free_channel(msc->pcc_chan);
->>> +            return ERR_PTR(-ENOMEM);
->>> +        }
->>> +
->>> +        mutex_init(&msc->pcc_chan_lock);
->>>       } else {
->>>           return ERR_PTR(-EINVAL);
->>>       }
->>
-> 
+> +
+> +static int mpam_fb_send_request(struct mpam_msc *msc, u16 reg, u32 *result,
+> +				bool is_write)
+> +{
+> +	unsigned int token = atomic_inc_return(&mpam_fb_token);
+> +	struct pcc_mbox_chan *chan = msc->pcc_chan;
+> +	u32 status;
+> +	int ret;
+> +
+> +	guard(mutex)(&msc->pcc_chan_lock);
+> +	ret = mpam_fb_wait_for_channel(chan, SCMI_CHANNEL_FREE);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	/* Clear error bit and mark the channel as belonging to the callee */
+> +	writel(0, chan->shmem + SCMI_CHAN_STATUS_OFS);
+> +
+> +	if (is_write)
+> +		ret = mpam_fb_build_write_message(msc->mpam_fb_msc_id, reg,
+> +						  *result, token, chan->shmem);
+> +	else
+> +		ret = mpam_fb_build_read_message(msc->mpam_fb_msc_id, reg,
+> +						 token, chan->shmem);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	ret = mbox_send_message(chan->mchan, NULL);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	ret = mpam_fb_wait_for_channel(chan, SCMI_CHANNEL_FREE);
+> +	if (ret)
+> +		return ret;
+> +
+> +	status = readl(chan->shmem + SCMI_MSG_HEADER_OFS);
+> +	if (FIELD_GET(MPAM_MSC_TOKEN_MASK, status) != token)
+> +		return -ETIMEDOUT;
+> +
+> +	ret = readl(chan->shmem + SCMI_MSG_PAYLOAD_OFS + 0x0);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	if (!is_write)
+> +		*result = readl(chan->shmem + SCMI_MSG_PAYLOAD_OFS + 0x4);
+> +
+> +	return 0;
+> +}
+> +
+> +int mpam_fb_send_read_request(struct mpam_msc *msc, u16 reg, u32 *result)
+> +{
+> +	return mpam_fb_send_request(msc, reg, result, false);
+> +}
+> +
+> +int mpam_fb_send_write_request(struct mpam_msc *msc, u16 reg, u32 value)
+> +{
+> +	return mpam_fb_send_request(msc, reg, &value, true);
+> +}
+
 
