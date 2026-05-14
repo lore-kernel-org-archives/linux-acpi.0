@@ -1,125 +1,108 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from meesny.iki.fi (meesny.iki.fi [195.140.195.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D79C13DFC78;
-	Thu, 14 May 2026 15:10:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778771407; cv=none; b=ZMyeXGPi2Cla/w/xEFX6bX8t7GX8oh3YGHPOqQ7IhIWLggJu1QGscU6xSnpfr7WRyPnWmwBgnurjZWGg+b9O2prhvz9bv3H+EJr8w2E4b6oyDcxSQ2V6lMHfa7FZhDeW7xBGo7u1Ld6yAJre/yUHsIqlN1eQ0JlqbLr6cNz6/VE=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778771407; c=relaxed/simple;
-	bh=aUhTz9jm+Ra2Q6RC2n0qYxb1bA+A3HUaTCXCNCF7HOA=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Ffzk+iwEeeYYPpscD6SBjNk5Yw+7yUZjFAN9ngJB8UZF+my8GCfSf7SqZkpfFPID4VhH7vFN1/kGMkBZULvGBGl8/VvMh4CnlGlq7QAUkwWxrY80ksHyl/EMnjj8ovFy2xG7u2qlrRYyNnG/4PCBKQfp1aQ0878ioRReCxwVPxs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=p/mr/DHL; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D64A389E18;
+	Thu, 14 May 2026 17:10:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=195.140.195.201
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1778778608; cv=pass; b=nBrTP6IHfCd1C6MkYLyYkkmb2u56RjvaGALF+8Upg2Uwua7qkTLNs/c1Lweq79fEOPLGDxFrk/TjO1eO/n7W6jNktrmWN1mYRNhdQN2GjA2rb4O8oUNaMhMMPJ0PK3Sae8AQ6mCuedcWnE4psfyhrk9GYoSfyrSIXbP+QnL1ghk=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1778778608; c=relaxed/simple;
+	bh=quVLhMAGCotpq7Q3ZXdmJatR0Zaz1mKaf2HjspYcorE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=XFRmb/UeAvfL+V6vVh7HlK6uT+63MlpIezjCYKCaRQ1w8nPRnjNGOk4eh6PZRVHaUyDlZKEj6YYcKy+4eBHTOfd2W69Dp3WPuOLparO6khUTM6uvqgMsuAzGYwoMxp8gQ5WfQsH5tpPCSEqmv8LE5hg3l9FqxC2OVBIcLGZquZ8=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iki.fi; spf=pass smtp.mailfrom=iki.fi; dkim=pass (1024-bit key) header.d=iki.fi header.i=@iki.fi header.b=NBmeMdjE; arc=pass smtp.client-ip=195.140.195.201
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iki.fi
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iki.fi
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="p/mr/DHL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4ECF2C2BCC9;
-	Thu, 14 May 2026 15:10:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778771406;
-	bh=aUhTz9jm+Ra2Q6RC2n0qYxb1bA+A3HUaTCXCNCF7HOA=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=p/mr/DHL62FqjAlt+scNdgghJYFGghyQpnZdxz19HujERiMA3DcovaJKai0z39pHP
-	 WjgfvM+FtUY6fJ5+Pb+nHms5M9xQTXp1txiplYm7/bA705yRybXiAcGvgNwV+Vwgnn
-	 EWVhAO1qtgtHbPix28nU0FJBDN6njTAKJk8fWBEbq07e1YNjCwN09fCdLIjOVLLw6V
-	 dWclJ74btBgQtpng2GaR4qfqaZCj5c0RxYkQa4azpRZK4TAUruVs7g6QJFbXrdUgY4
-	 szvvwIwNd55M3aM+/9E+5LuaxYSrINL8NLGGsPmkdVKyLtB4ZF4Ha/94FANvU8CWBo
-	 WwlK8rkZm9Srg==
-Received: from sofa.misterjones.org ([185.219.108.64] helo=valley-girl.lan)
-	by disco-boy.misterjones.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.98.2)
-	(envelope-from <maz@kernel.org>)
-	id 1wNXhM-00000002Oqg-1mBD;
-	Thu, 14 May 2026 15:10:04 +0000
-From: Marc Zyngier <maz@kernel.org>
-To: linux-arm-kernel@lists.infradead.org,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>,
-	Hanjun Guo <guohanjun@huawei.com>,
-	Sudeep Holla <sudeep.holla@kernel.org>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will@kernel.org>,
+	dkim=pass (1024-bit key) header.d=iki.fi header.i=@iki.fi header.b="NBmeMdjE"
+Received: from darkstar.musicnaut.iki.fi (85-76-71-86-nat.elisa-mobile.fi [85.76.71.86])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange secp256r1 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	(Authenticated sender: aaro.koskinen)
+	by meesny.iki.fi (Postfix) with ESMTPSA id 4gGcJf05VvzyNR;
+	Thu, 14 May 2026 20:09:53 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=iki.fi; s=meesny;
+	t=1778778597;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=ranXWKRhhfeffYG39L6YAknxenMYzYXGHr09Vb/2vp0=;
+	b=NBmeMdjENBZTv7/Amm+WcH+TaIAVge9MiDpPc7lqohkAw3Yxll7B2Fq4P31BjFEqxZAZXr
+	pvhjydh1WCfWORgWOg7eggMsIXKqgoM9EW/k/DMxGVsEfVZYkSFKhzJIuv21phLMxkSVBR
+	TGl6dqLpHkSmVHQ46MIhlLNzay74470=
+ARC-Seal: i=1; a=rsa-sha256; d=iki.fi; s=meesny; cv=none; t=1778778597;
+	b=QPYw6Vu51ExZfbQa3Xj3m/1pL5ULQl202XrGAgHYwZCmkap4askr0+RYiySHKCPNWTm/uV
+	wQHfc5vQ0ZKht7lm/yg+tcPi/ZITb+Ip0VPf12Lu8fZoL3twhhNblYyVrQCsyuKT4sm0/4
+	DGI5syvOFtPw+Kh1soGrk9DAPhpIuJU=
+ARC-Authentication-Results: i=1;
+	ORIGINATING;
+	auth=pass smtp.auth=aaro.koskinen smtp.mailfrom=aaro.koskinen@iki.fi
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=iki.fi;
+	s=meesny; t=1778778597;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=ranXWKRhhfeffYG39L6YAknxenMYzYXGHr09Vb/2vp0=;
+	b=lUtqBFVa0qm8A+UC5ouzsPiunNWCpn+iSiB1yuaIBBvGrtv+En5LaVobuqeSEBiTKnfC2y
+	a8m08Fn+kifwUh+pl19P1UNOM3zGNxSn88WFI69Vd74FwsWDtnuaJ4T/0xx9pB7lI4RZl5
+	WkgloBlnkeewHzjEJTAEv2NZbGWeEmE=
+Date: Thu, 14 May 2026 20:09:51 +0300
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+To: Andreas Kemnade <andreas@kemnade.info>
+Cc: Bartosz Golaszewski <brgl@kernel.org>,
+	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
 	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Daniel Lezcano <daniel.lezcano@kernel.org>,
-	Thomas Gleixner <tglx@kernel.org>,
-	Rob Herring <robh@kernel.org>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	Chen-Yu Tsai <wens@kernel.org>,
-	Jernej Skrabec <jernej.skrabec@gmail.com>,
-	Samuel Holland <samuel@sholland.org>,
-	Neil Armstrong <neil.armstrong@linaro.org>,
-	Kevin Hilman <khilman@baylibre.com>,
-	Jerome Brunet <jbrunet@baylibre.com>,
-	Martin Blumenstingl <martin.blumenstingl@googlemail.com>,
-	Ge Gordon <gordon.ge@bst.ai>,
-	BST Linux Kernel Upstream Group <bst-upstream@bstai.top>,
-	Jesper Nilsson <jesper.nilsson@axis.com>,
-	Lars Persson <lars.persson@axis.com>,
-	Alim Akhtar <alim.akhtar@samsung.com>,
-	Ivaylo Ivanov <ivo.ivanov.ivanov1@gmail.com>,
-	Frank Li <Frank.Li@nxp.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Pengutronix Kernel Team <kernel@pengutronix.de>,
-	Fabio Estevam <festevam@gmail.com>,
-	Dinh Nguyen <dinguyen@kernel.org>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
-	Thierry Reding <thierry.reding@kernel.org>,
-	Jonathan Hunter <jonathanh@nvidia.com>,
-	Bjorn Andersson <andersson@kernel.org>,
-	Konrad Dybcio <konradybcio@kernel.org>,
-	=?UTF-8?q?Andreas=20F=C3=A4rber?= <afaerber@suse.de>,
-	Heiko Stuebner <heiko@sntech.de>,
-	Shawn Lin <shawn.lin@rock-chips.com>,
-	Orson Zhai <orsonzhai@gmail.com>,
-	Baolin Wang <baolin.wang@linux.alibaba.com>,
-	Michal Simek <michal.simek@amd.com>
-Subject: [PATCH v2 17/17] arm64: dts: xilinx: Add EL2 virtual timer interrupt
-Date: Thu, 14 May 2026 16:09:45 +0100
-Message-ID: <20260514150945.3917510-18-maz@kernel.org>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260514150945.3917510-1-maz@kernel.org>
-References: <20260514150945.3917510-1-maz@kernel.org>
+	Danilo Krummrich <dakr@kernel.org>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Janusz Krzysztofik <jmkrzyszt@gmail.com>,
+	Tony Lindgren <tony@atomide.com>,
+	Russell King <linux@armlinux.org.uk>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Kevin Hilman <khilman@baylibre.com>, Arnd Bergmann <arnd@arndb.de>,
+	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org,
+	linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-omap@vger.kernel.org
+Subject: Re: [PATCH v7 0/3] ARM: omap1: use real firmware node lookup for
+ GPIOs on Nokia 770
+Message-ID: <agYB3-T9yz9-hdr4@darkstar.musicnaut.iki.fi>
+References: <20260430-nokia770-gpio-swnodes-v7-0-c88f74c90dd6@oss.qualcomm.com>
+ <CAMRc=MdN9EpQVW=1Sb-9hRdt56Y5NNbskujjq2RiXhu90t0QyA@mail.gmail.com>
+ <20260513145926.2dc4d037@kemnade.info>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 185.219.108.64
-X-SA-Exim-Rcpt-To: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, lpieralisi@kernel.org, guohanjun@huawei.com, sudeep.holla@kernel.org, catalin.marinas@arm.com, will@kernel.org, rafael@kernel.org, mark.rutland@arm.com, daniel.lezcano@kernel.org, tglx@kernel.org, robh@kernel.org, krzk+dt@kernel.org, conor+dt@kernel.org, wens@kernel.org, jernej.skrabec@gmail.com, samuel@sholland.org, neil.armstrong@linaro.org, khilman@baylibre.com, jbrunet@baylibre.com, martin.blumenstingl@googlemail.com, gordon.ge@bst.ai, bst-upstream@bstai.top, jesper.nilsson@axis.com, lars.persson@axis.com, alim.akhtar@samsung.com, ivo.ivanov.ivanov1@gmail.com, Frank.Li@nxp.com, s.hauer@pengutronix.de, kernel@pengutronix.de, festevam@gmail.com, dinguyen@kernel.org, matthias.bgg@gmail.com, angelogioacchino.delregno@collabora.com, thierry.reding@kernel.org, jonathanh@nvidia.com, andersson@kernel.org, konradybcio@kernel.org, afaerber@suse.de, heiko@sntech.de, shawn.lin@rock-chips.com, orsonzhai@gmail.com, baolin.wang@linux.alibaba.com, michal.simek@amd.com
-X-SA-Exim-Mail-From: maz@kernel.org
-X-SA-Exim-Scanned: No (on disco-boy.misterjones.org); SAEximRunCond expanded to false
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260513145926.2dc4d037@kemnade.info>
 
-The ARMv8.2 based CPUs used in the versal SoC are missing the EL2 virtual
-timer interrupt. Add it.
+Hi,
 
-Acked-by: Michal Simek <michal.simek@amd.com>
-Signed-off-by: Marc Zyngier <maz@kernel.org>
----
- arch/arm64/boot/dts/xilinx/versal-net.dtsi | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+On Wed, May 13, 2026 at 02:59:26PM +0200, Andreas Kemnade wrote:
+> On Mon, 11 May 2026 15:34:39 +0200
+> Bartosz Golaszewski <brgl@kernel.org> wrote:
+> > > This converts Nokia 770 to using real firmware node lookup for GPIOs by
+> > > attaching the software nodes describing GPIO controllers to their target
+> > > devices.
+> > >
+> > > Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+> > 
+> > Hi!
+> > 
+> > Gentle ping, can this be queued now for v7.2?
+> > 
+> So any objections from your side, Aaro?
 
-diff --git a/arch/arm64/boot/dts/xilinx/versal-net.dtsi b/arch/arm64/boot/dts/xilinx/versal-net.dtsi
-index 15f767608e67f..0aac93675ad77 100644
---- a/arch/arm64/boot/dts/xilinx/versal-net.dtsi
-+++ b/arch/arm64/boot/dts/xilinx/versal-net.dtsi
-@@ -728,7 +728,8 @@ fpga: fpga-region {
- 
- 	timer: timer {
- 		compatible = "arm,armv8-timer";
--		interrupts = <1 13 4>, <1 14 4>, <1 11 4>, <1 10 4>;
-+		interrupts = <1 13 4>, <1 14 4>, <1 11 4>, <1 10 4>,
-+			     <1 12 4>;
- 	};
- 
- 	versal_fpga: versal-fpga {
--- 
-2.47.3
+It's fine.
 
+Acked-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+
+A.
