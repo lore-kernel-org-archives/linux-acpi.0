@@ -1,37 +1,36 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCA54426EA7;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC916426EA0;
 	Thu, 14 May 2026 15:09:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778771399; cv=none; b=mtA4QErR1ig68SK6yyU2+/ttzf/jERtjTcdxjso1imGCTQg9xvk/VhfyONrkoRkKHYPuw8OFIYxdVuAC8p3Z4FRtfIdpkk0FVIBQ8rJ1vpJY0sAjh+Ev5LZ+jfcGdc+OgGYQxStkFpY3s3MFKfCzcmZKoUNWu1+UzE3zTosOmlE=
+	t=1778771399; cv=none; b=qNN1zE/HRlvV5P1A2rB8tiqgWA1++y+vW9YnIXfbgkfweEDKpDNol0XaOHF7vz7SaIZyzGlPf0VtsP7VVRB96K+tOV6D5KXoYIi7vkbjCX0pfppLCoRmTfB367+xDfO6QuU34zjOUnoadltwEkrKWV0A0EUzbIgryDhZMefcO8c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1778771399; c=relaxed/simple;
-	bh=+Y/GGoTKNCM3giuKbq04aPtsbFnmhL9znjR/JyKh7Js=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=DqeWh4GHe+zijGcwBIC3eVd6VkZVlM5jxBknM9Z2b293YJgEgdJa8KJe3nBskVXyyjJu070138+41DRi2eS2Nd28rmrstXnOy7SDK9fFlaUMTjS7StRC4rD9I1k8Sl27Zs1TlQPjZuEwlsD7DhCcZPeIS28X/AqPrEOYFz4j4To=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=LDMDAMzG; arc=none smtp.client-ip=10.30.226.201
+	bh=cy9qwD4R0RUofCFV/iACy338J2/CmEEb2vJEPd1fD54=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=qndXkaLXuTNUSkN9SwR/JUcCiqoHh/0kRRKZf+sLP7pcF6spk3a/gWb6ifpA4Kvpjbsa2eyahER/JSeDYzOWv49UD1qYU4Y8x81o16A1Falkfq92r9b2BGuooShImNPxh+TV/K1Yy3zER9g61G19z8VioXoM8m4bqig2LtbTvBc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kCrq3oTq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LDMDAMzG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CEF8CC2BD05;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kCrq3oTq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46885C2BCB3;
 	Thu, 14 May 2026 15:09:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=k20201202; t=1778771397;
-	bh=+Y/GGoTKNCM3giuKbq04aPtsbFnmhL9znjR/JyKh7Js=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=LDMDAMzGaA9jC172A8eLW/Cb0mO2TltTn8gVbgo/Zu4q/jYWo3Znc+RhmuMsC2Rdk
-	 DrE+eWcdwRjhRlKy+13DyVwe+uR8xaRCv5XUpspSMep1T5jwIatMHujwLSLo7576cC
-	 L3Um7uOf+i/wLipca02Vku6OO8ANsm+A3eJxH3UaQnYAQPchqQcgD31ZiOAhpkkEHz
-	 EPHtwH0GL63NCZpCykOs/slBb6U1UmYrMDI+19mYOAvy1dxm3QwXEcpHMRYq1EIX/y
-	 ssmif1ajBeDmtTW9NAqTcP3eT7QDd2biSGD0+EQKLI8uXI2FEodphCyZ2k6k3hR6JG
-	 wAdkXRHD52M8g==
+	bh=cy9qwD4R0RUofCFV/iACy338J2/CmEEb2vJEPd1fD54=;
+	h=From:To:Cc:Subject:Date:From;
+	b=kCrq3oTqL8crbyUlECEvMEGfArIWmtwHkzheYDZzNFxtYb9E0k2RpmthCeusQt1HJ
+	 B+wkIkZWWJ08Ez+ThA1HzCA1lcUnyaRrnZ9Qc38GMS6/5Puepo5yT9UhxggkIynJMH
+	 JKfpr99A4HjoTL3lZ6ww6wI6Im6pbjTgjzoUvHiJW6ePen/ntfil3cMs5OIkUDKjnO
+	 XEfWWqFz2CBeKLsWDG33TGAfZLroYMuUmNGckx5oKO5AjloolNI/54//e1BeokaVaU
+	 tobqKctMelv6hLUMZSqJfV9g8mg4dZ2LdfkHaGHtAHt3nj0+bzxpk3JTwP/+ZrKJK1
+	 WG/BSVAAB3Ajw==
 Received: from sofa.misterjones.org ([185.219.108.64] helo=valley-girl.lan)
 	by disco-boy.misterjones.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.98.2)
 	(envelope-from <maz@kernel.org>)
-	id 1wNXhD-00000002Oqg-3KQ6;
-	Thu, 14 May 2026 15:09:55 +0000
+	id 1wNXhC-00000002Oqg-2BOH;
+	Thu, 14 May 2026 15:09:54 +0000
 From: Marc Zyngier <maz@kernel.org>
 To: linux-arm-kernel@lists.infradead.org,
 	linux-acpi@vger.kernel.org,
@@ -79,12 +78,10 @@ Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>,
 	Orson Zhai <orsonzhai@gmail.com>,
 	Baolin Wang <baolin.wang@linux.alibaba.com>,
 	Michal Simek <michal.simek@amd.com>
-Subject: [PATCH v2 02/17] ACPI: GTDT: Parse information related to the EL2 virtual timer
-Date: Thu, 14 May 2026 16:09:30 +0100
-Message-ID: <20260514150945.3917510-3-maz@kernel.org>
+Subject: [PATCH v2 00/17] arm64: Use EL2 virtual timer when running VHE
+Date: Thu, 14 May 2026 16:09:28 +0100
+Message-ID: <20260514150945.3917510-1-maz@kernel.org>
 X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260514150945.3917510-1-maz@kernel.org>
-References: <20260514150945.3917510-1-maz@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -97,75 +94,116 @@ X-SA-Exim-Rcpt-To: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.
 X-SA-Exim-Mail-From: maz@kernel.org
 X-SA-Exim-Scanned: No (on disco-boy.misterjones.org); SAEximRunCond expanded to false
 
-Now that we have a way to identify GTDTv3, allow the information
-related to the EL2 virtual timer to be retrieved by the interface
-used by the architected timer driver.
+This is the second version of the series initially posted at [1],
+which
 
-Reviewed-by: Sudeep Holla <sudeep.holla@kernel.org>
-Signed-off-by: Marc Zyngier <maz@kernel.org>
----
- drivers/acpi/arm64/gtdt.c | 20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+- updates the ACPI GTDT parsing to deal the v3 layout and the EL2
+  virtual timer,
+- moves the architected timer driver to use it when running VHE,
+- fixes a number of DTs to reflect the reality of the HW.
 
-diff --git a/drivers/acpi/arm64/gtdt.c b/drivers/acpi/arm64/gtdt.c
-index b9d9b8edf2df7..d9b43592c22cd 100644
---- a/drivers/acpi/arm64/gtdt.c
-+++ b/drivers/acpi/arm64/gtdt.c
-@@ -42,6 +42,14 @@ struct gtdt_v3 {
- 
- static struct acpi_gtdt_descriptor acpi_gtdt_desc __initdata;
- 
-+static __init struct acpi_gtdt_el2 *gtdt_to_el2_vtimer(struct acpi_table_gtdt *gtdt)
-+{
-+	if (!acpi_gtdt_desc.v3)
-+		return NULL;
-+
-+	return &container_of(gtdt, struct gtdt_v3, gtdt_v2)->el2_vtimer;
-+}
-+
- static __init bool platform_timer_valid(void *platform_timer)
- {
- 	struct acpi_gtdt_header *gh = platform_timer;
-@@ -113,6 +121,7 @@ static int __init map_gt_gsi(u32 interrupt, u32 flags)
- int __init acpi_gtdt_map_ppi(int type)
- {
- 	struct acpi_table_gtdt *gtdt = acpi_gtdt_desc.gtdt;
-+	struct acpi_gtdt_el2 *el2_vtimer = gtdt_to_el2_vtimer(gtdt);
- 
- 	switch (type) {
- 	case ARCH_TIMER_PHYS_NONSECURE_PPI:
-@@ -125,6 +134,12 @@ int __init acpi_gtdt_map_ppi(int type)
- 	case ARCH_TIMER_HYP_PPI:
- 		return map_gt_gsi(gtdt->non_secure_el2_interrupt,
- 				  gtdt->non_secure_el2_flags);
-+	case ARCH_TIMER_HYP_VIRT_PPI:
-+		if (el2_vtimer && el2_vtimer->virtual_el2_timer_gsiv)
-+			return map_gt_gsi(el2_vtimer->virtual_el2_timer_gsiv,
-+					  el2_vtimer->virtual_el2_timer_flags);
-+
-+		return 0;
- 	default:
- 		pr_err("Failed to map timer interrupt: invalid type.\n");
- 	}
-@@ -142,6 +157,7 @@ int __init acpi_gtdt_map_ppi(int type)
- bool __init acpi_gtdt_c3stop(int type)
- {
- 	struct acpi_table_gtdt *gtdt = acpi_gtdt_desc.gtdt;
-+	struct acpi_gtdt_el2 *el2_vtimer = gtdt_to_el2_vtimer(gtdt);
- 
- 	switch (type) {
- 	case ARCH_TIMER_PHYS_NONSECURE_PPI:
-@@ -153,6 +169,10 @@ bool __init acpi_gtdt_c3stop(int type)
- 	case ARCH_TIMER_HYP_PPI:
- 		return !(gtdt->non_secure_el2_flags & ACPI_GTDT_ALWAYS_ON);
- 
-+	case ARCH_TIMER_HYP_VIRT_PPI:
-+		return el2_vtimer && el2_vtimer->virtual_el2_timer_gsiv &&
-+		       !(el2_vtimer->virtual_el2_timer_flags & ACPI_GTDT_ALWAYS_ON);
-+
- 	default:
- 		pr_err("Failed to get c3stop info: invalid type.\n");
- 	}
+Patches based on -rc3, tested on Amlogic SM1, QC X1E, Ampere Altra,
+and Apple M2.
+
+* From v1:
+
+  - Now also using the EL2 virtual counter, which further improve
+    things when running at a deeper nesting level
+
+  - Updated consistency checks for the platform timers when finding a
+    GTDTv3
+
+  - Collected ABs and RBs, with thanks
+
+[1] https://lore.kernel.org/r/20260507125544.2903406-1-maz@kernel.org
+
+Marc Zyngier (17):
+  ACPI: GTDT: Account for GTDTv3 size when walking the platform timer
+    descriptors
+  ACPI: GTDT: Parse information related to the EL2 virtual timer
+  clocksource/drivers/arm_arch_timer: Default to EL2 virtual timer when
+    running VHE
+  dt-bindings: timer: arm,arch_timer: Fix requirements for interrupt
+    description
+  arm64: dts: allwinner: Add EL2 virtual timer interrupt
+  arm64: dts: amlogic: Add EL2 virtual timer interrupt
+  arm64: dts: bst: Add EL2 virtual timer interrupt
+  arm64: dts: exynos: Add EL2 virtual timer interrupt
+  arm64: dts: freescale: Add EL2 virtual timer interrupt
+  arm64: dts: intel: Add EL2 virtual timer interrupt
+  arm64: dts: mediatek: Add EL2 virtual timer interrupt
+  arm64: dts: nvidia: Add EL2 virtual timer interrupt
+  arm64: dts: qcom: Add EL2 virtual timer interrupt
+  arm64: dts: realtek: Add EL2 virtual timer interrupt
+  arm64: dts: rockchip: Add EL2 virtual timer interrupt
+  arm64: dts: sprd: Add EL2 virtual timer interrupt
+  arm64: dts: xilinx: Add EL2 virtual timer interrupt
+
+ .../bindings/timer/arm,arch_timer.yaml        | 21 ++++-----
+ .../arm64/boot/dts/allwinner/sun55i-a523.dtsi |  3 +-
+ .../boot/dts/amlogic/amlogic-a4-common.dtsi   |  8 ----
+ arch/arm64/boot/dts/amlogic/amlogic-a4.dtsi   |  8 ++++
+ arch/arm64/boot/dts/amlogic/amlogic-a5.dtsi   |  9 ++++
+ arch/arm64/boot/dts/amlogic/amlogic-s6.dtsi   |  3 +-
+ arch/arm64/boot/dts/amlogic/amlogic-s7.dtsi   |  3 +-
+ arch/arm64/boot/dts/amlogic/amlogic-s7d.dtsi  |  3 +-
+ .../boot/dts/amlogic/meson-g12-common.dtsi    | 13 -----
+ arch/arm64/boot/dts/amlogic/meson-g12.dtsi    |  9 ++++
+ arch/arm64/boot/dts/amlogic/meson-sm1.dtsi    | 10 ++++
+ arch/arm64/boot/dts/bst/bstc1200.dtsi         |  3 +-
+ arch/arm64/boot/dts/exynos/axis/artpec9.dtsi  |  3 +-
+ arch/arm64/boot/dts/exynos/exynos2200.dtsi    |  3 +-
+ arch/arm64/boot/dts/exynos/exynos990.dtsi     |  3 +-
+ arch/arm64/boot/dts/exynos/exynosautov9.dtsi  |  3 +-
+ arch/arm64/boot/dts/exynos/google/gs101.dtsi  |  3 +-
+ .../boot/dts/freescale/imx91_93_common.dtsi   |  3 +-
+ arch/arm64/boot/dts/freescale/imx94.dtsi      |  3 +-
+ arch/arm64/boot/dts/freescale/imx95.dtsi      |  3 +-
+ arch/arm64/boot/dts/freescale/imx952.dtsi     |  3 +-
+ arch/arm64/boot/dts/freescale/s32n79.dtsi     |  3 +-
+ .../arm64/boot/dts/intel/socfpga_agilex5.dtsi |  3 +-
+ arch/arm64/boot/dts/mediatek/mt6779.dtsi      |  3 +-
+ arch/arm64/boot/dts/mediatek/mt8186.dtsi      |  3 +-
+ arch/arm64/boot/dts/mediatek/mt8188.dtsi      |  3 +-
+ arch/arm64/boot/dts/mediatek/mt8192.dtsi      |  3 +-
+ arch/arm64/boot/dts/mediatek/mt8195.dtsi      |  3 +-
+ arch/arm64/boot/dts/nvidia/tegra194.dtsi      |  2 +
+ arch/arm64/boot/dts/nvidia/tegra234.dtsi      |  3 +-
+ arch/arm64/boot/dts/qcom/eliza.dtsi           |  3 +-
+ arch/arm64/boot/dts/qcom/hamoa.dtsi           |  3 +-
+ arch/arm64/boot/dts/qcom/kaanapali.dtsi       |  3 +-
+ arch/arm64/boot/dts/qcom/kodiak.dtsi          |  3 +-
+ arch/arm64/boot/dts/qcom/lemans.dtsi          |  3 +-
+ arch/arm64/boot/dts/qcom/milos.dtsi           |  1 +
+ arch/arm64/boot/dts/qcom/monaco.dtsi          |  3 +-
+ arch/arm64/boot/dts/qcom/sar2130p.dtsi        |  3 +-
+ arch/arm64/boot/dts/qcom/sc7180.dtsi          |  3 +-
+ arch/arm64/boot/dts/qcom/sc8180x.dtsi         |  3 +-
+ arch/arm64/boot/dts/qcom/sc8280xp.dtsi        |  3 +-
+ arch/arm64/boot/dts/qcom/sdm670.dtsi          |  3 +-
+ arch/arm64/boot/dts/qcom/sdm845.dtsi          |  3 +-
+ arch/arm64/boot/dts/qcom/sdx75.dtsi           |  1 +
+ arch/arm64/boot/dts/qcom/sm4450.dtsi          |  3 +-
+ arch/arm64/boot/dts/qcom/sm6350.dtsi          |  3 +-
+ arch/arm64/boot/dts/qcom/sm6375.dtsi          |  3 +-
+ arch/arm64/boot/dts/qcom/sm8150.dtsi          |  3 +-
+ arch/arm64/boot/dts/qcom/sm8250.dtsi          |  3 +-
+ arch/arm64/boot/dts/qcom/sm8350.dtsi          |  3 +-
+ arch/arm64/boot/dts/qcom/sm8450.dtsi          |  3 +-
+ arch/arm64/boot/dts/qcom/sm8550.dtsi          |  3 +-
+ arch/arm64/boot/dts/qcom/sm8650.dtsi          |  3 +-
+ arch/arm64/boot/dts/qcom/sm8750.dtsi          |  3 +-
+ arch/arm64/boot/dts/qcom/talos.dtsi           |  3 +-
+ arch/arm64/boot/dts/realtek/rtd16xx.dtsi      |  3 +-
+ arch/arm64/boot/dts/rockchip/rk356x-base.dtsi |  3 +-
+ arch/arm64/boot/dts/sprd/sc9863a.dtsi         |  3 +-
+ arch/arm64/boot/dts/sprd/ums512.dtsi          |  3 +-
+ arch/arm64/boot/dts/sprd/ums9620.dtsi         |  3 +-
+ arch/arm64/boot/dts/xilinx/versal-net.dtsi    |  3 +-
+ drivers/acpi/arm64/gtdt.c                     | 35 +++++++++++++-
+ drivers/clocksource/arm_arch_timer.c          | 47 +++++++++++--------
+ 63 files changed, 211 insertions(+), 106 deletions(-)
+
 -- 
 2.47.3
 
