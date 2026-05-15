@@ -1,160 +1,196 @@
-Received: from CHN02-SH0-obe.outbound.protection.partner.outlook.cn (mail-sh0chn02on2127.outbound.protection.partner.outlook.cn [139.219.146.127])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF8583AE715;
-	Fri, 15 May 2026 11:18:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=139.219.146.127
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778843910; cv=fail; b=iKlB3k7EJHbxp4KVEmSQi+v5vjk9Mi/gopgLCIPG86Wv19SmjyqW6vo9ygvRHn+Ka43HlvirtQK2jnsp6wK9TQtn5bwxtLLMm4JhwZl7lMS74jPimdoXvMLlfq+MzWOgTHFj4z2CSZwERANh2GuE+5kLWTan56lRuLbhKt8BhIQ=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778843910; c=relaxed/simple;
-	bh=cYQvBq8G/4Hw/FNbr1AUKiZDLgV6u5q9BagVrArSj8U=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=i9RNw46ZeH1QD9mKVqNziRIboc0RorZGc8zNz/PN9Kit6zomQz3k9c6JVQa7wtHwnYNbHp0cQdhgCje2VMq2027+imbTV4fpr3/mc9yB9urK2D+KOyM509hef+krvADznomv/XanDCmfPds5kmGEQVaUi1qkgzWBn1e9nLkfT4A=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lecomputing.com; spf=pass smtp.mailfrom=lecomputing.com; arc=fail smtp.client-ip=139.219.146.127
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lecomputing.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lecomputing.com
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=KX7/5Z2mVsmkWTICzj8YAHxi6cS15VyrofyqHOtcc4K8LKuPeA+vtRSUC9SfpzhTmGk6OXD5Tq8EwusWZXKPAwcw/7GqsLQD8Ko9gFT3a2yp36arbsdhbIlO4c9NO3J5WXpVkGqeh9z1FoFvqCsWAKoVHkSA1A8t9knBed3i4jd6/WtUQ8N6xq3FZnXiS5G81wv5Rig2RWv5WE9IYgi/Km9IGna0FoJIaqDKccUqKdaTH/Gq/7GO7OTZf+vpPPGJ6vsJm5NM3eIZ6cUWE2O1AjkgqRnhO9D+uCsFb7dG4P0jSsuCJaaLO+aICDx/xhxPp1SnRl5yTDTYDcWV6/zACg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=rC8/r9WVNfkbCCHDo2YXlEauTOMzBt7D+g29IODGXRo=;
- b=Y0qm/i974hc/ztBoEUVWU+hSy6E1ptsZpl8wpKYPl7rpP5G+gNs0pPr8eB/Qk6ck45vgiEMKVt/iT7vXvHhwH6eaBW6Au6AJQCrmy/loSqGnHUh+J1XsYi6EY9EN2HDxuE+u14j2r95KN1+nGmMvIe1mOrZtdTEyQHR+T0cFPMUDv7mZBTsWnzzDBCKGhtM6feVohnXKHEJZKvXr4KKDCdy9GycOrKb2mnAOnBxiKF/Qc02GibzswqpUnlKyrJA3fTectU+bKohvzbMZnFC41IUcKuT0BIVRC1BNnvjTn756Rvbk963jWOE6oTzFbYhH95wJbwEz77mPzWB+0XN2YQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=lecomputing.com; dmarc=pass action=none
- header.from=lecomputing.com; dkim=pass header.d=lecomputing.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=lecomputing.com;
-Received: from BJSPR01MB0707.CHNPR01.prod.partner.outlook.cn
- (2406:e500:c211:1f::17) by BJSPR01MB0547.CHNPR01.prod.partner.outlook.cn
- (2406:e500:c211:e::19) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9818.30; Fri, 15 May
- 2026 11:03:36 +0000
-Received: from BJSPR01MB0707.CHNPR01.prod.partner.outlook.cn
- ([fe80::1c61:86e3:3a75:155d]) by
- BJSPR01MB0707.CHNPR01.prod.partner.outlook.cn ([fe80::1c61:86e3:3a75:155d%4])
- with mapi id 15.20.9818.023; Fri, 15 May 2026 11:03:36 +0000
-From: Thomas Lin <thomas_lin@lecomputing.com>
-To: rafael@kernel.org,
-	lenb@kernel.org,
-	hoan@os.amperecomputing.com,
-	linusw@kernel.org,
-	brgl@kernel.org,
-	mika.westerberg@linux.intel.com,
-	andriy.shevchenko@linux.intel.com,
-	jsd@semihalf.com,
-	andi.shyti@kernel.org,
-	broonie@kernel.org
-Cc: linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-gpio@vger.kernel.org,
-	linux-i2c@vger.kernel.org,
-	linux-spi@vger.kernel.org,
-	lucas_hao@lecomputing.com,
-	puntar_liu@lecomputing.com,
-	jihua_tao@lecomputing.com,
-	stan_xu@lecomputing.com,
-	lumin_liu@lecomputing.com,
-	notics_zhang@lecomputing.com,
-	braden_zhang@lecomputing.com,
-	harold_wu@lecomputing.com,
-	will_zhang@lecomputing.com,
-	aurora_jiang@lecomputing.com,
-	ryen_lin@lecomputing.com,
-	andy_jiang@lecomputing.com,
-	Thomas Lin <thomas_lin@lecomputing.com>
-Subject: [PATCH v2 1/3] gpio: dwapb: Add ACPI ID LECA0001 for LECARC SoCs
-Date: Fri, 15 May 2026 19:03:18 +0800
-Message-ID: <20260515110322.2883310-2-thomas_lin@lecomputing.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260515110322.2883310-1-thomas_lin@lecomputing.com>
-References: <20260514034319.3507315-1-thomas_lin@lecomputing.com>
- <20260515110322.2883310-1-thomas_lin@lecomputing.com>
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: NT0PR01CA0033.CHNPR01.prod.partner.outlook.cn
- (2406:e500:c510:c::10) To BJSPR01MB0707.CHNPR01.prod.partner.outlook.cn
- (2406:e500:c211:1f::17)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43F7047DD54;
+	Fri, 15 May 2026 11:23:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1778844234; cv=none; b=YyP8kKmH0Bkk/mLbhIzzNgYok/jwnFB4fcEIBXVGXM22YqKLYnv+jsfZIienQci/r1/0tX5wWwtiJKujw9fmfYL9Pw8h0OS/Y22HdB0/LEYxh76JvrqKSmvh6q/CfSl+u7xMfLBZkULNROyNSU2zi3OUat4tHJlKi1wr6MH0R8Y=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1778844234; c=relaxed/simple;
+	bh=RfvEIH27XbfkXelKur8wpmPTV9lL60amly3Ft8vOuPw=;
+	h=Date:Message-ID:From:To:Cc:Subject:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=tHj7fTaKsNNiRkUgoIbSliDrF6QrcPbUkdsl0do59BueMvdb+Wl7G7boINqvXqYVnuVOainU66aVOpHjaJQEQEHXOl3YqkBUqXGgyPmTWyKwxp6N7stvpDs7I4BMltIE6hln2A66LDydeCBe3JRIQxWB3qIw99QfbIGN+9ExU0I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XfRO/6lp; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XfRO/6lp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B346C2BCFB;
+	Fri, 15 May 2026 11:23:53 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1778844234;
+	bh=RfvEIH27XbfkXelKur8wpmPTV9lL60amly3Ft8vOuPw=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=XfRO/6lpxRvh1wj24HKBqCVJd20etFi1V7RGHbFcgIjUPDcvyiBkkSzRNDvfs6QCj
+	 KdcpRrVOCwRiAjGC3XZwPafav7UbgN9eh+cxVeDIlH89sLlhxbWoodnhh9fUGgjizI
+	 E2aWJObp/4Ch7nenpOLniSdcutNBkmZYdRD9tQwLiyyH3b2aCAg72L5/N26HiNdg/p
+	 atrBeb5BnOwl7k6HNQVKoYO/XGoZqvtrmuCUvrEFmfZGDz9JsUikEn+15lE+CencMS
+	 KT6KIsa2+OQaSTGbaZwN2qMxqnMEWy50JhhadD/x+lhTDoF9V7MGrDpekj+x276mPP
+	 9MT0pJYVmvpLQ==
+Received: from sofa.misterjones.org ([185.219.108.64] helo=goblin-girl.misterjones.org)
+	by disco-boy.misterjones.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.98.2)
+	(envelope-from <maz@kernel.org>)
+	id 1wNqdz-00000002fk3-0CJC;
+	Fri, 15 May 2026 11:23:51 +0000
+Date: Fri, 15 May 2026 12:23:50 +0100
+Message-ID: <864ik8ykzd.wl-maz@kernel.org>
+From: Marc Zyngier <maz@kernel.org>
+To: Sudeep Holla <sudeep.holla@kernel.org>
+Cc: linux-arm-kernel@lists.infradead.org,	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org,	devicetree@vger.kernel.org,	Lorenzo Pieralisi
+ <lpieralisi@kernel.org>,	Hanjun Guo <guohanjun@huawei.com>,	Catalin
+ Marinas <catalin.marinas@arm.com>,	Will Deacon <will@kernel.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,	Mark Rutland
+ <mark.rutland@arm.com>,	Daniel Lezcano <daniel.lezcano@kernel.org>,	Thomas
+ Gleixner <tglx@kernel.org>,	Rob Herring <robh@kernel.org>,	Krzysztof
+ Kozlowski <krzk+dt@kernel.org>,	Conor Dooley <conor+dt@kernel.org>,	Chen-Yu
+ Tsai <wens@kernel.org>,	Jernej Skrabec <jernej.skrabec@gmail.com>,	Samuel
+ Holland <samuel@sholland.org>,	Neil Armstrong <neil.armstrong@linaro.org>,
+	Kevin Hilman <khilman@baylibre.com>,	Jerome Brunet <jbrunet@baylibre.com>,
+	Martin Blumenstingl <martin.blumenstingl@googlemail.com>,	Ge Gordon
+ <gordon.ge@bst.ai>,	BST Linux Kernel Upstream Group
+ <bst-upstream@bstai.top>,	Jesper Nilsson <jesper.nilsson@axis.com>,	Lars
+ Persson <lars.persson@axis.com>,	Alim Akhtar <alim.akhtar@samsung.com>,
+	Ivaylo Ivanov <ivo.ivanov.ivanov1@gmail.com>,	Frank Li <Frank.Li@nxp.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>,	Pengutronix Kernel Team
+ <kernel@pengutronix.de>,	Fabio Estevam <festevam@gmail.com>,	Dinh Nguyen
+ <dinguyen@kernel.org>,	Matthias Brugger <matthias.bgg@gmail.com>,
+	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
+	Thierry Reding <thierry.reding@kernel.org>,	Jonathan Hunter
+ <jonathanh@nvidia.com>,	Bjorn Andersson <andersson@kernel.org>,	Konrad
+ Dybcio <konradybcio@kernel.org>,	Andreas =?UTF-8?B?RsOkcmJlcg==?=
+ <afaerber@suse.de>,	Heiko Stuebner <heiko@sntech.de>,	Shawn Lin
+ <shawn.lin@rock-chips.com>,	Orson Zhai <orsonzhai@gmail.com>,	Baolin Wang
+ <baolin.wang@linux.alibaba.com>,	Michal Simek <michal.simek@amd.com>
+Subject: Re: [PATCH v2 01/17] ACPI: GTDT: Account for GTDTv3 size when walking the platform timer descriptors
+In-Reply-To: <20260515-prudent-vagabond-beetle-cad34b@sudeepholla>
+References: <20260514150945.3917510-1-maz@kernel.org>
+	<20260514150945.3917510-2-maz@kernel.org>
+	<20260515-prudent-vagabond-beetle-cad34b@sudeepholla>
+User-Agent: Wanderlust/2.15.9 (Almost Unreal) SEMI-EPG/1.14.7 (Harue)
+ FLIM-LB/1.14.9 (=?UTF-8?B?R29qxY0=?=) APEL-LB/10.8 EasyPG/1.0.0 Emacs/30.1
+ (aarch64-unknown-linux-gnu) MULE/6.0 (HANACHIRUSATO)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BJSPR01MB0707:EE_|BJSPR01MB0547:EE_
-X-MS-Office365-Filtering-Correlation-Id: f929a994-4b85-4f29-6973-08deb2719c82
-X-MS-Exchange-SenderADCheck: 1
-X-Microsoft-Antispam:
- BCL:0;ARA:13230040|7416014|376014|52116014|1800799024|366016|18002099003|22082099003|921020|56012099003|38350700014|4143699003;
-X-Microsoft-Antispam-Message-Info:
- oiSfsDNJN5RwdlN5dKeiCVYY8IthDpRrrVDIkz7g7/AnpJRadfCML17quB6wSjlEmbeh/nkFPoc9oS7urfXB2wOKJHVUHVogPkAPl7gW3xOjxBRP63W4+TgCNC2fvS+LS7DgGTUj/KchylMWZn7+3dvRQqvQG+lmaZbt2pSOEnCzy9PjuX8Gf1luu1Wz6Fwxhq7XNUkTFwMNsqlnzzIjXsmmytROMJeln7WsDU85FWeC8ayaEFUziX+MyCBN9BE8Kool9ZuEwTGgiCsUt21GhIXCPU1mouvvQ7m6EdXnB5f0AJNM6PKeIYXCRiRbjMyYs0OoHRJRhezCr82/X/YzrO9Fd7n3Roa5LN0jiUjmQOTiBvcb/jwQ0JzHJNoLRoV1aw8UJo8E9PMd0l1ocEBGB+E68X7OGlexh6lV4KO2oQVDq65Q3psEuhjsveD5JdpQjhlhMTd+quAKgEuJ9pR8yfoO3IvbXzbwE6f8Yyj/JsgJKdX5P+IXkccaFIQj6eAnxtV2W8kRKXV5dx9IDxyIPtWH8dmvO394dxdYLwWajUHwPkJxOTd3TGHGG+SdCbK+zQDPNaRksUSbxWpDwx2RFQ==
-X-Forefront-Antispam-Report:
- CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BJSPR01MB0707.CHNPR01.prod.partner.outlook.cn;PTR:;CAT:NONE;SFS:(13230040)(7416014)(376014)(52116014)(1800799024)(366016)(18002099003)(22082099003)(921020)(56012099003)(38350700014)(4143699003);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
- =?us-ascii?Q?yZvQ8qXPMoF8MiKIP7mzc/YtiizvUqNhSCxXOhrIZEDY+IgSXUhg89ZvT8WM?=
- =?us-ascii?Q?33SDX/bOHsru5w3tRu8pYjnu8BJMS3Uyd9ihuL7deq02RpeCtfwYaFUXFEWZ?=
- =?us-ascii?Q?QPKLGPCYB/tJe6IcKxyGEFDUBMtoD70m/KzLfbtqV5tPQoxQumJCOOKe75qR?=
- =?us-ascii?Q?lnpqzop4oVPDQPpgcwlqJzlDAKsosZ4rFltrZMBvDhsrDFr0DfKk+/c9nKRR?=
- =?us-ascii?Q?LcjqG+cfVCMkD/rWLg8I17MYIx2EcpQO2U8I5+wupd0dK9CcZD6d9a9V27IY?=
- =?us-ascii?Q?tOh36RmRQSpZMsFBHNyjPi1UDGExLEtQLyACVyFzxQUDJyPq1cPwxFvM9FGJ?=
- =?us-ascii?Q?3QMH20JPQwjsjHLc9p5TZJr3+iF4dUkh3Br7tQU6hFXN4R90C2aeq/CpI82z?=
- =?us-ascii?Q?G+vDDTxIscQyOcgKJpY4MyvhG4t4KgQMdWSyIjf7eywUrEZAUDqiPUayWdI4?=
- =?us-ascii?Q?8wEOgV/MHmS3YMZkVCcQuU5gpIZJejdisvKJhSUBO89II/2buQAgnnZJlbl+?=
- =?us-ascii?Q?BabpqyjlDZnYJArw5lTbejdt3o5+UTqlaYJNu3SPNwUQMGTYBf57Dl+LE2Hh?=
- =?us-ascii?Q?0T/ymaj9LIwWojmdwxdtVFRVWfT+4ugTqtGQmKIb7e7KwSqP4R9n+U9V9gIK?=
- =?us-ascii?Q?mTZt8thoaoJWgBzz2DwBON3kCk1ydZMFCB3vC2zZQIxdgnilvwrddhHk6pSP?=
- =?us-ascii?Q?+zhf9GFNXcpEuuI/6E+stC6TWf+T+0wopJhlhQAMOoDCC/Z+EcmI2BBsMnqH?=
- =?us-ascii?Q?8EvKYHxA+H7jaY94SrtARHGDer2EVTAmyDgcxlASl96Xg6v9U+aenE+JcPkP?=
- =?us-ascii?Q?qzVK1YhqWyYXwUIH61W0M7pd8iRYCvVOYPsFUhuF3ld8RHwEd03YFcc0UfzR?=
- =?us-ascii?Q?Jj+QVAA5TfGTMgTO8Fa/VoBfNQORI2UZC1ZcMPb6nhmFx/4pkt9f4xoJ3w2M?=
- =?us-ascii?Q?YzKNZLI7iy9A0uGIpFtC/NS60tSNeUFHmOg5uFuA1490u7I6epp5qWyWWzqn?=
- =?us-ascii?Q?clYw8miYaQD2Yq+N1Uydkp7nUW5f2SeTDbplgsbldKu3gUjciN7V84XnfFQS?=
- =?us-ascii?Q?5yVop/ArBNKGKgczJBpLx1CmofYnFSVInX+zqkdH4IXg4hjd7IF+btC9B+m9?=
- =?us-ascii?Q?LTXwtRG2sMEsVS8cOqEhjS0Cz0zDC1pvI/uFS6dSEYhR75UKEgVbm6YECbuZ?=
- =?us-ascii?Q?lD8/MptQn+9Ct4Nlqk6Kf/6KONFAWPvh3eBCI6hjwCXHnZwGjACPkbCkneeo?=
- =?us-ascii?Q?NpvJd/uB+CeGH53LwbF2uR58nKvvwBwtYeJ10Tqsh1otrGif196GJHEkSNsc?=
- =?us-ascii?Q?0Vr7qqlTicX0QMyx6x0kNksitqxC0klGq7i4zNEk5dZtVfNpoR14nc5sGLx4?=
- =?us-ascii?Q?8fGTEQus8x+O1PbWC1eCQQ+POYdghkr8lcWQYGvRzzHJ2Q9nY95ynSCU2H9b?=
- =?us-ascii?Q?re8gW77p5TSm7k7jByL+mFG9dXlNJtuM0CHOtvk9oKSInW/4fE+IetI4sHD3?=
- =?us-ascii?Q?fNrE1pd8RLnszkeYgQLAH3nBUckQ1QDEDAqzAyD5mhqHajum9KcfJdnBcBwO?=
- =?us-ascii?Q?WsSbbRI5ZVIN11y1KbbCs2C36EcVqHGnzBPxrpxXzOHhcYEzYrds6Zh8HMgo?=
- =?us-ascii?Q?nJm9bdwraaQSt2eYiqdNhca27oY6H7eFnAJUZ1TJ7uXzZl84Q11d5eKjELGx?=
- =?us-ascii?Q?/+vkc9mlsOgWuFlMaYpO2gfbY5X0g/SIRFMnXgpPyzxkJwtxKEsKBSbrFpMe?=
- =?us-ascii?Q?mKCT7PKcUiFVZbfDrJqDGZmsx8c6k38=3D?=
-X-OriginatorOrg: lecomputing.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: f929a994-4b85-4f29-6973-08deb2719c82
-X-MS-Exchange-CrossTenant-AuthSource: BJSPR01MB0707.CHNPR01.prod.partner.outlook.cn
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 15 May 2026 11:03:36.4797
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 3591a018-3909-4ea2-aee8-843d5abaed8d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: EWtrVkGZRbmJM46fWJE4HBjGU7+RUjvsGms8pwsRCwHBhPNKocji1vBBW3IioZG5W/YrMqvludp76BQxpVUxXXdDwsw3riJZPumel3F0fAI=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BJSPR01MB0547
+MIME-Version: 1.0 (generated by SEMI-EPG 1.14.7 - "Harue")
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+X-SA-Exim-Connect-IP: 185.219.108.64
+X-SA-Exim-Rcpt-To: sudeep.holla@kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, lpieralisi@kernel.org, guohanjun@huawei.com, catalin.marinas@arm.com, will@kernel.org, rafael@kernel.org, mark.rutland@arm.com, daniel.lezcano@kernel.org, tglx@kernel.org, robh@kernel.org, krzk+dt@kernel.org, conor+dt@kernel.org, wens@kernel.org, jernej.skrabec@gmail.com, samuel@sholland.org, neil.armstrong@linaro.org, khilman@baylibre.com, jbrunet@baylibre.com, martin.blumenstingl@googlemail.com, gordon.ge@bst.ai, bst-upstream@bstai.top, jesper.nilsson@axis.com, lars.persson@axis.com, alim.akhtar@samsung.com, ivo.ivanov.ivanov1@gmail.com, Frank.Li@nxp.com, s.hauer@pengutronix.de, kernel@pengutronix.de, festevam@gmail.com, dinguyen@kernel.org, matthias.bgg@gmail.com, angelogioacchino.delregno@collabora.com, thierry.reding@kernel.org, jonathanh@nvidia.com, andersson@kernel.org, konradybcio@kernel.org, afaerber@suse.de, heiko@sntech.de, shawn.lin@rock-chips.com, orsonzhai@gmail.com, baolin.wang@linux.alibaba.com, michal.simek@amd.com
+X-SA-Exim-Mail-From: maz@kernel.org
+X-SA-Exim-Scanned: No (on disco-boy.misterjones.org); SAEximRunCond expanded to false
 
-Add ACPI ID "LECA0001" for LECARC SoCs that use the DesignWare GPIO controller with V1 register offsets.
+On Fri, 15 May 2026 10:51:52 +0100,
+Sudeep Holla <sudeep.holla@kernel.org> wrote:
+>=20
+> On Thu, May 14, 2026 at 04:09:29PM +0100, Marc Zyngier wrote:
+> > Since ARMv8.1, the architecture has grown an EL2-private virtual
+> > timer. This has been described in ACPI since ACPI v6.3 and revision
+> > 3 of the GTDT table.
+> >=20
+> > An aditional structure was added in ACPICA, though in a rather
+> > bizarre way, and merged in v5.1 as 8f5a14d053100 ("ACPICA: ACPI 6.3:
+> > add GTDT Revision 3 support").
+> >=20
+> > Finally plug the table parsing in GTDT, and correct the parsing of
+> > the platform timer subtables to account for the expanded size of
+> > the base table.
+> >=20
+> > Suggested-by: Sudeep Holla <sudeep.holla@kernel.org>
+> > Signed-off-by: Marc Zyngier <maz@kernel.org>
+> > ---
+> >  drivers/acpi/arm64/gtdt.c | 15 ++++++++++++++-
+> >  1 file changed, 14 insertions(+), 1 deletion(-)
+> >=20
+> > diff --git a/drivers/acpi/arm64/gtdt.c b/drivers/acpi/arm64/gtdt.c
+> > index ffc867bac2d60..b9d9b8edf2df7 100644
+> > --- a/drivers/acpi/arm64/gtdt.c
+> > +++ b/drivers/acpi/arm64/gtdt.c
+> > @@ -32,6 +32,12 @@ struct acpi_gtdt_descriptor {
+> >  	struct acpi_table_gtdt *gtdt;
+> >  	void *gtdt_end;
+> >  	void *platform_timer;
+> > +	bool v3;
+> > +};
+> > +
+> > +struct gtdt_v3 {
+> > +	struct acpi_table_gtdt	gtdt_v2;
+> > +	struct acpi_gtdt_el2	el2_vtimer;
+> >  };
+> > =20
+> >  static struct acpi_gtdt_descriptor acpi_gtdt_desc __initdata;
+> > @@ -39,8 +45,14 @@ static struct acpi_gtdt_descriptor acpi_gtdt_desc __=
+initdata;
+> >  static __init bool platform_timer_valid(void *platform_timer)
+> >  {
+> >  	struct acpi_gtdt_header *gh =3D platform_timer;
+> > +	void *platform_timer_begin;
+> > +
+> > +	if (acpi_gtdt_desc.v3)
+> > +		platform_timer_begin =3D container_of(acpi_gtdt_desc.gtdt, struct gt=
+dt_v3, gtdt_v2) + 1;
+> > +	else
+> > +		platform_timer_begin =3D acpi_gtdt_desc.gtdt + 1;
+> >
+> > -	return (platform_timer >=3D (void *)(acpi_gtdt_desc.gtdt + 1) &&
+> > +	return (platform_timer >=3D platform_timer_begin &&
+> >  		platform_timer < acpi_gtdt_desc.gtdt_end &&
+> >  		gh->length !=3D 0 &&
+> >  		platform_timer + gh->length <=3D acpi_gtdt_desc.gtdt_end);
+> > @@ -169,6 +181,7 @@ int __init acpi_gtdt_init(struct acpi_table_header =
+*table,
+> >  	acpi_gtdt_desc.gtdt =3D gtdt;
+> >  	acpi_gtdt_desc.gtdt_end =3D (void *)table + table->length;
+> >  	acpi_gtdt_desc.platform_timer =3D NULL;
+> > +	acpi_gtdt_desc.v3 =3D gtdt->header.revision >=3D 3 && gtdt->header.le=
+ngth >=3D sizeof(struct gtdt_v3);
+>=20
+> Regarding Sashiko=E2=80=99s comment about the missing length validation f=
+or GTDT v2, I
+> realised that the current check could cause a malformed v3 table to be
+> interpreted as v2 if its length does not match the expected v3
+> length.
 
-Signed-off-by: Thomas Lin <thomas_lin@lecomputing.com>
----
- drivers/gpio/gpio-dwapb.c | 1 +
- 1 file changed, 1 insertion(+)
+Yeah, that's overall dodgy. As much as I hate having to write a
+validating parser for ACPI, we need to be prepared for the worst.
 
-diff --git a/drivers/gpio/gpio-dwapb.c b/drivers/gpio/gpio-dwapb.c
-index 15cebc8b5d66..c1f3d83a67c1 100644
---- a/drivers/gpio/gpio-dwapb.c
-+++ b/drivers/gpio/gpio-dwapb.c
-@@ -694,6 +694,7 @@ static const struct acpi_device_id dwapb_acpi_match[] = {
- 	{"APMC0D07", GPIO_REG_OFFSET_V1},
- 	{"APMC0D81", GPIO_REG_OFFSET_V2},
- 	{"FUJI200A", GPIO_REG_OFFSET_V1},
-+	{"LECA0001", GPIO_REG_OFFSET_V1},
- 	{ }
- };
- MODULE_DEVICE_TABLE(acpi, dwapb_acpi_match);
--- 
-2.43.0
+> It would be better to fail early and return an error rather than allow
+> processing to continue with the table incorrectly interpreted as v2.
 
+How about something like the hack below?
+
+Thanks,
+
+	M.
+
+diff --git a/drivers/acpi/arm64/gtdt.c b/drivers/acpi/arm64/gtdt.c
+index 12bc8875e95e2..ceec69609f038 100644
+--- a/drivers/acpi/arm64/gtdt.c
++++ b/drivers/acpi/arm64/gtdt.c
+@@ -202,7 +202,15 @@ int __init acpi_gtdt_init(struct acpi_table_header *ta=
+ble,
+ 	acpi_gtdt_desc.gtdt =3D gtdt;
+ 	acpi_gtdt_desc.gtdt_end =3D (void *)table + table->length;
+ 	acpi_gtdt_desc.platform_timer =3D NULL;
+-	acpi_gtdt_desc.v3 =3D gtdt->header.revision >=3D 3 && gtdt->header.length=
+ >=3D sizeof(struct gtdt_v3);
++
++	if ((gtdt->header.revision >=3D 3 && gtdt->header.length < sizeof(struct =
+gtdt_v3)) ||
++	    (gtdt->header.revision =3D=3D 2 && gtdt->header.length < sizeof(*gtdt=
+))) {
++		pr_err(FW_BUG "GTDT with invalid size %d\n", gtdt->header.length);
++		return -EINVAL;
++	}
++
++	acpi_gtdt_desc.v3 =3D gtdt->header.revision >=3D 3;
++
+ 	if (platform_timer_count)
+ 		*platform_timer_count =3D 0;
+=20
+
+--=20
+Without deviation from the norm, progress is not possible.
