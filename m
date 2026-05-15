@@ -1,171 +1,165 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 629C747D933;
-	Fri, 15 May 2026 11:47:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C0DF43636A;
+	Fri, 15 May 2026 11:47:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778845644; cv=none; b=cEoo5ehPaqEgbTfU0nm08po5m++NhOSxfd86sdZxxV2sFd02qEUvVhR0I3ICw2IAj96ek/2u0106cPLFTOmkaKDFb3TMm+PfHGyrT3BV02KtJiKwWBRqQ/tvcupdfDkWGvDRZY7fECLXrhubAmS8e4UDjZ+FiZ4jdx6GDb/bCQY=
+	t=1778845653; cv=none; b=iqxVqK322xCXY8Q85f9nDkIZ0iLKqzYlUeeqpI/R8maPRxrUhiS89JPUoqbNjpcsld0xhJ/oLg2Md9bGt44a7Q+hD3xIrK30TbhrbGPcPSUP02PlneU3kvDnXqXljpyDbfmsl3IF024SW2mftxEVaYapWXaxOmp6DBDaikOtUbg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778845644; c=relaxed/simple;
-	bh=izu3Yv8C0HpytL1nX8WW6ktwrKLP2bk22wNZ1K2u+JA=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=VSng5NT15kN9Zlbn3X4vZbg0BEPHUd8SGhpRBeZdwn0iyelJlNykZxBnNlI9DvdvYQyTN9R8LXtcZIdPI05ui2cSaBuRHRTQ805jpVDXW+Q8TPLFTYvVnJi+gQa45ZYBr0p/z68mBOPsOKmEbhB5cvbIa77feemjVE3UMhKb1bg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=LvIC/fP0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778845653; c=relaxed/simple;
+	bh=IHy6tCCL6ZboGN6XiT9mrdDppkHa9GfP65Sh+0zol1g=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=MvA9tznQBYzpY/YZWQX7UwsIfNUYqbHYnvRgfBxL5W6TBc/TNp83rjT6dtwb2PrWAq+O8htRuUZiurv+DgCohaTQw3C2nyhAUizF/sCQ+vBI4Om68ZvIfHW24dT0kLQn0Ad8uvXeA0CvFq0tYDNuL4AY9tjZ5zijy5UqPOyBIMM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=pG8E7XbG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LvIC/fP0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC7C0C2BCF5;
-	Fri, 15 May 2026 11:47:21 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="pG8E7XbG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2E78C2BCB8;
+	Fri, 15 May 2026 11:47:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778845643;
-	bh=izu3Yv8C0HpytL1nX8WW6ktwrKLP2bk22wNZ1K2u+JA=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=LvIC/fP0DzdjseVvlkV3EoUVKWnugHxTrYBwZJGSPupLpomtZy+SyTRKWjq/NAweq
-	 80IpXbCzMX86AmbZUvFQBkSfoFpQ5mgfuciwx5OTLyfsGyvplxiYRttJzroN1Xn5iF
-	 AwiZl/rvglEIHx+FbFw+73dPvRqM5msDn1ZDGRivdsfvjCNIX+0nzSnJpuDdbXPrpa
-	 4wBA7dnHbUymCjS98TF/tzbajhiCWWaEWE4AXq7bof9sCS1sAhgmbajzEDO48HzefF
-	 KxEp6DOEqiQQuDRLC0qX0MfolZ7wL5RaQd3FHOFLf6yowHd9WvyLIygn5uZyx5qJdE
-	 ii/1WNeEOaF4w==
-Date: Fri, 15 May 2026 12:47:18 +0100
-From: Jonathan Cameron <jic23@kernel.org>
-To: big.block0203@fastmail.com
-Cc: linux-iio@vger.kernel.org, platform-driver-x86@vger.kernel.org,
- linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [BUG] ACPI INT33D3 ambient light sensor not bound on Intel
- Lunar Lake (ThinkPad X1 Carbon Gen 13)
-Message-ID: <20260515124718.6481e2c3@jic23-huawei>
-In-Reply-To: <7915f7f0-d5fa-48a8-9aa6-fa2f8e621837@app.fastmail.com>
-References: <7915f7f0-d5fa-48a8-9aa6-fa2f8e621837@app.fastmail.com>
-X-Mailer: Claws Mail 4.4.0 (GTK 3.24.52; x86_64-pc-linux-gnu)
+	s=k20201202; t=1778845653;
+	bh=IHy6tCCL6ZboGN6XiT9mrdDppkHa9GfP65Sh+0zol1g=;
+	h=From:To:Cc:Subject:Date:From;
+	b=pG8E7XbG6uMsr4TOp31ODdvYiRZp+lbJ8ue3eQow6PhqKykU6CFDuh4PuSaEEOfzW
+	 pLAkfHNiK3hWidJS611fHC+K9uGuyoelu+s9G+vj+Tua3v1JgvurDGNiqt2ImKUpoV
+	 K1V+2wStsYzrGL8cqcQ30TWNnOTrZoW1FCDi2HSrpZ/vUQ7XcV2zGoqOJ98hbBeSVc
+	 ZeZpj1JnJh9Udyrbr7oGcjEOZhVjjZ1dLTNJcMWWgQ2WCmJc7qj6wZGxUexs50oiuz
+	 EhHe+F/frYelmeI8/6VwvAFEk9+9H94W/vg2Cr29JStRdDvT+0RYXeMoGrVF5+pOrZ
+	 3YVlUCNJiDmYQ==
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+To: Ilpo =?ISO-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+ Linux ACPI <linux-acpi@vger.kernel.org>, Hans de Goede <hansg@kernel.org>,
+ platform-driver-x86@vger.kernel.org,
+ Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject:
+ [PATCH v2] platform/x86: xo15-ebook: Use devres-based resource management
+Date: Fri, 15 May 2026 13:47:29 +0200
+Message-ID: <6015220.DvuYhMxLoT@rafael.j.wysocki>
+Organization: Linux Kernel Development
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
 
-On Fri, 15 May 2026 14:51:09 +0400
-big.block0203@fastmail.com wrote:
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-> Hi,
->=20
-> On a Lenovo ThinkPad X1 Carbon Gen 13 (Intel Lunar Lake), the ACPI
-> firmware declares an INT33D3 ambient light sensor as present, enabled,
-> and functional, but no Linux driver binds to it. As a result, no IIO
-> device is created and no ambient light data is available to userspace
-> (KDE/GNOME auto-brightness, iio-sensor-proxy, etc.).
+Use devm_kzalloc() and devm_input_allocate_device() in
+ebook_switch_probe() for allocating the button object and the
+input device, respectively, to simplify the rollback path in
+that function and ebook_switch_remove().
 
-So INT33D3 is a new ID to IIO at least but looks like it
-binds to drivers/input/misc/soc_button_array.c=20
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
 
-So I'm guessing not an ALS unless that's a multipurpose chip - seems
-unlikely though as that combination isn't common.
+v1 -> v2: Use dev_err_probe() after failing acpi_match_acpi_device() (Andy)
 
-So if there is an ambient light sensor here that is exposed to
-the OS we need to find it amongst the other IDs..
+Applies on top of the driver conversion series
 
->=20
-> I did not find an existing report covering this on Lunar Lake. Apologies
-> if this duplicates one I missed; pointers welcome.
->=20
-> Hardware
-> =3D=3D=3D=3D=3D=3D=3D=3D
-> - Lenovo ThinkPad X1 Carbon Gen 13
-> - Intel Core Ultra 7 258V (Lunar Lake, Xe2)
-> - iGPU: PCI 8086:64a0 (rev 04), subsystem 17aa:2339
-> - Panel: Samsung Display ATNA40YK20-0 (2.8K OLED)
->=20
-> Software
-> =3D=3D=3D=3D=3D=3D=3D=3D
-> - Fedora Kinoite 44
-> - kernel 7.0.6-200.fc44.x86_64
-> - KDE Plasma 6 on Wayland
->=20
-> Symptom
-> =3D=3D=3D=3D=3D=3D=3D
-> No IIO devices are exposed at all:
->=20
->     $ ls /sys/bus/iio/devices/
->     (empty)
->     $ ls /sys/class/iio/
->     (empty)
->=20
-> But the ALS is declared in ACPI:
->=20
->     $ cat /sys/bus/acpi/devices/INT33D3:00/hid
->     INT33D3
->=20
->     $ cat /sys/bus/acpi/devices/INT33D3:00/status
->     15
->=20
->     $ ls /sys/bus/acpi/devices/INT33D3:00/
->     cid  hid  modalias  path  physical_node  power  status  subsystem  ue=
-vent
->     # No `driver` symlink under physical_node =E2=80=94 nothing bound.
->=20
->     $ readlink /sys/bus/acpi/devices/INT33D3:00/physical_node
->     ../../../../../../pci0000:00/0000:00:1f.0/PNP0C09:00/INT33D3:00
->=20
->     $ sudo dmesg | grep -i INT33D3
->     (no output =E2=80=94 no driver even attempted to probe)
->=20
-> Status 0xf per ACPI spec means: present (bit 0), enabled (bit 1), shown
-> in UI (bit 2), functional (bit 3). The firmware unambiguously declares
-> the device as available. dmesg shows no probe attempt and no error.
->=20
-> Other unclaimed firmware-declared devices on this platform (for context)
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->     INTC1025:00     status=3D?    driver=3DNONE
->     INTC105D:00     status=3D15   driver=3Dintel-pinctrl
->     INTC105D:01     status=3D15   driver=3Dintel-pinctrl
->     INTC105D:02     status=3D15   driver=3Dintel-pinctrl
->     INTC105D:03     status=3D15   driver=3Dintel-pinctrl
->     INTC105D:04     status=3D15   driver=3Dintel-pinctrl
->     INTC1068:00     status=3D15   driver=3Dint3400 thermal
->     INTC1069:00     status=3D15   driver=3Dint3403 thermal
->     INTC1069:01     status=3D15   driver=3Dint3403 thermal
->     INTC1069:02     status=3D15   driver=3Dint3403 thermal
->     INTC1069:03     status=3D15   driver=3Dint3403 thermal
->     INTC1069:04     status=3D15   driver=3Dint3403 thermal
->     INTC107B:00     status=3D15   driver=3Dintel-hid
+https://lore.kernel.org/linux-acpi/2420444.ElGaqSPkdT@rafael.j.wysocki/
 
-It's more than possible that the ALS is presented as part of the HID.
+---
+ drivers/platform/x86/xo15-ebook.c |   43 ++++++++++++--------------------------
+ 1 file changed, 14 insertions(+), 29 deletions(-)
 
->     INTC1092:00     status=3D0    driver=3DNONE
-not 100% sure but there are some references to a wireless modem related
-thing associated with this ID.
+--- a/drivers/platform/x86/xo15-ebook.c
++++ b/drivers/platform/x86/xo15-ebook.c
+@@ -82,30 +82,28 @@ static SIMPLE_DEV_PM_OPS(ebook_switch_pm
+ 
+ static int ebook_switch_probe(struct platform_device *pdev)
+ {
+-	struct acpi_device *device = ACPI_COMPANION(&pdev->dev);
++	struct device *dev = &pdev->dev;
++	struct acpi_device *device = ACPI_COMPANION(dev);
+ 	const struct acpi_device_id *id;
+ 	struct ebook_switch *button;
+ 	struct input_dev *input;
+ 	int error;
+ 
+-	button = kzalloc_obj(struct ebook_switch);
++	button = devm_kzalloc(dev, sizeof(*button), GFP_KERNEL);
+ 	if (!button)
+ 		return -ENOMEM;
+ 
+ 	platform_set_drvdata(pdev, button);
+ 
+-	button->input = input = input_allocate_device();
+-	if (!input) {
+-		error = -ENOMEM;
+-		goto err_free_button;
+-	}
++	input = devm_input_allocate_device(dev);
++	if (!input)
++		return -ENOMEM;
++
++	button->input = input;
+ 
+ 	id = acpi_match_acpi_device(ebook_device_ids, device);
+-	if (!id) {
+-		dev_err(&pdev->dev, "Unsupported hid\n");
+-		error = -ENODEV;
+-		goto err_free_input;
+-	}
++	if (!id)
++		return dev_err_probe(dev, -ENODEV, "Unsupported hid\n");
+ 
+ 	strscpy(acpi_device_name(device), XO15_EBOOK_DEVICE_NAME);
+ 	strscpy(acpi_device_class(device), XO15_EBOOK_CLASS "/" XO15_EBOOK_SUBCLASS);
+@@ -115,21 +113,20 @@ static int ebook_switch_probe(struct pla
+ 	input->name = acpi_device_name(device);
+ 	input->phys = button->phys;
+ 	input->id.bustype = BUS_HOST;
+-	input->dev.parent = &pdev->dev;
+ 
+ 	input->evbit[0] = BIT_MASK(EV_SW);
+ 	set_bit(SW_TABLET_MODE, input->swbit);
+ 
+ 	error = input_register_device(input);
+ 	if (error)
+-		goto err_free_input;
++		return error;
+ 
+ 	error = acpi_dev_install_notify_handler(device, ACPI_DEVICE_NOTIFY,
+-						ebook_switch_notify, &pdev->dev);
++						ebook_switch_notify, dev);
+ 	if (error)
+-		goto err_unregister_input;
++		return error;
+ 
+-	ebook_send_state(&pdev->dev);
++	ebook_send_state(dev);
+ 
+ 	if (device->wakeup.flags.valid) {
+ 		/* Button's GPE is run-wake GPE */
+@@ -139,16 +136,6 @@ static int ebook_switch_probe(struct pla
+ 	}
+ 
+ 	return 0;
+-
+-err_free_input:
+-	input_free_device(input);
+-err_free_button:
+-	kfree(button);
+-	return error;
+-
+-err_unregister_input:
+-	input_unregister_device(input);
+-	goto err_free_button;
+ }
+ 
+ static void ebook_switch_remove(struct platform_device *pdev)
+@@ -162,8 +149,6 @@ static void ebook_switch_remove(struct p
+ 
+ 	acpi_dev_remove_notify_handler(device, ACPI_DEVICE_NOTIFY,
+ 				       ebook_switch_notify);
+-	input_unregister_device(button->input);
+-	kfree(button);
+ }
+ 
+ static struct platform_driver xo15_ebook_driver = {
 
->     INTC109D:00     status=3D15   driver=3DNONE
-Might be the watchdog.  Maybe see if it has a cid entry.
 
-
-Other alternatives would be it's on a discoverable bus...
-
-So without figuring out where it is, not much we can do here.
-
-Good luck on finding more info!
-
-Jonathan
-
-
->=20
-> INTC109D:00 is also present-and-enabled but has no driver bound. Its
-> function is unknown to me; including it for awareness in case it is
-> sensor-hub-related and a prerequisite for INT33D3.
->=20
-> INT3519:00 is also present in ACPI but with status=3D0 (disabled by
-> firmware), so likely not relevant here.
->=20
-> Expected behavior
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> An IIO device of class `in_illuminance*` should appear under
-> /sys/bus/iio/devices/, allowing iio-sensor-proxy and desktop
-> environments to consume ambient light data for auto-brightness.
->=20
-> Thanks,
-> big.block
 
