@@ -1,179 +1,206 @@
-Received: from fhigh-a5-smtp.messagingengine.com (fhigh-a5-smtp.messagingengine.com [103.168.172.156])
+Received: from CHN02-BJS-obe.outbound.protection.partner.outlook.cn (mail-bjschn02on2136.outbound.protection.partner.outlook.cn [139.219.17.136])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D157466B58;
-	Fri, 15 May 2026 10:51:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.156
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778842292; cv=none; b=okMAO68CGBewUcQSUJsJMG85ua0fNToRXOiQ89xaUhjVKsiVH1tnXOCG+3PTOgOUH1JVICSwkTnaoFH9eVQ0ETp3vHcIClZsqS/Yr5+KU3ovFoJ60ptO3/a4uBAuHgSf6agMlotixpwJ6ejutAGES4Xj+CVQTowD8oO8G5ahobs=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778842292; c=relaxed/simple;
-	bh=AD3TgwhHcVfzsD4xvDE++E4XugmkZ9j8786UL0vVLhg=;
-	h=MIME-Version:Date:From:To:Cc:Message-Id:Subject:Content-Type; b=iNaPeT9npkA/Gn+oRK3urJ58VMBgjH6HQd2FHLqqSFbRAxU7EVsWE3I4vbwIECElGTDaOrnm3NeHS5AcRuZRfaXRkaYwx//YMFoP2UhhoA74aX827+YgRgCxj9AHElWVv/VlzfGVQ5gtiB+ex4kttIt1dtoFgBMEj4oQwFo2NK0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=fastmail.com; spf=pass smtp.mailfrom=fastmail.com; dkim=pass (2048-bit key) header.d=fastmail.com header.i=@fastmail.com header.b=RroRBmiQ; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=XzD9zj3b; arc=none smtp.client-ip=103.168.172.156
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=fastmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fastmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fastmail.com header.i=@fastmail.com header.b="RroRBmiQ";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="XzD9zj3b"
-Received: from phl-compute-04.internal (phl-compute-04.internal [10.202.2.44])
-	by mailfhigh.phl.internal (Postfix) with ESMTP id BA7A81400016;
-	Fri, 15 May 2026 06:51:29 -0400 (EDT)
-Received: from phl-imap-16 ([10.202.2.88])
-  by phl-compute-04.internal (MEProxy); Fri, 15 May 2026 06:51:29 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fastmail.com; h=
-	cc:cc:content-transfer-encoding:content-type:content-type:date
-	:date:from:from:in-reply-to:message-id:mime-version:reply-to
-	:subject:subject:to:to; s=fm3; t=1778842289; x=1778928689; bh=bv
-	OFtffGWM6Ojp16cG/kgjG/NJsQkSioMbS31xGV9ms=; b=RroRBmiQQ1Y4TRzXAJ
-	ikVNO8bGwjwTXNYzxsWwXYUREvmpFhsNx++N/XUoKrbdLCe67Snsum/ads+INgEf
-	+iZBRDMx21HOIew+5S7+QQK/GDyU8lmQ+x/lw/RQwzXV2HG2KWAgjkaAjCj5IAHQ
-	2hJSBhZ1Pk/s/OaDtzeHZ/+o5ZueUvlQBUf4yGv/l01GxuIjHoP7Gv5oJ5cxa+3M
-	wrK7AYsE0/yc+dJZ0SNbheleCe2M818bJ/zoosHB3LdhoYAdqeh+DXDd4OiEws7m
-	VEnj2n1MWiOyzwwSTSdstHeYbfJaCIba0a5mtBGkyC7wJchcJLGdsRGNG1rqdlvy
-	E6Sg==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:content-type:date:date:feedback-id:feedback-id
-	:from:from:in-reply-to:message-id:mime-version:reply-to:subject
-	:subject:to:to:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
-	fm3; t=1778842289; x=1778928689; bh=bvOFtffGWM6Ojp16cG/kgjG/NJsQ
-	kSioMbS31xGV9ms=; b=XzD9zj3bW9YULGSxP3flOIK+IbWXQsGzBOfRuNeIbZmV
-	/YCJyGXpnfrNYL3bQegr0Gxm6cFab62mmZ7uk5vMDs7ZioEOFilIVzEBjBxmS9/d
-	puJPUcrJSoZdGe/L+iD2R6V0eionwuRUryxfG8BMNyGE4n9U3QX4WW6EnC3FADSo
-	Z//QRNFtymAqTrvS7n6CR6c0tNewYK2Ey/3NNdbCTE2N55UZOnQOhos9J62wkSyv
-	/ApA7FR/A5IlH4VTtu70cVGTVyxCtNXqivmkSao5jgOKtay7qVZvG0jInl/cha/o
-	DYubLEd08uI80ytrnuzpW/tn1iKIkq2Kt5h1qfuU9A==
-X-ME-Sender: <xms:sfoGan5C5DwySV4arBwOjcONy_1fYM28UwoHcWFDg_Mj5TGwmf-1Ug>
-    <xme:sfoGantXpGy2sQ7-2J8Eb4HbBHEbnd7DyfMpcxQaRs-xh4TQpXdO_YaGS9o6atu3j
-    Nrk-yGBV0S3HgMq3zGfVdpVhpZEYWQxu2EHYGS8KNyGdK8L_PQeFw>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefhedrtddtgddufedtvddtucetufdoteggodetrf
-    dotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfurfetoffkrfgpnffqhgenuceu
-    rghilhhouhhtmecufedttdenucenucfjughrpefoggffhffvvefkufgtgfesthhqredtre
-    dtjeenucfhrhhomhepsghighdrsghlohgtkhdtvddtfeesfhgrshhtmhgrihhlrdgtohhm
-    necuggftrfgrthhtvghrnhepiefgheeuieettdekudehveegfeeikeejiedvvdfgveeuve
-    elgfetveeuueeutdeinecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghi
-    lhhfrhhomhepsghighdrsghlohgtkhdtvddtfeesfhgrshhtmhgrihhlrdgtohhmpdhnsg
-    gprhgtphhtthhopeehpdhmohguvgepshhmthhpohhuthdprhgtphhtthhopehjihgtvdef
-    sehkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdgrtghpihesvhhgvghrrd
-    hkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhiihhosehvghgvrhdrkhgv
-    rhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkh
-    gvrhhnvghlrdhorhhgpdhrtghpthhtohepphhlrghtfhhorhhmqdgurhhivhgvrhdqgiek
-    ieesvhhgvghrrdhkvghrnhgvlhdrohhrgh
-X-ME-Proxy: <xmx:sfoGavlvbzbB6Hwq8TWcGXbsKlE6E-duUFKRRacJnGavLWbW8Ef0cA>
-    <xmx:sfoGasLShVdrYP50QvGrB2eopULW5Fu876ZW-eQqLydLPgRa90_MYg>
-    <xmx:sfoGas7Xomx4H3HFiHHUEi5D6Wes_zRayFd9iVGgPEMGcqu_0a1IaA>
-    <xmx:sfoGao0VUbQFM5A7QM3TUdu-XSGXw0UaqJMsRAgbsABnSxkenZYcmw>
-    <xmx:sfoGaiyErGbB2zJ6o-INfirVk9I7--ylC8lokrr4H1pnY5SCcpTT1swR>
-Feedback-ID: i35d941ae:Fastmail
-Received: by mailuser.phl.internal (Postfix, from userid 501)
-	id 977B52CC0086; Fri, 15 May 2026 06:51:29 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A16783B8948;
+	Fri, 15 May 2026 11:04:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=139.219.17.136
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1778843101; cv=fail; b=XnFoUAVrIs2ACgWTsSB43gGMikcreYhInrbKMq65qLHoIEauWvZoYStwnCN1r4C9f8tJZHAbuQKk315vY8VKyFgMvZWLJuxJdbrSoHhNjAwp24ZafeZ0lK4+bR3OZhOorCpkEczXePQgXEKIhqomE6tJiIX86vpgW8jDsezvXLo=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1778843101; c=relaxed/simple;
+	bh=kiLvO8wNUWMGxGEWZNHPrDSidr8QMOrEqGyWCRy8+XU=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=gshGni5FH1BPE+m2npcmPrSBTzcj2LSwt7xhAYUG3r5vVuj9/8DwfVyhvhcJq0yD65vpe1B2TG3h28Q3jLGmP+2r91+TM6sP/F8wQ33Nomajr8w7moDPDppap4gUSDYI3kzxM3hL5Yabcw53a9o4/MWo+7NQQuAPWseNa6aVliM=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lecomputing.com; spf=pass smtp.mailfrom=lecomputing.com; arc=fail smtp.client-ip=139.219.17.136
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lecomputing.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lecomputing.com
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=BFoYt+e+5s1qRQE3uzxBjv0ik27Kn27CDLg0KmFXU8QCGWm0+WyDESr4OSybKFGZUrPM9ilQ5YtkzZOLvadqgEFrNVUgNTjjTiQekaaxUrIWoJfj2RIj+gALxMpucJoeIMMG18ZyY+ZDscKiuW4HB1v9lAEkc5A/aQ+eGY1vJijWnqFfNxyMmXh6jwWDI+DDtP5+7K/RN2iLR6OJ2RqoW7CigBVQr3AWJvQa25HZgLSMncnI9vj/7yp1TqOyE6pL4UpLhoBjb86oydzagwDP4NXvbs2IySkgHfNajUI2ACAFiFgv0AtoIUzdlgJo6q/PO0Nf25QyHbIAMqrrBbTqaw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=uXX0j9ZAgh9bokFmQw4QSpSoQ7S5H0jwuM/ezdVlGEY=;
+ b=Mz1FYUCFrdA9hQub5L2D5ksTzXa4ACjJJuH1+duSdlc7PZD4QDkk08fvGHDxbAWk41YBNN/x0kSqFRwUFIM60pA33S6g15NeB6p37XuCvECD8XP+8QTCzNDavUpQay+QEEZfO7qDtFjgZwlqNk/kIXqD/0Wkm10h7XvXE3C1W2jF1wOLlDHaSAwo8Vn4IYqyzlalbXioG8UlMy3jiQ8vj1IEi6Wjin5CN2GVxxMLhFLk2a30NOn6Zv1cj7lepMgK/Bke7tGaCk7YGIgNPvDjanAV3Oax8SGYSiKkFUtMI7a9/gDy25FgEyIr5J2WqKXLAjNNyce1MiK/V39xqF9gLQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=lecomputing.com; dmarc=pass action=none
+ header.from=lecomputing.com; dkim=pass header.d=lecomputing.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=lecomputing.com;
+Received: from BJSPR01MB0707.CHNPR01.prod.partner.outlook.cn
+ (2406:e500:c211:1f::17) by BJSPR01MB0547.CHNPR01.prod.partner.outlook.cn
+ (2406:e500:c211:e::19) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9818.30; Fri, 15 May
+ 2026 11:03:41 +0000
+Received: from BJSPR01MB0707.CHNPR01.prod.partner.outlook.cn
+ ([fe80::1c61:86e3:3a75:155d]) by
+ BJSPR01MB0707.CHNPR01.prod.partner.outlook.cn ([fe80::1c61:86e3:3a75:155d%4])
+ with mapi id 15.20.9818.023; Fri, 15 May 2026 11:03:40 +0000
+From: Thomas Lin <thomas_lin@lecomputing.com>
+To: rafael@kernel.org,
+	lenb@kernel.org,
+	hoan@os.amperecomputing.com,
+	linusw@kernel.org,
+	brgl@kernel.org,
+	mika.westerberg@linux.intel.com,
+	andriy.shevchenko@linux.intel.com,
+	jsd@semihalf.com,
+	andi.shyti@kernel.org,
+	broonie@kernel.org
+Cc: linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-gpio@vger.kernel.org,
+	linux-i2c@vger.kernel.org,
+	linux-spi@vger.kernel.org,
+	lucas_hao@lecomputing.com,
+	puntar_liu@lecomputing.com,
+	jihua_tao@lecomputing.com,
+	stan_xu@lecomputing.com,
+	lumin_liu@lecomputing.com,
+	notics_zhang@lecomputing.com,
+	braden_zhang@lecomputing.com,
+	harold_wu@lecomputing.com,
+	will_zhang@lecomputing.com,
+	aurora_jiang@lecomputing.com,
+	ryen_lin@lecomputing.com,
+	andy_jiang@lecomputing.com,
+	Thomas Lin <thomas_lin@lecomputing.com>
+Subject: [PATCH v2 2/3] spi: dw-mmio: Add ACPI ID LECA0002 for LECARC SoCs
+Date: Fri, 15 May 2026 19:03:19 +0800
+Message-ID: <20260515110322.2883310-3-thomas_lin@lecomputing.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20260515110322.2883310-1-thomas_lin@lecomputing.com>
+References: <20260514034319.3507315-1-thomas_lin@lecomputing.com>
+ <20260515110322.2883310-1-thomas_lin@lecomputing.com>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: NT0PR01CA0033.CHNPR01.prod.partner.outlook.cn
+ (2406:e500:c510:c::10) To BJSPR01MB0707.CHNPR01.prod.partner.outlook.cn
+ (2406:e500:c211:1f::17)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Date: Fri, 15 May 2026 14:51:09 +0400
-From: big.block0203@fastmail.com
-To: linux-iio@vger.kernel.org
-Cc: jic23@kernel.org, platform-driver-x86@vger.kernel.org,
- linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Message-Id: <7915f7f0-d5fa-48a8-9aa6-fa2f8e621837@app.fastmail.com>
-Subject: [BUG] ACPI INT33D3 ambient light sensor not bound on Intel Lunar Lake
- (ThinkPad X1 Carbon Gen 13)
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BJSPR01MB0707:EE_|BJSPR01MB0547:EE_
+X-MS-Office365-Filtering-Correlation-Id: 594c7b42-ecbb-489e-45c5-08deb2719ec3
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam:
+ BCL:0;ARA:13230040|7416014|376014|52116014|1800799024|366016|18002099003|22082099003|921020|56012099003|38350700014|4143699003;
+X-Microsoft-Antispam-Message-Info:
+ lP+EEbp6ZZbVbfLly4U/u8SAevp6rqpX2I4WjiAnmYkgt5muRos3gvcaRqcfVWUIyvuIcDoKt/0Hu26lEOZNkKt01xG7Rh5o1NaKWW27buErQIuV11lvIUf+9B085qpVAzCMfzAgbjFanlfHxXwobKeQX3ecZxEwVe21WucAC4LWE6An5CegCPmWXKqFMmO+KRhTyL9kUHMMuer5QzIYCw6eNFa5+33op+3+Y6CPKZBCQ91zWAop56LFVSWOoYjoJiipj5d5WloVg+V2L2DECrMaXIa3JEECYRqNK4mnSayZt6T+JOII71K9XQR2nlUzkchsTR0IH7GADDcMRj2ZjcHU+gc1yhF9v84RtyrGs4PhR/YvwfCUU8D/1HbsTL2FvP3Hy+/dHegrU4JmR7nzFHT1MvDyFOyNIwtZ/ZmvTxJF1hIm3OCQLjAMQVIPckc0JXAtsPNJMfaI5XVx9n/zJGz9m6cwu1E6TSNdRv3Nn98PL6dHQyimAelY18ycCw4HtkdKUUKFQGcLWQnKspifLW7A9KcmqhfqV/V0FsZXhh2xwyqaMHgplnNa3vo6lxaKC8Ru5f4Yg0ALPPiJ0aHvlA==
+X-Forefront-Antispam-Report:
+ CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BJSPR01MB0707.CHNPR01.prod.partner.outlook.cn;PTR:;CAT:NONE;SFS:(13230040)(7416014)(376014)(52116014)(1800799024)(366016)(18002099003)(22082099003)(921020)(56012099003)(38350700014)(4143699003);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+ =?us-ascii?Q?irFoC44HA1PPlos/ixsdoHAncgDulvhrUv8mpWPsap04QdrS3cAST1AMDceR?=
+ =?us-ascii?Q?sRTiYDf5JvSuTe2k25xdr2OQm/rLd9uTCggTja0IxnjBX/fk0xX+B25bI7ez?=
+ =?us-ascii?Q?As2h6kCTNKJlqmcU6men5AJLc36j5ShBYwNgJwgln5cleOjLdQgsJZafJjNo?=
+ =?us-ascii?Q?xILRR5q2obUDi23hkZw4TUsJe4m07YPLO5Crum6GvfB1U0tMWg3+wkEXuSfO?=
+ =?us-ascii?Q?Jhoetr+ADWpQDPom4jIh6L14Xni9PnGzxUflftl53VSqwCNbPniIQSvA2NcR?=
+ =?us-ascii?Q?b7xzCJ8MRWjGu0d3SqfqGgmQalFCH+ttek/etVwpPQhfBZhmohN/K8A9g3sg?=
+ =?us-ascii?Q?ZU0Y7TJ3Y6Syh8eRINcMFlZvs/EYpz5/w4FSIFORN222UXgTU9tBd9oqW1I1?=
+ =?us-ascii?Q?QgcC24x6ByiuRf5BqbxwxU7KVDpa0O1DihqWS/DqQs1YB3riaDzhcKbhTBc5?=
+ =?us-ascii?Q?54jYMliM8ucfHNab2Ed8tB3YbnhRvMs1ONMU4LQNAPCE/8HoWNDYhq8x0jo4?=
+ =?us-ascii?Q?jVOC2GSO2TVgCB+4i6bXMkALnJvxs8tIggng6/J//SyAsc5w1IueWZ7gHLQ8?=
+ =?us-ascii?Q?gxtS5sN8p9jNarfWd4S9ZTd11TDBQVkZNKGraJQ9rcvgKxdW2xtol1koeV9i?=
+ =?us-ascii?Q?Oti9Iq9pODiPX8AlyaygE70w/lBBsfXsb1T5WOBtHvWiToRl6c6xLl0+puL0?=
+ =?us-ascii?Q?wkq8SRquyPZcOGT1AnQ1/ez+eVA7H4O44HAaO0Mx0QmBGUcBtrCMyW293twi?=
+ =?us-ascii?Q?3edXu7kscBNS7UnDC1E+I7oRIatKyqBnXWNnHX2AjhcpfZvKqPUBQOP6oAz0?=
+ =?us-ascii?Q?xm46m+07LlVDusjbXrQGEYq3uYWqOJWxgeawo6M9LdK4hrq286uboxhyshep?=
+ =?us-ascii?Q?0SCXH9+Rm6naDaZtr/nK5CAm0dQfiJBYAh5941CuswHpMusPja/zahMl3OAx?=
+ =?us-ascii?Q?4nZRMR/3v+jagQn5HRnOgEqhUoPb2L7n/p/375e2wUR8bBn9nOoF0j4kQ4ai?=
+ =?us-ascii?Q?DiMDc5Y55Xre2kFXcF47WAe3kvCZAdBEdX9lCPU7pGmGibU7crfxoMJsor9E?=
+ =?us-ascii?Q?wUX6tP4/gqbv/46rFbnCO/J6nwKtuQj5qKDtw/46sMOPOnL8L5FhmLNMTbsD?=
+ =?us-ascii?Q?CsL2UkbyGigyT599M11xFtlhkv4Q/FBOOEdL8Ad+SjGiRkFU8kbp2PviXm3I?=
+ =?us-ascii?Q?A1g+7x3zSveQiIDTRt8JscWfmfs2EPTPW9oPe0QqsEPWXkYFSxAEFoNTUXgD?=
+ =?us-ascii?Q?yssqAvAO4lW9IdxAxlWBBqn7Jn/YMttiGtQlDyfObynf4kZ/GgyxmiNahkpy?=
+ =?us-ascii?Q?bNfck0V/Bp4wOscW2gdb1M+pIx/71wJucm8gVextuya7OT+SqttZElcE8y+s?=
+ =?us-ascii?Q?gQkrCVafbu6XB8eoeoiqF07t32Yss8gm88fbfENyUxAU4k60QrScEk5Kwxny?=
+ =?us-ascii?Q?3bpqc0AK+beYbzHgQVow0AFXGVrji72Asf4wBnmqVna/bECrUNlw9RESEWiH?=
+ =?us-ascii?Q?gc5c/9v/STnIuanBFRWGC2PL3DkBsT4L81OhJBj+TDMaWXEixoZ7xIKyVLRM?=
+ =?us-ascii?Q?OpfsQuHCbzDh4OhbLQIG7H7S4kBrJF6PUL0CS7HfIpZrO0EeCw0+W5YnBkI2?=
+ =?us-ascii?Q?HTfkCbb7IFQ/VYpePJU9VzH4wQdctDiCL/GBqXpdbSGmm8vLD7FIFAoUNDe5?=
+ =?us-ascii?Q?ICYCc39peWT0tXhR/I2xavnej4Y80E09hHuAkKvSTHP0rISXTV6jxrx78ddu?=
+ =?us-ascii?Q?W4achrvR32AsnHt3W3QyH5BBbLsLZig=3D?=
+X-OriginatorOrg: lecomputing.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 594c7b42-ecbb-489e-45c5-08deb2719ec3
+X-MS-Exchange-CrossTenant-AuthSource: BJSPR01MB0707.CHNPR01.prod.partner.outlook.cn
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 15 May 2026 11:03:40.1985
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 3591a018-3909-4ea2-aee8-843d5abaed8d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: BclCWhlIZg38eQLn+xUY4A27Q+Ev0xL1yuw24P683UxUzEecGH5O3FeOv8tU2ChLiV9rZcWdoDs+VCae9iC82IONn3KLGg+iWduWvu9CJo8=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BJSPR01MB0547
 
-Hi,
+Add ACPI ID "LECA0002" for LECARC SoCs. This ID requires a custom initialization function dw_spi_hssi_no_dma_init() that sets dws->dws.ip to DW_HSSI_ID.
 
-On a Lenovo ThinkPad X1 Carbon Gen 13 (Intel Lunar Lake), the ACPI
-firmware declares an INT33D3 ambient light sensor as present, enabled,
-and functional, but no Linux driver binds to it. As a result, no IIO
-device is created and no ambient light data is available to userspace
-(KDE/GNOME auto-brightness, iio-sensor-proxy, etc.).
+Signed-off-by: Thomas Lin <thomas_lin@lecomputing.com>
+---
+ drivers/acpi/acpi_apd.c   | 7 +++++++
+ drivers/spi/spi-dw-mmio.c | 7 ++++---
+ 2 files changed, 11 insertions(+), 3 deletions(-)
 
-I did not find an existing report covering this on Lunar Lake. Apologies
-if this duplicates one I missed; pointers welcome.
+diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
+index bed0791c17fc..4d5a51d30adc 100644
+--- a/drivers/acpi/acpi_apd.c
++++ b/drivers/acpi/acpi_apd.c
+@@ -181,6 +181,12 @@ static const struct apd_device_desc hip08_spi_desc = {
+ 	.setup = acpi_apd_setup,
+ 	.fixed_clk_rate = 250000000,
+ };
++
++static const struct apd_device_desc leca_spi_desc = {
++	.setup = acpi_apd_setup,
++	.fixed_clk_rate = 400000000,
++};
++
+ #endif /* CONFIG_ARM64 */
+ 
+ #endif
+@@ -251,6 +257,7 @@ static const struct acpi_device_id acpi_apd_device_ids[] = {
+ 	{ "HISI02A2", APD_ADDR(hip08_i2c_desc) },
+ 	{ "HISI02A3", APD_ADDR(hip08_lite_i2c_desc) },
+ 	{ "HISI0173", APD_ADDR(hip08_spi_desc) },
++	{ "LECA0002", APD_ADDR(leca_spi_desc) },
+ 	{ "NXP0001", APD_ADDR(nxp_i2c_desc) },
+ #endif
+ 	{ }
+diff --git a/drivers/spi/spi-dw-mmio.c b/drivers/spi/spi-dw-mmio.c
+index 1bfdf24c3227..e131520fe887 100644
+--- a/drivers/spi/spi-dw-mmio.c
++++ b/drivers/spi/spi-dw-mmio.c
+@@ -226,8 +226,8 @@ static int dw_spi_hssi_init(struct platform_device *pdev,
+ 	return 0;
+ }
+ 
+-static int dw_spi_intel_init(struct platform_device *pdev,
+-			     struct dw_spi_mmio *dwsmmio)
++static int dw_spi_hssi_no_dma_init(struct platform_device *pdev,
++			           struct dw_spi_mmio *dwsmmio)
+ {
+ 	dwsmmio->dws.ip = DW_HSSI_ID;
+ 
+@@ -438,7 +438,7 @@ static const struct of_device_id dw_spi_mmio_of_match[] = {
+ 	{ .compatible = "amazon,alpine-dw-apb-ssi", .data = dw_spi_alpine_init},
+ 	{ .compatible = "renesas,rzn1-spi", .data = dw_spi_pssi_init},
+ 	{ .compatible = "snps,dwc-ssi-1.01a", .data = dw_spi_hssi_init},
+-	{ .compatible = "intel,keembay-ssi", .data = dw_spi_intel_init},
++	{ .compatible = "intel,keembay-ssi", .data = dw_spi_hssi_no_dma_init},
+ 	{
+ 		.compatible = "intel,mountevans-imc-ssi",
+ 		.data = dw_spi_mountevans_imc_init,
+@@ -453,6 +453,7 @@ MODULE_DEVICE_TABLE(of, dw_spi_mmio_of_match);
+ #ifdef CONFIG_ACPI
+ static const struct acpi_device_id dw_spi_mmio_acpi_match[] = {
+ 	{"HISI0173", (kernel_ulong_t)dw_spi_pssi_init},
++	{"LECA0002", (kernel_ulong_t)dw_spi_hssi_no_dma_init},
+ 	{},
+ };
+ MODULE_DEVICE_TABLE(acpi, dw_spi_mmio_acpi_match);
+-- 
+2.43.0
 
-Hardware
-=3D=3D=3D=3D=3D=3D=3D=3D
-- Lenovo ThinkPad X1 Carbon Gen 13
-- Intel Core Ultra 7 258V (Lunar Lake, Xe2)
-- iGPU: PCI 8086:64a0 (rev 04), subsystem 17aa:2339
-- Panel: Samsung Display ATNA40YK20-0 (2.8K OLED)
-
-Software
-=3D=3D=3D=3D=3D=3D=3D=3D
-- Fedora Kinoite 44
-- kernel 7.0.6-200.fc44.x86_64
-- KDE Plasma 6 on Wayland
-
-Symptom
-=3D=3D=3D=3D=3D=3D=3D
-No IIO devices are exposed at all:
-
-    $ ls /sys/bus/iio/devices/
-    (empty)
-    $ ls /sys/class/iio/
-    (empty)
-
-But the ALS is declared in ACPI:
-
-    $ cat /sys/bus/acpi/devices/INT33D3:00/hid
-    INT33D3
-
-    $ cat /sys/bus/acpi/devices/INT33D3:00/status
-    15
-
-    $ ls /sys/bus/acpi/devices/INT33D3:00/
-    cid  hid  modalias  path  physical_node  power  status  subsystem  u=
-event
-    # No `driver` symlink under physical_node =E2=80=94 nothing bound.
-
-    $ readlink /sys/bus/acpi/devices/INT33D3:00/physical_node
-    ../../../../../../pci0000:00/0000:00:1f.0/PNP0C09:00/INT33D3:00
-
-    $ sudo dmesg | grep -i INT33D3
-    (no output =E2=80=94 no driver even attempted to probe)
-
-Status 0xf per ACPI spec means: present (bit 0), enabled (bit 1), shown
-in UI (bit 2), functional (bit 3). The firmware unambiguously declares
-the device as available. dmesg shows no probe attempt and no error.
-
-Other unclaimed firmware-declared devices on this platform (for context)
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-    INTC1025:00     status=3D?    driver=3DNONE
-    INTC105D:00     status=3D15   driver=3Dintel-pinctrl
-    INTC105D:01     status=3D15   driver=3Dintel-pinctrl
-    INTC105D:02     status=3D15   driver=3Dintel-pinctrl
-    INTC105D:03     status=3D15   driver=3Dintel-pinctrl
-    INTC105D:04     status=3D15   driver=3Dintel-pinctrl
-    INTC1068:00     status=3D15   driver=3Dint3400 thermal
-    INTC1069:00     status=3D15   driver=3Dint3403 thermal
-    INTC1069:01     status=3D15   driver=3Dint3403 thermal
-    INTC1069:02     status=3D15   driver=3Dint3403 thermal
-    INTC1069:03     status=3D15   driver=3Dint3403 thermal
-    INTC1069:04     status=3D15   driver=3Dint3403 thermal
-    INTC107B:00     status=3D15   driver=3Dintel-hid
-    INTC1092:00     status=3D0    driver=3DNONE
-    INTC109D:00     status=3D15   driver=3DNONE
-
-INTC109D:00 is also present-and-enabled but has no driver bound. Its
-function is unknown to me; including it for awareness in case it is
-sensor-hub-related and a prerequisite for INT33D3.
-
-INT3519:00 is also present in ACPI but with status=3D0 (disabled by
-firmware), so likely not relevant here.
-
-Expected behavior
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-An IIO device of class `in_illuminance*` should appear under
-/sys/bus/iio/devices/, allowing iio-sensor-proxy and desktop
-environments to consume ambient light data for auto-brightness.
-
-Thanks,
-big.block
