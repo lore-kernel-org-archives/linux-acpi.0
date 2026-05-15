@@ -1,89 +1,67 @@
-Received: from fout-a8-smtp.messagingengine.com (fout-a8-smtp.messagingengine.com [103.168.172.151])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8AA543C051;
-	Fri, 15 May 2026 09:22:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.151
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41908401489;
+	Fri, 15 May 2026 09:34:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.12
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778836982; cv=none; b=mz49hZb+pJisf8HEiI3GY7oRrPC0Z1YQwzk60Np9KfLTKfDJc9YkUGYTUMiII5bsu3zzFMfcuJ6YyKu8eQMCHAkfT/ehqY6vWFLVSLztTKuZgtE2uT+j3KfjdNK/V/ubRV6lH6dr4Mi/VzwdBYB+yKUFFqsX9pzmSASqJTBUnKs=
+	t=1778837668; cv=none; b=tmWt0jffzNJSuEAp9Omk3ht4QOazaxdBt5hjT4H/nLvwKwiIlOjYsHwMQgviR0CvJfE+bhYMkLATxQ4oqyNnObCqZc6WhSVM12/zYGfhDEoveDjA/96SUBlqlZADa4jJCHohMTvc0agAw3ZWjI5TmSBmP1d1CHce77rltahTC84=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778836982; c=relaxed/simple;
-	bh=2RawwmkVBXDwBk1ISsvfjcJewyE1qgHJGFnhYrJ5dzA=;
+	s=arc-20240116; t=1778837668; c=relaxed/simple;
+	bh=HnWWIdvb1tx14H5OxFyttFQM8slsQGnOefYn/wt07h0=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=JeapMqHXwb1RT+evCmGAs4I9rblA8ZBG4HHNtNsztG18SVAUDfiHYaVUrTN6iXvrsY6gbk6H0uxZqEyiMJsQ+K3SWhIyV/INqg2L4DYCpJOQ6BdpfUZHxhKPxMgWj6IbHThSpmn9VhNVKdxUtj1XEdWLkpwYu3TL0y73eIEIJm4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kroah.com; spf=pass smtp.mailfrom=kroah.com; dkim=pass (2048-bit key) header.d=kroah.com header.i=@kroah.com header.b=cPamcTzp; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=a76gKWAL; arc=none smtp.client-ip=103.168.172.151
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kroah.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kroah.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=lkzIOLqfByuNWhZM+oIZavOKreCrjrqHn0MkaEiRJ5vjK2xnp0qQCdINb3mDOsdMf/ABGghhKCQmwo6dGGHJoiEc3d6TZ2C40nyGU5RpcgYwprxCWG2jO/iDRJr8fhfCU9ytqGBli+JFNmuy2V8FrWhM6+q3YlE/G1+AHP9ItTE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=c+e93sCw; arc=none smtp.client-ip=192.198.163.12
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kroah.com header.i=@kroah.com header.b="cPamcTzp";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="a76gKWAL"
-Received: from phl-compute-02.internal (phl-compute-02.internal [10.202.2.42])
-	by mailfout.phl.internal (Postfix) with ESMTP id 99BEAEC0174;
-	Fri, 15 May 2026 05:22:57 -0400 (EDT)
-Received: from phl-frontend-04 ([10.202.2.163])
-  by phl-compute-02.internal (MEProxy); Fri, 15 May 2026 05:22:57 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kroah.com; h=cc
-	:cc:content-type:content-type:date:date:from:from:in-reply-to
-	:in-reply-to:message-id:mime-version:references:reply-to:subject
-	:subject:to:to; s=fm3; t=1778836977; x=1778923377; bh=q96tmKAn+e
-	bcJPtQWPTeFfc3MZ0hJxJazaZMbMSIg4U=; b=cPamcTzph60rCmRg1gGzUdEehg
-	bWTgQdOgiNzQpwrQ7laObJij13+vfBqhN5uT+Bj6x07D3Yttf7hlYnm6zzBh/MCc
-	i5xswumWg95MYtA82I5fZNeR737QuVKwRahS5YSytlFn9AfTj6A3UghCWlQ/cTuj
-	9+L9YsOKmuKohBHx9RCTzsmKpPdtHDf9h+tZc+7xi/6mzQQFJwg3Ncaz0NxKe0Oj
-	0GjkMgaimiYzbUZ8WxolxteZ6FpCSNjVI8pC7c0G56vBR2E+0xrJLU0zzJbe+dH6
-	acv/bFF9thlI8BRoW7hk8ZHsX0oz3bKfuQG5zx9GbwkNf/lDjMC6A5fnjgdg==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-type:content-type:date:date
-	:feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
-	:message-id:mime-version:references:reply-to:subject:subject:to
-	:to:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=
-	1778836977; x=1778923377; bh=q96tmKAn+ebcJPtQWPTeFfc3MZ0hJxJazaZ
-	MbMSIg4U=; b=a76gKWALpkdauPoNet+pvvxSWD1jkvVEPd1YXmQxLDFdmPGlIZo
-	FELJ57nBIGxMull08N33C4X91aXizZlHIB2sJ9pwslIn1ym3erEhCCddjKdEfNiE
-	oFPBzFscoLehwfrQfaVNT4hb2Cqb7wERVyxP/vW9tgW5ZX23reXWiM5QJb8JuK5O
-	yt/qkafqCAfT8CLD18GPcphBHP80aeW2Q/9ATtnH3pcK/xAjZDu43cZxqDi5/zjN
-	xFJ1wxDIxpb8PIQjxg6vlqE999ue6YjEz+FlDXBSFdqrXRPNwyFrGt7DhTCjoGXJ
-	ExBDkJu64KJVeuPQjSGfdKT58f3NaI2ee9A==
-X-ME-Sender: <xms:8eUGap-ePxLbraJpxg_B-MRdxlYdPULF20eR4lfLs-EArg8Y0wE-0w>
-    <xme:8eUGailXfgzExjfD9P_50-uBpgY1xsrV5Boi_FJjni65YGOGzu-c-JcKQ-YDv0PHi
-    q9DLsE3DCw1FO28Yse4LhJ11O5y2nK4WOc2y-0G6SVfKbmD>
-X-ME-Received: <xmr:8eUGakkDEhQVMSv2z4M0azJByqeEyZxjx43nGU6kP6-TjUC7RiMDrvSRjZDUfJUv5YKHZ22Y1xyu7qIeKwS8i3H5kg>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefhedrtddtgddufedttddvucetufdoteggodetrf
-    dotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfurfetoffkrfgpnffqhgenuceu
-    rghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujf
-    gurhepfffhvfevuffkfhggtggujgesthdtredttddtvdenucfhrhhomhepifhrvghgucfm
-    jfcuoehgrhgvgheskhhrohgrhhdrtghomheqnecuggftrfgrthhtvghrnhepheegvdevvd
-    eljeeugfdtudduhfekledtiefhveejkeejuefhtdeufefhgfehkeetnecuvehluhhsthgv
-    rhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomhepghhrvghgsehkrhhorghhrd
-    gtohhmpdhnsggprhgtphhtthhopedvvddpmhhouggvpehsmhhtphhouhhtpdhrtghpthht
-    ohepjhhoohhnfihonhhkrghnghesghhoohhglhgvrdgtohhmpdhrtghpthhtohepshgrsh
-    hhrghlsehkvghrnhgvlhdrohhrghdprhgtphhtthhopehsthgrsghlvgesvhhgvghrrdhk
-    vghrnhgvlhdrohhrghdprhgtphhtthhopehjrghsshhishhinhhghhgsrhgrrhesghhmrg
-    hilhdrtghomhdprhgtphhtthhopehsuhguvggvphdrhhholhhlrgesrghrmhdrtghomhdp
-    rhgtphhtthhopehthhhivghrrhihrdhrvgguihhnghesghhmrghilhdrtghomhdprhgtph
-    htthhopehjohhnrghthhgrnhhhsehnvhhiughirgdrtghomhdprhgtphhtthhopehlihhn
-    uhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlih
-    hnuhigqdgrtghpihesvhhgvghrrdhkvghrnhgvlhdrohhrgh
-X-ME-Proxy: <xmx:8eUGavjLjRxboZzCjs_70phyWBq1aKL4lYsaEW62gtgVAwV0MaWy8w>
-    <xmx:8eUGatUBiUITBvyXES_fPRRxb3FHnc5fNwa08dCx9cMUkrbw5XSyDg>
-    <xmx:8eUGahhtgaCVgs2HQ2M3R-yzqmk5qdql2Wbrcst6iawhMWGr-3DOrA>
-    <xmx:8eUGah5D_EnlWnUyNq4Cf9IWraFg3aBEaiypGWXjcSci784aC6Za5Q>
-    <xmx:8eUGapVYJ_kcUOvtzzWx0PLS49evdgqncvs8ioSG3ho-tT4y3H8K2el5>
-Feedback-ID: i787e41f1:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Fri,
- 15 May 2026 05:22:56 -0400 (EDT)
-Date: Fri, 15 May 2026 11:23:02 +0200
-From: Greg KH <greg@kroah.com>
-To: Joonwon Kang <joonwonkang@google.com>
-Cc: sashal@kernel.org, stable@vger.kernel.org, jassisinghbrar@gmail.com,
-	sudeep.holla@arm.com, thierry.reding@gmail.com,
-	jonathanh@nvidia.com, linux-kernel@vger.kernel.org,
-	linux-acpi@vger.kernel.org, linux-tegra@vger.kernel.org,
-	dianders@chromium.org
-Subject: Re: [PATCH v2 v6.18.y] mailbox: Fix NULL message support in
- mbox_send_message()
-Message-ID: <2026051523-mud-darling-2bc6@gregkh>
-References: <20260510055810.796976-1-joonwonkang@google.com>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="c+e93sCw"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1778837667; x=1810373667;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=HnWWIdvb1tx14H5OxFyttFQM8slsQGnOefYn/wt07h0=;
+  b=c+e93sCwZqPdfHZsRWRCVp3QzFeRK/bKAXHZnQITj4wu20eUQLdLD41y
+   lK+/FJaeKdVXTTzKuuO/fNolMVg4XVNNExaoe5uDzWmTc25h4doZbRWPJ
+   dQ+L1izLrPvm2iu3BMToEYY8c0oP5YI9ZIHU7DOu/FNf+/o+z0Di48wxo
+   I6E9LO17JmSec7rfwb6sbxksmVRSXzIBU+7CcETOJhd5QbCFKuaImr8UE
+   frnIt65DcgnwlsaPkKMHvG3Qdm50QLKqj10anfe8KdPL/6GZndINLwfcd
+   WYzGiJASPn0CZjLQb/Zyxm6f0dR0bJGJFl+GUhJQSnIEI60wBnqSAodQ0
+   Q==;
+X-CSE-ConnectionGUID: 5MwWrlgQT+uYnGU18toGxA==
+X-CSE-MsgGUID: cSy3WDYvRyKDyT5NTmP4tw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11786"; a="83646722"
+X-IronPort-AV: E=Sophos;i="6.23,236,1770624000"; 
+   d="scan'208";a="83646722"
+Received: from orviesa006.jf.intel.com ([10.64.159.146])
+  by fmvoesa106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 May 2026 02:34:26 -0700
+X-CSE-ConnectionGUID: S9W6yTTYRiO5QoHLzCyFTg==
+X-CSE-MsgGUID: 4A/IikBIQEWuafcqoW/syQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,236,1770624000"; 
+   d="scan'208";a="237661813"
+Received: from vpanait-mobl.ger.corp.intel.com (HELO localhost) ([10.245.245.33])
+  by orviesa006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 May 2026 02:32:34 -0700
+Date: Fri, 15 May 2026 12:32:32 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: thomas <thomas_lin@lecomputing.com>
+Cc: rafael@kernel.org, lenb@kernel.org, hoan@os.amperecomputing.com,
+	linusw@kernel.org, brgl@kernel.org, mika.westerberg@linux.intel.com,
+	jsd@semihalf.com, andi.shyti@kernel.org, broonie@kernel.org,
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-gpio@vger.kernel.org, linux-i2c@vger.kernel.org,
+	linux-spi@vger.kernel.org, lucas_hao@lecomputing.com,
+	puntar_liu@lecomputing.com, jihua_tao@lecomputing.com,
+	stan_xu@lecomputing.com, lumin_liu@lecomputing.com,
+	notics_zhang@lecomputing.com, braden_zhang@lecomputing.com,
+	harold_wu@lecomputing.com, will_zhang@lecomputing.com,
+	aurora_jiang@lecomputing.com, ryen_lin@lecomputing.com,
+	andy_jiang@lecomputing.com
+Subject: Re: [PATCH 2/3] spi: dw-mmio: Add LECARC ACPI ID and init hook
+Message-ID: <agboMC07Xojt5x2c@ashevche-desk.local>
+References: <20260514024014.3376511-1-thomas_lin@lecomputing.com>
+ <20260514024014.3376511-3-thomas_lin@lecomputing.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -92,20 +70,44 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260510055810.796976-1-joonwonkang@google.com>
+In-Reply-To: <20260514024014.3376511-3-thomas_lin@lecomputing.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On Sun, May 10, 2026 at 05:58:10AM +0000, Joonwon Kang wrote:
-> From: Jassi Brar <jassisinghbrar@gmail.com>
+On Thu, May 14, 2026 at 10:40:11AM +0800, thomas wrote:
+> Add ACPI ID "LECA0002" for LECARC SoCs. This ID requires a custom
+> initialization function dw_spi_lecarc_init() that sets dws->dws.ip
+> to DW_HSSI_ID.
 > 
-> commit c58e9456e30c ("mailbox: Fix NULL message support in mbox_send_message()") upstream.
+> Also add corresponding ACPI description in acpi_apd.c.
 
-What about 7.0?  We need that one too, right?
+...
 
-Please submit patches for all relevant branches.
+>  	{ "HISI02A3", APD_ADDR(hip08_lite_i2c_desc) },
+>  	{ "HISI0173", APD_ADDR(hip08_spi_desc) },
+>  	{ "NXP0001", APD_ADDR(nxp_i2c_desc) },
+> +	{ "LECA0002", APD_ADDR(leca_spi_desc) },
 
-Now dropping these backports from our review queues, please resend them
-all.
+Keep them ordered or close enough to be ordered. Id est in this case
+locate it before NXP.
 
-thanks,
+...
 
-greg k-h
+> +static int dw_spi_lecarc_init(struct platform_device *pdev,
+> +			     struct dw_spi_mmio *dwsmmio)
+> +{
+> +	dwsmmio->dws.ip = DW_HSSI_ID;
+> +
+> +	return 0;
+> +}
+
+dw_spi_intel_init() is the same, why not reusing it?
+
+Note, if uncomfortable with the name, make a patch to rename it to something like
+dw_spi_hssi_no_dma_init().
+
+-- 
+With Best Regards,
+Andy Shevchenko
+
+
