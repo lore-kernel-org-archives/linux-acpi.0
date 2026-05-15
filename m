@@ -1,165 +1,172 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C0DF43636A;
-	Fri, 15 May 2026 11:47:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BFB3267B89;
+	Fri, 15 May 2026 12:52:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778845653; cv=none; b=iqxVqK322xCXY8Q85f9nDkIZ0iLKqzYlUeeqpI/R8maPRxrUhiS89JPUoqbNjpcsld0xhJ/oLg2Md9bGt44a7Q+hD3xIrK30TbhrbGPcPSUP02PlneU3kvDnXqXljpyDbfmsl3IF024SW2mftxEVaYapWXaxOmp6DBDaikOtUbg=
+	t=1778849540; cv=none; b=Q7vgv0ldr5it/79ano/GvyDmQ2++iVDToxbJKWAP6YXjfzlULbmCYavCTUt4afycDWhY7Yr5xg4w9Hp/IJykmjxIb5YmCWBTp+SIjJSys4qOa8hdjaRRXbkjttLxIrsrhqpR55uPp9aB4j+yrqYPLpo8XxKBPTsRbfzzCg39Esw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778845653; c=relaxed/simple;
-	bh=IHy6tCCL6ZboGN6XiT9mrdDppkHa9GfP65Sh+0zol1g=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=MvA9tznQBYzpY/YZWQX7UwsIfNUYqbHYnvRgfBxL5W6TBc/TNp83rjT6dtwb2PrWAq+O8htRuUZiurv+DgCohaTQw3C2nyhAUizF/sCQ+vBI4Om68ZvIfHW24dT0kLQn0Ad8uvXeA0CvFq0tYDNuL4AY9tjZ5zijy5UqPOyBIMM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=pG8E7XbG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778849540; c=relaxed/simple;
+	bh=5o6LcG/vxhfqiQV9se/iRFOt5vrH9A9e5YPVJb41mtw=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=cAO0gpb10lwF0fO7vtFL4uopjQI6tzR3D4GeF//WQupNC21JDl7yZaelZx/kZ8ywtjvbBjryObBP4rNmO3UH3t3qlQnMz87aZb6jgEld6P2zWjzuuzgQ50yJU5VIde7l5SdlH473aqqrZ1DKrgEUAr7FRWhuTSAvsNxaRCTBCkI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UXNXeVPz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="pG8E7XbG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2E78C2BCB8;
-	Fri, 15 May 2026 11:47:31 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UXNXeVPz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C40FBC2BCB0;
+	Fri, 15 May 2026 12:52:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778845653;
-	bh=IHy6tCCL6ZboGN6XiT9mrdDppkHa9GfP65Sh+0zol1g=;
-	h=From:To:Cc:Subject:Date:From;
-	b=pG8E7XbG6uMsr4TOp31ODdvYiRZp+lbJ8ue3eQow6PhqKykU6CFDuh4PuSaEEOfzW
-	 pLAkfHNiK3hWidJS611fHC+K9uGuyoelu+s9G+vj+Tua3v1JgvurDGNiqt2ImKUpoV
-	 K1V+2wStsYzrGL8cqcQ30TWNnOTrZoW1FCDi2HSrpZ/vUQ7XcV2zGoqOJ98hbBeSVc
-	 ZeZpj1JnJh9Udyrbr7oGcjEOZhVjjZ1dLTNJcMWWgQ2WCmJc7qj6wZGxUexs50oiuz
-	 EhHe+F/frYelmeI8/6VwvAFEk9+9H94W/vg2Cr29JStRdDvT+0RYXeMoGrVF5+pOrZ
-	 3YVlUCNJiDmYQ==
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-To: Ilpo =?ISO-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
- Linux ACPI <linux-acpi@vger.kernel.org>, Hans de Goede <hansg@kernel.org>,
- platform-driver-x86@vger.kernel.org,
- Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject:
- [PATCH v2] platform/x86: xo15-ebook: Use devres-based resource management
-Date: Fri, 15 May 2026 13:47:29 +0200
-Message-ID: <6015220.DvuYhMxLoT@rafael.j.wysocki>
-Organization: Linux Kernel Development
+	s=k20201202; t=1778849539;
+	bh=5o6LcG/vxhfqiQV9se/iRFOt5vrH9A9e5YPVJb41mtw=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=UXNXeVPzBEGfGCmQ6Zh9balsm9/02tDjxIvzcZ74o357Kj3TLMs5Xfcb9ZDKWUHZs
+	 ig7KXiHw98Zc3EGJ78sJw2h326fCayz5R/+BRUwjc5/6zwFqc9FuG7MRZUMBo97aXs
+	 m41dbxwzJ11MrhVgLwvHa/mYCcdwkV9SlTVec9IKa99pdqnAIgvOIQzkqNQmw6H8Oq
+	 WysXyObH5DQ32PZJn0Zpwcwr5HSwpT4UwCutUx1cqseRCfhexogpZ36ByUxcGZF3VY
+	 McM+sIfpFi/ln6F0XyLSohKlvmXH4fV41RMlYusKqxXUhqaOsn2rdi2KpJVCNGjQn+
+	 UqTD9IdYw4Mrg==
+Date: Fri, 15 May 2026 13:52:10 +0100
+From: Sudeep Holla <sudeep.holla@kernel.org>
+To: Marc Zyngier <maz@kernel.org>
+Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+	Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	Hanjun Guo <guohanjun@huawei.com>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Daniel Lezcano <daniel.lezcano@kernel.org>,
+	Thomas Gleixner <tglx@kernel.org>, Rob Herring <robh@kernel.org>,
+	Krzysztof Kozlowski <krzk+dt@kernel.org>,
+	Conor Dooley <conor+dt@kernel.org>, Chen-Yu Tsai <wens@kernel.org>,
+	Jernej Skrabec <jernej.skrabec@gmail.com>,
+	Samuel Holland <samuel@sholland.org>,
+	Neil Armstrong <neil.armstrong@linaro.org>,
+	Kevin Hilman <khilman@baylibre.com>,
+	Jerome Brunet <jbrunet@baylibre.com>,
+	Martin Blumenstingl <martin.blumenstingl@googlemail.com>,
+	Ge Gordon <gordon.ge@bst.ai>,
+	BST Linux Kernel Upstream Group <bst-upstream@bstai.top>,
+	Jesper Nilsson <jesper.nilsson@axis.com>,
+	Lars Persson <lars.persson@axis.com>,
+	Alim Akhtar <alim.akhtar@samsung.com>,
+	Ivaylo Ivanov <ivo.ivanov.ivanov1@gmail.com>,
+	Frank Li <Frank.Li@nxp.com>, Sascha Hauer <s.hauer@pengutronix.de>,
+	Pengutronix Kernel Team <kernel@pengutronix.de>,
+	Fabio Estevam <festevam@gmail.com>,
+	Dinh Nguyen <dinguyen@kernel.org>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
+	Thierry Reding <thierry.reding@kernel.org>,
+	Jonathan Hunter <jonathanh@nvidia.com>,
+	Bjorn Andersson <andersson@kernel.org>,
+	Konrad Dybcio <konradybcio@kernel.org>,
+	Andreas =?iso-8859-1?Q?F=E4rber?= <afaerber@suse.de>,
+	Heiko Stuebner <heiko@sntech.de>,
+	Shawn Lin <shawn.lin@rock-chips.com>,
+	Orson Zhai <orsonzhai@gmail.com>,
+	Baolin Wang <baolin.wang@linux.alibaba.com>,
+	Michal Simek <michal.simek@amd.com>
+Subject: Re: [PATCH v2 01/17] ACPI: GTDT: Account for GTDTv3 size when
+ walking the platform timer descriptors
+Message-ID: <20260515-crafty-thundering-frigatebird-ea6db0@sudeepholla>
+References: <20260514150945.3917510-1-maz@kernel.org>
+ <20260514150945.3917510-2-maz@kernel.org>
+ <20260515-prudent-vagabond-beetle-cad34b@sudeepholla>
+ <864ik8ykzd.wl-maz@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <864ik8ykzd.wl-maz@kernel.org>
 
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+On Fri, May 15, 2026 at 12:23:50PM +0100, Marc Zyngier wrote:
+> On Fri, 15 May 2026 10:51:52 +0100,
+> Sudeep Holla <sudeep.holla@kernel.org> wrote:
+> > 
+> > On Thu, May 14, 2026 at 04:09:29PM +0100, Marc Zyngier wrote:
+> > > Since ARMv8.1, the architecture has grown an EL2-private virtual
+> > > timer. This has been described in ACPI since ACPI v6.3 and revision
+> > > 3 of the GTDT table.
+> > > 
+> > > An aditional structure was added in ACPICA, though in a rather
+> > > bizarre way, and merged in v5.1 as 8f5a14d053100 ("ACPICA: ACPI 6.3:
+> > > add GTDT Revision 3 support").
+> > > 
+> > > Finally plug the table parsing in GTDT, and correct the parsing of
+> > > the platform timer subtables to account for the expanded size of
+> > > the base table.
+> > > 
+> > > Suggested-by: Sudeep Holla <sudeep.holla@kernel.org>
+> > > Signed-off-by: Marc Zyngier <maz@kernel.org>
+> > > ---
+> > >  drivers/acpi/arm64/gtdt.c | 15 ++++++++++++++-
+> > >  1 file changed, 14 insertions(+), 1 deletion(-)
+> > > 
+> > > diff --git a/drivers/acpi/arm64/gtdt.c b/drivers/acpi/arm64/gtdt.c
+> > > index ffc867bac2d60..b9d9b8edf2df7 100644
+> > > --- a/drivers/acpi/arm64/gtdt.c
+> > > +++ b/drivers/acpi/arm64/gtdt.c
+> > > @@ -32,6 +32,12 @@ struct acpi_gtdt_descriptor {
+> > >  	struct acpi_table_gtdt *gtdt;
+> > >  	void *gtdt_end;
+> > >  	void *platform_timer;
+> > > +	bool v3;
+> > > +};
+> > > +
+> > > +struct gtdt_v3 {
+> > > +	struct acpi_table_gtdt	gtdt_v2;
+> > > +	struct acpi_gtdt_el2	el2_vtimer;
+> > >  };
+> > >  
+> > >  static struct acpi_gtdt_descriptor acpi_gtdt_desc __initdata;
+> > > @@ -39,8 +45,14 @@ static struct acpi_gtdt_descriptor acpi_gtdt_desc __initdata;
+> > >  static __init bool platform_timer_valid(void *platform_timer)
+> > >  {
+> > >  	struct acpi_gtdt_header *gh = platform_timer;
+> > > +	void *platform_timer_begin;
+> > > +
+> > > +	if (acpi_gtdt_desc.v3)
+> > > +		platform_timer_begin = container_of(acpi_gtdt_desc.gtdt, struct gtdt_v3, gtdt_v2) + 1;
+> > > +	else
+> > > +		platform_timer_begin = acpi_gtdt_desc.gtdt + 1;
+> > >
+> > > -	return (platform_timer >= (void *)(acpi_gtdt_desc.gtdt + 1) &&
+> > > +	return (platform_timer >= platform_timer_begin &&
+> > >  		platform_timer < acpi_gtdt_desc.gtdt_end &&
+> > >  		gh->length != 0 &&
+> > >  		platform_timer + gh->length <= acpi_gtdt_desc.gtdt_end);
+> > > @@ -169,6 +181,7 @@ int __init acpi_gtdt_init(struct acpi_table_header *table,
+> > >  	acpi_gtdt_desc.gtdt = gtdt;
+> > >  	acpi_gtdt_desc.gtdt_end = (void *)table + table->length;
+> > >  	acpi_gtdt_desc.platform_timer = NULL;
+> > > +	acpi_gtdt_desc.v3 = gtdt->header.revision >= 3 && gtdt->header.length >= sizeof(struct gtdt_v3);
+> > 
+> > Regarding Sashiko’s comment about the missing length validation for GTDT v2, I
+> > realised that the current check could cause a malformed v3 table to be
+> > interpreted as v2 if its length does not match the expected v3
+> > length.
+> 
+> Yeah, that's overall dodgy. As much as I hate having to write a
+> validating parser for ACPI, we need to be prepared for the worst.
+> 
+> > It would be better to fail early and return an error rather than allow
+> > processing to continue with the table incorrectly interpreted as v2.
+> 
+> How about something like the hack below?
+>
 
-Use devm_kzalloc() and devm_input_allocate_device() in
-ebook_switch_probe() for allocating the button object and the
-input device, respectively, to simplify the rollback path in
-that function and ebook_switch_remove().
+LGTM and might please Sashiko too.
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
+Reviewed-by:  Sudeep Holla <sudeep.holla@kernel.org>
 
-v1 -> v2: Use dev_err_probe() after failing acpi_match_acpi_device() (Andy)
-
-Applies on top of the driver conversion series
-
-https://lore.kernel.org/linux-acpi/2420444.ElGaqSPkdT@rafael.j.wysocki/
-
----
- drivers/platform/x86/xo15-ebook.c |   43 ++++++++++++--------------------------
- 1 file changed, 14 insertions(+), 29 deletions(-)
-
---- a/drivers/platform/x86/xo15-ebook.c
-+++ b/drivers/platform/x86/xo15-ebook.c
-@@ -82,30 +82,28 @@ static SIMPLE_DEV_PM_OPS(ebook_switch_pm
- 
- static int ebook_switch_probe(struct platform_device *pdev)
- {
--	struct acpi_device *device = ACPI_COMPANION(&pdev->dev);
-+	struct device *dev = &pdev->dev;
-+	struct acpi_device *device = ACPI_COMPANION(dev);
- 	const struct acpi_device_id *id;
- 	struct ebook_switch *button;
- 	struct input_dev *input;
- 	int error;
- 
--	button = kzalloc_obj(struct ebook_switch);
-+	button = devm_kzalloc(dev, sizeof(*button), GFP_KERNEL);
- 	if (!button)
- 		return -ENOMEM;
- 
- 	platform_set_drvdata(pdev, button);
- 
--	button->input = input = input_allocate_device();
--	if (!input) {
--		error = -ENOMEM;
--		goto err_free_button;
--	}
-+	input = devm_input_allocate_device(dev);
-+	if (!input)
-+		return -ENOMEM;
-+
-+	button->input = input;
- 
- 	id = acpi_match_acpi_device(ebook_device_ids, device);
--	if (!id) {
--		dev_err(&pdev->dev, "Unsupported hid\n");
--		error = -ENODEV;
--		goto err_free_input;
--	}
-+	if (!id)
-+		return dev_err_probe(dev, -ENODEV, "Unsupported hid\n");
- 
- 	strscpy(acpi_device_name(device), XO15_EBOOK_DEVICE_NAME);
- 	strscpy(acpi_device_class(device), XO15_EBOOK_CLASS "/" XO15_EBOOK_SUBCLASS);
-@@ -115,21 +113,20 @@ static int ebook_switch_probe(struct pla
- 	input->name = acpi_device_name(device);
- 	input->phys = button->phys;
- 	input->id.bustype = BUS_HOST;
--	input->dev.parent = &pdev->dev;
- 
- 	input->evbit[0] = BIT_MASK(EV_SW);
- 	set_bit(SW_TABLET_MODE, input->swbit);
- 
- 	error = input_register_device(input);
- 	if (error)
--		goto err_free_input;
-+		return error;
- 
- 	error = acpi_dev_install_notify_handler(device, ACPI_DEVICE_NOTIFY,
--						ebook_switch_notify, &pdev->dev);
-+						ebook_switch_notify, dev);
- 	if (error)
--		goto err_unregister_input;
-+		return error;
- 
--	ebook_send_state(&pdev->dev);
-+	ebook_send_state(dev);
- 
- 	if (device->wakeup.flags.valid) {
- 		/* Button's GPE is run-wake GPE */
-@@ -139,16 +136,6 @@ static int ebook_switch_probe(struct pla
- 	}
- 
- 	return 0;
--
--err_free_input:
--	input_free_device(input);
--err_free_button:
--	kfree(button);
--	return error;
--
--err_unregister_input:
--	input_unregister_device(input);
--	goto err_free_button;
- }
- 
- static void ebook_switch_remove(struct platform_device *pdev)
-@@ -162,8 +149,6 @@ static void ebook_switch_remove(struct p
- 
- 	acpi_dev_remove_notify_handler(device, ACPI_DEVICE_NOTIFY,
- 				       ebook_switch_notify);
--	input_unregister_device(button->input);
--	kfree(button);
- }
- 
- static struct platform_driver xo15_ebook_driver = {
-
-
-
+-- 
+Regards,
+Sudeep
