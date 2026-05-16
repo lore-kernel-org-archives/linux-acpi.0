@@ -1,112 +1,99 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id D6CD63F075E;
-	Fri, 15 May 2026 23:39:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7E1F2882C5;
+	Sat, 16 May 2026 01:15:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778888350; cv=none; b=X2guYGy61hu78vi+wrVffWQHNDHmyL6svP2tszhMBVBboceCAjMWbyTBQu9KfPy0PGSTX3NOdjbD06UsOW9c8RHUuyVYP3YQTw8hJIk8S/ke8T+CKxgNH/F0ASYbsV7f4jjyuwonw1tDprf7oaSp8IDiW5d8ZgIWEF0M0/5NI0A=
+	t=1778894101; cv=none; b=XMOSgkLXep+wBf5YSXcmbnu8RAv06O7gV3KU88A73iiWmxVgtRqrlgtBQlyOnWWTjzP5WLpnAA8LZfyb0xbz6aA83mh+Kh0a1EmBix9mXG4aQIUueGp9n2yJw9o0JD8eRR0lUapyLdaUEzcE/3JqK3USbfSYZ1xBVyi5l2Tz2dg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778888350; c=relaxed/simple;
-	bh=hcyi/oQQYFZ0VBh4EERVTQPgaMQsOUZKGv3aL0avj9M=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=WrlY2a57FkmBoUQ8LHG+Xn4TmGW9hEQ71cxL/WrvM59uqNiYYOm61Kc6UOD1JTxPEcSPC1PBhRIv2PVT8D1e4hj4I7b/2TGL50MDclvuZvAo2g49xOcwnJphQC72LsSk4tcsPt36IFetv5npfe1dU7Wrx8PSaMPsbYu4VIq7U4g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=pPkwFu5D; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	s=arc-20240116; t=1778894101; c=relaxed/simple;
+	bh=wj8x1Ih6zO9ihfKZ3+1a++yryGF8Y7JsouhD+vSSdIs=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=qJqGpm1VcPMbDVAYS6SS8qLtfv2ptEkQTbBd0W3PrN0aAl/5Lsi1Vw4tIeiOl2cRbDsEUfCgiakOz1FYaIw6BWfOJDj02v3bMuZRzxdkVCr6+jVz+ufkK3UBJaLBAc734/davwc3yBG3TbuY58JVVxvtN0cVMlEvOKfqX/uXwVc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CQglXOu/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="pPkwFu5D"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id CF5B022FC;
-	Fri, 15 May 2026 16:39:01 -0700 (PDT)
-Received: from ryzen.lan (usa-sjc-mx-foss1.foss.arm.com [172.31.20.19])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 9DABD3F85F;
-	Fri, 15 May 2026 16:38:59 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1778888347; bh=hcyi/oQQYFZ0VBh4EERVTQPgaMQsOUZKGv3aL0avj9M=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=pPkwFu5D+YbH2+PpMwRTpME8igQ1y2qLUKm9sYXy4XipkRaiTw+MnZkf3cLn1Ge7O
-	 HVAblJg3cV+31efMuWUyKMt2R7inzWu4pynGFnlLK2OBD3Um9meAy+J1U5xXLJ/i8U
-	 /tDMGc53F7bdHTNTw1tBhaCIVUVWPaIpCFa8JIdM=
-Date: Sat, 16 May 2026 01:38:15 +0200
-From: Andre Przywara <andre.przywara@arm.com>
-To: Marc Zyngier <maz@kernel.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org,
- linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Lorenzo Pieralisi
- <lpieralisi@kernel.org>, Hanjun Guo <guohanjun@huawei.com>, Sudeep Holla
- <sudeep.holla@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Will
- Deacon <will@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Mark
- Rutland <mark.rutland@arm.com>, Daniel Lezcano <daniel.lezcano@kernel.org>,
- Thomas Gleixner <tglx@kernel.org>, Rob Herring <robh@kernel.org>, Krzysztof
- Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, Chen-Yu
- Tsai <wens@kernel.org>, Jernej Skrabec <jernej.skrabec@gmail.com>, Samuel
- Holland <samuel@sholland.org>, Neil Armstrong <neil.armstrong@linaro.org>,
- Kevin Hilman <khilman@baylibre.com>, Jerome Brunet <jbrunet@baylibre.com>,
- Martin Blumenstingl <martin.blumenstingl@googlemail.com>, Ge Gordon
- <gordon.ge@bst.ai>, BST Linux Kernel Upstream Group
- <bst-upstream@bstai.top>, Jesper Nilsson <jesper.nilsson@axis.com>, Lars
- Persson <lars.persson@axis.com>, Alim Akhtar <alim.akhtar@samsung.com>,
- Ivaylo Ivanov <ivo.ivanov.ivanov1@gmail.com>, Frank Li <Frank.Li@nxp.com>,
- Sascha Hauer <s.hauer@pengutronix.de>, Pengutronix Kernel Team
- <kernel@pengutronix.de>, Fabio Estevam <festevam@gmail.com>, Dinh Nguyen
- <dinguyen@kernel.org>, Matthias Brugger <matthias.bgg@gmail.com>,
- AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
- Thierry Reding <thierry.reding@kernel.org>, Jonathan Hunter
- <jonathanh@nvidia.com>, Bjorn Andersson <andersson@kernel.org>, Konrad
- Dybcio <konradybcio@kernel.org>, Andreas =?UTF-8?B?RsOkcmJlcg==?=
- <afaerber@suse.de>, Heiko Stuebner <heiko@sntech.de>, Shawn Lin
- <shawn.lin@rock-chips.com>, Orson Zhai <orsonzhai@gmail.com>, Baolin Wang
- <baolin.wang@linux.alibaba.com>, Michal Simek <michal.simek@amd.com>,
- linux-sunxi <linux-sunxi@lists.linux.dev>
-Subject: Re: [PATCH v2 05/17] arm64: dts: allwinner: Add EL2 virtual timer
- interrupt
-Message-ID: <20260516013815.6dd21da3@ryzen.lan>
-In-Reply-To: <20260514150945.3917510-6-maz@kernel.org>
-References: <20260514150945.3917510-1-maz@kernel.org>
-	<20260514150945.3917510-6-maz@kernel.org>
-Organization: Arm Ltd.
-X-Mailer: Claws Mail 4.4.0 (GTK 3.24.31; x86_64-slackware-linux-gnu)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CQglXOu/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2062C2BCB0;
+	Sat, 16 May 2026 01:15:00 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1778894101;
+	bh=wj8x1Ih6zO9ihfKZ3+1a++yryGF8Y7JsouhD+vSSdIs=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=CQglXOu/OPSiGJ7SsspoyqFNd6qNOfb3+U0Qqsusv2/5z6aew2kFZ/G6D1mauMCxz
+	 V7yzq0OFGoJwe+WxeNA293LmyX+X/MmMsK5gWmmVPUeiBrwWStAEY9eZvUBV4MKxZp
+	 BfAgROfGAEEjPd0qkzgcZDQ4KIsY8Ni0Su5RucgvWySLXyj2QVojKPwrHMQl8bFJLH
+	 Rjzy/0IolOAgh/FX37pGqh0l8MXWOibp7wL3GnohIfNfQrfZlMmaN5Qvye74giOrE8
+	 9vlXZ3BHj+mkkonnx2zqrUqfM8XKdhCyxEx4UEkN8i8EQLaNEKumv/Q/oLU574VuG/
+	 WK6b637FmX1Uw==
+Date: Sat, 16 May 2026 04:14:57 +0300
+From: Jarkko Sakkinen <jarkko@kernel.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Peter Huewe <peterhuewe@gmx.de>, Jason Gunthorpe <jgg@ziepe.ca>,
+	linux-integrity@vger.kernel.org,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Linux ACPI <linux-acpi@vger.kernel.org>
+Subject: Re: [PATCH v1] tpm_crb: Check ACPI_COMPANION() against NULL during
+ probe
+Message-ID: <agfFERWn-5b-0H24@kernel.org>
+References: <2848144.mvXUDI8C0e@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2848144.mvXUDI8C0e@rafael.j.wysocki>
 
-On Thu, 14 May 2026 16:09:33 +0100
-Marc Zyngier <maz@kernel.org> wrote:
-
-> The ARMv8.2 based CPUs used in the A523 SoC (and derivatives)
-> are missing the EL2 virtual timer interrupt. Add it.
+On Tue, May 12, 2026 at 06:16:23PM +0200, Rafael J. Wysocki wrote:
+> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 > 
-> Signed-off-by: Marc Zyngier <maz@kernel.org>
-
-Works, with [v2 03/17] and this patch I see the arch timer IRQ being
-int ID 28, and working, where it was 26 before. dmesg confirms that:
-[    0.000000] arch_timer: cp15 timer running at 24.00MHz (hyp-virt).
-
-Reviewed-by: Andre Przywara <andre.przywara@arm.com>
-Tested-by: Andre Przywara <andre.przywara@arm.com>
-
-Cheers,
-Andre
-
+> Every platform driver can be forced to match a device that doesn't match
+> its list of device IDs because of device_match_driver_override(), so
+> platform drivers that rely on the existence of a device's ACPI companion
+> object need to verify its presence.
+> 
+> Accordingly, add a requisite ACPI_COMPANION() check against NULL to the
+> tpm_crb driver.
+> 
+> Fixes: 48fe2cddc85c ("tpm_crb: Convert ACPI driver to a platform one")
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > ---
->  arch/arm64/boot/dts/allwinner/sun55i-a523.dtsi | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
+>  drivers/char/tpm/tpm_crb.c |    6 +++++-
+>  1 file changed, 5 insertions(+), 1 deletion(-)
 > 
-> diff --git a/arch/arm64/boot/dts/allwinner/sun55i-a523.dtsi b/arch/arm64/boot/dts/allwinner/sun55i-a523.dtsi
-> index 5afa8d92acbfb..d3c47966e8fc8 100644
-> --- a/arch/arm64/boot/dts/allwinner/sun55i-a523.dtsi
-> +++ b/arch/arm64/boot/dts/allwinner/sun55i-a523.dtsi
-> @@ -101,7 +101,8 @@ timer {
->  		interrupts = <GIC_PPI 13 IRQ_TYPE_LEVEL_HIGH>,
->  			     <GIC_PPI 14 IRQ_TYPE_LEVEL_HIGH>,
->  			     <GIC_PPI 11 IRQ_TYPE_LEVEL_HIGH>,
-> -			     <GIC_PPI 10 IRQ_TYPE_LEVEL_HIGH>;
-> +			     <GIC_PPI 10 IRQ_TYPE_LEVEL_HIGH>,
-> +			     <GIC_PPI 12 IRQ_TYPE_LEVEL_HIGH>;
->  	};
+> --- a/drivers/char/tpm/tpm_crb.c
+> +++ b/drivers/char/tpm/tpm_crb.c
+> @@ -786,8 +786,8 @@ static int crb_map_pluton(struct device
+>  static int crb_acpi_probe(struct platform_device *pdev)
+>  {
+>  	struct device *dev = &pdev->dev;
+> -	struct acpi_device *device = ACPI_COMPANION(dev);
+>  	struct acpi_table_tpm2 *buf;
+> +	struct acpi_device *device;
+>  	struct crb_priv *priv;
+>  	struct tpm_chip *chip;
+>  	struct tpm2_crb_smc *crb_smc;
+> @@ -797,6 +797,10 @@ static int crb_acpi_probe(struct platfor
+>  	u32 sm;
+>  	int rc;
 >  
->  	soc {
+> +	device = ACPI_COMPANION(dev);
+> +	if (!device)
+> +		return -ENODEV;
+> +
+>  	status = acpi_get_table(ACPI_SIG_TPM2, 1,
+>  				(struct acpi_table_header **) &buf);
+>  	if (ACPI_FAILURE(status) || buf->header.length < sizeof(*buf)) {
+> 
+> 
+> 
 
+Reviewed-by: Jarkko Sakkinen <jarkko@kernel.org>
+
+Thank you.
+
+BR, Jarkko
