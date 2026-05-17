@@ -1,60 +1,68 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 236D7194AE6;
-	Sun, 17 May 2026 08:09:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.21
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EAF6C26FA7A;
+	Sun, 17 May 2026 08:11:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.12
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779005366; cv=none; b=k67VyIuzovGiwCawQvNEREoFh/plGjPvx8L3dhzLYY835J/LQiDdFxBcqBPrm+Hqxwf1q0Ls4qtsq8hMFmcxM60Ieea0I0hActraEfXAM2Hnrrkbqv+Dt87JbNkT8+6OtwOilGDiHdmw7Oc37Nb4aE/2oXBuTLchGE8g8k9+Lcg=
+	t=1779005519; cv=none; b=pXOFRnkBgXzU6DaGVfi4Vead66AB07K/2Q1eP+GeuPFzvzllxLNLr5lPO0iJil8M6aaFP86VcFno9PXgnikisyN5R3voX4J5eqTx64EoEHo4aZtEyj75gcWv/2mVSQTM1rfk/kNQGe4UiL4woaXL5XQjd7JgCBr+zQPSg6iWPRE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779005366; c=relaxed/simple;
-	bh=1KA+FT9ACf4j7LRSsFIc1VNoUA14XVi9smNHYBJ1pcQ=;
+	s=arc-20240116; t=1779005519; c=relaxed/simple;
+	bh=R8QSWBUhn8ehatazqRlzsq+Lwyp9VIk9GLj2mLVG5UY=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=BWngESG816YYM5fCETm/KuLvNN1QXo/1Fxe/pl8Mlym0Ms7+e1CnXXQtPNVk7K3++H9uKlbCkKCEmYblHmRRfZc+wbXwY9JYdSeocmq3dcIXhoPUvWOVbCqsTkA+fCRT6nDal+fIfrDPL5FfiAmP1oW+4FW4yAKdl6HDp8vShf8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=L0ny9L+W; arc=none smtp.client-ip=198.175.65.21
+	 Content-Type:Content-Disposition:In-Reply-To; b=Twx8fh1JW1ml85I1tSufGvDULIz6kIOT8e1hHQwJjf7YuWnbXFCOqroMZ1QY6RFmOX14xaQaWQYnPBgkGjoXe3FDPRFEoOBn8Ffa3X2Z0jVKOnY3Re48Lch3JqgySkPZ/CKGq1FyTOeZnBEv5165jl3tMJpsk+EjAx5w3lbJyfs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=EqwPZzU5; arc=none smtp.client-ip=198.175.65.12
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="L0ny9L+W"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="EqwPZzU5"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1779005365; x=1810541365;
+  t=1779005518; x=1810541518;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=1KA+FT9ACf4j7LRSsFIc1VNoUA14XVi9smNHYBJ1pcQ=;
-  b=L0ny9L+Wy7GwqvREIRkXSwmRMwwDtEoMGeUgr91Fy0nImEop7m0ZOIvd
-   SvwAyVtH5vZXwLMvXaQmZzpoO6jGVTIwS+u0/j53Bm4LkTknnQ6X+mKVG
-   5nn8AygAT6fbDwRMG/T8S1By6lq63IcSBIjTbKcecY4uiwo1ntMVJuJmS
-   Cgjx6WL+iA5eKdjH7uVmpVqqbSx+03kD0NAv7fD6JHYsKrb5tLa4LtyHi
-   BKYh5LrC+R4lpqP/1XUgKIuz3iQOtYbbG43rNpHbXuzKaEqPiGLqpwAIv
-   Fy7rcwchl8FmUhpELcMaGTjxAx5Lbf5cNAaQXbnaZlV92HucC90aewa+9
-   g==;
-X-CSE-ConnectionGUID: ddVxhirER5+VtoSbeU7lAA==
-X-CSE-MsgGUID: uc749RwVQsChq4t4Kp499w==
-X-IronPort-AV: E=McAfee;i="6800,10657,11788"; a="79790299"
+  bh=R8QSWBUhn8ehatazqRlzsq+Lwyp9VIk9GLj2mLVG5UY=;
+  b=EqwPZzU5U3752ZtRzKVajETbBG+rL0Ja3AaXFFBl6dAdJZFpGfJzipAY
+   v7MCQEqXVzpo0AmRb5fCo2mevA3LdVeDjDj90Jt/tKCkywiqFWVWysU7Y
+   leGKpHaJpuR1u4GULR8WTjSS0gyZ1u29bZhETxaO1DWUYFYewYfEpp7JT
+   QQvF8M+J2ngEdyTqQiGxyBdQUtQL4SOOEparAz1wx5kVZLeYmnmfQr0mR
+   szM8UgdSrtefTmJXg1pbUXJ49hjKRB9loP0vB5spfGHLI2JTIiBgxdpMG
+   1Uw7yrkuhTvqNh99lbFiLuImcnaBVMlYCBiq5QmPU12zDpu8wUxhVD+ko
+   w==;
+X-CSE-ConnectionGUID: fv9arcRqTKSe9JCbO/qpkQ==
+X-CSE-MsgGUID: b+wmwB/rTW6KAa4LqXxo5Q==
+X-IronPort-AV: E=McAfee;i="6800,10657,11788"; a="91351142"
 X-IronPort-AV: E=Sophos;i="6.23,239,1770624000"; 
-   d="scan'208";a="79790299"
-Received: from orviesa008.jf.intel.com ([10.64.159.148])
-  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 May 2026 01:09:25 -0700
-X-CSE-ConnectionGUID: 1/JGTNW+RRGY3etWycPgww==
-X-CSE-MsgGUID: 57mWu3ZkTkyhafnxaj2nKg==
+   d="scan'208";a="91351142"
+Received: from fmviesa005.fm.intel.com ([10.60.135.145])
+  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 May 2026 01:11:57 -0700
+X-CSE-ConnectionGUID: Hb/dy0HBQ06MAf186pp1MA==
+X-CSE-MsgGUID: I98qXi/8QlaThW1H3+YVgg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.23,239,1770624000"; 
-   d="scan'208";a="238996469"
+   d="scan'208";a="244091510"
 Received: from slindbla-desk.ger.corp.intel.com (HELO localhost) ([10.245.245.182])
-  by orviesa008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 May 2026 01:09:23 -0700
-Date: Sun, 17 May 2026 11:09:20 +0300
+  by fmviesa005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 May 2026 01:11:51 -0700
+Date: Sun, 17 May 2026 11:11:49 +0300
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Linux ACPI <linux-acpi@vger.kernel.org>,
-	Hans de Goede <hansg@kernel.org>,
-	platform-driver-x86@vger.kernel.org
-Subject: Re: [PATCH v2] platform/x86: xo15-ebook: Use devres-based resource
- management
-Message-ID: <agl3sBxZ_trXkwIy@ashevche-desk.local>
-References: <6015220.DvuYhMxLoT@rafael.j.wysocki>
+To: Thomas Lin <thomas_lin@lecomputing.com>
+Cc: rafael@kernel.org, lenb@kernel.org, hoan@os.amperecomputing.com,
+	linusw@kernel.org, brgl@kernel.org, mika.westerberg@linux.intel.com,
+	jsd@semihalf.com, andi.shyti@kernel.org, broonie@kernel.org,
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-gpio@vger.kernel.org, linux-i2c@vger.kernel.org,
+	linux-spi@vger.kernel.org, lucas_hao@lecomputing.com,
+	puntar_liu@lecomputing.com, jihua_tao@lecomputing.com,
+	stan_xu@lecomputing.com, lumin_liu@lecomputing.com,
+	notics_zhang@lecomputing.com, braden_zhang@lecomputing.com,
+	harold_wu@lecomputing.com, will_zhang@lecomputing.com,
+	aurora_jiang@lecomputing.com, ryen_lin@lecomputing.com,
+	andy_jiang@lecomputing.com
+Subject: Re: [PATCH v2 1/3] gpio: dwapb: Add ACPI ID LECA0001 for LECARC SoCs
+Message-ID: <agl4RXIp0f8yZfzL@ashevche-desk.local>
+References: <20260514034319.3507315-1-thomas_lin@lecomputing.com>
+ <20260515110322.2883310-1-thomas_lin@lecomputing.com>
+ <20260515110322.2883310-2-thomas_lin@lecomputing.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -63,17 +71,15 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <6015220.DvuYhMxLoT@rafael.j.wysocki>
+In-Reply-To: <20260515110322.2883310-2-thomas_lin@lecomputing.com>
 Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
  krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On Fri, May 15, 2026 at 01:47:29PM +0200, Rafael J. Wysocki wrote:
+On Fri, May 15, 2026 at 07:03:18PM +0800, Thomas Lin wrote:
+> Add ACPI ID "LECA0001" for LECARC SoCs that use the DesignWare GPIO controller with V1 register offsets.
 
-> Use devm_kzalloc() and devm_input_allocate_device() in
-> ebook_switch_probe() for allocating the button object and the
-> input device, respectively, to simplify the rollback path in
-> that function and ebook_switch_remove().
-
+It's way too long line, please wrap around 72 characters.
+With that done, you may add
 Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
 -- 
