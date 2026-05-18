@@ -1,210 +1,199 @@
-Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
+Received: from CHN02-SH0-obe.outbound.protection.partner.outlook.cn (mail-sh0chn02on2109.outbound.protection.partner.outlook.cn [139.219.146.109])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC08337CD4F
-	for <linux-acpi@vger.kernel.org>; Mon, 18 May 2026 03:06:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=205.220.168.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E61E037FF68;
+	Mon, 18 May 2026 03:23:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=139.219.146.109
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779073616; cv=pass; b=rKCfblj3v0HPLBKovbmi0n3PcCeBHc7/aThC39ypqloQJl/sTW2yDtGkkTGAnRfPIahEfs5UlSBGAnmtovUUu4qbl/ujVJKfZuCrlSgcrQQa7KSZitmR+mtC/1G9+ra/c5oH06i6o1VZAdng5zrPuRrqPJN1qyYCI8jaHfP1iqI=
+	t=1779074587; cv=fail; b=RCbTt7Z6GittxFOO3Za50tG5P2LnDJQhzRgbWz1pMXV/4ewAvwL8ChX/8RmIkoH9b2ADiXu2AroIPp5AfO+L9VBnQdSN9jyakTYn9B1wrE01aLAPotPemznLt18K9Mlqewfq2V0MFpRhjcwb/3XBcxm55BStU4reDYqFhOckCxg=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779073616; c=relaxed/simple;
-	bh=fO0syQPa6DgAL6Biu5LOpvUimHkt27lXFQ4HIpa68wE=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=T1nyyfI03sR9Wrs7L6XpqGKu01Yk+C11b4FimGGm0SaVRp2ArqASu7pN9AUPqXVkERipmtlUMb9+jnAuZ8lWyz59/Xk6Nwl1j0EHmSG4Sb+zAtrFntKpH58+/WNTGQN0RbgF9kdN3rVBOCB9TBgRJHpRAx4KkBgoVTeyT90gvPs=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=mAEEYiqL; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=CP/GLikw; arc=pass smtp.client-ip=205.220.168.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="mAEEYiqL";
-	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="CP/GLikw"
-Received: from pps.filterd (m0279866.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 64I0eKbv919547
-	for <linux-acpi@vger.kernel.org>; Mon, 18 May 2026 03:06:54 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
-	X708K6u8SzSx52/GxLg4ntRNIqhO0X/cHHFOcijQWfw=; b=mAEEYiqLjDj3ISSj
-	U5DTIyGChBAQ/hDH6mDWkV6zMwT8BOQuX2+8nzAyS9aaOYA0uF35nWjqMAnPO9CO
-	kDURFnlI2SvtZVFtL2PMfoSaJwmZkWBzsUTC0cnUSVkhA6e+rZcH8vMNrK/YHxrv
-	NjyQV02h7yktq+80nCCu2aPwj3jeGUzsnYijL010Z5NCWM+E7/iezZiQ9ZVkGZxV
-	ha8zvgvtHH05doMuKKYrYfQ1p2puHZypDxlp6iANSMc14+Muu/dft+LVBA/Wk8wG
-	yqDsVg+F2SCwMf70CJ/xSX5we1QXkH4hbl5d3oaco9SCSGaPGCmTXgUiPaYuclDx
-	2WjEtQ==
-Received: from mail-ot1-f71.google.com (mail-ot1-f71.google.com [209.85.210.71])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4e6hv7v5hy-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-acpi@vger.kernel.org>; Mon, 18 May 2026 03:06:54 +0000 (GMT)
-Received: by mail-ot1-f71.google.com with SMTP id 46e09a7af769-7dbb6b95836so4773986a34.3
-        for <linux-acpi@vger.kernel.org>; Sun, 17 May 2026 20:06:53 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1779073613; cv=none;
-        d=google.com; s=arc-20240605;
-        b=is2raVqNFQpFedD1BDwPNo6btFvElaaiCubjIppoSA7mHeHbtnYKdcXZd2yZ1V/Y1a
-         9hJjvnuueu7QO7NwBAGOyHE37D2oXESgfnbGBKhDPOmotzk0ZEyy1UIzoxiEuFWkKidB
-         KRqAifmlenf7xnSGbHWbEjeUByvXywj4vteGBUICsFciaETzQEZ49kdMfw3mwi2KERhY
-         hemr298Wmdxnlb41txxr4YUzS+5ElvhPfCx9wg2xam1vyr1xph/FtkLNvFurKl2Rf9vU
-         RB1odWQz7u8wSiWwdlTPhVgi7Yx9AG5uq0IHs/vMgJAvP8bypmThTbDwGmpx3Uv9n2cI
-         azNA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=X708K6u8SzSx52/GxLg4ntRNIqhO0X/cHHFOcijQWfw=;
-        fh=pe582P3YANMQe/blsK7PVX1kjQfpMhTYeazQNjd55gM=;
-        b=SSr1xivG6oaAsYhKMoLaUfXtz+myiolduZG25nbnxxfTEtms++t2Jz/yRyouImEs78
-         Lfty0bf70UBVZukjq2c62nfp2Vod15m21f62pYVYCR1dzYcDTWJuCa2qBmZOhmthlfwU
-         GX/1q5zkIp7G3mI5q634oQ14MPbARmRwxUWYEobIlaq1aHuRxWFvNZTD/4rqIu3U4NTs
-         HjtgrJfH+8KWN3eitw+5NbeYhCCU2BZW8IvLKiApGpgLkDSoKuOycCZ5c74LXPjqs2Zz
-         +5G+isJM5sR5y6YgDhr0TU8HnsTEvZv4jGv6pFs20nl4DuBlV3G9e9pCKdZyOn1n/Wdq
-         t3EA==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1779073613; x=1779678413; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=X708K6u8SzSx52/GxLg4ntRNIqhO0X/cHHFOcijQWfw=;
-        b=CP/GLikwWG/D6yQjX4M90UGvKrFcZEb1KeRC5TkHsgiEwDzPblUhCi+zhI/3sS51Rq
-         abuUEiW2mPCJGV/IywzrTK+wLyKXS9f0LzzXFzI+u7ipFU/9Nir0W1d1cGkex64JHpjw
-         8Cq7RpipGKAPdCB0e+d0qwbK0edFOP8b6XKUr/Thhs6DdYWSLysD36WwSTJYbuAlhS29
-         1YXuhFIGBsardU8rzhoCWLaSUOeHbHWq5z/9TS6/YLmG1v4DaTIuONRfN482homVrJT7
-         duP1pvYHoHj6pFOPfQEO1hfdwwfD/Dm56AEwG9OKujwAO8KEy4cZ5K4+gJH81sMVyMR7
-         DQ9w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779073613; x=1779678413;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=X708K6u8SzSx52/GxLg4ntRNIqhO0X/cHHFOcijQWfw=;
-        b=D1Z75jc2QNcfbWL6Qi/e9dDemIFYpEK1jf7HHoIFFfGHD5lj9OoHFVeTzGsmSnev0k
-         M6YHuwNXizyDaESJ4mWAnqVmJmKwY5ohEGFTANhpBOZWsfqDAJ/HPdd1qKJj9CtokRTV
-         txLLuM7nehpIXsWYqusfdz8NfILn9AugTLcJJiZoVByHniTH+TSA0m6CvdZFxs+4dcDD
-         vN5vqnqtMui+s4cDkO04rvXO5FT4PvRsNnO6OJ0Qy1IPXDbuxXfH2nydGorno0MH09ro
-         Sw/TtarQnTfbiJ0uomWdZDdSVaMD2kELTphRma79nR3V2A8bErqsp+wAn1JAhLFE5FcK
-         c+EA==
-X-Forwarded-Encrypted: i=1; AFNElJ/+Eu5JkwUrRXjlX8EX1wM3GQkx8IGqDmGui95ZdWQP9DQtPWCDni5kqkztOudwnYDXTR4Q/NfSXCRJ@vger.kernel.org
-X-Gm-Message-State: AOJu0YzGK1sK5oOi7i4djCa3NfBas0J4F11yr8kuw2FK/DAtLcKS9VpT
-	I+5Y+lDe8BJ+PFhRcjrVp/9NRBp+cdtttvodTjJMauwYQGJqcJ0PX6oes+fggSy9Mcmnh7mYCYB
-	paMQg2KeDihVM18xCyivM7Brm4L+0iFU64X1x5dsbtLphYH9x1GPu3wKV/seoq6CtG5H1syI63Z
-	PUJesJQMLS3vjkx3lhMFQLueznGOiZ+2HZbn8HKgU=
-X-Gm-Gg: Acq92OHz+RQLECAAMWmy6XHlipCERJT8wZLKdBMvsPJ/iiW/kRSzc2duQIdSoR5aSlb
-	Po9MHl1tBgx8R8mtAmmtzDN1qjgvyvRSDxDuJ4VdzOc14JE8uXlwErCkJaHZEros857Q795WR53
-	99PQcth1Pt8VY7MQ8tl+olXVdChjwos82QreIn4XebTUnox79dCt9xVc5HfFNpQLINF9Cw2kWDg
-	5R4aI6zWdQHWcW+dw==
-X-Received: by 2002:a05:6830:828b:b0:7e3:7697:9b5a with SMTP id 46e09a7af769-7e4f2b9bfd7mr9164814a34.18.1779073613220;
-        Sun, 17 May 2026 20:06:53 -0700 (PDT)
-X-Received: by 2002:a05:6830:828b:b0:7e3:7697:9b5a with SMTP id
- 46e09a7af769-7e4f2b9bfd7mr9164792a34.18.1779073612814; Sun, 17 May 2026
- 20:06:52 -0700 (PDT)
+	s=arc-20240116; t=1779074587; c=relaxed/simple;
+	bh=CsSPNzYPRowao54yi8YWi5C54bFWFgqWAg6KKFEpELw=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=MNQcBvspcdqyvgDDNgr0lfoELHsN7ICbS2+SEOKsYqp8w39+cG/A39EFE68VzePUZ4pBkTt31ZObkOYEmvC1ArTzW7x2EHACKQGuZDUth6EZ9oXSARPUqvorSdc2nK0KKf6zVLzWzjH/Nqvx++kJ7xbQU3hcomcn2ebwwi0x5IU=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lecomputing.com; spf=pass smtp.mailfrom=lecomputing.com; arc=fail smtp.client-ip=139.219.146.109
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lecomputing.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lecomputing.com
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=SPLnJYNfbmQlIQ2xmqK1EXCeNHK8cUeXf9C+OihGCNC/v2iJrFDUL7AeSk9QpLr0hN5JK+x4QrOUbnrHU3bwC7VMNS2dMvAnwDhJAnsJFKRBOBcbtVRh3PmTwy/hULwG0j3gwKANanENh/rvpAt5vP/htFVy2R8ecNrNBU9mkckmMqaKLjMImPcJ8/TRQxfb5cV8y25bsuANzyfbPUwPhhZwVTg+7SUII6iHmC84ROkp3+ab17gDt9zpxJLvueSsqA9whM70S8JkJwqEHRp3L4CWeO936t7Fj5BxrCnIwTAqYf93S7EbdMpGWv5IE/TzcI+IgmZp+JacB5zGfEQ7Cw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=dIdo5vNBMNBAbrYGaFZJWnDdTE3nTZ+rWDCHwH+BWtA=;
+ b=hdx3rJcjWemHnYWC+S1++DLTL/4Sb4+FIJ0TC9Nlh0ugDO8iZE5HBsuMv/i2YIa748+mR7RDq//hDzFCJKRPFfMq3r4woTfrKNoEfJ/K57I5AdaD5PwuMaBS5eMhwF22vfarJJBqiTdgkGVX9NQQX18HMyAaimMlATnshdGUbLUHVtU4+mday++AQLZ9/UzGGHJtZec3jYf2lmfCQuKu7eprgnwO8UkCdRTpGNPOBlf+smhGaIFRCbTeWrQimSS5s9QexJqU371mXEY6FnLlGL7LMaklwa9r5yTdZQHxtndnL4XS/T5idFKluYNaQkVI4ctHLg+cEiu+IfCYkT+5mA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=lecomputing.com; dmarc=pass action=none
+ header.from=lecomputing.com; dkim=pass header.d=lecomputing.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=lecomputing.com;
+Received: from BJSPR01MB0707.CHNPR01.prod.partner.outlook.cn
+ (2406:e500:c211:1f::17) by BJSPR01MB0548.CHNPR01.prod.partner.outlook.cn
+ (2406:e500:c211:10::10) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.25.23; Mon, 18 May
+ 2026 02:49:47 +0000
+Received: from BJSPR01MB0707.CHNPR01.prod.partner.outlook.cn
+ ([fe80::1c61:86e3:3a75:155d]) by
+ BJSPR01MB0707.CHNPR01.prod.partner.outlook.cn ([fe80::1c61:86e3:3a75:155d%4])
+ with mapi id 15.20.9818.023; Mon, 18 May 2026 02:49:47 +0000
+From: Thomas Lin <thomas_lin@lecomputing.com>
+To: rafael@kernel.org,
+	lenb@kernel.org,
+	hoan@os.amperecomputing.com,
+	linusw@kernel.org,
+	brgl@kernel.org,
+	mika.westerberg@linux.intel.com,
+	andriy.shevchenko@linux.intel.com,
+	jsd@semihalf.com,
+	andi.shyti@kernel.org,
+	broonie@kernel.org
+Cc: linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-gpio@vger.kernel.org,
+	linux-i2c@vger.kernel.org,
+	linux-spi@vger.kernel.org,
+	lucas_hao@lecomputing.com,
+	puntar_liu@lecomputing.com,
+	jihua_tao@lecomputing.com,
+	stan_xu@lecomputing.com,
+	lumin_liu@lecomputing.com,
+	notics_zhang@lecomputing.com,
+	braden_zhang@lecomputing.com,
+	harold_wu@lecomputing.com,
+	will_zhang@lecomputing.com,
+	aurora_jiang@lecomputing.com,
+	ryen_lin@lecomputing.com,
+	andy_jiang@lecomputing.com,
+	Thomas Lin <thomas_lin@lecomputing.com>
+Subject: [PATCH v3 0/3] arm64: Add LECARC ACPI IDs for DesignWare GPIO, SPI, I2C
+Date: Mon, 18 May 2026 10:49:33 +0800
+Message-ID: <20260518024937.453714-1-thomas_lin@lecomputing.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20260514034319.3507315-1-thomas_lin@lecomputing.com>
+References: <20260514034319.3507315-1-thomas_lin@lecomputing.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: SH0PR01CA0002.CHNPR01.prod.partner.outlook.cn
+ (2406:e500:c311:5::14) To BJSPR01MB0707.CHNPR01.prod.partner.outlook.cn
+ (2406:e500:c211:1f::17)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260513084325.2176952-1-himanshu.chauhan@oss.qualcomm.com>
- <20260513084325.2176952-4-himanshu.chauhan@oss.qualcomm.com> <CAJZ5v0g2kjfAvcTzp8898A8HdMymU1SQ-rHW_DFhZP49c9=s5Q@mail.gmail.com>
-In-Reply-To: <CAJZ5v0g2kjfAvcTzp8898A8HdMymU1SQ-rHW_DFhZP49c9=s5Q@mail.gmail.com>
-From: Himanshu Chauhan <himanshu.chauhan@oss.qualcomm.com>
-Date: Mon, 18 May 2026 08:36:40 +0530
-X-Gm-Features: AVHnY4IXHSTvGb4jHkiTrfKvQSC_eyAqKXiBE4l4KpJ5S_P8fZyP7mnKGJ0aI8I
-Message-ID: <CA+Ht8=YbMLXnCFtoyVosrjS56ye_bUp16awgxnXkEmHB4_5_Dw@mail.gmail.com>
-Subject: Re: [PATCH v4 03/10] acpi: Introduce SSE in HEST notification types
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: linux-riscv@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org,
-        acpica-devel@lists.linux.dev, paul.walmsley@sifive.com,
-        palmer@dabbelt.com, lenb@kernel.org, james.morse@arm.com,
-        tony.luck@intel.com, ardb@kernel.org, conor@kernel.org,
-        cleger@rivosinc.com, robert.moore@intel.com, sunilvl@oss.qualcomm.com,
-        anup.patel@oss.qualcomm.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNTE4MDAyNiBTYWx0ZWRfX6AA7j2c3NkHX
- con8oq9TlHmw4OyrHu6gMNuQWaaHK3hoQBu8US092lFubgIvaxUn6bWgaTcKbzN4WZIZLV0ZDFP
- O84iJHKL4Kc6Wj5SNdrD20nm2DJOTJZ/2SL28SezbDZkyHavF9BBRNzKhOVfHkmNFB3H3Btr4+D
- NnL0RllZneUwFvOgaZ0Vu/39cJTAULks4ujXPppYOb2cmIPu6zPQvqnFtlt05y+GXuxFiPRMn0h
- +zD+zefxx+twhFRfjAjdervkSOrtzXi3n95J2OUewzfqu0/rUTHOBqqZCY7ROAtX7GMc0nnT28Y
- gav6kTxtOT4IUumf7OKy+N0oHH7ZAscGLYxoIhjpYY0IkbDFjeh4E/bAILsjoIs9X1MnMCxDVyJ
- dM/O2QNKfTbqUeyOuW2tQ4H4erEd+/d9OdciLW18bx0V5lJPyRFap1qkzQa1ZLJn0oAT9LO0H6l
- DuC1+hAisHA8PL9yclw==
-X-Authority-Analysis: v=2.4 cv=a8oAM0SF c=1 sm=1 tr=0 ts=6a0a824e cx=c_pps
- a=OI0sxtj7PyCX9F1bxD/puw==:117 a=IkcTkHD0fZMA:10 a=NGcC8JguVDcA:10
- a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22
- a=YMgV9FUhrdKAYTUUvYB2:22 a=NEAV23lmAAAA:8 a=VwQbUJbxAAAA:8 a=EUspDBNiAAAA:8
- a=h0uksLzaAAAA:8 a=sBTH58jHExCepGOTGfcA:9 a=QEXdDO2ut3YA:10
- a=Z1Yy7GAxqfX1iEi80vsk:22 a=MSi_79tMYmZZG2gvAgS0:22
-X-Proofpoint-ORIG-GUID: CSz1sLNwU6q8d7bHmbs6v1xwEiZJ-NcS
-X-Proofpoint-GUID: CSz1sLNwU6q8d7bHmbs6v1xwEiZJ-NcS
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.51,FMLib:17.12.100.49
- definitions=2026-05-18_01,2026-05-15_01,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- spamscore=0 phishscore=0 suspectscore=0 priorityscore=1501 impostorscore=0
- clxscore=1015 bulkscore=0 lowpriorityscore=0 adultscore=0 malwarescore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2605130000 definitions=main-2605180026
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BJSPR01MB0707:EE_|BJSPR01MB0548:EE_
+X-MS-Office365-Filtering-Correlation-Id: 50271a74-51f2-40c2-d880-08deb4881faa
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|1800799024|376014|7416014|52116014|366016|22082099003|18002099003|56012099003|921020|38350700014;
+X-Microsoft-Antispam-Message-Info:
+	85yvfTe3umrrcsEvGtcGD7Z6WGArSAFpB59wsO9/toCRr22V3mYmNYt3cP7yWZ8I8hnWfZTeGZMkFUJGTi38k2jT/bZKX2JsZbRvqoeNEyhJOWWGV78JJXN/jZIHvus1G5WrYqTT9BnPUemkxETjZSWmz0ybAli+2GbTWDBt88J49aTvp8mQWxU53DzK7U3oNVbVgIyQObDulU9V9mkyoITSjgGDsWXo5ibIn/OlsyQZbbqoCxsFoeGtw6cHWmJ74v/JrrBlC/GsBJP6/DonGAAFQ3m4uJ7J77kxX/7XbntPH9f4pa7emgmpkQLR8krMIZJRp1C+g21Cv/Qxe60j4LISXWgxxslyktl24q8nUtrTjUgEcG3xhb+yjx+GZJIPQxAZKAqIuocQKHWQ86b7+l8XxZpUGQgtLeNVqXWpJCwJ4nh4O7xAlgViC7FNHa3OeE3qCaEkLyV/IeJGh/yL7ObaclVU0VOPc6Bb/AD+FwEDC2fkiJGUOGQOBv5+dfTY8BqupNZHD86oFX+HrtJPhi13nuCmSkKu8IrybzAmazJudCEIfbLyfarH+cw6aw9ljExEFbVZmb2WQAv+mU8tfw==
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BJSPR01MB0707.CHNPR01.prod.partner.outlook.cn;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(376014)(7416014)(52116014)(366016)(22082099003)(18002099003)(56012099003)(921020)(38350700014);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?S1I1UFErUVJiUVBhSnFaQVhZNVZDM0lmdHZJeEgyL1d1dE5zWjEyV3pUUE92?=
+ =?utf-8?B?MDJHbVQ3QlIxRFFNbjd5N3NmOTNxMEdMRHYzVjF4Kzc0MWQ1WW9xSHJ2VVk4?=
+ =?utf-8?B?ZmpVdHQxMTlsdk9vODlmMndQdXVXTVkwT0cxZXluWXJYbXcwNUNxeWwxMUIv?=
+ =?utf-8?B?bmhPYm5pZkVXWkxjNzlMMFgxZ3UvcnBHVkpMYkFhTkR0dDRVU1VGV1pmUWVm?=
+ =?utf-8?B?Um5TcUt6YllCN3NZZXg3a1V3OTdidXpyVEQzMXFSMisvTHpzcnhwN1VZaS8y?=
+ =?utf-8?B?cVlsbGppZmFvSDVCdFk5a1hqdUR4YUZaL0hnSEk5N3NPbHFFRXJ5L0tLd1N2?=
+ =?utf-8?B?ZTNEcTViSjgrYmRjcVB2MTNSakRQb09yN2N5aTMrSisvbndYZ0VtWjM3OWRn?=
+ =?utf-8?B?UjhqVmNaamlvQW15dUx6QkpxdGM4dVl6clZoNUdxZ0ZsSmJoNXdHV2dkcXEx?=
+ =?utf-8?B?YXNadFRhNWRCbjhWQnFxbHc2bnpsZnluclJpbUJyMDNaUTl3NE1jN0Z0V201?=
+ =?utf-8?B?Vnd2NWhWQjQxTHRDVlNWdDZsNlp6dDlrZ1hsRUxWaTBzN2FTb3lLZnVpYzZr?=
+ =?utf-8?B?N0VaWGp0S1FWbysvV1Zycy9YczgxTVVsdjA3aEZjdnc0YVRHdEJvQmtLczRs?=
+ =?utf-8?B?dnhITGhnN2pPa2xSRTFIRnpXajc2ZytxZ3VjN1RIalB4eWc4a2w5enZBcGhN?=
+ =?utf-8?B?bER0VjBCWUQ2OG4wTjRER0hQNFkyNlpQZUxJOXhIS2xueWs3WThqTHdYaS94?=
+ =?utf-8?B?L0duZXRpbStSWUIvTmVBTXdDS0lZZkF1VFlTakgvUXdGNmIxbTc1THZJRjVF?=
+ =?utf-8?B?K0ZBVEFsOW5ubGxvdnpJTW9ad3lzS1VTZ2ZtdHd1RWZqa2toTnVZR1Bnclk1?=
+ =?utf-8?B?NWN6M0M0aU1jOXB4bkplcEIraFZsV0pVTmsxTC9OWXNDaG5KVWs2UTQ0M2J3?=
+ =?utf-8?B?YTlheDZQZ1NoOFBXOSt4KzA3cEZ3OXlWUkdFUEFSRHpQeGc1aUFvV2ZiZE81?=
+ =?utf-8?B?WHlqamlVVnJzd3ZmMzdDSkppcHRXKytFZ3dpMEpYUmN3eEhsV3F0bTFCR3BM?=
+ =?utf-8?B?SmlEL0VvejFiZzlzbmdhVS9MTUZaakZGNzVpWkpTOFJNYWRCUnllTEhXbGZo?=
+ =?utf-8?B?eTcvbExxVnBwN2NoeFBFL21NVEIyU2IwZkVFbEV3RFVEek9aNnRkemNORGEz?=
+ =?utf-8?B?RDRrSzFYc1lRQ05iTW9FeHlZSDBZa2I0bHFzWEV0Z25rdFljK2oyWGJLUW9D?=
+ =?utf-8?B?N0tZTVdmM01CWmFkeGJkOHhab21MWFdjSGtPTENuWTNFdjdGWGhrcjVMSXdE?=
+ =?utf-8?B?MGx4TmpRYThOTmhmUlNKUC9HZjM3VnhWQm0zNlQwY2E1NjFqdi83NEhTT1dC?=
+ =?utf-8?B?aWRRaG5POC9XdER5amt1c0lheHNaVUErVTVtTG1kUUlSem56aG1RUmVJb0ZW?=
+ =?utf-8?B?amgzWlRKa2pvT05tN3QzOTVOSzlxNDhBYmVyM0NCYnlxTUxNZk9WRUJiSjhT?=
+ =?utf-8?B?NW03ZmhTV25sQ2RPSXVTZ1FxRHFlQVdmU2FhWG4wanhlR09wZFlrL1hQMXM5?=
+ =?utf-8?B?S2pWY2pTTUp1cTNKMjBydk5JVmRrbk54QXVRVVVoNSsxbFRVWTBBaGd3a2tz?=
+ =?utf-8?B?bndLRklDSVZTVGdOWWxXTnZMMURXQlhSempDZXFQMDNXbXBjRVF3Vm50M3JX?=
+ =?utf-8?B?a0gvNVMwbWhxeTZaNnhFcXFBR0t0NFJ3LzF5RitadDJZMUhWNVhmYjdaQytL?=
+ =?utf-8?B?bitMRlE3OFoycUJrUUQrdnl2ZnZxZVVKUWZBNkY2TGRhTEtjbldzaitLcVBF?=
+ =?utf-8?B?dUJrdjNXRmxBVFRTMXNIc1dCOWhYSi9zb0YweVdQcnJsdklzbE9LZ3ZaWnFy?=
+ =?utf-8?B?TCtNMlFPanMxWHhuKzFpSCtJQ2VVQlFaZjN0eS9jd2ZBM0U5N3hUNVRqSkNi?=
+ =?utf-8?B?MFl3dVpvZG9rbmJCNTVwc0RSV3p1T0JKelFhOFRoRXkxMUIzVnJ4RmpOU01X?=
+ =?utf-8?B?MDRBaWVuNzNzOUNoMm5ZODh2ZGR6bVBZaStEV01FUkh1VnozVjF5UXdvR2ZF?=
+ =?utf-8?B?eUQzVjR4VUNWUkNMcFlMcVZTd2cyQ0xINENCbDJoeGNIbC8zdVNLdDdXTHpj?=
+ =?utf-8?B?RUx0Z0FsZ291cVhOL0xhLzNVL3lwdUZpeU1HTGtjUHpMQm9DMGZMZVM4RC9L?=
+ =?utf-8?B?SnQzd214V1lMcG9raXBVejlOdGR0akhybzdNbkdyc3ZXbndqZlJNcnE5eFYw?=
+ =?utf-8?B?VGNsYlcxVjlQRTZBZU9DSW9kbFpURnU2QUJDazhKVUhvQkczTDlJQU1lYmVq?=
+ =?utf-8?B?MW9QOWRoRGY1SllrcTNYOFJRVWcrUm41cnRPR09Fcm1ERGM1QXRJU25jczBm?=
+ =?utf-8?Q?bnriAhtBsKazPKaQ=3D?=
+X-OriginatorOrg: lecomputing.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 50271a74-51f2-40c2-d880-08deb4881faa
+X-MS-Exchange-CrossTenant-AuthSource: BJSPR01MB0707.CHNPR01.prod.partner.outlook.cn
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 18 May 2026 02:49:47.6966
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 3591a018-3909-4ea2-aee8-843d5abaed8d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: voabJJhuD+Lo8TG39i0xA5KAinJ6n4BkIreMa0FBex+B3IL6x5eALVeuV6Qx5QZwvjkRq+t7sjNTmgRMFId+vxCl2SRD9jvVl2HWZBn8QNE=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BJSPR01MB0548
 
-Hi Rafael,
+This patch series adds ACPI identification for LECARC SoCs that
+integrate Synopsys DesignWare peripherals.
 
-On Thu, May 14, 2026 at 12:56=E2=80=AFAM Rafael J. Wysocki <rafael@kernel.o=
-rg> wrote:
->
-> On Wed, May 13, 2026 at 10:44=E2=80=AFAM Himanshu Chauhan
-> <himanshu.chauhan@oss.qualcomm.com> wrote:
-> >
-> > Introduce a new HEST notification type for RISC-V SSE events.
-> > The GHES entry's notification structure contains the notification
-> > to be used for a given error source. For error sources delivering
-> > events over SSE, it should contain the new SSE notification type.
-> >
-> > Signed-off-by: Himanshu Chauhan <himanshu.chauhan@oss.qualcomm.com>
-> > Reviewed-by: Cl=C3=A9ment L=C3=A9ger <cleger@rivosinc.com>
-> > ---
-> >  include/acpi/actbl1.h | 3 ++-
-> >  1 file changed, 2 insertions(+), 1 deletion(-)
-> >
-> > diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
-> > index f72e00517eb3..2a8167979458 100644
-> > --- a/include/acpi/actbl1.h
-> > +++ b/include/acpi/actbl1.h
->
-> This is an ACPICA change, so it should go through the upstream ACPICA
-> project on GitHub.  See
->
-> Documentation/driver-api/acpi/linuxized-acpica.rst
->
-> for more information.
->
-> If there is already an upstream ACPICA commit making this change,
-> please add a Link: tag pointing to that commit to the $subject patch.
+LECARC platforms use the following ACPI HIDs:
 
-I have already provided the pull request in ACPICA on github in the
-cover letter.
-Below is the part of the cover letter.
+GPIO: LECA0001 (V1 register offsets)
 
- - Raised a review request for patch "Introduce SSE in HEST
-notification types" in ACPICA
-   https://github.com/acpica/acpica/pull/1170
-   Keeping the patch here for complete functionality
+SPI: LECA0002 (requires custom init function)
 
-Thanks
-Regards
-Himanshu
->
-> > @@ -1798,7 +1798,8 @@ enum acpi_hest_notify_types {
-> >         ACPI_HEST_NOTIFY_SEI =3D 9,       /* ACPI 6.1 */
-> >         ACPI_HEST_NOTIFY_GSIV =3D 10,     /* ACPI 6.1 */
-> >         ACPI_HEST_NOTIFY_SOFTWARE_DELEGATED =3D 11,       /* ACPI 6.2 *=
-/
-> > -       ACPI_HEST_NOTIFY_RESERVED =3D 12  /* 12 and greater are reserve=
-d */
-> > +       ACPI_HEST_NOTIFY_SSE =3D 12, /* RISCV SSE */
-> > +       ACPI_HEST_NOTIFY_RESERVED =3D 13  /* 13 and greater are reserve=
-d */
-> >  };
-> >
-> >  /* Values for config_write_enable bitfield above */
-> > --
-> > 2.43.0
-> >
-> >
+I2C: LECA0003
+
+The patches are independent but share a common dependency on the
+ACPI description file (acpi_apd.c) for SPI and I2C. To avoid merge
+conflicts, they are submitted as a single series with the following
+order:
+
+Patch 1: GPIO – add LECA0001 to dwapb_gpio ACPI match table.
+Patch 2: SPI – add LECA0002 and dw_spi_lecarc_init() to spi-dw-mmio,
+plus corresponding entry in acpi_apd.c.
+Patch 3: I2C – add LECA0003 to DesignWare I2C ACPI match table,
+plus corresponding entry in acpi_apd.c.
+
+All changes have been tested on LECARC evaluation board with
+kernel v7.0.0-rc7. No regressions observed on existing hardware.
+
+Changes since v1:
+
+- Revised subject lines to match subsystem style guidelines
+- No functional changes
+- All the comments from reviews has been fixed
+
+Changes since v2:
+- Wrap long commit description lines to 72 columns
+- Fix code indentation in spi-dw-mmio.c: use tabs + spaces for alignment
+- No functional changes
+
+Please apply.
+
+Thomas Lin (3):
+  gpio: dwapb: Add ACPI ID LECA0001 for LECARC SoCs
+  spi: dw-mmio: Add ACPI ID LECA0002 for LECARC SoCs
+  i2c: designware: Add ACPI ID LECA0003 for LECARC SoCs
+
+ drivers/acpi/acpi_apd.c                     | 13 +++++++++++++
+ drivers/gpio/gpio-dwapb.c                   |  1 +
+ drivers/i2c/busses/i2c-designware-platdrv.c |  1 +
+ drivers/spi/spi-dw-mmio.c                   |  7 ++++---
+ 4 files changed, 19 insertions(+), 3 deletions(-)
+
+-- 
+2.43.0
+
