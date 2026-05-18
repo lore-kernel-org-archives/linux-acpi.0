@@ -1,63 +1,63 @@
-Received: from mail-wm1-f54.google.com (mail-wm1-f54.google.com [209.85.128.54])
+Received: from mail-wm1-f43.google.com (mail-wm1-f43.google.com [209.85.128.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0DF23E168E
-	for <linux-acpi@vger.kernel.org>; Mon, 18 May 2026 07:54:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.54
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27BB53E1CE2
+	for <linux-acpi@vger.kernel.org>; Mon, 18 May 2026 07:54:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.43
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779090863; cv=none; b=LFcOavDQ+lWblr/m13JhqFRKT5wdBpSIklAtraKUtSdyvlCEkB9dyw96a7IEkzNHCVM2zDd1bTBRA4Cx22cUpjXmJP1zj5udFizGKOG/izGAgwBqy5CTlCQ67+K2Iv6UEDfUJww8MijwT31of2wioULk+1jOc2hWJYiybTymHCE=
+	t=1779090866; cv=none; b=N6umY/VEXrXvqRVI5IWXy5tvxVvfhnlpADh+mBYJAvwavXQyigMGQleBcB8yiY1sYUeyqDrybxL7dMZtQGfxu/h1ICqu26SLVYbn4Rn0SC4eLCuAgZ4Ejn988hS8FuLqsvNOU1gCm33fMXfRwCOV2vihy9OOUwA7l4EZZRhoeTY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779090863; c=relaxed/simple;
-	bh=7VBmQ0QxJnGExiUhZKQxvKL2TL1+qN9rL/V2s5flKv0=;
+	s=arc-20240116; t=1779090866; c=relaxed/simple;
+	bh=rWUS7nTXrVlK5crZ0DjajElGR3QIsEMB1YpNIqFMkRs=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=aij4JrOKvVn5ffOk6+UxPo01NzOAdcbPlLBj94NdEoWkpcwCtA5bIwi+Ou1UGuPT0s4/cMMZQRZiPeffofosLY8M3ZKMZfcoULjtp1e9gzIvF4FHaeT9J64BYKGtwrBxM6kpnQ8un32VGIxRxtT4xEV0YfYZbmt6KkgCJ+SQNbY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Zw5DVKb4; arc=none smtp.client-ip=209.85.128.54
+	 MIME-Version; b=RGAtlHe6lqYALkgqG2bn6hZo/P5hU5sdB+y0pxDPlbpGEEH3PoGf0LO6RVyZKLRaQsgYiVXe/keA7H2evaTL7vCZAxlb9XDtwCGvr1uF90qz6Ewb/GWHesArZJgpcBzWhBbcc+heBLC5ob7Xnv1ZEPI7iL9HVh6YUoeqXUssO38=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=DpjGekCJ; arc=none smtp.client-ip=209.85.128.43
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Zw5DVKb4"
-Received: by mail-wm1-f54.google.com with SMTP id 5b1f17b1804b1-48e8132c6d0so10953685e9.1
-        for <linux-acpi@vger.kernel.org>; Mon, 18 May 2026 00:54:16 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="DpjGekCJ"
+Received: by mail-wm1-f43.google.com with SMTP id 5b1f17b1804b1-48e82c23840so13387995e9.3
+        for <linux-acpi@vger.kernel.org>; Mon, 18 May 2026 00:54:20 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1779090853; x=1779695653; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1779090858; x=1779695658; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=k0KmdNrJVMFxKN/kI/cbQSQ7h8U+WxFfpCT2ri4hO5g=;
-        b=Zw5DVKb4+txjkFU/tlwjr4UrSFVvdElZXQqBKvoTXLQifQweWhsJZFNCW2nnojKBHa
-         RT+vXKwYUmU1qQ12aKHbCCatF5qytjK6EeZBkQ6HK/fGZweYuNLchJpty/NHDiOLDiZJ
-         t5ZO7ptH/vwSLSxS2TRvv0SC8bOIv6NFMAaOBxXx7dq2R5y9sqTQk9jYJT/PbOFZ2MbN
-         W9UZjsgYhHsj0QOS0p1f15f6Exp0c8UdKidX1xp0TeUXkp7F6NbNlG+f345W/hPrL1O+
-         b/3VWKOCwB8A9g/7pSef8SQLh7ylHA8ka/AdwGQsTWIqHIfUw7la5dyC70crrxcQodJx
-         6bzw==
+        bh=bjJqGoIGjYsGu2tQdH7B+cO6snJCjh0eC3SCgTOpXs0=;
+        b=DpjGekCJX/y6FtC1BMif9q9RdhiJglm7spfZD0JgCwbcQH6g4886kXSM0XrMJ+G/aF
+         Fm3zI/P1yAQcv+eei1QY8ranTH2cV9JDfpdvtZx96ULPVEDmcQRaxME2vxlG9a462ox/
+         ChkR6QBHVVSPYFapksCQyq0Ue8yaI+tNa/ov0Go7C6HcYD9hjWhLl5KAiB6l2EDRUapE
+         oKGKoA4XB/0Ir2oQugxfEfr/0GDplX/SgGPWwnnE9ttmJh4dMXhOAoWV0iCeLjXa+eCw
+         6YZp2y61Qn0FbmH4oUX8AS3Rpv4zniY/Y3K80Am63t0+u29uUiC+ddIOpdUwDQdeGz25
+         LozA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779090853; x=1779695653;
+        d=1e100.net; s=20251104; t=1779090858; x=1779695658;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=k0KmdNrJVMFxKN/kI/cbQSQ7h8U+WxFfpCT2ri4hO5g=;
-        b=aYm74q8S/sMsQgqCSVnINA4nmkjphISSy6u9lW/6L3G0Gdv/udvKVKnK5oM00v3FPp
-         2a9dNJNyhs4GkYAdcMtjbJcEN3cOEAmYQIziGKqZ/HNhOLasYuGz02SA4wydEAxSZ1Rt
-         Mtpy9dEnVdo0E5TCFcg0PLlZkAiTI3rsMfMoTBCu1J83av75b2Fw0rnTRw21HeHjvJA5
-         JCZ5lndGoLooBwYF1moZ9Wbq+qLV0giTNHfJPAcNcn2txm9fQUubD++v1EPGgF+WQXJR
-         wM0NtJbJ+SnhUCdg2Dy/Mwt9yraIJP/FQkHfjTJquSFI/X9Mwo2rBKXNACVidplKEHte
-         kgrA==
-X-Forwarded-Encrypted: i=1; AFNElJ/Oh4tWxJSbzcv0DYGZXPGpNo7IqvCiMdE3la9us40yfiEDZyO+jl+sIVdY5DQgt8ZT+Vvp5ALHoTpn@vger.kernel.org
-X-Gm-Message-State: AOJu0YxTQ1MdoSlyYIRCobwJ5cfLyBDJY76qiQD+2/aPwXjeLjQnPX33
-	qpLWVpuXJRc07PBSU/Ns5jp1pskzplAhK/Fx6AQImrLjPmKhfO8Wh/ZO
-X-Gm-Gg: Acq92OHA8S0NdjEQ9zTvbzR40QgsCgmTF7t/pumvXpvWhqMdyUJQZWERBS82f+2z+a3
-	N4/0ELaUGSSPxJu3Im2yVblGvDc+H8k35Fko5vs5l6Y91tN1NZolPaS3YGLCDeHq1qscFIc38HE
-	HIaj5scYRbewBimpWV5S8jLZrZT55jq6ELX/jyWo0hIfhdq97K1RYy4C3ZoTcd9CQp1N44gH7rG
-	e2UCbBTGShWAbSr2BZiJWbi1YVn7QYXXUi3pBd2SfIgsBGUmdlDiHUPYOMx/sEK0eYRHiW2507N
-	mS8Gqkun9BES6KiTyGptjIKepQWL/J5Wzs8VESCmYasEyAGSUV7dTUR7XcjBoOBFjFLubPzr1Km
-	/MWIY20WVhR7sZs9g6Y/vtVb6V7ogbg42+OH49itoA6vn4N/nZHzfymQ99t5hKopvdxfNENr99Y
-	9Uy9mUU51UvmoCHyI=
-X-Received: by 2002:a05:600c:4455:b0:487:2671:fb8f with SMTP id 5b1f17b1804b1-48fe60ea92dmr193027845e9.8.1779090852710;
-        Mon, 18 May 2026 00:54:12 -0700 (PDT)
+        bh=bjJqGoIGjYsGu2tQdH7B+cO6snJCjh0eC3SCgTOpXs0=;
+        b=XrL/LyyZaO+2TPzEwJ7zwPQNiq1qfGd0oTTLYPfDjOQxKlfwirMym8ufjRu/OeacAT
+         62Qp5rTpiZJRK5lM9ZlT6nT8BBUHvbi1SodwbhJFkYad/mQnKMv0BDiwTsevXpIlevWQ
+         tfbhPSG1L8u6gZ/8/yCCrZypMpfgF8cbdJN6Y1SUtcy6/bixK/MQZaYlPA+q4S932cio
+         iOxeGJ+ZEJUcKkd9quK5zzfplhgJGlaNS8oyJ+NTZtfQJUZfTnLwgJXYXYSxtKiNiNIh
+         g8QUxZQhNs58TZlHWOL+rGQpjIjrmyLwAVVAmte8MEmt79Nd7SVTRTVjp7pSSz3cxN42
+         LMJQ==
+X-Forwarded-Encrypted: i=1; AFNElJ/3PNqKOLS2Qq7Qy9Kf+Pz0PtwhApVj4l12GOE8ITRu/kpnAzsHlgF4AgVLurbZ33wNd+0N1RQpkakX@vger.kernel.org
+X-Gm-Message-State: AOJu0YxS0A63eqiErz1IkzHteP58MX/8zxqO46XREz0kzZwdi6pM75je
+	N5eSTErWIHgzYr+0kIxJ13JnUIrbyILY2+O0cgztVLZfpCay7/jIDf5J
+X-Gm-Gg: Acq92OEAAWoGXq4AqMPQoFzGlOZVP8g9oNwMThjbKgESAjaVYCiurFoFmIjFAFEptug
+	DXcnH8Ko1SOSkqQXEA6nre/S9jiilXvdQYrQXLCTWhf9OuxDVHlGyEISOeCh2CuspEAYkDS5PUx
+	sK7E1R7InXUWAJkvvbOTS/UbT92ZdAcr5BAyluTD9+/7Z4Flr/sAJ23pf2/aJ2f+NUurLNpVK2w
+	A0ErrnrzXwi7j9wdmC7xFtRd+jwVJMcUW0oUx89BQLj0nkEEosFWaOiMd2d163h4yGMfokmm7lK
+	vpiTCyX5oWcn3Ys7Iz6ihhI4uD7KpfoehOMUsS5OJJPihNAU/roP6q+K8EK5Ek7FBHe6xIxYkdJ
+	HFJ+bb3kw+f4U2KkA3h7Yyhcgp766PXXBLQfKA5wKWSrDMARQX185hgVpyjxlnF6eviuRjNfYAn
+	q0l/n5Ntr89vLIOV/qJycS+mIHJB2eUl4+rhRO
+X-Received: by 2002:a05:600c:828d:b0:48e:6db3:ff2e with SMTP id 5b1f17b1804b1-48fe61eb313mr203218885e9.15.1779090858347;
+        Mon, 18 May 2026 00:54:18 -0700 (PDT)
 Received: from ROG ([2a01:e11:202b:40:328e:213e:a3da:580f])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-48feaf14d22sm102788835e9.3.2026.05.18.00.54.11
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-48feaf14d22sm102788835e9.3.2026.05.18.00.54.16
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 18 May 2026 00:54:12 -0700 (PDT)
+        Mon, 18 May 2026 00:54:17 -0700 (PDT)
 From: "Marco Scardovi (scardracs)" <mscardovi95@gmail.com>
 To: Linus Walleij <linusw@kernel.org>,
 	Bartosz Golaszewski <brgl@kernel.org>
@@ -67,9 +67,9 @@ Cc: Mika Westerberg <westeri@kernel.org>,
 	linux-acpi@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	"Marco Scardovi (scardracs)" <mscardovi95@gmail.com>
-Subject: [PATCH 09/12] gpiolib: acpi: Remove unused static address space emulation from core
-Date: Mon, 18 May 2026 09:53:54 +0200
-Message-ID: <20260518075357.112584-10-mscardovi95@gmail.com>
+Subject: [PATCH 12/12] gpiolib: acpi: Decouple Event and Interrupt handling from core
+Date: Mon, 18 May 2026 09:53:57 +0200
+Message-ID: <20260518075357.112584-13-mscardovi95@gmail.com>
 X-Mailer: git-send-email 2.54.0
 In-Reply-To: <20260518075357.112584-1-mscardovi95@gmail.com>
 References: <20260518075357.112584-1-mscardovi95@gmail.com>
@@ -84,140 +84,323 @@ Content-Transfer-Encoding: 8bit
 Assisted-by: Antigravity:gemini-3-flash
 Signed-off-by: Marco Scardovi <mscardovi95@gmail.com>
 ---
- drivers/gpio/gpiolib-acpi-core.c | 120 -------------------------------
- 1 file changed, 120 deletions(-)
+ drivers/gpio/gpiolib-acpi-core.c | 285 +------------------------------
+ 1 file changed, 1 insertion(+), 284 deletions(-)
 
 diff --git a/drivers/gpio/gpiolib-acpi-core.c b/drivers/gpio/gpiolib-acpi-core.c
-index 4802d4948f89..b8976a0c798e 100644
+index b8976a0c798e..99b7b0409810 100644
 --- a/drivers/gpio/gpiolib-acpi-core.c
 +++ b/drivers/gpio/gpiolib-acpi-core.c
-@@ -1049,126 +1049,6 @@ int acpi_dev_gpio_irq_wake_get_by(struct acpi_device *adev, const char *con_id,
+@@ -106,25 +106,7 @@ static struct gpio_desc *acpi_get_gpiod(char *path, unsigned int pin)
+ 	return gpio_device_get_desc(gdev, pin);
  }
- EXPORT_SYMBOL_GPL(acpi_dev_gpio_irq_wake_get_by);
  
--static acpi_status
--acpi_gpio_adr_space_handler(u32 function, acpi_physical_address address,
--			    u32 bits, u64 *value, void *handler_context,
--			    void *region_context)
+-static irqreturn_t acpi_gpio_irq_handler(int irq, void *data)
 -{
--	struct acpi_gpio_chip *achip = region_context;
--	struct gpio_chip *chip = achip->chip;
--	struct acpi_resource_gpio *agpio;
--	struct acpi_resource *ares;
--	u16 pin_index = address;
--	acpi_status status;
--	int length;
--	int i;
+-	struct acpi_gpio_event *event = data;
 -
--	status = acpi_buffer_to_resource(achip->conn_info.connection,
--					 achip->conn_info.length, &ares);
--	if (ACPI_FAILURE(status))
--		return status;
+-	acpi_evaluate_object(event->handle, NULL, NULL, NULL);
 -
--	if (WARN_ON(ares->type != ACPI_RESOURCE_TYPE_GPIO)) {
--		ACPI_FREE(ares);
--		return AE_BAD_PARAMETER;
--	}
--
--	agpio = &ares->data.gpio;
--
--	if (WARN_ON(agpio->io_restriction == ACPI_IO_RESTRICT_INPUT &&
--	    function == ACPI_WRITE)) {
--		ACPI_FREE(ares);
--		return AE_BAD_PARAMETER;
--	}
--
--	if (pin_index >= agpio->pin_table_length) {
--		ACPI_FREE(ares);
--		return AE_BAD_PARAMETER;
--	}
--
--	length = min(agpio->pin_table_length, pin_index + bits);
--	for (i = pin_index; i < length; ++i) {
--		unsigned int pin = agpio->pin_table[i];
--		struct acpi_gpio_connection *conn;
--		struct gpio_desc *desc;
--		u16 word, shift;
--		bool found;
--
--		mutex_lock(&achip->conn_lock);
--
--		found = false;
--		list_for_each_entry(conn, &achip->conns, node) {
--			if (conn->pin == pin) {
--				found = true;
--				desc = conn->desc;
--				break;
--			}
--		}
--
--		/*
--		 * The same GPIO can be shared between operation region and
--		 * event but only if the access here is ACPI_READ. In that
--		 * case we "borrow" the event GPIO instead.
--		 */
--		if (!found && agpio->shareable == ACPI_SHARED &&
--		     function == ACPI_READ) {
--			struct acpi_gpio_event *event;
--
--			list_for_each_entry(event, &achip->events, node) {
--				if (event->pin == pin) {
--					desc = event->desc;
--					found = true;
--					break;
--				}
--			}
--		}
--
--		if (!found) {
--			desc = acpi_request_own_gpiod(chip, agpio, i, "ACPI:OpRegion");
--			if (IS_ERR(desc)) {
--				mutex_unlock(&achip->conn_lock);
--				status = AE_ERROR;
--				goto out;
--			}
--
--			conn = kzalloc_obj(*conn);
--			if (!conn) {
--				gpiochip_free_own_desc(desc);
--				mutex_unlock(&achip->conn_lock);
--				status = AE_NO_MEMORY;
--				goto out;
--			}
--
--			conn->pin = pin;
--			conn->desc = desc;
--			list_add_tail(&conn->node, &achip->conns);
--		}
--
--		mutex_unlock(&achip->conn_lock);
--
--		/*
--		 * For the cases when OperationRegion() consists of more than
--		 * 64 bits calculate the word and bit shift to use that one to
--		 * access the value.
--		 */
--		word = i / 64;
--		shift = i % 64;
--
--		if (function == ACPI_WRITE) {
--			gpiod_set_raw_value_cansleep(desc, value[word] & BIT_ULL(shift));
--		} else {
--			if (gpiod_get_raw_value_cansleep(desc))
--				value[word] |= BIT_ULL(shift);
--			else
--				value[word] &= ~BIT_ULL(shift);
--		}
--	}
--
--out:
--	ACPI_FREE(ares);
--	return status;
+-	return IRQ_HANDLED;
 -}
 -
- 
- void acpi_gpiochip_add(struct gpio_chip *chip)
+-static irqreturn_t acpi_gpio_irq_handler_evt(int irq, void *data)
+-{
+-	struct acpi_gpio_event *event = data;
+-
+-	acpi_execute_simple_method(event->handle, NULL, event->pin);
+-
+-	return IRQ_HANDLED;
+-}
+-
+-static void acpi_gpio_chip_dh(acpi_handle handle, void *data)
++void acpi_gpio_chip_dh(acpi_handle handle, void *data)
  {
+ 	/* The address of this function is used as a key. */
+ }
+@@ -172,52 +154,7 @@ bool acpi_gpio_get_io_resource(struct acpi_resource *ares,
+ }
+ EXPORT_SYMBOL_GPL(acpi_gpio_get_io_resource);
+ 
+-static void acpi_gpiochip_request_irq(struct acpi_gpio_chip *acpi_gpio,
+-				      struct acpi_gpio_event *event)
+-{
+-	struct device *parent = acpi_gpio->chip->parent;
+-	int ret, value;
+-
+-	ret = request_threaded_irq(event->irq, NULL, event->handler,
+-				   event->irqflags | IRQF_ONESHOT, "ACPI:Event", event);
+-	if (ret) {
+-		dev_err(parent, "Failed to setup interrupt handler for %d\n", event->irq);
+-		return;
+-	}
+-
+-	if (event->irq_is_wake)
+-		enable_irq_wake(event->irq);
+ 
+-	event->irq_requested = true;
+-
+-	/*
+-	 * Make sure we trigger the initial state of ActiveBoth IRQs.
+-	 *
+-	 * According to the Microsoft GPIO documentation, triggering GPIO
+-	 * interrupts marked as ActiveBoth during initialization is correct
+-	 * as long as the associated GPIO line is already "asserted"
+-	 * (logic level low). We should not trigger edge-based GPIO
+-	 * interrupts not marked as ActiveBoth.
+-	 *
+-	 * See: https://learn.microsoft.com/en-us/windows-hardware/drivers/bringup/general-purpose-i-o--gpio-
+-	 * Section: "GPIO controllers and ActiveBoth interrupts"
+-	 */
+-	if (acpi_gpio_need_run_edge_events_on_boot() &&
+-	    ((event->irqflags & (IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING)) ==
+-	     (IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING))) {
+-		value = gpiod_get_raw_value_cansleep(event->desc);
+-		if (value == 0)
+-			event->handler(event->irq, event);
+-	}
+-}
+-
+-static void acpi_gpiochip_request_irqs(struct acpi_gpio_chip *acpi_gpio)
+-{
+-	struct acpi_gpio_event *event;
+-
+-	list_for_each_entry(event, &acpi_gpio->events, node)
+-		acpi_gpiochip_request_irq(acpi_gpio, event);
+-}
+ 
+ static enum gpiod_flags
+ acpi_gpio_to_gpiod_flags(const struct acpi_resource_gpio *agpio, int polarity)
+@@ -296,229 +233,9 @@ struct gpio_desc *acpi_request_own_gpiod(struct gpio_chip *chip,
+ 	return desc;
+ }
+ 
+-static bool acpi_gpio_irq_is_wake(struct device *parent,
+-				  const struct acpi_resource_gpio *agpio)
+-{
+-	unsigned int pin;
+-
+-	if (agpio->pin_table_length == 0)
+-		return false;
+ 
+-	pin = agpio->pin_table[0];
+ 
+-	if (agpio->wake_capable != ACPI_WAKE_CAPABLE)
+-		return false;
+-
+-	if (acpi_gpio_in_ignore_list(ACPI_GPIO_IGNORE_WAKE, dev_name(parent), pin)) {
+-		dev_info(parent, "Ignoring wakeup on pin %u\n", pin);
+-		return false;
+-	}
+ 
+-	return true;
+-}
+-
+-/* Always returns AE_OK so that we keep looping over the resources */
+-static acpi_status acpi_gpiochip_alloc_event(struct acpi_resource *ares,
+-					     void *context)
+-{
+-	struct acpi_gpio_chip *acpi_gpio = context;
+-	struct gpio_chip *chip = acpi_gpio->chip;
+-	struct acpi_resource_gpio *agpio;
+-	acpi_handle handle, evt_handle;
+-	struct acpi_gpio_event *event;
+-	irq_handler_t handler = NULL;
+-	struct gpio_desc *desc;
+-	unsigned int pin;
+-	int ret, irq;
+-
+-	if (!acpi_gpio_get_irq_resource(ares, &agpio))
+-		return AE_OK;
+-
+-	if (agpio->pin_table_length == 0)
+-		return AE_OK;
+-
+-	handle = ACPI_HANDLE(chip->parent);
+-	pin = agpio->pin_table[0];
+-
+-	if (pin <= 255) {
+-		char ev_name[8];
+-
+-		snprintf(ev_name, sizeof(ev_name), "_%c%02X",
+-			 agpio->triggering == ACPI_EDGE_SENSITIVE ? 'E' : 'L',
+-			 pin);
+-		if (ACPI_SUCCESS(acpi_get_handle(handle, ev_name, &evt_handle)))
+-			handler = acpi_gpio_irq_handler;
+-	}
+-	if (!handler) {
+-		if (ACPI_SUCCESS(acpi_get_handle(handle, "_EVT", &evt_handle)))
+-			handler = acpi_gpio_irq_handler_evt;
+-	}
+-	if (!handler)
+-		return AE_OK;
+-
+-	if (acpi_gpio_in_ignore_list(ACPI_GPIO_IGNORE_INTERRUPT, dev_name(chip->parent), pin)) {
+-		dev_info(chip->parent, "Ignoring interrupt on pin %u\n", pin);
+-		return AE_OK;
+-	}
+-
+-	desc = acpi_request_own_gpiod(chip, agpio, 0, "ACPI:Event");
+-	if (IS_ERR(desc)) {
+-		dev_err(chip->parent,
+-			"Failed to request GPIO for pin 0x%04X, err %pe\n",
+-			pin, desc);
+-		return AE_OK;
+-	}
+-
+-	ret = gpiochip_lock_as_irq(chip, pin);
+-	if (ret) {
+-		dev_err(chip->parent,
+-			"Failed to lock GPIO pin 0x%04X as interrupt, err %d\n",
+-			pin, ret);
+-		goto fail_free_desc;
+-	}
+-
+-	irq = gpiod_to_irq(desc);
+-	if (irq < 0) {
+-		dev_err(chip->parent,
+-			"Failed to translate GPIO pin 0x%04X to IRQ, err %d\n",
+-			pin, irq);
+-		goto fail_unlock_irq;
+-	}
+-
+-	event = kzalloc_obj(*event);
+-	if (!event)
+-		goto fail_unlock_irq;
+-
+-	event->irqflags = IRQF_ONESHOT;
+-	if (agpio->triggering == ACPI_LEVEL_SENSITIVE) {
+-		if (agpio->polarity == ACPI_ACTIVE_HIGH)
+-			event->irqflags |= IRQF_TRIGGER_HIGH;
+-		else
+-			event->irqflags |= IRQF_TRIGGER_LOW;
+-	} else {
+-		switch (agpio->polarity) {
+-		case ACPI_ACTIVE_HIGH:
+-			event->irqflags |= IRQF_TRIGGER_RISING;
+-			break;
+-		case ACPI_ACTIVE_LOW:
+-			event->irqflags |= IRQF_TRIGGER_FALLING;
+-			break;
+-		default:
+-			event->irqflags |= IRQF_TRIGGER_RISING |
+-					   IRQF_TRIGGER_FALLING;
+-			break;
+-		}
+-	}
+-
+-	event->handle = evt_handle;
+-	event->handler = handler;
+-	event->irq = irq;
+-	event->irq_is_wake = acpi_gpio_irq_is_wake(chip->parent, agpio);
+-	event->pin = pin;
+-	event->desc = desc;
+-
+-	list_add_tail(&event->node, &acpi_gpio->events);
+-
+-	return AE_OK;
+-
+-fail_unlock_irq:
+-	gpiochip_unlock_as_irq(chip, pin);
+-fail_free_desc:
+-	gpiochip_free_own_desc(desc);
+-
+-	return AE_OK;
+-}
+-
+-/**
+- * acpi_gpiochip_request_interrupts() - Register isr for gpio chip ACPI events
+- * @chip:      GPIO chip
+- *
+- * ACPI5 platforms can use GPIO signaled ACPI events. These GPIO interrupts are
+- * handled by ACPI event methods which need to be called from the GPIO
+- * chip's interrupt handler. acpi_gpiochip_request_interrupts() finds out which
+- * GPIO pins have ACPI event methods and assigns interrupt handlers that calls
+- * the ACPI event methods for those pins.
+- */
+-void acpi_gpiochip_request_interrupts(struct gpio_chip *chip)
+-{
+-	struct acpi_gpio_chip *acpi_gpio;
+-	acpi_handle handle;
+-	acpi_status status;
+-
+-	if (!chip->parent || !chip->to_irq)
+-		return;
+-
+-	handle = ACPI_HANDLE(chip->parent);
+-	if (!handle)
+-		return;
+-
+-	status = acpi_get_data(handle, acpi_gpio_chip_dh, (void **)&acpi_gpio);
+-	if (ACPI_FAILURE(status))
+-		return;
+-
+-	if (acpi_quirk_skip_gpio_event_handlers())
+-		return;
+-
+-	acpi_walk_resources(handle, METHOD_NAME__AEI,
+-			    acpi_gpiochip_alloc_event, acpi_gpio);
+-
+-	if (acpi_gpio_add_to_deferred_list(&acpi_gpio->deferred_req_irqs_list_entry))
+-		return;
+-
+-	acpi_gpiochip_request_irqs(acpi_gpio);
+-}
+-EXPORT_SYMBOL_GPL(acpi_gpiochip_request_interrupts);
+-
+-/**
+- * acpi_gpiochip_free_interrupts() - Free GPIO ACPI event interrupts.
+- * @chip:      GPIO chip
+- *
+- * Free interrupts associated with GPIO ACPI event method for the given
+- * GPIO chip.
+- */
+-void acpi_gpiochip_free_interrupts(struct gpio_chip *chip)
+-{
+-	struct acpi_gpio_chip *acpi_gpio;
+-	struct acpi_gpio_event *event, *ep;
+-	acpi_handle handle;
+-	acpi_status status;
+-
+-	if (!chip->parent || !chip->to_irq)
+-		return;
+-
+-	handle = ACPI_HANDLE(chip->parent);
+-	if (!handle)
+-		return;
+-
+-	status = acpi_get_data(handle, acpi_gpio_chip_dh, (void **)&acpi_gpio);
+-	if (ACPI_FAILURE(status))
+-		return;
+-
+-	acpi_gpio_remove_from_deferred_list(&acpi_gpio->deferred_req_irqs_list_entry);
+-
+-	list_for_each_entry_safe_reverse(event, ep, &acpi_gpio->events, node) {
+-		if (event->irq_requested) {
+-			if (event->irq_is_wake)
+-				disable_irq_wake(event->irq);
+-
+-			free_irq(event->irq, event);
+-		}
+-
+-		gpiochip_unlock_as_irq(chip, event->pin);
+-		gpiochip_free_own_desc(event->desc);
+-		list_del(&event->node);
+-		kfree(event);
+-	}
+-}
+-EXPORT_SYMBOL_GPL(acpi_gpiochip_free_interrupts);
+-
+-void __init acpi_gpio_process_deferred_list(struct list_head *list)
+-{
+-	struct acpi_gpio_chip *acpi_gpio, *tmp;
+-
+-	list_for_each_entry_safe(acpi_gpio, tmp, list, deferred_req_irqs_list_entry)
+-		acpi_gpiochip_request_irqs(acpi_gpio);
+-}
+ 
+ int acpi_dev_add_driver_gpios(struct acpi_device *adev,
+ 			      const struct acpi_gpio_mapping *gpios)
 -- 
 2.54.0
 
