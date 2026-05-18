@@ -1,63 +1,63 @@
-Received: from mail-wr1-f42.google.com (mail-wr1-f42.google.com [209.85.221.42])
+Received: from mail-wr1-f48.google.com (mail-wr1-f48.google.com [209.85.221.48])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E41343E168B
-	for <linux-acpi@vger.kernel.org>; Mon, 18 May 2026 07:54:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4320A3E1233
+	for <linux-acpi@vger.kernel.org>; Mon, 18 May 2026 07:54:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.48
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779090860; cv=none; b=QGzRMlQxzW74SQ6F2t/sglNJ7hdgpW+bPW87IkMFSx+/G+BPk42RXaN5S2xn8SBIwQR+G2HhDieKwrbqgE+6DE8vLaexiV4U+7C4t551j6MxOG2b1tI8vQiBBI4qOcJ8FvcvhpYAKfiqMZDVRTZWce0X+zLFzU6xOaoWNejoRfs=
+	t=1779090861; cv=none; b=DNDYNxuHjaKV8gxaHRPRoyK555tb92KSNCAaNZOFZ2vYi3MQqRpF+R79ZVK+AeWicImGxuapUmenOYR6XGqLINsn6YpJYTfIonB1U9u0bRLtI5g86sEhJVcP7zWGIsGuzHyLzbEn1WRE8iVd3zzA8dWmOXtGQMHojZjKQqwiryM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779090860; c=relaxed/simple;
-	bh=uhZ27U3v2eIZ0NhfXUZbpGVdOwqMl7qp6vCvulhWUwk=;
+	s=arc-20240116; t=1779090861; c=relaxed/simple;
+	bh=iv39VAslRAqgad6LKrBKdc0Y2gyQhR958hGtPNBwDEs=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=UWB23ZeRiYKccHruNhFtlILaSQplAJABgLsM2cz6xnzOAZZAwGvDMmB4XoQBZXFT7ZZ0lVxOe9o6++BRVE4a2BcmzlBMPrLI3yRNB+8WO3QQSoh/DSTIjOpR3po/VETWXgcR4FiSfCtwbDq3+87HjZQFShrkpgtF872azHOdKts=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=rEwQimiI; arc=none smtp.client-ip=209.85.221.42
+	 MIME-Version; b=hjzMcZ0bx8iiCpQaywb+A2llM6srCixKMKTSkzoUYqRolmuo1ElsfT9n7VwdywvGwdPvgEaemIpZhH7LKTKThYA72asEaRT19ktXrtxrgUASZC1L6CZj1pbkRjW8ygD4nVVHxNMvrzF1PQLFkMz2uPBmAod4WuCfI9zEG6g1zfQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=qdsIoJM/; arc=none smtp.client-ip=209.85.221.48
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="rEwQimiI"
-Received: by mail-wr1-f42.google.com with SMTP id ffacd0b85a97d-45d96d21e82so1010114f8f.0
-        for <linux-acpi@vger.kernel.org>; Mon, 18 May 2026 00:54:09 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="qdsIoJM/"
+Received: by mail-wr1-f48.google.com with SMTP id ffacd0b85a97d-45562c41ec7so1014143f8f.1
+        for <linux-acpi@vger.kernel.org>; Mon, 18 May 2026 00:54:14 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1779090847; x=1779695647; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1779090851; x=1779695651; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=lodDQ5HjiyAy7FWFWZrwQQYQkHD0GGXCtZQuFp7Bmbw=;
-        b=rEwQimiIiCUgiyyeBngjdrFRMgkWn9NbMbMGSHM5IoaKiVqIDLGQvBLuoI6WCVXVuJ
-         JLZ6CLtuCjbQulNbrEZ1Kus7CBEKTIfTBEix3PNw7PCNY0MR5j5Af5F7T8q9skDsJkjq
-         K9dq0XRY9XTYyHii2XwSbH6u1RYemiP6dutwVpFImhCia0e2FKf5FHGTjuPJ1/3np/NM
-         2M8ao1dBcnWczgaxwLFL+dPowv+C1XaY91UrlGoSLwTSvpooC+T4vZOwgq5P3qKhocIr
-         sl3VcjnHhdmtY1XqzHOwiH9KzLXpUOo8DII+C1it2vK9ANm4bXuotESZyycJVC/8lYtW
-         4rmg==
+        bh=+iV4KXyAPK+K+KWzEeqIiwRK0AcdSNjQuvN9IpFfq6U=;
+        b=qdsIoJM/B+ozEXaiNBGGQtM61pt2v/z2YKCqEKvI9UkVIH3eMlMg+qywxpQx0uqYP+
+         k5G9UccDVSQ+0k0Ubtvn59YqqGisr7wx531JGOvPX7xIrS5dynawka8Mkm7+tcTtLshe
+         06llZrBQEGZz4iQvA93fBtHzzh7Z6y0qCmLxvtxovl+hLMDxC3TquW5O2/Ye2kgmLxVm
+         JylqUG7f3CVjSRvkdCpIKNyiAylwaxdiveVHVQ8vLT7MUxqXpIWlpQUrwaKBqLUp82pO
+         LY4UFxw6U+UsJW+8HlvQ7HGo+Egs6YY87CQBXZCSl/7CvgLVNTE4m70YPR64YmmsykIk
+         27KA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779090847; x=1779695647;
+        d=1e100.net; s=20251104; t=1779090851; x=1779695651;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=lodDQ5HjiyAy7FWFWZrwQQYQkHD0GGXCtZQuFp7Bmbw=;
-        b=kdbem9MdGYLUtubWGgTs7yT6hh+HKYlFSttmFujCqN1+TVXD0qY8S3heUVBEdObHhO
-         KlRQTo/fZ+SNLf6oGV0UDdqM5W/z1gOWEoJRfoeo6Fm1MAmlMRd16FQYaP6gUvCfMs9/
-         SRviG5XPGUmCcvF3oYhUqpFpKBsqELpY7DUUMQ5cMuVJiuonSexz1gjHbFKhvmho+BxB
-         SVQeDxuDIScTCXvzM4G1TGZnQHH9fJ1roY80CaUGSuGjSx8Cf39b1o7oY9yzV3cTXPWR
-         MiLOCSijQnBkeSg30GiafmnZLb3jAJ/R0oQ1TgYna7wJ/FpAa63ycrboqeUybElQPr0O
-         mJAg==
-X-Forwarded-Encrypted: i=1; AFNElJ+n6K/S1fJtN3WA3zFd4ez71C3r5Je8fDWGBmfi1HGH5sV5qD+VeJjTXZkT7RIpQuvbWeTh+WtUlfG0@vger.kernel.org
-X-Gm-Message-State: AOJu0YyYjZsKm0Q7azKfM5YRFxOLT3bK8dubIuVVIq5A6F3pqGT26ClO
-	DuxtO0HYdZ1qYlaEa8myE6N2mMeqk09aBkUrVZ7SebFyft9ZMVU6E2K3
-X-Gm-Gg: Acq92OHagj86bNwBh8aI9q4ncuSz0YK/ZVnI0n0Xk2e2s15udBN1AIEeUR4usqd5FvH
-	ndqQyo18Vl0dvdz8V1k4UxPaiiH1YKNlq+3tdxPAiaG7E1EMYGE2UtKWhKEOfs/GeGS4+F2BXvE
-	iuNMfUTYrlth6JYECLBfSAzk4fjFGKqx2/Y+slXsZjHwIRROqqk0PLnsEcp2DBslpyNTRXtqDUb
-	adrDVn8FlV2lISs31TyBMutgp/x4+MiNb+6a8CJ6jpRp2reR7imzNSb+Wd/CU01TzDV5YwYd60r
-	C8/KljBfWPJW8cOJ0WIHNl9zVIAC5pdrSPYau/TE1VxZgPPPrwrYNJ7zxGptz/Os//O9w1sU7uR
-	NME5MDCgwolOIZtj9sXbOgHLdWiMqD05fJAKmtqYa2V8/p22qpE96822QxbujtJITaBZOfVSPjg
-	yetbIwuOjpRzosDt58AgIMnQcz5w==
-X-Received: by 2002:a05:600c:a406:b0:48e:5fb8:f80f with SMTP id 5b1f17b1804b1-48fe6514865mr169798555e9.24.1779090847293;
-        Mon, 18 May 2026 00:54:07 -0700 (PDT)
+        bh=+iV4KXyAPK+K+KWzEeqIiwRK0AcdSNjQuvN9IpFfq6U=;
+        b=jP7J/imfhCBGuy7/YDpBCUhTeHF+zvNm+pWRl+y3ZsHFdh+LT2RRK18QZ5DCVSQ9G0
+         /VC0SKAIz8sUWWaaprfPa0mZCpoDQDUw09utN7D1BjOPFKVTBf/Oy1YuWC5aarkFXEo9
+         xzx/YglRytcsKYX6VdINoUvvvO98J/8SbC40NTy+IlHO7I3nR3apNERrArUXyGQjjnEU
+         JP8UPEbQ2lD121/lGO3VsSOoCXU1DJuOqVcbiN+Gw8QTkr7N2faKlYrT6Cw2oJ3sPB74
+         8mzchFA3NQDLFJ7orQ/84/3jeslOuV4w9nnv8P4V2ez+n+euTqmMKqeM3Lqbg76DXUuU
+         38wA==
+X-Forwarded-Encrypted: i=1; AFNElJ9eMuu9KBpkGdAV/eErMlun7i4yhK0p5bjA51DbV8idvNkyKoeMTaKXwbhZWI39ebv+f3jB+VjaBpfF@vger.kernel.org
+X-Gm-Message-State: AOJu0YzZKQbN6iOoxkVBKzHaRMERxD0LwBUJd4BPp8SLt2n6ro4W69ej
+	MuPoTixl+v0AkH5vhZc3br5WPi25y038eEOh+KPRKPfPe3DcV5rcWIBV
+X-Gm-Gg: Acq92OFddUpkFFkeMSdj8WZp72WSqreQuKDAo6ADDglofe6IXDERVrsVljKPfGIPue3
+	YTc4VR32nvM2og2GSI5HSakENBA/YBtt67IFvapTw6L2XvVJQVKaWoLmvECFAoc887UZe6RMwxk
+	Iol1WOlDberfSIszUZohTCJZxOP0RZs3RwvTK/M/RA6MC3xCgPsC/kFP1X7XaACW1OGatLjPipk
+	c/a1O5Pvk2EisQvN58XU0adPRSZFbQD3JEOBrMy9rt38fepE5t5+PbwyBy7mIQn431ZHfcfoXBz
+	pOe2fS0+ZVrxGMk0hzTjoV4+d88lNiWsXV0psM1q1gMQBbdqlAbU6CyHMcFq3dySaGv3VEq89fD
+	yP+0DNHnFNWUMBIzHNKM+OKXMMJCnP9eDPnMylTL2KK8GSItSPzZmbvu67a4X51KlNvQOA+ih7G
+	H69xuG0XZ4G+Dn8PA=
+X-Received: by 2002:a05:600c:8b6e:b0:485:9a50:3370 with SMTP id 5b1f17b1804b1-48fe60ecc24mr220895185e9.8.1779090851593;
+        Mon, 18 May 2026 00:54:11 -0700 (PDT)
 Received: from ROG ([2a01:e11:202b:40:328e:213e:a3da:580f])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-48feaf14d22sm102788835e9.3.2026.05.18.00.54.06
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-48feaf14d22sm102788835e9.3.2026.05.18.00.54.10
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 18 May 2026 00:54:06 -0700 (PDT)
+        Mon, 18 May 2026 00:54:10 -0700 (PDT)
 From: "Marco Scardovi (scardracs)" <mscardovi95@gmail.com>
 To: Linus Walleij <linusw@kernel.org>,
 	Bartosz Golaszewski <brgl@kernel.org>
@@ -67,9 +67,9 @@ Cc: Mika Westerberg <westeri@kernel.org>,
 	linux-acpi@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	"Marco Scardovi (scardracs)" <mscardovi95@gmail.com>
-Subject: [PATCH 05/12] gpiolib: acpi: Declare shared structures in gpiolib-acpi.h
-Date: Mon, 18 May 2026 09:53:50 +0200
-Message-ID: <20260518075357.112584-6-mscardovi95@gmail.com>
+Subject: [PATCH 08/12] gpiolib: acpi: Divert OpRegion registration callbacks from core
+Date: Mon, 18 May 2026 09:53:53 +0200
+Message-ID: <20260518075357.112584-9-mscardovi95@gmail.com>
 X-Mailer: git-send-email 2.54.0
 In-Reply-To: <20260518075357.112584-1-mscardovi95@gmail.com>
 References: <20260518075357.112584-1-mscardovi95@gmail.com>
@@ -82,127 +82,58 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
 Assisted-by: Antigravity:gemini-3-flash
-
 Signed-off-by: Marco Scardovi <mscardovi95@gmail.com>
 ---
- drivers/gpio/gpiolib-acpi-core.c | 43 --------------------------------
- drivers/gpio/gpiolib-acpi.h      | 39 +++++++++++++++++++++++++++--
- 2 files changed, 37 insertions(+), 45 deletions(-)
+ drivers/gpio/gpiolib-acpi-core.c | 36 --------------------------------
+ 1 file changed, 36 deletions(-)
 
 diff --git a/drivers/gpio/gpiolib-acpi-core.c b/drivers/gpio/gpiolib-acpi-core.c
-index 4c8cd2038aa1..7217ec5c7fae 100644
+index afd76301c41f..4802d4948f89 100644
 --- a/drivers/gpio/gpiolib-acpi-core.c
 +++ b/drivers/gpio/gpiolib-acpi-core.c
-@@ -23,50 +23,7 @@
- #include "gpiolib.h"
- #include "gpiolib-acpi.h"
+@@ -1169,42 +1169,6 @@ acpi_gpio_adr_space_handler(u32 function, acpi_physical_address address,
+ 	return status;
+ }
  
--/**
-- * struct acpi_gpio_event - ACPI GPIO event handler data
-- *
-- * @node:	  list-entry of the events list of the struct acpi_gpio_chip
-- * @handle:	  handle of ACPI method to execute when the IRQ triggers
-- * @handler:	  handler function to pass to request_irq() when requesting the IRQ
-- * @pin:	  GPIO pin number on the struct gpio_chip
-- * @irq:	  Linux IRQ number for the event, for request_irq() / free_irq()
-- * @irqflags:	  flags to pass to request_irq() when requesting the IRQ
-- * @irq_is_wake:  If the ACPI flags indicate the IRQ is a wakeup source
-- * @irq_requested:True if request_irq() has been done
-- * @desc:	  struct gpio_desc for the GPIO pin for this event
-- */
--struct acpi_gpio_event {
--	struct list_head node;
--	acpi_handle handle;
--	irq_handler_t handler;
--	unsigned int pin;
--	unsigned int irq;
--	unsigned long irqflags;
--	bool irq_is_wake;
--	bool irq_requested;
--	struct gpio_desc *desc;
--};
- 
--struct acpi_gpio_connection {
--	struct list_head node;
--	unsigned int pin;
--	struct gpio_desc *desc;
--};
+-void acpi_gpiochip_request_regions(struct acpi_gpio_chip *achip)
+-{
+-	struct gpio_chip *chip = achip->chip;
+-	acpi_handle handle = ACPI_HANDLE(chip->parent);
+-	acpi_status status;
 -
--struct acpi_gpio_chip {
--	/*
--	 * ACPICA requires that the first field of the context parameter
--	 * passed to acpi_install_address_space_handler() is large enough
--	 * to hold struct acpi_connection_info.
--	 */
--	struct acpi_connection_info conn_info;
--	struct list_head conns;
--	struct mutex conn_lock;
--	struct gpio_chip *chip;
--	struct list_head events;
--	struct list_head deferred_req_irqs_list_entry;
--};
- 
- /**
-  * struct acpi_gpio_info - ACPI GPIO specific information
-diff --git a/drivers/gpio/gpiolib-acpi.h b/drivers/gpio/gpiolib-acpi.h
-index a90267470a4e..bd857ead9dcc 100644
---- a/drivers/gpio/gpiolib-acpi.h
-+++ b/drivers/gpio/gpiolib-acpi.h
-@@ -8,10 +8,13 @@
- #ifndef GPIOLIB_ACPI_H
- #define GPIOLIB_ACPI_H
- 
-+#include <linux/acpi.h>
- #include <linux/err.h>
--#include <linux/types.h>
+-	INIT_LIST_HEAD(&achip->conns);
+-	mutex_init(&achip->conn_lock);
+-	status = acpi_install_address_space_handler(handle, ACPI_ADR_SPACE_GPIO,
+-						    acpi_gpio_adr_space_handler,
+-						    NULL, achip);
+-	if (ACPI_FAILURE(status))
+-		dev_err(chip->parent,
+-			"Failed to install GPIO OpRegion handler\n");
+-}
 -
- #include <linux/gpio/consumer.h>
-+#include <linux/interrupt.h>
-+#include <linux/list.h>
-+#include <linux/mutex.h>
-+#include <linux/types.h>
+-void acpi_gpiochip_free_regions(struct acpi_gpio_chip *achip)
+-{
+-	struct gpio_chip *chip = achip->chip;
+-	acpi_handle handle = ACPI_HANDLE(chip->parent);
+-	struct acpi_gpio_connection *conn, *tmp;
+-	acpi_status status;
+-
+-	status = acpi_remove_address_space_handler(handle, ACPI_ADR_SPACE_GPIO,
+-						   acpi_gpio_adr_space_handler);
+-	if (ACPI_FAILURE(status)) {
+-		dev_err(chip->parent,
+-			"Failed to remove GPIO OpRegion handler\n");
+-	}
+-
+-	list_for_each_entry_safe_reverse(conn, tmp, &achip->conns, node) {
+-		gpiochip_free_own_desc(conn->desc);
+-		list_del(&conn->node);
+-		kfree(conn);
+-	}
+-}
  
- struct device;
- struct fwnode_handle;
-@@ -20,6 +23,38 @@ struct gpio_chip;
- struct gpio_desc;
- struct gpio_device;
- 
-+struct acpi_gpio_event {
-+	struct list_head node;
-+	acpi_handle handle;
-+	irq_handler_t handler;
-+	unsigned int pin;
-+	unsigned int irq;
-+	unsigned long irqflags;
-+	bool irq_is_wake;
-+	bool irq_requested;
-+	struct gpio_desc *desc;
-+};
-+
-+struct acpi_gpio_connection {
-+	struct list_head node;
-+	unsigned int pin;
-+	struct gpio_desc *desc;
-+};
-+
-+struct acpi_gpio_chip {
-+	/*
-+	 * ACPICA requires that the first field of the context parameter
-+	 * passed to acpi_install_address_space_handler() is large enough
-+	 * to hold struct acpi_connection_info.
-+	 */
-+	struct acpi_connection_info conn_info;
-+	struct list_head conns;
-+	struct mutex conn_lock;
-+	struct gpio_chip *chip;
-+	struct list_head events;
-+	struct list_head deferred_req_irqs_list_entry;
-+};
-+
- #ifdef CONFIG_ACPI
- void acpi_gpiochip_add(struct gpio_chip *chip);
- void acpi_gpiochip_remove(struct gpio_chip *chip);
+ void acpi_gpiochip_add(struct gpio_chip *chip)
+ {
 -- 
 2.54.0
 
