@@ -1,157 +1,142 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E46DE2874E3;
-	Tue, 19 May 2026 07:04:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2B4A3BE162;
+	Tue, 19 May 2026 07:25:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.8
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779174290; cv=none; b=uCO+4A73M2sSEcwhzvjFBUquXjc8frqW9/9vK/7TbJKGXwO9AQoRztMjmxTQmxiKxSl+ZB6LEK0gqMDM3LviPgJ+yd0zX3MRgiYnZ8kVo2ns7wSeu0dQvCP0CMUTLHO49OOwjpDd7E8MX6TcYYDC/dUrd4fxtHocEloCo289T8Y=
+	t=1779175552; cv=none; b=LAK1axvfbDNuSk1HSCBRNsMnfW5NQgtD53N2UqBpNLyePvsNAoe174pO2Aosd9a6/0uQ65YUjOl3+Suq1fNpLA0XOG2C61Re2E3Cz8fJKlAMyl5uzNVs+jHrxZrtamB2UdZXe/zoAwsKnJlxIn2zUj9l0AFzXOH51wRe2FWZwOE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779174290; c=relaxed/simple;
-	bh=1irEky9aWBq8MFj23jSIgVbynmrjBX1upwAhF7Njc9k=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=XBtyy7GgIdGDE+AQLDeoaCmIruRvHUBZxhRx/I1vPTU6Z64G3ZL7FtdEWzXCfXPNel7f8vjPPv/vaDd1C1n54Y0/A3sDSevVH3dFRV5FwDS3MY3V8eoeVxzPmviW1NHIUPDNaMCvtwNJNkvJXafGyZ91D02stAHTGpqYGrqVRLk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=pmteWGt5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779175552; c=relaxed/simple;
+	bh=58L1KNGX+QIzwXTTzN9x8hSe74UDCFMVIwQ9GyMGH6Y=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=dIj7/9/2ull3Z2tiN7nwfHw7UrsZVjd4aPb7Xb/eHRvU/1NlT4KL4lYmsy91jEatuHVZTMd/6pyxycC2HpY/vxaT2/855ZlIDaC+UuWr3ZWEB41Xlyxp7Aa7jxV608Y5vld/HSR+Z65FHOcQsj3JbrhP5bKAvtFRWCCvVIpbjdo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=JWEO/y6G; arc=none smtp.client-ip=192.198.163.8
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="pmteWGt5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9667C2BCB3;
-	Tue, 19 May 2026 07:04:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1779174289;
-	bh=1irEky9aWBq8MFj23jSIgVbynmrjBX1upwAhF7Njc9k=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=pmteWGt56uJcXCo5A+rXNj7VwcTV1m1gvqCSUJ40cdwhP4SSi7VbDTBMZo/fjoB9O
-	 jVxK69lU43R7NADVOysrSDc3m/mhP3lpBbVbHObVGLE1m+QDJfq7GmF6zvjiGaQHpW
-	 tFmQRi90LF3riJQNuT9HHpkG5cGnwcbedNqETXQHLfV7YA+I3Dtfhx71CtjVdfD45x
-	 mHMbL1NXUf6sq59kbKkDLtpknsoeAJKU5zJ0helOQO9hdh8Cae4G9u+Trh9Veek3cK
-	 uPj4zTiuPfFP5LGzuX7alpo+ZUrr20vOXf8dWnikAvhSr+QcidzusPcgxbQK4X3Ech
-	 LtZ5NX5RAo2ZA==
-Message-ID: <5fb43b8d-e772-42af-ba78-d75abd87bd0c@kernel.org>
-Date: Tue, 19 May 2026 09:04:40 +0200
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="JWEO/y6G"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1779175551; x=1810711551;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=58L1KNGX+QIzwXTTzN9x8hSe74UDCFMVIwQ9GyMGH6Y=;
+  b=JWEO/y6GgZF64Pdl7wpoEtNefdfUEZ1XDR5K3F6+UtkxTfV1QkWeGo7B
+   ovFmpXnMIACloSc4MQsDY0TNp0IDTMe7qmxgTdMBplPoWtZ0+TrQXPlB5
+   H1I/m7FM0Dn1bXCkgRFDE1CLp/y/Epkkk+KBQSurZ6Pso6VMb5pdZGfzS
+   oMrnNR1WybPG7kjakBNCI8vtXTFgH5fJlhrbMP+7G73gVDZF95Op9egXL
+   7j+l5gxPCwxn2+HY7nX1b3QR+GrllX/q6/vzUvU+1K4xl+d8GEI3nGcQa
+   IYRqKEWEjG+so/Q3NcNO/h7JIPrP7JZBHF+E4k0+MT7vrYC+VHGeP7lFt
+   w==;
+X-CSE-ConnectionGUID: 357Jjl0yRuii7joTaUwruA==
+X-CSE-MsgGUID: jBNrscTbS5SLPNBB8leeLA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11790"; a="97611403"
+X-IronPort-AV: E=Sophos;i="6.23,243,1770624000"; 
+   d="scan'208";a="97611403"
+Received: from orviesa004.jf.intel.com ([10.64.159.144])
+  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 May 2026 00:25:50 -0700
+X-CSE-ConnectionGUID: K6UGEx/1SqWPz0PPPH//3A==
+X-CSE-MsgGUID: uHpzScoZQtamDviB3G0vyw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,243,1770624000"; 
+   d="scan'208";a="243979681"
+Received: from ettammin-mobl3.ger.corp.intel.com (HELO localhost) ([10.245.244.150])
+  by orviesa004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 May 2026 00:25:48 -0700
+Date: Tue, 19 May 2026 10:25:45 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: "Marco Scardovi (scardracs)" <mscardovi95@gmail.com>
+Cc: mika.westerberg@linux.intel.com, brgl@kernel.org, linusw@kernel.org,
+	linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org,
+	linux-kernel@vger.kernel.org, westeri@kernel.org
+Subject: Re: [PATCH 1/2] gpiolib: acpi: Add robust bounds-checking for GPIO
+ pin resources
+Message-ID: <agwQeVt3UhhFAUA8@ashevche-desk.local>
+References: <20260518103302.GO84797@black.igk.intel.com>
+ <20260519070039.9280-1-mscardovi95@gmail.com>
+ <20260519070039.9280-2-mscardovi95@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 09/10] dt-bindings: firmware: add arm,ras-cper
-To: Ahmed Tiba <ahmed.tiba@arm.com>, rafael@kernel.org, bp@alien8.de,
- saket.dumbre@intel.com, will@kernel.org, xueshuai@linux.alibaba.com,
- mchehab@kernel.org, krzk+dt@kernel.org, dave@stgolabs.net,
- conor+dt@kernel.org, vishal.l.verma@intel.com, jic23@kernel.org,
- corbet@lwn.net, guohanjun@huawei.com, dave.jiang@intel.com,
- catalin.marinas@arm.com, lenb@kernel.org, tony.luck@intel.com,
- skhan@linuxfoundation.org, djbw@kernel.org, alison.schofield@intel.com,
- ira.weiny@intel.com, robh@kernel.org
-Cc: devicetree@vger.kernel.org, linux-acpi@vger.kernel.org,
- linux-doc@vger.kernel.org, Dmitry.Lamerov@arm.com,
- linux-cxl@vger.kernel.org, Michael.Zhao2@arm.com,
- acpica-devel@lists.linux.dev, linux-kernel@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, linux-edac@vger.kernel.org
-References: <20260518-topics-ahmtib01-ras_ffh_arm_internal_review-v4-0-42698675ba61@arm.com>
- <20260518-topics-ahmtib01-ras_ffh_arm_internal_review-v4-9-42698675ba61@arm.com>
-From: Krzysztof Kozlowski <krzk@kernel.org>
-Content-Language: en-US
-Autocrypt: addr=krzk@kernel.org; keydata=
- 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 a/A=
-In-Reply-To: <20260518-topics-ahmtib01-ras_ffh_arm_internal_review-v4-9-42698675ba61@arm.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260519070039.9280-2-mscardovi95@gmail.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On 18/05/2026 13:57, Ahmed Tiba wrote:
-> Describe the DeviceTree node that exposes the Arm firmware-first
-> CPER provider and hook the file into MAINTAINERS so the
-> binding has an owner.
-> 
-> Signed-off-by: Ahmed Tiba <ahmed.tiba@arm.com>
+On Tue, May 19, 2026 at 09:00:30AM +0200, Marco Scardovi (scardracs) wrote:
+> Ensure that the GPIO pin resource arrays are safely bounded before
+> accessing indices. Add bounds checking in acpi_request_own_gpiod(),
+> acpi_gpio_irq_is_wake(), acpi_gpiochip_alloc_event(), and
+> acpi_gpio_adr_space_handler() to prevent out-of-bounds array reads if
+> the ACPI namespace provides malformed or empty pin tables.
 
-Please implement previous comments.
+...
 
+>  	int polarity = GPIO_ACTIVE_HIGH;
+>  	enum gpiod_flags flags = acpi_gpio_to_gpiod_flags(agpio, polarity);
+> -	unsigned int pin = agpio->pin_table[index];
+> +	unsigned int pin;
+>  	struct gpio_desc *desc;
 
-> ---
->  .../devicetree/bindings/firmware/arm,ras-cper.yaml | 71 ++++++++++++++++++++++
->  MAINTAINERS                                        |  5 ++
->  2 files changed, 76 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/firmware/arm,ras-cper.yaml b/Documentation/devicetree/bindings/firmware/arm,ras-cper.yaml
-> new file mode 100644
-> index 000000000000..81dc37390af5
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/firmware/arm,ras-cper.yaml
-> @@ -0,0 +1,71 @@
-> +# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
-> +%YAML 1.2
-> +---
-> +$id: http://devicetree.org/schemas/firmware/arm,ras-cper.yaml#
-> +$schema: http://devicetree.org/meta-schemas/core.yaml#
+Preserve reversed xmas tree order.
+
+...
+
+>  static bool acpi_gpio_irq_is_wake(struct device *parent,
+>  				  const struct acpi_resource_gpio *agpio)
+>  {
+> -	unsigned int pin = agpio->pin_table[0];
+> +	unsigned int pin;
 > +
-> +title: Arm RAS CPER provider
+> +	if (agpio->pin_table_length == 0)
+> +		return false;
 > +
-> +maintainers:
-> +  - Ahmed Tiba <ahmed.tiba@arm.com>
-> +
-> +description:
-> +  Arm Reliability, Availability and Serviceability (RAS) firmware can expose
-> +  a firmware-first CPER error source directly via DeviceTree. Firmware
-> +  provides the CPER Generic Error Status block and notifies the OS through
-> +  an interrupt.
-> +
-> +properties:
-> +  compatible:
-> +    const: arm,ras-cper
-> +
-> +  memory-region:
-> +    oneOf:
-> +      - items:
-> +          - description:
-> +              CPER Generic Error Status block exposed by firmware
-> +      - items:
-> +          - description:
-> +              CPER Generic Error Status block exposed by firmware.
+> +	pin = agpio->pin_table[0];
 
-Also, this is just a list with minItems. No need for oneOf.
+This pin is not used...
 
-Best regards,
-Krzysztof
+>  	if (agpio->wake_capable != ACPI_WAKE_CAPABLE)
+>  		return false;
+
+...in the above condition, so, you can move the check and pin assignment even
+further.
+
+...
+
+>  	if (!acpi_gpio_get_irq_resource(ares, &agpio))
+>  		return AE_OK;
+
+> +	if (agpio->pin_table_length == 0)
+> +		return AE_OK;
+
+Move this check after the handle assignment.
+
+>  	handle = ACPI_HANDLE(chip->parent);
+
+>  	pin = agpio->pin_table[0];
+>  
+
+While at it, move this blank line to be before pin assignment.
+
+...
+
+> +	if (pin_index >= agpio->pin_table_length) {
+> +		ACPI_FREE(ares);
+> +		return AE_BAD_PARAMETER;
+> +	}
+
+This is bogus. Please, read the code. Do not blindly follow some AI nonsense.
+
+>  	length = min(agpio->pin_table_length, pin_index + bits);
+>  	for (i = pin_index; i < length; ++i) {
+>  		unsigned int pin = agpio->pin_table[i];
+
+-- 
+With Best Regards,
+Andy Shevchenko
+
+
