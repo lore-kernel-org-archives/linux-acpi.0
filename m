@@ -1,94 +1,124 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.11])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1934931BCAE;
-	Tue, 19 May 2026 14:45:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5D19408006;
+	Tue, 19 May 2026 15:24:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779201935; cv=none; b=AMr8Ue3uuG29pXq2xwZWRbACGfEmQlPZOanqy1vkw8OpM2x3wYiIzLXPqe2E2BcJFp2tqoDFcXhcKzclQcSsbhCxnvxpXSiV0P53O4QXrI93gT3o4kVcTKVPUePx/YmKZYihg3oOroI0sc0FWJHIdv8i/Mdl+YnGXBgsIpq5UHc=
+	t=1779204292; cv=none; b=pqjLMDpJ5FmZyzbfTWRS/BJlqe5+e7ASu94RbLQr8EqRzk2wPVZGs0GK0OrQAFngTcEvqRy5IN624U/xA7W4o+llsd7tVf860hFywqDqscGSh8mGJ9PO2AgY4TrmQcSlQ9NXD7NXj6hoZZUX+KVgrr5qslaWq2Rm+XhM0ogJzRU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779201935; c=relaxed/simple;
-	bh=YpIYN/GGeV5QmhMOBRzYlCQ9KKNiT+revwBKRecwyd8=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=JKpAmUHCDNBNiti6uhS0Eb8ojD9/SipOmYWIZYUfCTlPXsiR52wURddodqmemfOLz2oCKydacyDnVBIHZlmigJub7wYtGfY+9yp1xusPK48sM+S3/unSB5COwyj6w+6Ov7qkLfvlLWxlP7RIYk8zpoDoFkFd0lrTFcN+pnMxE4M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=D4DkwqMJ; arc=none smtp.client-ip=198.175.65.11
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1779204292; c=relaxed/simple;
+	bh=YnvezWKZHJHKS2rlvWwaBf9roZI+rdXbINTjbGmL624=;
+	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
+	 Subject:Content-Type; b=nUp2zIh6XTbnGkiaxzpCovKnoi5smGyB/r9zxlvizm4OzJfad0Rp4JUhp5GqfU+Zg+3ZXGw6Vx3o1pfg28ofAobyl2J6lohe6BBHv8HXySyXQAIFi7XRA47jZjmiW2k9JwE+LMMSGZvtoxurzY0blX7roCySs7c2Mz7EZXxW/kQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Bafaitpp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="D4DkwqMJ"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1779201934; x=1810737934;
-  h=from:to:cc:in-reply-to:references:subject:message-id:
-   date:mime-version:content-transfer-encoding;
-  bh=YpIYN/GGeV5QmhMOBRzYlCQ9KKNiT+revwBKRecwyd8=;
-  b=D4DkwqMJUNKalKhXcSdYyJ7uvIKIC5Qqp1BW66XGXLgs+322Y/gRqXQk
-   JStvjYwTAipaP1SZVjlRCIbuDqXVZYhXGAUN8HpKkC83h5OmNZEaAidlu
-   Fo2WcPg8YRtxfmvwn729zcKl2orC0BsAG2iYVpOu6quPauccFvjh22dKV
-   gvXUw6dTpAb1DiJF1J+swzuS8Znn3T1ttc61LYmko9ssalb5iqPD57/3G
-   fwo/PhQ3EKB3Aszp1FMzAaLOIrV40LTpMTYywNA8VUHFALIlfMHogzdwg
-   BxmB2AgJdwOqCoRUlfsa6XFbSoSI+bVcvj2VNqVhvtj8yE5PH0nvOiX7J
-   w==;
-X-CSE-ConnectionGUID: c/EiDrTYTSqNEpr15Cnt4Q==
-X-CSE-MsgGUID: JLUiLt0KT9y1r31aixSgEQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11791"; a="90383130"
-X-IronPort-AV: E=Sophos;i="6.23,243,1770624000"; 
-   d="scan'208";a="90383130"
-Received: from orviesa006.jf.intel.com ([10.64.159.146])
-  by orvoesa103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 May 2026 07:45:34 -0700
-X-CSE-ConnectionGUID: xGb8aVeQQlenU/c+u90z3Q==
-X-CSE-MsgGUID: 1wY3wecLRf2DM9WucB5tLQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.23,243,1770624000"; 
-   d="scan'208";a="238793239"
-Received: from ijarvine-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.244.236])
-  by orviesa006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 May 2026 07:45:30 -0700
-From: =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Chen Yu <yu.c.chen@intel.com>, Hans de Goede <hansg@kernel.org>, 
- platform-driver-x86@vger.kernel.org, 
- Maximilian Luz <luzmaximilian@gmail.com>, 
- Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
- LKML <linux-kernel@vger.kernel.org>, 
- Linux ACPI <linux-acpi@vger.kernel.org>
-In-Reply-To: <23119222.EfDdHjke4D@rafael.j.wysocki>
-References: <23119222.EfDdHjke4D@rafael.j.wysocki>
-Subject: Re: [PATCH v1] platform/surface: surfacepro3_button: Check
- ACPI_COMPANION()
-Message-Id: <177920192543.22546.7548957922721682055.b4-ty@linux.intel.com>
-Date: Tue, 19 May 2026 17:45:25 +0300
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Bafaitpp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E062C2BCC6;
+	Tue, 19 May 2026 15:24:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1779204292;
+	bh=YnvezWKZHJHKS2rlvWwaBf9roZI+rdXbINTjbGmL624=;
+	h=Date:From:To:Cc:In-Reply-To:References:Subject:From;
+	b=Bafaitppo61aMU9XTXBjibM7oYBdi+30S8e+3898gDTzrm8upxuSKbcA7zfGSK5fl
+	 2lZ5mUVRRyf7u0B1x+23nBoUce15MxjVMSq4fhKqGx4mZi7Qz0bv7HWT0Ju01tzudd
+	 NEQ2rxfRTGsv72KNaSma6fKoIpyT3xpgHfFrV60cTPdiJ4iH2YhFcvtA2bUy5KYz6A
+	 J/oVKe1vQ852LspNIqL5I4Oqbzh1xzSWhIS0VyRddkt/097wPEeAMSWTfEOna08xCU
+	 iqPMDo1fksau3hm4bSRrEvWmyhHpNP0QPM/tYpQg0UQYRd8fGuAzmfMka41ei4Bh0o
+	 m3nLBaGnZR7pQ==
+Received: from phl-compute-01.internal (phl-compute-01.internal [10.202.2.41])
+	by mailfauth.phl.internal (Postfix) with ESMTP id 8413AF4007C;
+	Tue, 19 May 2026 11:24:51 -0400 (EDT)
+Received: from phl-imap-05 ([10.202.2.95])
+  by phl-compute-01.internal (MEProxy); Tue, 19 May 2026 11:24:51 -0400
+X-ME-Sender: <xms:w4AMapeBAZJE9xSNN0_ikLhMKJis6GoeVaB8tYu_oZ0pdtVzMrizkg>
+    <xme:w4AMaiCr1Ml_5y4wnkZ8pnI8pRBg9AF3irBEI5BfpRFZcCY9y0eCMaQ7TUrF-xx_E
+    OqmAJi6D8vP7sLZlaj_ilZt19GGtUWwL7eTf4qC-7CKgsC4_skzkw>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefhedrtddtgddugedvuddtucetufdoteggodetrf
+    dotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfurfetoffkrfgpnffqhgenuceu
+    rghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujf
+    gurhepofggfffhvfevkfgjfhfutgfgsehtqhertdertdejnecuhfhrohhmpedftehrugcu
+    uehivghshhgvuhhvvghlfdcuoegrrhgusgeskhgvrhhnvghlrdhorhhgqeenucggtffrrg
+    htthgvrhhnpeeuteeiudeigeekjedvheduieehteetgfdtuefghfejgffhfedtleehvdeh
+    fffhvdenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpe
+    grrhguodhmvghsmhhtphgruhhthhhpvghrshhonhgrlhhithihqdduieejtdehtddtjeel
+    qdeffedvudeigeduhedqrghruggspeepkhgvrhhnvghlrdhorhhgseifohhrkhhofhgrrh
+    gurdgtohhmpdhnsggprhgtphhtthhopeehpdhmohguvgepshhmthhpohhuthdprhgtphht
+    thhopegrrhgusgdoghhithesghhoohhglhgvrdgtohhmpdhrtghpthhtoheprhgrfhgrvg
+    hlrdhjrdifhihsohgtkhhisehinhhtvghlrdgtohhmpdhrtghpthhtoheprhgrfhgrvghl
+    sehkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdgrtghpihesvhhgvghrrd
+    hkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdgvfhhisehvghgvrhdrkhgv
+    rhhnvghlrdhorhhg
+X-ME-Proxy: <xmx:w4AMavqUOj4SO2B9H6Jb4JcEaH92x4XDWLuQyOtUkdnRQhlYw65XUw>
+    <xmx:w4AMailkPkcf9vCiarLZADkZAGo64SpgjyrqK64N4A0sHjjbnBJVEw>
+    <xmx:w4AManzDkp2VrdO0gSF6WktGUU9Sn9OYujo3omRtzJaAVhT7J90y2g>
+    <xmx:w4AMai_l36gPLI8hAmI_42I9ahKKSFb8qMDrvKyo_-TDorMqTGXSpQ>
+    <xmx:w4AMarIpVGFo9dp-QephAgUMyobyyyq9X1_1xj78L2GqoyyfICjrLgBC>
+Feedback-ID: ice86485a:Fastmail
+Received: by mailuser.phl.internal (Postfix, from userid 501)
+	id 69C67182007A; Tue, 19 May 2026 11:24:51 -0400 (EDT)
+X-Mailer: MessagingEngine.com Webmail Interface
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.13.0
+Date: Tue, 19 May 2026 17:24:31 +0200
+From: "Ard Biesheuvel" <ardb@kernel.org>
+To: "Rafael J . Wysocki" <rafael@kernel.org>,
+ "Ard Biesheuvel" <ardb+git@google.com>
+Cc: linux-efi@vger.kernel.org, "Linux ACPI" <linux-acpi@vger.kernel.org>,
+ "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Message-Id: <8a5e09e2-7df3-4c5f-92be-309628dfdba7@app.fastmail.com>
+In-Reply-To: 
+ <CAJZ5v0h5NvLK3Fs9Fw+GoKCs82SXP1_oRggiG_aH3wiuMkdnJA@mail.gmail.com>
+References: <20260519082316.1959158-2-ardb+git@google.com>
+ <CAJZ5v0h5NvLK3Fs9Fw+GoKCs82SXP1_oRggiG_aH3wiuMkdnJA@mail.gmail.com>
+Subject: Re: [PATCH] efi: Allocate runtime workqueue before ACPI init
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, 12 May 2026 18:30:26 +0200, Rafael J. Wysocki wrote:
-
-> Every platform driver can be forced to match a device that doesn't match
-> its list of device IDs because of device_match_driver_override(), so
-> platform drivers that rely on the existence of a device's ACPI companion
-> object need to verify its presence.
-> 
-> Accordingly, add a requisite ACPI_COMPANION() check against NULL to the
-> surfacepro3_button driver.
-> 
-> [...]
 
 
-Thank you for your contribution, it has been applied to my local
-review-ilpo-fixes branch. Note it will show up in the public
-platform-drivers-x86/review-ilpo-fixes branch only once I've pushed my
-local branch there, which might take a while.
+On Tue, 19 May 2026, at 16:12, Rafael J. Wysocki wrote:
+> On Tue, May 19, 2026 at 10:23=E2=80=AFAM Ard Biesheuvel <ardb+git@goog=
+le.com> wrote:
+>>
+>> From: Ard Biesheuvel <ardb@kernel.org>
+>>
+>> Since commit
+>>
+>>   5894cf571e14 ("acpi/prmt: Use EFI runtime sandbox to invoke PRM han=
+dlers")
+>>
+>> ACPI PRM calls are delegated to a workqueue which runs in a kernel
+>> thread, making it easier to detect and mitigate faulting memory acces=
+ses
+>> performed by the firmware.
+>>
+>> Rafael reports that such PRM accesses may occur before efisubsys_init=
+()
+>> executes, which is where the workqueue is allocated, leading to NULL
+>> pointer dereferences. Since acpi_init() [which triggers the early PRM
+>> accesses] executes as a subsys_initcall() as well, and has its own
+>> dependencies that may be sensitive to initcall ordering, deferring
+>> acpi_init() is not an option.
+>>
+>> So instead, split off the workqueue allocation into its own postcore
+>> initcall, as this is the only missing piece to allow EFI runtime calls
+>> to be made. This ensures that EFI runtime call (including PRM calls) =
+are
+>> accessible to all code running at subsys_initcall() level.
+>>
+>> Fixes: 5894cf571e14 ("acpi/prmt: Use EFI runtime sandbox to invoke PR=
+M handlers")
+>> Reported-by: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+>> Signed-off-by: Ard Biesheuvel <ardb@kernel.org>
+>
+> This should work AFAICS, so
+>
+> Reviewed-by: Rafael J. Wysocki (Intel) <rafael@kernel.org>
+>
 
-The list of commits applied:
-[1/1] platform/surface: surfacepro3_button: Check ACPI_COMPANION()
-      commit: 5798b46271e229dab05e47537ac30b76f81728da
-
---
- i.
-
+OK, I'll queue this up.
