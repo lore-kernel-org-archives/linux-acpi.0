@@ -1,152 +1,89 @@
-Received: from mail-pl1-f179.google.com (mail-pl1-f179.google.com [209.85.214.179])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx2.zhaoxin.com (mx2.zhaoxin.com [61.152.208.219])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FF983DBD53
-	for <linux-acpi@vger.kernel.org>; Tue, 19 May 2026 09:09:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.179
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D26A63F0750
+	for <linux-acpi@vger.kernel.org>; Tue, 19 May 2026 09:19:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=61.152.208.219
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779181775; cv=none; b=dw5VZGSW4mmaGxsvwjcJmOa+UrTtN0j59MmQZ5pshGuL+XwJ8BGthI3XsRk7nj/H9X/xYQOKPm6SDWQ7HYk5FoSQGVqih5VeZ70d9foUy4z3HZk9SJOjqVnAemkzeDSf5yWAc8+PJ1R28phIkH4O0ZBDcu0FEdAKDP7BIQqkYF0=
+	t=1779182377; cv=none; b=lhDZBfptoPdCSVYq0ryEs1wrn6s5DTyQAPgSuyJ3+6Obaope0Lg8kNmVMuQfSqqfKlOIZY2grmfFgU9/kNIVMH3iquTa3mFO7KGLE8pYSSPmnUEsETFGv/M3VELEhEq+Da5ZX+/hvMv9VP3SmU+fDd/x3mgqFZWVMzHRGqe01ic=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779181775; c=relaxed/simple;
-	bh=z1z6R0nJmox6ojIS2va5xdyWXMdp20/QF8syKYAi1IA=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=MTcXrbNcuiZugeQDuwZM2NF8AAMFoERPeMy/mBfDUR80Vc1pp8l03460hYm/24qXHA/wJxhQM7c5uYzwmV0p0PuOtgGcgHQtGXSYQbI/Z2YCphOyF+/ZQhqAqCIYEC52ywsr2clo5pFaMD3o3rdgVpOzia10/cgB1dRcUPqNdNQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=r9E4x9ql; arc=none smtp.client-ip=209.85.214.179
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="r9E4x9ql"
-Received: by mail-pl1-f179.google.com with SMTP id d9443c01a7336-2be1dd4af34so14756645ad.1
-        for <linux-acpi@vger.kernel.org>; Tue, 19 May 2026 02:09:33 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1779181773; x=1779786573; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=0zz10nV84PwNP40SOJ1J8qP/A1B5s58lMhIi8+aPk9U=;
-        b=r9E4x9qlLKU38jP7MR54YLw2AyBV2cq8DJ/KphS8mgfbqsGC3l/T0Ok05DJIOny9QR
-         DRk6ZdUndG7lXqNBh4H8U1vlV6j5yWjKsvgkwuNykw4yDOzfefAiF5s7IXYCQctr4HnU
-         BqIYXJBdEqiWSKFkMHaA+abGRVeBR1aC1TIpKJ15665s38zwMazoGJH2KF5WI2oqP+Rx
-         yFigaYom+xPcBUQ83c+SAOLDwkjm/75myNE+jMg3Zadgbr/6tsj47sy8WcUGUz5XwiLt
-         iE/xly8ShitB2CIpVxFy7XzsiiHD0ruQwWE6kO3KRr0PxtEAsjqp9sLW7LVTKO33GJwR
-         4jqg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779181773; x=1779786573;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=0zz10nV84PwNP40SOJ1J8qP/A1B5s58lMhIi8+aPk9U=;
-        b=E78TJJzFt2oMm9CjOwceBSFpaia92AqboodM5Alp6MAHwcdyQ5PjX1uIRp+L3+aADY
-         GcVitC01mFI0sByo6ecxTURGx9NJZxT+xCWOhLwjfIQ53ucwc3qVadT8SP2wx49k3IPS
-         Ly73t90fh7eXjfIjzn0esVS1a6nWED6kkGX7FBvv+143jFxI2xqYzOKWHGP03E5bFXha
-         pzV0Q2poQH9OLgr+oUQ5Zr+1kolULu3tg464NGDHoigPoyTTu0f5hjGsNKQeJy6pEMhR
-         v4nshhp7j8ILEj9vvfjcZjC5/om9p3rcx0ZTyDJoZpspwtQjEGtoQfsOEKH/z/K8IL/F
-         ViBQ==
-X-Forwarded-Encrypted: i=1; AFNElJ+BlBYWXAL9iG+ts0G7/zn0/GLt/L9U1NG/YCqdjOruO0L/d9PG02JueFF9S267g7XSOC8sEPaPyUQc@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx008KH3UFLvIdbfV+IOX8UM5Y33GOwB2Emin9Q2oJpxI9uhmE9
-	C7bZYS7rGTAlGd3aXMSb2alRgFdQvJVhS26ROSMD4kb/TyL2MlRMbPc9
-X-Gm-Gg: Acq92OFi4ByAwoF1Na18brwJ6CccqVzdkdW1PwcqtVetuoJ/IedVXE1RhBlIrmG4kQR
-	in3rL9nwBAuZUJBDCYt+r6s4crmbv/5WH38TMXvY15npNccnM2TWqAeoliwp7ffWm0RBPtsr6sd
-	SU8zW0+5JlpreT8xEO+H6RX17yoP4kVyw37kfvnLtAkwyOnNPjVAIjy2gy2n5ZnHxnaTHWdKwZJ
-	J0VaqH3+NPg/lZbwfwFLaS+gPFCWZwza0+oPvP5IjuDH1W6FJcLPldAWBG9OUH7ySIrOOHJX03N
-	7KAr2rYTiACO7R9/LLx6bqCkev6aQFSD5Dyppv4qJDBHDsUDiQYvrhDtW+0YA/cWS/drrYzxuVd
-	rsyxyerTCjy1Mw97n410K+pij7MEo1N/o5579TGpZGgjGJeXi3MLfCQ/4tmYxEYSQ97yeK9WCiG
-	m7UZ2OEwTcveAfCetOY5ZwCAHuZa+xy+p16lCg+/BkInexi+dR
-X-Received: by 2002:a17:902:f547:b0:2ba:3e2f:6883 with SMTP id d9443c01a7336-2bd7e8f9108mr187154835ad.19.1779181773151;
-        Tue, 19 May 2026 02:09:33 -0700 (PDT)
-Received: from csl-conti-dell7858.ntu.edu.sg ([155.69.195.57])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2bd5bd5f2e7sm172753185ad.5.2026.05.19.02.09.30
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 19 May 2026 02:09:32 -0700 (PDT)
-From: Maoyi Xie <maoyixie.tju@gmail.com>
-To: Sunil V L <sunilvl@ventanamicro.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Len Brown <lenb@kernel.org>,
-	Paul Walmsley <pjw@kernel.org>,
-	Palmer Dabbelt <palmer@dabbelt.com>,
-	Albert Ou <aou@eecs.berkeley.edu>,
-	Alexandre Ghiti <alex@ghiti.fr>,
+	s=arc-20240116; t=1779182377; c=relaxed/simple;
+	bh=lteANmjksdqMpweUgEVkmD0vjKi/08ZCKd+YoDhaYV0=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=B7nAClWQ8gYNuYXSBkftks9IHPJ4tKEfWICmTJ6kpSA5evmOcXpRgfV3MA3jDseG6aBcV4CzOiJWSa/mvA93DPg61Rp3jzABTJ5b5XlMqAWSlHVrGtba+bnCerO68SzlwdUfanpUkKjPL1TjF12LS/6vorVdTsmq+o/EjTo4MwI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=zhaoxin.com; spf=pass smtp.mailfrom=zhaoxin.com; arc=none smtp.client-ip=61.152.208.219
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=zhaoxin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zhaoxin.com
+X-ASG-Debug-ID: 1779182364-1eb14e680c64ac0001-I98ny2
+Received: from zhaoxin.com (zxmail.zhaoxin.com [10.28.208.166]) by mx2.zhaoxin.com with ESMTP id L5Y5F5wkhmxbezSh; Tue, 19 May 2026 17:19:24 +0800 (CST)
+X-Barracuda-Envelope-From: TonyWWang-oc@zhaoxin.com
+X-Barracuda-RBL-Trusted-Forwarder: 10.28.208.166
+X-ASG-Whitelist: Client
+X-Append-Disclaimer: 1
+Received: from tony.zhaoxin.com (tony.zhaoxin.com [10.32.64.22])
+	by zhaoxin.com (8.30) with ESMTP2c850d53ad83a579cfe6097fe4675070
+	Tue, 19 May 2026 17:19:22 +0800
+X-Eyou-Smtpauth: tonywwangoc@zhaoxin.com
+X-Barracuda-RBL-Trusted-Forwarder: 10.32.64.22
+X-Eyou-EnvelopeSender: TonyWWang-oc@zhaoxin.com
+X-Eyou-From: Tony W Wang-oc <TonyWWang-oc@zhaoxin.com>
+From: =?UTF-8?B?VG9ueSBXIFdhbmctb2M=?=
+ <TonyWWang-oc@zhaoxin.com>
+To: rafael@kernel.org,
+	lenb@kernel.org,
 	linux-acpi@vger.kernel.org,
-	linux-riscv@lists.infradead.org,
 	linux-kernel@vger.kernel.org
-Subject: acpi/riscv: iterator after loop end in riscv_acpi_register_ext_intc?
-Date: Tue, 19 May 2026 17:09:28 +0800
-Message-Id: <20260519090928.1952787-1-maoyixie.tju@gmail.com>
-X-Mailer: git-send-email 2.34.1
+Cc: CobeChen@zhaoxin.com,
+	LindaChai@zhaoxin.com
+Subject: [PATCH] ACPI: processor: Add cpuidle driver check in acpi_processor_register_idle_driver
+Date: Tue, 19 May 2026 17:19:22 +0800
+X-ASG-Orig-Subj: [PATCH] ACPI: processor: Add cpuidle driver check in acpi_processor_register_idle_driver
+Message-Id: <20260519091922.42500-1-TonyWWang-oc@zhaoxin.com>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: base64
+X-Eyou-Sender: <tonywwang-oc@zhaoxin.com>
+X-Barracuda-Connect: zxmail.zhaoxin.com[10.28.208.166]
+X-Barracuda-Start-Time: 1779182364
+X-Barracuda-URL: https://10.28.252.36:4443/cgi-mod/mark.cgi
+X-Virus-Scanned: by bsmtpd at zhaoxin.com
+X-Barracuda-Scan-Msg-Size: 1587
+X-Barracuda-BRTS-Status: 1
 
-Hi all,
+Q29tbWl0IDdhOGM5OTRjYmIyZCAoIkFDUEk6IHByb2Nlc3NvcjogaWRsZTogT3B0aW1p
+emUgQUNQSSBpZGxlZHJpdmVyIHJlZ2lzdHJhdGlvbiIpIG1vdmVkIHRoZSBBQ1BJIGlk
+bGUgZHJpdmVyIHJlZ2lzdHJhdGlvbiB0b2FjcGlfcHJvY2Vzc29yX2RyaXZlcl9pbml0
+KCksIGJ1dCBpdCBkaWRuJ3QgY2hlY2sgd2hldGhlciBhIGNwdWlkbGVkcml2ZXIgd2Fz
+IGFscmVhZHkgcmVnaXN0ZXJlZC5Gb3IgZXhhbXBsZSwgb24gSW50ZWwgcGxhdGZvcm1z
+LCBpZiB0aGUgaW50ZWxfaWRsZSBkcml2ZXIgaXMgYWxyZWFkeWxvYWRlZCwgdGhlIGNv
+ZGUgd291bGQgc3RpbGwgZXZhbHVhdGUgdGhlIF9DU1Qgb2JqZWN0IGluIHRoZSBBQ1BJ
+dGFibGUgYW5kIGF0dGVtcHQgdG8gcmVnaXN0ZXIgdGhlIGFjcGlfaWRsZSBkcml2ZXIu
+IFRoaXMgcmVnaXN0cmF0aW9ud291bGQgZmFpbCB3aXRoIC1FQlVTWSBkdWUgdG8gdGhl
+IGV4aXN0aW5nIGNoZWNrIGluIGNwdWlkbGVfcmVnaXN0ZXJfZHJpdmVyLkFkZCBhIGNo
+ZWNrIGF0IHRoZSBiZWdpbm5pbmcgb2YgYWNwaV9wcm9jZXNzb3JfcmVnaXN0ZXJfaWRs
+ZV9kcml2ZXIoKXRvIGF2b2lkIHVubmVjZXNzYXJ5IF9DU1QgZXZhbHVhdGUgYW5kIHBv
+dGVudGlhbCByZWdpc3RyYXRpb24gZmFpbHVyZXMuLS0tIGRyaXZlcnMvYWNwaS9wcm9j
+ZXNzb3JfaWRsZS5jIHwgNSArKysrKyAxIGZpbGUgY2hhbmdlZCwgNSBpbnNlcnRpb25z
+KCspZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9wcm9jZXNzb3JfaWRsZS5jIGIvZHJp
+dmVycy9hY3BpL3Byb2Nlc3Nvcl9pZGxlLmNpbmRleCBlZTVmYWNjY2JlMTAuLjA0MDk0
+MTFhYmI4MyAxMDA2NDQtLS0gYS9kcml2ZXJzL2FjcGkvcHJvY2Vzc29yX2lkbGUuYysr
+KyBiL2RyaXZlcnMvYWNwaS9wcm9jZXNzb3JfaWRsZS5jQEAgLTEzNTUsNiArMTM1NSwx
+MSBAQCB2b2lkIGFjcGlfcHJvY2Vzc29yX3JlZ2lzdGVyX2lkbGVfZHJpdmVyKHZvaWQp
+IAlpbnQgcmV0ID0gLUVOT0RFVjsgCWludCBjcHU7ICsJaWYgKGNwdWlkbGVfZ2V0X2Ry
+aXZlcigpKSB7KwkJcHJfZGVidWcoImNwdWlkbGUgZHJpdmVyICVwUyBhbHJlYWR5IHJl
+Z2lzdGVyZWQuXG4iLCBjcHVpZGxlX2dldF9kcml2ZXIoKSk7KwkJcmV0dXJuOysJfSsg
+CWFjcGlfcHJvY2Vzc29yX3VwZGF0ZV9tYXhfY3N0YXRlKCk7ICAJLyotLSAyLjI1LjEK
+CgoKCuS/neWvhuWjsOaYjgrmnKzpgq7ku7blkKvmnInkv53lr4bmiJbkuJPmnInkv6Hm
+ga/vvIzku4XkvpvmjIflrprmlLbku7bkurrkvb/nlKjjgILkuKXnpoHlr7nmnKzpgq7k
+u7bmiJblhbblhoXlrrnlgZrku7vkvZXmnKrnu4/mjojmnYPnmoTmn6XpmIXjgIHkvb/n
+lKjjgIHlpI3liLbmiJbovazlj5HjgIIKClRoaXMgZW1haWwgY29udGFpbnMgY29uZmlk
+ZW50aWFsIG9yIGxlZ2FsbHkgcHJpdmlsZWdlZCBpbmZvcm1hdGlvbiBhbmQgaXMgZm9y
+IHRoZSBzb2xlIHVzZSBvZiBpdHMgaW50ZW5kZWQgcmVjaXBpZW50LiBBbnkgdW5hdXRo
+b3JpemVkIHJldmlldywgdXNlLCBjb3B5aW5nIG9yIGZvcndhcmRpbmcgb2YgdGhpcyBl
+bWFpbCBvciB0aGUgY29udGVudCBvZiB0aGlzIGVtYWlsIGlzIHN0cmljdGx5IHByb2hp
+Yml0ZWQu
 
-While reading drivers/acpi/riscv/irq.c I noticed something
-that looks like a past the end iterator pattern, used in two
-places in the same function. I would appreciate it if you
-could take a look and let me know whether this is a real
-issue, and whether it is worth fixing.
-
-The site is riscv_acpi_register_ext_intc() (linux-7.1-rc1,
-around line 155):
-
-    list_for_each_entry(node, &ext_intc_list, list) {
-            if (node->gsi_base < ext_intc_element->gsi_base)
-                    break;
-    }
-
-    /* Adjust the previous node's GSI range if that has
-       pending registration */
-    prev = list_prev_entry(node, list);
-    if (!list_entry_is_head(prev, &ext_intc_list, list)) {
-            if (prev->flag & RISCV_ACPI_INTC_FLAG_PENDING)
-                    prev->nr_irqs = ext_intc_element->gsi_base
-                                    - prev->gsi_base;
-    }
-
-    list_add_tail(&ext_intc_element->list, &node->list);
-
-When the loop walks all entries without break (no entry has
-gsi_base smaller than the new one), node is past the end.
-The function then uses node in two ways:
-
-  1. list_prev_entry(node, list) relies on &node->list
-     aliasing &ext_intc_list (the head) via container_of
-     offset cancellation, so the result becomes the last
-     real entry of the list (head->prev). The PENDING flag
-     adjustment then runs on that last entry.
-
-  2. list_add_tail(..., &node->list) relies on the same
-     alias so the insert lands at the list tail.
-
-Both behaviours are intended (sorted insertion plus a
-fall-through path that still wants the last entry's PENDING
-flag adjusted), but both dereferences of the past the end
-node are undefined per C11.
-
-Jakob Koschel cleaned up many such sites in 2022, for example
-commits 99d8ae4ec8a (tracing: Remove usage of list iterator
-variable after the loop), 2966a9918df (clockevents: Use
-dedicated list iterator variable) and dc1acd5c946 (dlm:
-replace usage of found with dedicated list iterator
-variable). This site was not covered.
-
-A candidate fix would track an explicit insertion target
-(struct list_head *pos = &ext_intc_list) which is overwritten
-to &node->list only when the loop breaks early. The PENDING
-flag adjustment then reads pos->prev directly: if pos->prev
-is &ext_intc_list (empty list, or break on the first entry),
-the adjustment is skipped; otherwise pos->prev points to the
-real entry that becomes the predecessor in list order. In the
-fall-through path pos stays at the list head, and head->prev
-is the last real entry, so that branch keeps adjusting the
-last entry as before. Observable behaviour is unchanged.
-
-If this is intentional or already known, please disregard.
-Otherwise, I am happy to send a [PATCH] or to leave the fix
-to you. Thank you for your time, and sorry for the noise if
-this is not actually worth fixing or has already been spotted.
-
-Thanks,
-Maoyi Xie
-https://maoyixie.com/
