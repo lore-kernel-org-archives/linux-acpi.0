@@ -1,154 +1,92 @@
-Received: from mail-wr1-f73.google.com (mail-wr1-f73.google.com [209.85.221.73])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.9])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62BC93E0C7C
-	for <linux-acpi@vger.kernel.org>; Tue, 19 May 2026 08:23:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.73
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9AE332F547F;
+	Tue, 19 May 2026 08:28:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.9
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779179033; cv=none; b=DLhiLdSPDkn444v0dQnXGTNcFNcBGZcqjywTd0DpU8RUSG8Q1fFffOC12eN+TJHGz3bkR4Sh1uyq79evOWvxRERN8evUq0E/6CFLySzJ2xNBILwn9PP/zYgzihfOikFvD+iw+woxSLIThxvf03olnNBO6cE1R379nZw6kqtlYV4=
+	t=1779179288; cv=none; b=C4YQa72YEptxX4DokYVsedGClh35lDIGqcOWH/clNYdKwW6OnlcYvHbEcDY9ogRenPgsHmrk8zebdW5iJ0X/0t9V+DHpHqngwLm/URWv94bcXVI9V1IFrLdH1aj1zDmDs/1gdIhSMZnWxqGaNXtg2sfThvnGqeyA8fHufQvMf6Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779179033; c=relaxed/simple;
-	bh=GStzyvmJTsmaUk42AwEA1uzb6RbBK33xsAsBGyLzXEY=;
-	h=Date:Mime-Version:Message-ID:Subject:From:To:Cc:Content-Type; b=YAUGSGz05dIz5kgSKq2MmGPs1UwxLUHUDzXDWz3oY2z406vhMXY6Q8Nkw1zgRDRzCZRqWmz4UPmcjIfquq+lkZajz/nh02RHLa5wJjcIMq+2exLod+AGMCmYWMs+AfaWPcYPhxGVs7sYDTdamfuCGHf77jJYYxybs9MKbiMoxvE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--ardb.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=KVpzrkDX; arc=none smtp.client-ip=209.85.221.73
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--ardb.bounces.google.com
+	s=arc-20240116; t=1779179288; c=relaxed/simple;
+	bh=JW8DZprdXrp7JBxezgukD36415BfdI7+3ak4LEfheDc=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=m8YhI4d52wi961fWH9+5t6+jomP48eWs0nuGvBE8LKF+spthkrUhK/qfcV5nc5sbjz5+vf/yDleZWycdc+iRvhail07IJurRVEgjUTEonx43BrLWa444MNKIXfxkMjZzkAr8giMXaJxaJpiHtOj+OcLApjI5Uj5gDCwgfbNG1n8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=batO2f7G; arc=none smtp.client-ip=192.198.163.9
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="KVpzrkDX"
-Received: by mail-wr1-f73.google.com with SMTP id ffacd0b85a97d-44d79da8cf7so2864772f8f.2
-        for <linux-acpi@vger.kernel.org>; Tue, 19 May 2026 01:23:51 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20251104; t=1779179030; x=1779783830; darn=vger.kernel.org;
-        h=cc:to:from:subject:message-id:mime-version:date:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=EDtVf7GoC0ETuGDABfZDTcKjJk2cW1lLQk994emXYy8=;
-        b=KVpzrkDXEZl6cnLO7r2x/LTqkR/zDGzaCnnUeJb3nk2n2d0VbGSbmDdi6wjYzf89Uq
-         6yzZRQocaFCzxWJgAk+Zl715ZtAMlXKZbkGZrd0xLLALuks/dSh9GbSAvepL8rjfeeg+
-         R+wCEhokeR4Agm3GnrUWD9BWsiRINtkDpeEdFBWx3+WUgkESv+NUIMkmAW6b/Pi+hVf8
-         wd0+zmr/h5X1E0RokWlgJtjiLvCPXqBAL8NmzqU3UJxAPPdM/hGQ9MSLbu6AdeTwvvOl
-         R4EDP4hsRyKY0mS7nUeSx4chNNsL8Dds9DbRXSqEohWYe0HZcLtbn4+O0Z0ktNitxQKN
-         4mwA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779179030; x=1779783830;
-        h=cc:to:from:subject:message-id:mime-version:date:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=EDtVf7GoC0ETuGDABfZDTcKjJk2cW1lLQk994emXYy8=;
-        b=iPAF39Gl1wC/07v9U6ShJCLFHxPkRnZsSfIpY7zSrhmpW6HwGOD3fLCWGxtzoBPQfM
-         XWzSCz3vHS+yWvWRRYreHHdBNfjQz7KpaprGDSr5VNUPuMmAmvLZZtWUcJ96gEofw0wq
-         0Y5kDzXehmp6strJ/8dPLd2MR8s6aQlIbuUBFOhmkkFsnxd0U/XKPozZoguIwdYzaBBe
-         qy6fi2G83hEFYCYmb97wVl4ro7fYfK/u2uIa5xGM1Psgkexo9AQ64PB+Cz3hl/lNqKXQ
-         rNq1sR/h2mwnjVr0N78Ka2g6I7pZJ/n1sXxyjU93MTDE/kCxH9yQV2Ez+Kr8jnY/SvAO
-         GgFQ==
-X-Gm-Message-State: AOJu0YwMvpGC1dlPMXu+6bG+CuA+ILEYxCX47kpKe6Q99XJKj6dTcSuC
-	w5yoAk8sKu2Bn4iy+kLBg5HUq4XK93dIUOxX1V3AxJcWoBShbps6E4GCgrYLN2GBDbvTdA/32Q=
-	=
-X-Received: from wraj9.prod.google.com ([2002:a5d:4529:0:b0:44c:b43d:e7eb])
- (user=ardb job=prod-delivery.src-stubby-dispatcher) by 2002:a5d:5f96:0:b0:45e:878b:6c36
- with SMTP id ffacd0b85a97d-45e878b6e10mr5631188f8f.35.1779179029577; Tue, 19
- May 2026 01:23:49 -0700 (PDT)
-Date: Tue, 19 May 2026 10:23:17 +0200
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="batO2f7G"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1779179287; x=1810715287;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=JW8DZprdXrp7JBxezgukD36415BfdI7+3ak4LEfheDc=;
+  b=batO2f7GqDmnLbpOX4g99HWRr7OLkQePFaldLYY1UCk9MlDinNQTU4Pn
+   EKDXyPh8IAfujWk0Q/WeIJ/6Dge0LCFvxYG9PbeCIjrUS1hL/F0iAlTBv
+   ebkMT1mhuOzFw4s12O3Gxwi3sgnmqEDC4tdF+vb5rEcR6e/2x6ciDK40t
+   KfmCiPVCH9wg0It4AXFPEXuPElxYLnZcfkdEb661jHa15KmX6KNo9GlX4
+   veeZ4XFSZnKfVXE/vZnqOM34R5umQ/TDaVerM7RG4tPRu3vn3WeqOu4z7
+   v4RFdLzFSUQzrkjSf4xFBy/GaDfwz1+uVdc9ekjr2tI/owgskWJnF3VD7
+   A==;
+X-CSE-ConnectionGUID: n5RNsGq9Re2lzHGLCs2VXg==
+X-CSE-MsgGUID: mRYN5efpQAaQ8GvUMAX2lw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11790"; a="90744722"
+X-IronPort-AV: E=Sophos;i="6.23,243,1770624000"; 
+   d="scan'208";a="90744722"
+Received: from orviesa004.jf.intel.com ([10.64.159.144])
+  by fmvoesa103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 May 2026 01:28:06 -0700
+X-CSE-ConnectionGUID: KyYTN/2cQHGz8B/oX1aEkQ==
+X-CSE-MsgGUID: WPsbR1uUT/KD3JwkarIvSQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,243,1770624000"; 
+   d="scan'208";a="243993113"
+Received: from ettammin-mobl3.ger.corp.intel.com (HELO localhost) ([10.245.244.150])
+  by orviesa004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 May 2026 01:28:04 -0700
+Date: Tue, 19 May 2026 11:28:00 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: "Marco Scardovi (scardracs)" <mscardovi95@gmail.com>
+Cc: mika.westerberg@linux.intel.com, brgl@kernel.org, linusw@kernel.org,
+	linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org,
+	linux-kernel@vger.kernel.org, westeri@kernel.org
+Subject: Re: [PATCH 2/2] gpiolib: acpi: Fix resource leak in OpRegion cleanup
+ path
+Message-ID: <agwfEMtEctXYC1oc@ashevche-desk.local>
+References: <20260518103302.GO84797@black.igk.intel.com>
+ <20260519070039.9280-1-mscardovi95@gmail.com>
+ <20260519070039.9280-3-mscardovi95@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-X-Developer-Key: i=ardb@kernel.org; a=openpgp; fpr=F43D03328115A198C90016883D200E9CA6329909
-X-Developer-Signature: v=1; a=openpgp-sha256; l=2815; i=ardb@kernel.org;
- h=from:subject; bh=Zy8MdDJ1w6zl6CODa7NOZmbOZ38EWfM9KtofDeDfF5U=;
- b=owGbwMvMwCVmkMcZplerG8N4Wi2JIYtH9utc27aU04Gz5nK+/uh8dbe/nsGy4BIZR4aO+arvL
- O7HvNjbUcrCIMbFICumyCIw+++7nacnStU6z5KFmcPKBDKEgYtTACZiaMLwh+/59Ge20t9+TCyv
- PGuWbNnPdXRdohZXZe/FHWd2cN77ocPI8ITj2pWm10c/b2esEY6z2P3XMV3HpvZmQH7oVV+zf0F zGAA=
-X-Mailer: git-send-email 2.54.0.563.g4f69b47b94-goog
-Message-ID: <20260519082316.1959158-2-ardb+git@google.com>
-Subject: [PATCH] efi: Allocate runtime workqueue before ACPI init
-From: Ard Biesheuvel <ardb+git@google.com>
-To: linux-efi@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, Ard Biesheuvel <ardb@kernel.org>, 
-	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260519070039.9280-3-mscardovi95@gmail.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-From: Ard Biesheuvel <ardb@kernel.org>
+On Tue, May 19, 2026 at 09:00:31AM +0200, Marco Scardovi (scardracs) wrote:
+> If acpi_remove_address_space_handler() fails, the cleanup function
+> acpi_gpiochip_free_regions() previously returned early. This leaks
+> the connections list and all requested GPIO descriptors.
+> 
+> Remove the early return statement so that connection cleanup and freeing
+> of descriptors are always executed, preventing memory leaks in teardown
+> failure paths.
 
-Since commit
+Same problem may happen in the acpi_gpio_adr_space_handler().
+What you need is to split the list and GPIO cleaning into a helper
+which will be used in both cases.
 
-  5894cf571e14 ("acpi/prmt: Use EFI runtime sandbox to invoke PRM handlers")
+This might need a Fixes tag.
 
-ACPI PRM calls are delegated to a workqueue which runs in a kernel
-thread, making it easier to detect and mitigate faulting memory accesses
-performed by the firmware.
+> Assisted-by: Antigravity:gemini-3-flash
+> Signed-off-by: Marco Scardovi <mscardovi95@gmail.com>
 
-Rafael reports that such PRM accesses may occur before efisubsys_init()
-executes, which is where the workqueue is allocated, leading to NULL
-pointer dereferences. Since acpi_init() [which triggers the early PRM
-accesses] executes as a subsys_initcall() as well, and has its own
-dependencies that may be sensitive to initcall ordering, deferring
-acpi_init() is not an option.
-
-So instead, split off the workqueue allocation into its own postcore
-initcall, as this is the only missing piece to allow EFI runtime calls
-to be made. This ensures that EFI runtime call (including PRM calls) are
-accessible to all code running at subsys_initcall() level.
-
-Fixes: 5894cf571e14 ("acpi/prmt: Use EFI runtime sandbox to invoke PRM handlers")
-Reported-by: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Signed-off-by: Ard Biesheuvel <ardb@kernel.org>
----
- drivers/firmware/efi/efi.c | 28 ++++++++++++++++------------
- 1 file changed, 16 insertions(+), 12 deletions(-)
-
-diff --git a/drivers/firmware/efi/efi.c b/drivers/firmware/efi/efi.c
-index d04be38f1750..318d1cc9a066 100644
---- a/drivers/firmware/efi/efi.c
-+++ b/drivers/firmware/efi/efi.c
-@@ -402,21 +402,11 @@ static void __init efi_debugfs_init(void)
- static inline void efi_debugfs_init(void) {}
- #endif
- 
--/*
-- * We register the efi subsystem with the firmware subsystem and the
-- * efivars subsystem with the efi subsystem, if the system was booted with
-- * EFI.
-- */
--static int __init efisubsys_init(void)
-+static int __init efipostcore_init(void)
- {
--	int error;
--
- 	if (!efi_enabled(EFI_RUNTIME_SERVICES))
- 		efi.runtime_supported_mask = 0;
- 
--	if (!efi_enabled(EFI_BOOT))
--		return 0;
--
- 	if (efi.runtime_supported_mask) {
- 		/*
- 		 * Since we process only one efi_runtime_service() at a time, an
-@@ -428,9 +418,23 @@ static int __init efisubsys_init(void)
- 			pr_err("Creating efi_rts_wq failed, EFI runtime services disabled.\n");
- 			clear_bit(EFI_RUNTIME_SERVICES, &efi.flags);
- 			efi.runtime_supported_mask = 0;
--			return 0;
- 		}
- 	}
-+	return 0;
-+}
-+postcore_initcall(efipostcore_init);
-+
-+/*
-+ * We register the efi subsystem with the firmware subsystem and the
-+ * efivars subsystem with the efi subsystem, if the system was booted with
-+ * EFI.
-+ */
-+static int __init efisubsys_init(void)
-+{
-+	int error;
-+
-+	if (!efi_enabled(EFI_BOOT))
-+		return 0;
- 
- 	if (efi_rt_services_supported(EFI_RT_SUPPORTED_TIME_SERVICES))
- 		platform_device_register_simple("rtc-efi", 0, NULL, 0);
 -- 
-2.54.0.563.g4f69b47b94-goog
+With Best Regards,
+Andy Shevchenko
+
 
