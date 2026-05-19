@@ -1,72 +1,45 @@
-Received: from mail-qt1-f174.google.com (mail-qt1-f174.google.com [209.85.160.174])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 51F342D592C
-	for <linux-acpi@vger.kernel.org>; Tue, 19 May 2026 05:24:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A59711A682A;
+	Tue, 19 May 2026 06:13:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779168274; cv=none; b=p2PMZg0lR4JOpDRHY/CFtUFl5i63k5ysJyuNpQsZfn0JOJNDwv6J79ijui4sHzS5RZC5wAAicRtwPf9WDOMV3iOcKg/J95G59Kn0QXRjXM8Z67tNlR2x17xujKFZf6IuIAJPd3zaUZwGb7+vDy85VGlxcn0TZ+4hekoRxZ7uHSQ=
+	t=1779171234; cv=none; b=fNtOuNoqssc+R/Rx9ocQlK26pr1czBhJ8mWhQT7ngrpO0rxI6WnA/+R5MxLX1KX30FKjBYr1xDSrmeeNH4K4iO/mxZYSz1pvScw6EgggsOTEPvU8BtLCZhvrhibAbu4ZYQZ8axeLL3fyZi3zGsXPW3Nmz+nbayKyE82OD4TyUGU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779168274; c=relaxed/simple;
-	bh=lhtTz6r9h3gam08PpROtwyqAJ6lm3HQYUI3xZrXDqkg=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=hbxdbExTZ3UivLmzhUPkhMND3V5FXt+1QT5+3MR+XqvFhOgfNXKJKGk0TtLJSvTZKf6fk2iLTQrykpxTSR3FRwACq4sCIPmDTtMyK5hbSP4BKsvQCe+ywIhbo6eZFZNrsExcsCcZjSrs+Ko7DEt2JSkXjGyAPNO/zxD8Y3EGhFE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=BuMpEM/J; arc=none smtp.client-ip=209.85.160.174
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1779171234; c=relaxed/simple;
+	bh=eDdypLMdh0ABr1jXAwg8jwfBuFdkrNrWgQDaQkjnNC0=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=O9JvV2aYXwfu8I/qsWIvhoC5bzB063uNWPX8IwztReoCCcA5r60HfNuGFKDJM6DlseGdaQTLIkp+dVqWRuPzDJgBZGYtClcCtM/C8zKCRX5oxlku1jDebxQmIsQWA9D8J4ZRHw9/f92Tma+vo0dF3r/PhRramJ1b3GPDaV0sP8Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=go93WtE3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="BuMpEM/J"
-Received: by mail-qt1-f174.google.com with SMTP id d75a77b69052e-50e97863425so36159991cf.0
-        for <linux-acpi@vger.kernel.org>; Mon, 18 May 2026 22:24:33 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1779168272; x=1779773072; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=HlSbwvOjgwkLSIAC4sw+jiTYmv44YqHx2Q9LfFfV2q4=;
-        b=BuMpEM/Ji2NNQGRz9lcBiY5cu2OvBHGUvoaTdvSDLh2jbEgmPq5rfW3GKrtFVirNIm
-         HgPJ0QJfKDj7E3WA1KwXSGFNrC1kXnXUB55rfhxDVLkWalXbGZ58l9tenghUPz9tsJ1M
-         Fhhsn1Bp1B+UsxotnVevlJiqAsp7ynQLlo90VD/P7DxQr+j1LjiBDW48AVXwjd90WimX
-         PhB89HlGv+GcDwUPXadODJMpeV+WMSTTIyVMXqU6HZPGD7BOilHc05S8nAxvqP/ZWGK4
-         d4zam+PCP90O8BMmzdWcTWHxu1t2dlDj4g+vPdz8xCUutLT0YCLW4DBMidsYU+2HL1XI
-         jRew==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779168272; x=1779773072;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=HlSbwvOjgwkLSIAC4sw+jiTYmv44YqHx2Q9LfFfV2q4=;
-        b=S1Oc7vmuchFBny50EnfI5FjVhrIs3q00BG6+j3pfKsv0H9i1wvTkiY75dH5eAk/2aF
-         37CHmpNQKjx739FXfKwxm1njBSAs2TUzmlx14PKwAj6cfQKfZZiexI/DyRb4hYZz09ex
-         TaD2P0LvFAAG+8fSHR2U5747AHIyD6f1KVqNxzMSFbYpanFSPEfYVDoLKgGDhato9814
-         EzV+y7eJWK4752SB/M+acXQfL1h7PDKARLqkx66J+yzGYGuG+XmRwaZ1bwgBuqw5tz8S
-         baxji1g8SqWn0QPtvc3nhTr4jBhYBEXOSGnCnagDcKj+n1XZcGKbCbq0k5PeiagO6Uw6
-         v3dA==
-X-Forwarded-Encrypted: i=1; AFNElJ+YwA+4eXPPbA7HzkBYCSf2d6P0x8MoPghXEMwd2meUfqQbjTk+HyA9eHa0+/f3kvvQbP3/zsf4sgNR@vger.kernel.org
-X-Gm-Message-State: AOJu0YzACKNaJ5azQIhyJB7JgQgp0rLcd3CPoDdLCcO0FCeY5bgpA55V
-	eqVGhVNHAxPBvGRrAX8GzYPqMWnwIFN6UmoHltTTgJNS9EjuF8ht7A0q
-X-Gm-Gg: Acq92OFldFX7uxpxxSxUy5sMIby8tendw1cCCJS9VGrvuW1RynYhvDvDuSa0Dsy52Dv
-	xCQnDUonUIKDIggW8H2+nDjn3HP7fAkzmAss+DYVYAOPIcRe+La/pZYZ93iwdvc5/KbWvJl1jQi
-	dHrTo7k2HdJ6NOf5c5xdqzDsHh2l5bLrNT2Vggol8SNPNMAm7IsnWZFhGlcXTXBPF02Jxhy9R2J
-	I6nv0IKv6i7f2ePjc5FEHgBEBGeqiDk4V5QidW8g34XPR9cAiL/yjYZBz6jdAHtiaMtGkmWYliW
-	/v91UMkEo2Jt/TpJzc1+RQTcgzJQQlG5J+tECWrv7C32km5YCVO+em+Cg2Og3H5QAGSKhKmbFS9
-	GDuFZXHZ3rllZs2z4zPNxfR0L/9qsPUTN8EGkzwijbEWEVq8rb1P6ROIQ/moNz1NT/z8SfywSyQ
-	ZZhaPYnG+y6R7QlU12sDQW5idcps/AjUrtHqrdBYfbZjUBdoVG732MSLzgRw==
-X-Received: by 2002:ac8:588a:0:b0:50e:defb:77d9 with SMTP id d75a77b69052e-5165a22032fmr243600281cf.46.1779168272348;
-        Mon, 18 May 2026 22:24:32 -0700 (PDT)
-Received: from xps (ool-45718bcd.dyn.optonline.net. [69.113.139.205])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-8ca36086ac6sm81286726d6.7.2026.05.18.22.24.31
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 18 May 2026 22:24:31 -0700 (PDT)
-From: Jacob Bazata <jacobbazata@gmail.com>
-To: wsa+renesas@sang-engineering.com,
-	westeri@kernel.org
-Cc: linux-i2c@vger.kernel.org,
-	linux-acpi@vger.kernel.org,
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="go93WtE3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53D55C2BCB3;
+	Tue, 19 May 2026 06:13:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1779171234;
+	bh=eDdypLMdh0ABr1jXAwg8jwfBuFdkrNrWgQDaQkjnNC0=;
+	h=From:To:Cc:Subject:Date:From;
+	b=go93WtE3I1mjggb2znt6NfuRg0nGZlaSlTbx8FhNDkk0Gpr6til29QgDJO63ydlw2
+	 wEjqN5hGTOzgsFyeq++wC32Sw7SGULtor58RhAI+8AIcwJH644OhpXZJclashP92s3
+	 VrrW3uD2BDjhA0fBSeYQTjYWCgWN3D9U7iCYzMxORpAv7jGUcq3SkN4z4YwayLFn5S
+	 3szWlGPCj7/ItQZTr8ZoeT/iVwHXrnq1Q8fO32f5jFOXzRAQnfSfriiYNn0n5wau+t
+	 GFRsIazCB1R9jg0Y9BibzcFJa0NyrgzazjRqWuCcJv0569oLs1bAAm/faz8QkOkvNF
+	 1H0FTcJOBvEqg==
+From: Jisheng Zhang <jszhang@kernel.org>
+To: "Rafael J . Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>,
+	Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	Hanjun Guo <guohanjun@huawei.com>,
+	Sudeep Holla <sudeep.holla@kernel.org>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>
+Cc: linux-acpi@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
-	Jacob Bazata <jacobbazata@gmail.com>
-Subject: [PATCH] i2c: acpi: Add VEN_04F3 to i2c_acpi_force_100khz_device_ids
-Date: Tue, 19 May 2026 01:24:24 -0400
-Message-ID: <20260519052424.7591-1-jacobbazata@gmail.com>
-X-Mailer: git-send-email 2.54.0
+	linux-arm-kernel@lists.infradead.org
+Subject: [PATCH] ACPI: Use LIST_HEAD() to initialize on stack list head
+Date: Tue, 19 May 2026 13:54:45 +0800
+Message-ID: <20260519055445.13122-1-jszhang@kernel.org>
+X-Mailer: git-send-email 2.51.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -75,31 +48,128 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This model trackpad (04F3:32AA), found on various Dell XPS models
-from 2023 including XPS 9500, 9510, 9520 and 9530 is well documented to,
-at random, exhibit excessive smoothing with no obvious cause, similar
-to other trackpad devices listed in the i2c_acpi_force_100khz_device
-_ids struct.
+Use LIST_HEAD to initialize on stack list head. No intentional
+functional impact.
 
-Forcing the bus to 100KHz eliminates this behavior.
+Change generated with below coccinelle script:
 
-Signed-off-by: Jacob Bazata <jacobbazata@gmail.com>
+@@
+identifier name;
+@@
+- struct list_head name;
++ LIST_HEAD(name);
+... when != name
+- INIT_LIST_HEAD(&name);
+
+Signed-off-by: Jisheng Zhang <jszhang@kernel.org>
 ---
- drivers/i2c/i2c-core-acpi.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/acpi/acpi_apd.c   | 3 +--
+ drivers/acpi/arm64/amba.c | 3 +--
+ drivers/acpi/resource.c   | 3 +--
+ drivers/acpi/scan.c       | 3 +--
+ drivers/acpi/x86/lpss.c   | 3 +--
+ 5 files changed, 5 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
-index 28c0e4884..512ebdfcc 100644
---- a/drivers/i2c/i2c-core-acpi.c
-+++ b/drivers/i2c/i2c-core-acpi.c
-@@ -373,6 +373,7 @@ static const struct acpi_device_id i2c_acpi_force_100khz_device_ids[] = {
- 	{ "DLL0945", 0 },
- 	{ "ELAN0678", 0 },
- 	{ "ELAN06FA", 0 },
-+	{ "VEN_04F3", 0 },
- 	{}
- };
+diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
+index bed0791c17fc..fa28acc541fe 100644
+--- a/drivers/acpi/acpi_apd.c
++++ b/drivers/acpi/acpi_apd.c
+@@ -68,14 +68,13 @@ static int fch_misc_setup(struct apd_private_data *pdata)
+ 	struct platform_device *clkdev;
+ 	struct fch_clk_data *clk_data;
+ 	struct resource_entry *rentry;
+-	struct list_head resource_list;
++	LIST_HEAD(resource_list);
+ 	int ret;
  
+ 	clk_data = devm_kzalloc(&adev->dev, sizeof(*clk_data), GFP_KERNEL);
+ 	if (!clk_data)
+ 		return -ENOMEM;
+ 
+-	INIT_LIST_HEAD(&resource_list);
+ 	ret = acpi_dev_get_memory_resources(adev, &resource_list);
+ 	if (ret < 0)
+ 		return -ENOENT;
+diff --git a/drivers/acpi/arm64/amba.c b/drivers/acpi/arm64/amba.c
+index 1350083bce5f..ec342404306b 100644
+--- a/drivers/acpi/arm64/amba.c
++++ b/drivers/acpi/arm64/amba.c
+@@ -39,7 +39,7 @@ static int amba_handler_attach(struct acpi_device *adev,
+ 	struct acpi_device *parent = acpi_dev_parent(adev);
+ 	struct amba_device *dev;
+ 	struct resource_entry *rentry;
+-	struct list_head resource_list;
++	LIST_HEAD(resource_list);
+ 	bool address_found = false;
+ 	int irq_no = 0;
+ 	int ret;
+@@ -55,7 +55,6 @@ static int amba_handler_attach(struct acpi_device *adev,
+ 		return -ENOMEM;
+ 	}
+ 
+-	INIT_LIST_HEAD(&resource_list);
+ 	ret = acpi_dev_get_resources(adev, &resource_list, NULL, NULL);
+ 	if (ret < 0)
+ 		goto err_free;
+diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+index bc8050d8a6f5..ff78311c136b 100644
+--- a/drivers/acpi/resource.c
++++ b/drivers/acpi/resource.c
+@@ -1118,11 +1118,10 @@ EXPORT_SYMBOL_GPL(acpi_dev_filter_resource_type);
+ 
+ static int acpi_dev_consumes_res(struct acpi_device *adev, struct resource *res)
+ {
+-	struct list_head resource_list;
++	LIST_HEAD(resource_list);
+ 	struct resource_entry *rentry;
+ 	int ret, found = 0;
+ 
+-	INIT_LIST_HEAD(&resource_list);
+ 	ret = acpi_dev_get_resources(adev, &resource_list, NULL, NULL);
+ 	if (ret < 0)
+ 		return 0;
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 530547cda8b2..bd599d0a9348 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -1738,7 +1738,7 @@ static bool acpi_is_indirect_io_slave(struct acpi_device *device)
+ 
+ static bool acpi_device_enumeration_by_parent(struct acpi_device *device)
+ {
+-	struct list_head resource_list;
++	LIST_HEAD(resource_list);
+ 	bool is_serial_bus_slave = false;
+ 	static const struct acpi_device_id ignore_serial_bus_ids[] = {
+ 	/*
+@@ -1792,7 +1792,6 @@ static bool acpi_device_enumeration_by_parent(struct acpi_device *device)
+ 	if (!acpi_match_device_ids(device, ignore_serial_bus_ids))
+ 		return false;
+ 
+-	INIT_LIST_HEAD(&resource_list);
+ 	acpi_dev_get_resources(device, &resource_list,
+ 			       acpi_check_serial_bus_slave,
+ 			       &is_serial_bus_slave);
+diff --git a/drivers/acpi/x86/lpss.c b/drivers/acpi/x86/lpss.c
+index 0171eef00484..d33dc34a2894 100644
+--- a/drivers/acpi/x86/lpss.c
++++ b/drivers/acpi/x86/lpss.c
+@@ -615,7 +615,7 @@ static int acpi_lpss_create_device(struct acpi_device *adev,
+ 	const struct lpss_device_desc *dev_desc;
+ 	struct lpss_private_data *pdata;
+ 	struct resource_entry *rentry;
+-	struct list_head resource_list;
++	LIST_HEAD(resource_list);
+ 	struct platform_device *pdev;
+ 	int ret;
+ 
+@@ -627,7 +627,6 @@ static int acpi_lpss_create_device(struct acpi_device *adev,
+ 	if (!pdata)
+ 		return -ENOMEM;
+ 
+-	INIT_LIST_HEAD(&resource_list);
+ 	ret = acpi_dev_get_memory_resources(adev, &resource_list);
+ 	if (ret < 0)
+ 		goto err_out;
 -- 
-2.54.0
+2.53.0
 
