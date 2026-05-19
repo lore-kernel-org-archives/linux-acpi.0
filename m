@@ -1,151 +1,94 @@
-Received: from canpmsgout11.his.huawei.com (canpmsgout11.his.huawei.com [113.46.200.226])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E0FE3ED3C2;
-	Tue, 19 May 2026 13:54:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.226
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03E883ED3D3
+	for <linux-acpi@vger.kernel.org>; Tue, 19 May 2026 14:08:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779198902; cv=none; b=Jln3No0Y7rLZT7b0GlEaUxcN69Mzm82NBjRVgJWjhfcZRIDw6xN7EUUK5dSb9MxMgGp69IK2eHA7mtrhLdf0peMYCZLjYKFCO/gSvFPJGAqfkF97vQk3U31hy3aCMWty2XBoBy9nAPTLtTGw3p/1qxKM/QV71Y812Va7ba3fD0s=
+	t=1779199730; cv=none; b=JpXzF0FP6MTqbWhmaqheVE2Uoux6EEHFlvMDo6r3uZ1TFBepG7h8a/D7kq1cW+kZzMqLEmV0Qn3Y3pwhE+EMevy7QtXigvezDEzqJu5DR/ukqZtd9S/gs6560yxaBZwewfnDWHb+AHZcZu8wXM7eXxWi+i6h0c4rPZN7RKcew74=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779198902; c=relaxed/simple;
-	bh=C8U6pChtctB7RWHOPQ1yu/txXYm98oWwxpLL2AaPfk4=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=MZ4TxBW7QYxac3xXaeGM9yFlvae38QL3JUsm2KaNxjk46ZZI6JZ9LsE0cuv0FWgVGtTLVmo9kD5fdyBaYiadogVndsLp9yKgmhLq75kFqbt1chi35HZnHHYQ2ghvn/ePc2PMcB3009hK4eS8YwpFRwBmARGurPJwSx0aJ3kTY9I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=XCmu7WjO; arc=none smtp.client-ip=113.46.200.226
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=h-partners.com
+	s=arc-20240116; t=1779199730; c=relaxed/simple;
+	bh=g0OSmfsNbDEyt/NV945XR6ZR476gQ9iLJFvsCNc9nKw=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=uI4scnq6dAccs86U4QevxHrMpM7ScWcdQoDWQbVvZJZtH7cme6Q4ol5L6PjfgU3ysCtGTsZIkbJpH6SyyyetkXW5QeEfLaYgshgBHtAN/FPB4DgJUTH3v3CUyLA237XQJ0pYFxDdxDGxXhT46ofJxYN6Rj9/4s8637wJo/M3nek=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IQrm9+X/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="XCmu7WjO"
-dkim-signature: v=1; a=rsa-sha256; d=h-partners.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=m64o20UUbg1sqOFMyrxckroncuaVuX+6bK0ps7a5P3w=;
-	b=XCmu7WjORRxZBr6K8gA1UNsYlhigXejcethM7aRJ8p/qOqZGl568x6Q+gZvl+PuDCLdEpAI0C
-	lMbhSMB/HW86nhU6oSSNK+44aAJeP/wv74fXpO7uPxVsM4q97ssWDT/3+tNOBcYeK94JS9ETqTT
-	EEG8iotQDoSHOMFfgiIO6G0=
-Received: from mail.maildlp.com (unknown [172.19.163.200])
-	by canpmsgout11.his.huawei.com (SkyGuard) with ESMTPS id 4gKbZL3QvDzKm5y;
-	Tue, 19 May 2026 21:47:06 +0800 (CST)
-Received: from dggemv705-chm.china.huawei.com (unknown [10.3.19.32])
-	by mail.maildlp.com (Postfix) with ESMTPS id C91FE4055B;
-	Tue, 19 May 2026 21:54:49 +0800 (CST)
-Received: from kwepemn100009.china.huawei.com (7.202.194.112) by
- dggemv705-chm.china.huawei.com (10.3.19.32) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Tue, 19 May 2026 21:54:49 +0800
-Received: from [10.67.121.59] (10.67.121.59) by kwepemn100009.china.huawei.com
- (7.202.194.112) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.36; Tue, 19 May
- 2026 21:54:48 +0800
-Message-ID: <881ec4ba-44ce-498d-b0c4-8c1d51b13cc3@huawei.com>
-Date: Tue, 19 May 2026 21:54:47 +0800
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IQrm9+X/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AED47C2BCB8
+	for <linux-acpi@vger.kernel.org>; Tue, 19 May 2026 14:08:49 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1779199729;
+	bh=g0OSmfsNbDEyt/NV945XR6ZR476gQ9iLJFvsCNc9nKw=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=IQrm9+X/iiPr0al/z0NC3EhqjsaOwtlhOYVehYQmP1pSjloODYvfVaPm6aG98IYBa
+	 7PFGw6Fehm/zwTntc433ZxKqPW+BoE+OKM5h++IipFPbzuN/JkouxJGA0LeItGTIz/
+	 cI4u6HMKawQS3DvcBUVcGCFQFURteHx6Ia0ZT8zJBeOcDRGF3oRQ7+tvxpC7N+nk9t
+	 gq/MthtYmK/Mm7pjB/Rg92/SEPy52ahQXq0Ta6/J84JqvUz3HAIYRiGLUvTsIf/+VK
+	 W+QC8aAbe+wRCBMmIfcoSObbjLzRGrFuzUXCMki3pUv3yBySKqg1DwPofzaSjAqmgK
+	 7sbgyxkXSTE/w==
+Received: by mail-lj1-f172.google.com with SMTP id 38308e7fff4ca-38e7d983f79so36217311fa.0
+        for <linux-acpi@vger.kernel.org>; Tue, 19 May 2026 07:08:49 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ8+kH/PTo9J9BHwCxsQcyRT69OFKVmOX7qyOGPYp//Ppnf9AcCawCghh+9wsAKJMZmOA1r33zQHGRjJ@vger.kernel.org
+X-Gm-Message-State: AOJu0YzKIg3HaqN9NgPxtvN4sxguxY2F6rjB+qIJrVdsYIh2PWAVCCym
+	60o7IpV9XQk15YC8wE1MvE35k10qRpUydDj1+0lCUZWcXFoxuFHqDw4ajFnZS+18giT3LBDBwZy
+	BYVNaPf9wpDdjFK4OUGYJ0LZgZ4oF7B8=
+X-Received: by 2002:a05:6512:1321:b0:5a4:1a2:1d39 with SMTP id
+ 2adb3069b0e04-5aa0e5ffab1mr4973395e87.6.1779199728096; Tue, 19 May 2026
+ 07:08:48 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v02] mailbox: pcc: report errors for PCC clients
-To: Adam Young <admiyo@os.amperecomputing.com>, Sudeep Holla
-	<sudeep.holla@kernel.org>, Jassi Brar <jassisinghbrar@gmail.com>
-CC: <linux-kernel@vger.kernel.org>, <linux-hwmon@vger.kernel.org>, "Rafael J .
- Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
-	<linux-acpi@vger.kernel.org>, Andi Shyti <andi.shyti@kernel.org>, "Guenter
- Roeck" <linux@roeck-us.net>, MyungJoo Ham <myungjoo.ham@samsung.com>,
-	"Kyungmin Park" <kyungmin.park@samsung.com>, Chanwoo Choi
-	<cw00.choi@samsung.com>, <linux-arm-kernel@lists.infradead.org>
-References: <20260518193006.27425-1-admiyo@os.amperecomputing.com>
-From: "lihuisong (C)" <lihuisong@huawei.com>
-In-Reply-To: <20260518193006.27425-1-admiyo@os.amperecomputing.com>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: kwepems500002.china.huawei.com (7.221.188.17) To
- kwepemn100009.china.huawei.com (7.202.194.112)
+References: <E2OXET.4X5GTP37VTNC3@kousu.ca>
+In-Reply-To: <E2OXET.4X5GTP37VTNC3@kousu.ca>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Tue, 19 May 2026 16:08:36 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0jVQyWYqPo_MiUwNQb7FLNR_Q_++Xq=xA1owcHpcjN=OA@mail.gmail.com>
+X-Gm-Features: AVHnY4IYHpFZ_8NApVrHEaV-a4gahD_pRqfgG7xqb3mOswDf3PM0BnPOwltOgho
+Message-ID: <CAJZ5v0jVQyWYqPo_MiUwNQb7FLNR_Q_++Xq=xA1owcHpcjN=OA@mail.gmail.com>
+Subject: Re: [REGRESSION] Toshiba Fn keys + lidswitch
+To: Nick <nick@kousu.ca>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, regressions@lists.linux.dev, 
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-pm@vger.kernel.org, todd.e.brandt@linux.intel.com, 
+	xi.pardee@linux.intel.com, platform-driver-x86@vger.kernel.org, 
+	stable@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
+On Tue, May 12, 2026 at 7:16=E2=80=AFPM Nick <nick@kousu.ca> wrote:
+>
+> My Toshiba Tecra X40 laptop's function keys no longer send events.
+>
+> Specifically the mute ("KEY_MUTE"), lock ("KEY_COFFEE"), "power plan"
+> ("KEY_BATTERY"), sleep ("KEY_SLEEP"), mic mute (for some reason this
+> reads as "KEY_SUSPEND"), screen switch ("KEY_SWITCHVIDEOMODE"),
+> brightness ("KEY_BRIGHTNESSDOWN" and "KEY_BRIGHTNESSUP"), and rfkill
+> ("KEY_WLAN") hotkeys -- these are the Fn-shifted versions of Esc, F1,
+> F2, F3, F4, F5, F6, F7 and F8 -- keys no longer work. Neither does the
+> lid-switch.
+>
+> Fn+F9, Fn+10, Fn+F11 and Fn+12 still work; those show up on
+> /dev/input/event3 like the rest of my keyboard, but the hotkeys show up
+> on /dev/input/event6.
+>
+> I'm on ArchLinux. My keys worked on v6.19.14, I first noticed them
+> broken on v7.0.2.
+>
+> I bisected mainline and found the break is: "ACPI: scan: Use
+> acpi_setup_gpe_for_wake() for buttons"
+> <https://lore.kernel.org/all/2259694.irdbgypaU6@rafael.j.wysocki/>.
+> That is, 57c31e6d620f132dcf610b2c52b4cdbd203c6f4a is bad and
+> 88fad6ce090b395af4c654594a54589a386bf24b is good.
+>
+> #regzbot introduced: 57c31e6d620f132dcf610b2c52b4cdbd203c6f4a
+>
+> Maybe acpi_mark_gpe_for_wake was initializing something particular to
+> Toshiba hardware?
 
-On 5/19/2026 3:30 AM, Adam Young wrote:
-> The tx_done callback function has a return code (rc) parameter
-> that the tx_done callback can use to determine how to handle an error.
-> However the IRQ handler was not setting that value if there is an error.
->
-> The following clients are affected:
->
-> drivers/acpi/cppc_acpi.c
-> drivers/i2c/busses/i2c-xgene-slimpro.c
-> drivers/hwmon/xgene-hwmon.c
-> drivers/soc/hisilicon/kunpeng_hccs.c
-> drivers/devfreq/hisi_uncore_freq.c
->
-> All of these only use the error code to report, so they
-> are expecting an error code to come thorugh, but they
-> do not modify behavior based on this code.
->
-> In the case of an error code in the IRQ, the handler was returning
-> IRQ_NONE which is not correct:  the IRQ handler was matched
-> to the IRQ.  This mean that multiple error codes returned from
-> a PCC triggered interrupt would end up disabling the device.
->
-> In addition, if the error code IRQ was coming from a Type4 Device that was
-> expecting an IRQ response, that device would then be hung.
->
-> Fixes: c45ded7e1135 ("mailbox: pcc: Add support for PCCT extended PCC subspaces(type 3/4)")
-Not fix above commit.
-mbox_chan_txdone() was added in below patch.
-Fixes: 9c753f7c953c (mailbox: pcc: Mark Tx as complete in PCC IRQ handler)
-> Signed-off-by: Adam Young <admiyo@os.amperecomputing.com>
->
-> ---
-> ---
->   drivers/mailbox/pcc.c | 9 +++++----
->   1 file changed, 5 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
-> index 636879ae1db7..16b9ce087b9e 100644
-> --- a/drivers/mailbox/pcc.c
-> +++ b/drivers/mailbox/pcc.c
-> @@ -314,6 +314,7 @@ static irqreturn_t pcc_mbox_irq(int irq, void *p)
->   {
->   	struct pcc_chan_info *pchan;
->   	struct mbox_chan *chan = p;
-> +	int rc;
->   
->   	pchan = chan->con_priv;
->   
-> @@ -327,8 +328,7 @@ static irqreturn_t pcc_mbox_irq(int irq, void *p)
->   	if (!pcc_mbox_cmd_complete_check(pchan))
->   		return IRQ_NONE;
->   
-> -	if (pcc_mbox_error_check_and_clear(pchan))
-> -		return IRQ_NONE;
-> +	rc = pcc_mbox_error_check_and_clear(pchan);
+Thanks for reporting!
 
-I think it is not necessary. This function just return -EIO on failure.
-
->   
->   	/*
->   	 * Clear this flag after updating interrupt ack register and just
-> @@ -337,8 +337,9 @@ static irqreturn_t pcc_mbox_irq(int irq, void *p)
->   	 * required to avoid any possible race in updatation of this flag.
->   	 */
->   	pchan->chan_in_use = false;
-> -	mbox_chan_received_data(chan, NULL);
-> -	mbox_chan_txdone(chan, 0);
-> +	if (!rc)
-> +		mbox_chan_received_data(chan, NULL);
-> +	mbox_chan_txdone(chan, rc);
-@Sudeep, I have always had doubts about the addition of this line of 
-code in the
-  commit 9c753f7c953c (mailbox: pcc: Mark Tx as complete in PCC IRQ 
-handler).
-The patch seems to avoid the timeouts in the mailbox core according to 
-its commit log.
-Regardless of whether the command succeeds or fails, each mbox client 
-driver, like cppc_acpi/acpi_pcc，kunpeng_hccs and so on, is responsible 
-to call mbox_chan_txdone() to tell mailbox core.
-This is done after executing mbox_chan_received_data(). So I think this 
-line in this function is redundant.
-Can you take a look at this agian?
->   
->   	pcc_chan_acknowledge(pchan);
->   
+I think that the problem is acpi_setup_gpe_for_wake() doing too much,
+I'll send you a patch to test later today.
