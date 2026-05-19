@@ -1,94 +1,153 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03E883ED3D3
-	for <linux-acpi@vger.kernel.org>; Tue, 19 May 2026 14:08:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97E3D348C5B
+	for <linux-acpi@vger.kernel.org>; Tue, 19 May 2026 14:12:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779199730; cv=none; b=JpXzF0FP6MTqbWhmaqheVE2Uoux6EEHFlvMDo6r3uZ1TFBepG7h8a/D7kq1cW+kZzMqLEmV0Qn3Y3pwhE+EMevy7QtXigvezDEzqJu5DR/ukqZtd9S/gs6560yxaBZwewfnDWHb+AHZcZu8wXM7eXxWi+i6h0c4rPZN7RKcew74=
+	t=1779199959; cv=none; b=ZZg9QcI7yYHPs49lCTdihRZqiycbk9fbEPZriDq4NkyjXzv7o4GYI6kHG+nDPO9tg/bZNCvEyv3grxuCrk6aWlDDd7yagQ9FhXQrl4b9AMBXe3mFKX77CV1eoYqPM1GqxqQqnpfkpDy6iG4/kmdoKs4wKuNZe+LeBWMwhq/Dzn8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779199730; c=relaxed/simple;
-	bh=g0OSmfsNbDEyt/NV945XR6ZR476gQ9iLJFvsCNc9nKw=;
+	s=arc-20240116; t=1779199959; c=relaxed/simple;
+	bh=ys3VfdCIMI6SZCYAZr0JIhK48BGkSl8ZbpOceUW+Mcw=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=uI4scnq6dAccs86U4QevxHrMpM7ScWcdQoDWQbVvZJZtH7cme6Q4ol5L6PjfgU3ysCtGTsZIkbJpH6SyyyetkXW5QeEfLaYgshgBHtAN/FPB4DgJUTH3v3CUyLA237XQJ0pYFxDdxDGxXhT46ofJxYN6Rj9/4s8637wJo/M3nek=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IQrm9+X/; arc=none smtp.client-ip=10.30.226.201
+	 To:Cc:Content-Type; b=DLIORKL60uTmRmn1nbF6x8XVyR6hmCmLikXd8SgQZEVSvRfp/HA7cgviEJlZmlmqDYyUGwlRSo2DlEoRp01kgKMvPcQI40qlMpz+HFl3ic1yqsI4ZzkF6Da0oFSfi9EBcBcVz8jWDiZY9eH20GlnsGakG6pZZ2JBJgPu49Mjs1o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jWDabLoq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IQrm9+X/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AED47C2BCB8
-	for <linux-acpi@vger.kernel.org>; Tue, 19 May 2026 14:08:49 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jWDabLoq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CFBEC2BCC7
+	for <linux-acpi@vger.kernel.org>; Tue, 19 May 2026 14:12:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1779199729;
-	bh=g0OSmfsNbDEyt/NV945XR6ZR476gQ9iLJFvsCNc9nKw=;
+	s=k20201202; t=1779199959;
+	bh=ys3VfdCIMI6SZCYAZr0JIhK48BGkSl8ZbpOceUW+Mcw=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=IQrm9+X/iiPr0al/z0NC3EhqjsaOwtlhOYVehYQmP1pSjloODYvfVaPm6aG98IYBa
-	 7PFGw6Fehm/zwTntc433ZxKqPW+BoE+OKM5h++IipFPbzuN/JkouxJGA0LeItGTIz/
-	 cI4u6HMKawQS3DvcBUVcGCFQFURteHx6Ia0ZT8zJBeOcDRGF3oRQ7+tvxpC7N+nk9t
-	 gq/MthtYmK/Mm7pjB/Rg92/SEPy52ahQXq0Ta6/J84JqvUz3HAIYRiGLUvTsIf/+VK
-	 W+QC8aAbe+wRCBMmIfcoSObbjLzRGrFuzUXCMki3pUv3yBySKqg1DwPofzaSjAqmgK
-	 7sbgyxkXSTE/w==
-Received: by mail-lj1-f172.google.com with SMTP id 38308e7fff4ca-38e7d983f79so36217311fa.0
-        for <linux-acpi@vger.kernel.org>; Tue, 19 May 2026 07:08:49 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AFNElJ8+kH/PTo9J9BHwCxsQcyRT69OFKVmOX7qyOGPYp//Ppnf9AcCawCghh+9wsAKJMZmOA1r33zQHGRjJ@vger.kernel.org
-X-Gm-Message-State: AOJu0YzKIg3HaqN9NgPxtvN4sxguxY2F6rjB+qIJrVdsYIh2PWAVCCym
-	60o7IpV9XQk15YC8wE1MvE35k10qRpUydDj1+0lCUZWcXFoxuFHqDw4ajFnZS+18giT3LBDBwZy
-	BYVNaPf9wpDdjFK4OUGYJ0LZgZ4oF7B8=
-X-Received: by 2002:a05:6512:1321:b0:5a4:1a2:1d39 with SMTP id
- 2adb3069b0e04-5aa0e5ffab1mr4973395e87.6.1779199728096; Tue, 19 May 2026
- 07:08:48 -0700 (PDT)
+	b=jWDabLoqiUUCbfzIrE1BRaqFOy/1gPCq2eG8ps/fFm3Xrvgxq4OqAqCHx657LbLDT
+	 8IijuYxhsszuuABHXTiFHOcUmzfGDbNaN8kFpknFRQ5xGvEjS8eeD7q0/92Q4eA0SL
+	 mMBFzQCw0HgGqtlAaT3r/YOVbZEaBFoN5qNwUeh4//4gPJ6mK7xob1lvfqqUbbWDZL
+	 OBcse7J/IMrfIrEUKGwil+vI7HT8787im5O7nZUrG1gujjJJxqNhq1H1L9HvOjhR+C
+	 kbi1soamtzG+nKZtH8uX1LfrbYwU3DigLSA3H+UOy7fjGE0k4XWDeSMICsVW+qf0sn
+	 rlXh0CQg5OW3A==
+Received: by mail-lf1-f41.google.com with SMTP id 2adb3069b0e04-5aa0862dda1so4847302e87.1
+        for <linux-acpi@vger.kernel.org>; Tue, 19 May 2026 07:12:39 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ8y3DmJCxpShZGza+Wqfr/adxSnw0i8oyrtCrE0Q8WeBOCOcL1wbmMUVLU7BP4oqA5YkOzA7fJD4Qbq@vger.kernel.org
+X-Gm-Message-State: AOJu0YzCrTYHKJKrsAhAVKKnCh0XHtKoubOkFXDGg14PsnNMOyCy1fQf
+	fb4sLw+yJAvMD1NehnRuP8LK5yqdUyeDcr9jW5VbvF5SL0voX6+NOhAJGrknknW49+yD7e6UV9D
+	yKnIsyWDiBypBXBUvSKqPnM6UCtzpqc0=
+X-Received: by 2002:a05:6512:3e0f:b0:5a8:891f:b3c8 with SMTP id
+ 2adb3069b0e04-5aa0e7741c2mr5697397e87.39.1779199957668; Tue, 19 May 2026
+ 07:12:37 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <E2OXET.4X5GTP37VTNC3@kousu.ca>
-In-Reply-To: <E2OXET.4X5GTP37VTNC3@kousu.ca>
+References: <20260519082316.1959158-2-ardb+git@google.com>
+In-Reply-To: <20260519082316.1959158-2-ardb+git@google.com>
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Tue, 19 May 2026 16:08:36 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0jVQyWYqPo_MiUwNQb7FLNR_Q_++Xq=xA1owcHpcjN=OA@mail.gmail.com>
-X-Gm-Features: AVHnY4IYHpFZ_8NApVrHEaV-a4gahD_pRqfgG7xqb3mOswDf3PM0BnPOwltOgho
-Message-ID: <CAJZ5v0jVQyWYqPo_MiUwNQb7FLNR_Q_++Xq=xA1owcHpcjN=OA@mail.gmail.com>
-Subject: Re: [REGRESSION] Toshiba Fn keys + lidswitch
-To: Nick <nick@kousu.ca>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, regressions@lists.linux.dev, 
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-pm@vger.kernel.org, todd.e.brandt@linux.intel.com, 
-	xi.pardee@linux.intel.com, platform-driver-x86@vger.kernel.org, 
-	stable@vger.kernel.org
+Date: Tue, 19 May 2026 16:12:25 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0h5NvLK3Fs9Fw+GoKCs82SXP1_oRggiG_aH3wiuMkdnJA@mail.gmail.com>
+X-Gm-Features: AVHnY4J1z7TCHiU8JsNJXAu7oLMdpyCdSwenLYcwTsf0Ue3WoyKdwh1etIzPlPg
+Message-ID: <CAJZ5v0h5NvLK3Fs9Fw+GoKCs82SXP1_oRggiG_aH3wiuMkdnJA@mail.gmail.com>
+Subject: Re: [PATCH] efi: Allocate runtime workqueue before ACPI init
+To: Ard Biesheuvel <ardb+git@google.com>
+Cc: linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, 
+	Ard Biesheuvel <ardb@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, May 12, 2026 at 7:16=E2=80=AFPM Nick <nick@kousu.ca> wrote:
+On Tue, May 19, 2026 at 10:23=E2=80=AFAM Ard Biesheuvel <ardb+git@google.co=
+m> wrote:
 >
-> My Toshiba Tecra X40 laptop's function keys no longer send events.
+> From: Ard Biesheuvel <ardb@kernel.org>
 >
-> Specifically the mute ("KEY_MUTE"), lock ("KEY_COFFEE"), "power plan"
-> ("KEY_BATTERY"), sleep ("KEY_SLEEP"), mic mute (for some reason this
-> reads as "KEY_SUSPEND"), screen switch ("KEY_SWITCHVIDEOMODE"),
-> brightness ("KEY_BRIGHTNESSDOWN" and "KEY_BRIGHTNESSUP"), and rfkill
-> ("KEY_WLAN") hotkeys -- these are the Fn-shifted versions of Esc, F1,
-> F2, F3, F4, F5, F6, F7 and F8 -- keys no longer work. Neither does the
-> lid-switch.
+> Since commit
 >
-> Fn+F9, Fn+10, Fn+F11 and Fn+12 still work; those show up on
-> /dev/input/event3 like the rest of my keyboard, but the hotkeys show up
-> on /dev/input/event6.
+>   5894cf571e14 ("acpi/prmt: Use EFI runtime sandbox to invoke PRM handler=
+s")
 >
-> I'm on ArchLinux. My keys worked on v6.19.14, I first noticed them
-> broken on v7.0.2.
+> ACPI PRM calls are delegated to a workqueue which runs in a kernel
+> thread, making it easier to detect and mitigate faulting memory accesses
+> performed by the firmware.
 >
-> I bisected mainline and found the break is: "ACPI: scan: Use
-> acpi_setup_gpe_for_wake() for buttons"
-> <https://lore.kernel.org/all/2259694.irdbgypaU6@rafael.j.wysocki/>.
-> That is, 57c31e6d620f132dcf610b2c52b4cdbd203c6f4a is bad and
-> 88fad6ce090b395af4c654594a54589a386bf24b is good.
+> Rafael reports that such PRM accesses may occur before efisubsys_init()
+> executes, which is where the workqueue is allocated, leading to NULL
+> pointer dereferences. Since acpi_init() [which triggers the early PRM
+> accesses] executes as a subsys_initcall() as well, and has its own
+> dependencies that may be sensitive to initcall ordering, deferring
+> acpi_init() is not an option.
 >
-> #regzbot introduced: 57c31e6d620f132dcf610b2c52b4cdbd203c6f4a
+> So instead, split off the workqueue allocation into its own postcore
+> initcall, as this is the only missing piece to allow EFI runtime calls
+> to be made. This ensures that EFI runtime call (including PRM calls) are
+> accessible to all code running at subsys_initcall() level.
 >
-> Maybe acpi_mark_gpe_for_wake was initializing something particular to
-> Toshiba hardware?
+> Fixes: 5894cf571e14 ("acpi/prmt: Use EFI runtime sandbox to invoke PRM ha=
+ndlers")
+> Reported-by: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+> Signed-off-by: Ard Biesheuvel <ardb@kernel.org>
 
-Thanks for reporting!
+This should work AFAICS, so
 
-I think that the problem is acpi_setup_gpe_for_wake() doing too much,
-I'll send you a patch to test later today.
+Reviewed-by: Rafael J. Wysocki (Intel) <rafael@kernel.org>
+
+> ---
+>  drivers/firmware/efi/efi.c | 28 ++++++++++++++++------------
+>  1 file changed, 16 insertions(+), 12 deletions(-)
+>
+> diff --git a/drivers/firmware/efi/efi.c b/drivers/firmware/efi/efi.c
+> index d04be38f1750..318d1cc9a066 100644
+> --- a/drivers/firmware/efi/efi.c
+> +++ b/drivers/firmware/efi/efi.c
+> @@ -402,21 +402,11 @@ static void __init efi_debugfs_init(void)
+>  static inline void efi_debugfs_init(void) {}
+>  #endif
+>
+> -/*
+> - * We register the efi subsystem with the firmware subsystem and the
+> - * efivars subsystem with the efi subsystem, if the system was booted wi=
+th
+> - * EFI.
+> - */
+> -static int __init efisubsys_init(void)
+> +static int __init efipostcore_init(void)
+>  {
+> -       int error;
+> -
+>         if (!efi_enabled(EFI_RUNTIME_SERVICES))
+>                 efi.runtime_supported_mask =3D 0;
+>
+> -       if (!efi_enabled(EFI_BOOT))
+> -               return 0;
+> -
+>         if (efi.runtime_supported_mask) {
+>                 /*
+>                  * Since we process only one efi_runtime_service() at a t=
+ime, an
+> @@ -428,9 +418,23 @@ static int __init efisubsys_init(void)
+>                         pr_err("Creating efi_rts_wq failed, EFI runtime s=
+ervices disabled.\n");
+>                         clear_bit(EFI_RUNTIME_SERVICES, &efi.flags);
+>                         efi.runtime_supported_mask =3D 0;
+> -                       return 0;
+>                 }
+>         }
+> +       return 0;
+> +}
+> +postcore_initcall(efipostcore_init);
+> +
+> +/*
+> + * We register the efi subsystem with the firmware subsystem and the
+> + * efivars subsystem with the efi subsystem, if the system was booted wi=
+th
+> + * EFI.
+> + */
+> +static int __init efisubsys_init(void)
+> +{
+> +       int error;
+> +
+> +       if (!efi_enabled(EFI_BOOT))
+> +               return 0;
+>
+>         if (efi_rt_services_supported(EFI_RT_SUPPORTED_TIME_SERVICES))
+>                 platform_device_register_simple("rtc-efi", 0, NULL, 0);
+> --
