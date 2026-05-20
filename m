@@ -1,197 +1,333 @@
-Received: from CHN02-BJS-obe.outbound.protection.partner.outlook.cn (mail-bjschn02on2116.outbound.protection.partner.outlook.cn [139.219.17.116])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2089A3D16FC;
-	Wed, 20 May 2026 09:46:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=139.219.17.116
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779270403; cv=fail; b=oAS/sL9F9PllbKC02fOSTwN/Y5B5CJHOSepDUT3sW/b1P0EoN712o55bsvGUaSibl0L5nSPET1vxqHAon/IIToFgl6PYdojtSca4mK0KlUQdP0XKzPkPNTjHky3S052bryI3F3jtJMrRYYbnkrYwTZnHwj3mrNCCOgAXVBLdAhQ=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779270403; c=relaxed/simple;
-	bh=yH4gugd4chL53NIUS+snnawU5ZZXykbf4HfPBK0hTVY=;
-	h=From:To:Cc:Subject:Date:Message-ID:Content-Type:MIME-Version; b=k9KSGDC/GUjzJvYMboYQspIRSMGRamSVNPcWmR8gwKf8XLFvp+tQ/DTl9LykBw+whtuZnIgpwxXnPuG7y2u391uNHmF30YAdyYHBatZgvg3RtFc0N89dWra3zIFQGLm4l+jTo6Gmhjg8Cqut0mNzJRSTQAfRvznXMhMIDcs9QpA=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lecomputing.com; spf=pass smtp.mailfrom=lecomputing.com; arc=fail smtp.client-ip=139.219.17.116
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lecomputing.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lecomputing.com
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=JdNBSsNAG+Ocz9DAsM6Ktr45Ke2wcnYm1a3YFVLF0IVYtm3eHxL06x0PV7W+gq3BfQJVrp9Vf4WjMvr/OmxzDxKXiUW0TRGsbXUth1Usc970SJaScxn8uJYNeFO3SkWna78gO4OslQyN0DD180BG+6kE/U6ZO2BDljZtHb7IqiDqQri+a5pz/IJ0IbLm5a1+hKhvwGx7xrNnI9412NCfdWlP+TDu1V26n/O3YlaJoDHWievjJy88jHC2Xyo/GUJl4qYwkboPOyNh71s/VaOvwnGoz8t9Xcuc7UjkkdGjCn2M9hN/KqZPl+AlXxvPqDQH0dqfDz4sITIgI3M9mWnKpw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=f8wt02QAEOydDPsuM2zswZdFvvi0kfgobqbVYo+U4JM=;
- b=kbP+znQq1dq4Ftmcx/YN2N9kdEiAlShtNJSPshNU+ZFBCfmILCjZIH4LQaMpwZNg48gWyJePpoh7p9MaXCBxSkVjve+QtYPrUtk2/U3ooLvTE1AHM5mWw+Wbp0xZAtQjWB0fvuaEP96ihCarvvoTUsXe5YwJ7i9PWY4VNpzh+FvFU1jwIM/taR90yQfEOJO07uNEw3HlE9t0CBoZhkDElbYTdj0GzfAakZoM6mt5f1AxFr1H7Ud/O5511A3oyQ7oEM4t6Y6YWXiP9ECkMUwywImrFWN3BAujA8H4TlixXkL4U40QlgJL1PLdyxz3fxgcz21QsA2vVsXpQB4R1KCnHg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=lecomputing.com; dmarc=pass action=none
- header.from=lecomputing.com; dkim=pass header.d=lecomputing.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=lecomputing.com;
-Received: from BJSPR01MB0707.CHNPR01.prod.partner.outlook.cn
- (2406:e500:c211:1f::17) by BJSPR01MB0755.CHNPR01.prod.partner.outlook.cn
- (2406:e500:c211:1c::18) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.48.15; Wed, 20 May
- 2026 08:11:51 +0000
-Received: from BJSPR01MB0707.CHNPR01.prod.partner.outlook.cn
- ([fe80::1c61:86e3:3a75:155d]) by
- BJSPR01MB0707.CHNPR01.prod.partner.outlook.cn ([fe80::1c61:86e3:3a75:155d%4])
- with mapi id 15.21.0025.023; Wed, 20 May 2026 08:11:51 +0000
-From: Thomas Lin <thomas_lin@lecomputing.com>
-To: rafael@kernel.org,
-	lenb@kernel.org,
-	hoan@os.amperecomputing.com,
-	linusw@kernel.org,
-	brgl@kernel.org,
-	mika.westerberg@linux.intel.com,
-	andriy.shevchenko@linux.intel.com,
-	jsd@semihalf.com,
-	andi.shyti@kernel.org,
-	broonie@kernel.org
-Cc: linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-gpio@vger.kernel.org,
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7405E3FC5AD;
+	Wed, 20 May 2026 11:21:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1779276067; cv=none; b=nR64sgj4kNSdHUMjkw40m2Optl5/YwGAZQ3xzKreaN+fo6jToiNLVp47zeaTDRRx75IHEGnT3rd2Kz56p3No9aXLTchQjKG1l9pMDb0RVQS3rXxWnYdcKxj6bLiz1x8fHwKkxKXEPJa/gdAhwiaNj9uYbJJBLVbz8B27mCdP8Ag=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1779276067; c=relaxed/simple;
+	bh=pP8iVAxF1FoMXalCFIkZlnb3QWBe+RsA4kTO38lVTnk=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=l9eP3Ec+QMEZS7ZbDDT5gIJyJMaHmhywbEfbNk3JbVhjYdhrsT6HytCQ9EhOpdXkz6ItytciZ+TgyfaHTkqNXxHdD7aAQi9yv+S3TNosy87HTZWrZJ2SbTz43x2n/qjb2B0ZphMD0jYL6HMryXThKWL1U133ZYlhRTs75kouMFM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=EIpc+L2M; arc=none smtp.client-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="EIpc+L2M"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 558D51F00894;
+	Wed, 20 May 2026 11:21:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1779276065;
+	bh=+CoWtz8ztGvbc8ecX5s+vUNsyKplJmYowMl+atQh6mE=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=EIpc+L2Mo5UWc/qZaYG5siVu8u36TaK9E05H1cwITHSAwdqnx42DdILtyzhcIUa5E
+	 VTSKOZGCjVbwWjHcC+AqIkCSMC+/bueJXp2y1vO369Du6PXyrhcJp4yeUWyMe4p674
+	 +uWAAvegdesuRQQofcOARVs21Drax4kzhdcRVdV7fvQ0C7k3BcVAV92Zae5OmalT+N
+	 NK5RM0ViUs9nV5GIszFZtpjQ6CR/Moet7dfmgmu/L2BiO3qEj1qzS0NDr0/UFofmu+
+	 IXh3X7NScUUBOrpERFxJ7tOQpuKdze2+053RB5t2m3Vf1eGHlLwFG3qB90bSCT51CA
+	 yIPE0qSCRkF7Q==
+From: Sasha Levin <sashal@kernel.org>
+To: patches@lists.linux.dev,
+	stable@vger.kernel.org
+Cc: Niels Franke <nielsfranke@gmail.com>,
+	Mika Westerberg <mika.westerberg@linux.intel.com>,
+	Wolfram Sang <wsa+renesas@sang-engineering.com>,
+	Sasha Levin <sashal@kernel.org>,
+	westeri@kernel.org,
 	linux-i2c@vger.kernel.org,
-	linux-spi@vger.kernel.org,
-	lucas_hao@lecomputing.com,
-	puntar_liu@lecomputing.com,
-	jihua_tao@lecomputing.com,
-	stan_xu@lecomputing.com,
-	lumin_liu@lecomputing.com,
-	notics_zhang@lecomputing.com,
-	braden_zhang@lecomputing.com,
-	harold_wu@lecomputing.com,
-	will_zhang@lecomputing.com,
-	aurora_jiang@lecomputing.com,
-	ryen_lin@lecomputing.com,
-	andy_jiang@lecomputing.com,
-	Thomas Lin <thomas_lin@lecomputing.com>
-Subject: [PATCH v4 0/3] arm64: Add LECARC ACPI IDs for DesignWare GPIO, SPI, I2C
-Date: Wed, 20 May 2026 16:11:33 +0800
-Message-ID: <20260520081140.637637-1-thomas_lin@lecomputing.com>
-X-Mailer: git-send-email 2.43.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: ZQ0PR01CA0024.CHNPR01.prod.partner.outlook.cn
- (2406:e500:c550:2::19) To BJSPR01MB0707.CHNPR01.prod.partner.outlook.cn
- (2406:e500:c211:1f::17)
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH AUTOSEL 7.0-5.10] i2c: acpi: Add ELAN0678 to i2c_acpi_force_100khz_device_ids
+Date: Wed, 20 May 2026 07:19:29 -0400
+Message-ID: <20260520111944.3424570-57-sashal@kernel.org>
+X-Mailer: git-send-email 2.53.0
+In-Reply-To: <20260520111944.3424570-1-sashal@kernel.org>
+References: <20260520111944.3424570-1-sashal@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BJSPR01MB0707:EE_|BJSPR01MB0755:EE_
-X-MS-Office365-Filtering-Correlation-Id: 7c5c4881-bbaa-4c33-750c-08deb6477251
-X-MS-Exchange-SenderADCheck: 1
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|366016|376014|7416014|52116014|56012099003|18002099003|38350700014|921020|5023799004;
-X-Microsoft-Antispam-Message-Info:
-	sKXod2jtZGOhO50GKkoQJQRAvlQVLdC9dSuNIzImCoHWiixUkJEo71RFNAm5wakQYaDBe1SAIBh5Y1IfIG5pil55WjPGikJSXfb4WSbnt2GTWyvEGLbtbyMS3bCq3BQKC2XmKoiL22hYpVuScFlw08ssAZX4Wa7kwU6YNIICqpoFtC4IhLruLHW40hZR5ooo6pmkjaVE+f7bbKOT6sxkm71olxTRoJL/dr1w5Af+6q29ra3osyq39vQoh7OBptZHR6J/uDmZ13KkaG1Wz4ZT37KbSrp2aD9o7HfnnTRozZPzn0k+M+J1RMP2+kx9LHUxMz7HErj1svTupXU5vuM+qJn4ZaWFvP4MRFHqp5q/Hmld5C1QbsN4X4CjhbtH7PIRJXbkONR65LUoVnOldxorkQenDODMLTB2P9P0GKn5qqmSI9+UzrZE0w2CKtY5G28zpS7b3NWER9TgjD9LAqijCIEX6z4MtBAc2tiMkwzb8D8ev1Qa62q5GYv+mJQFpWITgjsQTYkiDD0Z5YXr9uDcfCilNsHx0xz9CUHdbCIwrLyVvahlvXh7saqghKQh/OLeZA/31KR5y718iiolUtSPww==
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BJSPR01MB0707.CHNPR01.prod.partner.outlook.cn;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(376014)(7416014)(52116014)(56012099003)(18002099003)(38350700014)(921020)(5023799004);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?RTVnSVp3bDJVWlJ2TCtTZTNtNE9ZeVBVTG4yT1dUcnB3VC9BbTZWSWxrVnBU?=
- =?utf-8?B?TkRDTTRHSUt5b09BSTlscm9EYzExQ3M4YkNOa1RaWlI4cUUzMkMxc0FCaHdj?=
- =?utf-8?B?d1NBUjA2T3ZYQzlEeDc2TkJOMjltZjlXWExnVG41MFhRbURNSXNlT0IrSVhK?=
- =?utf-8?B?WW9BOUsxSklCQWlqWm1qU1hRdTBEOXYrQkFSS3I4UUx0d1hLbmU0NjhJTTFB?=
- =?utf-8?B?RE1SMHFkYnFoVzB5YXJ4ay80S0h2MjNUT2FBZFZIYVhWUmlxQ0NDT2hXMlRV?=
- =?utf-8?B?RXlIQThWeWpJckpxTU1XdGJMV3A1M2pBOU1LQjlUWFBQanI5a0VZZnk3UEtD?=
- =?utf-8?B?aWlyMnFQeWd1L1NMUHhpTjJSUmNpa0ZYVEswUnFKQzQ0aEJrRnB3d0RYMFZr?=
- =?utf-8?B?UTVFbG16WnhzRWxuZmZrSWh6b05BZ056QnVMNkpZclYyb2VtVzZMVG5qQkhB?=
- =?utf-8?B?VFpGWjExcGg0YlIzYzcwMk1OVXdteDF6bkJZcC9hdk9QL0ZrZUdwMXdNUGVJ?=
- =?utf-8?B?RHczT0hvd0ZMZGtMcXhhN3FidWlPQzlVdUo4M21mMFlBaTBST1N0dkJGV1hZ?=
- =?utf-8?B?Y0poUFF5NFQvNmxESDhVcjhwd2pFS3FHWmIxV01VMlhPRUV4Z2NaZ21adHFh?=
- =?utf-8?B?UlNZZytRaUxDbDBIQTRBYmRHcFJMYzc3WGVWYW5ETE1ETXV1dGJybHdNSzRM?=
- =?utf-8?B?bzd4Z0JEUkd3dkFiM2Nrd0dLQjZGaVQ0U0Z5dnB5Ny9MSEE1WTBZNXBmcFQw?=
- =?utf-8?B?V1JCUlNocHZNejlQWnE4T0tyd2ZoVUVwVFVmWmcyWnI3eGs0OVNWazRpd0lM?=
- =?utf-8?B?bU1hSFc0TlFtNmlydW1WUHd0SEVIS3dQTFZwOWFkWTNHY3NKUitmSWQ1Skgz?=
- =?utf-8?B?SDIxb1NUdk13aEFIeDlKL2wwdDJpZm45Q25ZemVMdjBZc3AvQ2V4REUramNq?=
- =?utf-8?B?aG9xTnF3cG1mbCs1VnhSU25IenZZL1NNb1BTNnJtQURnaWZ5ekJZY0JSaG5x?=
- =?utf-8?B?bGN2TFpVVjViZStPRURTMjIwODY1ZUQxRmo4Riswbm9ENDU2aFEwUCt2cHhq?=
- =?utf-8?B?VUNteWxjdzBOSXQrM0NjTW5iQ1JteFhRUUxES2ZXL3RwQVQraEZOUEF0QUVP?=
- =?utf-8?B?ZzZ4ZDRWNmhrRkJZdkw2aitPYWJoK1JyWkpsbnljaS9YbVdjL1VCOURoRE91?=
- =?utf-8?B?dlVIbVlyN3owMkpJNm80bmEvUEl5ejhhOFJqVloxeXZjQnhSQWc5YjAxK2dh?=
- =?utf-8?B?clN5c2JBUGhiNjJjd3V5eGs5eVduOHZzc3BjdUJUY1p5ZFRUd2hKVHFoZ2ZH?=
- =?utf-8?B?bks0VmVYZmtiVy8rcTJhenVCR1JFUkdPc2FXZjBnU21XL0I2Wk1UY1JKTlIz?=
- =?utf-8?B?OXVLbitnMm5RbHZNV3FlUE5RUjg2TkhFY3VhTk51TlNBUDcyRDhhSC9KSHg2?=
- =?utf-8?B?dVhCd05kSXFNVkJtS0ErRFpWL1BCMHdQbldhbnhFekZJMTAwZThxWjkyT1px?=
- =?utf-8?B?b2tNNUZubkhOTm1kNmRzK2ZROGwwZ0Y3STNKbkszNWptek5yOUpLc0pzOHRW?=
- =?utf-8?B?QmlmTENpN0RsYUwvQ0JNWVBHSFo4a1JDZEEyU2Y4YzdNb1lpUnVZdTlGUjZO?=
- =?utf-8?B?allkdysyOEtGc1JqbkRmNVlLR3o3c3c2cURQc1FuNFIvRllwOE94Mks2R0Vn?=
- =?utf-8?B?UzdDMWhGYzlqaDB2SnVlMTJFa3R6RFVZSWhYOWlDdTZadnhLY2VzeWdhUzR0?=
- =?utf-8?B?U3pTM0xCb05TNDdSUGlqN1V6U1EzK0NmYi9Jektacnd2cldiSHFhU1FYTjMv?=
- =?utf-8?B?S3J2TlFaMHlQL2RYN3NlazZHWFk5SUh0WWx2WVpyOGpZcHVuME1MMmZLNXJy?=
- =?utf-8?B?c01UMTR5bGZybW1XZEcrSExGaDdjMkx3T1Z1NDgwL29aV2ZYWGFyMG9HZG40?=
- =?utf-8?B?bXViZUdRQ0MzRVhURWFPRXJtM2RyL0R4U0o4UWFsV1pYcjhEVWdoZ0Zsekth?=
- =?utf-8?B?R0lIQlZ6VG9IbWF1VU9TWTk3RzdqcWxQUkw1QzVpTFVmKy9DNkJLbXFmdHEx?=
- =?utf-8?B?SDc2N1dPb0xlcVIzYWp6NFcrUndCWE45ZDZTRTlvUnEyUjBNeHh6VENBcUVE?=
- =?utf-8?B?L3VVSzc1MTFJMFBHTjBHeCthNGNPUktsVW9UQlpYV1RvbGJDUzNuOVpmZE1F?=
- =?utf-8?B?OC9KaENhZHNwdGlZLzNHOXI4Qkd2WWozTTZTMTQ3RWFETkVmZ2NrNUhrZ0Yw?=
- =?utf-8?B?N0NEdE5WRVlPcDZQYnNSVG9MbktETXFEY1ROaS9DbnBvUEVVMjk3YU9XakxZ?=
- =?utf-8?B?WlA0ejcwQ3hsTGJXWHdDdFl5U2dReGoraktTNk1HS0I2WGtDS3BNY3h4bHVw?=
- =?utf-8?Q?WQzBlGTg1FnAQE9Y=3D?=
-X-OriginatorOrg: lecomputing.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 7c5c4881-bbaa-4c33-750c-08deb6477251
-X-MS-Exchange-CrossTenant-AuthSource: BJSPR01MB0707.CHNPR01.prod.partner.outlook.cn
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 20 May 2026 08:11:51.2514
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 3591a018-3909-4ea2-aee8-843d5abaed8d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 2rpoCh4+llJVsIg5yDyN6otvsRMz/IyfhTD/4W1zw9SrDniRwL9SnSGYarg0crh8NJHyO0kVysAzXTbaCUiJ3cbsiiMEAOvqQp55BpoJd9I=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BJSPR01MB0755
+X-stable: review
+X-Patchwork-Hint: Ignore
+X-stable-base: Linux 7.0.9
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-This patch series adds ACPI identification for LECARC SoCs that
-integrate Synopsys DesignWare peripherals.
+From: Niels Franke <nielsfranke@gmail.com>
 
-LECARC platforms use the following ACPI HIDs:
+[ Upstream commit 9998e388be9930c106eb5904c23ecf2162407527 ]
 
-GPIO: LECA0001 (V1 register offsets)
+The ELAN0678 touchpad (04F3:3195) found in the Lenovo ThinkPad X13
+exhibits excessive smoothing when the I2C bus runs at 400KHz, making
+the touchpad feel sluggish when plugged into AC power. This is the
+same issue previously fixed for ELAN06FA.
 
-SPI: LECA0002 (requires custom init function)
+The device's ACPI table (Lenovo TP-R22) specifies 0x00061A80 (400KHz)
+for the I2cSerialBusV2 descriptor. Forcing the bus to 100KHz eliminates
+the sluggish behavior.
 
-I2C: LECA0003
+Signed-off-by: Niels Franke <nielsfranke@gmail.com>
+Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+[wsa: kept the sorting]
+Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
 
-The patches are independent but share a common dependency on the
-ACPI description file (acpi_apd.c) for SPI and I2C. To avoid merge
-conflicts, they are submitted as a single series with the following
-order:
+LLM Generated explanations, may be completely bogus:
 
-Patch 1: GPIO – add LECA0001 to dwapb_gpio ACPI match table.
-Patch 2: SPI – add LECA0002 and dw_spi_lecarc_init() to spi-dw-mmio,
-plus corresponding entry in acpi_apd.c.
-Patch 3: I2C – add LECA0003 to DesignWare I2C ACPI match table,
-plus corresponding entry in acpi_apd.c.
+## Phase 1: Commit Message Forensics
 
-All changes have been tested on LECARC evaluation board with
-kernel v7.0.0-rc7. No regressions observed on existing hardware.
+Step 1.1 - Subject:
+Record: Subsystem `i2c: acpi`; action verb `Add`; intent is to add ACPI
+HID `ELAN0678` to the existing 100 kHz forced-speed quirk table.
 
-Changes since v1:
+Step 1.2 - Tags:
+Record: `Signed-off-by: Niels Franke <nielsfranke@gmail.com>`; `Acked-
+by: Mika Westerberg <mika.westerberg@linux.intel.com>`; maintainer note
+`[wsa: kept the sorting]`; `Signed-off-by: Wolfram Sang
+<wsa+renesas@sang-engineering.com>`. No `Fixes:`, `Reported-by:`,
+`Tested-by:`, `Link:`, or `Cc: stable@vger.kernel.org` tags.
 
-- Revised subject lines to match subsystem style guidelines
-- No functional changes
-- All the comments from reviews has been fixed
+Step 1.3 - Body:
+Record: The bug is real hardware misbehavior: ELAN0678 touchpad
+`04F3:3195` on Lenovo ThinkPad X13 becomes sluggish/excessively smoothed
+when ACPI-described I2C speed is 400 kHz. The commit says forcing 100
+kHz eliminates it. Root cause is a bad/not-working speed choice for this
+device, matching the earlier ELAN06FA workaround.
 
-Changes since v2:
-- Wrap long commit description lines to 72 columns
-- Fix code indentation in spi-dw-mmio.c: use tabs + spaces for alignment
-- No functional changes
+Step 1.4 - Hidden bug fix:
+Record: Yes. Although phrased as “Add”, this is a hardware
+workaround/quirk for a user-visible input-device malfunction, not new
+feature work.
 
-Changes since v3:
-- Start a new thread for each revision
+## Phase 2: Diff Analysis
 
-Thomas Lin (3):
-  gpio: dwapb: Add ACPI ID LECA0001 for LECARC SoCs
-  spi: dw-mmio: Add ACPI ID LECA0002 for LECARC SoCs
-  i2c: designware: Add ACPI ID LECA0003 for LECARC SoCs
+Step 2.1 - Inventory:
+Record: One file changed: `drivers/i2c/i2c-core-acpi.c`, `+1/-0`. It
+adds `{ "ELAN0678", 0 }` to `i2c_acpi_force_100khz_device_ids`. Scope is
+a single-file, one-line hardware quirk.
 
- drivers/acpi/acpi_apd.c                     | 13 +++++++++++++
- drivers/gpio/gpio-dwapb.c                   |  1 +
- drivers/i2c/busses/i2c-designware-platdrv.c |  1 +
- drivers/spi/spi-dw-mmio.c                   |  7 ++++---
- 4 files changed, 19 insertions(+), 3 deletions(-)
+Step 2.2 - Code flow:
+Record: Before, ELAN0678 used the normal ACPI/min-speed path and could
+run at the 400 kHz speed from firmware. After, when
+`i2c_acpi_lookup_speed()` sees an ACPI device matching `ELAN0678`, it
+sets `lookup->force_speed = I2C_MAX_STANDARD_MODE_FREQ`, causing
+`i2c_acpi_find_bus_speed()` to return 100 kHz.
 
+Step 2.3 - Bug mechanism:
+Record: Hardware workaround. The broken condition is a known-not-working
+I2C bus speed for a specific ACPI HID. The fix reuses the existing
+forced-100-kHz mechanism.
+
+Step 2.4 - Fix quality:
+Record: Obviously correct and minimal. It only affects machines exposing
+ACPI HID `ELAN0678`. Regression risk is very low: affected devices will
+run slower I2C, intentionally matching the verified workaround; all
+other devices are unchanged.
+
+## Phase 3: Git History
+
+Step 3.1 - Blame:
+Record: `git blame` on `origin/master` shows the new line is commit
+`9998e388be993`; the 100 kHz table and `ELAN06FA` handling came from
+`bfd74cd1fbc026`, first contained around `v6.14-rc1`; `DLL0945` came
+from `0b7c9528facdb5`, first contained around `v6.17-rc1`.
+
+Step 3.2 - Fixes tag:
+Record: Not applicable; no `Fixes:` tag is present.
+
+Step 3.3 - File history:
+Record: Recent file history shows related quirks `ELAN06FA` and
+`DLL0945`, plus unrelated treewide allocation conversions. No
+prerequisite structural change is needed where the 100 kHz table already
+exists.
+
+Step 3.4 - Author context:
+Record: Local history shows Niels Franke has this one I2C commit on
+`origin/master`. The patch was acked by Mika Westerberg, listed in
+`MAINTAINERS` as I2C ACPI maintainer, and committed by Wolfram Sang.
+
+Step 3.5 - Dependencies:
+Record: Standalone for stable branches that already have
+`i2c_acpi_force_100khz_device_ids`. For branches lacking the table, it
+depends on the earlier ELAN06FA forced-100-kHz infrastructure.
+
+## Phase 4: Mailing List And External Research
+
+Step 4.1 - Original discussion:
+Record: `b4 dig -c 9998e388be993` found the original submission at
+`https://patch.msgid.link/20260418053719.15766-1-nielsfranke@gmail.com`.
+The mirror thread shows v1 only, Mika Westerberg acked it, and Wolfram
+Sang applied it to `for-current` while keeping sort order. No objections
+or NAKs found.
+
+Step 4.2 - Reviewers/recipients:
+Record: `b4 dig -w` shows recipients included Niels Franke,
+`westeri@kernel.org`, Wolfram Sang, `linux-i2c`, `linux-acpi`, and
+`linux-kernel`. This reached the relevant I2C ACPI maintainer and lists.
+
+Step 4.3 - Bug report:
+Record: No separate `Reported-by` or bug tracker link in the commit. The
+commit message itself documents affected hardware, ACPI table speed, and
+the tested workaround. Web search also found unrelated ELAN0678 user
+reports, but I did not rely on those for the final decision.
+
+Step 4.4 - Series context:
+Record: `b4 dig -a` shows a single v1 patch, not a multi-patch series.
+
+Step 4.5 - Stable discussion:
+Record: Direct lore stable fetch was blocked by Anubis; web search found
+no specific stable-list discussion for ELAN0678. Stable branch git logs
+sampled do not yet contain ELAN0678.
+
+## Phase 5: Code Semantic Analysis
+
+Step 5.1 - Key functions:
+Record: The diff changes only the ACPI ID table, but behavior flows
+through `i2c_acpi_lookup_speed()` and `i2c_acpi_find_bus_speed()`.
+
+Step 5.2 - Callers:
+Record: `i2c_acpi_find_bus_speed()` is called by multiple I2C bus
+drivers, including DesignWare, USBIO, SynQuacer, LS2X, Zhaoxin, and AMD
+MP2. For DesignWare, `dw_i2c_plat_probe()` and PCI probe paths call
+`i2c_dw_fw_parse_and_configure()`, which calls the ACPI speed lookup
+during controller setup.
+
+Step 5.3 - Callees:
+Record: The relevant code calls `acpi_walk_namespace()`,
+`i2c_acpi_do_lookup()`, and `acpi_match_device_ids()`; if matched, it
+returns the forced speed to bus-driver timing configuration.
+
+Step 5.4 - Reachability:
+Record: Reachable during I2C adapter/controller initialization on ACPI
+systems. On affected Lenovo hardware, this path controls the bus speed
+used for the touchpad.
+
+Step 5.5 - Similar patterns:
+Record: Verified sibling quirks `ELAN06FA` and `DLL0945` in the same
+table, both addressing touchpad sluggishness at higher I2C speed.
+
+## Phase 6: Stable Tree Analysis
+
+Step 6.1 - Buggy code in stable:
+Record: Sampled stable branches `5.10.y`, `5.15.y`, `6.6.y`, `6.12.y`,
+`6.15.y` through `7.0.y` already contain the 100 kHz quirk table with
+`ELAN06FA`/`DLL0945`, but not `ELAN0678`. `5.4.y` has ACPI speed lookup
+but not the forced-100-kHz table in the sampled state.
+
+Step 6.2 - Backport difficulty:
+Record: Clean or trivial for branches with both `DLL0945` and `ELAN06FA`
+adjacent. Branches lacking `DLL0945` or the table may need a trivial
+context adjustment or dependency backport.
+
+Step 6.3 - Related fixes already stable:
+Record: Stable branches sampled already carry related ELAN06FA/DLL0945
+quirks, but no ELAN0678 equivalent.
+
+## Phase 7: Subsystem Context
+
+Step 7.1 - Subsystem:
+Record: `drivers/i2c/i2c-core-acpi.c`, I2C ACPI support. Criticality is
+important for affected ACPI laptop hardware, but not universal/core.
+
+Step 7.2 - Activity:
+Record: File history shows active maintenance and recent hardware quirk
+additions. The patch was accepted through the I2C maintainer path.
+
+## Phase 8: Impact And Risk
+
+Step 8.1 - Affected users:
+Record: Users of systems exposing the ELAN0678 ACPI touchpad,
+specifically verified by commit message for Lenovo ThinkPad X13.
+
+Step 8.2 - Trigger:
+Record: Triggered when the I2C bus is configured at 400 kHz for this
+device, including via the Lenovo TP-R22 ACPI `I2cSerialBusV2`
+descriptor. This is normal boot/device setup, not an obscure manual
+path.
+
+Step 8.3 - Severity:
+Record: Medium severity user-visible hardware malfunction: sluggish
+touchpad/input behavior. Not a crash, security issue, or data
+corruption.
+
+Step 8.4 - Risk-benefit:
+Record: Benefit is high for affected laptops because it restores usable
+touchpad behavior. Risk is very low because it is a one-line ACPI HID-
+specific quirk using existing logic.
+
+## Phase 9: Final Synthesis
+
+Step 9.1 - Evidence:
+Record: For backporting: real hardware bug, existing quirk mechanism,
+one-line scoped change, maintainer ack, accepted by I2C maintainer,
+stable branches already carry analogous quirks. Against backporting: no
+explicit stable tag, no separate bug report link, not a critical
+crash/security fix. Unresolved: exact applicability to every older
+stable branch; `5.4.y` would need more than this one-line context.
+
+Step 9.2 - Stable rules:
+Record: Obviously correct: yes. Tested: commit states forcing 100 kHz
+eliminates the issue, though no `Tested-by` tag. Real bug: yes, touchpad
+sluggishness. Important enough: yes under hardware quirk/workaround
+practice. Small/contained: yes, one line. No new APIs/features: yes.
+Applies to stable: yes for branches with the existing table; trivial
+adjustment/dependency for older divergent branches.
+
+Step 9.3 - Exception:
+Record: This falls squarely under the stable hardware quirk/workaround
+exception.
+
+Step 9.4 - Decision:
+Record: Backport. The risk is tiny and the fix is exactly the sort of
+targeted hardware workaround stable trees routinely carry.
+
+## Verification
+
+- Phase 1: Parsed `git show --format=fuller --stat --patch
+  9998e388be993`; confirmed subject, body, tags, and one-line diff.
+- Phase 2: Read `drivers/i2c/i2c-core-acpi.c`; confirmed
+  `i2c_acpi_force_100khz_device_ids` is checked by
+  `i2c_acpi_lookup_speed()` and returns 100 kHz through
+  `i2c_acpi_find_bus_speed()`.
+- Phase 3: Ran `git blame` on the relevant lines; confirmed commits for
+  `ELAN06FA`, `DLL0945`, and `ELAN0678`.
+- Phase 3: Ran `git describe --contains`; confirmed first-containing
+  release positions for related mainline commits.
+- Phase 4: Ran `b4 dig -c`, `b4 dig -a`, and `b4 dig -w`; found original
+  v1 submission, no later revisions, and relevant recipients.
+- Phase 4: Fetched the public mirror thread; confirmed Mika Westerberg’s
+  ack and Wolfram Sang’s application note.
+- Phase 5: Used semantic search, `rg`, and file reads; confirmed
+  DesignWare and other I2C bus drivers call `i2c_acpi_find_bus_speed()`.
+- Phase 6: Used `git grep` and stable branch logs; confirmed sampled
+  stable branches contain related forced-speed quirks but not ELAN0678.
+- Phase 8: Failure mode is verified from the commit message and lore
+  thread: sluggish/excessively smoothed touchpad at 400 kHz, fixed by
+  100 kHz.
+- UNVERIFIED: Direct `lore.kernel.org/stable` content was blocked by
+  Anubis, so I could not independently inspect stable-list discussion
+  there.
+
+**YES**
+
+ drivers/i2c/i2c-core-acpi.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
+index 2cbd31f77667a..28c0e4884a7f2 100644
+--- a/drivers/i2c/i2c-core-acpi.c
++++ b/drivers/i2c/i2c-core-acpi.c
+@@ -371,6 +371,7 @@ static const struct acpi_device_id i2c_acpi_force_100khz_device_ids[] = {
+ 	 * a 400KHz frequency. The root cause of the issue is not known.
+ 	 */
+ 	{ "DLL0945", 0 },
++	{ "ELAN0678", 0 },
+ 	{ "ELAN06FA", 0 },
+ 	{}
+ };
 -- 
-2.43.0
+2.53.0
 
