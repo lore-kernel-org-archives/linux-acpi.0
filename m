@@ -1,35 +1,39 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mail.zeus03.de (zeus03.de [194.117.254.33])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C1053EE1C0;
-	Wed, 20 May 2026 15:24:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50D583FC5B5
+	for <linux-acpi@vger.kernel.org>; Wed, 20 May 2026 17:11:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=194.117.254.33
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779290661; cv=none; b=gU8+cShO2gqocxNcRUEhX12ufx9PNtGKMx7Tl1AZ1/3K3uuZsbsVr+zXFG8eYSo6VJyDfYWHn8lSiMv5NPMwqCk+9TmkHasYpiHka5CasdeP8ru9E5RKZZovQIqbbLMI7dks0iEzv4I+YazKcF1JZciDzj/VS1VLCobGuD2lGV8=
+	t=1779297105; cv=none; b=aSxaRg1dWShRSOdMtckWBCFxdX7lkuSP6X7I5vvNZxu6GWGjRFEae/Q7PRwzj8IIxe9RJAIMsL68hIQ4sKIUMEa2h5ULeYPMxJELwR057JUO6uWHGXoiwu40TZK4txXPjKdIPV9N2Qq3Mpj613sVS/HG05LPlxeo4e/V/EG8Kpg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779290661; c=relaxed/simple;
-	bh=HCXAt+/CjoO40ifbH4DOvSdJDWcFojBTxr7q96nrv1M=;
+	s=arc-20240116; t=1779297105; c=relaxed/simple;
+	bh=k2Q85aaymmwbOsFUcDfL90XgQNjxC7S86f5E332dBT0=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=KpK8f0IT9bN6/3ac1aAK+wWB5zPhCG7j6Wwr7z7GExoy/9zyLXpQsgTrGJWbmNb5q91XGCQjXpCEpoYqgkNkWUSSiwVAAHz6VywQNURB/T/1DISDrVcJtOvaHsYt1RNoLtMVrO0ItoGNKhScZMKC/NKK1lI4Qj/ZqO8uRto890k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Tx92Vuby; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=G2NeGjx2PkvPb5/9KYq1qzaX6N2ZNMpI523u1C8c+KHK8eaAKuRebtxWBIiC/Uhy1zIeccvLQMGUMbtWMAOEckwOhv0Hnk+FBzF42yKnQPuhbcWEmjA/3lAqCOCiSigkI2ffYIZqDcreO9eeNrzM/ruEQtO3OxIr18OxQvJhDsU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sang-engineering.com; spf=pass smtp.mailfrom=sang-engineering.com; dkim=pass (2048-bit key) header.d=sang-engineering.com header.i=@sang-engineering.com header.b=Y296BHC3; arc=none smtp.client-ip=194.117.254.33
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sang-engineering.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sang-engineering.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Tx92Vuby"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81CF41F000E9;
-	Wed, 20 May 2026 15:24:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1779290660;
-	bh=HCXAt+/CjoO40ifbH4DOvSdJDWcFojBTxr7q96nrv1M=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=Tx92VubyKRg+ITGsogm/sdyuVtRiJxs2ebmJBL67P52zRzrwF5ZZtXATvU/MCptjW
-	 UHmX6NMRPQESqonMF+PSlGJf3NxQ/7LrTd8cIzbOaRvDO3yrGl8VHiYmR100/AoVyo
-	 MSZ3RcEHAIzdh3mhL2KtwxKT7m5bACq+ltB5jNpYaIh1Fhu9OgFof37lcjpaEbpOSg
-	 sFTTfGJbB3iW5CddMLEaBCNpXa39fQ7YpzoRsE9vzqK/h0bbXGmU1n7w95YSAB+9ea
-	 v7W8ZSyvk2/S+b8tRNyWD3DUBLYdSQjlMtNhvxc9y/+CJSjDNEngYUyiWHfK3FNAb2
-	 4FjMf/tCl/rPg==
-Date: Wed, 20 May 2026 16:24:12 +0100
-From: Mark Brown <broonie@kernel.org>
-To: Bartosz Golaszewski <brgl@kernel.org>
-Cc: Thomas Lin <thomas_lin@lecomputing.com>, rafael@kernel.org,
+	dkim=pass (2048-bit key) header.d=sang-engineering.com header.i=@sang-engineering.com header.b="Y296BHC3"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	sang-engineering.com; h=date:from:to:cc:subject:message-id
+	:references:mime-version:content-type:in-reply-to; s=k1; bh=k2Q8
+	5aaymmwbOsFUcDfL90XgQNjxC7S86f5E332dBT0=; b=Y296BHC3Gsjhe5skVNgE
+	H6oDtoQ1RYqb18IlBp1n8AMwTTnD+GRtdGsOsxe6+aajqa+ExVbfiV1lo302IFKi
+	7bIuLzsRRGwy9k8/Hr/oKF/eW8lAMzfluJDri9bDEIsbSKYMZC3NKydy8/hzcJ9/
+	nlZaBKRox7EZrotRdW1dv9HXIAsTXLJVvKugqAw3F0ZU9yW/k94ExoHKfeFCQ2OS
+	PBXD6uN2wGXy7WfOFoxcPODyhMolR/3bdo20ojPcwKrouhJXuu2I+AXmGAwDda9f
+	Qh4u4iYclP8FIRX7DlpjFI0BKqOH9HtmU+vS9ovGA/v0ClNuFzfS8PVXHxWRcxVw
+	fg==
+Received: (qmail 744310 invoked from network); 20 May 2026 19:11:39 +0200
+Received: by mail.zeus03.de with ESMTPSA (TLS_AES_256_GCM_SHA384 encrypted, authenticated); 20 May 2026 19:11:39 +0200
+X-UD-Smtp-Session: l3s3148p1@b8KO40JS3TttKXAe
+Date: Wed, 20 May 2026 19:11:38 +0200
+From: Wolfram Sang <wsa+renesas@sang-engineering.com>
+To: Mark Brown <broonie@kernel.org>
+Cc: Bartosz Golaszewski <brgl@kernel.org>,
+	Thomas Lin <thomas_lin@lecomputing.com>, rafael@kernel.org,
 	lenb@kernel.org, hoan@os.amperecomputing.com, linusw@kernel.org,
 	mika.westerberg@linux.intel.com, andriy.shevchenko@linux.intel.com,
 	jsd@semihalf.com, andi.shyti@kernel.org, linux-acpi@vger.kernel.org,
@@ -42,10 +46,11 @@ Cc: Thomas Lin <thomas_lin@lecomputing.com>, rafael@kernel.org,
 	will_zhang@lecomputing.com, aurora_jiang@lecomputing.com,
 	ryen_lin@lecomputing.com, andy_jiang@lecomputing.com
 Subject: Re: [PATCH v4 1/3] gpio: dwapb: Add ACPI ID LECA0001 for LECARC SoCs
-Message-ID: <cc8dc59e-fc00-4f7b-9f24-467c670c5615@sirena.org.uk>
+Message-ID: <ag3rSq-gx5bruPNW@shikoro>
 References: <20260520081140.637637-1-thomas_lin@lecomputing.com>
  <20260520081140.637637-2-thomas_lin@lecomputing.com>
  <CAMRc=MfM38h=zJU5Uy7zu9pigjb-XBAteBhUmvMAKZRWHGZNKA@mail.gmail.com>
+ <cc8dc59e-fc00-4f7b-9f24-467c670c5615@sirena.org.uk>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -53,37 +58,46 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="5NSLdtwUqjJNFgrs"
+	protocol="application/pgp-signature"; boundary="C43eFg3inUFmpyWE"
 Content-Disposition: inline
-In-Reply-To: <CAMRc=MfM38h=zJU5Uy7zu9pigjb-XBAteBhUmvMAKZRWHGZNKA@mail.gmail.com>
-X-Cookie: Natural laws have no pity.
+In-Reply-To: <cc8dc59e-fc00-4f7b-9f24-467c670c5615@sirena.org.uk>
 
 
---5NSLdtwUqjJNFgrs
+--C43eFg3inUFmpyWE
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Wed, May 20, 2026 at 05:15:12PM +0200, Bartosz Golaszewski wrote:
+On Wed, May 20, 2026 at 04:24:12PM +0100, Mark Brown wrote:
+> On Wed, May 20, 2026 at 05:15:12PM +0200, Bartosz Golaszewski wrote:
+>=20
+> > I'm not sure about how to interpret the cover letter - is it fine to
+> > take this independently through the GPIO tree for v7.2?
+>=20
+> AFAICT any dependency that exists is runtime only, it's just a bunch of
+> quirks and none of the patches touch header files.
 
-> I'm not sure about how to interpret the cover letter - is it fine to
-> take this independently through the GPIO tree for v7.2?
+Patch 3 depends on patch 2. So, maybe it can go all in via GPIO?
 
-AFAICT any dependency that exists is runtime only, it's just a bunch of
-quirks and none of the patches touch header files.
 
---5NSLdtwUqjJNFgrs
+--C43eFg3inUFmpyWE
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAmoN0hwACgkQJNaLcl1U
-h9B4TAf9FeEYqiA5zs8sL3fVdufh7wG+xHcOTo3HDGkHEmUaPW5nY9BGeUTdt/YX
-4cZikl0ZCXB8zMPboEVPri3ud0F7fd7fM8R68IWQQ0l9y9xpDVa9zkazDRNVfeVy
-p4FJ7U7bKuaSCtqgG+Xi10wwWdYVj50FZ+gAk3+aNnxAwPj5qwBeo7u21Xh5A9lB
-HiuoP+wFZjIMop7yJLE59ZaMSH8qKU9Ky0SiRgexJdjApSPSm2VKFTfzsfkWyEWu
-jmP5UmvH8a0PROx4A2FskHkp4MoScZ8oMdC0HfcjEh7OyWfUgw9pmkfHikBwrsEP
-u3HPdCLUkZSC/8e7860Y7BvabOcDgA==
-=EnsO
+iQIzBAABCgAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAmoN60YACgkQFA3kzBSg
+KbZuWg/7B0Oyzh9DcRFzHGW1LOVv+kxrLl+xW5SlGK4be3TLyZh64SFUzEsyJbCj
+fXK4DX/kR1DKWKdwpmF7DoI/8n3EpVzF/kH52/HU3P0zpcH5PwnudVyHL/Pscg9d
+D9iKbEamsC5F+dPI4/V6xWDqWfjXNgKe5aO/w/SnLHbIo7ClF5BKyAzYulUWqOcE
+9BuSj14mk7uAwok6Y9k9gsr/yNpBU9R3mpp9VvS7JKATH7FWnxv8Q16jWnXNVl77
+V6M+priqzlBg0CeTEdtnpVY+6XwDt66axEtG/TgjAk8FIxSDebTAdTgKuL9Eo+uW
+H/r6+G13vZdP7jQHj8obnlOOLJMLQOsIHUKIfJFiaXMXylStCqSCerVBbh3GATHw
+4rxOnYOc4AXeARWNroecJXTZgwUfhlP01LliWAYeEDGAaj6O4lAbOCvFTBXROxWY
+cDI8O9+je/Pz4RjnIWN6K8Y0YVB8vrEE5dXrvW4z08k+MffDeIB8Kw+rUKx62FSx
+RP0pYTkD6zxZ0QamBA0woPfsWu3FCenPCOU/+h/tLXBBHJDWSoTtTgiDNcqvXn5c
+fONzPtn0rHr+Q1yv8dgozrF0xXMvx+ausJSCWcTV6KaCVs1Z+CckjTdg4pyHcs0A
+X1zzOEefVJIc8+LVcLAa/LB5uY9UTGsQyI9CFWvGWHsemIDVdjw=
+=mm9A
 -----END PGP SIGNATURE-----
 
---5NSLdtwUqjJNFgrs--
+--C43eFg3inUFmpyWE--
