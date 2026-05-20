@@ -1,156 +1,267 @@
-Received: from mail-dl1-f54.google.com (mail-dl1-f54.google.com [74.125.82.54])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from out30-100.freemail.mail.aliyun.com (out30-100.freemail.mail.aliyun.com [115.124.30.100])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6F8133DED9
-	for <linux-acpi@vger.kernel.org>; Wed, 20 May 2026 05:27:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.54
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D66713546CB;
+	Wed, 20 May 2026 05:55:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.100
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779254864; cv=none; b=U73vHLYdWqOvHjuc62bznWuNlh/n1vAS2o077Umeg7Y6+VAy+3C4BGU4W5xg3VKNKZzXJ9AsysJUSkRaGu+2BM7tDmDCV46d1P9LPxBczee5hj1Gpud03XQjfbE7YS8U6/0+GhyggX5MDcFLmulWutSiYJm+w6MJBFHYODvvTOA=
+	t=1779256508; cv=none; b=pC+5RNNskBc4Emwy1IpE1kwEzGTd9M1M68KTw7P+8v9KR2z/4MIZwpSa4ow6RxguXL+zMo6PgVlzYB92KxuD/ZW7dXRwC7TzFJc8i+9ymoJCk4e+kEpm+aE9KMzC6JMaASFKUtfQoiCJGrfkB8PHUdXelTIvp7xwDmQPNPQj8CU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779254864; c=relaxed/simple;
-	bh=l0zRM2r+AQUNnb8A268apqaIB3mS80ht+d+1M1KKNFE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=K3lZUOO+ZcgWk6xGJcoPBdU9PczCMMdq4SLwS5MvoDve6/i0WTAQkSZ8icAT1D00TaCluG4ovA/o4FoW1rSa9gavxsfMuDrVfPdY9PPM0uNbYyaRIEKAXM7cQDHmaXxqQuo/FJicFSG/kZL6QBsyzC1wGQfCp16tkQDUoCYlk0U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=VYNJtPac; arc=none smtp.client-ip=74.125.82.54
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1779256508; c=relaxed/simple;
+	bh=9vRTrtgP4u/BymLLAeZUbCGTpbUypIKMl/yWHBf8UZQ=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=HpTmPPwwdZDhXZpG/oYMR6m3ICjHzsJW4ZXbX/01GWBttKUVBvzSrFbJ6+tydOHSw7fW4V2HBTWLE39Ogc9wJYGHx9s7MuPLSTuUdJhGyVjL9RXfX4dOBZqGd+6hz2m3O1yY5T/aOKJZvavX0ULeBWZSqd2hM9NmAwIvdRqaOKQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=onRhW8hC; arc=none smtp.client-ip=115.124.30.100
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="VYNJtPac"
-Received: by mail-dl1-f54.google.com with SMTP id a92af1059eb24-12ddbe104ccso3128059c88.0
-        for <linux-acpi@vger.kernel.org>; Tue, 19 May 2026 22:27:42 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1779254862; x=1779859662; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=tWnObvvYz2jxVvNJZ4O4Otjd3qRMPJxYo5uUEck8zsM=;
-        b=VYNJtPacffiX92QpyrOU3Lyjiq8y8ThCuoAAkgBCYCptHiXE1n9o72gsaMSUmdzi+C
-         3RCRowkltdAC1/1x2ZA5jwW6rbRQYvxJ9x1v0xrJMOqh7uLemCY5uJH8ve7LsEjNnGlx
-         oV0KNVE0D9y9v/fOltAdg2TFCxTy/Q8GoUQ4QhZld4mXawtyqQkdnTakHz5gIEfuZOd4
-         do6LRUIsh+oDtslTnLsjYvUQC6neJwikmm40m8oCBmcDcJv1ZGZmLZrldMqY33lxxRQQ
-         laXNIk/ukJBcX2qLKsBrLmT/XTSnOB99uU5iOuZZS8ZGXpoL05YHG1w6L/BoiN7/7QIn
-         rjLA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779254862; x=1779859662;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=tWnObvvYz2jxVvNJZ4O4Otjd3qRMPJxYo5uUEck8zsM=;
-        b=sm/uxCTJ2AiKeIjdtEKR59fdBN/1p1Fjb+WxmZa7Be4waSfLIsPCM22NnKO7iG80Pa
-         mCI0/lwSe2Y9+WMmWKoMSoKRLx/xKGitfptNUEUbaXqTDOja8p2DIZbrMVAWYrg+HGhs
-         mCwyoZG8o+6ipxLT6dksW2NkJBfEzTJ6qD+U3Vnx3dGVkRe917PAXv7Peyx3JmWhN523
-         IahG+csA6u7ZGahZ/dCST3u+CZC2TVAApU/owhdwVjyY/cxLCQnA7P9SuGbMjN/eZ61h
-         4igGIY40Y+vW+s0Iwnyvj0UmWOMYTx/vfKlWRsXn0zsgsne9x6qhrjGHnBl7mCWNqLFV
-         HmQQ==
-X-Forwarded-Encrypted: i=1; AFNElJ8PRRocWviUzh68BktSbACVXhUws3taKoQQKGIudlvW2IgrLwh0xtG5V3iBP5HLiIONRrO1tvQsIqTw@vger.kernel.org
-X-Gm-Message-State: AOJu0YyaWRc0iyeqWL1B+VPT8MLOqavXr5ekk+W6w3LkvIJImu8HTnI5
-	Bj1iNAgO9CHhPMzTrT6RFc7tSzubW3m0q/sUtK1xwBs7Mkm7q2kCUuoi
-X-Gm-Gg: Acq92OEEfpFdGhTPEMTAUIJNv1cZ3JivkCFYeK9WYQRJdDR7PI14OnihzqVVi86xZNo
-	KIhol/yS9DP7PogilrklzfduRoO4ggs9RqOrwDkIEQBiYvWKFCDC1h/AsEyZyUCp40MU1oslg6B
-	pRQLz5qk3AhhZdGnDLFowXRxNYNtDMiiQkoH+Dq/xxr5GOmFvadhkuGvBTJJSFtwUmUwNYXkRzi
-	dJKOZBJjgdnZHp2PBYSfbjSJBkIPUJzzXJl2kXdpG8MX2+LJ1RFYlBNOQayKxVMNAJVqtG0Hjwq
-	CFlZ9XIp2Z8DwCuuP//dahUaALYfArYWDqE2tj/9Sd74/4/rG+N72pPvqeO/6qCtmg21aiCe2iH
-	pfLTzEYgoSQXfJz/WVD5Qnf3QIqYgJDxqPHMT2sqzts/GGDkwfqkrjAYWUMnse0oOU9+i8JLrI/
-	oWtaDvF2BFux8As/kZF2wz6x0ATIB/uaDWsXhMSdBoZVvSo2yLvo1iigtMsUoilRVX
-X-Received: by 2002:a05:7022:e14:b0:135:d5d1:514 with SMTP id a92af1059eb24-135d5d1061cmr2290514c88.14.1779254861871;
-        Tue, 19 May 2026 22:27:41 -0700 (PDT)
-Received: from google.com ([2a00:79e0:2ebe:8:7677:c3e6:c92a:e780])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-134cbdcf140sm25863329c88.5.2026.05.19.22.27.40
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 19 May 2026 22:27:41 -0700 (PDT)
-Date: Tue, 19 May 2026 22:27:37 -0700
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Cc: Linus Walleij <linusw@kernel.org>, 
-	Bartosz Golaszewski <brgl@kernel.org>, Geert Uytterhoeven <geert+renesas@glider.be>, 
-	Frank Rowand <frowand.list@gmail.com>, Mika Westerberg <westeri@kernel.org>, 
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, 
-	Janusz Krzysztofik <jmkrzyszt@gmail.com>, Tony Lindgren <tony@atomide.com>, 
-	Russell King <linux@armlinux.org.uk>, Jonathan Corbet <corbet@lwn.net>, 
-	Shuah Khan <skhan@linuxfoundation.org>, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, 
-	linux-doc@vger.kernel.org
-Subject: Re: [PATCH v2 5/6] gpio: remove machine hogs
-Message-ID: <ag1GJygtLgngKQqj@google.com>
-References: <20260309-gpio-hog-fwnode-v2-0-4e61f3dbf06a@oss.qualcomm.com>
- <20260309-gpio-hog-fwnode-v2-5-4e61f3dbf06a@oss.qualcomm.com>
- <ag0Dn66ZVnbTc7J2@google.com>
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="onRhW8hC"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1779256498; h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type;
+	bh=xMPSO73IWGk2hZS1TCz+JCCfIYv2zI+oGe5qmaNSKhE=;
+	b=onRhW8hC1y9LvGCZijPIJx+wY/3cI+tziYNtQmRHcyeTFZmliEho31VmMxz1QmRDFLDcNvqipEuNsgrBJ6EGwfYC6qG4Iu4rv1pCo2khDc5XlQgIffI42JnL3+JriJmFACScCHn07d9Ry0rdGiv/aIO0eCxznpaQSOghSlc9/F4=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R161e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033045133197;MF=tianruidong@linux.alibaba.com;NM=1;PH=DS;RN=21;SR=0;TI=SMTPD_---0X3Hek0d_1779256496;
+Received: from 30.74.144.211(mailfrom:tianruidong@linux.alibaba.com fp:SMTPD_---0X3Hek0d_1779256496 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Wed, 20 May 2026 13:54:57 +0800
+Message-ID: <3715e240-0a86-4011-a55b-a8b6d85ac4a1@linux.alibaba.com>
+Date: Wed, 20 May 2026 13:54:56 +0800
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ag0Dn66ZVnbTc7J2@google.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 0/8] ras: aest: extend AEST support to Device Tree
+ frontend
+To: Umang Chheda <umang.chheda@oss.qualcomm.com>,
+ Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>,
+ Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>,
+ Conor Dooley <conor+dt@kernel.org>, Bjorn Andersson <andersson@kernel.org>,
+ Konrad Dybcio <konradybcio@kernel.org>, catalin.marinas@arm.com,
+ will@kernel.org, lpieralisi@kernel.org, rafael@kernel.org,
+ mark.rutland@arm.com, Sudeep Holla <sudeep.holla@kernel.org>
+Cc: linux-arm-msm@vger.kernel.org, linux-acpi@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-edac@vger.kernel.org,
+ linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+ Faruque Ansari <faruque.ansari@oss.qualcomm.com>
+References: <20260505-aest-devicetree-support-v1-0-d5d6ffacf0a5@oss.qualcomm.com>
+ <8f1529af-f6fe-44bc-a4b1-c47a19824d1e@linux.alibaba.com>
+ <f95584f8-220f-4bd1-a189-dc05ffd2a9bc@oss.qualcomm.com>
+From: Ruidong Tian <tianruidong@linux.alibaba.com>
+In-Reply-To: <f95584f8-220f-4bd1-a189-dc05ffd2a9bc@oss.qualcomm.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-On Tue, May 19, 2026 at 05:46:50PM -0700, Dmitry Torokhov wrote:
-> On Mon, Mar 09, 2026 at 01:42:41PM +0100, Bartosz Golaszewski wrote:
-> > With no more users, remove legacy machine hog API from the kernel.
-> > 
-> > Reviewed-by: Linus Walleij <linusw@kernel.org>
-> > Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> > Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-> 
-> Argh! What is the replacement for this? I have patches for rsk7203 to
-> use them to get rid of legacy gpio use, like this:
-> 
-> diff --git a/arch/sh/boards/mach-rsk/devices-rsk7203.c b/arch/sh/boards/mach-rsk/devices-rsk7203.c
-> index f8760a91e2f1..5bbd3b31cffb 100644
-> --- a/arch/sh/boards/mach-rsk/devices-rsk7203.c
-> +++ b/arch/sh/boards/mach-rsk/devices-rsk7203.c
-> @@ -12,7 +12,7 @@
->  #include <linux/smsc911x.h>
->  #include <linux/input.h>
->  #include <linux/io.h>
-> -#include <linux/gpio.h>
-> +#include <linux/gpio/consumer.h>
->  #include <linux/gpio/machine.h>
->  #include <linux/gpio/property.h>
->  #include <asm/machvec.h>
-> @@ -165,6 +165,19 @@ static const struct platform_device_info rsk7203_devices[] __initconst = {
->  	},
->  };
->  
-> +/* The base of the function GPIOs in the flat enum */
-> +#define SH7203_FN_BASE GPIO_FN_PINT7_PB
-> +
-> +static struct gpiod_hog rsk7203_gpio_hogs[] = {
-> +	GPIO_HOG("sh7203_pfc-fn", GPIO_FN_TXD0 - SH7203_FN_BASE,
-> +		 "TXD0", GPIO_ACTIVE_HIGH, GPIOD_ASIS),
-> +	GPIO_HOG("sh7203_pfc-fn", GPIO_FN_RXD0 - SH7203_FN_BASE,
-> +		 "RXD0", GPIO_ACTIVE_HIGH, GPIOD_ASIS),
-> +	GPIO_HOG("sh7203_pfc-fn", GPIO_FN_IRQ0_PB - SH7203_FN_BASE,
-> +		 "IRQ0_PB", GPIO_ACTIVE_HIGH, GPIOD_ASIS),
-> +	{ }
-> +};
-> +
->  static int __init rsk7203_devices_setup(void)
->  {
->  	struct platform_device *pd;
-> @@ -172,12 +185,10 @@ static int __init rsk7203_devices_setup(void)
->  	int i;
->  
->  	/* Select pins for SCIF0 */
-> -	gpio_request(GPIO_FN_TXD0, NULL);
-> -	gpio_request(GPIO_FN_RXD0, NULL);
-> +	gpiod_add_hogs(rsk7203_gpio_hogs);
->  
->  	/* Setup LAN9118: CS1 in 16-bit Big Endian Mode, IRQ0 at Port B */
->  	__raw_writel(0x36db0400, 0xfffc0008); /* CS1BCR */
-> -	gpio_request(GPIO_FN_IRQ0_PB, NULL);
->  
->  	error = software_node_register_node_group(rsk7203_swnodes);
->  	if (error) {
+
+
+在 2026/5/12 14:45, Umang Chheda 写道:
+> Hi Ruidong,
 > 
 > 
-> If there is no replacement maybe we can resurrect this? Or shoudl we
-> have add swnode support for hogs?
+> On 5/6/2026 1:40 PM, Ruidong Tian wrote:
+>> Hi Umang,
+>>
+>> Thanks for your patch.
+>>
+>> Would it be okay if I include this patch in the next version of the AEST
+>> patch series? I will make sure to add your Signed-off-by line.
+> 
+> 
+> Yes, you can include this patch in the next version - we will represent
+> it and respond to all of the queries received on DT specific patches.
+> 
+> How should I be sharing the patch fixes based on comments received from
+> maintainers to you ? so that you can include in your patch series ?
+> 
+> Also, when is your plan to post the next version fixing the comments
+> received ?
+> 
+> 
+> Thanks,
+> Umang
 
-Hmm, I guess it is already there so I should simply switch. Sorry about
-the noise.
+Hi Umang,
 
-Thanks.
+Thanks for your feedback.
 
--- 
-Dmitry
+I plan to complete the development of the next version within the next 
+two weeks. During this period, there may still be some issues or 
+questions, and I will bring them up for discussion as they arise.
+
+Once all the comments and related issues are resolved, I will post the 
+updated version of the patch series.
+
+Best regards,
+Ruidong
+> 
+> 
+>>
+>> Best regards,
+>> Ruidong
+>>
+>> 在 2026/5/5 20:23, Umang Chheda 写道:
+>>> This series extends Tian Ruidong’s [1] ACPI-based AEST support series
+>>> to also cover Device Tree based platforms.
+>>>
+>>> While the existing AEST driver relies on the AEST ACPI table [3], many
+>>> embedded Arm platforms use Device Tree exclusively and cannot use the
+>>> driver today. This series adds a DT frontend that mirrors the ACPI
+>>> implementation and feeds the same core driver, keeping ACPI and DT
+>>> paths functionally equivalent.
+>>>
+>>> Along the way, several correctness issues were identified in the core
+>>> driver and are fixed in the first part of this series.
+>>>
+>>> The DT frontend is mutually exclusive with ACPI and does not introduce
+>>> any DT-specific logic into the core.
+>>>
+>>> How to test with QEMU
+>>> --------------------------
+>>> Tian Ruidong's QEMU fork [2] emulates AEST MMIO error records on the
+>>> virt machine.  To test the DT frontend:
+>>>
+>>> 1. Build QEMU:
+>>>
+>>>        git clone https://github.com/winterddd/qemu.git
+>>>        cd qemu
+>>>        git checkout c5e2d5dec9fd62ba622314c40bff0fbecb4dfb34
+>>>        ./configure --target-list=aarch64-softmmu
+>>>        make -j$(nproc)
+>>>
+>>> 2. Build the kernel with:
+>>>
+>>>        CONFIG_OF_AEST=y
+>>>        CONFIG_AEST=y
+>>>        CONFIG_ARM64_RAS_EXTN=y
+>>>        CONFIG_RAS=y
+>>>
+>>> 3. Add the following DT node to your virt machine DTB.  The QEMU
+>>>      fork maps DRAM error records at 0x090d0000 (SPI 44) and CMN
+>>>      vendor records at 0x090e0000 (SPI 45):
+>>>
+>>>        aest {
+>>>            compatible = "arm,aest";
+>>>            #address-cells = <2>;
+>>>            #size-cells = <2>;
+>>>            ranges;
+>>>            interrupt-parent = <&gic>;
+>>>
+>>>            /* DRAM memory node — MMIO at 0x090d0000, SPI 44 */
+>>>            aest-dram0@90d0000 {
+>>>                compatible               = "arm,aest-memory";
+>>>                arm,interface-type       = <1>;
+>>>                arm,group-format         = <0>;
+>>>                arm,interface-flags      = <0x22>;
+>>>                arm,num-records          = <4>;
+>>>                arm,record-impl          = /bits/ 64 <0x0>;
+>>>                arm,status-report        = /bits/ 64 <0x0>;
+>>>                arm,addr-mode            = /bits/ 64 <0x0>;
+>>>                arm,proximity-domain     = <0>;
+>>>                reg                      = <0x0 0x090d0000 0x0 0x1000>,
+>>>                                           <0x0 0x090d0800 0x0 0x200>,
+>>>                                           <0x0 0x090d0e00 0x0 0x100>;
+>>>                reg-names                = "errblock", "fault-inject",
+>>>                                           "err-group";
+>>>                interrupts               = <GIC_SPI 44
+>>> IRQ_TYPE_LEVEL_HIGH>;
+>>>                interrupt-names          = "fhi";
+>>>            };
+>>>      };
+>>>
+>>> 4. Boot QEMU with acpi=off:
+>>>
+>>>        ./qemu-system-aarch64 \
+>>>          -machine virt,accel=tcg,gic-version=3 \
+>>>          -cpu cortex-a57 -m 2G -smp 4 \
+>>>          -kernel Image -dtb virt-aest.dtb \
+>>>          -append "console=ttyAMA0 acpi=off earlycon" \
+>>>          -nographic
+>>>
+>>> 5. Verify probe:
+>>>
+>>>        dmesg | grep "DT AEST"
+>>>        # Expected: DT AEST: registered 1 AEST error source(s) from DT
+>>>        ls /sys/kernel/debug/aest/
+>>>
+>>> 6. Inject a CE error via the QEMU MMIO fault injection registers.
+>>>      The QEMU device accepts 64-bit accesses only (use devmem with
+>>>      the 64-bit width flag):
+>>>
+>>>        devmem 0x090d0808 64 0x80000040   # CDOFF | CE inject
+>>>
+>>>      This triggers QEMU's error_record_inj_write() which sets
+>>>      ERR<n>STATUS.V=1 and asserts the IRQ.  The kernel driver's
+>>>      aest_irq_func() fires, reads the status, and logs:
+>>>
+>>>        AEST: {1}[Hardware Error]: Hardware error from AEST memory.90d0000
+>>>        AEST: {1}[Hardware Error]: Error from memory at SRAT proximity
+>>> domain 0x0
+>>>
+>>> Testing
+>>> -------
+>>> - Validated on Qualcomm's lemans-evk and monaco-evk board with DT boot.
+>>> - Validated CE and UE injection via debugfs soft_inject.
+>>> - Tested ACPI path is unaffected: ACPI boot continues to use
+>>>     drivers/acpi/arm64/aest.c unchanged.
+>>>
+>>> [1] https://lore.kernel.org/lkml/20260122094656.73399-1-
+>>> tianruidong@linux.alibaba.com/
+>>> [2] https://github.com/winterddd/qemu/tree/error_record
+>>> [3] https://developer.arm.com/documentation/den0085/0200/
+>>>
+>>> Signed-off-by: Umang Chheda <umang.chheda@oss.qualcomm.com>
+>>> ---
+>>> Umang Chheda (8):
+>>>         ras: aest: Fix shared processor node handling and error log
+>>> messages
+>>>         ras: aest: Fix CE/UE error counts not incrementing in debugfs
+>>>         ras: aest: Skip unimplemented records in debugfs
+>>>         ras: aest: Add panic_on_ue module parameter
+>>>         dt-bindings: arm: ras: Introduce bindings for ARM AEST
+>>>         ras: aest: Add DT frontend for ARM AEST RAS error sources
+>>>         arm64: dts: qcom: lemans: add AEST error nodes
+>>>         arm64: dts: qcom: monaco: add AEST error nodes
+>>>
+>>>    .../devicetree/bindings/arm/arm,aest.yaml          | 406 +++++++++++++
+>>>    arch/arm64/boot/dts/qcom/lemans.dtsi               |  41 ++
+>>>    arch/arm64/boot/dts/qcom/monaco.dtsi               |  41 ++
+>>>    drivers/ras/aest/Kconfig                           |  15 +-
+>>>    drivers/ras/aest/Makefile                          |   2 +
+>>>    drivers/ras/aest/aest-core.c                       |  63 +-
+>>>    drivers/ras/aest/aest-of.c                         | 673 +++++++++++
+>>> ++++++++++
+>>>    drivers/ras/aest/aest-sysfs.c                      |  27 +-
+>>>    drivers/ras/aest/aest.h                            |  15 +-
+>>>    include/dt-bindings/arm/aest.h                     |  43 ++
+>>>    10 files changed, 1310 insertions(+), 16 deletions(-)
+>>> ---
+>>> base-commit: a67b7fd0dd1f6ccf3d128dc2099cdb07af1f6a09
+>>> change-id: 20260505-aest-devicetree-support-a3722d90e1f5
+>>> prerequisite-message-id: <20260122094656.73399-1-
+>>> tianruidong@linux.alibaba.com>
+>>> prerequisite-patch-id: c5a7c6431c6c1e6351241e694ee053800039d41d
+>>> prerequisite-patch-id: 1f6e2c20829eee41a210dd8a538f1e8efcc65872
+>>> prerequisite-patch-id: 5556287e3f46c2ed2c0431c53c7782e87bcbd866
+>>> prerequisite-patch-id: 2edae0a136d7779b8f686181720e71d044a73311
+>>> prerequisite-patch-id: b5190b2844dcb01e72f87a59f3a29548795fdb82
+>>> prerequisite-patch-id: 7ba848583708b2ae776a7ce847bb056e3de7f77b
+>>> prerequisite-patch-id: 397e5b22802b67942435f4f2968f0b1e210ba0e8
+>>> prerequisite-patch-id: 2169f4b65537eecbd0ccbd2ad6b28c64ec44655d
+>>> prerequisite-patch-id: b626f85d98747595b3240bc49e6ad9c9dd5c0fa9
+>>> prerequisite-patch-id: 1323dfd2eebad2ef6514dbbce58ba08e8859f894
+>>> prerequisite-patch-id: 95b826e5e329408437a3ef336c4f45d4d74f82bb
+>>> prerequisite-patch-id: b60ff489a5a33c5d5220fa8144af7b7511769cba
+>>> prerequisite-patch-id: 43f35a52b8a3d13c938ff08083403c1d3bd0df8b
+>>> prerequisite-patch-id: c55d4e9117ca36d3c2cba82d550a618cb82bb745
+>>> prerequisite-patch-id: 3885e10f318ae8101d6909b35d92a976cc359e3c
+>>> prerequisite-patch-id: 92958cde05577f069c5659018a274bb39cfb6b24
+>>>
+>>> Best regards,
+>>> -- 
+>>> Umang Chheda <umang.chheda@oss.qualcomm.com>
+>>>
+>>
+
