@@ -1,199 +1,293 @@
-Received: from SN4PR2101CU001.outbound.protection.outlook.com (mail-southcentralusazon11012007.outbound.protection.outlook.com [40.93.195.7])
+Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 793523F1AD9;
-	Wed, 20 May 2026 17:51:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.195.7
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779299493; cv=fail; b=kM1hPW/CMqLR3krPsDF3sCvEjfw/jn1KFFSeBXIod/YG/A5gClGu8eu4tQbPRvb7co/b8Y8UkG55SvRiZqP7q/8CQ41dbS41oicbcc/9zVe8QFprE8XfmosbERjyx3OU4y/7xffewgacyMNvKhP82Omr5Gx9A+qMtldklG/sqPQ=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779299493; c=relaxed/simple;
-	bh=6hjBYbU7tyWmzeSqFIPMO0wITPKphDEGo95lcILhEZY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=Xy8YlHgMPJy7euCRH0ikAb/Czw56d9hfksDLs2pChmfaBX1BEAwe9N5aH4gDY0SCG4tLNQf93zNjq1y9eF9MquSJcAsZKtYZtgGtAPye7oYj5Rxj20/fNl3Kb6V5qFpzF+SjYTffzI2eP45iMdGEgQJYJYNnU84DRK3tSn+m65E=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=qychlFnd; arc=fail smtp.client-ip=40.93.195.7
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF5E03D5647
+	for <linux-acpi@vger.kernel.org>; Wed, 20 May 2026 18:13:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.168.131
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1779300813; cv=none; b=lgaVuDYCWXki43MjuyLqCzSHfmYhwFL6S6Z9LKqZXeshgmFF4OzrOVmGUUEEVovk7lPw9kp64UxNCcHW7qKTJTe4wGHUjT4s8yIV9blL/rfW0HBmdBtGXjgaE4JUEZYKbuXw245s8V5AF541qy97qN1FgScOp7JFqnJLZaQGXYI=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1779300813; c=relaxed/simple;
+	bh=VGBAg70L6yRE+3wY6u2w1pvPpMW/hIWgg0wzLNi2yh8=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=jDB4h1ZVVt5n7g5B/blTw+5+QgNu95JUSpXFUR8DKCbpATiV0UofgMw5hepmXTfRoCllRJLjLocu63Ioe7arYoBUYe4ulMCOctsuLuvyIF6yjnIDi0I/b3NltFNmANfyNZ8to8GPf6BWWeV+mK9XYh4eWvweKwki0ImmD7whjOk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=dKhqo80d; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=iWUhseL/; arc=none smtp.client-ip=205.220.168.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="qychlFnd"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=cT/PX8r+RHfI/Rvwsq7e/1I1ldFEDxjVBskMbDB/4w72Hkos6+Kxn3V83/JFQrfpo3KZaZuWOoj3+Ei8sgXS6gh0toleHaZqNbz15OLq9DH0GGHncssEcHEAAepIHlDvpBB1heKQN2xWzZalNpBb2Tfne29NnbJOgUqki5U+K48Xrv9AXt9RUZzb6mFoiTT5iIkV92XVJTIPdazI4DTxUCnL7ZD2mjHtKnw5UUqE/9h76ENHfGCvwfKTjR4HZVdOyM444lWokoDL5gqglNlLTOpXoAS6lJ7Zv+8/L+KWbSp4RlG9PveQEVSNpERewJzYg+VAatVuRe/NdCtBX00vuQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=1RHI3T04WVx4klEuwSec5bejMZ7Dt3KXut4T+UVNNsg=;
- b=ggHm5k4hK6MeU6zCqPK1DWVkkXNhPVwN6HSoHkQPVJvOAltc7XyMQR/U3GHXoxO8jkmAwfcvGCAEiqueptPPES7FHcIMdHhaDDXP+HaRUM3GsiXIlYT1qYlOf2PSttUrcpx1LcQ2OCC5hVUVtQIACMT1Ab8asKuqiCaeaIjuy4U5YpGr3WvC/gMsDOdGRyJzhMleIRQmK3DwxgAZOKWqtuxYG2O/IdaCRR6P3GIvpqHn4D+OpajowcB32Z9Frav2tGoXzGpjB5SVH/tQ5xIrsAd09V0x2ee/vcuA92An7+7m/ex0mVu5l89gz/jwYEOQ2WC3XOBxQP5TlthfvvF+1Q==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=1RHI3T04WVx4klEuwSec5bejMZ7Dt3KXut4T+UVNNsg=;
- b=qychlFndoRspVBROPaSi7t0lPXhtnSQ+smOomzjo0uCqf7LZI/MwXyzbVwwFR0lz88Z5+yK0kwnCu8GL7qsLp4d8JOhKuetsoHD4/q+M8SNcV1Mwq4x35L+Oksm9AIy95OveHPjSUTKTrXCTy/3U2fTU4jwWpWIdtpZabOp5m5SDXvyqB+Cyphza3i53r2Fy9WbdRk+PaTVvUtP8n0ulYU4XMhU2iDRmtKQXkoBuBn0fwqnhS2jafLk41b6RmLdvLLhonTO5oztylV0+twItCL0YQV2J8+Kv9m3yu3VZj2WliYzQAZFzzA5X1cyech9NXCr5HzoKv2QjcpQNaJV19Q==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from LV8PR12MB9620.namprd12.prod.outlook.com (2603:10b6:408:2a1::19)
- by CYXPR12MB9319.namprd12.prod.outlook.com (2603:10b6:930:e8::11) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.48.14; Wed, 20 May
- 2026 17:51:25 +0000
-Received: from LV8PR12MB9620.namprd12.prod.outlook.com
- ([fe80::299d:f5e0:3550:1528]) by LV8PR12MB9620.namprd12.prod.outlook.com
- ([fe80::299d:f5e0:3550:1528%5]) with mapi id 15.21.0048.013; Wed, 20 May 2026
- 17:51:24 +0000
-Date: Wed, 20 May 2026 14:51:23 -0300
-From: Jason Gunthorpe <jgg@nvidia.com>
-To: Nicolin Chen <nicolinc@nvidia.com>
-Cc: Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>,
-	Joerg Roedel <joro@8bytes.org>, Bjorn Helgaas <bhelgaas@google.com>,
-	"Rafael J . Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>, Pranjal Shrivastava <praan@google.com>,
-	Mostafa Saleh <smostafa@google.com>,
-	Lu Baolu <baolu.lu@linux.intel.com>,
-	Kevin Tian <kevin.tian@intel.com>,
-	linux-arm-kernel@lists.infradead.org, iommu@lists.linux.dev,
-	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-	linux-pci@vger.kernel.org, vsethi@nvidia.com,
-	Shuai Xue <xueshuai@linux.alibaba.com>
-Subject: Re: [PATCH v4 11/24] iommu: Add iommu_report_device_broken() to
- quarantine a broken device
-Message-ID: <20260520175123.GZ3602937@nvidia.com>
-References: <cover.1779161849.git.nicolinc@nvidia.com>
- <745da1a819eb943f2519e660c8bcfde715885c6c.1779161849.git.nicolinc@nvidia.com>
- <20260519120737.GQ787748@nvidia.com>
- <agysAyreCY4huf0I@Asurada-Nvidia>
- <20260519191626.GJ3602937@nvidia.com>
- <agzkldmlG1cuDkj4@Asurada-Nvidia>
- <20260519230204.GM3602937@nvidia.com>
- <agz+kL2S8kcgHywG@Asurada-Nvidia>
- <20260520003023.GR3602937@nvidia.com>
- <ag1guf1fHg4fE7Lw@Asurada-Nvidia>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ag1guf1fHg4fE7Lw@Asurada-Nvidia>
-X-ClientProxiedBy: BLAPR03CA0085.namprd03.prod.outlook.com
- (2603:10b6:208:329::30) To LV8PR12MB9620.namprd12.prod.outlook.com
- (2603:10b6:408:2a1::19)
+	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="dKhqo80d";
+	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="iWUhseL/"
+Received: from pps.filterd (m0279862.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 64KGPDeA1178167
+	for <linux-acpi@vger.kernel.org>; Wed, 20 May 2026 18:13:31 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
+	t3POHqsQDxTwqW4qayTc+L30XYDNUCr7AcHGHbDcIS8=; b=dKhqo80dgDn70xdW
+	rOaLg+L3cxWEkCulCKsvvTWiEI6VcfV/vvG6YoZBHdgCtsfaSGeoCD9QukzHaxf6
+	Xmdbv/s8ZXUF7y46sAXcREZ7+HrLEV4PWaMAPYFbTqmStLQKtSf18Hpd6angxnnB
+	QFfDepGLT0gRCmuSJLZzvgEKfC77Lggs/XZDhavL5rl37OqdfVLVSRvKCd61MNpw
+	2LzvGujWpjxo1RKR6t7JHu/NtBhDeqnxluTj7Qspj1WmqB7uJe0mipE7pySZvjY/
+	m2BtqSxTqebHH7+c12fA/n6jwmcdMJahZpB+nHmwsbcttRQZEDGpKKPNyDikJZ1G
+	bux+YA==
+Received: from mail-pf1-f199.google.com (mail-pf1-f199.google.com [209.85.210.199])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4e9ap6t1me-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <linux-acpi@vger.kernel.org>; Wed, 20 May 2026 18:13:30 +0000 (GMT)
+Received: by mail-pf1-f199.google.com with SMTP id d2e1a72fcca58-82f8bf96b87so743500b3a.0
+        for <linux-acpi@vger.kernel.org>; Wed, 20 May 2026 11:13:30 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=oss.qualcomm.com; s=google; t=1779300810; x=1779905610; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=t3POHqsQDxTwqW4qayTc+L30XYDNUCr7AcHGHbDcIS8=;
+        b=iWUhseL/Twn+1GVHz455uTUlnr8YOgP8qitfYlqwGjCTj+nLw+SPZUa60gfrwniQVk
+         95Wh0FhwSTNqErCb7u4Twa4QHVdBw2YUHpT6ySzk1VwN/Ahr6Jnp86AhV05ururXD6jf
+         r4KKEGm6pdeZBEVCgLVPSrGl6OMW5ltkgLPQetlj37dSXnlPbx20OBJ5Zbb/H562MTIL
+         yDPkkGED8XUjySAZW+HMtuMuBWUICuEPXRurvVmOrNqitDqvGC+SyrLw04e0sRNI7fSz
+         N5atUn0VHLFaMW3iTmgo87VkkupjGGpqGVgqlMRoXZxquWOwDGibckb7lV/IvIELHAOp
+         qKBg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1779300810; x=1779905610;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=t3POHqsQDxTwqW4qayTc+L30XYDNUCr7AcHGHbDcIS8=;
+        b=heq4o01J/BWFZgUSibUedifDuCKaIdQZqMzPSAUXQN7rarNFZPCSOUA+bapxeCsmfi
+         JJnrIM5asXVRWRW617fKxuO1zcpksxbtWMpns4ZCD85shoLUHQtNMH+AHqO/TN2t/nbe
+         oqtIu59QFqw4p46/A76ZYJLZl9ykRyrneoUpopXO1rvYZqX1r+YMDVrK944uqSDBErVW
+         vskq+Q9UtiRHcNWSzYQIBeSh91rUI1IWZTUiK3se0H9hb0WF+FmtdPk7KCuT6aenc7jK
+         INWpDEOPTan8cuyc25ewCrUo93I8DniYJzX7ymUuTg8+BsmvwqK1ABvQrF2JPcegto1a
+         ObZA==
+X-Forwarded-Encrypted: i=1; AFNElJ9xKYoLmQDdbeIJap3Xq8nqCl+G8pWMq4HaKMsw8Ku9swHkurAbTz3Vg/cmiiIRYbyDo8Cc6ZDq1JhG@vger.kernel.org
+X-Gm-Message-State: AOJu0Yyf+GripGp4pB7krPpuE3zuuP70xgomN2PYFdVK1PCjbwLI0VWB
+	1BbYnCOupv0Ggxl/RuN/HuJNh7YjtFneibAWWkYWvbe/EWEabqmeliUvNk2lnmf4pIsXWpPlxsx
+	j3MgBTA9Ibwp/IKZgUZO2mJJ0lzUdT8NcKuo+MLkoHM7qlpINNlfs29TnLmCVBoj/
+X-Gm-Gg: Acq92OE5f0/nJi7ntiyjtc0Th5Lt0/RH+z5C/2KWBMblFfrdTBxqT2GM28n58RbmQSz
+	3+huXe0NddHuoaciXmvK3w+ErFIgsvUfm6rA9ss5z2FuDkBu4oc2F8YC4U4M3zul14c5LaIKKx/
+	xbx+rxrwW2MgPRMwK6jvQNn+lcuuW8wZ+E1DItX2jsD/ZOXrrOwS2kX/E5tk94FaeThm6YJVoU6
+	0GxeXqTk7GphPth1fqxfPyA50zMqZ4EIT7d0RsSQ4EsbQc0Nag1KzwpWxaGChwj335JIGEtj4M0
+	4pHhN0B1+AALlWJr+DgkRns0mSabmt+yxJXM5LMDU/xiU+/AbKxNJBZpI+FlynOoX9X2tG4hZit
+	FRIlK70Im9mkZlpLakq52YBARpSzcJiX9dZG3H34AOdfBNmTK
+X-Received: by 2002:a05:6a00:4c94:b0:834:e09b:de73 with SMTP id d2e1a72fcca58-83f33dda422mr13248431b3a.7.1779300809982;
+        Wed, 20 May 2026 11:13:29 -0700 (PDT)
+X-Received: by 2002:a05:6a00:4c94:b0:834:e09b:de73 with SMTP id d2e1a72fcca58-83f33dda422mr13248414b3a.7.1779300809371;
+        Wed, 20 May 2026 11:13:29 -0700 (PDT)
+Received: from [192.168.0.7] ([49.204.26.38])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-83f24cd0422sm26506189b3a.18.2026.05.20.11.13.21
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 20 May 2026 11:13:28 -0700 (PDT)
+Message-ID: <48e298d0-f4cb-4afb-8ba1-a6b39f3285cb@oss.qualcomm.com>
+Date: Wed, 20 May 2026 23:43:20 +0530
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: LV8PR12MB9620:EE_|CYXPR12MB9319:EE_
-X-MS-Office365-Filtering-Correlation-Id: f88478e2-024a-45ef-67b0-08deb698690d
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|366016|1800799024|376014|7416014|56012099003|22082099003|18002099003|11063799006|6133799003|4143699003|3023799007;
-X-Microsoft-Antispam-Message-Info:
-	59TNYz3tKwHKgMu1vQTg6D9+14o87g+vQlq4xbrUgdv3j56G1Nb/JMmBguhoDEvWX6HXMHnHWbjIQf6RHYa0f4nDQczqNdqSlxl3QEmIX65od6brMf9ttEKc7j8UPWnnztDLdlJ2qAPjh3g3i3fT7nKcLWV78Kpev8xS/ucMdqeU8qxNEkeOQctlZjGnm4Tm3IhHsAbuvo/IM3s4iiDKAFhlJyqHrXIhm1E+NhH+oWLfl5AZGAjpyXeMelKdtQ7WW2vaEPtiXCAbX9BRfDTg1+r7R/VkLoQQ7EoxpD+ns1UnJWn1dbdlJsExzAThctbt7/POoFnKrMUAP8qI7ksl1mEYDAQjWobgR+2iKYVGNIW8sAP6JbmMOkaBsBvMfVC4Xm5bb+EVf9nNuJrLNvhEHM40bxbFfjO5cdtlsIpUA5AhyK5IyUxZdqljd/DKrKlLq7gO8JtLGiAamJXS2q5ktHPum7DzEnHe9zNfGGd5R/2NgECH9qxBIZgNvRM6m1a0/aqvuWwQgGlF/uKBZy3rsA49egiWA+TmdHuRWxKUx4om7XEA3Zhk4mBLBuHWxONf7MJ1iDgrxV1/hBqrLwYjjqx+Trg7bgFQ9GaTHifdC1BItYTwjZq/H7MDlRa11AsEIHXIg5HHpltev6f/aoZcHQhMasz/1R1PabZLkITMNUB3jVGdqPksH/9plOgspaY9
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:LV8PR12MB9620.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(376014)(7416014)(56012099003)(22082099003)(18002099003)(11063799006)(6133799003)(4143699003)(3023799007);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?zCtDsokfrMe5M3uoKPwBGW7JscD6RM28KSuFw1kaAL/A5Ge8+cYZNQuV4CXv?=
- =?us-ascii?Q?i7ER4yHyHr+9qZCk++ebpAwDbFYisRWDpSccWT0/SpcEln7aqg7tFclFhOak?=
- =?us-ascii?Q?g2JIUlm6QZlIloQkXiAcwln15Q6LmsswbHfq1NU2MNk0vWL7tEULzP7T1idw?=
- =?us-ascii?Q?yID27CQk76Rr64GCO236lZ51NwnnC7VDdEdseNN8nRk/aVE+kRqvCf1hzSG3?=
- =?us-ascii?Q?UhrRVNGO6KSSWIMR1KSIypsOhWwZIX59uKfq6W5d48VKu/yJVdqubl782S+B?=
- =?us-ascii?Q?blC4ZTEVXHxKsye07Begs1j6hPsH95dDcBEI+XOhgtdiC0HsDP4AaCNV7YOK?=
- =?us-ascii?Q?pkqfcipk8YnMStehWsuzHQPY4tkvbnOwbsig0ZrBUTkHM++Tr9CgbU/mCMkK?=
- =?us-ascii?Q?eZQ/gweytMpoWmt5upETlSDCSP4KOsVxoN+qf/IsLa+RDfV/XZjZ/PP6stZb?=
- =?us-ascii?Q?zqXLb2mmtoWRP8+aNZZq/QeR1mDC4/G47nJT+ZxLfrQaBWUUuWB/GQYw3L5C?=
- =?us-ascii?Q?55LYxqStxjeU5ZIKFI1yPLbABWMcxhngYhgWeRHL4eKu+pogLdWJZ7+tPSa3?=
- =?us-ascii?Q?q0mLA7F6YF5q4C4F8JjUGielvJuvWNL+aWotsTpHDkeNOzjEDl/JX72BY+vY?=
- =?us-ascii?Q?xG0EClJd6VVDQev3f7CsGYgHIPlWBi1qsPIQddcKrs6ZjzCN1dNAjkkg84nA?=
- =?us-ascii?Q?wkyvOMGTKlZP062ePy2ZvTk0o98icdX55N8nK7dSyOmU/L/Nwj840qTk9Q3W?=
- =?us-ascii?Q?TqwaS/VmW9oVdx7/cQdKtJficOJEI7ojWyFo7o7jU0JESXomIUk7EoXtOu34?=
- =?us-ascii?Q?d95CQdCmVhMOj9NTx8feQzREndF7DGb+c0Nd5J33HDIXZwKK/zZr4I5drlJI?=
- =?us-ascii?Q?TIlV9ew2GvbKb1hVbdwt5yfT5FV+VdWdeaG54XxbvsBJ2NtdG40bT+JesXAu?=
- =?us-ascii?Q?fr7m8xiMTBBYx5PLKe8ASJNEX5evR9bQJ2wiB3vDIlDXmkVufFhCYOorGwDA?=
- =?us-ascii?Q?5cIsM1WOyVSTIvgm3ePcSK+qhEQt1w6uhFJj+4zJu82dcKWA7TTfvNyrCRIz?=
- =?us-ascii?Q?Z+Sg36HKFQX5Oh1hkZ8CPxgwqsxsiDqfcCy7TTL9lFYVvfcRpPagXT4B35QP?=
- =?us-ascii?Q?BI0fcd6lTpdEp4bXIRmzl+hS7MO8YVz7amTCWPWP0B/VzBeIDNU6Nqtz0BGI?=
- =?us-ascii?Q?SPjE07qNHDLleuiFYmp3ozTSF2lo1H17uKyPVAFeBYMtAHit8ZFUcnrA8jNW?=
- =?us-ascii?Q?nfVlI6OweAHr8I6rJX47zqtOImKeOGUZIePM2Pa7Z9x14kbxx+X6TOm2n2wI?=
- =?us-ascii?Q?n8f+8129G8/pda2QRPNvurGCmZ49atrf2k5lDBQuKEPoqSQ6cSGFONMBVnks?=
- =?us-ascii?Q?pwv5UJFLcQDWvNDEfZ0oH22HSyUekllFyaH9YEWEmH3GcrsY1KFkDG+cj3VC?=
- =?us-ascii?Q?04oAJhaGj8vwNVWpz1GKMF6qOaUUvztx8dU4S/wCJpy8Lz/UM2L8EGrmYsbl?=
- =?us-ascii?Q?xUZ06q/M/SsKxYue5UekYWFlt0tFKRaKhVRfDH54xBrYRoGempHM8Ok1+nYC?=
- =?us-ascii?Q?32Bz2PyOfCosreziat4ri+uMXQ0nbmILsUYynZ5AFdN6dTSSler0IfUEDeWG?=
- =?us-ascii?Q?rpJ5LCsM0NimgHhOudN4Cp5OsgN7x08Y9pLISMnpq3eoNtBOwvrCKXL2HG9z?=
- =?us-ascii?Q?Wg/qAHiBn7gDe/KSBW+6Sc4GBgO+SclL5VZHh1Sdwi74XcdW?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: f88478e2-024a-45ef-67b0-08deb698690d
-X-MS-Exchange-CrossTenant-AuthSource: LV8PR12MB9620.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 20 May 2026 17:51:24.9191
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: ct5RBfrK4mx6k1OYniNIxP9lHOs6GI2old7can+I/ib/N3BOVtuA4RFCSuRSdLby
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CYXPR12MB9319
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 5/8] dt-bindings: arm: ras: Introduce bindings for ARM
+ AEST
+To: Rob Herring <robh@kernel.org>
+Cc: Ruidong Tian <tianruidond@linux.alibaba.com>,
+        Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>,
+        Krzysztof Kozlowski <krzk+dt@kernel.org>,
+        Conor Dooley
+ <conor+dt@kernel.org>,
+        Bjorn Andersson <andersson@kernel.org>,
+        Konrad Dybcio <konradybcio@kernel.org>, catalin.marinas@arm.com,
+        will@kernel.org, lpieralisi@kernel.org, rafael@kernel.org,
+        mark.rutland@arm.com, Sudeep Holla <sudeep.holla@kernel.org>,
+        linux-arm-msm@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-edac@vger.kernel.org,
+        linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+References: <20260505-aest-devicetree-support-v1-0-d5d6ffacf0a5@oss.qualcomm.com>
+ <20260505-aest-devicetree-support-v1-5-d5d6ffacf0a5@oss.qualcomm.com>
+ <20260513175823.GA1471517-robh@kernel.org>
+Content-Language: en-US
+From: Umang Chheda <umang.chheda@oss.qualcomm.com>
+In-Reply-To: <20260513175823.GA1471517-robh@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-Proofpoint-GUID: _FDGskTIHNdlxgKn-0iYyA1MJinfdp3S
+X-Proofpoint-ORIG-GUID: _FDGskTIHNdlxgKn-0iYyA1MJinfdp3S
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNTIwMDE3OCBTYWx0ZWRfX69vhALollx6F
+ ZLqJJDd1MbTzVz4GH9vTkSHM6B0DOzFj8+5gnDz/a9nW+HVxB6lARC6+t3lwJrtcg09fEOG+7EW
+ plgS4KfpvZXj3lvg5rEcSOtU0fuDTxghzMZWC9DeSZSzlbRvY4SEAzp/g4WRnxNk7WGgpGNZM3I
+ HfM6smWIcd2HJ2aeRm4P8ZXW8RMmZsYF7ZcHYvjXjkG41pN+Y1Ta4H8aqmjLEw9Wj8ZSeae8WEn
+ fzqeAr5wmM+vhD0anP+Wnd5+qUwD4bQWqI9HC2Ezq6DPyBLgYh32L9uJNUfFYD1RbGhDW6j4sdn
+ 0BN/N+2Y1PmDB/tBzniJY/huaRH5qdCY3Pd9C/VVuLxmxv4FTNv0EHfLCoGJaaKpbKIIJaovVuJ
+ 0RixmxWiskF4bGbNyJrW0fonGeujQqTTEL8zu6/ysjB8lHjPjg69+JWtP3qnkqzK8pfmoDQIal5
+ NAxCy+oOiL3zxGhflWQ==
+X-Authority-Analysis: v=2.4 cv=FesHAp+6 c=1 sm=1 tr=0 ts=6a0df9ca cx=c_pps
+ a=WW5sKcV1LcKqjgzy2JUPuA==:117 a=6DK/O5GeEcI+fsUIEy35yg==:17
+ a=IkcTkHD0fZMA:10 a=NGcC8JguVDcA:10 a=s4-Qcg_JpJYA:10
+ a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=_K5XuSEh1TEqbUxoQ0s3:22
+ a=gEfo2CItAAAA:8 a=EUspDBNiAAAA:8 a=3A8QVl99vi6_thLXI7oA:9 a=3ZKOabzyN94A:10
+ a=QEXdDO2ut3YA:10 a=OpyuDcXvxspvyRM73sMx:22 a=sptkURWiP4Gy88Gu7hUp:22
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.51,FMLib:17.12.100.49
+ definitions=2026-05-20_03,2026-05-18_01,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ spamscore=0 adultscore=0 clxscore=1015 priorityscore=1501 phishscore=0
+ bulkscore=0 suspectscore=0 malwarescore=0 impostorscore=0 lowpriorityscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2605130000 definitions=main-2605200178
 
-On Wed, May 20, 2026 at 12:20:25AM -0700, Nicolin Chen wrote:
-> > > I see you suggest to treat the entire batch as ATS-broken. Just to
-> > > confirm: without per-SID retry, that might falsely block a healthy
-> > > device in the ATC batch, right? The driver now batches all ATC_INV
-> > > commands via arm_smmu_invs_end_batch().
-> > 
-> > Yes, it is not good, but a giant complex series is not reviewable. So
-> > I'd start with trashing all the devices, then come with a narrowing.
+Hello Rob,
+
+Thanks for helping reviewing the code!
+
+On 5/13/2026 11:28 PM, Rob Herring wrote:
+> On Tue, May 05, 2026 at 05:53:49PM +0530, Umang Chheda wrote:
+>> The Arm Error Source Table (AEST) specification describes how firmware
+>> exposes RAS error source topology to the operating system. On ACPI
+>> systems this information is provided via the AEST ACPI table.
+>>
+>> Introduce Device Tree bindings that provide an equivalent description
+>> of AEST error sources for DT-based platforms.
+>>
+>> Signed-off-by: Umang Chheda <umang.chheda@oss.qualcomm.com>
+>> ---
+>>  .../devicetree/bindings/arm/arm,aest.yaml          | 406 +++++++++++++++++++++
+>>  include/dt-bindings/arm/aest.h                     |  43 +++
+>>  2 files changed, 449 insertions(+)
+>>
+>> diff --git a/Documentation/devicetree/bindings/arm/arm,aest.yaml b/Documentation/devicetree/bindings/arm/arm,aest.yaml
+>> new file mode 100644
+>> index 000000000000..7809a0d38270
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/arm/arm,aest.yaml
+>> @@ -0,0 +1,406 @@
+>> +# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
+>> +%YAML 1.2
+>> +---
+>> +$id: http://devicetree.org/schemas/arm/arm,aest.yaml#
+>> +$schema: http://devicetree.org/meta-schemas/core.yaml#
+>> +
+>> +title: Arm Error Source Table (AEST)
+>> +
+>> +maintainers:
+>> +  - Umang Chheda <umang.chheda@oss.qualcomm.com>
+>> +
+>> +description:
+>> +  The Arm Error Source Table (AEST) describes RAS error sources and their
+>> +  register interfaces. Each error source exposes one or more error records
+>> +  through either system registers or a memory-mapped register window, and
+>> +  may signal errors via interrupts. The top-level node acts as a container
+>> +  for one or more child nodes, each describing a single AEST error source.
+>> +  Refer to the Arm AEST specification (DEN0085 / DDI 0587B) for details.
+>> +  Flag bit constants for use in DT source files are defined in
+>> +  <dt-bindings/arm/aest.h>.
+>> +
+>> +properties:
+>> +  compatible:
+>> +    const: arm,aest
+>> +
+>> +  "#address-cells":
+>> +    const: 2
+>> +
+>> +  "#size-cells":
+>> +    const: 2
+>> +
+>> +  ranges: true
+>> +
+>> +required:
+>> +  - compatible
+>> +
+>> +additionalProperties: false
+>> +
+>> +patternProperties:
+>> +  "^aest-[a-z0-9-]+(@[0-9a-f]+)?$":
+>> +    type: object
+>> +    description:
+>> +      An AEST error source node describing one error source defined by
+>> +      the Arm AEST specification.
+>> +
+>> +    properties:
+>> +      compatible:
+>> +        description:
+>> +          Identifies the type of AEST error source. Each value corresponds to
+>> +          a distinct error source class defined by the Arm AEST specification.
+>> +          arm,aest-proxy represents a proxy error source that forwards errors
+>> +          from another error source.
+>> +        enum:
+>> +          - arm,aest-processor
+>> +          - arm,aest-memory
+>> +          - arm,aest-smmu
+>> +          - arm,aest-gic
+>> +          - arm,aest-pcie
+>> +          - arm,aest-vendor
+>> +          - arm,aest-proxy
 > 
-> I can take that path for now and leave a FIXME.
+> This is a fundamental difference how DT and ACPI get structured. ACPI 
+> defines new table for some feature and puts everything in that table. 
+> For DT, these all belong in the node for the corresponding h/w. For 
+> example, if the GIC supports AEST, then that belongs in the GIC node.
+
+Thanks for the feedback. To clarify your suggestion — should the AEST
+RAS properties be added directly as properties of the hardware node
+(e.g. arm,ras-num-records inside the cpu@0 node itself), or as a child
+node under the hardware node (e.g. a ras-error-source {} child under cpu@0)?
+
+
 > 
-> Another option is to not batch multiple devices, until we support
-> retry (which shouldn't be hard to add since we've already done the
-> coding)?
-
-That's an interesting idea, it undoes some of the meaningful
-optimization we have recently done though :\
-
-> > We cannot eliminate parallel ATS invalidation. Two threads could be
-> > concurrently processing the invs list. So it has handle it, the driver
-> > is going to have to tolerate a number of redundant error events.
+>> +
+>> +      reg:
+>> +        description:
+>> +          Register ranges for the error source. Absence of reg implies
+>> +          system-register access (interface type 0). A single range implies
+>> +          memory-mapped access (interface type 1). Two ranges imply
+>> +          single-record memory-mapped access (interface type 2).
+>> +        minItems: 1
+>> +        maxItems: 4
+>> +
+>> +      reg-names:
+>> +        description:
+>> +          Names for the register ranges. The base error-record window is
+>> +          unnamed (or first entry). Optional named ranges provide access to
+>> +          the fault-injection, error-group, and interrupt-config register
+>> +          windows defined by the AEST specification.
+>> +        minItems: 1
+>> +        maxItems: 4
+>> +        items:
+>> +          enum:
+>> +            - fault-inject
+>> +            - err-group
+>> +            - irq-config
+>> +
+>> +      interrupts:
+>> +        description: Interrupts associated with the error source.
+>> +        minItems: 1
+>> +        maxItems: 2
+>> +
+>> +      interrupt-names:
+>> +        description: Names of the interrupts associated with the error source.
+>> +        minItems: 1
+>> +        maxItems: 2
+>> +        items:
+>> +          enum:
+>> +            - fhi
+>> +            - eri
+>> +
+>> +      arm,fhi-flags:
+>> +        description:
+>> +          Bitmask of flags for the fault-handling interrupt (FHI), as defined
+>> +          in the AEST node interrupt structure flags field. Constants are
+>> +          defined in <dt-bindings/arm/aest.h> - AEST_IRQ_MODE_LEVEL (0),
+>> +          AEST_IRQ_MODE_EDGE (1).
 > 
-> OK. That sounds like we still need a flag or locking so that at
-> least pci_disable_ats() would not be called again. I will see
-> what I can do.
+> DT already has a way to define interrupt flags. Why invent something 
+> new?
 
-I think we can call pci_disable_ats() as many times as we want, we
-mostly need the driver to merge multiple error notifications for the
-same event.
+Ack, this flag is not needed for DT based systems, will remove this.
 
-> > It depends on the driver, mlx5 has a FLR RAS flow for instance.
 > 
-> I assume a driver like that would trigger FLR flow on its own?
+> Rob
 
-Yes
- 
-> > A driver with a device that can blow up ATS should implement the FLR
-> > flow if it wants automatic RAS. It requires driver co-ordination.
-> 
-> Or FLR via sysfs, which I have been doing...
+Thanks,
+Umang
 
-Yes
- 
-> > But I wasn't thinking we can rely on existing AER events here, yes
-> > probably there will be AERs associated with the device exploding so
-> > badly it cannot do ATS, but also maybe not..
-> 
-> So, should I put the AER injection on hold for a future work? To
-> be honest, I am still not very clear how AER injection could help
-> here; or is it for a case where ATC times out while device isn't
-> aware of any AER fault?
 
-Right, if we don't get an AER fault then we should ensure the ATC is
-surfaced, but you have a reasonable point that it isn't so likely the
-get an ATC invalidation timeout without a corresponding related AER..
-
-Still, I'd feel better if it is was definititive and we didn't rely on
-this. This further points that the driver has to merge multiple error
-notifications if it gets some AERs and a new "ATC ERROR" all for the
-same key event.
-
-Jason
