@@ -1,293 +1,140 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5B00241665;
-	Wed, 20 May 2026 13:04:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.13
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9D06296BD3;
+	Wed, 20 May 2026 13:32:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779282282; cv=none; b=MnlVp2Z4FUZ9XAjpNoHWSYcgm1GOgQlVsugrrTIfNYZNjrtNqDJR/+I9ikliQg8GicYYQ+xSxNXd51yL6UDeJK8HdwC0mkxukJo/Cw743DzVD215I96ILXed2jXiXOnDJjTjcDusJSm9Xu7UGu5m6pTaRmGnZXER4hCBut7/OlI=
+	t=1779283947; cv=none; b=PN/N/i7AsLohhssUb7LAVWCon9DjoWmQaYFiAUeBNgrYYTdLzbbefJSqjG0d2VNsmpu8LOfK2wZEk5u27H6GMgPANEf2j2OWm0mbQnv3wo4YztQtC4NUhbyZeL/ajZwoH/ebJ0eottDjkQ+RwB1JKyjJmbSsXV3O4ZBcykW+ySU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779282282; c=relaxed/simple;
-	bh=3oB/anAfFp1TZd7fUTAFnBM1CiyUiczfXHSFvZ/i4DA=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=HGspuxmulcZyNP6TdtOsSBfY1AO5DDULr7kI4IRp7g9DvlMBhhlfaJZJd2XGFpy46YEUrEjgfDGF5jfEKMmex9bcYcupjVwagx+sELqNRGKh/m+rNu9h+L+LYWgOAb9dQrcTavGOINDdfQJsbwwmjDBhT0EEW//dgEQOn80nF/c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=M9pCnpr4; arc=none smtp.client-ip=192.198.163.13
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1779283947; c=relaxed/simple;
+	bh=ihilbjjcC733dUYjEt4I/oetk4Gjty5wKhH9j1S4UtI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=V8sicihsSYUp24hT3P95z8HTzgkmaTG/skQuK/VlH9v2cV8XJ91sGkuHhNJIvbwnqvD00KK+T8mqvsXk34kBxuuo9XZjtjwsHc4NhHuXzj55+RTQCUc2aVKZJGuEJApF3nJGoePNJfz0WeGUAdlNooadyTS0++qBgAKASNoWsQ4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZAGNvIn/; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="M9pCnpr4"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1779282280; x=1810818280;
-  h=date:from:to:cc:subject:message-id;
-  bh=3oB/anAfFp1TZd7fUTAFnBM1CiyUiczfXHSFvZ/i4DA=;
-  b=M9pCnpr4OYu57bGjTptHp+iFvTgowwf+2F/BGsWmIj70kecofhA1CpnP
-   ZHRQGYg6gCNiCUIqf2/rmJ/sa6/39QoSDrLQV3lA6sSYl/XUyfv5G7H3t
-   TA/XD30USLyjbKAQVGS9WbZKYiv01deBXBH10tu3p5nKg+q1Ag1KCJ4xb
-   FqmUSAsQi9vTEaydR5Tzig90ksiAtEEe/xk9PUglcQU/UhU1MWy0shRiW
-   gWun1U6qF75lVQGtMUlW8Hml1W0RHd88u+k9huFUtNYnw6GCzqK7EbNwr
-   4APFBbH5D7MbF9HRfsqzRFkSia+el5iSeXVU+psvVf2rDMmjRp3vqsPcY
-   Q==;
-X-CSE-ConnectionGUID: Te8C0VWMTGm6W8Xi+5Dj6g==
-X-CSE-MsgGUID: 95DQwwdRQQaolFEMITI/WA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11792"; a="82755736"
-X-IronPort-AV: E=Sophos;i="6.23,244,1770624000"; 
-   d="scan'208";a="82755736"
-Received: from orviesa006.jf.intel.com ([10.64.159.146])
-  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 May 2026 06:04:39 -0700
-X-CSE-ConnectionGUID: P+00sbA4STiWq9vRyQoR3A==
-X-CSE-MsgGUID: rBsU2LqgS/+SMIkyHGbK/A==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.23,244,1770624000"; 
-   d="scan'208";a="239174733"
-Received: from lkp-server02.sh.intel.com (HELO 30e86e9c1927) ([10.239.97.151])
-  by orviesa006.jf.intel.com with ESMTP; 20 May 2026 06:04:38 -0700
-Received: from kbuild by 30e86e9c1927 with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1wPgah-000000003BH-2xjr;
-	Wed, 20 May 2026 13:04:12 +0000
-Date: Wed, 20 May 2026 21:00:44 +0800
-From: kernel test robot <lkp@intel.com>
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
-Subject: [rafael-pm:bleeding-edge] BUILD SUCCESS
- 7255cd3212fa92c0c39605bf59eeae7d5cdf35e4
-Message-ID: <202605202135.7POb0gnA-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZAGNvIn/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD8B41F000E9;
+	Wed, 20 May 2026 13:32:22 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1779283945;
+	bh=kHtf673Ra0gSqzgxWX4CYOP0Cr4ZHMxoc34qQIAHQDI=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=ZAGNvIn/yCffLxHOfmhpMJozvEkabTF1B+G9fpbbzPnInK6JfidMtWz74dCmY3Qup
+	 sO+iko6ZkMWrwO8Hlgc3/8ErXToNMXaYBZO8c4aFKdurBak+rAcuJMjXXqpTNDVMC8
+	 EtlT+B/N1lP6xvvGbj96ggrYktvFg7Cpqt548Fl4U+wsWPQtytnubbhUqPosGKDj7K
+	 weTRdRvdFJ45zeSv3+9X1hm9YjtnZi65WIALDrNwLoEPnSi/ztOg5MfejZnYBqjEnW
+	 kT5z+uHYAE6xpGbQC0+jvsV0Vns8ipvkEwq+9eQ2dmVsYcP7VTrjlv1WCpoWi24+eH
+	 dj7h8VXz9lCMg==
+Date: Wed, 20 May 2026 14:32:20 +0100
+From: Sudeep Holla <sudeep.holla@kernel.org>
+To: "lihuisong (C)" <lihuisong@huawei.com>
+Cc: Adam Young <admiyo@os.amperecomputing.com>,
+	Jassi Brar <jassisinghbrar@gmail.com>, linux-kernel@vger.kernel.org,
+	Sudeep Holla <sudeep.holla@kernel.org>, linux-hwmon@vger.kernel.org,
+	"Rafael J . Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
+	Andi Shyti <andi.shyti@kernel.org>,
+	Guenter Roeck <linux@roeck-us.net>,
+	MyungJoo Ham <myungjoo.ham@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Chanwoo Choi <cw00.choi@samsung.com>,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v02] mailbox: pcc: report errors for PCC clients
+Message-ID: <20260520-optimal-nightingale-of-champagne-0bbdfe@sudeepholla>
+References: <20260518193006.27425-1-admiyo@os.amperecomputing.com>
+ <881ec4ba-44ce-498d-b0c4-8c1d51b13cc3@huawei.com>
+ <20260519-outgoing-rough-fox-04daab@sudeepholla>
+ <d719462f-3430-47c1-9b9d-1068b3c4e429@huawei.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <d719462f-3430-47c1-9b9d-1068b3c4e429@huawei.com>
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
-branch HEAD: 7255cd3212fa92c0c39605bf59eeae7d5cdf35e4  Merge branch 'experimental/acpi-driver-work' into bleeding-edge
+On Wed, May 20, 2026 at 07:53:45PM +0800, lihuisong (C) wrote:
+> 
+> On 5/20/2026 12:25 AM, Sudeep Holla wrote:
+> > On Tue, May 19, 2026 at 09:54:47PM +0800, lihuisong (C) wrote:
 
-elapsed time: 929m
+[...]
 
-configs tested: 216
-configs skipped: 5
+> > > @Sudeep, I have always had doubts about the addition of this line of code in
+> > > the
+> > >   commit 9c753f7c953c (mailbox: pcc: Mark Tx as complete in PCC IRQ handler).
+> > > The patch seems to avoid the timeouts in the mailbox core according to its
+> > > commit log.
+> > > Regardless of whether the command succeeds or fails, each mbox client
+> > > driver, like cppc_acpi/acpi_pcc，kunpeng_hccs and so on, is responsible to
+> > > call mbox_chan_txdone() to tell mailbox core.
+> > Few controller drivers do have mbox_chan_txdone(), so Tx complete is detected
+> Which controller driver?
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+git grep mbox_chan_txdone drivers/mailbox/
 
-tested configs:
-alpha                             allnoconfig    gcc-15.2.0
-alpha                            allyesconfig    gcc-15.2.0
-alpha                               defconfig    gcc-15.2.0
-arc                              allmodconfig    clang-16
-arc                              allmodconfig    gcc-15.2.0
-arc                               allnoconfig    gcc-15.2.0
-arc                              allyesconfig    clang-23
-arc                              allyesconfig    gcc-15.2.0
-arc                                 defconfig    gcc-15.2.0
-arc                   randconfig-001-20260520    gcc-8.5.0
-arc                   randconfig-002-20260520    gcc-8.5.0
-arm                               allnoconfig    clang-23
-arm                               allnoconfig    gcc-15.2.0
-arm                              allyesconfig    clang-16
-arm                              allyesconfig    gcc-15.2.0
-arm                                 defconfig    gcc-15.2.0
-arm                            dove_defconfig    gcc-15.2.0
-arm                   randconfig-001-20260520    gcc-8.5.0
-arm                   randconfig-002-20260520    gcc-8.5.0
-arm                   randconfig-003-20260520    gcc-8.5.0
-arm                   randconfig-004-20260520    gcc-8.5.0
-arm64                            allmodconfig    clang-23
-arm64                             allnoconfig    gcc-15.2.0
-arm64                               defconfig    gcc-15.2.0
-arm64                 randconfig-001-20260520    gcc-10.5.0
-arm64                 randconfig-002-20260520    gcc-10.5.0
-arm64                 randconfig-003-20260520    gcc-10.5.0
-arm64                 randconfig-004-20260520    gcc-10.5.0
-csky                             allmodconfig    gcc-15.2.0
-csky                              allnoconfig    gcc-15.2.0
-csky                                defconfig    gcc-15.2.0
-csky                  randconfig-001-20260520    gcc-10.5.0
-csky                  randconfig-002-20260520    gcc-10.5.0
-hexagon                          allmodconfig    clang-17
-hexagon                          allmodconfig    gcc-15.2.0
-hexagon                           allnoconfig    clang-23
-hexagon                           allnoconfig    gcc-15.2.0
-hexagon                             defconfig    gcc-15.2.0
-hexagon               randconfig-001-20260520    gcc-11.5.0
-hexagon               randconfig-002-20260520    gcc-11.5.0
-i386                             allmodconfig    clang-20
-i386                             allmodconfig    gcc-14
-i386                              allnoconfig    gcc-14
-i386                              allnoconfig    gcc-15.2.0
-i386                             allyesconfig    clang-20
-i386                             allyesconfig    gcc-14
-i386                 buildonly-randconfig-001    clang-20
-i386        buildonly-randconfig-001-20260520    clang-20
-i386                 buildonly-randconfig-002    clang-20
-i386        buildonly-randconfig-002-20260520    clang-20
-i386                 buildonly-randconfig-003    clang-20
-i386        buildonly-randconfig-003-20260520    clang-20
-i386                 buildonly-randconfig-004    clang-20
-i386        buildonly-randconfig-004-20260520    clang-20
-i386                 buildonly-randconfig-005    clang-20
-i386        buildonly-randconfig-005-20260520    clang-20
-i386                 buildonly-randconfig-006    clang-20
-i386        buildonly-randconfig-006-20260520    clang-20
-i386                                defconfig    gcc-15.2.0
-i386                           randconfig-001    clang-20
-i386                  randconfig-001-20260520    clang-20
-i386                           randconfig-002    clang-20
-i386                  randconfig-002-20260520    clang-20
-i386                           randconfig-003    clang-20
-i386                  randconfig-003-20260520    clang-20
-i386                           randconfig-004    clang-20
-i386                  randconfig-004-20260520    clang-20
-i386                           randconfig-005    clang-20
-i386                  randconfig-005-20260520    clang-20
-i386                           randconfig-006    clang-20
-i386                  randconfig-006-20260520    clang-20
-i386                           randconfig-007    clang-20
-i386                  randconfig-007-20260520    clang-20
-i386                  randconfig-011-20260520    gcc-14
-i386                  randconfig-012-20260520    gcc-14
-i386                  randconfig-013-20260520    gcc-14
-i386                  randconfig-014-20260520    gcc-14
-i386                  randconfig-015-20260520    gcc-14
-i386                  randconfig-016-20260520    gcc-14
-i386                  randconfig-017-20260520    gcc-14
-loongarch                        allmodconfig    clang-23
-loongarch                         allnoconfig    clang-23
-loongarch                         allnoconfig    gcc-15.2.0
-loongarch                           defconfig    clang-19
-loongarch             randconfig-001-20260520    gcc-11.5.0
-loongarch             randconfig-002-20260520    gcc-11.5.0
-m68k                             alldefconfig    gcc-15.2.0
-m68k                             allmodconfig    gcc-15.2.0
-m68k                              allnoconfig    gcc-15.2.0
-m68k                             allyesconfig    clang-16
-m68k                             allyesconfig    gcc-15.2.0
-m68k                                defconfig    clang-19
-microblaze                        allnoconfig    gcc-15.2.0
-microblaze                       allyesconfig    gcc-15.2.0
-microblaze                          defconfig    clang-19
-mips                             allmodconfig    gcc-15.2.0
-mips                              allnoconfig    gcc-15.2.0
-mips                             allyesconfig    gcc-15.2.0
-mips                       rbtx49xx_defconfig    gcc-15.2.0
-nios2                            allmodconfig    clang-23
-nios2                             allnoconfig    clang-23
-nios2                             allnoconfig    gcc-11.5.0
-nios2                               defconfig    clang-19
-nios2                 randconfig-001-20260520    gcc-11.5.0
-nios2                 randconfig-002-20260520    gcc-11.5.0
-openrisc                         allmodconfig    clang-23
-openrisc                          allnoconfig    clang-23
-openrisc                          allnoconfig    gcc-15.2.0
-openrisc                            defconfig    gcc-15.2.0
-parisc                           allmodconfig    gcc-15.2.0
-parisc                            allnoconfig    clang-23
-parisc                            allnoconfig    gcc-15.2.0
-parisc                           allyesconfig    clang-19
-parisc                           allyesconfig    gcc-15.2.0
-parisc                              defconfig    gcc-15.2.0
-parisc                randconfig-001-20260520    clang-23
-parisc                randconfig-001-20260520    gcc-10.5.0
-parisc                randconfig-002-20260520    clang-23
-parisc                randconfig-002-20260520    gcc-11.5.0
-parisc64                            defconfig    clang-19
-powerpc                          allmodconfig    gcc-15.2.0
-powerpc                           allnoconfig    clang-23
-powerpc                           allnoconfig    gcc-15.2.0
-powerpc               randconfig-001-20260520    clang-23
-powerpc               randconfig-002-20260520    clang-17
-powerpc               randconfig-002-20260520    clang-23
-powerpc64             randconfig-001-20260520    clang-23
-powerpc64             randconfig-002-20260520    clang-23
-riscv                            allmodconfig    clang-23
-riscv                             allnoconfig    clang-23
-riscv                             allnoconfig    gcc-15.2.0
-riscv                            allyesconfig    clang-16
-riscv                               defconfig    gcc-15.2.0
-s390                             allmodconfig    clang-18
-s390                             allmodconfig    clang-19
-s390                              allnoconfig    clang-23
-s390                             allyesconfig    gcc-15.2.0
-s390                                defconfig    gcc-15.2.0
-sh                               allmodconfig    gcc-15.2.0
-sh                                allnoconfig    clang-23
-sh                                allnoconfig    gcc-15.2.0
-sh                               allyesconfig    clang-19
-sh                               allyesconfig    gcc-15.2.0
-sh                                  defconfig    gcc-14
-sparc                             allnoconfig    clang-23
-sparc                             allnoconfig    gcc-15.2.0
-sparc                               defconfig    gcc-15.2.0
-sparc                 randconfig-001-20260520    gcc-8.5.0
-sparc                 randconfig-002-20260520    gcc-8.5.0
-sparc64                          allmodconfig    clang-23
-sparc64                             defconfig    gcc-14
-sparc64               randconfig-001-20260520    gcc-8.5.0
-sparc64               randconfig-002-20260520    gcc-8.5.0
-um                               allmodconfig    clang-19
-um                                allnoconfig    clang-23
-um                               allyesconfig    gcc-14
-um                               allyesconfig    gcc-15.2.0
-um                                  defconfig    gcc-14
-um                             i386_defconfig    gcc-14
-um                    randconfig-001-20260520    gcc-8.5.0
-um                    randconfig-002-20260520    gcc-8.5.0
-um                           x86_64_defconfig    gcc-14
-x86_64                           allmodconfig    clang-20
-x86_64                            allnoconfig    clang-20
-x86_64                            allnoconfig    clang-23
-x86_64                           allyesconfig    clang-20
-x86_64      buildonly-randconfig-001-20260520    gcc-14
-x86_64      buildonly-randconfig-002-20260520    gcc-14
-x86_64      buildonly-randconfig-003-20260520    gcc-14
-x86_64      buildonly-randconfig-004-20260520    gcc-14
-x86_64      buildonly-randconfig-005-20260520    gcc-14
-x86_64      buildonly-randconfig-006-20260520    gcc-14
-x86_64                              defconfig    gcc-14
-x86_64                                  kexec    clang-20
-x86_64                         randconfig-001    clang-20
-x86_64                randconfig-001-20260520    clang-20
-x86_64                randconfig-001-20260520    gcc-14
-x86_64                         randconfig-002    clang-20
-x86_64                randconfig-002-20260520    clang-20
-x86_64                randconfig-002-20260520    gcc-14
-x86_64                         randconfig-003    clang-20
-x86_64                randconfig-003-20260520    clang-20
-x86_64                randconfig-003-20260520    gcc-14
-x86_64                         randconfig-004    clang-20
-x86_64                randconfig-004-20260520    clang-20
-x86_64                randconfig-004-20260520    gcc-14
-x86_64                         randconfig-005    clang-20
-x86_64                randconfig-005-20260520    clang-20
-x86_64                randconfig-005-20260520    gcc-14
-x86_64                         randconfig-006    clang-20
-x86_64                randconfig-006-20260520    clang-20
-x86_64                randconfig-006-20260520    gcc-14
-x86_64                randconfig-011-20260520    gcc-14
-x86_64                randconfig-012-20260520    gcc-14
-x86_64                randconfig-013-20260520    gcc-14
-x86_64                randconfig-014-20260520    gcc-14
-x86_64                randconfig-015-20260520    gcc-14
-x86_64                randconfig-016-20260520    gcc-14
-x86_64                randconfig-071-20260520    gcc-14
-x86_64                randconfig-072-20260520    gcc-14
-x86_64                randconfig-073-20260520    gcc-14
-x86_64                randconfig-074-20260520    gcc-14
-x86_64                randconfig-075-20260520    gcc-14
-x86_64                randconfig-076-20260520    gcc-14
-x86_64                               rhel-9.4    clang-20
-x86_64                           rhel-9.4-bpf    gcc-14
-x86_64                          rhel-9.4-func    clang-20
-x86_64                    rhel-9.4-kselftests    clang-20
-x86_64                         rhel-9.4-kunit    gcc-14
-x86_64                           rhel-9.4-ltp    gcc-14
-x86_64                          rhel-9.4-rust    clang-20
-xtensa                            allnoconfig    clang-23
-xtensa                            allnoconfig    gcc-15.2.0
-xtensa                           allyesconfig    clang-23
-xtensa                randconfig-001-20260520    gcc-8.5.0
-xtensa                randconfig-002-20260520    gcc-8.5.0
+> > by PCC, so not sure why you think this is not the right place to do. The irq
+> Because many mbox client drivers call mbox_chan_txdone() after running
+> rx_callback() in mbox_chan_received_data().
 
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+OK, but why can't the controller hide that for the clients ? What am I missing?
+
+> These drivers doesn't set chan->cl->tx_block to true.
+> It seems that the client driver having tx_block need to set
+> chan->tx_complete in tx_tick().
+> Do you add this code for them?
+
+I don't quite follow you.
+
+> > is to indicate the completion. I am confused as why you think otherwise.
+> > It is defined in include/linux/mailbox_controller.h for the same reason.
+> > 
+> > The client drivers can you mbox_client_txdone() if they wish to as defined
+> > in include/linux/mailbox_client.h
+> mbox_client_txdone() is used in the case that txdone_method is
+> MBOX_TXDONE_BY_ACK.
+
+Yes and agreed.
+
+> And mbox clinte driver using IRQ method need to use mbox_chan_txdone().
+
+Client doesn't handle IRQ its always controller driver and client must have
+no business to do that IMO.
+
+> It seems that all the current client drivers are used in this way.
+> These interface internal would verify chan->txdone_method.
+> 
+
+Yes, sounds wrong to me.
+
+drivers/acpi/acpi_pcc.c
+drivers/acpi/cppc_acpi.c
+drivers/hwmon/xgene-hwmon.c
+drivers/i2c/busses/i2c-xgene-slimpro.c
+drivers/soc/hisilicon/kunpeng_hccs.c
+
+It is very clear from the code in mailbox.c, mbox_client_txdone() is for
+the client drivers and mbox_chan_txdone() is for the controller. We need
+to fix the above list but I need to check if there is anything I am missing
+to understand first. Please let me know.
+
+> In addition, I find that you also modify the txdone_irq/poll in the commit
+> 3349f800609e (mailbox: pcc: Set txdone_irq/txdone_poll based on PCCT flags).
+> The txdone_method will change from MBOX_TXDONE_BY_ACK to MBOX_TXDONE_BY_POLL
+> on the platform using poll mode.
+> This may lead to the original mbox client driver printing exceptions in
+> mbox_client_txdone.
+> I haven't observed it based on the latest code yet, it's just code analysis.
+
+Right, I do remember seeing something and wonder if I moved to
+mbox_chan_txdone() in drivers/acpi/acpi_pcc.c for that reason. But if the
+expectations I have mentioned are correct, then we need to fix the framework
+to avoid throwing that warnings.
+
+-- 
+Regards,
+Sudeep
