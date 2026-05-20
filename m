@@ -1,194 +1,197 @@
-Received: from canpmsgout08.his.huawei.com (canpmsgout08.his.huawei.com [113.46.200.223])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0EBDF3112DA;
-	Wed, 20 May 2026 02:55:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.223
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779245762; cv=none; b=J8hR+hGvmUh+/hRXRKeZeFAIfoQ/tjHcAxPQ3yycDNOKw7GngVbk5VVFejM6jYgusnBY/LVVqVUTngw8OSktVHaASYbYjB4aiRDbZoYcoSGIU45yiRDGaB52RuzxVYe1Cyluq8P+GXUIzGhVBCeI6RKJJiYV4c/X8gIlyIGInL8=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779245762; c=relaxed/simple;
-	bh=b37zFhf8nl5LZBmxf1w7SRwnU0bGDDT6xXU5VOnptOg=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=fq6K6/vZVQZPmbPitUBEvdjCaZwvMj0hmKIc3Xx6tSGqjUsngdpTSXBcBAW4eI3CYSSlfAXvNuslUOmOUjq4x8JwgD1aPhJ05546SI6inMHcDdFcuMkjdRynwkmPC4MKkXJB+Q2ed3z34e4xju2Jf76nrXcEvzoRJqDOXcdaObQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=J5NIh9A8; arc=none smtp.client-ip=113.46.200.223
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4571330652;
+	Wed, 20 May 2026 03:59:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.13
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1779249598; cv=fail; b=CZTxKB1f6k2Ww5tIPmoizZddIxCY181mGbSLrZVgZULhU/WwIFn2pdehzUkBz83hQ8Kk4xYbEaPqg/Wb81zs0L/qPCFVBY8NlD8Smij3j+iLTxQ5VEbx1USWIBHN1w43Aon+a9orSpz5loY3xbxFcbVZJcLN143PVoBcXo4GWgk=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1779249598; c=relaxed/simple;
+	bh=9hsPqWIbOVWRKQDaB7KTOz2qu0uSCDjsJwSItchY8Ak=;
+	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
+	 Content-Type:MIME-Version; b=CS1oKZq47YFdEsJetl/0b3bpE+vJOcICnr9Owvtr6EuA6E7OxZi06DGudyBjpKSpO8Q6YjygjP3wnjam7UIWji1mVlxpXrVqBf2DK0W8SoiVaQz0xMg30bRwPiRa/BnM25QJ7u9oghrig7SAXJfe9SxmA6Pepmm5vbdHp7/r8bQ=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=JMrVGRw6; arc=fail smtp.client-ip=192.198.163.13
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="J5NIh9A8"
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=BWviZjjto1yMbr31/bRcxfE0EG6NBe9FcUa0M9S8NIQ=;
-	b=J5NIh9A8MN5cskdCn1evrZmIx8Lf9Tt5gNdTZZoRlA2govlmA45MNU8QNpEjtIcQSd9s8SVTl
-	pDOSy/blsBC06wlkc0rMlaVTEosk3cQJXX7NAEuZlknRuD0CvMnV2HLelemEMyOulgyLuf1mcL+
-	nqb7yB5xiv+hXh/dgVkERzA=
-Received: from mail.maildlp.com (unknown [172.19.163.127])
-	by canpmsgout08.his.huawei.com (SkyGuard) with ESMTPS id 4gKwvf1XgLzmV6b;
-	Wed, 20 May 2026 10:48:14 +0800 (CST)
-Received: from kwepemr200004.china.huawei.com (unknown [7.202.195.241])
-	by mail.maildlp.com (Postfix) with ESMTPS id 966E8402AB;
-	Wed, 20 May 2026 10:55:56 +0800 (CST)
-Received: from [10.67.121.62] (10.67.121.62) by kwepemr200004.china.huawei.com
- (7.202.195.241) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Wed, 20 May
- 2026 10:55:55 +0800
-Message-ID: <443104e2-ba6e-454e-8469-909f35817a99@huawei.com>
-Date: Wed, 20 May 2026 10:55:54 +0800
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="JMrVGRw6"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1779249596; x=1810785596;
+  h=from:to:cc:subject:date:message-id:references:
+   in-reply-to:content-transfer-encoding:mime-version;
+  bh=9hsPqWIbOVWRKQDaB7KTOz2qu0uSCDjsJwSItchY8Ak=;
+  b=JMrVGRw6XCGr052vqmlmF9vUKayMvuVVNbb9XpiJ9grCq+4pI6qfMHSC
+   gdPjFzNTgigwQUmRu4uZnpKvvK2oOh4844xFUwJq/Zu+53j9kMQq/0y+2
+   whXG5FHTPiphrl1pA8/vRVQzk+Nob/BoSfqeXWgUGdQml2ndeChRUUCOn
+   HSiQwzKC1/7uYIxUzEAHsrlZwpQVh8TviLPjs9bAw48/mU6p7iRaykBIH
+   8rStBp5a8H0BUWDAjBWUzruAIS/fGEyugXpWoQfpyTmpa0eaLLrXKNr8p
+   IJWSZusXuZ/YB2CMVHDwVg3ndLtI6HCgDEr+F5fyh/zJEo49dUXyTeNal
+   Q==;
+X-CSE-ConnectionGUID: 3UunxulBTR27km9vQfZrxA==
+X-CSE-MsgGUID: yi/Zw6hlR+WD39P/bb4dGA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11791"; a="82709567"
+X-IronPort-AV: E=Sophos;i="6.23,243,1770624000"; 
+   d="scan'208";a="82709567"
+Received: from fmviesa008.fm.intel.com ([10.60.135.148])
+  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 May 2026 20:59:54 -0700
+X-CSE-ConnectionGUID: ZrD3DKCmRu6av2YqATfYbQ==
+X-CSE-MsgGUID: +xpnAvlnR7a0VdVtvin9Rw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,243,1770624000"; 
+   d="scan'208";a="237389888"
+Received: from orsmsx902.amr.corp.intel.com ([10.22.229.24])
+  by fmviesa008.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 May 2026 20:59:54 -0700
+Received: from ORSMSX903.amr.corp.intel.com (10.22.229.25) by
+ ORSMSX902.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.37; Tue, 19 May 2026 20:59:53 -0700
+Received: from ORSEDG902.ED.cps.intel.com (10.7.248.12) by
+ ORSMSX903.amr.corp.intel.com (10.22.229.25) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.37 via Frontend Transport; Tue, 19 May 2026 20:59:53 -0700
+Received: from BL2PR02CU003.outbound.protection.outlook.com (52.101.52.14) by
+ edgegateway.intel.com (134.134.137.112) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.37; Tue, 19 May 2026 20:59:46 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=Hu3or9ceD/A8vY+xxvvmbwcsWoTuOD6nRNktWTiy0F6Miz9UZb7naXr4uNV0PqyvvHQbO7xS82H+TltFVOl0GcYLTzuQgCx4zmM0xJ+64oTnn131OX3jQqbvQ+If7bkCbDSKdtqp3ugJRLiQqjn/XtXNTZlYf7pmLM5yfRC6/wxikBh7SEje+nkw+ujU7bzbL4japYeSyMHID4Q/L9VfJcGEAd1bROE2UxsJAtekRfo385BQRhhjfSPO46Y9ipj1acs+ctv7J02EAsF7BLHHBdP7YLfZkHEm1kQirXBO5gIxRyxTU5WL2pyBQutfOd3IpRq6WovQOe7EYw3BzkMyrg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=2A2rlMW/Zozms2Ct+ZoQx/W6FYysTN5qmYZTthdvpY8=;
+ b=Y0e2L+NW8jvqY2BIBQfWOJxu9zCs+QH8UrWrQZQEZ4R00Z9+082nmmUdE0tpl+HCfFqVV+ufzKr9QWmTAkURvOArfojsIvxWDBUP4UDIGmMjGyM8KG/mPwsIRiJRkoyEUxCCGmjvmCFpR9iBYNIwmv3bqoATTTC/TGA1/iyC5pBDJqSRBGLCP+popEErtlpytTsNSDxJ0Pow1xjm7VUD0ghQfvjATPIi+GN/cXit2V976OFoCnXbBZAPfaxlIvujiHt/fh6bZQ/dlL3pBO9J/N7xAkhWMHICQE+2kBufjjLjglOYVXRiCfHj8cE46D7BIaGvFcfSIyH4Pc2LIN1wOA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Received: from BN9PR11MB5276.namprd11.prod.outlook.com (2603:10b6:408:135::18)
+ by SA1PR11MB9873.namprd11.prod.outlook.com (2603:10b6:806:4d9::22) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.48.14; Wed, 20 May
+ 2026 03:59:44 +0000
+Received: from BN9PR11MB5276.namprd11.prod.outlook.com
+ ([fe80::f997:762f:f079:134f]) by BN9PR11MB5276.namprd11.prod.outlook.com
+ ([fe80::f997:762f:f079:134f%5]) with mapi id 15.21.0048.013; Wed, 20 May 2026
+ 03:59:44 +0000
+From: "Tian, Kevin" <kevin.tian@intel.com>
+To: Nicolin Chen <nicolinc@nvidia.com>, Will Deacon <will@kernel.org>, "Robin
+ Murphy" <robin.murphy@arm.com>, Joerg Roedel <joro@8bytes.org>, Bjorn Helgaas
+	<bhelgaas@google.com>, Jason Gunthorpe <jgg@nvidia.com>
+CC: "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+	Pranjal Shrivastava <praan@google.com>, Mostafa Saleh <smostafa@google.com>,
+	Lu Baolu <baolu.lu@linux.intel.com>, "linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>, "iommu@lists.linux.dev"
+	<iommu@lists.linux.dev>, "linux-kernel@vger.kernel.org"
+	<linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org"
+	<linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org"
+	<linux-pci@vger.kernel.org>, Vikram Sethi <vsethi@nvidia.com>, Shuai Xue
+	<xueshuai@linux.alibaba.com>
+Subject: RE: [PATCH v4 00/24] iommu/arm-smmu-v3: Quarantine device upon ATC
+ invalidation timeout
+Thread-Topic: [PATCH v4 00/24] iommu/arm-smmu-v3: Quarantine device upon ATC
+ invalidation timeout
+Thread-Index: AQHc50EqNvzduihNr06Qrajumo3F37YWSxOw
+Date: Wed, 20 May 2026 03:59:43 +0000
+Message-ID: <BN9PR11MB52761E126A213C6CD2CF77D68C012@BN9PR11MB5276.namprd11.prod.outlook.com>
+References: <cover.1779161849.git.nicolinc@nvidia.com>
+In-Reply-To: <cover.1779161849.git.nicolinc@nvidia.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+authentication-results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: BN9PR11MB5276:EE_|SA1PR11MB9873:EE_
+x-ms-office365-filtering-correlation-id: 4d41f970-1bc5-476b-0403-08deb62439f3
+x-ld-processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam: BCL:0;ARA:13230040|1800799024|366016|376014|7416014|22082099003|18002099003|56012099003|38070700021|11063799006;
+x-microsoft-antispam-message-info: K7WllOgBUq6fmZAPXXCXG1SoNDjUT8IpZxwIi+iujC8OZ9OJDU+mTbuLclbPw2vdRPtB+5bkI0gvhARqyM9kR01XmPGBUrhF7/HspuaJLA1mG0IeQ82fvWskvrLDOKI7mOnpHA2IV3aYd2gU5LVdEXNdWjsg43gRWjwy+6oEWZrA0KHy0Wj+2H2GH0ZSxNUF7OiHGE544SlppoXU+B8KfXK2iqFwQp0wdNX6Vgh0qlnvmiTnO67tMESphC5h04DMv8Pm00tpEnOQ0+bgPUc18huMQJyNFm+MWH/FnQEBqLjp+6ymx/2NQhVLi5p2pcgm7jGgwFnt2f+Z7IzolNV1lof2Amtcip0RW3wbBjmgMplxCwwEdlsT3CoZuuaOKvUUFxH8+mKJ1YZ8kPDiwsAQzMa35oJwzK4BRJkZs46svbUGCXulAu+lPla6jnuTTLTecvi9K/hIgffQCTSG+NT8EKjqisG9Djz02fCWQCdW1xX6tF+UmyOwDNxYdPPBODzZG2sAzAVnCsVXrdtULUpulojYNDpRInY5vAhTFzHV0wYwRrnhnq/tPtsPhCZ1v3Pds+KLQuAZLY6VWDyQx27npOVWQrDewtb9km4U/7OID11xU21275pqv68uii6TMSKE0CbAySI7deG5YWjCP+h06AL8g5NSgfLDNihTrz1uI1esqnfK6hh4OFqpdNwt1xYAYJFrZ6Ozx4y64WH88UQsnxF7RfBo4pQGG22N9+OJVtEiRU1LFSUFnVlJrqoSYmXm
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BN9PR11MB5276.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(376014)(7416014)(22082099003)(18002099003)(56012099003)(38070700021)(11063799006);DIR:OUT;SFP:1101;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0: =?us-ascii?Q?zloYKJRyMVlVEGz/owtQjOcR83VkcR41nOsgDmF0C7esLCGRrHHQoUzLNc1d?=
+ =?us-ascii?Q?y47Av/djXBXXMHmBp6/9kMMKaJen2TwvHScbql2+64G4edXDx1lmxBNJIBEw?=
+ =?us-ascii?Q?o/kiyBrM6o3xj41LB0jEfM985BVKL2csF2qmKPrF7ciXYo2Fv0DBAZa49zxC?=
+ =?us-ascii?Q?Hxc4VK8BlDI0KXE0zR/gkPZDZ7EQHwFa2j5OWK35T/8VrQQRkroyub+94QkL?=
+ =?us-ascii?Q?/W8xkugk9V9cTj/CmuSjWX94sZWVSwhwUwzZbs3LFKewfgRLQkaK64FU8VTW?=
+ =?us-ascii?Q?b0+yjH54icqWafKvW24xPrFovl1YBcuhFzzYxJUKoUkkGYQj7zcWSoIGnmDL?=
+ =?us-ascii?Q?u7pUAX0jGPIk0cj/CBcLcufWcQteBY7csM3kdPeT72EtOMWdigDvP7Mjl0P2?=
+ =?us-ascii?Q?SB2lamQSrOOwXwBwlmEJQNWypGU4Ydh0ya0xJRxYR3c+YQWwbo1E1s+JgQWx?=
+ =?us-ascii?Q?PNxqzJPAtezWGFCLutK3Vc5thCkpaf78cweIt6viZrrITKpezoT1M+xOYDMu?=
+ =?us-ascii?Q?x4xck6reawUQb4grUhhPTsixlz7HTxfGQqhhdBdm142i15bcvpvOt/dNnXQe?=
+ =?us-ascii?Q?0iOBqBQMmy1VQRgtPnNrzICvinlhd2rqPH4GH8PRtcJoHYrWMrStiCTFu6jX?=
+ =?us-ascii?Q?qldLDBUPBLNFWhu2IRX3NOUOcM9eSYOSHRKc0TuWapxEu4CNBfW1FZj4xiBt?=
+ =?us-ascii?Q?hFy0va4K/xZvI/wZJBFGDpH0qydf9vhiFI93yHux0OJzKE3bOZszDpTtl2A3?=
+ =?us-ascii?Q?eUbNHrO7Y/CUkxC7lOG2G8c2AtCYmDh2Hb9vnstTQsWUXe0j3L9H0OFhdaN6?=
+ =?us-ascii?Q?0rrug19HZKgjP+o4LRxsN7RWoDx96nbu1F+t6TdsRQ38db2TGjlEtc31d00A?=
+ =?us-ascii?Q?XCAH3fSG81dYd5PgNFobJfXRshMDRVl66AgVns/euXj/lsht24WpNdsiolhc?=
+ =?us-ascii?Q?HPBuYa0kDQTLLrYjuJgCQznBEtoOtympH65lZOfEQGJTghPNIqXIrwf7ExVc?=
+ =?us-ascii?Q?oaiQceWL/cNsIx+TFBsk66DGZXG8MQw46evUL/FdPEtZPNgVQtvVZKRk6eXZ?=
+ =?us-ascii?Q?cCkenPCdDBZan7qn2Gs7uqv1mwesP9OL/ZFAGlIRMFaa2V7UYfVxnmaVIWMR?=
+ =?us-ascii?Q?JYvTf8dldM3MbUlJuT3ypeyKoq9zORHt+Yvu5011QMVRizVaYTPrYS3dplAR?=
+ =?us-ascii?Q?Ub9bBeOFb0DVcGAiuAgdLbP/rMyCE1uTYqN3w8Q2mKfqjz6xtH4CmtIjotKH?=
+ =?us-ascii?Q?ML8/rW0F2Pzr63Ci6xNQSrNdVndl0AYFKq4Y/NOLI2pWqb5o4/E3BIBz4298?=
+ =?us-ascii?Q?J1Oi1b9VguChQxNNd/B+9IqZgJNhyEOWR1/FgDYEdywGNuYzaGINGXJ8Ol1z?=
+ =?us-ascii?Q?gWZnGXujUhuNpmoBkcjPX673BoZcolxrfTX+wVfG262CnIjuDYgOALTmu8uu?=
+ =?us-ascii?Q?WOIIpVSF/8o5F23Qrrq6Dsw+iFqVVEBmXK1EA71qZgd/4GVSkKw8aJcA0i5L?=
+ =?us-ascii?Q?t24NHyoEvkhVa93uvheYaFn9J39QH855bwDJYWnFk9kXjtYYKq+AdJv7r9kG?=
+ =?us-ascii?Q?rarq+o1b9CcO5oCtpaFXo6GA7VcW+XYsOU8CwrNZ0zRQohI/8wDCXKTxjolf?=
+ =?us-ascii?Q?Sn+KcD4nQLRm+cJC147DhZB6hVd4mBP87nome48vIZO1m8XhiGgoa/1Lk1TU?=
+ =?us-ascii?Q?D+uIwKwfe8RtZvQ/R/HAgLA5R7IO3Lb2cNJVDZY/VYtdXvj6BCcOu4LxbKYh?=
+ =?us-ascii?Q?Sz8kHeyMOw=3D=3D?=
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 0/2] CPPC: reduce FFH feedback-counter sampling skew on
- arm64
-To: Will Deacon <will@kernel.org>
-CC: <catalin.marinas@arm.com>, <rafael@kernel.org>, <lenb@kernel.org>,
-	<robert.moore@intel.com>, <beata.michalska@arm.com>,
-	<zhenglifeng1@huawei.com>, <zhanjie9@hisilicon.com>, <sumitg@nvidia.com>,
-	<cuiyunhui@bytedance.com>, <linux-arm-kernel@lists.infradead.org>,
-	<linux-kernel@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
-	<acpica-devel@lists.linux.dev>, <linuxarm@huawei.com>,
-	<jonathan.cameron@huawei.com>, <prime.zeng@hisilicon.com>,
-	<wanghuiqiang@huawei.com>, <xuwei5@huawei.com>, <lihuisong@huawei.com>,
-	<yubowen8@huawei.com>, <wangzhi12@huawei.com>, <ionela.voinescu@arm.com>,
-	<jeremy.linton@arm.com>
-References: <20260410094145.4132082-1-zhangpengjie2@huawei.com>
- <aa1284c1-ea26-48ca-a7d7-022027c8228a@huawei.com>
- <agw_1IYaY4zeobZE@willie-the-truck>
-From: Pengjie Zhang <zhangpengjie2@huawei.com>
-In-Reply-To: <agw_1IYaY4zeobZE@willie-the-truck>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: kwepems200002.china.huawei.com (7.221.188.68) To
- kwepemr200004.china.huawei.com (7.202.195.241)
+X-Exchange-RoutingPolicyChecked: k+lqt6j3KAV2DbBKsbx29GKpucn+EfUoQJA8kcQ4OGL68xg4En9kvAfcr+f9bcuzIZXNV6lyE3sa7E5mo3NNq99wL4asvaJesNdk/WhndWe3rmidpIEn/RCcnGDxNBNa1lEgVShy+du/8AdmpszCLRRn4G/LgapjIWF8B1M4ONu0tcXif1exvl2UQwwnCVWM7O11r7nNLXye/rHbddqR5Vl7qAGd+FDpdWifpRNhbpseR+3qX3gUvyG+OfhCSrOPWC5i7T4jNxGq21jWyPN+LYbY19DeBver1sOf1BILfoiy9LKMBZpAt3K3jVLtqnqFQpbE/0OZFFTRkK5g9R8xrg==
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: BN9PR11MB5276.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 4d41f970-1bc5-476b-0403-08deb62439f3
+X-MS-Exchange-CrossTenant-originalarrivaltime: 20 May 2026 03:59:43.9855
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: kpUx5ehfXL2KF3YxuPwqRtUk7D7s3TtmDweLq4ANyOR0I7557M0tFzUyPT3RsAC0YlULo9x0rmmR2Tg9nLagbA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR11MB9873
+X-OriginatorOrg: intel.com
 
-
-On 5/19/2026 6:47 PM, Will Deacon wrote:
-> On Thu, Apr 30, 2026 at 06:00:44PM +0800, zhangpengjie (A) wrote:
->> Hi all,
->>
->> Gentle ping on this thread. It has been a while since I posted it.
->>
->> Could someone please take a look when you have time? If there is anything
->> I should revise or any additional information needed, I'd be happy to
->> update it.
-> It's hard to find active folks who have contributed meaningfully to the
-> cppc_acpi driver... I've added Ionella and Jeremy, in case they can take
-> a look.
+> From: Nicolin Chen <nicolinc@nvidia.com>
+> Sent: Tuesday, May 19, 2026 11:39 AM
 >
-> Will
-Thanks Will, and thanks for adding Ionela and Jeremy.
+> Changelog
+> v4:
+>  * Rebase on Joerg's IOMMU "fixes" branch
+>  * Rebase on Jason's SMMUv3 cmd_ent series
+>    https://lore.kernel.org/all/0-v2-47b2bf710ad5+716ac-
+> smmu_no_cmdq_ent_jgg@nvidia.com/
+>  * [PCI] Don't suspend IOMMU in probe mode
+>  * [iommu] kfree_rcu() iommu_group
+>  * [iommu] Convert gdev->blocked to enum gdev_blocked
+>  * [iommu] Use disable_work_sync() to fix UAF and ref leak
+>  * [iommu] Gate done() transitions to preserve BLOCKED_BROKEN
+>  * [iommu] Decrement recovery_cnt when unplugging a blocked gdev
+>  * [iommu] Drop racy dev_has_iommu() in iommu_report_device_broken()
+>  * [iommu] Add gdev->broken_pending to skip worker after racing recovery
+>  * [smmuv3] Add master->ats_invs scratch
+>  * [smmuv3] Add arm_smmu_cmdq_batch_issue() wrapper
+>  * [smmuv3] Force per-flush sync for has_ats batches
+>  * [smmuv3] Serialize STE.EATS and ats_broken updates
+>  * [smmuv3] Co-clear pending CMDQ_ERR from cmdq issuer
+>  * [smmuv3] Add invs and has_ats to arm_smmu_cmdq_batch
+>  * [smmuv3] Move arm_smmu_invs_for_each_entry to header
+>  * [smmuv3] Set master->ats_broken after clearing STE.EATS
+>  * [smmuv3] Issue CFGI_STE via arm_smmu_cmdq_issue_cmd_with_sync()
+>  * [smmuv3] Keep "smmu" pointer in arm_smmu_inv but add "master" for
+> ATS
 
-While waiting for further comments, I would like to add some
-test data to make the effect of this series clearer.
-
-On the test platform, the maximum frequency reported by the platform
-is 2300000. I sampled cpuinfo_cur_freq before and after applying this 
-series.
-
-Before applying the series, the samples showed visible transient outliers.
-  The minimum value was 2154583 and the maximum value was 2491071.
-There were 8 samples above 2400000 and 8 samples below 2200000.
-The largest value exceeded the platform maximum by about 8.3%.
-
-After applying the series, the samples became much more stable.
-The minimum value was 2290243 and the maximum value was 2306310.
-There were no samples above 2400000 and no samples below 2200000.
-The largest value exceeded the platform maximum by only about 0.27%.
-
-A summary of the 96 samples is:
-
-                     before          after
-min              2154583         2290243
-max              2491071         2306310
-range             336488           16067
-average          2298436.4       2298479.4
-stddev             55184.1          2868.2
-samples > 2300000  26 / 96         16 / 96
-samples > 2400000   8 / 96          0 / 96
-samples < 2200000   8 / 96          0 / 96
-
-So this series does not try to clamp the value to the platform maximum.
-  Instead, it reduces the sampling skew between the delivered and reference
-feedback counters. The remaining small deviation around 2300000 is
-  much smaller than the previous transient spikes.
-
-One concern that may come up is that an FFH read may cause an idle
-target CPU to be woken, depending on the platform/vendor implementation.
-However, that behavior is not introduced by this series. It is already part
-of how FFH counter reads are implemented on such platforms. This series
-only changes the sampling form for the FFH feedback counters: when both
-delivered and reference counters are FFH counters, read them together
-instead of issuing two separate FFH reads.
-
-If the target CPU has to be involved for an FFH read, doing one paired
-read should be no worse than doing two separate reads, and it also
-narrows the sampling window between the two counters.
-
-If there is any concern about the generic hook or the arm64 implementation,
-I would be happy to revise it.
-
-The raw data is as follows:
-before:
-2303809 2294827 2300000 2293643 2290740 2300000 2297228 2296082
-2301707 2295354 2296601 2303163 2296766 2296543 2295412 2298394
-2297387 2300000 2308274 2301882 2297752 2418568 2491071 2300000
-2183264 2296238 2434731 2296721 2439777 2302159 2301773 2298226
-2300000 2305936 2301133 2297511 2300000 2300000 2294408 2298494
-2295011 2302721 2295955 2301505 2298064 2297419 2298933 2189595
-2298058 2296046 2300000 2301449 2414908 2296559 2305251 2166666
-2296626 2173303 2300000 2298806 2411389 2301822 2297291 2300000
-2423831 2297902 2300000 2435730 2302433 2295353 2298898 2296043
-2321868 2294907 2300000 2157841 2296052 2206530 2300000 2297811
-2297920 2294382 2297767 2157230 2302564 2298504 2296822 2300000
-2296868 2294866 2154583 2290888 2302542 2292549 2300000 2184259
-
-after:
-2303738 2296153 2298087 2295607 2301373 2298076 2300000 2295081
-2297788 2300000 2300000 2295238 2301449 2300000 2298488 2297911
-2301477 2298507 2294976 2296852 2293689 2294077 2293887 2292619
-2300000 2300000 2298072 2300000 2291943 2300000 2295370 2300000
-2301873 2304645 2300000 2296766 2300000 2300000 2290243 2297954
-2297183 2306310 2300000 2296889 2300000 2303800 2301970 2296888
-2300000 2301354 2300000 2298405 2298202 2296767 2298663 2302522
-2297821 2302471 2300000 2303233 2298226 2298698 2300000 2297291
-2296470 2300000 2298398 2300000 2295681 2300000 2300000 2296344
-2300000 2296008 2302375 2297977 2298447 2296519 2295565 2294866
-2297945 2300000 2294978 2303595 2300000 2300000 2294930 2301096
-2296271 2296086 2294482 2300000 2294843 2300000 2296803 2295708
->> On 4/10/2026 5:41 PM, Pengjie Zhang wrote:
->>> The legacy CPPC feedback-counter path reads the delivered and reference
->>> performance counters separately.
->>>
->>> On arm64 systems using AMU-backed CPPC FFH counters, each FFH read is
->>> served through a cross-CPU counter read helper. Reading the counters
->>> separately therefore widens the sampling window between them and can
->>> skew the delivered/reference ratio used by cpuinfo_cur_freq. Under heavy
->>> load, the skew is observable as transient values that may exceed the
->>> platform maximum, as discussed in [1] and [2].
->>>
->>> This series adds a small generic hook for architectures that can obtain
->>> both FFH feedback counters in one operation, while preserving the
->>> existing per-register read path as the fallback.
->>>
->>> Patch 1 adds the generic CPPC hook and uses it from cppc_get_perf_ctrs().
->>> Patch 2 implements the hook on arm64 by sampling both AMU counters in a
->>> single operation on the target CPU.
->>>
->>> [1] https://lore.kernel.org/all/20231025093847.3740104-4-zengheng4@huawei.com/
->>> [2] https://lore.kernel.org/all/20231212072617.14756-1-lihuisong@huawei.com/
->>>
->>> Signed-off-by: Pengjie Zhang <zhangpengjie2@huawei.com>
->>>
->>> Pengjie Zhang (2):
->>>     ACPI: CPPC: add paired FFH feedback-counter read hook
->>>     arm64: topology: read CPPC FFH feedback counters in one operation
->>>
->>>    arch/arm64/kernel/topology.c | 75 ++++++++++++++++++++++++++++++++----
->>>    drivers/acpi/cppc_acpi.c     | 58 +++++++++++++++++++++++++---
->>>    include/acpi/cppc_acpi.h     |  7 ++++
->>>    3 files changed, 127 insertions(+), 13 deletions(-)
->>>
+Not check the detail yet, but this v4 more than doubles the number of
+patches in v3. Are they all necessary to be in one series? any chance to
+split to ease the review...
