@@ -1,105 +1,101 @@
-Received: from mail.zeus03.de (zeus03.de [194.117.254.33])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A5043E7BC6
-	for <linux-acpi@vger.kernel.org>; Wed, 20 May 2026 14:17:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=194.117.254.33
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BFF23A382F
+	for <linux-acpi@vger.kernel.org>; Wed, 20 May 2026 15:15:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779286670; cv=none; b=Rzu/KtAYymVD0G8yrfSmFr2kFOYqDt0D21hbwUZrOKDfvTczu+HF00GAR/VupNITCiCGLLAKWFrU7dVHiBHVtqGafgjNiL8e6UvHGgWmYHdtlzLyVD01VWOgfa64YF+Sr4trvncvmmLui1gwhAsU9xoKxE2BzVaD7oHL3Le8sXA=
+	t=1779290127; cv=none; b=mVIPDB5P8Z5QBf46zTTnx2RM3ejlsbvDGpcybQVQd7UkiKZVmMtF8UTtjHKzAlg1U9vYz9sl3mpLZhsR3CVuxoGo4TPJApDjqxt8bb+4DY/87UG/KRki+itQ4yODUMxzFek0f+ILUlM1x2fafk/Oy2cm7ZSpSXhmHpwOxQc222k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779286670; c=relaxed/simple;
-	bh=Hfw/AFjC3kG8kqhs6xkmMZZyxsxOrl5KKNoqXah7gzk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=kIWFzcSMDglqo3KhlJQZh4rsWPH4hun6WbNX79+PplgC2jpfHdhEEQYbC8yJEHl2AWzpfjn3vlkPRlijSNHgaz7X2jfVSBb2Mkowv/gymfd5nJm8Bbawo1YRrbQDZ339r1Mc4pibSsRTv0vvItBibnvH49ooTsHRubNXZeCFU+M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sang-engineering.com; spf=pass smtp.mailfrom=sang-engineering.com; dkim=pass (2048-bit key) header.d=sang-engineering.com header.i=@sang-engineering.com header.b=LAFd1jj7; arc=none smtp.client-ip=194.117.254.33
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sang-engineering.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sang-engineering.com
+	s=arc-20240116; t=1779290127; c=relaxed/simple;
+	bh=jhnTY12y5lotrhqZzCBsVpLdBkHhAK/d+l3qAwFgP2o=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=sI4/VWByvqwm5vcly6onDmwZMY64r2A1I1Q5y0UW+rfFXTyPwcNoc1uX95P3zHsSM17V7cCra1xm93i5dWY2uC/pI/8BRxHew0IBP8A+8p28XSNuVU+qWdQSHCFs/hU0XbACFNBf62Ql0G1DUqsGETAX8PXUo0y2/TE/wkBMjgw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=OfFhkMbh; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=sang-engineering.com header.i=@sang-engineering.com header.b="LAFd1jj7"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	sang-engineering.com; h=date:from:to:cc:subject:message-id
-	:references:mime-version:content-type:in-reply-to; s=k1; bh=Hfw/
-	AFjC3kG8kqhs6xkmMZZyxsxOrl5KKNoqXah7gzk=; b=LAFd1jj7NTZ6/3DQrf7Y
-	wXIjs07DZyjAun5Op8D9KTZ5O5zCnHiiiSC5GnN1B1e6CetYO7Ruw0l0RlCGKrmN
-	Cpvy6AuOXETQ1PPIFtQN71zYIkRJHkeztqGp6Vv1haHmcobPfWI5K7dOBaNKMht3
-	x7+p1Q25Nxf5n33Kh1ylW59goTG9KwrkCc1tu369djs1syja88cimvMSHEx9rdZh
-	bDkSJc+olNgmb3g+G+YO3/IQdLXAz9ZiBTmPsy3h02FiSSZJbX2rKKGBUSX4Nyrk
-	wcAF65cBBmpZ3SU0yNKZ9kUKeWXD7seKy3mmNcXv1zFVXA6FKFZVf7c+8It2TS2S
-	7w==
-Received: (qmail 695898 invoked from network); 20 May 2026 16:17:36 +0200
-Received: by mail.zeus03.de with ESMTPSA (TLS_AES_256_GCM_SHA384 encrypted, authenticated); 20 May 2026 16:17:36 +0200
-X-UD-Smtp-Session: l3s3148p1@lbMadUBS+1BtKXOp
-Date: Wed, 20 May 2026 16:17:34 +0200
-From: Wolfram Sang <wsa+renesas@sang-engineering.com>
-To: Thomas Lin <thomas_lin@lecomputing.com>
-Cc: rafael@kernel.org, lenb@kernel.org, hoan@os.amperecomputing.com,
-	linusw@kernel.org, brgl@kernel.org, mika.westerberg@linux.intel.com,
-	andriy.shevchenko@linux.intel.com, jsd@semihalf.com,
-	andi.shyti@kernel.org, broonie@kernel.org,
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-gpio@vger.kernel.org, linux-i2c@vger.kernel.org,
-	linux-spi@vger.kernel.org, lucas_hao@lecomputing.com,
-	puntar_liu@lecomputing.com, jihua_tao@lecomputing.com,
-	stan_xu@lecomputing.com, lumin_liu@lecomputing.com,
-	notics_zhang@lecomputing.com, braden_zhang@lecomputing.com,
-	harold_wu@lecomputing.com, will_zhang@lecomputing.com,
-	aurora_jiang@lecomputing.com, ryen_lin@lecomputing.com,
-	andy_jiang@lecomputing.com
-Subject: Re: [PATCH v4 3/3] i2c: designware: Add ACPI ID LECA0003 for LECARC
- SoCs
-Message-ID: <ag3CfjgXzwFSCsdg@shikoro>
-References: <20260520081140.637637-1-thomas_lin@lecomputing.com>
- <20260520081140.637637-4-thomas_lin@lecomputing.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="OfFhkMbh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69D8B1F00896
+	for <linux-acpi@vger.kernel.org>; Wed, 20 May 2026 15:15:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1779290126;
+	bh=tXwW/SaZzGQelLcgmeBNnCNKn50znhPz58TEo5aKrCM=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=OfFhkMbh6/iil3R8eySbuWkAkTr5EBxAg5mV9gmXGVdQ/QqrBdLk0aHbgalZFLd3S
+	 PW9FHC9x2ozBEeHYJzloEusRL0VI1oCZ6/MZp1+wn6oAaLDGcZwSC/2Z7D3vV/8t50
+	 BPAFRFqTBXn/LgDTLsS6Kmne6IEqroQCfxY98T2RKV0/uirmBW6kZHNDlxUikyt5tZ
+	 Lq2NieEGmwqaUSVaKOFTaAy+PzE3MsEIyRz3nZQr9J8HkrGOUK+z04vd16MXTVlgVV
+	 qFMjFkZJRDekxUf2n6HqQL7r+GKZtCx9e01OOSXuyNm16A+wRk3oFnBMYLfIms3TtA
+	 3AS4+SH/EqB3g==
+Received: by mail-lf1-f50.google.com with SMTP id 2adb3069b0e04-5aa0862dda1so6519382e87.1
+        for <linux-acpi@vger.kernel.org>; Wed, 20 May 2026 08:15:26 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ+3DmGk18o7sD7eyI4jRWGbNEN6YqaPQd6mqASQ59YKPjWmOCXFaRg/OTtCaqJ47jNruWimX+IcVe70@vger.kernel.org
+X-Gm-Message-State: AOJu0Yx99rQ+5mQz4IbDWbW3ecviDT63pob+SRBleBVS6dn7XdBFqtGd
+	wDvg2/YahW9bGkI7TTCi1LIL1Nx9zqCxMqi4FBQtewtOeSwUK2GSdHVmHtTAtFC5rg4abpVT3oQ
+	36+ELZQA5x3DiTS1Zegp1HX5dYtnb2IlF26ya89FKaA==
+X-Received: by 2002:a05:6512:31d5:b0:5aa:b6a:7a8d with SMTP id
+ 2adb3069b0e04-5aa0e779e30mr9211550e87.44.1779290125200; Wed, 20 May 2026
+ 08:15:25 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="qplaqrBUnUFBPBuF"
-Content-Disposition: inline
-In-Reply-To: <20260520081140.637637-4-thomas_lin@lecomputing.com>
-
-
---qplaqrBUnUFBPBuF
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+References: <20260520081140.637637-1-thomas_lin@lecomputing.com> <20260520081140.637637-2-thomas_lin@lecomputing.com>
+In-Reply-To: <20260520081140.637637-2-thomas_lin@lecomputing.com>
+From: Bartosz Golaszewski <brgl@kernel.org>
+Date: Wed, 20 May 2026 17:15:12 +0200
+X-Gmail-Original-Message-ID: <CAMRc=MfM38h=zJU5Uy7zu9pigjb-XBAteBhUmvMAKZRWHGZNKA@mail.gmail.com>
+X-Gm-Features: AVHnY4JDu5NZZ0wIyz-eam2N1N-uPmkRu8vNP0BsaGtOg31C0_IaXbfTkCj7LWM
+Message-ID: <CAMRc=MfM38h=zJU5Uy7zu9pigjb-XBAteBhUmvMAKZRWHGZNKA@mail.gmail.com>
+Subject: Re: [PATCH v4 1/3] gpio: dwapb: Add ACPI ID LECA0001 for LECARC SoCs
+To: Thomas Lin <thomas_lin@lecomputing.com>
+Cc: rafael@kernel.org, lenb@kernel.org, hoan@os.amperecomputing.com, 
+	linusw@kernel.org, mika.westerberg@linux.intel.com, 
+	andriy.shevchenko@linux.intel.com, jsd@semihalf.com, andi.shyti@kernel.org, 
+	broonie@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-gpio@vger.kernel.org, linux-i2c@vger.kernel.org, 
+	linux-spi@vger.kernel.org, lucas_hao@lecomputing.com, 
+	puntar_liu@lecomputing.com, jihua_tao@lecomputing.com, 
+	stan_xu@lecomputing.com, lumin_liu@lecomputing.com, 
+	notics_zhang@lecomputing.com, braden_zhang@lecomputing.com, 
+	harold_wu@lecomputing.com, will_zhang@lecomputing.com, 
+	aurora_jiang@lecomputing.com, ryen_lin@lecomputing.com, 
+	andy_jiang@lecomputing.com
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, May 20, 2026 at 04:11:36PM +0800, Thomas Lin wrote:
-> Add ACPI ID "LECA0003" for LECARC SoCs that integrate
-> the DesignWare I2C controller.
-> Also add corresponding ACPI description in acpi_apd.c.
->=20
+On Wed, May 20, 2026 at 10:45=E2=80=AFAM Thomas Lin <thomas_lin@lecomputing=
+.com> wrote:
+>
+> Add ACPI ID "LECA0001" for LECARC SoCs that use the DesignWare
+> GPIO controller with V1 register offsets.
+>
 > Signed-off-by: Thomas Lin <thomas_lin@lecomputing.com>
 > Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Reviewed-by: Bartosz Golaszewski <brgl@kernel.org>
+> ---
+>  drivers/gpio/gpio-dwapb.c | 1 +
+>  1 file changed, 1 insertion(+)
+>
+> diff --git a/drivers/gpio/gpio-dwapb.c b/drivers/gpio/gpio-dwapb.c
+> index 15cebc8b5d66..c1f3d83a67c1 100644
+> --- a/drivers/gpio/gpio-dwapb.c
+> +++ b/drivers/gpio/gpio-dwapb.c
+> @@ -694,6 +694,7 @@ static const struct acpi_device_id dwapb_acpi_match[]=
+ =3D {
+>         {"APMC0D07", GPIO_REG_OFFSET_V1},
+>         {"APMC0D81", GPIO_REG_OFFSET_V2},
+>         {"FUJI200A", GPIO_REG_OFFSET_V1},
+> +       {"LECA0001", GPIO_REG_OFFSET_V1},
+>         { }
+>  };
+>  MODULE_DEVICE_TABLE(acpi, dwapb_acpi_match);
+> --
+> 2.43.0
+>
 
-Because of the dependency, it should probably go in via GPIO or SPI,
-right? So:
+I'm not sure about how to interpret the cover letter - is it fine to
+take this independently through the GPIO tree for v7.2?
 
-Acked-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
-
-
---qplaqrBUnUFBPBuF
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAmoNwnoACgkQFA3kzBSg
-KbbIchAAiq7AwlvxqMOYgteUmqjMnZ2oNxEXRW2bDk3Cj0NVy8QrgQ+MD8CJJRxF
-fq6NPSOoTCoRA+3D46v7KnjV/23KwwkZRbMJP05e5rq4JrMqFFDqF++SFR2kgEs7
-ykWMNAaERSdis0iFrhSJTZuEhfME3yuE7xu4yRFWGGrl4VuxdnTVknHUVJH+liin
-eCvqdx1TMrXfzDapSVshLt2VnKQJxn7X6UpzmAbbNDLblGQ2nYelwMCdQyDkHaPr
-Pp0HtoJAvTa1815T1t06npUw5LQBiSUIE17bTxilRi9krJKRestMec3E3h3W4L1j
-hT6SRROTFsMEOc613g+OKaH9C1N91oEtZjGppUZcO44cwiaLEhtIrXEajJhDZGQ2
-sMB9wisdnE9Ciujel3u81MQDIkUgt8y+SZuKkCkxA6jWqf3YKCT4yh20+9za+hV2
-cvaETvn/XfqY7YNlkv2fkf/FpbTb5xPCOlWcwRWNspd2LIesH4c9SZEfr/eE30/j
-wtBqDgmEcWpNBy1EHTx7pm4q/0alMVnbvpoBnWNTpQWON6kVE5DRteHaFaiK+77M
-VPTPqxRwCo565eVtdF2JRPDVSHnYghhVJDtQEs5lnaoU/jrQRJVD9SDiOoSMWboi
-DCLfXY67fIG99g3tWtMHdNlQoyiHUfDy5mdRclyLtfvsnnLRbDk=
-=dNF9
------END PGP SIGNATURE-----
-
---qplaqrBUnUFBPBuF--
+Bart
