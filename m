@@ -1,132 +1,138 @@
-Received: from mail-pg1-f202.google.com (mail-pg1-f202.google.com [209.85.215.202])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3C7B3CF02E
-	for <linux-acpi@vger.kernel.org>; Thu, 21 May 2026 13:59:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.202
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C04922D3A75;
+	Thu, 21 May 2026 14:11:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779371978; cv=none; b=HyNoxc6Bn+fhOtA9/awy0qtuwUR0fN4/7x40O9rZtZLm2b6WEv1/Qx7Eoqv4f/GP833Qf0Yh3ZkTFgGYrX3XzBJwdHs+Jql+ogZmaTatlULzob5zkc/YiQy0HL27JLc1/W/8mGXMj70gVjQvT7QY3dYE3YcggetdA0VFRnNCDzc=
+	t=1779372715; cv=none; b=SRq53ePYjZf7qW50HmJran4BoBtfvfDwFPS4gHpX8x+YOafwSFPQZKozElbTNT401B9QTv4M9ctC5PeXuzzr+Vn4wtUl1vhE1UuhVcd+FNS26zepKdkN/XAlXYaRylyB2QfPTyIO7dBagl1RZQUQQeXP8m3pRqYbi8g3gdQ0V34=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779371978; c=relaxed/simple;
-	bh=h+4NVJo3wpAjspHwkhwsyzZn+zEl2CEEOehXzRGNdBY=;
-	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
-	 To:Cc:Content-Type; b=EoxfIGRzz36W2jApkK06MMxYSNbnEQzDLGpPHFCS438yPnrljADBHpIcBMDT0Nnvh++rKIWmMtkSX2JoIW1Tu0jEyC0z5YHyfaMGRtxXF8Tlju6lYbXFHBe/c1QM8vgRO8AlaZHuc4fOu2QfubS6Tmw0NNa29hAe+HlJlv+mk5k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--seanjc.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=jodHEZLM; arc=none smtp.client-ip=209.85.215.202
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--seanjc.bounces.google.com
+	s=arc-20240116; t=1779372715; c=relaxed/simple;
+	bh=qzpPyPYIdeJr1pAfHx2wW4GoCdHuONDCpyHxWUNk/3I=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=j7JIicMkqjeseSI/61ZjHc6/j7pX5uTAbE+QhfqNhAzCbZVnp9jk7xPkE84P/tx681Tdq3JenP5B6821i1Wwr/Y7l9oW9MJp/NZlcHRn0/xchMEg9CeACW7nO0wiT6pzWeP+zrdAR7WnoMqr87toqGnSMsrXjpmN/roBAbgMHAE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ho5CAgF2; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="jodHEZLM"
-Received: by mail-pg1-f202.google.com with SMTP id 41be03b00d2f7-c8279604464so9098302a12.1
-        for <linux-acpi@vger.kernel.org>; Thu, 21 May 2026 06:59:35 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20251104; t=1779371975; x=1779976775; darn=vger.kernel.org;
-        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
-         :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=tqeEG6FXEKElqAGUt/Z2qfbIbuB++N7b4Fh1Zt6D5dk=;
-        b=jodHEZLMnrXvcr0U+8aiQ3+8HMthO764B3RtgzEf+7ztkCNfkmkIlQBTfUmc0CO1Gm
-         znKHCX5+9bAECaG80vh/IPP806tKIqZE2l7HZLe1YU0HCE1c+TVzdByotFkWkoU+YEws
-         qLgdufxQuD2gsyG2s9NK2v18HBYBS1w+SMsS+Qi6jr0LEmhA4R7O7tZpYus8VaPMyFeG
-         15VYXBj+eYi7/OswJ5AioWab2qhZVYFRjyf4SpApvc+UkSyiNxbsaWg55EmuzRTPh+T9
-         X183BhHSUrQrVCzdTIOykwkJ84D445JXsSdEAvmO37Cr/WfIjw3mclOhGc8OX4c80G1x
-         Di8Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779371975; x=1779976775;
-        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
-         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=tqeEG6FXEKElqAGUt/Z2qfbIbuB++N7b4Fh1Zt6D5dk=;
-        b=ppU4+RCCmN3uEZSa3nbM8oEX+F68jDiJGESM/5pJHsSUYCi68kyBA9Ei25if9Jy2k+
-         YrKgpvpK+KHk1Y74b64jOtPYefH7QjVCjs7HsJtTNPRJoj6DgDegwJgXmjmQnMPMut/j
-         gD+fC2yxKslYhEULuUHyA9rdkGs3deFaw4nXlQNox6ISgqn6TCU14iV02Nbs7AeEHx1b
-         y9LIb43C2JlIsZ+LCMOe4xJd/qsEjIemG17uRJT4kAUQMt1jrWDZJghFcUlDULf9d+6O
-         akNQ424od/AvvePusIs+rXuIzaiZ/aGodgg3tWS4Zd4gRpRjXilirMlFHQL2Ac4dYxeL
-         l1SA==
-X-Forwarded-Encrypted: i=1; AFNElJ+hjE916Wmww8u5irsKaZMNOQb5zMO/o6xSAXZFa6G0JkxwzyBluCVXq9puPsQYqp+BBDLtWI4rTKCQ@vger.kernel.org
-X-Gm-Message-State: AOJu0YxleflrIGPPAfTJ85kCVFngMDMvSyGH3ewZBiocBjSKSBAF6Qub
-	wMwXo4QOARBjXhVq7GlQ0nuZG641P36kKTXPsNAwr+USkRtVy30dAwVFdpmoqsYyp0TZYZpXJO8
-	i/OnHLQ==
-X-Received: from pge1.prod.google.com ([2002:a05:6a02:2d01:b0:c79:83b3:cdf8])
- (user=seanjc job=prod-delivery.src-stubby-dispatcher) by 2002:a05:6a20:431a:b0:39c:a78e:dba9
- with SMTP id adf61e73a8af0-3b308ac1b14mr3725831637.40.1779371973881; Thu, 21
- May 2026 06:59:33 -0700 (PDT)
-Date: Thu, 21 May 2026 06:59:33 -0700
-In-Reply-To: <20260521133326.2465264-4-kees@kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ho5CAgF2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34EC21F000E9;
+	Thu, 21 May 2026 14:11:53 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1779372714;
+	bh=vQp3Q6xtHWzu7duKObhdr5kE5UUwLyO3B76lYZd24aI=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=Ho5CAgF2rQeU06EbyYZHRhzomKhFJ+i+niaaqiC/pZK1eg0GJ4uobc4FspuK/28Ab
+	 H5Iz01U0PifUUnQpECslmXbSw6q6bJzJuJMf6W/25UfkYaRoRRllWg1JO4tVE+I4Wk
+	 2eGxPVMydZS9RExn0joVxTxDwvCuJ5lFhorzc2+bIPKuBbCMqH7h6ThMw+pG4rfvvM
+	 yaobEEVlK0/evB39tvTZpVzgoyrrggM2dwq4po7gEFb53truilb4hqemMV+uQB7Vhv
+	 QIsRHbauSOczSFjU+a7QuckIR1qbiNKTX4I+Ownbc/iqmqw29P7CBD2e0z9pDf4d9N
+	 VqB/CAWZCsk6A==
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+To: Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+ Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+ Hans de Goede <hansg@kernel.org>, Armin Wolf <w_armin@gmx.de>
+Subject:
+ [PATCH v1 17/17] ACPI: video: Switch over to devres-based resource management
+Date: Thu, 21 May 2026 16:11:34 +0200
+Message-ID: <2556320.jE0xQCEvom@rafael.j.wysocki>
+Organization: Linux Kernel Development
+In-Reply-To: <4739447.LvFx2qVVIh@rafael.j.wysocki>
+References: <4739447.LvFx2qVVIh@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-References: <20260521133315.work.845-kees@kernel.org> <20260521133326.2465264-4-kees@kernel.org>
-Message-ID: <ag8PxTTi5NxT51EW@google.com>
-Subject: Re: [PATCH 04/11] treewide: Convert struct kernel_param_ops
- initializers to DEFINE_KERNEL_PARAM_OPS
-From: Sean Christopherson <seanjc@google.com>
-To: Kees Cook <kees@kernel.org>
-Cc: Luis Chamberlain <mcgrof@kernel.org>, Pengpeng Hou <pengpeng@iscas.ac.cn>, 
-	Petr Pavlu <petr.pavlu@suse.com>, Richard Weinberger <richard@nod.at>, 
-	Anton Ivanov <anton.ivanov@cambridgegreys.com>, Johannes Berg <johannes@sipsolutions.net>, 
-	"Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Corey Minyard <corey@minyard.net>, 
-	Gabriel Somlo <somlo@cmu.edu>, "Michael S. Tsirkin" <mst@redhat.com>, 
-	Jani Nikula <jani.nikula@linux.intel.com>, 
-	Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, 
-	Tvrtko Ursulin <tursulin@ursulin.net>, David Airlie <airlied@gmail.com>, 
-	Simona Vetter <simona@ffwll.ch>, Bart Van Assche <bvanassche@acm.org>, Jason Gunthorpe <jgg@ziepe.ca>, 
-	Leon Romanovsky <leon@kernel.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, 
-	Hans de Goede <hansg@kernel.org>, Mauro Carvalho Chehab <mchehab@kernel.org>, 
-	Bjorn Helgaas <bhelgaas@google.com>, Hannes Reinecke <hare@suse.de>, 
-	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, 
-	"Martin K. Petersen" <martin.petersen@oracle.com>, Daniel Lezcano <daniel.lezcano@kernel.org>, 
-	Zhang Rui <rui.zhang@intel.com>, Lukasz Luba <lukasz.luba@arm.com>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jirislaby@kernel.org>, 
-	Alan Stern <stern@rowland.harvard.edu>, Jason Wang <jasowang@redhat.com>, 
-	Xuan Zhuo <xuanzhuo@linux.alibaba.com>, 
-	"Eugenio =?utf-8?B?UMOpcmV6?=" <eperezma@redhat.com>, Jason Baron <jbaron@akamai.com>, 
-	Jim Cromie <jim.cromie@gmail.com>, Tiwei Bie <tiwei.btw@antgroup.com>, 
-	Benjamin Berg <benjamin.berg@intel.com>, 
-	"Ilpo =?utf-8?B?SsOkcnZpbmVu?=" <ilpo.jarvinen@linux.intel.com>, 
-	"David E. Box" <david.e.box@linux.intel.com>, "Maciej W. Rozycki" <macro@orcam.me.uk>, 
-	Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, 
-	Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, 
-	Paolo Bonzini <pbonzini@redhat.com>, Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>, 
-	Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, 
-	"H. Peter Anvin" <hpa@zytor.com>, Vinod Koul <vkoul@kernel.org>, Frank Li <Frank.Li@kernel.org>, 
-	Daniel Gomez <da.gomez@kernel.org>, Sami Tolvanen <samitolvanen@google.com>, 
-	Aaron Tomlin <atomlin@atomlin.com>, Alexander Potapenko <glider@google.com>, Marco Elver <elver@google.com>, 
-	Dmitry Vyukov <dvyukov@google.com>, Andrew Morton <akpm@linux-foundation.org>, 
-	John Johansen <john.johansen@canonical.com>, Paul Moore <paul@paul-moore.com>, 
-	James Morris <jmorris@namei.org>, "Serge E. Hallyn" <serge@hallyn.com>, 
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
-	Georgia Garcia <georgia.garcia@canonical.com>, kvm@vger.kernel.org, 
-	dmaengine@vger.kernel.org, linux-modules@vger.kernel.org, 
-	kasan-dev@googlegroups.com, linux-mm@kvack.org, apparmor@lists.ubuntu.com, 
-	linux-security-module@vger.kernel.org, linux-um@lists.infradead.org, 
-	linux-acpi@vger.kernel.org, openipmi-developer@lists.sourceforge.net, 
-	qemu-devel@nongnu.org, intel-gfx@lists.freedesktop.org, 
-	dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, 
-	linux-media@vger.kernel.org, linux-pci@vger.kernel.org, 
-	linux-scsi@vger.kernel.org, linux-pm@vger.kernel.org, 
-	linuxppc-dev@lists.ozlabs.org, linux-serial@vger.kernel.org, 
-	linux-usb@vger.kernel.org, usb-storage@lists.one-eyed-alien.net, 
-	virtualization@lists.linux.dev, linux-kernel@vger.kernel.org, 
-	linux-arch@vger.kernel.org, netdev@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org, linux-hardening@vger.kernel.org
-Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
 
-On Thu, May 21, 2026, Kees Cook wrote:
-> Using Coccinelle, rewrite every struct kernel_param_ops initializer that
-> sets .get into a DEFINE_KERNEL_PARAM_OPS-family macro invocation,
-> for example:
-> 
-> @@
-> declarer name DEFINE_KERNEL_PARAM_OPS;
-> identifier OPS;
-> expression SET, GET;
-> @@
-> - const struct kernel_param_ops OPS = {
-> -       .set = SET,
-> -       .get = GET,
-> - };
-> + DEFINE_KERNEL_PARAM_OPS(OPS, SET, GET);
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-IMO, "OPS, GET, SET" is more intuitive, especially since that's the order used
-by DEFINE_SIMPLE_ATTRIBUTE and DEFINE_DEBUGFS_ATTRIBUTE.
+Turn acpi_video_bus_remove_notify_handler() into a devm
+action added by acpi_video_bus_probe() after calling
+acpi_video_bus_add_notify_handler and use the newly introduced
+devm_acpi_install_notify_handler() to install an ACPI notify
+handler for the video bus device.
+
+This replaces the rollback path remnant in acpi_video_bus_probe()
+and allows acpi_video_bus_remove() to be dropped altogether.
+
+No intentional functional impact.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/acpi_video.c | 30 +++++++-----------------------
+ 1 file changed, 7 insertions(+), 23 deletions(-)
+
+diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
+index e0da168a1df3..e5a0b03f06b3 100644
+--- a/drivers/acpi/acpi_video.c
++++ b/drivers/acpi/acpi_video.c
+@@ -76,7 +76,6 @@ static DEFINE_MUTEX(video_list_lock);
+ static LIST_HEAD(video_bus_head);
+ static int acpi_video_bus_probe(struct auxiliary_device *aux_dev,
+ 				const struct auxiliary_device_id *id);
+-static void acpi_video_bus_remove(struct auxiliary_device *aux);
+ static void acpi_video_bus_notify(acpi_handle handle, u32 event, void *data);
+ 
+ /*
+@@ -99,7 +98,6 @@ MODULE_DEVICE_TABLE(auxiliary, video_bus_auxiliary_id_table);
+ 
+ static struct auxiliary_driver acpi_video_bus = {
+ 	.probe = acpi_video_bus_probe,
+-	.remove = acpi_video_bus_remove,
+ 	.id_table = video_bus_auxiliary_id_table,
+ };
+ 
+@@ -1945,8 +1943,9 @@ static void acpi_video_dev_remove_notify_handler(struct acpi_video_device *dev)
+ 	}
+ }
+ 
+-static void acpi_video_bus_remove_notify_handler(struct acpi_video_bus *video)
++static void acpi_video_bus_remove_notify_handler(void *data)
+ {
++	struct acpi_video_bus *video = data;
+ 	struct acpi_video_device *dev;
+ 
+ 	mutex_lock(&video->device_list_lock);
+@@ -2099,28 +2098,13 @@ static int acpi_video_bus_probe(struct auxiliary_device *aux_dev,
+ 	if (error)
+ 		return error;
+ 
+-	error = acpi_dev_install_notify_handler(device, ACPI_DEVICE_NOTIFY,
+-						acpi_video_bus_notify, video);
++	error = devm_add_action_or_reset(dev, acpi_video_bus_remove_notify_handler,
++					 video);
+ 	if (error)
+-		goto err_remove;
+-
+-	return 0;
+-
+-err_remove:
+-	acpi_video_bus_remove_notify_handler(video);
+-
+-	return error;
+-}
+-
+-static void acpi_video_bus_remove(struct auxiliary_device *aux_dev)
+-{
+-	struct acpi_video_bus *video = auxiliary_get_drvdata(aux_dev);
+-	struct acpi_device *device = ACPI_COMPANION(&aux_dev->dev);
+-
+-	acpi_dev_remove_notify_handler(device, ACPI_DEVICE_NOTIFY,
+-				       acpi_video_bus_notify);
++		return error;
+ 
+-	acpi_video_bus_remove_notify_handler(video);
++	return devm_acpi_install_notify_handler(dev, ACPI_DEVICE_NOTIFY,
++						acpi_video_bus_notify, video);
+ }
+ 
+ static int __init is_i740(struct pci_dev *dev)
+-- 
+2.51.0
+
+
+
+
