@@ -1,60 +1,150 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B3403D45C8;
-	Thu, 21 May 2026 14:12:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 1EBA82C08BB;
+	Thu, 21 May 2026 15:54:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779372777; cv=none; b=OwYCmuP1ohM0+fi13N62zn8HEsv8Bl4njE7Y56E4/52Sp78EYdymOi//rAINfSKJAxH4jtB0DULIDm+ZKyjuXpLSyNHwQOdPs3oxWozXV1CKzooqPw1iEy9zL56UW9Z78UBmciiRkA2RRmgPIchpLjzwU8I18D7WjlQNl/SL6p8=
+	t=1779378884; cv=none; b=ToTHT8XhVV1oxR3EQ4byvk0Y/BW+F0fWWhPQSQynWgtu+imdsehmlqEGdqKAmxppcaAolFGZPRHrFO82Xm16Ld5pn1fTzRbMZnDPID4L9PQpMBuy9JZ8K3glkzNssOhUf3dzi2JrWuOk0H3F7Qxgg7jXu6N+fEc54dbhPw2JxNQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779372777; c=relaxed/simple;
-	bh=Q8p5QQzXzd+Gl92bSImkVqXBhoG+2B15dQbamOJorow=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=jbqfWlGNKZgr9wVAHHGVXIKfy9pvqqtFwSp2BBsrGt0jN+6l1rlWXA2Ge5Um5+Cb7dCI/9VhtF0+CcJEhtFAugWz8TvRpivO74iLBKHnFVKdqiYwWYwGyafs+fNRc+ua7zZMIgEbxw3o8DulSDUFUp8eJ8p16/bsEUi37GSK26Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=P+XYTcIL; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779378884; c=relaxed/simple;
+	bh=JE99UdEVTQAKsmSUBY2hhUODDQi/V7DmJiCJiajrofU=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=bBfa3yHxk6UIzVIzNm9DwczJPYsRiPHf/tn/yQf0yPjJz7xKhg6llq1p3p5zsjeTJGxQrYpC/9PFI3jtwk9fpN9mrw/8U6NIGjT4HAHTISjgbqvVzpuc3ohIl+QUCDudZ1jW58dfcIBq6jAOcaEpB3HyFEBgFhz/YV+P4xA2gAE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=BLRZL/y5; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="P+XYTcIL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A038F1F000E9;
-	Thu, 21 May 2026 14:12:54 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1779372775;
-	bh=Q8p5QQzXzd+Gl92bSImkVqXBhoG+2B15dQbamOJorow=;
-	h=From:To:Cc:Subject:Date;
-	b=P+XYTcILimr6vi1FGXS6RPcHHxX1Ep/mivy8lTsT1FJLA+8uUbJRuw1KjXuYuFLXY
-	 eUCee9ZGNWHoqRnsfobMRXzJXjkDRb1hf7tX196sM2VQv8cG+eSqfV7LNZYrU4LccF
-	 Yisvh6efXId+gFwqEqhBBM5tm7WzNR0EAQxX7nW7yl8P4RQW6SrXilRdClHb5EEATU
-	 BdYWLQucXYvCu8kCqJIS+CGfSvyMzrHLYP+u2MQ87Borqqdf/NbC69bR7WEccGMZZO
-	 J9wcfOapuXuIA4M91lMHxIRURJp/dpuQs4MGuBdDKw1+7T1bTnrsirlfiHa5a6LBRb
-	 M7PNwbMGBgNcw==
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-To: Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
- Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
- Hans de Goede <hansg@kernel.org>, Armin Wolf <w_armin@gmx.de>
-Subject: [PATCH v1 00/17] ACPI: driver: Use devres-based resource management
-Date: Thu, 21 May 2026 15:57:43 +0200
-Message-ID: <4739447.LvFx2qVVIh@rafael.j.wysocki>
-Organization: Linux Kernel Development
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="BLRZL/y5"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 489E72BCB;
+	Thu, 21 May 2026 08:54:37 -0700 (PDT)
+Received: from [192.168.178.24] (usa-sjc-mx-foss1.foss.arm.com [172.31.20.19])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 065FE3F632;
+	Thu, 21 May 2026 08:54:39 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1779378882; bh=JE99UdEVTQAKsmSUBY2hhUODDQi/V7DmJiCJiajrofU=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=BLRZL/y5+wvuKc8RMp4XImNwsHiVW75wZC2GaB+C0EdfOOugurafrAioJ+1xT+qRY
+	 N5F2CcagfjvBqbHMbetZmETnTtyNdC6TJ9vbqePl+8FmKRj/xbrbQdLw9BYzpmrx+F
+	 HNjLGyZZ1+OjkRLsyNhjC6NaM3G4SGQjUIWq64Xk=
+Message-ID: <bd1edbb2-5b0a-4dfa-ba84-4626f79acb7c@arm.com>
+Date: Thu, 21 May 2026 17:54:38 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="UTF-8"
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 3/5] arm_mpam: add MPAM-Fb MSC firmware access support
+To: Niyas Sait <niyas.sait@arm.com>
+Cc: ben.horgan@arm.com, catalin.marinas@arm.com, fenghuay@nvidia.com,
+ guohanjun@huawei.com, james.morse@arm.com, jic23@kernel.org,
+ lenb@kernel.org, linux-acpi@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+ lpieralisi@kernel.org, rafael@kernel.org, reinette.chatre@intel.com,
+ sudeep.holla@kernel.org, will@kernel.org
+References: <20260429141339.3171205-4-andre.przywara@arm.com>
+ <20260518085237.3259344-1-niyas.sait@arm.com>
+Content-Language: en-US
+From: Andre Przywara <andre.przywara@arm.com>
+In-Reply-To: <20260518085237.3259344-1-niyas.sait@arm.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Hi All,
+Hi Niyas,
 
-This series adds devm_acpi_install_notify_handler() for installing an
-ACPI notify handler along with a devm action to remove it automatically
-on driver removal and switches over a few core ACPI drivers using
-acpi_dev_install_notify_handler() superseded by the above to using
-devres-based resource management.
+many thanks for replying on the list!
 
-This allows some some hard to maintain and error prone driver code to
-be shaved off.
+On 5/18/26 10:52, Niyas Sait wrote:
+> Hi Andre,
+> 
+> On Wed, Apr 29, 2026 at 04:13:37PM +0200, Andre Przywara wrote:
+> 
+>> +#define SCMI_CHAN_FLAGS_OFS	0x10
+>> +#define SCMI_CHAN_FLAGS_IRQ		BIT(0)
+>> +#define SCMI_MSG_LENGTH_OFS	0x14
+>> +#define SCMI_MSG_HEADER_OFS	0x18
+>> +#define SCMI_MSG_PAYLOAD_OFS	0x1c
+> 
+> I think this will not work for the ACPI PCC Type 3 MPAM Fb path.
 
-Thanks!
+Ah yes, I was confused about the offsets, and since I also provided the 
+firmware side in my very crude test setup, this matches, courtesy of me 
+making the same mistake on both sides ;-)
 
+> 
+> SCMI shared memory transport layout and ACPI Extended PCC subspace
+> shared memory layout use different offsets for the flags, length, command,
+> and payload fields.
+> 
+> For Extended PCC subspace, the layout is:
+> 
+> Flags   @ 0x04
+> Length  @ 0x08
+> Command @ 0x0c
+> Payload @ 0x10
+> 
+> SCMI shared memory layout uses:
+> 
+> Flags   @ 0x10
+> Length  @ 0x14
+> Command @ 0x18
+> Payload @ 0x1c
+> 
+> You will need to use the extended PCC subspace layout for the ACPI path.
 
+Ah yes, I now see that I actually used a PCC subspace type 2 layout, 
+which explains some parts of my confusion, I guess.
+
+So I changed that now: as you show above, there is just an offset, but 
+the relevant fields magically match otherwise. Since there is no SCMI 
+support in the code base at the moment, I can just change the offsets, 
+and deal with SCMI later.
+
+> 
+>> +static int mpam_fb_wait_for_channel(struct pcc_mbox_chan *chan,
+>> +				    bool free)
+>> +{
+>> +	u32 status = free ? SCMI_CHAN_STATUS_FREE_BIT : 0;
+>> +	u32 val;
+>> +
+>> +	/*
+>> +	 * The channel should really be free always at this point, as we take
+>> +	 * a lock for every read or write request. Check the free bit anyway,
+>> +	 * for good measure and to catch corner cases.
+>> +	 */
+>> +	return readl_poll_timeout(chan->shmem + SCMI_CHAN_STATUS_OFS, val,
+>> +				  (val & SCMI_CHAN_STATUS_FREE_BIT) == status,
+>> +				  1, 10000);
+>> +}
+> 
+> This also assumes SCMI channel status completion semantics in shared memory.
+> For PCC Type 3 transport, completion should follow PCC Type 3 completion mechanisms.
+
+Ah, this is a very good point. As mention, I was staring at type 2 in 
+the ACPI spec. The PCC type 3 semantics is effectively very similar, or 
+at least can made to be, by just putting the right bits into the PCCT 
+table. The nice thing is that the Linux PCC code already handles the 
+channel negotiation, as part of the mailbox abstraction, so by just 
+populating the right fields in the PCCT table, I get the same semantics 
+on the device side, and can drop the whole channel ownership negotiation 
+from the MPAM code.
+
+I now did one trick to simplify this: I kept the shared memory area 
+using the SCMI layout, so with the payload starting at offset 0x1c. In 
+the PCCT table I add 0xc to the beginning of the SRAM area, and give 
+that as the base address. This makes the SCP side always see the same 
+layout, at least for the relevant bits. Then I tell PCCT that the 
+command update register is at offset 0x4 of SRAM (so *before* the PCCT 
+shared mem area), which is exactly the location of the SCMI channel 
+ownership bit. To me that looks like it should work with SCMI and PCC 
+alike, maybe with some little tweaks on the SCP side.
+
+With those changes it works for me now using type 3. I will send a v2 in 
+due time, once I address all the other outstanding issues.
+
+Many thanks for the heads up on this one!
+
+Cheers,
+Andre
 
