@@ -1,97 +1,212 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id AEB833246EC;
-	Thu, 21 May 2026 16:04:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from mail-wm1-f41.google.com (mail-wm1-f41.google.com [209.85.128.41])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0CA929D281
+	for <linux-acpi@vger.kernel.org>; Thu, 21 May 2026 16:46:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779379501; cv=none; b=kxUixftaaRNCw6UGDUOOmWPPi04VBxhmwK2tlIUIONBA20cNGB6ELUNRPKcFhj1GuXmEaUNFj30jSkmULovVQYO7rBytUHAfuGTofKtBOUXizF+JvQxML7wN6hix0kyWa4vDSgyYbwIObYxpV4uluLx0YBNDpI6O7fayXI2tbLI=
+	t=1779381999; cv=none; b=FxzqZwuTTPtYMQbWNKtsAAWnBjKZ4DPKDzpJaxGoPdLPiWEwMQnplGvQgtp7ggZPVsSV+phkp3cImlryrUFQBER+F5h15HzHr+BJW4joLB9PZAclmN5Goon6DOxFT/Coh76knrLepta6cqHahZwHLCDZ52EG8t2aRmFaTPkPOFU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779379501; c=relaxed/simple;
-	bh=WrS7fUya0tB6RvYKPlX4u1Tgmf4rlpi3+sFsH/ZRSiI=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=tf/FnRn9T1RVGeSBSO+QBuIrnH6D+BLcAKgkdXY60Lp8gTOhaNlstKdNMrxVbraz5H+Klh+fttAKp/BChhIlxWPVTvgD6bB3sJskjwJnLjQEvD70BvflXy7s6GNK5SGzGSNVSwRw2aR1ghwsQ0TUxJSVECmgt7CS+PtB116s7pM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=trXtDEBh; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	s=arc-20240116; t=1779381999; c=relaxed/simple;
+	bh=55HpdrZ1XWqM3uwC+a47+vakAvshOA/Toys7NpGVJzc=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=Num88/U3hTEavpzEraO4amto78Q9+7OgCwDNon4YQS3dP0dAYGbwYmHapJlq6YxUdkUhrFZEczzgLT00TOiR67zaLApKFFnPDaIdRZNZW19q2IIQPnjvRjnvci2I7FUKtH74P+QBOxJHpKp1DYoHHdBd1w8LhVyxrgJTwGcjIVY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=hAiFXflX; arc=none smtp.client-ip=209.85.128.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="trXtDEBh"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 070B327DC;
-	Thu, 21 May 2026 09:04:54 -0700 (PDT)
-Received: from [192.168.178.24] (usa-sjc-mx-foss1.foss.arm.com [172.31.20.19])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 5746F3F85F;
-	Thu, 21 May 2026 09:04:56 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1779379499; bh=WrS7fUya0tB6RvYKPlX4u1Tgmf4rlpi3+sFsH/ZRSiI=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=trXtDEBhxsLogmubRZ5go2fZdcja2PICflKOjlf7cuyxhtNmTeczOd8o2EYHQLoCf
-	 /fVl1ys0J6bNpE9xgZdwOHtp0IIZP4o4VD+jPwpz8jNSsTVsVCdQyho3IN5OE2rZ5y
-	 BYQLaSzeDj31a293zLownVRWmL6jhLIxtFbHuNSA=
-Message-ID: <88ed47c1-f84f-4aac-8ec7-ffe87a2a8138@arm.com>
-Date: Thu, 21 May 2026 18:04:50 +0200
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hAiFXflX"
+Received: by mail-wm1-f41.google.com with SMTP id 5b1f17b1804b1-490388fd0dbso8750335e9.0
+        for <linux-acpi@vger.kernel.org>; Thu, 21 May 2026 09:46:36 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1779381995; x=1779986795; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:subject:cc:to:from:date:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=NA/nM16UoxaTsk3A7SWQL7q3HkgK647mNtY2rDcRyyc=;
+        b=hAiFXflXTEbRl6U5Air/vBGryJ1P7DUwv5y5hFcBfrvyOOjvwLAPWk6boHEMfrP+03
+         djrSF/MmhRRc4oKAARffcHojm9lrMfH/yxDwEmaCsT4BFCL3flmfjoZXGq6TFSC3TeHl
+         JsiTufiR6et1mz+pI8XV2U+9x+ymMfxMCAW0bX+y+95+67AVxLZvt8B0iLXkU9d/aiqe
+         9TLZTYgekPiyf54s88p+J1C3j1Lc4MyofWrYIv5jQC1MQsWTxKDTJulTH9sW3bkKM6Er
+         8ENfEnS8Rye+RBlr7U5dk7H7qISkWK2Sz6IRcVfJFcdljcS2gaAHhL/dDTECxI2slWnI
+         yang==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1779381995; x=1779986795;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=NA/nM16UoxaTsk3A7SWQL7q3HkgK647mNtY2rDcRyyc=;
+        b=EqK0jnZd34QewSRFiD4cz7TsBpCMgFiaM0YkgIVpH4XDIz5CYzxqaFieGd9unynwWB
+         Ts4FsJOKrLCk6UXF6M7gqQ29DqIKgBJ4vmBm9iYvY8lve6twNCw9Q/bbFcZULhTCmooX
+         SxbceS8x1Oe0JBB7aMzbchv198Ujf7rB0/IOymFZyT+apGuu27NbC0NZUm3gnUS19wU0
+         u+6H5DHOJ8249AG0LhaN/7kU2lITI4Flmt2KhL7szlp/SpWKb2+XseTpkPdnXK2bze2E
+         ujTyVVpjrY5KqDYYeZDywVUEL/lPiTsnL+i81qoZLkmK+lfRjNOwQqn2QrmBu3wt4+Rd
+         /R8w==
+X-Forwarded-Encrypted: i=1; AFNElJ/p7i0unCEK1cPlP8t67XROD5NQyecLjO7XW8lEX0Yzlqo2RRHplEWuc51esFH9kOmNV3/Azfzoe7Bo@vger.kernel.org
+X-Gm-Message-State: AOJu0YxAWiUa2gOnISie5gmgHv9TzmRmZ6R8+mn6YIwybLGG5MgxNJU0
+	un57C+Nx2sdOxdTB3va0AJ6axIf4uei5AlT5mxQL18bydteKdRxMRy9a
+X-Gm-Gg: Acq92OGJ7UiRSmRjZGS/hFPKtzK4RwK1EhkdH6wAQvL8QehimDAoUmi5DlhCjwK5Wte
+	sY37ZKxiY8QGm45X5nHZFmABh2nJhv+Qzm/ShOYNfFNf8XhFnscxN5Lfj6/H4j9op2YnJjPaldW
+	L+bMHbpK594bJXFIigjeueCUUKvYnpUMQQyVVkMRNAKtdxhSbKpFEFuhtNzjz39H6h9XEZdp5IB
+	tS8f3kkwYylpB03ICuOoJQeIJxvjXIym/rMzaN0fsrDsH4kUKONHCxus+93GWpkgB3TQxzf2Hvr
+	8PndniFivh3K0cyaOcGcvUGCNLXpWgtK7xgG4f2XDha8zpZtXT2NqDrn9k3TBPmL8g1ps4ey+y4
+	gAHN/dfEkgRgz512MlEgOusBDImEaoH6WpXotr3Xv8hVmwMFx4HTgFvmbj62hyiR7W8jHj/8BT4
+	T+/isM14bxTHkHdOBUkoGTtsRONOw7U2L2SLkN7bq5zho5bdD8ATwlJuQewoFWBltO
+X-Received: by 2002:a05:600c:45c6:b0:488:ac01:72de with SMTP id 5b1f17b1804b1-49036033502mr53623425e9.5.1779381994891;
+        Thu, 21 May 2026 09:46:34 -0700 (PDT)
+Received: from pumpkin (82-69-66-36.dsl.in-addr.zen.co.uk. [82.69.66.36])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-49035ecac15sm31613075e9.6.2026.05.21.09.46.33
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 21 May 2026 09:46:34 -0700 (PDT)
+Date: Thu, 21 May 2026 17:46:31 +0100
+From: David Laight <david.laight.linux@gmail.com>
+To: Kees Cook <kees@kernel.org>
+Cc: Luis Chamberlain <mcgrof@kernel.org>, Pengpeng Hou
+ <pengpeng@iscas.ac.cn>, stable@vger.kernel.org, Petr Pavlu
+ <petr.pavlu@suse.com>, Richard Weinberger <richard@nod.at>, Anton Ivanov
+ <anton.ivanov@cambridgegreys.com>, Johannes Berg
+ <johannes@sipsolutions.net>, "Rafael J. Wysocki" <rafael@kernel.org>, Len
+ Brown <lenb@kernel.org>, Corey Minyard <corey@minyard.net>, Gabriel Somlo
+ <somlo@cmu.edu>, "Michael S. Tsirkin" <mst@redhat.com>, Jani Nikula
+ <jani.nikula@linux.intel.com>, Joonas Lahtinen
+ <joonas.lahtinen@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>,
+ Tvrtko Ursulin <tursulin@ursulin.net>, David Airlie <airlied@gmail.com>,
+ Simona Vetter <simona@ffwll.ch>, Bart Van Assche <bvanassche@acm.org>,
+ Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, Laurent
+ Pinchart <laurent.pinchart@ideasonboard.com>, Hans de Goede
+ <hansg@kernel.org>, Mauro Carvalho Chehab <mchehab@kernel.org>, Bjorn
+ Helgaas <bhelgaas@google.com>, Hannes Reinecke <hare@suse.de>, "James E.J.
+ Bottomley" <James.Bottomley@HansenPartnership.com>, "Martin K. Petersen"
+ <martin.petersen@oracle.com>, Daniel Lezcano <daniel.lezcano@kernel.org>,
+ Zhang Rui <rui.zhang@intel.com>, Lukasz Luba <lukasz.luba@arm.com>, Greg
+ Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby
+ <jirislaby@kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Jason Wang
+ <jasowang@redhat.com>, Xuan Zhuo <xuanzhuo@linux.alibaba.com>, Eugenio
+ =?UTF-8?B?UMOpcmV6?= <eperezma@redhat.com>, Jason Baron
+ <jbaron@akamai.com>, Jim Cromie <jim.cromie@gmail.com>, Tiwei Bie
+ <tiwei.btw@antgroup.com>, Benjamin Berg <benjamin.berg@intel.com>, Ilpo
+ =?UTF-8?B?SsOkcnZpbmVu?= <ilpo.jarvinen@linux.intel.com>, "David E. Box"
+ <david.e.box@linux.intel.com>, "Maciej W. Rozycki" <macro@orcam.me.uk>,
+ Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Peter Zijlstra
+ <peterz@infradead.org>, Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik
+ <gor@linux.ibm.com>, Sean Christopherson <seanjc@google.com>, Paolo Bonzini
+ <pbonzini@redhat.com>, Thomas Gleixner <tglx@kernel.org>, Ingo Molnar
+ <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Dave Hansen
+ <dave.hansen@linux.intel.com>, x86@kernel.org, "H. Peter Anvin"
+ <hpa@zytor.com>, Vinod Koul <vkoul@kernel.org>, Frank Li
+ <Frank.Li@kernel.org>, Daniel Gomez <da.gomez@kernel.org>, Sami Tolvanen
+ <samitolvanen@google.com>, Aaron Tomlin <atomlin@atomlin.com>, Alexander
+ Potapenko <glider@google.com>, Marco Elver <elver@google.com>, Dmitry
+ Vyukov <dvyukov@google.com>, Andrew Morton <akpm@linux-foundation.org>,
+ John Johansen <john.johansen@canonical.com>, Paul Moore
+ <paul@paul-moore.com>, James Morris <jmorris@namei.org>, "Serge E. Hallyn"
+ <serge@hallyn.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+ Georgia Garcia <georgia.garcia@canonical.com>, kvm@vger.kernel.org,
+ dmaengine@vger.kernel.org, linux-modules@vger.kernel.org,
+ kasan-dev@googlegroups.com, linux-mm@kvack.org, apparmor@lists.ubuntu.com,
+ linux-security-module@vger.kernel.org, linux-um@lists.infradead.org,
+ linux-acpi@vger.kernel.org, openipmi-developer@lists.sourceforge.net,
+ qemu-devel@nongnu.org, intel-gfx@lists.freedesktop.org,
+ dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org,
+ linux-media@vger.kernel.org, linux-pci@vger.kernel.org,
+ linux-scsi@vger.kernel.org, linux-pm@vger.kernel.org,
+ linuxppc-dev@lists.ozlabs.org, linux-serial@vger.kernel.org,
+ linux-usb@vger.kernel.org, usb-storage@lists.one-eyed-alien.net,
+ virtualization@lists.linux.dev, linux-kernel@vger.kernel.org,
+ linux-arch@vger.kernel.org, netdev@vger.kernel.org,
+ linux-fsdevel@vger.kernel.org, linux-hardening@vger.kernel.org
+Subject: Re: [PATCH 01/11] params: bound array element output to the
+ caller's page buffer
+Message-ID: <20260521174631.71a06440@pumpkin>
+In-Reply-To: <20260521133326.2465264-1-kees@kernel.org>
+References: <20260521133315.work.845-kees@kernel.org>
+	<20260521133326.2465264-1-kees@kernel.org>
+X-Mailer: Claws Mail 4.1.1 (GTK 3.24.38; arm-unknown-linux-gnueabihf)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 5/5] arm_mpam: detect and enable MPAM-Fb PCC support
-To: Niyas Sait <niyas.sait@arm.com>
-Cc: ben.horgan@arm.com, catalin.marinas@arm.com, fenghuay@nvidia.com,
- guohanjun@huawei.com, james.morse@arm.com, jic23@kernel.org,
- lenb@kernel.org, linux-acpi@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
- lpieralisi@kernel.org, rafael@kernel.org, reinette.chatre@intel.com,
- sudeep.holla@kernel.org, will@kernel.org
-References: <20260429141339.3171205-6-andre.przywara@arm.com>
- <20260518111422.3269965-1-niyas.sait@arm.com>
-Content-Language: en-US
-From: Andre Przywara <andre.przywara@arm.com>
-In-Reply-To: <20260518111422.3269965-1-niyas.sait@arm.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 
-Hi Niyas,
+On Thu, 21 May 2026 06:33:14 -0700
+Kees Cook <kees@kernel.org> wrote:
 
-On 5/18/26 13:14, Niyas Sait wrote:
-> Hi Andre,
+> From: Pengpeng Hou <pengpeng@iscas.ac.cn>
 > 
-> On Wed, Apr 29, 2026 at 04:13:39PM +0200, Andre Przywara wrote:
+> param_array_get() appends each element's string representation into the
+> shared sysfs page buffer by passing buffer + off to the element getter.
 > 
->> +		msc->pcc_chan = pcc_mbox_request_channel(&msc->pcc_cl,
->> +							 pcc_subspace_id);
->> +		if (IS_ERR(msc->pcc_chan)) {
->> +			pr_err("Failed to request MSC PCC channel\n");
->> +			return (void *)msc->pcc_chan;
->> +		}
->> +
->> +		if (msc->pcc_chan->shmem_size < MPAM_FB_MAX_MSG_SIZE) {
->> +			pr_err("MPAM-Fb PCC channel size too small.\n");
->> +			pcc_mbox_free_channel(msc->pcc_chan);
->> +			return ERR_PTR(-ENOMEM);
->> +		}
+> That works for getters that only write a small bounded string, but
+> param_get_charp() and similar helpers format against PAGE_SIZE from the
+> pointer they receive. Once off is non-zero, an element getter can
+> therefore write past the end of the original sysfs page buffer.
 > 
-> I think this allocates one PCC channel per MSC instance.
+> Collect each element into a temporary PAGE_SIZE buffer first and then
+> copy only the remaining space into the caller's page buffer.
+
+Should this be using a 4k buffer on all architectures?
+Initially perhaps just using a different name for the constant until
+all the associated PAGE_SIZE limits have been removed.
+
+-- David
+
 > 
-> MPAM-Fb spec. allows MPAM manager to support multiple MSCs and does not
-
-Ouch, that's right, the MSC ID parameter in the protocol would be pretty 
-pointless otherwise ;-)
-I guess me testing with just one MSC kind of hides this problem ;-)
-
-> require seperate channels per MSC. Each MSC is targeted via its msc_id
-> in the MPAM_MSC_READ/WRITE commands.
+> Cc: stable@vger.kernel.org
+> Reviewed-by: Petr Pavlu <petr.pavlu@suse.com>
+> Signed-off-by: Pengpeng Hou <pengpeng@iscas.ac.cn>
+> Signed-off-by: Kees Cook <kees@kernel.org>
+> ---
+>  kernel/params.c | 26 ++++++++++++++++++++------
+>  1 file changed, 20 insertions(+), 6 deletions(-)
 > 
-> So for systems where multiple MSC nodes point to the same PCC subspace,
-> should we share one pcc_mbox_chan and serialize requests through it?
-
-I think we serialise already, because we have this pcc_chan_lock. This 
-makes sure that each access is done in isolation. But on the setup side 
-we need to indeed make sure to share an already allocated channel, which 
-required some code changes.
-
-Thanks for pointing this out!
-
-Cheers,
-Andre
+> diff --git a/kernel/params.c b/kernel/params.c
+> index 74d620bc2521..752721922a15 100644
+> --- a/kernel/params.c
+> +++ b/kernel/params.c
+> @@ -475,22 +475,36 @@ static int param_array_set(const char *val, const struct kernel_param *kp)
+>  static int param_array_get(char *buffer, const struct kernel_param *kp)
+>  {
+>  	int i, off, ret;
+> +	char *elem_buf;
+>  	const struct kparam_array *arr = kp->arr;
+>  	struct kernel_param p = *kp;
+>  
+> +	elem_buf = kmalloc(PAGE_SIZE, GFP_KERNEL);
+> +	if (!elem_buf)
+> +		return -ENOMEM;
+> +
+>  	for (i = off = 0; i < (arr->num ? *arr->num : arr->max); i++) {
+> -		/* Replace \n with comma */
+> -		if (i)
+> -			buffer[off - 1] = ',';
+>  		p.arg = arr->elem + arr->elemsize * i;
+>  		check_kparam_locked(p.mod);
+> -		ret = arr->ops->get(buffer + off, &p);
+> +		ret = arr->ops->get(elem_buf, &p);
+>  		if (ret < 0)
+> -			return ret;
+> +			goto out;
+> +		ret = min(ret, (int)(PAGE_SIZE - 1 - off));
+> +		if (!ret)
+> +			break;
+> +		/* Replace the previous element's trailing newline with a comma. */
+> +		if (i)
+> +			buffer[off - 1] = ',';
+> +		memcpy(buffer + off, elem_buf, ret);
+>  		off += ret;
+> +		if (off == PAGE_SIZE - 1)
+> +			break;
+>  	}
+>  	buffer[off] = '\0';
+> -	return off;
+> +	ret = off;
+> +out:
+> +	kfree(elem_buf);
+> +	return ret;
+>  }
+>  
+>  static void param_array_free(void *arg)
 
