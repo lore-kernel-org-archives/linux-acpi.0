@@ -1,62 +1,65 @@
-Received: from mail-pg1-f202.google.com (mail-pg1-f202.google.com [209.85.215.202])
+Received: from mail-pf1-f202.google.com (mail-pf1-f202.google.com [209.85.210.202])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71A1C367B89
-	for <linux-acpi@vger.kernel.org>; Thu, 21 May 2026 09:04:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.202
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 947AC367B89
+	for <linux-acpi@vger.kernel.org>; Thu, 21 May 2026 09:04:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.202
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779354281; cv=none; b=tNnCqtkt7hSJCJs+VekIwUKouqxdUcYKFZuT0+Tcez3XDb7b7p6pwXInyNuLfX+cukSCHLet9oS3USD8EjXU1DGYDYoPxpnnHivOOpLUWvWqfUQgSYoE6FcumeJwl/vhSLFQLu9a9buUjjtgSw5VU65Pk1jdqLpfzIeYTOFfPJs=
+	t=1779354283; cv=none; b=ARZaQuS+S6tZpOuPcJ817vYM37BO+X8Z4uhqtAFKuOSKSCaQCCGqSiAE4qWh3PGLmJTisNknvAMZGreFcWemRfVwHGmVSjqZlUG37xQafinWBnIYUDx1+OTa45d85mhktDoQl1fvVLwwZaem40wI9UCra4UVRQXS8DnrcqIdbTk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779354281; c=relaxed/simple;
-	bh=+dwTK0cuHhjwGvIjWknGmhW347ji5Nq6ak300K4ZR0U=;
-	h=Date:Mime-Version:Message-ID:Subject:From:To:Cc:Content-Type; b=WNoweNfsx12S/9Wxz7xML7dDp/r/tWQv+6onKfgvrSVp3DSRpGK/XtwFqSATGMDgJxkts6bfyKobcb+M1T2gS2gLiYOFsrt0J6X2bCsldzbUvlCyLmbt1bh5RD/ORZVFGXt+M3udXejo7trRzleOHa/zjyqVrDlXjC/m0MyCSkg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--joonwonkang.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=J+7hS1gM; arc=none smtp.client-ip=209.85.215.202
+	s=arc-20240116; t=1779354283; c=relaxed/simple;
+	bh=07NSKHICgCN3pWwcM2NlZ2C6aALUEOm7y9usKcSSRKQ=;
+	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
+	 To:Cc:Content-Type; b=LWbAxNbwD+W9FXvj3zVufyo81fnYJIWySy0OTq2JPIbnTFQoeAYwUqV1qf0IU5BWYrJj5d9+XhFYnqiyB6G+tqxrYf/lpvw3FyaikeeeKUXu9Pc8WZwbKZGFdSDwpab8UmBqT7kSBSV9bH0ulJQfptU9zww4+QRbkLVUA3IkCvo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--joonwonkang.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=HVLaCFgQ; arc=none smtp.client-ip=209.85.210.202
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--joonwonkang.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="J+7hS1gM"
-Received: by mail-pg1-f202.google.com with SMTP id 41be03b00d2f7-c82c84be9c3so2776860a12.0
-        for <linux-acpi@vger.kernel.org>; Thu, 21 May 2026 02:04:39 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="HVLaCFgQ"
+Received: by mail-pf1-f202.google.com with SMTP id d2e1a72fcca58-8397b14a689so3931836b3a.2
+        for <linux-acpi@vger.kernel.org>; Thu, 21 May 2026 02:04:41 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20251104; t=1779354279; x=1779959079; darn=vger.kernel.org;
-        h=cc:to:from:subject:message-id:mime-version:date:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=yAR4jGfkO1axcbCYTzSG39vOuVG5Rz/bo7M1T3CVqPQ=;
-        b=J+7hS1gMA/KSRTV6KXRwLOSCmj0OBoeloMh7n4Ow0ilVQ/Ded8W3BF4b6eiLXa8oUJ
-         2fqXRe7qBARdr70uxmLsX083cJ7QhHaPxBI8Uo43RXmHm2cKKjzO6VDSXweUCVpwguPW
-         o5boZLPvJ3YZY+bZj74Vp5UeYU3yoS+sgeVFwnLVTHPpB9UQ59d8pGAPdFwXhPqYPlih
-         AxjY6+m7vPfAihWKZTlUyE+/jy0a+ziPZPkgtqkoGSPXY6AN4VtiX6ntCX94t/tk9m5f
-         u6OtemoxD9+MmP1ZZDfmozsFYqmwrVsGD/+AT/b+FW9shZSNua7T1JhQ8UhtmiEVI9CW
-         jw0A==
+        d=google.com; s=20251104; t=1779354281; x=1779959081; darn=vger.kernel.org;
+        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
+         :date:from:to:cc:subject:date:message-id:reply-to;
+        bh=CFeqTPO/75EomKS7CanmkqdMcPboUUUckwg42QFpRDY=;
+        b=HVLaCFgQ5AStcp7yy4W38dml1KoMJX4Yq0IhWGckfP+26AxprMzB+Q7RlsPC8N+jgD
+         2w2D+e5zHjw1LcfDy6pzidRQO0WjV0sl7vr6tkmgebCZFyJBSb0eNIXFbxrq9knAAFNh
+         t+P7yZC8rtxIZ+ff5A50cxdNreH/oHYhwXPfQWHEKii3AkrjS8mig/iqXm+EN9CVigVM
+         BJQdQ2+nDzdOY6AfYvcj0WhRcRuvPL7ljYV9UzG49JnT9hIVyrXuoEael2+wHPS/ITGA
+         k3fjreFjSmTSpzTHRGo7V3Wl89sd7a9J+E4Hxn72n+fAb9AxGxK9jswt9aAJHsRMV6dl
+         N8Yg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779354279; x=1779959079;
-        h=cc:to:from:subject:message-id:mime-version:date:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=yAR4jGfkO1axcbCYTzSG39vOuVG5Rz/bo7M1T3CVqPQ=;
-        b=Up1tPNOIRxOY2y5FQCCpkdjfaRQWdxnyGa/ZK68cv2j0H8Oz486oHyiweYLZjZnlUm
-         qlKHaYBq/h2in3mBKtCrsbK0+5WVMwwaoneIPBkHzneT+ZF/a6giVxoS9GDvunXU9tIj
-         N5nz8UQ9eedDPOYdRjp9sD0JvBFNsCyNt1vP+Q+dD5ZgCL1uIN999tN0Z3955fkQWUz1
-         2toY0MprNz1CEIIj9Y9ZLzGhwbvRfhRieGjLXRwlXcfirQZZFwK2FVyu3pk4COPHA8JN
-         ey2tpgVjWsxXaVpgKfUpkAFvNoWzuf8yaK9gbgGedSMxmNcj7X/J4Dv+PXMsibeYIbN8
-         E1SQ==
-X-Forwarded-Encrypted: i=1; AFNElJ99I++32cCqaMcBapb66CaeAoJAgiI4g2ozcCrjH1ed9IB8ZYBIKb2l8lIJRW9coAZxslpDEUAoZ1PC@vger.kernel.org
-X-Gm-Message-State: AOJu0Yyhyw3+OgZOZ2NlI5G1C3dO+i1NBBBsmX3o5B24mgMiz/jdWdBZ
-	eOp8VhUnAp8jKI+pLM8JE68sYxm3qXRD71g8F8OtbBz41dPjfyt/Zwj3XLp+UeQsv87aIdAjHw1
-	cbyxrcpnb4bg38WQFpfD5eAxuWA==
-X-Received: from pfblx15.prod.google.com ([2002:a05:6a00:754f:b0:82f:7833:9aa9])
+        d=1e100.net; s=20251104; t=1779354281; x=1779959081;
+        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
+         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=CFeqTPO/75EomKS7CanmkqdMcPboUUUckwg42QFpRDY=;
+        b=OKLVRdxQ8oKNgdTuRrC/zMBKB3o1X4Fj6uRcm5Su8KeDcHQBcTr8DaGaZyC623IfFQ
+         GOK/fUbdRNS6OeCDTgTx3fc/SyVP56tRF53X6kx93HFlOUO2h3+ZCKJ6L0NfkY70wz/7
+         7S5oCeO4JB2ifEW+tJSSYAz0/rCzB+JpsVLoE57T80A5J16SKMtLkLN5yiov/Yzd5Cva
+         ZFCAEFeFDdHUZCkxhnReIkiupVAagp/XQJ+1LYG/280j5WORSnjsuTK2KfXZZLhRG153
+         EJCFzku40LQkkG26Q3Cw0owIY5/7aYpdV23OooMyTjBl3GpT2KDawR25r5VGih+7lkIR
+         PkBQ==
+X-Forwarded-Encrypted: i=1; AFNElJ+hdx5k2rdYAa4UAI4b8uyMb86KiUhBrcuOxtOqXYyF62h22wQbCMdLOUdH53JOsnOMsEGkdnraVQEe@vger.kernel.org
+X-Gm-Message-State: AOJu0YzzauARjai1K/fa9s9jsPXdGuG6rmgoOUtt4NTmuPqNM1UQx65w
+	JrPSKrk9h+TZlxlNLoAGI5nJnuB7KoPKc4LSSs8CuGLDdLM2wFW7K5YO3KtyiPGkVdXhy/JG6Tk
+	YWhal0hMGTLFbiJPzmW43sttr3A==
+X-Received: from pfmm4.prod.google.com ([2002:a05:6a00:2484:b0:835:20c7:97df])
  (user=joonwonkang job=prod-delivery.src-stubby-dispatcher) by
- 2002:a05:6a20:3d1d:b0:3a2:ebfc:6bf3 with SMTP id adf61e73a8af0-3b30885a83cmr2492228637.29.1779354278650;
- Thu, 21 May 2026 02:04:38 -0700 (PDT)
-Date: Thu, 21 May 2026 09:04:31 +0000
+ 2002:a05:6a00:1908:b0:829:8cfb:df45 with SMTP id d2e1a72fcca58-8414acdd152mr2147460b3a.15.1779354280643;
+ Thu, 21 May 2026 02:04:40 -0700 (PDT)
+Date: Thu, 21 May 2026 09:04:32 +0000
+In-Reply-To: <20260521090433.1353240-1-joonwonkang@google.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 Mime-Version: 1.0
+References: <20260521090433.1353240-1-joonwonkang@google.com>
 X-Mailer: git-send-email 2.54.0.746.g67dd491aae-goog
-Message-ID: <20260521090433.1353240-1-joonwonkang@google.com>
-Subject: [PATCH RESEND v6.12.y] mailbox: Fix NULL message support in mbox_send_message()
+Message-ID: <20260521090433.1353240-2-joonwonkang@google.com>
+Subject: [PATCH RESEND v2 v6.18.y] mailbox: Fix NULL message support in mbox_send_message()
 From: Joonwon Kang <joonwonkang@google.com>
 To: sashal@kernel.org, stable@vger.kernel.org, jassisinghbrar@gmail.com, 
 	greg@kroah.com
@@ -121,31 +124,34 @@ Reviewed-by: Douglas Anderson <dianders@chromium.org>
 Signed-off-by: Jassi Brar <jassisinghbrar@gmail.com>
 Signed-off-by: Joonwon Kang <joonwonkang@google.com>
 ---
+v2: Remove the obsolete change for drivers/mailbox/pcc.c.
+v1: Add the MBOX_NO_MSG check to drivers/mailbox/pcc.c.
+
  drivers/mailbox/mailbox.c          | 15 ++++++++-------
  drivers/mailbox/tegra-hsp.c        |  2 +-
  include/linux/mailbox_controller.h |  3 +++
  3 files changed, 12 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/mailbox/mailbox.c b/drivers/mailbox/mailbox.c
-index b4d52b814055..383c54d353ee 100644
+index 617ba505691d..9622369cab66 100644
 --- a/drivers/mailbox/mailbox.c
 +++ b/drivers/mailbox/mailbox.c
-@@ -59,7 +59,7 @@ static void msg_submit(struct mbox_chan *chan)
+@@ -52,7 +52,7 @@ static void msg_submit(struct mbox_chan *chan)
+ 	int err = -EBUSY;
  
- 	spin_lock_irqsave(&chan->lock, flags);
+ 	scoped_guard(spinlock_irqsave, &chan->lock) {
+-		if (!chan->msg_count || chan->active_req)
++		if (!chan->msg_count || chan->active_req != MBOX_NO_MSG)
+ 			break;
  
--	if (!chan->msg_count || chan->active_req)
-+	if (!chan->msg_count || chan->active_req != MBOX_NO_MSG)
- 		goto exit;
+ 		count = chan->msg_count;
+@@ -87,13 +87,13 @@ static void tx_tick(struct mbox_chan *chan, int r)
  
- 	count = chan->msg_count;
-@@ -97,13 +97,13 @@ static void tx_tick(struct mbox_chan *chan, int r)
- 
- 	spin_lock_irqsave(&chan->lock, flags);
- 	mssg = chan->active_req;
--	chan->active_req = NULL;
-+	chan->active_req = MBOX_NO_MSG;
- 	spin_unlock_irqrestore(&chan->lock, flags);
+ 	scoped_guard(spinlock_irqsave, &chan->lock) {
+ 		mssg = chan->active_req;
+-		chan->active_req = NULL;
++		chan->active_req = MBOX_NO_MSG;
+ 	}
  
  	/* Submit next message */
  	msg_submit(chan);
@@ -155,7 +161,7 @@ index b4d52b814055..383c54d353ee 100644
  		return;
  
  	/* Notify the client */
-@@ -125,7 +125,7 @@ static enum hrtimer_restart txdone_hrtimer(struct hrtimer *hrtimer)
+@@ -114,7 +114,7 @@ static enum hrtimer_restart txdone_hrtimer(struct hrtimer *hrtimer)
  	for (i = 0; i < mbox->num_chans; i++) {
  		struct mbox_chan *chan = &mbox->chans[i];
  
@@ -164,7 +170,7 @@ index b4d52b814055..383c54d353ee 100644
  			txdone = chan->mbox->ops->last_tx_done(chan);
  			if (txdone)
  				tx_tick(chan, 0);
-@@ -257,7 +257,7 @@ int mbox_send_message(struct mbox_chan *chan, void *mssg)
+@@ -246,7 +246,7 @@ int mbox_send_message(struct mbox_chan *chan, void *mssg)
  {
  	int t;
  
@@ -173,25 +179,25 @@ index b4d52b814055..383c54d353ee 100644
  		return -EINVAL;
  
  	t = add_to_rbuf(chan, mssg);
-@@ -331,7 +331,7 @@ static int __mbox_bind_client(struct mbox_chan *chan, struct mbox_client *cl)
- 	spin_lock_irqsave(&chan->lock, flags);
- 	chan->msg_free = 0;
- 	chan->msg_count = 0;
--	chan->active_req = NULL;
-+	chan->active_req = MBOX_NO_MSG;
- 	chan->cl = cl;
- 	init_completion(&chan->tx_complete);
+@@ -319,7 +319,7 @@ static int __mbox_bind_client(struct mbox_chan *chan, struct mbox_client *cl)
+ 	scoped_guard(spinlock_irqsave, &chan->lock) {
+ 		chan->msg_free = 0;
+ 		chan->msg_count = 0;
+-		chan->active_req = NULL;
++		chan->active_req = MBOX_NO_MSG;
+ 		chan->cl = cl;
+ 		init_completion(&chan->tx_complete);
  
-@@ -492,7 +492,7 @@ void mbox_free_channel(struct mbox_chan *chan)
+@@ -477,7 +477,7 @@ void mbox_free_channel(struct mbox_chan *chan)
  	/* The queued TX requests are simply aborted, no callbacks are made */
- 	spin_lock_irqsave(&chan->lock, flags);
- 	chan->cl = NULL;
--	chan->active_req = NULL;
-+	chan->active_req = MBOX_NO_MSG;
- 	if (chan->txdone_method == TXDONE_BY_ACK)
- 		chan->txdone_method = TXDONE_BY_POLL;
- 
-@@ -549,6 +549,7 @@ int mbox_controller_register(struct mbox_controller *mbox)
+ 	scoped_guard(spinlock_irqsave, &chan->lock) {
+ 		chan->cl = NULL;
+-		chan->active_req = NULL;
++		chan->active_req = MBOX_NO_MSG;
+ 		if (chan->txdone_method == TXDONE_BY_ACK)
+ 			chan->txdone_method = TXDONE_BY_POLL;
+ 	}
+@@ -532,6 +532,7 @@ int mbox_controller_register(struct mbox_controller *mbox)
  
  		chan->cl = NULL;
  		chan->mbox = mbox;
@@ -200,7 +206,7 @@ index b4d52b814055..383c54d353ee 100644
  		spin_lock_init(&chan->lock);
  	}
 diff --git a/drivers/mailbox/tegra-hsp.c b/drivers/mailbox/tegra-hsp.c
-index 76f54f8b6b6c..8ef8b444de61 100644
+index ed9a0bb2bcd8..7991e8dba579 100644
 --- a/drivers/mailbox/tegra-hsp.c
 +++ b/drivers/mailbox/tegra-hsp.c
 @@ -497,7 +497,7 @@ static int tegra_hsp_mailbox_flush(struct mbox_chan *chan,
@@ -213,7 +219,7 @@ index 76f54f8b6b6c..8ef8b444de61 100644
  
  			return 0;
 diff --git a/include/linux/mailbox_controller.h b/include/linux/mailbox_controller.h
-index b91379922cb3..1689031c58c9 100644
+index 80a427c7ca29..1db0069c27c5 100644
 --- a/include/linux/mailbox_controller.h
 +++ b/include/linux/mailbox_controller.h
 @@ -11,6 +11,9 @@
