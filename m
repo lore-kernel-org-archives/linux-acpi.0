@@ -1,84 +1,132 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg1-f202.google.com (mail-pg1-f202.google.com [209.85.215.202])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FAB43DA5B7;
-	Thu, 21 May 2026 13:53:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3C7B3CF02E
+	for <linux-acpi@vger.kernel.org>; Thu, 21 May 2026 13:59:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.202
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779371596; cv=none; b=n+xEdObmZ3U03SsnnLzP4vC4VbH29UGGTqCy6EvWovgKyrjVh48RzhHWjup74Bxyd4v60N42TrowOhHO0Gogp6U0ZDY51wQIMYwe/C3w6diZfE6drdBaskzlidpTR3KEf5u8Be0bafNIcJ9iT1AkZu+1YZZEEasAESivV3eN80M=
+	t=1779371978; cv=none; b=HyNoxc6Bn+fhOtA9/awy0qtuwUR0fN4/7x40O9rZtZLm2b6WEv1/Qx7Eoqv4f/GP833Qf0Yh3ZkTFgGYrX3XzBJwdHs+Jql+ogZmaTatlULzob5zkc/YiQy0HL27JLc1/W/8mGXMj70gVjQvT7QY3dYE3YcggetdA0VFRnNCDzc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779371596; c=relaxed/simple;
-	bh=DM0OQCG3XM6GkiKqFBgashnkjtR6oQuB3UVuyvzgp84=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=eZ47bDtyivtcsuaS+cf+WsnXeFiKd4XiBbQ2xgqLaLS4krc8IDaVLbUyWZFtPLWS7tdYQdy5qD6joRbDUMLrSDGblD20jhFBHRchKcqrQb7ujdw2TdzetN9DjwAL2sZLjknk0PFf8eAIGNq9LKfAartPSHh/Z/LwCSicSGbWCJY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Z6rO1sTu; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779371978; c=relaxed/simple;
+	bh=h+4NVJo3wpAjspHwkhwsyzZn+zEl2CEEOehXzRGNdBY=;
+	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
+	 To:Cc:Content-Type; b=EoxfIGRzz36W2jApkK06MMxYSNbnEQzDLGpPHFCS438yPnrljADBHpIcBMDT0Nnvh++rKIWmMtkSX2JoIW1Tu0jEyC0z5YHyfaMGRtxXF8Tlju6lYbXFHBe/c1QM8vgRO8AlaZHuc4fOu2QfubS6Tmw0NNa29hAe+HlJlv+mk5k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--seanjc.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=jodHEZLM; arc=none smtp.client-ip=209.85.215.202
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--seanjc.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Z6rO1sTu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9303B1F000E9;
-	Thu, 21 May 2026 13:53:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1779371594;
-	bh=xm5eI+pkENaoq5qFFokJNXYM4OoEK8n9Ip4oUUHDN9c=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=Z6rO1sTu2UwPavL4H/MTXAglkUPFpwkIoUxf5oqh8KUkVDTmEgvUDOs6FS8EJqXBv
-	 3GOI81A9UYLZsPd6w9tLPrK6Sfsq4mH71LXVRR8xhfd+5nTwLX0QD7Mm48ZZatE2D6
-	 WiMVTky4qv9bp3uR7o7jdGHmcs49CIPe2YBRI7/+dp2O063DFHoatb26lnqLOjmWP0
-	 DBsLdDXzBEf/u5WP+LQzuhLVUPKsRa4mo4i4eo9CG4tJPTXbixscW/tx0hBaKz/5KO
-	 NAFuBwuMQ5nbxvueTIk+QG3i5fWT+oxX1VwSiSsS5b9U/fwQrWYuy6heXggFmiKOYb
-	 pPESvh95Ijy7g==
-Message-ID: <43ff0ff1-22e7-42f1-a370-8119056e2309@kernel.org>
-Date: Thu, 21 May 2026 08:53:12 -0500
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="jodHEZLM"
+Received: by mail-pg1-f202.google.com with SMTP id 41be03b00d2f7-c8279604464so9098302a12.1
+        for <linux-acpi@vger.kernel.org>; Thu, 21 May 2026 06:59:35 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20251104; t=1779371975; x=1779976775; darn=vger.kernel.org;
+        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
+         :date:from:to:cc:subject:date:message-id:reply-to;
+        bh=tqeEG6FXEKElqAGUt/Z2qfbIbuB++N7b4Fh1Zt6D5dk=;
+        b=jodHEZLMnrXvcr0U+8aiQ3+8HMthO764B3RtgzEf+7ztkCNfkmkIlQBTfUmc0CO1Gm
+         znKHCX5+9bAECaG80vh/IPP806tKIqZE2l7HZLe1YU0HCE1c+TVzdByotFkWkoU+YEws
+         qLgdufxQuD2gsyG2s9NK2v18HBYBS1w+SMsS+Qi6jr0LEmhA4R7O7tZpYus8VaPMyFeG
+         15VYXBj+eYi7/OswJ5AioWab2qhZVYFRjyf4SpApvc+UkSyiNxbsaWg55EmuzRTPh+T9
+         X183BhHSUrQrVCzdTIOykwkJ84D445JXsSdEAvmO37Cr/WfIjw3mclOhGc8OX4c80G1x
+         Di8Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1779371975; x=1779976775;
+        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
+         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=tqeEG6FXEKElqAGUt/Z2qfbIbuB++N7b4Fh1Zt6D5dk=;
+        b=ppU4+RCCmN3uEZSa3nbM8oEX+F68jDiJGESM/5pJHsSUYCi68kyBA9Ei25if9Jy2k+
+         YrKgpvpK+KHk1Y74b64jOtPYefH7QjVCjs7HsJtTNPRJoj6DgDegwJgXmjmQnMPMut/j
+         gD+fC2yxKslYhEULuUHyA9rdkGs3deFaw4nXlQNox6ISgqn6TCU14iV02Nbs7AeEHx1b
+         y9LIb43C2JlIsZ+LCMOe4xJd/qsEjIemG17uRJT4kAUQMt1jrWDZJghFcUlDULf9d+6O
+         akNQ424od/AvvePusIs+rXuIzaiZ/aGodgg3tWS4Zd4gRpRjXilirMlFHQL2Ac4dYxeL
+         l1SA==
+X-Forwarded-Encrypted: i=1; AFNElJ+hjE916Wmww8u5irsKaZMNOQb5zMO/o6xSAXZFa6G0JkxwzyBluCVXq9puPsQYqp+BBDLtWI4rTKCQ@vger.kernel.org
+X-Gm-Message-State: AOJu0YxleflrIGPPAfTJ85kCVFngMDMvSyGH3ewZBiocBjSKSBAF6Qub
+	wMwXo4QOARBjXhVq7GlQ0nuZG641P36kKTXPsNAwr+USkRtVy30dAwVFdpmoqsYyp0TZYZpXJO8
+	i/OnHLQ==
+X-Received: from pge1.prod.google.com ([2002:a05:6a02:2d01:b0:c79:83b3:cdf8])
+ (user=seanjc job=prod-delivery.src-stubby-dispatcher) by 2002:a05:6a20:431a:b0:39c:a78e:dba9
+ with SMTP id adf61e73a8af0-3b308ac1b14mr3725831637.40.1779371973881; Thu, 21
+ May 2026 06:59:33 -0700 (PDT)
+Date: Thu, 21 May 2026 06:59:33 -0700
+In-Reply-To: <20260521133326.2465264-4-kees@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v1 3/3] ACPI: button: Add missing device class clearing on
- probe failures
-Content-Language: en-US
-To: "Rafael J. Wysocki" <rafael@kernel.org>,
- Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Nick <nick@kousu.ca>,
- Saket Dumbre <saket.dumbre@intel.com>,
- Pawel Chmielewski <pawel.chmielewski@intel.com>
-References: <5996185.DvuYhMxLoT@rafael.j.wysocki>
- <3046699.e9J7NaK4W3@rafael.j.wysocki>
-From: Mario Limonciello <superm1@kernel.org>
-In-Reply-To: <3046699.e9J7NaK4W3@rafael.j.wysocki>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
+References: <20260521133315.work.845-kees@kernel.org> <20260521133326.2465264-4-kees@kernel.org>
+Message-ID: <ag8PxTTi5NxT51EW@google.com>
+Subject: Re: [PATCH 04/11] treewide: Convert struct kernel_param_ops
+ initializers to DEFINE_KERNEL_PARAM_OPS
+From: Sean Christopherson <seanjc@google.com>
+To: Kees Cook <kees@kernel.org>
+Cc: Luis Chamberlain <mcgrof@kernel.org>, Pengpeng Hou <pengpeng@iscas.ac.cn>, 
+	Petr Pavlu <petr.pavlu@suse.com>, Richard Weinberger <richard@nod.at>, 
+	Anton Ivanov <anton.ivanov@cambridgegreys.com>, Johannes Berg <johannes@sipsolutions.net>, 
+	"Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Corey Minyard <corey@minyard.net>, 
+	Gabriel Somlo <somlo@cmu.edu>, "Michael S. Tsirkin" <mst@redhat.com>, 
+	Jani Nikula <jani.nikula@linux.intel.com>, 
+	Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, 
+	Tvrtko Ursulin <tursulin@ursulin.net>, David Airlie <airlied@gmail.com>, 
+	Simona Vetter <simona@ffwll.ch>, Bart Van Assche <bvanassche@acm.org>, Jason Gunthorpe <jgg@ziepe.ca>, 
+	Leon Romanovsky <leon@kernel.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, 
+	Hans de Goede <hansg@kernel.org>, Mauro Carvalho Chehab <mchehab@kernel.org>, 
+	Bjorn Helgaas <bhelgaas@google.com>, Hannes Reinecke <hare@suse.de>, 
+	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, 
+	"Martin K. Petersen" <martin.petersen@oracle.com>, Daniel Lezcano <daniel.lezcano@kernel.org>, 
+	Zhang Rui <rui.zhang@intel.com>, Lukasz Luba <lukasz.luba@arm.com>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jirislaby@kernel.org>, 
+	Alan Stern <stern@rowland.harvard.edu>, Jason Wang <jasowang@redhat.com>, 
+	Xuan Zhuo <xuanzhuo@linux.alibaba.com>, 
+	"Eugenio =?utf-8?B?UMOpcmV6?=" <eperezma@redhat.com>, Jason Baron <jbaron@akamai.com>, 
+	Jim Cromie <jim.cromie@gmail.com>, Tiwei Bie <tiwei.btw@antgroup.com>, 
+	Benjamin Berg <benjamin.berg@intel.com>, 
+	"Ilpo =?utf-8?B?SsOkcnZpbmVu?=" <ilpo.jarvinen@linux.intel.com>, 
+	"David E. Box" <david.e.box@linux.intel.com>, "Maciej W. Rozycki" <macro@orcam.me.uk>, 
+	Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, 
+	Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, 
+	Paolo Bonzini <pbonzini@redhat.com>, Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>, 
+	Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, 
+	"H. Peter Anvin" <hpa@zytor.com>, Vinod Koul <vkoul@kernel.org>, Frank Li <Frank.Li@kernel.org>, 
+	Daniel Gomez <da.gomez@kernel.org>, Sami Tolvanen <samitolvanen@google.com>, 
+	Aaron Tomlin <atomlin@atomlin.com>, Alexander Potapenko <glider@google.com>, Marco Elver <elver@google.com>, 
+	Dmitry Vyukov <dvyukov@google.com>, Andrew Morton <akpm@linux-foundation.org>, 
+	John Johansen <john.johansen@canonical.com>, Paul Moore <paul@paul-moore.com>, 
+	James Morris <jmorris@namei.org>, "Serge E. Hallyn" <serge@hallyn.com>, 
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
+	Georgia Garcia <georgia.garcia@canonical.com>, kvm@vger.kernel.org, 
+	dmaengine@vger.kernel.org, linux-modules@vger.kernel.org, 
+	kasan-dev@googlegroups.com, linux-mm@kvack.org, apparmor@lists.ubuntu.com, 
+	linux-security-module@vger.kernel.org, linux-um@lists.infradead.org, 
+	linux-acpi@vger.kernel.org, openipmi-developer@lists.sourceforge.net, 
+	qemu-devel@nongnu.org, intel-gfx@lists.freedesktop.org, 
+	dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, 
+	linux-media@vger.kernel.org, linux-pci@vger.kernel.org, 
+	linux-scsi@vger.kernel.org, linux-pm@vger.kernel.org, 
+	linuxppc-dev@lists.ozlabs.org, linux-serial@vger.kernel.org, 
+	linux-usb@vger.kernel.org, usb-storage@lists.one-eyed-alien.net, 
+	virtualization@lists.linux.dev, linux-kernel@vger.kernel.org, 
+	linux-arch@vger.kernel.org, netdev@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, linux-hardening@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
 
-On 5/21/26 08:39, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Thu, May 21, 2026, Kees Cook wrote:
+> Using Coccinelle, rewrite every struct kernel_param_ops initializer that
+> sets .get into a DEFINE_KERNEL_PARAM_OPS-family macro invocation,
+> for example:
 > 
-> Commit e18947038bf4 ("ACPI: driver: Do not set acpi_device_class()
-> unnecessarily") modified acpi_button_remove() to clear the device class
-> field in struct acpi_device on driver removal, but it should also have
-> updated the rollback path in acpi_button_probe(), which it didn't do,
-> so do it now.
-> 
-> Fixes: e18947038bf4 ("ACPI: driver: Do not set acpi_device_class() unnecessarily")
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> @@
+> declarer name DEFINE_KERNEL_PARAM_OPS;
+> identifier OPS;
+> expression SET, GET;
+> @@
+> - const struct kernel_param_ops OPS = {
+> -       .set = SET,
+> -       .get = GET,
+> - };
+> + DEFINE_KERNEL_PARAM_OPS(OPS, SET, GET);
 
-Reviewed-by: Mario Limonciello (AMD) <superm1@kernel.org>
-
-> ---
->   drivers/acpi/button.c |    1 +
->   1 file changed, 1 insertion(+)
-> 
-> --- a/drivers/acpi/button.c
-> +++ b/drivers/acpi/button.c
-> @@ -687,6 +687,7 @@ err_remove_fs:
->   	acpi_button_remove_fs(button);
->   err_free_button:
->   	kfree(button);
-> +	memset(acpi_device_class(device), 0, sizeof(acpi_device_class));
->   	return error;
->   }
->   
-> 
-> 
-> 
-
+IMO, "OPS, GET, SET" is more intuitive, especially since that's the order used
+by DEFINE_SIMPLE_ATTRIBUTE and DEFINE_DEBUGFS_ATTRIBUTE.
