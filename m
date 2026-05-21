@@ -1,41 +1,40 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A96053090C2;
-	Thu, 21 May 2026 14:12:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 133923D7A15;
+	Thu, 21 May 2026 14:12:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779372732; cv=none; b=JjPa+FnFvVsWW+CHiNhHmKSMWQwkMSs+SVtauTXdpw3DKda4iub+2xTV4Gm1c5TLIAdz4Qdaq2XmLyDMPIqQOHBiTeMt5nPI3EOH+22caqmcH1xNsgbiNMkyjAlidL7EP4J/JinIKVtfkztJ/91Z6Kwq31Hydpupb3dRsQAEgng=
+	t=1779372736; cv=none; b=aWrUQs9gbVDXfbZjnZkZpILDPFEU2270dzNxvCOXEGMLx1GUfUzdv3NkPXbrBMgdXRFrdc00Gs9B+LwlRNV1cbHesV5f2kfS5UhyVM26MZgZilaSpY2LhNeYRttNqXBRa8q4L6lE2ez+kaJgDze9/lkYEKEQtWz6MJhppW0R76I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779372732; c=relaxed/simple;
-	bh=Lt0999yu/B8ee1c5tV3uzLldGsqF2n6m1wmRCPHS+/g=;
+	s=arc-20240116; t=1779372736; c=relaxed/simple;
+	bh=ZFz5EZW8z69WUJOqclsCAqZnMqKT1yyLIo2aVCFYH3M=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=IEsaZiNL0KXejHDHDz9srHXbwBcypbh7tkx8wdZLWCc+UHo2yfTi215UB9de8AI/N2mT7BBZMOecWHnf7J9V6sddhkyfjVey7KGP462imQ8FoKwsLQwhKUv76FGEVQp2xhMNfIr448GjHXLootBltIhmCgY1tRriRP1pngq0jJE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QW9RFoHZ; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=dW5Z8wUOGrfOZSYTMM1xrqjIooWOT0pcSpYcPUlyHl/N0df+oSCtW+LldNLO51lQT6mrAlHoNtOdnbT2eLZi4CuqCwPgoNvtIAEnbYZiA1kToBWOSw1RSnWYc00BOIXPS7uhaNaRH1Fg7CzfclnBScVuVp5P0Z7DAES6ljGUmXg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=AkHCiBbx; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QW9RFoHZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34EF21F000E9;
-	Thu, 21 May 2026 14:12:10 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="AkHCiBbx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91D071F000E9;
+	Thu, 21 May 2026 14:12:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1779372731;
-	bh=V8RZL3VY/72mLVEX7rh3A1MeqlX2wAIv2GyMJei0l9k=;
+	s=k20260515; t=1779372734;
+	bh=OrEp4eXR05yvht2oqzbzM8phegaNlcx0+iUZSWvsXhM=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=QW9RFoHZI5aDP82E4wEVDhOoVYzBS5qDOrnbkxlI7shaxTwmlqevb0KECftXvE5qA
-	 8IAoQ4rqiGTrQt2hgXizjT0xw+EMWEKh6JoxNZ/7zTLf+KZV3Mz4Dr1fCsPf3ASclV
-	 ZRmiq6seoQPfEtdc4qcbySrvjN6D3F8S/WK59UzAi6s+Id2OiTrSS5tjxrNSn3uZaV
-	 h6ZdG8yz7QWfdj5080+OyJfIn9MXn8rg2qR3qeS6Ovn5a1KwdI29so5S2mZJ6thy12
-	 LBm4PSYEH4UuZd3VixXfCR2b3rsRgi4hDbcCT9D+MZpQCOkX6XxxpUe+ilebn2KVhp
-	 fVU3Pbwsghmlw==
+	b=AkHCiBbxuL0+X9BMwPrmpxJFCrW6AFiAwxP10Hl7jotwsyBT/1X/r5LL1HJMHFxQT
+	 0qTKFlgphfdvjDgvImnleLwBS5NDXWsUrc4ST13UjxmxiGcwAQ1HnW2NXXshX1e7Xm
+	 VU6eLLCua4DBPxKlEU+Zcq2e+fH+MEO+SMEKujPdPnxjZ0Fsw6ZA606F+nuULj3tgU
+	 hfMjikMCLNwALR7Hzs2RAaF5hvcWczssNo/8ZIZwOpvS1nzN09tDPHJjOxmYzZLKN9
+	 G/1CS0txxPRJctZc8jArOOSxKT84SnHcONfXKp+eSFRDUIRFyXa5rZv8Wz8czO/qG9
+	 ZP4rJXlyr+SQw==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>,
  Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
  Hans de Goede <hansg@kernel.org>, Armin Wolf <w_armin@gmx.de>
 Subject:
- [PATCH v1 12/17] ACPI: video: Reduce the number of auxiliary device
- dereferences
-Date: Thu, 21 May 2026 16:08:16 +0200
-Message-ID: <2707186.Lt9SDvczpP@rafael.j.wysocki>
+ [PATCH v1 11/17] ACPI: PAD: Switch over to devres-based resource management
+Date: Thu, 21 May 2026 16:07:29 +0200
+Message-ID: <1964581.CQOukoFCf9@rafael.j.wysocki>
 Organization: Linux Kernel Development
 In-Reply-To: <4739447.LvFx2qVVIh@rafael.j.wysocki>
 References: <4739447.LvFx2qVVIh@rafael.j.wysocki>
@@ -50,48 +49,71 @@ Content-Type: text/plain; charset="UTF-8"
 
 From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-Store the &aux_dev->dev pointer in a separate local variable in
-acpi_video_bus_probe() to avoid dereferencing aux_dev many times.
+Use the newly introduced devm_acpi_install_notify_handler() for
+installing an ACPI notify handler and since that function checks the
+ACPI companion of the owner device against NULL internally, remove the
+the explicit ACPI companion check from acpi_pad_probe().
 
-No intentional functional impact.
+However, to prevent the notify handler from running acpi_pad_idle_cpus()
+with the number of idle CPUs greater than zero after acpi_pad_remove()
+has returned, add a bool static variable for synchronization between
+the two.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/acpi_video.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/acpi/acpi_pad.c | 19 +++++++++----------
+ 1 file changed, 9 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
-index 05793ddef787..bdc3f4933abf 100644
---- a/drivers/acpi/acpi_video.c
-+++ b/drivers/acpi/acpi_video.c
-@@ -1978,7 +1978,8 @@ static bool acpi_video_bus_dev_is_duplicate(struct device *dev)
- static int acpi_video_bus_probe(struct auxiliary_device *aux_dev,
- 				const struct auxiliary_device_id *id_unused)
+diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
+index 48c00ee61ed2..5792f93d3534 100644
+--- a/drivers/acpi/acpi_pad.c
++++ b/drivers/acpi/acpi_pad.c
+@@ -31,6 +31,8 @@
+ static DEFINE_MUTEX(isolated_cpus_lock);
+ static DEFINE_MUTEX(round_robin_lock);
+ 
++static bool acpi_pad_teardown;
++
+ static unsigned int power_saving_mwait_eax;
+ 
+ static unsigned char tsc_detected_unstable;
+@@ -359,6 +361,9 @@ static int acpi_pad_pur(acpi_handle handle)
+ 	union acpi_object *package;
+ 	int num = -1;
+ 
++	if (unlikely(acpi_pad_teardown))
++		return -1;
++
+ 	if (ACPI_FAILURE(acpi_evaluate_object(handle, "_PUR", NULL, &buffer)))
+ 		return num;
+ 
+@@ -418,22 +423,16 @@ static void acpi_pad_notify(acpi_handle handle, u32 event, void *data)
+ 
+ static int acpi_pad_probe(struct platform_device *pdev)
  {
--	struct acpi_device *device = ACPI_COMPANION(&aux_dev->dev);
-+	struct device *dev = &aux_dev->dev;
-+	struct acpi_device *device = ACPI_COMPANION(dev);
- 	static DEFINE_MUTEX(probe_lock);
- 	struct acpi_video_bus *video;
- 	static int instance;
-@@ -1988,7 +1989,7 @@ static int acpi_video_bus_probe(struct auxiliary_device *aux_dev,
- 	/* Probe one video bus device at a time in case there are duplicates. */
- 	guard(mutex)(&probe_lock);
+-	struct acpi_device *adev;
++	acpi_pad_teardown = false;
  
--	if (!allow_duplicates && acpi_video_bus_dev_is_duplicate(&aux_dev->dev)) {
-+	if (!allow_duplicates && acpi_video_bus_dev_is_duplicate(dev)) {
- 		pr_info(FW_BUG
- 			"Duplicate ACPI video bus devices for the"
- 			" same VGA controller, please try module "
-@@ -2059,7 +2060,7 @@ static int acpi_video_bus_probe(struct auxiliary_device *aux_dev,
- 	    !auto_detect)
- 		acpi_video_bus_register_backlight(video);
+-	adev = ACPI_COMPANION(&pdev->dev);
+-	if (!adev)
+-		return -ENODEV;
+-
+-	return acpi_dev_install_notify_handler(adev, ACPI_DEVICE_NOTIFY,
+-					       acpi_pad_notify, &pdev->dev);
++	return devm_acpi_install_notify_handler(&pdev->dev, ACPI_DEVICE_NOTIFY,
++						acpi_pad_notify, &pdev->dev);
+ }
  
--	error = acpi_video_bus_add_notify_handler(video, &aux_dev->dev);
-+	error = acpi_video_bus_add_notify_handler(video, dev);
- 	if (error)
- 		goto err_del;
- 
+ static void acpi_pad_remove(struct platform_device *pdev)
+ {
+-	acpi_dev_remove_notify_handler(ACPI_COMPANION(&pdev->dev),
+-				       ACPI_DEVICE_NOTIFY, acpi_pad_notify);
+-
+ 	mutex_lock(&isolated_cpus_lock);
++	acpi_pad_teardown = true;
+ 	acpi_pad_idle_cpus(0);
+ 	mutex_unlock(&isolated_cpus_lock);
+ }
 -- 
 2.51.0
 
