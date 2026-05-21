@@ -1,40 +1,40 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 133923D7A15;
-	Thu, 21 May 2026 14:12:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76C213D9670;
+	Thu, 21 May 2026 14:12:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779372736; cv=none; b=aWrUQs9gbVDXfbZjnZkZpILDPFEU2270dzNxvCOXEGMLx1GUfUzdv3NkPXbrBMgdXRFrdc00Gs9B+LwlRNV1cbHesV5f2kfS5UhyVM26MZgZilaSpY2LhNeYRttNqXBRa8q4L6lE2ez+kaJgDze9/lkYEKEQtWz6MJhppW0R76I=
+	t=1779372739; cv=none; b=chWXIOy0QmDkTuS0kx3HXVxLVUDcWw/AXeoslL0NXUsNSg1/v9ejSKt4+bqgXVP8F4xlN8wJ1VgtV0sHjh5sagrkRLirW9ECdcrhvCrO82Byp/nLhVpDFsemIJZ/GOTtoqyYf/z831fGwMqEtvKKvIOxQ4YzgQuLWDox4nVfjZU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779372736; c=relaxed/simple;
-	bh=ZFz5EZW8z69WUJOqclsCAqZnMqKT1yyLIo2aVCFYH3M=;
+	s=arc-20240116; t=1779372739; c=relaxed/simple;
+	bh=O1MuVtO/NILhT7B5CBo+QM64Usfu4bLCvVLdJHmjsIg=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=dW5Z8wUOGrfOZSYTMM1xrqjIooWOT0pcSpYcPUlyHl/N0df+oSCtW+LldNLO51lQT6mrAlHoNtOdnbT2eLZi4CuqCwPgoNvtIAEnbYZiA1kToBWOSw1RSnWYc00BOIXPS7uhaNaRH1Fg7CzfclnBScVuVp5P0Z7DAES6ljGUmXg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=AkHCiBbx; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=NaOrWMeE/psDZox+PkU3qno1CRzOu1Xievs76UGlmyKUB7lZcZdy/c+auBjVXO1UiRDL1z1XszIrYYLWSgLzY7n3m3jQBO6H5ZWcMpUvpXYfXD0wZLzVOjL+H18iX512du7q3C7b2La2RzRSbArlA6jXsm/t5yIUHtqSMXjWZxg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=SMVD+xsL; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="AkHCiBbx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91D071F000E9;
-	Thu, 21 May 2026 14:12:13 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="SMVD+xsL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE5351F000E9;
+	Thu, 21 May 2026 14:12:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1779372734;
-	bh=OrEp4eXR05yvht2oqzbzM8phegaNlcx0+iUZSWvsXhM=;
+	s=k20260515; t=1779372738;
+	bh=i9FX8AVNv2nnVD4clqaKWwPN6fTufHpEG/8sEU8wzPU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=AkHCiBbxuL0+X9BMwPrmpxJFCrW6AFiAwxP10Hl7jotwsyBT/1X/r5LL1HJMHFxQT
-	 0qTKFlgphfdvjDgvImnleLwBS5NDXWsUrc4ST13UjxmxiGcwAQ1HnW2NXXshX1e7Xm
-	 VU6eLLCua4DBPxKlEU+Zcq2e+fH+MEO+SMEKujPdPnxjZ0Fsw6ZA606F+nuULj3tgU
-	 hfMjikMCLNwALR7Hzs2RAaF5hvcWczssNo/8ZIZwOpvS1nzN09tDPHJjOxmYzZLKN9
-	 G/1CS0txxPRJctZc8jArOOSxKT84SnHcONfXKp+eSFRDUIRFyXa5rZv8Wz8czO/qG9
-	 ZP4rJXlyr+SQw==
+	b=SMVD+xsL7z2aj3bLajdNvK5OOuy81RwLZpgkiGFCYFBSLMwgVOPI8mSW+Q6pCETci
+	 N6qzRxWfIy8oXvF7AvEQ477zH5UCaVNA3M5yxZtqsNi/vSLPC+YrrckZaiQT9kuDwO
+	 6VtZUXyY3OQZdl+V1vlXEUmvRrhZX0CtVSgMpVV1i0+WKZS6l3Y8vrMEmJQJNRoboE
+	 siWgVHKV9gDmnTz9VdOeW3F/mbb0TmWkYXOl7HM44lKflMh6/NFG+CmS9cDaLj+VLF
+	 wpF7aycp3hTTmYuZwS7ZZqfkSMOJYo5tjilxoWsVWLXjvmdYAWkvC3TjOcFCP9T0iw
+	 MP9pldxP7Om9Q==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>,
  Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
  Hans de Goede <hansg@kernel.org>, Armin Wolf <w_armin@gmx.de>
 Subject:
- [PATCH v1 11/17] ACPI: PAD: Switch over to devres-based resource management
-Date: Thu, 21 May 2026 16:07:29 +0200
-Message-ID: <1964581.CQOukoFCf9@rafael.j.wysocki>
+ [PATCH v1 10/17] ACPI: PAD: Fix teardown ordering in acpi_pad_remove()
+Date: Thu, 21 May 2026 16:06:48 +0200
+Message-ID: <2064153.usQuhbGJ8B@rafael.j.wysocki>
 Organization: Linux Kernel Development
 In-Reply-To: <4739447.LvFx2qVVIh@rafael.j.wysocki>
 References: <4739447.LvFx2qVVIh@rafael.j.wysocki>
@@ -49,71 +49,36 @@ Content-Type: text/plain; charset="UTF-8"
 
 From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-Use the newly introduced devm_acpi_install_notify_handler() for
-installing an ACPI notify handler and since that function checks the
-ACPI companion of the owner device against NULL internally, remove the
-the explicit ACPI companion check from acpi_pad_probe().
+The ACPI notify handler installed by acpi_pad_probe() needs to be
+removed before calling acpi_pad_idle_cpus() in acpi_pad_remove()
+so it doesn't schedule idle time injection on some CPUs again.
 
-However, to prevent the notify handler from running acpi_pad_idle_cpus()
-with the number of idle CPUs greater than zero after acpi_pad_remove()
-has returned, add a bool static variable for synchronization between
-the two.
-
+Fixes: 8e0af5141ab9 ("ACPI: create Processor Aggregator Device driver")
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/acpi_pad.c | 19 +++++++++----------
- 1 file changed, 9 insertions(+), 10 deletions(-)
+ drivers/acpi/acpi_pad.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
-index 48c00ee61ed2..5792f93d3534 100644
+index b0a6723fb854..48c00ee61ed2 100644
 --- a/drivers/acpi/acpi_pad.c
 +++ b/drivers/acpi/acpi_pad.c
-@@ -31,6 +31,8 @@
- static DEFINE_MUTEX(isolated_cpus_lock);
- static DEFINE_MUTEX(round_robin_lock);
- 
-+static bool acpi_pad_teardown;
-+
- static unsigned int power_saving_mwait_eax;
- 
- static unsigned char tsc_detected_unstable;
-@@ -359,6 +361,9 @@ static int acpi_pad_pur(acpi_handle handle)
- 	union acpi_object *package;
- 	int num = -1;
- 
-+	if (unlikely(acpi_pad_teardown))
-+		return -1;
-+
- 	if (ACPI_FAILURE(acpi_evaluate_object(handle, "_PUR", NULL, &buffer)))
- 		return num;
- 
-@@ -418,22 +423,16 @@ static void acpi_pad_notify(acpi_handle handle, u32 event, void *data)
- 
- static int acpi_pad_probe(struct platform_device *pdev)
- {
--	struct acpi_device *adev;
-+	acpi_pad_teardown = false;
- 
--	adev = ACPI_COMPANION(&pdev->dev);
--	if (!adev)
--		return -ENODEV;
--
--	return acpi_dev_install_notify_handler(adev, ACPI_DEVICE_NOTIFY,
--					       acpi_pad_notify, &pdev->dev);
-+	return devm_acpi_install_notify_handler(&pdev->dev, ACPI_DEVICE_NOTIFY,
-+						acpi_pad_notify, &pdev->dev);
- }
+@@ -430,12 +430,12 @@ static int acpi_pad_probe(struct platform_device *pdev)
  
  static void acpi_pad_remove(struct platform_device *pdev)
  {
--	acpi_dev_remove_notify_handler(ACPI_COMPANION(&pdev->dev),
--				       ACPI_DEVICE_NOTIFY, acpi_pad_notify);
--
++	acpi_dev_remove_notify_handler(ACPI_COMPANION(&pdev->dev),
++				       ACPI_DEVICE_NOTIFY, acpi_pad_notify);
++
  	mutex_lock(&isolated_cpus_lock);
-+	acpi_pad_teardown = true;
  	acpi_pad_idle_cpus(0);
  	mutex_unlock(&isolated_cpus_lock);
+-
+-	acpi_dev_remove_notify_handler(ACPI_COMPANION(&pdev->dev),
+-				       ACPI_DEVICE_NOTIFY, acpi_pad_notify);
  }
+ 
+ static const struct acpi_device_id pad_device_ids[] = {
 -- 
 2.51.0
 
