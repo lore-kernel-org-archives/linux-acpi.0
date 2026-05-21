@@ -1,234 +1,224 @@
-Received: from mail-pj1-f74.google.com (mail-pj1-f74.google.com [209.85.216.74])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8253D368D5C
-	for <linux-acpi@vger.kernel.org>; Thu, 21 May 2026 09:04:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.74
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1C4519E7F7;
+	Thu, 21 May 2026 11:29:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779354285; cv=none; b=IAt4J6ySYWCS2j4c4tYbo/VPBLUdxehqybZdQtwNfCL6q7lXrLs3XGScTjDJdOP6t4c/rM6Qbxb7jOiud/3uTuEK9jOqQEhhF4w3xjJ4SqBXwFEKOy4UTt/iR0DFipfm1ujk5oDNzk9iWXwRxjKkOAIubBJnbxhT0J+fxFwObnU=
+	t=1779362947; cv=none; b=qYryNqq83hL1YqxY0N6T8vnkA1y34tuaJQyGvzgFMUQWphNx02pUCigbeK27DkWaaFHcaT4ZXvhZnK3bEs4bl1tcopZAozDVfRaneyDj+yH8BwNSmd+YB3+0VLNXfPGX4yZEm0/JIoJaMREJrNKZgorCU1VcXVTxaYTxmK8pDLc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779354285; c=relaxed/simple;
-	bh=WXqyDP2WNgily0u8Lr9ZKcp8fbMxSlVPzEqcVTVrC3w=;
-	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
-	 To:Cc:Content-Type; b=Jw5wLrb+QjmMJ2ee/GKMTy93fBbrWHl4g0PLPe3bDlVokbdswlSi1bRa8+GufzQTT6lb8ecQ1+/bV1Utx51uO/HAyfpjQxgOk6R3Qng6Kdj0eLZeQi5BgeVO+DWrJj1iMRt1vM2vzbgVWrhGFEhydZ+ccXCWOzweGn4O5MKUL18=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--joonwonkang.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=jJiexMpB; arc=none smtp.client-ip=209.85.216.74
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--joonwonkang.bounces.google.com
+	s=arc-20240116; t=1779362947; c=relaxed/simple;
+	bh=r2VbEkG2P6wCDPABwQmhLXjFxp+Dar+DSHzQ4UznYGQ=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=vGU0yhvv2hnYT1Ht5J7ivcotvANYzCHEXdbTut4gINQB+0l35C1t9P7FEbk79IiS4RuOBnjdGzbItk+3BdLG73U6qPdmqNtNEXnp72ASJU0lBQPKCib+0cOTCcHFz0DlODR7TlQRfsKXaewbHY6LmmfpdS7ZuewOCcJCnhqhVHY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=DXp0gLsJ; arc=none smtp.client-ip=198.175.65.18
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="jJiexMpB"
-Received: by mail-pj1-f74.google.com with SMTP id 98e67ed59e1d1-3663d5e9bf4so5183942a91.1
-        for <linux-acpi@vger.kernel.org>; Thu, 21 May 2026 02:04:43 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20251104; t=1779354283; x=1779959083; darn=vger.kernel.org;
-        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
-         :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=me5xxEdS5RmvRxAYfqP7SoJKhExweEkQR6HZlR29D38=;
-        b=jJiexMpBsIImU952SZYilrK0yfgDaIc3VBCL+kIC3ILi4TNq/2x2TKrvO+Q0Wzb1si
-         73/9SJ6nmaRKyFwYxQMjefNpy7UTIsB4wfeKIcK5A2U7MOwUPN19CJGSPPPl48vBU7BJ
-         WGawdB2Q+dYMT9APJk9NmSQ+OEkNBz1O7u0nV+Syq+Yjeb+yhjnRWxY471dQW7Z5EOuf
-         QaapKC+4CXA4DVprucgOiH3C+97CleeSU3YVxazmObzogBk52VvPTmjmC/EHDbndP5Ul
-         7VfFRUtIboFJxshqqliu/cOfoiCsJBqIaTIJ4U0KrhE8pzsjvc96PL9SwKF8zCmjqJ51
-         XNFw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779354283; x=1779959083;
-        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
-         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=me5xxEdS5RmvRxAYfqP7SoJKhExweEkQR6HZlR29D38=;
-        b=HWhgFoRl9mCoMW1BEpkyfF/nOTXt6hEVN9IQ0KdPWMV6r3UHYm1VTjEBKLrUd2JkQ8
-         bQJi7Vte/Fe7rI8j4KLhnMoCe6I5Y0nJz5RU18NVxb1TM75a77dvMpxjORdPQVLW+jQW
-         u6uOQZU58V8TStQCzch0AyFLneBIZcxI30OtORI99OMaE88TsFqLOyCXTCyUWaqgz1SJ
-         uZ9XF0470cZ2NXsJ7UD6vFIPW93csfKwKVJIUvC8216z/SdeNqGCV2npVhgNhVaqk4t2
-         0VQnDN9rr7Ya7q/ALjcb437uWRItCwc15h7EwJ/XtPJAHO1jdu1BR2Ew1yRU8IapIdu9
-         z5aA==
-X-Forwarded-Encrypted: i=1; AFNElJ+DtsNmJVaZoqeh/dfcbOWRi+XtQg5ayCngfz4uFy7jSTJmI9+nVNGrM9XfAEtZI+zhAhe3eoCj/VRv@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw+aYc16Jim4AAJnrNiBIvExds0gBAAfeSsgrqg4y737SZMsVrK
-	UuWefi0ZaKFMgoWMyk+g5Tj8BK1wtlx0ERiPj9ic0poJsY20N7dBYrv/q3uu5jOOAne1VNLW2/m
-	ebqLLWxFMQ0z8xgA/8VEFYnioYg==
-X-Received: from pjbco1.prod.google.com ([2002:a17:90a:fe81:b0:366:3645:4115])
- (user=joonwonkang job=prod-delivery.src-stubby-dispatcher) by
- 2002:a17:90b:2f8d:b0:366:132:fda6 with SMTP id 98e67ed59e1d1-36a45180833mr2175577a91.11.1779354282756;
- Thu, 21 May 2026 02:04:42 -0700 (PDT)
-Date: Thu, 21 May 2026 09:04:33 +0000
-In-Reply-To: <20260521090433.1353240-1-joonwonkang@google.com>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="DXp0gLsJ"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1779362946; x=1810898946;
+  h=date:from:to:cc:subject:message-id;
+  bh=r2VbEkG2P6wCDPABwQmhLXjFxp+Dar+DSHzQ4UznYGQ=;
+  b=DXp0gLsJWBpshRRA0EFjZz2wCUNTesqNP9pXaQMdZbdgLKMHUvI1qTJi
+   fEM8RsYHiz2joT9GDLn16By8JfZZm0oqT5N2WTe6bQUVrb4XiYLwg6yVy
+   /qTgB1KeaZ6IvD2tSaig4ViXlxO5P3Za46m70cbANfXgu28v88QW0Jc3n
+   79ygXPvRLCYHwqHJymeDUIjTq0w1xhUTN2pskK3bxzs/XYgtEfNCGsUrv
+   IZrurrD14kJv2/Yn0a8Tac6jVSF0/5UPvwe56ThQU+FV0AG0pOnUjgJoZ
+   Fc4P4nu3ZCChmT1A1wBpJXY/L3L4xd6njJA9oR/u8fNvZT+A7STTgZc3i
+   A==;
+X-CSE-ConnectionGUID: nlmmMdBsTNqsP7o6UL3enQ==
+X-CSE-MsgGUID: 9QNuSGHlRSic0ag642ntvA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11792"; a="80334416"
+X-IronPort-AV: E=Sophos;i="6.23,246,1770624000"; 
+   d="scan'208";a="80334416"
+Received: from orviesa006.jf.intel.com ([10.64.159.146])
+  by orvoesa110.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 May 2026 04:29:05 -0700
+X-CSE-ConnectionGUID: UuZaFRumSQC2SWzakXY9pA==
+X-CSE-MsgGUID: dkqufxtiQ7ikLDYzfMOk2w==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,246,1770624000"; 
+   d="scan'208";a="239492391"
+Received: from lkp-server01.sh.intel.com (HELO fdb68b0ce653) ([10.239.97.150])
+  by orviesa006.jf.intel.com with ESMTP; 21 May 2026 04:29:04 -0700
+Received: from kbuild by fdb68b0ce653 with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1wQ1aH-000000000Cf-1hQ3;
+	Thu, 21 May 2026 11:29:01 +0000
+Date: Thu, 21 May 2026 19:28:57 +0800
+From: kernel test robot <lkp@intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+Subject: [rafael-pm:bleeding-edge] BUILD SUCCESS
+ 5a12f05e047646e7c25c73482cd4d21fe297903b
+Message-ID: <202605211949.RW6CM6Jm-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-References: <20260521090433.1353240-1-joonwonkang@google.com>
-X-Mailer: git-send-email 2.54.0.746.g67dd491aae-goog
-Message-ID: <20260521090433.1353240-3-joonwonkang@google.com>
-Subject: [PATCH v7.0.y] mailbox: Fix NULL message support in mbox_send_message()
-From: Joonwon Kang <joonwonkang@google.com>
-To: sashal@kernel.org, stable@vger.kernel.org, jassisinghbrar@gmail.com, 
-	greg@kroah.com
-Cc: thierry.reding@gmail.com, jonathanh@nvidia.com, 
-	linux-kernel@vger.kernel.org, linux-tegra@vger.kernel.org, 
-	joonwonkang@google.com, dianders@chromium.org, sudeep.holla@arm.com, 
-	linux-acpi@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
 
-From: Jassi Brar <jassisinghbrar@gmail.com>
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
+branch HEAD: 5a12f05e047646e7c25c73482cd4d21fe297903b  Merge branch 'pm-cpuidle' into bleeding-edge
 
-commit c58e9456e30c ("mailbox: Fix NULL message support in mbox_send_message()") upstream.
+elapsed time: 876m
 
-The active_req field serves double duty as both the "is a TX in
-flight" flag (NULL means idle) and the storage for the in-flight
-message pointer. When a client sends NULL via mbox_send_message(),
-active_req is set to NULL, which the framework misinterprets as
-"no active request". This breaks the TX state machine by:
+configs tested: 147
+configs skipped: 3
 
- - tx_tick() short-circuits on (!mssg), skipping the tx_done
-   callback and the tx_complete completion
- - txdone_hrtimer() skips the channel entirely since active_req
-   is NULL, so poll-based TX-done detection never fires.
+The following configs have been built successfully.
+More configs may be tested in the coming days.
 
-Fix this by introducing a MBOX_NO_MSG sentinel value that means
-"no active request," freeing NULL to be valid message data. The
-sentinel is defined in the subsystem-internal mailbox.h so that
-controller drivers within drivers/mailbox/ can reference it, but
-it is not exposed to clients outside the subsystem.
+tested configs:
+alpha                             allnoconfig    gcc-15.2.0
+alpha                            allyesconfig    gcc-15.2.0
+arc                              allmodconfig    gcc-15.2.0
+arc                               allnoconfig    gcc-15.2.0
+arc                              allyesconfig    gcc-15.2.0
+arc                   randconfig-001-20260521    gcc-13.4.0
+arc                   randconfig-002-20260521    gcc-12.5.0
+arm                               allnoconfig    clang-23
+arm                              allyesconfig    gcc-15.2.0
+arm                   randconfig-001-20260521    clang-23
+arm                   randconfig-002-20260521    gcc-12.5.0
+arm                   randconfig-003-20260521    gcc-13.4.0
+arm                   randconfig-004-20260521    gcc-8.5.0
+arm64                            allmodconfig    clang-19
+arm64                             allnoconfig    gcc-15.2.0
+arm64                          randconfig-001    gcc-8.5.0
+arm64                 randconfig-001-20260521    clang-23
+arm64                          randconfig-002    gcc-14.3.0
+arm64                 randconfig-002-20260521    gcc-8.5.0
+arm64                          randconfig-003    clang-23
+arm64                 randconfig-003-20260521    gcc-8.5.0
+arm64                          randconfig-004    clang-23
+arm64                 randconfig-004-20260521    gcc-8.5.0
+csky                              allnoconfig    gcc-15.2.0
+csky                           randconfig-001    gcc-10.5.0
+csky                  randconfig-001-20260521    gcc-15.2.0
+csky                           randconfig-002    gcc-10.5.0
+csky                  randconfig-002-20260521    gcc-15.2.0
+hexagon                          allmodconfig    clang-17
+hexagon                           allnoconfig    clang-23
+hexagon               randconfig-001-20260521    clang-23
+hexagon               randconfig-002-20260521    clang-23
+i386                             allmodconfig    gcc-14
+i386                              allnoconfig    gcc-14
+i386                             allyesconfig    gcc-14
+i386                  randconfig-011-20260521    gcc-14
+i386                  randconfig-012-20260521    clang-20
+i386                  randconfig-013-20260521    gcc-13
+i386                  randconfig-014-20260521    gcc-14
+i386                  randconfig-015-20260521    gcc-14
+i386                  randconfig-016-20260521    clang-20
+i386                  randconfig-017-20260521    clang-20
+loongarch                        allmodconfig    clang-19
+loongarch                         allnoconfig    clang-23
+loongarch                           defconfig    clang-19
+loongarch             randconfig-001-20260521    gcc-12.5.0
+loongarch             randconfig-002-20260521    gcc-15.2.0
+m68k                             allmodconfig    gcc-15.2.0
+m68k                              allnoconfig    gcc-15.2.0
+m68k                             allyesconfig    gcc-15.2.0
+m68k                                defconfig    gcc-15.2.0
+microblaze                        allnoconfig    gcc-15.2.0
+microblaze                       allyesconfig    gcc-15.2.0
+microblaze                          defconfig    gcc-15.2.0
+mips                             allmodconfig    gcc-15.2.0
+mips                              allnoconfig    gcc-15.2.0
+mips                             allyesconfig    gcc-15.2.0
+nios2                            allmodconfig    gcc-11.5.0
+nios2                             allnoconfig    gcc-11.5.0
+nios2                               defconfig    gcc-11.5.0
+nios2                 randconfig-001-20260521    gcc-11.5.0
+nios2                 randconfig-002-20260521    gcc-11.5.0
+openrisc                         allmodconfig    gcc-15.2.0
+openrisc                          allnoconfig    gcc-15.2.0
+openrisc                            defconfig    gcc-15.2.0
+parisc                           allmodconfig    gcc-15.2.0
+parisc                            allnoconfig    gcc-15.2.0
+parisc                           allyesconfig    gcc-15.2.0
+parisc                              defconfig    gcc-15.2.0
+parisc                         randconfig-001    gcc-13.4.0
+parisc                randconfig-001-20260521    gcc-12.5.0
+parisc                         randconfig-002    gcc-8.5.0
+parisc                randconfig-002-20260521    gcc-15.2.0
+parisc64                            defconfig    gcc-15.2.0
+powerpc                          allmodconfig    gcc-15.2.0
+powerpc                           allnoconfig    gcc-15.2.0
+powerpc                        randconfig-001    gcc-13.4.0
+powerpc               randconfig-001-20260521    clang-23
+powerpc                        randconfig-002    gcc-10.5.0
+powerpc               randconfig-002-20260521    clang-17
+powerpc64                      randconfig-001    clang-17
+powerpc64             randconfig-001-20260521    clang-23
+powerpc64                      randconfig-002    clang-23
+powerpc64             randconfig-002-20260521    gcc-12.5.0
+riscv                            allmodconfig    clang-23
+riscv                             allnoconfig    gcc-15.2.0
+riscv                            allyesconfig    clang-16
+riscv                               defconfig    clang-23
+riscv                 randconfig-001-20260521    clang-23
+riscv                 randconfig-002-20260521    gcc-13.4.0
+s390                             allmodconfig    clang-18
+s390                              allnoconfig    clang-23
+s390                             allyesconfig    gcc-15.2.0
+s390                                defconfig    clang-23
+s390                  randconfig-001-20260521    gcc-8.5.0
+s390                  randconfig-002-20260521    clang-17
+sh                               allmodconfig    gcc-15.2.0
+sh                                allnoconfig    gcc-15.2.0
+sh                               allyesconfig    gcc-15.2.0
+sh                                  defconfig    gcc-15.2.0
+sh                    randconfig-001-20260521    gcc-15.2.0
+sh                    randconfig-002-20260521    gcc-12.5.0
+sparc                             allnoconfig    gcc-15.2.0
+sparc                               defconfig    gcc-15.2.0
+sparc                 randconfig-001-20260521    gcc-8.5.0
+sparc                 randconfig-002-20260521    gcc-8.5.0
+sparc64                          allmodconfig    clang-23
+sparc64                             defconfig    clang-20
+sparc64               randconfig-001-20260521    gcc-8.5.0
+sparc64               randconfig-002-20260521    gcc-8.5.0
+um                               allmodconfig    clang-19
+um                                allnoconfig    clang-23
+um                               allyesconfig    gcc-14
+um                                  defconfig    clang-23
+um                             i386_defconfig    gcc-14
+um                    randconfig-001-20260521    gcc-14
+um                    randconfig-002-20260521    gcc-14
+um                           x86_64_defconfig    clang-23
+x86_64                           allmodconfig    clang-20
+x86_64                            allnoconfig    clang-20
+x86_64                           allyesconfig    clang-20
+x86_64      buildonly-randconfig-001-20260521    gcc-12
+x86_64      buildonly-randconfig-002-20260521    gcc-14
+x86_64      buildonly-randconfig-003-20260521    clang-20
+x86_64      buildonly-randconfig-004-20260521    gcc-14
+x86_64      buildonly-randconfig-005-20260521    clang-20
+x86_64      buildonly-randconfig-006-20260521    clang-20
+x86_64                              defconfig    gcc-14
+x86_64                randconfig-001-20260521    clang-20
+x86_64                randconfig-002-20260521    clang-20
+x86_64                randconfig-003-20260521    gcc-14
+x86_64                randconfig-004-20260521    clang-20
+x86_64                randconfig-005-20260521    clang-20
+x86_64                randconfig-006-20260521    clang-20
+x86_64                         randconfig-011    gcc-14
+x86_64                         randconfig-015    gcc-14
+x86_64                randconfig-071-20260521    clang-20
+x86_64                randconfig-072-20260521    clang-20
+x86_64                randconfig-073-20260521    clang-20
+x86_64                randconfig-074-20260521    gcc-14
+x86_64                randconfig-075-20260521    clang-20
+x86_64                randconfig-076-20260521    clang-20
+x86_64                          rhel-9.4-rust    clang-20
+xtensa                            allnoconfig    gcc-15.2.0
+xtensa                           allyesconfig    gcc-15.2.0
+xtensa                randconfig-001-20260521    gcc-8.5.0
+xtensa                randconfig-002-20260521    gcc-11.5.0
 
-Fifteen in-tree callers send NULL (doorbell-style IPCs on Qualcomm,
-Tegra, TI, Xilinx, i.MX, SCMI, and PCC platforms). All were
-audited for regression:
-
- - Most already work around the bug via knows_txdone=true with a
-   manual mbox_client_txdone() call, making the framework's
-   tracking irrelevant. These are unaffected.
-
- - Poll-based callers (Xilinx zynqmp/r5) are strictly better off:
-   the poll timer now correctly detects NULL-active channels
-   instead of silently skipping them.
-
- - irq-qcom-mpm.c was a pre-existing bug -- the only Qualcomm
-   caller that omitted the knows_txdone + mbox_client_txdone()
-   pattern. Fixed in a companion commit ("irqchip/qcom-mpm: Fix
-   missing mailbox TX done acknowledgment").
-
- - No caller sets both a tx_done callback and sends NULL, nor
-   combines tx_block=true with NULL sends, so the newly reachable
-   callback/completion paths are never exercised.
-
-Also update tegra-hsp's flush callback, which directly inspects
-active_req to wait for the channel to drain: the old "!= NULL"
-check becomes "!= MBOX_NO_MSG", otherwise flush spins until
-timeout since the sentinel is non-NULL.
-
-The only tradeoff is that 'MBOX_NO_MSG' can not be used as a message
-by clients.
-
-Reported-by: Joonwon Kang <joonwonkang@google.com>
-Reviewed-by: Douglas Anderson <dianders@chromium.org>
-Signed-off-by: Jassi Brar <jassisinghbrar@gmail.com>
-Signed-off-by: Joonwon Kang <joonwonkang@google.com>
----
- drivers/mailbox/mailbox.c          | 15 ++++++++-------
- drivers/mailbox/tegra-hsp.c        |  2 +-
- include/linux/mailbox_controller.h |  3 +++
- 3 files changed, 12 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/mailbox/mailbox.c b/drivers/mailbox/mailbox.c
-index 617ba505691d..9622369cab66 100644
---- a/drivers/mailbox/mailbox.c
-+++ b/drivers/mailbox/mailbox.c
-@@ -52,7 +52,7 @@ static void msg_submit(struct mbox_chan *chan)
- 	int err = -EBUSY;
- 
- 	scoped_guard(spinlock_irqsave, &chan->lock) {
--		if (!chan->msg_count || chan->active_req)
-+		if (!chan->msg_count || chan->active_req != MBOX_NO_MSG)
- 			break;
- 
- 		count = chan->msg_count;
-@@ -87,13 +87,13 @@ static void tx_tick(struct mbox_chan *chan, int r)
- 
- 	scoped_guard(spinlock_irqsave, &chan->lock) {
- 		mssg = chan->active_req;
--		chan->active_req = NULL;
-+		chan->active_req = MBOX_NO_MSG;
- 	}
- 
- 	/* Submit next message */
- 	msg_submit(chan);
- 
--	if (!mssg)
-+	if (mssg == MBOX_NO_MSG)
- 		return;
- 
- 	/* Notify the client */
-@@ -114,7 +114,7 @@ static enum hrtimer_restart txdone_hrtimer(struct hrtimer *hrtimer)
- 	for (i = 0; i < mbox->num_chans; i++) {
- 		struct mbox_chan *chan = &mbox->chans[i];
- 
--		if (chan->active_req && chan->cl) {
-+		if (chan->active_req != MBOX_NO_MSG && chan->cl) {
- 			txdone = chan->mbox->ops->last_tx_done(chan);
- 			if (txdone)
- 				tx_tick(chan, 0);
-@@ -246,7 +246,7 @@ int mbox_send_message(struct mbox_chan *chan, void *mssg)
- {
- 	int t;
- 
--	if (!chan || !chan->cl)
-+	if (!chan || !chan->cl || mssg == MBOX_NO_MSG)
- 		return -EINVAL;
- 
- 	t = add_to_rbuf(chan, mssg);
-@@ -319,7 +319,7 @@ static int __mbox_bind_client(struct mbox_chan *chan, struct mbox_client *cl)
- 	scoped_guard(spinlock_irqsave, &chan->lock) {
- 		chan->msg_free = 0;
- 		chan->msg_count = 0;
--		chan->active_req = NULL;
-+		chan->active_req = MBOX_NO_MSG;
- 		chan->cl = cl;
- 		init_completion(&chan->tx_complete);
- 
-@@ -477,7 +477,7 @@ void mbox_free_channel(struct mbox_chan *chan)
- 	/* The queued TX requests are simply aborted, no callbacks are made */
- 	scoped_guard(spinlock_irqsave, &chan->lock) {
- 		chan->cl = NULL;
--		chan->active_req = NULL;
-+		chan->active_req = MBOX_NO_MSG;
- 		if (chan->txdone_method == TXDONE_BY_ACK)
- 			chan->txdone_method = TXDONE_BY_POLL;
- 	}
-@@ -532,6 +532,7 @@ int mbox_controller_register(struct mbox_controller *mbox)
- 
- 		chan->cl = NULL;
- 		chan->mbox = mbox;
-+		chan->active_req = MBOX_NO_MSG;
- 		chan->txdone_method = txdone;
- 		spin_lock_init(&chan->lock);
- 	}
-diff --git a/drivers/mailbox/tegra-hsp.c b/drivers/mailbox/tegra-hsp.c
-index ed9a0bb2bcd8..7991e8dba579 100644
---- a/drivers/mailbox/tegra-hsp.c
-+++ b/drivers/mailbox/tegra-hsp.c
-@@ -497,7 +497,7 @@ static int tegra_hsp_mailbox_flush(struct mbox_chan *chan,
- 			mbox_chan_txdone(chan, 0);
- 
- 			/* Wait until channel is empty */
--			if (chan->active_req != NULL)
-+			if (chan->active_req != MBOX_NO_MSG)
- 				continue;
- 
- 			return 0;
-diff --git a/include/linux/mailbox_controller.h b/include/linux/mailbox_controller.h
-index 80a427c7ca29..1db0069c27c5 100644
---- a/include/linux/mailbox_controller.h
-+++ b/include/linux/mailbox_controller.h
-@@ -11,6 +11,9 @@
- 
- struct mbox_chan;
- 
-+/* Sentinel value distinguishing "no active request" from "NULL message data" */
-+#define MBOX_NO_MSG	((void *)-1)
-+
- /**
-  * struct mbox_chan_ops - methods to control mailbox channels
-  * @send_data:	The API asks the MBOX controller driver, in atomic
--- 
-2.54.0.746.g67dd491aae-goog
-
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
