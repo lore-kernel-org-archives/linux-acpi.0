@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98E24296BAF;
-	Thu, 21 May 2026 13:52:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FAB43DA5B7;
+	Thu, 21 May 2026 13:53:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779371577; cv=none; b=hscjbAKk8Uq2j3BI39zpXwnQjHDfLSZQPgRErLnPpQtPspA7SSBIxYbYWEB4RjgRjPwiCjdTwUjcYaFTptZOoxdK0hJe/60fyQTLsXJQgwwYZY1s+kdXTd+yO1iHYnmZDnuioKkafeqdb0UTCiPRisWJLbgDwxH8TmKnnx00MKA=
+	t=1779371596; cv=none; b=n+xEdObmZ3U03SsnnLzP4vC4VbH29UGGTqCy6EvWovgKyrjVh48RzhHWjup74Bxyd4v60N42TrowOhHO0Gogp6U0ZDY51wQIMYwe/C3w6diZfE6drdBaskzlidpTR3KEf5u8Be0bafNIcJ9iT1AkZu+1YZZEEasAESivV3eN80M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779371577; c=relaxed/simple;
-	bh=OAwtVmKsfg7OJO4qnLNsI1wLj2SdChe9+x+295CjGrE=;
+	s=arc-20240116; t=1779371596; c=relaxed/simple;
+	bh=DM0OQCG3XM6GkiKqFBgashnkjtR6oQuB3UVuyvzgp84=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=b1h5uF0gdzunIFU0T4j02dsgQ0F6dGN/+bufOjLRWuaXka14y5u/mFKpuZZ6iNudJXDl9mzWwgP372gPBkJyd0F9F+oV8nw1cJVLQdsuG4WI+mtx0UX+DNrbED4Fsylqm7anbPSRgonF/IhFZ27NLS5RL0F28SdgtSupkb6/D/Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=j1BcEcmy; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:Content-Type; b=eZ47bDtyivtcsuaS+cf+WsnXeFiKd4XiBbQ2xgqLaLS4krc8IDaVLbUyWZFtPLWS7tdYQdy5qD6joRbDUMLrSDGblD20jhFBHRchKcqrQb7ujdw2TdzetN9DjwAL2sZLjknk0PFf8eAIGNq9LKfAartPSHh/Z/LwCSicSGbWCJY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Z6rO1sTu; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="j1BcEcmy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA4C01F000E9;
-	Thu, 21 May 2026 13:52:55 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Z6rO1sTu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9303B1F000E9;
+	Thu, 21 May 2026 13:53:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1779371576;
-	bh=IrKHcvZOqaB27+2COXlvDarPY+WfYhxwlLKAn/xf+SQ=;
+	s=k20260515; t=1779371594;
+	bh=xm5eI+pkENaoq5qFFokJNXYM4OoEK8n9Ip4oUUHDN9c=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=j1BcEcmya7ci1Qo0c9hGrhc/8C/YeA840wKgiFMxv20CYEK5HIL6cqejzfQ/lA+ba
-	 2tebprE3AIR0QKT+SE7/Cqf4qWbm5Rj/WfzOO+4fvq6ipxwFrrIIJ2gZFuCYWociXx
-	 uixf3jiYCGMMZmsctAeOItgg5NfrJshVF94Bmn5X8vtm1BIyT6HQWNPPQ9cPFmhe//
-	 VuM4aa3xK54D3iEBc9Nw7zPwcVYyuCFxP+XfgBJrlIKchvAAKR/43YcSlgtojwrbWb
-	 E68XyJZeTNpFEN1MNJhSPzSmxQRnvwtoBTKaLfI4FwZFsNaXmjG1fPOYH9+v47VIeY
-	 Pc+J1M0gFFFeA==
-Message-ID: <7d2f619c-5710-4c39-874b-aab230744014@kernel.org>
-Date: Thu, 21 May 2026 08:52:54 -0500
+	b=Z6rO1sTu2UwPavL4H/MTXAglkUPFpwkIoUxf5oqh8KUkVDTmEgvUDOs6FS8EJqXBv
+	 3GOI81A9UYLZsPd6w9tLPrK6Sfsq4mH71LXVRR8xhfd+5nTwLX0QD7Mm48ZZatE2D6
+	 WiMVTky4qv9bp3uR7o7jdGHmcs49CIPe2YBRI7/+dp2O063DFHoatb26lnqLOjmWP0
+	 DBsLdDXzBEf/u5WP+LQzuhLVUPKsRa4mo4i4eo9CG4tJPTXbixscW/tx0hBaKz/5KO
+	 NAFuBwuMQ5nbxvueTIk+QG3i5fWT+oxX1VwSiSsS5b9U/fwQrWYuy6heXggFmiKOYb
+	 pPESvh95Ijy7g==
+Message-ID: <43ff0ff1-22e7-42f1-a370-8119056e2309@kernel.org>
+Date: Thu, 21 May 2026 08:53:12 -0500
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -35,8 +35,8 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v1 1/3] ACPI: button: Fix ACPI GPE handler leak during
- removal
+Subject: Re: [PATCH v1 3/3] ACPI: button: Add missing device class clearing on
+ probe failures
 Content-Language: en-US
 To: "Rafael J. Wysocki" <rafael@kernel.org>,
  Linux ACPI <linux-acpi@vger.kernel.org>
@@ -44,49 +44,40 @@ Cc: LKML <linux-kernel@vger.kernel.org>, Nick <nick@kousu.ca>,
  Saket Dumbre <saket.dumbre@intel.com>,
  Pawel Chmielewski <pawel.chmielewski@intel.com>
 References: <5996185.DvuYhMxLoT@rafael.j.wysocki>
- <5103522.31r3eYUQgx@rafael.j.wysocki>
+ <3046699.e9J7NaK4W3@rafael.j.wysocki>
 From: Mario Limonciello <superm1@kernel.org>
-In-Reply-To: <5103522.31r3eYUQgx@rafael.j.wysocki>
+In-Reply-To: <3046699.e9J7NaK4W3@rafael.j.wysocki>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
-On 5/21/26 08:32, Rafael J. Wysocki wrote:
+On 5/21/26 08:39, Rafael J. Wysocki wrote:
 > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > 
-> Commit a7e23ec17fee ("ACPI: button: Install notifier for system events
-> as well") changed the ACPI notify handler type for ACPI buttons to
-> ACPI_ALL_NOTIFY, but it forgot to update acpi_button_remove() to reflect
-> that change.  This leads to leaking the notify handler past driver
-> removal, which may cause a kernel crash to occur if ACPI notify on
-> the given device is triggered after removing the driver, and causes a
-> subsequent probe of the given device with the same driver to fail.
+> Commit e18947038bf4 ("ACPI: driver: Do not set acpi_device_class()
+> unnecessarily") modified acpi_button_remove() to clear the device class
+> field in struct acpi_device on driver removal, but it should also have
+> updated the rollback path in acpi_button_probe(), which it didn't do,
+> so do it now.
 > 
-> Address this by updating the acpi_remove_notify_handler() call in
-> acpi_button_remove() as appropriate.
-> 
-> Fixes: a7e23ec17fee ("ACPI: button: Install notifier for system events as well")
+> Fixes: e18947038bf4 ("ACPI: driver: Do not set acpi_device_class() unnecessarily")
 > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Cc: 6.15+ <stable@vger.kernel.org> # 6.15+
-
-Good catch, thanks.
 
 Reviewed-by: Mario Limonciello (AMD) <superm1@kernel.org>
 
 > ---
->   drivers/acpi/button.c |    2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
+>   drivers/acpi/button.c |    1 +
+>   1 file changed, 1 insertion(+)
 > 
 > --- a/drivers/acpi/button.c
 > +++ b/drivers/acpi/button.c
-> @@ -689,7 +689,7 @@ static void acpi_button_remove(struct pl
->   						acpi_button_event);
->   		break;
->   	default:
-> -		acpi_remove_notify_handler(adev->handle, ACPI_DEVICE_NOTIFY,
-> +		acpi_remove_notify_handler(adev->handle, ACPI_ALL_NOTIFY,
->   					   button->type == ACPI_BUTTON_TYPE_LID ?
->   						acpi_lid_notify :
->   						acpi_button_notify);
+> @@ -687,6 +687,7 @@ err_remove_fs:
+>   	acpi_button_remove_fs(button);
+>   err_free_button:
+>   	kfree(button);
+> +	memset(acpi_device_class(device), 0, sizeof(acpi_device_class));
+>   	return error;
+>   }
+>   
 > 
 > 
 > 
