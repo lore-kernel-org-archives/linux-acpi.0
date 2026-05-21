@@ -1,89 +1,102 @@
-Received: from comms.kousu.ca (comms.kousu.ca [46.23.90.174])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1059D82866;
-	Fri, 22 May 2026 01:48:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.23.90.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9ED1A3CD8A4;
+	Fri, 22 May 2026 10:23:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779414534; cv=none; b=Si8uma38cnjxshg73lhw+PPAjb1H9S2iqY2qP6DK5H0MUzWBCIDhFVQhgJ01CZHA+aNjOSKVo0mtwNoCp6iIdCPLl8xCQ2N4T+Euo1HaanS1RWSVbBdt4iJYcNtBRjcrpJfLYOOvZx5lXM7OHOf8v223SXuk1lHuqJrLYAFSeqg=
+	t=1779445424; cv=none; b=eCGX+QJ4GHn7ByRESbvYsHlMyO1diXAdimxa6TaOyN1k6sSlszKxvmwDxKWUI9t0nDlgx7d7qKyS7wD4ecok9nIUUXTCJn/dGnx1wKc0BTqSHhR4H+sbqHvNu9rvI7EIDkryWaeoz2ebTvlVMFrQIM1eFZAR4oy6S+PkQINH16k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779414534; c=relaxed/simple;
-	bh=fhFOzi0A+cs/AvaFoowR9qijtdk+yxeHIkC/cNLKMno=;
-	h=Date:From:Subject:To:Cc:Message-Id:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=gATV1is/LvtwNdaVvz0zFcHrPn9oOe5KJoLqcbJuBvBTM8oykrFPkC8thNqI7naQc9+uhdMoEpjyLLQ3YeNvRc4sYlk/hQvcLypGSIqvZCFrpCJtApD3sxM18zhj6iyRyu+XmG6x7VzySTFcJ7YkjPdJwCh2qDs8Rr22CN2USW8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=kousu.ca; spf=pass smtp.mailfrom=kousu.ca; dkim=permerror (0-bit key) header.d=kousu.ca header.i=@kousu.ca header.b=c+A6vVdL; dkim=pass (2048-bit key) header.d=kousu.ca header.i=@kousu.ca header.b=J2j0hw2+; arc=none smtp.client-ip=46.23.90.174
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=kousu.ca
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kousu.ca
+	s=arc-20240116; t=1779445424; c=relaxed/simple;
+	bh=eUs6YVU2iFtFB2JHUiISX/6iwqnt7Bq1OFgZKZQ0uKg=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=AhQvajy98ZXKsPjpDVXFKTePEugevZ9SaM4EAdRSXxns2bwXDiS10UN9NvJba1YUeOpdZdmVd6okAPuYKDhZBlxcPjY3XVuJ3ULig46/S+dAI5XieSgf8rt4oNIz/WajY0OK3hlb0K3dubdt0zS3XYNhlONqtzCXgHkjdxLzxBU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UXsGOZL8; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=permerror (0-bit key) header.d=kousu.ca header.i=@kousu.ca header.b="c+A6vVdL";
-	dkim=pass (2048-bit key) header.d=kousu.ca header.i=@kousu.ca header.b="J2j0hw2+"
-DKIM-Signature: v=1; a=ed25519-sha256; c=simple/simple; s=ed25519; bh=fhFOzi0A
-	+cs/AvaFoowR9qijtdk+yxeHIkC/cNLKMno=; h=references:in-reply-to:cc:to:
-	subject:from:date; d=kousu.ca; b=c+A6vVdLT9/IQtHKvkd1OPZ9APekNjXM/4iK7
-	9/DkLTQtl5EpvXtafiYETdfraZDeO7yFVcSFNXjjyUlmYRnCQ==
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; s=rsa; bh=fhFOzi0A+cs/AvaF
-	oowR9qijtdk+yxeHIkC/cNLKMno=; h=references:in-reply-to:cc:to:subject:
-	from:date; d=kousu.ca; b=J2j0hw2+pfM29caP2Gbb07vOd5e7Hbi56C7gNmJAohAX0
-	PYDxn0zCEeTBHIXbtllXXQoQqVmAgNyASXqJ2gMVoF+F0CsI/Rdf2K8GQUlfTXOthbdM3Q
-	FserSjyAlab9VmqBUw4zkseFi72xz5wC6V0ff44RGUjG0XIqQmFVNzwK+Rc0+Lx0m+OaP+
-	RFOUKU/i0947MJWOLVAYQdiN/RbWwaMwxM19Ex2nxme379uW4QQpsnppSuwomoN4LF6sBX
-	pUn1vPIRHHfsPoB33cK/22pW+Kj3Kk+GQEIO0hhYT7utwz4IcU7mB/v3GplhsqQZmDhahI
-	oH/khNr7prhWQ27bQ==
-Received: from [IPv6:2606:6d00:17:b526::6b4] (<unknown> [2606:6d00:17:b526::6b4])
-	by comms.kousu.ca (OpenSMTPD) with ESMTPSA id c964c175 (TLSv1.3:TLS_AES_256_GCM_SHA384:256:NO);
-	Fri, 22 May 2026 03:48:43 +0200 (CEST)
-Date: Thu, 21 May 2026 21:48:35 -0400
-From: Nick <nick@kousu.ca>
-Subject: Re: [PATCH v1 2/3] ACPI: button: Enable wakeup GPEs for ACPI buttons
- at probe time
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, LKML
-	<linux-kernel@vger.kernel.org>, Saket Dumbre <saket.dumbre@intel.com>,
-	Pawel Chmielewski <pawel.chmielewski@intel.com>, Mario Limonciello
-	<superm1@kernel.org>
-Message-Id: <Z01FFT.NPPC3AQH2RI22@kousu.ca>
-In-Reply-To: <2265993.irdbgypaU6@rafael.j.wysocki>
-References: <5996185.DvuYhMxLoT@rafael.j.wysocki>
-	<2265993.irdbgypaU6@rafael.j.wysocki>
-X-Mailer: org.gnome.Geary/46.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UXsGOZL8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34F3F1F00A3D;
+	Fri, 22 May 2026 10:23:41 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1779445423;
+	bh=xq2WMGxYrdq7+VpHGko1wAXp02qIJZ5EaLRL0m99YUo=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Date;
+	b=UXsGOZL8biEqFcm+yDxKBRmmTG7wr1b9UH9iU9EuR6OB5xaigS/PK7iSDw/Vm4W4N
+	 MC2XACcVHcPGTvcWYO6pDoxWAR1GJUvyG+VRTdn4Ow5feS300wzQMk+L2k+6ZxYkkE
+	 nk0Ca2W0d17+0UyKihAUDvBW0QirdOPzWKKWy+jfAddiTYyrRv5dwFgsPT7mQRGu8F
+	 ztEfRFh8KZ6oE4CFg968OvZmhGDY46xnF5TnqX27zGgdcnM/xZ2WyMSSFTuLD0R24Q
+	 JHhnDyOAAAicbO9T3PEfEf4UlW9m4ei9MWEpN7/AeAAzj3OgnIZc+XITt09RJw8N7D
+	 EUnVO+Pny6gKA==
+From: Mark Brown <broonie@kernel.org>
+To: Hoan Tran <hoan@os.amperecomputing.com>, 
+ Linus Walleij <linusw@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>, 
+ "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
+ Thomas Lin <thomas_lin@lecomputing.com>
+Cc: linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ linux-acpi@vger.kernel.org, linux-spi@vger.kernel.org, 
+ braden_zhang@lecomputing.com, 
+ Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+In-Reply-To: <20260521-lecarc-acpi-ids-v1-0-ae0ae90b2817@lecomputing.com>
+References: <20260521-lecarc-acpi-ids-v1-0-ae0ae90b2817@lecomputing.com>
+Subject: Re: (subset) [PATCH 0/2] Subject: [PATCH v5 0/2] arm64: Add LECARC
+ ACPI IDs for DesignWare GPIO, SPI
+Message-Id: <177935811877.58022.6763569850673857398.b4-ty@b4>
+Date: Thu, 21 May 2026 11:08:38 +0100
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.16-dev
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1320; i=broonie@kernel.org;
+ h=from:subject:message-id; bh=eUs6YVU2iFtFB2JHUiISX/6iwqnt7Bq1OFgZKZQ0uKg=;
+ b=owEBbQGS/pANAwAKASTWi3JdVIfQAcsmYgBqEC6sfKu343MptDCXeGNaCumZEVJKfrQjhNA3J
+ 6agdVFSQWqJATMEAAEKAB0WIQSt5miqZ1cYtZ/in+ok1otyXVSH0AUCahAurAAKCRAk1otyXVSH
+ 0IVRB/4jjzULxCcwXtugQpfoBXaIoe631zWgzVhxI8oyXQwUB/80TUP7HI67KBrsOUr8wlb8/Xn
+ zyKVcIqdisj5cUxOU8D3WcYyauBstYtgBvzhzzQ6IPkc5nwaEPUlttCiI4lcV/DJD7rgeZh3zU7
+ obshP4uzV5gx0Z/X2RqxyfqgzAa04cz1i/872sJv5NwleVQvo7m+32+mDjvgpvlOjsXSjrCYKDR
+ NX1fNyPKHDI9fjDcWN2fN2ktAYoNGa/3iXeO+x0552DrEsEJqbLSxkLtqibKX2+pOBYiODMGuHw
+ 2HOk8JK66w563dovBqPcXl18s/HT2GuIHEsKwOd+0RMaQW2n
+X-Developer-Key: i=broonie@kernel.org; a=openpgp;
+ fpr=3F2568AAC26998F9E813A1C5C3F436CA30F5D8EB
 
-Hello Rafael,
-
-
-On Thu, May 21 2026 at 03:38:50 PM +02:00:00, Rafael J. Wysocki 
-<rafael@kernel.org> wrote:
+On Thu, 21 May 2026 10:34:48 +0800, Thomas Lin wrote:
+> Subject: [PATCH v5 0/2] arm64: Add LECARC ACPI IDs for DesignWare GPIO, SPI
 > 
-> Link: 
-> https://lore.kernel.org/linux-acpi/E2OXET.4X5GTP37VTNC3@kousu.ca/ [1]
-> Fixes: 57c31e6d620f ("ACPI: scan: Use acpi_setup_gpe_for_wake() for 
-> buttons")
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Cc: 7.0+ <stable@vger.kernel.org> # 7.0+
-> ---
+> This patch series adds ACPI identification for LECARC SoCs that
+> integrate Synopsys DesignWare peripherals.
 > 
-> @Nick, I have reproduced the change of behavior introduced by commit
-> 57c31e6d620f132dc on one of my systems, but not the function keys
-> regression because they are handled differently here.  This patch
-> should restore the missing functionality on your machine, but I would
-> appreciate some testing feedback.
+> LECARC platforms use the following ACPI HIDs:
+> 
+> [...]
 
-I have applied this patch series on top of today's mainline 
-(8bc67e4db64aa727). It worked! My brightness keys and mute and 
-lidswitch are back. That's great. Thank you! Learning how to bisect was 
-a steep curve for me but everything after that has been a really easy 
-experience. Thank you for knowing this subsystem deeply.
+Applied to
 
-- Nick
+   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/spi.git for-7.2
 
+Thanks!
 
+[2/2] spi: dw-mmio: Add ACPI ID LECA0002 for LECARC SoCs
+      https://git.kernel.org/broonie/spi/c/019947c49585
 
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.
 
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
 
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
+
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
+
+Thanks,
+Mark
 
