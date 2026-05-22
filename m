@@ -1,653 +1,265 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from PH8PR06CU001.outbound.protection.outlook.com (mail-westus3azon11022116.outbound.protection.outlook.com [40.107.209.116])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8785347C7
-	for <linux-acpi@vger.kernel.org>; Fri, 22 May 2026 17:45:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779471942; cv=none; b=SPpMv5IMe66Sm10HJp1Vhwvz+pAuw97UzSXXVlxkAclNmUuq7tuzBnWl5GmtzpETOghs9pVH2vPPX7QTUglJcM/wCwe72uHSa6Iq6UxQz9SNXwZIXdnzfkpVGVA4z9HhQ9jGgqQo+BGcJFXVf6fKVPB13/6wGQaSVftT941XxPA=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779471942; c=relaxed/simple;
-	bh=gyoCYPK/lWwJio3wkNmrmZuytn4c0/2gBrFdP7JVTdA=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=NLI6tDWCvmIdDu4GgLANzz/TqzKOosewmgQOSR9VQiyvBi+BWpMnV9FoHZIeArrbTlt01Of5/CrB7CNB9okTucQhulGGx7FDG7Jso52Wd29kgqwPGRa3rlxR3NItdYFYYjxf0FrCT0yhkapjNn87pCA/0fMu8XwU8uE5Cmg5uG8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DcV6KBLi; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCFC137D11B;
+	Fri, 22 May 2026 20:52:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.209.116
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1779483153; cv=fail; b=LCCbw7UaeEdlH5Rr8fmeOL9VP+j6sPZt+2Olhl5gzuEa+0RmeIxEUupcQCnLwLpo54ZJ0vcxH+JaN7flxuK9zfL382zvmE4rwKiAJzzIlfsPAK4o7sCd8UwahvTpRMcHl1XlC6d64k87bw/lYilF1UcHZV5ZWMeOgE4rEUIs/Ms=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1779483153; c=relaxed/simple;
+	bh=RlODzhmQNY1aetmrCCnmusrx6V4j7R+msnn67AtY4VU=;
+	h=From:To:Cc:Subject:Date:Message-ID:Content-Type:MIME-Version; b=FaQ5rWtPKKbBsM1e5gYqErMXtE6/HiLaXY6hdZi6HPHeYW00qOVdyRWEQlZkuUoiG31mv75QiCaubTc8yiw/tWHz27iRigy9svMKsH1emfoqCLMBn9S6egyAUCRhoH67PyRdBmgqCWaQJhNLXq/3nnwu8N+UXy8scPfosLdB9d4=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=os.amperecomputing.com; spf=pass smtp.mailfrom=os.amperecomputing.com; dkim=pass (1024-bit key) header.d=os.amperecomputing.com header.i=@os.amperecomputing.com header.b=PYr8/z1q; arc=fail smtp.client-ip=40.107.209.116
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=os.amperecomputing.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=os.amperecomputing.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DcV6KBLi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82DDE1F0155A
-	for <linux-acpi@vger.kernel.org>; Fri, 22 May 2026 17:45:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1779471940;
-	bh=p9etPNRxTtLqNHsed/+aQAvTPANyPthmLn6k5aM0sMM=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=DcV6KBLix6ik4xzN516mTrppxX08eTYB5zXTyiYw41FeeObihvlkavb2dehQ0BzBJ
-	 PLnN3T6YQogqKQDMHiZl9rqiEh+T8qlr8iEboyaMtWzZvMIq1c5QZn9Czn2D7q76He
-	 PgGMZj2xD4yt7PK2l177meFVpf7LGZIMKXcbce5giQmzJFfeh7oCncYHK9xmmwSTAq
-	 mOLYue0oIQlxv4I9aCH12Dd76hhLrnphwTROtbWClAziChM0aUzAPcrvH+chN0geAP
-	 b3hTydfjwaGmHbSTF8X8BA0on3/4aN0Je11dLtfR1gYhbKYWUIO6b9Gk9eoRi8PTAM
-	 S1f3waVw8yvjw==
-Received: by mail-lf1-f49.google.com with SMTP id 2adb3069b0e04-5aa0cf8bca3so7249002e87.0
-        for <linux-acpi@vger.kernel.org>; Fri, 22 May 2026 10:45:40 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AFNElJ/C+1LSmhHBeLw5zAuK3wVor4TPbLvT6pRZjXyvKjfOc5WY1gcflK7jdzCddRdIFEzo2+I5UKzoDx5w@vger.kernel.org
-X-Gm-Message-State: AOJu0YzEbGmmKmdgxt227hG9qgewodwHtMcIk7zj483XtfvB47wE3n+F
-	gixpUV8JC55M/Uyeu7Cp7MZ7Ep9DFXpt7uWQZ1IpZHfRjvQRT+MOwMcU5ka/dG25x1mBqNlz7Sj
-	BmpCbMZ7QN/Dlmnp3pWFLCaMRSUszKrQ=
-X-Received: by 2002:ac2:494a:0:b0:5a8:7f52:62d1 with SMTP id
- 2adb3069b0e04-5aa3237d52cmr1012255e87.1.1779471938942; Fri, 22 May 2026
- 10:45:38 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=os.amperecomputing.com header.i=@os.amperecomputing.com header.b="PYr8/z1q"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=hhm0JVrN31rwM4y663XFKoKCQZzhMm51J3aE7ur/UaovL6/QJ4E4inr9GBNHeYF6lS9o6eRf66jAs1KRtOV0QhnfmaGIVmHzPxXQjvv6tdEpLKHgp0q6nbX0WYGCvmrfP64Z4MU44Z4+IKUR5uKvnTcysFojSmQnJtvwaKnQ8Tfu59X4dUfx/lmxgxQGTuwYjyPU8fJ2VxVhbLfqXk2s+k1mAP6pNNt6uojhf7p+VEem5BV+Xc9kiMlJDsjHiMs1vGyzvZwEWplFJfyIoUG0B6rni6j+Zxa1TP7A4zUNINvDbyVfFfq+9Fus28++0gShecXc8vSx19DUw3kdgBOzrQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=Rd5TrjXyF1XvL08JYkWw0Got8+1gIjyp3xOFokyOvEU=;
+ b=HLfhRvt6NWJgwIc0vR19NBy4abSkz3uLVZTozuN+jUkwjRVYQbh5eRD+1TrtgO3Njusv9fB5vUttJi2R9dBdEE+9R5ymNKwExBaifWHkGhpol9DBGZk6z6MRuxGX6WMhMJKyoRuUuKgu7ClrjnwBndHpUA5pcu+kViYREgTH3eRMaKDKMb4wtCZSrvR2sRm9vdCLgc+S67MsuW+4YiRWyjT6JnP5MXtmVgrMt1S5rUVh8fRGCG4eZqbypN+k6b3pW1tr5vU4EhmdwSRoR3X6OaECqjHXwc9mDdkcc5w9/rekFSBUg7BG/FnaycC+Pnw++Q+JZa80mvtEIeZe1E0+Tg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=os.amperecomputing.com; dmarc=pass action=none
+ header.from=os.amperecomputing.com; dkim=pass
+ header.d=os.amperecomputing.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=os.amperecomputing.com; s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=Rd5TrjXyF1XvL08JYkWw0Got8+1gIjyp3xOFokyOvEU=;
+ b=PYr8/z1q90MFb+MUwaKquPn912MkWH6SmfcuWw1JS/VJM+k7L/QvmBTpCPsWZAD+xH13gpX+sV/1nn51WXM5DGl1+lhjd57XYiXrXiFtA56FyBk7BqoA2FP2lJPfZKUZLbqmCiffpekB0oYj2iKQK4OcDyjPQ+w9peOXiwjbhwM=
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=os.amperecomputing.com;
+Received: from BN3PR01MB9212.prod.exchangelabs.com (2603:10b6:408:2cb::8) by
+ LV3PR01MB8533.prod.exchangelabs.com (2603:10b6:408:199::10) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.48.17; Fri, 22 May 2026 20:52:26 +0000
+Received: from BN3PR01MB9212.prod.exchangelabs.com
+ ([fe80::44f3:1050:dce8:1ea9]) by BN3PR01MB9212.prod.exchangelabs.com
+ ([fe80::44f3:1050:dce8:1ea9%5]) with mapi id 15.21.0048.016; Fri, 22 May 2026
+ 20:52:26 +0000
+From: Adam Young <admiyo@os.amperecomputing.com>
+To: Sudeep Holla <sudeep.holla@kernel.org>,
+	Jassi Brar <jassisinghbrar@gmail.com>,
+	Huisong Li <lihuisong@huawei.com>
+Cc: linux-kernel@vger.kernel.org,
+	linux-hwmon@vger.kernel.org,
+	"Rafael J . Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>,
+	linux-acpi@vger.kernel.org,
+	Andi Shyti <andi.shyti@kernel.org>,
+	Guenter Roeck <linux@roeck-us.net>,
+	MyungJoo Ham <myungjoo.ham@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Chanwoo Choi <cw00.choi@samsung.com>,
+	linux-arm-kernel@lists.infradead.org
+Subject: [PATCH v02] mailbox/pcc.c shmem map/unmap in callbacks
+Date: Fri, 22 May 2026 16:52:20 -0400
+Message-ID: <20260522205220.237355-1-admiyo@os.amperecomputing.com>
+X-Mailer: git-send-email 2.43.0
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: CY5PR15CA0115.namprd15.prod.outlook.com
+ (2603:10b6:930:68::8) To BN3PR01MB9212.prod.exchangelabs.com
+ (2603:10b6:408:2cb::8)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260505-gic-v5-acpi-iwb-probe-deferral-v1-0-b37b85998362@kernel.org>
- <20260505-gic-v5-acpi-iwb-probe-deferral-v1-1-b37b85998362@kernel.org>
-In-Reply-To: <20260505-gic-v5-acpi-iwb-probe-deferral-v1-1-b37b85998362@kernel.org>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Fri, 22 May 2026 19:45:27 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0g+bjXdghhb-+iRpFif7TURAmyjotY_4wQ5GHu7V2FaTQ@mail.gmail.com>
-X-Gm-Features: AVHnY4JkszNnnq8jv456877M1vWrA-DLGxfBCNm_DNjAu0tK9yAzmyfOzUtXrBA
-Message-ID: <CAJZ5v0g+bjXdghhb-+iRpFif7TURAmyjotY_4wQ5GHu7V2FaTQ@mail.gmail.com>
-Subject: Re: [PATCH 1/2] drivers/acpi: Move RISC-V interrupt controllers
- autodep to ACPI IRQ code
-To: Lorenzo Pieralisi <lpieralisi@kernel.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
-	Sunil V L <sunilvl@ventanamicro.com>, Marc Zyngier <maz@kernel.org>, 
-	Thomas Gleixner <tglx@kernel.org>, Huacai Chen <chenhuacai@kernel.org>, 
-	Anup Patel <anup@brainfault.org>, Hanjun Guo <guohanjun@huawei.com>, 
-	Sudeep Holla <sudeep.holla@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, 
-	Will Deacon <will@kernel.org>, linux-riscv@lists.infradead.org, 
-	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, loongarch@lists.linux.dev
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BN3PR01MB9212:EE_|LV3PR01MB8533:EE_
+X-MS-Office365-Filtering-Correlation-Id: 407e78cc-207e-4f6d-f086-08deb84407db
+X-MS-Exchange-AtpMessageProperties: SA
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|7416014|376014|1800799024|10070799003|366016|11063799006|55112099003|6133799003|18002099003|56012099003;
+X-Microsoft-Antispam-Message-Info:
+	S6XzZnJuZgAsLaHgUEub0HI6jnKpoLoKBa+eH5/N5PVOu/chqfkI1xzUTXBCMcNnDvwUKH++/O7gG/dQ2ULETSiOVt2KHNOzR4ZpKijAYhsY3t1QHSdfF/Cfq63tNCs7GZO9RAY/aO6wStuwVGmCjQdUaYVqUlo+tg5UtaRKTXjAUcRuKZvL/gBPZfDx0LmzhTLx4slB1CJAJ54G49bAc5TL0h3M2NFeN5BYzdshj/RIEv4oY91D1hVAWU2ItmZ3sBUxUaB7HbTcVo910EtgrBA0Bfjos/jS5yhOm+qtQMtaD3J3DHyzDZ5el8VTNNIzPgWsMmuYE1oRpRtI3fVX7pHJW9nC4ciWStVplmUXxXKEWIc5NCRuT6GwrQe/vKHwWJQAF6na/SuJ8Zb1xxSLnBesKRQMmD/uRwa+0eTey2a8ll0FuGwoROHlCu5hmBbcJxiz/kzg2IwCCyWdl0vHm0VIigTVwVelvrnR/z1kML1+qb92RB4nHsx2VosX6Ue58BMN6SfCXynjvO/dLUPkn6k/iYySIF2E3oTFX8punMK8kfmM+JYKnPxohNquFK+TppKpOiUVnrq28dt27hYC/GnwczEyvM+puQXgiGDmAA1U8KloBLvGLgGmYP2ct34w802tM+mOO93pesPgQfb7KwCogoHgre9ZGR75E+cJAs2oeEwv0PtSEGIp771d54FOhI0Axp1afNK1CBy4kW9KRw==
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BN3PR01MB9212.prod.exchangelabs.com;PTR:;CAT:NONE;SFS:(13230040)(7416014)(376014)(1800799024)(10070799003)(366016)(11063799006)(55112099003)(6133799003)(18002099003)(56012099003);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 2
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?JmCIFHNElNFwJRGL54zpBRYPOOPculc5fcCsGgwVQpkWqkJsS3pkprGtKa61?=
+ =?us-ascii?Q?3cHFH14f1fc4AQ+oZVfEzWMcjIB/6tUrKx6lXvGblyENm2I7T/FZ888Lqh6w?=
+ =?us-ascii?Q?d01r73h0HLM7EMNxHFLWUewmws7LesCpmvlvMag8M0m5Tg4uYsFopEA1ICju?=
+ =?us-ascii?Q?HBkCqv8QdQQb35aAcdna+v7AN/sTLLQAa/ya1N2xrc5C2hHKnqMhma6kBFl8?=
+ =?us-ascii?Q?dTbxnH94BMyJwY3pf141t1usaiuPdpWp7Ew0IOKIrOJv4leP61pfflxFVTs7?=
+ =?us-ascii?Q?JjJfmx9YmN4x2Fe74S4HYkoDZwqii1P6jk1uZis/M4SevQnNaJ8vkXRZXAw8?=
+ =?us-ascii?Q?Ey++6k5ozFbRJ72l5pM8soJcYk1wMd6aUr72aFs+QNDtfRyuyiPXTlUMBNq5?=
+ =?us-ascii?Q?Ywh8ol6E05xC/aUjLwDK7vu6DlABAqq+UDNttZhdOYGee8CyvfXSyR2LEe6y?=
+ =?us-ascii?Q?lMrAtsgRB0ApqDLwEpZFdnjpe6t0jkflPDnNJ2zvCZHOPNke0b3CAafox2e6?=
+ =?us-ascii?Q?QQJOx7gvmfoQAH8x3VeqKR5I1VlIjQsgffPQmkIwwVPE1G10zDlqrnE6k1+x?=
+ =?us-ascii?Q?dqx8ZoKoXy78AOeOL94ghiAaXmn15BBGz+aYwvv0MA+WXXXZwq9DOtqmtlA9?=
+ =?us-ascii?Q?g9+Q0fGL6Ms9rGqzEeQkD3T+0essWJ0SOk3/LVNoRqXKO3udA/I4sZhWy0Z+?=
+ =?us-ascii?Q?MR1lwPVs2VHX65WbGESUtAGwzcdrG1bnt7Wk6+TpsjcMPY0SMrf2k1mvb/e0?=
+ =?us-ascii?Q?bft0CDMsoCiLfgq1iFsy1PTxH1qnbtvtfr38FEfoX4ggMI52YUPxUWo/p5WE?=
+ =?us-ascii?Q?rPaXCa7XZiLw2NsWbhC4NuqOV+t+UciXCPGQE6nXWyGh6ETEKuw4iY8VL/ca?=
+ =?us-ascii?Q?qv6NAAy2VFr5K+Q1SdOr1ODtdq0S36LmY2BQdbpC/nmP5e4dE149AoMAp7XS?=
+ =?us-ascii?Q?CUz9MIGt/cQwcuItmsfZ9iNuQM+iTVP6r5GgmI5gka9w9tfJncEgUFNIrPVx?=
+ =?us-ascii?Q?z4LqHqcFYShkzy8TOhJeW9kLand6jPE0QUS1CnY1crN8wcSLX/Zaa5wrqff3?=
+ =?us-ascii?Q?mYTlZv4COze90wqDnPRK4HuSOTd3uYJ/VYhiQOhccmyxRmxw3E3nnQjNW+Mj?=
+ =?us-ascii?Q?5WXMAuVwxLdwTrcgxfF/cLPh6LCtD/UVA8ZlFyeCc2W+kX4e8Q9+RHQMAnis?=
+ =?us-ascii?Q?KSEXwmSiY3e6nEkwF5CDo8TMWXXZ7+bEItsLYwT3YtjcD/yu3hYuY70HM5SM?=
+ =?us-ascii?Q?4PnSwa4SN1Frcnyd1HrlwvsO/RR1nJBOZZzVBCo9/3z0b6BU9sgriHCVdJ9p?=
+ =?us-ascii?Q?ZWOg/OSMuPuK+Olzd2jKn/l1IMQZO6MTlNOCJM0SrHHKQQs9o4VZ4rAM7TSn?=
+ =?us-ascii?Q?UDCTDpMwfWde2qWDyKc+xlrWWRw1dtPlTnGFSpGeczBtPhbekgmUTQRCs9xE?=
+ =?us-ascii?Q?dHi9Q1OsyWX7XSsGn99mcOzMb5avtF2k1doya7qrF0WlVVN6SHLJeHqgQXgn?=
+ =?us-ascii?Q?FWNoGJGRl9LpIYZin8+lpO/n8OT5WF4WGarxg1qnO8DCOrc2+aeUjBtO8fQT?=
+ =?us-ascii?Q?k2ultv5SWLsCXPS3gVf50xmg8bg0A87yugIOVgfZxatWgAiPaWNxwCIUl5Nl?=
+ =?us-ascii?Q?ytrlW2Hca2nfBK1EgsIeiLnCUUrMFGEpWyI1/tsX2TfZ9+kerFLWNUM9/CNN?=
+ =?us-ascii?Q?cmYs63Yt+gTAJap64Wr8RyD2dtdPPP5I5Hu/ahX2psHkRAW0wMt5zqnaoFFi?=
+ =?us-ascii?Q?RjySPNqi51NK4e9/j6NjYWgYFI4Ts4daVOTijnY7T2s2M1hdyTwLwE6i8eoq?=
+X-MS-Exchange-AntiSpam-MessageData-1: JDvEX3O8OBSRTA==
+X-OriginatorOrg: os.amperecomputing.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 407e78cc-207e-4f6d-f086-08deb84407db
+X-MS-Exchange-CrossTenant-AuthSource: BN3PR01MB9212.prod.exchangelabs.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 22 May 2026 20:52:26.4513
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 3bc2b170-fd94-476d-b0ce-4229bdc904a7
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: pTc8tmEmxStOhBz5E4/Mu9K7GL3ssY2uVO1w6xmeERTlT0qkq7bPfiC60il9JFamGAkg9PR2Olu20zOrtjfU/+29zgLSlrhjbdvbZp/BmxVVszYNx0J8e3vNcH/YzaME
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: LV3PR01MB8533
 
-On Tue, May 5, 2026 at 10:48=E2=80=AFAM Lorenzo Pieralisi <lpieralisi@kerne=
-l.org> wrote:
->
-> RISC-V implements arch code to detect probe dependencies for devices and
-> the interrupt controller the devices GSIs are routed to.
->
-> The code itself is arch agnostic apart from an arch specific helper
-> function required to retrieve the acpi_handle of the interrupt controller
-> that manages the device GSI interrupt.
->
-> In order to enable IRQ probe dependencies detection on other
-> architectures, move RISC-V IRQ probe dependency detection code to
-> generic ACPI IRQ code.
->
-> RISC-V IRQ code detecting IRQ probe dependency has some limitations/laten=
-t
-> bugs:
->
-> - riscv_acpi_irq_get_dep() would force the loop in
->   riscv_acpi_add_irq_dep() to stop at the first IRQ index that does not
->   map to an interrupt controller handle (missing some possible
->   dependencies)
-> - riscv_acpi_add_prt_dep() does not validate acpi_get_handle() output
-> - riscv_acpi_add_prt_dep() logic to handle memory allocation failure is
->   forcing the loop to continue on the same PRT entry
->
-> Fix the above limitations along with the code move.
+The mailbox IRQ and shmems are not cleaned up atomically, so there is a
+race condition. If the shmem is torn down while the IRQ is active, a late
+interrupt can trigger a write to un-mapped memory.
+If the shmem is torn down while the IRQ is active, and another thread
+requests the channel again, we can end up with a channel that has had
+its shmem unmapped.
 
-I'd rather do the cleanup first, possibly in multiple steps, and then
-move the code separately.
+By moving the map to start up and the unmap to teardown, we can let
+the mailbox mechanism prevent re-entrance into the startup/teardown
+functions.
 
-As it stands, it's quite hard to figure out what's going on and why.
+Avoid doubly unmapping the region by removing the unmap in the
+direct error handler for the request.
 
-> Allow interrupt controller drivers to register an arch specific
-> function to determine the acpi_handle for a specific GSI number to use
-> the mechanism if needed by the respective interrupt controller drivers.
->
-> Signed-off-by: Lorenzo Pieralisi <lpieralisi@kernel.org>
-> Cc: Huacai Chen <chenhuacai@kernel.org>
-> Cc: Thomas Gleixner <tglx@kernel.org>
-> Cc: Anup Patel <anup@brainfault.org>
-> Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-> Cc: Sunil V L <sunilvl@ventanamicro.com>
-> Cc: Marc Zyngier <maz@kernel.org>
-> ---
->  arch/riscv/include/asm/acpi.h       |   1 +
->  drivers/acpi/irq.c                  | 172 ++++++++++++++++++++++++++++++=
-+++++-
->  drivers/acpi/riscv/irq.c            | 141 +----------------------------
->  drivers/irqchip/irq-gic-v3.c        |   2 +-
->  drivers/irqchip/irq-gic-v5.c        |   2 +-
->  drivers/irqchip/irq-gic.c           |   2 +-
->  drivers/irqchip/irq-loongarch-cpu.c |   2 +-
->  drivers/irqchip/irq-riscv-intc.c    |   3 +-
->  include/linux/acpi.h                |   5 +-
->  9 files changed, 181 insertions(+), 149 deletions(-)
->
-> diff --git a/arch/riscv/include/asm/acpi.h b/arch/riscv/include/asm/acpi.=
-h
-> index 26ab37c171bc..f598520ac903 100644
-> --- a/arch/riscv/include/asm/acpi.h
-> +++ b/arch/riscv/include/asm/acpi.h
-> @@ -67,6 +67,7 @@ int acpi_get_riscv_isa(struct acpi_table_header *table,
->
->  void acpi_get_cbo_block_size(struct acpi_table_header *table, u32 *cbom_=
-size,
->                              u32 *cboz_size, u32 *cbop_size);
-> +acpi_handle acpi_get_riscv_gsi_handle(u32 gsi);
->  #else
->  static inline void acpi_init_rintc_map(void) { }
->  static inline struct acpi_madt_rintc *acpi_cpu_get_madt_rintc(int cpu)
-> diff --git a/drivers/acpi/irq.c b/drivers/acpi/irq.c
-> index d1595156c86a..e4293458bf61 100644
-> --- a/drivers/acpi/irq.c
-> +++ b/drivers/acpi/irq.c
-> @@ -13,6 +13,7 @@
->  enum acpi_irq_model_id acpi_irq_model;
->
->  static acpi_gsi_domain_disp_fn acpi_get_gsi_domain_id;
-> +static acpi_gsi_handle_disp_fn acpi_get_gsi_handle;
->  static u32 (*acpi_gsi_to_irq_fallback)(u32 gsi);
->
->  /**
-> @@ -321,15 +322,19 @@ const struct cpumask *acpi_irq_get_affinity(acpi_ha=
-ndle handle,
->
->  /**
->   * acpi_set_irq_model - Setup the GSI irqdomain information
-> - * @model: the value assigned to acpi_irq_model
-> - * @fn: a dispatcher function that will return the domain fwnode
-> - *     for a given GSI
-> + * @model:     the value assigned to acpi_irq_model
-> + * @fn:                a dispatcher function that will return the domain=
- fwnode
-> + *             for a given GSI
-> + * @gsi_dep_fn: a function to retrieve the acpi_handle a GSI interrupt i=
-s
-> + *             dependent on
-> + *
->   */
->  void __init acpi_set_irq_model(enum acpi_irq_model_id model,
-> -                              acpi_gsi_domain_disp_fn fn)
-> +                              acpi_gsi_domain_disp_fn fn, acpi_gsi_handl=
-e_disp_fn gsi_dep_fn)
->  {
->         acpi_irq_model =3D model;
->         acpi_get_gsi_domain_id =3D fn;
-> +       acpi_get_gsi_handle =3D gsi_dep_fn;
->  }
->
->  /*
-> @@ -385,3 +390,162 @@ struct irq_domain *acpi_irq_create_hierarchy(unsign=
-ed int flags,
->                                            host_data);
->  }
->  EXPORT_SYMBOL_GPL(acpi_irq_create_hierarchy);
-> +
-> +struct acpi_irq_dep_ctx {
-> +       int             rc;
-> +       unsigned int    index;
-> +       acpi_handle     handle;
-> +};
-> +
-> +static acpi_status acpi_irq_get_parent(struct acpi_resource *ares, void =
-*context)
-> +{
-> +       struct acpi_irq_dep_ctx *ctx =3D context;
-> +       struct acpi_resource_irq *irq;
-> +       struct acpi_resource_extended_irq *eirq;
-> +
-> +       switch (ares->type) {
-> +       case ACPI_RESOURCE_TYPE_IRQ:
-> +               irq =3D &ares->data.irq;
-> +               if (ctx->index >=3D irq->interrupt_count) {
-> +                       ctx->index -=3D irq->interrupt_count;
-> +                       return AE_OK;
-> +               }
-> +               ctx->handle =3D acpi_get_gsi_handle(irq->interrupts[ctx->=
-index]);
-> +               ctx->rc =3D 0;
-> +               return AE_CTRL_TERMINATE;
-> +       case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
-> +               eirq =3D &ares->data.extended_irq;
-> +               if (eirq->producer_consumer =3D=3D ACPI_PRODUCER)
-> +                       return AE_OK;
-> +
-> +               if (ctx->index >=3D eirq->interrupt_count) {
-> +                       ctx->index -=3D eirq->interrupt_count;
-> +                       return AE_OK;
-> +               }
-> +
-> +               /* Support GSIs only */
-> +               if (eirq->resource_source.string_length)
-> +                       return AE_OK;
-> +
-> +               ctx->handle =3D acpi_get_gsi_handle(eirq->interrupts[ctx-=
->index]);
-> +               ctx->rc =3D 0;
-> +               return AE_CTRL_TERMINATE;
-> +       }
-> +
-> +       return AE_OK;
-> +}
-> +
-> +static int acpi_irq_get_dep(acpi_handle handle, unsigned int index, acpi=
-_handle *gsi_handle)
-> +{
-> +       struct acpi_irq_dep_ctx ctx =3D {-EINVAL, index, NULL};
-> +
-> +       if (!gsi_handle)
-> +               return -EINVAL;
-> +
-> +       acpi_walk_resources(handle, METHOD_NAME__CRS, acpi_irq_get_parent=
-, &ctx);
-> +       *gsi_handle =3D ctx.handle;
-> +
-> +       return ctx.rc;
-> +}
-> +
-> +static bool acpi_prt_entry_valid(void *prt_entry)
-> +{
-> +       struct acpi_pci_routing_table *entry =3D prt_entry;
-> +
-> +       return entry && entry->length > 0;
-> +}
-> +
-> +static void *acpi_prt_next_entry(void *prt_entry)
-> +{
-> +       struct acpi_pci_routing_table *entry =3D prt_entry;
-> +
-> +       return prt_entry + entry->length;
-> +}
-> +
-> +static u32 acpi_add_prt_dep(acpi_handle handle)
-> +{
-> +       struct acpi_buffer buffer =3D { ACPI_ALLOCATE_BUFFER, NULL };
-> +       struct acpi_pci_routing_table *entry;
-> +       struct acpi_handle_list dep_devices;
-> +       acpi_handle gsi_handle;
-> +       acpi_handle link_handle;
-> +       acpi_status status;
-> +       u32 count =3D 0;
-> +
-> +       status =3D acpi_get_irq_routing_table(handle, &buffer);
-> +       if (ACPI_FAILURE(status)) {
-> +               acpi_handle_err(handle, "failed to get IRQ routing table\=
-n");
-> +               kfree(buffer.pointer);
-> +               return 0;
-> +       }
-> +
-> +       entry =3D buffer.pointer;
-> +       for (; acpi_prt_entry_valid(entry); entry =3D acpi_prt_next_entry=
-(entry)) {
-> +               if (entry->source[0]) {
-> +                       status =3D acpi_get_handle(handle, entry->source,=
- &link_handle);
-> +                       if (ACPI_FAILURE(status))
-> +                               continue;
-> +                       dep_devices.count =3D 1;
-> +                       dep_devices.handles =3D kcalloc(1, sizeof(*dep_de=
-vices.handles), GFP_KERNEL);
-> +                       if (!dep_devices.handles) {
-> +                               acpi_handle_err(handle, "failed to alloca=
-te memory\n");
-> +                               continue;
-> +                       }
-> +
-> +                       dep_devices.handles[0] =3D link_handle;
-> +                       count +=3D acpi_scan_add_dep(handle, &dep_devices=
-);
-> +               } else {
-> +                       gsi_handle =3D acpi_get_gsi_handle(entry->source_=
-index);
-> +                       if (!gsi_handle)
-> +                               continue;
-> +                       dep_devices.count =3D 1;
-> +                       dep_devices.handles =3D kcalloc(1, sizeof(*dep_de=
-vices.handles), GFP_KERNEL);
-> +                       if (!dep_devices.handles) {
-> +                               acpi_handle_err(handle, "failed to alloca=
-te memory\n");
-> +                               continue;
-> +                       }
-> +
-> +                       dep_devices.handles[0] =3D gsi_handle;
-> +                       count +=3D acpi_scan_add_dep(handle, &dep_devices=
-);
-> +               }
-> +       }
-> +
-> +       kfree(buffer.pointer);
-> +       return count;
-> +}
-> +
-> +static u32 acpi_add_irq_dep(acpi_handle handle)
-> +{
-> +       struct acpi_handle_list dep_devices;
-> +       acpi_handle gsi_handle;
-> +       u32 count =3D 0;
-> +       int i;
-> +
-> +       for (i =3D 0; !acpi_irq_get_dep(handle, i, &gsi_handle); i++) {
-> +               if (!gsi_handle)
-> +                       continue;
-> +
-> +               dep_devices.count =3D 1;
-> +               dep_devices.handles =3D kcalloc(1, sizeof(*dep_devices.ha=
-ndles), GFP_KERNEL);
-> +               if (!dep_devices.handles) {
-> +                       acpi_handle_err(handle, "failed to allocate memor=
-y\n");
-> +                       continue;
-> +               }
-> +
-> +               dep_devices.handles[0] =3D gsi_handle;
-> +               count +=3D acpi_scan_add_dep(handle, &dep_devices);
-> +       }
-> +
-> +       return count;
-> +}
-> +
-> +u32 acpi_irq_add_auto_dep(acpi_handle handle)
-> +{
-> +       if (!acpi_get_gsi_handle)
-> +               return 0;
-> +
-> +       if (acpi_has_method(handle, "_PRT"))
-> +               return acpi_add_prt_dep(handle);
-> +
-> +       return acpi_add_irq_dep(handle);
-> +}
-> diff --git a/drivers/acpi/riscv/irq.c b/drivers/acpi/riscv/irq.c
-> index 9b88d0993e88..da2c42e0ebfd 100644
-> --- a/drivers/acpi/riscv/irq.c
-> +++ b/drivers/acpi/riscv/irq.c
-> @@ -23,12 +23,6 @@ struct riscv_ext_intc_list {
->         struct list_head        list;
->  };
->
-> -struct acpi_irq_dep_ctx {
-> -       int             rc;
-> -       unsigned int    index;
-> -       acpi_handle     handle;
-> -};
-> -
->  LIST_HEAD(ext_intc_list);
->
->  static int irqchip_cmp_func(const void *in0, const void *in1)
-> @@ -254,7 +248,7 @@ void __init riscv_acpi_init_gsi_mapping(void)
->         acpi_get_devices("RSCV0006", riscv_acpi_create_gsi_map_smsi, NULL=
-, NULL);
->  }
->
-> -static acpi_handle riscv_acpi_get_gsi_handle(u32 gsi)
-> +acpi_handle acpi_get_riscv_gsi_handle(u32 gsi)
->  {
->         struct riscv_ext_intc_list *ext_intc_element;
->         struct list_head *i;
-> @@ -269,138 +263,7 @@ static acpi_handle riscv_acpi_get_gsi_handle(u32 gs=
-i)
->         return NULL;
->  }
->
-> -static acpi_status riscv_acpi_irq_get_parent(struct acpi_resource *ares,=
- void *context)
-> -{
-> -       struct acpi_irq_dep_ctx *ctx =3D context;
-> -       struct acpi_resource_irq *irq;
-> -       struct acpi_resource_extended_irq *eirq;
-> -
-> -       switch (ares->type) {
-> -       case ACPI_RESOURCE_TYPE_IRQ:
-> -               irq =3D &ares->data.irq;
-> -               if (ctx->index >=3D irq->interrupt_count) {
-> -                       ctx->index -=3D irq->interrupt_count;
-> -                       return AE_OK;
-> -               }
-> -               ctx->handle =3D riscv_acpi_get_gsi_handle(irq->interrupts=
-[ctx->index]);
-> -               return AE_CTRL_TERMINATE;
-> -       case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
-> -               eirq =3D &ares->data.extended_irq;
-> -               if (eirq->producer_consumer =3D=3D ACPI_PRODUCER)
-> -                       return AE_OK;
-> -
-> -               if (ctx->index >=3D eirq->interrupt_count) {
-> -                       ctx->index -=3D eirq->interrupt_count;
-> -                       return AE_OK;
-> -               }
-> -
-> -               /* Support GSIs only */
-> -               if (eirq->resource_source.string_length)
-> -                       return AE_OK;
-> -
-> -               ctx->handle =3D riscv_acpi_get_gsi_handle(eirq->interrupt=
-s[ctx->index]);
-> -               return AE_CTRL_TERMINATE;
-> -       }
-> -
-> -       return AE_OK;
-> -}
-> -
-> -static int riscv_acpi_irq_get_dep(acpi_handle handle, unsigned int index=
-, acpi_handle *gsi_handle)
-> -{
-> -       struct acpi_irq_dep_ctx ctx =3D {-EINVAL, index, NULL};
-> -
-> -       if (!gsi_handle)
-> -               return 0;
-> -
-> -       acpi_walk_resources(handle, METHOD_NAME__CRS, riscv_acpi_irq_get_=
-parent, &ctx);
-> -       *gsi_handle =3D ctx.handle;
-> -       if (*gsi_handle)
-> -               return 1;
-> -
-> -       return 0;
-> -}
-> -
-> -static u32 riscv_acpi_add_prt_dep(acpi_handle handle)
-> -{
-> -       struct acpi_buffer buffer =3D { ACPI_ALLOCATE_BUFFER, NULL };
-> -       struct acpi_pci_routing_table *entry;
-> -       struct acpi_handle_list dep_devices;
-> -       acpi_handle gsi_handle;
-> -       acpi_handle link_handle;
-> -       acpi_status status;
-> -       u32 count =3D 0;
-> -
-> -       status =3D acpi_get_irq_routing_table(handle, &buffer);
-> -       if (ACPI_FAILURE(status)) {
-> -               acpi_handle_err(handle, "failed to get IRQ routing table\=
-n");
-> -               kfree(buffer.pointer);
-> -               return 0;
-> -       }
-> -
-> -       entry =3D buffer.pointer;
-> -       while (entry && (entry->length > 0)) {
-> -               if (entry->source[0]) {
-> -                       acpi_get_handle(handle, entry->source, &link_hand=
-le);
-> -                       dep_devices.count =3D 1;
-> -                       dep_devices.handles =3D kzalloc_objs(*dep_devices=
-.handles,
-> -                                                          1);
-> -                       if (!dep_devices.handles) {
-> -                               acpi_handle_err(handle, "failed to alloca=
-te memory\n");
-> -                               continue;
-> -                       }
-> -
-> -                       dep_devices.handles[0] =3D link_handle;
-> -                       count +=3D acpi_scan_add_dep(handle, &dep_devices=
-);
-> -               } else {
-> -                       gsi_handle =3D riscv_acpi_get_gsi_handle(entry->s=
-ource_index);
-> -                       dep_devices.count =3D 1;
-> -                       dep_devices.handles =3D kzalloc_objs(*dep_devices=
-.handles,
-> -                                                          1);
-> -                       if (!dep_devices.handles) {
-> -                               acpi_handle_err(handle, "failed to alloca=
-te memory\n");
-> -                               continue;
-> -                       }
-> -
-> -                       dep_devices.handles[0] =3D gsi_handle;
-> -                       count +=3D acpi_scan_add_dep(handle, &dep_devices=
-);
-> -               }
-> -
-> -               entry =3D (struct acpi_pci_routing_table *)
-> -                       ((unsigned long)entry + entry->length);
-> -       }
-> -
-> -       kfree(buffer.pointer);
-> -       return count;
-> -}
-> -
-> -static u32 riscv_acpi_add_irq_dep(acpi_handle handle)
-> -{
-> -       struct acpi_handle_list dep_devices;
-> -       acpi_handle gsi_handle;
-> -       u32 count =3D 0;
-> -       int i;
-> -
-> -       for (i =3D 0;
-> -            riscv_acpi_irq_get_dep(handle, i, &gsi_handle);
-> -            i++) {
-> -               dep_devices.count =3D 1;
-> -               dep_devices.handles =3D kzalloc_objs(*dep_devices.handles=
-, 1);
-> -               if (!dep_devices.handles) {
-> -                       acpi_handle_err(handle, "failed to allocate memor=
-y\n");
-> -                       continue;
-> -               }
-> -
-> -               dep_devices.handles[0] =3D gsi_handle;
-> -               count +=3D acpi_scan_add_dep(handle, &dep_devices);
-> -       }
-> -
-> -       return count;
-> -}
-> -
->  u32 arch_acpi_add_auto_dep(acpi_handle handle)
->  {
-> -       if (acpi_has_method(handle, "_PRT"))
-> -               return riscv_acpi_add_prt_dep(handle);
-> -
-> -       return riscv_acpi_add_irq_dep(handle);
-> +       return acpi_irq_add_auto_dep(handle);
->  }
-> diff --git a/drivers/irqchip/irq-gic-v3.c b/drivers/irqchip/irq-gic-v3.c
-> index 99444a1b2ffa..2673954d4577 100644
-> --- a/drivers/irqchip/irq-gic-v3.c
-> +++ b/drivers/irqchip/irq-gic-v3.c
-> @@ -2588,7 +2588,7 @@ gic_acpi_init(union acpi_subtable_headers *header, =
-const unsigned long end)
->         if (err)
->                 goto out_fwhandle_free;
->
-> -       acpi_set_irq_model(ACPI_IRQ_MODEL_GIC, gic_v3_get_gsi_domain_id);
-> +       acpi_set_irq_model(ACPI_IRQ_MODEL_GIC, gic_v3_get_gsi_domain_id, =
-NULL);
->
->         if (static_branch_likely(&supports_deactivate_key))
->                 gic_acpi_setup_kvm_info();
-> diff --git a/drivers/irqchip/irq-gic-v5.c b/drivers/irqchip/irq-gic-v5.c
-> index 6b0903be8ebf..03cc2830b260 100644
-> --- a/drivers/irqchip/irq-gic-v5.c
-> +++ b/drivers/irqchip/irq-gic-v5.c
-> @@ -1242,7 +1242,7 @@ static int __init gic_acpi_init(union acpi_subtable=
-_headers *header, const unsig
->         if (ret)
->                 goto out_irs;
->
-> -       acpi_set_irq_model(ACPI_IRQ_MODEL_GIC_V5, gic_v5_get_gsi_domain_i=
-d);
-> +       acpi_set_irq_model(ACPI_IRQ_MODEL_GIC_V5, gic_v5_get_gsi_domain_i=
-d, NULL);
->
->         return 0;
->
-> diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
-> index ec70c84e9f91..f6bc29f515fb 100644
-> --- a/drivers/irqchip/irq-gic.c
-> +++ b/drivers/irqchip/irq-gic.c
-> @@ -1690,7 +1690,7 @@ static int __init gic_v2_acpi_init(union acpi_subta=
-ble_headers *header,
->                 return ret;
->         }
->
-> -       acpi_set_irq_model(ACPI_IRQ_MODEL_GIC, gic_v2_get_gsi_domain_id);
-> +       acpi_set_irq_model(ACPI_IRQ_MODEL_GIC, gic_v2_get_gsi_domain_id, =
-NULL);
->
->         if (IS_ENABLED(CONFIG_ARM_GIC_V2M))
->                 gicv2m_init(NULL, gic_data[0].domain);
-> diff --git a/drivers/irqchip/irq-loongarch-cpu.c b/drivers/irqchip/irq-lo=
-ongarch-cpu.c
-> index 950bc087e388..84ce24889488 100644
-> --- a/drivers/irqchip/irq-loongarch-cpu.c
-> +++ b/drivers/irqchip/irq-loongarch-cpu.c
-> @@ -168,7 +168,7 @@ static int __init cpuintc_acpi_init(union acpi_subtab=
-le_headers *header,
->                 panic("Failed to add irqdomain for LoongArch CPU");
->
->         set_handle_irq(&handle_cpu_irq);
-> -       acpi_set_irq_model(ACPI_IRQ_MODEL_LPIC, lpic_get_gsi_domain_id);
-> +       acpi_set_irq_model(ACPI_IRQ_MODEL_LPIC, lpic_get_gsi_domain_id, N=
-ULL);
->         acpi_set_gsi_to_irq_fallback(lpic_gsi_to_irq);
->         ret =3D acpi_cascade_irqdomain_init();
->
-> diff --git a/drivers/irqchip/irq-riscv-intc.c b/drivers/irqchip/irq-riscv=
--intc.c
-> index 84418dbd5a27..0595144116e2 100644
-> --- a/drivers/irqchip/irq-riscv-intc.c
-> +++ b/drivers/irqchip/irq-riscv-intc.c
-> @@ -384,7 +384,8 @@ static int __init riscv_intc_acpi_init(union acpi_sub=
-table_headers *header,
->         if (rc)
->                 irq_domain_free_fwnode(fn);
->         else
-> -               acpi_set_irq_model(ACPI_IRQ_MODEL_RINTC, riscv_acpi_get_g=
-si_domain_id);
-> +               acpi_set_irq_model(ACPI_IRQ_MODEL_RINTC, riscv_acpi_get_g=
-si_domain_id,
-> +                                  acpi_get_riscv_gsi_handle);
->
->         return rc;
->  }
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 67effb91fa98..468fc6a54651 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -360,9 +360,10 @@ int acpi_gsi_to_irq (u32 gsi, unsigned int *irq);
->  int acpi_isa_irq_to_gsi (unsigned isa_irq, u32 *gsi);
->
->  typedef struct fwnode_handle *(*acpi_gsi_domain_disp_fn)(u32);
-> +typedef acpi_handle (*acpi_gsi_handle_disp_fn)(u32);
->
->  void acpi_set_irq_model(enum acpi_irq_model_id model,
-> -                       acpi_gsi_domain_disp_fn fn);
-> +                       acpi_gsi_domain_disp_fn fn, acpi_gsi_handle_disp_=
-fn gsi_dep_fn);
->  acpi_gsi_domain_disp_fn acpi_get_gsi_dispatcher(void);
->  void acpi_set_gsi_to_irq_fallback(u32 (*)(u32));
->
-> @@ -372,6 +373,8 @@ struct irq_domain *acpi_irq_create_hierarchy(unsigned=
- int flags,
->                                              const struct irq_domain_ops =
-*ops,
->                                              void *host_data);
->
-> +u32 acpi_irq_add_auto_dep(acpi_handle handle);
-> +
->  #ifdef CONFIG_X86_IO_APIC
->  extern int acpi_get_override_irq(u32 gsi, int *trigger, int *polarity);
->  #else
->
-> --
-> 2.54.0
->
+Assisted-by: Codex:gpt-5.4
+Fixes: fa362ffafa51 ("mailbox: pcc: Always map the shared memory communication address")
+Signed-off-by: Adam Young <admiyo@os.amperecomputing.com>
+
+---
+Previous Version:  https://lore.kernel.org/linux-hwmon/20260515161001.699470-1-admiyo@os.amperecomputing.com/
+
+Changes in this Version:
+
+- Move the initial mapping into the startup callback
+- No Double unmap on error during setup
+---
+ drivers/mailbox/pcc.c | 42 ++++++++++++++++++------------------------
+ 1 file changed, 18 insertions(+), 24 deletions(-)
+
+diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
+index 636879ae1db7..c5873f9f2b91 100644
+--- a/drivers/mailbox/pcc.c
++++ b/drivers/mailbox/pcc.c
+@@ -360,7 +360,6 @@ static irqreturn_t pcc_mbox_irq(int irq, void *p)
+ struct pcc_mbox_chan *
+ pcc_mbox_request_channel(struct mbox_client *cl, int subspace_id)
+ {
+-	struct pcc_mbox_chan *pcc_mchan;
+ 	struct pcc_chan_info *pchan;
+ 	struct mbox_chan *chan;
+ 	int rc;
+@@ -375,20 +374,10 @@ pcc_mbox_request_channel(struct mbox_client *cl, int subspace_id)
+ 		return ERR_PTR(-EBUSY);
+ 	}
+ 
+-	pcc_mchan = &pchan->chan;
+-	pcc_mchan->shmem = acpi_os_ioremap(pcc_mchan->shmem_base_addr,
+-					   pcc_mchan->shmem_size);
+-	if (!pcc_mchan->shmem)
+-		return ERR_PTR(-ENXIO);
+-
+ 	rc = mbox_bind_client(chan, cl);
+-	if (rc) {
+-		iounmap(pcc_mchan->shmem);
+-		pcc_mchan->shmem = NULL;
++	if (rc)
+ 		return ERR_PTR(rc);
+-	}
+-
+-	return pcc_mchan;
++	return  &pchan->chan;
+ }
+ EXPORT_SYMBOL_GPL(pcc_mbox_request_channel);
+ 
+@@ -401,18 +390,8 @@ EXPORT_SYMBOL_GPL(pcc_mbox_request_channel);
+ void pcc_mbox_free_channel(struct pcc_mbox_chan *pchan)
+ {
+ 	struct mbox_chan *chan = pchan->mchan;
+-	struct pcc_chan_info *pchan_info;
+-	struct pcc_mbox_chan *pcc_mbox_chan;
+-
+ 	if (!chan || !chan->cl)
+ 		return;
+-	pchan_info = chan->con_priv;
+-	pcc_mbox_chan = &pchan_info->chan;
+-	if (pcc_mbox_chan->shmem) {
+-		iounmap(pcc_mbox_chan->shmem);
+-		pcc_mbox_chan->shmem = NULL;
+-	}
+-
+ 	mbox_free_channel(chan);
+ }
+ EXPORT_SYMBOL_GPL(pcc_mbox_free_channel);
+@@ -462,9 +441,15 @@ static bool pcc_last_tx_done(struct mbox_chan *chan)
+ static int pcc_startup(struct mbox_chan *chan)
+ {
+ 	struct pcc_chan_info *pchan = chan->con_priv;
++	struct pcc_mbox_chan *pcc_mchan;
+ 	unsigned long irqflags;
+ 	int rc;
+ 
++	pcc_mchan = &pchan->chan;
++	pcc_mchan->shmem = acpi_os_ioremap(pcc_mchan->shmem_base_addr,
++					   pcc_mchan->shmem_size);
++	if (pcc_mchan->shmem  == NULL)
++		return -ENOMEM;
+ 	/*
+ 	 * Clear and acknowledge any pending interrupts on responder channel
+ 	 * before enabling the interrupt
+@@ -479,6 +464,8 @@ static int pcc_startup(struct mbox_chan *chan)
+ 		if (unlikely(rc)) {
+ 			dev_err(chan->mbox->dev, "failed to register PCC interrupt %d\n",
+ 				pchan->plat_irq);
++			iounmap(pcc_mchan->shmem);
++			pcc_mchan->shmem = NULL;
+ 			return rc;
+ 		}
+ 	}
+@@ -488,15 +475,22 @@ static int pcc_startup(struct mbox_chan *chan)
+ 
+ /**
+  * pcc_shutdown - Called from Mailbox Controller code. Used here
+- *		to free the interrupt.
++ *		to free the interrupt and unmap the shared memory.
+  * @chan: Pointer to Mailbox channel to shutdown.
+  */
+ static void pcc_shutdown(struct mbox_chan *chan)
+ {
+ 	struct pcc_chan_info *pchan = chan->con_priv;
++	struct pcc_mbox_chan *pcc_mbox_chan;
+ 
+ 	if (pchan->plat_irq > 0)
+ 		devm_free_irq(chan->mbox->dev, pchan->plat_irq, chan);
++
++	pcc_mbox_chan = &pchan->chan;
++	if (pcc_mbox_chan->shmem) {
++		iounmap(pcc_mbox_chan->shmem);
++		pcc_mbox_chan->shmem = NULL;
++	}
+ }
+ 
+ static const struct mbox_chan_ops pcc_chan_ops = {
+-- 
+2.43.0
+
