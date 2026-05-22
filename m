@@ -1,294 +1,198 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 536063537C8
-	for <linux-acpi@vger.kernel.org>; Fri, 22 May 2026 17:20:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C5383655CB
+	for <linux-acpi@vger.kernel.org>; Fri, 22 May 2026 17:30:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779470441; cv=none; b=HRlXlVNuTOsZrFHY+tR51jXAk4vkjdWR8YrcgJNvWTsjs/NRLSrVGuW2Km2VxaDbgp1wReHDrYTBbiZTQVFPPX0rWiKgSxyLxeZM1+/barn43Ikqz9zkj6JaH2KnJl0bzDUaZwyyjypFyopdEEVvQkKG3M88v53REnPpSdRFI5g=
+	t=1779471007; cv=none; b=UPyCr7hF6B/fU9qARj6o8dAs8EGXG/LM3hinwpfYcQ2zv7OQ3reHesLUXSuxFUeSDdzUn3G7a+ml3SUOoYFlmwDXAqJc12HVOowfJB2JE8lKF/9mPcQGb+kAKZzjS+I/2PF/bclsbs1g7+s4i1XDnQ+jjWRjVIqcxReZfv+oDV4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779470441; c=relaxed/simple;
-	bh=hxzeL93Eqj2WjozLPd3mD+3+TAo3cxBTnMtSJDK7Q1w=;
+	s=arc-20240116; t=1779471007; c=relaxed/simple;
+	bh=AhNJOV57PNZSR2kE33/TDZqrAbBNwLc8/W6iMZQoydI=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=p/6KPIgz0XGLSosZRK5hJkIwc1Dd/eZUVZxB3jfNB+m1oLl/tjatqT1eRsb8lqsqo3DmWWOCNkT81HUzh7jNLO8oCpcK+DHEC6IQZq+y7g2OT8IbF/0cSIaQSDNpGwLWROgxwpISm1pDPoe5mtakKPk6MXwfa5ptH6L1clZgNng=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mPOg91l7; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=nlLLh2ZE+Vpa6laKqRhtum3xqevtggx5gXNS7cmmDOhtM5jH9/Gk6ixknZIU/+4cNvb+vL+rywj0AN1VWeaB5IvIWsJ2fNv126inxwXVQ0tqktFi9vHcmwC9rJvV6+02wGkQrHxWzEcj+6/PZXovLdst8qCN4JQNiTtmI9ExFeo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Npfnz/2f; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mPOg91l7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 000451F00A3D
-	for <linux-acpi@vger.kernel.org>; Fri, 22 May 2026 17:20:39 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Npfnz/2f"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BADBB1F00A3E
+	for <linux-acpi@vger.kernel.org>; Fri, 22 May 2026 17:30:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1779470440;
-	bh=SoTLmvK+p2QdfKbKRkuRhFbMIsCz6Ar7Fj1uqRxZ/4w=;
+	s=k20260515; t=1779471005;
+	bh=HU1TVEmCcGVEK/wtAX6tRv68GA7AtK/DQYNdRAjmq00=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=mPOg91l7aqa+EACF5te2YeCd76TIMzjlf7arlBQsxvqGNm/ny3a1aiffQ+KPXhymT
-	 JwSscDA5F7D3ETI2h4NucWJSq1buSUvTd58UhAV7CrVQ6BxUk6VZJtkw/tNvcXbmEX
-	 u92i/Nrtgiuqpb+qsna9wbDVm8hGbp5PPAX7Kglh8NCRdFDXZt4+g00ujHj4LSZVQR
-	 kLFGQd7n96rwlLwWuQSATle2bTR6u55s4IiTK7szJfVA6Ig3YIMPEY2RBakGhflTcU
-	 /+j/HHfS1UzyG+2AegMKnKYL828Mc5FJS27d/UWAGDqKkqALjr+jOk3xc4z6j+XRe9
-	 JYzV1Vlaub6+A==
-Received: by mail-lj1-f172.google.com with SMTP id 38308e7fff4ca-38be5e86918so92693291fa.3
-        for <linux-acpi@vger.kernel.org>; Fri, 22 May 2026 10:20:39 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AFNElJ+opZGSTJk8n5UGB3VYevZa7osAfk7oOhOi68QeG9URhK4ZfSaflpFuiwwqsYkbXTiiqlSOrpIPZ/xb@vger.kernel.org
-X-Gm-Message-State: AOJu0Yzdsr502J7/sctpfPM5Y6lmbom/JsAwbGn3MLjyynFtDAgo3x2/
-	86Y2/TO4u1RwfZJGOX2/h6ARC72IiWYrpVlbFBT0Y8k7PQCeQyiAPbcjFquOHfKt7WM5NEahfLg
-	0GqIUcKxQa2Nfof51IrD8Pxh7OmT4p4g=
-X-Received: by 2002:a05:6512:39cd:b0:5a8:88a6:3d65 with SMTP id
- 2adb3069b0e04-5aa323843c5mr1512656e87.34.1779470438443; Fri, 22 May 2026
- 10:20:38 -0700 (PDT)
+	b=Npfnz/2fLLEDNNiEjkqtq2Wu4h9QIC25TX0N24eMWsEwHeAhB5Xub/T2kYjLbbfPj
+	 X8T2ajj5DJPqNwmpoVdyvHQgGCVywggqAmnZx24u89z2JNDMJv14rcFM/Gukxf6Jnw
+	 qhujMFqTvMsGIL7xe5eB7N6yeIP4PKVRKMNcKu0IZrtI5ujgMYKYlzHZ+bWTxxzqUR
+	 NNDutzJht6OQfqXHwif14C4JEl6Qu1MBXQjzEO2k4SL0aXGPumIaweEeYB5p0X3ouS
+	 cNLrQSJfv2y0T50b83pLhCZXrT4qwBaSAGKjg876nPFbVM7YA0R6066g7muJ4sSKZ9
+	 +rL87CGx9eK+w==
+Received: by mail-lf1-f46.google.com with SMTP id 2adb3069b0e04-5a87edf88b3so7754527e87.0
+        for <linux-acpi@vger.kernel.org>; Fri, 22 May 2026 10:30:05 -0700 (PDT)
+X-Gm-Message-State: AOJu0YyniX/LkQAFi6sZqeREm4wvOEfgafvfJHQOgU6aqP/NEhCNY7CC
+	HzzzkI4h7+KdKL1JByZuwaeJ0cSHnu2cXfKQRAPubyBXn0Jw/PxfF9ZdfA9v9+P2am9QYkAzrRN
+	bknt/WTVNGLJpoeCph9077l5TgAH9i4Y=
+X-Received: by 2002:a05:6512:3186:b0:5a8:8eda:bed5 with SMTP id
+ 2adb3069b0e04-5aa3239abebmr1468569e87.32.1779471004196; Fri, 22 May 2026
+ 10:30:04 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260514194822.1841748-1-sumitg@nvidia.com> <20260514194822.1841748-3-sumitg@nvidia.com>
-In-Reply-To: <20260514194822.1841748-3-sumitg@nvidia.com>
+References: <20260511204646.4863-1-sakunix.ref@yahoo.com> <20260511204646.4863-1-sakunix@yahoo.com>
+In-Reply-To: <20260511204646.4863-1-sakunix@yahoo.com>
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Fri, 22 May 2026 19:20:26 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0gfgSTwwTHVyCiJfG7QCPD5fgXc2dJDJ3Q8R+qxe6YGLQ@mail.gmail.com>
-X-Gm-Features: AVHnY4JXmvouSFwMdjRuXDLBetYE56eGTDvwNTiqgkBmaxm-c0g50EJkYQUN2Vo
-Message-ID: <CAJZ5v0gfgSTwwTHVyCiJfG7QCPD5fgXc2dJDJ3Q8R+qxe6YGLQ@mail.gmail.com>
-Subject: Re: [PATCH v3 2/2] ACPI: CPPC: Add ospm_nominal_perf support
-To: Sumit Gupta <sumitg@nvidia.com>
-Cc: rafael@kernel.org, viresh.kumar@linaro.org, lenb@kernel.org, 
-	pierre.gondois@arm.com, zhenglifeng1@huawei.com, zhanjie9@hisilicon.com, 
-	mario.limonciello@amd.com, saket.dumbre@intel.com, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, 
-	acpica-devel@lists.linux.dev, treding@nvidia.com, jonathanh@nvidia.com, 
-	vsethi@nvidia.com, ksitaraman@nvidia.com, sanjayc@nvidia.com, 
-	bbasu@nvidia.com
+Date: Fri, 22 May 2026 19:29:52 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0ikd24Vj3H=2XAGwwHtBudDXJumL4H-whu1GgU-KjMnmQ@mail.gmail.com>
+X-Gm-Features: AVHnY4KAhOJEcJXx_skUT7y2ek5IjWjk4n9RraejRJxvkN2Ck0lQh5E1YiCoPwU
+Message-ID: <CAJZ5v0ikd24Vj3H=2XAGwwHtBudDXJumL4H-whu1GgU-KjMnmQ@mail.gmail.com>
+Subject: Re: [PATCH v2] ACPI: resource: Add quirk for Dell PMC memory region overlap
+To: Manuel Quintero Fonseca <sakunix@yahoo.com>
+Cc: linux-acpi@vger.kernel.org, skhan@linuxfoundation.org, 
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
+	Mika Westerberg <mika.westerberg@linux.intel.com>, Hans de Goede <hansg@kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, May 14, 2026 at 9:49=E2=80=AFPM Sumit Gupta <sumitg@nvidia.com> wro=
-te:
+On Mon, May 11, 2026 at 10:47=E2=80=AFPM Manuel Quintero Fonseca
+<sakunix@yahoo.com> wrote:
 >
-> Expose the OSPM Nominal Performance register (ACPI 6.6, Section
-> 8.4.6.1.2.6), which conveys the desired nominal performance level
-> at which the platform may run. Unlike the existing read-only
-> Nominal Performance register, it is writable and lets OSPM
-> request a lower nominal level than the platform-reported nominal.
-> The platform classifies performance above this level as boosted
-> and below as throttled for its power/thermal decisions.
+> On Dell OptiPlex 3080 systems, specifically during the initialization
+> of the intel_pmc_core driver, the kernel reports a resource sanity
+> check conflict. The issue was identified via dmesg logs showing:
 >
-> It is exposed as a per-policy cpufreq sysfs attribute in kHz, to
-> match the cpufreq sysfs unit convention:
+> resource sanity check: requesting [mem 0xfdffe800-0xfe0007ff], which
+> spans more than PNP0C02:03 [mem 0xfdb00000-0xfdffffff]
 >
->   /sys/devices/system/cpu/cpufreq/policyN/ospm_nominal_freq
+> And subsequently:
 >
-> The attribute is documented in
-> Documentation/ABI/testing/sysfs-devices-system-cpu.
+> resource sanity check: requesting [mem 0xfdffe800-0xfe0007ff], which
+> spans more than Reserved [mem 0xfe000000-0xfe010fff]
 >
-> Writes are converted to perf via cppc_khz_to_perf(), validated
-> against [Lowest Performance, Nominal Performance], and applied to
-> every CPU in policy->cpus.
+> Investigation of /proc/iomem and ACPI tables on this specific model
+> revealed that the BIOS defines reserved regions (as a PNP0C02 resource
+> and an E820 reserved entry) that overlap with the Power Management
+> Controller (PMC) register space.
 >
-> The register is write-only; the kernel caches the last written
-> value in struct cppc_cpudata for sysfs readback (returns 0 until
-> userspace writes a value).
+> This overlap is harmless for system stability but produces persistent
+> warnings in dmesg. This patch introduces a quirk to:
 >
-> Signed-off-by: Sumit Gupta <sumitg@nvidia.com>
+> 1. Filter out the conflicting fixed memory resources in
+>    drivers/acpi/resource.c.
+> 2. Skip the iomem sanity check for the specific problematic range in
+>    kernel/resource.c.
+>
+> This ensures a clean boot log on these Dell units and allows the
+> Intel PMC driver to bind correctly without resource conflicts.
+>
+> Signed-off-by: Manuel Quintero Fonseca <sakunix@yahoo.com>
 
-Please see sashiko.dev's feedback on this patch:
+I'm not a big fan of this approach TBH.  Adding quirks specifically to
+avoid printing spurious messages is a bit of a stretch IMV.
 
-https://sashiko.dev/#/patchset/20260514194822.1841748-1-sumitg%40nvidia.com
-
-and address it, or let me know why you think that addressing it is not
-necessary.
+Have you considered downgrading the log level of the messages in
+question to "debug" instead?
 
 > ---
->  .../ABI/testing/sysfs-devices-system-cpu      | 17 ++++++++
->  drivers/acpi/cppc_acpi.c                      | 35 ++++++++++++++++
->  drivers/cpufreq/cppc_cpufreq.c                | 40 +++++++++++++++++++
->  include/acpi/cppc_acpi.h                      |  7 ++++
->  4 files changed, 99 insertions(+)
->
-> diff --git a/Documentation/ABI/testing/sysfs-devices-system-cpu b/Documen=
-tation/ABI/testing/sysfs-devices-system-cpu
-> index 82d10d556cc8..ac1bf1b89ac4 100644
-> --- a/Documentation/ABI/testing/sysfs-devices-system-cpu
-> +++ b/Documentation/ABI/testing/sysfs-devices-system-cpu
-> @@ -346,6 +346,23 @@ Description:       Performance Limited
->
->                 This file is only present if the cppc-cpufreq driver is i=
-n use.
->
-> +What:          /sys/devices/system/cpu/cpuX/cpufreq/ospm_nominal_freq
-> +Date:          May 2026
-> +Contact:       linux-pm@vger.kernel.org
-> +Description:   OSPM Nominal Performance (kHz)
-> +
-> +               OSPM uses this attribute to request a nominal performance
-> +               level lower than the platform-reported nominal. The
-> +               platform treats performance above this level as boost
-> +               and below as throttle for power and thermal decisions.
-> +
-> +               Read returns the last written value in kHz, or 0 if no
-> +               value has been written. Write a kHz value in the range
-> +               [lowest_freq, nominal_freq].
-> +
-> +               This file is only present if the cppc-cpufreq driver is
-> +               in use.
-> +
->  What:          /sys/devices/system/cpu/cpu*/cache/index3/cache_disable_{=
-0,1}
->  Date:          August 2008
->  KernelVersion: 2.6.27
-> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-> index c76cfafa3589..ad6ece16c30d 100644
-> --- a/drivers/acpi/cppc_acpi.c
-> +++ b/drivers/acpi/cppc_acpi.c
-> @@ -1682,6 +1682,41 @@ int cppc_set_epp(int cpu, u64 epp_val)
->  }
->  EXPORT_SYMBOL_GPL(cppc_set_epp);
->
-> +/**
-> + * cppc_set_ospm_nominal_perf() - Write OSPM Nominal Performance registe=
-r.
-> + * @cpu: CPU on which to write register.
-> + * @ospm_nominal_perf: Value to write to the OSPM Nominal Performance re=
-gister.
-> + *
-> + * OSPM Nominal Performance conveys the desired nominal performance leve=
-l
-> + * at which the platform may run. Per ACPI 6.6, s8.4.6.1.2.6, the value
-> + * must lie within [Lowest Performance, Nominal Performance] and may be
-> + * set independently of Minimum, Maximum and Desired performance.
-> + *
-> + * Return: 0 on success or negative error code.
-> + */
-> +int cppc_set_ospm_nominal_perf(int cpu, u64 ospm_nominal_perf)
-> +{
-> +       struct cpc_desc *cpc_desc =3D per_cpu(cpc_desc_ptr, cpu);
-> +       struct cppc_perf_caps caps;
-> +       int ret;
-> +
-> +       if (!cpc_desc) {
-> +               pr_debug("No CPC descriptor for CPU:%d\n", cpu);
-> +               return -ENODEV;
-> +       }
-> +
-> +       ret =3D cppc_get_perf_caps(cpu, &caps);
-> +       if (ret)
-> +               return ret;
-> +
-> +       if (ospm_nominal_perf < caps.lowest_perf ||
-> +           ospm_nominal_perf > caps.nominal_perf)
-> +               return -EINVAL;
-> +
-> +       return cppc_set_reg_val(cpu, OSPM_NOMINAL_PERF, ospm_nominal_perf=
-);
-> +}
-> +EXPORT_SYMBOL_GPL(cppc_set_ospm_nominal_perf);
-> +
->  /**
->   * cppc_get_auto_act_window() - Read autonomous activity window register=
+> v2:
+>   - Add DMI matching to restrict the quirk to Dell systems.
+>   - Include <linux/dmi.h> to fix compilation errors.
+>   - Expand commit description with specific hardware (Dell OptiPlex 3080)=
 .
->   * @cpu: CPU from which to read register.
-> diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufre=
-q.c
-> index 7e7f9dfb7a24..6379b7ceee34 100644
-> --- a/drivers/cpufreq/cppc_cpufreq.c
-> +++ b/drivers/cpufreq/cppc_cpufreq.c
-> @@ -985,11 +985,50 @@ store_energy_performance_preference_val(struct cpuf=
-req_policy *policy,
->  CPPC_CPUFREQ_ATTR_RW_U64(perf_limited, cppc_get_perf_limited,
->                          cppc_set_perf_limited)
+>   - Include dmesg logs showing the resource conflict.
+>   - Reformat description to 75 characters per line.
 >
-> +static ssize_t show_ospm_nominal_freq(struct cpufreq_policy *policy, cha=
-r *buf)
-> +{
-> +       struct cppc_cpudata *cpu_data =3D policy->driver_data;
-> +       unsigned int freq_khz;
+>  drivers/acpi/resource.c | 32 ++++++++++++++++++++++++++++++++
+>  kernel/resource.c       |  9 +++++++++
+>  2 files changed, 41 insertions(+)
+>
+> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+> index bc8050d8a6f5..464195e30080 100644
+> --- a/drivers/acpi/resource.c
+> +++ b/drivers/acpi/resource.c
+> @@ -50,6 +50,20 @@ static inline bool is_gsi(struct acpi_resource_extende=
+d_irq *ext_irq)
+>  }
+>  #endif
+>
+> +/*
+> + * List of Dell systems requiring memory resource quirks due to BIOS
+> + * reservations overlapping with Intel PMC register space.
+> + */
+> +static const struct dmi_system_id dell_memory_quirks[] =3D {
+> +       {
+> +               .ident =3D "Dell Inc.",
+> +               .matches =3D {
+> +                       DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+> +               },
+> +       },
+> +       { }
+> +};
 > +
-> +       if (!cpu_data->ospm_nominal_perf)
-> +               return sysfs_emit(buf, "0\n");
+>  static bool acpi_dev_resource_len_valid(u64 start, u64 end, u64 len, boo=
+l io)
+>  {
+>         u64 reslen =3D end - start + 1;
+> @@ -110,6 +124,24 @@ bool acpi_dev_resource_memory(struct acpi_resource *=
+ares, struct resource *res)
+>         struct acpi_resource_memory32 *memory32;
+>         struct acpi_resource_fixed_memory32 *fixed_memory32;
+>
+> +       /*
+> +        * Quirk for Dell systems: ignore BIOS memory reservations that o=
+verlap
+> +        * with Intel PMC resources. Restricted via DMI to avoid impact o=
+n
+> +        * other manufacturers.
+> +        */
+> +       if (dmi_check_system(dell_memory_quirks)) {
+> +               u32 addr =3D 0;
 > +
-> +       freq_khz =3D cppc_perf_to_khz(&cpu_data->perf_caps,
-> +                                   cpu_data->ospm_nominal_perf);
-> +       return sysfs_emit(buf, "%u\n", freq_khz);
-> +}
+> +               if (ares->type =3D=3D ACPI_RESOURCE_TYPE_FIXED_MEMORY32)
+> +                       addr =3D ares->data.fixed_memory32.address;
+> +               else if (ares->type =3D=3D ACPI_RESOURCE_TYPE_MEMORY32)
+> +                       addr =3D ares->data.memory32.minimum;
 > +
-> +static ssize_t store_ospm_nominal_freq(struct cpufreq_policy *policy,
-> +                                      const char *buf, size_t count)
-> +{
-> +       struct cppc_cpudata *cpu_data =3D policy->driver_data;
-> +       unsigned int sib;
-> +       u64 freq_khz;
-> +       u32 perf;
-> +       int ret;
-> +
-> +       ret =3D kstrtou64(buf, 0, &freq_khz);
-> +       if (ret)
-> +               return ret;
-> +
-> +       perf =3D cppc_khz_to_perf(&cpu_data->perf_caps, freq_khz);
-> +
-> +       for_each_cpu(sib, policy->cpus) {
-> +               ret =3D cppc_set_ospm_nominal_perf(sib, perf);
-> +               if (ret)
-> +                       return ret;
+> +               if (addr =3D=3D 0xfdb00000 ||
+> +                   (addr >=3D 0xfe000000 && addr <=3D 0xfe000fff))
+> +                       return false;
 > +       }
 > +
-> +       cpu_data->ospm_nominal_perf =3D perf;
-> +       return count;
-> +}
-> +
->  cpufreq_freq_attr_ro(freqdomain_cpus);
->  cpufreq_freq_attr_rw(auto_select);
->  cpufreq_freq_attr_rw(auto_act_window);
->  cpufreq_freq_attr_rw(energy_performance_preference_val);
->  cpufreq_freq_attr_rw(perf_limited);
-> +cpufreq_freq_attr_rw(ospm_nominal_freq);
+>         switch (ares->type) {
+>         case ACPI_RESOURCE_TYPE_MEMORY24:
+>                 memory24 =3D &ares->data.memory24;
+> diff --git a/kernel/resource.c b/kernel/resource.c
+> index bb966699da31..16c82d9ea14f 100644
+> --- a/kernel/resource.c
+> +++ b/kernel/resource.c
+> @@ -30,6 +30,7 @@
+>  #include <linux/string.h>
+>  #include <linux/vmalloc.h>
+>  #include <asm/io.h>
+> +#include <linux/dmi.h>
 >
->  static struct freq_attr *cppc_cpufreq_attr[] =3D {
->         &freqdomain_cpus,
-> @@ -997,6 +1036,7 @@ static struct freq_attr *cppc_cpufreq_attr[] =3D {
->         &auto_act_window,
->         &energy_performance_preference_val,
->         &perf_limited,
-> +       &ospm_nominal_freq,
->         NULL,
->  };
 >
-> diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
-> index 8693890a7275..0b1dcdbea10a 100644
-> --- a/include/acpi/cppc_acpi.h
-> +++ b/include/acpi/cppc_acpi.h
-> @@ -153,6 +153,8 @@ struct cppc_cpudata {
->         struct cppc_perf_fb_ctrs perf_fb_ctrs;
->         unsigned int shared_type;
->         cpumask_var_t shared_cpu_map;
-> +       /* Cached OSPM Nominal Performance value (write-only register). *=
-/
-> +       u32 ospm_nominal_perf;
->  };
+>  struct resource ioport_resource =3D {
+> @@ -1857,6 +1858,14 @@ int iomem_map_sanity_check(resource_size_t addr, u=
+nsigned long size)
+>                  */
+>                 if (p->flags & IORESOURCE_BUSY)
+>                         continue;
+> +               /*
+> +                * Only apply this quirk on Dell systems to avoid false
+> +                * positives elsewhere.
+> +                */
+> +               if (dmi_match(DMI_SYS_VENDOR, "Dell Inc.")) {
+> +                       if (p->start =3D=3D 0xfe000000 && p->end =3D=3D 0=
+xfe010fff)
+> +                               continue;
+> +               }
 >
->  #ifdef CONFIG_ACPI_CPPC_LIB
-> @@ -180,6 +182,7 @@ extern int cpc_write_ffh(int cpunum, struct cpc_reg *=
-reg, u64 val);
->  extern int cppc_get_epp_perf(int cpunum, u64 *epp_perf);
->  extern int cppc_set_epp_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls=
-, bool enable);
->  extern int cppc_set_epp(int cpu, u64 epp_val);
-> +extern int cppc_set_ospm_nominal_perf(int cpu, u64 ospm_nominal_perf);
->  extern int cppc_get_auto_act_window(int cpu, u64 *auto_act_window);
->  extern int cppc_set_auto_act_window(int cpu, u64 auto_act_window);
->  extern int cppc_get_auto_sel(int cpu, bool *enable);
-> @@ -266,6 +269,10 @@ static inline int cppc_set_epp(int cpu, u64 epp_val)
->  {
->         return -EOPNOTSUPP;
->  }
-> +static inline int cppc_set_ospm_nominal_perf(int cpu, u64 ospm_nominal_p=
-erf)
-> +{
-> +       return -EOPNOTSUPP;
-> +}
->  static inline int cppc_get_auto_act_window(int cpu, u64 *auto_act_window=
-)
->  {
->         return -EOPNOTSUPP;
+>                 pr_warn("resource sanity check: requesting [mem %pa-%pa],=
+ which spans more than %s %pR\n",
+>                         &addr, &end, p->name, p);
 > --
-> 2.34.1
+> 2.47.3
 >
 >
