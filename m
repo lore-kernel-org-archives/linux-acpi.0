@@ -1,102 +1,75 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9ED1A3CD8A4;
-	Fri, 22 May 2026 10:23:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA1F93D25D7;
+	Fri, 22 May 2026 10:23:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779445424; cv=none; b=eCGX+QJ4GHn7ByRESbvYsHlMyO1diXAdimxa6TaOyN1k6sSlszKxvmwDxKWUI9t0nDlgx7d7qKyS7wD4ecok9nIUUXTCJn/dGnx1wKc0BTqSHhR4H+sbqHvNu9rvI7EIDkryWaeoz2ebTvlVMFrQIM1eFZAR4oy6S+PkQINH16k=
+	t=1779445441; cv=none; b=m1CzFTQpp2AXFjy7klrHZ7+jnspK5rteV5L6tasIq4FNLZPdj3VmTQW6flnjXEKM/wuxYdM8ysHbjwE4rJZn/yHf0g1OQUdZvDVuGcECava5FZR6IhUjnc2pmKpfZ24Dy4DV3AS/+Ooyu4Kt+UMkaI2Xu9uYDk5xMLUsA7UNNtg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779445424; c=relaxed/simple;
-	bh=eUs6YVU2iFtFB2JHUiISX/6iwqnt7Bq1OFgZKZQ0uKg=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=AhQvajy98ZXKsPjpDVXFKTePEugevZ9SaM4EAdRSXxns2bwXDiS10UN9NvJba1YUeOpdZdmVd6okAPuYKDhZBlxcPjY3XVuJ3ULig46/S+dAI5XieSgf8rt4oNIz/WajY0OK3hlb0K3dubdt0zS3XYNhlONqtzCXgHkjdxLzxBU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UXsGOZL8; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779445441; c=relaxed/simple;
+	bh=erBG5BvKCe+MIFcZ+3w2qYG7/6BjnB7j4GI7RzhtL5k=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=JOl+z28OuRTnnI3ZvlRifb/zfPWYOOo7xS1h5+ihIH9VSZm4xOKbVcXN1vU4kFZcMNDcVfL5lFgdDBPZ5X7CS9YEBYboQPQlhHfcEaweeHAtwrtmVd+mq1Dp4jni+IDRKrNZOJ0zZTliPe72y8WbbH+ABh3+cs1FhQvNDVcQtP0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=nTmUck+L; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UXsGOZL8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34F3F1F00A3D;
-	Fri, 22 May 2026 10:23:41 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1779445423;
-	bh=xq2WMGxYrdq7+VpHGko1wAXp02qIJZ5EaLRL0m99YUo=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=UXsGOZL8biEqFcm+yDxKBRmmTG7wr1b9UH9iU9EuR6OB5xaigS/PK7iSDw/Vm4W4N
-	 MC2XACcVHcPGTvcWYO6pDoxWAR1GJUvyG+VRTdn4Ow5feS300wzQMk+L2k+6ZxYkkE
-	 nk0Ca2W0d17+0UyKihAUDvBW0QirdOPzWKKWy+jfAddiTYyrRv5dwFgsPT7mQRGu8F
-	 ztEfRFh8KZ6oE4CFg968OvZmhGDY46xnF5TnqX27zGgdcnM/xZ2WyMSSFTuLD0R24Q
-	 JHhnDyOAAAicbO9T3PEfEf4UlW9m4ei9MWEpN7/AeAAzj3OgnIZc+XITt09RJw8N7D
-	 EUnVO+Pny6gKA==
-From: Mark Brown <broonie@kernel.org>
-To: Hoan Tran <hoan@os.amperecomputing.com>, 
- Linus Walleij <linusw@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>, 
- "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
- Thomas Lin <thomas_lin@lecomputing.com>
-Cc: linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, 
- linux-acpi@vger.kernel.org, linux-spi@vger.kernel.org, 
- braden_zhang@lecomputing.com, 
- Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-In-Reply-To: <20260521-lecarc-acpi-ids-v1-0-ae0ae90b2817@lecomputing.com>
-References: <20260521-lecarc-acpi-ids-v1-0-ae0ae90b2817@lecomputing.com>
-Subject: Re: (subset) [PATCH 0/2] Subject: [PATCH v5 0/2] arm64: Add LECARC
- ACPI IDs for DesignWare GPIO, SPI
-Message-Id: <177935811877.58022.6763569850673857398.b4-ty@b4>
-Date: Thu, 21 May 2026 11:08:38 +0100
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="nTmUck+L"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1783E1F000E9;
+	Fri, 22 May 2026 10:23:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxfoundation.org;
+	s=korg; t=1779445439;
+	bh=Xv8ZoUoS/zmnRcAbOAXWRel8m5XtyLI16d4nRsrnI1E=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=nTmUck+LhIpK9r8rRtBbMEOs+FFOJ/ok5cPw1PQ5XoNwZbkf6MoIRc9Fo9rfvyM2L
+	 WdaC6iS0yQuocDO7rBhfM4i+QTqKZIFfiBk/Qre9+12g9grJ3xGUvEKWYbejVKiyM5
+	 gTNTwJDxSUKK8OWOmNUaRf3yCbyIwpDVaki3A7BU=
+Date: Fri, 22 May 2026 12:24:02 +0200
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: Danilo Krummrich <dakr@kernel.org>
+Cc: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Len Brown <lenb@kernel.org>, Rob Herring <robh@kernel.org>,
+	Saravana Kannan <saravanak@kernel.org>, driver-core@lists.linux.dev,
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+	brgl@kernel.org, stable@vger.kernel.org
+Subject: Re: [PATCH] device property: set fwnode->secondary to NULL in
+ fwnode_init()
+Message-ID: <2026052254-rug-mug-24cd@gregkh>
+References: <20260506115701.23035-1-bartosz.golaszewski@oss.qualcomm.com>
+ <DICUSYTHZ339.3DW3CRNZ32K6U@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.16-dev
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1320; i=broonie@kernel.org;
- h=from:subject:message-id; bh=eUs6YVU2iFtFB2JHUiISX/6iwqnt7Bq1OFgZKZQ0uKg=;
- b=owEBbQGS/pANAwAKASTWi3JdVIfQAcsmYgBqEC6sfKu343MptDCXeGNaCumZEVJKfrQjhNA3J
- 6agdVFSQWqJATMEAAEKAB0WIQSt5miqZ1cYtZ/in+ok1otyXVSH0AUCahAurAAKCRAk1otyXVSH
- 0IVRB/4jjzULxCcwXtugQpfoBXaIoe631zWgzVhxI8oyXQwUB/80TUP7HI67KBrsOUr8wlb8/Xn
- zyKVcIqdisj5cUxOU8D3WcYyauBstYtgBvzhzzQ6IPkc5nwaEPUlttCiI4lcV/DJD7rgeZh3zU7
- obshP4uzV5gx0Z/X2RqxyfqgzAa04cz1i/872sJv5NwleVQvo7m+32+mDjvgpvlOjsXSjrCYKDR
- NX1fNyPKHDI9fjDcWN2fN2ktAYoNGa/3iXeO+x0552DrEsEJqbLSxkLtqibKX2+pOBYiODMGuHw
- 2HOk8JK66w563dovBqPcXl18s/HT2GuIHEsKwOd+0RMaQW2n
-X-Developer-Key: i=broonie@kernel.org; a=openpgp;
- fpr=3F2568AAC26998F9E813A1C5C3F436CA30F5D8EB
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <DICUSYTHZ339.3DW3CRNZ32K6U@kernel.org>
 
-On Thu, 21 May 2026 10:34:48 +0800, Thomas Lin wrote:
-> Subject: [PATCH v5 0/2] arm64: Add LECARC ACPI IDs for DesignWare GPIO, SPI
+On Fri, May 08, 2026 at 02:03:44AM +0200, Danilo Krummrich wrote:
+> On Wed May 6, 2026 at 1:57 PM CEST, Bartosz Golaszewski wrote:
+> > If a firmware node is allocated on the stack (for instance: temporary
+> > software node whose life-time we control) or on the heap - but using a
+> > non-zeroing allocation function - and initialized using fwnode_init(),
+> > its secondary pointer will contain uninitalized memory which likely will
+> > be neither NULL nor IS_ERR().
 > 
-> This patch series adds ACPI identification for LECARC SoCs that
-> integrate Synopsys DesignWare peripherals.
+> I see why secondary is generally more prone to this, but if the justification of
+> this change is to not rely on the caller to zero out the memory, then we might
+> just want to initialize all fields.
 > 
-> LECARC platforms use the following ACPI HIDs:
+> For instance, if the caller is allowed to not zero-initialize the memory then
+> having flags with a random value isn't correct either; all accessors are atomic
+> bitwise operations that never zero the whole field.
 > 
-> [...]
 
-Applied to
+Sure, but for now I'll go take this one.
 
-   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/spi.git for-7.2
+thanks,
 
-Thanks!
-
-[2/2] spi: dw-mmio: Add ACPI ID LECA0002 for LECARC SoCs
-      https://git.kernel.org/broonie/spi/c/019947c49585
-
-All being well this means that it will be integrated into the linux-next
-tree (usually sometime in the next 24 hours) and sent to Linus during
-the next merge window (or sooner if it is a bug fix), however if
-problems are discovered then the patch may be dropped or reverted.
-
-You may get further e-mails resulting from automated or manual testing
-and review of the tree, please engage with people reporting problems and
-send followup patches addressing any issues that are reported if needed.
-
-If any updates are required or you are submitting further changes they
-should be sent as incremental updates against current git, existing
-patches will not be replaced.
-
-Please add any relevant lists and maintainers to the CCs when replying
-to this mail.
-
-Thanks,
-Mark
-
+greg k-h
