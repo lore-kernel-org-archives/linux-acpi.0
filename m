@@ -1,63 +1,85 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73FC246AEEA;
-	Fri, 22 May 2026 14:25:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6F143769E6;
+	Fri, 22 May 2026 14:54:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779459933; cv=none; b=cAynMiBWeZKASbAr72Mk1hIwtujVFs43zgcMjJbVcqk6qgCL8e46l9WGcg+ptyESlpYMtF9XqSVZl2QtJHBbECuh2X2L26Eh5ULzFWzZzjQ0YgKTi2c8bnZQwq1in8TW79hoQfzKWQZiZyvmR1EP5JlCikTLy1nJt8rCh3NPso8=
+	t=1779461654; cv=none; b=Tawt16m7dDUq4IS2tEDZraFJHZM9DiFDNn01DmA1M06xVIWRmA0cQ1XHdHGaDYVDdXYIFUIJpB3DlhSMs2bwBvC5CTkMpPuwEXuUrTyOiFhf7RDji2T795viT0yA/3PE4vJAs0/DZBYVg5WVKC5hHYrTN1OBbtUOpOAR1NW4FoQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779459933; c=relaxed/simple;
-	bh=RTiVAiVJw6+7yX5EM9D81mUop3wtWqx/aSzDmKYRhkc=;
-	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=dxtkhQs2LkPmiuS4S62N+9M0CPOgdhqo+ZF8OAbA7ocYo3IDdReKQ3zub4URrCvmJWQ+mhvZc1TALqXFwq+nt/qkY0TY7lJ8bTwzPcIXXJVT0Eipaa5RhMm3+Y/anmw8rufKx9pWVaxstf2WZnoIyZHPy3Uf3omt/lQWZTsAwcA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=o2U97mFR; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779461654; c=relaxed/simple;
+	bh=i/k4SmKCEh/FV+KO4+RnCXr67fBxXybwBKfxhBfC0Ms=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=CocTb9WTUToJtyiPA5C9cB+AoBXoTd9adbPyeBHJncurwYJ97VkIRNumb55cNFB5z1Gv/bnB5ejQhIxAZtwpXMlpSpZWIX9H9yuPFbA6Zl/nVh//8goUNZFgJFRbzaOwGd6N1DfvP/3xqWB64o6fTgJcb0mFV3qn5dkBAc7IN98=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eTJw0nM7; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="o2U97mFR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DDEF1F000E9;
-	Fri, 22 May 2026 14:25:32 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eTJw0nM7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 378321F000E9;
+	Fri, 22 May 2026 14:54:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1779459932;
-	bh=zMzKO5hKPg8Pr4qCVF6+4edukAIZ1TFtad3cyTaX4G8=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc;
-	b=o2U97mFR5VW7+ivVVPRdNLpvIiRSJuG0lltHVo4UbvNdVhvg1Pog6i/N8604ki8KA
-	 O4wPmeiDFC/dJzbPwwDSOIZ1FehTNeSJdrX0I/lwTSVv0geUOvl1YprLivaZc3JRSh
-	 fmWqF1VYRHfh1WVVbS1HQreg3G44AbwbzXHfvjAQU0el+/JKd8yIcpx8qhDWsmeEWZ
-	 bE6TdocUulIMV+IuPI5at5tTAWNQif9bUGe8zQmfYRHJXTX2vERp951B8iMzkAgGG7
-	 QLiEUSMuZaqH7bvMWvTdYX/sNcg+hH05NhJBI99N2XvW/4FvmWnpxzKfDppmAlxJwA
-	 MO123Lj0nRVEQ==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id D0B92392E9B4;
-	Fri, 22 May 2026 14:25:42 +0000 (UTC)
-Subject: Re: [GIT PULL] ACPI support fix for v7.1-rc5
-From: pr-tracker-bot@kernel.org
-In-Reply-To: <CAJZ5v0hcQ4bOP_5krEuPCVasPYfJxCjq1s4+ot6bCyhAtpFmkg@mail.gmail.com>
-References: <CAJZ5v0hcQ4bOP_5krEuPCVasPYfJxCjq1s4+ot6bCyhAtpFmkg@mail.gmail.com>
-X-PR-Tracked-List-Id: <linux-pm.vger.kernel.org>
-X-PR-Tracked-Message-Id: <CAJZ5v0hcQ4bOP_5krEuPCVasPYfJxCjq1s4+ot6bCyhAtpFmkg@mail.gmail.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-7.1-rc5
-X-PR-Tracked-Commit-Id: c35cb4fc7231702d1e9952aec1a442f3e27df6f5
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 28222dcdad2181e3b153b2300ac4cb9cb3304fd7
-Message-Id: <177945994127.1238704.5422154051070299393.pr-tracker-bot@kernel.org>
-Date: Fri, 22 May 2026 14:25:41 +0000
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+	s=k20260515; t=1779461653;
+	bh=ew2b1Wuqm4+HcJRgw11htKMwlo8xGsrS35NCBfsMAc8=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=eTJw0nM746am3PwVJqqtd4EeT6T33fjXB7x709nedqYKjFtcrEuHRQjVTe5lsy43O
+	 4HmAPcXrQtMbNSdZQDEdg0fI5DyIm8dFA6YZT5qiE4vQkAMrrsGD0zAT3EOziAmL9b
+	 cafFrGtCBp7xvgUdiZ7VlRhOnrWTyrwZeHO5hwlgQrL2jBl7e9/G5fUfm70L+3oIKN
+	 Yoad738+VlHi50Y7yytM1zRi81Kit8wH91AJR4KQ6u/WDwPv9YHwGdst/7tkkZFTNW
+	 P51hpYrmotTZY46FE7/Y6kGywjwdYphAYpENRPumJCcK6c8D9oks/vS+M80wCRo9Hh
+	 0MiSJZt/BYJlw==
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+To: Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Nick <nick@kousu.ca>,
+ Saket Dumbre <saket.dumbre@intel.com>,
+ Pawel Chmielewski <pawel.chmielewski@intel.com>,
+ Mario Limonciello <superm1@kernel.org>
+Subject:
+ [PATCH v2 3/3] ACPI: button: Add missing device class clearing on probe
+ failures
+Date: Fri, 22 May 2026 16:53:48 +0200
+Message-ID: <6167713.MhkbZ0Pkbq@rafael.j.wysocki>
+Organization: Linux Kernel Development
+In-Reply-To: <2046403.PYKUYFuaPT@rafael.j.wysocki>
+References: <2046403.PYKUYFuaPT@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
 
-The pull request you sent on Fri, 22 May 2026 15:01:18 +0200:
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-7.1-rc5
+Commit e18947038bf4 ("ACPI: driver: Do not set acpi_device_class()
+unnecessarily") modified acpi_button_remove() to clear the device class
+field in struct acpi_device on driver removal, but it should also have
+updated the rollback path in acpi_button_probe(), which it didn't do,
+so do it now.
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/28222dcdad2181e3b153b2300ac4cb9cb3304fd7
+Fixes: e18947038bf4 ("ACPI: driver: Do not set acpi_device_class() unnecessarily")
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Reviewed-by: Mario Limonciello (AMD) <superm1@kernel.org>
+---
 
-Thank you!
+v1 -> v2:
+   * Add R-by from Mario
+   * No other changes
 
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+---
+ drivers/acpi/button.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -687,6 +687,7 @@ err_remove_fs:
+ 	acpi_button_remove_fs(button);
+ err_free_button:
+ 	kfree(button);
++	memset(acpi_device_class(device), 0, sizeof(acpi_device_class));
+ 	return error;
+ }
+ 
+
+
+
