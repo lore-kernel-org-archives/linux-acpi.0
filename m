@@ -1,40 +1,40 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9C8E374E4E
-	for <linux-acpi@vger.kernel.org>; Fri, 22 May 2026 12:25:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C0AF2D8379
+	for <linux-acpi@vger.kernel.org>; Fri, 22 May 2026 12:26:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779452730; cv=none; b=lTuKF9/4BaONeUCemw1sYx5NSJ+8IF/bH5tgip9e0/T7SlkGwBuDVM+FdqtxKjGQM4V4L2cnekyygG7NKalqZPCTQ14MAeajzLqsbIqLIcVdet8UG78/XzconE6VDxHIt2bcvvc1f9hjw82fKTi85//G7AHn/Az6MM233D2NTw0=
+	t=1779452789; cv=none; b=lrfZTGW2yn0fB6sRmscECuxRJrUUhHjpxoj48RlXaXDAMS8v3YIsEEUZLiqxn5DHHpUqVeqF/ciX6tPr86cjfkWjF35/6OO/ORIlRC7IiSJ22Lx/S0YIGRi+nspP6xwHXaPrJvVmm1r5Aex14ywDgEoYRCz/jxpnykRLv4FFNl0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779452730; c=relaxed/simple;
-	bh=oAj+E/ZaRtkCNPAFHrQ+iNBaf2fXGnumAcRPeh8rJe4=;
+	s=arc-20240116; t=1779452789; c=relaxed/simple;
+	bh=sazABkgWILYJbT/fSZ5nybhIAFlfvwWEQTr0JVSdCfQ=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=KKdeUWN8gTTYfiDQ4AQS6EAxg8tbk1VvCVjk0GF7A3Xgp9ynlg/rC4TA+17Qubdy58QDGIUdub42jFwkwGJQdHLkGDRlikIHgnPlGVEj5FE/MGhgv7AvrW5VK6NyFR2K49dQjHcu5LQXT9/S0saLouFvQkDnus3ax+w2kKYHWjc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iynBxoIg; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=iMwF3tJpsaMKJvhdb9qVj03rTCLKmxOIYe/m3amk9l/8/+kjSSPGwhe0StcxcWApLIpQMJU2wTrkYZXlRWqB5FKMeIg2QuLHYH8CdnH7EPTzWXqpTwKYZHGehagFp4fx4xD4ZTiV1PNUcS9vZ/JucluzcihTgbBOMKsCRurQUTE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cbTUhmBG; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iynBxoIg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D10E71F00A3E
-	for <linux-acpi@vger.kernel.org>; Fri, 22 May 2026 12:25:28 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cbTUhmBG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DCBB61F00A3E
+	for <linux-acpi@vger.kernel.org>; Fri, 22 May 2026 12:26:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1779452728;
-	bh=bDHw75jFFhfJ2OzplZAfScB3cpraHkSDbHD8uRXfMmc=;
+	s=k20260515; t=1779452787;
+	bh=Nq7EhUik6pZ/sLXQz1K03citYVZ4BEoOPNjJog1N8yo=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=iynBxoIgegrV05C5kOuWpy8VlwSA8eYYZ9Lg8dlbHIGwNV54sX5kjliN0JGXmSU8y
-	 +ufwE0cWqyM9atY1U1guhJXZNJNVazR99THNP828XMsknUQNRadDTa2FRVT9wwVH6d
-	 +6yn3vZXe2L801gfEVw2BQrxEedDglhehPmwex582sjhHtvjj562N/HJIkZnlSflVK
-	 MCyH8IrgKAzAUxgNp9D9hixPqxCjtpANWbhSRdqN8HlWlK1ZFGBJIxr5sF3Lum6e+C
-	 I3KGUrpqS8NzzAE0z0lQTZ1DmCJwl0pzX6y644MoGL9P0Mb2pwoe3GqWj+kL4Rx+DH
-	 ITXrBKep76Ysw==
-Received: by mail-lf1-f48.google.com with SMTP id 2adb3069b0e04-5a746f9c092so10728351e87.1
-        for <linux-acpi@vger.kernel.org>; Fri, 22 May 2026 05:25:28 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AFNElJ/k52fgEpo4imfl425V4FTcDeFciZcPYkxiwwHo3UHeU6k7sWOMUMRYa6ddeMw+JTAWaXbaSDmqm/Sp@vger.kernel.org
-X-Gm-Message-State: AOJu0YxWpkERZ6CrRtEvEwkIYePcMigp1zIJ2wwjOpmDU84QfCDjEXk4
-	HqvjJ7alu4XHMgs0c4YzgV+KVd5allmix6fwMKoC7XauYTU7VG4W/hA7DQ+x+wGMMzpeXWcqPXg
-	UiGyH/5ekTSBghU5dfxXblqjAGIRXtDU=
-X-Received: by 2002:a05:6512:378e:20b0:5aa:e35:2270 with SMTP id
- 2adb3069b0e04-5aa3222c876mr666958e87.0.1779452727347; Fri, 22 May 2026
- 05:25:27 -0700 (PDT)
+	b=cbTUhmBGdeXVrO+s8JnqlfMru4w2QyzdBxFenj1H3I63WSJf1vFacNaKgNhmYFmpB
+	 0IMCndJ8x3Z0+jM4wzEAbp9Cz4wyfukeFsY4v0cSfHtiH57ubxnTgm72tM87T+/vbP
+	 OBPDNUTbH9ZXR+ofAMN+ArYVXMkl3H1JSwm/dcqE7fXY3ymLWgLj83KKEisKeGeltv
+	 gsLJATEaIJewqEw7SuwVI1kpR86J60Xlv3GzeIVa/QoVSKYpNGxz+U/vOOG9B7rVtL
+	 VP56uWibhN9iep7f8uPI1sPQGYNp2nUe3+Bm4uiWeGO6eAGTYCLrZ9P5sf2TvvTihx
+	 ofBTHIErvJuMg==
+Received: by mail-lf1-f51.google.com with SMTP id 2adb3069b0e04-5a877510541so8385120e87.2
+        for <linux-acpi@vger.kernel.org>; Fri, 22 May 2026 05:26:27 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ/+TLo5C8GneD18Nk0VNmKL6bjCX11Y56Aan7FFvRUhzd+9HayN1ZT8tEBRBg1oikn7ru8rFwRD5YZe@vger.kernel.org
+X-Gm-Message-State: AOJu0YyqMdQCoUccPHbp/C9QzR/2wDRgV/zp9LjfJhWfZT9KOe23RZq1
+	CFgf6/o5BBobowtbQbvc+VLM0BFVTwOtwt3X1p6N1dQpPSNQTIkiDLm50rbRKYEszkFQeHgp3S1
+	OcGY/fD5pN5KIT3rWPSPL9kEk1+EfoM0=
+X-Received: by 2002:ac2:4552:0:b0:5a8:fbe1:15a3 with SMTP id
+ 2adb3069b0e04-5aa323cf57fmr774655e87.39.1779452786406; Fri, 22 May 2026
+ 05:26:26 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -45,10 +45,10 @@ References: <5996185.DvuYhMxLoT@rafael.j.wysocki> <2265993.irdbgypaU6@rafael.j.w
  <Z01FFT.NPPC3AQH2RI22@kousu.ca>
 In-Reply-To: <Z01FFT.NPPC3AQH2RI22@kousu.ca>
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Fri, 22 May 2026 14:25:12 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0gbVqppGJgz78XXZS6DdBx0SMjvDzeoeZFZRvU7smTH7w@mail.gmail.com>
-X-Gm-Features: AVHnY4I9R9asg0CkA8bbiHfc6cvraxeMcbKv1Z1W3byrGcK-JcEwgmTCdS4a5n8
-Message-ID: <CAJZ5v0gbVqppGJgz78XXZS6DdBx0SMjvDzeoeZFZRvU7smTH7w@mail.gmail.com>
+Date: Fri, 22 May 2026 14:26:12 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0g+-DhPhv4K8KMW4QfUo4k8JXamxTM0XZJwB8EfME_BkA@mail.gmail.com>
+X-Gm-Features: AVHnY4JAIzrkrURxmPL70ycwZb_578J1WpyOBLDP-zMiJpksgQUkhI-PN584pzo
+Message-ID: <CAJZ5v0g+-DhPhv4K8KMW4QfUo4k8JXamxTM0XZJwB8EfME_BkA@mail.gmail.com>
 Subject: Re: [PATCH v1 2/3] ACPI: button: Enable wakeup GPEs for ACPI buttons
  at probe time
 To: Nick <nick@kousu.ca>
@@ -85,12 +85,7 @@ On Fri, May 22, 2026 at 3:48=E2=80=AFAM Nick <nick@kousu.ca> wrote:
 > lidswitch are back. That's great. Thank you! Learning how to bisect was
 > a steep curve for me but everything after that has been a really easy
 > experience. Thank you for knowing this subsystem deeply.
->
-> - Nick
->
->
->
->
->
->
->
+
+You're welcome!
+
+(and sorry for an empty reply message I've just sent)
