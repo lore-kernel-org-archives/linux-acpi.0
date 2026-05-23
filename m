@@ -1,37 +1,37 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B35C43A4257;
-	Sat, 23 May 2026 14:03:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 467E03168FB;
+	Sat, 23 May 2026 14:03:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779544985; cv=none; b=TbAeO7OmrnIZt8MmQbfkh7YEQT4vkq/D0nUMuQNkGvtCxLELj9O0sjS2YhB91rUEOHWvcquoTwYhaid2QmKX38fVzSu40l10ww84cW94SuI/eydeK/ljdGCzVpcwxCAEBVEQDqhggGIWBxDB72XXh3ujsZs8CPenZC1zqATLwY4=
+	t=1779544986; cv=none; b=ekHzNfDo8qSI9B2mycEhTt2DgOyI+ePiDFBlb75RIG+Ql4oT8Bu9f8/7OBCmUP8bW0le+/CBBKIn8rObD7adH7FLuwvF+8iaRjwId/Id/7j3+UYW09l2u8aQIAed/bdTfBYcabKA042S35aXSTIzEMJ3Pd3YKiMPJGYvAISX6Rs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779544985; c=relaxed/simple;
-	bh=SYhI9mJBt1jThfR8leDkHslN2mb7/RuCI4SqdrZLTgs=;
+	s=arc-20240116; t=1779544986; c=relaxed/simple;
+	bh=aUhTz9jm+Ra2Q6RC2n0qYxb1bA+A3HUaTCXCNCF7HOA=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=eLzxdgfOvwvenZ98jT1MrPbtFyu7kmoPKXpYTdpaLcGUiGoythJgxFKMqKPpRfNW/b5a0ZQKtsTJ6PDmFhXFmu5iIbVjZZX8L8axXmT4MCbtrzK60yf/N57lt4sN6jewhLPfsdLzKttdQtUebu4ABG8pU0gKtz1hiqem3gCqNIs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HvDEyRjG; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version; b=spHMHpNHRFQXB6TvVNlLdrJCxy7bRYwxnsvzPLwUQyIlMcgOX21udRPSTKXJycvqJa0GKPCC3s6XFBcNkJjkeDgKqyGtMPJQoBlU3UPVRpcjiIHd7NQAa//Qm7Ulv7MN40Tw3a+BkRBEzFqYaWYIwxNOkobe4uX+KGeedy/uSDk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bSOJOl7w; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HvDEyRjG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A6761F000E9;
-	Sat, 23 May 2026 14:03:03 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bSOJOl7w"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 191631F00A3F;
+	Sat, 23 May 2026 14:03:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1779544983;
-	bh=PFHj47c6qJXPg7YyyPPPr06dTCFXBrH1mNb8u9bVy+Q=;
+	s=k20260515; t=1779544984;
+	bh=8rYvi+3JVZJtERBC/gfJzp98B/b/Fpz7xNSQPS8u1Nc=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=HvDEyRjG5R2omKBbTn30gFkTXxVQ8ffgWsGowy1l4xIOjse3B84DvqQ+uTIF/cOtM
-	 IIr3MUSwXLK62lm1au8ZpT25SVBBjAFORn8hLBqNlXevXPxX4E0P2MLA4nzxdxTNQq
-	 16A2vH2T1zNjN11UyVvF3ScXtMQVtEQ41SNmv5Y7gdnvKm4d7X5/+uurZOSFs4hr7r
-	 j4OmLx/GLU1veXyTh3L+Yv/IB0vt+WOk1cL4LuFOyRy5HanbbJO2PKrqIXqdNc7uiY
-	 svyGKlu7tTkNhPlH8Q4kwNOQ0m30F0fEQ803rCuVocvcoNwSnjHiYLteK5+6W9Z+fI
-	 i+nYRNooueWpQ==
+	b=bSOJOl7wKDMWKFPYKCprmK5iMeFOfMuB0ZRTyNl36MtQXWICt6vAEKvSI2WUdCq0I
+	 Nzl1W+/UGNWVTNyUMdWd77lAiFBTdqHXG/pLHBfJ7J3oMOA32xKXavlAluSD5Cyf3t
+	 nyfJpdDoWqiJULYOprJvVn/i/zPJa5Tae1lYrS/jBM5qlvxGZpU+BShSO2LYPp9mg9
+	 R/KQoMqNeU1tXQChayB3fprHG1fV720Znu5ffE4fmg3aESGC9LFwIgOL6lxwpH3cGB
+	 i0C4hNTIFT58PKzBJG6W/esVSVHH4q1y3suAkvN43bxHfTZJba/WmSPPnJ0c6YZqjB
+	 10Ds6WzlFyRdg==
 Received: from sofa.misterjones.org ([185.219.108.64] helo=valley-girl.lan)
 	by disco-boy.misterjones.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.98.2)
 	(envelope-from <maz@kernel.org>)
-	id 1wQmwP-00000005YFc-3EpI;
-	Sat, 23 May 2026 14:03:01 +0000
+	id 1wQmwQ-00000005YFc-1ECC;
+	Sat, 23 May 2026 14:03:02 +0000
 From: Marc Zyngier <maz@kernel.org>
 To: linux-arm-kernel@lists.infradead.org,
 	linux-acpi@vger.kernel.org,
@@ -80,9 +80,9 @@ Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>,
 	Orson Zhai <orsonzhai@gmail.com>,
 	Baolin Wang <baolin.wang@linux.alibaba.com>,
 	Michal Simek <michal.simek@amd.com>
-Subject: [PATCH v3 16/17] arm64: dts: sprd: Add EL2 virtual timer interrupt
-Date: Sat, 23 May 2026 15:02:41 +0100
-Message-ID: <20260523140242.586031-17-maz@kernel.org>
+Subject: [PATCH v3 17/17] arm64: dts: xilinx: Add EL2 virtual timer interrupt
+Date: Sat, 23 May 2026 15:02:42 +0100
+Message-ID: <20260523140242.586031-18-maz@kernel.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260523140242.586031-1-maz@kernel.org>
 References: <20260523140242.586031-1-maz@kernel.org>
@@ -99,58 +99,29 @@ X-SA-Exim-Rcpt-To: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.
 X-SA-Exim-Mail-From: maz@kernel.org
 X-SA-Exim-Scanned: No (on disco-boy.misterjones.org); SAEximRunCond expanded to false
 
-The ARMv8.2 based CPUs used in a number of Unisoc SoCs are missing
-the EL2 virtual timer interrupt. Add it.
+The ARMv8.2 based CPUs used in the versal SoC are missing the EL2 virtual
+timer interrupt. Add it.
 
+Acked-by: Michal Simek <michal.simek@amd.com>
 Signed-off-by: Marc Zyngier <maz@kernel.org>
 ---
- arch/arm64/boot/dts/sprd/sc9863a.dtsi | 3 ++-
- arch/arm64/boot/dts/sprd/ums512.dtsi  | 3 ++-
- arch/arm64/boot/dts/sprd/ums9620.dtsi | 3 ++-
- 3 files changed, 6 insertions(+), 3 deletions(-)
+ arch/arm64/boot/dts/xilinx/versal-net.dtsi | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm64/boot/dts/sprd/sc9863a.dtsi b/arch/arm64/boot/dts/sprd/sc9863a.dtsi
-index 31799579d7f2e..18e61c25aa36f 100644
---- a/arch/arm64/boot/dts/sprd/sc9863a.dtsi
-+++ b/arch/arm64/boot/dts/sprd/sc9863a.dtsi
-@@ -130,7 +130,8 @@ timer {
- 		interrupts = <GIC_PPI 13 IRQ_TYPE_LEVEL_HIGH>, /* Physical Secure PPI */
- 			     <GIC_PPI 14 IRQ_TYPE_LEVEL_HIGH>, /* Physical Non-Secure PPI */
- 			     <GIC_PPI 11 IRQ_TYPE_LEVEL_HIGH>, /* Virtual PPI */
--			     <GIC_PPI 10 IRQ_TYPE_LEVEL_HIGH>; /* Hipervisor PPI */
-+			     <GIC_PPI 10 IRQ_TYPE_LEVEL_HIGH>, /* Hypervisor physical PPI */
-+			     <GIC_PPI 12 IRQ_TYPE_LEVEL_HIGH>; /* Hypervisor virtual PPI */
+diff --git a/arch/arm64/boot/dts/xilinx/versal-net.dtsi b/arch/arm64/boot/dts/xilinx/versal-net.dtsi
+index 15f767608e67f..0aac93675ad77 100644
+--- a/arch/arm64/boot/dts/xilinx/versal-net.dtsi
++++ b/arch/arm64/boot/dts/xilinx/versal-net.dtsi
+@@ -728,7 +728,8 @@ fpga: fpga-region {
+ 
+ 	timer: timer {
+ 		compatible = "arm,armv8-timer";
+-		interrupts = <1 13 4>, <1 14 4>, <1 11 4>, <1 10 4>;
++		interrupts = <1 13 4>, <1 14 4>, <1 11 4>, <1 10 4>,
++			     <1 12 4>;
  	};
  
- 	pmu {
-diff --git a/arch/arm64/boot/dts/sprd/ums512.dtsi b/arch/arm64/boot/dts/sprd/ums512.dtsi
-index efa14309cc4ef..4105647aabd17 100644
---- a/arch/arm64/boot/dts/sprd/ums512.dtsi
-+++ b/arch/arm64/boot/dts/sprd/ums512.dtsi
-@@ -133,7 +133,8 @@ timer {
- 		interrupts = <GIC_PPI 13 IRQ_TYPE_LEVEL_HIGH>, /* Physical Secure PPI */
- 			     <GIC_PPI 14 IRQ_TYPE_LEVEL_HIGH>, /* Physical Non-Secure PPI */
- 			     <GIC_PPI 11 IRQ_TYPE_LEVEL_HIGH>, /* Virtual PPI */
--			     <GIC_PPI 10 IRQ_TYPE_LEVEL_HIGH>; /* Hipervisor PPI */
-+			     <GIC_PPI 10 IRQ_TYPE_LEVEL_HIGH>, /* Hypervisor physical PPI */
-+			     <GIC_PPI 12 IRQ_TYPE_LEVEL_HIGH>; /* Hypervisor virtual PPI */
- 	};
- 
- 	pmu-a55 {
-diff --git a/arch/arm64/boot/dts/sprd/ums9620.dtsi b/arch/arm64/boot/dts/sprd/ums9620.dtsi
-index 2458071320c9b..037e3401d4991 100644
---- a/arch/arm64/boot/dts/sprd/ums9620.dtsi
-+++ b/arch/arm64/boot/dts/sprd/ums9620.dtsi
-@@ -141,7 +141,8 @@ timer {
- 		interrupts = <GIC_PPI 13 IRQ_TYPE_LEVEL_HIGH>, /* Physical Secure PPI */
- 			     <GIC_PPI 14 IRQ_TYPE_LEVEL_HIGH>, /* Physical Non-Secure PPI */
- 			     <GIC_PPI 11 IRQ_TYPE_LEVEL_HIGH>, /* Virtual PPI */
--			     <GIC_PPI 10 IRQ_TYPE_LEVEL_HIGH>; /* Hipervisor PPI */
-+			     <GIC_PPI 10 IRQ_TYPE_LEVEL_HIGH>, /* Hypervisor physical PPI */
-+			     <GIC_PPI 12 IRQ_TYPE_LEVEL_HIGH>; /* Hypervisor virtual PPI */
- 	};
- 
- 	pmu-a55 {
+ 	versal_fpga: versal-fpga {
 -- 
 2.47.3
 
