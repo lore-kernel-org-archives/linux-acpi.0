@@ -1,37 +1,37 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 819A939B96E;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E283639BFF9;
 	Sat, 23 May 2026 14:02:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779544979; cv=none; b=jNWA8K0FEfhj6j4C/a5TVWUVmQhlZFfPP00Mqf3gpWdIcZpzF4FlGcwNrxMacMokprLmo7LynMulBNH9m1iaV/0eK5CwStXlx9L5ISmg4vkXw4AiNl9C+HCezRNIC5A3ei0mYX6dr4MFmvFVJ+OD5gY5Ab502BNfaM3cC3e35do=
+	t=1779544980; cv=none; b=u30It/XYvjs84536hw1hmqC8kEPGlOaLravzL8nA+SLtbLAE+ScqgsuSHOH+LQEyIYAA6sp1IAFmdgzAYSd8bLgoZfnVjDtoMnPTqEYbI0q7b2B3eUzq2opczRBHkYf8mj1gQhnqfOcGdxFKC3P9szgy/T7sITNZuZT21ePAagw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779544979; c=relaxed/simple;
-	bh=LYKYrcWsP0+fOZTBHk+QjABYKTzhnDyUxa984GNDbHU=;
+	s=arc-20240116; t=1779544980; c=relaxed/simple;
+	bh=VLsh85YozgAjTbaFo7luW5wp3AU+M3q21SDYWi9Ryio=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=HT6EV5LqOd5wAh3G8+Wh7mGnj2BgrZEvAJnTWPGEsjtwEb/8zmv6sbXtIIFdZZU2zb9azn0O7H6Lol+ltQrQ8D9DBicPNl/hRIxgn4h6w/hlS6KSZtEKzSDPh3uIkVRo5bG6g1DRC/yk/sVwE5+zegGtKH/RitWYd45OTh4usu4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DOlZeM4h; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version; b=AAbQwcxc/Ao2HHe/uv0drPdNvFg2xhtt3oCoW83RgczByQVJqWZ+UA+fGPI0b4CrvFq4x08zi/sDfMzba5SgrxnfdlT36QrO/c2GU6621JoHkqaDjblcu8fG6YUotJ6xKfF0EvvsoP2avUSzwWWXMMXoa07OuHkh5RzVnaY9y/U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IaTSwmKS; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DOlZeM4h"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92AF01F00A3D;
-	Sat, 23 May 2026 14:02:57 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IaTSwmKS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0ACE1F00ADF;
+	Sat, 23 May 2026 14:02:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1779544977;
-	bh=DogHNPTrqypIEsMO98sxwui0Jd0w7EBtRQ+bMeRsSnE=;
+	s=k20260515; t=1779544978;
+	bh=0hbzgY1+TSxHhzIUxgk18Qp5JIkqwoR/fSR0vF4BTMI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=DOlZeM4hxlky1GswsFFlIl3TGYVJKAClWlYopkeIPVWfeuafaNZq0f/N/VeR3cnqU
-	 d6mv6kMQLHaQcvxiY73rDg9z+n/0ZcCtArDJHvmBx/j4H75Gir6WJ/gZedIjGUSl4j
-	 dNZoU6TFAtFwD4vuprXHmM2Tu/WIXJQ/vYFSN4r2h7HFzV2J1g9TkuiXoaT7aHhCAb
-	 pwYDOcMVGjykyraKpsV7VlpuORlTb2jiDcokooPoP8yFJopi8K+ADhAWzgIGBSFDeP
-	 l0rFMMIZGjnVXK30ixAZKrb2RIF3YzfnSJRyovg/wIakkqKy9bdmYdK4af6TM67rf2
-	 lgaW83QqOVVvA==
+	b=IaTSwmKSQdWjlrxgezeppAcuZ9VgiK/7JdNdGt0235UlSVVJateAa+SHONs6vdHyM
+	 MgTEGLt1/GQLXS6kySt2yh/se3jkOeMVqUzh3+wYgZb6h5+gV9h2gG9TlH67ls15RO
+	 pBgasDJMVbOMsFNaWDdmAQ+F5X48kp4QATafWeR6Lu3rPRAHuFxWuTTICVqyfeNBCw
+	 Jpq+BwVYeRy/TYo0MvkSr68AKklbbrC0ii2vtXnMchoq/lvgAH6fJtmh8+0tmQrCn1
+	 1K+0ndHs8qj6mGaVFjXlmzKoYJouulfJXMO9I4gwevvUaSIMC2akxUGZLoo44GwxuB
+	 MJIX388NtB3RA==
 Received: from sofa.misterjones.org ([185.219.108.64] helo=valley-girl.lan)
 	by disco-boy.misterjones.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.98.2)
 	(envelope-from <maz@kernel.org>)
-	id 1wQmwJ-00000005YFc-2qsF;
-	Sat, 23 May 2026 14:02:55 +0000
+	id 1wQmwK-00000005YFc-3H86;
+	Sat, 23 May 2026 14:02:56 +0000
 From: Marc Zyngier <maz@kernel.org>
 To: linux-arm-kernel@lists.infradead.org,
 	linux-acpi@vger.kernel.org,
@@ -79,11 +79,10 @@ Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>,
 	Shawn Lin <shawn.lin@rock-chips.com>,
 	Orson Zhai <orsonzhai@gmail.com>,
 	Baolin Wang <baolin.wang@linux.alibaba.com>,
-	Michal Simek <michal.simek@amd.com>,
-	Andre Przywara <andre.przywara@arm.com>
-Subject: [PATCH v3 05/17] arm64: dts: allwinner: Add EL2 virtual timer interrupt
-Date: Sat, 23 May 2026 15:02:30 +0100
-Message-ID: <20260523140242.586031-6-maz@kernel.org>
+	Michal Simek <michal.simek@amd.com>
+Subject: [PATCH v3 07/17] arm64: dts: bst: Add EL2 virtual timer interrupt
+Date: Sat, 23 May 2026 15:02:32 +0100
+Message-ID: <20260523140242.586031-8-maz@kernel.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260523140242.586031-1-maz@kernel.org>
 References: <20260523140242.586031-1-maz@kernel.org>
@@ -96,34 +95,31 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-SA-Exim-Connect-IP: 185.219.108.64
 X-SA-Exim-Rcpt-To: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, lpieralisi@kernel.org, guohanjun@huawei.com, sudeep.holla@kernel.org, catalin.marinas@arm.com, will@kernel.org, rafael@kernel.org, mark.rutland@arm.com, daniel.lezcano@kernel.org, tglx@kernel.org, robh@kernel.org, krzk+dt@kernel.org, conor+dt@kernel.org, wens@kernel.org, jernej.skrabec@gmail.com, samuel@sholland.org, neil.armstrong@linaro.org, khilman@baylibre.com, jbrunet@baylibre.com, martin.blumenstingl@googlemail.com, gordon.ge@bst.ai, bst-upstream@bstai.top, jesper.nilsson@axis.com, lars.persson@axis.com, alim.akhtar@samsung.com, ivo.ivanov.ivanov1@gmail.com, Frank.Li@nxp.com, s.hauer@pengutronix.de, kernel@pengutronix.de, festevam@gmail.com, dinguyen@kernel.org, matthias.bgg@gmail.com, angelogioacchino.delregno@collabora.com, thierry.reding@kernel.org, jonathanh@nvidia.com, andersson@kernel.org, konradybcio@kernel.org, afaerber@suse.de, 
- eleanor.lin@realtek.com, heiko@sntech.de, shawn.lin@rock-chips.com, orsonzhai@gmail.com, baolin.wang@linux.alibaba.com, michal.simek@amd.com, andre.przywara@arm.com
+ eleanor.lin@realtek.com, heiko@sntech.de, shawn.lin@rock-chips.com, orsonzhai@gmail.com, baolin.wang@linux.alibaba.com, michal.simek@amd.com
 X-SA-Exim-Mail-From: maz@kernel.org
 X-SA-Exim-Scanned: No (on disco-boy.misterjones.org); SAEximRunCond expanded to false
 
-The ARMv8.2 based CPUs used in the A523 SoC (and derivatives)
-are missing the EL2 virtual timer interrupt. Add it.
+The ARMv8.2 based CPUs used in the bst c1200 SoC are missing the EL2
+virtual timer interrupt. Add it.
 
-Reviewed-by: Andre Przywara <andre.przywara@arm.com>
-Tested-by: Andre Przywara <andre.przywara@arm.com>
 Signed-off-by: Marc Zyngier <maz@kernel.org>
 ---
- arch/arm64/boot/dts/allwinner/sun55i-a523.dtsi | 3 ++-
+ arch/arm64/boot/dts/bst/bstc1200.dtsi | 3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm64/boot/dts/allwinner/sun55i-a523.dtsi b/arch/arm64/boot/dts/allwinner/sun55i-a523.dtsi
-index 5afa8d92acbfb..d3c47966e8fc8 100644
---- a/arch/arm64/boot/dts/allwinner/sun55i-a523.dtsi
-+++ b/arch/arm64/boot/dts/allwinner/sun55i-a523.dtsi
-@@ -101,7 +101,8 @@ timer {
- 		interrupts = <GIC_PPI 13 IRQ_TYPE_LEVEL_HIGH>,
- 			     <GIC_PPI 14 IRQ_TYPE_LEVEL_HIGH>,
- 			     <GIC_PPI 11 IRQ_TYPE_LEVEL_HIGH>,
--			     <GIC_PPI 10 IRQ_TYPE_LEVEL_HIGH>;
-+			     <GIC_PPI 10 IRQ_TYPE_LEVEL_HIGH>,
-+			     <GIC_PPI 12 IRQ_TYPE_LEVEL_HIGH>;
+diff --git a/arch/arm64/boot/dts/bst/bstc1200.dtsi b/arch/arm64/boot/dts/bst/bstc1200.dtsi
+index dd13c6bfc3c89..104ecf76ced10 100644
+--- a/arch/arm64/boot/dts/bst/bstc1200.dtsi
++++ b/arch/arm64/boot/dts/bst/bstc1200.dtsi
+@@ -92,6 +92,7 @@ timer {
+ 		interrupts = <GIC_PPI 13 IRQ_TYPE_LEVEL_LOW>,
+ 			     <GIC_PPI 14 IRQ_TYPE_LEVEL_LOW>,
+ 			     <GIC_PPI 11 IRQ_TYPE_LEVEL_LOW>,
+-			     <GIC_PPI 10 IRQ_TYPE_LEVEL_LOW>;
++			     <GIC_PPI 10 IRQ_TYPE_LEVEL_LOW>,
++			     <GIC_PPI 12 IRQ_TYPE_LEVEL_LOW>;
  	};
- 
- 	soc {
+ };
 -- 
 2.47.3
 
