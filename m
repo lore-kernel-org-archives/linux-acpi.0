@@ -1,73 +1,139 @@
-Received: from sonic313-9.consmr.mail.ne1.yahoo.com (sonic313-9.consmr.mail.ne1.yahoo.com [66.163.185.32])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3766021D00A
-	for <linux-acpi@vger.kernel.org>; Sat, 23 May 2026 00:44:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=66.163.185.32
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D66A235972;
+	Sat, 23 May 2026 00:45:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779497053; cv=none; b=sK1Bo3CQdLQ5o1FdBbtH0i5tgSVF+LYEo/0hbSRWR48K8D5cLS/PPPmIbMGCo1Z/y/ayDaPOusbQd1ARZYkje5RgOCy+/3uusbKPkG7zyh0TjqHBojmJvwawncNggsftcnLJ5VYq7DB1AuriHCLDw/Fn4uyu/AdWyfatRRG6CsI=
+	t=1779497156; cv=none; b=LShcHICzLdcR75EwljIPg1iq8uncAxzvSDUI9WCcRZeH8VxdFbGf2rPbv3HY9tECq/CXY7uPUvvCU+RL+HdSDRrYYxF95Io1TNV89Lv+ivZDE6X84E2ichW9I7Uf0oRDyf56anJPEXDK4Hh/O0GlnghBTKCpq35dp+ijYPlKtyc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779497053; c=relaxed/simple;
-	bh=urD6GaIfJwKMBFMpwmgmNLLHpRQz6qhYGlLKNW2SGec=;
+	s=arc-20240116; t=1779497156; c=relaxed/simple;
+	bh=DqeXOCZ0TXIcigSWsRqnJQXcvPDVQzLlWv2CI6safo4=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=hJzCiBhhr5j1uBXpaWLuyTfwPNNcao/pGGDmB1dfr+YoJON43qmgyXuGYDYEvkumhHXvgedzjyOP/rKYDCXQ8JMAl4XjZRUVcTYaHbUXHFyL47DP6yyXeIGXS2tKqQQx0W303PojtamrJsk/qwXvPhgAKT6kE1I2lWK5wBWEuks=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=yahoo.com; spf=pass smtp.mailfrom=yahoo.com; dkim=pass (2048-bit key) header.d=yahoo.com header.i=@yahoo.com header.b=OD4KPfV5; arc=none smtp.client-ip=66.163.185.32
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=yahoo.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=yahoo.com
+	 MIME-Version; b=us74pcfi2l8+92P5YS3giAS6E89XloG4EJTCJncQNsrcv7nmuJHLFI/MTLcbqkjeTsid5P7Cxi+zUORbmHhoWNHeAdZNfse/Flnttbrva3J3o+sxYi5ylhnqcBVFWSqWGkJJ//OPySSEiJCD22I4zgnVqGgjLxv2ER1xPJsS5R0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=AYrP9ADM; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=yahoo.com header.i=@yahoo.com header.b="OD4KPfV5"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1779497051; bh=FzknOax7kpG8A7HUtg2lGxyRS10yqdEpJcR5/6cx4ds=; h=From:To:Cc:Subject:Date:In-Reply-To:References:From:Subject:Reply-To; b=OD4KPfV5/ND9XJeqVjlXAu6cSAWNR9foZTHvjhoCHMzuKuteQnTjEJMWaAMpGUULF31qYsn6L0IpNJDCS4u+Nud8fW3XslDkJVjHZ6iCCcny9k92hek8w3k5dT8C23IQn8TNecAQ0dNB4OiASBWC58j/zuZ3ZKl5mW8h5nQKX6SFlBf3iZPSpWZcP0jGV4gYNGp5BhDmLpYzmM1ubEjDv6UlMd+JlDH8U6rq41YAzoJJgjtOqFrpjaPl5lftjVREPWB6jV54OuMTUQJpSBQjPNchj3zWRJucKjd3JOV/U7uhCXz4r491IZE+PWFrwgVQJBEvtRJhPDMgNY/SJ8w6Vw==
-X-SONIC-DKIM-SIGN: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1779497051; bh=+C4BXoqkEmCYPlBwKC1KuofGL59gkHfN0FgL+Geakf8=; h=X-Sonic-MF:From:To:Subject:Date:From:Subject; b=FrnBvw479A4i4UEGpnAtjwYyI2iu9FsR99UUqLU/eDcBjWALm7Ks+WzXlBZu3s6Hp28FsJTiqhUIUTqNCdMOUgU1Uc2JpA4ZkXZsA+sKhoLS5jtWt6MoWbfXE2tAYMyV2PYjEj6Tu6KRAGIUd6rwGlcvZESwna0Zxyiv/NyR9a4SBrIcWuj1cU8PvhbIUi/gUbV0sSYlw1+Z0tp+O9u9VZAErDDla7ZDXj96kcqNVXHDj21Ybi794acnO3nAvsNz77bFupCUOK5D+ui1moUvhCjvMi1PcK83mq2nOLLs40coIQUbdOz3oQ/tnWN9dV62HXvwaUjEs/FKZ4cjWDrnbQ==
-X-YMail-OSG: CedHYi8VM1mliPHbE9VDR2hfdNhE5Tcy6j6zMAkAgyfhgasK5Uc7oG7VAlODfdn
- 7F2fAUU.vOskXd9EDzDIhna5SJ6xF8YcZrotkpahBVZ.PVMGV64b8nbJ.HqlrMblOtwmzErO2DIW
- Vh4_mukSXeE4UocSR4tWBEGv5ns4cDnYzXfUT1PP0p8xwC68pLT4DbIbrPrr9ZHUSMAw7ql5kdfZ
- zaXUEarYWA9RXvxmmepGVz7Fg4aHk03cy9PyDQY6pNXbTUKoAXKbMAR6AmwcYIUxioQFFE3ls8oI
- K.jHl9e.5rwac4AZ4QfxYDZUzGl1rlLaJlUGmPq_3UbvHGhdk9ThgDUAfZvrcqe4dIhGrmodCA4k
- GVEAEJ7OsXUwCecAiOM9YMqFGb8Odzlv1af55fNUtFLX7RVPzx0aU_043L8NRMmgM8oW_RC9nPmG
- vjgsM6wWJLImXTUgqXUf8e.DdWoIxRQE2Ug59nn0HxvqLrbrrrS5uuUFXcXYKK7AxlCUQSYvSTCh
- _rLkjhqIqjz6E3JLa4ZEsLC0kHklYg.IhJxbBrcInR7Vx1Z3qRvMOoz6KoGzOPwCcKSw3HMnl3St
- .oBhZHuWoQvLC.KaJdiKg3vPsjIFz3mJd5Xrolr0xB9dslonyAKyDSjklFLmPSSdhsCfqZVw5IQ4
- BIAqdB3KKoQL5Wi7bg5xaMjO8A4e5sqvjIjesedl8wO0KeVNpnP8YbX6sjM6vYfO1rR94rMG.uAR
- gEQeL6l42jwFFy5fk_yGToKgQSmBxiTW8fadY.ASKwnHqonUCgDGw7touB7_BwqECdaqimoGuNtE
- EsBC6tW456vM.M76ouWdrj5GtK2D3Qld8ih0vFv44sw2A9gRKtalKnf7sM3xpt0MOoK7UCxiWSEZ
- mf4tk3vrrvx_IAHRcmNml3pvCHRxl75X1ZEOyPVA0F9qaGhH2Kf1PL8g.Bgy7jR2Dd7o5Y64qN3B
- IXB9MTwXcTaa22HPKz2zKwkOoTicW5Lz88trDkty.MzYrVZAtV.8kkaK1y7FWYsPCBwya0sPVbAa
- FN0QPnRfHej9hYPvKYH7YSyaMHAterWxnCXHm9iUoXxA1yTaE44hA4JurzBl_opzoTULbZHcjPD6
- o.RX6p_E7uVQriZBHydCe9VtA2ZMVkzrLqadInKRQc.TVR4T3gi1QqNtJun96bD20OzHsCxHlW5g
- h34vdCGmUkZ.WcjB.PrHZBLWjescpndEGVLoYCHcwr3Osd5gUKvDwKrH8yhgcc3e2fCpog.2C0Tw
- xVlLBNBr8YFEHq.ijRZthaaUkcm1AunFPrp8dca7Uf4zvXvGXxbGuXLIz6_iCfpn94FdeZMR0ESR
- 0QaVeGxj1HzxcsxZgHHMdFesYLSoJYhr_UXiRfFOAWQSJYqfJOIJfxq3HLutWBzpoYROxN9nQZZ4
- SVgGxj8DnV7qpasw2usRgyLt2qlFU4Wl4bVgHAeGcKP.lHP6JRhCQz30VnrdpJPThkVWT28G9kcj
- Uw98K7LifacvhOxcUAlZ4opLVsYoduTtLGCyh7JRP0TUHSaxormyvj3mntfwdfS7b95IL6FQBQ15
- bN.cvWsiYF.Owl11_amJh3gnQwTPEicTdGb9UuYrYkUSqx0wIP7Ldw1Ex00U60.0uDUMkDGu_c80
- rwGO4E8vrE6f_ZHjiq3lD_cYMcOHwkEP.xwBGKkJZxDynSDL8QYSqZ7ztVuhQf06PfaK.kysk8KS
- sMXM6n2W1MvgVnYyTfgRaVrmGVLpiw9KEIZGd5KgapNfU04_GpmFWdAC9lppCT1.9ACzQA479Ks2
- ag7s8VR.fzzeHrDKj9QFpPEpwpfgYz72Hbs3LyXzMeOXkvRiyA.Jqw2E9a7PzOspCjiTQMrwz3ec
- TzhQOI7J5E.ncWj5UwyqzeTddIR4fE9Hy.5dT_obkqnIVMw5UmGypiBIBWzPCuIkpxmIb0O.kMdb
- YtkR9zPcQFLO1kcvWRFyCHlf1nd5pIS_4mELYlXzOCOb0wKzmXVZ4yQWlWuHFEfi8KBDOozIjU55
- QIPrW
-X-Sonic-MF: <sakunix@yahoo.com>
-X-Sonic-ID: 7c7e40c7-c057-4a74-9f74-1657b11cc9d5
-Received: from sonic.gate.mail.ne1.yahoo.com by sonic313.consmr.mail.ne1.yahoo.com with HTTP; Sat, 23 May 2026 00:44:11 +0000
-Received: by hermes--production-gq1-7bb7df5c46-hjhbv (Yahoo Inc. Hermes SMTP Server) with ESMTPA ID 472109d1fa8341d4a7fb471e72f29321;
-          Sat, 23 May 2026 00:01:37 +0000 (UTC)
-From: Manuel Quintero Fonseca <sakunix@yahoo.com>
-To: rafael@kernel.org,
-	akpm@linux-foundation.org
-Cc: bhelgaas@google.com,
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="AYrP9ADM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D8D01F000E9;
+	Sat, 23 May 2026 00:45:51 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1779497154;
+	bh=Z9Ii4kFnGASPrJVUv4pLJyz9ASaQSsUSFT2aMNSnQpw=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=AYrP9ADMMstpZMK07X7RJX7Vi+LssxAckCYKP0qcdmy4tA9a9uGeNKXekQFeMbDY2
+	 LDBidZU8qfyCeiIO2lTcwcq4IenY+1Wd9qlBghobsMk+v2M/w+YRP79CHe0dVbDprH
+	 6m4cKDcu9eoRxsj9K8pW3klTEaPK47F9haaWHiA44qhhUhE1d+q0p7agQTc1CqKY7Y
+	 TIm3cavZyfg5Ocnp8Ulrf7LvNxFf6kEk1G4wZqQ5n3xAgZSAUkznMwff7nIEvl1Awg
+	 MCkN/vkTJiTtDyoIlmLFKVmTKKTBPE0rS5dN7mvUamAdq3cIcL7ggZ6AdKA3393vQz
+	 kGvcVXqs9FgPQ==
+From: SeongJae Park <sj@kernel.org>
+To: Kees Cook <kees@kernel.org>
+Cc: SeongJae Park <sj@kernel.org>,
+	Luis Chamberlain <mcgrof@kernel.org>,
+	Pengpeng Hou <pengpeng@iscas.ac.cn>,
+	Petr Pavlu <petr.pavlu@suse.com>,
+	Richard Weinberger <richard@nod.at>,
+	Anton Ivanov <anton.ivanov@cambridgegreys.com>,
+	Johannes Berg <johannes@sipsolutions.net>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>,
+	Corey Minyard <corey@minyard.net>,
+	Gabriel Somlo <somlo@cmu.edu>,
+	"Michael S. Tsirkin" <mst@redhat.com>,
+	Jani Nikula <jani.nikula@linux.intel.com>,
+	Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
+	Rodrigo Vivi <rodrigo.vivi@intel.com>,
+	Tvrtko Ursulin <tursulin@ursulin.net>,
+	David Airlie <airlied@gmail.com>,
+	Simona Vetter <simona@ffwll.ch>,
+	Bart Van Assche <bvanassche@acm.org>,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	Leon Romanovsky <leon@kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans de Goede <hansg@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	Hannes Reinecke <hare@suse.de>,
+	"James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+	"Martin K. Petersen" <martin.petersen@oracle.com>,
+	Daniel Lezcano <daniel.lezcano@kernel.org>,
+	Zhang Rui <rui.zhang@intel.com>,
+	Lukasz Luba <lukasz.luba@arm.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jiri Slaby <jirislaby@kernel.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	Jason Wang <jasowang@redhat.com>,
+	Xuan Zhuo <xuanzhuo@linux.alibaba.com>,
+	=?UTF-8?q?Eugenio=20P=C3=A9rez?= <eperezma@redhat.com>,
+	Jason Baron <jbaron@akamai.com>,
+	Jim Cromie <jim.cromie@gmail.com>,
+	Tiwei Bie <tiwei.btw@antgroup.com>,
+	Benjamin Berg <benjamin.berg@intel.com>,
+	=?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+	"David E. Box" <david.e.box@linux.intel.com>,
+	"Maciej W. Rozycki" <macro@orcam.me.uk>,
+	Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Heiko Carstens <hca@linux.ibm.com>,
+	Vasily Gorbik <gor@linux.ibm.com>,
+	Sean Christopherson <seanjc@google.com>,
+	Paolo Bonzini <pbonzini@redhat.com>,
+	Thomas Gleixner <tglx@kernel.org>,
+	Ingo Molnar <mingo@redhat.com>,
+	Borislav Petkov <bp@alien8.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	x86@kernel.org,
+	"H. Peter Anvin" <hpa@zytor.com>,
+	Vinod Koul <vkoul@kernel.org>,
+	Frank Li <Frank.Li@kernel.org>,
+	Daniel Gomez <da.gomez@kernel.org>,
+	Sami Tolvanen <samitolvanen@google.com>,
+	Aaron Tomlin <atomlin@atomlin.com>,
+	Alexander Potapenko <glider@google.com>,
+	Marco Elver <elver@google.com>,
+	Dmitry Vyukov <dvyukov@google.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	John Johansen <john.johansen@canonical.com>,
+	Paul Moore <paul@paul-moore.com>,
+	James Morris <jmorris@namei.org>,
+	"Serge E. Hallyn" <serge@hallyn.com>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Georgia Garcia <georgia.garcia@canonical.com>,
+	kvm@vger.kernel.org,
+	dmaengine@vger.kernel.org,
+	linux-modules@vger.kernel.org,
+	kasan-dev@googlegroups.com,
+	linux-mm@kvack.org,
+	apparmor@lists.ubuntu.com,
+	linux-security-module@vger.kernel.org,
+	linux-um@lists.infradead.org,
 	linux-acpi@vger.kernel.org,
+	openipmi-developer@lists.sourceforge.net,
+	qemu-devel@nongnu.org,
+	intel-gfx@lists.freedesktop.org,
+	dri-devel@lists.freedesktop.org,
+	linux-rdma@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	linux-pci@vger.kernel.org,
+	linux-scsi@vger.kernel.org,
+	linux-pm@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org,
+	linux-serial@vger.kernel.org,
+	linux-usb@vger.kernel.org,
+	usb-storage@lists.one-eyed-alien.net,
+	virtualization@lists.linux.dev,
 	linux-kernel@vger.kernel.org,
-	skhan@linuxfoundation.org,
-	andriy.shevchenko@linux.intel.com,
-	mika.westerberg@linux.intel.com,
-	hansg@kernel.org,
-	Manuel Quintero Fonseca <sakunix@yahoo.com>
-Subject: [PATCH v3] resource: Downgrade "resource sanity check" warning to debug level
-Date: Fri, 22 May 2026 17:01:31 -0700
-Message-ID: <20260523000131.7086-1-sakunix@yahoo.com>
+	linux-arch@vger.kernel.org,
+	netdev@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	linux-hardening@vger.kernel.org,
+	damon@lists.linux.dev
+Subject: Re: [PATCH 09/11] treewide: Convert custom kernel_param_ops .get callbacks to seq_buf via cocci
+Date: Fri, 22 May 2026 17:45:43 -0700
+Message-ID: <20260523004543.86540-1-sj@kernel.org>
 X-Mailer: git-send-email 2.47.3
-In-Reply-To: <CAJZ5v0ikd24Vj3H=2XAGwwHtBudDXJumL4H-whu1GgU-KjMnmQ@mail.gmail.com>
-References: <CAJZ5v0ikd24Vj3H=2XAGwwHtBudDXJumL4H-whu1GgU-KjMnmQ@mail.gmail.com>
+In-Reply-To: <20260521133326.2465264-9-kees@kernel.org>
+References: 
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -76,37 +142,61 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The "resource sanity check" warning currently triggers on certain
-systems, causing unnecessary noise in the kernel logs for users.
-Following the maintainer's suggestion, this patch downgrades the log
-level from pr_warn to pr_debug.
++ damon@lists.linux.dev
 
-This change reduces log clutter while keeping the diagnostic
-information available for debugging purposes if needed.
+On Thu, 21 May 2026 06:33:22 -0700 Kees Cook <kees@kernel.org> wrote:
 
-Signed-off-by: Manuel Quintero Fonseca <sakunix@yahoo.com>
----
-v3:
-   - Downgrade 'resource sanity check' warning to debug level to reduce log 
-     noise, as suggested by the maintainer.
-   - Drop the previous DMI-based quirk approach as it is no longer needed.
+> Using the following Coccinelle script, convert struct kernel_param_ops
+> .get callbacks from "char *" to "struct seq_buf *" when the only write
+> to the buffer is via a final call of scnprintf(), snprintf(), sprintf(),
+> or sysfs_emit().
+> 
+> Since seq_buf_printf() will return -1 on overflow, and struct
+> kernel_param_ops .get callbacks are expected to truncate without error,
+> we must ignore the return value from seq_buf_print() and always return 0
+> (as the length is calculated in the common dispatcher code).
+> 
+> @@
+> identifier FN, BUF, KP;
+> expression FMT;
+> expression list ARGS;
+> @@
+>  int FN(
+> -               char *BUF
+> +               struct seq_buf *BUF
+>                 , const struct kernel_param *KP)
+>  {
+>         ... when any
+> (
+> -       return scnprintf(BUF, PAGE_SIZE, FMT, ARGS);
+> |
+> -       return snprintf(BUF, PAGE_SIZE, FMT, ARGS);
+> |
+> -       return sprintf(BUF, FMT, ARGS);
+> |
+> -       return sysfs_emit(BUF, FMT, ARGS);
+> )
+> +       seq_buf_printf(BUF, FMT, ARGS);
+> +       return 0;
+>  }
+> 
+> No struct kernel_param_ops initializations need changing since
+> DEFINE_KERNEL_PARAM_OPS already routes the pointer to .get or .get_str
+> via _Generic based on the function signature, so converted callbacks
+> are automatically moved from the .get_str to the .get callback.
+> 
+> Signed-off-by: Kees Cook <kees@kernel.org>
+[...]
+>  mm/damon/lru_sort.c                           | 14 +++---
+>  mm/damon/reclaim.c                            | 14 +++---
+>  mm/damon/stat.c                               | 10 ++--
 
- kernel/resource.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+For the above DAMON changes,
 
-diff --git a/kernel/resource.c b/kernel/resource.c
-index d02a53fb95d8..e676ea99c93c 100644
---- a/kernel/resource.c
-+++ b/kernel/resource.c
-@@ -1859,7 +1859,7 @@ int iomem_map_sanity_check(resource_size_t addr, unsigned long size)
- 		if (p->flags & IORESOURCE_BUSY)
- 			continue;
- 
--		pr_warn("resource sanity check: requesting [mem %pa-%pa], which spans more than %s %pR\n",
-+		pr_debug("resource sanity check: requesting [mem %pa-%pa], which spans more than %s %pR\n",
- 			&addr, &end, p->name, p);
- 		err = -1;
- 		break;
--- 
-2.47.3
+Reviewed-by: SeongJae Park <sj@kernel.org>
 
+
+Thanks,
+SJ
+
+[...]
