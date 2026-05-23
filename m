@@ -1,202 +1,295 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from comms.kousu.ca (comms.kousu.ca [46.23.90.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D66A235972;
-	Sat, 23 May 2026 00:45:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADE363264F2;
+	Sat, 23 May 2026 02:15:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.23.90.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779497156; cv=none; b=LShcHICzLdcR75EwljIPg1iq8uncAxzvSDUI9WCcRZeH8VxdFbGf2rPbv3HY9tECq/CXY7uPUvvCU+RL+HdSDRrYYxF95Io1TNV89Lv+ivZDE6X84E2ichW9I7Uf0oRDyf56anJPEXDK4Hh/O0GlnghBTKCpq35dp+ijYPlKtyc=
+	t=1779502547; cv=none; b=YRcBIPUYbDrbiYtgiyr5F7JvTINbBggMWf1oXv7t5lYfVHCUpXy2RJIHxEEKMiztc+Xc4IGhRlW0cPx8oPlQbfqF1OCaOAsqupMBD/iMwkxP7+5Hl+3uw6nisoMgGneYx6Ktsao3rQbfbLDV34rBmg4nH+PZBrUcx+A13fZC3F0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779497156; c=relaxed/simple;
-	bh=DqeXOCZ0TXIcigSWsRqnJQXcvPDVQzLlWv2CI6safo4=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=us74pcfi2l8+92P5YS3giAS6E89XloG4EJTCJncQNsrcv7nmuJHLFI/MTLcbqkjeTsid5P7Cxi+zUORbmHhoWNHeAdZNfse/Flnttbrva3J3o+sxYi5ylhnqcBVFWSqWGkJJ//OPySSEiJCD22I4zgnVqGgjLxv2ER1xPJsS5R0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=AYrP9ADM; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779502547; c=relaxed/simple;
+	bh=o2uTSDpPiRcl+HiF6hm8XvO+iUPqIptMPSJOWQv4Ayo=;
+	h=Date:From:To:CC:Subject:In-Reply-To:References:Message-ID:
+	 MIME-Version:Content-Type; b=ljHrrk85MCsVIHptQ4je/cksBKf8mHuEIxEf+JE+1u+DhD0++6oI8dEHCPpNwt6i2Zj25jZirVFMEG1GDLxIu2hngCQHPueVbXH10YEsAfZkZmGpqL33AhUp2pV5JJaKe/bFtVQmBKGUwgb/0Rjyu2Tj2txJnxUD3UO91WnW4BE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=kousu.ca; spf=pass smtp.mailfrom=kousu.ca; dkim=permerror (0-bit key) header.d=kousu.ca header.i=@kousu.ca header.b=0V1NfTES; dkim=pass (2048-bit key) header.d=kousu.ca header.i=@kousu.ca header.b=eAreaCP8; arc=none smtp.client-ip=46.23.90.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=kousu.ca
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kousu.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="AYrP9ADM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D8D01F000E9;
-	Sat, 23 May 2026 00:45:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1779497154;
-	bh=Z9Ii4kFnGASPrJVUv4pLJyz9ASaQSsUSFT2aMNSnQpw=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=AYrP9ADMMstpZMK07X7RJX7Vi+LssxAckCYKP0qcdmy4tA9a9uGeNKXekQFeMbDY2
-	 LDBidZU8qfyCeiIO2lTcwcq4IenY+1Wd9qlBghobsMk+v2M/w+YRP79CHe0dVbDprH
-	 6m4cKDcu9eoRxsj9K8pW3klTEaPK47F9haaWHiA44qhhUhE1d+q0p7agQTc1CqKY7Y
-	 TIm3cavZyfg5Ocnp8Ulrf7LvNxFf6kEk1G4wZqQ5n3xAgZSAUkznMwff7nIEvl1Awg
-	 MCkN/vkTJiTtDyoIlmLFKVmTKKTBPE0rS5dN7mvUamAdq3cIcL7ggZ6AdKA3393vQz
-	 kGvcVXqs9FgPQ==
-From: SeongJae Park <sj@kernel.org>
-To: Kees Cook <kees@kernel.org>
-Cc: SeongJae Park <sj@kernel.org>,
-	Luis Chamberlain <mcgrof@kernel.org>,
-	Pengpeng Hou <pengpeng@iscas.ac.cn>,
-	Petr Pavlu <petr.pavlu@suse.com>,
-	Richard Weinberger <richard@nod.at>,
-	Anton Ivanov <anton.ivanov@cambridgegreys.com>,
-	Johannes Berg <johannes@sipsolutions.net>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	Corey Minyard <corey@minyard.net>,
-	Gabriel Somlo <somlo@cmu.edu>,
-	"Michael S. Tsirkin" <mst@redhat.com>,
-	Jani Nikula <jani.nikula@linux.intel.com>,
-	Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
-	Rodrigo Vivi <rodrigo.vivi@intel.com>,
-	Tvrtko Ursulin <tursulin@ursulin.net>,
-	David Airlie <airlied@gmail.com>,
-	Simona Vetter <simona@ffwll.ch>,
-	Bart Van Assche <bvanassche@acm.org>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	Leon Romanovsky <leon@kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans de Goede <hansg@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Hannes Reinecke <hare@suse.de>,
-	"James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
-	"Martin K. Petersen" <martin.petersen@oracle.com>,
-	Daniel Lezcano <daniel.lezcano@kernel.org>,
-	Zhang Rui <rui.zhang@intel.com>,
-	Lukasz Luba <lukasz.luba@arm.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jiri Slaby <jirislaby@kernel.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Jason Wang <jasowang@redhat.com>,
-	Xuan Zhuo <xuanzhuo@linux.alibaba.com>,
-	=?UTF-8?q?Eugenio=20P=C3=A9rez?= <eperezma@redhat.com>,
-	Jason Baron <jbaron@akamai.com>,
-	Jim Cromie <jim.cromie@gmail.com>,
-	Tiwei Bie <tiwei.btw@antgroup.com>,
-	Benjamin Berg <benjamin.berg@intel.com>,
-	=?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
-	"David E. Box" <david.e.box@linux.intel.com>,
-	"Maciej W. Rozycki" <macro@orcam.me.uk>,
-	Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Heiko Carstens <hca@linux.ibm.com>,
-	Vasily Gorbik <gor@linux.ibm.com>,
-	Sean Christopherson <seanjc@google.com>,
-	Paolo Bonzini <pbonzini@redhat.com>,
-	Thomas Gleixner <tglx@kernel.org>,
-	Ingo Molnar <mingo@redhat.com>,
-	Borislav Petkov <bp@alien8.de>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	x86@kernel.org,
-	"H. Peter Anvin" <hpa@zytor.com>,
-	Vinod Koul <vkoul@kernel.org>,
-	Frank Li <Frank.Li@kernel.org>,
-	Daniel Gomez <da.gomez@kernel.org>,
-	Sami Tolvanen <samitolvanen@google.com>,
-	Aaron Tomlin <atomlin@atomlin.com>,
-	Alexander Potapenko <glider@google.com>,
-	Marco Elver <elver@google.com>,
-	Dmitry Vyukov <dvyukov@google.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	John Johansen <john.johansen@canonical.com>,
-	Paul Moore <paul@paul-moore.com>,
-	James Morris <jmorris@namei.org>,
-	"Serge E. Hallyn" <serge@hallyn.com>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Georgia Garcia <georgia.garcia@canonical.com>,
-	kvm@vger.kernel.org,
-	dmaengine@vger.kernel.org,
-	linux-modules@vger.kernel.org,
-	kasan-dev@googlegroups.com,
-	linux-mm@kvack.org,
-	apparmor@lists.ubuntu.com,
-	linux-security-module@vger.kernel.org,
-	linux-um@lists.infradead.org,
-	linux-acpi@vger.kernel.org,
-	openipmi-developer@lists.sourceforge.net,
-	qemu-devel@nongnu.org,
-	intel-gfx@lists.freedesktop.org,
-	dri-devel@lists.freedesktop.org,
-	linux-rdma@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	linux-pci@vger.kernel.org,
-	linux-scsi@vger.kernel.org,
-	linux-pm@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org,
-	linux-serial@vger.kernel.org,
-	linux-usb@vger.kernel.org,
-	usb-storage@lists.one-eyed-alien.net,
-	virtualization@lists.linux.dev,
-	linux-kernel@vger.kernel.org,
-	linux-arch@vger.kernel.org,
-	netdev@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org,
-	linux-hardening@vger.kernel.org,
-	damon@lists.linux.dev
-Subject: Re: [PATCH 09/11] treewide: Convert custom kernel_param_ops .get callbacks to seq_buf via cocci
-Date: Fri, 22 May 2026 17:45:43 -0700
-Message-ID: <20260523004543.86540-1-sj@kernel.org>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260521133326.2465264-9-kees@kernel.org>
-References: 
+	dkim=permerror (0-bit key) header.d=kousu.ca header.i=@kousu.ca header.b="0V1NfTES";
+	dkim=pass (2048-bit key) header.d=kousu.ca header.i=@kousu.ca header.b="eAreaCP8"
+DKIM-Signature: v=1; a=ed25519-sha256; c=simple/simple; s=ed25519; bh=o2uTSDpP
+	iRcl+HiF6hm8XvO+iUPqIptMPSJOWQv4Ayo=; h=references:in-reply-to:
+	subject:cc:to:from:date; d=kousu.ca; b=0V1NfTESLpkHN6mmRef9w3bAqXAgPU3
+	jKmm82gQbfiK+eZr0JJMSEhhRnCZi1mhNtb11VuC10sMda2qA0GibAQ==
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; s=rsa; bh=o2uTSDpPiRcl+HiF
+	6hm8XvO+iUPqIptMPSJOWQv4Ayo=; h=references:in-reply-to:subject:cc:to:
+	from:date; d=kousu.ca; b=eAreaCP87ziOwwCTO0tnbtbiBfmm+Yv1VSiJyawn2pwnn
+	4n6mb4SfL5M8CNkrowqcjcMU5i2PTwPWq8DSgCQfhRhs3s9a265rl3bia6UllzRMw/b8z3
+	JzYce6G1tdTHlCNbuP5zM/LbhWL1zSB6XHXyBXOpO4EYpTbafyHDseu2syeLWNZityBvIA
+	5i8MSnODGn6GI9LJltl5FaTCRiwb30Fjd0ziJpQez8uBBoNQTJ/wJOQyv4HKsAxiz48NJL
+	jcK3IrwoWTOt4nikJUiD3gMU9W9BAMe12IbaamK600WhE9RSzv7NKOB7fIxONn0Dw2mjAg
+	EgeZvLP1JEhB2H3Ww==
+Received: from ehlo.thunderbird.net (tsf-204-48-79-92.tsf.videotron.ca [204.48.79.92])
+	by comms.kousu.ca (OpenSMTPD) with ESMTPSA id 9f6b5541 (TLSv1.3:TLS_AES_256_GCM_SHA384:256:NO);
+	Sat, 23 May 2026 04:15:36 +0200 (CEST)
+Date: Sat, 23 May 2026 02:15:33 +0000
+From: Nick <nick@kousu.ca>
+To: "Rafael J. Wysocki" <rafael@kernel.org>,
+ Linux ACPI <linux-acpi@vger.kernel.org>
+CC: LKML <linux-kernel@vger.kernel.org>, Saket Dumbre <saket.dumbre@intel.com>,
+ Pawel Chmielewski <pawel.chmielewski@intel.com>,
+ Mario Limonciello <superm1@kernel.org>
+Subject: =?US-ASCII?Q?Re=3A_=5BPATCH_v2_2/3=5D_ACPI=3A_button=3A_Enable_w?=
+ =?US-ASCII?Q?akeup_GPEs_for_ACPI_buttons_at_probe_time?=
+In-Reply-To: <9629117.CDJkKcVGEf@rafael.j.wysocki>
+References: <2046403.PYKUYFuaPT@rafael.j.wysocki> <9629117.CDJkKcVGEf@rafael.j.wysocki>
+Message-ID: <7B2E2495-8BE8-41F7-9432-F1775612337E@kousu.ca>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-
-+ damon@lists.linux.dev
-
-On Thu, 21 May 2026 06:33:22 -0700 Kees Cook <kees@kernel.org> wrote:
-
-> Using the following Coccinelle script, convert struct kernel_param_ops
-> .get callbacks from "char *" to "struct seq_buf *" when the only write
-> to the buffer is via a final call of scnprintf(), snprintf(), sprintf(),
-> or sysfs_emit().
-> 
-> Since seq_buf_printf() will return -1 on overflow, and struct
-> kernel_param_ops .get callbacks are expected to truncate without error,
-> we must ignore the return value from seq_buf_print() and always return 0
-> (as the length is calculated in the common dispatcher code).
-> 
-> @@
-> identifier FN, BUF, KP;
-> expression FMT;
-> expression list ARGS;
-> @@
->  int FN(
-> -               char *BUF
-> +               struct seq_buf *BUF
->                 , const struct kernel_param *KP)
->  {
->         ... when any
-> (
-> -       return scnprintf(BUF, PAGE_SIZE, FMT, ARGS);
-> |
-> -       return snprintf(BUF, PAGE_SIZE, FMT, ARGS);
-> |
-> -       return sprintf(BUF, FMT, ARGS);
-> |
-> -       return sysfs_emit(BUF, FMT, ARGS);
-> )
-> +       seq_buf_printf(BUF, FMT, ARGS);
-> +       return 0;
->  }
-> 
-> No struct kernel_param_ops initializations need changing since
-> DEFINE_KERNEL_PARAM_OPS already routes the pointer to .get or .get_str
-> via _Generic based on the function signature, so converted callbacks
-> are automatically moved from the .get_str to the .get callback.
-> 
-> Signed-off-by: Kees Cook <kees@kernel.org>
-[...]
->  mm/damon/lru_sort.c                           | 14 +++---
->  mm/damon/reclaim.c                            | 14 +++---
->  mm/damon/stat.c                               | 10 ++--
-
-For the above DAMON changes,
-
-Reviewed-by: SeongJae Park <sj@kernel.org>
+Content-Type: text/plain;
+ charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
 
-Thanks,
-SJ
 
-[...]
+On May 22, 2026 2:52:10=E2=80=AFp=2Em=2E UTC, "Rafael J=2E Wysocki" <rafae=
+l@kernel=2Eorg> wrote:
+>From: Rafael J=2E Wysocki <rafael=2Ej=2Ewysocki@intel=2Ecom>
+>
+>Prior to commit 57c31e6d620f ("ACPI: scan: Use acpi_setup_gpe_for_wake()
+>for buttons"), ACPI button wakeup GPEs having handler methods remained
+>enabled after acpi_wakeup_gpe_init(), but currently they are not enabled
+>because acpi_setup_gpe_for_wake() disables them=2E
+>
+>That causes function keys to stop working on some systems [1] and there
+>may be other related issues elsewhere=2E
+>
+>To address that, make the ACPI button driver enable wakeup GPEs for ACPI
+>buttons so long as they have handler methods=2E  While this does not
+>restore the old behavior exactly (the ACPI button driver needs to be
+>bound to the button devices for the GPEs to be enabled), it should be
+>sufficient to restore the missing functionality=2E
+>
+>For this purpose, introduce acpi_enable_gpe_cond() that enables
+>a GPE if its dispatch type matches the supplied one and modify
+>acpi_button_probe() to use that function for enabling the GPEs in
+>question=2E
+>
+>Fixes: 57c31e6d620f ("ACPI: scan: Use acpi_setup_gpe_for_wake() for butto=
+ns")
+>Reported-by: Nick <nick@kousu=2Eca>
+>Closes: https://lore=2Ekernel=2Eorg/linux-acpi/E2OXET=2E4X5GTP37VTNC3@kou=
+su=2Eca/ [1]
+>Signed-off-by: Rafael J=2E Wysocki <rafael=2Ej=2Ewysocki@intel=2Ecom>
+>Cc: 7=2E0+ <stable@vger=2Ekernel=2Eorg> # 7=2E0+
+>---
+>
+>v1 -> v2:
+>   * Change the acpi_enable_gpe_cond() third parameter to a dispatch type=
+ (or
+>     "any type" value) and modify checks in it accordingly to address a
+>     problem pointed out by sashiko=2Edev
+>   * Adjust comments in acpi_enable_gpe_cond() and acpi_enable_gpe()
+>   * Update the changelog
+>
+>@Nick, It would be good to test this version of the patch on your system
+>because it is a bit different from the previous one (which was not entire=
+ly
+>correct)=2E  I'm not expecting it to behave differently, but additional
+>testing would be welcome=2E
+>
+
+
+I tested this on top of 45255ea1ca096=2E The keys are still working as exp=
+ected! I compared it against 6=2E19=2E14 too and all the keys seem to behav=
+e as before=2E
+
+I noticed one difference, but it might not be directly related: KEY_SLEEP =
+takes significantly longer to trigger suspend on 7=2E1-rc4 than on 6=2E19=
+=2E14=2E On the older version it suspends in about a second; on 7=2E1-rc4 i=
+t takes about a minute before it fully suspends=2E The lid switch on the ot=
+her hand suspends in about a second, and so does the suspend button in my D=
+E, on both versions=2E I guess they're doing different kinds of suspend=2E =
+That's probably related to the other ACPI changes that landed in 7=2E0=2E
+
+Here's a log of me pressing the keys again: (we don't see KEY_SUSPEND here=
+ because it triggers hiberation which I don't have set up so it just shuts =
+down and I lose the log)
+
+(Apologies if you got this twice, I managed to reset=2Emy mail client to H=
+TML defaults while testing somehow)
+
+
+$ uname -r
+6=2E19=2E14-arch1-1
+$ sudo libinput debug-events --show-keycodes
+-event2   DEVICE_ADDED                 Power Button                      s=
+eat0 default group1  cap:k
+-event4   DEVICE_ADDED                 Video Bus                         s=
+eat0 default group2  cap:k
+-event1   DEVICE_ADDED                 Power Button                      s=
+eat0 default group3  cap:k
+-event0   DEVICE_ADDED                 Lid Switch                        s=
+eat0 default group4  cap:S
+-event5   DEVICE_ADDED                 Toshiba input device              s=
+eat0 default group5  cap:k
+-event12  DEVICE_ADDED                 Synaptics TM3322-002              s=
+eat0 default group6  cap:pg  size 95x53mm tap (dl off) left scroll-nat scro=
+ll-2fg-edge click-buttonareas-clickfinger dwt-on dwtp-on
+-event3   DEVICE_ADDED                 AT Translated Set 2 keyboard      s=
+eat0 default group7  cap:k
+-event5   KEYBOARD_KEY                 +0=2E000s	KEY_MUTE (113) pressed
+ event5   KEYBOARD_KEY                 +0=2E000s	KEY_MUTE (113) released
+ event5   KEYBOARD_KEY                 +1=2E054s	KEY_MUTE (113) pressed
+ event5   KEYBOARD_KEY                 +1=2E054s	KEY_MUTE (113) released
+ event5   KEYBOARD_KEY                 +2=2E979s	KEY_COFFEE (152) pressed
+ event5   KEYBOARD_KEY                 +2=2E979s	KEY_COFFEE (152) released
+ event5   KEYBOARD_KEY                 +3=2E810s	KEY_COFFEE (152) pressed
+ event5   KEYBOARD_KEY                 +3=2E810s	KEY_COFFEE (152) released
+ event5   KEYBOARD_KEY                 +5=2E552s	KEY_BATTERY (236) pressed
+ event5   KEYBOARD_KEY                 +5=2E552s	KEY_BATTERY (236) release=
+d
+ event5   KEYBOARD_KEY                 +6=2E180s	KEY_BATTERY (236) pressed
+ event5   KEYBOARD_KEY                 +6=2E180s	KEY_BATTERY (236) release=
+d
+ event5   KEYBOARD_KEY                 +7=2E964s	KEY_SLEEP (142) pressed
+ event5   KEYBOARD_KEY                 +7=2E964s	KEY_SLEEP (142) released
+ event5   KEYBOARD_KEY                 +10=2E545s	KEY_UNKNOWN (240) presse=
+d
+ event5   KEYBOARD_KEY                 +10=2E545s	KEY_UNKNOWN (240) releas=
+ed
+-event1   KEYBOARD_KEY                 +10=2E598s	KEY_WAKEUP (143) pressed
+ event1   KEYBOARD_KEY                 +10=2E598s	KEY_WAKEUP (143) release=
+d
+-event2   KEYBOARD_KEY                 +10=2E600s	KEY_WAKEUP (143) pressed
+ event2   KEYBOARD_KEY                 +10=2E600s	KEY_WAKEUP (143) release=
+d
+-event5   KEYBOARD_KEY                 +20=2E312s	KEY_SWITCHVIDEOMODE (227=
+) pressed
+ event5   KEYBOARD_KEY                 +20=2E312s	KEY_SWITCHVIDEOMODE (227=
+) released
+ event5   KEYBOARD_KEY                 +20=2E981s	KEY_SWITCHVIDEOMODE (227=
+) pressed
+ event5   KEYBOARD_KEY                 +20=2E981s	KEY_SWITCHVIDEOMODE (227=
+) released
+ event5   KEYBOARD_KEY                 +21=2E467s	KEY_BRIGHTNESSDOWN (224)=
+ pressed
+ event5   KEYBOARD_KEY                 +21=2E467s	KEY_BRIGHTNESSDOWN (224)=
+ released
+ event5   KEYBOARD_KEY                 +22=2E034s	KEY_BRIGHTNESSDOWN (224)=
+ pressed
+ event5   KEYBOARD_KEY                 +22=2E034s	KEY_BRIGHTNESSDOWN (224)=
+ released
+ event5   KEYBOARD_KEY                 +22=2E420s	KEY_BRIGHTNESSUP (225) p=
+ressed
+ event5   KEYBOARD_KEY                 +22=2E420s	KEY_BRIGHTNESSUP (225) r=
+eleased
+ event5   KEYBOARD_KEY                 +22=2E845s	KEY_BRIGHTNESSUP (225) p=
+ressed
+ event5   KEYBOARD_KEY                 +22=2E845s	KEY_BRIGHTNESSUP (225) r=
+eleased
+ event5   KEYBOARD_KEY                 +23=2E757s	KEY_WLAN (238) pressed
+ event5   KEYBOARD_KEY                 +23=2E757s	KEY_WLAN (238) released
+ event5   KEYBOARD_KEY                 +24=2E953s	KEY_WLAN (238) pressed
+ event5   KEYBOARD_KEY                 +24=2E953s	KEY_WLAN (238) released
+
+
+$ uname -r
+7=2E1=2E0-rc4-1-git-00393-g39551c4ef087
+$ sudo libinput debug-events --show-keycodes
+-event5   DEVICE_ADDED                 Toshiba input device              s=
+eat0 default group1  cap:k
+-event12  DEVICE_ADDED                 Synaptics TM3322-002              s=
+eat0 default group2  cap:pg  size 95x53mm tap (dl off) left scroll-nat scro=
+ll-2fg-edge click-buttonareas-clickfinger dwt-on dwtp-on
+-event4   DEVICE_ADDED                 Video Bus                         s=
+eat0 default group3  cap:k
+-event2   DEVICE_ADDED                 Power Button                      s=
+eat0 default group4  cap:k
+-event1   DEVICE_ADDED                 Power Button                      s=
+eat0 default group5  cap:k
+-event0   DEVICE_ADDED                 Lid Switch                        s=
+eat0 default group6  cap:S
+-event3   DEVICE_ADDED                 AT Translated Set 2 keyboard      s=
+eat0 default group7  cap:k
+ event3   KEYBOARD_KEY                 +1=2E467s	KEY_LEFTCTRL (29) pressed
+ event3   KEYBOARD_KEY                 +1=2E469s	KEY_LEFTMETA (125) presse=
+d
+ event3   KEYBOARD_KEY                 +1=2E470s	KEY_F24 (194) pressed
+ event3   KEYBOARD_KEY                 +1=2E608s	KEY_F24 (194) released
+ event3   KEYBOARD_KEY                 +1=2E611s	KEY_LEFTMETA (125) releas=
+ed
+ event3   KEYBOARD_KEY                 +1=2E612s	KEY_LEFTCTRL (29) release=
+d
+-event5   KEYBOARD_KEY                 +4=2E041s	KEY_WLAN (238) pressed
+ event5   KEYBOARD_KEY                 +4=2E041s	KEY_WLAN (238) released
+ event5   KEYBOARD_KEY                 +7=2E001s	KEY_BRIGHTNESSUP (225) pr=
+essed
+ event5   KEYBOARD_KEY                 +7=2E001s	KEY_BRIGHTNESSUP (225) re=
+leased
+ event5   KEYBOARD_KEY                 +7=2E568s	KEY_BRIGHTNESSDOWN (224) =
+pressed
+ event5   KEYBOARD_KEY                 +7=2E568s	KEY_BRIGHTNESSDOWN (224) =
+released
+ event5   KEYBOARD_KEY                 +12=2E350s	KEY_SWITCHVIDEOMODE (227=
+) pressed
+ event5   KEYBOARD_KEY                 +12=2E350s	KEY_SWITCHVIDEOMODE (227=
+) released
+ event5   KEYBOARD_KEY                 +13=2E726s	KEY_SWITCHVIDEOMODE (227=
+) pressed
+ event5   KEYBOARD_KEY                 +13=2E726s	KEY_SWITCHVIDEOMODE (227=
+) released
+ event5   KEYBOARD_KEY                 +19=2E846s	KEY_SLEEP (142) pressed
+ event5   KEYBOARD_KEY                 +19=2E846s	KEY_SLEEP (142) released
+-event3   KEYBOARD_KEY                 +50=2E998s	KEY_LEFTCTRL (29) presse=
+d
+ event3   KEYBOARD_KEY                 +51=2E140s	KEY_LEFTCTRL (29) releas=
+ed
+-event5   KEYBOARD_KEY                 +96=2E713s	KEY_UNKNOWN (240) presse=
+d
+ event5   KEYBOARD_KEY                 +96=2E716s	KEY_UNKNOWN (240) releas=
+ed
+-event1   KEYBOARD_KEY                 +96=2E740s	KEY_WAKEUP (143) pressed
+ event1   KEYBOARD_KEY                 +96=2E740s	KEY_WAKEUP (143) release=
+d
+-event2   KEYBOARD_KEY                 +96=2E743s	KEY_WAKEUP (143) pressed
+ event2   KEYBOARD_KEY                 +96=2E743s	KEY_WAKEUP (143) release=
+d
+-event5   KEYBOARD_KEY                 +111=2E647s	KEY_BATTERY (236) press=
+ed
+ event5   KEYBOARD_KEY                 +111=2E647s	KEY_BATTERY (236) relea=
+sed
+ event5   KEYBOARD_KEY                 +113=2E308s	KEY_BATTERY (236) press=
+ed
+ event5   KEYBOARD_KEY                 +113=2E308s	KEY_BATTERY (236) relea=
+sed
+ event5   KEYBOARD_KEY                 +119=2E950s	KEY_COFFEE (152) presse=
+d
+ event5   KEYBOARD_KEY                 +119=2E950s	KEY_COFFEE (152) releas=
+ed
+ event5   KEYBOARD_KEY                 +121=2E349s	KEY_COFFEE (152) presse=
+d
+ event5   KEYBOARD_KEY                 +121=2E349s	KEY_COFFEE (152) releas=
+ed
+ event5   KEYBOARD_KEY                 +124=2E933s	KEY_MUTE (113) pressed
+ event5   KEYBOARD_KEY                 +124=2E933s	KEY_MUTE (113) released
+ event5   KEYBOARD_KEY                 +125=2E420s	KEY_MUTE (113) pressed
+ event5   KEYBOARD_KEY                 +125=2E420s	KEY_MUTE (113) released
+-event0   SWITCH_TOGGLE                +133=2E939s	switch lid state 1
+-event5   KEYBOARD_KEY                 +136=2E839s	KEY_UNKNOWN (240) press=
+ed
+ event5   KEYBOARD_KEY                 +136=2E850s	KEY_UNKNOWN (240) relea=
+sed
+-event0   SWITCH_TOGGLE                +136=2E873s	switch lid state 0
+-event1   KEYBOARD_KEY                 +136=2E873s	KEY_WAKEUP (143) presse=
+d
+ event1   KEYBOARD_KEY                 +136=2E873s	KEY_WAKEUP (143) releas=
+ed
+-event2   KEYBOARD_KEY                 +136=2E874s	KEY_WAKEUP (143) presse=
+d
+ event2   KEYBOARD_KEY                 +136=2E874s	KEY_WAKEUP (143) releas=
+ed
