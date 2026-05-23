@@ -1,37 +1,37 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 467E03168FB;
-	Sat, 23 May 2026 14:03:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 454913A3E72;
+	Sat, 23 May 2026 14:03:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779544986; cv=none; b=ekHzNfDo8qSI9B2mycEhTt2DgOyI+ePiDFBlb75RIG+Ql4oT8Bu9f8/7OBCmUP8bW0le+/CBBKIn8rObD7adH7FLuwvF+8iaRjwId/Id/7j3+UYW09l2u8aQIAed/bdTfBYcabKA042S35aXSTIzEMJ3Pd3YKiMPJGYvAISX6Rs=
+	t=1779544986; cv=none; b=ooVKnI0uhWTNByDNZeJHRMqnXUx4SsRZ14P4cEAiIACaIMMefICl9LvuM4UjNsrThpnXV4L2QjEMvoy/TbUpEmNHmddCKQNQk7v91pKpbb83LXfxK09wfbU1Fv1gvWHl3ZMH1c33ZopKIZ3KWIoetfxcQhpv4YIqPC3tgEvyFnw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1779544986; c=relaxed/simple;
-	bh=aUhTz9jm+Ra2Q6RC2n0qYxb1bA+A3HUaTCXCNCF7HOA=;
+	bh=MJi7t5TPt89sDo4VGxfAxl6xMQMyA0A0mhskuAXvJcY=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=spHMHpNHRFQXB6TvVNlLdrJCxy7bRYwxnsvzPLwUQyIlMcgOX21udRPSTKXJycvqJa0GKPCC3s6XFBcNkJjkeDgKqyGtMPJQoBlU3UPVRpcjiIHd7NQAa//Qm7Ulv7MN40Tw3a+BkRBEzFqYaWYIwxNOkobe4uX+KGeedy/uSDk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bSOJOl7w; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version; b=rxm4TQv/wQ9jQB3ZX0+A9DteCoKaXOO6Csq4ddRSnwDZFbKGwYIHNwBDFXF6kWZy8ZFsHGdKAtpJGlYWLLwe2FE/7rd+x+gi67dqVAJkhCjDAdZXuKdG7B0fCpB4pDBD6m6QK4Xy+RuyID6r19DQ1OkQtc9l37Btn1LKNZLMLwE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JmFA7TXc; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bSOJOl7w"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 191631F00A3F;
-	Sat, 23 May 2026 14:03:04 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JmFA7TXc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10E0F1F00A3D;
+	Sat, 23 May 2026 14:03:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1779544984;
-	bh=8rYvi+3JVZJtERBC/gfJzp98B/b/Fpz7xNSQPS8u1Nc=;
+	s=k20260515; t=1779544983;
+	bh=d7T6wzUDec4336BxIngLV82kCrrKAPX2+jfs+nI48nk=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=bSOJOl7wKDMWKFPYKCprmK5iMeFOfMuB0ZRTyNl36MtQXWICt6vAEKvSI2WUdCq0I
-	 Nzl1W+/UGNWVTNyUMdWd77lAiFBTdqHXG/pLHBfJ7J3oMOA32xKXavlAluSD5Cyf3t
-	 nyfJpdDoWqiJULYOprJvVn/i/zPJa5Tae1lYrS/jBM5qlvxGZpU+BShSO2LYPp9mg9
-	 R/KQoMqNeU1tXQChayB3fprHG1fV720Znu5ffE4fmg3aESGC9LFwIgOL6lxwpH3cGB
-	 i0C4hNTIFT58PKzBJG6W/esVSVHH4q1y3suAkvN43bxHfTZJba/WmSPPnJ0c6YZqjB
-	 10Ds6WzlFyRdg==
+	b=JmFA7TXcey2gVl0iVsPynxQdFDOSOHzpg7+Dl3BLFTboKL2xypLyPczHO+YOv9ajQ
+	 oZFCfnLClKfspIjuJ8ULldvHrZm6vjarfWFP6IsU2HS+O4XFcXZM3f1lXLop3NdCOB
+	 bB44fYcO05fTVXXNzXBTh4TpmauP4ce4DGkU5nzzZ3HEeRgQ16sS+5WkM7hrMFsjSu
+	 OHrfXjasenTs6UEl0BDXfZDeQ2JoCVfx2m2P/Tutvy9MKSymMYH1/JJit8nmQF8EYL
+	 fFOrhTT70cLhwEDXHDicmU8P+T3NVCVtW+WdIzqB9KAeUJHwLJMFZzzULJHTIDoDLK
+	 LjfVUsE0M6uRQ==
 Received: from sofa.misterjones.org ([185.219.108.64] helo=valley-girl.lan)
 	by disco-boy.misterjones.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.98.2)
 	(envelope-from <maz@kernel.org>)
-	id 1wQmwQ-00000005YFc-1ECC;
-	Sat, 23 May 2026 14:03:02 +0000
+	id 1wQmwP-00000005YFc-11D1;
+	Sat, 23 May 2026 14:03:01 +0000
 From: Marc Zyngier <maz@kernel.org>
 To: linux-arm-kernel@lists.infradead.org,
 	linux-acpi@vger.kernel.org,
@@ -80,9 +80,9 @@ Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>,
 	Orson Zhai <orsonzhai@gmail.com>,
 	Baolin Wang <baolin.wang@linux.alibaba.com>,
 	Michal Simek <michal.simek@amd.com>
-Subject: [PATCH v3 17/17] arm64: dts: xilinx: Add EL2 virtual timer interrupt
-Date: Sat, 23 May 2026 15:02:42 +0100
-Message-ID: <20260523140242.586031-18-maz@kernel.org>
+Subject: [PATCH v3 15/17] arm64: dts: rockchip: Add EL2 virtual timer interrupt
+Date: Sat, 23 May 2026 15:02:40 +0100
+Message-ID: <20260523140242.586031-16-maz@kernel.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260523140242.586031-1-maz@kernel.org>
 References: <20260523140242.586031-1-maz@kernel.org>
@@ -99,29 +99,29 @@ X-SA-Exim-Rcpt-To: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.
 X-SA-Exim-Mail-From: maz@kernel.org
 X-SA-Exim-Scanned: No (on disco-boy.misterjones.org); SAEximRunCond expanded to false
 
-The ARMv8.2 based CPUs used in the versal SoC are missing the EL2 virtual
-timer interrupt. Add it.
+The ARMv8.2 based CPUs used in a number of Rockchip SoCs are missing
+the EL2 virtual timer interrupt. Add it.
 
-Acked-by: Michal Simek <michal.simek@amd.com>
+Acked-by: Heiko Stuebner <heiko@sntech.de>
 Signed-off-by: Marc Zyngier <maz@kernel.org>
 ---
- arch/arm64/boot/dts/xilinx/versal-net.dtsi | 3 ++-
+ arch/arm64/boot/dts/rockchip/rk356x-base.dtsi | 3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm64/boot/dts/xilinx/versal-net.dtsi b/arch/arm64/boot/dts/xilinx/versal-net.dtsi
-index 15f767608e67f..0aac93675ad77 100644
---- a/arch/arm64/boot/dts/xilinx/versal-net.dtsi
-+++ b/arch/arm64/boot/dts/xilinx/versal-net.dtsi
-@@ -728,7 +728,8 @@ fpga: fpga-region {
- 
- 	timer: timer {
- 		compatible = "arm,armv8-timer";
--		interrupts = <1 13 4>, <1 14 4>, <1 11 4>, <1 10 4>;
-+		interrupts = <1 13 4>, <1 14 4>, <1 11 4>, <1 10 4>,
-+			     <1 12 4>;
+diff --git a/arch/arm64/boot/dts/rockchip/rk356x-base.dtsi b/arch/arm64/boot/dts/rockchip/rk356x-base.dtsi
+index 64bdd8b7754b5..a5832895bd392 100644
+--- a/arch/arm64/boot/dts/rockchip/rk356x-base.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk356x-base.dtsi
+@@ -195,7 +195,8 @@ timer {
+ 		interrupts = <GIC_PPI 13 IRQ_TYPE_LEVEL_HIGH>,
+ 			     <GIC_PPI 14 IRQ_TYPE_LEVEL_HIGH>,
+ 			     <GIC_PPI 11 IRQ_TYPE_LEVEL_HIGH>,
+-			     <GIC_PPI 10 IRQ_TYPE_LEVEL_HIGH>;
++			     <GIC_PPI 10 IRQ_TYPE_LEVEL_HIGH>,
++			     <GIC_PPI 12 IRQ_TYPE_LEVEL_HIGH>;
+ 		arm,no-tick-in-suspend;
  	};
  
- 	versal_fpga: versal-fpga {
 -- 
 2.47.3
 
