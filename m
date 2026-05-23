@@ -1,37 +1,37 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8CFDE22068D;
-	Sat, 23 May 2026 14:03:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA9A63A3808;
+	Sat, 23 May 2026 14:03:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779544983; cv=none; b=rXREAmpRc0/9P+6r76gkXFQ7vxV1tvfZcdF3ROnlruvT1cq1wJecOp+wihpvYwsAx3vRzz/VEHDLhfxfknf9Aa9h6rIT3Y73fd8cEqPa97q57W4xNCRVHXRcIMtjfJ9jzgiOSRGB8PpGLLDGp1XJsoXtZwy3Y1LE9bJeyqBGva0=
+	t=1779544984; cv=none; b=TONzax4oBF0U400cpBH7srdmGbenBWvBRnNl2Nnr+WN0SzAVCN8p48qUZPfAvjXlfZ6nI4EKIqzCHV4tD5RzOxOI2amMwYfzKkigg7YRtA4oJLX05nsw2DtESm+jMVuo4dQYaNCTiuU+jHWEjwDrfEH/TY+rTy9Ts+S+dkWPHa0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779544983; c=relaxed/simple;
-	bh=VC6LANEhwgs+80fyZ4VYEW4hOL3vmlUcBIfmWto4pj8=;
+	s=arc-20240116; t=1779544984; c=relaxed/simple;
+	bh=DrpxD5qHnaE1Vvd/k5+Le8i7HjZdU5uqnh3kmij5rg0=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=lOLcrbEiTH/04OCgQQ+5+EAUFo5nKcJLoJo4uJvPpmczMN9UQxmkivEdZn/Pt2OEz4gUDRXFCraFqhwEwPfRTm+yeeaFXX9gpYiYRMyFzCMz54Hhk28t1va/GgYSfqle/DkYemtM9jactEGlAs0ocWYzsZvG8651il9y4DAmNbA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=b29VADsU; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version; b=IjQYSKGcIvoZ9P63MvguCavrnDKnESsgAdj3g0jWO44B7qAzmjmiP80jlMrGRLoehN2eTZAlMOVDBaeFa1O6WVy3LQJi8I10rMVhtPtRiVHmJENVyAkrKCaB6xBzYHxpFp1s1CrdVx9fy2cZ+zI4sTmhZ3iEmMcV+8Gp0h0YKFU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Vc4zUcpk; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="b29VADsU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63C581F000E9;
-	Sat, 23 May 2026 14:03:01 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Vc4zUcpk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77D5A1F01564;
+	Sat, 23 May 2026 14:03:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1779544981;
-	bh=Mn4Kwfv53EbvvGSZgfpwONUvjLBXCStucRWlcVTWwHg=;
+	s=k20260515; t=1779544982;
+	bh=FWX7TUqGEicTVQxA2GTttmQpVSfoy/ldj1hTfdnKHgI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=b29VADsUCpsQL4I1rJI59JDWYFmZ/015vLSMY7foQ/3lQJpYUaoFu6wjWovB694fr
-	 VVwfpFiJqsmXrOgkVJPdq4Ah2A8C9MUpAZbwQuRyV9MfBObTgmX3FAqHdTgBMOR+bD
-	 apfFsjirhpwewu7NjskDJ32CClzySaYx/i9u85ULZxru2bKTGfrzxMWNISC5IlzdpJ
-	 EvDBTFe+LtKqRxvx4etuNhiXCPFs1qaHI/U7v5baqhAx4usOAk3zPAgYCbsoa/yjx6
-	 06Cx+hFd4A23QIUry4ZTvBU0IN/jyXKgtvu/anou/RLQvQjxWw3T1BYTMU2M1dXtkB
-	 kBhslV6uAMWaA==
+	b=Vc4zUcpkYimo1lDe8Ux1B1kIRJxytV1b7YTxsC0iL0vdN/FwY4gdxe5XA2S+dvSKc
+	 Y3WWYhmdEPUPwl7DHvk/4lg3PPbCUS+w2YEuVUgv6FTgjjYQE7aKzDPEMa/sjcGdbC
+	 G2jwPXn0Z8mXDS+9B2ejSfRYbF2Ej6CKvgnFDPr6c8Zx7WRqSzqFzIEd7WdTvQbZtd
+	 c6e4Wjl/XVqddaCNdsJ1xXzDmvyQJl4wnsGP+RC9asIUrifQ6OetbvO3/uoRc38/eL
+	 Gc0U8kHQZnoy/PlfvKEiaaogNKIa9Z1P86n/341/WeMbcEjt+7t65cX76K7VhhelrH
+	 rMm5rgd/OzTdQ==
 Received: from sofa.misterjones.org ([185.219.108.64] helo=valley-girl.lan)
 	by disco-boy.misterjones.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.98.2)
 	(envelope-from <maz@kernel.org>)
-	id 1wQmwN-00000005YFc-2InZ;
-	Sat, 23 May 2026 14:02:59 +0000
+	id 1wQmwO-00000005YFc-2gSK;
+	Sat, 23 May 2026 14:03:00 +0000
 From: Marc Zyngier <maz@kernel.org>
 To: linux-arm-kernel@lists.infradead.org,
 	linux-acpi@vger.kernel.org,
@@ -80,9 +80,9 @@ Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>,
 	Orson Zhai <orsonzhai@gmail.com>,
 	Baolin Wang <baolin.wang@linux.alibaba.com>,
 	Michal Simek <michal.simek@amd.com>
-Subject: [PATCH v3 12/17] arm64: dts: nvidia: Add EL2 virtual timer interrupt
-Date: Sat, 23 May 2026 15:02:37 +0100
-Message-ID: <20260523140242.586031-13-maz@kernel.org>
+Subject: [PATCH v3 14/17] arm64: dts: realtek: Add EL2 virtual timer interrupt
+Date: Sat, 23 May 2026 15:02:39 +0100
+Message-ID: <20260523140242.586031-15-maz@kernel.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260523140242.586031-1-maz@kernel.org>
 References: <20260523140242.586031-1-maz@kernel.org>
@@ -99,42 +99,47 @@ X-SA-Exim-Rcpt-To: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.
 X-SA-Exim-Mail-From: maz@kernel.org
 X-SA-Exim-Scanned: No (on disco-boy.misterjones.org); SAEximRunCond expanded to false
 
-The ARMv8.2 based CPUs used in a number of nvidia SoCs are missing
+The ARMv8.2 based CPUs used in a number of Realtek SoCs are missing
 the EL2 virtual timer interrupt. Add it.
+
+Furthermore, the "kent" platform appears to assign PPI9 to both the
+EL2 virtual timer and the GIC Maintenance Interrupt, which can't be
+right. Attempt a fix by setting the former to PPI12, as PPI9 is
+traditionally wired to the GIC itself.
 
 Signed-off-by: Marc Zyngier <maz@kernel.org>
 ---
- arch/arm64/boot/dts/nvidia/tegra194.dtsi | 2 ++
- arch/arm64/boot/dts/nvidia/tegra234.dtsi | 3 ++-
- 2 files changed, 4 insertions(+), 1 deletion(-)
+ arch/arm64/boot/dts/realtek/kent.dtsi    | 2 +-
+ arch/arm64/boot/dts/realtek/rtd16xx.dtsi | 3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm64/boot/dts/nvidia/tegra194.dtsi b/arch/arm64/boot/dts/nvidia/tegra194.dtsi
-index 849694f751d90..45cc180ac9973 100644
---- a/arch/arm64/boot/dts/nvidia/tegra194.dtsi
-+++ b/arch/arm64/boot/dts/nvidia/tegra194.dtsi
-@@ -3163,6 +3163,8 @@ timer {
- 			     <GIC_PPI 11
- 				(GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>,
- 			     <GIC_PPI 10
-+				(GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>,
-+			     <GIC_PPI 12
- 				(GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>;
- 		interrupt-parent = <&gic>;
- 		always-on;
-diff --git a/arch/arm64/boot/dts/nvidia/tegra234.dtsi b/arch/arm64/boot/dts/nvidia/tegra234.dtsi
-index 04a95b6658caa..ab9813f9ba30c 100644
---- a/arch/arm64/boot/dts/nvidia/tegra234.dtsi
-+++ b/arch/arm64/boot/dts/nvidia/tegra234.dtsi
-@@ -5872,7 +5872,8 @@ timer {
- 		interrupts = <GIC_PPI 13 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>,
- 			     <GIC_PPI 14 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>,
- 			     <GIC_PPI 11 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>,
--			     <GIC_PPI 10 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>;
-+			     <GIC_PPI 10 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>,
-+			     <GIC_PPI 12 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>;
- 		interrupt-parent = <&gic>;
- 		always-on;
+diff --git a/arch/arm64/boot/dts/realtek/kent.dtsi b/arch/arm64/boot/dts/realtek/kent.dtsi
+index ae006ce244205..4147e4269247a 100644
+--- a/arch/arm64/boot/dts/realtek/kent.dtsi
++++ b/arch/arm64/boot/dts/realtek/kent.dtsi
+@@ -23,7 +23,7 @@ timer {
+ 			     <GIC_PPI 14 IRQ_TYPE_LEVEL_LOW>,
+ 			     <GIC_PPI 11 IRQ_TYPE_LEVEL_LOW>,
+ 			     <GIC_PPI 10 IRQ_TYPE_LEVEL_LOW>,
+-			     <GIC_PPI  9 IRQ_TYPE_LEVEL_HIGH>;
++			     <GIC_PPI 12 IRQ_TYPE_LEVEL_HIGH>;
  	};
+ 
+ 	cpus {
+diff --git a/arch/arm64/boot/dts/realtek/rtd16xx.dtsi b/arch/arm64/boot/dts/realtek/rtd16xx.dtsi
+index 3a7f6e35b7f74..43b13d133c324 100644
+--- a/arch/arm64/boot/dts/realtek/rtd16xx.dtsi
++++ b/arch/arm64/boot/dts/realtek/rtd16xx.dtsi
+@@ -105,7 +105,8 @@ timer {
+ 		interrupts = <GIC_PPI 13 IRQ_TYPE_LEVEL_LOW>,
+ 			     <GIC_PPI 14 IRQ_TYPE_LEVEL_LOW>,
+ 			     <GIC_PPI 11 IRQ_TYPE_LEVEL_LOW>,
+-			     <GIC_PPI 10 IRQ_TYPE_LEVEL_LOW>;
++			     <GIC_PPI 10 IRQ_TYPE_LEVEL_LOW>,
++			     <GIC_PPI 12 IRQ_TYPE_LEVEL_LOW>;
+ 	};
+ 
+ 	arm_pmu: pmu {
 -- 
 2.47.3
 
