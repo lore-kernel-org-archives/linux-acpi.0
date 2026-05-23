@@ -1,127 +1,129 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 454913A3E72;
-	Sat, 23 May 2026 14:03:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D40F3128D9
+	for <linux-acpi@vger.kernel.org>; Sat, 23 May 2026 17:23:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779544986; cv=none; b=ooVKnI0uhWTNByDNZeJHRMqnXUx4SsRZ14P4cEAiIACaIMMefICl9LvuM4UjNsrThpnXV4L2QjEMvoy/TbUpEmNHmddCKQNQk7v91pKpbb83LXfxK09wfbU1Fv1gvWHl3ZMH1c33ZopKIZ3KWIoetfxcQhpv4YIqPC3tgEvyFnw=
+	t=1779557039; cv=none; b=dTsu/oVoMHByW/s0SsS8GDnH6qXeYzzSb3gO2Vn+E5yOW/XT/4IAUMiHCS+Z3chSr0wAGgUEPHuX3CXegqFi2/2Vcs9C2JDqVuI4PnGnofAq8w8JGyDc1dyNSusLjmJjIHwTY48L88TTFvIlH5714SXl/QmtLgmlJmRIX+SUPKg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779544986; c=relaxed/simple;
-	bh=MJi7t5TPt89sDo4VGxfAxl6xMQMyA0A0mhskuAXvJcY=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=rxm4TQv/wQ9jQB3ZX0+A9DteCoKaXOO6Csq4ddRSnwDZFbKGwYIHNwBDFXF6kWZy8ZFsHGdKAtpJGlYWLLwe2FE/7rd+x+gi67dqVAJkhCjDAdZXuKdG7B0fCpB4pDBD6m6QK4Xy+RuyID6r19DQ1OkQtc9l37Btn1LKNZLMLwE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JmFA7TXc; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779557039; c=relaxed/simple;
+	bh=Gx5rPnX98QpHZ8+4LYiyXp55ckB8uClTPkmWKtpel1Y=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=VQ5kwRdeSIg6TkGKJX1CCVi6foymKo644NACLw+zyRr9Gg0UDPBdRvoocj2v//+QSh58Kga+gG+w5a2hgxpa8hctc/U5tsAwf3pmx/1oEjxzl6hvKGB/Uk4GLA9PekbsJA5giiH+3g2rpDpRIvjJ+HSlXBDJ2saAKPwWZPZA0EY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=b/4zrVGE; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JmFA7TXc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10E0F1F00A3D;
-	Sat, 23 May 2026 14:03:03 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="b/4zrVGE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5EE1F1F00A3D
+	for <linux-acpi@vger.kernel.org>; Sat, 23 May 2026 17:23:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1779544983;
-	bh=d7T6wzUDec4336BxIngLV82kCrrKAPX2+jfs+nI48nk=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=JmFA7TXcey2gVl0iVsPynxQdFDOSOHzpg7+Dl3BLFTboKL2xypLyPczHO+YOv9ajQ
-	 oZFCfnLClKfspIjuJ8ULldvHrZm6vjarfWFP6IsU2HS+O4XFcXZM3f1lXLop3NdCOB
-	 bB44fYcO05fTVXXNzXBTh4TpmauP4ce4DGkU5nzzZ3HEeRgQ16sS+5WkM7hrMFsjSu
-	 OHrfXjasenTs6UEl0BDXfZDeQ2JoCVfx2m2P/Tutvy9MKSymMYH1/JJit8nmQF8EYL
-	 fFOrhTT70cLhwEDXHDicmU8P+T3NVCVtW+WdIzqB9KAeUJHwLJMFZzzULJHTIDoDLK
-	 LjfVUsE0M6uRQ==
-Received: from sofa.misterjones.org ([185.219.108.64] helo=valley-girl.lan)
-	by disco-boy.misterjones.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.98.2)
-	(envelope-from <maz@kernel.org>)
-	id 1wQmwP-00000005YFc-11D1;
-	Sat, 23 May 2026 14:03:01 +0000
-From: Marc Zyngier <maz@kernel.org>
-To: linux-arm-kernel@lists.infradead.org,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>,
-	Hanjun Guo <guohanjun@huawei.com>,
-	Sudeep Holla <sudeep.holla@kernel.org>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will@kernel.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Daniel Lezcano <daniel.lezcano@kernel.org>,
-	Thomas Gleixner <tglx@kernel.org>,
-	Rob Herring <robh@kernel.org>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	Chen-Yu Tsai <wens@kernel.org>,
-	Jernej Skrabec <jernej.skrabec@gmail.com>,
-	Samuel Holland <samuel@sholland.org>,
-	Neil Armstrong <neil.armstrong@linaro.org>,
-	Kevin Hilman <khilman@baylibre.com>,
-	Jerome Brunet <jbrunet@baylibre.com>,
-	Martin Blumenstingl <martin.blumenstingl@googlemail.com>,
-	Ge Gordon <gordon.ge@bst.ai>,
-	BST Linux Kernel Upstream Group <bst-upstream@bstai.top>,
-	Jesper Nilsson <jesper.nilsson@axis.com>,
-	Lars Persson <lars.persson@axis.com>,
-	Alim Akhtar <alim.akhtar@samsung.com>,
-	Ivaylo Ivanov <ivo.ivanov.ivanov1@gmail.com>,
-	Frank Li <Frank.Li@nxp.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Pengutronix Kernel Team <kernel@pengutronix.de>,
-	Fabio Estevam <festevam@gmail.com>,
-	Dinh Nguyen <dinguyen@kernel.org>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
-	Thierry Reding <thierry.reding@kernel.org>,
-	Jonathan Hunter <jonathanh@nvidia.com>,
-	Bjorn Andersson <andersson@kernel.org>,
-	Konrad Dybcio <konradybcio@kernel.org>,
-	=?UTF-8?q?Andreas=20F=C3=A4rber?= <afaerber@suse.de>,
-	=?UTF-8?q?Yu-Chun=20Lin=20=5B=E6=9E=97=E7=A5=90=E5=90=9B=5D?= <eleanor.lin@realtek.com>,
-	Heiko Stuebner <heiko@sntech.de>,
-	Shawn Lin <shawn.lin@rock-chips.com>,
-	Orson Zhai <orsonzhai@gmail.com>,
-	Baolin Wang <baolin.wang@linux.alibaba.com>,
-	Michal Simek <michal.simek@amd.com>
-Subject: [PATCH v3 15/17] arm64: dts: rockchip: Add EL2 virtual timer interrupt
-Date: Sat, 23 May 2026 15:02:40 +0100
-Message-ID: <20260523140242.586031-16-maz@kernel.org>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260523140242.586031-1-maz@kernel.org>
-References: <20260523140242.586031-1-maz@kernel.org>
+	s=k20260515; t=1779557038;
+	bh=0OZeTR4vprvZ9MDYo0BZvK6k27VrOlw9ROtRK0dbYKc=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=b/4zrVGEXIjK+I1JtyADjkauCRs0Ju2gHFhqoTJbPgia6P4Vk43G5iJEF9CnV0uhu
+	 riwHmkc6+x1Bgpt1W/8+sGtZvvJJtXHZFS8m+QvmwfztsBpkkxmDb0rgt879k9x8Jd
+	 8oWspridkEE0MOK3X9a3s+5qkah4OuQ4i39RuP7MYkHNiST4HOlvqsvwmbfX3P5cQG
+	 vsctvlaKXRFs4EZOL3TdCbHxTQ9HA1R1HNNb65HlivEdm3gsOU2vdxGv+23GDeWZmY
+	 1UdAZynQgWBXgBv0tfNsZCAIIDZTcbn6WmWjp1otHCsH6DUwrqJb9CibJuwk5d9noa
+	 NGWGpslnzZrEA==
+Received: by mail-lf1-f44.google.com with SMTP id 2adb3069b0e04-5a995ab70d1so10645972e87.3
+        for <linux-acpi@vger.kernel.org>; Sat, 23 May 2026 10:23:58 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ+dQnPAEOW2FjTiFSQeNeJ1wURQzlSu7akRtnlT5TlFET7LWbgOMVQZ3Ycc8xmHBLCKoGV+Ocnu7jJp@vger.kernel.org
+X-Gm-Message-State: AOJu0Yz34Qv5r8S9up/wfHA3geajkyCvrECpsFMa24CkyeV6XxEtbvfv
+	wO6AkTiOkJvT7sfYxQBlrjLAsE0O1GVqhbAjdVJV4IFdqSCUPR3BVB150hDytIqymo4J72CtS3/
+	CknUUc/kXKtEBP4Z5D06T/YHOuhYyPws=
+X-Received: by 2002:a05:6512:6c6:b0:5aa:106e:5dd5 with SMTP id
+ 2adb3069b0e04-5aa323aaf36mr2453202e87.10.1779557036855; Sat, 23 May 2026
+ 10:23:56 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 185.219.108.64
-X-SA-Exim-Rcpt-To: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, lpieralisi@kernel.org, guohanjun@huawei.com, sudeep.holla@kernel.org, catalin.marinas@arm.com, will@kernel.org, rafael@kernel.org, mark.rutland@arm.com, daniel.lezcano@kernel.org, tglx@kernel.org, robh@kernel.org, krzk+dt@kernel.org, conor+dt@kernel.org, wens@kernel.org, jernej.skrabec@gmail.com, samuel@sholland.org, neil.armstrong@linaro.org, khilman@baylibre.com, jbrunet@baylibre.com, martin.blumenstingl@googlemail.com, gordon.ge@bst.ai, bst-upstream@bstai.top, jesper.nilsson@axis.com, lars.persson@axis.com, alim.akhtar@samsung.com, ivo.ivanov.ivanov1@gmail.com, Frank.Li@nxp.com, s.hauer@pengutronix.de, kernel@pengutronix.de, festevam@gmail.com, dinguyen@kernel.org, matthias.bgg@gmail.com, angelogioacchino.delregno@collabora.com, thierry.reding@kernel.org, jonathanh@nvidia.com, andersson@kernel.org, konradybcio@kernel.org, afaerber@suse.de, 
- eleanor.lin@realtek.com, heiko@sntech.de, shawn.lin@rock-chips.com, orsonzhai@gmail.com, baolin.wang@linux.alibaba.com, michal.simek@amd.com
-X-SA-Exim-Mail-From: maz@kernel.org
-X-SA-Exim-Scanned: No (on disco-boy.misterjones.org); SAEximRunCond expanded to false
+References: <CAJZ5v0ikd24Vj3H=2XAGwwHtBudDXJumL4H-whu1GgU-KjMnmQ@mail.gmail.com>
+ <20260523000131.7086-1-sakunix@yahoo.com>
+In-Reply-To: <20260523000131.7086-1-sakunix@yahoo.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Sat, 23 May 2026 19:23:44 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0j5U=+vPe+RaFTd8tPwfaDN34q5jj+KFwEY0PtaZx-yLg@mail.gmail.com>
+X-Gm-Features: AVHnY4ICoWRkvJW3fHZZwOgMLVpkbeC4bNNTdNLqZNbDGg6Ekte6Rn1tLf12NXM
+Message-ID: <CAJZ5v0j5U=+vPe+RaFTd8tPwfaDN34q5jj+KFwEY0PtaZx-yLg@mail.gmail.com>
+Subject: Re: [PATCH v3] resource: Downgrade "resource sanity check" warning to
+ debug level
+To: Manuel Quintero Fonseca <sakunix@yahoo.com>
+Cc: akpm@linux-foundation.org, bhelgaas@google.com, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, skhan@linuxfoundation.org, 
+	andriy.shevchenko@linux.intel.com, mika.westerberg@linux.intel.com, 
+	hansg@kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-The ARMv8.2 based CPUs used in a number of Rockchip SoCs are missing
-the EL2 virtual timer interrupt. Add it.
+On Sat, May 23, 2026 at 2:01=E2=80=AFAM Manuel Quintero Fonseca
+<sakunix@yahoo.com> wrote:
+>
+> The "resource sanity check" warning currently triggers on certain
+> systems, causing unnecessary noise in the kernel logs for users.
 
-Acked-by: Heiko Stuebner <heiko@sntech.de>
-Signed-off-by: Marc Zyngier <maz@kernel.org>
----
- arch/arm64/boot/dts/rockchip/rk356x-base.dtsi | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+The fact that it triggers at all is not a problem.  In principle, it
+may help to diagnose a functional issue.  However, it sometimes
+doesn't mean that there is a functional issue, which is a problem.
 
-diff --git a/arch/arm64/boot/dts/rockchip/rk356x-base.dtsi b/arch/arm64/boot/dts/rockchip/rk356x-base.dtsi
-index 64bdd8b7754b5..a5832895bd392 100644
---- a/arch/arm64/boot/dts/rockchip/rk356x-base.dtsi
-+++ b/arch/arm64/boot/dts/rockchip/rk356x-base.dtsi
-@@ -195,7 +195,8 @@ timer {
- 		interrupts = <GIC_PPI 13 IRQ_TYPE_LEVEL_HIGH>,
- 			     <GIC_PPI 14 IRQ_TYPE_LEVEL_HIGH>,
- 			     <GIC_PPI 11 IRQ_TYPE_LEVEL_HIGH>,
--			     <GIC_PPI 10 IRQ_TYPE_LEVEL_HIGH>;
-+			     <GIC_PPI 10 IRQ_TYPE_LEVEL_HIGH>,
-+			     <GIC_PPI 12 IRQ_TYPE_LEVEL_HIGH>;
- 		arm,no-tick-in-suspend;
- 	};
- 
--- 
-2.47.3
+I would say something like
 
+ The "resource sanity check" warning need not mean that there is a
+functional issue
+ and in the cases when there isn't one, it is just useless and confusing no=
+ise.
+
+> Following the maintainer's suggestion, this patch downgrades the log
+> level from pr_warn to pr_debug.
+
+Instead of the first part of the sentence above, you may use a
+Suggested-by tag (pointing to the person whose suggestion is followed)
+and the "this patch" part is redundant.
+
+I would just say
+
+ For this reason, downgrade the log level of it from "warn" to "debug".
+
+> This change reduces log clutter while keeping the diagnostic
+> information available for debugging purposes if needed.
+
+The word "change" can be dropped from the above sentence.
+
+> Signed-off-by: Manuel Quintero Fonseca <sakunix@yahoo.com>
+
+It would be nice to add a Link: tag pointing to the discussion on the
+previous version of the patch.
+
+> ---
+> v3:
+>    - Downgrade 'resource sanity check' warning to debug level to reduce l=
+og
+>      noise, as suggested by the maintainer.
+>    - Drop the previous DMI-based quirk approach as it is no longer needed=
+.
+>
+>  kernel/resource.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/kernel/resource.c b/kernel/resource.c
+> index d02a53fb95d8..e676ea99c93c 100644
+> --- a/kernel/resource.c
+> +++ b/kernel/resource.c
+> @@ -1859,7 +1859,7 @@ int iomem_map_sanity_check(resource_size_t addr, un=
+signed long size)
+>                 if (p->flags & IORESOURCE_BUSY)
+>                         continue;
+>
+> -               pr_warn("resource sanity check: requesting [mem %pa-%pa],=
+ which spans more than %s %pR\n",
+> +               pr_debug("resource sanity check: requesting [mem %pa-%pa]=
+, which spans more than %s %pR\n",
+>                         &addr, &end, p->name, p);
+>                 err =3D -1;
+>                 break;
+> --
+
+And the code change looks good to me.
