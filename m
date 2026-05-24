@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 696CF30FF36;
-	Sun, 24 May 2026 20:00:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A20D625B0BE;
+	Sun, 24 May 2026 20:30:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779652859; cv=none; b=euFrbbDl6Ty6tIl0HnmP8yMl6mkfV4oXYpT4iZ6Z0vG4Qq2RR6hwGDRrLSUTiUo4Iemj98egzQD4eKEc9euzITugSGyT2fn55PZcW9zNiNiq8RgUYglWD+sPQO19EZsul8cCtBu3ivFFZB7S97g8QaqC5opuEv9sDw8+vgdAPgg=
+	t=1779654650; cv=none; b=m+Aqm9JSyg/oXnCH77SEqRzvSlcTT3UpGhB2rtjs1ODXfDnoYDlOCMM2ahUbEltdFKNOLGGBAjtEO3zeiQGHvzXo4BFu7L1/T/2WlnU8HnFteAEF5l2VnjofIMXw7d/WzXF2+QC0Y2zRKXYqeBe8TZhyw2o08yTfkEMfr4JMGVQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779652859; c=relaxed/simple;
-	bh=gOZXX7L0ICbMfrM4uXQoqjMWL/2EPanqb3fXzwPHm2Y=;
+	s=arc-20240116; t=1779654650; c=relaxed/simple;
+	bh=o1V4Nmy3LOx17RHIGtxmf5HnvgWEmJ5hWzHvd3/uzNA=;
 	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=bcWpbVZ86rGKsea3PXvp6/4krAaFX8ZoF+5+zQidOQn3YKrWeXXgml7f+hQGdrQIlK2FLilghuyhTIksOlwA21sFnDR0Hb7oT8S9KQr9od9oyq3oaK8nxTZ0qWzW9z57P43nG+/TXbqa72vz9IKMKqvZb8IX5b17kkjQR6vS20c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Nf1v9JFC; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=kIVK3OSfeocUV9FNhmEy9aIZDQVCX3VyqQjRGpIB0tpSy3xakXBerp4M/mpz6UUpaOgJRddHD2diF8iOTDvhnZwi0cAVQTy6WmL5t0USXx9DIh2jKRszRN09sPvA7HrFqWWbTowBtlS/dR65AMCAO6O9CYjA/y7vnLaNC9ADI18=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nSFQMD2i; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Nf1v9JFC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 511001F000E9;
-	Sun, 24 May 2026 20:00:49 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nSFQMD2i"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E3EF1F000E9;
+	Sun, 24 May 2026 20:30:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1779652858;
-	bh=3HTBQyePaHVmHHrsauW9DhwKjo0QZV1SOvIWr7DAq5o=;
+	s=k20260515; t=1779654649;
+	bh=WB8A2aBdfkbyK1k2ZsI0gwKIPEM6xFeE8NKoc1nioC0=;
 	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=Nf1v9JFCTQGRtLm3jZ8I45mGn9GIW8Y64UyUkOfZmmzk8HN42vBNxQwHb/5cW9rzb
-	 Yqn4p5Mtd6eojzbr8tTEJJPWE34wNHMD4Lwb4RzjiKEX2AfYrh0hrngdXVG8i3gE6N
-	 yosPxD34CJMAqoeyrxS49JuXZRLtFHOh7kM1PTjPzzRNtfSon/H9VvCXXA+tJZPguz
-	 KgSXJY6whqzKofM93ZC0GfCIS2tL5wJNc1xgYlL2YFwyqXANSXfd1+F7yJkXVgL3MD
-	 pghyiWz5HjajvWqdFmmetZMOqBDrpzmYIoaRL033NbKaKiBDIu9t9N+gaCKuqz23bb
-	 nkjsBJ7iSJC9A==
-From: Krzysztof Kozlowski <krzk@kernel.org>
+	b=nSFQMD2i5IQe5quvpGFEtpSkazvZSq0clTb1PWAZ8xOxk796XEVgzaYGdQXTsr1Io
+	 5tQjAcmUfk6sSx/QwcAeq2oAoKJA/+nVoFGsH890D3AdZa4L2bI/6DtKPaq3mAKc5J
+	 M3IC6GTBN+H6OylAlzXs0y2/dwVMChz70Nonf/WZAifUkkXldNS2L11fPD6SKvQZzb
+	 iAdajWqT+REKxfs5DyTPqk40ZljPmELWBt+KUkPhEafppVZSOA0fjFlwy5jBqeGZ14
+	 ds0ggENjvwasq+cdkIWTGhXBlNGXnZdh9wCuzITr3XMU4wuvbsjHELXWCGuED7HsaT
+	 UkeiTD9U/uJFQ==
+From: Chen-Yu Tsai <wens@kernel.org>
 To: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, 
  linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, 
  Marc Zyngier <maz@kernel.org>
@@ -38,7 +38,7 @@ Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>,
  Daniel Lezcano <daniel.lezcano@kernel.org>, 
  Thomas Gleixner <tglx@kernel.org>, Rob Herring <robh@kernel.org>, 
  Krzysztof Kozlowski <krzk+dt@kernel.org>, 
- Conor Dooley <conor+dt@kernel.org>, Chen-Yu Tsai <wens@kernel.org>, 
+ Conor Dooley <conor+dt@kernel.org>, 
  Jernej Skrabec <jernej.skrabec@gmail.com>, 
  Samuel Holland <samuel@sholland.org>, 
  Neil Armstrong <neil.armstrong@linaro.org>, 
@@ -64,12 +64,12 @@ Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>,
  Orson Zhai <orsonzhai@gmail.com>, 
  Baolin Wang <baolin.wang@linux.alibaba.com>, 
  Michal Simek <michal.simek@amd.com>
-In-Reply-To: <20260523140242.586031-9-maz@kernel.org>
-References: <20260523140242.586031-9-maz@kernel.org>
-Subject: Re: (subset) [PATCH v3 08/17] arm64: dts: exynos: Add EL2 virtual
- timer interrupt
-Message-Id: <177965284903.36046.11355001676395450278.b4-ty@b4>
-Date: Sun, 24 May 2026 22:00:49 +0200
+In-Reply-To: <20260523140242.586031-1-maz@kernel.org>
+References: <20260523140242.586031-1-maz@kernel.org>
+Subject: Re: (subset) [PATCH v3 00/17] arm64: Use EL2 virtual timer when
+ running VHE
+Message-Id: <177965464107.165582.7773839955520847707.b4-ty@kernel.org>
+Date: Mon, 25 May 2026 04:30:41 +0800
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -78,21 +78,25 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.15.2
+X-Mailer: b4 0.14.2
 
+On Sat, 23 May 2026 15:02:25 +0100, Marc Zyngier wrote:
+> This is the third version of the series initially posted at [1],
+> which
+> 
+> - updates the ACPI GTDT parsing to deal the v3 layout and the EL2
+>   virtual timer,
+> - moves the architected timer driver to use it when running VHE,
+> - fixes a number of DTs to reflect the reality of the HW.
+> 
+> [...]
 
-On Sat, 23 May 2026 15:02:33 +0100, Marc Zyngier wrote:
-> A bunch of Samsung SoCs are missing the EL2 virtual timer interrupt
-> despite using ARMv8.1+ CPUs. Add the missing interrupt, except for
-> those broken designs where the interrupt is documented as not being
-> wired.
+Applied to sunxi/dt-for-7.2 in sunxi, thanks!
 
-Applied, thanks!
-
-[08/17] arm64: dts: exynos: Add EL2 virtual timer interrupt
-        https://git.kernel.org/krzk/linux/c/d0298724f901d45c76f1f2193225706200f565e4
+[05/17] arm64: dts: allwinner: Add EL2 virtual timer interrupt
+        https://git.kernel.org/sunxi/linux/c/86eeca347091
 
 Best regards,
 -- 
-Krzysztof Kozlowski <krzk@kernel.org>
+Chen-Yu Tsai <wens@kernel.org>
 
