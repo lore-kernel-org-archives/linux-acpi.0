@@ -1,40 +1,40 @@
 Received: from mout01.posteo.de (mout01.posteo.de [185.67.36.65])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C94436999F
-	for <linux-acpi@vger.kernel.org>; Sun, 24 May 2026 22:35:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CE0A37C920
+	for <linux-acpi@vger.kernel.org>; Sun, 24 May 2026 22:40:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.67.36.65
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779662124; cv=none; b=PSu6OYTcD/ysz+ACSKlDazWv/CUURaYEMOy9XljuePtgd/fyFIAoMpGvPTN4EFXq0G9cZK0Qdu2yURW4m49KOJGjs9QwNBWKM+6kxdJzqt+9lEPQzP/4adpuFH+9AcNcrbf1fUi8HU6SNv1sU+flo6+TKzcJMrNadEwpwdxUcXk=
+	t=1779662431; cv=none; b=bfM1nDiYBkLC+LBXKtLjUdxtcbkK6prj5HyxFGfJ2cv4eaqyp2o+ueGabg9ShSMEBN0u9HejcTwoIFGCkBD6RaWdrFK+XqwrxU3n+8/YEWiHw/rAyZITEm9LXHUZMwfqW9ESJeYP2i+RqT6CzwCvynTeP5g5gAoF80jAJkBeaNA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779662124; c=relaxed/simple;
-	bh=r1UOA6QDMVbLt10TpU5riUnUKzso2VHkTZeHu02qA0E=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=eMw4+Q9If4sBk2MUBOnt9YTQ/+OBwtJyUQiCZltdU/99hWzLtIHfM6TMo6OlgTHW5SBq4OAc3E4ZDbwvJactZN4z7qALc+ckXYgbJNhzvnnNNdaN4B/KUdYR7hpsug2+nXP4zAls/C/98O+GN7tFZs3PLD8dYYEg8K4QY8rLlhY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de; spf=pass smtp.mailfrom=posteo.de; dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b=kmKKGbl7; arc=none smtp.client-ip=185.67.36.65
+	s=arc-20240116; t=1779662431; c=relaxed/simple;
+	bh=ta40DydIkpKQkbnEOOwwxMzoZ7VpoaQ6vannkqkmbsI=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=aJzNiIQjfF7yUPm4qICvTNjXZ7oQ9D7ouHvssftenQl63DrtzKtStOcJ2RW1TuNVdT7o77aDPIfUcypbH7jWOJmbJd3GgWUonTk2rg/hyExcRFzILma/WImihGdDTYsnUKu+37HioqKGeYg0KnHnYhLNh5QnGIJtH2DenvkgoU0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de; spf=pass smtp.mailfrom=posteo.de; dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b=A46OvNCU; arc=none smtp.client-ip=185.67.36.65
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=posteo.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b="kmKKGbl7"
+	dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b="A46OvNCU"
 Received: from submission (posteo.de [185.67.36.169]) 
-	by mout01.posteo.de (Postfix) with ESMTPS id C4CE424002F
-	for <linux-acpi@vger.kernel.org>; Mon, 25 May 2026 00:35:15 +0200 (CEST)
+	by mout01.posteo.de (Postfix) with ESMTPS id F3F0424002A
+	for <linux-acpi@vger.kernel.org>; Mon, 25 May 2026 00:35:12 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=posteo.de; s=2017;
-	t=1779662115; bh=21o/xwwmDVfuFXFMoGsY/mGvvY5gAZ5X0zqmGuYe3QU=;
-	h=From:Date:Subject:MIME-Version:Content-Type:
-	 Content-Transfer-Encoding:Message-Id:To:Cc:Autocrypt:OpenPGP:From;
-	b=kmKKGbl796le6XQKyxazsuiiu46rwE10xlWpl3DAbc6jpMR5UEQ5GnQiwDqRoPXhJ
-	 xdXs+FNoRuMzAMpeAw51+B6fIw2MA7TOlR6foJtKRmwDffNWApcE/h3l/gTBZeyVS4
-	 yM54Zb4NF+XfVITMuOhKAe1uAsP+Xgxbaxpve1w/rcZKjLAOR2q5VKuOdb+HZy8wT7
-	 cS1pIa0xiRI3LeoCEYaJKHd8nB7AaDyiL2UnuOnyVDC9w3zGEUMiVtvA+payODE0oF
-	 aUyj0vr6T0OMjkYz0wk1/mUbzrJ3C0Cmp5B//+Ur4I+NOlUH73KQXgxFVKGxaly0Tw
-	 Mv47bYzokYqLQ==
+	t=1779662112; bh=aaWqE4Cw//Mk2WSIHD/fp8fmdq7KyHNN461lpMIINRE=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding:To:Cc:Autocrypt:OpenPGP:From;
+	b=A46OvNCU99uTGn7i3ff1RZ8J8yFjOSsZB63yT+kbwu3HVlBo/FianmLutscbL4p1u
+	 y196dZ7vDmAi9ZAZD/xrC2onUCKuGHV9PTgZ3Hwp1RsAkrMS0g5wIrno1TAr8HWu1O
+	 He17fC11PvdfomejSUg+F6LFX/uAmhjimzH+ycKQbBy0rVAXZcIMNfbzK9yx89Xsti
+	 ZEMWun+Qy4ACl8ag/4fKhoK78lS3445zp4Vh+qZ6hJwHbCKkklgQQy1ScuRXjlVHy/
+	 fPq6YPpPW3W1i3aYMTyjN9uIYwzq1Em+R31zYg/IMGrZuiZXyySWkBk656Nff658aV
+	 XRohQZcdXui0Q==
 Received: from customer (localhost [127.0.0.1])
-	by submission (posteo.de) with ESMTPSA id 4gNv3P53smz6twQ;
-	Mon, 25 May 2026 00:35:13 +0200 (CEST)
+	by submission (posteo.de) with ESMTPSA id 4gNv3L0cxbz6twQ;
+	Mon, 25 May 2026 00:35:09 +0200 (CEST)
 From: Markus Probst <markus.probst@posteo.de>
-Date: Sun, 24 May 2026 22:35:15 +0000
-Subject: [PATCH v2 2/2] ACPI: SPCR: Support UART clock frequency field
+Subject: [PATCH v2 0/2] ACPI: SPCR: Support UART clock frequency field
+Date: Sun, 24 May 2026 22:35:12 +0000
+Message-Id: <20260525-acpi_spcr-v2-0-c042089d73ca@posteo.de>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -43,9 +43,11 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260525-acpi_spcr-v2-2-c042089d73ca@posteo.de>
-References: <20260525-acpi_spcr-v2-0-c042089d73ca@posteo.de>
-In-Reply-To: <20260525-acpi_spcr-v2-0-c042089d73ca@posteo.de>
+X-B4-Tracking: v=1; b=H4sIAM18E2oC/02Oyw6CMBBFf4XM2pK2PAyu/A9DDLRTqQm0dgrRE
+ P5dHi5cnuTMnTMDYbBIcElmCDhZsm5YQZ4SUF0zPJBZvTJILkueZ5w1yts7eRVYKSouja5kZiS
+ svg9o7HvfutUH09g+UcVt4GcEfI3rk3ho0DaETLm+t/GSTOdUsKBy2K47S9GFzx42iV3eGwpe/
+ DVMgglmdN6q0uTYFtnVO4roUo1QL8vyBSs+4KfgAAAA
+X-Change-ID: 20260430-acpi_spcr-61902fd923f2
 To: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
  Geert Uytterhoeven <geert@linux-m68k.org>, 
  Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
@@ -57,21 +59,21 @@ Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
  linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, 
  linux-efi@vger.kernel.org, linux-serial@vger.kernel.org, 
  Markus Probst <markus.probst@posteo.de>
-X-Developer-Signature: v=1; a=openpgp-sha256; l=994;
+X-Developer-Signature: v=1; a=openpgp-sha256; l=896;
  i=markus.probst@posteo.de; h=from:subject:message-id;
- bh=r1UOA6QDMVbLt10TpU5riUnUKzso2VHkTZeHu02qA0E=;
- b=owEBiQJ2/ZANAwAIATR2H/jnrUPSAcsmYgBqE30d/Ky535kkEs+jKKn8OQQkNdVumjA0gDnkP
- gQRdkNXGcOJAk8EAAEIADkWIQSCdBjE9KxY53IwxHM0dh/4561D0gUCahN9HRsUgAAAAAAEAA5t
- YW51MiwyLjUrMS4xMiwyLDIACgkQNHYf+OetQ9LWgRAAvdrM4XZHCaojJl1n3pJlb87437N7Ysl
- cNkiSgsUT45gB6Eh9s+7sx02CKP4udH4Xd4oUHA1y4qPfoEsoaULCTmr7xhB9GxUQrxdjumhQpv
- 0P5dh8/m2fOEDanPTKIabSUOB8dwywtABfg8AoZMQLN1XMrwgh7HrFZqOVjYmwv0pcWzDY9KqkQ
- iZ7e3pW6P2ZNmo2KMbGAYVVSRUIn+u0+qx2r4opkHThg/UCLXQxyhPtudXlMLW0lMByUd9XlmVz
- fsnaNuro4fWVZiRiuqeEL5BJ7OmYiK/LjJchgX2WJZJUJDEwbSG99IDP+86735QCcLZtc0HRrs0
- 6jPy0YzCL6BznKvT30IvuK3o+cz036XXCa7dgfkPt5pUBD0Az/Q5vDCWnidSh9uYm0RM2p/yBAp
- WzEfolY0wxFGjJui5maHYcac91qgVEmJDJDH0iXltBe9VoTerHKmSUl+dU7fecJ1n/x+YWcFNRC
- aeTlXwnseN7mCc76bxLnc7IuJHf0BoWgb7b9Yw+C/+59u5qb7ejArucymV7sF8cJX6ZHixQjPSQ
- QS02GYsjcWWWsK5PeJISbt+Tceu5OiQ0lSVMntbLzlti6x3OfQ2qaLtAymEtMtMx57a+YNcRdWB
- fzBf1iHIImPl8CZ2ZX96MVW2VsWVsLR3RghguBCp1Bm0BGyDYODM=
+ bh=ta40DydIkpKQkbnEOOwwxMzoZ7VpoaQ6vannkqkmbsI=;
+ b=owEBiQJ2/ZANAwAIATR2H/jnrUPSAcsmYgBqE30dpYKuWtlLWzAoUN/rzc7r36W1yjWFnrHz+
+ oEiVqDtT26JAk8EAAEIADkWIQSCdBjE9KxY53IwxHM0dh/4561D0gUCahN9HRsUgAAAAAAEAA5t
+ YW51MiwyLjUrMS4xMiwyLDIACgkQNHYf+OetQ9LFTA//bAC4aKfm7qlohabURf56jW5A5LBwRnV
+ 2+o4Yhemmqf73LEK9/g/7V/5WqniToid49WWnzh7EBBfE2swQZ6Fu/kIkgToCF3QQSTC0Ym03b1
+ r6YofQ58abSOcbBj6Xw+SpdSRZqw3sdB37NQQ/HWB7GLn8FBF/qWhJLbHDDOieFZQ2C27EtcqFT
+ yfBonXRR6OugC4bK6lsMAnMl01NP5Yy46VEzUUV5OGIwb+DL1jRljU0xtff9b9SWtwvB2J/qYzm
+ QxKDxFZHHX5Frdm7hE/IWcIxhuaKdjGmXVFPqNMFBEZPkrypXRVAQplJc1XfIKgIp01umZZ08YV
+ GKyPfD+9FndgsnVNSsKLZpljZ44gMa01GrWqgyFzXHbdYnT51Feowsrt776HzfU15/Wrm40wyhg
+ rt3AbFLkoYhJpMICA/3dPuHAOPYr6RhPny+WiLX0m3eebcv19VyZY5sT3YPfMDkpBjjQJ1bl0sx
+ UYrmqXQOB6HTBDkMYxsNcikQF6Jw9stUzPVCSah82M/pg3C7WmfkvJaS1ZDMZtdjEv//kg0yLRE
+ eZ638ecjZod/n3DFgcaZogR3QVnsTreKAErhgwqEkWlPPK2fnzZWBevIvVxHQQTDCRzpWErdFv9
+ iA+lBn/yabDyJIdQ9VIMmV0G1NT9hSLBMzaWJ0Im8BXNKUp4CT04=
 X-Developer-Key: i=markus.probst@posteo.de; a=openpgp;
  fpr=827418C4F4AC58E77230C47334761FF8E7AD43D2
 Autocrypt: addr=markus.probst@posteo.de; prefer-encrypt=mutual;
@@ -117,31 +119,28 @@ Autocrypt: addr=markus.probst@posteo.de; prefer-encrypt=mutual;
   aBeNN4ijKZchBXHPgVx+YtWRHfcm4l8=
 OpenPGP: url=https://posteo.de/keys/markus.probst@posteo.de.asc; preference=encrypt
 
-The Microsoft Serial Port Console Redirection (SPCR) specification
-revision 1.08 comprises additional field: UART Clock Frequency [1].
+Support the uart clock frequency in the SPCR table.
+See the commit messages for details.
 
-It contains a non-zero value indicating the UART clock frequency in Hz.
-
-Link: https://learn.microsoft.com/en-us/windows-hardware/drivers/serports/serial-port-console-redirection-table [1]
 Signed-off-by: Markus Probst <markus.probst@posteo.de>
 ---
- drivers/acpi/spcr.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Changes in v2:
+- fix uart_clk_freq possibly being interpreted as parity/bits/flow
+- Link to v1: https://patch.msgid.link/20260505-acpi_spcr-v1-1-fd4bc6f4eb53@posteo.de
 
-diff --git a/drivers/acpi/spcr.c b/drivers/acpi/spcr.c
-index cfacbe53f279..16f94073fde6 100644
---- a/drivers/acpi/spcr.c
-+++ b/drivers/acpi/spcr.c
-@@ -228,7 +228,7 @@ int __init acpi_parse_spcr(bool enable_earlycon, bool enable_console)
- 	pr_info("console: %s\n", opts);
- 
- 	if (enable_earlycon)
--		setup_earlycon(opts, 0);
-+		setup_earlycon(opts, table->header.revision >= 3 ? table->uart_clk_freq : 0);
- 
- 	if (enable_console)
- 		err = add_preferred_console(uart, 0, opts + strlen(uart) + 1);
+---
+Markus Probst (2):
+      serial: earlycon: add uart_clk_freq parameter
+      ACPI: SPCR: Support UART clock frequency field
 
--- 
-2.53.0
+ arch/m68k/virt/config.c          |  2 +-
+ arch/mips/mti-malta/malta-init.c |  2 +-
+ drivers/acpi/spcr.c              |  2 +-
+ drivers/firmware/efi/earlycon.c  |  2 +-
+ drivers/tty/serial/earlycon.c    | 17 ++++++++++++-----
+ include/linux/serial_core.h      |  7 +++++--
+ 6 files changed, 21 insertions(+), 11 deletions(-)
+---
+base-commit: aa61612ab641d7d62b0b6889f2c7c9251489f6e3
+change-id: 20260430-acpi_spcr-61902fd923f2
 
