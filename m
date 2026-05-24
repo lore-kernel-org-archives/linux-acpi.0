@@ -1,37 +1,37 @@
 Received: from layka.disroot.org (layka.disroot.org [178.21.23.139])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F8D53955E7;
-	Sun, 24 May 2026 16:27:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 171013AE196;
+	Sun, 24 May 2026 16:27:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.21.23.139
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779640067; cv=none; b=suT/TzU+CFzeqtY8S24D4kUt7bhWA3nmSgviyAUsVV5NISeGgkrwQsGwJhev8/n7/M05BItfK+BFXWViFNpsBe5VCNvk28E/QmplJ53Ode+04r+XLYHYMO5oViPl+8mZjjNWyBhNQUivPd7XBbxscn9YkzRnjxJFgiMqsAPstuY=
+	t=1779640072; cv=none; b=bvs5NPg0HeYW4gtov1teY1w6KWdFm70u2oT7HuGgw/4TX6zGCKbwOlIaLynm8Smb6gIkm35gj5GC00Q5CeLkeNwNu4bB5t1AS6U34bug2OK+u/Hg03nb1anaWObj6nGant3kwhNy+8gIf/BDWV5JAsDkcaY5PMwrnkPKAEP1neQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779640067; c=relaxed/simple;
-	bh=YD8sJMoQhvgKRXmNw0oeZALWK1936E/rH9WI/1OWJWg=;
+	s=arc-20240116; t=1779640072; c=relaxed/simple;
+	bh=v9uSFaqt6JGmmCo0t552KayYGFYQOyW+nHwKqaTwbMY=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=AwyRi2KKtmFhCja+GjZGp7yJVcpt2rXYmDFBqSCctkjgQxYuRKLITS5BJpcfjW6hMrS8EHjyp+vloG7fgagCN/fTqo5cQXxNZkRdCUJJu5ARoe9wbmEjMT6K9FbL842OrgR810nSDF77Kie0CXYwPk3tRyuFiHTNyMtn4fPPCSc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=disroot.org; spf=pass smtp.mailfrom=disroot.org; dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b=JXKFCZou; arc=none smtp.client-ip=178.21.23.139
+	 MIME-Version; b=OGwaZz+R2IfT73ih3YMOBthaiynVPZ4yMJNQLssLXg4axz9RamYUhH6idXbJn5tN6C/cCfIohDFZy+vS5g2XFJ/FdixhAUV9YpKBv8LsDz/SgloDb/45Enavv2NVYA0yY0SKCgNtHtF96SSZhWnQIKsguU3I3B8c9Cn2puzYjMQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=disroot.org; spf=pass smtp.mailfrom=disroot.org; dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b=CSjD9M4N; arc=none smtp.client-ip=178.21.23.139
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=disroot.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=disroot.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b="JXKFCZou"
+	dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b="CSjD9M4N"
 Received: from mail01.disroot.lan (localhost [127.0.0.1])
-	by disroot.org (Postfix) with ESMTP id 98653271BC;
-	Sun, 24 May 2026 18:27:42 +0200 (CEST)
+	by disroot.org (Postfix) with ESMTP id 03C0C26AAB;
+	Sun, 24 May 2026 18:27:48 +0200 (CEST)
 X-Virus-Scanned: SPAM Filter at disroot.org
 Received: from layka.disroot.org ([127.0.0.1])
  by localhost (disroot.org [127.0.0.1]) (amavis, port 10024) with ESMTP
- id o4o4Fd2LDS06; Sun, 24 May 2026 18:27:42 +0200 (CEST)
+ id XmiF6tB3ZQ8g; Sun, 24 May 2026 18:27:42 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=disroot.org; s=mail;
-	t=1779640062; bh=YD8sJMoQhvgKRXmNw0oeZALWK1936E/rH9WI/1OWJWg=;
+	t=1779640062; bh=v9uSFaqt6JGmmCo0t552KayYGFYQOyW+nHwKqaTwbMY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=JXKFCZouxh8sZKFxJHndsgPIOtRddh9jYhgnirWLEk0xtl25PukzZYEZwm0qKfQB5
-	 v8HNw4/8wy3ijJkXJO6NH1JwiLMklImVPcFJTEO+IynWnSIereHH+j2lJlHLeepmJq
-	 o+ejpTfUpKSqrmu3NJP7FKC9UcEHbBBQkh0YRuZ9jCbWgwzAOHV0XLz1ilb1OIUdjW
-	 S8Wz16IrxlVOXxjlzT9JUEdKb5PYjm5ZsygfYGKldUCqCqfqwyX/5iLsu1Q5w5hldz
-	 gE1esM9s4w85zE1QRY287me91v/YHHd717n2g+HhgBJo6hecnR8Nzi1TVTJivFEnKL
-	 82Trt953Bii8w==
+	b=CSjD9M4Nx4ODTRcIoExYMD4agZcTjIl4gbTPFgspBMAQcI1Cu9HfS4Z1DssMGmPZk
+	 s3cfdfrtHb+Af9sIy/i99MVYEYdzRPhMd6DtaaJczSGPJVopvYKmnMDBAmr4KToJek
+	 AriUYsnxcTkSGACIkoKwd9B62+oNu2r2uRtC7JOuj3He6b/x/9eAPKXGzMk+Wn57p8
+	 F+HId2OXMHEBOQ/rt/JoK1UILtV+jQQB99DLIqYAEqwoyb604YvoRVoB1kFzTEg3wM
+	 cmB4Nwmc37IgUTqU+hqrUDGaO6cKkzhS7Kg5IND40slDTObSM3f3DDu1b06HHTFLMH
+	 p9264hmAekK/A==
 From: "Marco Scardovi (scardracs)" <scardracs@disroot.org>
 To: Linus Walleij <linusw@kernel.org>,
 	Bartosz Golaszewski <brgl@kernel.org>
@@ -42,9 +42,9 @@ Cc: Tzung-Bi Shih <tzungbi@kernel.org>,
 	linux-acpi@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	"Marco Scardovi (scardracs)" <scardracs@disroot.org>
-Subject: [PATCH 1/2] gpio: core: fix const-correctness of gpio_chip_guard
-Date: Sun, 24 May 2026 18:27:07 +0200
-Message-ID: <20260524162708.62949-2-scardracs@disroot.org>
+Subject: [PATCH 2/2] gpio: remove obsolete UAF FIXMEs from lookup paths
+Date: Sun, 24 May 2026 18:27:08 +0200
+Message-ID: <20260524162708.62949-3-scardracs@disroot.org>
 In-Reply-To: <20260524162708.62949-1-scardracs@disroot.org>
 References: <20260524162708.62949-1-scardracs@disroot.org>
 Precedence: bulk
@@ -55,105 +55,58 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The DEFINE_CLASS macro for gpio_chip_guard currently expects a non-const
-struct gpio_desc pointer. This prevents the guard from being used cleanly
-in fast paths that receive a const descriptor, forcing developers to fall
-back to open-coding the SRCU locks.
+The ACPI and swnode GPIO lookup backends both temporarily grab a reference
+to the gpio_device, resolve the descriptor, and then drop the reference
+before returning the descriptor to the caller. They carry FIXME comments
+warning that the descriptor is being returned without its backing device
+reference.
 
-Update the macro to accept a const struct gpio_desc pointer. This is valid
-because the actual targeted gpio_device pointer assignment does not drop
-const qualifiers on the target structure.
+However, the gpiod_find_and_request() core functionally prevents any
+use-after-free window by wrapping the entire lookup operation inside the
+gpio_devices_srcu read lock. The lookup functions are correct to drop
+their references since the caller (gpiod_request) will subsequently take
+its own permanent module and device references safely.
 
-Convert the open-coded SRCU locks in gpiod_get_raw_value_commit() and
-gpiod_to_irq() to use the guard, removing their legacy FIXME comments.
+Remove these obsolete FIXMEs to prevent misleading future subsystem
+developers.
 
 Assisted-by: Antigravity:gemini-3.5-flash
 Signed-off-by: Marco Scardovi <scardracs@disroot.org>
 ---
- drivers/gpio/gpiolib.c | 28 ++++++++--------------------
- drivers/gpio/gpiolib.h |  2 +-
- 2 files changed, 9 insertions(+), 21 deletions(-)
+ drivers/gpio/gpiolib-acpi-core.c | 4 ----
+ drivers/gpio/gpiolib-swnode.c    | 4 ----
+ 2 files changed, 8 deletions(-)
 
-diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
-index 69743d6deeaf..6b0c6e8abf7b 100644
---- a/drivers/gpio/gpiolib.c
-+++ b/drivers/gpio/gpiolib.c
-@@ -3428,20 +3428,13 @@ static int gpio_chip_get_value(struct gpio_chip *gc, const struct gpio_desc *des
+diff --git a/drivers/gpio/gpiolib-acpi-core.c b/drivers/gpio/gpiolib-acpi-core.c
+index eb8a40cfb7a9..1a762a2988b7 100644
+--- a/drivers/gpio/gpiolib-acpi-core.c
++++ b/drivers/gpio/gpiolib-acpi-core.c
+@@ -142,10 +142,6 @@ static struct gpio_desc *acpi_get_gpiod(char *path, unsigned int pin)
+ 	if (!gdev)
+ 		return ERR_PTR(-EPROBE_DEFER);
  
- static int gpiod_get_raw_value_commit(const struct gpio_desc *desc)
- {
--	struct gpio_device *gdev;
--	struct gpio_chip *gc;
- 	int value;
+-	/*
+-	 * FIXME: keep track of the reference to the GPIO device somehow
+-	 * instead of putting it here.
+-	 */
+ 	return gpio_device_get_desc(gdev, pin);
+ }
  
--	/* FIXME Unable to use gpio_chip_guard due to const desc. */
--	gdev = desc->gdev;
--
--	guard(srcu)(&gdev->srcu);
--
--	gc = srcu_dereference(gdev->chip, &gdev->srcu);
--	if (!gc)
-+	CLASS(gpio_chip_guard, guard)(desc);
-+	if (!guard.gc)
- 		return -ENODEV;
+diff --git a/drivers/gpio/gpiolib-swnode.c b/drivers/gpio/gpiolib-swnode.c
+index 4374067f621e..8d9591aa9304 100644
+--- a/drivers/gpio/gpiolib-swnode.c
++++ b/drivers/gpio/gpiolib-swnode.c
+@@ -114,10 +114,6 @@ struct gpio_desc *swnode_find_gpio(struct fwnode_handle *fwnode,
+ 	if (IS_ERR(gdev))
+ 		return ERR_CAST(gdev);
  
--	value = gpio_chip_get_value(gc, desc);
-+	value = gpio_chip_get_value(guard.gc, desc);
- 	value = value < 0 ? value : !!value;
- 	trace_gpio_value(desc_to_gpio(desc), 1, value);
- 	return value;
-@@ -4148,8 +4141,6 @@ EXPORT_SYMBOL_GPL(gpiod_is_shared);
-  */
- int gpiod_to_irq(const struct gpio_desc *desc)
- {
--	struct gpio_device *gdev;
--	struct gpio_chip *gc;
- 	int offset;
- 	int ret;
+-	/*
+-	 * FIXME: The GPIO device reference is put at return but the descriptor
+-	 * is passed on. Find a proper solution.
+-	 */
+ 	desc = gpio_device_get_desc(gdev, args.args[0]);
+ 	*flags = args.args[1]; /* We expect native GPIO flags */
  
-@@ -4157,16 +4148,13 @@ int gpiod_to_irq(const struct gpio_desc *desc)
- 	if (ret <= 0)
- 		return -EINVAL;
- 
--	gdev = desc->gdev;
--	/* FIXME Cannot use gpio_chip_guard due to const desc. */
--	guard(srcu)(&gdev->srcu);
--	gc = srcu_dereference(gdev->chip, &gdev->srcu);
--	if (!gc)
-+	CLASS(gpio_chip_guard, guard)(desc);
-+	if (!guard.gc)
- 		return -ENODEV;
- 
- 	offset = gpiod_hwgpio(desc);
--	if (gc->to_irq) {
--		ret = gc->to_irq(gc, offset);
-+	if (guard.gc->to_irq) {
-+		ret = guard.gc->to_irq(guard.gc, offset);
- 		if (ret)
- 			return ret;
- 
-@@ -4174,7 +4162,7 @@ int gpiod_to_irq(const struct gpio_desc *desc)
- 		return -ENXIO;
- 	}
- #ifdef CONFIG_GPIOLIB_IRQCHIP
--	if (gc->irq.chip) {
-+	if (guard.gc->irq.chip) {
- 		/*
- 		 * Avoid race condition with other code, which tries to lookup
- 		 * an IRQ before the irqchip has been properly registered,
-diff --git a/drivers/gpio/gpiolib.h b/drivers/gpio/gpiolib.h
-index dc4cb61a9318..650a702741df 100644
---- a/drivers/gpio/gpiolib.h
-+++ b/drivers/gpio/gpiolib.h
-@@ -244,7 +244,7 @@ DEFINE_CLASS(gpio_chip_guard,
- 
- 		_guard;
- 	     }),
--	     struct gpio_desc *desc)
-+	     const struct gpio_desc *desc)
- 
- int gpiod_request(struct gpio_desc *desc, const char *label);
- int gpiod_request_commit(struct gpio_desc *desc, const char *label);
 -- 
 2.54.0
 
