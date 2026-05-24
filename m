@@ -1,144 +1,148 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB0D530216D
-	for <linux-acpi@vger.kernel.org>; Sat, 23 May 2026 17:29:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1FB1F63B9;
+	Sun, 24 May 2026 07:40:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.12
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779557368; cv=none; b=gcMOjvqT7an4eeDbNlfYeU5jPOfVOqUAehMqAK1HsGKbHeeD9o8vz7VHXLXF44gjv0z/ESz+hJWQqNl3DUSFmx1D+XGTbeszP8zo4svnUOTDcDnnMCjMEwbpAy/q8K4PniHn2G4c8oma7T47a44b/a37Fi0caUxBbH6mqRLZ9ok=
+	t=1779608436; cv=none; b=LZoLrHjTLj0ycdusSw044oRNTgqk12gw8zvTY7xMs71dEShzlg33PE6BavBS4LjxCqDIf8f/fQe/sMVmldQu4MvFnNN9h0su51HIQUXwRiMnFTnDTlhSGnen+v72marS4Z7GG48ueE4XYECcAC4/iDQizqiwksYs0NMjRHYwTVc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779557368; c=relaxed/simple;
-	bh=Nkd72RKNOdoFWkGOI+imzwzWpe5ErcrsxILdU3grj+U=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=oZWS/3uSlYtBizMqtU0vl79s1N8+tobL8GhCMPZ8kVNimkAeQuOwJPhdOjhbixZzmOfbuHgN2imaS/UQfpyZXaUZKW8LEfdhXiIPywRDC3mnOjdxd84U6jkVRMclzcP0qatY432Rts6rf8FJlkj7OcI0IRJwu351GMBqWKvwqm0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mQtuXKsG; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779608436; c=relaxed/simple;
+	bh=p8BF20Pbxy+xNlnxy5Yr/pV69sHshV4mIdwWySKeKuY=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=WcksrRzoHL4R7qf1oR+wy/BsYqvy/E/8ZO2ZK/qInRK47uhniL2bE0PnZ+fLmecLzoLrOB+bUJQdiJWEplCktq6eWVsEHJqx/GIfT6iL3qX+4DTqSirDZefgq/DTeRSWuzcEuCgn17OFjhwW8ybX2yS9yubiltilnd1ngvVQw5w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=G66sWIN2; arc=none smtp.client-ip=198.175.65.12
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mQtuXKsG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77E0F1F00A3C
-	for <linux-acpi@vger.kernel.org>; Sat, 23 May 2026 17:29:27 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1779557367;
-	bh=QdSv+AjOh4NS99kcWs18rYe/wSOKRsMQLmLZ0YM0+G4=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=mQtuXKsGy5h+JWqaHNd+vSAIgroPVpgnc9hsz6WR5fgDZ84lg1AKihFr5pdBEezxw
-	 ehbqr/y9GqhEqnYHp/ReaDbmMXnNr/06ohU4pQBhMbDgbnv5i6jhiW6fgZdwKRAo0n
-	 rC2CVHHJ28tTatrzzYbnf5wshR51SxxAKEpXWhzc0308/jWtcPZQlB7DfyremAq2MV
-	 dK4LAA2uYzznnRgMORXi8cwPiuzKQt1Ibvc8tXYzjh+StEKfEDKV98sPAnA/jd63ee
-	 NZXzcnko18rIkvenAbhiwquAa43xQDKJ5tj+9vQNg0Qj3TKf9AMxzT1vzEqZ+fikJc
-	 UEFzS7xZAhWLw==
-Received: by mail-lf1-f47.google.com with SMTP id 2adb3069b0e04-5aa2691db86so6819306e87.3
-        for <linux-acpi@vger.kernel.org>; Sat, 23 May 2026 10:29:27 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AFNElJ8bPfyxGUPIUBxdWB7BMTSnoh3dqh9ENs4JbparBsCWjUChezUskx9bTgQh5aGlBoJmdnrpzeoXOL1O@vger.kernel.org
-X-Gm-Message-State: AOJu0YyTMCWFXF9qr8JgBLdaXtBaTKO3Cdook7TAF/A6G1mx+qVh9Uw+
-	o2wF5ljOsyGdyh9Xh1kM/+TjBrCnCLlx8BM8R6CJADgYQWZLB4T+1l1EYlZMqnv2ckiGQMHaeVi
-	+9WxuYHgMm1ekI24kMiaCWvraV3ZO1EI=
-X-Received: by 2002:a05:6512:230d:b0:5a3:ff48:f7db with SMTP id
- 2adb3069b0e04-5aa323b2930mr3050281e87.34.1779557365965; Sat, 23 May 2026
- 10:29:25 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="G66sWIN2"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1779608435; x=1811144435;
+  h=date:from:to:cc:subject:message-id;
+  bh=p8BF20Pbxy+xNlnxy5Yr/pV69sHshV4mIdwWySKeKuY=;
+  b=G66sWIN2EMVsYIm7araglppPRgXin9Db+E3PFUej1xd86Og2V5jeWsyn
+   PcmYrz18iO+cb1+1DEikZgISkFG6FkQm51XuyabKPXipBMcQcLRWYHCcv
+   vaxmhuv3FStU0Zwo8LrEmQdy2vvzy2GN1sqPrvbvj+tyMTRj8SyY3waFW
+   wbFaNdZ7sNGmKl2CTKnSxOs89buu2IrUU24noOV0GCurBP6d6Q1O4UmNh
+   Ue6Epap6z1EWg7XUtii8ZPoK3K3jPkf3WFykbC96elm9v6VWD6wJPEJT3
+   X0m7IvvKg3p0uDGanGbwvQX1Gqoeh6rDk8hloDefnQmgUYZ/9rRKtyf+w
+   A==;
+X-CSE-ConnectionGUID: WRI7u15JTVuKhjSloc2XzA==
+X-CSE-MsgGUID: V3IKH9+3TEi9Cf4hNAPFug==
+X-IronPort-AV: E=McAfee;i="6800,10657,11795"; a="91939221"
+X-IronPort-AV: E=Sophos;i="6.24,165,1774335600"; 
+   d="scan'208";a="91939221"
+Received: from orviesa004.jf.intel.com ([10.64.159.144])
+  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 May 2026 00:40:35 -0700
+X-CSE-ConnectionGUID: Qpn8zzywScKwfMdyZI7K3Q==
+X-CSE-MsgGUID: SKPGQ12yTEu9FSPE/oAmjg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.24,165,1774335600"; 
+   d="scan'208";a="245585735"
+Received: from lkp-server01.sh.intel.com (HELO 6ba8523b1a8f) ([10.239.97.150])
+  by orviesa004.jf.intel.com with ESMTP; 24 May 2026 00:40:34 -0700
+Received: from kbuild by 6ba8523b1a8f with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1wR3Rm-000000000mn-3Mgp;
+	Sun, 24 May 2026 07:40:30 +0000
+Date: Sun, 24 May 2026 15:39:35 +0800
+From: kernel test robot <lkp@intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+Subject: [rafael-pm:bleeding-edge] BUILD SUCCESS
+ 5eb11e016f257898c4778e3df4a4a8148c9fb17e
+Message-ID: <202605241527.oLYpFk5v-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <2046403.PYKUYFuaPT@rafael.j.wysocki> <9629117.CDJkKcVGEf@rafael.j.wysocki>
- <7B2E2495-8BE8-41F7-9432-F1775612337E@kousu.ca>
-In-Reply-To: <7B2E2495-8BE8-41F7-9432-F1775612337E@kousu.ca>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Sat, 23 May 2026 19:29:13 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0jEK5QqdVktqXO_+U-Mg7nQ0nZWMF0iPveFLp+=dRMjGw@mail.gmail.com>
-X-Gm-Features: AVHnY4KLlQIE-EV4pPQnRA-q4vV1RY-tYyhQ9HMJsq213g-B4Usd2dKl782vP_Y
-Message-ID: <CAJZ5v0jEK5QqdVktqXO_+U-Mg7nQ0nZWMF0iPveFLp+=dRMjGw@mail.gmail.com>
-Subject: Re: [PATCH v2 2/3] ACPI: button: Enable wakeup GPEs for ACPI buttons
- at probe time
-To: Nick <nick@kousu.ca>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, 
-	LKML <linux-kernel@vger.kernel.org>, Saket Dumbre <saket.dumbre@intel.com>, 
-	Pawel Chmielewski <pawel.chmielewski@intel.com>, Mario Limonciello <superm1@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Sat, May 23, 2026 at 4:15=E2=80=AFAM Nick <nick@kousu.ca> wrote:
->
->
->
-> On May 22, 2026 2:52:10=E2=80=AFp.m. UTC, "Rafael J. Wysocki" <rafael@ker=
-nel.org> wrote:
-> >From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >
-> >Prior to commit 57c31e6d620f ("ACPI: scan: Use acpi_setup_gpe_for_wake()
-> >for buttons"), ACPI button wakeup GPEs having handler methods remained
-> >enabled after acpi_wakeup_gpe_init(), but currently they are not enabled
-> >because acpi_setup_gpe_for_wake() disables them.
-> >
-> >That causes function keys to stop working on some systems [1] and there
-> >may be other related issues elsewhere.
-> >
-> >To address that, make the ACPI button driver enable wakeup GPEs for ACPI
-> >buttons so long as they have handler methods.  While this does not
-> >restore the old behavior exactly (the ACPI button driver needs to be
-> >bound to the button devices for the GPEs to be enabled), it should be
-> >sufficient to restore the missing functionality.
-> >
-> >For this purpose, introduce acpi_enable_gpe_cond() that enables
-> >a GPE if its dispatch type matches the supplied one and modify
-> >acpi_button_probe() to use that function for enabling the GPEs in
-> >question.
-> >
-> >Fixes: 57c31e6d620f ("ACPI: scan: Use acpi_setup_gpe_for_wake() for butt=
-ons")
-> >Reported-by: Nick <nick@kousu.ca>
-> >Closes: https://lore.kernel.org/linux-acpi/E2OXET.4X5GTP37VTNC3@kousu.ca=
-/ [1]
-> >Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >Cc: 7.0+ <stable@vger.kernel.org> # 7.0+
-> >---
-> >
-> >v1 -> v2:
-> >   * Change the acpi_enable_gpe_cond() third parameter to a dispatch typ=
-e (or
-> >     "any type" value) and modify checks in it accordingly to address a
-> >     problem pointed out by sashiko.dev
-> >   * Adjust comments in acpi_enable_gpe_cond() and acpi_enable_gpe()
-> >   * Update the changelog
-> >
-> >@Nick, It would be good to test this version of the patch on your system
-> >because it is a bit different from the previous one (which was not entir=
-ely
-> >correct).  I'm not expecting it to behave differently, but additional
-> >testing would be welcome.
-> >
->
->
-> I tested this on top of 45255ea1ca096. The keys are still working as expe=
-cted! I compared it against 6.19.14 too and all the keys seem to behave as =
-before.
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
+branch HEAD: 5eb11e016f257898c4778e3df4a4a8148c9fb17e  Merge branch 'thermal-core' into bleeding-edge
 
-Thanks for the confirmation!
+elapsed time: 830m
 
-I'll add a Tested-by tag for you to the patch when applying it unless
-you don't want me to do that.
+configs tested: 71
+configs skipped: 10
 
-> I noticed one difference, but it might not be directly related: KEY_SLEEP=
- takes significantly longer
-> to trigger suspend on 7.1-rc4 than on 6.19.14. On the older version it su=
-spends in about a second;
-> on 7.1-rc4 it takes about a minute before it fully suspends. The lid swit=
-ch on the other hand suspends
-> in about a second, and so does the suspend button in my DE, on both versi=
-ons.
+The following configs have been built successfully.
+More configs may be tested in the coming days.
 
-This is unlikely to be related to the issue addressed by the $subject patch=
-.
+tested configs:
+alpha                   allnoconfig    gcc-15.2.0
+alpha                  allyesconfig    gcc-15.2.0
+arc                    allmodconfig    gcc-15.2.0
+arc                     allnoconfig    gcc-15.2.0
+arc                    allyesconfig    gcc-15.2.0
+arc         randconfig-001-20260524    gcc-8.5.0
+arc         randconfig-002-20260524    gcc-8.5.0
+arm                     allnoconfig    clang-23
+arm                    allyesconfig    gcc-15.2.0
+arm         randconfig-001-20260524    clang-23
+arm         randconfig-002-20260524    gcc-11.5.0
+arm         randconfig-003-20260524    clang-19
+arm64                  allmodconfig    clang-19
+arm64                   allnoconfig    gcc-15.2.0
+csky                   allmodconfig    gcc-15.2.0
+csky                    allnoconfig    gcc-15.2.0
+hexagon                allmodconfig    clang-17
+hexagon                 allnoconfig    clang-23
+i386                   allmodconfig    gcc-14
+i386                    allnoconfig    gcc-14
+i386                   allyesconfig    gcc-14
+loongarch              allmodconfig    clang-19
+loongarch               allnoconfig    clang-23
+m68k                   allmodconfig    gcc-15.2.0
+m68k                    allnoconfig    gcc-15.2.0
+m68k                   allyesconfig    gcc-15.2.0
+microblaze              allnoconfig    gcc-15.2.0
+microblaze             allyesconfig    gcc-15.2.0
+mips                   allmodconfig    gcc-15.2.0
+mips                    allnoconfig    gcc-15.2.0
+mips                   allyesconfig    gcc-15.2.0
+nios2                  allmodconfig    gcc-11.5.0
+nios2                   allnoconfig    gcc-11.5.0
+openrisc               allmodconfig    gcc-15.2.0
+openrisc                allnoconfig    gcc-15.2.0
+parisc                 allmodconfig    gcc-15.2.0
+parisc                  allnoconfig    gcc-15.2.0
+parisc                 allyesconfig    gcc-15.2.0
+parisc      randconfig-001-20260524    gcc-15.2.0
+parisc      randconfig-002-20260524    gcc-12.5.0
+powerpc                allmodconfig    gcc-15.2.0
+powerpc                 allnoconfig    gcc-15.2.0
+powerpc     randconfig-001-20260524    gcc-8.5.0
+powerpc     randconfig-002-20260524    clang-23
+powerpc64   randconfig-001-20260524    clang-23
+powerpc64   randconfig-002-20260524    clang-23
+riscv                  allmodconfig    clang-23
+riscv                   allnoconfig    gcc-15.2.0
+riscv                  allyesconfig    clang-16
+s390                   allmodconfig    clang-18
+s390                    allnoconfig    clang-23
+s390                   allyesconfig    gcc-15.2.0
+s390        randconfig-002-20260524    gcc-10.5.0
+sh                     allmodconfig    gcc-15.2.0
+sh                      allnoconfig    gcc-15.2.0
+sh                     allyesconfig    gcc-15.2.0
+sh                        defconfig    gcc-15.2.0
+sh          randconfig-001-20260524    gcc-15.2.0
+sparc                   allnoconfig    gcc-15.2.0
+sparc64                allmodconfig    clang-23
+um                     allmodconfig    clang-19
+um                      allnoconfig    clang-23
+um                     allyesconfig    gcc-14
+um                        defconfig    clang-23
+um                   i386_defconfig    gcc-14
+um                 x86_64_defconfig    clang-23
+x86_64                 allmodconfig    clang-20
+x86_64                  allnoconfig    clang-20
+x86_64                 allyesconfig    clang-20
+x86_64                rhel-9.4-rust    clang-20
+xtensa                  allnoconfig    gcc-15.2.0
 
-> I guess they're doing different kinds of suspend. That's probably related=
- to the other ACPI changes
-> that landed in 7.0.
-
-One thing to take into consideration here is that the kernel doesn't
-trigger suspend by itself.  The
-key press event first goes to user space which then decides what to do
-with it and may (or may
-not) trigger a system suspend in response.  It may be doing different
-things for KEY_SLEEP and
-the lid switch.
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
