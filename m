@@ -1,223 +1,182 @@
-Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
+Received: from DU2PR03CU002.outbound.protection.outlook.com (mail-northeuropeazon11011066.outbound.protection.outlook.com [52.101.65.66])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56C123128C6
-	for <linux-acpi@vger.kernel.org>; Mon, 25 May 2026 06:05:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=205.220.168.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6ADF13D53C;
+	Mon, 25 May 2026 06:06:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.65.66
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779689149; cv=pass; b=ApPOomJsZcq0SzSSpR9uW2frE95oP0j76uOIuZgNIOxONum4bGsMuKGrGfzw4I3xaqnH6M8o1Jjf/EKD4ba5gk5uzLU/tT5btPdVpMJmle04rDjWY9LA40OYhXxW+YP1O4UpfUDTzGx3Rz3Chmixveb9m4RQYV/sQw6l7Y6xzGs=
+	t=1779689212; cv=fail; b=sAyx6dyZ5xyyhuBPpILAV4wD2p9sgE87MXu62d0vrNXS2PqAHNDu4UAfL+EkNykaP6o1QspvVMsR0Q5odN16INQZk2y7pRLzgL1jSWBpR6yCv9mmxWlF+LJByKvZP91vmNduuZ9mKH3c5fmVPy5KfRnDsAVza5g/15+USqsnqB8=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779689149; c=relaxed/simple;
-	bh=04/auSWx9iwIl3HVGZ5PO4ccW9WXA1lUbGB747dFmGE=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=P5tBGPV8LRuOLCeQw3Bw8m133UIr2tMQb4NOXCPM9BYam80eq72phkaETcOk5/Qg66qu27l8JOxesJ84Y8IiNhQ6z46bz7kegXO3tJYolussVWgm7EQ54RoRusd2vAShndFuO2lMurlpkCgJ3AZpGhsaothr+jFuJZm6CkCijOM=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=arQyRi8B; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=hOPlg0qv; arc=pass smtp.client-ip=205.220.168.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
+	s=arc-20240116; t=1779689212; c=relaxed/simple;
+	bh=TY6SGJViF3IgQ/GK7EU3bTY1nvuX5+6Ubnt+OBZ5nzQ=;
+	h=From:Subject:Date:Message-Id:Content-Type:To:Cc:MIME-Version; b=lRpS31BgL53aULc7NSn5Ej4Hc810aCIWddXouzWzINDKn7yaY6aLvl6RwxDnR0PzuGbPcg65rLNgEw7+kp/GKMePAW83b5xcb63i5rgfSd06kj4y+8gLyllT5IIGBuDXv8l+PZtpYcWXVhOx2h5t1s8lipg3vUNTLLG7pbIab/4=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=nxp.com; spf=pass smtp.mailfrom=nxp.com; dkim=pass (2048-bit key) header.d=nxp.com header.i=@nxp.com header.b=gXVcIBmZ; arc=fail smtp.client-ip=52.101.65.66
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=nxp.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nxp.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="arQyRi8B";
-	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="hOPlg0qv"
-Received: from pps.filterd (m0279863.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 64ONZRQK920635
-	for <linux-acpi@vger.kernel.org>; Mon, 25 May 2026 06:05:45 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:reply-to:subject:to; s=
-	qcppdkim1; bh=0m8zTAYDEiVM0XLZgjIUa0BVssyY1lfaYhWeExB/N/A=; b=ar
-	QyRi8BfYskQCd4kegmQpAqT8FselhseQuLnniC530aApI5YU0RE0qQajtCe6hUo1
-	B5WDrzPKyd7kpk8PqZzlDonqC6cwPcp0jy5xeMT8MC/IdpQS9xor/x0C9yI+mNzv
-	VnZMRmuvBIOo88Si/pCS4zctJ+AI89N+CKv9u50pXAmoycl4yVRSDE1FOYEWBQFK
-	YU2spcbZhNKKyG7y9cFGbmEysDkE+0DbgZW4jzJUo5jCLZw/J5nTYprfbvt/PG3K
-	OeUxsgaeqoJQF92jzr81CSzFQDt2GmMs/AKSLZXoA0KIObx+VvlnBLwcpCpBApkH
-	YWbaD96a5nt52wC7spjA==
-Received: from mail-yx1-f71.google.com (mail-yx1-f71.google.com [74.125.224.71])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4eb4f3d4v6-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-acpi@vger.kernel.org>; Mon, 25 May 2026 06:05:45 +0000 (GMT)
-Received: by mail-yx1-f71.google.com with SMTP id 956f58d0204a3-65c396d3940so17087116d50.3
-        for <linux-acpi@vger.kernel.org>; Sun, 24 May 2026 23:05:45 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1779689145; cv=none;
-        d=google.com; s=arc-20240605;
-        b=UUW/uNSW13nLTGuO9P6eyb+yYIEMEiX3ZgRfXfe6Ei8JDoRHfFUduKTu6tOPlX+R4N
-         UL7aaE0nhwhK1aYnuh3osWlhBTvAAjuDEqoTgpq7nwv/NYqrYdBUNIzU7evECvYOwykk
-         J2iSgnMNttnUqd+UcqvOFb+EAyvCWZ1726fq9wsapQ+1VhmbPdDjuynXGwur3t9gWrix
-         MsGSVk6Py7ZZ5Gxbqt+/38PYNmbOOgL4kcR5A26imu1qS2NktB1SOec0UryjQszLnL9b
-         7jv6eQuZ1ElYMF/iW+IohD49FHkknVy1wiRVBl7RBBXV+/M0l/XbAqh9ySgnnJPtv7Nt
-         IzRQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :reply-to:in-reply-to:references:mime-version:dkim-signature;
-        bh=0m8zTAYDEiVM0XLZgjIUa0BVssyY1lfaYhWeExB/N/A=;
-        fh=0u9SMia4/3kVfk3iIJrj98TFg1caNCkXOn9DrgZMdJs=;
-        b=E/00B8w6uCXPA75VqQL/c/CeRHiOFaIgssuAj2R+GrVlujHGJklCfL47Spjr1JFoAO
-         yAg76ImBm9qAUH4VY1yw7UjkR1ZIcQyFcden8IRIfQj5G1v1bJTBCnQezQ2/XxeE+GEc
-         wVj3h1QRgWY7JeMRN5zkjexXBg60E56JPn+W/M0IUdL+x4Cn477DOQnJ0UtZNZ2vgZdC
-         vHe6RluEGVnbt1q6is9lRC7hMefAKgpRvnXi6lTSI4TbLMEBS1VLWs4s44o1zTqpW3h+
-         aM4W84Hr3r3hM/mKxkb8Dc8M5rHBqiQcvk0OOzTMGTic3Ju5iFMfxAQEzzrXtpmQ9kd3
-         2SUQ==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1779689145; x=1780293945; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :reply-to:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=0m8zTAYDEiVM0XLZgjIUa0BVssyY1lfaYhWeExB/N/A=;
-        b=hOPlg0qvLKLLIKHxa4Rm2eC8X59u6z5xhQYi7fiCHwxe36rUvklGeJlAPwYy1rELQc
-         35+hjpZ2szo1VzcLf9vQWy/ra86gbk0u4Ep8etKEal3fK0llKbXj8hU+YWEm1ALqW7TI
-         NBKpSkvua8VlwlM7XzfAPIbVkQxiiv77/+yOS9exzTD01vSxW2p79vxlLUog2LAl1ZG4
-         pEWgDaWqAh+dW9EvFlR1lBZ4L8JjFOYmXFUEYBlNm5RcItwkcKw7ceTv2PabSQ2m/Oh/
-         WZh241ZdaF/rHQsVohHCoqoI6YTbNtu41RgLVjVXiOTUnF00SvEZ54Dof+ZTSHLyMfpV
-         ycoQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779689145; x=1780293945;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :reply-to:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=0m8zTAYDEiVM0XLZgjIUa0BVssyY1lfaYhWeExB/N/A=;
-        b=HSGcdp9E/aLN6YiDURJJu+uXH8XHUE1mjRuQnHyh6vlvWcJl2OyV9V0VYjZF4Y6nDO
-         F4EVtsvMXZEVa8uf5SfcgmmWDrSbnlwhFmT06TXjPtew7BrmCzrulVdOR3kLuFXXRQ9F
-         JOt6Nd+1Gq3cIh8ciAmR3cHo0jQSrYVpAYsEXnF09OTI1zwaR9cU4DDrFggSpdHTMkBw
-         +lYs8lR8yL8/w6OOJjKNNHKBAjKt8tb8voCHV4b7yvuqXO4i9yLJpbBvVo3wOzlpoC8U
-         qJXqyXuNBimj8zDKvIIlK0J0RDxkEdQqAv1lWHQASQMKFFnrFptNCikUmvMkT2cgsQAQ
-         yQdA==
-X-Forwarded-Encrypted: i=1; AFNElJ/MZyp8ZZPuSJeEIV3q0MGD7HCaTiexSTECSdTirxmxzUoemcJznjOWMf1uY8NpiiWQ6ZqkJuNk4hL5@vger.kernel.org
-X-Gm-Message-State: AOJu0YwLdGVIEiZfdnLLXNCmQHzXuHvFaIPSqA3R4bo4U5m4T+TjHYxK
-	n2QHds+CFwcX8aNl6edQoR3yLoLOWONxgv9AFZqahZC6ehdndMRgWzZoUZ/+AAqhszafoEanPw8
-	cGdioHEuZPJP4Y/2+2z59c0YLqwZZK/5mBzk0gllyiMIoXnsRoDh02OeDrOTuOWf6YEfsn/Nkqt
-	nTcBh2HyTwvHrju1kL5DgXlPm+ddPmwA3C287jJbs=
-X-Gm-Gg: Acq92OEKcO/zT3XWHhAbwaD+eMiToGzd4PBEMN76k9/MhI1tfnCFrAX2+du1MvkbfoE
-	KGoQHBZK63zkMb2Lv37j5DIiD6jwZAeN0/gGiOkl8Qx9Qnh3ghlagwbT/7eBloX+4b4TUijBNSv
-	bW/0Ncu2zdBhZG/3pZ2hqlz7fPSrp8g3R6EVU0WmJ2LgMe03e8hErVXkOLLAJMnpkGvIMng7e1b
-	Oo8zQBZ
-X-Received: by 2002:a05:690e:d4a:b0:65c:2738:c6ad with SMTP id 956f58d0204a3-65ec97cb3ddmr14519401d50.17.1779689144678;
-        Sun, 24 May 2026 23:05:44 -0700 (PDT)
-X-Received: by 2002:a05:690e:d4a:b0:65c:2738:c6ad with SMTP id
- 956f58d0204a3-65ec97cb3ddmr14519366d50.17.1779689144283; Sun, 24 May 2026
- 23:05:44 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=nxp.com header.i=@nxp.com header.b="gXVcIBmZ"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=Wh6Bry7XNHK6UCMIfktoJfpO+WCPeocitn5d+SXDPDP96hOTxXy487dgyKidajkPiI13Rp2r8tTemfxCNtg+yCE+iIJsgce0zUlOpHQiJqkcHwaGIBswJvEDn38z0ScIQ4H8qYP7epakEzGi/Cbft9WdgRtJuidr4EEOVc9ifdyfGtm/07k0t+ysPbX3ShLI4N75mkL7lrN2FD1xDOckO/mk9tlRBzOEWY6QLHeOuINJ6GIUMeAjPc49r110tA2WfMrj+Al17bLXyqJxE2RuPC7uQa1Z+gjDo8a0HBg7wGzUNtAKRdl5dOfpnL9ur0x7uStx/H7oDb73vCEX9yDa+Q==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=FqXaEK3CuAye+Vr6ndRPgSREboT8UYlljOIsi8BU9FI=;
+ b=IKWterkaJTPxXCRMsh1A88je1UW5fsRZmuo9LD5KUsC7Gaim3cc94uZo9ohVhWm5VuUEx62MCIoReAlSR6hwx0so/BQxtquZ1xIGeG+8h8O30PAzNNrwYpKW7fnJh6w1js+z4Xw54KYVw0eoCS9hLnp2LD+maMB+a97qDodao3Ngylg73ausQ3BluIOKI/HKY4XJH+CQfLIX4gZjdVvK8OB2iCyht2L6kJ7UGCywwYVLWvmj4bm3M+SsnxEi9yVNrAd7bgZW9cFyMFA9ED2AC4T5laq/wJjE0Sq8CjkYDW9qsoWSUZX9OUseGMTkddjqE9xMfxQQ5tttlOCRTlSJVw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nxp.com; dmarc=pass action=none header.from=nxp.com; dkim=pass
+ header.d=nxp.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nxp.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=FqXaEK3CuAye+Vr6ndRPgSREboT8UYlljOIsi8BU9FI=;
+ b=gXVcIBmZYoGRDfymGcf6kKvoP+6/BkaPJd6xY69UT9LN5CIUcHy23x5o8MeHrFhM8mwGXe+dbq0Zt44IB2okcFUs2UK3lXLymWhbgSNgkVYsd+T6ARrxErW3QzEme75Hft9Q8MzJvECXHnxHiIS/zjNMQCMsL1athgnEVykVpwaerkvYbcHIxt8pPy4YItxyoWl8gACkcRC7+JSsfuhJkNtz1ePvLsaqPd1lqI5iFrhJvvzVEoYecg0D1mvxAJg79LyC7Q0SU/09gK57ehxZHF3RyvSoWz3jPBtUWxXmMTh00Wd0pJhxtBgYCFeVn/Lqhzw+VxTL2FCEe3WfM6EAdQ==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nxp.com;
+Received: from DU2PR04MB8822.eurprd04.prod.outlook.com (2603:10a6:10:2e1::11)
+ by GV1PR04MB10725.eurprd04.prod.outlook.com (2603:10a6:150:20a::9) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.48.19; Mon, 25 May
+ 2026 06:06:47 +0000
+Received: from DU2PR04MB8822.eurprd04.prod.outlook.com
+ ([fe80::c67b:71cd:6338:9dce]) by DU2PR04MB8822.eurprd04.prod.outlook.com
+ ([fe80::c67b:71cd:6338:9dce%5]) with mapi id 15.20.9891.019; Mon, 25 May 2026
+ 06:06:46 +0000
+From: Xu Yang <xu.yang_2@nxp.com>
+Subject: [PATCH 0/2] device property: fix child iteration issues with
+ secondary fwnodes
+Date: Mon, 25 May 2026 14:09:18 +0800
+Message-Id: <20260525-fixes_fwnode_iteration-v1-0-a12903fb2919@nxp.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAI7nE2oC/x3LQQqAIBBA0avErBPMUKKrRIjlWLOxUKlAuntDy
+ w//VciYCDOMTYWEF2U6IkfXNrDuLm4oyHODkspIrbQI9GC24Y6HR0sFkytMxOKCUX4wXS81MD4
+ T/ifbaX7fDwmZViZoAAAA
+X-Change-ID: 20260525-fixes_fwnode_iteration-baf62d861305
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
+ Daniel Scally <djrscally@gmail.com>, 
+ Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+ Sakari Ailus <sakari.ailus@linux.intel.com>, 
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+ "Rafael J. Wysocki" <rafael@kernel.org>, Danilo Krummrich <dakr@kernel.org>, 
+ Mauro Carvalho Chehab <mchehab+huawei@kernel.org>, 
+ Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-acpi@vger.kernel.org, driver-core@lists.linux.dev, 
+ linux-kernel@vger.kernel.org, stable@vger.kernel.org, 
+ Xu Yang <xu.yang_2@nxp.com>
+X-Mailer: b4 0.14.3
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1779689386; l=1515;
+ i=xu.yang_2@nxp.com; s=20250815; h=from:subject:message-id;
+ bh=TY6SGJViF3IgQ/GK7EU3bTY1nvuX5+6Ubnt+OBZ5nzQ=;
+ b=wO1diJDe7cmf9H/SFiG5dmX1CbB7/tVIIMHBU5MmaUwnnv4hdiVQ0hE0yFC3Cn2bdiyw2eFbr
+ C1N6HydvflODjEfdCUArE6o3/HmZ71FBje/A4Fm6pCQEUFtthZS8Gk4
+X-Developer-Key: i=xu.yang_2@nxp.com; a=ed25519;
+ pk=5c2HwftfKxFlMJboUe40+xawMtfnp5F8iEiv5CiKS+4=
+X-ClientProxiedBy: SI2PR02CA0012.apcprd02.prod.outlook.com
+ (2603:1096:4:194::7) To DU2PR04MB8822.eurprd04.prod.outlook.com
+ (2603:10a6:10:2e1::11)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260519090928.1952787-1-maoyixie.tju@gmail.com>
-In-Reply-To: <20260519090928.1952787-1-maoyixie.tju@gmail.com>
-Reply-To: sunilvl@oss.qualcomm.com
-From: Sunil V L <sunilvl@oss.qualcomm.com>
-Date: Mon, 25 May 2026 11:35:33 +0530
-X-Gm-Features: AVHnY4IRGuUiYnMe6dXGsX3It310HZfoQGBbPW7POERO3lN-yzhhJmRuZt_XgQ8
-Message-ID: <CAB19ukFfwjJEyE0MX+u7zK8TO0g_AKen1AAF-ig4NH3-aHWgQQ@mail.gmail.com>
-Subject: Re: acpi/riscv: iterator after loop end in riscv_acpi_register_ext_intc?
-To: Maoyi Xie <maoyixie.tju@gmail.com>
-Cc: Sunil V L <sunilvl@ventanamicro.com>,
-        "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
-        Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>,
-        Albert Ou <aou@eecs.berkeley.edu>, Alexandre Ghiti <alex@ghiti.fr>,
-        linux-acpi@vger.kernel.org, linux-riscv@lists.infradead.org,
-        linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-X-Proofpoint-ORIG-GUID: dgUUWrR78ShltqQY2EXhUs23E9WhM3uv
-X-Authority-Analysis: v=2.4 cv=WvYb99fv c=1 sm=1 tr=0 ts=6a13e6b9 cx=c_pps
- a=ngMg22mHWrP7m7pwYf9JkA==:117 a=IkcTkHD0fZMA:10 a=NGcC8JguVDcA:10
- a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22
- a=yOCtJkima9RkubShWh1s:22 a=pGLkceISAAAA:8 a=9prIHcOmAL0soUL90jwA:9
- a=QEXdDO2ut3YA:10 a=yHXA93iunegOHmWoMUFd:22 a=zY0JdQc1-4EAyPf5TuXT:22
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNTI1MDA1OCBTYWx0ZWRfX+Rp2xU/xU2Je
- cmcpzDeB/xfWEDT6w1m2LGZgj7fjrjVLReARjFCOpthz/0XfGlMSz8it4pJ7htDdjB7tt8W5m2c
- LGp2nW3OMY+Eg33W0uz8zQeqcMfUS2Y2TTvpU9Z8dO5hDusCDecgw/G9Rwp5BcgAjAL6a+ZXzlJ
- D7cQJfTcDVq3zUlIwbdV0u2IQ/i0orX7zAzvgdVwyLmQTFswN1rVTiferB9yaEDn/Cq+lYsJw0l
- HCsVSBYBWH/EPVQBtZrJ+yS/E7ELgtryl4/7hUr3FNrKI9NYjNFokhI8yK1xMeljN9fMlTvcZ6Y
- qNbWgJl9udLpRvCfT8DWZBs/15DYtGbt+lUHV6RXW5J3ICWSkHv0BS+dJv/jyRqX8YsznHAonpA
- GbAwxC6mlcJ2JT0Qhp0SSUqKLy1R7SsV3VfKg9Yzg5XeFA2dqjqlbcQ7x6U/kRgRceYlbeeDWix
- K8e75roQRnEEb5FmI6w==
-X-Proofpoint-GUID: dgUUWrR78ShltqQY2EXhUs23E9WhM3uv
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.51,FMLib:17.12.100.49
- definitions=2026-05-25_01,2026-05-18_01,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- malwarescore=0 priorityscore=1501 lowpriorityscore=0 spamscore=0
- clxscore=1015 phishscore=0 adultscore=0 suspectscore=0 impostorscore=0
- bulkscore=0 classifier=typeunknown authscore=0 authtc= authcc= route=outbound
- adjust=0 reason=mlx scancount=1 engine=8.22.0-2605130000
- definitions=main-2605250058
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DU2PR04MB8822:EE_|GV1PR04MB10725:EE_
+X-MS-Office365-Filtering-Correlation-Id: f11ade3e-94b5-4362-0193-08deba23cd88
+X-LD-Processed: 686ea1d3-bc2b-4c6f-a92c-d99c5c301635,ExtAddr
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+ BCL:0;ARA:13230040|366016|19092799006|376014|7416014|52116014|1800799024|18002099003|56012099003|38350700014|6133799003|11063799006;
+X-Microsoft-Antispam-Message-Info:
+ l56jT7rSmVD9K/rql8xBtxDzj/xPRxTRVkeo9PMJLbgcKOFa6VMpm1y4sRdn7ltBhIkrohsqTm78EQ3i6SKNgHh8aUUQOC3aLRSMa55On/zVsysS0P1IHEO1f4TYbJbdCKI/xucdMwLv6TnGtuiFGf8oCV5YjkNwdowMgTx5HIJSHr/PaTAy9kte1UIkNnLnaODBbq2HadHS49+vAwau9nmXv64Juq+AIobjXmqopXCzZ28wXSNapQhlbZvcKo0NjluR+7JHAFMS1XBLUFe2Z6Wr6kgkEe0yxgyGgkjPKyBXKs8iIONaWFFRQw6ADthh7K8xFIvAKIzEbj5YnAzwTaK7ycIT9aUUa9vIMC5E564CgRBjRJy1oEBCjrdl6BajlHJHGmcqxKuYQsFQPXyQxvRdcDWq/10/BmSq48d+lpn1grESkxVfJMptNs/qGzLgnUISB4lAVZ9jxdPm32QsACK9kq6A+eGp0O5LWOagUxSUb+gkpqettCGteWVtQ3yCANi5YqAVUrRsU/lCtkHS1TIo+rJrL8cq8HZ3ZiMlI5suenymaeHy1UNJL3OBcY9yhrmYFrYlHTgN7dIGZ+f1YgcrAudITfE/rwlbwJjvdBL5Hf0aa+xkeHPGlUrqWt1B3bcDjX9vbVJ6IuE7SLLPMseIJYxjjbMdVv9Cg9Xt8MpLXG06JdI0BWpxOpHPB86Xjv24MpkzPoRSXyMo6iAilwwZu3nvqkY/MBmNlZWWyZfI0n5PRAZtVMGeTrWxvhGf
+X-Forefront-Antispam-Report:
+ CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DU2PR04MB8822.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(19092799006)(376014)(7416014)(52116014)(1800799024)(18002099003)(56012099003)(38350700014)(6133799003)(11063799006);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+ =?utf-8?B?Y2pMc0dvSjl5MnR6aTd1WEdWWUwwcHVwa1VSTGxrQzk4SVFYeWJySmdZOWcw?=
+ =?utf-8?B?OVdBTEhpNzhzQ29mRkJqdm5rUnRIemFvYnN3Tlc2UnBGRFZXZDIwSGpLL2xD?=
+ =?utf-8?B?QTFLSis2c2R2RlVqVjVYUVlZVWZYOEMrc0F0R0gxWkFzbjhYRXVRMnlObytK?=
+ =?utf-8?B?Z2pxODh6ZW9tUmxlbFdEajlsWlZ5MzdMZno3K2pwb29TYVlZMnlZcDZJbEJ4?=
+ =?utf-8?B?d05hdmNGQkNFNmVWaHlzU1RFaFJTYUluMlAwTDBmR3YyS001RGdKekVNQTVx?=
+ =?utf-8?B?S0hPd2d5cnBkV21peFQwNlNRalRhQTBSL1diTUhpeGlEMjQvK2szTFdlclJL?=
+ =?utf-8?B?ZFloQTREaFlTNzVkNks2MFo0ZVIyR1dxVURGRC8rZnZLTytNTkVvNGdhU3U0?=
+ =?utf-8?B?OEJFMmgwMGIvVFJGOFZnNkphd2YxMG04UjdjblpjWU9YTG1HYjJGTHRZd3Jp?=
+ =?utf-8?B?M3FEUkVYWlVDUTd5cjRvcDA0dm9CVFhXck14b2ZSalhrMWdlbi9WMU9xb1lF?=
+ =?utf-8?B?UnNiZWJWemRmay91czhWUHdTUXpqcEpodlp1UEV2cmhBeFFEM2dGdC9wY0xm?=
+ =?utf-8?B?ZTNkSW1Ld3lmRTVkZFJaeUtTanEvM0ZpTDMvNTNwdFpjSzUrcXVaanVtajd4?=
+ =?utf-8?B?TTl4a3BBOWNzNDJBVjI4SDZldVNsaEduUy9MSklmU0xybVpPM0RsdWU3MGdM?=
+ =?utf-8?B?R3JtZURUaVJBMkZoMmhXTGdEOG9lSmlwZGo3eVloaHBkUDc1d1JyVWdLSU45?=
+ =?utf-8?B?UU04VEZaSUpKKzJZTXJ0a2Y3SUZCL0dnek1LWnJsd0VwTitNN0JUWEVjYTNH?=
+ =?utf-8?B?citSTHRzUTJjRk8rRGR0R3BvSWJwZzFQRnljV3RlK2FWVFAzOThtT0M4QUF6?=
+ =?utf-8?B?OHRCWEFGMlpOb1RLRzNjVVhUQ3BUWlN5TllTdW0zZkZNLzhBdmZHR3JOTXJR?=
+ =?utf-8?B?NTFQWk1vRmRabVJsY0VzOXU1NjYzRnBvbGpxak5ubWRicEVwekx3eDVYekVW?=
+ =?utf-8?B?MW9ncDVVcHRlejIrVzZOcE9xR3dVbmp1NkFycHJZSm1oa3RVcE16bWxNcmVU?=
+ =?utf-8?B?ai9SRUxISjIrK205NVJDVXc4MzByZkNlRXRYK3RONUF5blpRKy9uem9RQTQx?=
+ =?utf-8?B?bUcwaGNQOTJWZzh0WjJqQzJjTXZtSVkwdkdoVFdUakN3NjJyMG9XUU9TMTBx?=
+ =?utf-8?B?dE11TklMalprZ21paEIyQUg0Q0xtUzVQYWp4d2Z2djNKWFZJMmx4RzRDSVcv?=
+ =?utf-8?B?eXJDZzJYT1N2ZVFWR1VCRnNidzVvS0N1eDMrTWxoN2I4YlpJb0cwMEhacmJI?=
+ =?utf-8?B?TkZQS2VWRkhLNlZXSDdHUkFjQ0o0RFhJS010V283bW1hU28yNVJDSVVNd2NX?=
+ =?utf-8?B?NUxqUXJaZFU2SzZxNHNNb00yWk9XblFVVVJjbCtFNmxTQm9lYXJBQklxbFdG?=
+ =?utf-8?B?K3pwVHNkWlpKWHQ5MkFnZWQveldPbmF6d3laNTNFUStUTVdwUjkyTjM0UWNm?=
+ =?utf-8?B?Q0NPOGNSOENPK3V6MkhNZlR1Nmg2ZzZycnlUVTBKdHB0RXM1YjZNY2ZLMHJq?=
+ =?utf-8?B?OE80ZjVrbU1wbEVqcHhVbjFVSktFTXdWekM0K1hCY2NTQ0U2dHpWSlBNZzJv?=
+ =?utf-8?B?SC83NEpPNGFyYkk0bHQvY1U3RVFYTGFJYUFvU0dFTHM4SWx4WC8ySXZuWDBt?=
+ =?utf-8?B?VjMxMXUzdXVONkNSSkEyZC9CMmVGWkp0YlZJaXFPT3plLzVDcis2Ymg5UG9u?=
+ =?utf-8?B?dXpFOTZPYUVkMEpwb2lweFkwK0R4eXZ5VE5laitkVlhoSCtoakJrcnlTVzJv?=
+ =?utf-8?B?NGJmdVlXNVNiT0VjVHZRUG8xNm40MWhtdXFtQ3BoSndxRDJ6a1ZnM1VrdDlS?=
+ =?utf-8?B?VTBqUVJ2WlpJek5aM200WHJDKzExQlEyaDUzWFN3M0JQRDFVa0lEblh1c2ps?=
+ =?utf-8?B?cEZQOGhWcmYxYllPeUliaTB3a2M5MkRPWjF3Rm5Kb3lxS0tWSnVVbnhLWmV0?=
+ =?utf-8?B?bWlOT0QybE04UkZVTFc4OW1jMUhjSWJEeUsvODl3cFFOVFo1N2VDUGRjY0Ev?=
+ =?utf-8?B?UWJJWWpEYmQ3YVJxdit1N3BYUnJJYk5jTitTYzloTnZXV05BYVgwMFdYQVJB?=
+ =?utf-8?B?NmpDV000dy9mWnp0WVJrOGhOOFUvRm5nZnFhQXhUdTM5WEtQTW1MR2tFdjB4?=
+ =?utf-8?B?cmJuZUhtWHFkcnBJV1dhRjhIVEN5aGtKZHZoc0pPSDYydzlzMGxETllIWG83?=
+ =?utf-8?B?S3FBL3UwVGUwTkN0YjI5am54eFRlL3VKd1ZQMEhIYmlPcEFMM0w1K0p3ZXM1?=
+ =?utf-8?B?Ymx2NXk2SkRER3U2cVpQRllNMEhJemRyNkxZT3h5aE5OMnVEcjFMUT09?=
+X-OriginatorOrg: nxp.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: f11ade3e-94b5-4362-0193-08deba23cd88
+X-MS-Exchange-CrossTenant-AuthSource: DU2PR04MB8822.eurprd04.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 May 2026 06:06:46.9370
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 686ea1d3-bc2b-4c6f-a92c-d99c5c301635
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: aJgM+YdQVtan5h2ZEMypBfzeWcmGALYayLiVN7TS+8CaHSHr5qg4U2j38fOuQDmgU7t5th7V3dPZ8dlJ6jdsTg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: GV1PR04MB10725
 
-Hi Maoyi Xie,
+This series fixes two issues in the fwnode child iteration logic when
+a secondary fwnode is present.
 
-On Tue, May 19, 2026 at 2:40=E2=80=AFPM Maoyi Xie <maoyixie.tju@gmail.com> =
-wrote:
->
-> Hi all,
->
-> While reading drivers/acpi/riscv/irq.c I noticed something
-> that looks like a past the end iterator pattern, used in two
-> places in the same function. I would appreciate it if you
-> could take a look and let me know whether this is a real
-> issue, and whether it is worth fixing.
->
-> The site is riscv_acpi_register_ext_intc() (linux-7.1-rc1,
-> around line 155):
->
->     list_for_each_entry(node, &ext_intc_list, list) {
->             if (node->gsi_base < ext_intc_element->gsi_base)
->                     break;
->     }
->
->     /* Adjust the previous node's GSI range if that has
->        pending registration */
->     prev =3D list_prev_entry(node, list);
->     if (!list_entry_is_head(prev, &ext_intc_list, list)) {
->             if (prev->flag & RISCV_ACPI_INTC_FLAG_PENDING)
->                     prev->nr_irqs =3D ext_intc_element->gsi_base
->                                     - prev->gsi_base;
->     }
->
->     list_add_tail(&ext_intc_element->list, &node->list);
->
-> When the loop walks all entries without break (no entry has
-> gsi_base smaller than the new one), node is past the end.
-> The function then uses node in two ways:
->
->   1. list_prev_entry(node, list) relies on &node->list
->      aliasing &ext_intc_list (the head) via container_of
->      offset cancellation, so the result becomes the last
->      real entry of the list (head->prev). The PENDING flag
->      adjustment then runs on that last entry.
->
->   2. list_add_tail(..., &node->list) relies on the same
->      alias so the insert lands at the list tail.
->
-> Both behaviours are intended (sorted insertion plus a
-> fall-through path that still wants the last entry's PENDING
-> flag adjusted), but both dereferences of the past the end
-> node are undefined per C11.
->
-> Jakob Koschel cleaned up many such sites in 2022, for example
-> commits 99d8ae4ec8a (tracing: Remove usage of list iterator
-> variable after the loop), 2966a9918df (clockevents: Use
-> dedicated list iterator variable) and dc1acd5c946 (dlm:
-> replace usage of found with dedicated list iterator
-> variable). This site was not covered.
->
-> A candidate fix would track an explicit insertion target
-> (struct list_head *pos =3D &ext_intc_list) which is overwritten
-> to &node->list only when the loop breaks early. The PENDING
-> flag adjustment then reads pos->prev directly: if pos->prev
-> is &ext_intc_list (empty list, or break on the first entry),
-> the adjustment is skipped; otherwise pos->prev points to the
-> real entry that becomes the predecessor in list order. In the
-> fall-through path pos stays at the list head, and head->prev
-> is the last real entry, so that branch keeps adjusting the
-> last entry as before. Observable behaviour is unchanged.
->
-> If this is intentional or already known, please disregard.
-> Otherwise, I am happy to send a [PATCH] or to leave the fix
-> to you. Thank you for your time, and sorry for the noise if
-> this is not actually worth fixing or has already been spotted.
->
-Yes, I think this should be fixed. Thanks for reporting the issue.
-Please send the patch.
+The first patch addresses a refcount imbalance in
+software_node_get_next_child(). When a software node is used as a
+secondary fwnode, the iteration code may incorrectly decrement the
+refcount of child nodes that do not belong to the software node
+hierarchy. This results in refcount underflow and possible use-after-free.
 
-Thanks,
-Sunil
+The second patch fixes an infinite loop in
+fwnode_for_each_child_node(), caused by improper handling of iteration
+state across primary and secondary fwnodes. When iterating over children
+from both primary and secondary fwnodes, the code may incorrectly
+resume iteration from the primary fwnode even when the current child
+belongs to the secondary, leading to repeated traversal and a loop.
+
+Both issues are triggered when mixing different fwnode types through the
+secondary mechanism, and stem from incorrect assumptions about ownership
+and traversal context of child nodes.
+
+---
+Xu Yang (2):
+      software node: fix refcount leak in software_node_get_next_child()
+      device property: fix infinite loop in fwnode_for_each_child_node()
+
+ drivers/base/property.c | 26 ++++++++++++++++++++------
+ drivers/base/swnode.c   | 14 +++++++-------
+ 2 files changed, 27 insertions(+), 13 deletions(-)
+---
+base-commit: c1ecb239fa3456529a32255359fc78b69eb9d847
+change-id: 20260525-fixes_fwnode_iteration-baf62d861305
+
+Best regards,
+-- 
+Xu Yang <xu.yang_2@nxp.com>
+
