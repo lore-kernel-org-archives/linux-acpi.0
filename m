@@ -1,143 +1,170 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f42.google.com (mail-wm1-f42.google.com [209.85.128.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBF6B2C21F4
-	for <linux-acpi@vger.kernel.org>; Mon, 25 May 2026 15:40:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D403B3F20E4
+	for <linux-acpi@vger.kernel.org>; Mon, 25 May 2026 16:19:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779723659; cv=none; b=ja0UlkRwSzpaFkXvkNUkBAmWvt+nPykz+e7B5zQVH3j1fsskDBbhFPcpd34KQKk3kX3d9+k0BadmZlw1nBgk1doCohTh4JJW859A8hYeU44oMO2dJShvCbpt+0YfQ4ApGDh9m+owP9x/hNi8KtlyQ8Ux8SRPLXxBjf+HzLe+QgY=
+	t=1779725967; cv=none; b=sojMaHG4eKYXL1CrjaIMM9aitou3ikMS91Rb7MWj9idNE/qmGd7+/LBBBSoXoGcAx43CyJF0yhNTtI4OZNyNJUEk8M6l344dwrbM3QGObo1usovB9mPUP5ewouqZRv3MnonNuiTZMFeGSmD+/G9DeEL4akcxp92zu5jEPL+q0uM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779723659; c=relaxed/simple;
-	bh=zdlGbnUa+EDORnMtp3NC8KdtU3yYgZNr5qtrULnD2Gg=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=MCYcP5zUgW8ys38Ozib8WdlLxtu5oBus5zNX0Cj/uDmg3aVR7/Jjcg/dq14aytTMjK3bkHAHic5wJdS+2dRl2tiM7mZYmn+XRVTluWfVmi5Y29xhNg6TdiQVwLnY7jVVDA5izQ9vfH9CbVTU44U8Jd494MBdM31G7jpKSdvL2fs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gjPyqHsi; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779725967; c=relaxed/simple;
+	bh=6ATTepTt/W1eTfJKlZcOEC7miXlLa4M2ScAL84EJqWk=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=NYuLStkIjEFCKhK8F36TcVAe3D+WK8KIGco/cVsB8AvSGfhUURYfiaDqtvYw9U4yGoZMLzFVkDpNNmfR5WoOtQT5hvNT7A6nzFFmMuPXA9J1Oty22T3KLyrBW1LA/slLkG9Pj3rCMpSjgJzZ7kxYv/2Xzr4da0kcFM1xJOxyHes=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=dr4TZWgD; arc=none smtp.client-ip=209.85.128.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gjPyqHsi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C22121F000E9
-	for <linux-acpi@vger.kernel.org>; Mon, 25 May 2026 15:40:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1779723657;
-	bh=W9eec48RDS+uVSFgBbs286K44Gv/qZyKOHPTF1TQTN8=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=gjPyqHsiFxUE+M/mXXfPDnGcSh14REJBLWWH4dMrXPJ50bM2SZBGaIqZuBbliiDlW
-	 v1SJleW17IQMo0Ie/FzdVoTiCsYKnE2yv6Soakrr4rGTTxrOyG/qlUliqlvO6pbtEc
-	 uqnpfZ/lW4FchWyVs2dtvE+OcOjK9SEFsGpp/+G/ZZ00Ckb4DoR8SjqOcUKCrkHwAr
-	 03p4+BBHxvMtrYSCzutcCPhiLxyoNGXcihW+z4cE0cKemA7EnU32UbGCQzVA6hAMDV
-	 Y/zBbpTghuPBwJa3ImQMiDcl1Z8u0gqGzYNSSqTzxoyubtsPAyP/9WseyF8XQ9oBFw
-	 cB2M2ndHUEfng==
-Received: by mail-lj1-f175.google.com with SMTP id 38308e7fff4ca-393c40246afso108847291fa.1
-        for <linux-acpi@vger.kernel.org>; Mon, 25 May 2026 08:40:57 -0700 (PDT)
-X-Gm-Message-State: AOJu0YyhVrY4IK6e3zjGsxuFptKMvI4/zXOWpp7wSX1gJUKILRHce766
-	x+ucTWlJY9FGbHxWxadM78QCbHrkm0g/6jcNgkehaBCbh588VgodHeAWJxAf89Wa+5gqYMrx25p
-	v88L0St6Rqmg+y+XcGkLp01YeD6t9mew=
-X-Received: by 2002:a05:6512:39d0:b0:5a8:f243:eea6 with SMTP id
- 2adb3069b0e04-5aa323d4962mr4768209e87.24.1779723656201; Mon, 25 May 2026
- 08:40:56 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="dr4TZWgD"
+Received: by mail-wm1-f42.google.com with SMTP id 5b1f17b1804b1-48a3e9862f0so51631205e9.1
+        for <linux-acpi@vger.kernel.org>; Mon, 25 May 2026 09:19:24 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=suse.com; s=google; t=1779725963; x=1780330763; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=6YA+/JJXQ9abERc/NViF0XyaL5qdJ2pUb4chRkVwshY=;
+        b=dr4TZWgD1Esm3Qat2phkFsMogL1QSisy0KS5zRNj7QLd+O/GTWfZKF/uEdi+t9nmcR
+         dNii4QQxToJf+zI9chidglTAOXLiVdJ387YJpWnu4O63RZWZpdft6OjU//0zfSVBO/Yy
+         aLoJ+GdqYyIcf1QZ3S/llKFAOlJ84UyYM98oHjPHgYY3F7FL0OrljqOzg8++8jmqQw7A
+         O5n5KKQspBxCRl24VEYndxfcbPND9j7SmWztWHYdSuVM/njdzkK1jbGeu/q+wYu+k1tw
+         8TTcdzkzuBj6AUmwdDxqdavz+slVMsWbwdX+qKe1b1YYNz7v1oMCb8aIIpb7FBEk2qd1
+         WQkg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1779725963; x=1780330763;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=6YA+/JJXQ9abERc/NViF0XyaL5qdJ2pUb4chRkVwshY=;
+        b=aflZ+nIlWNZZ6H6ZyfKj0DcGIFQh2dt42FHlDbop54dws0dHeb4OqcSdnJXAv5jG9R
+         UbAxgmhHUkzAKITBvNDSMnJx91XL5O/lzs7saR+LifrBJzYaIkz0FZYrQj5QVT9swpHn
+         pYRIBC5TdkoAObdXfztKEYYDxCYun515yoLF0en1JhpcNyJKo0tyTAzYDARggAjqETxz
+         osgUBE4+REFfEe6FXN+Vvhoj0StTmP4Avurwdsi3FoK0dFMdj6rUmIXa5xLkVdGmieFN
+         mmcFUD/W+UZWAdKEbW9iiNtjq0dnq9Ztk6tUkXPvH2M0IDXefUkhDVuuMa4UTzQiQwm8
+         IKGw==
+X-Forwarded-Encrypted: i=1; AFNElJ92sFuibdF+Bzp6iEGNsStqKCZLxNgCLF9O+Chdmlqhf8ByPg/BcZ4H0E4alIgN/wj1An6h3zgsf9br@vger.kernel.org
+X-Gm-Message-State: AOJu0YxAu7rXqlu3xxKNbOam2XmLsveZ8Gsg+dtt1ABYk8B+9AKF0QZW
+	J7kn5N8VgdTUu9lWMa9N0DmGzP+rVSy7b9ArNWa3R2PcCJwGI6xhVo+8O+MDjWPq7Go=
+X-Gm-Gg: Acq92OF/AHOfjLGxn1vRTysn+q3dNRYTdiSooVEis1Sq6RZKba5yJm0kqJdA9PtNG9O
+	a+vr1bgKRgzUBO7AbNCilObkQTOauVGE9iaoIAn43oWQzeDxb1DkqdUEUGJZmXd182i6IM7Yg+z
+	fkTnS0JtLShmOUxnfCO6hbfZEDRy3Yybdav+5R1PQn6t26nQQCamK635NGlKtnVcMUoarMibWmJ
+	D/yHg0bNUAtNx4TliKtNY09Xt6i8AbgFN5h9/q5pBiUb+gRRIHjcvhC8/c/kp/S337Kt4AkMCVj
+	dhur/nZMgypHAPabwLSxgNVLV1aqogCDl4Z3PjcxKa4dUg4n0NXSuj3oYW0ECX0Tcec23XV8Zhp
+	qWgFKIVFxmKcyIAxO5aT+vrNfWCJOvECgODdg7SYFsQ+fpe/Lm3r+pd6bROljVJ/h2GMvNECRC5
+	LlkbW3kezhbIhLrgJpljmA5PAaMQXYxdyXLSyCv1HyIGbZxY+5kkhxMo/Oc7MFf5m1rPo+NQ6xJ
+	ZMq3RyixiZz6SbgO43vFm5UXvyJw1XukBnzTDHIMnIb0mc8RWYOwYP5DNohCU8D770UVg==
+X-Received: by 2002:a05:600c:3b07:b0:490:f7c:b19 with SMTP id 5b1f17b1804b1-490420f67f5mr197977845e9.0.1779725963153;
+        Mon, 25 May 2026 09:19:23 -0700 (PDT)
+Received: from ?IPV6:2a00:1028:838d:271e:8e3b:4aff:fe4c:a100? (dynamic-2a00-1028-838d-271e-8e3b-4aff-fe4c-a100.ipv6.o2.cz. [2a00:1028:838d:271e:8e3b:4aff:fe4c:a100])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-49059cc9a91sm48939425e9.1.2026.05.25.09.19.19
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 25 May 2026 09:19:22 -0700 (PDT)
+Message-ID: <a4c7ccee-6189-4c74-bad8-57d1438c7d8d@suse.com>
+Date: Mon, 25 May 2026 18:19:19 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <4739447.LvFx2qVVIh@rafael.j.wysocki> <3048737.e9J7NaK4W3@rafael.j.wysocki>
-In-Reply-To: <3048737.e9J7NaK4W3@rafael.j.wysocki>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Mon, 25 May 2026 17:40:43 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0hnWNMp67N6k5csA-JAEqkmPB30Mjy0NmzhmyxvWWZG+Q@mail.gmail.com>
-X-Gm-Features: AVHnY4KMMMHl87hZ7JVgd59XMtJD9vALY1FG3qET9YC7DAmXg6ESk0pSlWkz4rE
-Message-ID: <CAJZ5v0hnWNMp67N6k5csA-JAEqkmPB30Mjy0NmzhmyxvWWZG+Q@mail.gmail.com>
-Subject: Re: [PATCH v1 02/17] ACPI: NFIT: core: Use devm_acpi_install_notify_handler()
-To: Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>, 
-	Vishal Verma <vishal.l.verma@intel.com>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, 
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Hans de Goede <hansg@kernel.org>, 
-	Armin Wolf <w_armin@gmx.de>, Dan Williams <djbw@kernel.org>, nvdimm@lists.linux.dev
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 06/11] moduleparam: Add seq_buf-based .get callback
+ alongside .get_str
+To: Kees Cook <kees@kernel.org>
+Cc: Luis Chamberlain <mcgrof@kernel.org>, Pengpeng Hou
+ <pengpeng@iscas.ac.cn>, Richard Weinberger <richard@nod.at>,
+ Anton Ivanov <anton.ivanov@cambridgegreys.com>,
+ Johannes Berg <johannes@sipsolutions.net>,
+ "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+ Corey Minyard <corey@minyard.net>, Gabriel Somlo <somlo@cmu.edu>,
+ "Michael S. Tsirkin" <mst@redhat.com>,
+ Jani Nikula <jani.nikula@linux.intel.com>,
+ Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
+ Rodrigo Vivi <rodrigo.vivi@intel.com>, Tvrtko Ursulin
+ <tursulin@ursulin.net>, David Airlie <airlied@gmail.com>,
+ Simona Vetter <simona@ffwll.ch>, Bart Van Assche <bvanassche@acm.org>,
+ Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
+ Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+ Hans de Goede <hansg@kernel.org>, Mauro Carvalho Chehab
+ <mchehab@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>,
+ Hannes Reinecke <hare@suse.de>,
+ "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+ "Martin K. Petersen" <martin.petersen@oracle.com>,
+ Daniel Lezcano <daniel.lezcano@kernel.org>, Zhang Rui <rui.zhang@intel.com>,
+ Lukasz Luba <lukasz.luba@arm.com>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ Jiri Slaby <jirislaby@kernel.org>, Alan Stern <stern@rowland.harvard.edu>,
+ Jason Wang <jasowang@redhat.com>, Xuan Zhuo <xuanzhuo@linux.alibaba.com>,
+ =?UTF-8?Q?Eugenio_P=C3=A9rez?= <eperezma@redhat.com>,
+ Jason Baron <jbaron@akamai.com>, Jim Cromie <jim.cromie@gmail.com>,
+ Tiwei Bie <tiwei.btw@antgroup.com>, Benjamin Berg <benjamin.berg@intel.com>,
+ =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+ "David E. Box" <david.e.box@linux.intel.com>,
+ "Maciej W. Rozycki" <macro@orcam.me.uk>,
+ Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+ Peter Zijlstra <peterz@infradead.org>, Heiko Carstens <hca@linux.ibm.com>,
+ Vasily Gorbik <gor@linux.ibm.com>, Sean Christopherson <seanjc@google.com>,
+ Paolo Bonzini <pbonzini@redhat.com>, Thomas Gleixner <tglx@kernel.org>,
+ Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+ Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+ "H. Peter Anvin" <hpa@zytor.com>, Vinod Koul <vkoul@kernel.org>,
+ Frank Li <Frank.Li@kernel.org>, Daniel Gomez <da.gomez@kernel.org>,
+ Sami Tolvanen <samitolvanen@google.com>, Aaron Tomlin <atomlin@atomlin.com>,
+ Alexander Potapenko <glider@google.com>, Marco Elver <elver@google.com>,
+ Dmitry Vyukov <dvyukov@google.com>, Andrew Morton
+ <akpm@linux-foundation.org>, John Johansen <john.johansen@canonical.com>,
+ Paul Moore <paul@paul-moore.com>, James Morris <jmorris@namei.org>,
+ "Serge E. Hallyn" <serge@hallyn.com>,
+ Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+ Georgia Garcia <georgia.garcia@canonical.com>, kvm@vger.kernel.org,
+ dmaengine@vger.kernel.org, linux-modules@vger.kernel.org,
+ kasan-dev@googlegroups.com, linux-mm@kvack.org, apparmor@lists.ubuntu.com,
+ linux-security-module@vger.kernel.org, linux-um@lists.infradead.org,
+ linux-acpi@vger.kernel.org, openipmi-developer@lists.sourceforge.net,
+ qemu-devel@nongnu.org, intel-gfx@lists.freedesktop.org,
+ dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org,
+ linux-media@vger.kernel.org, linux-pci@vger.kernel.org,
+ linux-scsi@vger.kernel.org, linux-pm@vger.kernel.org,
+ linuxppc-dev@lists.ozlabs.org, linux-serial@vger.kernel.org,
+ linux-usb@vger.kernel.org, usb-storage@lists.one-eyed-alien.net,
+ virtualization@lists.linux.dev, linux-kernel@vger.kernel.org,
+ linux-arch@vger.kernel.org, netdev@vger.kernel.org,
+ linux-fsdevel@vger.kernel.org, linux-hardening@vger.kernel.org
+References: <20260521133315.work.845-kees@kernel.org>
+ <20260521133326.2465264-6-kees@kernel.org>
+Content-Language: en-US
+From: Petr Pavlu <petr.pavlu@suse.com>
+In-Reply-To: <20260521133326.2465264-6-kees@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Thu, May 21, 2026 at 4:13=E2=80=AFPM Rafael J. Wysocki <rafael@kernel.or=
-g> wrote:
->
-> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
->
-> Now that devm_acpi_install_notify_handler() is available, use it in
-> acpi_nfit_probe() instead of a custom devm action removing an ACPI
-> notify handler installed via acpi_dev_install_notify_handler().
->
-> Also drop the explicit ACPI_COMPANION() check against NULL that is
-> not necessary any more becuase devm_acpi_install_notify_handler()
-> carries out an equivalent check internally and use ACPI_HANDLE() to
-> retrieve the platform device's ACPI handle.
->
-> No intentional functional impact.
->
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->  drivers/acpi/nfit/core.c | 24 +++---------------------
->  1 file changed, 3 insertions(+), 21 deletions(-)
->
-> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-> index 9304ac996d41..5cab62f618c8 100644
-> --- a/drivers/acpi/nfit/core.c
-> +++ b/drivers/acpi/nfit/core.c
-> @@ -3298,14 +3298,6 @@ static void acpi_nfit_notify(acpi_handle handle, u=
-32 event, void *data)
->         device_unlock(dev);
->  }
->
-> -static void acpi_nfit_remove_notify_handler(void *data)
-> -{
-> -       struct acpi_device *adev =3D data;
-> -
-> -       acpi_dev_remove_notify_handler(adev, ACPI_DEVICE_NOTIFY,
-> -                                      acpi_nfit_notify);
-> -}
-> -
->  void acpi_nfit_shutdown(void *data)
->  {
->         struct acpi_nfit_desc *acpi_desc =3D data;
-> @@ -3342,22 +3334,12 @@ static int acpi_nfit_probe(struct platform_device=
- *pdev)
->         struct acpi_nfit_desc *acpi_desc;
->         struct device *dev =3D &pdev->dev;
->         struct acpi_table_header *tbl;
-> -       struct acpi_device *adev;
->         acpi_status status =3D AE_OK;
->         acpi_size sz;
->         int rc =3D 0;
->
-> -       adev =3D ACPI_COMPANION(&pdev->dev);
-> -       if (!adev)
-> -               return -ENODEV;
-> -
-> -       rc =3D acpi_dev_install_notify_handler(adev, ACPI_DEVICE_NOTIFY,
-> -                                            acpi_nfit_notify, dev);
-> -       if (rc)
-> -               return rc;
-> -
-> -       rc =3D devm_add_action_or_reset(dev, acpi_nfit_remove_notify_hand=
-ler,
-> -                                       adev);
-> +       rc =3D devm_acpi_install_notify_handler(dev, ACPI_DEVICE_NOTIFY,
-> +                                             acpi_nfit_notify, dev);
->         if (rc)
->                 return rc;
->
-> @@ -3388,7 +3370,7 @@ static int acpi_nfit_probe(struct platform_device *=
-pdev)
->         acpi_desc->acpi_header =3D *tbl;
->
->         /* Evaluate _FIT and override with that if present */
-> -       status =3D acpi_evaluate_object(adev->handle, "_FIT", NULL, &buf)=
-;
-> +       status =3D acpi_evaluate_object(ACPI_HANDLE(dev), "_FIT", NULL, &=
-buf);
->         if (ACPI_SUCCESS(status) && buf.length > 0) {
->                 union acpi_object *obj =3D buf.pointer;
->
-> --
+On 5/21/26 3:33 PM, Kees Cook wrote:
+> Add a new struct kernel_param_ops::get callback whose signature
+> takes a struct seq_buf instead of a raw char buffer:
+> 
+>   int (*get)(struct seq_buf *sb, const struct kernel_param *kp);
+> 
+> The previously-legacy .get field is now .get_str (char *buffer);
+> .get is the new seq_buf-aware form.  param_attr_show() prefers .get
+> when set, otherwise falls back to .get_str.  WARN_ON_ONCE() if both
+> are set.  Return contract for .get:
+> 
+>   < 0 : errno propagated to userspace; seq_buf contents discarded
+>   = 0 : success; length derived from seq_buf_used()
+>   > 0 : forbidden; the dispatcher WARN_ON_ONCE()s and treats as 0
+> 
+> The default policy on seq_buf_has_overflowed() is silent truncation,
+> matching scnprintf()/sysfs_emit() behaviour.  Callbacks that want a
+> specific overflow errno can check seq_buf_has_overflowed() and
+> return their preferred error.
+> 
+> No callbacks use .get yet; the legacy path is still the only one in use
+> after this commit. A subsequent commit teaches DEFINE_KERNEL_PARAM_OPS
+> to route initializers by type.
+> 
+> Signed-off-by: Kees Cook <kees@kernel.org>
 
-I would appreciate feedback on this, but the change is
-straightforward, so in the absence of any I'll pick it up assuming no
-objections.
+Reviewed-by: Petr Pavlu <petr.pavlu@suse.com>
+
+-- Petr
