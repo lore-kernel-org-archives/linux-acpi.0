@@ -1,168 +1,143 @@
-Received: from mail-wr1-f43.google.com (mail-wr1-f43.google.com [209.85.221.43])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60153385519
-	for <linux-acpi@vger.kernel.org>; Mon, 25 May 2026 13:35:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.43
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBF6B2C21F4
+	for <linux-acpi@vger.kernel.org>; Mon, 25 May 2026 15:40:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779716113; cv=none; b=sGm/LjS0qLnA95mg3TPMEM4b8uZbPxQAh92uUrUU+ULHSKCTYqLjUtD2aBwvntfeX6WEuv68UWup5QDFCbNupH8+yV5XOMW7Uzfc7FSKYzAz1u7QwXc2Shr0TG294O9nHlEotGT5aRqqAojF16GTIk0U5uFnTw3RLlYPajwXGSg=
+	t=1779723659; cv=none; b=ja0UlkRwSzpaFkXvkNUkBAmWvt+nPykz+e7B5zQVH3j1fsskDBbhFPcpd34KQKk3kX3d9+k0BadmZlw1nBgk1doCohTh4JJW859A8hYeU44oMO2dJShvCbpt+0YfQ4ApGDh9m+owP9x/hNi8KtlyQ8Ux8SRPLXxBjf+HzLe+QgY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779716113; c=relaxed/simple;
-	bh=s/CzDsE1zdMqB98tClQW/DiNhe7WU760fn0iU6bx43Y=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=picg7jRPhqbosUp9AWUmlkUcsG6/1darLHEMWJvKh8c3T3YQP57CB6F0oVxK5OC5bDdikByV4cJRnj2RLr3tG40AGJ6ZmD4O4Bk3qbco6ZWf2H9JPfRWm7uE5BAybQNp+P5B40kYlBVEoCFHwNpYTJBwpwrDBmSUjXxoL5yjs/g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=BpUH14EG; arc=none smtp.client-ip=209.85.221.43
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
+	s=arc-20240116; t=1779723659; c=relaxed/simple;
+	bh=zdlGbnUa+EDORnMtp3NC8KdtU3yYgZNr5qtrULnD2Gg=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=MCYcP5zUgW8ys38Ozib8WdlLxtu5oBus5zNX0Cj/uDmg3aVR7/Jjcg/dq14aytTMjK3bkHAHic5wJdS+2dRl2tiM7mZYmn+XRVTluWfVmi5Y29xhNg6TdiQVwLnY7jVVDA5izQ9vfH9CbVTU44U8Jd494MBdM31G7jpKSdvL2fs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gjPyqHsi; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="BpUH14EG"
-Received: by mail-wr1-f43.google.com with SMTP id ffacd0b85a97d-441209fb77eso5927324f8f.1
-        for <linux-acpi@vger.kernel.org>; Mon, 25 May 2026 06:35:11 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=suse.com; s=google; t=1779716110; x=1780320910; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=9XVHRPBSt9KXo5wrulw6nEDVPqzcFN/DF35DZwL4F0c=;
-        b=BpUH14EGnlm4UYZVu9foBdalLVCHK55wdvwsZK81HpX2SG6MTxvw/kc4VaJeXSjZQs
-         3eTBMqQvcMIzwXiWfi3KT13WN+SRW8QHICGRtWD6SY/UWm63k8eQp79rk6d0NGLAc1qv
-         WjIAbFurjt3Rkm4z1tsFPUIrIEG7MyEpyocm02DR2uAkfQIxvmO2cNTG+McK3R2XH7Rj
-         7AUUX8rh2epSIAQYE8gycCnQ+260SuVSBqvdVV4OrRcaJMwiZDn6IsIj94PggCttQSXr
-         UHNrnpG4ko2zTsVOvv0b7M9hyRTdGQZQuFT25cBFZjgK3I+CYbhCVOqZqdeTrTSrkrDJ
-         92RA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779716110; x=1780320910;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=9XVHRPBSt9KXo5wrulw6nEDVPqzcFN/DF35DZwL4F0c=;
-        b=jvtR8DS0kgD49HXZ1zV4Dxk+Kq3CqXVZXy13+fZdLAVwyoeVT1Tt1c/0ri5i/rs4xx
-         b1n4ZZ1uYAkiQdPAm1IPaOmM1mfGfCah3QZLnpDKSqdTaMaFtSH6LdG8PYNjI4sWHyAy
-         hM5sO0rf/cjTEVNh1NLZXRS055kRxU+FTJHykYGTBiIx2U6ilT2ZBISaBIzqJKiGEJL6
-         Kd/x4bCSXHA7pB+bjsz0p8bjAKgAoBuR6r5UASyU3lIYhDKK28oCaChJLooYnz06pYtT
-         CvcW05WlIUAccgfnCbKewIWWlu+4IEBLg/ZKmBZOssn7lhPa0Zy3t3iNu/RYIPCY/U4F
-         9LVw==
-X-Forwarded-Encrypted: i=1; AFNElJ+jEL6aIUGwze/5bRPkEQaaoGsj7yYbKJ+9KIrgzt3zUwxiUSNvFOb0D8lMT2Jn0GEALKfCA5R3INN9@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx5Rm44OcsgW7r/+5hMQFYiYZAcwoDskU49zlXexDoqLK+I+DPI
-	WD5NMKt9E5cT7nMJvjCPmmrcBOO/Tz7m6HzxlXOKVc0mRKesU51c36dftAa4cAdK0jM=
-X-Gm-Gg: Acq92OGYl+cAv+GfhcjmOmVE4VAPbhIaLTPgfYszDWuZQPYBoFMRFOKAEcm0WKwOdtE
-	d5VsdqH6SI/Rffb1boQEhmpb7rrLj2VWDC0uLQ7wB3YLDu2BwHgs7DcqSoVhB0uHKzAoCWz1RHS
-	GO0v6fzbd0cdqMNRzYdG6Dxd6ZjEh2/f2pL3S35xCp0GLDLPGxFnCLColsmCFG6Uy023e+enf+9
-	DMy20KLaYmzuvRW986RrDDe59R0ZRnBZK2RJMVFZoXT35SxIHIqrMCU4gz1+W9AJ6zGsYER+9yj
-	RU2qi8X46Pu8LRFc6/7dVApsqw9T3XZAGbAjfcAPKukE168D5qbF0Iu0htfKtLqUwwPw85JTBgs
-	+x6aCp9+VK3t+YL3EwM+HrgD3B7tzWcTVVXHuV72pZo99Kd6J2QGTqDmfZ5z6EXLU7t8XcGrrAj
-	rVEaRurRRMxTx5WnXFGuFVj4rorNvk4nPgem+MlJK29hYjQDiSWdztErEu3yDtG/2XpcqFAI7f7
-	NHCSyXeQl5tzCEh9MUZKIsHB7tpF+yS+OSIonh+5YYobEefYydXMPCtuK6I1/UHK0Eypw==
-X-Received: by 2002:a05:6000:2008:b0:45e:8cdc:4ee8 with SMTP id ffacd0b85a97d-45ea3128ccdmr31052715f8f.6.1779716109692;
-        Mon, 25 May 2026 06:35:09 -0700 (PDT)
-Received: from ?IPV6:2a00:1028:838d:271e:8e3b:4aff:fe4c:a100? (dynamic-2a00-1028-838d-271e-8e3b-4aff-fe4c-a100.ipv6.o2.cz. [2a00:1028:838d:271e:8e3b:4aff:fe4c:a100])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-45eb6d5cb9asm29456456f8f.27.2026.05.25.06.35.06
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 25 May 2026 06:35:09 -0700 (PDT)
-Message-ID: <da358ae1-91b4-4a16-ac76-ffab99c230b9@suse.com>
-Date: Mon, 25 May 2026 15:35:06 +0200
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gjPyqHsi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C22121F000E9
+	for <linux-acpi@vger.kernel.org>; Mon, 25 May 2026 15:40:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1779723657;
+	bh=W9eec48RDS+uVSFgBbs286K44Gv/qZyKOHPTF1TQTN8=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=gjPyqHsiFxUE+M/mXXfPDnGcSh14REJBLWWH4dMrXPJ50bM2SZBGaIqZuBbliiDlW
+	 v1SJleW17IQMo0Ie/FzdVoTiCsYKnE2yv6Soakrr4rGTTxrOyG/qlUliqlvO6pbtEc
+	 uqnpfZ/lW4FchWyVs2dtvE+OcOjK9SEFsGpp/+G/ZZ00Ckb4DoR8SjqOcUKCrkHwAr
+	 03p4+BBHxvMtrYSCzutcCPhiLxyoNGXcihW+z4cE0cKemA7EnU32UbGCQzVA6hAMDV
+	 Y/zBbpTghuPBwJa3ImQMiDcl1Z8u0gqGzYNSSqTzxoyubtsPAyP/9WseyF8XQ9oBFw
+	 cB2M2ndHUEfng==
+Received: by mail-lj1-f175.google.com with SMTP id 38308e7fff4ca-393c40246afso108847291fa.1
+        for <linux-acpi@vger.kernel.org>; Mon, 25 May 2026 08:40:57 -0700 (PDT)
+X-Gm-Message-State: AOJu0YyhVrY4IK6e3zjGsxuFptKMvI4/zXOWpp7wSX1gJUKILRHce766
+	x+ucTWlJY9FGbHxWxadM78QCbHrkm0g/6jcNgkehaBCbh588VgodHeAWJxAf89Wa+5gqYMrx25p
+	v88L0St6Rqmg+y+XcGkLp01YeD6t9mew=
+X-Received: by 2002:a05:6512:39d0:b0:5a8:f243:eea6 with SMTP id
+ 2adb3069b0e04-5aa323d4962mr4768209e87.24.1779723656201; Mon, 25 May 2026
+ 08:40:56 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 04/11] treewide: Convert struct kernel_param_ops
- initializers to DEFINE_KERNEL_PARAM_OPS
-To: Kees Cook <kees@kernel.org>
-Cc: Luis Chamberlain <mcgrof@kernel.org>, Pengpeng Hou
- <pengpeng@iscas.ac.cn>, Richard Weinberger <richard@nod.at>,
- Anton Ivanov <anton.ivanov@cambridgegreys.com>,
- Johannes Berg <johannes@sipsolutions.net>,
- "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
- Corey Minyard <corey@minyard.net>, Gabriel Somlo <somlo@cmu.edu>,
- "Michael S. Tsirkin" <mst@redhat.com>,
- Jani Nikula <jani.nikula@linux.intel.com>,
- Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
- Rodrigo Vivi <rodrigo.vivi@intel.com>, Tvrtko Ursulin
- <tursulin@ursulin.net>, David Airlie <airlied@gmail.com>,
- Simona Vetter <simona@ffwll.ch>, Bart Van Assche <bvanassche@acm.org>,
- Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
- Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
- Hans de Goede <hansg@kernel.org>, Mauro Carvalho Chehab
- <mchehab@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>,
- Hannes Reinecke <hare@suse.de>,
- "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
- "Martin K. Petersen" <martin.petersen@oracle.com>,
- Daniel Lezcano <daniel.lezcano@kernel.org>, Zhang Rui <rui.zhang@intel.com>,
- Lukasz Luba <lukasz.luba@arm.com>,
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- Jiri Slaby <jirislaby@kernel.org>, Alan Stern <stern@rowland.harvard.edu>,
- Jason Wang <jasowang@redhat.com>, Xuan Zhuo <xuanzhuo@linux.alibaba.com>,
- =?UTF-8?Q?Eugenio_P=C3=A9rez?= <eperezma@redhat.com>,
- Jason Baron <jbaron@akamai.com>, Jim Cromie <jim.cromie@gmail.com>,
- Tiwei Bie <tiwei.btw@antgroup.com>, Benjamin Berg <benjamin.berg@intel.com>,
- =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
- "David E. Box" <david.e.box@linux.intel.com>,
- "Maciej W. Rozycki" <macro@orcam.me.uk>,
- Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
- Peter Zijlstra <peterz@infradead.org>, Heiko Carstens <hca@linux.ibm.com>,
- Vasily Gorbik <gor@linux.ibm.com>, Sean Christopherson <seanjc@google.com>,
- Paolo Bonzini <pbonzini@redhat.com>, Thomas Gleixner <tglx@kernel.org>,
- Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
- Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
- "H. Peter Anvin" <hpa@zytor.com>, Vinod Koul <vkoul@kernel.org>,
- Frank Li <Frank.Li@kernel.org>, Daniel Gomez <da.gomez@kernel.org>,
- Sami Tolvanen <samitolvanen@google.com>, Aaron Tomlin <atomlin@atomlin.com>,
- Alexander Potapenko <glider@google.com>, Marco Elver <elver@google.com>,
- Dmitry Vyukov <dvyukov@google.com>, Andrew Morton
- <akpm@linux-foundation.org>, John Johansen <john.johansen@canonical.com>,
- Paul Moore <paul@paul-moore.com>, James Morris <jmorris@namei.org>,
- "Serge E. Hallyn" <serge@hallyn.com>,
- Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
- Georgia Garcia <georgia.garcia@canonical.com>, kvm@vger.kernel.org,
- dmaengine@vger.kernel.org, linux-modules@vger.kernel.org,
- kasan-dev@googlegroups.com, linux-mm@kvack.org, apparmor@lists.ubuntu.com,
- linux-security-module@vger.kernel.org, linux-um@lists.infradead.org,
- linux-acpi@vger.kernel.org, openipmi-developer@lists.sourceforge.net,
- qemu-devel@nongnu.org, intel-gfx@lists.freedesktop.org,
- dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org,
- linux-media@vger.kernel.org, linux-pci@vger.kernel.org,
- linux-scsi@vger.kernel.org, linux-pm@vger.kernel.org,
- linuxppc-dev@lists.ozlabs.org, linux-serial@vger.kernel.org,
- linux-usb@vger.kernel.org, usb-storage@lists.one-eyed-alien.net,
- virtualization@lists.linux.dev, linux-kernel@vger.kernel.org,
- linux-arch@vger.kernel.org, netdev@vger.kernel.org,
- linux-fsdevel@vger.kernel.org, linux-hardening@vger.kernel.org
-References: <20260521133315.work.845-kees@kernel.org>
- <20260521133326.2465264-4-kees@kernel.org>
-Content-Language: en-US
-From: Petr Pavlu <petr.pavlu@suse.com>
-In-Reply-To: <20260521133326.2465264-4-kees@kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+References: <4739447.LvFx2qVVIh@rafael.j.wysocki> <3048737.e9J7NaK4W3@rafael.j.wysocki>
+In-Reply-To: <3048737.e9J7NaK4W3@rafael.j.wysocki>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Mon, 25 May 2026 17:40:43 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0hnWNMp67N6k5csA-JAEqkmPB30Mjy0NmzhmyxvWWZG+Q@mail.gmail.com>
+X-Gm-Features: AVHnY4KMMMHl87hZ7JVgd59XMtJD9vALY1FG3qET9YC7DAmXg6ESk0pSlWkz4rE
+Message-ID: <CAJZ5v0hnWNMp67N6k5csA-JAEqkmPB30Mjy0NmzhmyxvWWZG+Q@mail.gmail.com>
+Subject: Re: [PATCH v1 02/17] ACPI: NFIT: core: Use devm_acpi_install_notify_handler()
+To: Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>, 
+	Vishal Verma <vishal.l.verma@intel.com>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, 
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Hans de Goede <hansg@kernel.org>, 
+	Armin Wolf <w_armin@gmx.de>, Dan Williams <djbw@kernel.org>, nvdimm@lists.linux.dev
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 5/21/26 3:33 PM, Kees Cook wrote:
-> Using Coccinelle, rewrite every struct kernel_param_ops initializer that
-> sets .get into a DEFINE_KERNEL_PARAM_OPS-family macro invocation,
-> for example:
-> 
-> @@
-> declarer name DEFINE_KERNEL_PARAM_OPS;
-> identifier OPS;
-> expression SET, GET;
-> @@
-> - const struct kernel_param_ops OPS = {
-> -       .set = SET,
-> -       .get = GET,
-> - };
-> + DEFINE_KERNEL_PARAM_OPS(OPS, SET, GET);
-> 
-> Using the macro for initialization means future changes can manipulate
-> the struct layout and callback prototypes without having to change every
-> initializer.
+On Thu, May 21, 2026 at 4:13=E2=80=AFPM Rafael J. Wysocki <rafael@kernel.or=
+g> wrote:
+>
+> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+>
+> Now that devm_acpi_install_notify_handler() is available, use it in
+> acpi_nfit_probe() instead of a custom devm action removing an ACPI
+> notify handler installed via acpi_dev_install_notify_handler().
+>
+> Also drop the explicit ACPI_COMPANION() check against NULL that is
+> not necessary any more becuase devm_acpi_install_notify_handler()
+> carries out an equivalent check internally and use ACPI_HANDLE() to
+> retrieve the platform device's ACPI handle.
+>
+> No intentional functional impact.
+>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/acpi/nfit/core.c | 24 +++---------------------
+>  1 file changed, 3 insertions(+), 21 deletions(-)
+>
+> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> index 9304ac996d41..5cab62f618c8 100644
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+> @@ -3298,14 +3298,6 @@ static void acpi_nfit_notify(acpi_handle handle, u=
+32 event, void *data)
+>         device_unlock(dev);
+>  }
+>
+> -static void acpi_nfit_remove_notify_handler(void *data)
+> -{
+> -       struct acpi_device *adev =3D data;
+> -
+> -       acpi_dev_remove_notify_handler(adev, ACPI_DEVICE_NOTIFY,
+> -                                      acpi_nfit_notify);
+> -}
+> -
+>  void acpi_nfit_shutdown(void *data)
+>  {
+>         struct acpi_nfit_desc *acpi_desc =3D data;
+> @@ -3342,22 +3334,12 @@ static int acpi_nfit_probe(struct platform_device=
+ *pdev)
+>         struct acpi_nfit_desc *acpi_desc;
+>         struct device *dev =3D &pdev->dev;
+>         struct acpi_table_header *tbl;
+> -       struct acpi_device *adev;
+>         acpi_status status =3D AE_OK;
+>         acpi_size sz;
+>         int rc =3D 0;
+>
+> -       adev =3D ACPI_COMPANION(&pdev->dev);
+> -       if (!adev)
+> -               return -ENODEV;
+> -
+> -       rc =3D acpi_dev_install_notify_handler(adev, ACPI_DEVICE_NOTIFY,
+> -                                            acpi_nfit_notify, dev);
+> -       if (rc)
+> -               return rc;
+> -
+> -       rc =3D devm_add_action_or_reset(dev, acpi_nfit_remove_notify_hand=
+ler,
+> -                                       adev);
+> +       rc =3D devm_acpi_install_notify_handler(dev, ACPI_DEVICE_NOTIFY,
+> +                                             acpi_nfit_notify, dev);
+>         if (rc)
+>                 return rc;
+>
+> @@ -3388,7 +3370,7 @@ static int acpi_nfit_probe(struct platform_device *=
+pdev)
+>         acpi_desc->acpi_header =3D *tbl;
+>
+>         /* Evaluate _FIT and override with that if present */
+> -       status =3D acpi_evaluate_object(adev->handle, "_FIT", NULL, &buf)=
+;
+> +       status =3D acpi_evaluate_object(ACPI_HANDLE(dev), "_FIT", NULL, &=
+buf);
+>         if (ACPI_SUCCESS(status) && buf.length > 0) {
+>                 union acpi_object *obj =3D buf.pointer;
+>
+> --
 
-Nit: For consistency, I suggest also converting the few remaining
-kernel_param_ops instances that specify only .set and no .get, such as
-simdisk_param_ops_filename.
-
--- 
-Thanks,
-Petr
+I would appreciate feedback on this, but the change is
+straightforward, so in the absence of any I'll pick it up assuming no
+objections.
