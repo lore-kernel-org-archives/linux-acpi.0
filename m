@@ -1,546 +1,204 @@
-Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f52.google.com (mail-wm1-f52.google.com [209.85.128.52])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7BD53E16A5
-	for <linux-acpi@vger.kernel.org>; Mon, 25 May 2026 08:23:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=205.220.168.131
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779697405; cv=pass; b=XrkT1jjbiMU0XrG9n7fp39Kv8gCo9BukhDohtu+kmFYx6k+EOVFHQRZml+1jTezk5GLzvfbLGvPMd6oKgsVPsyEZCvfREBgN7reRZnlNs1dKDavAa5GII8doSBtZoPg2y8KTOxayO3iRFo/sGr1saFv7PqB67SxTkpxxCC///I4=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779697405; c=relaxed/simple;
-	bh=0achz9n+qw0t1Oo82cOOIyvX9+EU24sy7AuCwSzREkU=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=AFIvnDoKFqCLnu6aZEVR2rGE1gwISb/wAOKO0ta+kO/1TlI/2gOb6UyH/1DJ7cQgGhNmkw9YrupinTmiNXlU7S3pxww9G35U+w6eSfKzxB4CGB+HbZjC5SxadQgR6VFQwoDDs18lUDttnZ/cDgZzl9DBEScOryA8THtVIhSpXqY=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=dnS3UKKI; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=WWGu9FHY; arc=pass smtp.client-ip=205.220.168.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 844E9385521
+	for <linux-acpi@vger.kernel.org>; Mon, 25 May 2026 13:27:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.52
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1779715643; cv=none; b=FeQ4RNStpIM/fC3qi/E28iDo8iQWPqGtXWCWJH+pxHqQtJYhscy5OIgs6RXWxBPZd34C1IhP1iNLX6QpiTO0M1BEU6y2DvLPmTw5A86zfZQnRIHgp4hxFa5ep173GcRYRffmcGwGQneEDHzjB1RS5TAhsrpHBEBUfs4Pd6qhnW0=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1779715643; c=relaxed/simple;
+	bh=C94U0R51pf0+NwK55ZN6EU/K9cssUS28krlgs1NAXvo=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=KKUOTcOu0LJC1JxIQcDt2RqQu5WkJkc51AezD21kbHBtIhECIqrAkKoibv9/vsGNWGiWhtWtqp748jw+5LZZfxuFw9N7BfZJf7o2myhlCag6IjyCAGQzIJLfZssjESfHP5vJ9VdKmUdSUJQv1fKi/q2lFy/WBnyxDMIhlAgTcjc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=aQ7LUXtW; arc=none smtp.client-ip=209.85.128.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="dnS3UKKI";
-	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="WWGu9FHY"
-Received: from pps.filterd (m0279866.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 64P2usYA1180567
-	for <linux-acpi@vger.kernel.org>; Mon, 25 May 2026 08:23:22 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:reply-to:subject:to; s=
-	qcppdkim1; bh=Y00jVBsOO5l3g5o3U2vjZ9VsbHwpeMj0hXubWYDZVoE=; b=dn
-	S3UKKIUaiBLrAZwS0idvEBG9uLwSe38I9zNIU0aBjXqnXXGFennybsL2PX9kvf4y
-	XBPwDUKGPZUe/E+Sl2FBLU2WYdrHRyBoibT9UiLwlGuI0/9kZlQld+nbNDhgUPlO
-	X6RdacDuhzmD1uULNM1A4NkKZjcjvldfHFaiVDgfVHc3TWf2ofXypIW8ZBawLv7x
-	bWLg5Yaib53OBZXheovHkGqWKmCmBCCNuknxrjX32gJjLCW5p/QCzqvU32kEZBv4
-	nuPHrAxHPt1ONgp6dJIiIqkGFIpITz1VgqMczdrxZKV8fjhLZ2WYO7BPjS4fx14n
-	gMVF8uufE8IIZqeVWr8w==
-Received: from mail-yw1-f199.google.com (mail-yw1-f199.google.com [209.85.128.199])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4eb5h9nkt5-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-acpi@vger.kernel.org>; Mon, 25 May 2026 08:23:21 +0000 (GMT)
-Received: by mail-yw1-f199.google.com with SMTP id 00721157ae682-7bdecb2f4a7so51606247b3.0
-        for <linux-acpi@vger.kernel.org>; Mon, 25 May 2026 01:23:21 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1779697401; cv=none;
-        d=google.com; s=arc-20240605;
-        b=WA2r87JNHd9pZY5KZMTuQ7TV7zPYrrnK39G3j9xuTZ/+a2hBi3xQ0yD2FIkp6vGOe9
-         Ra9p5g5SG6MGtd/veqzobpQhIk4cGGpHXccVBBJsuCA2w/4SxO1q1rhG7dekAPVGJHVv
-         D8MSlHjfPLE0FV5heeh2llDHxB7GJ3oSeNGgVzAmTwk1BdH69SVy8ZlGjINm3uUeYBTX
-         hvNjPtUy04xi9RvauOuNXeYlxTOxCyHzcbc6juiNu7yCsN9L7/JHumswN18oqf6+Dz59
-         g83d8c05W2M9WKpTHt+BJlkz5aL6Iw1GAFcJqWCL8bSqF/J8gRKLfPTdGqYz4hTkhwID
-         wplg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :reply-to:in-reply-to:references:mime-version:dkim-signature;
-        bh=Y00jVBsOO5l3g5o3U2vjZ9VsbHwpeMj0hXubWYDZVoE=;
-        fh=WWkqo+KWa4eEpJTQKQ9w+zOZNwzJuKPBpCAMeTE26FA=;
-        b=km4xQsRsBcNPhU+pg9z6w6twJvALYKsl+31oeA/QlpLmPvIV+l3qSzVyYTwYFwg0kc
-         Vtt3ILaoVQb5e3VVegrl8SUjfn5216yOW5UcXG36LAut926a+nwl0+W0u2GeWCvHGMLl
-         XmaAXmbAG5A5BmM8TpOw5BJAauSxAxACEzxK5lrOlmP+SeE0dvdKkZfXtAz2M8h5eiu9
-         mb0ITHgaRbsrVN940OMaQQTGyZu5rFIOTxqyBX4HexmZqlxBKJ87QRjl/XTtzwXYD2Nf
-         g+aJHyYxFqDjoSkDVAYMWzEA9v3aR0Z8hCvYS5BuzlPaPjZVkJEcTPoeo2itvRgFKGtJ
-         BWtA==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="aQ7LUXtW"
+Received: by mail-wm1-f52.google.com with SMTP id 5b1f17b1804b1-4891e86fabeso121365895e9.1
+        for <linux-acpi@vger.kernel.org>; Mon, 25 May 2026 06:27:18 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1779697401; x=1780302201; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :reply-to:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=Y00jVBsOO5l3g5o3U2vjZ9VsbHwpeMj0hXubWYDZVoE=;
-        b=WWGu9FHYdit781ZHLrkIWGZqnw2QsmIJg6I1bT/lZqXLNT9pctH1Uo6eQTVO1DxQac
-         M6BuupWsMUdH8cuhuDVbfe/PRaM8zrxAYjda2IDY82LKaWQTkZB72rQVNZiZJMXkhhDc
-         fvUqcwczHwUwUVsFtIGxznEzqqYuWi1ZDVYYgxs06iRXY+r/XlTfePZdEWt3ga/nVMtZ
-         0nO7T6OR3RsJoy9jJhHCnILH4XHcofLKrbnHeGmU+wWq2oHCcrUCXdpYmQwqnVNR+cig
-         3SZm8ctSenARvfVHHpxINDUF3VhmflNDxcfORyXOpYd8Kr9tpwrZmdMFbymZcpPo4oQ0
-         RndA==
+        d=suse.com; s=google; t=1779715637; x=1780320437; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=Ij+l12dR+ISDUAaA9eJOw0SDQ47xwS4UQDqlRXMB76c=;
+        b=aQ7LUXtW5bxOb+tWWbnJ9LI9Hu4ho2cWZv/3AUVlb7neykv3e+8w6/VBaL6Xr0dGge
+         z1KK2LMTAA72OCAu5AxD12Qy5s1M0/sw9ULxv7vFq7+upKOnBYr2wRR1ZvodcmgkysM4
+         sWabOR3Ubm2vqDtISC9F8a7yRMxFSNpxL+BvdxucPoZsLwmwpi+VqhZI8mUejTHqAsHt
+         us9KcbeyES8MwfL9wN5iAnDDh83sw6VahdIZeophjTkDCT9NWqrub1WwEH9gCU2y0gYZ
+         Rh2ajrWgiGd+BqSe3mipr5Mst8DS1o2/LF66I805h9zC41cP2I0l1MO9ZLDfwi8MxZFB
+         EZDA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779697401; x=1780302201;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :reply-to:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=Y00jVBsOO5l3g5o3U2vjZ9VsbHwpeMj0hXubWYDZVoE=;
-        b=oElydGfO2eqylm7gq+NYOC7g8k/FJTWTVWfwCoOs7xabSsqScDLedxjPM8Omh2zDTk
-         cRfjeCq0qgvNsAtlZYwZpRs+8lAflanu605w6USa7miQIblsVn1CTG/MM+DKtv4MkCr6
-         5S871IDPJ1efBhDqXbujxSC61Oia2SylfB2/86hTOslLMz0mJk49qY6fvZnfK5T3CZ48
-         IVVMdjlo3bsXo4hXhS0RoqBY9FgKu5+UZB2RT9hHuT5n3lUfy3DHjd5/n2pyyDVTj6LM
-         gXupoNodA/4IW418BhTXq2cXzg0kVVNgcH9KWFr3yihr5CyInzheM3+U2jqol0qEP8Ej
-         zrUA==
-X-Forwarded-Encrypted: i=1; AFNElJ8s0cs95CzbxzZ7TCCghG0LjeamCfYT4F0q12y73BiN6K1XWkkSQnLfvGJgXTW3bqqJu6Ct2MMmifXR@vger.kernel.org
-X-Gm-Message-State: AOJu0YzXWTMFz+Ae055iYRcHX89qunFu/TuMOAHxcm04dd1yQ+M11n5P
-	Ux0J1QZYA8WdrrqI+fqjYNy5lyoRxvqA32O70Ogu2uTzEKYZAoDkw6m6hW13d6ikDqLsgv4Zgux
-	PjFNRiXsfs1+QcahqCL7SfmqxSlDG51hToeo+bpqb6DbBSM1EH3IlJqkesWlV47N2btsnLI/vLO
-	jIy55evBZO8nc5mjNdq6BH1H0uicAGle8j8igYvMk=
-X-Gm-Gg: Acq92OGLXDNfxepdWpwfIuv9q/KPz8vSNoYalZHS4kwtcTD3W4eKhzsUNELTIkCSSAF
-	KRQyhRZhy7VZxkFo0s8EVQaQBy245/RANDl09sS4Y7vJJorlo0USNpC8B3z5Dt9Za7XytWZ9Fax
-	cW/R+ShjGxfr4hWkLVr/FRcO7iT0rXEDXSKjlgC46Nqq6tJfe8OA9fCQm+7ZpRcToRO2N+9lZwR
-	k7bhU15
-X-Received: by 2002:a05:690c:6b04:b0:7d0:3bbc:c81 with SMTP id 00721157ae682-7d335fbcccamr151395097b3.13.1779697400727;
-        Mon, 25 May 2026 01:23:20 -0700 (PDT)
-X-Received: by 2002:a05:690c:6b04:b0:7d0:3bbc:c81 with SMTP id
- 00721157ae682-7d335fbcccamr151394667b3.13.1779697400112; Mon, 25 May 2026
- 01:23:20 -0700 (PDT)
+        d=1e100.net; s=20251104; t=1779715637; x=1780320437;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=Ij+l12dR+ISDUAaA9eJOw0SDQ47xwS4UQDqlRXMB76c=;
+        b=HiiNGvp93W9sNUCYTcopYbG4sDLPamT70Mucg81gDsQtiEkZfwNlJh+8ChalK06cTm
+         7GbgB9dk4IQnlu6xLwgd/LwJInGD4RSjE42WE9/fwWqMEmIiPsFj8j16DDZrflm6HLHE
+         UfDzUJe5Rns9WPRKpK4IlwalwRJfcpJ2RwVldp5aeo9JIQOtdWEoWQ8X65GS8cISIpBU
+         x68yc71I63un9ih/hMxIfkRlQyj5mTg3jwD1bBhuw1MGk69U+0LRcvaz5yRXhU5Pw053
+         rnzdc3xebCXElGCa+Uyw+VPoQFiVF2NQLBTg/2bqIe7FEI0bvz7fbLhK3m3NGE4S7jRU
+         xUuA==
+X-Forwarded-Encrypted: i=1; AFNElJ+/uzLUpo3v5ECi57kwyzUTzrd81fHtvfC4YFBBfXiW9Axepl5iNSgJrkXlPaqo0P6rWjkEDYg6Ytt3@vger.kernel.org
+X-Gm-Message-State: AOJu0Yz9n+HxE1MJTwqwg9ny/I0x1ibFe/M/f0xb2muc86KkrXVyf9MN
+	tDHEpxXHRL/cCb5N57LDgQWzUO1R0ByiR3k9O5uwCye5X9MzxKFLnvPRqHeNxHoRw/g=
+X-Gm-Gg: Acq92OHKTTnNcEMqCmrV321gLp4+jwMVfNsGNRrjHK+CO48gJeuu1jxhOFEflG/1zjS
+	CNhIrSO1U0uD5e6XYkiIzvUXO38+qtpLDixbUpZ/n0NmNCfZOaisLANH+owhd1FrxhIjX7nlRK0
+	ME6x7iZMUTaLJHdND0Pt11dyyKU4FFUusMxiIYHYvIlTz88r4QArNOqPKuVxnbfOuetQMiTanPO
+	2QGlJ8AL7c9mkYE99RmMjik+IlHJ0dP/rIhX4EDk1DOCUzwoy5O/RRgD22owZOi607dSHovUnOR
+	d+/ZbolaQ422K6811mqtdBihbE2iD3Q16KLmNAQaUPdqHHQBek5uom0wkMJS9Njs/K5xiBCiV7X
+	/3pnJAiXwF6Eo6GKve8abjuRpzxa+ldqJ6zX6k7CgcrF7RweEFudrclMh9z1PJJpbuP/eo6p3Hi
+	V9QD0L1e0aY2pm5AFMa2Rnu6ZRfhVr0QQW7Uc8tuSl+Vn01ffWz4hKBRwRsgU1zC2tTP5N5usyZ
+	WWxGk371ltwgfv+gitsshvDul2D7pvMwROrWEC+WLZWdlokt3ebUsJqryv+JSjc2YVeixB3l3Ab
+	VtjA
+X-Received: by 2002:a05:600c:3b02:b0:48f:e1ac:c94f with SMTP id 5b1f17b1804b1-490424b3938mr247672645e9.10.1779715636631;
+        Mon, 25 May 2026 06:27:16 -0700 (PDT)
+Received: from ?IPV6:2a00:1028:838d:271e:8e3b:4aff:fe4c:a100? (dynamic-2a00-1028-838d-271e-8e3b-4aff-fe4c-a100.ipv6.o2.cz. [2a00:1028:838d:271e:8e3b:4aff:fe4c:a100])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-490454b1ab3sm284841905e9.14.2026.05.25.06.27.13
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 25 May 2026 06:27:16 -0700 (PDT)
+Message-ID: <1c21f66f-0d0f-4a8b-835b-23408242cff1@suse.com>
+Date: Mon, 25 May 2026 15:27:13 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260524-ssqosid-cbqri-rqsc-v7-0-v5-0-78d3a7ba9dbe@kernel.org> <20260524-ssqosid-cbqri-rqsc-v7-0-v5-16-78d3a7ba9dbe@kernel.org>
-In-Reply-To: <20260524-ssqosid-cbqri-rqsc-v7-0-v5-16-78d3a7ba9dbe@kernel.org>
-Reply-To: sunilvl@oss.qualcomm.com
-From: Sunil V L <sunilvl@oss.qualcomm.com>
-Date: Mon, 25 May 2026 13:53:09 +0530
-X-Gm-Features: AVHnY4I5dwBeqtX2znAoYje4xvPMK0mJtZxt7UsaZlw7JojvDtp7xcPyAAfXdI0
-Message-ID: <CAB19ukE9r_V=0eop3=f8zohhnCavd=9GjDEK1VMMbOb0ReOtDA@mail.gmail.com>
-Subject: Re: [PATCH RFC v5 16/18] ACPI: RISC-V: Parse RISC-V Quality of
- Service Controller (RQSC) table
-To: Drew Fustini <fustini@kernel.org>
-Cc: Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>,
-        Albert Ou <aou@eecs.berkeley.edu>, Alexandre Ghiti <alex@ghiti.fr>,
-        =?UTF-8?B?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar@ventanamicro.com>,
-        Samuel Holland <samuel.holland@sifive.com>,
-        Adrien Ricciardi <aricciardi@baylibre.com>,
-        Nicolas Pitre <npitre@baylibre.com>,
-        =?UTF-8?Q?Kornel_Dul=C4=99ba?= <mindal@semihalf.com>,
-        Atish Patra <atish.patra@linux.dev>,
-        Atish Kumar Patra <atishp@rivosinc.com>,
-        Vasudevan Srinivasan <vasu@rivosinc.com>,
-        Ved Shanbhogue <ved@rivosinc.com>,
-        Conor Dooley <conor.dooley@microchip.com>,
-        yunhui cui <cuiyunhui@bytedance.com>,
-        Chen Pei <cp0613@linux.alibaba.com>,
-        Liu Zhiwei <zhiwei_liu@linux.alibaba.com>,
-        Weiwei Li <liwei1518@gmail.com>, guo.wenjia23@zte.com.cn,
-        Gong Shuai <gong.shuai@sanechips.com.cn>,
-        Gong Shuai <gsh517@gmail.com>, liu.qingtao2@zte.com.cn,
-        Reinette Chatre <reinette.chatre@intel.com>,
-        Tony Luck <tony.luck@intel.com>, Babu Moger <babu.moger@amd.com>,
-        Peter Newman <peternewman@google.com>,
-        Fenghua Yu <fenghua.yu@intel.com>, James Morse <james.morse@arm.com>,
-        Ben Horgan <ben.horgan@arm.com>, Dave Martin <Dave.Martin@arm.com>,
-        Rob Herring <robh@kernel.org>, Conor Dooley <conor+dt@kernel.org>,
-        Krzysztof Kozlowski <krzk+dt@kernel.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
-        Robert Moore <robert.moore@intel.com>,
-        Sunil V L <sunilvl@ventanamicro.com>,
-        Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
-        Borislav Petkov <bp@alien8.de>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "H. Peter Anvin" <hpa@zytor.com>,
-        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-        Clark Williams <clrkwllms@kernel.org>,
-        Steven Rostedt <rostedt@goodmis.org>, Jonathan Corbet <corbet@lwn.net>,
-        linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org,
-        x86@kernel.org, linux-acpi@vger.kernel.org,
-        acpica-devel@lists.linux.dev, devicetree@vger.kernel.org,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Conor Dooley <conor@kernel.org>, linux-rt-devel@lists.linux.dev,
-        linux-doc@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-X-Proofpoint-ORIG-GUID: vDEEHlA09oSPaSUmu7eOaFMmO6MPYtrl
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNTI1MDA4NCBTYWx0ZWRfX/bAw7wnCi2v4
- TKg28Q4gLDfMZaOjP1JTkQVuvRqvtuOABry8cQylPWrhWTQsAADdwH9OExbAGks5mzlhEn+/VJd
- yXB0Dm4BXD7TmZnjKdKYJpUe5i63V1IzD2ZD5BpJ7aPN8E/SZrEFc8hR7nYNvgvVK6yKdBGvP5/
- HvvwZlRG0tUVcv7G8I5LUo7fjsdOdE5LS6REaucWjL4gV21fx5hPhDi7Vspj33Y+VJRM/b1q2x9
- T/ySFLGgeJiKZ1tmR0FkFBhiIkgIvQ2V63a9SWGVgn2lWIn66VVYhsUjv6PGsv3MWU5TQOTW5Wr
- nwOihJRQrNrr10FfzmRS7J5WipZD40BKXaCUGrxwgTdb6/cw10QlBwif7iFXjPL9qI9YF2t/7qc
- 5ShYWtV6PYeULcDOjFD0vmVd8E3rC448Xgj14zt925lcPns4AsYSNjVcQExoApZY9K1NGTnyg5Y
- 3JiAElarmE7ZeTAtOpQ==
-X-Authority-Analysis: v=2.4 cv=H7jrBeYi c=1 sm=1 tr=0 ts=6a1406f9 cx=c_pps
- a=72HoHk1woDtn7btP4rdmlg==:117 a=IkcTkHD0fZMA:10 a=NGcC8JguVDcA:10
- a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22
- a=YMgV9FUhrdKAYTUUvYB2:22 a=V1jnuoLLAAAA:20 a=VwQbUJbxAAAA:8
- a=oLomzfTcYbT1FT28YPsA:9 a=QEXdDO2ut3YA:10 a=kA6IBgd4cpdPkAWqgNAz:22
- a=bA3UWDv6hWIuX7UZL3qL:22
-X-Proofpoint-GUID: vDEEHlA09oSPaSUmu7eOaFMmO6MPYtrl
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.51,FMLib:17.12.100.49
- definitions=2026-05-25_02,2026-05-18_01,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- malwarescore=0 adultscore=0 suspectscore=0 clxscore=1015 bulkscore=0
- impostorscore=0 spamscore=0 phishscore=0 priorityscore=1501
- lowpriorityscore=0 classifier=typeunknown authscore=0 authtc= authcc=
- route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2605130000
- definitions=main-2605250084
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 03/11] moduleparam: Add DEFINE_KERNEL_PARAM_OPS macro
+ family
+To: Kees Cook <kees@kernel.org>
+Cc: Luis Chamberlain <mcgrof@kernel.org>, Pengpeng Hou
+ <pengpeng@iscas.ac.cn>, Richard Weinberger <richard@nod.at>,
+ Anton Ivanov <anton.ivanov@cambridgegreys.com>,
+ Johannes Berg <johannes@sipsolutions.net>,
+ "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+ Corey Minyard <corey@minyard.net>, Gabriel Somlo <somlo@cmu.edu>,
+ "Michael S. Tsirkin" <mst@redhat.com>,
+ Jani Nikula <jani.nikula@linux.intel.com>,
+ Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
+ Rodrigo Vivi <rodrigo.vivi@intel.com>, Tvrtko Ursulin
+ <tursulin@ursulin.net>, David Airlie <airlied@gmail.com>,
+ Simona Vetter <simona@ffwll.ch>, Bart Van Assche <bvanassche@acm.org>,
+ Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
+ Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+ Hans de Goede <hansg@kernel.org>, Mauro Carvalho Chehab
+ <mchehab@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>,
+ Hannes Reinecke <hare@suse.de>,
+ "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+ "Martin K. Petersen" <martin.petersen@oracle.com>,
+ Daniel Lezcano <daniel.lezcano@kernel.org>, Zhang Rui <rui.zhang@intel.com>,
+ Lukasz Luba <lukasz.luba@arm.com>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ Jiri Slaby <jirislaby@kernel.org>, Alan Stern <stern@rowland.harvard.edu>,
+ Jason Wang <jasowang@redhat.com>, Xuan Zhuo <xuanzhuo@linux.alibaba.com>,
+ =?UTF-8?Q?Eugenio_P=C3=A9rez?= <eperezma@redhat.com>,
+ Jason Baron <jbaron@akamai.com>, Jim Cromie <jim.cromie@gmail.com>,
+ Tiwei Bie <tiwei.btw@antgroup.com>, Benjamin Berg <benjamin.berg@intel.com>,
+ =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+ "David E. Box" <david.e.box@linux.intel.com>,
+ "Maciej W. Rozycki" <macro@orcam.me.uk>,
+ Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+ Peter Zijlstra <peterz@infradead.org>, Heiko Carstens <hca@linux.ibm.com>,
+ Vasily Gorbik <gor@linux.ibm.com>, Sean Christopherson <seanjc@google.com>,
+ Paolo Bonzini <pbonzini@redhat.com>, Thomas Gleixner <tglx@kernel.org>,
+ Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+ Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+ "H. Peter Anvin" <hpa@zytor.com>, Vinod Koul <vkoul@kernel.org>,
+ Frank Li <Frank.Li@kernel.org>, Daniel Gomez <da.gomez@kernel.org>,
+ Sami Tolvanen <samitolvanen@google.com>, Aaron Tomlin <atomlin@atomlin.com>,
+ Alexander Potapenko <glider@google.com>, Marco Elver <elver@google.com>,
+ Dmitry Vyukov <dvyukov@google.com>, Andrew Morton
+ <akpm@linux-foundation.org>, John Johansen <john.johansen@canonical.com>,
+ Paul Moore <paul@paul-moore.com>, James Morris <jmorris@namei.org>,
+ "Serge E. Hallyn" <serge@hallyn.com>,
+ Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+ Georgia Garcia <georgia.garcia@canonical.com>, kvm@vger.kernel.org,
+ dmaengine@vger.kernel.org, linux-modules@vger.kernel.org,
+ kasan-dev@googlegroups.com, linux-mm@kvack.org, apparmor@lists.ubuntu.com,
+ linux-security-module@vger.kernel.org, linux-um@lists.infradead.org,
+ linux-acpi@vger.kernel.org, openipmi-developer@lists.sourceforge.net,
+ qemu-devel@nongnu.org, intel-gfx@lists.freedesktop.org,
+ dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org,
+ linux-media@vger.kernel.org, linux-pci@vger.kernel.org,
+ linux-scsi@vger.kernel.org, linux-pm@vger.kernel.org,
+ linuxppc-dev@lists.ozlabs.org, linux-serial@vger.kernel.org,
+ linux-usb@vger.kernel.org, usb-storage@lists.one-eyed-alien.net,
+ virtualization@lists.linux.dev, linux-kernel@vger.kernel.org,
+ linux-arch@vger.kernel.org, netdev@vger.kernel.org,
+ linux-fsdevel@vger.kernel.org, linux-hardening@vger.kernel.org
+References: <20260521133315.work.845-kees@kernel.org>
+ <20260521133326.2465264-3-kees@kernel.org>
+Content-Language: en-US
+From: Petr Pavlu <petr.pavlu@suse.com>
+In-Reply-To: <20260521133326.2465264-3-kees@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Hi Drew,
-
-On Mon, May 25, 2026 at 5:32=E2=80=AFAM Drew Fustini <fustini@kernel.org> w=
-rote:
->
-> Add a parser for the ACPI RQSC table, which describes the CBQRI
-> controllers in a system. For each table entry, populate a
-> cbqri_controller_info descriptor and hand it to the CBQRI driver via
-> riscv_cbqri_register_controller(). The driver owns all subsequent state,
-> including cpumask resolution at cbqri_resctrl_setup() time.
->
-> Link: https://github.com/riscv-non-isa/riscv-rqsc/blob/main/src/
-> Link: https://github.com/riscv-non-isa/riscv-cbqri/releases/tag/v1.0
-> Assisted-by: Claude:claude-opus-4-7
-> Signed-off-by: Drew Fustini <fustini@kernel.org>
+On 5/21/26 3:33 PM, Kees Cook wrote:
+> Add macros that define a struct kernel_param_ops initializer through a
+> macro so the underlying field layout can evolve without touching every
+> call site. Three variants cover the three cases:
+> 
+>  DEFINE_KERNEL_PARAM_OPS(name, set, get) // basic
+>  DEFINE_KERNEL_PARAM_OPS_NOARG(name, set, get) // set KERNEL_PARAM_OPS_FL_NOARG
+>  DEFINE_KERNEL_PARAM_OPS_FREE(name, set, get, free) // also set .free
+> 
+> Callers prefix their own visibility qualifiers, e.g.:
+> 
+>   static DEFINE_KERNEL_PARAM_OPS(my_ops, my_set, my_get);
+> 
+> Also update module_param_call() and STANDARD_PARAM_DEF() to use
+> DEFINE_KERNEL_PARAM_OPS internally so the generated ops table will go
+> through the same macro as everything else.
+> 
+> Subsequent commits convert all open-coded struct kernel_param_ops
+> definitions to use these macros, in preparation for migrating to a
+> seq_buf .get API.
+> 
+> Signed-off-by: Kees Cook <kees@kernel.org>
 > ---
->  MAINTAINERS                   |   2 +
->  arch/riscv/include/asm/acpi.h |  10 +++
->  drivers/acpi/riscv/Makefile   |   1 +
->  drivers/acpi/riscv/rqsc.c     | 194 ++++++++++++++++++++++++++++++++++++=
-++++++
->  drivers/acpi/riscv/rqsc.h     |  63 ++++++++++++++
->  5 files changed, 270 insertions(+)
->
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 7821dd5159cb..eab31c7b5e91 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -23025,6 +23025,8 @@ S:      Supported
->  F:     arch/riscv/include/asm/qos.h
->  F:     arch/riscv/include/asm/resctrl.h
->  F:     arch/riscv/kernel/qos.c
-> +F:     drivers/acpi/riscv/rqsc.c
-> +F:     drivers/acpi/riscv/rqsc.h
->  F:     drivers/resctrl/cbqri_devices.c
->  F:     drivers/resctrl/cbqri_internal.h
->  F:     drivers/resctrl/cbqri_resctrl.c
-> diff --git a/arch/riscv/include/asm/acpi.h b/arch/riscv/include/asm/acpi.=
-h
-> index 26ab37c171bc..3cfd0102085e 100644
-> --- a/arch/riscv/include/asm/acpi.h
-> +++ b/arch/riscv/include/asm/acpi.h
-> @@ -67,6 +67,16 @@ int acpi_get_riscv_isa(struct acpi_table_header *table=
-,
->
->  void acpi_get_cbo_block_size(struct acpi_table_header *table, u32 *cbom_=
-size,
->                              u32 *cboz_size, u32 *cbop_size);
-> +
-> +#ifdef CONFIG_RISCV_CBQRI_DRIVER
-> +int __init acpi_parse_rqsc(struct acpi_table_header *table);
-> +#else
-> +static inline int acpi_parse_rqsc(struct acpi_table_header *table)
-> +{
-> +       return -EINVAL;
-> +}
-> +#endif /* CONFIG_RISCV_CBQRI_DRIVER */
-> +
->  #else
->  static inline void acpi_init_rintc_map(void) { }
->  static inline struct acpi_madt_rintc *acpi_cpu_get_madt_rintc(int cpu)
-> diff --git a/drivers/acpi/riscv/Makefile b/drivers/acpi/riscv/Makefile
-> index 1284a076fa88..77f8f0101b7e 100644
-> --- a/drivers/acpi/riscv/Makefile
-> +++ b/drivers/acpi/riscv/Makefile
-> @@ -1,5 +1,6 @@
->  # SPDX-License-Identifier: GPL-2.0-only
->  obj-y                                  +=3D rhct.o init.o irq.o
-> +obj-$(CONFIG_RISCV_CBQRI_DRIVER)       +=3D rqsc.o
->  obj-$(CONFIG_ACPI_PROCESSOR_IDLE)      +=3D cpuidle.o
->  obj-$(CONFIG_ACPI_CPPC_LIB)            +=3D cppc.o
->  obj-$(CONFIG_ACPI_RIMT)                        +=3D rimt.o
-> diff --git a/drivers/acpi/riscv/rqsc.c b/drivers/acpi/riscv/rqsc.c
-> new file mode 100644
-> index 000000000000..1cbc5c07e191
-> --- /dev/null
-> +++ b/drivers/acpi/riscv/rqsc.c
-> @@ -0,0 +1,194 @@
-> +// SPDX-License-Identifier: GPL-2.0-only
-> +
-> +#define pr_fmt(fmt) "ACPI: RQSC: " fmt
-> +
-> +#include <linux/acpi.h>
-> +#include <linux/bits.h>
-> +#include <linux/riscv_cbqri.h>
-> +
-> +#include "rqsc.h"
-> +
-> +#define CBQRI_CTRL_SIZE 0x1000
-> +
-> +int __init acpi_parse_rqsc(struct acpi_table_header *table)
-> +{
-> +       struct acpi_table_rqsc *rqsc =3D (struct acpi_table_rqsc *)table;
-> +       struct acpi_rqsc_node *end, *node;
-> +       int num_controllers =3D 0;
-> +
-> +       /*
-> +        * Reject revisions newer than this parser was written against.  =
-A
-> +        * future revision could extend the fixed RQSC header before the
-> +        * first node, which would shift the resource subtables and cause=
- the
-> +        * sizeof(*node)-based offset below to point into the wrong place=
-.
-> +        */
-> +       if (rqsc->header.revision !=3D ACPI_RQSC_REVISION) {
-> +               pr_err("RQSC table revision %u, expected %u, aborting\n",
-> +                      rqsc->header.revision, ACPI_RQSC_REVISION);
-> +               return -EINVAL;
-> +       }
-> +
-> +       /* Reject tables shorter than the fixed RQSC header. */
-> +       if (rqsc->header.length < sizeof(struct acpi_table_rqsc)) {
-> +               pr_err("RQSC table truncated: length %u < %zu, aborting\n=
-",
-> +                      rqsc->header.length, sizeof(struct acpi_table_rqsc=
-));
-> +               return -EINVAL;
-> +       }
-> +
-> +       end =3D ACPI_ADD_PTR(struct acpi_rqsc_node, rqsc, rqsc->header.le=
-ngth);
-> +
-> +       for (node =3D ACPI_ADD_PTR(struct acpi_rqsc_node, rqsc,
-> +                                sizeof(struct acpi_table_rqsc));
-> +            node < end;
-> +            node =3D ACPI_ADD_PTR(struct acpi_rqsc_node, node, node->len=
-gth)
-> +       ) {
-> +               const struct acpi_rqsc_resource *res0;
-> +               struct cbqri_controller_info info =3D {};
-> +               int ret;
-> +
-> +               if ((void *)node + sizeof(*node) > (void *)end) {
-> +                       pr_err("truncated entry at end of table, aborting=
-\n");
-> +                       riscv_cbqri_unregister_last(num_controllers);
-> +                       return -EINVAL;
-> +               }
-> +
-> +               if (node->length < sizeof(*node)) {
-> +                       pr_err("malformed RQSC entry: length %u < %zu, ab=
-orting\n",
-> +                              node->length, sizeof(*node));
-> +                       riscv_cbqri_unregister_last(num_controllers);
-> +                       return -EINVAL;
-> +               }
-> +
-> +               /*
-> +                * Without this check, a node whose length claims to exte=
-nd
-> +                * past the end of the table would advance the loop curso=
-r
-> +                * past `end` and silently terminate.  Flag the corruptio=
-n
-> +                * explicitly so a malformed firmware table cannot trunca=
-te
-> +                * the controller list without noise.
-> +                */
-> +               if ((void *)node + node->length > (void *)end) {
-> +                       pr_err("RQSC entry length %u overruns table end, =
-aborting\n",
-> +                              node->length);
-> +                       riscv_cbqri_unregister_last(num_controllers);
-> +                       return -EINVAL;
-> +               }
-> +
-> +               /* GAS must describe system memory. ioremap() consumes it=
- later. */
-> +               if (node->reg.space_id !=3D ACPI_ADR_SPACE_SYSTEM_MEMORY)=
- {
-> +                       pr_warn("controller has unsupported address space=
-_id=3D%u, skipping\n",
-> +                               node->reg.space_id);
-> +                       continue;
-> +               }
-> +
-> +               /* Address 0 would map page 0 (reset vectors, SBI, boot R=
-OM). */
-> +               if (!node->reg.address) {
-> +                       pr_warn("controller has zero address, skipping\n"=
-);
-> +                       continue;
-> +               }
-> +
-> +               info.type =3D node->type;
-> +               /* RQSC v0.9.2 section 2 Table 2: 12-byte GAS-format regi=
-ster interface address */
-> +               info.addr =3D node->reg.address;
-> +               info.size =3D CBQRI_CTRL_SIZE;
-> +               info.rcid_count =3D node->rcid;
-> +               info.mcid_count =3D node->mcid;
-> +
-> +               /* See CBQRI_MAX_RCID/MCID in <linux/riscv_cbqri.h> for t=
-he rationale. */
-> +               if (info.rcid_count > CBQRI_MAX_RCID) {
-> +                       pr_warn("controller at %pa: rcid_count %u exceeds=
- CBQRI_MAX_RCID %u, skipping\n",
-> +                               &info.addr, info.rcid_count, CBQRI_MAX_RC=
-ID);
-> +                       continue;
-> +               }
-> +
-> +               if (info.mcid_count > CBQRI_MAX_MCID) {
-> +                       pr_warn("controller at %pa: mcid_count %u exceeds=
- CBQRI_MAX_MCID %u, skipping\n",
-> +                               &info.addr, info.mcid_count, CBQRI_MAX_MC=
-ID);
-> +                       continue;
-> +               }
-> +
-Do you also want to add a check for the statement in the spec "At
-least one of RCID Count or MCID Count must be non-zero." ?
-
-> +               if (node->nres =3D=3D 0) {
-> +                       pr_warn("controller at %pa has no resource descri=
-ptors, skipping\n",
-> +                               &info.addr);
-> +                       continue;
-> +               }
-> +
-> +               /*
-> +                * Resources follow the node header in-line. Only res[0] =
-is
-> +                * consumed. Bound it against end before reading its pref=
-ix so
-> +                * a table that ends partway through a resource subtable =
-is
-> +                * rejected rather than read past the mapping.
-> +                */
-> +               res0 =3D (const struct acpi_rqsc_resource *)
-> +                      ((const u8 *)node + sizeof(*node));
-> +               if ((void *)res0 + sizeof(*res0) > (void *)end ||
-> +                   node->length < sizeof(*node) + sizeof(*res0) ||
-> +                   res0->length < sizeof(*res0)) {
-> +                       pr_warn("controller at %pa: node too short for re=
-source descriptor, skipping\n",
-> +                               &info.addr);
-> +                       continue;
-> +               }
-> +
-> +               if (node->nres > 1)
-> +                       pr_warn("controller at %pa has %u resource descri=
-ptors, using first\n",
-> +                               &info.addr, node->nres);
-> +
-> +               /*
-> +                * id1 is u64 on the wire but cache_id and prox_dom are u=
-32
-> +                * downstream (PPTT cache_id, ACPI proximity domain). Rej=
-ect
-> +                * rather than truncate, so a too-large id is not silentl=
-y
-> +                * mapped to the wrong PPTT entry or NUMA node.
-> +                */
-> +               if (res0->id1 > U32_MAX) {
-> +                       pr_warn("controller at %pa: id1 0x%llx exceeds u3=
-2, skipping\n",
-> +                               &info.addr, res0->id1);
-> +                       continue;
-> +               }
-> +
-> +               /*
-> +                * Pair the QoS controller type with the resource descrip=
-tor
-> +                * fields that index id1.  RQSC v0.9.2 Table 4 defines th=
-e
-> +                * mapping: a Capacity controller indexes a Processor Cac=
-he
-> +                * via PPTT cache_id, a Bandwidth controller indexes a Me=
-mory
-> +                * Range via SRAT proximity domain.  Mismatched pairings
-> +                * (e.g. a CC whose first resource is Memory) would other=
-wise
-> +                * route id1 into the wrong downstream lookup.
-> +                */
-> +               switch (info.type) {
-> +               case CBQRI_CONTROLLER_TYPE_CAPACITY:
-> +                       if (res0->type !=3D ACPI_RQSC_RESOURCE_TYPE_CACHE=
- ||
-> +                           res0->id_type !=3D ACPI_RQSC_RESOURCE_ID_TYPE=
-_PROCESSOR_CACHE) {
-> +                               pr_warn("CC at %pa: resource type=3D%u id=
-_type=3D%u not (cache, processor cache), skipping\n",
-> +                                       &info.addr, res0->type, res0->id_=
-type);
-> +                               continue;
-> +                       }
-> +                       info.cache_id =3D (u32)res0->id1;
-> +                       break;
-> +               case CBQRI_CONTROLLER_TYPE_BANDWIDTH:
-> +                       if (res0->type !=3D ACPI_RQSC_RESOURCE_TYPE_MEMOR=
-Y ||
-> +                           res0->id_type !=3D ACPI_RQSC_RESOURCE_ID_TYPE=
-_MEMORY_RANGE) {
-> +                               pr_warn("BC at %pa: resource type=3D%u id=
-_type=3D%u not (memory, memory range), skipping\n",
-> +                                       &info.addr, res0->type, res0->id_=
-type);
-> +                               continue;
-> +                       }
-> +                       info.prox_dom =3D (u32)res0->id1;
-> +                       break;
-> +               default:
-> +                       pr_warn("controller at %pa: unknown type %u, skip=
-ping\n",
-> +                               &info.addr, info.type);
-> +                       continue;
-> +               }
-> +
-> +               pr_debug("registering controller type=3D%u addr=3D%pa rci=
-d=3D%u mcid=3D%u\n",
-> +                        info.type, &info.addr, info.rcid_count, info.mci=
-d_count);
-> +
-> +               ret =3D riscv_cbqri_register_controller(&info);
-> +               if (ret =3D=3D 0)
-> +                       num_controllers++;
-> +               else
-> +                       pr_warn("controller at %pa: registration failed (=
-%d), skipping\n",
-> +                               &info.addr, ret);
-> +       }
-> +
-> +       pr_info("found %d CBQRI controllers\n", num_controllers);
-> +       return 0;
-> +}
-> diff --git a/drivers/acpi/riscv/rqsc.h b/drivers/acpi/riscv/rqsc.h
-> new file mode 100644
-> index 000000000000..f7b556f29e16
-> --- /dev/null
-> +++ b/drivers/acpi/riscv/rqsc.h
-> @@ -0,0 +1,63 @@
-> +/* SPDX-License-Identifier: GPL-2.0-only */
+>  include/linux/moduleparam.h | 36 ++++++++++++++++++++++++++++++++++--
+>  kernel/params.c             |  6 ++----
+>  2 files changed, 36 insertions(+), 6 deletions(-)
+> 
+> diff --git a/include/linux/moduleparam.h b/include/linux/moduleparam.h
+> index 075f28585074..26bf45b36d02 100644
+> --- a/include/linux/moduleparam.h
+> +++ b/include/linux/moduleparam.h
+> @@ -68,6 +68,39 @@ struct kernel_param_ops {
+>  	void (*free)(void *arg);
+>  };
+>  
 > +/*
-> + * Local definitions for the RISC-V Quality of Service Controller (RQSC)
-> + * ACPI table. Will move to ACPICA's include/acpi/actbl2.h once the spec
-> + * is ratified.
+> + * Define a const struct kernel_param_ops initializer. Callers prefix with
+> + * any required visibility qualifiers (typically "static"):
+> + *
+> + *   static DEFINE_KERNEL_PARAM_OPS(my_ops, my_set, my_get);
+> + *
+> + * Routing the @_set and @_get function pointers through the macro
+> + * (rather than naming the struct fields at every call site) lets the
+> + * field layout change in one place when callbacks are migrated to a
+> + * new signature.
 > + */
-> +#ifndef _DRIVERS_ACPI_RISCV_RQSC_H
-> +#define _DRIVERS_ACPI_RISCV_RQSC_H
-> +
-> +#include <linux/types.h>
-> +#include <acpi/actbl.h>
-> +
-> +#define ACPI_SIG_RQSC  "RQSC"  /* RISC-V Quality of Service Controller *=
-/
-> +
-> +/* RQSC v0.9.2 Table 1: current revision number. */
-> +#define ACPI_RQSC_REVISION     1
-> +
-> +/* RQSC v0.9.2 Table 4: Resource Type values for acpi_rqsc_resource.type=
-. */
-> +#define ACPI_RQSC_RESOURCE_TYPE_CACHE  0
-> +#define ACPI_RQSC_RESOURCE_TYPE_MEMORY 1
-> +
-> +/* RQSC v0.9.2 Table 4: Resource ID Type values for .id_type. */
-> +#define ACPI_RQSC_RESOURCE_ID_TYPE_PROCESSOR_CACHE     0
-> +#define ACPI_RQSC_RESOURCE_ID_TYPE_MEMORY_RANGE                1
-> +
-Memory-Side Cache, ACPI, PCI devices missing?
 
+Nit: The newly introduced DEFINE_KERNEL_PARAM_OPS*() macros remain in
+place at the end of the series after the migration is complete and this
+comment is removed in patch 7. It would be helpful to describe in the
+commit message why these macros are generally preferable to defining
+kernel_param_ops instances directly.
+
+I assume the motivation is that the structure is simple enough and using
+macros then makes defining kernel_param_ops instances a bit more
+concise. A minor disadvantage is that some analysis tools, such as
+ctags, may no longer see the generated definition, but that is also the
+case for DEFINE_MUTEX() and other similar macros.
+
+-- 
 Thanks,
-Sunil
+Petr
