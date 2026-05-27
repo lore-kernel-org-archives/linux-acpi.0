@@ -1,41 +1,41 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DF472D2488;
-	Wed, 27 May 2026 18:12:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9519B47DF98;
+	Wed, 27 May 2026 18:12:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779905536; cv=none; b=ujjsLo/agFGrbX/vrCAnHGYV5TtewomPLATMYhfPgX5CyheiXyXyijN4Ct/4e1apVp+TuepR8zzsTvW1GkPWJ/Tx5J4YWA9gkfN0CXkQdwD64Wf6mr7A2xwJT0adKe+Exofd2Cu0vBeKuXitlUDbJDMifE9p0SbwMDDBRRx+vs8=
+	t=1779905539; cv=none; b=MAkiN0lTWhzwT72QhhJBjjYI+SBcd54emiszzjbeJdsxEUphZKPgmEM+vFOVr6JXwChXjfjf97+MfC0Ki54oTqV/SGIzrxR900Fg8Zj+3Cleidk5YGAhPniX3S2x4esuD87mHPegdVdtfmRMqVu7PwPKxvEBvUnNimMNc+hJJpU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779905536; c=relaxed/simple;
-	bh=G5lNZsVyDSLWm9ZXP0ifAC5UOZwwNSEJUK5olm4aSMY=;
+	s=arc-20240116; t=1779905539; c=relaxed/simple;
+	bh=0EjsYTT45oxd6dofMhkVaNdX0cQvik817MKkDz+Gd8Y=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=N/6MAnQSnkhUth/5QIeek1HLq8Um43yqkmuuQ4D0o3ElKYf16S58cM4+yN+n0Zf30xY3kj1rJqntsgEyNUfsrNb/Z6wseseDbC0sLv9/EJbhJNF6pT7Cbj3yQbVt9uLTo+M7P9BQk25j82A6e4UtVJjm68w3qnrZ82uycFf/Aq0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GeFl82sv; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=LdAwKXou4fezPk3Q4tfsGs9gb1iFwk+sFaRl4US/b3zjfHCIYnqqqPMuUrsOWxp6a6Qy9rrUY4yTZD/i2mu3wRY83678wdF3Eb1Vch0reaubEDdOiLQvvZbEYOXR23yzHzRjOXgBCbjphgHY9eiG9XZFcjb6lY1k9Z01sV5HymQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=YYUjgbEn; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GeFl82sv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E6301F000E9;
-	Wed, 27 May 2026 18:12:14 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="YYUjgbEn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 754FD1F000E9;
+	Wed, 27 May 2026 18:12:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1779905535;
-	bh=Yko+gr9Itsrk+iZwB0jJ6TMx7KrRc41cdtFtD2TJ+MU=;
+	s=k20260515; t=1779905538;
+	bh=W8eC7Ci1WRMno78Z/hN/5Duqy5gq0Adgi/zbrIP0yfY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=GeFl82sv4bTOKv3Eadpte/5qdL5s0GDOmyYeoH58kBmR2UAAn8/a3on/exiL7P8BA
-	 7EaPJB8KNPc4rU+8kIoGtXSt0c0Tdi3XzeL10Yq/UpxNmRz+UN8hCxrgFZDCVAsaSM
-	 DG94sabqNzJQEsDDo0MFGR+SHy8Mvp+g3ZT94wnGX+f3XFNmWNNi4eBTQufB5WBj1i
-	 fhmoe0WnA+biECEeiAhXucSHch7Yi58scaA3kuP64LfIo1y4syEX8QNU/k7S2BgnpQ
-	 yst2OHaKCLF/l7G0RKZqG+4XHRCEGJPmzAEH1TdFbh1ScL1DATg363uO5ZWWuH3FFn
-	 hYUkmTYKPzZmg==
+	b=YYUjgbEnCXSlBuQvk+C5Xb4PGXHUhOUzqnfL/VxWkxsLzUrTyiVzno3V19rBW8khr
+	 R9ep3sNaTey9NVlfsmZ6+bnJg1qA/b5q8WyXOBuh0dUCLE1nKVxEm7S2np11ijtTko
+	 Zi/4i+DOsqEm5yihIgftxX8/+pkHAeV0wXNJc0NzPN8aYuue4JLUPr7cccpMFSMKSY
+	 4ywjGHfEURYOaYXezS9A3/fl0XTaqHFuG6OV062ds3d8Td43SNTwUQEX6TR51JcoJs
+	 XeAfYvKF69zkwxhek3zGDIcvmZj8O2DBuukJslb9waP3KVZd+fS1MjFbTMYquF4XN7
+	 DaGboGdbh0KRQ==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>,
  Saket Dumbre <saket.dumbre@intel.com>,
  Pawel Chmielewski <pawel.chmielewski@intel.com>
 Subject:
- [PATCH v1 13/27] ACPICA: validate byte_count in
- acpi_ps_get_next_package_length()
-Date: Wed, 27 May 2026 19:59:57 +0200
-Message-ID: <3616255.QJadu78ljV@rafael.j.wysocki>
+ [PATCH v1 12/27] ACPICA: Fix use-after-free in
+ acpi_ds_terminate_control_method()
+Date: Wed, 27 May 2026 19:59:12 +0200
+Message-ID: <8730924.NyiUUSuA9g@rafael.j.wysocki>
 Organization: Linux Kernel Development
 In-Reply-To: <5998844.DvuYhMxLoT@rafael.j.wysocki>
 References: <5998844.DvuYhMxLoT@rafael.j.wysocki>
@@ -50,51 +50,77 @@ Content-Type: text/plain; charset="UTF-8"
 
 From: ikaros <void0red@gmail.com>
 
-Validate package length reading in acpi_ps_get_next_package_length().
+Fix use-after-free issue in acpi_ds_terminate_control_method() by
+clearing references to method locals and arguments.
 
-Link: https://github.com/acpica/acpica/commit/40e03f9941e2
+Link: https://github.com/acpica/acpica/commit/36f22a94cb1b
 Signed-off-by: ikaros <void0red@gmail.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/acpica/psargs.c | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ drivers/acpi/acpica/dsmethod.c | 43 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 43 insertions(+)
 
-diff --git a/drivers/acpi/acpica/psargs.c b/drivers/acpi/acpica/psargs.c
-index 6f6ae38ec044..87d32fbba0a6 100644
---- a/drivers/acpi/acpica/psargs.c
-+++ b/drivers/acpi/acpica/psargs.c
-@@ -48,6 +48,7 @@ acpi_ps_get_next_package_length(struct acpi_parse_state *parser_state)
- 	u32 package_length = 0;
- 	u32 byte_count;
- 	u8 byte_zero_mask = 0x3F;	/* Default [0:5] */
-+	u32 remaining;
+diff --git a/drivers/acpi/acpica/dsmethod.c b/drivers/acpi/acpica/dsmethod.c
+index 45ec32e81903..08bfe8303083 100644
+--- a/drivers/acpi/acpica/dsmethod.c
++++ b/drivers/acpi/acpica/dsmethod.c
+@@ -705,6 +705,8 @@ void
+ acpi_ds_terminate_control_method(union acpi_operand_object *method_desc,
+ 				 struct acpi_walk_state *walk_state)
+ {
++	u32 i;
++	struct acpi_namespace_node *ref_node;
  
- 	ACPI_FUNCTION_TRACE(ps_get_next_package_length);
+ 	ACPI_FUNCTION_TRACE_PTR(ds_terminate_control_method, walk_state);
  
-@@ -55,7 +56,23 @@ acpi_ps_get_next_package_length(struct acpi_parse_state *parser_state)
- 	 * Byte 0 bits [6:7] contain the number of additional bytes
- 	 * used to encode the package length, either 0,1,2, or 3
- 	 */
-+
-+	/* Check if we have at least one byte to read */
-+	remaining = (u32)ACPI_PTR_DIFF(parser_state->aml_end, aml);
-+	if (remaining == 0) {
-+		return_UINT32(0);
-+	}
-+
- 	byte_count = (aml[0] >> 6);
-+
-+	/* Validate byte_count and ensure we have enough bytes to read */
-+	if (byte_count >= remaining) {
-+
-+		/* Clamp to available bytes and advance to end */
-+		parser_state->aml = parser_state->aml_end;
-+		return_UINT32(0);
-+	}
-+
- 	parser_state->aml += ((acpi_size)byte_count + 1);
+@@ -715,6 +717,47 @@ acpi_ds_terminate_control_method(union acpi_operand_object *method_desc,
+ 	}
  
- 	/* Get bytes 3, 2, 1 as needed */
+ 	if (walk_state) {
++		/*
++		 * Check if the return value is a ref_of reference to a method local
++		 * or argument. If so, clear the reference to avoid use-after-free
++		 * when the walk state is deleted.
++		 */
++		if (walk_state->return_desc &&
++		    (walk_state->return_desc->common.type ==
++		     ACPI_TYPE_LOCAL_REFERENCE)
++		    && (walk_state->return_desc->reference.class ==
++			ACPI_REFCLASS_REFOF)) {
++			ref_node = walk_state->return_desc->reference.object;
++			if (ref_node) {
++
++				/* Check against method locals */
++				for (i = 0; i < ACPI_METHOD_NUM_LOCALS; i++) {
++					if (ref_node ==
++					    &walk_state->local_variables[i]) {
++						acpi_ut_remove_reference
++						    (walk_state->return_desc);
++						walk_state->return_desc = NULL;
++						break;
++					}
++				}
++
++				/* Check against method arguments if not already cleared */
++				if (walk_state->return_desc) {
++					for (i = 0; i < ACPI_METHOD_NUM_ARGS;
++					     i++) {
++						if (ref_node ==
++						    &walk_state->arguments[i]) {
++							acpi_ut_remove_reference
++							    (walk_state->
++							     return_desc);
++							walk_state->
++							    return_desc = NULL;
++							break;
++						}
++					}
++				}
++			}
++		}
+ 
+ 		/* Delete all arguments and locals */
+ 
 -- 
 2.51.0
 
