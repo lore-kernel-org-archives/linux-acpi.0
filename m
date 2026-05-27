@@ -1,39 +1,39 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26806466B4E;
-	Wed, 27 May 2026 18:11:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 688EC4657C8;
+	Wed, 27 May 2026 18:11:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779905492; cv=none; b=HX1ukZk/HbRatEH0LJz5Xh/bwzpqu2cDU0x+tZvFCo8uc9/5ez8BRL3t1ekCSff3yMwSA6sRPfJIaqLLBZuBUWFsTGja6QBOfjkCFHJ7RGR64Uqmw4reUye03NZ7I8Kj3VuvCP5UC52Pdb5UdwIUJcQEGyF3ZIyFBgn3oGEpqbM=
+	t=1779905495; cv=none; b=tKF7s/TLNq66oxDdnZx5WQLdNQv6z6AO2CbnPa0OTCx7ng+4ll3T2ePxwAuIPQAt0q8c/NzpxPp2gxWrtLx2cWKhZRcF5KHE+uvOJMGgw2Zj17EJzUQ8EpeOB3Y2UP14JpYcvkeNmILD9D2/ItIx776wtgJsY7fErx+Z4difik4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779905492; c=relaxed/simple;
-	bh=/9NiF+BNAKChQtnQAsOC20DQmNYI2Gf1MnSiBQd5swk=;
+	s=arc-20240116; t=1779905495; c=relaxed/simple;
+	bh=PkHlQAHFn4P/2bd4C/M6jTHeRqFoOPejaQwfQMSsEOQ=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=doe9zDZRJODriljdUVaMs6dgOs58DY5MUjWdilR2p7RXF4d+51zVGh805lBhE2IPVqarbX21XC5YvDLhm8UYhZcPZoCGGBtPBe15lkInQMMMTsDMP7Ng/D8jyxE7oSLs/JTqpTXmxdizfVF8sDAsigTvj6Iyu3VxiLMD+rVc/3I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Xc7gzFvI; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=tPQNreTFzIhhFYCO46EmYTsk1r2Z4mFq1//VmugX2fTVO5yPpiQzRBtyQPjJQW03mKXv+DTVKbEnpP4xuQRDjV2QyTVIsQF+oi8YQdcd4rri1fYMmy1ZILIO6A8BPmQEPrHWIU2rMh1vVamCDYtGMfAsKWFlqfdmLBrjJ0hQfXE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=h4WzU6Gm; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Xc7gzFvI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE0071F000E9;
-	Wed, 27 May 2026 18:11:29 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="h4WzU6Gm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF59D1F000E9;
+	Wed, 27 May 2026 18:11:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1779905490;
-	bh=86hjIXbd0EbrAMNYjhAC1eES2t1qELqqBymG3v0Po1s=;
+	s=k20260515; t=1779905494;
+	bh=omRNxJ+o6H6HZTBxpGFY/53ueOuIjfRQw03T48rOfgw=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=Xc7gzFvI2V/eHTmsMv75LPZdJ3MZYbmCpPzLacl8jcUPLO7dR5wrBPs0YXGd2kkdR
-	 k0mw+w5lls4EwmnekHvvHiDRoHJV//bSWmDNXiMB2avbQBKfzItL4hdvZ2XvWgdhIP
-	 t6vJLl1hUkKPn7u4jCWN1kIIxNavnyLL1/Jp+xo0e/G25H7qmW0rOppWnGHOz0w+rx
-	 vJ7QVDAKAuPf15qMJ40DXWMugoV7Xx1znFpAgVS1vj3B23693go1j2jdDCGq7AULDs
-	 s0OeCYXrj8YEjYjKIgJPGckhALbLh2OIghu5Z24ze5xyi6HGVIrmug3vTLbtCbq4ZI
-	 JmMrYKK0eQseg==
+	b=h4WzU6GmR1vqsn1v08ymL81AkKtmZaygKg6/42XBwGWniaNWlI8tnLmpSH4QcoKYY
+	 8uPyJoqclX69xlJzzwEBMBazOjrCj8vPnJ/vAM1ddkDC1W1RCaAFz1rAeKf9KHN056
+	 eRsGjW/oiCi5ZTx6YY8kBYG4Z/qBKL1GsxQXCOHb8clz4zartUAKqwJ9Bigt8xrD2+
+	 IyOg3AdiqGDlmijlY4lXfyWORbrp8U0uVyQEVq+VutasOixVHcg98A/5kkTbACs+Gh
+	 EB8vSv92zCXVjZ2g8E2Sr3iIgPCFEHAZZYHpHeQLashoTow0vRe7eoj2NdxHtaT0yx
+	 905twSoel/1SA==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>,
  Saket Dumbre <saket.dumbre@intel.com>,
  Pawel Chmielewski <pawel.chmielewski@intel.com>
-Subject: [PATCH v1 27/27] ACPICA: add boundary checks in two places
-Date: Wed, 27 May 2026 20:10:18 +0200
-Message-ID: <5180044.0VBMTVartN@rafael.j.wysocki>
+Subject: [PATCH v1 26/27] ACPICA: Add package limit checks in parser functions
+Date: Wed, 27 May 2026 20:09:24 +0200
+Message-ID: <3212937.CbtlEUcBR6@rafael.j.wysocki>
 Organization: Linux Kernel Development
 In-Reply-To: <5998844.DvuYhMxLoT@rafael.j.wysocki>
 References: <5998844.DvuYhMxLoT@rafael.j.wysocki>
@@ -48,86 +48,125 @@ Content-Type: text/plain; charset="UTF-8"
 
 From: ikaros <void0red@gmail.com>
 
-Add boundary checks in acpi_ps_get_next_namestring() and
-acpi_ps_peek_opcode() to prevent out-of-bounds access.
+Add package limit checks in parser functions to prevent out-of-bounds
+access.
 
-Link: https://github.com/acpica/acpica/commit/cfdc96896d8d
+Link: https://github.com/acpica/acpica/commit/b31b45af2122
 Signed-off-by: ikaros <void0red@gmail.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/acpica/psargs.c  | 18 +++++++++++++++++-
- drivers/acpi/acpica/psparse.c |  6 ++++++
- 2 files changed, 23 insertions(+), 1 deletion(-)
+ drivers/acpi/acpica/nsxfname.c |  4 ++++
+ drivers/acpi/acpica/psargs.c   |  4 ++++
+ drivers/acpi/acpica/psloop.c   | 25 +++++++++++++++++++++++++
+ drivers/acpi/acpica/psparse.c  |  8 ++++++++
+ 4 files changed, 41 insertions(+)
 
+diff --git a/drivers/acpi/acpica/nsxfname.c b/drivers/acpi/acpica/nsxfname.c
+index fabae9b08e31..b6534187cd43 100644
+--- a/drivers/acpi/acpica/nsxfname.c
++++ b/drivers/acpi/acpica/nsxfname.c
+@@ -512,6 +512,10 @@ acpi_status acpi_install_method(u8 *buffer)
+ 
+ 	parser_state.aml += acpi_ps_get_opcode_size(opcode);
+ 	parser_state.pkg_end = acpi_ps_get_next_package_end(&parser_state);
++	if ((parser_state.pkg_end > parser_state.aml_end) ||
++	    (parser_state.pkg_end < parser_state.aml)) {
++		return (AE_AML_PACKAGE_LIMIT);
++	}
+ 	path = acpi_ps_get_next_namestring(&parser_state);
+ 
+ 	method_flags = *parser_state.aml++;
 diff --git a/drivers/acpi/acpica/psargs.c b/drivers/acpi/acpica/psargs.c
-index 95d540bda4fb..4643c839df7f 100644
+index cafd54fb5868..95d540bda4fb 100644
 --- a/drivers/acpi/acpica/psargs.c
 +++ b/drivers/acpi/acpica/psargs.c
-@@ -148,10 +148,16 @@ char *acpi_ps_get_next_namestring(struct acpi_parse_state *parser_state)
+@@ -867,6 +867,10 @@ acpi_ps_get_next_arg(struct acpi_walk_state *walk_state,
  
- 	/* Point past any namestring prefix characters (backslash or carat) */
- 
--	while (ACPI_IS_ROOT_PREFIX(*end) || ACPI_IS_PARENT_PREFIX(*end)) {
-+	while (end < parser_state->aml_end &&
-+	       (ACPI_IS_ROOT_PREFIX(*end) || ACPI_IS_PARENT_PREFIX(*end))) {
- 		end++;
- 	}
- 
-+	if (end >= parser_state->aml_end) {
-+		parser_state->aml = parser_state->aml_end;
-+		return_PTR(NULL);
-+	}
-+
- 	/* Decode the path prefix character */
- 
- 	switch (*end) {
-@@ -176,6 +182,11 @@ char *acpi_ps_get_next_namestring(struct acpi_parse_state *parser_state)
- 
- 		/* Multiple name segments, 4 chars each, count in next byte */
- 
-+		if ((end + 1) >= parser_state->aml_end) {
-+			parser_state->aml = parser_state->aml_end;
-+			return_PTR(NULL);
+ 		parser_state->pkg_end =
+ 		    acpi_ps_get_next_package_end(parser_state);
++		if ((parser_state->pkg_end > parser_state->aml_end)
++		    || (parser_state->pkg_end < parser_state->aml)) {
++			return_ACPI_STATUS(AE_AML_PACKAGE_LIMIT);
 +		}
-+
- 		end += 2 + (*(end + 1) * ACPI_NAMESEG_SIZE);
  		break;
  
-@@ -187,6 +198,11 @@ char *acpi_ps_get_next_namestring(struct acpi_parse_state *parser_state)
- 		break;
- 	}
+ 	case ARGP_FIELDLIST:
+diff --git a/drivers/acpi/acpica/psloop.c b/drivers/acpi/acpica/psloop.c
+index e012495e2267..24a57f971c96 100644
+--- a/drivers/acpi/acpica/psloop.c
++++ b/drivers/acpi/acpica/psloop.c
+@@ -361,6 +361,13 @@ acpi_status acpi_ps_parse_loop(struct acpi_walk_state *walk_state)
+ 					walk_state->parser_state.aml =
+ 					    acpi_ps_get_next_package_end
+ 					    (&walk_state->parser_state);
++					if ((walk_state->parser_state.aml >
++					     walk_state->parser_state.aml_end)
++					    || (walk_state->parser_state.aml <
++						walk_state->aml)) {
++						return_ACPI_STATUS
++						    (AE_AML_PACKAGE_LIMIT);
++					}
+ 					walk_state->aml =
+ 					    walk_state->parser_state.aml;
+ 				}
+@@ -421,6 +428,14 @@ acpi_status acpi_ps_parse_loop(struct acpi_walk_state *walk_state)
+ 					parser_state->aml =
+ 					    acpi_ps_get_next_package_end
+ 					    (parser_state);
++					if ((parser_state->aml >
++					     parser_state->aml_end)
++					    || (parser_state->aml <
++						walk_state->control_state->
++						control.aml_predicate_start)) {
++						return_ACPI_STATUS
++						    (AE_AML_PACKAGE_LIMIT);
++					}
+ 					walk_state->aml = parser_state->aml;
  
-+	if (end > parser_state->aml_end) {
-+		parser_state->aml = parser_state->aml_end;
-+		return_PTR(NULL);
-+	}
-+
- 	parser_state->aml = end;
- 	return_PTR((char *)start);
- }
+ 					ACPI_ERROR((AE_INFO,
+@@ -436,6 +451,16 @@ acpi_status acpi_ps_parse_loop(struct acpi_walk_state *walk_state)
+ 						walk_state->parser_state.aml =
+ 						    acpi_ps_get_next_package_end
+ 						    (parser_state);
++						if ((walk_state->parser_state.
++						     aml >
++						     walk_state->parser_state.
++						     aml_end)
++						    || (walk_state->
++							parser_state.aml <
++							walk_state->aml)) {
++							return_ACPI_STATUS
++							    (AE_AML_PACKAGE_LIMIT);
++						}
+ 						walk_state->aml =
+ 						    parser_state->aml;
+ 					}
 diff --git a/drivers/acpi/acpica/psparse.c b/drivers/acpi/acpica/psparse.c
-index 29b57d2c4cc4..42ec8abef626 100644
+index d9e4f33b6909..29b57d2c4cc4 100644
 --- a/drivers/acpi/acpica/psparse.c
 +++ b/drivers/acpi/acpica/psparse.c
-@@ -70,6 +70,9 @@ u16 acpi_ps_peek_opcode(struct acpi_parse_state * parser_state)
- 	u16 opcode;
+@@ -300,6 +300,7 @@ acpi_ps_next_parse_state(struct acpi_walk_state *walk_state,
+ {
+ 	struct acpi_parse_state *parser_state = &walk_state->parser_state;
+ 	acpi_status status = AE_CTRL_PENDING;
++	u8 *aml;
  
- 	aml = parser_state->aml;
-+	if (aml >= parser_state->aml_end) {
-+		return (0xFFFF);
-+	}
- 	opcode = (u16) ACPI_GET8(aml);
+ 	ACPI_FUNCTION_TRACE_PTR(ps_next_parse_state, op);
  
- 	if (opcode == AML_EXTENDED_PREFIX) {
-@@ -77,6 +80,9 @@ u16 acpi_ps_peek_opcode(struct acpi_parse_state * parser_state)
- 		/* Extended opcode, get the second opcode byte */
- 
- 		aml++;
-+		if (aml >= parser_state->aml_end) {
-+			return (0xFFFF);
+@@ -344,7 +345,14 @@ acpi_ps_next_parse_state(struct acpi_walk_state *walk_state,
+ 		 * Predicate of an IF was true, and we are at the matching ELSE.
+ 		 * Just close out this package
+ 		 */
++		aml = parser_state->aml;
++
+ 		parser_state->aml = acpi_ps_get_next_package_end(parser_state);
++		if ((parser_state->aml > parser_state->aml_end) ||
++		    (parser_state->aml < aml)) {
++			status = AE_AML_PACKAGE_LIMIT;
++			break;
 +		}
- 		opcode = (u16) ((opcode << 8) | ACPI_GET8(aml));
- 	}
+ 		status = AE_CTRL_PENDING;
+ 		break;
  
 -- 
 2.51.0
