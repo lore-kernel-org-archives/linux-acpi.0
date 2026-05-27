@@ -1,41 +1,41 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9822247A0A6;
-	Wed, 27 May 2026 18:12:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E66E1477992;
+	Wed, 27 May 2026 18:12:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779905525; cv=none; b=fwGTe2qC06WH1KNEE35PYOlnHfdmvL3/UDxDAh9Xx/Lzfip+3O6GGP3aUB23sfFtScNFnGJM82VRMlEWHcnY5sotCuYgx8plWtdemU4wbcVslYQQgKebVC2V1tmqL21lrBOrEnq5wj5/SzpreGP2+d48uovgARepO4zah6DhYCU=
+	t=1779905527; cv=none; b=C2DjFFyo5/Uw1SLc+rJ19gb1mqdHrX15OUc0SzCWd3w7JWqlG/Qwdn3NVQoM13oy/XAOOwpc60MEvx7ht5WapyWSxnx6jchIb57Ly4EDyx2j39+hsr6eXYAZGtW6NXLLJm7C0/zN/U69m8B0MTTZ71fQyBdo4aYy8LDNXwhMw/I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779905525; c=relaxed/simple;
-	bh=klPbE8tokp5CAYtCltzsydnP3Z5YDgbltgvjtvaYZ9Y=;
+	s=arc-20240116; t=1779905527; c=relaxed/simple;
+	bh=ADKBO5c/csMpevlQautnWdpRQcKbal7py9GsyX5bEHc=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=C69aVsc0p2ZYNAU8DiASDG4AtdGCx1ZidSuJmBxWEw8mS2GjnUseepJu/reC+5FrIBSgd9s+ZZ+c9kEzdGcvukVL/PD6MQZHANnMG99ZhR7wdhauc3MTqobClf1Zrh+bud0iaWpliodq7GqIkP643XGn/9dJTFXf1AqdtKurCSs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=chvtWH5z; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=L6mmdrf2Ntm6XOenIN/KGbWwuHN8L20QnbvCMjQTxNoGeyDi6t5kHaxp1k/QgRw8csu7ytt8mnyqEStvNUUiBxjbfa8yi4GRDTl7ZEGC01UUWzxkNHRz2i0MMfyNcC8OZOdN8VpYfDL6zrkT8HtnfG9Or1qQeelFo+dijJpP8pQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fxjUDw69; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="chvtWH5z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D10A81F00A3D;
-	Wed, 27 May 2026 18:12:01 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fxjUDw69"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9E061F00A3F;
+	Wed, 27 May 2026 18:12:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1779905522;
-	bh=PB1lywPeuQ938CbHIwb3UIV6UX6yDv432Om5DbmU5ng=;
+	s=k20260515; t=1779905525;
+	bh=z/Gcq7BYFOUy62R6iD7QB9+DemunDUL5N14sP7jwWa8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=chvtWH5zgg5osrAEJ8IE6x6Bqg1EWSp9+6JZoFaAZ2U7MhvvZLmRF8MXNUfCvzgO2
-	 icboiTRFN4X5Vsyn6W97ReZNX1EFoUEx1j040Ncz5If5ZhGHIt0pY4vo9Ax07Lcki4
-	 v6/PZlJzxi8PT5PsNNFmk9s8taqc8HHe8mP8GdJgEFDv3+bFK348finnvIp0jpbMUB
-	 ewrrJDD1URLP84v+TFATP04p9jJ0/u1cRcz5X2/P0kMzHFpPOMx/KdsoVuM0nNzWH1
-	 JhycVKh+J7jhU++pEFIAcq3xrBMSMf0PE2xycxku2fm0IoqjqljV+kGZVJsDPOaHlj
-	 mHdXMYpWm9jbA==
+	b=fxjUDw69KozMio+UaBIs/zSnYiZCXYOkNlp23dPIf/9yeaXZIuVR8fLtHuu6tDshR
+	 nTcOOp0I9MWzsBIZltInqCxaM0qbDER29s3knXEruPVssW/ffLRtovTvNAb4ttq1W4
+	 h372zS/50KFnLaiq9iZtsHSyHf8LNvWjOeTibt8aUeJu65NHoN1uFA5891KJGHXjRV
+	 fZWmEi6mRPmukda6H2SrGyUfnH+R1XhQYBM76JVSWmZHmPwpzrUGdiDcBGXijbWMDw
+	 0pyok38ouUUdHHC/ASH/03MxwliRCkImHvPOyfHDMT3KKozgFeq2wIxPwMpFBebu4W
+	 o5Ja5PUkx/2GA==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>,
  Saket Dumbre <saket.dumbre@intel.com>,
  Pawel Chmielewski <pawel.chmielewski@intel.com>
 Subject:
- [PATCH v1 17/27] ACPICA: Improve argument parsing in
- acpi_ps_get_next_simple_arg()
-Date: Wed, 27 May 2026 20:02:49 +0200
-Message-ID: <2008043.taCxCBeP46@rafael.j.wysocki>
+ [PATCH v1 16/27] ACPICA: Fix integer overflow in acpi_ex_opcode_3A_1T_1R()
+ (mid_op)
+Date: Wed, 27 May 2026 20:02:06 +0200
+Message-ID: <3760974.R56niFO833@rafael.j.wysocki>
 Organization: Linux Kernel Development
 In-Reply-To: <5998844.DvuYhMxLoT@rafael.j.wysocki>
 References: <5998844.DvuYhMxLoT@rafael.j.wysocki>
@@ -50,142 +50,30 @@ Content-Type: text/plain; charset="UTF-8"
 
 From: ikaros <void0red@gmail.com>
 
-Improve argument parsing in acpi_ps_get_next_simple_arg() to handle
-remaining AML data safely.
+Add overflow check for Index + Length to prevent integer overflow
+when calculating the truncation length. This prevents negative
+size parameter being passed to memcpy().
 
-Link: https://github.com/acpica/acpica/commit/ecbb8bcfe301
+Link: https://github.com/acpica/acpica/commit/d281ec1ac84e
 Signed-off-by: ikaros <void0red@gmail.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/acpica/psargs.c | 78 +++++++++++++++++++++++++++++++-----
- 1 file changed, 68 insertions(+), 10 deletions(-)
+ drivers/acpi/acpica/exoparg3.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpica/psargs.c b/drivers/acpi/acpica/psargs.c
-index 3526ea109414..064652d11d9a 100644
---- a/drivers/acpi/acpica/psargs.c
-+++ b/drivers/acpi/acpica/psargs.c
-@@ -384,6 +384,8 @@ acpi_ps_get_next_simple_arg(struct acpi_parse_state *parser_state,
- 	u32 length;
- 	u16 opcode;
- 	u8 *aml = parser_state->aml;
-+	u32 remaining = (u32)ACPI_PTR_DIFF(parser_state->aml_end, aml);
-+	u64 partial_value;
+diff --git a/drivers/acpi/acpica/exoparg3.c b/drivers/acpi/acpica/exoparg3.c
+index 2fc8070814e3..2790bf1a12e7 100644
+--- a/drivers/acpi/acpica/exoparg3.c
++++ b/drivers/acpi/acpica/exoparg3.c
+@@ -159,7 +159,7 @@ acpi_status acpi_ex_opcode_3A_1T_1R(struct acpi_walk_state *walk_state)
  
- 	ACPI_FUNCTION_TRACE_U32(ps_get_next_simple_arg, arg_type);
+ 		/* Truncate request if larger than the actual String/Buffer */
  
-@@ -393,8 +395,13 @@ acpi_ps_get_next_simple_arg(struct acpi_parse_state *parser_state,
- 		/* Get 1 byte from the AML stream */
- 
- 		opcode = AML_BYTE_OP;
--		arg->common.value.integer = (u64) *aml;
--		length = 1;
-+		if (remaining >= 1) {
-+			arg->common.value.integer = (u64)*aml;
-+			length = 1;
-+		} else {
-+			arg->common.value.integer = 0;
-+			length = 0;
-+		}
- 		break;
- 
- 	case ARGP_WORDDATA:
-@@ -402,8 +409,19 @@ acpi_ps_get_next_simple_arg(struct acpi_parse_state *parser_state,
- 		/* Get 2 bytes from the AML stream */
- 
- 		opcode = AML_WORD_OP;
--		ACPI_MOVE_16_TO_64(&arg->common.value.integer, aml);
--		length = 2;
-+		if (remaining >= 2) {
-+			ACPI_MOVE_16_TO_64(&arg->common.value.integer, aml);
-+			length = 2;
-+		} else {
-+			arg->common.value.integer = 0;
-+			length = 0;
-+			if (remaining > 0) {
-+				partial_value = 0;
-+				memcpy(&partial_value, aml, remaining);
-+				arg->common.value.integer = partial_value;
-+				length = remaining;
-+			}
-+		}
- 		break;
- 
- 	case ARGP_DWORDDATA:
-@@ -411,8 +429,19 @@ acpi_ps_get_next_simple_arg(struct acpi_parse_state *parser_state,
- 		/* Get 4 bytes from the AML stream */
- 
- 		opcode = AML_DWORD_OP;
--		ACPI_MOVE_32_TO_64(&arg->common.value.integer, aml);
--		length = 4;
-+		if (remaining >= 4) {
-+			ACPI_MOVE_32_TO_64(&arg->common.value.integer, aml);
-+			length = 4;
-+		} else {
-+			arg->common.value.integer = 0;
-+			length = 0;
-+			if (remaining > 0) {
-+				partial_value = 0;
-+				memcpy(&partial_value, aml, remaining);
-+				arg->common.value.integer = partial_value;
-+				length = remaining;
-+			}
-+		}
- 		break;
- 
- 	case ARGP_QWORDDATA:
-@@ -420,8 +449,19 @@ acpi_ps_get_next_simple_arg(struct acpi_parse_state *parser_state,
- 		/* Get 8 bytes from the AML stream */
- 
- 		opcode = AML_QWORD_OP;
--		ACPI_MOVE_64_TO_64(&arg->common.value.integer, aml);
--		length = 8;
-+		if (remaining >= 8) {
-+			ACPI_MOVE_64_TO_64(&arg->common.value.integer, aml);
-+			length = 8;
-+		} else {
-+			arg->common.value.integer = 0;
-+			length = 0;
-+			if (remaining > 0) {
-+				partial_value = 0;
-+				memcpy(&partial_value, aml, remaining);
-+				arg->common.value.integer = partial_value;
-+				length = remaining;
-+			}
-+		}
- 		break;
- 
- 	case ARGP_CHARLIST:
-@@ -434,10 +474,28 @@ acpi_ps_get_next_simple_arg(struct acpi_parse_state *parser_state,
- 		/* Find the null terminator */
- 
- 		length = 0;
--		while (aml[length]) {
-+		while ((length < remaining) && aml[length]) {
-+			length++;
-+		}
-+		if (length < remaining) {
-+
-+			/* Account for the terminating null */
- 			length++;
-+		} else {
-+			/*
-+			 * No terminator found - add null at buffer boundary
-+			 * and report a warning
-+			 */
-+			ACPI_WARNING((AE_INFO,
-+				      "Invalid AML string: no null terminator, truncating at offset %u",
-+				      (u32)(aml - parser_state->aml)));
-+
-+			/* Add null terminator at the boundary */
-+			if (remaining > 0) {
-+				aml[remaining - 1] = 0;
-+				length = remaining;
-+			}
- 		}
--		length++;
- 		break;
- 
- 	case ARGP_NAME:
+-		else if ((index + length) > operand[0]->string.length) {
++		else if ((index + length) > operand[0]->string.length || (index + length) < index) {	/* Check for overflow */
+ 			length =
+ 			    (acpi_size)operand[0]->string.length -
+ 			    (acpi_size)index;
 -- 
 2.51.0
 
