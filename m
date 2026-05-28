@@ -1,40 +1,44 @@
-Received: from canpmsgout11.his.huawei.com (canpmsgout11.his.huawei.com [113.46.200.226])
+Received: from canpmsgout05.his.huawei.com (canpmsgout05.his.huawei.com [113.46.200.220])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 467D119E819;
-	Thu, 28 May 2026 01:48:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.226
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01D203932C2;
+	Thu, 28 May 2026 09:35:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.220
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779932936; cv=none; b=Sy1lWeqU4MAI6v8IZuFcTz/xLKrt6IxmOZqSQnXPhRZ+ZhyJR9N1Yqf6BWl0dwY2WYw+P48FNg7DLUwDw9r0anB4QyahdFm+aQardsSIfxQ6ejElD8jfneAVLBVYMIjhx8PMKrS/7/wrjyjOKT/6fy5jBL3aZ0v9+tq8XHaXXfU=
+	t=1779960945; cv=none; b=a8VsO0jof/LwyCFvKtQx5YpDg7Ecpwb3KYtTrWEm1BFZzhmE4Lrk36daedvHNwsZDyVm8MHdupiTL9pHVlmGRqeef4iTwGkvVC0u5K+BZIyAza+woVdprpxe/MzZd81qwTeLv6khVpn0bpV3ODYkn2a/U9cpCH0Jk/hcfBltK68=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779932936; c=relaxed/simple;
-	bh=Iaj4GspoZ6TmHSGBSlUoa6GHOAxS0ZdF81vbej3S4IU=;
-	h=Message-ID:Date:MIME-Version:CC:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=N5Dfok2gDUCRKoHVBJ65Vcqcrb6YDiiulnrgJ1jEoICbyAWL719mlYDVYtHHDSojmifOVdf9LXNkfsUCOQQ0wflsYt1b/SXxf0z2VaHgXrXJxReyXq4MVVtwRweiSbIa3hgfTdWHA6D5uzs1CmM8pwGbvLEwOwg0LeHTo+ZBmTk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=P5Aj2Fok; arc=none smtp.client-ip=113.46.200.226
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+	s=arc-20240116; t=1779960945; c=relaxed/simple;
+	bh=OzR3hoiXUNXb5Kns4tDqUU40P9oNv/Wgke1oJxGBmNs=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=lRwUVKbx+N9co2KSo+7uIZ3svTpPWR0CY3+3g6mepIwo1fZtAuq8GBDPu+7Gs60gYh6SIwyYVSYYs6gRyIr+lqZu2i56PZq6Ff9JPEkNsPwvXepVpeZt0AHqskqmw+s06ubMFk36eh+yK04xWgZnC6wfTqj4eWPvIq9zFGEsqg4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=UVgfAis2; arc=none smtp.client-ip=113.46.200.220
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=h-partners.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="P5Aj2Fok"
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
+	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="UVgfAis2"
+dkim-signature: v=1; a=rsa-sha256; d=h-partners.com; s=dkim;
 	c=relaxed/relaxed; q=dns/txt;
 	h=From;
-	bh=45Oce1pquAJ/ph1CD+IV4tnCpI3/A8JF18u5iSlgQ6E=;
-	b=P5Aj2Foka2SXI/yWFmcQVzF1p22oxugSORQnKUOEP2x/dor1NhdJJ2UqHztZg+IzD5lNnLkD7
-	5iAOY8EZvz3CY7St37xpVMSCCQbk4aBRWwKUpA6Q83biZWzrZZsG2hUVYFKd1vk51mhoNjSqyP9
-	SJTzAkrZV3rzV1MmnO2piEg=
-Received: from mail.maildlp.com (unknown [172.19.163.15])
-	by canpmsgout11.his.huawei.com (SkyGuard) with ESMTPS id 4gQq2N5whqzKm98;
-	Thu, 28 May 2026 09:41:00 +0800 (CST)
-Received: from kwepemj100016.china.huawei.com (unknown [7.202.194.10])
-	by mail.maildlp.com (Postfix) with ESMTPS id 5C43E40571;
-	Thu, 28 May 2026 09:48:49 +0800 (CST)
-Received: from [10.174.177.15] (10.174.177.15) by
- kwepemj100016.china.huawei.com (7.202.194.10) with Microsoft SMTP Server
+	bh=OzR3hoiXUNXb5Kns4tDqUU40P9oNv/Wgke1oJxGBmNs=;
+	b=UVgfAis2ZrjPHHvoCeVqS6lcW2CrERGHx2ynlUAi8DD5uq//R6FAYZKlugFOfc3lHKIxJjdZ1
+	sGIEE8/lsNT5G8pUICdIGGFHb1blHDiuSv5X0mUdrsUHRjRhZWsvYVxsRXlR9f95Z8LrvGxwV25
+	fT55KzbgGBg1jhzXqN1P4s4=
+Received: from mail.maildlp.com (unknown [172.19.162.144])
+	by canpmsgout05.his.huawei.com (SkyGuard) with ESMTPS id 4gR1Ns3hkbz12LJj;
+	Thu, 28 May 2026 17:27:41 +0800 (CST)
+Received: from dggemv705-chm.china.huawei.com (unknown [10.3.19.32])
+	by mail.maildlp.com (Postfix) with ESMTPS id AB3AF4056D;
+	Thu, 28 May 2026 17:35:40 +0800 (CST)
+Received: from kwepemn100009.china.huawei.com (7.202.194.112) by
+ dggemv705-chm.china.huawei.com (10.3.19.32) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.36; Thu, 28 May 2026 09:48:48 +0800
-Message-ID: <e9a85c2f-d720-40a7-90f8-e999e4f0dc22@huawei.com>
-Date: Thu, 28 May 2026 09:48:47 +0800
+ 15.2.1544.11; Thu, 28 May 2026 17:35:40 +0800
+Received: from [10.67.121.59] (10.67.121.59) by kwepemn100009.china.huawei.com
+ (7.202.194.112) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.36; Thu, 28 May
+ 2026 17:35:39 +0800
+Message-ID: <a5f2a5af-631a-4525-b03e-041d6b748f35@huawei.com>
+Date: Thu, 28 May 2026 17:35:39 +0800
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -42,83 +46,52 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-CC: <mawupeng1@huawei.com>, <bp@alien8.de>, <linux-acpi@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>, <linux-kernel@vger.kernel.org>,
-	<linux-edac@vger.kernel.org>, <tanxiaofei@huawei.com>, <linuxarm@huawei.com>,
-	<liuyonglong@huawei.com>
-Subject: Re: [PATCH v2] ACPI: APEI: Handle repeated SEA error storms
-To: <hejunhao3@h-partners.com>, <rafael@kernel.org>, <tony.luck@intel.com>,
-	<guohanjun@huawei.com>, <mchehab@kernel.org>, <xueshuai@linux.alibaba.com>,
-	<jarkko@kernel.org>, <yazen.ghannam@amd.com>, <jane.chu@oracle.com>,
-	<lenb@kernel.org>, <linmiaohe@huawei.com>
-References: <20260527082707.2013499-1-hejunhao3@h-partners.com>
-From: mawupeng <mawupeng1@huawei.com>
-In-Reply-To: <20260527082707.2013499-1-hejunhao3@h-partners.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: kwepems500002.china.huawei.com (7.221.188.17) To
- kwepemj100016.china.huawei.com (7.202.194.10)
+Subject: Re: [PATCH] ACPI: processor: Add cpuidle driver check in
+ acpi_processor_register_idle_driver
+To: Tony W Wang-oc <TonyWWang-oc@zhaoxin.com>, <rafael@kernel.org>,
+	<lenb@kernel.org>, <linux-acpi@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>
+CC: <CobeChen@zhaoxin.com>, <LindaChai@zhaoxin.com>, <lihuisong@huawei.com>
+References: <20260519091922.42500-1-TonyWWang-oc@zhaoxin.com>
+From: "lihuisong (C)" <lihuisong@huawei.com>
+In-Reply-To: <20260519091922.42500-1-TonyWWang-oc@zhaoxin.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: base64
+X-ClientProxiedBy: kwepems100002.china.huawei.com (7.221.188.206) To
+ kwepemn100009.china.huawei.com (7.202.194.112)
 
-
-
-On 周三 2026-5-27 16:27, Junhao He wrote:
-> When hardware memory corruption occurs and a user process accesses the
-> corrupted page, the CPU triggers a Synchronous External Abort (SEA).
-> The kernel invokes do_sea() to handle the exception, which calls
-> memory_failure() to handle the faulty page.
-> 
-> Scenario 1: Memory Error Interrupt First, then SEA
-> The page is already poisoned by the memory error interrupt path. The
-> subsequent SEA handler sends a SIGBUS to the task, which accesses the
-> poisoned page. This flow is correct.
-> 
-> Scenario 2: SEA first, then memory error interrupt (problematic scenario)
-> If a user task directly accesses corrupted memory through a PFNMAP-style
-> mapping (e.g., devmem), the page may still be in the free-buddy state when
-> SEA is handled. In this case, memory_failure() will poison the page without
-> invoking kill_accessing_process(), and then takes the free-buddy recovery
-> path.
-> 
-> After the CPU returns to the task context, the task re-enters the SEA
-> handler due to the same access. However, ghes_estatus_cached() suppresses
-> all subsequent entries during the 10-second window, preventing
-> ghes_do_proc() from being called. This suppression blocks the
-> MF_ACTION_REQUIRED-based SIGBUS delivery, causing the kernel to fail to
-> kill the task immediately. Consequently, the process keeps re-entering
-> the SEA handler, leading to an SEA storm. Later, the memory error
-> interrupt path also cannot kill the task, leaving the system stuck in
-> this repeated loop.
-> 
-> The following error logs are explained using the devmem process:
->   NOTICE:  SEA Handle
->   [Hardware Error]: Hardware error from APEI Generic Hardware Error Source: 9
->   [Hardware Error]: event severity: recoverable
->   [Hardware Error]:   section_type: ARM processor error
->   [Hardware Error]:    physical fault address: 0x0000001000093c00
->   [T54990] Memory failure: 0x1000093: recovery action for free buddy page: Recovered
->   [ T9955] EDAC MC0: 1 UE Multi-bit ECC on unknown memory
->            (page:0x1000093 offset:0xc00 grain:1 - APEI location: ...)
->   NOTICE:  SEA Handle
->   NOTICE:  SEA Handle
->   ...
->   ...        ---> SEA storm
->   ...
->   NOTICE:  SEA Handle
->   [ T9955] Memory failure: 0x1000093: already hardware poisoned
->   ghes_print_estatus: 1 callbacks suppressed
->   [Hardware Error]: Hardware error from APEI Generic Hardware Error Source: 9
->   [Hardware Error]: event severity: recoverable
->   [Hardware Error]:   section_type: ARM processor error
->   [Hardware Error]:    physical fault address: 0x0000001000093c00
->   [T54990] Memory failure: 0x1000093: already hardware poisoned
->   [T54990] 0x1000093: Sending SIGBUS to devmem:54990 due to hardware memory corruption
-> 
-> To resolve this, return an error when encountering the same SEA again.
-> The subsequent SEA handler invocation uses arm64_notify_die() to send a
-> SIGBUS signal to the task, which terminates the process and prevents it
-> from re-entering the handler loop.
-> 
-> Signed-off-by: Junhao He <hejunhao3@h-partners.com>
-
-Reviewed-by: Wupeng Ma <mawupeng1@huawei.com>
-
+SGVsbG8gVG9ueSwNCg0KVGhhbmsgeW91IGZvciByZXBvcnRpbmcgdGhpcyBpc3N1ZS4gR29v
+ZCBwb2ludC4NClRoaXMgcGF0Y2ggaXMgbWVzc3kgYW5kIG5vdCBnb29kIHRvIHJldmlldyBh
+bmQgbWVyZ2UuIHBsZWFzZSByZXNlbmQgaXQuDQpJbiBhZGRpdGlvbiwgc3VnZ2VzdCB5b3Ug
+YWRkIGEgZml4ZWQgdGFnLg0KDQovSHVpc29uZw0KDQoNCk9uIDUvMTkvMjAyNiA1OjE5IFBN
+LCBUb255IFcgV2FuZy1vYyB3cm90ZToNCj4gQ29tbWl0IDdhOGM5OTRjYmIyZCAoIkFDUEk6
+IHByb2Nlc3NvcjogaWRsZTogT3B0aW1pemUgQUNQSSBpZGxlZHJpdmVyIHJlZ2lzdHJhdGlv
+biIpIG1vdmVkIHRoZSBBQ1BJIGlkbGUgZHJpdmVyIHJlZ2lzdHJhdGlvbiB0b2FjcGlfcHJv
+Y2Vzc29yX2RyaXZlcl9pbml0KCksIGJ1dCBpdCBkaWRuJ3QgY2hlY2sgd2hldGhlciBhIGNw
+dWlkbGVkcml2ZXIgd2FzIGFscmVhZHkgcmVnaXN0ZXJlZC5Gb3IgZXhhbXBsZSwgb24gSW50
+ZWwgcGxhdGZvcm1zLCBpZiB0aGUgaW50ZWxfaWRsZSBkcml2ZXIgaXMgYWxyZWFkeWxvYWRl
+ZCwgdGhlIGNvZGUgd291bGQgc3RpbGwgZXZhbHVhdGUgdGhlIF9DU1Qgb2JqZWN0IGluIHRo
+ZSBBQ1BJdGFibGUgYW5kIGF0dGVtcHQgdG8gcmVnaXN0ZXIgdGhlIGFjcGlfaWRsZSBkcml2
+ZXIuIFRoaXMgcmVnaXN0cmF0aW9ud291bGQgZmFpbCB3aXRoIC1FQlVTWSBkdWUgdG8gdGhl
+IGV4aXN0aW5nIGNoZWNrIGluIGNwdWlkbGVfcmVnaXN0ZXJfZHJpdmVyLkFkZCBhIGNoZWNr
+IGF0IHRoZSBiZWdpbm5pbmcgb2YgYWNwaV9wcm9jZXNzb3JfcmVnaXN0ZXJfaWRsZV9kcml2
+ZXIoKXRvIGF2b2lkIHVubmVjZXNzYXJ5IF9DU1QgZXZhbHVhdGUgYW5kIHBvdGVudGlhbCBy
+ZWdpc3RyYXRpb24gZmFpbHVyZXMuLS0tIGRyaXZlcnMvYWNwaS9wcm9jZXNzb3JfaWRsZS5j
+IHwgNSArKysrKyAxIGZpbGUgY2hhbmdlZCwgNSBpbnNlcnRpb25zKCspZGlmZiAtLWdpdCBh
+L2RyaXZlcnMvYWNwaS9wcm9jZXNzb3JfaWRsZS5jIGIvZHJpdmVycy9hY3BpL3Byb2Nlc3Nv
+cl9pZGxlLmNpbmRleCBlZTVmYWNjY2JlMTAuLjA0MDk0MTFhYmI4MyAxMDA2NDQtLS0gYS9k
+cml2ZXJzL2FjcGkvcHJvY2Vzc29yX2lkbGUuYysrKyBiL2RyaXZlcnMvYWNwaS9wcm9jZXNz
+b3JfaWRsZS5jQEAgLTEzNTUsNiArMTM1NSwxMSBAQCB2b2lkIGFjcGlfcHJvY2Vzc29yX3Jl
+Z2lzdGVyX2lkbGVfZHJpdmVyKHZvaWQpIAlpbnQgcmV0ID0gLUVOT0RFVjsgCWludCBjcHU7
+ICsJaWYgKGNwdWlkbGVfZ2V0X2RyaXZlcigpKSB7KwkJcHJfZGVidWcoImNwdWlkbGUgZHJp
+dmVyICVwUyBhbHJlYWR5IHJlZ2lzdGVyZWQuXG4iLCBjcHVpZGxlX2dldF9kcml2ZXIoKSk7
+KwkJcmV0dXJuOysJfSsgCWFjcGlfcHJvY2Vzc29yX3VwZGF0ZV9tYXhfY3N0YXRlKCk7ICAJ
+LyotLSAyLjI1LjENCj4NCj4NCj4NCj4NCj4g5L+d5a+G5aOw5piODQo+IOacrOmCruS7tuWQ
+q+acieS/neWvhuaIluS4k+acieS/oeaBr++8jOS7heS+m+aMh+WumuaUtuS7tuS6uuS9v+eU
+qOOAguS4peemgeWvueacrOmCruS7tuaIluWFtuWGheWuueWBmuS7u+S9leacque7j+aOiOad
+g+eahOafpemYheOAgeS9v+eUqOOAgeWkjeWItuaIlui9rOWPkeOAgg0KPg0KPiBUaGlzIGVt
+YWlsIGNvbnRhaW5zIGNvbmZpZGVudGlhbCBvciBsZWdhbGx5IHByaXZpbGVnZWQgaW5mb3Jt
+YXRpb24gYW5kIGlzIGZvciB0aGUgc29sZSB1c2Ugb2YgaXRzIGludGVuZGVkIHJlY2lwaWVu
+dC4gQW55IHVuYXV0aG9yaXplZCByZXZpZXcsIHVzZSwgY29weWluZyBvciBmb3J3YXJkaW5n
+IG9mIHRoaXMgZW1haWwgb3IgdGhlIGNvbnRlbnQgb2YgdGhpcyBlbWFpbCBpcyBzdHJpY3Rs
+eSBwcm9oaWJpdGVkLg0K
