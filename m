@@ -1,111 +1,167 @@
-Received: from gloria.sntech.de (gloria.sntech.de [185.11.138.130])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1C651990A7;
-	Thu, 28 May 2026 23:29:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.11.138.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2AC35332628;
+	Fri, 29 May 2026 07:20:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780010983; cv=none; b=lRMmrUcgtXE0Ar+ZzpWW1++r/0oEzRl1nnq64kDhc5OzeWoOk4EN2IGZOk9KzDlfF0yDS6f87hs2axQqlXtjZx89ZserV5UodHm2GvvjZeOi5l9U97YwEi8bU7rUE5Nw4ltYNwU2xVdGtRgyOdtx0iUX1U/Ppd+xxIjOTElUjpk=
+	t=1780039258; cv=none; b=Xgc9pjS9zg6VtHLqiFhLcyxpgkLnEQ7M6NzBxhPzhqZ95tkBy9ZrQczbQrSvSPhh2c4CQPvsVIeuiq6J2zlbIB6ULJ1romK3pox6lbI3Sv+wuXUl30aO7bKMlZSdd4v7P1kx5klXc3PaRUfxPhNcZcwotl1vnshAZe6mR9ksixk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780010983; c=relaxed/simple;
-	bh=bTYmSYrgbnCqJMYC3Dfi+Wl9YqWBHz/yD0xcH6cXHi4=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=X87Ei8tcdtlWg3xh3r2570CWZETVbzQRFGpjnAu20vnGFQLsmbPtrJPBGH2kJZTOLODsN0OmkxY8Vy6kG4lPP+rbwY6Mk2kEk0um0CjGjO2oKb6ocOInfwC4gjxQgznD62JduKlO3SlxJHJn3xS4cjtsSzHVv48txmiW5jUP8Vk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=sntech.de; spf=pass smtp.mailfrom=sntech.de; dkim=pass (2048-bit key) header.d=sntech.de header.i=@sntech.de header.b=VXW1qxgE; arc=none smtp.client-ip=185.11.138.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=sntech.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sntech.de
+	s=arc-20240116; t=1780039258; c=relaxed/simple;
+	bh=MrkEv9oGgPOTopvm1MDPEEeE60MC9cJMiwLFsfcHArc=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=CFEknEnf4nRrHgmnHrW5BXJo6H/QfMzG7Unjj0ciZ+xMu/i6Nt4zSdXeoU3zV6M/G3CZZl+Nykn7E6CI+Iz4LIFSrTuDiCyI+AjBQ0kd3iizYdcBoGDk6E4XXL70aVPSb/aNFZzxNXzqDpm3FqjqtspzohHMYe0eyHX7oWk8Rn8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kmcmORvh; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=sntech.de header.i=@sntech.de header.b="VXW1qxgE"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=sntech.de;
-	s=gloria202408; h=Content-Transfer-Encoding:Content-Type:MIME-Version:
-	References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Reply-To;
-	bh=0Jc9Dg7/uw4mInrHAZejSNv7lp5AIrnyTQuFVoQJqhs=; b=VXW1qxgEKrcmlsKlOupkd9a7jA
-	Gxpo4WpuKhKf5tJwDkwzKNyfQ3dGSLjiPYyW1Rq+T4nd+TTpnw3wIBHnhBp+WkbffgqcukroGZvQ7
-	sB1kpes/ZWjTwz859lE/Fy3MpVsWUf4SRRQhDdHevoigwwdGFelIvnmUdU5IFXztUco0dtupIb2kf
-	GXG9Om9Yi3BDubaP0iaf2PtV/NeIZlEz0RWIdxMEpcaRIgKtlmkxTXFJ+HjUKfBr3RKBWYFEK6o6T
-	PELRIs0kD1qQ5GEnvgj8nGQ2d3H9h/p4K2hLtq1OeNzkjzY0AW+BOkmlqKgTnjQTsT80j8tKKoyLf
-	CEa4dJXA==;
-From: Heiko Stuebner <heiko@sntech.de>
-To: linux-arm-kernel@lists.infradead.org,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	devicetree@vger.kernel.org,
-	Marc Zyngier <maz@kernel.org>
-Cc: Heiko Stuebner <heiko@sntech.de>,
-	Lorenzo Pieralisi <lpieralisi@kernel.org>,
-	Hanjun Guo <guohanjun@huawei.com>,
-	Sudeep Holla <sudeep.holla@kernel.org>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will@kernel.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Daniel Lezcano <daniel.lezcano@kernel.org>,
-	Thomas Gleixner <tglx@kernel.org>,
-	Rob Herring <robh@kernel.org>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	Chen-Yu Tsai <wens@kernel.org>,
-	Jernej Skrabec <jernej.skrabec@gmail.com>,
-	Samuel Holland <samuel@sholland.org>,
-	Neil Armstrong <neil.armstrong@linaro.org>,
-	Kevin Hilman <khilman@baylibre.com>,
-	Jerome Brunet <jbrunet@baylibre.com>,
-	Martin Blumenstingl <martin.blumenstingl@googlemail.com>,
-	Ge Gordon <gordon.ge@bst.ai>,
-	BST Linux Kernel Upstream Group <bst-upstream@bstai.top>,
-	Jesper Nilsson <jesper.nilsson@axis.com>,
-	Lars Persson <lars.persson@axis.com>,
-	Alim Akhtar <alim.akhtar@samsung.com>,
-	Ivaylo Ivanov <ivo.ivanov.ivanov1@gmail.com>,
-	Frank Li <Frank.Li@nxp.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Pengutronix Kernel Team <kernel@pengutronix.de>,
-	Fabio Estevam <festevam@gmail.com>,
-	Dinh Nguyen <dinguyen@kernel.org>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
-	Thierry Reding <thierry.reding@kernel.org>,
-	Jonathan Hunter <jonathanh@nvidia.com>,
-	Bjorn Andersson <andersson@kernel.org>,
-	Konrad Dybcio <konradybcio@kernel.org>,
-	=?UTF-8?q?Andreas=20F=C3=A4rber?= <afaerber@suse.de>,
-	=?UTF-8?q?Yu-Chun=20Lin=20=5B=E6=9E=97=E7=A5=90=E5=90=9B=5D?= <eleanor.lin@realtek.com>,
-	Shawn Lin <shawn.lin@rock-chips.com>,
-	Orson Zhai <orsonzhai@gmail.com>,
-	Baolin Wang <baolin.wang@linux.alibaba.com>,
-	Michal Simek <michal.simek@amd.com>
-Subject: Re: (subset) [PATCH v3 00/17] arm64: Use EL2 virtual timer when running VHE
-Date: Fri, 29 May 2026 01:29:28 +0200
-Message-ID: <178001096324.4059716.11429048314090179300.b4-ty@sntech.de>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260523140242.586031-1-maz@kernel.org>
-References: <20260523140242.586031-1-maz@kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kmcmORvh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B93B1F00893;
+	Fri, 29 May 2026 07:20:54 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1780039256;
+	bh=qOHmKFTXw2FsM+mZsbVdA3Sg5+qsZZkc2PbmdG0maa8=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=kmcmORvhLRh8u6t6mtYBJcufHVzzJGbix+rX++Im+8TDMMf64rB9neDYXPtSFT4zF
+	 YnyeqhRU1XZZ+Z/xij0T1D0/SwZ4TzU61AvP3U9GcwvzEKaV0vxscgQFB0OmDl07Pn
+	 3+OE2Hef7CVAMuJfLEV8DF/JPXFTw4W8rzGEqhUr39eEvq+hWpRGPFBHN7qyUlPSvM
+	 N7yL7evYZUZzW/new6TuZKj4uPA/VPznt/Mtu2++w58kRssnBg3HpyMD4/j24UASo4
+	 7FcUvwKj9O+F8DUYuZdT8vbtfp/z3XE+E46ewEpAPsQ6ROSfofMrawcDtBG7d6aBKY
+	 epMde6x2ERtRw==
+Message-ID: <405e97ae-72a1-4086-bef3-cf462619f661@kernel.org>
+Date: Fri, 29 May 2026 09:20:53 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] ACPICA: Replace strncpy() with strscpy_pad() in
+ acpi_ut_safe_strncpy()
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Kees Cook <kees@kernel.org>
+Cc: Robert Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>,
+ linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+ acpica-devel@lists.linux.dev, linux-hardening@vger.kernel.org
+References: <20260323172451.work.079-kees@kernel.org>
+ <CAJZ5v0hOS7j2f-wkmvarULCS-1+Zio2hOz2ExMvFXN61OPv_tQ@mail.gmail.com>
+Content-Language: en-US
+From: Jiri Slaby <jirislaby@kernel.org>
+Autocrypt: addr=jirislaby@kernel.org; keydata=
+ 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
+In-Reply-To: <CAJZ5v0hOS7j2f-wkmvarULCS-1+Zio2hOz2ExMvFXN61OPv_tQ@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 
-
-On Sat, 23 May 2026 15:02:25 +0100, Marc Zyngier wrote:
-> This is the third version of the series initially posted at [1],
-> which
+On 23. 03. 26, 18:31, Rafael J. Wysocki wrote:
+> On Mon, Mar 23, 2026 at 6:24 PM Kees Cook <kees@kernel.org> wrote:
+>>
+>> Replace the deprecated[1] strncpy() with strscpy_pad() in
+>> acpi_ut_safe_strncpy().
+>>
+>> The function is a "safe strncpy" wrapper that does
+>> strncpy(dest, source, dest_size) followed by manual NUL-termination
+>> at dest[dest_size - 1]. strscpy_pad() is a direct replacement: it
+>> NUL-terminates, zero-pads the remainder, and the manual termination
+>> is no longer needed.
+>>
+>> All callers pass NUL-terminated source strings (C string literals,
+>> __FILE__ via ACPI_MODULE_NAME, or user-provided filenames that have
+>> already been validated). The destinations are fixed-size char arrays
+>> in ACPICA internal structures (allocation->module, aml_op_name,
+>> acpi_gbl_db_debug_filename), all consumed as C strings.
+>>
+>> No behavioral change: strscpy_pad() produces identical output to
+>> strncpy() + manual NUL-termination for NUL-terminated sources that
+>> are shorter than dest_size. For sources longer than dest_size,
+>> strncpy() wrote dest_size non-NUL bytes then the manual termination
+>> overwrote the last byte with NUL; strscpy_pad() writes dest_size-1
+>> bytes plus NUL: same result.
+>>
+>> Link: https://github.com/KSPP/linux/issues/90 [1]
+>> Signed-off-by: Kees Cook <kees@kernel.org>
+>> ---
+>> This touches the ACPICA component shared with the upstream ACPICA
+>> project (https://github.com/acpica/acpica), where the function
+>> is named AcpiUtSafeStrncpy(). The upstream codebase uses its own
+>> platform abstraction layer (acenv.h/acgcc.h) where I've mapped various
+>> kernel APIs before like ACPI_FLEX_ARRAY and similar helpers. However,
+>> acpi_ut_safe_strncpy() is an explicit function implementation rather
+>> than a macro mapping, so the approach for upstreaming this change to
+>> ACPICA is not clear. What's the best way to land this?
 > 
-> - updates the ACPI GTDT parsing to deal the v3 layout and the EL2
->   virtual timer,
-> - moves the architected timer driver to use it when running VHE,
-> - fixes a number of DTs to reflect the reality of the HW.
+> I can apply this directly, it shouldn't be a major problem for porting
+> patches from the upstream.
+
+As I reported in https://github.com/acpica/acpica/issues/1158 (but got 
+no reply), this patch breaks build of acpica against 7.1-rc*:
+ > ../../../../../drivers/acpi/acpica/utnonansi.c:171:9: error: implicit 
+declaration of function ‘strscpy_pad’ [-Wimplicit-function-declaration]
+
+Is strscpy_pad() supposed to be emulated in acpica?
+
+>> (This is one of the last users of strncpy in the kernel.)
+>> ---
+>>   drivers/acpi/acpica/utnonansi.c | 3 +--
+>>   1 file changed, 1 insertion(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/acpi/acpica/utnonansi.c b/drivers/acpi/acpica/utnonansi.c
+>> index ff0802ace19b..3a7952be6545 100644
+>> --- a/drivers/acpi/acpica/utnonansi.c
+>> +++ b/drivers/acpi/acpica/utnonansi.c
+>> @@ -168,8 +168,7 @@ void acpi_ut_safe_strncpy(char *dest, char *source, acpi_size dest_size)
+>>   {
+>>          /* Always terminate destination string */
+>>
+>> -       strncpy(dest, source, dest_size);
+>> -       dest[dest_size - 1] = 0;
+>> +       strscpy_pad(dest, source, dest_size);
+>>   }
+>>
+>>   #endif
+>> --
 > 
-> [...]
 
-Applied, thanks!
-
-[15/17] arm64: dts: rockchip: Add EL2 virtual timer interrupt
-        commit: d8d7e7549312c50fa5dcd69a6dc6f0035e770c09
-
-Best regards,
+thanks,
 -- 
-Heiko Stuebner <heiko@sntech.de>
+js
+suse labs
+
