@@ -1,33 +1,33 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 6A06F3D1718;
-	Fri, 29 May 2026 12:24:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 2726C311597;
+	Fri, 29 May 2026 13:12:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780057468; cv=none; b=qRDTCfSynMZkg4NdHOiqSfG1XEHtDx8GpVwvauPqMnDVHky1gHHEbHzaoEIMaZst3hYBR9xq0RIVt2LVHocWEZWUfy1htgxX3+6/WPRouVH+cr7N08DXtYtzNBZUvvZVUyAHx3Ymxgtgvkyxfp+F76U+F04BrPJ8Bq/Mq8TK0m4=
+	t=1780060331; cv=none; b=PrEKLqEAZTWgvdNURjJM3yaUUmf4UtIBVukGVkgQH0xV5hq8iBdJNwoSvbM/S/1rQFaipPPOxstjMPhuRO1AQOOzNJOjNHtX8z/Y3goWgiMzkztw5P4NiecC3+o+PMr9Sndyn3Xo5rE1fFuSKpCJaNfwu2YpOTLAc8FwAF1Vp44=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780057468; c=relaxed/simple;
-	bh=fjbO4t8XdyU8NOb41mG4ChhG+m/bzPP3BywWNtdYqoA=;
+	s=arc-20240116; t=1780060331; c=relaxed/simple;
+	bh=NWesLKco5m/X9+wT5+m7tBqm69QwtpwwaWWeHJXlkSg=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=btjAgdJXyV/tFlF5kTRjcBnxVl8x2i0VKcfxQZncA2vlEIfD5E53s4OM9OZNzuATqLSHgY9RahokqelZKunFJL8YabHf+a2gW9dmCvoYttxsJAt4FmZtE1w+LLiy4DrY8OCTn4ghCLSwjB0hnO3fuAvZptwOp+kvWzK18bw3CFY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=aPrsjUKC; arc=none smtp.client-ip=217.140.110.172
+	 In-Reply-To:Content-Type; b=ZchoWBHRydHHf+Rxgp4hlQ2n7HD6amgujqEiggn9btSiY3dWsZmo5+7a+7BGW/3BXtNFNsU3bLMXzla7I8XYnJW/oSR24w4LiybVAlI7+Z71H4nnWxzmqGHB69SFRmZ/7Tu+h9GNbZaFuPvJR9JP8+UkHjugfep8hU1HASMi8co=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=qMFzpoAu; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="aPrsjUKC"
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="qMFzpoAu"
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 45FEC204C;
-	Fri, 29 May 2026 05:24:20 -0700 (PDT)
-Received: from [10.57.37.50] (unknown [10.57.37.50])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 16BE13F632;
-	Fri, 29 May 2026 05:24:04 -0700 (PDT)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 740BE20E3;
+	Fri, 29 May 2026 06:12:04 -0700 (PDT)
+Received: from [10.57.69.151] (unknown [10.57.69.151])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 4823B3F905;
+	Fri, 29 May 2026 06:12:05 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1780057465; bh=fjbO4t8XdyU8NOb41mG4ChhG+m/bzPP3BywWNtdYqoA=;
+	t=1780060329; bh=NWesLKco5m/X9+wT5+m7tBqm69QwtpwwaWWeHJXlkSg=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=aPrsjUKCk50s149VeWZk4F2Llmjdo90qP4DWtdM9ATKguxbUU6gRebVq07f2uJFK0
-	 YVnIN2oOqMRDRFm11YWBgDWM/xTptKipB8Q9REDRnovKPHG2ooZaALp7Zti/C2KUQ+
-	 b4qPfWs6v4eF/TgyfabaRYMbwAxOu8OUsO69761s=
-Message-ID: <3a4e22fe-b8ce-4e62-9139-113e0cd4f16b@arm.com>
-Date: Fri, 29 May 2026 13:24:02 +0100
+	b=qMFzpoAu5/20wWYV5BRMcntvCa2zY9gbeHEHECfKVmTlyIapX1D683zZxSupgmy6f
+	 HlLgECMO+9e2NB/O3nMQVdzIYV5ljuGs4s+odsYJdSqZVPt3ABYNK21+4+Ael8XFhS
+	 HdabcIDhR/C1k95CXRFRp0w4A5SofEzbCnQMcgC8=
+Message-ID: <19b92583-ab78-4b45-a260-03a13874b0fe@arm.com>
+Date: Fri, 29 May 2026 14:12:02 +0100
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -35,128 +35,85 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 01/16] psci: simplify hotplug_tests()
-To: Yury Norov <ynorov@nvidia.com>, Andrew Morton
- <akpm@linux-foundation.org>, Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Russell King <linux@armlinux.org.uk>, Frank Li <Frank.Li@nxp.com>,
- Sascha Hauer <s.hauer@pengutronix.de>,
- Pengutronix Kernel Team <kernel@pengutronix.de>,
- Fabio Estevam <festevam@gmail.com>, Madhavan Srinivasan
- <maddy@linux.ibm.com>, Michael Ellerman <mpe@ellerman.id.au>,
- Nicholas Piggin <npiggin@gmail.com>,
- "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>,
- Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>,
- Arnaldo Carvalho de Melo <acme@kernel.org>,
- Namhyung Kim <namhyung@kernel.org>, Mark Rutland <mark.rutland@arm.com>,
- Alexander Shishkin <alexander.shishkin@linux.intel.com>,
- Jiri Olsa <jolsa@kernel.org>, Ian Rogers <irogers@google.com>,
- Adrian Hunter <adrian.hunter@intel.com>, James Clark
- <james.clark@linaro.org>, Thomas Gleixner <tglx@kernel.org>,
- Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>,
- "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rafael@kernel.org>,
- Len Brown <lenb@kernel.org>, Greg Kroah-Hartman
- <gregkh@linuxfoundation.org>, Danilo Krummrich <dakr@kernel.org>,
- Chanwoo Choi <cw00.choi@samsung.com>, MyungJoo Ham
- <myungjoo.ham@samsung.com>, Kyungmin Park <kyungmin.park@samsung.com>,
- Heiko Stuebner <heiko@sntech.de>, Lorenzo Pieralisi <lpieralisi@kernel.org>,
- Xu Yilun <yilun.xu@intel.com>, Tom Rix <trix@redhat.com>,
- Moritz Fischer <mdf@kernel.org>, Yicong Yang <yangyicong@hisilicon.com>,
- Jonathan Cameron <jic23@kernel.org>,
- Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
- Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
- Dan Williams <djbw@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>,
- Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
- Bjorn Helgaas <bhelgaas@google.com>, Shuai Xue <xueshuai@linux.alibaba.com>,
- Will Deacon <will@kernel.org>, Jiucheng Xu <jiucheng.xu@amlogic.com>,
- Neil Armstrong <neil.armstrong@linaro.org>,
- Kevin Hilman <khilman@baylibre.com>, Jerome Brunet <jbrunet@baylibre.com>,
- Martin Blumenstingl <martin.blumenstingl@googlemail.com>,
- Jing Zhang <renyu.zj@linux.alibaba.com>, Xu Yang <xu.yang_2@nxp.com>,
- Linu Cherian <lcherian@marvell.com>,
- Gowthami Thiagarajan <gthiagarajan@marvell.com>,
- Ji Sheng Teoh <jisheng.teoh@starfivetech.com>,
- Khuong Dinh <khuong@os.amperecomputing.com>,
- Daniel Lezcano <daniel.lezcano@kernel.org>, Zhang Rui <rui.zhang@intel.com>,
- Lukasz Luba <lukasz.luba@arm.com>, Yury Norov <yury.norov@gmail.com>,
- Kees Cook <kees@kernel.org>,
- =?UTF-8?Q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>,
- Aboorva Devarajan <aboorvad@linux.ibm.com>,
- "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>,
- Ilkka Koskinen <ilkka@os.amperecomputing.com>,
- Besar Wicaksono <bwicaksono@nvidia.com>, Ma Ke <make24@iscas.ac.cn>,
- Chengwen Feng <fengchengwen@huawei.com>,
- linux-arm-kernel@lists.infradead.org, imx@lists.linux.dev,
- linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
- linux-perf-users@vger.kernel.org, linux-acpi@vger.kernel.org,
- driver-core@lists.linux.dev, linux-pm@vger.kernel.org,
- linux-rockchip@lists.infradead.org, linux-fpga@vger.kernel.org,
- linux-rdma@vger.kernel.org, nvdimm@lists.linux.dev,
- linux-pci@vger.kernel.org, linux-amlogic@lists.infradead.org,
- linux-cxl@vger.kernel.org, linux-arm-msm@vger.kernel.org
-References: <20260528183625.870813-1-ynorov@nvidia.com>
- <20260528183625.870813-2-ynorov@nvidia.com>
-From: Robin Murphy <robin.murphy@arm.com>
-Content-Language: en-GB
-In-Reply-To: <20260528183625.870813-2-ynorov@nvidia.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: Re: [PATCH v4 2/2] ACPI: CPPC: Add ospm_nominal_perf support
+To: Sumit Gupta <sumitg@nvidia.com>, rafael@kernel.org,
+ viresh.kumar@linaro.org, lenb@kernel.org, pierre.gondois@arm.com,
+ zhenglifeng1@huawei.com, zhanjie9@hisilicon.com, mario.limonciello@amd.com,
+ saket.dumbre@intel.com, linux-acpi@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org,
+ acpica-devel@lists.linux.dev
+Cc: treding@nvidia.com, jonathanh@nvidia.com, vsethi@nvidia.com,
+ ksitaraman@nvidia.com, sanjayc@nvidia.com, mochs@nvidia.com, bbasu@nvidia.com
+References: <20260527194626.185286-1-sumitg@nvidia.com>
+ <20260527194626.185286-3-sumitg@nvidia.com>
+Content-Language: en-US
+From: Christian Loehle <christian.loehle@arm.com>
+In-Reply-To: <20260527194626.185286-3-sumitg@nvidia.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-On 2026-05-28 7:36 pm, Yury Norov wrote:
-> Switch to pr_info("... %pbl"), and drop the temporary buffer allocation.
-
-I would say this is simply an improvement in its own right, regardless 
-of whether cpumap_print_to_pagebuf() deserves to be removed or not. For 
-the change itself, FWIW,
-
-Reviewed-by: Robin Murphy <robin.murphy@arm.com>
-
-> This prepares for removing cpumap_print_to_pagebuf().
+On 5/27/26 20:46, Sumit Gupta wrote:
+> Expose the OSPM Nominal Performance register (ACPI 6.6, Section
+> 8.4.6.1.2.6), which conveys the desired nominal performance level
+> at which the platform may run. Unlike the existing read-only
+> Nominal Performance register, it is writable and lets OSPM
+> request a lower nominal level than the platform-reported nominal.
+> The platform classifies performance above this level as boosted
+> and below as throttled for its power/thermal decisions.
 > 
-> Signed-off-by: Yury Norov <ynorov@nvidia.com>
+> It is exposed as a per-policy cpufreq sysfs attribute in kHz, to
+> match the cpufreq sysfs unit convention:
+> 
+>   /sys/devices/system/cpu/cpufreq/policyN/ospm_nominal_freq
+> 
+> The attribute is documented in
+> Documentation/ABI/testing/sysfs-devices-system-cpu.
+> 
+> Writes are converted to perf via cppc_khz_to_perf(), validated
+> against [Lowest Performance, Nominal Performance], and applied to
+> every CPU in policy->cpus.
+> 
+> The register is write-only; the kernel caches the last written
+> value in struct cppc_cpudata for sysfs readback (returns 0 until
+> userspace writes a value).
+> 
+> Signed-off-by: Sumit Gupta <sumitg@nvidia.com>
 > ---
->   drivers/firmware/psci/psci_checker.c | 14 ++------------
->   1 file changed, 2 insertions(+), 12 deletions(-)
+>  .../ABI/testing/sysfs-devices-system-cpu      | 17 ++++++
+>  drivers/acpi/cppc_acpi.c                      | 35 +++++++++++
+>  drivers/cpufreq/cppc_cpufreq.c                | 60 +++++++++++++++++++
+>  include/acpi/cppc_acpi.h                      | 12 ++++
+>  4 files changed, 124 insertions(+)
 > 
-> diff --git a/drivers/firmware/psci/psci_checker.c b/drivers/firmware/psci/psci_checker.c
-> index e67ba9891082..ecd745bb90bf 100644
-> --- a/drivers/firmware/psci/psci_checker.c
-> +++ b/drivers/firmware/psci/psci_checker.c
-> @@ -186,7 +186,6 @@ static int hotplug_tests(void)
->   {
->   	int i, nb_cpu_group, err = -ENOMEM;
->   	cpumask_var_t offlined_cpus, *cpu_groups;
-> -	char *page_buf;
->   
->   	if (!alloc_cpumask_var(&offlined_cpus, GFP_KERNEL))
->   		return err;
-> @@ -194,10 +193,6 @@ static int hotplug_tests(void)
->   	nb_cpu_group = alloc_init_cpu_groups(&cpu_groups);
->   	if (nb_cpu_group < 0)
->   		goto out_free_cpus;
-> -	page_buf = (char *)__get_free_page(GFP_KERNEL);
-> -	if (!page_buf)
-> -		goto out_free_cpu_groups;
-> -
->   	/*
->   	 * Of course the last CPU cannot be powered down and cpu_down() should
->   	 * refuse doing that.
-> @@ -210,16 +205,11 @@ static int hotplug_tests(void)
->   	 * off, the cpu group itself should shut down.
->   	 */
->   	for (i = 0; i < nb_cpu_group; ++i) {
-> -		ssize_t len = cpumap_print_to_pagebuf(true, page_buf,
-> -						      cpu_groups[i]);
-> -		/* Remove trailing newline. */
-> -		page_buf[len - 1] = '\0';
-> -		pr_info("Trying to turn off and on again group %d (CPUs %s)\n",
-> -			i, page_buf);
-> +		pr_info("Trying to turn off and on again group %d (CPUs %*pbl)\n",
-> +			i, cpumask_pr_args(cpu_groups[i]));
->   		err += down_and_up_cpus(cpu_groups[i], offlined_cpus);
->   	}
->   
-> -	free_page((unsigned long)page_buf);
->   out_free_cpu_groups:
->   	free_cpu_groups(nb_cpu_group, &cpu_groups);
->   out_free_cpus:
+> diff --git a/Documentation/ABI/testing/sysfs-devices-system-cpu b/Documentation/ABI/testing/sysfs-devices-system-cpu
+> index 82d10d556cc8..ac1bf1b89ac4 100644
+> --- a/Documentation/ABI/testing/sysfs-devices-system-cpu
+> +++ b/Documentation/ABI/testing/sysfs-devices-system-cpu
+> @@ -346,6 +346,23 @@ Description:	Performance Limited
+>  
+>  		This file is only present if the cppc-cpufreq driver is in use.
+>  
+> +What:		/sys/devices/system/cpu/cpuX/cpufreq/ospm_nominal_freq
+> +Date:		May 2026
+> +Contact:	linux-pm@vger.kernel.org
+> +Description:	OSPM Nominal Performance (kHz)
+> +
+> +		OSPM uses this attribute to request a nominal performance
+> +		level lower than the platform-reported nominal. The
+> +		platform treats performance above this level as boost
+> +		and below as throttle for power and thermal decisions.
+> +
+> +		Read returns the last written value in kHz, or 0 if no
+> +		value has been written. Write a kHz value in the range
+> +		[lowest_freq, nominal_freq].
+> +
+> +		This file is only present if the cppc-cpufreq driver is
+> +		in use.
+> +
 
+Given that this value, based also on firmware behavior, can create vast asymmetries
+between CPUs, which the scheduler would be unaware of I wonder if this warrants
+a similar disclaimer like intel_pstate carries for their per-CPU EPP:
+https://www.kernel.org/doc/html/v7.0/admin-guide/pm/intel_pstate.html#energy-vs-performance-hints
+
+"[Note that tasks may by migrated from one CPU to another by the scheduler’s load-balancing algorithm and if different energy vs performance hints are set for those CPUs, that may lead to undesirable outcomes. To avoid such issues it is better to set the same energy vs performance hint for all CPUs or to pin every task potentially sensitive to them to a specific CPU.]"
