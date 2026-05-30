@@ -1,37 +1,37 @@
 Received: from layka.disroot.org (layka.disroot.org [178.21.23.139])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72B7E338936;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1890345CAB;
 	Sat, 30 May 2026 09:40:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.21.23.139
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780134032; cv=none; b=US9cr2/5tNq/8Ojxk39JD8syLxqOAKeYvP+PAuiUMg1ZtF8iFIB4K0Dcx8ttgpzqxuKF/CdhAMquxPrf4QhRFB3t9Mtnd8lhGzTLwAGP81XsG0ofAVUxo09W28EljcuTpPNGM7ohdykTrqpP2lQXcLfdl0cZvAYdt0wYLz4/zM0=
+	t=1780134033; cv=none; b=gHArLWUwZhAno6G9emGdGam18BiezqqtlLhsrpz83AgP8sWojKS+WHazJwogzB46UrLF999O0psB8V4OWSh6LoP4lAvZN6g9JpMmPMyB8uK7Mmy2cQEck305qhocHGDETMrm1Mza9zOyETs3CfhBTKVmLI4nIxTGiP1XueUQBxA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780134032; c=relaxed/simple;
-	bh=4MyNFzwVBkzYv0wK7cKWN8TARHvuJ67SzMv4GgTV35I=;
+	s=arc-20240116; t=1780134033; c=relaxed/simple;
+	bh=kUTwPGPqSZ5r2oSc2cjnVOl2CrgPD/WqeFzes/cUk7A=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=oSE6BPJ24WJqom0DXH32IGZOjRFZrLNZfhTzK1G6ESq+fTBSKInlZsXdnx4bAtUq1Yso+C0axkJZ/AgK2/CspYwVOTCru0lY/fXRnOYEnMmzA9DacVGz2tl0KPXkS73iEC99UCErIsfwGFk4KEbXlYFMyrvqshLl9Bs+fss6kzc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=disroot.org; spf=pass smtp.mailfrom=disroot.org; dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b=TDODwVjj; arc=none smtp.client-ip=178.21.23.139
+	 MIME-Version; b=KfjUAkCgRqW3wv8SomQurS+q8rgwLEoqPYlRKx8q6V2S3oroqhjvX6bu9I/XtysgAufMTHe7TI1ll9xOZHddXQAEBrHqpJjeSD2LR3F9v7NSbR9QMlkFEX4NNZn7gaL+kUAsvCPX1EYIn14AvTqcx3wwMY1nrN/MowIfSJDBmZA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=disroot.org; spf=pass smtp.mailfrom=disroot.org; dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b=fnO7y4Vs; arc=none smtp.client-ip=178.21.23.139
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=disroot.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=disroot.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b="TDODwVjj"
+	dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b="fnO7y4Vs"
 Received: from mail01.disroot.lan (localhost [127.0.0.1])
-	by disroot.org (Postfix) with ESMTP id C770427AC9;
-	Sat, 30 May 2026 11:40:27 +0200 (CEST)
+	by disroot.org (Postfix) with ESMTP id 6135E27AC3;
+	Sat, 30 May 2026 11:40:28 +0200 (CEST)
 X-Virus-Scanned: SPAM Filter at disroot.org
 Received: from layka.disroot.org ([127.0.0.1])
  by localhost (disroot.org [127.0.0.1]) (amavis, port 10024) with ESMTP
- id Aizgd9R0hPVT; Sat, 30 May 2026 11:40:27 +0200 (CEST)
+ id Xm7zx3vduy67; Sat, 30 May 2026 11:40:27 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=disroot.org; s=mail;
-	t=1780134027; bh=4MyNFzwVBkzYv0wK7cKWN8TARHvuJ67SzMv4GgTV35I=;
+	t=1780134027; bh=kUTwPGPqSZ5r2oSc2cjnVOl2CrgPD/WqeFzes/cUk7A=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=TDODwVjjCl02yaHbgYO4Ry7uxzW/t1IqTb5qhImjJbGyQiTDUOKhEKK8mdMWAhFi/
-	 rFbvr5IlBQbpXAX0QxuDqVQByCudOOSLw1AAaymXw95T7cy3oT+TfgxgyEeBFo5A4E
-	 CJWn9kKsmb54LZ6XSz/+y3lch4T2NV0qA7diMD1wdDZExwB54CiuVk6rXUHErgmPWq
-	 76B/xpdLvqjtdtEwssodTh9vpJmlq9k1yY2G8dYOsQe+5QOfEg0Q76F/+skYHdbU12
-	 ubaJBVBXYk7Robx5ZXUNRfwDtrw8aWNRmtuPuz6UxNbhuyDLTr8/9xk7k3ZkxUiNbZ
-	 AO4+l0kHaBTOA==
+	b=fnO7y4VsJ958MHfrFplEeegx3qnvChDo4rIQ/UG8gE8VCqzGAOSXVvqgowAJg09WQ
+	 ruZDy/X7ZOZIbAoV8aBF6eX5q7DQLO5xp2FYjpv8bG3gXJ4jgba5AGPqrpH7ETxYnG
+	 e8kA+V8SXnlTv9knnUgqD4B8MGtA0vpj7045+tm/vXScZ6EapR0rV15FFtoTmVdmsN
+	 UcprQ+wQtrczd1IIzNAKlpQnyigS5lGxMY6FLLT9efarXK5LXVkp9NUdgYo/ReCfcz
+	 u7cu9vWQn0n+wrgrFbWQWXkSMk8eBAhWH7++eG8GxOqLk15hRB6lGZAx0Pd4rEQjZk
+	 Z18LmbN9Brklw==
 From: Marco Scardovi <scardracs@disroot.org>
 To: Mika Westerberg <westeri@kernel.org>,
 	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
@@ -41,9 +41,9 @@ Cc: linux-gpio@vger.kernel.org,
 	linux-acpi@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Marco Scardovi <scardracs@disroot.org>
-Subject: [PATCH 1/2] gpiolib: acpi: prevent address truncation in OperationRegion handler
-Date: Sat, 30 May 2026 11:40:11 +0200
-Message-ID: <20260530094012.184276-2-scardracs@disroot.org>
+Subject: [PATCH 2/2] gpiolib: acpi: fix out-of-bounds pointer arithmetic in acpi_gpio_package_count
+Date: Sat, 30 May 2026 11:40:12 +0200
+Message-ID: <20260530094012.184276-3-scardracs@disroot.org>
 In-Reply-To: <20260530094012.184276-1-scardracs@disroot.org>
 References: <20260530094012.184276-1-scardracs@disroot.org>
 Precedence: bulk
@@ -54,61 +54,38 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The ACPI address space handler for GPIO OperationRegions receives the
-pin offset as a 64-bit acpi_physical_address. However, the handler
-truncates this address to a u16 pin_index before validating it.
+When counting GPIOs in an ACPI package, encountering a reference or
+string causes the element pointer to be advanced by 3 (element += 3)
+and then by 1 (element++).
 
-If an ACPI table attempts to access a pin offset greater than 65535,
-the truncation wraps the index around. This may result in accesses to
-unintended GPIO pins.
+If a malformed ACPI package contains fewer than 4 remaining elements
+when a reference or string is processed, this pointer arithmetic
+advances the element pointer past the end of the package elements
+array. This results in undefined behavior and can cause out-of-bounds
+reads.
 
-Fix this by adding an explicit check to verify that the 64-bit address
-is less than agpio->pin_table_length before assigning it to the u16
-pin_index, returning AE_BAD_PARAMETER if it is out of bounds.
-Additionally, make the length calculation overflow-safe and change the
-types of length and loop counter to unsigned.
+Fix this by ensuring at least 4 elements remain in the package before
+advancing the element pointer, returning -EPROTO if the package
+structure is invalid.
 
 Signed-off-by: Marco Scardovi <scardracs@disroot.org>
 ---
- drivers/gpio/gpiolib-acpi-core.c | 17 +++++++++++++----
- 1 file changed, 13 insertions(+), 4 deletions(-)
+ drivers/gpio/gpiolib-acpi-core.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
 diff --git a/drivers/gpio/gpiolib-acpi-core.c b/drivers/gpio/gpiolib-acpi-core.c
-index eb8a40cfb7a9..049e4cbc14ed 100644
+index 049e4cbc14ed..494dcd166aef 100644
 --- a/drivers/gpio/gpiolib-acpi-core.c
 +++ b/drivers/gpio/gpiolib-acpi-core.c
-@@ -1087,10 +1087,10 @@ acpi_gpio_adr_space_handler(u32 function, acpi_physical_address address,
- 	struct gpio_chip *chip = achip->chip;
- 	struct acpi_resource_gpio *agpio;
- 	struct acpi_resource *ares;
--	u16 pin_index = address;
-+	unsigned int length;
- 	acpi_status status;
--	int length;
--	int i;
-+	unsigned int i;
-+	u16 pin_index;
- 
- 	status = acpi_buffer_to_resource(achip->conn_info.connection,
- 					 achip->conn_info.length, &ares);
-@@ -1110,7 +1110,16 @@ acpi_gpio_adr_space_handler(u32 function, acpi_physical_address address,
- 		return AE_BAD_PARAMETER;
- 	}
- 
--	length = min(agpio->pin_table_length, pin_index + bits);
-+	if (address >= agpio->pin_table_length) {
-+		ACPI_FREE(ares);
-+		return AE_BAD_PARAMETER;
-+	}
-+
-+	pin_index = address;
-+	if (bits > agpio->pin_table_length - pin_index)
-+		length = agpio->pin_table_length;
-+	else
-+		length = pin_index + bits;
- 	for (i = pin_index; i < length; ++i) {
- 		unsigned int pin = agpio->pin_table[i];
- 		struct acpi_gpio_connection *conn;
+@@ -1310,6 +1310,8 @@ static int acpi_gpio_package_count(const union acpi_object *obj)
+ 		switch (element->type) {
+ 		case ACPI_TYPE_LOCAL_REFERENCE:
+ 		case ACPI_TYPE_STRING:
++			if (end - element < 4)
++				return -EPROTO;
+ 			element += 3;
+ 			fallthrough;
+ 		case ACPI_TYPE_INTEGER:
 -- 
 2.54.0
 
