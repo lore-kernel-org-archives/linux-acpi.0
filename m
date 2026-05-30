@@ -1,91 +1,68 @@
-Received: from layka.disroot.org (layka.disroot.org [178.21.23.139])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx1.mythic-beasts.com (mx1.mythic-beasts.com [46.235.224.141])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1890345CAB;
-	Sat, 30 May 2026 09:40:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.21.23.139
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA8F13A8745;
+	Sat, 30 May 2026 12:20:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.235.224.141
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780134033; cv=none; b=gHArLWUwZhAno6G9emGdGam18BiezqqtlLhsrpz83AgP8sWojKS+WHazJwogzB46UrLF999O0psB8V4OWSh6LoP4lAvZN6g9JpMmPMyB8uK7Mmy2cQEck305qhocHGDETMrm1Mza9zOyETs3CfhBTKVmLI4nIxTGiP1XueUQBxA=
+	t=1780143645; cv=none; b=Ax8+29ETkVeGywuN8mkhW4EU2w4I5+i9htOc321mKNZ1/GVb2yQiQD6/F2vYP36A384jAprpwqtt14l96OEzlGboFFz0PVb2lT5tFoDvi7zkK+GQW4xclbArLFf3CC7cBCN36fWE9e3sJllazJ3H3R6IaLjEYdBvmBJGl7DHQgM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780134033; c=relaxed/simple;
-	bh=kUTwPGPqSZ5r2oSc2cjnVOl2CrgPD/WqeFzes/cUk7A=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=KfjUAkCgRqW3wv8SomQurS+q8rgwLEoqPYlRKx8q6V2S3oroqhjvX6bu9I/XtysgAufMTHe7TI1ll9xOZHddXQAEBrHqpJjeSD2LR3F9v7NSbR9QMlkFEX4NNZn7gaL+kUAsvCPX1EYIn14AvTqcx3wwMY1nrN/MowIfSJDBmZA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=disroot.org; spf=pass smtp.mailfrom=disroot.org; dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b=fnO7y4Vs; arc=none smtp.client-ip=178.21.23.139
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=disroot.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=disroot.org
+	s=arc-20240116; t=1780143645; c=relaxed/simple;
+	bh=z9TGfrh25gMJK60Ksr3hjdWAAv+YD9PAsiqQbrfdCck=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=uQtDkduvyzd1NdDrwqIjkhKrASDTSosEuTqxLlLRPVMqYw7yu/HpJZjxm8VWSGvGLk1n5lX8pynsskD4pzOfp+1xYejr1lCHOpreZYYA1tLWIfOZzOIyQKKWyFB7r7dv/vK8rlJm4c2tcGLDRhXZjqHMesik5B6fsUbFPhGqd2M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pelago.org.uk; spf=pass smtp.mailfrom=pelago.org.uk; dkim=pass (2048-bit key) header.d=pelago.org.uk header.i=@pelago.org.uk header.b=lRvwPj3L; arc=none smtp.client-ip=46.235.224.141
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pelago.org.uk
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=pelago.org.uk
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b="fnO7y4Vs"
-Received: from mail01.disroot.lan (localhost [127.0.0.1])
-	by disroot.org (Postfix) with ESMTP id 6135E27AC3;
-	Sat, 30 May 2026 11:40:28 +0200 (CEST)
-X-Virus-Scanned: SPAM Filter at disroot.org
-Received: from layka.disroot.org ([127.0.0.1])
- by localhost (disroot.org [127.0.0.1]) (amavis, port 10024) with ESMTP
- id Xm7zx3vduy67; Sat, 30 May 2026 11:40:27 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=disroot.org; s=mail;
-	t=1780134027; bh=kUTwPGPqSZ5r2oSc2cjnVOl2CrgPD/WqeFzes/cUk7A=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=fnO7y4VsJ958MHfrFplEeegx3qnvChDo4rIQ/UG8gE8VCqzGAOSXVvqgowAJg09WQ
-	 ruZDy/X7ZOZIbAoV8aBF6eX5q7DQLO5xp2FYjpv8bG3gXJ4jgba5AGPqrpH7ETxYnG
-	 e8kA+V8SXnlTv9knnUgqD4B8MGtA0vpj7045+tm/vXScZ6EapR0rV15FFtoTmVdmsN
-	 UcprQ+wQtrczd1IIzNAKlpQnyigS5lGxMY6FLLT9efarXK5LXVkp9NUdgYo/ReCfcz
-	 u7cu9vWQn0n+wrgrFbWQWXkSMk8eBAhWH7++eG8GxOqLk15hRB6lGZAx0Pd4rEQjZk
-	 Z18LmbN9Brklw==
-From: Marco Scardovi <scardracs@disroot.org>
-To: Mika Westerberg <westeri@kernel.org>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Linus Walleij <linusw@kernel.org>,
-	Bartosz Golaszewski <brgl@kernel.org>
-Cc: linux-gpio@vger.kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Marco Scardovi <scardracs@disroot.org>
-Subject: [PATCH 2/2] gpiolib: acpi: fix out-of-bounds pointer arithmetic in acpi_gpio_package_count
-Date: Sat, 30 May 2026 11:40:12 +0200
-Message-ID: <20260530094012.184276-3-scardracs@disroot.org>
-In-Reply-To: <20260530094012.184276-1-scardracs@disroot.org>
-References: <20260530094012.184276-1-scardracs@disroot.org>
+	dkim=pass (2048-bit key) header.d=pelago.org.uk header.i=@pelago.org.uk header.b="lRvwPj3L"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=pelago.org.uk; s=mythic-beasts-k1; h=From:To:Subject:Date;
+	bh=z9TGfrh25gMJK60Ksr3hjdWAAv+YD9PAsiqQbrfdCck=; b=lRvwPj3LrPFmr+AX5sy96DlrZC
+	xTuqgI5gAt36etkVxW+9Cf87LbucvOxkdG9J1F49Tdd3AkPtwq5QTbGYwwdykRsRq93jKyXfeWJPC
+	32tMFXgeCwx1qj5ltXnaeJhcjPp+NDiJc2v+JHYBRCNHOFwwGOlON7r3ubduXyi6MGFuCLek9j8ch
+	fmPhjtYBvNcJ9llgyxbWbZJoR72GVWpmgX9FbbKpir9lxXAaiTbvQxhNxZv7yTsvCT0sYTKei6lIy
+	NGjC+3cO8CR/LBVcBoKHLJsGO1WqbVQ2/q4yghMrDmuOhuQ2265bfPyyvcISWs+IIcsZAkT2eVZfa
+	QdfId1UA==;
+Received: by mailhub-cam-d.mythic-beasts.com with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.96)
+	(envelope-from <john-linux@pelago.org.uk>)
+	id 1wTIfz-009gDs-35;
+	Sat, 30 May 2026 13:20:28 +0100
+Message-ID: <bc9d5258-d4df-46a1-bba9-de3486f722ab@pelago.org.uk>
+Date: Sat, 30 May 2026 13:19:58 +0100
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [REGRESSION] Toshiba Fn keys + lidswitch
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Nick <nick@kousu.ca>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+ regressions@lists.linux.dev, linux-acpi@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org,
+ todd.e.brandt@linux.intel.com, xi.pardee@linux.intel.com,
+ platform-driver-x86@vger.kernel.org, stable@vger.kernel.org
+References: <E2OXET.4X5GTP37VTNC3@kousu.ca>
+ <CAJZ5v0jVQyWYqPo_MiUwNQb7FLNR_Q_++Xq=xA1owcHpcjN=OA@mail.gmail.com>
+Content-Language: en-GB
+From: John Veness <john-linux@pelago.org.uk>
+In-Reply-To: <CAJZ5v0jVQyWYqPo_MiUwNQb7FLNR_Q_++Xq=xA1owcHpcjN=OA@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-BlackCat-Spam-Score: 0
 
-When counting GPIOs in an ACPI package, encountering a reference or
-string causes the element pointer to be advanced by 3 (element += 3)
-and then by 1 (element++).
+On 19/05/2026 15:08, Rafael J. Wysocki wrote:
+> Thanks for reporting!
+>
+> I think that the problem is acpi_setup_gpe_for_wake() doing too much,
+> I'll send you a patch to test later today.
 
-If a malformed ACPI package contains fewer than 4 remaining elements
-when a reference or string is processed, this pointer arithmetic
-advances the element pointer past the end of the package elements
-array. This results in undefined behavior and can cause out-of-bounds
-reads.
+Hi, can you release the test patch publicly? I'd like to test it here,
+as I have several Toshiba laptops whose Fn+keys don't work (apart from
+vol+/vol-).
 
-Fix this by ensuring at least 4 elements remain in the package before
-advancing the element pointer, returning -EPROTO if the package
-structure is invalid.
-
-Signed-off-by: Marco Scardovi <scardracs@disroot.org>
----
- drivers/gpio/gpiolib-acpi-core.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/gpio/gpiolib-acpi-core.c b/drivers/gpio/gpiolib-acpi-core.c
-index 049e4cbc14ed..494dcd166aef 100644
---- a/drivers/gpio/gpiolib-acpi-core.c
-+++ b/drivers/gpio/gpiolib-acpi-core.c
-@@ -1310,6 +1310,8 @@ static int acpi_gpio_package_count(const union acpi_object *obj)
- 		switch (element->type) {
- 		case ACPI_TYPE_LOCAL_REFERENCE:
- 		case ACPI_TYPE_STRING:
-+			if (end - element < 4)
-+				return -EPROTO;
- 			element += 3;
- 			fallthrough;
- 		case ACPI_TYPE_INTEGER:
--- 
-2.54.0
+John
 
