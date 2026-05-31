@@ -1,36 +1,37 @@
 Received: from layka.disroot.org (layka.disroot.org [178.21.23.139])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92D99372060;
-	Sun, 31 May 2026 12:08:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5E80387590;
+	Sun, 31 May 2026 12:08:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.21.23.139
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780229335; cv=none; b=ngjSh2PqHdVK77/fDJ51l1SRN42Nb1gxe7vcta+7A6TBMlNNZm35beYMRR10K8bwy3u7RtPP6b3PI/0HR+rhUvmcZEncTPDavYJ7Zc5L/aVZ6nRQCU+ehbDqMZeLJFknEcJ33lQOGIR7ho9mZQWGsWr0jIhiqlcNs5qChBz74dI=
+	t=1780229335; cv=none; b=dSZEZOyW/is5lSsFn12Fu/nchp5KDYGfAjQeXQGT/vpeepEJwW2HMl/bdXYtjiRJRy5CGMEvRoydaNSeVDTsNs5HLmqXAxwLXuNC8i//ehNMxC2EkS6uc1h9xgPZLNA0TO/CY4pdz0lJXq5iq0bnW7QMQEiQ8t5XqBBIDjyNuN4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1780229335; c=relaxed/simple;
-	bh=u6D4zdE90Ve91CPs/6pwoaUfNtMmQRlM+yna60Mgjy4=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Dq7RNMHYo5298epcke3MfBBQPLsB7y5Dr/B6RKOAWYOrQrDNFZVYKtI2ETRD+8haCEtBFmMksSB7D5530UX3hNKsuu9z6iItXlq7/iBFBB8nbi6SWYlFPOwCZnux0hAhfaSJDYhikWMrxXZqgix0gWj6KJBLDXicuCNxVDNAPjg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=disroot.org; spf=pass smtp.mailfrom=disroot.org; dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b=U1sMHIie; arc=none smtp.client-ip=178.21.23.139
+	bh=tdajEXMQ5N7AV+va3HatLfSv1PtR1PahzDWuNgcMkNQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=NpRiw+GgsFk5ZZIyxmoyp+VEZe8axOS0FS2CIbnxp58SfBo6GGU53XIRnVeKZB1gO+WG1/S5NRbkL22uAuxrJRTPWZZil2BWgvhkPtcy5Qvfwv+MmF0oVd8/VIYnWxdrb5ZT/CWCXakWoLsLV/TxTpDEf0NQJQeffpLY8fRvXd0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=disroot.org; spf=pass smtp.mailfrom=disroot.org; dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b=ZHAiqnfK; arc=none smtp.client-ip=178.21.23.139
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=disroot.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=disroot.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b="U1sMHIie"
+	dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b="ZHAiqnfK"
 Received: from mail01.disroot.lan (localhost [127.0.0.1])
-	by disroot.org (Postfix) with ESMTP id D8D7A263EA;
-	Sun, 31 May 2026 14:08:43 +0200 (CEST)
+	by disroot.org (Postfix) with ESMTP id 8E3B42672E;
+	Sun, 31 May 2026 14:08:45 +0200 (CEST)
 X-Virus-Scanned: SPAM Filter at disroot.org
 Received: from layka.disroot.org ([127.0.0.1])
  by localhost (disroot.org [127.0.0.1]) (amavis, port 10024) with ESMTP
- id znppmHezfKLk; Sun, 31 May 2026 14:08:43 +0200 (CEST)
+ id R5Zm5lksZQRy; Sun, 31 May 2026 14:08:45 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=disroot.org; s=mail;
-	t=1780229323; bh=u6D4zdE90Ve91CPs/6pwoaUfNtMmQRlM+yna60Mgjy4=;
-	h=From:To:Cc:Subject:Date;
-	b=U1sMHIieHvIwF2Ni30wkS92flRE5nHxgHRCE/F0ZXkTrwo7fnzQ7AeEbzFDH/SCtz
-	 48LSW76nDaw5oan72l510gOcH+SFA/S5MI2gPuZDJBGGb7cNSTuFAOSAetDg7w/7/+
-	 Alb0tkqPt2NMq6CJ3wTPQevShdyeaR3TGjvfEQWN+FKQj0XGYOj6REBpM9fiPJj2EA
-	 UVlTBTxQ5RuGncxmy70X2TsrukheCBpMqGV4ZrYdPgmbz2jwWpD9RUViNweofU22ZT
-	 Hv1kkd8VspWQmRmENBCdkqXkiSBuJ6uyc2OLED/2NUJ9naCORbO4tY0Wpeixq/LjO3
-	 EGu3HwyDM8T9A==
+	t=1780229325; bh=tdajEXMQ5N7AV+va3HatLfSv1PtR1PahzDWuNgcMkNQ=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=ZHAiqnfKmAu98Iz7hW3Glo7x7slXk6pTHQ9J3NL/TqF9B8yTrNh5FGjomtkZxWduT
+	 k5j9AWB8QfHDER4T18iZqih++/kUnr0ckQh+tEPLIEFqk0MP4cloFZ7oVmZAs8JkKP
+	 NFHP7oKGB6q+Uz0ElQ+0T3+5VGzqfYSahAmBMS5O9zhJVCmDWwafMZe480ZKO4gs6/
+	 /zcNFAlKG4bXyu4RBWlkMEQ4a3N5PxyePQrpFLXKV8SzrwmukXL9uesrBoSBo9lyRJ
+	 Be2KkBbZNUg/CbfEkaUkg5b96vcfzzLo9FnYcjY8+lGeDIXI/qHEVmGuyShWXkSwLr
+	 NK7Gt2vKPabww==
 From: Marco Scardovi <scardracs@disroot.org>
 To: Mika Westerberg <westeri@kernel.org>,
 	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
@@ -39,9 +40,11 @@ To: Mika Westerberg <westeri@kernel.org>,
 Cc: linux-gpio@vger.kernel.org,
 	linux-acpi@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH v4 0/4] gpiolib: acpi: Consolidated fixes and bounds checking
-Date: Sun, 31 May 2026 14:03:07 +0200
-Message-ID: <20260531120816.17255-1-scardracs@disroot.org>
+Subject: [PATCH v4 3/4] gpiolib: acpi: prevent address truncation in OperationRegion handler
+Date: Sun, 31 May 2026 14:03:10 +0200
+Message-ID: <20260531120816.17255-4-scardracs@disroot.org>
+In-Reply-To: <20260531120816.17255-1-scardracs@disroot.org>
+References: <20260531120816.17255-1-scardracs@disroot.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -50,55 +53,66 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi all,
-while reviewing my patches I ended up noticing these two were concurrent of
-the same problem so I ended up merging them and opening a new thread to
-avoid any confusion.
+The ACPI address space handler for GPIO OperationRegions receives the
+pin offset as a 64-bit acpi_physical_address. However, the handler
+truncates this address to a u16 pin_index before validating it.
 
-lore.kernel.org/linux-gpio/20260518075357.112584-1-mscardovi95@gmail.com/
-lore.kernel.org/linux-gpio/20260524162708.62949-1-scardracs@disroot.org/
+If an ACPI table attempts to access a pin offset greater than 65535,
+the truncation wraps the index around. This may result in accesses to
+unintended GPIO pins.
 
-Please mind to check the 1st one before reviewing it as it contains some
-of @Andy's comments on it.
+Fix this by adding an explicit check to verify that the 64-bit address
+is less than agpio->pin_table_length before assigning it to the u16
+pin_index, returning AE_BAD_PARAMETER if it is out of bounds.
+Additionally, make the length calculation overflow-safe and change the types
+of length and loop counter to unsigned.
 
-This series consolidates various fixes and bounds-checking improvements
-for gpiolib-acpi.
+Assisted-by: Antigravity:gemini-3.5-flash
+Signed-off-by: Marco Scardovi <scardracs@disroot.org>
+---
+ drivers/gpio/gpiolib-acpi-core.c | 18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
 
-- Patch 1: Adds robust bounds checking for GPIO pin resource arrays.
-- Patch 2: Fixes a resource leak and concurrent access race in the
-  GPIO OperationRegion address space handler.
-- Patch 3: Prevents physical address truncation from 64-bit to 16-bit
-  in the OperationRegion handler.
-- Patch 4: Prevents out-of-bounds pointer arithmetic in
-  acpi_gpio_package_count when counting GPIOs.
-
-Changes in v4:
-- Merged the address truncation and package count pointer arithmetic
-  bounds-checking fixes into this unified patch series.
-- Cleaned up the OperationRegion handler modifications to avoid
-  conflicts between the leak fix and truncation check.
-- Added code documentation comments explaining locking requirements in
-  acpi_gpiochip_find_conn().
-- Reworded the commit subject line of Patch 2 to follow standard
-  kernel conventions.
-- Optimized the concurrent double-request rollback path in Patch 2 to
-  free the descriptor outside the mutex (`conn_lock`) to prevent
-  potential lockdep issues.
-- Refined the `-EBUSY` recovery comment in Patch 2 to accurately
-  characterize it as a best-effort recovery path.
-
-Marco Scardovi (2):
-  gpiolib: acpi: prevent address truncation in OperationRegion handler
-  gpiolib: acpi: fix out-of-bounds pointer arithmetic in
-    acpi_gpio_package_count
-
-Marco Scardovi (scardracs) (2):
-  gpiolib: acpi: Add robust bounds-checking for GPIO pin resources
-  gpiolib: acpi: fix resource leak in OpRegion
-
- drivers/gpio/gpiolib-acpi-core.c | 186 ++++++++++++++++++++++++-------
- 1 file changed, 147 insertions(+), 39 deletions(-)
-
+diff --git a/drivers/gpio/gpiolib-acpi-core.c b/drivers/gpio/gpiolib-acpi-core.c
+index e3bc4677b51d..d12dab42a096 100644
+--- a/drivers/gpio/gpiolib-acpi-core.c
++++ b/drivers/gpio/gpiolib-acpi-core.c
+@@ -1150,13 +1150,13 @@ acpi_gpio_adr_space_handler(u32 function, acpi_physical_address address,
+ 	struct acpi_gpio_connection *conn;
+ 	struct acpi_resource_gpio *agpio;
+ 	struct acpi_resource *ares;
+-	u16 pin_index = address;
++	unsigned int length;
+ 	LIST_HEAD(new_conns);
+ 	acpi_status status;
+-	int length;
++	unsigned int i;
++	u16 pin_index;
+ 	u16 shift;
+ 	u16 word;
+-	int i;
+ 
+ 	status = acpi_buffer_to_resource(achip->conn_info.connection,
+ 					 achip->conn_info.length, &ares);
+@@ -1176,7 +1176,17 @@ acpi_gpio_adr_space_handler(u32 function, acpi_physical_address address,
+ 		return AE_BAD_PARAMETER;
+ 	}
+ 
+-	length = min(agpio->pin_table_length, pin_index + bits);
++	if (address >= agpio->pin_table_length) {
++		ACPI_FREE(ares);
++		return AE_BAD_PARAMETER;
++	}
++
++	pin_index = address;
++	if (bits > agpio->pin_table_length - pin_index)
++		length = agpio->pin_table_length;
++	else
++		length = pin_index + bits;
++
+ 	for (i = pin_index; i < length; ++i) {
+ 		unsigned int pin = agpio->pin_table[i];
+ 		struct gpio_desc *desc;
 -- 
 2.54.0
 
