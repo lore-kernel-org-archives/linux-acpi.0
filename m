@@ -1,54 +1,54 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10C033E171F
-	for <linux-acpi@vger.kernel.org>; Mon,  1 Jun 2026 17:45:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 264273E168F
+	for <linux-acpi@vger.kernel.org>; Mon,  1 Jun 2026 17:57:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780335919; cv=none; b=oMKl+Y7cU2XYxd91MGi8KKKJxUZg/NdQibjFDFsCq6vo+ukXnIhOtzxA27sknxM+QF/qBersfE1xAKYJ9zZieF3e9AwJbpDR8cZ+V+RirbbbcCQJaskZFqCqvGftJ0lvTk7KZSLXn3NuHCw1Chihm4jWlJxgjbMKRjuTvpDwClA=
+	t=1780336641; cv=none; b=dSyXV3n8BOmApuTzObPuidWEsHhmhaNMgM+roic4kp80Cl/1e6ORH09+wO7owf2semuDtqNJ+WqObwxROOZONiP1hjgS0kSKczUL0zxNbG46y+kSVBHcUEU4lqOnY8dm9Efwey+Uy9N1IbAoCkESr/8UcGmEyE/O5jLh5fc3oS8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780335919; c=relaxed/simple;
-	bh=EUaevAzgtzlvUB5/tuC/JSEZdio1mHCw6ZYwf4PCo8o=;
+	s=arc-20240116; t=1780336641; c=relaxed/simple;
+	bh=a8NNwl3gj28TdelJ2QDDl+HZA18Xikw2b26A8/RV0gM=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=t3vWZ5gKBg8zAtRj4k4VAJItT2mimg7l5vgXOEKQIDiuvwGdYee77kDRlfZ5KwKxRs73VpKBziXrmQq1T3qhy1qRPliYoefXSPnFmhP8xTxLyJPck+7vc3XDzhTXEhy+uuXAToeHX6P0GzcM3UZ/HYklGc8T9AQAx+y8297ojCg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gjGRHh/A; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=Ch8YMw2wgBmepPMhfWCOXjTqRodCH9c1YPSlxDI1STwBUb0KRQTF680jR76hr79AxiWhE8DiJdeeSdaQLkTcfQIrMjrJ39nYFvbhqxgfFmwfmI3N3HYwfrcf7YiKxAgTaoFlH6iPXxG2M0KHparCssuq7H7tGD3AShZmOYDV1b4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=YBEcWjLV; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gjGRHh/A"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CF2D1F00A05
-	for <linux-acpi@vger.kernel.org>; Mon,  1 Jun 2026 17:45:16 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="YBEcWjLV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 273F61F00899
+	for <linux-acpi@vger.kernel.org>; Mon,  1 Jun 2026 17:57:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1780335916;
-	bh=NQXET+HIwUHzkASejrWXITD/EhCJ1l5nthigBOUX5B4=;
+	s=k20260515; t=1780336639;
+	bh=Fs6zIa+oKHWvRltzPvd2mFdEu12rLJwaXHbNCVd0THk=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=gjGRHh/AejulXxkNQAjfjV93VMiqgdq6wRmZ7BNSN1UHb97WguW4+/ZA+WuQC6Kll
-	 yhn3UxrX6XHEvJlmkImSQf3opqad40WQNxo0e446ikygz1JQuNxXlxEupqUOOMotfi
-	 QZ7zNwyi6Ev4WkeVDBku7OIdn6/NnCxDJfGGNtSBSMm42l8FYQ3sk4gJGLxT/hbqCe
-	 K0vFWgCVQinuD4UcX6ltdXhdbZf0cM4k6OQ10FtXjpLK4tNUvA3GQZ7EyhXiE2tkMT
-	 OVYBnp+ntfYpsvWr85EAbNEvk2fl/CVRUiYB0mkIo2usdhpYSJ7vIUPsX5pwj59Gzk
-	 lW6qoYjQk8e7g==
-Received: by mail-lf1-f47.google.com with SMTP id 2adb3069b0e04-5aa6792e7b8so1524172e87.1
-        for <linux-acpi@vger.kernel.org>; Mon, 01 Jun 2026 10:45:16 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AFNElJ8BVeisk9tU+4KywHgmGHWqoEgQ8Il2Nvt/5BxkKUtTtzTwqUfZ2D7AwmuWZ56mx0XTYdstbWy+Mctk@vger.kernel.org
-X-Gm-Message-State: AOJu0YwZY5VRJ/rK2VDi8yMRjDBdhF+9T4lUpA94zuSz7Y/tawH04sgN
-	Cv5GQOcyviSXguHr5ZTStVAbBe8w7KhafmAT8aEQFknxBSobbdNy5GhucWzTGN6yyqlkZkQNy3i
-	3C2tsC5D0HlaNTIL8IcwPV9qyMP51w0w=
-X-Received: by 2002:a05:6512:3b97:b0:5aa:6e86:55c8 with SMTP id
- 2adb3069b0e04-5aa6e8657c0mr1302970e87.12.1780335912894; Mon, 01 Jun 2026
- 10:45:12 -0700 (PDT)
+	b=YBEcWjLVnMFNyhTH2clkn3SS4OxRe1EiT16jl+iPdqtWZ6g6WzL01QnGkF+WWRam7
+	 w/ZcqoOJqRowf8oOS8Q6viCgpRJsyJiBa+d4C5wmKbJH7tJiJhiDb93cwLqYUlDKml
+	 mHXcxS57F1wvpuoDi3TBhJTiWc6lIXFRC6DLn8uGUOMYBw6GaJOyoK2kyMIyoxNc7p
+	 m4+++rUeb0vl0IzyXPwELbWx2Wf/A7WH/4TyR/wup0oelEBZRQeugazaRmmGov4zso
+	 HRlSs7aOsYQJ+0QyGGCrz2ZQ3fQKmzgNOCSA6CE/MEXudplG9ukTFIS7NytFwxsJHx
+	 +0+P15plzbwXw==
+Received: by mail-lf1-f45.google.com with SMTP id 2adb3069b0e04-5aa6863327fso1325303e87.0
+        for <linux-acpi@vger.kernel.org>; Mon, 01 Jun 2026 10:57:19 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ900VoI0uOC5qmSfMhsbVoxkWz8KAZiTH7pqzM243p8lvHQegLw//BOG4Gm/0smYiY0/tFgpGPFZNum@vger.kernel.org
+X-Gm-Message-State: AOJu0Ywg9xxePefBbVFzHnfRnqdEHX7Cvc200m6e/YytmIYz3Z30Fkea
+	S4ZVKV+H/Bzv3HLFsvJC+xsZ3oI3dyNlxv6wHC6OEBPmzpuwceZHqMS4bku9onCo+4ccgGIj1FP
+	W/5a+vjV6qTlg4AXykyl7qt0cuNRoYHc=
+X-Received: by 2002:a05:6512:8007:20b0:5aa:6395:f9c5 with SMTP id
+ 2adb3069b0e04-5aa73ee8720mr300250e87.27.1780336637107; Mon, 01 Jun 2026
+ 10:57:17 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260528183625.870813-1-ynorov@nvidia.com> <20260528183625.870813-6-ynorov@nvidia.com>
-In-Reply-To: <20260528183625.870813-6-ynorov@nvidia.com>
+References: <20260528183625.870813-1-ynorov@nvidia.com> <20260528183625.870813-15-ynorov@nvidia.com>
+In-Reply-To: <20260528183625.870813-15-ynorov@nvidia.com>
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Mon, 1 Jun 2026 19:45:01 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0gPZL7Cmi7Sm5pVN01AG7rb8NiwWkUJ9X6gwim67EUZPQ@mail.gmail.com>
-X-Gm-Features: AVHnY4L1KYHIevdOf61kuP7a6ocAZfa6dkfv0T6IORvr_Om4IsQ3giCPU7iBHEE
-Message-ID: <CAJZ5v0gPZL7Cmi7Sm5pVN01AG7rb8NiwWkUJ9X6gwim67EUZPQ@mail.gmail.com>
-Subject: Re: [PATCH 05/16] ACPI: pad: Use sysfs_emit() for idlecpus show
+Date: Mon, 1 Jun 2026 19:57:04 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0g4G9aJ1fjQxXmk1YHXh+xBojpFz207j_jz7HiLH1Lz1Q@mail.gmail.com>
+X-Gm-Features: AVHnY4INVXbw7SKAZHG4Jnm8fXAHVwo_FKl3cnkJN8dTeVudl-a8v97e8VxcFA4
+Message-ID: <CAJZ5v0g4G9aJ1fjQxXmk1YHXh+xBojpFz207j_jz7HiLH1Lz1Q@mail.gmail.com>
+Subject: Re: [PATCH 14/16] powercap: intel_rapl: Use sysfs_emit() for cpumask show
 To: Yury Norov <ynorov@nvidia.com>
 Cc: Andrew Morton <akpm@linux-foundation.org>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, 
 	Russell King <linux@armlinux.org.uk>, Frank Li <Frank.Li@nxp.com>, 
@@ -97,35 +97,33 @@ Cc: Andrew Morton <akpm@linux-foundation.org>, Rasmus Villemoes <linux@rasmusvil
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, May 28, 2026 at 8:36=E2=80=AFPM Yury Norov <ynorov@nvidia.com> wrot=
+On Thu, May 28, 2026 at 8:37=E2=80=AFPM Yury Norov <ynorov@nvidia.com> wrot=
 e:
 >
-> idlecpus_show() is a sysfs show callback. Use sysfs_emit() and
+> cpumask_show() is a sysfs show callback. Use sysfs_emit() and
 > cpumask_pr_args() to emit the mask.
 >
 > This prepares for removing cpumap_print_to_pagebuf().
 >
 > Signed-off-by: Yury Norov <ynorov@nvidia.com>
 > ---
->  drivers/acpi/acpi_pad.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+>  drivers/powercap/intel_rapl_common.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >
-> diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
-> index ec94b09bb747..04d61a6cc95f 100644
-> --- a/drivers/acpi/acpi_pad.c
-> +++ b/drivers/acpi/acpi_pad.c
-> @@ -334,8 +334,8 @@ static ssize_t idlecpus_store(struct device *dev,
->  static ssize_t idlecpus_show(struct device *dev,
->         struct device_attribute *attr, char *buf)
->  {
-> -       return cpumap_print_to_pagebuf(false, buf,
-> -                                      to_cpumask(pad_busy_cpus_bits));
-> +       return sysfs_emit(buf, "%*pb\n",
-> +                         cpumask_pr_args(to_cpumask(pad_busy_cpus_bits))=
-);
->  }
+> diff --git a/drivers/powercap/intel_rapl_common.c b/drivers/powercap/inte=
+l_rapl_common.c
+> index a8dd02dff0a0..b38d4a7799a8 100644
+> --- a/drivers/powercap/intel_rapl_common.c
+> +++ b/drivers/powercap/intel_rapl_common.c
+> @@ -1441,7 +1441,7 @@ static ssize_t cpumask_show(struct device *dev,
+>         }
+>         cpus_read_unlock();
 >
->  static DEVICE_ATTR_RW(idlecpus);
+> -       ret =3D cpumap_print_to_pagebuf(true, buf, cpu_mask);
+> +       ret =3D sysfs_emit(buf, "%*pbl\n", cpumask_pr_args(cpu_mask));
+>
+>         free_cpumask_var(cpu_mask);
+>
 > --
 
-Applied (with a tweaked subject) as 7.2 material, thanks!
+Applied (with adjusted subject and changelog) as 7.2 material, thanks!
