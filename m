@@ -1,195 +1,137 @@
-Received: from mailgw.kylinos.cn (mailgw.kylinos.cn [124.126.103.232])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4B7478F4A;
-	Mon,  1 Jun 2026 02:31:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=124.126.103.232
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 852B52737E0;
+	Mon,  1 Jun 2026 05:02:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.20
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780281117; cv=none; b=lPYa8hMHUYdKL6MDWc0pGHfPId+ErTO3JY+nA8nJXJAK3TapYU3VcehfP9G4AfF76lHtAs7dfkrION4oqHh+HWutDViyx27sfZhHbtlhzetNi+GxoIBYEODdEKFkBiQ+5WmXS8kNITlZmUfV4OD1hPmNx/us8wsMZoWe4vhUEsk=
+	t=1780290163; cv=none; b=MGPvU/iCD5B9XFvWb2aMJOdTEFJzEtW8UCRlyUs3uvgZWXgQ3Vaz8bGBPma88N/oP9ANlF+BiAmvchy5jSngl6vuPn5jNlSUxUqPX8qc4uVt4RvwYV+PGlx9rjN4zQkHLPhW/JPzOZx/RewjWTeyeGuXr0VtVrJv371yQN6+sWU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780281117; c=relaxed/simple;
-	bh=mMceGhfGGhIyUIAPtc4wT2ZortdfXYgsMpxqn8eoBA0=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=Lbw3dvzIGpBTWGDNrv05hfHSKwIEdZvsM+ZFQ9OiVcuX4lVJDM8vxB5dCXa9JnLLwIBxTn2YezjvJeb3rRGmq35Wk07QZL96j/vFgDInNMQSkPSuIhm7m9Oy78b6e9WpPMUbG9v0ykzt1k4PQ7SFvcxnu0rqmUcbQpJY1eH+lN8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn; spf=pass smtp.mailfrom=kylinos.cn; arc=none smtp.client-ip=124.126.103.232
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kylinos.cn
-X-UUID: 098874ec5d6211f1aa26b74ffac11d73-20260601
-X-CID-P-RULE: Release_Ham
-X-CID-O-INFO: VERSION:1.3.12,REQID:e8df8b6f-1adc-4009-a840-06959c90a7ca,IP:0,U
-	RL:0,TC:0,Content:0,EDM:0,RT:0,SF:0,FILE:0,BULK:0,RULE:Release_Ham,ACTION:
-	release,TS:0
-X-CID-META: VersionHash:e7bac3a,CLOUDID:4f66cb218efca946c6ff02be308f0345,BulkI
-	D:nil,BulkQuantity:0,Recheck:0,SF:80|81|82|83|102|865|898,TC:nil,Content:0
-	|15|52,EDM:-3,IP:nil,URL:0,File:nil,RT:nil,Bulk:nil,QS:nil,BEC:nil,COL:0,O
-	SI:0,OSA:0,AV:0,LES:1,SPR:NO,DKR:0,DKP:0,BRR:0,BRE:0,ARC:0
-X-CID-BVR: 2,SSN|SDN
-X-CID-BAS: 2,SSN|SDN,0,_
-X-CID-FACTOR: TF_CID_SPAM_SNR
-X-CID-RHF: D41D8CD98F00B204E9800998ECF8427E
-X-UUID: 098874ec5d6211f1aa26b74ffac11d73-20260601
-Received: from [10.42.13.56] [(10.44.16.150)] by mailgw.kylinos.cn
-	(envelope-from <luoxueqin@kylinos.cn>)
-	(Generic MTA with TLSv1.3 TLS_AES_128_GCM_SHA256 128/128)
-	with ESMTP id 1043785512; Mon, 01 Jun 2026 10:31:47 +0800
-Message-ID: <5e91635e-8aa5-4113-bce9-b7a82320e09c@kylinos.cn>
-Date: Mon, 1 Jun 2026 10:31:46 +0800
+	s=arc-20240116; t=1780290163; c=relaxed/simple;
+	bh=4j2J06AswmbmCGSMQfQDGL7137iXkKG0DTNPjMOrVS4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=i1laj1wdxmoU+iOJq0yRBcmz6gYmVjLPvI2VZcW8LYi6JdV7n0lAddPU9rnR6D/YAjBCRvQiENGsV47H8mXjOgzM5tu22RVnm//6BIfpGRnQ1H5RL04o2SNn5js5YhJSAJy0JcOcMQqQ80+9ONKI0J+wkFDtgTid8MIYA9sBmQY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=d0IF6SWN; arc=none smtp.client-ip=198.175.65.20
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="d0IF6SWN"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1780290161; x=1811826161;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=4j2J06AswmbmCGSMQfQDGL7137iXkKG0DTNPjMOrVS4=;
+  b=d0IF6SWNTEs9ycuA1exuxAbqL1tKrj6JhRJBUnUkDE+oRQLreNZcEva2
+   25i2d+RGqHhyumrRdjCKUMR3KX9I+Ff5onU5ZHg9eH3uGGbk7rPXn5tDg
+   N1z0+z9Y1BuAvg4B92W6I1GUB2kvG9lXmS6LDmuEQbJP7v45GQLvGnW1J
+   50vHbhpgOFNlTWqiURs73PkAx0vMXCAKdhZmIA99hmuVdaZdyWbHhRjzC
+   2qS95k7flkLh7jCFnbWfQr+W3Vo8W2hl5IcM/I5a58VEsxT2RY1rlOWH9
+   06NuLuBSV0JGu/cYvifX32xdHP5K5TN1qC0yKfchG8ysCP1ZMAPSYoR7T
+   g==;
+X-CSE-ConnectionGUID: XbZ6B0hJQa+VZvMJ/yPwAw==
+X-CSE-MsgGUID: Ds3GRBbgRoizYW82BjSyFA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11803"; a="80771666"
+X-IronPort-AV: E=Sophos;i="6.24,180,1774335600"; 
+   d="scan'208";a="80771666"
+Received: from orviesa010.jf.intel.com ([10.64.159.150])
+  by orvoesa112.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 May 2026 22:02:41 -0700
+X-CSE-ConnectionGUID: QGb9deI7QtKpPdL/hdlgxg==
+X-CSE-MsgGUID: blSD5ZaTSQejLDRs5iCSCw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.24,180,1774335600"; 
+   d="scan'208";a="242649613"
+Received: from black.igk.intel.com ([10.91.253.5])
+  by orviesa010.jf.intel.com with ESMTP; 31 May 2026 22:02:39 -0700
+Received: by black.igk.intel.com (Postfix, from userid 1001)
+	id 2081495; Mon, 01 Jun 2026 07:02:38 +0200 (CEST)
+Date: Mon, 1 Jun 2026 07:02:38 +0200
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+To: Marco Scardovi <scardracs@disroot.org>
+Cc: Mika Westerberg <westeri@kernel.org>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Linus Walleij <linusw@kernel.org>,
+	Bartosz Golaszewski <brgl@kernel.org>, linux-gpio@vger.kernel.org,
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/2] gpiolib: acpi: prevent address truncation in
+ OperationRegion handler
+Message-ID: <20260601050238.GM3102@black.igk.intel.com>
+References: <20260530094012.184276-1-scardracs@disroot.org>
+ <20260530094012.184276-2-scardracs@disroot.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] ACPI: CPPC: Add helper to get effective guaranteed
- performance
-Content-Language: en-US
-To: srinivas pandruvada <srinivas.pandruvada@linux.intel.com>,
- rafael@kernel.org, lenb@kernel.org, viresh.kumar@linaro.org,
- saket.dumbre@intel.com, linux-acpi@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org,
- acpica-devel@lists.linux.dev
-References: <20260529081801.29346-1-luoxueqin@kylinos.cn>
- <60119eb883057391dc6def200be119e56a6e4fb5.camel@linux.intel.com>
-From: luoxueqin <luoxueqin@kylinos.cn>
-In-Reply-To: <60119eb883057391dc6def200be119e56a6e4fb5.camel@linux.intel.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20260530094012.184276-2-scardracs@disroot.org>
 
+Hi,
 
-在 2026/5/29 23:33, srinivas pandruvada 写道:
-> On Fri, 2026-05-29 at 16:18 +0800, Xueqin Luo wrote:
->> According to the ACPI CPPC specification, if the Guaranteed
->> Performance register is not implemented, OSPM assumes the
->> guaranteed performance is equal to nominal performance.
->>
->> Add cppc_get_effective_guaranteed_perf() helper to provide a
->> spec-compliant effective guaranteed performance value while
->> preserving the raw values returned by cppc_get_perf_caps().
->>
-> Hi Luo,
->
-> Are you trying to fix any issue where you have issue with
-> "base_frequency" display? intel_pstate will revert to native MSR, which
-> is always present when we are using CPPC.
->
-> I worry about some bad nominal perf in some platforms as we will be
-> dependent on OEM BIOS.
->
-> Thanks,
-> Srinivas
->
-Thanks Srinivas.
+On Sat, May 30, 2026 at 11:40:11AM +0200, Marco Scardovi wrote:
+> The ACPI address space handler for GPIO OperationRegions receives the
+> pin offset as a 64-bit acpi_physical_address. However, the handler
+> truncates this address to a u16 pin_index before validating it.
+> 
+> If an ACPI table attempts to access a pin offset greater than 65535,
+> the truncation wraps the index around. This may result in accesses to
+> unintended GPIO pins.
 
-The intent is not to fix any issue in intel_pstate. It already
-implements the fallback correctly today.
+If you look at the ACPI spec:
 
-My goal was to provide a common helper encapsulating the ACPI
-CPPC semantics, with intel_pstate serving as the first user.
-That said, I agree the benefit may not justify a new exported
-helper at this point.
->> Signed-off-by: Xueqin Luo <luoxueqin@kylinos.cn>
->> ---
->>   drivers/acpi/cppc_acpi.c       | 26 ++++++++++++++++++++++++++
->>   drivers/cpufreq/intel_pstate.c | 10 ++++------
->>   include/acpi/cppc_acpi.h       |  5 +++++
->>   3 files changed, 35 insertions(+), 6 deletions(-)
->>
->> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
->> index f370be8715ae..6dc11030707a 100644
->> --- a/drivers/acpi/cppc_acpi.c
->> +++ b/drivers/acpi/cppc_acpi.c
->> @@ -1328,6 +1328,32 @@ int cppc_get_highest_perf(int cpunum, u64
->> *highest_perf)
->>   }
->>   EXPORT_SYMBOL_GPL(cppc_get_highest_perf);
->>   
->> +/**
->> + * cppc_get_effective_guaranteed_perf - get effective guaranteed
->> performance
->> + * @cpunum: CPU number
->> + * @guaranteed_perf: Effective guaranteed performance value
->> + *
->> + * The ACPI CPPC specification states that if the Guaranteed
->> + * Performance register is not implemented, OSPM assumes the
->> + * guaranteed performance is equal to nominal performance.
->> + *
->> + * Return: 0 on success, negative errno on failure.
->> + */
->> +int cppc_get_effective_guaranteed_perf(int cpunum, u64
->> *guaranteed_perf)
->> +{
->> +	struct cppc_perf_caps perf_caps;
->> +	int ret;
->> +
->> +	ret = cppc_get_perf_caps(cpunum, &perf_caps);
->> +	if (ret)
->> +		return ret;
->> +	*guaranteed_perf = perf_caps.guaranteed_perf ?:
->> +			   perf_caps.nominal_perf;
->> +
->> +	return 0;
->> +}
->> +EXPORT_SYMBOL_GPL(cppc_get_effective_guaranteed_perf);
->> +
->>   /**
->>    * cppc_get_epp_perf - Get the epp register value.
->>    * @cpunum: CPU from which to get epp preference value.
->> diff --git a/drivers/cpufreq/intel_pstate.c
->> b/drivers/cpufreq/intel_pstate.c
->> index 8dc22a65e025..8934e48f71a2 100644
->> --- a/drivers/cpufreq/intel_pstate.c
->> +++ b/drivers/cpufreq/intel_pstate.c
->> @@ -404,17 +404,15 @@ static void intel_pstate_set_itmt_prio(int cpu)
->>   
->>   static int intel_pstate_get_cppc_guaranteed(int cpu)
->>   {
->> -	struct cppc_perf_caps cppc_perf;
->> +	u64 guaranteed_perf;
->>   	int ret;
->>   
->> -	ret = cppc_get_perf_caps(cpu, &cppc_perf);
->> +	ret = cppc_get_effective_guaranteed_perf(cpu,
->> &guaranteed_perf);
->> +
->>   	if (ret)
->>   		return ret;
->>   
->> -	if (cppc_perf.guaranteed_perf)
->> -		return cppc_perf.guaranteed_perf;
->> -
->> -	return cppc_perf.nominal_perf;
->> +	return guaranteed_perf;
->>   }
->>   
->>   static int intel_pstate_cppc_get_scaling(int cpu)
->> diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
->> index d1f02ceec4f9..c02f3bc1fc1a 100644
->> --- a/include/acpi/cppc_acpi.h
->> +++ b/include/acpi/cppc_acpi.h
->> @@ -155,6 +155,7 @@ struct cppc_cpudata {
->>   extern int cppc_get_desired_perf(int cpunum, u64 *desired_perf);
->>   extern int cppc_get_nominal_perf(int cpunum, u64 *nominal_perf);
->>   extern int cppc_get_highest_perf(int cpunum, u64 *highest_perf);
->> +extern int cppc_get_effective_guaranteed_perf(int cpunum, u64
->> *guaranteed_perf);
->>   extern int cppc_get_perf_ctrs(int cpu, struct cppc_perf_fb_ctrs
->> *perf_fb_ctrs);
->>   extern int cppc_get_perf(int cpu, struct cppc_perf_ctrls
->> *perf_ctrls);
->>   extern int cppc_set_perf(int cpu, struct cppc_perf_ctrls
->> *perf_ctrls);
->> @@ -198,6 +199,10 @@ static inline int cppc_get_highest_perf(int
->> cpunum, u64 *highest_perf)
->>   {
->>   	return -EOPNOTSUPP;
->>   }
->> +static inline int cppc_get_effective_guaranteed_perf(int cpunum, u64
->> *guaranteed_perf)
->> +{
->> +	return -EOPNOTSUPP;
->> +}
->>   static inline int cppc_get_perf_ctrs(int cpu, struct
->> cppc_perf_fb_ctrs *perf_fb_ctrs)
->>   {
->>   	return -EOPNOTSUPP;
+https://uefi.org/specs/ACPI/6.5/06_Device_Configuration.html#connection-descriptors
+
+the pin number is 2 bytes and 0xffff is defined as no connection. So the
+firmware cannot really think that it can access GPIO outside of that range.
+
+> Fix this by adding an explicit check to verify that the 64-bit address
+> is less than agpio->pin_table_length before assigning it to the u16
+> pin_index, returning AE_BAD_PARAMETER if it is out of bounds.
+> Additionally, make the length calculation overflow-safe and change the
+> types of length and loop counter to unsigned.
+> 
+> Signed-off-by: Marco Scardovi <scardracs@disroot.org>
+> ---
+>  drivers/gpio/gpiolib-acpi-core.c | 17 +++++++++++++----
+>  1 file changed, 13 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/gpio/gpiolib-acpi-core.c b/drivers/gpio/gpiolib-acpi-core.c
+> index eb8a40cfb7a9..049e4cbc14ed 100644
+> --- a/drivers/gpio/gpiolib-acpi-core.c
+> +++ b/drivers/gpio/gpiolib-acpi-core.c
+> @@ -1087,10 +1087,10 @@ acpi_gpio_adr_space_handler(u32 function, acpi_physical_address address,
+>  	struct gpio_chip *chip = achip->chip;
+>  	struct acpi_resource_gpio *agpio;
+>  	struct acpi_resource *ares;
+> -	u16 pin_index = address;
+> +	unsigned int length;
+>  	acpi_status status;
+> -	int length;
+> -	int i;
+> +	unsigned int i;
+> +	u16 pin_index;
+>  
+>  	status = acpi_buffer_to_resource(achip->conn_info.connection,
+>  					 achip->conn_info.length, &ares);
+> @@ -1110,7 +1110,16 @@ acpi_gpio_adr_space_handler(u32 function, acpi_physical_address address,
+>  		return AE_BAD_PARAMETER;
+>  	}
+>  
+> -	length = min(agpio->pin_table_length, pin_index + bits);
+> +	if (address >= agpio->pin_table_length) {
+> +		ACPI_FREE(ares);
+> +		return AE_BAD_PARAMETER;
+> +	}
+> +
+> +	pin_index = address;
+> +	if (bits > agpio->pin_table_length - pin_index)
+> +		length = agpio->pin_table_length;
+> +	else
+> +		length = pin_index + bits;
+>  	for (i = pin_index; i < length; ++i) {
+>  		unsigned int pin = agpio->pin_table[i];
+>  		struct acpi_gpio_connection *conn;
+> -- 
+> 2.54.0
