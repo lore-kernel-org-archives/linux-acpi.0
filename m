@@ -1,39 +1,39 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A40F3DC4D9;
-	Mon,  1 Jun 2026 17:13:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68C62396B79;
+	Mon,  1 Jun 2026 17:13:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780334011; cv=none; b=rfyBBQqFG6RCL9CaVwzzZWs2akRItvUi1jiRTecngpPcVhIstQTb9LeYEGabjOYpboG7XVFTjCjUrMVl5FvwEQwd3wXXRFR0G+fgz46b9T4bsThOLsJe7hNRFcuf//VIIMORN0Gw17tjaVXjG6+C8Uzm80m1FSiKlVrXdfli5Lk=
+	t=1780334014; cv=none; b=nRcUGsAQd2cGQmFemMiv+fyRKrDCYrxX1ekCJtNS6e+i3YhhlyM+9GqxIGofme/P/LJ4ABB5ptTNw7arss/bfwCDnfJ/yVgEbg9dqrYem2L//td/MgJGut8YXjGhstHyGQ9A+xdQ0CjU6ySEjtPbFwzvxn8ImN9eDJ7e9UPKO9Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780334011; c=relaxed/simple;
-	bh=rRx3Ke8RmZARHzmOYFdNzPU89q4tzEbE7QtNKY5lNmY=;
+	s=arc-20240116; t=1780334014; c=relaxed/simple;
+	bh=4a4KzAiDmo2R5Jpu2eX5evcJtptUf6M3JRS447Dh7rs=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=ESoSUE7ZWudKEIIzPRNQ/D7h0qTiJMaggZXCj8RbqMlAmhXeuSOPKZFQYytlV2P+dq01fujQSUpYC5WuI5V7xbLiJerVO0j9qGhdB90A1bKkx1E4Ll6Uw70Tel9g1xv3pzxh5985t0Xo46PhbRUTikkJniQBt+M/ZzKquK5Fg8w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=epDpjTNi; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=hxjwcKvO8MhtsfXUaa/oYc63c3G9zf5wS2U1yN6f3ZC0iYCm+Ag8OTdjmpWcJquc81KGLEeWZJS6bhro+Xqoq+0Lpt1EigqGRvtAqaEDQw5S9C1vExzsYjZkpxPztQS9PFtQxYSGhuzEFTNuEtZwTbNgi4ZJVKItwr0bDQEGYK8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZXDI4q9B; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="epDpjTNi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6BCE01F00893;
-	Mon,  1 Jun 2026 17:13:29 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZXDI4q9B"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4BF781F00893;
+	Mon,  1 Jun 2026 17:13:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1780334010;
-	bh=Z5kqv+SyVMLmDm6gopCUpp/tbBvkp+WyEsx3oa+vAj4=;
+	s=k20260515; t=1780334013;
+	bh=BQ7Ub65iNB71AuffK0TYH+3OwIMSOKbsflFiIEw5qiY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=epDpjTNialsjVzF8I6MM1n0N4uWJkx7cTaVcDeNqajdi/Blp/6tR6PuT73ZTSsmJZ
-	 PJd+9MC/vahUve7zF2oOwfyKHfXjp/8tPRYweUGe15Ws13BT1tCtSQ+h+DmILdAGvy
-	 nPMn1NKdWfT8YW0UI+OKP0Qi61U6e3cvbNX/Ak85LIQnwZpH7JX1lqQZkHhHlrzUJD
-	 /kGwhAS2aau0pVGJPvvMdVqsswFUtUS4gFFlMbfg8Zhzi/28cjkUHcpFPRUFbBupSc
-	 RMNzH2Ut99hpmjVOfswweHWzhH3RueedEXWJ116y3MdF5S1yFcz7LwY7mb09T2yLiW
-	 9pDCP8+fA99Vg==
+	b=ZXDI4q9BCa9gp62v9h8IYpLNFtUw4l+xM/uiD9XPkfjTWNBFW+pi3JRsD0ZPhBUYl
+	 dPqSpKHGL1QE3kgzUQ6A5fVO/YwDl1HWY3TpMqfhvVdWmH838iQmJ+OO9d5X7fBidy
+	 yS2mybgNXR8DrSDIm4EWocAC8Q1TAMhBmZo8e5cscTF2D4kFC/sgyXaN7XubRHtcOp
+	 SiAcVmH2/HknZnNkt9CAXgducS7fu8XYOBR1j5KK4g/PIwtdP291eGESAdy1o+2WNu
+	 +c724PXU9cXoQwPsiTCrfs1QZWbIk7zDNIoxYsvNiHP9nAtgD6gVRgIijthokYJ7Wp
+	 vXLfRA2FZO8cQ==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>
 Subject:
- [PATCH v1 11/15] ACPI: button: Merge two switch () statements in
+ [PATCH v1 10/15] ACPI: button: Drop redundant variable from
  acpi_button_probe()
-Date: Mon, 01 Jun 2026 19:05:31 +0200
-Message-ID: <3352815.5fSG56mABF@rafael.j.wysocki>
+Date: Mon, 01 Jun 2026 19:04:04 +0200
+Message-ID: <3706239.iIbC2pHGDl@rafael.j.wysocki>
 Organization: Linux Kernel Development
 In-Reply-To: <12913564.O9o76ZdvQC@rafael.j.wysocki>
 References: <12913564.O9o76ZdvQC@rafael.j.wysocki>
@@ -48,82 +48,75 @@ Content-Type: text/plain; charset="UTF-8"
 
 From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-Two switch () statements in acpi_button_probe() operate on the same
-value and the statements between them can be reordered with respect
-to the second one, so merge them.
+Local char pointer called "name" in acpi_button_probe() is redundant
+because its value can be assigned directly to input->name and the
+latter can be used in the only other place where "name" is read, so
+get rid of it.
 
 No intentional functional impact.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/button.c | 27 ++++++++++-----------------
- 1 file changed, 10 insertions(+), 17 deletions(-)
+ drivers/acpi/button.c | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-index f0d29870b926..c035741e5abf 100644
+index dbaf87417428..f0d29870b926 100644
 --- a/drivers/acpi/button.c
 +++ b/drivers/acpi/button.c
-@@ -582,14 +582,19 @@ static int acpi_button_probe(struct platform_device *pdev)
+@@ -548,7 +548,7 @@ static int acpi_button_probe(struct platform_device *pdev)
+ 	struct acpi_button *button;
+ 	struct input_dev *input;
+ 	acpi_status status;
+-	char *name, *class;
++	char *class;
+ 	u8 button_type;
+ 	int error = 0;
+ 
+@@ -581,23 +581,23 @@ static int acpi_button_probe(struct platform_device *pdev)
+ 
  	switch (button_type) {
  	case ACPI_BUTTON_TYPE_LID:
- 		input->name = ACPI_BUTTON_DEVICE_NAME_LID;
-+		input_set_capability(input, EV_SW, SW_LID);
-+		input->open = acpi_lid_input_open;
-+
++		input->name = ACPI_BUTTON_DEVICE_NAME_LID;
  		handler = acpi_lid_notify;
+-		name = ACPI_BUTTON_DEVICE_NAME_LID;
  		sprintf(class, "%s/%s",
  			ACPI_BUTTON_CLASS, ACPI_BUTTON_SUBCLASS_LID);
--		input->open = acpi_lid_input_open;
+ 		input->open = acpi_lid_input_open;
  		break;
  
  	case ACPI_BUTTON_TYPE_POWER:
- 		input->name = ACPI_BUTTON_DEVICE_NAME_POWER;
-+		input_set_capability(input, EV_KEY, KEY_POWER);
-+		input_set_capability(input, EV_KEY, KEY_WAKEUP);
-+
++		input->name = ACPI_BUTTON_DEVICE_NAME_POWER;
  		handler = acpi_button_notify;
+-		name = ACPI_BUTTON_DEVICE_NAME_POWER;
  		sprintf(class, "%s/%s",
  			ACPI_BUTTON_CLASS, ACPI_BUTTON_SUBCLASS_POWER);
-@@ -597,6 +602,8 @@ static int acpi_button_probe(struct platform_device *pdev)
+ 		break;
  
  	case ACPI_BUTTON_TYPE_SLEEP:
- 		input->name = ACPI_BUTTON_DEVICE_NAME_SLEEP;
-+		input_set_capability(input, EV_KEY, KEY_SLEEP);
-+
++		input->name = ACPI_BUTTON_DEVICE_NAME_SLEEP;
  		handler = acpi_button_notify;
+-		name = ACPI_BUTTON_DEVICE_NAME_SLEEP;
  		sprintf(class, "%s/%s",
  			ACPI_BUTTON_CLASS, ACPI_BUTTON_SUBCLASS_SLEEP);
-@@ -613,28 +620,14 @@ static int acpi_button_probe(struct platform_device *pdev)
- 		goto err_free_button;
- 	}
+ 		break;
+@@ -615,7 +615,6 @@ static int acpi_button_probe(struct platform_device *pdev)
  
--	snprintf(button->phys, sizeof(button->phys), "%s/button/input0", id->id);
-+	snprintf(button->phys, sizeof(button->phys), "%s/button/input0",
-+		 acpi_device_hid(device));
+ 	snprintf(button->phys, sizeof(button->phys), "%s/button/input0", id->id);
  
+-	input->name = name;
  	input->phys = button->phys;
  	input->id.bustype = BUS_HOST;
  	input->id.product = button_type;
- 	input->dev.parent = dev;
+@@ -690,7 +689,7 @@ static int acpi_button_probe(struct platform_device *pdev)
+ 		acpi_lid_save(device);
+ 	}
  
--	switch (button_type) {
--	case ACPI_BUTTON_TYPE_POWER:
--		input_set_capability(input, EV_KEY, KEY_POWER);
--		input_set_capability(input, EV_KEY, KEY_WAKEUP);
--		break;
--
--	case ACPI_BUTTON_TYPE_SLEEP:
--		input_set_capability(input, EV_KEY, KEY_SLEEP);
--		break;
--
--	case ACPI_BUTTON_TYPE_LID:
--		input_set_capability(input, EV_SW, SW_LID);
--		break;
--	}
--
- 	input_set_drvdata(input, button);
- 	error = input_register_device(input);
- 	if (error) {
+-	pr_info("%s [%s]\n", name, acpi_device_bid(device));
++	pr_info("%s [%s]\n", input->name, acpi_device_bid(device));
+ 	return 0;
+ 
+ err_input_unregister:
 -- 
 2.51.0
 
