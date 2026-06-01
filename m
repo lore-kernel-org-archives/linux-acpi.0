@@ -1,157 +1,398 @@
-Received: from mail-yw1-f227.google.com (mail-yw1-f227.google.com [209.85.128.227])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25DDC3806C4
-	for <linux-acpi@vger.kernel.org>; Mon,  1 Jun 2026 20:29:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.227
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 037AA355F35;
+	Mon,  1 Jun 2026 20:36:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780345753; cv=none; b=hTv6GYFjI2lm7lJvQ/fNJLm80ltZolEgG3OXE9E/Al2pVwKBPj8cHcpAnUWi3oIxYFlUr3489f0rpaL55kdcaIkEKceea7dqndCHphBLQRct574nUF4IbrQ/wJfoDylIDLFLjcAiy4YGCdNWvRLMkm7JBxHOiAyRjNaYVYxi7LE=
+	t=1780346184; cv=none; b=QTfuu49ODyuCZHVik7CLOLX8WdF1JZYc0cNU+MNrhhPh5XzqVzNcjhEbGnNOfuU103WRb6jyohNs1bLCGxiz254pX30JvSnXhBUHt9VaWEFN71oEQ+jBV/bUbWe0p8sWWneteOwWqWrjw98JYnHV1ZHnvlkyM6v+CqALBn9LsrM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780345753; c=relaxed/simple;
-	bh=wujH18UNsauBGw2rzT6IwfdOl4oOYdohexeVU5B2YQc=;
-	h=Date:From:To:Cc:Subject:Message-ID:Content-Type:
-	 Content-Disposition; b=q3ylSVmljMiOsG9Ejlx0ZmF3pPNh9n4XQfWKZPLNHtxiCc5xk7hDcIk/EYp7Q3oljLNpJ1LGuOzY9lnaJS4L7BT34gakGx8jLnLiTBzc8Pb3IUvX5Vn0wIyATKr8KXkQMljcT54ZTKbN13Z0TmriapOggEIhb5mQQ+C9sgiNgTM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=arista.com; spf=pass smtp.mailfrom=arista.com; dkim=pass (2048-bit key) header.d=arista.com header.i=@arista.com header.b=dsjluN2C; arc=none smtp.client-ip=209.85.128.227
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=arista.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arista.com
+	s=arc-20240116; t=1780346184; c=relaxed/simple;
+	bh=lhmbiLVrva2CdzV0jSi5X7Gy7nereRDKCriVZxgx/c4=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=F2CPPQIMaLuD30lVn9/MT76t9vfVebicNClcYfPz6oQyXT8qf5qiImiQYAWYtJDhG74r5FEbfCM3q7S/FJuYr+wwyREbOuuTztpjlt/xB8tnJhnSnnD5cnw0clI/OOwcpuwO3LW+ivLndTHy3VsAA+yFKC/QU/CA33ItMYL8ztE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IxNvRVC7; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=arista.com header.i=@arista.com header.b="dsjluN2C"
-Received: by mail-yw1-f227.google.com with SMTP id 00721157ae682-7e1c3f47d78so22157887b3.0
-        for <linux-acpi@vger.kernel.org>; Mon, 01 Jun 2026 13:29:10 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1780345750; x=1780950550;
-        h=content-disposition:message-id:subject:cc:to:from:date
-         :dkim-signature:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=qzcnnb4ft/sHGmWhq3YYu19yrHmbVI8yyzjWSZ/LZK8=;
-        b=IM6+mEdkCbrp0L7l2+YGDtGtovNikr1Gf1yhmYlMt1wZnQriQ8RPYxufpHtJrcnwdw
-         XHP78JbPaPWkBSxfUw8Jl3gT3gZWrDMcVBIOgsMcPunf22Z648fGwT4nA6IINW/U4Xtn
-         jPJ/sef3tSP/Xn0ipj51tAfCgJqSX8S+aS5CNPZ04BUVEqimnGqNBYn5DgyJAuoqkLvW
-         HcJwu4HpvUI9HCczjQk2ov2jBqYO18jGyZwJuwBFVbdoBeZVnJB3xU7RF0hY8kMyUJlP
-         1iQgMckPr4jaVoh19YLVNxAvws/LMPzYU57zP5Dvni+liJRh5XbZU6y7B0fQ3AnmLN2I
-         4Fmg==
-X-Gm-Message-State: AOJu0YxbVENd/a3sSGKvl2sOhqW++bf+TWjiIvBTYYLd6AWI68FCxy9i
-	pTa171pY6jN6YZ7LLUDRYc3bNKRPjg0cQrD7PKYBYJvXfMSzTIutBisdZSwNSU8y4Y/wMMDN0NK
-	r4U8MvkaT/F0Co6Aa7US8mmzSy0hAiq8VDg==
-X-Gm-Gg: Acq92OFYYSL90dMF0z1+5/zZXRqvZXvnyxlewoB0fjPRKvh8NWx3nFqyp8VL3Ui4w39
-	8qQ5QzXPPoM0Z+rPzI9q/1gKIWri2QitXl7+jGgjsmd/EuzemPM/SPjaADAF/pogIdMVS8EVEKR
-	31nfxpb7F6usb1/+4KAWgESY2H1PXKEWT/8Rd2Z6d3OON6dsTaWulGHQYuavWF/06EMDEc3dLPn
-	J81scT3Jgziq41EhRfvYzfto1aEB0yYTtGy55YcntPnJTa21eCA3c8ApaQIqHpqMIIKYgpn2+wH
-	fkHDmZrJzUlki8auX6QslNgD+vysQapQzP1cK3KpfJDN1+2I6OOusrfsqi/3Sc5Y6vAsMinsV0A
-	eNk9tW71XYdwGT3O1bDT0U5nhtoauCV/rY1mkOiAtEnxUWFFz1SeRCE+ZwTwhPYMkYSYJHmqW4w
-	KDFGlEe0BW5cSDftK6
-X-Received: by 2002:a05:690c:e0d:b0:7d1:8eec:5b34 with SMTP id 00721157ae682-7e0593001acmr122685297b3.12.1780345750073;
-        Mon, 01 Jun 2026 13:29:10 -0700 (PDT)
-Received: from smtp.aristanetworks.com (ec2-52-52-135-65.us-west-1.compute.amazonaws.com. [52.52.135.65])
-        by smtp-relay.gmail.com with ESMTPS id 00721157ae682-7e17b446f64sm4902517b3.20.2026.06.01.13.29.09
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 01 Jun 2026 13:29:10 -0700 (PDT)
-X-Relaying-Domain: arista.com
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arista.com;
-	s=Arista-A; t=1780345749;
-	bh=qzcnnb4ft/sHGmWhq3YYu19yrHmbVI8yyzjWSZ/LZK8=;
-	h=Date:From:To:Cc:Subject:From;
-	b=dsjluN2CMjxRnHeBxRFRQuOG/hIdciKtX5vqGx80+kiwfXlMp/V8cUwRSgrgBK6F+
-	 NOUTdNpbTAwjGyqtaLF8kU0HXULGdehLMpd4VOu8p16yA0tNxG5Mts4vTRp8BCYZv6
-	 s+WRP2AqyqEXDKrCEk/qiGze5fmDUmUECcxPYPhKJ9hBSKKcBkrI5jIkUsuCFfS1R0
-	 iC3DjMcmc0I1dMatYdM8nrOiTFEyscY/w+Ja1qnSkQpJvRXt9VdNTTkphvLg2OxL6q
-	 0wNMbOi+pZXXH0FV+dDqHwuN/0wV+/9IK+JABB8cnTjv3tj/lVLimL8WyRpzuukMp0
-	 4heJhQ/fdiQIQ==
-Received: from vm-ymd.sjc.aristanetworks.com (dhcp-244-52-81.sjc.aristanetworks.com [10.244.52.81])
-	by smtp.aristanetworks.com (Postfix) with ESMTPS id 42028C265C;
-	Mon,  1 Jun 2026 20:29:09 +0000 (UTC)
-Date: Mon, 1 Jun 2026 20:29:08 +0000
-X-SMTP-Authentication: Allow-List-permitted
-X-SMTP-Authentication: Allow-List-permitted
-From: Mohan Yelugoti <ymd@arista.com>
-To: linux-acpi@vger.kernel.org
-Cc: rafael.j.wysocki@intel.com, mario.limonciello@amd.com,
-	mika.westerberg@linux.intel.com, linux-kernel@vger.kernel.org
-Subject: [REGRESSION] ACPI: threaded SCI handler causes soft lockup in kdump
- capture kernel
-Message-ID: <ah3rlJrHviZHFt0+@vm-ymd.sjc.aristanetworks.com>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IxNvRVC7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D10C1F00893;
+	Mon,  1 Jun 2026 20:36:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1780346182;
+	bh=iks4Q03GwTiBFK892w6lj5hBG3OU8wqEvXJurPqfi8Q=;
+	h=From:Subject:Date:To:Cc;
+	b=IxNvRVC7Un9TMOAiG24OEqZ9Wf+0PDfBOQPpCsOjNtZ0TnmH/3wlfHch2zSE8wXFU
+	 5bqAo2wWcW7uG2v2jgubGgB+bx5DqNA/fY97gOTkXdi1h1j9i6Bme8/xC8KViQV1YE
+	 mMp+zJA7/jYtG4EFm3gEF+qGdWaemlobqRzuttYh/EUQS6Tz8upEhkby1qUGUOlTJ+
+	 5H/rlxk2fKsGX545VMocww0Va8rARwqoDupiXT55/LPr6Ya8F/ck+rGtwRhNq6SVJO
+	 z/kyt3nR+zzE+b5i8hkX1Vb3sKoO+7CdvEyNc2bUuwwAtf4FBvHt2MGnCp+UKD665k
+	 phvys3tSGNOWA==
+From: Drew Fustini <fustini@kernel.org>
+Subject: [PATCH RFC v6 00/18] riscv: add Ssqosid and CBQRI resctrl support
+Date: Mon, 01 Jun 2026 13:35:54 -0700
+Message-Id: <20260601-ssqosid-cbqri-rqsc-v7-0-v6-0-baf00f50028a@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIACvtHWoC/33OwQrCMAwG4FcZPVvp2m7tPAmCD+BVPLRbthVld
+ a0UZezdrb2oyLwE/oR8yYQ8OAMebbIJOQjGGzvEUK4yVPdq6ACbJmZECS0JoxX2frTeNLjWozP
+ Yjb7GQWCCNamFlFppLhWK21cHrbkn+YgO+x06xWZv/M26R7oWWBolmOd8EQ7spTNNQUAluVDbM
+ 7gBLmvruoQG/oaKnCxDPBbQBZMsh7aU7AcqPiD656MiFiEbpoRWVaPhC5rn+Qnsg6utVgEAAA=
+ =
+X-Change-ID: 20260329-ssqosid-cbqri-rqsc-v7-0-b0c788bab48a
+To: Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, 
+ Albert Ou <aou@eecs.berkeley.edu>, Alexandre Ghiti <alex@ghiti.fr>, 
+ =?utf-8?q?Radim_Kr=C4=8Dm=C3=A1=C5=99?= <rkrcmar@ventanamicro.com>, 
+ Samuel Holland <samuel.holland@sifive.com>, 
+ Adrien Ricciardi <aricciardi@baylibre.com>, 
+ Nicolas Pitre <npitre@baylibre.com>, 
+ =?utf-8?q?Kornel_Dul=C4=99ba?= <mindal@semihalf.com>, 
+ Atish Patra <atish.patra@linux.dev>, 
+ Atish Kumar Patra <atishp@rivosinc.com>, 
+ Vasudevan Srinivasan <vasu@rivosinc.com>, Ved Shanbhogue <ved@rivosinc.com>, 
+ Conor Dooley <conor.dooley@microchip.com>, 
+ yunhui cui <cuiyunhui@bytedance.com>, Chen Pei <cp0613@linux.alibaba.com>, 
+ Liu Zhiwei <zhiwei_liu@linux.alibaba.com>, Weiwei Li <liwei1518@gmail.com>, 
+ guo.wenjia23@zte.com.cn, Gong Shuai <gong.shuai@sanechips.com.cn>, 
+ Gong Shuai <gsh517@gmail.com>, liu.qingtao2@zte.com.cn, 
+ Reinette Chatre <reinette.chatre@intel.com>, 
+ Tony Luck <tony.luck@intel.com>, Babu Moger <babu.moger@amd.com>, 
+ Peter Newman <peternewman@google.com>, Fenghua Yu <fenghua.yu@intel.com>, 
+ James Morse <james.morse@arm.com>, Ben Horgan <ben.horgan@arm.com>, 
+ Dave Martin <Dave.Martin@arm.com>, Rob Herring <robh@kernel.org>, 
+ Conor Dooley <conor+dt@kernel.org>, 
+ Krzysztof Kozlowski <krzk+dt@kernel.org>, 
+ "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
+ Robert Moore <robert.moore@intel.com>, Sunil V L <sunilvl@ventanamicro.com>, 
+ Drew Fustini <fustini@kernel.org>, Thomas Gleixner <tglx@kernel.org>, 
+ Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
+ Dave Hansen <dave.hansen@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, 
+ Sebastian Andrzej Siewior <bigeasy@linutronix.de>, 
+ Clark Williams <clrkwllms@kernel.org>, Steven Rostedt <rostedt@goodmis.org>, 
+ Jonathan Corbet <corbet@lwn.net>
+Cc: linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org, 
+ x86@kernel.org, linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev, 
+ devicetree@vger.kernel.org, Paul Walmsley <paul.walmsley@sifive.com>, 
+ Conor Dooley <conor@kernel.org>, linux-rt-devel@lists.linux.dev, 
+ linux-doc@vger.kernel.org
+X-Mailer: b4 0.15.2
+X-Developer-Signature: v=1; a=openpgp-sha256; l=15319; i=fustini@kernel.org;
+ h=from:subject:message-id; bh=lhmbiLVrva2CdzV0jSi5X7Gy7nereRDKCriVZxgx/c4=;
+ b=owGbwMvMwCV2+43O4ZsaG3kYT6slMWTJvnXMPLllh1SIxpT7LXHbd+WqSwo+3ftz8unH8rYMK
+ 5/zvfB/1VHKwiDGxSArpsiy6UPehSVeoV8XzH+xDWYOKxPIEAYuTgGYyIlTjAzLc7QCJj1foPZi
+ 7/+ydTq+vXo3ZogI9M3J2ByqecTLzXUZI0NrwCv7xjNKpTuPvvj3sDeK+Vy2to6klfRTg8SP/yz
+ OdjIDAA==
+X-Developer-Key: i=fustini@kernel.org; a=openpgp;
+ fpr=1B6F948213EA489734F3997035D5CD577C1E6010
 
-Hi,
+This RFC series adds RISC-V QoS support: the Ssqosid extension [1]
+(srmcfg CSR), the CBQRI controller interface [2] integrated with
+resctrl [3], and ACPI RQSC [4] for controller discovery. DT support
+is possible but no platform drivers are included. The series is
+also available as a branch [5].
 
-We ship SONiC[0] on top of Debian stable with a small set of patches
-on top (see [1]). After moving SONiC from Debian bookworm
-to trixie, we started seeing a regression where the kdump capture
-kernel hits a soft lockup while collecting the crash dump, so no
-vmcore is produced.
+QEMU support for Ssqosid and CBQRI lives in [6], with ACPI RQSC as
+a follow-on series [7]. There is also a combined branch [8].
 
-We trigger the original panic in the kernel with:
+Series organization
+-------------------
+01      DT binding for Ssqosid extension
+02-03   Ssqosid ISA support (detection, srmcfg CSR, switch_to)
+04-06   fs/resctrl helpers and resource type additions
+07-10   CBQRI device ops (cbqri_devices.c): capacity probe +
+        allocation, capacity monitoring, bandwidth probe +
+        allocation, bandwidth monitoring
+11-15   CBQRI resctrl integration (cbqri_resctrl.c): cache
+        allocation, L3 cache occupancy monitoring, MB_MIN
+        bandwidth allocation, MB_WGHT bandwidth allocation,
+        mbm_total_bytes monitoring
+16-17   ACPI RQSC parser and init
+18      Enable resctrl filesystem for Ssqosid (Kconfig)
 
-      echo c > /proc/sysrq-trigger
+Refer to the v3 cover letter [9] for the test setup including the
+reference SoC layout and the corresponding QEMU command line.
 
-The capture kernel then boots and hangs. To capture a usable trace
-rather than waiting indefinitely, I added the following to the
-capture-kernel command line so that it panics on soft lockup (and
-dumps backtraces from all CPUs) when the hang is detected:
+[1] https://github.com/riscv/riscv-ssqosid/releases/tag/v1.0
+[2] https://github.com/riscv-non-isa/riscv-cbqri/releases/tag/v1.0
+[3] https://docs.kernel.org/filesystems/resctrl.html
+[4] https://github.com/riscv-non-isa/riscv-rqsc/blob/main/src/
+[5] https://git.kernel.org/pub/scm/linux/kernel/git/fustini/linux.git/log/?h=b4/ssqosid-cbqri-rqsc
+[6] https://lore.kernel.org/qemu-devel/20260105-riscv-ssqosid-cbqri-v4-0-9ad7671dde78@kernel.org/
+[7] https://lore.kernel.org/qemu-devel/20260202-riscv-rqsc-v1-0-dcf448a3ed73@kernel.org/
+[8] https://github.com/tt-fustini/qemu/tree/b4/riscv-rqsc
+[9] https://lore.kernel.org/r/20260414-ssqosid-cbqri-rqsc-v7-0-v3-0-b3b2e7e9847a@kernel.org
 
-      debug=1 loglevel=7 softlockup_all_cpu_backtrace=1
-softlockup_panic=1
+Key design decisions
+--------------------
+ - Create new resource types as RDT_RESOURCE_MBA cannot represent the
+   semantics of the CBQRI bandwidth controllers:
 
-With those in place, the capture kernel prints:
+   - RDT_RESOURCE_MB_MIN matches CBQRI Rbwb (reserved bandwidth
+     blocks). The sum of Rbwb across all control groups must be
+     <= MRBWB (maximum number of reserved bandwidth blocks).
 
-      watchdog: BUG: soft lockup - CPU#0 stuck for 26s! [irq/9-acpi:39]
-      CPU: 0 UID: 0 PID: 39 Comm: irq/9-acpi Not tainted
-        6.12.41+deb13-sonic-amd64 #1 Debian 6.12.41-1
-      RIP: 0010:acpi_os_read_port+0x30/0xa0
-      Call Trace:
-       <TASK>
-       acpi_hw_gpe_read+0x61/0x80
-       acpi_ev_detect_gpe+0x74/0x180
-       acpi_ev_gpe_detect+0xe1/0x130
-       acpi_ev_sci_xrupt_handler+0x1d/0x40
-       acpi_irq+0x1c/0x40
-       irq_thread_fn+0x23/0x60
-       irq_thread+0x1b3/0x2f0
-       kthread+0xd2/0x100
-       ret_from_fork+0x34/0x50
-       ret_from_fork_asm+0x1a/0x30
-       </TASK>
-      Kernel panic - not syncing: softlockup: hung tasks
+   - RDT_RESOURCE_MB_WGHT matches CBQRI Mweight, the weighted share of
+     the remaining bandwidth blocks. Values are in [0, 255]: 0 disables
+     work-conserving sharing for the group, 1..255 compete for the
+     leftover pool.
 
-Between the bookworm and trixie kernels, the ACPI SCI handler was
-moved from a hardirq handler to a threaded handler by:
+ - mbm_total_bytes is supported only when the platform exposes exactly
+   one mon-capable bandwidth controller and exactly one L3 domain.
+   Pairing a single BC across multiple L3 domains would let standard
+   userspace tools overcount system bandwidth by summing the same
+   counter across domains.
 
-    7a36b901a6eb ("ACPI: OSL: Use a threaded interrupt handler for SCI")
+Open issues
+-----------
+ - RDT_RESOURCE_MB_MIN and RDT_RESOURCE_MB_WGHT are intended to drive
+   discussion, not as the final solution. Reinette has recently posted
+   a generic schema proof of concept. I will based the next revision on
+   that.
 
-To confirm this is the trigger, I reverted that commit on top of
-6.12.41 and re-ran the same sysrq-trigger reproducer. The capture
-kernel then completes the crash dump without tripping the soft
-lockup watchdog.
+ - resctrl monitoring scope limitations:
+   - monitor-only L3 capacity controllers are not supported.
+   - CBQRI capacity controllers can monitor any cache level, but resctrl
+     only supports occupancy on L3.
+   - resctrl needs to gain a non-CPU scope level for mbm_total_bytes
+     to be supported on platforms with multiple bandwidth controllers
+     or multiple L3 domains.
 
-Happy to test patches or gather more data as this is reproducible
-consistently on our systems.
+ - When a control group is freed, rbwb_cache[closid] is not reset,
+   so the MB_MIN sum check can count the stale reservation against
+   MRBWB. Fixing this requires a new resctrl_arch_* callback in
+   fs/resctrl invoked on group destroy, which is out of scope for
+   this arch-driver series.
 
-This issue has been raised in the SONiC project at [2].
+ - cc_cunits is not supported. cc_block_mask maps well onto resctrl's
+   existing CBM schema, but there is no existing equivalent for
+   capacity units.
 
-  Context
-  -------
-- Kernel:        6.12.41+deb13-sonic-amd64 (Debian 6.12.41-1);
-- Last known good: Debian bookworm kernel (6.1.123), predates
-                     7a36b901a6eb.
+ - RQSC structs live in drivers/acpi/riscv/rqsc.h until the spec is
+   ratified and the ACPICA upstream submission lands. They will then move
+   to include/acpi/actbl2.h. The spec is in the final phase
+   before ratification.
 
-- Default capture-kernel cmdline (from /etc/default/kdump-tools,
-  KDUMP_CMDLINE_APPEND):
+Changes in v6:
+--------------
+The changes in this revision are based on the feedback in the Sashiko
+review of v5 and Sunil V L's review of the RQSC parser.
 
-      irqpoll nr_cpus=1 nousb systemd.unit=kdump-tools.service
-      ata_piix.prefer_ms_hyperv=0 panic=10 debug loglevel=4
-      hpet=disable pcie_port=compat pci=nommconf
+riscv_cbqri device: 
+ - Widen the remaining CBQRI_CONTROL_REGISTERS_OP/AT/RCID and the RBWB /
+   MWEIGHT field masks to GENMASK_ULL, so FIELD_MODIFY and ~mask on a
+   u64 register stay correct if RV32 support is ever added.
+ - Reject an rcid_count or mcid_count larger than 12-bits can encode.
+ - Probe monitoring with CONFIG_EVENT and a probe-safe event id rather
+   than READ_COUNTER. Run the AT probe only for allocation registers
+ - cbqri_bc_alloc_op() clears AT, matching the capacity path.
+ - cbqri_apply_bc_field() waits for BUSY=0 before staging the new value
+   so an in-flight op cannot consume a half-updated register.
+ - cbqri_read_rbwb() and cbqri_read_mweight() stage a sentinel in the
+   unread field, so a silent READ_LIMIT no-op is detected instead of
+   returning stale data.
 
-For the trace above, loglevel was raised from 4 to 7 and the
-following were added:
+resctrl:
+ - cbqri_resctrl_online_cpu() and cbqri_resctrl_offline_cpu() seed the
+   per-CPU default RCID/MCID.
+ - Partial attach failure detaches the CPU from every domain it reached.
+ - resctrl_arch_reset_rmid() no longer re-arms occupancy. Occupancy
+   counters are armed once and run free.
+ - The BC is paired and initialized only when mbm_total_bytes is enabled,
+   so a controller left unpicked on a system with multiple L3 domains
+   is not allocated and no longer clamps the occupancy rmid space.
+ - num_rmid is reported as the system-wide minimum mcid_count.
 
-     debug=1 softlockup_all_cpu_backtrace=1 softlockup_panic=1
+ACPI:
+ - Skip controllers whose RCID Count and MCID Count are both zero, as
+   RQSC requires at least one to be non-zero.
+ - Add the Memory-Side Cache, ACPI device and PCI device resource id
+   type constants.
 
-[0]: https://github.com/sonic-net
-[1]: https://github.com/sonic-net/sonic-linux-kernel/tree/master/patches-sonic
-[2]: https://github.com/sonic-net/sonic-linux-kernel/pull/580
+Sashiko review:
+https://sashiko.dev/#/patchset/20260524-ssqosid-cbqri-rqsc-v7-0-v5-0-78d3a7ba9dbe%40kernel.org
+
+Link to v5:
+https://lore.kernel.org/all/20260524-ssqosid-cbqri-rqsc-v7-0-v5-0-78d3a7ba9dbe@kernel.org/
+
+Changes in v5:
+--------------
+The changes in this revision are based on the feedback in the Sashiko
+review of the series.
+
+Ssqosid:
+ - Seed cpu_srmcfg to U32_MAX in DEFINE_PER_CPU so early-boot context
+   switches always write the CSR rather than matching a zero-initialised
+   cache before riscv_srmcfg_init() runs.
+ - __switch_to_srmcfg() evaluates RCID and MCID against
+   cpu_srmcfg_default independently. A task in the default RCID group
+   with a specific MCID previously bypassed the CPU default.
+ - Register a CPU PM notifier that invalidates cpu_srmcfg on
+   CPU_PM_EXIT / CPU_PM_ENTER_FAILED so resume-from-suspend on the boot
+   CPU writes the CSR.
+ - Drop the for_each_online_cpu pre-seed loop in riscv_srmcfg_init().
+   cpuhp_setup_state() already covers already-online CPUs.
+
+CBQRI:
+ - Add mweight_cache. cbqri_apply_bc_field() seeds both fields of
+   bc_bw_alloc from the software caches, so that stale data can not leak
+   into the unmodified field.
+ - Seed mweight_cache to FIELD_MAX(MWEIGHT_MASK) at probe so the first
+   MB_MIN domain init does not commit Mweight=0 to every RCID. A weight
+   of 0 is a hard cap on opportunistic bandwidth, which would starve
+   every RCID until the subsequent MB_WGHT domain init catches up.
+ - cbqri_apply_mweight_config() rejects mweight > WEIGHT_MASK at entry
+   rather than letting it truncate and trigger a verify mismatch.
+ - cbqri_apply_bc_field() updates per-RCID cache only after verifying.
+ - cbqri_controller_destroy() now iounmaps and releases the mem region
+   from rollback paths, gated on ctrl->base.
+ - cbqri_probe_feature() clears OP, AT, RCID and EVT_ID on every write,
+   so the probe never writes stale bits into the register.
+ - cbqri_apply_cache_config() clears cc_block_mask before the initial
+   READ_LIMIT that captures saved_cbm.
+ - Drop the ctrl->faulted early return from controller ops.
+ - Reject a second bandwidth controller when sharing a proximity domain.
+ - Rejects ctrl->rcid_count > SRMCFG_RCID_MASK so the schedule-in
+   fast path cannot silently truncate the RCID.
+ - Widen CBQRI_MON_CTL_OP/MCID/EVT_ID masks to GENMASK_ULL so
+   FIELD_MODIFY on a u64 register stays safe if RV32 support is added.
+
+resctrl:
+ - Switch the L3 mon_domain teardown paths from cancel_delayed_work_sync
+   to cancel_delayed_work to avoid potential deadlock.
+ - Guard the mbm_over cancel on QOS_L3_MBM_TOTAL_EVENT_ID, so a system
+   without a paired BC does not cancel a zeroed work struct.
+ - cbqri_attach_cpu_to_cap_ctrl() rolls back cpumask_set_cpu and any
+   freshly created ctrl_domain when cbqri_attach_cpu_to_l3_mon() fails.
+ - Restrict mbm_total_bytes to platforms with exactly one L3 domain.
+ - Pair the L3 mon domain with its BC and initialise the BC's
+   per-MCID accumulators before resctrl_online_mon_domain() exposes
+   the domain, so a concurrent mbm_total_bytes read cannot race with
+   paired_bc init.
+ - Hold cbqri_domain_list_lock across the MMIO paths in
+   resctrl_arch_rmid_read() and resctrl_arch_reset_rmid() so a
+   concurrent CPU hotplug detach cannot free hw_dom mid-read.
+ - cbqri_resctrl_setup() rolls back exposed_alloc_capable /
+   exposed_mon_capable on resctrl_init() failure so
+   resctrl_arch_*_capable() does not report stale state to callers.
+ - Drop the cacheinfo_ready wait queue in cbqri_resctrl_setup() and
+   the RCU annotations on the ctrl_domain list. cacheinfo runs at
+   device_initcall_sync, strictly before late_initcall, and the list
+   is mutated only from cpuhp callbacks under cbqri_domain_list_lock.
+
+Kconfig:
+ - RISCV_ISA_SSQOSID selects RISCV_CBQRI_DRIVER unconditionally. resctrl
+   is gated separately by the silent RISCV_CBQRI_RESCTRL_FS option. 
+
+ACPI:
+ - acpi_parse_rqsc() rejects tables with the wrong header.revision,
+   validates res0->type and res0->id_type, and checks that node->length
+   does not overrun the table end.
+
+Sashiko review:
+https://sashiko.dev/#/patchset/20260510-ssqosid-cbqri-rqsc-v7-0-v4-0-eb53831ef683%40kernel.org
+
+Link to v4:
+https://lore.kernel.org/all/20260510-ssqosid-cbqri-rqsc-v7-0-v4-0-eb53831ef683@kernel.org/
+
+Changes in v4:
+--------------
+resctrl:
+ - Add RDT_RESOURCE_MB_MIN and RDT_RESOURCE_MB_WGHT
+ - Add default_to_min to resctrl_membw so MB_MIN defaults to min_bw
+ - Add L3 cache occupancy monitoring for L3-scoped capacity controllers
+ - Add mbm_total_bytes bandwidth monitoring when there is a single
+   bandwidth controller
+ - Move domain creation into cpuhp callbacks so that cpu_mask reflects
+   only online CPUs
+ - resctrl_arch_reset_rmid() returns early when called with IRQs
+   disabled.
+
+CBQRI:
+ - Replace per-controller spinlock with mutex. Each CBQRI op is a
+   write-then-poll-busy cycle of up to 1 ms. A sleeping mutex paired
+   with readq_poll_timeout() keeps preemption enabled across the
+   busy-wait. All resctrl-arch entry points run in process context.
+ - Replace struct cbqri_config with direct params in helper functions.
+ - max_rmid = min(max_rmid, ctrl->mcid_count) now gated on
+   ctrl->mon_capable.
+ - Validate that the sum of Rbwb does not exceed MRBWB.
+ - Move CDP enable state from file-scope globals to per-resource
+   cdp_enabled / cdp_capable.
+ - Configure both AT_CODE and AT_DATA limits when CDP is supported but
+   not enabled.
+
+Ssqosid:
+ - __switch_to_srmcfg() emits RISCV_FENCE(rw, o) before and (o, rw)
+   after csrw to drain old-task stores and order new-task loads.
+ - Invalidate per-cpu cpu_srmcfg on hart online via CPUHP_AP_ONLINE_DYN.
+   Also seed already-online CPUs synchronously at init.
+
+ACPI:
+ - Drop the PPTT helper patch and resolve cache_size via cacheinfo at
+   cbqri_resctrl_setup() time.
+ - ACPI driver now calls riscv_cbqri_register_controller() and the
+   cbqri_controller internals stay in cbqri_internal.h.
+
+Refer to v3 for previous change logs:
+https://lore.kernel.org/r/20260414-ssqosid-cbqri-rqsc-v7-0-v3-0-b3b2e7e9847a@kernel.org
+
+---
+Drew Fustini (18):
+      dt-bindings: riscv: Add Ssqosid extension description
+      riscv: detect the Ssqosid extension
+      riscv: add support for srmcfg CSR from Ssqosid extension
+      fs/resctrl: Add resctrl_is_membw() helper
+      fs/resctrl: Add RDT_RESOURCE_MB_MIN and RDT_RESOURCE_MB_WGHT
+      fs/resctrl: Let bandwidth resources default to min_bw at reset
+      riscv_cbqri: Add capacity controller probe and allocation device ops
+      riscv_cbqri: Add capacity controller monitoring device ops
+      riscv_cbqri: Add bandwidth controller probe and allocation device ops
+      riscv_cbqri: Add bandwidth controller monitoring device ops
+      riscv_cbqri: resctrl: Add cache allocation via capacity block mask
+      riscv_cbqri: resctrl: Add L3 cache occupancy monitoring
+      riscv_cbqri: resctrl: Add MB_MIN bandwidth allocation via Rbwb
+      riscv_cbqri: resctrl: Add MB_WGHT bandwidth allocation via Mweight
+      riscv_cbqri: resctrl: Add mbm_total_bytes bandwidth monitoring
+      ACPI: RISC-V: Parse RISC-V Quality of Service Controller (RQSC) table
+      ACPI: RISC-V: Add support for RISC-V Quality of Service Controller (RQSC)
+      riscv: enable resctrl filesystem for Ssqosid
+
+ .../devicetree/bindings/riscv/extensions.yaml      |    6 +
+ MAINTAINERS                                        |   15 +
+ arch/riscv/Kconfig                                 |   20 +
+ arch/riscv/include/asm/acpi.h                      |   10 +
+ arch/riscv/include/asm/csr.h                       |    5 +
+ arch/riscv/include/asm/hwcap.h                     |    1 +
+ arch/riscv/include/asm/processor.h                 |    3 +
+ arch/riscv/include/asm/qos.h                       |   87 ++
+ arch/riscv/include/asm/resctrl.h                   |  152 ++
+ arch/riscv/include/asm/switch_to.h                 |    3 +
+ arch/riscv/kernel/Makefile                         |    2 +
+ arch/riscv/kernel/cpufeature.c                     |    1 +
+ arch/riscv/kernel/qos.c                            |   98 ++
+ drivers/acpi/riscv/Makefile                        |    1 +
+ drivers/acpi/riscv/init.c                          |   21 +
+ drivers/acpi/riscv/rqsc.c                          |  202 +++
+ drivers/acpi/riscv/rqsc.h                          |   66 +
+ drivers/resctrl/Kconfig                            |   32 +
+ drivers/resctrl/Makefile                           |    6 +
+ drivers/resctrl/cbqri_devices.c                    | 1154 +++++++++++++++
+ drivers/resctrl/cbqri_internal.h                   |  247 ++++
+ drivers/resctrl/cbqri_resctrl.c                    | 1520 ++++++++++++++++++++
+ fs/resctrl/ctrlmondata.c                           |    3 +-
+ fs/resctrl/internal.h                              |    2 +
+ fs/resctrl/rdtgroup.c                              |   16 +-
+ include/linux/resctrl.h                            |   13 +-
+ include/linux/riscv_cbqri.h                        |   60 +
+ 27 files changed, 3737 insertions(+), 9 deletions(-)
+---
+base-commit: 5200f5f493f79f14bbdc349e402a40dfb32f23c8
+change-id: 20260329-ssqosid-cbqri-rqsc-v7-0-b0c788bab48a
+
+Best regards,
+--  
+Drew Fustini <fustini@kernel.org>
+
