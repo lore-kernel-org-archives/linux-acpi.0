@@ -1,39 +1,39 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6E613DC4C9;
-	Mon,  1 Jun 2026 17:13:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A40F3DC4D9;
+	Mon,  1 Jun 2026 17:13:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780334007; cv=none; b=HnmZkUGD10YA2Cqq7ILGmdQP6qEnmJBuGKMJI9PHvaZ24WBW7Ofjxm6Ij2bNTWfPmnoDyv4m37B3csWMoyGe6u7vn8lhvOvRQ5RTCJdNXWHPvzMEPnd2JxsaCah76qtOOhvZ4H3Dl0ov3BnrnMIrMUqBtDe/2DSiEH7Sg7KhewA=
+	t=1780334011; cv=none; b=rfyBBQqFG6RCL9CaVwzzZWs2akRItvUi1jiRTecngpPcVhIstQTb9LeYEGabjOYpboG7XVFTjCjUrMVl5FvwEQwd3wXXRFR0G+fgz46b9T4bsThOLsJe7hNRFcuf//VIIMORN0Gw17tjaVXjG6+C8Uzm80m1FSiKlVrXdfli5Lk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780334007; c=relaxed/simple;
-	bh=Cm/pO6BT8e/8CIm1MgX+mUVBD644MN6zVYL+RaCNxo8=;
+	s=arc-20240116; t=1780334011; c=relaxed/simple;
+	bh=rRx3Ke8RmZARHzmOYFdNzPU89q4tzEbE7QtNKY5lNmY=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=GfY/VTCwCLuf1ml5Kh0PvityEIPgmYRxSqQYtL9OIFvgKyQFlG1lhESEFyngZQs0o0RWJfsd9UKmmRi/a7hFiV0oW3eR+V/Wj7Thyw+/1uHGdLvtyOf+LrqBuwr6GU5I/vR5qyNwr4/cl9wCARlTfqpt8s4T4wUdgVpDm1TGBz4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ek28OGa6; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=ESoSUE7ZWudKEIIzPRNQ/D7h0qTiJMaggZXCj8RbqMlAmhXeuSOPKZFQYytlV2P+dq01fujQSUpYC5WuI5V7xbLiJerVO0j9qGhdB90A1bKkx1E4Ll6Uw70Tel9g1xv3pzxh5985t0Xo46PhbRUTikkJniQBt+M/ZzKquK5Fg8w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=epDpjTNi; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ek28OGa6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EAE381F00893;
-	Mon,  1 Jun 2026 17:13:25 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="epDpjTNi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6BCE01F00893;
+	Mon,  1 Jun 2026 17:13:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1780334006;
-	bh=A4ozbygPnKnyEptPtvQBJ0Hkn6jY8b5H4KruzJ/S5Dk=;
+	s=k20260515; t=1780334010;
+	bh=Z5kqv+SyVMLmDm6gopCUpp/tbBvkp+WyEsx3oa+vAj4=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=ek28OGa6LLFjgankBnH8j7d6jkysJxT+WWkxqide5xPI6Yl5lzFUwsJWX6UTFx/5W
-	 Wnme1l8v7tR8vN2MsptSOaLbSC7Ctt1n8Nps+hcj7EuEZyCxSFQXD3TvqHEya0CbaQ
-	 RNmYed20SDux+WmYHKKiHr84OSspVGJVd985iqgZh+PyH6vMrAafRH81FU+G/OA13R
-	 g6KHD2mrhLO1LCVb03wGl0CbqhgXOhO7nIKBDt54CH5ZL7HB9O87HyfkTTP9dwtMmX
-	 rqdLZ0PR6wt0IT4X8isujCqfOYyjDoAUbSmlKH3P0EK6XJT4Vvey7iF33ArT8+9zX7
-	 OAOyhEMInAu0Q==
+	b=epDpjTNialsjVzF8I6MM1n0N4uWJkx7cTaVcDeNqajdi/Blp/6tR6PuT73ZTSsmJZ
+	 PJd+9MC/vahUve7zF2oOwfyKHfXjp/8tPRYweUGe15Ws13BT1tCtSQ+h+DmILdAGvy
+	 nPMn1NKdWfT8YW0UI+OKP0Qi61U6e3cvbNX/Ak85LIQnwZpH7JX1lqQZkHhHlrzUJD
+	 /kGwhAS2aau0pVGJPvvMdVqsswFUtUS4gFFlMbfg8Zhzi/28cjkUHcpFPRUFbBupSc
+	 RMNzH2Ut99hpmjVOfswweHWzhH3RueedEXWJ116y3MdF5S1yFcz7LwY7mb09T2yLiW
+	 9pDCP8+fA99Vg==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>
 Subject:
- [PATCH v1 12/15] ACPI: button: Clean up adding and removing lid procfs
- interface
-Date: Mon, 01 Jun 2026 19:07:14 +0200
-Message-ID: <1869050.VLH7GnMWUR@rafael.j.wysocki>
+ [PATCH v1 11/15] ACPI: button: Merge two switch () statements in
+ acpi_button_probe()
+Date: Mon, 01 Jun 2026 19:05:31 +0200
+Message-ID: <3352815.5fSG56mABF@rafael.j.wysocki>
 Organization: Linux Kernel Development
 In-Reply-To: <12913564.O9o76ZdvQC@rafael.j.wysocki>
 References: <12913564.O9o76ZdvQC@rafael.j.wysocki>
@@ -48,162 +48,82 @@ Content-Type: text/plain; charset="UTF-8"
 
 From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-The procfs interface is only used with lid devices which only becomes
-clear after looking into the function bodies of acpi_button_add_fs()
-and acpi_button_remove_fs().  Moreover, the only error code returned
-by the former of these functions is -ENODEV, so the ret local variable
-in it is redundant, and the return type of the latter one can be changed
-to void.
-
-Accordingly, rename these functions to acpi_button_add_fs() and
-acpi_button_remove_fs(), respectively, move the button->type checks
-against ACPI_BUTTON_TYPE_LID from them to their callers, and make
-code simplifications as per the above.
+Two switch () statements in acpi_button_probe() operate on the same
+value and the statements between them can be reordered with respect
+to the second one, so merge them.
 
 No intentional functional impact.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/button.c | 54 ++++++++++++++++---------------------------
- 1 file changed, 20 insertions(+), 34 deletions(-)
+ drivers/acpi/button.c | 27 ++++++++++-----------------
+ 1 file changed, 10 insertions(+), 17 deletions(-)
 
 diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-index c035741e5abf..3327ee8132ad 100644
+index f0d29870b926..c035741e5abf 100644
 --- a/drivers/acpi/button.c
 +++ b/drivers/acpi/button.c
-@@ -292,15 +292,10 @@ static int __maybe_unused acpi_button_state_seq_show(struct seq_file *seq,
- 	return 0;
- }
- 
--static int acpi_button_add_fs(struct acpi_button *button)
-+static int acpi_lid_add_fs(struct acpi_button *button)
- {
- 	struct acpi_device *device = button->adev;
- 	struct proc_dir_entry *entry = NULL;
--	int ret = 0;
--
--	/* procfs I/F for ACPI lid device only */
--	if (button->type != ACPI_BUTTON_TYPE_LID)
--		return 0;
- 
- 	if (acpi_button_dir || acpi_lid_dir) {
- 		pr_info("More than one Lid device found!\n");
-@@ -314,33 +309,25 @@ static int acpi_button_add_fs(struct acpi_button *button)
- 
- 	/* create /proc/acpi/button/lid */
- 	acpi_lid_dir = proc_mkdir(ACPI_BUTTON_SUBCLASS_LID, acpi_button_dir);
--	if (!acpi_lid_dir) {
--		ret = -ENODEV;
-+	if (!acpi_lid_dir)
- 		goto remove_button_dir;
--	}
- 
- 	/* create /proc/acpi/button/lid/LID/ */
- 	acpi_device_dir(device) = proc_mkdir(acpi_device_bid(device), acpi_lid_dir);
--	if (!acpi_device_dir(device)) {
--		ret = -ENODEV;
-+	if (!acpi_device_dir(device))
- 		goto remove_lid_dir;
--	}
- 
- 	/* create /proc/acpi/button/lid/LID/state */
- 	entry = proc_create_single_data(ACPI_BUTTON_FILE_STATE, S_IRUGO,
- 			acpi_device_dir(device), acpi_button_state_seq_show,
- 			button);
--	if (!entry) {
--		ret = -ENODEV;
-+	if (!entry)
- 		goto remove_dev_dir;
--	}
- 
--done:
--	return ret;
-+	return 0;
- 
- remove_dev_dir:
--	remove_proc_entry(acpi_device_bid(device),
--			  acpi_lid_dir);
-+	remove_proc_entry(acpi_device_bid(device), acpi_lid_dir);
- 	acpi_device_dir(device) = NULL;
- remove_lid_dir:
- 	remove_proc_entry(ACPI_BUTTON_SUBCLASS_LID, acpi_button_dir);
-@@ -348,16 +335,13 @@ static int acpi_button_add_fs(struct acpi_button *button)
- remove_button_dir:
- 	remove_proc_entry(ACPI_BUTTON_CLASS, acpi_root_dir);
- 	acpi_button_dir = NULL;
--	goto done;
-+	return -ENODEV;
- }
- 
--static int acpi_button_remove_fs(struct acpi_button *button)
-+static void acpi_lid_remove_fs(struct acpi_button *button)
- {
- 	struct acpi_device *device = button->adev;
- 
--	if (button->type != ACPI_BUTTON_TYPE_LID)
--		return 0;
--
- 	remove_proc_entry(ACPI_BUTTON_FILE_STATE,
- 			  acpi_device_dir(device));
- 	remove_proc_entry(acpi_device_bid(device),
-@@ -367,8 +351,6 @@ static int acpi_button_remove_fs(struct acpi_button *button)
- 	acpi_lid_dir = NULL;
- 	remove_proc_entry(ACPI_BUTTON_CLASS, acpi_root_dir);
- 	acpi_button_dir = NULL;
--
--	return 0;
- }
- 
- static acpi_handle saved_lid_handle;
-@@ -588,6 +570,12 @@ static int acpi_button_probe(struct platform_device *pdev)
+@@ -582,14 +582,19 @@ static int acpi_button_probe(struct platform_device *pdev)
+ 	switch (button_type) {
+ 	case ACPI_BUTTON_TYPE_LID:
+ 		input->name = ACPI_BUTTON_DEVICE_NAME_LID;
++		input_set_capability(input, EV_SW, SW_LID);
++		input->open = acpi_lid_input_open;
++
  		handler = acpi_lid_notify;
  		sprintf(class, "%s/%s",
  			ACPI_BUTTON_CLASS, ACPI_BUTTON_SUBCLASS_LID);
-+
-+		error = acpi_lid_add_fs(button);
-+		if (error) {
-+			input_free_device(input);
-+			goto err_free_button;
-+		}
+-		input->open = acpi_lid_input_open;
  		break;
  
  	case ACPI_BUTTON_TYPE_POWER:
-@@ -614,12 +602,6 @@ static int acpi_button_probe(struct platform_device *pdev)
- 		return dev_err_probe(dev, -ENODEV, "Unrecognized button type\n");
+ 		input->name = ACPI_BUTTON_DEVICE_NAME_POWER;
++		input_set_capability(input, EV_KEY, KEY_POWER);
++		input_set_capability(input, EV_KEY, KEY_WAKEUP);
++
+ 		handler = acpi_button_notify;
+ 		sprintf(class, "%s/%s",
+ 			ACPI_BUTTON_CLASS, ACPI_BUTTON_SUBCLASS_POWER);
+@@ -597,6 +602,8 @@ static int acpi_button_probe(struct platform_device *pdev)
+ 
+ 	case ACPI_BUTTON_TYPE_SLEEP:
+ 		input->name = ACPI_BUTTON_DEVICE_NAME_SLEEP;
++		input_set_capability(input, EV_KEY, KEY_SLEEP);
++
+ 		handler = acpi_button_notify;
+ 		sprintf(class, "%s/%s",
+ 			ACPI_BUTTON_CLASS, ACPI_BUTTON_SUBCLASS_SLEEP);
+@@ -613,28 +620,14 @@ static int acpi_button_probe(struct platform_device *pdev)
+ 		goto err_free_button;
  	}
  
--	error = acpi_button_add_fs(button);
--	if (error) {
--		input_free_device(input);
--		goto err_free_button;
+-	snprintf(button->phys, sizeof(button->phys), "%s/button/input0", id->id);
++	snprintf(button->phys, sizeof(button->phys), "%s/button/input0",
++		 acpi_device_hid(device));
+ 
+ 	input->phys = button->phys;
+ 	input->id.bustype = BUS_HOST;
+ 	input->id.product = button_type;
+ 	input->dev.parent = dev;
+ 
+-	switch (button_type) {
+-	case ACPI_BUTTON_TYPE_POWER:
+-		input_set_capability(input, EV_KEY, KEY_POWER);
+-		input_set_capability(input, EV_KEY, KEY_WAKEUP);
+-		break;
+-
+-	case ACPI_BUTTON_TYPE_SLEEP:
+-		input_set_capability(input, EV_KEY, KEY_SLEEP);
+-		break;
+-
+-	case ACPI_BUTTON_TYPE_LID:
+-		input_set_capability(input, EV_SW, SW_LID);
+-		break;
 -	}
 -
- 	snprintf(button->phys, sizeof(button->phys), "%s/button/input0",
- 		 acpi_device_hid(device));
- 
-@@ -689,7 +671,9 @@ static int acpi_button_probe(struct platform_device *pdev)
- 	device_init_wakeup(button->dev, false);
- 	input_unregister_device(input);
- err_remove_fs:
--	acpi_button_remove_fs(button);
-+	if (button_type == ACPI_BUTTON_TYPE_LID)
-+		acpi_lid_remove_fs(button);
-+
- err_free_button:
- 	kfree(button);
- 	memset(acpi_device_class(device), 0, sizeof(acpi_device_class));
-@@ -730,8 +714,10 @@ static void acpi_button_remove(struct platform_device *pdev)
- 
- 	device_init_wakeup(button->dev, false);
- 
--	acpi_button_remove_fs(button);
- 	input_unregister_device(button->input);
-+	if (button->type == ACPI_BUTTON_TYPE_LID)
-+		acpi_lid_remove_fs(button);
-+
- 	kfree(button);
- 
- 	memset(acpi_device_class(adev), 0, sizeof(acpi_device_class));
+ 	input_set_drvdata(input, button);
+ 	error = input_register_device(input);
+ 	if (error) {
 -- 
 2.51.0
 
