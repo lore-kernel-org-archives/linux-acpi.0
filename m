@@ -1,39 +1,39 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20BEC3DC87B;
-	Mon,  1 Jun 2026 17:13:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFC463DB65A;
+	Mon,  1 Jun 2026 17:13:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780334002; cv=none; b=i/86L0l4gBeL1n6GDjIenG4mbtyP9vqvsz5kk6CpZ1Giml3B+fo0rwW9F8X0xPzeA2FsG01BGybjZYtC3CT3uZEDSr/Ex+x24iahh6otsi56PHMstH6GQEEamFntLLTMNRu7o+DrdVaUvW5wzZzwdvMUedUu7OUmltAvEQQrDB8=
+	t=1780334005; cv=none; b=qtf5fjqTTsTXZiu06Q7Ho4FResXIaUN/J9Lx2rk/le4tkmQYpO1eeMuEhXNG6ZUMhOgC4MVDxm/L87QA2+KKDWaJYGEFXeGIqUbZNSow1gEHyxAV8jgcKvUwdEkuEM6LNQ6jkTf4xLQli5j0tDRFq/gWqHyXTyJ5KCbv9GxnxuM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780334002; c=relaxed/simple;
-	bh=X6XCide9IUkeqqMY/HgYn/FWHxUJbk50bklN1mgtzCM=;
+	s=arc-20240116; t=1780334005; c=relaxed/simple;
+	bh=aOHdtoqbu4aKOwnilONnGhvrl1KID5BsLTrW4Cy6GVE=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=B5aAFsM+2B1RyAiSUNYlsnfh7wKBHvgDhgyBEjbpYrg54PueD6jZeyChvC4cmh+CZI6yHCwFc1zJfqkx+DuydJg8hivThiROXmvm3L42GcK+Wl7TH2zsuwZfFD2QC9dT/VhCS6mHjhVkNHd00VfKUt23RVKraIvzlH47hDjodwU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Huk2GeFg; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=RKqjgFu0YKFp+wmP7kvp9BqrCubK1QpsQ/vvp4KXR1YDuRgQ9zBl4MSkGd1EIfXDi67SAnttklHPW9x3GfPio7OCXfv7MP/GZAcO2X0DyPhdoDT2SIQ7S/4IySPcBkiEMeoGydlP2+v9TsoRF8Gcr3/kW8XuKmImXdBAIAx40LI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IX8B260i; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Huk2GeFg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D3861F00893;
-	Mon,  1 Jun 2026 17:13:20 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IX8B260i"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16CA11F00893;
+	Mon,  1 Jun 2026 17:13:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1780334000;
-	bh=41VHf2yKQJy/49Ev++yQzu0ZAnCVr7ytGsODeD+JIiU=;
+	s=k20260515; t=1780334003;
+	bh=AjDkKyCkK5vUk4p4cKNeEFQDhdXUyvyrTxgPM1YHjn8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=Huk2GeFgBv+UJTc0BDmhDYdaAUru1kipvMOGZTzTMkX2KBVpN/TYeilyexzIqpODw
-	 XWRRjkLKCnYLDBWb/1vG9PHpdu/2L1UbQKp2F9hVNsn9CB84uJe/6GEbi4RVm6BNgb
-	 Z9KySN8jhelDx9avnIG5t7R7JHDm+jBm64v/BZ5QjHBnOM4MSSDd9fXVu8IMJluDzD
-	 4pSLzdZTyRjnG3iVydNVTc2n6dX5HkM2y9vvSZHGSCMeLqH9H1JqxH8lAh0gqklBFw
-	 88FHeGXD9SrX0Io4trv9t6DiJECanakWJB9PMl6t8ErWh8OyDRaxo54tYEOmNDnIC3
-	 zQLEXJiO4f87Q==
+	b=IX8B260iLJVo49BcEV/Z8rFvDmPpSVOHN9j4BR4POnmHoBhZdnRNJ+w/IR2z5CQnL
+	 90vt3M+M0S+hH+wbTFi4ahKkPX/wB7whNUUKAczfiuDn4BPx0Zt97IEbP3VNDSMwLH
+	 Mw1rkzSVEZRPwMH6pyw4X1drLXMCjxb5rhgupKiVgH9gY5f2tFu4fEmsv4FY+4qOAg
+	 ihQYhLONYYFEGGJV9gGMrgracEB7oZNkZnkw6je0e+IimZK+NEs6AvUVECN4lHyPez
+	 79ADahqjQ8QlnceSD8gURUpGELOC6Tn4EnCfexuyfp83gbckrzslzP8jJbLOCze1+h
+	 JGotGoA3nK3Bw==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>
 Subject:
- [PATCH v1 14/15] ACPI: button: Reorganize installing and removing event
- handlers
-Date: Mon, 01 Jun 2026 19:12:19 +0200
-Message-ID: <2714170.Lt9SDvczpP@rafael.j.wysocki>
+ [PATCH v1 13/15] ACPI: button: Use string literals for generating netlink
+ messages
+Date: Mon, 01 Jun 2026 19:07:57 +0200
+Message-ID: <2070791.usQuhbGJ8B@rafael.j.wysocki>
 Organization: Linux Kernel Development
 In-Reply-To: <12913564.O9o76ZdvQC@rafael.j.wysocki>
 References: <12913564.O9o76ZdvQC@rafael.j.wysocki>
@@ -48,227 +48,133 @@ Content-Type: text/plain; charset="UTF-8"
 
 From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-To facilitate subsequent changes, move the code installing and
-removing button event handlers into two separate functions called
-acpi_button_add_event_handler() and acpi_button_remove_event_handler(),
-respectively, and rearrange it to reduce code duplication.
+Instead of storing strings that never change later under
+acpi_device_class(device) and using them for generating netlink
+messages, use pointers to string literals with the same content.
+
+This also allows the clearing of the acpi_device_class(device)
+area during driver removal and in the probe rollback path to be
+dropped.
 
 No intentional functional impact.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/button.c | 155 ++++++++++++++++++++++++------------------
- 1 file changed, 89 insertions(+), 66 deletions(-)
+ drivers/acpi/button.c | 27 +++++++++++----------------
+ 1 file changed, 11 insertions(+), 16 deletions(-)
 
 diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-index 122c1dd8a68d..8a56780e13da 100644
+index 3327ee8132ad..122c1dd8a68d 100644
 --- a/drivers/acpi/button.c
 +++ b/drivers/acpi/button.c
-@@ -522,15 +522,99 @@ static int acpi_lid_input_open(struct input_dev *input)
- 	return 0;
+@@ -28,14 +28,15 @@
+ #define ACPI_BUTTON_NOTIFY_WAKE		0x02
+ #define ACPI_BUTTON_NOTIFY_STATUS	0x80
+ 
+-#define ACPI_BUTTON_SUBCLASS_POWER	"power"
++#define ACPI_BUTTON_CLASS_POWER		"button/power"
+ #define ACPI_BUTTON_DEVICE_NAME_POWER	"Power Button"
+ #define ACPI_BUTTON_TYPE_POWER		0x01
+ 
+-#define ACPI_BUTTON_SUBCLASS_SLEEP	"sleep"
++#define ACPI_BUTTON_CLASS_SLEEP		"button/sleep"
+ #define ACPI_BUTTON_DEVICE_NAME_SLEEP	"Sleep Button"
+ #define ACPI_BUTTON_TYPE_SLEEP		0x03
+ 
++#define ACPI_BUTTON_CLASS_LID		"button/lid"
+ #define ACPI_BUTTON_SUBCLASS_LID	"lid"
+ #define ACPI_BUTTON_DEVICE_NAME_LID	"Lid Switch"
+ #define ACPI_BUTTON_TYPE_LID		0x05
+@@ -173,6 +174,7 @@ struct acpi_button {
+ 	struct device *dev;		/* physical button device */
+ 	unsigned int type;
+ 	struct input_dev *input;
++	const char *class;		/* for netlink messages */
+ 	char phys[32];			/* for input device */
+ 	unsigned long pushed;
+ 	bool last_state;
+@@ -462,8 +464,7 @@ static void acpi_button_notify(acpi_handle handle, u32 event, void *data)
+ 	input_report_key(input, keycode, 0);
+ 	input_sync(input);
+ 
+-	acpi_bus_generate_netlink_event(acpi_device_class(device),
+-					dev_name(&device->dev),
++	acpi_bus_generate_netlink_event(button->class, dev_name(&device->dev),
+ 					event, ++button->pushed);
  }
  
-+static acpi_notify_handler acpi_button_notify_handler(struct acpi_button *button)
-+{
-+	if (button->type == ACPI_BUTTON_TYPE_LID)
-+		return acpi_lid_notify;
-+
-+	return acpi_button_notify;
-+}
-+
-+static void acpi_button_remove_event_handler(struct acpi_button *button)
-+{
-+	struct acpi_device *adev = button->adev;
-+
-+	switch (adev->device_type) {
-+	case ACPI_BUS_TYPE_POWER_BUTTON:
-+		acpi_remove_fixed_event_handler(ACPI_EVENT_POWER_BUTTON,
-+						acpi_button_event);
-+		break;
-+
-+	case ACPI_BUS_TYPE_SLEEP_BUTTON:
-+		acpi_remove_fixed_event_handler(ACPI_EVENT_SLEEP_BUTTON,
-+						acpi_button_event);
-+		break;
-+
-+	default:
-+		if (button->gpe_enabled) {
-+			dev_dbg(button->dev, "Disabling ACPI GPE%02llx\n",
-+				adev->wakeup.gpe_number);
-+			acpi_disable_gpe(adev->wakeup.gpe_device,
-+					 adev->wakeup.gpe_number);
-+		}
-+		acpi_remove_notify_handler(adev->handle, ACPI_ALL_NOTIFY,
-+					   acpi_button_notify_handler(button));
-+		break;
-+	}
-+	acpi_os_wait_events_complete();
-+}
-+
-+static int acpi_button_add_fixed_event_handler(u32 event,
-+					       struct acpi_button *button)
-+{
-+	acpi_status status;
-+
-+	status = acpi_install_fixed_event_handler(event, acpi_button_event, button);
-+	if (ACPI_FAILURE(status))
-+		return -ENODEV;
-+
-+	return 0;
-+}
-+
-+static int acpi_button_add_event_handler(struct acpi_button *button)
-+{
-+	struct acpi_device *adev = button->adev;
-+	acpi_status status;
-+
-+	if (adev->device_type == ACPI_BUS_TYPE_POWER_BUTTON)
-+		return acpi_button_add_fixed_event_handler(ACPI_EVENT_POWER_BUTTON,
-+							   button);
-+
-+	if (adev->device_type == ACPI_BUS_TYPE_SLEEP_BUTTON)
-+		return acpi_button_add_fixed_event_handler(ACPI_EVENT_SLEEP_BUTTON,
-+							   button);
-+
-+	status = acpi_install_notify_handler(adev->handle, ACPI_ALL_NOTIFY,
-+					     acpi_button_notify_handler(button),
-+					     button);
-+	if (ACPI_FAILURE(status))
-+		return -ENODEV;
-+
-+	if (!adev->wakeup.flags.valid)
-+		return 0;
-+
-+	/*
-+	 * If the wakeup GPE has a handler method, enable it in case it is also
-+	 * used for signaling runtime events.
-+	 */
-+	status = acpi_enable_gpe_cond(adev->wakeup.gpe_device,
-+				      adev->wakeup.gpe_number,
-+				      ACPI_GPE_DISPATCH_METHOD);
-+	button->gpe_enabled = ACPI_SUCCESS(status);
-+	if (button->gpe_enabled)
-+		dev_dbg(button->dev, "Enabled ACPI GPE%02llx\n",
-+			adev->wakeup.gpe_number);
-+
-+	return 0;
-+}
-+
- static int acpi_button_probe(struct platform_device *pdev)
- {
- 	struct device *dev = &pdev->dev;
- 	struct acpi_device *device = ACPI_COMPANION(dev);
- 	const struct acpi_device_id *id;
--	acpi_notify_handler handler;
+@@ -530,7 +531,6 @@ static int acpi_button_probe(struct platform_device *pdev)
  	struct acpi_button *button;
  	struct input_dev *input;
--	acpi_status status;
+ 	acpi_status status;
+-	char *class;
  	u8 button_type;
  	int error = 0;
  
-@@ -567,8 +649,6 @@ static int acpi_button_probe(struct platform_device *pdev)
+@@ -559,17 +559,15 @@ static int acpi_button_probe(struct platform_device *pdev)
+ 	button->input = input;
+ 	button->type = button_type;
+ 
+-	class = acpi_device_class(device);
+-
+ 	switch (button_type) {
+ 	case ACPI_BUTTON_TYPE_LID:
++		button->class = ACPI_BUTTON_CLASS_LID;
++
+ 		input->name = ACPI_BUTTON_DEVICE_NAME_LID;
  		input_set_capability(input, EV_SW, SW_LID);
  		input->open = acpi_lid_input_open;
  
--		handler = acpi_lid_notify;
--
+ 		handler = acpi_lid_notify;
+-		sprintf(class, "%s/%s",
+-			ACPI_BUTTON_CLASS, ACPI_BUTTON_SUBCLASS_LID);
+ 
  		error = acpi_lid_add_fs(button);
  		if (error) {
- 			input_free_device(input);
-@@ -582,8 +662,6 @@ static int acpi_button_probe(struct platform_device *pdev)
+@@ -579,22 +577,22 @@ static int acpi_button_probe(struct platform_device *pdev)
+ 		break;
+ 
+ 	case ACPI_BUTTON_TYPE_POWER:
++		button->class = ACPI_BUTTON_CLASS_POWER;
++
  		input->name = ACPI_BUTTON_DEVICE_NAME_POWER;
  		input_set_capability(input, EV_KEY, KEY_POWER);
  		input_set_capability(input, EV_KEY, KEY_WAKEUP);
--
--		handler = acpi_button_notify;
+ 
+ 		handler = acpi_button_notify;
+-		sprintf(class, "%s/%s",
+-			ACPI_BUTTON_CLASS, ACPI_BUTTON_SUBCLASS_POWER);
  		break;
  
  	case ACPI_BUTTON_TYPE_SLEEP:
-@@ -591,8 +669,6 @@ static int acpi_button_probe(struct platform_device *pdev)
- 
++		button->class = ACPI_BUTTON_CLASS_SLEEP;
++
  		input->name = ACPI_BUTTON_DEVICE_NAME_SLEEP;
  		input_set_capability(input, EV_KEY, KEY_SLEEP);
--
--		handler = acpi_button_notify;
+ 
+ 		handler = acpi_button_notify;
+-		sprintf(class, "%s/%s",
+-			ACPI_BUTTON_CLASS, ACPI_BUTTON_SUBCLASS_SLEEP);
  		break;
  
  	default:
-@@ -617,42 +693,9 @@ static int acpi_button_probe(struct platform_device *pdev)
+@@ -676,7 +674,6 @@ static int acpi_button_probe(struct platform_device *pdev)
  
- 	device_init_wakeup(button->dev, true);
+ err_free_button:
+ 	kfree(button);
+-	memset(acpi_device_class(device), 0, sizeof(acpi_device_class));
+ 	return error;
+ }
  
--	switch (device->device_type) {
--	case ACPI_BUS_TYPE_POWER_BUTTON:
--		status = acpi_install_fixed_event_handler(ACPI_EVENT_POWER_BUTTON,
--							  acpi_button_event,
--							  button);
--		break;
--	case ACPI_BUS_TYPE_SLEEP_BUTTON:
--		status = acpi_install_fixed_event_handler(ACPI_EVENT_SLEEP_BUTTON,
--							  acpi_button_event,
--							  button);
--		break;
--	default:
--		status = acpi_install_notify_handler(device->handle,
--						     ACPI_ALL_NOTIFY, handler,
--						     button);
--		if (ACPI_SUCCESS(status) && device->wakeup.flags.valid) {
--			acpi_status st;
+@@ -719,8 +716,6 @@ static void acpi_button_remove(struct platform_device *pdev)
+ 		acpi_lid_remove_fs(button);
+ 
+ 	kfree(button);
 -
--			/*
--			 * If the wakeup GPE has a handler method, enable it in
--			 * case it is also used for signaling runtime events.
--			 */
--			st = acpi_enable_gpe_cond(device->wakeup.gpe_device,
--						   device->wakeup.gpe_number,
--						   ACPI_GPE_DISPATCH_METHOD);
--			button->gpe_enabled = ACPI_SUCCESS(st);
--			if (button->gpe_enabled)
--				dev_dbg(button->dev, "Enabled ACPI GPE%02llx\n",
--					device->wakeup.gpe_number);
--		}
--		break;
--	}
--	if (ACPI_FAILURE(status)) {
--		error = -ENODEV;
-+	error = acpi_button_add_event_handler(button);
-+	if (error)
- 		goto err_input_unregister;
--	}
+-	memset(acpi_device_class(adev), 0, sizeof(acpi_device_class));
+ }
  
- 	if (button_type == ACPI_BUTTON_TYPE_LID) {
- 		/*
-@@ -685,29 +728,7 @@ static void acpi_button_remove(struct platform_device *pdev)
- 	if (button->type == ACPI_BUTTON_TYPE_LID)
- 		acpi_lid_forget(adev);
- 
--	switch (adev->device_type) {
--	case ACPI_BUS_TYPE_POWER_BUTTON:
--		acpi_remove_fixed_event_handler(ACPI_EVENT_POWER_BUTTON,
--						acpi_button_event);
--		break;
--	case ACPI_BUS_TYPE_SLEEP_BUTTON:
--		acpi_remove_fixed_event_handler(ACPI_EVENT_SLEEP_BUTTON,
--						acpi_button_event);
--		break;
--	default:
--		if (button->gpe_enabled) {
--			dev_dbg(button->dev, "Disabling ACPI GPE%02llx\n",
--				adev->wakeup.gpe_number);
--			acpi_disable_gpe(adev->wakeup.gpe_device,
--					 adev->wakeup.gpe_number);
--		}
--		acpi_remove_notify_handler(adev->handle, ACPI_ALL_NOTIFY,
--					   button->type == ACPI_BUTTON_TYPE_LID ?
--						acpi_lid_notify :
--						acpi_button_notify);
--		break;
--	}
--	acpi_os_wait_events_complete();
-+	acpi_button_remove_event_handler(button);
- 
- 	device_init_wakeup(button->dev, false);
- 
+ static int param_set_lid_init_state(const char *val,
 -- 
 2.51.0
 
