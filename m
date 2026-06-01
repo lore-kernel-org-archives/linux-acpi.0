@@ -1,135 +1,157 @@
-Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yw1-f227.google.com (mail-yw1-f227.google.com [209.85.128.227])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CEA337E30F;
-	Mon,  1 Jun 2026 20:24:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=90.155.50.34
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25DDC3806C4
+	for <linux-acpi@vger.kernel.org>; Mon,  1 Jun 2026 20:29:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.227
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780345463; cv=none; b=JO064iHtiRGhJk9CJ4YVy46rjntTacS25eTJ07t9K8lFea9Zul7ipvEaYd3kc1mNZSou95kS2n6JrECnIp28EFG7gy1OylAKMmcpcmQzmnWe+A/l/mD8j212K/AFIp6LcF6k6loDmeBIe6J7XfrRI0sbkZzG19SSZ/YrW3BvIQk=
+	t=1780345753; cv=none; b=hTv6GYFjI2lm7lJvQ/fNJLm80ltZolEgG3OXE9E/Al2pVwKBPj8cHcpAnUWi3oIxYFlUr3489f0rpaL55kdcaIkEKceea7dqndCHphBLQRct574nUF4IbrQ/wJfoDylIDLFLjcAiy4YGCdNWvRLMkm7JBxHOiAyRjNaYVYxi7LE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780345463; c=relaxed/simple;
-	bh=l3dLCfo8STCCjPr/FqdtQ/3GS1wUw1HahkL+2RftIZg=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=UKPrEQh6Hps01Kb1Y3KPK/oWFn31YcWM9+QDtgSb9mSjBJ1PNpVBSf7I/+diJFqLeJ8hN4t9rehpbW+p8R3slESZqltvauOcgj3SYTlPnXHJSnqjStNlCx+FNG7vVkVdnBSYlDCvy9QStDile0PiVm+V09+876wSH+sMVXiveYg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=pass smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=JD/rgItE; arc=none smtp.client-ip=90.155.50.34
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=infradead.org
+	s=arc-20240116; t=1780345753; c=relaxed/simple;
+	bh=wujH18UNsauBGw2rzT6IwfdOl4oOYdohexeVU5B2YQc=;
+	h=Date:From:To:Cc:Subject:Message-ID:Content-Type:
+	 Content-Disposition; b=q3ylSVmljMiOsG9Ejlx0ZmF3pPNh9n4XQfWKZPLNHtxiCc5xk7hDcIk/EYp7Q3oljLNpJ1LGuOzY9lnaJS4L7BT34gakGx8jLnLiTBzc8Pb3IUvX5Vn0wIyATKr8KXkQMljcT54ZTKbN13Z0TmriapOggEIhb5mQQ+C9sgiNgTM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=arista.com; spf=pass smtp.mailfrom=arista.com; dkim=pass (2048-bit key) header.d=arista.com header.i=@arista.com header.b=dsjluN2C; arc=none smtp.client-ip=209.85.128.227
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=arista.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arista.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="JD/rgItE"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=6/5W0G6Gs1Q9GB3IxcldPERQvThA7tz7U249bqa4a9U=; b=JD/rgItEItTF3waKZU0fyhZfOO
-	p6KhOF2dIKsWbBlXDH6Szda6v6pwxYE0KSLQ6p9Jvu4aC0kMd1Jp91bHbXXGW1JY4kLAuzDZFSXs9
-	P7bQk5/xrqJRa6GrGWdxnMhnM9cOr/Mh7DhOreUlDgBnF2TcRdtGfQbRd9WsBVDwHFqfKKNmW2p+o
-	Eq81r5ZCto6v0j62Ti/4LX0nmYsBAqhcbZ6JenvK3VL8pcuJJabuzAf2wJL1ohACsCSDs/sp5+nbD
-	m2tuZulS6JhmLQAZ2oWemvoJrOfuaHp1Sctzmp2YTWfFeramTBO8sylg/IQVtL1hc2i3NQH4Kt9qQ
-	+ovW+CfA==;
-Received: from willy by casper.infradead.org with local (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wU9Av-00000000iHG-2DOC;
-	Mon, 01 Jun 2026 20:23:53 +0000
-Date: Mon, 1 Jun 2026 21:23:53 +0100
-From: Matthew Wilcox <willy@infradead.org>
-To: David Laight <david.laight.linux@gmail.com>
-Cc: Kees Cook <kees@kernel.org>, Luis Chamberlain <mcgrof@kernel.org>,
-	Pengpeng Hou <pengpeng@iscas.ac.cn>, stable@vger.kernel.org,
-	Petr Pavlu <petr.pavlu@suse.com>,
-	Richard Weinberger <richard@nod.at>,
-	Anton Ivanov <anton.ivanov@cambridgegreys.com>,
-	Johannes Berg <johannes@sipsolutions.net>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>, Corey Minyard <corey@minyard.net>,
-	Gabriel Somlo <somlo@cmu.edu>,
-	"Michael S. Tsirkin" <mst@redhat.com>,
-	Jani Nikula <jani.nikula@linux.intel.com>,
-	Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
-	Rodrigo Vivi <rodrigo.vivi@intel.com>,
-	Tvrtko Ursulin <tursulin@ursulin.net>,
-	David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>,
-	Bart Van Assche <bvanassche@acm.org>,
-	Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans de Goede <hansg@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Bjorn Helgaas <bhelgaas@google.com>, Hannes Reinecke <hare@suse.de>,
-	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
-	"Martin K. Petersen" <martin.petersen@oracle.com>,
-	Daniel Lezcano <daniel.lezcano@kernel.org>,
-	Zhang Rui <rui.zhang@intel.com>, Lukasz Luba <lukasz.luba@arm.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jiri Slaby <jirislaby@kernel.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Jason Wang <jasowang@redhat.com>,
-	Xuan Zhuo <xuanzhuo@linux.alibaba.com>,
-	Eugenio =?iso-8859-1?Q?P=E9rez?= <eperezma@redhat.com>,
-	Jason Baron <jbaron@akamai.com>, Jim Cromie <jim.cromie@gmail.com>,
-	Tiwei Bie <tiwei.btw@antgroup.com>,
-	Benjamin Berg <benjamin.berg@intel.com>,
-	Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
-	"David E. Box" <david.e.box@linux.intel.com>,
-	"Maciej W. Rozycki" <macro@orcam.me.uk>,
-	Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Heiko Carstens <hca@linux.ibm.com>,
-	Vasily Gorbik <gor@linux.ibm.com>,
-	Sean Christopherson <seanjc@google.com>,
-	Paolo Bonzini <pbonzini@redhat.com>,
-	Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
-	Borislav Petkov <bp@alien8.de>,
-	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
-	"H. Peter Anvin" <hpa@zytor.com>, Vinod Koul <vkoul@kernel.org>,
-	Frank Li <Frank.Li@kernel.org>, Daniel Gomez <da.gomez@kernel.org>,
-	Sami Tolvanen <samitolvanen@google.com>,
-	Aaron Tomlin <atomlin@atomlin.com>,
-	Alexander Potapenko <glider@google.com>,
-	Marco Elver <elver@google.com>, Dmitry Vyukov <dvyukov@google.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	John Johansen <john.johansen@canonical.com>,
-	Paul Moore <paul@paul-moore.com>, James Morris <jmorris@namei.org>,
-	"Serge E. Hallyn" <serge@hallyn.com>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Georgia Garcia <georgia.garcia@canonical.com>, kvm@vger.kernel.org,
-	dmaengine@vger.kernel.org, linux-modules@vger.kernel.org,
-	kasan-dev@googlegroups.com, linux-mm@kvack.org,
-	apparmor@lists.ubuntu.com, linux-security-module@vger.kernel.org,
-	linux-um@lists.infradead.org, linux-acpi@vger.kernel.org,
-	openipmi-developer@lists.sourceforge.net, qemu-devel@nongnu.org,
-	intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
-	linux-rdma@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-pci@vger.kernel.org, linux-scsi@vger.kernel.org,
-	linux-pm@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-	linux-serial@vger.kernel.org, linux-usb@vger.kernel.org,
-	usb-storage@lists.one-eyed-alien.net,
-	virtualization@lists.linux.dev, linux-kernel@vger.kernel.org,
-	linux-arch@vger.kernel.org, netdev@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org, linux-hardening@vger.kernel.org
-Subject: Re: [PATCH 01/11] params: bound array element output to the caller's
- page buffer
-Message-ID: <ah3qWZ4cqhrbHZcl@casper.infradead.org>
-References: <20260521133315.work.845-kees@kernel.org>
- <20260521133326.2465264-1-kees@kernel.org>
- <20260521174631.71a06440@pumpkin>
+	dkim=pass (2048-bit key) header.d=arista.com header.i=@arista.com header.b="dsjluN2C"
+Received: by mail-yw1-f227.google.com with SMTP id 00721157ae682-7e1c3f47d78so22157887b3.0
+        for <linux-acpi@vger.kernel.org>; Mon, 01 Jun 2026 13:29:10 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1780345750; x=1780950550;
+        h=content-disposition:message-id:subject:cc:to:from:date
+         :dkim-signature:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=qzcnnb4ft/sHGmWhq3YYu19yrHmbVI8yyzjWSZ/LZK8=;
+        b=IM6+mEdkCbrp0L7l2+YGDtGtovNikr1Gf1yhmYlMt1wZnQriQ8RPYxufpHtJrcnwdw
+         XHP78JbPaPWkBSxfUw8Jl3gT3gZWrDMcVBIOgsMcPunf22Z648fGwT4nA6IINW/U4Xtn
+         jPJ/sef3tSP/Xn0ipj51tAfCgJqSX8S+aS5CNPZ04BUVEqimnGqNBYn5DgyJAuoqkLvW
+         HcJwu4HpvUI9HCczjQk2ov2jBqYO18jGyZwJuwBFVbdoBeZVnJB3xU7RF0hY8kMyUJlP
+         1iQgMckPr4jaVoh19YLVNxAvws/LMPzYU57zP5Dvni+liJRh5XbZU6y7B0fQ3AnmLN2I
+         4Fmg==
+X-Gm-Message-State: AOJu0YxbVENd/a3sSGKvl2sOhqW++bf+TWjiIvBTYYLd6AWI68FCxy9i
+	pTa171pY6jN6YZ7LLUDRYc3bNKRPjg0cQrD7PKYBYJvXfMSzTIutBisdZSwNSU8y4Y/wMMDN0NK
+	r4U8MvkaT/F0Co6Aa7US8mmzSy0hAiq8VDg==
+X-Gm-Gg: Acq92OFYYSL90dMF0z1+5/zZXRqvZXvnyxlewoB0fjPRKvh8NWx3nFqyp8VL3Ui4w39
+	8qQ5QzXPPoM0Z+rPzI9q/1gKIWri2QitXl7+jGgjsmd/EuzemPM/SPjaADAF/pogIdMVS8EVEKR
+	31nfxpb7F6usb1/+4KAWgESY2H1PXKEWT/8Rd2Z6d3OON6dsTaWulGHQYuavWF/06EMDEc3dLPn
+	J81scT3Jgziq41EhRfvYzfto1aEB0yYTtGy55YcntPnJTa21eCA3c8ApaQIqHpqMIIKYgpn2+wH
+	fkHDmZrJzUlki8auX6QslNgD+vysQapQzP1cK3KpfJDN1+2I6OOusrfsqi/3Sc5Y6vAsMinsV0A
+	eNk9tW71XYdwGT3O1bDT0U5nhtoauCV/rY1mkOiAtEnxUWFFz1SeRCE+ZwTwhPYMkYSYJHmqW4w
+	KDFGlEe0BW5cSDftK6
+X-Received: by 2002:a05:690c:e0d:b0:7d1:8eec:5b34 with SMTP id 00721157ae682-7e0593001acmr122685297b3.12.1780345750073;
+        Mon, 01 Jun 2026 13:29:10 -0700 (PDT)
+Received: from smtp.aristanetworks.com (ec2-52-52-135-65.us-west-1.compute.amazonaws.com. [52.52.135.65])
+        by smtp-relay.gmail.com with ESMTPS id 00721157ae682-7e17b446f64sm4902517b3.20.2026.06.01.13.29.09
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 01 Jun 2026 13:29:10 -0700 (PDT)
+X-Relaying-Domain: arista.com
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arista.com;
+	s=Arista-A; t=1780345749;
+	bh=qzcnnb4ft/sHGmWhq3YYu19yrHmbVI8yyzjWSZ/LZK8=;
+	h=Date:From:To:Cc:Subject:From;
+	b=dsjluN2CMjxRnHeBxRFRQuOG/hIdciKtX5vqGx80+kiwfXlMp/V8cUwRSgrgBK6F+
+	 NOUTdNpbTAwjGyqtaLF8kU0HXULGdehLMpd4VOu8p16yA0tNxG5Mts4vTRp8BCYZv6
+	 s+WRP2AqyqEXDKrCEk/qiGze5fmDUmUECcxPYPhKJ9hBSKKcBkrI5jIkUsuCFfS1R0
+	 iC3DjMcmc0I1dMatYdM8nrOiTFEyscY/w+Ja1qnSkQpJvRXt9VdNTTkphvLg2OxL6q
+	 0wNMbOi+pZXXH0FV+dDqHwuN/0wV+/9IK+JABB8cnTjv3tj/lVLimL8WyRpzuukMp0
+	 4heJhQ/fdiQIQ==
+Received: from vm-ymd.sjc.aristanetworks.com (dhcp-244-52-81.sjc.aristanetworks.com [10.244.52.81])
+	by smtp.aristanetworks.com (Postfix) with ESMTPS id 42028C265C;
+	Mon,  1 Jun 2026 20:29:09 +0000 (UTC)
+Date: Mon, 1 Jun 2026 20:29:08 +0000
+X-SMTP-Authentication: Allow-List-permitted
+X-SMTP-Authentication: Allow-List-permitted
+From: Mohan Yelugoti <ymd@arista.com>
+To: linux-acpi@vger.kernel.org
+Cc: rafael.j.wysocki@intel.com, mario.limonciello@amd.com,
+	mika.westerberg@linux.intel.com, linux-kernel@vger.kernel.org
+Subject: [REGRESSION] ACPI: threaded SCI handler causes soft lockup in kdump
+ capture kernel
+Message-ID: <ah3rlJrHviZHFt0+@vm-ymd.sjc.aristanetworks.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260521174631.71a06440@pumpkin>
 
-On Thu, May 21, 2026 at 05:46:31PM +0100, David Laight wrote:
-> On Thu, 21 May 2026 06:33:14 -0700
-> Kees Cook <kees@kernel.org> wrote:
-> > Collect each element into a temporary PAGE_SIZE buffer first and then
-> > copy only the remaining space into the caller's page buffer.
-> 
-> Should this be using a 4k buffer on all architectures?
-> Initially perhaps just using a different name for the constant until
-> all the associated PAGE_SIZE limits have been removed.
+Hi,
 
-If we're acually going to think about this, even 4KiB is too big.
-An 80x25 terminal is 2000 bytes (assuming no utf8), so 4KiB is two
-entire screenfuls.  Limiting to 2048 would seem reasonable to me.
+We ship SONiC[0] on top of Debian stable with a small set of patches
+on top (see [1]). After moving SONiC from Debian bookworm
+to trixie, we started seeing a regression where the kdump capture
+kernel hits a soft lockup while collecting the crash dump, so no
+vmcore is produced.
+
+We trigger the original panic in the kernel with:
+
+      echo c > /proc/sysrq-trigger
+
+The capture kernel then boots and hangs. To capture a usable trace
+rather than waiting indefinitely, I added the following to the
+capture-kernel command line so that it panics on soft lockup (and
+dumps backtraces from all CPUs) when the hang is detected:
+
+      debug=1 loglevel=7 softlockup_all_cpu_backtrace=1
+softlockup_panic=1
+
+With those in place, the capture kernel prints:
+
+      watchdog: BUG: soft lockup - CPU#0 stuck for 26s! [irq/9-acpi:39]
+      CPU: 0 UID: 0 PID: 39 Comm: irq/9-acpi Not tainted
+        6.12.41+deb13-sonic-amd64 #1 Debian 6.12.41-1
+      RIP: 0010:acpi_os_read_port+0x30/0xa0
+      Call Trace:
+       <TASK>
+       acpi_hw_gpe_read+0x61/0x80
+       acpi_ev_detect_gpe+0x74/0x180
+       acpi_ev_gpe_detect+0xe1/0x130
+       acpi_ev_sci_xrupt_handler+0x1d/0x40
+       acpi_irq+0x1c/0x40
+       irq_thread_fn+0x23/0x60
+       irq_thread+0x1b3/0x2f0
+       kthread+0xd2/0x100
+       ret_from_fork+0x34/0x50
+       ret_from_fork_asm+0x1a/0x30
+       </TASK>
+      Kernel panic - not syncing: softlockup: hung tasks
+
+Between the bookworm and trixie kernels, the ACPI SCI handler was
+moved from a hardirq handler to a threaded handler by:
+
+    7a36b901a6eb ("ACPI: OSL: Use a threaded interrupt handler for SCI")
+
+To confirm this is the trigger, I reverted that commit on top of
+6.12.41 and re-ran the same sysrq-trigger reproducer. The capture
+kernel then completes the crash dump without tripping the soft
+lockup watchdog.
+
+Happy to test patches or gather more data as this is reproducible
+consistently on our systems.
+
+This issue has been raised in the SONiC project at [2].
+
+  Context
+  -------
+- Kernel:        6.12.41+deb13-sonic-amd64 (Debian 6.12.41-1);
+- Last known good: Debian bookworm kernel (6.1.123), predates
+                     7a36b901a6eb.
+
+- Default capture-kernel cmdline (from /etc/default/kdump-tools,
+  KDUMP_CMDLINE_APPEND):
+
+      irqpoll nr_cpus=1 nousb systemd.unit=kdump-tools.service
+      ata_piix.prefer_ms_hyperv=0 panic=10 debug loglevel=4
+      hpet=disable pcie_port=compat pci=nommconf
+
+For the trace above, loglevel was raised from 4 to 7 and the
+following were added:
+
+     debug=1 softlockup_all_cpu_backtrace=1 softlockup_panic=1
+
+[0]: https://github.com/sonic-net
+[1]: https://github.com/sonic-net/sonic-linux-kernel/tree/master/patches-sonic
+[2]: https://github.com/sonic-net/sonic-linux-kernel/pull/580
