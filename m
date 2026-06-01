@@ -1,55 +1,108 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F8463E0098;
-	Mon,  1 Jun 2026 17:14:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EDEA368D74
+	for <linux-acpi@vger.kernel.org>; Mon,  1 Jun 2026 17:27:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780334041; cv=none; b=iqXzXcIJ7+FBBnWb+mHg30IGrCKN5zDpvY7u0zPLSqOA2783PNUZxBFGfV1ZucTtbncAAkisHUprBGMtidzZ+juQ40QOCQGDd9iYpROq5ec0ZvaTkhVs8raO/mMmo9eeYMJ3OXaAkaRwbiWraCtJpqByQtUnMH3fIuxZyUUVeXw=
+	t=1780334864; cv=none; b=XcsnxBph1vnVOHAukv9peSajRpuROTVLZMRR2elVQTRP5itB+0iG2JozgbXbkq/AwjBpL5KGQlH73211XXNnsnCXa6czKSwlrikMkolyzcQZ7P/o0v2wZcmKRXF4xlTFgqSq192SJyn+A+ALgqfv19nV38N7jhXJnp+GTx6I2F8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780334041; c=relaxed/simple;
-	bh=jgtpcnH91goGTrFE+fVoIebcEOLOBswmeF4ItbhaPJs=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=omvTqXTSSFy9mXjqr4QBNezMHt2cJWLjRIvTg21wqL4GFyguD03Bp/9qO+cMM/7ClN2DJ3Rkp+RwZwMBSd25xSeq7Me/wmXpxsd3LyDR0R7YptMkgytMTC/ogxYQXnAj8wPfBZ2okf5FXitVZEi2WYYW7ayDPz9G409gCNGi5dc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UjgU7ZXf; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780334864; c=relaxed/simple;
+	bh=iIsAxzTHIngj3SP2ZsKYeqI305rivPhuR9butdjDayA=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=chcBe1a/FvhVXfRRCbYLXCOqY9xfviR4z92+ZXFlp1nPKraBaq69JWsyMHrWf+wgQXvym5W2wEjeJjLc+K8HDe1suwbvTWRFFkyc5liJb7uQT383CHIBkduPRT5cyzBPRhbraAjtf0EjTK7/BesjRSNkSBqxRhkXPwqqybStAB8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Lt+d5MU/; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UjgU7ZXf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA0381F00893;
-	Mon,  1 Jun 2026 17:13:59 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Lt+d5MU/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D55B01F00899
+	for <linux-acpi@vger.kernel.org>; Mon,  1 Jun 2026 17:27:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1780334040;
-	bh=jgtpcnH91goGTrFE+fVoIebcEOLOBswmeF4ItbhaPJs=;
-	h=From:To:Cc:Subject:Date;
-	b=UjgU7ZXfbiJz16PptXWTWDZdYc3umM1qxBOCiyZCM3+7GEskeBkcKNRBAsNv55j1O
-	 ewvp2VMP7IzkVjmjntI/08sgziJQ6Ms2KVDeM4ay1+DewHPZ1fUg4FIlnFDFue9u2l
-	 cA6heqgArbRv+qZIaH62mdRPln6fR4L7qm5W/ryZy5EjnIlf9VhihisVnhxTnBrFwe
-	 2aLw7yo1o0OH8FzDlzuWGNP0/DEy25S0Fbk+OFFvmRVInp+zeyi2ZuurFk1lbKkRwj
-	 B56+LNW2FDgbmfcWO/PLqx9oKwslxDLYXUzjBE9ywkmTsDh+lRuakpJAML2dQuiKLr
-	 j3/jVnvupW6Zg==
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-To: Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>
-Subject: [PATCH v1 00/15] ACPI: button: Cleanups and conversion to using devm
-Date: Mon, 01 Jun 2026 18:53:55 +0200
-Message-ID: <12913564.O9o76ZdvQC@rafael.j.wysocki>
-Organization: Linux Kernel Development
+	s=k20260515; t=1780334861;
+	bh=yJQSOKUJSE5fzp1ImzeqOtxzABhCvBEt85duieJj9jE=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=Lt+d5MU/uBHAfpBN3CUp8Bl25BMBpThpTel+2pLvW5r66adS0jDQopZaSsZFKoxip
+	 4rqJqqFFhg36aU+SuXevrAVurmHuASiUcdeOcDFQ+GiEBxYhHL9mkxjM4GBgcBt9eL
+	 yufA1qNF5k8bAU3URDuTIC4pBBOkFJFbtwjzYFqIgioyBAspDgZzQyZxA7ZyIKcetA
+	 YZC4W0ra4abfh/eXATdvJsKDhx0PMrVzup6WjXAJQpyAAu33KHXsWEBSVLGhx8MBrX
+	 jl30JCtizMZgiygSmrTY4cD0up09WavW5hfN/Mm5bMCvM5b2MMZoT2o7qOqVZXWKZL
+	 VgxPthO9J8u/Q==
+Received: by mail-lf1-f44.google.com with SMTP id 2adb3069b0e04-5aa68d9dc18so1584151e87.2
+        for <linux-acpi@vger.kernel.org>; Mon, 01 Jun 2026 10:27:41 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ8SHZEt+wl1v5ziY5KP3KcXnJuTW+Mhx3W9OCO22TNxsprtDwNDUc6yB/qYGgFSVXrWIrrhQ9Xh9ArE@vger.kernel.org
+X-Gm-Message-State: AOJu0YwTx0iWp2ojBbmn3j+X1Em6gXIn5IvpD2CqIrHUhxsah0gN1nad
+	T4LO0H65x0Y+nYnucTfAQFoGCGUZd6DJFHoJ78hmWf2/erRAwuXIyQ6WnWZYcefhYszPASHLaCb
+	ZhXIeCPh6y/PMJy8tcYonKcb0BsAq5n0=
+X-Received: by 2002:a05:6512:3b1e:b0:5a8:9bb6:230a with SMTP id
+ 2adb3069b0e04-5aa607ccac4mr3810344e87.18.1780334860369; Mon, 01 Jun 2026
+ 10:27:40 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
+References: <20260526025118.38935-1-cp0613@linux.alibaba.com> <ahZFk-nWSQr18OHk@aschofie-mobl2.lan>
+In-Reply-To: <ahZFk-nWSQr18OHk@aschofie-mobl2.lan>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Mon, 1 Jun 2026 19:27:28 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0iEgQTS+S7-Es3ycHyJOFuA48FgUxCS4yueEcxsigx=-g@mail.gmail.com>
+X-Gm-Features: AVHnY4K_FEIxKSVWRAEk0iatTa67LmbxpAARvCcGAQUrMph4mfq1nPHq3M180Wk
+Message-ID: <CAJZ5v0iEgQTS+S7-Es3ycHyJOFuA48FgUxCS4yueEcxsigx=-g@mail.gmail.com>
+Subject: Re: [PATCH 0/2] ACPI/PCI/CXL: Enforce _DEP ordering between ACPI0016
+ and ACPI0017
+To: Alison Schofield <alison.schofield@intel.com>, Chen Pei <cp0613@linux.alibaba.com>
+Cc: dave.jiang@intel.com, djbw@kernel.org, icheng@nvidia.com, 
+	bhelgaas@google.com, guoren@kernel.org, linux-pci@vger.kernel.org, 
+	linux-cxl@vger.kernel.org, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi All,
+On Wed, May 27, 2026 at 3:15=E2=80=AFAM Alison Schofield
+<alison.schofield@intel.com> wrote:
+>
+> On Tue, May 26, 2026 at 10:51:16AM +0800, Chen Pei wrote:
+> > On platforms whose ACPI namespace exposes a CXL host bridge (ACPI0016)
+> > with an ACPI0017 CXL root device declaring _DEP on the host bridge,
+> > cxl_acpi can probe before acpi_pci_root has attached the PCI root.
+> > acpi_pci_find_root() then returns NULL, decoder targets read as 0,
+> > and no port/endpoint device shows up under /sys/bus/cxl/devices/.
+> >
+> > The root cause is twofold:
+> >
+> >   1. acpi_pci_root_add() never calls acpi_dev_clear_dependencies(),
+> >      so _DEP suppliers downstream of a PCI root are never released.
+> >
+> >   2. ACPI0016 is not on acpi_honor_dep_ids[], so even when ACPI0017
+> >      declares _DEP on it, acpi_dev_ready_for_enumeration() bypasses
+> >      the dep_unmet check and lets cxl_acpi probe early.
+> >
+> > On x86 the bug is usually masked by link order (acpi_pci_root is
+> > built in and probed before cxl_acpi). On architectures like RISC-V
+> > that ordering is not guaranteed, so the standard ACPI _DEP mechanism
+> > must actually work.
+> >
+> > This series fixes both sides and the two patches must be applied
+> > together; applying only patch 2 would prevent cxl_acpi from ever
+> > probing on ACPI0016 systems, because the supplier would never clear
+> > the dependency.
+> >
+> >   Patch 1 makes acpi_pci_root_add() clear _DEP on the supplier once
+> >           the PCI root bus has been added.
+> >   Patch 2 adds ACPI0016 to acpi_honor_dep_ids[] so the dependency
+> >           declared by ACPI0017 is enforced.
+> >
+> > The approach in this series follows the discussion of an earlier
+> > posting:
+> > https://lore.kernel.org/linux-cxl/20260514023238.49984-1-cp0613@linux.a=
+libaba.com/
+> >
+> > Chen Pei (2):
+> >   ACPI: PCI: clear _DEP dependencies after PCI root bridge attach
+> >   ACPI: scan: honor _DEP for ACPI0016 PCI/CXL host bridge
+>
+> For the set:
+>         Tested-by: Alison Schofield <alison.schofield@intel.com>
+>         Reviewed-by: Alison Schofield <alison.schofield@intel.com>
 
-This series makes a number of changes, that are minor fixes and cleanups, to
-the ACPI button driver and concludes in switching it over to devres-based
-resource management.
-
-Please see individual patch changelogs for details.
-
-Thanks!
-
-
-
+And so applied as 7.2 material, thanks!
