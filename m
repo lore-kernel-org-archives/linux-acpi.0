@@ -1,38 +1,38 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F066D3DE427;
-	Mon,  1 Jun 2026 17:13:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00CE33DEFF3;
+	Mon,  1 Jun 2026 17:13:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780334032; cv=none; b=POK9r13xeACGGaIdZVglz4rrCw9GYrSF+bdtKWd9V6kgxtCWrY7OKmtI9jqmx3/ZgvdWvba+NFv3gyvlRgq+N0ZAMQ74OvUJBP5xcFQhn69dj1E1yt954R18KY6w3P51vVB4fOXk0RXn180fvf2v2s4FxiLxHKOVbhzZ5sc8hkg=
+	t=1780334036; cv=none; b=osTmLzU11Pn/pQ4nHBEfJA9mNA/T9C/2MP1VBtPz+HTdalAj3GUL+6odCVSJQKVsCC+YxhDC50KZ5g7nmqCVWeq5L4RFY4rMwe8ICWsf3Sdp89W2zIrt1q5ZUbqlsHSqwbdKEYV2E9wcT3AMSPInu8kyOAl5aLH5MtJnkwZj8K0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780334032; c=relaxed/simple;
-	bh=yM4CkOHxRA12qkSQYUith11/2ERd4ABHgQ8sef3ZMrA=;
+	s=arc-20240116; t=1780334036; c=relaxed/simple;
+	bh=TnE1xdR/ikfYSm8AXjXcFe/qOwbNhD6Ol0MhLxIBs5A=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=Fprt5nCAeoHQDAmfrUdhTwtP3DrLBxF/R7v3GpTT6ukwUJsp/m3SHqsMLyrJO4wPdTCLmmCLoBJqXq3mbACPxKM0+cHaIUeqc6LdjzqKh6oHj1yTUnP0sUI7TfkLHcx/FCoy4J1QFh2JnT9mB2t0WriixcxccRmlF9O4GQKI8Ss=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ctHAu+Gg; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=gvVE65XmU7ZLGV2OmbxC7nk9k1WTWf7Fix/hSgIJSHp7d15Xe1tvFHS29o3Q3y7jIaegu4JdRa780mCG8LtRw2LwkJ4x7WJf81SRrQGdZW2pxiC84YlNGRt8rwwz0U0a2v919nCtNPmp2reeGMhTCwUv8IGWfZNTGqwVYEmOQMc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Qt1pWWzC; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ctHAu+Gg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 578821F00898;
-	Mon,  1 Jun 2026 17:13:51 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Qt1pWWzC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F4CC1F00893;
+	Mon,  1 Jun 2026 17:13:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1780334031;
-	bh=MNZVNgub9WBbR+R1qPIfI3MbbQDghl7TpKphkDcMGN8=;
+	s=k20260515; t=1780334034;
+	bh=YS7nCZIoveN/Z6nFxyOM15QdxnjvRrmmk7gPj3aQgUY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=ctHAu+Gg6zvuYZN7w8FIpyywy6pYrm5V3wZuczYKSNo5hkjIju/E2jh+PCHFeSlCH
-	 bXqZu+ot7YdWlviNar2Egubvaaqnv+gwTk/9PTAswhA0tK7EPu2MGfGctP3xEiaclf
-	 Hixz0GKs2Akwn43lxcEqiP6HCWATTektaSssAIkjAqb5SdtbCXgDPUHMgDowm6fTMw
-	 6NmRqfGzW8Kr+gsrcHL67R03EEeG2nvm6ob8SNQrL+GKjgFp74m5PN1hU7dY6dWKPl
-	 N1Xxyuz3pCwprGnegIuMgSTbCHmJvt0kWRcm1213rLxvmAGedsX94FXHuZlytvcrpb
-	 lgy8JUVRb2/0A==
+	b=Qt1pWWzCupwlamYs3k9dsaCKZryXW5J/0mgE5ymmUEmDERL7gIQJxioIuqegwMiGI
+	 MJPU/NUI30BUbMcTSaqmmaXH+d776H9n7W0seogQkszMEQgzuMy62ioz3TTrL9fFQY
+	 2vG7FJ+x/Hjo6j5a/43jw93z87o/D3wZXJBkjp2Oc6gVBvJQtbNdkZZBxsNXBmnux6
+	 dMEDquDxRQA2gvvQSV3fTJhsIPDiuRgLIwSP6sNqaWO20MJfsU+HNVJl6Piyt7lTNt
+	 hdpdjsV7eC3Nekd//i7C5XImFGgbokvlzdBY7RST/AMqi6XVpdE/Ma3xX1HsQsCtCl
+	 HpNFXZrbdKcYQ==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>
 Subject:
- [PATCH v1 03/15] ACPI: button: Improve warning message regarding lid state
-Date: Mon, 01 Jun 2026 18:56:33 +0200
-Message-ID: <5084775.GXAFRqVoOG@rafael.j.wysocki>
+ [PATCH v1 02/15] ACPI: button: Pass ACPI handle to acpi_lid_evaluate_state()
+Date: Mon, 01 Jun 2026 18:55:53 +0200
+Message-ID: <4747530.LvFx2qVVIh@rafael.j.wysocki>
 Organization: Linux Kernel Development
 In-Reply-To: <12913564.O9o76ZdvQC@rafael.j.wysocki>
 References: <12913564.O9o76ZdvQC@rafael.j.wysocki>
@@ -47,38 +47,125 @@ Content-Type: text/plain; charset="UTF-8"
 
 From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-The warning message regarding an unexpected lid state printed by
-acpi_lid_notify_state() is quite cryptic and there is no information
-in it to indicate that it is about a platform firmware defect.  In
-fact, it can only be understood after reading the comment below the
-statement printing it.
+Make it clear that acpi_lid_evaluate_state() only uses the ACPI handle
+of the lid by changing its argument to acpi_handle and adjust its
+callers accordingly.
 
-For this reason, replace it with a more direct one including FW_BUG so
-its connection to a firmware issue is clearer.
+Also save the ACPI handle of the lid, that later may be passed to
+acpi_lid_evaluate_state(), in a static variable instead of saving a
+pointer to the ACPI device object containing that handle.
 
-While at it, fix up a comment preceding the statement printing the
-message in question.
+No intentional functional impact.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/button.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/acpi/button.c | 27 ++++++++++++---------------
+ 1 file changed, 12 insertions(+), 15 deletions(-)
 
 diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-index 0b96db762bea..d2c2b8105639 100644
+index 5df470eea754..0b96db762bea 100644
 --- a/drivers/acpi/button.c
 +++ b/drivers/acpi/button.c
-@@ -227,8 +227,8 @@ static int acpi_lid_notify_state(struct acpi_button *button, int state)
- 				ms_to_ktime(lid_report_interval));
- 	if (button->last_state == !!state &&
- 	    ktime_after(ktime_get(), next_report)) {
--		/* Complain the buggy firmware */
--		pr_warn_once("The lid device is not compliant to SW_LID.\n");
-+		/* Complain about the buggy firmware. */
-+		pr_warn_once(FW_BUG "Unexpected lid state reported by firmware\n");
+@@ -192,12 +192,12 @@ MODULE_PARM_DESC(lid_report_interval, "Interval (ms) between lid key events");
+ static struct proc_dir_entry *acpi_button_dir;
+ static struct proc_dir_entry *acpi_lid_dir;
  
- 		/*
- 		 * Send the unreliable complement switch event:
+-static int acpi_lid_evaluate_state(struct acpi_device *device)
++static int acpi_lid_evaluate_state(acpi_handle lid_handle)
+ {
+ 	unsigned long long lid_state;
+ 	acpi_status status;
+ 
+-	status = acpi_evaluate_integer(device->handle, "_LID", NULL, &lid_state);
++	status = acpi_evaluate_integer(lid_handle, "_LID", NULL, &lid_state);
+ 	if (ACPI_FAILURE(status))
+ 		return -ENODEV;
+ 
+@@ -292,7 +292,7 @@ static int __maybe_unused acpi_button_state_seq_show(struct seq_file *seq,
+ 	struct acpi_button *button = seq->private;
+ 	int state;
+ 
+-	state = acpi_lid_evaluate_state(button->adev);
++	state = acpi_lid_evaluate_state(button->adev->handle);
+ 	seq_printf(seq, "state:      %s\n",
+ 		   state < 0 ? "unsupported" : (state ? "open" : "closed"));
+ 	return 0;
+@@ -377,22 +377,22 @@ static int acpi_button_remove_fs(struct acpi_button *button)
+ 	return 0;
+ }
+ 
+-static struct acpi_device *lid_device;
++static acpi_handle saved_lid_handle;
+ static DEFINE_MUTEX(acpi_lid_lock);
+ 
+ static void acpi_lid_save(struct acpi_device *adev)
+ {
+ 	guard(mutex)(&acpi_lid_lock);
+ 
+-	lid_device = adev;
++	saved_lid_handle = adev->handle;
+ }
+ 
+ static void acpi_lid_forget(struct acpi_device *adev)
+ {
+ 	guard(mutex)(&acpi_lid_lock);
+ 
+-	if (lid_device == adev)
+-		lid_device = NULL;
++	if (saved_lid_handle == adev->handle)
++		saved_lid_handle = NULL;
+ }
+ 
+ /* Driver Interface */
+@@ -400,20 +400,19 @@ int acpi_lid_open(void)
+ {
+ 	guard(mutex)(&acpi_lid_lock);
+ 
+-	if (!lid_device)
++	if (!saved_lid_handle)
+ 		return -ENODEV;
+ 
+-	return acpi_lid_evaluate_state(lid_device);
++	return acpi_lid_evaluate_state(saved_lid_handle);
+ }
+ EXPORT_SYMBOL(acpi_lid_open);
+ 
+ static int acpi_lid_update_state(struct acpi_button *button,
+ 				 bool signal_wakeup)
+ {
+-	struct acpi_device *device = button->adev;
+ 	int state;
+ 
+-	state = acpi_lid_evaluate_state(device);
++	state = acpi_lid_evaluate_state(button->adev->handle);
+ 	if (state < 0)
+ 		return state;
+ 
+@@ -516,12 +515,11 @@ static int acpi_button_suspend(struct device *dev)
+ static int acpi_button_resume(struct device *dev)
+ {
+ 	struct acpi_button *button = dev_get_drvdata(dev);
+-	struct acpi_device *device = ACPI_COMPANION(dev);
+ 	struct input_dev *input;
+ 
+ 	button->suspended = false;
+ 	if (button->type == ACPI_BUTTON_TYPE_LID) {
+-		button->last_state = !!acpi_lid_evaluate_state(device);
++		button->last_state = !!acpi_lid_evaluate_state(ACPI_HANDLE(dev));
+ 		button->last_time = ktime_get();
+ 		acpi_lid_initialize_state(button);
+ 	}
+@@ -540,9 +538,8 @@ static int acpi_button_resume(struct device *dev)
+ static int acpi_lid_input_open(struct input_dev *input)
+ {
+ 	struct acpi_button *button = input_get_drvdata(input);
+-	struct acpi_device *device = button->adev;
+ 
+-	button->last_state = !!acpi_lid_evaluate_state(device);
++	button->last_state = !!acpi_lid_evaluate_state(button->adev->handle);
+ 	button->last_time = ktime_get();
+ 	acpi_lid_initialize_state(button);
+ 
 -- 
 2.51.0
 
