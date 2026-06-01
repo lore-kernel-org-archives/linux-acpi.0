@@ -1,141 +1,205 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9AAA3DEFF5
-	for <linux-acpi@vger.kernel.org>; Mon,  1 Jun 2026 17:31:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02DC7314D13
+	for <linux-acpi@vger.kernel.org>; Mon,  1 Jun 2026 17:36:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780335096; cv=none; b=lufb6ny04TBOWva72A6ryw6s/XlGA+gkWKFUw6b7YNey+y7vcPyZbOo788x40LnyGkfP+iYkmUGMcrSk9cEU6GS+eb2Y5WIQQbL9AgbF5GaOU8seJAJDVaQmixnNFUndF9wCQhrbxc33cOX1aNBSFayE6a4gQfb3UyifMcUOpI0=
+	t=1780335363; cv=none; b=CAgxbrBDiMa+256oAf3bUEq3oPZRzejDb+efIB0q++Wsa7LlJ3zRBFlnaEJneL7aj5que9E2DOAyapnCw/twf5k2UGHBArG+cXohjQ0N+0pI93qPAVgB4JbYiVCTdB47j4kp6WGcjCn7OQUS2/G+Mb75CkbpGJ2DiXglUo88mCw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780335096; c=relaxed/simple;
-	bh=+iGzM7HonutIf/1fYWQXIb0gqsC2l31H6CniBpONzbo=;
+	s=arc-20240116; t=1780335363; c=relaxed/simple;
+	bh=stlQptqo7vJeyulBNyH6DVBNN2wqB5K8cjd6Q8e3yuQ=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=qpsnz3dOPir3s0Da9hipFOBgJcXYDlGAwr6sfybEh/m+XCtK7Yf3Z4EPCJVSNqqjysDXu9PLk+0DcprK+ZKeXvStv01I5nmSu/S7f8ZheUVcEeZ1KvjlGs5x1RpSJKKQ7k3fjr0CHWEVHsR+HTmLq+5pnpPJHrppNnbrkHDw8XE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=YcBP0NHa; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=nvVTzMsZ8E5LlWAqbXy67EkeAh2CHh6AolbIcVXgBvtzidEl66uwnEsIV+2celmf1eHrY/duoFwLQtitdABVNRRx+4qbGQ2CqYfkqzp/bjBOliK5OvyS+jSoF73E5QRAqdLZOhQDiymX4mxA/gcfJAYEYZWybiJVN8IVh5g019M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=oWsVh7vM; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="YcBP0NHa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9BFD31F008A2
-	for <linux-acpi@vger.kernel.org>; Mon,  1 Jun 2026 17:31:34 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="oWsVh7vM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4CC81F0089F
+	for <linux-acpi@vger.kernel.org>; Mon,  1 Jun 2026 17:36:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1780335094;
-	bh=cs/TXGwOXqiDQxl+x5whpiJodvIicydtJzJyPq8Pn0A=;
+	s=k20260515; t=1780335361;
+	bh=ERxZSK/r1UKIO3cuxf0a+8Y6osXhOPRuyhU/Ql4S/1Q=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=YcBP0NHas6DazuOWE4ZTQg9cm+JXIuu7RUgjXgke0TOmZpqDRvQ7FOSybYVUwP/i7
-	 6SbWySBvfNQN6vVTV+aY/4aCDtlYrMALMnrBgn+MBGehdpMYDRZhyiAlRiE1i8O/6x
-	 QcrcHwF+CoP6MqeJopSLXlk0gkjFduEcjt+vbhysOaD0yPO2Yqa3IysXFbo+Exbu0e
-	 Muy1Zz+ttVru5pc/BzJ4IM27+BQhBZv+VPvPampgYJGd/Dny319rdDx6orS0rn9AFr
-	 x+UQATpzDuw/lg02CiyL1Ce0t5IsyZy7z/c1YtjcWR/EMf/ThWaXCXQqMUqwZyxEfH
-	 1c05sbFrfM9kA==
-Received: by mail-lj1-f180.google.com with SMTP id 38308e7fff4ca-396775c26e0so14062791fa.2
-        for <linux-acpi@vger.kernel.org>; Mon, 01 Jun 2026 10:31:34 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AFNElJ8a8awDSdvOmJO29bGUxD9HL/twjuTknOq00cGWDjrAdrke1ENKSdz1UbXeZi1N7/CUbRRR7Y+F6Mdo@vger.kernel.org
-X-Gm-Message-State: AOJu0YzZUjU/1ucSnA6fn9DY6nF0Ind6tBneoLU9o7WaMt9hNwBXm3T8
-	ZwiePwFpRGu+f0jLDXiNgdZRl15fdnqKI63QGKDaHkd0Sfb3vFzrbQt5+QdD2nmT5+2+4ZjGSBH
-	MOLD2xnojejdNwS+JXpFx8YyCjrrliGY=
-X-Received: by 2002:a05:6512:b8c:b0:5aa:7107:268c with SMTP id
- 2adb3069b0e04-5aa71072919mr977471e87.28.1780335093102; Mon, 01 Jun 2026
- 10:31:33 -0700 (PDT)
+	b=oWsVh7vMxSAN3MKUO6TiyTgLaSWI4rlQRa+Y2s8VllDOKDRCSg85kpR9i0iPlUwDN
+	 E6vWJNPON8Hrqe+ZOi0cODkp3L9BdwAAe1+nPWFHNbTL3JBkQ3QAhJFDUEDbwMaytg
+	 b4MUgSVa5CSgHEL22awzwq1PKtTB8sv73orMzdVQB8wc7dbZowzCUA+VijZn7wQ2Ub
+	 O1ICphFPtcUfoS2m7CaYAgoqMWhG4OJ2dcOQQ7g/NsOW965XhdoAb2KiMUuBWKNcNB
+	 xEDL39Q2AoAwVrVjSvUoJ2fcopudNgc9oLyymAEe6O4HFI8INSbAsSyqZDuvxo8upJ
+	 Ms43hWqKVqAAA==
+Received: by mail-lj1-f173.google.com with SMTP id 38308e7fff4ca-39657d28132so25101561fa.3
+        for <linux-acpi@vger.kernel.org>; Mon, 01 Jun 2026 10:36:01 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ9mcEiwGi06WpuUbOEEW2B+VU5E0VjZVZWTW2FGCuIwx0/iFU5vzaTc9W9oUidNBnNumy/YrnCVmcii@vger.kernel.org
+X-Gm-Message-State: AOJu0YygP0mcr7llVUhnu3C18Z+J+sFKk0BwO3q1KwHTs+V3tRjkffqk
+	uaeIIWs/3KTxsglhi+JnXVllDplds4xZ0hxYu3lLIbR3Evx7Uz8SSRJLTS+mM+pphhpxmwvtJCc
+	rNIMNaS0nfTUZhB5K4YjuQgN4+rjPfdg=
+X-Received: by 2002:a05:6512:2525:b0:5aa:4aa4:29f3 with SMTP id
+ 2adb3069b0e04-5aa6090c8c8mr3948127e87.28.1780335360125; Mon, 01 Jun 2026
+ 10:36:00 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260527-b4-acpi-battery-notification-v1-0-2303bed8ec0b@rong.moe>
-In-Reply-To: <20260527-b4-acpi-battery-notification-v1-0-2303bed8ec0b@rong.moe>
+References: <20260527194626.185286-1-sumitg@nvidia.com> <20260527194626.185286-2-sumitg@nvidia.com>
+In-Reply-To: <20260527194626.185286-2-sumitg@nvidia.com>
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Mon, 1 Jun 2026 19:31:20 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0jY5ew8pA2HZ+t5MfbANT34euTOYe6F0kCt6=X9aVecmA@mail.gmail.com>
-X-Gm-Features: AVHnY4JGIP2k4QeyO3EdbKvb31eVSS9HS3TWXWlHkZn4svSAUpiRIEL5bWWGDKY
-Message-ID: <CAJZ5v0jY5ew8pA2HZ+t5MfbANT34euTOYe6F0kCt6=X9aVecmA@mail.gmail.com>
-Subject: Re: [PATCH 0/2] ACPI: battery: Do not generate too much pressure on
- ACPI methods
-To: Rong Zhang <i@rong.moe>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
-	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, =?UTF-8?Q?Jeffrey_W=C3=A4lti?= <jeffrey@waelti.dev>, 
-	stable@vger.kernel.org, Rick <rickk1166@gmail.com>
+Date: Mon, 1 Jun 2026 19:35:47 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0jFpTeX0Vxt+Ut5nkmgueJFxHjoP-mdjdDd6jkCokn-VA@mail.gmail.com>
+X-Gm-Features: AVHnY4JOHev4lnx_8QKm8xKTghAWZilDNAWp87KnrhUCwRHD28LsEHnRQM8JeMA
+Message-ID: <CAJZ5v0jFpTeX0Vxt+Ut5nkmgueJFxHjoP-mdjdDd6jkCokn-VA@mail.gmail.com>
+Subject: Re: [PATCH v4 1/2] ACPI: CPPC: Add support for CPPC v4
+To: Sumit Gupta <sumitg@nvidia.com>
+Cc: rafael@kernel.org, viresh.kumar@linaro.org, pierre.gondois@arm.com, 
+	zhenglifeng1@huawei.com, zhanjie9@hisilicon.com, mario.limonciello@amd.com, 
+	saket.dumbre@intel.com, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, 
+	acpica-devel@lists.linux.dev, treding@nvidia.com, jonathanh@nvidia.com, 
+	vsethi@nvidia.com, ksitaraman@nvidia.com, sanjayc@nvidia.com, 
+	mochs@nvidia.com, bbasu@nvidia.com, Mario Limonciello <superm1@kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, May 26, 2026 at 8:33=E2=80=AFPM Rong Zhang <i@rong.moe> wrote:
+On Wed, May 27, 2026 at 9:47=E2=80=AFPM Sumit Gupta <sumitg@nvidia.com> wro=
+te:
 >
-> The acpi_battery_get_property() and acpi_battery_notify() callbacks
-> sometimes generate too much pressure on corresponding ACPI methods. On
-> some devices with fragile ACPI implementation, these methods share the
-> same mutex protecting EC accesses (hence slow to execute) with a lot of
-> other EC-related methods. Such pressure on them eventually leads to a
-> catastrophic situation that a bunch of ACPI method calls fail to acquire
-> the same mutex due to timeout. The firmware of these devices doesn't
-> handle mutex acquisition failure gracefully and return garbage data,
-> causing even more chaos.
+> CPPC v4 (ACPI 6.6, Section 8.4.6) adds two optional entries to the
+> _CPC package:
 >
-> For acpi_battery_get_property(), it generates too much pressure on the
-> _BST method because of the lack of synchronization. In detail, it
-> sometimes nullifies the cache mechanism of acpi_battery_get_state() when
-> multiple processes read power supply properties simultaneously, which
-> usually happens after a uevent. Normally, emitting a uevent implies that
-> the cache must have been refreshed due to power_supply_uevent() reading
-> all properties, so the mentioned processes should have seen cache hits.
-> Unfortunately, these fragile devices' power_supply_ext properties are
-> somehow slow to read after battery events, resulting in cache expiration
-> before power_supply_uevent() finishes. Hence, once the uevent reaches
-> userspace, the _BST method will be executed multiple times within a
-> short period due to userspace processes reading all properties again.
+> 1. OSPM Nominal Performance (8.4.6.1.2.6): A write-only register that
+>    lets OSPM inform the platform what it considers nominal performance.
+>    The platform classifies performance above this level as boost and
+>    below as throttle for its power/thermal decisions.
 >
-> For acpi_battery_notify(), a very common pattern in EC queries that
-> emits two consecutive battery notifications with event IDs 0x80 and 0x81
-> updates battery state and calls power_supply_changed() twice within a
-> short period, generating significant pressure on _STA, _BST and
-> _BIX/_BIF methods. Not only that, power_supply_ext properties may also
-> rely on some other ACPI methods, so both uevent assembling and userspace
-> processes call them. It becomes a nightmare when all these methods share
-> the same ACPI mutex and hence vulnerable to lock starvation. Even worse,
-> after the first uevent reaches userspace, some userspace processes start
-> to read all battery properties in order to refresh their internal
-> states, which competes with the second notification's handling and
-> uevent assembling, exacerbating the lock starvation.
+> 2. Resource Priority (8.4.6.1.2.7): A Package of Resource Priority
+>    Register Descriptor sub-packages that allow OSPM to set relative
+>    priority among processors for shared resources (boost, throttle,
+>    L2/L3 cache, memory bandwidth). Parsing the full structure is not
+>    yet supported; such entries are marked as unsupported.
 >
-> Fix acpi_battery_get_property() by protecting it with update_lock to
-> synchronize it. This also prevents potential race conditions, e.g., when
-> multiple tasks read power supply properties simultaneously, or when
-> other synchronized methods are called during its execution.
+> Add v4 _CPC table parsing (25 entries) and update REG_OPTIONAL to
+> mark the two new registers as optional.
 >
-> Improve acpi_battery_notify() by merging consecutive battery
-> notifications within 10ms using a delayed work, so that they only
-> refresh and/or update battery state once. ACPI netlink event and
-> notifier call chain are still triggered multiple times in order not to
-> break other components. Finally, call power_supply_changed() once and
-> lead to a single uevent instead of a bunch, preventing userspace
-> programs from causing too much pressure on power supply properties and
-> the underlying ACPI methods.
->
-> With the series, the lock starvation issue on mentioned devices is
-> greatly improved according to the feedback from one of the device
-> owners.
->
-> Tested-by: Jeffrey W=C3=A4lti <jeffrey@waelti.dev>
-> Cc: stable@vger.kernel.org
-> Reported-by: Rick <rickk1166@gmail.com>
-> Closes: https://bugzilla.kernel.org/show_bug.cgi?id=3D221065
->
-> Signed-off-by: Rong Zhang <i@rong.moe>
+> Signed-off-by: Sumit Gupta <sumitg@nvidia.com>
+> Reviewed-by: Mario Limonciello (AMD) <superm1@kernel.org>
+> Reviewed-by: Pierre Gondois <pierre.gondois@arm.com>
+
+This patch is good to go AFAICS, while there are still comments on the
+second one in the series.
+
+Do you want me to apply this one separately?
+
 > ---
-> Rong Zhang (2):
->       ACPI: battery: Synchronize get_property() callback
->       ACPI: battery: Merge consecutive battery notifications
+>  drivers/acpi/cppc_acpi.c | 23 +++++++++++++++++------
+>  include/acpi/cppc_acpi.h |  8 ++++++--
+>  2 files changed, 23 insertions(+), 8 deletions(-)
 >
->  drivers/acpi/battery.c | 113 +++++++++++++++++++++++++++++++++++++------=
-------
->  1 file changed, 87 insertions(+), 26 deletions(-)
-> ---
-
-Please see sashiko.dev's feedback on this series:
-
-https://sashiko.dev/#/patchset/20260527-b4-acpi-battery-notification-v1-0-2=
-303bed8ec0b%40rong.moe
-
-and address it or let me know why you think that it doesn't need to be
-addressed.
-
-Thanks!
+> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+> index f370be8715ae..c76cfafa3589 100644
+> --- a/drivers/acpi/cppc_acpi.c
+> +++ b/drivers/acpi/cppc_acpi.c
+> @@ -134,7 +134,7 @@ static DEFINE_PER_CPU(struct cpc_desc *, cpc_desc_ptr=
+);
+>   * cpc_regs[] with the corresponding index. 0 means mandatory and 1
+>   * means optional.
+>   */
+> -#define REG_OPTIONAL (0x1FC7D0)
+> +#define REG_OPTIONAL (0x7FC7D0)
+>
+>  /*
+>   * Use the index of the register in per-cpu cpc_regs[] to check if
+> @@ -751,18 +751,19 @@ int acpi_cppc_processor_probe(struct acpi_processor=
+ *pr)
+>         /*
+>          * Disregard _CPC if the number of entries in the return package =
+is not
+>          * as expected, but support future revisions being proper superse=
+ts of
+> -        * the v3 and only causing more entries to be returned by _CPC.
+> +        * the v4 and only causing more entries to be returned by _CPC.
+>          */
+>         if ((cpc_rev =3D=3D CPPC_V2_REV && num_ent !=3D CPPC_V2_NUM_ENT) =
+||
+>             (cpc_rev =3D=3D CPPC_V3_REV && num_ent !=3D CPPC_V3_NUM_ENT) =
+||
+> -           (cpc_rev > CPPC_V3_REV && num_ent <=3D CPPC_V3_NUM_ENT)) {
+> +           (cpc_rev =3D=3D CPPC_V4_REV && num_ent !=3D CPPC_V4_NUM_ENT) =
+||
+> +           (cpc_rev > CPPC_V4_REV && num_ent <=3D CPPC_V4_NUM_ENT)) {
+>                 pr_debug("Unexpected number of _CPC return package entrie=
+s (%d) for CPU:%d\n",
+>                          num_ent, pr->id);
+>                 goto out_free;
+>         }
+> -       if (cpc_rev > CPPC_V3_REV) {
+> -               num_ent =3D CPPC_V3_NUM_ENT;
+> -               cpc_rev =3D CPPC_V3_REV;
+> +       if (cpc_rev > CPPC_V4_REV) {
+> +               num_ent =3D CPPC_V4_NUM_ENT;
+> +               cpc_rev =3D CPPC_V4_REV;
+>         }
+>
+>         cpc_ptr->num_entries =3D num_ent;
+> @@ -845,6 +846,16 @@ int acpi_cppc_processor_probe(struct acpi_processor =
+*pr)
+>
+>                         cpc_ptr->cpc_regs[i-2].type =3D ACPI_TYPE_BUFFER;
+>                         memcpy(&cpc_ptr->cpc_regs[i-2].cpc_entry.reg, gas=
+_t, sizeof(*gas_t));
+> +               } else if (cpc_obj->type =3D=3D ACPI_TYPE_PACKAGE && (i -=
+ 2) =3D=3D RESOURCE_PRIORITY) {
+> +                       /*
+> +                        * ACPI 6.6, s8.4.6.1.2.7 defines Resource Priori=
+ty as a
+> +                        * Package of Resource Priority Register Descript=
+or sub-packages.
+> +                        * Parsing the full structure is not yet supporte=
+d.
+> +                        * Mark the register as unsupported for now.
+> +                        */
+> +                       pr_debug("CPU:%d Resource Priority not supported\=
+n", pr->id);
+> +                       cpc_ptr->cpc_regs[i-2].type =3D ACPI_TYPE_INTEGER=
+;
+> +                       cpc_ptr->cpc_regs[i-2].cpc_entry.int_value =3D 0;
+>                 } else {
+>                         pr_debug("Invalid entry type (%d) in _CPC for CPU=
+:%d\n",
+>                                  i, pr->id);
+> diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
+> index ee8352830c32..9b18fb9aab7c 100644
+> --- a/include/acpi/cppc_acpi.h
+> +++ b/include/acpi/cppc_acpi.h
+> @@ -17,16 +17,18 @@
+>  #include <acpi/pcc.h>
+>  #include <acpi/processor.h>
+>
+> -/* CPPCv2 and CPPCv3 support */
+> +/* CPPCv2, CPPCv3 and CPPCv4 support */
+>  #define CPPC_V2_REV    2
+>  #define CPPC_V3_REV    3
+> +#define CPPC_V4_REV    4
+>  #define CPPC_V2_NUM_ENT        21
+>  #define CPPC_V3_NUM_ENT        23
+> +#define CPPC_V4_NUM_ENT        25
+>
+>  #define PCC_CMD_COMPLETE_MASK  (1 << 0)
+>  #define PCC_ERROR_MASK         (1 << 2)
+>
+> -#define MAX_CPC_REG_ENT 21
+> +#define MAX_CPC_REG_ENT 23
+>
+>  /* CPPC specific PCC commands. */
+>  #define        CMD_READ 0
+> @@ -110,6 +112,8 @@ enum cppc_regs {
+>         REFERENCE_PERF,
+>         LOWEST_FREQ,
+>         NOMINAL_FREQ,
+> +       OSPM_NOMINAL_PERF,
+> +       RESOURCE_PRIORITY,
+>  };
+>
+>  /*
+> --
+> 2.34.1
+>
