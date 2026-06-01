@@ -1,38 +1,38 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A80FE3DC87B;
-	Mon,  1 Jun 2026 17:13:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F066D3DE427;
+	Mon,  1 Jun 2026 17:13:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780334030; cv=none; b=hSPWeshAAND86Lj2OP5p6FCxXROivAWZ4ZcXGzBmgSPCHUNIMQmj+LCdl9wlv88TsGietHR/u7tJXwtbORvyf7cQQnvpmIrARzmCnqnMH3Kv/Yjgdgizr0wyel2GMsIhOXX9NB2O0KIHHqh/uJ8+AE0r3U22AyWywhOrCmvLqZo=
+	t=1780334032; cv=none; b=POK9r13xeACGGaIdZVglz4rrCw9GYrSF+bdtKWd9V6kgxtCWrY7OKmtI9jqmx3/ZgvdWvba+NFv3gyvlRgq+N0ZAMQ74OvUJBP5xcFQhn69dj1E1yt954R18KY6w3P51vVB4fOXk0RXn180fvf2v2s4FxiLxHKOVbhzZ5sc8hkg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780334030; c=relaxed/simple;
-	bh=Ngd/boM8RValMny0HN42/WDmC2I58FffamD2tbqvARs=;
+	s=arc-20240116; t=1780334032; c=relaxed/simple;
+	bh=yM4CkOHxRA12qkSQYUith11/2ERd4ABHgQ8sef3ZMrA=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=slqAw6i5qVfIRl6UWvoOV8sBGchZhqsWiCZAcnpS1GTPLqcpuhjsb9fatCg+PAhTCywdTSiGEWb3uEGP5LTim/tr7JBQ6vTGjbVLxN9Qoz1mwrDQYmCf6OdznncJSoMgW1FrHe0yjci9wDhgMSkkgCkDmp8uGMm9dgTXKTwBPGY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ywecvq3I; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=Fprt5nCAeoHQDAmfrUdhTwtP3DrLBxF/R7v3GpTT6ukwUJsp/m3SHqsMLyrJO4wPdTCLmmCLoBJqXq3mbACPxKM0+cHaIUeqc6LdjzqKh6oHj1yTUnP0sUI7TfkLHcx/FCoy4J1QFh2JnT9mB2t0WriixcxccRmlF9O4GQKI8Ss=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ctHAu+Gg; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ywecvq3I"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9ADD1F00893;
-	Mon,  1 Jun 2026 17:13:48 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ctHAu+Gg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 578821F00898;
+	Mon,  1 Jun 2026 17:13:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1780334029;
-	bh=U5ZHFKQCYfrvb7rVpJ/PUG1+TFD1RaAnj7HtwGBwfT4=;
+	s=k20260515; t=1780334031;
+	bh=MNZVNgub9WBbR+R1qPIfI3MbbQDghl7TpKphkDcMGN8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=Ywecvq3IVE6gZ7X0YrGUPYrcRLyO6HZFl/LCknX0yICTV35JSPiNFU19dt0fN7UOL
-	 k8yl/BrCj1ALK0m2cnriqjnVl/yiPWll6qLTcRmDjvUz1WdnrxnpHeuaP6pvnadMH7
-	 olsZiu+ICNiZPTNK/1nX56HMBqBunylADJI8H30KCQI/7TvJRZgG9+qfKCKxarJn2H
-	 3lW29CJpQVw5agb7xHFNlngn/jFv93ARmXmgHIBq0gvj/mrPBqgJIed8Dse4yoVmY2
-	 LnOgZAc1g0l0jwSJEGFFZEMnKeML7gU6gGJTTrxbr7MSfYzNHxDiASOZH1grvcPxsc
-	 UGIGOP21ZdGFA==
+	b=ctHAu+Gg6zvuYZN7w8FIpyywy6pYrm5V3wZuczYKSNo5hkjIju/E2jh+PCHFeSlCH
+	 bXqZu+ot7YdWlviNar2Egubvaaqnv+gwTk/9PTAswhA0tK7EPu2MGfGctP3xEiaclf
+	 Hixz0GKs2Akwn43lxcEqiP6HCWATTektaSssAIkjAqb5SdtbCXgDPUHMgDowm6fTMw
+	 6NmRqfGzW8Kr+gsrcHL67R03EEeG2nvm6ob8SNQrL+GKjgFp74m5PN1hU7dY6dWKPl
+	 N1Xxyuz3pCwprGnegIuMgSTbCHmJvt0kWRcm1213rLxvmAGedsX94FXHuZlytvcrpb
+	 lgy8JUVRb2/0A==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>
 Subject:
- [PATCH v1 04/15] ACPI: button: Use bool for representing boolean values
-Date: Mon, 01 Jun 2026 18:58:13 +0200
-Message-ID: <2274778.irdbgypaU6@rafael.j.wysocki>
+ [PATCH v1 03/15] ACPI: button: Improve warning message regarding lid state
+Date: Mon, 01 Jun 2026 18:56:33 +0200
+Message-ID: <5084775.GXAFRqVoOG@rafael.j.wysocki>
 Organization: Linux Kernel Development
 In-Reply-To: <12913564.O9o76ZdvQC@rafael.j.wysocki>
 References: <12913564.O9o76ZdvQC@rafael.j.wysocki>
@@ -47,83 +47,38 @@ Content-Type: text/plain; charset="UTF-8"
 
 From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-Change the data type of the last_state field in struct acpi_button and
-the data type of the acpi_lid_notify_state() second argument to bool
-because they both are used for storing boolean values.
+The warning message regarding an unexpected lid state printed by
+acpi_lid_notify_state() is quite cryptic and there is no information
+in it to indicate that it is about a platform firmware defect.  In
+fact, it can only be understood after reading the comment below the
+statement printing it.
 
-Update the callers of acpi_lid_notify_state() accordingly and
-while at it, remove the unnecessary (void) cast from the
-acpi_lid_update_state() call in acpi_lid_initialize_state() for
-consistency.
+For this reason, replace it with a more direct one including FW_BUG so
+its connection to a firmware issue is clearer.
 
-No intentional functional impact.
+While at it, fix up a comment preceding the statement printing the
+message in question.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/button.c | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ drivers/acpi/button.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-index d2c2b8105639..21a10da8b60b 100644
+index 0b96db762bea..d2c2b8105639 100644
 --- a/drivers/acpi/button.c
 +++ b/drivers/acpi/button.c
-@@ -175,7 +175,7 @@ struct acpi_button {
- 	struct input_dev *input;
- 	char phys[32];			/* for input device */
- 	unsigned long pushed;
--	int last_state;
-+	bool last_state;
- 	ktime_t last_time;
- 	bool suspended;
- 	bool lid_state_initialized;
-@@ -204,7 +204,7 @@ static int acpi_lid_evaluate_state(acpi_handle lid_handle)
- 	return lid_state ? 1 : 0;
- }
- 
--static int acpi_lid_notify_state(struct acpi_button *button, int state)
-+static int acpi_lid_notify_state(struct acpi_button *button, bool state)
- {
- 	struct acpi_device *device = button->adev;
- 	ktime_t next_report;
-@@ -218,14 +218,14 @@ static int acpi_lid_notify_state(struct acpi_button *button, int state)
- 	 * switch.
- 	 */
- 	if (lid_init_state != ACPI_BUTTON_LID_INIT_IGNORE ||
--	    button->last_state != !!state)
-+	    button->last_state != state)
- 		do_update = true;
- 	else
- 		do_update = false;
- 
- 	next_report = ktime_add(button->last_time,
+@@ -227,8 +227,8 @@ static int acpi_lid_notify_state(struct acpi_button *button, int state)
  				ms_to_ktime(lid_report_interval));
--	if (button->last_state == !!state &&
-+	if (button->last_state == state &&
+ 	if (button->last_state == !!state &&
  	    ktime_after(ktime_get(), next_report)) {
- 		/* Complain about the buggy firmware. */
- 		pr_warn_once(FW_BUG "Unexpected lid state reported by firmware\n");
-@@ -279,7 +279,7 @@ static int acpi_lid_notify_state(struct acpi_button *button, int state)
- 				  state ? "open" : "closed");
- 		input_report_switch(button->input, SW_LID, !state);
- 		input_sync(button->input);
--		button->last_state = !!state;
-+		button->last_state = state;
- 		button->last_time = ktime_get();
- 	}
+-		/* Complain the buggy firmware */
+-		pr_warn_once("The lid device is not compliant to SW_LID.\n");
++		/* Complain about the buggy firmware. */
++		pr_warn_once(FW_BUG "Unexpected lid state reported by firmware\n");
  
-@@ -426,10 +426,10 @@ static void acpi_lid_initialize_state(struct acpi_button *button)
- {
- 	switch (lid_init_state) {
- 	case ACPI_BUTTON_LID_INIT_OPEN:
--		(void)acpi_lid_notify_state(button, 1);
-+		acpi_lid_notify_state(button, true);
- 		break;
- 	case ACPI_BUTTON_LID_INIT_METHOD:
--		(void)acpi_lid_update_state(button, false);
-+		acpi_lid_update_state(button, false);
- 		break;
- 	case ACPI_BUTTON_LID_INIT_IGNORE:
- 	default:
+ 		/*
+ 		 * Send the unreliable complement switch event:
 -- 
 2.51.0
 
