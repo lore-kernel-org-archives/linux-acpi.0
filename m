@@ -1,344 +1,181 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.14])
+Received: from SA9PR02CU001.outbound.protection.outlook.com (mail-southcentralusazon11013042.outbound.protection.outlook.com [40.93.196.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C824C369D6D;
-	Mon,  1 Jun 2026 12:18:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.14
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780316301; cv=none; b=r8DwXF9QbBZ2Z8D/Q48McPCNtgVFuUbIprxjEA3Dr5C7tI4Ty5tOUj2OLi3jcBalGpT3aWPXyPtZOa7scX8Rr9phEy4ybw29v5zojG1XufZ6zRXabmjRtLjVCwJ4CKCF7MRnSykY+pJYO5xd+0KJdcIu2PDN7mZUj2hks9JenOw=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780316301; c=relaxed/simple;
-	bh=wxAMZwp74wh2HogaaNRzqMwkCTTt6zJ1smlhMpTZy14=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=NsMwvWuyIGh1nLKR0P5uY46A9/0y01149B9cCEjCPB1mzDh9O1pzXmHm5OsSDEN9Gi1i3WtvGwMvQNpdDNw2oB03UkZWTvID67e3D8a74ddDipEtM7StqlPu4tGcbCAuWPpudDfaeybJH1uUV862SRRJJ9F1qI5bwLdItWN6T+0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=UKy6YAZB; arc=none smtp.client-ip=192.198.163.14
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53C32331220;
+	Mon,  1 Jun 2026 12:32:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.196.42
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1780317157; cv=fail; b=r1bccYs8Usm0MadCPOssEuDWqaRQEQvCd1qP9uB6IIqvJZT8XujzPyNfHUHj2N1s4xw/PJj9NMM+exmU5ZmL4BkbH+2XkaWt84rRrS/1W/QplfUr7/sm05/QRf2CV7hi9KYNOPtMsRIgbxnzlNrgZe+6sOUqq94fPW9WyRjvc4c=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1780317157; c=relaxed/simple;
+	bh=miA6UbWaqteSxCtEM5WoKGBU0qf4VaBzECXEb9Mh4gs=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=IIxBY3zw3ItVJ+8kGq8ycJxU05I35JIRGgbDTpoXP8PhWtI6dLLcVoKPgnu8JYSLfxQ+dAcdeli4VEppbsZ150XHieIYLy/rfjyjqQnrtHrqTtbbrDmMXdxHtic3ymVUGLd9dcgbHUOjvYzoa1a1zODJ+c8Kelb7O49L/SE1cxE=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=IYkq6Or9; arc=fail smtp.client-ip=40.93.196.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="UKy6YAZB"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1780316300; x=1811852300;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=wxAMZwp74wh2HogaaNRzqMwkCTTt6zJ1smlhMpTZy14=;
-  b=UKy6YAZBeW7HJ70TeIRwr+s/0G5dtYLg0DRVAY/z6GBrIxX2hLJM41rX
-   f6SZ/Aaycl5HT2McmY6jpb/kTY97tmyHoD2uWFSVbKoAK0p53/IhUkKyA
-   b3hfSj9eELMlqwpEfDpN4wB0Y00GNyrYuWVak6X/baGru7ggpL6MyjUKm
-   EVhNRS+LqjAkipAhYde74eG5HlVP8HmORsoY9KRvkuWNcAbf1o+rSi9ts
-   GaKzf0hYEKZyZxUJxU+jsq7z+4UEpD64kskD8C7pcrpsqpv+G3n4Rytdx
-   +MIzqPRBxINEkZMUr6qsYFMfWxuSwbysb+jt0/x2elWt93w8xxjwwFtq0
-   w==;
-X-CSE-ConnectionGUID: QSL8yUsoRRK2GHWGJpxwDQ==
-X-CSE-MsgGUID: iDdZZob3S1+DvBGAI7py7w==
-X-IronPort-AV: E=McAfee;i="6800,10657,11803"; a="81102641"
-X-IronPort-AV: E=Sophos;i="6.24,181,1774335600"; 
-   d="scan'208";a="81102641"
-Received: from fmviesa006.fm.intel.com ([10.60.135.146])
-  by fmvoesa108.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jun 2026 05:18:19 -0700
-X-CSE-ConnectionGUID: TQk/6IDMRJy5uME9cJmVcw==
-X-CSE-MsgGUID: f9d72IYKRQWWEGz2UicR7Q==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.24,181,1774335600"; 
-   d="scan'208";a="239140336"
-Received: from black.igk.intel.com ([10.91.253.5])
-  by fmviesa006.fm.intel.com with ESMTP; 01 Jun 2026 05:18:17 -0700
-Received: by black.igk.intel.com (Postfix, from userid 1001)
-	id EBB4095; Mon, 01 Jun 2026 14:18:15 +0200 (CEST)
-Date: Mon, 1 Jun 2026 14:18:15 +0200
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-To: Marco Scardovi <scardracs@disroot.org>
-Cc: Mika Westerberg <westeri@kernel.org>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Linus Walleij <linusw@kernel.org>,
-	Bartosz Golaszewski <brgl@kernel.org>, linux-gpio@vger.kernel.org,
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-	"Marco Scardovi (scardracs)" <mscardovi95@gmail.com>
-Subject: Re: [PATCH v4 2/4] gpiolib: acpi: fix resource leak in OpRegion
-Message-ID: <20260601121815.GS3102@black.igk.intel.com>
-References: <20260531120816.17255-1-scardracs@disroot.org>
- <20260531120816.17255-3-scardracs@disroot.org>
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="IYkq6Or9"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=Dzymx3uS6OEWVmaWbNy0mW9ZluFs+aQ2dXYLtey1bCseAmt5nNrZkV9/Gxd2186/iPlgeJAAjwDFjis3Uu4/CTdcx/a/+WXYbWztBn+6Bw55QdncWM1z3bS06DlxlK3PsNp7puj4Nr75nM/MrrG6HLbsZjP524lz5GZo/57uRMc3AqOuXQJ4OkBAtBzy935CsLAEeiM8A5pGwuQ8tCIIsDpU9+cTJaD3rwVrT/V9I5L5lMa/4rGi5JAwxm9QE+3sk/ZuJ/dGoZbFqLDwJjEz2j/WNVuZ5sjsvJ92fFMHaBlzgo41MZY9DaOwEtohU1NLvzr/sXjK6I303OZnQWiy6A==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=veWpZLRFgtcf1cqOGFfc/hdT/FRLRZwStZHNwnxIOz0=;
+ b=XHgcEZctZI69aTWfwzhWRoBq7Mqh45fQdJh1GUH4RYIFbXwYjNjqqKUQ9Y4z/ywPx8757FPzsHl7TfWrxmfSaEZDV7dKht3LRXmM2rw9utvBELZlqGeA1ATiA7e6LXqd7/w0IQ62Lx+DwXAqe8t7XdEK6mRGJ2zA6BAY9XKaXHHlmuNjL4pCUavzgFe73ugMEX4d3tWusp6Eb0IWS+yiKZkTSS5hgWZT1bAyfXr/CNElnwlOzuYl6KFyORmS1M61h6cq4l4uWmsxiNHXlNi+ynB3xTxBuMSZ3NYaGaG3xSE5uHlrfFgd+8YeqNVbafJNGzoRBkOoMEUpmiUkICmltA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=veWpZLRFgtcf1cqOGFfc/hdT/FRLRZwStZHNwnxIOz0=;
+ b=IYkq6Or9cfY7BMGXGkyWSkN2/7qzijllrHdLwVLl1oQGAE5a0x2jotmASFtcgLHWrVvjMGGifMTS5TpFc/2IWgeeJvmYiTbJ1PwDIOjsOK/pace2e/asXGhrScmOmK5a/mNc15RyXw7mglhpo6LfOiMoa156vO6BmKQzgKam7264gTvyQzNagJJoeEMje7BfBDnA/wck/+70Dc4agcfJyFfsQHG62OpFJMfsdNsuNWPJs3bZMgXyk7ur6LMVGNRcMVfr+ZktA4evJsd49P8cIwZ0POx6D9RVj5sY6bW5cIotq80bsjgrTMaBlzwMhsS0Wc+7Be17l2vx+HKyLgie9w==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from LV8PR12MB9620.namprd12.prod.outlook.com (2603:10b6:408:2a1::19)
+ by CYYPR12MB8655.namprd12.prod.outlook.com (2603:10b6:930:c4::19) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.71.16; Mon, 1 Jun 2026
+ 12:32:32 +0000
+Received: from LV8PR12MB9620.namprd12.prod.outlook.com
+ ([fe80::299d:f5e0:3550:1528]) by LV8PR12MB9620.namprd12.prod.outlook.com
+ ([fe80::299d:f5e0:3550:1528%4]) with mapi id 15.21.0071.011; Mon, 1 Jun 2026
+ 12:32:32 +0000
+Date: Mon, 1 Jun 2026 09:32:31 -0300
+From: Jason Gunthorpe <jgg@nvidia.com>
+To: Nicolin Chen <nicolinc@nvidia.com>
+Cc: Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>,
+	Joerg Roedel <joro@8bytes.org>, Bjorn Helgaas <bhelgaas@google.com>,
+	"Rafael J . Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>, Pranjal Shrivastava <praan@google.com>,
+	Mostafa Saleh <smostafa@google.com>,
+	Lu Baolu <baolu.lu@linux.intel.com>,
+	Kevin Tian <kevin.tian@intel.com>,
+	linux-arm-kernel@lists.infradead.org, iommu@lists.linux.dev,
+	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+	linux-pci@vger.kernel.org, vsethi@nvidia.com,
+	Shuai Xue <xueshuai@linux.alibaba.com>
+Subject: Re: [PATCH v4 18/24] iommu/arm-smmu-v3: Introduce master->ats_broken
+ flag
+Message-ID: <20260601123231.GG3195266@nvidia.com>
+References: <cover.1779161849.git.nicolinc@nvidia.com>
+ <49dde0a2e2dc88e421a3010956db33d47cc92aa8.1779161849.git.nicolinc@nvidia.com>
+ <20260519120658.GB3477375@nvidia.com>
+ <aho9DB6it2R5O5Nm@Asurada-Nvidia>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <aho9DB6it2R5O5Nm@Asurada-Nvidia>
+X-ClientProxiedBy: YT4P288CA0011.CANP288.PROD.OUTLOOK.COM
+ (2603:10b6:b01:d4::22) To LV8PR12MB9620.namprd12.prod.outlook.com
+ (2603:10b6:408:2a1::19)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20260531120816.17255-3-scardracs@disroot.org>
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: LV8PR12MB9620:EE_|CYYPR12MB8655:EE_
+X-MS-Office365-Filtering-Correlation-Id: e17a9a48-2d9b-46b9-b5fb-08debfd9da1d
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|7416014|376014|1800799024|366016|18002099003|22082099003|56012099006|4143699003|11063799006;
+X-Microsoft-Antispam-Message-Info:
+	Lw7mMCzWKKuaNNpIw3spDsGcgb5t91enzTuoYLeir1EsPEYMf7ekmSyHCQxz6O2fvaQzzznh8WUMmgE6xl48LbU+lm30p8yP5eKT67Y34BzhKNuXtCFLbAx46tFo/uZjZD3qookGlF0TXgzEf1Fq5nHtPzf8xgR52HQ4OSvnfBGuyIRdrHNTYByPxfQT3XQCNC4mU9VTJUZfs267q3uz6pzeXMwUSlgYAwMwi4aBQChbIPSEbHH4g9B88Jsw/qPXtprezn5EoPmIMZm9zHfDiJmKR5+ywD4M/ogIE00ZH0tORMAiOYqB6tK7BAE4pSHaV/1RUcoTUjySHyWsL3YyQUqHCYwHsZ9Kf9qER9aqbOjM9ran35KwKBSarSqSEu5vzuDoPxS97uvuwJM9aNww0UEgm6mX2xvG8CAxlLWeAgD8c1gfQzj6yq+ZWzWi7YvEGrPIu7sf6Xe0cA1jtwR57VWnSMp7tHXSlIFyexaguP4eQ/LpTLqTUS5TRt7n9p01Fyl1Dk5nXHMlk3/b4uXukSx1Agg+HjTSwYwrKyrQEvubeOSxDlR/dBn98JEoYvzPLESG7Nyz9BLKrJlES38CME3TLVdf67zGWdnj9j+DJndv+xgAdnDt4RuHMJvKbsGxmFJhOXowlEE59zXA4URCgsgY9hV/X1qsbdkTFtPU1ZAeb+QEI4CLdZJasuRB9bAF
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:LV8PR12MB9620.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(7416014)(376014)(1800799024)(366016)(18002099003)(22082099003)(56012099006)(4143699003)(11063799006);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?fny4AcMMtKThkPfVxMKCse0javtsPFEbp5uHDvQ2Yya+q3gMENaCGq0fgHog?=
+ =?us-ascii?Q?VVJOcgIHyrxDBCz02GUsWJQD/QLtM9UbCzUSTdptxja0yWUDsLABZlvmYV7Y?=
+ =?us-ascii?Q?wpWpSgvz71O5QGwEX9X1Av/BuxZIUNGqfbm8e41JhLXb295OQhyQUXD2UgLg?=
+ =?us-ascii?Q?SEOfa/0ScLHK/HbEsasOIl9eI1/J9UFt2fRjQxLLuGqlQUn4hs0T11W9fH7r?=
+ =?us-ascii?Q?WkzCsTUtP45yucZl1TVzIPY8Z2cc4G0//sCy2d8Ib3c3HsvOoGkfZ8Fhp51h?=
+ =?us-ascii?Q?fGn/KKY79rG/WLhm9pM2LbvFkViMfw82uAaJm3aoZuDMhhQhYK4NGcoeOg3J?=
+ =?us-ascii?Q?t1cv9BsHJUe1W8wJwoDAdE7KqIXAKugCpbTYYjhBwEGYTxVcXICbyKs4jHkT?=
+ =?us-ascii?Q?3nzw6VHJFRY2UII29DZMZcx9vgHJOEoO44KjXH+y+jF+mamHjkXUiXCCoZlx?=
+ =?us-ascii?Q?rWlA0QzLp/i9nIivljObp5Etu3hTfnilm4FJhtj5aCRZ/M0T+LszkNLEzRGh?=
+ =?us-ascii?Q?JPmOdZOC9AZukMrUBbYwreLb6D+3nkkIqMF2pc+A2GfKDXNc+5TgbZGtBRhj?=
+ =?us-ascii?Q?Go45kVkCHXfzwUqVPuOOkw7RxLFlrTDzuMrdAgLa6lymYpTzg9jIFKDzxAT+?=
+ =?us-ascii?Q?4wIvhg9qSBZCNRgPO2zB1P2sBETN85lUXY3DyVsLooePMJttiXAneD2wKYr1?=
+ =?us-ascii?Q?L4NjzUfA0eiEBSwd7SzRkG/JwiS62ue0PDnLgFKcAuzvNqR0kBahVbmFHN3C?=
+ =?us-ascii?Q?VIwcJAN0/VQSRh3Wht1nubcl2tsD+Sq20r6V9aVbyUTEbLZk/UQE9bQwiL5G?=
+ =?us-ascii?Q?43VwR8MgC/OwnVVHvdKDei/L4e4ra/GPPjTP1QJCKACohs66M6/R/XiF9s5l?=
+ =?us-ascii?Q?WhDopGo1NkZrxKCDcGDe/qODBUmJhFS3eOEhIuyXZ73tFDEostwGbYSsdL3A?=
+ =?us-ascii?Q?yeF01uTS4jm6XbrP6i9Van6ykMzQdodUdu/UGfQqye4dwaNdwH46R9Zb9TMW?=
+ =?us-ascii?Q?XC4qGaesl4rENILv31l3+9XF6eevnVZhZuZ6Vot/ppkoLc+VxjqP5k6DxiZE?=
+ =?us-ascii?Q?FbedlyiCW2aaM85l1U+9dnXRGVKTZ2WipQY3gkbXkD/mviaX1AfuLrsDTWtj?=
+ =?us-ascii?Q?nlPagyShF6nQPx67tGWA4c0c3khhRR5PgkzD92zSofuILCdEV+Vq+wC7kNe6?=
+ =?us-ascii?Q?mUs+O/F0wMeH5oGUjLkOzQeSwyjXg41StpPCaSDw3MvjWu8mnPLJ02xs1n6u?=
+ =?us-ascii?Q?fk2ncIGW+jPtg0qoxr8XBTZGjppif+QLV+7V9EUZ+ON2pJvTtpj7mZqS4Kuo?=
+ =?us-ascii?Q?ALHxk5ySa0YSW+c/6ILVTxA2dZZKEnCdtTGT+nZyIIYx9sd9nB/Syr81Vk5l?=
+ =?us-ascii?Q?Kus0JRZDzYndtxB7X5U97VGWqHfY74XhNqO9D5Y94zeqcYm1SyWDsCPF2SW9?=
+ =?us-ascii?Q?Ntwpfc6xR7vq/U0PVv1Czr9j7wNaLn7p7NDxbFep+nNk+5bVFe1vsc6kyUNT?=
+ =?us-ascii?Q?3Ic+fvi801XlNrChZ5CgX5RQnlCfWtSwhOpt+m0R1Jae51gN2xfn6ueRdJq2?=
+ =?us-ascii?Q?YZcMt/7326spDCd4h7ZtZgdRa4F+D6zrJxMm/QN4QDIBRrxxF7cY69ZU3Ya9?=
+ =?us-ascii?Q?tQLd81v7ik2A9bq4x+WAYM7VLJirH8WFPrP1cJd1RFIlluZyae/+Lz3iQycy?=
+ =?us-ascii?Q?UoWE73K2OaO21cq+raevZehac+bOHB+1pTFFc9x6SVjENsv5?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: e17a9a48-2d9b-46b9-b5fb-08debfd9da1d
+X-MS-Exchange-CrossTenant-AuthSource: LV8PR12MB9620.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 01 Jun 2026 12:32:32.3423
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: UJWeiiP4Qf5uAkN3jOfzC/HVIcsIEU6sc/WsmQmjU2vUsK4XjcHQEeTQD/eBuOHt
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CYYPR12MB8655
 
-Hi,
-
-On Sun, May 31, 2026 at 02:03:09PM +0200, Marco Scardovi wrote:
-> From: "Marco Scardovi (scardracs)" <mscardovi95@gmail.com>
+On Fri, May 29, 2026 at 06:27:40PM -0700, Nicolin Chen wrote:
+> On Tue, May 19, 2026 at 09:06:58AM -0300, Jason Gunthorpe wrote:
+> > On Mon, May 18, 2026 at 08:39:01PM -0700, Nicolin Chen wrote:
+> > > diff --git a/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c b/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c
+> > > index cde2ff2dcc49b..638956e2535b4 100644
+> > > --- a/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c
+> > > +++ b/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c
+> > > @@ -2429,6 +2429,10 @@ static int arm_smmu_atc_inv_master(struct arm_smmu_master *master,
+> > >  	struct arm_smmu_cmd cmd;
+> > >  	struct arm_smmu_cmdq_batch cmds;
+> > >  
+> > > +	/* Do not issue ATC_INV that will definitely time out */
+> > > +	if (READ_ONCE(master->ats_broken))
+> > > +		return 0;
+> > > +
+> > >  	cmd = arm_smmu_make_cmd_atc_inv_all(0, IOMMU_NO_PASID);
+> > >  	arm_smmu_cmdq_batch_init_cmd(master->smmu, &cmds, &cmd);
+> > >  	for (i = 0; i < master->num_streams; i++)
+> > > @@ -2651,12 +2655,18 @@ static void __arm_smmu_domain_inv_range(struct arm_smmu_invs *invs,
+> > >  						       cur->id));
+> > >  			break;
+> > >  		case INV_TYPE_ATS:
+> > > +			/* Do not issue ATC_INV that will definitely time out */
+> > > +			if (READ_ONCE(cur->master->ats_broken))
+> > > +				break;
+> > 
+> > Yuk, this should be a bool in the invs list, not the master.
+> > 
+> > If the flow is to have the core code always attach a blocked domain before
+> > reset_done then the invs list will naturally fix itself.
 > 
-> If acpi_remove_address_space_handler() fails, the cleanup function
-> acpi_gpiochip_free_regions() previously returned early. This leaks
-> the connections list and all requested GPIO descriptors.
+> So I've tried INV_TYPE_ATS_BROKEN: during per-domain invalidation,
+> each batch is built from domain->invs so it can carry the "invs";
+> if the batch times out, we can immediately mutate its ATS entries.
 > 
-> Similarly, if acpi_gpio_adr_space_handler() fails to allocate a connection
-> or request a GPIO descriptor during a multi-pin transaction, it exits
-> without freeing the descriptors and connections that were already allocated
-> in the same call.
-> 
-> To avoid leaks, introduce a localized new_conns list inside the handler to
-> track the new connections requested during the current transaction. On
-> error, roll back only the connections in the new_conns list (avoiding
-> deadlock on the non-recursive conn_lock and preventing over-cleanup of
-> historic connections). On success, splice the new_conns list into the
-> global achip->conns list under the conn_lock.
-> 
-> Additionally, rename the global connection cleanup function to
-> acpi_gpiochip_free_all_connections() and call it in the GPIO chip teardown
-> path.
-> 
-> Fixes: 473ed7be0da0 ("gpio / ACPI: Add support for ACPI GPIO operation regions")
-> Assisted-by: Antigravity:gemini-3.5-flash
-> Signed-off-by: Marco Scardovi <mscardovi95@gmail.com>
-> ---
->  drivers/gpio/gpiolib-acpi-core.c | 142 ++++++++++++++++++++++++-------
->  1 file changed, 111 insertions(+), 31 deletions(-)
+> But I realized a limitation. E.g., if a device attaches to two SVA
+> domains on two SSIDs. An invalidation timing out on one of the SVA
+> domains could mark INV_TYPE_ATS_BROKEN in its own invs, but not in
+> the other SVA domain's invs?
 
-This is really complex solution to a problem I'm not sure that even exists.
+You'd have to mark all the S1's sharing the STE.
 
-> diff --git a/drivers/gpio/gpiolib-acpi-core.c b/drivers/gpio/gpiolib-acpi-core.c
-> index a6d78dad299e..e3bc4677b51d 100644
-> --- a/drivers/gpio/gpiolib-acpi-core.c
-> +++ b/drivers/gpio/gpiolib-acpi-core.c
-> @@ -1094,6 +1094,51 @@ int acpi_dev_gpio_irq_wake_get_by(struct acpi_device *adev, const char *con_id,
->  }
->  EXPORT_SYMBOL_GPL(acpi_dev_gpio_irq_wake_get_by);
->  
-> +static void acpi_gpiochip_free_connection_list(struct list_head *list)
-> +{
-> +	struct acpi_gpio_connection *conn;
-> +	struct acpi_gpio_connection *tmp;
-> +
-> +	list_for_each_entry_safe_reverse(conn, tmp, list, node) {
-> +		gpiochip_free_own_desc(conn->desc);
-> +		list_del(&conn->node);
-> +		kfree(conn);
-> +	}
-> +}
-> +
-> +static void acpi_gpiochip_free_all_connections(struct acpi_gpio_chip *achip)
-> +{
-> +	guard(mutex)(&achip->conn_lock);
-> +
-> +	acpi_gpiochip_free_connection_list(&achip->conns);
-> +}
-> +
-> +/*
-> + * Find a connection in the global or local list.
-> + * The caller must hold achip->conn_lock to protect the global list.
-> + * The local list new_conns is private to the calling thread.
-> + */
-> +static struct acpi_gpio_connection *
-> +acpi_gpiochip_find_conn(struct acpi_gpio_chip *achip,
-> +			struct list_head *new_conns, unsigned int pin)
-> +{
-> +	struct acpi_gpio_connection *conn;
-> +
-> +	list_for_each_entry(conn, &achip->conns, node) {
-> +		if (conn->pin == pin)
-> +			return conn;
-> +	}
-> +
-> +	if (new_conns) {
-> +		list_for_each_entry(conn, new_conns, node) {
-> +			if (conn->pin == pin)
-> +				return conn;
-> +		}
-> +	}
-> +
-> +	return NULL;
-> +}
-> +
->  static acpi_status
->  acpi_gpio_adr_space_handler(u32 function, acpi_physical_address address,
->  			    u32 bits, u64 *value, void *handler_context,
-> @@ -1101,11 +1146,16 @@ acpi_gpio_adr_space_handler(u32 function, acpi_physical_address address,
->  {
->  	struct acpi_gpio_chip *achip = region_context;
->  	struct gpio_chip *chip = achip->chip;
-> +	struct acpi_gpio_connection *other;
-> +	struct acpi_gpio_connection *conn;
->  	struct acpi_resource_gpio *agpio;
->  	struct acpi_resource *ares;
->  	u16 pin_index = address;
-> +	LIST_HEAD(new_conns);
->  	acpi_status status;
->  	int length;
-> +	u16 shift;
-> +	u16 word;
->  	int i;
->  
->  	status = acpi_buffer_to_resource(achip->conn_info.connection,
-> @@ -1129,20 +1179,15 @@ acpi_gpio_adr_space_handler(u32 function, acpi_physical_address address,
->  	length = min(agpio->pin_table_length, pin_index + bits);
->  	for (i = pin_index; i < length; ++i) {
->  		unsigned int pin = agpio->pin_table[i];
-> -		struct acpi_gpio_connection *conn;
->  		struct gpio_desc *desc;
-> -		u16 word, shift;
-> -		bool found;
-> +		bool found = false;
->  
->  		mutex_lock(&achip->conn_lock);
->  
-> -		found = false;
-> -		list_for_each_entry(conn, &achip->conns, node) {
-> -			if (conn->pin == pin) {
-> -				found = true;
-> -				desc = conn->desc;
-> -				break;
-> -			}
-> +		conn = acpi_gpiochip_find_conn(achip, &new_conns, pin);
-> +		if (conn) {
-> +			desc = conn->desc;
-> +			found = true;
->  		}
->  
->  		/*
-> @@ -1163,34 +1208,66 @@ acpi_gpio_adr_space_handler(u32 function, acpi_physical_address address,
->  			}
->  		}
->  
-> +		mutex_unlock(&achip->conn_lock);
-> +
->  		if (!found) {
->  			desc = acpi_request_own_gpiod(chip, agpio, i, "ACPI:OpRegion");
+> So, it seems that master->ats_broken is still a cleaner solution?
 
-If any of the below fails we clean up the descriptor while the prior are
-already in the list. Once the GPIO chip is released the list is released as
-well.
+I don't want the invs code touching master, that is against the entire
+design.
 
-> -				mutex_unlock(&achip->conn_lock);
-> +				/*
-> +				 * In case of concurrent handler execution, another
-> +				 * thread may have already requested the same GPIO,
-> +				 * causing acpi_request_own_gpiod() to fail with -EBUSY.
-> +				 * Re-check the visible connection lists and reuse an
-> +				 * existing connection if one is found.
-> +				 */
-> +				if (PTR_ERR(desc) == -EBUSY) {
-> +					mutex_lock(&achip->conn_lock);
-> +					conn = acpi_gpiochip_find_conn(achip, &new_conns, pin);
-> +					if (conn) {
-> +						desc = conn->desc;
-> +						found = true;
-> +					}
-> +					mutex_unlock(&achip->conn_lock);
-> +					if (found)
-> +						goto use_existing;
-> +				}
->  				status = AE_ERROR;
-> -				goto out;
-> +				goto err_free_new_conns;
->  			}
->  
->  			conn = kzalloc_obj(*conn);
->  			if (!conn) {
->  				gpiochip_free_own_desc(desc);
-> -				mutex_unlock(&achip->conn_lock);
->  				status = AE_NO_MEMORY;
-> -				goto out;
-> +				goto err_free_new_conns;
->  			}
->  
->  			conn->pin = pin;
->  			conn->desc = desc;
-> -			list_add_tail(&conn->node, &achip->conns);
-> -		}
->  
-> -		mutex_unlock(&achip->conn_lock);
-> +			mutex_lock(&achip->conn_lock);
-> +			/*
-> +			 * Re-check both lists again before adding to local
-> +			 * new_conns, as another thread could have completed
-> +			 * and spliced its list while conn_lock was released.
-> +			 */
-> +			other = acpi_gpiochip_find_conn(achip, &new_conns, pin);
-> +			if (other) {
-> +				struct gpio_desc *desc_to_free = conn->desc;
-> +				struct acpi_gpio_connection *c_to_free = conn;
->  
-> -		/*
-> -		 * For the cases when OperationRegion() consists of more than
-> -		 * 64 bits calculate the word and bit shift to use that one to
-> -		 * access the value.
-> -		 */
-> +				desc = other->desc;
-> +				mutex_unlock(&achip->conn_lock);
-> +
-> +				gpiochip_free_own_desc(desc_to_free);
-> +				kfree(c_to_free);
-> +			} else {
-> +				list_add_tail(&conn->node, &new_conns);
-> +				mutex_unlock(&achip->conn_lock);
-> +			}
-> +		}
-> +
-> +use_existing:
->  		word = i / 64;
->  		shift = i % 64;
->  
-> @@ -1204,9 +1281,19 @@ acpi_gpio_adr_space_handler(u32 function, acpi_physical_address address,
->  		}
->  	}
->  
-> +	mutex_lock(&achip->conn_lock);
-> +	list_splice_tail(&new_conns, &achip->conns);
-> +	mutex_unlock(&achip->conn_lock);
-> +
-> +	status = AE_OK;
-> +
->  out:
->  	ACPI_FREE(ares);
->  	return status;
-> +
-> +err_free_new_conns:
-> +	acpi_gpiochip_free_connection_list(&new_conns);
-> +	goto out;
->  }
->  
->  static void acpi_gpiochip_request_regions(struct acpi_gpio_chip *achip)
-> @@ -1229,22 +1316,15 @@ static void acpi_gpiochip_free_regions(struct acpi_gpio_chip *achip)
->  {
->  	struct gpio_chip *chip = achip->chip;
->  	acpi_handle handle = ACPI_HANDLE(chip->parent);
-> -	struct acpi_gpio_connection *conn, *tmp;
->  	acpi_status status;
->  
->  	status = acpi_remove_address_space_handler(handle, ACPI_ADR_SPACE_GPIO,
->  						   acpi_gpio_adr_space_handler);
-> -	if (ACPI_FAILURE(status)) {
-> +	if (ACPI_FAILURE(status))
->  		dev_err(chip->parent,
->  			"Failed to remove GPIO OpRegion handler\n");
-> -		return;
-> -	}
+Maybe a flag in the invs list itself is sufficient.
 
-If we fail to remove the OpRegion handler and continue to release the
-structures does that mean any AML code that accesses the GPIOs now are
-accessing already removed (below) objects? Here _REG is not called (we
-failed to remove the OpRegion handler) so the AML does not know that it is
-gone so it can happily still access the region. So IMHO it is safer to keep
-the connections instead of removing them.
-
-Of course it is possible that I'm missing something. It has been a while
-since I looked at any of this stuff.
-
->  
-> -	list_for_each_entry_safe_reverse(conn, tmp, &achip->conns, node) {
-> -		gpiochip_free_own_desc(conn->desc);
-> -		list_del(&conn->node);
-> -		kfree(conn);
-> -	}
-> +	acpi_gpiochip_free_all_connections(achip);
->  }
->  
->  void acpi_gpiochip_add(struct gpio_chip *chip)
-> -- 
-> 2.54.0
+Jason
