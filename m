@@ -1,60 +1,124 @@
-Received: from mx01lb.world4you.com (mx01lb.world4you.com [81.19.149.111])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9F2737B028
-	for <linux-acpi@vger.kernel.org>; Mon,  1 Jun 2026 18:22:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=81.19.149.111
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE4B637204C;
+	Mon,  1 Jun 2026 19:44:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.13
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780338175; cv=none; b=l4GtUjv6zU96FjI5lxHXAUQLyJUlJYT2k69BPrIL5FqK2v8WmwcR2pVbG5DjZW3BBaOdj5hay1lEsy9KFkoPACxvMaVRPTu7yJ1gXDJ6PuEPQEh+hFTzq8VDAhTXlDUc+c0zFguJrPwtfa4kPo9CQ1MIzH5gETt4SCBFh6snwjw=
+	t=1780343091; cv=none; b=Xf1TgohfJduDJlSg637Tifx8ZZiKl7AQ6O3kL8UnexJXHRMFZtGiOJjzgtMhUspVMm/vpjBmpQWU1HzX9smNQCFikynSRew+WzvhnpM6sWJslgDe3xh0ypRzk9ieeMAR8pyr8wOUJsK44eEfuY4wUXIoXHb8L2lgCrfaEYOK5Ec=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780338175; c=relaxed/simple;
-	bh=9q183NFC9fS2JbtBL36Ugl1YrAbf8Ci2YCyn/eMtdUU=;
-	h=From:To:Subject:Message-ID:Date:MIME-Version:Content-Type; b=XWIxHcfcr9YfLyv/H/Z/1hLmZq8fdOXlWSBIkihRJ0wUwZSUBbdEjSgcvK86yOpkzXUrFcmSDyjtZRENi47Fo82Hm4W/Sv3Jit8Rii1R5EbBUrX7DnNm9qBkhGfPl31uR/4fZ+tLp3h8jYWIpQy3Ku4zbCIIvvBZWXpTz++lmV0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ciaorelated.com; spf=pass smtp.mailfrom=ciaorelated.com; arc=none smtp.client-ip=81.19.149.111
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ciaorelated.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ciaorelated.com
-Received: from 89-26-47-193.stat.cablelink.at ([89.26.47.193] helo=[127.0.0.1])
-	by mx01lb.world4you.com with esmtpsa  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.97.1)
-	(envelope-from <info@ciaorelated.com>)
-	id 1wU74P-000000003xH-3eTD
-	for linux-acpi@vger.kernel.org;
-	Mon, 01 Jun 2026 20:09:02 +0200
-From: Dogan Karaarslan <info@ciaorelated.com>
+	s=arc-20240116; t=1780343091; c=relaxed/simple;
+	bh=VTlcwuaW4RDLr0BJhr9F06LVLxfFJWSD1KWH4T38YyU=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=dES38GiqnJPPNogomYeR7hls93ErEeKhDPr7BBAz+0tOkfUGB+vopsaUtaJ1EJ9ETjsJXjJlU8cD+T4mMe7vElsFNKOWmpAj6KKVCRvivl48an348+f+OduRu6KSfgRxhRv4SLm/mKuTfzTkO2PwJ0jzQ46wnytDgRxFUbPOWLI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=hafTxt39; arc=none smtp.client-ip=192.198.163.13
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="hafTxt39"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1780343090; x=1811879090;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=VTlcwuaW4RDLr0BJhr9F06LVLxfFJWSD1KWH4T38YyU=;
+  b=hafTxt3907aRlaPXPtjMkqO9xxPkEbsTt8ENhsUULxVY8XDElrgNoIkm
+   mVVnl0ube2YomBQWZ9JDzJOvSURfOMWkzjDqWwnWPEYzOoXUUfRvYHDrb
+   iPE6omm/Z3LcihKEOADmAaEeQbqJR7RrqwpY99r2TP4/TzcuAY68g4Tka
+   lRaH+Kf6JcKyf7jpLHNjbMQ/1ZY2G2VwOzZBoUSPTQFBmt7Xi2JfL8sLi
+   YFturOq69Ujbe9YTW/yYWcws8U2gcqLziUYlMEbduw2fjXEiRvKKA2hm7
+   50o35x6fa9Yu5zBuNlkJKDLVG0Cnc3LIwUe49MBPxSwgVKOtNMZTDIHu5
+   g==;
+X-CSE-ConnectionGUID: pareK+fUT3C+CAu0dwAq7w==
+X-CSE-MsgGUID: /AkxUtJFSxiQMZhODNo4WA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11804"; a="83689310"
+X-IronPort-AV: E=Sophos;i="6.24,181,1774335600"; 
+   d="scan'208";a="83689310"
+Received: from fmviesa010.fm.intel.com ([10.60.135.150])
+  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jun 2026 12:44:49 -0700
+X-CSE-ConnectionGUID: 3UDHrJozQZWnILd3RZ4GgQ==
+X-CSE-MsgGUID: vmnRNMtKQOCC4bIgfn4TFw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.24,181,1774335600"; 
+   d="scan'208";a="239504840"
+Received: from ubuntu.jf.intel.com ([10.54.60.90])
+  by fmviesa010.fm.intel.com with ESMTP; 01 Jun 2026 12:44:49 -0700
+From: Miguel Vadillo <miguel.vadillo@intel.com>
 To: linux-acpi@vger.kernel.org
-Subject: Open source social media project from Salzburg
-Message-ID: <e883185e-817e-9a5e-4057-0c241c7e37e7@ciaorelated.com>
-Content-Transfer-Encoding: quoted-printable
-Date: Mon, 01 Jun 2026 18:09:01 +0000
+Cc: rafael@kernel.org,
+	lenb@kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	sakari.ailus@linux.intel.com,
+	mehdi.djait@linux.intel.com,
+	wei.a.xu@intel.com,
+	atul.raut@intel.com,
+	miguel.vadillo@intel.com
+Subject: [PATCH] ACPI: scan: Honor _DEP for Intel CVS devices
+Date: Mon,  1 Jun 2026 12:40:40 -0700
+Message-ID: <20260601194040.18223-1-miguel.vadillo@intel.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-X-AV-Do-Run: Yes
+Content-Transfer-Encoding: 8bit
 
-Hello,
+CVS (Computer Vision Sensing) is an ACPI-enumerated device that sits
+inline in the CSI-2 path between the camera sensor and Intel IPU.
+On platforms where CVS is present, the camera sensor's ACPI node
+declares a _DEP dependency on the CVS device.
 
-I found your contact through GitHub.
+The CVS driver must be fully initialized before camera sensor drivers
+probe, because CVS controls the CSI-2 link ownership handshake (via
+GPIO REQ/RESP), the MIPI/CSI-2 lane configuration, and the camera
+power domain. Without CVS ready, the sensor driver can bind but the
+CSI-2 stream will not function correctly.
 
-I=E2=80=99m a developer based=
- in Salzburg, and I=E2=80=99ve created an open source social media project =
-focused on communities and meaningful connections.
+The CVS driver calls acpi_dev_clear_dependencies() at the end of its
+probe() to unblock waiting consumers once it is ready.
 
-I=E2=80=99d love to share it with you. If you like the idea of an open =
-source social media project, I would really appreciate it if you could take=
- a look and maybe star the repository.
+Move the CVS HIDs from acpi_ignore_dep_ids[] to acpi_honor_dep_ids[]
+so that camera sensor enumeration is deferred until the CVS driver has
+finished probing, matching the behavior already in place for IVSC.
 
-I=E2=80=99ve put a lot of heart =
-into this project, so any kind of support, feedback, contribution, or =
-simply sharing it would mean a lot to me.
+Signed-off-by: Miguel Vadillo <miguel.vadillo@intel.com>
+---
+Note: this patch has a functional dependency on the CVS driver and its
+IPU bridge support, which are queued in media-next for v7.2. Without
+those drivers, no code will call acpi_dev_clear_dependencies() for the
+CVS HIDs and camera sensors will remain deferred indefinitely.
 
-Here is the project:
-https://github.com/dogankaraarslan1/ciaorelated
+The CVS driver series (v5) can be found at:
+  https://lore.kernel.org/linux-media/20260527170531.383871-1-miguel.vadillo@intel.com/
 
-Thank you for your time.
+ drivers/acpi/scan.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-Best regards,
-Dogan Karaarslan
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 530547cda8b2..1463eb3a4f6e 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -848,8 +848,6 @@ static bool acpi_info_matches_ids(struct acpi_device_info *info,
+ static const char * const acpi_ignore_dep_ids[] = {
+ 	"PNP0D80", /* Windows-compatible System Power Management Controller */
+ 	"INT33BD", /* Intel Baytrail Mailbox Device */
+-	"INTC10DE", /* Intel CVS LNL */
+-	"INTC10E0", /* Intel CVS ARL */
+ 	"LATT2021", /* Lattice FW Update Client Driver */
+ 	NULL
+ };
+@@ -861,6 +859,9 @@ static const char * const acpi_honor_dep_ids[] = {
+ 	"INTC1095", /* IVSC (ADL) driver must be loaded to allow i2c access to camera sensors */
+ 	"INTC100A", /* IVSC (RPL) driver must be loaded to allow i2c access to camera sensors */
+ 	"INTC10CF", /* IVSC (MTL) driver must be loaded to allow i2c access to camera sensors */
++	"INTC10DE", /* CVS (LNL) driver must be loaded to allow camera streaming */
++	"INTC10E0", /* CVS (ARL) driver must be loaded to allow camera streaming */
++	"INTC10E1", /* CVS (PTL) driver must be loaded to allow camera streaming */
+ 	"RSCV0001", /* RISC-V PLIC */
+ 	"RSCV0002", /* RISC-V APLIC */
+ 	"RSCV0005", /* RISC-V SBI MPXY MBOX */
+-- 
+2.43.0
+
