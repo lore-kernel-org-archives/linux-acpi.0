@@ -1,106 +1,60 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mx01lb.world4you.com (mx01lb.world4you.com [81.19.149.111])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3276E3E5EF6
-	for <linux-acpi@vger.kernel.org>; Mon,  1 Jun 2026 18:11:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9F2737B028
+	for <linux-acpi@vger.kernel.org>; Mon,  1 Jun 2026 18:22:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=81.19.149.111
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780337498; cv=none; b=KxR+p1Qyvjo/ZrpIswhYTPQIQcjad2p1CalSyJyKMjGIe1lFtnJqR23Z5HR4iazPfN3/R+Xgn8JvEeHsTKR5zHdOKe4WZj60x6e2H0R7daZBVJfypMZq+npFAzdCGSYWteSMHlNsR5teEnGWUYq0FNT2iZ+aEM2Pyemf/gksYZs=
+	t=1780338175; cv=none; b=l4GtUjv6zU96FjI5lxHXAUQLyJUlJYT2k69BPrIL5FqK2v8WmwcR2pVbG5DjZW3BBaOdj5hay1lEsy9KFkoPACxvMaVRPTu7yJ1gXDJ6PuEPQEh+hFTzq8VDAhTXlDUc+c0zFguJrPwtfa4kPo9CQ1MIzH5gETt4SCBFh6snwjw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780337498; c=relaxed/simple;
-	bh=SiP84wSBjXvzGl4obQJqUGO7f/9RzMYlkUj+O98EVEY=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=un6sUJxG3+j6GPMIoJTISv6CJJgBoZljBGtNbrET1Axq+deUj6fUG1PAcx/qddSw+pjU6IN+5KqYwiPuRQENGUhByflWwfUJFo7BRqV6HYCLRdu8PUom36hHXx5cNK+56aXHgDWKgmsTsCktUfc0CD5Ka6rf+R1EjJGqTURZEac=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bJ81aLlS; arc=none smtp.client-ip=100.103.45.18
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bJ81aLlS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C957D1F00A01
-	for <linux-acpi@vger.kernel.org>; Mon,  1 Jun 2026 18:11:33 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1780337493;
-	bh=V/Uei0EDeq8dZpWHZiyt4nu5qJ+sNFdglTPQyXTHsig=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=bJ81aLlSmSXQ/l2uzVdRuEKkzPrCQeoKtHhY4u8YNeRC91DZ4/x3wvejUNoVXtrZb
-	 T8xFDY9v4w2wITwIjp0S8cWqZ5S3vrJYM4tHK9ENkfUjZHT9KSoUgWLRWSg3qz/bbG
-	 SZQ9tb+F/vBhghWICpJDWRfBEY771I8mrJMDwDLDvkgEzaIRB7aM6oQTukH3Z6ePbV
-	 ZvZU0i+bN0dCNdxwJEpIqJU8rHtJUri1MhPQSihXk5QiWfxLAxi7w//fiT9ah7UnuF
-	 QyXW5K4Jh0Gh8b6A4iDDt1bJEDRqzHSjZ8qYDMWljBmmIwLu73zpkVuUClFIXwNcue
-	 MseUa4FSYvD9w==
-Received: by mail-lf1-f46.google.com with SMTP id 2adb3069b0e04-5aa68dbb38aso1341485e87.2
-        for <linux-acpi@vger.kernel.org>; Mon, 01 Jun 2026 11:11:33 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AFNElJ+ZtD9YZXvPn72s2wjGp94Fd5BBPKjNSF56BV1BMKq34OnQYDtlo5Bd51ZGpvaBc6bp5C8ZDfO5Unvh@vger.kernel.org
-X-Gm-Message-State: AOJu0YxJENqVOj6GSZnjCNgmOtnVXMNaBjP+E5rpqvj3OWqMXul6FhbW
-	mUjn7Ip6G04WTzxpjBqm4iOWalW5qXLa+VNJbOg3Kow7C7XlfEK4mT/614aEqg8VZR5eMig4hu9
-	YYO43lRuLZ+d/UkByqPjkzPiSHFv4dgQ=
-X-Received: by 2002:a05:6512:b9a:b0:5aa:5c69:42f6 with SMTP id
- 2adb3069b0e04-5aa73edbef9mr358098e87.42.1780337492226; Mon, 01 Jun 2026
- 11:11:32 -0700 (PDT)
+	s=arc-20240116; t=1780338175; c=relaxed/simple;
+	bh=9q183NFC9fS2JbtBL36Ugl1YrAbf8Ci2YCyn/eMtdUU=;
+	h=From:To:Subject:Message-ID:Date:MIME-Version:Content-Type; b=XWIxHcfcr9YfLyv/H/Z/1hLmZq8fdOXlWSBIkihRJ0wUwZSUBbdEjSgcvK86yOpkzXUrFcmSDyjtZRENi47Fo82Hm4W/Sv3Jit8Rii1R5EbBUrX7DnNm9qBkhGfPl31uR/4fZ+tLp3h8jYWIpQy3Ku4zbCIIvvBZWXpTz++lmV0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ciaorelated.com; spf=pass smtp.mailfrom=ciaorelated.com; arc=none smtp.client-ip=81.19.149.111
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ciaorelated.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ciaorelated.com
+Received: from 89-26-47-193.stat.cablelink.at ([89.26.47.193] helo=[127.0.0.1])
+	by mx01lb.world4you.com with esmtpsa  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.97.1)
+	(envelope-from <info@ciaorelated.com>)
+	id 1wU74P-000000003xH-3eTD
+	for linux-acpi@vger.kernel.org;
+	Mon, 01 Jun 2026 20:09:02 +0200
+From: Dogan Karaarslan <info@ciaorelated.com>
+To: linux-acpi@vger.kernel.org
+Subject: Open source social media project from Salzburg
+Message-ID: <e883185e-817e-9a5e-4057-0c241c7e37e7@ciaorelated.com>
+Content-Transfer-Encoding: quoted-printable
+Date: Mon, 01 Jun 2026 18:09:01 +0000
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260527194626.185286-1-sumitg@nvidia.com> <20260527194626.185286-2-sumitg@nvidia.com>
- <CAJZ5v0jFpTeX0Vxt+Ut5nkmgueJFxHjoP-mdjdDd6jkCokn-VA@mail.gmail.com> <88932964-4148-4846-a872-8dbeb845c967@nvidia.com>
-In-Reply-To: <88932964-4148-4846-a872-8dbeb845c967@nvidia.com>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Mon, 1 Jun 2026 20:11:20 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0hRLnBBc-abqCCpcNAVyo1Nh=Yf3rdD7DkAP7ucDmr1Bg@mail.gmail.com>
-X-Gm-Features: AVHnY4JVgpvvjCQW9LZsZhv2gOoFpzTMXJ0eNKJa1CmE6zGdkxXsH9dS_UmkaPY
-Message-ID: <CAJZ5v0hRLnBBc-abqCCpcNAVyo1Nh=Yf3rdD7DkAP7ucDmr1Bg@mail.gmail.com>
-Subject: Re: [PATCH v4 1/2] ACPI: CPPC: Add support for CPPC v4
-To: Sumit Gupta <sumitg@nvidia.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, viresh.kumar@linaro.org, pierre.gondois@arm.com, 
-	zhenglifeng1@huawei.com, zhanjie9@hisilicon.com, mario.limonciello@amd.com, 
-	saket.dumbre@intel.com, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, 
-	acpica-devel@lists.linux.dev, treding@nvidia.com, jonathanh@nvidia.com, 
-	vsethi@nvidia.com, ksitaraman@nvidia.com, sanjayc@nvidia.com, 
-	mochs@nvidia.com, bbasu@nvidia.com, Mario Limonciello <superm1@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+X-AV-Do-Run: Yes
 
-On Mon, Jun 1, 2026 at 8:02=E2=80=AFPM Sumit Gupta <sumitg@nvidia.com> wrot=
-e:
->
-> Hi Rafael,
->
->
-> On 01/06/26 23:05, Rafael J. Wysocki wrote:
-> > External email: Use caution opening links or attachments
-> >
-> >
-> > On Wed, May 27, 2026 at 9:47=E2=80=AFPM Sumit Gupta <sumitg@nvidia.com>=
- wrote:
-> >> CPPC v4 (ACPI 6.6, Section 8.4.6) adds two optional entries to the
-> >> _CPC package:
-> >>
-> >> 1. OSPM Nominal Performance (8.4.6.1.2.6): A write-only register that
-> >>     lets OSPM inform the platform what it considers nominal performanc=
-e.
-> >>     The platform classifies performance above this level as boost and
-> >>     below as throttle for its power/thermal decisions.
-> >>
-> >> 2. Resource Priority (8.4.6.1.2.7): A Package of Resource Priority
-> >>     Register Descriptor sub-packages that allow OSPM to set relative
-> >>     priority among processors for shared resources (boost, throttle,
-> >>     L2/L3 cache, memory bandwidth). Parsing the full structure is not
-> >>     yet supported; such entries are marked as unsupported.
-> >>
-> >> Add v4 _CPC table parsing (25 entries) and update REG_OPTIONAL to
-> >> mark the two new registers as optional.
-> >>
-> >> Signed-off-by: Sumit Gupta <sumitg@nvidia.com>
-> >> Reviewed-by: Mario Limonciello (AMD) <superm1@kernel.org>
-> >> Reviewed-by: Pierre Gondois <pierre.gondois@arm.com>
-> > This patch is good to go AFAICS, while there are still comments on the
-> > second one in the series.
-> >
-> > Do you want me to apply this one separately?
->
-> Yes please. Patch 1 is independent of patch 2.
-> I will send patch 2 separately as a v5 after addressing the
-> review comments.
+Hello,
 
-Applied as 7.2 material, thanks!
+I found your contact through GitHub.
+
+I=E2=80=99m a developer based=
+ in Salzburg, and I=E2=80=99ve created an open source social media project =
+focused on communities and meaningful connections.
+
+I=E2=80=99d love to share it with you. If you like the idea of an open =
+source social media project, I would really appreciate it if you could take=
+ a look and maybe star the repository.
+
+I=E2=80=99ve put a lot of heart =
+into this project, so any kind of support, feedback, contribution, or =
+simply sharing it would mean a lot to me.
+
+Here is the project:
+https://github.com/dogankaraarslan1/ciaorelated
+
+Thank you for your time.
+
+Best regards,
+Dogan Karaarslan
