@@ -1,205 +1,102 @@
-Received: from layka.disroot.org (layka.disroot.org [178.21.23.139])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC02C38330A;
-	Mon,  1 Jun 2026 07:54:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.21.23.139
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B2B3377003
+	for <linux-acpi@vger.kernel.org>; Mon,  1 Jun 2026 12:13:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780300458; cv=none; b=MQJoYxYYTq3q8xHeYnkCSvc5WHdtOPeTFFqMr25zzBYcjfgAfUjFylt6L0eq8LQO5a2pFyUz3amlxF/MQoVdD75AP9nnuKhutWJY0PHR3czg45/ArwigZV+xPiQqzWUvb2yYtLH7IbywSzvgSlQG/9AQF/iOB3HftuNJ/npUsYg=
+	t=1780315987; cv=none; b=nAHQZT63OJt8/BMO1RM6VXBELeGfFt0/J8WFwCUHLYYeQvEPUzQ/FA2U0aiPGCH0jVFL8NS5QCL7o5drJUm3jrNePQD20pHXUC9SoIjRyIpwhzQMMVQ9B6WHuuT9XNUd0gymzgvtqwPWH9iVOyVFY96I1fcr7jKY2UpXL1NcIJ0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780300458; c=relaxed/simple;
-	bh=Ik6ainCX66BzJ2Qfs+GvgOivesqakYk67fQ8G/ADhF4=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=SBDGwLc7g4K6LtZHPyBckSEz0VQoNhY55+8nmJnZtec8HnBrkE2kLuMav34jaZs14wg+fEypSTDemX+dViMKnX05UBSh5HvHJVfuslFglxsRG7eANTYpSou9iiyjnt4AwFVMqdOqoQ2wHXdpNEY69LGqHp/wzKrIRDuHu7ChNv8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=disroot.org; spf=pass smtp.mailfrom=disroot.org; dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b=awMPDWjo; arc=none smtp.client-ip=178.21.23.139
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=disroot.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=disroot.org
+	s=arc-20240116; t=1780315987; c=relaxed/simple;
+	bh=EE8zdxlLBdtyKVtNHQ/sE40G22wZ24fiw+1NNUBUNpE=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=He2jaD3sO6UMId9IPupXmMXIYi/I6jOTbZJYp4qSBXDtUzcvB6lHPYRbffpuYbOEMjOLltuqouNjyO3zO2QymDvSi+3HrgAe21fzqlXnuMKhOieKoJJdU3P35A4lT2OfSlMMo4VzveJy5nLnaoNQMwGeyppxD6HE8j91dkLUrMw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=H2qU3NBt; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b="awMPDWjo"
-Received: from mail01.disroot.lan (localhost [127.0.0.1])
-	by disroot.org (Postfix) with ESMTP id 8D19426D73;
-	Mon,  1 Jun 2026 09:54:13 +0200 (CEST)
-X-Virus-Scanned: SPAM Filter at disroot.org
-Received: from layka.disroot.org ([127.0.0.1])
- by localhost (disroot.org [127.0.0.1]) (amavis, port 10024) with ESMTP
- id 1ODjpnW_pSBb; Mon,  1 Jun 2026 09:54:13 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=disroot.org; s=mail;
-	t=1780300453; bh=Ik6ainCX66BzJ2Qfs+GvgOivesqakYk67fQ8G/ADhF4=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=awMPDWjoT4sXwQCokgHyMDtUb6KIgfR+wVCMN1soGgfzhMpC7QaLvNYHnH5BsTEtI
-	 pg3rV+xSTuixXNnkC0etfnbmHAHejoB0VOkH52REnlR4GsLHeQ9blfOTkrHAT0HvG/
-	 9TrKxJuDme1shdK3sMD0D8DrHSx4rq+O1wg1vcZQQAKu1EFQpw7mEbyZ2di/cmimd+
-	 aJdLk7dY8qAa8VHYhV5+wSvDyc4AiJDlh6mVtUmUTSyEOZNjf+5ijsiVyzKtmC3P5A
-	 bgG4eMxb4OqPQaCfuivfjp191sgiMhtazwLCXckvhEamrEGugtZD8sUaUQCxVIu9Uk
-	 iIqxcYl5WDR+Q==
-From: Marco Scardovi <scardracs@disroot.org>
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Mika Westerberg <westeri@kernel.org>,
- Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
- Linus Walleij <linusw@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>,
- linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Subject:
- Re: [PATCH 2/2] gpiolib: acpi: fix out-of-bounds pointer arithmetic in
- acpi_gpio_package_count
-Date: Mon, 01 Jun 2026 09:53:59 +0200
-Message-ID: <XIZQ_cBiSFe35zZxB6k2Jw@disroot.org>
-In-Reply-To: <20260601071703.GP3102@black.igk.intel.com>
-References:
- <20260530094012.184276-1-scardracs@disroot.org>
- <n2_NwWYBRGa8ixTcAQysQw@disroot.org>
- <20260601071703.GP3102@black.igk.intel.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="H2qU3NBt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2BFDB1F0089E
+	for <linux-acpi@vger.kernel.org>; Mon,  1 Jun 2026 12:13:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1780315986;
+	bh=EE8zdxlLBdtyKVtNHQ/sE40G22wZ24fiw+1NNUBUNpE=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=H2qU3NBtM/mlzuAdg6nLaOMgdeAdLKOaLMRVE4Aru6bbdHooNwDd7oind7K6DaIEq
+	 BLTNKgeOI4prrqPiQtgd6yPrqcQ4+pGeomwtLHXSeAWARs1rtjNfy7AR0Aw2V7fuqo
+	 A4If/KdC6/28etvsDNvSbE5enOTnEiF1wKmjQi+ZU96FPltzntpaEM5xpp4O7a440t
+	 Gvi6OZbAmemC1nw6MCIZMNa1GDPbN5Kf/bRdKLAF07q9aSM0+Mmz+xVmoyuCs0rKwR
+	 W/ApjlKFsxNS+PQpNWWYsA49NEvusAFeCv3+TpOwk887BV7Cgh2RFsiVwgKWi7kahv
+	 h4pXsWkZwjTIw==
+Received: by mail-lf1-f47.google.com with SMTP id 2adb3069b0e04-5aa68d7d757so1101132e87.0
+        for <linux-acpi@vger.kernel.org>; Mon, 01 Jun 2026 05:13:06 -0700 (PDT)
+X-Gm-Message-State: AOJu0YwAJynp7j8cEpzvRft0+TD6bDC6nx1VsCXl1pVdtFBwJhN+PTbc
+	oAl9gQVxrbXs7G0Ci76qY4gE4D2v+3NcP20DJbPRk60fvR6oIZAba9xGN+qugxOdUblul0nr2Cu
+	/nsO38shT+LmWDfaflBdm+dnQFo+U1BA=
+X-Received: by 2002:a05:6512:b0f:b0:5aa:b6a:6028 with SMTP id
+ 2adb3069b0e04-5aa60a737f2mr2825770e87.45.1780315984633; Mon, 01 Jun 2026
+ 05:13:04 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+References: <E2OXET.4X5GTP37VTNC3@kousu.ca> <CAJZ5v0jVQyWYqPo_MiUwNQb7FLNR_Q_++Xq=xA1owcHpcjN=OA@mail.gmail.com>
+ <bc9d5258-d4df-46a1-bba9-de3486f722ab@pelago.org.uk> <8503d297-68ca-4bfe-bbdf-537a85890d86@oss.qualcomm.com>
+ <75398536-2ca8-4205-9205-18afc5227397@pelago.org.uk> <eddc6acd74abcea6131f3cfc606bc596@kousu.ca>
+In-Reply-To: <eddc6acd74abcea6131f3cfc606bc596@kousu.ca>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Mon, 1 Jun 2026 14:12:50 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0hR2b81+0FWAn3s_HJNWwweRSVk35KczPBKNabb-H91kg@mail.gmail.com>
+X-Gm-Features: AVHnY4K_Z822qHW2vwRtmAL8a7QwaDE3vDxsro5_34x72v0jljpMM1KGU6NiT_I
+Message-ID: <CAJZ5v0hR2b81+0FWAn3s_HJNWwweRSVk35KczPBKNabb-H91kg@mail.gmail.com>
+Subject: Re: [REGRESSION] Toshiba Fn keys + lidswitch
+To: Nick <nick@kousu.ca>, John Veness <john-linux@pelago.org.uk>
+Cc: linux-acpi@vger.kernel.org, johannes.goede@oss.qualcomm.com, 
+	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, regressions@lists.linux.dev, 
+	linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, 
+	platform-driver-x86@vger.kernel.org, stable@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="utf-8"
 
-In data luned=C3=AC 1 giugno 2026 09:17:03 Ora legale dell=E2=80=99Europa c=
-entrale, Mika=20
-Westerberg ha scritto:
-> Hi,
->=20
-> On Mon, Jun 01, 2026 at 08:31:16AM +0200, Marco Scardovi wrote:
-> > In data luned=C3=AC 1 giugno 2026 07:17:35 Ora legale dell=E2=80=99Euro=
-pa centrale,
-> > Mika
-> >=20
-> > Westerberg ha scritto:
-> > > On Sat, May 30, 2026 at 11:40:12AM +0200, Marco Scardovi wrote:
-> > > > When counting GPIOs in an ACPI package, encountering a reference or
-> > > > string causes the element pointer to be advanced by 3 (element +=3D=
- 3)
-> > > > and then by 1 (element++).
-> > > >=20
-> > > > If a malformed ACPI package contains fewer than 4 remaining elements
-> > > > when a reference or string is processed, this pointer arithmetic
-> > > > advances the element pointer past the end of the package elements
-> > > > array. This results in undefined behavior and can cause out-of-boun=
-ds
-> > > > reads.
-> > >=20
-> > > How can it cause out-of-bounds reads? We increase "element" but the n=
-ext
-> > > iteration checks that it is still inside "end" and it's never
-> > > dereferenced.
-> > > Maybe I'm missing something?
-> >=20
-> > Hi Mika,
-> >=20
-> > I agree that `element` is not dereferenced after the loop exits.
-> >=20
-> > My main concern is the parser logic rather than the pointer arithmetic
-> > itself.
-> >=20
-> > A GPIO connection is defined to consist of 4 package elements
-> > (a reference/string followed by 3 integers), but the loop condition only
-> > checks whether at least one element remains:
-> >=20
-> > ```
-> > element < end
-> > ```
-> >=20
-> > As a result, a malformed package containing fewer than 4 remaining
-> > elements
-> > can still be processed as if it were a complete GPIO entry. This can le=
-ad
-> > to a GPIO connection being accounted for even though the descriptor is
-> > structurally incomplete.
->=20
-> Does it take into account that GPIOs are optional in some cases so this is
-> totally valid:
->=20
->   Package () {
->       "cs-gpios",
->       Package () {
->          ^GPIO, 19, 0, 0,
->          ^GPIO, 20, 0, 0,
->          0,
->          ^GPIO, 21, 0, 0,
->       }
->   }
->=20
-> I'm worried that this breaks things rather than improves. If your intent =
-is
-> to "harden" against malicios ACPI tables then there are much worse things
-> than this that can be done (e.g we run a full bytecode interpreter inside
-> the kernel with not much restrictions and all that bytecode comes from the
-> ACPI tables).
->=20
-> Have you verified this change against any system that actually calls this
-> function?
+On Sun, May 31, 2026 at 10:35=E2=80=AFPM Nick <nick@kousu.ca> wrote:
 >
-Hi Mika,
+> On 2026-05-31 11:17, John Veness wrote:
+> > On 30/05/2026 14:34, johannes.goede@oss.qualcomm.com wrote:
+> >> In case you've not seen it yet, Rafael send out the test patch
+> >> publicly later that day in another email in this thread:
+> >>
+> >> https://lore.kernel.org/linux-acpi/12896447.O9o76ZdvQC@rafael.j.wysock=
+i/
+> >>
+> >> Regards,
+> >>
+> >> Hans
+> >
+> > Thanks for the pointer, and sorry for missing that! I had only been
+> > looking in the archives of platform-driver-x86@vger.kernel.org which
+> > for
+> > some reason didn't receive the patch.
+> >
+> > John
+>
+> On 2026-05-31 11:25, John Veness wrote:
+> > I'm not Nick, but I have tested the patch here on my old Toshiba Tecra
+> > Z50-A
+> > and it seems to have worked - I now have Fn+keys working fine, after
+> > losing them
+> > in a recent kernel update (apart from Fn+3 for volume down, and Fn+4
+> > for volume up,
+> > which for some reason continued to work when the others didn't).
+> >
+> > John
+>
+> Same here. All my Fn keys work except for Esc through F8. Glad Rafael's
+> patch worked for you too! There's a newer copy of it at
+> https://lore.kernel.org/linux-acpi/2046403.PYKUYFuaPT@rafael.j.wysocki/T/=
+#t
+> by the way.
 
-thanks for the detailed explanation =E2=80=94 I think your point is
-absolutely correct.
+Thank you both for testing!
 
-Looking again at the code and considering the valid ACPI cases you
-mentioned (including optional GPIO entries and non-strict packages),
-I realize my patch was too aggressive and based on an incorrect
-assumption about the parsing invariants.
-
-I was incorrectly assuming that each GPIO descriptor must always
-consist of a strict 4-element sequence, which led me to interpret
-partial or irregular packages as invalid.
-
-I also tested the change only with virtme-ng, as I do not have
-access to real hardware, but I agree this is not sufficient to
-validate the behavior in real systems.
-
-The check I proposed would likely reject valid real-world cases and
-effectively change the semantics of the parser rather than fixing a
-real issue.
-
-Given this, I agree the change is not appropriate and I will drop the
-patch.
-
-Sorry for the noise, and thanks for the clarification.
-Marco
->=20
-> > Such truncated descriptors should be rejected with `-EPROTO` rather than
-> > being accepted as valid input.
-> >=20
-> > Ensuring sufficient remaining elements before entering the loop also
-> > guarantees that pointer arithmetic stays within the defined bounds of t=
-he
-> > package, but the primary issue is the acceptance of incomplete GPIO
-> > entries.>=20
-> > > > Fix this by ensuring at least 4 elements remain in the package befo=
-re
-> > > > advancing the element pointer, returning -EPROTO if the package
-> > > > structure is invalid.
-> > > >=20
-> > > > Signed-off-by: Marco Scardovi <scardracs@disroot.org>
-> > > > ---
-> > > >=20
-> > > >  drivers/gpio/gpiolib-acpi-core.c | 2 ++
-> > > >  1 file changed, 2 insertions(+)
-> > > >=20
-> > > > diff --git a/drivers/gpio/gpiolib-acpi-core.c
-> > > > b/drivers/gpio/gpiolib-acpi-core.c index 049e4cbc14ed..494dcd166aef
-> > > > 100644
-> > > > --- a/drivers/gpio/gpiolib-acpi-core.c
-> > > > +++ b/drivers/gpio/gpiolib-acpi-core.c
-> > > > @@ -1310,6 +1310,8 @@ static int acpi_gpio_package_count(const union
-> > > > acpi_object *obj)>
-> > > >=20
-> > > >  		switch (element->type) {
-> > > >  		case ACPI_TYPE_LOCAL_REFERENCE:
-> > > >=20
-> > > >  		case ACPI_TYPE_STRING:
-> > > > +			if (end - element < 4)
-> > > > +				return -EPROTO;
-> > > >=20
-> > > >  			element +=3D 3;
-> > > >  			fallthrough;
-> > > >  	=09
-> > > >  		case ACPI_TYPE_INTEGER:
-
-
-
-
+The patch is there in 7.1-rc6, so it should propagate to -stable
+kernels over time.
