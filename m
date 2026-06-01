@@ -1,108 +1,141 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EDEA368D74
-	for <linux-acpi@vger.kernel.org>; Mon,  1 Jun 2026 17:27:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9AAA3DEFF5
+	for <linux-acpi@vger.kernel.org>; Mon,  1 Jun 2026 17:31:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780334864; cv=none; b=XcsnxBph1vnVOHAukv9peSajRpuROTVLZMRR2elVQTRP5itB+0iG2JozgbXbkq/AwjBpL5KGQlH73211XXNnsnCXa6czKSwlrikMkolyzcQZ7P/o0v2wZcmKRXF4xlTFgqSq192SJyn+A+ALgqfv19nV38N7jhXJnp+GTx6I2F8=
+	t=1780335096; cv=none; b=lufb6ny04TBOWva72A6ryw6s/XlGA+gkWKFUw6b7YNey+y7vcPyZbOo788x40LnyGkfP+iYkmUGMcrSk9cEU6GS+eb2Y5WIQQbL9AgbF5GaOU8seJAJDVaQmixnNFUndF9wCQhrbxc33cOX1aNBSFayE6a4gQfb3UyifMcUOpI0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780334864; c=relaxed/simple;
-	bh=iIsAxzTHIngj3SP2ZsKYeqI305rivPhuR9butdjDayA=;
+	s=arc-20240116; t=1780335096; c=relaxed/simple;
+	bh=+iGzM7HonutIf/1fYWQXIb0gqsC2l31H6CniBpONzbo=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=chcBe1a/FvhVXfRRCbYLXCOqY9xfviR4z92+ZXFlp1nPKraBaq69JWsyMHrWf+wgQXvym5W2wEjeJjLc+K8HDe1suwbvTWRFFkyc5liJb7uQT383CHIBkduPRT5cyzBPRhbraAjtf0EjTK7/BesjRSNkSBqxRhkXPwqqybStAB8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Lt+d5MU/; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=qpsnz3dOPir3s0Da9hipFOBgJcXYDlGAwr6sfybEh/m+XCtK7Yf3Z4EPCJVSNqqjysDXu9PLk+0DcprK+ZKeXvStv01I5nmSu/S7f8ZheUVcEeZ1KvjlGs5x1RpSJKKQ7k3fjr0CHWEVHsR+HTmLq+5pnpPJHrppNnbrkHDw8XE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=YcBP0NHa; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Lt+d5MU/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D55B01F00899
-	for <linux-acpi@vger.kernel.org>; Mon,  1 Jun 2026 17:27:41 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="YcBP0NHa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9BFD31F008A2
+	for <linux-acpi@vger.kernel.org>; Mon,  1 Jun 2026 17:31:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1780334861;
-	bh=yJQSOKUJSE5fzp1ImzeqOtxzABhCvBEt85duieJj9jE=;
+	s=k20260515; t=1780335094;
+	bh=cs/TXGwOXqiDQxl+x5whpiJodvIicydtJzJyPq8Pn0A=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=Lt+d5MU/uBHAfpBN3CUp8Bl25BMBpThpTel+2pLvW5r66adS0jDQopZaSsZFKoxip
-	 4rqJqqFFhg36aU+SuXevrAVurmHuASiUcdeOcDFQ+GiEBxYhHL9mkxjM4GBgcBt9eL
-	 yufA1qNF5k8bAU3URDuTIC4pBBOkFJFbtwjzYFqIgioyBAspDgZzQyZxA7ZyIKcetA
-	 YZC4W0ra4abfh/eXATdvJsKDhx0PMrVzup6WjXAJQpyAAu33KHXsWEBSVLGhx8MBrX
-	 jl30JCtizMZgiygSmrTY4cD0up09WavW5hfN/Mm5bMCvM5b2MMZoT2o7qOqVZXWKZL
-	 VgxPthO9J8u/Q==
-Received: by mail-lf1-f44.google.com with SMTP id 2adb3069b0e04-5aa68d9dc18so1584151e87.2
-        for <linux-acpi@vger.kernel.org>; Mon, 01 Jun 2026 10:27:41 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AFNElJ8SHZEt+wl1v5ziY5KP3KcXnJuTW+Mhx3W9OCO22TNxsprtDwNDUc6yB/qYGgFSVXrWIrrhQ9Xh9ArE@vger.kernel.org
-X-Gm-Message-State: AOJu0YwTx0iWp2ojBbmn3j+X1Em6gXIn5IvpD2CqIrHUhxsah0gN1nad
-	T4LO0H65x0Y+nYnucTfAQFoGCGUZd6DJFHoJ78hmWf2/erRAwuXIyQ6WnWZYcefhYszPASHLaCb
-	ZhXIeCPh6y/PMJy8tcYonKcb0BsAq5n0=
-X-Received: by 2002:a05:6512:3b1e:b0:5a8:9bb6:230a with SMTP id
- 2adb3069b0e04-5aa607ccac4mr3810344e87.18.1780334860369; Mon, 01 Jun 2026
- 10:27:40 -0700 (PDT)
+	b=YcBP0NHas6DazuOWE4ZTQg9cm+JXIuu7RUgjXgke0TOmZpqDRvQ7FOSybYVUwP/i7
+	 6SbWySBvfNQN6vVTV+aY/4aCDtlYrMALMnrBgn+MBGehdpMYDRZhyiAlRiE1i8O/6x
+	 QcrcHwF+CoP6MqeJopSLXlk0gkjFduEcjt+vbhysOaD0yPO2Yqa3IysXFbo+Exbu0e
+	 Muy1Zz+ttVru5pc/BzJ4IM27+BQhBZv+VPvPampgYJGd/Dny319rdDx6orS0rn9AFr
+	 x+UQATpzDuw/lg02CiyL1Ce0t5IsyZy7z/c1YtjcWR/EMf/ThWaXCXQqMUqwZyxEfH
+	 1c05sbFrfM9kA==
+Received: by mail-lj1-f180.google.com with SMTP id 38308e7fff4ca-396775c26e0so14062791fa.2
+        for <linux-acpi@vger.kernel.org>; Mon, 01 Jun 2026 10:31:34 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ8a8awDSdvOmJO29bGUxD9HL/twjuTknOq00cGWDjrAdrke1ENKSdz1UbXeZi1N7/CUbRRR7Y+F6Mdo@vger.kernel.org
+X-Gm-Message-State: AOJu0YzZUjU/1ucSnA6fn9DY6nF0Ind6tBneoLU9o7WaMt9hNwBXm3T8
+	ZwiePwFpRGu+f0jLDXiNgdZRl15fdnqKI63QGKDaHkd0Sfb3vFzrbQt5+QdD2nmT5+2+4ZjGSBH
+	MOLD2xnojejdNwS+JXpFx8YyCjrrliGY=
+X-Received: by 2002:a05:6512:b8c:b0:5aa:7107:268c with SMTP id
+ 2adb3069b0e04-5aa71072919mr977471e87.28.1780335093102; Mon, 01 Jun 2026
+ 10:31:33 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260526025118.38935-1-cp0613@linux.alibaba.com> <ahZFk-nWSQr18OHk@aschofie-mobl2.lan>
-In-Reply-To: <ahZFk-nWSQr18OHk@aschofie-mobl2.lan>
+References: <20260527-b4-acpi-battery-notification-v1-0-2303bed8ec0b@rong.moe>
+In-Reply-To: <20260527-b4-acpi-battery-notification-v1-0-2303bed8ec0b@rong.moe>
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Mon, 1 Jun 2026 19:27:28 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0iEgQTS+S7-Es3ycHyJOFuA48FgUxCS4yueEcxsigx=-g@mail.gmail.com>
-X-Gm-Features: AVHnY4K_FEIxKSVWRAEk0iatTa67LmbxpAARvCcGAQUrMph4mfq1nPHq3M180Wk
-Message-ID: <CAJZ5v0iEgQTS+S7-Es3ycHyJOFuA48FgUxCS4yueEcxsigx=-g@mail.gmail.com>
-Subject: Re: [PATCH 0/2] ACPI/PCI/CXL: Enforce _DEP ordering between ACPI0016
- and ACPI0017
-To: Alison Schofield <alison.schofield@intel.com>, Chen Pei <cp0613@linux.alibaba.com>
-Cc: dave.jiang@intel.com, djbw@kernel.org, icheng@nvidia.com, 
-	bhelgaas@google.com, guoren@kernel.org, linux-pci@vger.kernel.org, 
-	linux-cxl@vger.kernel.org, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org
+Date: Mon, 1 Jun 2026 19:31:20 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0jY5ew8pA2HZ+t5MfbANT34euTOYe6F0kCt6=X9aVecmA@mail.gmail.com>
+X-Gm-Features: AVHnY4JGIP2k4QeyO3EdbKvb31eVSS9HS3TWXWlHkZn4svSAUpiRIEL5bWWGDKY
+Message-ID: <CAJZ5v0jY5ew8pA2HZ+t5MfbANT34euTOYe6F0kCt6=X9aVecmA@mail.gmail.com>
+Subject: Re: [PATCH 0/2] ACPI: battery: Do not generate too much pressure on
+ ACPI methods
+To: Rong Zhang <i@rong.moe>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
+	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, =?UTF-8?Q?Jeffrey_W=C3=A4lti?= <jeffrey@waelti.dev>, 
+	stable@vger.kernel.org, Rick <rickk1166@gmail.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, May 27, 2026 at 3:15=E2=80=AFAM Alison Schofield
-<alison.schofield@intel.com> wrote:
+On Tue, May 26, 2026 at 8:33=E2=80=AFPM Rong Zhang <i@rong.moe> wrote:
 >
-> On Tue, May 26, 2026 at 10:51:16AM +0800, Chen Pei wrote:
-> > On platforms whose ACPI namespace exposes a CXL host bridge (ACPI0016)
-> > with an ACPI0017 CXL root device declaring _DEP on the host bridge,
-> > cxl_acpi can probe before acpi_pci_root has attached the PCI root.
-> > acpi_pci_find_root() then returns NULL, decoder targets read as 0,
-> > and no port/endpoint device shows up under /sys/bus/cxl/devices/.
-> >
-> > The root cause is twofold:
-> >
-> >   1. acpi_pci_root_add() never calls acpi_dev_clear_dependencies(),
-> >      so _DEP suppliers downstream of a PCI root are never released.
-> >
-> >   2. ACPI0016 is not on acpi_honor_dep_ids[], so even when ACPI0017
-> >      declares _DEP on it, acpi_dev_ready_for_enumeration() bypasses
-> >      the dep_unmet check and lets cxl_acpi probe early.
-> >
-> > On x86 the bug is usually masked by link order (acpi_pci_root is
-> > built in and probed before cxl_acpi). On architectures like RISC-V
-> > that ordering is not guaranteed, so the standard ACPI _DEP mechanism
-> > must actually work.
-> >
-> > This series fixes both sides and the two patches must be applied
-> > together; applying only patch 2 would prevent cxl_acpi from ever
-> > probing on ACPI0016 systems, because the supplier would never clear
-> > the dependency.
-> >
-> >   Patch 1 makes acpi_pci_root_add() clear _DEP on the supplier once
-> >           the PCI root bus has been added.
-> >   Patch 2 adds ACPI0016 to acpi_honor_dep_ids[] so the dependency
-> >           declared by ACPI0017 is enforced.
-> >
-> > The approach in this series follows the discussion of an earlier
-> > posting:
-> > https://lore.kernel.org/linux-cxl/20260514023238.49984-1-cp0613@linux.a=
-libaba.com/
-> >
-> > Chen Pei (2):
-> >   ACPI: PCI: clear _DEP dependencies after PCI root bridge attach
-> >   ACPI: scan: honor _DEP for ACPI0016 PCI/CXL host bridge
+> The acpi_battery_get_property() and acpi_battery_notify() callbacks
+> sometimes generate too much pressure on corresponding ACPI methods. On
+> some devices with fragile ACPI implementation, these methods share the
+> same mutex protecting EC accesses (hence slow to execute) with a lot of
+> other EC-related methods. Such pressure on them eventually leads to a
+> catastrophic situation that a bunch of ACPI method calls fail to acquire
+> the same mutex due to timeout. The firmware of these devices doesn't
+> handle mutex acquisition failure gracefully and return garbage data,
+> causing even more chaos.
 >
-> For the set:
->         Tested-by: Alison Schofield <alison.schofield@intel.com>
->         Reviewed-by: Alison Schofield <alison.schofield@intel.com>
+> For acpi_battery_get_property(), it generates too much pressure on the
+> _BST method because of the lack of synchronization. In detail, it
+> sometimes nullifies the cache mechanism of acpi_battery_get_state() when
+> multiple processes read power supply properties simultaneously, which
+> usually happens after a uevent. Normally, emitting a uevent implies that
+> the cache must have been refreshed due to power_supply_uevent() reading
+> all properties, so the mentioned processes should have seen cache hits.
+> Unfortunately, these fragile devices' power_supply_ext properties are
+> somehow slow to read after battery events, resulting in cache expiration
+> before power_supply_uevent() finishes. Hence, once the uevent reaches
+> userspace, the _BST method will be executed multiple times within a
+> short period due to userspace processes reading all properties again.
+>
+> For acpi_battery_notify(), a very common pattern in EC queries that
+> emits two consecutive battery notifications with event IDs 0x80 and 0x81
+> updates battery state and calls power_supply_changed() twice within a
+> short period, generating significant pressure on _STA, _BST and
+> _BIX/_BIF methods. Not only that, power_supply_ext properties may also
+> rely on some other ACPI methods, so both uevent assembling and userspace
+> processes call them. It becomes a nightmare when all these methods share
+> the same ACPI mutex and hence vulnerable to lock starvation. Even worse,
+> after the first uevent reaches userspace, some userspace processes start
+> to read all battery properties in order to refresh their internal
+> states, which competes with the second notification's handling and
+> uevent assembling, exacerbating the lock starvation.
+>
+> Fix acpi_battery_get_property() by protecting it with update_lock to
+> synchronize it. This also prevents potential race conditions, e.g., when
+> multiple tasks read power supply properties simultaneously, or when
+> other synchronized methods are called during its execution.
+>
+> Improve acpi_battery_notify() by merging consecutive battery
+> notifications within 10ms using a delayed work, so that they only
+> refresh and/or update battery state once. ACPI netlink event and
+> notifier call chain are still triggered multiple times in order not to
+> break other components. Finally, call power_supply_changed() once and
+> lead to a single uevent instead of a bunch, preventing userspace
+> programs from causing too much pressure on power supply properties and
+> the underlying ACPI methods.
+>
+> With the series, the lock starvation issue on mentioned devices is
+> greatly improved according to the feedback from one of the device
+> owners.
+>
+> Tested-by: Jeffrey W=C3=A4lti <jeffrey@waelti.dev>
+> Cc: stable@vger.kernel.org
+> Reported-by: Rick <rickk1166@gmail.com>
+> Closes: https://bugzilla.kernel.org/show_bug.cgi?id=3D221065
+>
+> Signed-off-by: Rong Zhang <i@rong.moe>
+> ---
+> Rong Zhang (2):
+>       ACPI: battery: Synchronize get_property() callback
+>       ACPI: battery: Merge consecutive battery notifications
+>
+>  drivers/acpi/battery.c | 113 +++++++++++++++++++++++++++++++++++++------=
+------
+>  1 file changed, 87 insertions(+), 26 deletions(-)
+> ---
 
-And so applied as 7.2 material, thanks!
+Please see sashiko.dev's feedback on this series:
+
+https://sashiko.dev/#/patchset/20260527-b4-acpi-battery-notification-v1-0-2=
+303bed8ec0b%40rong.moe
+
+and address it or let me know why you think that it doesn't need to be
+addressed.
+
+Thanks!
