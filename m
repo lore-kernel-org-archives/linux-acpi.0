@@ -1,173 +1,205 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from layka.disroot.org (layka.disroot.org [178.21.23.139])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7BAA5202997;
-	Mon,  1 Jun 2026 07:17:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.12
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC02C38330A;
+	Mon,  1 Jun 2026 07:54:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.21.23.139
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780298229; cv=none; b=JBhbhY5uMkshhT0K9C3hmtY629YgYeU/63qRxag/O9XQ2qNUJNFiRsUSJPV12Y1nukw0mQCqb6QpoTJzZml1pDjcyUim2pnBcAlsZBh8wYlJWlbObbBBJSnD0kzmFMkVic14gNcJ9kSGLYcRWSrSvpuXRm632yBfWRsmP7fP9lc=
+	t=1780300458; cv=none; b=MQJoYxYYTq3q8xHeYnkCSvc5WHdtOPeTFFqMr25zzBYcjfgAfUjFylt6L0eq8LQO5a2pFyUz3amlxF/MQoVdD75AP9nnuKhutWJY0PHR3czg45/ArwigZV+xPiQqzWUvb2yYtLH7IbywSzvgSlQG/9AQF/iOB3HftuNJ/npUsYg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780298229; c=relaxed/simple;
-	bh=ZAXgC7URBLzuunr1Ywi0rvoumSzWXq3mIWgVvOELUUY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=nVJGL5dztYaBjr7teHYd7sTqwCBxU7Sv2o1WedmkgMiVqvqYrqbwakbjAP8o+lGl+CvdCrtAkeRT2eHNwnZnGBoCsc2WinVvDxmc7XtVzUemHwdBrFl3HJuCMEzHKLM36Vssygu319zkc6FVj4855yVIggSBjVMKh9Gcq01KvOc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=gMKOEo4J; arc=none smtp.client-ip=198.175.65.12
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1780300458; c=relaxed/simple;
+	bh=Ik6ainCX66BzJ2Qfs+GvgOivesqakYk67fQ8G/ADhF4=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=SBDGwLc7g4K6LtZHPyBckSEz0VQoNhY55+8nmJnZtec8HnBrkE2kLuMav34jaZs14wg+fEypSTDemX+dViMKnX05UBSh5HvHJVfuslFglxsRG7eANTYpSou9iiyjnt4AwFVMqdOqoQ2wHXdpNEY69LGqHp/wzKrIRDuHu7ChNv8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=disroot.org; spf=pass smtp.mailfrom=disroot.org; dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b=awMPDWjo; arc=none smtp.client-ip=178.21.23.139
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=disroot.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=disroot.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="gMKOEo4J"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1780298228; x=1811834228;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:content-transfer-encoding:in-reply-to;
-  bh=ZAXgC7URBLzuunr1Ywi0rvoumSzWXq3mIWgVvOELUUY=;
-  b=gMKOEo4JiUSe2r8mND5WUNBUVbtVoh1lh2SQB5p5Cpv2YgBFygBsyyfu
-   1zdZAWE4/RAbFsUWrTKo7UuCWNT04Bdbkcm2F0PBHzCh6xKbSLGi+7qid
-   pJmsDojj21nkc2YeF5jD7Bd16R5foG4N2LbFZPMX7cij+71xas84ogCxT
-   oD7xqpTIkASukqKylzXtqTzkz9RTdKJMePcRPbfMileERwgUC2djyoUp7
-   j65/kYYKCah9CwUyRGZW/WKavjfGtnqEA8yxrOxEYF3WsNv7XksdI50MC
-   9EplslY3AzcjPJPTaQ+hcJfarCqH85/7j3iG5jLPMvsul9kNOpBZ6E+0z
-   g==;
-X-CSE-ConnectionGUID: A3/PaexrQtKMp8qgjjGfkg==
-X-CSE-MsgGUID: yYBxEClOQUWqkgLhcP7p+g==
-X-IronPort-AV: E=McAfee;i="6800,10657,11803"; a="92523222"
-X-IronPort-AV: E=Sophos;i="6.24,180,1774335600"; 
-   d="scan'208";a="92523222"
-Received: from fmviesa010.fm.intel.com ([10.60.135.150])
-  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jun 2026 00:17:08 -0700
-X-CSE-ConnectionGUID: rwt1KavhQBWts/f3S6k8yQ==
-X-CSE-MsgGUID: 0mhM9AFdQjyhafgN6d0Hsw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.24,180,1774335600"; 
-   d="scan'208";a="239314297"
-Received: from black.igk.intel.com ([10.91.253.5])
-  by fmviesa010.fm.intel.com with ESMTP; 01 Jun 2026 00:17:04 -0700
-Received: by black.igk.intel.com (Postfix, from userid 1001)
-	id 851F495; Mon, 01 Jun 2026 09:17:03 +0200 (CEST)
-Date: Mon, 1 Jun 2026 09:17:03 +0200
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-To: Marco Scardovi <scardracs@disroot.org>
+	dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b="awMPDWjo"
+Received: from mail01.disroot.lan (localhost [127.0.0.1])
+	by disroot.org (Postfix) with ESMTP id 8D19426D73;
+	Mon,  1 Jun 2026 09:54:13 +0200 (CEST)
+X-Virus-Scanned: SPAM Filter at disroot.org
+Received: from layka.disroot.org ([127.0.0.1])
+ by localhost (disroot.org [127.0.0.1]) (amavis, port 10024) with ESMTP
+ id 1ODjpnW_pSBb; Mon,  1 Jun 2026 09:54:13 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=disroot.org; s=mail;
+	t=1780300453; bh=Ik6ainCX66BzJ2Qfs+GvgOivesqakYk67fQ8G/ADhF4=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=awMPDWjoT4sXwQCokgHyMDtUb6KIgfR+wVCMN1soGgfzhMpC7QaLvNYHnH5BsTEtI
+	 pg3rV+xSTuixXNnkC0etfnbmHAHejoB0VOkH52REnlR4GsLHeQ9blfOTkrHAT0HvG/
+	 9TrKxJuDme1shdK3sMD0D8DrHSx4rq+O1wg1vcZQQAKu1EFQpw7mEbyZ2di/cmimd+
+	 aJdLk7dY8qAa8VHYhV5+wSvDyc4AiJDlh6mVtUmUTSyEOZNjf+5ijsiVyzKtmC3P5A
+	 bgG4eMxb4OqPQaCfuivfjp191sgiMhtazwLCXckvhEamrEGugtZD8sUaUQCxVIu9Uk
+	 iIqxcYl5WDR+Q==
+From: Marco Scardovi <scardracs@disroot.org>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
 Cc: Mika Westerberg <westeri@kernel.org>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Linus Walleij <linusw@kernel.org>,
-	Bartosz Golaszewski <brgl@kernel.org>, linux-gpio@vger.kernel.org,
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 2/2] gpiolib: acpi: fix out-of-bounds pointer arithmetic
- in acpi_gpio_package_count
-Message-ID: <20260601071703.GP3102@black.igk.intel.com>
-References: <20260530094012.184276-1-scardracs@disroot.org>
- <20260530094012.184276-3-scardracs@disroot.org>
- <20260601051735.GN3102@black.igk.intel.com>
+ Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+ Linus Walleij <linusw@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>,
+ linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Subject:
+ Re: [PATCH 2/2] gpiolib: acpi: fix out-of-bounds pointer arithmetic in
+ acpi_gpio_package_count
+Date: Mon, 01 Jun 2026 09:53:59 +0200
+Message-ID: <XIZQ_cBiSFe35zZxB6k2Jw@disroot.org>
+In-Reply-To: <20260601071703.GP3102@black.igk.intel.com>
+References:
+ <20260530094012.184276-1-scardracs@disroot.org>
  <n2_NwWYBRGa8ixTcAQysQw@disroot.org>
+ <20260601071703.GP3102@black.igk.intel.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <n2_NwWYBRGa8ixTcAQysQw@disroot.org>
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
 
-Hi,
+In data luned=C3=AC 1 giugno 2026 09:17:03 Ora legale dell=E2=80=99Europa c=
+entrale, Mika=20
+Westerberg ha scritto:
+> Hi,
+>=20
+> On Mon, Jun 01, 2026 at 08:31:16AM +0200, Marco Scardovi wrote:
+> > In data luned=C3=AC 1 giugno 2026 07:17:35 Ora legale dell=E2=80=99Euro=
+pa centrale,
+> > Mika
+> >=20
+> > Westerberg ha scritto:
+> > > On Sat, May 30, 2026 at 11:40:12AM +0200, Marco Scardovi wrote:
+> > > > When counting GPIOs in an ACPI package, encountering a reference or
+> > > > string causes the element pointer to be advanced by 3 (element +=3D=
+ 3)
+> > > > and then by 1 (element++).
+> > > >=20
+> > > > If a malformed ACPI package contains fewer than 4 remaining elements
+> > > > when a reference or string is processed, this pointer arithmetic
+> > > > advances the element pointer past the end of the package elements
+> > > > array. This results in undefined behavior and can cause out-of-boun=
+ds
+> > > > reads.
+> > >=20
+> > > How can it cause out-of-bounds reads? We increase "element" but the n=
+ext
+> > > iteration checks that it is still inside "end" and it's never
+> > > dereferenced.
+> > > Maybe I'm missing something?
+> >=20
+> > Hi Mika,
+> >=20
+> > I agree that `element` is not dereferenced after the loop exits.
+> >=20
+> > My main concern is the parser logic rather than the pointer arithmetic
+> > itself.
+> >=20
+> > A GPIO connection is defined to consist of 4 package elements
+> > (a reference/string followed by 3 integers), but the loop condition only
+> > checks whether at least one element remains:
+> >=20
+> > ```
+> > element < end
+> > ```
+> >=20
+> > As a result, a malformed package containing fewer than 4 remaining
+> > elements
+> > can still be processed as if it were a complete GPIO entry. This can le=
+ad
+> > to a GPIO connection being accounted for even though the descriptor is
+> > structurally incomplete.
+>=20
+> Does it take into account that GPIOs are optional in some cases so this is
+> totally valid:
+>=20
+>   Package () {
+>       "cs-gpios",
+>       Package () {
+>          ^GPIO, 19, 0, 0,
+>          ^GPIO, 20, 0, 0,
+>          0,
+>          ^GPIO, 21, 0, 0,
+>       }
+>   }
+>=20
+> I'm worried that this breaks things rather than improves. If your intent =
+is
+> to "harden" against malicios ACPI tables then there are much worse things
+> than this that can be done (e.g we run a full bytecode interpreter inside
+> the kernel with not much restrictions and all that bytecode comes from the
+> ACPI tables).
+>=20
+> Have you verified this change against any system that actually calls this
+> function?
+>
+Hi Mika,
 
-On Mon, Jun 01, 2026 at 08:31:16AM +0200, Marco Scardovi wrote:
-> In data lunedì 1 giugno 2026 07:17:35 Ora legale dell’Europa centrale, Mika 
-> Westerberg ha scritto:
-> > On Sat, May 30, 2026 at 11:40:12AM +0200, Marco Scardovi wrote:
-> > > When counting GPIOs in an ACPI package, encountering a reference or
-> > > string causes the element pointer to be advanced by 3 (element += 3)
-> > > and then by 1 (element++).
-> > > 
-> > > If a malformed ACPI package contains fewer than 4 remaining elements
-> > > when a reference or string is processed, this pointer arithmetic
-> > > advances the element pointer past the end of the package elements
-> > > array. This results in undefined behavior and can cause out-of-bounds
-> > > reads.
-> > 
-> > How can it cause out-of-bounds reads? We increase "element" but the next
-> > iteration checks that it is still inside "end" and it's never dereferenced.
-> > Maybe I'm missing something?
-> >
-> Hi Mika,
-> 
-> I agree that `element` is not dereferenced after the loop exits.
-> 
-> My main concern is the parser logic rather than the pointer arithmetic
-> itself.
-> 
-> A GPIO connection is defined to consist of 4 package elements
-> (a reference/string followed by 3 integers), but the loop condition only
-> checks whether at least one element remains:
-> 
-> ```
-> element < end
-> ```
-> 
-> As a result, a malformed package containing fewer than 4 remaining elements
-> can still be processed as if it were a complete GPIO entry. This can lead
-> to a GPIO connection being accounted for even though the descriptor is
-> structurally incomplete.
+thanks for the detailed explanation =E2=80=94 I think your point is
+absolutely correct.
 
-Does it take into account that GPIOs are optional in some cases so this is
-totally valid:
+Looking again at the code and considering the valid ACPI cases you
+mentioned (including optional GPIO entries and non-strict packages),
+I realize my patch was too aggressive and based on an incorrect
+assumption about the parsing invariants.
 
-  Package () {
-      "cs-gpios",
-      Package () {
-         ^GPIO, 19, 0, 0,
-         ^GPIO, 20, 0, 0,
-         0,
-         ^GPIO, 21, 0, 0,
-      }
-  }
+I was incorrectly assuming that each GPIO descriptor must always
+consist of a strict 4-element sequence, which led me to interpret
+partial or irregular packages as invalid.
 
-I'm worried that this breaks things rather than improves. If your intent is
-to "harden" against malicios ACPI tables then there are much worse things
-than this that can be done (e.g we run a full bytecode interpreter inside
-the kernel with not much restrictions and all that bytecode comes from the
-ACPI tables).
+I also tested the change only with virtme-ng, as I do not have
+access to real hardware, but I agree this is not sufficient to
+validate the behavior in real systems.
 
-Have you verified this change against any system that actually calls this
-function?
+The check I proposed would likely reject valid real-world cases and
+effectively change the semantics of the parser rather than fixing a
+real issue.
 
-> Such truncated descriptors should be rejected with `-EPROTO` rather than
-> being accepted as valid input.
-> 
-> Ensuring sufficient remaining elements before entering the loop also
-> guarantees that pointer arithmetic stays within the defined bounds of the
-> package, but the primary issue is the acceptance of incomplete GPIO entries.
-> >
-> > > Fix this by ensuring at least 4 elements remain in the package before
-> > > advancing the element pointer, returning -EPROTO if the package
-> > > structure is invalid.
-> > > 
-> > > Signed-off-by: Marco Scardovi <scardracs@disroot.org>
-> > > ---
-> > > 
-> > >  drivers/gpio/gpiolib-acpi-core.c | 2 ++
-> > >  1 file changed, 2 insertions(+)
-> > > 
-> > > diff --git a/drivers/gpio/gpiolib-acpi-core.c
-> > > b/drivers/gpio/gpiolib-acpi-core.c index 049e4cbc14ed..494dcd166aef
-> > > 100644
-> > > --- a/drivers/gpio/gpiolib-acpi-core.c
-> > > +++ b/drivers/gpio/gpiolib-acpi-core.c
-> > > @@ -1310,6 +1310,8 @@ static int acpi_gpio_package_count(const union
-> > > acpi_object *obj)> 
-> > >  		switch (element->type) {
-> > >  		case ACPI_TYPE_LOCAL_REFERENCE:
-> > > 
-> > >  		case ACPI_TYPE_STRING:
-> > > +			if (end - element < 4)
-> > > +				return -EPROTO;
-> > > 
-> > >  			element += 3;
-> > >  			fallthrough;
-> > >  		
-> > >  		case ACPI_TYPE_INTEGER:
-> 
-> 
-> 
+Given this, I agree the change is not appropriate and I will drop the
+patch.
+
+Sorry for the noise, and thanks for the clarification.
+Marco
+>=20
+> > Such truncated descriptors should be rejected with `-EPROTO` rather than
+> > being accepted as valid input.
+> >=20
+> > Ensuring sufficient remaining elements before entering the loop also
+> > guarantees that pointer arithmetic stays within the defined bounds of t=
+he
+> > package, but the primary issue is the acceptance of incomplete GPIO
+> > entries.>=20
+> > > > Fix this by ensuring at least 4 elements remain in the package befo=
+re
+> > > > advancing the element pointer, returning -EPROTO if the package
+> > > > structure is invalid.
+> > > >=20
+> > > > Signed-off-by: Marco Scardovi <scardracs@disroot.org>
+> > > > ---
+> > > >=20
+> > > >  drivers/gpio/gpiolib-acpi-core.c | 2 ++
+> > > >  1 file changed, 2 insertions(+)
+> > > >=20
+> > > > diff --git a/drivers/gpio/gpiolib-acpi-core.c
+> > > > b/drivers/gpio/gpiolib-acpi-core.c index 049e4cbc14ed..494dcd166aef
+> > > > 100644
+> > > > --- a/drivers/gpio/gpiolib-acpi-core.c
+> > > > +++ b/drivers/gpio/gpiolib-acpi-core.c
+> > > > @@ -1310,6 +1310,8 @@ static int acpi_gpio_package_count(const union
+> > > > acpi_object *obj)>
+> > > >=20
+> > > >  		switch (element->type) {
+> > > >  		case ACPI_TYPE_LOCAL_REFERENCE:
+> > > >=20
+> > > >  		case ACPI_TYPE_STRING:
+> > > > +			if (end - element < 4)
+> > > > +				return -EPROTO;
+> > > >=20
+> > > >  			element +=3D 3;
+> > > >  			fallthrough;
+> > > >  	=09
+> > > >  		case ACPI_TYPE_INTEGER:
+
+
+
+
