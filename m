@@ -1,47 +1,42 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08E1C2773F7;
-	Mon,  1 Jun 2026 15:36:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D9EE289E13;
+	Mon,  1 Jun 2026 17:13:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780328215; cv=none; b=a3fXckMfL8n6fZWHx1FkCNYmKRwCw6s1W0zG70/n5XoSeBTu9rGVKe5Fe6JLj3ErEQIyYb46NhHYxGik5unVYH8hKOA4IIr42OTFv6q4vRxZ2RZPOeJL7tMxpfib6GOgC36r4C8IiyGaUPdgsfK6hXRNDkbiGb6D5d/PoL+nttU=
+	t=1780333999; cv=none; b=nil/4YNneSk9jQc7G/2+St3U4ryNuST+3sKFObWDUfkzprR/WyalsMTWRk0Jf8i3U5fxBIciidhiWXAiO03luC8hzTGUfBEwoDnO+8YzrFYkhrK7aAnnZoQ5hdKQ64KAl48XAs1IAvqI0tkyN3gtAHC26AT8CpJ96oZUCSYxzqI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780328215; c=relaxed/simple;
-	bh=/Bxc520H4PD3SnR3wqj1JdtkB3C2QKi/m4lKWb9wcOo=;
+	s=arc-20240116; t=1780333999; c=relaxed/simple;
+	bh=iwtZnaR/gdpS0mkrNNIlB72LQDYz+3SdLS5BoI0S+/I=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=R2BiOzvvktG984ojYPRebhI9HHin7gjuJXFUWl/k4O8SPug228X2Biv9dmviS18U8LIhHzw0q19S0Ago/Nu/hQWM5zsVNKLWUoEP+E1Jmx9tR1/YNGSjN+9WAfR3VLiFpE2IT9HVHSbBgHH21vAue1Z6zSDfzBVOySU7dRvPtjo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bUVJLmCq; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=qiG8Mab3UiM/Njs36o42NRifbhVi5DLm4iMY76O1dIKoCLO+6uKv83/wKpq1maquyb8hcVKdwpRr3nFVevgxTeWbY11wBORGLJgHdygpq7L4IVFHxbVns79j3AZyGmYRdbtapcWyy0aKDMsaHCz0mkUvMzy/eb+iQ5HR1K3eX/Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bP3W7ebV; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bUVJLmCq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F73D1F00898;
-	Mon,  1 Jun 2026 15:36:52 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bP3W7ebV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B7441F00893;
+	Mon,  1 Jun 2026 17:13:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1780328213;
-	bh=0k91OM0XhpRQV+WZ4U3kwwctkIjUjKVmRs2uXxfBPoI=;
+	s=k20260515; t=1780333998;
+	bh=0TvUtgnJYq2bcE49nBgwYuOC7Ri6DJxLQQ7z6kwGp4E=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=bUVJLmCqj1H5NYkAFixl0g0A1S3hPLWnEGi0a3uUVxGtUK9DPqei8JCTYtj6XCqDa
-	 RBLgBaJr6L1EJQIK1hl3z1WQwOKgMjRpof8uHwPBAR+CxLr+7kfAJqZ6/UmqUFGahJ
-	 C6lktpg7KojV6CS/d21D7y5lsDTEY7Z/qUV7p9BWQj88ZcaaHBf+cqo7wrPSwQmPp2
-	 Bx0E2MP6Sd9RqJHdnygWb3E7Igjrh8at9jvadQaOlWDBMU238vEALhRdPqbHm88t7j
-	 IBJEe48p2KsRGFu98rn8ApR4Z7Gfo40caq1Kkbb8L0f7kEP9gyzZZuwAmbrK1tut7p
-	 M+VLbuG6OldZQ==
+	b=bP3W7ebVA/pyXmpdJ63+Hk5Pq1cntZJogaheTCg4S6OzXU1/8rAzIDVkUPazWqwPD
+	 Etfjq9IdupdzcRbe+mTHxMjZm5BcbD7SpwrTBGHlqR35l9QNFQFBCN/KbgIT/5Kbg+
+	 Ncgf2La3X4LkFkPZq9KZQKbYKuSmMLRGQDXw3eaWDxMxBK2S+2p0r740Rbja7rs34c
+	 SG+OFtN6sk0wd8kEjVs12RKCi+mWUOOguHYYwln0h57fBoYI6deoKk6li0IMYaOrdB
+	 t77TC3Q95DIMLI5PNiVIY3XrrtbSRHpCs9rRY9A6ncMCgvbKG/IcwxYzDQsRWNtAms
+	 xtWztxVaN2Shw==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-To: goldi fiche <goldifiche@outlook.de>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
- LKML <linux-kernel@vger.kernel.org>,
- Ata =?utf-8?B?xLBsaGFuIEvDtmt0w7xyaw==?= <atailhan2006@gmail.com>,
- regressions@lists.linux.dev
+To: Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>
 Subject:
- Re: Regression in ACPI battery charging state handling on GLK MRD / Gemini
- Lake ODM devices
-Date: Mon, 01 Jun 2026 17:36:50 +0200
-Message-ID: <5111702.31r3eYUQgx@rafael.j.wysocki>
+ [PATCH v1 15/15] ACPI: button: Switch over to devres-based resource
+ management
+Date: Mon, 01 Jun 2026 19:12:58 +0200
+Message-ID: <2283436.Mh6RI2rZIc@rafael.j.wysocki>
 Organization: Linux Kernel Development
-In-Reply-To:
- <FRWP193MB27953B3CF220760EAFB37116B4162@FRWP193MB2795.EURP193.PROD.OUTLOOK.COM>
-References:
- <FRWP193MB27953B3CF220760EAFB37116B4162@FRWP193MB2795.EURP193.PROD.OUTLOOK.COM>
+In-Reply-To: <12913564.O9o76ZdvQC@rafael.j.wysocki>
+References: <12913564.O9o76ZdvQC@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -51,124 +46,226 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="UTF-8"
 
-On Friday, May 29, 2026 9:17:55 PM CEST goldi fiche wrote:
-> Kernel versions:
-> Works correctly: 6.18.13
-> Regression starts: 6.18.16
-> Affected hardware:
-> Intel Gemini Lake (Celeron N4020)
-> GLK MRD platform
-> White-label ODM/OEM laptop (Denver branded)
-> Broken SMBIOS/DMI firmware
-> Relevant commit:
-> bb1256e0ddc7e9e406164319769b9f8d8389f056
-> "ACPI: battery: fix incorrect charging status when current is zero"
-> Problem description:
-> The
->  heuristic introduced in the above commit appears to regress charging 
-> state reporting on some Gemini Lake GLK MRD systems with broken OEM 
-> firmware.
-> The firmware reports inconsistent battery information:
-> AC connected
-> battery charging or pending-charge state active
-> but energy-rate/current reported as 0 W
-> Example UPower output while charger is connected and battery is at 37%:
-> state: pending-charge
-> energy-rate: 0 W
-> online: yes
-> percentage: 37%
-> Before this commit/kernel version, the battery charging state behaved correctly from the user perspective.
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-What exactly do you mean by "correctly"?
+Switch over the ACPI button driver to devres-based resource management
+by making the following changes:
 
-I guess you want the status to be "charging" when "percentage" is not 100%?
+ * Use devm_kzalloc() for allocating button object memory.
 
-> The affected system also contains severely broken SMBIOS/DMI data:
-> "Default string"
-> unresolved AMI template variables
-> invalid cache sizes
-> "To Be Filled By O.E.M."
-> This appears to be common among Gemini Lake white-label ODM devices using GLK MRD firmware.
-> A local test patch that bypasses the rate_now == 0 charging-state override restores expected charging-state behavior on this hardware.
-> The
->  Huawei-oriented heuristic in the referenced commit appears to be too 
-> broad for some GLK MRD systems with faulty EC/ACPI implementations.
+ * Use devm_input_allocate_device() for allocating the input class
+   device object.
 
-It might also check whether or not the battery is full by the
-capacity_now/full_charge_capacity ratio, which is done in the
-patch below, so please give it a go.
+ * Turn acpi_lid_remove_fs() into a devm cleanup action added
+   by devm_acpi_lid_add_fs() which is a new wrapper around
+   acpi_lid_add_fs().
 
-However, it may not work on the Huawei machine in which case
-some quirking may be needed.
+ * Add devm_acpi_button_init_wakeup() for initializing the wakeup source
+   and make it add a custom devm action that will automatically remove
+   the wakeup source registered by it.
 
+ * Turn acpi_button_remove_event_handler() into a devm cleanup action
+   added by devm_acpi_button_add_event_handler() which is a new wrapper
+   around acpi_button_add_event_handler().
+
+No intentional functional impact.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/battery.c |   38 ++++++++++++++++++++------------------
- 1 file changed, 20 insertions(+), 18 deletions(-)
+ drivers/acpi/button.c | 101 ++++++++++++++++++++++++------------------
+ 1 file changed, 57 insertions(+), 44 deletions(-)
 
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -150,27 +150,28 @@ static int acpi_battery_technology(struc
- 
- static int acpi_battery_get_state(struct acpi_battery *battery);
- 
--static int acpi_battery_is_charged(struct acpi_battery *battery)
-+static bool __acpi_battery_is_charged(struct acpi_battery *battery)
- {
--	/* charging, discharging, critical low or charge limited */
--	if (battery->state != 0)
--		return 0;
--
- 	/* battery not reporting charge */
- 	if (battery->capacity_now == ACPI_BATTERY_VALUE_UNKNOWN ||
- 	    battery->capacity_now == 0)
--		return 0;
-+		return false;
- 
- 	/* good batteries update full_charge as the batteries degrade */
--	if (battery->full_charge_capacity == battery->capacity_now)
--		return 1;
-+	if (battery->full_charge_capacity <= battery->capacity_now)
-+		return true;
- 
- 	/* fallback to using design values for broken batteries */
--	if (battery->design_capacity <= battery->capacity_now)
--		return 1;
-+	return battery->design_capacity <= battery->capacity_now;
-+}
- 
--	/* we don't do any sort of metric based on percentages */
--	return 0;
-+static int acpi_battery_is_charged(struct acpi_battery *battery)
-+{
-+	/* charging, discharging, critical low or charge limited */
-+	if (battery->state != 0)
-+		return 0;
-+
-+	return __acpi_battery_is_charged(battery);
+diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+index 8a56780e13da..154b17a8ea25 100644
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -340,8 +340,9 @@ static int acpi_lid_add_fs(struct acpi_button *button)
+ 	return -ENODEV;
  }
  
- static bool acpi_battery_is_degraded(struct acpi_battery *battery)
-@@ -211,13 +212,14 @@ static int acpi_battery_get_property(str
- 		if (battery->state & ACPI_BATTERY_STATE_DISCHARGING)
- 			val->intval = acpi_battery_handle_discharging(battery);
- 		else if (battery->state & ACPI_BATTERY_STATE_CHARGING)
--			/* Validate the status by checking the current. */
--			if (battery->rate_now != ACPI_BATTERY_VALUE_UNKNOWN &&
--			    battery->rate_now == 0) {
--				/* On charge but no current (0W/0mA). */
--				val->intval = POWER_SUPPLY_STATUS_NOT_CHARGING;
--			} else {
-+			/* Check the rate and capacity to validate the status. */
-+			if (!__acpi_battery_is_charged(battery) ||
-+			    (battery->rate_now != ACPI_BATTERY_VALUE_UNKNOWN &&
-+			     battery->rate_now > 0)) {
- 				val->intval = POWER_SUPPLY_STATUS_CHARGING;
-+			} else {
-+				/* Full and zero rate. */
-+				val->intval = POWER_SUPPLY_STATUS_NOT_CHARGING;
- 			}
- 		else if (battery->state & ACPI_BATTERY_STATE_CHARGE_LIMITING)
- 			val->intval = POWER_SUPPLY_STATUS_NOT_CHARGING;
+-static void acpi_lid_remove_fs(struct acpi_button *button)
++static void acpi_lid_remove_fs(void *data)
+ {
++	struct acpi_button *button = data;
+ 	struct acpi_device *device = button->adev;
+ 
+ 	remove_proc_entry(ACPI_BUTTON_FILE_STATE,
+@@ -355,6 +356,17 @@ static void acpi_lid_remove_fs(struct acpi_button *button)
+ 	acpi_button_dir = NULL;
+ }
+ 
++static int devm_acpi_lid_add_fs(struct device *dev, struct acpi_button *button)
++{
++	int ret;
++
++	ret = acpi_lid_add_fs(button);
++	if (ret)
++		return ret;
++
++	return devm_add_action_or_reset(dev, acpi_lid_remove_fs, button);
++}
++
+ static acpi_handle saved_lid_handle;
+ static DEFINE_MUTEX(acpi_lid_lock);
+ 
+@@ -530,8 +542,20 @@ static acpi_notify_handler acpi_button_notify_handler(struct acpi_button *button
+ 	return acpi_button_notify;
+ }
+ 
+-static void acpi_button_remove_event_handler(struct acpi_button *button)
++static void acpi_button_wakeup_cleanup(void *data)
++{
++	device_init_wakeup(data, false);
++}
++
++static int devm_acpi_button_init_wakeup(struct device *dev)
+ {
++	device_init_wakeup(dev, true);
++	return devm_add_action_or_reset(dev, acpi_button_wakeup_cleanup, dev);
++}
++
++static void acpi_button_remove_event_handler(void *data)
++{
++	struct acpi_button *button = data;
+ 	struct acpi_device *adev = button->adev;
+ 
+ 	switch (adev->device_type) {
+@@ -606,6 +630,19 @@ static int acpi_button_add_event_handler(struct acpi_button *button)
+ 	return 0;
+ }
+ 
++static int devm_acpi_button_add_event_handler(struct device *dev,
++					      struct acpi_button *button)
++{
++	int ret;
++
++	ret = acpi_button_add_event_handler(button);
++	if (ret)
++		return ret;
++
++	return devm_add_action_or_reset(dev, acpi_button_remove_event_handler,
++					button);
++}
++
+ static int acpi_button_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+@@ -625,7 +662,7 @@ static int acpi_button_probe(struct platform_device *pdev)
+ 	    lid_init_state == ACPI_BUTTON_LID_INIT_DISABLED)
+ 		return -ENODEV;
+ 
+-	button = kzalloc_obj(struct acpi_button);
++	button = devm_kzalloc(dev, sizeof(*button), GFP_KERNEL);
+ 	if (!button)
+ 		return -ENOMEM;
+ 
+@@ -633,11 +670,10 @@ static int acpi_button_probe(struct platform_device *pdev)
+ 
+ 	button->dev = dev;
+ 	button->adev = device;
+-	input = input_allocate_device();
+-	if (!input) {
+-		error = -ENOMEM;
+-		goto err_free_button;
+-	}
++	input = devm_input_allocate_device(dev);
++	if (!input)
++		return -ENOMEM;
++
+ 	button->input = input;
+ 	button->type = button_type;
+ 
+@@ -649,11 +685,10 @@ static int acpi_button_probe(struct platform_device *pdev)
+ 		input_set_capability(input, EV_SW, SW_LID);
+ 		input->open = acpi_lid_input_open;
+ 
+-		error = acpi_lid_add_fs(button);
+-		if (error) {
+-			input_free_device(input);
+-			goto err_free_button;
+-		}
++		error = devm_acpi_lid_add_fs(dev, button);
++		if (error)
++			return error;
++
+ 		break;
+ 
+ 	case ACPI_BUTTON_TYPE_POWER:
+@@ -672,7 +707,6 @@ static int acpi_button_probe(struct platform_device *pdev)
+ 		break;
+ 
+ 	default:
+-		input_free_device(input);
+ 		return dev_err_probe(dev, -ENODEV, "Unrecognized button type\n");
+ 	}
+ 
+@@ -686,16 +720,16 @@ static int acpi_button_probe(struct platform_device *pdev)
+ 
+ 	input_set_drvdata(input, button);
+ 	error = input_register_device(input);
+-	if (error) {
+-		input_free_device(input);
+-		goto err_remove_fs;
+-	}
++	if (error)
++		return error;
+ 
+-	device_init_wakeup(button->dev, true);
++	error = devm_acpi_button_init_wakeup(dev);
++	if (error)
++		return error;
+ 
+-	error = acpi_button_add_event_handler(button);
++	error = devm_acpi_button_add_event_handler(dev, button);
+ 	if (error)
+-		goto err_input_unregister;
++		return error;
+ 
+ 	if (button_type == ACPI_BUTTON_TYPE_LID) {
+ 		/*
+@@ -706,37 +740,16 @@ static int acpi_button_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	pr_info("%s [%s]\n", input->name, acpi_device_bid(device));
+-	return 0;
+ 
+-err_input_unregister:
+-	device_init_wakeup(button->dev, false);
+-	input_unregister_device(input);
+-err_remove_fs:
+-	if (button_type == ACPI_BUTTON_TYPE_LID)
+-		acpi_lid_remove_fs(button);
+-
+-err_free_button:
+-	kfree(button);
+-	return error;
++	return 0;
+ }
+ 
+ static void acpi_button_remove(struct platform_device *pdev)
+ {
+ 	struct acpi_button *button = platform_get_drvdata(pdev);
+-	struct acpi_device *adev = button->adev;
+-
+-	if (button->type == ACPI_BUTTON_TYPE_LID)
+-		acpi_lid_forget(adev);
+-
+-	acpi_button_remove_event_handler(button);
+ 
+-	device_init_wakeup(button->dev, false);
+-
+-	input_unregister_device(button->input);
+ 	if (button->type == ACPI_BUTTON_TYPE_LID)
+-		acpi_lid_remove_fs(button);
+-
+-	kfree(button);
++		acpi_lid_forget(button->adev);
+ }
+ 
+ static int param_set_lid_init_state(const char *val,
+-- 
+2.51.0
+
 
 
 
