@@ -1,194 +1,233 @@
-Received: from mx0b-0031df01.pphosted.com (mx0b-0031df01.pphosted.com [205.220.180.131])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B6833F2101
-	for <linux-acpi@vger.kernel.org>; Tue,  2 Jun 2026 16:10:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.180.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BB49367B62;
+	Tue,  2 Jun 2026 16:29:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780416631; cv=none; b=VzBmFJwF67q6+1OxR64EnBsYgQtKOyNyf5FK0nSfIZjOYWAffDvYRbOCBwCzp0xxN3F02gwK8V6f6EwI2ps4Jq9cimrRDQ6YtfYJgk3dLjo5xbT+WUYkKCiywzsJ7P4c2RWC9DKt3LDzZyohoXzLlYA893imN59UUzaonmtLkO0=
+	t=1780417770; cv=none; b=GAAgPsog2GW95nzkWtRqg0KCMA/wBBn4JkGS6BWJShqExG2vZ0jsjqo6MuwZBClyNxRRUpobkJUbVnEnlqV/4KSdjBUoNROXtPoxPhQXclCEkVyc5+Da0LCNmGifhoLF+NXcswceoX+dEyLOlXAMaxPGKB4u/RElqUMeHH+3J04=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780416631; c=relaxed/simple;
-	bh=G7eYHj9tlnDiI1d3hfnzgPcXdN7BBHFSjCI4dSopmyQ=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=D6ulaGkwSZiy0Mj390GDWL8k8iFjlpWzjV8mn3m+uFDTR30rSADGZtBumbuNLQaMNYHkS+ep4HoBCHKWLJL+sWZsrkJLwUAAtrIaYB7LLmU0NVyQu5lVq6bV5QJ1DbBx6zBnm0dSLh+u7BqaBQxM58ZFC3NUHLGslfv7XKgWf64=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=CrsBW21D; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=j49bQf36; arc=none smtp.client-ip=205.220.180.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
+	s=arc-20240116; t=1780417770; c=relaxed/simple;
+	bh=oWr/Wvc9VzV6i67kN5rBVBLzSipoSIhYkfpuC7Fq/V8=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=T6dkbwDNG7lNvjXgjh59Zxr2RWUIZaxynd/A3Vi6nv91fws0nymvX+Riqrw9e+TdXMWk+GDFghhCtnM9snQwZ9oBBo2bEs7rQwtUpiazIjuups+P/gvCPH1gR5SXJ64gtiWVELwgvN4JFIIFTX1DrA4jRtEP9sLz8Q39oyD52Q4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KPKM5RB1; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="CrsBW21D";
-	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="j49bQf36"
-Received: from pps.filterd (m0279870.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 652DF38A2884681
-	for <linux-acpi@vger.kernel.org>; Tue, 2 Jun 2026 16:10:29 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
-	4wuW/Yokzii57HXL/z3H+3SCKWh40lWXglHNdQClPAg=; b=CrsBW21DYrzUoj39
-	LSZG/g+HQ1czUCOfiW5AI9AgHw5zw6fjbd6pvyuNSmPbPF08VGO3D1slcgqznn9a
-	3SINRsyYzPGI7e8cMXT9AT5N7LgsWlK+7YgQb0AGS7Dm3SicCXfcBxXY5/ss2+EC
-	TSSqL5ZcyEIZaWXiG+daLy1ibhnuWr7zGH7J7s4pJE0SK9LOhH8siUV35CzuGYbk
-	HEtAqlGgieVJErm0WSJVwESs3f0Tq/qgRupknT+S/Vm75Z3MdT5P8qdEgegp5KAC
-	joxuomMDVECFRAKY1rJB13gE0gYslRkJhxFA0PtWxoZRbS8QudVOJ4gTzZUPO8Ze
-	kGl5NQ==
-Received: from mail-ua1-f71.google.com (mail-ua1-f71.google.com [209.85.222.71])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4ehsu12ctk-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-acpi@vger.kernel.org>; Tue, 02 Jun 2026 16:10:29 +0000 (GMT)
-Received: by mail-ua1-f71.google.com with SMTP id a1e0cc1a2514c-9639fa7f2a7so1378329241.3
-        for <linux-acpi@vger.kernel.org>; Tue, 02 Jun 2026 09:10:29 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1780416629; x=1781021429; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=4wuW/Yokzii57HXL/z3H+3SCKWh40lWXglHNdQClPAg=;
-        b=j49bQf3601uDzXR6tODRWk0/amYq36AxkCbcWABfqyzYd4rBDCE8oMNngfg9ZRLe9U
-         KKFmLc3Nms6QhltxfDlaMwB0OK/7Zb+M5NobtXdBzcdqHhMrAzx5vf6LSi++eqg9pHPo
-         Bh6YosZ8/bB7qnSt3egS2k+10yFIcM2C3aKElNIjFabXCufsAyRlG8OY/e0ME0m9ak4m
-         S21ZIVcKELddX2fnJ4TjMkbFSyAaLXWS13aFBBwH9u3WoBE3G85UXFaK5u71z+pCR2Ck
-         qbi7nvPJj6G8e7yVhVGuXYna+uG0e8jIrMXh/O5RoKgqvYuewinouuoPoA6ZOao0cN4T
-         j+WQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1780416629; x=1781021429;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=4wuW/Yokzii57HXL/z3H+3SCKWh40lWXglHNdQClPAg=;
-        b=BB+SNRJECTTyzqyyPr3jbCrnfQwTeQvaJzbBbVW1McAeN6ZoeVNFTtGmQUMyq2Sgam
-         7FwrqTh624jmD+teF9uewMdBKP88mrFCkCDBdry4zAsLEjtafgLj9xqwJhGDwSsnyyH0
-         YDEpuwvZArU2MmI1+hUt7BlMTUovJphubtVrzKKGcCZFzb3B8tHCajlm7xV5xDJYHIne
-         b2mZN3uk0gCxWnhue47185JlgO3XYYTnRbZIO84UkmMabVjQ3ZlvyXjPBGnBWQnmUJ7a
-         VT/KaSKrv5znmfQRP3fCf/IkvMd/TWMigMe4AByXx6VTgyzG1nY8unqZkdvZV5X/sEYq
-         KX/Q==
-X-Forwarded-Encrypted: i=1; AFNElJ+OkJyoT6yztG9w7fyCYdSlVBvHIZH9MdDXbW0qSpbAhyHTTDZ/bD/BWF1H2Sq+zd/uZBL9mNLPWkS4@vger.kernel.org
-X-Gm-Message-State: AOJu0YzrNxhDPB6Gj3V9jreeOYpASj8UYOj/8ESLJ7PthOzBel3tgEUs
-	jTWcv2ym2z2rPXCZL0z9il3tpJ60D+yu7C4BJ5ExrvwZv6WS26L58lGHmnWQeK0x/QCN+SBJ5fH
-	NurbWOmbEVJVTIcNPYUxy3SX7tnr5UeOPVzVKXBgeiuAbJCx99Ou5LhgdGKNQeicl
-X-Gm-Gg: Acq92OFsFc7nJpXRinlB9M209dc8QyKlNfWxFOhWsuREPZR0qR9ZsYus4dNIzvKBt9H
-	KsgLwoYTvqAf8dYwh894cXqTyA3Rp+45FonDz8le6Z8eb4sRmw5azUo/c8xQvUu5SNpooCcThsL
-	F3De+cVXI3toOQGE1HYeDjw1XXry+e8uzM9gFyMH/TH3pT0AJ9Qm7h/g/jM9DMvFqpSSL4oExTk
-	b4JvXet04KVi61yKgs/ifyh0azy3P/qjrVksly6/dzZjVMl1rTJpQt76qkhcpsUs7WQs5DgbgNu
-	RMsLhr1jBN3QyCKyTlQkzLcPfXLPy4dpif1SYxCegEXhwsM9ZdA3QsdTOiTz0HazKlUuqcMYk6s
-	BycTUptgXp/L0/i9LoXLYqmBp5k/BNvKcrHqmM3dbdH9ZOOYMBMygHC7xbswTUVMGi06jr+cElS
-	iM
-X-Received: by 2002:a05:6122:1984:b0:5a1:de02:b177 with SMTP id 71dfb90a1353d-5a6974e7e80mr582268e0c.13.1780416628857;
-        Tue, 02 Jun 2026 09:10:28 -0700 (PDT)
-X-Received: by 2002:a05:6122:1984:b0:5a1:de02:b177 with SMTP id 71dfb90a1353d-5a6974e7e80mr582191e0c.13.1780416628462;
-        Tue, 02 Jun 2026 09:10:28 -0700 (PDT)
-Received: from [192.168.2.1] (146725694.box.freepro.com. [130.180.211.218])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-490b0e37851sm80264715e9.13.2026.06.02.09.10.17
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 02 Jun 2026 09:10:27 -0700 (PDT)
-Message-ID: <13afc706-2513-4fd5-9e5a-50c4307508a2@oss.qualcomm.com>
-Date: Tue, 2 Jun 2026 18:10:15 +0200
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KPKM5RB1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6857D1F00893;
+	Tue,  2 Jun 2026 16:29:27 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1780417769;
+	bh=aE2AONd5sF6l2+LQ2uo+A+K2Ueps4oevFWCbnu447Hg=;
+	h=From:To:Cc:Subject:Date;
+	b=KPKM5RB18Bs25Z+5hfW7fGtxyn2kLXNBbiNBJDFKoQlbRi+Q9FXFPhrD/Y/QjAqwG
+	 VXfNa80GMp5mfbLmmRcqvZl0ADXWe9YGVMhcKRYMuVccIY7ErT9VkRihPjn4l4dZAO
+	 opTaTsAiLGSifv2CsbC4g6Hu2BxF512up+1Z5tlekYLeUoQPLmEnmwBTEPTww+ZJNU
+	 F7auLUR6feqFtj+icCvoXCyazHhcucbsqVodYo/74aBGGpBxGICMBs7jqfDU5s2mb7
+	 kk1OOErZADlcJAzg0nOG8KLqVgl3Z7OldlWcK2betHRkc+oBp6d+jBPfUVcthaBi/N
+	 HcIS20XORzijA==
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+To: Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: Dan Williams <djbw@kernel.org>, LKML <linux-kernel@vger.kernel.org>,
+ Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>,
+ nvdimm@lists.linux.dev, Alison Schofield <alison.schofield@intel.com>
+Subject: [PATCH v1] ACPI: NFIT: Fix possible issues related to driver cleanup
+Date: Tue, 02 Jun 2026 18:29:25 +0200
+Message-ID: <6000262.DvuYhMxLoT@rafael.j.wysocki>
+Organization: Linux Kernel Development
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 00/17] arm64: Use EL2 virtual timer when running VHE
-To: Marc Zyngier <maz@kernel.org>, Daniel Lezcano
- <daniel.lezcano@kernel.org>,
-        linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
-Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>,
-        Hanjun Guo <guohanjun@huawei.com>,
-        Sudeep Holla <sudeep.holla@kernel.org>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>,
-        Mark Rutland
- <mark.rutland@arm.com>,
-        Thomas Gleixner <tglx@kernel.org>, Rob Herring <robh@kernel.org>,
-        Krzysztof Kozlowski <krzk+dt@kernel.org>,
-        Conor Dooley <conor+dt@kernel.org>, Chen-Yu Tsai <wens@kernel.org>,
-        Jernej Skrabec <jernej.skrabec@gmail.com>,
-        Samuel Holland <samuel@sholland.org>,
-        Neil Armstrong <neil.armstrong@linaro.org>,
-        Kevin Hilman <khilman@baylibre.com>,
-        Jerome Brunet <jbrunet@baylibre.com>,
-        Martin Blumenstingl <martin.blumenstingl@googlemail.com>,
-        Ge Gordon <gordon.ge@bst.ai>,
-        BST Linux Kernel Upstream Group <bst-upstream@bstai.top>,
-        Jesper Nilsson <jesper.nilsson@axis.com>,
-        Lars Persson <lars.persson@axis.com>,
-        Alim Akhtar <alim.akhtar@samsung.com>,
-        Ivaylo Ivanov <ivo.ivanov.ivanov1@gmail.com>,
-        Frank Li <Frank.Li@nxp.com>, Sascha Hauer <s.hauer@pengutronix.de>,
-        Pengutronix Kernel Team <kernel@pengutronix.de>,
-        Fabio Estevam <festevam@gmail.com>, Dinh Nguyen <dinguyen@kernel.org>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
-        Thierry Reding <thierry.reding@kernel.org>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Bjorn Andersson <andersson@kernel.org>,
-        Konrad Dybcio <konradybcio@kernel.org>,
-        =?UTF-8?Q?Andreas_F=C3=A4rber?=
- <afaerber@suse.de>,
-        =?UTF-8?B?WXUtQ2h1biBMaW4gW+ael+elkOWQm10=?=
- <eleanor.lin@realtek.com>,
-        Heiko Stuebner <heiko@sntech.de>, Shawn Lin <shawn.lin@rock-chips.com>,
-        Orson Zhai <orsonzhai@gmail.com>,
-        Baolin Wang <baolin.wang@linux.alibaba.com>,
-        Michal Simek <michal.simek@amd.com>
-References: <20260523140242.586031-1-maz@kernel.org>
- <8633z5ugzi.wl-maz@kernel.org>
-Content-Language: en-US
-From: Daniel Lezcano <daniel.lezcano@oss.qualcomm.com>
-In-Reply-To: <8633z5ugzi.wl-maz@kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Proofpoint-ORIG-GUID: DwvxxbD3iSJxvaLlAE_28f_b2sl_EkR8
-X-Proofpoint-GUID: DwvxxbD3iSJxvaLlAE_28f_b2sl_EkR8
-X-Authority-Analysis: v=2.4 cv=MKFQXsZl c=1 sm=1 tr=0 ts=6a1f0075 cx=c_pps
- a=KB4UBwrhAZV1kjiGHFQexw==:117 a=uw/3876vWhRnNVL35W6mqQ==:17
- a=IkcTkHD0fZMA:10 a=FelO9ux0wxsA:10 a=s4-Qcg_JpJYA:10
- a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=gowsoOTTUOVcmtlkKump:22
- a=VwQbUJbxAAAA:8 a=0vUytTvmGukYalHcjhgA:9 a=QEXdDO2ut3YA:10
- a=o1xkdb1NAhiiM49bd1HK:22
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNjAyMDE1NSBTYWx0ZWRfX0QfRO1AtCKkV
- HlJel0FJzjcZP613aqRzT7M9QETI1T4EnqRVXUqXokcT+iKp4zfcUGUWrGD0GTBYUoDlqfJpmjJ
- p306FZfrN+Ht/vwGoc0kofNMBPZqgBilZzg6zaLXJA8C5Ey94GU4j8wls5UfLn+iW0nImNWdK3L
- tlVVWbda4Be/GNNwbMmnnue1C1dIBpSUQCuVEPT2pvpKG7pZ4GlzLySHLSUE2AZ65OzmDgJYUXI
- V1xsIyYMqZ2HugK+z5RxQlhQ5Q8XtyCRCUI2WZ5McuptkVc19vkwpy3gS4HnjtPxuvs6rsC6IJy
- LwmTzdpwWdX2PDZ7Ksch3TIClV5cOZYgbDxiIOy40dQUhimwreZlDLxe1wFFZELjfSdoaxwWMHu
- oeha6zKYYE6oSxsPB1hcUqHSuBg1rq8GvH3gFITHf/JT6C1x4ZGyxR/SZI9yN9KW5d2Ch71BDSt
- jeVS6KyopKD3es09UPA==
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.125,FMLib:17.12.100.49
- definitions=2026-06-02_02,2026-05-28_03,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- phishscore=0 priorityscore=1501 impostorscore=0 adultscore=0
- lowpriorityscore=0 bulkscore=0 spamscore=0 clxscore=1011 suspectscore=0
- malwarescore=0 classifier=typeunknown authscore=0 authtc= authcc=
- route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2605210000
- definitions=main-2606020155
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
 
-On 6/2/26 16:58, Marc Zyngier wrote:
-> On Sat, 23 May 2026 15:02:25 +0100,
-> Marc Zyngier <maz@kernel.org> wrote:
->>
->> This is the third version of the series initially posted at [1],
->> which
->>
->> - updates the ACPI GTDT parsing to deal the v3 layout and the EL2
->>    virtual timer,
->> - moves the architected timer driver to use it when running VHE,
->> - fixes a number of DTs to reflect the reality of the HW.
->>
->> This results in significant performance uplift in deeper nested virt
->> scenarios, at no overhead to the host.
->>
->> Patches based on -rc3, tested on Amlogic SM1, QC X1E, Ampere Altra,
->> and Apple M2, as well as KVM NV guests.
-> 
-> [...]
-> 
-> Daniel, can you please pick the first 3 patches? Or would you rather
-> have them routed via the arm64 tree?
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-I'll pick them up
+After commit 9b311b7313d6 ("ACPI: NFIT: Install Notify() handler before
+getting NFIT table"), ACPI NFIT driver removal may deadlock if an ACPI
+notify on the NFIT device is triggered concurrently.  A similar deadlock
+may occur if an ACPI notify on the NFIT device is triggered during a
+failing driver probe.  Moreover, if acpi_nfit_probe() returns 0 before
+allocating the acpi_desc object, a use-after-free is possible during
+driver removal and a NULL pointer dereference may occur in
+acpi_nfit_uc_error_notify().
 
-Thanks
+The deadlock is possible because acpi_dev_remove_notify_handler() calls
+acpi_os_wait_events_complete() after removing the notify handler and the
+driver core invokes it under the NFIT platform device lock which is also
+acquired by acpi_nfit_notify().  Thus acpi_os_wait_events_complete() may
+wait for acpi_nfit_notify() to complete, but the latter may not be able
+to acquire the device lock which is being held by the driver core while
+the former is running.
+
+In turn, if acpi_nfit_probe() returns 0 before allocating the acpi_desc
+object, acpi_desc may be allocated by acpi_nfit_update_notify(), in
+which case no remove cleanup action is added, so delayed work items may
+be processed and may attempt to operate on acpi_desc after it has been
+freed.
+
+The NULL pointer dereference in acpi_nfit_uc_error_notify() is
+possible in the same case if platform firmware triggers a suprious
+NFIT_NOTIFY_UC_MEMORY_ERROR notify on the NFIT device.
+
+To address the deadlock, introduce a static mutex to be held instead of
+the device lock across acpi_nfit_probe() and acpi_nfit_notify() to
+prevent the latter from progressing until the former is complete.
+
+However, this exposes the driver to a use-after-free on probe failures
+and during removal because the acpi_desc object is freed before removing
+the ACPI notify handler, so the latter may run after the former has been
+freed and then it will access the freed memory via the NFIT device's
+driver data pointer.
+
+To prevent that from occurring, set the driver data pointer of the NFIT
+device to an error pointer value during teardown (under the new lock)
+and make the code using that pointer check it against an error value.
+
+On top of that, to address the use-after-free issue mentioned above, add
+a remove callback to the driver and make it call acpi_nfit_shutdown()
+directly which ensures that the remove cleanup will be carried out
+regardless of the way the acpi_desc object has been allocated.
+
+Finally, address the possible NULL pointer dereference mentioned above
+by making acpi_nfit_uc_error_notify() check acpi_desc against NULL in
+addition to checking it against an error pointer value.
+
+Fixes: 9b311b7313d6 ("ACPI: NFIT: Install Notify() handler before getting NFIT table")
+Fixes: a61fe6f7902e ("nfit, tools/testing/nvdimm: unify common init for acpi_nfit_desc")
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: All applicable <stable@vger.kernel.org>
+---
+ drivers/acpi/nfit/core.c |   56 ++++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 46 insertions(+), 10 deletions(-)
+
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -56,6 +56,8 @@ MODULE_PARM_DESC(force_labels, "Opt-in t
+ LIST_HEAD(acpi_descs);
+ DEFINE_MUTEX(acpi_desc_lock);
+ 
++DEFINE_MUTEX(acpi_nfit_notify_lock);
++
+ static struct workqueue_struct *nfit_wq;
+ 
+ struct nfit_table_prev {
+@@ -1692,7 +1694,7 @@ void __acpi_nvdimm_notify(struct device
+ 	}
+ 
+ 	acpi_desc = dev_get_drvdata(dev->parent);
+-	if (!acpi_desc)
++	if (IS_ERR_OR_NULL(acpi_desc))
+ 		return;
+ 
+ 	/*
+@@ -3156,11 +3158,13 @@ EXPORT_SYMBOL_GPL(acpi_nfit_init);
+ static int acpi_nfit_flush_probe(struct nvdimm_bus_descriptor *nd_desc)
+ {
+ 	struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
+-	struct device *dev = acpi_desc->dev;
+ 
+-	/* Bounce the device lock to flush acpi_nfit_add / acpi_nfit_notify */
+-	device_lock(dev);
+-	device_unlock(dev);
++	/*
++	 * Bounce acpi_nfit_notify_lock to flush acpi_nfit_probe() /
++	 * acpi_nfit_notify()
++	 */
++	mutex_lock(&acpi_nfit_notify_lock);
++	mutex_unlock(&acpi_nfit_notify_lock);
+ 
+ 	/* Bounce the init_mutex to complete initial registration */
+ 	mutex_lock(&acpi_desc->init_mutex);
+@@ -3293,9 +3297,9 @@ static void acpi_nfit_notify(acpi_handle
+ {
+ 	struct device *dev = data;
+ 
+-	device_lock(dev);
++	guard(mutex)(&acpi_nfit_notify_lock);
++
+ 	__acpi_nfit_notify(dev, handle, event);
+-	device_unlock(dev);
+ }
+ 
+ static void acpi_nfit_remove_notify_handler(void *data)
+@@ -3351,6 +3355,12 @@ static int acpi_nfit_probe(struct platfo
+ 	if (!adev)
+ 		return -ENODEV;
+ 
++	/*
++	 * Prevent acpi_nfit_notify() from progressing until the probe is
++	 * complete in case there is a concurrent event to process.
++	 */
++	guard(mutex)(&acpi_nfit_notify_lock);
++
+ 	rc = acpi_dev_install_notify_handler(adev, ACPI_DEVICE_NOTIFY,
+ 					     acpi_nfit_notify, dev);
+ 	if (rc)
+@@ -3405,10 +3415,25 @@ static int acpi_nfit_probe(struct platfo
+ 				+ sizeof(struct acpi_table_nfit),
+ 				sz - sizeof(struct acpi_table_nfit));
+ 
++	/* On failure, make acpi_nfit_update_notify() bail out early */
+ 	if (rc)
+-		return rc;
++		dev_set_drvdata(dev, ERR_PTR(-ENODEV));
+ 
+-	return devm_add_action_or_reset(dev, acpi_nfit_shutdown, acpi_desc);
++	return rc;
++}
++
++static void acpi_nfit_remove(struct platform_device *pdev)
++{
++	struct acpi_nfit_desc *acpi_desc;
++
++	guard(mutex)(&acpi_nfit_notify_lock);
++
++	acpi_desc = platform_get_drvdata(pdev);
++	if (acpi_desc && acpi_desc->nvdimm_bus)
++		acpi_nfit_shutdown(acpi_desc);
++
++	/* Let acpi_nfit_update_notify() know that the driver is going away. */
++	platform_set_drvdata(pdev, ERR_PTR(-ENODEV));
+ }
+ 
+ static void acpi_nfit_update_notify(struct device *dev, acpi_handle handle)
+@@ -3425,7 +3450,11 @@ static void acpi_nfit_update_notify(stru
+ 		return;
+ 	}
+ 
+-	if (!acpi_desc) {
++	if (IS_ERR(acpi_desc)) {
++		/* Do nothing during teardown */
++		dev_dbg(dev, "driver teardown\n");
++		return;
++	} else if (!acpi_desc) {
+ 		acpi_desc = devm_kzalloc(dev, sizeof(*acpi_desc), GFP_KERNEL);
+ 		if (!acpi_desc)
+ 			return;
+@@ -3460,6 +3489,12 @@ static void acpi_nfit_uc_error_notify(st
+ {
+ 	struct acpi_nfit_desc *acpi_desc = dev_get_drvdata(dev);
+ 
++	/* Do nothing during teardown or when there is no acpi_desc */
++	if (IS_ERR_OR_NULL(acpi_desc)) {
++		dev_dbg(dev, "spurious notification or driver teardown\n");
++		return;
++	}
++
+ 	if (acpi_desc->scrub_mode == HW_ERROR_SCRUB_ON)
+ 		acpi_nfit_ars_rescan(acpi_desc, ARS_REQ_LONG);
+ 	else
+@@ -3489,6 +3524,7 @@ MODULE_DEVICE_TABLE(acpi, acpi_nfit_ids)
+ 
+ static struct platform_driver acpi_nfit_driver = {
+ 	.probe = acpi_nfit_probe,
++	.remove = acpi_nfit_remove,
+ 	.driver = {
+ 		.name = "acpi-nfit",
+ 		.acpi_match_table = acpi_nfit_ids,
+
+
+
