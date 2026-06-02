@@ -1,59 +1,58 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.17])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 259863B38BA;
-	Tue,  2 Jun 2026 07:47:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.17
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CE0813D891;
+	Tue,  2 Jun 2026 07:52:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.13
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780386441; cv=none; b=f+hPashQf0VovcuLcdgtJPBfVKI6G6XunFybdV3OAWT6bRC+GPM6TFERWWBIa7MhN9MKbrLNUh7aYgpUun/xBNYLUq81eBzhtyfv38jHhOZTI0kogGFEEJhrC+G6o85MlBmEPgj9aTZ9jMIGCCZl2Wm5HtEIH93VoWgj/L7U4l8=
+	t=1780386772; cv=none; b=TeJbrTQTE+9hsbEWMFfjWlNoD04Epj2mMC+HwKF9+ZpKNFB22hdvJocWJexNQ2lB7oMLdVR3jFIwGwZxR4HwUJ0YwLnQO3NjG92cUUqYuD8O5LzUiiJS279PZo86IcQNtzZo3w0yD61qqRWPWhfiAchWa2XjW+Lhgn0JFORREkQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780386441; c=relaxed/simple;
-	bh=P228OhwL8kyNtiEhBsWPAgaWG1MfkyfnDMrS1csxmL4=;
+	s=arc-20240116; t=1780386772; c=relaxed/simple;
+	bh=o/5pQ87bezoy1L6yf8DtRcb6umHGoErqpcV63JMz0uA=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=UVdrJuJul1uHTs1wG5W00vZrz59poSJUoxT/F1/tyN/iwUNIV5ralMR9IO6vQ0GXko2jip6ywko2McHVNwGH4VAZfGre8d8w+bG9k3E2nAXqDyDj2Mq+ZvPCK/3xKBpM7/o4MAGI0JbADXTQ5XgcUwhK+3HaL90O7UCFa82DqG8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=M2B6PcZR; arc=none smtp.client-ip=198.175.65.17
+	 Content-Type:Content-Disposition:In-Reply-To; b=MLqTtwIvaZhuTflevF/MrFrsOVpyZyR0xnmsk0erTyEPPhhXnh1YVNVyx26DBI5Som/8SvP7eMRpUAHasn7wWa+8VJMGXrhdTlNODXiGRpZIr4IzxsnvgII2vAY+oEv34hmR12ZjcQkL4CcHulIBuahqKEeFpv/HvOWjySmlAxg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=NN7477wt; arc=none smtp.client-ip=192.198.163.13
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="M2B6PcZR"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="NN7477wt"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1780386440; x=1811922440;
+  t=1780386772; x=1811922772;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=P228OhwL8kyNtiEhBsWPAgaWG1MfkyfnDMrS1csxmL4=;
-  b=M2B6PcZRuC0zbJIy+CStT55BBjbkaIWcLUItixPPKV/TuvRfFhVcR/3b
-   i9ExdieMUG2MXySBGmQ8VUz5DM0PRZxQQ803EuA67exPK0d1K5sf4jwvB
-   +4yQFlmO3wcaLhnrZ5N7MShWbXKOWgMb6Vu2ne3pWtiLbN89Uau3ag7gu
-   q0seFXLLV3DhY2RI/Er9Uh6RmKN9/y+5OxVfzNKtFEktP9/DlaQtscjGY
-   UKktx4PmAkdlaK/UneftoIH7coEP0UpE47xxgg85NHTOGJ9Gs8Xy7CfUm
-   YWB6cClTfI7fGOL1/h9VejKvw+9qNGo43PSx1mzPSXRx25XS9sjE3GyqD
-   g==;
-X-CSE-ConnectionGUID: 7B+8A4CFSLC6sNkC0NWK9w==
-X-CSE-MsgGUID: ri2WqDNASLeSXApbQBdcNA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11804"; a="81157127"
+  bh=o/5pQ87bezoy1L6yf8DtRcb6umHGoErqpcV63JMz0uA=;
+  b=NN7477wtyRCGZ+3lw9b2Ti0Liyo1Wa2MGPHb4VKMugviyj3EwjELwEx+
+   y+kr6ved8pVNASNnOEocHESJvMl9kuHkjVbT9fjOExZGp2wiyaj/aHMsX
+   aV3G82Py16XcaZw3FTbC2RynMmIpcAZg7Eji7hy8JUQ4h3OtyWPl0CV5b
+   gNXkDmpzcoAtrstSMlpgOZCDTzLA1Z839dQ3tT2X1JyEmgsdxfxvg/DgK
+   vEc9SiL288Tip2qLPHctwNbLOrf11KDiljB4BWxT9iqj2H9yEiHYKZGZX
+   aicIVpvEdkuqu+RUQLpkn7QuX8b46SCkA5cyAZzg12Ntuv/UsjZsFrQD1
+   w==;
+X-CSE-ConnectionGUID: 8qiERIvMSgqnqnwfjs4vwg==
+X-CSE-MsgGUID: D5UhlkuAQ2Sti274YOmSFw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11804"; a="83747726"
 X-IronPort-AV: E=Sophos;i="6.24,182,1774335600"; 
-   d="scan'208";a="81157127"
-Received: from orviesa005.jf.intel.com ([10.64.159.145])
-  by orvoesa109.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jun 2026 00:47:20 -0700
-X-CSE-ConnectionGUID: HBiuIkG1QG6avrxeb03FGA==
-X-CSE-MsgGUID: 3vM8DyoFSxKxzPM7p+i0TA==
+   d="scan'208";a="83747726"
+Received: from orviesa009.jf.intel.com ([10.64.159.149])
+  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jun 2026 00:52:51 -0700
+X-CSE-ConnectionGUID: mebXPxO/QrKSc1SpVIM+gA==
+X-CSE-MsgGUID: MGRvHfzARcm4ZAbGRYxlzA==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.24,182,1774335600"; 
-   d="scan'208";a="248755769"
+   d="scan'208";a="243934104"
 Received: from mkosciow-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.245.229])
-  by orviesa005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jun 2026 00:47:18 -0700
-Date: Tue, 2 Jun 2026 10:47:15 +0300
+  by orviesa009-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jun 2026 00:52:49 -0700
+Date: Tue, 2 Jun 2026 10:52:46 +0300
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: "Marco Scardovi (scardracs)" <mscardovi95@gmail.com>
-Cc: brgl@kernel.org, linusw@kernel.org, linux-acpi@vger.kernel.org,
-	linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org,
-	mika.westerberg@linux.intel.com, westeri@kernel.org
-Subject: Re: [PATCH v3 0/2] gpiolib: acpi: Fix bounds-checking and connection
- leak
-Message-ID: <ah6Kgz8J0oJ7NSDX@ashevche-desk.local>
-References: <agwfEMtEctXYC1oc@ashevche-desk.local>
- <20260520074955.55443-1-mscardovi95@gmail.com>
+To: Marco Scardovi <scardracs@disroot.org>
+Cc: Mika Westerberg <westeri@kernel.org>, Linus Walleij <linusw@kernel.org>,
+	Bartosz Golaszewski <brgl@kernel.org>, linux-gpio@vger.kernel.org,
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 0/2] gpiolib: acpi: fix bounds-checking bugs in GPIO ACPI
+ core
+Message-ID: <ah6Lzn4NbilZQwvy@ashevche-desk.local>
+References: <20260530094012.184276-1-scardracs@disroot.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -62,31 +61,40 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260520074955.55443-1-mscardovi95@gmail.com>
+In-Reply-To: <20260530094012.184276-1-scardracs@disroot.org>
 Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
  krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On Wed, May 20, 2026 at 09:45:45AM +0200, Marco Scardovi (scardracs) wrote:
-> Hi Andy,
+On Sat, May 30, 2026 at 11:40:10AM +0200, Marco Scardovi wrote:
+
+> While reviewing drivers/gpio/gpiolib-acpi-core.c in linux-next,
+> I noticed two bounds-checking issues in the ACPI GPIO handling paths.
 > 
-> This new series addresses two issues in the ACPI GPIO library while trying
-> to address your feedbacks:
-> 1. Adds robust bounds checking for pin resource indexing when requesting
->    owned descriptors and querying wakeup/interrupt pin configurations.
-> 2. Fixes a connection/descriptor leak in the OpRegion address space
->    handler and handles connection rollback in a transaction-local list
->    to avoid wiping successfully established connections.
+> The first issue is in acpi_gpio_adr_space_handler(), where the
+> 64-bit ACPI OperationRegion address is truncated to u16 before
+> validation against pin_table_length. This can cause out-of-range
+> addresses to wrap around and access unintended GPIO entries.
 > 
-> Please note that some of these changes were found during a personal follow up
-> analysis before submitting the patches to the community. They are reported
-> to explain why some of these fixes are made in that way instead of another.
+> Depending on platform firmware configuration, this could potentially
+> affect GPIO lines associated with sensitive hardware controls.
+> 
+> The second issue is in acpi_gpio_package_count(), where malformed
+> _DSD packages can cause pointer advancement past the package end
+> during element parsing, potentially resulting in out-of-bounds reads.
+> 
+> This series fixes both issues by:
+> 
+> - Validating the full address range before truncation
+> - Making the length calculation overflow-safe
+> - Validating remaining package elements before pointer advancement
+> 
+> The fixes are intentionally minimal and preserve the existing
+> behavior of capping ranges that extend past the end of the pin table.
+> 
+> Patch 1 also converts the related loop variables to unsigned types
+> for consistency with the updated arithmetic.
 
-Thanks for the update!
-
-Please, split the second patch more to make it better to understand what the
-helpers are doing (without changing the behaviour) and then fix the problem.
-
-Otherwise it looks better than previous attempts.
+You got me lost. There was v3 of something, what is this?!
 
 -- 
 With Best Regards,
