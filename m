@@ -1,223 +1,271 @@
-Received: from BL0PR03CU003.outbound.protection.outlook.com (mail-eastusazon11012048.outbound.protection.outlook.com [52.101.53.48])
+Received: from out30-99.freemail.mail.aliyun.com (out30-99.freemail.mail.aliyun.com [115.124.30.99])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8606A282F1B;
-	Tue,  2 Jun 2026 05:44:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.53.48
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780379095; cv=fail; b=O2Rh69bS6ZAuW20fqcbvY69J92bFFVdqWG0KOE+FBRzvpw3MySuR7D8UaO6XffI9sOLn4ekR3RvtPD3acp55vZg0ZKNoEE7t00DgdDlyYgFf2GhG4vDQeUSdyaO4IgrCDvMwbnaROmu30ORZRt5VcdHzMSTLJPucuvAImWLwjLc=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780379095; c=relaxed/simple;
-	bh=TYhx4vDeseZEj50onu62+x7CGPphBIlYdo9NjvSD0G8=;
-	h=Date:From:To:CC:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RdpVVS6DjHsr6C8TmalLYD3Dld3vbS3p2lqjOMMdvBLwpgzBf9aVAxTYRAwI2Q8Su3dCIlzvYISX8720LUrXkMG1vJFziknoZyUz0KzTBukPALXuQdI1tkHkeNYjRbk9YkeThY6+SjMxK/vcYdI7wkZ1z0ChhGLZLB824nVtGAw=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=RpFqpGSQ; arc=fail smtp.client-ip=52.101.53.48
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1123834752D;
+	Tue,  2 Jun 2026 07:15:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.99
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1780384556; cv=none; b=ToVo1ia65Rfe81z6w5XRYOcnUr7+sMws16jPD+M5yZJuXLCVc+nwE8bSrmc3jLCWkn8ERM9bz8trG7MWP35WaPk5qi+u3PUr8VnUs3e4FaKID7PlAesU0vs7l31cpASc1KF9YqPmucvEUA3PtdekZ0HYxuOBK33k+4XeSDKvwW8=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1780384556; c=relaxed/simple;
+	bh=ocZXUpdpIGiIn0GrjJFfNfd1GPtqKf8E9b83K9Th010=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=drVySrJyseytO6hm9JXKvwfTnU4f6SwUPcq+JF2/6lmRcG9yR9aFnbkE5B2q1u5xNBu9IpWMGqJBZeIBZnkLgfHZ5BIjkKtT91PITF1n4VzlczlFJuDaZpK83GyGkaU0HFvEDKk4a39CxbMEVLcN8fjbMj2W4EgcuEkjAa9us9I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=its8DDK5; arc=none smtp.client-ip=115.124.30.99
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="RpFqpGSQ"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=dkorlzYCKU3VHnH5zqQRnuyVOZPuVxSDhJmtybpeTW79NzWQAWUTz9QwtsDaJFpUmdOeVAPf9nIafLb3M7ghkdWjQyMk8Xm3qDT9JIfcevA8UhijPk8WhEBgECXsKsth50d+CbemrDDVAgnlRi7c0ZbJRF1SwMX1WigyMJNeD0AGfG09VioVsfkQ14KwWFx2CD+3MQuIIqCY7IcdTuXwBxpIkOyDkd+kRu2UoRTfE7fwJa+gaHTRxy8CQOD+RjZMlI+Y8JRW3fqdrxm8jOM/FD+XIjmiMCpJj+2PX+9Df1qOgKcDEnxhZ/VPZAs8HF96bfwM+hbspF+e2PN9rO1I7A==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=sjsJaHR1py00onar7p+ORVRER5NY5pItpBN72A/VwaE=;
- b=O8V7QdDpJ5D+WaorIQfH4d0v2yUt6UbtLGtGfygFXZbzH4GMcL3ZN+l/B4YJNPnYwezhkHf/QxslFJrla0TDd80o6pp7O96ixU6pBagR8MftNULf3nIQIIM6RCudwFrl/L3eExRHRwCbsJ1CNla6D6EYEbPWd4K8kxREsSeSpP0MXR1gamHoVXvT5jexO2MpK8aIagr6vhYy+ri1+AwAH37DLQQZxS6npBPBHCRJ4W4RYhkQETUcfpIxWF7hnadS3TSBEYUxZ7lC6/wmimX6sIPqHjk73COHfMl1oUgCrP/vPK/2yyYaUERvTplvi0ONWv/pMqto+uXoznEdoipoIw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.118.233) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=sjsJaHR1py00onar7p+ORVRER5NY5pItpBN72A/VwaE=;
- b=RpFqpGSQ5vPLo0PAxcF/nBIP6mVABWaMzFwmnhPe+FLuT7HbVFWwfOQRcZyMYqMjRzm9afgXu6hKS+D6CutZWpTj1oG8mkT79G2ll5mXAGF6gV4enr3Mp9+J02Qc9K+UfjVLBNKq5tOb/cNQFbyH3CRJLUKVlKU+/9L6gXMKghGxqo9vwFPyCphPdUWnk0tDRLj8YKRdpxrKiG3c8gpYLPQkjii18pEiTJ/qXjdHZZ1vD2gCEX8jCAAms5/zEz8MG9Z0IqRTF3BKNXJlJN16twKDspD0IxkNF+2p/pSn8rJR8J1LHSeLI1iqEq66+i4DBtePWv0F2lwgGEiITtnX6w==
-Received: from CH0P223CA0001.NAMP223.PROD.OUTLOOK.COM (2603:10b6:610:116::32)
- by CH3PR12MB9217.namprd12.prod.outlook.com (2603:10b6:610:195::10) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.71.16; Tue, 2 Jun 2026
- 05:44:48 +0000
-Received: from DM2PEPF00003FC6.namprd04.prod.outlook.com
- (2603:10b6:610:116:cafe::8) by CH0P223CA0001.outlook.office365.com
- (2603:10b6:610:116::32) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.71.16 via Frontend Transport; Tue, 2
- Jun 2026 05:44:47 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.233)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.118.233 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.118.233; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.118.233) by
- DM2PEPF00003FC6.mail.protection.outlook.com (10.167.23.25) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.92.5 via Frontend Transport; Tue, 2 Jun 2026 05:44:47 +0000
-Received: from drhqmail202.nvidia.com (10.126.190.181) by mail.nvidia.com
- (10.127.129.6) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Mon, 1 Jun
- 2026 22:44:39 -0700
-Received: from drhqmail203.nvidia.com (10.126.190.182) by
- drhqmail202.nvidia.com (10.126.190.181) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.20; Mon, 1 Jun 2026 22:44:38 -0700
-Received: from Asurada-Nvidia (10.127.8.9) by mail.nvidia.com (10.126.190.182)
- with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20 via Frontend
- Transport; Mon, 1 Jun 2026 22:44:37 -0700
-Date: Mon, 1 Jun 2026 22:44:36 -0700
-From: Nicolin Chen <nicolinc@nvidia.com>
-To: Jason Gunthorpe <jgg@nvidia.com>
-CC: Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>, "Joerg
- Roedel" <joro@8bytes.org>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J .
- Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, "Pranjal
- Shrivastava" <praan@google.com>, Mostafa Saleh <smostafa@google.com>, Lu
- Baolu <baolu.lu@linux.intel.com>, Kevin Tian <kevin.tian@intel.com>,
-	<linux-arm-kernel@lists.infradead.org>, <iommu@lists.linux.dev>,
-	<linux-kernel@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
-	<linux-pci@vger.kernel.org>, <vsethi@nvidia.com>, Shuai Xue
-	<xueshuai@linux.alibaba.com>
-Subject: Re: [PATCH v4 18/24] iommu/arm-smmu-v3: Introduce master->ats_broken
- flag
-Message-ID: <ah5txKCvspL8zMeG@Asurada-Nvidia>
-References: <cover.1779161849.git.nicolinc@nvidia.com>
- <49dde0a2e2dc88e421a3010956db33d47cc92aa8.1779161849.git.nicolinc@nvidia.com>
- <20260519120658.GB3477375@nvidia.com>
- <aho9DB6it2R5O5Nm@Asurada-Nvidia>
- <20260601123231.GG3195266@nvidia.com>
- <ah3udmX5SIO9lAXR@Asurada-Nvidia>
- <20260602001547.GR3195266@nvidia.com>
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="its8DDK5"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1780384546; h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type;
+	bh=w6hkoeGhvfChGgi9buPNr+bPKQ0bHNCrhge4y3Jc7oE=;
+	b=its8DDK5xvjlXa+0RlK8PsGSkrDZ1gyTS0mMfO1CV8hBgSI42qpHVzhZFY31bwk9tE+UwfFAy0nI7OPPj4tZoPYq4itEnTJ81EpS7Lbr2ry2LM3xnALRkq5ezFvZ/gJqrnjYUyloPcHCOP+GzQJRQyOSf4I31NTf84zKicetwNk=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R971e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033032089153;MF=tianruidong@linux.alibaba.com;NM=1;PH=DS;RN=20;SR=0;TI=SMTPD_---0X43R2XC_1780384543;
+Received: from t50a05405.sqa.eu95.tbsite.net(mailfrom:tianruidong@linux.alibaba.com fp:SMTPD_---0X43R2XC_1780384543 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Tue, 02 Jun 2026 15:15:45 +0800
+From: Ruidong Tian <tianruidong@linux.alibaba.com>
+To: Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>,
+	Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	Hanjun Guo <guohanjun@huawei.com>,
+	Sudeep Holla <sudeep.holla@kernel.org>,
+	"Rafael J . Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>,
+	Tony Luck <tony.luck@intel.com>,
+	Borislav Petkov <bp@alien8.de>,
+	Thomas Gleixner <tglx@kernel.org>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Robin Murphy <robin.murphy@arm.com>,
+	Umang Chheda <umang.chheda@oss.qualcomm.com>
+Cc: linux-acpi@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org,
+	linux-edac@vger.kernel.org,
+	zhuo.song@linux.alibaba.com,
+	oliver.yang@linux.alibaba.com,
+	Ruidong Tian <tianruidong@linux.alibaba.com>
+Subject: [PATCH v7 00/16] Support Armv8 RAS Extensions for Kernel-first error handling
+Date: Tue,  2 Jun 2026 15:15:23 +0800
+Message-ID: <20260602071540.3711528-1-tianruidong@linux.alibaba.com>
+X-Mailer: git-send-email 2.43.7
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20260602001547.GR3195266@nvidia.com>
-X-NV-OnPremToCloud: ExternallySecured
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DM2PEPF00003FC6:EE_|CH3PR12MB9217:EE_
-X-MS-Office365-Filtering-Correlation-Id: b9807550-d834-47da-62e7-08dec06a0eb6
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|82310400026|1800799024|7416014|376014|36860700016|18002099003|56012099006|11063799006|4143699003|5023799004|22082099003;
-X-Microsoft-Antispam-Message-Info:
-	m0RmmVkDSp30j9EYwnr6prRt7ZBvHDzJzckrKbySyAlPw8uDJ//CVpJ9Qncv860czYzQ5l+tNjH6OTBGmSBkWRyXWaoYuhfWmU1/mozGCVgv2hWYf4X6N7/O84KxnVjdDxT0//bWbNbZLxVYM+kN68fsD4KXgsPvX65Nld/RjtAtDGQEVY7WTiKXu8aQVvvL7buzFK0untTrL87yqdFCgjZEj1Hvkt8fBhI1XEjuZEAYyzoZMX9L+NuCwDm5Scq/Zydmld0V5z55ZIIbBqnrlyaxdVos/ZQsCrHgWqi4oNS/0NAzQO4wHvFSY8sScKMdSCIE6Drtd1E8qa1+prOBqNkfu58hgLAeOXeW1jWKqynQ/s7S2EIxUqteexxUpzXtxW1na9VpRNAJgEyXY8UtniwI3XOdLUyxr8aNasywvwGP6fqAavNmnQOgtmqa2+Fw0Qz+hLJ3a7rDEktIi7pkq0m8UmqFUOIGoOJHD2eTQwd8KG3VuJSHB27KqoYGzJSFqmKHsWyiN18vR+OQL2OHRb6GutslM0jr2wMWxBWFGLzGRTuvpWP+mT8g+1Ei66U8Xys78aMCR0JE3gEimNlTksfYvHasxlBJZ7Y+uUjsDo5RiIvZrn6kvmo4aAgsY/eDOJFeBPn69e/k3BEw0oFrjHRCPe2EnQJ/cEqAsDBHMMil6AmL7HDjmHUVftc0dVoOQESp+jl6XpYIPUziiAHPwf36A4nXvmWHdBmv90HLGpk=
-X-Forefront-Antispam-Report:
-	CIP:216.228.118.233;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge2.nvidia.com;CAT:NONE;SFS:(13230040)(82310400026)(1800799024)(7416014)(376014)(36860700016)(18002099003)(56012099006)(11063799006)(4143699003)(5023799004)(22082099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	C8linV14utpEEA5F5wTSSuE5i3JaNoXp/dyM4U5Slrud1Hux1xultJ3RQIRG4N7QIMyvgDURrKMcy4YOPxc+wAY+UC49Fe1CbyriMtIfAF+08y/BbpvwQf556hxYy3LN2SR1DDRkaSgzxWVlZ5yPNQm5l1yMHtHIxVHkDIfgP31whyX8Uavt9r7BYfKhsuQIIwiWNg6H4bavQV1kqHoVe2VWSd0hdBFcVDCdHMToGGBLnUpb15Dnvi2GUMWOumWlH5yHuSyvMJJHFX/LV1GALJhOlVL17O31J22T1A1O1dsknwfYrp4GYtL/Mp7GAr2klGjkr5KutfxWEvcN/UlmGRt1JfXMnFQ3Q6FFw78A8KVwHcowlN5LFUv+QOh4P7rcXEZ9s/mfrD1wzaEmzJ1JMyiV9gA55+5OoeKvJsThCZRqF0mOuVUaDBshj5QBKutc
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 02 Jun 2026 05:44:47.7545
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: b9807550-d834-47da-62e7-08dec06a0eb6
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.233];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	DM2PEPF00003FC6.namprd04.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH3PR12MB9217
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-On Mon, Jun 01, 2026 at 09:15:47PM -0300, Jason Gunthorpe wrote:
-> On Mon, Jun 01, 2026 at 01:41:26PM -0700, Nicolin Chen wrote:
-> > On Mon, Jun 01, 2026 at 09:32:31AM -0300, Jason Gunthorpe wrote:
-> > > On Fri, May 29, 2026 at 06:27:40PM -0700, Nicolin Chen wrote:
-> > > > On Tue, May 19, 2026 at 09:06:58AM -0300, Jason Gunthorpe wrote:
-> > > > > On Mon, May 18, 2026 at 08:39:01PM -0700, Nicolin Chen wrote:
-> > > > So I've tried INV_TYPE_ATS_BROKEN: during per-domain invalidation,
-> > > > each batch is built from domain->invs so it can carry the "invs";
-> > > > if the batch times out, we can immediately mutate its ATS entries.
-> > > > 
-> > > > But I realized a limitation. E.g., if a device attaches to two SVA
-> > > > domains on two SSIDs. An invalidation timing out on one of the SVA
-> > > > domains could mark INV_TYPE_ATS_BROKEN in its own invs, but not in
-> > > > the other SVA domain's invs?
-> > > 
-> > > You'd have to mark all the S1's sharing the STE.
-> > 
-> > That would be a bit convoluted as we would have to go through all
-> > other domains' invs arrays.
-> 
-> Ok, that is certainly an annoying problem.
-> 
-> I don't have a better idea than storing the master unfortunately
-> 
-> But I think the locking for that is going to be tricky, I'm not sure it does
-> actually fully work..
+This patch introduces an arm64 platform RAS driver to support the Armv8 RAS Extensions[0].
+The features supported by this patch include:
 
-Yes, there can be a race that sets STE.EATS back while per-master
-flag is set, which would skip the ATC_INV in commit(), so no more
-ATC_INV timeout that resets STE.EATS=0. To close it, we can force 
-STE.EATS=0 at the end of commit() when state->ats_enabled and the
-per-master flag are both set, which is only possible in a race.
+1. ACPI frontend[1]
+2. Driver probing and interrupt handling
+3. CMN-700 support
+4. Error thresholding and error statistics
+5. Hardware error interrupt storm mitigation
+6. Tracepoints for userspace monitoring
 
-However, after more thought, I found that there's a big trade-off
-to pay in the invalidation path, if we go on this path. The invs
-array only has SID, so it needs to convert it to master using the
-rb_tree for every entry (holding streams_lock).
+The following features are still required but are not included in this patch,
+as they are highly platform-specific:
 
-I asked AI to list and compare the three solutions that we have:
+1. Error decoding
+2. Address decoding
+(It is also known as the EDAC driver.)
 
-(1) Per-invs marker: INV_TYPE_ATS_BROKEN + master_domains
-    disable_ats() in the timeout path walks master->master_domains
-    and flips matching ATS invs entries to the BROKEN type.
+The devicetree frontend support will be implemented later by Umang Chheda[3].
 
-  + invs walker is free (one case label in the existing type switch).
-  + No lock or pointer deref in the invs walker.
-  + No master pointer stored in invs; no lifetime concern.
+Motivation and Background
+================================
 
-  - disable_ats() walks every (master, domain) and marks each invs
-    set; the list needs locking usable from atomic.
-  - No master-level flag, so atc_inv_master loses the cheap early
-    skip and attach has nothing to gate ats_enabled on. Concurrent
-    quarantine self-heals only after the next ATC_INV times out (~1s),
-    unless we also keep a master flag (i.e. a hybrid of (1) and (2)).
+On current ARM platforms, RAS functionality is mainly implemented through the
+APEI framework, also known as the Firmware-First model(FFM). In this model, RAS
+errors are first handled by firmware and then reported to the kernel.
 
-(2) Per-master flag + streams_lock
-    invs walker resolves SID -> master via streams_lock and reads
-    master->ats_broken.
+However, this model does not fit all use cases well. In particular:
 
-  + Single source of truth on the master.
-  + disable_ats() is one WRITE_ONCE.
-  + atc_inv_master early-skips via one READ_ONCE.
-  + attach gates ats_enabled on the flag; a concurrent quarantine
-    race can be closed by a short post-attach re-check in commit()
-  + No master pointer in invs; no lifetime concern.
+1. Some platforms want to collect more error events with lower overhead,
+avoiding the expensive firmware-kernel context switching.
+2. Some platforms prefer to handle error collection directly in the kernel[3].
 
-  - invs walker pays streams_lock + rb_find(SID) per ATS entry on
-    every invalidation. Measurable on ATS-heavy workloads.
+To address these requirements, a kernel-first error collection mechanism has
+been implemented in the kernel based on the Armv8 RAS Extensions. This model
+is also referred to as Kernel-First Mode(KFM).
 
-(3) Per-master flag + inv->master pointer (v4)
-    invs entry carries a master pointer; the invs walker reads
-    cur->master->ats_broken directly.
+Extended Use Cases
+=====================
 
-  + invs walker is one READ_ONCE through a cached pointer.
-  + disable_ats is one WRITE_ONCE.
-  + atc_inv_master early-skip via one READ_ONCE.
-  + attach gate + post-attach re-check, same as (2).
+With support for both Kernel-First Mode (KFM) and Firmware-First Mode (FFM),
+users can flexibly choose the most appropriate error handling path for their
+platforms and workloads.
 
-  - invs holds a master ptr, so release_device must synchronize_rcu()
-    before freeing the master to drain walkers under rcu_read_lock().
-    We dropped this from v4 for that reason.
+This enables additional use cases such as:
 
-Side-by-side:
-                (1)      (2)      (3)
-  invs walker   fastest  slow     fast
-  disable_ats   slow     fast     fast
-  atc_inv skip  slow     fast     fast
-  attach race   slow     fast     fast
-  master free   fast     fast     slow
+1. Predictive failure analysis (PFA)[4]
+2. Large-scale error prediction in cloud environments[5][6][7][8]
 
-FWIW, AI picks (3), but this would reintroduce synchronize_rcu()
-that you dislike. My personal feeling is that (1) is the cleanest
-shirt in the dirty laundry?
+Maintenance
+=============================
+This series is based on Tyler Baicar's preliminary patches [9]. I attempted
+to follow up with Tyler in 2022 but received no reply. As he no longer
+appears active on the mailing list, I have picked up this work, updated it
+to align with the latest AEST v2.0 specification, and addressed pending
+feedback to ensure this critical feature is integrated into the mainline.
 
-I'd like to hear your thought before finalizing the design.
+Testing
+===================
+I have tested this series on THead Yitian710 SOC with customized BIOS. Someone
+can also use QEMU[10] for preliminary driver testing.
 
-Thanks
-Nicolin
+1. Boot Qemu
+
+qemu-system-aarch64 -smp 4 -m 32G \
+  -cpu host --enable-kvm -machine virt,gic-version=3 \
+  -kernel Image -initrd initrd.cpio.gz \
+  -device virtio-net-pci,netdev=t0 -netdev user,id=t0 \
+  -bios /usr/share/edk2/aarch64/QEMU_EFI.fd  \
+  -append "rdinit=/sbin/init earlycon verbose debug console=ttyAMA0 aest.dyndbg='+pt'" \
+  -nographic -d guest_errors -D qemu.log
+
+2. inject error
+
+echo 0xc4800390 > /sys/kernel/debug/ras/arm64/memory.90d0000/record0/inject/hard_inject
+[13581.756132] arm64_ras: {119}[Hardware Error]: Hardware error from AEST memory.90d0000
+[13581.756158] arm64_ras: {119}[Hardware Error]:  Error from memory at SRAT proximity domain 0x0
+[13581.756162] arm64_ras: {119}[Hardware Error]:   ERR0FR: 0x40000080044081
+[13581.756164] arm64_ras: {119}[Hardware Error]:   ERR0CTRL: 0x108
+[13581.756165] arm64_ras: {119}[Hardware Error]:   ERR0STATUS: 0xc4800390
+[13581.756169] arm64_ras: {119}[Hardware Error]:   ERR0ADDR: 0x8400000043344521
+[13581.756170] arm64_ras: {119}[Hardware Error]:   ERR0MISC0: 0x7fff00000000
+[13581.756171] arm64_ras: {119}[Hardware Error]:   ERR0MISC1: 0x0
+[13581.756172] arm64_ras: {119}[Hardware Error]:   ERR0MISC2: 0x0
+[13581.756173] arm64_ras: {119}[Hardware Error]:   ERR0MISC3: 0x0
+
+[0]: https://developer.arm.com/documentation/ihi0100/
+[1]: https://developer.arm.com/documentation/den0085/0201/
+[3]: https://lore.kernel.org/all/20260505-aest-devicetree-support-v1-0-d5d6ffacf0a5@oss.qualcomm.com/
+[4]: http://www.mcelog.org/glossary.html#pfa
+[5]: Intel: Predicting Uncorrectable Memory Errors from the Correctable Error History
+[6]: Alibaba. Predicting DRAM-Caused Risky VMs in Large-Scale Clouds. Published in HPCA2025
+[7]: AMD: Physics-informed machinelearning for dram error modeling
+[8]: Tencent: Predicting uncorrectablememory errors for proactive replacement: An empirical study
+on large-scale field data
+[9]: https://lore.kernel.org/all/20211124170708.3874-1-baicar@os.amperecomputing.com/
+[10]: https://github.com/winterddd/qemu/tree/error_record
+
+Change from V6:
+https://lore.kernel.org/all/20260122094656.73399-1-tianruidong@linux.alibaba.com/
+1. Comment by Robin Murphy
+  - Use the information in the AEST table to calculate PERIPHBASE instead of 
+    looking it up from the DSDT.
+  - Support erratum #2732981: some nodes do not support ERRGSR, so fall back to
+    polling for those nodes, while other nodes should continue using ERRGSR.
+  - Other minor changes.
+2. Architecture refactor:
+  - Renamed the driver to the arm64_ras driver.
+  - To support Umang Chheda’s changes[3] in the devicetree, the interaction logic between
+    the driver (backend) and the device (frontend) was updated. The device property
+    infrastructure is now used uniformly to pass properties, and the extra aest_device
+    abstraction has been removed.
+  - Removed the use of genpoll, since it is not needed in interrupt context.
+3. New features:
+  - Added support for hardware error interrupt storm mitigation.
+
+Change from V5:
+https://lore.kernel.org/all/20251230090945.43969-1-tianru...
+1. Based on the feedback from Borislav Petkov, I've dropped the idea of a 
+   unified address translation interface across ARM and AMD.
+
+Change from V4:
+https://lore.kernel.org/all/20251222094351.38792-1-tianru...
+1. Fix build warning in 0010 and 0014 report by kernel test robot:
+    https://lore.kernel.org/all/202512230122.CfXZcF76-lkp@int...
+    https://lore.kernel.org/all/202512230007.Vs6IvFVD-lkp@int...
+2. Dropped the extra patch(0014) that was mistakenly included in v4.
+
+Change from V3:
+https://lore.kernel.org/all/20250115084228.107573-1-tianr...
+1. Add vendor AEST node framework and support CMN700
+2. Borislav Petkov
+    - Split into multiple smaller patches for easier review.
+    - refined the English in the cover letter for better flow.
+3. Accept Tomohiro Misono's comment
+
+Change from V2:
+https://lore.kernel.org/all/20240321025317.114621-1-tianr...
+1. Tomohiro Misono
+    - dump register before panic
+2. Baolin Wang & Shuai Xue: accept all comment.
+3. Support AEST V2.
+
+Change from V1:
+https://lore.kernel.org/all/20240304111517.33001-1-tianru...
+1. Marc Zyngier
+  - Use readq/writeq_relaxed instead of readq/writeq for MMIO address.
+  - Add sync for system register operation.
+  - Use irq_is_percpu_devid() helper to identify a per-CPU interrupt.
+  - Other fix.
+2. Set RAS CE threshold in AEST driver.
+3. Enable RAS interrupt explicitly in driver.
+4. UER and UEO trigger memory_failure other than panic.
+
+Ruidong Tian (16):
+  ACPI/AEST: Register arm64_ras platform devices from AEST v2
+  arm64: ras: Add probe/remove for arm64_ras driver
+  arm64: ras: Unify the read/write interface for system and MMIO
+    registers
+  arm64: ras: Support RAS Common Fault Injection Model Extension
+  arm64: ras: Plumb AEST interrupts as platform IRQ resources
+  arm64: ras: Enable error reporting
+  arm64: ras: Add error record processing and interrupt handling
+  arm64: ras: Handle memory failure for uncorrectable errors
+  arm64: ras: Probe RAS architecture version
+  arm64: ras: Support CE threshold of error record
+  arm64: ras: Add RAS decode notifier chain
+  arm64: ras: Expose config abi through debugfs
+  arm64: ras: Introduce ras inject interface
+  arm64: ras: support vendor node CMN700
+  arm64: ras: Introduce ras error storm mitigation
+  trace, ras: add ARM RAS extension trace event
+
+ Documentation/ABI/testing/debugfs-arm64-ras |   87 ++
+ MAINTAINERS                                 |   11 +
+ arch/arm64/include/asm/ras.h                |   99 ++
+ drivers/acpi/arm64/Kconfig                  |   10 +
+ drivers/acpi/arm64/Makefile                 |    1 +
+ drivers/acpi/arm64/aest.c                   |  423 ++++++++
+ drivers/ras/Kconfig                         |    1 +
+ drivers/ras/Makefile                        |    1 +
+ drivers/ras/arm64/Kconfig                   |   16 +
+ drivers/ras/arm64/Makefile                  |    9 +
+ drivers/ras/arm64/ras-cmn.c                 |  479 +++++++++
+ drivers/ras/arm64/ras-core.c                | 1026 +++++++++++++++++++
+ drivers/ras/arm64/ras-inject.c              |  130 +++
+ drivers/ras/arm64/ras-storm.c               |  198 ++++
+ drivers/ras/arm64/ras-sysfs.c               |  319 ++++++
+ drivers/ras/arm64/ras.h                     |  374 +++++++
+ drivers/ras/debugfs.c                       |    3 +-
+ drivers/ras/ras.c                           |    3 +
+ include/linux/acpi_aest.h                   |   36 +
+ include/linux/cpuhotplug.h                  |    1 +
+ include/linux/ras.h                         |   10 +
+ include/ras/ras_event.h                     |   79 ++
+ 22 files changed, 3315 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/ABI/testing/debugfs-arm64-ras
+ create mode 100644 arch/arm64/include/asm/ras.h
+ create mode 100644 drivers/acpi/arm64/aest.c
+ create mode 100644 drivers/ras/arm64/Kconfig
+ create mode 100644 drivers/ras/arm64/Makefile
+ create mode 100644 drivers/ras/arm64/ras-cmn.c
+ create mode 100644 drivers/ras/arm64/ras-core.c
+ create mode 100644 drivers/ras/arm64/ras-inject.c
+ create mode 100644 drivers/ras/arm64/ras-storm.c
+ create mode 100644 drivers/ras/arm64/ras-sysfs.c
+ create mode 100644 drivers/ras/arm64/ras.h
+ create mode 100644 include/linux/acpi_aest.h
+
+-- 
+2.51.2.612.gdc70283dfc
+
