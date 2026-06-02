@@ -1,103 +1,178 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.11])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-f180.google.com (mail-qt1-f180.google.com [209.85.160.180])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 984EE3D6471;
-	Tue,  2 Jun 2026 12:15:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 023FA3126DA
+	for <linux-acpi@vger.kernel.org>; Tue,  2 Jun 2026 12:33:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.180
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780402541; cv=none; b=NUVv0J+hbK/OQZCq3hnuIISTgT97Q+Uhr+j7qcgX57bmodUYcDqyp49BFVrWXK+YxbYh4Cfx/ydBiRVhXH008dm7g7jWo+8Aj3ZzIjh+fxLVLU5MveT+B3moLgua/6ggMoUV50ZARUpPK1PG54HdqBaOxk2vbbV/3ZFW9O1twhU=
+	t=1780403630; cv=none; b=XOFqFO1Qp/sHloc8KO1XklsuWh+ogIKsTdQM1Xo1P5n3V97Dg8/voJJ1ZVJNBGxcDPwkf0BG3GkY869zh/LSHYEfE9b26w2aEsJMaw4pQLwigKBVxUzGoIYFwOdXv4xt/p5B/LUzLV6Ob9w0v81pGiij2pFOeuFs8TFndQ8A6Y8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780402541; c=relaxed/simple;
-	bh=DALm11u0DP3CuOZchTDgz8esDk71Sl3LZkAYh+SokpM=;
+	s=arc-20240116; t=1780403630; c=relaxed/simple;
+	bh=Dt7ynl7RjMDm10IwkFbV7yaqQ3XCHkv1Jhl7dMLZbl4=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Pt6s7aGJyccBnbxQDIPrTOsp1wF2EnGwk39IiqpK7x5FUXd65gXjlXFcpGHbad6ex2HPPLAXsbpE6MHMBgDfNWFd8sT1oLcLKdaaIoNpaodAbKmf0F61zMnjc1ptzhbEECkyPbiF0Q2wQupoQ9+ziVmQyWiI14BTEZUi5nUZXz8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=e5IgM09v; arc=none smtp.client-ip=198.175.65.11
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=BsDvI7GQYVSmfjdeJ+G5EGQiSeq/VJ7w0dPRiXjCTY0wRAcK4yFjKdZBceeKNXi+QVySDDhEWYxyoMFSJ/mHuSnx6AZGqEEef4W4QCQunh9xsoqPSui/6wwatxC+CNJ9/uFvyLKF/GmA+SYuVZhQs1oW5JrPnDDBpACXinSOtqo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=Mjg0KMTz; arc=none smtp.client-ip=209.85.160.180
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="e5IgM09v"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1780402539; x=1811938539;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=DALm11u0DP3CuOZchTDgz8esDk71Sl3LZkAYh+SokpM=;
-  b=e5IgM09vZ1SjPihLp5VYKUhLMlpDphbKWJiYSnwHM+WoyCIRPBrHz+EZ
-   nT2nWmu9w8R1jlTKp6hAdZLBR6FKTRwgUHGAKSdRPqI7yt/QxdZh0aGst
-   0uPc0X4fv6ZobL1f/aq/l74mWVfA0fodRpP9v5AlFQbTHv0Pt4OJ+3E5+
-   vhPxW7rTgyZZTLaKdqy+XRLyVROEly8UkqM+FTl/Sq9+A8jOEZp0WfkD/
-   YRTt4GBeybbji+r/C6eoY6UyjmucPUI2g8GmtW0jZaYaWk2FwgForDfVu
-   OSz57L/bmMAAkZ9DM/qnCWawziSWwyzUWoiv1IQqOaZfhXeNy1Pzw4Ifg
-   Q==;
-X-CSE-ConnectionGUID: hSR7wQmoQjCsJJXCN9IVsA==
-X-CSE-MsgGUID: UMSdTBiPSNCcu7JA1EX71w==
-X-IronPort-AV: E=McAfee;i="6800,10657,11804"; a="91491714"
-X-IronPort-AV: E=Sophos;i="6.24,183,1774335600"; 
-   d="scan'208";a="91491714"
-Received: from orviesa004.jf.intel.com ([10.64.159.144])
-  by orvoesa103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jun 2026 05:15:38 -0700
-X-CSE-ConnectionGUID: jdLtT0NPTeKWIIyumi3AFg==
-X-CSE-MsgGUID: RPv7fYVBTlqHnepjq+9Xcw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.24,183,1774335600"; 
-   d="scan'208";a="248177461"
-Received: from black.igk.intel.com ([10.91.253.5])
-  by orviesa004.jf.intel.com with ESMTP; 02 Jun 2026 05:15:37 -0700
-Received: by black.igk.intel.com (Postfix, from userid 1001)
-	id 001E995; Tue, 02 Jun 2026 14:15:35 +0200 (CEST)
-Date: Tue, 2 Jun 2026 14:15:35 +0200
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-To: Marco Scardovi <scardracs@disroot.org>
-Cc: andriy.shevchenko@linux.intel.com, brgl@kernel.org, linusw@kernel.org,
-	linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v5] gpiolib: acpi: prevent address truncation in
- OperationRegion handler
-Message-ID: <20260602121535.GC2990@black.igk.intel.com>
-References: <20260602113529.52570-1-scardracs@disroot.org>
- <20260602113529.52570-3-scardracs@disroot.org>
- <20260602114540.GB2990@black.igk.intel.com>
- <vzcrnFOfR861L-H21KjtDQ@disroot.org>
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="Mjg0KMTz"
+Received: by mail-qt1-f180.google.com with SMTP id d75a77b69052e-5174a34800fso26645851cf.3
+        for <linux-acpi@vger.kernel.org>; Tue, 02 Jun 2026 05:33:46 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google; t=1780403626; x=1781008426; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=3fuMy8ZTlB4sZmM4SRNfS45Rtpr0e2y/Uhs3uZMD108=;
+        b=Mjg0KMTzNzeCi7FV4Cglipctnd4qTRNJBs44FcFTysdYrVy+WlGmP/0GDFu0J+wJ7m
+         R/AuPEohevy1QNUE+WUDGubmJcDZZnffsV7i/Zze94JkqRPhbPdy15Qk6yh0s9q2hu1/
+         bI7dm1G26H7om23e5xJModDeVrIOi0meO3NUWse+J5lk5WegiPpkj76Qz79IXx4wghAH
+         J1I3OvFvwHvZLYWvaUMDTJFwu8CeiZpFpTAa6VbXuL1p2SxsoyL2H/fX/865+UB4pvvq
+         PhJR1KIiS2V1O2Xw5dcvwmRIXL5LbfWF9nRanp+5gjV4eMn6+GEiDs6cHaCPjs+09FpH
+         tsZw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1780403626; x=1781008426;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=3fuMy8ZTlB4sZmM4SRNfS45Rtpr0e2y/Uhs3uZMD108=;
+        b=K8LGix1f25j3k0MYC9u2rAsq53Ivgc1J7gYBae5VHDDmc6UZoumnY4p3MBnNxluEu7
+         2OXomOh+J4+R2iyp5V3KrXHgw9Wux7hJtNW2yFhZVvPs57sQBCal5XDpMXxDCkCZsTJK
+         WYh9qS/xW6fUCXDnV0ewkKVO9FOKRqDoEzLv9kDTnJIWt0ttUJNV2yN1ElBnJvoIRg6x
+         emhr37dBhUhyXdXQRRrTSorJKPZKozQdhee3oOhOy45ih7bTXH24M1EJARrmKQfmouHi
+         uwMnR7/r5pZ9gZce+4BfamUSxbNfgbKVcQ74ebL5qqpG0sujzgf5qOb8fz+cCw2yoj/n
+         Hffg==
+X-Forwarded-Encrypted: i=1; AFNElJ9oNtglOLpCV0EnO1hEkTa3YY16fJ7xZgfK3lMHVdHSAZ7cIfuFiGEyD3E1m7iTOvBVOCAYxVKq2+cP@vger.kernel.org
+X-Gm-Message-State: AOJu0YyLrkSBSMA2kQ3TyUWS/V3rYRHm4DxXd4BzlLfsDIbWPFcze4ZT
+	0RqWbJHniQWaZMTEGNvQtGHb+HF8bOCqQB7Diezf93NUA4ypMgw5OKMAE5fD4jZFS5Y=
+X-Gm-Gg: Acq92OGQFLSTmqJmQ6yTKVGV0YguE/N++pWd1b+ldDIE46TZsPBh17nXvOL1I5G+LVj
+	jlRG17CjqjYALnTYm2SGqEsZmT+A04OlySDxiK9JllTzQOr0rRaoXSgC7/ZGfcNW0h9rdQEuAvI
+	C3vEeMAEdnVL/mHmOuHqf8d5aUvvuhx3ZxadE2/jWw2weRxLH+Rco2vZ36NEh12aMJb4yfUXMII
+	gvIhoS4c/CQvwNOeo7kmB7lAlfPN6gu13SpQy2yxZbnbc9bgrzB2syGtD/Zn4We8wHiOwNxeQEj
+	XriK42Y+At4A99a5JzSHMOdKQA9TyPfXMYveix3m9SVKiu1K3h/OjqkyvfwdGv8x8I7/DZ1t7eH
+	5SkLpQh1+BP84hB5uaLX7QVqJnRULmNvv+hkJ+i0Lz/m5kt0GnFcXafZ9pv5M7fTgTG/iQGGdo0
+	1PmU/3wIHjgr/K1jUApfOv0aXKcmxWPD60gB+p6XQiXpmQ9zKk//iYCfxGgS9++/2DH03Yvc2uj
+	m7ZM1s7EKM/4F51
+X-Received: by 2002:a05:622a:190a:b0:509:2527:d789 with SMTP id d75a77b69052e-5173a5c05ecmr228232631cf.6.1780403625864;
+        Tue, 02 Jun 2026 05:33:45 -0700 (PDT)
+Received: from ziepe.ca (crbknf0213w-47-54-130-67.pppoe-dynamic.high-speed.nl.bellaliant.net. [47.54.130.67])
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-51741d6a240sm78686221cf.18.2026.06.02.05.33.45
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 02 Jun 2026 05:33:45 -0700 (PDT)
+Received: from jgg by wakko with local (Exim 4.97)
+	(envelope-from <jgg@ziepe.ca>)
+	id 1wUOJU-00000003m5x-3DKO;
+	Tue, 02 Jun 2026 09:33:44 -0300
+Date: Tue, 2 Jun 2026 09:33:44 -0300
+From: Jason Gunthorpe <jgg@ziepe.ca>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Kees Cook <kees@kernel.org>, Luis Chamberlain <mcgrof@kernel.org>,
+	Pengpeng Hou <pengpeng@iscas.ac.cn>, stable@vger.kernel.org,
+	Petr Pavlu <petr.pavlu@suse.com>,
+	Richard Weinberger <richard@nod.at>,
+	Anton Ivanov <anton.ivanov@cambridgegreys.com>,
+	Johannes Berg <johannes@sipsolutions.net>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>, Corey Minyard <corey@minyard.net>,
+	Gabriel Somlo <somlo@cmu.edu>,
+	"Michael S. Tsirkin" <mst@redhat.com>,
+	Jani Nikula <jani.nikula@linux.intel.com>,
+	Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
+	Rodrigo Vivi <rodrigo.vivi@intel.com>,
+	Tvrtko Ursulin <tursulin@ursulin.net>,
+	David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>,
+	Bart Van Assche <bvanassche@acm.org>,
+	Leon Romanovsky <leon@kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans de Goede <hansg@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Bjorn Helgaas <bhelgaas@google.com>, Hannes Reinecke <hare@suse.de>,
+	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
+	"Martin K. Petersen" <martin.petersen@oracle.com>,
+	Daniel Lezcano <daniel.lezcano@kernel.org>,
+	Zhang Rui <rui.zhang@intel.com>, Lukasz Luba <lukasz.luba@arm.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jiri Slaby <jirislaby@kernel.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	Jason Wang <jasowang@redhat.com>,
+	Xuan Zhuo <xuanzhuo@linux.alibaba.com>,
+	Eugenio =?utf-8?B?UMOpcmV6?= <eperezma@redhat.com>,
+	Jason Baron <jbaron@akamai.com>, Jim Cromie <jim.cromie@gmail.com>,
+	Tiwei Bie <tiwei.btw@antgroup.com>,
+	Benjamin Berg <benjamin.berg@intel.com>,
+	Ilpo =?utf-8?B?SsOkcnZpbmVu?= <ilpo.jarvinen@linux.intel.com>,
+	"David E. Box" <david.e.box@linux.intel.com>,
+	"Maciej W. Rozycki" <macro@orcam.me.uk>,
+	Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Heiko Carstens <hca@linux.ibm.com>,
+	Vasily Gorbik <gor@linux.ibm.com>,
+	Sean Christopherson <seanjc@google.com>,
+	Paolo Bonzini <pbonzini@redhat.com>,
+	Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
+	Borislav Petkov <bp@alien8.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+	"H. Peter Anvin" <hpa@zytor.com>, Vinod Koul <vkoul@kernel.org>,
+	Frank Li <Frank.Li@kernel.org>, Daniel Gomez <da.gomez@kernel.org>,
+	Sami Tolvanen <samitolvanen@google.com>,
+	Aaron Tomlin <atomlin@atomlin.com>,
+	Alexander Potapenko <glider@google.com>,
+	Marco Elver <elver@google.com>, Dmitry Vyukov <dvyukov@google.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	John Johansen <john.johansen@canonical.com>,
+	Paul Moore <paul@paul-moore.com>, James Morris <jmorris@namei.org>,
+	"Serge E. Hallyn" <serge@hallyn.com>,
+	Georgia Garcia <georgia.garcia@canonical.com>, kvm@vger.kernel.org,
+	dmaengine@vger.kernel.org, linux-modules@vger.kernel.org,
+	kasan-dev@googlegroups.com, linux-mm@kvack.org,
+	apparmor@lists.ubuntu.com, linux-security-module@vger.kernel.org,
+	linux-um@lists.infradead.org, linux-acpi@vger.kernel.org,
+	openipmi-developer@lists.sourceforge.net, qemu-devel@nongnu.org,
+	intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
+	linux-rdma@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-pci@vger.kernel.org, linux-scsi@vger.kernel.org,
+	linux-pm@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+	linux-serial@vger.kernel.org, linux-usb@vger.kernel.org,
+	usb-storage@lists.one-eyed-alien.net,
+	virtualization@lists.linux.dev, linux-kernel@vger.kernel.org,
+	linux-arch@vger.kernel.org, netdev@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, linux-hardening@vger.kernel.org
+Subject: Re: [PATCH 01/11] params: bound array element output to the caller's
+ page buffer
+Message-ID: <20260602123344.GG2487554@ziepe.ca>
+References: <20260521133315.work.845-kees@kernel.org>
+ <20260521133326.2465264-1-kees@kernel.org>
+ <ah699hwLxIIOZ0-7@ashevche-desk.local>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <vzcrnFOfR861L-H21KjtDQ@disroot.org>
+In-Reply-To: <ah699hwLxIIOZ0-7@ashevche-desk.local>
 
-Hi,
-
-On Tue, Jun 02, 2026 at 01:59:36PM +0200, Marco Scardovi wrote:
-> Hi Mika,
+On Tue, Jun 02, 2026 at 02:26:46PM +0300, Andy Shevchenko wrote:
+> On Thu, May 21, 2026 at 06:33:14AM -0700, Kees Cook wrote:
+> > 
+> > param_array_get() appends each element's string representation into the
+> > shared sysfs page buffer by passing buffer + off to the element getter.
+> > 
+> > That works for getters that only write a small bounded string, but
+> > param_get_charp() and similar helpers format against PAGE_SIZE from the
+> > pointer they receive. Once off is non-zero, an element getter can
+> > therefore write past the end of the original sysfs page buffer.
+> > 
+> > Collect each element into a temporary PAGE_SIZE buffer first and then
+> > copy only the remaining space into the caller's page buffer.
 > 
-> On Tue, Jun 02, 2026 at 01:45:40PM +0200, Mika Westerberg wrote:
-> > How in practice this can be done given that the GPIO resource has only 2
-> > bytes for the index?
+> ...
 > 
-> The 2-byte limitation is in the GPIO resource descriptor representation of the 
-> pin table, not in the ACPI address space handler interface itself.
+> > +	elem_buf = kmalloc(PAGE_SIZE, GFP_KERNEL);
 > 
-> The acpi_gpio_adr_space_handler() receives the access offset as a 64-bit 
-> acpi_physical_address from ACPICA. This value is generated when AML
-> accesses a Field within the GPIO OperationRegion, and it is not constrained
-> by the GPIO resource descriptor's pin_table_length.
+> get_free_page() (or how it is called)?
 
-Yes, but you access it from AML like this:
+I thought modern mm guidance was to use kmalloc whenever possible and
+not use get_free_page() unless you intend to use the struct page bits?
 
-Field(\_SB.GPI2.GPO2, ByteAcc, NoLock, Preserve)
-{
-	Connection (GpioIo(Exclusive, PullUp, , , , "\\_SB.GPI2") {7}),
-	STAT, 1,           // e.g. Status signal from the device
-	Connection (GpioIo (Exclusive, PullUp, , , , "\\_SB.GPI2") {9}),
-	RSET, 1            // e.g. Reset signal to the device
-}
-
-In other words it still uses GPIO resource descriptor (so 2 bytes per pin),
-nothing else is accepted as far as I understand.
-
-The example is here: 
-
-https://uefi.org/specs/ACPI/6.5/05_ACPI_Software_Programming_Model.html#declaring-generalpurposeio-fields
+Jason
