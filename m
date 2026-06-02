@@ -1,60 +1,59 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.11])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C63863B47C9;
-	Tue,  2 Jun 2026 07:34:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E60B1FCFFC;
+	Tue,  2 Jun 2026 07:45:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.21
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780385692; cv=none; b=gPu4Ji7BdSPjqq/i8YavF4/LTnOt+nmPC0DbsOdGLFb637S6nCJ255VpHUhqAEcF1bK7Q2aZzL1Xnz3B4vqFmMcbhtG6qCEe6It1SSMP6gcNSispMBYq1DhZGn6ZkkgijwnwK88O5lI6i+TOqax1AJOEeTsuYPbqqMk+CxFJwPc=
+	t=1780386343; cv=none; b=k3rdbEm3gDFLjtS7ptDMxXQB8Tyidd98uvCAhKQJJ7RpS4To6m7gqzIgeMMGdeB9xn/U3zcwaZqOAI1q61C7WoDH7dxWR7mC7t+DSR6p+ujthmHBq05ffKV7kprnmxTPNYwwWjVycs4T/75jb8Cg99xfCTHUFOyZFoKdfIvG4tg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780385692; c=relaxed/simple;
-	bh=LT1YlLr0VvfYyb8ZbGeU7+/ZsyveE0n6JR8cQhPmat8=;
+	s=arc-20240116; t=1780386343; c=relaxed/simple;
+	bh=/zl0drPy31zFHDDNvKnOSokXDtHazIA3TKkz1eDTasA=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=qTEWaJa4HvJbMKW7o7Vt855S6B/7JKgBANpL9nCBayIxrQrsxTlTJatDuECNuRTgJqyaOZ3L42uNXgImR3DBJk9jtcZctUqzLYeRIvYHTn53w5X3QGSpex4vx1y9aBiDGF1UezhMfQ8mTE/B5GVKB+uanjxvn8p42rqKwXrg2V8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=lGDoms/4; arc=none smtp.client-ip=192.198.163.11
+	 Content-Type:Content-Disposition:In-Reply-To; b=PgWzLUP9HVd0zjhALxVKS8mK7SUFC9hPzN/PEoOOnp1QdrB1e9Qo70i4k6C4I7Bcqj/F71pZxMBAsya9sxO+ch2GHGl48Iiz+OHI8ES4wJVE+f3hi5AJn3xKR1iYl2zGAvYCOUySVLVmG++AQaF4NYtwBmWefiKt7EgHRBnnHz0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=GdkQajxy; arc=none smtp.client-ip=198.175.65.21
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="lGDoms/4"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="GdkQajxy"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1780385689; x=1811921689;
+  t=1780386342; x=1811922342;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=LT1YlLr0VvfYyb8ZbGeU7+/ZsyveE0n6JR8cQhPmat8=;
-  b=lGDoms/4XMJJW0QBEnR3Ij/C2OGpI/JasIikoo+ExaP4owVjQvbIVJUf
-   6FaMzPlCBloPY1aSxeN0LLOvy//7ZNft6theNRD4PLJ/L0DOnj/QYxuTU
-   oxAhNcVVCgaOOZVctT57BnNtsWdIltq4y0gA/Gg7BqApoBTCOm2t2ozuz
-   4V+yT6GP5el1NDC1Nw07eOlbX/c/dceiN3THSf46eRzQbQxY7TMr+QdaM
-   b6zQF8l0KDgkiemgE55OI7Y2WQIoG4C40AoVb6snCDAwxvswWYUzvxD5y
-   A9Fzsq9uJCqqyzH1pyxFTUCmJrjak/8lwLebcqbehHMKE0/ELhd/ozOXj
-   g==;
-X-CSE-ConnectionGUID: bq6lgfPKTkGauqzvHvNAKA==
-X-CSE-MsgGUID: AuHLbPKCQqu0PBtK7rajaw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11804"; a="91739904"
+  bh=/zl0drPy31zFHDDNvKnOSokXDtHazIA3TKkz1eDTasA=;
+  b=GdkQajxyE8VOe59wk31vkRfZuHda8H4X72EvjJ3SUY0yykAbSc0j90UK
+   8ZONed9EIa5GFTt6dHu1tzFk+x75SfwxgDPwsj6DvVJqpSJ3kaID1RTse
+   gekfOElLdwgPgCGvh2IHDtpsI4BDf0pl1fYZ7EK/zs4XMLrr7sRA476Ga
+   O9XlagKJWc1hbJfJL2iIgFopnKTNIw7CeGKrrmEahDdSUz4NzOjiiVNZZ
+   CRBLN7yupWzl6jq+sBcMaVq+uiYM6jV1iQO4uBcyjYOhL5pYnXGJ2FwRB
+   0SDYNpcCvwfV8XdBZXOkHR0cdt8ZG6gVuK5WJZIh60OH76DntyxxxPgCS
+   Q==;
+X-CSE-ConnectionGUID: zoNrVfVNTnGlMhCXJnTMvA==
+X-CSE-MsgGUID: 0c9590HEQ+Ou0Pbi0CNQUQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11804"; a="81065081"
 X-IronPort-AV: E=Sophos;i="6.24,182,1774335600"; 
-   d="scan'208";a="91739904"
-Received: from orviesa009.jf.intel.com ([10.64.159.149])
-  by fmvoesa105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jun 2026 00:34:48 -0700
-X-CSE-ConnectionGUID: Pk2OOrJJR4amkuVCWjHCnA==
-X-CSE-MsgGUID: GsXs1WveTHiDhuxqEJKZXg==
+   d="scan'208";a="81065081"
+Received: from fmviesa008.fm.intel.com ([10.60.135.148])
+  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jun 2026 00:45:42 -0700
+X-CSE-ConnectionGUID: XB6yxphGQequjdc8bAkc6w==
+X-CSE-MsgGUID: 9nJmKytcRSOBc8y3rInTxg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.24,182,1774335600"; 
-   d="scan'208";a="243931150"
+   d="scan'208";a="241331378"
 Received: from mkosciow-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.245.229])
-  by orviesa009-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jun 2026 00:34:46 -0700
-Date: Tue, 2 Jun 2026 10:34:43 +0300
+  by fmviesa008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jun 2026 00:45:39 -0700
+Date: Tue, 2 Jun 2026 10:45:37 +0300
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To: "Marco Scardovi (scardracs)" <mscardovi95@gmail.com>
 Cc: brgl@kernel.org, linusw@kernel.org, linux-acpi@vger.kernel.org,
 	linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org,
 	mika.westerberg@linux.intel.com, westeri@kernel.org
-Subject: Re: [PATCH v3 1/2] gpiolib: acpi: Add robust bounds-checking for
- GPIO pin resources
-Message-ID: <ah6Hk5f7jn1QiqKp@ashevche-desk.local>
+Subject: Re: [PATCH v3 2/2] Fixes: gpiolib: acpi: resource leak in OpRegion
+Message-ID: <ah6KIUb6FhmzAUs-@ashevche-desk.local>
 References: <agwfEMtEctXYC1oc@ashevche-desk.local>
  <20260520074955.55443-1-mscardovi95@gmail.com>
- <20260520074955.55443-2-mscardovi95@gmail.com>
+ <20260520074955.55443-3-mscardovi95@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -63,41 +62,97 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260520074955.55443-2-mscardovi95@gmail.com>
+In-Reply-To: <20260520074955.55443-3-mscardovi95@gmail.com>
 Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
  krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On Wed, May 20, 2026 at 09:45:46AM +0200, Marco Scardovi (scardracs) wrote:
-> Ensure that the GPIO pin resource arrays are safely bounded before
-> accessing indices. Add bounds checking in acpi_request_own_gpiod(),
-> acpi_gpio_irq_is_wake(), and acpi_gpiochip_alloc_event() to prevent
-> out-of-bounds array reads if the ACPI namespace provides malformed or
-> empty pin tables.
+On Wed, May 20, 2026 at 09:45:47AM +0200, Marco Scardovi (scardracs) wrote:
+> If acpi_remove_address_space_handler() fails, the cleanup function
+> acpi_gpiochip_free_regions() previously returned early. This leaks
+> the connections list and all requested GPIO descriptors.
+> 
+> Similarly, if acpi_gpio_adr_space_handler() fails to allocate a connection
+> or request a GPIO descriptor during a multi-pin transaction, it exits
+> without freeing the descriptors and connections that were already allocated
+> in the same call.
+> 
+> To avoid leaks, introduce a localized new_conns list inside the handler to
+> track the new connections requested during the current transaction. On
+> error, roll back only the connections in the new_conns list (avoiding
+> deadlock on the non-recursive conn_lock and preventing over-cleanup of
+> historic connections). On success, splice the new_conns list into the
+> global achip->conns list under the conn_lock.
+> 
+> Additionally, rename the global connection cleanup function to
+> acpi_gpiochip_free_all_connections() and call it in the GPIO chip teardown
+> path.
 
 ...
 
-> -	int polarity = GPIO_ACTIVE_HIGH;
-> -	enum gpiod_flags flags = acpi_gpio_to_gpiod_flags(agpio, polarity);
+> +static void acpi_gpiochip_free_connection_list(struct list_head *list)
+> +{
+> +	struct acpi_gpio_connection *conn;
+> +	struct acpi_gpio_connection *tmp;
 
-> +	enum gpiod_flags flags;
+Make it a single line.
 
-> +	int polarity;
-
-What's the point?
+> +	list_for_each_entry_safe_reverse(conn, tmp, list, node) {
+> +		gpiochip_free_own_desc(conn->desc);
+> +		list_del(&conn->node);
+> +		kfree(conn);
+> +	}
+> +}
 
 ...
 
-> +	polarity = GPIO_ACTIVE_HIGH;
-> +	flags = acpi_gpio_to_gpiod_flags(agpio, polarity);
+> +static struct acpi_gpio_connection *
+> +acpi_gpiochip_find_conn(struct acpi_gpio_chip *achip,
+> +			struct list_head *new_conns, unsigned int pin)
+
+We allow longer lines, so
+
+static struct acpi_gpio_connection *
+acpi_gpiochip_find_conn(struct acpi_gpio_chip *achip, struct list_head *new_conns,
+			unsigned int pin)
+
+is fine
+
+> +{
+> +	struct acpi_gpio_connection *conn;
 > +
-> +	if (index >= agpio->pin_table_length)
-> +		return ERR_PTR(-EINVAL);
+> +	list_for_each_entry(conn, &achip->conns, node) {
+> +		if (conn->pin == pin)
+> +			return conn;
+> +	}
 
-Now, what's the point of assigning flags and polarity before check? If you move
-them after pin assignment below it will justify the changes in the definition
-block above.
+> +	if (new_conns) {
 
-> +	pin = agpio->pin_table[index];
+Is it ever called with new_conns == NULL?
+
+> +		list_for_each_entry(conn, new_conns, node) {
+> +			if (conn->pin == pin)
+> +				return conn;
+> +		}
+> +	}
+> +
+> +	return NULL;
+> +}
+
+...
+
+Before fixing the issue, introduce helpers and use them in the existing code
+first. Then in the follow up fix the issue.
+
+...
+
+>  		struct gpio_desc *desc;
+> -		u16 word, shift;
+> -		bool found;
+> +		bool found = false;
+
+Do you still need it? Wouldn't 'conn == NULL' be equal to 'false'?
+
+...
 
 -- 
 With Best Regards,
