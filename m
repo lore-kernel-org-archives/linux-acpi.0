@@ -1,59 +1,59 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.17])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E60B1FCFFC;
-	Tue,  2 Jun 2026 07:45:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.21
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 259863B38BA;
+	Tue,  2 Jun 2026 07:47:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.17
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780386343; cv=none; b=k3rdbEm3gDFLjtS7ptDMxXQB8Tyidd98uvCAhKQJJ7RpS4To6m7gqzIgeMMGdeB9xn/U3zcwaZqOAI1q61C7WoDH7dxWR7mC7t+DSR6p+ujthmHBq05ffKV7kprnmxTPNYwwWjVycs4T/75jb8Cg99xfCTHUFOyZFoKdfIvG4tg=
+	t=1780386441; cv=none; b=f+hPashQf0VovcuLcdgtJPBfVKI6G6XunFybdV3OAWT6bRC+GPM6TFERWWBIa7MhN9MKbrLNUh7aYgpUun/xBNYLUq81eBzhtyfv38jHhOZTI0kogGFEEJhrC+G6o85MlBmEPgj9aTZ9jMIGCCZl2Wm5HtEIH93VoWgj/L7U4l8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780386343; c=relaxed/simple;
-	bh=/zl0drPy31zFHDDNvKnOSokXDtHazIA3TKkz1eDTasA=;
+	s=arc-20240116; t=1780386441; c=relaxed/simple;
+	bh=P228OhwL8kyNtiEhBsWPAgaWG1MfkyfnDMrS1csxmL4=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=PgWzLUP9HVd0zjhALxVKS8mK7SUFC9hPzN/PEoOOnp1QdrB1e9Qo70i4k6C4I7Bcqj/F71pZxMBAsya9sxO+ch2GHGl48Iiz+OHI8ES4wJVE+f3hi5AJn3xKR1iYl2zGAvYCOUySVLVmG++AQaF4NYtwBmWefiKt7EgHRBnnHz0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=GdkQajxy; arc=none smtp.client-ip=198.175.65.21
+	 Content-Type:Content-Disposition:In-Reply-To; b=UVdrJuJul1uHTs1wG5W00vZrz59poSJUoxT/F1/tyN/iwUNIV5ralMR9IO6vQ0GXko2jip6ywko2McHVNwGH4VAZfGre8d8w+bG9k3E2nAXqDyDj2Mq+ZvPCK/3xKBpM7/o4MAGI0JbADXTQ5XgcUwhK+3HaL90O7UCFa82DqG8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=M2B6PcZR; arc=none smtp.client-ip=198.175.65.17
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="GdkQajxy"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="M2B6PcZR"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1780386342; x=1811922342;
+  t=1780386440; x=1811922440;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=/zl0drPy31zFHDDNvKnOSokXDtHazIA3TKkz1eDTasA=;
-  b=GdkQajxyE8VOe59wk31vkRfZuHda8H4X72EvjJ3SUY0yykAbSc0j90UK
-   8ZONed9EIa5GFTt6dHu1tzFk+x75SfwxgDPwsj6DvVJqpSJ3kaID1RTse
-   gekfOElLdwgPgCGvh2IHDtpsI4BDf0pl1fYZ7EK/zs4XMLrr7sRA476Ga
-   O9XlagKJWc1hbJfJL2iIgFopnKTNIw7CeGKrrmEahDdSUz4NzOjiiVNZZ
-   CRBLN7yupWzl6jq+sBcMaVq+uiYM6jV1iQO4uBcyjYOhL5pYnXGJ2FwRB
-   0SDYNpcCvwfV8XdBZXOkHR0cdt8ZG6gVuK5WJZIh60OH76DntyxxxPgCS
-   Q==;
-X-CSE-ConnectionGUID: zoNrVfVNTnGlMhCXJnTMvA==
-X-CSE-MsgGUID: 0c9590HEQ+Ou0Pbi0CNQUQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11804"; a="81065081"
+  bh=P228OhwL8kyNtiEhBsWPAgaWG1MfkyfnDMrS1csxmL4=;
+  b=M2B6PcZRuC0zbJIy+CStT55BBjbkaIWcLUItixPPKV/TuvRfFhVcR/3b
+   i9ExdieMUG2MXySBGmQ8VUz5DM0PRZxQQ803EuA67exPK0d1K5sf4jwvB
+   +4yQFlmO3wcaLhnrZ5N7MShWbXKOWgMb6Vu2ne3pWtiLbN89Uau3ag7gu
+   q0seFXLLV3DhY2RI/Er9Uh6RmKN9/y+5OxVfzNKtFEktP9/DlaQtscjGY
+   UKktx4PmAkdlaK/UneftoIH7coEP0UpE47xxgg85NHTOGJ9Gs8Xy7CfUm
+   YWB6cClTfI7fGOL1/h9VejKvw+9qNGo43PSx1mzPSXRx25XS9sjE3GyqD
+   g==;
+X-CSE-ConnectionGUID: 7B+8A4CFSLC6sNkC0NWK9w==
+X-CSE-MsgGUID: ri2WqDNASLeSXApbQBdcNA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11804"; a="81157127"
 X-IronPort-AV: E=Sophos;i="6.24,182,1774335600"; 
-   d="scan'208";a="81065081"
-Received: from fmviesa008.fm.intel.com ([10.60.135.148])
-  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jun 2026 00:45:42 -0700
-X-CSE-ConnectionGUID: XB6yxphGQequjdc8bAkc6w==
-X-CSE-MsgGUID: 9nJmKytcRSOBc8y3rInTxg==
+   d="scan'208";a="81157127"
+Received: from orviesa005.jf.intel.com ([10.64.159.145])
+  by orvoesa109.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jun 2026 00:47:20 -0700
+X-CSE-ConnectionGUID: HBiuIkG1QG6avrxeb03FGA==
+X-CSE-MsgGUID: 3vM8DyoFSxKxzPM7p+i0TA==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.24,182,1774335600"; 
-   d="scan'208";a="241331378"
+   d="scan'208";a="248755769"
 Received: from mkosciow-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.245.229])
-  by fmviesa008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jun 2026 00:45:39 -0700
-Date: Tue, 2 Jun 2026 10:45:37 +0300
+  by orviesa005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jun 2026 00:47:18 -0700
+Date: Tue, 2 Jun 2026 10:47:15 +0300
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To: "Marco Scardovi (scardracs)" <mscardovi95@gmail.com>
 Cc: brgl@kernel.org, linusw@kernel.org, linux-acpi@vger.kernel.org,
 	linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org,
 	mika.westerberg@linux.intel.com, westeri@kernel.org
-Subject: Re: [PATCH v3 2/2] Fixes: gpiolib: acpi: resource leak in OpRegion
-Message-ID: <ah6KIUb6FhmzAUs-@ashevche-desk.local>
+Subject: Re: [PATCH v3 0/2] gpiolib: acpi: Fix bounds-checking and connection
+ leak
+Message-ID: <ah6Kgz8J0oJ7NSDX@ashevche-desk.local>
 References: <agwfEMtEctXYC1oc@ashevche-desk.local>
  <20260520074955.55443-1-mscardovi95@gmail.com>
- <20260520074955.55443-3-mscardovi95@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -62,97 +62,31 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260520074955.55443-3-mscardovi95@gmail.com>
+In-Reply-To: <20260520074955.55443-1-mscardovi95@gmail.com>
 Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
  krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On Wed, May 20, 2026 at 09:45:47AM +0200, Marco Scardovi (scardracs) wrote:
-> If acpi_remove_address_space_handler() fails, the cleanup function
-> acpi_gpiochip_free_regions() previously returned early. This leaks
-> the connections list and all requested GPIO descriptors.
+On Wed, May 20, 2026 at 09:45:45AM +0200, Marco Scardovi (scardracs) wrote:
+> Hi Andy,
 > 
-> Similarly, if acpi_gpio_adr_space_handler() fails to allocate a connection
-> or request a GPIO descriptor during a multi-pin transaction, it exits
-> without freeing the descriptors and connections that were already allocated
-> in the same call.
+> This new series addresses two issues in the ACPI GPIO library while trying
+> to address your feedbacks:
+> 1. Adds robust bounds checking for pin resource indexing when requesting
+>    owned descriptors and querying wakeup/interrupt pin configurations.
+> 2. Fixes a connection/descriptor leak in the OpRegion address space
+>    handler and handles connection rollback in a transaction-local list
+>    to avoid wiping successfully established connections.
 > 
-> To avoid leaks, introduce a localized new_conns list inside the handler to
-> track the new connections requested during the current transaction. On
-> error, roll back only the connections in the new_conns list (avoiding
-> deadlock on the non-recursive conn_lock and preventing over-cleanup of
-> historic connections). On success, splice the new_conns list into the
-> global achip->conns list under the conn_lock.
-> 
-> Additionally, rename the global connection cleanup function to
-> acpi_gpiochip_free_all_connections() and call it in the GPIO chip teardown
-> path.
+> Please note that some of these changes were found during a personal follow up
+> analysis before submitting the patches to the community. They are reported
+> to explain why some of these fixes are made in that way instead of another.
 
-...
+Thanks for the update!
 
-> +static void acpi_gpiochip_free_connection_list(struct list_head *list)
-> +{
-> +	struct acpi_gpio_connection *conn;
-> +	struct acpi_gpio_connection *tmp;
+Please, split the second patch more to make it better to understand what the
+helpers are doing (without changing the behaviour) and then fix the problem.
 
-Make it a single line.
-
-> +	list_for_each_entry_safe_reverse(conn, tmp, list, node) {
-> +		gpiochip_free_own_desc(conn->desc);
-> +		list_del(&conn->node);
-> +		kfree(conn);
-> +	}
-> +}
-
-...
-
-> +static struct acpi_gpio_connection *
-> +acpi_gpiochip_find_conn(struct acpi_gpio_chip *achip,
-> +			struct list_head *new_conns, unsigned int pin)
-
-We allow longer lines, so
-
-static struct acpi_gpio_connection *
-acpi_gpiochip_find_conn(struct acpi_gpio_chip *achip, struct list_head *new_conns,
-			unsigned int pin)
-
-is fine
-
-> +{
-> +	struct acpi_gpio_connection *conn;
-> +
-> +	list_for_each_entry(conn, &achip->conns, node) {
-> +		if (conn->pin == pin)
-> +			return conn;
-> +	}
-
-> +	if (new_conns) {
-
-Is it ever called with new_conns == NULL?
-
-> +		list_for_each_entry(conn, new_conns, node) {
-> +			if (conn->pin == pin)
-> +				return conn;
-> +		}
-> +	}
-> +
-> +	return NULL;
-> +}
-
-...
-
-Before fixing the issue, introduce helpers and use them in the existing code
-first. Then in the follow up fix the issue.
-
-...
-
->  		struct gpio_desc *desc;
-> -		u16 word, shift;
-> -		bool found;
-> +		bool found = false;
-
-Do you still need it? Wouldn't 'conn == NULL' be equal to 'false'?
-
-...
+Otherwise it looks better than previous attempts.
 
 -- 
 With Best Regards,
