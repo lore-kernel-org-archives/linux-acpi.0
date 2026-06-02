@@ -1,198 +1,133 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4CAA435675C
-	for <linux-acpi@vger.kernel.org>; Tue,  2 Jun 2026 20:57:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35B203988E4;
+	Tue,  2 Jun 2026 21:58:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.20
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780433858; cv=none; b=kY2GHdwzXpqQhx+RWqRkPxUTlz/xSXew/bSdObulwqmjxkjWElGiHkOaBascSqDm6ZpmUBZycVJki1cn80yB89Rfv1gCS54EZrH4Wm3gOCRMVlDr5dBvQePcnxXjCZ67+YOn2Sy/NEUEsXlQWY1VGfclktI4kLjTqZbsev7KJmI=
+	t=1780437535; cv=none; b=b8VGlJ5yzzZ3C731pbaZa7kUax4cPeazrJy3UyV6P4E7bwvVOft9YnHNZPCSwEIXwYSQfczqRcUfIJI6uBkVIemSax/i6ZxCfi5rHBUyD6yzhpTyRrpl4pL1g5S9DPm06M0Qf0Q5NWczhgYke1fDs+E2g4zXp1pWoJlKkd3VjAI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780433858; c=relaxed/simple;
-	bh=+1aWWw/VOUkqUbYCvDexioiv825eBfUthhxhUbeH0Gk=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=aqdJKjysWaTj5+S0RRbQQJTD27WALyqZMnjrBhhaY2D1w00yCCBZzS+ooU7CdGj5jSCPkqsGa9JULRV+oTlSq83qTFsynRPZpK+GwrH0QXgt1YaHzKUJzYxmH2LAY9wYxser+QRP8SU3XebVWIEYFrGtAoBJ1G4/7yrjI8n055g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XiWZZ4rs; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780437535; c=relaxed/simple;
+	bh=lNy4OD9Hyui7+ARYdd9IyIqNHVlY1wQRJPb6kguiFcI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=gpErt3PyXrtHN5nBvSk8CaXL5+/uXwI90HNMsf4AGysRuH2+4vHLLjeCu25N2GGvefEnr1ZH18SDbW+AM7oKk1bXoxZk9SJxkimvuA5h3uFCtnCMYCD2ywCqznanSqcy/lHgh5JGI0md4kemeX9sXESp43It7zOIfZLrcRYhLx0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=bYNYy6De; arc=none smtp.client-ip=198.175.65.20
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XiWZZ4rs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D3711F00893
-	for <linux-acpi@vger.kernel.org>; Tue,  2 Jun 2026 20:57:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1780433857;
-	bh=9UxALlZp/awNelHKd+NuGpitMwLkRFkpst+BtBihDis=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=XiWZZ4rs/2nqPYIObqYnIq5AzztDyRWTcgfkC4OazOBrD0sT6tzZvL3gDTJzFnTh2
-	 uuawj+ykPMEegjPDbVziym3rlgqt8G2J+fFGPfsOIyo9Ht04jqXub014kCxJPeGLEM
-	 YH4R8wMGMcHxUuLxIlq3+TRjYDHWGstorXJm8aRaU8+InxbbiCfoOb1NhD3zmMJf01
-	 u2Whvh59/Egl64a2753XUtsfsdSTzco4G0Pt06RR/K979vXQkKpZabxAyeVNCN8qG6
-	 c25E50yXSL9dH5ZQQXpbIwVBg/21fDqnDPjpYMgY7FhuhEFunEH7Q6uV3SVMlLJkus
-	 6bl2kaiqQ6P9A==
-Received: by mail-lf1-f43.google.com with SMTP id 2adb3069b0e04-5aa61503fdaso2873e87.0
-        for <linux-acpi@vger.kernel.org>; Tue, 02 Jun 2026 13:57:36 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AFNElJ83BNjxDdWJG4RBkDbMD1ExwFxFSoSu+KFC0S4SzptRFjlN3XP4AeScfsO3O6cHF+tZkclwaiP4gQ1O@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx05abZqxGgt3yZZ+6TJV6lgvzqklfUsQH2AwA1UhoVGmdGAdpH
-	Em+ykDsHRFYlH8i4tJJvWG5SC4fVvQ2d2LohyWGgLb9crh3MqHwxOX0NhXRlMDqwnh2vI/zo0Xs
-	vGhylPDfVLXjfCiXSgtCFq9SrEnXyuK0=
-X-Received: by 2002:a05:6512:b1f:b0:5a7:4912:1a50 with SMTP id
- 2adb3069b0e04-5aa7c7ba65bmr95622e87.20.1780433855543; Tue, 02 Jun 2026
- 13:57:35 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="bYNYy6De"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1780437535; x=1811973535;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:content-transfer-encoding:in-reply-to;
+  bh=lNy4OD9Hyui7+ARYdd9IyIqNHVlY1wQRJPb6kguiFcI=;
+  b=bYNYy6DenQmibd184gy309DYHMHwjWYvHZTXDlK7bSrjzpoTIhKrZyoJ
+   3jDItJOsf1I1bR9E04I48smfD5NA5VlsswveJLWPt1b81hsByd5lOMM7P
+   A2sFtyu5AJ6IhUajRO7DGakjJQWZAtAHDlh2yurEHJHDLbqtu2Yij5sWO
+   1uhk8j/Bd+BdtjBfEnbtHsNvVWrTRmHrw8oacseERoYAt5VSI9UTQj+40
+   Fey9I0MG+Qg4iffh1k2o7g0dHnfDgR5DDaIk8suCJV7NHyrflQiDL1+Fy
+   JAWd9bn5uS0trC6qMhcrfj6Q1mNLJRijr10dZ8SzeCM1fq/Wr//Dv8Q3I
+   Q==;
+X-CSE-ConnectionGUID: vu481liDTOO7vhN6Ydp5Sw==
+X-CSE-MsgGUID: O3A3v+SpTq+ZQqMKTTHVrg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11805"; a="80973647"
+X-IronPort-AV: E=Sophos;i="6.24,183,1774335600"; 
+   d="scan'208";a="80973647"
+Received: from fmviesa004.fm.intel.com ([10.60.135.144])
+  by orvoesa112.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jun 2026 14:58:54 -0700
+X-CSE-ConnectionGUID: IG+QdlJ5TlK0+C4nKDLCdg==
+X-CSE-MsgGUID: 9clSxAXFQ5mnHp1Pm9/Kgw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.24,183,1774335600"; 
+   d="scan'208";a="245838734"
+Received: from pgcooper-mobl3.ger.corp.intel.com (HELO localhost) ([10.245.244.116])
+  by fmviesa004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jun 2026 14:58:51 -0700
+Date: Wed, 3 Jun 2026 00:58:49 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Hans de Goede <hansg@kernel.org>, Armin Wolf <w_armin@gmx.de>,
+	Dan Williams <djbw@kernel.org>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
+	nvdimm@lists.linux.dev
+Subject: Re: [PATCH v1 01/17] ACPI: bus: Introduce
+ devm_acpi_install_notify_handler()
+Message-ID: <ah9SGXfJv2fz22Yl@ashevche-desk.local>
+References: <4739447.LvFx2qVVIh@rafael.j.wysocki>
+ <2268031.irdbgypaU6@rafael.j.wysocki>
+ <ah8l-p0Ih9tzu0G1@ashevche-desk.local>
+ <CAJZ5v0i0bKHa28xoVRiy_7i_PgjqYD_TA0yRoofmjH1oHGQuQA@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <4739447.LvFx2qVVIh@rafael.j.wysocki> <2268031.irdbgypaU6@rafael.j.wysocki>
- <ah8l-p0Ih9tzu0G1@ashevche-desk.local>
-In-Reply-To: <ah8l-p0Ih9tzu0G1@ashevche-desk.local>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Tue, 2 Jun 2026 22:57:23 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0i0bKHa28xoVRiy_7i_PgjqYD_TA0yRoofmjH1oHGQuQA@mail.gmail.com>
-X-Gm-Features: AVHnY4LjTtFPU-7gUiC9pe6qbcAK2aht3aLMvvWCkRbTo51arqrwkDeFdk4pDcA
-Message-ID: <CAJZ5v0i0bKHa28xoVRiy_7i_PgjqYD_TA0yRoofmjH1oHGQuQA@mail.gmail.com>
-Subject: Re: [PATCH v1 01/17] ACPI: bus: Introduce devm_acpi_install_notify_handler()
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, 
-	LKML <linux-kernel@vger.kernel.org>, Hans de Goede <hansg@kernel.org>, 
-	Armin Wolf <w_armin@gmx.de>, Dan Williams <djbw@kernel.org>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	Ira Weiny <ira.weiny@intel.com>, nvdimm@lists.linux.dev
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAJZ5v0i0bKHa28xoVRiy_7i_PgjqYD_TA0yRoofmjH1oHGQuQA@mail.gmail.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On Tue, Jun 2, 2026 at 8:50=E2=80=AFPM Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
->
-> On Thu, May 21, 2026 at 03:59:50PM +0200, Rafael J. Wysocki wrote:
->
-> > Introduce devm_acpi_install_notify_handler() for installing an ACPI
-> > notify handler managed by devres that will be removed automatically on
-> > driver detach.
+On Tue, Jun 02, 2026 at 10:57:23PM +0200, Rafael J. Wysocki wrote:
+> On Tue, Jun 2, 2026 at 8:50 PM Andy Shevchenko
+> <andriy.shevchenko@linux.intel.com> wrote:
+> > On Thu, May 21, 2026 at 03:59:50PM +0200, Rafael J. Wysocki wrote:
+
+...
+
+> > > +     acpi_dev_remove_notify_handler(ACPI_COMPANION(dev), dr->handler_type,
 > >
-> > It installs the notify handler on the device object in the ACPI
-> > namespace that corresponds to the owner device's ACPI companion, if
-> > present (an error is returned if the owner device doesn't have an ACPI
-> > companion).
+> > acpi_dev might be also part of the same data structure, so you won't need to
+> > take dev again and derive adev from it.
+> 
+> I'm not sure what you mean.
+> 
+> Put acpi_dev into struct acpi_notify_handler_devres?
+
+Yes.
+
+> > > +                                    dr->handler);
+
+...
+
+> > > + * devm_acpi_install_notify_handler - Install an ACPI notify handler for a
+
+> > > + *                                 managed device
 > >
-> > Currently, there is no way to manually remove the notify handler
-> > installed by it because none of its users brought on subsequently
-> > will need to do that.
->
-> ...
->
-> > +static void devm_acpi_notify_handler_release(struct device *dev, void =
-*res)
-> > +{
-> > +     struct acpi_notify_handler_devres *dr =3D res;
->
-> 'dr' is usually associated with internal devres structures and might be
-> misleading in here, I would rename to something like handler_devres.
+> > There is a stray space just after asterisk.
+> 
+> Which asterisk?
 
-Well, whatever.
+The line above has "<space>*<space>(sic!)<tab><tab> ... managed device".
+The <space> after the asterisk is a stray one.
 
-> > +     acpi_dev_remove_notify_handler(ACPI_COMPANION(dev), dr->handler_t=
-ype,
->
-> acpi_dev might be also part of the same data structure, so you won't need=
- to
-> take dev again and derive adev from it.
+...
 
-I'm not sure what you mean.
+> > > +             return dev_err_probe(dev, -ENODEV, "No ACPI companion in %s()\n", __func__);
+> >
+> > Not sure how __func__ may help here. We will have a device instance to be
+> > printed. It's obvious then how to find the culprit call.
+> 
+> But it doesn't hurt either, does it?
 
-Put acpi_dev into struct acpi_notify_handler_devres?  That can be done
-in a follow-up patch.
+From my p.o.v. it's just extra information that's not needed. But I'm not going
+fight to death against it.
 
-> > +                                    dr->handler);
-> > +}
->
-> ...
->
-> > +/**
-> > + * devm_acpi_install_notify_handler - Install an ACPI notify handler f=
-or a
-> > + *                                 managed device
->
-> There is a stray space just after asterisk.
+...
 
-Which asterisk?
+> So thanks for the review, but I don't think I want to send a v2 at this point.
+> 
+> I'd rather send a follow-up patch to clean up these things.
 
-> > + * @dev: Device to install a notify handler for
-> > + * @handler_type: Type of the notify handler
-> > + * @handler: Handler function to install
-> > + * @context: Data passed back to the handler function
-> > + *
-> > + * This function performs the same function as acpi_dev_install_notify=
-_handler()
-> > + * called for the ACPI companion of @dev with the same @handler_type, =
-@handler,
-> > + * and @context arguments, but the ACPI notify handler installed by it=
- will be
-> > + * automatically removed on driver detach.
-> > + *
-> > + * Callers should ensure that all resources used by @handler have been=
- allocated
-> > + * prior to invoking this function, in which case those resources shou=
-ld be
-> > + * devres-managed so that they won't be released before the notify han=
-dler
-> > + * removal.  Otherwise, special synchronization between @handler and t=
-he
-> > + * management of those resources is required.
-> > + *
-> > + * When the request fails, an error message is printed with contextual
-> > + * information (device name, handler function and error code).  Don't =
-add extra
->
-> This "handler function" points to __func__? If so, it seems misleading.
+Okay!
 
-Yes, this sentence should just be "When the request fails, an error
-message is printed" without the "contextual information" part.
+-- 
+With Best Regards,
+Andy Shevchenko
 
-> > + * error messages at the call sites.
-> > + *
-> > + * Return: 0 on success or a negative error number.
-> > + */
-> > +int devm_acpi_install_notify_handler(struct device *dev, u32 handler_t=
-ype,
-> > +                                  acpi_notify_handler handler, void *c=
-ontext)
-> > +{
-> > +     struct acpi_notify_handler_devres *dr;
-> > +     struct acpi_device *adev;
-> > +     int ret;
-> > +
-> > +     adev =3D ACPI_COMPANION(dev);
-> > +     if (!adev)
-> > +             return dev_err_probe(dev, -ENODEV, "No ACPI companion in =
-%s()\n", __func__);
->
-> Not sure how __func__ may help here. We will have a device instance to be
-> printed. It's obvious then how to find the culprit call.
 
-But it doesn't hurt either, does it?
-
-> > +     dr =3D devres_alloc(devm_acpi_notify_handler_release, sizeof(*dr)=
-, GFP_KERNEL);
-> > +     if (!dr)
-> > +             return -ENOMEM;
-> > +
-> > +     ret =3D acpi_dev_install_notify_handler(adev, handler_type, handl=
-er, context);
-> > +     if (ret) {
-> > +             devres_free(dr);
-> > +             return dev_err_probe(dev, ret, "Failed to install an ACPI=
- notify handler\n");
-> > +     }
-> > +
-> > +     dr->handler =3D handler;
-> > +     dr->handler_type =3D handler_type;
-> > +     devres_add(dev, dr);
->
-> > +     return 0;
-> > +}
->
-> --
-
-So thanks for the review, but I don't think I want to send a v2 at this poi=
-nt.
-
-I'd rather send a follow-up patch to clean up these things.
