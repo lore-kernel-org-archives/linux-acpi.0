@@ -1,30 +1,30 @@
-Received: from out30-132.freemail.mail.aliyun.com (out30-132.freemail.mail.aliyun.com [115.124.30.132])
+Received: from out30-118.freemail.mail.aliyun.com (out30-118.freemail.mail.aliyun.com [115.124.30.118])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE0513AD52B;
-	Tue,  2 Jun 2026 07:16:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.132
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D3F336308E;
+	Tue,  2 Jun 2026 07:16:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.118
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780384588; cv=none; b=R9+loJ33BECbzj0hA+wane6fOZOjkRF9sfp4dFJUMQxzkprtmXEGpe5DkkFDgnKsMbvLuHpuDdLEsgIMXQMNBu7uixGYVmQb7+Ozhiu6e7KRdLKZ1z0+A1Vc5xhHneOOkHx8mEc+r/TFX1It/uVx49RXatYnNH6sxmwB53e3Su4=
+	t=1780384589; cv=none; b=IxoSweUKRGpTZppZqMLeXfySKQ1K815dFDACr3KsXLvpLTqxqxpI08mvn0h23Nntcpi6iXZ4gEp616d7zAks/naoKFWCjC14/C5XMYp/7g7OoMpYins1zBMimsTkFebfjTyt5o9LJvHUFoFhINNRKEokVZYRwjrJzZDQPvT9OvU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780384588; c=relaxed/simple;
-	bh=CGngURJ8uhwlmCur94zG6M+OhpqHYIyJHxZWQrOAxFU=;
+	s=arc-20240116; t=1780384589; c=relaxed/simple;
+	bh=tQvGGQAYsxwcIjdfFqcFVvJ1kUqg3IjP3cYzbconbNI=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=jI+vW6vlg5M5uiROgqgUdc4bgV1NtxHLgHVzBcM8wfVvMzv4I2YPBcqodGbrezmwHd0w9QSRSag5sycGITv6eYes8RA7Gk7DaDzu88aiNmR2zNXFir9BfRFGcKXA3V9/Iskfkk9tBAH9TnRO3n1IFQN0o68deTW2JszjAvtOnbQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=pz5w3hVB; arc=none smtp.client-ip=115.124.30.132
+	 MIME-Version; b=GPR7zMjpYYmFsX8us7ZTLenHqZ+ctzuQMzd2He5E3iYDyV8+LuMsuPljMENncta3OPSODtWHuF+DB0wVGF02c+hD2dUW08LvVGqXz0b7SfUEEKhKtGHmfUPdWCZ9AcNREQMha5EExO+sn0MhN1L9r5J5bG6D/La3EOc1oiZTbb8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=s2dI6SaE; arc=none smtp.client-ip=115.124.30.118
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="pz5w3hVB"
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="s2dI6SaE"
 DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
 	d=linux.alibaba.com; s=default;
-	t=1780384574; h=From:To:Subject:Date:Message-ID:MIME-Version;
-	bh=mzmNojoq2hu2ZwgjtjdxdvvwEj7R5BiH7fs14gYyDQo=;
-	b=pz5w3hVBtmkAI1acYXYyUysZSELWVvp57uYqJ9b3IHNf7aYfnGPjusHpdgpcrJTk+trK3FB9PyyarZug2jWXWn7+HercLDGc3KM1yP45o+e1aJLgASSI+Pw0mtaY3KMfnHhmW7kEF3qRTK+d4jm+x8lEemmpddebQM81sEkabYE=
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R121e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033037033178;MF=tianruidong@linux.alibaba.com;NM=1;PH=DS;RN=20;SR=0;TI=SMTPD_---0X43R2gL_1780384573;
-Received: from t50a05405.sqa.eu95.tbsite.net(mailfrom:tianruidong@linux.alibaba.com fp:SMTPD_---0X43R2gL_1780384573 cluster:ay36)
+	t=1780384573; h=From:To:Subject:Date:Message-ID:MIME-Version;
+	bh=7gkf4QjVEhb8uFI0feUbMQvBshcd3PL9ANlWVkCDcgw=;
+	b=s2dI6SaECnhAJmr5bq+Rlvzd0CJINSglVufGfgCDXPPgM5J1GMcdSUc3NF8c0zqg5CyIkw06w+CcXzVqQDzYZZJ+6lrh3VT++YSSSjEvuE50+dsqCD7bcqqCi3yQ9uDsMVgxmJe0BGP3rOLyJP/0d3LL02vE9FZELqm6r2cZSUk=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R151e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam011083073210;MF=tianruidong@linux.alibaba.com;NM=1;PH=DS;RN=20;SR=0;TI=SMTPD_---0X43R2fz_1780384571;
+Received: from t50a05405.sqa.eu95.tbsite.net(mailfrom:tianruidong@linux.alibaba.com fp:SMTPD_---0X43R2fz_1780384571 cluster:ay36)
           by smtp.aliyun-inc.com;
-          Tue, 02 Jun 2026 15:16:14 +0800
+          Tue, 02 Jun 2026 15:16:12 +0800
 From: Ruidong Tian <tianruidong@linux.alibaba.com>
 To: Catalin Marinas <catalin.marinas@arm.com>,
 	Will Deacon <will@kernel.org>,
@@ -46,9 +46,9 @@ Cc: linux-acpi@vger.kernel.org,
 	zhuo.song@linux.alibaba.com,
 	oliver.yang@linux.alibaba.com,
 	Ruidong Tian <tianruidong@linux.alibaba.com>
-Subject: [PATCH v7 13/16] arm64: ras: Introduce ras inject interface
-Date: Tue,  2 Jun 2026 15:15:36 +0800
-Message-ID: <20260602071540.3711528-14-tianruidong@linux.alibaba.com>
+Subject: [PATCH v7 12/16] arm64: ras: Expose config abi through debugfs
+Date: Tue,  2 Jun 2026 15:15:35 +0800
+Message-ID: <20260602071540.3711528-13-tianruidong@linux.alibaba.com>
 X-Mailer: git-send-email 2.43.7
 In-Reply-To: <20260602071540.3711528-1-tianruidong@linux.alibaba.com>
 References: <20260602071540.3711528-1-tianruidong@linux.alibaba.com>
@@ -60,330 +60,476 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-End-to-end validation of the RAS driver requires the ability to
-generate errors on demand. Driver gives two complementary paths,
-which the inject interface deliberately keeps separate:
+Expose per-node and per-record configuration through debugfs so
+bring-up and validation can inspect and tweak driver state (CE
+threshold, error counters,  ...) at runtime.
 
-  - Soft injection writes directly into the record's status registers
-    and is unconstrained by the spec. It is the tool of choice for
-    state-machine coverage: notifier delivery, ABI shape.
-
-  - Hard injection drives the architected inject registers and obeys
-    the hardware contract, exercising the real interrupt and decode
-    paths.
-
+Signed-off-by: Umang Chheda <umang.chheda@oss.qualcomm.com>
 Signed-off-by: Ruidong Tian <tianruidong@linux.alibaba.com>
 ---
- Documentation/ABI/testing/debugfs-arm64-ras |  39 +++++-
+ Documentation/ABI/testing/debugfs-arm64-ras |  50 +++++
+ MAINTAINERS                                 |   1 +
  drivers/ras/arm64/Makefile                  |   1 +
- drivers/ras/arm64/ras-core.c                |  26 ++--
- drivers/ras/arm64/ras-inject.c              | 127 ++++++++++++++++++++
- drivers/ras/arm64/ras-sysfs.c               |   1 +
- drivers/ras/arm64/ras.h                     |   2 +
- 6 files changed, 183 insertions(+), 13 deletions(-)
- create mode 100644 drivers/ras/arm64/ras-inject.c
+ drivers/ras/arm64/ras-core.c                |  31 +++
+ drivers/ras/arm64/ras-sysfs.c               | 211 ++++++++++++++++++++
+ drivers/ras/arm64/ras.h                     |  17 ++
+ drivers/ras/debugfs.c                       |   3 +-
+ include/linux/ras.h                         |   2 +
+ 8 files changed, 315 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/ABI/testing/debugfs-arm64-ras
+ create mode 100644 drivers/ras/arm64/ras-sysfs.c
 
 diff --git a/Documentation/ABI/testing/debugfs-arm64-ras b/Documentation/ABI/testing/debugfs-arm64-ras
-index d86bde83d0b9..a14f481c0c04 100644
---- a/Documentation/ABI/testing/debugfs-arm64-ras
+new file mode 100644
+index 000000000000..d86bde83d0b9
+--- /dev/null
 +++ b/Documentation/ABI/testing/debugfs-arm64-ras
-@@ -47,4 +47,41 @@ KernelVersion:	6.19
- Contact:	Ruidong Tian <tianruidong@linux.alibaba.com>
- Description:
- 		(RW) Read and write the CE threshold to this record.
--		Returns error if input exceeded the maximum threshold.
-\ No newline at end of file
+@@ -0,0 +1,50 @@
++What:		/sys/kernel/debug/ras/arm64/<node_name>/
++Date:		Dec 2025
++KernelVersion:	6.19
++Contact:	Ruidong Tian <tianruidong@linux.alibaba.com>
++Description:
++		Directory representing a RAS node device, <name> means device
++		type, like:
++
++		- processor
++		- memory
++		- smmu
++		- ...
++
++What:		/sys/kernel/debug/ras/arm64/<node_name>/record<index>/err_*
++Date:		Dec 2025
++KernelVersion:	6.19
++Contact:	Ruidong Tian <tianruidong@linux.alibaba.com>
++Description:
++		(RW) Read/Write err_* register.
++
++What:		/sys/kernel/debug/ras/arm64/<node_name>/err_count
++Date:		Dec 2025
++KernelVersion:	6.19
++Contact:	Ruidong Tian <tianruidong@linux.alibaba.com>
++Description:
++		(RO) Outputs error statistics for all error records of this node.
++
++
++What:		/sys/kernel/debug/ras/arm64/<node_name>/record<index>/err_count
++Date:		Dec 2025
++KernelVersion:	6.19
++Contact:	Ruidong Tian <tianruidong@linux.alibaba.com>
++Description:
++		(RO) Outputs error statistics for this record.
++
++What:		/sys/kernel/debug/ras/arm64/<node_name>/ce_threshold
++Date:		Dec 2025
++KernelVersion:	6.19
++Contact:	Ruidong Tian <tianruidong@linux.alibaba.com>
++Description:
++		(WO) Write the CE threshold to all records of this node.
 +		Returns error if input exceeded the maximum threshold.
 +
-+What:		/sys/kernel/debug/ras/arm64/<node_name>/record<index>/inject/err_*
++What:		/sys/kernel/debug/ras/arm64/<node_name>/record<index>/ce_threshold
 +Date:		Dec 2025
-+KernelVersion	6.19
++KernelVersion:	6.19
 +Contact:	Ruidong Tian <tianruidong@linux.alibaba.com>
 +Description:
-+		(RW) These registers are used to simulate soft injection errors
-+		by holding error register values. You can write any values
-+		to them. To trigger the injection, you need to write soft_inject
-+		at last. The validity of the injected error depends on the
-+		value written to err_status.
-+
-+		Accepts values -  any.
-+
-+What:		/sys/kernel/debug/ras/arm64/<node_name>/record<index>/inject/soft_inject
-+Date:		Dec 2025
-+KernelVersion	6.19
-+Contact:	Ruidong Tian <tianruidong@linux.alibaba.com>
-+Description:
-+		(WO) Write any value to this file to trigger the error
-+		injection. Make sure you have specified all necessary error
-+		parameters, i.e. this write should be the last step when
-+		injecting errors.
-+
-+		Accepts values -  any.
-+
-+What:		/sys/kernel/debug/ras/arm64/<node_name>/record<index>/inject/hard_inject
-+Date:		Dec 2025
-+KernelVersion	6.19
-+Contact:	Ruidong Tian <tianruidong@linux.alibaba.com>
-+Description:
-+		(WO) If the AEST table provides error injection registers,
-+		you can write to them via this interface. For instance,
-+		values can be written to the ERXPFGCTL register. The post-injection
-+		behavior is then determined by the hardware specification.
-+
-+		Accepts values - any.
++		(RW) Read and write the CE threshold to this record.
++		Returns error if input exceeded the maximum threshold.
 \ No newline at end of file
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 766d1240b465..007a5a69b6d9 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -349,6 +349,7 @@ M:	Ruidong Tian <tianruidong@linux.alibaba.com>
+ L:	linux-acpi@vger.kernel.org
+ L:	linux-arm-kernel@lists.infradead.org
+ S:	Supported
++F:	Documentation/ABI/testing/debugfs-arm64-ras
+ F:	arch/arm64/include/asm/ras.h
+ F:	drivers/acpi/arm64/aest.c
+ F:	drivers/ras/arm64/
 diff --git a/drivers/ras/arm64/Makefile b/drivers/ras/arm64/Makefile
-index e13e223107dd..2f3119ac3ec5 100644
+index c5387f05a067..e13e223107dd 100644
 --- a/drivers/ras/arm64/Makefile
 +++ b/drivers/ras/arm64/Makefile
-@@ -4,3 +4,4 @@ obj-$(CONFIG_ARM64_RAS_DRIVER) 	+= arm64_ras.o
+@@ -3,3 +3,4 @@
+ obj-$(CONFIG_ARM64_RAS_DRIVER) 	+= arm64_ras.o
  
  arm64_ras-y		:= ras-core.o
- arm64_ras-y		+= ras-sysfs.o
-+arm64_ras-y		+= ras-inject.o
++arm64_ras-y		+= ras-sysfs.o
 diff --git a/drivers/ras/arm64/ras-core.c b/drivers/ras/arm64/ras-core.c
-index c427c131a862..8cde26ab95de 100644
+index 0b07b69545ad..c427c131a862 100644
 --- a/drivers/ras/arm64/ras-core.c
 +++ b/drivers/ras/arm64/ras-core.c
-@@ -200,7 +200,7 @@ static void ras_panic(struct ras_record *record, struct ras_ext_regs *regs,
- 	panic(msg);
- }
+@@ -25,6 +25,8 @@ MODULE_PARM_DESC(aest_panic_on_ue,
  
--static void ras_proc_record(struct ras_record *record, void *data)
-+void ras_proc_record(struct ras_record *record, void *data, bool fake)
- {
- 	struct ras_ext_regs regs = { 0 };
- 	int *count = data;
-@@ -240,13 +240,15 @@ static void ras_proc_record(struct ras_record *record, void *data)
- 	ue = FIELD_GET(ERR_STATUS_UET, regs.err_status);
- 	if ((regs.err_status & ERR_STATUS_UE) &&
- 	    (ue == ERR_STATUS_UET_UC || ue == ERR_STATUS_UET_UEU)) {
--		if (!panic_on_ue)
--			ras_record_err(record, "UE detected, panic suppressed\n");
--		else
-+		if (fake)
-+			ras_record_info(record,
-+					"Simulated error! Skip panic due to fault injection\n");
-+		else if (panic_on_ue)
- 			ras_panic(record, &regs,
--				  "AEST: unrecoverable error encountered");
-+				   "AEST: unrecoverable error encountered");
-+		else
-+			ras_record_err(record, "UE detected, panic suppressed\n");
- 	}
--
- 	ras_do_proc(record, &regs);
+ static DEFINE_PER_CPU(struct ras_node, percpu_ras_node);
  
- 	/* Write-one-to-clear the bits we've seen */
-@@ -263,7 +265,7 @@ static void ras_proc_record(struct ras_record *record, void *data)
- 	record_write(record, ERXSTATUS, regs.err_status);
- }
++struct dentry *arm64_ras_debugfs;
++
+ static const char *const ras_node_name[] = {
+ 	[ACPI_AEST_PROCESSOR_ERROR_NODE] = "processor",
+ 	[ACPI_AEST_MEMORY_ERROR_NODE] = "memory",
+@@ -158,6 +160,27 @@ static void ras_do_proc(struct ras_record *record, struct ras_ext_regs *regs)
+ 	u64 status = regs->err_status, addr = regs->err_addr;
  
--static void ras_node_foreach_record(void (*func)(struct ras_record *, void *),
-+static void ras_node_foreach_record(void (*func)(struct ras_record *, void *, bool),
- 				    struct ras_node *node, void *data,
- 				    unsigned long *bitmap)
- {
-@@ -272,13 +274,13 @@ static void ras_node_foreach_record(void (*func)(struct ras_record *, void *),
- 	for_each_clear_bit(i, bitmap, node->record_count) {
- 		ras_select_record(node, i);
+ 	ras_print(record, regs);
++	if (regs->err_status & ERR_STATUS_CE)
++		record->count.ce++;
++	if (regs->err_status & ERR_STATUS_DE)
++		record->count.de++;
++	if (regs->err_status & ERR_STATUS_UE) {
++		switch (FIELD_GET(ERR_STATUS_UET, regs->err_status)) {
++		case ERR_STATUS_UET_UC:
++			record->count.uc++;
++			break;
++		case ERR_STATUS_UET_UEU:
++			record->count.ueu++;
++			break;
++		case ERR_STATUS_UET_UER:
++			record->count.uer++;
++			break;
++		case ERR_STATUS_UET_UEO:
++			record->count.ueo++;
++			break;
++		}
++	}
++
+ 	atomic_notifier_call_chain(&ras_decoder_chain, 0, record);
  
--		func(&node->records[i], data);
-+		func(&node->records[i], data, false);
+ 	if (status & ERR_STATUS_CE)
+@@ -887,6 +910,8 @@ static int arm64_ras_probe(struct platform_device *pdev)
  
- 		ras_sync(node);
- 	}
- }
+ 	platform_set_drvdata(pdev, node);
  
--static void ras_node_foreach_poll_record(void (*func)(struct ras_record *, void *),
-+static void ras_node_foreach_poll_record(void (*func)(struct ras_record *, void *, bool),
- 					 struct ras_node *node, void *data)
- {
- 	int i;
-@@ -300,7 +302,7 @@ static void ras_node_foreach_poll_record(void (*func)(struct ras_record *, void
- 
- 		ras_select_record(node, i);
- 
--		func(&node->records[i], data);
-+		func(&node->records[i], data, false);
- 
- 		ras_sync(node);
- 	}
-@@ -329,7 +331,7 @@ static int ras_proc(struct ras_node *node)
- 			 */
- 			if (test_bit(i * BITS_PER_LONG + j, node->status_reporting))
- 				continue;
--			ras_proc_record(&node->records[j], &count);
-+			ras_proc_record(&node->records[j], &count, false);
- 		}
- 	}
- 
-@@ -521,7 +523,7 @@ static int ras_init_record(struct ras_record *record, int i, struct ras_node *no
++	ras_node_init_debugfs(node);
++
  	return 0;
  }
  
--static void ras_online_record(struct ras_record *record, void *data)
-+static void ras_online_record(struct ras_record *record, void *data, bool __unused)
+@@ -900,12 +925,18 @@ static struct platform_driver arm64_ras_driver = {
+ 
+ static int __init arm64_ras_init(void)
  {
- 	ras_set_ce_threshold(record);
- 	ras_enable_irq(record);
-diff --git a/drivers/ras/arm64/ras-inject.c b/drivers/ras/arm64/ras-inject.c
++#ifdef CONFIG_DEBUG_FS
++	arm64_ras_debugfs = debugfs_create_dir("arm64", ras_debugfs_dir);
++#endif
+ 	return platform_driver_register(&arm64_ras_driver);
+ }
+ module_init(arm64_ras_init);
+ 
+ static void __exit arm64_ras_exit(void)
+ {
++#ifdef CONFIG_DEBUG_FS
++	debugfs_remove_recursive(arm64_ras_debugfs);
++#endif
+ 	platform_driver_unregister(&arm64_ras_driver);
+ }
+ module_exit(arm64_ras_exit);
+diff --git a/drivers/ras/arm64/ras-sysfs.c b/drivers/ras/arm64/ras-sysfs.c
 new file mode 100644
-index 000000000000..7fb522a845e7
+index 000000000000..03cc00b820e2
 --- /dev/null
-+++ b/drivers/ras/arm64/ras-inject.c
-@@ -0,0 +1,127 @@
++++ b/drivers/ras/arm64/ras-sysfs.c
+@@ -0,0 +1,211 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/*
 + * ARM Error Source Table Support
 + *
-+ * Copyright (c) 2024, Alibaba Group.
++ * Copyright (c) 2025, Alibaba Group.
 + */
 +
 +#include "ras.h"
 +
-+static struct ras_ext_regs regs_inj;
-+
-+struct inj_attr {
-+	struct attribute attr;
-+	ssize_t (*show)(struct ras_node *n, struct inj_attr *a, char *b);
-+	ssize_t (*store)(struct ras_node *n, struct inj_attr *a, const char *b,
-+				size_t c);
-+};
-+
-+struct ras_inject {
-+	struct ras_node *node;
-+	struct kobject kobj;
-+};
-+
-+#define to_inj(k)	container_of(k, struct ras_inject, kobj)
-+#define to_inj_attr(a)	container_of(a, struct inj_attr, attr)
-+
-+static u64 ras_sysreg_read_inject(void *__unused, u32 offset)
++static int ras_store_threshold(struct ras_record *record, u64 threshold)
 +{
-+	u64 *p = (u64 *)&regs_inj;
++	struct ce_threshold *ce = &record->ce;
++	u64 err_misc0;
 +
-+	return p[offset/8];
-+}
++	if (!ce->info)
++		return -EOPNOTSUPP;
 +
-+static void ras_sysreg_write_inject(void *base, u32 offset, u64 val)
-+{
-+	u64 *p = (u64 *)&regs_inj;
++	if (threshold > ce->info->max_count)
++		return -EINVAL;
 +
-+	p[offset/8] = val;
-+}
++	ce->threshold = threshold;
++	ce->count = ce->info->max_count - threshold + 1;
 +
-+static u64 ras_iomem_read_inject(void *base, u32 offset)
-+{
-+	u64 *p = (u64 *)&regs_inj;
++	err_misc0 = record_read(record, ERXMISC0);
++	ce->reg_val = (err_misc0 & ~ce->info->mask) |
++		      (ce->count << ce->info->shift);
 +
-+	return p[offset/8];
-+}
-+
-+static void ras_iomem_write_inject(void *base, u32 offset, u64 val)
-+{
-+	u64 *p = (u64 *)&regs_inj;
-+
-+	p[offset/8] = val;
-+}
-+
-+static struct ras_access ras_access_inject[] = {
-+	[ACPI_AEST_NODE_SYSTEM_REGISTER] = {
-+		.read = ras_sysreg_read_inject,
-+		.write = ras_sysreg_write_inject,
-+	},
-+
-+	[ACPI_AEST_NODE_MEMORY_MAPPED] = {
-+		.read = ras_iomem_read_inject,
-+		.write = ras_iomem_write_inject,
-+	},
-+	[ACPI_AEST_NODE_SINGLE_RECORD_MEMORY_MAPPED] = {
-+		.read = ras_iomem_read_inject,
-+		.write = ras_iomem_write_inject,
-+	},
-+	{ }
-+};
-+
-+static int soft_inject_store(void *data, u64 val)
-+{
-+	int count = 0;
-+	struct ras_record record_inj, *record = data;
-+	struct ras_node *node = record->node;
-+
-+	memcpy(&record_inj, record, sizeof(*record));
-+	record_inj.access = &ras_access_inject[node->access_type];
-+
-+	regs_inj.err_status |= ERR_STATUS_V;
-+
-+	ras_proc_record(&record_inj, &count, true);
-+
-+	if (count != 1)
-+		return -EIO;
-+
++	record_write(record, ERXMISC0, ce->reg_val);
 +	return 0;
 +}
-+DEFINE_DEBUGFS_ATTRIBUTE(soft_inject_ops, NULL, soft_inject_store, "%llu\n");
 +
-+static int hard_inject_store(void *data, u64 val)
++static void ras_error_count(struct ras_record *record, struct record_count *count)
++{
++	count->ce += record->count.ce;
++	count->de += record->count.de;
++	count->uc += record->count.uc;
++	count->ueu += record->count.ueu;
++	count->uer += record->count.uer;
++	count->ueo += record->count.ueo;
++}
++
++/* Debugfs for RAS node */
++
++static int ras_node_err_count_show(struct seq_file *m, void *data)
++{
++	struct ras_node *node = m->private;
++	struct record_count count = { 0 };
++	int i;
++
++	for (i = 0; i < node->record_count; i++)
++		if (!test_bit(i, node->record_implemented))
++			ras_error_count(&node->records[i], &count);
++
++	seq_printf(m, "CE: %llu\n"
++		   "DE: %llu\n"
++		   "UC: %llu\n"
++		   "UEU: %llu\n"
++		   "UEO: %llu\n"
++		   "UER: %llu\n",
++		   count.ce, count.de, count.uc, count.ueu,
++		   count.uer, count.ueo);
++	return 0;
++}
++DEFINE_SHOW_ATTRIBUTE(ras_node_err_count);
++
++/* Attribute for RAS record */
++
++#define DEFINE_RAS_DEBUGFS_ATTR(name, offset) \
++static int name##_get(void *data, u64 *val) \
++{ \
++	struct ras_record *record = data; \
++	*val = record_read(record, offset); \
++	return 0; \
++} \
++static int name##_set(void *data, u64 val) \
++{ \
++	struct ras_record *record = data; \
++	record_write(record, offset, val); \
++	return 0; \
++} \
++DEFINE_DEBUGFS_ATTRIBUTE(name##_ops, name##_get, name##_set, "%#llx\n")
++
++DEFINE_RAS_DEBUGFS_ATTR(err_fr, ERXFR);
++DEFINE_RAS_DEBUGFS_ATTR(err_ctrl, ERXCTLR);
++
++static int record_ce_threshold_get(void *data, u64 *val)
 +{
 +	struct ras_record *record = data;
-+	struct ras_node *node = record->node;
 +
-+	if (node->type != ACPI_AEST_PROCESSOR_ERROR_NODE && !node->inj)
-+		return -EPERM;
-+
-+	ras_select_record(node, record->index);
-+	record_write(record, ERXPFGCTL, val);
-+	record_write(record, ERXPFGCDN, 0x100);
-+	ras_sync(node);
-+
++	*val = record->ce.threshold;
 +	return 0;
 +}
-+DEFINE_DEBUGFS_ATTRIBUTE(hard_inject_ops, NULL, hard_inject_store, "%llu\n");
 +
-+void ras_inject_init_debugfs(struct ras_record *record)
++static int record_ce_threshold_set(void *data, u64 val)
 +{
-+	struct dentry *inj;
++	struct ras_record *record = data;
 +
-+	inj = debugfs_create_dir("inject", record->debugfs);
-+
-+	debugfs_create_u64("err_fr", 0600, inj, &regs_inj.err_fr);
-+	debugfs_create_u64("err_ctrl", 0600, inj, &regs_inj.err_ctlr);
-+	debugfs_create_u64("err_status", 0600, inj, &regs_inj.err_status);
-+	debugfs_create_u64("err_addr", 0600, inj, &regs_inj.err_addr);
-+	debugfs_create_u64("err_misc0", 0600, inj, &regs_inj.err_misc[0]);
-+	debugfs_create_u64("err_misc1", 0600, inj, &regs_inj.err_misc[1]);
-+	debugfs_create_u64("err_misc2", 0600, inj, &regs_inj.err_misc[2]);
-+	debugfs_create_u64("err_misc3", 0600, inj, &regs_inj.err_misc[3]);
-+	debugfs_create_file("soft_inject", 0200, inj, record, &soft_inject_ops);
-+
-+	if (record->node->type == ACPI_AEST_PROCESSOR_ERROR_NODE || record->node->inj)
-+		debugfs_create_file("hard_inject", 0200, inj, record, &hard_inject_ops);
++	return ras_store_threshold(record, val);
 +}
-diff --git a/drivers/ras/arm64/ras-sysfs.c b/drivers/ras/arm64/ras-sysfs.c
-index 03cc00b820e2..d8b351ee9aef 100644
---- a/drivers/ras/arm64/ras-sysfs.c
-+++ b/drivers/ras/arm64/ras-sysfs.c
-@@ -151,6 +151,7 @@ static void ras_record_init_debugfs(struct ras_record *record)
- 			    record, &ras_record_err_count_fops);
- 	debugfs_create_file("ce_threshold", 0600, record->debugfs,
- 			    record, &record_ce_threshold_ops);
-+	ras_inject_init_debugfs(record);
- }
- 
- static void ras_init_records_debugfs(struct ras_node *node)
++
++DEFINE_DEBUGFS_ATTRIBUTE(record_ce_threshold_ops, record_ce_threshold_get,
++			 record_ce_threshold_set, "%llu\n");
++
++/* Node-level ce_threshold: write threshold to all records of this node */
++
++static int node_ce_threshold_set(void *data, u64 val)
++{
++	struct ras_node *node = data;
++	int i, ret, last_err = -EOPNOTSUPP;
++
++	for (i = 0; i < node->record_count; i++) {
++		ret = ras_store_threshold(&node->records[i], val);
++		if (ret == 0)
++			last_err = 0;
++		else if (ret == -EINVAL)
++			return ret;
++	}
++
++	return last_err;
++}
++
++DEFINE_DEBUGFS_ATTRIBUTE(node_ce_threshold_ops, NULL,
++			 node_ce_threshold_set, "%llu\n");
++
++static int ras_record_err_count_show(struct seq_file *m, void *data)
++{
++	struct ras_record *record = m->private;
++	struct record_count count = { 0 };
++
++	ras_error_count(record, &count);
++
++	seq_printf(m, "CE: %llu\n"
++		   "DE: %llu\n"
++		   "UC: %llu\n"
++		   "UEU: %llu\n"
++		   "UEO: %llu\n"
++		   "UER: %llu\n",
++		   count.ce, count.de, count.uc, count.ueu,
++		   count.uer, count.ueo);
++	return 0;
++}
++DEFINE_SHOW_ATTRIBUTE(ras_record_err_count);
++
++static void ras_record_init_debugfs(struct ras_record *record)
++{
++	debugfs_create_file("err_fr", 0600, record->debugfs,
++			    record, &err_fr_ops);
++	debugfs_create_file("err_ctrl", 0600, record->debugfs,
++			    record, &err_ctrl_ops);
++	debugfs_create_file("err_count", 0400, record->debugfs,
++			    record, &ras_record_err_count_fops);
++	debugfs_create_file("ce_threshold", 0600, record->debugfs,
++			    record, &record_ce_threshold_ops);
++}
++
++static void ras_init_records_debugfs(struct ras_node *node)
++{
++	struct ras_record *record;
++	int i;
++
++	for (i = 0; i < node->record_count; i++) {
++		record = &node->records[i];
++		if (!record->name || test_bit(i, node->record_implemented))
++			continue;
++		record->debugfs = debugfs_create_dir(record->name,
++						     node->debugfs);
++
++		ras_record_init_debugfs(record);
++	}
++}
++
++static void ras_oncore_node_init_debugfs(struct ras_node *node)
++{
++	int cpu;
++	struct ras_node *percpu_node;
++	char name[16];
++
++	for_each_possible_cpu(cpu) {
++		percpu_node = per_cpu_ptr(node->oncore_node, cpu);
++
++		snprintf(name, sizeof(name), "processor%u", cpu);
++		percpu_node->debugfs = debugfs_create_dir(name, arm64_ras_debugfs);
++
++		debugfs_create_file("err_count", 0400, percpu_node->debugfs,
++				    percpu_node, &ras_node_err_count_fops);
++		debugfs_create_file("ce_threshold", 0200, percpu_node->debugfs,
++				    percpu_node, &node_ce_threshold_ops);
++		ras_init_records_debugfs(percpu_node);
++	}
++}
++
++void ras_node_init_debugfs(struct ras_node *node)
++{
++	if (!node->name)
++		return;
++
++	if (ras_node_is_oncore(node)) {
++		ras_oncore_node_init_debugfs(node);
++		return;
++	}
++
++	node->debugfs = debugfs_create_dir(node->name, arm64_ras_debugfs);
++	if (IS_ERR_OR_NULL(node->debugfs))
++		return;
++
++	debugfs_create_file("err_count", 0400, node->debugfs,
++			    node, &ras_node_err_count_fops);
++	debugfs_create_file("ce_threshold", 0200, node->debugfs,
++			    node, &node_ce_threshold_ops);
++	ras_init_records_debugfs(node);
++}
 diff --git a/drivers/ras/arm64/ras.h b/drivers/ras/arm64/ras.h
-index 92cbb975b4df..8a0d2909fe4b 100644
+index ac3876912495..92cbb975b4df 100644
 --- a/drivers/ras/arm64/ras.h
 +++ b/drivers/ras/arm64/ras.h
-@@ -302,5 +302,7 @@ static inline void ras_sync(struct ras_node *node)
+@@ -10,6 +10,7 @@
+ 
+ #include <linux/acpi_aest.h>
+ #include <asm/ras.h>
++#include <linux/debugfs.h>
+ 
+ #define DEFAULT_CE_THRESHOLD 1
+ 
+@@ -62,6 +63,8 @@
+ 
+ #define GIC_ERRDEVARCH		0xFFBC
+ 
++extern struct dentry *arm64_ras_debugfs;
++
+ struct ras_access {
+ 	u64 (*read)(void __iomem *base, u32 offset);
+ 	void (*write)(void __iomem *base, u32 offset, u64 val);
+@@ -80,14 +83,25 @@ struct ce_threshold {
+ 	u64 reg_val;
+ };
+ 
++struct record_count {
++	u64 ce;
++	u64 de;
++	u64 uc;
++	u64 uer;
++	u64 ueo;
++	u64 ueu;
++};
++
+ struct ras_record {
+ 	char *name;
+ 	void __iomem *regs_base;
+ 	struct ras_node *node;
+ 	const struct ras_access *access;
++	struct dentry *debugfs;
+ 
+ 	struct ce_threshold ce;
+ 	enum ras_ce_threshold threshold_type;
++	struct record_count count;
+ 
+ 	int index;
+ 	/*
+@@ -116,6 +130,7 @@ struct ras_node {
+ 	struct device *dev;
+ 	const struct ras_group *group;
+ 	struct ras_node __percpu *oncore_node;
++	struct dentry *debugfs;
+ 
+ 	void __iomem *base;
+ 	void __iomem *errgsr;
+@@ -286,4 +301,6 @@ static inline void ras_sync(struct ras_node *node)
+ 		isb();
  }
  
- void ras_node_init_debugfs(struct ras_node *node);
-+void ras_inject_init_debugfs(struct ras_record *record);
-+void ras_proc_record(struct ras_record *record, void *data, bool fake);
- 
++void ras_node_init_debugfs(struct ras_node *node);
++
  #endif /* _DRIVERS_RAS_ARM64_RAS_H_ */
+diff --git a/drivers/ras/debugfs.c b/drivers/ras/debugfs.c
+index 42afd3de68b2..e4d9a5627e5f 100644
+--- a/drivers/ras/debugfs.c
++++ b/drivers/ras/debugfs.c
+@@ -3,7 +3,8 @@
+ #include <linux/ras.h>
+ #include "debugfs.h"
+ 
+-static struct dentry *ras_debugfs_dir;
++struct dentry *ras_debugfs_dir;
++EXPORT_SYMBOL_GPL(ras_debugfs_dir);
+ 
+ static atomic_t trace_count = ATOMIC_INIT(0);
+ 
+diff --git a/include/linux/ras.h b/include/linux/ras.h
+index 11663150612f..976cd102f76c 100644
+--- a/include/linux/ras.h
++++ b/include/linux/ras.h
+@@ -71,4 +71,6 @@ static inline void ras_register_decode_chain(struct notifier_block *nb) {}
+ static inline void ras_unregister_decode_chain(struct notifier_block *nb) {}
+ #endif /* CONFIG_ARM64_RAS_DRIVER */
+ 
++extern struct dentry *ras_debugfs_dir;
++
+ #endif /* __RAS_H__ */
 -- 
 2.51.2.612.gdc70283dfc
 
