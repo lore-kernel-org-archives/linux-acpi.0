@@ -1,109 +1,110 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.13])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D05F22E54AA;
-	Wed,  3 Jun 2026 07:43:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.13
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8AFA1399031;
+	Wed,  3 Jun 2026 08:21:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780472604; cv=none; b=RpaLejooN0HK0Yk4VTPh77KeeCCOIGANDViUiYTbgEzLCKRzqEim+PQGr+QuO9upgo74sLhxZeQi3yiEwhp+PSgFjAV8Cmy0F8CBxWBOUJzMynLm1gSrlqR1UzYBt0xLzklO6xPbrcUcbVhbQ0QT3IQAG0NKZjfYh0GYR+tbSvw=
+	t=1780474892; cv=none; b=CwTpGVUhBVl8MdDhTOMYwUYjLqNSb7qh1Qpheo173fNLcSsHY1q+E2V8+MkdXnBsZdk1d1GmgW62gEOuM0+FcukgSYj2kfKYjb48Rg2ypNoYlahebI2Ji/38CBFv9HFqgFFrGqxDbciFv9BHVyNkHD6q4tAjUoRQf2FTvBElymA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780472604; c=relaxed/simple;
-	bh=EfL0Y/vc1moO5CywnqEtYC7Ec6QRAJkjLGeMfMk425U=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=J26OGrY5Z9PwjTvDAvWyMvS/H1wuJg3DovpNZLnFBZmN70Rh47U0ZCAUoRMBSRtsuFBeoqQ0GRkuZT1lYDUuwXkulwZIz3RGZbSjx2PnhyjoinIw9QZcUsR+vshJMhHGh312kpOSgQUX7DnC9OGqfhFIkG6GY+vmCya2X7j+9BU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=DyFr7ud9; arc=none smtp.client-ip=198.175.65.13
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1780474892; c=relaxed/simple;
+	bh=XhRtdiyd040yUK8FqiEBDtVTp8aXqvJE+fpUDChkCcQ=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=D08QdkSy5CYRQxIhotZ4bPiIRz5Wr6Qaa4nTZAHykym8/GORT7E2eaONNf/qvIkDzy2o1HVDIaPzajAV9SZ8JZHeHK9ldtdgQNJG39574bmloItoFEg/U24Efn8hjX2+qyaE7lpqWOogygxC/rob1cBTmyKz6j74/TEpJvN9TOI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nHpJpaiX; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="DyFr7ud9"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1780472603; x=1812008603;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=EfL0Y/vc1moO5CywnqEtYC7Ec6QRAJkjLGeMfMk425U=;
-  b=DyFr7ud9iTNN/6/yvWwpgOsUOxiYeDYvTamNnIhjLaFsmhZ7bEt8znBx
-   5sKRtnfQiPnR2z9sKAyAXRr6GxhsTYnKjjKpqrj5BmuqnJLRZOxbchL2Q
-   x4WsuWXQQNyp1SVaizVv1g7LLmg+aokcfDJzEIOE/IqNgbPaqDiCaVT5d
-   byKA1uppotIARK8pxarMPUSg20cfH0jhkrPNp2ybyWvUZw3fkOa+SuyDA
-   8OhJNehEjPHqYaAs0+J05odG0lefsOLXjX34jLXANoxgDT3akPnZFmw7T
-   CF3XfQiwgQqR41qkrNaS2PAizd1iR3P1u6A2UjjT2LLL7yUK278KcHfm7
-   Q==;
-X-CSE-ConnectionGUID: KQdptHfGSRKthnSlFaGjkA==
-X-CSE-MsgGUID: 2weHUf4JR92CmKI8WSVJ7w==
-X-IronPort-AV: E=McAfee;i="6800,10657,11805"; a="92378633"
-X-IronPort-AV: E=Sophos;i="6.24,184,1774335600"; 
-   d="scan'208";a="92378633"
-Received: from orviesa001.jf.intel.com ([10.64.159.141])
-  by orvoesa105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Jun 2026 00:43:22 -0700
-X-CSE-ConnectionGUID: nROCRjs3QNyIgLlKokCflA==
-X-CSE-MsgGUID: 4VeEMZS7Tym54okgqXmZdg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.24,184,1774335600"; 
-   d="scan'208";a="282257650"
-Received: from amilburn-desk.amilburn-desk (HELO kekkonen.fi.intel.com) ([10.245.244.175])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Jun 2026 00:43:20 -0700
-Received: from kekkonen.localdomain (localhost [IPv6:::1])
-	by kekkonen.fi.intel.com (Postfix) with SMTP id C7464121C60;
-	Wed, 03 Jun 2026 10:43:17 +0300 (EEST)
-Date: Wed, 3 Jun 2026 10:43:17 +0300
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6 krs, Bertel Jungin Aukio 5, 02600 Espoo
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Miguel Vadillo <miguel.vadillo@intel.com>, rafael@kernel.org
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	mehdi.djait@linux.intel.com, wei.a.xu@intel.com,
-	atul.raut@intel.com
-Subject: Re: [PATCH] ACPI: scan: Honor _DEP for Intel CVS devices
-Message-ID: <ah_bFVtDCzWPeE4z@kekkonen.localdomain>
-References: <20260601194040.18223-1-miguel.vadillo@intel.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nHpJpaiX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F78D1F00893;
+	Wed,  3 Jun 2026 08:21:27 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1780474891;
+	bh=roqByI0ANZaxZ2rldGt9p/o5LQVsge3W6W4aPEvMzNI=;
+	h=From:Subject:Date:To:Cc;
+	b=nHpJpaiXA8Jdl1wSU0NSaD4Ku591j9xRmKXRBCzPKXzbx8TVUP6iTkbVe/Z1CSxhs
+	 nIYwaXfPbxWHRSQPrsq1qcHSzR+fv79cQI0FDMiSoqjm0ituzsptvJ0OyZwwmc1m+G
+	 mm2aGRjbJJVxtSoY0ibiC/tLDtD6kAWmw6rP6WE74r/fCokS45ESO3ygnDVOUES0aE
+	 xk+pPxDJr5IjLLtB1h9U8KNBa4TVZh7uqf0+FLfKJ81GRXSHZjLHIfLneFTDBB+NbZ
+	 Ge/ovSUZ7TyfNaSRb8LmTMCsL1MnirYZ0essElbcZGIJakcsmGdyc+OPaCQoPm+Lvc
+	 4Wq5WDBdEF25Q==
+From: Lorenzo Pieralisi <lpieralisi@kernel.org>
+Subject: [PATCH v2 0/6] irqchip/ACPI: Arm GICv5 IWB ACPI IRQ probe deferral
+Date: Wed, 03 Jun 2026 10:20:56 +0200
+Message-Id: <20260603-gic-v5-acpi-iwb-probe-deferral-v2-0-23ffa16b6ebb@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260601194040.18223-1-miguel.vadillo@intel.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAOjjH2oC/4WOyw6CMBBFf4V07RgolIcr/8OwaMsAo4aSKVYN4
+ d/l8QEuT3Jyz52FRyb04hLNgjGQJzesIE+RsL0eOgRqVhYylnmcyQI6shAUaDsS0NvAyM4gNNg
+ is36CbWyZVSbRpcrEOjIytvTZA7f6YP8yd7TTtroZPfnJ8Xd/EJLNO2IqVv9iIYEYTFqYUlVVm
+ eby+kAe8Hl23Il6WZYf10ma498AAAA=
+X-Change-ID: 20260427-gic-v5-acpi-iwb-probe-deferral-cdc849b1a854
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
+ Sunil V L <sunilvl@ventanamicro.com>, Marc Zyngier <maz@kernel.org>, 
+ Thomas Gleixner <tglx@kernel.org>, Huacai Chen <chenhuacai@kernel.org>, 
+ Anup Patel <anup@brainfault.org>, Hanjun Guo <guohanjun@huawei.com>, 
+ Sudeep Holla <sudeep.holla@kernel.org>, 
+ Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>
+Cc: linux-riscv@lists.infradead.org, linux-kernel@vger.kernel.org, 
+ linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+ loongarch@lists.linux.dev, Lorenzo Pieralisi <lpieralisi@kernel.org>
+X-Mailer: b4 0.15.2
 
-Hi Miguel, Rafael,
+On Arm GICv5 systems, the IWB (Interrupt Wire Bridge) handles wired interrupts
+and it is in charge of translating interrupt wires to GICv5 ITS messages.
 
-Thanks for the patch.
+In ACPI systems, an IWB is backed by a platform device. Device drivers for
+devices whose IRQs are routed to an IWB might probe earlier than the IWB device
+driver, which can result in failures in that until the IWB driver is probed and
+its IRQ domain is duly registered, IRQs routed to it cannot be resolved.
 
-On Mon, Jun 01, 2026 at 12:40:40PM -0700, Miguel Vadillo wrote:
-> CVS (Computer Vision Sensing) is an ACPI-enumerated device that sits
-> inline in the CSI-2 path between the camera sensor and Intel IPU.
-> On platforms where CVS is present, the camera sensor's ACPI node
-> declares a _DEP dependency on the CVS device.
-> 
-> The CVS driver must be fully initialized before camera sensor drivers
-> probe, because CVS controls the CSI-2 link ownership handshake (via
-> GPIO REQ/RESP), the MIPI/CSI-2 lane configuration, and the camera
-> power domain. Without CVS ready, the sensor driver can bind but the
-> CSI-2 stream will not function correctly.
-> 
-> The CVS driver calls acpi_dev_clear_dependencies() at the end of its
-> probe() to unblock waiting consumers once it is ready.
-> 
-> Move the CVS HIDs from acpi_ignore_dep_ids[] to acpi_honor_dep_ids[]
-> so that camera sensor enumeration is deferred until the CVS driver has
-> finished probing, matching the behavior already in place for IVSC.
-> 
-> Signed-off-by: Miguel Vadillo <miguel.vadillo@intel.com>
+Some interrupt controllers for the RISC-V architecture suffer from the same
+issue; RISC-V, in its ACPI IRQ layer solved the problem by automatically
+creating device dependencies that result in the interrupt controllers drivers
+being probed before any device driver whose devices IRQs are routed to them is
+probed.
 
-Reviewed-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Instead of reinventing the wheel, this series move the aforementioned RISC-V
+code to generic ACPI IRQ handling code (while fixing some bits and pieces) and
+implement GICv5 IWB ACPI probe deferral on top of it.
 
-Rafael: do you think this could still make it to 7.2? Otherwise cameras
-might not work on a some laptops where they did use to.
+Signed-off-by: Lorenzo Pieralisi <lpieralisi@kernel.org>
+---
+Changes in v2:
+- Split the patchset in several logic units according to review
+- Link to v1: https://patch.msgid.link/20260505-gic-v5-acpi-iwb-probe-deferral-v1-0-b37b85998362@kernel.org
 
-The default configuration is appropriate in some laptops so camera used to
-work without the CVS driver but now that we have the CVS driver merged and
-the CVS device is part of the software node / ACPI graph, probing the
-camera sensor driver will in fact not take place at all (and obviously the
-camera won't work in this case).
+---
+Lorenzo Pieralisi (6):
+      ACPI: RISC-V: Fix riscv_acpi_irq_get_dep() loop termination
+      ACPI: RISC-V: Check acpi_get_handle() status in riscv_acpi_add_prt_dep()
+      ACPI: RISC-V: Fix riscv_acpi_add_prt_dep() loop handling
+      ACPI: irq: Move RISC-V interrupt controllers autodep to ACPI IRQ code
+      ACPI/IORT: Implement ACPI infrastructure to enable GICv5 IWB probe deferral
+      irqchip/gic-v5: Enable GICv5 IWB ACPI probe ordering detection
 
--- 
-Kind regards,
+ arch/riscv/include/asm/acpi.h       |   1 +
+ drivers/acpi/arm64/iort.c           |  22 ++++-
+ drivers/acpi/irq.c                  | 172 +++++++++++++++++++++++++++++++++++-
+ drivers/acpi/riscv/irq.c            | 141 +----------------------------
+ drivers/acpi/scan.c                 |   1 +
+ drivers/irqchip/irq-gic-v3.c        |   2 +-
+ drivers/irqchip/irq-gic-v5-iwb.c    |   5 ++
+ drivers/irqchip/irq-gic-v5.c        |  13 ++-
+ drivers/irqchip/irq-gic.c           |   2 +-
+ drivers/irqchip/irq-loongarch-cpu.c |   2 +-
+ drivers/irqchip/irq-riscv-intc.c    |   3 +-
+ include/linux/acpi.h                |   5 +-
+ include/linux/acpi_iort.h           |   3 +-
+ 13 files changed, 218 insertions(+), 154 deletions(-)
+---
+base-commit: 5d6919055dec134de3c40167a490f33c74c12581
+change-id: 20260427-gic-v5-acpi-iwb-probe-deferral-cdc849b1a854
 
-Sakari Ailus
+Best regards,
+--  
+Lorenzo Pieralisi <lpieralisi@kernel.org>
+
