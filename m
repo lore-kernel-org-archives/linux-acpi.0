@@ -1,35 +1,35 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8C2E41C30A;
-	Wed,  3 Jun 2026 08:21:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 678B1421EE8;
+	Wed,  3 Jun 2026 08:21:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780474910; cv=none; b=eRjKWTIVHbIVEam4UDJfKjojsXz/UkX98MVd+8vnkCHW/oBAwBW9Y6gYeJVFrNGT7FVfyOyRZOQUOv4500REPUTN15JUyV/ZS197x54hBllSfeYKRYnjANwpTTKAysJYRWqo8tF/+7F1U5ifVMwW9oXETZSPFjNBEGkno1j8Wqg=
+	t=1780474914; cv=none; b=a3+ViAjs2fQ1bS5ThbwEbmm2REqWRox2UVD5bR9HinUZarEEF6/U0KcmxZRF78yY6rPG0Oj1/k3FNPg5VW8davEeYZkHriNNyKUVzCQ2pnsuNW/jVtK1DQ3aathPQ5TPZ9UZ5KA094c5VHV8J98H2OHGRQV9W846noV3/zHr4Hc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780474910; c=relaxed/simple;
-	bh=1Q/IrgqNxQ5SzKeep/5tmTP3t1LnXA63V0N9D8X4eU8=;
+	s=arc-20240116; t=1780474914; c=relaxed/simple;
+	bh=b+ZGB8vRP3G0qYMMdpOjw19Lv1GxCd0pMHceXbBcwq0=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=Hgm/yDJMYmVXNv9+5sO6Ca1SU4KWjPZbZE5IiZEcmRaC5l5Q1G3HO5qTFvGnjozd51vRSSjRqLjBGhP6x5gEOUt05/FOROVGSorno0txPHB/GE9hvAKC4NR0STaWYjrrGTt6yK/mf4FhjuAc/bcPGI82tfe9e909ple4LPFAhVc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CRMCPip/; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:To:Cc; b=f5GYbfjusQQRe5InwRvQ7/K/EiN3S6V7K2hGw7lRXM8SRkp8ei16sfj5YUomQs/WwsEQyRxz5zRbQHJM2IudB5upRz/H0NuwxlRNk2FeQ/qvXhKRI/UIaeZWKvUkVL5RcpDLW7QebQVTlnVl8UW3WLRK0lD7MQEvaYeyyhUmWzA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ABBhZrjq; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CRMCPip/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B24C31F0089B;
-	Wed,  3 Jun 2026 08:21:44 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ABBhZrjq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46AE91F00893;
+	Wed,  3 Jun 2026 08:21:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1780474908;
-	bh=+c6I6O8H6R8wK16tJafp//Q3hM2yaItZBtpbSmuFnlU=;
+	s=k20260515; t=1780474913;
+	bh=ZXGjepFLBlF5CYmJKu9nzonog+TjUvQLSqr6dGfFK2E=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc;
-	b=CRMCPip/DqO0aUQeNbnlDdGTwNcXLm693RaqcngSHsZcDxWkOaMUiffH1+7MGiZGA
-	 X4QORV3DuoDmxrwup6YU9H7dv1Pp5GHl1mKk35t0sX1YIuTuUG3t6/aUS9FiF/p99U
-	 qs7LD6qDCj5H2oK93fqWJ2dE1Vt5kcoHipv1Z7sjJXt9RqzHzouIRK/tUqbsuyGCrz
-	 pNmVGruB0WV6+EF5MJh1mgoV0+F2hhDWygQBJDTMllWW7j0LL/XcVeMK/SXSwTlAXg
-	 bvdGI1qqJfyoX78ugTXoeypme1oTIY+WuVeeMbV4SF1anjmmuqdkBo9R7UtLLxcoim
-	 5UVgP7768Vi6w==
+	b=ABBhZrjqOU3o537lh2MnRYUpYMrAMI0ROn0RsyvtsI8PXipIkR061ks9udXEF2C0h
+	 If3i0UetpaEvv3OrWUZmz4KSy5bQw4ttj0XV5p8H3AqqM7/KgXEDY/YmOhiUrI0GAG
+	 FN2f8lQQNU9nuQTNyBN9u8N2HfgXpZt7imZnGJlYPEtqXYUr5W7wh+S2eDopa987I1
+	 3kIHecyEJsrk3xPW9OyOuJhGNieglEb8tZX+2QzifZQckprT5MvOTYLMMSHNJ5HZY2
+	 EF0ucrZb2UKmy77Rp6L4/gRBiE0L2kZZYsmUHc16Urh7rw7/dKM50uBu4pQ+7nM77Y
+	 aucxO+nLtV0rQ==
 From: Lorenzo Pieralisi <lpieralisi@kernel.org>
-Date: Wed, 03 Jun 2026 10:21:00 +0200
-Subject: [PATCH v2 4/6] ACPI: irq: Move RISC-V interrupt controllers
- autodep to ACPI IRQ code
+Date: Wed, 03 Jun 2026 10:21:01 +0200
+Subject: [PATCH v2 5/6] ACPI/IORT: Implement ACPI infrastructure to enable
+ GICv5 IWB probe deferral
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -38,7 +38,7 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260603-gic-v5-acpi-iwb-probe-deferral-v2-4-23ffa16b6ebb@kernel.org>
+Message-Id: <20260603-gic-v5-acpi-iwb-probe-deferral-v2-5-23ffa16b6ebb@kernel.org>
 References: <20260603-gic-v5-acpi-iwb-probe-deferral-v2-0-23ffa16b6ebb@kernel.org>
 In-Reply-To: <20260603-gic-v5-acpi-iwb-probe-deferral-v2-0-23ffa16b6ebb@kernel.org>
 To: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
@@ -52,522 +52,101 @@ Cc: linux-riscv@lists.infradead.org, linux-kernel@vger.kernel.org,
  loongarch@lists.linux.dev, Lorenzo Pieralisi <lpieralisi@kernel.org>
 X-Mailer: b4 0.15.2
 
-RISC-V implements arch code to detect probe dependencies for devices and
-the interrupt controller the devices GSIs are routed to.
+Implement an IORT ACPI hook to retrieve the acpi_handle of the interrupt
+controller handling a specific GSI (if any, on GICv5 systems only the IWB
+is represented in firmware with an ACPI device object) and add the IWB to
+the list of devices whose dependencies can be detected (and cleared) in
+ACPI core to guarantee that probe dependencies for the IWB can be
+satisfied.
 
-The code itself is arch agnostic apart from an arch specific helper
-function required to retrieve the acpi_handle of the interrupt controller
-that manages the device GSI interrupt.
-
-In order to enable IRQ probe dependencies detection on other architectures,
-move RISC-V IRQ probe dependency detection code to generic ACPI IRQ code.
-
-Allow interrupt controller drivers to register an arch specific function to
-determine the acpi_handle for a specific GSI number to use the mechanism if
-needed by the respective interrupt controller drivers.
+Enable autodep detection for arm64 by adding the arch_acpi_add_auto_dep()
+callback in the ACPI IORT driver.
 
 Signed-off-by: Lorenzo Pieralisi <lpieralisi@kernel.org>
-Cc: Huacai Chen <chenhuacai@kernel.org>
-Cc: Thomas Gleixner <tglx@kernel.org>
-Cc: Anup Patel <anup@brainfault.org>
+Cc: Hanjun Guo <guohanjun@huawei.com>
+Cc: Sudeep Holla <sudeep.holla@kernel.org>
 Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Sunil V L <sunilvl@ventanamicro.com>
-Cc: Marc Zyngier <maz@kernel.org>
 ---
- arch/riscv/include/asm/acpi.h       |   1 +
- drivers/acpi/irq.c                  | 172 +++++++++++++++++++++++++++++++++++-
- drivers/acpi/riscv/irq.c            | 156 +-------------------------------
- drivers/irqchip/irq-gic-v3.c        |   2 +-
- drivers/irqchip/irq-gic-v5.c        |   2 +-
- drivers/irqchip/irq-gic.c           |   2 +-
- drivers/irqchip/irq-loongarch-cpu.c |   2 +-
- drivers/irqchip/irq-riscv-intc.c    |   3 +-
- include/linux/acpi.h                |   5 +-
- 9 files changed, 181 insertions(+), 164 deletions(-)
+ drivers/acpi/arm64/iort.c | 22 +++++++++++++++++++---
+ drivers/acpi/scan.c       |  1 +
+ include/linux/acpi_iort.h |  3 ++-
+ 3 files changed, 22 insertions(+), 4 deletions(-)
 
-diff --git a/arch/riscv/include/asm/acpi.h b/arch/riscv/include/asm/acpi.h
-index 26ab37c171bc..f598520ac903 100644
---- a/arch/riscv/include/asm/acpi.h
-+++ b/arch/riscv/include/asm/acpi.h
-@@ -67,6 +67,7 @@ int acpi_get_riscv_isa(struct acpi_table_header *table,
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index af7a9b2fd5bc..34412cd697d8 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -789,11 +789,9 @@ struct irq_domain *iort_get_device_domain(struct device *dev, u32 id,
+ 	return irq_find_matching_fwnode(handle, bus_token);
+ }
  
- void acpi_get_cbo_block_size(struct acpi_table_header *table, u32 *cbom_size,
- 			     u32 *cboz_size, u32 *cbop_size);
-+acpi_handle acpi_get_riscv_gsi_handle(u32 gsi);
- #else
- static inline void acpi_init_rintc_map(void) { }
- static inline struct acpi_madt_rintc *acpi_cpu_get_madt_rintc(int cpu)
-diff --git a/drivers/acpi/irq.c b/drivers/acpi/irq.c
-index d1595156c86a..e4293458bf61 100644
---- a/drivers/acpi/irq.c
-+++ b/drivers/acpi/irq.c
-@@ -13,6 +13,7 @@
- enum acpi_irq_model_id acpi_irq_model;
- 
- static acpi_gsi_domain_disp_fn acpi_get_gsi_domain_id;
-+static acpi_gsi_handle_disp_fn acpi_get_gsi_handle;
- static u32 (*acpi_gsi_to_irq_fallback)(u32 gsi);
- 
- /**
-@@ -321,15 +322,19 @@ const struct cpumask *acpi_irq_get_affinity(acpi_handle handle,
- 
- /**
-  * acpi_set_irq_model - Setup the GSI irqdomain information
-- * @model: the value assigned to acpi_irq_model
-- * @fn: a dispatcher function that will return the domain fwnode
-- *	for a given GSI
-+ * @model:	the value assigned to acpi_irq_model
-+ * @fn:		a dispatcher function that will return the domain fwnode
-+ *		for a given GSI
-+ * @gsi_dep_fn: a function to retrieve the acpi_handle a GSI interrupt is
-+ *		dependent on
-+ *
-  */
- void __init acpi_set_irq_model(enum acpi_irq_model_id model,
--			       acpi_gsi_domain_disp_fn fn)
-+			       acpi_gsi_domain_disp_fn fn, acpi_gsi_handle_disp_fn gsi_dep_fn)
+-struct fwnode_handle *iort_iwb_handle(u32 iwb_id)
++acpi_handle iort_iwb_handle(u32 iwb_id)
  {
- 	acpi_irq_model = model;
- 	acpi_get_gsi_domain_id = fn;
-+	acpi_get_gsi_handle = gsi_dep_fn;
- }
+-	struct fwnode_handle *fwnode;
+ 	struct acpi_iort_node *node;
+-	struct acpi_device *device;
+ 	struct acpi_iort_iwb *iwb;
+ 	acpi_status status;
+ 	acpi_handle handle;
+@@ -808,6 +806,19 @@ struct fwnode_handle *iort_iwb_handle(u32 iwb_id)
+ 	if (ACPI_FAILURE(status))
+ 		return NULL;
  
- /*
-@@ -385,3 +390,162 @@ struct irq_domain *acpi_irq_create_hierarchy(unsigned int flags,
- 					   host_data);
- }
- EXPORT_SYMBOL_GPL(acpi_irq_create_hierarchy);
-+
-+struct acpi_irq_dep_ctx {
-+	int		rc;
-+	unsigned int	index;
-+	acpi_handle	handle;
-+};
-+
-+static acpi_status acpi_irq_get_parent(struct acpi_resource *ares, void *context)
-+{
-+	struct acpi_irq_dep_ctx *ctx = context;
-+	struct acpi_resource_irq *irq;
-+	struct acpi_resource_extended_irq *eirq;
-+
-+	switch (ares->type) {
-+	case ACPI_RESOURCE_TYPE_IRQ:
-+		irq = &ares->data.irq;
-+		if (ctx->index >= irq->interrupt_count) {
-+			ctx->index -= irq->interrupt_count;
-+			return AE_OK;
-+		}
-+		ctx->handle = acpi_get_gsi_handle(irq->interrupts[ctx->index]);
-+		ctx->rc = 0;
-+		return AE_CTRL_TERMINATE;
-+	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
-+		eirq = &ares->data.extended_irq;
-+		if (eirq->producer_consumer == ACPI_PRODUCER)
-+			return AE_OK;
-+
-+		if (ctx->index >= eirq->interrupt_count) {
-+			ctx->index -= eirq->interrupt_count;
-+			return AE_OK;
-+		}
-+
-+		/* Support GSIs only */
-+		if (eirq->resource_source.string_length)
-+			return AE_OK;
-+
-+		ctx->handle = acpi_get_gsi_handle(eirq->interrupts[ctx->index]);
-+		ctx->rc = 0;
-+		return AE_CTRL_TERMINATE;
-+	}
-+
-+	return AE_OK;
++	return handle;
 +}
 +
-+static int acpi_irq_get_dep(acpi_handle handle, unsigned int index, acpi_handle *gsi_handle)
++struct fwnode_handle *iort_iwb_handle_fwnode(u32 iwb_id)
 +{
-+	struct acpi_irq_dep_ctx ctx = {-EINVAL, index, NULL};
++	struct fwnode_handle *fwnode;
++	struct acpi_device *device;
++	acpi_handle handle;
 +
-+	if (!gsi_handle)
-+		return -EINVAL;
++	handle = iort_iwb_handle(iwb_id);
++	if (!handle)
++		return NULL;
 +
-+	acpi_walk_resources(handle, METHOD_NAME__CRS, acpi_irq_get_parent, &ctx);
-+	*gsi_handle = ctx.handle;
-+
-+	return ctx.rc;
-+}
-+
-+static bool acpi_prt_entry_valid(void *prt_entry)
-+{
-+	struct acpi_pci_routing_table *entry = prt_entry;
-+
-+	return entry && entry->length > 0;
-+}
-+
-+static void *acpi_prt_next_entry(void *prt_entry)
-+{
-+	struct acpi_pci_routing_table *entry = prt_entry;
-+
-+	return prt_entry + entry->length;
-+}
-+
-+static u32 acpi_add_prt_dep(acpi_handle handle)
-+{
-+	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-+	struct acpi_pci_routing_table *entry;
-+	struct acpi_handle_list dep_devices;
-+	acpi_handle gsi_handle;
-+	acpi_handle link_handle;
-+	acpi_status status;
-+	u32 count = 0;
-+
-+	status = acpi_get_irq_routing_table(handle, &buffer);
-+	if (ACPI_FAILURE(status)) {
-+		acpi_handle_err(handle, "failed to get IRQ routing table\n");
-+		kfree(buffer.pointer);
-+		return 0;
-+	}
-+
-+	entry = buffer.pointer;
-+	for (; acpi_prt_entry_valid(entry); entry = acpi_prt_next_entry(entry)) {
-+		if (entry->source[0]) {
-+			status = acpi_get_handle(handle, entry->source, &link_handle);
-+			if (ACPI_FAILURE(status))
-+				continue;
-+			dep_devices.count = 1;
-+			dep_devices.handles = kcalloc(1, sizeof(*dep_devices.handles), GFP_KERNEL);
-+			if (!dep_devices.handles) {
-+				acpi_handle_err(handle, "failed to allocate memory\n");
-+				continue;
-+			}
-+
-+			dep_devices.handles[0] = link_handle;
-+			count += acpi_scan_add_dep(handle, &dep_devices);
-+		} else {
-+			gsi_handle = acpi_get_gsi_handle(entry->source_index);
-+			if (!gsi_handle)
-+				continue;
-+			dep_devices.count = 1;
-+			dep_devices.handles = kcalloc(1, sizeof(*dep_devices.handles), GFP_KERNEL);
-+			if (!dep_devices.handles) {
-+				acpi_handle_err(handle, "failed to allocate memory\n");
-+				continue;
-+			}
-+
-+			dep_devices.handles[0] = gsi_handle;
-+			count += acpi_scan_add_dep(handle, &dep_devices);
-+		}
-+	}
-+
-+	kfree(buffer.pointer);
-+	return count;
-+}
-+
-+static u32 acpi_add_irq_dep(acpi_handle handle)
-+{
-+	struct acpi_handle_list dep_devices;
-+	acpi_handle gsi_handle;
-+	u32 count = 0;
-+	int i;
-+
-+	for (i = 0; !acpi_irq_get_dep(handle, i, &gsi_handle); i++) {
-+		if (!gsi_handle)
-+			continue;
-+
-+		dep_devices.count = 1;
-+		dep_devices.handles = kcalloc(1, sizeof(*dep_devices.handles), GFP_KERNEL);
-+		if (!dep_devices.handles) {
-+			acpi_handle_err(handle, "failed to allocate memory\n");
-+			continue;
-+		}
-+
-+		dep_devices.handles[0] = gsi_handle;
-+		count += acpi_scan_add_dep(handle, &dep_devices);
-+	}
-+
-+	return count;
-+}
-+
-+u32 acpi_irq_add_auto_dep(acpi_handle handle)
-+{
-+	if (!acpi_get_gsi_handle)
-+		return 0;
-+
-+	if (acpi_has_method(handle, "_PRT"))
-+		return acpi_add_prt_dep(handle);
-+
-+	return acpi_add_irq_dep(handle);
-+}
-diff --git a/drivers/acpi/riscv/irq.c b/drivers/acpi/riscv/irq.c
-index 0cdec5dd575e..da2c42e0ebfd 100644
---- a/drivers/acpi/riscv/irq.c
-+++ b/drivers/acpi/riscv/irq.c
-@@ -23,12 +23,6 @@ struct riscv_ext_intc_list {
- 	struct list_head	list;
- };
- 
--struct acpi_irq_dep_ctx {
--	int		rc;
--	unsigned int	index;
--	acpi_handle	handle;
--};
--
- LIST_HEAD(ext_intc_list);
- 
- static int irqchip_cmp_func(const void *in0, const void *in1)
-@@ -254,7 +248,7 @@ void __init riscv_acpi_init_gsi_mapping(void)
- 	acpi_get_devices("RSCV0006", riscv_acpi_create_gsi_map_smsi, NULL, NULL);
- }
- 
--static acpi_handle riscv_acpi_get_gsi_handle(u32 gsi)
-+acpi_handle acpi_get_riscv_gsi_handle(u32 gsi)
- {
- 	struct riscv_ext_intc_list *ext_intc_element;
- 	struct list_head *i;
-@@ -269,153 +263,7 @@ static acpi_handle riscv_acpi_get_gsi_handle(u32 gsi)
- 	return NULL;
- }
- 
--static acpi_status riscv_acpi_irq_get_parent(struct acpi_resource *ares, void *context)
--{
--	struct acpi_irq_dep_ctx *ctx = context;
--	struct acpi_resource_irq *irq;
--	struct acpi_resource_extended_irq *eirq;
--
--	switch (ares->type) {
--	case ACPI_RESOURCE_TYPE_IRQ:
--		irq = &ares->data.irq;
--		if (ctx->index >= irq->interrupt_count) {
--			ctx->index -= irq->interrupt_count;
--			return AE_OK;
--		}
--		ctx->handle = riscv_acpi_get_gsi_handle(irq->interrupts[ctx->index]);
--		return AE_CTRL_TERMINATE;
--	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
--		eirq = &ares->data.extended_irq;
--		if (eirq->producer_consumer == ACPI_PRODUCER)
--			return AE_OK;
--
--		if (ctx->index >= eirq->interrupt_count) {
--			ctx->index -= eirq->interrupt_count;
--			return AE_OK;
--		}
--
--		/* Support GSIs only */
--		if (eirq->resource_source.string_length)
--			return AE_OK;
--
--		ctx->handle = riscv_acpi_get_gsi_handle(eirq->interrupts[ctx->index]);
--		ctx->rc = 0;
--		return AE_CTRL_TERMINATE;
--	}
--
--	return AE_OK;
--}
--
--static int riscv_acpi_irq_get_dep(acpi_handle handle, unsigned int index, acpi_handle *gsi_handle)
--{
--	struct acpi_irq_dep_ctx ctx = {-EINVAL, index, NULL};
--
--	if (!gsi_handle)
--		return 0;
--
--	acpi_walk_resources(handle, METHOD_NAME__CRS, riscv_acpi_irq_get_parent, &ctx);
--	*gsi_handle = ctx.handle;
--
--	return ctx.rc;
--}
--
--static bool acpi_prt_entry_valid(void *prt_entry)
--{
--	struct acpi_pci_routing_table *entry = prt_entry;
--
--	return entry && entry->length > 0;
--}
--
--static void *acpi_prt_next_entry(void *prt_entry)
--{
--	struct acpi_pci_routing_table *entry = prt_entry;
--
--	return prt_entry + entry->length;
--}
--
--static u32 riscv_acpi_add_prt_dep(acpi_handle handle)
--{
--	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
--	struct acpi_pci_routing_table *entry;
--	struct acpi_handle_list dep_devices;
--	acpi_handle gsi_handle;
--	acpi_handle link_handle;
--	acpi_status status;
--	u32 count = 0;
--
--	status = acpi_get_irq_routing_table(handle, &buffer);
--	if (ACPI_FAILURE(status)) {
--		acpi_handle_err(handle, "failed to get IRQ routing table\n");
--		kfree(buffer.pointer);
--		return 0;
--	}
--
--	entry = buffer.pointer;
--	for (; acpi_prt_entry_valid(entry); entry = acpi_prt_next_entry(entry)) {
--		if (entry->source[0]) {
--			status = acpi_get_handle(handle, entry->source, &link_handle);
--			if (ACPI_FAILURE(status))
--				continue;
--			dep_devices.count = 1;
--			dep_devices.handles = kzalloc_objs(*dep_devices.handles,
--							   1);
--			if (!dep_devices.handles) {
--				acpi_handle_err(handle, "failed to allocate memory\n");
--				continue;
--			}
--
--			dep_devices.handles[0] = link_handle;
--			count += acpi_scan_add_dep(handle, &dep_devices);
--		} else {
--			gsi_handle = riscv_acpi_get_gsi_handle(entry->source_index);
--			dep_devices.count = 1;
--			dep_devices.handles = kzalloc_objs(*dep_devices.handles,
--							   1);
--			if (!dep_devices.handles) {
--				acpi_handle_err(handle, "failed to allocate memory\n");
--				continue;
--			}
--
--			dep_devices.handles[0] = gsi_handle;
--			count += acpi_scan_add_dep(handle, &dep_devices);
--		}
--	}
--
--	kfree(buffer.pointer);
--	return count;
--}
--
--static u32 riscv_acpi_add_irq_dep(acpi_handle handle)
--{
--	struct acpi_handle_list dep_devices;
--	acpi_handle gsi_handle;
--	u32 count = 0;
--	int i;
--
--	for (i = 0;
--	     !riscv_acpi_irq_get_dep(handle, i, &gsi_handle);
--	     i++) {
--		if (!gsi_handle)
--			continue;
--
--		dep_devices.count = 1;
--		dep_devices.handles = kzalloc_objs(*dep_devices.handles, 1);
--		if (!dep_devices.handles) {
--			acpi_handle_err(handle, "failed to allocate memory\n");
--			continue;
--		}
--
--		dep_devices.handles[0] = gsi_handle;
--		count += acpi_scan_add_dep(handle, &dep_devices);
--	}
--
--	return count;
--}
--
- u32 arch_acpi_add_auto_dep(acpi_handle handle)
- {
--	if (acpi_has_method(handle, "_PRT"))
--		return riscv_acpi_add_prt_dep(handle);
--
--	return riscv_acpi_add_irq_dep(handle);
-+	return acpi_irq_add_auto_dep(handle);
- }
-diff --git a/drivers/irqchip/irq-gic-v3.c b/drivers/irqchip/irq-gic-v3.c
-index 99444a1b2ffa..2673954d4577 100644
---- a/drivers/irqchip/irq-gic-v3.c
-+++ b/drivers/irqchip/irq-gic-v3.c
-@@ -2588,7 +2588,7 @@ gic_acpi_init(union acpi_subtable_headers *header, const unsigned long end)
- 	if (err)
- 		goto out_fwhandle_free;
- 
--	acpi_set_irq_model(ACPI_IRQ_MODEL_GIC, gic_v3_get_gsi_domain_id);
-+	acpi_set_irq_model(ACPI_IRQ_MODEL_GIC, gic_v3_get_gsi_domain_id, NULL);
- 
- 	if (static_branch_likely(&supports_deactivate_key))
- 		gic_acpi_setup_kvm_info();
-diff --git a/drivers/irqchip/irq-gic-v5.c b/drivers/irqchip/irq-gic-v5.c
-index 6b0903be8ebf..03cc2830b260 100644
---- a/drivers/irqchip/irq-gic-v5.c
-+++ b/drivers/irqchip/irq-gic-v5.c
-@@ -1242,7 +1242,7 @@ static int __init gic_acpi_init(union acpi_subtable_headers *header, const unsig
- 	if (ret)
- 		goto out_irs;
- 
--	acpi_set_irq_model(ACPI_IRQ_MODEL_GIC_V5, gic_v5_get_gsi_domain_id);
-+	acpi_set_irq_model(ACPI_IRQ_MODEL_GIC_V5, gic_v5_get_gsi_domain_id, NULL);
- 
- 	return 0;
- 
-diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
-index ec70c84e9f91..f6bc29f515fb 100644
---- a/drivers/irqchip/irq-gic.c
-+++ b/drivers/irqchip/irq-gic.c
-@@ -1690,7 +1690,7 @@ static int __init gic_v2_acpi_init(union acpi_subtable_headers *header,
- 		return ret;
+ 	device = acpi_get_acpi_dev(handle);
+ 	if (!device)
+ 		return NULL;
+@@ -2090,6 +2101,11 @@ static void __init iort_init_platform_devices(void)
  	}
- 
--	acpi_set_irq_model(ACPI_IRQ_MODEL_GIC, gic_v2_get_gsi_domain_id);
-+	acpi_set_irq_model(ACPI_IRQ_MODEL_GIC, gic_v2_get_gsi_domain_id, NULL);
- 
- 	if (IS_ENABLED(CONFIG_ARM_GIC_V2M))
- 		gicv2m_init(NULL, gic_data[0].domain);
-diff --git a/drivers/irqchip/irq-loongarch-cpu.c b/drivers/irqchip/irq-loongarch-cpu.c
-index 950bc087e388..84ce24889488 100644
---- a/drivers/irqchip/irq-loongarch-cpu.c
-+++ b/drivers/irqchip/irq-loongarch-cpu.c
-@@ -168,7 +168,7 @@ static int __init cpuintc_acpi_init(union acpi_subtable_headers *header,
- 		panic("Failed to add irqdomain for LoongArch CPU");
- 
- 	set_handle_irq(&handle_cpu_irq);
--	acpi_set_irq_model(ACPI_IRQ_MODEL_LPIC, lpic_get_gsi_domain_id);
-+	acpi_set_irq_model(ACPI_IRQ_MODEL_LPIC, lpic_get_gsi_domain_id, NULL);
- 	acpi_set_gsi_to_irq_fallback(lpic_gsi_to_irq);
- 	ret = acpi_cascade_irqdomain_init();
- 
-diff --git a/drivers/irqchip/irq-riscv-intc.c b/drivers/irqchip/irq-riscv-intc.c
-index 84418dbd5a27..0595144116e2 100644
---- a/drivers/irqchip/irq-riscv-intc.c
-+++ b/drivers/irqchip/irq-riscv-intc.c
-@@ -384,7 +384,8 @@ static int __init riscv_intc_acpi_init(union acpi_subtable_headers *header,
- 	if (rc)
- 		irq_domain_free_fwnode(fn);
- 	else
--		acpi_set_irq_model(ACPI_IRQ_MODEL_RINTC, riscv_acpi_get_gsi_domain_id);
-+		acpi_set_irq_model(ACPI_IRQ_MODEL_RINTC, riscv_acpi_get_gsi_domain_id,
-+				   acpi_get_riscv_gsi_handle);
- 
- 	return rc;
  }
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 67effb91fa98..468fc6a54651 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -360,9 +360,10 @@ int acpi_gsi_to_irq (u32 gsi, unsigned int *irq);
- int acpi_isa_irq_to_gsi (unsigned isa_irq, u32 *gsi);
  
- typedef struct fwnode_handle *(*acpi_gsi_domain_disp_fn)(u32);
-+typedef acpi_handle (*acpi_gsi_handle_disp_fn)(u32);
- 
- void acpi_set_irq_model(enum acpi_irq_model_id model,
--			acpi_gsi_domain_disp_fn fn);
-+			acpi_gsi_domain_disp_fn fn, acpi_gsi_handle_disp_fn gsi_dep_fn);
- acpi_gsi_domain_disp_fn acpi_get_gsi_dispatcher(void);
- void acpi_set_gsi_to_irq_fallback(u32 (*)(u32));
- 
-@@ -372,6 +373,8 @@ struct irq_domain *acpi_irq_create_hierarchy(unsigned int flags,
- 					     const struct irq_domain_ops *ops,
- 					     void *host_data);
- 
-+u32 acpi_irq_add_auto_dep(acpi_handle handle);
++u32 arch_acpi_add_auto_dep(acpi_handle handle)
++{
++	return acpi_irq_add_auto_dep(handle);
++}
 +
- #ifdef CONFIG_X86_IO_APIC
- extern int acpi_get_override_irq(u32 gsi, int *trigger, int *polarity);
- #else
+ void __init acpi_iort_init(void)
+ {
+ 	acpi_status status;
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 530547cda8b2..ba15da9058dc 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -856,6 +856,7 @@ static const char * const acpi_ignore_dep_ids[] = {
+ 
+ /* List of HIDs for which we honor deps of matching ACPI devs, when checking _DEP lists. */
+ static const char * const acpi_honor_dep_ids[] = {
++	"ARMH0003", /* ARM GICv5 IWB */
+ 	"INT3472", /* Camera sensor PMIC / clk and regulator info */
+ 	"INTC1059", /* IVSC (TGL) driver must be loaded to allow i2c access to camera sensors */
+ 	"INTC1095", /* IVSC (ADL) driver must be loaded to allow i2c access to camera sensors */
+diff --git a/include/linux/acpi_iort.h b/include/linux/acpi_iort.h
+index 17bb3374f4ca..931eaa7bbf6a 100644
+--- a/include/linux/acpi_iort.h
++++ b/include/linux/acpi_iort.h
+@@ -27,7 +27,8 @@ int iort_register_domain_token(int trans_id, phys_addr_t base,
+ 			       struct fwnode_handle *fw_node);
+ void iort_deregister_domain_token(int trans_id);
+ struct fwnode_handle *iort_find_domain_token(int trans_id);
+-struct fwnode_handle *iort_iwb_handle(u32 iwb_id);
++acpi_handle iort_iwb_handle(u32 iwb_id);
++struct fwnode_handle *iort_iwb_handle_fwnode(u32 iwb_id);
+ 
+ #ifdef CONFIG_ACPI_IORT
+ u32 iort_msi_map_id(struct device *dev, u32 id);
 
 -- 
 2.54.0
