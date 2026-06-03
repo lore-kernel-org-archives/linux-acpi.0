@@ -1,66 +1,71 @@
-Received: from CY3PR05CU001.outbound.protection.outlook.com (mail-westcentralusazon11013053.outbound.protection.outlook.com [40.93.201.53])
+Received: from CY7PR03CU001.outbound.protection.outlook.com (mail-westcentralusazon11010071.outbound.protection.outlook.com [40.93.198.71])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F1B648B37D;
-	Wed,  3 Jun 2026 14:25:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.201.53
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 861903A960A;
+	Wed,  3 Jun 2026 14:26:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.198.71
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780496711; cv=fail; b=gWwtUhrmV+uFoy9VqOpZyTCapNcenvt+m0CPVpy16f1Hf424MbpJBbgLoQ9fNOOifvsZU5m9eol5Wvn/uy8L0fgwH4JCVegU8lNgXjPR8MdmKyEi9UfkLwXwDiZ4lR4wLW7G1RVbvAm/TAY7vSH8cWrLFhMBY+jqc8DbTPPRvbo=
+	t=1780496808; cv=fail; b=GacvBwDkcmwoFmyGnlriU26ELyEeC0O/7tvlPg3gctF3NGUOam3eRsjaTfZGW2hMFQXnghgsShQyNVl4RfOr8vUNx8bep4sAGUtkcU9OdVZG4/s2BOnU7EoC8VrTk3X4cpFZ7ZL0pNl2S5O8xQjftMDzZRYzMWN0v46Gqgh4/Zs=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780496711; c=relaxed/simple;
-	bh=AlHaz2AYErjTZd5BW9ZFad5nib6/Q3rCofTkupn98qk=;
+	s=arc-20240116; t=1780496808; c=relaxed/simple;
+	bh=WkLbhO6kGawW2txwIzp/prQ4F/J235JPoxhb0C+ItOY=;
 	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=eohj7JjogP64JxdmC277qO6nBIpMFtIvTtpfX2Iy5GqcBe25fDXX9EZl/w+dRRp1L/ZMc9RunU/73pZJ/1ThkBa+4HOlGfEvFrRSeuZEgRzKpw4XLCs/3bPGZ4uoJ5XLQSHmaLUmfzljhUmKJJi+r9/lFDBjxvKkovSSjKc87iw=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=gvAiSbdd; arc=fail smtp.client-ip=40.93.201.53
+	 Content-Type:MIME-Version; b=EqzrXQ+UgEkzQD1vRgSo2VA89xWg25t4XjMRd2spkAjsYGpHCMxbAFI4Wb39DyCGqZ6kF1u9vLL2fJEIXm5C52ykQ5lB3PtU9x8zCrfjZaAfGoOblqlSw3tQxmgb678TBAlXFYM7/uNKhIqOndarA8YhkB82n8+/0x62hz1rjEE=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=QbgMTRTJ; arc=fail smtp.client-ip=40.93.198.71
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="gvAiSbdd"
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="QbgMTRTJ"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=kvdnHSN9NyYNYmSxeJYXonnPn0UBHwPtYm1Fv+J65zAT+7Qk+17kbInu9R+eCOD75aHhTbP5SCYB834VYRhX2yF2X5QJiM9yN1DnOMWXZgpBdpqpS6difHnQ8M4OMrBx2XjDhsCXxPijbxwME1Op1ghaC5UicrM7AMEgS6BBK+o+oZHIDBUFRNef+Nr5CjCgK3uD7ErsdH1J7LJqAha1jZT8gswIRzwztnh8Zso2hJsibhXv1MFdj+p+FTbSHYQUFkjrgPfOJjIkCumPzOJA659/hkefADCwUjDTZQlWT3R5udeSkQXDw721RVqmwFpBewtKJjW6Va47+2Vl/r/ytQ==
+ b=WwYcv2adwBL91ZVfO5+62+UN13Vg2R3wS2b3kYZhzvvWaMDfDq4nqYk6uBPKFp4JESu+w2fyMsA0+fWuqXefSfuQrVEHnDGR5WJVikzKpR7UfvgjInKhKwiEZ05KWY1ss9FhCVc+SDN20f9Vxzit14zkv/q8bYjUFH05tU0Yzcy9V0ntq72xwkJuvBkJBa/y1KtRyXOMd+Wnp2dH4rkjreGTdEv2Jnf+APFRHOweCrouVmbkDqfIJw6/qsqWqr+5I15a0S3H+gRD4qjfx6AA2OjX+KoYUOdBeiR6OtdL+Z+jcxJr0MEhuPNZyOdB05m6EwHXvMpuwA3Fxo0PqILolg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=06x5xQ/xeHNVpKBbYoBB9EbHC4lTr3UhJp6cnWgJRm8=;
- b=fk2KX3+7ROlORP7/d98Rq0l5qRoisusA69Hrms9sfas3szPRtD0LQcz6dK44tAnTc6Me9BVwyd1Z9qwF7fFJn/ywcRp00HNBveyB7FoeCOKEU5NJ2m3n+YvD7sXD7S1oQuBsfeV5g5jGVnkOEvLVj/W09vFbA5DpL3kIAtQDSEPdHc8bdjtp1T99PILgVAPe9u/vkcnRAK4Ba86qrc7Ok3z1VbjON7AAqRxwNR2e3WBHZBoSs4rWQXGjBoxU2huA/8aHb/HeTXjA/gdywxGw9fsuCV44+HF0e1eOxgIzSJOkUWKZI86lUUPJu3VzxujNVUI5mu4xlppkNIQfbKHR8g==
+ bh=KwZLTECyJkPjYjTPsEbI8NJDt7c4Kw9Xg9isR1wC0kw=;
+ b=RXsscchqWekc9Mej06toCbbCQBKLW5NZOkkNcMVIFVAPXGafRbOtHx587r5bYQeStvvmZIRdadfc1Ry1cRajAcQKx80RR8gH5+etiD+NuyrApR7jUVpeO6N6Z1Cfrzfn7GI+P2tzToD50B1gkz05U5v3uEuYwO+87klA6CxBky0bPKT5UBHBonZ7n0NxH706HGG76ZIklqM9lU6wXVieEzXp1MXlKkH/y0iqadR2aYGUUQAdCyFp4noyrjYvDlh+/5LtztBtWYecrm5OuLsFjaRJ8wOawulYFdcZmjMnUF+jiL6TyvBhdNMXOlIQK4vrGc07FDAGywienO6O3Ud0Aw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
  header.d=amd.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=06x5xQ/xeHNVpKBbYoBB9EbHC4lTr3UhJp6cnWgJRm8=;
- b=gvAiSbddELm9EihlTcyPEIUe8V9PJUDGGdas6f79Gum2jlnBrzMoJYoKcuJbKSZATxJjym69UHfWvDi7h8p+WHhXc+aNlduieL0QXC1xYha6QCq9rn8So+JbhVXQf8oWM/sYMtf9+1AS9DFNPYDQernDAfC+o6Uh9/EmOhb3+Ng=
+ bh=KwZLTECyJkPjYjTPsEbI8NJDt7c4Kw9Xg9isR1wC0kw=;
+ b=QbgMTRTJC3qKBJ3gquNBLZjw4W91QBI1jDY4vst2UnfR/vWcaF1EFlNKJ0NeUFdU8UtW1s1Rlh7mCDQ5L/FNHdkh4WGQLWmmyh6VDaUL1MiK4nMjhD0scyN93w7bDspy8dWHdsvQV8Kfn1tTsj7puqPL/U/Fhk0Wig5SfTMcr4Y=
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=amd.com;
 Received: from PH8PR12MB6914.namprd12.prod.outlook.com (2603:10b6:510:1cb::21)
  by SA3PR12MB7832.namprd12.prod.outlook.com (2603:10b6:806:31f::10) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.71.12; Wed, 3 Jun 2026
- 14:25:04 +0000
+ 14:26:43 +0000
 Received: from PH8PR12MB6914.namprd12.prod.outlook.com
  ([fe80::2893:177a:72b0:6000]) by PH8PR12MB6914.namprd12.prod.outlook.com
  ([fe80::2893:177a:72b0:6000%6]) with mapi id 15.21.0092.006; Wed, 3 Jun 2026
- 14:25:04 +0000
-Message-ID: <308d71e0-2f63-49a6-8a2b-d6a6401b8018@amd.com>
-Date: Wed, 3 Jun 2026 09:25:00 -0500
+ 14:26:42 +0000
+Message-ID: <d45e3051-ced5-45d8-b3ff-c50f4e41cd1f@amd.com>
+Date: Wed, 3 Jun 2026 09:26:38 -0500
 User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH 2/3] ACPI: PHAT: Add generic helper to parse PHAT
- records
+Subject: Re: [RFC PATCH 3/3] x86/cpu/amd: Fetch S5_RESET_STATUS from PHAT when
+ supported
 Content-Language: en-US
 To: K Prateek Nayak <kprateek.nayak@amd.com>,
  "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
  Borislav Petkov <bp@alien8.de>, Yazen Ghannam <yazen.ghannam@amd.com>,
  linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
- acpica-devel@lists.linux.dev
-Cc: Vilas Sridharan <Vilas.Sridharan@amd.com>
+ acpica-devel@lists.linux.dev, Thomas Gleixner <tglx@kernel.org>,
+ Ingo Molnar <mingo@redhat.com>, Dave Hansen <dave.hansen@linux.intel.com>,
+ x86@kernel.org
+Cc: Vilas Sridharan <Vilas.Sridharan@amd.com>, "H. Peter Anvin"
+ <hpa@zytor.com>, Andrew Cooper <andrew.cooper3@citrix.com>,
+ Mikhail Paulyshka <me@mixaill.net>, Kai Huang <kai.huang@intel.com>,
+ Rong Zhang <i@rong.moe>
 References: <20260603063317.13665-1-kprateek.nayak@amd.com>
- <20260603063317.13665-3-kprateek.nayak@amd.com>
+ <20260603063317.13665-4-kprateek.nayak@amd.com>
 From: Mario Limonciello <mario.limonciello@amd.com>
-In-Reply-To: <20260603063317.13665-3-kprateek.nayak@amd.com>
+In-Reply-To: <20260603063317.13665-4-kprateek.nayak@amd.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: CH2PR19CA0005.namprd19.prod.outlook.com
- (2603:10b6:610:4d::15) To PH8PR12MB6914.namprd12.prod.outlook.com
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: CH2PR19CA0025.namprd19.prod.outlook.com
+ (2603:10b6:610:4d::35) To PH8PR12MB6914.namprd12.prod.outlook.com
  (2603:10b6:510:1cb::21)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
@@ -70,294 +75,172 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
 X-MS-TrafficTypeDiagnostic: PH8PR12MB6914:EE_|SA3PR12MB7832:EE_
-X-MS-Office365-Filtering-Correlation-Id: 2cba0ab6-9f3c-42ea-caa8-08dec17be6fb
+X-MS-Office365-Filtering-Correlation-Id: 1156f7e0-c511-459a-9ef6-08dec17c220b
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|366016|1800799024|56012099006|4143699003|18002099003|6133799003|11063799006|22082099003;
+	BCL:0;ARA:13230040|376014|7416014|366016|1800799024|56012099006|921020|4143699003|18002099003|11063799006|22082099003;
 X-Microsoft-Antispam-Message-Info:
-	CvktZ8Ebj5XcgRJJfGG0CwmOdieqlXt+tXc9gc9In0ShgrBld3SfCRNxsLQEVgSGD/K1XH/r1+d7bGCG1eyXPzd2D6/FdUith94TbVMBXoIqxWErygdzZ8lAef/OjAMVZGvT37R4Vr19R/RsmQMKNeKHblnVn6hRoP47W8crOPzxzYg7jwM6hKGoFp5KMls5x4mdRbk63xT15B5+2DlXkT0OTrMPQDXnTsOJ6ViJN5EQPaVs5grLnhZHvr0t35yKd/CqJ+LK8rkjZpnSwgmPfozPeY6XN6qU8sIDuQrvskDDBnPTCV1kEyfuBYRquXZlVutWk1QTjgLUTDiH3vMIhsnO/EuHdHs50UFsFemdC5W3JPTNqGafIfjinyZLvSYHxLJGjcSBVW6Di7aIuosa2Veru6GZ6j7BEdGT6uqb5UnOShvfSp/TA9RVk6WHV9AmtC4lj1fz6M5qPxPs9ryR4Rx3cF5YNY0sg/AEtco1JZ+lUKB9GcDFPQGAErYx9a08OxN2Fv5bMNg2Xc06e8bGbGYFQ8K+0ISAJ3tA78o78dEcSYK2cUNMzG9DdGjW1qJ970jWFQpNu3juRtq6MwJDqIo1Tx1qF6C8LB+qHVYxKGpl2f+HlMVZt1PP3ob8U6vMLePhetMErIqadwMakiEM7A==
+	6Dk1+0C2igFCYCVn4fQNBFvYhNrhZsTrk3f162dh22a2XTpMvO+pSaXvachpldXeIrNj6R9g0ktBLl2wL2rxqw1yII7+KmIyeV0Dtef6EACcUO8mu4NUZw6wdITanGBrkcw/tgWLvRwAKzBYEnQKXntVGqT9s7uNW6an6uc2tAH+6DAP3fNBwR31es2VOQPbaC3PqJGOJoXqWfEqpyTyB1TDKHWeVHZm/HaItOV8eEtINJkNvVVRlLrOAnCoHFoYOqcVU3PcAkkl1C6r7yOw7P5+i60JfMjRuDJAEu6VY9orJBlC5P0skJxGUEuBeBYZygsFa2vHGnrVm+czdpigiZ62ey/oaVnNJnTk7jK4xDtTFFApMDXrFAqr7L6CrBKRUtMUU6KbewXLioc5LMNuAQZVuWlcBwqOxI/+I9hKKouzo3JXg97VAn27l1KDCLTo8ccUHuq90DVUwrCijeF2abEKezM95bEbzTUBpMGFsb9F8jkVMGskJ/y8pE1WJtvoOixc9Q5ao2KF1GvU+WEz97N98Dxz6iWy2i9aioxFv/IA0k+frHvLpB7LRBUFYqvRjSTfqJMyulC/EZt9MGXtbURBHOJWLjhJyfw/bLluiXgM/ydH/Wvfa9lo9ue+BKwYznEKRyXHijkGv1NpHKb1SOVW7qx19WV1DHqwIBMljiEzh6462sZoli7AeOhb4z3y0QyfIRfuyjcpoSAzJgv7pWlG43tZZLipMrAxK+InZVo4wYmrTvExijBL1hKZaqSp
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR12MB6914.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(366016)(1800799024)(56012099006)(4143699003)(18002099003)(6133799003)(11063799006)(22082099003);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR12MB6914.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(7416014)(366016)(1800799024)(56012099006)(921020)(4143699003)(18002099003)(11063799006)(22082099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?djc0L3lEVyt2bitITUtiVHZVclUrUFdYdnl0dFZwT01MZ1VBMmxSM2s1MThz?=
- =?utf-8?B?ak1aeVkvRnVjd2orbDJIbCt1cHdFSS9OeE9SU2ZOM25ka2QrdXhpSG1lSCtv?=
- =?utf-8?B?clBRbjN1Rm5LUXEvY2VQbTNGamlIVncwdUt6d0ZsNmJCbUNDZFhNQ3Y4cGRi?=
- =?utf-8?B?UDhvWjA3QW1GMUZScHQ2UkJoMjVWWldTYTB0YWtMMHRQMG9iVTk5Wkp2eGJm?=
- =?utf-8?B?b2hEbXk2d2pRa3l0ejVQS1VHNzJKdHdjU2ZCTEYzZlRQUjlrN0MvZWRMVWox?=
- =?utf-8?B?OTNDSEtManQzYjhvR1kxU0tmUlROZEtVRVk5d2lnbmw2NHFmUDlIRWxGblVY?=
- =?utf-8?B?b3ZZNEtRcXVVVjVDSDlpS0VHM1kwQmdMOWZkSjNYSkNGd3Avc04rSWJGcHJI?=
- =?utf-8?B?MkZhZStjblh4b2NScHdrR2pCOUZENUNqKzNKNXNrTU1LRHlWUk5JeWVHNUlD?=
- =?utf-8?B?Uy9WcjJ1aDg3OENWS0tjc21yUDl1aXAxbklnQmJlbENod01ielplL2VoSVpL?=
- =?utf-8?B?L2Y4NCs5S1BBanJnUnJFRjllSEtNYXRFVlpxdUpKU3d4UFFSMk1RR1pleWRB?=
- =?utf-8?B?NmRobXlBN3prWG80aWpBdlpYcHY5b3l4bE9GY3Mxbmp5d1ZXQVJNeGw2WThm?=
- =?utf-8?B?WXRXM1llYlRxSkFST2x5VjRiVDdnWVFMNXJhTDNoRlBhV1JJSU5BZ0cwOVR4?=
- =?utf-8?B?bFBFblJaU1U5czMzQklqZ1ZoT0JPdXBmWVdJMDQrREZic2t6UTJGNnM2alhU?=
- =?utf-8?B?RklhZG12Z2dnV3lmYnQxTFRoWmVSMXVqS2ExdXRWSFlCLzNMREtNVFZqTEY3?=
- =?utf-8?B?MElVMVJGc2U4SllCYi8yTUJWdVpmYzdqc0xhaVdnZVF1M0xSM3BhdUFMQ2Za?=
- =?utf-8?B?S2NwbGQxYmdjQ0lzUWlBRmg2K1dIeGU1QUkzNGZSNHBIWk1DM3BDTVFkcW5t?=
- =?utf-8?B?Smp3clFBcUR2eXdCUTU0bG1rbGVtT1JxdVBQaGRjTzFhUHkwa0FyZjlRZE1K?=
- =?utf-8?B?OUNncXhJZDNtNjhxQ1laYjNBRVQ4dmR6c1ZnSUFiMG52ZjQ0V2JqSnF6enFS?=
- =?utf-8?B?MEsveTljSFZQb2cwTkVSY1ZHYVkwTlBYR1NCL25Ca1RML0hLSU5yV2xNZDlP?=
- =?utf-8?B?cmltVmlWMXk1MXI5bkp2UVdUazFzSUZHYXNrWWpPblY5UEp0VDZGMGJyZnFM?=
- =?utf-8?B?V0FXNWZpRjI0QlMxSnJzeVo0Z1c0S2ZLOTB3TmlzTzVkMkxYcW9qNnJ0RG1u?=
- =?utf-8?B?RDNsY3l1aTlGcHVvdDVhV1dBMHhQNHl2THUvQk5KR0doUEpJaFgxZ2ZCSEZr?=
- =?utf-8?B?NWNpSnZZeXJ2TXhBV1lTa3REQ3ZQMkZFdEJ6WGpTc0x0WFpXVVBPdDFlK2V2?=
- =?utf-8?B?eC9MbEpBcTYwU1FWVlRXM3NLaDYyUmxjSGRGOVB5dloyUlZuSFVWOXY4djg5?=
- =?utf-8?B?WEpFVCtSV1RPbjJ1QklVR3Z3dG1ZYkhYN0NXdmxIZUhwOXkrMHZZOFB0UDhT?=
- =?utf-8?B?clFKL21vZzZ3Z0p0YUlRUlQzejRNa05FNFBlaEZjWWN1S1hpelVGVDRJYlpn?=
- =?utf-8?B?U1Z1WDZoSWR3ZmM2MU1IRWZKMXFRc3R0MGh1Z2lGaFRlRGU0SUJpYW1DdENi?=
- =?utf-8?B?TXpiaW5zK0RpeE9kWFVxZzlLN1JaUlVLR0E0cU1zaS80cnVjbVQrY3lYUUVM?=
- =?utf-8?B?ZU9oZ21KMmk3c2oxdlpNNEpRTWZaMm1Fbm5yTE9UeHQrVlU0cDZ4TmdzOXov?=
- =?utf-8?B?TEU1SHl6YlBTTzVCeVAvRzFjTzI3VEZLZ1A1bUZwdjcvdVZSUGU0QUcwRjBV?=
- =?utf-8?B?RzRNeFNzcFIxR3hMb0dlNEFEUUlzbnQyclMrWXIxZ2dBQmE2cjVvc25oNFUy?=
- =?utf-8?B?bUxBRUxBQjh3Qkptb3I1YWxqN0Y2SEhPdXd3U1lxdjg2WTQ5QnNzYktFaGtu?=
- =?utf-8?B?a2dVZ3haYmJBSmdwYWYyZU9TOWZqcHdaTlVJQXZINFNUZTNyMUZKVFZ1ZHVq?=
- =?utf-8?B?dlpKT0RpSWRmUC9XK1A2cUc5SkhsWlFtNFV6eVJaak9yQUJ3d0pKRm1YVHhM?=
- =?utf-8?B?blBTQS80eWJQTGdIZk8zUFpWdVM1UUF4RzRMUWdCQ3poTlFTRlh4bnh2U29F?=
- =?utf-8?B?RDRsUjBUTE9FTWhSM3ROTDZJK21SZTBWcGRDS2dnVXB4bGVuTUE2YmJnemJM?=
- =?utf-8?B?cUZabUR1K202RCtpak1LbEZKV01sK09pd3htdFdMY09uUjlpU0w0TUErZXFB?=
- =?utf-8?B?elh6aXJHNDlvOUxmalFJb2MvWTNwdFg1UlIzTmtxOSs0NlZDYmYxd2NrQWpL?=
- =?utf-8?Q?ApmeW9BLewWMZJ4qVj?=
+	=?utf-8?B?emE4V0ExT0JNUHBoR2pETW9LUm5SK2pNMHJNNGxpY0l5dGZlb1o0dXV2cFU1?=
+ =?utf-8?B?cUxxZnVSaSsxZi9QNUljNUgva3pCeWhCMHZ4NzdoaXFTRWZ1Um4yZ2pnYjU5?=
+ =?utf-8?B?M3JKK1l3bTJpTVlvYlRIRWdVNWlzb3FETkdlNndKTmNrcHFVUVoxZkJUblN3?=
+ =?utf-8?B?R0hZU0ZjeEczNnBxSDNPV0ZtdkFsZG1aQ3ZlZWFyQmhUaTNkYzYxcTY1OHA3?=
+ =?utf-8?B?K05qT1BPd2ppQUd2RWV4UFhob0N6RDBwL3hJZnl1RDBLYndDWnExeFVtc0E4?=
+ =?utf-8?B?WHF0K1dYa3dvWHFVT2RJSXowT1ZPRGxzQjBnQ1BteFRySXdjV25qUDZRdTZX?=
+ =?utf-8?B?c2pQWFRFbnZnSW1XODhYTU1Cb3pJN2ppWDdoTzhUdjdMM1lhNWpGQkNMeE5o?=
+ =?utf-8?B?RmdxVi9HUnlTZGY3SGtYaVhNajU1U2FwOVE4QzV5eW5LNkM3RUYrL1pqRW12?=
+ =?utf-8?B?TnhLQzY1a3htTDZaN0h5QjFxZjBRSnhOZGt0a3RMeS92UDZnQ3VHbEwzUDM1?=
+ =?utf-8?B?ZlBVeUNJZU9yK3NvTy9acWJtVk13OUJVbk9QMVhvckNldmhGWDJGVzdjRm1S?=
+ =?utf-8?B?NzlMVWNpc0YwTTdhTTFOOEt2cC93YUEzS3BYSXpNd0tHQmtGeFVmOHk3NXRI?=
+ =?utf-8?B?NWlyOGxOWVVRcDZxL215NlduUnhpazhxMlVkWXNwRzZpdTJlU0VWNEdxOGdi?=
+ =?utf-8?B?SkMrT216ei9QZ1JVbDl4Rm1FOE03dytCZnVLSEtMNFNpZkpUaTE5RXZjS3V1?=
+ =?utf-8?B?ZnVyeHZPMWl4U3BxcUVTTXUxRUlXeFFqTkNCVVdDcDlDdG5XVTBYNmRqbFB1?=
+ =?utf-8?B?cC8xV0p6REtSbGg3NmVRUVBQUmtOWEJkbGg3R0xHMTNXYzFuSjFSczYxSFRJ?=
+ =?utf-8?B?dVg2SWd5eThReUg5ZEJhOHJaUFpDQ3U1UEs1S1JOK2hHcGIxTVREY1dMV1FI?=
+ =?utf-8?B?cG41bkJSOEhlZzFqd3V3bkU0MjN6NHc2L2tJRnNaL3QwcVV0SGN0U1JkZGg2?=
+ =?utf-8?B?cHR5T1dGZWpJSW94emVXZTRySVZ1RUZoanVXTmlTVE13SDJKWHFjTXVpMUVJ?=
+ =?utf-8?B?RDJadFlPTTdCcGFyOXZwSkV5UTM1bzhpWVBQVmczS3I0VXFaMjVPVzNkTWdz?=
+ =?utf-8?B?dlBNc0tpbVVRMVdOZStKNWlqd2dLNjR1akZOTHpSN1I2SC90cDJadDM2UUcz?=
+ =?utf-8?B?d2t3cm42bjF0QzIyRFdmNmJpV01jaStybWZvTE1tNkY4YzJjUjhtT3BsL3hy?=
+ =?utf-8?B?SFJreFZpK0JoR2xlN0xVVVRObndxSVlReG9BSzJRcld3V1p0Sm1Mc0xHSGdk?=
+ =?utf-8?B?QmpGd3orRSs2U2FDb3ZEcUI1cHhMWUdnaWppZVhVWWJ2MDNBeEU2RG9sYS9a?=
+ =?utf-8?B?NHFraXBxRW1kQjBBQk4wUVJDaUVRKy9MYllRY3ZzRHhoaEs5M08wZ0h0eWUz?=
+ =?utf-8?B?dXFXVTdFMmVDWmVkeHZCOWVoTGdlOEZDVXRJYTRQUkQyd0xkRGVNVDhhc1Iw?=
+ =?utf-8?B?d25WWkx2RlJNWGFLSHRULzVKbncxTnhPVW5WcTFnT1hsVWJxcUM4Z1d0eUdx?=
+ =?utf-8?B?ZEJCSlBrWjZNbEZwU0FYMXRHZW9vMDRDY0NqQUErRmpRZ3YwdWJ4azZKQ1M3?=
+ =?utf-8?B?bkNiMGVnQUhXdUxOWW9KaFhodml6QWNGU1VXNTZ2UittbURUN1dQaHFHMkJZ?=
+ =?utf-8?B?Sm4xWTFjdXRmQjQxWXdnWHNZU1Qvd0JsL0ZiTDZ4QlZaUUZWR2lEU0VRcndR?=
+ =?utf-8?B?OUVQTCthVGtzYTJ1M3M3U1QyTTRMYkRZQzlDVE5qWTF3ZEY1K2Y2WURWY3k2?=
+ =?utf-8?B?UUx5S1FFM2xYaVh4T3pRS291Nmo4UW9wQnpTZC96dXhuQkhwWWVnT2RRZk11?=
+ =?utf-8?B?YVNqQWFqSlV1d1JtbEZVSitVcGw0dE5BUzlTbEIva0I5L1N3THp2cVpNLzZ5?=
+ =?utf-8?B?VTJzU1o5N09PQXNpa3JiTEpCMWFQdHhxeHZKU0ZYNnd6YU5lR1dNekNFd2dH?=
+ =?utf-8?B?Nk1EL3I0dTU0b1gxT1VLK1RsU1IyV3VZZldyb2VYOUlYNDExVzVGRHJnNkd5?=
+ =?utf-8?B?c1RNcXpNdHFrRUlpbjJVeVZ5NERqMFV2cFJmK00zeHNMVk5od0d6c1Y2Zk9w?=
+ =?utf-8?B?RDM2QmIwYVNUd1FsNzNRTDE5MWNKMnltMjF0NDh6ZUZBbi9oWnBLaWFsdHF3?=
+ =?utf-8?B?RXI2OXVzWS90eC9OSzAxMjlxY1JNWm5xblhrNzBMS3pzNU9pM0dtZzFmM2w1?=
+ =?utf-8?B?b245djJxSUltd3pJQ3l2eUo3dDdPS1I3MWxobWZWejlrMTB4ZGJwMlVCK0xY?=
+ =?utf-8?Q?R2e+RARR7pDeP7wuFF?=
 X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 2cba0ab6-9f3c-42ea-caa8-08dec17be6fb
+X-MS-Exchange-CrossTenant-Network-Message-Id: 1156f7e0-c511-459a-9ef6-08dec17c220b
 X-MS-Exchange-CrossTenant-AuthSource: PH8PR12MB6914.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Jun 2026 14:25:03.9462
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Jun 2026 14:26:42.7263
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: frnhXUxE0bv6g3qDtPgd6fYSl9C18XCwD/HflTGR7mEtN7qSdpuQL3ks86hsVBWBHnh3GNXH4szjvbXmcrT7lA==
+X-MS-Exchange-CrossTenant-UserPrincipalName: /DCpm+ISpahBfAQQAFE+rWnECd1BG5JGnhactswePsj+4TXyfxYsR6vRJT5ssnc9RT11Kkx1J/BarlgZOpoxqA==
 X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA3PR12MB7832
 
 
 
 On 6/3/26 01:33, K Prateek Nayak wrote:
-> The ACPI Specification v6.5 [1] under Sec. 5.2.31 "Platform Health
-> Assessment Table (PHAT)" provides a well defined data format for reset
-> reason records, including the ones that are vendor specific.
+> Firmware can consume the S5_RESET_STATUS from the FCH register and the
+> OS may see an incorrect value at the time of boot on certain platforms.
 > 
-> Provide a generic helper to locate the vendor specific records and parse
-> them into a buffer that can be consumed by the users.
+> Vilas, Yazen noted that S5_RESET_STATUS is also populated in ACPI PHAT
+> on newer AMD platforms which is more reliable than the status from the
+> FCH register.
 > 
-> The first user for the interface is added in the subsequent commit with
-> AMD processors using it to parse the s5_RESET_STATUS from PHAT records.
+> Use the S5_RESET_STATUS from the ACPI PHAT which is described in the
+> "Platform Health Assessment Table (PHAT)" section of "AMD Family 1Ah
+> Models 00h–0Fh and Models 10h–1Fh ACPI v6.5 Porting Guide" [1] on
+> supported platform and fallback to the legacy FCH path if the PHAT
+> record is not found.
 > 
-> Make the Kconfig depend on ACPI && CPU_SUP_AMD to prevent the need for
-> unnecessarily compiling in ACPI PHAT support when not needed.
+> Unlike the FCH register, PHAT only provides a read-only value which
+> cannot be cleared once consumed and will persist across kexec boots.
 > 
-> Link: https://uefi.org/sites/default/files/resources/ACPI_Spec_6_5_Aug29.pdf [1]
+> Link: https://docs.amd.com/v/u/en-US/58088_0.90_PUB [1]
+> Suggested-by: Vilas Sridharan <Vilas.Sridharan@amd.com>
+> Suggested-by: Yazen Ghannam <yazen.ghannam@amd.com>
 > Signed-off-by: K Prateek Nayak <kprateek.nayak@amd.com>
 > ---
->   drivers/acpi/Kconfig     |  11 ++++
->   drivers/acpi/Makefile    |   1 +
->   drivers/acpi/acpi_phat.c | 133 +++++++++++++++++++++++++++++++++++++++
->   include/linux/acpi.h     |  14 +++++
->   4 files changed, 159 insertions(+)
->   create mode 100644 drivers/acpi/acpi_phat.c
+>   arch/x86/kernel/cpu/amd.c | 34 ++++++++++++++++++++++++++++++++++
+>   1 file changed, 34 insertions(+)
 > 
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index f165d14cf61a..494c757a62d7 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -607,6 +607,17 @@ config ACPI_PRMT
->   	  substantially increase computational overhead related to the
->   	  initialization of some server systems.
->   
-> +config ACPI_PHAT
-> +	bool "ACPI PHAT Record parsing support"
-> +	depends on X86 && ACPI && CPU_SUP_AMD
-> +	default y
-> +	help
-> +	  The Platform Health Assessment Table (PHAT) allows platforms to
-> +	  expose read-only data for diagnostics and health assessments.
-> +
-> +	  Enable this feature to access generic helpers for parsing PHAT
-> +	  data records.
-> +
->   endif	# ACPI
->   
->   config X86_PM_TIMER
-> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> index d1b0affb844f..d6cf252ca4ea 100644
-> --- a/drivers/acpi/Makefile
-> +++ b/drivers/acpi/Makefile
-> @@ -108,6 +108,7 @@ obj-$(CONFIG_ACPI_SPCR_TABLE)	+= spcr.o
->   obj-$(CONFIG_ACPI_DEBUGGER_USER) += acpi_dbg.o
->   obj-$(CONFIG_ACPI_PPTT) 	+= pptt.o
->   obj-$(CONFIG_ACPI_PFRUT)	+= pfr_update.o pfr_telemetry.o
-> +obj-$(CONFIG_ACPI_PHAT) 	+= acpi_phat.o
->   
->   # processor has its own "processor." module_param namespace
->   processor-y			:= processor_driver.o processor_thermal.o
-> diff --git a/drivers/acpi/acpi_phat.c b/drivers/acpi/acpi_phat.c
-> new file mode 100644
-> index 000000000000..de612ae018e0
-> --- /dev/null
-> +++ b/drivers/acpi/acpi_phat.c
-> @@ -0,0 +1,133 @@
-> +// SPDX-License-Identifier: GPL-2.0-only
-> +/*
-> + * Helpers for parsing Platform Health Assessment Table (PHAT) records.
-> + */
-> +#include <linux/kernel.h>
+> diff --git a/arch/x86/kernel/cpu/amd.c b/arch/x86/kernel/cpu/amd.c
+> index 2f8e8ff2d000..d3dee7fd4c51 100644
+> --- a/arch/x86/kernel/cpu/amd.c
+> +++ b/arch/x86/kernel/cpu/amd.c
+> @@ -1,5 +1,6 @@
+>   // SPDX-License-Identifier: GPL-2.0-only
+>   #include <linux/export.h>
 > +#include <linux/acpi.h>
+>   #include <linux/bitops.h>
+>   #include <linux/dmi.h>
+>   #include <linux/elf.h>
+> @@ -11,6 +12,8 @@
+>   #include <linux/random.h>
+>   #include <linux/topology.h>
+>   #include <linux/platform_data/x86/amd-fch.h>
 > +
 > +#include <acpi/actbl2.h>
-> +
+>   #include <asm/processor.h>
+>   #include <asm/apic.h>
+>   #include <asm/cacheinfo.h>
+> @@ -1342,8 +1345,21 @@ static const char * const s5_reset_reason_txt[] = {
+>   	[31] = "a software sync flood event occurred",
+>   };
+>   
 > +/*
-> + * __phat_get_firmware_health_data() - Internal helper to locate the
-> + * "Reset Reason Health Record" within the Platform Health Assessment
-> + * Table (PHAT).
-> + *
-> + * @table: Pointer to the beginning of PHAT.
-> + *
-> + * Return: A pointer within the @table if "Reset Reason Health Record"
-> + * is found; NULL otherwise.
+> + * "AMD Family 1Ah Models 00h–0Fh and Models 10h–1Fh ACPI v6.5 Porting Guide"
+> + * specifies the vendor-specific GUID of FCH::PM::S5_RESET_STATUS record as
+> + * "1f425831-da46-4f65-9296-3c4d44c387ab" alongside the format of reset reason.
 > + */
-> +static struct acpi_phat_health_data *
-> +__phat_get_firmware_health_data(struct acpi_table_phat *table)
-> +{
-> +	unsigned int length = table->header.length;
-> +	void *header = table;
+> +#define S5_RESET_STATUS_GUID GUID_INIT(0x1f425831, 0xda46, 0x4f65, 0x92, 0x96,\
+> +				       0x3c, 0x4d, 0x44, 0xc3, 0x87, 0xab)
 > +
-> +	/* No records. */
-> +	if (length <= sizeof(struct acpi_table_header))
-> +		return NULL;
+>   static __init int print_s5_reset_status_mmio(void)
+>   {
+> +	struct reset_status_record {
+> +		struct acpi_phat_vendor_element		header;
+> +		u32					s5_reset_status;
+> +	} __packed *record;
+> +	guid_t guid = S5_RESET_STATUS_GUID;
+>   	void __iomem *addr;
+>   	u32 value;
+>   	int i;
+> @@ -1351,6 +1367,23 @@ static __init int print_s5_reset_status_mmio(void)
+>   	if (!cpu_feature_enabled(X86_FEATURE_ZEN))
+>   		return 0;
+>   
+> +	record = (void *)acpi_phat_get_vendor_reset_reason(&guid);
+> +	if (!IS_ERR(record)) {
+> +		bool record_valid = false;
 > +
-> +	/*
-> +	 * Advance to the end of the table header
-> +	 * where the first record starts.
-> +	 */
-> +	header += sizeof(struct acpi_table_header);
-> +	length -= sizeof(struct acpi_table_header);
-> +
-> +	/*
-> +	 * Search for PHAT firmware health data record header
-> +	 * with type == ACPI_PHAT_TYPE_FW_HEALTH_DATA.
-> +	 */
-> +	while (length) {
-> +		struct acpi_phat_health_data *data = header;
-> +
-> +		if (data->header.type == ACPI_PHAT_TYPE_FW_HEALTH_DATA)
-> +			return header;
-> +
-> +		/* Move to the next header */
-> +		header += data->header.length;
-> +		length -= data->header.length;
-> +	}
-> +
-> +	return NULL;
-> +}
-> +
-> +/**
-> + * acpi_phat_get_vendor_reset_reason - Find a "Vendor Specific Reset Reason
-> + * Entry" with the matching @guid from the "Firmware Health Data Record". If
-> + * successfully located, the function will allocate an object of the size
-> + * "acpi_phat_vendor_element.length" and return a pointer populated with the
-> + * content of the record.
-> + *
-> + * @guid: The "Vendor Data ID" of the reset reason record.
-> + *
-> + * Return: A valid pointer to an allocated "acpi_phat_vendor_element" populated
-> + * with the data from the record with matching @guid; an ERR_PTR() otherwise if
-> + * no matching records were found, or if the element could not be allocated.
-> + * If a valid pointer was returned, the user must call
-> + * acpi_phat_put_vendor_reset_reason() for the object once done to reclaim the
-> + * allocated memory.
-> + */
-> +struct acpi_phat_vendor_element *acpi_phat_get_vendor_reset_reason(guid_t *guid)
-> +{
-> +	struct acpi_table_header *phat_tbl __free(acpi_put_table) = NULL;
-> +	struct acpi_phat_health_data *fw_health_data;
-> +	struct acpi_phat_device_data *dev_data;
-> +	acpi_status status;
-> +	void *data;
-> +	int i;
-> +
-> +	status = acpi_get_table(ACPI_SIG_PHAT, 0, &phat_tbl);
-> +	if (ACPI_FAILURE(status))
-> +		return ERR_PTR(-ENODEV);
+> +		/* Sanity check before using the parsed record. */
+> +		if (record->header.length == sizeof(*record)) {
 
-For some further sanity checking, should you look at the PHAT revision 
-here matches 2 as well?  Table 55 in the linked spec.
+Why not do this sanity check in acpi_phat_get_vendor_reset_reason() 
+directly?  Then we can always assume if something is returned it's valid 
+and it's simpler here (and any other potential callers in future).
 
-> +
-> +	fw_health_data =
-> +		__phat_get_firmware_health_data((struct acpi_table_phat *)phat_tbl);
-> +	if (!fw_health_data)
-> +		return ERR_PTR(-ENODEV);
-> +
-> +	/* Check if Device-specific data record is present. */
-> +	if (!fw_health_data->device_specific_offset)
-> +		return ERR_PTR(-ENODEV);
-> +
-> +	dev_data = (void *)fw_health_data + fw_health_data->device_specific_offset;
-> +	if (!dev_data->vendor_count)
-> +		return ERR_PTR(-ENODEV);
-> +
-> +	/* Vendor data starts after Device-specific data */
-> +	data = (void *)dev_data + sizeof(*dev_data);
-> +
-> +	for (i = 0; i <= dev_data->vendor_count; ++i) {
-> +		struct acpi_phat_vendor_element *vendor_data = data;
-> +		int length = vendor_data->length;
-> +
-> +		/*
-> +		 * Move to the next Vendor specific entry if
-> +		 * the GUID of entry doesn't match.
-> +		 */
-> +		if (!guid_equal(guid, (guid_t *)vendor_data->vendor_guid)) {
-> +			data += vendor_data->length;
-> +			continue;
+> +			pr_debug("Using ACPI PHAT record for S5_RESET_STATUS\n");
+> +			value = record->s5_reset_status;
+> +			record_valid = true;
 > +		}
 > +
-> +		vendor_data = kmalloc(length, GFP_KERNEL);
-> +		if (!vendor_data)
-> +			return ERR_PTR(-ENOMEM);
+> +		acpi_phat_put_vendor_reset_reason((void *)record);
 > +
-> +		memcpy(vendor_data, data, length);
-> +		return vendor_data;
+> +		if (record_valid)
+> +			goto parse_status;
 > +	}
 > +
-> +	return ERR_PTR(-ENODEV);
-> +}
-> +
-> +/**
-> + * acpi_phat_put_vendor_reset_reason - Reclaim the object allocated by
-> + * acpi_phat_get_vendor_reset_reason().
-> + *
-> + * @reason: A valid pointer returned by acpi_phat_get_vendor_reset_reason()
-> + */
-> +void acpi_phat_put_vendor_reset_reason(struct acpi_phat_vendor_element *reason)
-> +{
-> +	kfree(reason);
-> +}
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 67effb91fa98..daed1d66ca43 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -1627,6 +1627,20 @@ extern int acpi_ffh_address_space_arch_handler(acpi_integer *value,
->   static inline void acpi_init_ffh(void) { }
->   #endif
+>   	addr = ioremap(FCH_PM_BASE + FCH_PM_S5_RESET_STATUS, sizeof(value));
+>   	if (!addr)
+>   		return 0;
+> @@ -1374,6 +1407,7 @@ static __init int print_s5_reset_status_mmio(void)
+>   	iowrite32(value, addr);
+>   	iounmap(addr);
 >   
-> +#ifdef CONFIG_ACPI_PHAT
-> +struct acpi_phat_vendor_element *acpi_phat_get_vendor_reset_reason(guid_t *guid);
-> +void acpi_phat_put_vendor_reset_reason(struct acpi_phat_vendor_element *reason);
-> +#else
-> +static inline struct acpi_phat_vendor_element *
-> +acpi_phat_get_vendor_reset_reason(guid_t *guid)
-> +{
-> +	return ERR_PTR(-ENODEV);
-> +}
-> +
-> +static inline void
-> +acpi_phat_put_vendor_reset_reason(struct acpi_phat_vendor_element *reason) { }
-> +#endif
-> +
->   #ifdef CONFIG_ACPI
->   extern void acpi_device_notify(struct device *dev);
->   extern void acpi_device_notify_remove(struct device *dev);
+> +parse_status:
+>   	for (i = 0; i < ARRAY_SIZE(s5_reset_reason_txt); i++) {
+>   		if (!(value & BIT(i)))
+>   			continue;
 
