@@ -1,113 +1,113 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED2213DB632;
-	Wed,  3 Jun 2026 18:26:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 015FB4D8D91;
+	Wed,  3 Jun 2026 22:33:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.15
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780511188; cv=none; b=WviVpvnBbZfg+b5YdsOZflizFE8403NgwBYIQHtp7tRHCRyn4AAB3cySjg8JLaj0lTMMT/3T3qxaRvYsAxqimLU3gnbQm9VCX7M0LarxDkmclR7t3t7wvR9Ft8NYw4ExJx5gb/krtSgp6VTMqqHTaWdD2zODUtElGkVnf+xtS4Y=
+	t=1780526023; cv=none; b=YsDra37IIct9MgNTGukn6MvDrANIToNF8FR820XUhkmdW14p/Komoe5V6oCjfVa5yOFmYSz9CtX3PWS5N7O7uQl5vXyvsLFfRmz899VepCTNRxfWePy+3p8HvWpy/ia+u/GiJrf7v05nDKRz0eaZpUWLvgxHEMDU3yQcMAc93lE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780511188; c=relaxed/simple;
-	bh=UMwZYBcTbz/5r53G1b8cOfXAZZyOSbMXdll9+/ycgPo=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=j6E0CoVqwVuq+4Sb/FvES7XL6e4mf0FRUBY68tdk6tmyPZIv3nbhLzsuLm0BR1K4eLoPV/VrT11uaK8C/e2l8lVQLpXR9dRQLIyNnCrmCiCHi85Y9NH5ixP5pldVzKbrXxfjKO+nKdw8kWxuA1Rzp2Gs4SgeYNYFZY6M5DiFxLY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cBNCRSu0; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780526023; c=relaxed/simple;
+	bh=lq9rb8PQRol3H/21t01viHr+r3b/JLoK/P8J0muQN9E=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Ni2zviU4fxOAOSvtmyvz4/cANF/4tsyq4vAAgtow98CBkrl6q0+zK95AN15si87rctBA6W3RAdrLz6tC0+hjI37XWAeRaFV7Xe9r83OTDLd7T4xmS6HTLPw1sa+fSTxQpmn3uNAQme44SQC3A9YCbH0FazphdsOoYX8gMhL2F3o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=MTWx7lia; arc=none smtp.client-ip=192.198.163.15
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cBNCRSu0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C62591F00893;
-	Wed,  3 Jun 2026 18:26:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1780511187;
-	bh=kdm71ve/iHr2YjAi9PX8rgHcvvYgG9iOKX6pzyZX9l4=;
-	h=From:To:Cc:Subject:Date;
-	b=cBNCRSu0HGVOWN6jE8MU9m091N1C4tqhpD1qhRffNJwI87ggl8AH+BZMkN8xL3RWL
-	 BGS2EPjl9tPv2nYZBmCxH+duGECFs2Y2BJYLZh3niXFJqODTN9T7zViZyHq9b7tpXf
-	 XLFoi91GHDH6nB8jOCmoBAN9g3CniMEunHkmazOwpKlHleGXK1sY4JwFuqLJ7WqNev
-	 uu3jo8sJceIs2aaYExlS78a7dkSQacPQbMncWfLgcYiX7j78NfA1Emf1u4eMIdOVPM
-	 1P2O4o1QG/wIg7tu7f3JtyboLVbwKC6bMwc3DufjNdhMdUb4TcMRwO1aWChvOv9DYT
-	 A+ETKkMZsL6fQ==
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-To: Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
- Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1] ACPI: bus: Clean up devm_acpi_install_notify_handler()
-Date: Wed, 03 Jun 2026 20:26:24 +0200
-Message-ID: <2841496.mvXUDI8C0e@rafael.j.wysocki>
-Organization: Linux Kernel Development
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="MTWx7lia"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1780526022; x=1812062022;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=lq9rb8PQRol3H/21t01viHr+r3b/JLoK/P8J0muQN9E=;
+  b=MTWx7liaqRimDyq/yrkBILED+rVmP8F5YsEyymF2rQtlCaCqNxA7euUY
+   sH/X7S+DnhFZxIsd3029J3f3ssllEvHXEuK/6lBsDm1QbLRCv7pghY7Oc
+   UuTnnGRWi8GO6sZZ1blOHOpcmI12TtRyy7U4RTgugnJaOAzl1Q6/OQED3
+   DvN4c0KcqNcRuHKLKFH+fEuRDZygzr9LbhSiZlq3klh4642dLgmu5NBwI
+   zfaHxgB/qp4y8RSxzXIa/tePIQNlUkBv6Dypgjp6E25vhzRNivZQxKc1+
+   NmShumSJbuJeCL8gkc7RrBenEoA5htz19/umAryJoJbsYUbspe6YjiO27
+   g==;
+X-CSE-ConnectionGUID: EbpjLe5FTWuw5Or9FARfFg==
+X-CSE-MsgGUID: k+erKbGPSIW1xO5tdrfB7w==
+X-IronPort-AV: E=McAfee;i="6800,10657,11806"; a="81475583"
+X-IronPort-AV: E=Sophos;i="6.24,186,1774335600"; 
+   d="scan'208";a="81475583"
+Received: from orviesa008.jf.intel.com ([10.64.159.148])
+  by fmvoesa109.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Jun 2026 15:33:41 -0700
+X-CSE-ConnectionGUID: ZZryN3C3R3Kl8hb6uutvqw==
+X-CSE-MsgGUID: eOEXuPvqQDyqTfI5qOtdYQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.24,186,1774335600"; 
+   d="scan'208";a="244217143"
+Received: from dnelso2-mobl.amr.corp.intel.com (HELO [10.125.108.116]) ([10.125.108.116])
+  by orviesa008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Jun 2026 15:33:40 -0700
+Message-ID: <db30a3cb-6d67-4b96-aeb7-04275985cc60@intel.com>
+Date: Wed, 3 Jun 2026 15:33:39 -0700
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="UTF-8"
-
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-
-Add a pointer to the struct acpi_device used for installing the ACPI
-notify handler to struct acpi_notify_handler_devres so it need not
-be retrieved from the owner device via ACPI_COMPANION() in
-devm_acpi_notify_handler_release().
-
-While at it, drop the function name from one of the messages printed
-by devm_acpi_install_notify_handler() for consistency and fix up white
-space in its kerneldoc comment.
-
-No intentional functional impact.
-
-Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
-
-Applies on top of linux-next.
-
----
- drivers/acpi/bus.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
-
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -680,6 +680,7 @@ void acpi_dev_remove_notify_handler(stru
- EXPORT_SYMBOL_GPL(acpi_dev_remove_notify_handler);
- 
- struct acpi_notify_handler_devres {
-+	struct acpi_device *adev;
- 	acpi_notify_handler handler;
- 	u32 handler_type;
- };
-@@ -688,13 +689,12 @@ static void devm_acpi_notify_handler_rel
- {
- 	struct acpi_notify_handler_devres *dr = res;
- 
--	acpi_dev_remove_notify_handler(ACPI_COMPANION(dev), dr->handler_type,
--				       dr->handler);
-+	acpi_dev_remove_notify_handler(dr->adev, dr->handler_type, dr->handler);
- }
- 
- /**
-  * devm_acpi_install_notify_handler - Install an ACPI notify handler for a
-- * 				      managed device
-+ *				      managed device
-  * @dev: Device to install a notify handler for
-  * @handler_type: Type of the notify handler
-  * @handler: Handler function to install
-@@ -725,7 +725,7 @@ int devm_acpi_install_notify_handler(str
- 
- 	adev = ACPI_COMPANION(dev);
- 	if (!adev)
--		return dev_err_probe(dev, -ENODEV, "No ACPI companion in %s()\n", __func__);
-+		return dev_err_probe(dev, -ENODEV, "No ACPI companion\n");
- 
- 	dr = devres_alloc(devm_acpi_notify_handler_release, sizeof(*dr), GFP_KERNEL);
- 	if (!dr)
-@@ -737,6 +737,7 @@ int devm_acpi_install_notify_handler(str
- 		return dev_err_probe(dev, ret, "Failed to install an ACPI notify handler\n");
- 	}
- 
-+	dr->adev = adev;
- 	dr->handler = handler;
- 	dr->handler_type = handler_type;
- 	devres_add(dev, dr);
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2 1/4] ACPI: NFIT: core: Fix possible NULL pointer
+ dereference
+To: "Rafael J. Wysocki" <rafael@kernel.org>,
+ Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: Dan Williams <djbw@kernel.org>, LKML <linux-kernel@vger.kernel.org>,
+ Vishal Verma <vishal.l.verma@intel.com>, nvdimm@lists.linux.dev,
+ Alison Schofield <alison.schofield@intel.com>,
+ Xiang Chen <chenxiang66@hisilicon.com>
+References: <5110904.31r3eYUQgx@rafael.j.wysocki>
+ <2418508.ElGaqSPkdT@rafael.j.wysocki>
+Content-Language: en-US
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <2418508.ElGaqSPkdT@rafael.j.wysocki>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
 
+
+On 6/3/26 10:56 AM, Rafael J. Wysocki wrote:
+> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+> 
+> After commit 9b311b7313d6 ("ACPI: NFIT: Install Notify() handler before
+> getting NFIT table"), acpi_nfit_probe() installs an ACPI notify handler
+> for the NFIT device before checking the presence of the NFIT table.  If
+> that table is not there, 0 is returned without allocating the acpi_desc
+> object and setting the driver data pointer of the NFIT device.  If the
+> platform firmware triggers an NFIT_NOTIFY_UC_MEMORY_ERROR notification
+> on the NFIT device at that point, acpi_nfit_uc_error_notify() will
+> dereference a NULL pointer.
+> 
+> Prevent that from occurring by adding an acpi_desc check against NULL
+> to acpi_nfit_uc_error_notify().
+> 
+> Fixes: 9b311b7313d6 ("ACPI: NFIT: Install Notify() handler before getting NFIT table")
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Cc: All applicable <stable@vger.kernel.org>
+
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+
+
+> ---
+>  drivers/acpi/nfit/core.c | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> index 5cab62f618c8..8024cd3cad14 100644
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+> @@ -3442,6 +3442,9 @@ static void acpi_nfit_uc_error_notify(struct device *dev, acpi_handle handle)
+>  {
+>  	struct acpi_nfit_desc *acpi_desc = dev_get_drvdata(dev);
+>  
+> +	if (!acpi_desc)
+> +		return;
+> +
+>  	if (acpi_desc->scrub_mode == HW_ERROR_SCRUB_ON)
+>  		acpi_nfit_ars_rescan(acpi_desc, ARS_REQ_LONG);
+>  	else
 
