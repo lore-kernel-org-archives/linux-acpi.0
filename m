@@ -1,35 +1,35 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59916410D16;
-	Wed,  3 Jun 2026 08:21:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E90B410D16;
+	Wed,  3 Jun 2026 08:21:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780474901; cv=none; b=CrloN3ED09gWmBmgq1U+36sAqWKOrUMd88wbpPfBKncA073p3T3y+THMWyL7Xwe9yzqPm/8ZnM1sPe8AIyYC+cP5ehcuWIFsmjOknCvi0ofOAeNifFsv0yiOwln9uxuJLivCMnncMbM6YX+kTxQrF4+BJKuLQumyf33AmEUkczI=
+	t=1780474905; cv=none; b=akge1VqoJI4Vsrh+MmNS2Lf0IWCNUTTweYcb/SVUtjtiI0+4U2KsVW69Damzlswduj5mmPAwbUp7t/lkPuoUuhbDNCi0jyYrbNbzczUjQlrVd5V4ScP21nJNhIUCELfVgqgXR37cUDjA7qQ03P4P36+12+tHgGAS4GldM1h+zWw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780474901; c=relaxed/simple;
-	bh=Yl974pojDpKqEpnSLuagZUOwMHghmNN3zNAM92cuaec=;
+	s=arc-20240116; t=1780474905; c=relaxed/simple;
+	bh=Zirg5zLISuUGrrZvV/HeyIlS4z8UH5EkGvwvdimhiWs=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=CUUIQ9t1/VVhTfY5nceXtKU1rc/nyN83qGGnLzut6in8giFSB+tvSZ8yxte37ckhWQWMyDs6WcoooDJGw+ny+4QKQfgS01OWQ3ibiRu6naGgx4wWS24BbaMdvIvztgF0nnhkDYag8gaM9VBAKkEHzE0rppq+dh18SOlaT6pTLCE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UV7+otxr; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:To:Cc; b=qWRrB/hRRPkUl3dRkyIxmuusXnmL/QHADukkdmbLSPMwDHMQZhzzRcJik82vU37s70g/xLgxmFG4Epe+GUuMtZ0QEIkQ++w2JWivT+gltab29Wwa6YSNSn3SGqhv6H/tTM2cGQHRIA/ilGz1Ji1BnLEhX8C/BlD82PPvxQGzwSU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fS750F7T; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UV7+otxr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F8421F00893;
-	Wed,  3 Jun 2026 08:21:35 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fS750F7T"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6295E1F00898;
+	Wed,  3 Jun 2026 08:21:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1780474899;
-	bh=G3J6B2wwZ8nlMNmtNYnVu0NFww9ipBOtwt+oR1HOegI=;
+	s=k20260515; t=1780474904;
+	bh=Pamo4jTIx9z4Xf6mq2Ox//K3gj7hfSbjLsah6wBCtzc=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc;
-	b=UV7+otxrRpsGFCIT5jwSzDvpOuUbknuas3TVVTutaGY5qRF950r5oSoxcsT2s3sky
-	 jeN00ChBJ0TYcBIpvW+l2jUft6/5oe06Ttw7lMuqRdKwhYPAop6cYI4HMSfk7HDegy
-	 4T3As6/69X/TDI4Zg5Qmi+iBWaeDZDO3Cjevd9NM89obHjUGLwexu00Egcmb5ZCMm9
-	 mCBVxdE7uATNtHCrxUJO6HpL+cU7hs2VP+iDNoY9x3QRqoc2cT5pv16zOtiy83J8C6
-	 W0Uxo4mlI3LfrLGfSI6QJ0s2zTcUPmEB/Dp075SZu1xstFtYddmBdlxocXC2JBmjS4
-	 cVT0FwyBfIrcQ==
+	b=fS750F7TFs/HKsUEE1WJvRe800uTXJ+WBlUN3gohTW06px4gbGfVc5plSSa3Ug4qD
+	 68TcWoVkKWcWiYkY4W5a83z46yA96TzsbwfRhsBxsDRiabwQkWns/Tif8yiaS6gKL6
+	 A/7d7E0N43yTcUZVyIGSyzY65ASgvfB6Z5RjtduLCL+hVMiQk4gdZYnvheIlDcS7QX
+	 R4djuzdFmUEX6fxvHS+FyNqDYvCURwcZeps3YwrHy88ZagnuyleM1tL3kJIK30DByL
+	 YwjOeO69BVtUNRPMBdiM3PgfdZMhDZlXyx9pwU7s4tlEHkwL3frYSNef6rIkZu7rmK
+	 2ocvGnzUFW+Xg==
 From: Lorenzo Pieralisi <lpieralisi@kernel.org>
-Date: Wed, 03 Jun 2026 10:20:58 +0200
-Subject: [PATCH v2 2/6] ACPI: RISC-V: Check acpi_get_handle() status in
- riscv_acpi_add_prt_dep()
+Date: Wed, 03 Jun 2026 10:20:59 +0200
+Subject: [PATCH v2 3/6] ACPI: RISC-V: Fix riscv_acpi_add_prt_dep() loop
+ handling
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -38,7 +38,7 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260603-gic-v5-acpi-iwb-probe-deferral-v2-2-23ffa16b6ebb@kernel.org>
+Message-Id: <20260603-gic-v5-acpi-iwb-probe-deferral-v2-3-23ffa16b6ebb@kernel.org>
 References: <20260603-gic-v5-acpi-iwb-probe-deferral-v2-0-23ffa16b6ebb@kernel.org>
 In-Reply-To: <20260603-gic-v5-acpi-iwb-probe-deferral-v2-0-23ffa16b6ebb@kernel.org>
 To: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
@@ -52,34 +52,66 @@ Cc: linux-riscv@lists.infradead.org, linux-kernel@vger.kernel.org,
  loongarch@lists.linux.dev, Lorenzo Pieralisi <lpieralisi@kernel.org>
 X-Mailer: b4 0.15.2
 
-In riscv_acpi_add_prt_dep(), the acpi_get_handle() call can fail which
-would leave link_handle uninitialized.
+The loop in riscv_acpi_add_prt_dep() includes error conditions that are
+handled in a dubious - if not outright wrong - way, by continuining the
+loop (which skips and misses the entry pointer update to point to the next
+entry).
 
-Fix it by checking the acpi_get_handle() return status and skip the entry
-if it fails.
+Rewrite the loop as a for loop (that handles the continuation correctly)
+and wrap the condition and update statements using helper functions to make
+it cleaner.
 
 Signed-off-by: Lorenzo Pieralisi <lpieralisi@kernel.org>
 Cc: "Rafael J. Wysocki" <rafael@kernel.org>
 Cc: Sunil V L <sunilvl@ventanamicro.com>
 ---
- drivers/acpi/riscv/irq.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/acpi/riscv/irq.c | 19 +++++++++++++++----
+ 1 file changed, 15 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/acpi/riscv/irq.c b/drivers/acpi/riscv/irq.c
-index cd83c3035cf6..75170151c614 100644
+index 75170151c614..0cdec5dd575e 100644
 --- a/drivers/acpi/riscv/irq.c
 +++ b/drivers/acpi/riscv/irq.c
-@@ -339,7 +339,9 @@ static u32 riscv_acpi_add_prt_dep(acpi_handle handle)
+@@ -319,6 +319,20 @@ static int riscv_acpi_irq_get_dep(acpi_handle handle, unsigned int index, acpi_h
+ 	return ctx.rc;
+ }
+ 
++static bool acpi_prt_entry_valid(void *prt_entry)
++{
++	struct acpi_pci_routing_table *entry = prt_entry;
++
++	return entry && entry->length > 0;
++}
++
++static void *acpi_prt_next_entry(void *prt_entry)
++{
++	struct acpi_pci_routing_table *entry = prt_entry;
++
++	return prt_entry + entry->length;
++}
++
+ static u32 riscv_acpi_add_prt_dep(acpi_handle handle)
+ {
+ 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+@@ -337,7 +351,7 @@ static u32 riscv_acpi_add_prt_dep(acpi_handle handle)
+ 	}
+ 
  	entry = buffer.pointer;
- 	while (entry && (entry->length > 0)) {
+-	while (entry && (entry->length > 0)) {
++	for (; acpi_prt_entry_valid(entry); entry = acpi_prt_next_entry(entry)) {
  		if (entry->source[0]) {
--			acpi_get_handle(handle, entry->source, &link_handle);
-+			status = acpi_get_handle(handle, entry->source, &link_handle);
-+			if (ACPI_FAILURE(status))
-+				continue;
- 			dep_devices.count = 1;
- 			dep_devices.handles = kzalloc_objs(*dep_devices.handles,
- 							   1);
+ 			status = acpi_get_handle(handle, entry->source, &link_handle);
+ 			if (ACPI_FAILURE(status))
+@@ -365,9 +379,6 @@ static u32 riscv_acpi_add_prt_dep(acpi_handle handle)
+ 			dep_devices.handles[0] = gsi_handle;
+ 			count += acpi_scan_add_dep(handle, &dep_devices);
+ 		}
+-
+-		entry = (struct acpi_pci_routing_table *)
+-			((unsigned long)entry + entry->length);
+ 	}
+ 
+ 	kfree(buffer.pointer);
 
 -- 
 2.54.0
