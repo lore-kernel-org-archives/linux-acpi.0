@@ -1,34 +1,35 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8AFA1399031;
-	Wed,  3 Jun 2026 08:21:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5EA9399031;
+	Wed,  3 Jun 2026 08:21:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780474892; cv=none; b=CwTpGVUhBVl8MdDhTOMYwUYjLqNSb7qh1Qpheo173fNLcSsHY1q+E2V8+MkdXnBsZdk1d1GmgW62gEOuM0+FcukgSYj2kfKYjb48Rg2ypNoYlahebI2Ji/38CBFv9HFqgFFrGqxDbciFv9BHVyNkHD6q4tAjUoRQf2FTvBElymA=
+	t=1780474896; cv=none; b=fS2Bvp0dUcMwBRGMZF5GRa0I6R2XuN+rWeA+bdFpoeRU3MRRF6QXaILWsHbNmC0M6S3+D5+sQKqSyN9ZdOKljqkEi1ZwzShhCX0e7UDAdFRO1jR/bkfZY7EsoGjZfxtcmiH3luzCZVNlve5PVtUCziwYOUhfjAKHLN4R2mVKi5k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780474892; c=relaxed/simple;
-	bh=XhRtdiyd040yUK8FqiEBDtVTp8aXqvJE+fpUDChkCcQ=;
-	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=D08QdkSy5CYRQxIhotZ4bPiIRz5Wr6Qaa4nTZAHykym8/GORT7E2eaONNf/qvIkDzy2o1HVDIaPzajAV9SZ8JZHeHK9ldtdgQNJG39574bmloItoFEg/U24Efn8hjX2+qyaE7lpqWOogygxC/rob1cBTmyKz6j74/TEpJvN9TOI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nHpJpaiX; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780474896; c=relaxed/simple;
+	bh=ZH3O1czfozrN63XMS5d8GPzOp866A+WZMTs8T/fKj2A=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=lq1QzodzQog9msyESRw9m7CHrcOEXjiEReBSpwHJhealhLaYJYh0YgPPRSsnNq3kLxwvp+E7qiAdcfJ5+aSIXjcVeH7xhqlSRh0gGBclrNf90kHPrWFegf2XKtNRfxy7fhmH/kPERdCDzLlcWrSkmqH5n0CPO9LBjTHm99fCt2A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=I8zGp/Su; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nHpJpaiX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F78D1F00893;
-	Wed,  3 Jun 2026 08:21:27 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="I8zGp/Su"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2AEE1F00898;
+	Wed,  3 Jun 2026 08:21:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1780474891;
-	bh=roqByI0ANZaxZ2rldGt9p/o5LQVsge3W6W4aPEvMzNI=;
-	h=From:Subject:Date:To:Cc;
-	b=nHpJpaiXA8Jdl1wSU0NSaD4Ku591j9xRmKXRBCzPKXzbx8TVUP6iTkbVe/Z1CSxhs
-	 nIYwaXfPbxWHRSQPrsq1qcHSzR+fv79cQI0FDMiSoqjm0ituzsptvJ0OyZwwmc1m+G
-	 mm2aGRjbJJVxtSoY0ibiC/tLDtD6kAWmw6rP6WE74r/fCokS45ESO3ygnDVOUES0aE
-	 xk+pPxDJr5IjLLtB1h9U8KNBa4TVZh7uqf0+FLfKJ81GRXSHZjLHIfLneFTDBB+NbZ
-	 Ge/ovSUZ7TyfNaSRb8LmTMCsL1MnirYZ0essElbcZGIJakcsmGdyc+OPaCQoPm+Lvc
-	 4Wq5WDBdEF25Q==
+	s=k20260515; t=1780474895;
+	bh=DtPsyAAM9L9RpV0wzLX+t9PSNnuH7YnorG5sG9N5qyY=;
+	h=From:Date:Subject:References:In-Reply-To:To:Cc;
+	b=I8zGp/SuIIc/MyHSmJDvHq47bFp6Q8K0XNKpF+OdFaZbEKdUMPOECPu3YD9z3Q+ZK
+	 v+2qwkJ8zwOXfb7r7IGIe468DNyg75zfnWYKFXk3jqDghn1bxQB6P8mEdchw6nCqjG
+	 SHPWyO6++bMMSx4leBFKw1bakRXubGyUySwEcFus93FUv6nM5W9jso01Md1cfzb9aU
+	 ClaBce8zWXkNa/LgD/d50FO5JNDDymIJ+h7vDU1BVSaCJO/em5Y8z/XXn0ihgeHJAq
+	 jxJwzgq8gR5/jgSkcK1f6EIIAuASySWOScFyjcIfQOKsXvihCd5xMnZOPnBjdabi0b
+	 crJEd7duELnOw==
 From: Lorenzo Pieralisi <lpieralisi@kernel.org>
-Subject: [PATCH v2 0/6] irqchip/ACPI: Arm GICv5 IWB ACPI IRQ probe deferral
-Date: Wed, 03 Jun 2026 10:20:56 +0200
-Message-Id: <20260603-gic-v5-acpi-iwb-probe-deferral-v2-0-23ffa16b6ebb@kernel.org>
+Date: Wed, 03 Jun 2026 10:20:57 +0200
+Subject: [PATCH v2 1/6] ACPI: RISC-V: Fix riscv_acpi_irq_get_dep() loop
+ termination
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -37,11 +38,9 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-B4-Tracking: v=1; b=H4sIAOjjH2oC/4WOyw6CMBBFf4V07RgolIcr/8OwaMsAo4aSKVYN4
- d/l8QEuT3Jyz52FRyb04hLNgjGQJzesIE+RsL0eOgRqVhYylnmcyQI6shAUaDsS0NvAyM4gNNg
- is36CbWyZVSbRpcrEOjIytvTZA7f6YP8yd7TTtroZPfnJ8Xd/EJLNO2IqVv9iIYEYTFqYUlVVm
- eby+kAe8Hl23Il6WZYf10ma498AAAA=
-X-Change-ID: 20260427-gic-v5-acpi-iwb-probe-deferral-cdc849b1a854
+Message-Id: <20260603-gic-v5-acpi-iwb-probe-deferral-v2-1-23ffa16b6ebb@kernel.org>
+References: <20260603-gic-v5-acpi-iwb-probe-deferral-v2-0-23ffa16b6ebb@kernel.org>
+In-Reply-To: <20260603-gic-v5-acpi-iwb-probe-deferral-v2-0-23ffa16b6ebb@kernel.org>
 To: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
  Sunil V L <sunilvl@ventanamicro.com>, Marc Zyngier <maz@kernel.org>, 
  Thomas Gleixner <tglx@kernel.org>, Huacai Chen <chenhuacai@kernel.org>, 
@@ -53,58 +52,61 @@ Cc: linux-riscv@lists.infradead.org, linux-kernel@vger.kernel.org,
  loongarch@lists.linux.dev, Lorenzo Pieralisi <lpieralisi@kernel.org>
 X-Mailer: b4 0.15.2
 
-On Arm GICv5 systems, the IWB (Interrupt Wire Bridge) handles wired interrupts
-and it is in charge of translating interrupt wires to GICv5 ITS messages.
+In riscv_acpi_add_irq_dep() the main loop condition would currently stop
+the loop if an interrupt descriptor contains an interrupt for which the
+respective GSI handle is NULL, which is not correct because subsequent
+interrupts in the interrupt descriptor might still have a GSI dependency
+that must not be skipped.
 
-In ACPI systems, an IWB is backed by a platform device. Device drivers for
-devices whose IRQs are routed to an IWB might probe earlier than the IWB device
-driver, which can result in failures in that until the IWB driver is probed and
-its IRQ domain is duly registered, IRQs routed to it cannot be resolved.
-
-Some interrupt controllers for the RISC-V architecture suffer from the same
-issue; RISC-V, in its ACPI IRQ layer solved the problem by automatically
-creating device dependencies that result in the interrupt controllers drivers
-being probed before any device driver whose devices IRQs are routed to them is
-probed.
-
-Instead of reinventing the wheel, this series move the aforementioned RISC-V
-code to generic ACPI IRQ handling code (while fixing some bits and pieces) and
-implement GICv5 IWB ACPI probe deferral on top of it.
+Rework riscv_acpi_add_irq_dep() and the riscv_acpi_irq_get_dep() call chain
+to fix it - by not forcing the loop to stop in order to guarantee
+dependency detection for all the interrupt entries in the CRS descriptor.
 
 Signed-off-by: Lorenzo Pieralisi <lpieralisi@kernel.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Sunil V L <sunilvl@ventanamicro.com>
 ---
-Changes in v2:
-- Split the patchset in several logic units according to review
-- Link to v1: https://patch.msgid.link/20260505-gic-v5-acpi-iwb-probe-deferral-v1-0-b37b85998362@kernel.org
+ drivers/acpi/riscv/irq.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
----
-Lorenzo Pieralisi (6):
-      ACPI: RISC-V: Fix riscv_acpi_irq_get_dep() loop termination
-      ACPI: RISC-V: Check acpi_get_handle() status in riscv_acpi_add_prt_dep()
-      ACPI: RISC-V: Fix riscv_acpi_add_prt_dep() loop handling
-      ACPI: irq: Move RISC-V interrupt controllers autodep to ACPI IRQ code
-      ACPI/IORT: Implement ACPI infrastructure to enable GICv5 IWB probe deferral
-      irqchip/gic-v5: Enable GICv5 IWB ACPI probe ordering detection
+diff --git a/drivers/acpi/riscv/irq.c b/drivers/acpi/riscv/irq.c
+index 9b88d0993e88..cd83c3035cf6 100644
+--- a/drivers/acpi/riscv/irq.c
++++ b/drivers/acpi/riscv/irq.c
+@@ -299,6 +299,7 @@ static acpi_status riscv_acpi_irq_get_parent(struct acpi_resource *ares, void *c
+ 			return AE_OK;
+ 
+ 		ctx->handle = riscv_acpi_get_gsi_handle(eirq->interrupts[ctx->index]);
++		ctx->rc = 0;
+ 		return AE_CTRL_TERMINATE;
+ 	}
+ 
+@@ -314,10 +315,8 @@ static int riscv_acpi_irq_get_dep(acpi_handle handle, unsigned int index, acpi_h
+ 
+ 	acpi_walk_resources(handle, METHOD_NAME__CRS, riscv_acpi_irq_get_parent, &ctx);
+ 	*gsi_handle = ctx.handle;
+-	if (*gsi_handle)
+-		return 1;
+ 
+-	return 0;
++	return ctx.rc;
+ }
+ 
+ static u32 riscv_acpi_add_prt_dep(acpi_handle handle)
+@@ -381,8 +380,11 @@ static u32 riscv_acpi_add_irq_dep(acpi_handle handle)
+ 	int i;
+ 
+ 	for (i = 0;
+-	     riscv_acpi_irq_get_dep(handle, i, &gsi_handle);
++	     !riscv_acpi_irq_get_dep(handle, i, &gsi_handle);
+ 	     i++) {
++		if (!gsi_handle)
++			continue;
++
+ 		dep_devices.count = 1;
+ 		dep_devices.handles = kzalloc_objs(*dep_devices.handles, 1);
+ 		if (!dep_devices.handles) {
 
- arch/riscv/include/asm/acpi.h       |   1 +
- drivers/acpi/arm64/iort.c           |  22 ++++-
- drivers/acpi/irq.c                  | 172 +++++++++++++++++++++++++++++++++++-
- drivers/acpi/riscv/irq.c            | 141 +----------------------------
- drivers/acpi/scan.c                 |   1 +
- drivers/irqchip/irq-gic-v3.c        |   2 +-
- drivers/irqchip/irq-gic-v5-iwb.c    |   5 ++
- drivers/irqchip/irq-gic-v5.c        |  13 ++-
- drivers/irqchip/irq-gic.c           |   2 +-
- drivers/irqchip/irq-loongarch-cpu.c |   2 +-
- drivers/irqchip/irq-riscv-intc.c    |   3 +-
- include/linux/acpi.h                |   5 +-
- include/linux/acpi_iort.h           |   3 +-
- 13 files changed, 218 insertions(+), 154 deletions(-)
----
-base-commit: 5d6919055dec134de3c40167a490f33c74c12581
-change-id: 20260427-gic-v5-acpi-iwb-probe-deferral-cdc849b1a854
-
-Best regards,
---  
-Lorenzo Pieralisi <lpieralisi@kernel.org>
+-- 
+2.54.0
 
