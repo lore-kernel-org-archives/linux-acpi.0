@@ -1,46 +1,46 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEDB247DD55
-	for <linux-acpi@vger.kernel.org>; Thu,  4 Jun 2026 13:38:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49E6647DD44
+	for <linux-acpi@vger.kernel.org>; Thu,  4 Jun 2026 13:43:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780580334; cv=none; b=ctRGLOxOtcqsJJmMhsFuzWMvvmAvAqKJh7YijAsy7BUfmTN2iSBBiB3Dvbl4hM4U7D1Q340APQJ7OtQxSJ0YWIputsY3o9wcZsseA6f4dXaiEpW1wg6qW81EGtC5bz2Ux2O8iaFIBI9VimmKBovlgYThaeVoPVGuwL9ImilPGvM=
+	t=1780580622; cv=none; b=Wb7uer9cQ1TyPY0iZqKG4gevz8vPfL8nG+XLpSzhIdsCB6hf9USXmZg89K2MfUAScVPOBZionB15HyFtbALO2xcOzGch6XIkluc4UL3ZFHrRS+bCtHzLMHzN9wkG4fd8pT2zrFS5FdTLchRRDPbdhbpOJP2Q0ZFBIk0INhCtxc8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780580334; c=relaxed/simple;
-	bh=WOej8V0jS2hif/IqaJuxyEnOwqeHlse8TzLN/1GKs/w=;
+	s=arc-20240116; t=1780580622; c=relaxed/simple;
+	bh=CToxS6FdlZj4zouJ7vHNbDLfrpqXFrgnLw/ve1kfXX4=;
 	h=From:In-Reply-To:MIME-Version:References:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=FSgTeNkbll6CII+lTTi0vxLChcqG3xDlFU39YIZ5jDIMhVacwp/1osL2Vq0Vm/xZRllMSlHeJ3CaisJ9KD0STzkUNdnbv513A3Thx7s0fBcPM4SDzRE6SaSjtAnCvHqujxVZekheV4kh0rUI1vdL6rObsXcwsQ/o0tqpu9gpYbQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=C5ErR04z; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=Yad966BtVO26Tjg+WPZXuS8seI/fXxS9NItgDNtCZsoMFiWk32tnwWxkq07QgTEL/Vd7M9pWcYCOfv8R5Iv/0nAI/kv6XjpzuTHFtVmr6cuubTPcjUdEoqwv1wTyOJv0Oi7dMvli3v+elXNd5mbjUq36v3w2ABwnAWDLowAH7gE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lzjhVjbu; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="C5ErR04z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E9A31F008A4
-	for <linux-acpi@vger.kernel.org>; Thu,  4 Jun 2026 13:38:53 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lzjhVjbu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CD5F1F00899
+	for <linux-acpi@vger.kernel.org>; Thu,  4 Jun 2026 13:43:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1780580333;
-	bh=WOej8V0jS2hif/IqaJuxyEnOwqeHlse8TzLN/1GKs/w=;
+	s=k20260515; t=1780580621;
+	bh=N1YAyS3TGKktpEHhVLzBCoJrDFUddxGXi3xr4lYxQ/Q=;
 	h=From:In-Reply-To:References:Date:Subject:To:Cc;
-	b=C5ErR04zPbJcnzhF1uVpb6SpyO0uGcNB1QKenutCnM0FsXMcne4LWJF63unZZ4dQ1
-	 /Ol8FyQ4XS57fRII3ZZiQRjcpWCjORPtxXYXsceHTAiinRubrGf09Kw7kc+BEBNKoA
-	 k08vdn45OYQHms1brdV0jMJfD5rMbnAXaVr4HApl+CpA5CVv8m39W/SfmHb9vLH9Gi
-	 hT1V/vAYC64+l4+qUVvDetMYEieQPCcaSQ6XCVtK+DC65UvzrGMPoIw5f4CLI7GolH
-	 iEMdK40b3T3YUwxEuQlK59WjaFgBVjuBid3ASAeRs67jaBSSWFIO0959oSf1rt6PsB
-	 XQb9y5NrVORmA==
-Received: by mail-lj1-f179.google.com with SMTP id 38308e7fff4ca-39666ac91a2so19001821fa.1
-        for <linux-acpi@vger.kernel.org>; Thu, 04 Jun 2026 06:38:53 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AFNElJ8I7NwQNmm2zYofCoAxU+mJrvwn2V9KfS0GuEhSfDfcqXwdjumxW2JLc7Z2ko8yanq7CRJy63Iqyive@vger.kernel.org
-X-Gm-Message-State: AOJu0Yy1IkV5/S1znsu3reMfbcd0TMhmrl21Uav1mG1gqYnD7No1ECiX
-	A0NfLosprcynMwhBIW/OSIZdHzEe4XfGnJyHRSMooH47zPvW9Z8WSNAWK7lt750wKghoo8phOzI
-	RQGtwhNGsXqpd8nH4YkXOjcd0/Czd8JMdzurqi5lwXg==
-X-Received: by 2002:a05:651c:b2a:b0:38e:94c6:b706 with SMTP id
- 38308e7fff4ca-396bb98b98amr9711651fa.7.1780580332277; Thu, 04 Jun 2026
- 06:38:52 -0700 (PDT)
+	b=lzjhVjbuLVvuRPCh3ZYoDj3Vz3gaa76R02sVOPDwerevvvaxtomBugxWOaluL3TWR
+	 sXwGr6xbtk6Pd8TLA9GbIbg33d2nnLVatmdAGxA3ioYFVI9qowrIP323WNaL543f3S
+	 89EgLPcn9DS+lLGlQl+46S0CxWAToNJ0mQm7KGLHtdwE+fYPOrbmZXh8DLgJ4qEloS
+	 88FvexxVNgLdVFrbGWtU5jIHmk4ReW6D1qv9pD718lIHJMwf4YZS8+xOvzaMT6lYje
+	 e2fARk4dWpE8ZRxuEMmX51Pm5OdTLoHuiOQ3NfxvN97cCQM82X4tFyJ4DnHbYNlp2i
+	 v57lml76gHOQA==
+Received: by mail-lj1-f182.google.com with SMTP id 38308e7fff4ca-396aacc5bcfso7033551fa.3
+        for <linux-acpi@vger.kernel.org>; Thu, 04 Jun 2026 06:43:41 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ9gVdA4qXguhw2eQBwMXJjiN4OkAx4DWwytReoDK/3JTWeTQKnpVYjy35FdP9X37WysybN55ITrXNoN@vger.kernel.org
+X-Gm-Message-State: AOJu0YwKpi2TDHkRPcw4zJVI73KzGt2ZiR8qJujtKGztaYZzmQeIvN+t
+	PCH32s3chBIQdzUIzjP1Mu1vnTHh5shkX+C90FWr+b0Z3pTlA7HnGhBjhSm0yb7lOALzW4xWVE2
+	Xs1TTZbq1AirpcR/w2x25LzOgcF7xRcczhx8T+8X8Pw==
+X-Received: by 2002:a05:6512:131f:b0:5aa:73e5:3570 with SMTP id
+ 2adb3069b0e04-5aa7c0cec6dmr2678551e87.36.1780580619850; Thu, 04 Jun 2026
+ 06:43:39 -0700 (PDT)
 Received: from 969154062570 named unknown by gmailapi.google.com with
- HTTPREST; Thu, 4 Jun 2026 06:38:50 -0700
+ HTTPREST; Thu, 4 Jun 2026 06:43:38 -0700
 Received: from 969154062570 named unknown by gmailapi.google.com with
- HTTPREST; Thu, 4 Jun 2026 06:38:50 -0700
+ HTTPREST; Thu, 4 Jun 2026 06:43:38 -0700
 From: Bartosz Golaszewski <brgl@kernel.org>
-In-Reply-To: <6j2yk2x23mmtr2xbwkp3ind76qyy3mu7y23psseqqvbjlqepld@n4nsvswt2euz>
+In-Reply-To: <x5liep46c3yzqh3wfsfa2euku6j6yka32clpiwf2zkqdm6czds@b2rll3k67yhd>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -48,13 +48,13 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 References: <20260603-fixes_fwnode_iteration-v2-0-0ae381f8b7b9@nxp.com>
- <ah_3KmASlE44X4Xw@ashevche-desk.local> <6j2yk2x23mmtr2xbwkp3ind76qyy3mu7y23psseqqvbjlqepld@n4nsvswt2euz>
-Date: Thu, 4 Jun 2026 06:38:50 -0700
-X-Gmail-Original-Message-ID: <CAMRc=Mfd6CQO8SLLzP+ggmSYzSwvsxuNUz4rwmT1JskXc_ZAYg@mail.gmail.com>
-X-Gm-Features: AVHnY4Jx-zlwECM-UOEsi3xTgeeIQ7EP0o-ZpK4NuYcXo8WYQV9kBKSsNaho8kM
-Message-ID: <CAMRc=Mfd6CQO8SLLzP+ggmSYzSwvsxuNUz4rwmT1JskXc_ZAYg@mail.gmail.com>
-Subject: Re: [PATCH v2 0/2] device property: fix child iteration issues with
- secondary fwnodes
+ <20260603-fixes_fwnode_iteration-v2-2-0ae381f8b7b9@nxp.com>
+ <ah_5NgZPc2U0_FPO@ashevche-desk.local> <x5liep46c3yzqh3wfsfa2euku6j6yka32clpiwf2zkqdm6czds@b2rll3k67yhd>
+Date: Thu, 4 Jun 2026 06:43:38 -0700
+X-Gmail-Original-Message-ID: <CAMRc=MeV=FcojNs6rJoBcCwWoDKe5Dwc4MXrHSzEMdHin6j+BQ@mail.gmail.com>
+X-Gm-Features: AVHnY4IEdPcUDSy4usLTi2dyhCYEs9OtptwMsFAhF1KOZVfa8Akr_l_ig2kFsV4
+Message-ID: <CAMRc=MeV=FcojNs6rJoBcCwWoDKe5Dwc4MXrHSzEMdHin6j+BQ@mail.gmail.com>
+Subject: Re: [PATCH v2 2/2] device property: fix infinite loop in fwnode_for_each_child_node()
 To: Xu Yang <xu.yang_2@oss.nxp.com>
 Cc: Bartosz Golaszewski <brgl@kernel.org>, Daniel Scally <djrscally@gmail.com>, 
 	Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
@@ -66,34 +66,72 @@ Cc: Bartosz Golaszewski <brgl@kernel.org>, Daniel Scally <djrscally@gmail.com>,
 	Xu Yang <xu.yang_2@nxp.com>, stable@vger.kernel.org, 
 	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, 4 Jun 2026 12:58:41 +0200, Xu Yang <xu.yang_2@oss.nxp.com> said:
-> On Wed, Jun 03, 2026 at 12:43:06PM +0300, Andy Shevchenko wrote:
->> On Wed, Jun 03, 2026 at 04:44:30PM +0800, Xu Yang wrote:
->> > This series fixes two issues in the fwnode child iteration logic when
->> > a secondary fwnode is present.
->> >
->> > The first patch addresses a refcount imbalance in
->> > software_node_get_next_child(). When a software node is used as a
->> > secondary fwnode, the iteration code may incorrectly decrement the
->> > refcount of child nodes that do not belong to the software node
->> > hierarchy. This results in refcount underflow and possible use-after-free.
->> >
->> > The second patch fixes an infinite loop in
->> > fwnode_for_each_child_node(), caused by improper handling of iteration
->> > state across primary and secondary fwnodes. When iterating over children
->> > from both primary and secondary fwnodes, the code may incorrectly
->> > resume iteration from the primary fwnode even when the current child
->> > belongs to the secondary, leading to repeated traversal and a loop.
->> >
->> > Both issues are triggered when mixing different fwnode types through the
->> > secondary mechanism, and stem from incorrect assumptions about ownership
->> > and traversal context of child nodes.
+On Thu, 4 Jun 2026 13:05:23 +0200, Xu Yang <xu.yang_2@oss.nxp.com> said:
+> On Wed, Jun 03, 2026 at 12:51:50PM +0300, Andy Shevchenko wrote:
+>> On Wed, Jun 03, 2026 at 04:44:32PM +0800, Xu Yang wrote:
 >>
->> Please, Cc Bart who is heavily working on software nodes these days.
+>> > When iterate over children of a fwnode that has a secondary fwnode,
+>> > fwnode_get_next_child_node() can enter an infinite loop if the seconda=
+ry
+>> > fwnode has more than one child.
+>> >
+>> >                        Parent        Child
+>> >       (Primary fwnode)   FWa:   {FWa1, FWa2, FWa3}
+>> >     (Secondary fwnode)   FWb:   {FWb1, FWb2}
+>> >
+>> > In this case:
+>> >
+>> >  =E2=94=8C=E2=94=80> fwnode_get_next_child_node(FWa, FWa1)
+>> >  =E2=94=82    - fwnode_call_ptr_op(FWa, get_next_child_node, FWa1) ret=
+urns FWa2
+>> >  =E2=94=82
+>> >  =E2=94=82   ...
+>> >  =E2=94=82
+>> >  =E2=94=82   fwnode_get_next_child_node(FWa, FWa3)
+>> >  =E2=94=82    - fwnode_call_ptr_op(FWa, get_next_child_node, FWa3) ret=
+urns NULL
+>> >  =E2=94=82    - fwnode_call_ptr_op(FWb, get_next_child_node, FWa3) ret=
+urns FWb1
+>> >  =E2=94=82
+>> >  =E2=94=82   fwnode_get_next_child_node(FWa, FWb1)
+>> >  =E2=94=82    - fwnode_call_ptr_op(FWa, get_next_child_node, FWb1) ret=
+urns FWa1
+>> >  =E2=94=94=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=98
+>> >
+>> > This cause fwnode_for_each_child_node() to loop indefinitely, reapeate=
+dly
+>> > output {FWa1, FWa2, FWa3, FWb1, FWa1, ...}.
+>> >
+>> > The root cause is that when the current child (FWb1) belongs to the
+>> > secondary fwnode, calling get_next_child_node() on the parimary fwnode
+>> > incorrectly returns the first child (FWa1) again instead of NULL.
+>> >
+>> > Fix this by dynamically checking the parent fwnode of the current chil=
+d
+>> > before calling get_next_child_node(). This approach follows the patter=
+n
+>> > established in commit b5b41ab6b0c1 ("device property: Check
+>> > fwnode->secondary in fwnode_graph_get_next_endpoint()").
+>>
+>> ...
+>>
+>> TBH, this code becomes twisted and complicated. Can we add some test cas=
+es to
+>> show the problem? Also we need to add other possible combinations (somew=
+hat
+>> about ~5-6) of the different types of fwnode in a relationship.
+>
+> I agree that adding test cases would be helpful. But It's not straightfor=
+ward to
+> get swnode refcount as swnode is an internal structure. Any suggestions o=
+n this?
 >
 
-Should I propose myself as reviewer? We can't demand people to Cc random
-addresses otherwise.
+You should be able to replicate the problem with the firmware node API with=
+out
+accessing the internal swnode structure. You can use dummy OF nodes as the
+primary fwnodes.
 
 Bart
