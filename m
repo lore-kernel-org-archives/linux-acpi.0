@@ -1,209 +1,153 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mxhk.zte.com.cn (mxhk.zte.com.cn [160.30.148.34])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3860A37CD32;
-	Thu,  4 Jun 2026 06:32:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1FFAA3CA49D;
+	Thu,  4 Jun 2026 06:55:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=160.30.148.34
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780554759; cv=none; b=pJHM0hOtsDnvrZ7dhakC5sp+0ottRLeqSK28uUZtpLxlAUvuJo7Ez6/MF6w9DA6OQpZmg9Zh1501GVfg/cvJAmq+QY+PlN9bijPaKVgwnycTrM0wXvoomGXscWbWK579NjXM/RDH+B6nSvOrdraEEk1l8Bs+7kLvGL+Dxjc1ocY=
+	t=1780556124; cv=none; b=t57SzHscje0jZEELpy/QQR8yl7IjJF64ziI7rH8CBnnpZGfVGPMXmm0H5rrnZeImPQk9bqIStbW7uMsKxlPAGR6TLhI5JV2vvYKbIF5Q9p8WL8e0lMaRCyWPgRnJ8IrZkoa9FLX6lARsdEh6ujhnAwOqTDxLm8AVH3QqCrvW874=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780554759; c=relaxed/simple;
-	bh=vjMpFrdhsF3cvdDr1HG4s6q+f0tZYlJsrp9/HJytIH4=;
-	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
-	 In-Reply-To:Content-Type; b=m3f1syU8mmFcHxu9ywjOS3EdLUj15MZYXoJ+h6kQPxnpsBzz37s59NywlGPQoNgU/QDkSVUY/Q42xsV6szwetZOh5c/MLKxWBdZAVovnQtZU721uV3n8I2SJkVPjY/V5F301sTnZGHJseKiXe1uUJZJ7hrXXFmuNdgZz6f40LoI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MaN0PPqo; arc=none smtp.client-ip=100.103.45.18
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MaN0PPqo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3DAC11F00893;
-	Thu,  4 Jun 2026 06:32:36 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1780554757;
-	bh=dV5W26DQiOuq9I4AtWSX96niq6SakPqediiwTnHhLTs=;
-	h=Date:Subject:From:To:Cc:References:In-Reply-To;
-	b=MaN0PPqoo5zXDbsRVW1WygBCImFC6GmqkL/UKgBE0LQU2e1Hmajfm8fTTLra0AR4z
-	 FjeWyG1tZ0NoXSBhZ64ZegYhot2/5+01WQswVndpHUFuYm2PgCKwIWWmsDqxysx1XK
-	 kQ55FjWlvLMEJntuOBx2qlYu1j9T4vUXs7VGlT/NnA+5EEW8ONy9w097Td/RRHXwHi
-	 /boEm+T268ZJGkLCK51YOpbCtYdKd+VCwBLB/wC9qP11C8FBq5zuF96xpo19EoclUe
-	 QLn5W5M2BKT1nufEY/i0rydIHhUI6MeNfdikDWBnGfUZprHymbxy2oQqqthQhxu9qf
-	 HNnW7AfKfe3Gg==
-Message-ID: <19579b2b-3f08-435a-b37e-16adb1f483b1@kernel.org>
-Date: Thu, 4 Jun 2026 08:32:34 +0200
+	s=arc-20240116; t=1780556124; c=relaxed/simple;
+	bh=lxfDI/CI5VlYeUePE7k6ldgnppsOlKa/jNLXmGk3OZM=;
+	h=Message-ID:Date:Mime-Version:From:To:Cc:Subject:Content-Type; b=Rg2mCQzXTrB+TqfXnMVaFnWl8HFukr7s6sN118Sevd6sPz+K6CYnDRAM8UZQefmCas6feZ0W2sDoDdqWcw+FDzccoKWXfgGpMvZIY8RGHZRDA46Aqtk0+LXtzDvPpKEZFVABBlI7K0JpDbNCP2VGDdOjWXtxRfD7+NU+5IsEZpw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zte.com.cn; spf=pass smtp.mailfrom=zte.com.cn; arc=none smtp.client-ip=160.30.148.34
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zte.com.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zte.com.cn
+Received: from mse-fl2.zte.com.cn (unknown [10.5.228.133])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange x25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mxhk.zte.com.cn (FangMail) with ESMTPS id 4gWFgn4Mv7z5B13c;
+	Thu, 04 Jun 2026 14:55:17 +0800 (CST)
+Received: from szxlzmapp01.zte.com.cn ([10.5.231.85])
+	by mse-fl2.zte.com.cn with SMTP id 6546t9Gn017570;
+	Thu, 4 Jun 2026 14:55:09 +0800 (+08)
+	(envelope-from wang.yechao255@zte.com.cn)
+Received: from mapi (szxlzmapp04[null])
+	by mapi (Zmail) with MAPI id mid12;
+	Thu, 4 Jun 2026 14:55:10 +0800 (CST)
+X-Zmail-TransId: 2b066a21214ec27-b4cdb
+X-Mailer: Zmail v1.0
+Message-ID: <20260604145510898G2kTwM2Pr25QE5H8T4Wh6@zte.com.cn>
+Date: Thu, 4 Jun 2026 14:55:10 +0800 (CST)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] ACPICA: Replace strncpy() with strscpy_pad() in
- acpi_ut_safe_strncpy()
-From: Jiri Slaby <jirislaby@kernel.org>
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Kees Cook <kees@kernel.org>
-Cc: Robert Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>,
- linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
- acpica-devel@lists.linux.dev, linux-hardening@vger.kernel.org
-References: <20260323172451.work.079-kees@kernel.org>
- <CAJZ5v0hOS7j2f-wkmvarULCS-1+Zio2hOz2ExMvFXN61OPv_tQ@mail.gmail.com>
- <405e97ae-72a1-4086-bef3-cf462619f661@kernel.org>
- <79e9e913-0fb1-4110-804b-c3b5d0edafe4@kernel.org>
-Content-Language: en-US
-Autocrypt: addr=jirislaby@kernel.org; keydata=
- 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
-In-Reply-To: <79e9e913-0fb1-4110-804b-c3b5d0edafe4@kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Mime-Version: 1.0
+From: <wang.yechao255@zte.com.cn>
+To: <linux-acpi@vger.kernel.org>, <linux-riscv@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <iommu@lists.linux.dev>
+Cc: <sunilvl@ventanamicro.com>, <rafael@kernel.org>, <lenb@kernel.org>,
+        <pjw@kernel.org>, <palmer@dabbelt.com>, <aou@eecs.berkeley.edu>,
+        <alex@ghiti.fr>, <tomasz.jeznach@linux.dev>
+Subject: =?UTF-8?B?W1BBVENIXSBpb21tdS9yaXNjdjogQWRkIGRlcGVuZGVuY3kgYmV0d2VlbiBpb21tdSBhbmQgZGV2aWNlcw==?=
+Content-Type: text/plain;
+	charset="UTF-8"
+X-MAIL:mse-fl2.zte.com.cn 6546t9Gn017570
+X-TLS: YES
+X-ENVELOPE-SENDER: wang.yechao255@zte.com.cn
+X-SOURCE-IP: 10.5.228.133 unknown Thu, 04 Jun 2026 14:55:17 +0800
+X-CLEAN: YES
+X-Fangmail-Anti-Spam-Filtered: true
+X-Fangmail-MID-QID: 6A212155.001/4gWFgn4Mv7z5B13c
 
-Ping?
+From: Wang Yechao <wang.yechao255@zte.com.cn>
 
-On 29. 05. 26, 9:24, Jiri Slaby wrote:
-> On 29. 05. 26, 9:20, Jiri Slaby wrote:
->> On 23. 03. 26, 18:31, Rafael J. Wysocki wrote:
->>> On Mon, Mar 23, 2026 at 6:24 PM Kees Cook <kees@kernel.org> wrote:
->>>>
->>>> Replace the deprecated[1] strncpy() with strscpy_pad() in
->>>> acpi_ut_safe_strncpy().
->>>>
->>>> The function is a "safe strncpy" wrapper that does
->>>> strncpy(dest, source, dest_size) followed by manual NUL-termination
->>>> at dest[dest_size - 1]. strscpy_pad() is a direct replacement: it
->>>> NUL-terminates, zero-pads the remainder, and the manual termination
->>>> is no longer needed.
->>>>
->>>> All callers pass NUL-terminated source strings (C string literals,
->>>> __FILE__ via ACPI_MODULE_NAME, or user-provided filenames that have
->>>> already been validated). The destinations are fixed-size char arrays
->>>> in ACPICA internal structures (allocation->module, aml_op_name,
->>>> acpi_gbl_db_debug_filename), all consumed as C strings.
->>>>
->>>> No behavioral change: strscpy_pad() produces identical output to
->>>> strncpy() + manual NUL-termination for NUL-terminated sources that
->>>> are shorter than dest_size. For sources longer than dest_size,
->>>> strncpy() wrote dest_size non-NUL bytes then the manual termination
->>>> overwrote the last byte with NUL; strscpy_pad() writes dest_size-1
->>>> bytes plus NUL: same result.
->>>>
->>>> Link: https://github.com/KSPP/linux/issues/90 [1]
->>>> Signed-off-by: Kees Cook <kees@kernel.org>
->>>> ---
->>>> This touches the ACPICA component shared with the upstream ACPICA
->>>> project (https://github.com/acpica/acpica), where the function
->>>> is named AcpiUtSafeStrncpy(). The upstream codebase uses its own
->>>> platform abstraction layer (acenv.h/acgcc.h) where I've mapped various
->>>> kernel APIs before like ACPI_FLEX_ARRAY and similar helpers. However,
->>>> acpi_ut_safe_strncpy() is an explicit function implementation rather
->>>> than a macro mapping, so the approach for upstreaming this change to
->>>> ACPICA is not clear. What's the best way to land this?
->>>
->>> I can apply this directly, it shouldn't be a major problem for porting
->>> patches from the upstream.
->>
->> As I reported in https://github.com/acpica/acpica/issues/1158 (but got 
->> no reply), this patch breaks build of acpica against 7.1-rc*:
->>  > ../../../../../drivers/acpi/acpica/utnonansi.c:171:9: error: 
->> implicit declaration of function ‘strscpy_pad’ [-Wimplicit-function- 
->> declaration]
->>
->> Is strscpy_pad() supposed to be emulated in acpica?
-> 
-> No, I misread the log, it's the in-kernel acpidump failing to build:
-> 
-> ~/linux/tools/power/acpi/tools/acpidump> make
->    MKDIR    include
->    CP       include
->    CC       tools/acpidump/apdump.o
->    CC       tools/acpidump/apfiles.o
->    CC       tools/acpidump/apmain.o
->    CC       tools/acpidump/osunixdir.o
->    CC       tools/acpidump/osunixmap.o
->    CC       tools/acpidump/osunixxf.o
->    CC       tools/acpidump/tbprint.o
->    CC       tools/acpidump/tbxfroot.o
->    CC       tools/acpidump/utascii.o
->    CC       tools/acpidump/utbuffer.o
->    CC       tools/acpidump/utcksum.o
->    CC       tools/acpidump/utdebug.o
->    CC       tools/acpidump/utexcep.o
->    CC       tools/acpidump/utglobal.o
->    CC       tools/acpidump/uthex.o
->    CC       tools/acpidump/utmath.o
->    CC       tools/acpidump/utnonansi.o
-> ../../../../../drivers/acpi/acpica/utnonansi.c: In function 
-> ‘acpi_ut_safe_strncpy’:
-> ../../../../../drivers/acpi/acpica/utnonansi.c:171:9: error: implicit 
-> declaration of function ‘strscpy_pad’ [-Wimplicit-function-declaration]
->    171 |         strscpy_pad(dest, source, dest_size);
->        |         ^~~~~~~~~~~
-> make: *** [../../Makefile.rules:25: /home/xslaby/linux/tools/power/acpi/ 
-> tools/acpidump/utnonansi.o] Chyba 1
-> 
->>>> (This is one of the last users of strncpy in the kernel.)
->>>> ---
->>>>   drivers/acpi/acpica/utnonansi.c | 3 +--
->>>>   1 file changed, 1 insertion(+), 2 deletions(-)
->>>>
->>>> diff --git a/drivers/acpi/acpica/utnonansi.c b/drivers/acpi/acpica/ 
->>>> utnonansi.c
->>>> index ff0802ace19b..3a7952be6545 100644
->>>> --- a/drivers/acpi/acpica/utnonansi.c
->>>> +++ b/drivers/acpi/acpica/utnonansi.c
->>>> @@ -168,8 +168,7 @@ void acpi_ut_safe_strncpy(char *dest, char 
->>>> *source, acpi_size dest_size)
->>>>   {
->>>>          /* Always terminate destination string */
->>>>
->>>> -       strncpy(dest, source, dest_size);
->>>> -       dest[dest_size - 1] = 0;
->>>> +       strscpy_pad(dest, source, dest_size);
->>>>   }
->>>>
->>>>   #endif
->>>> -- 
->>>
->>
->> thanks,
-> 
+Commit 9156585280f1 ("ACPI: RIMT: Add dependency between iommu and
+devices") adds the dependency between iommu and devices on ACPI
+systems. On devicetree systems, the incorrect removal order also
+occurs.
+
+It can be reproduced on the QEMU RISC-V machine if the kernel enables
+IOMMU_DMA:
+
+[  635.081530] e1000e: EEE TX LPI TIMER: 00000000
+[  656.100306] rcu: INFO: rcu_sched self-detected stall on CPU
+[  656.101374] rcu:     5-....: (5250 ticks this GP) idle=d774/1/0x4000000000000000 softirq=5173/5185 fqs=2625
+[  656.102237] rcu:     (t=5251 jiffies g=36825 q=101 ncpus=16)
+[  656.103801] CPU: 5 UID: 0 PID: 1958 Comm: reboot Tainted: G        W           7.1.0-rc5 #31 PREEMPTLAZY
+[  656.104127] Tainted: [W]=WARN
+[  656.104182] Hardware name: QEMU QEMU Virtual Machine, BIOS 2.7 02/02/2022
+[  656.104339] epc : riscv_iommu_cmd_sync.constprop.0+0xb8/0x148
+[  656.105352]  ra : riscv_iommu_cmd_sync.constprop.0+0xa8/0x148
+[  656.105433] epc : ffffffff807ca980 ra : ffffffff807ca970 sp : ff60000085dbf960
+[  656.105475]  gp : ffffffff81e0d798 tp : ff60000084b58e00 t0 : ffffffff80021048
+[  656.105514]  t1 : ff60000081b18400 t2 : 45203a6530303031 s0 : ff60000085dbf9c0
+[  656.105554]  s1 : 00000098c92a567c a0 : 00000098c03986f0 a1 : ff60000085dbf970
+[  656.105594]  a2 : 000024bb5cac6aee a3 : ff200000004f1000 a4 : ff6000008140a040
+[  656.105632]  a5 : 0000000000000669 a6 : 0000000000000000 a7 : 00000000ffffa000
+[  656.105669]  s2 : 0000000000000000 s3 : 00000098c0398308 s4 : 000000000000066a
+[  656.105706]  s5 : 0000000008f0d180 s6 : 000000a8d08b8de9 s7 : 0000000000001fff
+[  656.105743]  s8 : ff6000008140a040 s9 : ff6000008484cb00 s10: ff200000005cc000
+[  656.105781]  s11: ff600000814652a0 t3 : 000000f000000000 t4 : 0000000000000000
+[  656.105845]  t5 : 0000000000000003 t6 : ff600000841666b0 ssp : 0000000000000000
+[  656.105883] status: 0000000200000120 badaddr: 0000000000000000 cause: 8000000000000005
+[  656.106072] riscv_iommu_cmd_sync.constprop.0+0xb8/0x148
+[  656.106321] riscv_iommu_iotlb_inval+0x120/0x160
+[  656.106373] riscv_iommu_iotlb_sync+0x48/0x60
+[  656.106422] __iommu_dma_unmap+0xca/0xf8
+[  656.106470] iommu_dma_unmap_phys+0x58/0xc8
+[  656.106517] dma_unmap_phys+0x15c/0x248
+[  656.106564] dma_unmap_page_attrs+0x1e/0x30
+[  656.106915] e1000_clean_rx_ring+0x1d2/0x200 [e1000e]
+[  656.107668] e1000e_down+0x168/0x1c8 [e1000e]
+[  656.107995] e1000e_pm_freeze+0x94/0x128 [e1000e]
+[  656.108328] e1000_shutdown+0x28/0x48 [e1000e]
+[  656.108652] pci_device_shutdown+0x34/0x48
+[  656.108706] device_shutdown+0x104/0x1e8
+[  656.108752] kernel_restart+0x46/0xb8
+[  656.108797] __do_sys_reboot+0xc0/0x1c8
+[  656.108840] __riscv_sys_reboot+0x22/0x38
+[  656.108882] do_trap_ecall_u+0x236/0x3f8
+[  656.108947] handle_exception+0x15a/0x166
+
+So move the device link into the iommu driver to fix both ACPI and
+devicetree systems.
+
+Fixes: 488ffbf18171 ("iommu/riscv: Paging domain support")
+Signed-off-by: Wang Yechao <wang.yechao255@zte.com.cn>
+---
+ drivers/acpi/riscv/rimt.c   | 7 -------
+ drivers/iommu/riscv/iommu.c | 7 +++++++
+ 2 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/acpi/riscv/rimt.c b/drivers/acpi/riscv/rimt.c
+index 906282b0e63c..229c4a0d47a3 100644
+--- a/drivers/acpi/riscv/rimt.c
++++ b/drivers/acpi/riscv/rimt.c
+@@ -263,13 +263,6 @@ static int rimt_iommu_xlate(struct device *dev, struct acpi_rimt_node *node, u32
+ 	if (!rimt_fwnode)
+ 		return -EPROBE_DEFER;
+
+-	/*
+-	 * EPROBE_DEFER ensures IOMMU is probed before the devices that
+-	 * depend on them. During shutdown, however, the IOMMU may be removed
+-	 * first, leading to issues. To avoid this, a device link is added
+-	 * which enforces the correct removal order.
+-	 */
+-	device_link_add(dev, rimt_fwnode->dev, DL_FLAG_AUTOREMOVE_CONSUMER);
+ 	return acpi_iommu_fwspec_init(dev, deviceid, rimt_fwnode);
+ }
+
+diff --git a/drivers/iommu/riscv/iommu.c b/drivers/iommu/riscv/iommu.c
+index a31f50bbad35..f9368e977346 100644
+--- a/drivers/iommu/riscv/iommu.c
++++ b/drivers/iommu/riscv/iommu.c
+@@ -1385,6 +1385,13 @@ static struct iommu_device *riscv_iommu_probe_device(struct device *dev)
+
+ 	dev_iommu_priv_set(dev, info);
+
++	/*
++	 * During shutdown, however, the IOMMU may be removed first, leading
++	 * to issues. To avoid this, a device link is added which enforces
++	 * the correct removal order.
++	 */
++	device_link_add(dev, fwspec->iommu_fwnode->dev, DL_FLAG_AUTOREMOVE_CONSUMER);
++
+ 	return &iommu->iommu;
+ }
 
 -- 
-js
-suse labs
-
+2.43.5
