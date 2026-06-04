@@ -1,153 +1,85 @@
-Received: from mxhk.zte.com.cn (mxhk.zte.com.cn [160.30.148.34])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1FFAA3CA49D;
-	Thu,  4 Jun 2026 06:55:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=160.30.148.34
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E44D43DB653;
+	Thu,  4 Jun 2026 07:45:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.20
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780556124; cv=none; b=t57SzHscje0jZEELpy/QQR8yl7IjJF64ziI7rH8CBnnpZGfVGPMXmm0H5rrnZeImPQk9bqIStbW7uMsKxlPAGR6TLhI5JV2vvYKbIF5Q9p8WL8e0lMaRCyWPgRnJ8IrZkoa9FLX6lARsdEh6ujhnAwOqTDxLm8AVH3QqCrvW874=
+	t=1780559114; cv=none; b=K30dU/9i1LYCOSFPVcIDBps3PVQKmi7QBPw2pWKAY+94UgBLKkIdZZdN3nCiBsChkYzIUFEURhaSSbmX881sK83dgorSgl8aQRVYsN8OHE+B+br8AEp3yrhgaUQS6+QPThaetCfpwGn9XLbGj/SwqwW4CdMtMRLo16UqnprV0tQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780556124; c=relaxed/simple;
-	bh=lxfDI/CI5VlYeUePE7k6ldgnppsOlKa/jNLXmGk3OZM=;
-	h=Message-ID:Date:Mime-Version:From:To:Cc:Subject:Content-Type; b=Rg2mCQzXTrB+TqfXnMVaFnWl8HFukr7s6sN118Sevd6sPz+K6CYnDRAM8UZQefmCas6feZ0W2sDoDdqWcw+FDzccoKWXfgGpMvZIY8RGHZRDA46Aqtk0+LXtzDvPpKEZFVABBlI7K0JpDbNCP2VGDdOjWXtxRfD7+NU+5IsEZpw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zte.com.cn; spf=pass smtp.mailfrom=zte.com.cn; arc=none smtp.client-ip=160.30.148.34
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zte.com.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zte.com.cn
-Received: from mse-fl2.zte.com.cn (unknown [10.5.228.133])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange x25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mxhk.zte.com.cn (FangMail) with ESMTPS id 4gWFgn4Mv7z5B13c;
-	Thu, 04 Jun 2026 14:55:17 +0800 (CST)
-Received: from szxlzmapp01.zte.com.cn ([10.5.231.85])
-	by mse-fl2.zte.com.cn with SMTP id 6546t9Gn017570;
-	Thu, 4 Jun 2026 14:55:09 +0800 (+08)
-	(envelope-from wang.yechao255@zte.com.cn)
-Received: from mapi (szxlzmapp04[null])
-	by mapi (Zmail) with MAPI id mid12;
-	Thu, 4 Jun 2026 14:55:10 +0800 (CST)
-X-Zmail-TransId: 2b066a21214ec27-b4cdb
-X-Mailer: Zmail v1.0
-Message-ID: <20260604145510898G2kTwM2Pr25QE5H8T4Wh6@zte.com.cn>
-Date: Thu, 4 Jun 2026 14:55:10 +0800 (CST)
+	s=arc-20240116; t=1780559114; c=relaxed/simple;
+	bh=IB02n+b9cGfZCs5vd+68ON2afO8mXp7oZMfSbQ2gK2I=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=h01AErmllg7XQMz13C6haVc3oajkDpxxNPyBaJQSn9wkBgp0M1ieP7ifw7Ocbf40asplwoqHNxTV4uByLJ6TRq/hp86yMOjyDAoAx4t800nFXWvWgQRSJ/jHVUUqJGQwoDO3yHML+N8oFNyk2rgB7o6wn6FTPjiTepvhslVkawc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=c9z1nQQo; arc=none smtp.client-ip=198.175.65.20
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="c9z1nQQo"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1780559113; x=1812095113;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=IB02n+b9cGfZCs5vd+68ON2afO8mXp7oZMfSbQ2gK2I=;
+  b=c9z1nQQon6AvOgPqhamJDuER2wU1u8PR5zDCpydFHMZ0C5hhtATsUBUF
+   VE2QS6Fl3xMs/+CQ21K5vRCGd0Bjh6pCVs0bj07sDQwMceHT4qmEL1dMf
+   75fnpAynAe4j63I+omosKfs9mzhoFgsv4qHP7xVlwcPyXu34eZ1l69JD5
+   Tb7l4oaox2vFlHqkTiqDaZGHJR8uV940B/H1apsNB5WJU1MlicN1UxwO0
+   gpZRKhvoKpqRpmyjMIg4w5Gz3fGPNcYn7/laXK19N+CdngrJ/46SpsVVX
+   mTdi046rLcSHl2YoxomSV9lhx8WkzQKQC2cQIRfOOM9M4dovGHTuR3GaW
+   A==;
+X-CSE-ConnectionGUID: ihdEFAtNSxeGvwLl5CR64w==
+X-CSE-MsgGUID: dwsJF2JwRP6OTGSwEVGh8g==
+X-IronPort-AV: E=McAfee;i="6800,10657,11806"; a="81122338"
+X-IronPort-AV: E=Sophos;i="6.24,186,1774335600"; 
+   d="scan'208";a="81122338"
+Received: from fmviesa007.fm.intel.com ([10.60.135.147])
+  by orvoesa112.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Jun 2026 00:45:13 -0700
+X-CSE-ConnectionGUID: wkuk7/PARLagQ5g0imlDIg==
+X-CSE-MsgGUID: NLdKFuxFTA+v4IlAnpjpJA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.24,186,1774335600"; 
+   d="scan'208";a="241504781"
+Received: from ettammin-mobl3.ger.corp.intel.com (HELO localhost) ([10.245.245.47])
+  by fmviesa007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Jun 2026 00:45:11 -0700
+Date: Thu, 4 Jun 2026 10:45:09 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v1] ACPI: bus: Clean up devm_acpi_install_notify_handler()
+Message-ID: <aiEtBYBySInVqw20@ashevche-desk.local>
+References: <2841496.mvXUDI8C0e@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-From: <wang.yechao255@zte.com.cn>
-To: <linux-acpi@vger.kernel.org>, <linux-riscv@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, <iommu@lists.linux.dev>
-Cc: <sunilvl@ventanamicro.com>, <rafael@kernel.org>, <lenb@kernel.org>,
-        <pjw@kernel.org>, <palmer@dabbelt.com>, <aou@eecs.berkeley.edu>,
-        <alex@ghiti.fr>, <tomasz.jeznach@linux.dev>
-Subject: =?UTF-8?B?W1BBVENIXSBpb21tdS9yaXNjdjogQWRkIGRlcGVuZGVuY3kgYmV0d2VlbiBpb21tdSBhbmQgZGV2aWNlcw==?=
-Content-Type: text/plain;
-	charset="UTF-8"
-X-MAIL:mse-fl2.zte.com.cn 6546t9Gn017570
-X-TLS: YES
-X-ENVELOPE-SENDER: wang.yechao255@zte.com.cn
-X-SOURCE-IP: 10.5.228.133 unknown Thu, 04 Jun 2026 14:55:17 +0800
-X-CLEAN: YES
-X-Fangmail-Anti-Spam-Filtered: true
-X-Fangmail-MID-QID: 6A212155.001/4gWFgn4Mv7z5B13c
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2841496.mvXUDI8C0e@rafael.j.wysocki>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-From: Wang Yechao <wang.yechao255@zte.com.cn>
+On Wed, Jun 03, 2026 at 08:26:24PM +0200, Rafael J. Wysocki wrote:
 
-Commit 9156585280f1 ("ACPI: RIMT: Add dependency between iommu and
-devices") adds the dependency between iommu and devices on ACPI
-systems. On devicetree systems, the incorrect removal order also
-occurs.
+> Add a pointer to the struct acpi_device used for installing the ACPI
+> notify handler to struct acpi_notify_handler_devres so it need not
+> be retrieved from the owner device via ACPI_COMPANION() in
+> devm_acpi_notify_handler_release().
+> 
+> While at it, drop the function name from one of the messages printed
+> by devm_acpi_install_notify_handler() for consistency and fix up white
+> space in its kerneldoc comment.
+> 
+> No intentional functional impact.
 
-It can be reproduced on the QEMU RISC-V machine if the kernel enables
-IOMMU_DMA:
-
-[  635.081530] e1000e: EEE TX LPI TIMER: 00000000
-[  656.100306] rcu: INFO: rcu_sched self-detected stall on CPU
-[  656.101374] rcu:     5-....: (5250 ticks this GP) idle=d774/1/0x4000000000000000 softirq=5173/5185 fqs=2625
-[  656.102237] rcu:     (t=5251 jiffies g=36825 q=101 ncpus=16)
-[  656.103801] CPU: 5 UID: 0 PID: 1958 Comm: reboot Tainted: G        W           7.1.0-rc5 #31 PREEMPTLAZY
-[  656.104127] Tainted: [W]=WARN
-[  656.104182] Hardware name: QEMU QEMU Virtual Machine, BIOS 2.7 02/02/2022
-[  656.104339] epc : riscv_iommu_cmd_sync.constprop.0+0xb8/0x148
-[  656.105352]  ra : riscv_iommu_cmd_sync.constprop.0+0xa8/0x148
-[  656.105433] epc : ffffffff807ca980 ra : ffffffff807ca970 sp : ff60000085dbf960
-[  656.105475]  gp : ffffffff81e0d798 tp : ff60000084b58e00 t0 : ffffffff80021048
-[  656.105514]  t1 : ff60000081b18400 t2 : 45203a6530303031 s0 : ff60000085dbf9c0
-[  656.105554]  s1 : 00000098c92a567c a0 : 00000098c03986f0 a1 : ff60000085dbf970
-[  656.105594]  a2 : 000024bb5cac6aee a3 : ff200000004f1000 a4 : ff6000008140a040
-[  656.105632]  a5 : 0000000000000669 a6 : 0000000000000000 a7 : 00000000ffffa000
-[  656.105669]  s2 : 0000000000000000 s3 : 00000098c0398308 s4 : 000000000000066a
-[  656.105706]  s5 : 0000000008f0d180 s6 : 000000a8d08b8de9 s7 : 0000000000001fff
-[  656.105743]  s8 : ff6000008140a040 s9 : ff6000008484cb00 s10: ff200000005cc000
-[  656.105781]  s11: ff600000814652a0 t3 : 000000f000000000 t4 : 0000000000000000
-[  656.105845]  t5 : 0000000000000003 t6 : ff600000841666b0 ssp : 0000000000000000
-[  656.105883] status: 0000000200000120 badaddr: 0000000000000000 cause: 8000000000000005
-[  656.106072] riscv_iommu_cmd_sync.constprop.0+0xb8/0x148
-[  656.106321] riscv_iommu_iotlb_inval+0x120/0x160
-[  656.106373] riscv_iommu_iotlb_sync+0x48/0x60
-[  656.106422] __iommu_dma_unmap+0xca/0xf8
-[  656.106470] iommu_dma_unmap_phys+0x58/0xc8
-[  656.106517] dma_unmap_phys+0x15c/0x248
-[  656.106564] dma_unmap_page_attrs+0x1e/0x30
-[  656.106915] e1000_clean_rx_ring+0x1d2/0x200 [e1000e]
-[  656.107668] e1000e_down+0x168/0x1c8 [e1000e]
-[  656.107995] e1000e_pm_freeze+0x94/0x128 [e1000e]
-[  656.108328] e1000_shutdown+0x28/0x48 [e1000e]
-[  656.108652] pci_device_shutdown+0x34/0x48
-[  656.108706] device_shutdown+0x104/0x1e8
-[  656.108752] kernel_restart+0x46/0xb8
-[  656.108797] __do_sys_reboot+0xc0/0x1c8
-[  656.108840] __riscv_sys_reboot+0x22/0x38
-[  656.108882] do_trap_ecall_u+0x236/0x3f8
-[  656.108947] handle_exception+0x15a/0x166
-
-So move the device link into the iommu driver to fix both ACPI and
-devicetree systems.
-
-Fixes: 488ffbf18171 ("iommu/riscv: Paging domain support")
-Signed-off-by: Wang Yechao <wang.yechao255@zte.com.cn>
----
- drivers/acpi/riscv/rimt.c   | 7 -------
- drivers/iommu/riscv/iommu.c | 7 +++++++
- 2 files changed, 7 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/acpi/riscv/rimt.c b/drivers/acpi/riscv/rimt.c
-index 906282b0e63c..229c4a0d47a3 100644
---- a/drivers/acpi/riscv/rimt.c
-+++ b/drivers/acpi/riscv/rimt.c
-@@ -263,13 +263,6 @@ static int rimt_iommu_xlate(struct device *dev, struct acpi_rimt_node *node, u32
- 	if (!rimt_fwnode)
- 		return -EPROBE_DEFER;
-
--	/*
--	 * EPROBE_DEFER ensures IOMMU is probed before the devices that
--	 * depend on them. During shutdown, however, the IOMMU may be removed
--	 * first, leading to issues. To avoid this, a device link is added
--	 * which enforces the correct removal order.
--	 */
--	device_link_add(dev, rimt_fwnode->dev, DL_FLAG_AUTOREMOVE_CONSUMER);
- 	return acpi_iommu_fwspec_init(dev, deviceid, rimt_fwnode);
- }
-
-diff --git a/drivers/iommu/riscv/iommu.c b/drivers/iommu/riscv/iommu.c
-index a31f50bbad35..f9368e977346 100644
---- a/drivers/iommu/riscv/iommu.c
-+++ b/drivers/iommu/riscv/iommu.c
-@@ -1385,6 +1385,13 @@ static struct iommu_device *riscv_iommu_probe_device(struct device *dev)
-
- 	dev_iommu_priv_set(dev, info);
-
-+	/*
-+	 * During shutdown, however, the IOMMU may be removed first, leading
-+	 * to issues. To avoid this, a device link is added which enforces
-+	 * the correct removal order.
-+	 */
-+	device_link_add(dev, fwspec->iommu_fwnode->dev, DL_FLAG_AUTOREMOVE_CONSUMER);
-+
- 	return &iommu->iommu;
- }
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
 -- 
-2.43.5
+With Best Regards,
+Andy Shevchenko
+
+
