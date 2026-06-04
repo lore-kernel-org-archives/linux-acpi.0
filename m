@@ -1,72 +1,70 @@
-Received: from PA4PR04CU001.outbound.protection.outlook.com (mail-francecentralazon11013031.outbound.protection.outlook.com [40.107.162.31])
+Received: from PH0PR06CU001.outbound.protection.outlook.com (mail-westus3azon11021143.outbound.protection.outlook.com [40.107.208.143])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 583183112BC;
-	Thu,  4 Jun 2026 15:22:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.162.31
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 581A43B893B;
+	Thu,  4 Jun 2026 16:33:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.208.143
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780586567; cv=fail; b=J+FvHJweuFo4qPlkBAN9276DlQSAdU6+BgJk63ili/nQHRaoo4RGbxZ6YpSgDTlFQrkdX2wxKNkfMla6R+WEXeZh9naFdLCEA0ObZqBqO6b813jxCSLsy/C516YDd//cKgQ4FOgzgQTXNk5/O8BWCZIAJN3DkP/lxHjga8EPud8=
+	t=1780590801; cv=fail; b=i6EeADx1NAsD+FP3yjnoT0ePfRT7y1nKtpwUMBb0QORaRuk9OQn4WsEJz/vtl49IRUTnxrpYcbPSSN0wa6S6ynsMIPIE03jZmgmvhA4RMiicozAvijd6YtRBeR3LXXhrc7Npry5RcBQpRxygRWeyzRjQxtPrDDkk/3UD4Zo9t/c=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780586567; c=relaxed/simple;
-	bh=mHd9YEhRRlOzxShcomAanDfb7gyMpRRo7y8S6g9LaSo=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=AXThrdlktbBioSqyN6EmHBubXwgOlggWkGIi3Vfbk5lNpCRo9K82julebtO5gBFBX7+wo4+zj2u/L2P2MR2ayoX1cE5Gk68HKxMD7HkNWUdSIANO9CEVu5zcGPmJFf0Oq3y0BY0r3n1guwaFLVwSAHpI9zeRF6Sd4ADqQB0EoXw=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=oss.nxp.com; spf=pass smtp.mailfrom=oss.nxp.com; dkim=pass (2048-bit key) header.d=NXP1.onmicrosoft.com header.i=@NXP1.onmicrosoft.com header.b=rz4mhFni; arc=fail smtp.client-ip=40.107.162.31
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=oss.nxp.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.nxp.com
+	s=arc-20240116; t=1780590801; c=relaxed/simple;
+	bh=jEy4JQsA2jLqiwcPG5Jdm5zrxdWfDdkaZq8vk4A+Cxk=;
+	h=From:To:Cc:Subject:Date:Message-ID:Content-Type:MIME-Version; b=O24Q7KLTD7vvi+Evp8NL70xGy/XJ4a2J2k6TAUqTvT8r2lO77umRFHz9yDQ/cdE8onktpZSCuekJTI5HhLm2vzwR0imj50VT2mYEO7xtOZgKjmKsN7zBe319hi4/ugSy2/E56ggIu7GfhSo5uIx3E5jHgHxaelKJM2WNtz541nY=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=os.amperecomputing.com; spf=pass smtp.mailfrom=os.amperecomputing.com; dkim=pass (1024-bit key) header.d=os.amperecomputing.com header.i=@os.amperecomputing.com header.b=Mk/H5gJw; arc=fail smtp.client-ip=40.107.208.143
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=os.amperecomputing.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=os.amperecomputing.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=NXP1.onmicrosoft.com header.i=@NXP1.onmicrosoft.com header.b="rz4mhFni"
+	dkim=pass (1024-bit key) header.d=os.amperecomputing.com header.i=@os.amperecomputing.com header.b="Mk/H5gJw"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=jMHnqgJnFpCIYpe36Emqm4Exee/1nSvoM1XIWv+a/KNkGgRP0BQuyAZdtv995SA62BAHepDXkgFBWclXRPLRO5utxyb1QTsbhaRATH4PhDBxjRm1bsCbOLUh2p+Uwbux5d6rrZHN2VyBVsJcTQH/9ZktsWWPu/uVYdNtgoa6KA7D4miufzT4p/CYcQOF/0mOWWQGhQud4zKwCAqGY7P9Y5biQiMHlX/8j0a5oQPdsSu4ZURbDOsaq56s1bF3zPyVhQLuE4TcCnKRWDhRgBnOWqfDgcw1Jvkhl6qAJWbLbLL1kRLyUX89jula9e5Jk4AE8+jZQ1HJL7958KGz7b+4aA==
+ b=JAx7xHHyQx4svy5NfeRtI40ec2K4JFDtUgak60qwqJSJwtrpnlwNSCT4s2uupT4zAjSHHR1Fph9pw8R0JlginH2TeYIbrVC5Hn76SCT9ks4wGPQ7ahkA8UYFZlJZQu6gphuzOwItqPhmZKK4tvqrtfuPxowaeVZOt/d9AR/C4xUCpsfdbWLoh3z65Y2Xlr9uDLSdHIPXenb/+mmcI31zpp66SM2byktF6xO9Hx1/xXNYa0hE6hPuufl7LD0rNb/MN3lB7XV97J7laKjo26wSJ50RuzC8a8a2Xj1JFAJN6fH03VUmWoY5OPYCA0k/DQDh0+0iz/hYPPeV8sNaHJDwFQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=8CLHKDjyG7xXNQ3uJdukg5xiQokKOtbGTdOPO1LWpG4=;
- b=YMsqPvwrjwqIyxXnF/YXbIFy87OuHxDIJpbRqEz3tAUm+B5ZRdrB7mG9LPnX2/5GcwYMjQXK34lJHDL0NtHd8xtGsd0ZTyT3JD03gKfqHPQWZH6X+SXL11v0Ju+e3TiY9jRR/uVdqVkFAOtxvG/X2embUl7ankWYjBXhu/ujsHpj+aJsef0qBY0TudbH9PDqhquRqvz7YBALMKN8iNTOJMBZEgXKLMB9TP2wvsFG7JthOdzXzOAFvY0uw05z9h3IcngO/lQilfUqM1EbD29opS2F3eNfzggWPL2hSfl31dSTfkA4zJfiW0grsoTY0lnFVRXKGWcM3Ur63JxNNVDNXQ==
+ bh=DG8GjE/2pf0eEmsCyZ5/T9CuEIqUgNmeH2HmwIljgs4=;
+ b=DeHoaN9OXzsXbuRWksBSAkkyttSt1be+j06lVl0i21UQha/ALKsSQZNQmzwU59fTKWd2K3SguYe6mI5ARQRP5743ZHJyMObvOeNZlqRNB5Anpus+PTP1+ez2GjDoA30qdR6zUL792vAvweCeU1vxTVDoLf5Ma6oFmqo3kL/Xxo4CdDEvDhkM5EweJCNMmEKWTcMDcvUaubkIKtXgAnxjNMwWwhVyewFHhbL3uQhIa29MMDUM7SVPb0lldGrINLWGQP+G2bIoEaaKt1pGoA+Z6uWFLfCqFT/F4YmQSfEFO4rkkaOtSS8RSdF5sT/WmNNDSem3x75ZO/AQMq102wsqjg==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=oss.nxp.com; dmarc=pass action=none header.from=oss.nxp.com;
- dkim=pass header.d=oss.nxp.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=NXP1.onmicrosoft.com;
- s=selector1-NXP1-onmicrosoft-com;
+ smtp.mailfrom=os.amperecomputing.com; dmarc=pass action=none
+ header.from=os.amperecomputing.com; dkim=pass
+ header.d=os.amperecomputing.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=os.amperecomputing.com; s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=8CLHKDjyG7xXNQ3uJdukg5xiQokKOtbGTdOPO1LWpG4=;
- b=rz4mhFni8o30bvLTQ3dZcNAyITUielmcspAZV1ZBRTcSPZmsg4c7x62w9fiG9zL6EZlcsu+/jGCK7+WO0mTk40HRaqo1r0YEfMhSy5jpjvmn79sP03k9hpGLgvszwFp4YsuwDen71uJGVuDRzw71ILiovSkFz0GAe3qWQagxuaF/7HYla/9hqEKPfAXzVSb/a7s+CooKAV5IlCkULPDiNaWwjG9UaLJ5qp/LCVG+AHDyMJr9npyYGxZcj6vhZfrY6elM/QlhbESOZpRzz9kvYc4IwbNlsYaXs+gEHpi7ecPlVStllQew1OL8O4IemNt41Qs5iTN2fr507VC4bs+e6A==
+ bh=DG8GjE/2pf0eEmsCyZ5/T9CuEIqUgNmeH2HmwIljgs4=;
+ b=Mk/H5gJwSrTk1UoHBb0EHqyxv7xaLp8SPp1zJMQfXN8sQzyW4qEn6zQRN5NOCHbMV/WsNV8keQUaLtHuLVDs7DiipODL241RtdqDtJG9UyzraTHEBPxjAndgXuMm8Exmwv3BUhscIixsTkffCE4mWu32uOsZE0Gb7KnzWyfAzzs=
 Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=oss.nxp.com;
-Received: from PAXPR04MB9422.eurprd04.prod.outlook.com (2603:10a6:102:2b4::21)
- by GV1PR04MB10941.eurprd04.prod.outlook.com (2603:10a6:150:201::8) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.92.7; Thu, 4 Jun 2026
- 15:22:41 +0000
-Received: from PAXPR04MB9422.eurprd04.prod.outlook.com
- ([fe80::54e:28bf:aa85:d25d]) by PAXPR04MB9422.eurprd04.prod.outlook.com
- ([fe80::54e:28bf:aa85:d25d%4]) with mapi id 15.21.0092.006; Thu, 4 Jun 2026
- 15:22:41 +0000
-Date: Thu, 4 Jun 2026 23:21:38 +0800
-From: Xu Yang <xu.yang_2@oss.nxp.com>
-To: Bartosz Golaszewski <brgl@kernel.org>
-Cc: Daniel Scally <djrscally@gmail.com>, 
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
-	Danilo Krummrich <dakr@kernel.org>, Mauro Carvalho Chehab <mchehab+huawei@kernel.org>, 
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-acpi@vger.kernel.org, driver-core@lists.linux.dev, 
-	linux-kernel@vger.kernel.org, Xu Yang <xu.yang_2@nxp.com>, stable@vger.kernel.org, 
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v2 2/2] device property: fix infinite loop in
- fwnode_for_each_child_node()
-Message-ID: <o3ag4fwtan7ig2upiahin446tjekdbkgrlunejqfsnvs6rxsed@lk5plqjkzcyc>
-References: <20260603-fixes_fwnode_iteration-v2-0-0ae381f8b7b9@nxp.com>
- <20260603-fixes_fwnode_iteration-v2-2-0ae381f8b7b9@nxp.com>
- <ah_5NgZPc2U0_FPO@ashevche-desk.local>
- <x5liep46c3yzqh3wfsfa2euku6j6yka32clpiwf2zkqdm6czds@b2rll3k67yhd>
- <CAMRc=MeV=FcojNs6rJoBcCwWoDKe5Dwc4MXrHSzEMdHin6j+BQ@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+ header.d=none;dmarc=none action=none header.from=os.amperecomputing.com;
+Received: from BN3PR01MB9212.prod.exchangelabs.com (2603:10b6:408:2cb::8) by
+ SJ2PR01MB8530.prod.exchangelabs.com (2603:10b6:a03:554::10) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.92.7; Thu, 4 Jun 2026 16:33:15 +0000
+Received: from BN3PR01MB9212.prod.exchangelabs.com
+ ([fe80::44f3:1050:dce8:1ea9]) by BN3PR01MB9212.prod.exchangelabs.com
+ ([fe80::44f3:1050:dce8:1ea9%5]) with mapi id 15.21.0092.006; Thu, 4 Jun 2026
+ 16:33:15 +0000
+From: Adam Young <admiyo@os.amperecomputing.com>
+To: Sudeep Holla <sudeep.holla@kernel.org>,
+	Jassi Brar <jassisinghbrar@gmail.com>
+Cc: linux-kernel@vger.kernel.org,
+	linux-hwmon@vger.kernel.org,
+	"Rafael J . Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>,
+	linux-acpi@vger.kernel.org,
+	Andi Shyti <andi.shyti@kernel.org>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Huisong Li <lihuisong@huawei.com>,
+	MyungJoo Ham <myungjoo.ham@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Chanwoo Choi <cw00.choi@samsung.com>,
+	linux-arm-kernel@lists.infradead.org
+Subject: [PATCH v01] mailbox/pcc.c: ignore errors on type 4 channels.
+Date: Thu,  4 Jun 2026 12:33:06 -0400
+Message-ID: <20260604163306.160017-1-admiyo@os.amperecomputing.com>
+X-Mailer: git-send-email 2.43.0
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAMRc=MeV=FcojNs6rJoBcCwWoDKe5Dwc4MXrHSzEMdHin6j+BQ@mail.gmail.com>
-X-ClientProxiedBy: AS4P190CA0052.EURP190.PROD.OUTLOOK.COM
- (2603:10a6:20b:656::24) To PAXPR04MB9422.eurprd04.prod.outlook.com
- (2603:10a6:102:2b4::21)
+Content-Type: text/plain
+X-ClientProxiedBy: CY5P221CA0141.NAMP221.PROD.OUTLOOK.COM
+ (2603:10b6:930:6a::14) To BN3PR01MB9212.prod.exchangelabs.com
+ (2603:10b6:408:2cb::8)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -74,129 +72,92 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: PAXPR04MB9422:EE_|GV1PR04MB10941:EE_
-X-MS-Office365-Filtering-Correlation-Id: 1543d84b-28ec-4238-0339-08dec24d1e93
-X-LD-Processed: 686ea1d3-bc2b-4c6f-a92c-d99c5c301635,ExtAddr
+X-MS-TrafficTypeDiagnostic: BN3PR01MB9212:EE_|SJ2PR01MB8530:EE_
+X-MS-Office365-Filtering-Correlation-Id: 42219d0d-dea0-4a7f-5b57-08dec256fa00
+X-MS-Exchange-AtpMessageProperties: SA
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
- BCL:0;ARA:13230040|366016|1800799024|376014|7416014|19092799006|56012099006|18002099003|3023799007|4143699003|11063799006|22082099003;
+	BCL:0;ARA:13230040|366016|1800799024|376014|10070799003|7416014|56012099006|18002099003|11063799006|55112099003;
 X-Microsoft-Antispam-Message-Info:
- scdk/lG7dQVGURU0Z4y4lACZhKqW4F4sL+vd3utgLHA1DQ2Z583rb5+KKl3nCO/7ofEz8y1IKbr3aAgFYmz4LXltWaWKYV3KNG6kuLdlHDSpfCcc3Fl1v5lYJgvyl3EjUPT3OjOYNxExbSjGHU65qJrKOamaa2X8codIW/j6xQfZhj4hPdvy9WqYVD3W1RUsDT7jWEuNbmnvxuTTD4NFeMNYPL6m5va6oTwYDmN5Uk+b389bq5F0lzfKATJO0DNh0acTHqL4I9HMTJ4e0IsnAM2g7NEXBaVoJc7U9rwtFoeg/BI+GfCu2qdz1ULHuDP7jiImd7mv00H2DWJEK+SmfKFy/4ixfmDCHj52Ls+8KDl+f2RNzVJ0ifIthqVczJKX6k23MFrXTOBu6YzCpLp6AJR+l2SevlkP/4D88/JZphM6mhngyKm5CmlYFBG/Q3qwUH+5HcEBPw5NBllU7sC1/Mdi+CeP8xYCDxX0kVw5RL0/SlnuOhzmZENpe4s/BOTs3aHUKim7JWeNaVmYMzQiRnYI/zI8EEjrC57C0N3VGcT0ci58wvv5qpMkLliKuHbiLEK4HuIqzhnYI8g1VEhs0cj8NeZHgwnrfFXxvIp9GXGJnQ6e66kjrvKsNNNhKN5kTk/GkTk4iWwAulm0E6H5kR74kEJdxvZGsOiV5IlrvQq9iqltxVxYwMz0zy9xEI5n
+	DdgX4/aIDgFrbv7VyP+RiBeAfC9GFpfXpYhko4yRQ45yGj3vWrbR+OT9YMBzqmYGPxyd51FzV8yU8KkpNTTQzs+ttr2zfnvCilHFDI4BeW9xv/HL1+Hht5fNLnLHTLjR7Doqty/iPiJ5U0pQRTFWVggdMHeHzhP732DvWyWMrJj5zDpGjM+E4H1v5BSCVyuOjJ+EU2c9gVoXH7Yp8Q8Dxu9FmQ5dG/B+O06OW1N1X2A/baFShInbG4sbmD+TSt4QDt4SZZJ/3NX55Fdz8hIXwoOxHby64GRYFBz40TRKH6XDVTBgGiAm7mvcXFxMa48l8fPihYfvRarjjiV9s7IsNstB2Ai/+SiU/8B8Xq39w39U4aWilvD9e1lwvUrLJ1JXLlvV/t12vKWCCtPLWDnxR8g2D2XQtS/2Q523q6c/m1YONkLlJE6UOlf9RcZSPFpZ/+GAur2XBV2i1KyUL4/MlG+bewWrNV0RW9j9nDR3op6ubek9Au1JzF31bKuO610mhq9KKd5l6r1sgB62f/A5QGOTKmuWMrhM46zyuPQr4sxmKYRYim54HbgkpJTZI89U+2LgrS5r33mMCMrUZWqp/o1da/2RIvzNA+T4kIKRc52Is/rsYAH5rRbi+T/HYlDKtjFMD1t6tE+mtyHl73/75A==
 X-Forefront-Antispam-Report:
- CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PAXPR04MB9422.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(376014)(7416014)(19092799006)(56012099006)(18002099003)(3023799007)(4143699003)(11063799006)(22082099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BN3PR01MB9212.prod.exchangelabs.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(376014)(10070799003)(7416014)(56012099006)(18002099003)(11063799006)(55112099003);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 2
 X-MS-Exchange-AntiSpam-MessageData-0:
- =?utf-8?B?ZG9LbkJ2aWtIZWRHWmtUdXRTQ2dsRVlLeHMzTkRMQ1ozeGZla1pLUHFxcXZB?=
- =?utf-8?B?MnMzOHFXZHdRVE9pRzJLNk00c2pIMURvcXNRR3ZUQ1hlVTNjR3MwMVI3b1RU?=
- =?utf-8?B?NG9PUGRzTmplc0hJOFhEMVV6dEtFdkdsem5jaUZuSStCa2FESzA5RTVsR0c5?=
- =?utf-8?B?aDNQZ3dWZ1Z5S2Izc25YYmU3dmU0dHY5N2pWbUJZWWZKWDBZMWNnajB0dThs?=
- =?utf-8?B?V0p0dlVqL0VkNkNqeGVrV0pjQVVnWE8wTE5OMjVJRldVbzE0cjl1S01iQTFZ?=
- =?utf-8?B?b3YrV1gvZW9aSURkMlNjb3IwbXpjcUZpZzJYYjJBMC9Zc05yYlkyMHgvdTEv?=
- =?utf-8?B?UjAzMnB2bGZVa1JzeWR0MVMxd1JZbFNsREhLa2VDQnEzdjRjTHNCTXZBWFhV?=
- =?utf-8?B?T0hKcnBDSVZBZXBuTXdyWUpld2I5SWZNVk1IVzdYZU1kc2VkMW54K3YwZkRS?=
- =?utf-8?B?Mm53RFdNcG04eTQxVS9XT2NUWFRxbE5abE9iSmw0cmZkbVBmeVBVVmJCNVU2?=
- =?utf-8?B?U3pYSElGdGh1TkJGWmFNaGE2Wkp0RWZNckhjUXpEV0htLzBjOTlUZkxseTF2?=
- =?utf-8?B?SlZBc0V0T0p6TGNZaG84b3o5ZmlnZSs5TjFZb2NXOG5wbCtpeG9oQjE0RnVs?=
- =?utf-8?B?VWhLaU53VmJING1GT1dENGM5a3NKSmIrdzhoSmt2M1g0KzRaSWZvR09GQ1NG?=
- =?utf-8?B?cThjczk1QTVnYmJLZjFxRTkralpYaUdZZHRqOWp1K0haK3ZlTDdheVNJV0Jk?=
- =?utf-8?B?dWF2aGRteU0wdXFQdEpEbVorOTR2Tm1weCt6NDdsVkZ2RmduN2JzeWEzK2Fw?=
- =?utf-8?B?M05PVVNmMEF6SDI0SHpFWWNrNmR4VnZ1KzRocG1zTDRjS3BTTmFIc0JsTGRR?=
- =?utf-8?B?SFM1b2Jvak83S0IvZWdrNDVoUlZsUzJsRUlKUjFZZXNBc295U29FMDNIeTlq?=
- =?utf-8?B?TitHeVlpWU5OVldBWUFpd3JaTDZab3RhUnVSaE9RYThwMXpwMjE5cEN0OHZv?=
- =?utf-8?B?K3lkTFZxT1I3TzBOUVpKMEZQMnBrVGpwSUlLcWZUcUNqc2ZVUXBUYXRsN0o1?=
- =?utf-8?B?WHdzS3RUMm9PWTZJS05Pd29VTDZqSk1YTDAzYzhXYkZBc1k5aUQwVWNwM1BK?=
- =?utf-8?B?ekJSUE1lVFpaVXNSTyt5V1ppMXo1NVMyRjQ0bmczQ2xTUEd0MnFTaUxrTnhW?=
- =?utf-8?B?ZG91VTI5SEFRMG1PZ0FNQmI0RE85UFlKMTdCTzdrelZndmlNeDh6TUpNOUdF?=
- =?utf-8?B?V2RYMUNrWUd0azFVYWthaTVlUXBUcUZSNGZEeWJqbnZ4bXJjQml2eGtmbWd5?=
- =?utf-8?B?U2xPLzl6cGhxUXJrZTJmaEFPK1lWcXB2UitJQzNvVG9JbFduRjB2ZUNGYzJs?=
- =?utf-8?B?SVRRQkMrMk93YVdaSVVraDdrdXlMRnFjWGo3bjlqNlFyMWJ2MVk4MzhOVXAv?=
- =?utf-8?B?YWJLTGxqRTZrZWtKc05SYkJVRWlyWGNJZ0tyYW1XUm9ISW9SZTlxTXR2L2l3?=
- =?utf-8?B?WjVXTEhQSFpEWmJlZ3ljaTQzZHJYTmpHS0JSb2R2SGdrNmx3MkxneTVwRUcy?=
- =?utf-8?B?bjl6MUw0NlZpRmpxcjlGc0tsdmVNL0dJYXU0alZyM01lTjNURWhoK1RiWU1Y?=
- =?utf-8?B?TlBLdWxHRHRFZWNJS3czZUl5MC9ML3hmYzFWbm5wZlFPTzAxeEpxOStNVHpL?=
- =?utf-8?B?UmZiNWRaQjM1bTdUaERBVHFJbitaSmlxcFFILzZjMHozU0FkRWJCWG8vVlR5?=
- =?utf-8?B?bGZMVXl1bWRYdjkwZHJDUlFxTStqekJUOFhHSU5LZGlzMSs2WTFUaDc2WFJp?=
- =?utf-8?B?ZlZJSjZyVzdtSXV5dDdhZG8xa0ZLLzZpUGZiWjJwYm5yeTk1UzVUdnVuTmNn?=
- =?utf-8?B?MGZnT2Mxbm1OTmNpYVlmMFB4QXo3bktmUk10d203bEhnSXpyeFp0bW94WjFj?=
- =?utf-8?B?K0xET2p3U2w3VFdpV2g0VVRHcExnUHpIbWNXcmMxQnJScjJ2dVVBM0gyS3dq?=
- =?utf-8?B?ZTVSa0pERjhkcjlPTFV1ZWk0T1EreEZqREFCQmx2bE1CR2VyNHlkUFJGMkJo?=
- =?utf-8?B?SGIvZTMzSzJWS3hWQzBaZ2d3UkpEVDBaVTRyZmVjd0dEMkJlRmJTaURHSWhO?=
- =?utf-8?B?Z3ZGcnJ6ZjNDeGpTeTZISzBLWVdqNDdUYmJHK2h2Vkg4d2tmWC8zb2hhU0pK?=
- =?utf-8?B?YjhhclFoK21qN01rY3lZTzJnTmprUjROcHBwWmRiaHh2VUo1ZEk2dklQQlFG?=
- =?utf-8?B?QjVrejkrc1JMT2dWZ0tPZzMzcGNLa1VudmpSNkVGSWlTaFYyeENxOXNWWElz?=
- =?utf-8?B?cHhGVU16Y2h5cFBQY1Q1MGdCQnVNWXl3eC9MZ0ZUaFBiRnB3TFJuYlZtYnVp?=
- =?utf-8?Q?gNSBP9CCWEprlVKYnSj7dk5PG5w1cqk3YpUy/?=
-X-OriginatorOrg: oss.nxp.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 1543d84b-28ec-4238-0339-08dec24d1e93
-X-MS-Exchange-CrossTenant-AuthSource: PAXPR04MB9422.eurprd04.prod.outlook.com
+	=?us-ascii?Q?0rcoGkNGXlMUvlGwspnNuFpuNJctZWblLA0+l1BFmpm8J5BFKDUBc8kVWFVV?=
+ =?us-ascii?Q?Fbi4/VFOOW0T7lCZWS4C+BMclLgx5jIIKHQx9ze44Pb0gdqw64my7G3vqMek?=
+ =?us-ascii?Q?7NdOECebYL/L6I1MtyTXAF/pi7gpUFm1RTKdYKC4TCD9qMYkn4rGPshK/Ed5?=
+ =?us-ascii?Q?d1KtE+TOmuXCyY1nq4OMuIiU/4x4CFKwZSEK8Dw9tNOMsqR3bAclQUuaWL9A?=
+ =?us-ascii?Q?7fSs7lsFTeDa+gX3rz7a27Bok51W0LvVxILRWsPAmhvHkvvradrTFMbv2+L2?=
+ =?us-ascii?Q?/ZHrp0MNiiNtXI3AkE3ANdAX1WdOs2zlJYyw28hvSysUJS0smNOPttvj+Izu?=
+ =?us-ascii?Q?ZY9j0HU5xyrzyRAi6S0S7orcJ2babw5aNGBsAem6S3S+ExquSQ9NDBac9Z56?=
+ =?us-ascii?Q?dhYyltdYaH0yu9wAg2dAyJoTJOrzvO3fGxzd0O4uqdlm/zJD+o11zPzu5lRg?=
+ =?us-ascii?Q?Ey6Zk/WtVpWb1HeD/bqT5FpSDIFMxcR52RxN9h/YTTbNWSKiuSRoKmXS8SHV?=
+ =?us-ascii?Q?Y7+YpEd9dUQKZspjmKvL+K8fm2wD+H/xnVcsnJLkoMSSkb16ntg21+vGyXp9?=
+ =?us-ascii?Q?mYuwcKQ0m2ODlLEEOX7d6WKEGHW0GtNInG7j/6+d0SyboirVmp8qHongQunE?=
+ =?us-ascii?Q?c3tQ/bURZgZWc93Xqgf8Am2iPX4MWJfp3BHP2QQUAa6DoTR6Cc38ntQ4FBHB?=
+ =?us-ascii?Q?ThQbOX/FDH3+9Rh+AbuDCws48MX5Z1gx/XNx06ZEzjiqzanUvM7ZXJ5SDNeM?=
+ =?us-ascii?Q?yPqlOEM9Ezyi2Md31RNi383Zjpcf+UPPV16xXEfY6vVCPRpAClJKGUK5aO8Y?=
+ =?us-ascii?Q?99BGI/z9OVygyGlSTs8v2uqn7eexpRlQQ5IfhEbI80yO9Yf5pYuoB+4yXLYi?=
+ =?us-ascii?Q?VRdkncyemAy9Qe9B1k59DTmAbdUoj9+fZUrKtzCbIXe8eqDEzj10Z9x4SXTR?=
+ =?us-ascii?Q?xlNdsLmYyyhcicTk47AR1u/rFwAcA95m23WV4d7KhWmtv1X93qDjGBSVEG4X?=
+ =?us-ascii?Q?9RrJ7sq4BqYCrKoWOFKZLtMbvSbq4rXGTlBMSA6EpsXALrm2xiuqoq1wgClM?=
+ =?us-ascii?Q?SjLmX2K7QalviE3uS/vHQur9F54xrOoqTDxB1YKunNHRKli72b5XX5YEEnxM?=
+ =?us-ascii?Q?ch9gY+3Lp8hlY6yEPLhj6kDia06AtgTbM+ZuHBLEKRpIQLMLBsD7rGMe4O8T?=
+ =?us-ascii?Q?yvfDTo6rKpW6hmwj7BAE2GSlBpIbi1N55sItI9juDEn0OXqyGftLf7CDDnH1?=
+ =?us-ascii?Q?f3vQ2Kr6OvvxQcFpbaX/zF9X+hu8a28VU14FRvR4YsrJg7hTAZkW6WkMOWmG?=
+ =?us-ascii?Q?T2tRtt17oUxw6YNcVMB9Jadwf0u106u4eKuL3u8Dl2KsUv7zlg5A0SDLLdZd?=
+ =?us-ascii?Q?mW58zfOmrtqukTKIdKnbXDofXtTlB43RzZ354I0vetvW+HcM7iZoPjz5of6U?=
+ =?us-ascii?Q?daVScBOFNmKQvPF4LpyQrlrXrybqx8q/IVUJele8JY/h7k7Z30Z5tPzKmWGC?=
+ =?us-ascii?Q?nLjD7tpivl0fyw1zE/sxHI6vvSv87EhwmKbJA7X2KK4sfEQZz66WDkoR6pJG?=
+ =?us-ascii?Q?rr72BTFGBbvRVVp4foBbvRnizA3n/qccG8yx7B4GTj+en6JKaYRbLSmnO2y5?=
+ =?us-ascii?Q?FR2dNfUghiZ18vBGKYIWuniHs7ls+VzVVh/aJNE2+tQsAZmI3/iTcH95DQUb?=
+ =?us-ascii?Q?duW82uptLioW4Elmz7/+sCyaqkW+arm40smD0BgTqkUUleMPR7t+EwKrwGNN?=
+ =?us-ascii?Q?e7V2DofM4KMqU1ckxam8FPq9atTVWYqt/duA1qrHaMwGcqjnAwovpm/gdvUn?=
+X-MS-Exchange-AntiSpam-MessageData-1:
+	9in6zpPEKzqTu6YCBokmRZpJgYaPWvJLEoxo6NwjFSBJiBcUo1saZ/nj
+X-OriginatorOrg: os.amperecomputing.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 42219d0d-dea0-4a7f-5b57-08dec256fa00
+X-MS-Exchange-CrossTenant-AuthSource: BN3PR01MB9212.prod.exchangelabs.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 04 Jun 2026 15:22:41.7422
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 04 Jun 2026 16:33:15.2190
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 686ea1d3-bc2b-4c6f-a92c-d99c5c301635
+X-MS-Exchange-CrossTenant-Id: 3bc2b170-fd94-476d-b0ce-4229bdc904a7
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 1Uc5bRifh8Von9AhIXCl3hfbLN3PRiZAGcGH84QVp0fMnzAqcFMx784DI++4YQI9PjGS2o3n7IoRVG3ULMi6Q9eXCeJ93MLO6VmOsCvwW7Ulc6fD8ygTh3oL4TLiBsVs
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: GV1PR04MB10941
+X-MS-Exchange-CrossTenant-UserPrincipalName: 19YYLLMZ037JkukF4Stfi2xkQeQf/NSMUiGC6WLHzvZ7ldtqhms2qARdOcDPqeN4CR6FQX3qsJwRiYWqMT8diq0lcMY34vxF8htf1cAUf+VQn0yY244x8a+I/tVFPYrY
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ2PR01MB8530
 
-On Thu, Jun 04, 2026 at 06:43:38AM -0700, Bartosz Golaszewski wrote:
-> On Thu, 4 Jun 2026 13:05:23 +0200, Xu Yang <xu.yang_2@oss.nxp.com> said:
-> > On Wed, Jun 03, 2026 at 12:51:50PM +0300, Andy Shevchenko wrote:
-> >> On Wed, Jun 03, 2026 at 04:44:32PM +0800, Xu Yang wrote:
-> >>
-> >> > When iterate over children of a fwnode that has a secondary fwnode,
-> >> > fwnode_get_next_child_node() can enter an infinite loop if the secondary
-> >> > fwnode has more than one child.
-> >> >
-> >> >                        Parent        Child
-> >> >       (Primary fwnode)   FWa:   {FWa1, FWa2, FWa3}
-> >> >     (Secondary fwnode)   FWb:   {FWb1, FWb2}
-> >> >
-> >> > In this case:
-> >> >
-> >> >  ┌─> fwnode_get_next_child_node(FWa, FWa1)
-> >> >  │    - fwnode_call_ptr_op(FWa, get_next_child_node, FWa1) returns FWa2
-> >> >  │
-> >> >  │   ...
-> >> >  │
-> >> >  │   fwnode_get_next_child_node(FWa, FWa3)
-> >> >  │    - fwnode_call_ptr_op(FWa, get_next_child_node, FWa3) returns NULL
-> >> >  │    - fwnode_call_ptr_op(FWb, get_next_child_node, FWa3) returns FWb1
-> >> >  │
-> >> >  │   fwnode_get_next_child_node(FWa, FWb1)
-> >> >  │    - fwnode_call_ptr_op(FWa, get_next_child_node, FWb1) returns FWa1
-> >> >  └────┘
-> >> >
-> >> > This cause fwnode_for_each_child_node() to loop indefinitely, reapeatedly
-> >> > output {FWa1, FWa2, FWa3, FWb1, FWa1, ...}.
-> >> >
-> >> > The root cause is that when the current child (FWb1) belongs to the
-> >> > secondary fwnode, calling get_next_child_node() on the parimary fwnode
-> >> > incorrectly returns the first child (FWa1) again instead of NULL.
-> >> >
-> >> > Fix this by dynamically checking the parent fwnode of the current child
-> >> > before calling get_next_child_node(). This approach follows the pattern
-> >> > established in commit b5b41ab6b0c1 ("device property: Check
-> >> > fwnode->secondary in fwnode_graph_get_next_endpoint()").
-> >>
-> >> ...
-> >>
-> >> TBH, this code becomes twisted and complicated. Can we add some test cases to
-> >> show the problem? Also we need to add other possible combinations (somewhat
-> >> about ~5-6) of the different types of fwnode in a relationship.
-> >
-> > I agree that adding test cases would be helpful. But It's not straightforward to
-> > get swnode refcount as swnode is an internal structure. Any suggestions on this?
-> >
-> 
-> You should be able to replicate the problem with the firmware node API without
-> accessing the internal swnode structure. You can use dummy OF nodes as the
-> primary fwnodes.
+THE ACPI spec states:
 
-Got it. I thought it's the refcount leak one. Then no needs to get refcount.
+"[The Error status register] Contains the processor relative address,
+represented in Generic Address Structure (GAS) format, of the Error status
+register. This field is ignored by the OSPM on slave channels"
 
-Thanks,
-Xu Yang
+Which Refers to type 4 channels.
 
-> 
-> Bart
+https://uefi.org/htmlspecs/ACPI_Spec_6_4_html/14_Platform_Communications_Channel/Platform_Comm_Channel.html#hw-registers-based-communications-subspace-structure-type-5
+
+Signed-off-by: Adam Young <admiyo@os.amperecomputing.com>
+---
+ drivers/mailbox/pcc.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
+index 636879ae1db7..0deaf7907ed6 100644
+--- a/drivers/mailbox/pcc.c
++++ b/drivers/mailbox/pcc.c
+@@ -270,6 +270,9 @@ static int pcc_mbox_error_check_and_clear(struct pcc_chan_info *pchan)
+ 	u64 val;
+ 	int ret;
+ 
++	if (pchan->type == ACPI_PCCT_TYPE_EXT_PCC_SLAVE_SUBSPACE)
++		return 0;
++
+ 	ret = pcc_chan_reg_read(&pchan->error, &val);
+ 	if (ret)
+ 		return ret;
+-- 
+2.43.0
+
