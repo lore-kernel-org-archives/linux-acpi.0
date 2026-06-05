@@ -1,204 +1,71 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E622847798A
-	for <linux-acpi@vger.kernel.org>; Fri,  5 Jun 2026 07:09:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0B5B47F2E6;
+	Fri,  5 Jun 2026 07:55:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780643359; cv=none; b=pDPgAgc7FE6nheXV84Yl6I1Jsd9pmlgbnA6WfRSufP75OtqDGSYzCtUpC6HjS1l7gIr2a0I8gm/R74j2wVy77QmmRuVrqzH7UR+w6jUyZn6lwp6eOTfvwt/kVJw4SLf9oGxhwpJJVSSRm262omHr4W9Rp3zr1BTsm6N7FHVCit0=
+	t=1780646122; cv=none; b=syblQpx2wWN/gxx1ZbJIh093XaiDObd23nYPHm7HLWG9PbXFnaL3sdIQHMCqqK/CeT1D3FB9CfENyyYEbf9IKQdgMe+x9MspKw6Ol5xF4cYXIQQxurBSS+T3zeE05FoHC2Ded5jfgXK8zBu2wCicQzglM4/L/jU0tSfpBr+q+jo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780643359; c=relaxed/simple;
-	bh=kR4LNuPs6sRNL3Cz/R3SgtN14fjPcG0Vz5lrtcDtJPM=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=BmHduOHv+VPEYPrYiQv1uATafvti9+NIExT2BK68nVmvmSeVPQs4Mn3EojUfnmbthtZKejP29VsYCUIBeRbB8fCnq9ZUw51QNaK+uUCTaXrthgB+7kFWptFk5jV4uzETrIf06P0jCE5XyqxVrZAHwsEnPN/75MXm3a38ZccRwp8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; arc=none smtp.client-ip=195.135.223.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 5718C758EE;
-	Fri,  5 Jun 2026 07:09:16 +0000 (UTC)
-Authentication-Results: smtp-out2.suse.de;
-	none
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id DCBE8779A8;
-	Fri,  5 Jun 2026 07:09:15 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id cGTSNBt2Imo2HgAAD6G6ig
-	(envelope-from <jgross@suse.com>); Fri, 05 Jun 2026 07:09:15 +0000
-From: Juergen Gross <jgross@suse.com>
-To: linux-kernel@vger.kernel.org,
-	x86@kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-pm@vger.kernel.org,
-	platform-driver-x86@vger.kernel.org
-Cc: Juergen Gross <jgross@suse.com>,
-	Thomas Gleixner <tglx@kernel.org>,
-	Ingo Molnar <mingo@redhat.com>,
-	Borislav Petkov <bp@alien8.de>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	"H. Peter Anvin" <hpa@zytor.com>,
+	s=arc-20240116; t=1780646122; c=relaxed/simple;
+	bh=Emdj2NbzQAV88c/PCgYv2F//weGqzDG7T6rtjX9DTUA=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Vqkd4v2eNkxawl57kGnxMcg1vB0SdTg2J4g2MqRqvE6KJN4+Kw+ZmIC94aG1R7UCO29POtvZJknp4sU947vBLQg+brlh+84sI2pVKnk7a9weFBdPrNBq1EUk2HXf1m5sor7LS3hBDv1adM5sg+TUlJMEFwYSirdgi7yF5v3zbU8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Isn1we0g; arc=none smtp.client-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Isn1we0g"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 928EF1F00893;
+	Fri,  5 Jun 2026 07:55:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1780646121;
+	bh=SufUsgIiggL6e/QIsAbNMiTlzAF35c8U1qsO70/sUus=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=Isn1we0gRQ0IA56VJ975zayTIgZQq5Q/UX1+bWoFxBuH8QH8uUAvYT7WJHJxt0eeh
+	 UmKSH62XntqctekH4GQbNsJ0cLWeZ1uP1Frds27G+a3hAp7j7wHBtrj6sf5hk+QktT
+	 HvDNRxnDTy4bc6kbfrSXAUcAX6eTh5/5RHE9eYWbWtS00fPcJ4XvyWQFdZYmkbjxz7
+	 GWi4xv+XiYvkO6Ub7+rvh2BRxDZeyO2ydUWM59QsMimuaGXDMvUonpLhMF6CS3Sgzh
+	 sGst1S+VgDdfXYtCAwLW+VplkI6zq2QaVk4r4ijJQq8dxm8/5jFvULNUDDy8qxPszQ
+	 fcFSWBqio6j9g==
+Date: Fri, 5 Jun 2026 08:55:16 +0100
+From: Sudeep Holla <sudeep.holla@kernel.org>
+To: Adam Young <admiyo@os.amperecomputing.com>
+Cc: Jassi Brar <jassisinghbrar@gmail.com>,
 	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	Huang Rui <ray.huang@amd.com>,
-	Mario Limonciello <mario.limonciello@amd.com>,
-	Perry Yuan <perry.yuan@amd.com>,
-	K Prateek Nayak <kprateek.nayak@amd.com>,
-	Viresh Kumar <viresh.kumar@linaro.org>,
-	Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
-	Hans de Goede <hansg@kernel.org>,
-	=?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
-Subject: [PATCH 8/8] x86/msr: Switch all callers of wrmsrq_safe_on_cpu() to use wrmsr_safe_on_cpu()
-Date: Fri,  5 Jun 2026 09:08:26 +0200
-Message-ID: <20260605070826.2995913-9-jgross@suse.com>
-X-Mailer: git-send-email 2.54.0
-In-Reply-To: <20260605070826.2995913-1-jgross@suse.com>
-References: <20260605070826.2995913-1-jgross@suse.com>
+	Saket Dumbre <saket.dumbre@intel.com>, Len Brown <lenb@kernel.org>,
+	Sudeep Holla <sudeep.holla@kernel.org>,
+	linux-kernel@vger.kernel.org, linux-hwmon@vger.kernel.org,
+	linux-acpi@vger.kernel.org, Andi Shyti <andi.shyti@kernel.org>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Huisong Li <lihuisong@huawei.com>,
+	MyungJoo Ham <myungjoo.ham@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Chanwoo Choi <cw00.choi@samsung.com>,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v01] mailbox/pcc.c:  add query channel function
+Message-ID: <20260605-undetectable-polecat-of-wonder-f817c0@sudeepholla>
+References: <20260604203749.168752-1-admiyo@os.amperecomputing.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Rspamd-Pre-Result: action=no action;
-	module=replies;
-	Message is reply to one we originated
-X-Rspamd-Pre-Result: action=no action;
-	module=replies;
-	Message is reply to one we originated
-X-Spam-Flag: NO
-X-Spam-Score: -4.00
-X-Spam-Level: 
-X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
-X-Spamd-Result: default: False [-4.00 / 50.00];
-	REPLY(-4.00)[]
-X-Rspamd-Queue-Id: 5718C758EE
-X-Rspamd-Action: no action
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260604203749.168752-1-admiyo@os.amperecomputing.com>
 
-Now that wrmsr_safe_on_cpu() has the same interface as
-wrmsrq_safe_on_cpu(), the callers of wrmsrq_safe_on_cpu() can be
-switched to wrmsr_safe_on_cpu() and wrmsrq_safe_on_cpu() can be
-removed.
+On Thu, Jun 04, 2026 at 04:37:48PM -0400, Adam Young wrote:
+> Drivers need information about a channel prior to creating a channel
+> or they risk triggering message delivery on the remote side of a
+> connection.
+> 
+> One of those pieces of infomration is the type of channel.
+> 
+> Add PCC channel type to records and expose PCC channel type to client.
+> 
 
-Signed-off-by: Juergen Gross <jgross@suse.com>
----
- arch/x86/include/asm/msr.h                       |  5 -----
- arch/x86/kernel/acpi/cppc.c                      |  2 +-
- arch/x86/lib/msr-smp.c                           | 16 ----------------
- drivers/cpufreq/amd-pstate.c                     |  2 +-
- .../x86/intel/speed_select_if/isst_if_common.c   |  9 ++++-----
- 5 files changed, 6 insertions(+), 28 deletions(-)
+Please point me to the user of this interface.
 
-diff --git a/arch/x86/include/asm/msr.h b/arch/x86/include/asm/msr.h
-index cb14ede8f587..a5596d268053 100644
---- a/arch/x86/include/asm/msr.h
-+++ b/arch/x86/include/asm/msr.h
-@@ -262,7 +262,6 @@ void rdmsr_on_cpus(const struct cpumask *mask, u32 msr_no, struct msr __percpu *
- void wrmsr_on_cpus(const struct cpumask *mask, u32 msr_no, struct msr __percpu *msrs);
- int rdmsr_safe_on_cpu(unsigned int cpu, u32 msr_no, u64 *q);
- int wrmsr_safe_on_cpu(unsigned int cpu, u32 msr_no, u64 q);
--int wrmsrq_safe_on_cpu(unsigned int cpu, u32 msr_no, u64 q);
- int rdmsr_safe_regs_on_cpu(unsigned int cpu, u32 regs[8]);
- int wrmsr_safe_regs_on_cpu(unsigned int cpu, u32 regs[8]);
- #else  /*  CONFIG_SMP  */
-@@ -294,10 +293,6 @@ static inline int wrmsr_safe_on_cpu(unsigned int cpu, u32 msr_no, u64 q)
- {
- 	return wrmsrq_safe(msr_no, q);
- }
--static inline int wrmsrq_safe_on_cpu(unsigned int cpu, u32 msr_no, u64 q)
--{
--	return wrmsrq_safe(msr_no, q);
--}
- static inline int rdmsr_safe_regs_on_cpu(unsigned int cpu, u32 regs[8])
- {
- 	return rdmsr_safe_regs(regs);
-diff --git a/arch/x86/kernel/acpi/cppc.c b/arch/x86/kernel/acpi/cppc.c
-index 86bf2dafdf72..327fdcecfa3b 100644
---- a/arch/x86/kernel/acpi/cppc.c
-+++ b/arch/x86/kernel/acpi/cppc.c
-@@ -74,7 +74,7 @@ int cpc_write_ffh(int cpunum, struct cpc_reg *reg, u64 val)
- 		val &= mask;
- 		rd_val &= ~mask;
- 		rd_val |= val;
--		err = wrmsrq_safe_on_cpu(cpunum, reg->address, rd_val);
-+		err = wrmsr_safe_on_cpu(cpunum, reg->address, rd_val);
- 	}
- 	return err;
- }
-diff --git a/arch/x86/lib/msr-smp.c b/arch/x86/lib/msr-smp.c
-index b2859435f4af..9ae9ff11f1f1 100644
---- a/arch/x86/lib/msr-smp.c
-+++ b/arch/x86/lib/msr-smp.c
-@@ -169,22 +169,6 @@ int wrmsr_safe_on_cpu(unsigned int cpu, u32 msr_no, u64 q)
- }
- EXPORT_SYMBOL(wrmsr_safe_on_cpu);
- 
--int wrmsrq_safe_on_cpu(unsigned int cpu, u32 msr_no, u64 q)
--{
--	int err;
--	struct msr_info rv;
--
--	memset(&rv, 0, sizeof(rv));
--
--	rv.msr_no = msr_no;
--	rv.reg.q = q;
--
--	err = smp_call_function_single(cpu, __wrmsr_safe_on_cpu, &rv, 1);
--
--	return err ? err : rv.err;
--}
--EXPORT_SYMBOL(wrmsrq_safe_on_cpu);
--
- /*
-  * These variants are significantly slower, but allows control over
-  * the entire 32-bit GPR set.
-diff --git a/drivers/cpufreq/amd-pstate.c b/drivers/cpufreq/amd-pstate.c
-index 36c9c1e98115..355c5fb9313a 100644
---- a/drivers/cpufreq/amd-pstate.c
-+++ b/drivers/cpufreq/amd-pstate.c
-@@ -446,7 +446,7 @@ static int shmem_set_epp(struct cpufreq_policy *policy, u8 epp)
- 
- static inline int msr_cppc_enable(struct cpufreq_policy *policy)
- {
--	return wrmsrq_safe_on_cpu(policy->cpu, MSR_AMD_CPPC_ENABLE, 1);
-+	return wrmsr_safe_on_cpu(policy->cpu, MSR_AMD_CPPC_ENABLE, 1);
- }
- 
- static int shmem_cppc_enable(struct cpufreq_policy *policy)
-diff --git a/drivers/platform/x86/intel/speed_select_if/isst_if_common.c b/drivers/platform/x86/intel/speed_select_if/isst_if_common.c
-index b15a798454dc..9d730e6f155d 100644
---- a/drivers/platform/x86/intel/speed_select_if/isst_if_common.c
-+++ b/drivers/platform/x86/intel/speed_select_if/isst_if_common.c
-@@ -192,8 +192,8 @@ void isst_resume_common(void)
- 			if (cb->registered)
- 				isst_mbox_resume_command(cb, sst_cmd);
- 		} else {
--			wrmsrq_safe_on_cpu(sst_cmd->cpu, sst_cmd->cmd,
--					   sst_cmd->data);
-+			wrmsr_safe_on_cpu(sst_cmd->cpu, sst_cmd->cmd,
-+					  sst_cmd->data);
- 		}
- 	}
- }
-@@ -500,9 +500,8 @@ static long isst_if_msr_cmd_req(u8 *cmd_ptr, int *write_only, int resume)
- 		if (!capable(CAP_SYS_ADMIN))
- 			return -EPERM;
- 
--		ret = wrmsrq_safe_on_cpu(msr_cmd->logical_cpu,
--					 msr_cmd->msr,
--					 msr_cmd->data);
-+		ret = wrmsr_safe_on_cpu(msr_cmd->logical_cpu,
-+					msr_cmd->msr, msr_cmd->data);
- 		*write_only = 1;
- 		if (!ret && !resume)
- 			ret = isst_store_cmd(0, msr_cmd->msr,
 -- 
-2.54.0
-
+Regards,
+Sudeep
