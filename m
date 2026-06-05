@@ -1,184 +1,153 @@
-Received: from mail-qk1-f180.google.com (mail-qk1-f180.google.com [209.85.222.180])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from PH7PR06CU001.outbound.protection.outlook.com (mail-westus3azon11010047.outbound.protection.outlook.com [52.101.201.47])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8D4B3BBFD7
-	for <linux-acpi@vger.kernel.org>; Fri,  5 Jun 2026 00:39:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.180
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780619990; cv=none; b=j0UqTtZPX7qsZj3ohREJcJyFJJTIwMBSLl7gtXZcz41DTU6MHHcd52YOzZMpBqr+6NqC5/HDXTb++S1QMwMBUPt1jLbnz2wgZaskLpYmuB5UruRvUOsJxMSCSVBLmyevpkMTtdMDtPXBxErPmDJjZBg/X5p8ZrufA/2Uk38MNxo=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780619990; c=relaxed/simple;
-	bh=MYwOSZyri+TrN7baUNMgUQBHh2K+b9G/fOb5/l1a4K8=;
-	h=From:Content-Type:Mime-Version:Subject:Message-Id:Date:Cc:To; b=EmETxb5ULE3jiYcJIfpQdvQ+UWWScpatcWGGXP2AnkZHTByhpneAYy2rTldYz6h+7BKezT4kEFUg/O5bBoK29wC3Pb95LtuXiSHLONBPX/cJerEXSdwbrIQCSUsXO4LJ8jY1NSmTnPDAjOX2w+gp7NDCL7iND9p6M8AXbRn2bzw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=gFgL33R0; arc=none smtp.client-ip=209.85.222.180
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C69E73BBFCF;
+	Fri,  5 Jun 2026 04:03:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.201.47
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1780632188; cv=fail; b=eIUsfCLGnpJ2s7zy//tuQz5eO9qkZefUvSeGGfk2GzZC8LgILbh2FcAeRp8ET68uSFlGJsU+Femgn/SK4rVk6ECsV/FjfEKyeg8vUEzgl+SJBtUnY8w+R/sqGR2izD+EcUojno1vzCBfdcZa+LHKE0KrsOG/IZwR7sMOlwAkl8k=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1780632188; c=relaxed/simple;
+	bh=wGN96wg/4EaCO8jvqIyK4ykGN0uvUg6xh8sU7BE1GL8=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=Kenfd+WDPn5VTLF+GQSOYuyEeuVqnaDX3x2KfuMgmWnU0DMz8dY1UBsj/9Qt/xmU35QsQb8kmFOp5GOZth7LaJHzWRr83ne4W/GtKs3pa6Vex9fYKGVHjYrkIH1Li6+mZGkOPWu/60BBJ8Y/FArCAwUV3TqcrlmUMIW3+tBYGA8=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=ruS3O2KO; arc=fail smtp.client-ip=52.101.201.47
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="gFgL33R0"
-Received: by mail-qk1-f180.google.com with SMTP id af79cd13be357-9158fbaa4bbso171440485a.1
-        for <linux-acpi@vger.kernel.org>; Thu, 04 Jun 2026 17:39:47 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1780619987; x=1781224787; darn=vger.kernel.org;
-        h=to:cc:date:message-id:subject:mime-version
-         :content-transfer-encoding:from:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=5+NZdL5TxhNo5C7YEkTCJwLRgB4aMOQzN3CL7Aq/+ls=;
-        b=gFgL33R0b90NQF4XVaTW54VIKfEN+aN5YCGlrhJse5/VCBpQ8K8tjYBWYftN6uJ2Gt
-         vmgfzwgSLSS/oqtU1OMRkHymD8f7R9eJdiSanQa8lAXsivlVisOF78HjMtgvg69YOqkz
-         40S4ly+UsFBYpHA1WJdjLcN76U4/o7hs3wPUJjny56HwXlMB+Lt1p4p0zJftX1GYwY4G
-         BiGk1kkGVC0aKntgdAJVYDFeegmzfoEX8Z4I5AlFqkqIeYZ57N9P4ggDlJdTaeouDZZn
-         WuQ/8JABNSVJJYLJQfpL+lysssL/ZJWextEyYJCTlFAy3IFq1eWAdMMH7Lb3GaU5Yn1a
-         gpEQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1780619987; x=1781224787;
-        h=to:cc:date:message-id:subject:mime-version
-         :content-transfer-encoding:from:x-gm-gg:x-gm-message-state:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=5+NZdL5TxhNo5C7YEkTCJwLRgB4aMOQzN3CL7Aq/+ls=;
-        b=Fu1Ywp7GjzSvgytomhk6mxQo0R09eMBouKbrD5LG+99+1IhvVATtLw/j69osbc2c6E
-         Fo13Wd0OvEOt64IpJIneCzHJC/NJQFcR0rIaV49+S9jnLou6gOKevana/54AZB36YC8j
-         DWxFijKyWH1bwQbAW3jH7ct37EHHaoB8Z2CxdxPVHpgxmye0l5jmQd3ASCCBhusoja9W
-         PFa4FwG5S+7O0l39SNv2XCiQRTNN6mS+mm3aC6ErEs97xtCO/Nl7aMtOsRgD94eTVqgK
-         7rRHVeDkFnp8D3GyQkUhu5ucaOOJGAQeGpToheCiAlK8l2tacj5h1qoJUXQ2rQ70ROoj
-         OOMQ==
-X-Gm-Message-State: AOJu0YxwjNTSrKH7lGtV4kMs55ErYgH7f23g2+pOH3GJx2phNOtYy/Xx
-	uT2TBWOyXepb8cmiwqdmjX/9CXh35+GKHwCXYfcBrzx38qYzgcwzSj7/iBrng+dS
-X-Gm-Gg: Acq92OHvszHn98DOe4KeD3tbrIaW0oEzVy+CAlqmBzg7NTlvup01ywzpiPkKhTwOn+a
-	u+6qFoiC7qCNcMvLK3+bToD6/i5bbxYgpUAo6+EzCHc8vQ6ujAqW3Wpv97ukWLpIcriZb8PW3Hn
-	YLjFXKDaj+J4a0HkvZnRumfesd3pThAPBBfcJU6l9GGRbBI3BvzIgAwQV0fHWkPDb4awdSNDfwf
-	iulIZhG0jndkHFQkFQ7NjK05xAFqRJb0NHLEy6qb9o+W+F/1FBWfY5ZonxUjZG7NdmkbTOlVFjl
-	rPgsz5Uoq48eGN3+sY0XlCIq0Ce0OVzbLKwytmqPOQBwm+mECOFBL6OiU5L/EmUbFh+Kvzoj/1K
-	UxAL8H8XD0Hq2JwswaPKrXKwaSgz8zwWQjug4u/49xdfZlNCjV6Iysg6Pgu/McfRlDithh8i/+e
-	A9FGERYqHrK+ygYgaO9aq3t5Tl1V26/b5l9x6igTmWH92Q5L8MqvbPxDaV0036REa7wqqzNbAb3
-	WaDZjIecguP
-X-Received: by 2002:a05:620a:1b8d:b0:914:c0ab:f1ee with SMTP id af79cd13be357-915a9d93f2fmr274123285a.44.1780619986920;
-        Thu, 04 Jun 2026 17:39:46 -0700 (PDT)
-Received: from smtpclient.apple ([2601:985:4601:5df0:863:92d1:80bd:c89d])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-9158a381560sm747519285a.28.2026.06.04.17.39.46
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 04 Jun 2026 17:39:46 -0700 (PDT)
-From: Shuangpeng <shuangpeng.kernel@gmail.com>
-Content-Type: text/plain;
-	charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="ruS3O2KO"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=SntU0NLp4hLCL0KcZMSK5reAlKOfnz2WlZ9YNl7I6OyDUtNU7f5DEsf21T2SYTi9GBIz8e4xwyOY9mexKaOwdh1H3NtimSTcVGZlFVoaWnA8y9fH7s3KndvgAkimKTvWc+uXFVNPnhjEr4wbEzA6hCqHCwq9lMAui4muOnSef83z3T3NMMGLWDyLe9jFXTU76kUZkKnWO74FDGYeWVUc2CUMiPBKpRT86cLXyTGpP/5TqNEJ6xnAjAcxIm8MTESX0eWCWuFojD9axp/mF+OMb0sfYTDe6q/OmtzeXNjvVnbcJTicknVWI+nOqp95zE2Ebfm0saODVGe3IskAMW9wKA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=p7J8kafN3KW4d88VWPQHfBwo3zYoOp/e0FBQA/oXEtY=;
+ b=SOtzhEWpiFXUVb7VJxbMkMdo7N+6yfrJG679tAvXVBR0wJKAFBuot0vcXmotEkBtno+hNs0v1n6q+VSbOBx1eA7t/mvztEfdAw5BiYRWYTg83qJySmUfji4PIG5Z8YF4J/GwYkimlwAHmdadMmz7BDN2OYQkkKNZJnA4F8UEms/+qBa+GIMaa/SPsC3p46Vf4aNSAqOZqrVWLALdKsziQ7s5/58prIktViGcd3UhHUcnjiBaHrF50Db+OfRFoOoS0lgwel5K0072UaGcj7JC/Xn+D7+VKl5l3WwPSD/eUPLO1Bt+7pthq+e1UvIE1pSVLayfX2DgIq1tAY3faEYedw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 165.204.84.17) smtp.rcpttodomain=rong.moe smtp.mailfrom=amd.com; dmarc=pass
+ (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=p7J8kafN3KW4d88VWPQHfBwo3zYoOp/e0FBQA/oXEtY=;
+ b=ruS3O2KOnRKAGpJOpa18njq7q2ITK+CnhE891m2g0Pk3Rryz7eClFR74C6Z72JejuvQO4/hbJ0SQ9V2UDT2yY1tzkN2cmVMFPgkjY6xByClrchqgapy1MMfcVUJb0f5GeEMNuHTHYIOHeevI4ptFka3SAIXER8OYAI1CX3gpEbs=
+Received: from SJ0PR03CA0341.namprd03.prod.outlook.com (2603:10b6:a03:39c::16)
+ by DS0PR12MB6461.namprd12.prod.outlook.com (2603:10b6:8:c7::22) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.92.7; Fri, 5 Jun 2026
+ 04:03:01 +0000
+Received: from SJ1PEPF00002315.namprd03.prod.outlook.com
+ (2603:10b6:a03:39c:cafe::f) by SJ0PR03CA0341.outlook.office365.com
+ (2603:10b6:a03:39c::16) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.92.8 via Frontend Transport; Fri, 5
+ Jun 2026 04:03:01 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
+ smtp.mailfrom=amd.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=amd.com;
+Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
+ 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
+ client-ip=165.204.84.17; helo=satlexmb07.amd.com; pr=C
+Received: from satlexmb07.amd.com (165.204.84.17) by
+ SJ1PEPF00002315.mail.protection.outlook.com (10.167.242.169) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.92.5 via Frontend Transport; Fri, 5 Jun 2026 04:03:00 +0000
+Received: from satlexmb07.amd.com (10.181.42.216) by satlexmb07.amd.com
+ (10.181.42.216) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.41; Thu, 4 Jun
+ 2026 23:03:00 -0500
+Received: from [10.136.33.4] (10.180.168.240) by satlexmb07.amd.com
+ (10.181.42.216) with Microsoft SMTP Server id 15.2.2562.41 via Frontend
+ Transport; Thu, 4 Jun 2026 23:02:56 -0500
+Message-ID: <b9079f36-7d9d-4c5b-82ad-83551163a3b5@amd.com>
+Date: Fri, 5 Jun 2026 09:32:55 +0530
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3864.600.51.1.1\))
-Subject: [BUG] ACPI: property: KASAN invalid-free when unloading configfs SSDT
- with hierarchical _DSD subnodes
-Message-Id: <E616AB8C-FA36-4F6F-8D2D-B8EC60B4F159@gmail.com>
-Date: Thu, 4 Jun 2026 20:39:15 -0400
-Cc: linux-acpi@vger.kernel.org,
- linux-kernel@vger.kernel.org
-To: rafael@kernel.org,
- lenb@kernel.org
-X-Mailer: Apple Mail (2.3864.600.51.1.1)
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC PATCH 0/3] ACPI, x86/cpu/amd: Parse S5_REST_STATUS from ACPI
+ PHAT on supported AMD platforms
+To: Rong Zhang <i@rong.moe>, "Rafael J. Wysocki" <rafael@kernel.org>, "Len
+ Brown" <lenb@kernel.org>, Borislav Petkov <bp@alien8.de>, Mario Limonciello
+	<mario.limonciello@amd.com>, Yazen Ghannam <yazen.ghannam@amd.com>,
+	<linux-kernel@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
+	<acpica-devel@lists.linux.dev>, Thomas Gleixner <tglx@kernel.org>, "Ingo
+ Molnar" <mingo@redhat.com>, Dave Hansen <dave.hansen@linux.intel.com>,
+	<x86@kernel.org>
+CC: Vilas Sridharan <Vilas.Sridharan@amd.com>, "H. Peter Anvin"
+	<hpa@zytor.com>, Andrew Cooper <andrew.cooper3@citrix.com>, Mikhail Paulyshka
+	<me@mixaill.net>, Kai Huang <kai.huang@intel.com>
+References: <20260603063317.13665-1-kprateek.nayak@amd.com>
+ <db42e87bb1404578f33b2c921bc69af73a33c9a8.camel@rong.moe>
+Content-Language: en-US
+From: K Prateek Nayak <kprateek.nayak@amd.com>
+In-Reply-To: <db42e87bb1404578f33b2c921bc69af73a33c9a8.camel@rong.moe>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SJ1PEPF00002315:EE_|DS0PR12MB6461:EE_
+X-MS-Office365-Filtering-Correlation-Id: c742acfd-d442-4ee8-3821-08dec2b755d7
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|376014|7416014|36860700016|82310400026|1800799024|13003099007|921020|22082099003|4143699003|18002099003|56012099006|11063799006;
+X-Microsoft-Antispam-Message-Info:
+	J35p+ujezqw4bQdJsh+ghadjqHPGLAXpj2Wsb6V/somtiRMYjxKIvHAjCsTbCKorX+zW2hrzo6u5L5MLh12qhYi2nuoXeW14HJF1FvlQIFozEGacFtqu5ZRNZLxiBW5PQFTdOl4dGQ7Z23fAcb3v/nuv+pyR+Cd/sU8E/4/XTSC3Rgc+bOAZgCiwq8/TIGbxFU2Qzqb8wUOEWQP0DKYL2IRK3iDj+Wh8ZOj90riX5mTAWUqUJeh93eggd6A3vlIwtCDdPDMYlf8jLX+wxfF4TEvPIjH+jVdQMP0EopqiA7dGC6YPee5abS9wPWUhuDE+ZN4nQTY+8lt75RzA3qfcxvMc7lQxmHYciz+swkrlJs+6V46KvIf/Lh4pmoD+3UTOXjyk2uRt1pII0j2pe162uj6nI1mVqnlAO37rjHSreDC1M/z7+kDBssSWQ3rdMEKTclkaWNJ/RAUgdMrcc8k5DZCbtNkTIGutBxeRIbBqPcHcvcJLiOckcx87/SsGEcUK2vjDhGeKVKzyLix457/db3AngYyow/2xctjZe1n77+csct3tGO80jXAmwDz+lAYjg/LOgNoewQns7IpyQw1TnSDdU7vhIOdbFzWTsS/OgquSmKBifSOP9t50ATJSbhUktqQeSd4I0Q3g1dqkUY34LvB+jgAkdIpAEOpVSSJf6XiiWQnhSt9WT2LhtL67w7GjuIwY81j6ol8+a4Xs9p5lDSbtXs9qzVE6zXTjih4oUJNar/0F7WuhWeLlka3c+CxNpuYJwn/yhrVba6r+xjjpI8SRfYFQI4oeNVCHOYtT7Dw=
+X-Forefront-Antispam-Report:
+	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(376014)(7416014)(36860700016)(82310400026)(1800799024)(13003099007)(921020)(22082099003)(4143699003)(18002099003)(56012099006)(11063799006);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	iKiz8Co0VMswrubA9dEYYVB735eg2BlzVe6IDiGY1tik8J2fhcV9Syb4YzEkNrGtRmuwb/i1ZEQaL4L0XN/g99gtuKHglvoTWR9cJGG3H6OYGQmvJ75JxF6/JA/at8zI+KPsrC7KoasCJL8qF2LK8OLGyJD+sxv8VyvtmXG+XbXrRhtGBWJgJNsTdD94vSo9dFHCRVD1728BsR/KlaLminy+B/MVwRGEU2M70lFHi11dHFAfDBWr+yNYlW6VFm6ZB6QZ6N/EI25KZFJmIpvirLJXUaEr1hgDNmA0Q0oq+5c8cvHW9UC5Jb2ODPIC05QcfxE6vYDuq5C2YnjCKM8OqeSzHQ3bHUqRs9bKaYD7hXe29Q2sF4GjcS//lRJUKbfmCwKkvPYGxXCgpP4p+CaQbN1mb1vE/TZOlTnKdMh8IAuJdFS3yhMvwt1lcahBZ+mA
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 Jun 2026 04:03:00.7000
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: c742acfd-d442-4ee8-3821-08dec2b755d7
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb07.amd.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	SJ1PEPF00002315.namprd03.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS0PR12MB6461
 
-Hi Kernel Maintainers,
+Hello Rong,
 
-I hit the following KASAN report while testing current upstream kernel:
+On 6/3/2026 8:07 PM, Rong Zhang wrote:
+>> Since these records are read-only, the status cannot be cleared once
+>> consumed and the last reset reason will persist across kxec until next
+>> reset which reintroduces the case prevented by commit e6416c2dfe23c
+>> ("x86/CPU/AMD: Prevent reset reasons from being retained across reboot")
+>> by clearing the FCH register once consumed.
+> 
+> It's not only about kexec.
+> 
+> The last reset reason register could remain unchanged when the reset is
+> caused by a voltage drop on a power rail, probably due to a broken power
+> supply or VRM. This wasted me a lot of frustrating time debugging
+> irrelevant reset reasons.
+> 
+> Eventually, I RMA'd the broken device and submitted the patch to save
+> other's time.
+> 
+> Also, some bits are not cleared by hardware as per [1]. If the firmware
+> doesn't clear them either they will persist anyway.
+> 
+> So I'd prefer clearing the register in any cases.
+> 
+> [1]: https://bugzilla.kernel.org/show_bug.cgi?id=206537#attach_303991
 
-KASAN: invalid-free in acpi_destroy_nondev_subnodes
+Thanks a ton for the additional context. I'm checking with the BIOS
+folks if this PHAT record behaves any differently or if it just mirrors
+the FCH::PM::S5_RESET_STATUS at the time the firmware loads.
 
-on commit: e8c2f9fdadee7cbc75134dc463c1e0d856d6e5c7 (May 25 2026)
+If it is the latter, yes, I agree with you that we need to clear the
+FCH register regardless. I'll adjust the v2 accordingly based on what
+the BIOS folks come back with.
 
-The reproducer and .config files are here.
-https://gist.github.com/shuangpengbai/4e397435a9482205119b0044cfd0ce80
-
-I=E2=80=99m happy to test debug patches or provide additional =
-information.
-
-Reported-by: Shuangpeng Bai <shuangpeng.kernel@gmail.com>
-
-[   98.822019][  T806] =
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-[   98.847029][  T806] BUG: KASAN: invalid-free in =
-acpi_destroy_nondev_subnodes (./include/acpi/platform/aclinuxex.h:64 =
-drivers/acpi/property.c:667)
-[   98.847737][  T806] Free of addr ffff88810dbc0130 by task =
-kworker/u8:1/806
-[   98.848339][  T806]
-[   98.848556][  T806] Hardware name: QEMU Ubuntu 24.04 PC v2 (i440FX + =
-PIIX, arch_caps fix, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
-[   98.848564][  T806] Workqueue: kacpi_hotplug acpi_device_del_work_fn
-[   98.848569][  T806] Call Trace:
-[   98.848571][  T806]  <TASK>
-[   98.848574][  T806]  dump_stack_lvl (lib/dump_stack.c:94 =
-lib/dump_stack.c:120)
-[   98.848577][  T806]  print_report (mm/kasan/report.c:378 =
-mm/kasan/report.c:482)
-[   98.848592][  T806]  kasan_report_invalid_free =
-(mm/kasan/report.c:557)
-[   98.848603][  T806]  check_slab_allocation (mm/kasan/common.c:?)
-[   98.848607][  T806]  kfree (./include/linux/kasan.h:199 =
-mm/slub.c:2634 mm/slub.c:6251 mm/slub.c:6566)
-[   98.848614][  T806]  acpi_destroy_nondev_subnodes =
-(./include/acpi/platform/aclinuxex.h:64 drivers/acpi/property.c:667)
-[   98.848620][  T806]  acpi_free_properties =
-(drivers/acpi/property.c:676)
-[   98.848633][  T806]  acpi_device_release (drivers/acpi/scan.c:521)
-[   98.848637][  T806]  device_release (drivers/base/core.c:2562)
-[   98.848640][  T806]  kobject_put (lib/kobject.c:689 lib/kobject.c:720 =
-./include/linux/kref.h:65 lib/kobject.c:737)
-[   98.848644][  T806]  acpi_device_del_work_fn =
-(./include/acpi/acpi_bus.h:980 drivers/acpi/scan.c:589)
-[   98.848647][  T806]  process_scheduled_works (kernel/workqueue.c:3314 =
-kernel/workqueue.c:3397)
-[   98.848654][  T806]  worker_thread (kernel/workqueue.c:3478)
-[   98.848661][  T806]  kthread (kernel/kthread.c:436)
-[   98.848670][  T806]  ret_from_fork (arch/x86/kernel/process.c:158)
-[   98.848682][  T806]  ret_from_fork_asm =
-(arch/x86/entry/entry_64.S:245)
-[   98.848687][  T806]  </TASK>
-[   98.848688][  T806]
-[   98.865113][  T806] Allocated by task 10 on cpu 0 at 95.708432s:
-[   98.865648][  T806]  kasan_save_track (mm/kasan/common.c:57 =
-mm/kasan/common.c:78)
-[   98.866058][  T806]  __kasan_kmalloc (mm/kasan/common.c:398 =
-mm/kasan/common.c:415)
-[   98.866459][  T806]  __kmalloc_noprof (./include/linux/kasan.h:263 =
-mm/slub.c:5296 mm/slub.c:5308)
-[   98.866875][  T806]  acpi_ut_initialize_buffer =
-(drivers/acpi/acpica/utalloc.c:?)
-[   98.867351][  T806]  acpi_evaluate_object =
-(drivers/acpi/acpica/nsxfeval.c:400)
-[   98.867792][  T806]  acpi_evaluate_object_typed =
-(drivers/acpi/acpica/nsxfeval.c:84)
-[   98.868283][  T806]  acpi_init_properties =
-(drivers/acpi/property.c:609)
-[   98.868728][  T806]  acpi_init_device_object =
-(drivers/acpi/scan.c:1820)
-[   98.869208][  T806]  acpi_add_single_object =
-(drivers/acpi/scan.c:1870)
-[   98.869675][  T806]  acpi_bus_check_add (drivers/acpi/scan.c:2171)
-[   98.870113][  T806]  acpi_ns_walk_namespace =
-(drivers/acpi/acpica/nswalk.c:?)
-[   98.870576][  T806]  acpi_walk_namespace =
-(drivers/acpi/acpica/nsxfeval.c:606)
-[   98.871000][  T806]  acpi_bus_scan (drivers/acpi/scan.c:2728)
-[   98.871393][  T806]  acpi_table_events_fn (drivers/acpi/scan.c:2933)
-[   98.871824][  T806]  process_scheduled_works (kernel/workqueue.c:3314 =
-kernel/workqueue.c:3397)
-[   98.872294][  T806]  worker_thread (kernel/workqueue.c:3478)
-[   98.872689][  T806]  kthread (kernel/kthread.c:436)
-[   98.873042][  T806]  ret_from_fork (arch/x86/kernel/process.c:158)
-[   98.873441][  T806]  ret_from_fork_asm =
-(arch/x86/entry/entry_64.S:245)
-[   98.873848][  T806]
-[   98.874057][  T806] The buggy address belongs to the object at =
-ffff88810dbc0000
-[   98.874057][  T806]  which belongs to the cache kmalloc-1k of size =
-1024
-[   98.875239][  T806] The buggy address is located 304 bytes inside of
-[   98.875239][  T806]  888-byte region [ffff88810dbc0000, =
-ffff88810dbc0378)
-
-
-Best,
-Shuangpeng
+-- 
+Thanks and Regards,
+Prateek
 
