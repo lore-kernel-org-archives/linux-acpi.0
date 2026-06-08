@@ -1,124 +1,161 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mout02.posteo.de (mout02.posteo.de [185.67.36.66])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EEED63672AC
-	for <linux-acpi@vger.kernel.org>; Mon,  8 Jun 2026 17:35:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1BA463B38AB
+	for <linux-acpi@vger.kernel.org>; Mon,  8 Jun 2026 22:40:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.67.36.66
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780940142; cv=none; b=g1CyB9FYuajdKt1QlTA7zapRUfSFWy5KYSlr5OkKlhw3qIl9YiGXPG7H5w0RQzdCRfVV0qltyhHGK3Qw4E7le59qsnlG5wv05kOKptRU2JRge+z8g8UKgDNnuK15WSUCT6bCBx59WjczoiOKfC6BpUAKyH7I+cRtjm7WlibfDRo=
+	t=1780958431; cv=none; b=f8kStLNLKBW27beLY6fSzDr/SHUq8xt9OXHhbqcnYnwQ3uRUR5RnEIgeNdf7ZCty7eFlAJ0yOGOcxM5r+zggkKBlKs3ZxMcJ75rspfCXRK39/Ibm469SZlbI1ItzmX43gH/bmqvkCEr5GiuU/rXeqAY0dYvWW+zcCESwRauiiIs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780940142; c=relaxed/simple;
-	bh=1daNk5q97HSwa0tb1eBdGNzq9g+BPBCGIHlCqWVWhyM=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=ZPpZBEXG4F4JdAB0EEgZwPgmj9jY4/RazMmXruv8REmIPamznSv2nEnGuB/fmvvO9+51tIUSKFGnvTayYaLjo6ILiAJhuDjP+xEGvlTg4JOvbd9PnjnnPdtoiUDJT/mCPg27QpJ3aVswBM9fKmvZvIh8MYX93G5f2bjcbfeUzDo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TrXt9bfr; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780958431; c=relaxed/simple;
+	bh=gEPVrds7gEFEphX/SOjUp9gfWo9lcAIcZ3iOZ4q4VtY=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=OAAUkIb4cnZ0CtEi7CQuDPNlo82GUxvarhXzMHu6ifktproxyp/bwaRGIoypAJrCHg+QVpjHMlZy9xP8MEvU6lZP3YXjRcXv9VtXDOlMe0CFoifQLdsSoZqkOptHv50nOiOYytuWAT/gCzsYa6YgHca7cSXbdF5UAiPRRavt4HU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de; spf=pass smtp.mailfrom=posteo.de; dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b=Mtf0VsGG; arc=none smtp.client-ip=185.67.36.66
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=posteo.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TrXt9bfr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A59741F00893
-	for <linux-acpi@vger.kernel.org>; Mon,  8 Jun 2026 17:35:39 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1780940139;
-	bh=u10T0nD1NN9n3AXGG2trN5i3eQsRrI+TOcRfuwZgmKQ=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=TrXt9bfrPHFgv/TM8y+6Lkz8YsS8pUkPqxY2HB42q/XNCaWkxcXe/CpI9l4iXnrix
-	 adcMkZMZvbuTgtFPy3m02UQ1ubtKA9uBg5Ng1LTPLrWsGzKLFfYx2MkWV1JlJQpHW1
-	 nB5fs39XpplGBaThJLPxIqDeenwOE4I7CuNGa0NAnU58y1vAwHy18rTsYdIjMCYrIh
-	 6Tekejp6Fv8X6CQ92/cF8JmE9CwggB4bM+n5RNmAY5pemr4Z9gvd8LuvIBVvN1IUK7
-	 n0SEmwSlsshgGBq4OghNk/mU2tJWkcuUj5PeY56dMa/hXegEWADywmjS6fSG/tmHxQ
-	 BOc80YrnHWMkg==
-Received: by mail-lf1-f50.google.com with SMTP id 2adb3069b0e04-5aa68d9d4a3so4963897e87.2
-        for <linux-acpi@vger.kernel.org>; Mon, 08 Jun 2026 10:35:39 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AFNElJ8LHC0uSrPfmvNx4pUC1LEzqWB5AjCGGP6qYpZoMqFK8YOvBFhJe684+vcwKMSU6XefqFMfk3/c4+G9@vger.kernel.org
-X-Gm-Message-State: AOJu0YwANeJHCtW9jTBJcSfmYjNOoSAKJtElPAHIO06PHUGUdkvlLslY
-	+NVpm7S7oI1SvYe2ZQ+52sA5SfOYr37noylz+62S7Qbzpj3tWWqgyDiVz0FoRLrY1Z2Mh3H/QsU
-	r+NubDVF8n9A42XBiabJGxTY+tO7UC5A=
-X-Received: by 2002:a05:6512:138b:b0:5aa:6b09:2ac3 with SMTP id
- 2adb3069b0e04-5aa87b80a79mr5423518e87.24.1780940138110; Mon, 08 Jun 2026
- 10:35:38 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b="Mtf0VsGG"
+Received: from submission (posteo.de [185.67.36.169]) 
+	by mout02.posteo.de (Postfix) with ESMTPS id 7E326240107
+	for <linux-acpi@vger.kernel.org>; Tue,  9 Jun 2026 00:40:20 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=posteo.de; s=2017;
+	t=1780958420; bh=hxGcOhFq9zW6pO8J0EHOVLLdkeJxAjYoFEDoPUqkzwM=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding:To:Cc:Autocrypt:OpenPGP:From;
+	b=Mtf0VsGG0ht0VJVYlrFD6J8Jizmmkc3tfYvj9owBDmZpej6WRO1eQ5hhWURXJGNkW
+	 RXTbfsIEuzW5t87sLIEP/4VC4w8mf3ePSeGy4ybtwUYntuMxuwJfBkUUNYKWb4QDjG
+	 gxHqMw5tMxlpeKYMKo+zsfKh5Pbtyvc25yE4GDI0I0qqVqCU9hFdSvWEH/GRwpgH6A
+	 Z3fTYhzIMCSkLrkzyHXKDe645yMbYUQ2Pb50jfjRFK9H/IiuJGUVplxlDdxt1HoI8r
+	 ey99tQFsiWgtuw03MbhNKtVJF1qzessL8QJ67T+QSIKoDmmjWrEmOodBfoGEx+LMnN
+	 NHhY/G5YrsE1Q==
+Received: from customer (localhost [127.0.0.1])
+	by submission (posteo.de) with ESMTPSA id 4gZ6SK5Scvz6twP;
+	Tue,  9 Jun 2026 00:40:17 +0200 (CEST)
+From: Markus Probst <markus.probst@posteo.de>
+Subject: [PATCH RESEND v2 0/2] ACPI: SPCR: Support UART clock frequency
+ field
+Date: Mon, 08 Jun 2026 22:40:19 +0000
+Message-Id: <20260609-acpi_spcr-v2-0-3cd9a3bda727@posteo.de>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <2848144.mvXUDI8C0e@rafael.j.wysocki> <agfFERWn-5b-0H24@kernel.org>
- <CAJZ5v0jQUQ85MpyPZNbLmxqaGGvsTBKsdf8gdPNmFFSpZkj4eQ@mail.gmail.com>
-In-Reply-To: <CAJZ5v0jQUQ85MpyPZNbLmxqaGGvsTBKsdf8gdPNmFFSpZkj4eQ@mail.gmail.com>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Mon, 8 Jun 2026 19:35:26 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0iQO_ozXQpzj4qKLegRzMURPDjJV47ynfL6OAUUg_8f4w@mail.gmail.com>
-X-Gm-Features: AVVi8CfAsmPELV8FvWVvQLiemflysSn_64WMNTO18O0ofD1QNhP95Vleo2mm8ic
-Message-ID: <CAJZ5v0iQO_ozXQpzj4qKLegRzMURPDjJV47ynfL6OAUUg_8f4w@mail.gmail.com>
-Subject: Re: [PATCH v1] tpm_crb: Check ACPI_COMPANION() against NULL during probe
-To: Jarkko Sakkinen <jarkko@kernel.org>
-Cc: Peter Huewe <peterhuewe@gmx.de>, Jason Gunthorpe <jgg@ziepe.ca>, linux-integrity@vger.kernel.org, 
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>, 
-	Linux ACPI <linux-acpi@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
+ Geert Uytterhoeven <geert@linux-m68k.org>, 
+ Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
+ Ard Biesheuvel <ardb@kernel.org>, 
+ Ilias Apalodimas <ilias.apalodimas@linaro.org>, 
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+ Jiri Slaby <jirislaby@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, 
+ linux-efi@vger.kernel.org, linux-serial@vger.kernel.org, 
+ Markus Probst <markus.probst@posteo.de>
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1829;
+ i=markus.probst@posteo.de; h=from:subject:message-id;
+ bh=gEPVrds7gEFEphX/SOjUp9gfWo9lcAIcZ3iOZ4q4VtY=;
+ b=owEBiQJ2/ZANAwAIATR2H/jnrUPSAcsmYgBqJ0TRWmlvS+iDS4RaSZNSpOZsbtyV/w/di3ow9
+ 7LoRPNRVoyJAk8EAAEIADkWIQSCdBjE9KxY53IwxHM0dh/4561D0gUCaidE0RsUgAAAAAAEAA5t
+ YW51MiwyLjUrMS4xMiwyLDIACgkQNHYf+OetQ9ICTxAAoLF2wHMzEaFxFyLVErT+NGnWvAUTc2h
+ XoJw9ab7gk1Htg3Ym3idaaIHSd/8f4H2377uAiHwRNNTu1BgexGnCNr3eOqfgy/BuS8AgfWHCtF
+ StUFpYLqx+h6ic/aTkGBQ0Fu9ytfX9Cnk1J6XL3fhYtuV93WcYxHm0RACxhYG9WNA/Z58MnBnS+
+ xxyxYlIP8vbXcB5v190h1SEsz3D6xtWECj5Bwh4aoGgOP4GIdO2dVec/fxwrHdzt6NobClJ0rbq
+ 0+OYSIaq54cmOgjvDauZRkwCDbkmWBHX2N3UWApOImMd2JcGm92wzfmjpPNaM+AIPiLkpPlaiMZ
+ eIwQEVhz4xY0UkuvDMF2fjXLVDcIiPQhR1263QBTe7O+grzbRzRsaWg1SKkgqarKqkbLtKrh4n/
+ qnaS2yjhIM9qR4TqZ+0fDXn0/b0HZw8PCUxZUbB3TMlufX4LQHFq4ax3qn8G4eKjTIecg6ELir0
+ E+jsxVqBu8JSLWc0QatoCnLM7OhPPA59KjDecJjACciUbqoMdbFqu1EJA4te4njJzLJySlVZlJa
+ cztayl0PSF2qPeBHA7lnBqgXYwkZ2IBbXSC6bLSSmZiHF9IWw67EjwaVIcqlRQ5mdNnjmeclPfx
+ QNHUd8P9HcgIgKvcfWx8baOAZQtajiYneBxguKLYQE3V1avqdjPE=
+X-Developer-Key: i=markus.probst@posteo.de; a=openpgp;
+ fpr=827418C4F4AC58E77230C47334761FF8E7AD43D2
+Autocrypt: addr=markus.probst@posteo.de; prefer-encrypt=mutual;
+  keydata=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
+  aBeNN4ijKZchBXHPgVx+YtWRHfcm4l8=
+OpenPGP: url=https://posteo.de/keys/markus.probst@posteo.de.asc; preference=encrypt
 
-On Tue, May 19, 2026 at 11:01=E2=80=AFPM Rafael J. Wysocki <rafael@kernel.o=
-rg> wrote:
->
-> On Sat, May 16, 2026 at 3:15=E2=80=AFAM Jarkko Sakkinen <jarkko@kernel.or=
-g> wrote:
-> >
-> > On Tue, May 12, 2026 at 06:16:23PM +0200, Rafael J. Wysocki wrote:
-> > > From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-> > >
-> > > Every platform driver can be forced to match a device that doesn't ma=
-tch
-> > > its list of device IDs because of device_match_driver_override(), so
-> > > platform drivers that rely on the existence of a device's ACPI compan=
-ion
-> > > object need to verify its presence.
-> > >
-> > > Accordingly, add a requisite ACPI_COMPANION() check against NULL to t=
-he
-> > > tpm_crb driver.
-> > >
-> > > Fixes: 48fe2cddc85c ("tpm_crb: Convert ACPI driver to a platform one"=
-)
-> > > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > ---
-> > >  drivers/char/tpm/tpm_crb.c |    6 +++++-
-> > >  1 file changed, 5 insertions(+), 1 deletion(-)
-> > >
-> > > --- a/drivers/char/tpm/tpm_crb.c
-> > > +++ b/drivers/char/tpm/tpm_crb.c
-> > > @@ -786,8 +786,8 @@ static int crb_map_pluton(struct device
-> > >  static int crb_acpi_probe(struct platform_device *pdev)
-> > >  {
-> > >       struct device *dev =3D &pdev->dev;
-> > > -     struct acpi_device *device =3D ACPI_COMPANION(dev);
-> > >       struct acpi_table_tpm2 *buf;
-> > > +     struct acpi_device *device;
-> > >       struct crb_priv *priv;
-> > >       struct tpm_chip *chip;
-> > >       struct tpm2_crb_smc *crb_smc;
-> > > @@ -797,6 +797,10 @@ static int crb_acpi_probe(struct platfor
-> > >       u32 sm;
-> > >       int rc;
-> > >
-> > > +     device =3D ACPI_COMPANION(dev);
-> > > +     if (!device)
-> > > +             return -ENODEV;
-> > > +
-> > >       status =3D acpi_get_table(ACPI_SIG_TPM2, 1,
-> > >                               (struct acpi_table_header **) &buf);
-> > >       if (ACPI_FAILURE(status) || buf->header.length < sizeof(*buf)) =
-{
-> > >
-> > >
-> > >
-> >
-> > Reviewed-by: Jarkko Sakkinen <jarkko@kernel.org>
->
-> Thanks!
->
-> So do you want me to pick up this one?
+Support the uart clock frequency in the SPCR table.
+See the commit messages for details.
 
-I took the silence as consent and picked it up.  If you'd rather route
-it differently, please let me know.
+Signed-off-by: Markus Probst <markus.probst@posteo.de>
+---
+Changes in v2:
+- fix uart_clk_freq possibly being interpreted as parity/bits/flow
+- Link to v1: https://patch.msgid.link/20260505-acpi_spcr-v1-1-fd4bc6f4eb53@posteo.de
 
-Thanks!
+---
+Markus Probst (2):
+      serial: earlycon: add uart_clk_freq parameter
+      ACPI: SPCR: Support UART clock frequency field
+
+ arch/m68k/virt/config.c          |  2 +-
+ arch/mips/mti-malta/malta-init.c |  2 +-
+ drivers/acpi/spcr.c              |  2 +-
+ drivers/firmware/efi/earlycon.c  |  2 +-
+ drivers/tty/serial/earlycon.c    | 17 ++++++++++++-----
+ include/linux/serial_core.h      |  7 +++++--
+ 6 files changed, 21 insertions(+), 11 deletions(-)
+---
+base-commit: aa61612ab641d7d62b0b6889f2c7c9251489f6e3
+change-id: 20260430-acpi_spcr-61902fd923f2
+-----BEGIN PGP SIGNATURE-----
+
+iQJPBAABCAA5FiEEgnQYxPSsWOdyMMRzNHYf+OetQ9IFAmoTfSQbFIAAAAAABAAO
+bWFudTIsMi41KzEuMTIsMiwyAAoJEDR2H/jnrUPS9e4P/3ObHEJDC0UywwA9xj1z
+kzoUrs/iZrus7ROb6ri7MzHVY8riTrzHZrvMOkdWBAxuMXrnzdLwDx96qnQuiaHm
+GJBDNBAxoRzBxVkkQJi9Osa+zr8DOEC3+gsv3dCqNqI4DT1wXsBEMi4zgg5dJ5Ye
+oFFjEXN/EAiFVa6DHeNMaoJ69sLbYjvWUxAvU74Zpa6zjQMc1n9oCcJFc5D6cvkx
+9/WozDV7rTNjmqDy9kcmyb3geeEMd14/y3j8adIe6qB0kkIJQwQr671eIWzGA7pg
+353gxRmbLaT9YCKJvHsP32N7Z2EUhrp/o3U6Od/Q0I+qDz13RBSuDLUTogi/mhAw
+U7i9a2WHaD2LvwQdt5azLjuo7etx5si84E/cT5G2xJBwUeC2ftYjZulJZs8BMKZp
+Oac3Ln/qWCEVw52DWOcxPPIkxlGfjEZOqWBajkRI4NdY3+d0o0/nBK+RYfOt30sf
+L3+yLnMmqBjF1RkF1Lm3kTZ589K2KSxGOKMGoYKZqyvV4Ato4w4EoIwL+MQJw7SD
+De/BNNpFpTDqJxqgnl4HuELZRzmiKAQCGMwDq285I0Ng1r7xlxFCDYBJnyjnm2Qd
+LbD/ZH5yl0beq/S1qZla+JIRjYdbRNQlLUSh3MqBxgll0Xg5GYLk2qeeF+xJJDCq
+LkXKR59axau1efToWKWn7CBZ
+=EGzU
+-----END PGP SIGNATURE-----
+-- 
+Markus Probst <markus.probst@posteo.de>
+
