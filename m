@@ -1,106 +1,111 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4468134D3B9
-	for <linux-acpi@vger.kernel.org>; Mon,  8 Jun 2026 12:36:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A380E33FE2F
+	for <linux-acpi@vger.kernel.org>; Mon,  8 Jun 2026 12:43:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780922189; cv=none; b=C2UYWOuGlmapK2813DEdoHrXSFVQiNfr1+QD1qKYU+AdXjdWGsh6abm6J5193i5Wya4H4jECqRKXVCN1YDUFz0Fj0wHFrbIkjE/4ZB6ApvXVZAAcbWS02u/H067TDWcff8bKI0vw3omx/4sltLZpcorCJHzzhJ/dyPRuYQJjIm8=
+	t=1780922615; cv=none; b=KBSTl+2U+UL0Dn4ZocQtQmBmBQmFc71tzVS3AlE6J61eCBZTFuk99ClGO0jAvCvAT0iHv01Qb49YBW9G02yA/8KcrWRRH7TUC9hFwjUyBOCFRSHRyrWZD5evagY8HyHUnRdsIEH1zDH+TDVqvKf2KVLHC8p+YcrYU0NuynJgLCE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780922189; c=relaxed/simple;
-	bh=eZ55qpaboQW4WiNjRuICiXpsY9DIr5r/k2MSDBEMUSM=;
+	s=arc-20240116; t=1780922615; c=relaxed/simple;
+	bh=tTZyw+5Uu8IoTYSbBjqeZ+1Ba88WEYBTtrn9biZ/efA=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=PUHjKUib/WlsecEzVJ1qNGACQVfdYIHTub6YaTonSNRUGB5gex8LVZVSJo76dkx72v2Ha2PLP8wp6+g3Hf9FkB5laxtim6dtBd2BeEqgR7MR4/h1uzgEZgRrHD0wxiEmFS2CdTB3O3at0dpsHl2iVLTm81M9Ei+KxqiRhRs2Sps=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dDjJNhzQ; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=tM9jBd7mpEI/Sa9zSb9/4dNeqZIBYG+w1W7MvFF+Mp4N/PQ86+2ti5GFKKBylGVwM0jCD2MxvEPA5a/ZbrblCcIOELxSDWaS6i6Cdn4Ra50VnI7IKbx3k19iwlxWRj+fpSTNaUQv8Ca3rHsAm6hNtehnrlrTXKvFlYFG8tkYRZA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GapeKDeI; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dDjJNhzQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E99B71F00899
-	for <linux-acpi@vger.kernel.org>; Mon,  8 Jun 2026 12:36:27 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GapeKDeI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E2421F00893
+	for <linux-acpi@vger.kernel.org>; Mon,  8 Jun 2026 12:43:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1780922187;
-	bh=uuwsAFBtkAgHh5HFsocGkIr00//2kER23ReKpX5/rP4=;
+	s=k20260515; t=1780922614;
+	bh=2beoehzCb0BhnH7bqUBivATijCggi4WFrJzjwRQe8vA=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=dDjJNhzQhZzRQPnEtjLLnkHbjJv0aZhthY7RuQcCNrTT/9rZBMysPtBsWJma+Q1e2
-	 ZwtKLcwgoYgXQ/tuRd+3lCintDLxuKtmZYGObCdZbDB0GUQfanfifNa2zXS70lhVLu
-	 ylINb9YjSTtynEFWtC9yv9TynwZMtotPe3hVq8PW5ToNn8zSHB8TsWIImSAsNdSHsW
-	 mpDj2xuMaMhzVll6P64rXOcS0jZ6Oik3Ok3aiekqDLgJ3Yyuq1CIMJZDBl7ig73ALL
-	 ShHMbWw5H+demh3YIGdfgGplWIZ1dHjPfeooWeQkgRTT2EoCztdAqExkeuet1E+lIJ
-	 2ekoTMtmySc3Q==
-Received: by mail-lf1-f43.google.com with SMTP id 2adb3069b0e04-5aa6cdebc33so3857627e87.2
-        for <linux-acpi@vger.kernel.org>; Mon, 08 Jun 2026 05:36:27 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AFNElJ/NZA4dSb0s2VCBCyubfXy1z8xApm6rM/WX146TGIyImeFR07uIepD1nrOsh3Jm649NgK/OLOXxpwFh@vger.kernel.org
-X-Gm-Message-State: AOJu0YwyAxLrdco4SnBvHEPgdybNR/XFMta3B8Kn9hGFd25KtgMWfSvD
-	+sYtmwdIggSmX8uWn2cjX64O2JnXkzZ5JtYrzw0VB2iYMOcHs0dsJ6dpPGo9kmEKR1fk+idZFji
-	Y6AfaMoHlOYCTn3LIDnR9Fo9Rw4Byslo=
-X-Received: by 2002:a05:6512:3981:b0:5aa:6c98:a09a with SMTP id
- 2adb3069b0e04-5aa87b8bce0mr4936984e87.3.1780922186354; Mon, 08 Jun 2026
- 05:36:26 -0700 (PDT)
+	b=GapeKDeI+/c0uQLSZ2/GGjJadF4/Egm6S8CbQultF7vzkd5uN6wnmtXzQf/KFLqgN
+	 1X8e0cKwVhkYRrYUrHVt82SyVbF4FBmFIT8/CN54MmUYSPtf/e+IxCYMjsvgE8PFiP
+	 LcHs+y1rC4kbqbDCRA1EZROGC1kgMkjPy4TK93hoWsVhU55w4Q12eWxjKH7xM3dXtB
+	 Dhc3hs+ST5BcQ/PAfdDRBGAhYmhWqu9Z1IzkmeZTUXTz9o+jgev1yQfNVF3StF16/F
+	 dF/3dEgv+jRIAy8wxS8o3omjo8AjFJnMmHk7zJ6Y5OQpYbkkTaPHdKWtmJRbAqWj0v
+	 v3YU1BM+maKLA==
+Received: by mail-lf1-f51.google.com with SMTP id 2adb3069b0e04-5aa5e9a64b4so4486588e87.3
+        for <linux-acpi@vger.kernel.org>; Mon, 08 Jun 2026 05:43:34 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ/EqPEUS+ZHJb0bgNEZj8rT+OuPZv5CufYXHVRqwC0dMRTYy1aO+JXeTQjhuXbACO+7xYZEWAi/3hGc@vger.kernel.org
+X-Gm-Message-State: AOJu0YyhuC+Gkg7FlJv7qWHdVC5dYoCyk/nzk5I1G2xxNU7rLeiR1D5M
+	M9HhLubnpsmhnL2IvNICB2rMxepnAgqg6J9A4ZMuyFA6O84kqmhq6edErL4xNfX9+PfDmuJdJAC
+	of2VLQT5atjJpbLTxhh9u/v+P3ALQ3co=
+X-Received: by 2002:ac2:4908:0:b0:5aa:854c:61df with SMTP id
+ 2adb3069b0e04-5aa87bc3b72mr2878490e87.19.1780922612823; Mon, 08 Jun 2026
+ 05:43:32 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260603163108.2149359-1-dbgh9129@gmail.com>
-In-Reply-To: <20260603163108.2149359-1-dbgh9129@gmail.com>
+References: <15af5635-e3a3-4ffc-9f02-82e35a95154f@huawei.com> <20260608190359.3254-1-TonyWWang-oc@zhaoxin.com>
+In-Reply-To: <20260608190359.3254-1-TonyWWang-oc@zhaoxin.com>
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Mon, 8 Jun 2026 14:36:08 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0gDNdWoqLaq6G4ujgpvPCowG8uqZoGX+UTak8WOZYmHvg@mail.gmail.com>
-X-Gm-Features: AVVi8CeuBP8kufDHBCLuw0v0PAvbfN4SJ9guSE1pRkf4_5NtqKh5Oi-qBYLDyes
-Message-ID: <CAJZ5v0gDNdWoqLaq6G4ujgpvPCowG8uqZoGX+UTak8WOZYmHvg@mail.gmail.com>
-Subject: Re: [PATCH v1] ACPI: IPMI: Fix message kref handling on dead device
-To: Yuho Choi <dbgh9129@gmail.com>
-Cc: "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org
+Date: Mon, 8 Jun 2026 14:43:13 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0hoSqYPrvLTSgekDsY4vwwL55ROrQei00NKcfyzW-ep4A@mail.gmail.com>
+X-Gm-Features: AVVi8CdD8ssHTQhsW_2jXsqEOsHFqjKv35zO6PBUwU64UYVDoCG7KZgAv7TQMXk
+Message-ID: <CAJZ5v0hoSqYPrvLTSgekDsY4vwwL55ROrQei00NKcfyzW-ep4A@mail.gmail.com>
+Subject: Re: [PATCH v2] ACPI: processor: Add cpuidle driver check in acpi_processor_register_idle_driver
+To: Tony W Wang-oc <TonyWWang-oc@zhaoxin.com>
+Cc: rafael@kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, lihuisong@huawei.com, CobeChen@zhaoxin.com, 
+	LindaChai@zhaoxin.com
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Jun 3, 2026 at 6:31=E2=80=AFPM Yuho Choi <dbgh9129@gmail.com> wrote=
-:
+On Mon, Jun 8, 2026 at 1:04=E2=80=AFPM Tony W Wang-oc <TonyWWang-oc@zhaoxin=
+.com> wrote:
 >
-> acpi_ipmi_space_handler() takes an extra reference on tx_msg before
-> checking whether the selected IPMI device is dead. The reference
-> belongs to the tx_msg_list entry and is normally dropped by
-> ipmi_cancel_tx_msg() or ipmi_flush_tx_msg() after the message is removed
-> from the list.
+> Commit 7a8c994cbb2d ("ACPI: processor: idle: Optimize ACPI idle
+> driver registration") moved the ACPI idle driver registration to
+> acpi_processor_driver_init(), but it didn't check whether a cpuidle
+> driver was already registered.
 >
-> On the dead-device path, the message has not been queued yet, but the
-> error path still calls ipmi_msg_release() directly. That bypasses
-> kref_put() and frees tx_msg while the queued-message reference is still
-> recorded in the kref count.
+> For example, on Intel platforms, if the intel_idle driver is already
+> loaded, the code would still evaluate the _CST object in the ACPI
+> table and attempt to register the acpi_idle driver. This registration
+> would fail with -EBUSY due to the existing check in cpuidle_register_driv=
+er.
 >
-> Take the queued-message reference only after the dead-device check
-> succeeds, immediately before adding tx_msg to the list.
+> Add a check at the beginning of acpi_processor_register_idle_driver()
+> to avoid unnecessary _CST evaluate and potential registration failures.
 >
-> Fixes: 7b9844772237 ("ACPI / IPMI: Add reference counting for ACPI IPMI t=
-ransfers")
-> Signed-off-by: Yuho Choi <dbgh9129@gmail.com>
+> Fixes: 7a8c994cbb2d ("ACPI: processor: idle: Optimize ACPI idle driver re=
+gistration")
+> Signed-off-by: Tony W Wang-oc <TonyWWang-oc@zhaoxin.com>
 > ---
->  drivers/acpi/acpi_ipmi.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> Changes in v2:
+> - Added comment to explain why we skip registration when a driver is
+>   already present.
 >
-> diff --git a/drivers/acpi/acpi_ipmi.c b/drivers/acpi/acpi_ipmi.c
-> index 8f1aeae8b72e..79ce6e72bf29 100644
-> --- a/drivers/acpi/acpi_ipmi.c
-> +++ b/drivers/acpi/acpi_ipmi.c
-> @@ -550,7 +550,6 @@ acpi_ipmi_space_handler(u32 function, acpi_physical_a=
-ddress address,
->                 return AE_TYPE;
->         }
+>  drivers/acpi/processor_idle.c | 9 +++++++++
+>  1 file changed, 9 insertions(+)
 >
-> -       acpi_ipmi_msg_get(tx_msg);
->         mutex_lock(&driver_data.ipmi_lock);
->         /* Do not add a tx_msg that can not be flushed. */
->         if (ipmi_device->dead) {
-> @@ -558,6 +557,7 @@ acpi_ipmi_space_handler(u32 function, acpi_physical_a=
-ddress address,
->                 ipmi_msg_release(tx_msg);
->                 return AE_NOT_EXIST;
->         }
-> +       acpi_ipmi_msg_get(tx_msg);
->         spin_lock_irqsave(&ipmi_device->tx_msg_lock, flags);
->         list_add_tail(&tx_msg->head, &ipmi_device->tx_msg_list);
->         spin_unlock_irqrestore(&ipmi_device->tx_msg_lock, flags);
+> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.=
+c
+> index ee5facccbe10..390ab5f1d313 100644
+> --- a/drivers/acpi/processor_idle.c
+> +++ b/drivers/acpi/processor_idle.c
+> @@ -1355,6 +1355,15 @@ void acpi_processor_register_idle_driver(void)
+>         int ret =3D -ENODEV;
+>         int cpu;
+>
+> +       /*
+> +        * If a cpuidle driver is already registered, there is no need to
+> +        * evaluate _CST or attempt to register the ACPI idle driver.
+> +        */
+> +       if (cpuidle_get_driver()) {
+> +               pr_debug("cpuidle driver %pS already registered.\n", cpui=
+dle_get_driver());
+> +               return;
+> +       }
+> +
+>         acpi_processor_update_max_cstate();
+>
+>         /*
 > --
 
 Applied as 7.2 material, thanks!
