@@ -1,198 +1,182 @@
-Received: from mout01.posteo.de (mout01.posteo.de [185.67.36.65])
+Received: from AM0PR02CU008.outbound.protection.outlook.com (mail-westeuropeazon11013036.outbound.protection.outlook.com [52.101.72.36])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DF8143C05F
-	for <linux-acpi@vger.kernel.org>; Tue,  9 Jun 2026 14:56:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.67.36.65
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781017012; cv=none; b=iDXBtktsM6lI+xdfNd5dwbu3y/qXkbWvxxIYh7qP5/cTt4/dGV1qfCDE+SVvBY/XSGgMpKS3kQMw0fDIHX+JXBIiWs4Z7YZXxY1GfoB3ZlN6R7aED6fZIf6R273RlnKUOf3cACoessFAiw4Kdn0yoRME+IadU/pYjAOzFuYALW0=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781017012; c=relaxed/simple;
-	bh=zj9Wu73Ltk1sOzoQhTIe1zSxGj1RV23OuqYlJJxGKB0=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=q5FC7lsW1ZmHKPgSkbRiPNA0j5R18anw7GZv8AB/58gEKoMi6pkHE5RVV5T2WCotSg2dXZMpgMekVd7oDvK1L+2xWVfwFbYi8N3y0koArvjBKZz45Ra8md1MBSKnkUVVFqDfyIsGVBDJVaEXilMokoRC2zPkI9NY2PnaMDFzgGM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de; spf=pass smtp.mailfrom=posteo.de; dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b=aQ9CXDh1; arc=none smtp.client-ip=185.67.36.65
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=posteo.de
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72FAF416CF6;
+	Tue,  9 Jun 2026 14:59:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.72.36
+ARC-Seal:i=3; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1781017196; cv=fail; b=uTr3+VgpYYoYfoSlKhdDFtONi313uRb7GrePOU+Llavjbwtn/EScqDlB7LiviE9dhod0VOLHiJULbWZ2FgOMPHvftk3ELc43dL7IiMoi48zIt6U3XomzAyktfCoOoiuQy3zlbd2Lud6BQjEhHDnhdXGs9N2xFi8Cj1JQPkwuTNs=
+ARC-Message-Signature:i=3; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1781017196; c=relaxed/simple;
+	bh=ZYt1DikWz+SjDpm1pSxIbjXI0PeMu2E0SRyovxuDeXM=;
+	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=qeenah2C/XDysV2uv+12gp51+15rZzRCiBceSt4QvlI4flg6DK7AE1A3P/3wpBeJ8oURZzEYhwH4724RjofsbC8mJPYIpGGraC5I2nIFOeIGZUOWCLTXWNr2PFLRRaDhFN7hZuVAd5TZqEV5Blm5qYh+5L0NzA+ahyG7sXyyAyM=
+ARC-Authentication-Results:i=3; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=KnRlby6o; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=KnRlby6o; arc=fail smtp.client-ip=52.101.72.36
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b="aQ9CXDh1"
-Received: from submission (posteo.de [185.67.36.169]) 
-	by mout01.posteo.de (Postfix) with ESMTPS id 1C24724002A
-	for <linux-acpi@vger.kernel.org>; Tue,  9 Jun 2026 16:56:44 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=posteo.de; s=2017;
-	t=1781017004; bh=TkCq9T8Scv4lUIRS90x1KMGa7qnjIlxLdGrH7gewdXk=;
-	h=Message-ID:Subject:From:To:Cc:Date:Autocrypt:Content-Type:
-	 MIME-Version:OpenPGP:From;
-	b=aQ9CXDh120YKFaeBkxSGZWEMwoUezQ90aFYnHQjOzWsERTlS1L8fj5zd4aVKajIhg
-	 dWq1k8TiHkEjBq+W25d7ScC8Pfh/lXcd0ux/pDemyaB93atdj2L8hNUgZ3q23W9lgP
-	 iOhFIZbpGER7850bUyj0uLY1NxopjD4v+kYtgK+eiXXxRGjuuOl3d/hIxqIXMwGITt
-	 GGnzg5uEa1nyws/xtraiyrDbbp/RBEjhxyIMncMS4ZqQCUAyUHbgOXEmueiv+nLUZT
-	 mnegwzfVMGxWZpgiQvK4QfRuEocZr3MR4RlkMtQvlaycASUAPr9hbvCasPsDxLwClD
-	 TzzvYvOwvyl3A==
-Received: from customer (localhost [127.0.0.1])
-	by submission (posteo.de) with ESMTPSA id 4gZX6x5xJkz6txs;
-	Tue,  9 Jun 2026 16:56:41 +0200 (CEST)
-Message-ID: <44a6e266e6ead9b7cbbb6c9c11f18f21a13d8c2a.camel@posteo.de>
-Subject: Re: [PATCH RESEND v2 1/2] serial: earlycon: add uart_clk_freq
- parameter
-From: Markus Probst <markus.probst@posteo.de>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
- Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Ard Biesheuvel
- <ardb@kernel.org>, Ilias Apalodimas	 <ilias.apalodimas@linaro.org>, Greg
- Kroah-Hartman <gregkh@linuxfoundation.org>,  Jiri Slaby
- <jirislaby@kernel.org>, linux-acpi@vger.kernel.org,
- linux-kernel@vger.kernel.org, 	linux-m68k@lists.linux-m68k.org,
- linux-mips@vger.kernel.org, 	linux-efi@vger.kernel.org,
- linux-serial@vger.kernel.org
-Date: Tue, 09 Jun 2026 14:56:43 +0000
-In-Reply-To: <CAMuHMdXH0mR9Sr+ze2_m94uc46_7gubApzWOkf+vUO+w=DmNoQ@mail.gmail.com>
-References: <20260609-acpi_spcr-v2-0-3cd9a3bda727@posteo.de>
-	 <20260609-acpi_spcr-v2-1-3cd9a3bda727@posteo.de>
-	 <CAMuHMdXH0mR9Sr+ze2_m94uc46_7gubApzWOkf+vUO+w=DmNoQ@mail.gmail.com>
-Autocrypt: addr=markus.probst@posteo.de; prefer-encrypt=mutual;
- keydata=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
- jfGillcaQOqFZ3WwVqyzG1BUfTow==
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-eHB9O6aTLRCXTUNZoAwj"
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="KnRlby6o";
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="KnRlby6o"
+ARC-Seal: i=2; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=pass;
+ b=ZPE8U/PMSPRpDchfpVVMYVeIzI4AM/MDy28sriGwtmq4UXf2BF7Zr2CCfaYBYlmy64e7AhBG/Z0/8MzY3uJD07TKJuS6YV8tFtXEiq7B/wecNRBiDtL1jScIcm9uxdFX4z3/k/+g7+oBctdhI0Oh5MmTNEPHrq2TqR8ltoUcfwyG5WhKxWs9HuCJn8s/TQu70tck6UWxSmum97L+74iFGfbHtGibCnBrmfYS7vVBw1j8/B3jjLxDUzQWyFczo4+3/d8+6R+W0i7WZmfIUZwmPtJ2H8g9T0S5psKP7PIRRrXFOcdK3bVrNYS4nc47j8d+6mW9t2lCZ7KmqJy+szoAkw==
+ARC-Message-Signature: i=2; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=NW9OWfMtrNL5L9Zx1uOIbXbLALvL+VT54pSx0Yt2itM=;
+ b=xHZ1UtG3W3lJp/8BEVMAOAxn0yCV9zYcYCOWyFpNeUgQIErh201Lg0p+7+Zol5H6hpY2a2CTUPKlAIGvJlXx2GMMambQ8Knzqft3am8pGwRthO08rTWAwYgpVX+TDfVl0iT1ZklWhLNKz2W7yESTWIQDqUZtDOlc/0D3qnsTefdtHJVu2RcFSkp/40mxJ5Ek8HvK1ML1ZsS6x8rUnZLi+VGWgMvJj2c3yAWjMcblJ5AgmXZTjO7LXoI4BfUxvSxHTWcOPZi/r1gDt8ZY+SWmhxCzVt08LWSKkG4cEfrCREvJNZPgKBz1M4esAIHUPzhWFv791onSvn2xYCfOCqYeng==
+ARC-Authentication-Results: i=2; mx.microsoft.com 1; spf=pass (sender ip is
+ 4.158.2.129) smtp.rcpttodomain=kernel.org smtp.mailfrom=arm.com; dmarc=pass
+ (p=none sp=none pct=100) action=none header.from=arm.com; dkim=pass
+ (signature was verified) header.d=arm.com; arc=pass (0 oda=1 ltdi=1
+ spf=[1,1,smtp.mailfrom=arm.com] dkim=[1,1,header.d=arm.com]
+ dmarc=[1,1,header.from=arm.com])
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arm.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=NW9OWfMtrNL5L9Zx1uOIbXbLALvL+VT54pSx0Yt2itM=;
+ b=KnRlby6oYoU+ExFtgT+1c8pttw0wt8GNoWVRwklIF4CuMquyjkK4n2Pq1UjuB7ZiTr89OEi/oFpuyv2f6vW3R7IHvoXk2AyCShOQjWrSSU4tv5r3vtL1xapotSZfN7hf4mNya1ZtWSdcT1x0ky2dO4QXFJaQgXfTtRmV+GhGkCA=
+Received: from AM0PR10CA0046.EURPRD10.PROD.OUTLOOK.COM (2603:10a6:20b:150::26)
+ by DB9PR08MB8387.eurprd08.prod.outlook.com (2603:10a6:10:3d8::8) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.92.14; Tue, 9 Jun 2026
+ 14:59:44 +0000
+Received: from AMS1EPF0000004C.eurprd04.prod.outlook.com
+ (2603:10a6:20b:150:cafe::39) by AM0PR10CA0046.outlook.office365.com
+ (2603:10a6:20b:150::26) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.92.14 via Frontend Transport; Tue, 9
+ Jun 2026 14:59:43 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 4.158.2.129)
+ smtp.mailfrom=arm.com; dkim=pass (signature was verified)
+ header.d=arm.com;dmarc=pass action=none header.from=arm.com;
+Received-SPF: Pass (protection.outlook.com: domain of arm.com designates
+ 4.158.2.129 as permitted sender) receiver=protection.outlook.com;
+ client-ip=4.158.2.129; helo=outbound-uk1.az.dlp.m.darktrace.com; pr=C
+Received: from outbound-uk1.az.dlp.m.darktrace.com (4.158.2.129) by
+ AMS1EPF0000004C.mail.protection.outlook.com (10.167.16.137) with Microsoft
+ SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.21.113.7
+ via Frontend Transport; Tue, 9 Jun 2026 14:59:43 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=IJ0fVt4f74ROOJgWpWsh5h3NT4VXKaRxiFmKadazjk6CPnaG59Izhw/LYKXA5gPjwbH3tIePqCZJcom6TKyHMR2aV8ekFNPln5nZCNBY6nG61r20CGiys9MZ1jIxN3HM5sLNjI0nV+0lUAgDReYMRPNfdv8Nj5Tc5KRpUYZtGl7kPy/218wdwwFSsVIcsxs8PgZ0riksNiLKAG5aidkPpPsKVDjZ58lkySHdO5irg4C53zZ6MEX16PrCjvrmNdh6rDYUUEZae6txPmZhrWBtrqyqqJV3SCXPQlz2rBMUq0mrtfs6nBrdQ8NpLTfIWiHrLskyXJTG3D43URB2FmYyiw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=NW9OWfMtrNL5L9Zx1uOIbXbLALvL+VT54pSx0Yt2itM=;
+ b=XEoo8B84zFETlRWHan4Tc9Ftnx/OqlAacfmPjjmHBk3UjvsNAgEQEqijBXOqVvhcpmhNvKlVnc7C9Br5Ws/eG3dm1WbPt84Omf7butV3CDRe6qzniy0LezvQYFsc/FGrKFvsmFLaTBbdZFCZAeZwviGmjKiNo87En+ylLvKIT+y5XWQLNYygsYJO/RH4NrJucEto+3N0FUjaDdL5TKMogPgn7j0j3fWLxQ/M22HNMnZPbvh0WauGDy1tZJjGNt9a58Wwhr8cB2M89KzXMZd4kcV96MRA4w+1oXv5VJOCMVeT3v213dd9NboolPp71AAo53C2LDoCsfB3ZSScmC8jPw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=arm.com; dmarc=pass action=none header.from=arm.com; dkim=pass
+ header.d=arm.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arm.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=NW9OWfMtrNL5L9Zx1uOIbXbLALvL+VT54pSx0Yt2itM=;
+ b=KnRlby6oYoU+ExFtgT+1c8pttw0wt8GNoWVRwklIF4CuMquyjkK4n2Pq1UjuB7ZiTr89OEi/oFpuyv2f6vW3R7IHvoXk2AyCShOQjWrSSU4tv5r3vtL1xapotSZfN7hf4mNya1ZtWSdcT1x0ky2dO4QXFJaQgXfTtRmV+GhGkCA=
+Authentication-Results-Original: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=arm.com;
+Received: from VI0PR08MB11823.eurprd08.prod.outlook.com (2603:10a6:800:324::5)
+ by DU5PR08MB10399.eurprd08.prod.outlook.com (2603:10a6:10:520::22) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.92.12; Tue, 9 Jun 2026
+ 14:58:34 +0000
+Received: from VI0PR08MB11823.eurprd08.prod.outlook.com
+ ([fe80::694c:3790:be1a:8ddd]) by VI0PR08MB11823.eurprd08.prod.outlook.com
+ ([fe80::694c:3790:be1a:8ddd%5]) with mapi id 15.21.0092.011; Tue, 9 Jun 2026
+ 14:58:34 +0000
+Message-ID: <a3f56756-2865-4c70-9356-38fc09be5132@arm.com>
+Date: Tue, 9 Jun 2026 15:58:31 +0100
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v5 07/10] ACPI: APEI: introduce GHES helper
+Content-Language: en-GB
+To: Jonathan Cameron <jic23@kernel.org>
+Cc: will@kernel.org, xueshuai@linux.alibaba.com, saket.dumbre@intel.com,
+ mchehab@kernel.org, dave@stgolabs.net, djbw@kernel.org, bp@alien8.de,
+ tony.luck@intel.com, guohanjun@huawei.com, lenb@kernel.org,
+ skhan@linuxfoundation.org, vishal.l.verma@intel.com, rafael@kernel.org,
+ corbet@lwn.net, ira.weiny@intel.com, dave.jiang@intel.com,
+ krzk+dt@kernel.org, robh@kernel.org, catalin.marinas@arm.com,
+ alison.schofield@intel.com, conor+dt@kernel.org,
+ linux-arm-kernel@lists.infradead.org, Michael.Zhao2@arm.com,
+ linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-cxl@vger.kernel.org, Dmitry.Lamerov@arm.com,
+ devicetree@vger.kernel.org, linux-acpi@vger.kernel.org,
+ linux-edac@vger.kernel.org, acpica-devel@lists.linux.dev
+References: <20260529-topics-ahmtib01-ras_ffh_arm_internal_review-v5-0-2e0500d42642@arm.com>
+ <20260529-topics-ahmtib01-ras_ffh_arm_internal_review-v5-7-2e0500d42642@arm.com>
+ <20260529172113.74c4ca05@jic23-huawei>
+From: Ahmed Tiba <ahmed.tiba@arm.com>
+In-Reply-To: <20260529172113.74c4ca05@jic23-huawei>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: LO4P265CA0065.GBRP265.PROD.OUTLOOK.COM
+ (2603:10a6:600:2af::19) To VI0PR08MB11823.eurprd08.prod.outlook.com
+ (2603:10a6:800:324::5)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-OpenPGP: url=https://posteo.de/keys/markus.probst@posteo.de.asc; preference=encrypt
+X-MS-TrafficTypeDiagnostic:
+	VI0PR08MB11823:EE_|DU5PR08MB10399:EE_|AMS1EPF0000004C:EE_|DB9PR08MB8387:EE_
+X-MS-Office365-Filtering-Correlation-Id: 5fd11507-269a-4e2a-0732-08dec637bd5d
+X-LD-Processed: f34e5979-57d9-4aaa-ad4d-b122a662184d,ExtAddr,ExtAddr
+x-checkrecipientrouted: true
+NoDisclaimer: true
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam-Untrusted:
+ BCL:0;ARA:13230040|366016|376014|7416014|1800799024|56012099006|4143699003|11063799006|18002099003|22082099003;
+X-Microsoft-Antispam-Message-Info-Original:
+ LQIvQkZ+Fa1NLJLgnIPwVFrARu0swBR8fsF5t1PsmMpalqG4iRmqWLV1HvAT4wFWq7Ej9kc+iQsQceA47f2BZq8u7o3bq1ikewfw5Zf1wRENgAaiEDXiWWWi4F+OE4bI2fU0kdEXAX0I1ApqhieM7N6wYetvPlsUSkIiJHfqQRzc9uzx4/PrpEd3FncKXXofnKMUQ0ZOEDiQQkfPgrOzwCjmHmeNO2ShIBxYG5UDPTLcJcspKq7BmbnTXi9oS6HJKFjlN/XX3LQJC7G3AXlzhQGkVc6BPqASHBhRqDiBmctQRp74zGTYQYfX97aqZIuqJFaAFbY59fohrzDeX+TDsl7qPUsNj0yQZvNE2AAXdPp6z5j4xjQpCR/dasXSQWvGN0G21706/9JiquvxttzTAQcU1Utel0DmGi9+sXVFw8TuThTN9x0GS1wG9dO6nhOLfb1l3WViAU9hhxGYOhR2ljqNS5udJViZEiYbHi22BkeyB3dmgrWmhAvhlRJd7isZRcMnnpn+omxCiWOzDdZ+gZGRi6+EfjoSoK1MJ/0U744QRl6MIIjOgY4djQBLd3c9lwl9Xf9TmQhbUaP/j+QZTrpUlts7PmuBX66a6ILjg7vMO0OcrYjKP+F+EzDmxGKkpRbrti2/aAMF/LnGB3Yi6njPYY/JgzEyKij/1NbgRG8kDJSqV/KkczEd39oiB18o
+X-Forefront-Antispam-Report-Untrusted:
+ CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:VI0PR08MB11823.eurprd08.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(376014)(7416014)(1800799024)(56012099006)(4143699003)(11063799006)(18002099003)(22082099003);DIR:OUT;SFP:1101;
+X-Exchange-RoutingPolicyChecked:
+ j8ZFqylHIe8X1ihbW7A/5y5jK/q42M1YA7WnAvbC1tbOzWdsIXyQoWU4QqaNjFDipUbigCDMCWl7DccO1jSVCfViuRzUFTWysYeXfyNgEQThP/Apj3+A5TzBN2irXunoJipJRJfymdK3w/fX8gd+vXJM4x8oukexbKvFdZLoZmKD+3PmSkrdON0061SCprazaj//wPbat4u1cHH47L5LChyJAYPxQFRKNrQJzT1RZp4TnmqHjOel9ua4dtgwavm18nnVRpig9JR5tUI+7016kJlTCmggLjR7G8VqQqsf2TWJ0zCfvs3sGi1ArwZJYxOdahz/7jz26nJ9UKJJK1N8Kg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DU5PR08MB10399
+X-EOPAttributedMessage: 0
+X-MS-Exchange-Transport-CrossTenantHeadersStripped:
+ AMS1EPF0000004C.eurprd04.prod.outlook.com
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id-Prvs:
+	1cafedc7-5bbf-4e19-438b-08dec63793e9
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|376014|36860700016|7416014|14060799003|82310400026|35042699022|1800799024|18002099003|22082099003|4143699003|11063799006|56012099006;
+X-Microsoft-Antispam-Message-Info:
+	eBLbv0cvlGl2dFfWqvQhW3xy7jcI5Vv8eTkck/MujVgz7FNUARx6pAE8V0HyOjaj62VzuGjNZDc//iey+6tj4lIgcBIQFme4ONSDqrjN7w8yVm69YXZ2x7EFQ2cw65xplbgXeU1mqlHZZMPv8hyti778T31HENvFgWHpeo98V0PIKY3+4N+qOagIr3OFYRpBiLczUannyVyoWJ6w/WYUTWyv3/KPfiep9mUy4EZtq3gW1NCONNy/xEk4PQeZTGfPKQpy9mMrexAV5qCZg4jhxdWIGtPCVpPr7aL7H9qS2/U5Ojr4JxNp45sLX9gIplyZoZh2k6gcu00nAWqTqyhRF3EKbi5dnEsYK2QWXyk9O1rbvMrgR9e4ow5YGrM3NZbRl912FSKosmS1LyczgZei/HJYujj2JsiJje/aZBKx1VIUbQS/5PjPs72l4KbEMiJKN1XLn2srB+yWWssfGo1Bzpr00eRXXtmOLJKzKtVEf7jlr3G2VKNw44lovGGsYqOAmaqTeQ9oCEhKbf/XL3JjMEK094+doog73f+smIbygBB12CNUefZyiJf/y5mYGrKI1CsHaRzeqvqMTgSYdfFyGgI1dXqw6l7bzL3FsHcSQ1iXfcYg4hD3pzRjeCO4MfwtbZl+plsQxpYKpjcG3HmyYvAhdO4qMn3yH4Armw/CsGJar+Hwv5c9S2yXhJ5kzvk1YrFedVJlphZ12IUWdc9qdKNlbNzk8U+qXPRoZ1VL42s=
+X-Forefront-Antispam-Report:
+	CIP:4.158.2.129;CTRY:GB;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:outbound-uk1.az.dlp.m.darktrace.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(376014)(36860700016)(7416014)(14060799003)(82310400026)(35042699022)(1800799024)(18002099003)(22082099003)(4143699003)(11063799006)(56012099006);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	4jf/K8IJgaq8cKXnfGJNMkTSBTGOhk9YaQImWzChKvbW8zeFTPlgRukDJL7A0k94+DbSHnWPTxiJMuWpem08xo+2GGPSeR3qoEme28HKZyP4zlPm1pTcu3QnmvE8AWkyTQ4qG3lvyS2FQhhSYiKcsRednX9bkfMZ3MtOo6Ld3pVs0C6g7JFbZlRydlamJ5T4ynEF5WGQpNtL+j6HdQE0++PbOltYjQF8CARjZeWn3QQSIh0r5AE5mHqRVysqXCVUs7dqhuctJtdQztGceUgoeen0MhmSaEBVM7JvMNdjHznFecMh6wDQXcEn9rGe4ZYRGw5Dv8EtD4/S36bYoZaF6tUB31q5Re+0z5jcuUNsyeTdSBdi/pHbiY24OXf5CJ9HE0kayQRS2B7JMuEI2/Q2TYz5Al4APh50KBH+K5bXFIB+8YnhVJcwOUGolcWdyYnL
+X-OriginatorOrg: arm.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 09 Jun 2026 14:59:43.4686
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 5fd11507-269a-4e2a-0732-08dec637bd5d
+X-MS-Exchange-CrossTenant-Id: f34e5979-57d9-4aaa-ad4d-b122a662184d
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=f34e5979-57d9-4aaa-ad4d-b122a662184d;Ip=[4.158.2.129];Helo=[outbound-uk1.az.dlp.m.darktrace.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	AMS1EPF0000004C.eurprd04.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DB9PR08MB8387
+
+On 29/05/2026 17:21, Jonathan Cameron wrote:
+> On Fri, 29 May 2026 10:50:47 +0100
+> Ahmed Tiba <ahmed.tiba@arm.com> wrote:
+> 
+>> Add a dedicated GHES_CPER_HELPERS Kconfig entry so the shared helper code
+>> can be built even when ACPI_APEI_GHES is disabled. Update the build glue
+>> and headers to depend on the new symbol.
+>>
+>> Signed-off-by: Ahmed Tiba <ahmed.tiba@arm.com>
+> I guess it doesn't matter too much as in practice all exiting CXL systems
+> are ACPI based, but is this new symbol sufficient for the
+> CONFIG_CXL_RAS dependency?
+> 
+> Rest of this looks fine to me.
 
 
---=-eHB9O6aTLRCXTUNZoAwj
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+CONFIG_CXL_RAS still depends on ACPI_APEI_GHES which in turn selects
+GHES_CPER_HELPERS so the existing dependency for CXL RAS is unchanged.
+The new symbol is intended as internal build glue under ACPI_APEI_GHES, 
+rather than a change to the CXL RAS dependency model.
 
-On Tue, 2026-06-09 at 08:53 +0200, Geert Uytterhoeven wrote:
-> Hi Markus,
->=20
-> On Tue, 9 Jun 2026 at 00:40, Markus Probst <markus.probst@posteo.de> wrot=
-e:
-> > Add `uart_clk_freq` parameter to `setup_earlycon`. This allows the
-> > options string to be reused with `add_preferred_console`, while still
-> > allowing to set the uart clock frequency. This will be used in the
-> > following commit ("ACPI: SPCR: Support UART clock frequency field").
-> >=20
-> > No logical change intended.
-> >=20
-> > Signed-off-by: Markus Probst <markus.probst@posteo.de>
->=20
-> > --- a/drivers/tty/serial/earlycon.c
-> > +++ b/drivers/tty/serial/earlycon.c
-> > @@ -135,11 +135,14 @@ static int __init parse_options(struct earlycon_d=
-evice *device, char *options)
-> >         return 0;
-> >  }
-> >=20
-> > -static int __init register_earlycon(char *buf, const struct earlycon_i=
-d *match)
-> > +static int __init register_earlycon(char *buf, unsigned int uart_clk_f=
-req,
-> > +                                   const struct earlycon_id *match)
-> >  {
-> >         int err;
-> >         struct uart_port *port =3D &early_console_dev.port;
-> >=20
-> > +       port->uartclk =3D uart_clk_freq;
->=20
-> Who is actually consuming this value?
+Ahmed
 
-I think primarily init_port in drivers/tty/serial/8250/8250_early.c.
-
-> Earlycon typically works with the serial console, as configured before
-> Linux boot by the firmware.
-Thats defined in the SPCR table. If "Configured Baud Rate" is set to 0,
-it will use it as is [1]. If not, it will configure it.
-
-Thanks
-- Markus Probst
-
-[1]https://learn.microsoft.com/en-us/windows-hardware/drivers/bringup/seria=
-l-port-console-redirection-table
-
-> The Microsoft doc referenced in patch 2 seem to agree with that:
->=20
->    "On a system where the BIOS or system firmware uses the serial
->     port for console input/output, this table should be used to convey
->     information about the settings, to ensure a seamless transition
->     between the firmware console output and Windows EMS output."
->=20
-> > +
-> >         /* On parsing error, pass the options buf to the setup function=
- */
-> >         if (buf && !parse_options(&early_console_dev, buf))
-> >                 buf =3D NULL;
->=20
-> Gr{oetje,eeting}s,
->=20
->                         Geert
-
---=-eHB9O6aTLRCXTUNZoAwj
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-
-iQJPBAABCAA5FiEEgnQYxPSsWOdyMMRzNHYf+OetQ9IFAmooKakbFIAAAAAABAAO
-bWFudTIsMi41KzEuMTIsMiwyAAoJEDR2H/jnrUPSTOQP/3lOjjeD4rihyrtDkGdA
-vD1xzqthwYFbU2fa+qQ1yTgmbp+z5+h7rcbx8T5S2Y7HkuLbilRDe7Q8SGJocpIg
-T9085pQlUhA9lCVY+5s0oXqUp+8rSaUSwXYp+MJH8ZXSwPVdr4kDJoAOs8t+PUt0
-i9EGA6/6vW2ccRJwYLaCDxmJowfeQZJJG0cjG5ZWLPj2pOOwbXc3Tm8ZWrtfzADd
-sS9irtr/CjlO4L6CBUZ2qEIAT1QylOZTOat/B0Xw0VmupSK0ib31FfEzZsxOoCnR
-0Dx16p95q+DMLIKa7zgAhrUyvrJjxI2pDpALJfXrbwhjMbjhB+d6lIfL0kEJF8F3
-JJg5y5X9ixNdfWomlDFFn6IyLzcuTqrymCLcW14h/lIuGlAv4CDg3OS/i4T+wBW+
-raRTVeakyeBUxxwS499UN0EmcFuxI6CuYiEd9it6kbBJU/4w4mfsbB5Lr2eoWh3m
-OSuACvoFlS84V3+SQbbziaTFRo+eLtyNfHHpKNM4d2n2Pdn5tWdoXKkoGacl5hhJ
-maQmavGZGDX2pWcpdmoB8fDys9gHkhVdMPUPWSdA8KQ3YG01u2gF98UeClteWJOW
-tWr4TpLpsrH/5rzFgz4usuMXaetG7wyeMdjVq+7LjG1pGjbeEifYux73o2CxjPkg
-6DHab0pVROd5cS1MZIXwtSA/
-=g1gl
------END PGP SIGNATURE-----
-
---=-eHB9O6aTLRCXTUNZoAwj--
