@@ -1,220 +1,345 @@
-Received: from SJ2PR03CU001.outbound.protection.outlook.com (mail-westusazon11012045.outbound.protection.outlook.com [52.101.43.45])
+Received: from mailout1.w1.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 066AF54652;
-	Tue,  9 Jun 2026 09:59:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.43.45
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780999193; cv=fail; b=N+uvBy3W21An0F4G5kP0EXztU5ZT9P2Q9Ob4Aqyf6J3woYB99IGvFtmGY+tHM5gTWobDCZzFdIVGXhfPYCbRH4KrirEAf+4YdxVlTCKakvkRu7o8izxRUYNQ3JXDiUcl1/vyNQHv4wwjLmGaIq7FhNISB2c+3SDx2CzU2j+z0Zo=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780999193; c=relaxed/simple;
-	bh=cvhTw0HAaDPc4yuZttbubLE9xfHCqavnYAhc/m07DzQ=;
-	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=BZJy5g03I35dBODDO67EIk736Dkh9D/cmeQrZow/sINRvVpTu2Bao8NrmwJz/PWJ523eLIr3blhExWFWkYTBHvk9ohEzOwGpaKKxFPUsWoH1Ko2HupVyTeL+YVgaC8EAL9P23rnHisd4/r1DgTdu7O2X6S9jM7wPooK5l3khHbQ=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=Bkr2Xtc/; arc=fail smtp.client-ip=52.101.43.45
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE6BD3AC0CE;
+	Tue,  9 Jun 2026 10:03:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=210.118.77.11
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1780999415; cv=none; b=iixhLYfMdicjGtZ3/HpdOPJ+VOwHTd+TnNdDSIgzRWWmpD5Q1CciHIUVJpgm+RT6dEBg9vE97dI33FjgOEO5/ks8o6baJ5vROp401VrPImkFcNrHiC+YlSdmZlkiVe75V0ZBGah7KVeFJG5dXOMfV3MSltPGGq6JQWWnFXeoWto=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1780999415; c=relaxed/simple;
+	bh=3dGekdtUe9CYkSH4/o5EVrEA2L2BJQpzeKesf2EsFV4=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:From:In-Reply-To:
+	 Content-Type:References; b=CloqqzRzEktoO70V7plwKg9lCeguwN9rmOdyHZvRqNl1livjIsz29sxQ2ISHjVOeqEIwR7A6VV4OghTEBbLcNBdQzvKLrrFqBl1CG6XHvo6gOor0F+adQdyPc/Eyfdnkpt4PeIN3DOTbcNH+iF/6L2XQdpma5g2QjFtjMs/PjgY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=rZQkB/eC; arc=none smtp.client-ip=210.118.77.11
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="Bkr2Xtc/"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=MtD1qDrQsZbmpUXtCjdMQ6spuHbeXkoVke42ZWQIJ/c0ARxy3/kRBMRo7GvZnlcBsnxxeuHy1g70ZSR6r/fjt9XAGc9ZwnhGkju+VGPYJUoWqJxVYFHrqCV15REFvqngyrh68ANSrDKHDbj49l/r7QFeWIF0w/QFi82BOzHejrcGSQNL//QX4ewFFooJCffNNnVYfMTOaRtnEm7VxkO7BPdoo6E4iBxNbS/AW4W9xMIU+OUEK/5gkirJ/cN6ds3523G3Gz08zKMm9JTPhcUIShQwrvQwzu0acqO4u/h2gaAVUfO+OUd9/6gv3E9JyDKQLZ4by4PmvvFKcjUc1QAfew==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=W7qXujrRHmgIok0ILMiKdjRd5oB863p2S/mDfuhIPhU=;
- b=w0FMz7NLSXh5NIDcHmZ425+GfAMvqEq/cvqT+6Y+TXtbIOdssoz/xGaD6Q6hRAEBSXv37/DrAfhjggJW4o0SNdfcK5IT6gxJ3Kc0+j56t3wt9fmyU2csG2mvUB27ItyXPE3BAXtNSYrBC57xnUUm9kwzR8qlATjPst7mzJYZEFE1Axd2NNv3l737XoGAsC7phXlKvNsOq8SKPkOMzv8CK+RRFlC425dDaKzVMrP38q1G3woeWu0tRRV0QZQ7CnoQNSDROcvtypowZ4qC6450leqhgHA6e9FejU1pKl3nl/l/uKGkGzB4eidwmyShclW5zU/6DVP3aiA2/MtR5Egryg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=W7qXujrRHmgIok0ILMiKdjRd5oB863p2S/mDfuhIPhU=;
- b=Bkr2Xtc//LuromwNwPSEc/r2oVrZVP6YuC7G9/7yxxlA7X5RsJvvE09g9Ur4rWmaQsmF/si52nzLrFoiVPQU7o5gzuA1oXbBOpsLTO7kvc5P/ddbcUXim2akxhYpwcRtlfAvqQc/RDUrQogECtaPniSRN4v7XnKdZxUfMO1FRQ1tmuui4lqOa2KuXn6sjy+qAt8c1MaRXZxIAQ4nGwGwQAgDaW1Dxu++1zBvVkUYELrSgMZRZ5zsPHqVGSSi1cRrYal9i8AlSKoXiZwGbA6a6BJOvsD63PreIXOInLty0ry//9rpch7f/CBSK5RCjoYQGIQ7hADADu8rL9GVrBT0rA==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from BN9PR12MB5179.namprd12.prod.outlook.com (2603:10b6:408:11c::18)
- by PH0PR12MB7011.namprd12.prod.outlook.com (2603:10b6:510:21c::15) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.92.13; Tue, 9 Jun 2026
- 09:59:49 +0000
-Received: from BN9PR12MB5179.namprd12.prod.outlook.com
- ([fe80::cf08:f59b:d016:c95f]) by BN9PR12MB5179.namprd12.prod.outlook.com
- ([fe80::cf08:f59b:d016:c95f%4]) with mapi id 15.21.0113.011; Tue, 9 Jun 2026
- 09:59:48 +0000
-Message-ID: <aa25ab45-7e92-4f89-85d4-464c68149892@nvidia.com>
-Date: Tue, 9 Jun 2026 15:29:38 +0530
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 2/2] ACPI: CPPC: Add ospm_nominal_perf support
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: viresh.kumar@linaro.org, lenb@kernel.org, pierre.gondois@arm.com,
- zhenglifeng1@huawei.com, zhanjie9@hisilicon.com, mario.limonciello@amd.com,
- saket.dumbre@intel.com, linux-acpi@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org,
- acpica-devel@lists.linux.dev, treding@nvidia.com, jonathanh@nvidia.com,
- vsethi@nvidia.com, ksitaraman@nvidia.com, sanjayc@nvidia.com,
- mochs@nvidia.com, bbasu@nvidia.com, sumitg@nvidia.com
-References: <20260527194626.185286-1-sumitg@nvidia.com>
- <20260527194626.185286-3-sumitg@nvidia.com>
- <CAJZ5v0icPAmaiThjgUTxWRymNGBQFarodurJhODFOkLKpVwtOQ@mail.gmail.com>
-Content-Language: en-US
-From: Sumit Gupta <sumitg@nvidia.com>
-In-Reply-To: <CAJZ5v0icPAmaiThjgUTxWRymNGBQFarodurJhODFOkLKpVwtOQ@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: MA1PR01CA0172.INDPRD01.PROD.OUTLOOK.COM
- (2603:1096:a01:d::16) To BN9PR12MB5179.namprd12.prod.outlook.com
- (2603:10b6:408:11c::18)
+	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="rZQkB/eC"
+Received: from eucas1p1.samsung.com (unknown [182.198.249.206])
+	by mailout1.w1.samsung.com (KnoxPortal) with ESMTP id 20260609100324euoutp0124335f0bc6d7dd690854a1af7dbd8092~3YYXIOJSv0480804808euoutp01x;
+	Tue,  9 Jun 2026 10:03:24 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout1.w1.samsung.com 20260609100324euoutp0124335f0bc6d7dd690854a1af7dbd8092~3YYXIOJSv0480804808euoutp01x
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
+	s=mail20170921; t=1780999404;
+	bh=yhPOV9UkuFO0jipoP9B62gDohsRZF5KNAjcRdyNILf4=;
+	h=Date:Subject:To:Cc:From:In-Reply-To:References:From;
+	b=rZQkB/eCR8lze3GEcOO99teXB6Xzity/GMg/vwtPA83ezAddGNI0UvciFBRWO2rMf
+	 zh8LQgVcBuGrnF7S1JM3ZrnKpFncVoDrBjTBgHJmk/eIxHme8TVgXoNzMXRssaTfo/
+	 cSWJUYZTyhrNAb54YKGSDIX5sHsfORjXuJX2GH8I=
+Received: from eusmtip1.samsung.com (unknown [203.254.199.221]) by
+	eucas1p1.samsung.com (KnoxPortal) with ESMTPA id
+	20260609100324eucas1p146c5ffe86a104677143baaeca1d3feba~3YYW5JhGK2065420654eucas1p1_;
+	Tue,  9 Jun 2026 10:03:24 +0000 (GMT)
+Received: from [106.210.134.192] (unknown [106.210.134.192]) by
+	eusmtip1.samsung.com (KnoxPortal) with ESMTPA id
+	20260609100322eusmtip1fcb431a41bbc894a89969b8c7079b11a~3YYU2lJBw0107101071eusmtip1X;
+	Tue,  9 Jun 2026 10:03:22 +0000 (GMT)
+Message-ID: <ea15cce1-b393-43f6-8d58-3d6f90f0c0cd@samsung.com>
+Date: Tue, 9 Jun 2026 12:03:21 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BN9PR12MB5179:EE_|PH0PR12MB7011:EE_
-X-MS-Office365-Filtering-Correlation-Id: 2f90c5c5-7295-4f81-a6fe-08dec60dd73c
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|7416014|376014|366016|6133799003|22082099003|18002099003|56012099006|11063799006|5023799004|4143699003;
-X-Microsoft-Antispam-Message-Info:
-	rUAyeq0GlDzAKc3AXm1qIqM8Y2W4Yeqjd6b81cdpyTEg91CbpBZShH4VZUwHeHGaU0NTaO0joa5jmJ4oD0JIdmUgj817mPCnKKrFTQ40YLkdZbtyn4VggmZq6O/NIArv/ixIE0cgv/kK7ba6xpwi7saAXqbMKJnI32ZYEb/3vibrY0/OnEzCYzN60RLuNFR4gyth4zg5SzD5ffTLuwD9XtznV6s4DAOKnMcH3X0nOnAqx2BI0qFYBs4EAy+/nm/LWC95QOENQhPjNPmshQ/WLRl5eHHhfmiO8Ilr/I+3S0e7H17LqKxZWAS0wVHjtc+VGiRaLRcP0Bf66xkw96CnU3Pg2u39tn4+Pv58ciZjule87p8xUshYl6Z+rGm3wQW7YAClBVAQZQz+S6wBeVoWMPyLWedyI9cEGgHgqlzUPWQhdAbgo0u2b8aaRUI/+b8sXoRRp8+tD9bsLU+UKb2hUobS8Tk7Ub9n9PpL2++pgzFQUdOyG88Lm4n36a3qx5/ruDPSZ2vt3+cS8OztkhcZkY/o44zekI07kOk9dY0Izr2n28KsZMwtu7JLRCVg3siT+7kXC4C/KacyyoFVhh47/56+tvTjAeNi6a5y4gz5jFwPoGxKd8e1AFFxARybFUqV2CYH0jq/ZXcmEaQ9HtHbE2j207O6HqThaRBYcYPqUSdYIzrsAQqVvlNGMjWL/NMi
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BN9PR12MB5179.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(7416014)(376014)(366016)(6133799003)(22082099003)(18002099003)(56012099006)(11063799006)(5023799004)(4143699003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?dlg1Z2F6czF0UzBKRVdHdE4yenJ4SEhaK1dLMmRRSU1DU21uZFN0R2hFeTVa?=
- =?utf-8?B?L1R5MHd6ZEhLeVRWTnhlYnY0MzJ3LzU5Z3F3K1ZNY2labElONU5KS3pqMThn?=
- =?utf-8?B?WG4rNU1Kb2VERkcrV295Z0daZWQ4UDlYcitocGN6TEZ5UFlaVlBXNmpyVk9p?=
- =?utf-8?B?VC9Jd3h0ZDRHbnpSK09OR2k5NE0zT05ZWm03d01aY1cvelM4UWJoQkVuNDlH?=
- =?utf-8?B?N0ZsMXpyMldMNDZGOVNjMTFVRmx6bHphb0VhQ2ZXL2M0UlN1cWhZZno4Zk4y?=
- =?utf-8?B?cTZFUUovRFUwUGZKSVpJWS9SaHNxQkRFcmhiTGNCSTJqQXc5NkFKQ3NuVEVm?=
- =?utf-8?B?Z1IwSmFFNndLeW02bWZFREVVL1hHUlp5K05wdVFHTHdUZG1UQnRsWjJvWlY4?=
- =?utf-8?B?RVVnTTBvbmczbXVXU1hGSEo5NGtLbVg5YWRXdnorV3hUczhWbmM4QXp1WG50?=
- =?utf-8?B?ZTJSZGNlbjh6dFh3WWlGSjZSaTJnaUZ0L0daQkp5dDBLaW42d20xMis2QVNR?=
- =?utf-8?B?S3RuRHdHUVdYLzNEWFFGQXpmamZUcVFsRjFqK0hIdTdUL0FZeWVXdEs0RVRH?=
- =?utf-8?B?a3VHeVhYQjJ5YVNvaTZ5Q0lrR3dZYnpQM05KczM4bm9tQmE3d2tVTGp0dDlo?=
- =?utf-8?B?OGdkQ3EzdzYrMkJkbjREb0pHcHlnUU1TY2RBendMVVJ5Tmw5UUNEem1XMndN?=
- =?utf-8?B?UlFiUC9uN2ZVbVNCbHlKWUVRRWxrMXFXQUkyem9VeVl1cjlNU0VDTHdBdFhj?=
- =?utf-8?B?TXpqUGV0ZjNGYlA5UDlwQnE2aDkvWGx2MUcycmFCV0VacWNHRmg0WU1ObS8z?=
- =?utf-8?B?eGtMd0o4aVF4L055dlBsRnA2OW1HOFU4Y1J4MWFJTy9rS05PT2Fwb1U5RW9H?=
- =?utf-8?B?UTBXZHA0OU05V3Q5am0vaDB3ekxXVEdiR1FWV3pvTDl3OEs0bDl6ZmhMeXh0?=
- =?utf-8?B?YTFFd1JYd0NNait4bDdUbGp1STRkSVBZU1QrS1pGVkkwK0FoR0g0ek56R1VN?=
- =?utf-8?B?M2lybEh6QTBheHRSTmZrZU94YnlWdXJkU0pTVEZzbHovS3d4RDFQR1BobGhF?=
- =?utf-8?B?RUltRVlqbzdaY3dyZFZEZFhVNXlSakI0N3dqR1VnN0VBN285SFd1cFBZeWZT?=
- =?utf-8?B?c0Q4S0tQQnBwQ3QzUjBtdG5aNlN0T0lBNjIrdmlnUkpDOVQrK1JMVEVlalBQ?=
- =?utf-8?B?TWIvTXlrRmtJVWUxNnNqY2xZUWJSQzJwem1hMkxxdEtKazAvd3ZMRmJmbjdG?=
- =?utf-8?B?QzdsWEpXa1RlSnQybTcxdHZVemxOZEs2QjF1TXVYd0I3S2Z4NG9xbUFTZ2Vk?=
- =?utf-8?B?NzVqcmEwSlRKT0dYaTNVQnJWL1g4Q3FJUGlKdUdORFZHcTdtQ2R2dFNydnV4?=
- =?utf-8?B?M05GcTk2U0ZqODlBVG5RT0xGaThWNCtERU80RHpvTHAwODMxcnB1WkcwSmhG?=
- =?utf-8?B?TmFVWXVSTE44WlQvKzI3akxiUUlsUXJrR3l5WmFobmxwZzh0ck9KZkNTbmVR?=
- =?utf-8?B?MFVMaHV1YWxkUEFYaktoRG01cC9uMWNmSnZkMDNVQzlvNXpkbkdNMEVybm5N?=
- =?utf-8?B?Q2NCVHpnODlHREVlaGNlRGdzSzZhMk5jV0hBTVNlWEphcGlQTGtud3NFamJK?=
- =?utf-8?B?RFI3UEdyZVM4bVdjZ2lSMG9oamI0amVzVzBiNmljNzk5aDlBdDV3QlFQVTdp?=
- =?utf-8?B?aWE1S1lET2ZWN0xrYnk2TVBlL21TUUljcUpVeFVnU0UvUzdBYnRBZDc3amZ4?=
- =?utf-8?B?SWFGQ0N2MldldFcvYjMwOEh4TEl2ZXMwdzNQbThlSGRTQWRkK1N5UUxDMUcr?=
- =?utf-8?B?Rzg2cnBvQ0ZIWlFQUDVhWGFOaTc0N1ZCdDJIRHZ6ZnowMVcyRmhxQmFENzJT?=
- =?utf-8?B?Wnl6RTd0YzhxSldKV0FMeHJNY1B0c1ROckRvUmh1SzZoOVpSZzZHSHErR2Fa?=
- =?utf-8?B?S3AwVEozZWRyeS91SFBsYjAwNjZvcmNQTDRONGhVZnJoekNkVGVBOFJnN0Fk?=
- =?utf-8?B?OVQ0bzZuYW5hTjlyKzBiRnNlZ0h1aG9ERTE0UG1xUS9ydE9EYVpQbWh1T0Za?=
- =?utf-8?B?ajlVMWxMc2hqSEgxYWMxTnVseWQ5RHM2eHpZT2lheU1McU11SjZPTUtMa0xo?=
- =?utf-8?B?K3MxU05rQ21XcEpZWXlVOFFJMzBjRDl4Z0R4RUFpbVVsM3prZDAxbjFtRG5n?=
- =?utf-8?B?MkJEcmdBYmEzcmVabzk2aTUwUXZINGFJTGsrejhhZG1hNEZZclFiNkt2a3lH?=
- =?utf-8?B?djRmQ3pVR1M0ZnlkM1lpcDZoMlVDVmI0ZEV0MTFuL1FPc2RYUHRiVHptalMx?=
- =?utf-8?B?TFFiakU4QkdBTk40TkpqTTlJSVEyaDlPWXYvakQ3R2RPUVFVanc5UT09?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 2f90c5c5-7295-4f81-a6fe-08dec60dd73c
-X-MS-Exchange-CrossTenant-AuthSource: BN9PR12MB5179.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 09 Jun 2026 09:59:48.5665
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: rTnVMZWMz9IsmUSVPT4mn0pIjSUao2ZmGff7CWSTS82RqrCuSBFJBtuGfLVvyE0axREI4Oi8qfByR4Qq0DD87w==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH0PR12MB7011
+User-Agent: Betterbird (Windows)
+Subject: Re: [PATCH v3 03/17] clocksource/drivers/arm_arch_timer: Default to
+ EL2 virtual timer when running VHE
+To: Marc Zyngier <maz@kernel.org>, linux-arm-kernel@lists.infradead.org,
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+	devicetree@vger.kernel.org
+Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo
+	<guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>, Catalin
+	Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, "Rafael J.
+ Wysocki" <rafael@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Daniel
+	Lezcano <daniel.lezcano@kernel.org>, Thomas Gleixner <tglx@kernel.org>, Rob
+	Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor
+	Dooley <conor+dt@kernel.org>, Chen-Yu Tsai <wens@kernel.org>, Jernej Skrabec
+	<jernej.skrabec@gmail.com>, Samuel Holland <samuel@sholland.org>, Neil
+	Armstrong <neil.armstrong@linaro.org>, Kevin Hilman <khilman@baylibre.com>,
+	Jerome Brunet <jbrunet@baylibre.com>, Martin Blumenstingl
+	<martin.blumenstingl@googlemail.com>, Ge Gordon <gordon.ge@bst.ai>, BST
+	Linux Kernel Upstream Group <bst-upstream@bstai.top>, Jesper Nilsson
+	<jesper.nilsson@axis.com>, Lars Persson <lars.persson@axis.com>, Alim Akhtar
+	<alim.akhtar@samsung.com>, Ivaylo Ivanov <ivo.ivanov.ivanov1@gmail.com>,
+	Frank Li <Frank.Li@nxp.com>, Sascha Hauer <s.hauer@pengutronix.de>,
+	Pengutronix Kernel Team <kernel@pengutronix.de>, Fabio Estevam
+	<festevam@gmail.com>, Dinh Nguyen <dinguyen@kernel.org>, Matthias Brugger
+	<matthias.bgg@gmail.com>, AngeloGioacchino Del Regno
+	<angelogioacchino.delregno@collabora.com>, Thierry Reding
+	<thierry.reding@kernel.org>, Jonathan Hunter <jonathanh@nvidia.com>, Bjorn
+	Andersson <andersson@kernel.org>, Konrad Dybcio <konradybcio@kernel.org>,
+	=?UTF-8?Q?Andreas_F=C3=A4rber?= <afaerber@suse.de>,
+	=?UTF-8?B?WXUtQ2h1biBMaW4gW+ael+elkOWQm10=?= <eleanor.lin@realtek.com>,
+	Heiko Stuebner <heiko@sntech.de>, Shawn Lin <shawn.lin@rock-chips.com>,
+	Orson Zhai <orsonzhai@gmail.com>, Baolin Wang
+	<baolin.wang@linux.alibaba.com>, Michal Simek <michal.simek@amd.com>
+Content-Language: en-US
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+In-Reply-To: <20260523140242.586031-4-maz@kernel.org>
+Content-Transfer-Encoding: 8bit
+X-CMS-MailID: 20260609100324eucas1p146c5ffe86a104677143baaeca1d3feba
+X-Msg-Generator: CA
+Content-Type: text/plain; charset="utf-8"
+X-RootMTR: 20260609100324eucas1p146c5ffe86a104677143baaeca1d3feba
+X-EPHeader: CA
+X-CMS-RootMailID: 20260609100324eucas1p146c5ffe86a104677143baaeca1d3feba
+References: <20260523140242.586031-1-maz@kernel.org>
+	<20260523140242.586031-4-maz@kernel.org>
+	<CGME20260609100324eucas1p146c5ffe86a104677143baaeca1d3feba@eucas1p1.samsung.com>
 
+Dear All,
 
-On 01/06/26 23:07, Rafael J. Wysocki wrote:
-> External email: Use caution opening links or attachments
+On 23.05.2026 16:02, Marc Zyngier wrote:
+> When running with at EL2 with VHE enabled, the architecture provides
+> two EL2 timer/counters, dubbed physical and virtual. Apart from their
+> names, they are strictly identical.
 >
+> However, they don't get virtualised the same way, specially when
+> it comes to adding arbitrary offsets to the timers. When running as
+> a guest, the host CNTVOFF_EL2 does apply to the guest's view of
+> CNTHV*_El2. This is not true for CNTPOFF_EL2 and CNTHP*_EL2, as
+> the architecture is broken past the first level of virtualisation
+> (it lacks some essential mechanisms to be usable, despite what
+> the ARM ARM pretends).
 >
-> On Wed, May 27, 2026 at 9:47 PM Sumit Gupta <sumitg@nvidia.com> wrote:
->> Expose the OSPM Nominal Performance register (ACPI 6.6, Section
->> 8.4.6.1.2.6), which conveys the desired nominal performance level
->> at which the platform may run. Unlike the existing read-only
->> Nominal Performance register, it is writable and lets OSPM
->> request a lower nominal level than the platform-reported nominal.
->> The platform classifies performance above this level as boosted
->> and below as throttled for its power/thermal decisions.
->>
->> It is exposed as a per-policy cpufreq sysfs attribute in kHz, to
->> match the cpufreq sysfs unit convention:
->>
->>    /sys/devices/system/cpu/cpufreq/policyN/ospm_nominal_freq
->>
->> The attribute is documented in
->> Documentation/ABI/testing/sysfs-devices-system-cpu.
->>
->> Writes are converted to perf via cppc_khz_to_perf(), validated
->> against [Lowest Performance, Nominal Performance], and applied to
->> every CPU in policy->cpus.
->>
->> The register is write-only; the kernel caches the last written
->> value in struct cppc_cpudata for sysfs readback (returns 0 until
->> userspace writes a value).
->>
->> Signed-off-by: Sumit Gupta <sumitg@nvidia.com>
-> There is some sashiko.dev feedback on this one that is valid AFAICS:
+> This means that when running as a L2 guest hypervisor, using the
+> physical timer results in traps to L0, which are then forwarded to
+> L1 in order to emulate the offset, leading to even worse performance
+> due to massive trap amplification (the combination of register and
+> ERET trapping is absolutely lethal).
 >
-> https://sashiko.dev/#/patchset/20260527194626.185286-1-sumitg%40nvidia.com
+> Switch the arch timer code to using the virtual timer when running
+> in VHE by default, only using the physical timer if the interrupt
+> is not correctly described in the firmware tables (which seems
+> to be an unfortunately common case). This comes as no impact on
+> bare-metal, and slightly improves the situation in the virtualised
+> case.
+>
+> Signed-off-by: Marc Zyngier <maz@kernel.org>
+This patch landed recently in linux-next as commit d87773de9efe
+("clocksource/drivers/arm_arch_timer: Default to EL2 virtual timer when
+running VHE"). In my tests I found that it breaks booting of RaspberryPi5
+board. Reverting it on top of linux-next fixes the issue. Here is a boot
+log:
+
+Booting Linux on physical CPU 0x0000000000 [0x414fd0b1]
+Linux version 7.0.0+ (m.szyprowski@AMDC4653) (aarch64-linux-gnu-gcc (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0, GNU ld (GNU Binutils for Ubuntu) 2.38) #16769 SMP PREEMPT Tue Jun  9 11:57:24 CEST 2026
+KASLR enabled
+Machine model: Raspberry Pi 5 Model B Rev 1.0
+earlycon: pl11 at MMIO 0x000000107d001000 (options '115200n8')
+printk: legacy bootconsole [pl11] enabled
+Reserved memory: created CMA memory pool at 0x000000003bc00000, size 64 MiB
+OF: reserved mem: initialized node linux,cma, compatible id shared-dma-pool
+OF: reserved mem: 0x000000003bc00000..0x000000003fbfffff (65536 KiB) map reusable linux,cma
+OF: reserved mem: 0x0000000000000000..0x000000000007ffff (512 KiB) nomap non-reusable atf@0
+NUMA: Faking a node at [mem 0x0000000000000000-0x00000001ffffffff]
+NODE_DATA(0) allocated [mem 0x1fefe0480-0x1fefe313f]
+psci: probing for conduit method from DT.
+psci: PSCIv1.1 detected in firmware.
+psci: Using standard PSCI v0.2 function IDs
+psci: MIGRATE_INFO_TYPE not supported.
+psci: SMC Calling Convention v1.2
+Zone ranges:
+  DMA      [mem 0x0000000000000000-0x00000000ffffffff]
+  DMA32    empty
+  Normal   [mem 0x0000000100000000-0x00000001ffffffff]
+Movable zone start for each node
+Early memory node ranges
+  node   0: [mem 0x0000000000000000-0x000000000007ffff]
+  node   0: [mem 0x0000000000080000-0x000000003fbfffff]
+  node   0: [mem 0x0000000040000000-0x00000001ffffffff]
+Initmem setup node 0 [mem 0x0000000000000000-0x00000001ffffffff]
+On node 0, zone DMA: 1024 pages in unavailable ranges
+percpu: Embedded 36 pages/cpu s109456 r8192 d29808 u147456
+Detected PIPT I-cache on CPU0
+CPU features: detected: Virtualization Host Extensions
+CPU features: detected: Spectre-v4
+CPU features: detected: Spectre-BHB
+CPU features: kernel page table isolation forced ON by KASLR
+CPU features: detected: Kernel page table isolation (KPTI)
+CPU features: detected: SSBS not fully self-synchronizing
+alternatives: applying boot alternatives
+Kernel command line: console=ttyAMA10,115200n8 earlycon root=PARTUUID=11111111-03 rw clk_ignore_unused rootdelay=2 retain_initrd
+printk: log buffer data + meta data: 131072 + 458752 = 589824 bytes
+Dentry cache hash table entries: 1048576 (order: 11, 8388608 bytes, linear)
+Inode-cache hash table entries: 524288 (order: 10, 4194304 bytes, linear)
+software IO TLB: area num 4.
+software IO TLB: mapped [mem 0x00000000fbfff000-0x00000000fffff000] (64MB)
+Fallback order for Node 0: 0
+Built 1 zonelists, mobility grouping on.  Total pages: 2096128
+Policy zone: Normal
+mem auto-init: stack:off, heap alloc:off, heap free:off
+SLUB: HWalign=64, Order=0-3, MinObjects=0, CPUs=4, Nodes=1
+Running RCU self tests
+Running RCU synchronous self tests
+rcu: Preemptible hierarchical RCU implementation.
+rcu:     RCU event tracing is enabled.
+rcu:     RCU lockdep checking is enabled.
+rcu:     RCU restricting CPUs from NR_CPUS=512 to nr_cpu_ids=4.
+ Trampoline variant of Tasks RCU enabled.
+ Tracing variant of Tasks RCU enabled.
+rcu: RCU calculated value of scheduler-enlistment delay is 25 jiffies.
+rcu: Adjusting geometry for rcu_fanout_leaf=16, nr_cpu_ids=4
+Running RCU synchronous self tests
+RCU Tasks: Setting shift to 2 and lim to 1 rcu_task_cb_adjust=1 rcu_task_cpu_ids=4.
+NR_IRQS: 64, nr_irqs: 64, preallocated irqs: 0
+Root IRQ handler: gic_handle_irq
+GIC: Using split EOI/Deactivate mode
+rcu: srcu_init: Setting srcu_struct sizes based on contention.
+arch_timer: cp15 timer running at 54.00MHz (hyp-virt).
+clocksource: arch_sys_counter: mask: 0xffffffffffffff max_cycles: 0xc743ce346, max_idle_ns: 440795203123 ns
+sched_clock: 56 bits at 54MHz, resolution 18ns, wraps every 4398046511102ns
+Console: colour dummy device 80x25
+Lock dependency validator: Copyright (c) 2006 Red Hat, Inc., Ingo Molnar
+... MAX_LOCKDEP_SUBCLASSES:  8
+... MAX_LOCK_DEPTH:          48
+... MAX_LOCKDEP_KEYS:        8192
+... CLASSHASH_SIZE:          4096
+... MAX_LOCKDEP_ENTRIES:     32768
+... MAX_LOCKDEP_CHAINS:      65536
+... CHAINHASH_SIZE:          32768
+ memory used by lock dependency info: 6429 kB
+ memory used for stack traces: 4224 kB
+ per task-struct memory footprint: 1920 bytes
+Calibrating delay loop (skipped), value calculated using timer frequency.. 108.00 BogoMIPS (lpj=216000)
+pid_max: default: 32768 minimum: 301
+Mount-cache hash table entries: 16384 (order: 5, 131072 bytes, linear)
+Mountpoint-cache hash table entries: 16384 (order: 5, 131072 bytes, linear)
+VFS: Finished mounting rootfs on nullfs
+Running RCU synchronous self tests
+Running RCU synchronous self tests
+
+(booting freezes)
 
 
-Thanks for sharing. Will address all four in v5.
+> ---
+>  drivers/clocksource/arm_arch_timer.c | 55 +++++++++++++++++-----------
+>  1 file changed, 33 insertions(+), 22 deletions(-)
+>
+> diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
+> index 90aeff44a2764..4adf756423de9 100644
+> --- a/drivers/clocksource/arm_arch_timer.c
+> +++ b/drivers/clocksource/arm_arch_timer.c
+> @@ -688,6 +688,7 @@ static void __arch_timer_setup(struct clock_event_device *clk)
+>  	clk->irq = arch_timer_ppi[arch_timer_uses_ppi];
+>  	switch (arch_timer_uses_ppi) {
+>  	case ARCH_TIMER_VIRT_PPI:
+> +	case ARCH_TIMER_HYP_VIRT_PPI:
+>  		clk->set_state_shutdown = arch_timer_shutdown_virt;
+>  		clk->set_state_oneshot_stopped = arch_timer_shutdown_virt;
+>  		sne = erratum_handler(set_next_event_virt);
+> @@ -879,7 +880,7 @@ static void __init arch_timer_banner(void)
+>  	pr_info("cp15 timer running at %lu.%02luMHz (%s).\n",
+>  		(unsigned long)arch_timer_rate / 1000000,
+>  		(unsigned long)(arch_timer_rate / 10000) % 100,
+> -		(arch_timer_uses_ppi == ARCH_TIMER_VIRT_PPI) ? "virt" : "phys");
+> +		arch_timer_ppi_names[arch_timer_uses_ppi]);
+>  }
+>  
+>  u32 arch_timer_get_rate(void)
+> @@ -912,7 +913,8 @@ static void __init arch_counter_register(void)
+>  	int width;
+>  
+>  	if ((IS_ENABLED(CONFIG_ARM64) && !is_hyp_mode_available()) ||
+> -	    arch_timer_uses_ppi == ARCH_TIMER_VIRT_PPI) {
+> +	    arch_timer_uses_ppi == ARCH_TIMER_VIRT_PPI ||
+> +	    arch_timer_uses_ppi == ARCH_TIMER_HYP_VIRT_PPI) {
+>  		if (arch_timer_counter_has_wa()) {
+>  			rd = arch_counter_get_cntvct_stable;
+>  			scr = raw_counter_get_cntvct_stable;
+> @@ -1023,6 +1025,7 @@ static int __init arch_timer_register(void)
+>  	ppi = arch_timer_ppi[arch_timer_uses_ppi];
+>  	switch (arch_timer_uses_ppi) {
+>  	case ARCH_TIMER_VIRT_PPI:
+> +	case ARCH_TIMER_HYP_VIRT_PPI:
+>  		err = request_percpu_irq(ppi, arch_timer_handler_virt,
+>  					 "arch_timer", arch_timer_evt);
+>  		break;
+> @@ -1090,25 +1093,34 @@ static int __init arch_timer_common_init(void)
+>  /**
+>   * arch_timer_select_ppi() - Select suitable PPI for the current system.
+>   *
+> - * If HYP mode is available, we know that the physical timer
+> - * has been configured to be accessible from PL1. Use it, so
+> - * that a guest can use the virtual timer instead.
+> + * On AArch32, if HYP mode is available, we know that the physical
+> + * timer has been configured to be accessible from PL1. Use it, so
+> + * that a guest can use the virtual timer instead (though KVM host
+> + * support has long been removed).
+>   *
+> - * On ARMv8.1 with VH extensions, the kernel runs in HYP. VHE
+> - * accesses to CNTP_*_EL1 registers are silently redirected to
+> - * their CNTHP_*_EL2 counterparts, and use a different PPI
+> - * number.
+> + * On ARMv8.1 with FEAT_VHE, the kernel runs in EL2. Accesses to
+> + * CNTV_*_EL1 registers are silently redirected to their CNTHV_*_EL2
+> + * counterparts, and the timer uses a different PPI number. Similar
+> + * thing happen when using the EL2 physical timer. Note that a bunch
+> + * of DTs out there omit the virtual EL2 timer, so fallback gracefully
+> + * on the physical timer.
+> + *
+> + * Without VHE, if no interrupt provided for virtual timer, we'll have
+> + * to stick to the physical timer. It'd better be accessible...
+>   *
+> - * If no interrupt provided for virtual timer, we'll have to
+> - * stick to the physical timer. It'd better be accessible...
+>   * For arm64 we never use the secure interrupt.
+>   *
+>   * Return: a suitable PPI type for the current system.
+>   */
+>  static enum arch_timer_ppi_nr __init arch_timer_select_ppi(void)
+>  {
+> -	if (is_kernel_in_hyp_mode())
+> +	if (is_kernel_in_hyp_mode()) {
+> +		if (arch_timer_ppi[ARCH_TIMER_HYP_VIRT_PPI])
+> +			return ARCH_TIMER_HYP_VIRT_PPI;
+> +
+> +		pr_warn_once(FW_BUG "VHE-capable CPU without EL2 virtual timer interrupt\n");
+>  		return ARCH_TIMER_HYP_PPI;
+> +	}
+>  
+>  	if (!is_hyp_mode_available() && arch_timer_ppi[ARCH_TIMER_VIRT_PPI])
+>  		return ARCH_TIMER_VIRT_PPI;
+> @@ -1200,14 +1212,9 @@ static int __init arch_timer_acpi_init(struct acpi_table_header *table)
+>  	if (ret)
+>  		return ret;
+>  
+> -	arch_timer_ppi[ARCH_TIMER_PHYS_NONSECURE_PPI] =
+> -		acpi_gtdt_map_ppi(ARCH_TIMER_PHYS_NONSECURE_PPI);
+> -
+> -	arch_timer_ppi[ARCH_TIMER_VIRT_PPI] =
+> -		acpi_gtdt_map_ppi(ARCH_TIMER_VIRT_PPI);
+> -
+> -	arch_timer_ppi[ARCH_TIMER_HYP_PPI] =
+> -		acpi_gtdt_map_ppi(ARCH_TIMER_HYP_PPI);
+> +	/* The GTDT parser can't be bothered with the secure timer */
+> +	for (int i = ARCH_TIMER_PHYS_NONSECURE_PPI; i < ARCH_TIMER_MAX_TIMER_PPI; i++)
+> +		arch_timer_ppi[i] = acpi_gtdt_map_ppi(i);
+>  
+>  	arch_timer_populate_kvm_info();
+>  
+> @@ -1253,10 +1260,14 @@ int kvm_arch_ptp_get_crosststamp(u64 *cycle, struct timespec64 *ts,
+>  	if (!IS_ENABLED(CONFIG_HAVE_ARM_SMCCC_DISCOVERY))
+>  		return -EOPNOTSUPP;
+>  
+> -	if (arch_timer_uses_ppi == ARCH_TIMER_VIRT_PPI)
+> +	switch (arch_timer_uses_ppi) {
+> +	case ARCH_TIMER_VIRT_PPI:
+> +	case ARCH_TIMER_HYP_VIRT_PPI:
+>  		ptp_counter = KVM_PTP_VIRT_COUNTER;
+> -	else
+> +		break;
+> +	default:
+>  		ptp_counter = KVM_PTP_PHYS_COUNTER;
+> +	}
+>  
+>  	arm_smccc_1_1_invoke(ARM_SMCCC_VENDOR_HYP_KVM_PTP_FUNC_ID,
+>  			     ptp_counter, &hvc_res);
 
-
- > Could this validation reject valid frequencies on systems with CPPC
- > favored cores?
-
-1.
-In v5, moved the range check into store_ospm_nominal_freq() in
-cppc_cpufreq.c, where it uses the same cpu_data->perf_caps as the
-kHz->perf conversion. OSPM Nominal is treated as a single per-policy
-value. It's validated once against the policy caps and applied to all
-CPUs in policy->cpus. This avoids validating against a sibling's
-separately-read caps.
-
-
- > When the platform's ACPI _CPC table does not support this register,
- > will this unconditionally return '0' instead of an error like
- > -EOPNOTSUPP?
-
-2.
-In v5, added cppc_get_ospm_nominal_perf() and dropped the cached
-value. show() now reads the register and returns "<unsupported>"
-on -EOPNOTSUPP.
-
-
- > Are newly onlined CPUs missing this cached ospm_nominal_perf value?
-
-3.
-show() now reads the register directly and not cached value, so it
-always reflects true per-CPU state.
-
-
- > Does skipping this rollback loop when prev_set is false leave the CPUs
- > in a desynchronized state?
-
-In v5, the cache and ospm_nominal_perf_set bool are removed and
-show() reads the register, so a partial write is no longer hidden.
-sysfs shows the real per-CPU value, not '0').
-store() reads the current value before writing and restores it on
-already updated CPUs if a sibling write fails, so there is no
-first write skip.
-
-Thank you,
-Sumit Gupta
-....
-
+Best regards
+-- 
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
 
