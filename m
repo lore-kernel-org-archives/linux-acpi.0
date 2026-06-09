@@ -1,183 +1,170 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0007413620;
-	Tue,  9 Jun 2026 12:15:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781007352; cv=none; b=EW1kTPX8/8q2T6JAuCyQf6xwLc2KUgiVfKF/sLqq1nHBms942V7leOd2vOW0DavwyRhMOMjJIkJZp3ScthPcP3FUr/QS0cM26hRXK0K9G7D3IvfST1nXj0sg5EBBs0HLs53Lsk7SJ7RqnqXwzXpKVWL/pvfVF9oEeu6TgBeRj20=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781007352; c=relaxed/simple;
-	bh=k7+4ZqZBPFaOAX9D4tiT4BTkzq2pD3Z7B9cTrBetr00=;
-	h=Date:Message-ID:From:To:Cc:Subject:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=o10VVWdR5MDRsgjZMmbpji2vdIv4Zrts9pjZB89L+TO5/VxLl/GpUgVWUsbGbczeE0+Wu3UuM5NsHEr/WyD13VkXXn+3kJKIAJwBZZOYO7DkPQwE091wXDupTLYmnGnbGJFZmSwF1A47ot8Ve01r777yfY4osm9b0IKCX2qV2jU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=U5Iy8ByX; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9563A32B981
+	for <linux-acpi@vger.kernel.org>; Tue,  9 Jun 2026 14:30:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=205.220.168.131
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1781015451; cv=pass; b=dqZP9S2ZFq4bN1v9xguou9/AdUyPovUicf50d7/b5ve3YFOhzSeMFA0AUZgxruz+vDcLZZ2+T68Biinlm5yMVMx1sH/npslyd/VsQYknGCvy6KiUm+TtMNLxXeS0FymUszS9Q+swxH9dde4uSwJm9/du0gVX/24j/MUq5Rs/Mr8=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1781015451; c=relaxed/simple;
+	bh=qUt22HVRDHTLE/STP9WjivjbEVbcJJjbvLyeAgzpexw=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=srYjRav1np+W1IuABnFh3Em+BRHqsBVUwWvGDk03iTlLybndcGvJ19W5HA8iXoSRI++NerkCGC44DcVwbJGkcJi3G0McW2hoEoPPLNhtl/kdASuAtwT6B8R8WCe2+SAfm8ZUOn0QhHJKmnFHDJYCz2Dvxcvww2qbfyUpHs4/wcY=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=fthfLPGW; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=e0PDP77l; arc=pass smtp.client-ip=205.220.168.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="U5Iy8ByX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3ECB21F00893;
-	Tue,  9 Jun 2026 12:15:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1781007350;
-	bh=O02wNSMoFIM0rygGZbIsJGDCRWP98Rp09cGml3zivWA=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=U5Iy8ByXoOEv4Es+WJDoGvQezhugFYHIhxmHfowiy+fGi1olC7g8B1P5lmLYKyLWR
-	 l6JqBulAaFuwOu1R7My3lyCXO2svWxxnn/foPSVaw+MHWryDVv3EJJyRCti+vxbM4/
-	 nb+aKfa8TlP1eUI9wLq4IleCmyDyvNcw+DMWGd8JAvhiYr8OyDR2CDzx6qST5qNYYQ
-	 SezlBJT7GI/PR2a9/coHGVHLlzP933O5IYBhtANKSu3ciPiFLOkRPGEJG8N/ScOUrk
-	 5gyTi7RI/Dq29WNn6GqsS1FJldRmHBRjwHyR6Z+0ue6g8NRULZymopbT9TR45z5kOF
-	 eARDeHSgzv56Q==
-Received: from sofa.misterjones.org ([185.219.108.64] helo=goblin-girl.misterjones.org)
-	by disco-boy.misterjones.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.98.2)
-	(envelope-from <maz@kernel.org>)
-	id 1wWvMx-0000000Au0g-2IwC;
-	Tue, 09 Jun 2026 12:15:47 +0000
-Date: Tue, 09 Jun 2026 13:15:46 +0100
-Message-ID: <86cxxzucy5.wl-maz@kernel.org>
-From: Marc Zyngier <maz@kernel.org>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-arm-kernel@lists.infradead.org,	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,	devicetree@vger.kernel.org,	Lorenzo Pieralisi
- <lpieralisi@kernel.org>,	Hanjun Guo <guohanjun@huawei.com>,	Sudeep Holla
- <sudeep.holla@kernel.org>,	Catalin Marinas <catalin.marinas@arm.com>,	Will
-	Deacon <will@kernel.org>,	"Rafael J. Wysocki" <rafael@kernel.org>,	Mark
-	Rutland <mark.rutland@arm.com>,	Daniel Lezcano <daniel.lezcano@kernel.org>,
-	Thomas Gleixner <tglx@kernel.org>,	Rob Herring <robh@kernel.org>,
-	Krzysztof	Kozlowski <krzk+dt@kernel.org>,	Conor Dooley
- <conor+dt@kernel.org>,	Chen-Yu	Tsai <wens@kernel.org>,	Jernej Skrabec
- <jernej.skrabec@gmail.com>,	Samuel	Holland <samuel@sholland.org>,	Neil
- Armstrong <neil.armstrong@linaro.org>,	Kevin Hilman <khilman@baylibre.com>,
-	Jerome Brunet <jbrunet@baylibre.com>,	Martin Blumenstingl
- <martin.blumenstingl@googlemail.com>,	Ge Gordon <gordon.ge@bst.ai>,	BST
- Linux Kernel Upstream Group <bst-upstream@bstai.top>,	Jesper Nilsson
- <jesper.nilsson@axis.com>,	Lars	Persson <lars.persson@axis.com>,	Alim
- Akhtar <alim.akhtar@samsung.com>,	Ivaylo Ivanov
- <ivo.ivanov.ivanov1@gmail.com>,	Frank Li <Frank.Li@nxp.com>,	Sascha Hauer
- <s.hauer@pengutronix.de>,	Pengutronix Kernel Team <kernel@pengutronix.de>,
-	Fabio Estevam <festevam@gmail.com>,	Dinh Nguyen <dinguyen@kernel.org>,
-	Matthias Brugger <matthias.bgg@gmail.com>,	AngeloGioacchino Del Regno
- <angelogioacchino.delregno@collabora.com>,	Thierry Reding
- <thierry.reding@kernel.org>,	Jonathan Hunter <jonathanh@nvidia.com>,	Bjorn
- Andersson <andersson@kernel.org>,	Konrad	Dybcio <konradybcio@kernel.org>,
-	Andreas =?UTF-8?B?RsOkcmJlcg==?= <afaerber@suse.de>,	=?UTF-8?B?Ill1LUNo?=
- =?UTF-8?B?dW4gTGluIFvmnpfnpZDlkJtdIg==?= <eleanor.lin@realtek.com>,	Heiko
- Stuebner <heiko@sntech.de>,	Shawn Lin <shawn.lin@rock-chips.com>,	Orson
- Zhai <orsonzhai@gmail.com>,	Baolin Wang <baolin.wang@linux.alibaba.com>,
-	Michal Simek <michal.simek@amd.com>,	Florian Fainelli
- <florian.fainelli@broadcom.com>
-Subject: Re: [PATCH v3 03/17] clocksource/drivers/arm_arch_timer: Default to EL2 virtual timer when running VHE
-In-Reply-To: <658bffa9-bd70-4b62-ac03-505822ba0be9@samsung.com>
-References: <20260523140242.586031-1-maz@kernel.org>
-	<20260523140242.586031-4-maz@kernel.org>
-	<CGME20260609100324eucas1p146c5ffe86a104677143baaeca1d3feba@eucas1p1.samsung.com>
-	<ea15cce1-b393-43f6-8d58-3d6f90f0c0cd@samsung.com>
-	<86ik7st3nh.wl-maz@kernel.org>
-	<193cc406-0834-4dee-9b4a-02cdfd85e05c@samsung.com>
-	<86ecigt2hq.wl-maz@kernel.org>
-	<658bffa9-bd70-4b62-ac03-505822ba0be9@samsung.com>
-User-Agent: Wanderlust/2.15.9 (Almost Unreal) SEMI-EPG/1.14.7 (Harue)
- FLIM-LB/1.14.9 (=?UTF-8?B?R29qxY0=?=) APEL-LB/10.8 EasyPG/1.0.0 Emacs/30.1
- (aarch64-unknown-linux-gnu) MULE/6.0 (HANACHIRUSATO)
+	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="fthfLPGW";
+	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="e0PDP77l"
+Received: from pps.filterd (m0279867.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 659ClGHE2251540
+	for <linux-acpi@vger.kernel.org>; Tue, 9 Jun 2026 14:30:48 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:reply-to:subject:to; s=
+	qcppdkim1; bh=n2ZoTe9MZ9DLe7zQEw5ul/Iirw7q5Hetu2UB3w96zKw=; b=ft
+	hfLPGWXHW1tH05MGW+QkewmxBy1Qv1V5JZ1bg1jJl3Rmo0OZAHZS1Ti6DGfbnuQq
+	Wke6OSRaNbWX2DrJrThCm5nZmCBPypmaW6HFWWeYTaWJtSQ32r8hjLGBM0e4Ma74
+	XvLousMzr7VkLfoUz15z1bjMeTNOieUtev0MsrKZ0qfswdGbnYV05JCa6Bym7IHa
+	NF/S3WZR1NMkA64Kf/r172K7fuWMmaqpR4zdP3ZC77W6P1TBhLRm/HqFVa9kQFvl
+	s+yrnow19Pd/K8omAHQN+8c/cbkR+0Ry6G2B8Ju1rWrJLqtcJTNXXLykt53TNjjM
+	gpPW1Xu7r7+I4xexTORw==
+Received: from mail-yx1-f72.google.com (mail-yx1-f72.google.com [74.125.224.72])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4epeqght8n-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <linux-acpi@vger.kernel.org>; Tue, 09 Jun 2026 14:30:47 +0000 (GMT)
+Received: by mail-yx1-f72.google.com with SMTP id 956f58d0204a3-66043ac620fso4419434d50.3
+        for <linux-acpi@vger.kernel.org>; Tue, 09 Jun 2026 07:30:47 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1781015447; cv=none;
+        d=google.com; s=arc-20240605;
+        b=VQD0x/N5XFsaZqnEQmiOM2jCsFrGGBBMdhZ1SfZVUgzjwPSul0FvRxkkpW4lzlksSS
+         biaodvDDORJ0ie27309H/7BAY4KL9wsS+YVpENFgFAKOYxOsud1YRWdoHD1FHXAyNBuv
+         yASwddr5KRuf4ryd2iunpRgRZZixPrSA3nj8+iSJb9AkiQf6S4zu/6XiQCwHgxG9HN9m
+         YtWmTVZtOSaG/e/qlNHWU5lNbsECvwn/IyA2qYEyMxzgW6nWarcLv3dYt33cjOrKhIXW
+         xskXlcOqVcBYVctyA2NUPwKR9ZuU7gJgwa9hFwF+ogE7IYbCI7tdLKTwFzlNVq8GAXRN
+         6Tsw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :reply-to:in-reply-to:references:mime-version:dkim-signature;
+        bh=n2ZoTe9MZ9DLe7zQEw5ul/Iirw7q5Hetu2UB3w96zKw=;
+        fh=ldTPDATPpv7EN/LTNo38sdXlUgaw7Hn2Z40bynymbhk=;
+        b=HjgRN27IGqVEOWWVgqbeQ8tbilSBAM5Eki5YtSxV/u/UxpVmOV+FZtSAL0Y7DInFpW
+         R8Nf27wSSlmGZEwyTK2ma3brU1ytibBG8okugfOuKCCh88rRihTo9xtgnIGUvgHLn59u
+         Sp4gvUYsm5FyT5480NqUbv6cnbV1ZQIGmkXpNhtveUhmmrU0X2pGY0NyX0sWhOLaGDbw
+         YQJdgcln+NlGxcCILFsgS2tK1zCSTgioOigsHaYjXX34+WIu5UnGNwFsd3090WnB2i2S
+         9uRILNw698/jJYTUgO1tzsAEwdfMGe1cU42B2a8YgrqTvYHJcEwutH+fG8pq0txx4qSu
+         0sdA==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=oss.qualcomm.com; s=google; t=1781015447; x=1781620247; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :reply-to:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=n2ZoTe9MZ9DLe7zQEw5ul/Iirw7q5Hetu2UB3w96zKw=;
+        b=e0PDP77lR9tEEee1MYxKClvGm2NSEDByKWoQUXDRo9R50HQ9QBE0wkTjJXxS3mqlv9
+         F4QIt6HsFwtcP1mqFDetp+S/TFpJ0pDOb6A+hBv6xWdpJIPy8f/YbrEdBc3zHWMX2a4x
+         Xbw3DY6kL2heJNH1yTlxPEBlIYzFW9khBL0PD15RT1vHUd4g9An1WqTl9o5GZPrKxBpi
+         YssXUwCY97yTXAYK2eZ/1rYyq0urqHi7drOcu+1yz9nawz/NnER4ugyLZauGK/mJhjax
+         kMPDOkC5yh6MFQggpB0eblHeXjDselEUF/hGdlzcZ9UuWuCvY6ABV13v6Lty0fTI7ki5
+         VLEw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1781015447; x=1781620247;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :reply-to:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=n2ZoTe9MZ9DLe7zQEw5ul/Iirw7q5Hetu2UB3w96zKw=;
+        b=ssAJlwx2GaoLgs4g2BbUP12sLCVo7X3RoocaxOmtSBJoTt1gA+AG4OhRCxZHuCXgT1
+         iUg6vdABcyXdtLt3nwD3L1IDQGJYWOeLsXieGD4AXIs/OFweAwsRhHvOmnzZFGpm8ICe
+         GO8C8lNYEPfAMtNXNWUPzEy+e2X7cp5ljElVfY6ZEtcN4Rvcuaq9egdbq9M8HgcFmZWh
+         pYoeccffudksn/dJ8UZJW4+ueUocomM1lt+iuLWwOnMoNiTovhwUqUlDNJA8VnJeR1Jg
+         QqZcIoIypKmjQhVL1P0Sxx/n+y9VCSsxVpKfVxGg1TuR4wbrBaZDRv25J5qYUASbDGsM
+         3SeQ==
+X-Forwarded-Encrypted: i=1; AFNElJ8kdex7Jot9n6P0vFZWWlLKoM7xb6q0nNynhhJZ8cgTdr5PH0dmx0ZRUyKOZZpvuWc3O6PQ3GM06odO@vger.kernel.org
+X-Gm-Message-State: AOJu0YznF0a9onuzTXgAWuLWotzBbn0zrEVbkXFwwzRQe8ZNSBdbcjuG
+	RnUwmXfQs1QI8MtXz6RTX4LRD9QoZjfvdXCqy0MO0nH1ZMRrtFwQwtAgDkZ0XfddBa32XEjN3hX
+	FCE8fA450HRNuTp0EToCm+l4LHj/SOPEOqaDBVv79ajV1+p3ImTtZ+1pS7Iclx/AjyRPKNWXe5v
+	/LzN0YHk0x9anxjQ6wvN/8JZ2anKqiHwzTPy/HkYTJpchNPEkoyQ==
+X-Gm-Gg: Acq92OFPCco8FnqQD1+ZCm19G+IkdTn6BuQg4AZDlCuIL7V0MWuMZZJ9l2rFCBVX6Ny
+	cpe/teIJY+Tvasn6izZE4ZsOx/AkJr+dHTN95L6RYTFIg5+cvWLH1ITvSnPjfhX/o0OmeY0uWX9
+	kvPeiK6rdoPZvhvAIHGqqRHv9uJySS2gCXPTJ7Srk4HZtpJ6S09d0a3VRlyXnW8znmzEeU2yr79
+	rgCfpMQZqpvbY7WEw==
+X-Received: by 2002:a05:690e:5cd:b0:657:e42c:ef3f with SMTP id 956f58d0204a3-6610707c453mr14362591d50.47.1781015446795;
+        Tue, 09 Jun 2026 07:30:46 -0700 (PDT)
+X-Received: by 2002:a05:690e:5cd:b0:657:e42c:ef3f with SMTP id
+ 956f58d0204a3-6610707c453mr14362545d50.47.1781015446306; Tue, 09 Jun 2026
+ 07:30:46 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0 (generated by SEMI-EPG 1.14.7 - "Harue")
-Content-Type: text/plain; charset=US-ASCII
-X-SA-Exim-Connect-IP: 185.219.108.64
-X-SA-Exim-Rcpt-To: m.szyprowski@samsung.com, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, lpieralisi@kernel.org, guohanjun@huawei.com, sudeep.holla@kernel.org, catalin.marinas@arm.com, will@kernel.org, rafael@kernel.org, mark.rutland@arm.com, daniel.lezcano@kernel.org, tglx@kernel.org, robh@kernel.org, krzk+dt@kernel.org, conor+dt@kernel.org, wens@kernel.org, jernej.skrabec@gmail.com, samuel@sholland.org, neil.armstrong@linaro.org, khilman@baylibre.com, jbrunet@baylibre.com, martin.blumenstingl@googlemail.com, gordon.ge@bst.ai, bst-upstream@bstai.top, jesper.nilsson@axis.com, lars.persson@axis.com, alim.akhtar@samsung.com, ivo.ivanov.ivanov1@gmail.com, Frank.Li@nxp.com, s.hauer@pengutronix.de, kernel@pengutronix.de, festevam@gmail.com, dinguyen@kernel.org, matthias.bgg@gmail.com, angelogioacchino.delregno@collabora.com, thierry.reding@kernel.org, jonathanh@nvidia.com, andersson@kernel.org, konradybcio@kern
- el.org, afaerber@suse.de, eleanor.lin@realtek.com, heiko@sntech.de, shawn.lin@rock-chips.com, orsonzhai@gmail.com, baolin.wang@linux.alibaba.com, michal.simek@amd.com, florian.fainelli@broadcom.com
-X-SA-Exim-Mail-From: maz@kernel.org
-X-SA-Exim-Scanned: No (on disco-boy.misterjones.org); SAEximRunCond expanded to false
+MIME-Version: 1.0
+References: <20260513084325.2176952-1-himanshu.chauhan@oss.qualcomm.com> <20260513084325.2176952-10-himanshu.chauhan@oss.qualcomm.com>
+In-Reply-To: <20260513084325.2176952-10-himanshu.chauhan@oss.qualcomm.com>
+Reply-To: sunilvl@oss.qualcomm.com
+From: Sunil V L <sunilvl@oss.qualcomm.com>
+Date: Tue, 9 Jun 2026 20:00:34 +0530
+X-Gm-Features: AVVi8CeCCuwpN-K9EkxyrVCpMYmKH1wrm2WzWm0aWwYK4PiS3mEB9S1-HswUmmQ
+Message-ID: <CAB19ukGeM=v=G10r_tX2SC603Tej5Q6nFOCddcPF8BaKwxFxrg@mail.gmail.com>
+Subject: Re: [PATCH v4 09/10] riscv: Select HAVE_ACPI_APEI required for RAS
+To: Himanshu Chauhan <himanshu.chauhan@oss.qualcomm.com>
+Cc: linux-riscv@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org,
+        acpica-devel@lists.linux.dev, paul.walmsley@sifive.com,
+        palmer@dabbelt.com, lenb@kernel.org, james.morse@arm.com,
+        tony.luck@intel.com, ardb@kernel.org, conor@kernel.org,
+        cleger@rivosinc.com, robert.moore@intel.com,
+        anup.patel@oss.qualcomm.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNjA5MDEzOCBTYWx0ZWRfX8XTyy5QBThPP
+ UoYfAE6dE4mfyFKO6NR3UPzj/FtgSKijOUebiJELRdMh0EIhOEHLh0WLtT0SVv8uivTmnMHXYwH
+ TBfSAqrj+48K0CjvWz9u0I+WkhhuqWeI/v/ohdu18hBbBBgDJDQ3cnGKJBZSh3IdWkKbw3zzlKV
+ aZJb+GbjdCNptQX/4uzPlvzraQYe50385c19qsR9fTLf/2DO+Dal+zYcymwWJQo0KXTZ2E2p92k
+ 3IzgZQOcCC9ovXiPq4/Nu/jpuKORnJ12jjq5Pawu2ycOZTlkcuVV8/z4nZ0KfowIZ2sq75GGqNA
+ oKzWslbRRGi5HAB9LcHK6+pTkHVaLGnOcer4yWtoabVmrt4JTdJBPaQqoRMDZUc4TGOB3bd+wMk
+ nfmMWxAVYcXl+cefkvdcMVK6Q7AIhyCpkRlkZIUH2YIb+ykjaws7kPYpcy9KtmNWwcF32rIOfra
+ 9e/9/nrkQndWEisLIBw==
+X-Proofpoint-ORIG-GUID: mrqV5ocnskQ4n4wjT-2IbW0t7lvSCfZA
+X-Authority-Analysis: v=2.4 cv=KdHidwYD c=1 sm=1 tr=0 ts=6a282397 cx=c_pps
+ a=VEzVgl358Dq0xwHDEbsOzA==:117 a=IkcTkHD0fZMA:10 a=FelO9ux0wxsA:10
+ a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22
+ a=eoimf2acIAo5FJnRuUoq:22 a=EUspDBNiAAAA:8 a=GsIs01FLSDa8B7WPS-oA:9
+ a=QEXdDO2ut3YA:10 a=uujmmnXaIg8lM0-o0HFK:22
+X-Proofpoint-GUID: mrqV5ocnskQ4n4wjT-2IbW0t7lvSCfZA
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.125,FMLib:17.12.100.49
+ definitions=2026-06-09_03,2026-06-09_02,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ impostorscore=0 lowpriorityscore=0 spamscore=0 malwarescore=0 suspectscore=0
+ priorityscore=1501 bulkscore=0 clxscore=1015 adultscore=0 phishscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2605210000 definitions=main-2606090138
 
-On Tue, 09 Jun 2026 12:32:24 +0100,
-Marek Szyprowski <m.szyprowski@samsung.com> wrote:
-> 
-> On 09.06.2026 12:46, Marc Zyngier wrote:
-> > On Tue, 09 Jun 2026 11:35:24 +0100,
-> > Marek Szyprowski <m.szyprowski@samsung.com> wrote:
-> >> On 09.06.2026 12:21, Marc Zyngier wrote:
-> >>> On Tue, 09 Jun 2026 11:03:21 +0100,
-> >>> Marek Szyprowski <m.szyprowski@samsung.com> wrote:
-> >>>> On 23.05.2026 16:02, Marc Zyngier wrote:
-> >>>>> When running with at EL2 with VHE enabled, the architecture provides
-> >>>>> two EL2 timer/counters, dubbed physical and virtual. Apart from their
-> >>>>> names, they are strictly identical.
-> >>>>>
-> >>>>> However, they don't get virtualised the same way, specially when
-> >>>>> it comes to adding arbitrary offsets to the timers. When running as
-> >>>>> a guest, the host CNTVOFF_EL2 does apply to the guest's view of
-> >>>>> CNTHV*_El2. This is not true for CNTPOFF_EL2 and CNTHP*_EL2, as
-> >>>>> the architecture is broken past the first level of virtualisation
-> >>>>> (it lacks some essential mechanisms to be usable, despite what
-> >>>>> the ARM ARM pretends).
-> >>>>>
-> >>>>> This means that when running as a L2 guest hypervisor, using the
-> >>>>> physical timer results in traps to L0, which are then forwarded to
-> >>>>> L1 in order to emulate the offset, leading to even worse performance
-> >>>>> due to massive trap amplification (the combination of register and
-> >>>>> ERET trapping is absolutely lethal).
-> >>>>>
-> >>>>> Switch the arch timer code to using the virtual timer when running
-> >>>>> in VHE by default, only using the physical timer if the interrupt
-> >>>>> is not correctly described in the firmware tables (which seems
-> >>>>> to be an unfortunately common case). This comes as no impact on
-> >>>>> bare-metal, and slightly improves the situation in the virtualised
-> >>>>> case.
-> >>>>>
-> >>>>> Signed-off-by: Marc Zyngier <maz@kernel.org>
-> >>>> This patch landed recently in linux-next as commit d87773de9efe
-> >>>> ("clocksource/drivers/arm_arch_timer: Default to EL2 virtual timer when
-> >>>> running VHE"). In my tests I found that it breaks booting of RaspberryPi5
-> >>>> board. Reverting it on top of linux-next fixes the issue. Here is a boot
-> >>>> log:
-> >>> Huh.
-> >>>
-> >>> [...]
-> >>>
-> >>>> arch_timer: cp15 timer running at 54.00MHz (hyp-virt).
-> >>>> clocksource: arch_sys_counter: mask: 0xffffffffffffff max_cycles: 0xc743ce346, max_idle_ns: 440795203123 ns
-> >>>> sched_clock: 56 bits at 54MHz, resolution 18ns, wraps every 4398046511102ns
-> >>> The interrupt appears to be advertised in the DT, but doesn't seem to
-> >>> fire. That's obviously not going to end well. My suspicion is that
-> >>> either the interrupt isn't wired (that'd be hilariously abd), or is
-> >>> left as Group-0 by the firmware (copy-paste from RPi4).
-> >>>
-> >>> Can you try the following hack and let me know if the kernel shouts at
-> >>> you?
-> >>>
-> >>> Thanks,
-> >>>
-> >>> 	M.
-> >>>
-> >>> diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
-> >>> index ec70c84e9f91d..d05791e6cc0db 100644
-> >>> --- a/drivers/irqchip/irq-gic.c
-> >>> +++ b/drivers/irqchip/irq-gic.c
-> >>> @@ -213,6 +213,7 @@ static void gic_eoimode1_mask_irq(struct irq_data *d)
-> >>>  static void gic_unmask_irq(struct irq_data *d)
-> >>>  {
-> >>>  	gic_poke_irq(d, GIC_DIST_ENABLE_SET);
-> >>> +	WARN_ON(!gic_peek_irq(d, GIC_DIST_ENABLE_SET));
-> >>>  }
-> >>>  
-> >>>  static void gic_eoi_irq(struct irq_data *d)
-> >> I've applied this change, but it doesn't trigger any warning in the boot log.
-> > [+ Florian]
-> >
-> > Huh. So that really points at the timer not being wired into the GIC,
-> > Samsung style... Can you confirm that removing the EL2 virtual timer
-> > from the DT results in a booting machine?
-> 
-> With the following diff the board boots again:
-
-OK, so it really is the EL2 virtual timer PPI that is misbehaving.
-Let's see what Florian comes up with on the status of this interrupt.
-
-Thanks,
-
-	M.
-
--- 
-Without deviation from the norm, progress is not possible.
+On Wed, May 13, 2026 at 2:14=E2=80=AFPM Himanshu Chauhan
+<himanshu.chauhan@oss.qualcomm.com> wrote:
+>
+> Select the HAVE_ACPI_APEI option so that APEI GHES config options
+> are visible.
+>
+> Signed-off-by: Himanshu Chauhan <himanshu.chauhan@oss.qualcomm.com>
+> ---
+>  arch/riscv/Kconfig | 1 +
+>  1 file changed, 1 insertion(+)
+>
+> diff --git a/arch/riscv/Kconfig b/arch/riscv/Kconfig
+> index d235396c4514..b94b19fb4249 100644
+> --- a/arch/riscv/Kconfig
+> +++ b/arch/riscv/Kconfig
+> @@ -187,6 +187,7 @@ config RISCV
+>         select HAVE_MOVE_PUD
+>         select HAVE_PAGE_SIZE_4KB
+>         select HAVE_PCI
+> +       select HAVE_ACPI_APEI if ACPI
+>         select HAVE_PERF_EVENTS
+>         select HAVE_PERF_REGS
+>         select HAVE_PERF_USER_STACK_DUMP
+>
+Reviewed-by: Sunil V L <sunilvl@oss.qualcomm.com>
