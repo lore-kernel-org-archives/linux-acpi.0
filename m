@@ -1,99 +1,65 @@
-Received: from mxhk.zte.com.cn (mxhk.zte.com.cn [160.30.148.35])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42C812472AF;
-	Tue,  9 Jun 2026 01:05:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=160.30.148.35
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B79622689C;
+	Tue,  9 Jun 2026 05:31:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780967102; cv=none; b=exDi/ZEFFKLuJViax7Uc+Nwkj85Efft1XbyPEsoBdQydfs0wW61slovnKBGLExy9CT1MZidkxLXMLoNcjYueiCfUxfppncV6tOv0iYtVdfSgqdNuwy0+3eVwfrxpX0LYfTGi9OqgPW6QMHMLx59MUC80GlmQSe1BHnwaBLMokFE=
+	t=1780983111; cv=none; b=ra+Pw10baXpmw96PpXWzK5JpEcN6VEjgEWO6WaH/5ASR9LxiI1Z8L2s6fFemOKY7foOeXSxDxlGs3A+G+ynZP3rPYzG1S7HziSfdLXt5sTH8ljwOEsExOMIiI1dlxALhFM6F9qrGGVFJuY1E0jz042HdxsmryhYKZ9M96vQtycE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780967102; c=relaxed/simple;
-	bh=BJsUS5COebKS7dR3jpmEyMcYSGCCbCogOF+14q99yfU=;
-	h=Message-ID:In-Reply-To:References:Date:Mime-Version:From:To:Cc:
-	 Subject:Content-Type; b=myYFAfzR0VrMseQNKj7vtvUUkkv1SKS3CsAQojHVgCJc5v/8T8iDo22ylWfuNe8Jt33m2lem1MYkFP1TOTRV9gnjMAjDvDU+zFENDCobty2jZPg0Z53aj1nhQKNohwRbCKVFR+t1njZFVElBQ2UmcZ7ZstxutxsQ3EQNHH+daCg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zte.com.cn; spf=pass smtp.mailfrom=zte.com.cn; arc=none smtp.client-ip=160.30.148.35
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zte.com.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zte.com.cn
-Received: from mxct.zte.com.cn (unknown [192.168.251.13])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange x25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mxhk.zte.com.cn (FangMail) with ESMTPS id 4gZ9gG5CZgz8XrrX;
-	Tue, 09 Jun 2026 09:04:58 +0800 (CST)
-Received: from mse-fl1.zte.com.cn (unknown [10.5.228.132])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange x25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mxct.zte.com.cn (FangMail) with ESMTPS id 4gZ9g05Yp6z52SGY;
-	Tue, 09 Jun 2026 09:04:44 +0800 (CST)
-Received: from szxlzmapp04.zte.com.cn ([10.5.231.166])
-	by mse-fl1.zte.com.cn with SMTP id 65914iMY081171;
-	Tue, 9 Jun 2026 09:04:44 +0800 (+08)
-	(envelope-from wang.yechao255@zte.com.cn)
-Received: from mapi (szxl2zmapp05[null])
-	by mapi (Zmail) with MAPI id mid12;
-	Tue, 9 Jun 2026 09:04:45 +0800 (CST)
-X-Zmail-TransId: 2b076a2766ad011-e86b8
-X-Mailer: Zmail v1.0
-Message-ID: <20260609090445085Jd6HCOSNMYKdW-T-Gzdzj@zte.com.cn>
-In-Reply-To: <CAB19ukFMu1tW5QkCOY2e=DWbKrehEDv_iO5T7vEfKEGkbTFEEw@mail.gmail.com>
-References: CAB19ukEzQZktJcBAXi8X2Pwz+hO_FcR+iiaK9nsCAumP9BrHnw@mail.gmail.com,20260608142206426CGB5DlYd1xVlR8wrOawWH@zte.com.cn,CAB19ukFMu1tW5QkCOY2e=DWbKrehEDv_iO5T7vEfKEGkbTFEEw@mail.gmail.com
-Date: Tue, 9 Jun 2026 09:04:45 +0800 (CST)
+	s=arc-20240116; t=1780983111; c=relaxed/simple;
+	bh=N1tSz0WfDaCJhOS0IGgSj9qi0hu8FB5rtygEVzNePOg=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=uJ8bEemvhMSCz/I2OQxRFY77ml+daAmus4dZ0TgzOc1APdBpSbxlb5p9Tj2fn6XuXGRxecVSX3AtL4w2dFY9U5CjoPcrOBTFFJdhWq2yk8bPf3dRptXqZCAn4GIW32BI5HdfP4xOS+3l8SoduArmgXWKBGS3yUds9Dzsr+mL1/M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=HUojIW4+; arc=none smtp.client-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="HUojIW4+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20D771F00893;
+	Tue,  9 Jun 2026 05:31:49 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxfoundation.org;
+	s=korg; t=1780983109;
+	bh=4nHhNOei7QNfUzNrgd6b9zKAHktqrjJSs2tQI7XWv90=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=HUojIW4+spXliS/WJ9e0L7NRKhF43nwz9aw6NUlkgYwKcPTg2maOoeUcdMDkZXrl3
+	 EAecWoTuok6//TMhj/wDkVEsx6wjgJGqGaAS09ejhEghuKdQy80zYGvv5CT8tXBo61
+	 vR69FojFHwv32I3+mgvzzPXqixHjLsWV4DNdSQQ8=
+Date: Tue, 9 Jun 2026 07:30:51 +0200
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: Markus Probst <markus.probst@posteo.de>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+	Ard Biesheuvel <ardb@kernel.org>,
+	Ilias Apalodimas <ilias.apalodimas@linaro.org>,
+	Jiri Slaby <jirislaby@kernel.org>, linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+	linux-mips@vger.kernel.org, linux-efi@vger.kernel.org,
+	linux-serial@vger.kernel.org
+Subject: Re: [PATCH RESEND v2 1/2] serial: earlycon: add uart_clk_freq
+ parameter
+Message-ID: <2026060957-chaperone-tarot-d548@gregkh>
+References: <20260609-acpi_spcr-v2-0-3cd9a3bda727@posteo.de>
+ <20260609-acpi_spcr-v2-1-3cd9a3bda727@posteo.de>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-From: <wang.yechao255@zte.com.cn>
-To: <sunilvl@oss.qualcomm.com>
-Cc: <linux-acpi@vger.kernel.org>, <linux-riscv@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, <iommu@lists.linux.dev>,
-        <sunilvl@ventanamicro.com>, <rafael@kernel.org>, <lenb@kernel.org>,
-        <pjw@kernel.org>, <palmer@dabbelt.com>, <aou@eecs.berkeley.edu>,
-        <alex@ghiti.fr>, <tomasz.jeznach@linux.dev>,
-        <anup.patel@oss.qualcomm.com>, <andrew.jones@oss.qualcomm.com>
-Subject: =?UTF-8?B?UmU6IFtQQVRDSF0gaW9tbXUvcmlzY3Y6IEFkZCBkZXBlbmRlbmN5IGJldHdlZW4gaW9tbXUgYW5kIGRldmljZXM=?=
-Content-Type: text/plain;
-	charset="UTF-8"
-X-MAIL:mse-fl1.zte.com.cn 65914iMY081171
-X-TLS: YES
-X-ENVELOPE-SENDER: wang.yechao255@zte.com.cn
-X-SOURCE-IP: 192.168.251.13 unknown Tue, 09 Jun 2026 09:04:58 +0800
-X-CLEAN: YES
-X-Fangmail-Anti-Spam-Filtered: true
-X-Fangmail-MID-QID: 6A2766BA.000/4gZ9gG5CZgz8XrrX
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260609-acpi_spcr-v2-1-3cd9a3bda727@posteo.de>
 
-> On Mon, Jun 8, 2026 at 11:52 AM <wang.yechao255@zte.com.cn> wrote:
-> >
-> > > >
-> > > > From: Wang Yechao <wang.yechao255@zte.com.cn>
-> > > >
-> > > > Commit 9156585280f1 ("ACPI: RIMT: Add dependency between iommu and
-> > > > devices") adds the dependency between iommu and devices on ACPI
-> > > > systems. On devicetree systems, the incorrect removal order also
-> > > > occurs.
-> > > >
-> > > Interesting. Why is it not handled by the fw_devlink infrastructure in DT?
-> > >
-> > > Thanks,
-> > > Sunil
-> >
-> > Thank you. I have noticed that commit e149573b2f84 ("of: property: Add device
-> > link support for "iommu-map"") adds support for "iommu-map" to the device link
-> > supplier bindings, so that probing of PCI devices can be deferred until after
-> > the IOMMU is available.
-> >
-> > The QEMU RISC-V virt machine currently lacks the "iommu-map" property for the
-> > PCIe bus when the iommu-pci device is used, which leads to this issue. Therefore,
-> > I believe the correct fix is to add the "iommu-map" property for PCIe in QEMU.
-> >
-> For PCI IOMMU, the dependency should be automatically taken care since iommu
-> should always be the first device in the hierarchy and scanned first.
+On Mon, Jun 08, 2026 at 10:40:21PM +0000, Markus Probst wrote:
+> Add `uart_clk_freq` parameter to `setup_earlycon`. This allows the
+> options string to be reused with `add_preferred_console`, while still
+> allowing to set the uart clock frequency. This will be used in the
+> following commit ("ACPI: SPCR: Support UART clock frequency field").
 
-Thank you for pointing it out. The device is not removed before the PCI IOMMU
-device because the BDF of the device I configured is smaller than the BDF of
-the PCI IOMMU device.
+Ick, this is bad, now you need to look up what this 0 is as a parameter
+every time you see this call.  Please just add a new function that takes
+the new paramter, don't abuse the old one for this.
 
-Regards,
-Yechao
+thanks,
+
+greg k-h
