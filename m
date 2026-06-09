@@ -1,91 +1,129 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.19])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-vs1-f45.google.com (mail-vs1-f45.google.com [209.85.217.45])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A73AC3CF209;
-	Tue,  9 Jun 2026 06:04:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.19
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5BC03CF206
+	for <linux-acpi@vger.kernel.org>; Tue,  9 Jun 2026 06:53:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.217.45
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780985088; cv=none; b=BxsS5r065p1MvIEyUyvuA5V8nsw7n89RsrbUoMSxJUtAb0vYtc2mFmsXp5P+wYzhLSPWRu+dNQ6bleS3sGAIQ5BTAPgVziGUZ+4PQS0VYNDeQ6zm/kiFEMxhwwQ+T+X/vAh1evR/DPxZ937zk0zyQlsC8TV9pvNqG0wPE7yS6qw=
+	t=1780988008; cv=none; b=jnrYbzaN4S/fG8VP/A8mXQklgHzHDEV4qoIvyZALndhAkLsXLSfORMFsI78r0Jstjf4tr+KFgfXcXn3s0eYi3lm61DLECd4ZVmtjKsxZlD78LVHOxzcbp3MB6fl8RsivfkASPxCigdcKSt6+3jL0iaf4ZL+Bsv43dKjRpKk7aJI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780985088; c=relaxed/simple;
-	bh=731ExrIFuYhYyY+T6Moi5PvW6EPSmsOR52dcNI589PY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=egaBYp47kNQ0e4hUSI+km3iZhgzW19K/Fpv7TqOG2NEUJ1RVYl88/WANAlHBbbk+YJYcwc00+aZSZBKqW5E6p1bgwihBd214VTI8G9FKjTqcCDAImxQikB4GxKmHApE+1qmJGDqhdh1QVmcXNCq9rr70Q/OXCdREcn6uUlbfCb4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=YpipNPyb; arc=none smtp.client-ip=198.175.65.19
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="YpipNPyb"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1780985086; x=1812521086;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=731ExrIFuYhYyY+T6Moi5PvW6EPSmsOR52dcNI589PY=;
-  b=YpipNPybovfzpuhF+htlfmxONPKX1rZAjo4yhUvnwPeUNmz49v6MRKAT
-   vtSRq/iZ2aogEYb0taTF68R5wpr4vc78x74gLyqyQAeOL7qxfXiR5GXvx
-   2G76omx+hda8U98XH+T6iMOsZJo2MGJFmKF8FBdWOKUZru1iUU5R/+IDS
-   Kp2/szXcf2NPyJO10dJqLIIcikCbWP2ER+XLgEErbW6vn/OvYcyeuC+K8
-   62IzqRScxZf9Sb7joUIFmDE41JQIoCUq/iqGng8l263lYH7XkspuwWa1I
-   GmH0l/cKGeNhHT5ActA35pWsMxCxpCnnzAOHJcOn4GZg02NChg3FElI0E
-   w==;
-X-CSE-ConnectionGUID: 0lyx1UZSTWWOrMLiNPMoxw==
-X-CSE-MsgGUID: QIK8VA4hRTaVVhCkMglHCA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11811"; a="81713991"
-X-IronPort-AV: E=Sophos;i="6.24,195,1774335600"; 
-   d="scan'208";a="81713991"
-Received: from fmviesa010.fm.intel.com ([10.60.135.150])
-  by orvoesa111.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Jun 2026 23:04:46 -0700
-X-CSE-ConnectionGUID: caMgAKDMQt+tzUDfqvaHlA==
-X-CSE-MsgGUID: Y5uwqR98Ta6DRpf+0IDxZw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.24,195,1774335600"; 
-   d="scan'208";a="241587140"
-Received: from egrumbac-mobl6.ger.corp.intel.com (HELO localhost) ([10.245.245.39])
-  by fmviesa010-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Jun 2026 23:04:42 -0700
-Date: Tue, 9 Jun 2026 09:04:40 +0300
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Danilo Krummrich <dakr@kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org,
-	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] software node: allow passing reference args to
- PROPERTY_ENTRY_REF()
-Message-ID: <aies-OJokLx4IAHf@ashevche-desk.local>
-References: <aiTo4dvKu8pyimHA@google.com>
+	s=arc-20240116; t=1780988008; c=relaxed/simple;
+	bh=USxDlh+cTOmctRbVLXUwHBHqPmHhLde8bvmv+bZmeZo=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=sn65TrR2eS2nlqSbNtLVIeYDEsaiinwW2J3yMDk/OtfNHBjXE93cgEieqUJzDbFxbyzIshnWsomZkSAFDelC42JV9rEBEsmE62qv+iLbbAO8WVNK//zTh6LLavvVWk5gwNTunRtWL6J8BDRAxJ2sHO7WesgTbZVRC/WVWBCLZZU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.217.45
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Received: by mail-vs1-f45.google.com with SMTP id ada2fe7eead31-6c7e8c9f612so1843078137.0
+        for <linux-acpi@vger.kernel.org>; Mon, 08 Jun 2026 23:53:25 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1780988005; x=1781592805;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=cfrTmKBa/6XQOKTJVCGFPY/9uy59Ow4t/P5iBf4xoKk=;
+        b=XNC+lcMrSeDDpjO8nHjKOs8r28rbzNGnztQUAjnzcL2DUCaXmPlhcFC73drfycR8nm
+         mLrr7tf2O8IfrCm/IlgncS6nn4Tx64teKE6q3fVkxJQyijXqkkQaCWtdjLGiYovmTmr4
+         ncX09MBwqEUBTGsCe6Oob76WSYncmRNINWh26gqwgGIEmUScJSr9umLvzlBdp2zKG/4G
+         D7sLcIgArKs02k19p/njW9/XeL1OHcgLvtI8SPvuOsr8mKzmn8DUKHtK6y25sgAy8L98
+         Z+XfhZ14d8EtEaWaCUda4i1ZssZyuA8Vm+mg3Nta+gYl2Hd1odVCwWeyMJNjYyX4rQOM
+         zaJQ==
+X-Forwarded-Encrypted: i=1; AFNElJ/Apxrhq+OjxDKKJKtfSb4IXrskNmAxnRUWDHWSUhrESXJn/+VSJ2xNJwbJNIjk5IDu2+RPPw9TAoxE@vger.kernel.org
+X-Gm-Message-State: AOJu0YzhhTsnGP/jCopWcEGzsVWYCL8ICd20ehUcjnpyRbGqGeIDwZ9U
+	ka9Uo9xHc0OvQbWUrWnNCr5+Tz86ABUvt1BGppXJx8xnCNJhVSA1bG3UvcH2tHB5
+X-Gm-Gg: Acq92OG2QLBJZjCGGR1hCQxxP0XUUYuqUb3xrYORFPv1nlwWAW6cfuoc9UqSkztwTeY
+	iEE/QK+rrcVbJmbuqRUhJXnWy9cNHsXsd7ruwBfIGFz00Ex46RlHUnA2nlEKyLleWl9eIO2pHXt
+	0/HqjU0JpgD2CkMXi4GwKoybgZ373U7Ff1ibwSKNVVjQGlpplerpbKDB4dSAuxKUhdpDTMqvkXF
+	252i0BQSR3uhWEl+NR5dMcqpbNarVv01P0U35xC44reXuzLZfNeZlJTX4F0RbcHN0LHKr7T/QsZ
+	8qZGQkciiqVdrXWT2ETz1p1+/FsbTS6GcSVm/bvEAIrWkdX8tuiQo7kALOmrJtUhNGRW1s3vpRP
+	DiUUgrOmFSIrFehUOzJhwA/tyIzumJrTVCDqJNATou9eZXWX3+rroYIm4ZnYfTWo9aHBB0YpTM6
+	GVup5yfT5NlqNiSwDBLp99bvIh4SthawFGgwya/WHOYlAhBS0hieHUVHMK6X+u62NYvsEiYks=
+X-Received: by 2002:a05:6102:548c:b0:612:7ddc:52ee with SMTP id ada2fe7eead31-6ff02387138mr9194285137.15.1780988004736;
+        Mon, 08 Jun 2026 23:53:24 -0700 (PDT)
+Received: from mail-ua1-f47.google.com (mail-ua1-f47.google.com. [209.85.222.47])
+        by smtp.gmail.com with ESMTPSA id ada2fe7eead31-6eb649b54e0sm16196314137.9.2026.06.08.23.53.23
+        for <linux-acpi@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 08 Jun 2026 23:53:23 -0700 (PDT)
+Received: by mail-ua1-f47.google.com with SMTP id a1e0cc1a2514c-9638c832c48so1865621241.1
+        for <linux-acpi@vger.kernel.org>; Mon, 08 Jun 2026 23:53:23 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ+cXevE3EcmCFS5zFyzBz/vsX3LpDlei6FNB7AaI3u7xkGLfSLxCNwu3eJWRk1nvKk54PMwR1005184@vger.kernel.org
+X-Received: by 2002:a05:6102:94c:b0:6cb:d562:b96a with SMTP id
+ ada2fe7eead31-6ff02387516mr9986946137.14.1780988002958; Mon, 08 Jun 2026
+ 23:53:22 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <aiTo4dvKu8pyimHA@google.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+References: <20260609-acpi_spcr-v2-0-3cd9a3bda727@posteo.de> <20260609-acpi_spcr-v2-1-3cd9a3bda727@posteo.de>
+In-Reply-To: <20260609-acpi_spcr-v2-1-3cd9a3bda727@posteo.de>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Tue, 9 Jun 2026 08:53:11 +0200
+X-Gmail-Original-Message-ID: <CAMuHMdXH0mR9Sr+ze2_m94uc46_7gubApzWOkf+vUO+w=DmNoQ@mail.gmail.com>
+X-Gm-Features: AVVi8Cemo9bnqwwW5sau-L6wcH5-zrPfob50Y8WSYUrCMRB7OtaTQ6EIMHl5BFg
+Message-ID: <CAMuHMdXH0mR9Sr+ze2_m94uc46_7gubApzWOkf+vUO+w=DmNoQ@mail.gmail.com>
+Subject: Re: [PATCH RESEND v2 1/2] serial: earlycon: add uart_clk_freq parameter
+To: Markus Probst <markus.probst@posteo.de>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Ard Biesheuvel <ardb@kernel.org>, 
+	Ilias Apalodimas <ilias.apalodimas@linaro.org>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jirislaby@kernel.org>, 
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, 
+	linux-efi@vger.kernel.org, linux-serial@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-On Sat, Jun 06, 2026 at 08:51:29PM -0700, Dmitry Torokhov wrote:
-> When dynamically creating software nodes and properties for subsequent
-> use with software_node_register() current implementation of
-> PROPERTY_ENTRY_REF() is not suitable because it creates a temporary
-> instance of struct software_node_ref_args on stack which will later
-> disappear, and software_node_register() only does shallow copy of
-> properties.
-> 
-> Fix this by allowing to pass address of reference arguments structure
-> directly into PROPERTY_ENTRY_REF(), so that caller can manage lifetime
-> of the object properly.
+Hi Markus,
 
-Now it looks nice and good, thanks!
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+On Tue, 9 Jun 2026 at 00:40, Markus Probst <markus.probst@posteo.de> wrote:
+> Add `uart_clk_freq` parameter to `setup_earlycon`. This allows the
+> options string to be reused with `add_preferred_console`, while still
+> allowing to set the uart clock frequency. This will be used in the
+> following commit ("ACPI: SPCR: Support UART clock frequency field").
+>
+> No logical change intended.
+>
+> Signed-off-by: Markus Probst <markus.probst@posteo.de>
+
+> --- a/drivers/tty/serial/earlycon.c
+> +++ b/drivers/tty/serial/earlycon.c
+> @@ -135,11 +135,14 @@ static int __init parse_options(struct earlycon_device *device, char *options)
+>         return 0;
+>  }
+>
+> -static int __init register_earlycon(char *buf, const struct earlycon_id *match)
+> +static int __init register_earlycon(char *buf, unsigned int uart_clk_freq,
+> +                                   const struct earlycon_id *match)
+>  {
+>         int err;
+>         struct uart_port *port = &early_console_dev.port;
+>
+> +       port->uartclk = uart_clk_freq;
+
+Who is actually consuming this value?
+Earlycon typically works with the serial console, as configured before
+Linux boot by the firmware.
+The Microsoft doc referenced in patch 2 seem to agree with that:
+
+   "On a system where the BIOS or system firmware uses the serial
+    port for console input/output, this table should be used to convey
+    information about the settings, to ensure a seamless transition
+    between the firmware console output and Windows EMS output."
+
+> +
+>         /* On parsing error, pass the options buf to the setup function */
+>         if (buf && !parse_options(&early_console_dev, buf))
+>                 buf = NULL;
+
+Gr{oetje,eeting}s,
+
+                        Geert
 
 -- 
-With Best Regards,
-Andy Shevchenko
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
-
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
