@@ -1,37 +1,36 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48AEE3EF0BD;
-	Tue,  9 Jun 2026 09:19:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 028962EA48F;
+	Tue,  9 Jun 2026 09:31:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780996748; cv=none; b=CrfhoMR902ZuW0OIcAjFZKHmkTxbDWeAZXaOLoJ7QGjq//oNTaCFZMksOy7h44b/xHjdtEav7xf8Z3PGWLGXS9k/AoAPS14TPblR2Eh5MvF4ambzDlL9c8C0HbdKKS64seTd/AilE3ewKhdbf80//PDSvUhS8U7EqBtEv7zEwFg=
+	t=1780997499; cv=none; b=X+zXxkJh1XzeB0EU2IPvcZPZANWFygz7syxcDazbzuJo0XiLVQFrmko+zWqxHFoxp9rWBizJ279dkbJVumULLEEUq5jyzimODUytmzUfc1MSJqx8DEPJ9w2cEyrhtxgxWRXE4Ts7S21Eb9b06UKkyGXfUFZXu/fM+fyCKKjElQw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780996748; c=relaxed/simple;
-	bh=SOGEsiob5KgP55lb6jJSATvDTnAhJIKXVupn0hBMpkk=;
+	s=arc-20240116; t=1780997499; c=relaxed/simple;
+	bh=JglZkZ7Dbmzv+aB20UgQeLa2k2exjJzd5rFjaiPrylM=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=jGp0KnysgQhQ/KI1qrkeWrFPXKV+QpF1eMyndNdRWf44I9umu/2ythuKbiu7AECIphkAWDRXNeE4pjAuqcJGfps80HvDjLMRnsgtzztLXaGXpb9k6RmE1s9wdFbrt4cZqe8hjul9jtACKvzRiHbJItUYxo5vZsvXEJQUYfM5MYk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Rf6WZ+J3; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=SseF3le5gDmu62vQqaELUqM7kMk1c9l2YojHVN6V2JKRZ6uxdqc8qqTGiX14SjO3sAXV1cWP5OW7Bn/tETqPHpvQ98N4DNKAirYo6kluZd/lL/nOGvjRk1o0GJZSN4/ssCZBPary/S7ZZP7w7V7r2g7OdduR5lr3OwREhBVmCPU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mAI6hhRX; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Rf6WZ+J3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C95D71F00893;
-	Tue,  9 Jun 2026 09:19:02 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mAI6hhRX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0606B1F00893;
+	Tue,  9 Jun 2026 09:31:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1780996746;
-	bh=UnLSIOIPLrsgN1aJrq7sJm6YQFhZ+kBm+237OZTgZtE=;
+	s=k20260515; t=1780997497;
+	bh=2O0A8k7i0uc3+GN/wePb/LhobyOV72RtaqOWFuiG+AE=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=Rf6WZ+J3P0F0wrd3ax1kk+wZcQgOIGh2lEH9DewE60K5vxhRKqNjVP5Fpb99QNYXB
-	 iUWsONWJl7offoG7ybI8rLcdvEs4vqsw9d1ZxqF0LWd+dFvt9oaD99wwlVAEfHwbDe
-	 +16ZDuTt2wUPOM1Bkg4Rq4EOdC+k69aJF/8QkKCwy5M1fsdyYEvZ6Kq+lE+x+bG3N1
-	 9Wanm4yCdexYV9h7qjUzYjbQfIlh5gECJlpwbeIvMoggylNYxHdX/xRqBgftfbO3+a
-	 zIOh6QowHakk3+HzJgIcX0IeA0Z0HjDtz/26TTyaZSVKUECFhkCGOg4KuvtfzikztN
-	 0xv3dSD9sOu3w==
-Date: Tue, 9 Jun 2026 11:19:00 +0200
+	b=mAI6hhRXHfGBva7Rk3YIaxAe7+mGw8/Nc1CfF0iSOK7POUGUFrcPUd8rhYyAIQ/PA
+	 dlYb0Z433wrDey4OY33Evo/RywrrH3HIGh1lADXKvY+gT6ZAUmg6ZBjy9/IrdeOviS
+	 NuiO0yVrE5IWQNWfJz8xhh0BIlRrIE9lOhSaL3/LGs4BGbbOAr8eiDOybX/erkM50Z
+	 B52wIBz2lnFpm0+319gQkrelQ1Y5h7gPp1y7bgpmHtOqRm2vnr9gBYfgU/iSufmUkS
+	 R9LDV5FA/sPADE1rEeSrsfU5+o2bX1TWV5nsX2r5S6NA9HAXJye9hxqLxf1vBOU5LO
+	 B5RcmBKv9b83Q==
+Date: Tue, 9 Jun 2026 11:31:31 +0200
 From: Lorenzo Pieralisi <lpieralisi@kernel.org>
-To: Sunil V L <sunilvl@oss.qualcomm.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
-	Sunil V L <sunilvl@ventanamicro.com>, Marc Zyngier <maz@kernel.org>,
-	Thomas Gleixner <tglx@kernel.org>,
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Len Brown <lenb@kernel.org>, Sunil V L <sunilvl@ventanamicro.com>,
+	Marc Zyngier <maz@kernel.org>, Thomas Gleixner <tglx@kernel.org>,
 	Huacai Chen <chenhuacai@kernel.org>,
 	Anup Patel <anup@brainfault.org>, Hanjun Guo <guohanjun@huawei.com>,
 	Sudeep Holla <sudeep.holla@kernel.org>,
@@ -39,12 +38,12 @@ Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
 	Will Deacon <will@kernel.org>, linux-riscv@lists.infradead.org,
 	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
 	linux-arm-kernel@lists.infradead.org, loongarch@lists.linux.dev
-Subject: Re: [PATCH v2 1/6] ACPI: RISC-V: Fix riscv_acpi_irq_get_dep() loop
- termination
-Message-ID: <aifahCtdj8GpHN/v@lpieralisi>
+Subject: Re: [PATCH v2 6/6] irqchip/gic-v5: Enable GICv5 IWB ACPI probe
+ ordering detection
+Message-ID: <aifdc2E/+YCvCnwG@lpieralisi>
 References: <20260603-gic-v5-acpi-iwb-probe-deferral-v2-0-23ffa16b6ebb@kernel.org>
- <20260603-gic-v5-acpi-iwb-probe-deferral-v2-1-23ffa16b6ebb@kernel.org>
- <CAB19ukFFwm3ehzkBFr+oXRjA7VK_4_=XHFSuqdEpbVqUz8Do4Q@mail.gmail.com>
+ <20260603-gic-v5-acpi-iwb-probe-deferral-v2-6-23ffa16b6ebb@kernel.org>
+ <CAJZ5v0ibZKfzJwGyUb92-K1N9C_ab0QujpAKCrvMdyygquS1Vw@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -54,75 +53,101 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAB19ukFFwm3ehzkBFr+oXRjA7VK_4_=XHFSuqdEpbVqUz8Do4Q@mail.gmail.com>
+In-Reply-To: <CAJZ5v0ibZKfzJwGyUb92-K1N9C_ab0QujpAKCrvMdyygquS1Vw@mail.gmail.com>
 
-On Mon, Jun 08, 2026 at 09:54:28PM +0530, Sunil V L wrote:
-> Hi Lorenzo,
-> 
-> On Wed, Jun 3, 2026 at 1:51 PM Lorenzo Pieralisi <lpieralisi@kernel.org> wrote:
+On Mon, Jun 08, 2026 at 07:18:15PM +0200, Rafael J. Wysocki wrote:
+> On Wed, Jun 3, 2026 at 10:21 AM Lorenzo Pieralisi <lpieralisi@kernel.org> wrote:
 > >
-> > In riscv_acpi_add_irq_dep() the main loop condition would currently stop
-> > the loop if an interrupt descriptor contains an interrupt for which the
-> > respective GSI handle is NULL, which is not correct because subsequent
-> > interrupts in the interrupt descriptor might still have a GSI dependency
-> > that must not be skipped.
+> > Register an ACPI hook in the ACPI interrupt management code for GICv5 to
+> > retrieve the ACPI interrupt controller handle (if any) of the controller
+> > handling a specific GSI, by updating the acpi_set_irq_model() call with
+> > the gic_v5_get_gsi_handle() function pointer parameter.
 > >
-> > Rework riscv_acpi_add_irq_dep() and the riscv_acpi_irq_get_dep() call chain
-> > to fix it - by not forcing the loop to stop in order to guarantee
-> > dependency detection for all the interrupt entries in the CRS descriptor.
+> > gicv5_get_gsi_handle() allows ACPI core to detect the ACPI handle
+> > of the controller that manages a specific GSI interrupt.
+> >
+> > Update the IWB driver to clear device dependencies in ACPI core once the
+> > IWB driver has probed.
 > >
 > > Signed-off-by: Lorenzo Pieralisi <lpieralisi@kernel.org>
-> > Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-> > Cc: Sunil V L <sunilvl@ventanamicro.com>
+> > Cc: Thomas Gleixner <tglx@kernel.org>
+> > Cc: Marc Zyngier <maz@kernel.org>
 > > ---
-> >  drivers/acpi/riscv/irq.c | 10 ++++++----
-> >  1 file changed, 6 insertions(+), 4 deletions(-)
+> >  drivers/irqchip/irq-gic-v5-iwb.c |  5 +++++
+> >  drivers/irqchip/irq-gic-v5.c     | 13 +++++++++++--
+> >  2 files changed, 16 insertions(+), 2 deletions(-)
 > >
-> > diff --git a/drivers/acpi/riscv/irq.c b/drivers/acpi/riscv/irq.c
-> > index 9b88d0993e88..cd83c3035cf6 100644
-> > --- a/drivers/acpi/riscv/irq.c
-> > +++ b/drivers/acpi/riscv/irq.c
-> > @@ -299,6 +299,7 @@ static acpi_status riscv_acpi_irq_get_parent(struct acpi_resource *ares, void *c
-> >                         return AE_OK;
+> > diff --git a/drivers/irqchip/irq-gic-v5-iwb.c b/drivers/irqchip/irq-gic-v5-iwb.c
+> > index 9103feb70ce8..a02cb9537b15 100644
+> > --- a/drivers/irqchip/irq-gic-v5-iwb.c
+> > +++ b/drivers/irqchip/irq-gic-v5-iwb.c
+> > @@ -269,6 +269,11 @@ static int gicv5_iwb_device_probe(struct platform_device *pdev)
+> >         if (IS_ERR(iwb_node))
+> >                 return PTR_ERR(iwb_node);
 > >
-> >                 ctx->handle = riscv_acpi_get_gsi_handle(eirq->interrupts[ctx->index]);
-> > +               ctx->rc = 0;
-> >                 return AE_CTRL_TERMINATE;
-> >         }
-> >
-> > @@ -314,10 +315,8 @@ static int riscv_acpi_irq_get_dep(acpi_handle handle, unsigned int index, acpi_h
-> >
-> >         acpi_walk_resources(handle, METHOD_NAME__CRS, riscv_acpi_irq_get_parent, &ctx);
-> >         *gsi_handle = ctx.handle;
-> > -       if (*gsi_handle)
-> > -               return 1;
-> >
-> > -       return 0;
-> > +       return ctx.rc;
+> > +#ifdef CONFIG_ACPI
+> > +       if (has_acpi_companion(&pdev->dev))
+> > +               acpi_dev_clear_dependencies(ACPI_COMPANION(&pdev->dev));
+> > +#endif
+> 
+> I would rather add a wrapper for this, along with an empty stub for
+> the !CONFIG_ACPI case.
+
+Ok, I will.
+
+> > +
+> >         return 0;
 > >  }
 > >
-> >  static u32 riscv_acpi_add_prt_dep(acpi_handle handle)
-> > @@ -381,8 +380,11 @@ static u32 riscv_acpi_add_irq_dep(acpi_handle handle)
-> >         int i;
-> >
-> >         for (i = 0;
-> > -            riscv_acpi_irq_get_dep(handle, i, &gsi_handle);
-> > +            !riscv_acpi_irq_get_dep(handle, i, &gsi_handle);
-> >              i++) {
-> > +               if (!gsi_handle)
-> > +                       continue;
-> > +
-> >                 dep_devices.count = 1;
-> >                 dep_devices.handles = kzalloc_objs(*dep_devices.handles, 1);
-> >                 if (!dep_devices.handles) {
-> >
-> Do these fixes need the Fixes tag?
+> > diff --git a/drivers/irqchip/irq-gic-v5.c b/drivers/irqchip/irq-gic-v5.c
+> > index 03cc2830b260..26cfaea1af41 100644
+> > --- a/drivers/irqchip/irq-gic-v5.c
+> > +++ b/drivers/irqchip/irq-gic-v5.c
+> > @@ -1217,11 +1217,19 @@ static struct fwnode_handle *gsi_domain_handle;
+> >  static struct fwnode_handle *gic_v5_get_gsi_domain_id(u32 gsi)
+> >  {
+> >         if (FIELD_GET(GICV5_GSI_IC_TYPE, gsi) == GICV5_GSI_IWB_TYPE)
+> > -               return iort_iwb_handle(FIELD_GET(GICV5_GSI_IWB_FRAME_ID, gsi));
+> > +               return iort_iwb_handle_fwnode(FIELD_GET(GICV5_GSI_IWB_FRAME_ID, gsi));
+> 
+> Why is this change needed?
 
-I can add a Fixes: tag but I wanted first some help testing them, it
-is code perusal that got me there.
+This is a mistake, thanks for spotting it, it belongs in the previous patch
+(IMO patch 5 and 6 are a single logical entity, I split it to try to keep
+irqchip specific changes in one patch).
 
-> Otherwise, LGTM.
-> Reviewed-by: Sunil V L <sunilvl@oss.qualcomm.com>
+iort_iwb_handle() was refactored to return an acpi_handle not a fwnode_handle
+(in preparation for adding gic_v5_get_gsi_handle() below - the dependency
+chain requires acpi_handle retrieval not fwnode_handle), so the change above
+belongs in patch 5, I will move this line change to patch 5 in v3.
 
 Thanks,
 Lorenzo
+
+> >
+> >         return gsi_domain_handle;
+> >  }
+> >
+> > +static acpi_handle gic_v5_get_gsi_handle(u32 gsi)
+> > +{
+> > +       if (FIELD_GET(GICV5_GSI_IC_TYPE, gsi) == GICV5_GSI_IWB_TYPE)
+> > +               return iort_iwb_handle(FIELD_GET(GICV5_GSI_IWB_FRAME_ID, gsi));
+> > +
+> > +       return NULL;
+> > +}
+> > +
+> >  static int __init gic_acpi_init(union acpi_subtable_headers *header, const unsigned long end)
+> >  {
+> >         struct acpi_madt_gicv5_irs *irs = (struct acpi_madt_gicv5_irs *)header;
+> > @@ -1242,7 +1250,8 @@ static int __init gic_acpi_init(union acpi_subtable_headers *header, const unsig
+> >         if (ret)
+> >                 goto out_irs;
+> >
+> > -       acpi_set_irq_model(ACPI_IRQ_MODEL_GIC_V5, gic_v5_get_gsi_domain_id, NULL);
+> > +       acpi_set_irq_model(ACPI_IRQ_MODEL_GIC_V5, gic_v5_get_gsi_domain_id,
+> > +                          gic_v5_get_gsi_handle);
+> >
+> >         return 0;
+> >
+> >
+> > --
