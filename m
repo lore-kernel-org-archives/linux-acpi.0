@@ -1,180 +1,116 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.17])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA8993E5EE3;
-	Wed, 10 Jun 2026 10:11:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.17
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C02225A359;
+	Wed, 10 Jun 2026 13:57:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.21
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781086295; cv=none; b=DWdVzcbXP0bbYtgRRR/9HAy7VVxtYpUCtq8WjMt74vvkPVsYi/nf5xg/jLIT+G/UJCzCCUv7SGyOrLvNN6Ov95H/t+RT9CxiIzNIruoiP6+eXLioaUK/0YB0RWSdnFuCCTuEbw+MKlZafGWPKC6IX18iutlR1QPclrsrCrXjbbE=
+	t=1781099838; cv=none; b=nsfgWpb+S4W3PDpWgGjD8TL6MOxwo7mu/VanZxqz8AJcxm6Kv5KS5/0V7wvxrqFv4xX3+Z59XpimIJh2pOAVucGjy4UGwwnO9LQ/IlqpggV8PU3rzowdt2/DGvkW5hfuPJB7ahJOaj1nvUmQTD62nmyxmILDVH3Ew8TreHF1IyI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781086295; c=relaxed/simple;
-	bh=jk+5CodvWS8vMKEk4hr1Gpd+jUeusCfMoA/WEoiopmY=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=WFHioKG9iqUN9cm1lZaz4s1zHtyUO6u8XVQ6ZqtbcOQS0ziPAdGK69m5Bsts8nm2bZHF8QmrA89B/6gdZ8z5t+RmDSJOHOTJNGEkvmhWarKBaoO9HbPbQblf75uiVRAP4daE4ih24pXNhnZCMy4UssRX7IRERZD46iDzowXHBxU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Y5YB7xXo; arc=none smtp.client-ip=198.175.65.17
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1781099838; c=relaxed/simple;
+	bh=IvtqsN9HqWtrsYzJFpIQXKTW+grvoM/ms7i/bF9Ptxg=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=KaCkf3QeN2OpNQDlk0+rJale1VODMLC0dLkD4tWLAR8CFBIlXLqmgul23nDqhO0CQrelGlwwrpfgJLd5+Rl24OIa95Gkgfv50sRE1L4MJWGWcwn//roHvj9GZu6KedLCR0ew3QVxfWMl9FT94m6holaVFuOdrQmLH1xLnbxcWT8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=R8PHIpnT; arc=none smtp.client-ip=198.175.65.21
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Y5YB7xXo"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="R8PHIpnT"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1781086293; x=1812622293;
-  h=date:from:to:cc:subject:message-id;
-  bh=jk+5CodvWS8vMKEk4hr1Gpd+jUeusCfMoA/WEoiopmY=;
-  b=Y5YB7xXoIZPJ7/edFgdCew98g5uqSGY94g7u6GbbAA7+6NMzw3e1Y+Q5
-   eTk8XDpvIFB22t1nm6/ZsZ4q9iiFd0edY1ZcrFUEiSo9/yL4X7uRibE/v
-   o9/fTFqBjTdrIUpVNWvqnC4GcG62zYRahZ/hl3J/R9dZeJ2/rAEV37lN9
-   mvPlzeaYHoKDJbEBgO+72fGFpl+GquZnCJfCfwQN8VPc4ZetqDoJJoC/v
-   l+NFHwkpuCT0tClzL9dX1toeX1b+jugYJCYsLjqYg8x7sznB0Xfs3LIxm
-   8LELTpB39CAkvqf7PClFi+LFVA90yqZJTgshcg2mukFH+/fHK7pprUTwx
-   w==;
-X-CSE-ConnectionGUID: gYW3U3bXQoyYfLAKEh04gA==
-X-CSE-MsgGUID: pOJdz+JlQFS1jTNQ0dvZGQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11812"; a="81878187"
+  t=1781099836; x=1812635836;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=IvtqsN9HqWtrsYzJFpIQXKTW+grvoM/ms7i/bF9Ptxg=;
+  b=R8PHIpnT/eXIkzF1rQUXBhYcc4+vb5erBjM48RN1zEvLHrbotnjKgqGI
+   TuXmWK+dbvMSuc1tvLb4iTxrHiHkiMkcGMOYPNEuE3goxmQPYiqhHKBh/
+   OCKgUsc0DCk0gQp8hdorFDR4UvYt714FXLxjLenSCqjwK/Nc3G11GqrBb
+   PIQhMGlRKlmtgkDOfgBF7maroVqHCIzqN6CLeY22ji7G8bgUuFsuIII0O
+   WkwG7NffVCqpwN3z97RGO1StfIlFECLKAZaVYhmIG8d0OqEt/kgrwLpHd
+   FoHHxdm4QI6z7YK7/+nEYBPM/k0r4csmR5NZJwp3xUHsct5uI6Rq13F9r
+   A==;
+X-CSE-ConnectionGUID: 04HLvZrhS0iMdL0Wl/1P6A==
+X-CSE-MsgGUID: 5Cl6x664ST+Bd4skhdc5VQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11812"; a="81799392"
 X-IronPort-AV: E=Sophos;i="6.24,197,1774335600"; 
-   d="scan'208";a="81878187"
-Received: from fmviesa010.fm.intel.com ([10.60.135.150])
-  by orvoesa109.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Jun 2026 03:11:33 -0700
-X-CSE-ConnectionGUID: DzRi2LABTvqXcMJvJqhtOg==
-X-CSE-MsgGUID: bYvVWRcNQ0GBbu9QsbiJbQ==
+   d="scan'208";a="81799392"
+Received: from fmviesa005.fm.intel.com ([10.60.135.145])
+  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Jun 2026 06:57:15 -0700
+X-CSE-ConnectionGUID: pIzUFeurTd+gn3kzaSXAbw==
+X-CSE-MsgGUID: ZwgnVHecR0qgh6Qv8HV+YQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.24,197,1774335600"; 
-   d="scan'208";a="241995185"
-Received: from lkp-server01.sh.intel.com (HELO f0d55cb201f0) ([10.239.97.150])
-  by fmviesa010.fm.intel.com with ESMTP; 10 Jun 2026 03:11:31 -0700
-Received: from kbuild by f0d55cb201f0 with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1wXFuC-00000000LH0-41dD;
-	Wed, 10 Jun 2026 10:11:28 +0000
-Date: Wed, 10 Jun 2026 18:10:41 +0800
-From: kernel test robot <lkp@intel.com>
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
-Subject: [rafael-pm:bleeding-edge] BUILD SUCCESS
- 92610ce13187e9289ab0f7ca7366e68c717a02a9
-Message-ID: <202606101832.1ojrbJQN-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+   d="scan'208";a="251260733"
+Received: from hrotuna-mobl2.ger.corp.intel.com (HELO localhost) ([10.245.244.38])
+  by fmviesa005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Jun 2026 06:57:09 -0700
+Date: Wed, 10 Jun 2026 16:57:07 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Chen-Yu Tsai <wenst@chromium.org>
+Cc: Bartosz Golaszewski <brgl@kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>, Rob Herring <robh@kernel.org>,
+	Krzysztof Kozlowski <krzk+dt@kernel.org>,
+	Conor Dooley <conor+dt@kernel.org>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
+	Alan Stern <stern@rowland.harvard.edu>, linux-acpi@vger.kernel.org,
+	driver-core@lists.linux.dev, linux-pm@vger.kernel.org,
+	linux-usb@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-mediatek@lists.infradead.org,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	Manivannan Sadhasivam <mani@kernel.org>
+Subject: Re: [PATCH v2 01/16] device property: Add
+ fwnode_graph_get_port_by_id()
+Message-ID: <ailtMyYhbkOgaZWw@ashevche-desk.local>
+References: <20260610084053.2059858-1-wenst@chromium.org>
+ <20260610084053.2059858-2-wenst@chromium.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260610084053.2059858-2-wenst@chromium.org>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
-branch HEAD: 92610ce13187e9289ab0f7ca7366e68c717a02a9  Merge branches 'pm-sleep' and 'pm-qos' into bleeding-edge
+On Wed, Jun 10, 2026 at 04:40:35PM +0800, Chen-Yu Tsai wrote:
+> In some cases the driver needs a reference to the port firmware node.
+> Once such case is the upcoming USB power sequencing integration. The
+> USB hub port is tied to the corresponding port firmware node if it
+> exists.
+> 
+> Provide a helper for this.
 
-elapsed time: 958m
+Okay, if it's really needed.
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-configs tested: 103
-configs skipped: 5
+...
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+> +/**
+> + * fwnode_graph_get_port_by_id - get the port matching a given id
+> + * @fwnode: parent fwnode_handle containing the graph
+> + * @id: id of the port
+> + *
+> + * Return: A 'port' firmware node pointer with refcount incremented.
+> + *
+> + * The caller is responsible for calling fwnode_handle_put() on the returned
+> + * fwnode pointer.
 
-tested configs:
-alpha                             allnoconfig    gcc-16.1.0
-alpha                            allyesconfig    gcc-16.1.0
-arc                              allmodconfig    gcc-16.1.0
-arc                               allnoconfig    gcc-16.1.0
-arc                              allyesconfig    gcc-16.1.0
-arm                               allnoconfig    clang-23
-arm                              allyesconfig    gcc-16.1.0
-arm64                            allmodconfig    clang-23
-arm64                             allnoconfig    gcc-16.1.0
-arm64                 randconfig-002-20260610    gcc-9.5.0
-csky                             allmodconfig    gcc-16.1.0
-csky                              allnoconfig    gcc-16.1.0
-hexagon                           allnoconfig    clang-23
-hexagon                        randconfig-001    clang-23
-hexagon               randconfig-001-20260610    clang-23
-hexagon                        randconfig-002    clang-23
-hexagon               randconfig-002-20260610    clang-22
-i386                             allmodconfig    gcc-14
-i386                              allnoconfig    gcc-14
-i386                             allyesconfig    gcc-14
-i386        buildonly-randconfig-004-20260610    gcc-14
-loongarch                         allnoconfig    clang-20
-loongarch                      randconfig-001    clang-23
-loongarch             randconfig-001-20260610    gcc-16.1.0
-loongarch                      randconfig-002    gcc-16.1.0
-loongarch             randconfig-002-20260610    gcc-16.1.0
-m68k                             allmodconfig    gcc-16.1.0
-m68k                              allnoconfig    gcc-16.1.0
-m68k                             allyesconfig    gcc-16.1.0
-microblaze                        allnoconfig    gcc-16.1.0
-microblaze                       allyesconfig    gcc-16.1.0
-mips                             allmodconfig    gcc-16.1.0
-mips                              allnoconfig    gcc-16.1.0
-mips                             allyesconfig    gcc-16.1.0
-nios2                            allmodconfig    gcc-11.5.0
-nios2                             allnoconfig    gcc-11.5.0
-nios2                          randconfig-001    gcc-11.5.0
-nios2                 randconfig-001-20260610    gcc-11.5.0
-nios2                          randconfig-002    gcc-8.5.0
-nios2                 randconfig-002-20260610    gcc-11.5.0
-openrisc                          allnoconfig    gcc-16.1.0
-openrisc                            defconfig    gcc-16.1.0
-parisc                           allmodconfig    gcc-16.1.0
-parisc                            allnoconfig    gcc-16.1.0
-parisc                           allyesconfig    gcc-16.1.0
-parisc                              defconfig    gcc-16.1.0
-parisc                randconfig-001-20260610    gcc-8.5.0
-powerpc                          allmodconfig    gcc-16.1.0
-powerpc                           allnoconfig    gcc-16.1.0
-riscv                            allmodconfig    clang-23
-riscv                             allnoconfig    gcc-16.1.0
-riscv                            allyesconfig    clang-23
-riscv                 randconfig-001-20260610    gcc-15.2.0
-riscv                 randconfig-002-20260610    gcc-8.5.0
-s390                             allmodconfig    clang-23
-s390                              allnoconfig    clang-23
-s390                             allyesconfig    gcc-16.1.0
-s390                  randconfig-001-20260610    clang-23
-s390                  randconfig-002-20260610    clang-23
-sh                               allmodconfig    gcc-16.1.0
-sh                                allnoconfig    gcc-16.1.0
-sh                               allyesconfig    gcc-16.1.0
-sh                    randconfig-001-20260610    gcc-16.1.0
-sh                    randconfig-002-20260610    gcc-16.1.0
-sparc                             allnoconfig    gcc-16.1.0
-sparc                               defconfig    gcc-16.1.0
-sparc                          randconfig-001    gcc-16.1.0
-sparc                 randconfig-001-20260610    gcc-8.5.0
-sparc                          randconfig-002    gcc-11.5.0
-sparc                 randconfig-002-20260610    gcc-14.3.0
-sparc64                          allmodconfig    clang-20
-sparc64                        randconfig-001    gcc-12.5.0
-sparc64               randconfig-001-20260610    gcc-12.5.0
-sparc64                        randconfig-002    clang-20
-sparc64               randconfig-002-20260610    clang-23
-um                               allmodconfig    clang-23
-um                                allnoconfig    clang-16
-um                               allyesconfig    gcc-14
-um                             randconfig-002    clang-23
-x86_64                           allmodconfig    clang-22
-x86_64                            allnoconfig    clang-22
-x86_64                           allyesconfig    clang-22
-x86_64               buildonly-randconfig-001    gcc-12
-x86_64      buildonly-randconfig-001-20260610    clang-22
-x86_64               buildonly-randconfig-002    clang-22
-x86_64      buildonly-randconfig-002-20260610    gcc-14
-x86_64               buildonly-randconfig-003    gcc-14
-x86_64      buildonly-randconfig-003-20260610    clang-22
-x86_64               buildonly-randconfig-004    gcc-14
-x86_64      buildonly-randconfig-004-20260610    clang-22
-x86_64               buildonly-randconfig-005    gcc-14
-x86_64      buildonly-randconfig-005-20260610    gcc-14
-x86_64               buildonly-randconfig-006    clang-22
-x86_64      buildonly-randconfig-006-20260610    gcc-14
-x86_64                randconfig-001-20260610    clang-22
-x86_64                randconfig-002-20260610    clang-22
-x86_64                randconfig-003-20260610    gcc-13
-x86_64                randconfig-004-20260610    clang-22
-x86_64                randconfig-005-20260610    clang-22
-x86_64                randconfig-006-20260610    gcc-13
-x86_64                          rhel-9.4-rust    clang-22
-xtensa                            allnoconfig    gcc-16.1.0
-xtensa                         randconfig-001    gcc-8.5.0
+Note, the Return section must be last one in the kernel-doc. The last paragraph
+sounds to me as a better fit for main description. Basically check how other
+kernel-doc(s) in this file are organised and follow that pattern.
 
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+> + */
+
+-- 
+With Best Regards,
+Andy Shevchenko
+
+
