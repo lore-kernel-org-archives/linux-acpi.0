@@ -1,236 +1,160 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.10])
+Received: from sender4-op-o15.zoho.com (sender4-op-o15.zoho.com [136.143.188.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B21FE30ACE3;
-	Wed, 10 Jun 2026 19:13:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.10
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781118830; cv=none; b=UO2Za2aMTzW1apkap2A5yWKxHkcXfGyAVEMN5VUwdQY8TZgcUbzu59vQ1HpbL04d5LHhsyoxuA7MHSmipMLrcvSRGmLbC5o+1ca1EBfVJDYPtA0QVEa8AKKNnls1yFLD2iQTgHYIf4WIRUSz8Bd2y9RuteGtlcMYF/7oc+J6iRI=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781118830; c=relaxed/simple;
-	bh=NXHt2YkWAkyXw25c73aZqHvYPnFS2k+1OG2KBDhMJGA=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=HbkwTms0Vi78cxwJSeiGanNMzRAYN3IQze8/n+imkbKAD/NJmQ5vBvuc6epOewErlXMoFGW2zXGHtCTsMFRWGU1HrrU+T9i+wLCGV1Kmd/xHa1ip8aPQC6l7fdP19RMEuZJ98fCFyYcv/NikQ51axRpyqm1k2ZcQ30Ollq3cA0o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=MrZ8swFb; arc=none smtp.client-ip=198.175.65.10
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71BFB33D6EE;
+	Wed, 10 Jun 2026 19:22:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=136.143.188.15
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1781119366; cv=pass; b=pCpkQQi79PCFfwopzj0aSdJSLACkYrvSkkRFoajoR4u9NVMc+eJHV91o6L4yc85rnYyOa7lNcZi7aSM98+WezrWt9yZiGqNMeBcY7KwELIoRXoU4jd7Y14gdKjOD4lU2fbU/HZ1qrZbP6I+MssMZ71k4MAA+SROg/+cPwRuMTE4=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1781119366; c=relaxed/simple;
+	bh=8VzYf2XNVYjUXIcwgSw2ThJa70vjlWqKGzfNQlSokVE=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=Po35dWdJ8jBr8vuCBsEmpd/I1lpDRm4jP+RDefs0Z0svJ68llZKCfD0gGJ1MM8sa+xPhZyWc70K3WmDvZWfMnYeQt9WOJ1r7sd+CUP+LX/w/IDFT49DEJSEAVXB/4qewVzkikkfIk82L4ipRZycW7c3Uvoi0kB4Qj4qs5VZMiFw=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=rong.moe; spf=pass smtp.mailfrom=rong.moe; dkim=pass (2048-bit key) header.d=rong.moe header.i=i@rong.moe header.b=p8yaaqxV; arc=pass smtp.client-ip=136.143.188.15
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=rong.moe
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rong.moe
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="MrZ8swFb"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1781118827; x=1812654827;
-  h=date:from:to:cc:subject:message-id;
-  bh=NXHt2YkWAkyXw25c73aZqHvYPnFS2k+1OG2KBDhMJGA=;
-  b=MrZ8swFbQUPmzFzghwPZ+o70yRTZkB+b1VHHZjQzK1Q3oamWLtF7Vu9d
-   iaXd7Qawgq2ybhFU8eP9GHU2IZu8fmQzB7Cwb9DowFxhtXx1IEw4JZ6rv
-   XMViKX3cneZ6Sn1ZWH8n+5Oy302Fm7MUrnmsB6JKFT9H3eVeX9M+MIGFv
-   brFtljNp3+1x2+3n3lUckkx2sSAaJHrJLv0m3RozrdjDntKm86/k3rtwO
-   bljp0WfD/jZKxIF4Xum9lJId9KeBl3f6HKP5pGgKj/0uVD6xlXM7ZHvhW
-   Sfr0Sot4mm8Hk6umdsTz8XdJBdiOlv0eOEbBPWv5X/7uawiiXg5b3t7zK
-   A==;
-X-CSE-ConnectionGUID: 6pRWHWXHSp+FQcf4fYM+DQ==
-X-CSE-MsgGUID: SINygpmHTLmiRAjYgyIupQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11813"; a="99344408"
-X-IronPort-AV: E=Sophos;i="6.24,197,1774335600"; 
-   d="scan'208";a="99344408"
-Received: from fmviesa002.fm.intel.com ([10.60.135.142])
-  by orvoesa102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Jun 2026 12:13:46 -0700
-X-CSE-ConnectionGUID: nkq+b9E2QIWBbR3Ea+n8Og==
-X-CSE-MsgGUID: twjmf6XDQqu8cxUe1Lv6yA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.24,197,1774335600"; 
-   d="scan'208";a="269942930"
-Received: from lkp-server01.sh.intel.com (HELO f0d55cb201f0) ([10.239.97.150])
-  by fmviesa002.fm.intel.com with ESMTP; 10 Jun 2026 12:13:45 -0700
-Received: from kbuild by f0d55cb201f0 with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1wXOMw-00000000LnK-2SJz;
-	Wed, 10 Jun 2026 19:13:42 +0000
-Date: Thu, 11 Jun 2026 03:13:39 +0800
-From: kernel test robot <lkp@intel.com>
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
-Subject: [rafael-pm:fixes] BUILD SUCCESS
- 6100a82e34cb75571feba920a9c18f60698d598a
-Message-ID: <202606110330.oSiBKAKk-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (2048-bit key) header.d=rong.moe header.i=i@rong.moe header.b="p8yaaqxV"
+ARC-Seal: i=1; a=rsa-sha256; t=1781119349; cv=none; 
+	d=zohomail.com; s=zohoarc; 
+	b=SL/gDNC6BzF6PTu6rHfYQhMWvQUE2gyu30cmwJY0jDNLxkuzx1HHVLVSKYEvuxLPIYNke9ZxHTF46/OgKDvjQHs6I6dcZNYnYgMxBx+InIzAgunJlzP1nydUTTPLbZvqoKqtJ//MSjc/2ZSvZThxDNejaCJjYVQn79Jei2PGzZs=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.com; s=zohoarc; 
+	t=1781119349; h=Content-Type:Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:MIME-Version:Message-ID:Subject:Subject:To:To:Message-Id:Reply-To; 
+	bh=qh7d/8tsH7KExzHyzyFmM8P6n7Pjk2nfqU1HYo3a/hg=; 
+	b=HTU/h8vOW5U5Po9ZHl7CBd4A9A5UuhHPf+CH+BniuBwMZT7YROFuOGj7AeNFYWCREdNXpxo8XxtjgEgMGeWHQ48CF37lk8unEi7crypL96usl8zwnrdbgxCEm32lptnZrO5uGNOIEsLf8M03o769imAALMXYiAsoBCJ+egkMS9Q=
+ARC-Authentication-Results: i=1; mx.zohomail.com;
+	dkim=pass  header.i=rong.moe;
+	spf=pass  smtp.mailfrom=i@rong.moe;
+	dmarc=pass header.from=<i@rong.moe>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1781119349;
+	s=zmail2048; d=rong.moe; i=i@rong.moe;
+	h=From:From:Subject:Subject:Date:Date:Message-Id:Message-Id:MIME-Version:Content-Type:Content-Transfer-Encoding:To:To:Cc:Cc:Reply-To;
+	bh=qh7d/8tsH7KExzHyzyFmM8P6n7Pjk2nfqU1HYo3a/hg=;
+	b=p8yaaqxV0qXTygNQ2Q7OdtqvAdCUsnKj2IlHvr+iCtgjv2MDdyMxXYfq/ABQneUu
+	XdL3t+vb2uiA2AAGJ14sML50+ulfAoCXYd31z4JhmPcDJj4QXBucQ4WbcNE5TS+ABWG
+	dqjHcZQsQgJbONNgRDL+c6lNbyfPdqGbCbna8pPdt4ACqM9s+3Tcfp8aetKqcuZczaJ
+	JeMdcaOV3IeYUdUQqkv050ULm8v8HOYISR1cYvgXqUbaxCn/rlI1WEiV/Qs9mI40VM/
+	nyuGjyQDl2OLYMOaBpO9sL3jaIx4lHld6nyZnxIVLxTdX7a9xuw/dlXTXugb1nfG5eM
+	dwF2G4xOKw==
+Received: by mx.zohomail.com with SMTPS id 1781119347269643.3333551409454;
+	Wed, 10 Jun 2026 12:22:27 -0700 (PDT)
+From: Rong Zhang <i@rong.moe>
+Subject: [PATCH v2 0/3] ACPI: battery: Do not generate too much pressure on
+ ACPI methods
+Date: Thu, 11 Jun 2026 03:22:16 +0800
+Message-Id: <20260611-b4-acpi-battery-notification-v2-0-4e8ed651a151@rong.moe>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAGi5KWoC/32NQQ6CMBBFr2Jm7Zi2qKAr72FYtGWAMbElbSUSw
+ t0tGLcuX/L/ezNECkwRrrsZAo0c2bsMar8D22vXEXKTGZRQZ3FSAs0RtR0YjU6JwoTOJ27Z6pS
+ PeBFNWUldtEqWkBVDoJbfm/5efzm+zINsWp3roueYfJi2/ijX3S9V/k+NEgWqQhSGmoqsMLfgX
+ Xd4eoJ6WZYPBmEtiNkAAAA=
+X-Change-ID: 20260520-b4-acpi-battery-notification-90d781a3f217
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, 
+ =?utf-8?q?Jeffrey_W=C3=A4lti?= <jeffrey@waelti.dev>, 
+ Rick <rickk1166@gmail.com>, Mark Pearson <mpearson-lenovo@squebb.ca>, 
+ linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ Rong Zhang <i@rong.moe>, stable@vger.kernel.org
+X-Mailer: b4 0.16-dev-d5d98
+X-ZohoMailClient: External
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git fixes
-branch HEAD: 6100a82e34cb75571feba920a9c18f60698d598a  Merge tag 'amd-pstate-v7.1-2026-06-02' of ssh://gitolite.kernel.org/pub/scm/linux/kernel/git/superm1/linux
+The acpi_battery_notify() and acpi_battery_get_property() callbacks
+sometimes generate too much pressure on corresponding ACPI methods. On
+some devices with fragile ACPI implementation, these methods share the
+same mutex protecting EC accesses (hence slow to execute) with a lot of
+other EC-related methods. Such pressure on them eventually leads to a
+catastrophic situation that a bunch of ACPI method calls fail to acquire
+the same mutex due to timeout. The firmware of these devices doesn't
+handle mutex acquisition failure gracefully and return garbage data,
+causing even more chaos.
 
-elapsed time: 2567m
+For acpi_battery_notify(), a very common pattern in EC queries that
+emits two consecutive battery notifications with event IDs 0x80 and 0x81
+updates battery state and calls power_supply_changed() twice within a
+short period, generating significant pressure on _STA, _BST and
+_BIX/_BIF methods. Not only that, power_supply_ext properties may also
+rely on some other ACPI methods, so both uevent assembling and userspace
+processes call them. It becomes a nightmare when all these methods share
+the same ACPI mutex and hence vulnerable to lock starvation. Even worse,
+after the first uevent reaches userspace, some userspace processes start
+to read all battery properties in order to refresh their internal
+states, which competes with the second notification's handling and
+uevent assembling, exacerbating the lock starvation.
 
-configs tested: 159
-configs skipped: 10
+For acpi_battery_get_property(), it generates too much pressure on the
+_BST method because of the lack of synchronization. In detail, it
+sometimes nullifies the cache mechanism of acpi_battery_get_state() when
+multiple processes read power supply properties simultaneously, which
+usually happens after a uevent. Normally, emitting a uevent implies that
+the cache must have been refreshed due to power_supply_uevent() reading
+all properties, so the mentioned processes should have seen cache hits.
+Unfortunately, these fragile devices' power_supply_ext properties are
+somehow slow to read after battery events, resulting in cache expiration
+before power_supply_uevent() finishes. Hence, once the uevent reaches
+userspace, the _BST method will be executed multiple times within a
+short period due to userspace processes reading all properties again.
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+Improve acpi_battery_notify() by merging consecutive battery
+notifications within 10ms using a delayed work, so that they only
+refresh and/or update battery state once. ACPI netlink event and
+notifier call chain are still triggered multiple times in order not to
+break other components. Finally, call power_supply_changed() once and
+lead to a single uevent instead of a bunch, preventing userspace
+programs from causing too much pressure on power supply properties and
+the underlying ACPI methods.
 
-tested configs:
-alpha                             allnoconfig    gcc-16.1.0
-alpha                            allyesconfig    gcc-16.1.0
-alpha                               defconfig    gcc-16.1.0
-arc                              allmodconfig    gcc-16.1.0
-arc                               allnoconfig    gcc-16.1.0
-arc                              allyesconfig    gcc-16.1.0
-arc                                 defconfig    gcc-16.1.0
-arc                   randconfig-001-20260610    gcc-8.5.0
-arc                   randconfig-002-20260610    gcc-9.5.0
-arm                               allnoconfig    clang-23
-arm                               allnoconfig    gcc-16.1.0
-arm                              allyesconfig    gcc-16.1.0
-arm                                 defconfig    clang-23
-arm                   randconfig-001-20260610    clang-23
-arm                   randconfig-002-20260610    clang-20
-arm                   randconfig-003-20260610    clang-23
-arm                   randconfig-004-20260610    clang-23
-arm64                            allmodconfig    clang-23
-arm64                             allnoconfig    gcc-16.1.0
-arm64                               defconfig    gcc-16.1.0
-arm64                 randconfig-001-20260610    gcc-11.5.0
-arm64                 randconfig-002-20260610    gcc-9.5.0
-arm64                 randconfig-003-20260610    gcc-8.5.0
-arm64                 randconfig-004-20260610    clang-23
-csky                             allmodconfig    gcc-16.1.0
-csky                              allnoconfig    gcc-16.1.0
-csky                                defconfig    gcc-16.1.0
-csky                  randconfig-001-20260610    gcc-9.5.0
-csky                  randconfig-002-20260610    gcc-11.5.0
-hexagon                          allmodconfig    clang-23
-hexagon                           allnoconfig    gcc-16.1.0
-hexagon                             defconfig    clang-23
-hexagon               randconfig-001-20260610    clang-23
-hexagon               randconfig-002-20260610    clang-22
-i386                             allmodconfig    gcc-14
-i386                              allnoconfig    gcc-14
-i386                              allnoconfig    gcc-16.1.0
-i386                             allyesconfig    gcc-14
-i386                                defconfig    clang-22
-i386                  randconfig-001-20260610    gcc-14
-i386                  randconfig-002-20260610    gcc-14
-i386                  randconfig-003-20260610    clang-22
-i386                  randconfig-004-20260610    gcc-14
-i386                  randconfig-005-20260610    clang-22
-i386                  randconfig-006-20260610    gcc-14
-i386                  randconfig-007-20260610    gcc-14
-i386                  randconfig-011-20260610    clang-22
-i386                  randconfig-012-20260610    clang-22
-i386                  randconfig-013-20260610    clang-22
-i386                  randconfig-014-20260610    clang-22
-i386                  randconfig-015-20260610    clang-22
-i386                  randconfig-016-20260610    clang-22
-i386                  randconfig-017-20260610    gcc-14
-loongarch                        allmodconfig    clang-19
-loongarch                         allnoconfig    clang-20
-loongarch                         allnoconfig    gcc-16.1.0
-loongarch                           defconfig    clang-23
-loongarch             randconfig-001-20260610    gcc-16.1.0
-loongarch             randconfig-002-20260610    gcc-16.1.0
-m68k                             allmodconfig    gcc-16.1.0
-m68k                              allnoconfig    gcc-16.1.0
-m68k                             allyesconfig    gcc-16.1.0
-m68k                                defconfig    gcc-16.1.0
-microblaze                        allnoconfig    gcc-16.1.0
-microblaze                       allyesconfig    gcc-16.1.0
-microblaze                          defconfig    gcc-16.1.0
-mips                             allmodconfig    gcc-16.1.0
-mips                              allnoconfig    gcc-16.1.0
-mips                             allyesconfig    gcc-16.1.0
-nios2                         10m50_defconfig    gcc-11.5.0
-nios2                            allmodconfig    gcc-11.5.0
-nios2                             allnoconfig    clang-23
-nios2                             allnoconfig    gcc-11.5.0
-nios2                               defconfig    gcc-11.5.0
-nios2                 randconfig-001-20260610    gcc-11.5.0
-nios2                 randconfig-002-20260610    gcc-11.5.0
-openrisc                         allmodconfig    gcc-16.1.0
-openrisc                          allnoconfig    clang-23
-openrisc                          allnoconfig    gcc-16.1.0
-openrisc                            defconfig    gcc-16.1.0
-parisc                           allmodconfig    gcc-16.1.0
-parisc                            allnoconfig    clang-23
-parisc                            allnoconfig    gcc-16.1.0
-parisc                           allyesconfig    gcc-16.1.0
-parisc                              defconfig    gcc-16.1.0
-parisc                randconfig-001-20260610    gcc-8.5.0
-parisc                randconfig-002-20260610    gcc-8.5.0
-parisc64                            defconfig    gcc-16.1.0
-powerpc                          allmodconfig    gcc-16.1.0
-powerpc                           allnoconfig    clang-23
-powerpc                           allnoconfig    gcc-16.1.0
-powerpc               randconfig-001-20260610    gcc-9.5.0
-powerpc               randconfig-002-20260610    clang-23
-powerpc64             randconfig-001-20260610    clang-23
-powerpc64             randconfig-002-20260610    gcc-10.5.0
-riscv                            allmodconfig    clang-23
-riscv                             allnoconfig    clang-23
-riscv                             allnoconfig    gcc-16.1.0
-riscv                            allyesconfig    clang-23
-riscv                               defconfig    clang-23
-riscv                 randconfig-001-20260610    gcc-15.2.0
-riscv                 randconfig-002-20260610    gcc-8.5.0
-s390                             allmodconfig    clang-23
-s390                              allnoconfig    clang-23
-s390                             allyesconfig    gcc-16.1.0
-s390                                defconfig    clang-18
-s390                  randconfig-001-20260610    clang-23
-s390                  randconfig-002-20260610    clang-23
-sh                               allmodconfig    gcc-16.1.0
-sh                                allnoconfig    clang-23
-sh                                allnoconfig    gcc-16.1.0
-sh                               allyesconfig    gcc-16.1.0
-sh                                  defconfig    gcc-14
-sh                                  defconfig    gcc-16.1.0
-sh                    randconfig-001-20260610    gcc-16.1.0
-sh                    randconfig-002-20260610    gcc-16.1.0
-sparc                             allnoconfig    clang-23
-sparc                             allnoconfig    gcc-16.1.0
-sparc                               defconfig    gcc-16.1.0
-sparc                 randconfig-001-20260610    gcc-8.5.0
-sparc                 randconfig-002-20260610    gcc-14.3.0
-sparc64                          allmodconfig    clang-20
-sparc64                             defconfig    clang-23
-sparc64                             defconfig    gcc-14
-sparc64               randconfig-001-20260610    gcc-12.5.0
-sparc64               randconfig-002-20260610    clang-23
-um                               allmodconfig    clang-23
-um                                allnoconfig    clang-16
-um                                allnoconfig    clang-23
-um                               allyesconfig    gcc-14
-um                                  defconfig    clang-23
-um                                  defconfig    gcc-14
-um                             i386_defconfig    gcc-14
-um                    randconfig-001-20260610    clang-23
-um                    randconfig-002-20260610    clang-18
-um                           x86_64_defconfig    clang-23
-um                           x86_64_defconfig    gcc-14
-x86_64                           allmodconfig    clang-22
-x86_64                            allnoconfig    clang-22
-x86_64                            allnoconfig    clang-23
-x86_64                           allyesconfig    clang-22
-x86_64      buildonly-randconfig-004-20260610    clang-22
-x86_64      buildonly-randconfig-005-20260610    gcc-14
-x86_64      buildonly-randconfig-006-20260610    gcc-14
-x86_64                              defconfig    gcc-14
-x86_64                randconfig-001-20260610    clang-22
-x86_64                randconfig-003-20260610    gcc-13
-x86_64                randconfig-011-20260610    gcc-12
-x86_64                randconfig-012-20260610    gcc-12
-x86_64                randconfig-013-20260610    gcc-14
-x86_64                randconfig-014-20260610    gcc-12
-x86_64                randconfig-015-20260610    gcc-14
-x86_64                randconfig-016-20260610    gcc-14
-x86_64                          rhel-9.4-rust    clang-22
-xtensa                            allnoconfig    clang-23
-xtensa                            allnoconfig    gcc-16.1.0
-xtensa                           allyesconfig    gcc-16.1.0
-xtensa                randconfig-001-20260610    gcc-8.5.0
-xtensa                randconfig-002-20260610    gcc-8.5.0
+Fix acpi_battery_get_property() by introducing a mutex to protect all
+accesses to battery properties, so that acpi_battery_get_property() can
+take the advantage of the mutex and synchronize itself. This also
+prevents potential race conditions, e.g., when multiple tasks read power
+supply properties simultaneously, or when other callbacks are called
+during its execution.
 
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+Since the series touches acpi_battery_alarm_store(), also convert the
+use of sscanf("%lu\n") into the more preferred kstrtoul() beforehand.
+
+With the series, the lock starvation issue on mentioned devices is
+greatly improved according to the feedback from one of the device
+owners.
+
+Reported-by: Rick <rickk1166@gmail.com>
+Closes: https://bugzilla.kernel.org/show_bug.cgi?id=221065
+Signed-off-by: Rong Zhang <i@rong.moe>
+
+---
+Changes in v2:
+- Address Sashiko's concerns:
+  - Return from acpi_battery_notification_worker() early when the fifo
+    is empty
+  - Use pr_err_ratelimited() for potential event storms
+  - Add missing `\n' in a printk message
+  - Use a separated mutex to protect all properties instead of reusing
+    update_lock
+  - https://sashiko.dev/#/patchset/20260527-b4-acpi-battery-notification-v1-0-2303bed8ec0b%40rong.moe
+- Minimalize the critical section of acpi_battery_notify()
+- Rearrange the series
+- Dropped Tested-by from patch 3 due to massive rewrite
+- Link to v1: https://patch.msgid.link/20260527-b4-acpi-battery-notification-v1-0-2303bed8ec0b@rong.moe
+
+---
+Rong Zhang (3):
+      ACPI: battery: Merge consecutive battery notifications
+      ACPI: battery: Use kstrtoul() over sscanf("%lu\n")
+      ACPI: battery: Protect all properties with a separated mutex
+
+ drivers/acpi/battery.c | 236 +++++++++++++++++++++++++++++++++++++------------
+ 1 file changed, 178 insertions(+), 58 deletions(-)
+---
+base-commit: acb7500801e98639f6d8c2d796ed9f64cba83d3a
+change-id: 20260520-b4-acpi-battery-notification-90d781a3f217
+
+Thanks,
+Rong
+
