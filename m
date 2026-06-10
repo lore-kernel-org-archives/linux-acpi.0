@@ -1,49 +1,49 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.16])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52CA6280018;
-	Wed, 10 Jun 2026 14:08:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.16
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F3B3175A6A;
+	Wed, 10 Jun 2026 14:16:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.21
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781100538; cv=none; b=sb3NxFeQqoB0J+C5slYl2/aImGE4+bgPPHxnrWSIbGpo1G1o07DJKfrwHDqXh6w9sOVycfOuQMyuS+KX6GEC+PBIG9sjHpZjIXTr44oiOhnFZfIIsKqN4m4xdgyJeFeG5W7s9M0jQkCLvdOlBLysvc7D+zVtqVOy2Sk63HR5xkE=
+	t=1781100981; cv=none; b=rr0ihNh/eANfoc+sxLLZto64xSnltgL8+gE21zOILrLKPwEsPNwREvLTg3q6N0ntrb9fTh4cFRvyZ863U9xrSnBqm67U7q0B7v+b3mumVbBUq+w0dEbClGTwYgC/oopGTqjebBBTbpIDyRSd/EztgtL8Zcxehqle7iOxOaEKnv0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781100538; c=relaxed/simple;
-	bh=QGKcjDdt8a0tH/Hc9o5DwcTP+oPWZPnZGQMex0Xb5Oo=;
+	s=arc-20240116; t=1781100981; c=relaxed/simple;
+	bh=uUn9KmX+YV5IrN2SPL9arcCvhPBUW1vzMP5vPumfeKU=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RqA9mMfWDaMNAHShIVKcG7a2qYW/c76vNDb9z7rlk9ISJlliM6dPWBFg7blyYJvqKdcJsJPcb0SlSLbVklhNo1Eed0//JI6SxGaWjVFX4xTG0aFPB5PFXQUe8hbT4gvHfyRVVjp6kUAlsTp1U0WdE3RqOW+/rrinz0RIZ00xe80=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Iwoij6XD; arc=none smtp.client-ip=192.198.163.16
+	 Content-Type:Content-Disposition:In-Reply-To; b=REKYaJEwTFrlo0XIpClVL+e8kGbeHDIcSm5NyKbpiBLwu9B2MVg7QFDGSv55KnvJntH50YXCYELAOVCGkoUhjExxmCg61Ruz1EyGA3ED2xJLaqVpbEN5Upa97t+TSQHIqDZf5m99Es3j4g19KoirSViI93aGMVZTabofbGYtLe4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=fO9xSCkc; arc=none smtp.client-ip=198.175.65.21
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Iwoij6XD"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="fO9xSCkc"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1781100537; x=1812636537;
+  t=1781100980; x=1812636980;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=QGKcjDdt8a0tH/Hc9o5DwcTP+oPWZPnZGQMex0Xb5Oo=;
-  b=Iwoij6XDWstgxX2MuMNM7a7Xej+HWxJVCrwmrNn/9NtHAgiVZ+SLAFFz
-   DLM27qbNqFnKcJfD/IrkQyoAmHaRrXqNS5OhzjYEXPcPLMZyJ56TtckSs
-   t6y1TOoYVU6tRph6nRz4k7wMMqzVnbj/GCMwO5O3+eyJ9gZ8ynnGJIQf4
-   ANUpltL75kTD4VmGRxAZawyeSZ3JUAT/0o9tRMXuY/kIPTAU5pSxUm00F
-   VXV5QENZSSi9odnG+1Nnkt57NAs4V3o10q6C3Rs0TdeH2KaNocZOEiyYd
-   TiSeiPlbU6z4RHHPdIdUWgm20Klauywg5WR1Nose/Vz3yCpxOYMe17RsI
-   w==;
-X-CSE-ConnectionGUID: caT0G3k2RlCLv4M0XQ4K4A==
-X-CSE-MsgGUID: 4G9uQZv4QzaQEgkeNV8VWg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11812"; a="69433448"
+  bh=uUn9KmX+YV5IrN2SPL9arcCvhPBUW1vzMP5vPumfeKU=;
+  b=fO9xSCkcCBEiNQ6q+X4O4LF/Bv4uEA3GeYo8aUsV/j9rGI9gz6VEwI9U
+   4eGZmCeCHK5MeWfm/KPycXo96ydV4ZqNWi+DkKGRJX/hpGuAHDofhRjU6
+   f6vcGhYICeUvQDSJz5Hq9j31qt3PUI8sq50vRjNx+S3R104AoVg/C1qQg
+   ouC6EVPAnIAAAhOAj1blhtX8X1iLeQCnrMEzv1dy55+5scy0kSp1FKtTH
+   6MwBBH8qSVEJuF0EQvfsgMTf2sK94kdhzQQ0ZD0RXojk8B8Bu/tsAPaTy
+   8Zyvl0WLWMHgP5vEh7eR1Boo/ONm61+ywvynonpaH2bY/FdKhgCyG8Ats
+   Q==;
+X-CSE-ConnectionGUID: EZvhxjDwSkeoBpj592IL4A==
+X-CSE-MsgGUID: ZgP08JXnRySWKB9hvNVxeg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11812"; a="81801547"
 X-IronPort-AV: E=Sophos;i="6.24,197,1774335600"; 
-   d="scan'208";a="69433448"
-Received: from orviesa007.jf.intel.com ([10.64.159.147])
-  by fmvoesa110.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Jun 2026 07:08:56 -0700
-X-CSE-ConnectionGUID: 5PnXmGmkSf+nphIwuCI86Q==
-X-CSE-MsgGUID: 8weCnpoUTs+XY1kL6aY/tQ==
+   d="scan'208";a="81801547"
+Received: from fmviesa004.fm.intel.com ([10.60.135.144])
+  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Jun 2026 07:16:19 -0700
+X-CSE-ConnectionGUID: ihCtU1ENTqGYOkLDAvncxw==
+X-CSE-MsgGUID: pjpObk6LQ1qcu4V0cTf2Bw==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.24,197,1774335600"; 
-   d="scan'208";a="246269709"
+   d="scan'208";a="248050350"
 Received: from hrotuna-mobl2.ger.corp.intel.com (HELO localhost) ([10.245.244.38])
-  by orviesa007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Jun 2026 07:08:51 -0700
-Date: Wed, 10 Jun 2026 17:08:48 +0300
+  by fmviesa004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Jun 2026 07:16:14 -0700
+Date: Wed, 10 Jun 2026 17:16:12 +0300
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To: Chen-Yu Tsai <wenst@chromium.org>
 Cc: Bartosz Golaszewski <brgl@kernel.org>,
@@ -63,11 +63,11 @@ Cc: Bartosz Golaszewski <brgl@kernel.org>,
 	linux-mediatek@lists.infradead.org,
 	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
 	Manivannan Sadhasivam <mani@kernel.org>
-Subject: Re: [PATCH v2 02/16] device property: Add
- fwnode_graph_get_next_port_endpoint()
-Message-ID: <ailv8HpnrCH3Zb8C@ashevche-desk.local>
+Subject: Re: [PATCH v2 05/16] usb: hub: Associate port@ fwnode with USB port
+ device
+Message-ID: <ailxrP-_9_NL8qnN@ashevche-desk.local>
 References: <20260610084053.2059858-1-wenst@chromium.org>
- <20260610084053.2059858-3-wenst@chromium.org>
+ <20260610084053.2059858-6-wenst@chromium.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -76,80 +76,20 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260610084053.2059858-3-wenst@chromium.org>
+In-Reply-To: <20260610084053.2059858-6-wenst@chromium.org>
 Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
  krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On Wed, Jun 10, 2026 at 04:40:36PM +0800, Chen-Yu Tsai wrote:
-> Due to design constraints of the power sequencing API, the consumer
-> must first be sure that the other side is actually a provider, or it
-> will continually get -EPROBE_DEFER when requesting the power
-> sequencing descriptor.
+On Wed, Jun 10, 2026 at 04:40:39PM +0800, Chen-Yu Tsai wrote:
+> When a USB hub port is connected to a connector in a firmware node
+> graph, the port itself has a node in the graph.
 > 
-> In the upcoming USB power sequencing integration, the USB hub driver
-> first needs to check whether a graph connection exists, and whether
-> the other side of the connection is a supported connector type. The
-> USB port is tied to a "port" firmware node, and this new helper will
-> be used to get the endpoint under the known "port" firmware node.
+> Associate the port's firmware node with the USB port's device,
+> usb_port::dev. This is used in later changes for the M.2 slot power
+> sequencing provider to match against the requesting port.
 
-...
-
-> +/**
-> + * fwnode_graph_get_next_port_endpoint - Get next endpoint firmware node in port
-> + * @port: Pointer to the target port firmware node
-> + * @prev: Previous endpoint node or %NULL to get the first
-> + *
-> + * The caller is responsible for calling fwnode_handle_put() on the returned
-> + * fwnode pointer. Note that this function also puts a reference to @prev
-> + * unconditionally.
-> + *
-> + * Return: an endpoint firmware node pointer or %NULL if no more endpoints
-> + * are available.
-
-Yeah, you see, even here is inconsistency with previously added kernel-doc.
-
-> + */
-> +struct fwnode_handle *fwnode_graph_get_next_port_endpoint(const struct fwnode_handle *port,
-> +							  struct fwnode_handle *prev)
-> +{
-> +	struct fwnode_handle *ep;
-
-Unused?
-
-> +	while (1) {
-
-This is usually harder to read and follow. It's like "pay much attention on
-the code", but here no rocket science, no code to really pay attention to.
-
-> +		prev = fwnode_get_next_child_node(port, prev);
-> +		if (!prev)
-> +			break;
-> +
-> +		if (WARN(!fwnode_name_eq(prev, "endpoint"),
-> +			 "non endpoint node is used (%pfw)", prev))
-> +			continue;
-> +
-> +		break;
-> +	}
-> +
-> +	return prev;
-> +}
-
-So, this can be rewritten as
-
-	ep = prev;
-	do {
-		ep = fwnode_get_next_child_node(port, ep);
-		if (fwnode_name_eq(ep, "endpoint"))
-			break;
-
-		WARN_ON(ep, ...);
-	} while (ep);
-
-	return ep;
-
-But also big question why? to WARN*(). There is no use in the entire
-property.c.
+Okay, would this affect ACPI-based systems? if so, how?
+Can you elaborate on that, please?
 
 -- 
 With Best Regards,
