@@ -1,127 +1,88 @@
-Received: from mail-qk1-f173.google.com (mail-qk1-f173.google.com [209.85.222.173])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from out-173.mta1.migadu.com (out-173.mta1.migadu.com [95.215.58.173])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D10D2DC78C
-	for <linux-acpi@vger.kernel.org>; Thu, 11 Jun 2026 14:04:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.173
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04C5D3B14B1
+	for <linux-acpi@vger.kernel.org>; Thu, 11 Jun 2026 14:25:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.173
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781186646; cv=none; b=DApfCMaO+b5bBgycDENv85Ga1yboU98qyEwrcnP2W6bINnxDe/0kYxkICGkN3Zt1rdnbdMVthirMb1w2EAeqUKVpXeWkCm00DGEUC9kKZyINY7Ol1ByyDyDe2l3s+zfNiwzcTUyB9xn8WquteYXMp/K8pEIHudcEmKUaj+v3mXI=
+	t=1781187942; cv=none; b=het/U0q2PKGdQ6Jftw07YsEu6hSVAD30HGgfjE7vkSbqaeRZdzFcp0XeI/5wC0vMwhw+SYZNgnNVmq4wW5gB8vv7nVRusT9qs1yC2k9MrkBYja4svVW3MOvzpg5DhOtbGvrZqKXeeq+VVMiNSjZ7Iexz/yY6aoYTYwywBTxpxV4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781186646; c=relaxed/simple;
-	bh=t6vDzwAQf6m71cw7ZAaMH7giGD8b6mi1NLg41KRjFFs=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=tnq9ej2HazVszYeojYmQ2U32TTPc+qIRPXQfhmJcU9/WN62MudH7KXypT87AIuNgJNqndzxooExYL7nwBIbnMWfOv+CYolSHasOii/fSfSa9DwlpRAEJLKLa2Cf6WdeG07qbwuB883TqDG9rvObRSWdOSG+cxkzMq3gHdCckCM4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=fesk3KIa; arc=none smtp.client-ip=209.85.222.173
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
+	s=arc-20240116; t=1781187942; c=relaxed/simple;
+	bh=/bAa+m5LVejDxQMYd6m2mTVBRjor4xyiNAHclA/+ulY=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=fGEEn/DBt3nKUo674QZFZ4kWMZrsyiljhGfnMBKv+uLcbai+Af45pvOafTNY971BBJjVVzw/AASBeMZgC7FWkJwdA2INaYpH0CXeaJ61KU+VA6s2Dz9PnlxAJJa6+r644KDdXGGc47TYYcdCI0quFS7Ki+Qaw1ZejSfgza7Lswk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=K4n7brzD; arc=none smtp.client-ip=95.215.58.173
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="fesk3KIa"
-Received: by mail-qk1-f173.google.com with SMTP id af79cd13be357-915aa0a9293so110684485a.1
-        for <linux-acpi@vger.kernel.org>; Thu, 11 Jun 2026 07:04:05 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gourry.net; s=google; t=1781186644; x=1781791444; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=ENvnRZyJjnEps3yiVgsX7HBb3e0UX6vr9hqD2coNcvo=;
-        b=fesk3KIa2WZaCF+S33hAhBQlzcwgCxoS72qeS4zMaDv1u8hLG2+dxR+gahznY+1fk6
-         DdxjwFARz8yW5Ys721g364lxZLjkhn6xTd6ikbmtvEiJBmWJoTRWhSN5AJ6r0KX1QV+b
-         9nUwHhJ75yfxTKwMb0WCC6TNjkN4iYr5RLiy3c9Akgaldc+OKrH3bIohcOWiui0OEAML
-         NrA6Z9JidbKHkAOQGGXGBujsPYodSd+xmp2K22NFQBCc/R3uYeSQyTeqBUndoWVTRpMi
-         jnz1vMzfj+9asJSZuj/UjynhNATlXabH9DaZ3zXsXXDedUucxRS5U5RCtc0UQZSJLtnm
-         /Njg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1781186644; x=1781791444;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=ENvnRZyJjnEps3yiVgsX7HBb3e0UX6vr9hqD2coNcvo=;
-        b=mShsV3ancl7gYQt6RcjHiNFgF657nMcSsAio0SVWF9TRjhFLfhmzF73mKvcYvL58BB
-         THttsmomDb48Kg4p5Zo5qxVGd8lvT2nF/1Pj1hhOD7pJYqrgLhzfzighxob10DtlG+dr
-         g3MfE7rRRhyVDpwhdsVXL9rcUQ96TYNNBW2ZtZjN5Bs6EHY7t9fdi014QtR7or6qB3Ai
-         l8SqCLlu23oVBLOHsVo9AaUS1qn9bKW7xm0ain1UwpGz8Rdp1vJxQDElyhVbZAdwZOnd
-         Oy3FAObX4wxXDCZVVc/NXQVgC15+Uq+bIbd6Jmgg7RW98PqdBNMaqtou0lFeVb2Jim+H
-         THXg==
-X-Forwarded-Encrypted: i=1; AFNElJ99VgDivQ9+LQes5klUf66gJKKckAH01U3lKhSwf7uILlT0LvPZ5SKq4VBhubk5bfYBqIRObT+4kAkk@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx61TIM/a5QjD272Pt9D9CBb5eE3K8ryf7vcB1wgMfKpGuO6ABz
-	SgZCCzXFBQoPe/BR6nWkPsLed08eosqONXjy2LHtvjSogcrWQIONxPDLm9W4p51jFPg=
-X-Gm-Gg: Acq92OHVHpfak2r0IaNGtdiMg2q0qCNghowwzZRtP0JED8kAq5yLlDG/5YoHIPenfEh
-	zmBOhvg/bmRO3OCvlEhq49Ovv6KFQpiaoRo09zVqYslJXdL7Czip8tTuQuJLMGhkrgXiu0UOawR
-	5CAk3DxvUWwKR1L9zZC9poOKnoqA1SAi+9+8dywTLJdWHVwKxwKchiigHugfMCq9faQeL5h8Ixu
-	kq9Vh2U9VbrAhrz4dkl+TcvOtHsu0dbYtsYNgWaAEZllcz6tQYiu9fq0UZe460HMxo24bH98gmz
-	G/ofJDhguwNzfDRqC0xmXR2IQOXMyZXSlrCC+VMoqR43MzGEtati8w4J3pD3OkYA4d81xaQCmuI
-	nnDwRpje3vfQzjprLmHbvSD8d6kZ52Ug+8qPGPc9u9mrBiq/f8/yw6havw/DgKqaIK5+gMGG957
-	35JvxOtc0dApGER+RJsrzlev1TflisQ4HUiUMXE5i9MZyZ3mJPtFpSEaFkYIuSc5FKYBOqRGXD0
-	0oQh7BevzUJK9iScQ==
-X-Received: by 2002:a05:620a:2728:b0:915:9fde:9da3 with SMTP id af79cd13be357-9160ade2a98mr334272485a.27.1781186644129;
-        Thu, 11 Jun 2026 07:04:04 -0700 (PDT)
-Received: from gourry-fedora-PF4VCD3F (pool-173-79-60-52.washdc.fios.verizon.net. [173.79.60.52])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-9160aca4293sm196905585a.14.2026.06.11.07.04.02
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 11 Jun 2026 07:04:03 -0700 (PDT)
-Date: Thu, 11 Jun 2026 10:04:01 -0400
-From: Gregory Price <gourry@gourry.net>
-To: Mike Rapoport <rppt@kernel.org>
-Cc: linux-mm@kvack.org, x86@kernel.org, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-	driver-core@lists.linux.dev, kernel-team@meta.com, corbet@lwn.net,
-	skhan@linuxfoundation.org, dave.hansen@linux.intel.com,
-	luto@kernel.org, peterz@infradead.org, tglx@kernel.org,
-	mingo@redhat.com, bp@alien8.de, hpa@zytor.com, rafael@kernel.org,
-	lenb@kernel.org, gregkh@linuxfoundation.org, dakr@kernel.org,
-	akpm@linux-foundation.org, rdunlap@infradead.org,
-	feng.tang@linux.alibaba.com, dapeng1.mi@linux.intel.com,
-	elver@google.com, kuba@kernel.org, ebiggers@kernel.org,
-	lirongqing@baidu.com, paulmck@kernel.org, dave.jiang@intel.com,
-	jic23@kernel.org, xueshuai@linux.alibaba.com, kai.huang@intel.com
-Subject: Re: [RFC PATCH 1/3] mm/numa: add exclusive node pool and
- numa=standby boot parameter
-Message-ID: <airAUSrNjbSEwuti@gourry-fedora-PF4VCD3F>
-References: <20260610014517.253609-1-gourry@gourry.net>
- <20260610014517.253609-2-gourry@gourry.net>
- <aip5IWmxg9CWg8hQ@kernel.org>
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="K4n7brzD"
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1781187938;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=Smuugzf+L3BtdH9yG3V9lVgHPUpNn2BUiNfgxrWM5kg=;
+	b=K4n7brzDW9qGc1iNtgZiHr+vGu1oyn+N6nyX9LDX0M3Vf/pLQWl/uIXo4X0GxUTO8b+AUQ
+	c+vFmQUsgnnlhQ+Sksq88ZmJXEpKU1rniNjnfCvz4pM7zL87u6W3gihFZSVEBHKr5a1Qj6
+	UrbR/V2G78xClxHWvZdxulQrIYECCdw=
+From: Zenghui Yu <zenghui.yu@linux.dev>
+To: linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: rafael@kernel.org,
+	lenb@kernel.org,
+	Zenghui Yu <zenghui.yu@linux.dev>
+Subject: [PATCH] ACPI: sysfs: Fix path of module parameters in comments
+Date: Thu, 11 Jun 2026 22:25:18 +0800
+Message-ID: <20260611142518.77343-1-zenghui.yu@linux.dev>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <aip5IWmxg9CWg8hQ@kernel.org>
+Content-Transfer-Encoding: 8bit
+X-Migadu-Flow: FLOW_OUT
 
-On Thu, Jun 11, 2026 at 12:00:17PM +0300, Mike Rapoport wrote:
-> > 1) Can we do dynamic addition of nodes?
-> > 
-> >    Not Trivially
-> > 
-> >    Some services utilize num_possible_nodes() as a static value to
-> >    calculate the amount of resources to use at runtime (bpf, md/raid5).
-> > 
-> >    Example: futex_init uses num_possible_nodes() as part of its
-> >             hashsize calculation during __init.
-> 
-> AFAIU, we don't add the additional nodes for generic hotplug memory but
-> rather for exclusive use of by drivers/applications that are aware of these
-> nodes.
+The correct path of module parameters should be
+/sys/module/acpi/parameters/xxx. Fix them.
 
-The intent is to use for "non-generic" hotplug (see the whole private
-node series [1]), which would eventually still use the hotplug mechanism
-just not for generic memory.
+Signed-off-by: Zenghui Yu <zenghui.yu@linux.dev>
+---
+ drivers/acpi/sysfs.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-[1] https://lore.kernel.org/linux-mm/20260222084842.1824063-1-gourry@gourry.net/
+diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
+index a625de3c3c8b..908cc5c7e643 100644
+--- a/drivers/acpi/sysfs.c
++++ b/drivers/acpi/sysfs.c
+@@ -17,12 +17,12 @@
+ #ifdef CONFIG_ACPI_DEBUG
+ /*
+  * ACPI debug sysfs I/F, including:
+- * /sys/modules/acpi/parameters/debug_layer
+- * /sys/modules/acpi/parameters/debug_level
+- * /sys/modules/acpi/parameters/trace_method_name
+- * /sys/modules/acpi/parameters/trace_state
+- * /sys/modules/acpi/parameters/trace_debug_layer
+- * /sys/modules/acpi/parameters/trace_debug_level
++ * /sys/module/acpi/parameters/debug_layer
++ * /sys/module/acpi/parameters/debug_level
++ * /sys/module/acpi/parameters/trace_method_name
++ * /sys/module/acpi/parameters/trace_state
++ * /sys/module/acpi/parameters/trace_debug_layer
++ * /sys/module/acpi/parameters/trace_debug_level
+  */
+ 
+ struct acpi_dlayer {
+@@ -269,7 +269,7 @@ module_param_call(trace_state, param_set_trace_state, param_get_trace_state,
+ #endif /* CONFIG_ACPI_DEBUG */
+ 
+ 
+-/* /sys/modules/acpi/parameters/aml_debug_output */
++/* /sys/module/acpi/parameters/aml_debug_output */
+ 
+ module_param_named(aml_debug_output, acpi_gbl_enable_aml_debug_object,
+ 		   byte, 0644);
+-- 
+2.53.0
 
-> Wouldn't adding them to possible nodes actually skew the calculation of the
-> resources by the services utilizing num_possible_nodes()?
-> 
-> With the futex_init() example, won't be hashsize scaled down two much
-> because we've added these special nodes to the possible mask?
->
-
-The result is the same as BIOS reserving nodes with PXM entries that
-don't get used.  The CXL ACPI Tables do this for CXL Fixed Memory
-Windows that may never be hotplugged.
-
-So really i think you're pointing out that futex_init() here probably
-shouldn't be using num_possible_nodes?
-
-~Gregory
