@@ -1,91 +1,117 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21E442C21D9;
-	Thu, 11 Jun 2026 09:00:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B06F633ADA0
+	for <linux-acpi@vger.kernel.org>; Thu, 11 Jun 2026 09:11:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781168433; cv=none; b=MtpNFaOkakRBgILT6HvW55h0ujxxUDEA2J863N7w2Os6VArStQnN2jm+vwCllbxY12OivNqqYT6XswQYttnTzf9wEEwWfVSrvJfLrfrfK3x0DIkBbWM03RHHVM5i3+CYmcJaPfWikB8j7WQqPzvByhr0Eukb4yWsxBfraPAXzxc=
+	t=1781169112; cv=none; b=LwcrsGhHjUq6mfAffuecEafPKPqFGC6l9/uvD3Gherneb9bVUyxza9CFI9yW9rFGEOLL0Jk4mzuY+XbbETFLZIIMRx4GJkW+jZJGGsRs3iXa+rkgg5RjvMLVVHCmpq/U5Hue2O6gWln5vQkzdVyI9mP0KkogQ387SXXe98NEqko=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781168433; c=relaxed/simple;
-	bh=1M5gUjbpW3qDXO5PZ4+Xq+o9JfPpWnNpLMac6opNScg=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=HcJtuHw+w655DmWuSJIQAR/tjYBWgLsFQqyft52tKyNvdtOrzgFowjpr3uJ3NjLHMmTmT/mhSvSHQwwiEdsbnab9LJ3qoTyCtTDVI7WfN54LunliUk8/2E4criybcUuwGYu/XcfpvN6x3gmiGMjQ98o4WgVwwJSMKfr4r0qlYqE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Kf9ub8+B; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1781169112; c=relaxed/simple;
+	bh=B1t0eMpqsT9YaBJXmjRvQgx584lO6Eznqq7E3RTSQxs=;
+	h=From:In-Reply-To:MIME-Version:References:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=K+FB2rNBT8Ay3A2kkOIsR4ARvLO7d/3Yk0ZLiL30MomrggvUXkHpOAjsvzVrOoHJmM4PgVNZjnbXftHOyK9EL2x4SwWRVgp9DE0zOqdPMoahPYcVzZGXdB3OE3QEsTDGQsUqFJDefuVfY1xGXCRhPElS0+rqODx+wZfD8b0U/9s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bSUSCOOl; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Kf9ub8+B"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 186571F00893;
-	Thu, 11 Jun 2026 09:00:20 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bSUSCOOl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76DCB1F0089D
+	for <linux-acpi@vger.kernel.org>; Thu, 11 Jun 2026 09:11:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1781168431;
-	bh=dBiQEyPYgAL0tseH1DOFeKLkbItEWq0+K9vLt73dVTg=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=Kf9ub8+BMhfxHSSrYb31ZlyIkUI00iNanropMQakz2F7cdTEYJwi4BZyIu9g2qLzT
-	 NAzAyfORVXc/VXPhIsLPZXcp5qYByR74xf7Y/hXstMtTZ9jSnUasCvvbLXj/odVkjk
-	 zC+1Fz5dQN88PaAMa8fHTvZf6DzVXfKzdg3/OWkWEYONwhzBNeTTHD8DtWsV1pVz5i
-	 f2tC8HgeZRr+znQr5qhxeT4IdkKGvmCJJJoOQDZ2WQrpygnIc1i3Ut7P5XcPLp3UWn
-	 SMs+XyHVH9UBKPfyJcs05y1kBY44Dm2+Mj5fwnqDVrCwIxbk4o4eG5Cg/UkxaQZ1Mj
-	 c2BmaPxzet9qA==
-Date: Thu, 11 Jun 2026 12:00:17 +0300
-From: Mike Rapoport <rppt@kernel.org>
-To: Gregory Price <gourry@gourry.net>
-Cc: linux-mm@kvack.org, x86@kernel.org, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-	driver-core@lists.linux.dev, kernel-team@meta.com, corbet@lwn.net,
-	skhan@linuxfoundation.org, dave.hansen@linux.intel.com,
-	luto@kernel.org, peterz@infradead.org, tglx@kernel.org,
-	mingo@redhat.com, bp@alien8.de, hpa@zytor.com, rafael@kernel.org,
-	lenb@kernel.org, gregkh@linuxfoundation.org, dakr@kernel.org,
-	akpm@linux-foundation.org, rdunlap@infradead.org,
-	feng.tang@linux.alibaba.com, dapeng1.mi@linux.intel.com,
-	elver@google.com, kuba@kernel.org, ebiggers@kernel.org,
-	lirongqing@baidu.com, paulmck@kernel.org, dave.jiang@intel.com,
-	jic23@kernel.org, xueshuai@linux.alibaba.com, kai.huang@intel.com
-Subject: Re: [RFC PATCH 1/3] mm/numa: add exclusive node pool and
- numa=standby boot parameter
-Message-ID: <aip5IWmxg9CWg8hQ@kernel.org>
-References: <20260610014517.253609-1-gourry@gourry.net>
- <20260610014517.253609-2-gourry@gourry.net>
+	s=k20260515; t=1781169111;
+	bh=B1t0eMpqsT9YaBJXmjRvQgx584lO6Eznqq7E3RTSQxs=;
+	h=From:In-Reply-To:References:Date:Subject:To:Cc;
+	b=bSUSCOOlUoqkjxfDipdP4ZN06c+kGoam+HOQDbIvwgi3CyDkonEwORRznXaYiPTg3
+	 LYiVzvjqTLedwOJohBXfEpJGHs0daYzk4JuF/vsucz8NGce0N4CCtgT+b0VuWlIVF2
+	 Nm5xBnbizAA8pmP9frj9IdPeljD4n7wwJruC5jnaHkJ/YXmiMxC2u6kXjQIbT4TKwq
+	 k/tCiNYYQLbiHyx0O5zC1cDUbv2OJF9a6wrVlbTHgu8Wb+ZYP7Kf1b8YjmSXXg9oHm
+	 9O+RhqNu2KRj0vB3DiSTCkVshTiw2TU9x4iLP0mHiJn/4iTPM5PrRTjO8Yz5wzvIpi
+	 RlGk03VX6ULGA==
+Received: by mail-lj1-f174.google.com with SMTP id 38308e7fff4ca-39666f49929so67478601fa.0
+        for <linux-acpi@vger.kernel.org>; Thu, 11 Jun 2026 02:11:51 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ8/sICQjoA8fsQ7BUqF6qZeAzp+kQO64tA3wbameqNzZkX1qmfV6AivlhVYK3/SOv1g0jarHxlwLFpr@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw1f13S7+Ry4DtezRrgyDxiWGB4f14C8VpP0sh8CXEuF0XSa8RZ
+	3VKcBNtnuAu0VA4ovRzrSCyhiXNsaGYRWS418SU7F7XHTl1y8poSbujAa9uKXK0Q1n2vNEdWVeQ
+	4b+sp5/K9ve36bMZ0hRtllqx+xP8kVc3OSM4nFdracw==
+X-Received: by 2002:a05:651c:1545:b0:396:7fa2:e095 with SMTP id
+ 38308e7fff4ca-39919f96cbbmr4986331fa.6.1781169110130; Thu, 11 Jun 2026
+ 02:11:50 -0700 (PDT)
+Received: from 969154062570 named unknown by gmailapi.google.com with
+ HTTPREST; Thu, 11 Jun 2026 05:11:46 -0400
+Received: from 969154062570 named unknown by gmailapi.google.com with
+ HTTPREST; Thu, 11 Jun 2026 05:11:46 -0400
+From: Bartosz Golaszewski <brgl@kernel.org>
+In-Reply-To: <20260610084053.2059858-8-wenst@chromium.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260610014517.253609-2-gourry@gourry.net>
+References: <20260610084053.2059858-1-wenst@chromium.org> <20260610084053.2059858-8-wenst@chromium.org>
+Date: Thu, 11 Jun 2026 05:11:46 -0400
+X-Gmail-Original-Message-ID: <CAMRc=Mc3DqGb2MsvM4tjcqFuRraAO+EftO1UrtNFvR5dMRXmVA@mail.gmail.com>
+X-Gm-Features: AVVi8Cf4NRlpEgfQOjedOZVIy3kDaaZ8Xbtl_Xw4Hfg6m7nAFQEWNEvJmcMEnDE
+Message-ID: <CAMRc=Mc3DqGb2MsvM4tjcqFuRraAO+EftO1UrtNFvR5dMRXmVA@mail.gmail.com>
+Subject: Re: [PATCH v2 07/16] usb: hub: Power on connected M.2 E-key connectors
+To: Chen-Yu Tsai <wenst@chromium.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>, linux-acpi@vger.kernel.org, 
+	driver-core@lists.linux.dev, linux-pm@vger.kernel.org, 
+	linux-usb@vger.kernel.org, devicetree@vger.kernel.org, 
+	linux-mediatek@lists.infradead.org, linux-arm-kernel@lists.infradead.org, 
+	linux-kernel@vger.kernel.org, Manivannan Sadhasivam <mani@kernel.org>, 
+	Bartosz Golaszewski <brgl@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Daniel Scally <djrscally@gmail.com>, 
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Danilo Krummrich <dakr@kernel.org>, Rob Herring <robh@kernel.org>, 
+	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
+	Matthias Brugger <matthias.bgg@gmail.com>, 
+	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
+Content-Type: text/plain; charset="UTF-8"
 
-Hi,
+On Wed, 10 Jun 2026 10:40:41 +0200, Chen-Yu Tsai <wenst@chromium.org> said:
+> The new M.2 E-key connector can have a USB connection. For the USB device
+> on this connector to work, its power must be enabled and the W_DISABLE2#
+> signal deasserted. The connector driver handles this and provides a
+> toggle over the power sequencing API.
+>
+> This feature currently only supports a directly connected (no mux in
+> between) M.2 E-key connector. Existing USB connector types are not
+> covered. The USB A connector was recently added to the onboard devices
+> driver. USB B connectors have historically been managed by the USB
+> gadget or dual-role device controller drivers. USB C connectors are
+> handled by TCPM drivers.
+>
+> The power sequencing API does not know whether a power sequence provider
+> is not needed or not available yet, so we only request it for connectors
+> that we know need it, which at this time is just the E-key connector.
+>
+> On the USB side, the port firmware node (if present) is tied to the
+> usb_port device. This device is used to acquire the power sequencing
+> descriptor. This allows the provider to tell the different ports on one
+> hub apart.
+>
+> This feature is not implemented in the onboard USB devices driver. The
+> power sequencing API expects the consumer device to make the request,
+> but there is no device node to instantiate a platform device to tie
+> the driver to. The connector is not a child node of the USB host or
+> hub, and the graph connection is from a USB port to the connector.
+> And the connector itself already has a driver.
+>
+> Power sequencing is not directly enabled in the connector driver as
+> that would completely decouple the timing of it from the USB subsystem.
+> It would not be possible for the USB subsystem to toggle the power
+> for a power cycle or to disable the port.
+>
+> This change depends on another change to make the power sequencing
+> framework bool instead of tristate. The USB core and hub driver are
+> bool, so if the power sequencing framework is built as a module, the
+> kernel will fail to link.
+>
 
-On Tue, Jun 09, 2026 at 09:45:15PM -0400, Gregory Price wrote:
-> It can be at times preferential to logically split up hotplug memory
-> capacity into more nodes than are described by BIOS at boot time.
-> 
-> However, if nodes are not described at __init time, they are not
-> possible to add later on.
+That bit needs to go away I suppose?
 
-...
- 
-> 1) Can we do dynamic addition of nodes?
-> 
->    Not Trivially
-> 
->    Some services utilize num_possible_nodes() as a static value to
->    calculate the amount of resources to use at runtime (bpf, md/raid5).
-> 
->    Example: futex_init uses num_possible_nodes() as part of its
->             hashsize calculation during __init.
+I see Andy has some suggestions but in general I like this approach much better
+than adding the pwrseq_get_index() function. Thanks!
 
-AFAIU, we don't add the additional nodes for generic hotplug memory but
-rather for exclusive use of by drivers/applications that are aware of these
-nodes.
-Wouldn't adding them to possible nodes actually skew the calculation of the
-resources by the services utilizing num_possible_nodes()?
-
-With the futex_init() example, won't be hashsize scaled down two much
-because we've added these special nodes to the possible mask?
-
--- 
-Sincerely yours,
-Mike.
+Bartosz
