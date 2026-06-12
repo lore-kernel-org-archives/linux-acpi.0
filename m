@@ -1,102 +1,85 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73C5924886E;
-	Fri, 12 Jun 2026 14:49:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF4E23812DD;
+	Fri, 12 Jun 2026 17:02:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781275752; cv=none; b=obDdfYmmv18HRn4PiO6Lp832JxM2LSWIzoNG76IGF5pFXxXmi7DGooWWEFUYsK9dnGCmgowcPjq592ptXtyYI9uOP9layRpYPA0IlgMzCXakmSCgqdcd/gJUW7O1GlABSH7B7SUEhUZSb2c6iaD1v5fLTDa+tZOT4Hlk/ziVGE4=
+	t=1781283750; cv=none; b=r/y725QLp79axI5Y4IXZK85Mz+UoAAwUVDR3YgHfWcyV3LoAbyinblP+pm5YYI4AJQI5btWL+rM+JkmPKgk8ZRy7tuu32tV+qPAkCtTCgu/oUn1Na4Md1FWpMgvhdt/ZvWlyxLUwnfvBp1oY8BrhLi6pryZmxmOjDe1s2vGPpic=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781275752; c=relaxed/simple;
-	bh=BJFzGzOnd+wP2T3OXbmcSnUl6hlCrHcAS6mwQMT6zrM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ZPE2YdBVMcS9MLX8rgH8LdOvVPHY+xqdTfzS65Jf8TAWx5n1R2S9CdOZDnQx7NkWDu697q7ndEZTeFW4/MQF5aNFtiYf+MR94enFAakbmsnqy1UCRFbv6Rg0iLBmHf8O9+DukgeBwUpbT36w5T8UC+W0kP+LaiW/ZnWve6X/Xy8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KqQ3m+ji; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1781283750; c=relaxed/simple;
+	bh=9qt/FlIDLkPi/6r5PrQu4MgrJB0XY7TsQbqhwi8xWUk=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=oe9Uqsty4yJ2JLgf7J9DYo5aBarfNo9sN7DwnrENeRehhqBNDVa9kz01AA1rkHbX8Mfgwu/4lciulNMTRQok5A7kv6mYcOMSrhl7juODRgZ8CFNkgr/4zWcOKVLsTuxU7GOQHHIvZ6H5WUMCyD7Bi6MWu1VUyt9MbhnsQBmf5cQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CyErPw5p; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KqQ3m+ji"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DDC861F000E9;
-	Fri, 12 Jun 2026 14:49:10 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CyErPw5p"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9AD3F1F000E9;
+	Fri, 12 Jun 2026 17:02:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1781275751;
-	bh=qhPHLYbQyUfvef9/xCIIY8vt5USpJP7O50ve0Xr9Fco=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=KqQ3m+jibMcuY8vurw+rG7VdytA6Y6cMHo3roJQ8ImJswxu7g5OQsf6U9DmgKL9Ok
-	 tMoVfnttQQhbTRLujJvFm4Z3bZ7gZzKPvuegSKFNGFlYLiavZptALOMGNFohVAJBsU
-	 S2cf3GfT9s6pAt3G7PxxKl9WEcH0ikXnznL9+1kH7Dm5xiZa7amZAbjMwEevZ45B4a
-	 vJr8GleYk5liMgzbxAkB3mPRM5aQevk6Yqrzi9aFtqJTDnvJHo9OtiT8zww01quWWU
-	 JZFWZqvYd6+3/nlD+3b8S1gml9lQE6KMYyGi9pVigyovlwi1JcYwRC3L4eQz6SwZW2
-	 qxF4lWtteSQaQ==
-Date: Fri, 12 Jun 2026 09:49:10 -0500
-From: Rob Herring <robh@kernel.org>
-To: Ahmed Tiba <ahmed.tiba@arm.com>
-Cc: Jonathan Cameron <jic23@kernel.org>, will@kernel.org,
-	xueshuai@linux.alibaba.com, saket.dumbre@intel.com,
-	mchehab@kernel.org, dave@stgolabs.net, djbw@kernel.org,
-	bp@alien8.de, tony.luck@intel.com, guohanjun@huawei.com,
-	lenb@kernel.org, skhan@linuxfoundation.org,
-	vishal.l.verma@intel.com, rafael@kernel.org, corbet@lwn.net,
-	ira.weiny@intel.com, dave.jiang@intel.com, krzk+dt@kernel.org,
-	catalin.marinas@arm.com, alison.schofield@intel.com,
-	conor+dt@kernel.org, linux-arm-kernel@lists.infradead.org,
-	Michael.Zhao2@arm.com, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-cxl@vger.kernel.org,
-	Dmitry.Lamerov@arm.com, devicetree@vger.kernel.org,
-	linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org,
-	acpica-devel@lists.linux.dev
-Subject: Re: [PATCH v5 09/10] dt-bindings: firmware: add arm,ras-cper
-Message-ID: <20260612144910.GA989816-robh@kernel.org>
-References: <20260529-topics-ahmtib01-ras_ffh_arm_internal_review-v5-0-2e0500d42642@arm.com>
- <20260529-topics-ahmtib01-ras_ffh_arm_internal_review-v5-9-2e0500d42642@arm.com>
- <20260529174407.7081ad0b@jic23-huawei>
- <ceb19cb6-7083-44ad-a262-a8198f489257@arm.com>
+	s=k20260515; t=1781283749;
+	bh=GcgbBpXwxf3oTZBxaEuNdFZA3mSpJoY9W/J9zZ9biYU=;
+	h=From:To:Cc:Subject:Date;
+	b=CyErPw5pQi1vTygkvOyBiBXBPUMUtiZlXzTr2VpNCeCEsOqJB9fImRzQ47jkMqA2j
+	 jB8c1MjUmbQsVzaXEaSC/FNnBbfEL5vYq72DVHMVNUQbizzn1TRIlFkmd6gFsporLy
+	 KljnCYr4+AgGy0Yo5n9KtHXjj9dQqOuC9vHy6K2NIjddIK5HkUCnfvCqhBohWCP0vY
+	 TECWPSNOaSmblUaMzUErQv8bhk5KmNtk4Ey6voQhgPuIIxCIuE5zKaKwcf97d+YMMn
+	 jN+WuQtceyGNuJVczgYHX7yViHGi07uDEzEqxOeIurC95JmE/voJL52NwmVWf6VzaZ
+	 cFnNYHC80EevQ==
+From: Sudeep Holla <sudeep.holla@kernel.org>
+To: linux-kernel@vger.kernel.org,
+	linux-acpi@vger.kernel.org
+Cc: Sudeep Holla <sudeep.holla@kernel.org>,
+	Jassi Brar <jassisinghbrar@gmail.com>,
+	Cristian Marussi <cristian.marussi@arm.com>
+Subject: [PATCH] mailbox: pcc: Notify clients on polled completion
+Date: Fri, 12 Jun 2026 18:02:25 +0100
+Message-ID: <20260612170225.1063902-1-sudeep.holla@kernel.org>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ceb19cb6-7083-44ad-a262-a8198f489257@arm.com>
+Content-Transfer-Encoding: 8bit
 
-On Thu, Jun 11, 2026 at 03:22:21PM +0100, Ahmed Tiba wrote:
-> On 29/05/2026 17:44, Jonathan Cameron wrote:
-> > On Fri, 29 May 2026 10:50:49 +0100
-> > Ahmed Tiba<ahmed.tiba@arm.com> wrote:
-> > >   .../devicetree/bindings/firmware/arm,ras-cper.yaml | 54 ++++++++++++++++++++++
-> > >   MAINTAINERS                                        |  5 ++
-> > >   2 files changed, 59 insertions(+)
-> > > 
-> > > diff --git a/Documentation/devicetree/bindings/firmware/arm,ras-cper.yaml b/Documentation/devicetree/bindings/firmware/arm,ras-cper.yaml
-> > > new file mode 100644
-> > > index 000000000000..3d4de096093f
-> > > --- /dev/null
-> > > +++ b/Documentation/devicetree/bindings/firmware/arm,ras-cper.yaml
-> > > @@ -0,0 +1,54 @@
-> > > +# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
-> > > +%YAML 1.2
-> > > +---
-> > > +$id:http://devicetree.org/schemas/firmware/arm,ras-cper.yaml#
-> > > +$schema:http://devicetree.org/meta-schemas/core.yaml#
-> > > +
-> > > +title: Arm RAS CPER provider
-> > > +
-> > > +maintainers:
-> > > +  - Ahmed Tiba<ahmed.tiba@arm.com>
-> > > +
-> > > +description:
-> > > +  Arm Reliability, Availability and Serviceability (RAS) firmware can expose
-> > > +  a firmware-first CPER error source directly via DeviceTree. Firmware
-> > > +  provides the CPER Generic Error Status block and notifies the OS through
-> > > +  an interrupt.
-> > I'd like some spec references in here if possible.
-> I can add a reference to the UEFI CPER specification for the Generic
-> Error Status record format.
-> 
-> For the firmware-first DT description itself I do not have a more specific
-> public reference to cite.
+PCC channels without a platform interrupt rely on the mailbox
+polling path to detect command completion.
 
-Is there a platform actually using this with DT (FVP doesn't really 
-count)?
+That path currently only reports transmit completion to the mailbox
+core, so clients that wait for their receive callback do not get
+notified when the command completes.
 
-Rob
+Call mbox_chan_received_data() when polling observes completion on a
+channel without a platform IRQ, matching the interrupt-driven
+completion path.
+
+Reported-by: Cristian Marussi <cristian.marussi@arm.com>
+Signed-off-by: Sudeep Holla <sudeep.holla@kernel.org>
+---
+ drivers/mailbox/pcc.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
+index 636879ae1db7..7c9451ab4527 100644
+--- a/drivers/mailbox/pcc.c
++++ b/drivers/mailbox/pcc.c
+@@ -447,9 +447,14 @@ static int pcc_send_data(struct mbox_chan *chan, void *data)
+ 
+ static bool pcc_last_tx_done(struct mbox_chan *chan)
+ {
++	bool ret;
+ 	struct pcc_chan_info *pchan = chan->con_priv;
+ 
+-	return pcc_mbox_cmd_complete_check(pchan);
++	ret = pcc_mbox_cmd_complete_check(pchan);
++	if (ret && !pchan->plat_irq)
++		mbox_chan_received_data(chan, NULL);
++
++	return ret;
+ }
+ 
+ /**
+-- 
+2.43.0
+
