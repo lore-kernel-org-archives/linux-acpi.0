@@ -1,459 +1,239 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.7])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F3E14028EF
-	for <linux-acpi@vger.kernel.org>; Fri, 12 Jun 2026 17:41:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78B4B36AB4B;
+	Fri, 12 Jun 2026 17:55:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.7
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781286082; cv=none; b=WGQ9/1G7DaqF4ePJj7jawBdASJQQ9AQrwdl92qMg+R1nhy+lKhFoFRW/wQk5ShPcQE0/SSgVV/WPQPvic25MT6xQ9lfh+VggD+p7/QfxpBtdt51lYIKpE38E6M9B64WRWCL4N/cqPSLRpWBye4rJ6PJBSDUSeue02Y7zNSNFow0=
+	t=1781286911; cv=none; b=FwEYsR5lyE8/2kyoHONeEs+GKi8YBabYbSXSKWgyPE7FdTd2FFwpGtNE9clEtH0XZfS99eFJqO038UdO3ill+BjZJoChqD5DojT0rKA9rA0b+jHbQFlH5BIhcXePPF0feI+tky9Y4Ts8E+zCGT2HdlibF40Ts9h2kEUtXjNapuk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781286082; c=relaxed/simple;
-	bh=d9jPJifz4hAKw+SYOfOd18PCixk8ZeN/GEGO1BIKFn8=;
-	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=G5n7P55y3E1sKVqxJ93KwmFbQ8FqdBoxU1FlvhX4KbyZZYBUtoTwwSLVTtaraHIphFwp7RenTzXKv5zeK6x7iA2t3ePcUNh7eACQYqMvN77TzLBolCV9NrVprZEwNetyKnJpv5V6oFhAW4aU+bFLnIQHGIcZqfh1I7lG/0YMtfc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WZIpOdOC; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1781286911; c=relaxed/simple;
+	bh=wXtD1O2QRhqtuZVuhb41OrsA3ailylCWjE3VxsJztzg=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=Uc0pwSh11iTM+zoruIwrN8HZBDXPc5dNAhzfs85Y05x7XrVlPGBbBjprmH3MRi2itrHM3oEMSHf9T8ReAiCcKAP3T7kGtSenUmeyWubVFcCpcwjk92qwuSkv/Wjthd/mkB+UByPMtY0CiX38sTiiMint0RQjIObaadYLcZuhw5A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=XCX/3M+x; arc=none smtp.client-ip=192.198.163.7
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WZIpOdOC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 299631F00A3E
-	for <linux-acpi@vger.kernel.org>; Fri, 12 Jun 2026 17:41:21 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1781286081;
-	bh=a7rzPO/ehFDp404FL0EfUXMd4z06a2t8oLlGkxHLWHE=;
-	h=From:Date:Subject:To:Cc;
-	b=WZIpOdOCAwTpj7TylCqfmL5CwFm8iKfueTXI9MnEodFgaHHhf2kkoDhUeiT4jiSxH
-	 aia1GY30vPfDasLaVqf1k8mk29vh2uxmFMj+7IaGWHwieLdNZgT0THmHHhH0s1pL9r
-	 g796YZmp6RRjy+8BCu5jQkjDqUBnGOJI5/G6sXrupwqkbz4j8ZcLfO634NIX580idv
-	 bUneVPxTatzo2KPjRvUjtC9q8q/CfSU+nal4/5QLchyeSNGmptMoDmDsgjyFJ5ieLj
-	 QnL0BvdXujgVJJJiCh4M8iDl8IpHM1zryvSAzsQcN0IL+2n+6n/5ocXzNexnf0smpO
-	 m6pbCpMpRSeXA==
-Received: by mail-lf1-f51.google.com with SMTP id 2adb3069b0e04-5aa68dbb38aso1080908e87.2
-        for <linux-acpi@vger.kernel.org>; Fri, 12 Jun 2026 10:41:21 -0700 (PDT)
-X-Gm-Message-State: AOJu0YyQllPvH7C/mKZeGVLGOSmLZK1mfsrn8pXKm1n+ODsQf0TFtWtS
-	kHG8Kbq3jeVV95XWFXD1GNdLwV3aTWLMoLIeUh6UkOsR5C4lJ4roN6Xe7aZ/IcNc1FXsOOZli2z
-	uqYRC3ANOSM/8OCeLZvXEiF8D1/rd7zg=
-X-Received: by 2002:a05:6512:3409:b0:5ad:1b59:fd74 with SMTP id
- 2adb3069b0e04-5ad2db2458fmr1315859e87.1.1781286079487; Fri, 12 Jun 2026
- 10:41:19 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="XCX/3M+x"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1781286910; x=1812822910;
+  h=date:from:to:cc:subject:message-id;
+  bh=wXtD1O2QRhqtuZVuhb41OrsA3ailylCWjE3VxsJztzg=;
+  b=XCX/3M+xK1RhmTDBU0Lc7KvD9B/T8u5C02YfKQOaez7+rwfc2aiJqyxf
+   F6nepsj04n3CotFsifrFZSiTfmT0JyrlVvBOHZm3FadY0dhQm+q4j4V9O
+   jihsM+ZA80xiXuQx5WL/f8NQC7eRhzIl/xV8zfAyzUBBTOX0GHNU1Y0gL
+   F1DHoGRKcdSxmn7xpupeq3+IYhFUvqDjN+thy6rbvICLsq+1jPF0Ew/EH
+   Jpe7iSvWZj9jqUO01ZK7l//AyuqbD6V2QYR3SMXXNhjXmFCEqplOYLi7z
+   QJxjPSNNJgpIIObSwexgitoHQLZsoIVui1ME0d5tbPkIKHx0ERyqNbSG4
+   Q==;
+X-CSE-ConnectionGUID: SKu03FU/RVSpQ+NmD4ujoA==
+X-CSE-MsgGUID: yIVLX/CHR0S+OidDSx0THw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11815"; a="107557108"
+X-IronPort-AV: E=Sophos;i="6.24,201,1774335600"; 
+   d="scan'208";a="107557108"
+Received: from fmviesa006.fm.intel.com ([10.60.135.146])
+  by fmvoesa101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jun 2026 10:55:10 -0700
+X-CSE-ConnectionGUID: PeSWqG3OQfSXkJipZ8mLzg==
+X-CSE-MsgGUID: YwV44SXWTqqFj2RCrK1ALg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.24,201,1774335600"; 
+   d="scan'208";a="242503415"
+Received: from lkp-server01.sh.intel.com (HELO f0d55cb201f0) ([10.239.97.150])
+  by fmviesa006.fm.intel.com with ESMTP; 12 Jun 2026 10:55:08 -0700
+Received: from kbuild by f0d55cb201f0 with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1wY65y-00000000P9t-1L3b;
+	Fri, 12 Jun 2026 17:55:06 +0000
+Date: Sat, 13 Jun 2026 01:55:02 +0800
+From: kernel test robot <lkp@intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+Subject: [rafael-pm:bleeding-edge] BUILD SUCCESS
+ 058cd2920302bb1478643b44f9dcc9d6d8e542b9
+Message-ID: <202606130153.HYbUWhS3-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Fri, 12 Jun 2026 19:41:06 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0h-9HOj9ar1sa2oeJ1SJQ-CbtTj03EyLpuhpQOPHa2fSA@mail.gmail.com>
-X-Gm-Features: AVVi8CdbylZLJyBRMjr_f8UTupYDsKNvnIQHo7O5HwhvcoeRouDpDooiREZJI6o
-Message-ID: <CAJZ5v0h-9HOj9ar1sa2oeJ1SJQ-CbtTj03EyLpuhpQOPHa2fSA@mail.gmail.com>
-Subject: [GIT PULL] ACPI support updates for 7.2-rc1
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, 
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
 
-Hi Linus,
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
+branch HEAD: 058cd2920302bb1478643b44f9dcc9d6d8e542b9  Merge branch 'experimental/acpi-driver-work' into bleeding-edge
 
-This goes early for your convenience.
+elapsed time: 966m
 
-Please pull from the tag
+configs tested: 162
+configs skipped: 13
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-7.2-rc1
+The following configs have been built successfully.
+More configs may be tested in the coming days.
 
-with top-most commit 615f90d3b1b7900d591a9162793f616b051f07b8
+tested configs:
+alpha                             allnoconfig    gcc-16.1.0
+alpha                            allyesconfig    gcc-16.1.0
+alpha                               defconfig    gcc-16.1.0
+arc                              allmodconfig    gcc-16.1.0
+arc                               allnoconfig    gcc-16.1.0
+arc                              allyesconfig    gcc-16.1.0
+arc                                 defconfig    gcc-16.1.0
+arc                   randconfig-001-20260612    gcc-13.4.0
+arc                   randconfig-002-20260612    gcc-15.2.0
+arm                               allnoconfig    clang-23
+arm                              allyesconfig    gcc-16.1.0
+arm                                 defconfig    clang-23
+arm                   randconfig-001-20260612    gcc-11.5.0
+arm                   randconfig-002-20260612    gcc-10.5.0
+arm                   randconfig-003-20260612    gcc-11.5.0
+arm                   randconfig-004-20260612    gcc-13.4.0
+arm64                             allnoconfig    gcc-16.1.0
+arm64                               defconfig    gcc-16.1.0
+arm64                 randconfig-001-20260612    gcc-13.4.0
+arm64                 randconfig-002-20260612    clang-23
+arm64                 randconfig-003-20260612    gcc-9.5.0
+arm64                 randconfig-004-20260612    gcc-11.5.0
+csky                             allmodconfig    gcc-16.1.0
+csky                              allnoconfig    gcc-16.1.0
+csky                                defconfig    gcc-16.1.0
+csky                  randconfig-001-20260612    gcc-11.5.0
+csky                  randconfig-002-20260612    gcc-13.4.0
+hexagon                          allmodconfig    clang-23
+hexagon                           allnoconfig    clang-23
+hexagon                             defconfig    clang-23
+hexagon               randconfig-001-20260612    clang-23
+hexagon               randconfig-002-20260612    clang-23
+i386                             allmodconfig    gcc-14
+i386                              allnoconfig    gcc-14
+i386                             allyesconfig    gcc-14
+i386        buildonly-randconfig-001-20260612    clang-22
+i386        buildonly-randconfig-002-20260612    gcc-14
+i386        buildonly-randconfig-003-20260612    gcc-14
+i386        buildonly-randconfig-004-20260612    gcc-14
+i386        buildonly-randconfig-005-20260612    gcc-14
+i386        buildonly-randconfig-006-20260612    clang-22
+i386                                defconfig    clang-22
+i386                  randconfig-001-20260612    gcc-14
+i386                  randconfig-002-20260612    clang-22
+i386                  randconfig-003-20260612    gcc-14
+i386                  randconfig-004-20260612    gcc-14
+i386                  randconfig-005-20260612    clang-22
+i386                  randconfig-006-20260612    clang-22
+i386                  randconfig-007-20260612    gcc-12
+i386                  randconfig-011-20260612    clang-22
+i386                  randconfig-012-20260612    clang-22
+i386                  randconfig-013-20260612    clang-22
+i386                  randconfig-014-20260612    clang-22
+i386                  randconfig-015-20260612    gcc-14
+i386                  randconfig-016-20260612    gcc-14
+i386                  randconfig-017-20260612    clang-22
+loongarch                         allnoconfig    clang-20
+loongarch                           defconfig    clang-23
+loongarch             randconfig-001-20260612    clang-23
+loongarch             randconfig-002-20260612    gcc-16.1.0
+m68k                             allmodconfig    gcc-16.1.0
+m68k                              allnoconfig    gcc-16.1.0
+m68k                             allyesconfig    gcc-16.1.0
+m68k                                defconfig    gcc-16.1.0
+microblaze                        allnoconfig    gcc-16.1.0
+microblaze                       allyesconfig    gcc-16.1.0
+microblaze                          defconfig    gcc-16.1.0
+mips                             allmodconfig    gcc-16.1.0
+mips                              allnoconfig    gcc-16.1.0
+mips                             allyesconfig    gcc-16.1.0
+nios2                            allmodconfig    gcc-11.5.0
+nios2                             allnoconfig    gcc-11.5.0
+nios2                               defconfig    gcc-11.5.0
+nios2                 randconfig-001-20260612    gcc-11.5.0
+nios2                 randconfig-002-20260612    gcc-11.5.0
+openrisc                         allmodconfig    gcc-16.1.0
+openrisc                          allnoconfig    gcc-16.1.0
+openrisc                            defconfig    gcc-16.1.0
+parisc                           allmodconfig    gcc-16.1.0
+parisc                            allnoconfig    gcc-16.1.0
+parisc                           allyesconfig    gcc-16.1.0
+parisc                              defconfig    gcc-16.1.0
+parisc                randconfig-001-20260612    gcc-12.5.0
+parisc                randconfig-002-20260612    gcc-14.3.0
+parisc64                            defconfig    gcc-16.1.0
+powerpc                          allmodconfig    gcc-16.1.0
+powerpc                           allnoconfig    gcc-16.1.0
+powerpc                     mpc5200_defconfig    clang-23
+powerpc64             randconfig-001-20260612    gcc-8.5.0
+powerpc64             randconfig-002-20260612    gcc-11.5.0
+riscv                            allmodconfig    clang-23
+riscv                             allnoconfig    gcc-16.1.0
+riscv                            allyesconfig    clang-23
+riscv                               defconfig    clang-23
+riscv                 randconfig-001-20260612    gcc-13.4.0
+riscv                 randconfig-002-20260612    clang-23
+s390                             allmodconfig    clang-23
+s390                              allnoconfig    clang-23
+s390                             allyesconfig    gcc-16.1.0
+s390                                defconfig    clang-18
+s390                  randconfig-001-20260612    clang-23
+s390                  randconfig-002-20260612    gcc-8.5.0
+sh                               allmodconfig    gcc-16.1.0
+sh                                allnoconfig    gcc-16.1.0
+sh                               allyesconfig    gcc-16.1.0
+sh                                  defconfig    gcc-16.1.0
+sh                    randconfig-001-20260612    gcc-11.5.0
+sh                    randconfig-002-20260612    gcc-13.4.0
+sparc                             allnoconfig    gcc-16.1.0
+sparc                               defconfig    gcc-16.1.0
+sparc                 randconfig-001-20260612    gcc-8.5.0
+sparc                 randconfig-002-20260612    gcc-8.5.0
+sparc64                          allmodconfig    clang-20
+sparc64                             defconfig    clang-23
+sparc64               randconfig-001-20260612    clang-20
+sparc64               randconfig-002-20260612    gcc-12.5.0
+um                               allmodconfig    clang-23
+um                                allnoconfig    clang-16
+um                               allyesconfig    gcc-14
+um                                  defconfig    clang-23
+um                             i386_defconfig    gcc-14
+um                    randconfig-001-20260612    gcc-14
+um                    randconfig-002-20260612    clang-23
+um                           x86_64_defconfig    clang-23
+x86_64                           allmodconfig    clang-22
+x86_64                            allnoconfig    clang-22
+x86_64                           allyesconfig    clang-22
+x86_64               buildonly-randconfig-001    gcc-12
+x86_64      buildonly-randconfig-001-20260612    clang-22
+x86_64               buildonly-randconfig-002    clang-22
+x86_64      buildonly-randconfig-002-20260612    gcc-14
+x86_64               buildonly-randconfig-003    gcc-14
+x86_64      buildonly-randconfig-003-20260612    clang-22
+x86_64               buildonly-randconfig-004    gcc-14
+x86_64      buildonly-randconfig-004-20260612    clang-22
+x86_64               buildonly-randconfig-005    gcc-14
+x86_64      buildonly-randconfig-005-20260612    clang-22
+x86_64               buildonly-randconfig-006    clang-22
+x86_64      buildonly-randconfig-006-20260612    gcc-14
+x86_64                              defconfig    gcc-14
+x86_64                randconfig-001-20260612    clang-22
+x86_64                randconfig-002-20260612    gcc-14
+x86_64                randconfig-003-20260612    gcc-14
+x86_64                randconfig-004-20260612    gcc-14
+x86_64                randconfig-005-20260612    gcc-14
+x86_64                randconfig-006-20260612    clang-22
+x86_64                randconfig-011-20260612    gcc-14
+x86_64                randconfig-012-20260612    clang-22
+x86_64                randconfig-013-20260612    clang-22
+x86_64                randconfig-014-20260612    gcc-14
+x86_64                randconfig-015-20260612    gcc-14
+x86_64                randconfig-016-20260612    gcc-14
+x86_64                randconfig-071-20260612    gcc-14
+x86_64                randconfig-072-20260612    gcc-12
+x86_64                randconfig-073-20260612    clang-22
+x86_64                randconfig-074-20260612    clang-22
+x86_64                randconfig-075-20260612    clang-22
+x86_64                randconfig-076-20260612    clang-22
+x86_64                          rhel-9.4-rust    clang-22
+xtensa                            allnoconfig    gcc-16.1.0
+xtensa                randconfig-001-20260612    gcc-10.5.0
+xtensa                randconfig-002-20260612    gcc-12.5.0
 
- Merge branches 'acpi-processor', 'acpi-cppc' and 'acpi-pci'
-
-on top of commit 4549871118cf616eecdd2d939f78e3b9e1dddc48
-
- Linux 7.1-rc7
-
-to receive ACPI support updates for 7.2-rc1.
-
-These update the ACPICA code in the kernel to upstream version 20260408,
-introduce support for devres-based management of ACPI notify handlers
-and update some core ACPI device drivers on top of that (which includes
-some fixes and cleanups), add _DEP support for PCI/CXL roots and Intel
-CVS devices, fix a couple of assorted issues and clean up code:
-
- - Fix multiple issues related to probe, removal and missing NVDIMM
-   device notifications in the ACPI NFIT driver (Rafael Wysocki)
-
- - Add support for devres-based management of ACPI notify handlers to
-   the ACPI core (Rafael Wysocki)
-
- - Switch multiple core ACPI device drivers (including the ACPI PAD,
-   ACPI video bus, ACPI HED, ACPI thermal zone, ACPI AC, ACPI battery,
-   and ACPI NFIT drivers) over to using devres-based resource management
-   during probe (Rafael Wysocki)
-
- - Replace mutex_lock/unlock() with guard()/scoped_guard() in the ACPI
-   PMIC driver (Maxwell Doose)
-
- - Fix message kref handling in the dead device path of the ACPI IPMI
-   address space handler (Yuho Choi)
-
- - Use sysfs_emit() in idlecpus_show() in the ACPI processor aggregator
-   device (PAD) driver (Yury Norov)
-
- - Clean up device_id_scheme initialization in the ACPI video bus driver
-   (Jean-Ralph Aviles)
-
- - Clean up lid handling in the ACPI button driver and
-   acpi_button_probe(), reorganize installing and removing event
-   handlers in that driver and switch it over to using devres-based
-   resource management during probe (Rafael Wysocki)
-
- - Add support for the Legacy Virtual Register (LVR) field in I2C serial
-   bus resource descriptors to ACPICA (Akhil R)
-
- - Fix multiple issues related to bounds checks, input validation,
-   use-after-free, and integer overflow checks in the AML interpreter
-   in ACPICA (ikaros)
-
- - Update the copyright year to 2026 in ACPICA files and make minor
-   changes related to ACPI 6.6 support (Pawel Chmielewski)
-
- - Remove spurious precision from format used to dump parse trees in
-   ACPICA (David Laight)
-
- - Add modern standby DSM GUIDs to ACPICA header files (Daniel Schaefer)
-
- - Fix FADT 32/64X length mismatch warning in ACPICA (Abdelkader Boudih)
-
- - Update D3hot/cold device power states definitions in ACPICA header
-   files (Aymeric Wibo)
-
- - Fix NULL pointer dereference in acpi_ns_custom_package() (Weiming
-   Shi)
-
- - Update ACPICA version to 20260408 (Saket Dumbre)
-
- - Add cpuidle driver check in acpi_processor_register_idle_driver() to
-   avoid evaluating _CST unnecessarily (Tony W Wang-oc)
-
- - Suppress UBSAN warning caused by field misuse during PCC-based
-   register access in the ACPI CPPC library (Jeremy Linton)
-
- - Add support for CPPC v4 to the ACPI CPPC library (Sumit Gupta)
-
- - Update the ACPI device enumeration code to honor _DEP for ACPI0016
-   PCI/CXL host bridges and make the ACPI PCI root driver clear _DEP
-   dependencies for PCI roots that have become operational (Chen Pei)
-
-Thanks!
-
-
----------------
-
-Abdelkader Boudih (1):
-      ACPICA: Fix FADT 32/64X length mismatch warning
-
-Akhil R (5):
-      ACPICA: Add LVR to acrestyp.h
-      ACPICA: Fetch LVR I2C resource descriptor
-      ACPICA: Change LVR to 8 bit value
-      ACPICA: Mention the LVR bits
-      ACPICA: fix I2C LVR item count in the conversion table
-
-Aymeric Wibo (1):
-      ACPICA: actypes: Distinguish between D3hot/cold
-
-Chen Pei (2):
-      ACPI: PCI: Clear _DEP dependencies after PCI root bridge attach
-      ACPI: scan: Honor _DEP for ACPI0016 PCI/CXL host bridge
-
-Daniel Schaefer (1):
-      ACPICA: Add modern standby DSM GUIDs
-
-David Laight (1):
-      ACPICA: Remove spurious precision from format used to dump parse trees
-
-Jean-Ralph Aviles (1):
-      ACPI: video: Do not initialise device_id_scheme directly
-
-Jeremy Linton (1):
-      ACPI: CPPC: Suppress UBSAN warning caused by field misuse
-
-Maxwell Doose (1):
-      ACPI: PMIC: Replace mutex_lock/unlock() with guard()/scoped_guard()
-
-Miguel Vadillo (1):
-      ACPI: scan: Honor _DEP for Intel CVS devices
-
-Pawel Chmielewski (2):
-      ACPICA: actbl2.h: ACPI 6.6: Updates for MADT MPWakeup
-      ACPICA: Update the copyright year to 2026
-
-Rafael J. Wysocki (37):
-      ACPI: bus: Introduce devm_acpi_install_notify_handler()
-      ACPI: NFIT: core: Use devm_acpi_install_notify_handler()
-      ACPI: AC: Switch over to devres-based resource management
-      ACPI: battery: Switch over to devres-based resource management
-      ACPI: HED: Refine guarding against adding a second instance
-      ACPI: HED: Switch over to devres-based resource management
-      ACPI: thermal: Switch over to devres-based resource management
-      ACPI: PAD: Rearrange acpi_pad_notify()
-      ACPI: PAD: Pass struct device pointer to acpi_pad_notify()
-      ACPI: PAD: Fix teardown ordering in acpi_pad_remove()
-      ACPI: PAD: Switch over to devres-based resource management
-      ACPI: video: Reduce the number of auxiliary device dereferences
-      ACPI: video: Rearrange probe and remove code
-      ACPI: video: Use devm action for video bus object cleanup
-      ACPI: video: Use devm action for freeing video devices
-      ACPI: video: Use devm for video->entry and backlight cleanup
-      ACPI: video: Switch over to devres-based resource management
-      ACPI: button: Fix lid_device value leak past driver removal
-      ACPI: button: Pass ACPI handle to acpi_lid_evaluate_state()
-      ACPI: button: Improve warning message regarding lid state
-      ACPI: button: Use bool for representing boolean values
-      ACPI: button: Eliminate ternary operator from acpi_lid_evaluate_state()
-      ACPI: button: Change return type of two functions to void
-      ACPI: button: Eliminate redundant conditional statement
-      ACPI: button: Use local pointer to platform device dev field in probe
-      ACPI: button: Rework device verification during probe
-      ACPI: button: Drop redundant variable from acpi_button_probe()
-      ACPI: button: Merge two switch () statements in acpi_button_probe()
-      ACPI: button: Clean up adding and removing lid procfs interface
-      ACPI: button: Use string literals for generating netlink messages
-      ACPI: button: Reorganize installing and removing event handlers
-      ACPI: button: Switch over to devres-based resource management
-      ACPI: bus: Clean up devm_acpi_install_notify_handler()
-      ACPI: NFIT: core: Fix possible NULL pointer dereference
-      ACPI: NFIT: core: Fix acpi_nfit_init() error cleanup
-      ACPI: NFIT: core: Eliminate redundant local variable
-      ACPI: NFIT: core: Fix possible deadlock and missing notifications
-
-Saket Dumbre (1):
-      ACPICA: Update version to 20260408
-
-Sumit Gupta (1):
-      ACPI: CPPC: Add support for CPPC v4
-
-Tony W Wang-oc (1):
-      ACPI: processor: Add cpuidle driver check in
-acpi_processor_register_idle_driver()
-
-Weiming Shi (1):
-      ACPICA: Fix NULL pointer dereference in acpi_ns_custom_package()
-
-Yuho Choi (1):
-      ACPI: IPMI: Fix message kref handling on dead device
-
-Yury Norov (1):
-      ACPI: PAD: Use sysfs_emit() in idlecpus_show()
-
-ikaros (14):
-      ACPICA: Fix condition check in acpi_ps_parse_loop()
-      ACPICA: Add alias node support in namespace handling
-      ACPICA: Fix use-after-free in acpi_ds_terminate_control_method()
-      ACPICA: validate byte_count in acpi_ps_get_next_package_length()
-      ACPICA: add boundary checks in acpi_ps_get_next_field()
-      ACPICA: Prevent adding invalid references
-      ACPICA: Fix integer overflow in acpi_ex_opcode_3A_1T_1R() (mid_op)
-      ACPICA: Improve argument parsing in acpi_ps_get_next_simple_arg()
-      ACPICA: validate handler object type in two places
-      ACPICA: Add validation for node in acpi_ns_build_normalized_path()
-      ACPICA: Enhance buffer validation in acpi_ut_walk_aml_resources()
-      ACPICA: Enhance OEM ID and Table ID validation in acpi_ex_load_table_op()
-      ACPICA: Add package limit checks in parser functions
-      ACPICA: add boundary checks in two places
-
----------------
-
- drivers/acpi/ac.c                                  |  37 +-
- drivers/acpi/acpi_ipmi.c                           |   2 +-
- drivers/acpi/acpi_pad.c                            |  38 +-
- drivers/acpi/acpi_video.c                          | 139 ++++---
- drivers/acpi/acpica/acapps.h                       |   4 +-
- drivers/acpi/acpica/accommon.h                     |   2 +-
- drivers/acpi/acpica/acconvert.h                    |   2 +-
- drivers/acpi/acpica/acdebug.h                      |   2 +-
- drivers/acpi/acpica/acdispat.h                     |   2 +-
- drivers/acpi/acpica/acevents.h                     |   2 +-
- drivers/acpi/acpica/acglobal.h                     |   2 +-
- drivers/acpi/acpica/achware.h                      |   2 +-
- drivers/acpi/acpica/acinterp.h                     |   2 +-
- drivers/acpi/acpica/aclocal.h                      |   3 +-
- drivers/acpi/acpica/acmacros.h                     |   2 +-
- drivers/acpi/acpica/acnamesp.h                     |   2 +-
- drivers/acpi/acpica/acobject.h                     |   2 +-
- drivers/acpi/acpica/acopcode.h                     |   2 +-
- drivers/acpi/acpica/acparser.h                     |   2 +-
- drivers/acpi/acpica/acpredef.h                     |   2 +-
- drivers/acpi/acpica/acresrc.h                      |   2 +-
- drivers/acpi/acpica/acstruct.h                     |   2 +-
- drivers/acpi/acpica/actables.h                     |   2 +-
- drivers/acpi/acpica/acutils.h                      |   2 +-
- drivers/acpi/acpica/amlcode.h                      |   2 +-
- drivers/acpi/acpica/amlresrc.h                     |   2 +-
- drivers/acpi/acpica/dbhistry.c                     |   2 +-
- drivers/acpi/acpica/dsargs.c                       |   2 +-
- drivers/acpi/acpica/dscontrol.c                    |   2 +-
- drivers/acpi/acpica/dsdebug.c                      |   2 +-
- drivers/acpi/acpica/dsfield.c                      |   2 +-
- drivers/acpi/acpica/dsinit.c                       |   2 +-
- drivers/acpi/acpica/dsmethod.c                     |  45 +-
- drivers/acpi/acpica/dsobject.c                     |   2 +-
- drivers/acpi/acpica/dsopcode.c                     |   2 +-
- drivers/acpi/acpica/dspkginit.c                    |   2 +-
- drivers/acpi/acpica/dswexec.c                      |   2 +-
- drivers/acpi/acpica/dswload.c                      |   2 +-
- drivers/acpi/acpica/dswload2.c                     |   2 +-
- drivers/acpi/acpica/dswscope.c                     |   2 +-
- drivers/acpi/acpica/dswstate.c                     |   2 +-
- drivers/acpi/acpica/evevent.c                      |   2 +-
- drivers/acpi/acpica/evglock.c                      |   2 +-
- drivers/acpi/acpica/evgpe.c                        |   2 +-
- drivers/acpi/acpica/evgpeblk.c                     |   2 +-
- drivers/acpi/acpica/evgpeinit.c                    |   2 +-
- drivers/acpi/acpica/evgpeutil.c                    |   2 +-
- drivers/acpi/acpica/evhandler.c                    |  13 +-
- drivers/acpi/acpica/evmisc.c                       |   2 +-
- drivers/acpi/acpica/evregion.c                     |   2 +-
- drivers/acpi/acpica/evrgnini.c                     |   2 +-
- drivers/acpi/acpica/evxface.c                      |   2 +-
- drivers/acpi/acpica/evxfevnt.c                     |   2 +-
- drivers/acpi/acpica/evxfgpe.c                      |   2 +-
- drivers/acpi/acpica/evxfregn.c                     |   2 +-
- drivers/acpi/acpica/exconcat.c                     |   2 +-
- drivers/acpi/acpica/exconfig.c                     |  28 +-
- drivers/acpi/acpica/exconvrt.c                     |   2 +-
- drivers/acpi/acpica/excreate.c                     |   2 +-
- drivers/acpi/acpica/exdebug.c                      |   2 +-
- drivers/acpi/acpica/exdump.c                       |   2 +-
- drivers/acpi/acpica/exfield.c                      |   2 +-
- drivers/acpi/acpica/exfldio.c                      |   2 +-
- drivers/acpi/acpica/exmisc.c                       |   2 +-
- drivers/acpi/acpica/exmutex.c                      |   2 +-
- drivers/acpi/acpica/exnames.c                      |   2 +-
- drivers/acpi/acpica/exoparg1.c                     |   2 +-
- drivers/acpi/acpica/exoparg2.c                     |   2 +-
- drivers/acpi/acpica/exoparg3.c                     |   4 +-
- drivers/acpi/acpica/exoparg6.c                     |   2 +-
- drivers/acpi/acpica/exprep.c                       |   2 +-
- drivers/acpi/acpica/exregion.c                     |   2 +-
- drivers/acpi/acpica/exresnte.c                     |   2 +-
- drivers/acpi/acpica/exresolv.c                     |   2 +-
- drivers/acpi/acpica/exresop.c                      |   2 +-
- drivers/acpi/acpica/exserial.c                     |   2 +-
- drivers/acpi/acpica/exstore.c                      |   2 +-
- drivers/acpi/acpica/exstoren.c                     |   2 +-
- drivers/acpi/acpica/exstorob.c                     |   2 +-
- drivers/acpi/acpica/exsystem.c                     |   2 +-
- drivers/acpi/acpica/extrace.c                      |   2 +-
- drivers/acpi/acpica/exutils.c                      |   2 +-
- drivers/acpi/acpica/hwacpi.c                       |   2 +-
- drivers/acpi/acpica/hwesleep.c                     |   2 +-
- drivers/acpi/acpica/hwgpe.c                        |   2 +-
- drivers/acpi/acpica/hwsleep.c                      |   2 +-
- drivers/acpi/acpica/hwtimer.c                      |   2 +-
- drivers/acpi/acpica/hwvalid.c                      |   2 +-
- drivers/acpi/acpica/hwxface.c                      |   2 +-
- drivers/acpi/acpica/hwxfsleep.c                    |   2 +-
- drivers/acpi/acpica/nsarguments.c                  |   2 +-
- drivers/acpi/acpica/nsconvert.c                    |   2 +-
- drivers/acpi/acpica/nsdump.c                       |   2 +-
- drivers/acpi/acpica/nsdumpdv.c                     |   2 +-
- drivers/acpi/acpica/nsinit.c                       |   2 +-
- drivers/acpi/acpica/nsload.c                       |   2 +-
- drivers/acpi/acpica/nsnames.c                      |   6 +
- drivers/acpi/acpica/nsobject.c                     |   6 +
- drivers/acpi/acpica/nsparse.c                      |   2 +-
- drivers/acpi/acpica/nspredef.c                     |   2 +-
- drivers/acpi/acpica/nsprepkg.c                     |   9 +-
- drivers/acpi/acpica/nsrepair.c                     |   2 +-
- drivers/acpi/acpica/nsrepair2.c                    |   2 +-
- drivers/acpi/acpica/nsutils.c                      |   2 +-
- drivers/acpi/acpica/nswalk.c                       |   2 +-
- drivers/acpi/acpica/nsxfname.c                     |   6 +-
- drivers/acpi/acpica/psargs.c                       | 136 ++++++-
- drivers/acpi/acpica/psloop.c                       |  32 +-
- drivers/acpi/acpica/psobject.c                     |   2 +-
- drivers/acpi/acpica/psopcode.c                     |   2 +-
- drivers/acpi/acpica/psopinfo.c                     |   2 +-
- drivers/acpi/acpica/psparse.c                      |  16 +-
- drivers/acpi/acpica/psscope.c                      |   2 +-
- drivers/acpi/acpica/pstree.c                       |   2 +-
- drivers/acpi/acpica/psutils.c                      |   2 +-
- drivers/acpi/acpica/pswalk.c                       |   6 +-
- drivers/acpi/acpica/psxface.c                      |   2 +-
- drivers/acpi/acpica/rsserial.c                     |   7 +-
- drivers/acpi/acpica/tbdata.c                       |   2 +-
- drivers/acpi/acpica/tbfadt.c                       |   5 +-
- drivers/acpi/acpica/tbfind.c                       |   2 +-
- drivers/acpi/acpica/tbinstal.c                     |   2 +-
- drivers/acpi/acpica/tbprint.c                      |   2 +-
- drivers/acpi/acpica/tbutils.c                      |   2 +-
- drivers/acpi/acpica/tbxface.c                      |   2 +-
- drivers/acpi/acpica/tbxfload.c                     |   2 +-
- drivers/acpi/acpica/tbxfroot.c                     |   2 +-
- drivers/acpi/acpica/utaddress.c                    |   2 +-
- drivers/acpi/acpica/utalloc.c                      |   2 +-
- drivers/acpi/acpica/utascii.c                      |   2 +-
- drivers/acpi/acpica/utbuffer.c                     |   2 +-
- drivers/acpi/acpica/utcache.c                      |   2 +-
- drivers/acpi/acpica/utcksum.c                      |   2 +-
- drivers/acpi/acpica/utcopy.c                       |  12 +-
- drivers/acpi/acpica/utdebug.c                      |   2 +-
- drivers/acpi/acpica/utdecode.c                     |   2 +-
- drivers/acpi/acpica/uteval.c                       |   2 +-
- drivers/acpi/acpica/utglobal.c                     |   2 +-
- drivers/acpi/acpica/uthex.c                        |   2 +-
- drivers/acpi/acpica/utids.c                        |   2 +-
- drivers/acpi/acpica/utinit.c                       |   2 +-
- drivers/acpi/acpica/utlock.c                       |   2 +-
- drivers/acpi/acpica/utobject.c                     |   2 +-
- drivers/acpi/acpica/utosi.c                        |   2 +-
- drivers/acpi/acpica/utpredef.c                     |   2 +-
- drivers/acpi/acpica/utprint.c                      |   2 +-
- drivers/acpi/acpica/utresrc.c                      |  30 ++
- drivers/acpi/acpica/uttrack.c                      |   2 +-
- drivers/acpi/acpica/utuuid.c                       |   2 +-
- drivers/acpi/acpica/utxface.c                      |   2 +-
- drivers/acpi/acpica/utxfinit.c                     |   2 +-
- drivers/acpi/battery.c                             |  75 ++--
- drivers/acpi/bus.c                                 |  67 +++
- drivers/acpi/button.c                              | 452 +++++++++++----------
- drivers/acpi/cppc_acpi.c                           |  34 +-
- drivers/acpi/hed.c                                 |  25 +-
- drivers/acpi/nfit/core.c                           | 102 +++--
- drivers/acpi/pci_root.c                            |   4 +
- drivers/acpi/pmic/intel_pmic.c                     |  37 +-
- drivers/acpi/processor_idle.c                      |   9 +
- drivers/acpi/scan.c                                |   6 +-
- drivers/acpi/thermal.c                             |  53 +--
- include/acpi/acbuffer.h                            |   2 +-
- include/acpi/acconfig.h                            |   2 +-
- include/acpi/acexcep.h                             |   2 +-
- include/acpi/acnames.h                             |   2 +-
- include/acpi/acoutput.h                            |   2 +-
- include/acpi/acpi.h                                |   2 +-
- include/acpi/acpi_bus.h                            |   2 +
- include/acpi/acpiosxf.h                            |   2 +-
- include/acpi/acpixf.h                              |   4 +-
- include/acpi/acrestyp.h                            |   3 +-
- include/acpi/actbl.h                               |   2 +-
- include/acpi/actbl1.h                              |   2 +-
- include/acpi/actbl2.h                              |   4 +-
- include/acpi/actbl3.h                              |   2 +-
- include/acpi/actypes.h                             |   8 +-
- include/acpi/acuuid.h                              |   7 +-
- include/acpi/cppc_acpi.h                           |   8 +-
- include/acpi/platform/acenv.h                      |   2 +-
- include/acpi/platform/acenvex.h                    |   2 +-
- include/acpi/platform/acgcc.h                      |   2 +-
- include/acpi/platform/acgccex.h                    |   2 +-
- include/acpi/platform/aclinux.h                    |   2 +-
- include/acpi/platform/aclinuxex.h                  |   2 +-
- include/acpi/platform/aczephyr.h                   |   2 +-
- tools/power/acpi/common/cmfsize.c                  |   2 +-
- tools/power/acpi/common/getopt.c                   |   2 +-
- .../acpi/os_specific/service_layers/oslinuxtbl.c   |   2 +-
- .../acpi/os_specific/service_layers/osunixdir.c    |   2 +-
- .../acpi/os_specific/service_layers/osunixmap.c    |   2 +-
- .../acpi/os_specific/service_layers/osunixxf.c     |   2 +-
- tools/power/acpi/tools/acpidump/acpidump.h         |   2 +-
- tools/power/acpi/tools/acpidump/apdump.c           |   2 +-
- tools/power/acpi/tools/acpidump/apfiles.c          |   2 +-
- tools/power/acpi/tools/acpidump/apmain.c           |   2 +-
- 196 files changed, 1109 insertions(+), 687 deletions(-)
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
