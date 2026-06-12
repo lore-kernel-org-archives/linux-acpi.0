@@ -1,159 +1,84 @@
-Received: from mail-yw1-f176.google.com (mail-yw1-f176.google.com [209.85.128.176])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.20])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DDD13E3D90
-	for <linux-acpi@vger.kernel.org>; Fri, 12 Jun 2026 07:51:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.128.176
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781250692; cv=pass; b=c3I4yZwPCxW1UYpyLNx2VVaSbSFy6Ml7WUcN0O8c3UK87lC80bRRL34PxDzD7NIQQHTVpJUM2XY6PGVtZP7xvYGaj58e9JpAclsbKbpDs0fkN7WqB2Zj3iFzYyOXfV4hUcHbh5+f3VE+HBjYc+U7gv2BSFRuyo7xSTCvg+WWBiQ=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781250692; c=relaxed/simple;
-	bh=AAW7Bc+70pQhpUTfJT214lM/e5AbzwxyHZSFmCFPS7E=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=M56IpLpEL3hUjVYCVPOP8QDUkBqxmv7r01C0BrkOTUdMPRjow2ZPbwP3Tk/BKf8vzOQmvHY1if7KY+kq1G4BxlUGeXn0s9yCIPAgpoHJatoYT2+QUS+VS26EQxJsT5ooMsGRYdI467kp6cTiCnIx5QAruTSpsHvQ+TKxJi5xrwg=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=FOExL29O; arc=pass smtp.client-ip=209.85.128.176
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF27D40D591;
+	Fri, 12 Jun 2026 08:53:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.20
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1781254382; cv=none; b=pOeePIXJowcWAhNmRiGjD6SRVAz5xxrN06A0St+50h1Utk93RvM9dW76+6Sq+TcTAECtW0YfQpd7maO9PO8unTgBAgqmIQDFzUBjMMynjnFfD6t3M6FSsNqlEk5qQ1hlyCPEI46SPgoBkb2TNfv5VHh3trfFBJJY5pJdvKtPfeI=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1781254382; c=relaxed/simple;
+	bh=ZFF4v+7K6GtKETITjAVO2n9TysxCzh5IcUQZXv8A8+c=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=pU2ALxE4mIfcj++yqbfKgox87lS9QSNrU7KPB1MDIjIQOZNyygn0bboc/1fifLWtGsnJHWg56dN49pW1fWbcohTIRWcajVThP+32sCetwTqVzlUVPjZuoFxqGVBlitsF7/K2e7qiCAqSBojTurSh8p82peuFtR0ZAC39luv/QSw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=X7xrYzcy; arc=none smtp.client-ip=198.175.65.20
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="FOExL29O"
-Received: by mail-yw1-f176.google.com with SMTP id 00721157ae682-7dc2b658544so4600897b3.2
-        for <linux-acpi@vger.kernel.org>; Fri, 12 Jun 2026 00:51:25 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1781250684; cv=none;
-        d=google.com; s=arc-20240605;
-        b=kCTMzrLSLixfZtbHOf9bcmy5Tw8avX4vTHGnTijraX8LA0eOIKwxEjQQoLndMJpE9U
-         NkQbQTjVlyZ0rBGRTjypkoXeX1SFV+CAubbVykmnUG+Uv+a8Q2BfqU9XGE5Oj96oOM77
-         wKfE6K2Af2uRO5FQWrLFcgJiXbm5PQdON2Oc25QPEdPB9HHWwQc0A4P4gW+D3KAHkDss
-         uU5YzVHqgGFUCCvxuzZc6kbltn7NjCkVHw9H1wy1MVZSqC0KDRc6eorOL0rkZra9CqYv
-         KnahOUeSlIlsYLIidmcEDmlYym1KZCzCSTgmYONeCcV+b8k+PWxYi4rcHWXxn2/XBa5j
-         Jgbg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=SR0MIdclzqLJ5NMQX/zWd9Yh3H6pzRPWDeVIlwB7J0g=;
-        fh=3zfNSe6K5PgzOOn7tzuhBy0qTNs9ioTuXkEXdTuJU78=;
-        b=SYhlVBZVOM30qVLmKhNJZglAjr6c0lzDZAitVnC7z4dXO2ykrwhU/8jeIJ+AODO/tT
-         SzFsZmsa3lruvqGD6wXFSsA7WMONvz+vUjeB4uTiwprDQ6xG3gCo8yNtSzIj5EZhmqho
-         m5AKKT+CrIRdTAbTmoKonw9kzJ30ZtISZfdDun8TwE0WtEUZ/SufX/cLcQGVFiTUlbOS
-         z0kXyQBammC+IQhiehNxMInpFlxZjTCBR1/fANWp332KMJzd8IkTvpiUjEaQgRlxPxcj
-         pU9uk9SI8L8dTNQAoZRnDBDnMd2/p6RuG1XYq1kFDTqvU+J1070CIzihMF+LaHh6qTmI
-         uSnw==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1781250684; x=1781855484; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=SR0MIdclzqLJ5NMQX/zWd9Yh3H6pzRPWDeVIlwB7J0g=;
-        b=FOExL29OPYXtRjr1jFVeFa7zcPsHHFHr6diu6VMqNotYkNZv7Wjo3syPc4R8ExctZp
-         dRfHQrQ1QbppC5ogpXbF12ugxXsiKvzABW9lOoaQg9awzs4dNN/NYp20PF5wDlT8hpjJ
-         1S1xuuiqMchZQ6nCjXW2tI+NMR/LrTS+SDRC0=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1781250684; x=1781855484;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=SR0MIdclzqLJ5NMQX/zWd9Yh3H6pzRPWDeVIlwB7J0g=;
-        b=FMfgbhOwt4AWR6/a26/dQmX/nlHhDdn7rodu2oBV1sGolNHcSTp84nzrHidZQjHrJh
-         X6m5HmGtA66TrIQE7PFf5dQq4FFpYoMgcg74BeXTaX+r2Q5KWrKXrbDnBHQ+aZSLe0cd
-         7xYqt4gJf54LYGsAt/GFQdfxgMoe8eeCXQMC4ArcWGhaqHWJRvU7b+8stnbgE1X/ExUa
-         idz5BGo8eKwu+lSj0vmn7R6tSsevtHw68Eaa7eSUrTVhtNwT47Vc0/3zWZHpANb5oTsJ
-         sPUsTr5pohh7UdaQj8RyJ7ssb5LYUSxeRvtup1zd+GgG66IN39BtSvf6srkr5Hg+Zngl
-         e/EQ==
-X-Forwarded-Encrypted: i=1; AFNElJ9nS9U0tu2VOdhUdpSK0pMHXQbsuvTmZhlug0MTrZuVH4iiJ5RErGYfIv/hjt+SBIS520guPWZN+dAS@vger.kernel.org
-X-Gm-Message-State: AOJu0Yzz9a7XujW1uY6MG81JfcVIY+JGMbboqNBwcLvgl6i2zjUYD2FC
-	C16vjbg4yFxakS1IjdBtoZc9JuUSTExxcAeLIpLuZ0G0IGgHf2AqZzSXo/VaboiBp8U2D3DCtCh
-	GM0HuweUU8PtIz8ADNfDxPuClde5HUSysXv/1oxnM
-X-Gm-Gg: Acq92OEPp2oRkU4RpNzd5zBarDScOtbpC9baoFNiZvt9EfTZIufWnZNIRHWX7eWxsyV
-	HNnDcR1d9YK0wqrUzn0pLRtlBIVIxeAAQl+9AQfEaNTz207rooMCBEmJgqkDQxYkZESJznqjeMt
-	JroP1W4DpSx/qjZMxAM4Iv0yQW/u71o9PG0SIHrAAVo1ag1J2uATd0/RhR7FyECa1XgqYDv8d+4
-	f9X4esCAXW1dHwbggPfXlfZz33kxD5lVm6FcV4XoYz2S7J4jraM0P7wAJL+aYK3aV7kQCnlQN0d
-	L0o5LR0M
-X-Received: by 2002:a05:690c:ec7:b0:7bd:73f3:7a70 with SMTP id
- 00721157ae682-7f7b8523999mr14898787b3.32.1781250684397; Fri, 12 Jun 2026
- 00:51:24 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="X7xrYzcy"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1781254381; x=1812790381;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=ZFF4v+7K6GtKETITjAVO2n9TysxCzh5IcUQZXv8A8+c=;
+  b=X7xrYzcyFGa6MzlIHqgZ+OJBegMenYYy90yO0tJaX/JgJzzD+h0sNtEj
+   SqguhOr51k5MJ/Wy80HVLE/6zH2r7+bdihvSc3/idp7X3ex/KilzMBvl0
+   hJ1KXtrbxZ9sbLOdhEVl1C87OfRMkDXOSZDPdt8EKpcXhMpbwuP4HJyFf
+   5qBp42ULznL9ZPlvcNqG5xZRDcVoRIzCmePWRYv/UY3wiJ41SixdxrYGn
+   ZyEE7FDTvnLqnTNw3IhCvwQlvNp6XLJ9EUx0ZZbVkMHiF7bxxg0ib8q8D
+   k0fhB9WO9vao7cX6VxxuFevbiNiKDrUkvo93dLKlzpqY0hFk0fdo31XkU
+   A==;
+X-CSE-ConnectionGUID: q4y6FJtYSSSktxQjhrluzg==
+X-CSE-MsgGUID: rjywNUtlSzugTExcX1HhSw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11813"; a="81823847"
+X-IronPort-AV: E=Sophos;i="6.24,200,1774335600"; 
+   d="scan'208";a="81823847"
+Received: from fmviesa006.fm.intel.com ([10.60.135.146])
+  by orvoesa112.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jun 2026 01:53:01 -0700
+X-CSE-ConnectionGUID: HwLeyfaMQNW6u2x3t3sC0Q==
+X-CSE-MsgGUID: IcPsWayMT22uRAC45NyVwg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.24,200,1774335600"; 
+   d="scan'208";a="242387483"
+Received: from black.igk.intel.com ([10.91.253.5])
+  by fmviesa006.fm.intel.com with ESMTP; 12 Jun 2026 01:52:58 -0700
+Received: by black.igk.intel.com (Postfix, from userid 1001)
+	id 2981A95; Fri, 12 Jun 2026 10:52:57 +0200 (CEST)
+Date: Fri, 12 Jun 2026 10:52:57 +0200
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+To: Marco Scardovi <scardracs@disroot.org>
+Cc: Mika Westerberg <westeri@kernel.org>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Linus Walleij <linusw@kernel.org>,
+	Bartosz Golaszewski <brgl@kernel.org>, linux-gpio@vger.kernel.org,
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v6 0/2] gpiolib: acpi: Add robust bounds-checking and
+ safe address handling
+Message-ID: <20260612085257.GY2990@black.igk.intel.com>
+References: <20260610154204.110379-1-scardracs@disroot.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260610084053.2059858-1-wenst@chromium.org> <20260610084053.2059858-5-wenst@chromium.org>
- <ailytpKQcvYTUH7j@ashevche-desk.local>
-In-Reply-To: <ailytpKQcvYTUH7j@ashevche-desk.local>
-From: Chen-Yu Tsai <wenst@chromium.org>
-Date: Fri, 12 Jun 2026 16:51:13 +0900
-X-Gm-Features: AVVi8CeA8ndBvqsmj_bBdEg4mr2h2E0R3_zPJJzKBFEx0mTdugBDzHIodwmMGm4
-Message-ID: <CAGXv+5FrD7abUvw5JgZECcGBvtOOpezDtmUrCRmVAbDx0ApxhA@mail.gmail.com>
-Subject: Re: [PATCH v2 04/16] usb: hub: Return actual error from
- hub_configure() in hub_probe()
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Bartosz Golaszewski <brgl@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	Daniel Scally <djrscally@gmail.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
-	Sakari Ailus <sakari.ailus@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, 
-	Danilo Krummrich <dakr@kernel.org>, Rob Herring <robh@kernel.org>, 
-	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
-	Matthias Brugger <matthias.bgg@gmail.com>, 
-	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>, 
-	Alan Stern <stern@rowland.harvard.edu>, linux-acpi@vger.kernel.org, 
-	driver-core@lists.linux.dev, linux-pm@vger.kernel.org, 
-	linux-usb@vger.kernel.org, devicetree@vger.kernel.org, 
-	linux-mediatek@lists.infradead.org, linux-arm-kernel@lists.infradead.org, 
-	linux-kernel@vger.kernel.org, Manivannan Sadhasivam <mani@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20260610154204.110379-1-scardracs@disroot.org>
 
-On Wed, Jun 10, 2026 at 11:20=E2=80=AFPM Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
->
-> On Wed, Jun 10, 2026 at 04:40:38PM +0800, Chen-Yu Tsai wrote:
-> > The addition of power sequencing descriptor handling in the USB hub cod=
-e
-> > requires dealing with deferred probing from pwrseq_get(). The power
-> > sequencing provider may not yet be available when the USB hub probes.
-> >
-> > Return the actual error code from hub_configure() when it fails, so tha=
-t
-> > the driver core can notice the deferred probe request.
->
-> Makes sense to me.
-> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
->
-> One nit-pick, though.
->
-> ...
->
-> > -     if (hub_configure(hub, &desc->endpoint[0].desc) >=3D 0) {
-> > +     ret =3D hub_configure(hub, &desc->endpoint[0].desc);
-> > +     if (ret >=3D 0) {
-> >               onboard_dev_create_pdevs(hdev, &hub->onboard_devs);
-> >
-> >               return 0;
-> >       }
-> >
-> >       hub_disconnect(intf);
-> > -     return -ENODEV;
-> > +     return ret;
->
-> Can we convert to regular pattern, id est checking for errors first?
+Hi,
 
-Sure. Will do it together in the next version.
+On Wed, Jun 10, 2026 at 05:42:02PM +0200, Marco Scardovi wrote:
+> Hi all,
+> 
+> The series adds explicit bounds checking for GPIO pin accesses and
+> ensures safe handling of ACPI addresses in OperationRegion handlers,
+> without referring to truncation or wrap-around behavior, which does
+> not apply.
 
+I'm fine with these now.
 
-ChenYu
+For both,
 
->         ret =3D hub_configure(hub, &desc->endpoint[0].desc);
->         if (ret < 0) {
->                 hub_disconnect(intf);
->                 return ret;
->         }
->
->         onboard_dev_create_pdevs(hdev, &hub->onboard_devs);
->
->         return 0;
->
-> --
-> With Best Regards,
-> Andy Shevchenko
->
->
+Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
