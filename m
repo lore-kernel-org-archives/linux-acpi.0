@@ -1,111 +1,141 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-f178.google.com (mail-qt1-f178.google.com [209.85.160.178])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 870282BE7DB;
-	Sun, 14 Jun 2026 09:08:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D13771F4CB3
+	for <linux-acpi@vger.kernel.org>; Sun, 14 Jun 2026 19:42:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781428126; cv=none; b=T1hF31NTkIJmp7DsPTprIcgC1RO10Y6DLFZ4pVzBv9xaG4fCewP/5Zszh6KHq00lan9iIXRsVLLap6pcak7fjTLXg3M6Dq7JqAbqtdnPRLunLcVvpL0bQg4gTdlqFK2eytm0CO6AGScl7cE9WKlMyBjJF+bvDZ9nUWi3YYaasz0=
+	t=1781466171; cv=none; b=Yw/ypr3aKET2ulfB3T7E53yc4Q0+BGKm5SjVNBLdZtCYPO9EedbVD3GOhLN9TynjD9KY4YNADB6iW8nSt40qEA1MrKlaRROZ44AxbQi0ayRgVEuX1Y/WyWNEi3FgOIAakQwtROubub/qXo7uCaaC4INT53xIPTYQ+Dhh5z7Zjb8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781428126; c=relaxed/simple;
-	bh=ds1HsbZs+TpMLIF0S0Y/rsn8pgGEfs4bWpfItaniQG4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RwoiIVADzaYeRY+zdP4cuFYKiBJNpNhAEeJslS2Dy9grm3Vjnc/LafUjKvSCcuuKVjUhfQpeWbnYB5/TNj/8O/050s+AjuJgUKNTHRcjJ3Quz2gpAVFZOZOTf1qNRM5CuqPSWiJ4R6284rkUK4b8DOSJqbytt8iuCHxmktO8Ku8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JmDgkLjt; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1781466171; c=relaxed/simple;
+	bh=YxnL7xpCUgIOrwc6BYPVsk0zqOHSkBhvqAz930dSK4Y=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type; b=Vjh6lVhSb6TpyvNEcqh848zq+IHrMsnJ0iBr2B1UrMx+nH5z+v+tfMC4XG69hlFk/tI97ioNsbbwWuu+AHIogkdlFhTnULmgZ8xcIooNLOD9CZUrFy+0dPGyb8guPn0o9rw5V5aII4tTGDhx1NmxAzVnx8ElhVx4HB7xCip3dL4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=EWGDiguz; arc=none smtp.client-ip=209.85.160.178
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JmDgkLjt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22CAE1F000E9;
-	Sun, 14 Jun 2026 09:08:34 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1781428125;
-	bh=9LYN2F22JfxLMFILRwK47fnnXK4CRYMdn70feq0hkAU=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=JmDgkLjtoZnLFZgAtR+vHMK67JuchCave9VSHr4gLxyba74SghnllzjeHu1vbkQOW
-	 XMApUd/vQy4am3/StkR3hL+lROIGeGWOtRo949v3aVeGb9zi8sfmGMdbwQGgC7T5fH
-	 i2A7clnIf1ZvlIDh41v0VNmHzZq2u55//0upr281SoxrShLFRXxfcU3mk6AJIyCr5N
-	 5YyVO6Fsl3tlEDNaZeeEUxHQTAN0b3oc9b8C6+IfnDtEEgxEseTYT2914AIAMH+r7c
-	 dqZeXh3ZbKvgMrRtOx1GuOwyKd7+ZYYMYz5+bgKsStmqg8oZrwzNSzAbLtGPuV6pkV
-	 xPkPs0FBsBsuQ==
-Date: Sun, 14 Jun 2026 12:08:31 +0300
-From: Mike Rapoport <rppt@kernel.org>
-To: Gregory Price <gourry@gourry.net>
-Cc: linux-mm@kvack.org, x86@kernel.org, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-	driver-core@lists.linux.dev, kernel-team@meta.com, corbet@lwn.net,
-	skhan@linuxfoundation.org, dave.hansen@linux.intel.com,
-	luto@kernel.org, peterz@infradead.org, tglx@kernel.org,
-	mingo@redhat.com, bp@alien8.de, hpa@zytor.com, rafael@kernel.org,
-	lenb@kernel.org, gregkh@linuxfoundation.org, dakr@kernel.org,
-	akpm@linux-foundation.org, rdunlap@infradead.org,
-	feng.tang@linux.alibaba.com, dapeng1.mi@linux.intel.com,
-	elver@google.com, kuba@kernel.org, ebiggers@kernel.org,
-	lirongqing@baidu.com, paulmck@kernel.org, dave.jiang@intel.com,
-	jic23@kernel.org, xueshuai@linux.alibaba.com, kai.huang@intel.com
-Subject: Re: [RFC PATCH 1/3] mm/numa: add exclusive node pool and
- numa=standby boot parameter
-Message-ID: <ai5vj_RjSxl_FLu-@kernel.org>
-References: <20260610014517.253609-1-gourry@gourry.net>
- <20260610014517.253609-2-gourry@gourry.net>
- <aip5IWmxg9CWg8hQ@kernel.org>
- <airAUSrNjbSEwuti@gourry-fedora-PF4VCD3F>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="EWGDiguz"
+Received: by mail-qt1-f178.google.com with SMTP id d75a77b69052e-517863a2edfso21489681cf.1
+        for <linux-acpi@vger.kernel.org>; Sun, 14 Jun 2026 12:42:49 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1781466169; x=1782070969; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:to
+         :from:from:to:cc:subject:date:message-id:reply-to;
+        bh=zb70ubGklGxvCJqP74nlF544hbhydrv7hgQ5+0sOggE=;
+        b=EWGDiguzMKH3BBeh5efWGuXkltY3g/iNZbX8x40jvc0bIxJhZ2n2vm0szyMQStEHKQ
+         nZe6a3WkSOr6BkHmA0ykhcLwyj22fqbqx/lhIpQ6SCawcQZ1UiWF4hpEZAWP8u2mDBwG
+         n11OzCmao7kIdI7rhIGf1fOh7cRjQ3extKcmeBEUsS3f1yyHsgpOQoH+CHee5wK3irMa
+         a2nP4U8n5udWLDBIA8Nr5NM3hwwPhTd2gBeN+eg5FIcXSDzs77tupmnIU8bq0F9lu97x
+         kEtrFXtBlo1/ZsbT4PLmWGWN6+0sc8MRNhHRgoFLIJv9XgVWs4xDSMSEVru0EfUvmLRM
+         WDHQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1781466169; x=1782070969;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:to
+         :from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=zb70ubGklGxvCJqP74nlF544hbhydrv7hgQ5+0sOggE=;
+        b=bj255p64LHE+42hSh4OESLbSQ5Bu/wq6of7H0BBONayiSbnSS0zzhnZJHvqoITmQzq
+         fdJrLckbp4bC2bLM0tf615uWI/EfPxfKRWPiz6Q3J6Xic1xCt8rv9miL1nPjsg+KwJ70
+         GGt0VUOZ0PA1B/rlkrHVluk7NCj7sM3lY5lZRJdatxvtiVdJPpCSjd72OmDlSqAwAXN7
+         qBkgPKvVuCh/gGAcmM8YLa+7y+Jh9Qp2anp0LovEKqUvh0dnu2yKnH8IsZYAUcnqr7EZ
+         PvmSbL8SbcvtGfEr0yMDBBH207WSl+MnB/jQg5Cj8u4k2HcVkJJKeZ1lcK5LCnUdq2rc
+         1AFw==
+X-Forwarded-Encrypted: i=1; AFNElJ8y45Z6yQkUWCEOhyxvGYp4BH0V4YlwlYRuMtqSwAXNL1PyaEnVrXl7TO7hfVKQO5Vx+y1TFdKVRqI2@vger.kernel.org
+X-Gm-Message-State: AOJu0YwXN+F2/XXrci4quRQk5SgzkNnriiAfL7lpr2XnhAG1bcf+kJp1
+	RIJ+XDbYgVnENq8rh+bnFSXe3kvti60qcht+Y4BfuNbzTEQ2LawNIYcCZC0b0cfW2p8=
+X-Gm-Gg: Acq92OGTv6MuCQ/l4iL8x0Ijf4Iwe1ELd2F364HrHZ0NNV1sqcX15ejIPu6uW/9bxQ8
+	P2d42N/XUqL0uWlC63ry4L2P+3fHzFCTKXwLbzatqPlb+jA/oqGulNPWOtxN/bF4YqapFJPSKEv
+	TnznCjA8ZfT9VmgCWSdd0iYGs3eU1dOt9D7jWY/a8dN10iesCpEijHdIQIp53iiPq7NfLzOU/jp
+	l/UuXIa+mCMSZDijaksnxw7OeTlZWz10G/IBtldGWkGI+L1UB31db8HqQQAOiyDWIm4mGgDPXBW
+	QUaDIOhoi5mP/CiKX4KLw8uhnS2+NquYNxJDPgY4lcAT5Kmjz4IZVSuhR1p96fMDUQSxAqIYVIM
+	AtzWWhagAQ3FguF3zdUv4S0Wgw5vD8vDhxXqoxNazeoGLiRVwvzBvBLoQaQgSk4Sg3dJlNaHXt5
+	MrqhjmBTqbZ1iYxaQ38N5nWQiDToqLpEr5Yogg+XiQ77VFLiOA5kfumEomDCFnjYqdhMqcBNsG
+X-Received: by 2002:ac8:5f89:0:b0:517:5e32:f3ad with SMTP id d75a77b69052e-517fe4d72d3mr178336341cf.26.1781466168741;
+        Sun, 14 Jun 2026 12:42:48 -0700 (PDT)
+Received: from localhost.localdomain ([2607:fb90:a8d1:8eec:c0e9:106e:b2e:e8e9])
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-517fb7dacdfsm85323081cf.20.2026.06.14.12.42.48
+        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
+        Sun, 14 Jun 2026 12:42:48 -0700 (PDT)
+From: Shuangpeng Bai <shuangpeng.kernel@gmail.com>
+To: rafael@kernel.org,
+	lenb@kernel.org,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [BUG] KASAN: slab-use-after-free in get_pfrt_log_data_info
+Date: Sun, 14 Jun 2026 15:42:47 -0400
+Message-ID: <178144969601.60470.3508974301899957212@gmail.com>
+X-Mailer: git-send-email 2.47.1
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <airAUSrNjbSEwuti@gourry-fedora-PF4VCD3F>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-On Thu, Jun 11, 2026 at 10:04:01AM -0400, Gregory Price wrote:
-> On Thu, Jun 11, 2026 at 12:00:17PM +0300, Mike Rapoport wrote:
-> > > 1) Can we do dynamic addition of nodes?
-> > > 
-> > >    Not Trivially
-> > > 
-> > >    Some services utilize num_possible_nodes() as a static value to
-> > >    calculate the amount of resources to use at runtime (bpf, md/raid5).
-> > > 
-> > >    Example: futex_init uses num_possible_nodes() as part of its
-> > >             hashsize calculation during __init.
-> > 
-> > AFAIU, we don't add the additional nodes for generic hotplug memory but
-> > rather for exclusive use of by drivers/applications that are aware of these
-> > nodes.
-> 
-> The intent is to use for "non-generic" hotplug (see the whole private
-> node series [1]), which would eventually still use the hotplug mechanism
-> just not for generic memory.
-> 
-> [1] https://lore.kernel.org/linux-mm/20260222084842.1824063-1-gourry@gourry.net/
-> 
-> > Wouldn't adding them to possible nodes actually skew the calculation of the
-> > resources by the services utilizing num_possible_nodes()?
-> > 
-> > With the futex_init() example, won't be hashsize scaled down two much
-> > because we've added these special nodes to the possible mask?
-> >
-> 
-> The result is the same as BIOS reserving nodes with PXM entries that
-> don't get used.  The CXL ACPI Tables do this for CXL Fixed Memory
-> Windows that may never be hotplugged.
+Hi Kernel Maintainers,
 
-Well, even without CXL there could be nodes that may never be hotplugged, I
-suppose that with CXL the difference between available and possible
-nodes can get much larger.
- 
-> So really i think you're pointing out that futex_init() here probably
-> shouldn't be using num_possible_nodes?
+I hit the following report while testing current upstream kernel:
 
-I'd rather say that num_possible_nodes() with and without CXL (or other
-differentiated memory) has different semantics.
-Maybe we need to add a new primitive for possible differentiated nodes and
-keep num_possible_nodes() to mean "number of possible nodes with normal
-memory".
- 
-> ~Gregory
+KASAN: slab-use-after-free in get_pfrt_log_data_info
 
--- 
-Sincerely yours,
-Mike.
+on commit: e8c2f9fdadee7cbc75134dc463c1e0d856d6e5c7 (May 25 2026)
+
+The reproducer and .config files are here.
+https://gist.github.com/shuangpengbai/d516798907ff96ec17e58f43057f3060
+
+I'm happy to test debug patches or provide additional information.
+
+Reported-by: Shuangpeng Bai <shuangpeng.kernel@gmail.com>
+
+[   52.268064][ T8345] BUG: KASAN: slab-use-after-free in get_pfrt_log_data_info (drivers/acpi/pfr_telemetry.c:82)
+[   52.270424][ T8345] Read of size 8 at addr ffff8881023d9048 by task pfrt_telemetry_/8345
+[   52.272696][ T8345]
+[   52.273378][ T8345] Hardware name: QEMU Ubuntu 24.04 PC v2 (i440FX + PIIX, arch_caps fix, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
+[   52.273386][ T8345] Call Trace:
+[   52.273392][ T8345]  <TASK>
+[   52.273396][ T8345]  dump_stack_lvl (lib/dump_stack.c:94 lib/dump_stack.c:120)
+[   52.273410][ T8345]  print_report (mm/kasan/report.c:378 mm/kasan/report.c:482)
+[   52.273456][ T8345]  kasan_report (mm/kasan/report.c:595)
+[   52.273475][ T8345]  get_pfrt_log_data_info (drivers/acpi/pfr_telemetry.c:82)
+[   52.273542][ T8345]  pfrt_log_mmap (drivers/acpi/pfr_telemetry.c:314)
+[   52.273588][ T8345]  mmap_region (include/linux/fs.h:2071 mm/internal.h:168 mm/vma.c:2496 mm/vma.c:2562 mm/vma.c:2771 mm/vma.c:2857)
+[   52.273703][ T8345]  do_mmap (mm/mmap.c:560)
+[   52.273756][ T8345]  vm_mmap_pgoff (mm/util.c:581)
+[   52.273805][ T8345]  ksys_mmap_pgoff (mm/mmap.c:606)
+[   52.273815][ T8345]  do_syscall_64 (arch/x86/entry/syscall_64.c:63 arch/x86/entry/syscall_64.c:94)
+[   52.273829][ T8345]  entry_SYSCALL_64_after_hwframe (arch/x86/entry/entry_64.S:121)
+[   52.273840][ T8345] RIP: 0033:0x7f7d75db90d2
+[   52.273850][ T8345] Code: e4 e8 62 64 01 00 66 90 41 f7 c1 ff 0f 00 00 75 27 55 48 89 fd 53 89 cb 48 85 ff 74 3b 41 89 da 48 89 ef b8 09 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 66 5b 5d c3 0f 1f 00 48 8b 05 89 8d 0d 00 64
+[   52.273859][ T8345] RSP: 002b:00007ffe41f36ac8 EFLAGS: 00000246 ORIG_RAX: 0000000000000009
+[   52.273874][ T8345] RAX: ffffffffffffffda RBX: 0000000000000001 RCX: 00007f7d75db90d2
+[   52.273881][ T8345] RDX: 0000000000000001 RSI: 0000000000001000 RDI: 0000000000000000
+[   52.273887][ T8345] RBP: 0000000000000000 R08: 0000000000000003 R09: 0000000000000000
+[   52.273892][ T8345] R10: 0000000000000001 R11: 0000000000000246 R12: 0000000000000003
+[   52.273898][ T8345] R13: 0000000000000004 R14: 0000559ef11e17bb R15: 0000000000000000
+[   52.273908][ T8345]  </TASK>
+[   52.273912][ T8345]
+[   52.304291][ T8345] Freed by task 8345 on cpu 0 at 52.064366s:
+[   52.304903][ T8345]  kasan_save_track (mm/kasan/common.c:57 mm/kasan/common.c:78)
+[   52.305383][ T8345]  kasan_save_free_info (mm/kasan/generic.c:584)
+[   52.305893][ T8345]  __kasan_slab_free (mm/kasan/common.c:253 mm/kasan/common.c:285)
+[   52.306381][ T8345]  kfree (include/linux/kasan.h:235 mm/slub.c:2689 mm/slub.c:6251 mm/slub.c:6566)
+[   52.306779][ T8345]  devres_release_all (drivers/base/devres.c:50 drivers/base/devres.c:547 drivers/base/devres.c:576)
+[   52.307297][ T8345]  device_release_driver_internal (drivers/base/dd.c:598 drivers/base/dd.c:1357 drivers/base/dd.c:1375)
+[   52.307907][ T8345]  unbind_store (drivers/base/bus.c:244)
+[   52.308372][ T8345]  kernfs_fop_write_iter (fs/kernfs/file.c:352)
+[   52.308908][ T8345]  vfs_write (fs/read_write.c:595 fs/read_write.c:688)
+[   52.309346][ T8345]  ksys_write (fs/read_write.c:740)
+[   52.309785][ T8345]  do_syscall_64 (arch/x86/entry/syscall_64.c:63 arch/x86/entry/syscall_64.c:94)
+[   52.310257][ T8345]  entry_SYSCALL_64_after_hwframe (arch/x86/entry/entry_64.S:121)
+[   52.310850][ T8345]
+[   52.311090][ T8345] The buggy address belongs to the object at ffff8881023d9000
+[   52.311090][ T8345]  which belongs to the cache kmalloc-192 of size 192
+[   52.312495][ T8345] The buggy address is located 72 bytes inside of
+[   52.312495][ T8345]  freed 192-byte region [ffff8881023d9000, ffff8881023d90c0)
+[   52.313851][ T8345]
+
+
+Best,
+Shuangpeng
