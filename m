@@ -1,154 +1,111 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.17])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77ED136AB54;
-	Sat, 13 Jun 2026 13:00:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.17
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 870282BE7DB;
+	Sun, 14 Jun 2026 09:08:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781355650; cv=none; b=H6v5O0uH502WLU0Qr3ecCO3aApnjMUoR8UhWuT3lrPs8wZQAFAp38y39SwpZRm59OSWB8OW9ZkK6Lo1Weqm+Bvv58RYPzmhADncTVVlgfXFOZ+IgsTDT+1gFPA4Ql2qPkwFKSDpSZQSQ/5tKtG2ZJSIxT/sEp1tkmouUQJQtCdA=
+	t=1781428126; cv=none; b=T1hF31NTkIJmp7DsPTprIcgC1RO10Y6DLFZ4pVzBv9xaG4fCewP/5Zszh6KHq00lan9iIXRsVLLap6pcak7fjTLXg3M6Dq7JqAbqtdnPRLunLcVvpL0bQg4gTdlqFK2eytm0CO6AGScl7cE9WKlMyBjJF+bvDZ9nUWi3YYaasz0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781355650; c=relaxed/simple;
-	bh=uxJGwCAsMcpFZ/9RNw7yRRDOB6tqapy/6259X4loI4s=;
+	s=arc-20240116; t=1781428126; c=relaxed/simple;
+	bh=ds1HsbZs+TpMLIF0S0Y/rsn8pgGEfs4bWpfItaniQG4=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=P1RsAMWfrfDQwC5VQd2UE9Ni7K1oDCq77Q1fewfHUHWhQfY+0Ui6oQp3sRh1Ow7o11f/9oQDqtrGeHQnk0CU/gEuYglCmqqrR0pwnBhwmMsYJJZa6Nao747rCSEpsU9UrLJlP5vP8MBJEZ/Tt19FGeTwwoDuC32V9reaE3PKpmc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=FfbbVgJl; arc=none smtp.client-ip=192.198.163.17
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=RwoiIVADzaYeRY+zdP4cuFYKiBJNpNhAEeJslS2Dy9grm3Vjnc/LafUjKvSCcuuKVjUhfQpeWbnYB5/TNj/8O/050s+AjuJgUKNTHRcjJ3Quz2gpAVFZOZOTf1qNRM5CuqPSWiJ4R6284rkUK4b8DOSJqbytt8iuCHxmktO8Ku8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JmDgkLjt; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="FfbbVgJl"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1781355649; x=1812891649;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:content-transfer-encoding:in-reply-to;
-  bh=uxJGwCAsMcpFZ/9RNw7yRRDOB6tqapy/6259X4loI4s=;
-  b=FfbbVgJlaLbU7wDkIYebsv8aBoR+2+pqYmj+TnJT6WZXNw7CsISppw6D
-   oAVTQFHS5TsWqiRZODMb5ED6eGI1oznW9mpUAFOPwhWXnFECPW8ZymwX9
-   nnB/5EAcjQiQvhcEgtNJ2sUMJi0Vkk+qjaDfDP6TmOAmJZKoj1Fh0qqv0
-   ndPPfYzJXrk2no3gxsRrPtwfufxbQxitRY1q1Kj6GK91yxdj81Jmv2ktM
-   e18BZH+U+oVX6yWCRf2LCnRm6kpL0yOCdfcZHHQh1Vm5S8nIqBjklwkzf
-   /S4uCJpcQF5+JmNozhaW1ftweeyUg8U4hAe7Zhm/3ul3/vcarq75+oX9v
-   A==;
-X-CSE-ConnectionGUID: M5kFuq2KQaKWxOiDFgqjVg==
-X-CSE-MsgGUID: L76gAwg3TXSKaMOcJDIaug==
-X-IronPort-AV: E=McAfee;i="6800,10657,11815"; a="82014780"
-X-IronPort-AV: E=Sophos;i="6.24,202,1774335600"; 
-   d="scan'208";a="82014780"
-Received: from orviesa008.jf.intel.com ([10.64.159.148])
-  by fmvoesa111.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Jun 2026 06:00:48 -0700
-X-CSE-ConnectionGUID: 9YFHfovRT2GI8xWhDYQGUA==
-X-CSE-MsgGUID: xEQJQI/xSEusBaz11tHecg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.24,202,1774335600"; 
-   d="scan'208";a="246931274"
-Received: from abityuts-desk.ger.corp.intel.com (HELO localhost) ([10.245.245.184])
-  by orviesa008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Jun 2026 06:00:43 -0700
-Date: Sat, 13 Jun 2026 16:00:40 +0300
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Chen-Yu Tsai <wenst@chromium.org>
-Cc: Bartosz Golaszewski <brgl@kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>, Rob Herring <robh@kernel.org>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
-	Alan Stern <stern@rowland.harvard.edu>, linux-acpi@vger.kernel.org,
-	driver-core@lists.linux.dev, linux-pm@vger.kernel.org,
-	linux-usb@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-mediatek@lists.infradead.org,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	Manivannan Sadhasivam <mani@kernel.org>
-Subject: Re: [PATCH v2 02/16] device property: Add
- fwnode_graph_get_next_port_endpoint()
-Message-ID: <ai1UeO-BZQEEheml@ashevche-desk.local>
-References: <20260610084053.2059858-1-wenst@chromium.org>
- <20260610084053.2059858-3-wenst@chromium.org>
- <ailv8HpnrCH3Zb8C@ashevche-desk.local>
- <CAGXv+5EHHWfiWgqPpf-RMKoSQLc2cd9OA4Z36SNoL5C53kVh2g@mail.gmail.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JmDgkLjt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22CAE1F000E9;
+	Sun, 14 Jun 2026 09:08:34 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1781428125;
+	bh=9LYN2F22JfxLMFILRwK47fnnXK4CRYMdn70feq0hkAU=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=JmDgkLjtoZnLFZgAtR+vHMK67JuchCave9VSHr4gLxyba74SghnllzjeHu1vbkQOW
+	 XMApUd/vQy4am3/StkR3hL+lROIGeGWOtRo949v3aVeGb9zi8sfmGMdbwQGgC7T5fH
+	 i2A7clnIf1ZvlIDh41v0VNmHzZq2u55//0upr281SoxrShLFRXxfcU3mk6AJIyCr5N
+	 5YyVO6Fsl3tlEDNaZeeEUxHQTAN0b3oc9b8C6+IfnDtEEgxEseTYT2914AIAMH+r7c
+	 dqZeXh3ZbKvgMrRtOx1GuOwyKd7+ZYYMYz5+bgKsStmqg8oZrwzNSzAbLtGPuV6pkV
+	 xPkPs0FBsBsuQ==
+Date: Sun, 14 Jun 2026 12:08:31 +0300
+From: Mike Rapoport <rppt@kernel.org>
+To: Gregory Price <gourry@gourry.net>
+Cc: linux-mm@kvack.org, x86@kernel.org, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+	driver-core@lists.linux.dev, kernel-team@meta.com, corbet@lwn.net,
+	skhan@linuxfoundation.org, dave.hansen@linux.intel.com,
+	luto@kernel.org, peterz@infradead.org, tglx@kernel.org,
+	mingo@redhat.com, bp@alien8.de, hpa@zytor.com, rafael@kernel.org,
+	lenb@kernel.org, gregkh@linuxfoundation.org, dakr@kernel.org,
+	akpm@linux-foundation.org, rdunlap@infradead.org,
+	feng.tang@linux.alibaba.com, dapeng1.mi@linux.intel.com,
+	elver@google.com, kuba@kernel.org, ebiggers@kernel.org,
+	lirongqing@baidu.com, paulmck@kernel.org, dave.jiang@intel.com,
+	jic23@kernel.org, xueshuai@linux.alibaba.com, kai.huang@intel.com
+Subject: Re: [RFC PATCH 1/3] mm/numa: add exclusive node pool and
+ numa=standby boot parameter
+Message-ID: <ai5vj_RjSxl_FLu-@kernel.org>
+References: <20260610014517.253609-1-gourry@gourry.net>
+ <20260610014517.253609-2-gourry@gourry.net>
+ <aip5IWmxg9CWg8hQ@kernel.org>
+ <airAUSrNjbSEwuti@gourry-fedora-PF4VCD3F>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAGXv+5EHHWfiWgqPpf-RMKoSQLc2cd9OA4Z36SNoL5C53kVh2g@mail.gmail.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+In-Reply-To: <airAUSrNjbSEwuti@gourry-fedora-PF4VCD3F>
 
-On Fri, Jun 12, 2026 at 04:20:18PM +0900, Chen-Yu Tsai wrote:
-> On Wed, Jun 10, 2026 at 11:08 PM Andy Shevchenko
-> <andriy.shevchenko@linux.intel.com> wrote:
-> > On Wed, Jun 10, 2026 at 04:40:36PM +0800, Chen-Yu Tsai wrote:
-
-...
-
-> > > +struct fwnode_handle *fwnode_graph_get_next_port_endpoint(const struct fwnode_handle *port,
-> > > +                                                       struct fwnode_handle *prev)
-> > > +{
-> > > +     struct fwnode_handle *ep;
-> >
-> > Unused?
-> >
-> > > +     while (1) {
-> >
-> > This is usually harder to read and follow. It's like "pay much attention on
-> > the code", but here no rocket science, no code to really pay attention to.
-> >
-> > > +             prev = fwnode_get_next_child_node(port, prev);
-> > > +             if (!prev)
-> > > +                     break;
-> > > +
-> > > +             if (WARN(!fwnode_name_eq(prev, "endpoint"),
-> > > +                      "non endpoint node is used (%pfw)", prev))
-> > > +                     continue;
-> > > +
-> > > +             break;
-> > > +     }
-> > > +
-> > > +     return prev;
-> > > +}
-> >
-> > So, this can be rewritten as
-> >
-> >         ep = prev;
-> >         do {
-> >                 ep = fwnode_get_next_child_node(port, ep);
-> >                 if (fwnode_name_eq(ep, "endpoint"))
-> >                         break;
-> >
-> >                 WARN_ON(ep, ...);
-> >         } while (ep);
-> >
-> >         return ep;
-> >
-> > But also big question why? to WARN*(). There is no use in the entire
-> > property.c.
+On Thu, Jun 11, 2026 at 10:04:01AM -0400, Gregory Price wrote:
+> On Thu, Jun 11, 2026 at 12:00:17PM +0300, Mike Rapoport wrote:
+> > > 1) Can we do dynamic addition of nodes?
+> > > 
+> > >    Not Trivially
+> > > 
+> > >    Some services utilize num_possible_nodes() as a static value to
+> > >    calculate the amount of resources to use at runtime (bpf, md/raid5).
+> > > 
+> > >    Example: futex_init uses num_possible_nodes() as part of its
+> > >             hashsize calculation during __init.
+> > 
+> > AFAIU, we don't add the additional nodes for generic hotplug memory but
+> > rather for exclusive use of by drivers/applications that are aware of these
+> > nodes.
 > 
-> Will drop. This function was lifted from drivers/of/property.c then
-> adapted to the fwnode APIs, so it still has the structure of its
-> origin. With the WARN() gone, rewriting it as do {} while() becomes:
+> The intent is to use for "non-generic" hotplug (see the whole private
+> node series [1]), which would eventually still use the hotplug mechanism
+> just not for generic memory.
 > 
-> do {
->         prev = fwnode_get_next_child_node(port, prev);
->         if (prev && fwnode_name_eq(prev, "endpoint"))
-
-'prev &&' is not needed.
-
->                 break;
-> } while (prev);
+> [1] https://lore.kernel.org/linux-mm/20260222084842.1824063-1-gourry@gourry.net/
 > 
-> return prev;
+> > Wouldn't adding them to possible nodes actually skew the calculation of the
+> > resources by the services utilizing num_possible_nodes()?
+> > 
+> > With the futex_init() example, won't be hashsize scaled down two much
+> > because we've added these special nodes to the possible mask?
+> >
+> 
+> The result is the same as BIOS reserving nodes with PXM entries that
+> don't get used.  The CXL ACPI Tables do this for CXL Fixed Memory
+> Windows that may never be hotplugged.
+
+Well, even without CXL there could be nodes that may never be hotplugged, I
+suppose that with CXL the difference between available and possible
+nodes can get much larger.
+ 
+> So really i think you're pointing out that futex_init() here probably
+> shouldn't be using num_possible_nodes?
+
+I'd rather say that num_possible_nodes() with and without CXL (or other
+differentiated memory) has different semantics.
+Maybe we need to add a new primitive for possible differentiated nodes and
+keep num_possible_nodes() to mean "number of possible nodes with normal
+memory".
+ 
+> ~Gregory
 
 -- 
-With Best Regards,
-Andy Shevchenko
-
-
+Sincerely yours,
+Mike.
