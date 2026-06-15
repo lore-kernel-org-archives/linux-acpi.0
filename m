@@ -1,40 +1,40 @@
-Received: from mout01.posteo.de (mout01.posteo.de [185.67.36.65])
+Received: from mout02.posteo.de (mout02.posteo.de [185.67.36.66])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A9411ABEDE
-	for <linux-acpi@vger.kernel.org>; Mon, 15 Jun 2026 00:40:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.67.36.65
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03A371A6834
+	for <linux-acpi@vger.kernel.org>; Mon, 15 Jun 2026 00:40:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.67.36.66
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781484030; cv=none; b=bmGcqac6qgU0wznSdV/+cdDhSA70R/pNopge9EyPEx2cSWxyOAsGb3bs8GATcO3YwuppT7hORqI8dh9wNA8woF9ARlxz+XxiX65e0/JnseopzFB+iDuuDJqzL+4u5Pt7RbvtAhr5K4obP1a3OD6FgjWsq4vdjTF9TTjCuoBOJiE=
+	t=1781484031; cv=none; b=SsmqqqOqG2MIM6/N5opd85bFdtqTSVRixd1XyygUKWrsIXBo7TherZJCzN8usc9d23MlETvQtWVGjw0RGvrZlW8uK5pG5befiB4Yri/FgU+e6w/9JvhRFaauBlgyj5cbtWTQjrsUg4t0gKuyYlhtIzupI/lahpddKTHcmnEfRto=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781484030; c=relaxed/simple;
-	bh=+224hee0vF2PrlP9+wUN8C16JI0W0b+GsrBZoxiDo0Q=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=a73A6aYrdCZkMy3BlA3siDWEYNDzNxZ8FWayDniDAEBdTGmDw1gzZgSyuMLybD44CduGidvIAQmBwyv4qqpQ/XrgW8OJXbMp5i7YonfX4Q+sFqgqOWjCqZBY5Dweit8CyM9FqchyxkgmSqKIekjYe05DTO3VXGe4Xg8S/K5a4J4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de; spf=pass smtp.mailfrom=posteo.de; dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b=nVYiKuCf; arc=none smtp.client-ip=185.67.36.65
+	s=arc-20240116; t=1781484031; c=relaxed/simple;
+	bh=ecenD+bbHZd1D7QwIxIhJJWiW1cEKEMuDKlzkTGkejs=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=tH/8t8WfQZdR+UrPmCDdXY+CRSmS+NRvfwawtdlN7ySJ3IFoV4LvgJQ1nD8JCL8oJdQYd6tBPdOxkN7GUCySZbyvM+cFPEOfg4jw2DpS94lEkaN7ZcX2jUaQIh3NTYPxUQEvOnQ9IiJ/vD254vlAt7w3zjFH6F1JKOcTvEV5VJI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de; spf=pass smtp.mailfrom=posteo.de; dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b=iySn2ini; arc=none smtp.client-ip=185.67.36.66
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=posteo.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b="nVYiKuCf"
+	dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b="iySn2ini"
 Received: from submission (posteo.de [185.67.36.169]) 
-	by mout01.posteo.de (Postfix) with ESMTPS id B2E82240029
+	by mout02.posteo.de (Postfix) with ESMTPS id 0748A240101
 	for <linux-acpi@vger.kernel.org>; Mon, 15 Jun 2026 02:40:21 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=posteo.de; s=2017;
-	t=1781484021; bh=Hi1n85INy8qrkSi90aNIhgIANDa5ehEQj1yLY+PriN8=;
-	h=From:Date:Subject:MIME-Version:Content-Type:
-	 Content-Transfer-Encoding:Message-Id:To:Cc:Autocrypt:OpenPGP:From;
-	b=nVYiKuCfa4v64LZc3Epdq9sNuv0tNM+2/Em4pPKWRwvQzEL8sirHtVRRmuSw9vHW6
-	 rUua4qdS5+G/ho7KN+LfJ6CmI6NU3DtrhETFxmzsQJ2mcSPhS7GEYNw/6tQnhH8EOQ
-	 szjCZLUr2p9NdUqynwhu5GjOZg9eDwPlMJNUllKIxvg4kPxxjQ/+nrR/SaPLVt5/W7
-	 Cgs5kAiNLTG4BnTQtfZE+sOzYZLmfTz7IXBNH6ecwa5v7KbZm3arp0nXB9T8vSUF+f
-	 XHCCfy+OR1ikMDDOLfBUSLpRLLQDB3JgerTRpMqfFKNMcLkTRVNjSGzSiUIi/UJDoz
-	 dwkAJddozRW9Q==
+	t=1781484021; bh=me8kNR5KWFK7zW5n1YHNwt6f8KAeZ/QWlp4X4+QJbB0=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding:To:Cc:Autocrypt:OpenPGP:From;
+	b=iySn2inikTbZgWzaN1VFTazPMRRV6ReIWfQzgghkeN2su9HQa6t9xLFJ3A6djN6ca
+	 LiHs79iRibP68GrPY4CCzAM4MrCwFCtcEDHKuxHBsk4jTZ4NavPomjEze9DD+NQWQU
+	 N7xT07xZm3/RRbMuOW59M07gYoZFcFwiMpWYvgwxmq9yE7+ybAEBizkqg+WvFWv7UH
+	 clNGINs1c1eK0PXdWYgkM5Tc4sX9jRi5dP6x5/Xu0vySnUPvvZDYjxGZ0Xwkh5oz7B
+	 ndyEBPqM4l7qfTahzTvMPlZSvS8MtVYQZ3DnwH3DibQeOvtHkjhG7KG26G464F+4hu
+	 J0fRw7lv7FEag==
 Received: from customer (localhost [127.0.0.1])
-	by submission (posteo.de) with ESMTPSA id 4gdrr45bbCz6tsf;
-	Mon, 15 Jun 2026 02:40:20 +0200 (CEST)
+	by submission (posteo.de) with ESMTPSA id 4gdrr360lyz6tsb;
+	Mon, 15 Jun 2026 02:40:19 +0200 (CEST)
 From: Markus Probst <markus.probst@posteo.de>
-Date: Mon, 15 Jun 2026 00:40:21 +0000
-Subject: [PATCH v3 1/2] serial: earlycon: add uart_clk_freq parameter
+Subject: [PATCH v3 0/2] ACPI: SPCR: Support UART clock frequency field
+Date: Mon, 15 Jun 2026 00:40:20 +0000
+Message-Id: <20260615-acpi_spcr-v3-0-9a59ebad74ea@posteo.de>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -43,29 +43,31 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260615-acpi_spcr-v3-1-9a59ebad74ea@posteo.de>
-References: <20260615-acpi_spcr-v3-0-9a59ebad74ea@posteo.de>
-In-Reply-To: <20260615-acpi_spcr-v3-0-9a59ebad74ea@posteo.de>
+X-B4-Tracking: v=1; b=H4sIAAAAAAAC/1WOQQ6CMBREr0K6tqT9BRRW3sMYA+2v1ASKbW00h
+ rsL1QUuJ3lvZt7EozPoSZO9icNovLHjEsQuI7JvxytSo5ZMgEHFCsFoKydz8ZN0tOI1A61qEBr
+ Iwk8OtXmmrtP5m/2ju6EMa8GPcHh/LCPhi5Gu9UilHQYTmizuc05Wszc+WPdKpyJPYNovWbnZj
+ 5xyqlXRyUoX2JXiOFkf0OYKU0uEjQl/JlBGJSuAHWq1F7LdmvM8fwBbkF5EFgEAAA==
+X-Change-ID: 20260430-acpi_spcr-61902fd923f2
 To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
  Jiri Slaby <jirislaby@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
  Len Brown <lenb@kernel.org>
 Cc: linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, 
  linux-acpi@vger.kernel.org, Markus Probst <markus.probst@posteo.de>
-X-Developer-Signature: v=1; a=openpgp-sha256; l=3700;
+X-Developer-Signature: v=1; a=openpgp-sha256; l=918;
  i=markus.probst@posteo.de; h=from:subject:message-id;
- bh=+224hee0vF2PrlP9+wUN8C16JI0W0b+GsrBZoxiDo0Q=;
- b=owEBiQJ2/ZANAwAIATR2H/jnrUPSAcsmYgBqL0nzap2753bM94HdoYuIjI2CCX162oEw0jwpM
- bDyupitqWOJAk8EAAEIADkWIQSCdBjE9KxY53IwxHM0dh/4561D0gUCai9J8xsUgAAAAAAEAA5t
- YW51MiwyLjUrMS4xMiwyLDIACgkQNHYf+OetQ9KKJg/+LV5+1HTx34LQN2OG7wzkYO/XMhgNmFG
- Gcp5r/IjfBqjznMKgNhCvfKBE1vZtIP+J6hDy9nxFW76GDSIW2KvTYC3P9sX6lzBvCaw4xE7Inz
- c8gcjfZpcxSxZ4GDX+uz7ur2zgAYaNRk8p6D7XWqBPx+E4t920NByS1q3YN2Iha00mqNiSVCiH6
- vUA4gul3cOTdIG8v73h3rjo6vD91w4Wl/rq/DVw0HXQ8YxFV3UHboAUpihL9nllEx8IfBEftgrg
- Gv35O1+vldklVYd42oT9d2PeQrjq+tVTeehq7Yhvj9f5UT0QkFPJ3aOc9rMPhv9lL0/GloDa1eB
- RTC5CgJRhEU1de2GgzL+ji6QdXJ62BB8dhdV0z/R4WJ17s0kDQhWsxHQ2u2rnMjFwxhZqm4D3go
- 0NhmIiF785Ycswrh8pAMceUhugyBtBLDVo2yaRZJxP19w9flMQjuIt/z+XzgWDhvOURq8+0CnBF
- GsBnw8WZvDXpwCaXSpd7LsDNX/j0+nrk5f9lwH/gBeP1y7iGFfF70C+1Xp/0HeJxz1LC7iv4Lj6
- 82kTnqWHB6h8jgsXpJ6E4npc4rTLu1/Pf3+uVATAGsb3e3oWgtSh8bfp4IBeUJ/MswBIaIoKNlS
- 5Rn+kR5YrLBRJqvECczLeLPPnKaodsZMfCi3neqBBifslddheOms=
+ bh=ecenD+bbHZd1D7QwIxIhJJWiW1cEKEMuDKlzkTGkejs=;
+ b=owEBiQJ2/ZANAwAIATR2H/jnrUPSAcsmYgBqL0nz6/+iH9o3DpA7UygAM7Btze2JysiRg4pHt
+ qeHTVwr7NGJAk8EAAEIADkWIQSCdBjE9KxY53IwxHM0dh/4561D0gUCai9J8xsUgAAAAAAEAA5t
+ YW51MiwyLjUrMS4xMiwyLDIACgkQNHYf+OetQ9ISBw//UnNcW+XyY6FL0BFu0PR/4nkfdXuF6ru
+ MhXEnuf1RRwt8Wg26QjRTYyoBzwT4aGa7Z8Kt6zCqyOLGKThVUbOEzQYptuqWD6B9XbsVEOm3tx
+ REyqQEGXwC+Tr7yhGSRnoUfqb7G7Xfrm8xBYJmMGTqpxdkfK5WQkuFWA/EbgWApJgcLT7PvvvcA
+ oqox/WxYCE2My4hA/bscHiCxZTTZb8Ui5oABR4vPEnaPaQyb3lDjrvGheAl2OqkxEGq0+8OtbOp
+ voIKlQ72yPytSJRUK0gOqmsRWzGpcPoF8L+NcmFox4cFx3bQQgSwOLyqu7KHRTe1q7nckA9uXmf
+ MK016FxHdhaW0GfzilLkfbczOhvcNVma75SARt3558dz/NccL5Mxh2J30piP1/iJ9nLotFX0T7i
+ dBvrBd3lcOq23S+PDlm+X0bn+aqXSLG58CJ7DAb33Z8gxYk9+ZQyTWqN8U2T2KtcbrwpG+FBPYS
+ 1HovY7PnWoIVCr4tfRMm5ShcfFk+g5Rtd570xjtCT4Vr/wKTAH/4Ihw5EairvRy9/XoChWLzHyx
+ VPGlIP1bGp/wU8UauzRkB20T9/kkMBu9ZmXBh4ZA1cWI1Ax2Fd1Wsc/76hMUref5aERBFFn5bgc
+ 5bCYYtDXGvX5Vo1bG4EQzmROIlGUdCycJbr978AIOuwGFiVA3d2w=
 X-Developer-Key: i=markus.probst@posteo.de; a=openpgp;
  fpr=827418C4F4AC58E77230C47334761FF8E7AD43D2
 Autocrypt: addr=markus.probst@posteo.de; prefer-encrypt=mutual;
@@ -111,101 +113,29 @@ Autocrypt: addr=markus.probst@posteo.de; prefer-encrypt=mutual;
   aBeNN4ijKZchBXHPgVx+YtWRHfcm4l8=
 OpenPGP: url=https://posteo.de/keys/markus.probst@posteo.de.asc; preference=encrypt
 
-Add function `setup_earlycon_with_uartclk`. This allows the
-options string to be reused with `add_preferred_console`, while still
-allowing to set the uart clock frequency. This will be used in the
-following commit ("ACPI: SPCR: Support UART clock frequency field").
-
-No logical change intended.
+Support the uart clock frequency in the SPCR table.
+See the commit messages for details.
 
 Signed-off-by: Markus Probst <markus.probst@posteo.de>
 ---
+Changes in v3:
+- add separate function for earlycon with uartclk
+- Link to v2: https://patch.msgid.link/20260525-acpi_spcr-v2-0-c042089d73ca@posteo.de
+
+Changes in v2:
+- fix uart_clk_freq possibly being interpreted as parity/bits/flow
+- Link to v1: https://patch.msgid.link/20260505-acpi_spcr-v1-1-fd4bc6f4eb53@posteo.de
+
+---
+Markus Probst (2):
+      serial: earlycon: add uart_clk_freq parameter
+      ACPI: SPCR: Support UART clock frequency field
+
+ drivers/acpi/spcr.c           |  3 ++-
  drivers/tty/serial/earlycon.c | 17 ++++++++++++-----
  include/linux/serial_core.h   | 11 +++++++++--
- 2 files changed, 21 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/tty/serial/earlycon.c b/drivers/tty/serial/earlycon.c
-index ab9af37f6cda..5a20fe9e3fb6 100644
---- a/drivers/tty/serial/earlycon.c
-+++ b/drivers/tty/serial/earlycon.c
-@@ -135,11 +135,14 @@ static int __init parse_options(struct earlycon_device *device, char *options)
- 	return 0;
- }
- 
--static int __init register_earlycon(char *buf, const struct earlycon_id *match)
-+static int __init register_earlycon(char *buf, unsigned int uart_clk_freq,
-+				    const struct earlycon_id *match)
- {
- 	int err;
- 	struct uart_port *port = &early_console_dev.port;
- 
-+	port->uartclk = uart_clk_freq;
-+
- 	/* On parsing error, pass the options buf to the setup function */
- 	if (buf && !parse_options(&early_console_dev, buf))
- 		buf = NULL;
-@@ -163,8 +166,9 @@ static int __init register_earlycon(char *buf, const struct earlycon_id *match)
- }
- 
- /**
-- *	setup_earlycon - match and register earlycon console
-- *	@buf:	earlycon param string
-+ *	setup_earlycon_with_uartclk - match and register earlycon console
-+ *	@buf:			      earlycon param string
-+ *	@uart_clk_freq:		      uart clock frequency in Hz or 0 for BASE_BAUD*16
-  *
-  *	Registers the earlycon console matching the earlycon specified
-  *	in the param string @buf. Acceptable param strings are of the form
-@@ -177,10 +181,13 @@ static int __init register_earlycon(char *buf, const struct earlycon_id *match)
-  *	<options> string in the 'options' parameter; all other forms set
-  *	the parameter to NULL.
-  *
-+ *	If the uart clock frequency is specified in the 'options' parameter,
-+ *	the value of the param @uart_clk_freq will be ignored.
-+ *
-  *	Returns 0 if an attempt to register the earlycon was made,
-  *	otherwise negative error code
-  */
--int __init setup_earlycon(char *buf)
-+int __init setup_earlycon_with_uartclk(char *buf, unsigned int uart_clk_freq)
- {
- 	const struct earlycon_id *match;
- 	bool empty_compatible = true;
-@@ -209,7 +216,7 @@ int __init setup_earlycon(char *buf)
- 		} else
- 			buf = NULL;
- 
--		return register_earlycon(buf, match);
-+		return register_earlycon(buf, uart_clk_freq, match);
- 	}
- 
- 	if (empty_compatible) {
-diff --git a/include/linux/serial_core.h b/include/linux/serial_core.h
-index 110ad4e2aef9..19d8181c9005 100644
---- a/include/linux/serial_core.h
-+++ b/include/linux/serial_core.h
-@@ -1097,11 +1097,18 @@ int of_setup_earlycon(const struct earlycon_id *match, unsigned long node,
- 
- #ifdef CONFIG_SERIAL_EARLYCON
- extern bool earlycon_acpi_spcr_enable __initdata;
--int setup_earlycon(char *buf);
-+int setup_earlycon_with_uartclk(char *buf, unsigned int uart_clk_freq);
- #else
- static const bool earlycon_acpi_spcr_enable EARLYCON_USED_OR_UNUSED;
--static inline int setup_earlycon(char *buf) { return 0; }
-+static inline int setup_earlycon_with_uartclk(char *buf, unsigned int uart_clk_freq)
-+{
-+	return 0;
-+}
- #endif
-+static inline int setup_earlycon(char *buf)
-+{
-+	return setup_earlycon_with_uartclk(buf, 0);
-+}
- 
- /* Variant of uart_console_registered() when the console_list_lock is held. */
- static inline bool uart_console_registered_locked(struct uart_port *port)
-
--- 
-2.53.0
+ 3 files changed, 23 insertions(+), 8 deletions(-)
+---
+base-commit: b3f94b2b3f3e51ab880a51fc6510e1dafba654ed
+change-id: 20260430-acpi_spcr-61902fd923f2
 
