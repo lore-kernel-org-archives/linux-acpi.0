@@ -1,40 +1,40 @@
 Received: from mout02.posteo.de (mout02.posteo.de [185.67.36.66])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03A371A6834
-	for <linux-acpi@vger.kernel.org>; Mon, 15 Jun 2026 00:40:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 495E81C84D0
+	for <linux-acpi@vger.kernel.org>; Mon, 15 Jun 2026 00:40:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.67.36.66
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781484031; cv=none; b=SsmqqqOqG2MIM6/N5opd85bFdtqTSVRixd1XyygUKWrsIXBo7TherZJCzN8usc9d23MlETvQtWVGjw0RGvrZlW8uK5pG5befiB4Yri/FgU+e6w/9JvhRFaauBlgyj5cbtWTQjrsUg4t0gKuyYlhtIzupI/lahpddKTHcmnEfRto=
+	t=1781484031; cv=none; b=LbD/iIxcgQBYXMd6PrP6Y8knYU2o6JDoNyV4B9CgY8zhfv3aI88EhdG1ArLj0tk01hujcCrk/X/n8g7ebzFTGoFx9uKGr4FwfPm+B2DgQUqZ6B0hwonVKynjvgYccOD35FxbWBk3Pm8efpU2blVWVBF4oX9QudCWBzbX80qqEjk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1781484031; c=relaxed/simple;
-	bh=ecenD+bbHZd1D7QwIxIhJJWiW1cEKEMuDKlzkTGkejs=;
-	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=tH/8t8WfQZdR+UrPmCDdXY+CRSmS+NRvfwawtdlN7ySJ3IFoV4LvgJQ1nD8JCL8oJdQYd6tBPdOxkN7GUCySZbyvM+cFPEOfg4jw2DpS94lEkaN7ZcX2jUaQIh3NTYPxUQEvOnQ9IiJ/vD254vlAt7w3zjFH6F1JKOcTvEV5VJI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de; spf=pass smtp.mailfrom=posteo.de; dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b=iySn2ini; arc=none smtp.client-ip=185.67.36.66
+	bh=D/a7GLwP9RCZ87p4FGNNSBIQmAsgLi2QemlLiAUnZdE=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=SxGRDUbeGXYRF6RdceF9ztntaK8qqgMtWYAW0+Ll5ciu4xtlcNHWvbD+S2KUsvO2wViLWDCi9ZBUbh1LOSpK4lT8FJfHb8GMfErW5R6yj8nnR3G/vMoCxbMV3IL2JaT7lPD1aZd2pA+00zx+hUhX7DGo/psMkWnjoD4Jamx7f9c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de; spf=pass smtp.mailfrom=posteo.de; dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b=HcvW1N39; arc=none smtp.client-ip=185.67.36.66
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=posteo.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b="iySn2ini"
+	dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b="HcvW1N39"
 Received: from submission (posteo.de [185.67.36.169]) 
-	by mout02.posteo.de (Postfix) with ESMTPS id 0748A240101
-	for <linux-acpi@vger.kernel.org>; Mon, 15 Jun 2026 02:40:21 +0200 (CEST)
+	by mout02.posteo.de (Postfix) with ESMTPS id D3BF4240103
+	for <linux-acpi@vger.kernel.org>; Mon, 15 Jun 2026 02:40:22 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=posteo.de; s=2017;
-	t=1781484021; bh=me8kNR5KWFK7zW5n1YHNwt6f8KAeZ/QWlp4X4+QJbB0=;
-	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:
-	 Content-Transfer-Encoding:To:Cc:Autocrypt:OpenPGP:From;
-	b=iySn2inikTbZgWzaN1VFTazPMRRV6ReIWfQzgghkeN2su9HQa6t9xLFJ3A6djN6ca
-	 LiHs79iRibP68GrPY4CCzAM4MrCwFCtcEDHKuxHBsk4jTZ4NavPomjEze9DD+NQWQU
-	 N7xT07xZm3/RRbMuOW59M07gYoZFcFwiMpWYvgwxmq9yE7+ybAEBizkqg+WvFWv7UH
-	 clNGINs1c1eK0PXdWYgkM5Tc4sX9jRi5dP6x5/Xu0vySnUPvvZDYjxGZ0Xwkh5oz7B
-	 ndyEBPqM4l7qfTahzTvMPlZSvS8MtVYQZ3DnwH3DibQeOvtHkjhG7KG26G464F+4hu
-	 J0fRw7lv7FEag==
+	t=1781484022; bh=SFw/cV4xrZFmVY2n9Jv3ao6mzSO+0cbe1qwtPHSZl60=;
+	h=From:Date:Subject:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding:Message-Id:To:Cc:Autocrypt:OpenPGP:From;
+	b=HcvW1N39AOz9J4Lef18/FP39Wme8T89OkyUhJdHr9jnNw0mh3+fs8qdLijASI3LTo
+	 P/CIpSVp4WrP1TWyc7X/PzH8HGUaehzxm1SLKozQxbdBwKoSUsgkVIC3R9j/yo5qx4
+	 0Wd29tmcmPDm07+JNS6FMpmgdSlNDroL+pNQUodZwQXq8GSVb1SqK572AbCBCIZThp
+	 pYArgUtG3//z67nUiyA5nRSGbT0BSZybs8+daAmEav0kqISwfvUW//OaCyLJgy1Sqv
+	 N9ZwSdQcTccVtxfLqpNkLzvW8Q++j5qP0Sf0RQAeBmFNTsQZXL6rtDKwnNLUX92Eno
+	 MXsFp0LOMkUmw==
 Received: from customer (localhost [127.0.0.1])
-	by submission (posteo.de) with ESMTPSA id 4gdrr360lyz6tsb;
-	Mon, 15 Jun 2026 02:40:19 +0200 (CEST)
+	by submission (posteo.de) with ESMTPSA id 4gdrr53ffzz6tsb;
+	Mon, 15 Jun 2026 02:40:21 +0200 (CEST)
 From: Markus Probst <markus.probst@posteo.de>
-Subject: [PATCH v3 0/2] ACPI: SPCR: Support UART clock frequency field
-Date: Mon, 15 Jun 2026 00:40:20 +0000
-Message-Id: <20260615-acpi_spcr-v3-0-9a59ebad74ea@posteo.de>
+Date: Mon, 15 Jun 2026 00:40:22 +0000
+Subject: [PATCH v3 2/2] ACPI: SPCR: Support UART clock frequency field
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -43,31 +43,29 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-B4-Tracking: v=1; b=H4sIAAAAAAAC/1WOQQ6CMBREr0K6tqT9BRRW3sMYA+2v1ASKbW00h
- rsL1QUuJ3lvZt7EozPoSZO9icNovLHjEsQuI7JvxytSo5ZMgEHFCsFoKydz8ZN0tOI1A61qEBr
- Iwk8OtXmmrtP5m/2ju6EMa8GPcHh/LCPhi5Gu9UilHQYTmizuc05Wszc+WPdKpyJPYNovWbnZj
- 5xyqlXRyUoX2JXiOFkf0OYKU0uEjQl/JlBGJSuAHWq1F7LdmvM8fwBbkF5EFgEAAA==
-X-Change-ID: 20260430-acpi_spcr-61902fd923f2
+Message-Id: <20260615-acpi_spcr-v3-2-9a59ebad74ea@posteo.de>
+References: <20260615-acpi_spcr-v3-0-9a59ebad74ea@posteo.de>
+In-Reply-To: <20260615-acpi_spcr-v3-0-9a59ebad74ea@posteo.de>
 To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
  Jiri Slaby <jirislaby@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
  Len Brown <lenb@kernel.org>
 Cc: linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, 
  linux-acpi@vger.kernel.org, Markus Probst <markus.probst@posteo.de>
-X-Developer-Signature: v=1; a=openpgp-sha256; l=918;
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1017;
  i=markus.probst@posteo.de; h=from:subject:message-id;
- bh=ecenD+bbHZd1D7QwIxIhJJWiW1cEKEMuDKlzkTGkejs=;
- b=owEBiQJ2/ZANAwAIATR2H/jnrUPSAcsmYgBqL0nz6/+iH9o3DpA7UygAM7Btze2JysiRg4pHt
- qeHTVwr7NGJAk8EAAEIADkWIQSCdBjE9KxY53IwxHM0dh/4561D0gUCai9J8xsUgAAAAAAEAA5t
- YW51MiwyLjUrMS4xMiwyLDIACgkQNHYf+OetQ9ISBw//UnNcW+XyY6FL0BFu0PR/4nkfdXuF6ru
- MhXEnuf1RRwt8Wg26QjRTYyoBzwT4aGa7Z8Kt6zCqyOLGKThVUbOEzQYptuqWD6B9XbsVEOm3tx
- REyqQEGXwC+Tr7yhGSRnoUfqb7G7Xfrm8xBYJmMGTqpxdkfK5WQkuFWA/EbgWApJgcLT7PvvvcA
- oqox/WxYCE2My4hA/bscHiCxZTTZb8Ui5oABR4vPEnaPaQyb3lDjrvGheAl2OqkxEGq0+8OtbOp
- voIKlQ72yPytSJRUK0gOqmsRWzGpcPoF8L+NcmFox4cFx3bQQgSwOLyqu7KHRTe1q7nckA9uXmf
- MK016FxHdhaW0GfzilLkfbczOhvcNVma75SARt3558dz/NccL5Mxh2J30piP1/iJ9nLotFX0T7i
- dBvrBd3lcOq23S+PDlm+X0bn+aqXSLG58CJ7DAb33Z8gxYk9+ZQyTWqN8U2T2KtcbrwpG+FBPYS
- 1HovY7PnWoIVCr4tfRMm5ShcfFk+g5Rtd570xjtCT4Vr/wKTAH/4Ihw5EairvRy9/XoChWLzHyx
- VPGlIP1bGp/wU8UauzRkB20T9/kkMBu9ZmXBh4ZA1cWI1Ax2Fd1Wsc/76hMUref5aERBFFn5bgc
- 5bCYYtDXGvX5Vo1bG4EQzmROIlGUdCycJbr978AIOuwGFiVA3d2w=
+ bh=D/a7GLwP9RCZ87p4FGNNSBIQmAsgLi2QemlLiAUnZdE=;
+ b=owEBiQJ2/ZANAwAIATR2H/jnrUPSAcsmYgBqL0nz7jORAdHB4SxDPhiz8vbmYF9wiqgK5x+N9
+ 2bIuCYl9UCJAk8EAAEIADkWIQSCdBjE9KxY53IwxHM0dh/4561D0gUCai9J8xsUgAAAAAAEAA5t
+ YW51MiwyLjUrMS4xMiwyLDIACgkQNHYf+OetQ9I5+Q//dMx746B8MjxrK0Db30vYOZYJtH/U8Rw
+ y1j+kGcAIYrV8JusA98CHLTe6At8Ht9k6pzkpUZqu/dTT86tbz1pB6xYa6gFKM1aNuBNFA5MxWz
+ zOE7MDJi2UcKvVnQQ1//ly/JI2vTqel4dIf/ugUTUEtYj9XXuPUGw8k3ku1PsSROX0mMlQrPWc+
+ P/Wq+S2t5rOWsykUQNsIgegg76y82/zDdmtEQphV60icwlH2Y/k+YICe4RiC8fJeEcWi9GMaJ1b
+ LNyvTTMzTxDOO1MjFm7Pf5b7X4nq/9NPZMieoxGbzW9XyLjjlwkL7FB0mPrm6KVeTdjNbD4ZpSX
+ idnoP1O/NR5dwxSSmyoFgbhKmgf14yIzTsVsATbeOZ3spTbBnJIKguXBM2Quf5/E69konidHvZq
+ Z2JLPkS5Jww2DzyMzrBNdYHUZVXR7SF5MfDu8sXAt7EtiZHKaQiJNPUwKggdeXzR/GGJsP1qs/z
+ PkMT+9rWbAvNPIA+ZTvRdDmbMewxSy1wFnahxG077Q1sKymr/e7Ns9+LPUq5QL6jSZdS3Q8Yb+W
+ brQLN1Jp20kWTUkvm1gyj7UiOdmqQgUHxeROhnxQ4H2sODS3AR2RdVWJcEYBSF9MGgvUo91YL6E
+ 7uoxR5Uy3cRQk0J5Rxs2YyesO/QHcai3Mj02vVoiSvuH+s8bT7Bs=
 X-Developer-Key: i=markus.probst@posteo.de; a=openpgp;
  fpr=827418C4F4AC58E77230C47334761FF8E7AD43D2
 Autocrypt: addr=markus.probst@posteo.de; prefer-encrypt=mutual;
@@ -113,29 +111,32 @@ Autocrypt: addr=markus.probst@posteo.de; prefer-encrypt=mutual;
   aBeNN4ijKZchBXHPgVx+YtWRHfcm4l8=
 OpenPGP: url=https://posteo.de/keys/markus.probst@posteo.de.asc; preference=encrypt
 
-Support the uart clock frequency in the SPCR table.
-See the commit messages for details.
+The Microsoft Serial Port Console Redirection (SPCR) specification
+revision 1.08 comprises additional field: UART Clock Frequency [1].
 
+It contains a non-zero value indicating the UART clock frequency in Hz.
+
+Link: https://learn.microsoft.com/en-us/windows-hardware/drivers/serports/serial-port-console-redirection-table [1]
 Signed-off-by: Markus Probst <markus.probst@posteo.de>
 ---
-Changes in v3:
-- add separate function for earlycon with uartclk
-- Link to v2: https://patch.msgid.link/20260525-acpi_spcr-v2-0-c042089d73ca@posteo.de
+ drivers/acpi/spcr.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Changes in v2:
-- fix uart_clk_freq possibly being interpreted as parity/bits/flow
-- Link to v1: https://patch.msgid.link/20260505-acpi_spcr-v1-1-fd4bc6f4eb53@posteo.de
+diff --git a/drivers/acpi/spcr.c b/drivers/acpi/spcr.c
+index 73cb933fdc89..c79c809f49d4 100644
+--- a/drivers/acpi/spcr.c
++++ b/drivers/acpi/spcr.c
+@@ -228,7 +228,8 @@ int __init acpi_parse_spcr(bool enable_earlycon, bool enable_console)
+ 	pr_info("console: %s\n", opts);
+ 
+ 	if (enable_earlycon)
+-		setup_earlycon(opts);
++		setup_earlycon_with_uartclk(opts,
++					    table->header.revision >= 3 ? table->uart_clk_freq : 0);
+ 
+ 	if (enable_console)
+ 		err = add_preferred_console(uart, 0, opts + strlen(uart) + 1);
 
----
-Markus Probst (2):
-      serial: earlycon: add uart_clk_freq parameter
-      ACPI: SPCR: Support UART clock frequency field
-
- drivers/acpi/spcr.c           |  3 ++-
- drivers/tty/serial/earlycon.c | 17 ++++++++++++-----
- include/linux/serial_core.h   | 11 +++++++++--
- 3 files changed, 23 insertions(+), 8 deletions(-)
----
-base-commit: b3f94b2b3f3e51ab880a51fc6510e1dafba654ed
-change-id: 20260430-acpi_spcr-61902fd923f2
+-- 
+2.53.0
 
