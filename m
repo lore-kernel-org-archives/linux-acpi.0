@@ -1,138 +1,211 @@
-Received: from mail-qv1-f52.google.com (mail-qv1-f52.google.com [209.85.219.52])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mout01.posteo.de (mout01.posteo.de [185.67.36.65])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87912378D63
-	for <linux-acpi@vger.kernel.org>; Sun, 14 Jun 2026 22:20:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A9411ABEDE
+	for <linux-acpi@vger.kernel.org>; Mon, 15 Jun 2026 00:40:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.67.36.65
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781475643; cv=none; b=Wmyond61OntlleyMKerFTumRIN4JMjDJKiaR52X/4mjyH5AhNgh/V3gRFE40+ydTmG++as419lG+pJEEf/Z+zkOPMZR/IhMAYTSTuKljGzMbuLabZ/B2fvzEa1oPKiOQr2LAyM1MxJopS94Jm0+cEWJGZZop4rnxz4V6vCC0rrs=
+	t=1781484030; cv=none; b=bmGcqac6qgU0wznSdV/+cdDhSA70R/pNopge9EyPEx2cSWxyOAsGb3bs8GATcO3YwuppT7hORqI8dh9wNA8woF9ARlxz+XxiX65e0/JnseopzFB+iDuuDJqzL+4u5Pt7RbvtAhr5K4obP1a3OD6FgjWsq4vdjTF9TTjCuoBOJiE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781475643; c=relaxed/simple;
-	bh=G8r/95xJ9pTnJbmXhgWqGPDl/XJa8Ir9LGnOlumx2VM=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type; b=kk/n4IJjpUDZ0YKZLOP/qi6a71SxEU2Luhn5kUN3sNGTWWt2xFefEsgqcNvbEQoYDAiCV5Vyi9LaoMl/hWIdvq2JMc//XuzpMWwGt7jqCmhFDccp5L1RG5d0cJttuWr1LoHJuAajn0gKnPa2P/NLIwnYp24zVHt9JQsHpJQMcH0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=kT8fKqLT; arc=none smtp.client-ip=209.85.219.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1781484030; c=relaxed/simple;
+	bh=+224hee0vF2PrlP9+wUN8C16JI0W0b+GsrBZoxiDo0Q=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=a73A6aYrdCZkMy3BlA3siDWEYNDzNxZ8FWayDniDAEBdTGmDw1gzZgSyuMLybD44CduGidvIAQmBwyv4qqpQ/XrgW8OJXbMp5i7YonfX4Q+sFqgqOWjCqZBY5Dweit8CyM9FqchyxkgmSqKIekjYe05DTO3VXGe4Xg8S/K5a4J4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de; spf=pass smtp.mailfrom=posteo.de; dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b=nVYiKuCf; arc=none smtp.client-ip=185.67.36.65
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=posteo.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kT8fKqLT"
-Received: by mail-qv1-f52.google.com with SMTP id 6a1803df08f44-8cceb2ecc03so26873356d6.3
-        for <linux-acpi@vger.kernel.org>; Sun, 14 Jun 2026 15:20:41 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1781475640; x=1782080440; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:to
-         :from:from:to:cc:subject:date:message-id:reply-to;
-        bh=x79HC4AW88VSJUVztZWqpHV3df6NSlmfvUcZEcWk0J4=;
-        b=kT8fKqLTLwKO5azHVYNvkZO6VkNSm4va9Yf++gApzTwOrqpjTMQSv5nkN1d0jz2Hqq
-         5n09sQGe0qltx2skBGPavo37m1/MTOVNkyrMzuZVPiHGsyKb4efdNbkpGcNfxz7OukWz
-         /K3Fs9qMKq8Z2zpNkmoCda68hPQ611phpyq4M4ik6DfiO3rrFqqUrcjT49+dkhNNrhp4
-         jlB9PyObOw1L2Ztadm02U2H3I/BHobC1HjWh4zq37Bgf3ou0SRCyxuDjVd64gh6TAXG+
-         PSmjjlNhEMskIDW6wJfzVQUQya4L67qceEP3Z/kzPemhpk3XkB/gQEspb6Ds6V5emipr
-         DxLA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1781475640; x=1782080440;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:to
-         :from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=x79HC4AW88VSJUVztZWqpHV3df6NSlmfvUcZEcWk0J4=;
-        b=BHfuWF1LZn9LXli6PlYoftqyXGO/eaTHWoRRUGIV9hFIZ3jdSbi+fQhwzUoJIYBTAI
-         l3J3TWrmX+LKQkV0Gr4CcRzQDKMCzjN8mUt+pPC/pHI86qyAGfzCrcmCMLkTUyYJYdTW
-         Z9sExJqF18F+kYLkxW/1CaJZ5jwKucLVJhY6Ue6+8tTZr410tVHdX9VXoiZMmi2JklId
-         k9ctc56rwbNJYm1dfbcvIHt82ztBppLwO8FN8LUFomKFpFhRvJVWOTM6FX4/qaAytIAz
-         wxZFNR1WGK5OT3Ec2yPusW20CNoM5zKdpOf3vQuLAm7xeNfLOwmcEreRwO8NrGn1722P
-         VyoA==
-X-Forwarded-Encrypted: i=1; AFNElJ/V14NmP+97HKk6Dd/I04JRCvVpeq+rmJoNWGAIx40nfFCJQfVMhjAoQ7zQ1VBhJX/N0iEw7+ZrprSx@vger.kernel.org
-X-Gm-Message-State: AOJu0YykptbpPaNRAQ6sMaPFoLxpv7dlwvtA2DncenwPx3kpO9/6E4t2
-	ThGlhHmFXK8Hk90iCiiLlHrpp+8iBVAJUAGrYhm6WRw+IR/EIxeqICjxHcz8Q6UExaM=
-X-Gm-Gg: Acq92OFIw/Qf0FaIJ4lAXjqVaueXiG3X5gozj2dEfArSEti6OpcwvN4yJqMPWkVKPXL
-	bEgIaE4gIy0dP0DY/jQXTsUjAsIcgiysv11B82gUxxZpKNz2MBc48hYI88IS7sctKrLH40seaFe
-	Z6pLu96la2bC8nFzdLgAN9XliDrTfMfQqQ5RepqRlZQT7Y95y/iZeBTdC/AwZomuuKaTdl9IRGW
-	Kd/W+JN3jHrcStJ+ym2jIWLSRdU9BH9WYOmmDJcLWEFu6ZXgAgkF7/r8UIg8u8qBg/5arnu617t
-	AbBCQovZ/lEfwaMUNGJj/kOsLXHWf02HoCmJaCL7gHySmCWZbz7NcYUfUhlKots8QKYxgyNp8Ua
-	e6fxMWxYDVvE7nKBGluc0Vxvtvt5gyBphuFH/57KF5Wbf50n7eRNvWnR8BmoFNu5skksSyl0xKm
-	7+GjcrXFhLd507bz1JmCJdUUquENdgybltGg8375GgrrDFNB0tV7XMG/Zu4oR9DHun4j8x0KlO1
-	g==
-X-Received: by 2002:a05:6214:5408:b0:8d1:ae7a:7d79 with SMTP id 6a1803df08f44-8d450972204mr163526096d6.41.1781475640418;
-        Sun, 14 Jun 2026 15:20:40 -0700 (PDT)
-Received: from localhost.localdomain ([2607:fb91:14e1:4204:4d87:aacf:f5f1:c2dd])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-8d301b2cf04sm91315816d6.16.2026.06.14.15.20.39
-        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Sun, 14 Jun 2026 15:20:40 -0700 (PDT)
-From: Shuangpeng Bai <shuangpeng.kernel@gmail.com>
-To: rafael@kernel.org,
-	lenb@kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [BUG] KASAN: slab-use-after-free in pfru_ioctl
-Date: Sun, 14 Jun 2026 18:20:37 -0400
-Message-ID: <178144969601.60470.7781990940097306115@gmail.com>
-X-Mailer: git-send-email 2.47.1
+	dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b="nVYiKuCf"
+Received: from submission (posteo.de [185.67.36.169]) 
+	by mout01.posteo.de (Postfix) with ESMTPS id B2E82240029
+	for <linux-acpi@vger.kernel.org>; Mon, 15 Jun 2026 02:40:21 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=posteo.de; s=2017;
+	t=1781484021; bh=Hi1n85INy8qrkSi90aNIhgIANDa5ehEQj1yLY+PriN8=;
+	h=From:Date:Subject:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding:Message-Id:To:Cc:Autocrypt:OpenPGP:From;
+	b=nVYiKuCfa4v64LZc3Epdq9sNuv0tNM+2/Em4pPKWRwvQzEL8sirHtVRRmuSw9vHW6
+	 rUua4qdS5+G/ho7KN+LfJ6CmI6NU3DtrhETFxmzsQJ2mcSPhS7GEYNw/6tQnhH8EOQ
+	 szjCZLUr2p9NdUqynwhu5GjOZg9eDwPlMJNUllKIxvg4kPxxjQ/+nrR/SaPLVt5/W7
+	 Cgs5kAiNLTG4BnTQtfZE+sOzYZLmfTz7IXBNH6ecwa5v7KbZm3arp0nXB9T8vSUF+f
+	 XHCCfy+OR1ikMDDOLfBUSLpRLLQDB3JgerTRpMqfFKNMcLkTRVNjSGzSiUIi/UJDoz
+	 dwkAJddozRW9Q==
+Received: from customer (localhost [127.0.0.1])
+	by submission (posteo.de) with ESMTPSA id 4gdrr45bbCz6tsf;
+	Mon, 15 Jun 2026 02:40:20 +0200 (CEST)
+From: Markus Probst <markus.probst@posteo.de>
+Date: Mon, 15 Jun 2026 00:40:21 +0000
+Subject: [PATCH v3 1/2] serial: earlycon: add uart_clk_freq parameter
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <20260615-acpi_spcr-v3-1-9a59ebad74ea@posteo.de>
+References: <20260615-acpi_spcr-v3-0-9a59ebad74ea@posteo.de>
+In-Reply-To: <20260615-acpi_spcr-v3-0-9a59ebad74ea@posteo.de>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+ Jiri Slaby <jirislaby@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+ Len Brown <lenb@kernel.org>
+Cc: linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, 
+ linux-acpi@vger.kernel.org, Markus Probst <markus.probst@posteo.de>
+X-Developer-Signature: v=1; a=openpgp-sha256; l=3700;
+ i=markus.probst@posteo.de; h=from:subject:message-id;
+ bh=+224hee0vF2PrlP9+wUN8C16JI0W0b+GsrBZoxiDo0Q=;
+ b=owEBiQJ2/ZANAwAIATR2H/jnrUPSAcsmYgBqL0nzap2753bM94HdoYuIjI2CCX162oEw0jwpM
+ bDyupitqWOJAk8EAAEIADkWIQSCdBjE9KxY53IwxHM0dh/4561D0gUCai9J8xsUgAAAAAAEAA5t
+ YW51MiwyLjUrMS4xMiwyLDIACgkQNHYf+OetQ9KKJg/+LV5+1HTx34LQN2OG7wzkYO/XMhgNmFG
+ Gcp5r/IjfBqjznMKgNhCvfKBE1vZtIP+J6hDy9nxFW76GDSIW2KvTYC3P9sX6lzBvCaw4xE7Inz
+ c8gcjfZpcxSxZ4GDX+uz7ur2zgAYaNRk8p6D7XWqBPx+E4t920NByS1q3YN2Iha00mqNiSVCiH6
+ vUA4gul3cOTdIG8v73h3rjo6vD91w4Wl/rq/DVw0HXQ8YxFV3UHboAUpihL9nllEx8IfBEftgrg
+ Gv35O1+vldklVYd42oT9d2PeQrjq+tVTeehq7Yhvj9f5UT0QkFPJ3aOc9rMPhv9lL0/GloDa1eB
+ RTC5CgJRhEU1de2GgzL+ji6QdXJ62BB8dhdV0z/R4WJ17s0kDQhWsxHQ2u2rnMjFwxhZqm4D3go
+ 0NhmIiF785Ycswrh8pAMceUhugyBtBLDVo2yaRZJxP19w9flMQjuIt/z+XzgWDhvOURq8+0CnBF
+ GsBnw8WZvDXpwCaXSpd7LsDNX/j0+nrk5f9lwH/gBeP1y7iGFfF70C+1Xp/0HeJxz1LC7iv4Lj6
+ 82kTnqWHB6h8jgsXpJ6E4npc4rTLu1/Pf3+uVATAGsb3e3oWgtSh8bfp4IBeUJ/MswBIaIoKNlS
+ 5Rn+kR5YrLBRJqvECczLeLPPnKaodsZMfCi3neqBBifslddheOms=
+X-Developer-Key: i=markus.probst@posteo.de; a=openpgp;
+ fpr=827418C4F4AC58E77230C47334761FF8E7AD43D2
+Autocrypt: addr=markus.probst@posteo.de; prefer-encrypt=mutual;
+  keydata=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
+  aBeNN4ijKZchBXHPgVx+YtWRHfcm4l8=
+OpenPGP: url=https://posteo.de/keys/markus.probst@posteo.de.asc; preference=encrypt
 
-Hi Kernel Maintainers,
+Add function `setup_earlycon_with_uartclk`. This allows the
+options string to be reused with `add_preferred_console`, while still
+allowing to set the uart clock frequency. This will be used in the
+following commit ("ACPI: SPCR: Support UART clock frequency field").
 
-I hit the following report while testing current upstream kernel:
+No logical change intended.
 
-KASAN: slab-use-after-free in pfru_ioctl
+Signed-off-by: Markus Probst <markus.probst@posteo.de>
+---
+ drivers/tty/serial/earlycon.c | 17 ++++++++++++-----
+ include/linux/serial_core.h   | 11 +++++++++--
+ 2 files changed, 21 insertions(+), 7 deletions(-)
 
-I reproduced this on commit: e8c2f9fdadee7cbc75134dc463c1e0d856d6e5c7 (May 25 2026)
+diff --git a/drivers/tty/serial/earlycon.c b/drivers/tty/serial/earlycon.c
+index ab9af37f6cda..5a20fe9e3fb6 100644
+--- a/drivers/tty/serial/earlycon.c
++++ b/drivers/tty/serial/earlycon.c
+@@ -135,11 +135,14 @@ static int __init parse_options(struct earlycon_device *device, char *options)
+ 	return 0;
+ }
+ 
+-static int __init register_earlycon(char *buf, const struct earlycon_id *match)
++static int __init register_earlycon(char *buf, unsigned int uart_clk_freq,
++				    const struct earlycon_id *match)
+ {
+ 	int err;
+ 	struct uart_port *port = &early_console_dev.port;
+ 
++	port->uartclk = uart_clk_freq;
++
+ 	/* On parsing error, pass the options buf to the setup function */
+ 	if (buf && !parse_options(&early_console_dev, buf))
+ 		buf = NULL;
+@@ -163,8 +166,9 @@ static int __init register_earlycon(char *buf, const struct earlycon_id *match)
+ }
+ 
+ /**
+- *	setup_earlycon - match and register earlycon console
+- *	@buf:	earlycon param string
++ *	setup_earlycon_with_uartclk - match and register earlycon console
++ *	@buf:			      earlycon param string
++ *	@uart_clk_freq:		      uart clock frequency in Hz or 0 for BASE_BAUD*16
+  *
+  *	Registers the earlycon console matching the earlycon specified
+  *	in the param string @buf. Acceptable param strings are of the form
+@@ -177,10 +181,13 @@ static int __init register_earlycon(char *buf, const struct earlycon_id *match)
+  *	<options> string in the 'options' parameter; all other forms set
+  *	the parameter to NULL.
+  *
++ *	If the uart clock frequency is specified in the 'options' parameter,
++ *	the value of the param @uart_clk_freq will be ignored.
++ *
+  *	Returns 0 if an attempt to register the earlycon was made,
+  *	otherwise negative error code
+  */
+-int __init setup_earlycon(char *buf)
++int __init setup_earlycon_with_uartclk(char *buf, unsigned int uart_clk_freq)
+ {
+ 	const struct earlycon_id *match;
+ 	bool empty_compatible = true;
+@@ -209,7 +216,7 @@ int __init setup_earlycon(char *buf)
+ 		} else
+ 			buf = NULL;
+ 
+-		return register_earlycon(buf, match);
++		return register_earlycon(buf, uart_clk_freq, match);
+ 	}
+ 
+ 	if (empty_compatible) {
+diff --git a/include/linux/serial_core.h b/include/linux/serial_core.h
+index 110ad4e2aef9..19d8181c9005 100644
+--- a/include/linux/serial_core.h
++++ b/include/linux/serial_core.h
+@@ -1097,11 +1097,18 @@ int of_setup_earlycon(const struct earlycon_id *match, unsigned long node,
+ 
+ #ifdef CONFIG_SERIAL_EARLYCON
+ extern bool earlycon_acpi_spcr_enable __initdata;
+-int setup_earlycon(char *buf);
++int setup_earlycon_with_uartclk(char *buf, unsigned int uart_clk_freq);
+ #else
+ static const bool earlycon_acpi_spcr_enable EARLYCON_USED_OR_UNUSED;
+-static inline int setup_earlycon(char *buf) { return 0; }
++static inline int setup_earlycon_with_uartclk(char *buf, unsigned int uart_clk_freq)
++{
++	return 0;
++}
+ #endif
++static inline int setup_earlycon(char *buf)
++{
++	return setup_earlycon_with_uartclk(buf, 0);
++}
+ 
+ /* Variant of uart_console_registered() when the console_list_lock is held. */
+ static inline bool uart_console_registered_locked(struct uart_port *port)
 
-The reproducer and .config files are here.
-https://gist.github.com/shuangpengbai/00fb9f2207179688618e3d5e938d93df
+-- 
+2.53.0
 
-I'm happy to test debug patches or provide additional information.
-
-Reported-by: Shuangpeng Bai <shuangpeng.kernel@gmail.com>
-
-[   83.847068][ T8420] BUG: KASAN: slab-use-after-free in pfru_ioctl (drivers/acpi/pfr_update.c:446)
-[   83.849125][ T8420] Write of size 4 at addr ffff888102362938 by task pfrut_oldfd_rep/8420
-[   83.851358][ T8420]
-[   83.852029][ T8420] Hardware name: QEMU Ubuntu 24.04 PC v2 (i440FX + PIIX, arch_caps fix, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
-[   83.852035][ T8420] Call Trace:
-[   83.852041][ T8420]  <TASK>
-[   83.852046][ T8420]  dump_stack_lvl (lib/dump_stack.c:94 lib/dump_stack.c:120)
-[   83.852061][ T8420]  print_report (mm/kasan/report.c:378 mm/kasan/report.c:482)
-[   83.852098][ T8420]  kasan_report (mm/kasan/report.c:595)
-[   83.852121][ T8420]  pfru_ioctl (drivers/acpi/pfr_update.c:446)
-[   83.852166][ T8420]  __se_sys_ioctl (fs/ioctl.c:51 fs/ioctl.c:597 fs/ioctl.c:583)
-[   83.852177][ T8420]  do_syscall_64 (arch/x86/entry/syscall_64.c:63 arch/x86/entry/syscall_64.c:94)
-[   83.852207][ T8420]  entry_SYSCALL_64_after_hwframe (arch/x86/entry/entry_64.S:121)
-[   83.852217][ T8420] RIP: 0033:0x7fc16a359237
-[   83.852227][ T8420] Code: 00 00 00 48 8b 05 59 cc 0d 00 64 c7 00 26 00 00 00 48 c7 c0 ff ff ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 b8 10 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d 29 cc 0d 00 f7 d8 64 89 01 48
-[   83.852237][ T8420] RSP: 002b:00007ffe1d81d8d8 EFLAGS: 00000206 ORIG_RAX: 0000000000000010
-[   83.852252][ T8420] RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007fc16a359237
-[   83.852260][ T8420] RDX: 00007ffe1d81f8f0 RSI: 000000004004ee01 RDI: 0000000000000003
-[   83.852266][ T8420] RBP: 0000000000000003 R08: 0000000000000000 R09: 0000000000000008
-[   83.852272][ T8420] R10: fffffffffffff66f R11: 0000000000000206 R12: 00007ffe1d81f8f0
-[   83.852278][ T8420] R13: 0000000000000000 R14: 00007fc16a43d4c0 R15: 000055c04503b150
-[   83.852289][ T8420]  </TASK>
-[   83.852293][ T8420]
-[   83.870652][ T8420] Freed by task 8420 on cpu 0 at 83.642118s:
-[   83.871211][ T8420]  kasan_save_track (mm/kasan/common.c:57 mm/kasan/common.c:78)
-[   83.871657][ T8420]  kasan_save_free_info (mm/kasan/generic.c:584)
-[   83.872128][ T8420]  __kasan_slab_free (mm/kasan/common.c:253 mm/kasan/common.c:285)
-[   83.872582][ T8420]  kfree (include/linux/kasan.h:235 mm/slub.c:2689 mm/slub.c:6251 mm/slub.c:6566)
-[   83.872953][ T8420]  devres_release_all (drivers/base/devres.c:50 drivers/base/devres.c:547 drivers/base/devres.c:576)
-[   83.873431][ T8420]  device_release_driver_internal (drivers/base/dd.c:598 drivers/base/dd.c:1357 drivers/base/dd.c:1375)
-[   83.874003][ T8420]  unbind_store (drivers/base/bus.c:244)
-[   83.874436][ T8420]  kernfs_fop_write_iter (fs/kernfs/file.c:352)
-[   83.874936][ T8420]  vfs_write (fs/read_write.c:595 fs/read_write.c:688)
-[   83.875339][ T8420]  ksys_write (fs/read_write.c:740)
-[   83.875748][ T8420]  do_syscall_64 (arch/x86/entry/syscall_64.c:63 arch/x86/entry/syscall_64.c:94)
-[   83.876187][ T8420]  entry_SYSCALL_64_after_hwframe (arch/x86/entry/entry_64.S:121)
-[   83.876745][ T8420]
-[   83.876975][ T8420] The buggy address belongs to the object at ffff888102362900
-[   83.876975][ T8420]  which belongs to the cache kmalloc-192 of size 192
-[   83.878281][ T8420] The buggy address is located 56 bytes inside of
-[   83.878281][ T8420]  freed 192-byte region [ffff888102362900, ffff8881023629c0)
-[   83.879564][ T8420]
-
-
-Best,
-Shuangpeng
