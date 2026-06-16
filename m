@@ -1,122 +1,79 @@
-Received: from smtpbguseast3.qq.com (smtpbguseast3.qq.com [54.243.244.52])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from layka.disroot.org (layka.disroot.org [178.21.23.139])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 658863AC0C7;
-	Tue, 16 Jun 2026 09:36:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.243.244.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3498421A05;
+	Tue, 16 Jun 2026 09:44:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.21.23.139
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781602623; cv=none; b=ScM1Fzj3PMp//TnvPMbDCsAX/Dq+Ij8BIxCDBG86+c5FmKMO4lnphP3cSuS3lHRpZkqBTkVAKR4TchSJjBF+WWkMq3+pT0B6+YEYajbm5CpD7mpCcNo2eIC0JPYrhDd2vcHrwgEWTNvTDkTPlcbVfe1l1oFDnCFsM/jahcpBXDE=
+	t=1781603053; cv=none; b=sdyAbezpIJkiDLTmkaBaQ0h84vCOWFeqW6hlot1lPfm/OAaWMxnK4+9kYVBigowGVJaQhmjJdlr5BFr6W2Pgrc3b6+uMHkYYKsmI8HCXh0KBlWOpFtLrFce2FgVW/rTnXuDV9Ec5xbcxSOFNbvQmUn7mcY3kQPLAazGYrbMFToM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781602623; c=relaxed/simple;
-	bh=AR1C/GHiKRFRUuWmhCHJ+Zkybp92L264FBKGlZv8Bvw=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=iOSJMPttaRu+qhrSSRxp2LEDCT2FOizHgnJz1g3L6wgZEwjo3excIvtQfEEFKbPbH9pn460rpTBJRAFsF59ow3h87i6sDM7pAxGhao5lwwsfDjDmT9jNYCzlS9Q4gPXQ54b4BSleRTgpMI35lIZXPkOYE0tPJVpSN+cDI9v7UuE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=uniontech.com; spf=pass smtp.mailfrom=uniontech.com; dkim=pass (1024-bit key) header.d=uniontech.com header.i=@uniontech.com header.b=SYC9Ra0D; arc=none smtp.client-ip=54.243.244.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=uniontech.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=uniontech.com
+	s=arc-20240116; t=1781603053; c=relaxed/simple;
+	bh=mWWaJuOm2MSxr7vAoqriZoUvC9+aAaZ6/3TJS9Nvy+0=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=nM3E3KpvbxMxoV5ztggIIsl26whZtRyN0Lxfp2mkEYc7XFJEQuaC02qhVSbwqoYFe2XtTM94Ho7iDuOkD/p6wt8dhZVvHVtmJMI3cKMq40goAxA3gcMM5n1QKhJalCuAa6ogbC3rSm9fyCcONOtGS8gZ7QXNhYrLuqST5b7bkVQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=disroot.org; spf=pass smtp.mailfrom=disroot.org; dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b=AYFSXRX1; arc=none smtp.client-ip=178.21.23.139
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=disroot.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=disroot.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=uniontech.com header.i=@uniontech.com header.b="SYC9Ra0D"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=uniontech.com;
-	s=onoh2408; t=1781602599;
-	bh=OIWdUbroiUcSgHTxDk9ni/4jfm7teNqFGGNKpMxbVlw=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version;
-	b=SYC9Ra0DV0FzRLCP+eDUrnPNvLdYt5Qf0R5gAvcHn6Qn7hP751/LmTA+XYliSJQ6r
-	 +EfF6D+xs/yaz0iRSuZC/18bqyH+uQ1MPoqop8tn6lL6XRUlZTqdoJuwKZumDn2vxA
-	 l94nAoH0W3uDSecbdo/rv1AL7qKeDA6bu/uqhk0E=
-X-QQ-mid: esmtpsz19t1781602584tfb0cb970
-X-QQ-Originating-IP: oTJIl7CUlHt0DRNABXrWKZr1kjYbtUYqgObyDKJe/ag=
-Received: from PEN202512010004 ( [113.57.152.160])
-	by bizesmtp.qq.com (ESMTP) with 
-	id ; Tue, 16 Jun 2026 17:36:23 +0800 (CST)
-X-QQ-SSF: 0000000000000000000000000000000
-X-QQ-GoodBg: 1
-X-BIZMAIL-ID: 9025222703028823009
-EX-QQ-RecipientCnt: 5
-From: raoxu <raoxu@uniontech.com>
-To: rafael@kernel.org
-Cc: lenb@kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	raoxu@uniontech.com
-Subject: [PATCH] ACPI: IPMI: Fix inverted interface check in ipmi_bmc_gone()
-Date: Tue, 16 Jun 2026 17:36:21 +0800
-Message-ID: <B486593E06E6F6E0+20260616093621.1039943-1-raoxu@uniontech.com>
-X-Mailer: git-send-email 2.50.1
+	dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b="AYFSXRX1"
+Received: from mail01.disroot.lan (localhost [127.0.0.1])
+	by disroot.org (Postfix) with ESMTP id 410C3277CE;
+	Tue, 16 Jun 2026 11:44:10 +0200 (CEST)
+X-Virus-Scanned: SPAM Filter at disroot.org
+Received: from layka.disroot.org ([127.0.0.1])
+ by localhost (disroot.org [127.0.0.1]) (amavis, port 10024) with ESMTP
+ id htInjrjOE_y1; Tue, 16 Jun 2026 11:44:09 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=disroot.org; s=mail;
+	t=1781603049; bh=mWWaJuOm2MSxr7vAoqriZoUvC9+aAaZ6/3TJS9Nvy+0=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=AYFSXRX1OU1syY4HtWLAgayQSVJ+ScjbizFZwDPoSoY7p4wNtHY/3RzmqkDAitHMA
+	 tF9COnQXnKIEh53H7KnproEY1n5+tDocQvCVUZo8387VGu53jGBJki3w/Rs7z6xk5N
+	 ER3h+tiniwkipKTjxXKKVDdlSTY5dbjQvG37KkEs6j8S1YXCBZD3XJcMTNax7oGXz3
+	 U6SkLwUV2Qe3O8qJWBGCdfil4XH/Ai/bSplQpRnKoLdqEw+K/CW7p30UA2bURULPQB
+	 wYtNshXcv7WVm2hbPje1Cb2IUqw34vdpZ9GfyOFWvG1inDECDlnm59VeeHJGFd/JHt
+	 oh90zzGou938w==
+From: Marco Scardovi <scardracs@disroot.org>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Mika Westerberg <westeri@kernel.org>, Linus Walleij <linusw@kernel.org>,
+ Bartosz Golaszewski <brgl@kernel.org>,
+ Mario Limonciello <mario.limonciello@amd.com>, linux-gpio@vger.kernel.org,
+ linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] gpiolib: acpi: Add quirk for ASUS ROG Strix G614 series
+Date: Tue, 16 Jun 2026 11:43:56 +0200
+Message-ID: <RqcbSmnzQWas394Kq-TG7w@disroot.org>
+In-Reply-To: <ajEX8L63vAhhndv7@ashevche-desk.local>
+References:
+ <20260616090824.5967-1-scardracs@disroot.org>
+ <ajEX8L63vAhhndv7@ashevche-desk.local>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-QQ-SENDSIZE: 520
-Feedback-ID: esmtpsz:uniontech.com:qybglogicsvrgz:qybglogicsvrgz6b-0
-X-QQ-XMAILINFO: M12MFmiBLnnlYoiLgeWhm3fU0iED+u48DYvrIKw2G8ONkeFcrNPZAllT
-	u8cw/jLq0ZI3wgUdvRSImwk86J2LujD0cCQ1uwbg+j01vBXHrm0Y/LGp0rR7p+7yfzI5duA
-	ESLWLHNStwKO84gVANOFbrCgWRgo7yAPyeNi8Bn9van8vIf3LVp8S5yElDH+nr34NB5JHva
-	ohoWJlOU1gDdJU+MHPXVnIK53/VvFkA1NpgabEm2QdWvuodPjwPV3Diqy2VZN/WWv101hmb
-	JBN7OphZM90g6+dmYSz683aQi9smdCdypMm9jgRJ5IAHI+DiZcF6TQFLIWGb8EU4sG7BaDK
-	C3MM87cpHepIaWXF6mqcrByTsbXunwBBxpMlVRC8be3dMyxkKRb2uGirMLRdW0Ip7dlO2J9
-	5TrRgUi5EpvpLXWgzJoJVZ7jSqXj2zIoc9XJZdg0f5+ny0KEMRkkfdxRWe9vgyzrlnlf0UG
-	b1bAonVpKe6oA8Bjzf085+9H76t9mndCJ904m9cfmf5SUfqokhlo0YDhQwGyRFmaGgEWCY0
-	LKvReP2U20vRmSzcNpgS4y2qqDAGUqWbLGyfz4qKhiW44Bg2tPhIZApNuRoek9XdtMfGkdb
-	gWxnGCa6DFdEX8eyfNKHFqPb0oUZciFhbyHHjRnbY9oIyhlwxvbr0CQehczAiEZZyQO2htq
-	LUehUlD1VUeRtQRxrjZdpcJq5TeQpRHO/aCPsLX/rW1smLmpZvYQVHzDJ9JqWMddZ6R1VLN
-	gIH+vfgU6II2r07IFPXb9PkRaWZzC/O07qm1FxF3EZtND5jbN+zCMXBetjW7NQx9zwyR8nN
-	ZpUPSG0RrDxKMA6e7JQsZVjcZKYKrj5y2ymvIdTfIs/AFwigtePsWnBHzdGxvzPtP6iD5ib
-	OmEHGrw/0cuhwMa9wTyMg+BBmP60S+8UcPeXDWoVo0VduEgdShRbq9y+4xUiDWIEGahe9Gc
-	MK0PvXmIbA01PV1TLe/476M+Sji6/k/N1qYGm8PWQboDd9joGzbm1zvp8jKnO6PAxdVmBhR
-	+3JQ0kBD12fPiTQoZ5ahEoE60OwvQcV9VW1YEOl+XZcR/4TzOc2RuH9zPWLFs=
-X-QQ-XMRINFO: Mp0Kj//9VHAxzExpfF+O8yhSrljjwrznVg==
-X-QQ-RECHKSPAM: 0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="utf-8"
 
-From: Xu Rao <raoxu@uniontech.com>
+Hi Andy,
 
-Before commit a1a69b297e47 ("ACPI / IPMI: Fix race caused by the
-unprotected ACPI IPMI user"), ipmi_bmc_gone() skipped entries whose
-interface number did not match the SMI being removed, then killed the
-matching entry:
+> 'slow'? Did you mean 'low'?
 
-	if (ipmi_device->ipmi_ifnum != iface)
-		continue;
+Yes, sorry, that was a typo. I meant 'low'.
 
-	__ipmi_dev_kill(ipmi_device);
+> What is this interrupt for? Touchpad?
 
-That commit folded the removal block into the existing non-match test
-while converting the object lifetime handling, but left the comparison
-unchanged. The old != meant "continue past this entry"; after the
-refactor it meant "kill this entry".
+It is an ACPI event interrupt on the AMD GPIO controller (AMDI0030).
+Specifically, it triggers on pin 21, appearing in /proc/interrupts as
+"amd_gpio 21 ACPI:Event" and as you guessed it is the touchpad.
 
-As a result, a single ACPI IPMI interface is never removed when its SMI
-disappears. If multiple interfaces are tracked, the first interface
-whose number differs from iface is removed instead, while the interface
-that actually disappeared remains on driver_data.ipmi_devices. The
-stale entry is not marked dead and can continue to be selected for ACPI
-IPMI transactions. It can also prevent the same ACPI handle from being
-registered again.
+Previously, using "gpiolib_acpi.ignore_interrupt=AMDI0030:00@21" or
+"gpiolib_acpi.run_edge_events_on_boot=0" as a boot parameter successfully
+bypassed the 36-second delay, which confirms this specific pin/handler is the
+culprit stalling the boot process.
 
-Change the comparison to == so ipmi_bmc_gone() removes exactly the
-interface reported as gone by the SMI watcher. This restores the
-pre-a1a69b297e47 behavior and is the correct interface matching logic.
+Thanks for the review!
 
-Fixes: a1a69b297e47 ("ACPI / IPMI: Fix race caused by the unprotected ACPI IPMI user")
-Signed-off-by: Xu Rao <raoxu@uniontech.com>
----
- drivers/acpi/acpi_ipmi.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Marco
 
-diff --git a/drivers/acpi/acpi_ipmi.c b/drivers/acpi/acpi_ipmi.c
-index 8f1aeae8b72e..038b502224cc 100644
---- a/drivers/acpi/acpi_ipmi.c
-+++ b/drivers/acpi/acpi_ipmi.c
-@@ -490,7 +490,7 @@ static void ipmi_bmc_gone(int iface)
- 	mutex_lock(&driver_data.ipmi_lock);
- 	list_for_each_entry_safe(iter, temp,
- 				 &driver_data.ipmi_devices, head) {
--		if (iter->ipmi_ifnum != iface) {
-+		if (iter->ipmi_ifnum == iface) {
- 			ipmi_device = iter;
- 			__ipmi_dev_kill(iter);
- 			break;
---
-2.50.1
+
 
